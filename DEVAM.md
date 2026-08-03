@@ -103,6 +103,21 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
 ArTisT: marka-model sayfasi acma esigi onerisi (veri verildi: 1.062 marka-model ciftinin 812'si
 5'ten az urun) · HocA: bende bekleyen yok.
 
+**✅ KAPANDI 3 Agu: merge `242e4496` (ff, itildi) — uyum kapisi yorumundaki bayat mutant sayisi.**
+`deploy.yml`'de "Uyum kapisi" adiminin ustundeki yorum "12 oldurucu KIRMIZI + 1 ilgisiz YESIL"
+diyordu; batarya 29 mutanta cikmisti. `24c208e5`'in yordami uygulandi: sayi yorumdan CIKARILDI,
+yerine mutant SINIFLARI (OLDURUCU olcut-ESIT · KONTROL yanlis-pozitif kapisi · FAIL-CLOSED
+taninmayan kayit varsayilana dusmez) + M00'in TABAN IDDIA SAYISINI olcmesi + kopya-uzerinde
+sha256 bas/son butunlugu yazildi. Sayi artik yalniz aracin ciktisinda.
+- **Olculen batarya:** `29/29 mutant BEYANINA UYDU (iddia sayisi 39, hepsinde SABIT)`, rc=0;
+  25 oldurucu + 4 kontrol (M7/M21/M22/M28). Mutasyonu olmayan iddia 7/39 (bloklamaz, gorunur).
+- **Kapsam:** 1 dosya, +22 −2, merge-base `d8024a27`, cakisma YOK. **Sayac ve beyan disinda
+  degisen satir 0** — yorum disi govde HEAD ile bit-bazinda ozdes; `run:`/`name:`/`uses:`
+  satirlari degismedi, `|| true`/`continue-on-error`/`if: always()` sayaclari sabit (0/18/1).
+- **Kapilar:** `is-akisi-kapisi.py` YESIL (175 kapi cagrisi · 0 etkisizlestirilmis · 50 serit-B
+  beyani) · `ci-kapsam-test.py` YESIL (172 kabul testi / 133 otomatik / 2 elle / 39 muaf) ·
+  YAML gecerli (8 job, psych) · D1 uc eksen: SAYI 16874==16874 · SEMA temiz · ICERIK birebir.
+
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
   07:28→07:29 "392 dk", icerik main'de 1 dk iken; 1 Agu 07:11→07:12 "82 dk"). Kirmizi kalma
