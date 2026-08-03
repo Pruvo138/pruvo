@@ -100,9 +100,37 @@ BILEREK_DEGISEN = (
      "uretilemez secenek metni duzeltildi — YENI cumle"),
 )
 
+# TAM SATIR eslesmeli girisler. NEDEN AYRI: yukaridaki liste ALT DIZE arar; ayirt edici
+# alt dizesi OLMAYAN satirlar (ornegin yalnizca kapanis suslu parantezden olusan `}}}`)
+# alt dize olarak yazilirsa o dizeyi ICEREN her satiri — yani gercek bir icerik kaybini
+# da — maskelerdi. Tam satir eslesmesi mumkun olan EN DAR bicimdir.
+# 2026-08-03 (45f30fd7): onizleme kisit YARGISI satir-ici dongudan cikarilip
+# secenekler.js `onizlemeKisitIhlali()` TEK KAYNAGINA tasindi (ayni fonksiyonu Worker
+# sema kapisi da cagirir). Satir-ici dongunun satirlari sayfa JS'inden GERCEKTEN cikti;
+# bu bir varliga-tasima kaybi DEGIL, bilerek yapilan bir tek-kaynak refaktoru.
+# Kisit yargisinin kendi iddiasi ayri kapida olculur: tools/onizleme-kisit-kosul-test.py.
+BILEREK_DEGISEN_TAM = (
+    # ESKI: satir-ici kisit dongusu (kiyas commit'inde)
+    ("if(kis){ for(var ad in kis){ if(Object.prototype.hasOwnProperty.call(kis,ad)){",
+     "kisit dongusu tek kaynaga tasindi — ESKI dongu basi"),
+    ("var v=s.parametreler[ad];", "kisit dongusu tek kaynaga tasindi — ESKI deger okuma"),
+    ("if(v!==undefined && kis[ad].indexOf(v)<0){",
+     "kisit dongusu tek kaynaga tasindi — ESKI ihlal kosulu"),
+    ("}}}", "kisit dongusu tek kaynaga tasindi — ESKI dongu kapanisi"),
+    # YENI: tek kaynaktaki fonksiyona cagri
+    ("var kisitFn=window.PRUVO_SECENEK&&PRUVO_SECENEK.onizlemeKisitIhlali;",
+     "kisit dongusu tek kaynaga tasindi — YENI fonksiyon referansi (yoksa fail-closed)"),
+    ("if(kis&&(!kisitFn||kisitFn(kis,s.parametreler))){",
+     "kisit dongusu tek kaynaga tasindi — YENI ihlal kosulu"),
+)
+
+_BILEREK_TAM = frozenset(d for d, _g in BILEREK_DEGISEN_TAM)
+
 
 def _bilerek_degisti(satir):
     s = satir.strip()
+    if s in _BILEREK_TAM:
+        return True
     for desen, _gerekce in BILEREK_DEGISEN:
         if desen in s:
             return True
