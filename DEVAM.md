@@ -45,9 +45,14 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
 - Kardes depodaki et kalinligi kapisi (`0,8 mm`) ile **ORTUSME SIFIR**: iki AYRI bolge
   (o kapi 336/634.725 noktayi reddediyor, hepsi bu deponun motorunda URETILEBILIR).
   Yani o kapi bu urunu KORUMUYOR — iki farkli uretim motoru.
-- 🔴 **ACMADAN ONCE:** `onizleme-vaat-kapisi.py` A3 kuralinin kapsam ekseni genisletilmeli —
-  "kisitli aile" kumesi semadaki `kisitlar` alanini da kapsamali. Olculmus mutasyon dokumu
-  DEVAM-ARSIV.md'de; is ayri turda (cip acildi).
+- ✅ **KAPANDI (3 Agu, main'de):** `onizleme-vaat-kapisi.py` A3 kuralinin kisit kaynagi
+  birlestirildi — "kisitli aile" kumesi = ONIZLEME_KISITLAR ∪ semadaki `kisitlar` bloklari,
+  tek sema okuyucudan turer. Kor nokta once olculdu (kopyada rulman/vida allowlist'e
+  eklendiginde eski kapi rc=0 + A3 [OK]); simdi ikisi de A3'u tek basina kirmizi yakiyor.
+  Sema okunamaz/bicim taninmaz ise A3 hic basilmaz, kosum OLCULEMEDI (fail-closed).
+  Temiz agacta IDDIA 11 -> 12 (yeni A6 kapsam iddiasi), KIRMIZI=0, acik 17 ailede
+  yanlis-pozitif yok; kendini-test 10 -> 19 mutant (10 oldurucu, 5 kontrol, 4 fail-closed).
+  🟡 Rulman satisa ACILMADI — allowlist'e dokunulmadi, karar hala BENDE.
 
 **MERGE EDILMEDIGI ICIN ACIK KALAN IKI KARAR (isci sordu, ben cevaplamadim):**
 1. `build.py`'deki `gecersiz-parca` kolu ayni "siparis verebilirsiniz, uretim etkilenmez"
