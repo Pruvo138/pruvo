@@ -323,6 +323,22 @@ function mutasyonTuru() {
       aile + "(p) * " + k + "; }\n  function __m_" + aile + "(p) {");
   }
 
+  // TEK-CAPA DEGISTIRICI: capa BIR KEZ gecmiyorsa mutant kurulmaz (sessizce
+  // fazla/eksik uygulanan mutant, bataryanin olctugu seyi degistirirdi).
+  function degistir(eski, yeni) {
+    const n = govde.split(eski).length - 1;
+    if (n !== 1) {
+      throw new Error("CAPA TEK DEGIL (" + n + "): " + eski);
+    }
+    return govde.replace(eski, yeni);
+  }
+  const TIRTIK_CAPA = "hacim += genislik * 0.4 * egimBoyu;";
+
+  // 4. eleman (varsa) = KOL KONTROLU: oldurucu mutantta KIRMIZI yanan rampa
+  // setlerinin `ust_yuzey` kumesi TAM OLARAK bu olmali. Sebep: "rampa kirmizi
+  // yandi" tek basina "tirtik kolu bozuldu"nun kaniti DEGILDIR — tum aileyi
+  // carpan bir mutant da rampayi kirmizi yakar. duz/basamakli setlerinin AYNI
+  // kosumda YESIL kaldigini olcmeden kirmizi, kol-ozgu kanit sayilmaz.
   const MUTANTLAR = [
     // --- OLDURUCU (KIRMIZI beklenir) ---
     ["yay +%5 tahsilat (OLCULEN ACIK KALEM; 1. katmanda YOK)",
@@ -332,6 +348,20 @@ function mutasyonTuru() {
     ["cerceve +%5 tahsilat (1. katmanda YOK)", carp("cerceve", 1.05), true],
     ["toka +%5 tahsilat (1. katmanda YOK)", carp("toka", 1.05), true],
     ["yay +%0,05 (tolerans USTU ince sapma)", carp("yay", 1.0005), true],
+    // rampa tirtik terimi — 3 Agu 2026'da onarilan sabit. 0,5333 = ESKI yanlis
+    // deger (1,6 mm2 PRUVO tirtigi / 3 mm aralik); yani bu mutant tam olarak
+    // onarilan regresyonu geri koyar.
+    ["rampa tirtik kesiti 0,4 -> 0,5333 (ESKI yanlis motor sabiti)",
+     degistir(TIRTIK_CAPA, "hacim += genislik * 0.5333 * egimBoyu;"),
+     true, ["tirtikli"]],
+    ["rampa tirtik kesiti 0,4 -> 0,45 (+%12,5 ince sapma)",
+     degistir(TIRTIK_CAPA, "hacim += genislik * 0.45 * egimBoyu;"),
+     true, ["tirtikli"]],
+    // Terimin BIRIMI de korunmali: egim boyu yerine uzunluk yazmak kucuk
+    // acilarda neredeyse ayni sonucu verir — kapinin bunu ayirt ettigi olculur.
+    ["rampa tirtik terimi egim boyu -> uzunluk (BIRIM hatasi)",
+     degistir(TIRTIK_CAPA, "hacim += genislik * 0.4 * uzunluk;"),
+     true, ["tirtikli"]],
     // --- KONTROL (YESIL beklenir; yoksa 'kirmizi yaniyor' gurultudur) ---
     ["KONTROL: yalniz yorum satiri",
      govde.replace("  // === AILE: yay ===",
@@ -339,6 +369,8 @@ function mutasyonTuru() {
     ["KONTROL: yalniz bos satir", govde.replace("\n  function yay(p) {",
       "\n\n  function yay(p) {"), false],
     ["KONTROL: tolerans ALTI sapma (+%0,001)", carp("yay", 1.00001), false],
+    ["KONTROL: rampa tirtik kesiti 0,4 -> 0,4045 (tolerans ALTI)",
+     degistir(TIRTIK_CAPA, "hacim += genislik * 0.4045 * egimBoyu;"), false],
   ];
 
   const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "kalib-mut-"));
@@ -355,10 +387,18 @@ function mutasyonTuru() {
     const r = spawnSync(process.execPath, [__filename],
       { env: ortam, encoding: "utf8" });
     const m = /IDDIA: (\d+) SAP: (\d+)/.exec(r.stdout || "");
+    // KIRMIZI yanan rampa setlerinin ust_yuzey kolleri (kol kontrolu icin).
+    const koller = {};
+    (r.stdout || "").split("\n").forEach(function (satir) {
+      if (satir.indexOf("[SAP] rampa ") < 0) return;
+      const k = /"ust_yuzey":\s*"([a-z]+)"/.exec(satir);
+      if (k) koller[k[1]] = true;
+    });
     return {
       rc: r.status,
       iddia: m ? Number(m[1]) : null,
-      sap: m ? Number(m[2]) : null
+      sap: m ? Number(m[2]) : null,
+      rampaKolleri: Object.keys(koller).sort()
     };
   }
 
@@ -373,7 +413,7 @@ function mutasyonTuru() {
     " sap=" + temel.sap);
 
   MUTANTLAR.forEach(function (m, i) {
-    const ad = m[0], kaynak = m[1], oldurucu = m[2];
+    const ad = m[0], kaynak = m[1], oldurucu = m[2], beklenenKol = m[3];
     if (kaynak === govde) {
       basarisiz.push("MUTANT " + i + " KAYNAGI DEGISMEDI (capa tutmadi): " + ad);
       return;
@@ -389,14 +429,23 @@ function mutasyonTuru() {
     // hicbir sey degismemeli -> TAM ESITLIK aranir.
     const sayiTamam = r.iddia !== null &&
       (oldurucu ? r.iddia >= temel.iddia : r.iddia === temel.iddia);
-    if (!beklenenIsaret || !sayiTamam) {
+    // KOL KONTROLU: beklenen kol kumesi verilmisse KIRMIZI yanan rampa
+    // setlerinin kolleri TAM OLARAK o kume olmali — fazlasi (duz/basamakli de
+    // yandi) kol-ozgu olmadigini, eksigi capanin kaydigini gosterir.
+    const kolTamam = !beklenenKol ||
+      r.rampaKolleri.join(",") === beklenenKol.slice().sort().join(",");
+    if (!beklenenIsaret || !sayiTamam || !kolTamam) {
       basarisiz.push((oldurucu ? "OLDURUCU" : "KONTROL") + " mutant '" + ad +
         "' BEKLENTIYI KARSILAMADI: rc=" + r.rc + " sap=" + r.sap +
-        " iddia=" + r.iddia + " (temel iddia=" + temel.iddia + ")");
+        " iddia=" + r.iddia + " (temel iddia=" + temel.iddia + ")" +
+        (kolTamam ? "" : " · rampa kolleri=[" + r.rampaKolleri.join(",") +
+          "] beklenen=[" + beklenenKol.join(",") + "]"));
     }
-    console.log("  [" + (beklenenIsaret && sayiTamam ? "OK " : "SAP") + "] " +
-      (oldurucu ? "OLDURUCU" : "KONTROL ") + " rc=" + r.rc + " sap=" +
-      String(r.sap).padStart(3) + " iddia=" + r.iddia + "  " + ad);
+    console.log("  [" + (beklenenIsaret && sayiTamam && kolTamam ? "OK " : "SAP") +
+      "] " + (oldurucu ? "OLDURUCU" : "KONTROL ") + " rc=" + r.rc + " sap=" +
+      String(r.sap).padStart(3) + " iddia=" + r.iddia +
+      (beklenenKol ? " kol=[" + r.rampaKolleri.join(",") + "]" : "") +
+      "  " + ad);
   });
 
   // --- FAIL-CLOSED EKSENI: "OLCULEMEDI" YESIL SAYILMAMALI -------------------
@@ -462,9 +511,13 @@ function mutasyonTuru() {
   const kontrolSayisi = MUTANTLAR.length - oldurucuSayisi;
   console.log("  olculen: " + oldurucuSayisi + " oldurucu + " + kontrolSayisi +
     " kontrol mutant, temel iddia " + temel.iddia);
-  if (oldurucuSayisi < 5 || kontrolSayisi < 3) {
+  const kolluSayisi = MUTANTLAR.filter(function (m) { return m[3]; }).length;
+  console.log("  bunlarin " + kolluSayisi + " tanesi KOL KONTROLLU " +
+    "(kirmizi yanan kolun kimligi de iddia edilir)");
+  if (oldurucuSayisi < 8 || kontrolSayisi < 4 || kolluSayisi < 3) {
     basarisiz.push("MUTANT TABANI DUSTU: " + oldurucuSayisi + " oldurucu / " +
-      kontrolSayisi + " kontrol (taban 5/3) — batarya bosaltilamaz.");
+      kontrolSayisi + " kontrol / " + kolluSayisi +
+      " kol-kontrollu (taban 8/4/3) — batarya bosaltilamaz.");
   }
   if (basarisiz.length) {
     basarisiz.forEach(function (s) { console.log("  ❌ " + s); });
