@@ -7,6 +7,13 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 Ritüel: `tools/DEVIR-KONTROL-LISTESI.md` (`2382c7f1`). Claude hesabi disinda **hicbir sey
 degismedi** — git/GitHub/Cloudflare/D1/R2/hafiza diskte ve aynen duruyor.
 
+**AGAC DURUMU: worktree 1 (yalniz main), `git status --short` BOS.** Tum worktree'ler kaldirildi;
+uzerinde is olan her dal **origin'e itildi**, tek kopya kalan dal YOK. Devam etmek icin:
+`git -C /Users/okan/dev/pruvo worktree add .claude/worktrees/<ad> <dal>`.
+🔴 **Devir taramasinin dersi:** iki dal yalniz yerelde duruyordu, biri **detached HEAD**'de ve
+uretici oturumu kapanmisti — worktree silinseydi commit'e ulasan ref kalmayacakti. Bundan sonra
+devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulacak.
+
 **🔴 1. IS — HAZIR, MERGE BEKLIYOR (devir kurali geregi merge EDILMEDI):**
 Dal **`worktree-agent-af1b153e9ee43727a`**, commit **`51b8ba01`**, **origin'e ITILDI** (guvende).
 Icerik: **petek · cetvel · kase** ailelerinin satis kapisi KAPATILDI + `build.py`'deki yanlis
