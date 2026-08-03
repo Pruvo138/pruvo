@@ -2056,14 +2056,22 @@ jobs:
 
       # ONIZLEME VAAT KAPISI — KIRMIZI-MUTASYON TURU (ayri adim olmak ZORUNDA: yukaridaki
       # bloklayici kosum agac temizken DAIMA yesildir, yani kapinin KIRMIZI YOLUNU hic
-      # denemez). Bu adim gecici bir AYNADA 7 gercek bozulma (eski yalan vaat metninin geri
-      # gelmesi · kapatilan ailenin satis listesine geri eklenmesi · fail-closed `return null`
-      # kolunun oldurulmesi · yeni kisit beyan edilip ailenin satista birakilmasi · listenin
-      # bosaltilmasi · capa kaydi · iki cagri yerinin ayrisması) ve 3 KONTROL mutanti kosar.
-      # Kontrol mutantlari YESIL kalmali (kapi asiri hevesli degil). Mutasyon DAIMA KOPYAYA:
-      # canli agacin sha256'si bas/son basilir ve esit olmazsa adim kirmizi yanar.
-      # SERIT B (yayini durdurmaz sinifinda degil — bu adim BLOKLAYICI). Offline, ~5 s.
-      - name: Onizleme vaat kapisi kirmizi-mutasyon turu (7 mutant + 3 kontrol)
+      # denemez). Bu adim gecici bir AYNADA uc sinif mutant kosar:
+      #   OLDURUCU    gercek bozulmalar (eski yalan vaat metni · kapatilan ailenin satis
+      #               listesine geri eklenmesi · fail-closed `return null` kolunun
+      #               oldurulmesi · yeni kisit beyani + ailenin satista birakilmasi ·
+      #               listenin bosaltilmasi · capa kaydi · iki cagri yerinin ayrismasi ·
+      #               SEMASINDA `kisitlar` olan ailenin satisa acilmasi · satistaki bir
+      #               ailenin semasinin silinmesi) -> beklenen iddia KIRMIZI, fazlasi yok.
+      #   KONTROL     bozulma OLMAYAN degisiklikler -> YESIL kalmali (kapi asiri hevesli
+      #               degil; yanlis-pozitif TUM ekibin yayinini durdurur).
+      #   FAIL-CLOSED sema okunamaz/bicim taninmaz -> A3 HIC basilmaz + OLCULEMEDI + rc=1
+      #               ("kisit yok" varsayimina dusmez).
+      # Sayilari adim ADINDA TUTMUYORUZ (bayat sayi yanlis guven verir) — arac kendi basar.
+      # Mutasyon DAIMA KOPYAYA: canli agacin (secenekler.js + build.py + sema dizininin
+      # birlesik ozeti) sha256'si bas/son basilir, esit olmazsa adim kirmizi yanar.
+      # SERIT B (yayini durdurmaz sinifinda degil — bu adim BLOKLAYICI). Offline, ~10 s.
+      - name: Onizleme vaat kapisi kirmizi-mutasyon turu (oldurucu + kontrol + fail-closed)
         run: python3 tools/onizleme-vaat-kapisi.py --kendini-test
 
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
