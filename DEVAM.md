@@ -131,6 +131,16 @@ atlatip nabiz A4'u yanlis yakiyordu, adim isin sonuna alindi.
 ACIK (mimar karari): kanal ZAMAN temelli — bayat AGACTAN yapilan deploy taze gorunur; kimlik
 temelli hukum icin bundle'a commit damgasi + okuma ucu gerekir (bir deploy penceresi ister).
 
+## ✅ ONIZLEME KISIT BEYANI KOSULLU HALE GETIRILDI — merge `45f30fd7` (3 Agu)
+Vida/civata kolu disindaki M3-M4 bolgesi artik yanlis bloklanmiyor; kisit yargisi tek kaynakta
+toplandi, uc katmanli kabul testi CI'ya bagli. Olculen sayilar (dal + bagimsiz curutucu):
+- kapsam: 5 dosya, +660/−14 · cakisma 0 · sizinti 0 · kapilar 10/10 rc=0
+- parite: `parite-test.js` 1199 + `parite-ege.js` 845 sorgu birebir
+- kabul: 12 iddia · mutasyon 19/19 mutant PASS (her biri once KIRMIZI) · yeni test dosyasi 43 iddia
+- vida izgarasi: yeni biçimde blok 2/44 · eski biçimde 8/44 (yanlis bloklanan 6 nokta acildi)
+Merge ff-only yapildi (merge commit yok, baska oturumun staged dosyasi supurulmedi).
+D1 teyidi merge sonrasi: 17010 == 17010, hash uyusmazlik 0.
+
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
   07:28→07:29 "392 dk", icerik main'de 1 dk iken; 1 Agu 07:11→07:12 "82 dk"). Kirmizi kalma
