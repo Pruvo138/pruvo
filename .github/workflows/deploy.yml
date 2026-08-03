@@ -1174,6 +1174,21 @@ jobs:
           node shop/test/wa-siparis.mjs
       - name: Jenerator fiyat/sema kabul testi (varsayilan hacim + PLA taban fiyati)
         run: node jenerator/test/fiyat-test.js
+
+      # ONIZLEME VAAT KAPISI (2026-08-03, PARA + MUSTERI BEYANI — SESSIZ-HATA).
+      # OLCULEN ARIZA: sema kapisi (KONF.dogrula) 'gecerli:true' derken uretim ucu
+      # (/ic-derle) AYNI seti assert ile reddediyordu; o bolgede fiyat URETILIYOR ve
+      # siparis kabul ediliyordu (petek %50,0 / cetvel %66,7 / kase %83,3 uretilemez;
+      # olculen ornek: petek kabartma -> 60000 kurus tahsil edilebilir, uretim ucu 400).
+      # Ayrica urun sayfasi bu bolgede "siparis verebilirsiniz, uretim etkilenmez"
+      # YANLIS VAADINI basiyordu. Kapi iki ekseni birden tutar ve YAPISALDIR:
+      # ONIZLEME_KISITLAR'da beyani olan aile HACIM_DOGRULANMIS_AILELER'de OLAMAZ ->
+      # yarin yeni bir kisit beyan edilirse o aile kendiliginden satista KALAMAZ.
+      # node ZORUNLU (setup-node yukarida BLOKLAYICI on-kosul; yoksa fail-closed
+      # kirmizi — regex ile "sanki okumus gibi" yapilmaz, GERCEK secenekler.js kosar).
+      # Offline, urunler.json OKUNMAZ, dosya YAZILMAZ. ~1 s.
+      - name: Onizleme vaat kapisi (uretilemez konfigurasyonun satis kapisi + musteri metni)
+        run: python3 tools/onizleme-vaat-kapisi.py
       # ================= MUAFIYET DENETIMI BLOGU SONU =================================
 
       # YAYIN IC-DIL KAPISI — KAYNAK KOLU (build'den ONCE; asagidaki yayin kolunun ERKEN
@@ -1942,6 +1957,18 @@ jobs:
       # index.html / sema dosyalari OKUNMAZ -> rutin degisiklikte yanlis-pozitif uretemez.
       - name: Paket tazelik kapisi oz-nobetcileri (cagri satiri + govde inertligi)
         run: python3 tools/paket-tazelik-kapisi.py
+
+      # ONIZLEME VAAT KAPISI — KIRMIZI-MUTASYON TURU (ayri adim olmak ZORUNDA: yukaridaki
+      # bloklayici kosum agac temizken DAIMA yesildir, yani kapinin KIRMIZI YOLUNU hic
+      # denemez). Bu adim gecici bir AYNADA 7 gercek bozulma (eski yalan vaat metninin geri
+      # gelmesi · kapatilan ailenin satis listesine geri eklenmesi · fail-closed `return null`
+      # kolunun oldurulmesi · yeni kisit beyan edilip ailenin satista birakilmasi · listenin
+      # bosaltilmasi · capa kaydi · iki cagri yerinin ayrisması) ve 3 KONTROL mutanti kosar.
+      # Kontrol mutantlari YESIL kalmali (kapi asiri hevesli degil). Mutasyon DAIMA KOPYAYA:
+      # canli agacin sha256'si bas/son basilir ve esit olmazsa adim kirmizi yanar.
+      # SERIT B (yayini durdurmaz sinifinda degil — bu adim BLOKLAYICI). Offline, ~5 s.
+      - name: Onizleme vaat kapisi kirmizi-mutasyon turu (7 mutant + 3 kontrol)
+        run: python3 tools/onizleme-vaat-kapisi.py --kendini-test
 
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce

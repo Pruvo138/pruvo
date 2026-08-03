@@ -678,14 +678,20 @@ ONIZLEME_JS = """
        cerceve + siyah yazi secince onizleme 2 renk sanirdi. */
     var s = PRUVO_KONF.satiraYaz({ malzeme:"PLA", renk: seciliRenkAdi()||"Siyah" });
     if(!s.parametreler){ kutu.hidden=false; de("Önce ölçüleri geçerli aralıkta doldurun."); return; }
-    /* Onizleme secenek kisitlari (tek kaynak /secenekler.js): motorda 3D
-       karsiligi olmayan secimlerde istek atmadan dostca uyar. */
+    /* Onizleme secenek kisitlari (tek kaynak /secenekler.js): uretim motorunda
+       KARSILIGI OLMAYAN secimlerde istek atmadan uyar.
+       🔴 METIN 2026-08-03'TE DUZELTILDI — ESKI METIN YALAN SOYLUYORDU: "siparis
+       verebilirsiniz, uretim etkilenmez" deniyordu, oysa bu liste tam olarak
+       URETILEMEZ bolgenin beyanidir (olculdu: petek %50,0 / cetvel %66,7 /
+       kase %83,3 — sema kapisi 'gecerli' derken uretim ucu ayni seti reddediyor).
+       O ailelerin satis kapisi da ayni gun kapatildi (secenekler.js
+       HACIM_DOGRULANMIS_AILELER) -> metin ile kod artik AYNI seyi soyluyor. */
     var kis=(window.PRUVO_SECENEK&&PRUVO_SECENEK.ONIZLEME_KISITLAR||{})[URUN.id];
     if(kis){ for(var ad in kis){ if(Object.prototype.hasOwnProperty.call(kis,ad)){
       var v=s.parametreler[ad];
       if(v!==undefined && kis[ad].indexOf(v)<0){
         kutu.hidden=false;
-        de("Bu seçenekle 3D önizleme şimdilik sunulamıyor; sipariş verebilirsiniz, üretim etkilenmez.");
+        de("Bu seçenek üretim hattımızda henüz karşılanmıyor: önizleme sunulamıyor ve bu seçenekle sipariş alınmıyor. Ölçüleri değiştirin ya da WhatsApp'tan teklif isteyin.");
         return;
       }
     }}}
@@ -727,7 +733,7 @@ ONIZLEME_JS = """
     .catch(function(e){
       var m={
         "gecersiz-geometri":"Bu ölçü kombinasyonu üretilemiyor; ölçüleri değiştirip tekrar deneyin.",
-        "onizleme-secenek-kisiti":"Bu seçenekle 3D önizleme şimdilik sunulamıyor; sipariş verebilirsiniz, üretim etkilenmez.",
+        "onizleme-secenek-kisiti":"Bu seçenek üretim hattımızda henüz karşılanmıyor: önizleme sunulamıyor ve bu seçenekle sipariş alınmıyor. Ölçüleri değiştirin ya da WhatsApp'tan teklif isteyin.",
         "gecersiz-parca":"Önizleme bu üründe 2 renk gösteremiyor; sipariş verebilirsiniz, üretim etkilenmez.",
         "hiz-siniri":"Kısa sürede çok fazla önizleme istendi; bir dakika sonra tekrar deneyin.",
         "derleyici-yok":"Önizleme servisi şu an hazır değil; lütfen daha sonra deneyin.",

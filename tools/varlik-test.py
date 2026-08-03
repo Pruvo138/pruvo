@@ -78,6 +78,37 @@ def _js_mi(oznitelikler):
     return yorum_soy._script_turu_js_mi(oznitelikler)
 
 
+# --------------------------------------------------------- eksen 2: BILEREK degisen satirlar
+# Eksen 2'nin IDDIASI: "varliga tasima sirasinda icerik KAYBOLMADI/EKLENMEDI".
+# Kiyas nesnesi git gecmisindeki ESKI uretici oldugu icin, o commit'ten BU YANA yapilan
+# HER MESRU icerik degisikligi de bu eksende kayip/eklenti gibi gorunur. Ikisi ayni sey
+# DEGILDIR ve karistirilirsa eksen 2 "sayfa JS'i bir daha asla degismesin" kuralina doner.
+# Bu yuzden BILEREK degisen satirlar BURADA, GEREKCESIYLE ve DAR desenle listelenir.
+# 🔴 DAR TUTULACAK: her giris tek bir olayi anlatir; genel desen (ornegin butun `de(...)`
+# cagrilari) YAZILMAZ — o, gercek bir icerik kaybini da maskelerdi.
+BILEREK_DEGISEN = (
+    # KART_SECIM: sabit deger yerine sayfadaki veriden okunur oldu.
+    ("var KART_SECIM =", "kart secim verisi sabitten sayfa verisine tasindi"),
+    ("var URUN_KART_SECIM =", "kart secim verisi sabitten sayfa verisine tasindi"),
+    # 2026-08-03: uretilemez secenekte basilan MUSTERI METNI duzeltildi. Eski metin
+    # "siparis verebilirsiniz, uretim etkilenmez" diyordu; o bolge OLCULDU ve uretim
+    # ucunda karsiligi YOK (satis kapisi da ayni gun kapatildi). Bu bir ICERIK
+    # duzeltmesidir, varliga tasima kaybi DEGIL. Iki cagri yeri de ayni cumleyi tasir.
+    ("Bu seçenekle 3D önizleme şimdilik sunulamıyor",
+     "uretilemez secenek metni duzeltildi — ESKI cumle (kiyas commit'inde)"),
+    ("Bu seçenek üretim hattımızda henüz karşılanmıyor",
+     "uretilemez secenek metni duzeltildi — YENI cumle"),
+)
+
+
+def _bilerek_degisti(satir):
+    s = satir.strip()
+    for desen, _gerekce in BILEREK_DEGISEN:
+        if desen in s:
+            return True
+    return False
+
+
 def iskelet(html):
     """Sayfanin CSS/JS YUZEYI CIKARILMIS hali: metin, meta, JSON-LD, gorsel URL'leri,
     kirilim... yani tasima isinin DOKUNMAMASI gereken her sey. JSON-LD script'i JS
@@ -414,12 +445,8 @@ def olc(eski, yeni, secim, urunler, ref):
                          encoding="utf-8") as f:
                 y_js += "\n" + f.read()
         ec, yc = satir_cantasi(e_js), satir_cantasi(y_js)
-        kayip = sorted((ec - yc).elements())
-        # KART_SECIM satiri bilerek degisti (sabit -> sayfadaki veriden okunur)
-        kayip = [k for k in kayip if not k.startswith("var KART_SECIM =")]
-        eklenti = sorted((yc - ec).elements())
-        eklenti = [k for k in eklenti
-                   if not (k.startswith("var KART_SECIM =") or k.startswith("var URUN_KART_SECIM ="))]
+        kayip = [k for k in sorted((ec - yc).elements()) if not _bilerek_degisti(k)]
+        eklenti = [k for k in sorted((yc - ec).elements()) if not _bilerek_degisti(k)]
         bekle(not kayip, "2 %s: JS KAYIP (%d satir) ilk: %r" % (pid, len(kayip), kayip[:2]))
         bekle(not eklenti, "2 %s: JS EKLENTI (%d satir) ilk: %r" % (pid, len(eklenti), eklenti[:2]))
 

@@ -824,12 +824,16 @@ async function test26SariFailClosed() {
      2026-08-02: izgara/pervane/petek/huni/kasnak/kayis/oring bagimsiz olcumle ACILDI
      (eski kirmizilari REFERANS ARIZASI uretmisti — bkz. secenekler.js DUZELTME blogu).
      `rulman` ACILMADI: hacmi yesil ama SEMA ARALIGI uretilemez kombinasyon veriyor.
-     Fikstur bu yuzden KAPALI kalan uc aile: rampa + rulman + vida.
+     2026-08-03: ayni kusur petek/cetvel/kase'de de OLCULDU (sema kapisi 'gecerli'
+     derken uretim ucu ayni seti 400/422 ile reddediyor: petek %50,0 mod="kabartma" ·
+     cetvel %66,7 secim-tanimsiz:tip · kase %83,3 sap+bicim) -> ucu de KAPATILDI.
+     Fikstur bu yuzden KAPALI kalan ALTI aile: cetvel + kase + petek + rampa +
+     rulman + vida (acik 17 / kapali 6).
      Semanin geri kalani GECERLI oldugu icin bu vakalar yalniz kapiyi olcer.
      ⚠️ hacimFormulu degistirilince hacim fonksiyonu da degisir; sema.parametreler kutu'nun
      kaldigi icin hacim hesabi yine calisir ya da null doner — iki halde de tutar CIKMAMALI,
      iddia zaten "hata dolu + birimKurus YOK". */
-  for (const kirmiziAile of ["rampa", "rulman", "vida"]) {
+  for (const kirmiziAile of ["cetvel", "kase", "petek", "rampa", "rulman", "vida"]) {
     vakalar.push(["N13-" + kirmiziAile + " hacim formulu dogrulanmamis aile",
                   Object.assign({}, sema, { hacimFormulu: kirmiziAile }),
                   null, "hacim-dogrulanmamis"]);

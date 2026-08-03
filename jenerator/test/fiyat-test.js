@@ -273,13 +273,22 @@ esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
    2026-08-02: eski 9 kırmızının 8'i (huni, izgara, kasnak, kayis, oring, pervane,
    petek, rulman) REFERANS ARIZASI çıktı — bağımsız ölçümde hepsi ≤ %0,39.
    Bunlardan 7'si listeye alındı; açık aile 13 → 20.
-   KAPALI KALAN: rampa (bağımsız ölçümle doğrulanmadı), vida (hiç ölçülmedi) ve
-   rulman (hacmi yeşil ama ŞEMA ARALIĞI üretilemez kombinasyon veriyor — üretemediğimiz
-   konfigürasyon satılabilir görünmez; şema onarılana kadar fail-closed). */
-var KAPALI_AILELER = ["rampa", "rulman", "vida"];
-var ACIK_AILELER = ["adaptor", "braket", "cerceve", "cetvel", "disli", "huni", "izgara",
-                    "jeton", "kase", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
-                    "oring", "pervane", "petek", "profil", "toka", "yay"];
+   2026-08-03 ŞEMA ARALIĞI TARAMASI: `rulman`ın kusuru rulmana özel değilmiş. Şema
+   kapısından (`KONF.dogrula` → gecerli:true) GEÇEN ama üretim ucunun 400/422 ile
+   REDDETTİĞİ bölgeler ölçüldü (aile başına 2001 set + köşe alt-uzayının %100'ü):
+   petek %50,0 (mod="kabartma" tümü) · cetvel %66,7 (secim-tanimsiz:tip) ·
+   kase %83,3 (sap + bicim). Üçü de KAPATILDI; açık aile 20 → 17, kapalı 3 → 6.
+   (huni/izgara/kasnak/kayis/oring/pervane %0,00 — temiz, açık kalır.)
+   KAPALI KALAN (6): rampa (bağımsız ölçümle doğrulanmadı), vida (hiç ölçülmedi),
+   rulman + petek + cetvel + kase (hacmi yeşil ama ŞEMA ARALIĞI üretilemez kombinasyon
+   veriyor — üretemediğimiz konfigürasyon satılabilir görünmez; şema onarılana kadar
+   fail-closed). Yapısal kural + kapı: tools/onizleme-vaat-kapisi.py. */
+var KAPALI_AILELER = ["cetvel", "kase", "petek", "rampa", "rulman", "vida"];
+var ACIK_AILELER = ["adaptor", "braket", "cerceve", "disli", "huni", "izgara",
+                    "jeton", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
+                    "oring", "pervane", "profil", "toka", "yay"];
+esit("kapı sayacı: kapalı 6 / açık 17 (2026-08-03 taraması sonrası)",
+     [KAPALI_AILELER.length, ACIK_AILELER.length], [6, 17]);
 
 // POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
 KAPALI_AILELER.forEach(function (aile) {

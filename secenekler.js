@@ -439,9 +439,37 @@
      kombinasyonlarının bir kısmı ÜRETİLEMİYOR. Üretemeyeceğimiz bir konfigürasyonu
      satılabilir göstermeyiz → şema onarılana kadar tutar üretmez (fail-closed).
 
-     KAPALI KALANLAR: `rampa` (sapması bağımsız ölçümle DOĞRULANMADI), `vida`
-     (hiç ölçülmedi) ve `rulman` (şema aralığı kusuru — yukarıya bak).
-     Üçü de tutar üretmez — fail-closed aynen sürer.
+     ---- ŞEMA ARALIĞI TARAMASI — 2026-08-03: ÜÇ AİLE DAHA KAPATILDI ------------
+     `rulman`daki kusur rulmana ÖZEL DEĞİLMİŞ. Bağımsız tarama (aile başına 2001
+     parametre seti + köşe alt-uzayının %100'ü; hüküm üretim ucunun KENDİSİNDEN:
+     şema kapısı `KONF.dogrula` → `gecerli:true` derken /ic-derle aynı seti
+     assert ile 400/422 ile REDDEDİYOR) şu üretilemez bölgeleri ölçtü:
+       petek  %50,0   — `mod="kabartma"` bölgesinin TAMAMI
+       cetvel %66,7   — `secim-tanimsiz:tip`
+       kase   %83,3   — `sap`, `bicim`   (ürün: ölçüye özel damga/kaşe)
+       rulman %32,88  — bilya + makara   (zaten kapalıydı, kıyas ölçütü)
+       huni · izgara · kasnak · kayis · oring · pervane → %0,00 (TEMİZ, açık kalır)
+
+     🔴 ÖLÇÜLEN CANLI ZARAR (petek): `mod=kabartma, desen=petek, en=125, boy=114,
+     kalinlik=7, goz=15` → 60000 kuruş (600,00 TL) tutar üretiliyor, sipariş kabul
+     ediliyor ve para tahsil ediliyordu; AYNI konfigürasyonu üretim ucu 400 ile
+     reddediyor ve hiçbir yerde alarm çalmıyordu. Sessiz-hata sınıfı tam olarak bu.
+     🔴 EK: petek'in "%0,00 hacim doğruluğu" iddiası YALNIZ `delikli` kolunu
+     kapsıyordu; `kabartma` kolu HİÇ ölçülmedi, oysa fiyat o formülden çıkıyordu
+     (kabartma 116.551 mm³ · delikli 57.746 mm³ — aynı formül, iki ayrı katı).
+
+     KURAL — YAPISAL, TEK SATIRLIK LİSTE DÜZELTMESİ DEĞİL: bir ailenin şemasında
+     üretim motorunda karşılığı OLMAYAN bir seçim bölgesi varsa (o bölge zaten
+     ONIZLEME_KISITLAR'da beyan edilir), o aile SATIŞA AÇILAMAZ. Yani
+     ONIZLEME_KISITLAR ailelerinin kümesi ile bu listenin KESİŞİMİ BOŞ olmalıdır.
+     Bu kural yayın öncesi bloklayıcı bir kabul kapısıyla ölçülür: yarın yeni bir
+     kısıt beyan edilirse o aile kendiliğinden satışta KALAMAZ, kapı kırmızı yakar.
+     Şemanın onarımı üretim/şema tarafının işidir; onarılıp kısıt kalkınca aile
+     kendiliğinden geri açılır (burada ikinci bir liste tutulmaz).
+
+     KAPALI KALANLAR (6): `rampa` (sapması bağımsız ölçümle DOĞRULANMADI), `vida`
+     (hiç ölçülmedi), `rulman` + `petek` + `cetvel` + `kase` (şema aralığı kusuru —
+     yukarıya bak). Altısı da tutar üretmez — fail-closed aynen sürer.
 
      KURAL — ALLOWLIST, DENYLIST DEĞİL (fail-closed): fiyat YALNIZCA gerçek geometriye
      karşı ölçülmüş ve %3 sınırını GEÇMİŞ ailelerde üretilir. Listede olmayan aile
@@ -461,15 +489,19 @@
      Kapı: hacim güveni kabul testi. */
   var HACIM_DOGRULANMIS_AILELER = {
     // aile: ölçülen en kötü hacim sapması (%) — 2026-07-31, seed 4242, 3 rastgele set + varsayılan
-    adaptor: 0.00, braket: 0.27, cerceve: 0.00, cetvel: 0.11, disli: 0.24,
-    jeton: 0.01, kase: 0.09, kavanoz: 0.03, konektor: 0.55, kutu: 0.00,
+    adaptor: 0.00, braket: 0.27, cerceve: 0.00, disli: 0.24,
+    jeton: 0.01, kavanoz: 0.03, konektor: 0.55, kutu: 0.00,
     profil: 0.01, toka: 0.01, yay: 0.07,
-    // 2026-08-02 eklenen 7 aile — bağımsız ölçüm, seed 20260802
+    // 2026-08-02 eklenen aileler — bağımsız ölçüm, seed 20260802
     // (yukarıdaki DÜZELTME bloğu: eski kırmızıları referans arızası üretmişti)
-    // 🔴 `rulman` EKLENMEDİ: hacmi yeşil (%0,08) ama şema aralığı üretilemez
-    // kombinasyon veriyor; şema doğrulanana kadar KAPALI (tutar üretmez).
     huni: 0.13, izgara: 0.00, kasnak: 0.02, kayis: 0.15,
-    oring: 0.39, pervane: 0.38, petek: 0.00
+    oring: 0.39, pervane: 0.38
+    // 🔴 ÇIKARILANLAR — hacim ekseni yeşil ama ŞEMA ARALIĞI üretilemez konfigürasyon
+    // veriyor (yukarıdaki "ŞEMA ARALIĞI TARAMASI" bloğu). Şema onarılana kadar KAPALI:
+    //   petek  — bölge `mod="kabartma"` tümü, %50,0 üretilemez, ölçüm 2026-08-03
+    //   cetvel — bölge `secim-tanimsiz:tip`, %66,7 üretilemez, ölçüm 2026-08-03
+    //   kase   — bölge `sap` + `bicim`, %83,3 üretilemez, ölçüm 2026-08-03
+    //   rulman — bölge bilya + makara, %32,88 üretilemez, ölçüm 2026-08-02
   };
 
   /* Aile hacim doğrulamasından geçti mi? Anahtar `sema.hacimFormulu`.
