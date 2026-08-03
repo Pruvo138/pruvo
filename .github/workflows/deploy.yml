@@ -2063,6 +2063,22 @@ jobs:
       - name: "Yayin gecikme nobetcisi kabul testi (fikstur + kablolama, SERIT B)"
         run: python3 tools/yayin-gecikme-test.py
 
+      # YAYIN ERISIM NOBETCISI — KABUL TESTI (3 Agu 2026).
+      # NE OLCER: YEREL bir HTTP fikstur sunucusuyla (127.0.0.1, DIS AG YOK) hukum
+      # eksenleri + kume turetimi + kablolama. Ayirt edici vaka: ayni URL'ye
+      # HEAD 200 / GET 403 — 3 Agu'da CANLIDA olculdu; HEAD'e bakan bir nobetci uc
+      # landing sayfasinin 12 gundur kapali oldugunu HIC gormezdi.
+      # 🔴 BURADA OLMASI TASARIMIN PARCASIDIR: nobetcinin CANLI kolu deploy.yml'e
+      # BAGLANMAZ (aga bagimli bir kapi tek gecici DNS hatasinda TUM EKIBIN yayinini
+      # durdururdu). Canli kol AYRI cron alarmindadir:
+      # .github/workflows/yayin-erisim-alarmi.yml (saatlik, `push` tetikleyicisi YOK).
+      # Kabul testinin E7 ekseni tam da bunu nobetler: bayraksiz (olcum yapan) bir
+      # cagri deploy.yml'e sizarsa KIRMIZI yanar.
+      # SERIT B gerekcesi: bu bir "sizintili icerik canliya cikmasin" kapisi DEGIL,
+      # aracin kendini sinamasidir. Beyan: tools/is-akisi-kapisi.py :: SERIT_B. ~3 s.
+      - name: "Yayin erisim nobetcisi kabul testi (yerel fikstur + kablolama, SERIT B)"
+        run: python3 tools/yayin-erisim-test.py
+
 
       # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
