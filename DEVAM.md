@@ -26,10 +26,18 @@ degismedi** — git/GitHub/Cloudflare/D1/R2/hafiza diskte ve aynen duruyor.
    degeri duruyor: **6 dosya yalniz `--kendini-test` ile kosuyor** (`jenerator/test/kabul.py`
    dahil) — bugunku fiyat alarminin aylarca gorunmemesinin sebebi buydu. Ya sartla tamamla ya
    acikca park et.
-3. **Tek kanonik marka fonksiyonu.** Bugun uc ayri mantik var (`index.html` `markaKatla` · uc
-   `uyumEkseniKosulu` · `parite-test.js` tam jeton) ve **1.677 cip degerinin 1.518'inde** ucu
-   ayrisiyor. `parite-test.js` UI'i yansitmadigi icin **yesil yanarken UI sapabiliyor**
-   (olculdu: Mercedes, Volvo Penta).
+3. 🔴 **Tek kanonik marka fonksiyonu — ve bu kusur ARTIK URETIMDE OLCULDU.**
+   Uc ayri mantik var (`index.html` `markaKatla` · uc `uyumEkseniKosulu` · `parite-test.js` tam
+   jeton) ve **1.677 cip degerinin 1.518'inde** ucu ayrisiyor.
+   **Canli tam supurme (1.081 kombinasyon, `3569bb97` sonrasi): 12 OLU UC** — `Marin/Volvo` 11 +
+   `Otomobil/Kia` 1 — ve **159 sayi sapmasi** (uc >0 ama indeksin dedigi sayidan farkli).
+   Kok neden: `cip-indeks.py` cipi **katlanmis** etiketle uretiyor, uc **ham** etiketi esliyor →
+   `marka=Volvo` **0**, `marka=Volvo Penta` **51** (katalogda "Volvo" etiketi hic yok).
+   **Gerileme DEGIL** — `9f491fcf` tabaninda da vardi, olculdu. Ama paketin mansset iddiasi
+   ("gorunen her cip >0") uretimde bu 12 kombinasyonda **TUTMUYOR**, ve kabul testi bunu
+   yakalamiyor cunku **fikstürün uc simulatoru de katliyor** — yani test, uretimi degil kendi
+   varsayimini aynaliyor. Bu oturumun tekrar eden sinifi.
+   Surucu hazir ama repoda DEGIL: scratchpad `kr-tam-supurme.py` — kalici hale getirilmeli.
 4. **Merge kapisi eksigi (bugun iki kez isirdi):** kapi kumesi dalin *dokundugu alandan*
    turetiliyor; `index.html` gibi cok kapili dosyada asil kume **`deploy.yml`'in kendisi**.
    Ilk kirmizi ikinciyi maskeliyor. `~/.claude/skills/merge-kapisi/SKILL.md`'ye madde eklenecek
