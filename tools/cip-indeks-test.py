@@ -657,28 +657,38 @@ MUTANTLAR = [
     # --- MODEL CIPI KANONIKLESTIRME EKSENI (4 Agu) ---------------------------
     # 🔴 KANIT: bu mutantlar EKLENMEDEN ONCE batarya bu sinifi GORMUYORDU — model cipleri
     # HAM jetondu ve hicbir iddia "cip evreni sayfa evreniyle ayni mi" diye SORMUYORDU.
+    # 🔴 (a) HEM ANAHTAR HEM YAZIM ham'a cevrilir. Yalniz anahtari bozmak COKME uretirdi
+    # (iki canon AYNI gosterime duser -> cakisma fail-closed'i atesler) ve "KIRMIZI ama
+    # hicbir iddia KALDI demedi" sayilirdi; mutant olculen bir IDDIAYI kirmali.
     ("cip-indeks.py",
-     "        k = mevren.model_anahtari(marka, t)\n        if not k or k == marka_kanon:",
-     "        k = _model_kanon.kanon(t)\n        if not k or k == marka_kanon:", "KIRMIZI",
+     "    return (k, kalan, tuple(taban for taban, _e in mevren.kusak_tabanlari(marka, t)\n"
+     "                            if taban != k))",
+     "    _mk = _model_kanon.kanon(t)\n"
+     "    return (_mk, t, tuple(taban for taban, _e in mevren.kusak_tabanlari(marka, t)\n"
+     "                          if taban != _mk))", "KIRMIZI",
      "(a) CIP KANONIKLESTIRMESINI KALDIR: onek siyirma + alias duser -> '206' ile "
      "'Peugeot 206' yine AYRI cip (olculen canli hata geri gelir)"),
     ("cip-indeks.py",
-     "        k = mevren.model_anahtari(marka, t)\n        if not k or k == marka_kanon:",
-     "        k = _model_kanon.kanon(t.split()[0])\n        if not k or k == marka_kanon:",
+     "    k = mevren.model_anahtari(marka, t)\n    if not k or k == _model_kanon.kanon(marka):",
+     "    k = _model_kanon.kanon(t.split()[0])\n    if not k or k == _model_kanon.kanon(marka):",
      "KIRMIZI",
      "(b) FARKLI ARACLARI BIRLESTIR: ilk kelimeye katla -> 'Zafira Life' Zafira'ya, "
-     "'Volvo Penta' Volvo'ya duser; cip iki ayri araci tek kutuya yigar"),
+     "'Grand Vitara' Vitara'ya... duser; cip iki ayri araci tek kutuya yigar"),
     ("cip-indeks.py",
-     "        if not t or _mmb.marka_jetonu_mu(t, mevren):\n            continue\n        kalan =",
-     "        if not t:\n            continue\n        kalan =", "KIRMIZI",
+     "    if _mmb.marka_jetonu_mu(t, mevren):\n        return (\"\", \"\", ())",
+     "    if False:\n        return (\"\", \"\", ())", "KIRMIZI",
      "(b2) MARKA JETONU ELEMESINI KALDIR: 'PSA'/'VAG'/'Geo' yeniden MODEL cipi olur"),
+    # 🔴 (c) MARKA-KOR ELEME: OLCULDU (4 Agu) — koru MODEL_OLMAYAN_CIFT uzerinden yapmak
+    # bugunku katalogda 0 cip olduruyor (ESDEGER mutant, yesil kalirdi). Ayirt edici olan
+    # ROZET_DISI ekseni: kor yapilinca `(Peugeot, ds)` denial'i `(Citroen, DS)`i, `(Audi,
+    # golf)` denial'i `(Volkswagen, Golf)`u oldururuyor — TAM olarak "baska markada gercek
+    # bir modeli oldurme" sinifi (4 cip: VW Golf, Skoda Octavia, Citroen Berlingo, Citroen DS).
     ("cip-indeks.py",
      "        return (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k])",
-     "        return (k[1], k[2]) in _mmb.ROZET_DISI or any(\n"
-     "            _model_kanon.kanon(mm_ad[k]) == _model_kanon.kanon(_j)\n"
-     "            for _m, _j in __import__('arama').MODEL_OLMAYAN_CIFT)", "KIRMIZI",
-     "(c) MODEL-OLMAYAN ELEMESINI MARKA-KOR YAP: marka ekseni dusunce baska markadaki "
-     "GERCEK model de olur (M5 asiri-eleme ekseni)"),
+     "        return any(_c == k[2] for _m, _c in _mmb.ROZET_DISI) \\\n"
+     "            or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k])", "KIRMIZI",
+     "(c) ELEMEYI MARKA-KOR YAP: marka ekseni dusunce BASKA markadaki GERCEK model de olur "
+     "(VW Golf · Skoda Octavia · Citroen Berlingo · Citroen DS); M5 asiri-eleme ekseni"),
     ("cip-indeks.py",
      "            for canon in (tam | katlanan):",
      "            for canon in tam:", "KIRMIZI",

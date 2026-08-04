@@ -1184,8 +1184,12 @@ MUTANTLAR = [
      '    "Peugeot|xyzyok": ("ROZET", "MUTANT — uretimde KARSILIGI YOK"),', "KIRMIZI",
      "M27 ENVANTERE ÜRETİMDE KARŞILIĞI OLMAYAN ÇİFT EKLE -> envanter BAYAT (küme birebir "
      "değil); sayı ölçütü olsaydı bu sapma gizlenirdi ([[hukum-yanlis-birimde]])"),
+    # 🔴 ÇAPA İKİ SATIRLI: tek satırlık hâli bu listenin KENDİSİNDE de geçiyordu (kendine
+    # atıf) ve mutant hangi kopyaya vurduğu belirsiz kalırdı.
     ("tools/model-uyelik-kapisi.py",
+     '        for _canon, _g in _d["gruplar"].items():\n'
      '            if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:',
+     '        for _canon, _g in _d["gruplar"].items():\n'
      "            if mm.yayimlanir_mi(_g):", "KIRMIZI",
      "M28 ÖLÇÜTÜ 'SAYFA DOĞDU MU'YA ÇEVİR -> deny'e alınan çift ölçümden DÜŞER, karşısındaki "
      "gerçek rozet tek başına kalır ve tablo KENDİ kanıtını siler (totoloji koruması)"),

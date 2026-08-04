@@ -1390,7 +1390,8 @@ jobs:
       # cip sayisi ile SAYFA sayisi FARKLI. M3 iki tarafi TEK KAYNAKTAN kiyaslar,
       # M5 ters yonu (asiri eleme) olcer, M6/M8 uc etiketi yolunu olcer.
       # OFFLINE: ag YOK, DISKE YAZMAZ, ~47 s (M ekseni +0,9 s). node ZORUNLU (setup-node).
-      # Cift yonlu mutasyon (23 oldurucu KIRMIZI + 5 ilgisiz/kontrol YESIL + M00) elle:
+      # Cift yonlu mutasyon (31 oldurucu KIRMIZI + 5 ilgisiz/kontrol YESIL + M00) elle
+      # — sayilar 4 Agu'da SAYILARAK duzeltildi (yorumda 17+3 yaziyordu, gercek 25+3 idi):
       #   python3 tools/cip-indeks-test.py --mutasyon
       - name: "Cip satirlari capraz daralma + model ekseni (olu uc + fail-open nobeti)"
         run: python3 tools/cip-indeks-test.py
