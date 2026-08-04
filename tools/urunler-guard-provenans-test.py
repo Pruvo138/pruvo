@@ -21,9 +21,17 @@ GERCEK VERIYE DOKUNMAZ: her senaryo kendi gecici git deposunu kurar; fikstur
 urunleri SAHTEDIR (gercek katalogdan kopyalanmaz). Sabit GIT_*_DATE kullanilir.
 Ag YOK.
 
-KABUL = CIKIS KODU DEGIL, BASILAN IDDIA SAYISI: her kosumda TAM 22 `IDDIA:`
+🔴 ORTAM BAGISIKLIGI (X1): miras alinan GIT_* DEPO-YERI degiskenleri alt-surec
+ortamindan SILINIR (`SIZINTI_ENV`). Silinmezse tek bir bayat degisken hem fikstur
+depolarini hem guard'in `git -C ROOT` cagrilarini YABANCI bir depoya baktirir
+(olculdu: yalniz `GIT_WORK_TREE` mirasi 26 iddianin 23'unu kirmizi yakiyordu) —
+ve bu kapi deploy'u BLOKLADIGI icin tum ekibin yayinini keserdi.
+
+KABUL = CIKIS KODU DEGIL, BASILAN IDDIA SAYISI: her kosumda TAM 28 `IDDIA:`
 satiri basilir (olculemeyen iddia KIRMIZI + "OLCULEMEDI" olarak basilir, sayi
-DUSMEZ — cokme kirmiziyla karismaz).
+DUSMEZ — cokme kirmiziyla karismaz). 🔴 Bu sayi BAYATLAMAZ: X2 iddiasi bu
+docstring'deki sayiyi `len(KODLAR)` ile karsilastirir, ayrisirsa KIRMIZI yanar
+([[ikiz-tanim-sessiz-ayrisma]]).
 
 Kullanim:
     python3 tools/urunler-guard-provenans-test.py
@@ -35,6 +43,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -77,6 +86,10 @@ KODLAR = [
     ("H1", "KOPRU: guard rc!=0 -> PreToolUse rc=2 (git komutu BLOKLANIR)"),
     ("H2", "KOPRU: guard rc=0 -> PreToolUse rc=0 (mesru commit gecer)"),
     ("H3", "KOPRU: git-disi komut -> rc=0 VE guard HIC kosmaz (log yazilmaz)"),
+    ("X1", "ORTAM: miras alinan GIT_* depo degiskenleri alt-surece SIZMAZ "
+           "(temiz+kirli iz BEKLENEN degere capali; POTENS kontrolu: temizliksiz "
+           "kosum SAPMALI)"),
+    ("X2", "IKIZ TANIM: docstring'deki iddia sayisi len(KODLAR) ile AYNI"),
 ]
 
 DEFTER = {}
@@ -117,16 +130,60 @@ IKINCI = _urun("sahte-tavan-kutusu-kilidi", gorsel=2, lisans=True,
 # --------------------------------------------------------------------------
 # GIT / DEPO YARDIMCILARI
 # --------------------------------------------------------------------------
+# 🔴 ALT-SURECE SIZMASI YASAK GIT_* DEGISKENLERI — TEK KAYNAK (`_env()` ve X1
+# senaryosu ikisi de BURADAN turer; ayrisirsa X1 KIRMIZI yanar).
+#
+# SECIM KOR DEGIL, OLCUMLE YAPILDI. Olcut: degisken acik `git -C <dizin>` hedefini
+# EZIYOR mu (bu test hem fikstur depolarini hem guard'in `git -C ROOT` cagrilarini
+# o desene dayandirir)?
+#   GIT_DIR               -> depo yerini EZER   (tek basina 5 iddia kirmizi)
+#   GIT_WORK_TREE         -> indeksi/agaci EZER (tek basina 23 iddia kirmizi)
+#   GIT_COMMON_DIR        -> DEGER-BAGLI: izole probda `git commit` hata verdi,
+#                            kabul testinin tabaninda kullandigim degerle 0 kirmizi,
+#                            mimarin olcumunde 6 kirmizi -> fail-closed tarafta tutulur
+#   GIT_OBJECT_DIRECTORY  -> DUZELTME: "commit hata verir" ONCEKI YORUMU FAZLA
+#                            IDDIALIYDI. Olculdu: GECERLI bir objects yolu ile
+#                            tabanda 0 kirmizi. Ayni aile (obje deposunu tasir),
+#                            fail-closed tarafta birakildi
+#   GIT_INDEX_FILE        -> guard'in `diff --cached` okudugu INDEKSI baska dosyaya
+#                            cevirir (bugunku iddialarla 0 kirmizi; ayni aile,
+#                            fail-closed tarafta birakildi)
+# OLCULDU ve HICBIR ekseni bozmadi -> BILEREK DOKUNULMUYOR: GIT_NAMESPACE,
+# GIT_CEILING_DIRECTORIES, GIT_ALTERNATE_OBJECT_DIRECTORIES,
+# GIT_DISCOVERY_ACROSS_FILESYSTEM, GIT_CONFIG_GLOBAL. Kor "tum GIT_* sil" YAPILMAZ:
+# GIT_AUTHOR_DATE / GIT_COMMITTER_DATE / GIT_*_NAME / GIT_*_EMAIL bu testin KENDI
+# deterministik damgalaridir ve asagida BILEREK set edilir.
+SIZINTI_ENV = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE",
+               "GIT_COMMON_DIR", "GIT_OBJECT_DIRECTORY")
+
+
 def _env():
+    e = dict(os.environ)
+    for ad in SIZINTI_ENV:
+        e.pop(ad, None)
+    e.update(GIT_AUTHOR_DATE=ISO, GIT_COMMITTER_DATE=ISO,
+             GIT_AUTHOR_NAME="Kabul", GIT_AUTHOR_EMAIL="kabul@pruvo.test",
+             GIT_COMMITTER_NAME="Kabul", GIT_COMMITTER_EMAIL="kabul@pruvo.test")
+    return e
+
+
+def _ham_env():
+    """`_env()` ile TEK farki: SIZINTI TEMIZLIGI YOK (eski, sertlestirilmemis hal).
+
+    X1'in POTENS olcumu bunun uzerinden yapilir: kirli ortamin GERCEKTEN potent
+    oldugunu — yani temizlik olmasaydi olcumun BOZULACAGINI — kanitlar. Bilerek
+    `_env()`ten BAGIMSIZ yazildi ki `_env()`i bozan mutant bu referansi da
+    bozup olcumu kor etmesin.
+    """
     return dict(os.environ,
                 GIT_AUTHOR_DATE=ISO, GIT_COMMITTER_DATE=ISO,
                 GIT_AUTHOR_NAME="Kabul", GIT_AUTHOR_EMAIL="kabul@pruvo.test",
                 GIT_COMMITTER_NAME="Kabul", GIT_COMMITTER_EMAIL="kabul@pruvo.test")
 
 
-def g(kok, *a):
+def g(kok, *a, env=None):
     p = subprocess.run(["git", "-C", kok, *a], capture_output=True,
-                       text=True, env=_env())
+                       text=True, env=env or _env())
     return p.returncode, p.stdout + p.stderr
 
 
@@ -145,18 +202,18 @@ def sha(kok, ad="urunler.json"):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def kur_depo(guard, kopru, katalog):
+def kur_depo(guard, kopru, katalog, env=None):
     d = tempfile.mkdtemp(prefix="guard-provenans-")
     os.makedirs(os.path.join(d, "tools"))
     shutil.copy(guard, os.path.join(d, "tools", "urunler-guard.py"))
     shutil.copy(kopru, os.path.join(d, "tools", "urunler-guard-hook.py"))
-    g(d, "init", "-q", "-b", "main")
-    g(d, "config", "user.email", "kabul@pruvo.test")
-    g(d, "config", "user.name", "Kabul")
-    g(d, "config", "commit.gpgsign", "false")
+    g(d, "init", "-q", "-b", "main", env=env)
+    g(d, "config", "user.email", "kabul@pruvo.test", env=env)
+    g(d, "config", "user.name", "Kabul", env=env)
+    g(d, "config", "commit.gpgsign", "false", env=env)
     yaz_katalog(d, katalog)
-    g(d, "add", "-A")
-    g(d, "commit", "-q", "--no-verify", "-m", "A taban katalog")
+    g(d, "add", "-A", env=env)
+    g(d, "commit", "-q", "--no-verify", "-m", "A taban katalog", env=env)
     return d
 
 
@@ -176,8 +233,8 @@ def kur_merge(guard, kopru, taban, main_katalog):
     return d, rc, out
 
 
-def kos_guard(kok, tetik="commit", ek_env=None):
-    env = _env()
+def kos_guard(kok, tetik="commit", ek_env=None, env=None):
+    env = dict(env) if env else _env()
     env.pop("PRUVO_GUARD_ZORLA", None)
     if ek_env:
         env.update(ek_env)
@@ -467,6 +524,128 @@ def senaryo_kopru(guard, kopru):
     iddia("H3", rc3 == 0 and not log_var, "rc=%d guard_log=%s" % (rc3, log_var))
 
 
+def _yabanci_depo():
+    """X1'in SIZINTI HEDEFI: atilabilir, gecici, TAMAMEN ayri bir git deposu.
+
+    Bilerek `_env()`e BAGLI DEGIL — kendi temiz ortamini kurar; boylece sizinti
+    mutanti bu FIKSTURU degil yalnizca OLCULEN yolu etkiler.
+    """
+    d = tempfile.mkdtemp(prefix="guard-yabanci-")
+    temiz = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    temiz.update(GIT_AUTHOR_DATE=ISO, GIT_COMMITTER_DATE=ISO,
+                 GIT_AUTHOR_NAME="Kabul", GIT_AUTHOR_EMAIL="kabul@pruvo.test",
+                 GIT_COMMITTER_NAME="Kabul", GIT_COMMITTER_EMAIL="kabul@pruvo.test")
+    subprocess.run(["git", "init", "-q", "-b", "main", d], capture_output=True, env=temiz)
+    with open(os.path.join(d, "OKUBENI.md"), "w") as f:
+        f.write("yabanci depo — kabul testinin sizinti hedefi\n")
+    subprocess.run(["git", "-C", d, "add", "-A"], capture_output=True, env=temiz)
+    subprocess.run(["git", "-C", d, "commit", "-q", "--no-verify", "-m", "yabanci"],
+                   capture_output=True, env=temiz)
+    return d
+
+
+def _koruma_izi(guard, kopru, env=None):
+    """K1 fiksturunun IZI: (rc, katalog sha256, geri-sarma stderr'e basildi mi)."""
+    d = kur_depo(guard, kopru, [GUNCEL], env=env)
+    kat = oku_katalog(d)
+    kat[0]["fiyat"] = "9999 TL"
+    kat[0].pop("lisans", None)
+    yaz_katalog(d, kat)
+    rc, _o, err = kos_guard(d, env=env)
+    return (rc, sha(d), "GERI SARILDI" in err)
+
+
+def _beklenen_iz():
+    """X1'in POZITIF CAPASI — izin BEKLENEN degeri, guard'in ciktisindan BAGIMSIZ.
+
+    Katalog sha256'si `[GUNCEL]`in kanonik yazimindan TURETILIR (yani HEAD'de ne
+    varsa o); rc=0 ve geri-sarma bayragi True SABIT beklentidir. Boylece X1 "iki
+    taraf birbirine esit" demekle yetinmez, "ikisi de BEKLENEN olan sey" der —
+    iz bosaltilirsa/daraltilirsa/sabitlenirse iddia KIRMIZI yanar.
+    """
+    d = tempfile.mkdtemp(prefix="guard-beklenen-")
+    yaz_katalog(d, [GUNCEL])
+    return (0, sha(d), True)
+
+
+def _iz_esit(iz, beklenen):
+    """Iz karsilastirmasinin TEK primitifi.
+
+    🔴 X1 bunu BILEREK IKI ZIT YONDE kullanir: capa (ESIT olmali) ve potens
+    (ESIT OLMAMALI). Sabit bir degere katlanirsa (True ya da False) iki yonden
+    biri MUTLAKA kirilir -> "karsilastirma sabitlendi" mutanti oldurulebilir.
+    """
+    return iz == beklenen
+
+
+def senaryo_ortam_sizintisi(guard, kopru):
+    """X1 — ORTAM BAGISIKLIGI: miras alinan GIT_* alt-surece SIZMAZ.
+
+    UC PARCALI — ilk ikisi CAPA, ucuncusu KONTROL:
+      1) CAPA(temiz)  : temiz ortamdaki iz BEKLENEN ize esit
+      2) CAPA(kirli)  : yabanci depoyu gosteren GIT_* mirasi altinda AYNI fikstur
+                        YINE BEKLENEN ize esit (sertlestirme calisiyor)
+      3) POTENS       : ayni kirli ortam, `_env()` YERINE `_ham_env()` (temizlik
+                        YOK) ile kosulunca iz BEKLENENDEN SAPMALI
+
+    (3) olmadan iddia dekoratif olurdu: iki taraf ayni sekilde bosalirsa ya da
+    "kirli" ortam aslinda kirli degilse (1) ve (2) yine gecerdi. POTENS bunu
+    kapatir — kirli ortamin GERCEKTEN potent oldugunu her kosumda KANITLAR.
+    Ayrica capa ve potens ayni `_iz_esit` primitifini ZIT yonlerde kullanir,
+    dolayisiyla primitifi sabitleyen mutant da kirmizi yanar.
+    """
+    kirli = {
+        "GIT_DIR": None, "GIT_WORK_TREE": None, "GIT_INDEX_FILE": None,
+        "GIT_COMMON_DIR": None, "GIT_OBJECT_DIRECTORY": None,
+    }
+    if set(kirli) != set(SIZINTI_ENV):
+        iddia("X1", False, "kirli kume SIZINTI_ENV'den AYRISTI: %s != %s"
+              % (sorted(kirli), sorted(SIZINTI_ENV)))
+        return
+
+    beklenen = _beklenen_iz()
+    temiz_iz = _koruma_izi(guard, kopru)
+    yabanci = _yabanci_depo()
+    kirli.update({
+        "GIT_DIR": os.path.join(yabanci, ".git"),
+        "GIT_WORK_TREE": yabanci,
+        "GIT_INDEX_FILE": os.path.join(yabanci, ".git", "index"),
+        "GIT_COMMON_DIR": os.path.join(yabanci, ".git"),
+        "GIT_OBJECT_DIRECTORY": os.path.join(yabanci, ".git", "objects"),
+    })
+    yedek = {ad: os.environ.get(ad) for ad in SIZINTI_ENV}
+    try:
+        os.environ.update(kirli)
+        kirli_iz = _koruma_izi(guard, kopru)
+        ham_iz = _koruma_izi(guard, kopru, env=_ham_env())
+    finally:
+        for ad, deger in yedek.items():
+            if deger is None:
+                os.environ.pop(ad, None)
+            else:
+                os.environ[ad] = deger
+
+    capa_temiz = _iz_esit(temiz_iz, beklenen)
+    capa_kirli = _iz_esit(kirli_iz, beklenen)
+    potens = not _iz_esit(ham_iz, beklenen)
+    iddia("X1", capa_temiz and capa_kirli and potens,
+          "beklenen=%r capa_temiz=%s capa_kirli=%s potens=%s | temiz=%r kirli=%r ham=%r"
+          % (beklenen, capa_temiz, capa_kirli, potens, temiz_iz, kirli_iz, ham_iz))
+
+
+def senaryo_belge_paritesi(guard, kopru):
+    """X2 — IKIZ TANIM: docstring'deki iddia sayisi ile KODLAR ayrisirsa KIRMIZI.
+
+    Bu depoda belgedeki sayi OLCUMUN KAYNAGI sayilir; sayi bir kez bayatladi
+    (22 yazarken 26 kosuyordu). Capa fail-closed'dur: docstring okunamazsa ya da
+    sayi bulunamazsa iddia KIRMIZI yanar.
+    """
+    m = re.search(r"TAM (\d+) `IDDIA:`", __doc__ or "")
+    belge = int(m.group(1)) if m else None
+    iddia("X2", belge == len(KODLAR),
+          "docstring=%s len(KODLAR)=%d" % (belge, len(KODLAR)))
+
+
 SENARYOLAR = [
     senaryo_merge_replay,
     senaryo_merge_silme_ve_ekleme,
@@ -480,6 +659,8 @@ SENARYOLAR = [
     senaryo_ebeveyn_okunamiyor,
     senaryo_kendi_hatasi,
     senaryo_kopru,
+    senaryo_ortam_sizintisi,
+    senaryo_belge_paritesi,
 ]
 
 
