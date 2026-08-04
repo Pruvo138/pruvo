@@ -35,9 +35,10 @@ shop Worker'i CI'da YAYINLANMIYOR (elle `wrangler deploy`). Canli paket 30 Tem 2
 1 Agu 01:58 arasinda 14,5 SAAT bayat kaldi; 676 fiziksel uruntte %84'e varan FAZLA
 TAHSILAT oldu ve o an mevcut IKI canli kapi da YESIL yaniyordu. Ayni sinif 30 Tem'de de
 yasandi (kart kanali 2 gun kapali) — yani yapisal ve TEKRAR EDEN bir delik.
-Onarim `.github/workflows/paket-tazelik-alarmi.yml`dir (15 dk cadans, `push` YOK ->
-yayini durduramaz). O alarmin KENDISININ olmesi yine sessiz olurdu; A4 ekseni tam olarak
-onu olcer: "canli fiyat yolu ne kadar suredir denetlenmedi".
+Onarim `.github/workflows/paket-tazelik-alarmi.yml`dir (nominal 15 dk cadans — FIILEN
+teslim edilen cadans DEGIL, bkz. A5 ESIGI; `push` YOK -> yayini durduramaz). O alarmin
+KENDISININ olmesi yine sessiz olurdu; A4 ekseni tam olarak onu olcer: "canli fiyat yolu
+ne kadar suredir denetlenmedi".
 A0 ile A4 AYNI karar kodundan gecer (`_damga_satiri`) — ikiz mantik tutulmaz
 ([[ikiz-tanim-sessiz-ayrisma]]); yalnizca konu metinleri ve capa dosyasi ayridir.
 
@@ -73,6 +74,13 @@ NE OLCER (5 EKSEN, hepsi FAIL-CLOSED)
      URETMEZ. Bu eksenin capasi ayrica IS AKISI KABLOSUDUR (`paket_alarmi_kablosu`):
      alarm dosyasi silinir, `push:` ile yayin yoluna baglanir, canli kol `--kendini-test`e
      dusurulur ya da damga kosulu `always()` yapilirsa nobetci KIRMIZI yanar.
+  A5 TESLIM (AG · YENI, 4 Agu 2026) — cron METNI degil FIILI KOSUM DAGILIMI. A1 cron
+     dizesine, A3 ise YALNIZ SON kosumun yasina bakar; ikisi de "96 tetik vaat edildi,
+     5'i teslim edildi" halini GORMEZ. Bu eksen son W saatte gerceklesen `event=schedule`
+     kosumlarini SAYAR, nominal tetik sayisiyla karsilastirir ve olculen tabanin altina
+     duserse KIRMIZI yanar. Rapor satiri ALARM YANMASA DA teslim oranini ve EN UZUN
+     BOSLUGU (gercek korluk penceresi) SAYIYLA basar — "cadans 15 dk" iddiasinin fiilen
+     ne oldugu her kosumda gorunur. Esik turetimi: bkz. A5 ESIGI bolumu.
   A3 NABIZ  (AG · IKINCIL, KAYBOLMADI) — o is akisinin SON `event=schedule` kosumu son N
      saat icinde mi. "Cron HIC ateslemiyor" hali AYRI bir arizadir (damga tazeyken bile
      elle dispatch'le beslenmis olabilir) ve AYRI raporlanir. Yeni kaydedilen is akisina
@@ -97,6 +105,32 @@ ESIK NASIL TURETILDI (TAHMIN DEGIL — OLCUM, bkz. esik_saat)
   🔴 ESIGI "kirmizi gormeyeyim" DIYE BUYUTMEK YASAK: yukaridaki sayilar degismeden N
   degistirilemez; `--kendini-test` icinde `esik_saat(15) == 9` iddiasi bunu KILITLER
   (esigi gevseten de sikilastiran da KIRMIZI yanar).
+
+A5 ESIGI NASIL TURETILDI (TAHMIN DEGIL — 4 Agu 2026 OLCUMU, bkz. teslim_tabani)
+==============================================================================
+OLCUM (gh run list --limit 300, `event=schedule` suzuldu, kesim 2026-08-04T08:30Z):
+  · paket-tazelik-alarmi.yml (cron 13,28,43,58) ... 3482,2 dk pencerede BEKLENEN 232,
+    GERCEKLESEN 10 -> teslim %4,31. Bosluk: min 208,3 · medyan 237,4 · MAKS 1053,5 dk.
+  · d1-uzlastirici.yml (cron 9,24,39,54) ......... 4744,9 dk pencerede BEKLENEN 316,
+    GERCEKLESEN 16 -> teslim %5,06. Bosluk: min 206,2 · medyan 214,8 · MAKS 1053,2 dk.
+  · IKISININ EN UZUN BOSLUGU AYNI PENCEREDE: 2026-08-02T23:44Z -> 2026-08-03T17:18Z.
+    Iki is akisi 4-5 dk ayri cron dakikalari tasidigi halde AYNI DAKIKALARDA, PARTI
+    HALINDE atesleniyor -> dusme is akisina OZGU DEGIL, DEPO/HESAP duzeyinde.
+  · Ofset hukmu: `13,28,43,58` ofseti teslim oranini DUZELTMEDI (4,31%); "acik dakika
+    listesi cadansi korur" iddiasi CURUTULDU. A1 ekseni cron METNINI olcer, teslimi DEGIL.
+PENCERE SECIMI: W=24 sa kayan pencerede teslim min 2 / medyan 3 (gurultulu, tek parti
+kaymasi kirmiziya cevirir); W=48 sa'te min 7 / medyan 7-9 — IKI is akisinda da AYNI.
+W=48 SECILDI (daha az salinim, ayni sinyal).
+TABAN: olculen EN KOTU 48 sa penceresi = 7/192 = %3,65. Guvenlik boleni 2 ->
+  taban oran %1,82; 15 dk cron icin taban = ceil(192 x 0,01823) = 4 kosum / 48 sa.
+  Bugunku EN KOTU gozlem (7) tabanin 1,75 KATI -> bos kirmizi URETMEZ; teslim bugunku
+  seviyeden %43 daha duserse (ya da tamamen dururse) KIRMIZI yanar.
+🔴 ESIGI "kirmizi gormeyeyim" DIYE DUSURMEK YASAK: `--kendini-test` icindeki
+`teslim_tabani(15) == 4` iddiasi hem gevsetmeyi hem sikilastirmayi KIRMIZI yakar.
+🔴 A5 ILE A0/A4 AYNI SEYI OLCMEZ ([[beyan-edilmis-survivor]]): damga eksenleri "SON
+olcum kac saatlik" der; parti halinde teslim edilen bir kosum damgayi tazeler ve A0/A4/A3
+YESIL kalirken teslim orani sifira yakin olabilir. Ayirt edici fikstur `--kendini-test`
+icinde KOSAR (A5 (a): damga taze + son kosum taze + teslim COKMUS -> YALNIZ A5 kirmizi).
 
 FAIL-CLOSED SOZLESMESI
 ======================
@@ -181,6 +215,18 @@ HAFTA_SAAT = 168.0
 ESIK_TABAN_SAAT = 2
 ESIK_TAVAN_SAAT = 20
 DAMGA_SAKLAMA_SAAT = 24  # OLCULDU: expires_at - created_at = 1 gun (depo ayari)
+
+# ─── A5 TESLIM EKSENININ OLCULEN GIRDILERI (4 Agu 2026) ──────────────────────
+# Bu dort sayi degismeden taban degistirilemez (bkz. dosya basi "A5 ESIGI").
+TESLIM_PENCERESI_SAAT = 48        # W — 24 sa'te min 2/medyan 3 (gurultulu), 48 sa'te min 7
+OLCULEN_TABAN_TESLIM = 7          # EN KOTU 48 sa kayan penceresinde teslim edilen kosum
+OLCULEN_TABAN_NOMINAL = 192       # ayni pencerede nominal tetik (15 dk cron x 48 sa)
+TESLIM_GUVENLIK_BOLENI = 2.0      # taban, olculen EN KOTU gozlemin YARISI
+TESLIM_TABAN_ORANI = OLCULEN_TABAN_TESLIM / (OLCULEN_TABAN_NOMINAL * TESLIM_GUVENLIK_BOLENI)
+# API sayfa siniri: pencere DOLU gozlenemediginde bunu SOYLEMEK zorundayiz (sessiz
+# kirpma = sahte yesil). Taban her gercekci cron icin bu sayinin ALTINDA kalir; iddia
+# `--kendini-test`te KOSULUR (teslim_tabani(1) < TESLIM_SAYFA).
+TESLIM_SAYFA = 100
 
 
 class OlcumHatasi(Exception):
@@ -347,6 +393,123 @@ def esik_saat(nominal_aralik_dk):
     return int(min(ESIK_TAVAN_SAAT, max(ESIK_TABAN_SAAT, math.ceil(ham - 1e-9))))
 
 
+def teslim_nominal(aralik_dk, pencere_saat=TESLIM_PENCERESI_SAAT):
+    """Cron'un W saatte VAAT ETTIGI tetikleme sayisi."""
+    return pencere_saat * 60.0 / float(aralik_dk)
+
+
+def teslim_tabani(aralik_dk, pencere_saat=TESLIM_PENCERESI_SAAT):
+    """A5 TABANI — W saatte teslim edilmesi GEREKEN EN AZ kosum sayisi.
+
+    OLCULEN en kotu 48 saatlik pencere (7/192 = %3,65) ikiye bolunerek turetilir.
+    Nominal cadanstan DEGIL, GitHub'in FIILEN teslim ettiginden gelir: nominalden
+    turetilen bir taban (or. "96/gun bekliyorum") ilk gunden itibaren surekli kirmizi
+    yanar ve kapi ilk toplu iste devre disi birakilir ([[kapi-birikimi-yayin-gecikmesi]]).
+    En az 1: bir kosum bile teslim edilmiyorsa hal ZATEN alarmdir."""
+    return max(1, int(math.ceil(teslim_nominal(aralik_dk, pencere_saat)
+                                * TESLIM_TABAN_ORANI - 1e-9)))
+
+
+def teslim_hukmu(g, simdi):
+    """A5 — (satir, alarm_mi). Cron METNINI degil FIILI DAGILIMI olcer.
+
+    Girdi `g` bir gozlem sozlugudur; `tum_kosumlar` cekilen TUM `event=schedule`
+    damgalaridir. Pencereye dusenler BURADA suzulur ve BURADA siralanir — siralama
+    API'ye BIRAKILMAZ (API sirasina guvenmek, tek bir sira degisikliginde en uzun
+    boslugu sessizce yanlis hesaplatirdi).
+
+    UC HAL:
+      🔴 ALARM  — teslim, olculen tabanin ALTINDA.
+      🟡 GORUNUR (alarm YOK) — gozlem gecmisi W'den KISA (is akisi yeni kaydedildi ya da
+         cron tanimi yeni degisti) ya da henuz hic kosum yok (o sinif A3'undur). Sayilar
+         YINE DE basilir; sessiz atlama YOKTUR.
+      ✅ YESIL  — teslim tabanin ustunde. Satir teslim oranini ve EN UZUN BOSLUGU
+         (gercek korluk penceresi) HER HALUKARDA yazar."""
+    etiket = g["dosya"]
+    W = TESLIM_PENCERESI_SAAT
+    if not g.get("aralik"):
+        return ("🟡 A5 TESLIM %s -> cron dakika alani cozulemedigi icin nominal tetik "
+                "SAYILAMIYOR (A1 ekseni bu hali ZATEN kirmizi yakar); teslim orani "
+                "olculmedi." % etiket), False
+
+    nominal = teslim_nominal(g["aralik"], W)
+    taban = teslim_tabani(g["aralik"], W)
+    pencere_basi = simdi - timedelta(hours=W)
+    damgalar = sorted(x for x in (g.get("tum_kosumlar") or []) if x > pencere_basi)
+    teslim = len(damgalar)
+    oran = (100.0 * teslim / nominal) if nominal else 0.0
+
+    # EN UZUN BOSLUK = gercek korluk penceresi. UC ucu da sayilir:
+    #   · kosumlar ARASI bosluklar,
+    #   · son kosumdan SIMDIYE (devam eden sessizlik rapordan DUSMEZ),
+    #   · pencere BASINDAN ilk kosuma (bu sayilmazsa "48 saatin 47'si sessiz, son 20
+    #     dakikada 2 kosum" hali kucucuk bir bosluk gibi gorunurdu — tam da parti
+    #     halinde teslimin URETTIGI hal).
+    bosluklar = [(b - a).total_seconds() / 60.0 for a, b in zip(damgalar, damgalar[1:])]
+    if damgalar:
+        bosluklar.append((simdi - damgalar[-1]).total_seconds() / 60.0)
+        if not g.get("pencere_kirpildi"):
+            bosluklar.append((damgalar[0] - pencere_basi).total_seconds() / 60.0)
+    maks_bosluk = max(bosluklar) if bosluklar else None
+    sirali = sorted(bosluklar)
+    medyan = sirali[len(sirali) // 2] if sirali else None
+    olcu = ("teslim %d / nominal %.0f (%%%.2f) · en uzun bosluk %s · medyan bosluk %s · "
+            "taban %d kosum / %d sa"
+            % (teslim, nominal, oran,
+               ("%.0f dk" % maks_bosluk) if maks_bosluk is not None else "-",
+               ("%.0f dk" % medyan) if medyan is not None else "-", taban, W))
+    # Sayfa DOLDU ve en eski cekilen kosum HALA pencerenin icindeyse pencerenin tamami
+    # gozlenmemistir. Bu SESSIZ KALMAZ; ama teslim sayfa boyu kadar oldugu icin hukum
+    # zaten yesildir (taban her gercekci cron icin TESLIM_SAYFA'nin altindadir).
+    tum = g.get("tum_kosumlar") or []
+    kirpik = bool(g.get("pencere_kirpildi")) and bool(tum) and min(tum) > pencere_basi
+    if kirpik:
+        olcu += (" · ⚠ API sayfa siniri (%d kayit) doldu: pencerenin TAMAMI gozlenmedi, "
+                 "GERCEK teslim bu sayidan AZ OLAMAZ" % TESLIM_SAYFA)
+
+    if g.get("kosum_sayisi") == 0:
+        return ("🟡 A5 TESLIM %s -> HIC event=schedule kosumu YOK; bu sinifin sahibi A3 "
+                "eksenidir (%s)" % (etiket, olcu)), False
+
+    # GOZLEM GECMISI: teslim orani ancak W kadar gecmis varsa hukum verir.
+    #
+    # 🔴 CAPA A3'TEN BILEREK FARKLI — OLCULEN GEREKCE (4 Agu 2026):
+    # A3'un capasi max(kayit_an, yenileme_an)'dir; `yenileme_an` = dosyaya dokunan son
+    # commit. A5 icin AYNI capa OLCULDU ve REDDEDILDI: bu depoda alarm dosyalarinin
+    # dokunma araligi medyan 5,2 sa (paket) / 5,5 sa (d1); son 8 araligin YALNIZ 1'i
+    # 48 saati asiyor. Yani `yenileme_an` capasiyla A5 pratikte HER ZAMAN 🟡 kalirdi —
+    # yani tam olarak kapatmak icin yazildigi KORLUGU kendi icinde uretirdi.
+    # Capa `kayit_an` (is akisinin GitHub'da kayit ani). Karsi risk BEYAN EDILIR: cron
+    # cadansi W icinde degistiyse `nominal` gecmisle uyusmayabilir; bu hal SUSTURULMAZ,
+    # satirda ⚠ ile ve yenileme yasiyla BASILIR, ve en gec W sonra kendiliginden gecer.
+    kayit_an = g.get("kayit_an")
+    gecmis_saat = ((simdi - kayit_an).total_seconds() / 3600.0) if kayit_an else None
+    yenileme = g.get("yenileme_an")
+    if yenileme is not None:
+        yenileme_yas = (simdi - yenileme).total_seconds() / 3600.0
+        if yenileme_yas < W:
+            olcu += (" · ⚠ cron tanimina dokunan son commit %.1f sa once (< %d sa): "
+                     "cadans degistiyse nominal gecmisle tam uyusmayabilir"
+                     % (yenileme_yas, W))
+    if gecmis_saat is not None and gecmis_saat < W:
+        return ("🟡 A5 TESLIM %s -> gozlem gecmisi %.1f sa < pencere %d sa (is akisi "
+                "GitHub'da bu kadar once kaydedildi): teslim orani HENUZ hukum "
+                "verilebilir degil. Olculen: %s" % (etiket, gecmis_saat, W, olcu)), False
+
+    if teslim < taban:
+        return ("🔴 A5 TESLIM %s -> ZAMANLANMIS KOSUMLAR DUSUYOR: %s. Cron METNI dogru "
+                "(A1 yesil) ve son kosum taze olabilir (A3 yesil) — ama bu is akisinin "
+                "olctugu sey W saatte yalnizca %d kez olculdu. Odeme yolu bayatligi bu "
+                "sessizlikte MASKELENIR: en uzun bosluk (%s) korluk penceresinin GERCEK "
+                "degeridir. Cron ofsetini degistirmek bu sinifi COZMEZ (4 Agu olcumu: "
+                "ofsetli iki is akisi da %%4-5 teslimle PARTI HALINDE atesledi) — hal "
+                "depo/hesap duzeyindedir."
+                % (etiket, olcu, teslim,
+                   ("%.0f dk" % maks_bosluk) if maks_bosluk is not None else "-")), True
+
+    return ("✅ A5 TESLIM %s -> %s" % (etiket, olcu)), False
+
+
 def bicim_hukmu(dosya, cron):
     """(hata_metni | None, aralik_dk | None)."""
     dakikalar = dakika_kumesi(cron)
@@ -429,33 +592,53 @@ def gozlem_topla(dosyalar, getir=api_getir):
         g = {"dosya": dosya, "cron": cron, "kayitli": wf is not None,
              "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
              "kayit_an": _iso(wf["created_at"]) if wf is not None else None,
-             "yenileme_an": None}
+             "yenileme_an": None, "tum_kosumlar": [], "pencere_kirpildi": False}
         try:
             g["aralik"] = aralik_dakika(dakika_kumesi(cron) or {0})
         except OlcumHatasi:
             g["aralik"] = None
         g["esik"] = esik_saat(g["aralik"]) if g["aralik"] else ESIK_TABAN_SAAT
         if wf is not None:
-            kosumlar = getir("repos/%s/actions/workflows/%s/runs?event=schedule&per_page=1"
-                             % (DEPO, wf["id"]))
+            # 🔴 per_page=1 DEGIL: tek kayit YALNIZ "son kosum kac saatlik" (A3) sorusunu
+            # cevaplar. A5 ekseni FIILI DAGILIMI olcer ve bunun icin kosum LISTESI gerekir
+            # (olculdu 4 Agu: son kosum 2,3 sa tazeyken teslim orani %4,3 idi — A3 yesil,
+            # sistem kor). Ek API cagrisi YOK, ayni cagrinin sayfa boyu buyudu.
+            kosumlar = getir("repos/%s/actions/workflows/%s/runs?event=schedule&per_page=%d"
+                             % (DEPO, wf["id"], TESLIM_SAYFA))
             if not isinstance(kosumlar, dict) or "total_count" not in kosumlar:
                 raise OlcumHatasi("%s kosum yaniti beklenen sekilde degil "
                                   "(`total_count` yok)" % dosya)
             g["kosum_sayisi"] = int(kosumlar["total_count"])
             satirlar = kosumlar.get("workflow_runs") or []
+            if not isinstance(satirlar, list):
+                raise OlcumHatasi("%s: `workflow_runs` liste degil (%s)"
+                                  % (dosya, type(satirlar).__name__))
             if g["kosum_sayisi"] > 0:
                 if not satirlar:
                     raise OlcumHatasi("%s: total_count=%d ama `workflow_runs` BOS "
                                       "-> yanit tutarsiz" % (dosya, g["kosum_sayisi"]))
+                # HER kayit dogrulanir: tek kaydi suzup gerisini korlemesine saymak,
+                # suzgecin yarim calistigi hali sessizce gecirirdi.
+                damgalar = []
+                for k in satirlar:
+                    if not isinstance(k, dict) or "created_at" not in k:
+                        raise OlcumHatasi("%s: kosum kaydinda `created_at` yok" % dosya)
+                    if k.get("event") != "schedule":
+                        raise OlcumHatasi("%s: event=schedule istendi ama kayit event=%r "
+                                          "-> suzgec calismiyor" % (dosya, k.get("event")))
+                    damgalar.append(_iso(k["created_at"]))
+                # 🔴 BURADA SIRALANMAZ: siralama TEK YERDE, kullanildigi yerde
+                # (teslim_hukmu) yapilir. Iki yerde siralamak, birini kaldiran mutanti
+                # OBURUNUN sessizce kurtarmasi demektir — yani "siralamayi API'ye
+                # birakma" iddiasi AYIRT EDICI mutanti olmayan bir beyana donusurdu
+                # ([[beyan-edilmis-survivor]]). `son_kosum` siralama degil `max` ister.
                 k = satirlar[0]
-                if not isinstance(k, dict) or "created_at" not in k:
-                    raise OlcumHatasi("%s: kosum kaydinda `created_at` yok" % dosya)
-                if k.get("event") != "schedule":
-                    raise OlcumHatasi("%s: event=schedule istendi ama kayit event=%r "
-                                      "-> suzgec calismiyor" % (dosya, k.get("event")))
-                g["son_kosum"] = _iso(k["created_at"])
+                g["son_kosum"] = max(damgalar)
                 g["son_kosum_id"] = k.get("id")
                 g["son_sonuc"] = k.get("conclusion")
+                g["tum_kosumlar"] = damgalar
+                # Sayfa DOLU ise pencerenin tamami gozlenmemis olabilir — bu BEYAN EDILIR.
+                g["pencere_kirpildi"] = len(satirlar) >= TESLIM_SAYFA
             # GitHub cron tanimi degistiginde zamanlayici yeniden kaydedilir. Workflow API'sinin
             # `updated_at` alani bunu yansitmiyor (olculdu: dosya degisti, alan created_at ile
             # ayni kaldi); bu yuzden dosyaya dokunan son commit GitHub commits API'sinden okunur.
@@ -666,6 +849,15 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
             continue
         satirlar.append("✅ A2 DURUM %s -> state=active" % etiket)
 
+        # A5 TESLIM — A3'ten AYRI EKSEN, AYRI SATIR, ve A3'un `continue` kollarindan
+        # ONCE: "kosum yok" / "yeni tanim" hallerinde de teslim satiri BASILIR, sessizce
+        # atlanmaz. A3 "son kosum kac saatlik" der; A5 "W saatte KAC kosum teslim edildi"
+        # der. Parti halinde gelen TEK bir kosum A3'u yesil yakar ama teslim orani sifira
+        # yakin kalabilir — 4 Agu'da FIILEN olculen hal budur.
+        satir5, yandi5 = teslim_hukmu(g, simdi)
+        satirlar.append(satir5)
+        alarm = alarm or yandi5
+
         n = g["esik"]
         son_tanim_an = max(g["kayit_an"], g["yenileme_an"])
         son_tanim_yasi = (simdi - son_tanim_an).total_seconds() / 3600.0
@@ -850,13 +1042,30 @@ def _damga_kaydi(yas_saat, expired=False, ad=None, kimlik=8806704610):
     return a
 
 
+def _kosum_kaydi(yas_saat, event="schedule", dosya="d1-uzlastirici.yml", kimlik=None):
+    """GERCEK `workflow_runs` govdesinin ayni seklinde tek kosum kaydi."""
+    k = dict(_HAM_KOSUM)
+    if kimlik is not None:
+        k["id"] = kimlik
+    k["event"] = event
+    k["path"] = ".github/workflows/%s" % dosya
+    an = datetime.now(timezone.utc) - timedelta(hours=yas_saat)
+    k["created_at"] = an.strftime("%Y-%m-%dT%H:%M:%SZ")
+    k["run_started_at"] = k["created_at"]
+    return k
+
+
 def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                kayit_yas_saat=24.0, yenileme_yas_saat=24.0,
                dosya="d1-uzlastirici.yml", bozuk=None, event="schedule",
-               damgalar=None):
+               damgalar=None, kosum_yaslari=None):
     """GERCEK govdenin ayni seklini ureten enjekte edilebilir `getir`.
 
-    `damgalar`: artifact kayitlari listesi (None -> tek TAZE damga)."""
+    `damgalar`: artifact kayitlari listesi (None -> tek TAZE damga).
+    `kosum_yaslari`: `event=schedule` kosumlarinin YASLARI (saat). None -> TEK kayit
+      (`yas_saat`) doner; bu, A5 acisindan "gecmis penceresi kadar veri YOK" halidir ve
+      varsayilan fikstur kayit/yenileme yasi 24 sa oldugu icin A5 🟡 kalir — yani A5
+      MEVCUT iddialarin higbirinin isaretini degistirmez, kendi fiksturleriyle olculur."""
     def getir(yol, zaman_asimi=25):   # noqa: ARG001
         if bozuk == "ag":
             raise OlcumHatasi("GitHub API cagrilamadi (URLError: [Errno 8] nodename nor "
@@ -894,15 +1103,26 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                 return {"workflow_runs": []}
             if bozuk == "tutarsiz":
                 return {"total_count": 3, "workflow_runs": []}
+            if bozuk == "kosum-listesi-sekli":
+                return {"total_count": 3, "workflow_runs": {"0": {}}}
             if kosum_sayisi == 0:
                 return {"total_count": 0, "workflow_runs": []}
-            k = dict(_HAM_KOSUM)
-            k["event"] = event
-            k["path"] = ".github/workflows/%s" % dosya
-            an = datetime.now(timezone.utc) - timedelta(hours=yas_saat)
-            k["created_at"] = an.strftime("%Y-%m-%dT%H:%M:%SZ")
-            k["run_started_at"] = k["created_at"]
-            return {"total_count": kosum_sayisi, "workflow_runs": [k]}
+            if kosum_yaslari is None:
+                return {"total_count": kosum_sayisi,
+                        "workflow_runs": [_kosum_kaydi(yas_saat, event, dosya)]}
+            # 🔴 SIRA BILEREK BOZUK: GERCEK API yeniden eskiye doner; kod BUNA
+            # GUVENMEMELIDIR. Fikstur listeyi karistirarak "siralamayi API'ye birakma"
+            # iddiasini KOSAR (siralamayi kaldiran mutant KIRMIZI yanar).
+            yaslar = list(kosum_yaslari)
+            kayitlar = [_kosum_kaydi(y, event, dosya, kimlik=1000 + i)
+                        for i, y in enumerate(yaslar)]
+            kayitlar = kayitlar[1::2] + kayitlar[0::2]
+            if bozuk == "ikinci-kayit-event":   # suzgec YARIM calismis
+                kayitlar[-1]["event"] = "workflow_dispatch"
+            if bozuk == "kosum-zaman":          # TEK kaydin damgasi COZULEMEZ
+                kayitlar[-1]["created_at"] = "dun aksam"
+            return {"total_count": max(kosum_sayisi, len(kayitlar)),
+                    "workflow_runs": kayitlar}
         if "/commits?path=" in yol:
             if bozuk == "commit-sekli":
                 return [{"commit": {"committer": {}}}]
@@ -1481,6 +1701,115 @@ def kendini_test():
           any(x.startswith("🔴 A0 DAMGA") for x in s)
           and any(x.startswith("✅ A3 NABIZ") for x in s), s)
 
+    # --- A5 TESLIM (FIILI DAGILIM — cron METNI DEGIL) -----------------------
+    # TABAN KILIDI: hem gevsetmeyi hem sikilastirmayi KIRMIZI yakar. Turetim:
+    # olculen en kotu 48 sa penceresi 7/192 = %3,65 -> /2 -> %1,82 -> 15 dk cron icin
+    # ceil(192 x 0,01823) = 4.
+    iddia("A5 TABAN KILIDI: 15 dk cron · W=%d sa -> nominal %.0f · taban 4 kosum"
+          % (TESLIM_PENCERESI_SAAT, teslim_nominal(15)),
+          teslim_tabani(15) == 4, "olculen %s" % teslim_tabani(15))
+    iddia("A5 TABAN: olculen EN KOTU 48 sa gozlemi (%d kosum) tabanin USTUNDE -> bugunku "
+          "veri BOS KIRMIZI uretmez" % OLCULEN_TABAN_TESLIM,
+          OLCULEN_TABAN_TESLIM > teslim_tabani(15),
+          "%d > %d" % (OLCULEN_TABAN_TESLIM, teslim_tabani(15)))
+    iddia("A5 TABAN: saatlik cron (60 dk) -> en az 1 kosum (taban asla 0 olamaz)",
+          teslim_tabani(60) == 1, "olculen %s" % teslim_tabani(60))
+    iddia("A5 SAYFA: en yogun cron'da (1 dk) bile taban API sayfa boyunun (%d) ALTINDA "
+          "-> kirpilmis pencere sahte KIRMIZI uretemez" % TESLIM_SAYFA,
+          teslim_tabani(1) < TESLIM_SAYFA,
+          "taban %d vs sayfa %d" % (teslim_tabani(1), TESLIM_SAYFA))
+
+    # 🔴 OLDURUCU: damga TAZE (A0 yesil) · son kosum TAZE (A3 yesil) · cron BICIMI dogru
+    # (A1 yesil) · state=active (A2 yesil) — ama 48 saatte 3 teslim. 4 Agu'da FIILEN
+    # olculen hal budur ve ESKI nobetci bunu rc=0 ile gecirdi.
+    TAM = dict(kayit_yas_saat=400.0, yenileme_yas_saat=400.0)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=3, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 0.5, 40.0],
+                              damgalar=[_damga_kaydi(0.5)], **TAM), damga_ile=True)
+    iddia("A5 (a) OLDURUCU: 48 sa'te 3 teslim (taban 4) -> KIRMIZI", rc == 1, "rc=%d" % rc)
+    iddia("A5 (a) AYIRT EDICI: ayni raporda A0/A2/A3 YESIL, YALNIZ A5 KIRMIZI "
+          "(A5 mevcut eksenlerin tekrari DEGIL — [[beyan-edilmis-survivor]])",
+          [x[0] for x in s if x.startswith("🔴")] == ["🔴"]
+          and all(("A5 TESLIM" in x) for x in s if x.startswith("🔴"))
+          and any(x.startswith("✅ A0 DAMGA") for x in s)
+          and any(x.startswith("✅ A3 NABIZ") for x in s), s)
+    iddia("A5 (a) rapor teslim/nominal/oran ve TABANI SAYIYLA yazar",
+          any("teslim 3 / nominal 192" in x and "%1.56" in x and "taban 4 kosum" in x
+              for x in s), s)
+    iddia("A5 (a) EN UZUN BOSLUK (gercek korluk penceresi) SAYIYLA basilir; siralama "
+          "API'ye BIRAKILMAZ (fikstur listeyi bilerek karistirir)",
+          any("en uzun bosluk 2370 dk" in x for x in s), s)
+    iddia("A5 (a) teshis cron ofsetinin bu sinifi COZMEDIGINI soyler (4 Agu olcumu)",
+          any("ofsetini degistirmek bu sinifi COZMEZ" in x for x in s), s)
+
+    # KONTROL (TEK DEGISKEN: teslim edilen kosum sayisi) -> YESIL
+    rc, s = kos(D, _sahte_api(kosum_sayisi=8, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 6.0, 12.0, 18.0, 24.0, 30.0, 36.0, 42.0],
+                              damgalar=[_damga_kaydi(0.5)], **TAM), damga_ile=True)
+    iddia("A5 (b) KONTROL: SAGLIKLI dagilim (48 sa'te 8 teslim) -> YESIL "
+          "(oldurucudan TEK farki teslim sayisi)", rc == 0, "rc=%d" % rc)
+    iddia("A5 (b) YESIL satir da teslim oranini ve en uzun boslugu YAZAR "
+          "(gercek cadans her kosumda GORUNUR)",
+          any(x.startswith("✅ A5 TESLIM") and "en uzun bosluk" in x for x in s), s)
+
+    # SINIR: tam TABANDA yesil, tabanin BIR ALTINDA kirmizi.
+    rc, _ = kos(D, _sahte_api(kosum_sayisi=4, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 12.0, 24.0, 36.0], **TAM))
+    iddia("A5 SINIR: teslim == taban (4) -> YESIL", rc == 0, "rc=%d" % rc)
+    rc, _ = kos(D, _sahte_api(kosum_sayisi=3, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 16.0, 32.0], **TAM))
+    iddia("A5 SINIR: teslim == taban-1 (3) -> KIRMIZI", rc == 1, "rc=%d" % rc)
+
+    # OLCULEN GERCEK TABAN: 4 Agu'nun EN KOTU 48 sa penceresi (7 kosum) -> YESIL.
+    rc, _ = kos(D, _sahte_api(kosum_sayisi=7, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 3.5, 10.0, 17.5, 24.0, 34.0, 44.0],
+                              **TAM))
+    iddia("A5: 4 Agu'da OLCULEN en kotu 48 sa penceresi (%d kosum) -> YESIL "
+          "(nobetci bugunku veriyle BOS KIRMIZI yakmaz)" % OLCULEN_TABAN_TESLIM,
+          rc == 0, "rc=%d" % rc)
+
+    # GOZLEM GECMISI W'den KISA: hukum verilmez ama SESSIZ DE KALINMAZ.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=2, yas_saat=0.2, kosum_yaslari=[0.2, 5.0],
+                              kayit_yas_saat=10.0, yenileme_yas_saat=10.0))
+    iddia("A5 (c) gozlem gecmisi (10 sa) < pencere (%d sa) -> ALARM YOK"
+          % TESLIM_PENCERESI_SAAT, rc == 0, "rc=%d" % rc)
+    iddia("A5 (c) ama SESSIZ DEGIL: 🟡 satir gecmisi ve olculen teslimi YAZAR",
+          any(x.startswith("🟡 A5 TESLIM") and "gozlem gecmisi 10.0 sa" in x
+              and "teslim 2 / nominal 192" in x for x in s), s)
+
+    # 🔴 CAPA KILIDI: dosyaya DUN dokunulmus olmasi A5'i SUSTURAMAZ. Olculdu (4 Agu):
+    # bu depoda alarm dosyalarina medyan 5,2 saatte bir dokunuluyor; capa `yenileme_an`
+    # olsaydi A5 pratikte HIC hukum vermezdi (kapatmak icin yazildigi korlugu URETIRDI).
+    rc, s = kos(D, _sahte_api(kosum_sayisi=3, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 0.5, 40.0],
+                              kayit_yas_saat=400.0, yenileme_yas_saat=1.0))
+    iddia("A5 CAPA KILIDI: is akisi ESKI kayitli ama dosyaya 1,0 sa once dokunulmus -> "
+          "A5 YINE DE HUKUM VERIR (KIRMIZI). Capa `yenileme_an` olsaydi bu mutant "
+          "sessizce 🟡'ye duserdi", rc == 1, "rc=%d" % rc)
+    iddia("A5 CAPA KILIDI: karsi risk SUSTURULMAZ — satir taze cron dokunusunu ⚠ ile "
+          "ve YASIYLA yazar",
+          any(x.startswith("🔴 A5 TESLIM") and "⚠ cron tanimina dokunan son commit 1.0 sa"
+              in x for x in s), s)
+
+    # A5 FAIL-CLOSED: dagilim OKUNAMAZSA yesil DEGIL, rc 2.
+    rc, _ = kos(D, _sahte_api(kosum_sayisi=3, bozuk="kosum-listesi-sekli", **TAM))
+    iddia("A5 FAIL-CLOSED: `workflow_runs` liste DEGIL -> rc 2 (OLCULEMEDI)", rc == 2,
+          "rc=%d" % rc)
+    rc, _ = kos(D, _sahte_api(kosum_sayisi=3, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 16.0, 32.0],
+                              bozuk="ikinci-kayit-event", **TAM))
+    iddia("A5 FAIL-CLOSED: event suzgeci YARIM calismis (listenin ILK kaydi schedule ama "
+          "bir digeri degil) -> rc 2; tek kaydi suzup gerisini saymak sahte YESIL olurdu",
+          rc == 2, "rc=%d" % rc)
+    # 🔴 SAGLIKLI dagilimin ICINDE tek bozuk damga: bozuk kaydi SESSIZCE ATLAMAK teslimi
+    # 8'den 7'ye dusurur, ikisi de tabanin (4) USTUNDE -> hal YESIL yanardi. Cozulemeyen
+    # damga OLCULEMEDI'dir, "bir eksik saydim" DEGIL.
+    rc, _ = kos(D, _sahte_api(kosum_sayisi=8, yas_saat=0.2,
+                              kosum_yaslari=[0.2, 6.0, 12.0, 18.0, 24.0, 30.0, 36.0, 42.0],
+                              bozuk="kosum-zaman", **TAM))
+    iddia("A5 FAIL-CLOSED: SAGLIKLI dagilimin icinde TEK bozuk zaman damgasi -> rc 2 "
+          "(sessizce atlanip 7/8 sayilsaydi hal YESIL kalirdi)", rc == 2, "rc=%d" % rc)
+
     # --- FAIL-CLOSED: veri yoksa YESIL DEGIL ---
     rc, s = kos(D, _sahte_api(bozuk="ag"))
     iddia("FAIL-CLOSED: ag hatasi -> OLCULEMEDI (rc 2), YESIL DEGIL", rc == 2, "rc=%d" % rc)
@@ -1568,9 +1897,19 @@ def kendini_test():
     P = [("d1-uzlastirici.yml", "7,22,37,52 * * * *"),
          (PAKET_ALARM_DOSYA, "11,26,41,56 * * * *")]
 
-    def paket_api(paket_damgalari, yas_saat=0.4, kosum_sayisi=137, bozuk=None):
-        """Iki is akisi + IKI AYRI damga adi donduren `getir` (ad suzgeci FIILEN calisir)."""
-        temel = _sahte_api(kosum_sayisi=kosum_sayisi, yas_saat=yas_saat, bozuk=bozuk)
+    def paket_api(paket_damgalari, yas_saat=0.4, kosum_sayisi=137, bozuk=None,
+                  kosum_yaslari=None):
+        """Iki is akisi + IKI AYRI damga adi donduren `getir` (ad suzgeci FIILEN calisir).
+
+        🔴 KOSUM DAGILIMI SAGLIKLI VERILIR (varsayilan 48 sa'te 8 teslim): bu blogun
+        iddialari A4 DAMGA eksenini yalitir. Fikstur tek kosum dondurseydi A5 TESLIM
+        ekseni de kirmizi yanar ve "A4 damgasi taze -> YESIL" iddialari A4 yuzunden
+        DEGIL A5 yuzunden dusup TEK DEGISKEN yalitimini bozardi
+        ([[fikstur-degeri-mutasyonu-kor-eder]] — fikstur degeri iddiayi kaydirir)."""
+        if kosum_yaslari is None:
+            kosum_yaslari = [yas_saat, 6.0, 12.0, 18.0, 24.0, 30.0, 36.0, 42.0]
+        temel = _sahte_api(kosum_sayisi=kosum_sayisi, yas_saat=yas_saat, bozuk=bozuk,
+                           kosum_yaslari=kosum_yaslari)
 
         def getir(yol, zaman_asimi=25):
             if "actions/artifacts?" in yol:

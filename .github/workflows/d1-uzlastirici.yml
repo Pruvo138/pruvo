@@ -48,11 +48,21 @@ name: D1 uzlastirici (katalog sapmasi)
 # en yogun tetikleme dakikalari; dokumantasyonun kendi tavsiyesi bu dakikalardan
 # KACINMAKTIR, cunku kuyruk kisitlaninca zamanlanmis kosum DUSER (yeniden denenmez).
 # COZUM: `*/15` yerine ACIK DAKIKA LISTESI ve sabit ofset -> 9,24,39,54.
-#   * 15 dakikalik CADANS AYNEN KORUNUR (4 tetikleme/saat), yalniz faz kayar.
 #   * Ceyrek-saat sinirlarinin hicbirine denk gelmez.
+#
+# 🔴 DUZELTME — "15 dk CADANS AYNEN KORUNUR" IDDIASI CURUTULDU (OLCULDU 4 Agu 2026)
+# Burada eskiden "15 dakikalik CADANS AYNEN KORUNUR (4 tetikleme/saat)" yaziyordu.
+# FIILI dagilim: 4745 dk pencerede BEKLENEN 316 kosum, GERCEKLESEN 16 (%5,06); bosluk
+# medyani 214,8 dk, EN UZUN ARDISIK BOSLUK 1053 dk = 17,6 saat. paket-tazelik-alarmi.yml
+# (ofset 13,28,43,58) AYNI oranda dusuyor ve IKISI AYNI DAKIKALARDA, PARTI HALINDE
+# atesleniyor -> ofset sorunu COZMEDI, hal DEPO/HESAP duzeyinde. Ofset yine de KALIR:
+# `*/15`in SIFIR teslimine gore (%0) daha iyidir, ama "cadans korunur" DEMEK DEGILDIR.
+#
 # Bu secim tools/cron-nabiz-kapisi.py A1 ekseniyle KILITLIDIR: `*/15`e geri cevrilirse
-# nobetci KIRMIZI yanar. A3 ekseni de "son 3 saatte hic zamanlanmis kosum yok" halini
-# alarm sayar -> bu isin bir daha SESSIZCE olmesi mumkun degil.
+# nobetci KIRMIZI yanar. A3 ekseni son zamanlanmis kosumun yasini OLCULEN cadanstan
+# turetilen esikle (N=9 sa) tartar; A5 ekseni ise cron METNI yerine FIILI TESLIM
+# SAYISINI olcer (48 saatte 4 kosumun altina duserse KIRMIZI) -> bu isin bir daha
+# SESSIZCE olmesi ya da sessizce SEYRELMESI mumkun degil.
 on:
   schedule:
     - cron: "9,24,39,54 * * * *"

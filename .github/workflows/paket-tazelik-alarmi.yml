@@ -51,13 +51,37 @@ name: Paket tazeligi alarmi (canli fiyat yolu)
 # Bu depoda olculdu (31 Tem): `*/15` cron'lu bir is akisi 4 sa 36 dk boyunca beklenen
 # ~18 tetiklemenin SIFIRINI kostu — `*/15` tam olarak dakika 0/15/30/45'e duser ve
 # GitHub o yogun dakikalarda kuyruk kisitlayip tetiklemeyi DUSURUR (yeniden denemez).
-# Bu yuzden dakika alani ACIK LISTE + SABIT OFSET'tir: 13,28,43,58 (15 dk cadans AYNEN
-# korunur, faz kayar; d1-uzlastirici.yml'nin 9,24,39,54 fazina da CARPMAZ).
+# Bu yuzden dakika alani ACIK LISTE + SABIT OFSET'tir: 13,28,43,58
+# (d1-uzlastirici.yml'nin 9,24,39,54 fazina da CARPMAZ).
 #
-# Alarm IKI KATLI nabizla korunur, ikisi de `tools/cron-nabiz-kapisi.py`de kosar ve
+# 🔴 DUZELTME — "15 dk CADANS AYNEN KORUNUR" IDDIASI CURUTULDU (OLCULDU 4 Agu 2026)
+# ─────────────────────────────────────────────────────────────────────────────
+# Burada eskiden "acik dakika listesi 15 dk cadansi AYNEN korur, yalniz faz kayar"
+# yaziyordu. FIILI kosum dagilimi bunu CURUTTU:
+#   · bu is akisi ....... 3482 dk pencerede BEKLENEN 232 kosum, GERCEKLESEN 10 (%4,31)
+#   · d1-uzlastirici .... 4745 dk pencerede BEKLENEN 316 kosum, GERCEKLESEN 16 (%5,06)
+#   · EN UZUN ARDISIK BOSLUK: 1053 dk = 17,6 SAAT (2 Agu 23:44Z -> 3 Agu 17:18Z) —
+#     IKI IS AKISINDA DA AYNI PENCERE.
+#   · Iki is akisi 4-5 dk ayri cron dakikalari tasidigi halde AYNI DAKIKALARDA, PARTI
+#     HALINDE atesleniyor; hicbir kosum `cancelled` DEGIL — kosumlar iptal EDILMIYOR,
+#     HIC OLUSMUYOR.
+# HUKUM: dusme is akisina OZGU DEGIL, DEPO/HESAP duzeyindedir; ofset degisikligi
+# teslim oranini DUZELTMEZ. GERCEK korluk penceresi "15 dk" DEGIL, olculen ~4 saatlik
+# medyan bosluk ve 17,6 saatlik en kotu bosluktur. `tools/shop-bayatlik-kapisi.py`
+# dosya basindaki "korluk penceresi <= 15 dk (53 kat iyilesme)" cumlesi de AYNI
+# CURUTULMUS sayiya dayanir ve GUNCELLENMELIDIR (o dosya baska bir dalda degistigi
+# icin burada ELLENMEDI — mimara raporlandi).
+#
+# Alarm UC KATLI nabizla korunur, hepsi `tools/cron-nabiz-kapisi.py`de kosar ve
 # deploy.yml `cron-nabzi` isinde HER ITMEDE olculur (yayini bloklamayan serit):
 #   A1/A2/A3 — bu dosyanin cron BICIMI yogun dakikaya kaymis mi · is akisi GitHub'da
 #              `active` mi · son `event=schedule` kosumu esigin icinde mi.
+#   A5       — 🔴 YUKARIDAKI DUSMEYI OLCEN EKSEN: cron METNI degil FIILI TESLIM.
+#              Son 48 saatte gerceklesen zamanlanmis kosum sayisi olculen tabanin
+#              (15 dk cron icin 4 kosum / 48 sa) altina duserse KIRMIZI yanar; alarm
+#              yanmasa da teslim oranini ve EN UZUN BOSLUGU her kosumda BASAR.
+#              A1/A3 bu sinifa KORDU: 4 Agu'da teslim %4,3 iken nabiz kapisi rc=0
+#              veriyordu (cron metni dogru, son kosum 2,5 sa taze).
 #   A4       — SON BASARILI PAKET TAZELIGI DAMGASI kac saatlik. "Kosum YESIL" ile
 #              "olcum FIILEN yapildi" AYNI SEY DEGILDIR (olculdu 31 Tem 20:47:18Z:
 #              conclusion=success, adimlarin HEPSI skipped). Damga YALNIZ
