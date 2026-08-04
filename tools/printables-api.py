@@ -35,6 +35,13 @@ COP_LOGO = (
     "stemma", "distintivo", "amblem",
     # markaya ozel sembol adlari (metinde gecerse logo demektir)
     "roundel", "hood ornament", "prancing horse", "trident", "pentastar",
+    # 2026-08-04 EKLENDI (curutme bulgusu): logoyu HALK DILIYLE adlandiran basliklar
+    # eksikti. Buraya YALNIZ TEK ANLAMLI (cok kelimeli/yabanci) sembol adlari girer —
+    # bunlar global eler ve mesru parca adiyla CAKISMAZ (olculdu: katalogda 0 yanlis-pozitif).
+    # Tek kelimelik BELIRSIZ sembol adlari (star/shield/propeller/wings...) bilerek
+    # BURAYA KONMADI -> COP_SEMBOL_ADI, yalniz duvar-susu baglaminda.
+    "four rings", "three pointed star", "three-pointed star", "cavallino",
+    "winged b", "quadrifoglio", "scudetto", "chevron logo",
 )
 # Marka markasini SERGILEYEN/tasiyan aksesuar-merch formlari — logo reprodüksiyonu sayilir,
 # POPULERLIK DELMEZ (cok dilli anahtarlik + duvar susu/plaket/trofe/rozet).
@@ -49,27 +56,50 @@ COP_MERCH = (
     "plaque", "trophy", "ornament", "pendant", "charm",
     "letters", "lettering", "sticker", "coaster", "fridge magnet", "magnet", "keycap",
 )
-# KOSULLU merch: TEK BASINA elemez; ancak LOGO ya da WORDMARK sinyaliyle BIRLIKTE gelirse eler.
-# Gerekce (olculdu, 2026-08-04): "wall art"/"wall decoration" kosulsuz elerken LOGOSUZ gercek
-# 2D siluet sinifi da eleniyordu. Son hucrede 9 aday ELLE kurtarildi: 6'si temizdi (eklenmeliydi),
-# 3'u wordmark tasiyordu ve GORSEL KAPISI zaten RED verdi. Yani kapi zarar vermiyor ama elle
-# is yukunu katliyordu.
-#   🚫 POLITIKA DELINMEDI (Okan, 2026-07-20): baskida LOGO/wordmark tasiyan urun EKLENMEZ.
-#      Logo/wordmark SINYALI tasiyan duvar susu burada HALA elenir.
-#   ⚠️ SINIR — bu gevsetme ADAY LISTESINE girisi acar, KATALOGA girisi DEGIL. Basliktan
-#      anlasilmayan wordmark'i metin kapisi goremez; onu eleyen gorsel kapisi BU DEPODA
-#      DEGIL (MaCiT'in olcumu: 3/3 kirli aday orada RED aldi — burada DOGRULANAMADI).
-#      Yani kalan risk "gozden gecirilecek aday sayisi"dir, yayina cikan urun degil.
+# KOSULLU merch (duvar susu): VARSAYILAN **ELE** — supheli olan REDDEDILIR. Yalniz metinde
+# POZITIF SILUET KANITI varsa (ve logo/wordmark/sembol sinyali YOKSA) gecer.
+#
+# 🔴 NEDEN BOYLE (curutuldu, 2026-08-04): once bu terimleri "logo/wordmark sinyali varsa ele,
+#    yoksa gecir" diye gevsettim. O hal kapiyi FAIL-CLOSED'dan FAIL-OPEN'a cevirdi: logoyu
+#    HALK DILIYLE adlandiran basliklar (Audi rings / Mercedes star / Peugeot lion /
+#    Ferrari cavallino / Porsche crest / BMW propeller ...) base'de ELENIYORDU, gevsetmede
+#    ELENMIYORDU — 15/19 baslik sizdi. Mekanizma: "wall art" kosulsuz elerken COP_LOGO'nun
+#    EKSIKLIGI yuk tasimiyordu; gevsetme butun yuku o eksik listeye devretti.
+#    LISTE KOVALAMAK cozum DEGIL (her marka icin ayri sembol adi = sonsuz yaris) ->
+#    varsayilan RED'e donduruldu, gevsetme POZITIF KANITA baglandi.
+#   🚫 POLITIKA (Okan, 2026-07-20) baglayici: baskida LOGO/wordmark tasiyan urun EKLENMEZ.
+#   ⚠️ IKINCI KATMAN SAYILMAZ: gorsel kapisi BU DEPODA DOGRULANAMIYOR -> "savunma derinligi"
+#      kanit degildir; metin kapisi TEK BASINA fail-closed olmak zorunda.
 #   ⚠️ "wall decor" LISTEDE OLMAK ZORUNDA: is_merch ALT-DIZE bakar, "wall decoration" metni
-#      "wall decor" girdisini de tetikler. Yalniz "wall art"/"wall decoration" tasinsaydi
-#      "wall decor" kosulsuz listede kalir ve gevsetme HICBIR SEY DEGISTIRMEZDI (sessiz no-op).
+#      "wall decor" girdisini de tetikler; eksik birakilirsa kural SESSIZ NO-OP olur.
 COP_MERCH_KOSULLU = (
     "wall art", "wall arts", "wall decor", "wall decoration",
+)
+# POZITIF SILUET KANITI — kosullu duvar-susu sinifinda RED'i YALNIZ bu deler.
+# Liste UYDURULMADI: 9 canli Printables sorgusundan 233 benzersiz gercek baslik cekildi,
+# duvar-susu terimi gecen 228 baslikta olculen frekans (2026-08-04):
+#     silhouette 97 · line art 12 · outline 4 · stencil 1 · side view 1
+# ("silouette"/"silhoutte" gibi yanlis yazimlar 0 kez gecti -> listeye ALINMADI.)
+# Turkce karsiliklari kendi basliklarimiz icin eklendi.
+COP_SILUET_KANITI = (
+    "silhouette", "silhouettes", "siluet", "silüet",
+    "outline", "line art", "lineart", "stencil", "side view", "profile view",
 )
 # WORDMARK sinyali: marka ADI'nin HARF olarak basildigini gosteren terimler. COP_LOGO'da
 # olmayanlar burada (COP_MERCH'teki "letters"/"lettering" zaten kosulsuz eler).
 COP_WORDMARK = (
     "wordmark", "word mark", "typography", "typeface", "schriftzug", "script",
+)
+# Marka SEMBOLUNU halk diliyle adlandiran sozcukler. YALNIZ kosullu duvar-susu baglaminda
+# olculur — GLOBAL COP_LOGO'ya konmaz, cunku tek basina COK GENIS: "propeller" bizim GERCEK
+# marin urunumuz (pervane), "shield/star/wings" gercek parca adlari. Baglam disinda global
+# eleme yapsalardi mesru urunleri sessizce elerlerdi (olculdu; rapora yazildi).
+# Bu katman, siluet KANITI tasiyan ama yine de logoyu adlandiran basligi yakalar:
+#   "Audi four rings silhouette wall art" -> KANIT var ama SEMBOL ADI var -> ELE.
+COP_SEMBOL_ADI = (
+    "rings", "four rings", "star", "stars", "three pointed star", "three-pointed star",
+    "lion", "cavallino", "shield", "crest", "propeller", "bull", "wreath",
+    "winged b", "wings", "ellipses", "chevron", "chevrons", "scudetto", "quadrifoglio",
 )
 # Populerlik DELEBILIR gurultu (olcek modeli/minyatur) — cok talep goren biri yine de alinir.
 COP_OTHER = ("miniature", "diecast", "die-cast", "diorama", "scale model",
@@ -104,20 +134,42 @@ def is_wordmark(name):
     return any(c in n for c in COP_WORDMARK)
 
 
+def is_sembol_adi(name):
+    """Baslik marka SEMBOLUNU halk diliyle adlandiriyor mu (rings/star/lion/crest...)?
+    ⚠️ YALNIZ kosullu duvar-susu baglaminda cagrilir; global eleme icin COK GENIS."""
+    n = " " + (name or "").lower() + " "
+    return any(c in n for c in COP_SEMBOL_ADI)
+
+
+def is_siluet_kaniti(name):
+    """Baslik POZITIF siluet kaniti tasiyor mu (silhouette/outline/line art...)?"""
+    n = " " + (name or "").lower() + " "
+    return any(c in n for c in COP_SILUET_KANITI)
+
+
 def is_merch(name):
     """Marka-logolu aksesuar/merch formu mu (anahtarlik/askı/plaket/trofe...)?
     LOGO gibi: populerlik DELMEZ.
 
     Iki katman:
-      * COP_MERCH        -> tek basina eler (kosulsuz).
-      * COP_MERCH_KOSULLU -> yalniz LOGO ya da WORDMARK sinyaliyle birlikte eler.
-        'Nissan GTR wall art' (logosuz siluet) GECER; 'Nissan logo wall art' ve
-        'Nissan wall art wordmark' ELENIR. Supheliyi gorsel kapisi ikinci katman olarak eler."""
+      * COP_MERCH         -> tek basina eler (kosulsuz).
+      * COP_MERCH_KOSULLU -> **VARSAYILAN ELER (fail-closed)**; RED'i yalniz POZITIF SILUET
+        KANITI deler, o da logo/wordmark/sembol-adi sinyali YOKKEN.
+
+          'Nissan GTR wall art'                       -> ELENIR (kanit YOK; supheli = RED)
+          'Car silhouette wall art - Ford Mustang'    -> GECER  (kanit VAR, sinyal yok)
+          'Audi rings wall art'                       -> ELENIR (sembol adi)
+          'Audi four rings silhouette wall art'       -> ELENIR (kanit var AMA sembol adi var)
+          'Nissan logo wall art' / '... wordmark ...' -> ELENIR
+
+    Sira onemli: once logo/wordmark/sembol (RED kazanir), sonra kanit araniyor."""
     n = " " + (name or "").lower() + " "
     if any(c in n for c in COP_MERCH):
         return True
     if any(c in n for c in COP_MERCH_KOSULLU):
-        return is_logo(name) or is_wordmark(name)
+        if is_logo(name) or is_wordmark(name) or is_sembol_adi(name):
+            return True                      # logo/wordmark/sembol -> her hal ELE
+        return not is_siluet_kaniti(name)    # KANIT yoksa ELE (fail-closed varsayilan)
     return False
 
 

@@ -30,7 +30,11 @@ def _load(fname, modname):
     return mod
 
 
+IDDIA = []          # olculen iddia sayisi — batarya KUCULURSE gorulsun diye basilir
+
+
 def check(ad, kosul):
+    IDDIA.append(ad)
     if not kosul:
         FAILS.append(ad)
         print("TEST KALDI:", ad, file=sys.stderr)
@@ -190,54 +194,131 @@ _kontrol_sapma = [(t, m) for t, m in (POZITIF_BUYUK + TR_AYRIM)
                   if _mut_kontrol(t, m) != gec(t, m)]
 check("KONTROL MUTANT YESIL kalmali (sapma yok)", not _kontrol_sapma)
 
-# --- 1d. KOSULLU MERCH: logosuz 2D siluet serbest, logo/wordmark HALA elenir ---
-# KUSUR 3: "wall art"/"wall decoration" kosulsuz eliyordu -> LOGOSUZ gercek siluet de
-# eleniyor, elle kurtariliyordu. FIX: COP_MERCH_KOSULLU — yalniz logo/wordmark sinyaliyle eler.
-# 🚫 Politika (2026-07-20) DELINMEDI: logo/wordmark tasiyan HALA elenir (asagida nobetlenir).
-check("kosullu: logosuz siluet GECER", pr.is_merch("Nissan GTR wall art") is False)
-check("kosullu: 'wall decoration' logosuz GECER",
-      pr.is_merch("Skyline silhouette wall decoration") is False)
-check("kosullu: LOGO + wall art ELENIR", pr.is_merch("Nissan logo wall art") is True)
-check("kosullu: EMBLEM + wall decoration ELENIR",
-      pr.is_merch("Nissan emblem wall decoration") is True)
-check("kosullu: WORDMARK + wall art ELENIR", pr.is_merch("Nissan wordmark wall art") is True)
-check("kosullu: LETTERING + wall art ELENIR", pr.is_merch("Nissan lettering wall art") is True)
-check("kosullu: logolu wall art populerlik DELMEZ",
-      pr.is_nobypass("Nissan logo wall art") is True)
-# KONTROL: kosulsuz merch listesi DEGISMEDI (gevsetme sadece duvar-susuna dokundu).
+# --- 1d. KOSULLU DUVAR-SUSU: VARSAYILAN RED, gevsetme POZITIF KANITA bagli -------
+# KUSUR 3 ve onun ILK (yanlis) onarimi:
+#   base   : "wall art" KOSULSUZ eliyordu -> logosuz gercek siluet de eleniyordu.
+#   1. fix : "logo/wordmark sinyali varsa ele, yoksa GECIR" -> kapi FAIL-OPEN oldu.
+#            Logoyu HALK DILIYLE adlandiran 15 baslik base'de eleniyordu, o halde ELENMIYORDU.
+#   2. fix : VARSAYILAN ELE; RED'i yalniz POZITIF SILUET KANITI deler ve o da
+#            logo/wordmark/sembol-adi sinyali YOKKEN. Supheli = RED.
+# 🚫 Politika (Okan, 2026-07-20) baglayici: baskida logo/wordmark tasiyan urun EKLENMEZ.
+# ⚠️ Gorsel kapisi bu depoda DOGRULANAMIYOR -> "savunma derinligi" kanit sayilmaz; metin
+#    kapisi TEK BASINA fail-closed olmali. Asagidaki 15 baslik bunun nobetidir.
+
+# (a) NEGATIF NOBET — curutmede sizan 15 basligin TAMAMI ELENMELI.
+SIZAN_15 = [
+    "Audi rings wall art", "Mercedes star wall art", "Peugeot lion wall art",
+    "Ferrari cavallino wall art", "Alfa Romeo shield wall art", "Porsche crest wall art",
+    "BMW propeller wall art", "Lamborghini bull wall art", "Cadillac wreath wall art",
+    "Bentley winged b wall art", "Mini wings wall art", "Subaru stars wall art",
+    "Toyota ellipses wall art", "Audi four rings", "Mercedes three pointed star",
+]
+for t in SIZAN_15:
+    check("SIZAN-15 ELENMELI: %r" % t, pr.is_nobypass(t) is True)
+check("SIZAN-15 hepsi elendi (15/15)", sum(1 for t in SIZAN_15 if pr.is_nobypass(t)) == 15)
+
+# (b) POZITIF NOBET — GERCEK canli Printables basliklari (9 sorgu / 233 baslik olcumunden
+#     alindi, uydurma DEGIL). Tek yon = olu nobetci; bunlar ELENMEMELI.
+SILUET_GERCEK = [
+    "Porsche Carrera 911 (992) Silhouette Wall Art",
+    "BMW E90 Car Outline Wall Art",
+    "Japanese Car Wall decoration Line Art JDM",
+    "Car silhouette wall art - Ford Mustang GT3 2024",
+    "BMW E36 Style Car Silhouette – Flat Automotive Wall Art",
+    "Car silhouette wall art - DMC Delorean back to the future",
+]
+for t in SILUET_GERCEK:
+    check("SILUET GECMELI: %r" % t[:52], pr.is_nobypass(t) is False)
+check("SILUET hepsi gecti (6/6)", sum(1 for t in SILUET_GERCEK if not pr.is_nobypass(t)) == 6)
+
+# (c) KANIT var AMA sembol adi/logo da var -> RED kazanir (sira nobeti).
+for t in ("Audi four rings silhouette wall art", "Mercedes star silhouette wall art",
+          "Nissan logo silhouette wall art", "Ferrari cavallino outline wall art"):
+    check("KANIT+SEMBOL yine ELENIR: %r" % t, pr.is_nobypass(t) is True)
+
+# (d) Kanitsiz duvar-susu (temiz gorunse bile) ELENIR — fail-closed varsayilan.
+for t in ("Nissan GTR wall art", "Porsche Carrera GT Wall Art", "Classic Car Wall art"):
+    check("KANITSIZ duvar-susu ELENIR: %r" % t, pr.is_merch(t) is True)
+
+# (e) KONTROL: kosulsuz merch listesi DEGISMEDI.
 for t in ("BMW keychain", "Audi keyring", "Ford anahtarlik", "VW wall plaque",
           "Opel trophy", "Seat fridge magnet", "Renault sticker"):
     check("kosulsuz merch HALA elenir: %r" % t, pr.is_merch(t) is True)
 check("logo tek basina HALA elenir", pr.is_logo("Nissan emblem") is True)
+# (f) KONTROL: duvar-susu terimi GECMEYEN sira disi urun etkilenmedi (kapsam sizmasi yok).
+for t in ("Nissan GTR kaput klipsi", "Ford Focus konsol duzenleyici",
+          "Yildiz tornavida ucu", "Marine propeller shaft anode"):
+    check("duvar-susu DISI urun etkilenmedi: %r" % t, pr.is_merch(t) is False)
 
 
-def _mut_kosulsuz_merch(name):
-    """MUTANT 3 = FIX ONCESI hal: kosullu terimler kosulsuz listede. Logosuz siluet
-    vakasini ELER -> KIRMIZI."""
+def _mut_fail_open(name):
+    """MUTANT 3 = ILK (CURUTULEN) onarim: kosullu terim varsa yalniz logo/wordmark eler,
+    yoksa GECIRIR (fail-open). SIZAN_15'i gecirmeli -> KIRMIZI."""
     n = " " + (name or "").lower() + " "
-    return any(c in n for c in (pr.COP_MERCH + pr.COP_MERCH_KOSULLU))
-
-
-def _mut_merch_kontrol(name):
-    """KONTROL MUTANT = canli is_merch ile ayni, sadece kosulsuz listeye fikstyurde HIC
-    gecmeyen bir terim eklendi. YESIL kalmali."""
-    n = " " + (name or "").lower() + " "
-    if any(c in n for c in (pr.COP_MERCH + ("bobblehead",))):
+    if any(c in n for c in pr.COP_MERCH):
         return True
     if any(c in n for c in pr.COP_MERCH_KOSULLU):
         return pr.is_logo(name) or pr.is_wordmark(name)
     return False
 
 
-MERCH_TEMIZ = ["Nissan GTR wall art", "Skyline silhouette wall decoration"]
-MERCH_KIRLI = ["Nissan logo wall art", "Nissan emblem wall decoration",
-               "Nissan wordmark wall art", "BMW keychain", "VW wall plaque"]
-check("MUT-3 (kosulsuz merch) KIRMIZI yakmali",
-      all(_mut_kosulsuz_merch(t) is True for t in MERCH_TEMIZ))
-check("MUT-3 canli kod temizi GECIRIYOR", all(pr.is_merch(t) is False for t in MERCH_TEMIZ))
-check("MUT-3 canli kod kirliyi ELIYOR", all(pr.is_merch(t) is True for t in MERCH_KIRLI))
-check("KONTROL MUTANT (merch) YESIL kalmali",
-      all(_mut_merch_kontrol(t) == pr.is_merch(t) for t in MERCH_TEMIZ + MERCH_KIRLI))
+def _mut_kanitsiz_gecir(name):
+    """MUTANT 4 = sembol-adi katmanini KALDIR (yalniz kanit ara). 'Audi four rings
+    silhouette wall art' gibi KANIT+SEMBOL vakalarini gecirmeli -> KIRMIZI."""
+    n = " " + (name or "").lower() + " "
+    if any(c in n for c in pr.COP_MERCH):
+        return True
+    if any(c in n for c in pr.COP_MERCH_KOSULLU):
+        if pr.is_logo(name) or pr.is_wordmark(name):
+            return True
+        return not pr.is_siluet_kaniti(name)
+    return False
+
+
+def _mut_merch_kontrol(name):
+    """KONTROL MUTANT = canli is_merch ile DAVRANISSAL olarak ayni; kosulsuz listeye
+    fikstyurde HIC gecmeyen bir terim, kanit listesine de hic gecmeyen bir terim eklendi.
+    YESIL kalmali — kalmiyorsa batarya davranisi degil kaynak metnini olcuyor."""
+    n = " " + (name or "").lower() + " "
+    if any(c in n for c in (pr.COP_MERCH + ("bobblehead",))):
+        return True
+    if any(c in n for c in pr.COP_MERCH_KOSULLU):
+        if pr.is_logo(name) or pr.is_wordmark(name) or pr.is_sembol_adi(name):
+            return True
+        return not (pr.is_siluet_kaniti(name)
+                    or "zzz-olmayan-terim" in n)
+    return False
+
+
+TUM_MERCH_VAKA = SIZAN_15 + SILUET_GERCEK + [
+    "Audi four rings silhouette wall art", "Nissan GTR wall art", "BMW keychain",
+    "VW wall plaque", "Nissan GTR kaput klipsi"]
+
+# MUT-3 (fail-open, curutulen onarim): SIZAN_15'in COGUNU gecirmeli.
+_m3_sizan = [t for t in SIZAN_15 if _mut_fail_open(t) is False]
+check("MUT-3 (fail-open) KIRMIZI yakmali — SIZAN_15 sizmali", len(_m3_sizan) >= 13)
+check("MUT-3 canli kod SIZAN_15'i ELIYOR", all(pr.is_nobypass(t) for t in SIZAN_15))
+# MUT-3 AYIRT EDICI mi: gercek siluet basliklarini mutant da GECIRMELI (her seyi kirmiyor).
+check("MUT-3 ayirt edici (gercek siluet mutantta da geciyor)",
+      all(_mut_fail_open(t) is False for t in SILUET_GERCEK))
+
+# MUT-4 (sembol-adi katmani yok): KANIT+SEMBOL vakasini gecirmeli.
+# ⚠️ Fikstyur SECIMI onemli: "four rings"/"cavallino" GLOBAL COP_LOGO'da oldugundan mutant
+# onlari yine eler ve katmani AYIRT ETMEZ. Ayirt edici fikstyur, sembol adi YALNIZ
+# COP_SEMBOL_ADI'nda olan basliktir ("star" globalde YOK, baglamda VAR).
+MUT4_AYIRTEDICI = "Mercedes star silhouette wall art"
+check("MUT-4 fikstyuru gercekten ayirt edici (sembol GLOBAL logoda degil)",
+      pr.is_logo(MUT4_AYIRTEDICI) is False and pr.is_sembol_adi(MUT4_AYIRTEDICI) is True)
+check("MUT-4 (sembol katmani yok) KIRMIZI yakmali",
+      _mut_kanitsiz_gecir(MUT4_AYIRTEDICI) is False)
+check("MUT-4 canli kod KANIT+SEMBOL'u ELIYOR", pr.is_merch(MUT4_AYIRTEDICI) is True)
+# MUT-4 ayirt edici mi: kanitsiz duvar-susunu mutant da ELEMELI (her seyi gecirmiyor).
+check("MUT-4 ayirt edici (kanitsiz duvar-susu mutantta da eleniyor)",
+      _mut_kanitsiz_gecir("Nissan GTR wall art") is True)
+
+# KONTROL MUTANT: TUM vakalarda canli kodla ayni cevap -> YESIL kalir.
+_merch_kontrol_sapma = [t for t in TUM_MERCH_VAKA if _mut_merch_kontrol(t) != pr.is_merch(t)]
+check("KONTROL MUTANT (merch) YESIL kalmali (sapma yok)", not _merch_kontrol_sapma)
 
 # --- 2. Iki arama araci da fonksiyonu KULLANIYOR mu (kaynak-grep) --------------
 for f in ("printables-ara.py", "thing-ara.py"):
@@ -272,7 +353,8 @@ check("MW: TR ayrimi korunuyor", _mw.marka_geciyor("kisa", "kısa kollu kutu") i
 check("MW: bos marka False", _mw.marka_geciyor("", "herhangi") is False)
 
 if FAILS:
+    print("\nIDDIA: %d | KALAN: %d" % (len(IDDIA), len(FAILS)), file=sys.stderr)
     print("\n%d KONTROL KALDI" % len(FAILS), file=sys.stderr)
     sys.exit(1)
-print("TEST GECTI")
+print("TEST GECTI — olculen iddia: %d" % len(IDDIA))
 sys.exit(0)
