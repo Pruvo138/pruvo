@@ -15,10 +15,21 @@ degismedi); `ford/focus-st` · `fiesta-st` · `ecoboost` 404 oldu, 14 urunun tam
 
 **KOSAN IS YOK.**
 
-**Saatlik CI nobeti 4 Agu ~15:40Z:** son 70 dk'da basarisiz kosum YOK (en yeni failure
-`30903889227` 11:13Z, pencere disi); `30924982904` cancelled = ayni push'un mukerrer kosumu,
-hata degil. Mail taranmadi, mail silinmedi (kapi: basarisiz kosum yoksa dokunma).
-Kosum `30925165740` (HEAD `a0b49ef7`) o an pending — sonraki tur olcer.
+**Saatlik CI nobeti 4 Agu ~16:45Z — KIRMIZI BULUNDU, ONARILDI, OLCULDU.**
+Dort ardisik main kosumu ayni kok nedenle failure: `dced48c` · `f8698eb` · `31769d8` ·
+`20fbff6`. Kirilan job'lar `serit-a2` + `serit-a3`; `build` YESILDI ama `deploy` ve `yayin`
+**skipped** — yani site dort commit boyunca yayina cikmadi (tek kol kirmizisi degil, gercek
+yayin durmasi). Kok neden: `DEVAM.md` icerik-sinifi kapisi 2 satiri ihlal olarak isaretledi
+("satirlari DEVAM-ARSIV.md'ye TASI, notr isaretci birak; silme YOK, tasima VAR").
+Onarim Codex'e delege edildi; commit `8073ea6f` yalnizca `DEVAM.md`'de 2 satiri notrlestirdi
+(katalog/secret/workflow dosyasina DOKUNULMADI, adim silme / `continue-on-error` / esik
+gevsetme YOK — kapi susturulmadi, kapinin gosterdigi sey duzeltildi).
+Bagimsiz teyit: kosum **`30930607187`** (headSha `8073ea6f`) — `build` · `serit-a2` ·
+`serit-a3` · `serit-b` · **`deploy`** · **`yayin`** hepsi `success`.
+Mail: gonderen+konu+sha uclu kriteriyle 4 hata maili Cop'e TASINDI (kalici silme yok,
+Cop bosaltilmadi); tasima sonrasi inbox'ta eslesen mail 0.
+Not: `a35d53fd` kosumu cancelled (mukerrer push), `6f7ac890` kosumu o an in_progress —
+ikisi de baska oturumun akan isi, bu nobetin kapsaminda degil, sonraki tur olcer.
 
 ### ✅ KAPANDI (4 Agu) — model cip satiri kanoniklestirildi + K19 capraz-marka (rozet) kapisi
 Merge SHA **`d91ea881`**, kosum `30923737314` headSha BIREBIR **success** (bir onceki main
