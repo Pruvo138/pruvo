@@ -74718,7 +74718,8 @@
     "marka": [
       "Volvo",
       "V40",
-      "S40"
+      "S40",
+      "S40 MK1"
     ],
     "baslik": "Volvo V40 / S40 MK1 Orta Konsol Düğmesi",
     "aciklama": "Birinci nesil V40 ve S40'ın orta konsolundaki boş düğme yuvasına oturan düğmedir. İki sürüm birlikte üretilir: yüzeyi kapalı kör sürüm istenirse delinip kişiselleştirilebilir, anahtar yuvalı sürüm ise standart bir anahtar takılarak sis lambası, ek aydınlatma ya da benzeri bir aksesuarı kumanda etmek için kullanılır. Konsoldaki mevcut yuvaya oturur, kesme gerektirmez. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir. Anahtar ürüne dahil değildir.\nYaklaşık dış ölçüler: 40 × 34 × 20 mm.",
@@ -74746,6 +74747,10 @@
       {
         "marka": "Volvo",
         "model": "S40"
+      },
+      {
+        "marka": "Volvo",
+        "model": "S40 MK1"
       }
     ]
   },
@@ -81670,7 +81675,8 @@
     "id": "renault-kangoo-mk3-port-bagaj-on-kapagi",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Kangoo Mk3"
     ],
     "baslik": "Renault Kangoo Mk3 Port Bagaj Ön Kapağı",
     "aciklama": "Renault Kangoo Mk3 port bagaj (tavan çıtası) ön kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, çıtanın ön ucunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Renault Kangoo Mk3 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -81685,6 +81691,10 @@
     "uyum": [
       {
         "marka": "Renault"
+      },
+      {
+        "marka": "Renault",
+        "model": "Kangoo Mk3"
       }
     ]
   },
@@ -82525,7 +82535,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Clio"
+      "Clio",
+      "Clio Mk2"
     ],
     "baslik": "Renault Clio Mk2 Stop Lambası Kapağı",
     "aciklama": "Renault Clio Mk2 stop lambası kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, lamba gövdesini temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Renault Clio Mk2 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -82542,6 +82553,10 @@
       {
         "marka": "Renault",
         "model": "Clio"
+      },
+      {
+        "marka": "Renault",
+        "model": "Clio Mk2"
       }
     ]
   },
@@ -85230,7 +85245,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Polo"
+      "Polo",
+      "Polo GTI"
     ],
     "baslik": "Volkswagen Polo GTI Tampon Köşe Bakaliti",
     "aciklama": "Volkswagen Polo GTI tampon köşe destek (bakalit) parçası. Kırılan veya kaybolan orijinalin yerine geçer, tampon köşe bağlantısını yeniden sağlamlaştırır. Orijinali lazer tarama ile modellenmiştir.\n- Volkswagen Polo GTI ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -85248,6 +85264,10 @@
       {
         "marka": "Volkswagen",
         "model": "Polo"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Polo GTI"
       }
     ]
   },
@@ -92804,7 +92824,8 @@
     "id": "renault-kangoo-mk3-port-bagaj-arka-kapagi-8200530504",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Kangoo Mk3"
     ],
     "baslik": "Renault Kangoo Mk3 Port Bagaj Arka Kapağı (8200530504)",
     "aciklama": "Renault Kangoo Mk3 tavan port bagaj (roof bar) arka kapak parçası (OEM 8200530504). Kırılan veya kaybolan orijinalin yerine geçer, port bagaj ucunu temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Renault Kangoo Mk3 ile uyumludur.\n- OEM 8200530504 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -92817,6 +92838,10 @@
     "uyum": [
       {
         "marka": "Renault"
+      },
+      {
+        "marka": "Renault",
+        "model": "Kangoo Mk3"
       }
     ]
   },
@@ -93239,7 +93264,8 @@
     "id": "renault-kangoo-mk5-on-kapi-citasi-2022-2026-808213522r",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Kangoo Mk5"
     ],
     "baslik": "Renault Kangoo Mk5 Ön Kapı Çıtası (2022-2026, 808213522R)",
     "aciklama": "Renault Kangoo Mk5 (2022-2026) ön kapı çıta (slat) parçası (OEM 808213522R). Kırılan, çatlayan veya kaybolan orijinalin yerine geçer, ön kapı çıtasını temizce tamamlar. Orijinali lazer tarama ile ölçeklenmiştir.\n- Renault Kangoo Mk5 2022-2026 ile uyumludur.\n- OEM 808213522R referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -93252,6 +93278,10 @@
     "uyum": [
       {
         "marka": "Renault"
+      },
+      {
+        "marka": "Renault",
+        "model": "Kangoo Mk5"
       }
     ]
   },
@@ -93281,7 +93311,8 @@
     "id": "renault-kangoo-mk5-ayna-ucgeni-kapagi-2022-2026-638757980r",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Kangoo Mk5"
     ],
     "baslik": "Renault Kangoo Mk5 Ayna Üçgeni Kapağı (2022-2026, 638757980R)",
     "aciklama": "Renault Kangoo Mk5 (2022-2026) kapı aynası üçgen (mirror triangle) kapak parçası (OEM 638757980R). Kırılan veya kaybolan orijinalin yerine geçer, ayna üçgenini temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Renault Kangoo Mk5 2022-2026 ile uyumludur.\n- OEM 638757980R referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -93295,6 +93326,10 @@
     "uyum": [
       {
         "marka": "Renault"
+      },
+      {
+        "marka": "Renault",
+        "model": "Kangoo Mk5"
       }
     ]
   },
@@ -97782,7 +97817,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Megane"
+      "Megane",
+      "Megane MK1"
     ],
     "baslik": "Renault Megane MK1 Perde/Güneşlik Açma Dişlisi (7700848780 / 7700848781)",
     "aciklama": "Renault Megane MK1 açılır perde/güneşlik mekanizmasının açma dişli parçası (OEM 7700848780 / 7700848781). Aşınan veya sıyrılan orijinal dişlinin yerine geçer, mekanizmanın düzgün çalışmasını sağlar. Orijinali lazer tarama ile modellenmiştir.\n- Renault Megane MK1 ile uyumludur.\n- OEM 7700848780 / 7700848781 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -97800,6 +97836,10 @@
       {
         "marka": "Renault",
         "model": "Megane"
+      },
+      {
+        "marka": "Renault",
+        "model": "Megane MK1"
       }
     ]
   },
@@ -101538,7 +101578,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volvo",
-      "V40"
+      "V40",
+      "V40 MK1"
     ],
     "baslik": "Volvo V40 MK1 Tavan Çıtası Kapağı (30803561)",
     "aciklama": "Volvo V40 MK1 tavan çıtası (roof rail) kapağının birebir üretimi (parça no 30803561). Tek başına bulunması çok zor olan bu parçanın yerine geçerek çıtanın uç kısmını düzgünce kapatır.\nIsıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 33 × 22 × 16 mm.",
@@ -101557,6 +101598,10 @@
       {
         "marka": "Volvo",
         "model": "V40"
+      },
+      {
+        "marka": "Volvo",
+        "model": "V40 MK1"
       }
     ]
   },
@@ -103539,7 +103584,8 @@
     "id": "toyota-supra-mk2-guneslik-mentesesi",
     "kategori": "Otomobil",
     "marka": [
-      "Toyota"
+      "Toyota",
+      "Supra MK2"
     ],
     "baslik": "Toyota Supra MK2 Güneşlik Menteşesi",
     "aciklama": "Toyota Supra MK2 güneşliğini tavana bağlayan menteşe/tutucu parçası. Kırılan orijinalin yerine takılarak güneşliğin düzgün açılıp kapanmasını sağlar ve yerinde sabit tutar.\nYaklaşık dış ölçüler: 66 × 10 × 8 mm.",
@@ -103563,6 +103609,10 @@
     "uyum": [
       {
         "marka": "Toyota"
+      },
+      {
+        "marka": "Toyota",
+        "model": "Supra MK2"
       }
     ]
   },
@@ -115231,7 +115281,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Yağ Buharı Toplama Kabı (Catch Can) Braketi",
     "aciklama": "Ford Focus ST için yağ buharı toplama kabı montaj braketidir.\nAkü tutma cıvatasına tek delikle, kabın montaj braketine üç delikle bağlanır; farklı yükseklik seçenekleri sunar.\nASA veya ABS malzemeyle üretilir.\nYaklaşık dış ölçüler: 56 × 52 × 30 mm.",
@@ -115251,6 +115302,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -116988,7 +117043,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST / ST180 Sis Farı Fren Soğutma Kanalı (2 inç)",
     "aciklama": "Ford Fiesta ST180 sis farı yerine geçen fren soğutma hava kanalıdır.\n2 inç (50mm) iç çaplı hortuma uygundur; frenlere hava yönlendirir.\nOrijinal sis farı yuvasına oturur.\nYaklaşık dış ölçüler: 113 × 102 × 89 mm.",
@@ -117008,6 +117064,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -117090,7 +117150,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST MK3 Vites Tabanı Burçları (İçi Dolu)",
     "aciklama": "Ford Focus ST MK3 vites tabanının içi dolu burç/ek takımıdır.\nOrijinal lastik burçların metal bilezik göbeğini yeniden kullanacak şekilde tasarlanmıştır; vites boşluğunu azaltır.\nKalın cidarlı üretilir.\nYaklaşık dış ölçüler: 26 × 26 × 7 mm.",
@@ -117108,6 +117169,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -118512,7 +118577,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Escort"
+      "Escort",
+      "Escort Mk7"
     ],
     "baslik": "Ford Escort Mk7 Vida Başı Kapağı",
     "aciklama": "Ford Escort Mk7 için sabitleme vidası başını örten kapaktır.\nVida başını gizleyerek düzgün görünüm sağlar.\nVida başına geçer.\nYaklaşık dış ölçüler: 14 × 14 × 4 mm.",
@@ -118531,6 +118597,10 @@
       {
         "marka": "Ford",
         "model": "Escort"
+      },
+      {
+        "marka": "Ford",
+        "model": "Escort Mk7"
       }
     ]
   },
@@ -118777,7 +118847,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Mk3.5 Hava Emiş Borusu Desteği",
     "aciklama": "Ford Focus ST Mk3.5 büyük ağızlı hava emiş borusu için destek/tutucudur.\nBoruyu çarpışma barına sabitleyerek titreşimini önler.\nÇarpışma barına geçer, boruya çift taraflı bantla tutturulur.\nYaklaşık dış ölçüler: 46 × 33 × 23 mm.",
@@ -118796,6 +118867,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -118804,7 +118879,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Mondeo"
+      "Mondeo",
+      "Fusion Mk5"
     ],
     "baslik": "Ford Mondeo / Fusion Mk5 Ön Koltuk Arkası Kancası",
     "aciklama": "Ford Mondeo ve Fusion Mk5 ön koltuk arkasına takılan kancadır.\nKoltuk arkasında poşet, çanta gibi eşyaları asmaya yarar.\nMevcut koltuk yapısına oturur.\nYaklaşık dış ölçüler: 174 × 94 × 38 mm.",
@@ -118822,6 +118898,10 @@
       {
         "marka": "Ford",
         "model": "Mondeo"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fusion Mk5"
       }
     ]
   },
@@ -122483,7 +122563,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Escort"
+      "Escort",
+      "Escort RS"
     ],
     "baslik": "Ford Escort RS Marşpiyel (Etek) Klipsi",
     "aciklama": "Ford Escort RS marşpiyel eteklerini tutan klips takımıdır.\nKırılan orijinal klipslerin yerine geçer.\nKlipsler için PETG, esnek parça için TPE malzemeyle üretilir.\nYaklaşık dış ölçüler: 36 × 24 × 18 mm.",
@@ -122503,6 +122584,10 @@
       {
         "marka": "Ford",
         "model": "Escort"
+      },
+      {
+        "marka": "Ford",
+        "model": "Escort RS"
       }
     ]
   },
@@ -123977,7 +124062,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Ka"
+      "Ka",
+      "Ka Mk1"
     ],
     "baslik": "Ford Ka Mk1 Arka 6x9 Hoparlör Montaj Çerçevesi",
     "aciklama": "Ford Ka Mk1 bagaj kapağına 6x9 hoparlör uyarlayan montaj çerçevesidir.\nFabrikada hoparlörü olmayan bagaj kapağına ek hoparlör imkanı sağlar.\nYalnızca aracın orijinal bagaj kapağına uyar.\nYaklaşık dış ölçüler: 277 × 206 × 59 mm.",
@@ -124001,6 +124087,10 @@
       {
         "marka": "Ford",
         "model": "Ka"
+      },
+      {
+        "marka": "Ford",
+        "model": "Ka Mk1"
       }
     ]
   },
@@ -126705,7 +126795,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Capri"
+      "Capri",
+      "Capri MK3"
     ],
     "baslik": "Ford Capri MK3 Torpido Kaplama Tırnakları",
     "aciklama": "Ford Capri MK3 torpido kaplamasının (facia) altındaki kırılan tırnakları onaran değişim parçalarıdır.\nTırnakların ne kadar kırıldığına göre iki farklı uzunluk sunulur.\nÖne doğru geçmeli takılır ve yapıştırılarak sabitlenir; PETG veya ABS ile üretilir.\nYaklaşık dış ölçüler: 28 × 15 × 4 mm.",
@@ -126723,6 +126814,10 @@
       {
         "marka": "Ford",
         "model": "Capri"
+      },
+      {
+        "marka": "Ford",
+        "model": "Capri MK3"
       }
     ]
   },
@@ -127428,7 +127523,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Escort"
+      "Escort",
+      "Escort Mk2"
     ],
     "baslik": "Ford Escort Mk2 Kalorifer Hava Kapağı Kolu",
     "aciklama": "Ford Escort Mk2 kalorifer hava dağıtım kapağının (blower flap) alt kolu parçasıdır.\nSıkı oturması için orijinal ölçünün %117,5'i oranında büyütülmüş olarak üretilir.\nMevcut kapak mekanizmasına doğrudan takılır.\nYaklaşık dış ölçüler: 45 × 25 × 8 mm.",
@@ -127447,6 +127543,10 @@
       {
         "marka": "Ford",
         "model": "Escort"
+      },
+      {
+        "marka": "Ford",
+        "model": "Escort Mk2"
       }
     ]
   },
@@ -128047,7 +128147,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST Sempozer Silme Hortum Tapası",
     "aciklama": "Ford Fiesta ST modelindeki fabrika ses borusu (sempozer) sökülüp iptal edildiğinde açıkta kalan hortum ucunu kapatan tapadır.\nYuvarlatılmış kenarlı, düz (logosuz) yüzeyli sürümdür.\nMevcut hortum ucuna doğrudan geçirilir.\nYaklaşık dış ölçüler: 35 × 35 × 29 mm.",
@@ -128065,6 +128166,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -128420,7 +128525,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST 1.6L Turbo Diferansiyel Rulman Montaj Aleti",
     "aciklama": "Ford Fiesta ST 1.6L Turbo sınırlı kaymalı diferansiyeline rulman baskısı için kullanılan montaj aletidir.\nFabrika servis aletinin ölçülerine göre tasarlanmıştır, tahta takoz ve çekiçle birlikte kullanılır.\nDiferansiyel rulman yuvasına doğrudan uygulanır.\nYaklaşık dış ölçüler: 45 × 44 × 44 mm.",
@@ -128438,6 +128544,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -131154,7 +131264,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST (2013-2018) Arka Tampon Destek Parçası",
     "aciklama": "Ford Focus ST (2013-2018) arka tampon iç destek parçasıdır, park manevralarında darbe alan bölgede kullanılır.\nOrijinal parçayla birebir aynı olmasa da montaj noktaları ve genel geometriyle tam uyum sağlar.\nMevcut tampon iç gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 173 × 56 × 50 mm.",
@@ -131173,6 +131284,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -131346,7 +131461,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Explorer"
+      "Explorer",
+      "Explorer ST"
     ],
     "baslik": "Ford Explorer ST (2021-2024) Katlanabilir Telefon Tutucusu",
     "aciklama": "Ford Explorer ST (2021-2024) için tasarlanmış, katlanabilir akıllı telefonlara uygun dar profilli telefon tutucusudur.\nDiğer Ford modellerinde de benzer montaj noktalarında kullanılabilir.\nMevcut montaj noktasına doğrudan takılır.\nYaklaşık dış ölçüler: 89 × 36 × 34 mm.",
@@ -131366,6 +131482,10 @@
       {
         "marka": "Ford",
         "model": "Explorer"
+      },
+      {
+        "marka": "Ford",
+        "model": "Explorer ST"
       }
     ]
   },
@@ -132376,7 +132496,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST Araç Gösterge Cihazı Montaj Yuvası",
     "aciklama": "Ford Fiesta ST kokpitinde, ısıtmalı koltuk düğmelerinin üstünde kalan boş cepte harici bir araç gösterge cihazını sabitlemek için tasarlanmış montaj yuvasıdır.\nKablo geçişi için yan ve üst yüzeyde delikler bulunur.\nMevcut boş cebe doğrudan takılır.\nYaklaşık dış ölçüler: 127 × 68 × 45 mm.",
@@ -132396,6 +132517,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -134637,7 +134762,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Gaz Pedalı Aralığı (19 mm)",
     "aciklama": "Ford Focus ST gaz pedalını fren pedalı hizasına yaklaştıran, topuk-burun tekniğine uygun 19 mm kalınlığında ara parçadır.\nPedal konumunu değiştirerek vites geçişlerini kolaylaştırır.\nMevcut gaz pedalı gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 164 × 51 × 19 mm.",
@@ -134657,6 +134783,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -135841,7 +135971,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Vites Topu Uç Kapağı",
     "aciklama": "Ford Focus ST (Focus RS ile de uyumlu) vites kolunun sağ tarafındaki uç kapağıdır.\nKaybolan orijinal kapağın yerine kullanılabilir.\nMevcut vites koluna doğrudan takılır.\nYaklaşık dış ölçüler: 19 × 19 × 11 mm.",
@@ -135860,6 +135991,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -137119,7 +137254,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST 1.6L Turbo Debriyaj Hizalama Aleti",
     "aciklama": "Ford Fiesta ST 1.6L Turbo motorunda baskı plakası montajı sırasında debriyaj diskini hizalamak için kullanılan özel aparattır.\nMevcut debriyaj gövdesine geçici olarak yerleştirilir.\nYaklaşık dış ölçüler: 104 × 24 × 24 mm.",
@@ -137137,6 +137273,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -138539,7 +138679,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Kısa Vites Kolu Üst Parçası",
     "aciklama": "Ford Focus ST kısa vites (short throw) kolu setinin üst gövde parçasıdır.\nM8 dişli, 10mm bilyeli vites topu miline uygun şekilde tasarlanmıştır.\nMevcut vites mekanizmasının alt parçasıyla birlikte kullanılır.",
@@ -138557,6 +138698,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -139592,7 +139737,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST (2015) Motor Üst Kapağı",
     "aciklama": "Ford Fiesta ST (2015) motor üst kapağının 3D tarama ile birebir ölçülerde yeniden üretilmiş halidir.\nKaybolan veya kırılan orijinal kapağın yerine referans/yedek parça olarak kullanılabilir.\nMevcut motor bağlantı noktalarına oturacak şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 590 × 387 × 66 mm.",
@@ -139612,6 +139758,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -139700,7 +139850,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Far Yıkayıcı Fıskiye Kapağı Tutucusu",
     "aciklama": "Ford Focus ST far yıkayıcı fıskiyesinin açılır kapağını tutan parçadır.\nKırılan veya kaybolan orijinal tutucunun yerine kullanılabilir; hassas oturma için delik konumlarının hassas delinmesi gerekir.\nMevcut fıskiye gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 99 × 44 × 37 mm.",
@@ -139720,6 +139871,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -139885,7 +140040,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST A-Sütunu Performans Ölçüm Cihazı Montaj Aparatı",
     "aciklama": "Ford Focus ST (Mk3 ve Mk3.5) A sütununa performans ölçüm cihazı monte etmek için tasarlanmış açılı aparattır.\nCihazın erişim portunu sürücüye doğru daha iyi açıyla konumlandırır.\nMevcut A sütunu döşemesine doğrudan takılır.\nYaklaşık dış ölçüler: 111 × 87 × 50 mm.",
@@ -139905,6 +140061,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -140434,7 +140594,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Mondeo"
+      "Mondeo",
+      "Mondeo Mk2"
     ],
     "baslik": "Ford Mondeo Mk2 (1997) Torpido Gözü Açma Kolu",
     "aciklama": "Ford Mondeo Mk2 \"HA\" (1997) torpido gözü kapağına ait açma koludur.\nZamanla kırılan veya aşınan orijinal kolun yerine kullanılabilir.\nMevcut torpido gözü mekanizmasına doğrudan takılır.\nYaklaşık dış ölçüler: 114 × 39 × 34 mm.",
@@ -140454,6 +140615,10 @@
       {
         "marka": "Ford",
         "model": "Mondeo"
+      },
+      {
+        "marka": "Ford",
+        "model": "Mondeo Mk2"
       }
     ]
   },
@@ -141208,7 +141373,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Kuga"
+      "Kuga",
+      "Kuga Mk2"
     ],
     "baslik": "Ford Kuga Mk2 Orta Konsol Kablosuz Şarj Yuvası",
     "aciklama": "Ford Kuga Mk2 orta konsolundaki küçük boşluğa yerleşen, kablosuz şarj destekli akıllı telefon tutucu parçasıdır.\nTelefonu sabit tutmak için etrafına lastik pedler eklenmesi önerilir.\nMevcut konsol boşluğuna doğrudan yerleşir.\nYaklaşık dış ölçüler: 139 × 134 × 95 mm.",
@@ -141227,6 +141393,10 @@
       {
         "marka": "Ford",
         "model": "Kuga"
+      },
+      {
+        "marka": "Ford",
+        "model": "Kuga Mk2"
       }
     ]
   },
@@ -142074,7 +142244,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Fren Soğutma Kanalı Seti",
     "aciklama": "Ford Focus ST (Facelift nesil, RS ön fren takılı araçlar için) fren soğutma kanalı setidir.\nÇıkış borusu tek parça hâlinde üretilir.\nMevcut tekerlek kovası bağlantı noktalarına doğrudan takılır.\nYaklaşık dış ölçüler: 176 × 107 × 90 mm.",
@@ -142093,6 +142264,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -142401,7 +142576,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Cortina"
+      "Cortina",
+      "Cortina Mk1"
     ],
     "baslik": "Ford Cortina Mk1 Torpido Gözü Mandalı",
     "aciklama": "Ford Cortina Mk1 torpido gözü kapağını kapalı tutan mandal parçasıdır.\nKırılan veya kaybolan orijinal mandalın yerine kullanılabilir.\nMevcut torpido gözü kapağına doğrudan takılır.\nYaklaşık dış ölçüler: 36 × 27 × 9 mm.",
@@ -142419,6 +142595,10 @@
       {
         "marka": "Ford",
         "model": "Cortina"
+      },
+      {
+        "marka": "Ford",
+        "model": "Cortina Mk1"
       }
     ]
   },
@@ -142532,7 +142712,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus RS/ST Fren Soğutma Deflektörü",
     "aciklama": "Ford Focus RS fren soğutma deflektörünün 3D tarama ile yeniden üretilmiş halidir; Focus ST ile de uyumludur.\nAlt salıncağa tek adet plastik perçin/bağlantı elemanıyla monte edilir.\nMevcut salıncak montaj noktasına doğrudan takılır.\nYaklaşık dış ölçüler: 235 × 232 × 112 mm.",
@@ -142555,6 +142736,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -143210,7 +143395,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Transit"
+      "Transit",
+      "Transit Mk2"
     ],
     "baslik": "Ford Transit Mk2 (1984) Viskoz Kaplin Alternatifi",
     "aciklama": "Ford Transit Mk2 (1984) soğutma fanı viskoz kaplin ünitesine alternatif olarak tasarlanmış sert bağlantı parçasıdır.\nBulunması zorlaşan orijinal ünitenin yerine kullanılabilir.\nMevcut fan miline doğrudan takılır.\nYaklaşık dış ölçüler: 140 × 140 × 31 mm.",
@@ -143233,6 +143419,10 @@
       {
         "marka": "Ford",
         "model": "Transit"
+      },
+      {
+        "marka": "Ford",
+        "model": "Transit Mk2"
       }
     ]
   },
@@ -144966,7 +145156,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta MK3"
     ],
     "baslik": "Ford Fiesta MK3 Arka Denge Çubuğu Burcu",
     "aciklama": "Ford Fiesta MK3 (XR2i / RS Turbo) arka denge çubuğu için burçtur.\nAşınan orijinal burcun yerine kullanılabilir.\nMevcut denge çubuğu montajına doğrudan takılır.\nYaklaşık dış ölçüler: 32 × 32 × 28 mm.",
@@ -144985,6 +145176,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta MK3"
       }
     ]
   },
@@ -145207,7 +145402,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Escort"
+      "Escort",
+      "Escort Mk7"
     ],
     "baslik": "Ford Escort MK7 Bluetooth Mikrofon Tutucusu",
     "aciklama": "Ford Escort MK7 güneşlik arası boşluğa oturan mikrofon tutucusudur.\nHarici bluetooth mikrofon modüllerini sabitlemek için kullanılır.\nMevcut küçük kapak boşluğunun yerine takılır.\nYaklaşık dış ölçüler: 80 × 50 × 32 mm.",
@@ -145227,6 +145423,10 @@
       {
         "marka": "Ford",
         "model": "Escort"
+      },
+      {
+        "marka": "Ford",
+        "model": "Escort Mk7"
       }
     ]
   },
@@ -148020,7 +148220,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Cortina"
+      "Cortina",
+      "Cortina Mk3"
     ],
     "baslik": "Ford Cortina Mk3 Rozet Muhafazası",
     "aciklama": "Ford Cortina Mk3 üzerine takılan trim rozetini taşımak için arka muhafaza (housing) parçasıdır.\nİki montaj deliğiyle mevcut yüzeye sabitlenir.\nRozet ayrıca temin edilip muhafazaya yerleştirilir.\nYaklaşık dış ölçüler: 70 × 70 × 11 mm.",
@@ -148040,6 +148241,10 @@
       {
         "marka": "Ford",
         "model": "Cortina"
+      },
+      {
+        "marka": "Ford",
+        "model": "Cortina Mk3"
       }
     ]
   },
@@ -153238,7 +153443,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Transit"
+      "Transit",
+      "Transit Mk6"
     ],
     "baslik": "Ford Transit MK6 Kapı Hoparlörü Adaptörü",
     "aciklama": "Ford Transit (2009-2010) kapılarına 6-6,5 inç hoparlör montajı için adaptördür.\nDiğer bazı araçlarla da uyumlu olabilir.\nMevcut hoparlör yuvasına doğrudan takılır.\nYaklaşık dış ölçüler: 231 × 171 × 8 mm.",
@@ -153256,6 +153462,10 @@
       {
         "marka": "Ford",
         "model": "Transit"
+      },
+      {
+        "marka": "Ford",
+        "model": "Transit Mk6"
       }
     ]
   },
@@ -155033,7 +155243,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Jant Göbek Kapağı",
     "aciklama": "Ford Focus ST 19 inç jantları için tasarlanmış göbek kapağıdır.\nOrijinal kapağa göre daha uygun maliyetli bir alternatif sunar.\nJant göbek deliğine klips mekanizmasıyla takılır.\nYaklaşık dış ölçüler: 55 × 55 × 15 mm.",
@@ -155052,6 +155263,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -155220,7 +155435,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST/RS A Sütunu Performans Cihazı Montu",
     "aciklama": "Ford Focus ST ve RS A sütununa (ön cam kenarı) takılan performans göstergesi montudur.\nSol ve sağ direksiyon araçlar için uyarlanmış farklı sürümleri bulunur.\nKapı lastiği altına sıkışarak sabit, ayarlanabilir bir konum sunar.\nYaklaşık dış ölçüler: 99 × 88 × 34 mm.",
@@ -155240,6 +155456,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -155408,7 +155628,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST Bardaklık İç Yerleştirmesi",
     "aciklama": "Ford Fiesta ST bardaklık gözleri için iki parçalı iç yerleştirme (insert) setidir.\nYaklaşık 70 mm dış çaplı bardaklık boşluğunu daha küçük kaplara uyarlar.\nDiğer bazı Ford modellerinde de kullanılabilecek genel bir ölçüye sahiptir.\nYaklaşık dış ölçüler: 52 × 45 × 40 mm.",
@@ -155428,6 +155649,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -155636,7 +155861,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Kuga"
+      "Kuga",
+      "Kuga Mk2"
     ],
     "baslik": "Ford Kuga MK2 Tablet Montaj Plakası",
     "aciklama": "Ford Kuga MK2 gösterge panosu üzerindeki matı değiştirerek takılan tablet montaj plakasıdır.\nDahil edilen ayarlanabilir tutucu ile farklı tablet ölçülerine uyum sağlar.\nÇift taraflı bant ile panoya sabitlenip gerektiğinde çıkarılabilir.\nYaklaşık dış ölçüler: 179 × 135 × 14 mm.",
@@ -155658,6 +155884,10 @@
       {
         "marka": "Ford",
         "model": "Kuga"
+      },
+      {
+        "marka": "Ford",
+        "model": "Kuga Mk2"
       }
     ]
   },
@@ -156269,7 +156499,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST Pod Filtre Adaptörü",
     "aciklama": "Ford Fiesta ST (Mk7) 1.6L EcoBoost motor için pod hava filtresi adaptörüdür.\nStandart hava emiş kanalına bağlanacak şekilde tasarlanmıştır.\nAftermarket pod filtre takılı araçlarda kullanılır.\nYaklaşık dış ölçüler: 113 × 76 × 76 mm.",
@@ -156290,6 +156521,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -156324,7 +156559,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST Eşik Listesi Klipsi",
     "aciklama": "2013-2017 model Ford Fiesta ST eşik listesini (rocker molding) gövdeye sabitleyen klipstir.\nKaybolan veya kırılan orijinal klipsin yerine kullanılabilir.\nEşik panelini kasaya sıkı şekilde tutturur.\nYaklaşık dış ölçüler: 20 × 18 × 12 mm.",
@@ -156338,6 +156574,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -156453,7 +156693,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST Sol Ayak Dayama Pedalı",
     "aciklama": "6. nesil Ford Fiesta ST için sol ayak dayama (dead pedal) parçasıdır.\nPedalların soluna, halı üzerine monte edilir.\nSürüş sırasında sol ayağa sabit bir dayanak sağlar.\nYaklaşık dış ölçüler: 185 × 85 × 8 mm.",
@@ -156471,6 +156712,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -157199,7 +157444,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Fiesta"
+      "Fiesta",
+      "Fiesta ST"
     ],
     "baslik": "Ford Fiesta ST Küre Vites Topuzu (M12×1.25)",
     "aciklama": "Ford Fiesta ST için M12×1.25 dişli küre formunda vites topuzudur.\nStandart vites koluna doğrudan vidalanır.\nEskiyen veya kırılan orijinal topuzun yerine kullanılabilir.\nYaklaşık dış ölçüler: 63 × 63 × 62 mm.",
@@ -157219,6 +157465,10 @@
       {
         "marka": "Ford",
         "model": "Fiesta"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fiesta ST"
       }
     ]
   },
@@ -158936,7 +159186,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Explorer"
+      "Explorer",
+      "Explorer ST"
     ],
     "baslik": "Ford Explorer ST ECU Kapağı Ara Parçası",
     "aciklama": "Ford Explorer ST için aftermarket ECU kapaklarının bükülmesini önleyen ara parçadır (standoff).\nStandart vida ölçüleriyle uyumludur.\nKapağın düz ve sabit durmasını sağlar.\nYaklaşık dış ölçüler: 32 × 17 × 17 mm.",
@@ -158954,6 +159205,10 @@
       {
         "marka": "Ford",
         "model": "Explorer"
+      },
+      {
+        "marka": "Ford",
+        "model": "Explorer ST"
       }
     ]
   },
@@ -159178,7 +159433,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "Ford Focus ST Yağ Filtresi Anahtarı",
     "aciklama": "Ford Focus ST motorunda yağ filtresini sökmek için kullanılan özel anahtardır.\nDar alanlarda filtre değişimini kolaylaştırır.\nTekrar kullanılabilir bir servis aletidir.\nYaklaşık dış ölçüler: 100 × 100 × 50 mm.",
@@ -159191,6 +159447,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -159289,7 +159549,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Escort"
+      "Escort",
+      "Escort MK5"
     ],
     "baslik": "Ford Escort MK5 Kapı Kolu",
     "aciklama": "1990 yılı civarı Ford Escort MK5 modelleri için iç kapı koludur.\nKırılan veya aşınan orijinal kolun yerine takılabilir.\nOrijinal montaj noktalarına uygun ölçülerde üretilmiştir.\nYaklaşık dış ölçüler: 130 × 38 × 19 mm.",
@@ -159303,6 +159564,10 @@
       {
         "marka": "Ford",
         "model": "Escort"
+      },
+      {
+        "marka": "Ford",
+        "model": "Escort MK5"
       }
     ]
   },
@@ -159876,7 +160141,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Sierra"
+      "Sierra",
+      "Sierra MK2"
     ],
     "baslik": "Ford Sierra MK2 4x4 Geri Vites Manşon Halkası",
     "aciklama": "Ford Sierra MK2 4x4 modelinde geri vites kilit kablosuyla temas eden plastik manşon halkasıdır.\nYıpranan veya kırılan orijinal parçanın yerine kullanılabilir.\nVites mekanizmasının doğru çalışmasına katkı sağlar.\nYaklaşık dış ölçüler: 30 × 22 × 8 mm.",
@@ -159890,6 +160156,10 @@
       {
         "marka": "Ford",
         "model": "Sierra"
+      },
+      {
+        "marka": "Ford",
+        "model": "Sierra MK2"
       }
     ]
   },
@@ -160685,7 +160955,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Transit"
+      "Transit",
+      "Transit MK4"
     ],
     "baslik": "Ford Transit MK4 Gösterge Düğmesi Kapağı",
     "aciklama": "Ford Transit MK4 modelinde gösterge panelindeki bir düğmenin kapağıdır.\nKırılan veya kaybolan orijinal kapağın yerine takılabilir.\nPanelin düzenli görünümünü korumaya yardımcı olur.\nYaklaşık dış ölçüler: 40 × 26 × 24 mm.",
@@ -160705,6 +160976,10 @@
       {
         "marka": "Ford",
         "model": "Transit"
+      },
+      {
+        "marka": "Ford",
+        "model": "Transit MK4"
       }
     ]
   },
@@ -162289,7 +162564,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Focus"
+      "Focus",
+      "Focus ST"
     ],
     "baslik": "2017 Ford Focus ST Arka Koltuk Monitör Montaj Braketi",
     "aciklama": "Ford Focus ST 2017 için arka sırtlık/başlık bölgesinde kullanılacak küçük montaj ayağıdır.\nKişisel kullanımda stabil bir yükseklik ve oturuş sağlar.\nErişim kolaylığı için sabitleyici yüzeyi dengeli bırakır.\nYaklaşık dış ölçüler: 58 × 56 × 2 mm.",
@@ -162310,6 +162586,10 @@
       {
         "marka": "Ford",
         "model": "Focus"
+      },
+      {
+        "marka": "Ford",
+        "model": "Focus ST"
       }
     ]
   },
@@ -164333,7 +164613,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Transit"
+      "Transit",
+      "Transit Mk6"
     ],
     "baslik": "Ford Transit Mk.6 Rüzgâr Siper Kapak Cıvata Kapağı",
     "aciklama": "2000-2006 Transit Mk.6 için ön cam çevresi cıvata kapağını yenilemeye yönelik bir parça.\nCıvata başı düzeneği etrafında su sızdırmazlığını destekler.\nTek tip kapak yerine ekonomik ve dayanıklı ikame kullanımı hedefler.\nYaklaşık dış ölçüler: 19 × 16 × 2 mm.",
@@ -164353,6 +164634,10 @@
       {
         "marka": "Ford",
         "model": "Transit"
+      },
+      {
+        "marka": "Ford",
+        "model": "Transit Mk6"
       }
     ]
   },
@@ -167547,7 +167832,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Mondeo"
+      "Mondeo",
+      "Fusion Mk5"
     ],
     "baslik": "Dijital Gösterge Çerçevesi (Ford Mondeo Fusion MK5)",
     "aciklama": "Ford Mondeo/Fusion MK5 için digital gösterge paneli arka planı ve montaj çevresiyle uyumlu çerçeve elemanı.\nAracıta elektronik parça yerleşiminde ölçüm hassasiyetinin önemli olduğu bir panel tamamlama parçasıdır.\nÖzellikle araç içi panel işlerinde ısıya dayanıklı materyal tercihi önem taşır.",
@@ -167567,6 +167853,10 @@
       {
         "marka": "Ford",
         "model": "Mondeo"
+      },
+      {
+        "marka": "Ford",
+        "model": "Fusion Mk5"
       }
     ]
   },
@@ -168449,7 +168739,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Transit"
+      "Transit",
+      "Transit MK1"
     ],
     "baslik": "Dış Ayna Tabanı (Ford Transit MK1)",
     "aciklama": "1974 Ford Transit MK1 için ayna tutucu taban formu.\nAraç ayna montajında kalıp/örnekleme sonrası da kullanılabilecek uyumlu bir temel parçadır.\nDış görünümde tutucu yükseklik ve açı hedefini destekler.",
@@ -168468,6 +168759,10 @@
       {
         "marka": "Ford",
         "model": "Transit"
+      },
+      {
+        "marka": "Ford",
+        "model": "Transit MK1"
       }
     ]
   },
@@ -175215,7 +175510,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Jetta"
+      "Jetta",
+      "Jetta MK6"
     ],
     "baslik": "Volkswagen Jetta MK6 Sportwagen Telefon Tutucu",
     "aciklama": "Şanzıman üstündeki alakasız üç adet boş anahtarı değiştirip cep telefonu alanı sağlar.\nSamsung Note 10+ gibi gövde kalınlığı yüksek cihazlar için ölçüsü bırakılmıştır.\nKoltuk/kolon kenarını zedelemeden takılacak şekilde tasarlanmıştır.\nDüzenleme sonrası etrafın kılavuzlarıyla çarpık temas kontrolü önerilir.\nYaklaşık dış ölçüler: 174 × 89 × 23 mm.",
@@ -175234,6 +175530,10 @@
       {
         "marka": "Volkswagen",
         "model": "Jetta"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Jetta MK6"
       }
     ]
   },
@@ -176730,7 +177030,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Golf"
+      "Golf",
+      "Jetta MK4"
     ],
     "baslik": "VW Golf/Jetta MK4 Çatı Ray Uç Kapakları",
     "aciklama": "Çatı ray setinin eksik uç kapaklarını ikame edecek şekilde 2010 civarı araçlar için yapılmıştır.\nTavan rack montajında dış uca düşme ve titreşim riskini azaltır.\nKullanıcının tasarladığı set, her iki taraf için simetrik kullanıma uygundur.\nKurulum öncesi ray uzunluğu ve uç çapı kontrol edilmelidir.\nYaklaşık dış ölçüler: 132 × 126 × 94 mm.",
@@ -176752,6 +177053,10 @@
       {
         "marka": "Volkswagen",
         "model": "Golf"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Jetta MK4"
       }
     ]
   },
@@ -176789,7 +177094,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Polo"
+      "Polo",
+      "Polo MK5"
     ],
     "baslik": "VW Polo MK5 Telefon Tutucu Bağlantı Boğazı",
     "aciklama": "VW Polo MK5 için kule-topu (knuckle) destekli telefon tutucu bağlantısıdır.\nOrijinal dosyaya dayanarak kalınlaştırılmış bir gövde ve top bağlantısı bırakır.\nHerhangi bir standart 3x? kartlı aparata göre daha sağlam bir tutuş hedeflenmiştir.\nMontajda kablo yönünden ve merkezden uzaklaşma olmaması için hizalama yapılmalıdır.\nYaklaşık dış ölçüler: 41 × 28 × 21 mm.",
@@ -176809,6 +177115,10 @@
       {
         "marka": "Volkswagen",
         "model": "Polo"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Polo MK5"
       }
     ]
   },
@@ -184215,7 +184525,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Jetta"
+      "Jetta",
+      "Jetta MK5"
     ],
     "baslik": "VW MK5 Jetta Ön Konsol Bozukluk Sınıflandırıcısı",
     "aciklama": "VW Jetta MK5 için ön konsol içinde bozukluk/bozuk para organizasyonu sağlayan düzenleyicidir.\nPark otomatı için para atımı ve küçük metal para saklama işlevi sunar.\nKonsol yüzeyi ölçülerine göre yerleşim yapılır.\nYaklaşık dış ölçüler: 72 × 23 × 10 mm.",
@@ -184237,6 +184548,10 @@
       {
         "marka": "Volkswagen",
         "model": "Jetta"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Jetta MK5"
       }
     ]
   },
@@ -184730,7 +185045,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Golf"
+      "Golf",
+      "Jetta MK3"
     ],
     "baslik": "VW Golf/Jetta MK3 Direksiyon Sütunu Kapağı Uzatma",
     "aciklama": "MK3 Jetta/Golf Cabrio Vento için direksiyon kolon kapağında eksik/çatlayan bölgeyi güçlendirmek üzere tasarlanmıştır.\nBazı ekstrem yük altında oluşan kırıkları önleme amacı taşır.\nParça, uzunvida kullanımda daha dayanıklı bir kaplama işlevi verir.\nYaklaşık dış ölçüler: 67 × 10 × 10 mm.",
@@ -184750,6 +185066,10 @@
       {
         "marka": "Volkswagen",
         "model": "Golf"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Jetta MK3"
       }
     ]
   },
@@ -188258,7 +188578,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Tiguan"
+      "Tiguan",
+      "Tiguan Mk2"
     ],
     "baslik": "Volkswagen Tiguan Mk2 Bagaj Döşeme İpi Tutucu",
     "aciklama": "Bagaj tabanı kapak bağlama ipini yerinde tutan aksesuar niteliğindedir.\nKayıp/uyuşuk ip sabitleyici parçalar için doğrudan değişim alternatifi sunar.\nTiguan Mk2 kullanımında pratik bir montaj elemanı olarak düşünülmüştür.\nYaklaşık dış ölçüler: 62 × 24 × 12 mm.",
@@ -188275,6 +188596,10 @@
       {
         "marka": "Volkswagen",
         "model": "Tiguan"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Tiguan Mk2"
       }
     ]
   },
@@ -190141,7 +190466,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Polo"
+      "Polo",
+      "Polo MK2"
     ],
     "baslik": "Volkswagen Polo MK2 Bardaklık ve Saklama Gözü",
     "aciklama": "Polo Mk2 için bardaklıkla birlikte küçük cihazlara yer veren konsol parçası.\nSlotlarda telefon, küçük kutu ve bozuk para/USB saklaması yapılabilir.\nKompakt araç içi kullanımda düzeni artırır.",
@@ -190160,6 +190486,10 @@
       {
         "marka": "Volkswagen",
         "model": "Polo"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Polo MK2"
       }
     ]
   },
@@ -232823,7 +233153,8 @@
     "kategori": "Motosiklet",
     "marka": [
       "BMW",
-      "F650"
+      "F650",
+      "F650 ST"
     ],
     "baslik": "Basamak (Footrest) Parçası (BMW F650 ST Uyumlu)",
     "aciklama": "BMW F650 ST motosikletin basamak parçasının yedeğidir.\n- Aşınan veya kırılan orijinal basamağın yerine takılır.\n- Orijinal bağlantı noktalarına uyumludur.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 108 × 40 × 39 mm.",
@@ -232845,6 +233176,10 @@
       {
         "marka": "BMW",
         "model": "F650"
+      },
+      {
+        "marka": "BMW",
+        "model": "F650 ST"
       }
     ]
   },
@@ -242045,7 +242380,8 @@
     "marka": [
       "Toyota",
       "MR2",
-      "SW20"
+      "SW20",
+      "MR2 MK2"
     ],
     "baslik": "Toyota MR2 MK2 SW20 165 mm Kapı Hoparlörü Adaptörü",
     "aciklama": "Toyota MR2 MK2 SW20 için 165 mm hoparlör montajına uygun özel tasarım parçadır. Kapı içi uygulamada düzgün oturuş ve sağlam sabitleme için hazırlanmıştır.\n- Kapı hoparlörü montajında kullanılır.\n- Özel siparişle uretilir, araca uygun ölçüde hazırlanır.\n- Montajda mevcut bağlantı noktalarına göre uygulanır.\nYaklaşık dış ölçüler: 173 × 172 × 31 mm.",
@@ -242068,6 +242404,10 @@
       {
         "marka": "Toyota",
         "model": "SW20"
+      },
+      {
+        "marka": "Toyota",
+        "model": "MR2 MK2"
       }
     ]
   },
@@ -245344,7 +245684,8 @@
     "marka": [
       "Toyota",
       "MR-S",
-      "MR2"
+      "MR2",
+      "MR2 mk3"
     ],
     "baslik": "Toyota MR-S / MR2 mk3 anahtar yuvası kapağı",
     "aciklama": "Toyota MR-S / MR2 mk3 için özel tasarım üretilen anahtar yuvası kapağıdır. Boş anahtar yuvasını temiz bir şekilde kapatmak ve iç mekanda bütünlüklü bir görünüm sağlamak için kullanılır.\n- Boş slotu kapatır\n- Orijinal görünüme yakın, sade bir çözüm sunar\n- Montajı ilgili yuvaya geçmeli şekilde yapılır\nYaklaşık dış ölçüler: 43 × 25 × 17 mm.",
@@ -245366,6 +245707,10 @@
       {
         "marka": "Toyota",
         "model": "MR2"
+      },
+      {
+        "marka": "Toyota",
+        "model": "MR2 mk3"
       }
     ]
   },
@@ -247551,7 +247896,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Toyota",
-      "Auris"
+      "Auris",
+      "Auris MK2"
     ],
     "baslik": "Toyota Auris MK2 telefon tutucu tabanı",
     "aciklama": "Toyota Auris MK2 için özel tasarım telefon tutucu tabanı. Havalandırma ızgarasına uyumlu şekilde konumlanır ve mevcut tutucu aparatı taşımaya yardımcı olur.\n- Araç içi kullanım için tasarlanmıştır.\n- Tutucu başlığına güvenli bir bağlantı noktası sağlar.\n- Pratik tak-çıkar kullanım sunar.",
@@ -247570,6 +247916,10 @@
       {
         "marka": "Toyota",
         "model": "Auris"
+      },
+      {
+        "marka": "Toyota",
+        "model": "Auris MK2"
       }
     ]
   },
@@ -248300,7 +248650,8 @@
     "marka": [
       "Toyota",
       "MR2",
-      "W10"
+      "W10",
+      "MR2 MK1"
     ],
     "baslik": "Toyota MR2 MK1 W10 sürücü tarafı cam düğmesi",
     "aciklama": "Toyota MR2 MK1 W10 için sürücü tarafı cam düğmesi parçası. Orijinal düğmenin kırılan veya aşınan kısmını yenilemek için kullanılır.\n- Cam düğmesi mekanizmasının sürücü tarafı kullanımına uygundur.\n- Araca ait mevcut parça üzerine takılarak kullanılacak şekilde tasarlanmıştır.\n- Değişim sırasında iç trim sökümü gerekebilir; montaj öncesi mevcut mekanizmayla uyumu kontrol edin.",
@@ -248324,6 +248675,10 @@
       {
         "marka": "Toyota",
         "model": "W10"
+      },
+      {
+        "marka": "Toyota",
+        "model": "MR2 MK1"
       }
     ]
   },
@@ -261292,7 +261647,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Mustang"
+      "Mustang",
+      "Mustang MK6"
     ],
     "baslik": "Ford Mustang MK6 Tweeter Adaptörü",
     "aciklama": "Ford Mustang MK6 için özel tasarım üretilmiş tweeter adaptörüdür. Hoparlör/tweeter montajını uyumlu hale getirmek için kullanılır.\nMontajda mevcut bağlantı noktalarına göre konumlandırılır.\nYaklaşık dış ölçüler: 124 × 104 × 20 mm.",
@@ -261309,6 +261665,10 @@
       {
         "marka": "Ford",
         "model": "Mustang"
+      },
+      {
+        "marka": "Ford",
+        "model": "Mustang MK6"
       }
     ]
   },
@@ -275030,7 +275390,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Honda",
-      "Civic"
+      "Civic",
+      "Civic Mk8"
     ],
     "baslik": "Honda Civic MK8 silecek kolu kapağı",
     "aciklama": "Honda Civic MK8 için silecek kolu bölgesine uyumlu kapak parçası. Araç üzerinde temiz durur ve mevcut parçanın görünümünü tamamlar.\n- Silecek mekanizmasının dışarıdan görünmesini azaltır.\n- Araca uyumlu özel tasarım üretim olarak hazırlanır.\n- Montaj, mevcut yuvasına oturtularak yapılır.\nYaklaşık dış ölçüler: 134 × 23 × 15 mm.",
@@ -275050,6 +275411,10 @@
       {
         "marka": "Honda",
         "model": "Civic"
+      },
+      {
+        "marka": "Honda",
+        "model": "Civic Mk8"
       }
     ]
   },
@@ -275382,7 +275747,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Honda",
-      "Civic"
+      "Civic",
+      "Civic Mk8"
     ],
     "baslik": "Honda Civic Mk8 Yakıt Kapağı İpi",
     "aciklama": "Yakıt kapağını açıkken sabit tutan bağlantı ipi/tutucu parçadır. Kapağın gövdeye zarar vermeden konumda kalmasına yardımcı olur.\n- Yakıt dolumu sırasında kapağın sarkmasını önler.\n- Mevcut kapağa ve bağlantı noktasına takılarak kullanılır.\n- Özel tasarım üretimle değişim parçası olarak hazırlanır.\nYaklaşık dış ölçüler: 101 × 48 × 8 mm.",
@@ -275395,6 +275761,10 @@
       {
         "marka": "Honda",
         "model": "Civic"
+      },
+      {
+        "marka": "Honda",
+        "model": "Civic Mk8"
       }
     ]
   },
@@ -284649,7 +285019,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Clio"
+      "Clio",
+      "Clio Mk1"
     ],
     "baslik": "Clio Mk1 panel destek aparatı",
     "aciklama": "Renault Clio Mk1 için panel destek aparatıdır. Konsol bölümünü sabitlemeye ve uygun oturum sağlamaya yardımcı olur.\nMontajda mevcut bağlantı noktaları kullanılır.\nÖzel tasarım üretim olarak hazırlanır.\nYaklaşık dış ölçüler: 102 × 82 × 23 mm.",
@@ -284668,6 +285039,10 @@
       {
         "marka": "Renault",
         "model": "Clio"
+      },
+      {
+        "marka": "Renault",
+        "model": "Clio Mk1"
       }
     ]
   },
@@ -284774,7 +285149,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Clio"
+      "Clio",
+      "Clio Mk1"
     ],
     "baslik": "Renault Clio MK1 Kapak Düğmesi Paneli",
     "aciklama": "Renault Clio MK1 için özel üretilen kapak düğmesi paneli. Konsol üzerindeki eksik ya da yıpranmış parçanın yerine geçecek şekilde tasarlanmıştır.\n- Orijinal formu destekleyen sade ve uyumlu bir yedek parçadır.\n- Montaj, ilgili yuvasına oturtularak yapılır.\n- Özel siparişle üretilir; araç uyumuna göre kullanılmalıdır.\nYaklaşık dış ölçüler: 46 × 40 × 23 mm.",
@@ -284792,6 +285168,10 @@
       {
         "marka": "Renault",
         "model": "Clio"
+      },
+      {
+        "marka": "Renault",
+        "model": "Clio Mk1"
       }
     ]
   },
@@ -293566,7 +293946,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Toyota",
-      "MR2 Spyder"
+      "MR2 Spyder",
+      "MR2 Spyder Mk3"
     ],
     "baslik": "Toyota MR2 Spyder Mk3 Akü Sabitleme Braketi",
     "aciklama": "Toyota MR2 Spyder Mk3 model araçlar için özel tasarlanmış dayanıklı akü sabitleme braketi.\nAkünüzün motor bölmesinde güvenli ve sarsıntısız bir şekilde sabit kalmasını sağlar.\nYüksek sıcaklığa ve motor içi kimyasallara karşı dayanıklı malzemeden özel olarak üretilmiştir.\nAracınızın orijinal montaj noktalarıyla tam uyumludur, ekstra tadilat gerektirmez.\nYaklaşık dış ölçüler: 71 × 50 × 12 mm.",
@@ -293585,6 +293966,10 @@
       {
         "marka": "Toyota",
         "model": "MR2 Spyder"
+      },
+      {
+        "marka": "Toyota",
+        "model": "MR2 Spyder Mk3"
       }
     ]
   },
@@ -300160,7 +300545,8 @@
     "marka": [
       "Toyota",
       "MR2 Spyder",
-      "MR-S"
+      "MR-S",
+      "MR2 Spyder Mk3"
     ],
     "baslik": "Toyota MR2 Spyder MK3 Motor Bölümü Yan Panel Klipsi",
     "aciklama": "Toyota MR2 Spyder/Roadster MK3 (MR-S) modelleri için özel olarak tasarlanmış motor bölümü yan panel montaj parçasıdır.\nAracınızın arka motor bölmesindeki yan panelleri güvenle sabitlemek ve orijinal görünümü korumak için idealdir.\nYüksek dayanımlı malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\nIsıya ve dış ortam koşullarına karşı dirençli yapısıyla uzun ömürlü kullanım sunar.\nKolay montajı sayesinde doğrudan eskiyen veya kaybolan parçanın yerine uygulanabilir.\n\nYaklaşık dış ölçüler: 70 × 18 × 15 mm.",
@@ -300183,6 +300569,10 @@
       {
         "marka": "Toyota",
         "model": "MR-S"
+      },
+      {
+        "marka": "Toyota",
+        "model": "MR2 Spyder Mk3"
       }
     ]
   },
@@ -306526,7 +306916,8 @@
     "marka": [
       "Opel",
       "Vauxhall",
-      "Nova"
+      "Nova",
+      "Nova MK1"
     ],
     "baslik": "Opel / Vauxhall Nova MK1 Far Klipsi",
     "aciklama": "Opel ve Vauxhall Nova MK1 modelleriyle uyumlu, far montajında kullanılan dayanıklı far klipsi.\n\n- Orijinal parça standartlarına uygun olarak özel tasarlanıp üretilmiştir.\n- Zamanla aşınan veya kırılan eski klipslerin yerine kolayca monte edilir.\n- Yüksek mukavemetli yapısıyla uzun ömürlü kullanım sunar.\n\nYaklaşık dış ölçüler: 25 × 21 × 18 mm.",
@@ -306546,6 +306937,10 @@
       {
         "marka": "Vauxhall",
         "model": "Nova"
+      },
+      {
+        "marka": "Opel",
+        "model": "Nova MK1"
       }
     ]
   },
@@ -317950,7 +318345,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Skoda",
-      "Superb"
+      "Superb",
+      "Superb MK3"
     ],
     "baslik": "Skoda Superb MK3 Genişletilmiş Bardaklık Adaptörü",
     "aciklama": "Skoda Superb MK3 aracınızın orijinal bardaklık alanını daha geniş termos ve şişeler için uygun hale getiren özel tasarım bardaklık adaptörü.\n\n- Geniş çaplı termos, matara ve büyük boy bardaklarınızı güvenle yerleştirmenizi sağlar.\n- Aracın orijinal bardaklık yuvasına tam oturur, sallantı yapmaz.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Montaj gerektirmez, doğrudan yuvaya yerleştirilerek hemen kullanılabilir.\n\nYaklaşık dış ölçüler: 86 × 86 × 85 mm.",
@@ -317969,6 +318365,10 @@
       {
         "marka": "Skoda",
         "model": "Superb"
+      },
+      {
+        "marka": "Skoda",
+        "model": "Superb MK3"
       }
     ]
   },
@@ -331064,7 +331464,8 @@
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/citroen-berlingo-modutop-tavan-kilidi-1.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-berlingo-modutop-tavan-kilidi-2.jpg"
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-modutop-tavan-kilidi-2.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-modutop-tavan-kilidi-3.jpg"
     ],
     "lisans": {
       "tasarimci": "PC2CV",
@@ -352723,14 +353124,15 @@
       "Citroen",
       "Peugeot"
     ],
-    "baslik": "Citroen Berlingo / Peugeot Partner Modutop Tavan Kutusu Kilidi",
-    "aciklama": "Citroen Berlingo ve Peugeot Partner araçların Modutop tavan saklama kutusu için özel tasarlanmış kilit mekanizması yedek parçasıdır.\nZamanla aşınan veya kırılan orijinal kilit mandalının yerine mükemmel uyum sağlar.\nYüksek dayanımlı malzemeden özel üretilmiştir.\nKolay montajı sayesinde tavan kutunuzu yeniden güvenle kilitlemenizi sağlar.\n\nYaklaşık dış ölçüler: 17 × 17 × 3 mm.",
+    "baslik": "Citroen Berlingo / Peugeot Partner Modutop Tavan Kutusu Kilidi Seti",
+    "aciklama": "Citroen Berlingo ve Peugeot Partner araçların Modutop tavan saklama kutusu için özel tasarlanmış kilit mekanizması SETİdir (sol+sağ ayna çift kilit + rondela/ara-parça).\nZamanla aşınan veya kırılan orijinal kilit mandalının yerine mükemmel uyum sağlar.\nYüksek dayanımlı malzemeden özel üretilmiştir.\nKolay montajı sayesinde tavan kutunuzu yeniden güvenle kilitlemenizi sağlar.\n\nYaklaşık dış ölçüler: kilit (adet) 112 × 56 × 44 mm, rondela (adet) 17 × 17 × 3 mm.",
     "fiyat": "1000 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-1.jpg",
       "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-2.jpg",
       "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-3.jpg",
-      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-4.jpg"
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-4.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-6.jpg"
     ],
     "altkategori": "İç Aksam",
     "uyum": [
@@ -352740,7 +353142,11 @@
       {
         "marka": "Peugeot"
       }
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "PC2CV",
+      "tur": "GNU GPL v2.0"
+    }
   },
   {
     "id": "peugeot-307-2-din-teyp-er-evesi",
@@ -356014,7 +356420,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Peugeot",
-      "205"
+      "205",
+      "205 GTi"
     ],
     "baslik": "Peugeot 205 GTi Pandizot Braketleri (Yeni Tip)",
     "aciklama": "Peugeot 205 GTi modelleri için özel olarak tasarlanan yeni tip pandizot askı braketleri, aracınızın orijinal yapısına sadık kalınarak üretilmiştir.\n\nZamanla yıpranan veya kırılan orijinal braketlerin yerine mükemmel uyum sağlar.\nYüksek dayanımlı malzemesi sayesinde uzun ömürlü kullanım sunar.\nSağ ve sol taraf için özel olarak işaretlenmiş (LH/RH) simetrik tasarıma sahiptir.\nKolay montaj imkanıyla aracınızın bagaj estetiğini ve işlevselliğini ilk günkü haline getirir.\n\nYaklaşık dış ölçüler: 46 × 38 × 29 mm.",
@@ -356036,6 +356443,10 @@
       {
         "marka": "Peugeot",
         "model": "205"
+      },
+      {
+        "marka": "Peugeot",
+        "model": "205 GTi"
       }
     ]
   },
@@ -356197,7 +356608,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Peugeot",
-      "207"
+      "207",
+      "207 GTI"
     ],
     "baslik": "Peugeot 207 GTI / RC Turbo Gösterge Paneli (Pod)",
     "aciklama": "Peugeot 207 GTI ve RC modelleriyle tam uyumlu, direksiyon arkası bölüme yerleştirilen ikili turbo gösterge paneli (pod).\n\n- Aracınızın orijinal konsol hatlarına mükemmel uyum sağlar.\n- Ekstra göstergelerinizi (turbo basıncı, yağ sıcaklığı vb.) sürücü görüş açısına en uygun şekilde konumlandırır.\n- Dayanıklı yapısı sayesinde yüksek sıcaklıklara ve sarsıntılara karşı dirençlidir.\n- Aracın orijinal yapısına zarar vermeden kolayca monte edilebilir.\n- İstek üzerine farklı renk ve yüzey seçenekleriyle özel üretilir.",
@@ -356215,6 +356627,10 @@
       {
         "marka": "Peugeot",
         "model": "207"
+      },
+      {
+        "marka": "Peugeot",
+        "model": "207 GTI"
       }
     ]
   },
@@ -362061,7 +362477,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Seat",
-      "Skoda"
+      "Skoda",
+      "Ibiza MK2"
     ],
     "baslik": "Seat Cordoba Ibiza MK2 - Skoda Octavia MK1 Elektrikli Cam Braketi",
     "aciklama": "Seat ve Skoda araç modelleriyle uyumlu, elektrikli cam mekanizması için özel tasarlanmış cam taşıyıcı destek braketidir. Zamanla aşınan veya kırılan orijinal parçanın yerine güvenle kullanabileceğiniz yüksek dayanımlı yedek parçadır.\n\n- Seat Cordoba/Ibiza MK2 ve Skoda Octavia MK1 modelleriyle birebir uyumludur.\n- Cam mekanizmasının stabil ve sorunsuz çalışmasını sağlar.\n- Aşınmaya karşı dayanıklı endüstriyel malzemeden özel olarak üretilmiştir.\n- Kolay montaj yapısıyla doğrudan eski parçanın yerine takılabilir.\n\nYaklaşık dış ölçüler: 60 × 60 × 14 mm.",
@@ -362082,6 +362499,10 @@
       },
       {
         "marka": "Skoda"
+      },
+      {
+        "marka": "Seat",
+        "model": "Ibiza MK2"
       }
     ]
   },
@@ -365031,7 +365452,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Skoda",
-      "Octavia"
+      "Octavia",
+      "Octavia RS"
     ],
     "baslik": "Skoda Octavia RS vRS 19 inç Jant Modeli (5E)",
     "aciklama": "Skoda Octavia RS vRS (5E) serisi için özel olarak tasarlanmış 19 inç jant ve jant detay parçası setidir. Aracınızın orijinal görünümünü tamamlamak veya projelerinizde kullanmak üzere yüksek hassasiyetle üretilir.\n\n- Skoda Octavia RS vRS 5E modeliyle tam uyumlu tasarım\n- Dayanıklı ve kaliteli malzemeden özel tasarım üretim\n- İster bütünsel jant olarak ister detay çerçeve parçası olarak montaj imkanı\n\nYaklaşık dış ölçüler: 483 × 483 × 198 mm.",
@@ -365050,6 +365472,10 @@
       {
         "marka": "Skoda",
         "model": "Octavia"
+      },
+      {
+        "marka": "Skoda",
+        "model": "Octavia RS"
       }
     ]
   },
@@ -365355,7 +365781,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Skoda",
-      "Fabia"
+      "Fabia",
+      "Fabia MK3"
     ],
     "baslik": "Skoda Fabia MK3 Yakıt Depo Kapağı Tutucu Aparat",
     "aciklama": "Skoda Fabia MK3 aracınız için özel olarak tasarlanan bu pratik aparat, yakıt dolumu esnasında depo kapağını güvenli ve temiz bir şekilde asmanızı sağlar.\n\n- Yakıt dolumu sırasında depo kapağının sarkmasını ve kaportayı çizmesini önler.\n- Fabia MK3 modelinin orijinal depo kapağı mekanizmasına tam uyum sağlar.\n- Dayanıklı malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\n- Kolayca monte edilir ve pratik kullanım sunar.\n\nYaklaşık dış ölçüler: 90 × 75 × 21 mm.",
@@ -365374,6 +365801,10 @@
       {
         "marka": "Skoda",
         "model": "Fabia"
+      },
+      {
+        "marka": "Skoda",
+        "model": "Fabia MK3"
       }
     ]
   },
@@ -366731,7 +367162,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Laguna"
+      "Laguna",
+      "Laguna MK1"
     ],
     "baslik": "Renault Laguna MK1 Uyumlu Ayarlanabilir Araç Telefon Tutucu",
     "aciklama": "Renault Laguna MK1 model aracınızın havalandırma ızgarasına mükemmel uyum sağlayan, ayarlanabilir tasarıma sahip özel üretim araç telefon tutucu.\nSürüş esnasında telefonunuzu güvenli ve sabit bir şekilde tutarak navigasyon kullanımını kolaylaştırır.\nAracın orijinal konsol yapısına zarar vermeden kolayca monte edilir.\nYüksek kaliteli malzemeden kişiye özel üretilir.\nYaklaşık dış ölçüler: 88 × 15 × 15 mm.",
@@ -366751,6 +367183,10 @@
       {
         "marka": "Renault",
         "model": "Laguna"
+      },
+      {
+        "marka": "Renault",
+        "model": "Laguna MK1"
       }
     ]
   },
@@ -367021,7 +367457,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Clio"
+      "Clio",
+      "Clio GT"
     ],
     "baslik": "Renault Clio GT Bagaj Rayı Ucu (Sol)",
     "aciklama": "Renault Clio GT modelleri için özel olarak tasarlanmış sol bagaj rayı ucu yedek parçasıdır. Zamanla aşınan veya kaybolan orijinal parçanın yerine mükemmel uyum sağlar.\n\n- Dayanıklı ve yüksek kaliteli malzemeden özel tasarım üretilmiştir\n- Bagaj içi ray sisteminin düzgün çalışmasını destekler\n- Kolay montaj imkanı sunar\n\nYaklaşık dış ölçüler: 60 × 35 × 15 mm.",
@@ -367038,6 +367475,10 @@
       {
         "marka": "Renault",
         "model": "Clio"
+      },
+      {
+        "marka": "Renault",
+        "model": "Clio GT"
       }
     ]
   },
@@ -406008,7 +406449,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Jetta"
+      "Jetta",
+      "Jetta MK4"
     ],
     "baslik": "Volkswagen Jetta MK4 İç Far Kapağı",
     "aciklama": "Volkswagen Jetta MK4 İç Far Kapağı özel üretim yedeği. Jetta MK4 iç (orta) far kapağının yedeğidir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 142 × 65 × 17 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
@@ -406028,6 +406470,10 @@
       {
         "marka": "Volkswagen",
         "model": "Jetta"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Jetta MK4"
       }
     ]
   },
@@ -407096,7 +407542,8 @@
     "id": "vw-rabbit-mk1-far-ayar-parcasi",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Caddy MK1"
     ],
     "baslik": "Volkswagen Rabbit / Caddy MK1 Far Ayar Parçası",
     "aciklama": "Volkswagen Rabbit / Caddy MK1 Far Ayar Parçası özel üretim yedeği. Rabbit/Caddy Pickup MK1 far ayar (adjuster) parçasının yedeğidir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 38 × 34 × 17 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
@@ -407115,6 +407562,10 @@
     "uyum": [
       {
         "marka": "Volkswagen"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Caddy MK1"
       }
     ]
   },
@@ -410104,7 +410555,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Jetta"
+      "Jetta",
+      "Jetta MK5"
     ],
     "baslik": "Volkswagen Jetta (MK5) Far Arka Toz Kapağı",
     "aciklama": "Volkswagen Jetta (MK5) farının arka toz kapağının özel üretim yedeği. Kırık/eksik kapak far içine nem ve toz girip buğulanmaya yol açar; bu parça far arkasını yeniden sızdırmaz şekilde kapatır. Çevirerek (open/close) kilitlenir.\n\nIsıya dayanıklı malzeme önerilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 119 × 119 × 30 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
@@ -410127,6 +410579,10 @@
       {
         "marka": "Volkswagen",
         "model": "Jetta"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Jetta MK5"
       }
     ]
   },
@@ -414690,7 +415146,8 @@
     "id": "renault-twingo-mk1-emniyet-kemeri-tokasi-bagaj",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Twingo Mk1"
     ],
     "baslik": "Renault Twingo Mk1 Emniyet Kemeri Toka Dili (Koltuk Yükü Uyarısı İçin)",
     "aciklama": "Renault Twingo Mk1 için özel üretim emniyet kemeri toka dili. Yolcu koltuğuna ağır bagaj/eşya koyduğunuzda devreye giren koltuk ağırlık sensörü uyarısını (kemer takma ikazı) susturmak için tokaya takılır.\n\nÖNEMLİ: Bu parça yalnızca koltukta eşya/bagaj taşırken uyarıyı kapatmak içindir. Araç kullanırken emniyet kemerinizi HER ZAMAN takın — güvenliğiniz için bu parça kemer yerine kullanılmamalıdır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 65 × 52 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
@@ -414706,6 +415163,10 @@
     "uyum": [
       {
         "marka": "Renault"
+      },
+      {
+        "marka": "Renault",
+        "model": "Twingo Mk1"
       }
     ]
   },
@@ -414714,7 +415175,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Ford",
-      "Transit"
+      "Transit",
+      "Transit Connect Mk2"
     ],
     "baslik": "Ford Transit Connect Mk2 (2013+) Emniyet Kemeri Toka Dili (Koltuk Yükü Uyarısı İçin)",
     "aciklama": "Ford Transit Connect Mk2 (2013 ve sonrası) için özel üretim emniyet kemeri toka dili. Yolcu koltuğuna ağır bagaj/eşya koyduğunuzda devreye giren koltuk ağırlık sensörü uyarısını (kemer takma ikazı) susturmak için tokaya takılır.\n\nÖNEMLİ: Bu parça yalnızca koltukta eşya/bagaj taşırken uyarıyı kapatmak içindir. Araç kullanırken emniyet kemerinizi HER ZAMAN takın — güvenliğiniz için bu parça kemer yerine kullanılmamalıdır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 63 × 52 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
@@ -414734,6 +415196,10 @@
       {
         "marka": "Ford",
         "model": "Transit"
+      },
+      {
+        "marka": "Ford",
+        "model": "Transit Connect Mk2"
       }
     ]
   },
@@ -415566,7 +416032,8 @@
     "marka": [
       "Volkswagen",
       "Golf",
-      "Jetta"
+      "Jetta",
+      "Jetta MK1"
     ],
     "baslik": "VW Golf / Caddy / Jetta MK1 Kapı Tutma Sürtünme Bloğu",
     "aciklama": "Erken dönem VW Golf / Caddy / Jetta MK1 modellerinde kapı tutma (door stay) mekanizmasının içindeki plastik sürtünme bloğunun özel üretim yedeği. Aşınan/kırılan orijinal blok yüzünden kapının kademelerde durmaması sorununu giderir; kapıyı açık konumda tutar.\n\nDayanıklılık için sağlam biçimde üretilir; daha uzun ömür için naylon gibi dayanıklı malzeme de tercih edilebilir. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 27 × 20 × 16 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
@@ -415591,6 +416058,10 @@
       {
         "marka": "Volkswagen",
         "model": "Jetta"
+      },
+      {
+        "marka": "Volkswagen",
+        "model": "Jetta MK1"
       }
     ]
   },
@@ -421645,7 +422116,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Citroen",
-      "C3"
+      "C3",
+      "C3 Mk2"
     ],
     "baslik": "Citroën C3 Mk2 Ön Tampon Sis Farı Kapağı (Sağ/Sol) 9687573480",
     "aciklama": "Citroën C3 Mk2 araçlarda ön tampondaki sis farı yuvasını kapatan plastik kapak/çerçeve. Sis farı bulunmayan donanımlarda yuvayı düzgünce kapatır; kırılan, çizilen veya kaybolan orijinal kapağın birebir yedeğidir. Klipsleriyle tampondaki yuvaya oturur; sağ ve sol tarafta kullanılabilir. Orijinal parça no 9687573480. Ölçüleri birebir doğrulanmış ve üretimi test edilmiştir; dayanıklı ABS malzeme ile özel olarak üretilir (istenirse boyanabilir).",
@@ -421663,6 +422135,10 @@
       {
         "marka": "Citroen",
         "model": "C3"
+      },
+      {
+        "marka": "Citroen",
+        "model": "C3 Mk2"
       }
     ]
   },
@@ -421942,7 +422418,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volvo",
-      "V40"
+      "V40",
+      "V40 MK2"
     ],
     "baslik": "Volvo V40 (MK2) Far Bağlantı Pimi / Tutucusu 31383457",
     "aciklama": "Volvo V40 MK2 araçlarda ön farı gövdeye sabitleyen plastik bağlantı pimi / tutucu ayak. Kırıldığında far oynar, titrer ya da doğru hizada durmaz; bu parça orijinalin birebir yedeğidir. Orijinal parça no (OEM) 31383457. Üretim kolaylığı ve mukavemet için iki parça hâlinde üretilip yapıştırılabilir; ABS, PET veya PA malzemelerle üretilebilir. Ölçüleri birebir doğrulanmış ve üretimi test edilmiştir.",
@@ -421960,6 +422437,10 @@
       {
         "marka": "Volvo",
         "model": "V40"
+      },
+      {
+        "marka": "Volvo",
+        "model": "V40 MK2"
       }
     ]
   },
@@ -422464,7 +422945,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volvo",
-      "V70"
+      "V70",
+      "V70 Mk2"
     ],
     "baslik": "Volvo V70 Mk2 / XC70 Arka Silecek Motoru Dişlisi 8667188 (97 diş)",
     "aciklama": "Volvo V70 Mk2 (2000-2007) ve XC70 (2003-2007) arka silecek motorundaki 97 dişli plastik dişli. Hareketi silecek motorundan arka silecek koluna aktarır; zamanla diş atan orijinal dişlinin birebir yedeğidir ve arka sileceğin çalışmama sorununu çözer. Orijinal parça no 8667188. Ölçüleri birebir doğrulanmış, dayanıklı malzeme ile özel olarak üretilir.",
@@ -422482,6 +422964,10 @@
       {
         "marka": "Volvo",
         "model": "V70"
+      },
+      {
+        "marka": "Volvo",
+        "model": "V70 Mk2"
       }
     ]
   },
@@ -422994,7 +423480,8 @@
     "id": "toyota-vitz-rs-sis-lambasi-kapagi",
     "kategori": "Otomobil",
     "marka": [
-      "Toyota"
+      "Toyota",
+      "Yaris RS"
     ],
     "baslik": "Toyota Vitz / Yaris RS Sis Lambası Kapağı (81482-52010)",
     "aciklama": "Toyota Vitz (Yaris) RS (1999-2005) için ön sis lambası kapağı. Sis lambasını korur ve ön tampona düzgün bir görünüm kazandırır. Orijinal 81482-52010 numaralı parçanın birebir yedeğidir. Dayanıklı malzeme ile özel olarak üretilir.",
@@ -423009,6 +423496,10 @@
     "uyum": [
       {
         "marka": "Toyota"
+      },
+      {
+        "marka": "Toyota",
+        "model": "Yaris RS"
       }
     ]
   },
