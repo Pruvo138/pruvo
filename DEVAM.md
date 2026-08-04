@@ -63,16 +63,35 @@ Davranissal parite: urun partisi · merge (olay senaryosu) · rebase · amend ·
 cozumu — 5 akisin 5'inde onceki commit ile ayni rc + ayni katalog sha; atif/gorsel/
 aciklama korundu. Yerel sure 2,6 s. Kapilar 8/8 rc=0. D1 teyidi 17914 = 17914 (uc eksen).
 
-### 🟡 ACIK KALEM — korumanin tasinabilirligi
-ACIK: koruma her ortamda ayni sekilde durdurmuyor; ayrinti DEVAM-ARSIV.md de (git disi).
-Dal icinden kapatilamaz (ilgili dosya depoya girmiyor) — ayri tur gerekiyor.
+### ✅ KAPANDI (4 Agu) — kabul testi ortam degiskeni kirliligine kirilgandi
+Onarim main'de: merge SHA `96069154` (dal 2 commit, 3 dosya, +275/-29; katalog dosyalari
+diff'e GIRMEDI, sizinti taramasi 7 eksende 0). Kirli `GIT_*` mirasi altinda test artik
+28 iddianin 28'inde YESIL (once tek basina `GIT_WORK_TREE` 23 iddiayi yanlis-pozitif
+kirmizi yakiyordu). Ayrica X1'e POZITIF CAPA kondu: iz artik kendisiyle degil BEKLENEN
+degerle (rc + katalog sha256 + geri-sarma bayragi) kiyaslaniyor, ustune POTENS kontrolu
+(temizliksiz kosum SAPMALI) eklendi.
+BAGIMSIZ OLCUM: temiz 28/0 · yedi kirli ortam kombinasyonunun (tek/ciftli/hepsi) her
+birinde 28/0, Traceback 0 · determinizm 3/3 · CI taklidi (bos HOME, gitconfig kapali)
+28/0 · mutasyon 22 mutant, SAPMA 0, kontrol mutanti BOS kume, TABAN_IDDIA 28, izlenen
+5 dosyanin sha256'si once=sonra AYNI · olcumu bosaltan/daraltan/sabitleyen 4 mutant ve
+BAGIMSIZ yazilan 4 curutucu (potens vakumu · guard cagrisinin uydurulmasi · fiksturun
+kurcalamasinin kaldirilmasi · tautoloji capa + sabit iz) X1'i TEK BASINA kirmizi
+yakiyor · genisletilen iki beyan (`{K1,X1}`, `{G1,X1}`) olculene TAM ESIT, hicbir beyan
+DARALTILMADI · guard'in fonksiyon AST'si degismedi (16 fonksiyon, 0 fark; tek delta
+modul aciklamasi) · kapilar 7/7 rc=0 · D1 uc eksen 17962 = 17962.
+YAYIN: bu SHA'nin kendi kosumu eszamanlilik yuzunden IPTAL oldu (adim hic kosmadi);
+merge'i ICEREN sonraki kosumda `build` isindeki provenans adimi FIILEN kostu ve
+`success` verdi, `deploy` isi de basarili.
 
-### 🟡 ACIK KALEM — kabul testi ortam degiskeni kirliligine kirilgan
-Olculdu: ortamda `GIT_DIR`/`GIT_WORK_TREE` tanimliyken kabul testi 26 iddianin 21'inde
-KIRMIZI yaniyor (gecici depolar yerine dis depo hedefleniyor). Bugun ulasilamiyor —
-ne is akislari ne de yerel kancalar bu degiskenleri kuruyor — ama kapi artik yayini
-BLOKLADIGI icin ucuz sertlestirme onerilir: test kendi alt surec ortamindan bu uc
-degiskeni (indeks dosyasi dahil) SILSIN.
+### 🟡 ACIK KALEM — korumanin tasinabilirligi (uc kalem)
+(a) Koruma her ortamda ayni sekilde durdurmuyor (durum DEGISMEDI); ayrinti
+DEVAM-ARSIV.md de (git disi). Ilgili dosya depoya girmedigi icin dal icinden
+kapatilamaz — ayri tur gerekiyor.
+(b) Kapi `pre-commit`/`pre-push` icinden cagrildiginda git kendi kancalarini
+`GIT_DIR`/`GIT_INDEX_FILE` TANIMLI olarak kosar; yani (a) kapandiginda ortam kirliligi
+GERCEK bir yol olur — bu tur tam o yolu kapatti, kayda gecsin.
+(c) Ic rapor dosyasi adina atif izlenen dosyalarda 26 yerde daha var (olculdu: 26 dosya
+/ 55 gecis) — depo PUBLIC, hijyen isi, ayri tur.
 
 KAPANDI: nabiz nobetcisi A5 TESLIM ekseni — dokum DEVAM-ARSIV.md de (git disi).
 
