@@ -1573,7 +1573,12 @@ OZ_CAGRI_TANI = (
 # olcmeye devam ettigi icin kapi YESIL yaniyordu. Kablo tablosu bu yuzden
 # (SAHIP_FONKSIYON -> ZORUNLU_CAGRILAR) ciftlerine genellestirildi.
 KABLO_TABLOSU = (
-    ("main", ("bolum_a", "bolum_b", "bolum_d", "bolum_e")),
+    ("main", ("bolum_a", "bolum_b", "bolum_d", "bolum_e", "bloklayici_kapi_kontrol")),
+    # 🔴 Bolum F TEK KAYNAK kablosu: `_serit_b_joblar` ve `etkili_kapi_cagrilari`
+    # Bolum D ile PAYLASILIR; biri bloklayici_kapi_kontrol'den dusurulurse beyan/
+    # gercek dogrulamasi GERCEK deploy.yml icin HIC kosmaz (Bolum C sentetik
+    # fiksturle YESIL demeye devam ederdi) — olculmus K-29 sinifi.
+    ("bloklayici_kapi_kontrol", ("_serit_b_joblar", "etkili_kapi_cagrilari")),
     ("bolum_b", ("b_adim_hatalari", "b_capraz_hatalari", "oz_cagri_kontrol",
                  "tablo_sayaci_kontrol", "bolum_kablosu_kontrol")),
     ("kapi_cagrilari", ("satir_sebepleri",)),
@@ -2474,6 +2479,155 @@ def _serit_b_hijyen(kullanilan):
                 "SERIT_B BAYAT giris (artik yayini bloklamayan bir kapi cagrisina "
                 "karsilik gelmiyor — SIL ya da adimi geri tasi): %s" % etiket)
     return hatalar
+
+
+# ---------------------------------------------------------------------------
+# BOLUM F — BLOKLAYICI-BEYAN DOGRULAMASI (4 Agu 2026, olculmus delik)
+# ---------------------------------------------------------------------------
+# 🔴 OLCULEN OLAY: `run: python3 tools/kanca-kablolama-nobeti.py --ci` adimi
+# `mesaj-nobeti` job'una (needs YOK, deploy'a bagli DEGIL -> BLOKLAMAYAN)
+# konmustu; ama UC yer "SERIT A'da, job serit-a3, BLOKLAYICI" diyordu (deploy.yml
+# yorumu, RAPOR, SERIT_B gerekcesi). is-akisi-kapisi bunu KACIRDI cunku:
+#   (a) `kanca-kablolama-nobeti.py` ci-kapsam KESIF kuralina (`-test.py`/`-kapisi.py`)
+#       UYMAZ (`-nobeti.py`) -> Bolum D onu bir "kapi cagrisi" olarak HIC gormedi;
+#   (b) hicbir eksen "bu adim BLOKLAYICI olmali" BEYANINI GERCEGE karsi olcmuyordu.
+# Yani kapi beyanin VARLIGINI olcuyordu, DOGRULUGUNU degil ([[ikiz-tanim-sessiz-
+# ayrisma]], [[hukum-yanlis-birimde]]) — uc curutme turu tam bu yuzden gecti.
+#
+# Bu bolum IKI YONLU dogrular (TEK KAYNAK: `_serit_b_joblar` = yayini bloklamayan
+# joblar; ayni fonksiyon Bolum D'de de kullanilir, kopya YOK):
+#   YON 1 (BLOKLAYICI beyan): BLOKLAYICI_KAPILAR'daki her (is_akisi, hedef) FIILEN
+#          yayini BLOKLAYAN bir job'da ETKILI kosmali. Adim yoksa / etkisizse /
+#          yalniz BLOKLAMAYAN job(lar)da ise -> KIRMIZI.
+#   YON 2 (BLOKLAMAZ beyan): SERIT_B'deki her (is_akisi, job, kapi) girisinin
+#          job'u GERCEKTEN yayini bloklamayan kumede olmali. Girisin job'u
+#          BLOKLAYAN bir job ise "yanlis GUVENLI beyani" -> KIRMIZI.
+#
+# ANAHTAR : (is_akisi_dosya_adi, hedef_betik_yolu)
+# DEGER   : GEREKCE metni (neden BLOKLAYICI olmali; bos -> KIRMIZI).
+BLOKLAYICI_KAPILAR = {
+    ("deploy.yml", "tools/kanca-kablolama-nobeti.py"):
+        "izlenen kanca kaynagi (`tools/kancalar`) fail-open'a donerse (biri "
+        "`|| true` geri koyar ya da guard cagrisini siler) o kaynak main'e girip "
+        "`kanca-kur.py` ile HER makineye yayilir ve katalog guard'i · D1 senkronu · "
+        "mimar kapisi · mukerrer · commit-mesaji sizinti kapisi SESSIZCE susar. "
+        "Bu PUSH-ONCESI kaynak butunlugu eksenidir; is-akisi-kapisi'nin kendisi "
+        "gibi yayini BLOKLAMALI (deploy: needs zincirinde).",
+}
+
+BLOKLAYICI_TANI_YOK = (
+    "BLOKLAYICI BEYAN AMA ADIM YOK/ETKISIZ: %s -> `%s`\n"
+    "   BLOKLAYICI_KAPILAR bu kapinin yayini BLOKLAYAN bir job'da ETKILI kosmasini\n"
+    "   beyan ediyor ama %s'de ETKILI bir cagri BULUNAMADI%s.\n"
+    "   COZUM: adimi deploy: needs zincirindeki bir job'a (or. build/serit-a3) ETKILI\n"
+    "   (fail-open'suz) ekle, ya da beyan bayatsa BLOKLAYICI_KAPILAR'dan cikar.")
+
+BLOKLAYICI_TANI_BLOKLAMAZ = (
+    "BLOKLAYICI BEYAN GERCEGE UYMUYOR: %s -> `%s`\n"
+    "   Adim(lar) SU JOB(LAR)DA: %s — hepsi yayini BLOKLAMAYAN job (deploy bunlara\n"
+    "   `needs:` ile bagli DEGIL). Beyan 'BLOKLAYICI' diyor, GERCEK 'bloklamaz' ->\n"
+    "   BEYAN/GERCEK AYRISMASI (bugun kacirilan vaka: adim mesaj-nobeti'ndeydi).\n"
+    "   COZUM: adimi deploy: needs zincirindeki bir job'a (build/serit-a2/serit-a3)\n"
+    "   TASI. Yayini bloklayan job kumesi: %s.")
+
+BLOKLAYICI_TANI_SERITB = (
+    "SERIT_B GIRISININ JOB'U BLOKLAYICI (yanlis GUVENLI beyani): %s\n"
+    "   SERIT_B bu girisi 'yayini BLOKLAMAYAN job'da kosuyor' diye beyan ediyor,\n"
+    "   ama `%s` job'u FIILEN yayini BLOKLAYAN kumede (deploy: needs zinciri). Yani\n"
+    "   giris bir A-kapisini yanlislikla 'guvenli B' diye etiketliyor.\n"
+    "   COZUM: ya adimi gercekten bloklamayan bir job'a tasi ya girisi SERIT_B'den cikar.")
+
+
+def bloklayici_kapi_kontrol(dizin, kapilar=None, serit_b_tablo=None):
+    """(hatalar, iddia) — BLOKLAYICI/BLOKLAMAZ beyanlari GERCEGE karsi dogrular.
+
+    TEK KAYNAK: yayini bloklamayan job kumesi `_serit_b_joblar`tan gelir (Bolum D
+    ile ayni); "bloklayan" = o kumenin TUMLEYENI. Boylece iki bolum ayni gercegi
+    olcer, sessizce ayrisamaz ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    `kapilar`/`serit_b_tablo` = kendini-test'in SENTETIK registry ile olcmesi icin;
+    None ise CANLI BLOKLAYICI_KAPILAR / SERIT_B kullanilir."""
+    if kapilar is None:
+        kapilar = BLOKLAYICI_KAPILAR
+    if serit_b_tablo is None:
+        serit_b_tablo = SERIT_B
+    hatalar = []
+    iddia = 0
+    # Is akisi bazinda serit_b_joblar'i (ve tumleyeni "bloklayan") bir kez coz.
+    _onbellek = {}
+
+    def serit_ayrimi(ad):
+        if ad in _onbellek:
+            return _onbellek[ad]
+        yol = os.path.join(dizin, ad)
+        if not os.path.exists(yol):
+            sonuc = (None, None, None, "%s bulunamadi" % ad)
+            _onbellek[ad] = sonuc
+            return sonuc
+        with open(yol, encoding="utf-8") as f:
+            metin = f.read()
+        govde, ayr_hata = ayristir(metin)
+        if ayr_hata or not isinstance(govde, dict):
+            sonuc = (metin, None, None, "%s ayristirilamadi: %s" % (ad, ayr_hata or "?"))
+            _onbellek[ad] = sonuc
+            return sonuc
+        serit_b, sb_tani = _serit_b_joblar(govde)
+        if serit_b is None:
+            sonuc = (metin, None, None, sb_tani)
+            _onbellek[ad] = sonuc
+            return sonuc
+        jobs = govde.get("jobs") if isinstance(govde, dict) else {}
+        bloklayan = set(jobs) - serit_b if isinstance(jobs, dict) else set()
+        sonuc = (metin, serit_b, bloklayan, None)
+        _onbellek[ad] = sonuc
+        return sonuc
+
+    # YON 1 — BLOKLAYICI beyanlari
+    for (ad, hedef), gerekce in sorted(kapilar.items()):
+        iddia += 1
+        if not (isinstance(gerekce, str) and gerekce.strip()):
+            hatalar.append("BLOKLAYICI_KAPILAR GEREKCESIZ giris (bos gerekce): "
+                           "%s :: %s" % (ad, hedef))
+            continue
+        metin, serit_b, bloklayan, tani = serit_ayrimi(ad)
+        if serit_b is None:
+            hatalar.append("BLOKLAYICI BEYAN OLCULEMEDI (fail-closed KIRMIZI): "
+                           "%s :: %s -> %s" % (ad, hedef, tani))
+            continue
+        etkili_joblar = []
+        reddedilen = []
+        for job_id, _adim_no, _adim_adi, satir, sebep in etkili_kapi_cagrilari(metin, hedef):
+            if sebep:
+                reddedilen.append((satir, "; ".join(sebep)))
+                continue
+            etkili_joblar.append(job_id)
+        if not etkili_joblar:
+            ek = ""
+            if reddedilen:
+                ek = " (REDDEDILEN: " + " | ".join(
+                    "%r -> %s" % (k[:60], s) for k, s in reddedilen[:2]) + ")"
+            hatalar.append(BLOKLAYICI_TANI_YOK % (ad, hedef, ad, ek))
+            continue
+        if all(j in serit_b for j in etkili_joblar):
+            hatalar.append(BLOKLAYICI_TANI_BLOKLAMAZ % (
+                ad, hedef, ", ".join(sorted(set(etkili_joblar))),
+                ", ".join(sorted(bloklayan)) or "(bos)"))
+
+    # YON 2 — SERIT_B girislerinin job'u GERCEKTEN bloklamayan mi
+    for anahtar in sorted(serit_b_tablo):
+        if not (isinstance(anahtar, tuple) and len(anahtar) == 3):
+            continue  # sekil hatasi _serit_b_hijyen'in isi
+        ad, job_id, kapi = anahtar
+        iddia += 1
+        _metin, serit_b, _bloklayan, tani = serit_ayrimi(ad)
+        if serit_b is None:
+            hatalar.append("SERIT_B JOB DOGRULAMASI OLCULEMEDI (fail-closed KIRMIZI): "
+                           "%s :: %s :: %s -> %s" % (ad, job_id, kapi, tani))
+            continue
+        if job_id not in serit_b:
+            hatalar.append(BLOKLAYICI_TANI_SERITB % (
+                "%s :: %s :: %s" % anahtar, job_id))
+    return hatalar, iddia
 
 
 def _kosan_kapilar(dizin):
@@ -3781,6 +3935,11 @@ def kendini_test():
             # GERCEKTEN olcuyor mu + BLANKET beyan gercekten reddediliyor mu.
             iddia += 9
             hatalar.extend(_serit_b_mekanizma_kontrol())
+            # BOLUM F MEKANIZMASI (4 Agu): BLOKLAYICI/BLOKLAMAZ beyani GERCEGE karsi
+            # olculuyor mu. (ii) tam da uc curutmeyi geciren vakadir: adim
+            # bloklamayan job'da + beyan 'bloklayici' -> KIRMIZI.
+            iddia += 8
+            hatalar.extend(_bolum_f_mekanizma_kontrol())
 
     # ---- NOBETCININ NOBETCISI: tablo + kablo kontrolleri GERCEKTEN olcuyor mu -
     # 🔴 OLCULEN KACIS (30 Tem oz-koruma turu, mutant 17/18): `tablo_sayaci_kontrol()`
@@ -4124,6 +4283,144 @@ def _serit_b_mekanizma_kontrol():
     return hatalar
 
 
+# Bolum F sentetik fiksturleri (S_FIKSTUR ile ayni topoloji: BLOKLAYAN =
+# {deploy, build, onhazirlik}, BLOKLAMAYAN = {serit-b}).
+# F_YALNIZ_B: cagri YALNIZ serit-b'de (bloklamayan) — bugun kacirilan vaka.
+F_YALNIZ_B = """\
+name: "Sentetik F fiksturu: cagri yalniz bloklamayan job'da"
+on:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "A: baska is"
+        run: echo derleme
+  serit-b:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "B: kapi"
+        run: %(c)s
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+""" % {"c": S_CAGRI}
+
+# F_YOK: cagri HICBIR yerde yok.
+F_YOK = """\
+name: "Sentetik F fiksturu: cagri yok"
+on:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "A: baska is"
+        run: echo derleme
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+"""
+
+# F_FAILOPEN: cagri BLOKLAYAN job'da AMA `|| true` ile etkisiz.
+F_FAILOPEN = """\
+name: "Sentetik F fiksturu: bloklayan job ama fail-open"
+on:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "A: kapi (fail-open)"
+        run: %(c)s || true
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+""" % {"c": S_CAGRI}
+
+
+def _bolum_f_mekanizma_kontrol():
+    """BOLUM F (BLOKLAYICI-BEYAN DOGRULAMASI) KACIS DELIGI OLMAMASINI olcer (8 iddia).
+
+    Sentetik deploy.yml gecici dizine yazilir ve bloklayici_kapi_kontrol() TA
+    KENDISI SENTETIK registry ile kosulur (kopya mantik yazilmaz). Bu tam da uc
+    curutmenin gecirdigi vakayi civiler: adim bloklamayan job'da + beyan
+    'bloklayici' -> KIRMIZI."""
+    hatalar = []
+    gecici = tempfile.mkdtemp(prefix="pruvo-isakisi-f-")
+    kapilar = {(E_DOSYA, S_HEDEF): "SENTETIK: bu kapi yayini BLOKLAMALI."}
+
+    def yaz(metin):
+        with open(os.path.join(gecici, E_DOSYA), "w", encoding="utf-8") as f:
+            f.write(metin)
+
+    def olc(metin, kap=None, sb=None):
+        yaz(metin)
+        return bloklayici_kapi_kontrol(gecici, kapilar=kap if kap is not None else kapilar,
+                                       serit_b_tablo=sb if sb is not None else {})
+
+    try:
+        # (i) KONTROL: cagri BLOKLAYAN job'da (build) -> F sessiz
+        iyi, _i = olc(S_FIKSTUR)
+        if any("BLOKLAYICI" in h for h in iyi):
+            hatalar.append("F-YANLIS-POZITIF: cagri bloklayan job'da oldugu halde F "
+                           "kirmizi yakti (%r)" % (iyi,))
+        # (ii) OLDURUCU (BUGUNKU VAKA): cagri YALNIZ bloklamayan job'da -> KIRMIZI
+        kotu, _i = olc(F_YALNIZ_B)
+        if not any("BEYAN GERCEGE UYMUYOR" in h for h in kotu):
+            hatalar.append("F EKSENI OLU (BUGUNKU VAKA): adim yalniz BLOKLAMAYAN "
+                           "job'da iken 'BLOKLAYICI' beyani KIRMIZI yakmadi -> uc "
+                           "curutmeyi geciren tam bu delik (%r)" % (kotu,))
+        # (iii) adim YOK -> KIRMIZI
+        yok, _i = olc(F_YOK)
+        if not any("ADIM YOK/ETKISIZ" in h for h in yok):
+            hatalar.append("F ADIM-YOK KAPISI OLU: hic cagri olmayan fikstur icin "
+                           "'BLOKLAYICI beyan' KIRMIZI yakmadi (%r)" % (yok,))
+        # (iv) BOS gerekce -> KIRMIZI
+        bos, _i = olc(S_FIKSTUR, kap={(E_DOSYA, S_HEDEF): "  "})
+        if not any("GEREKCESIZ" in h for h in bos):
+            hatalar.append("F GEREKCE KAPISI OLU: bos gerekce KIRMIZI yakmadi (%r)"
+                           % (bos,))
+        # (v) BLOKLAYAN job'da AMA fail-open -> ETKILI cagri yok -> KIRMIZI
+        fo, _i = olc(F_FAILOPEN)
+        if not any("ADIM YOK/ETKISIZ" in h for h in fo):
+            hatalar.append("F ETKISIZLIK KAPISI OLU: bloklayan job'da `|| true` ile "
+                           "etkisiz cagri 'bloklayici' sayildi (%r)" % (fo,))
+        # (vi) YON 2 OLDURUCU: SERIT_B girisi BLOKLAYAN job'da -> KIRMIZI
+        sb_kotu, _i = olc(S_FIKSTUR, kap={},
+                          sb={(E_DOSYA, "build", S_HEDEF): "yanlislikla guvenli"})
+        if not any("yanlis GUVENLI beyani" in h for h in sb_kotu):
+            hatalar.append("F YON-2 OLU: SERIT_B girisi BLOKLAYAN bir job'u "
+                           "gosterdigi halde KIRMIZI yakmadi (yanlis 'guvenli' "
+                           "beyani gecti) (%r)" % (sb_kotu,))
+        # (vii) YON 2 KONTROL: SERIT_B girisi bloklamayan job'da -> SESSIZ
+        sb_iyi, _i = olc(S_FIKSTUR, kap={},
+                         sb={(E_DOSYA, "serit-b", S_HEDEF): "gercekten guvenli"})
+        if any("yanlis GUVENLI" in h for h in sb_iyi):
+            hatalar.append("F YON-2 YANLIS-POZITIF: bloklamayan job'daki SERIT_B "
+                           "girisi KIRMIZI yakti (%r)" % (sb_iyi,))
+        # (viii) Pages yayin adimi YOKSA -> fail-closed OLCULEMEDI
+        yayinsiz = S_FIKSTUR.replace("      - uses: actions/deploy-pages@v4\n",
+                                     "      - run: echo yayin-yok\n")
+        oy, _i = olc(yayinsiz)
+        if not any("OLCULEMEDI" in h for h in oy):
+            hatalar.append("F FAIL-CLOSED OLU: Pages yayin adimi YOKKEN F sessizce "
+                           "gecti -> deploy-pages satirini silmek F'i kapatirdi (%r)"
+                           % (oy,))
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+    return hatalar
+
+
 def _d_izin_mekanizma_kontrol():
     """D_IZIN'in KACIS DELIGI OLMAMASINI olcer — bugun liste BOS oldugu icin
     gecici olarak SENTETIK girisler enjekte edilip bolum_d() TA KENDISI kosulur
@@ -4288,6 +4585,11 @@ def main():
               "(`*`) beyan KIRMIZI ve bulguyu DUSURMEZ · yanlis job'a yazilan beyan "
               "KIRMIZI · BAYAT beyan KIRMIZI · `deploy` B'ye baglanirsa sebep DUSER · "
               "`actions/deploy-pages` adimi yoksa fail-closed OLCULEMEDI")
+        print("  ✅ BOLUM F (BLOKLAYICI-BEYAN, 4 Agu): adim BLOKLAYAN job'da SESSIZ · "
+              "adim yalniz BLOKLAMAYAN job'da iken 'bloklayici' beyani KIRMIZI (bugunku "
+              "vaka) · adim YOK/fail-open KIRMIZI · bos gerekce KIRMIZI · SERIT_B girisi "
+              "BLOKLAYAN job'u gosterirse 'yanlis guvenli' KIRMIZI · bloklamayan job "
+              "SESSIZ · deploy-pages yoksa fail-closed OLCULEMEDI")
         print("  ✅ K26-KABUK YAPISI: %d satir fiksturu (%d gercek oldurucu + %d MESRU "
               "kanarya) dogru siniflandi — her biri `bash -e` ile OLCULDU"
               % (len(K26_SATIR_FIKSTURLERI),
@@ -4323,6 +4625,8 @@ def main():
     hatalar.extend(d_hata)
     e_hata, e_iddia = bolum_e(args.dizin)
     hatalar.extend(e_hata)
+    f_hata, f_iddia = bloklayici_kapi_kontrol(args.dizin)
+    hatalar.extend(f_hata)
 
     # BOLUM C bayraksiz (bloklayici) kolda da BLOKLAR — `--kendini-test` adimi silinse
     # bile nobetci yasar (ci-kapsam-test.py'nin 27 Tem'de olctugu delik).
@@ -4350,6 +4654,9 @@ def main():
         d_izinli, ", ".join("%s::%s" % a for a in sorted(D_IZIN)) or "-"))
     print("  SERIT B beyani (tek tek) : %d  (yayini BLOKLAMAYAN job'da BILEREK kosan "
           "kapi; joker `*` YASAK)" % len(SERIT_B))
+    print("  BLOKLAYICI beyan (F)     : %d iddia  (%d BLOKLAYICI_KAPILAR + %d SERIT_B "
+          "girisi GERCEGE karsi: adim-job bloklayici mi?)"
+          % (f_iddia, len(BLOKLAYICI_KAPILAR), len(SERIT_B)))
     print("  Tetikleyici/zorunlu adim : %d iddia  (%s: `on.push` + %d zorunlu kapi adimi "
           "+ %d zorunlu yayin varligi)"
           % (e_iddia, E_DOSYA, len(E_ZORUNLU_CAGRILAR), len(E_ZORUNLU_VARLIKLAR)))
