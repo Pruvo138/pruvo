@@ -1,6 +1,71 @@
 # DEVAM (KraL) — 3 Agu 2026
 KAPANDI: 4 Agu marka-model uyeligi canli turu — dokum DEVAM-ARSIV.md de (git disi).
 
+## ✅ KAPANDI — 4 Agu: odeme yolu bayatlik olcumu push tetikli AYRI seride de tasindi (merge `93bb2681`)
+Bayatlik nobetcisi artik yalnizca zamanlanmis kadansa bagli degil; her `main` push'unda ayri
+bir is akisi seridinde de olculuyor. Seridin yayini GECIKTIRMEDIGI kosulan kapiyla olculuyor:
+serit `deploy.yml`in `needs` grafinin ICINDE degil ve onu `uses:` ile cagirmiyor · tetik izin
+listesi KAPALI (yalniz `push` + `workflow_dispatch`) · dal suzgeci TAM OLARAK `main` ·
+eszamanlilik grubu yayin grubundan AYRI · olcum kolu canli kosuyor ve cikis kodu yutulmuyor.
+Bayatlik nobetcisinin iki iddiasi eskiden coker halde susuyordu; artik cokme yerine KIRMIZI yaniyor.
+- OLCULDU (dalin worktree'sinde, merge oncesi, KENDIM kosturdum): `cron-nabiz-kapisi.py
+  --kendini-test` **164 iddia / 0 kirmizi** · `cron-teslim-mutasyon.py` **25 mutant
+  (22 oldurucu + 3 kontrol) / 0 kusur**, her mutantta iddia sayisi **164 SABIT**,
+  **Traceback 0**, uc hedef dosyanin sha256'si degismedi (arac diske yazmiyor) ·
+  `shop-bayatlik-kapisi --kendini-test` 39 iddia / 0 kirmizi · `shop-bayatlik-mutasyon`
+  19 mutant / 0 sapma · `is-akisi-kapisi` · `ci-kapsam-test` · `kapi-envanteri` ·
+  `komut-stili-kapisi` · `yayin-gecikme-test` (38/38) hepsi rc 0.
+- IDDIA ETIKETI ARITMETIGI BAGIMSIZ DOGRULANDI — her surum KENDI agacinda kosuldu
+  (`git archive` ile ayri dizine cikarilip orada `--kendini-test`): taban `0e05089c` **124** ·
+  onceki ana hat **139** · dal **149** · birlesmis **164**, yani `124 - 3 + 18 + 25 = 164`.
+  **Dalin dusurdugu etiket: 0.** Birlesmiste eksik gorunen 3 etiket ANA HATTIN KENDI
+  dusurdugu taban etiketleridir (kume esitligi `(dal - birlesmis) == (taban - anahat)` ✅).
+  🔴 Yontem notu: ayni olcumu once dalin agacinda kosturmustum — HER surum 1 eksik ve
+  13-34 kirmizi verdi, cunku eski kapi surumleri YENI is akisi dosyalarini olcuyordu.
+  Surum karsilastirmasi DAIMA her surumun KENDI agacinda kosulur ([[bayat-kabul-testi]]).
+- Kapsam merge-base `54bc0bf6`'dan **7 dosya, 894+/43-**; `urunler.json` ve gizli urun kaynak
+  kaydi diff'te YOK. `merge-tree` cakismasiz. Sizinti taramasi temiz.
+- Merge SONRASI, push'tan ONCE katalog diff'i (`origin/main` ↔ `HEAD`) **BOS** — guard bu
+  merge'de geri sarma YAPMADI.
+- D1 teyidi: **17879 = 17879** (sayi ✅ · sema ✅ · icerik ekseni 17879 `urun_hash` birebir,
+  uyusmaz 0 / eksik 0 / fazla 0).
+- YENI SERIDIN ILK CANLI KOSUMLARI: `93bb2681` (benim merge SHA'm) → kosum **30906008015
+  SUCCESS**; ardindan `f4c285c7` → 30906064032 SUCCESS; `896f05fa` → 30907303355 SUCCESS.
+  Uc kosumun ucu de yesil ve UCUNDE de serit, ayni SHA'nin `Build & deploy` kosumu HALA
+  `in_progress` iken TAMAMLANDI — "yayini geciktirmiyor" iddiasinin canli ilk kaniti.
+- Temizlik: worktree kaldirildi, dal silindi (`a3cfb181`); ana agacta yetim degisiklik YOK
+  (kalan 2 untracked kalem baska oturuma ait, DOKUNULMADI).
+
+### 🟡 ACIK KALEM 1 — kuyruk geri tepmesi OLCULEMEDI (48 saat sonra yeniden olculecek)
+Yeni serit her `main` push'unda bir kosum daha aciyor: **~87,7 kosum/gun** tabanina
+**+~81 kosum/gun**. GitHub'in kuyruk/eszamanlilik politikasi API'den OKUNAMIYOR, dolayisiyla
+"bu ek yuk mevcut kosumlari kuyrukta bekletir mi" sorusu SU AN OLCULEMEZ — tahmin yazilmadi.
+Olcum yordami: 48 saat sonra `gh run list` uzerinden serit-basi `createdAt` → `startedAt`
+gecikmesini taban gunle karsilastir. Bugun zaten gozlenen olgu: yayin kosumlari
+`concurrency` ile sik sik IPTAL oluyor (bugun ornekleri: 30906008558, 30903754236) —
+bu serit ONCESINDE de vardi, ama tabanin bozulup bozulmadigi olculmeden hukum verilmemeli.
+
+### 🔴 ACIK KALEM 2 — guard, merge'in getirdigi katalogu dalin BAYAT haline geri sardi (olay + onarim)
+Dalda `origin/main` merge edilirken `.git/hooks/pre-commit` → `tools/urunler-guard.py --tetik
+commit`, merge'in GETIRDIGI katalogu "izinsiz urun degisimi" sanip HEAD'e (dalin bayat haline)
+geri sardi. **Hicbir kapi calmadi, merge "basarili" gorundu.** Olculen zarar 5 ekleme /
+11 silme — iki urunde (`citroen-berlingo-modutop-tavan-kilidi` ve
+`citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi`) ana hattin fiyat/aciklama/
+olcu duzeltmesi, bir `lisans` blogu ve 3 gorsel URL'i KAYBOLMUSTU.
+Onarim: `urunler.json` ana hattan birebir geri alindi; onarim commit'i guard'i atlayan bir
+yolla atilmak zorunda kalindi (yoksa guard AYNI geri sarmayi tekrarlardi) ve atlanan uc
+kontrol elle kosuldu — yordamin dokumu DEVAM-ARSIV.md'de (git DISI).
+**Bagimsiz teyit (bu tur, KENDIM):** katalog sha256 birebir esit · 17861 urunun `id` sirasi
+ve kumesi ayni · 9 alanda (`fiyat`, `lisans`, `gorseller`, `aciklama`, `baslik`, `kategori`,
+`marka`, `parametrik`, `uyum`) x 17861 urun = **0 alan farki** · iki hasarli urun alan alan
+karsilastirildi, hepsi ana hatla AYNI · onarim commit'i `urunler.json` DISINDA hicbir sey
+tasimadi · guard/kapi dosyalari dalda DEGISTIRILMEMIS (diff bos) ·
+`urunler-guard --tetik commit`, `mukerrer-kontrol` (17861 temiz), `mimar-commit-kapisi`,
+`kisisel-veri-test` hepsi rc 0.
+🔴 SINIF: worktree'de merge = guard geri sarmasi ([[worktree-merge-guard-geri-sarma]]).
+ACIK: guard bu durumu sessiz birakiyor — merge getirisini "izinsiz degisim"den ayirt eden
+bir eksen YOK. Kalici cozum (guard'a merge-baglami ekseni) ONERILDI, HENUZ YAZILMADI.
+
 ## ✅ KAPANDI — 4 Agu: nabiz nobetcisine A5 TESLIM ekseni (merge `41ef8672`)
 Zamanlanmis alarm kosumlarinin FIILI teslim orani artik olculuyor: nobetci cron METNINE
 bakmakla yetinmiyor, kosumlarin gercekte ne siklikta ateslendigini de sayiyor. "Cron dogru
