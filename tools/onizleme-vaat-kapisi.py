@@ -36,7 +36,29 @@ Bir ailenin "sartsiz satilamaz" oldugunu bu depoda IKI kayit soyluyor:
          var" beyani (2026-08-03'te `rulman` semasina boyle bir blok girdi).
 
     KISITLI AILE KUMESI = KOL1 ∪ KOL2   (TEK kanonik kume)
-    O kume ile HACIM_DOGRULANMIS_AILELER'in (yani SATISIN) KESISIMI BOS olmali.
+
+🔴 ONCUL DUZELTMESI (2026-08-04) — "KISIT VAR => SATILAMAZ" YANLISTI
+--------------------------------------------------------------------
+Eski A3: kisitli aile kumesi ∩ SATIS = ∅. Kural fail-closed'di ama ONCULU eksikti:
+`kisitlar` blogu "bu kutunun HER noktasi uretilebilir DEGIL" der — kutunun
+DARALTILMIS halinin tamamen uretilebilir oldugu AYRI bir olcumdur ve o olcum
+yapilinca aile satilabilir. Eski oncul o olcumu YAPMAYI da imkansiz kiliyordu
+(hangi kanit gosterilirse gosterilsin kapi kirmizi kalirdi).
+
+YENI ONCUL:
+    KOL1 beyani (ONIZLEME_KISITLAR)            -> MUAF EDILEMEZ, satis KAPALI.
+      (o beyan "uretim motorunda KARSILIGI OLMAYAN secim degeri" der; sayisal
+       parametre kutusunu olcen bir parite kaydi o delige DOKUNMAZ.)
+    YALNIZ KOL2 (sema `kisitlar`) beyani olan aile:
+       YESIL ve TAZE parite kaydi VAR  -> satilabilir
+       kayit yok / bayat / esik alti / sahte -> satilamaz (KIRMIZI)
+       kayit ya da parmakizi kaynagi OKUNAMIYOR -> OLCULEMEDI (A3 HIC BASILMAZ)
+
+"Yesil ve taze" TEK yerde tanimlidir: tools/parite_kaydi.py (alti eksen — tehlikeli
+kova 0 · nokta esigi · cozulmeyen 0 · motor parmakizi · sema kisit ozeti · kontrol
+mutantlarinin isareti). Kaydi URETEN olcum jenerator/test/rulman-uretilebilirlik-olcum.py
+--parite'dir; kayit ELLE yazilmaz. Muafiyet MUTANTSIZ yazilirsa kapi SESSIZCE korelir,
+o yuzden M8/M11/M12/M13/M14 mutantlari muafiyetin HER eksenini tek tek oldurur.
 
 🔴 2026-08-03 OLCULEN KOR NOKTA (bu turun sebebi): A3 kumeyi YALNIZ KOL1'den
 turetiyordu. Kopyada `rulman` satis listesine eklendiginde kapi rc=0 veriyor, A3
@@ -62,7 +84,11 @@ OLCULEN IDDIALAR (her biri AYRI; hicbiri digerinin VEYA'si degil)
   A6  SATISTAKI her ailenin semasi FIILEN tarandi — yani her acik ailenin `kisitlar`
       tasiyip tasimadigi olculdu. Bir acik ailenin semasi kaybolursa A3 sessizce
       "kisit gormedim" demez; A6 TEK BASINA kirmizi yanar (M10 mutanti).
-  A3  kisitli aileler kumesi (KOL1 ∪ KOL2) ∩ HACIM_DOGRULANMIS_AILELER = ∅
+  A7  PARITE KAYDI CANLI: kayit dosyasi okundu, en az 1 aile girdisi var ve HEPSI
+      sozlesmeye uyuyor. (Kanit dosyasi silinirse/bosalirsa A3'un muafiyet kolu
+      sessizce "muaf edecek kimse yok"a duser.)
+  A3  kisitli aileler kumesi (KOL1 ∪ KOL2) ∩ HACIM_DOGRULANMIS_AILELER icindeki her
+      aile YESIL+TAZE parite kaydiyla MUAF olmali; KOL1 beyani MUAF EDILEMEZ.
       🔴 A3, A2'lerin VEYA'si DEGILDIR ve bu KANITLANIR: M4 mutanti (YENI bir kisit
       beyan edilip aile satista birakilir) A3'u TEK BASINA kirmizi yakar, A2'ler
       yesil kalir; tersine M3 (fail-closed `return null` oldurulur) A2'leri yakar,
@@ -80,11 +106,10 @@ OLCULEN IDDIALAR (her biri AYRI; hicbiri digerinin VEYA'si degil)
 
 NOT — hangi eksen KIMIN: semanin ONARIMI (uretilemez bolgenin sematik olarak
 kapatilmasi) sema/uretim duzlemidir. Bu kapi yalnizca SATIS ucunu ve MUSTERI METNINI
-fail-closed tutar; sema onarilip kisit kalkinca aile kendiliginden geri acilir.
-KOL2 icin bunun anlami: `kisitlar` blogu bir aileyi satistan ALIKOYAR, satisa ACMAZ.
-Blok "bu ailenin parametre kutusu SARTLI" der; kutunun daraltilmis halinin tamamen
-uretilebilir oldugu ayri bir olcumdur ve satisa acma karari MIMARINDIR. Sartli bir
-aile bu kapiyla sessizce satisa DUSEMEZ.
+fail-closed tutar. KOL2 icin bunun anlami: `kisitlar` blogu bir aileyi satistan
+ALIKOYAR ve ancak OLCULMUS bir parite kaydi onu geri acar — kapinin KENDISI hicbir
+aileyi acmaz, yalnizca kanidi dogrular. Kanitsiz bir aile bu kapiyla sessizce satisa
+DUSEMEZ; kaniti bayatlayan bir aile de satista KALAMAZ.
 
 KULLANIM
     python3 tools/onizleme-vaat-kapisi.py
@@ -107,6 +132,7 @@ yakalanir). Uc mutant sinifi:
 """
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -118,6 +144,21 @@ import tempfile
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KOK_VARSAYILAN = os.path.dirname(TOOLS)
 
+
+def _parite_kaydi():
+    """Parite kaydi SOZLESMESI — DAIMA bu betigin yanindan yuklenir, --repo/ayna
+    kopyasindan DEGIL. Mutantlar VERIYI (kayit dosyasi, parmakizi, semalar)
+    degistirir; sozlesme KODU degismez, yoksa mutant kendi hakemini de mutasyona
+    ugratirdi."""
+    yol = os.path.join(TOOLS, "parite_kaydi.py")
+    spec = importlib.util.spec_from_file_location("pruvo_parite_kaydi", yol)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+PK = _parite_kaydi()
+
 # Urun semalarinin dizini + KOL2'nin okudugu alan adi (tek yerde yazili).
 SEMA_DIZINI = ("jenerator", "urunler")
 KISIT_ALANI = "kisitlar"
@@ -126,7 +167,16 @@ KISIT_ALANI = "kisitlar"
 # (ornegin bir iddia silinip kosum yine "yesil" yanarsa) --kendini-test kirmizi
 # yakar: kabul olcutu cikis kodu DEGIL, basilan iddia sayisidir
 # ([[hukum-yanlis-birimde]] · [[mutasyon-kaniti-yeniden-uretilebilir]]).
-EN_AZ_IDDIA = 12
+EN_AZ_IDDIA = 13
+
+# Bir parite kaydinin SATIS ACMAYA yetmesi icin gereken EN AZ olculen nokta.
+# Sayinin kendisi bir MUHENDISLIK KARARIDIR, olcum degil: 3 Agu'da tehlikeli kova
+# 15.608 gercek render'da 0 cikti ve ayirt edici kontrol mutantlari (M1 284 · M2 67 ·
+# M4 486 nokta) bu buyuklukte RAHATCA ayirt ediliyordu; 400 noktalik hizli kosumda
+# M1/M2 yalnizca 4'er nokta uretiyor — yani esik bu mertebenin ALTINA cekilirse
+# "tehlikeli 0" iddiasi olcum GURULTUSUNDEN ayirt edilemez hale gelir. Esigi
+# DUSURMEK kapiyi gevsetir: M13 mutanti bunu tek basina oldurur.
+EN_AZ_PARITE_NOKTA = 8000
 
 # Musteriye ASLA verilemeyecek vaatler (uretilemez bolgede basilan metinde).
 # Normalize edilmis (kucuk harf + Turkce harf katlamasi) halde aranir.
@@ -238,7 +288,7 @@ def _sema_tara(kok):
     """TEK KANONIK SEMA OKUYUCU — jenerator/urunler/*.json'un TAMAMI.
 
     (semalar, tanilar) doner:
-      semalar {urun_id: {"aile": hacimFormulu, "kisit": kural_sayisi}}
+      semalar {urun_id: {"aile": hacimFormulu, "kisit": kural_sayisi, "sema": ham}}
       tanilar bos DEGILSE semalar None'dir -> cagiran OLCULEMEDI yazar.
 
     Hem KOL1 (ONIZLEME_KISITLAR id'sini aileye cozme) hem KOL2 (`kisitlar` blogu)
@@ -270,7 +320,7 @@ def _sema_tara(kok):
         if bicim_hatasi:
             tanilar.append("%s %s" % (ad, bicim_hatasi))
             continue
-        semalar[ad[:-len(".json")]] = {"aile": aile, "kisit": sayi}
+        semalar[ad[:-len(".json")]] = {"aile": aile, "kisit": sayi, "sema": d}
     if tanilar:
         return None, tanilar
     return semalar, []
@@ -358,6 +408,15 @@ def _bolum_a(kok, iddia, olculemedi):
             + (" (+%d tani daha)" % (len(tanilar) - 6) if len(tanilar) > 6 else ""))
         return
 
+    # 🔴 PARITE KAYDI FAIL-CLOSED: kanit dosyasi okunamiyorsa "muaf edilecek kimse
+    # yok" VARSAYILMAZ — kisitli-ama-satistaki aileler DOGRULANAMAZ, A3 BASILMAZ.
+    kayitlar, kayit_hatasi = PK.kayit_oku(kok)
+    if kayitlar is None:
+        olculemedi.append(
+            "BOLUM A parite kaydi FAIL-CLOSED ('kayit yok' YESIL sayilmadi, kisitli "
+            "ailelerin muafiyeti HESAPLANMADI): " + kayit_hatasi)
+        return
+
     kaynaklar, eksik = kisitli_aile_kumesi(semalar, veri["kisitlar"])
     iddia("A1 ONIZLEME_KISITLAR urun id'lerinin HEPSI semaya+aileye cozuldu",
           not eksik, "; ".join(eksik))
@@ -383,6 +442,11 @@ def _bolum_a(kok, iddia, olculemedi):
           "semasi TARANMAMIS satistaki aile: %s (kisit tasiyip tasimadigi OLCULMEDI)"
           % kapsamsiz)
 
+    iddia("A7 PARITE KAYDI CANLI: %d aile girdisi var (hepsi sozlesmeye uygun)"
+          % len(kayitlar),
+          len(kayitlar) > 0,
+          "parite kaydi BOS — A3'un muafiyet kolu sessizce olu kalir")
+
     # Fiyat olcumu: capa aileleri (null OLMALI) + acik ornekler (fiyat OLMALI)
     ornek_acik = sorted(acik - set(kisitli_aileler))[:3]
     veri2, hata2 = _node_olc(kok, capa_aileleri + ornek_acik)
@@ -402,11 +466,47 @@ def _bolum_a(kok, iddia, olculemedi):
               "acik ornek=%s uretilen=%s" % (ornek_acik,
                                              {a: veri2["fiyat"].get(a) for a in ornek_acik}))
 
+    # --- A3: kisitli ∩ satis kumesindeki HER aile MUAF olabilmeli ---------------
+    def _muafiyet(aile):
+        """(hukum, sebep) — PK.YESIL / PK.KIRMIZI / PK.OLCULEMEDI."""
+        if any(g.startswith("ONIZLEME_KISITLAR:") for g in kaynaklar[aile]):
+            return PK.KIRMIZI, (
+                "%s: KOL1 (ONIZLEME_KISITLAR) beyani MUAF EDILEMEZ — parite kaydi "
+                "SAYISAL parametre kutusunu olcer, uretim motorunda karsiligi OLMAYAN "
+                "SECIM degerlerini degil (%s)" % (aile, kaynaklar[aile]))
+        kisitli_semalar = [u for u in sorted(semalar)
+                           if semalar[u]["aile"] == aile and semalar[u]["kisit"] > 0]
+        if len(kisitli_semalar) != 1:
+            return PK.KIRMIZI, (
+                "%s: %d adet kisitli sema — aile basina TEK parite kaydi bunu "
+                "kapatamaz (%s)" % (aile, len(kisitli_semalar), kisitli_semalar))
+        return PK.girdi_dogrula(kok, aile, semalar[kisitli_semalar[0]]["sema"],
+                                EN_AZ_PARITE_NOKTA, kayitlar)
+
     kesisim = sorted(set(kisitli_aileler) & acik)
-    iddia("A3 YAPISAL KURAL: kisitli aileler (KOL1 ∪ KOL2) ∩ satis listesi = ∅",
-          not kesisim,
-          "SATISTA KALMIS kisitli aile: %s"
-          % [(a, kaynaklar[a]) for a in kesisim] if kesisim else "")
+    kalanlar, muaflar, parite_olculemedi = [], [], []
+    for aile in kesisim:
+        hukum, sebep = _muafiyet(aile)
+        if hukum == PK.OLCULEMEDI:
+            parite_olculemedi.append(sebep)
+        elif hukum == PK.KIRMIZI:
+            kalanlar.append(sebep)
+        else:
+            muaflar.append(sebep)
+    if parite_olculemedi:
+        # 🔴 A3 HIC BASILMAZ: "kayit okunamadi" ile "kayit yesil" ayni cikisa dusemez.
+        olculemedi.append("A3 parite dogrulamasi FAIL-CLOSED (hukum VERILEMEDI): "
+                          + " ; ".join(parite_olculemedi))
+        return
+
+    # MUAF EDILENLER IDDIA ADINDA GORUNUR: gevsetilen her aile CI logunda ADIYLA ve
+    # DAYANAGIYLA yazili olsun ("sessizce muaf" diye bir sey OLMASIN).
+    iddia("A3 YAPISAL KURAL: kisitli aileler (KOL1 ∪ KOL2) ∩ satis listesi -> her biri "
+          "YESIL+TAZE parite kaydiyla MUAF (satista kisitli=%d, muaf=%d%s)"
+          % (len(kesisim), len(muaflar),
+             "; " + " ; ".join(muaflar) if muaflar else ""),
+          not kalanlar,
+          "PARITE KANITI OLMADAN SATISTA: " + " ; ".join(kalanlar) if kalanlar else "")
 
 
 def olc(kok):
@@ -473,6 +573,16 @@ def _ayna(kok):
     shutil.copy2(os.path.join(kok, "tools", "build.py"),
                  os.path.join(hedef, "tools", "build.py"))
     shutil.copytree(os.path.join(kok, *SEMA_DIZINI), os.path.join(hedef, *SEMA_DIZINI))
+    # PARITE KANITI da AYNAYA: kayit + motor parmakizi mutantlari (M8/M11-M14, F5/F6)
+    # bu iki VERI dosyasina dokunur; sozlesme KODU (tools/parite_kaydi.py) kopyalanmaz,
+    # cunku mutant kendi hakemini mutasyona ugratamamalidir.
+    for parcalar in (PK.KAYIT_YOLU, PK.PARMAKIZI_YOLU):
+        kaynak = os.path.join(kok, *parcalar)
+        varis = os.path.join(hedef, *parcalar)
+        if os.path.exists(kaynak):
+            if not os.path.isdir(os.path.dirname(varis)):
+                os.makedirs(os.path.dirname(varis))
+            shutil.copy2(kaynak, varis)
     return hedef
 
 
@@ -579,14 +689,83 @@ def _m_tek_yer_ayrisir(ayna):
     return ["B4"]
 
 
-def _m_rulman_satisa(ayna):
-    """🔴 KOL2 OLDURUCUSU (2026-08-03 olculen kor nokta): semasinda `kisitlar` blogu
-    OLAN bir aile satis listesine eklenir. `rulman` ONIZLEME_KISITLAR'da HIC gecmez —
-    yani bu mutanti YALNIZ sema kolu yakalayabilir. Eski kapi bunda rc=0 + A3 [OK]
-    veriyordu."""
-    _degistir(os.path.join(ayna, "secenekler.js"),
-              "oring: 0.39, pervane: 0.38",
-              "oring: 0.39, pervane: 0.38, rulman: 0.08")
+def _kayit_yolu(ayna):
+    return os.path.join(ayna, *PK.KAYIT_YOLU)
+
+
+def _kayit_oku_ham(ayna):
+    return json.loads(_oku(_kayit_yolu(ayna)))
+
+
+def _kayit_yaz_ham(ayna, d):
+    _yaz(_kayit_yolu(ayna), json.dumps(d, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _kayit_gir(ayna, aile="rulman"):
+    """Kayit girdisini dondurur; capa bulunamazsa PATLAR (bayat batarya sessiz gecemez)."""
+    d = _kayit_oku_ham(ayna)
+    girdi = (d.get("aileler") or {}).get(aile)
+    if girdi is None:
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: parite kaydinda '%s' yok" % aile)
+    return d, girdi
+
+
+def _m_rulman_kayitsiz(ayna):
+    """🔴 MUAFIYETIN 1. EKSENI: sema-kisitli `rulman` SATISTA kalir ama parite kaydi
+    ORTADAN KALKAR (baska ada tasinir; kayit dosyasi BOS olmaz ki A7 degil A3 olculsun).
+    Muafiyet mutantsiz yazilsaydi kapi "kisitli aile satista, kanit yok" halini
+    sessizce YESIL gecerdi — 2026-08-03'te eski kapinin M8'de yaptigi tam buydu."""
+    d, girdi = _kayit_gir(ayna)
+    del d["aileler"]["rulman"]
+    d["aileler"]["rulman-eski-olcum"] = girdi
+    _kayit_yaz_ham(ayna, d)
+    return ["A3"]
+
+
+def _m_kayit_tehlikeli_kova(ayna):
+    """MUAFIYETIN 2. EKSENI: kayit YESIL gorunur ama tehlikeli kova > 0 — yani olcum
+    "sema KABUL + motor RET" noktasi GORMUS. Sahte/bayat kanit."""
+    d, girdi = _kayit_gir(ayna)
+    girdi["tehlikeliKova"] = 3
+    _kayit_yaz_ham(ayna, d)
+    return ["A3"]
+
+
+def _m_kayit_motor_parmakizi(ayna):
+    """MUAFIYETIN 3. EKSENI: motor parmakizi tutmuyor -> olcum BASKA bir motorda
+    yapilmis. Kayit "yesil" der ama yayindaki motoru olcmemistir."""
+    d, girdi = _kayit_gir(ayna)
+    girdi["motorOzet"] = "0" * 64
+    _kayit_yaz_ham(ayna, d)
+    return ["A3"]
+
+
+def _m_kayit_nokta_esigi(ayna):
+    """MUAFIYETIN 4. EKSENI: kayit her yonden yesil ama OLCULEN NOKTA esigin ALTINDA —
+    "3 nokta baktim, tehlikeli gormedim" satis actiramaz ([[hukum-yanlis-birimde]])."""
+    d, girdi = _kayit_gir(ayna)
+    girdi["olculenNokta"] = EN_AZ_PARITE_NOKTA - 1
+    _kayit_yaz_ham(ayna, d)
+    return ["A3"]
+
+
+def _m_kayit_kor_mutant(ayna):
+    """MUAFIYETIN 5. EKSENI: kaydin KENDI kontrol mutanti olu — M1 (genisleme) hicbir
+    tehlikeli nokta uretmemis. Boyle bir olcumun "tehlikeli 0" hukmu her seye KABUL
+    diyen bir olcumden AYIRT EDILEMEZ ([[beyan-edilmis-survivor]])."""
+    d, girdi = _kayit_gir(ayna)
+    girdi["kontrolMutantlari"]["M1"] = 0
+    _kayit_yaz_ham(ayna, d)
+    return ["A3"]
+
+
+def _m_kayit_sema_kisit_ozeti(ayna):
+    """MUAFIYETIN 6. EKSENI: SEMA kisiti degisir (kayit degismez) -> kayit BAYAT.
+    Olcum ARTIK BASKA bir parametre kutusunu olcmustur; satis kaniti duser."""
+    yol = _sema_yolu(ayna, "olcuye-ozel-rulman")
+    d = json.loads(_oku(yol))
+    d[KISIT_ALANI][0]["min"]["terimler"]["dis_cap"] = 0.30
+    _yaz(yol, json.dumps(d, ensure_ascii=False, indent=2))
     return ["A3"]
 
 
@@ -632,13 +811,48 @@ def _k_sira(ayna):
 
 def _k_kisitsiz_aile_satisa(ayna):
     """🔴 KOL2'nin AYIRT EDICI KONTROLU: semasinda `kisitlar` OLMAYAN ve
-    ONIZLEME_KISITLAR'da gecmeyen KAPALI bir aile (rampa) satis listesine eklenir.
-    Bu kapi YESIL kalmali. Kalmazsa kural "kisitli aile satilamaz" degil "kapali aile
-    acilamaz" olurdu — yanlis-pozitif tum ekibin yayinini durdurur. (rampa'nin kapali
-    olmasi HACIM ekseninin karari; bu kapinin olctugu eksen DEGIL.)"""
+    ONIZLEME_KISITLAR'da gecmeyen KAPALI bir aile satis listesine eklenir.
+    Bu kapi YESIL kalmali. Kalmazsa kural "kisitli aile kanitsiz satilamaz" degil
+    "kapali aile acilamaz" olurdu — yanlis-pozitif tum ekibin yayinini durdurur.
+
+    🔴 ESKI HALI OLCULDU VE CURUMUSTU (4 Agu): mutant `rampa: 0.50` ekliyordu, ama
+    rampa 3 Agu'da satisa ACILMISTI; JS nesne literalinde TEKRAR EDEN anahtar yalniz
+    DEGERI degistirir, ANAHTAR KUMESI ayni kalir -> K4 fiilen K2 ile AYNI seyi
+    (deger degisimi) olcuyordu, kontrol degeri SIFIRDI ([[fikstur-degeri-mutasyon-koru]]).
+    Bugun depoda KAPALI+KISITSIZ tek bir aile bile YOK, o yuzden kontrol ailesi
+    FIKSTUR olarak URETILIR."""
+    kaynak = json.loads(_oku(_sema_yolu(ayna, "olcuye-ozel-toka")))
+    kaynak["id"] = "olcuye-ozel-kontrol-fikstur"
+    kaynak["hacimFormulu"] = "kontrolfikstur"
+    kaynak.pop(KISIT_ALANI, None)
+    _yaz(_sema_yolu(ayna, "olcuye-ozel-kontrol-fikstur"),
+         json.dumps(kaynak, ensure_ascii=False, indent=2))
     _degistir(os.path.join(ayna, "secenekler.js"),
               "oring: 0.39, pervane: 0.38",
-              "oring: 0.39, pervane: 0.38, rampa: 0.50")
+              "oring: 0.39, pervane: 0.38, kontrolfikstur: 0.50")
+    return []
+
+
+def _k_kayit_ek_alan(ayna):
+    """KONTROL: kayda ALAKASIZ bir alan eklenir (sozlesme alanlari BOZULMAZ) ->
+    kapi YESIL kalmali. Kalmazsa kayit dosyasi her dokunusta yayini durdururdu."""
+    d, girdi = _kayit_gir(ayna)
+    girdi["not"] = "kontrol mutanti — anlamsiz alan"
+    d["aciklama"] = (d.get("aciklama") or "") + " (kontrol)"
+    _kayit_yaz_ham(ayna, d)
+    return []
+
+
+def _k_kayit_kapali_aile_girdisi(ayna):
+    """🔴 MUAFIYETIN AYIRT EDICI KONTROLU: SATISTA OLMAYAN kisitli bir aile (vida)
+    icin kayit eklenir. Kayit tek basina hicbir aileyi ACMAZ (acan sey satis
+    listesidir), o yuzden kapi YESIL kalmali. Bu kontrol olmasaydi "kayit varsa
+    yesil" ile "kayit satisi aciyor" ayni sey sanilirdi."""
+    d, girdi = _kayit_gir(ayna)
+    kopya = json.loads(json.dumps(girdi))
+    kopya["semaUrunId"] = "olcuye-ozel-vida-civata-somun-pul"
+    d["aileler"]["vida"] = kopya
+    _kayit_yaz_ham(ayna, d)
     return []
 
 
@@ -687,6 +901,26 @@ def _f_sema_dizini_yok(ayna):
     return []
 
 
+def _f_kayit_bozuk_json(ayna):
+    """PARITE KAYDI BOZUK JSON -> muafiyet hukmu VERILEMEZ. "Kayit okunamadi" ile
+    "kayit yesil" ayni cikisa dusemez: A3 HIC BASILMAZ."""
+    _yaz(_kayit_yolu(ayna), '{"surum": 1, "aileler": {')
+    return []
+
+
+def _f_parmakizi_motoru_yok(ayna):
+    """Motorun IZLENEN parmakizi girdisi paketten dusurulur -> kaydin bayat OLUP
+    OLMADIGI olculemez. Sessizce "tazedir" VARSAYILMAZ."""
+    yol = os.path.join(ayna, *PK.PARMAKIZI_YOLU)
+    d = json.loads(_oku(yol))
+    d_ = _kayit_oku_ham(ayna)["aileler"]["rulman"]["motorDosya"]
+    if d_ not in (d.get("dosyalar") or {}):
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: parmakizinda %r yok" % d_)
+    del d["dosyalar"][d_]
+    _yaz(yol, json.dumps(d, ensure_ascii=False, indent=2))
+    return []
+
+
 OLDURUCU, KONTROL, FAIL_CLOSED = "oldurucu", "kontrol", "fail-closed"
 
 MUTANTLAR = [
@@ -697,23 +931,39 @@ MUTANTLAR = [
     ("M5 satis listesi tumuyle bosaltildi (her seye null)", _m_liste_bosalt, OLDURUCU),
     ("M6 hata tablosu girisi silindi (capa kaydi)", _m_tablo_sil, OLDURUCU),
     ("M7 iki cagri yerinin metni ayristirildi", _m_tek_yer_ayrisir, OLDURUCU),
-    ("M8 SEMA-kisitli aile (rulman) satisa acildi", _m_rulman_satisa, OLDURUCU),
-    ("M9 SEMA-kisitli ikinci aile (vida) satisa acildi", _m_vida_satisa, OLDURUCU),
+    ("M8 SEMA-kisitli aile (rulman) SATISTA ama parite KAYDI YOK",
+     _m_rulman_kayitsiz, OLDURUCU),
+    ("M9 SEMA-kisitli ikinci aile (vida) kanitsiz satisa acildi", _m_vida_satisa, OLDURUCU),
     ("M10 SATISTAKI bir ailenin semasi silindi (kapsam kaydi)",
      _m_acik_aile_semasi_silindi, OLDURUCU),
+    ("M11 parite kaydi SAHTE: tehlikeli kova > 0", _m_kayit_tehlikeli_kova, OLDURUCU),
+    ("M12 parite kaydi BAYAT: motor parmakizi tutmuyor",
+     _m_kayit_motor_parmakizi, OLDURUCU),
+    ("M13 parite kaydi ZAYIF: olculen nokta esigin ALTINDA",
+     _m_kayit_nokta_esigi, OLDURUCU),
+    ("M14 parite kaydinin KENDI kontrol mutanti olu (M1=0)",
+     _m_kayit_kor_mutant, OLDURUCU),
+    ("M15 parite kaydi BAYAT: sema `kisitlar` degisti, kayit degismedi",
+     _m_kayit_sema_kisit_ozeti, OLDURUCU),
     ("K1 KONTROL: anlamsiz yorum eklendi", _k_yorum, KONTROL),
     ("K2 KONTROL: acik ailenin sapma SAYISI degisti", _k_sapma_degeri, KONTROL),
     ("K3 KONTROL: satis listesi anahtar SIRASI degisti", _k_sira, KONTROL),
-    ("K4 KONTROL: KISITSIZ kapali aile (rampa) satisa acildi",
+    ("K4 KONTROL: KISITSIZ (fikstur) kapali aile satisa acildi",
      _k_kisitsiz_aile_satisa, KONTROL),
     ("K5 KONTROL: satistaki semaya BOS `kisitlar: []` eklendi",
      _k_bos_kisit_blogu, KONTROL),
+    ("K6 KONTROL: parite kaydina ALAKASIZ alan eklendi", _k_kayit_ek_alan, KONTROL),
+    ("K7 KONTROL: SATISTA OLMAYAN aile icin parite kaydi eklendi",
+     _k_kayit_kapali_aile_girdisi, KONTROL),
     ("F1 FAIL-CLOSED: sema dosyasi BOZUK JSON", _f_sema_bozuk_json, FAIL_CLOSED),
     ("F2 FAIL-CLOSED: `kisitlar` liste degil (bicim taninmaz)",
      _f_kisit_bicimi_nesne, FAIL_CLOSED),
     ("F3 FAIL-CLOSED: `kisitlar` ogesi sozlesmeye uymuyor",
      _f_kisit_ogesi_taninmaz, FAIL_CLOSED),
     ("F4 FAIL-CLOSED: sema dizini tumuyle YOK", _f_sema_dizini_yok, FAIL_CLOSED),
+    ("F5 FAIL-CLOSED: parite kaydi BOZUK JSON", _f_kayit_bozuk_json, FAIL_CLOSED),
+    ("F6 FAIL-CLOSED: motorun parmakizi girdisi paketten dustu",
+     _f_parmakizi_motoru_yok, FAIL_CLOSED),
 ]
 
 
@@ -722,7 +972,9 @@ def _izlenen_ozetler(kok):
     Sema dizini TEK BIR birlesik ozetle izlenir: ozet dosya ADLARINI da kapsar,
     yani silinen/eklenen bir sema da ozeti degistirir."""
     ozet = {"secenekler.js": _sha256(os.path.join(kok, "secenekler.js")),
-            "tools/build.py": _sha256(os.path.join(kok, "tools", "build.py"))}
+            "tools/build.py": _sha256(os.path.join(kok, "tools", "build.py")),
+            "/".join(PK.KAYIT_YOLU): _sha256(os.path.join(kok, *PK.KAYIT_YOLU)),
+            "/".join(PK.PARMAKIZI_YOLU): _sha256(os.path.join(kok, *PK.PARMAKIZI_YOLU))}
     dizin = os.path.join(kok, *SEMA_DIZINI)
     h, n = hashlib.sha256(), 0
     for ad in sorted(os.listdir(dizin)) if os.path.isdir(dizin) else []:

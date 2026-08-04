@@ -1,0 +1,31 @@
+{
+  "aciklama": "Sema kapisi <-> uretim motoru dort-kova paritesi. Bir ailenin sema `kisitlar` blogu VARKEN satisa acilabilmesinin sarti: burada YESIL ve TAZE bir girdi. Okuyucu tools/onizleme-vaat-kapisi.py (A3), sozlesme tools/parite_kaydi.py. ELLE DUZENLENMEZ.",
+  "aileler": {
+    "rulman": {
+      "cozulmeyen": 0,
+      "ilanEdilenIzgara": 1269450,
+      "kontrolMutantlari": {
+        "M1": 256,
+        "M2": 151,
+        "M3": 5460,
+        "M4": 0
+      },
+      "kovalar": {
+        "00": 5460,
+        "01": 0,
+        "10": 0,
+        "11": 10540
+      },
+      "mod": "kayit",
+      "motorDosya": "bearinggenerator.scad",
+      "motorOzet": "1b4468e664b6f31c984e3e1fc69c6cfdb7314861698aa7cbf0433b9767944d9b",
+      "olculenNokta": 16000,
+      "semaKisitOzeti": "2c9f19d444c49c068da8fd0079d2bdf06dea1f28a1c9f06dc0945fca5d8212ce",
+      "semaUrunId": "olcuye-ozel-rulman",
+      "surucu": "jenerator/test/rulman-uretilebilirlik-olcum.py --parite",
+      "tarih": "2026-08-04",
+      "tehlikeliKova": 0
+    }
+  },
+  "surum": 1
+}

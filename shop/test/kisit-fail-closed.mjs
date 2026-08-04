@@ -18,11 +18,13 @@
  * (mutantlar isletim sistemi gecici dizinine kopyalanir, kaynak sha256'si bas/son
  * karsilastirilir).
  *
- * 🔴 ALLOWLIST BELLEKTE ACILIR: kisitli iki aile (rulman/vida) bugun satis
- * allowlist'inde (secenekler.js HACIM_DOGRULANMIS_AILELER) DEGIL — o yuzden kisit
- * ekseni onlarda dogrudan olculemez ("hacim-dogrulanmamis" once doner). Test
- * allowlist'i YALNIZ BELLEKTE gecici acar, kosum sonunda geri alir ve geri
- * alindigini AYRI BIR IDDIA ile olcer. Dosya DEGISMEZ; rulman satisa ACILMAZ.
+ * 🔴 ALLOWLIST BELLEKTE ACILIR — AMA YALNIZ EKSIK OLANLAR (4 Agu guncellemesi):
+ * kisitli bir aile satis allowlist'inde (secenekler.js HACIM_DOGRULANMIS_AILELER)
+ * DEGILSE kisit ekseni onda dogrudan olculemez ("hacim-dogrulanmamis" once doner);
+ * test o aileyi YALNIZ BELLEKTE gecici acar ve kosum sonunda YALNIZ kendi actigini
+ * geri alir (A10). Dosya DEGISMEZ. `rulman` 4 Agu'da parite kaniti olculup GERCEKTEN
+ * satisa acildi — yani A1/A2/A3 artik onda GERCEK satis yolunu olcuyor, gecici
+ * acmayi DEGIL; `vida` hala kapali ve gecici acilir.
  *
  * 🔴 IDDIA SAYISI BU YORUMA YAZILMAZ — betik son satirda kendisi basar (bayat sayi
  * kosumun neyi olctugu hakkinda yanlis guven verir; bu depoda olculdu).
@@ -117,8 +119,14 @@ function batarya(PAR) {
   const rulman = semaKopya(S_RULMAN), vida = semaKopya(S_VIDA), kutu = semaKopya(S_KUTU);
 
   // --- allowlist GECICI acilir (BELLEKTE; secenekler.js DEGISMEZ) ---
-  ALLOW.rulman = 0.0;
-  ALLOW.vida = 0.0;
+  // 🔴 YALNIZ EKSIK OLANLAR acilir, kosum sonunda YALNIZ ONLAR geri alinir.
+  // (4 Agu: `rulman` parite kaniti olculup GERCEKTEN satisa acildi. Kosulsuz
+  // `delete ALLOW.rulman` orijinal listeden bir aile SILERDI ve A10 butunluk
+  // iddiasi testin KENDI yan etkisini kirmizi yakardi — nobetci kendi
+  // fiksturunu bozardi. Aile listesi degistikce bu satirin bakima ihtiyaci yok.)
+  const GECICI_ACILAN = ["rulman", "vida"].filter(
+    (a) => !Object.prototype.hasOwnProperty.call(ALLOW, a));
+  GECICI_ACILAN.forEach((a) => { ALLOW[a] = 0.0; });
 
   const a1 = hesap(rulman, RUL_RED);
   iddia("A1 kisidin REDDETTIGI set (rulman/makara g=5 < 12,67) fiyat URETMEZ",
@@ -224,7 +232,7 @@ function batarya(PAR) {
   const imza = [];
   semaDosyalari.forEach((f) => {
     const s = semaOku(f);
-    if (!ALLOW_ORJ.includes(s.hacimFormulu)) { return; }   // rulman/vida ORJINAL listede yok
+    if (!ALLOW_ORJ.includes(s.hacimFormulu)) { return; }   // gecici acilanlar ORJINAL listede yok
     const r = hesap(s, KONF.varsayilanDegerler(s));
     imza.push(s.hacimFormulu + "=" + (r.hata ? "HATA:" + r.hata : r.birimKurus));
   });
@@ -232,12 +240,11 @@ function batarya(PAR) {
         imza.length === ALLOW_ORJ.length && imza.every((x) => !x.includes("HATA")),
         imza.length + "/" + ALLOW_ORJ.length + " aile | " + imza.join(" "));
 
-  // --- allowlist geri alinir ---
-  delete ALLOW.rulman;
-  delete ALLOW.vida;
+  // --- allowlist geri alinir (YALNIZ bu kosumun ACTIKLARI) ---
+  GECICI_ACILAN.forEach((a) => { delete ALLOW[a]; });
   iddia("A10 BUTUNLUK: bellekteki gecici allowlist acmasi GERI ALINDI",
         JSON.stringify(Object.keys(ALLOW).slice().sort()) === JSON.stringify(ALLOW_ORJ),
-        Object.keys(ALLOW).length + " aile");
+        Object.keys(ALLOW).length + " aile | gecici acilan=[" + GECICI_ACILAN.join(",") + "]");
 
   return { iddialar, imza: imza.join(" ") };
 }

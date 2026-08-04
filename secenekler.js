@@ -708,13 +708,26 @@
     // üretilemezi 0 (%0.0000), altı kolun altısında da 0; kutu içi aşırı red 0.
     // Ölçüm sürücüsü depoda (25 iddia / 0 kırmızı, 11 mutant: 9 öldürücü işaret
     // şartıyla öldü, 2 kontrol yeşil).
-    rampa: 0.01
+    rampa: 0.01,
+    // rulman: 2026-08-04. İki AYRI soru ayrı ayrı ölçüldü:
+    //  (1) HACİM — satılabilir (şema kapısından geçen) kümede 13.745 nokta, en kötü
+    //      sapma %1,2848, %2 üstü nokta 0 → yukarı yuvarlanmış 1.29.
+    //  (2) ÜRETİLEBİLİRLİK — şemanın `kisitlar` bloğu ile üretim motorunun kabul
+    //      kümesi DÖRT KOVADA karşılaştırıldı; "şema KABUL + motor RET" (yani para
+    //      alınıp ürün çıkmayan) kovası 15.608 gerçek render'da 0. Ölçümün kör
+    //      olmadığı kendi kontrol mutantlarıyla kanıtlandı: kısıdı GEVŞETEN üç
+    //      mutant tehlikeli nokta üretti (284 · 67 · 1.356), DARALTAN kontrol
+    //      mutantı üretmedi (486 güvenli sapma).
+    // Bu satır tek başına yetmez: ölçümün YEŞİL ve TAZE parite kaydı depoda durur ve
+    // her koşumda doğrulanır (motor parmakizi / şema kısıt özeti / nokta eşiği / kova).
+    // Kayıt bayatlar ya da kaybolursa satış kapısı bu aileyi KIRMIZI yakar.
+    rulman: 1.29
     // 🔴 ÇIKARILANLAR — hacim ekseni yeşil ama ŞEMA ARALIĞI üretilemez konfigürasyon
     // veriyor (yukarıdaki "ŞEMA ARALIĞI TARAMASI" bloğu). Şema onarılana kadar KAPALI:
     //   petek  — bölge `mod="kabartma"` tümü, %50,0 üretilemez, ölçüm 2026-08-03
     //   cetvel — bölge `secim-tanimsiz:tip`, %66,7 üretilemez, ölçüm 2026-08-03
     //   kase   — bölge `sap` + `bicim`, %83,3 üretilemez, ölçüm 2026-08-03
-    //   rulman — bölge bilya + makara, %32,88 üretilemez, ölçüm 2026-08-02
+    //   vida   — bölge civata M3 altı, ölçüm 2026-08-03
   };
 
   /* Aile hacim doğrulamasından geçti mi? Anahtar `sema.hacimFormulu`.
