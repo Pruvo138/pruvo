@@ -69,8 +69,8 @@ name: Paket tazeligi alarmi (canli fiyat yolu)
 # teslim oranini DUZELTMEZ. GERCEK korluk penceresi "15 dk" DEGIL, olculen ~4 saatlik
 # medyan bosluk ve 17,6 saatlik en kotu bosluktur. `tools/shop-bayatlik-kapisi.py`
 # dosya basindaki "korluk penceresi <= 15 dk (53 kat iyilesme)" cumlesi de AYNI
-# CURUTULMUS sayiya dayanir ve GUNCELLENMELIDIR (o dosya baska bir dalda degistigi
-# icin burada ELLENMEDI — mimara raporlandi).
+# CURUTULMUS sayiya dayaniyordu; o cumle bu dal main'e alinirken GUNCELLENDI ve
+# olculen degerler icin cron-nabiz-kapisi A5 eksenine yonlendiriliyor.
 #
 # Alarm UC KATLI nabizla korunur, hepsi `tools/cron-nabiz-kapisi.py`de kosar ve
 # deploy.yml `cron-nabzi` isinde HER ITMEDE olculur (yayini bloklamayan serit):

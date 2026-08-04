@@ -1756,6 +1756,11 @@ jobs:
       # 1 Agu: A4 PAKET ekseni eklendi — canli fiyat yolunun ne kadar suredir PARITE ile
       # kapanmadigi (paket-tazelik-alarmi.yml damgasi). Elle yayinlanan shop Worker'inin
       # bayatligini gorunur kilan tek zamanlanmis nabiz budur.
+      # 4 Agu: A5 TESLIM ekseni eklendi — cron METNI degil kosumlarin FIILEN gerceklesen
+      # dagilimi (beklenen/gerceklesen orani + EN UZUN ardisik bosluk). A1/A3 bu sinifa
+      # KORDU: cron metni dogru + son kosum taze iken teslim orani %4,31 olabiliyor.
+      # Cift yonlu mutasyon (6 oldurucu KIRMIZI + 1 kontrol YESIL) elle:
+      #   python3 tools/cron-teslim-mutasyon.py
       - name: "Uzlastirma nabiz kapisi: kendini test (agsiz fikstur, iki yonlu)"
         run: python3 tools/cron-nabiz-kapisi.py --kendini-test
       # Onarim surucusunun KENDI kabulu (agsiz + GERCEK git fiksturu): yaris kaybini
