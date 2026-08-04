@@ -1818,6 +1818,41 @@ jobs:
       # Olculdu: yerelde 24+4 mutant 108 s iken 31+6 mutant 165 s (serit-a3 +25 s).
       - name: "Model uyeligi mutasyon bataryasi (31 oldurucu + 6 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
+
+      # KANCA KABLOLAMASI (tools/kanca-kablolama-nobeti.py --ci) — kancalar artik
+      # `.git/hooks` altinda (commit EDILMEYEN, elle duzenlenen) dosyalar degil,
+      # IZLENEN `tools/kancalar` kaynagidir; kablolamayi tools/kanca-kur.py kurar.
+      # Bu nobetci tools/kanca-nobeti.py'nin OLCMEDIGI ekseni sahiplenir: bir
+      # kanca beklenen araci CAGIRIYOR olup yine de HICBIR SEYI BLOKLAMIYOR
+      # olabilir. 4 Agu 2026'da olculen hal tam buydu:
+      #     python3 "$guard" --tetik commit >/dev/null 2>&1 || true
+      # `tools/urunler-guard.py` FAIL-LOUD bir nobetciye cevrilmisti ama git
+      # tarafinda cikis kodunu KIMSE OKUMUYORDU -> koruma yalniz bu makinenin
+      # oturum kablosuyla (PreToolUse) blokluyor, DUZ TERMINALDE / CODEX'TE /
+      # BASKA MAKINEDE bloklamiyordu.
+      #
+      # 🔴 NEDEN SERIT-A3 (BLOKLAYICI: `deploy: needs`te) — `envanter`/`ifsa-nobeti`/
+      # `mesaj-nobeti`den FARKI: onlar PUSH-SONRASI CANLI durumu raporlar, yayini
+      # durdurmanin tamir degeri sifirdir. Bu adim ise izlenen KANCA KAYNAGININ
+      # fail-open'a donup donmedigini olcer — biri `|| true` geri koyarsa ya da
+      # guard cagrisini silerse. O kaynak main'e girip `kanca-kur.py` ile HER
+      # makineye yayilirsa katalog guard'i · D1 senkronu · mimar kapisi · mukerrer ·
+      # commit-mesaji sizinti kapisi SESSIZCE susar. Bu PUSH-ONCESI kaynak
+      # butunlugu eksenidir ve is-akisi-kapisi'nin kendisi gibi BLOKLAYICI olmali
+      # ("SUPHEDE A", is-akisi Bolum D). Kabul testi + mutasyon turu ise "aracin
+      # kendini sinamasi"dir ve SERIT B'dedir (orada TEK TEK beyanli).
+      #
+      # 🔴 NEDEN `--ci`: kablolama `core.hooksPath`te yasar ve `.git/` COMMIT
+      # EDILMEZ -> CI checkout'unda ASLA kurulu degildir. O ekseni CI'da kirmizi
+      # yakmak yanlis-pozitif olurdu; sessizce yesil saymak ise fail-open'i geri
+      # getirirdi. `--ci` hali YALNIZ kablolama/sapma eksenlerini OLCULEMEDI olarak
+      # ILAN EDER (log'da GORUNUR) ve cikis kodunu ETKILEMEZ; BASKA bir eksen
+      # olculemezse cikis YINE sifir-disidir (muafiyet DAR — kabul testi olcer).
+      # CI'da olculen sey IZLENEN KAYNAKTIR: govdeler fail-closed mi, reddetme
+      # gerekcesi basiliyor mu, cagrilar duruyor mu, dosyalar git INDEKSINDE 100755
+      # mi. Tamamen offline; taze klonda rc=0 oldugu KOSULARAK olculdu.
+      - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
+        run: python3 tools/kanca-kablolama-nobeti.py --ci
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
   # ═════════════════════════════════════════════════════════════════════════════
@@ -2807,6 +2842,25 @@ jobs:
       # YESIL kalmali. Bu adim olmadan "kabul testi olu" hali GORUNMEZ kalirdi.
       - name: "Kanca nobeti cift yonlu mutasyon turu"
         run: python3 tools/kanca-nobeti-test.py --mutasyon
+
+      # Kanca kablolama nobetcisinin KENDI kabulu: sentetik depolarda GERCEK `git commit` ile
+      # "ONCE gecti / SONRA durdu" iki ayri SAYIYLA olculur, kurulumun
+      # fail-closed'i ve 🔴 PAYLASILAN/GLOBAL CONFIG KIRLENMEDI vakasi kosar
+      # (sahte HOME + GIT_CONFIG_GLOBAL/SYSTEM katmanlarinda; gercek
+      # `~/.gitconfig`e DOKUNULMAZ).
+      - name: "Kanca kablolama kabul testi (fail-open kapandi mi)"
+        run: python3 tools/kanca-kablolama-test.py
+
+      # ... ve kabul testinin KENDI kabulu. Her mutant KIRMIZI yakmasi beklenen
+      # iddia etiketlerinin TAM KUMESINI beyan eder; driver TAM ESITLIK arar
+      # (eksik oldurme de FAZLA oldurme de kirmizi), `Traceback` = 0 ve iddia
+      # SAYISI tabanla ayni olmali (mutant COKEREK degil OLCEREK olmeli).
+      # Oldurulen eksenler: kapsam bayragi (`--local` -> `--global` = makine
+      # capinda kirlenme), kurulumun fail-closed'i, kur->DOGRULA halkasi, YUTMA
+      # deseni listesi, rc-kontrolu ekseni ve kablolama ekseni. Mutasyon
+      # KOPYAYA uygulanir; canli 9 dosyanin sha256'si once=sonra olculur.
+      - name: "Kanca kablolama cift yonlu mutasyon turu"
+        run: python3 tools/kanca-kablolama-test.py --mutasyon
 
 
 

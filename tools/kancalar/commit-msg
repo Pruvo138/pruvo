@@ -1,0 +1,15 @@
+#!/bin/sh
+# >>> PRUVO COMMIT MESAJI NOBETI BLOGU (tools/commit-mesaji-hook-kur.py uretir — ELLE DUZENLEME) >>>
+# FAIL-CLOSED: commit mesajinda tedarikci/satici kimligi varsa COMMIT DURUR.
+# Gerekce + kanca secimi: tools/commit-mesaji-hook-kur.py basligi.
+pruvo_cm_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_cm_kok" ] || [ ! -f "$pruvo_cm_kok/tools/commit-mesaji-kapisi.py" ]; then
+  echo "!! COMMIT MESAJI NOBETI KOSULAMADI (tools/commit-mesaji-kapisi.py yok) — COMMIT DURDURULDU."
+  echo "!! Sizinti kapisi fail-closed'dir. Kasten atlamak icin: git commit --no-verify"
+  exit 1
+fi
+if ! python3 "$pruvo_cm_kok/tools/commit-mesaji-kapisi.py" --commit-msg "$1"; then
+  echo "!! COMMIT DURDURULDU — commit mesajinda tedarikci/satici kimligi."
+  exit 1
+fi
+# <<< PRUVO COMMIT MESAJI NOBETI BLOGU <<<

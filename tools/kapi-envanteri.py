@@ -264,8 +264,29 @@ def _settings_bagli(root, basename, matcher):
     return False
 
 
+def _hooks_dizini(root):
+    """ETKIN kanca dizini — `core.hooksPath` varsa O, yoksa `<root>/.git/hooks`.
+
+    🔴 NEDEN SABIT YOL DEGIL (4 Agu 2026): kanca kablolamasi IZLENEN kaynaga
+    tasindi (`tools/kancalar` + tools/kanca-kur.py). Kurulum yapilmis bir
+    makinede `.git/hooks` ARTIK KOSMAZ; orayi okuyan bir "BAGLI mi" olcumu
+    kablolamayi DOGRU kurmus bir depoyu KIRMIZI yakar (yanlis-pozitif), yanlis
+    kurmus bir depoyu ise YESIL gosterebilirdi. Olculen sey FIILEN KOSAN
+    dizindir. Kurulum yapilmamis depolarda davranis AYNEN eskisi gibidir
+    (git varsayilani = .git/hooks)."""
+    try:
+        p = subprocess.run(["git", "-C", root, "config", "--get", "core.hooksPath"],
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return os.path.join(root, ".git", "hooks")
+    deger = p.stdout.strip() if p.returncode == 0 else ""
+    if not deger:
+        return os.path.join(root, ".git", "hooks")
+    return deger if os.path.isabs(deger) else os.path.normpath(os.path.join(root, deger))
+
+
 def _hook_bagli(root, basename, dosya):
-    yol = os.path.join(root, ".git", "hooks", dosya)
+    yol = os.path.join(_hooks_dizini(root), dosya)
     try:
         with open(yol, encoding="utf-8") as f:
             return basename in f.read()
