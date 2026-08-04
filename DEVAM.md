@@ -1,6 +1,58 @@
 # DEVAM (KraL) — 3 Agu 2026
 KAPANDI: 4 Agu marka-model uyeligi canli turu — dokum DEVAM-ARSIV.md de (git disi).
 
+## ✅ KAPANDI — 4 Agu: nabiz nobetcisine A5 TESLIM ekseni (merge `41ef8672`)
+Zamanlanmis alarm kosumlarinin FIILI teslim orani artik olculuyor: nobetci cron METNINE
+bakmakla yetinmiyor, kosumlarin gercekte ne siklikta ateslendigini de sayiyor. "Cron dogru
+yazilmis" yesili, kosumlarin cogunun HIC olusmadigi halini artik gizleyemiyor.
+- OLCULDU (dalin worktree'sinde, merge oncesi, KENDIM kosturdum): kabul **124 iddia /
+  0 kirmizi** (main'de 103) · yeni mutasyon surucusu **7 mutant (6 oldurucu + 1 kontrol) /
+  0 kusur** · `cron-nabiz-kapisi.py` sha256 kosum oncesi = sonrasi (arac diske yazmiyor).
+- Kapsam merge-base `1159540c`'ten 4 dosya, 637+/30-; `urunler.json`,
+  `.urun-kaynaklari.json`, `shop-bayatlik-*.py` diff'te YOK. `merge-tree` cakismasiz.
+- Ardil commit'ler — curutulmus sayi + yetim surucu kapatildi:
+  - `d892b22c` (K3): `tools/shop-bayatlik-kapisi.py` dosya basindaki "cadans 15 dk ->
+    korluk penceresi <= 15 dk (53 kat iyilesme)" cumlesi CURUTULMUSTU; olculen degerlerle
+    (teslim %4,31 · en uzun bosluk 1053,5 dk · medyan 237,4 dk) yeniden yazildi ve olcumun
+    tek kaynagi olarak `cron-nabiz-kapisi` A5 eksenine yonlendirildi. Davranis DEGISMEDI.
+  - `6e040969` (K2): `tools/cron-teslim-mutasyon.py`ye repoda 0 referans vardi (yetim
+    surucu); `deploy.yml` `cron-nabzi` isindeki kendini-test adiminin yanina deponun kendi
+    bicimiyle yorumla ilistirildi. `paket-tazelik-alarmi.yml`deki "o dosya GUNCELLENMELIDIR"
+    notu da artik gerceklesmis durumu anlatiyor.
+  - 🔴 KAYDA GECSIN: kaynak kodu ANA CHECKOUT'ta commit'lenemiyor (mimar kod-kilidi,
+    bilincli yanlis-pozitif). K3 bu yuzden dalin worktree'sinde commit'lenip `--ff-only`
+    ile alindi; K2 (yalniz `.yml`) ana checkout'ta commit'lendi.
+- Kapilar merge sonrasi YESIL: `is-akisi-kapisi` (165 kendini-test iddiasi) ·
+  `ci-kapsam-test` · `shop-bayatlik-kapisi --kendini-test` 39 iddia / 0 kirmizi
+  (mutasyon 16 mutant / 0 sapma) · `cron-nabiz-kapisi --kendini-test` 124 iddia / 0 kirmizi.
+- D1 teyidi: **17817 = 17817** (sayi ✅ · sema ✅ · icerik ekseni 17817 `urun_hash` birebir,
+  uyusmaz 0 / eksik 0 / fazla 0). Ilk olcumde 1 bayat hash gorundu (baska bir oturumun
+  fiyat degisikligi henuz senkronlanmamisti); ikinci olcumde kapanmisti.
+- CI: kendi push'larimin kosumlari (`41ef8672` 30895283224 · `6e040969` 30895707686)
+  `concurrency` ile IPTAL oldu. Gecerli kosum **30895767587** (headSha `7245d8ad`,
+  baska oturumun push'u) ve iki merge SHA'm da bu SHA'nin ATASI
+  (`merge-base --is-ancestor` cikis 0). Kosum sonucu **failure** — ama sebep BENIM
+  degisikligim DEGIL, asagiya bak. `build`/`deploy`/`yayin` job'lari **success**
+  (yayin etkilenmedi); `cron-nabzi` isinde iki kendini-test adimi da **success**.
+
+## 🔴 YENI ACIK KALEM — A0 DAMGA alarmi kirmizi: D1 uzlastirici cron'u TESLIM ETMIYOR
+`cron-nabzi` isinin CANLI kolu (yayini DURDURMAYAN alarm) kirmizi yaniyor. Kirmizi eksen
+**A0**, A5 DEGIL: "son basarili uzlastirma 9,1 saat once (esik N=9 sa)".
+- BENIM MERGE'IMDEN DEGIL, ZAMAN GECMESINDEN: merge ONCESI kosum 30894293161 (`9775d122`,
+  08:59Z) ayni ekseni **8,9 saat** olcup YESIL vermisti; merge SONRASI kosum 30895767587
+  (09:23Z) **9,1 saat** olcuyor. Ayni damga kosumu (30865105413), ayni esik (9 sa), ayni
+  turetme (`olculen teslim orani 0,125 · efektif 120 dk`) — ki bu turetme merge ONCESINDE
+  de vardi. Yani damga 24 dakikada esigi dogal olarak asti.
+- KOK SEBEP tam da bu turda olculen sey: zamanlanmis kosumlar ateslenmiyor.
+  A5 TESLIM `d1-uzlastirici.yml` -> teslim 7 / nominal 192 (**%3,65**) · en uzun bosluk
+  1053 dk · medyan 236 dk. `paket-tazelik-alarmi.yml` -> teslim 7 / nominal 192 (%3,65) ·
+  en uzun bosluk 1054 dk. Dusme DEPO/HESAP duzeyinde; ofset degisikligi duzeltmedi.
+- ELLE MASKELEMEDIM: uzlastiriciyi `workflow_dispatch` ile tetiklemek damgayi tazeler ama
+  kok sebebi (cron teslimi) duzeltmez, alarm saatler icinde geri doner — yeni eksenin
+  gorunur kildigi gercek bir arizayi ortmek olurdu. Mimar karari beklesin.
+- Not: A0'in vekil oldugu ASIL invaryant su an SAGLAM — D1 icerigi `urunler.json` ile
+  birebir (17817, uyusmaz 0). Kirmizi olan "denetim ne kadar suredir kosmadi" ekseni.
+
 ## ✅ KAPANDI — 4 Agu: shop bayatlik nobetcisine iki fail-closed kanit (merge `4225711d`)
 Canli odeme worker'inin bayatlik kapisi, olctugu ref uzak main ucu DEGILSE ya da bundle
 dosyalarinda kaydedilmemis fark varsa artik rc 2 "olculemedi" donuyor; eskiden bu iki halde
