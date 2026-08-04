@@ -264,3 +264,34 @@ Kosum `30931519589` headSha **BIREBIR** `6f7ac890`, conclusion **success**; 11 i
 `deploy` ve `yayin` UCU de success (`--limit 1` yesiline guvenilmedi — bir onceki main kosumu
 `cancelled` idi). Push bir kez non-fast-forward reddedildi (main arada iki kez ilerledi);
 `--force` KULLANILMADI, fetch + merge ile tekrarlandi. Gecici klon ve iki yerel dal silindi.
+
+## ✅ KAPANDI — git kanca kablolamasi depoya alindi (merge `2a49b8b1`)
+Kanca kablolama dali taze main'e alindi: mutlak-yol kurulum betigi, fail-closed bayat/golge
+tespiti, post-merge/post-checkout otomatik tazeleme; kablolama nobetcisi deploy.yml serit-a3'te
+bloklayici; is-akisi kapisina beyan/gercek ayrisma ekseni (Bolum F).
+KAPSAM taze main'den olculdu (merge-base `8d5e3874`, `main..HEAD` DEGIL): 13 dosya, +3185/-2 —
+hicbir urun-veri dosyasi YOK. Cakisma on-testi temiz (merge-tree yalniz agac OID bastı).
+DALIN TESTLERI izole worktree'de, exit kodlari goruldu: is-akisi rc0 · is-akisi `--kendini-test`
+173 iddia rc0 · nobetci `--ci` rc0 (18 eksen: 16 yesil / 0 kirmizi / 2 olculemedi — kurulum
+yapilmadigi icin) · kanca-kablolama-test 62 iddia rc0. (`--kendini-test` bayragi is-akisi-kapisi'nda,
+nobetci'de degil.)
+MERGE URUN-VERI TEMIZ: `c912548f..2a49b8b1` urun-veri farki BOS (arada bir baska oturum urun
+commit'i `c912548f` main'e girdi; merge onun uzerine SIFIR urun-veri ekledi).
+Merge git-yerel kanca kurulumunu TETIKLEMEDI — konfigurasyon merge oncesiyle ayni (dogrulandi).
+Push tamamlandi (istemci 2 dk'da
+timeout etti ama pre-push kacak taramasi 0 bulgu + ref transfer oldu); merge origin/main'in ATASI
+(dogrulandi). Uzerine baska oturum urun partisi `d72fc2a9` commit'ledi. Deploy kosumu id
+`30948373105` (headSha `d72fc2a9`, merge ATA — dogrulandi); CI WATCH KURULMADI. Dal worktree'si +
+yerel dal silindi.
+
+UC OKAN KAPISI (acik):
+(a) `kanca-kur.py` Okan tarafindan AYRICA kosulmali — kosulana kadar git-native koruma bu makinede
+AKTIF DEGIL (merge yalniz dosyalari aldi, kurulumu tetiklemez).
+(b) CLAUDE.md'deki "hook'lar commit EDILMEZ" cumlesi (yaklasik satir 86) artik yanlis — kancalar
+artik izlenen dosya; elle guncellenmeli.
+(c) Kapak thumbnail uretim blogu (pre-push) `pagespeed-thumb-fix` dali ile sira koordinasyonu
+gerektirir — ayni yuzeye dokunuyorlar.
+
+GOZLEM (bu dalin isi DEGIL, notr): merge sonrasi D1 durum drift gosterdi (D1 sayisi urunler.json'dan
+88 geride + 1 fazla) — urun partisi `d72fc2a9`'un senkronu tamamlanmamis. Urun-veri tek-yazar alani;
+merge iscisi COZMEDI, urun oturumuna birakildi.
