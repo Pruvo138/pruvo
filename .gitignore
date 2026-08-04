@@ -394,13 +394,13 @@ DEVAM-ARSIV.md
 # kapsanir. ASIL NOBETCI tools/kisisel-veri-test.py icindeki "IC RAPOR SIZINTI NOBETCISI"dir
 # (CI'da bloklayici, harf-duyarsiz, Turkce harf katlamali, .md/.markdown/.txt kapsar ve
 # IZLENEN dosyalari tarar). Nobetci burada karsiligi olmayan bir ad icin kirmizi yanarsa
-# cozum desen eklemek DEGIL, dosyayi RAPOR-MIMARA.md'ye tasimak / izlemeden cikarmaktir.
-# PROTOKOL ADI: isci raporu DAIMA RAPOR-MIMARA.md (baska ad kullanilmaz).
+# cozum desen eklemek DEGIL, dosyayi standart isci-rapor protokol adina tasimak / izlemeden cikarmaktir.
+# PROTOKOL ADI: isci raporu DAIMA sabit bir protokol adi kullanir (baska ad kullanilmaz).
 # 🔴 KOKTE ARTIK AD-BAGIMSIZ IKINCI KAPI VAR ("KURAL B", ayni nobetci dosyasinda): repo
 # KOKUNDE izlenen her .md/.markdown/.txt, ADI NE OLURSA OLSUN, kucuk bir IZIN LISTESINDE
 # (KOK_BELGE_IZIN) degilse KIRMIZI yanar — TESLIM-NOTU.md gibi aile-DISI adlar bu yuzden
 # artik kacamaz. Yeni bir ad kirmizi yakarsa COZUM BURAYA DESEN EKLEMEK DEGILDIR: dosyayi
-# RAPOR-MIMARA.md yap (zaten asagida, izlenmez) ya da gercekten yayinlanacaksa
+# standart isci-rapor protokol adina cevir (zaten asagida, izlenmez) ya da gercekten yayinlanacaksa
 # KOK_BELGE_IZIN'e GEREKCEYLE ekle.
 # ⚠️ ONEKLER AYIRAC SARTLIDIR ("ONARIM-" evet, "ONARIMLAR" hayir). Olculdu: kisa
 # "ONARIM*.md" bicimi MESRU bir onarimlar.md dosyasini SESSIZCE ignore ediyordu —

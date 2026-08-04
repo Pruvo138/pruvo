@@ -9,7 +9,7 @@
   python3 tools/yayin-kapisi.py --kendini-test   # OFFLINE kabul testi (ag/D1 GEREKMEZ)
 
 ════════════════════════════════════════════════════════════════════════════════════
-NEDEN VAR — OLCULEN PENCERE (iddia degil; ham sayilar RAPOR-MIMARA.md'de)
+NEDEN VAR — OLCULEN PENCERE (iddia degil; ham sayilar muhendis raporunda)
 ════════════════════════════════════════════════════════════════════════════════════
 Katalog iki ayri yerde yayinlanir ve bu ikisi AYNI ANDA olmaz:
   * D1 (Ege'nin okudugu yer): `.git/hooks/pre-push` d1-sync'i push'tan ONCE kosar.

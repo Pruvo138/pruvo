@@ -31,7 +31,7 @@ o betikler ROOT sabiti yuzunden GERCEKTEN import edilemiyorken bile PASS basiyor
 ⚠️ FIKSTUR DURUSTLUGU: PNG/GIF/WebP fiksturleri BAYT BAYT gecerli dosyalardir. JPEG
 fiksturu SOI+APP0+SOF0+EOI'dan ibaret bir BASLIK fiksturudur (entropi verisi yok) —
 kapinin JPEG yolu zaten yalniz SOFn basligini okur. Gercek bir JPEG uzerindeki dogrulama
-CI DISINDA olculdu (canli alfa-romeo gorseli: 1000x88, kapi ELEDI) ve RAPOR-MIMARA.md'de
+CI DISINDA olculdu (canli alfa-romeo gorseli: 1000x88, kapi ELEDI) ve muhendis raporunda
 kayitlidir; gorsel dosyasi repoya EKLENMEZ (git'e gorsel girmez kurali).
 
 Salt-okunur (yalniz gecici dizine yazar), ag'a cikmaz. Cikis: 0 = yesil, 1 = kirmizi.

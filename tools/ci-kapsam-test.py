@@ -2273,7 +2273,7 @@ def kendini_test_adimi_kontrol():
     "duruyor" sayiyordu. O bedel olculdu ve KABUL EDILEMEZ cikti:
         `run: echo python3 tools/ci-kapsam-test.py --kendini-test`
     mutantinda oz-nobetci adimi HICBIR SEY kosmadigi halde dort denetci de rc=0
-    verdi (ham cikti RAPOR-MIMARA.md). `echo` bir MENSIYON komutudur; artik
+    verdi (ham cikti muhendis raporunda). `echo` bir MENSIYON komutudur; artik
     SUZGEC.MENSIYON_KOMUTLARI kara listesiyle HAYIR hukmu alir.
 
     🔴 AYRISTIRICI TAKLIDI YOK ([[mimar-kapi-parser-taklidi]]): TUR 2/3'te ELLE

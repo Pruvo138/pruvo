@@ -48,7 +48,7 @@
  *   * Gercek WebGL surucusunun cikisini (MSAA yok -> kotumser tahmin).
  *   * FIYATI (2-renk ucreti bu turda DEGISMEDI; sifir).
  *
- * KIRMIZI-MUTASYON (`--kendini-test`, ham cikti RAPOR-MIMARA.md'de):
+ * KIRMIZI-MUTASYON (`--kendini-test`, ham cikti muhendis raporunda):
  *   (a) anahtarUret'ten parca segmenti kaldirilir      -> K2/K3/K7 KIRMIZI
  *   (b) sayfa iki govdeyi AYNI renge boyar             -> S1 KIRMIZI
  *   (c) viewer govdeleri AYRI AYRI merkezler (hizalama kayar) -> V2 KIRMIZI

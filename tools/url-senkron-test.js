@@ -13,7 +13,7 @@
  *     arama yazımı, arama temizleme) gerçekten bağlı olduğu ve kategori
  *     "Tümü"nün TAM SIFIRLAMA yaptığı (marka + arama + URL temiz) statik
  *     olarak doğrulanır. (Bu repo'da DOM test kütüphanesi yok — tarayıcı
- *     adımlı kanıt RAPOR-MIMARA.md'de; bu test regresyon bekçisidir.)
+ *     adımlı kanıt mühendis raporunda; bu test regresyon bekçisidir.)
  */
 
 const fs = require("fs");

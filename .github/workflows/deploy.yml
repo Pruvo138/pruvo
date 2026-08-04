@@ -918,6 +918,15 @@ jobs:
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 
+      # IC RAPOR ADI KAPISI (4 Agu) — "isci->mimar rapor dosyasinin protokol adi
+      # yorum/docstring METNI olarak PUBLIC repoya sizdi mi". kisisel-veri-test.py
+      # ile AYNI eksende DEGIL (kisisel veri degil, sadece ic is akisi gorunurlugu);
+      # BLOKLAYICI (continue-on-error YOK), yerel + deterministik, ag ISTEMEZ.
+      - name: Ic rapor adi kapisi ic nobetci (fikstur + kontrol bataryasi)
+        run: python3 tools/ic-rapor-adi-kapisi.py --kendini-test
+      - name: Ic rapor adi kapisi
+        run: python3 tools/ic-rapor-adi-kapisi.py
+
       # Kapinin KENDI hukmu: 22 kirmizi + 29 yesil fikstur, E1 ozet mekanizmasi
       # (uydurma adla GERCEK uretim yolu), fail-closed (desen kaynagi yok / dosya
       # UTF-8 cozulemiyor) ve CANLILIK (git rc=0 + bos/kismi liste) dallari.
