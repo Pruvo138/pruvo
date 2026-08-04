@@ -1,5 +1,337 @@
 [
   {
+    "id": "mitsubishi-pajero-tavan-havalandirma-kanatcik-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero 4 Tavan Havalandırma Kanatçık Braketi (7842A069HA)",
+    "aciklama": "Mitsubishi Pajero 4 gövdesindeki tavan havalandırma ızgarasının kanatçıklarını taşıyan yedek brakettir.\nOrijinal parçanın yıllar içinde kırılganlaşarak çatlayan kanat taşıyıcı çıtasının yerine geçer.\n- 7842A069HA numaralı orijinal parçanın yuvasına ve kanat aralıklarına göre biçimlendirilmiştir.\n- Kanatçıklar mevcut deliklerine oturur, ilave bağlantı elemanı gerektirmez.\n- Gövde 3 mm et kalınlığıyla dayanıklı tutulmuştur.\n- Isıya dayanıklı bir malzeme tercih edilmesi, tavandaki sıcaklık koşullarında ömrü uzatır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1764080-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1764080-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1764080-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-eclipse-silecek-kolu-ucu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Eclipse"
+    ],
+    "baslik": "Mitsubishi Eclipse Silecek Kolu Ucu Kapağı (Çift)",
+    "aciklama": "Mitsubishi Eclipse silecek kollarının mil bağlantısını örten uç kapağıdır.\nKolun somununu ve mil ucunu kapatarak hem görüntüyü toparlar hem de bağlantıyı yağmur suyundan korur.\n- Sağ ve sol silecek kolu için iki adet kapak birlikte verilir.\n- Kol üzerine geçme sıkılığıyla oturur, ek vida gerektirmez.\n- Güneş altında kavlayan veya kaybolan orijinal kapağın yerine yedek olarak kullanılır.\n- Esnek bir malzeme tercih edilmesi, kapağın kol üzerine geçişini kolaylaştırır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw437807-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw437807-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw437807-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw437807-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stevi96",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-legnum-vr4-on-izgara-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Legnum"
+    ],
+    "baslik": "Mitsubishi Legnum VR4 Ön Izgara Klipsi (4'lü Takım)",
+    "aciklama": "Mitsubishi Legnum VR4 ön ızgarasını tampon üstüne sabitleyen geçmeli klipstir.\nOrijinal klipsler zamanla sertleşip kırıldığında ızgara oynamaya başlar; bu yedek klips bağlantıyı yeniden sıkılaştırır.\n- 1997 model Legnum VR4 ızgara deliklerine göre ölçülendirilmiştir.\n- Bir ızgaranın tamamı için dört adet gerekir.\n- Çatal uçları deliğe bastırılarak takılır, sökme gerektiğinde zarar vermeden çıkar.\n- Isı ve titreşime dayanıklı bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw662247-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw662247-2.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-3000gt-yolcu-tarafi-konsol-panel-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT",
+      "GTO"
+    ],
+    "baslik": "Mitsubishi 3000GT / GTO Yolcu Tarafı Konsol Panel Klipsi",
+    "aciklama": "Mitsubishi 3000GT ve GTO modellerinde orta konsolu çevreleyen yan panelin yolcu tarafı tespit klipsidir.\nPanelin torpido eteğine oturduğu noktada kırılan orijinal tırnağın yerine geçerek panelin oynamasını önler.\n- Yalnızca yolcu tarafı için biçimlendirilmiştir.\n- JDM gövde varyantı için ayrı ölçü de kapsanmıştır.\n- Piyasada bulunması güçleşen orijinal parçanın yerine yedek olarak kullanılır.\n- Panelin mevcut yuvasına bastırılarak takılır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw157369-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw157369-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FRR35H",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-2008-havalandirma-kanatcigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero (2008) Havalandırma Kanatçığı",
+    "aciklama": "2008 model Mitsubishi Pajero havalandırma ızgarasının tek kanatçığının yedeğidir.\nKırılan kanat yerine takıldığında hava yönlendirmesi yeniden çalışır ve ızgara görüntüsü tamamlanır.\n- Kanadın iki ucundaki mil çıkıntıları orijinal yuvalara oturacak şekilde biçimlendirilmiştir.\n- Kanat tek başına değiştirilebilir, ızgaranın tamamının sökülmesi gerekmez.\n- Isıya dayanıklı bir malzeme tercih edilmesi, ön panel sıcaklığında biçimini korumasına yardımcı olur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1998093-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SMO",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-sh20c-klima-kumanda-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi SH20C 134E Klima Kumanda Tutucusu",
+    "aciklama": "Mitsubishi SH20C 134E klima kumandası için duvara veya düz yüzeye sabitlenen tutucudur.\nKumandayı sabit bir noktada tutar, koltuk arasında kaybolmasını ve düşerek kırılmasını önler.\n- İç ölçüleri 61,5 × 19 × 70 mm olan kumanda gövdesine göre hazırlanmıştır.\n- Kumanda öne doğru eğimli oturur, tek elle alınıp yerine bırakılabilir.\n- Duvara vidayla veya çift taraflı bantla sabitlenebilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw754055-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw754055-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw754055-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-colt-kapi-hoparlor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Colt"
+    ],
+    "baslik": "Mitsubishi Colt Kapı Hoparlör Kapağı",
+    "aciklama": "Mitsubishi Colt kapı döşemesindeki hoparlör açıklığını kapatan yuvarlak kapaktır.\nKaybolan veya kırılan orijinal kapağın yerine geçerek döşemedeki boşluğu kapatır.\n- Çevresindeki dört tırnak, kapı panelindeki mevcut yuvalara geçer.\n- Ek vida veya yapıştırıcı gerektirmeden bastırılarak takılır.\n- Hoparlör değişimi sırasında sökülüp yeniden kullanılabilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw122849-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw122849-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw122849-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RAKSO PRINT",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-stepne-kanca-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander Stepne Kancası Kapağı",
+    "aciklama": "Mitsubishi Outlander bagaj tabanındaki stepne bağlantı kancasının üstünü örten kapaktır.\nKapak takıldığında bagaj halısındaki açıklık kapanır ve yükler kancaya takılmadan yerleştirilir.\n- Outlander ile aynı gövdeyi paylaşan 4007 ve C-Crosser bagaj tabanlarına da uyar.\n- Kaybolan orijinal kapağın yerine yedek olarak kullanılır.\n- Kenarındaki tırnaklarla taban açıklığına bastırılarak oturur, gerektiğinde parmakla çıkarılır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1719582-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1719582-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1719582-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stuka",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-rh18a-038l-kumanda-duvar-tutucusu",
+    "kategori": "Ev",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi RH18A-038L Kumanda Duvar Tutucusu",
+    "aciklama": "Mitsubishi RH18A-038L klima kumandası için duvara asılan tutucu yuvadır.\nKumanda dik konumda yuvaya bırakılır; böylece cihaz sabit bir noktada durur ve düşme riski azalır.\n- Yuva derinliği kumandanın gövde kalınlığına göre ayarlanmıştır.\n- Arka yüzeyindeki delikler duvar vidasıyla montaja uygundur.\n- Üst kenarı açık bırakıldığı için kumanda tek hareketle alınır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw882030-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw882030-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw882030-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw882030-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-got2000-hmi-din-ray-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi GOT2000 HMI DIN Ray Klipsi",
+    "aciklama": "Mitsubishi GOT2000 serisi operatör panelini (HMI) standart DIN rayına oturtan klipstir.\nPaneli masa üstünde devrilmeden dik tutar; eğitim, deneme ve pano öncesi kurulum düzeneklerinde kullanılır.\n- Standart 35 mm DIN ray profiline geçer.\n- Panel gövdesini iki noktadan kavrayan çift parçalı klips takımıdır.\n- Panoya kalıcı montaj yapmadan sökülüp takılabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1916082-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1916082-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Žan Pekošak",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l400-kings-salter-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Delica",
+      "L400"
+    ],
+    "baslik": "Mitsubishi Delica L400 Kings Şalter Plakası",
+    "aciklama": "Mitsubishi Delica L400 gösterge panelindeki dikdörtgen şalter yuvasına Kings marka kablo demeti şalterini oturtan ara plakadır.\nSonradan takılan şalterin panelde boşluk bırakmadan, orijinal düğmelerle aynı hizada durmasını sağlar.\n- L400 panelindeki standart şalter açıklığına göre ölçülendirilmiştir.\n- Şalter arkadan yerine bastırılır, plaka panel yüzeyine yaslanır.\n- Projektör ve ek aydınlatma şalterlerinin düzenli bir yuvaya alınmasında kullanılır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw805680-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pkunky",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l400-salter-plakasi-ve-kor-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Delica",
+      "L400"
+    ],
+    "baslik": "Mitsubishi Delica L400 Şalter Plakası ve Kör Kapak Takımı",
+    "aciklama": "Mitsubishi Delica L400 gösterge panelindeki şalter açıklığı için ara plaka ve kör kapak takımıdır.\nBoş kalan yuvayı kapatır ya da sonradan eklenen şalteri panele düzgün oturtur.\n- L400 panelindeki standart dikdörtgen açıklığa göre biçimlendirilmiştir.\n- Kör kapak ve delikli plaka birlikte verilir; ihtiyaca göre biri kullanılır.\n- Panele arkadan geçen tırnaklarla tutunur, ek bağlantı gerektirmez.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw571850-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw571850-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw571850-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw571850-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TheTimminator",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-sport-orta-konsol-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander Sport Orta Konsol Mandalı",
+    "aciklama": "Mitsubishi Outlander Sport orta konsol kapağının kilit mandalıdır.\nKırılan veya kaybolan orijinal mandalın yerine takıldığında kapak yeniden sıkı biçimde kapanır.\n- Konsol kapağındaki mevcut vida delikleri kullanılarak takılır.\n- Mandal yüzeyi kapağın kilit diline denk gelecek şekilde ölçülendirilmiştir.\n- Konsolun tamamını değiştirmeden onarım imkânı verir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1346006-1.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-3000gt-kapi-hoparlor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT"
+    ],
+    "baslik": "Mitsubishi 3000GT Kapı Hoparlör Braketi",
+    "aciklama": "Mitsubishi 3000GT kapı döşemesine yuvarlak hoparlör oturtan kare gövdeli adaptör braketidir.\nOrijinal hoparlör yuvasıyla satın alınan hoparlörün delik dairesini birbirine uydurur.\n- Kapıdaki mevcut vida delikleri esas alınarak biçimlendirilmiştir.\n- Hoparlör ön yüzden, braket ise kapı sacına vidalanır.\n- Döşeme panelini kesmeden hoparlör değişimine imkân verir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2612759-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2612759-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2612759-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Khyrai",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-sport-bardaklik-yukselticisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Sport Bardaklık Yükselticisi",
+    "aciklama": "Mitsubishi Pajero Sport konsolundaki derin bardaklığın tabanına yerleştirilen yükseltici diskdir.\nKüçük bardaklar yuvanın dibine gömülmez, kavranacak yükseklikte kalır.\n- Bardaklık taban çapına göre ölçülendirilmiştir, boşluk bırakmadan oturur.\n- Alt yüzeyindeki ayaklar diski yuvada sabit tutar.\n- Yıkanabilmesi için tek parça olarak biçimlendirilmiştir, gerektiğinde çıkarılır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw693556-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw693556-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw693556-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-sport-cam-suyu-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Sport Cam Suyu Deposu Kapağı",
+    "aciklama": "Mitsubishi Pajero Sport motor bölmesindeki cam yıkama suyu deposunun doldurma ağzı kapağıdır.\nKaybolan orijinal kapağın yerine geçerek ağzı kapatır, toz ve yaprak girişini engeller.\n- Depo ağzına geçme sıkılığıyla oturur, kenarındaki tutamakla elle çevrilir.\n- Üst yüzeyindeki işaret kapağın yönünü belli eder.\n- Sıvıya dayanıklı bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1702604-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1702604-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1702604-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peppino89",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-montero-hoparlor-adaptor-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Montero"
+    ],
+    "baslik": "Mitsubishi Montero 6,5 inç Hoparlör Adaptör Halkası",
+    "aciklama": "Mitsubishi Montero (V60 gövde) kapı yuvasına 6,5 inç hoparlör oturtan adaptör halkasıdır.\nOrijinal yuvanın delik dairesiyle satın alınan hoparlörün ölçüsünü birbirine uydurur.\n- Kapıdaki mevcut vida noktaları kullanılarak takılır.\n- Halka, hoparlörü sac yüzeyinden bir miktar öne alarak döşeme panelinin kapanmasına yer bırakır.\n- Kapı sacında kesme veya delme gerektirmez.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1039608-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1039608-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1039608-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1039608-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GoLoS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-montero-tablet-ekran-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Montero"
+    ],
+    "baslik": "Mitsubishi Montero Tablet / Ekran Tutucu Kutusu",
+    "aciklama": "Mitsubishi Montero (V60 gövde) orta konsoluna tablet veya multimedya ekranı oturtan kutu gövdesidir.\nEkranı konsol açıklığında sabit ve dik tutar, arkasında kablo çıkışına yer bırakır.\n- Konsoldaki mevcut radyo yuvasına göre ölçülendirilmiştir.\n- Yan yüzeylerdeki delikler kablo geçişi ve havalandırma içindir.\n- Ekran öne bastırılarak yerleştirilir, konsol paneli kesilmeden takılır.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1039600-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1039600-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1039600-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1039600-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GoLoS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "honda-civic-cd-yuvasi-telefon-tutucu-2006",
     "kategori": "Otomobil",
     "marka": [
