@@ -139,6 +139,58 @@ def onek_siyir(marka, s, evren):
     return t
 
 
+def kusak_tablolari(index_html):
+    """(KUSAK_DONANIM, KUSAK_DISI) — index.html'den AYIKLANIR, kopya TUTULMAZ.
+
+    KUSAK_DONANIM: kapalı donanım/rozet soneki listesi ("gti", "st", ...).
+    KUSAK_DISI   : "<marka>|<ham jeton>" biçiminde FARKLI ARAÇ istisnaları (otorite
+                   tools/arama.py KUSAK_DISI_JETON; burası JS'in okuduğu ayna).
+    FAIL-CLOSED: dizi yoksa SystemExit — sessizce boş listeye düşmek, sayfa tarafını
+    filtreden ayrıştırır (donanım soneki katlanmaz) ya da istisnayı iptal eder."""
+    blok(index_html)                      # blok yoksa fail-closed
+    return (_dizi_ayikla(index_html, "KUSAK_DONANIM"),
+            _dizi_ayikla(index_html, "KUSAK_DISI"))
+
+
+_KUSAK_SAYI = re.compile(r"^\d{1,2}$")
+_KUSAK_MK = re.compile(r"^mk\.?\d{1,2}$")
+_KUSAK_ROMEN = re.compile(r"^(i|ii|iii|iv|v|vi|vii|viii|ix|x)$")
+_KUSAK_HARF = re.compile(r"^[a-z]$")
+
+
+def kusak_sonek_mi(w, donanim):
+    """index.html kusakSonekMi() portu — kelime KUŞAK/DONANIM soneki mi?
+    '4'/'Mk4'/'IV'/'H'/'ST' evet · 'Life'/'Cabrio'/'E-Tech'/'125' hayır."""
+    t = (w or "").lower()
+    if _KUSAK_SAYI.match(t) or _KUSAK_MK.match(t) or _KUSAK_ROMEN.match(t) \
+            or _KUSAK_HARF.match(t):
+        return True
+    return t in set(x.lower() for x in donanim)
+
+
+def kusak_tabanlari(marka, s, evren, model_alias, donanim, disi):
+    """index.html kusakTabanlari() portu: [(taban_anahtarı, kuşak etiketi)] UZUN tabandan
+    kısaya. Boş liste = jeton bir kuşak varyantı DEĞİL.
+
+    🔴 TEK YÖNLÜ: kusak_tabanlari('Golf') boştur — taban jeton varyanta katlanmaz.
+    🔴 KELİME SINIRI: bölme yalnız gerçek boşlukta olur ('Golf 4' evet, 'Golfr' hayır)."""
+    ham = (s or "").strip()
+    if not marka or not ham or ((marka + "|" + ham) in set(disi)):
+        return []
+    kalan = onek_siyir(marka, ham, evren)
+    if not kalan:
+        return []
+    toks = kalan.split()
+    out = []
+    i = len(toks)
+    while i > 1 and kusak_sonek_mi(toks[i - 1], donanim):
+        i -= 1
+        a = anahtar(marka, " ".join(toks[:i]), evren, model_alias)
+        if a:
+            out.append((a, " ".join(toks[i:])))
+    return out
+
+
 def anahtar(marka, s, evren, model_alias):
     """index.html modelAnahtar() portu: önek sıyır + kanon + semantik alias.
     BOŞ dönerse eşleşme kurulmaz (fail-closed: '' == '' ile marka geneli dönmesin)."""
@@ -155,6 +207,7 @@ def _index_oku():
 
 # Modül düzeyi tablolar (geriye dönük okuyucular için; ayıklama fail-closed).
 MARKA_ALIAS, MODEL_ALIAS = tablolar(_index_oku())
+KUSAK_DONANIM, KUSAK_DISI = kusak_tablolari(_index_oku())
 
 
 if __name__ == "__main__":

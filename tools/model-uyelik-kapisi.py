@@ -61,6 +61,55 @@ def _bagimsiz_kanon(s):
     return re.sub(r"[^a-z0-9]", "", t)
 
 
+# ---------------------------------------------------------------- KUŞAK KATLAMASI (4 Ağu)
+# BAĞIMSIZ kuşak soneki dilbilgisi — üretimin `kusakSonekMi()`/`KUSAK_DONANIM` tablosu
+# ÇAĞRILMAZ, burada ELLE yazılır (aynı fonksiyon iki tarafta kullanılsaydı iddia totoloji
+# olurdu, [[beyan-edilmis-survivor]]). Üretim tablosu genişlerse bu eksen KIRMIZI yanar —
+# istenen budur: katlamanın kapsamı GÖRÜNÜR karardır (K9/K12 kimlik donması ile aynı ilke).
+_BAGIMSIZ_KUSAK_RE = re.compile(
+    r"^(mk\d{1,2}|\d{1,2}|i|ii|iii|iv|v|vi|vii|viii|ix|x|[a-z]|gt|gtc|gtd|gti|rs|st)$")
+
+# KATLAMA FİKSTÜRÜ — kural GERÇEK jetonlarla çivilenir (JS ve Python AYNI cevabı vermeli).
+# (marka, ham jeton, beklenen taban anahtarı) — taban BOŞ ise "katlanmaz" demektir.
+# 🔴 KATLANMAZ satırları ayrı ayrı FARKLI korumayı ölçer:
+#   Zafira Life / Megane E-Tech -> GRAMER (kapalı sonek kümesi) — "life"/"etech" sonek değil
+#   Ami 6                       -> KUSAK_DISI istisnası (1961 klasik ≠ 2020 dörtteker)
+#   Golf / Corsa / Evolution    -> TEK YÖN + KELİME SINIRI (taban varyanta düşmez;
+#                                  sınırsız önek eşleşmesi "Golf"u "Gol"+"f" diye katlardı)
+KATLAMA_FIKSTURU = [
+    ("Volkswagen", "Golf 4", "golf"),
+    ("Volkswagen", "Golf Mk4", "golf"),
+    ("Volkswagen", "Golf IV", "golf"),
+    ("Volkswagen", "Golf R", "golf"),
+    ("Opel", "Astra H", "astra"),
+    ("Opel", "Corsa C", "corsa"),
+    ("Renault", "Megane II", "megane"),
+    ("Ford", "Fiesta ST", "fiesta"),
+    ("Peugeot", "206 GTI", "206"),
+    ("Opel", "Zafira Life", ""),
+    ("Renault", "Megane E-Tech", ""),
+    ("Citroen", "Ami 6", ""),
+    ("Volkswagen", "Golf", ""),
+    ("Opel", "Corsa", ""),
+    ("Mitsubishi", "Evolution", ""),
+]
+
+
+def _kusak_tasiyor(jetonlar, hedef):
+    """Ürünün jetonlarından biri, hedef modelin BİR KUŞAĞI mı (bağımsız ölçüt)?
+    'astrah' -> hedef 'astra' + sonek 'h' ✔ · 'golfmk4' -> 'golf'+'mk4' ✔ ·
+    'zafiralife' -> sonek 'life' dilbilgisinde YOK ✘."""
+    if not hedef:
+        return False
+    for j in jetonlar:
+        ix = j.rfind(hedef)
+        if ix < 0:
+            continue
+        if _BAGIMSIZ_KUSAK_RE.match(j[ix + len(hedef):]):
+            return True
+    return False
+
+
 # ---------------------------------------------------------------- node koşumu (FİLTRE tarafı)
 HARNESS = r"""
 "use strict";
@@ -73,6 +122,7 @@ const girdi = JSON.parse(require("fs").readFileSync(process.argv[2], "utf8"));
 const urunler = girdi.urunler;          // [{i, m:[ham marka...]}]
 const ciftler = girdi.ciftler;          // [[marka, display], ...]
 const sondalar = girdi.sondalar || [];  // [[marka, deger], ...] — anahtar SONDASI
+const kusaklar = girdi.kusaklar || [];  // [[marka, deger], ...] — KUSAK KATLAMA SONDASI
 
 /* marka -> o markanin UYESI urun indeksleri (filtered() brandOk yuklemi) */
 const markaIx = new Map();
@@ -102,7 +152,12 @@ for (const [marka, display] of ciftler) {
    kirmizi yakilamiyordu (olculdu 3 Agu) -> beyan edilmis survivor. */
 const sonda = {};
 for (const [marka, deger] of sondalar) { sonda[marka + "\t" + deger] = modelAnahtar(marka, deger); }
-process.stdout.write(JSON.stringify({ok: true, sonuc: cikti, sonda: sonda,
+/* KUSAK SONDASI: kusakTabanlari() JS gövdesi ile Python portu AYNI okumayi mi uretiyor?
+   Bu eksen olmadan tek-tarafli katlama mutantlari (yalniz Python tablo okumayi birakir)
+   ancak paritede gorunurdu; gramer/istisna ayrismasi ise SESSIZ kalirdi. */
+const kusak = {};
+for (const [marka, deger] of kusaklar) { kusak[marka + "\t" + deger] = kusakTabanlari(marka, deger); }
+process.stdout.write(JSON.stringify({ok: true, sonuc: cikti, sonda: sonda, kusak: kusak,
   anahtarOrnek: {f150: modelAnahtar("Ford", "F150"), fSerisi: modelAnahtar("Ford", "F-Series")}}));
 """
 
@@ -129,7 +184,9 @@ def _blok_ayikla(index_html):
     kanon = arasi("// --- KANONİK MODEL EŞLEMESİ BAŞ", "// --- KANONİK MODEL EŞLEMESİ SON ---",
                   "KANONİK MODEL EŞLEMESİ")
     for imza in ("function modelKanon", "function modelOnekSiyir", "function modelAnahtar",
-                 "function modelEsler", "MODEL_ALIAS"):
+                 "function modelEsler", "MODEL_ALIAS",
+                 "function kusakTabanlari", "function kusakSonekMi",
+                 "KUSAK_DONANIM", "KUSAK_DISI"):
         if imza not in kanon:
             raise Olculemedi("KANONİK MODEL EŞLEMESİ bloğunda %s YOK" % imza)
     if "MARKA_ALIAS" not in kurator:
@@ -137,7 +194,7 @@ def _blok_ayikla(index_html):
     return norm_src, kurator, kanon
 
 
-def filtre_kumeleri(index_html, urunler, ciftler, sondalar=()):
+def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=()):
     """{(marka, display): set(urun_id)} — index.html'in GERÇEK yüklemiyle (node)."""
     try:
         subprocess.run(["node", "--version"], capture_output=True, check=True)
@@ -160,7 +217,8 @@ def filtre_kumeleri(index_html, urunler, ciftler, sondalar=()):
                                           for x in (p.get("marka") or []) if (x or "").strip()]}
                                    for p in urunler if p.get("id")],
                        "ciftler": [[a, b] for a, b in ciftler],
-                       "sondalar": [[a, b] for a, b in sondalar]}, f, ensure_ascii=False)
+                       "sondalar": [[a, b] for a, b in sondalar],
+                       "kusaklar": [[a, b] for a, b in kusaklar]}, f, ensure_ascii=False)
         p = subprocess.run(["node", jsyol, veriyol], capture_output=True, text=True, timeout=900)
         if p.returncode != 0 or not (p.stdout or "").strip():
             raise Olculemedi("node koşumu çöktü (rc=%d): %s"
@@ -173,7 +231,9 @@ def filtre_kumeleri(index_html, urunler, ciftler, sondalar=()):
     return (dict(((k.split("\t")[0], k.split("\t")[1]), set(v))
                  for k, v in veri["sonuc"].items()),
             veri.get("anahtarOrnek", {}),
-            dict((tuple(k.split("\t")), v) for k, v in (veri.get("sonda") or {}).items()))
+            dict((tuple(k.split("\t")), v) for k, v in (veri.get("sonda") or {}).items()),
+            dict((tuple(k.split("\t")), [tuple(x) for x in (v or [])])
+                 for k, v in (veri.get("kusak") or {}).items()))
 
 
 # ---------------------------------------------------------------- ölçüm
@@ -229,7 +289,49 @@ def olc(kok, modul_yolu=None):
                 sondalar.append((evren.katla(_onek), _ad))
                 break
 
-    filtre, ornek, sonda = filtre_kumeleri(index_html, urunler, ciftler, sondalar)
+    # KUŞAK SONDALARI — fikstür + KATALOGDAKİ tüm ÇOK KELİMELİ model jetonları. Fikstür
+    # kuralı çiviler, katalog süpürmesi JS↔Python ayrışmasını GERÇEK veride arar (uydurma
+    # jeton listesi değil: sondanın kaynağı katalogun kendisidir).
+    # (Üyelik ikinci kez HESAPLANMAZ: jeneratörün kendi kovalarından okunur — kapının
+    #  kendi marka evrenini kurması hem yavaş hem de ikinci tanım olurdu.)
+    kusak_sondalar = [(mk, dg) for mk, dg, _b in KATLAMA_FIKSTURU]
+    _gorulen_sonda = set(kusak_sondalar)
+    for _kan, _d in veri.items():
+        _liste = [_d["marka_only"], _d.get("ikincil", [])] + \
+                 [_g["urunler"] for _g in _d["gruplar"].values()]
+        for _kaynak in _liste:
+            for p in _kaynak:
+                for _t in (p.get("marka") or []):
+                    _t = (_t or "").strip()
+                    if len(_t.split()) < 2 or (_kan, _t) in _gorulen_sonda:
+                        continue
+                    _gorulen_sonda.add((_kan, _t))
+                    kusak_sondalar.append((_kan, _t))
+
+    filtre, ornek, sonda, kusak_js = filtre_kumeleri(index_html, urunler, ciftler,
+                                                     sondalar, kusak_sondalar)
+
+    # JS ↔ Python kuşak okuması BİREBİR mi (gramer + istisna + kelime sınırı)?
+    kusak_sapan = []
+    for cift in kusak_sondalar:
+        js = [tuple(x) for x in (kusak_js.get(cift) or [])]
+        py = [tuple(x) for x in evren.kusak_tabanlari(cift[0], cift[1])]
+        if js != py:
+            kusak_sapan.append((cift[0], cift[1], "js=%s" % (js,), "py=%s" % (py,)))
+
+    # FİKSTÜR — kural GERÇEK jetonla çivili mi (İKİ tarafta da)?
+    fikstur_sapan = []
+    for mk, dg, beklenen in KATLAMA_FIKSTURU:
+        for taraf, okuma in (("js", [tuple(x) for x in (kusak_js.get((mk, dg)) or [])]),
+                             ("py", [tuple(x) for x in evren.kusak_tabanlari(mk, dg)])):
+            tabanlar = [t for t, _e in okuma]
+            if beklenen:
+                ok = beklenen in tabanlar
+            else:
+                ok = not tabanlar
+            if not ok:
+                fikstur_sapan.append((taraf, mk, dg, "beklenen=%s" % (beklenen or "KATLANMAZ"),
+                                      "gercek=%s" % (tabanlar or "-",)))
 
     urun_ix = dict((p["id"], p) for p in urunler if p.get("id"))
     temiz = sayfa_dar = filtre_dar = capraz = 0
@@ -266,6 +368,7 @@ def olc(kok, modul_yolu=None):
     for (mk, kaynak), hedef_canon in (evren.model_alias or {}).items():
         alias_kaynaklari.setdefault((mk, hedef_canon), set()).add(kaynak)
     sahte, alias_aciklamali = [], []
+    kusak_aciklamali = []
 
     def _tasiyor(jetonlar, hedef):
         # marka öneki taşıyan yazım da sayılır ("peugeot206" -> "206")
@@ -284,6 +387,13 @@ def olc(kok, modul_yolu=None):
                 continue
             if any(_tasiyor(jetonlar, _bagimsiz_kanon(a)) for a in aliaslar):
                 alias_aciklamali.append((marka, display, pid, sorted(aliaslar)))
+                continue
+            # KUŞAK KATLAMASI ile açıklanan üyelik: ürün modelin bir KUŞAĞINI taşıyor
+            # ("Astra H" -> Astra). Muafiyet DEĞİL: ölçüt BAĞIMSIZ dilbilgisiyle kurulur
+            # (üretimin tablosu çağrılmaz) ve bu ürünlerin sayfada AYRI bölümde durduğu
+            # K14'te ayrıca ölçülür — "katlandı ama ana listeye karıştı" yeşil geçemez.
+            if _kusak_tasiyor(jetonlar, hedef):
+                kusak_aciklamali.append((marka, display, pid))
                 continue
             sahte.append((marka, display, pid, sorted(jetonlar)[:4]))
 
@@ -379,6 +489,111 @@ def olc(kok, modul_yolu=None):
             sorgulanamaz.append((marka, display, canon,
                                  evren.model_anahtari(marka, display)))
 
+    # --- KUŞAK İSTİSNASI (KUSAK_DISI) AYNASI + KİMLİĞİ + ETKİSİ ------------------------
+    # Otorite tools/arama.py KUSAK_DISI_JETON; index.html'deki dizi JS'in çalışma anı
+    # AYNASIDIR (K8 bileşik marka deseninin kuşak ekseni karşılığı).
+    kusak_ayna = list(getattr(evren, "kusak_disi", []))
+    kusak_otorite = sorted("%s|%s" % (a, b) for a, b in _arama.KUSAK_DISI_JETON)
+    kusak_ayna_fark = (sorted(set(kusak_otorite) - set(kusak_ayna)),
+                       sorted(set(kusak_ayna) - set(kusak_otorite)))
+    kusak_disi_imza = (_arama.kusak_disi_imzasi(), _arama.KUSAK_DISI_IMZA,
+                       len(_arama.KUSAK_DISI_JETON), _arama.KUSAK_DISI_SAYISI)
+    # ETKİ ÖLÇÜMÜ: istisnanın ürünleri taban modelin SAYFASINA SIZMAMALI (asıl iddia bu;
+    # "tablo duruyor" demek yetmez — [[beyan-edilmis-survivor]]).
+    sayfa_ids = dict(((mk, canon), ids) for (mk, _d), (ids, canon) in sayfa.items())
+    kusak_disi_sizan = []
+    for (mk, jeton) in sorted(_arama.KUSAK_DISI_JETON):
+        toks = jeton.split()
+        if len(toks) < 2:
+            continue
+        taban_k = evren.model_anahtari(mk, " ".join(toks[:-1]))
+        jeton_k = evren.model_anahtari(mk, jeton)
+        hedef_ids = sayfa_ids.get((mk, taban_k))
+        if not taban_k or not hedef_ids:
+            continue
+        for p in urunler:
+            m = [(x or "").strip() for x in (p.get("marka") or []) if (x or "").strip()]
+            if mk not in mm.marka_uyelikleri(m, evren, ek):
+                continue
+            anahtarlar = set(evren.model_anahtari(mk, t) for t in m)
+            if jeton_k in anahtarlar and taban_k not in anahtarlar \
+                    and p.get("id") in hedef_ids:
+                kusak_disi_sizan.append((mk, jeton, p.get("id")))
+
+    # --- ALT BÖLÜM AYRIM KANITI: RENDER EDİLMİŞ HTML üzerinden -------------------------
+    # 🔴 NEDEN HTML (veri değil): ayrımı `g["kusak_bolum"]` sözlüğünden ölçseydik, bölümleri
+    # GÖRMEZDEN gelip hepsini tek listeye döken bir RENDERER mutantı veriyi bozmadığı için
+    # YEŞİL geçerdi. Ölçüm müşterinin GÖRDÜĞÜ sayfadan yapılır.
+    try:
+        _b = _modul(os.path.join(kok, "tools", "build.py"), "build_model_kapisi")
+        _ctx = _b.marka_model_ctx()
+        _ctx["ROOT"] = kok
+        _kategoriler = mm.kategori_evreni(index_html)
+    except Exception as e:                                          # noqa: BLE001
+        raise Olculemedi("build.py marka_model_ctx() alınamadı, ayrım ölçülemez: %r" % (e,))
+
+    bolum_sayfa = bolum_urun = 0
+    bolum_sapan = []
+    for (marka, display), (ids, canon) in sorted(sayfa.items()):
+        g = veri[marka]["gruplar"][canon]
+        if not g.get("kusak_bolum"):
+            continue
+        try:
+            _url, _html = mm._model_sayfasi(_ctx, marka, g, _kategoriler)
+        except Exception as e:                                      # noqa: BLE001
+            raise Olculemedi("model sayfası render edilemedi (%s/%s): %r" % (marka, display, e))
+        kesitler = _sayfa_kesitleri(_html)
+        if not kesitler:
+            bolum_sapan.append((marka, display, "H2 bölümü YOK (ayrım render'da kayıp)"))
+            continue
+        bolum_sayfa += 1
+        ana_ids = set(p.get("id") for p in g.get("ana", []) if p.get("id"))
+        # KATLAMA YENİ KOVA UYDURMAZ: hedef kova TAM eşleşmeyle DOĞMUŞ olmalı (ana liste
+        # dolu). Ayırt edici mutantı YOK (bugünkü katalogda katlama-doğumlu kova üretmek
+        # için üretecin akışını yeniden yazmak gerekir) — iddia değil, NÖBET olarak durur.
+        if not ana_ids:
+            bolum_sapan.append((marka, display, "KATLAMA-DOĞUMLU KOVA (ana liste boş)"))
+        ana_baslik, ana_kartlar = kesitler[0]
+        if ana_kartlar != ana_ids:
+            bolum_sapan.append((marka, display, "ana liste kümesi sapıyor: html=%d veri=%d"
+                                % (len(ana_kartlar), len(ana_ids))))
+        # ANA LİSTEDE KUŞAK-ÖZEL ÜRÜN 0 (bağımsız ölçüt — üretimin tablosu çağrılmaz)
+        hedef = _bagimsiz_kanon(display)
+        for pid in sorted(ana_kartlar):
+            p = urun_ix.get(pid) or {}
+            jet = set(_bagimsiz_kanon(x) for x in (p.get("marka") or []) if x)
+            if not _tasiyor(jet, hedef) and _kusak_tasiyor(jet, hedef):
+                bolum_sapan.append((marka, display,
+                                    "ANA LİSTEDE kuşak-özel ürün: %s %s" % (pid, sorted(jet)[:3])))
+        html_bolum = dict((b, k) for b, k in kesitler[1:])
+        for b in g["kusak_bolum"]:
+            bolum_urun += len(b["urunler"])
+            bek = set(p.get("id") for p in b["urunler"] if p.get("id"))
+            baslik = b["display"] + " parçaları"
+            bulunan = None
+            for hb, hk in html_bolum.items():
+                if hb.startswith(baslik):
+                    bulunan = hk
+                    break
+            if bulunan is None:
+                bolum_sapan.append((marka, display, "kuşak bölümü BASILMADI: %r" % baslik))
+            elif bulunan != bek:
+                bolum_sapan.append((marka, display, "kuşak bölümü kümesi sapıyor (%s): "
+                                    "html=%d veri=%d" % (b["display"], len(bulunan), len(bek))))
+        # BÖLÜMLER AYRIK: bir ürün sayfada TEK bölümde görünür (aynı kart iki kez basılırsa
+        # müşteri mükerrer görür; küme karşılaştırması bunu TEK BAŞINA yakalamaz).
+        toplam_html = set()
+        _mukerrer = 0
+        for _hb, _hk in kesitler:
+            _mukerrer += len(toplam_html & _hk)
+            toplam_html |= _hk
+        if _mukerrer:
+            bolum_sapan.append((marka, display,
+                                "AYNI ÜRÜN BİRDEN ÇOK BÖLÜMDE: %d kart" % _mukerrer))
+        if toplam_html != ids:
+            bolum_sapan.append((marka, display, "SAYFADAKİ ÜRÜN KÜMESİ sapıyor: html=%d kova=%d"
+                                % (len(toplam_html), len(ids))))
+
     satir = ("CIFT=%d TEMIZ=%d SAYFA_DAR=%d FILTRE_DAR=%d ETKILENEN_URUN=%d"
              % (len(ciftler), temiz, sayfa_dar, filtre_dar, len(etkilenen)))
     return satir, {"cift": len(ciftler), "temiz": temiz, "sayfa_dar": sayfa_dar,
@@ -391,8 +606,42 @@ def olc(kok, modul_yolu=None):
                    "sonda_sapan": sonda_sapan, "sonda_sayisi": len(sondalar),
                    "rozet_ihlal": rozet_ihlal, "rozet_elenen": rozet_elenen,
                    "rozet_kaybolan": rozet_kaybolan, "rozet_imza": rozet_imza,
+                   "kusak_sapan": kusak_sapan, "kusak_sonda_sayisi": len(kusak_sondalar),
+                   "fikstur_sapan": fikstur_sapan, "fikstur_sayisi": len(KATLAMA_FIKSTURU),
+                   "kusak_aciklamali": len(kusak_aciklamali),
+                   "kusak_ayna_fark": kusak_ayna_fark, "kusak_ayna": kusak_ayna,
+                   "kusak_disi_imza": kusak_disi_imza, "kusak_disi_sizan": kusak_disi_sizan,
+                   "bolum_sayfa": bolum_sayfa, "bolum_urun": bolum_urun,
+                   "bolum_sapan": bolum_sapan, "katlama_envanteri": _katlama_envanteri(veri),
                    "envanter": _envanter(urunler, veri, evren, mm, sayfa),
                    "cok_kelimeli": cok_kelimeli}
+
+
+_H2_RE = re.compile(r'<h2 class="mm-sec-h[^"]*"[^>]*>(.*?)</h2>', re.S)
+
+
+def _sayfa_kesitleri(html):
+    """[(başlık metni, {ürün id})] — model sayfasının H2 bölümleri ve o bölümdeki kartlar.
+    İlk kesit ANA listedir; sonrakiler kuşak bölümleridir."""
+    yerler = [(m.start(), m.end(), re.sub(r"<[^>]+>", "", m.group(1)).strip())
+              for m in _H2_RE.finditer(html)]
+    out = []
+    for i, (_bas, son, baslik) in enumerate(yerler):
+        bit = yerler[i + 1][0] if i + 1 < len(yerler) else len(html)
+        out.append((baslik, set(re.findall(r'href="[^"]*?/urun/([^/"]+)/"', html[son:bit]))))
+    return out
+
+
+def _katlama_envanteri(veri):
+    """[(marka, taban display, kuşak display, ürün, kuşağın kendi sayfası var mı)] —
+    hangi HAM kuşak jetonu hangi kanonik modele katlandı (rapor ekseni)."""
+    out = []
+    for marka, d in veri.items():
+        for g in d["gruplar"].values():
+            for b in g.get("kusak_bolum", []):
+                out.append((marka, g["display"], b["display"], len(b["urunler"]),
+                            "SAYFA" if b["sayfa"] else "-"))
+    return sorted(out, key=lambda r: (-r[3], r[0], r[2]))
 
 
 def _envanter(urunler, veri, evren, mm, sayfa):
@@ -497,6 +746,36 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
     dogrula("K12 ROZET_DISI_CIFT KİMLİĞİ DONMUŞ (sessiz sayfa kapatma/açma yok)",
             _zi[0] == _zi[1] and _zi[2] == _zi[3],
             "imza=%s beklenen=%s sayı=%d beklenen=%d" % _zi)
+    # ═══ KUŞAK/VARYANT KATLAMASI (4 Ağu, KraL hükmü) ═══════════════════════════════════
+    # K13 — KURAL FİKSTÜRLE ÇİVİLİ: "Golf 4"/"Astra H" TABAN modele katlanır; "Zafira Life"/
+    #       "Ami 6"/"Golf" KATLANMAZ. İki taraf (JS gövdesi + Python portu) AYRI AYRI ölçülür.
+    dogrula("K13 KATLAMA KURALI FİKSTÜRE UYUYOR (%d satır × 2 taraf) ve JS↔Python AYNI "
+            "(%d sonda)" % (a["fikstur_sayisi"], a["kusak_sonda_sayisi"]),
+            not a["fikstur_sapan"] and not a["kusak_sapan"]
+            and a["kusak_sonda_sayisi"] > len(KATLAMA_FIKSTURU),
+            "fikstür sapan=%d %s · js/py sapan=%d %s"
+            % (len(a["fikstur_sapan"]), a["fikstur_sapan"][:3],
+               len(a["kusak_sapan"]), a["kusak_sapan"][:2]))
+    # K14 — AYRIM: katlanan ürün ana listeye KARIŞMAZ, kendi kuşak bölümünde durur.
+    #       Ölçüm RENDER EDİLMİŞ HTML'den (veriden değil) — renderer mutantı yakalanabilsin.
+    dogrula("K14 KUŞAK AYRIMI RENDER'DA DURUYOR (ana listede kuşak-özel ürün 0; %d sayfa, "
+            "%d katlanan ürün)" % (a["bolum_sayfa"], a["bolum_urun"]),
+            not a["bolum_sapan"] and a["bolum_sayfa"] > 0 and a["bolum_urun"] > 0,
+            "sapan=%d %s" % (len(a["bolum_sapan"]), a["bolum_sapan"][:3]))
+    # K15 — İSTİSNA (KUSAK_DISI): ayna otoriteyle birebir, kimlik donmuş, ürün taban
+    #       sayfasına SIZMAMIŞ (tablo duruyor demek yetmez, ETKİSİ ölçülür).
+    _ki = a["kusak_disi_imza"]
+    dogrula("K15 KUŞAK İSTİSNASI AYNASI+KİMLİĞİ DONMUŞ ve ÜRÜNÜ TABAN SAYFAYA SIZMIYOR",
+            not a["kusak_ayna_fark"][0] and not a["kusak_ayna_fark"][1]
+            and len(a["kusak_ayna"]) > 0 and not a["kusak_disi_sizan"]
+            and _ki[0] == _ki[1] and _ki[2] == _ki[3],
+            "aynada eksik=%s fazla=%s · sızan=%s · imza=%s beklenen=%s sayı=%d beklenen=%d"
+            % (a["kusak_ayna_fark"][0] or "-", a["kusak_ayna_fark"][1] or "-",
+               a["kusak_disi_sizan"] or "-", _ki[0], _ki[1], _ki[2], _ki[3]))
+    if a["kusak_aciklamali"]:
+        print("  BILGI KUŞAK KATLAMASI ile açıklanan üyelik: %d ürün (muafiyet listesi DEĞİL, "
+              "bağımsız kuşak dilbilgisiyle ölçülür; ayrımı K14 doğrular)"
+              % a["kusak_aciklamali"])
     # KONTROL: kapı gerçekten AYRIŞMA ölçüyor mu — ölçülen küme boş/dejenere olmasın.
     dogrula("K6 KONTROL: ölçülen çiftlerin çoğu DOLU (dejenere ölçüm değil)",
             a["temiz"] + a["sayfa_dar"] + a["filtre_dar"] + a["capraz"] == a["cift"]
@@ -514,6 +793,13 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
               % len(e["korunan"]))
         for t, B, n in e["korunan"]:
             print("    %-26s %-12s %5d ürün (tek parça kalır)" % (t, B, n))
+        ke = a["katlama_envanteri"]
+        print("\n  ENVANTER — ANA MODELE KATLANAN KUŞAK/VARYANT JETONLARI (%d bölüm, %d ürün):"
+              % (len(ke), sum(r[3] for r in ke)))
+        print("    %-14s %-20s %-22s %5s %s"
+              % ("MARKA", "TABAN MODEL", "KUŞAK BÖLÜMÜ", "N", "KUŞAĞIN SAYFASI"))
+        for marka, taban, kusak, n, sayfa_var in ke:
+            print("    %-14s %-20s %-22s %5d %s" % (marka, taban, kusak, n, sayfa_var))
 
     if dokum and a["dokum"]:
         print("\n  SAPAN ÇİFTLER (%d):" % len(a["dokum"]))
@@ -591,7 +877,49 @@ MUTANTLAR = [
      "        return set((mk, model_kanon.kanon(md)) for mk, md in arama.ROZET_DISI_CIFT)",
      "        return set()", "KIRMIZI",
      "M13 ROZET TABLOSUNU OKUMAYI BIRAK -> aynı iki sayfa geri doğar (kuplaj ekseni)"),
+    # --- KUŞAK/VARYANT KATLAMA EKSENİ (4 Ağu, KraL hükmü) ---
+    # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — katlamayı TEK
+    # KAYNAKTAN (index.html) kaldıran mutant pariteyi bozmaz (iki tarafı birden kaydırır) ve
+    # 16/16 YEŞİL geçerdi; kural fikstürle çivilenmeseydi katlama sessizce ölürdü.
+    ("index.html", "  function kusakSonekMi(w){\n    var t = (w || \"\").toLowerCase();",
+     "  function kusakSonekMi(w){\n    if(w){ return false; }\n    var t = (w || \"\").toLowerCase();",
+     "KIRMIZI",
+     "M14 KATLAMAYI KALDIR (tek kaynak) -> 'Golf 4'/'Astra H' ana modele düşmez, fikstür kırılır"),
+    ("index.html", 'var KUSAK_DONANIM = ["gt","gtc","gtd","gti","rs","st"];',
+     'var KUSAK_DONANIM = ["gt","gtc","gtd","gti","rs","st","life"];', "KIRMIZI",
+     "M15 KATLAMAYI FARKLI ARACA GENİŞLET ('life') -> 'Zafira Life' Zafira'ya katlanır "
+     "(fikstür + bağımsız kuşak dilbilgisi iki ayrı eksende kırmızı)"),
+    ("index.html", "    var toks = kalan.split(/\\s+/);\n    var i = toks.length;",
+     "    var toks = kalan.split(/\\s*/);\n    var i = toks.length;", "KIRMIZI",
+     "M16 KELİME SINIRINI KALDIR -> 'Golf' = 'Gol'+'f' diye katlanır (ölçülen 100 yanlış "
+     "eşleşme sınıfı geri gelir)"),
+    ("index.html", 'var KUSAK_DISI = ["Citroen|Ami 6"];', "var KUSAK_DISI = [];", "KIRMIZI",
+     "M17 FARKLI ARAÇ İSTİSNASINI AYNADAN DÜŞÜR -> 1961 Ami 6 parçası 2020 Ami sayfasına "
+     "sızar; ayna otoriteyle (arama.py) ayrışır"),
+    ("tools/model_kanon.py",
+     '    return (_dizi_ayikla(index_html, "KUSAK_DONANIM"),\n'
+     '            _dizi_ayikla(index_html, "KUSAK_DISI"))',
+     '    return ([], _dizi_ayikla(index_html, "KUSAK_DISI"))', "KIRMIZI",
+     "M18 PYTHON TARAFI DONANIM TABLOSUNU OKUMAYI BIRAKIR -> 'Focus ST' sayfada katlanmaz, "
+     "filtrede katlanır (SAYFA_DAR)"),
+    ("tools/marka_model_build.py",
+     '    ana = g.get("ana", g["urunler"])',
+     '    ana = g["urunler"]', "KIRMIZI",
+     "M19 ALT BÖLÜM AYRIMINI KALDIR (renderer tek listeye döker) -> kuşak-özel ürün ANA "
+     "listeye karışır, kart mükerrer basılır"),
+    # 🔴 İDDİA EDİLMEYEN EKSEN (dürüst kayıt, [[beyan-edilmis-survivor]]): gruplandir'daki
+    # `taban in jetonlar` (ürün zaten TAM eşleşmeyle üye) koruması bugünkü katalogda 0 kez
+    # ateşliyor — ölçüldü 4 Ağu: hem TABAN hem VARYANT jetonu taşıyan ürün YOK. Kaldıran
+    # mutant DAVRANIŞI DEĞİŞTİRMEZ (eşdeğer mutant), o yüzden bataryaya KONMADI ve "mükerrer
+    # kart engelleniyor" diye bir iddia SAYILMIYOR. Veri o sınıfı üretmeye başlarsa K14'ün
+    # bölüm-ayrıklığı ölçümü onu yakalar (kesitler AYRIK olmalı).
     # --- KONTROL (YEŞİL bekleniyor) ---
+    ("tools/marka_model_build.py",
+     '            g["kusak_bolum"] = sorted(bolumler,\n'
+     '                                      key=lambda b: (-len(b["urunler"]), b["display"]))',
+     '            g["kusak_bolum"] = sorted(bolumler, key=lambda b: b["display"])', "YESIL",
+     "K4 KONTROL: kuşak bölümlerinin SIRASI değişir, AYRIM değişmez -> iddia bozulmamalı "
+     "(eksen sıralamaya değil ayrıma duyarlı olmalı)"),
     ("tools/marka_model_build.py", "ESIK = 3", "ESIK = 4", "YESIL",
      "K1 İLGİSİZ: eşiği yükseltmek çift SAYISINI düşürür, PARİTEYİ bozmaz"),
     ("tools/cip-indeks.py", "SURUM = 1", "SURUM = 2", "YESIL",

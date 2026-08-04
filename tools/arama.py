@@ -629,16 +629,58 @@ ROZET_DISI_CIFT = {
                       "ortakligi) — gercek sayfa /marka/volkswagen/golf/",
     ("Volkswagen", "Octavia"): "Octavia Skoda rozetidir; VW Octavia diye bir arac satilmadi "
                                "— gercek sayfa /marka/skoda/octavia/",
+    # 4 Agu: KUSAK KATLAMASI paketinde ortaya CIKTI (katlamanin URETTIGI bir sayfa degil,
+    # katlamanin GORUNUR kildigi mevcut bir bosluk): `Skoda` kovasindaki `Golf` grubunda 4
+    # urun ZATEN vardi ama hicbirinin BIRINCIL markasi Skoda olmadigi icin sayfa (sansa
+    # bagli olarak) acilmiyordu. `Golf IV` jetonu katlaninca birincili Skoda olan bir urun
+    # geldi ve /marka/skoda/golf/ dogdu. Yargi YENI DEGIL, mimarin (Audi, Golf) satirinda
+    # yazdigi kuralin AYNISININ kardes marqueye uygulanmasidir: Golf VW rozetidir, VAG
+    # platform ortakligi rozet DEGILDIR. Bes urunun tamami /marka/volkswagen/golf/ ve
+    # Skoda marka sayfasinda durmaya devam eder (kapi K11 kaybolan=0 olcer).
+    ("Skoda", "Golf"): "Golf VW rozetidir; Skoda Golf diye bir arac satilmadi (VAG platform "
+                       "ortakligi) — gercek sayfa /marka/volkswagen/golf/",
 }
 
-ROZET_DISI_SAYISI = 2
-ROZET_DISI_IMZA = "79878bc5f7d242bc"
+ROZET_DISI_SAYISI = 3
+ROZET_DISI_IMZA = "1b39a935b9f2049f"
 
 
 def rozet_disi_imzasi():
     """Cift kumesinin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
     return hashlib.sha256(
         json.dumps(sorted("%s|%s" % (a, b) for a, b in ROZET_DISI_CIFT), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# KUSAK DISI JETONLAR — gramere UYAN ama AYNI ARAC AILESI OLMAYAN (marka, jeton)
+# ciftleri (4 Agu, KraL hukmu; katlama paketinin istisna tablosu)
+#
+# BAGLAM: index.html KANONIK MODEL ESLEMESI blogundaki `kusakTabanlari()` bir jetonu
+# "<taban> <kusak>" diye okur ve KELIME SINIRINDA katlar ("Golf 4" -> Golf, "Astra H" ->
+# Astra). Gramer YAPISAL bir kuraldir; kusak sozcugunun ARACIN AYNI AILEDEN olup olmadigini
+# bilemez. Bu tablo tam olarak o yargiyi tasir: gramere uysa bile katlanmayacak ciftler.
+#
+# 🔴 SINIR (Okan hukmu, `Zafira Life` dersi): kusak/donanim varyanti (ayni arac ailesi)
+# KATLANIR; farkli arac (ayri platform/rozet) KATLANMAZ. `Zafira Life` bu tabloya
+# GIRMEZ — gramer onu ZATEN katlamiyor ("Life" kapali gramerde yok) ve tabloya yazilsaydi
+# grameri gevseten bir mutant (donanim listesine "life" eklemek) istisna tarafindan
+# ORTULUR, kapi kirmizi YANMAZDI. Iki koruma ayri eksende olcusun diye ayri tutulur.
+#
+# OLCULDU (4 Agu, 17591 urun): gramer 74 jetonu katliyor; denetimde TEK YANLIS aile bulundu.
+KUSAK_DISI_JETON = {
+    ("Citroen", "Ami 6"): "Ami 6 (1961) klasik otomobil; `Ami` kovasindaki 15 urun 2020 "
+                          "elektrikli dortteker Ami'ye ait — ayni ad, FARKLI arac",
+}
+
+KUSAK_DISI_SAYISI = 1
+KUSAK_DISI_IMZA = "82f480ed1147446d"
+
+
+def kusak_disi_imzasi():
+    """Tablonun ANAHTAR kimligi — sessiz genisleme/daralma kapida KIRMIZI yakar."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (a, b) for a, b in KUSAK_DISI_JETON), ensure_ascii=False)
         .encode("utf-8")).hexdigest()[:16]
 
 

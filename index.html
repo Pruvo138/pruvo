@@ -2580,6 +2580,74 @@
     var a = marka ? MODEL_ALIAS[marka + "|" + k] : null;
     return a || k;
   }
+  // ═══ KUŞAK/VARYANT KATLAMASI (4 Ağu, KraL hükmü) ═══════════════════════════════════
+  // ÖLÇÜLEN KUSUR: kuşak jetonu ayrı kovada kalıyordu — `?ara=Golf` 317 ürün getirirken
+  // /marka/volkswagen/golf/ 182 gösteriyordu; düşenin 21'i `Golf 4`/`Golf Mk4`/`Golf IV`/
+  // `Golf R` gibi AYRI kanonik kovalardı ve 9'u ESIK=3 altında kaldığı için HİÇBİR model
+  // sayfasında yoktu. Katalog geneli: B kovası 735 ürün (Astra H≠Astra, Corsa C≠Corsa,
+  // Megane II≠Megane, Fiesta ST≠Fiesta) — hem üst hem alt jeton ürün kaybediyordu.
+  //
+  // 🔴 KATLAMA TEK YÖNLÜDÜR: varyant jetonu TABAN modele düşer, taban varyanta DÜŞMEZ.
+  // "Golf" ürünü /golf-4/ sayfasında GÖRÜNMEZ (kusakTabanlari("Golf") boştur) — aksi halde
+  // Mk6 parçası Mk4 sayfasına sızardı. Yön ayrıca "asla daralma" güvencesini korur:
+  // yüklem yalnız YENİ eşleşme EKLER.
+  //
+  // 🔴 KATLAMA UYUM VAADİ DEĞİLDİR: Golf Mk4 parçası Mk6'ya takılmaz. Bu yüzden SAYFA
+  // tarafı katlanan ürünleri ana listeye KARIŞTIRMAZ, kuşak başlığı altında ayrı bölümde
+  // ("Golf 4 parçaları") listeler; ayrım RENDER EDİLMİŞ HTML üzerinden
+  // tools/model-uyelik-kapisi.py'de ölçülür (K14). Kuşağın kendi sayfası da KAPANMAZ.
+  //
+  // 🔴 KURAL YAZILABİLİR: liste değil GRAMER + KELİME SINIRI. Jeton "<taban> <kuşak>"
+  // biçiminde olmalı ve kuşak sözcüğü aşağıdaki kapalı gramerden gelmeli.
+  // KELİME SINIRI ŞART (ölçüldü 4 Ağu, 100 eşleşme): sınırsız (kanon düzeyi) önek
+  // eşleşmesi "Golf"u "Gol"+"f", "Evolution"u "Evo"+"lution", "R1200GS"i "R1200"+"GS",
+  // "Innovate"i "Innova"+"te" diye katlardı — çoğu YANLIŞ, hepsi SESSİZ.
+  // Ayrıca SAYFA tarafı yalnız KATALOGDA ZATEN VAR OLAN taban kovasına katlar; katlama
+  // yeni kova UYDURMAZ ("Type 2" -> "Type" kovası yok, katlanmaz; VW Type 1 ile Type 2
+  // farklı araçlardır).
+  var KUSAK_DONANIM = ["gt","gtc","gtd","gti","rs","st"];   // donanım/rozet soneki (kapalı)
+  // FARKLI ARAÇ İSTİSNASI — gramere UYAN ama aynı araç ailesi OLMAYAN jetonlar.
+  // OTORİTE tools/arama.py KUSAK_DISI_JETON; aşağısı JS'in çalışma anı AYNASIDIR ve
+  // ayrışması üyelik kapısında fail-closed KIRMIZI yakar (K15). Elle üye EKLEME.
+  var KUSAK_DISI = ["Citroen|Ami 6"];
+  function kusakDisiMi(marka, s){
+    return KUSAK_DISI.indexOf((marka || "") + "|" + s) !== -1;
+  }
+  function kusakSonekMi(w){
+    var t = (w || "").toLowerCase();
+    if(/^\d{1,2}$/.test(t)){ return true; }                          // "Golf 4" · "Megane 2"
+    if(/^mk\.?\d{1,2}$/.test(t)){ return true; }                     // "Golf Mk4" · "Transit MK3"
+    if(/^(i|ii|iii|iv|v|vi|vii|viii|ix|x)$/.test(t)){ return true; } // "Megane II" · "Clio IV"
+    if(/^[a-z]$/.test(t)){ return true; }                            // "Astra H" · "Corsa C" · "Golf R"
+    return KUSAK_DONANIM.indexOf(t) !== -1;                          // "Focus ST" · "206 GTI"
+  }
+  // Bir jetonun KUŞAK OKUMALARI: [[taban anahtarı, kuşak etiketi], ...] — UZUN tabandan
+  // kısaya. Boş dizi = bu jeton bir kuşak varyantı DEĞİLDİR (katlanmaz).
+  // Bellek: markaKatla ile AYNI desen. Ana sayfa filtresi her tuş vuruşunda tüm katalog ×
+  // tüm jetonlar için çağırır; jetonlar tekrarlıdır. Dönen dizi PAYLAŞILIR (okunur, YAZILMAZ).
+  var _kusakBellek = {};
+  function kusakTabanlari(marka, s){
+    var bellekAnahtari = (marka || "") + "|" + (s === null || s === undefined ? "" : String(s));
+    if(_kusakBellek[bellekAnahtari] !== undefined){ return _kusakBellek[bellekAnahtari]; }
+    var out = _kusakTabanlariHesapla(marka, s);
+    _kusakBellek[bellekAnahtari] = out;
+    return out;
+  }
+  function _kusakTabanlariHesapla(marka, s){
+    var out = [];
+    var ham = (s === null || s === undefined ? "" : String(s)).trim();
+    if(!marka || !ham || kusakDisiMi(marka, ham)){ return out; }
+    var kalan = modelOnekSiyir(marka, ham);
+    if(!kalan){ return out; }
+    var toks = kalan.split(/\s+/);
+    var i = toks.length;
+    while(i > 1 && kusakSonekMi(toks[i - 1])){
+      i--;
+      var a = modelAnahtar(marka, toks.slice(0, i).join(" "));
+      if(a){ out.push([a, toks.slice(i).join(" ")]); }
+    }
+    return out;
+  }
   // Model yüklemi — filtered(), yedek liste ve uç sapma nöbeti AYNI bu fonksiyonu çağırır
   // (üç kopya ayrışırsa müşteri üç farklı sonuç görür).
   function modelEsler(markalar, model, hedefMarka){
@@ -2589,6 +2657,10 @@
     if(!hedef){ return false; }
     for(var i = 0; i < mk.length; i++){
       if(modelAnahtar(hedefMarka, mk[i]) === hedef){ return true; }
+      var tb = kusakTabanlari(hedefMarka, mk[i]);      // KUŞAK KATLAMASI (tek yönlü)
+      for(var j = 0; j < tb.length; j++){
+        if(tb[j][0] === hedef){ return true; }
+      }
     }
     return false;
   }

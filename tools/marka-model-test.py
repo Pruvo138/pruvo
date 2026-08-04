@@ -189,7 +189,9 @@ def authored(page):
     Extract yaklaşımı: kart div'leri iç içe olduğundan strip yerine authored bölgeleri ayıklar."""
     parts = re.findall(r'<h1>.*?</h1>', page, re.S)
     parts += re.findall(r'<p class="lead">.*?</p>', page, re.S)
-    parts += re.findall(r'<h2 class="mm-sec-h">.*?</h2>', page, re.S)
+    # class'a EK sınıf/attribute eklenebilir (kuşak bölümü: "mm-sec-h mm-kusak-h"
+    # data-kusak=...) — dar kalıp o başlıkları marka-kuralı taramasının DIŞINDA bırakırdı.
+    parts += re.findall(r'<h2 class="mm-sec-h[^"]*"[^>]*>.*?</h2>', page, re.S)
     parts += re.findall(r'<nav class="mm-bc".*?</nav>', page, re.S)
     parts += re.findall(r'<div class="mm-huni">.*?</div>', page, re.S)
     parts += re.findall(r'<a class="mm-model-btn"[^>]*>.*?</a>', page, re.S)

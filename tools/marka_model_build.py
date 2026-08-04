@@ -142,6 +142,9 @@ class MarkaEvreni:
         # KÜMESİ; buradaki ayna ile ayrışması model-uyelik-kapisi.py'de KIRMIZI yanar.
         self.bilesik = model_kanon.bilesik_markalar(index_html)
         self.bilesik_normlu = frozenset(model_kanon._marka_norm(x) for x in self.bilesik)
+        # KUŞAK KATLAMASI tabloları — AYNI belgeden (modül düzeyi sabit KULLANILMAZ).
+        self.kusak_donanim, self.kusak_disi = model_kanon.kusak_tablolari(index_html)
+        self._kusak_bellek = {}
 
     def taninmis_mi(self, m):
         return _marka_norm(m) in self._kanonik
@@ -161,6 +164,18 @@ class MarkaEvreni:
     def model_anahtari(self, marka, deger):
         """index.html modelAnahtar() portu — model ÜYELİK anahtarı (tek kaynak)."""
         return model_kanon.anahtar(marka, deger, self, self.model_alias)
+
+    def kusak_tabanlari(self, marka, deger):
+        """index.html kusakTabanlari() portu — jetonun KUŞAK okumaları (tek kaynak).
+        [(taban anahtarı, kuşak etiketi)], uzun tabandan kısaya; boş = varyant değil.
+        Bellek JS tarafındaki `_kusakBellek` ile aynı desen (saf fonksiyon; tablolar donmuş)."""
+        anahtar = (marka, deger)
+        sonuc = self._kusak_bellek.get(anahtar)
+        if sonuc is None:
+            sonuc = model_kanon.kusak_tabanlari(marka, deger, self, self.model_alias,
+                                                self.kusak_donanim, self.kusak_disi)
+            self._kusak_bellek[anahtar] = sonuc
+        return sonuc
 
 
 # Semantik model alias'ı (kanon'un yakalayamadığı TR/EN birleşmesi) index.html'de yaşar;
@@ -474,6 +489,7 @@ def gruplandir(products, evren, ek_markalar=()):
             veri[marka] = d
         return d
 
+    bekleyen = []                        # (kanonik marka, marka dizisi, birincil, p, jetonlar)
     for p in products:
         m = p.get("marka") or []
         if not m:
@@ -490,19 +506,59 @@ def gruplandir(products, evren, ek_markalar=()):
                 # YANSIMAZ ve mutasyon bataryası körelirdi ([[beyan-edilmis-survivor]]).
                 d["birincil_ids"].add(p["id"])
             jetonlar = model_jetonlari(kan, m, evren)
+            bekleyen.append((kan, m, birincil, p, jetonlar))
             if not jetonlar:                     # model kırılımı YOK (marka-only / çok markalı)
                 (d["marka_only"] if kan == birincil else d["ikincil"]).append(p)
                 continue
             for canon, yazimlar in jetonlar.items():
                 g = d["gruplar"].get(canon)
                 if g is None:
-                    g = {"canon": canon, "urunler": [], "birincil": False, "marka": kan}
+                    g = {"canon": canon, "urunler": [], "birincil": False, "marka": kan,
+                         "kusak": {}}
                     d["gruplar"][canon] = g
                     d["_spelling"][canon] = Counter()
                 g["urunler"].append(p)           # jeton başına DEĞİL, anahtar başına tek kez
                 d["_spelling"][canon].update(yazimlar)
                 if kan == birincil:
                     g["birincil"] = True
+
+    # ---- FAZ 2: KUŞAK/VARYANT KATLAMASI (4 Ağu, KraL hükmü) -------------------------
+    # `Golf 4`/`Golf Mk4`/`Golf IV`/`Golf R` ürünleri ANA `Golf` kovasına da girer.
+    # 🔴 NEDEN AYRI FAZ: katlama YALNIZCA katalogda ZATEN VAR OLAN taban kovasına yapılır
+    # (yeni kova uydurulmaz — "Type 2" -> "Type" kovası yok, katlanmaz). Taban kovalarının
+    # tamamı ancak birinci faz bittiğinde bilinir; tek fazda ürün SIRASI sonucu belirlerdi.
+    # 🔴 ÜYELİK KURALI JETON BAŞINADIR, KOVA BAŞINA DEĞİL: ana sayfa filtresi de ürünün HAM
+    # jetonlarına bakar. Kova düzeyinde katlasaydık, aynı kovadaki boşluksuz yazım
+    # ("GolfMk4") sayfada katlanır, filtrede katlanmazdı -> FILTRE_DAR.
+    # 🔴 ANA LİSTE KİRLENMEZ: katlanan ürün `g["kusak"]` altında KAYNAK kovasıyla kaydedilir;
+    # sayfa onu ayrı bölümde ("Golf 4 parçaları") gösterir — katlama UYUM VAADİ DEĞİLDİR.
+    for _marka, _d in veri.items():
+        for _g in _d["gruplar"].values():
+            _g["ana"] = list(_g["urunler"])      # TAM eşleşmeyle giren ürünler (ana liste)
+    for kan, m, birincil, p, jetonlar in bekleyen:
+        d = veri.get(kan)
+        if d is None:
+            continue
+        katlar = {}                              # taban canon -> {kaynak varyant canon}
+        for x in m:
+            t = (x or "").strip()
+            if not t or marka_jetonu_mu(t, evren):
+                continue
+            kaynak = evren.model_anahtari(kan, t)
+            if not kaynak:
+                continue
+            for taban, _etiket in evren.kusak_tabanlari(kan, t):
+                if taban in jetonlar or taban not in d["gruplar"] or taban == kaynak:
+                    continue                     # zaten TAM eşleşmeyle üye / taban kovası YOK
+                katlar.setdefault(taban, set()).add(kaynak)
+        for taban, kaynaklar in katlar.items():
+            g = d["gruplar"][taban]
+            g["urunler"].append(p)
+            # Birden çok varyant jetonu aynı tabana katlanırsa ürün TEK bölümde görünür
+            # (deterministik: alfabetik ilk kaynak) — aksi halde sayfada mükerrer kart olurdu.
+            g["kusak"].setdefault(sorted(kaynaklar)[0], []).append(p)
+            if kan == birincil:
+                g["birincil"] = True
 
     # kanonik gösterim + slug
     for marka, d in veri.items():
@@ -514,6 +570,24 @@ def gruplandir(products, evren, ek_markalar=()):
                                  key=lambda t: (-t[1], t[0]))[0][0]
             g["display"] = display
             g["slug"] = _slug(display)
+
+    # KUŞAK BÖLÜMLERİ — başlık/slug ancak TÜM display'ler atandıktan sonra kurulabilir.
+    # Sıra deterministik: çok üründen aza, eşitlikte alfabetik (aynı katalog -> bayt-aynı sayfa).
+    for marka, d in veri.items():
+        for g in d["gruplar"].values():
+            bolumler = []
+            for kaynak, urunler in g.get("kusak", {}).items():
+                kg = d["gruplar"].get(kaynak)
+                bolumler.append({
+                    "canon": kaynak,
+                    "display": (kg or {}).get("display") or kaynak,
+                    "slug": (kg or {}).get("slug") or _slug(kaynak),
+                    # Kuşağın KENDİ sayfası kapanmaz; varsa alt bölüm başlığı oraya link olur.
+                    "sayfa": bool(kg) and yayimlanir_mi(kg),
+                    "urunler": urunler,
+                })
+            g["kusak_bolum"] = sorted(bolumler,
+                                      key=lambda b: (-len(b["urunler"]), b["display"]))
     return veri
 
 
@@ -1133,6 +1207,29 @@ def _itemlist(ctx, urunler, limit=None):
     return ogeler
 
 
+def _kusak_bolumleri_html(ctx, marka_slug, g):
+    """KUŞAK/VARYANT alt bölümleri — katlanan ürünler ana listeden AYRI listelenir.
+
+    🔴 NEDEN AYRI BÖLÜM (Okan'ın `Zafira Life` kararında onayladığı desen): katlama sayfa
+    toplamını büyütür ama UYUM VAADİ DEĞİLDİR — Golf Mk4 parçası Mk6'ya takılmaz. Müşteri
+    parçayı Golf sayfasında BULUR, hangi kuşağa ait olduğunu da GÖRÜR.
+    Kuşağın kendi sayfası varsa başlık oraya link olur (iç link + ürün iki yerde görünür;
+    bu mükerrer değil, hiyerarşidir)."""
+    esc = ctx["esc"]
+    parts = []
+    for b in g.get("kusak_bolum", []):
+        if not b["urunler"]:
+            continue
+        ad = esc(b["display"]) + " parçaları"
+        if b["sayfa"]:
+            ad = ('<a href="/marka/' + marka_slug + '/' + b["slug"] + '/">' + ad + '</a>')
+        parts.append('<h2 class="mm-sec-h mm-kusak-h" data-kusak="' + esc(b["display"]) + '">'
+                     + ad + ' (<span class="mm-sayim-kart">' + str(len(b["urunler"]))
+                     + '</span>)</h2>'
+                     + _urun_grid(ctx, b["urunler"]))
+    return "".join(parts)
+
+
 # --------------------------------------------------------------------- sayfa üreticileri
 def _model_sayfasi(ctx, marka, g, kategoriler):
     esc = ctx["esc"]
@@ -1182,14 +1279,20 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
     huni = _huni_blok(esc, marka + " " + display + " parçanızı bulamadınız mı?",
                       huni_govde, prefill, "WhatsApp'tan Yazın")
 
+    # ANA LİSTE = modelin KENDİ jetonunu taşıyan ürünler. Kuşak/varyant jetonundan KATLANAN
+    # ürünler ana listeye KARIŞMAZ (katlama uyum vaadi değildir: Golf Mk4 parçası Mk6'ya
+    # takılmaz) — her kuşak kendi başlığı altında, kendi sayfasına linkle listelenir.
+    # Ayrım RENDER EDİLMİŞ HTML üzerinden ölçülür (tools/model-uyelik-kapisi.py K14).
+    ana = g.get("ana", g["urunler"])
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
             + '<p class="lead">' + esc(giris) + '</p>'
             + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
             + '<h2 class="mm-sec-h">' + esc(display) + ' parçaları ('
-            + '<span class="mm-sayim-kart">' + str(n) + '</span>)</h2>'
-            + _urun_grid(ctx, g["urunler"])
+            + '<span class="mm-sayim-kart">' + str(len(ana)) + '</span>)</h2>'
+            + _urun_grid(ctx, ana)
+            + _kusak_bolumleri_html(ctx, marka_slug, g)
             + huni)
 
     breadcrumb_ld = _ld({
