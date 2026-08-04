@@ -1,5 +1,993 @@
 [
   {
+    "id": "mitsubishi-4g94-motor-yagi-doldurma-hunisi-cevirmeli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi 4G94 motor yağı doldurma hunisi (çevirmeli kilit)",
+    "aciklama": "Mitsubishi 4G94 motorlu Lancer ve Pinin modellerinde yağ doldurma ağzına çevrilerek kilitlenen huni.\n- Doldurma ağzının dişine oturur, elle tutmaya gerek bırakmaz.\n- Geniş konik gövdesi taşmayı ve motor bloğuna damlamayı önler.\n- Aynı ağız ölçüsündeki başka motorlarda da kullanılabilir.\n- Isıya ve yağa dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 124 × 117 × 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7070446-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7070446-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7070446-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7070446-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7070446-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cascao",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-mirage-stop-lambasi-tutucu-pimi-2015",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Mirage stop lambası tutucu pimi (2015)",
+    "aciklama": "2015 Mitsubishi Mirage'ın arka stop lambası grubunu gövdeye sabitleyen plastik geçme pim.\n- Kırılan orijinal pimin yerine doğrudan takılır.\n- Konik ucu deliğe geçtiğinde kendiliğinden kilitlenir.\n- Lamba grubunun oynamasını ve titreşimli ses yapmasını önler.\nYaklaşık dış ölçüler: 16 × 16 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3277919-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3277919-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3277919-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3277919-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3277919-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Human01",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-x-kolcak-ici-saklama-tablasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer X kolçak içi saklama tablası",
+    "aciklama": "Mitsubishi Lancer X kol dayama bölmesinin içine oturan, hacmi bölmelere ayıran saklama tablası.\n- Bölmenin tabanına tam oturur, ek bağlantı gerektirmez.\n- Telefon, cüzdan ve bozuk para için ayrı gözler sunar.\n- Kenar ve köşeleri pahlı olduğundan çıkarıp takması kolaydır.\n- Altta kalan boşluk kablo geçişi için kullanılabilir.\nYaklaşık dış ölçüler: 158 × 125 × 35 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3136933-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3136933-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3136933-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3136933-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "drabisko",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-anahtar-dili-tornavida-sapi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi anahtar dili için tornavida saplı gövde",
+    "aciklama": "Kırılan Mitsubishi anahtar gövdesinden çıkan metal anahtar dilini taşıyan yedek sap.\n- Anahtar dili yuvaya oturur, kavrama yüzeyi elde kaymaz.\n- Dağılan orijinal gövdeyi yapıştırmaya gerek bırakmaz.\n- İçinde transponder çipi için boşluk yoktur; çipli anahtarlarda ek çözüm gerekir.\nYaklaşık dış ölçüler: 50 × 30 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6026290-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6026290-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6026290-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6026290-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6026290-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "1James111",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-i-miev-koltuk-arkasi-cop-poseti-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi i-MiEV koltuk arkası çöp poşeti kancası",
+    "aciklama": "Mitsubishi i-MiEV'in ön koltuk arkalığına takılan, çöp poşetini asılı tutan çift kanca takımı.\n- Koltuk arkasındaki mevcut boşluğa geçer, delik açmaya gerek yoktur.\n- Poşetin ağzını açık tutarak kullanımı kolaylaştırır.\n- İki parça hâlinde sağ ve sol tarafa takılır.\nYaklaşık dış ölçüler: 108 × 86 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1706510-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1706510-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1706510-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1706510-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bobino",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-vites-topuzu-m10x1-25",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi 3000GT vites topuzu (M10 × 1,25)",
+    "aciklama": "Mitsubishi 3000GT'nin vites koluna M10 × 1,25 dişle takılan yedek topuz.\n- Kol dişine doğrudan vidalanır, ara parça gerektirmez.\n- Avuç içine oturan damla formu kavramayı kolaylaştırır.\n- Aynı diş ölçüsündeki diğer Mitsubishi kollarında da kullanılabilir.\n- Dayanıklı ve ısıya karşı kararlı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 77 × 45 × 45 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4318320-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4318320-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4318320-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4318320-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ajgrusin",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-1-din-teyp-kizagi-braketi-2004",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer 1-DIN teyp kızağı braketi (2004)",
+    "aciklama": "2004 Mitsubishi Lancer Sportback'e kızaklı (sleeve) tip 1-DIN teyp takmayı sağlayan braket.\n- Fabrika bağlantı noktalarını kullanır, konsolda kesme gerektirmez.\n- Standart DIN vida deliği olmayan teypler için kızağı taşır.\n- Teypi doğru derinlikte ve merkezde tutar.\nYaklaşık dış ölçüler: 220 × 110 × 58 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2856873-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2856873-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2856873-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2856873-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2856873-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "varnerrants",
+      "tur": "BSD"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-montero-shogun-on-tutamak-3-nesil",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero / Montero / Shogun ön tutamak (3. nesil)",
+    "aciklama": "3. nesil Mitsubishi Pajero, Montero ve Shogun modellerinde ön direğe takılan yolcu tutamağı.\n- Fabrika deliklerine M6 cıvatalarla bağlanır.\n- Araca binerken ve arazi sürüşünde tutunma noktası sağlar.\n- Kırılan orijinal tutamağın yerine doğrudan geçer.\n- Yük taşıyacağı için sağlam ve darbeye dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 193 × 90 × 29 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3566207-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3566207-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3566207-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3566207-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "plochu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-nw-sol-ayak-dayama-yukseltici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero NW sol ayak dayama yükselticisi",
+    "aciklama": "Mitsubishi NW Pajero'da sol ayak dayama yüzeyini sürücüye yaklaştıran yükseltici blok.\n- Orijinal dayamanın fren pedalından yaklaşık 40 mm geride kalmasını telafi eder.\n- Üst yüzeyindeki balıksırtı doku ayağın kaymasını önler.\n- Mevcut dayama üzerine oturur, gövdede değişiklik gerektirmez.\nYaklaşık dış ölçüler: 185 × 66 × 51 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th700761-1.jpg",
+      "https://media.pruvo3d.com/urunler/th700761-2.jpg",
+      "https://media.pruvo3d.com/urunler/th700761-3.jpg",
+      "https://media.pruvo3d.com/urunler/th700761-4.jpg",
+      "https://media.pruvo3d.com/urunler/th700761-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sharv999",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-cam-suyu-deposu-kapagi-2010",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Outlander cam suyu deposu kapağı (2010)",
+    "aciklama": "2010 Mitsubishi Outlander'ın cam yıkama suyu deposu ağzına oturan yedek kapak.\n- Depo ağzına geçmeli oturur, kaybolan orijinal kapağın yerini alır.\n- Üst yüzeyindeki kaburgalar elle çevirmeyi kolaylaştırır.\n- Motor bölmesinden toz ve pislik girişini engeller.\nYaklaşık dış ölçüler: 71 × 62 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3453076-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3453076-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3453076-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3453076-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Scale-Addiction",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-bardaklik-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Outlander bardaklık telefon tutucusu",
+    "aciklama": "Mitsubishi Outlander'da sürücü camının yanındaki bardaklığa oturan telefon tutucusu.\n- Alt silindiri bardaklığa girer, ek bağlantı gerektirmez.\n- İnce kılıflı telefonları güvenle kavrar.\n- Telefonu sürücünün görüş açısında dik tutar.\nYaklaşık dış ölçüler: 160 × 86 × 86 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5100916-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5100916-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5100916-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5100916-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "flatshot",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-evo-7-8-9-kul-tablasi-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer Evo 7-8-9 kül tablası gösterge yuvası",
+    "aciklama": "Mitsubishi Lancer Evolution 7, 8 ve 9 modellerinde kül tablası grubunun yerine geçen gösterge yuvası.\n- 52 mm çapındaki basınç göstergelerine göre boyutlandırılmıştır.\n- Kül tablası komple sökülerek yerine takılır.\n- Göstergeyi sürücünün göz hizasına yakın açıyla konumlandırır.\n- Sağdan direksiyonlu araçlara göre tasarlanmıştır.\nYaklaşık dış ölçüler: 100 × 93 × 52 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5399034-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5399034-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5399034-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5399034-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5399034-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EddScott",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-l200-triton-tek-din-uclu-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi L200 / Triton tek DIN üçlü gösterge yuvası",
+    "aciklama": "Mitsubishi Triton ve L200 ML / MN kasalarında tek DIN gözüne takılan üçlü gösterge yuvası.\n- 52 mm çapında üç göstergeyi yan yana taşır.\n- Fabrika DIN yuvasına kayarak girer, kesme gerektirmez.\n- Göstergeleri sürücüye dönük açıda tutar.\nYaklaşık dış ölçüler: 215 × 62 × 48 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5900038-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5900038-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5900038-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5900038-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DP2396",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-kaput-cubugu-klipsi-2000-2007",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer kaput çubuğu klipsi (2000-2007)",
+    "aciklama": "2000-2007 Mitsubishi Lancer'da kaput destek çubuğunu yerinde tutan plastik klips.\n- Fabrika yuvasına bastırılarak takılır ve yerine oturur.\n- Kırılan orijinal klipsin yerine doğrudan geçer.\n- Çubuğun sürüş sırasında oynayıp ses yapmasını önler.\n- ES, LS, OZ Rally ve Ralliart donanımlarında kullanılır.\nYaklaşık dış ölçüler: 26 × 19 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4809888-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4809888-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4809888-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4809888-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Joshuafc3s",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-orta-konsol-duzenleyici-2008-2015",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer orta konsol düzenleyici (2008-2015)",
+    "aciklama": "2008-2015 Mitsubishi Lancer'ın orta konsol boşluğuna oturan bölmeli düzenleyici.\n- Konsolun derin boşluğunu kullanılabilir gözlere ayırır.\n- Eşyaların konsol tabanını çizmesini önler.\n- Konsola oturarak durur, vida veya yapıştırıcı gerektirmez.\nYaklaşık dış ölçüler: 132 × 106 × 46 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3840844-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3840844-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3840844-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3840844-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3840844-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "timbhuff",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-stealth-telefon-tutucusu-v2",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi 3000GT / Stealth telefon tutucusu (V2)",
+    "aciklama": "Mitsubishi 3000GT ve Dodge Stealth iç döşemesine zarar vermeden takılan telefon tutucusu.\n- Mevcut boşluğa geçmeli oturur, delik açmayı gerektirmez.\n- Gözden geçirilen bu sürümde oturma ve tutuş iyileştirilmiştir.\n- Telefonu sürüş sırasında sabit tutar.\nYaklaşık dış ölçüler: 66 × 60 × 23 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6457801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6457801-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6457801-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6457801-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6457801-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EhrenTheMan",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-orta-konsol-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer orta konsol telefon tutucusu",
+    "aciklama": "Mitsubishi Lancer'ın orta konsol bölgesine oturan telefon tutucusu.\n- Konsoldaki boşluğa yerleşir, ek bağlantı gerektirmez.\n- Kalın kılıflı büyük telefonları da kavrayacak genişliktedir.\n- Telefonu sürücünün kolayca uzanabileceği açıda tutar.\nYaklaşık dış ölçüler: 95 × 84 × 37 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4601909-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4601909-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4601909-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4601909-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4601909-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AaronPatey",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-mb881494-silecek-kolu-somun-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi MB881494 silecek kolu somun kapağı",
+    "aciklama": "Mitsubishi araçlarda silecek kolunun bağlantı somununu örten MB881494 numaralı kapak.\n- Kolun üzerindeki yuvaya geçmeli oturur.\n- Somunu ve mili su ile kirden korur.\n- Kırılan veya kaybolan orijinal kapağın yerine doğrudan geçer.\nYaklaşık dış ölçüler: 43 × 30 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2884172-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2884172-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2884172-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2884172-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MasterHome",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-2-ic-doseme-kor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero 2 iç döşeme kör tapası",
+    "aciklama": "Mitsubishi Pajero 2'nin yolcu bölmesindeki boş delikleri kapatan kör tapa.\n- Deliğe bastırılarak takılır, kendiliğinden tutar.\n- Sökülen aksesuarlardan kalan delikleri gizler.\n- İç döşemeye toz ve nem girişini azaltır.\nYaklaşık dış ölçüler: 22 × 22 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4672579-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4672579-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4672579-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4672579-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4672579-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "I-Orchik",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-l200-4wd-sanziman-plastik-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi L200 4WD şanzıman plastik dişlisi",
+    "aciklama": "Mitsubishi L200'ün dört çeker aktarma kolunun ucundaki plastik ayar dişlisi.\n- Aşınan orijinal dişlinin yerine doğrudan geçer.\n- Mil ucuna oturarak dört çeker geçişini düzgün aktarır.\n- Aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 27 × 27 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2141888-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2141888-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2141888-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2141888-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2141888-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "roizstudio",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-on-tampon-ceki-halkasi-kapagi-2010",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer ön tampon çeki halkası kapağı (2010)",
+    "aciklama": "2010 Mitsubishi Lancer'ın ön tamponundaki çeki halkası yuvasını kapatan kapak.\n- Tampondaki yuvaya geçmeli oturur.\n- Kaybolan orijinal kapağın yerine doğrudan geçer.\n- Yuvaya su ve kir girmesini önler.\nYaklaşık dış ölçüler: 55 × 50 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4930064-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4930064-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4930064-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4930064-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Shtokinger",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-eclipse-2g-ayna-kumanda-ic-kapak-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Eclipse 2G ayna kumanda iç kapak plakası",
+    "aciklama": "Mitsubishi Eclipse 2G'de elektrikli ayna kumandasının bulunduğu iç kapak plakası.\n- Kapı döşemesindeki yuvaya oturur, orijinal bağlantıları kullanır.\n- Kırılan veya kaybolan plakanın yerine doğrudan geçer.\n- Kumanda düğmesini merkezde ve sabit tutar.\nYaklaşık dış ölçüler: 90 × 73 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4775422-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4775422-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4775422-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4775422-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JensQ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-asx-yag-filtresi-sokme-anahtari-64x14",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi ASX yağ filtresi sökme anahtarı (64 × 14)",
+    "aciklama": "Mitsubishi ASX'te kullanılan W 610/3 tipi yağ filtresini sökmeye yarayan anahtar.\n- Filtrenin 64 mm çapındaki 14 dişli ucuna tam oturur.\n- 1/2 inç lokma kolu için 32 mm altıgen çıkıntısı vardır.\n- Aynı filtreyi kullanan diğer araçlarda da işe yarar.\n- Tork aktaracağı için sert ve kırılgan olmayan bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 84 × 82 × 51 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3736336-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3736336-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3736336-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3736336-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3736336-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mika-net",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-colt-mirage-konsol-kapak-mentesesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer / Colt / Mirage konsol kapak menteşesi",
+    "aciklama": "Mitsubishi Lancer, Colt ve Mirage modellerinde orta konsol kapağının kırılan menteşesini onaran takım.\n- İki parça, hızlı geçen bir mil üzerinde birleşir.\n- Küçük parça hafifçe esnetilerek diğerinin içine oturtulur.\n- Kapağın açılıp kapanma hareketini eski hâline getirir.\nYaklaşık dış ölçüler: 86 × 84 × 46 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5857691-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5857691-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5857691-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5857691-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5857691-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nepster_012",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-x-kaput-cubugu-klipsi-2007",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer X kaput çubuğu klipsi (2007 sonrası)",
+    "aciklama": "2007 ve sonrası Mitsubishi Lancer X'te kaput destek çubuğunu tutan klips.\n- Önceki Lancer klipsine göre daha yüksek gövdesiyle Lancer X'e oturur.\n- Fabrika yuvasına bastırılarak takılır.\n- Çubuğun titreşimle oynayıp ses yapmasını engeller.\nYaklaşık dış ölçüler: 32 × 20 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5375117-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5375117-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5375117-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5375117-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sztreho98",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-montero-shogun-ic-kapi-acma-kolu-2003",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero / Montero / Shogun iç kapı açma kolu (2003)",
+    "aciklama": "Mitsubishi Pajero, Montero ve Shogun modellerinde kapı içinden açma kolunun yedeği.\n- Kapı döşemesindeki orijinal yuvaya ve mekanizmaya oturur.\n- 2001-2006 arası kasalarda da uyum sağlar.\n- Kırılan orijinal kolun yerine doğrudan geçer.\n- Sık kullanılacağı için darbeye dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 108 × 46 × 45 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4666664-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4666664-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4666664-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4666664-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "robotgruntxd",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-galant-ayna-koseligi-tweeter-yuvasi-40-mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Galant ayna köşeliği tweeter yuvası (40 mm)",
+    "aciklama": "2002 Mitsubishi Galant'ta dış ayna köşeliğinin yerine geçen, 40 mm tweeter taşıyan üçgen kapak.\n- Fabrika köşelik yuvasına oturur, kapı döşemesinde kesme gerektirmez.\n- Tweeter'i kabin içine dönük açıda konumlandırır.\n- Sağ ve sol için aynalanarak kullanılır.\nYaklaşık dış ölçüler: 122 × 96 × 47 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3081213-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3081213-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3081213-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3081213-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3081213-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "denisgorevich",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-kolcak-kilit-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero kolçak kilit mandalı",
+    "aciklama": "2000 ve sonrası Mitsubishi Pajero'da kol dayama kapağını kapalı tutan mandal.\n- Kırılan orijinal mandalın yerine doğrudan geçer.\n- Kapağın kendiliğinden açılmasını önler.\n- Orijinal vida ve yay düzenini kullanır.\nYaklaşık dış ölçüler: 47 × 35 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5227726-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5227726-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5227726-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5227726-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5227726-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ago_s4r",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-bagaj-perdesi-klipsi-2014",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Outlander bagaj perdesi klipsi (2014 sonrası)",
+    "aciklama": "2014 ve sonrası Mitsubishi Outlander'ın sarmalı bagaj perdesini tutan klips.\n- Sağ ve sol için iki ayrı parça olarak gelir.\n- Kırılan orijinal klipsin yerine doğrudan geçer.\n- Perdenin yerinde durmasını ve düzgün sarılmasını sağlar.\nYaklaşık dış ölçüler: 74 × 27 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3953693-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3953693-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3953693-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3953693-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3953693-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "crustovich",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-on-tampon-hava-kanali-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer ön tampon hava kanalı parçası",
+    "aciklama": "Mitsubishi Lancer Evo X tamponunda hava girişinin arkasına oturan iç kanal parçası.\n- Tampondaki kesik açıklığı düzgün bir kanala çevirir.\n- Görünen kenarı bitmiş bir yüzey oluşturur.\n- Eksik gelen orijinal iç parçanın yerini alır.\nYaklaşık dış ölçüler: 232 × 85 × 64 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6664376-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6664376-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6664376-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6664376-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pedrochserra",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-l200-triton-montero-paspas-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi L200 / Triton / Montero paspas tutucusu",
+    "aciklama": "Mitsubishi L200, Triton, Montero ve Pajero modellerinde paspası yerinde tutan sabitleyici.\n- Sürücü tarafındaki fabrika tutucusuyla aynı biçimde çalışır.\n- Yolcu tarafına da aynı düzenle takılabilir.\n- Paspasın pedallara doğru kaymasını önler.\n- Halının üstünde küçük bir kesik açılması gerekir.\nYaklaşık dış ölçüler: 80 × 38 × 31 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4046240-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4046240-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4046240-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4046240-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tavoxer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-bardaklik-cuzdan-kilifli-telefon-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Delica bardaklık cüzdan kılıflı telefon yuvası",
+    "aciklama": "Mitsubishi Delica'da bardaklığa oturan, cüzdan kılıflı telefonu kılıfından çıkarmadan tutan yuva.\n- Alt gövdesi bardaklığa girer, ek bağlantı gerektirmez.\n- Telefon üstten sıkışır, kılıfın kapağı arkada katlanır.\n- Nexus 5x ve benzeri gövde ölçüsündeki telefonlara göre boyutlandırılmıştır.\nYaklaşık dış ölçüler: 94 × 91 × 75 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2221902-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2221902-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2221902-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2221902-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2221902-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mikedufty",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-triton-l200-yuvarlak-anahtar-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Triton / L200 yuvarlak anahtar tutucusu",
+    "aciklama": "Mitsubishi Triton ve L200'de sonradan eklenen elektrikli donanımların yuvarlak anahtarını taşıyan yuva.\n- Konsoldaki kör kapak yerine geçer, kesme gerektirmez.\n- LED çubuk ve benzeri donanımların anahtarını sabit tutar.\n- Anahtar gövdesini merkezde tutarak düzgün bir görünüm verir.\nYaklaşık dış ölçüler: 33 × 24 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4046083-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4046083-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4046083-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4046083-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4046083-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tavoxer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-db-130-dikis-makinesi-motor-kasnagi-50-mm",
+    "kategori": "Elektronik",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi DB-130 dikiş makinesi motor kasnağı (50 mm)",
+    "aciklama": "Mitsubishi DB-130G sanayi tipi dikiş makinesinin motor kasnağı yerine geçen küçük çaplı kasnak.\n- 50 mm çapıyla makinenin dikiş hızını belirgin şekilde düşürür.\n- Motor miline orijinal kama düzeniyle oturur.\n- Ev kullanımında kontrolü kolaylaştırır.\n- Sürekli dönme yükü taşıyacağı için sağlam bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 50 × 50 × 26 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3033538-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3033538-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3033538-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3033538-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3033538-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KillaCycle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-carisma-havalandirma-menfezi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Carisma havalandırma menfezi",
+    "aciklama": "Mitsubishi Carisma'nın torpido üzerindeki havalandırma menfezinin yedeği.\n- Fabrika yuvasına oturur, ek bağlantı gerektirmez.\n- Kanatçıklı yüzeyi hava akışını yönlendirir.\n- Aynalanarak karşı taraf için de kullanılabilir.\nYaklaşık dış ölçüler: 96 × 75 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2584130-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2584130-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2584130-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2584130-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kerembyl",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-kalorifer-kumanda-dugme-mili-2004-2006",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer kalorifer kumanda düğme mili (2004-2006)",
+    "aciklama": "2004-2006 Mitsubishi Lancer'da sıcak-soğuk ayar düğmesini çeviren mil.\n- Zorlanma nedeniyle sık kırılan orijinal milin yerine geçer.\n- Düğme ile mekanizma arasındaki hareketi yeniden kurar.\n- Benzer kumanda paneline sahip diğer Mitsubishi modellerinde de kullanılabilir.\n- Burulma yükü taşıyacağı için sert bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 64 × 30 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1726200-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1726200-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1726200-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1726200-4.jpg",
+      "https://media.pruvo3d.com/urunler/th1726200-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Frydaddy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-mirage-hoparlor-adaptor-halkasi-2015",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Mirage hoparlör adaptör halkası (2015)",
+    "aciklama": "2015 Mitsubishi Mirage'ın standart dışı ön kapı hoparlör deliğine piyasa hoparlörü takmayı sağlayan halka.\n- Fabrika delik düzenini 13 cm hoparlör deliğine çevirir.\n- Kapı sacında delme veya kesme gerektirmez.\n- Sağ ve sol kapıda aynı parça kullanılır.\nYaklaşık dış ölçüler: 150 × 150 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2828108-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2828108-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2828108-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2828108-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2828108-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Davorick",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-tr4-pinin-2-din-teyp-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero TR4 / Pinin 2 DIN teyp çerçevesi",
+    "aciklama": "Mitsubishi Pajero TR4 ve Pinin'de orijinal paneli koruyarak 7 inç multimedya ekranı takmayı sağlayan çerçeve.\n- Fabrika panelinin üzerine oturur, panelde kesme gerektirmez.\n- Ekranın kenar boşluğunu kapatarak bütünlüklü görünüm verir.\n- Çift taraflı bantla sabitlenecek şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 190 × 123 × 6 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5912967-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5912967-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5912967-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5912967-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5912967-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "leoporfir",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-9-on-tampon-tutucu-klipsi-mr520337",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Lancer 9 ön tampon tutucu klipsi (MR520337)",
+    "aciklama": "Mitsubishi Lancer 9'un ön tamponunu çamurluğa bağlayan MR520337 numaralı klips.\n- Fabrika yuvasına geçmeli oturur.\n- Kırılan orijinal klipsin yerine doğrudan geçer.\n- Tamponun kenarının sarkmasını ve oynamasını önler.\nYaklaşık dış ölçüler: 30 × 26 × 22 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4076848-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4076848-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4076848-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4076848-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kannex",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-konsol-kapak-mandali-2011",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Outlander konsol kapak mandalı (2011)",
+    "aciklama": "2011 Mitsubishi Outlander'ın orta konsol ve kol dayama kapağını kapalı tutan sol mandal.\n- Kırılan orijinal mandalın yerine doğrudan geçer.\n- Kapağın kendiliğinden açılmasını önler.\n- Orijinal yay ve vida düzeniyle çalışır.\nYaklaşık dış ölçüler: 58 × 45 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4940071-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4940071-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4940071-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4940071-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "UminOtoko",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-hava-yonlendirici-deflektor",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero hava yönlendirici (deflektör)",
+    "aciklama": "Mitsubishi Pajero'da hava akışını yönlendiren, bölmeli deflektör profili.\n- Fabrika yuvasına oturur, ek bağlantı gerektirmez.\n- Bölmeli iç yapısı akışı düzenler.\n- Kırılan orijinal parçanın yerine doğrudan geçer.\nYaklaşık dış ölçüler: 140 × 37 × 26 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3846854-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3846854-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3846854-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3846854-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3846854-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lar_Bat",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l300-gosterge-arka-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Delica L300 gösterge arka plakası",
+    "aciklama": "1991 Mitsubishi Delica L300'de üçlü gösterge yuvasına ek gösterge takmayı sağlayan arka plaka.\n- Yuvanın arkasına oturarak göstergeyi merkezde tutar.\n- Yuva ile gösterge gövdesi arasındaki boşluğu kapatır.\n- Fabrika yuvasında değişiklik gerektirmez.\nYaklaşık dış ölçüler: 79 × 79 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3656891-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3656891-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3656891-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3656891-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3656891-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sck_nogas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l400-perde-askisi-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Delica L400 perde askısı kancası",
+    "aciklama": "Mitsubishi Delica L400'ün fabrika perdelerini raya bağlayan küçük kanca.\n- Kırılan orijinal kancaların yerine takım hâlinde kullanılır.\n- Perdenin cam hattına düzgün oturmasını sağlar.\n- Ray üzerinde kayarak perdenin açılıp kapanmasına izin verir.\nYaklaşık dış ölçüler: 22 × 10 × 2 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1801278-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1801278-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1801278-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1801278-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "orient",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-mirage-space-star-attrage-hoparlor-adaptoru-165-mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Mirage / Space Star / Attrage hoparlör adaptörü (165 mm)",
+    "aciklama": "2012-2019 Mitsubishi Mirage, Attrage ve Space Star kapılarına 165 mm hoparlör takmayı sağlayan adaptör.\n- A00, A03, A05 ve A10 kasalarında fabrika deliklerini kullanır.\n- Kapı sacında kesme veya delme gerektirmez.\n- Arkasına sünger eklenerek sızdırmazlık iyileştirilebilir.\nYaklaşık dış ölçüler: 175 × 175 × 40 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3850772-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3850772-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3850772-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3850772-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3850772-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Inter86",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-3-nesil-anahtar-paneli-v2",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero 3. nesil anahtar paneli (V2)",
+    "aciklama": "3. nesil Mitsubishi Pajero ve Montero'da ek anahtarları düzenli taşıyan panel.\n- NM ve NP kasalarının ikisine de uyar.\n- CD değiştirici yerine ya da orta konsoldaki fabrika anahtar yerine takılır.\n- Beş veya altı anahtarlık iki ayrı düzen sunar.\n- Fabrika vidalarını kullanır, konsolda kesme gerektirmez.\nYaklaşık dış ölçüler: 214 × 50 × 20 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5860085-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5860085-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5860085-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5860085-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5860085-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GaryA95",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-radyator-takozu-mr266941",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Pajero radyatör takozu (MR266941)",
+    "aciklama": "Mitsubishi Pajero ve Montero'da radyatörün üst ve alt bağlantısında kullanılan MR266941 numaralı takoz.\n- Radyatörü şaseye titreşim yutarak bağlar.\n- Sertleşip parçalanan orijinal takozun yerine geçer.\n- Esnek bir malzeme tercih edilmesi titreşim yutumunu artırır.\nYaklaşık dış ölçüler: 47 × 47 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7083495-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7083495-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7083495-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7083495-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7083495-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cascao",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-carisma-anahtar-govdesi-onarim-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Carisma anahtar gövdesi onarım parçası",
+    "aciklama": "Mitsubishi Carisma anahtarının kırılan gövdesini onaran iki parçalı kabuk.\n- Metal anahtar dilinin etrafına oturarak yapıştırılır.\n- Anahtarlık deliğini yeniden kazandırır.\n- Dağılan orijinal kauçuk gövdenin yerini alır.\nYaklaşık dış ölçüler: 75 × 31 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1699540-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1699540-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1699540-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1699540-4.jpg",
+      "https://media.pruvo3d.com/urunler/th1699540-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "magickems",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l300-2-din-teyp-ve-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Delica L300 2 DIN teyp ve gösterge yuvası",
+    "aciklama": "1989 Mitsubishi Delica L300'de eksik ikili gösterge yuvasının yerine geçen 2 DIN teyp yuvası.\n- Fabrikanın üç delikli bağlantı noktalarını ve kablo geçişini kullanır.\n- 2 DIN ölçüsündeki multimedya ekranlarını taşır.\n- Torpido hattına oturarak bütünlüklü bir yüzey oluşturur.\nYaklaşık dış ölçüler: 192 × 168 × 156 mm.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5944218-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5944218-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5944218-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5944218-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "45tr0",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "mitsubishi-klima-kumandasi-duvar-yuvasi-uzay-desenli",
     "kategori": "Ev",
     "marka": [
