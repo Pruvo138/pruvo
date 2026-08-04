@@ -88,28 +88,56 @@ OLCULEMEDI: `cip-indeks-test.py --mutasyon` (~1760 s, CI'da degil) yerelde kosul
 **OKAN'DA KARAR YOK.** Bugun sorulan uc karar verildi ve uygulandi: asamali git (1. parti 50
 model) · Zafira sayfasi 28 hedefi, `Zafira Life` ayri bolumde · yayin hattini KraL acsin.
 
-**KOSAN (bu oturum, MERGE KAPISINDA — hicbiri canliya gitmedi):**
-- Kararsiz jeton SINIF 1: **paketin varsayimi CURUTULDU.** Muhendis olctu — is tabanda ZATEN
-  yapilmis; `GS` 13 urun (Citroen GS 1, esik alti, capraz cift DEGIL), `T1`-`T6` hepsi yayinda,
-  `Transporter` 143 -> 143. Gercek boslukcuk: **ciplak tek harf** (`BMW|k` ayri oksuz kova;
-  esigi gectigi gun `/marka/bmw/k/` TEK HARFLI sayfa sessizce dogacakti). Yazilan tek sey
-  `MODEL_ALIAS["BMW|k"]`+kanonik gosterim; ikinci tablo ACILMADI. Kaybolan 0, cip 467->467,
-  sayfa 534->534, kapi 21/21 + 31 oldurucu/6 kontrol, cip 123/123 + 36/36.
-- ArTisT'in dali (`5da155e1`, TEK satir, `tools/sayfalar.py`): canli SEO sayfasindaki KOSULSUZ
-  uretim vaadi kosula baglandi. Curutucu hukmu: MERGE EDILEBILIR.
-- `elde-yok-taniniyor-ayrimi` (HEAD `344c7ff7`): `ege-bilgi.md` l.44 + kapiya yeni `(E)` ekseni.
-  **UC TUR curutme** (ayri dusman ajan, mutasyonu muhendis YAZMADI): tur-1 MERGE EDILEMEZ
-  (l.14 daralmasi canlida SATILAN STL/cizim kanalini reddettiriyordu — 3/3 mutant yesil, hicbir
-  kapi gormuyordu) · tur-2 MERGE EDILEMEZ (yeni kanat 13 mesru cumlenin 8'ini kirmizi yakiyordu;
-  bloklayici kapida her biri yayin durduran mayin + `tanınmış`=unlu kelimesini negatif sayan
-  REGEX HATASI) · tur-3 tek mekanik engel (5 yeni nobetci KIRMIZI YANAMIYOR = bos iddia).
-  Hepsi kapandi: mesru cumlede **0/13**, X5 ailesi yakalama **2 -> 9**, kontrol mutanti 0/6,
-  `--ic-nobetci` 128/128, olu nobetci kaniti GENIS 5/5 kirmizi · DAR 0/5.
+### ✅ KAPANDI (4-5 Agu) — DORT DAL CANLIYA GITTI + YAYIN KILIDI ACILDI
+- **`4a21466a`** kararsiz jeton SINIF 1: paketin varsayimi CURUTULDU (is tabanda zaten yapilmis;
+  `GS` 13 urun, `T1`-`T6` hepsi yayinda, `Transporter` 143->143). Gercek boslukcuk **ciplak tek
+  harf**: `BMW|k` ayri oksuz kova, esigi gectigi gun `/marka/bmw/k/` TEK HARFLI sayfa sessizce
+  dogacakti. Canli: `/marka/bmw/k/` **404**, sitemap tek karakterli slug yalniz `renault/5`.
+- **`455de764`** `ege-bilgi.md` l.44 hizalandi + kapiya `(E)` ekseni. **UC TUR curutme** (ayri
+  dusman ajan; mutasyonu muhendis YAZMADI): tur-1 l.14 daralmasi canlida SATILAN STL/cizim
+  kanalini reddettiriyordu (3/3 mutant yesil, hicbir kapi gormuyordu) · tur-2 yeni kanat 13 mesru
+  cumlenin 8'ini kirmizi yakiyordu + `tanınmış`(=unlu) kelimesini negatif sayan REGEX HATASI ·
+  tur-3 5 yeni nobetci KIRMIZI YANAMIYOR (bos iddia). Hepsi kapandi; canli drift kapandi
+  (`ege-bilgi.md` 6531->6573 bayt, l.14 degismedi).
+- **`8d5e3874`** marka invaryant kapisi + **D1 `marka_kanon` kolonu**. Kapi taban-civili CIRCIR
+  (bugunku borc bloklamaz, ARTIS kirmizi yakar; **dusus de kirmizi** — mimar karari). Sema gocu
+  7 adimda: ALTER -> `PRAGMA` dogrulama (27 kolon) -> senkron -> **canli 15.717 satir dolu**,
+  128 kanonik deger, `Volvo Penta` -> `["Volvo"]`. Mutasyon 6/6, model canli ile 128/128 birebir.
+- **`2d73448c`** Turkce I/i katlama kacagi (`NISSAN`/`MITSUBISHI`/`FIAT` esleşmeyi kaciriyordu,
+  MaCiT canlida 2 KEZ gordu) + `.obj` olcumu + duvar-susu kapisi. Sisme **+7 / %0,043**
+  (3.308.640 cift), gerileme 0, 7'sinin tamami dogru pozitif. Merge kapisi **IKI KEZ IADE ETTI**:
+  once gevsetme fail-closed'i FAIL-OPEN yapmisti (15 sizinti: `Audi rings wall art` sinifi),
+  sonra "75/75 kapandi" iddiasi CURUTULDU — batarya onarima gore yeniden yazilmis, kendi
+  duzeltmesini olcuyordu ([[test-hatali-davranisi-kutsar]]). Gercek kalan kacak 20, canli 448
+  baslikta insidans **0** -> kapatilmadi, **ILAN EDILDI + circir altina alindi** (batarya 220).
+- **`c912548f` YAYIN KILIDI ACILDI (Okan karari).** `serit-a2`/Feed politika kapisi `61867dab`'dan
+  beri kirmiziydi, `deploy` SKIPPED -> 9+ commit yayinlanmiyordu. Tek suclu ölçüldü (kontrol
+  mutanti: urun cikinca rc=0, kalinca rc=1); Okan **katalogdan cikarma** dedi (metin gizleme ve
+  taban'a borc yazma REDDEDILDI). Kosum `30948373105`: `serit-a2` failure->**success**,
+  **`deploy` success**, **`yayin` success**. Canli: urun 404, Nissan 394->393.
+  ⚠️ Toplu kosum rozeti `failure` GORUNUYOR ama yayin ACIK (`serit-b`+`ifsa-nobeti` `needs`'te YOK).
+- **Shop deploy (Okan karari):** `12dca32f` -> `68b262a1`, bayatlik nabzi 183,5 dk -> **0 dk**.
 
 **🔴 SIRADAKI TUR — bende, oncelik sirasiyla:**
-1. `elde-yok-taniniyor-ayrimi` merge kapisi; sonra ~5 dk bekleyip `drift-sonda.py` TEKRAR kos
-   (canli `ege-bilgi.md` yayina kadar eski metni doner).
+1. 🔴 **OKAN HUKMU — TUM markalarda sayfa adedi == arama adedi.** Olculdu (128 marka, 18.080):
+   **77 markada fark, 6.445 kalem.** Farkin **%94'u SAYFA EKSIKLIGI DEGIL, ARAMA GURULTUSU**:
+   `Havalandırma`->"Haval" 562 · `Mandalı/manuel`->"MAN" 3.488 · `33mm`->"3M". Yani sayfa
+   buyuyerek degil **arama daralarak** esitlenecek. Faz 0+1 canlida (yukarida); **kalan faz:
+   marka jetonlu sorgunun uyelik yuklemine yonlendirilmesi** -> 6.087 kalem KENDILIGINDEN kapanir.
+   🔴 **VERI partisi (486 kalem / 450 urun) AYNI ANDA gitmeli** (MaCiT: Sierra/NGK/Teleflex marin
+   parcalari, baslikta "Mercury Verado" yaziyor ama `marka[]`'de yok) — yoksa "sayilar esitlendi"
+   derken 450 GERCEK eslesme kaybedilir. Tam tablo: scratchpad `marka-sayfa-arama-fark.tsv`.
 2. C kovasi (87 urun): olcu satiri sayisal model adiyla cakisiyor — `ara`->`marka` toplu kopya YASAK.
+1b. 🔴 **`ic-rapor-adi-kapisi.py` YANLIS AGACTA YESIL YAKIYOR** (merge kapisi olctu): koku
+   `git rev-parse --show-toplevel` ile **cwd**'den turetiyor, ana checkout'tan kosunca dalin
+   dosyalarini HIC gormuyor. Gercek bir sizintiyi (`d1-sync.py:585`) tam da bu yuzden kacirdi.
+   CI'da bloklayici; ayni sinif baska kapilarda da olabilir, **kapi envanterini bu eksende tara.**
+1c. `ifsa-nobeti` **dogdugu andan beri kirmizi** (164 muafiyet-disi isabet / 37 dosya, hepsi
+   ONCEDEN VAR OLAN borc). Yayini BLOKLAMIYOR (`deploy: needs`'te yok). Karar bende: 164 satirin
+   hangisi mesru hangisi gercek ifsa — `--muafiyet-hash`'i toptan kullanmak "kapiyi susturma"
+   olur, tek tek yargi gerekiyor.
+1d. Duvar-susu kapisinin YAPISAL cozumu (liste kovalamayi bitirir): kanit varsa metinde
+   **cip evreninden bilinen MODEL adi** ara — varsa gec, yoksa RED. Olctur, sonra uygula.
 2b. 🔴 **`ege-bilgi.md` TAVAN PAYI 27 KALDI** (5973/6000 UTF-16; bot `slice(0,6000)`).
    `filamentler.json`'a TEK filaman eklenmesi (~110 karakter) tavani asar ve CI'i kirar —
    uretilen `FILAMENT-REF` blogu dosyaya giriyor. Bu dalin hatasi degil ama pay artik kritik dar;
