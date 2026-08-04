@@ -1672,21 +1672,57 @@ jobs:
       # MARKA KUMESI'nden) · K8 bilesik marka aynasi otoriteyle birebir · K10 bilesik marka
       # anahtari iki tarafta da bolunmemis · K11 rozet disi cift sayfa olmaz VE urun kaybolmaz ·
       # K9/K12 kuratorlu tablolarin kimligi donmus (sessiz genisleme KIRMIZI).
-      # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ. Olculdu: 3,1 s.
+      #
+      # KUSAK/VARYANT KATLAMASI EKSENI (2026-08-04): kusak jetonu ayri kovada kaliyordu —
+      # `?ara=Golf` 317 urun getirirken /marka/volkswagen/golf/ 182 gosteriyordu; dusenin
+      # 21'i `Golf 4`/`Golf Mk4`/`Golf IV`/`Golf R` gibi AYRI kanonik kovalardi ve 9'u
+      # ESIK=3 altinda kaldigi icin HICBIR model sayfasinda yoktu. Katalog geneli: B kovasi
+      # 735 urun. Katlama TEK YONLUdur (varyant tabana duser, taban varyanta DUSMEZ) ve
+      # UYUM VAADI DEGILDIR: katlanan urunler sayfada kusak basligi altinda AYRI bolumde
+      # durur. Kilitlenen yeni eksenler: K13 katlama kurali FIKSTURE uyuyor + JS ile Python
+      # AYNI okuma (377 sonda) · K14 ayrim RENDER EDILMIS HTML'de duruyor (ana listede
+      # kusak-ozel urun 0; veriden degil sayfadan olculur ki renderer mutanti yakalansin) ·
+      # K15 farkli-arac istisnasi (kusak-disi jeton tablosu) aynasi+kimligi donmus ve
+      # urunu taban sayfaya SIZMIYOR.
+      #
+      # SIZINTI / DENY / KURATORLU ESLEME EKSENI (2026-08-04, mimar hukmu): canlida
+      # /marka/ford/focus-st/ (8 urun) · /fiesta-st/ (3) · /ecoboost/ (3) duruyordu — `ST`
+      # donanim paketi, `EcoBoost` motor ailesi, ikisi de MODEL degil; Focus ve Fiesta'yi
+      # BOLEREK kendi sayfalarini acmislardi. Ayrica /transporter/ (44 urun) ile /t3/ /t4/
+      # /t5/ /t6/ (97 urun) AYNI ARAC oldugu halde ayri duruyordu.
+      # K16 "degistirici sekilli" YAYIN kumesi donmus envanterle BIREBIR (birim KUME, sayi
+      # DEGIL: bir sayfa olup biri dogunca sayi sabit kalir, sapma gizlenirdi) ·
+      # K17 model-olmayan (marka, jeton) ciftinin yayimlanan kovasi 0 VE urunu kaybolmadi
+      # (tabloyu OKUYARAK degil, jeneratoru KOSTURARAK olculur) ·
+      # K18 kuratorlu kusak eslemesi aynasi+kimligi donmus, urun taban sayfaya ULASTI ve
+      # kusagin KENDI sayfasi KAPANMADI.
+      # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ.
+      # Olculdu: 3,1 s -> 3,6 s (ayni makinede katlama ONCESI 5,7 s idi; kusakTabanlari
+      # bellegi hem kapiyi hem ana sayfa filtresini hizlandirdi -> serit A3 UZAMADI).
       - name: "Model uyeligi kapisi (marka/model sayfasi <-> ana sayfa filtresi paritesi)"
         run: python3 tools/model-uyelik-kapisi.py
 
       # AYNI KAPININ MUTASYON BATARYASI — BLOKLAYICI ve AYRI ADIM (surenin ayri olcusun
       # gorunmesi + kirmizinin hangi eksende yandiginin adimdan okunmasi icin).
-      # 13 OLDURUCU + 3 KONTROL mutant; mutant DAIMA GECICI KOPYAYA uygulanir, gercek agac
+      # 24 OLDURUCU + 4 KONTROL mutant; mutant DAIMA GECICI KOPYAYA uygulanir, gercek agac
       # DEGISMEZ. Kabul olcutu cikis kodu DEGIL OLCULEN IDDIA + isarettir: rc 0/1 disi ya da
       # "KIRMIZI ama hicbir iddia KALDI demedi" COKME sayilir ve kirmiziyla KARISTIRILMAZ.
       # 🔴 NEDEN CI'DA (elle degil): bu paketin tum amaci sapmanin SESSIZCE geri gelmemesi.
       # Olculdu — tabloyu tek kaynakta (index.html) degistiren mutant kapiyi kirmizi YAKMAZ
       # (tek kaynak iki tarafi BIRDEN kaydirir); ayrismayi doguran sey BIR TARAFIN kaynagi
       # okumayi birakmasidir, oldurucu mutantlar onu taklit eder ([[beyan-edilmis-survivor]]).
-      # Olculdu: 48,0 s.
-      - name: "Model uyeligi mutasyon bataryasi (13 oldurucu + 3 kontrol)"
+      # Katlama eksenine 6 oldurucu eklendi (katlamayi kaldiran · farkli araca genisleten ·
+      # kelime sinirini kaldiran · istisnayi dusuren · tek tarafi tabloyu okumaz yapan ·
+      # alt bolum ayrimini tek listeye doken) + 1 kontrol (bolum SIRASI degisir, ayrim degil).
+      # Sizinti/deny/esleme ekseni 5 oldurucu daha ekledi (kusak sayfasini deny'e alan ·
+      # ST denial'ini kaldiran · deny tablosunu okumayi birakan · eslemeyi FARKLI ARACA
+      # kaydiran · esigi yukselterek 8 sayfayi sessizce olduren) + 1 kontrol (tabloyu
+      # yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
+      # 🔴 `ESIK` mutanti KONTROL'den OLDURUCU'ye TASINDI: donmus envanter ekseni eklenince
+      # esik degisimi ARTIK gorunur bir sapmadir (parite yesil kalirken 8 sayfa oluyor).
+      # Olculdu: 48,0 s -> yerelde 16 mutant 96 s iken 28 mutant ~110 s (kusak bellegi
+      # mutant basina suredeki artisi buyuk olcude yuttu).
+      - name: "Model uyeligi mutasyon bataryasi (24 oldurucu + 4 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
