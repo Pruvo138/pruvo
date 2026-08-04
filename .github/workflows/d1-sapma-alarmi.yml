@@ -1,0 +1,96 @@
+name: D1 sapma alarmi (kadans kolunun sapma kanali)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — IKI SORUYU TEK CIKIS KODUNA YIGMAK (OLCULEN KUSUR, 4 Agu 2026)
+# ══════════════════════════════════════════════════════════════════════════════
+# `d1-uzlastirici.yml` sapma bulunca BILEREK `exit 1` verir (sapmanin KENDISI bir
+# ust-yol kacagidir; onarildi diye o kacak yok olmaz). Ayni gun bu is akisi
+# `workflow_call` ile deploy.yml'in BLOKLAMAYAN `d1-kadans` koluna baglandi — cunku
+# GitHub cron kuyrugu 48 saatte nominal 192 tetiklemenin 7'sini teslim etti (%3,65,
+# en uzun bosluk 1053 dk = 17,6 saat).
+#
+# YAN ETKI: `d1-kadans` `deploy: needs`'te OLMADIGI icin yayini DURDURMUYOR — ama
+# cagiran kosumun GENEL `conclusion`'ini `failure` yapiyordu. Boylece deploy.yml
+# kosumunun conclusion'i IKI ayri soruyu birden cevaplar oldu: "yayin calisti mi?" ve
+# "D1 sapmasi var mi?". Bu depoda olculmus sinif ([[hukum-yanlis-birimde]]): TOPLU
+# SONUC TEKIL EKSENI GIZLER — "kosum kirmizi" ≠ "deploy olmadi".
+#
+# COZUM SAPMAYI SUSTURMAK DEGIL, KANALI AYIRMAK: kadans kolunda ONARILAN sapma
+# `d1-sapma-damgasi` artifact'ine yazilir (uzlastiricinin cikis kodu temiz kalir) ve
+# BU IS AKISI o damgayi okuyup KENDI kosumunda KIRMIZI yanar.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN `workflow_run`, NEDEN CRON DEGIL (olculmus gerekce)
+# ══════════════════════════════════════════════════════════════════════════════
+# Bu depodaki diger alarm kollari (paket-tazelik-alarmi.yml, yayin-erisim-alarmi.yml)
+# cron'a bagli. 4 Agu'da cron TESLIMININ kendisi olculdu ve curudu (yukaridaki oran).
+# Sapma kanalini cron'a baglamak, tam da kadans kolunun cozdugu sorunu geri getirirdi.
+# `workflow_run` ile bu is deploy.yml'in BITISINDE tetiklenir: depo saatte onlarca push
+# aliyor, yani kanal kadans koluyla AYNI siklikta calisir ve zamanlanmis kuyruga HIC
+# bagimli degildir. Kendi KOSUMU ve kendi `conclusion`'i vardir -> yayin sagligi ile
+# sapma sinyali AYRI BIRIMLERDE okunur (ayrimin butun amaci budur).
+# `types: [completed]` — deploy kosumu BASARISIZ ya da IPTAL bitse bile sapma kanali
+# okunur; sapma sorusu yayin sorusuna BAGLI DEGILDIR.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN YAYINI DURDURAMAZ (yapisal, beyan degil)
+# ══════════════════════════════════════════════════════════════════════════════
+#   * `push`/`pull_request`/`workflow_call` tetikleyicisi YOK -> Pages yayin akisi
+#     (deploy.yml) bu isi `uses:` ile cagiramaz.
+#   * deploy.yml'e `needs:` ile BAGLI DEGIL -> buradaki kirmizinin yayin yoluna
+#     maliyeti 0 sn'dir; ustelik deploy BITTIKTEN sonra kosar.
+#   * `concurrency` grubu AYRI -> hicbir yayin adimini bekletmez.
+# Bu uc sart tools/cron-nabiz-kapisi.py::kadans_kablosu tarafindan OLCULUR: bu dosyaya
+# `push:`/`workflow_call:` eklenirse ya da damga adi ayrisirsa nabiz kapisi KIRMIZI
+# yanar (yani "bloklamaz" iddiasi yorum degil, KOSULAN bir kapidir).
+#
+# GORUNURLUK — `continue-on-error` YOK ve cikis kodu kabukta YAKALANMAZ (`|| true` bu
+# depoda beyansiz fail-open sayilir, is-akisi-kapisi Bolum D): rc DOGRUDAN konusur.
+#   rc 0 temiz      — tetikleyen yayin kosumunda sapma damgasi YOK.
+#   rc 1 sapma      — damga VAR: D1 sapmasi olustu (onarildi ama ust-yol KACIRDI).
+#   rc 2 olculemedi — kosum kimligi/API okunamadi. SESSIZ YESIL DEGIL.
+on:
+  workflow_run:
+    workflows: ["Build & deploy to GitHub Pages"]
+    types: [completed]
+  # Elle kosum yolu HER ZAMAN acik. TETIK_KOSUM bos gelir; nobetci o zaman EN SON
+  # TAMAMLANMIS deploy.yml kosumunu olcer ("olculecek sey yok" diye YESIL DONMEZ).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read          # tetikleyen kosumun artifact listesini OKUMAK icin
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup — hicbir yayin adimini
+# bekletmez, hicbiri tarafindan bekletilmez.
+# 🔴 `cancel-in-progress: false`: her yayin kosumunun sapma hukmu AYRI bir olcumdur;
+# yenisi eskisini iptal etseydi, art arda push'ta ARADAKI sapmalar hic okunmadan
+# dusebilirdi (tam da bu nobetcinin onledigi sessizlik sinifi).
+concurrency:
+  group: d1-sapma-alarmi-${{ github.event.workflow_run.id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  sapma:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Once nobetcinin KENDI kabulu (AGSIZ; iki yonlu fikstur: damga VAR -> KIRMIZI,
+      # damga YOK -> YESIL, sekil arizasi -> OLCULEMEDI), sonra GERCEK olcum.
+      # NEDEN SART: canli kol gunlerce 'temiz' donebilir (sapma nadirdir); "alarm
+      # sapmayi gorur" iddiasi canli kosumla KANITLANAMAZ, ancak fiksturle gosterilebilir.
+      # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (bu depoda olculdu, bkz. deploy.yml `mesaj-nobeti`):
+      # bayat sayi kosumun neyi olctugu hakkinda yanlis bilgi verir. Gercek sayiyi betigin
+      # KENDISI "N iddia kosturuldu" satiriyla basar.
+      - name: "Sapma alarmi: kendini test (agsiz fikstur, iki yonlu)"
+        run: python3 tools/d1-sapma-kapisi.py --kendini-test
+
+      - name: "Olcum — tetikleyen yayin kosumunda D1 sapmasi oldu mu (ALARM; yayini DURDURMAZ)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TETIK_KOSUM: ${{ github.event.workflow_run.id }}
+        run: python3 tools/d1-sapma-kapisi.py --gh-ozet

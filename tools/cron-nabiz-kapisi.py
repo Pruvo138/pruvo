@@ -211,7 +211,22 @@ DAMGA_KUTUGU = {
     PAKET_DAMGA_ADI: (PAKET_ALARM_DOSYA,
                       "canli fiyat yolu olculdu ve PARITE cikti (hazir ticari malda "
                       "tahsilat liste fiyati; canli paket depo HEAD'i ile ayni nesil)"),
+    # SAPMA DAMGASI — A0/A4 damgalarindan FARKLI SINIF: onlar "denetim FIILEN yapildi"
+    # der (YAS olculur), bu "BU yayin kosumunda sapma OLDU" der (IKILI hukum, yas YOK).
+    # 4 Agu kol ayriminin tasiyicisi: kadans kolunda onarilan sapma cagiran kosumu
+    # KIRMIZI yakmaz, bunun yerine bu damga dogar ve d1-sapma-alarmi.yml onu AYRI bir
+    # kosumda KIRMIZI yakar -> sapma SUSTURULMAZ, KANALI degisir.
+    "d1-sapma-damgasi": (UZLASTIRICI_DOSYA,
+                         "bu yayin kosumunda D1 sapmasi OLUSTU ve onarildi; sapmanin "
+                         "KENDISI bir ust-yol kacagidir (pre-push kancasi / CI D1 adimi / "
+                         "elle push) ve AYRI kanaldan (d1-sapma-alarmi.yml) kirmizi yakar"),
 }
+# Kol ayriminin capalari — tek kaynak (yazici, okuyucu ve kablo kapisi ayni sabiti kullanir).
+SAPMA_DAMGA_ADI = "d1-sapma-damgasi"
+SAPMA_ALARM_DOSYA = "d1-sapma-alarmi.yml"
+SAPMA_ALARM_ARACI = "tools/d1-sapma-kapisi.py"
+# `workflow_call` girdisi: kadans kolunu cron kolundan ayiran TEK bayrak.
+KADANS_BAYRAGI = "kadans_kolu"
 
 # Yogun tetikleme dakikalari — `*/15` tam bu kumeye duser.
 YOGUN_DAKIKALAR = frozenset((0, 15, 30, 45))
@@ -1464,6 +1479,16 @@ def uzlastirici_kablosu():
             s = satir.strip()
             if "cron-nabiz-kapisi.py" in s and "--damga-yaz" in s:
                 parcalar = s.split()
+                # 🔴 AD SUZGECI (4 Agu): bu is akisi ARTIK IKI damga yazar — A0 damgasi
+                # (`uzlastirma-damgasi`, varsayilan ad) ve kol ayriminin SAPMA damgasi
+                # (`--damga-adi d1-sapma-damgasi`). Suzgec olmadan dongu son gordugu
+                # cagriyi A0 sanardi: bu yon SAHTE-KIRMIZI ("yazilan dosya ile yuklenen
+                # path AYNI DEGIL"), ters yonu ise daha kotu — adim sirasi degisirse A0'in
+                # yazicisi SILINSE bile eksen sapma damgasiyla YESIL kalirdi.
+                if "--damga-adi" in parcalar:
+                    j = parcalar.index("--damga-adi")
+                    if j + 1 < len(parcalar) and parcalar[j + 1] != DAMGA_ADI:
+                        continue
                 i = parcalar.index("--damga-yaz")
                 if i + 1 < len(parcalar):
                     yazilan = parcalar[i + 1]
@@ -1662,8 +1687,485 @@ def kadans_kablosu():
                         "CLOUDFLARE_API_TOKEN'siz kosar, HER kosumda 'olculemedi' verir "
                         "ve damga HIC dogmaz (sessiz olu kol)"
                         % (kadans_ad, kadans.get("secrets")))
+
+    # ── (7) KOL BAYRAGI: cagiran job KENDINI KADANS KOLU olarak BEYAN EDER ──────
+    # 🔴 GEREKCE (4 Agu, KraL hukmu): bayrak DUSURULURSE cagrilan is akisi varsayilan
+    # `false` ile kosar, yani CRON gibi davranir ve ONARILAN sapmada `exit 1` verir.
+    # O zaman deploy.yml kosumunun conclusion'i yine IKI soruyu birden cevaplar
+    # ("yayin calisti mi" + "D1 sapmasi var mi") — [[hukum-yanlis-birimde]]. Bu tek
+    # satirlik gerileme SESSIZDIR: hicbir adim kirmizi yanmaz, yalnizca kosumun rengi
+    # anlamini kaybeder. Bu yuzden AYRI bir iddia olarak olculur.
+    ile = kadans.get("with") if isinstance(kadans.get("with"), dict) else {}
+    bayrak = ile.get(KADANS_BAYRAGI)
+    if bayrak is not True:
+        sorunlar.append(
+            "`%s` job'u `with: %s: true` GECMIYOR (%r) -> cagrilan is akisi varsayilan "
+            "`false` ile kosar ve ONARILAN sapmada `exit 1` verir; bu kosumun (%s) "
+            "conclusion'i o zaman YINE iki soruyu birden cevaplar (yayin sagligi + D1 "
+            "sapmasi)." % (kadans_ad, KADANS_BAYRAGI, bayrak, DEPLOY_DOSYA))
+    # ── (8) BAYRAK CAGRILAN TARAFTA TANIMLI mi ve VARSAYILANI `false` mi ────────
+    # Varsayilan `true` olsaydi CRON kolu da sessizce kadans gibi davranir, sapma
+    # cron kosumunda da kirmizi yakmazdi -> alarm iki koldan da susardi.
+    girdiler = ((tetik or {}).get("workflow_call") or {}) if isinstance(tetik, dict) else {}
+    girdiler = girdiler.get("inputs") if isinstance(girdiler, dict) else None
+    tanim = girdiler.get(KADANS_BAYRAGI) if isinstance(girdiler, dict) else None
+    if not isinstance(tanim, dict):
+        sorunlar.append("%s `on.workflow_call.inputs.%s` TANIMLI DEGIL -> cagiran "
+                        "taraftaki `with:` COZULMEZ (kol ayrimi yapilamaz)"
+                        % (UZLASTIRICI_DOSYA, KADANS_BAYRAGI))
+    else:
+        if str(tanim.get("type") or "").strip() != "boolean":
+            sorunlar.append("%s `inputs.%s.type` `boolean` DEGIL (%r) -> `== true` "
+                            "karsilastirmasi metin/boolean arasinda sessizce kayar"
+                            % (UZLASTIRICI_DOSYA, KADANS_BAYRAGI, tanim.get("type")))
+        if tanim.get("default") is not False:
+            sorunlar.append(
+                "%s `inputs.%s.default` `false` DEGIL (%r) -> CRON/ELLE kolu da kadans "
+                "gibi davranir ve ONARILAN sapmada kirmizi yakmaz; sapma O ZAMAN IKI "
+                "KOLDAN DA susar (sessizlestirmenin ta kendisi)."
+                % (UZLASTIRICI_DOSYA, KADANS_BAYRAGI, tanim.get("default")))
+
     return sorunlar, {"job": kadans_ad, "grup": grup, "blokluyor": blokluyor,
-                      "engel": sorted(engel), "tetikler": sorted(tetik_adlari)}
+                      "engel": sorted(engel), "tetikler": sorted(tetik_adlari),
+                      "bayrak": bayrak, "bayrak_tanimi": tanim}
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SINYAL AYRIMI — "yayin sagligi" ile "D1 sapmasi" AYRI HUKUMLER (4 Agu 2026)
+# ═════════════════════════════════════════════════════════════════════════════
+# OLCULEN KUSUR: uzlastiricinin sapma gorunurlugu adimi `exit 1` verir. `d1-kadans`
+# `deploy: needs`'te olmadigi icin yayini DURDURMUYOR, ama cagiran kosumun (deploy.yml)
+# GENEL `conclusion`'ini `failure` yapiyordu -> TEK kirmizi IKI soruyu birden cevapliyor.
+# Bu depoda olculmus sinif: [[hukum-yanlis-birimde]] (toplu sonuc tekil ekseni gizler).
+#
+# COZUM SESSIZLESTIRME DEGIL — UC AYRI HUKUM:
+#   (1) CRON/ELLE kolu + sapma          -> `exit 1`  (DAVRANIS DEGISMEDI)
+#   (2) KADANS kolu + sapma ONARILDI    -> damga yaz + yukle, cikis kodu TEMIZ
+#                                          (sapma d1-sapma-alarmi.yml'de KIRMIZI yanar)
+#   (3) ONARILAMADI (her iki kolda)     -> `exit 1`  (AYRI hukum: emniyet agi tutmadi)
+#
+# BU KAPI O UC HUKMU YORUMDAN DEGIL, GERCEK YAML'DEN OLCER ve GitHub'in adim-kosulu
+# semantigini FIILEN CALISTIRIR (asagidaki `_kosul_degerlendir`). Boylece:
+#   * sapma sinyalini TAMAMEN kaldiran mutant -> (1) ve (2) kaybolur -> KIRMIZI,
+#   * cron kolundaki `exit 1`'i kaldiran mutant -> (1) exit'siz kalir -> KIRMIZI,
+#   * (2) ile (3)'u TEK adima yigan mutant -> dogruluk tablosu carpisir -> KIRMIZI,
+#   * kadans koluna `exit 1` geri sizarsa -> (2) 'temiz cikis' iddiasi duser -> KIRMIZI.
+_DURUM_ISLEVLERI = ("success()", "failure()", "always()", "cancelled()")
+
+
+def _kosul_atom(parca, ortam):
+    """TEK atomu degerlendir. TANIMADIGI her yazim OlcumHatasi (fail-closed).
+
+    🔴 NEDEN DAR GRAMER ve NEDEN FAIL-CLOSED ([[mimar-kapi-parser-taklidi]]): burada
+    GitHub ifade dilinin TAM bir ayristiricisi TAKLIT EDILMEZ. Yalniz bu is akisinda
+    FIILEN kullanilan dort yazim taninir; baska her sey OLCULEMEDI'dir (rc 2), yani
+    tanimadigi bir kosul SESSIZCE 'dogru' ya da 'yanlis' sayilmaz."""
+    s = parca.strip()
+    if s in _DURUM_ISLEVLERI:
+        durum = ortam["durum"]
+        return {"success()": durum == "success", "failure()": durum == "failure",
+                "always()": True, "cancelled()": durum == "cancelled"}[s]
+    m = re.match(r"^steps\.([A-Za-z0-9_-]+)\.outputs\.([A-Za-z0-9_-]+)"
+                 r"\s*(==|!=)\s*'([^']*)'$", s)
+    if m:
+        adim, alan, op, lit = m.groups()
+        deger = ortam["ciktilar"].get((adim, alan))
+        return (deger == lit) if op == "==" else (deger != lit)
+    m = re.match(r"^steps\.([A-Za-z0-9_-]+)\.outcome\s*(==|!=)\s*'([^']*)'$", s)
+    if m:
+        adim, op, lit = m.groups()
+        deger = ortam["sonuclar"].get(adim)
+        return (deger == lit) if op == "==" else (deger != lit)
+    m = re.match(r"^inputs\.([A-Za-z0-9_-]+)\s*(==|!=)\s*(true|false)$", s)
+    if m:
+        alan, op, lit = m.groups()
+        deger = bool(ortam["girdiler"].get(alan))
+        bekle = (lit == "true")
+        return (deger == bekle) if op == "==" else (deger != bekle)
+    raise OlcumHatasi("adim kosulunda TANIMSIZ yazim: %r -> kosul katmani bu is akisi "
+                      "icin OLCULEMEZ (sessizce 'dogru' sayilmaz)" % parca)
+
+
+def _kosul_degerlendir(kosul, ortam):
+    """GitHub adim `if:` kosulunun hukmu (bu is akisinin DAR grameri icin).
+
+    ORTUK `success()`: GitHub, durum islevi TASIMAYAN bir kosula ortuk `success()`
+    ekler — yani onceki adim dusmusse adim ATLANIR. Bu satir olmadan 'onarim dustu'
+    senaryosunda (1)/(2) adimlari kosuyor sanilir ve (3) ile CARPISIRDI."""
+    s = (kosul or "").strip()
+    if not s:
+        return ortam["durum"] == "success"
+    ortuk = not any(i in s for i in _DURUM_ISLEVLERI)
+    sonuc = False
+    for veya in s.split("||"):
+        parcalar = [p for p in veya.split("&&") if p.strip()]
+        if not parcalar:
+            raise OlcumHatasi("bos kosul parcasi: %r" % kosul)
+        if all(_kosul_atom(p, ortam) for p in parcalar):
+            sonuc = True
+    if ortuk:
+        sonuc = sonuc and ortam["durum"] == "success"
+    return sonuc
+
+
+def _uzl_adimlari():
+    """d1-uzlastirici.yml'in `uzlastir` isindeki adimlar (GERCEK ayristirici)."""
+    yol = os.path.join(WORKFLOW_DIZIN, UZLASTIRICI_DOSYA)
+    if not os.path.exists(yol):
+        raise OlcumHatasi("uzlastirici is akisi YOK: %s" % yol)
+    with open(yol, encoding="utf-8") as f:
+        govde = yaml_belge(f.read())
+    if not isinstance(govde, dict) or not isinstance(govde.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % UZLASTIRICI_DOSYA)
+    adimlar = []
+    for _ad, job in govde["jobs"].items():
+        if isinstance(job, dict) and isinstance(job.get("steps"), list):
+            adimlar.extend(a for a in job["steps"] if isinstance(a, dict))
+    if not adimlar:
+        raise OlcumHatasi("%s: hicbir adim okunamadi" % UZLASTIRICI_DOSYA)
+    return adimlar
+
+
+def _sinyal_adimlari(adimlar):
+    """(cron_adimlari, kadans_yazma, kadans_yukleme, onarilamadi) — SINIFLANDIRMA.
+
+    Siniflandirma ADIM ADINA DEGIL ICRA ETTIGI SEYE bakar (ad bir mensiyondur, olcum
+    degil): `exit 1` tasiyan sapma adimlari, `--damga-adi <SAPMA_DAMGA_ADI>` yazan adim
+    ve o adi `upload-artifact` ile yukleyen adim."""
+    cron_adim = kadans_yaz = kadans_yuk = onarilamadi = None
+    for a in adimlar:
+        komut = str(a.get("run") or "")
+        kosul = str(a.get("if") or "")
+        if str(a.get("uses") or "").startswith("actions/upload-artifact"):
+            ile = a.get("with") if isinstance(a.get("with"), dict) else {}
+            if str(ile.get("name") or "") == SAPMA_DAMGA_ADI:
+                kadans_yuk = a
+            continue
+        if "--damga-adi %s" % SAPMA_DAMGA_ADI in komut:
+            kadans_yaz = a
+            continue
+        if re.search(r"(?m)^\s*exit 1\s*$", komut) and "sapma" in kosul:
+            if "failure()" in kosul:
+                onarilamadi = a
+            else:
+                cron_adim = a
+    return cron_adim, kadans_yaz, kadans_yuk, onarilamadi
+
+
+# HUKUM TABLOSU — (kol, sapma, onarim_durumu) -> HANGI adimlar kosmali.
+# 🔴 TABLONUN KENDISI IDDIADIR: her satir bir SENARYODUR ve tam olarak BIR hukum
+# uretir. "onarildi" ile "onarilamadi" tek adima yigilirsa ya da bayrak yok sayilirsa
+# satirlardan EN AZ IKISI carpisir.
+SINYAL_TABLOSU = (
+    # (etiket,               kol_bayragi, sapma,        durum,     cron, yaz, yuk, onarilamadi)
+    ("cron + sapma onarildi",      False, "var",        "success",  True, False, False, False),
+    ("kadans + sapma onarildi",     True, "var",        "success", False,  True,  True, False),
+    ("cron + onarilamadi",         False, "var",        "failure", False, False, False,  True),
+    ("kadans + onarilamadi",        True, "var",        "failure", False, False, False,  True),
+    ("cron + sapma yok",           False, "yok",        "success", False, False, False, False),
+    ("kadans + sapma yok",          True, "yok",        "success", False, False, False, False),
+    ("kadans + olcum olculemedi",   True, "olculemedi", "failure", False, False, False, False),
+)
+
+
+def sinyal_ayrimi():
+    """UC HUKMUN VARLIGI + AYRILIGI — (sorunlar, bulgular).
+
+    Olculen sartlar (hepsi fail-closed):
+      (1) CRON/ELLE kolunun sapma adimi VAR ve `exit 1` TASIR (sinyali kaldiran ya da
+          exit'i dusuren mutant KIRMIZI),
+      (2) KADANS kolunun damga adimi VAR, `%s` adiyla yazar, AYNI adla YUKLER, yukleme
+          fail-open DEGIL (`if-no-files-found: error`, `continue-on-error` yok) ve
+          `exit 1` TASIMAZ (cagiran YAYIN kosumunun conclusion'i kirlenmesin),
+      (3) ONARILAMADI adimi VAR, `failure()` kosullu ve `exit 1` tasir (bu hal
+          "onarildi" ile AYNI KUTUYA konamaz),
+      (4) DOGRULUK TABLOSU: SINYAL_TABLOSU'ndaki her senaryoda GitHub kosul semantigi
+          FIILEN calistirilir ve tam olarak beklenen adimlar kosar.
+    """ % SAPMA_DAMGA_ADI
+    adimlar = _uzl_adimlari()
+    cron_adim, kadans_yaz, kadans_yuk, onarilamadi = _sinyal_adimlari(adimlar)
+
+    sorunlar = []
+    if cron_adim is None:
+        sorunlar.append(
+            "SAPMA SINYALI YOK (cron/elle kolu): %s icinde sapmada `exit 1` veren adim "
+            "bulunamadi -> sapma SESSIZLESTIRILMIS olur. Sapma OLMASI bir ust-yol "
+            "kacaginin kanitidir; onarildi diye o kacak yok olmaz." % UZLASTIRICI_DOSYA)
+    if kadans_yaz is None:
+        sorunlar.append(
+            "SAPMA KANALI YOK (kadans kolu): `--damga-adi %s` yazan adim bulunamadi -> "
+            "kadans kolunda sapma HICBIR YERDE kirmizi yakmaz (sessizlestirme)."
+            % SAPMA_DAMGA_ADI)
+    else:
+        if re.search(r"(?m)^\s*exit 1\s*$", str(kadans_yaz.get("run") or "")):
+            sorunlar.append(
+                "KADANS kolunun damga adimi `exit 1` TASIYOR -> cagiran YAYIN kosumunun "
+                "conclusion'i yine sapma yuzunden kirmiziya doner; ayrim COZULMEZ.")
+    if kadans_yuk is None:
+        sorunlar.append(
+            "SAPMA DAMGASI YUKLENMIYOR: `actions/upload-artifact` adimi `name: %s` ile "
+            "YOK -> damga dogsa bile d1-sapma-alarmi.yml onu GOREMEZ (sessiz kanal)."
+            % SAPMA_DAMGA_ADI)
+    else:
+        ile = kadans_yuk.get("with") if isinstance(kadans_yuk.get("with"), dict) else {}
+        if str(ile.get("if-no-files-found") or "").lower() != "error":
+            sorunlar.append("sapma damgasi yuklemesinde `if-no-files-found: error` YOK "
+                            "-> damga olusmasa bile adim SESSIZCE gecer (fail-open)")
+        if kadans_yuk.get("continue-on-error"):
+            sorunlar.append("sapma damgasi yukleme adimi `continue-on-error` ile FAIL-OPEN")
+        if kadans_yaz is not None:
+            yazilan = None
+            for satir in str(kadans_yaz.get("run") or "").splitlines():
+                if "--damga-yaz" in satir:
+                    p = satir.split()
+                    i = p.index("--damga-yaz")
+                    if i + 1 < len(p):
+                        yazilan = p[i + 1]
+            if yazilan and str(ile.get("path") or "").strip() != yazilan:
+                sorunlar.append("yazilan sapma damgasi (%r) ile yuklenen `path` (%r) AYNI "
+                                "DEGIL -> bos/yanlis damga yuklenir"
+                                % (yazilan, ile.get("path")))
+    if onarilamadi is None:
+        sorunlar.append(
+            "ONARILAMADI HUKMU YOK: `failure()` kosullu, sapmada `exit 1` veren AYRI adim "
+            "bulunamadi -> 'sapma onarildi' ile 'sapma KAPANMADI' TEK HALE YIGILMIS olur. "
+            "Ikincisinde katalog SU AN sapmali olabilir (Ege katalogun bir kismini "
+            "goremez); bu bir gorunurluk notu degil ARIZADIR.")
+
+    # ── DOGRULUK TABLOSU: kosul semantigi FIILEN calistirilir ──────────────────
+    tablo = []
+    for etiket, kol, sapma, durum, b_cron, b_yaz, b_yuk, b_onar in SINYAL_TABLOSU:
+        ortam = {"durum": durum, "girdiler": {KADANS_BAYRAGI: kol},
+                 "ciktilar": {("olcum", "sapma"): sapma},
+                 "sonuclar": {"teyit": "success" if durum == "success" else "failure"}}
+        gerceklesen = []
+        for ad, adim, beklenen in (("cron", cron_adim, b_cron),
+                                   ("damga-yaz", kadans_yaz, b_yaz),
+                                   ("damga-yukle", kadans_yuk, b_yuk),
+                                   ("onarilamadi", onarilamadi, b_onar)):
+            if adim is None:
+                continue
+            kosar = _kosul_degerlendir(str(adim.get("if") or ""), ortam)
+            gerceklesen.append((ad, kosar))
+            if kosar != beklenen:
+                sorunlar.append(
+                    "DOGRULUK TABLOSU CARPISMASI [%s]: `%s` adimi %s bekleniyordu, %s "
+                    "(kosul: %r)" % (etiket, ad, "KOSMALI" if beklenen else "KOSMAMALI",
+                                     "KOSTU" if kosar else "KOSMADI",
+                                     str(adim.get("if") or "")[:110]))
+        tablo.append((etiket, gerceklesen))
+
+    return sorunlar, {"cron": cron_adim is not None, "yaz": kadans_yaz is not None,
+                      "yuk": kadans_yuk is not None, "onarilamadi": onarilamadi is not None,
+                      "tablo": tablo}
+
+
+def ayrim_kaniti():
+    """AYRIM KANITI — IKI YON, TEK OLCUM. (sorunlar, bulgular)
+
+    Ayrimin kabulu TEK YONLU OLAMAZ ([[beyan-edilmis-survivor]]): "deploy kosumu artik
+    sapmadan kirmizi olmuyor" tek basina, sapmayi SESSIZLESTIREN bir cozumle de saglanir.
+    Bu yuzden iki yon AYNI olcumde tartilir:
+
+      YON (i)  D1'de SAPMA VAR (onarildi) + KADANS kolu:
+               (a) uzlastirici isinde KOSAN hicbir adim cikis kodu 1 URETMEZ -> cagiran
+                   kosumun (deploy.yml) conclusion'i YALNIZ yayin sagligini gosterir, VE
+               (b) sapma damgasi DOGAR ve o damgayi okuyan GERCEK nobetci
+                   (tools/d1-sapma-kapisi.py) rc 1 = KIRMIZI verir -> sapma BASKA BIR
+                   YERDE kirmizi yakar. (a) ve (b) BIRLIKTE saglanmazsa ayrim gecersizdir.
+
+      YON (ii) YAYIN GERCEKTEN BOZUK: ayrim, yayin kirmizisini KORLESTIRMEMELI.
+               `deploy`nin gecisli `needs:` kapanisi BOS DEGIL (kapilar yayini fiilen
+               bloklar) ve o kapanistaki hicbir job — `deploy`/`yayin` dahil —
+               `continue-on-error` ya da DAIMA-YANLIS `if:` ile susturulmus DEGIL.
+               Ek olarak sapma kolu (`d1-kadans`) o kapanista OLMAMALI (yoksa yayin
+               kirmizisi ile sapma kirmizisi yine tek birimde toplanirdi).
+    """
+    adimlar = _uzl_adimlari()
+    cron_adim, kadans_yaz, kadans_yuk, onarilamadi = _sinyal_adimlari(adimlar)
+    sorunlar = []
+
+    # ── YON (i-a): kadans kolunda ONARILAN sapma cikis kodu 1 URETMEZ ──────────
+    ortam = {"durum": "success", "girdiler": {KADANS_BAYRAGI: True},
+             "ciktilar": {("olcum", "sapma"): "var"},
+             "sonuclar": {"teyit": "success"}}
+    kosan_exit = []
+    for a in adimlar:
+        komut = str(a.get("run") or "")
+        if not re.search(r"(?m)^\s*exit 1\s*$", komut):
+            continue
+        if _kosul_degerlendir(str(a.get("if") or ""), ortam):
+            kosan_exit.append(str(a.get("name") or "")[:70])
+    if kosan_exit:
+        sorunlar.append(
+            "YON (i-a) DUSTU: sapma ONARILDIGI halde kadans kolunda `exit 1` veren adim(lar) "
+            "KOSUYOR (%s) -> deploy.yml kosumunun conclusion'i YINE iki soruyu birden "
+            "cevaplar (yayin sagligi + D1 sapmasi)." % "; ".join(kosan_exit))
+
+    # ── YON (i-b): damga DOGAR ve GERCEK nobetci onu KIRMIZI yakar ─────────────
+    damga_dogar = bool(kadans_yaz) and bool(kadans_yuk) and all(
+        _kosul_degerlendir(str(a.get("if") or ""), ortam) for a in (kadans_yaz, kadans_yuk))
+    if not damga_dogar:
+        sorunlar.append(
+            "YON (i-b) DUSTU: sapma varken `%s` damgasi DOGMUYOR -> sapma hicbir kanala "
+            "tasinmaz. Cikis kodunu temizleyip damgayi da dusurmek, ayrimin en kolay ve "
+            "en YANLIS cozumu olan SESSIZLESTIRMEDIR." % SAPMA_DAMGA_ADI)
+    else:
+        alarm = _modul("d1-sapma-kapisi")
+
+        def _sahte(yol, zaman_asimi=25):   # noqa: ARG001
+            if "/artifacts" in yol:
+                return {"artifacts": [{"name": SAPMA_DAMGA_ADI, "id": 1},
+                                      {"name": DAMGA_ADI, "id": 2}]}
+            raise AssertionError("fiksturde tanimsiz API yolu: %s" % yol)
+
+        gozlem = alarm.sapma_gozle(_sahte, 4242, SAPMA_DAMGA_ADI)
+        rc, _satirlar = alarm.hukum(gozlem, "workflow_run")
+        if rc != 1:
+            sorunlar.append(
+                "YON (i-b) DUSTU: damga VAR ama tools/d1-sapma-kapisi.py rc=%d verdi "
+                "(1 = KIRMIZI bekleniyordu) -> sapma AYRI kanalda da kirmizi YAKMIYOR."
+                % rc)
+        # Ters yon (yanlis-pozitif nobeti): damga YOKKEN alarm YESIL olmali, yoksa
+        # "her zaman kirmizi" bir kanal hicbir sey soylemez.
+        def _temiz(yol, zaman_asimi=25):   # noqa: ARG001
+            if "/artifacts" in yol:
+                return {"artifacts": [{"name": DAMGA_ADI, "id": 2}]}
+            raise AssertionError("fiksturde tanimsiz API yolu: %s" % yol)
+        rc_temiz, _ = alarm.hukum(alarm.sapma_gozle(_temiz, 4243, SAPMA_DAMGA_ADI),
+                                  "workflow_run")
+        if rc_temiz != 0:
+            sorunlar.append("YON (i-b) TERS NOBET DUSTU: damga YOKKEN alarm rc=%d "
+                            "(0 bekleniyordu) -> DAIMA kirmizi bir kanal sinyal tasimaz."
+                            % rc_temiz)
+
+    # ── YON (ii): yayin kirmizisi KORLESMEDI ──────────────────────────────────
+    dep_yol = os.path.join(WORKFLOW_DIZIN, DEPLOY_DOSYA)
+    if not os.path.exists(dep_yol):
+        raise OlcumHatasi("is akisi YOK: %s" % dep_yol)
+    with open(dep_yol, encoding="utf-8") as f:
+        dep = yaml_belge(f.read())
+    if not isinstance(dep, dict) or not isinstance(dep.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % DEPLOY_DOSYA)
+    joblar = dep["jobs"]
+    kapanis = _gecisli_needs(joblar, YAYIN_ISI)
+    if not kapanis:
+        sorunlar.append("YON (ii) DUSTU: `%s` job'unun `needs:` kapanisi BOS -> hicbir "
+                        "kapi yayini bloklamiyor; yayin kirmizisi anlamsizlasir."
+                        % YAYIN_ISI)
+    susturulan = []
+    for ad in sorted(kapanis | {YAYIN_ISI}):
+        job = joblar.get(ad)
+        if not isinstance(job, dict):
+            susturulan.append("%s (job TANIMSIZ)" % ad)
+            continue
+        if job.get("continue-on-error") in (True, "true"):
+            susturulan.append("%s (continue-on-error)" % ad)
+        if str(job.get("if") or "").strip().lower() in ("false", "${{ false }}"):
+            susturulan.append("%s (daima-yanlis `if:`)" % ad)
+    if susturulan:
+        sorunlar.append("YON (ii) DUSTU: yayin zincirindeki job(lar) SUSTURULMUS: %s -> "
+                        "yayin gercekten bozuldugunda kosum KIRMIZI olmaz."
+                        % ", ".join(susturulan))
+    kadans_ad = None
+    for ad, job in joblar.items():
+        if isinstance(job, dict) and str(job.get("uses") or "").strip() == KADANS_CAGRISI:
+            kadans_ad = str(ad)
+            break
+    if kadans_ad and kadans_ad in kapanis:
+        sorunlar.append("YON (ii) DUSTU: sapma kolu (`%s`) yayin zincirinde -> iki kirmizi "
+                        "yine TEK birimde toplanir." % kadans_ad)
+
+    return sorunlar, {"kosan_exit": kosan_exit, "damga_dogar": damga_dogar,
+                      "yayin_kapanisi": sorted(kapanis), "susturulan": susturulan,
+                      "kadans": kadans_ad}
+
+
+def sapma_alarm_kablosu():
+    """SAPMA KANALININ EVI YASIYOR MU — d1-sapma-alarmi.yml GERCEK dosyadan OLCULUR.
+
+    Kadans kolu sapmayi bir artifact'e tasidi; o artifact'i OKUYAN ve KIRMIZI yakan bir
+    kol YOKSA ayrim SESSIZLESTIRMEYE donusur. BES sart, hepsi fail-closed:
+      (1) dosya VAR ve ayristirilabilir,
+      (2) alarm araci (`%s`) hem `--kendini-test` hem GERCEK olcum kolu ile kosuyor
+          (yalniz `--kendini-test` kalsaydi alarm hicbir canli sey olcmez ama YESIL yanardi),
+      (3) YAYINI DURDURAMAZ: `push`/`pull_request`/`workflow_call` tetikleyicisi YOK,
+      (4) CRON'A BAGIMLI DEGIL: `workflow_run` ile deploy.yml'in BITISINDE tetiklenir
+          (4 Agu olcumu: cron teslimi %%3,65, en uzun bosluk 17,6 sa -> kanali cron'a
+          baglamak, kadans kolunun cozdugu sorunu geri getirirdi),
+      (5) artifact listesini okuyabilmek icin `actions: read` yetkisi VAR.
+    """ % SAPMA_ALARM_ARACI
+    yol = os.path.join(WORKFLOW_DIZIN, SAPMA_ALARM_DOSYA)
+    if not os.path.exists(yol):
+        raise OlcumHatasi(
+            "SAPMA ALARM KANALI YOK: %s bulunamadi -> kadans kolunda onarilan sapma "
+            "HICBIR YERDE kirmizi yakmaz (sessizlestirme)." % SAPMA_ALARM_DOSYA)
+    with open(yol, encoding="utf-8") as f:
+        govde = yaml_belge(f.read())
+    if not isinstance(govde, dict) or not isinstance(govde.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % SAPMA_ALARM_DOSYA)
+
+    sorunlar = []
+    tetik = _on_bolumu(govde)
+    tetik_adlari = set(str(k) for k in tetik) if isinstance(tetik, (dict, list)) else set()
+    for yasak, tani in (("push", "yayin akisi bu isi tetikleyemez"),
+                        ("pull_request", "yayin akisi bu isi tetikleyemez"),
+                        ("workflow_call", "deploy.yml bu isi `uses:` ile CAGIRAMAZ — "
+                                          "cagirsaydi kirmizisi YINE deploy kosumunun "
+                                          "conclusion'ina yigilirdi ve ayrim COZULMEZDI")):
+        if yasak in tetik_adlari:
+            sorunlar.append("%s icinde `%s` tetikleyicisi VAR -> %s"
+                            % (SAPMA_ALARM_DOSYA, yasak, tani))
+    if "workflow_run" not in tetik_adlari:
+        sorunlar.append(
+            "%s `workflow_run` ile tetiklenmiyor (%s) -> kanal ya cron kuyruguna bagimli "
+            "kalir (olculdu 4 Agu: teslim %%3,65, en uzun bosluk 17,6 sa) ya da hic kosmaz"
+            % (SAPMA_ALARM_DOSYA, sorted(tetik_adlari)))
+    else:
+        wr = tetik.get("workflow_run") if isinstance(tetik, dict) else None
+        akislar = (wr or {}).get("workflows") if isinstance(wr, dict) else None
+        if not isinstance(akislar, list) or not akislar:
+            sorunlar.append("%s `workflow_run.workflows` listesi YOK -> hangi kosumun "
+                            "bitisinde tetiklenecegi TANIMSIZ" % SAPMA_ALARM_DOSYA)
+
+    yetki = govde.get("permissions")
+    yetkiler = yetki if isinstance(yetki, dict) else {}
+    if str(yetkiler.get("actions") or "") not in ("read", "write"):
+        sorunlar.append("%s `permissions.actions` YOK/yetersiz (%r) -> tetikleyen kosumun "
+                        "artifact listesi OKUNAMAZ ve alarm HER kosumda 'olculemedi' verir"
+                        % (SAPMA_ALARM_DOSYA, yetkiler.get("actions")))
+
+    kendini = canli = False
+    for _ad, job in govde["jobs"].items():
+        if not isinstance(job, dict) or not isinstance(job.get("steps"), list):
+            continue
+        if job.get("continue-on-error"):
+            sorunlar.append("%s `%s` job'u `continue-on-error` ile FAIL-OPEN"
+                            % (SAPMA_ALARM_DOSYA, _ad))
+        for adim in job["steps"]:
+            if not isinstance(adim, dict):
+                continue
+            if adim.get("continue-on-error"):
+                sorunlar.append("%s: bir alarm adimi `continue-on-error` ile FAIL-OPEN "
+                                "-> kirmizi yutulur" % SAPMA_ALARM_DOSYA)
+            for satir in str(adim.get("run") or "").splitlines():
+                s = satir.strip()
+                if SAPMA_ALARM_ARACI not in s or not s.startswith("python3"):
+                    continue
+                if "--kendini-test" in s:
+                    kendini = True
+                else:
+                    canli = True
+    if not canli:
+        sorunlar.append("%s GERCEK olcum kolunu (`python3 %s` — `--kendini-test`SIZ) "
+                        "KOSMUYOR -> alarm hicbir canli sey olcmez ama YESIL yanar"
+                        % (SAPMA_ALARM_DOSYA, SAPMA_ALARM_ARACI))
+    if not kendini:
+        sorunlar.append("%s `--kendini-test` kolunu KOSMUYOR -> 'alarm sapmayi gorur' "
+                        "iddiasi hicbir yerde kanitlanmaz (sapma nadirdir, canli kol "
+                        "gunlerce yesil doner)" % SAPMA_ALARM_DOSYA)
+    return sorunlar, {"tetikler": sorted(tetik_adlari), "kendini": kendini,
+                      "canli": canli, "actions_yetkisi": yetkiler.get("actions")}
 
 
 def paket_kosul_arizasi(adim):
@@ -2324,6 +2826,117 @@ def kendini_test():
     iddia("KADANS: TEK KILIT — grup cagrilan isin JOB'unda (%r) ve cagiran job kendi "
           "grubunu tutmuyor -> ayni anda IKI uzlastirma kosamaz, kilitlenme riski de YOK"
           % kad_bulgu.get("grup"), bool(kad_bulgu.get("grup")), repr(kad_bulgu))
+    iddia("KADANS: cagiran job KENDINI KADANS KOLU olarak BEYAN EDER (`with: %s: true`) "
+          "— bayrak dusurulurse kol cron gibi davranir ve ONARILAN sapma deploy.yml "
+          "kosumunun conclusion'ini yine kirletir (iki soru tek cikis koduna yigilir)"
+          % KADANS_BAYRAGI, kad_bulgu.get("bayrak") is True, repr(kad_bulgu))
+    iddia("KADANS: bayragin VARSAYILANI `false` (cagrilan tarafta boolean girdi) — "
+          "varsayilan `true` olsaydi CRON kolu da sapmada kirmizi yakmaz, sapma IKI "
+          "KOLDAN DA susardi",
+          isinstance(kad_bulgu.get("bayrak_tanimi"), dict)
+          and kad_bulgu["bayrak_tanimi"].get("default") is False
+          and str(kad_bulgu["bayrak_tanimi"].get("type") or "") == "boolean",
+          repr(kad_bulgu.get("bayrak_tanimi")))
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # SINYAL AYRIMI — "yayin sagligi" ile "D1 sapmasi" AYRI HUKUMLER
+    # ═══════════════════════════════════════════════════════════════════════
+    # 🔴 NEDEN AYRI IDDIALAR (tek "ayrim var mi" iddiasi YETMEZ): bu depoda olculdu ki
+    # zincirden gecen tek bir iddia katmanlarin VEYA'sini olcer ([[beyan-edilmis-survivor]]).
+    # Sinyali kaldiran mutant, `exit 1`i dusuren mutant ve iki hali TEK adima yigan mutant
+    # AYRI kusurlardir; her biri TEK BASINA kirmizi yakabilmelidir.
+    try:
+        s_sorun, s_bulgu = sinyal_ayrimi()
+        s_ariza = None
+    except Exception as e:  # noqa: BLE001
+        s_sorun, s_bulgu, s_ariza = ["olculemedi"], {}, "%s: %s" % (type(e).__name__, e)
+    iddia("SINYAL: sapma gorunurlugu (cron/elle kolu) YASIYOR ve `exit 1` tasiyor — "
+          "sinyali tamamen kaldirmak ayrimin en kolay ve en YANLIS cozumudur",
+          bool(s_bulgu.get("cron")), s_ariza or "; ".join(s_sorun))
+    iddia("SINYAL: kadans kolunda sapma `%s` damgasina yazilir VE ayni adla YUKLENIR "
+          "(sapma susturulmaz, KANALI degisir)" % SAPMA_DAMGA_ADI,
+          bool(s_bulgu.get("yaz")) and bool(s_bulgu.get("yuk")),
+          s_ariza or "; ".join(s_sorun))
+    iddia("SINYAL: 'ONARILAMADI' AYRI bir hukumdur (`failure()` kosullu, `exit 1`) — "
+          "onarilan sapma ile kapanmayan sapma TEK KUTUYA konamaz",
+          bool(s_bulgu.get("onarilamadi")), s_ariza or "; ".join(s_sorun))
+    iddia("SINYAL: DOGRULUK TABLOSU — %d senaryonun hepsinde GitHub kosul semantigi "
+          "FIILEN calistirildi ve tam olarak beklenen adimlar kostu (carpisma YOK)"
+          % len(SINYAL_TABLOSU), not s_sorun, s_ariza or "; ".join(s_sorun))
+
+    # Kosul degerlendiricinin KENDI iki yonlu fiksturu (gercek dosyaya bagimli kalmasin).
+    _o = lambda kol, sapma, durum: {  # noqa: E731
+        "durum": durum, "girdiler": {KADANS_BAYRAGI: kol},
+        "ciktilar": {("olcum", "sapma"): sapma}, "sonuclar": {"teyit": durum}}
+    iddia("KOSUL FIKSTURU: ortuk `success()` — durum islevi TASIMAYAN kosul, onceki adim "
+          "dustugunde ATLANIR (bu satir olmadan 'onarilamadi' senaryosu carpisirdi)",
+          _kosul_degerlendir("steps.olcum.outputs.sapma == 'var'", _o(False, "var", "failure"))
+          is False)
+    iddia("KOSUL FIKSTURU: `failure()` tasiyan kosulda ORTUK success EKLENMEZ",
+          _kosul_degerlendir("failure() && steps.olcum.outputs.sapma == 'var'",
+                             _o(False, "var", "failure")) is True)
+    iddia("KOSUL FIKSTURU: `inputs.%s != true` cron kolunda DOGRU, kadans kolunda YANLIS"
+          % KADANS_BAYRAGI,
+          _kosul_degerlendir("inputs.%s != true" % KADANS_BAYRAGI, _o(False, "var", "success"))
+          is True
+          and _kosul_degerlendir("inputs.%s != true" % KADANS_BAYRAGI,
+                                 _o(True, "var", "success")) is False)
+    try:
+        _kosul_degerlendir("github.event_name == 'schedule'", _o(False, "var", "success"))
+        _tanimsiz = False
+    except OlcumHatasi:
+        _tanimsiz = True
+    iddia("KOSUL FIKSTURU: TANIMADIGI yazim OLCULEMEDI (fail-closed) — kosul katmani "
+          "GitHub ifade dilini TAKLIT ETMEZ, cozemedigini 'dogru' SAYMAZ", _tanimsiz)
+
+    # --- SAPMA ALARM KANALI: damgayi OKUYAN ve KIRMIZI yakan kol YASIYOR mu ---
+    try:
+        sa_sorun, sa_bulgu = sapma_alarm_kablosu()
+        sa_ariza = None
+    except Exception as e:  # noqa: BLE001
+        sa_sorun, sa_bulgu, sa_ariza = ["olculemedi"], {}, "%s: %s" % (type(e).__name__, e)
+    iddia("SAPMA KANALI: %s VAR ve GERCEK olcum kolunu kosuyor (damgayi okuyan kol "
+          "olmadan ayrim SESSIZLESTIRMEYE doner)" % SAPMA_ALARM_DOSYA,
+          not sa_sorun, sa_ariza or "; ".join(sa_sorun) or repr(sa_bulgu))
+    iddia("SAPMA KANALI: 🔴 yayini DURDURAMAZ — `push`/`pull_request`/`workflow_call` "
+          "tetikleyicisi YOK (workflow_call olsaydi kirmizisi YINE deploy kosumunun "
+          "conclusion'ina yigilirdi)",
+          not ({"push", "pull_request", "workflow_call"}
+               & set(sa_bulgu.get("tetikler") or [])), repr(sa_bulgu))
+    iddia("SAPMA KANALI: CRON'A BAGIMLI DEGIL — `workflow_run` ile deploy.yml'in "
+          "BITISINDE tetiklenir (olculdu 4 Agu: cron teslimi %3,65, en uzun bosluk 17,6 sa)",
+          "workflow_run" in (sa_bulgu.get("tetikler") or []), repr(sa_bulgu))
+    iddia("SAPMA KANALI: `--kendini-test` kolu da kosuyor — sapma NADIRDIR, canli kol "
+          "gunlerce yesil doner; 'alarm sapmayi gorur' iddiasi ancak fiksturle kanitlanir",
+          bool(sa_bulgu.get("kendini")), repr(sa_bulgu))
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # AYRIM KANITI — IKI YON, TEK OLCUM (tek yonlu kabul, sessizlestirmeyi de gecirir)
+    # ═══════════════════════════════════════════════════════════════════════
+    try:
+        ay_sorun, ay_bulgu = ayrim_kaniti()
+        ay_ariza = None
+    except Exception as e:  # noqa: BLE001
+        ay_sorun, ay_bulgu, ay_ariza = ["olculemedi"], {}, "%s: %s" % (type(e).__name__, e)
+    iddia("AYRIM (i-a): D1'de SAPMA VAR ve onarildi + KADANS kolu -> uzlastirici isinde "
+          "KOSAN hicbir adim `exit 1` vermez (deploy.yml conclusion'i YALNIZ yayin sagligi)",
+          not ay_bulgu.get("kosan_exit") and ay_bulgu.get("damga_dogar") is not None,
+          ay_ariza or repr(ay_bulgu.get("kosan_exit")))
+    iddia("AYRIM (i-b): AYNI senaryoda sapma damgasi DOGAR ve GERCEK nobetci "
+          "(tools/d1-sapma-kapisi.py) onu rc 1 = KIRMIZI yakar; damga YOKKEN rc 0 "
+          "(daima-kirmizi bir kanal sinyal tasimaz)",
+          bool(ay_bulgu.get("damga_dogar"))
+          and not [s for s in ay_sorun if s.startswith("YON (i-b)")],
+          ay_ariza or "; ".join(ay_sorun))
+    iddia("AYRIM (ii): YAYIN GERCEKTEN BOZUKKEN kosum KIRMIZI — `deploy` kapanisi BOS "
+          "DEGIL (%s job) ve zincirdeki hicbir job `continue-on-error`/daima-yanlis `if:` "
+          "ile susturulmamis; sapma kolu bu zincirde YOK"
+          % len(ay_bulgu.get("yayin_kapanisi") or []),
+          not [s for s in ay_sorun if s.startswith("YON (ii)")],
+          ay_ariza or "; ".join(ay_sorun))
+    iddia("AYRIM: IKI YON DE ayni olcumde saglandi (tek yonlu kabul, sapmayi tumden "
+          "susturan bir 'cozumu' de gecirirdi)", not ay_sorun,
+          ay_ariza or "; ".join(ay_sorun))
 
     # Fikstur: kosul katmaninin kendisi IKI YONLU olcusun (gercek dosyaya bagimli kalmasin).
     iddia("A0 KOSUL FIKSTURU: `if:` YOK -> ariza (kosulsuz damga yakalanir)",
@@ -2505,8 +3118,8 @@ def kendini_test():
     iddia("A4 KOSUL FIKSTURU: gercek kosul -> ariza YOK (yanlis-pozitif yok)",
           paket_kosul_arizasi({"if": "steps.olcum.outputs.durum == 'parite'"}) is None)
 
-    # DAMGA KUTUGU: yazici iki adi da tanir, kutuk disina cikamaz.
-    for ad in (DAMGA_ADI, PAKET_DAMGA_ADI):
+    # DAMGA KUTUGU: yazici UC adi da tanir, kutuk disina cikamaz.
+    for ad in (DAMGA_ADI, PAKET_DAMGA_ADI, SAPMA_DAMGA_ADI):
         g = damga_govdesi({"GITHUB_RUN_ID": "1", "GITHUB_SHA": "a" * 40}, ad)
         iddia("DAMGA KUTUGU: %r govdesi kendi is akisini ve IDDIASINI tasir" % ad,
               g["damga"] == ad and g["is_akisi"] == DAMGA_KUTUGU[ad][0]

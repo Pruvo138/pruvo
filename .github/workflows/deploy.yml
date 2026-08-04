@@ -1829,8 +1829,25 @@ jobs:
   # listesinde ADI GECMEZ -> `deploy` ile PARALEL kosar, yayin yolunu tek saniye uzatmaz.
   # Bu kol D1'e ve aga bagimlidir; bloklayici yapilsaydi tek bir ag/D1 arizasi TUM EKIBIN
   # yayinini durdururdu ([[kapi-birikimi-yayin-gecikmesi]]).
-  # ⚠️ `continue-on-error` KULLANILMADI: bloklamamak SESSIZ OLMAK DEGILDIR — sapma olursa
-  #    ya da onarim tutmazsa bu job KIRMIZI yanar ve bildirim duser.
+  # ⚠️ `continue-on-error` KULLANILMADI: bloklamamak SESSIZ OLMAK DEGILDIR — ONARILAMAYAN
+  #    sapmada bu job KIRMIZI yanar ve bildirim duser.
+  #
+  # 🔴 `with: kadans_kolu: true` — IKI SINYALI AYIRAN SATIR (4 Agu 2026, KraL hukmu)
+  # ─────────────────────────────────────────────────────────────────────────────
+  # OLCULEN KUSUR: cagrilan is akisinin sapma gorunurlugu adimi sapma bulunca BILEREK
+  # `exit 1` veriyordu. Bu job `deploy: needs`'te olmadigi icin yayini DURDURMUYOR — ama
+  # BU KOSUMUN (deploy.yml) GENEL `conclusion`'ini `failure` yapiyordu. Boylece tek bir
+  # kirmizi IKI ayri soruyu birden cevapliyordu: "yayin calisti mi" + "D1 sapmasi var mi".
+  # Bu depoda olculmus sinif ([[hukum-yanlis-birimde]]): TOPLU SONUC TEKIL EKSENI GIZLER.
+  # "deploy kosumu yesil mi" refleksiyle bakan biri yayini SAGLIKLI sanip sapmayi kacirir;
+  # tersi de olur — kirmiziya alisan biri yayin GERCEKTEN bozuldugunda gormez.
+  #
+  # BU BAYRAK SAPMAYI SUSTURMAZ (en kolay ve en yanlis cozum o olurdu): kadans kolunda
+  # ONARILAN sapma `d1-sapma-damgasi` artifact'ine yazilir ve d1-sapma-alarmi.yml AYRI bir
+  # kosumda (AYRI conclusion) KIRMIZI yakar. ONARILAMAYAN sapma bayraktan BAGIMSIZ olarak
+  # burada da KIRMIZI kalir — emniyet agi tutmadiysa o bir "gorunurluk" degil ARIZADIR.
+  # Bayrak DUSURULURSE kadans kolu yine cron gibi davranir ve bu kosumun conclusion'ini
+  # kirletir; tools/cron-nabiz-kapisi.py::kadans_kablosu bunu KIRMIZI yakar.
   # 🔴 ESZAMANLILIK BURADA BEYAN EDILMEZ — BILEREK: kilit cagrilan is akisinin `uzlastir`
   #    JOB'undadir (`group: d1-uzlastirici`) ve cron kolu ile bu kol icin AYNI sekilde,
   #    TEK KEZ uygulanir. Buraya da ayni grup konsaydi cagiran job grubu tutarken
@@ -1844,6 +1861,8 @@ jobs:
   # `deploy.needs` kapanisinda OLMADIGINI, grubunu ve `secrets: inherit`ini OLCER).
   d1-kadans:
     uses: ./.github/workflows/d1-uzlastirici.yml
+    with:
+      kadans_kolu: true
     secrets: inherit
     permissions:
       contents: read

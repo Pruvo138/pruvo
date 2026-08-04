@@ -12,9 +12,16 @@ name: D1 uzlastirici (katalog sapmasi)
 # idi -> min 2,0 dk · medyan 3,9 dk · max 24,2 dk; parti akisi durursa pencere
 # SINIRSIZ. Fark edilme tesadufe kalmisti (iki vaka da elle bakilirken goruldu).
 #
-# BU IS: yayin yolundan TAMAMEN AYRI (deploy.yml'e `needs` ile bagli DEGIL, ayri
-# is akisi, `push` tetikleyicisi YOK) -> yayin yoluna maliyeti 0 sn. 15 dakikada
-# bir katalogu OLCER; sapma varsa ONARIR ve onarimi DOGRULAR.
+# BU IS: yayini BLOKLAMAZ (deploy.yml'e `needs` ile bagli DEGIL) -> yayin yoluna
+# maliyeti 0 sn. Katalogu OLCER; sapma varsa ONARIR ve onarimi DOGRULAR.
+#
+# 🔴 "PUSH TETIKLEYICISI YOK" BEYANI 4 AGU'DA BAYATLADI, DUZELTILDI: bu dosyada eskiden
+# "yayin yolundan TAMAMEN AYRI (… `push` tetikleyicisi YOK)" yaziyordu. `needs` kismi
+# HALA DOGRU; ikinci kism ARTIK DEGIL — asagidaki `workflow_call` tetikleyicisi var ve
+# deploy.yml'in BLOKLAMAYAN `d1-kadans` kolu bu is akisini HER PUSH'ta cagiriyor. Bu
+# depoda yorumdaki beyan olcumun kaynagi sayilir; bayat beyan yanlis guven verir.
+# DOGRU BEYAN: "yayini BLOKLAMAZ" (yapisal: `deploy: needs` kapanisinda YOK) —
+# "yayin yolundan tetiklenmez" DEGIL.
 #
 # NEDEN "ONAR" (yalniz alarm DEGIL): alarm-only sapmayi bir insan gelene kadar
 # acik birakir; olculen zarar sinifi tam da "kimse bakmadigi icin surer" tipidir.
@@ -89,6 +96,36 @@ on:
   workflow_dispatch:
   # deploy.yml `d1-kadans` job'u (BLOKLAMAYAN kol) bu is akisini cagirir.
   workflow_call:
+    inputs:
+      # ═══════════════════════════════════════════════════════════════════════
+      # KOL AYRIMI — "yayin sagligi" ile "D1 sapmasi" AYRI SORULARDIR (4 Agu 2026)
+      # ═══════════════════════════════════════════════════════════════════════
+      # OLCULEN KUSUR: asagidaki sapma gorunurlugu adimi sapma bulunca BILEREK `exit 1`
+      # verir. Kadans kolu `deploy: needs`'te OLMADIGI icin yayini DURDURMUYOR — ama
+      # cagiran kosumun (deploy.yml) GENEL `conclusion`'ini `failure` yapiyordu. Sonuc:
+      # TEK bir kirmizi IKI ayri soruyu birden cevapliyordu ("yayin calisti mi" +
+      # "D1 sapmasi var mi"). Bu depoda olculmus sinif: TOPLU SONUC TEKIL EKSENI GIZLER
+      # ([[hukum-yanlis-birimde]]) — "kosum kirmizi" ≠ "deploy olmadi". Bir insan ya da
+      # nobetci "deploy kosumu yesil mi" refleksiyle bakarsa YANLIS okur; tersi de olur —
+      # yayin GERCEKTEN bozuldugunda kirmiziya alismis olur.
+      #
+      # BU BAYRAK O AYRIMI YAPAR — ama sapmayi SESSIZLESTIRMEZ (en kolay ve en yanlis
+      # cozum o olurdu). `true` iken sapma kendi kanalindan (`d1-sapma-damgasi` artifact'i
+      # -> .github/workflows/d1-sapma-alarmi.yml, AYRI KOSUM, AYRI conclusion) KIRMIZI
+      # yakar; cagiran kosumun conclusion'i YALNIZ yayin sagligini gosterir.
+      #
+      # 🔴 VARSAYILAN `false` — CRON/ELLE KOLUNUN DAVRANISI AYNEN KORUNUR: o kosumun TEK
+      # isi bu denetimdir, orada `exit 1` MESRUDUR ve tek sinyal iki soruyu karistirmaz.
+      # Bayrak YALNIZ deploy.yml `d1-kadans` job'u tarafindan `true` gecilir.
+      kadans_kolu:
+        description: >-
+          deploy.yml `d1-kadans` kolundan mi cagrildi. true ise ONARILAN sapma bu kosumu
+          KIRMIZI yakmaz (cagiran kosumun conclusion'i yayin sagligi olarak kalir), sapma
+          `d1-sapma-damgasi` artifact'i ile AYRI alarm kanalina tasinir. ONARILAMAYAN
+          sapma her iki kolda da KIRMIZI yakar.
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -257,18 +294,32 @@ jobs:
           if-no-files-found: error
 
       # ═══════════════════════════════════════════════════════════════════════
-      # GORUNURLUK — sapma OLDUYSA kosum KIRMIZI yanar (onarim BASARILI olsa bile)
+      # GORUNURLUK — UC AYRI HUKUM, UC AYRI ADIM (4 Agu 2026 kol ayrimi)
       # ═══════════════════════════════════════════════════════════════════════
-      # NEDEN: "sessizce onarip yesil donmek" bu isin var olma sebebinin ta kendisini
-      # gizler. Sapma OLMASI, ustteki bir yolun (pre-push kancasi / CI D1 adimi / elle
-      # push) KACIRDIGININ kanitidir; onarildi diye o kacak yok olmaz. Bugun (31 Tem)
-      # D1'de 56 kayitta icerik ekseni bayat bulundu ve ELLE senkronlandi — hicbir yerde
-      # kirmizi yanmadigi icin fark edilmesi TESADUFE kalmisti.
-      # MALIYET SIFIR: bu is akisi yayin yolundan TAMAMEN AYRI (deploy.yml'e `needs` ile
-      # bagli DEGIL, `push` tetikleyicisi YOK) -> buradaki kirmizi hicbir yayini durdurmaz,
-      # yalnizca GitHub bildirimi dusurur.
-      - name: "Sapma gorunurlugu: sapma olduysa kosum KIRMIZI (yayin ETKILENMEZ)"
-        if: steps.olcum.outputs.sapma == 'var'
+      # NEDEN GORUNURLUK HIC KALKMAZ: "sessizce onarip yesil donmek" bu isin var olma
+      # sebebinin ta kendisini gizler. Sapma OLMASI, ustteki bir yolun (pre-push kancasi /
+      # CI D1 adimi / elle push) KACIRDIGININ kanitidir; onarildi diye o kacak yok olmaz.
+      # 31 Tem'de D1'de 56 kayitta icerik ekseni bayat bulundu ve ELLE senkronlandi —
+      # hicbir yerde kirmizi yanmadigi icin fark edilmesi TESADUFE kalmisti.
+      #
+      # NEDEN UC ADIM (tek adim DEGIL): ayni kosumda UC AYRI SORU cevaplaniyor ve bunlari
+      # TEK cikis koduna yigmak "kirmizi"yi okunamaz kilar ([[hukum-yanlis-birimde]]):
+      #   1. CRON/ELLE kolu + sapma  -> kosumun TEK isi budur, `exit 1` MESRU (DEGISMEDI).
+      #   2. KADANS kolu + sapma ONARILDI -> cagiran kosum (deploy.yml) YAYIN kosumudur;
+      #      onun conclusion'i YALNIZ yayin sagligini gostermeli. Sapma SUSTURULMAZ,
+      #      `d1-sapma-damgasi` artifact'ine yazilir ve d1-sapma-alarmi.yml (AYRI kosum,
+      #      AYRI conclusion) onu KIRMIZI yakar.
+      #   3. ONARILAMADI -> "onarildi" ile AYNI HUKUM DEGILDIR: emniyet aginin KENDISI
+      #      tutmamistir. Her IKI kolda da KIRMIZI, bayraktan BAGIMSIZ.
+      # tools/cron-nabiz-kapisi.py::kadans_kablosu bu UC adimin VARLIGINI, KOSULLARINI ve
+      # BIRBIRINDEN AYRI olduklarini GERCEK dosyadan olcer; ikisi tek hale yigilirsa ya da
+      # biri silinirse KIRMIZI yanar.
+
+      # (1) CRON / ELLE KOLU — DAVRANIS 4 AGU ONCESIYLE BIREBIR AYNI.
+      # Bu kosumun TEK isi katalog denetimidir; burada tek cikis kodu iki soruyu
+      # KARISTIRMAZ, o yuzden `exit 1` dogru sinyaldir ve KALIR.
+      - name: "Sapma gorunurlugu (cron/elle kolu): sapma olduysa kosum KIRMIZI"
+        if: steps.olcum.outputs.sapma == 'var' && inputs.kadans_kolu != true
         run: |
           echo "🔴 D1 SAPMASI OLDU — onarim kosturuldu ve teyit edildi; kosum GORUNURLUK icin KIRMIZI."
           echo "### 🔴 D1 sapmasi olustu ve onarildi (kosum bilerek KIRMIZI)" >> "$GITHUB_STEP_SUMMARY"
@@ -277,4 +328,43 @@ jobs:
           grep -E "icerik ekseni|hash UYUSMAZ|EKSIK|FAZLA|urun sayisi" durum-once.txt >> "$GITHUB_STEP_SUMMARY" || echo "(sapma satirlari ayiklanamadi — tam cikti olcum adiminda)" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo "Sapmanin KENDISI bir ust-yol kacagidir (pre-push kancasi / CI D1 adimi / elle push)." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      # (2) KADANS KOLU — SAPMA KANALI. Cikis kodu 0'dir (cagiran YAYIN kosumunun
+      # conclusion'i kirlenmesin) AMA sapma BURADA BITMEZ: damga artifact'e yazilir ve
+      # d1-sapma-alarmi.yml AYRI bir kosumda KIRMIZI yakar. Damga DOGMAZSA (yazma ya da
+      # yukleme duserse) bu adim KIRMIZI olur -> sessizlestirme yolu FAIL-CLOSED kapali.
+      - name: "Sapma damgasi (kadans kolu): sapma AYRI kanaldan KIRMIZI yakar"
+        if: steps.olcum.outputs.sapma == 'var' && inputs.kadans_kolu == true
+        run: |
+          python3 tools/cron-nabiz-kapisi.py --damga-yaz d1-sapma-damgasi.json --damga-adi d1-sapma-damgasi
+          cat d1-sapma-damgasi.json
+          echo "### 🔴 D1 sapmasi olustu ve onarildi — ALARM AYRI KANALDA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Bu kosum YAYIN kosumudur; conclusion'i YALNIZ yayin sagligini gosterir." >> "$GITHUB_STEP_SUMMARY"
+          echo "Sapma \`d1-sapma-damgasi\` artifact'ine yazildi -> d1-sapma-alarmi.yml KIRMIZI yakar." >> "$GITHUB_STEP_SUMMARY"
+          echo "Sapma sayilari (onarimdan ONCE olculen):" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E "icerik ekseni|hash UYUSMAZ|EKSIK|FAZLA|urun sayisi" durum-once.txt >> "$GITHUB_STEP_SUMMARY" || echo "(sapma satirlari ayiklanamadi — tam cikti olcum adiminda)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "Sapmanin KENDISI bir ust-yol kacagidir (pre-push kancasi / CI D1 adimi / elle push)." >> "$GITHUB_STEP_SUMMARY"
+      - name: "Sapma damgasini yukle (artifact — d1-sapma-alarmi.yml bunu OKUR)"
+        if: steps.olcum.outputs.sapma == 'var' && inputs.kadans_kolu == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-sapma-damgasi
+          path: d1-sapma-damgasi.json
+          if-no-files-found: error
+
+      # (3) ONARILAMADI — AYRI HUKUM. Yukaridaki iki adim ortuk `success()` tasidigi icin
+      # onarim/teyit duserse ZATEN atlanir; bu adim o hali ADIYLA beyan eder ve HER IKI
+      # kolda KIRMIZI birakir. Emniyet aginin tutmamasi bir YAYIN kusuru degildir ama
+      # "onarildi" ile ayni kutuya konamaz: onarilmayan sapma Ege'de SURER.
+      - name: "ONARILAMADI: sapma KAPANMADI (ayri hukum — her iki kolda KIRMIZI)"
+        if: failure() && steps.olcum.outputs.sapma == 'var'
+        run: |
+          echo "🔴 D1 SAPMASI KAPANMADI — onarim ve/veya teyit adimi DUSTU."
+          echo "### 🔴 D1 sapmasi ONARILAMADI (emniyet agi tutmadi)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Bu hal 'sapma olustu ve onarildi'den AYRIDIR: katalog SU AN sapmali olabilir," >> "$GITHUB_STEP_SUMMARY"
+          echo "yani Ege (WhatsApp botu) katalogun bir kismini GOREMIYOR olabilir." >> "$GITHUB_STEP_SUMMARY"
+          echo "Elle teyit: \`python3 tools/d1-sync.py --durum\`" >> "$GITHUB_STEP_SUMMARY"
           exit 1
