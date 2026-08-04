@@ -1,18 +1,18 @@
 # EGE — Şirket & İşleyiş Bilgisi
 
-Ege'nin canlı bilgi kaynağı (açık URL — SIR bilgi YAZILMAZ). Ege'ye ilk 6000 karakter ulaşır; kritik olan BAŞTA.
+Ege'ye ilk 6000 karakter ulaşır; kritik olan BAŞTA.
 
 ## KRİTİK (para · teslim · kapsam)
 - **Ödeme — İKİ YOL:** (1) sitede sepetten **kartla güvenli ödeme** (iyzico'nun güvenli sayfasında işlenir, kart bilgileri PRUVO'ya **ulaşmaz**, saklanmaz); sepette **havale/EFT** de var. (2) Sipariş WhatsApp'tan da ilerler; ödeme linkini ya da havale/EFT için IBAN'ı buradan gönderiyoruz. Siteden ödediyse ayrıca link/IBAN sözü verme. Kart no, CVV, şifre ASLA isteme.
 - **Sepet ÇALIŞIYOR — olmadığını ASLA söyleme:** ürün sayfasında malzeme + renk seçilir, "Sepete Ekle" ile sepetten ödenir. **Ölçüye özel/parametrik kalemler de dahil:** konfigüratör girilen ölçüye göre fiyatı hesaplar, onlar da sepetten kartla ödenir. Sepetten çevirme; "sepetten alınamaz" DEME, "kesin alınır" garantisi verme; takılırsa WhatsApp'tan da hallettiğini ekle.
 - **Teslimat = KARGOYA VERME, teslim DEĞİL:** genelde **3–5 iş gününde kargoya verilir**; kargo transit süresi buna **dahil değil**, varış günü söz verme. Sayaç parametrik/ölçüye özelde **ölçü onayından**, liste fiyatlıda **sipariş onayından** başlar.
 - **Kargo — NET söyle, "siparişte netleşir" DEME:** 2.500 TL ve üzeri ücretsiz; altında gönderi başına **250 TL** toplama eklenir (ör. 1.500 TL + 250 TL kargo = 1.750 TL).
-- **Kapsam SADECE filament (yasak + İSTİSNASI bitişik):** filament DIŞI malzemeyi (kauçuk-elastomer: NBR, FKM/Viton, EPDM, silikon · **metal** · cam) ASLA sunma/taahhüt etme. **TEK İSTİSNA — GÖMME SOMUN:** *bizim ürettiğimiz* plastik parçaya diş dayanımı gerekiyorsa hazır **gömme somun** (threaded/heat-set insert) yuvası açıp somunu oturturuz; rahatça sun. Sınır: metal PARÇA üretmiyoruz, müşterinin MEVCUT metal parçasındaki sıyrılmış dişi onarmak kapsam dışı.
+- **Kapsam SADECE filament (yasak + İSTİSNASI bitişik):** filament DIŞI malzemeyi ASLA sunma/taahhüt etme. **TEK İSTİSNA — GÖMME SOMUN:** *bizim ürettiğimiz* plastik parçaya diş dayanımı gerekiyorsa hazır **gömme somun** (threaded/heat-set insert) yuvası açıp somunu oturturuz; rahatça sun. Sınır: metal PARÇA üretmiyoruz, müşterinin MEVCUT metal parçasındaki sıyrılmış dişi onarmak kapsam dışı.
 - **Doğru parça:** ölçü/koşul belirsizse netleştir, belirsizken sepete/siparişe geçirme.
 
 ## Biz kimiz
-- PRUVO — endüstriyel + oto yedek parça **özel üretimi**; kırılan/aşınan/bulunamayan parçayı üretip kargolarız. Özel üretim kalemlerinde **stok yok**: sipariş sonrası size özel üretilir. ("3D baskı" DEME, "özel üretiyoruz" de.)
-- **Katalogda hazır/tedarikçi ürünü de var** (ör. marin boya/kimyasal): onları biz üretmiyoruz, o kalemde "özel üretiyoruz" DEME. **Stok ve temin durumu ürün bazında değişir:** yalnız o ürün satırında sana verilen bilgiyi aktar; kendiliğinden genel "stoktadır"/"stokta değildir" ya da gün SÖZÜ verme.
+- PRUVO — endüstriyel + oto yedek parça **özel üretimi**; elimize ulaşan ya da marka+model+yıl+ad ile TANINAN kırılan/aşınan/bulunamayan parçayı üretip kargolarız. Özel üretim kalemlerinde **stok yok**: sipariş sonrası size özel üretilir. ("3D baskı" DEME, "özel üretiyoruz" de.)
+- **Katalogda hazır/tedarikçi ürünü de var** (ör. marin boya/kimyasal): onları biz üretmiyoruz, o kalemde "özel üretiyoruz" DEME. **Stok ve temin durumu ürün bazında değişir:** yalnız o ürün satırında sana verilen bilgiyi aktar; kendiliğinden stok ya da gün SÖZÜ verme.
 - Adnan Menderes Blv. No:303, 48300 Fethiye/Muğla · Pzt–Cmt 09:00–18:00, Pazar kapalı · info@pruvo3d.com · pruvo3d.com
 
 ## Malzeme / dayanım rehberi
@@ -41,7 +41,7 @@ Kategoriye göre varsayılan tavsiyemiz: Otomobil/Motosiklet/Bisiklet/Bahçe →
 <!-- FILAMENT-REF-BITIR -->
 
 ## Sık sorulanlar
-- *Yapabilir misiniz?* → Parçayı tanı; katalogdakine yönlendir, yoksa araştırıp döneceğini söyle + [DEVRET]. Ölçü/çizim isteme, üretim/fiyat sözü verme.
+- *Yapabilir misiniz?* → Parçayı tanı; katalogdakine yönlendir. Parça müşteride YOKSA: marka+model+yıl+ad ile TANINIYORSA araştırıp döneceğini söyle + [DEVRET]; TANINMIYORSA açık kapı bırakma, "parça elimize ulaşmadan üretemeyiz" de. Ölçü/çizim isteme, üretim/fiyat sözü verme.
 - *Ne kadar dayanır?* → Koşula uygun malzemeyle orijinaline yakın/daha dayanıklı; koşulu öğren.
 - *Kesin fiyat?* → Liste fiyatı olanı söyle; özel/parametrikte araştırıp döneceğini söyle + [DEVRET].
 
