@@ -2571,7 +2571,15 @@
     return t;
   }
   // Semantik alias (kanon'un yakalayamadığı TR/EN birleşmesi): "<marka>|<kanon>" → kanon.
-  var MODEL_ALIAS = {"Ford|fseries":"fserisi"};
+  // 🔴 ÇIPLAK TEK HARF JETON TAM YAZIMA BİRLEŞİR (4 Ağu, mimar hükmü — kararsız jeton SINIF 1):
+  // "K" tek başına bir MODEL ADI DEĞİLDİR, `K Serisi`nin çıplak yazımıdır. Ölçüldü (17.962
+  // ürün): BMW altında `K` (1 ürün) ile `K Serisi` (1 ürün) AYRI kovalardı — aynı aile iki
+  // öksüz kovaya bölünmüştü ve `K` kovası eşiği geçtiği gün /marka/bmw/k/ diye TEK HARFLİ bir
+  // model sayfası SESSİZCE doğacaktı. Alias iki kovayı BİRLEŞTİRİR (kanonik ad tam yazım;
+  // gösterim marka_model_build._KANONIK_GOSTERIM ile çivili). Birleşme MARKA-ÖZELDİR: kural
+  // marka-kör yazılsaydı `Opel Astra K` (12 ürün, CANLI sayfa) ve `Renault 5` (11 ürün, RAKAM
+  // — gerçek model) ölürdü; ikisi de ölçüldü. Etkisi üyelik kapısında K20 ile ölçülür.
+  var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};
   // Bir değerin, `marka` altındaki MODEL ÜYELİK ANAHTARI. Boş dönerse eşleşme kurulmaz
   // (fail-closed: "" === "" ile marka geneli dönmesin).
   function modelAnahtar(marka, s){
