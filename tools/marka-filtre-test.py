@@ -360,6 +360,49 @@ check("gercek siluet basliklari 13 adin HICBIRINI tasimiyor (fikstyur bagimsiz)"
       not [t for t in SILUET_GERCEK
            if any(a in " " + t.lower() + " " for a in B2_YENI_ADLAR)])
 
+# --- 1f. KALAN B2 KUYRUGU — ILAN EDILMIS SURVIVOR (kapatilMADI, GIZLENMEDI) --------
+# 🔴 NEDEN BU BLOK VAR: yukaridaki B2 bataryasi (B2_PARLAR) ONARIMDAN SONRA, eklenen 13
+# ada gore yeniden yazildi. Bu haliyle batarya YALNIZ duzeltilen adlari sinar -> "75/75
+# elendi" TOTOLOJIYE yakin durur ve kalan kuyrugu GIZLER ([[test-hatali-davranisi-kutsar]],
+# [[beyan-edilmis-survivor]]). Bagimsiz olcum (merge kapisi, 2026-08-04) ILK B2 kumesiyle
+# kosuldugunda 75 denemenin 20'si HALA KACIYOR: sembol adlari `pony` · `ovals` · `flag` ·
+# `laurel`. Bunlar 13'un DISINDA kaldi.
+#
+# 🔴 NEDEN KAPATILMADI (liste kovalama burada BITIYOR — olculdu):
+#   * `pony`   -> katalogda 2 vurus  (belirsiz: "pony car"/oyuncak) -> global'e KONAMAZ
+#   * `laurel` -> katalogda 1 vurus  (defne motifi)                 -> global'e KONAMAZ
+#   * `flag`   -> katalog 0 ama EN'de tamamen genel (yaris/ulke bayragi); global elese
+#                 mesru bayrak duvar susunu olduru
+#   * `ovals`  -> katalog 0; tek basina eklenebilirdi ama yalniz bu kuyrugun 1/4'unu kapatir
+#   Yani kalan kuyruk METIN kapisinin INDIRGENEMEZ artigidir; kapatmak icin sonsuz sembol
+#   listesi gerekir. Bilinen ve ILAN EDILEN bir bosluktur.
+#
+# 🔴 NEDEN KABUL EDILEBILIR: sinifin GERCEK insidansi 0. 448 benzersiz canli baslik
+#   (13'u dogrudan bu kuyrugu avlayan dusmanca sorgu: "pony wall art" 40 sonuc, "flag wall
+#   art" 16 sonuc dahil) tarandi; kapidan GECEN 111 duvar-susu basliginin HICBIRI bu 4
+#   sembol adini marka logosu olarak tasimiyor (vuran 0).
+#
+# ⚠️ BU BLOK CIRCIRDIR: asagidaki iddia "bu 20 baslik BUGUN GECIYOR" der. Biri kuyrugu
+#    kapatirsa (or. `ovals`i global'e eklerse) iddia KIRMIZI yanar ve bu beyanin
+#    GUNCELLENMESINI zorlar. Boylece bosluk sessizce ne buyur ne de sessizce kapanir.
+B2_KALAN_PARLAR = [("Ford", "pony"), ("Toyota", "ovals"),
+                   ("Lancia", "flag"), ("Fiat", "laurel")]
+B2_KALAN = ["%s %s %s wall art" % (m, sem, k)
+            for (m, sem) in B2_KALAN_PARLAR for k in B2_KANIT]
+_kalan_gecen = [t for t in B2_KALAN if not pr.is_nobypass(t)]
+check("KALAN B2 kuyrugu batarya boyutu 20", len(B2_KALAN) == 20)
+check("ILAN: kalan B2 kuyrugunun 20/20'si BUGUN GECIYOR (bilinen, olculmus bosluk; "
+      "gercek insidans 0/448). Bu sayi DEGISTIYSE beyani guncelle.",
+      len(_kalan_gecen) == 20)
+# Kuyrugun 4 sembol adi GERCEKTEN hicbir listede degil (beyan kaynaktan dogrulanir).
+for _ad in ("pony", "ovals", "flag", "laurel"):
+    check("kalan kuyruk adi hicbir listede DEGIL: %r" % _ad,
+          _ad not in pr.COP_LOGO and _ad not in pr.COP_SEMBOL_ADI)
+# AYIRT EDICILIK: kuyruk ACIK logo sozcugu tasiyinca YINE de elenmeli (kapi calisiyor).
+check("kalan kuyruk + ACIK logo sozcugu -> HALA ELENIR (kapi olu degil)",
+      all(pr.is_nobypass("%s %s logo silhouette wall art" % (m, sem))
+          for (m, sem) in B2_KALAN_PARLAR))
+
 
 def _mut_13ad_yok(name):
     """MUTANT 5 = 13 ad GLOBAL COP_LOGO'ya EKLENMEMIS hali. Bu KATMANI tek basina olcer:
