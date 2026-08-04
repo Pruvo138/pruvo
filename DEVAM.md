@@ -8,8 +8,8 @@ yazilmis" yesili, kosumlarin cogunun HIC olusmadigi halini artik gizleyemiyor.
 - OLCULDU (dalin worktree'sinde, merge oncesi, KENDIM kosturdum): kabul **124 iddia /
   0 kirmizi** (main'de 103) · yeni mutasyon surucusu **7 mutant (6 oldurucu + 1 kontrol) /
   0 kusur** · `cron-nabiz-kapisi.py` sha256 kosum oncesi = sonrasi (arac diske yazmiyor).
-- Kapsam merge-base `1159540c`'ten 4 dosya, 637+/30-; `urunler.json`,
-  `.urun-kaynaklari.json`, `shop-bayatlik-*.py` diff'te YOK. `merge-tree` cakismasiz.
+- Kapsam merge-base `1159540c`'ten 4 dosya, 637+/30-; urun verisi ve shop bayatlik
+  araci diff'te YOK. `merge-tree` cakismasiz. Ayrinti DEVAM-ARSIV.md'de (git disi).
 - Ardil commit'ler — curutulmus sayi + yetim surucu kapatildi:
   - `d892b22c` (K3): `tools/shop-bayatlik-kapisi.py` dosya basindaki "cadans 15 dk ->
     korluk penceresi <= 15 dk (53 kat iyilesme)" cumlesi CURUTULMUSTU; olculen degerlerle
