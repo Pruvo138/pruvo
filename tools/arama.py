@@ -639,16 +639,139 @@ ROZET_DISI_CIFT = {
     # Skoda marka sayfasinda durmaya devam eder (kapi K11 kaybolan=0 olcer).
     ("Skoda", "Golf"): "Golf VW rozetidir; Skoda Golf diye bir arac satilmadi (VAG platform "
                        "ortakligi) — gercek sayfa /marka/volkswagen/golf/",
+    # 4 Agu, KraL hukmu (capraz-marka taramasi): CANLIDA duran sayfalar. Berlingo bir
+    # CITROEN rozetidir; ayni arac Peugeot'ta `Partner`, Opel'de `Combo` adiyla satilir —
+    # "Peugeot Berlingo" / "Opel Berlingo" diye bir arac HIC satilmadi. Emsal birebir
+    # (Audi, Golf) satiridir. Urun KAYBOLMAZ: /marka/citroen/berlingo/ ve ilgili marka
+    # sayfasinda durmaya devam eder (K11 kaybolan=0 olcer).
+    # 🔴 ROZET IKIZI KATLAMASI ACILMADI (Okan/KraL hukmu, olculdu): Berlingo<->Partner<->
+    # Rifter ayni arac AMA Opel Combo'nun urunlerinin cogunlugu Berlingo DEGIL (Combo C
+    # Corsa tabanli, Combo D Fiat Doblo tabanli); blanket katlama YANLIS PARCA sattirir.
+    # Bu tablo yalnizca YANLIS SAYFA dogmasini engeller, ikiz uyumu URETMEZ.
+    ("Peugeot", "Berlingo"): "Berlingo Citroen rozetidir; Peugeot'daki karsiligi Partner/"
+                             "Rifter — gercek sayfa /marka/citroen/berlingo/",
+    # Opel|Berlingo bugun sayfa ACMIYOR (3 urun var ama hicbirinin BIRINCIL markasi Opel
+    # degil). ILERIYE DONUK yazildi: envanterdeki veri yazildigi an ESIK'i gecip sessizce
+    # dogacakti. Kapi (K19) ayni sinifin YENI uyelerini de KIRMIZI yakar.
+    ("Opel", "Berlingo"): "Berlingo Citroen rozetidir; Opel'deki karsiligi Combo — gercek "
+                          "sayfa /marka/citroen/berlingo/",
+    # DS bagimsiz bir MARQUE'dir (DS Automobiles, 2014'te Citroen'den ayrildi); klasik DS
+    # de Citroen rozetidir. "Peugeot DS" diye bir arac HIC satilmadi. CANLIDA duruyordu
+    # (/marka/peugeot/ds/, 3 urun) — Okan'in ana sayfa Peugeot cip satirinda GORDUGU jeton.
+    ("Peugeot", "DS"): "DS bagimsiz marque (DS Automobiles) / klasik DS Citroen rozetidir; "
+                       "Peugeot DS diye bir arac satilmadi — gercek sayfa /marka/citroen/ds/",
+    # ─────────────────────────────────────────────────────────────────────────
+    # 4 Agu, KraL hukmu — KURAL (tek tek liste DEGIL): "bir /marka/X/M/ sayfasi ancak M
+    # modeli GERCEKTEN X rozetiyle satilmissa dogar. Ayni fiziksel arac baska marque'ta
+    # BASKA ADLA satiliyorsa, o marque'in sayfasi KENDI adiyla acilir; ikizin adiyla ACILMAZ."
+    # Kural K19'un olctugu 41 capraz ciftin 14 "BEKLER" uyesine uygulandi; 14'u de DENY.
+    # URUN KAYBOLMAZ (olculdu, kapi K11 ile teyitli): her cift icin urunlerin TAMAMI ayni
+    # markanin BASKA bir yayimlanan kovasinda ZATEN duruyor + gercek rozet sayfasinda +
+    # marka sayfasinda + aramada. Deny yalnizca "o ad, o markanin altinda SAYFA olmasin".
+    # SEVEL hafif ticari ucuzu (Ducato/Jumper/Boxer) — her marque KENDI adiyla acilir:
+    ("Fiat", "Boxer"): "Fiat'in rozeti Ducato; Boxer Peugeot'nun — /marka/peugeot/boxer/",
+    ("Citroen", "Ducato"): "Citroen'in rozeti Jumper; Ducato Fiat'in — /marka/fiat/ducato/",
+    ("Fiat", "Jumper"): "Fiat'in rozeti Ducato; Jumper Citroen'in — /marka/citroen/jumper/",
+    ("Peugeot", "Jumper"): "Peugeot'nun rozeti Boxer; Jumper Citroen'in — "
+                           "/marka/citroen/jumper/",
+    # Hafif ticari ikizler (Berlingo/Partner · Trafic/Vivaro · Expert/Jumpy/Proace):
+    ("Citroen", "Partner"): "Citroen'in rozeti Berlingo; Partner Peugeot'nun — "
+                            "/marka/peugeot/partner/",
+    ("Opel", "Trafic"): "Opel'in rozeti Vivaro; Trafic Renault'nun — /marka/renault/trafic/",
+    ("Renault", "Vivaro"): "Renault'nun rozeti Trafic; Vivaro Opel'in — /marka/opel/vivaro/",
+    ("Citroen", "Proace"): "Citroen'in rozeti Jumpy/Dispatch; Proace Toyota'nin — "
+                           "/marka/toyota/proace/",
+    ("Peugeot", "Proace"): "Peugeot'nun rozeti Expert; Proace Toyota'nin — "
+                           "/marka/toyota/proace/",
+    # Toyota/Subaru ortak kupesi (GT86 · BRZ · Scion FR-S):
+    ("Toyota", "BRZ"): "Toyota'nin rozeti GT86/GR86; BRZ Subaru'nun — /marka/subaru/brz/",
+    ("Subaru", "GT86"): "Subaru'nun rozeti BRZ; GT86 Toyota'nin — /marka/toyota/gt86/",
+    # 🔴 FR-S SAPMASI (mimara raporlandi): FR-S bir SCION rozetidir — katalogda marque olarak
+    # YOK. Kural iki ciftin de deny'ini gerektiriyor ve sonucta `frs` canon'u SAHIPSIZ kaliyor
+    # (hicbir markada sayfa dogmuyor). OLCULDU: bu 6 tekil urunun TAMAMI zaten `brz` ve/veya
+    # `gt86` yayimlanan kovalarinda -> kaybolan 0. Ad kayboluyor, URUN kaybolmuyor.
+    ("Toyota", "FR-S"): "FR-S Scion rozetidir; Toyota'nin rozeti GT86 — /marka/toyota/gt86/",
+    ("Subaru", "FR-S"): "FR-S Scion rozetidir; Subaru'nun rozeti BRZ — /marka/subaru/brz/",
+    # A-segment ucuzu (107 · C1 · Aygo):
+    ("Toyota", "C1"): "Toyota'nin rozeti Aygo; C1 Citroen'in — /marka/citroen/c1/",
 }
 
-ROZET_DISI_SAYISI = 3
-ROZET_DISI_IMZA = "1b39a935b9f2049f"
+ROZET_DISI_SAYISI = 20
+ROZET_DISI_IMZA = "621346d7cd54bc0f"
 
 
 def rozet_disi_imzasi():
     """Cift kumesinin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
     return hashlib.sha256(
         json.dumps(sorted("%s|%s" % (a, b) for a, b in ROZET_DISI_CIFT), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CAPRAZ-MARKA (ROZET) IZIN ENVANTERI — ROZET_DISI_CIFT'in ALLOW tarafi (4 Agu, mimar hukmu)
+#
+# OLCULEN SINIF: `ROZET_DISI_CIFT` bugune kadar ELLE bulunmus ornekleri tutuyordu; yeni bir
+# rozet ihlali ancak biri CANLIDA gorunce yakalanabiliyordu. Olculdu (4 Agu, 17914 urun):
+# `(Peugeot, Berlingo)` 9 urunle YAYINDA, `(Peugeot, DS)` 3 urunle YAYINDA, `(Opel, Berlingo)`
+# 3 urunle ESIK'in DIBINDE bekliyordu — ucu de sessizce dogmustu.
+#
+# ILERIYE DONUK YUKLEM (kapi: tools/model-uyelik-kapisi.py K19): ayni KANONIK model anahtari
+# IKI ya da DAHA COK markada sayfa esigini geciyorsa, o (marka, canon) cifti ya ROZET_DISI_CIFT'te
+# (deny) ya BU envanterde (allow) olmak ZORUNDADIR. Ikisinde de yoksa kapi KIRMIZI yanar ve
+# karar ister — sessiz sayfa DOGMAZ.
+#
+# 🔴 KARSILASTIRMA BIRIMI KUME'dir, SAYI DEGIL (DEGISTIRICI_SAYFA_IZNI ile ayni disiplin):
+# bir cift olup biri dogunca sayi sabit kalir ve sapma gizlenirdi ([[hukum-yanlis-birimde]]).
+#
+# 🔴 NEDEN "IKIZI KATLA" DIYE BIR KURAL YAZILMADI (olculdu ve curutuldu): Berlingo/Partner/
+# Rifter/Proace City ayni aractir AMA Opel Combo'nun urunlerinin cogunlugu Berlingo DEGIL
+# (Combo C Corsa tabanli, Combo D Fiat Doblo tabanli, Combo E gercek ikiz). Blanket katlama
+# YANLIS PARCA sattirir. Bu envanter yalnizca YANLIS SAYFA dogmasini engeller; ikiz uyumu
+# URETMEZ.
+#
+# DEGER SINIFI: yalnizca "ROZET" — model o markanin KENDI rozetiyle GERCEKTEN satildi.
+# 🔴 "BEKLER" SINIFI KALDIRILDI (4 Agu, KraL hukmu): 14 uyenin tamami mimar kuralina gore
+# YARGILANDI ve 14'u de ROZET_DISI_CIFT'e (deny) tasindi. Gecici bir "karar bekliyor" sinifi
+# tabloda KALMAZ — yargisiz giris, yargisiz sayfa demektir; kural artik tek ve nettir.
+# Yeni bir capraz cift dogarsa K19 KIRMIZI yakar ve kural o cifte de UYGULANIR.
+ROZET_CAPRAZ_IZINLI = {
+    "Citroen|berlingo": ("ROZET", "Berlingo Citroen'in kendi rozeti"),
+    "Peugeot|boxer": ("ROZET", "Peugeot Boxer gercek rozet (SEVEL ucuzu; her marka KENDI adiyla)"),
+    "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),
+    "Citroen|c1": ("ROZET", "Citroen C1 gercek rozet"),
+    "Citroen|ds": ("ROZET", "Klasik Citroen DS + DS marque'inin cikis rozeti"),
+    "Fiat|ducato": ("ROZET", "Fiat Ducato gercek rozet"),
+    "Dacia|duster": ("ROZET", "Dacia Duster gercek rozet"),
+    "Renault|duster": ("ROZET", "Renault Duster bazi pazarlarda gercek rozet (Rusya/Hindistan/"
+                                "Brezilya) — ikizin adi DEGIL, KENDI adi"),
+    "Volkswagen|golf": ("ROZET", "Golf VW'nin kendi rozeti"),
+    "Toyota|gt86": ("ROZET", "Toyota GT86 gercek rozet"),
+    "Citroen|jumper": ("ROZET", "Citroen Jumper gercek rozet"),
+    "Dacia|logan": ("ROZET", "Dacia Logan gercek rozet"),
+    "Renault|logan": ("ROZET", "Renault Logan bazi pazarlarda gercek rozet — KENDI adi"),
+    "Skoda|octavia": ("ROZET", "Octavia Skoda'nin kendi rozeti"),
+    "Peugeot|partner": ("ROZET", "Peugeot Partner gercek rozet"),
+    "Toyota|proace": ("ROZET", "Toyota Proace gercek rozet"),
+    "Dacia|sandero": ("ROZET", "Dacia Sandero gercek rozet"),
+    "Renault|sandero": ("ROZET", "Renault Sandero bazi pazarlarda gercek rozet — KENDI adi"),
+    # Ayni ADI tasiyan AYRI araclar (ikiz DEGIL, ad cakismasi): Ford Sierra (1982 sedan) ile
+    # Suzuki Jimny Sierra ayni arac degildir; ikisi de KENDI rozetiyle satildi.
+    "Ford|sierra": ("ROZET", "Ford Sierra gercek model (Suzuki Sierra ile IKIZ DEGIL, ad cakismasi)"),
+    "Suzuki|sierra": ("ROZET", "Suzuki (Jimny) Sierra gercek model"),
+    "Renault|trafic": ("ROZET", "Renault Trafic gercek rozet"),
+    "Opel|vivaro": ("ROZET", "Opel Vivaro gercek rozet"),
+}
+
+ROZET_CAPRAZ_IZINLI_SAYISI = 22
+ROZET_CAPRAZ_IZINLI_IMZA = "043f8dab3465c877"
+
+
+def rozet_capraz_imzasi():
+    """Envanterin ANAHTAR kimligi — sessiz genisleme/daralma kapida KIRMIZI yakar.
+    YALNIZ anahtarlar imzalanir: sinif alani ("ROZET"/"BEKLER") AYRI bir eksende raporlanir;
+    tek imzaya baglansaydi sinifi kaydiran mutant bu imzaya sirtini dayardi."""
+    return hashlib.sha256(
+        json.dumps(sorted(ROZET_CAPRAZ_IZINLI), ensure_ascii=False)
         .encode("utf-8")).hexdigest()[:16]
 
 
@@ -708,10 +831,19 @@ MODEL_OLMAYAN_CIFT = {
                     "urunler ana modelin varyant bolumunde",
     ("Ford", "ST Line"): "gorunum paketi — ST ile ayni sinif, ayri yazim",
     ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",
+    # 4 Agu, mimar hukmu (cip satiri taramasi; CANLIDA duran sayfalar):
+    # 🔴 IKISI DE MARKA-OZEL yazildi, MODEL_OLMAYAN_JETON'a (marka-KOR) EKLENMEDI:
+    #   "iPhone" Apple'in GERCEK model adidir — marka-kor kumeye yazilsaydi ileride
+    #   /marka/apple/iphone/ sayfasini da oldururdu; "Electric" ise baska bir markanin
+    #   mesru model jetonu olabilir. Yargi yalnizca ARAC markasi altinda gecerlidir.
+    ("Peugeot", "iPhone"): "Apple telefon modeli — arac modeli degil; kayitlarda jeton "
+                           "telefon tutucusu uyumundan geliyor (CANLIDA /marka/peugeot/iphone/)",
+    ("Mitsubishi", "Electric"): "'Mitsubishi Electric' SIRKET adinin ikinci kelimesi (beyaz "
+                                "esya/klima kolu) — arac modeli degil; urunler Ev kategorisinde",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 3
-MODEL_OLMAYAN_CIFT_IMZA = "f578d0954c69c3da"
+MODEL_OLMAYAN_CIFT_SAYISI = 5
+MODEL_OLMAYAN_CIFT_IMZA = "c3fcef6ac1363862"
 
 
 def model_olmayan_cift_imzasi():
