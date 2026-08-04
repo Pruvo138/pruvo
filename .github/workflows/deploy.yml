@@ -1740,6 +1740,13 @@ jobs:
       # (Peugeot, Berlingo) 9 urunle, (Peugeot, DS) 3 urunle CANLIDA duruyordu, (Opel,
       # Berlingo) esigin dibinde bekliyordu. Birim KUME (sayi DEGIL) ve olcut "sayfa
       # DOGURACAK MI" (yayimlandi mi DEGIL) — aksi halde deny tablosu kendi kanitini silerdi.
+      # K20 CIPLAK TEK HARF JETON (kararsiz jeton SINIF 1, 4 Agu): "K" tek basina model adi
+      # DEGILDIR, `K Serisi`nin ciplak yazimidir. Olculdu (17.962 urun): BMW altinda `K`
+      # (1 urun) ile `K Serisi` (1 urun) AYRI kovalardi; `K` kovasi ESIK'i gectigi gun
+      # /marka/bmw/k/ TEK HARFLI sayfasi SESSIZCE dogacakti. Kural fiksturle civili ve
+      # ETKISI olculur (ayri kova 0 · tabana ulasmayan urun 0 · kaybolan 0) + POZITIF CAPA:
+      # marka-KOR bir kural `Opel Astra K` (12 urun) ve `Renault 5` (11 urun, RAKAM = gercek
+      # model) sayfalarini oldururdu; ikisi de yayinda kalmali.
       # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ.
       # Olculdu: 3,1 s -> 3,6 s (ayni makinede katlama ONCESI 5,7 s idi; kusakTabanlari
       # bellegi hem kapiyi hem ana sayfa filtresini hizlandirdi -> serit A3 UZAMADI).
@@ -1768,8 +1775,12 @@ jobs:
       # envanterden cifti dusuren · envantere uretimde karsiligi olmayan cift ekleyen ·
       # olcutu "sayfa DOGDU MU"ya cevirip tabloyu kendi kaniti yapan) + 1 kontrol
       # (envanteri yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
-      # Olculdu: yerelde 24+4 mutant 108 s iken 28+5 mutant 140 s (serit-a3 +32 s).
-      - name: "Model uyeligi mutasyon bataryasi (28 oldurucu + 5 kontrol)"
+      # CIPLAK TEK HARF (kararsiz jeton SINIF 1) ekseni 2 oldurucu daha ekledi (birlesmeyi
+      # kaldiran · kuratorlu gosterim zorlamasini dusuren) + 1 kontrol (MODEL_ALIAS'i yeniden
+      # siralamak) ve `GS` hukmunu CALISTIRILABILIR kilan 1 oldurucu (olu allow girisi yazip
+      # K19'u tek basina kirmizi yakan) geldi. Ikisi de TEK BASINA kirmizi yakiyor (olculdu).
+      # Olculdu: yerelde 24+4 mutant 108 s iken 31+6 mutant 165 s (serit-a3 +25 s).
+      - name: "Model uyeligi mutasyon bataryasi (31 oldurucu + 6 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)

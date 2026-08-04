@@ -195,6 +195,11 @@ _KANONIK_GOSTERIM = {
     ("Ford", "e350"): "E-350",
     ("Ford", "f150lightning"): "F-150 Lightning",
     ("Ford", "fserisi"): "F-Serisi",
+    # 🔴 ÇIPLAK TEK HARF JETON (4 Ağu, kararsız jeton SINIF 1): `K` ile `K Serisi` yazımları
+    # MODEL_ALIAS ile TEK kovada birleşti; sıklık EŞİT olduğu için (1-1) deterministik
+    # tie-break ALFABETİK davranır ve kova adı "K" olurdu — mimar hükmü tam yazımdır
+    # ("TEK HARF ÇIPLAK KULLANILMAZ"). Zorlama olmadan sayfa/çip etiketi tek harfe düşer.
+    ("BMW", "kserisi"): "K Serisi",
 }
 
 # ---- Pilot model-özel gövde copy (seo/marka-model-pilot-ilan-paketi.md — BİREBİR) ----
