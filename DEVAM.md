@@ -118,8 +118,8 @@ kapatilamaz — ayri tur gerekiyor.
 (b) Kapi `pre-commit`/`pre-push` icinden cagrildiginda git kendi kancalarini
 `GIT_DIR`/`GIT_INDEX_FILE` TANIMLI olarak kosar; yani (a) kapandiginda ortam kirliligi
 GERCEK bir yol olur — bu tur tam o yolu kapatti, kayda gecsin.
-(c) Ic rapor dosyasi adina atif izlenen dosyalarda 26 yerde daha var (olculdu: 26 dosya
-/ 55 gecis) — depo PUBLIC, hijyen isi, ayri tur.
+(c) KAPANDI — ic isci-rapor protokol adina yapilan atiflarin hijyeni: asagidaki
+"public depo hijyeni" kalemine bak (merge 20fbff61).
 
 KAPANDI: nabiz nobetcisi A5 TESLIM ekseni — dokum DEVAM-ARSIV.md de (git disi).
 
@@ -135,3 +135,44 @@ ACIK KALEM: yayin hatti icerik denetimi — dokum DEVAM-ARSIV.md de (git disi).
 
 ## 🟡 YENI ACIK KALEM — `CLAUDE.md`/`AGENTS.md` git disi symlink
 ACIK KALEM: symlink surumleme ayrintisi — dokum DEVAM-ARSIV.md de (git disi).
+
+## ✅ KAPANDI — public depo hijyeni: ic surec dosyasi adina yorum atiflari (merge `20fbff61`)
+Izlenen dosyalarda ic isci-rapor protokol adina YORUM/DOCSTRING metni olarak yapilan
+atiflar notrlestirildi; tekrarini engelleyen nobetci `tools/ic-rapor-adi-kapisi.py`
+CI'da (`serit-a3`, `deploy: needs` listesinde) BLOKLAYICI kosuyor.
+BAGIMSIZ OLCUM (curutucu): dal oncesi 55 vurus / 27 dosya · dal sonrasi muaf 31 vurus /
+7 dosya · temizlenen 24 satir / 20 dosya (55 − 31 = 24, aritmetik TUTUYOR; iscinin
+beyaniyla TAM ESIT). Oldurucu: temizlenmis dosyaya desen geri konunca TEK KIRMIZI,
+dogru dosya:satir basildi. Kontrol: benzer ama kapsam disi 4 metin YESIL (yanlis
+pozitif yok). Muafiyet ICERIK-hash'ine bagli dogrulandi — kayitli satirin metni
+degisince VE ayni satir baska dosyaya kopyalaninca muafiyet DUSTU, ikisinde de kirmizi;
+yol-bazli genel kacis DEGIL. Determinizm 3/3 ayni, sure 0,24 sn, sig checkout'ta
+calisiyor (489 dosya). Mutasyon: 2 mutantin her biri IDDIA kumesinde TEK KIRMIZI,
+Traceback 0, iddia sayisi 2→2 sabit, canli dosya sha256 once=sonra AYNI.
+Kod davranisi DEGISMEDI: 14 `.py`de docstring-normalize AST 0 fark (ham AST'de 12
+dosyada fark → edit gercekten docstring icinde), 4 JS/MJS `node --check` rc=0.
+Kapilar rc=0: is-akisi · ci-kapsam (+kendini-test) · kapi-envanteri 7/7 · kisisel-veri ·
+urunler-guard-provenans 28/0 · mukerrer-kontrol · duzelt-toplu. Katalog dosyalari
+kapsam DISI (push oncesi `origin/main..HEAD` urun diffi BOS). D1 uc eksen 18008 = 18008.
+
+MUAFIYET HUKMU (mimar karari icin): 31 muaf vurusun 30'u MESRU — `tools/durum.py` (2)
+protokol adini fiilen arayan kod + ona bagli print etiketi; `tools/kisisel-veri-test.py`
+(22) kardes sizinti nobetcisinin KENDI kirmizi/yesil fikstur ve hata-mesaji verisi;
+`tools/paket-*.md` (6 satir / 4 dosya) delegasyon spec'lerinin TESLIM talimatinin
+kendisi ("bu ad ZORUNLU", "baska ad YASAK") — metnin KENDISI mekanizma oldugu icin
+genellestirilirse spec islevini yitirir, `durum.py` ile ayni gerekce sinifinda.
+1 KACI: `tools/olculmemis-siparis-test.py` (1) — bir `print()` etiketi; "calisan kod,
+yorum degil" ayrimi bicimsel, hicbir test bu dizgeye dayanmiyor, genellestirilmesinin
+davranissal maliyeti SIFIR. Ayri turde kapatilabilir (muafiyet govdesinden cikarilir).
+ARTIK POZ (daha genis eksen, bu dalin isi DEGIL): `tools/paket-*.md` delegasyon
+spec'lerinin PUBLIC depoda DURUYOR olmasi, ic surec gorunurlugu acisindan dosya
+adindan daha buyuk bir yuzey — ayri karar (Okan/mimar).
+BILINEN KOR NOKTA: olculdu ve dar kapsamli, kardes nobetcinin ayni desenli istisnasiyla
+tutarli; dokum DEVAM-ARSIV.md de (git disi). Kapatilmasi istenirse ayri tur.
+
+YAYIN: bu SHA'nin kosumunda (id 30929902990) yeni IKI adim FIILEN kostu ve `success`
+verdi (`5/5 gecti` + `temiz (0 muafiyet-disi isabet)`). Kosum yine de KIRMIZI, `deploy`
+SKIPPED — sebep BASKA ve ONCEDEN VAR: `devam-sinif-kapisi` (serit-a2 + serit-a3), ayni
+iki adim `dced48ce`/`f8698ebe`/`31769d88` kosumlarinda da kirmiziydi, yani dal ONCESI.
+Dal DEVAM ile ilgili hicbir dosyaya dokunmadi. Baska bir oturum `8073ea6f` ile ihlalleri
+arsivledi; kapi yerelde artik YESIL (0 sinif ihlali) — sonraki kosumda yayin beklenir.
