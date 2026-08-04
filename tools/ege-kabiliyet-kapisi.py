@@ -61,7 +61,7 @@ NE OLCER (KAPSAM DAR — bilerek):
         soyle")                                                           -> YANMAZ
       · satirda parca/urun baglami YOK ("Liste fiyati yoksa ...")         -> YANMAZ
       KANAT 2 (taninmama dali — X5 kacagini kapatir):
-      · [negatif tanima: tanınm- ] + [GENIS acik-kapi listesi]
+      · [negatif tanima: tanınm- (tanınmış HARIC)] + [DAR acik-kapi listesi]
         ("TANINMIYORSA da kapiyi kapatma, bakip haber edecegini soyle")  -> yanar
         (parca baglami SARTI ARANMAZ; "tanınmıyorsa" zaten parca hakkindadir)
       · vaadin CUMLECIGINDE pozitif tanima jetonu ("Parça tanınıyorsa ...
@@ -425,16 +425,22 @@ E_VAAT_RE = re.compile(
 
 # GEREKLI KOSUL — POZITIF tanima testi. `(?!m)` "tanınmıyorsa / tanınmayan"i
 # DISARIDA tutar (yukariya bak).
+# 🔴 `\btanınmış\w*` ACIKCA POZITIF TARAFTA (4 Agu, 2. curutme — REGEX HATASI
+#    duzeltmesi, TAKAS DEGIL): Turkcede "tanınmış" = UNLU/BILINEN, yani tam da
+#    POZITIF tanimadir. `\btanın(?!m)\w*` onu disariya atiyordu ve asagidaki
+#    NEGATIF desen iceri aliyordu -> "Tanınmış bir markaysa katalogdan git"
+#    KIRMIZI yaniyordu (fikstur X11).
 TANIMA_SARTI_RE = re.compile(
-    r"\btanın(?!m)\w*|\btanıyabil\w*|kimliği\s+\w*çık(?!m)\w*|kimliği\s+belli"
-    r"|hangi\s+parça\s+olduğu\s+(?:\w+\s+)?çık(?!m)\w*",
+    r"\btanın(?!m)\w*|\btanınmış\w*|\btanıyabil\w*|kimliği\s+\w*çık(?!m)\w*"
+    r"|kimliği\s+belli|hangi\s+parça\s+olduğu\s+(?:\w+\s+)?çık(?!m)\w*",
     re.IGNORECASE)
 
-# NEGATIF tanima — canli kuralin (2) dali. AYRI bir desen: (E)'nin IKINCI KANADI
-# bunu TETIKLEYICI olarak kullanir (asagi bak), ELDE_YOK_RE ile ayni jetonlar
-# olsa da rolu farklidir, o yuzden tek kaynaktan turetiliyor: karismasin.
+# NEGATIF tanima — canli kuralin (2) dali. AYRI desen: (E)'nin IKINCI KANADI
+# bunu TETIKLEYICI olarak kullanir; rolu ELDE_YOK_RE'dekinden farklidir.
+# 🔴 `(?!ış)`: "tanınmış / tanınmışsa / tanınmışlık" HARIC (yukariya bak).
 NEGATIF_TANIMA_RE = re.compile(
-    r"\btanınm\w*|hangi\s+parça\s+olduğu\s+(?:\w+\s+)?çıkm\w*", re.IGNORECASE)
+    r"\btanınm(?!ış)\w*|hangi\s+parça\s+olduğu\s+(?:\w+\s+)?çıkm\w*",
+    re.IGNORECASE)
 
 # 🔴 (E) IKINCI KANAT — "TANINMAMA DALINDA ACIK KAPI" (4 Agu, curutucu bulgusu X5).
 # OLCULDU: `TANINMIYORSA da kapıyı kapatma, bakıp haber edeceğini söyle.` ILK
@@ -449,12 +455,24 @@ NEGATIF_TANIMA_RE = re.compile(
 # ⚠️ CUMLECIK duzeyinde POZITIF tanima jetonu ayrica veto eder: "Parça tanınıyorsa
 #    araştırıp döneceğini söyle, tanınmıyorsa kes." MESRUDUR (vaat POZITIF dala
 #    aittir) — fikstur X6 bunu nobetler.
-ACIK_KAPI_RE = re.compile(
-    E_VAAT_RE.pattern
-    + r"|\bhaber\s+ed\w*|\bhaber\s+ver\w*|\bbakıp\s+\w+|\bbakalım\b"
-      r"|\bdöneceğ\w*|\bdönerim\b|\bdöneriz\b|\bdönebilir\w*"
-      r"|açık\s+kapı\s+bırak(?!ma)|kapıyı\s+kapatma|kapıyı\s+açık\s+bırak"
-      r"|\bumut\s+ver\w*",
+# 🔴 DAR TUTULMASININ SEBEBI OLCULDU (4 Agu, 2. curutme — GERI ALINMIS GENISLIK).
+# ILK surumde bu desen E_VAAT_RE + GENIS bir musteri-hizmeti fiil listesiydi
+# (`haber ver`, `döneceğ-`, `dönerim`, `dönebilir-`, `bakıp \w+`). Kanat 2 alan
+# (parca) sartini BILEREK kaldirdigi icin sinifi alan icinde tutan tek cit
+# gitmisti; sonuc OLCULDU: 13 tamamen MESRU cumlenin 8'i KIRMIZI yaniyordu
+# (kargo adresi · kart · malzeme adi · dosya bicimi · numara · dil · fotograf
+# baglamlari). Kazanc +1 yakalama (yalniz X5), bedel 8/13 yanlis-pozitif —
+# ve bu kapi `deploy: needs: build`, yani her biri bir gun TUM pruvo3d.com
+# yayinini durduracak bir mayin. TAKAS TERS YONDEYDI.
+# ARTIK YALNIZ GERCEK "ACIK KAPI" IFADELERI: sıradan musteri-hizmeti fiilleri
+# (haber ver / dön- / bakıp <herhangi>) BU LISTEDE YOKTUR.
+# ILAN EDILEN BEDEL: "...yoksa bir yolunu buluruz" gibi, negatif tanima dalini
+# ADLANDIRMAYAN parafrazlar KACAR (ne_olculmedi'de yazili).
+ACIK_KAPI_DAR_RE = re.compile(
+    r"açık\s+kapı\s+bırak(?!ma)|kapıyı\s+kapatma|kapıyı\s+açık\s+bırak"
+    r"|\bumut\s+ver\w*|bakıp\s+haber\w*|\bhallederiz\b|\bhallederim\b"
+    r"|bir\s+yolunu\s+bul\w*|\bilgilen\w*|\bdestek\s+ol\w*"
+    r"|teklif\s+hazırla\w*",
     re.IGNORECASE)
 
 # (E)-YE OZEL OLUMSUZLAMA EKI — ortak OLUMSUZ_RE'ye DOKUNULMADI (o (A)/(B)/(C)
@@ -629,10 +647,10 @@ def bulgular(metin):
             #   "tanınmıyorsa" jetonu zaten PARCANIN taninmasi hakkindadir
             #   (X5 satirinda 'parça' kelimesi GECMIYOR — sart arasaydik kacardi).
             kanat2 = bool(NEGATIF_TANIMA_RE.search(cumle)
-                          and ACIK_KAPI_RE.search(cumle))
+                          and ACIK_KAPI_DAR_RE.search(cumle))
             if not (kanat1 or kanat2):
                 continue
-            desen = E_VAAT_RE if kanat1 else ACIK_KAPI_RE
+            desen = E_VAAT_RE if kanat1 else ACIK_KAPI_DAR_RE
             for c in cumlecikler(cumle):
                 # Cumlecik duzeyinde POZITIF tanima jetonu VETO eder: vaat o zaman
                 # TANINIYOR dalina aittir ve MESRUDUR (fikstur X6).
@@ -878,11 +896,32 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
   · 🔴 IKINCI KANAT (TANINMAMA DALI) DE BIR BYPASS YUZEYIDIR. Kanat 2 yalniz
     metin negatif tanima dalini ACIKCA adlandirdiginda (tanınm- / "hangi parça
     olduğu çıkmıyorsa") ates alir. Ayni zarari negatif dali ADLANDIRMADAN kuran
-    metin KACAR — orn. "Ürün elinde yoksa bakıp haber edeceğini söyle": yokluk +
-    acik kapi var ama kanat 1 DAR listesi "bakip haber"i gormez, kanat 2'nin
-    tetikleyicisi yoktur. ILAN EDILMIS BOSLUK; kapatmak icin genis listeyi
-    kosulsuz yapmak gerekirdi ve o zaman X8 sinifi mesru cumleler KIRMIZI yanip
-    TUM SITE yayinini durdururdu (fikstur X8 bu takasi nobetler).
+    metin KACAR — orn. "Ürün elinde yoksa bakıp haber edeceğini söyle" ya da
+    "...yoksa bir yolunu buluruz": yokluk + acik kapi var ama kanat 1 DAR
+    listesi bu fiilleri gormez, kanat 2'nin tetikleyicisi yoktur. ILAN EDILMIS
+    BOSLUK; kapatmak icin acik-kapi listesini kosulsuz yapmak gerekirdi ve o
+    zaman X8/X12-X16 sinifi mesru cumleler KIRMIZI yanip TUM SITE yayinini
+    durdururdu. OLCULDU (2. curutme): kosulsuz/genis surumde 13 mesru cumlenin
+    8'i KIRMIZI idi; daraltma sonrasi 0. Kazanc-bedel takasi ACIKCA bu yonde
+    secildi — kapi bloklayicidir, yanlis-pozitif bir kacaktan AGIRDIR.
+  · 🔴 VETO KACAGI — DEKORATIF POZITIF JETON. Kanat 2'nin cumlecik duzeyindeki
+    "pozitif tanima jetonu varsa vaat POZITIF dala aittir" vetosu (X10),
+    ANLAMSIZ yere serpistirilmis bir pozitif jetonla KIRILIR. Olculdu (2.
+    curutme) — su UC cumle canli kuralin TAM TERSI oldugu halde YESIL gecer:
+      · "Parça tanınmıyorsa bile tanınan bir muadili olabilir diye araştırıp
+         döneceğini söyle."
+      · "Tanınmıyorsa da kimliği çıkarsa diye bakıp haber edeceğini söyle."
+      · "Parça tanınmıyorsa, hangi parça olduğu çıkıyorsa diye umut ver ve
+         döneceğini söyle."
+    KAPATILMADI (veto olmadan kuralin DOGRU yazilisi kirmizi yanar, X10), ama
+    BEYAN EDILDI — beyan edilmemis survivor birakilmaz.
+  · 🔴 BYPASS SOZLUGU BU TURDA BUYUDU, farkinda olarak: `hangi parça olduğu …
+    çık` ifadesi TANIMA_SARTI_RE'ye eklendi (l.44'un TANINIYOR testini canli
+    kuralla esitlemek icin ZORUNLUYDU) ve yeni l.44 bu ifadeyi belgenin KANONIK
+    dili yapti. Yani gelecekteki bir editor bu kalibi parafraz ederken BEDAVA
+    MUAFIYET aliyor: cumleye "hangi parça olduğu çıkıyorsa" sokusturan her metin
+    hem kanat 1'in sartini hem kanat 2'nin vetosunu susturur. Bu, esitlemenin
+    ILAN EDILMIS bedelidir.
   · 🔴 "YANLIS REDDETME" EKSENI BU KAPIDA HIC OLCULMUYOR. Kapi yalnizca FAZLA SOZ
     VERMEYI arar; metnin satilan bir kanali SESSIZCE REDDETTIRMESINI (or. cizim/
     STL veren musteriyi de "tanınmıyor" sayan DAR bir tanima testi) OLCMEZ. Bu
@@ -1365,8 +1404,43 @@ FIKSTURLER = [
      "kalmali (canli l.44'un ikinci yarisi)"),
     ("X8 negatif tanima jetonu YOK (kanat 2 kapali)",
      "- Ürün için ölçü onayından sonra bakıp haber edeceğini söyle.", False,
-     "GENIS acik-kapi listesi YALNIZ negatif-tanima baglaminda calisir; kanat 2 "
+     "acik-kapi listesi YALNIZ negatif-tanima baglaminda calisir; kanat 2 "
      "kosulsuz olsaydi bu mesru cumle KIRMIZI yanar ve yayin dururdu"),
+    ("X9 DAR listenin baska bir jetonu hala yakaliyor",
+     "- Parça tanınmıyorsa da bir yolunu buluruz.", "E",
+     "kanat 2 daraltildi ama OLDURULMEDI: 'bir yolunu bul-' gercek bir acik "
+     "kapi ifadesidir ve negatif dalda yasaktir"),
+    ("X10 VETO capasi (MUT: cumlecik pozitif-tanima vetosunu kaldir)",
+     "- Parça tanınıyorsa açık kapı bırak, tanınmıyorsa kes.", False,
+     "DAR liste jetonu ('açık kapı bırak') POZITIF dalin cumleciginde -> veto. "
+     "Veto kaldirilirsa bu MESRU cumle KIRMIZI yanar. X6 daraltmadan sonra "
+     "vetoya ULASMIYOR; veto'yu nobetleyen tek fikstur BUDUR"),
+    # ═══ KANAT 2 — ALAN DISI YANLIS-POZITIF NOBETCILERI (2. curutme sarti) ═══
+    # 🔴 NEDEN: kanat 2 parca/urun ALAN SARTINI bilerek kaldirir (X5'te 'parça'
+    # kelimesi gecmiyor). O cit gidince "tanınm-" jetonu PARCA DISI her baglamda
+    # kanadi acar. Olculdu (2. curutme): genis listeyle 13 mesru cumlenin 8'i
+    # KIRMIZI yaniyordu. Asagidakiler o alanlarin TAM USTUNE oturur — hicbiri
+    # parca-tanima alaninda DEGIL. `deploy: needs: build`: biri kirmizi yanarsa
+    # TUM pruvo3d.com yayini durur.
+    ("X11 'tanınmış' = UNLU (REGEX HATASI nobetcisi)",
+     "- Tanınmış bir markaysa katalogdan git, değilse fiyatı sorup döneceğini söyle.",
+     False,
+     "'tanınmış' Turkcede POZITIF tanimadir; `(?!ış)` olmadan NEGATIF sayilip "
+     "kirmizi yaniyordu — takas degil, DUZ HATA"),
+    ("X12 alan disi: kargo adresi", "- Adres tanınmıyorsa kargo takip numarasıyla dön.",
+     False, "kargo baglami; parca tanima ile ILGISI YOK"),
+    ("X13 alan disi: odeme/kart",
+     "- Kart tanınmıyorsa bankasına danışmasını söyle, sen dönme.", False,
+     "odeme baglami"),
+    ("X14 alan disi: dosya bicimi",
+     "- Dosya biçimi tanınmıyorsa STEP ya da STL olarak yollamasını söyle.", False,
+     "dosya bicimi baglami"),
+    ("X15 alan disi: malzeme adi",
+     "- Malzeme adı tanınmıyorsa listedeki karşılığını söyle.", False,
+     "malzeme adi baglami"),
+    ("X16 alan disi: fotograf/dil",
+     "- Fotoğrafta yazı tanınmıyorsa mesajın diline göre devam et.", False,
+     "fotograf + dil baglami"),
 ]
 
 
