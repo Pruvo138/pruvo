@@ -44,6 +44,14 @@ TEST = os.path.join(TOOLS, "urunler-guard-provenans-test.py")
 
 G, K = "guard", "kopru"
 
+# Mutasyon AYNAYA uygulanir; su BES canli dosyanin sha256'si kosum basinda ve
+# sonunda karsilastirilir (mutasyon araci hicbirine YAZMAZ).
+IZLENEN = (
+    GUARD, KOPRU, TEST,
+    os.path.abspath(__file__),
+    os.path.join(os.path.dirname(TOOLS), ".github", "workflows", "deploy.yml"),
+)
+
 # (kod, aciklama, HEDEF_DOSYA, eski_DUZ_METIN, yeni_metin, beyan_edilen_kirmizi)
 # 🔴 DESENLER DUZ METINDIR (regex DEGIL). Eslesme sayisi 1 degilse SAPMA yazilir.
 MUTANTLAR = [
@@ -65,7 +73,7 @@ MUTANTLAR = [
      '    """M1: MERGE_HEAD ebeveyni gormezden gelinir."""\n'
      '    ilk = ebeveynler[:1]\n'
      '    return {_canon(by_id[uid]) for by_id in ilk if uid in by_id}',
-     {"P5"}),
+     {"P5", "E3"}),
 
     ("M2", "FAIL-LOUD -> SESSIZ GERI SARMA (merge'de belirsiz hal geri sariliyor)", G,
      "        if merge_mi:\n"
@@ -77,7 +85,9 @@ MUTANTLAR = [
      "            continue\n",
      "        if merge_mi:\n"
      "            pass  # M2: sessiz geri sarmaya geri donuldu\n",
-     {"B1", "B2", "B5", "E1", "H1"}),
+     # E4 de duser: sessizce geri saran guard RED BLOGUNU hic basmaz -> belgelenen
+     # cikis yollari ekrana da gelmez.
+     {"B1", "B2", "B5", "E1", "E4", "H1"}),
 
     ("M3", "KORUMA ETKISIZ: izinsiz alan degisimi ARTIK GERI SARILMIYOR", G,
      '        # Merge DISI: tek ebeveyn var, provenans KESIN olarak "izinsiz" '
@@ -139,7 +149,7 @@ MUTANTLAR = [
      '    rc, out = _git("rev-parse", "--absolute-git-dir")\n'
      "    if rc != 0:\n"
      '        raise Belirsiz("GIT DIZINI OKUNAMADI",',
-     {"P1", "P2", "P3", "P4", "M1", "B1", "B2", "B4", "B5", "E1", "H1"}),
+     {"P1", "P2", "P3", "P4", "M1", "B1", "B2", "B4", "B5", "E1", "E3", "E4", "H1"}),
 
     # "Hicbir ebeveynde olmayan id SERBESTTIR" ekseni beyan edilmis bir SURVIVOR
     # olmasin diye AYIRT EDICI mutant: yeni-urun muafiyeti kaldirilinca hem mesru
@@ -162,7 +172,7 @@ MUTANTLAR = [
     ("M12", "MANIFEST BEYANI GORMEZDEN GELINIYOR (mesru duzeltme bloklanir)", G,
      "        unauth = [c for c in changed if not _authorized(uid, c, p, manifest)]",
      "        unauth = list(changed)  # M12",
-     {"K3", "M3"}),
+     {"K3", "M3", "E2"}),
 
     # KOPRUNUN YANLIS-POZITIF ekseni de oldurulebilir olmali (H2/H3 dekor DEGIL):
     ("M13", "KOPRU HER HALDE BLOKLUYOR (mesru commit de bloklanir)", K,
@@ -180,6 +190,15 @@ MUTANTLAR = [
      "    if not tetik:\n"
      "        return 0",
      {"H3"}),
+
+    # IKIZ TANIM AYRISMASI ([[ikiz-tanim-sessiz-ayrisma]]): CIKIS_YOLLARI listesi AYNEN
+    # dururken BASILAN metin ondan sapiyor -> "belgelenen cikis yolu" bayatlar.
+    ("M15", "BASILAN CIKIS METNI listeden AYRISIYOR (yalniz ilk yol basiliyor)", G,
+     "    for kod, tarif in CIKIS_YOLLARI:\n"
+     '        _bas("     [%s] %s" % (kod, tarif))',
+     "    for kod, tarif in CIKIS_YOLLARI[:1]:  # M15\n"
+     '        _bas("     [%s] %s" % (kod, tarif))',
+     {"E4"}),
 ]
 
 IDDIA_RE = re.compile(r"^IDDIA: (\S+) (YESIL|KIRMIZI)\b")
@@ -225,10 +244,11 @@ def ayna(kod, hedef, eski, yeni):
 
 
 def main():
-    once = {GUARD: sha(GUARD), KOPRU: sha(KOPRU)}
+    once = {y: sha(y) for y in IZLENEN}
     print("URUNLER-GUARD PROVENANS — MUTASYON BATARYASI")
-    print("  guard sha256 (once): %s" % once[GUARD])
-    print("  kopru sha256 (once): %s" % once[KOPRU])
+    print("  CANLI DOSYA sha256 (once):")
+    for y in IZLENEN:
+        print("    %s  %s" % (once[y], os.path.relpath(y, os.path.dirname(TOOLS))))
 
     t_kirmizi, t_toplam, t_tb = kos(GUARD, KOPRU)
     print("\nTABAN: iddia=%d kirmizi=%d traceback=%s" % (t_toplam, len(t_kirmizi), t_tb))
@@ -258,14 +278,14 @@ def main():
               % (kod, toplam, "VAR" if tb else "yok",
                  "OK " if uydu else "!! ", sorted(beyan), sorted(kirmizi), aciklama))
 
-    sonra = {GUARD: sha(GUARD), KOPRU: sha(KOPRU)}
-    for yol in (GUARD, KOPRU):
-        if once[yol] != sonra[yol]:
-            sapma.append("CANLI DOSYA DEGISTI: %s" % yol)
-    print("\n  guard sha256 (sonra): %s  %s"
-          % (sonra[GUARD], "AYNI" if once[GUARD] == sonra[GUARD] else "DEGISTI"))
-    print("  kopru sha256 (sonra): %s  %s"
-          % (sonra[KOPRU], "AYNI" if once[KOPRU] == sonra[KOPRU] else "DEGISTI"))
+    sonra = {y: sha(y) for y in IZLENEN}
+    print("\n  CANLI DOSYA sha256 (sonra):")
+    for y in IZLENEN:
+        esit = once[y] == sonra[y]
+        if not esit:
+            sapma.append("CANLI DOSYA DEGISTI: %s" % y)
+        print("    %s  %-6s %s" % (sonra[y], "AYNI" if esit else "DEGISTI",
+                                   os.path.relpath(y, os.path.dirname(TOOLS))))
 
     print("\nMUTANT=%d  TABAN_IDDIA=%d  SAPMA=%d" % (len(MUTANTLAR), t_toplam, len(sapma)))
     for s in sapma:

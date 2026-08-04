@@ -32,6 +32,7 @@ Kullanim:
 """
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -68,7 +69,11 @@ KODLAR = [
     ("B4", "FAIL-LOUD: MERGE_HEAD katalogu okunamiyor -> rc!=0"),
     ("B5", "FAIL-LOUD: red GEREKCESI stderr'e basilir"),
     ("B6", "FAIL-LOUD: guard'in KENDI beklenmedik hatasi -> rc!=0 (fail-open YOK)"),
-    ("E1", "KACIS: PRUVO_GUARD_ZORLA=1 -> rc=0 ama veri YINE degismez"),
+    ("E1", "CIKIS[ZORLA]: surec env'inde PRUVO_GUARD_ZORLA=1 -> rc=0, veri YINE degismez"),
+    ("E2", "CIKIS[MANIFEST]: beyan edilen degisim -> rc=0 ve WT hali AYNEN kalir"),
+    ("E3", "CIKIS[EBEVEYN]: ebeveynin hali AYNEN secilince -> rc=0, byte-esit"),
+    ("E4", "IKIZ TANIM: basilan metin CIKIS_YOLLARI'nin HER kodunu tasir + "
+           "yaniltici komut-onu env bicimi UYARIYLA isaretli"),
     ("H1", "KOPRU: guard rc!=0 -> PreToolUse rc=2 (git komutu BLOKLANIR)"),
     ("H2", "KOPRU: guard rc=0 -> PreToolUse rc=0 (mesru commit gecer)"),
     ("H3", "KOPRU: git-disi komut -> rc=0 VE guard HIC kosmaz (log yazilmaz)"),
@@ -189,6 +194,25 @@ def kos_kopru(kok, komut):
     p = subprocess.run([sys.executable, os.path.join(kok, "tools", "urunler-guard-hook.py")],
                        input=girdi, capture_output=True, text=True, env=env)
     return p.returncode, p.stdout, p.stderr
+
+
+def _canon(v):
+    return json.dumps(v, sort_keys=True, ensure_ascii=False)
+
+
+def cikis_yolu_kodlari(guard_yolu):
+    """OLCULEN guard kaynagindan CIKIS_YOLLARI kodlarini oku (ikiz tanim capasi).
+
+    Basilan metin bu listeden TUREMELI; liste ile metin ayrisirsa E4 KIRMIZI yanar.
+    Liste hic yoksa () doner -> E4 yine KIRMIZI (fail-closed yon).
+    """
+    try:
+        spec = importlib.util.spec_from_file_location("_olculen_guard", guard_yolu)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        return tuple(k for k, _t in getattr(m, "CIKIS_YOLLARI", ()))
+    except Exception:
+        return ()
 
 
 def manifest_yaz(kok, obj):
@@ -331,6 +355,45 @@ def senaryo_belirsiz(guard, kopru):
     zrc, _zo, _ze = kos_guard(d, ek_env={"PRUVO_GUARD_ZORLA": "1"})
     iddia("E1", zrc == 0 and sha(d) == once_sha,
           "zorla rc=%d byte_esit=%s" % (zrc, sha(d) == once_sha))
+
+    # E4 — IKIZ TANIM CAPASI: basilan metin CIKIS_YOLLARI'ndan TUREMELI. Guard'in
+    # (olculen kopyanin) kendi listesi okunur; her kod ciktida GORUNMELI. Ayrica
+    # yaniltici "PRUVO_GUARD_ZORLA=1 git commit" bicimi UYARI olmadan gecmemeli.
+    kodlar = cikis_yolu_kodlari(guard)
+    hepsi_basildi = bool(kodlar) and all(("[%s]" % k) in err for k in kodlar)
+    uyari_var = "CALISMAZ" in err and "harness" in err
+    iddia("E4", hepsi_basildi and uyari_var,
+          "kodlar=%s hepsi_basildi=%s uyari=%s" % (kodlar, hepsi_basildi, uyari_var))
+
+    # E2 — BELGELENEN [MANIFEST] YOLU: WT'deki degisen alanlari beyan et -> GECER.
+    d2, mrc2, _m2 = kur_merge(guard, kopru, [BAYAT], [GUNCEL])
+    if mrc2 != 0:
+        iddia("E2", False, "merge kurulamadi")
+    else:
+        kat2 = oku_katalog(d2)
+        kat2[0]["fiyat"] = "3.THIRD-STATE TL"
+        yaz_katalog(d2, kat2)
+        beyan = {k: v for k, v in kat2[0].items()
+                 if k != "id" and _canon(v) != _canon(BAYAT.get(k, None))}
+        manifest_yaz(d2, {kat2[0]["id"]: beyan})
+        e2_sha = sha(d2)
+        rc2, _o2, _e2 = kos_guard(d2)
+        iddia("E2", rc2 == 0 and sha(d2) == e2_sha,
+              "rc=%d byte_esit=%s beyan_alan=%d" % (rc2, sha(d2) == e2_sha, len(beyan)))
+
+    # E3 — BELGELENEN [EBEVEYN] YOLU: ucuncu hal yerine EBEVEYNIN halini AYNEN sec.
+    d3, mrc3, _m3 = kur_merge(guard, kopru, [BAYAT], [GUNCEL])
+    if mrc3 != 0:
+        iddia("E3", False, "merge kurulamadi")
+    else:
+        kat3 = oku_katalog(d3)
+        kat3[0]["fiyat"] = "3.THIRD-STATE TL"
+        yaz_katalog(d3, kat3)
+        yaz_katalog(d3, [dict(GUNCEL)])      # MERGE_HEAD ebeveyninin hali, AYNEN
+        e3_sha = sha(d3)
+        rc3, _o3, _e3 = kos_guard(d3)
+        iddia("E3", rc3 == 0 and sha(d3) == e3_sha,
+              "rc=%d byte_esit=%s" % (rc3, sha(d3) == e3_sha))
 
 
 def senaryo_bozuk_wt(guard, kopru):

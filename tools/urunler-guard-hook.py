@@ -65,7 +65,11 @@ def _blokla(basi, ayrinti):
     if os.environ.get(ZORLA_ENV) == "1":
         _yaz("   %s=1 verildi -> blok UYARIYA cevrildi, komut DEVAM EDIYOR." % ZORLA_ENV)
         return 0
-    _yaz("   Komut BLOKLANDI. Acil atlama (kayitli): %s=1" % ZORLA_ENV)
+    _yaz("   Komut BLOKLANDI. Calisan cikis yollari guard'in yukaridaki "
+         "CALISAN CIKIS YOLLARI blogunda (MANIFEST / EBEVEYN / ZORLA).")
+    _yaz("   ⚠️ `%s=1 git commit ...` CALISMAZ: bu hook HARNESS surecinin env'inde "
+         "kosar, komutun env'ini gormez. `export %s=1` gerekir."
+         % (ZORLA_ENV, ZORLA_ENV))
     return BLOKLA
 
 

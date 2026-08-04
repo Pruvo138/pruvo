@@ -56,8 +56,25 @@ FAIL-LOUD (exit 3, veri DEGISTIRILMEZ) halleri:
   * merge halinde herhangi bir ebeveynin katalogu OKUNAMIYOR/BOZUK
   * merge halinde provenansi cozulemeyen urun/silme
   * guard'in kendi BEKLENMEDIK HATASI           (eskiden: sessiz exit 0)
-Acil durum kacisi: PRUVO_GUARD_ZORLA=1 -> RED, GURULTULU UYARIYA cevrilir
-(exit 0) ama guard yine de HICBIR VERIYI DEGISTIRMEZ.
+🔴 REDDEDILDIGINDE CIKIS YOLLARI — `CIKIS_YOLLARI` TEK KAYNAKTIR. Basilan metin o
+listeden TURER ve kabul testi (`tools/urunler-guard-provenans-test.py` :: E1-E4)
+her yolu FIILEN kosturup rc=0 verdigini OLCER; metin ile mekanizma ayrisirsa kapi
+KIRMIZI yanar ([[ikiz-tanim-sessiz-ayrisma]]). ⚠️ `PRUVO_GUARD_ZORLA=1 git commit ...`
+gibi KOMUT ONUNE yazilan env atamasi CALISMAZ: harness PreToolUse hook'u harness
+surecinin env'inde kosar, komutun env'ini GORMEZ (olculdu: rc=2, hala bloklu).
+
+🔴 KORUMA TASINABILIR DEGIL — NEREDE KOSAR, NEREDE KOSMAZ (durust beyan):
+  KOSAR : Claude Code oturumlari — `.claude/settings.json` PreToolUse(Bash) kablosu
+          `tools/urunler-guard-hook.py`yi cagirir; kopru IZLENDIGI icin fail-loud
+          davranisi her makinede aynidir. `--no-verify` bunu ATLATAMAZ.
+  KOSMAZ: git-native yol FAIL-OPEN'dir. `.git/hooks/pre-commit` bugun
+          `python3 "$guard" --tetik commit >/dev/null 2>&1 || true` yazar — cikis
+          kodunu VE stderr'i yutar. Kanca commit EDILMEDIGI icin (gitignore) bu
+          dosyadan duzeltilemez; her makinede ELLE kurulur. Sonuc: harness'siz bir
+          oturumda (duz terminal, Codex, baska makine, CI) bu guard commit'i
+          BLOKLAMAZ — yalnizca `.urunler-guard.log`a yazar.
+  Onerilen kanca duzeltmesi RAPOR-MIMARA.md madde 7'dedir; uygulanana kadar
+  "koruma her yerde gecerli" SANILMAMALIDIR.
 
 Manifest DEGER-BAGLI'dir: bir alanin degisimine ancak working-tree'deki yeni
 deger, manifeste yazilan beklenen deger ile birebir esitse izin verilir. Bu
@@ -91,6 +108,25 @@ LOG = os.path.join(ROOT, ".urunler-guard.log")
 
 RED = 3          # provenans kararlastirilamadi -> commit REDDEDILIR
 ZORLA_ENV = "PRUVO_GUARD_ZORLA"
+
+# 🔴 TEK KAYNAK — bastigimiz cikis yollari BURADAN turer ([[ikiz-tanim-sessiz-ayrisma]]).
+# Kabul testi (urunler-guard-provenans-test.py :: E1-E4) her yolu FIILEN kosturur ve
+# rc=0 verdigini OLCER; ayrica basilan metnin bu listedeki HER kodu tasidigini olcer.
+# Metin ile mekanizma ayrisirsa kapi KIRMIZI yanar — "belgelenen cikis calisiyor"
+# BEYAN degil OLCUMDUR.
+CIKIS_YOLLARI = (
+    ("MANIFEST",
+     "degisimi BEYAN et: python3 tools/duzelt.py --id <id> --alan <alan> --deger <deger> "
+     "(deger-bagli izin .urunler-duzelt-izin.json'a yazilir; silme icin "
+     ".urunler-sil-izin.json)"),
+    ("EBEVEYN",
+     "urunu ebeveynlerden BIRININ hali ile AYNEN birak (merge'de: o urun icin main'in "
+     "ya da dalin halini oldugu gibi sec — ucuncu bir hal uretme)"),
+    ("ZORLA",
+     "SURECIN env'ine PRUVO_GUARD_ZORLA=1 koy (export). ⚠️ Komut ONUNE yazmak "
+     "(PRUVO_GUARD_ZORLA=1 git commit ...) CALISMAZ: PreToolUse hook'u harness "
+     "surecinin env'inde kosar, komutun env'ini GORMEZ — olculdu: rc=2, hala bloklu"),
+)
 
 _MISSING = object()
 
@@ -438,7 +474,9 @@ def _reddet(tetik, sebep, ayrinti):
         _log("%s: RED(%s) — %s=1 ile ZORLANDI, veri degistirilmedi. %s"
              % (tetik, sebep, ZORLA_ENV, ayrinti.replace("\n", " ")))
         return 0
-    _bas("   Duzeltince tekrar dene. Acil atlama (kayitli): %s=1" % ZORLA_ENV)
+    _bas("   CALISAN CIKIS YOLLARI (olculur — kabul testi E1-E4):")
+    for kod, tarif in CIKIS_YOLLARI:
+        _bas("     [%s] %s" % (kod, tarif))
     _log("%s: RED(%s) — commit REDDEDILDI, veri degistirilmedi. %s"
          % (tetik, sebep, ayrinti.replace("\n", " ")))
     return RED
