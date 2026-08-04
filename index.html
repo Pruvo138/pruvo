@@ -2580,7 +2580,7 @@
     var a = marka ? MODEL_ALIAS[marka + "|" + k] : null;
     return a || k;
   }
-  // ═══ KUŞAK/VARYANT KATLAMASI (4 Ağu, KraL hükmü) ═══════════════════════════════════
+  // ═══ KUŞAK/VARYANT KATLAMASI (4 Ağu, mimar hükmü) ══════════════════════════════════
   // ÖLÇÜLEN KUSUR: kuşak jetonu ayrı kovada kalıyordu — `?ara=Golf` 317 ürün getirirken
   // /marka/volkswagen/golf/ 182 gösteriyordu; düşenin 21'i `Golf 4`/`Golf Mk4`/`Golf IV`/
   // `Golf R` gibi AYRI kanonik kovalardı ve 9'u ESIK=3 altında kaldığı için HİÇBİR model
@@ -2594,8 +2594,8 @@
   //
   // 🔴 KATLAMA UYUM VAADİ DEĞİLDİR: Golf Mk4 parçası Mk6'ya takılmaz. Bu yüzden SAYFA
   // tarafı katlanan ürünleri ana listeye KARIŞTIRMAZ, kuşak başlığı altında ayrı bölümde
-  // ("Golf 4 parçaları") listeler; ayrım RENDER EDİLMİŞ HTML üzerinden
-  // tools/model-uyelik-kapisi.py'de ölçülür (K14). Kuşağın kendi sayfası da KAPANMAZ.
+  // ("Golf 4 parçaları") listeler; ayrım, üyelik kapısında RENDER EDİLMİŞ HTML üzerinden
+  // K14 ile ölçülür. Kuşağın kendi sayfası da KAPANMAZ.
   //
   // 🔴 KURAL YAZILABİLİR: liste değil GRAMER + KELİME SINIRI. Jeton "<taban> <kuşak>"
   // biçiminde olmalı ve kuşak sözcüğü aşağıdaki kapalı gramerden gelmeli.
@@ -2607,8 +2607,9 @@
   // farklı araçlardır).
   var KUSAK_DONANIM = ["gt","gtc","gtd","gti","rs","st"];   // donanım/rozet soneki (kapalı)
   // FARKLI ARAÇ İSTİSNASI — gramere UYAN ama aynı araç ailesi OLMAYAN jetonlar.
-  // OTORİTE tools/arama.py KUSAK_DISI_JETON; aşağısı JS'in çalışma anı AYNASIDIR ve
-  // ayrışması üyelik kapısında fail-closed KIRMIZI yakar (K15). Elle üye EKLEME.
+  // OTORİTE sunucu tarafındaki kuşak-dışı jeton tablosudur; aşağısı JS'in çalışma anı
+  // AYNASIDIR ve ayrışması üyelik kapısında fail-closed KIRMIZI yakar (K15).
+  // Elle üye EKLEME: önce otorite tabloya gir, sonra ayna güncellenir.
   var KUSAK_DISI = ["Citroen|Ami 6"];
   function kusakDisiMi(marka, s){
     return KUSAK_DISI.indexOf((marka || "") + "|" + s) !== -1;
