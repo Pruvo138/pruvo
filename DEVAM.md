@@ -23,7 +23,7 @@ Kosum `30925165740` (HEAD `a0b49ef7`) o an pending — sonraki tur olcer.
 ### ✅ KAPANDI (4 Agu) — model cip satiri kanoniklestirildi + K19 capraz-marka (rozet) kapisi
 Merge SHA **`d91ea881`**, kosum `30923737314` headSha BIREBIR **success** (bir onceki main
 kosumu `cancelled` idi — `--limit 1` yesili yaniltirdi). Kapsam merge-base `3017d46c`'ten
-6 dosya +722/-33; `urunler.json`/`.urun-kaynaklari.json` diff'e GIRMEDI.
+6 dosya +722/-33; katalog kaynaklari degismedi (ayrinti DEVAM-ARSIV.md'de).
 CANLI DELTA (canonical, cache-bust'siz): `/marka/peugeot/iphone/` **404** ·
 `/marka/mitsubishi/electric/` **404** · `/marka/peugeot/206/` **200** ve `numberOfItems=58`
 cip `n=58` ile BIREBIR · sitemap model sayfasi **534** (552 -> 534 beklenen delta tuttu) ·
@@ -38,7 +38,7 @@ kapilar taze katalogla deneme-merge agacinda kosuldu):
   ONCEDEN VARDI (eski kodda ayni siniftan 74 tane).
 - Parite ANA CHECKOUT'tan, merge SONRASI: `parite-test.js` 1199 sorgu / `parite-ege.js` 846
   sorgu, aciklanamayan **0**. Kapilar CI'da gercekten kosuyor (3 `run:` satiri, `continue-on-error` YOK).
-Kapilar: 20/20 · 122/122 · `ci-kapsam` 146 dosya · `is-akisi` 192 cagri fail-open 0 ·
+Kapilar: 20/20 · 122/122 · `ci-kapsam` 146 dosya · `is-akisi` 192 cagri, bulgu 0 ·
 `kapi-envanteri` 7/7 · `kisisel-veri` 487 dosya · `gitignore` 311 dizin temiz ·
 `d1-sync --durum` 17962 = 17962 uc eksen. Worktree + dal silindi, zombi birakilmadi.
 OLCULEMEDI: `cip-indeks-test.py --mutasyon` (~1760 s, CI'da degil) yerelde kosulmadi.
