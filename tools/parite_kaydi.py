@@ -29,6 +29,13 @@ COK EKSENLIDIR ve her eksen TEK BASINA kirmizi yakabilir olmali
                             (motor degistiyse kayit BAYAT — olcum baska bir kati olcmustu)
   5. semaKisitOzeti == CANLI semanin `kisitlar` blogunun ozeti
                             (kisit degistiyse kayit BAYAT — olcum baska bir kutuyu olcmustu)
+  5b. semaKutuOzeti == CANLI semanin PARAMETRE KUTUSUNUN ozeti (min/max/adim/secenekler)
+                            🔴 2026-08-04'te OLCULEN FAIL-OPEN: kayit `ilanEdilenIzgara`yi
+                            YAZIYORDU ama kapi onu canli semayla KARSILASTIRMIYORDU. Yani
+                            `kisitlar` blogu AYNEN dururken bir parametrenin `max`i
+                            buyutulunce (or. dis_cap 60 -> 100) kayit hala "yesil+taze"
+                            sayiliyor, HIC OLCULMEMIS bir bolge sessizce satisa aciliyordu.
+                            Kutu ozeti kayda girer ve canliyla ayrisirsa kayit BAYATTIR.
   6. kontrolMutantlari: M1/M2/M3 tehlikeli nokta URETMIS (>0), M4 uretmemis (==0)
                             (bataryasiz kayit = "0 gordum" iddiasinin korlugu olculmemis)
 
@@ -58,8 +65,13 @@ KAYIT_SURUMU = 1
 ZORUNLU_ALANLAR = (
     "surucu", "mod", "olculenNokta", "tehlikeliKova", "cozulmeyen",
     "kovalar", "kontrolMutantlari", "motorDosya", "motorOzet",
-    "semaUrunId", "semaKisitOzeti", "tarih",
+    "semaUrunId", "semaKisitOzeti", "semaKutuOzeti", "ilanEdilenIzgara", "tarih",
 )
+# Bir parametrenin OLCULEN IZGARASINI belirleyen alanlar (etiket/aciklama/birim/
+# varsayilan izgarayi DEGISTIRMEZ -> ozete GIRMEZ; yoksa her metin duzeltmesi
+# yayini durdururdu). Bu liste, olcum surucusundeki eksen turetmesinin (rulman-
+# uretilebilirlik-olcum.py `eksenler`) okudugu alanlarin AYNISIDIR.
+KUTU_ALANLARI = ("ad", "tip", "min", "max", "adim")
 # Kontrol mutantlarinin BEYAN EDILMESI gereken adlari + beklenen isaret.
 # ">0" = mutant tehlikeli nokta URETMELI (kapi genislemeyi goruyor)
 # "==0" = mutant tehlikeli nokta URETMEMELI (kapi daralmayi tehlike sanmiyor)
@@ -76,6 +88,62 @@ def kisit_ozeti(sema):
     blok = sema.get(KISIT_ALANI, None)
     ham = json.dumps(blok, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(ham.encode("utf-8")).hexdigest()
+
+
+def kutu_imzasi(sema):
+    """CANLI semanin PARAMETRE KUTUSUNUN kanonik imzasi (liste).
+
+    Her parametre icin izgarayi belirleyen alanlar: sayi -> min/max/adim,
+    secim -> secenek DEGERLERI. Parametre sirasi ozete girmesin diye `ad`a gore
+    siralanir (sira izgarayi degistirmez, yalnizca tarama duzenini)."""
+    imza = []
+    for p in sema.get("parametreler") or []:
+        if not isinstance(p, dict):
+            imza.append({"TANINMAYAN": repr(type(p).__name__)})
+            continue
+        kayit = {a: p.get(a) for a in KUTU_ALANLARI if a in p}
+        kayit.setdefault("tip", "sayi")
+        sec = p.get("secenekler")
+        if isinstance(sec, list):
+            kayit["secenekler"] = [s.get("deger") if isinstance(s, dict) else s for s in sec]
+        imza.append(kayit)
+    imza.sort(key=lambda k: str(k.get("ad")))
+    return imza
+
+
+def kutu_ozeti(sema):
+    """kutu_imzasi'nin sha256'si — kayit ile canli sema TEK bu fonksiyondan turer."""
+    ham = json.dumps(kutu_imzasi(sema), sort_keys=True, ensure_ascii=False,
+                     separators=(",", ":"))
+    return hashlib.sha256(ham.encode("utf-8")).hexdigest()
+
+
+def ilan_edilen_izgara(sema):
+    """Semanin ILAN ETTIGI toplam nokta sayisi (izgara buyuklugu) — None: hesaplanamaz.
+
+    Kutu ozetinden BAGIMSIZ ikinci eksen: ozet 'ayni mi' der, bu sayi 'ne kadar
+    buyudu' der ve kayittaki `ilanEdilenIzgara` ile karsilastirilir."""
+    toplam = 1
+    for p in sema.get("parametreler") or []:
+        if not isinstance(p, dict):
+            return None
+        tip = p.get("tip", "sayi")
+        if tip == "sayi":
+            try:
+                n = int(round((float(p["max"]) - float(p["min"])) / float(p["adim"]))) + 1
+            except (KeyError, TypeError, ValueError, ZeroDivisionError):
+                return None
+            if n < 1:
+                return None
+            toplam *= n
+        elif tip == "secim":
+            sec = p.get("secenekler")
+            if not isinstance(sec, list) or not sec:
+                return None
+            toplam *= len(sec)
+        else:
+            return None
+    return toplam
 
 
 def dosya_ozeti(yol):
@@ -167,6 +235,26 @@ def girdi_dogrula(kok, aile, sema, en_az_nokta, kayitlar=None):
         sorunlar.append("BAYAT: sema `kisitlar` ozeti tutmuyor (kayit=%s… canli=%s…) — "
                         "olcum BASKA bir parametre kutusunu olcmus"
                         % (str(girdi.get("semaKisitOzeti"))[:12], canli_kisit[:12]))
+    # 🔴 KUTU EKSENI (5b): kisit AYNEN dururken bir parametrenin min/max/adim'i
+    # degistiyse olcum ARTIK BASKA bir kutuyu olcmustur. Bu eksen olmadan
+    # "dis_cap max 60 -> 100" gibi bir GENISLETME kapiyi rc=0 birakiyordu.
+    canli_kutu = kutu_ozeti(sema)
+    if girdi.get("semaKutuOzeti") != canli_kutu:
+        sorunlar.append("BAYAT: sema PARAMETRE KUTUSU ozeti tutmuyor (kayit=%s… canli=%s…) — "
+                        "aralik/adim degismis, olcum OLCULMEMIS bir bolgeyi kapsamiyor"
+                        % (str(girdi.get("semaKutuOzeti"))[:12], canli_kutu[:12]))
+    # Ikinci, BAGIMSIZ eksen: ilan edilen izgara buyuklugu. Ozet hesaplanamayan bir
+    # semada (bozuk alan) ozet yine de bir deger uretir; bu sayi None olur -> hukum
+    # VERILEMEZ (OLCULEMEDI), "esit" VARSAYILMAZ.
+    canli_izgara = ilan_edilen_izgara(sema)
+    if canli_izgara is None:
+        return OLCULEMEDI, ("%s: canli semanin ilan edilen izgarasi HESAPLANAMADI "
+                            "(parametre tipi/araligi taninmadi) — kayit tazeligi olculemez"
+                            % aile)
+    if girdi.get("ilanEdilenIzgara") != canli_izgara:
+        sorunlar.append("BAYAT: ilan edilen izgara tutmuyor (kayit=%r, canli=%d) — "
+                        "olcum BASKA buyuklukte bir kutuyu olcmus"
+                        % (girdi.get("ilanEdilenIzgara"), canli_izgara))
     tehlikeli = girdi.get("tehlikeliKova")
     if not isinstance(tehlikeli, int) or tehlikeli != 0:
         sorunlar.append("tehlikeli kova (sema KABUL + motor RET) = %r, 0 DEGIL" % (tehlikeli,))
@@ -190,10 +278,11 @@ def girdi_dogrula(kok, aile, sema, en_az_nokta, kayitlar=None):
                             "olcum daralmayi tehlike saniyor" % (ad, v))
     if sorunlar:
         return KIRMIZI, "%s: %s" % (aile, " | ".join(sorunlar))
-    return YESIL, ("%s: %d nokta, tehlikeli kova 0, motor %s(%s…), mutant M1=%d M2=%d "
-                   "M3=%d M4=%d, %s" % (aile, nokta, girdi.get("motorDosya"),
-                                        beklenen_ozet[:12], mut.get("M1"), mut.get("M2"),
-                                        mut.get("M3"), mut.get("M4"), girdi.get("tarih")))
+    return YESIL, ("%s: %d nokta, tehlikeli kova 0, kutu %d nokta (ozet %s…), motor "
+                   "%s(%s…), mutant M1=%d M2=%d M3=%d M4=%d, %s"
+                   % (aile, nokta, canli_izgara, canli_kutu[:12], girdi.get("motorDosya"),
+                      beklenen_ozet[:12], mut.get("M1"), mut.get("M2"),
+                      mut.get("M3"), mut.get("M4"), girdi.get("tarih")))
 
 
 def kayit_yaz(kok, aile, girdi, aciklama=None):

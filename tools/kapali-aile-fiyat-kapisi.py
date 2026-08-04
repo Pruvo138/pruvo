@@ -48,12 +48,24 @@ NE OLCER (uretilen sayfalarin KENDISINI okur — kaynak koda "bakip yorum yapmaz
   G. KART YUZEY GUVENCESI: en az 3 acik + en az 1 kapali kart olculmus olmali;
      artefakt/fonksiyon okunamazsa OLCULEMEDI (kirmizi), sessiz yesil YOK.
 
+  --- UCUNCU YUZEY: AILE-OZEL FIYAT TAVANI (2026-08-04) ----------------------------
+  `rulman` olcu kutusu dis cap 60 -> 100 mm'ye acilirken tavan carpani AILE-OZEL
+  yapildi (rulman 5x, digerleri 3x). Tavan sabiti TUM ailelerce PAYLASILDIGI icin
+  istisnanin sizmasi 7 acik ailenin tavanini sessizce %66 zamlardi.
+  H. TAVAN + EGRI (gercek `parametrikFiyatKurus` kosumu, koda BAKMADAN):
+       H1  rulman 100 mm dis capta TAM 100000 kurus (Okan karari: 1.000,00 TL)
+       H2  egri MONOTON ARTAN (28/40/60/80/100 mm) + H2b egri DUZ DEGIL (canlilik)
+       H3  rulman tavan carpani 5x
+       H4  rulman DISINDAKI acik ailelerin tavani 3x (+ H4b en az 3 aile olculdu)
+  Mutantlar: g (istisna GLOBALLESIR -> H4 kirmizi), h (tavan eski sabite doner ->
+  H1/H3 kirmizi), i (kontrol: ayni sayidan turer -> YESIL).
+
 SAYI GOMULMEZ: kapali/acik kumesi secenekler.js + jenerator/urunler/*.json
 hacimFormulu'sundan TURETILIR. Aile listesi degisince kapi kendini gunceller.
 
 Kullanim (once python3 tools/build.py ile urun/ uretilmis olmali):
   python3 tools/kapali-aile-fiyat-kapisi.py
-  python3 tools/kapali-aile-fiyat-kapisi.py --mutasyon   # 3 mutant, IZOLE KOPYADA
+  python3 tools/kapali-aile-fiyat-kapisi.py --mutasyon   # 9 mutant, IZOLE KOPYADA
 Cikis kodu: 0 = YESIL, 1 = KIRMIZI/OLCULEMEDI.
 """
 import glob
@@ -85,6 +97,44 @@ vm.runInContext(fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8"), sandbo
 const S = sandbox.window.PRUVO_SECENEK;
 if (!S) { console.error("PRUVO_SECENEK yuklenemedi"); process.exit(2); }
 console.log(JSON.stringify({ acik: Object.keys(S.HACIM_DOGRULANMIS_AILELER || {}) }));
+"""
+
+
+# TAVAN PROBU (H bolumu) — AILE-OZEL FIYAT TAVANI. Carpan BURAYA YAZILMAZ: gercek
+# `parametrikFiyatKurus` ASIRI BUYUK bir hacimle kosturulur ve donen kurus tabana
+# bolunur, yani olculen sey KODUN DAVRANISIDIR ([[mimar-kapi-parser-taklidi]]).
+# Rulman egrisi de gercek hacim.js ile hesaplanir; orantili olcek ic=dis/3,
+# genislik=dis*0,3 (0,5 mm izgarasina yuvarli) — Okan'in 2026-08-04 karari.
+NODE_TAVAN_PROBU = r"""
+const fs = require("fs"), vm = require("vm"), path = require("path");
+const KOK = process.argv[2];
+const sandbox = { window: {} };
+vm.createContext(sandbox);
+vm.runInContext(fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8"), sandbox);
+const S = sandbox.window.PRUVO_SECENEK;
+if (!S) { console.error("PRUVO_SECENEK yuklenemedi"); process.exit(2); }
+const HACIM = require(path.join(KOK, "jenerator", "hacim.js"));
+const TABAN = 100, DEV_HACIM = 1e12;
+const tavan = {};
+for (const aile of Object.keys(S.HACIM_DOGRULANMIS_AILELER || {})) {
+  const k = S.parametrikFiyatKurus(aile, TABAN, 1, DEV_HACIM, "PLA", "Siyah");
+  tavan[aile] = (k == null) ? null : k / (TABAN * 100);
+}
+const semaYol = path.join(KOK, "jenerator", "urunler", "olcuye-ozel-rulman.json");
+let egri = null, hata = null;
+try {
+  const sema = JSON.parse(fs.readFileSync(semaYol, "utf8"));
+  const y = (v) => Math.round(v / 0.5) * 0.5;
+  egri = {};
+  for (const dis of [28, 40, 60, 80, 100]) {
+    const p = { ic_cap: y(dis / 3), dis_cap: dis, genislik: y(dis * 0.3),
+                eleman: "bilya", bosluk: 0.15, flans: "yok" };
+    egri[dis] = S.parametrikFiyatKurus(sema.hacimFormulu, sema.tabanFiyatTL,
+                                       sema.tabanHacimMm3, HACIM[sema.hacimFormulu](p),
+                                       "PLA", "Siyah");
+  }
+} catch (e) { hata = String(e && e.message || e); }
+console.log(JSON.stringify({ tavan: tavan, egri: egri, hata: hata }));
 """
 
 
@@ -177,6 +227,26 @@ def _node_acik_aileler(kok):
         return set(json.loads(s.stdout)["acik"]), None
     except Exception as e:                                  # noqa: BLE001
         return None, "node probu cozumlenemedi: %s" % e
+    finally:
+        os.unlink(prob)
+
+
+def _node_tavan(kok):
+    """(veri, hata) — {tavan: {aile: carpan}, egri: {dis: kurus}}. GERCEK kosum."""
+    if shutil.which("node") is None:
+        return None, "node yok -> tavan ekseni GERCEKTEN kosturulamadi (fail-closed)"
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False,
+                                     encoding="utf-8") as f:
+        f.write(NODE_TAVAN_PROBU)
+        prob = f.name
+    try:
+        s = subprocess.run(["node", prob, kok], capture_output=True, text=True)
+        if s.returncode != 0:
+            return None, "tavan probu rc=%d: %s" % (s.returncode,
+                                                    (s.stderr or "").strip()[:200])
+        return json.loads(s.stdout), None
+    except Exception as e:                                  # noqa: BLE001
+        return None, "tavan probu cozumlenemedi: %s" % e
     finally:
         os.unlink(prob)
 
@@ -372,6 +442,69 @@ def olc(kok):
             ihlal.append("G: kart NEGATIF ekseni bos — sayfa ekseninde %d kapali aile var "
                          "ama kartta 0 olculdu" % len(kapali_olculen))
 
+    # ---------------------------------------------------------- H. AILE-OZEL TAVAN
+    # (2026-08-04) `rulman` kutusu 100 mm'ye acilirken tavan carpani AILE-OZEL yapildi
+    # (rulman 5x, digerleri 3x). Iki ayri risk olculur:
+    #   H1/H2  rulman fiyat egrisi — 100 mm'de TAM 100000 kurus, ara noktalarda
+    #          monoton artis (para yuzeyi: musteriye gosterilen/tahsil edilen tutar)
+    #   H3     rulman tavani 5x
+    #   H4     DIGER acik ailelerin tavani 3x KALDI (istisna sizmadi)
+    # Sayilar koda BAKILARAK degil, gercek `parametrikFiyatKurus` kosumundan olculur.
+    RULMAN_HEDEF_KURUS = 100000       # Okan karari: 100 mm -> 1.000,00 TL
+    RULMAN_TAVAN_CARPANI = 5
+    VARSAYILAN_TAVAN_CARPANI = 3
+    tavan_veri, tavan_hata = _node_tavan(kok)
+    iddia += 1
+    if tavan_veri is None:
+        ihlal.append("H/OLCULEMEDI: %s" % tavan_hata)
+    elif tavan_veri.get("hata"):
+        ihlal.append("H/OLCULEMEDI: rulman fiyat egrisi hesaplanamadi: %s"
+                     % tavan_veri["hata"])
+    else:
+        tavanlar = tavan_veri.get("tavan") or {}
+        egri = {int(k): v for k, v in (tavan_veri.get("egri") or {}).items()}
+        # H1 — 100 mm noktasi TAM hedefte
+        iddia += 1
+        if egri.get(100) != RULMAN_HEDEF_KURUS:
+            ihlal.append("H1: rulman 100 mm dis capta %r kurus (beklenen %d) — Okan'in "
+                         "1.000,00 TL karari tutmuyor" % (egri.get(100), RULMAN_HEDEF_KURUS))
+        # H2 — egri monoton ARTAN (dusen fiyat = buyuyen parcanin ucuzlamasi)
+        iddia += 1
+        capraz = sorted(egri)
+        dusen = [(capraz[i - 1], capraz[i]) for i in range(1, len(capraz))
+                 if not (isinstance(egri[capraz[i]], int)
+                         and isinstance(egri[capraz[i - 1]], int)
+                         and egri[capraz[i]] >= egri[capraz[i - 1]])]
+        if len(capraz) < 5:
+            ihlal.append("H2: egri ekseni bos — yalniz %d nokta olculdu (>=5 sart)"
+                         % len(capraz))
+        elif dusen:
+            ihlal.append("H2: rulman fiyat egrisi MONOTON DEGIL (dusen adim: %s; egri=%s)"
+                         % (dusen, {d: egri[d] for d in capraz}))
+        # H2b — CANLILIK: egri duz degil (tavan-alti bolge gercekten artiyor)
+        iddia += 1
+        if len(capraz) >= 2 and egri.get(capraz[0]) == egri.get(capraz[-1]):
+            ihlal.append("H2b: rulman egrisi DUZ (%r) — monotonluk iddiasi bos yere yesil"
+                         % egri.get(capraz[0]))
+        # H3 — rulman tavani 5x
+        iddia += 1
+        if tavanlar.get("rulman") != RULMAN_TAVAN_CARPANI:
+            ihlal.append("H3: rulman tavan carpani %r (beklenen %d)"
+                         % (tavanlar.get("rulman"), RULMAN_TAVAN_CARPANI))
+        # H4 — DIGER acik ailelerin tavani DEGISMEDI
+        iddia += 1
+        sapan = {a: c for a, c in sorted(tavanlar.items())
+                 if a != "rulman" and c != VARSAYILAN_TAVAN_CARPANI}
+        if sapan:
+            ihlal.append("H4: rulman DISINDAKI ailelerin tavani %dx DEGIL: %s — "
+                         "aile-ozel istisna sizmis" % (VARSAYILAN_TAVAN_CARPANI, sapan))
+        # H4b — YUZEY GUVENCESI: negatif olmayan eksen bosa kosmasin
+        iddia += 1
+        digerleri = [a for a in tavanlar if a != "rulman"]
+        if len(digerleri) < 3:
+            ihlal.append("H4b: tavan ekseni bos — rulman disinda yalniz %d acik aile "
+                         "olculdu (>=3 sart)" % len(digerleri))
+
     ozet = {"acik_aile": len(acik_kume), "kapali_sayfa": len(kapali_olculen),
             "acik_sayfa": len(acik_olculen), "kapali": kapali_olculen,
             "kapali_kart": len(kart_kapali_olculen), "acik_kart": len(kart_acik_olculen)}
@@ -389,8 +522,16 @@ _KART_CAPASI = ("            if aile_satis_kapali_mi(sema):\n"
                 "                kapali[pid] = 1\n"
                 "                continue")
 
+# H bolumu capalari — TAVANIN TEK KAYNAGI (secenekler.js).
+_TAVAN_TABLO_CAPASI = ("  var TAVAN_CARPANI_VARSAYILAN = 3;\n"
+                       "  var AILE_TAVAN_CARPANI = {\n"
+                       "    // rulman: 2026-08-04 işletme kararı — dış çap 100 mm'de 1.000,00 TL.\n"
+                       "    rulman: 5\n"
+                       "  };")
+_TAVAN_KULLANIM_CAPASI = "kurus = Math.min(kurus, tabanFiyatTL * 100 * tavanCarpani(aile));"
+
 MUTANTLAR = [
-    # (ad, beklenen, eski, yeni)
+    # (ad, beklenen, eski, yeni[, dosya])  dosya verilmezse tools/build.py
     # --- ORTAK KARAR (iki yuzeyi de besler)
     ("a-duzeltmeyi-oldur (kapali aile ACIK sayilsin)", "KIRMIZI",
      _KARAR_CAPASI, "    return False"),
@@ -412,6 +553,21 @@ MUTANTLAR = [
      _KART_CAPASI,
      "            if not (not aile_satis_kapali_mi(sema)):\n"
      "                kapali[pid] = 1\n                continue"),
+    # --- H BOLUMU: AILE-OZEL TAVAN (para). Uc mutant da secenekler.js'e uygulanir.
+    # g: istisna GLOBALLESIR (herkes 5x) -> rulman DOGRU kalir, DIGER 7 aile %66
+    #    zamlanir. H4 TEK BASINA kirmizi yakmali ([[beyan-edilmis-survivor]]).
+    ("g-tavan-GLOBAL (rulman istisnasi tum ailelere yayilir)", "KIRMIZI",
+     _TAVAN_TABLO_CAPASI,
+     "  var TAVAN_CARPANI_VARSAYILAN = 5;\n  var AILE_TAVAN_CARPANI = {};",
+     "secenekler.js"),
+    ("h-tavan-eski-sabit (100 mm'de 1000 TL bozulur)", "KIRMIZI",
+     _TAVAN_KULLANIM_CAPASI,
+     "kurus = Math.min(kurus, tabanFiyatTL * 100 * 3);",
+     "secenekler.js"),
+    ("i-tavan-kontrol (carpan ayni sayidan turer, davranis korunur)", "YESIL",
+     _TAVAN_KULLANIM_CAPASI,
+     "kurus = Math.min(kurus, tabanFiyatTL * (100 * tavanCarpani(aile)));",
+     "secenekler.js"),
 ]
 
 
@@ -438,20 +594,23 @@ def mutasyon():
     basta = _agac_damgasi(KOK)
     print("canli agac sha256 (basta): %s" % basta)
     sonuc = []
-    for ad, beklenen, eski, yeni in MUTANTLAR:
+    for mutant in MUTANTLAR:
+        ad, beklenen, eski, yeni = mutant[:4]
+        hedef_ad = mutant[4] if len(mutant) > 4 else "tools/build.py"
         gecici = tempfile.mkdtemp(prefix="kapali-fiyat-mutant-")
         kopya = os.path.join(gecici, "repo")
         try:
             _kopyala(kopya)
             bp = os.path.join(kopya, "tools", "build.py")
-            with open(bp, encoding="utf-8") as f:
+            hedef = os.path.join(kopya, *hedef_ad.split("/"))
+            with open(hedef, encoding="utf-8") as f:
                 kaynak = f.read()
             if kaynak.count(eski) != 1:
-                print("  %-46s MUTASYON UYGULANAMADI (capa %d kez bulundu)"
-                      % (ad, kaynak.count(eski)))
+                print("  %-46s MUTASYON UYGULANAMADI (%s icinde capa %d kez bulundu)"
+                      % (ad, hedef_ad, kaynak.count(eski)))
                 sonuc.append((ad, beklenen, "UYGULANAMADI"))
                 continue
-            with open(bp, "w", encoding="utf-8") as f:
+            with open(hedef, "w", encoding="utf-8") as f:
                 f.write(kaynak.replace(eski, yeni))
             b = subprocess.run([sys.executable, bp], capture_output=True, text=True)
             if b.returncode != 0:

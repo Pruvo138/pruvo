@@ -738,6 +738,31 @@
       Object.prototype.hasOwnProperty.call(HACIM_DOGRULANMIS_AILELER, aile);
   }
 
+  /* ---- FİYAT TAVANI ÇARPANI (× tabanFiyat) — TEK KAYNAK -------------------
+     İşletme kuralı: parametrik fiyat tabanın belli bir katını AŞMAZ (malzeme+renk
+     DAHİL). Çarpan 2026-08-04'e kadar tüm ürün ailelerinde 3'tü; o gün `rulman`
+     ailesinin ölçü aralığı dış çap 60 → 100 mm'ye genişletildi ve 100 mm noktasında
+     1.000,00 TL hedeflendi: taban 200 TL × 100 × 5 = 100000 kuruş. Çarpanı tüm
+     ailelerde yükseltmek diğer 7 ailenin tavanını da sessizce %66 artırırdı, o
+     yüzden istisna AİLE ADIYLA yazılır.
+
+     🔴 İKİNCİ LİSTE YOK: tavanı kullanan tek yer `parametrikFiyatKurus`, tavanı
+     beyan eden tek yer bu tablodur; nöbetçi de sayıyı buradan DEĞİL, gerçek
+     `parametrikFiyatKurus` koşumundan ölçer. Ailede kayıt yoksa varsayılan
+     geçerlidir (hasOwnProperty: prototip zincirinden gelen "toString" gibi bir ad
+     çarpan SAYILMAZ). */
+  var TAVAN_CARPANI_VARSAYILAN = 3;
+  var AILE_TAVAN_CARPANI = {
+    // rulman: 2026-08-04 işletme kararı — dış çap 100 mm'de 1.000,00 TL.
+    rulman: 5
+  };
+
+  function tavanCarpani(aile) {
+    return (typeof aile === "string" &&
+            Object.prototype.hasOwnProperty.call(AILE_TAVAN_CARPANI, aile))
+      ? AILE_TAVAN_CARPANI[aile] : TAVAN_CARPANI_VARSAYILAN;
+  }
+
   // ---- parametrik ("ölçüye özel") fiyat ----
   // İşletme kuralı (16 Tem, sarı fiyat paketi):
   //   fiyat = tabanFiyat × max(1, hacim/tabanHacim) × malzemeKatsayı × renkFaktör.
@@ -758,7 +783,9 @@
     var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
     var kurus = tabanFiyatTL * 100 * Math.max(1, hacimMm3 / tabanHacimMm3) * (1 + yuzde / 100);
     if (renk === "Diğer") { kurus = kurus * (1 + RENK_DIGER_YUZDE / 100); }
-    kurus = Math.min(kurus, tabanFiyatTL * 100 * 3);   // 3× TAVAN (işletme kuralı) — malzeme+renk DAHİL
+    // AİLE-ÖZEL TAVAN (işletme kuralı) — malzeme+renk DAHİL. Çarpanın TEK kaynağı
+    // yukarıdaki AILE_TAVAN_CARPANI/TAVAN_CARPANI_VARSAYILAN ikilisidir.
+    kurus = Math.min(kurus, tabanFiyatTL * 100 * tavanCarpani(aile));
     return Math.round(kurus);
   }
 
@@ -989,6 +1016,9 @@
     boyFarki: boyFarki,
     hesaplaFiyatKurus: hesaplaFiyatKurus,
     parametrikFiyatKurus: parametrikFiyatKurus,
+    TAVAN_CARPANI_VARSAYILAN: TAVAN_CARPANI_VARSAYILAN,
+    AILE_TAVAN_CARPANI: AILE_TAVAN_CARPANI,
+    tavanCarpani: tavanCarpani,
     HACIM_DOGRULANMIS_AILELER: HACIM_DOGRULANMIS_AILELER,
     hacimDogrulanmisMi: hacimDogrulanmisMi,
     IKI_RENK_EK_KURUS: IKI_RENK_EK_KURUS,

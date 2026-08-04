@@ -386,6 +386,15 @@ def parite(a):
     sema = sema_oku()
     eks = eksenler(sema)
     toplam = toplam_nokta(eks)
+    # 🔴 IKIZ TANIM KAPISI ([[ikiz-tanim-sessiz-ayrisma]]): kayda yazilan izgara
+    # buyuklugunu KAPI da bagimsiz hesaplar (pk.ilan_edilen_izgara). Iki taraf
+    # ayrisirsa kapi her kosumda BAYAT der; ayrismayi BURADA, kaydi yazmadan once
+    # fail-closed yakala.
+    kapi_izgarasi = pk.ilan_edilen_izgara(sema)
+    if kapi_izgarasi != toplam:
+        print("OLCULEMEDI: izgara buyuklugu ikizi AYRISTI (surucu=%d, kapi=%r) — "
+              "kayit yazilsa kapi onu BAYAT sayardi" % (toplam, kapi_izgarasi))
+        sys.exit(OLCULEMEDI)
     istenen = PARITE_MODLARI[a.mod] if a.nokta is None else a.nokta
     indisler = ornek_indisleri(toplam, istenen)
     noktalar = [indis_noktasi(eks, i) for i in indisler]
@@ -485,6 +494,10 @@ def parite(a):
             "motorOzet": motor_ozet,
             "semaUrunId": sema["id"],
             "semaKisitOzeti": pk.kisit_ozeti(sema),
+            # 🔴 KUTU EKSENI: hangi PARAMETRE ARALIGI olculdu. Kisit blogu aynen
+            # dururken bir `max` buyutulunce kayit BAYAT olsun diye (okuyucu
+            # tools/parite_kaydi.py girdi_dogrula 5b).
+            "semaKutuOzeti": pk.kutu_ozeti(sema),
             "tarih": datetime.date.today().isoformat(),
         }
         yol = pk.kayit_yaz(

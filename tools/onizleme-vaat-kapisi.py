@@ -54,11 +54,13 @@ YENI ONCUL:
        kayit yok / bayat / esik alti / sahte -> satilamaz (KIRMIZI)
        kayit ya da parmakizi kaynagi OKUNAMIYOR -> OLCULEMEDI (A3 HIC BASILMAZ)
 
-"Yesil ve taze" TEK yerde tanimlidir: tools/parite_kaydi.py (alti eksen — tehlikeli
-kova 0 · nokta esigi · cozulmeyen 0 · motor parmakizi · sema kisit ozeti · kontrol
-mutantlarinin isareti). Kaydi URETEN olcum jenerator/test/rulman-uretilebilirlik-olcum.py
---parite'dir; kayit ELLE yazilmaz. Muafiyet MUTANTSIZ yazilirsa kapi SESSIZCE korelir,
-o yuzden M8/M11/M12/M13/M14 mutantlari muafiyetin HER eksenini tek tek oldurur.
+"Yesil ve taze" TEK yerde tanimlidir: tools/parite_kaydi.py (sekiz eksen — tehlikeli
+kova 0 · nokta esigi · cozulmeyen 0 · motor parmakizi · sema kisit ozeti · SEMA KUTU
+OZETI · ILAN EDILEN IZGARA · kontrol mutantlarinin isareti). Kaydi URETEN olcum
+jenerator/test/rulman-uretilebilirlik-olcum.py --parite'dir; kayit ELLE yazilmaz.
+Muafiyet MUTANTSIZ yazilirsa kapi SESSIZCE korelir, o yuzden M8/M11/M12/M13/M14/M15/M16
+mutantlari muafiyetin HER eksenini tek tek oldurur; K8 kutu ekseninin "dosya degisti"
+degil "OLCULEN IZGARA degisti" demeyi olctugunu kanitlar.
 
 🔴 2026-08-03 OLCULEN KOR NOKTA (bu turun sebebi): A3 kumeyi YALNIZ KOL1'den
 turetiyordu. Kopyada `rulman` satis listesine eklendiginde kapi rc=0 veriyor, A3
@@ -769,6 +771,28 @@ def _m_kayit_sema_kisit_ozeti(ayna):
     return ["A3"]
 
 
+def _m_kayit_sema_kutu_ozeti(ayna):
+    """🔴 MUAFIYETIN 7. EKSENI (2026-08-04, OLCULEN FAIL-OPEN): `kisitlar` blogu
+    AYNEN dururken YALNIZ bir parametrenin `max`i buyutulur (dis_cap 100 -> 140).
+    Eski kapi bunu GOREMIYORDU: kisit ozeti degismiyor, motor parmakizi degismiyor,
+    kova/nokta sayilari kayitta duruyor -> A3 YESIL kaliyor ve HIC OLCULMEMIS bir
+    parametre bolgesi satisa aciliyordu. Kutu ozeti + ilan edilen izgara eksenleri
+    bunu BAYAT sayar."""
+    yol = _sema_yolu(ayna, "olcuye-ozel-rulman")
+    d = json.loads(_oku(yol))
+    for p in d["parametreler"]:
+        if p.get("ad") == "dis_cap":
+            if p.get("max") != 100:
+                raise AssertionError("MUTASYON CAPASI BULUNAMADI: dis_cap max=%r "
+                                     "(beklenen 100)" % (p.get("max"),))
+            p["max"] = 140
+            break
+    else:
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: `dis_cap` parametresi yok")
+    _yaz(yol, json.dumps(d, ensure_ascii=False, indent=2))
+    return ["A3"]
+
+
 def _m_vida_satisa(ayna):
     """KOL2 OLDURUCUSU — IKINCI sema-kisitli aile (tek fikstur ailesine capalanmis
     bir kural, kume degil bir ISIM oluyordu; ikinci aile bunu ayirt eder)."""
@@ -853,6 +877,25 @@ def _k_kayit_kapali_aile_girdisi(ayna):
     kopya["semaUrunId"] = "olcuye-ozel-vida-civata-somun-pul"
     d["aileler"]["vida"] = kopya
     _kayit_yaz_ham(ayna, d)
+    return []
+
+
+def _k_sema_metin_alani(ayna):
+    """🔴 M16'nIN AYIRT EDICI KONTROLU: ayni sema dosyasi degisir ama OLCULEN IZGARA
+    DEGISMEZ — bir parametrenin `aciklama` metni yeniden yazilir. Kapi YESIL kalmali.
+    Kalmasaydi kutu ekseni "dosya degisti mi" olurdu (her metin duzeltmesi yayini
+    durdururdu), "olculen kutu degisti mi" DEGIL."""
+    yol = _sema_yolu(ayna, "olcuye-ozel-rulman")
+    d = json.loads(_oku(yol))
+    for p in d["parametreler"]:
+        if p.get("ad") == "dis_cap":
+            if not p.get("aciklama"):
+                raise AssertionError("MUTASYON CAPASI BULUNAMADI: dis_cap `aciklama` yok")
+            p["aciklama"] = p["aciklama"] + " (kontrol mutanti — izgara degismedi)"
+            break
+    else:
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: `dis_cap` parametresi yok")
+    _yaz(yol, json.dumps(d, ensure_ascii=False, indent=2))
     return []
 
 
@@ -945,6 +988,8 @@ MUTANTLAR = [
      _m_kayit_kor_mutant, OLDURUCU),
     ("M15 parite kaydi BAYAT: sema `kisitlar` degisti, kayit degismedi",
      _m_kayit_sema_kisit_ozeti, OLDURUCU),
+    ("M16 parite kaydi BAYAT: YALNIZ `dis_cap` max buyudu (kisit+kayit AYNI)",
+     _m_kayit_sema_kutu_ozeti, OLDURUCU),
     ("K1 KONTROL: anlamsiz yorum eklendi", _k_yorum, KONTROL),
     ("K2 KONTROL: acik ailenin sapma SAYISI degisti", _k_sapma_degeri, KONTROL),
     ("K3 KONTROL: satis listesi anahtar SIRASI degisti", _k_sira, KONTROL),
@@ -955,6 +1000,8 @@ MUTANTLAR = [
     ("K6 KONTROL: parite kaydina ALAKASIZ alan eklendi", _k_kayit_ek_alan, KONTROL),
     ("K7 KONTROL: SATISTA OLMAYAN aile icin parite kaydi eklendi",
      _k_kayit_kapali_aile_girdisi, KONTROL),
+    ("K8 KONTROL: semada YALNIZ metin alani degisti (izgara AYNI)",
+     _k_sema_metin_alani, KONTROL),
     ("F1 FAIL-CLOSED: sema dosyasi BOZUK JSON", _f_sema_bozuk_json, FAIL_CLOSED),
     ("F2 FAIL-CLOSED: `kisitlar` liste degil (bicim taninmaz)",
      _f_kisit_bicimi_nesne, FAIL_CLOSED),

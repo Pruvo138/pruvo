@@ -3,24 +3,25 @@
   "aileler": {
     "rulman": {
       "cozulmeyen": 0,
-      "ilanEdilenIzgara": 1269450,
+      "ilanEdilenIzgara": 12867300,
       "kontrolMutantlari": {
-        "M1": 256,
-        "M2": 151,
-        "M3": 5460,
+        "M1": 470,
+        "M2": 187,
+        "M3": 12971,
         "M4": 0
       },
       "kovalar": {
-        "00": 5460,
-        "01": 0,
+        "00": 12971,
+        "01": 1714,
         "10": 0,
-        "11": 10540
+        "11": 33315
       },
-      "mod": "kayit",
+      "mod": "nokta=48000",
       "motorDosya": "bearinggenerator.scad",
       "motorOzet": "1b4468e664b6f31c984e3e1fc69c6cfdb7314861698aa7cbf0433b9767944d9b",
-      "olculenNokta": 16000,
-      "semaKisitOzeti": "2c9f19d444c49c068da8fd0079d2bdf06dea1f28a1c9f06dc0945fca5d8212ce",
+      "olculenNokta": 48000,
+      "semaKisitOzeti": "b56bded66046e11bd6f0f657841d2478e64876a7585efc84f5bf4464d2ff9949",
+      "semaKutuOzeti": "2833fa6f3e917fb53cdafe84daec9971048d684bf2107e35dd1746757215fd65",
       "semaUrunId": "olcuye-ozel-rulman",
       "surucu": "jenerator/test/rulman-uretilebilirlik-olcum.py --parite",
       "tarih": "2026-08-04",

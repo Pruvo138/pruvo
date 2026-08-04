@@ -8,7 +8,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 5,
-      "max": 20,
+      "max": 33.5,
       "adim": 0.5,
       "varsayilan": 10,
       "aciklama": "Milin geçeceği iç bileziğin çapı"
@@ -19,7 +19,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 28,
-      "max": 60,
+      "max": 100,
       "adim": 0.5,
       "varsayilan": 30,
       "aciklama": "Yuvaya oturacak dış bileziğin çapı"
@@ -30,7 +30,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 5,
-      "max": 15,
+      "max": 30,
       "adim": 0.5,
       "varsayilan": 9,
       "aciklama": "Rulmanın eksen yönündeki toplam genişliği"
@@ -97,6 +97,24 @@
       "parametre": "genislik",
       "min": {"terimler": {"dis_cap": 0.3333333333333333, "ic_cap": -0.3333333333333333}, "sabit": -0.24},
       "mesaj": "Bu çap farkında bilya çapı genişliğe sığmıyor — genişlik en az {min} mm olmalı (ya da dış çapı küçültün)"
+    },
+    {
+      "eger": {"eleman": "bilya"},
+      "parametre": "dis_cap",
+      "min": {"terimler": {"ic_cap": 1}, "sabit": 8},
+      "mesaj": "Dış çap iç çaptan en az 8 mm büyük olmalı — dış çap en az {min} mm olmalı (ya da iç çapı küçültün)"
+    },
+    {
+      "eger": {"eleman": "makara"},
+      "parametre": "dis_cap",
+      "min": {"terimler": {"ic_cap": 1}, "sabit": 8},
+      "mesaj": "Dış çap iç çaptan en az 8 mm büyük olmalı — dış çap en az {min} mm olmalı (ya da iç çapı küçültün)"
+    },
+    {
+      "eger": {"eleman": "tutmali"},
+      "parametre": "dis_cap",
+      "min": {"terimler": {"ic_cap": 1}, "sabit": 8},
+      "mesaj": "Dış çap iç çaptan en az 8 mm büyük olmalı — dış çap en az {min} mm olmalı (ya da iç çapı küçültün)"
     }
   ],
   "tabanHacimMm3": 4137.7,
