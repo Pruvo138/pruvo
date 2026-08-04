@@ -3,44 +3,53 @@
 """tools/kanca-kablolama-test.py — kanca KABLOLAMASININ kabul testi.
 
 Olculen iddialar (hepsi GERCEK `git` ile, SENTETIK depolarda; gercek depoya ve
-gercek `~/.gitconfig`'e DOKUNULMAZ):
+gercek `~/.gitconfig`e DOKUNULMAZ):
+
+  VAKA 0 — SOZLESME. Nobetcinin ilan ettigi (SOZLESME) her sabit/fonksiyon
+    yerinde mi. 🔴 NEDEN AYRI VAKA: `FAIL_CLOSED` yeniden adlandirildiginda bu
+    suite COKEREK oluyordu (Traceback=1, iddia=0) — cokme KIRMIZI SAYILMAZ, o
+    eksen OLCULMEMIS demektir. Artik sozlesme ihlali KIRMIZI YAKAR.
 
   VAKA 1 — FAIL-OPEN KAPANDI (UCTAN UCA, gercek `git commit`)
-    Guard'i sifir-disi donduren bir senaryo kurulur. AYNI senaryo iki govdeyle
-    kosar ve IKISI DE OLCULUR:
-      * ESKI govde (`.git/hooks/pre-commit`in 4 Agu 2026 oncesi hali,
-        `python3 "$guard" ... >/dev/null 2>&1 || true`)  -> commit GECER (rc=0)
-      * IZLENEN govde (tools/kancalar/pre-commit)         -> commit DURUR (rc!=0)
-        ve GEREKCE gorunur (guard'in mesaji ciktida gecer).
-    "Once gecti, sonra durdu" iki ayri SAYIYLA gosterilir; tek tarafli olcum
-    "zaten hep boyleydi" ihtimalini disarida birakmaz.
+    Guard'i sifir-disi donduren senaryo, IKI govdeyle, tek degisken:
+      * ESKI govde (4 Agu oncesi, `|| true`)  -> commit GECER (rc=0)
+      * IZLENEN govde                          -> commit DURUR (rc!=0), guard'in
+        gerekcesi VE kancanin KENDI gerekcesi gorunur.
+    🔴 KANCANIN KENDI GEREKCESI AYRI IDDIADIR (curutucu deligi B): bloklamak
+    fail-loud'un YARISIDIR; kanca sussa commit sessizce durur ve mimar
+    `--no-verify`ye yonelir.
 
-  VAKA 2 — KURULUM FAIL-CLOSED
-    Kurulamayan her hal sifir-disi cikis + SEBEP: izlenen kanca dizini YOK ·
-    dizin var ama kanca EKSIK · kurulmamis depoda `--dogrula`. Sessiz "kuruldu"
-    YOKTUR: yazimdan sonra etkin deger git'ten YENIDEN okunur.
+  VAKA 2 — KURULUM FAIL-CLOSED + AYIRT EDICI IDEMPOTENS
+    Kurulamayan her hal sifir-disi + SEBEP. Idempotens artik cikti metnine
+    DEGIL, `.git/config`in sha256'sinin DEGISMEMESINE bakar (curutucu deligi G).
 
   🔴 VAKA 3 — PAYLASILAN/GLOBAL CONFIG KIRLENMEDI
-    Bu depoda OLCULMUS tuzak: worktree'de BAYRAKSIZ (ve hatta `--local`)
-    `git config core.hooksPath` PAYLASILAN `.git/config`e yazar ve TUM
-    kancalari oldurur ([[kanca-sessiz-devre-disi]]). Kurulum betigi gecici bir
-    depoda kosturulur; global/system config dosyalarinin ve KOMSU bir deponun
-    `.git/config`inin sha256'si ONCE=SONRA olculur. Ayrica LINKED WORKTREE'den
-    kosum: yazilan dosya ANA checkout'un `.git/config`idir (KASITLI hedef),
-    worktree'nin `config.worktree`si KIRLENMEZ ve deger asla oldurucu degildir.
-    MU1 (`--local` -> `--global`) bu vakayi KIRMIZI yakar.
+    Sahte HOME + GIT_CONFIG_GLOBAL/SYSTEM katmanlarinda global · system · KOMSU
+    deponun `.git/config`i sha256 once=sonra. Worktree'den kosumda ANA
+    checkout'un config'i KASITLI hedeftir, `config.worktree` KIRLENMEZ.
 
-  VAKA 4 — NOBETCI AYIRT EDICI (her eksen icin OLDURUCU + tek degiskenli KONTROL)
-    kablolama yok · kanca x-bitsiz · `|| true` geri gelmis · guard cagrisi
-    silinmis · rc HIC kontrol edilmiyor -> KIRMIZI; saglikli hal -> YESIL.
-    🔴 YANLIS-POZITIF KONTROLU: BEYAN EDILMIS fail-open bloklar (yedekle.py,
-    kutu-arsivle.py, d1-sync.py) `|| true` tasidiklari halde YESIL kalmali.
+  🔴 VAKA 4 — NOBETCI AYIRT EDICI (her eksen: OLDURUCU + tek degiskenli KONTROL)
+    kablolama yok · x-bitsiz kanca · `|| true` · cagri silinmis · rc kontrolsuz ·
+    kurulu kopya SAPMIS · gerekce susturulmus. Yanlis-pozitif kontrolu: BEYAN
+    EDILMIS fail-open bloklar (yedekle/kutu-arsivle/d1-sync) YESIL kalir.
 
-  VAKA 5 — CI HALI (yanlis-pozitif butcesi)
-    CI checkout'unda kablolama KURULU DEGILDIR. `--ci` halinde eksen K
-    OLCULEMEDI olarak ILAN EDILIR (raporda GORUNUR) ve cikis kodunu ETKILEMEZ
-    -> rc=0, yayin durmaz. KONTROL: ayni `--ci` halinde izlenen govdeye
-    `|| true` enjekte edilirse rc=1 (CI hali bir SESSIZ GECIS deligi degildir).
+  🔴 VAKA 5 — CI HALI + MUAFIYETIN DARLIGI
+    `--ci` halinde eksen K/S OLCULEMEDI ilan edilir ve rc=0. AMA muafiyet
+    DARDIR: BASKA bir eksen OLCULEMEDI olursa (kanca dosyasi okunamiyor) rc=1
+    (curutucu deligi H — muafiyet `if ci`e genisletilirse gercek arizalar CI'da
+    sessizce gecerdi, [[maskeleme-kismi-kapatma]]).
+
+  🔴 VAKA 6 — OLU AGAC (KUSUR 2, mimar iadesi)
+    `tools/kancalar` TASIMAYAN bir worktree'de:
+      (a) kancalar FIILEN kosmali (kurulu kopya ortak `.git` altindadir);
+          KONTROL = elenen GORELI tasarim, ayni agacta HICBIR kanca kosmaz.
+      (b) nobetci O AGACIN icinden kosturulunca dogru hukmu vermeli; olu agacta
+          rc sifir-disi. KONTROL = saglikli kurulumda ayni agac YESIL.
+
+  🔴 VAKA 7 — IZOLE AGAC MUAFIYETININ DARLIGI
+    `core.hooksPath=/dev/null` bir worktree'nin `config.worktree`sinden gelirse
+    MESRU izolasyondur (yesil). AYNI deger PAYLASILAN `.git/config`ten gelirse
+    1 Agu'ta olculen OLAYDIR -> KIRMIZI.
 
 Kullanim:
     python3 tools/kanca-kablolama-test.py
@@ -59,14 +68,12 @@ import tempfile
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KUR = os.path.join(TOOLS, "kanca-kur.py")
 NOBETCI = os.path.join(TOOLS, "kanca-kablolama-nobeti.py")
-# Mutasyon turunda KOPYALANACAK yardimci dosyalar (nobetci bunlari IMPORT eder).
 YARDIMCILAR = ("kanca-nobeti.py", "icra-suzgeci.py")
 KANCA_KAYNAGI = os.path.join(TOOLS, "kancalar")
 
 # ---------------------------------------------------------------------------
 # 🔴 ESKI GOVDE — `.git/hooks/pre-commit`in 4 Agu 2026 ONCESI hali (birebir).
-# Bu bir FIKSTURDUR: "once fail-open'di" iddiasinin KOSULARAK kanitlanmasi icin
-# durur. Degistirilmez; onarimin ONCE tarafi budur.
+# FIKSTURDUR: "once fail-open'di" iddiasinin KOSULARAK kanitlanmasi icin durur.
 # ---------------------------------------------------------------------------
 ESKI_PRE_COMMIT = """#!/bin/sh
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
@@ -91,7 +98,6 @@ fi
 exit 0
 """
 
-# Guard'in REDDETME senaryosu: sifir-disi + stderr'e AYIRT EDICI gerekce.
 GUARD_REDDEDER = """#!/usr/bin/env python3
 import sys
 sys.stderr.write("GUARD-REDDETTI: provenans cozulemedi (sentetik senaryo)\\n")
@@ -100,9 +106,6 @@ sys.exit(3)
 GECER = "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n"
 
 
-# ---------------------------------------------------------------------------
-# ALTYAPI
-# ---------------------------------------------------------------------------
 def yaz(yol, metin, x=False):
     os.makedirs(os.path.dirname(yol), exist_ok=True)
     with open(yol, "w", encoding="utf-8") as f:
@@ -129,9 +132,8 @@ def g(cwd, *args, **kw):
 def izole_ortam(ev):
     """global/system git config katmanlarini SAHTE dosyalara baglar.
 
-    🔴 NEDEN SART: MU1 mutanti (`--local` -> `--global`) GERCEK `~/.gitconfig`e
-    yazardi. Mutasyon turu KULLANICININ makinesini kirletemez; bu yuzden
-    mutant da olcum de bu sahte katmanlarda kosar ve kirlenme ORADA olculur."""
+    🔴 NEDEN SART: MU1 (`--local` -> `--global`) GERCEK `~/.gitconfig`e yazardi.
+    Mutasyon turu KULLANICININ makinesini kirletemez."""
     ortam = dict(os.environ)
     ortam["HOME"] = ev
     ortam["XDG_CONFIG_HOME"] = os.path.join(ev, "xdg")
@@ -142,25 +144,27 @@ def izole_ortam(ev):
     return ortam
 
 
-def depo_kur(kok, kancalar_kaynagi=KANCA_KAYNAGI, guard=GECER, ortam=None):
+def _araclari_ser(kok):
+    for ad in ("urunler-guard.py", "mukerrer-kontrol.py", "mimar-commit-kapisi.py",
+               "commit-mesaji-kapisi.py", "gecmis-geri-donus-kapisi.py",
+               "yedekle.py", "kutu-arsivle.py", "d1-sync.py"):
+        yaz(os.path.join(kok, "tools", ad), GECER, True)
+
+
+def depo_kur(kok, kanca_kaynagi, guard=GECER, ortam=None, kancalar=True):
     """Izlenen tools/kancalar + sentetik nobetci araclari olan sentetik depo."""
     os.makedirs(kok, exist_ok=True)
     g(kok, "init", "-q", "-b", "main", env=ortam, zorunlu=True)
     g(kok, "config", "user.email", "t@t", env=ortam)
     g(kok, "config", "user.name", "T", env=ortam)
+    g(kok, "config", "extensions.worktreeConfig", "true", env=ortam)
+    _araclari_ser(kok)
     yaz(os.path.join(kok, "tools", "urunler-guard.py"), guard, True)
-    yaz(os.path.join(kok, "tools", "mukerrer-kontrol.py"), GECER, True)
-    yaz(os.path.join(kok, "tools", "mimar-commit-kapisi.py"), GECER, True)
-    yaz(os.path.join(kok, "tools", "commit-mesaji-kapisi.py"), GECER, True)
-    yaz(os.path.join(kok, "tools", "gecmis-geri-donus-kapisi.py"), GECER, True)
-    yaz(os.path.join(kok, "tools", "yedekle.py"), GECER, True)
-    yaz(os.path.join(kok, "tools", "kutu-arsivle.py"), GECER, True)
-    yaz(os.path.join(kok, "tools", "d1-sync.py"), GECER, True)
-    if kancalar_kaynagi:
+    if kancalar:
         hedef = os.path.join(kok, "tools", "kancalar")
         os.makedirs(hedef, exist_ok=True)
-        for ad in sorted(os.listdir(kancalar_kaynagi)):
-            shutil.copy2(os.path.join(kancalar_kaynagi, ad), os.path.join(hedef, ad))
+        for ad in sorted(os.listdir(kanca_kaynagi)):
+            shutil.copy2(os.path.join(kanca_kaynagi, ad), os.path.join(hedef, ad))
             os.chmod(os.path.join(hedef, ad), 0o755)
     yaz(os.path.join(kok, "a.txt"), "x\n")
     g(kok, "add", "-A", env=ortam)
@@ -183,29 +187,50 @@ class Sayac(object):
         return bool(kosul)
 
 
-def nobetci_yukle(tools_dizini):
-    yol = os.path.join(tools_dizini, "kanca-kablolama-nobeti.py")
-    spec = importlib.util.spec_from_file_location("pruvo_kablolama_nobetci_test", yol)
+def _yukle(ad, yol):
+    spec = importlib.util.spec_from_file_location(ad, yol)
     mod = importlib.util.module_from_spec(spec)
-    sys.modules["pruvo_kablolama_nobetci_test"] = mod
+    sys.modules[ad] = mod
     spec.loader.exec_module(mod)
     return mod
 
 
-# ---------------------------------------------------------------------------
-# VAKALAR
+def nobetci_yukle(tools_dizini):
+    return _yukle("pruvo_kablolama_nobetci_test",
+                  os.path.join(tools_dizini, "kanca-kablolama-nobeti.py"))
+
+
+def kur_yukle(tools_dizini):
+    """Kurulum modulu — KURULU DIZIN YOLU BURADAN SORULUR, kopyalanmaz.
+
+    🔴 NEDEN: fikstur yolunu (`.git/pruvo-kancalar`) teste GOMMEK, kurulum
+    yolunu degistiren bir mutantta testi COKERTIYORDU (FileNotFoundError).
+    Cokme KIRMIZI SAYILMAZ -> o eksen olculmemis olurdu. Yol TEK KAYNAKTAN
+    sorulur; boylece mutant testi coketmez, ILGILI iddiada KIRMIZI yakar."""
+    return _yukle("pruvo_kablolama_kur_test",
+                  os.path.join(tools_dizini, "kanca-kur.py"))
+
+
 # ---------------------------------------------------------------------------
 def kos_vakalar(tools_dizini, ayrintili=True):
     s = Sayac()
     kur_yolu = os.path.join(tools_dizini, "kanca-kur.py")
+    kanca_kaynagi = os.path.join(tools_dizini, "kancalar")
     nobetci = nobetci_yukle(tools_dizini)
+    kur_mod = kur_yukle(tools_dizini)
     kok = tempfile.mkdtemp(prefix="kanca-kablolama-test-")
 
+    def kurulu_yolu(depo):
+        """Kurulu kanca dizini — TEK KAYNAKTAN (kanca-kur.py) sorulur."""
+        try:
+            return kur_mod.kurulu_dizin(depo)
+        except Exception:
+            return os.path.join(depo, ".git", "pruvo-kancalar")
+
     # 🔴 HER VAKA KENDI global/system KATMANINDA KOSAR. Tek ortak sahte HOME ile
-    # OLCULDU ki VAKA 2'nin basarili kurulumu (MU1 mutantinda `--global`) sahte
-    # global config'i ONCEDEN kirletiyor; VAKA 3 "once" anlik goruntusunu ondan
-    # SONRA aliyor ve `once == sonra` cikiyordu -> KIRLENME ASSERTION'I MUTANTI
-    # KOR EDIYORDU ([[fikstur-degeri-mutasyon-koru]]). Izolasyon vaka basinadir.
+    # OLCULDU ki onceki vakanin kurulumu (MU1'de `--global`) katmani ONCEDEN
+    # kirletiyor ve kirlenme iddiasi mutanti KOR EDIYORDU
+    # ([[fikstur-degeri-mutasyon-koru]]).
     def yeni_ortam(ad):
         ev = os.path.join(kok, "ev-" + ad)
         os.makedirs(ev, exist_ok=True)
@@ -220,18 +245,26 @@ def kos_vakalar(tools_dizini, ayrintili=True):
         return p.returncode, (p.stdout + p.stderr)
 
     try:
+        # ================= VAKA 0: SOZLESME ==================================
+        if ayrintili:
+            print("VAKA 0 — nobetci sozlesmesi")
+        eksik = [a for a in getattr(nobetci, "SOZLESME", ())
+                 if not hasattr(nobetci, a)]
+        s.bekle("V0.sozlesme", hasattr(nobetci, "SOZLESME") and not eksik,
+                "nobetcinin ILAN ETTIGI sozlesme eksiksiz olmali; eksik=%s "
+                "(sozlesme ihlali COKME degil KIRMIZI olmali)" % eksik)
+
         # ================= VAKA 1: FAIL-OPEN ONCE / SONRA =====================
         if ayrintili:
             print("VAKA 1 — fail-open ONCE/SONRA (gercek git commit)")
         sonuclar = {}
         for etiket_govde, govde in (
                 ("eski", ESKI_PRE_COMMIT),
-                ("izlenen", open(os.path.join(KANCA_KAYNAGI, "pre-commit"),
+                ("izlenen", open(os.path.join(kanca_kaynagi, "pre-commit"),
                                  encoding="utf-8").read())):
-            d = depo_kur(os.path.join(kok, "v1-" + etiket_govde),
+            d = depo_kur(os.path.join(kok, "v1-" + etiket_govde), kanca_kaynagi,
                          guard=GUARD_REDDEDER, ortam=ortam)
-            kancalar = os.path.join(d, ".git", "hooks")
-            yaz(os.path.join(kancalar, "pre-commit"), govde, True)
+            yaz(os.path.join(d, ".git", "hooks", "pre-commit"), govde, True)
             yaz(os.path.join(d, "a.txt"), "degisti\n")
             g(d, "add", "a.txt", env=ortam)
             rc, cikti, hata = g(d, "commit", "-m", "ikinci", env=ortam)
@@ -241,22 +274,24 @@ def kos_vakalar(tools_dizini, ayrintili=True):
 
         s.bekle("V1.eski-gecer", sonuclar["eski"][0] == 0,
                 "ESKI govde (`|| true`) ile guard REDDETTIGI HALDE commit GECMELI "
-                "(fail-open kaniti); rc=%d geldi" % sonuclar["eski"][0])
+                "(fail-open kaniti); rc=%d" % sonuclar["eski"][0])
         s.bekle("V1.eski-gerekce-yutulur", "GUARD-REDDETTI" not in sonuclar["eski"][1],
-                "ESKI govde gerekceyi YUTMALI (>/dev/null 2>&1) — fikstur dogru "
-                "kurulmus olmali")
+                "ESKI govde gerekceyi YUTMALI (fikstur dogru kurulmus olmali)")
         s.bekle("V1.izlenen-bloklar", sonuclar["izlenen"][0] != 0,
-                "IZLENEN govde ile commit DURMALI; rc=%d geldi (cikti: %r)"
+                "IZLENEN govde ile commit DURMALI; rc=%d (cikti: %r)"
                 % (sonuclar["izlenen"][0], sonuclar["izlenen"][1][-200:]))
         s.bekle("V1.gerekce-gorunur", "GUARD-REDDETTI" in sonuclar["izlenen"][1],
-                "IZLENEN govde guard'in GEREKCESINI gostermeli; cikti: %r"
-                % sonuclar["izlenen"][1][-200:])
-
-        # KONTROL (tek degisken): guard KABUL ederse izlenen govde commit'i
-        # DURDURMAMALI — yoksa "her seyi bloklayan" bir kanca da yesil gorunurdu.
-        d = depo_kur(os.path.join(kok, "v1-kontrol"), guard=GECER, ortam=ortam)
+                "GUARD'in gerekcesi gorunmeli; cikti: %r" % sonuclar["izlenen"][1][-200:])
+        # 🔴 CURUTUCU DELIGI B: kancanin KENDI gerekcesi AYRI iddiadir.
+        s.bekle("V1.kanca-gerekcesi-gorunur",
+                "COMMIT DURDURULDU" in sonuclar["izlenen"][1],
+                "KANCANIN KENDI gerekcesi de gorunmeli (bloklamak fail-loud'un "
+                "YARISIDIR; kanca susarsa mimar nedeni goremez); cikti: %r"
+                % sonuclar["izlenen"][1][-300:])
+        d = depo_kur(os.path.join(kok, "v1-kontrol"), kanca_kaynagi, guard=GECER,
+                     ortam=ortam)
         yaz(os.path.join(d, ".git", "hooks", "pre-commit"),
-            open(os.path.join(KANCA_KAYNAGI, "pre-commit"), encoding="utf-8").read(), True)
+            open(os.path.join(kanca_kaynagi, "pre-commit"), encoding="utf-8").read(), True)
         yaz(os.path.join(d, "a.txt"), "degisti\n")
         g(d, "add", "a.txt", env=ortam)
         rc_k, _o, _e = g(d, "commit", "-m", "kontrol", env=ortam)
@@ -265,97 +300,95 @@ def kos_vakalar(tools_dizini, ayrintili=True):
 
         # ================= VAKA 2: KURULUM FAIL-CLOSED ========================
         if ayrintili:
-            print("VAKA 2 — kurulum fail-closed")
-        # (a) izlenen kanca dizini YOK
-        d = depo_kur(os.path.join(kok, "v2a"), kancalar_kaynagi=None, ortam=ortam)
+            print("VAKA 2 — kurulum fail-closed + ayirt edici idempotens")
+        d = depo_kur(os.path.join(kok, "v2a"), kanca_kaynagi, ortam=ortam,
+                     kancalar=False)
         rc, cikti = kur_kos(d)
         s.bekle("V2.dizin-yok-rc", rc != 0,
                 "izlenen kanca dizini YOKken kurulum SIFIR-DISI cikmali; rc=%d" % rc)
         s.bekle("V2.dizin-yok-sebep", "kanca dizini YOK" in cikti,
                 "sebep BASILMALI; cikti: %r" % cikti[-200:])
-        # (b) dizin var ama bir kanca EKSIK
-        d = depo_kur(os.path.join(kok, "v2b"), ortam=ortam)
+        d = depo_kur(os.path.join(kok, "v2b"), kanca_kaynagi, ortam=ortam)
         os.remove(os.path.join(d, "tools", "kancalar", "pre-push"))
         rc, cikti = kur_kos(d)
         s.bekle("V2.eksik-kanca-rc", rc != 0,
                 "EKSIK kanca varken kurulum SIFIR-DISI cikmali; rc=%d" % rc)
         s.bekle("V2.eksik-kanca-sebep", "EKSIK kanca" in cikti,
                 "eksik kanca adi BASILMALI; cikti: %r" % cikti[-200:])
-        # (c) kurulmamis depoda --dogrula: "kuruldu" VARSAYILMAZ
-        d = depo_kur(os.path.join(kok, "v2c"), ortam=ortam)
+        d = depo_kur(os.path.join(kok, "v2c"), kanca_kaynagi, ortam=ortam)
         rc, cikti = kur_kos(d, "--dogrula")
         s.bekle("V2.kurulmamis-dogrula-rc", rc != 0,
                 "kurulu OLMAYAN depoda --dogrula SIFIR-DISI cikmali; rc=%d" % rc)
-        # (d) SAGLIKLI kurulum + IDEMPOTENS (yanlis-pozitif kontrolu)
-        d = depo_kur(os.path.join(kok, "v2d"), ortam=ortam)
+
+        d = depo_kur(os.path.join(kok, "v2d"), kanca_kaynagi, ortam=ortam)
         rc1, cikti1 = kur_kos(d)
         s.bekle("V2.kurulum-basarili", rc1 == 0,
                 "saglikli depoda kurulum BASARILI olmali; rc=%d cikti=%r"
-                % (rc1, cikti1[-300:]))
+                % (rc1, cikti1[-400:]))
         _rc, deger, _e = g(d, "config", "--get", "core.hooksPath", env=ortam)
-        s.bekle("V2.deger-goreli", deger == "tools/kancalar",
-                "yazilan deger GORELI `tools/kancalar` olmali; %r geldi" % deger)
+        s.bekle("V2.deger-mutlak", os.path.isabs(deger) and deger.endswith("pruvo-kancalar"),
+                "yazilan deger ORTAK .git altindaki kurulu dizinin MUTLAK yolu "
+                "olmali; %r geldi" % deger)
+        # 🔴 CURUTUCU DELIGI G: idempotens artik CIKTI METNINE degil, config'in
+        # sha256'sinin DEGISMEMESINE bakar (metin taklit edilebilir, yazma edilemez).
+        # 🔴 CURUTUCU DELIGI G: idempotens CIKTI METNINE bakamaz (metin taklit
+        # edilir). sha256 de YETMEZ: git ayni degeri yeniden yazinca ICERIK
+        # DEGISMEZ, yalniz DOSYA YENIDEN YAZILIR. Olculen sey YAZMA OLAYIDIR ->
+        # mtime_ns. (Olculdu: "her kosum yeniden yazar" mutanti sha256 ile
+        # HAYATTA KALIYORDU.)
+        cfg = os.path.join(d, ".git", "config")
+        cfg_once, mtime_once = sha256(cfg), os.stat(cfg).st_mtime_ns
         rc2, cikti2 = kur_kos(d)
-        s.bekle("V2.idempotent", rc2 == 0 and "DEGISIKLIK YOK" in cikti2,
-                "ikinci kosum IDEMPOTENT olmali; rc=%d cikti=%r" % (rc2, cikti2[-200:]))
+        s.bekle("V2.idempotent",
+                rc2 == 0 and sha256(cfg) == cfg_once
+                and os.stat(cfg).st_mtime_ns == mtime_once,
+                "ikinci kosum config'i YENIDEN YAZMAMALI (sha256 %s->%s, mtime_ns "
+                "%s->%s), rc=%d" % (cfg_once[:12], sha256(cfg)[:12], mtime_once,
+                                    os.stat(cfg).st_mtime_ns, rc2))
 
         # ================= VAKA 3: PAYLASILAN CONFIG KIRLENMEDI ===============
         if ayrintili:
             print("VAKA 3 — paylasilan/global config kirlenmedi")
-        o3 = yeni_ortam("v3")          # TAZE global/system katmani (bkz. yeni_ortam)
-        komsu = depo_kur(os.path.join(kok, "v3-komsu"), ortam=o3)
-        hedef = depo_kur(os.path.join(kok, "v3-hedef"), ortam=o3)
-        once = {
-            "global": sha256(o3["GIT_CONFIG_GLOBAL"]),
-            "system": sha256(o3["GIT_CONFIG_SYSTEM"]),
-            "komsu": sha256(os.path.join(komsu, ".git", "config")),
-        }
+        o3 = yeni_ortam("v3")
+        komsu = depo_kur(os.path.join(kok, "v3-komsu"), kanca_kaynagi, ortam=o3)
+        hedef = depo_kur(os.path.join(kok, "v3-hedef"), kanca_kaynagi, ortam=o3)
+        once = {"global": sha256(o3["GIT_CONFIG_GLOBAL"]),
+                "system": sha256(o3["GIT_CONFIG_SYSTEM"]),
+                "komsu": sha256(os.path.join(komsu, ".git", "config"))}
         s.bekle("V3.taze-katman", once["global"] == "YOK" and once["system"] == "YOK",
-                "TUZAK KURULUMU: VAKA 3 TAZE bir global/system katmaninda baslamali "
-                "(onceki vakalarin kirlenmesi mutanti KOR EDERDI); once=%s" % once)
+                "TUZAK KURULUMU: VAKA 3 TAZE katmanda baslamali; once=%s" % once)
         rc, cikti = kur_kos(hedef, env=o3)
         s.bekle("V3.kurulum-basarili", rc == 0,
-                "hedef depoya kurulum basarili olmali; rc=%d cikti=%r" % (rc, cikti[-300:]))
-        sonra = {
-            "global": sha256(o3["GIT_CONFIG_GLOBAL"]),
-            "system": sha256(o3["GIT_CONFIG_SYSTEM"]),
-            "komsu": sha256(os.path.join(komsu, ".git", "config")),
-        }
+                "hedef depoya kurulum basarili olmali; rc=%d cikti=%r" % (rc, cikti[-400:]))
+        sonra = {"global": sha256(o3["GIT_CONFIG_GLOBAL"]),
+                 "system": sha256(o3["GIT_CONFIG_SYSTEM"]),
+                 "komsu": sha256(os.path.join(komsu, ".git", "config"))}
         s.bekle("V3.global-kirlenmedi", once["global"] == sonra["global"],
-                "GLOBAL config DEGISMEMELI (once=%s sonra=%s) — `--global` kapsami "
-                "makinedeki TUM depolari kirletirdi" % (once["global"][:12], sonra["global"][:12]))
+                "GLOBAL config DEGISMEMELI (once=%s sonra=%s)"
+                % (once["global"][:12], sonra["global"][:12]))
         s.bekle("V3.system-kirlenmedi", once["system"] == sonra["system"],
-                "SYSTEM config DEGISMEMELI (once=%s sonra=%s)"
-                % (once["system"][:12], sonra["system"][:12]))
+                "SYSTEM config DEGISMEMELI")
         s.bekle("V3.komsu-kirlenmedi", once["komsu"] == sonra["komsu"],
-                "KOMSU deponun .git/config'i DEGISMEMELI (once=%s sonra=%s)"
-                % (once["komsu"][:12], sonra["komsu"][:12]))
+                "KOMSU deponun .git/config'i DEGISMEMELI")
 
-        # (b) LINKED WORKTREE'den kosum: hedef ANA checkout'tur (KASITLI), ama
-        #     worktree'nin config.worktree'si KIRLENMEZ ve deger OLDURUCU DEGILDIR.
-        ana = depo_kur(os.path.join(kok, "v3-ana"), ortam=o3)
-        g(ana, "config", "extensions.worktreeConfig", "true", env=o3, zorunlu=True)
+        ana = depo_kur(os.path.join(kok, "v3-ana"), kanca_kaynagi, ortam=o3)
         wt = os.path.join(kok, "v3-wt")
         g(ana, "worktree", "add", "-q", wt, "-b", "dal", env=o3, zorunlu=True)
         cw = os.path.join(ana, ".git", "worktrees", os.path.basename(wt), "config.worktree")
         cw_once = sha256(cw)
         rc, cikti = kur_kos(wt, env=o3)
         s.bekle("V3.worktreeden-kurulur", rc == 0,
-                "worktree'den kosum basarili olmali; rc=%d cikti=%r" % (rc, cikti[-300:]))
+                "worktree'den kosum basarili olmali; rc=%d cikti=%r" % (rc, cikti[-400:]))
         s.bekle("V3.worktree-config-kirlenmedi", cw_once == sha256(cw),
-                "worktree'nin config.worktree'si DEGISMEMELI (once=%s sonra=%s)"
-                % (cw_once[:12], sha256(cw)[:12]))
+                "worktree'nin config.worktree'si DEGISMEMELI")
         paylasilan = open(os.path.join(ana, ".git", "config"), encoding="utf-8").read()
         s.bekle("V3.ana-config-hedeflendi", "hooksPath" in paylasilan,
-                "worktree'den kosum ANA checkout'un .git/config'ine yazmali (KASITLI "
-                "hedef); yazilmamis")
+                "worktree'den kosum ANA checkout'un .git/config'ine yazmali (KASITLI)")
         s.bekle("V3.deger-oldurucu-degil",
-                "/dev/null" not in paylasilan and "tools/kancalar" in paylasilan,
-                "yazilan deger OLDURUCU olmamali ve izlenen dizini gostermeli")
-        # Yol karsilastirmasi REALPATH uzerinden: macOS'ta /var -> /private/var
-        # symlink'i yuzunden git'in dondurdugu yol fikstur yolundan farklidir.
+                "/dev/null" not in paylasilan and "pruvo-kancalar" in paylasilan,
+                "yazilan deger OLDURUCU olmamali ve kurulu dizini gostermeli")
         s.bekle("V3.hedef-basildi",
-                ("config --local core.hooksPath tools/kancalar" in cikti
+                ("config --local core.hooksPath" in cikti
                  and os.path.realpath(ana) in cikti),
                 "kurulum YAZDIGI KOMUTU (kapsam bayragi + hedef depo) BASMALI; "
                 "cikti: %r" % cikti[-400:])
@@ -363,12 +396,11 @@ def kos_vakalar(tools_dizini, ayrintili=True):
         # ================= VAKA 4: NOBETCI AYIRT EDICI ========================
         if ayrintili:
             print("VAKA 4 — nobetci ayirt edici (oldurucu + kontrol)")
+        o4 = yeni_ortam("v4")
 
-        # 🔴 NOBETCI IC-SUREC KOSAR ve `git`i os.environ ile cagirir; fikstur ise
-        # SAHTE bir global/system katmaninda kuruldu. Ikisi AYRI katman okursa
-        # olcum fiksturun kurdugu dunyayi degil MAKINENIN dunyasini yargilar
-        # (gercek `~/.gitconfig`inde core.hooksPath olan bir gelistiricide bu
-        # vaka yanlis hukum verirdi). Olcum SIRASINDA ayni katmana baglanir.
+        # 🔴 IC-SUREC olcum, fikstur ortamiyla AYNI config katmanina baglanir;
+        # ayrica ISTISNA YUTULMAZ ama COKERTMEZ: sozlesme bozuksa iddialar
+        # KIRMIZI yanar, suite Traceback ile OLMEZ (curutucu deligi I).
         def hukum(depo, ci=False, env=None):
             env = env or o4
             yedek = {k: os.environ.get(k) for k in
@@ -378,6 +410,10 @@ def kos_vakalar(tools_dizini, ayrintili=True):
             try:
                 b = nobetci.denetle(depo, ci=ci, kaynak_kok=depo)
                 return nobetci.genel_hal(b), nobetci.cikis_kodu(b, ci), b
+            except Exception as e:
+                print("    ⚠️ nobetci PATLADI (%s: %s) -> iddialar kirmizi yanacak"
+                      % (type(e).__name__, e))
+                return "PATLADI", 99, []
             finally:
                 for k, v in yedek.items():
                     if v is None:
@@ -385,61 +421,64 @@ def kos_vakalar(tools_dizini, ayrintili=True):
                     else:
                         os.environ[k] = v
 
-        o4 = yeni_ortam("v4")          # VAKA 4 de TAZE katmanda kosar
-
         def kurulu_depo(ad, **kw):
-            d = depo_kur(os.path.join(kok, ad), ortam=kw.pop("ortam", o4), **kw)
+            """🔴 KURULUM BASARISIZ OLSA BILE PATLAMAZ. Fikstur kurulumunda
+            `raise` etmek, kurulumu bozan bir mutanti COKME'ye cevirir; cokme
+            KIRMIZI SAYILMAZ (o eksen olculmemis olur). Basarisizlik ilgili
+            iddialarda dogal olarak kirmizi yanar."""
+            d = depo_kur(os.path.join(kok, ad), kanca_kaynagi,
+                         ortam=kw.pop("ortam", o4), **kw)
             rc, c = kur_kos(d, env=o4)
             if rc != 0:
-                raise RuntimeError("fikstur kurulamadi: %s -> %s" % (ad, c[-300:]))
+                print("    ⚠️ fikstur kurulumu basarisiz (%s, rc=%d): %s"
+                      % (ad, rc, c[-200:]))
             return d
 
-        # (kontrol) SAGLIKLI + KURULU -> YESIL
         saglikli = kurulu_depo("v4-saglikli")
         h, rc, b = hukum(saglikli)
         s.bekle("V4.saglikli-yesil", h == nobetci.YESIL and rc == 0,
                 "saglikli+kurulu depo YESIL olmali; %s (rc=%d) -> %s"
-                % (h, rc, [(e, x) for e, x, _m in b if x != nobetci.YESIL]))
-        # 🔴 YANLIS-POZITIF: pre-push'taki BEYAN EDILMIS fail-open bloklar
-        # (`yedekle.py ... || true` vb.) yesil kalmali.
+                % (h, rc, [(e, m) for e, x, m in b if x != nobetci.YESIL]))
         pp = open(os.path.join(saglikli, "tools", "kancalar", "pre-push"),
                   encoding="utf-8").read()
         s.bekle("V4.beyanli-failopen-fiksturde", "|| true" in pp or ">/dev/null 2>&1" in pp,
                 "TUZAK KURULUMU: pre-push fiksturunde beyan edilmis fail-open deyim "
                 "GECMELI (yoksa yanlis-pozitif ekseni olculmemis olur)")
 
-        # (oldurucu 1) kablolama YOK
-        d = depo_kur(os.path.join(kok, "v4-kablosuz"), ortam=o4)
+        d = depo_kur(os.path.join(kok, "v4-kablosuz"), kanca_kaynagi, ortam=o4)
         h, rc, b = hukum(d)
         s.bekle("V4.kablolamasiz-kirmizi",
-                any(e == "k) kablolama" and x == nobetci.KIRMIZI for e, x, _m in b) and rc != 0,
+                any(e == nobetci.EKSEN_KABLOLAMA and x == nobetci.KIRMIZI
+                    for e, x, _m in b) and rc != 0,
                 "kablolama kurulu DEGILKEN eksen K KIRMIZI olmali; %s (rc=%d)" % (h, rc))
 
-        # (oldurucu 2) kanca x-BITSIZ
         d = kurulu_depo("v4-xbitsiz")
-        os.chmod(os.path.join(d, "tools", "kancalar", "pre-commit"), 0o644)
+        kurulu = kurulu_yolu(d)
+        os.chmod(os.path.join(kurulu, "pre-commit"), 0o644)
         h, rc, b = hukum(d)
         s.bekle("V4.xbitsiz-kirmizi", h == nobetci.KIRMIZI and rc != 0,
                 "x-bitsiz kanca KIRMIZI olmali; %s (rc=%d)" % (h, rc))
 
-        # (oldurucu 3) `|| true` GERI GELMIS
         d = kurulu_depo("v4-yutma")
-        y = os.path.join(d, "tools", "kancalar", "pre-commit")
+        y = os.path.join(kurulu_yolu(d), "pre-commit")
         govde = open(y, encoding="utf-8").read()
         yeni = govde.replace('python3 "$pruvo_guard" --tetik commit\n',
                              'python3 "$pruvo_guard" --tetik commit >/dev/null 2>&1 || true\n')
-        s.bekle("V4.yutma-mutant-uygulandi", yeni != govde,
-                "mutant fiilen uygulanmali (desen bulunmali)")
+        s.bekle("V4.yutma-mutant-uygulandi", yeni != govde, "mutant uygulanmali")
         yaz(y, yeni, True)
         h, rc, b = hukum(d)
         s.bekle("V4.yutma-kirmizi",
                 any(e.startswith("y) pre-commit -> tools/urunler-guard.py")
                     and x == nobetci.KIRMIZI for e, x, _m in b) and rc != 0,
                 "`|| true` geri gelince eksen Y KIRMIZI olmali; %s (rc=%d)" % (h, rc))
+        # 🔴 AYNI mutant SAPMA eksenini de yakmali (kurulu kopya kaynaktan sapti)
+        s.bekle("V4.sapma-kirmizi",
+                any(e == nobetci.EKSEN_SAPMA and x == nobetci.KIRMIZI
+                    for e, x, _m in b),
+                "kurulu kopya elle degistirilince SAPMA ekseni KIRMIZI olmali")
 
-        # (oldurucu 4) cagri SILINMIS
         d = kurulu_depo("v4-cagrisiz")
-        y = os.path.join(d, "tools", "kancalar", "pre-commit")
+        y = os.path.join(kurulu_yolu(d), "pre-commit")
         govde = open(y, encoding="utf-8").read()
         yeni = govde.replace('python3 "$pruvo_guard" --tetik commit\n',
                              '# python3 "$pruvo_guard" --tetik commit\n')
@@ -449,55 +488,215 @@ def kos_vakalar(tools_dizini, ayrintili=True):
         s.bekle("V4.cagrisiz-kirmizi", h == nobetci.KIRMIZI and rc != 0,
                 "cagri yoruma alininca KIRMIZI olmali; %s (rc=%d)" % (h, rc))
 
-        # (oldurucu 5) cagri DURUYOR, `|| true` YOK, ama rc HIC kontrol edilmiyor
-        # 🔴 EKSEN B: yutma deseni listesinden kacan her fail-open'i yakalayan kol.
         d = kurulu_depo("v4-rcsiz")
-        y = os.path.join(d, "tools", "kancalar", "pre-commit")
+        y = os.path.join(kurulu_yolu(d), "pre-commit")
         govde = open(y, encoding="utf-8").read()
         yeni = govde.replace('pruvo_guard_rc=$?\n', 'pruvo_guard_rc=0\n')
         s.bekle("V4.rcsiz-mutant-uygulandi", yeni != govde, "mutant uygulanmali")
         yaz(y, yeni, True)
-        # 🔴 TUZAK KURULUMU, SATIR EKSENINDE: govdenin BASLIK YORUMU tarihsel
-        # fail-open satiri ORNEK olarak alintiladigi icin "govdede `|| true`
-        # gecmesin" demek YANLIS olurdu ([[nobetci-kendi-dosyasinda-sizinti]]).
-        # Olculen sey CAGRI SATIRIDIR: cagri duruyor, uzerinde yutma deyimi YOK.
-        _cagri_satirlari = [l for l in yeni.splitlines()
-                            if 'python3 "$pruvo_guard"' in l and not l.strip().startswith("#")]
+        _cs = [l for l in yeni.splitlines()
+               if 'python3 "$pruvo_guard"' in l and not l.strip().startswith("#")]
         s.bekle("V4.rcsiz-cagri-duruyor",
-                len(_cagri_satirlari) == 1
-                and "|| true" not in _cagri_satirlari[0]
-                and "/dev/null" not in _cagri_satirlari[0],
-                "TUZAK KURULUMU: cagri satiri DURMALI ve uzerinde yutma deyimi "
-                "OLMAMALI (yalniz eksen B ayirt edebilsin); satirlar=%r"
-                % _cagri_satirlari)
+                len(_cs) == 1 and "|| true" not in _cs[0] and "/dev/null" not in _cs[0],
+                "TUZAK KURULUMU: cagri satiri DURMALI ve yutma deyimi OLMAMALI "
+                "(yalniz eksen B ayirt edebilsin); satirlar=%r" % _cs)
         h, rc, b = hukum(d)
         s.bekle("V4.rc-kontrolsuz-kirmizi",
                 any(e.startswith("y) pre-commit -> tools/urunler-guard.py")
                     and x == nobetci.KIRMIZI for e, x, _m in b) and rc != 0,
                 "rc HIC kontrol edilmiyorsa KIRMIZI olmali; %s (rc=%d)" % (h, rc))
 
-        # ================= VAKA 5: CI HALI ====================================
+        # 🔴 CURUTUCU DELIGI B (nobetci kolu): gerekce susturulursa eksen G kirmizi
+        d = kurulu_depo("v4-gerekcesiz")
+        y = os.path.join(kurulu_yolu(d), "pre-commit")
+        govde = open(y, encoding="utf-8").read()
+        yeni = govde.replace("COMMIT DURDURULDU", "islem bitti").replace(
+            "COMMIT ENGELLENDI", "islem bitti")
+        s.bekle("V4.gerekcesiz-mutant-uygulandi", yeni != govde, "mutant uygulanmali")
+        yaz(y, yeni, True)
+        h, rc, b = hukum(d)
+        s.bekle("V4.gerekce-kirmizi",
+                any(e == "g) pre-commit gerekce" and x == nobetci.KIRMIZI
+                    for e, x, _m in b) and rc != 0,
+                "kanca kendi gerekcesini basmiyorsa eksen G KIRMIZI olmali; "
+                "%s (rc=%d)" % (h, rc))
+
+        # ================= VAKA 5: CI HALI + MUAFIYET DARLIGI =================
         if ayrintili:
-            print("VAKA 5 — CI hali (yanlis-pozitif butcesi)")
+            print("VAKA 5 — CI hali + muafiyetin DARLIGI")
         o5 = yeni_ortam("v5")
-        d = depo_kur(os.path.join(kok, "v5-ci"), ortam=o5)   # KABLOLAMA YOK
+        d = depo_kur(os.path.join(kok, "v5-ci"), kanca_kaynagi, ortam=o5)
         h, rc, b = hukum(d, ci=True, env=o5)
         s.bekle("V5.ci-rc-sifir", rc == 0,
-                "CI halinde (kablolama kurulu degil) rc=0 olmali — yoksa her yayin "
-                "durur; rc=%d, kirmizilar=%s"
+                "CI halinde (kablolama kurulu degil) rc=0 olmali; rc=%d kirmizilar=%s"
                 % (rc, [(e, m) for e, x, m in b if x == nobetci.KIRMIZI]))
         s.bekle("V5.ci-kablolama-ilan",
-                any(e == "k) kablolama" and x == nobetci.OLCULEMEDI for e, x, _m in b),
-                "CI halinde eksen K OLCULEMEDI olarak ILAN EDILMELI (sessizce "
-                "atlanmamali)")
-        # KONTROL: CI hali bir SESSIZ GECIS deligi degil — kaynakta `|| true` -> rc=1
+                any(e == nobetci.EKSEN_KABLOLAMA and x == nobetci.OLCULEMEDI
+                    for e, x, _m in b),
+                "CI halinde eksen K OLCULEMEDI olarak ILAN EDILMELI")
+        # 🔴 CURUTUCU DELIGI H: muafiyet YALNIZ K/S eksenlerini kapsamali.
+        # BASKA bir eksen OLCULEMEDI olursa CI'da da rc=1 olmali.
+        dh = depo_kur(os.path.join(kok, "v5-okunamaz"), kanca_kaynagi, ortam=o5)
+        okunamaz = os.path.join(dh, "tools", "kancalar", "pre-commit")
+        os.chmod(okunamaz, 0o000)
+        try:
+            hh, rch, bh = hukum(dh, ci=True, env=o5)
+            olculemeyenler = [e for e, x, _m in bh if x == nobetci.OLCULEMEDI
+                              and e not in nobetci._CI_MUAF_EKSENLER]
+            s.bekle("V5.ci-muafiyet-dar-fikstur", bool(olculemeyenler),
+                    "TUZAK KURULUMU: MUAF OLMAYAN bir eksen OLCULEMEDI olmali "
+                    "(yoksa darlik olculmemis olur); bulgular=%s"
+                    % [(e, x) for e, x, _m in bh])
+            s.bekle("V5.ci-muafiyet-dar", rch != 0,
+                    "`--ci` muafiyeti YALNIZ K/S eksenlerini kapsamali: baska bir "
+                    "eksen OLCULEMEDI iken rc SIFIR-DISI olmali; rc=%d" % rch)
+        finally:
+            os.chmod(okunamaz, 0o644)
         y = os.path.join(d, "tools", "kancalar", "pre-commit")
         govde = open(y, encoding="utf-8").read()
         yaz(y, govde.replace('python3 "$pruvo_guard" --tetik commit\n',
                              'python3 "$pruvo_guard" --tetik commit || true\n'), True)
-        h2, rc2, _b2 = hukum(d, ci=True, env=o5)
+        _h2, rc2, _b2 = hukum(d, ci=True, env=o5)
         s.bekle("V5.ci-yutma-kirmizi", rc2 != 0,
                 "CI halinde de izlenen kaynaktaki `|| true` KIRMIZI yakmali; rc=%d" % rc2)
+
+        # ================= VAKA 6: OLU AGAC (KUSUR 2) =========================
+        if ayrintili:
+            print("VAKA 6 — olu agac (tools/kancalar TASIMAYAN worktree)")
+        o6 = yeni_ortam("v6")
+        ana6 = depo_kur(os.path.join(kok, "v6-ana"), kanca_kaynagi, ortam=o6)
+        # ESKI commit: `tools/` BUTUNUYLE yok (eski bir dalin hali).
+        # 🔴 NEDEN TUM `tools/`: kancanin FIILEN kostugunun KANITI, fail-closed
+        # pre-commit'in `tools/urunler-guard.py`yi BULAMAYIP durmasi ve gerekce
+        # basmasidir. Yalniz `tools/kancalar` silinseydi guard stub'i yerinde
+        # kalir, kanca kossa da kosmasa da commit rc=0 verirdi -> vaka AYIRT
+        # EDICI OLMAZDI (ilk kosumda tam bu sekilde yanildi ve olculdu).
+        g(ana6, "checkout", "-q", "-b", "eskidal", env=o6, zorunlu=True)
+        shutil.rmtree(os.path.join(ana6, "tools"))
+        g(ana6, "add", "-A", env=o6)
+        g(ana6, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m",
+          "kancalar YOK", env=o6)
+        _rc, eski_sha, _e = g(ana6, "rev-parse", "HEAD", env=o6)
+        g(ana6, "checkout", "-q", "main", env=o6, zorunlu=True)
+
+        wt6 = os.path.join(kok, "v6-wt")
+        g(ana6, "worktree", "add", "-q", "--detach", wt6, eski_sha, env=o6, zorunlu=True)
+        g(wt6, "config", "user.email", "t@t", env=o6)
+        g(wt6, "config", "user.name", "T", env=o6)
+        s.bekle("V6.olu-agac-fikstur",
+                not os.path.isdir(os.path.join(wt6, "tools")),
+                "TUZAK KURULUMU: bu worktree'de `tools/` BULUNMAMALI (kancanin "
+                "kostugunu ancak guard'i BULAMAYIP durmasi kanitlar)")
+        rc, _c = kur_kos(ana6, env=o6)
+        s.bekle("V6.kurulum-basarili", rc == 0, "ana6'ya kurulum basarili olmali")
+
+        def commit_dene(agac, etiket):
+            yaz(os.path.join(agac, "z-%s.txt" % etiket), os.urandom(4).hex() + "\n")
+            g(agac, "add", "-A", env=o6)
+            rc, o, e = g(agac, "commit", "-m", "dene-" + etiket, env=o6)
+            return rc, (o + e)
+
+        # (a) ÖLDÜRÜCÜ: kancalar olu agacta da FIILEN kosmali. Kanit: kanca
+        #     `tools/urunler-guard.py` bulamayip FAIL-CLOSED durur ve gerekce basar.
+        rc_olu, cikti_olu = commit_dene(wt6, "secilen")
+        s.bekle("V6.olu-agacta-kanca-kosuyor",
+                rc_olu != 0 and "COMMIT DURDURULDU" in cikti_olu,
+                "tools/kancalar TASIMAYAN agacta da kancalar KOSMALI (kurulu kopya "
+                "ORTAK .git altindadir); rc=%d cikti=%r" % (rc_olu, cikti_olu[-300:]))
+
+        # (a-KONTROL, tek degisken): ELENEN goreli tasarim -> ayni agacta HICBIRI
+        g(ana6, "config", "--local", "core.hooksPath", "tools/kancalar",
+          env=o6, zorunlu=True)
+        rc_gor, cikti_gor = commit_dene(wt6, "goreli")
+        s.bekle("V6.goreli-tasarim-olu",
+                rc_gor == 0 and "COMMIT DURDURULDU" not in cikti_gor,
+                "KONTROL: ELENEN goreli tasarimda ayni agacta HICBIR kanca "
+                "kosmamali (bu vakanin ayirt edici oldugunu kanitlar); rc=%d"
+                % rc_gor)
+
+        # (b) ÖLDÜRÜCÜ: nobetci O AGACIN icinden dogru hukmu vermeli.
+        #     Su an goreli (olu) hal kurulu -> KIRMIZI beklenir.
+        def hukum6(agac):
+            yedek = {k: os.environ.get(k) for k in
+                     ("HOME", "XDG_CONFIG_HOME", "GIT_CONFIG_GLOBAL",
+                      "GIT_CONFIG_SYSTEM", "GIT_CONFIG_NOSYSTEM")}
+            os.environ.update({k: o6[k] for k in yedek})
+            try:
+                b = nobetci.denetle(ana6, ci=False, kaynak_kok=agac)
+                return nobetci.genel_hal(b), nobetci.cikis_kodu(b, False), b
+            except Exception as e:
+                print("    ⚠️ nobetci PATLADI (%s: %s)" % (type(e).__name__, e))
+                return "PATLADI", 99, []
+            finally:
+                for k, v in yedek.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+
+        # (b) ÖLDÜRÜCÜ: nobetci O AGACIN halini olcmeli, ANA checkout'un degil.
+        # 🔴 AYIRT EDICI KURULUM: ANA checkout SAGLIKLI birakilir, YALNIZ
+        # worktree kendi `config.worktree`siyle OLU hale getirilir. Boylece
+        # "ana checkout'a bakan" bir nobetci YESIL, "bu agaca bakan" nobetci
+        # KIRMIZI verir — fark TAM OLARAK olculen eksendir. (Ilk kurulumda ana
+        # da bozuktu; o halde mutant HAYATTA KALIYORDU, olculdu.)
+        rc, _c = kur_kos(ana6, env=o6)
+        s.bekle("V6.yeniden-kurulum", rc == 0, "yeniden kurulum basarili olmali")
+        h6b, rc6b, b6b = hukum6(wt6)
+        s.bekle("V6.saglikli-agac-yesil", rc6b == 0,
+                "KONTROL: saglikli kurulumda AYNI agac yesil olmali; %s rc=%d -> %s"
+                % (h6b, rc6b, [(e, m) for e, x, m in b6b if x != nobetci.YESIL]))
+        h6a, rc6a, _b6a = hukum6(ana6)
+        s.bekle("V6.ana-saglikli", rc6a == 0,
+                "TUZAK KURULUMU: ANA checkout SAGLIKLI kalmali; %s rc=%d" % (h6a, rc6a))
+        g(wt6, "config", "--worktree", "core.hooksPath",
+          os.path.join(kok, "boyle-bir-dizin-yok"), env=o6, zorunlu=True)
+        h6c, rc6c, _b6c = hukum6(wt6)
+        s.bekle("V6.nobetci-olu-agaci-goruyor", rc6c != 0,
+                "nobetci OLU agacin ICINDEN kosturulunca SIFIR-DISI vermeli "
+                "(ANA checkout saglikli oldugu halde); %s rc=%d" % (h6c, rc6c))
+
+        # ================= VAKA 7: IZOLE AGAC MUAFIYETI DAR ===================
+        if ayrintili:
+            print("VAKA 7 — izole agac muafiyetinin DARLIGI")
+        o7 = yeni_ortam("v7")
+        ana7 = depo_kur(os.path.join(kok, "v7-ana"), kanca_kaynagi, ortam=o7)
+        wt7 = os.path.join(kok, "v7-wt")
+        g(ana7, "worktree", "add", "-q", wt7, "-b", "izole", env=o7, zorunlu=True)
+        rc, _c = kur_kos(ana7, env=o7)
+        s.bekle("V7.kurulum-basarili", rc == 0, "ana7'ye kurulum basarili olmali")
+
+        def hukum7(agac):
+            yedek = {k: os.environ.get(k) for k in
+                     ("HOME", "XDG_CONFIG_HOME", "GIT_CONFIG_GLOBAL",
+                      "GIT_CONFIG_SYSTEM", "GIT_CONFIG_NOSYSTEM")}
+            os.environ.update({k: o7[k] for k in yedek})
+            try:
+                b = nobetci.denetle(ana7, ci=False, kaynak_kok=agac)
+                return nobetci.cikis_kodu(b, False), b
+            except Exception as e:
+                print("    ⚠️ nobetci PATLADI (%s: %s)" % (type(e).__name__, e))
+                return 99, []
+            finally:
+                for k, v in yedek.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+
+        g(wt7, "config", "--worktree", "core.hooksPath", "/dev/null",
+          env=o7, zorunlu=True)
+        rc7, _b7 = hukum7(wt7)
+        s.bekle("V7.izole-worktree-yesil", rc7 == 0,
+                "config.worktree'den gelen /dev/null KASITLI izolasyondur -> "
+                "yanlis-pozitif URETILMEMELI; rc=%d" % rc7)
+        # KONTROL (tek degisken: KAYNAK DOSYA): ayni deger PAYLASILAN config'ten
+        g(wt7, "config", "--worktree", "--unset", "core.hooksPath", env=o7)
+        g(ana7, "config", "--local", "core.hooksPath", "/dev/null", env=o7, zorunlu=True)
+        rc7b, _b7b = hukum7(wt7)
+        s.bekle("V7.paylasilan-devnull-kirmizi", rc7b != 0,
+                "AYNI deger PAYLASILAN .git/config'ten gelirse 1 Agu'ta olculen "
+                "OLAYDIR -> KIRMIZI olmali; rc=%d" % rc7b)
 
     finally:
         shutil.rmtree(kok, ignore_errors=True)
@@ -507,28 +706,16 @@ def kos_vakalar(tools_dizini, ayrintili=True):
 # ---------------------------------------------------------------------------
 # MUTASYON TURU — mutant KOPYAYA uygulanir, CANLI dosyalar DEGISMEZ
 # ---------------------------------------------------------------------------
-# Her mutant, KIRMIZI yakmasi beklenen iddia etiketlerinin TAM KUMESINI beyan
-# eder. Driver TAM ESITLIK arar: eksik oldurme de FAZLA oldurme de KIRMIZI'dir
-# (fazla oldurme, eksenlerin birbirine sizdigini gosterir).
 MUTANTLAR = (
-    # 🔴 MU1 BILEREK GENIS BIR MUTANTTIR ve imzasi 5 etikettir. Kapsam bayragini
-    # makine capina cikarmak TEK bir ekseni degil "deger BU DEPONUN config'ine
-    # indi mi" varsayimina dayanan HER ekseni devirir; imza OLCULEREK sabitlendi
-    # (tahminle DEGIL — ilk beyan 2 etiketti, kosum 5 gosterdi ve fark bu dosyada
-    # IKI GERCEK fikstur hatasi buldu: paylasilan sahte HOME'un onceki vakalarca
-    # kirletilmesi ve olcumun fiksturden BASKA bir config katmanini okumasi).
-    #   V3.global-kirlenmedi     -> makine capindaki katman FIILEN kirlendi
-    #   V3.hedef-basildi         -> basilan komutta artik `--local` yok
-    #   V3.ana-config-hedeflendi -> deger ANA checkout'un .git/config'ine INMEDI
-    #   V3.deger-oldurucu-degil  -> ayni sebeple ana config'de izlenen yol YOK
-    #   V4.kablolamasiz-kirmizi  -> EN PAHALI SONUC: global katman yuzunden
-    #      HIC KURULMAMIS bir depo da "kurulu" gorunur; nobetci kurulmamis hali
-    #      artik ayirt edemez (sessiz yesil).
+    # 🔴 MU1 BILEREK GENIS. Kapsam bayragini makine capina cikarmak TEK bir
+    # ekseni degil "deger BU DEPONUN config'ine indi mi" varsayimina dayanan HER
+    # ekseni devirir; imza OLCULEREK sabitlendi (tahminle DEGIL).
     ("MU1 kur: KAPSAM --local -> --global (makine capinda kirlenme)",
      "kanca-kur.py", 'KAPSAM = "--local"', 'KAPSAM = "--global"',
      frozenset({"V3.global-kirlenmedi", "V3.hedef-basildi",
                 "V3.ana-config-hedeflendi", "V3.deger-oldurucu-degil",
-                "V4.kablolamasiz-kirmizi"})),
+                "V6.ana-saglikli", "V6.saglikli-agac-yesil",
+                "V6.yeniden-kurulum"})),
 
     ("MU2 kur: fail-closed devrilir (Hata -> cikis 0)",
      "kanca-kur.py",
@@ -536,29 +723,123 @@ MUTANTLAR = (
      '            print("🔴 KURULAMADI: %s" % e, file=sys.stderr)\n            return 0',
      frozenset({"V2.dizin-yok-rc", "V2.eksik-kanca-rc"})),
 
-    ("MU3 kur: kur->DOGRULA halkasi kirilir (kurulmamis hal yesil sayilir)",
+    ("MU3 kur: kur->DOGRULA halkasi kirilir",
      "kanca-kur.py",
      '        bulgular.append(("kablolama", False,',
      '        bulgular.append(("kablolama", True,',
      frozenset({"V2.kurulmamis-dogrula-rc"})),
 
-    ("MU4 nobetci: YUTMA deseni listesi bosaltilir (`|| true` kabul edilir)",
+    # 🔴 MU4 KUSUR 2-a: SECILEN mutlak tasarim ELENEN goreli tasarima geri
+    # cevrilir -> olu agacta kancalar OLUR.
+    # 🔴 MU4 = ELENEN SECENEK 2 (mutlak ama ANA AGACIN icindeki izlenen dizin).
+    # Olculdu: bu halde olu worktree'de kancalar YINE KOSAR (yol mutlaktir) —
+    # o yuzden `V6.olu-agacta-kanca-kosuyor` bu mutanti OLDURMEZ; secenek 2'yi
+    # eleyen sey ana agacin `git checkout`uyla kablolamanin degismesidir.
+    # Secenek 1'in (goreli) mutanti MU15'tir.
+    ("MU4 kur: kurulu dizin ANA agacin izlenen dizinine doner (elenen secenek 2)",
+     "kanca-kur.py",
+     '    return os.path.join(ortak_git_dizini(baslangic), KURULU_DIZIN_ADI)',
+     '    return os.path.join(baslangic, KANCA_DIZINI)',
+     frozenset({"V2.deger-mutlak", "V3.deger-oldurucu-degil",
+                "V4.saglikli-yesil", "V4.sapma-kirmizi",
+                "V6.saglikli-agac-yesil"})),
+
+    ("MU5 kur: idempotens kirilir (her kosum config'i YENIDEN yazar)",
+     "kanca-kur.py",
+     '        if os.path.normpath(cozulen) == os.path.normpath(kurulu):\n'
+     '            print("  DEGISIKLIK YOK',
+     '        if False:\n'
+     '            print("  DEGISIKLIK YOK',
+     frozenset({"V2.idempotent"})),
+
+    ("MU6 nobetci: YUTMA deseni listesi bosaltilir (`|| true` kabul edilir)",
      "kanca-kablolama-nobeti.py",
      "    for desen, tarif in YUTMA_DESENLERI:",
      "    for desen, tarif in ():",
      frozenset({"V4.yutma-kirmizi", "V5.ci-yutma-kirmizi"})),
 
-    ("MU5 nobetci: EKSEN B oldurulur (rc kontrolu aranmaz)",
+    ("MU7 nobetci: EKSEN B oldurulur (rc kontrolu aranmaz)",
      "kanca-kablolama-nobeti.py",
      "def bloklama_hukmu(etkili, indeks, ham):",
      "def bloklama_hukmu(etkili, indeks, ham):\n    return True, None",
      frozenset({"V4.rc-kontrolsuz-kirmizi"})),
 
-    ("MU6 nobetci: EKSEN K oldurulur (ayarsiz hooksPath yesil sayilir)",
+    ("MU8 nobetci: EKSEN K oldurulur (ayarsiz hooksPath yesil sayilir)",
      "kanca-kablolama-nobeti.py",
-     '    if deger is None:\n        return ("k) kablolama", KIRMIZI,',
-     '    if deger is None:\n        return ("k) kablolama", YESIL,',
+     '        return (EKSEN_KABLOLAMA, KIRMIZI,\n'
+     '                "core.hooksPath AYARLI DEGIL',
+     '        return (EKSEN_KABLOLAMA, YESIL,\n'
+     '                "core.hooksPath AYARLI DEGIL',
      frozenset({"V4.kablolamasiz-kirmizi"})),
+
+    # 🔴 MU9 CURUTUCU DELIGI H: `--ci` muafiyeti TUM OLCULEMEDI'lere genisler.
+    ("MU9 nobetci: --ci muafiyeti GENISLER (H)",
+     "kanca-kablolama-nobeti.py",
+     "        if ci and eksen in _CI_MUAF_EKSENLER:",
+     "        if ci:",
+     frozenset({"V5.ci-muafiyet-dar"})),
+
+    # 🔴 MU10 KUSUR 2-b: nobetci yine ANA checkout'a bakar.
+    ("MU10 nobetci: kosturuldugu agac yerine ANA checkout olculur (KUSUR 2-b)",
+     "kanca-kablolama-nobeti.py",
+     "    kaynak_kok = kaynak_kok or kok",
+     "    kaynak_kok = kok",
+     frozenset({"V6.nobetci-olu-agaci-goruyor"})),
+
+    # 🔴 MU11 CURUTUCU DELIGI B (nobetci kolu): gerekce capalari bosaltilir.
+    ("MU11 nobetci: GEREKCE capalari bosaltilir (B)",
+     "kanca-kablolama-nobeti.py",
+     '        capalar = GEREKCE_CAPALARI.get(kanca, ())',
+     '        capalar = ()',
+     frozenset({"V4.gerekce-kirmizi"})),
+
+    ("MU12 nobetci: SAPMA ekseni oldurulur",
+     "kanca-kablolama-nobeti.py",
+     '        return (EKSEN_SAPMA, KIRMIZI,',
+     '        return (EKSEN_SAPMA, YESIL,',
+     frozenset({"V4.sapma-kirmizi"})),
+
+    # 🔴 MU13 izole muafiyeti GENISLER: kaynak dosya kontrolu kalkar ->
+    # PAYLASILAN config'ten gelen /dev/null da "mesru izolasyon" sayilir.
+    ("MU13 nobetci: izole muafiyeti GENISLER (kaynak dosya kontrolu kalkar)",
+     "kanca-kablolama-nobeti.py",
+     '    return os.path.basename(dosya) == "config.worktree"',
+     '    return True',
+     frozenset({"V7.paylasilan-devnull-kirmizi"})),
+
+    # 🔴 MU14 CURUTUCU DELIGI I: sozlesme sabiti yeniden adlandirilir. Suite
+    # COKMEMELI, KIRMIZI YAKMALI (cokme kirmizi sayilmaz).
+    ("MU14 nobetci: FAIL_CLOSED yeniden adlandirilir (I — cokme degil KIRMIZI)",
+     "kanca-kablolama-nobeti.py",
+     "FAIL_CLOSED = {\n    (\"pre-commit\", \"tools/urunler-guard.py\"):",
+     "FAIL_CLOSED_YENI = {\n    (\"pre-commit\", \"tools/urunler-guard.py\"):",
+     # Olculen imza: nobetci her cagrida patlar; `hukum()` bunu YUTMAZ ama
+     # COKERTMEZ de -> "rc sifir-disi olmali" diyen iddialar (patlama rc=99)
+     # dogal olarak GECER, "yesil olmali" ve "su eksen ilan edilmeli" diyenler
+     # KIRMIZI yanar. Dedike detektor V0.sozlesme'dir ve ATESLER.
+     frozenset({"V0.sozlesme", "V4.saglikli-yesil", "V4.kablolamasiz-kirmizi",
+                "V4.xbitsiz-kirmizi", "V4.yutma-kirmizi", "V4.sapma-kirmizi",
+                "V4.cagrisiz-kirmizi", "V4.rc-kontrolsuz-kirmizi",
+                "V4.gerekce-kirmizi", "V5.ci-rc-sifir", "V5.ci-kablolama-ilan",
+                "V5.ci-muafiyet-dar-fikstur", "V6.ana-saglikli",
+                "V6.saglikli-agac-yesil", "V7.izole-worktree-yesil"})),
+
+    # 🔴 MU15 KUSUR 2-a'nin TAM mutanti: config'e yazilan deger ELENEN SECENEK
+    # 1'e (GORELI `tools/kancalar`) doner. Kurulu kopya yerinde kalir ama git
+    # artik AGACIN icindeki yolu cozer -> `tools/kancalar` TASIMAYAN worktree'de
+    # HICBIR kanca kosmaz. `V6.olu-agacta-kanca-kosuyor` bu mutanti oldurur.
+    ("MU15 kur: config'e GORELI deger yazilir (KUSUR 2-a, elenen secenek 1)",
+     "kanca-kur.py",
+     '    rc, _o, hata = _git(kok, "config", KAPSAM, AYAR, kurulu)',
+     '    rc, _o, hata = _git(kok, "config", KAPSAM, AYAR, KANCA_DIZINI)',
+     frozenset({"V2.kurulum-basarili", "V2.deger-mutlak", "V2.idempotent",
+                "V3.kurulum-basarili", "V3.deger-oldurucu-degil",
+                "V3.worktreeden-kurulur", "V4.saglikli-yesil",
+                "V4.yutma-kirmizi", "V4.sapma-kirmizi",
+                "V4.rc-kontrolsuz-kirmizi", "V4.gerekce-kirmizi",
+                "V6.kurulum-basarili", "V6.olu-agacta-kanca-kosuyor",
+                "V6.yeniden-kurulum", "V6.saglikli-agac-yesil",
+                "V6.ana-saglikli", "V7.kurulum-basarili"})),
 
     ("N1 ILGISIZ: yorum eklenir (davranis degismez)",
      "kanca-kablolama-nobeti.py",
@@ -571,73 +852,6 @@ MUTANTLAR = (
 def _canli_dosyalar():
     return [KUR, NOBETCI] + [os.path.join(TOOLS, a) for a in YARDIMCILAR] + \
            [os.path.join(KANCA_KAYNAGI, a) for a in sorted(os.listdir(KANCA_KAYNAGI))]
-
-
-def mutasyon_turu():
-    print("MUTASYON TURU — mutant KOPYAYA uygulanir, CANLI dosyalar DEGISMEZ")
-    once = {y: sha256(y) for y in _canli_dosyalar()}
-
-    # TABAN: mutasyonsuz kosum. Iddia sayisi ve kirmizi kume buradan gelir.
-    taban = subprocess.run([sys.executable, os.path.abspath(__file__), "--sessiz"],
-                           capture_output=True, text=True, timeout=900)
-    taban_cikti = taban.stdout + taban.stderr
-    taban_iddia = _iddia_sayisi(taban_cikti)
-    print("  TABAN: rc=%d iddia=%s kirmizi=%s"
-          % (taban.returncode, taban_iddia, _kirmizi_kume(taban_cikti) or "{}"))
-    kirmizi = []
-    if taban.returncode != 0:
-        kirmizi.append("TABAN KIRMIZI — mutasyon turu anlamsiz: %s" % taban_cikti[-500:])
-    if taban_iddia is None:
-        kirmizi.append("TABAN 'IDDIA:' satiri basmadi")
-
-    for ad, dosya, eski, yeni, beklenen in MUTANTLAR:
-        canli = os.path.join(TOOLS, dosya)
-        kaynak = open(canli, encoding="utf-8").read()
-        if eski not in kaynak:
-            kirmizi.append("%s :: DESEN BULUNAMADI (mutant bayat) -> %r" % (ad, eski[:60]))
-            print("  🔴 %-64s DESEN YOK" % ad[:64])
-            continue
-        gecici = tempfile.mkdtemp(prefix="kanca-kablolama-mut-")
-        try:
-            ht = os.path.join(gecici, "tools")
-            os.makedirs(ht)
-            for a in (os.path.basename(KUR), os.path.basename(NOBETCI)) + YARDIMCILAR:
-                shutil.copy2(os.path.join(TOOLS, a), os.path.join(ht, a))
-            with open(os.path.join(ht, dosya), "w", encoding="utf-8") as f:
-                f.write(kaynak.replace(eski, yeni, 1))
-            p = subprocess.run([sys.executable, os.path.abspath(__file__),
-                                "--tools", ht, "--sessiz"],
-                               capture_output=True, text=True, timeout=900)
-            cikti = p.stdout + p.stderr
-            gelen = _kirmizi_kume(cikti)
-            iddia = _iddia_sayisi(cikti)
-            coktu = "Traceback" in cikti
-            tamam = (gelen == beklenen) and not coktu and iddia == taban_iddia
-            print("  %s %-64s rc=%d iddia=%s kirmizi=%s"
-                  % ("✅" if tamam else "🔴", ad[:64], p.returncode, iddia,
-                     sorted(gelen) or "{}"))
-            if gelen != beklenen:
-                kirmizi.append("%s :: KUME ESIT DEGIL — beklenen=%s gelen=%s"
-                               % (ad, sorted(beklenen), sorted(gelen)))
-            if coktu:
-                kirmizi.append("%s :: COKTU (Traceback) — mutant KIRMIZI yakmali, "
-                               "COKMEMELI: %s" % (ad, cikti[-300:]))
-            if iddia != taban_iddia:
-                kirmizi.append("%s :: IDDIA SAYISI DEGISTI (taban=%s mutant=%s) — "
-                               "suite kisalmis, olculen yuzey kucuklu"
-                               % (ad, taban_iddia, iddia))
-        finally:
-            shutil.rmtree(gecici, ignore_errors=True)
-
-    bozulan = [y for y, h in once.items() if sha256(y) != h]
-    print("\nCANLI DOSYA sha256 (%d dosya): %s"
-          % (len(once), "HEPSI ESIT ✅" if not bozulan else "DEGISMIS 🔴 %s" % bozulan))
-    if bozulan:
-        kirmizi.append("CANLI DOSYA DEGISMIS — mutant sizdi: %s" % bozulan)
-    print("\nMUTASYON SONUC: %d mutant, %d kirmizi" % (len(MUTANTLAR), len(kirmizi)))
-    for k in kirmizi:
-        print("  🔴 " + k)
-    return 1 if kirmizi else 0
 
 
 def _iddia_sayisi(cikti):
@@ -656,6 +870,71 @@ def _kirmizi_kume(cikti):
             govde = satir[len("KIRMIZI-ETIKET: "):].strip()
             return frozenset(x for x in govde.split(",") if x)
     return frozenset()
+
+
+def mutasyon_turu():
+    print("MUTASYON TURU — mutant KOPYAYA uygulanir, CANLI dosyalar DEGISMEZ")
+    once = {y: sha256(y) for y in _canli_dosyalar()}
+
+    taban = subprocess.run([sys.executable, os.path.abspath(__file__), "--sessiz"],
+                           capture_output=True, text=True, timeout=1800)
+    taban_cikti = taban.stdout + taban.stderr
+    taban_iddia = _iddia_sayisi(taban_cikti)
+    print("  TABAN: rc=%d iddia=%s kirmizi=%s"
+          % (taban.returncode, taban_iddia, sorted(_kirmizi_kume(taban_cikti)) or "{}"))
+    kirmizi = []
+    if taban.returncode != 0:
+        kirmizi.append("TABAN KIRMIZI — mutasyon turu anlamsiz: %s" % taban_cikti[-500:])
+    if taban_iddia is None:
+        kirmizi.append("TABAN 'IDDIA:' satiri basmadi")
+
+    for ad, dosya, eski, yeni, beklenen in MUTANTLAR:
+        canli = os.path.join(TOOLS, dosya)
+        kaynak = open(canli, encoding="utf-8").read()
+        if eski not in kaynak:
+            kirmizi.append("%s :: DESEN BULUNAMADI (mutant bayat) -> %r" % (ad, eski[:60]))
+            print("  🔴 %-66s DESEN YOK" % ad[:66])
+            continue
+        gecici = tempfile.mkdtemp(prefix="kanca-kablolama-mut-")
+        try:
+            ht = os.path.join(gecici, "tools")
+            os.makedirs(ht)
+            for a in (os.path.basename(KUR), os.path.basename(NOBETCI)) + YARDIMCILAR:
+                shutil.copy2(os.path.join(TOOLS, a), os.path.join(ht, a))
+            shutil.copytree(KANCA_KAYNAGI, os.path.join(ht, "kancalar"))
+            with open(os.path.join(ht, dosya), "w", encoding="utf-8") as f:
+                f.write(kaynak.replace(eski, yeni, 1))
+            p = subprocess.run([sys.executable, os.path.abspath(__file__),
+                                "--tools", ht, "--sessiz"],
+                               capture_output=True, text=True, timeout=1800)
+            cikti = p.stdout + p.stderr
+            gelen = _kirmizi_kume(cikti)
+            iddia = _iddia_sayisi(cikti)
+            coktu = "Traceback" in cikti
+            tamam = (gelen == beklenen) and not coktu and iddia == taban_iddia
+            print("  %s %-66s rc=%d iddia=%s kirmizi=%d"
+                  % ("✅" if tamam else "🔴", ad[:66], p.returncode, iddia, len(gelen)))
+            if gelen != beklenen:
+                kirmizi.append("%s :: KUME ESIT DEGIL\n      beklenen=%s\n      gelen   =%s"
+                               % (ad, sorted(beklenen), sorted(gelen)))
+            if coktu:
+                kirmizi.append("%s :: COKTU (Traceback) — mutant KIRMIZI yakmali, "
+                               "COKMEMELI: %s" % (ad, cikti[-300:]))
+            if iddia != taban_iddia:
+                kirmizi.append("%s :: IDDIA SAYISI DEGISTI (taban=%s mutant=%s)"
+                               % (ad, taban_iddia, iddia))
+        finally:
+            shutil.rmtree(gecici, ignore_errors=True)
+
+    bozulan = [y for y, h in once.items() if sha256(y) != h]
+    print("\nCANLI DOSYA sha256 (%d dosya): %s"
+          % (len(once), "HEPSI ESIT ✅" if not bozulan else "DEGISMIS 🔴 %s" % bozulan))
+    if bozulan:
+        kirmizi.append("CANLI DOSYA DEGISMIS — mutant sizdi: %s" % bozulan)
+    print("\nMUTASYON SONUC: %d mutant, %d kirmizi" % (len(MUTANTLAR), len(kirmizi)))
+    for k in kirmizi:
+        print("  🔴 " + k)
+    return 1 if kirmizi else 0
 
 
 # ---------------------------------------------------------------------------

@@ -2312,6 +2312,25 @@ SERIT_B = {
         "mantigi curudu' der, 'site bozuk' DEMEZ; yayini durdurmak yanlis olurdu "
         "([[kapi-birikimi-yayin-gecikmesi]]). Bir A-kapisinin buraya kaydirilmasi "
         "DEGILDIR: kapinin A karsiligi hic olmadi, arac bu dalda dogdu.",
+    # --- KANCA KABLOLAMASI (4 Agu 2026) — ICERIK KOLU SERIT A'DADIR ---------
+    # 🔴 AYRIM ACIK OLSUN: bu ailenin ICERIK kapisi
+    # `tools/kanca-kablolama-nobeti.py --ci` adimidir ve SERIT A'da (job
+    # `serit-a3`) BLOKLAYICI kosar — izlenen kanca kaynagi fail-open'a donerse
+    # yayin DURUR. Asagidaki IKI giris o kapinin degil, ARACIN KENDISININ
+    # sinamasidir; serit kuralinin "aracin kendini sinamasi" maddesine girer.
+    ("deploy.yml", "serit-b", "tools/kanca-kablolama-test.py"):
+        "ARACIN KENDINI SINAMASI, YAYIN KAPISI DEGIL. Bu dosya iki kolu birden "
+        "kosar: (a) bayraksiz kabul testi — tempfile icinde SENTETIK git depolari "
+        "kurup GERCEK `git commit` ile 'eski govde gecti / izlenen govde durdu'yu "
+        "olcer; (b) `--mutasyon` — kendi mutant bataryasi. IKISI DE tamamen "
+        "OFFLINE'dir, GERCEK depoya / gercek `~/.gitconfig`e (sahte HOME + "
+        "GIT_CONFIG_GLOBAL/SYSTEM katmanlari) DOKUNMAZ ve urunler.json · "
+        "index.html · uretilen sayfa · D1 · R2 · odeme yuzeylerinin HICBIRINE "
+        "dokunmaz — yayinlanan tek bir bayt uretmez. Buradaki kirmizi 'nobetcinin "
+        "kabul testi curudu' der, 'site bozuk' DEMEZ; yayini durdurmak yanlis "
+        "olurdu ([[kapi-birikimi-yayin-gecikmesi]]). ICERIK ekseni ZATEN serit "
+        "A'da bloklar (`kanca-kablolama-nobeti.py --ci`), yani bir A-kapisinin "
+        "buraya kaydirilmasi DEGILDIR: A kolu YERINDE DURUYOR.",
     # --- onizleme (ayri dagitim hedefi) arayuz testleri ---------------------
     ("deploy.yml", "serit-b", "onizleme/test/onbellek-surum.mjs"):
         "ONIZLEME alt sisteminin (ayri imaj dagitimi) onbellek surumu; Pages ciktisini "
