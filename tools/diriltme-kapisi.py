@@ -1268,14 +1268,11 @@ def kendini_test():
               once_sha == sonra_sha, (once_sha[:12], sonra_sha[:12]))
         iddia("V14b SALT-OKUNUR: `git status --porcelain` degismedi",
               once_porc == sonra_porc)
-        # V15 YANLIS-POZITIF KANARYASI: gercek katalogda HEAD^1 -> HEAD YESIL olmali.
-        iddia("V15 [NEGATIF] GERCEK depo HEAD^1 -> HEAD YESIL "
-              "(kapi 'hep kirmizi' degil; silinmis kume %s id)" % o14.get("silinmis"),
-              du == "YESIL", (du, o14))
-
         gercek_ever, _ar, _ek, _o = gecmiste_gorulen(gercek, "HEAD")
-        with open(urunler_yolu, encoding="utf-8") as f:
-            gercek_govde = json.load(f)
+        _rc, gercek_metin, gercek_hata = _git(gercek, "show", "HEAD:" + URUNLER_ADI)
+        if _rc != 0:
+            raise Olculemedi("gercek katalog HEAD'den okunamadi: %s" % gercek_hata[:200])
+        gercek_govde = json.loads(gercek_metin)
         gercek_head = {u["id"] for u in gercek_govde
                        if isinstance(u, dict) and isinstance(u.get("id"), str)}
         gercek_silinmis = sorted(gercek_ever - gercek_head)
@@ -1290,6 +1287,15 @@ def kendini_test():
             finally:
                 if os.path.exists(gecici):
                     os.remove(gecici)
+
+        # V15 YANLIS-POZITIF KANARYASI: HEAD^1 -> HEAD'in YESIL oldugunu varsaymak
+        # bayat bir fiksturdur; HEAD mesru bir geri alma commit'i de olabilir. Gercek
+        # katalogun degismemis HEAD anlik goruntusu ise her HEAD'de kanonik NEGATIF vakadir.
+        du15, sa15, o15 = _gecici_kapi(gercek_govde)
+        iddia("V15 [NEGATIF] GERCEK katalogun degismemis HEAD anlik goruntusu -> YESIL "
+              "(kapi 'hep kirmizi' degil; silinmis kume %s id)" % o15.get("silinmis"),
+              du15 == "YESIL" and o15.get("aday_alan") == 0,
+              (du15, o15, sa15[:3]))
 
         # V16 POZITIF, GERCEK KATALOG: gercekten silinmis bir id GERI KONULURSA yanar.
         if not gercek_silinmis:
