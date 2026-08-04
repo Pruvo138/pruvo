@@ -8856,10 +8856,10 @@ def _oto_servis_ve_lastik_atolyesi_ekipmani_plastik_parca_uretimi():
 <li>Lastik sökme makinesinde jantı koruyan tırnak pabucu ve kol koruyucusu</li>
 <li>Balans makinesinde jantı merkezleyen konik aparat kapağı ve ara bileziği</li>
 <li>Sökme makinesinin kolu üzerinde kayan kılavuz takozu ve pabucu</li>
-<li>Kompresör, hava tabancası ve hortum hattındaki kırık kapak, kelepçe ve rakor</li>
+<li>Kompresör, hava tabancası ve düşük–orta basınçlı hortum hattındaki kırık kapak, kelepçe ve rakor</li>
 <li>Tezgâh ve alet dolabı üstünde çizilmeyi önleyen koruma pedi ve köşe takozu</li>
 <li>Servis arabası, alet dolabı ve tekerlekli sehpanın burcu ve tutamağı</li>
-<li>Egzoz gazı ve yağ tahliye hattında huni, kanal ve ağız parçaları</li>
+<li>Yağ tahliye hattında huni, kanal ve ağız parçaları</li>
 <li>Makine üstündeki kırık düğme, gösterge çerçevesi ve kol kapağı</li>
 </ul>
 <p>Kompresör ve hava hattı <a href="/kompresor-hava-tabancasi-plastik-parca-uretimi/">kompresör ve hava tabancası parçası</a>, el aletleri <a href="/el-aleti-matkap-taslama-plastik-parca-uretimi/">matkap ve taşlama parçası</a>, hidrolik hat <a href="/hidrolik-pnomatik-ekipman-plastik-parca-uretimi/">hidrolik ve pnömatik ekipman</a> sayfasında ayrıca ele alındı. Jant tarafındaki görünür kalemler <a href="/olcuye-ozel-jant-gobek-kapagi-uretimi/">jant göbek kapağı</a> sayfasındadır.</p>
@@ -9029,7 +9029,7 @@ CONTENT_PAGES = [
     ("olcuye-ozel-plastik-montaj-plakasi-ve-delikli-levha-uretimi", "Ölçüye Özel Montaj Plakası ve Delikli Levha", "İki farklı delik desenini birbirine oturtan adaptör plakasını, delikli montaj levhasını ve ara pabucu ölçünüze göre ölçüye özel üretiyoruz. Tek adet de olur.", _olcuye_ozel_plastik_montaj_plakasi_ve_delikli_levha_uretimi),
     ("ayakkabi-ve-deri-imalat-ekipmani-plastik-parca-uretimi", "Ayakkabı ve Deri İmalat Ekipmanı Parçası", "Zımpara makinesinin kılavuzunu, pres kalıp dayamasını, dikiş makinesi ayağı pabucunu ve kalıp taşıyıcı aparatını numunesinden ölçüp ölçüye özel üretiyoruz.", _ayakkabi_ve_deri_imalat_ekipmani_plastik_parca_uretimi),
     ("otel-ve-konaklama-ekipmani-plastik-parca-uretimi", "Otel ve Konaklama Ekipmanı Plastik Parçası", "Otelin kırılan dolap mandalını, minibar rafını, bagaj arabası tekerlek burcunu ve oda ekipmanı kapağını numunesinden ölçüp ölçüye özel üretiyoruz. Tek adet de olur.", _otel_ve_konaklama_ekipmani_plastik_parca_uretimi),
-    ("oto-servis-ve-lastik-atolyesi-ekipmani-plastik-parca-uretimi", "Oto Servis ve Lastik Atölyesi Parçası", "Lastik sökme makinesinin koruma pabucunu, balans makinesi aparatını, lift kızak takozunu ve servis ekipmanı kapağını ölçüye özel üretiyoruz. Tek adet de olur.", _oto_servis_ve_lastik_atolyesi_ekipmani_plastik_parca_uretimi),
+    ("oto-servis-ve-lastik-atolyesi-ekipmani-plastik-parca-uretimi", "Oto Servis ve Lastik Atölyesi Parçası", "Lastik sökme makinesinin koruma pabucunu, balans makinesi aparatını ve servis ekipmanı kapağını ölçüye özel üretiyoruz. Tek adet de olur.", _oto_servis_ve_lastik_atolyesi_ekipmani_plastik_parca_uretimi),
     ("sicak-soguk-cevrimine-dayanikli-plastik-parca-uretimi", "Sıcak-Soğuk Çevrimine Dayanıklı Plastik Parça", "Gün içinde ısınıp soğuyan parçalarda ölçü kayar, vidalı bağlantı gevşer. Isıl genleşmeyi hesaba katarak çevrime dayanıklı parçayı ölçüye özel üretiyoruz.", _sicak_soguk_cevrimine_dayanikli_plastik_parca_uretimi),
     ("ozel-uretim-plastik-parca-yapistirilir-mi", "Özel Üretim Plastik Parça Yapıştırılır mı?", "Ürettiğimiz parça yapıştırılabilir mi, hangi yapıştırıcı tutar, kırılan parça yapıştırmayla kurtarılır mı? Hangi durumda yapıştırma yeter, net yazdık.", _ozel_uretim_plastik_parca_yapistirilir_mi),
     ("parca-olcusu-buyutulup-kucultulerek-uretilir-mi", "Parça Büyütülüp Küçültülerek Üretilir mi?", "Elimdeki parçanın bir numara büyüğü ya da küçüğü üretilir mi? Hangi ölçüler orantılı büyür, hangileri sabit kalmak zorundadır, örnekleriyle tek tek yazdık.", _parca_olcusu_buyutulup_kucultulerek_uretilir_mi),
