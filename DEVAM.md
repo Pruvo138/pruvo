@@ -15,6 +15,11 @@ degismedi); `ford/focus-st` · `fiesta-st` · `ecoboost` 404 oldu, 14 urunun tam
 
 **KOSAN IS YOK.**
 
+**Saatlik CI nobeti 4 Agu ~15:40Z:** son 70 dk'da basarisiz kosum YOK (en yeni failure
+`30903889227` 11:13Z, pencere disi); `30924982904` cancelled = ayni push'un mukerrer kosumu,
+hata degil. Mail taranmadi, mail silinmedi (kapi: basarisiz kosum yoksa dokunma).
+Kosum `30925165740` (HEAD `a0b49ef7`) o an pending — sonraki tur olcer.
+
 ### ✅ KAPANDI (4 Agu) — model cip satiri kanoniklestirildi + K19 capraz-marka (rozet) kapisi
 Merge SHA **`d91ea881`**, kosum `30923737314` headSha BIREBIR **success** (bir onceki main
 kosumu `cancelled` idi — `--limit 1` yesili yaniltirdi). Kapsam merge-base `3017d46c`'ten
