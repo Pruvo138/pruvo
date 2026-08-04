@@ -582,7 +582,7 @@ GOC_KOLON = [
     # ALTER DEFAULT'u '[]' ('' DEGIL): kolon JSON DIZI tasir, okuma ucu JSON.parse'i
     # kosulsuz uygulayabilsin (marka/uyum kolonlarinin deseni). Goc anindan senkron bitene
     # kadarki pencerede mevcut satirlar "kanonik uyelik bilinmiyor" der — YANLIS uyelik
-    # VAAT ETMEZ (uc bu kolona ancak dolduktan sonra gecirilir; bkz. RAPOR-MIMARA.md).
+    # VAAT ETMEZ (uc bu kolona ancak dolduktan sonra gecirilir; bkz. muhendis raporu).
     ("marka_kanon", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
