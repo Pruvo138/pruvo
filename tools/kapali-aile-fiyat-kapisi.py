@@ -48,17 +48,26 @@ NE OLCER (uretilen sayfalarin KENDISINI okur — kaynak koda "bakip yorum yapmaz
   G. KART YUZEY GUVENCESI: en az 3 acik + en az 1 kapali kart olculmus olmali;
      artefakt/fonksiyon okunamazsa OLCULEMEDI (kirmizi), sessiz yesil YOK.
 
-  --- UCUNCU YUZEY: AILE-OZEL FIYAT TAVANI (2026-08-04) ----------------------------
-  `rulman` olcu kutusu dis cap 60 -> 100 mm'ye acilirken tavan carpani AILE-OZEL
-  yapildi (rulman 5x, digerleri 3x). Tavan sabiti TUM ailelerce PAYLASILDIGI icin
-  istisnanin sizmasi 7 acik ailenin tavanini sessizce %66 zamlardi.
-  H. TAVAN + EGRI (gercek `parametrikFiyatKurus` kosumu, koda BAKMADAN):
-       H1  rulman 100 mm dis capta TAM 100000 kurus (Okan karari: 1.000,00 TL)
-       H2  egri MONOTON ARTAN (28/40/60/80/100 mm) + H2b egri DUZ DEGIL (canlilik)
-       H3  rulman tavan carpani 5x
-       H4  rulman DISINDAKI acik ailelerin tavani 3x (+ H4b en az 3 aile olculdu)
-  Mutantlar: g (istisna GLOBALLESIR -> H4 kirmizi), h (tavan eski sabite doner ->
-  H1/H3 kirmizi), i (kontrol: ayni sayidan turer -> YESIL).
+  --- UCUNCU YUZEY: CAP CAPALI FIYAT (2026-08-04, Okan karari) ---------------------
+  `rulman` fiyati DIS CAPLA DOGRU ORANTILI: 10 TL x mm -> 60/80/100 mm = 600/800/
+  1000 TL. Cap fiyatin CAPASINI verir; diger ayarlar (eleman, flans, genislik,
+  bosluk, ic cap) capanin etrafinda HACIM ORANINCA module eder (referans = o captaki
+  orantili/varsayilan konfigurasyon, hacmi CALISMA ANINDA hesaplanir). Fiyat
+  fonksiyonu TUM ailelerce PAYLASILDIGI icin yanlis kapsam 18 ailenin fiyatini
+  degistirirdi.
+  H. CAPA + EGRI + KAPSAM (gercek `parametrikFiyatKurus` kosumu, koda BAKMADAN):
+       H1  varsayilan ayarlarda 60/80/100 mm = 60000/80000/100000 kurus BIREBIR
+           (+H1b olculen noktalar semaya gore GECERLI konfigurasyon)
+       H2  egri capla KESIN ARTAN (28/30/40/50/60/80/100) + H2b DUZ DEGIL
+       H3  28 mm >= 20000 kurus (200,00 TL zemini)
+       H4  modulasyon CANLI: flans (H4) ve eleman (H4b) tutari OYNATIYOR
+       H5  tavan capaya goreli, MESRU isi kirpmiyor (H5b/H5c) + H5d baglamsiz
+           cagri fail-closed null
+       H6  capasiz 18 ailenin kurusu (4 yapisal nokta) ve 3x tavani DEGISMEDI
+           (+H6b >=3 aile olculdu, +H6c rulman capasiz olculmedi)
+  Mutantlar: g (varsayilan tavan 5x -> H6), h (cap kurali TUM ailelere sizar -> H6),
+  i (capa orani 9 TL/mm -> H1), j (modulasyon olur, flans bedava -> H4),
+  k (kontrol: zemin argumanlari yer degistirir -> YESIL).
 
 SAYI GOMULMEZ: kapali/acik kumesi secenekler.js + jenerator/urunler/*.json
 hacimFormulu'sundan TURETILIR. Aile listesi degisince kapi kendini gunceller.
@@ -100,11 +109,12 @@ console.log(JSON.stringify({ acik: Object.keys(S.HACIM_DOGRULANMIS_AILELER || {}
 """
 
 
-# TAVAN PROBU (H bolumu) — AILE-OZEL FIYAT TAVANI. Carpan BURAYA YAZILMAZ: gercek
-# `parametrikFiyatKurus` ASIRI BUYUK bir hacimle kosturulur ve donen kurus tabana
-# bolunur, yani olculen sey KODUN DAVRANISIDIR ([[mimar-kapi-parser-taklidi]]).
-# Rulman egrisi de gercek hacim.js ile hesaplanir; orantili olcek ic=dis/3,
-# genislik=dis*0,3 (0,5 mm izgarasina yuvarli) — Okan'in 2026-08-04 karari.
+# FIYAT PROBU (H bolumu) — CAP CAPALI FIYAT + DIGER AILELERIN DEGISMEZLIGI.
+# Hicbir sayi BURAYA YAZILMAZ: gercek `parametrikFiyatKurus` kosturulur ve donen
+# kurus okunur, yani olculen sey KODUN DAVRANISIDIR ([[mimar-kapi-parser-taklidi]]).
+# Rulman egrisi gercek hacim.js + konfigurator.js (fiyatBaglami) uzerinden gecer;
+# orantili/varsayilan olcek ic=dis/3, genislik=dis*0,3 (sema izgarasina yuvarli)
+# — Okan'in 2026-08-04 karari: 10 TL x dis cap.
 NODE_TAVAN_PROBU = r"""
 const fs = require("fs"), vm = require("vm"), path = require("path");
 const KOK = process.argv[2];
@@ -114,27 +124,69 @@ vm.runInContext(fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8"), sandbo
 const S = sandbox.window.PRUVO_SECENEK;
 if (!S) { console.error("PRUVO_SECENEK yuklenemedi"); process.exit(2); }
 const HACIM = require(path.join(KOK, "jenerator", "hacim.js"));
+const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
 const TABAN = 100, DEV_HACIM = 1e12;
-const tavan = {};
+
+/* --- DIGER (capasiz) AILELER: hacim-oranli kural + 3x tavan DEGISMEDI mi?
+   Kural BURAYA KOPYALANMAZ; dort YAPISAL nokta olculur:
+     taban hacimde taban fiyat · iki kat hacimde iki kat · yari hacimde ZEMIN ·
+     dev hacimde tavan (tavan carpani = kurus / (taban*100)).            */
+const capasiz = {};
 for (const aile of Object.keys(S.HACIM_DOGRULANMIS_AILELER || {})) {
-  const k = S.parametrikFiyatKurus(aile, TABAN, 1, DEV_HACIM, "PLA", "Siyah");
-  tavan[aile] = (k == null) ? null : k / (TABAN * 100);
+  if (S.capCapasi && S.capCapasi(aile)) { continue; }
+  const f = (h) => S.parametrikFiyatKurus(aile, TABAN, 1000, h, "PLA", "Siyah");
+  capasiz[aile] = { taban: f(1000), iki_kat: f(2000), yari: f(500),
+                    tavan_carpani: (f(DEV_HACIM) == null) ? null : f(DEV_HACIM) / (TABAN * 100) };
 }
+
 const semaYol = path.join(KOK, "jenerator", "urunler", "olcuye-ozel-rulman.json");
-let egri = null, hata = null;
+let egri = null, varyant = null, capa = null, hata = null;
 try {
   const sema = JSON.parse(fs.readFileSync(semaYol, "utf8"));
-  const y = (v) => Math.round(v / 0.5) * 0.5;
+  const varsayilan = KONF.varsayilanDegerler(sema);
+  const izgara = (ad, v) => {
+    const p = sema.parametreler.filter((x) => x.ad === ad)[0];
+    return (p && p.adim) ? Math.round(v / p.adim) * p.adim : v;
+  };
+  // ORANTILI/VARSAYILAN konfigurasyon: semanin KENDI varsayilanlari + capla
+  // olceklenen iki olcu. Ikinci bir parametre listesi YAZILMAZ.
+  const ref = (dis) => Object.assign({}, varsayilan, {
+    dis_cap: dis, ic_cap: izgara("ic_cap", dis / 3), genislik: izgara("genislik", dis * 0.3) });
+  const fiyat = (p, m, r) => KONF.fiyatKurus(sema, p, m || "PLA", r || "Siyah",
+                                             { secenek: S, hacim: HACIM });
   egri = {};
-  for (const dis of [28, 40, 60, 80, 100]) {
-    const p = { ic_cap: y(dis / 3), dis_cap: dis, genislik: y(dis * 0.3),
-                eleman: "bilya", bosluk: 0.15, flans: "yok" };
-    egri[dis] = S.parametrikFiyatKurus(sema.hacimFormulu, sema.tabanFiyatTL,
-                                       sema.tabanHacimMm3, HACIM[sema.hacimFormulu](p),
-                                       "PLA", "Siyah");
+  for (const dis of [28, 30, 40, 50, 60, 80, 100]) {
+    const p = ref(dis);
+    egri[dis] = { kurus: fiyat(p), gecerli: KONF.dogrula(sema, p).gecerli };
   }
+  varyant = {
+    ref100: fiyat(ref(100)),
+    flansli100: fiyat(Object.assign(ref(100), { flans: "var" })),
+    ref60: fiyat(ref(60)),
+    makara60: fiyat(Object.assign(ref(60), { eleman: "makara" })),
+    tutmali60: fiyat(Object.assign(ref(60), { eleman: "tutmali" })),
+  };
+  /* TAVAN: dev hacimle kosulur -> donen kurus / capa = carpan. EN PAHALI MESRU
+     konfigurasyon (2026-08-04 tam izgara taramasinin azami oran noktasi) ASA+Diger
+     ile ayri olculur: tavan mesru isi KIRPARSA "flans bedava" geri gelirdi. */
+  const ucP = { ic_cap: 6, dis_cap: 28.5, genislik: 30, eleman: "tutmali",
+                bosluk: 0.15, flans: "var" };
+  const bag100 = KONF.fiyatBaglami(sema, ref(100), HACIM);
+  const bagUc = KONF.fiyatBaglami(sema, ucP, HACIM);
+  capa = {
+    tavan_kurus_100: S.parametrikFiyatKurus(sema.hacimFormulu, sema.tabanFiyatTL,
+      sema.tabanHacimMm3, DEV_HACIM, "PLA", "Siyah", bag100),
+    tavan_kurus_uc: S.parametrikFiyatKurus(sema.hacimFormulu, sema.tabanFiyatTL,
+      sema.tabanHacimMm3, DEV_HACIM, "ASA", "Diğer", bagUc),
+    uc_gecerli: KONF.dogrula(sema, ucP).gecerli,
+    uc_kurus: fiyat(ucP, "ASA", "Diğer"),
+    baglamsiz: S.parametrikFiyatKurus(sema.hacimFormulu, sema.tabanFiyatTL,
+      sema.tabanHacimMm3, 5000, "PLA", "Siyah"),
+    taban_fiyat_tl: sema.tabanFiyatTL,
+  };
 } catch (e) { hata = String(e && e.message || e); }
-console.log(JSON.stringify({ tavan: tavan, egri: egri, hata: hata }));
+console.log(JSON.stringify({ capasiz: capasiz, egri: egri, varyant: varyant,
+                             capa: capa, hata: hata }));
 """
 
 
@@ -442,16 +494,21 @@ def olc(kok):
             ihlal.append("G: kart NEGATIF ekseni bos — sayfa ekseninde %d kapali aile var "
                          "ama kartta 0 olculdu" % len(kapali_olculen))
 
-    # ---------------------------------------------------------- H. AILE-OZEL TAVAN
-    # (2026-08-04) `rulman` kutusu 100 mm'ye acilirken tavan carpani AILE-OZEL yapildi
-    # (rulman 5x, digerleri 3x). Iki ayri risk olculur:
-    #   H1/H2  rulman fiyat egrisi — 100 mm'de TAM 100000 kurus, ara noktalarda
-    #          monoton artis (para yuzeyi: musteriye gosterilen/tahsil edilen tutar)
-    #   H3     rulman tavani 5x
-    #   H4     DIGER acik ailelerin tavani 3x KALDI (istisna sizmadi)
+    # ------------------------------------------------------- H. CAP CAPALI FIYAT
+    # (2026-08-04, Okan karari) `rulman` fiyati DIS CAPLA DOGRU ORANTILI: 10 TL x mm
+    # -> 60/80/100 mm = 600/800/1000 TL. Capa fiyatin CAPASI, diger ayarlar (eleman,
+    # flans, genislik, bosluk, ic cap) bu capanin etrafinda HACIM ORANINCA module eder.
+    # Fiyat fonksiyonu TUM ailelerce PAYLASILDIGI icin yanlis kapsam 18 ailenin
+    # fiyatini degistirirdi -> her eksen AYRI olculur:
+    #   H1  varsayilan/orantili ayarlarda 60/80/100 mm = 60000/80000/100000 kurus (BIREBIR)
+    #   H2  egri capla MONOTON ARTAN (28..100) ve H2b DUZ DEGIL (doygunluk YOK)
+    #   H3  28 mm >= 20000 kurus (200,00 TL zemini)
+    #   H4  modulasyon CANLI: flans/eleman degisimi tutari OYNATIYOR (bedava degil)
+    #   H5  tavan capaya gorelidir ve MESRU isi KIRPMAZ (en pahali mesru konfig < tavan)
+    #   H6  capasiz ailelerin kurusu ve 3x tavani DEGISMEDI (>=3 aile, 4 yapisal nokta)
     # Sayilar koda BAKILARAK degil, gercek `parametrikFiyatKurus` kosumundan olculur.
-    RULMAN_HEDEF_KURUS = 100000       # Okan karari: 100 mm -> 1.000,00 TL
-    RULMAN_TAVAN_CARPANI = 5
+    HEDEF = {60: 60000, 80: 80000, 100: 100000}   # Okan karari: 10 TL x dis cap
+    ZEMIN_KURUS = 20000                            # taban fiyat 200,00 TL
     VARSAYILAN_TAVAN_CARPANI = 3
     tavan_veri, tavan_hata = _node_tavan(kok)
     iddia += 1
@@ -461,49 +518,108 @@ def olc(kok):
         ihlal.append("H/OLCULEMEDI: rulman fiyat egrisi hesaplanamadi: %s"
                      % tavan_veri["hata"])
     else:
-        tavanlar = tavan_veri.get("tavan") or {}
+        capasiz = tavan_veri.get("capasiz") or {}
+        varyant = tavan_veri.get("varyant") or {}
+        capa = tavan_veri.get("capa") or {}
         egri = {int(k): v for k, v in (tavan_veri.get("egri") or {}).items()}
-        # H1 — 100 mm noktasi TAM hedefte
-        iddia += 1
-        if egri.get(100) != RULMAN_HEDEF_KURUS:
-            ihlal.append("H1: rulman 100 mm dis capta %r kurus (beklenen %d) — Okan'in "
-                         "1.000,00 TL karari tutmuyor" % (egri.get(100), RULMAN_HEDEF_KURUS))
-        # H2 — egri monoton ARTAN (dusen fiyat = buyuyen parcanin ucuzlamasi)
+        kurus = {d: (egri[d] or {}).get("kurus") for d in egri}
+
+        # H1 — uc capa noktasi BIREBIR (para yuzeyi: musteriye gosterilen tutar)
+        for dis in sorted(HEDEF):
+            iddia += 1
+            if kurus.get(dis) != HEDEF[dis]:
+                ihlal.append("H1: rulman %d mm dis capta %r kurus (beklenen %d) — "
+                             "Okan'in 10 TL/mm karari tutmuyor"
+                             % (dis, kurus.get(dis), HEDEF[dis]))
+            iddia += 1
+            if not (egri.get(dis) or {}).get("gecerli"):
+                ihlal.append("H1b: rulman %d mm orantili konfigurasyonu SEMAYA GORE "
+                             "GECERSIZ — olculen nokta satin alinamaz" % dis)
+        # H2 — egri capla KESIN MONOTON ARTAN (esitlik = doygunluk, kirmizi)
         iddia += 1
         capraz = sorted(egri)
-        dusen = [(capraz[i - 1], capraz[i]) for i in range(1, len(capraz))
-                 if not (isinstance(egri[capraz[i]], int)
-                         and isinstance(egri[capraz[i - 1]], int)
-                         and egri[capraz[i]] >= egri[capraz[i - 1]])]
-        if len(capraz) < 5:
-            ihlal.append("H2: egri ekseni bos — yalniz %d nokta olculdu (>=5 sart)"
+        artmayan = [(capraz[i - 1], capraz[i]) for i in range(1, len(capraz))
+                    if not (isinstance(kurus[capraz[i]], int)
+                            and isinstance(kurus[capraz[i - 1]], int)
+                            and kurus[capraz[i]] > kurus[capraz[i - 1]])]
+        if len(capraz) < 7:
+            ihlal.append("H2: egri ekseni bos — yalniz %d nokta olculdu (>=7 sart)"
                          % len(capraz))
-        elif dusen:
-            ihlal.append("H2: rulman fiyat egrisi MONOTON DEGIL (dusen adim: %s; egri=%s)"
-                         % (dusen, {d: egri[d] for d in capraz}))
-        # H2b — CANLILIK: egri duz degil (tavan-alti bolge gercekten artiyor)
+        elif artmayan:
+            ihlal.append("H2: rulman fiyat egrisi KESIN ARTAN DEGIL (doygunluk/dusus: "
+                         "%s; egri=%s)" % (artmayan, {d: kurus[d] for d in capraz}))
+        # H2b — CANLILIK: egri duz degil (iddia bos yere yesil yanmasin)
         iddia += 1
-        if len(capraz) >= 2 and egri.get(capraz[0]) == egri.get(capraz[-1]):
+        if len(capraz) >= 2 and kurus.get(capraz[0]) == kurus.get(capraz[-1]):
             ihlal.append("H2b: rulman egrisi DUZ (%r) — monotonluk iddiasi bos yere yesil"
-                         % egri.get(capraz[0]))
-        # H3 — rulman tavani 5x
+                         % kurus.get(capraz[0]))
+        # H3 — ZEMIN: en kucuk cap bile taban fiyatin altina inmez
         iddia += 1
-        if tavanlar.get("rulman") != RULMAN_TAVAN_CARPANI:
-            ihlal.append("H3: rulman tavan carpani %r (beklenen %d)"
-                         % (tavanlar.get("rulman"), RULMAN_TAVAN_CARPANI))
-        # H4 — DIGER acik ailelerin tavani DEGISMEDI
+        if not (isinstance(kurus.get(28), int) and kurus[28] >= ZEMIN_KURUS):
+            ihlal.append("H3: rulman 28 mm %r kurus — %d kurusluk taban zemini tutmuyor"
+                         % (kurus.get(28), ZEMIN_KURUS))
+        # H4 — MODULASYON CANLI: capa disi secimler tutari OYNATIYOR
         iddia += 1
-        sapan = {a: c for a, c in sorted(tavanlar.items())
-                 if a != "rulman" and c != VARSAYILAN_TAVAN_CARPANI}
-        if sapan:
-            ihlal.append("H4: rulman DISINDAKI ailelerin tavani %dx DEGIL: %s — "
-                         "aile-ozel istisna sizmis" % (VARSAYILAN_TAVAN_CARPANI, sapan))
-        # H4b — YUZEY GUVENCESI: negatif olmayan eksen bosa kosmasin
+        if not (isinstance(varyant.get("flansli100"), int)
+                and isinstance(varyant.get("ref100"), int)
+                and varyant["flansli100"] > varyant["ref100"]):
+            ihlal.append("H4: 100 mm'de FLANS BEDAVA (flansli=%r, flanssiz=%r) — capa "
+                         "etrafindaki hacim modulasyonu olu"
+                         % (varyant.get("flansli100"), varyant.get("ref100")))
         iddia += 1
-        digerleri = [a for a in tavanlar if a != "rulman"]
-        if len(digerleri) < 3:
-            ihlal.append("H4b: tavan ekseni bos — rulman disinda yalniz %d acik aile "
-                         "olculdu (>=3 sart)" % len(digerleri))
+        elemanlar = [varyant.get("ref60"), varyant.get("makara60"), varyant.get("tutmali60")]
+        if len(set(elemanlar)) != 3 or None in elemanlar:
+            ihlal.append("H4b: 60 mm'de eleman secimi tutari OYNATMIYOR (bilya/makara/"
+                         "tutmali = %r) — modulasyon olu" % (elemanlar,))
+        # H5 — TAVAN capaya gorelidir VE mesru isi KIRPMAZ
+        iddia += 1
+        tavan100 = capa.get("tavan_kurus_100")
+        if not (isinstance(tavan100, int) and tavan100 > HEDEF[100]):
+            ihlal.append("H5: rulman tavani capaya gore degil (100 mm dev hacimde %r "
+                         "kurus, capa %d) — tavan capayi kirpiyorsa egri duzlesir"
+                         % (tavan100, HEDEF[100]))
+        iddia += 1
+        if not capa.get("uc_gecerli"):
+            ihlal.append("H5b: en pahali MESRU konfigurasyon capasi bayat — sema bu "
+                         "konfigurasyonu artik gecerli saymiyor")
+        elif not (isinstance(capa.get("uc_kurus"), int)
+                  and isinstance(capa.get("tavan_kurus_uc"), int)
+                  and capa["uc_kurus"] < capa["tavan_kurus_uc"]):
+            ihlal.append("H5c: TAVAN MESRU ISI KIRPIYOR (en pahali mesru konfig %r kurus, "
+                         "tavan %r) — o bolgede flans/eleman secimi bedavaya duser"
+                         % (capa.get("uc_kurus"), capa.get("tavan_kurus_uc")))
+        # H5d — FAIL-CLOSED: capa baglami olmadan cagri TUTAR URETMEZ
+        iddia += 1
+        if capa.get("baglamsiz") is not None:
+            ihlal.append("H5d: capa baglami OLMADAN rulman tutar uretti (%r) — guncellenmemis "
+                         "bir cagri yeri SESSIZ YANLIS FIYAT tahsil ettirir"
+                         % capa.get("baglamsiz"))
+        # H6 — CAPASIZ ailelerin kurusu ve 3x tavani DEGISMEDI (dort yapisal nokta)
+        for aile in sorted(capasiz):
+            o = capasiz[aile]
+            iddia += 4
+            if o.get("taban") != 10000:
+                ihlal.append("H6: %s taban hacimde %r kurus (beklenen 10000) — capasiz "
+                             "ailenin hacim-orani kurali degismis" % (aile, o.get("taban")))
+            if o.get("iki_kat") != 20000:
+                ihlal.append("H6: %s iki kat hacimde %r kurus (beklenen 20000)"
+                             % (aile, o.get("iki_kat")))
+            if o.get("yari") != 10000:
+                ihlal.append("H6: %s yari hacimde %r kurus (beklenen 10000 = zemin)"
+                             % (aile, o.get("yari")))
+            if o.get("tavan_carpani") != VARSAYILAN_TAVAN_CARPANI:
+                ihlal.append("H6: %s tavan carpani %r (beklenen %d) — cap capasi/tavan "
+                             "istisnasi sizmis" % (aile, o.get("tavan_carpani"),
+                                                   VARSAYILAN_TAVAN_CARPANI))
+        # H6b — YUZEY GUVENCESI: capasiz eksen bosa kosmasin
+        iddia += 1
+        if len(capasiz) < 3:
+            ihlal.append("H6b: capasiz eksen bos — yalniz %d capasiz acik aile olculdu "
+                         "(>=3 sart)" % len(capasiz))
+        iddia += 1
+        if "rulman" in capasiz:
+            ihlal.append("H6c: rulman CAPASIZ olculdu — cap capasi tablosu bosalmis, "
+                         "10 TL/mm kurali yururlukte degil")
 
     ozet = {"acik_aile": len(acik_kume), "kapali_sayfa": len(kapali_olculen),
             "acik_sayfa": len(acik_olculen), "kapali": kapali_olculen,
@@ -522,13 +638,20 @@ _KART_CAPASI = ("            if aile_satis_kapali_mi(sema):\n"
                 "                kapali[pid] = 1\n"
                 "                continue")
 
-# H bolumu capalari — TAVANIN TEK KAYNAGI (secenekler.js).
+# H bolumu capalari — FIYAT KURALININ TEK KAYNAGI (secenekler.js).
 _TAVAN_TABLO_CAPASI = ("  var TAVAN_CARPANI_VARSAYILAN = 3;\n"
-                       "  var AILE_TAVAN_CARPANI = {\n"
-                       "    // rulman: 2026-08-04 işletme kararı — dış çap 100 mm'de 1.000,00 TL.\n"
-                       "    rulman: 5\n"
-                       "  };")
-_TAVAN_KULLANIM_CAPASI = "kurus = Math.min(kurus, tabanFiyatTL * 100 * tavanCarpani(aile));"
+                       "  var AILE_TAVAN_CARPANI = {};")
+# Cap capasi tablosu: KAPSAM (hangi aile) + ORAN (kac kurus/mm).
+_CAPA_KAPSAM_CAPASI = """  function capCapasi(aile) {
+    return (typeof aile === "string" &&
+            Object.prototype.hasOwnProperty.call(AILE_CAP_CAPASI, aile))
+      ? AILE_CAP_CAPASI[aile] : null;
+  }"""
+_CAPA_ORAN_CAPASI = "      kurusMm: 1000,                            // 10,00 TL / mm"
+# Capa etrafindaki HACIM MODULASYONU (flans/eleman/genislik farki buradan gelir).
+_CAPA_MODULASYON_CAPASI = "      temel: capa.kurusMm * deger * (hacimMm3 / refHacim),"
+# Zemin (kontrol mutantinin capasi — davranis KORUNMALI).
+_CAPA_ZEMIN_CAPASI = "      temelKurus = Math.max(tabanFiyatTL * 100, c.temel);"
 
 MUTANTLAR = [
     # (ad, beklenen, eski, yeni[, dosya])  dosya verilmezse tools/build.py
@@ -553,20 +676,39 @@ MUTANTLAR = [
      _KART_CAPASI,
      "            if not (not aile_satis_kapali_mi(sema)):\n"
      "                kapali[pid] = 1\n                continue"),
-    # --- H BOLUMU: AILE-OZEL TAVAN (para). Uc mutant da secenekler.js'e uygulanir.
-    # g: istisna GLOBALLESIR (herkes 5x) -> rulman DOGRU kalir, DIGER 7 aile %66
-    #    zamlanir. H4 TEK BASINA kirmizi yakmali ([[beyan-edilmis-survivor]]).
-    ("g-tavan-GLOBAL (rulman istisnasi tum ailelere yayilir)", "KIRMIZI",
+    # --- H BOLUMU: CAP CAPALI FIYAT (para). Hepsi secenekler.js'e uygulanir.
+    # Her mutant AYIRT EDICI olmali ([[beyan-edilmis-survivor]]): tek bir ekseni
+    # bozup digerlerini dogru birakir, yani o eksenin TEK BASINA kirmizi yakabildigini
+    # kanitlar. Yoksa "savunma derinligi" iddiasi katmanlarin VEYA'si olurdu.
+    # g: tavan istisnasi GLOBALLESIR -> capasiz 18 ailenin tavani %66 zamlanir (H6).
+    ("g-tavan-GLOBAL (varsayilan tavan 3x -> 5x)", "KIRMIZI",
      _TAVAN_TABLO_CAPASI,
      "  var TAVAN_CARPANI_VARSAYILAN = 5;\n  var AILE_TAVAN_CARPANI = {};",
      "secenekler.js"),
-    ("h-tavan-eski-sabit (100 mm'de 1000 TL bozulur)", "KIRMIZI",
-     _TAVAN_KULLANIM_CAPASI,
-     "kurus = Math.min(kurus, tabanFiyatTL * 100 * 3);",
+    # h: CAP KURALI TUM AILELERE SIZAR -> rulman DOGRU kalir, digerleri capa koluna
+    #    duser (baglamsiz cagride fail-closed null) -> H6 TEK BASINA yakar.
+    ("h-capa-SIZINTI (cap kurali tum ailelere yayilir)", "KIRMIZI",
+     _CAPA_KAPSAM_CAPASI,
+     """  function capCapasi(aile) {
+    return (typeof aile === "string") ? AILE_CAP_CAPASI.rulman : null;
+  }""",
      "secenekler.js"),
-    ("i-tavan-kontrol (carpan ayni sayidan turer, davranis korunur)", "YESIL",
-     _TAVAN_KULLANIM_CAPASI,
-     "kurus = Math.min(kurus, tabanFiyatTL * (100 * tavanCarpani(aile)));",
+    # i: capa orani bozulur (10 -> 9 TL/mm) -> H1 uc noktasi yikilir, capasiz
+    #    aileler (H6) ve modulasyon (H4) DOGRU kalir.
+    ("i-capa-orani-bozuk (10 TL/mm -> 9 TL/mm)", "KIRMIZI",
+     _CAPA_ORAN_CAPASI,
+     "      kurusMm: 900,                             // 10,00 TL / mm",
+     "secenekler.js"),
+    # j: MODULASYON OLDURULUR (hacim orani dusurulur) -> capa noktalari (H1) ve
+    #    egri (H2) YESIL kalir, ama flans/eleman BEDAVA olur -> H4 TEK BASINA yakar.
+    ("j-modulasyon-olu (flans/eleman bedava)", "KIRMIZI",
+     _CAPA_MODULASYON_CAPASI,
+     "      temel: capa.kurusMm * deger,",
+     "secenekler.js"),
+    # k: KONTROL — zemin ayni sayilardan turer, davranis KORUNUR.
+    ("k-capa-kontrol (zemin argumanlari yer degistirir)", "YESIL",
+     _CAPA_ZEMIN_CAPASI,
+     "      temelKurus = Math.max(c.temel, tabanFiyatTL * 100);",
      "secenekler.js"),
 ]
 

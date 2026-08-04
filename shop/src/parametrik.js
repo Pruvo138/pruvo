@@ -77,9 +77,14 @@ export function parametrikHesapla(kalem, secenek, sema) {
   const hacimMm3 = KONF.hacimMm3(sema, p, HACIM);
   if (hacimMm3 == null) { return { hata: "hacim-hesaplanamadi" }; }
 
+  /* CAP CAPALI AILE (bugun: rulman) — fiyatin capasini bir OLCU (dis cap) belirler,
+     hacim onu module eder; kural secenekler.js'te TEKTIR. Baglami KONF uretir
+     (tek uretici): sema + olculer + semanin varsayilanlari + AYNI hacim motoru.
+     Baglam verilmezse capali ailede fiyat null doner (fail-closed) ve kalem
+     `taban-fiyat-yok` ile 400'e duser — sessiz YANLIS tutar OLUSMAZ. */
   let birimKurus = secenek.parametrikFiyatKurus(
     sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, hacimMm3,
-    kalem.malzeme, kalem.renk);
+    kalem.malzeme, kalem.renk, KONF.fiyatBaglami(sema, p, HACIM));
   // tabanFiyatTL null (bugun 18/18) -> fiyat yok -> odeme akisina giremez.
   if (birimKurus == null || !(birimKurus > 0)) { return { hata: "taban-fiyat-yok" }; }
 

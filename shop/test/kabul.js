@@ -905,8 +905,13 @@ async function test26SariFailClosed() {
 
   /* 🔴 ACILAN AILE POZITIF KANARYASI (2026-08-04) — ayni gerekce, `rulman`: NEGATIF
      listesinden cikarilan aile POZITIF yonde olculur, yoksa kapsam sessizce daralir.
-     Beklenen 20000 kurus SABIT yazilir (varsayilan set: bilya, genislik 9) — kapi
-     acikken bile yanlis bir tutar (olcek/tavan/kisit regresyonu) kirmizi yansin. */
+     Beklenen tutar SABIT yazilir — kapi acikken bile yanlis bir tutar (olcek/tavan/
+     kisit regresyonu) kirmizi yansin.
+     🔴 2026-08-04 (ayni gun, ikinci tur): `rulman` CAP CAPALI fiyata gecti — tutar
+     artik hacim oranindan degil DIS CAPTAN turer (10,00 TL/mm). Sema varsayilani
+     dis cap 30 mm oldugu icin beklenen 20000 -> 30000 kurus. Bu SUNUCU tarafindan
+     (parametrikHesapla, Worker'in kendi yolu) olculur: capa baglami Worker kolunda
+     kurulmazsa fiyat null doner ve bu kanarya "REDDEDILDI" ile kirmizi yanar. */
   const rulmanSema = JSON.parse(fs.readFileSync(
     path.join(KOK, "jenerator", "urunler", "olcuye-ozel-rulman.json"), "utf8"));
   const rulmanVd = KONF.varsayilanDegerler(rulmanSema);
@@ -916,9 +921,9 @@ async function test26SariFailClosed() {
     SECENEK, rulmanSema);
   if (rulmanSonuc.hata) {
     hatalar.push("ACILAN AILE (rulman) reddedildi: " + rulmanSonuc.hata);
-  } else if (rulmanSonuc.birimKurus !== 20000) {
+  } else if (rulmanSonuc.birimKurus !== 30000) {
     hatalar.push("ACILAN AILE (rulman) varsayilan tutar=" + rulmanSonuc.birimKurus +
-                 " beklenen 20000");
+                 " beklenen 30000 (cap capasi: 10,00 TL x 30 mm)");
   }
 
   rapor("26 sari seri fail-closed (eksik/bozuk sema -> 0 TL YOK, sessiz varsayilan YOK)",

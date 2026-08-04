@@ -273,11 +273,16 @@ function frontSatir(ctx, sema, degerler, secim) {
  *  hacim dogrulama kapisi orada. Orakil de AYNI kapidan gecer -> hacmi dogrulanmamis
  *  ailede orakil de null uretir ve worker'in 400'uyle ORTUSUR. Aile gecilmezse orakil
  *  her urunde null doner (bu testin 2026-07-31 kirmizi yanma sebebi buydu). */
+/*  CAP CAPALI AILE (2026-08-04, bugun rulman): fiyatin capasini bir OLCU belirler;
+ *  hesap sema+olculer+hacim motorunu tasiyan `fiyatBaglami` olmadan FAIL-CLOSED null
+ *  doner. Orakil de o baglami kurar (worker ile AYNI tek uretici) — kurmazsa capali
+ *  ailede orakil null uretir ve worker'in gercek tutariyla ayrisirdi. */
 function orakil(ctx, sema, degerler, malzeme, renk) {
   const h = ctx.PRUVO_KONF.hacimMm3(sema, degerler, ctx.PRUVO_HACIM);
   if (h == null) { return null; }
   return ctx.PRUVO_SECENEK.parametrikFiyatKurus(
-    sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
+    sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk,
+    ctx.PRUVO_KONF.fiyatBaglami(sema, degerler, ctx.PRUVO_HACIM));
 }
 
 // ---------------------------------------------------------------- veri / senaryolar

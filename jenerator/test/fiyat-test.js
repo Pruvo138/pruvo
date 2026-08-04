@@ -348,14 +348,89 @@ KAPALI_AILELER.forEach(function (aile) {
        SECENEK.hacimDogrulanmisMi(aile), false);
 });
 
-// NEGATİF: meşru iş DURMUYOR — doğrulanmış ailelerde fiyat AYNEN üretiliyor.
-// (Tek yönlü test ölü olurdu: her şeye null döndüren bir kapı da pozitifi geçerdi.)
+/* NEGATİF: meşru iş DURMUYOR — doğrulanmış ailelerde fiyat AYNEN üretiliyor.
+   (Tek yönlü test ölü olurdu: her şeye null döndüren bir kapı da pozitifi geçerdi.)
+
+   ÇAPA AİLELERİ AYRI ÖLÇÜLÜR (2026-08-04): `AILE_CAP_CAPASI`'daki aileler (bugün
+   rulman) fiyatı hacim ORANINDAN değil ÇAPTAN çapalar; hesap için şema+ölçü+hacim
+   motorunu taşıyan `baglam` şarttır ve bağlamsız çağrı FAIL-CLOSED null döner.
+   Liste buraya YAZILMAZ, secenekler.js'ten OKUNUR (bayatlayamaz). */
+var CAPALI_AILELER = ACIK_AILELER.filter(function (a) { return !!SECENEK.capCapasi(a); });
+esit("çapa ailesi sayısı (bugün yalnız rulman)", CAPALI_AILELER, ["rulman"]);
 ACIK_AILELER.forEach(function (aile) {
-  esit("kapı NEGATİF: " + aile + " fiyatlanmaya devam eder",
-       SECENEK.parametrikFiyatKurus(aile, 100, 1000, 1080, "PLA", "Siyah"), 10800);
+  if (SECENEK.capCapasi(aile)) {
+    // Çapa ailesi: bağlamsız çağrı tutar ÜRETMEZ (güncellenmemiş çağrı yeri sessiz
+    // yanlış fiyat değil, KAPALI KART üretir).
+    esit("kapı NEGATİF: " + aile + " çapa ailesi — bağlamsız çağrı null",
+         SECENEK.parametrikFiyatKurus(aile, 100, 1000, 1080, "PLA", "Siyah"), null);
+  } else {
+    esit("kapı NEGATİF: " + aile + " fiyatlanmaya devam eder",
+         SECENEK.parametrikFiyatKurus(aile, 100, 1000, 1080, "PLA", "Siyah"), 10800);
+  }
   esit("kapı NEGATİF: " + aile + " doğrulanmış",
        SECENEK.hacimDogrulanmisMi(aile), true);
 });
+
+/* ---- ÇAP ÇAPALI FİYAT (rulman) — Okan kararı 2026-08-04: 10 TL × dış çap ------
+   Meşru iş burada ölçülür: gerçek şema + gerçek hacim motoruyla, KONF.fiyatKurus
+   üzerinden (Worker ile AYNI yol). Üç çapa noktası BİREBİR, çapa dışı seçimler
+   (flanş/eleman) tutarı OYNATIR — yoksa "flanşlı" bedava olurdu. */
+(function () {
+  var rSema = JSON.parse(fs.readFileSync(
+    path.join(URUN_DIR, "olcuye-ozel-rulman.json"), "utf8"));
+  var vars = KONF.varsayilanDegerler(rSema);
+  function izgara(ad, v) {
+    for (var i = 0; i < rSema.parametreler.length; i++) {
+      if (rSema.parametreler[i].ad === ad) {
+        var a = rSema.parametreler[i].adim;
+        return a ? Math.round(v / a) * a : v;
+      }
+    }
+    return v;
+  }
+  // ORANTILI/VARSAYILAN konfigürasyon: şemanın kendi varsayılanları + çapla
+  // ölçeklenen iki ölçü (ic_cap = çap/3, genislik = çap×0,3, şema ızgarasında).
+  function ref(dis) {
+    var p = {};
+    for (var k in vars) { if (vars.hasOwnProperty(k)) { p[k] = vars[k]; } }
+    p.dis_cap = dis;
+    p.ic_cap = izgara("ic_cap", dis / 3);
+    p.genislik = izgara("genislik", dis * 0.3);
+    return p;
+  }
+  function fy(p, m, r) {
+    return KONF.fiyatKurus(rSema, p, m || "PLA", r || "Siyah",
+                           { secenek: SECENEK, hacim: HACIM });
+  }
+  esit("rulman çapa: 60/80/100 mm varsayılan ayarlarda 600/800/1000 TL",
+       [fy(ref(60)), fy(ref(80)), fy(ref(100))], [60000, 80000, 100000]);
+  esit("rulman çapa: ölçülen noktalar şemaya göre GEÇERLİ konfigürasyon",
+       [60, 80, 100].map(function (d) { return KONF.dogrula(rSema, ref(d)).gecerli; }),
+       [true, true, true]);
+  esit("rulman çapa: eğri çapla KESİN ARTAN (28→100 mm), doygunluk YOK",
+       [28, 30, 40, 50, 60, 80, 100].map(function (d) { return fy(ref(d)); }),
+       [28000, 30000, 40000, 50000, 60000, 80000, 100000]);
+  // ZEMİN: 200,00 TL altına inilmez (ince/geniş delikli uçlarda oran 1'in altına iner).
+  var ince = { ic_cap: 33.5, dis_cap: 41.5, genislik: 5, eleman: "bilya",
+               bosluk: 0.15, flans: "yok" };
+  esit("rulman zemin: en ince meşru konfigürasyon geçerli", KONF.dogrula(rSema, ince).gecerli, true);
+  esit("rulman zemin: taban 200,00 TL altına inilmez", fy(ince), 20000);
+  // MODÜLASYON: çapa dışı seçimler BEDAVA değil.
+  var f100 = ref(100); f100.flans = "var";
+  esit("rulman modülasyon: 100 mm flanşlı > flanşsız", fy(f100) > fy(ref(100)), true);
+  var mak60 = ref(60); mak60.eleman = "makara";
+  var tut60 = ref(60); tut60.eleman = "tutmali";
+  esit("rulman modülasyon: 60 mm bilya/makara/tutmalı üç AYRI tutar",
+       [fy(ref(60)), fy(mak60), fy(tut60)], [60000, 63332, 66402]);
+  // Malzeme/renk çarpanları çapa kolunda da AYNI sırada uygulanır.
+  esit("rulman 100 mm ASA/Diğer = 1000 × 1,60 × 1,15",
+       fy(ref(100), "ASA", "Diğer"), 184000);
+  // TAVAN çapaya görelidir (taban × 3 DEĞİL) ve meşru işi kırpmaz.
+  var bag = KONF.fiyatBaglami(rSema, ref(100), HACIM);
+  esit("rulman tavanı: 100 mm'de çapanın 20 katı (dev hacim)",
+       SECENEK.parametrikFiyatKurus("rulman", rSema.tabanFiyatTL, rSema.tabanHacimMm3,
+                                    1e12, "PLA", "Siyah", bag), 2000000);
+}());
 
 // FAIL-CLOSED YÖN: bilinmeyen/boş/prototip adı YEŞİL sayılmaz (yeni aile kendiliğinden
 // AÇILMAZ — denylist olsaydı açılırdı).
