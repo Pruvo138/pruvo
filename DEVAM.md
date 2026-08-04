@@ -61,10 +61,11 @@ model) · Zafira sayfasi 28 hedefi, `Zafira Life` ayri bolumde · yayin hattini 
 1. Kararsiz jeton SINIF 1 (152 urun: BMW `GS` · VW `T1`-`T6` · BMW `R/K Serisi`) — 3 yeni sayfa,
    kanonik ad CIPLAK jeton (olculdu: `?ara=T4` 74 vs `Transporter T4` 15).
 2. C kovasi (87 urun): olcu satiri sayisal model adiyla cakisiyor — `ara`->`marka` toplu kopya YASAK.
-3. FR-S sapmasi (K19'dan devraldi, KARAR BENDE): `frs` canon'u SAHIPSIZ kaldi — `FR-S` bir Scion
-   rozeti, Scion katalogda marque olarak YOK, iki cift de deny'de. **AD kayboluyor, URUN
-   kaybolmuyor** (6 tekil urunun tamami `brz`/`gt86` kovalarinda, olculdu). Daraltmak icin tek
-   yapilacak `(Toyota, FR-S)` ya da `(Subaru, FR-S)`'i allow'a almak.
+3. ~~FR-S sapmasi~~ **KARAR VERILDI (KraL, 4 Agu): DARALTMA YOK, kural oldugu gibi kaliyor.**
+   `frs` canon'u SAHIPSIZ kalacak. Gerekce: `FR-S` bir Scion rozeti, Scion katalogda marque
+   olarak YOK; `(Toyota, FR-S)` ya da `(Subaru, FR-S)`'i allow'a almak o adla SATILMAMIS bir
+   aracin sayfasini dogururdu — K19'un kurdugu kuralin tam ihlali. **AD kayboluyor, URUN
+   kaybolmuyor** (6 tekil urunun tamami `brz`/`gt86` kovalarinda, olculdu). Yeniden acilmasin.
 4. Kutudan devralinanlar: gorsel-kutu bosluk kusuru (`build.py` `height` niteligi) · negatif
    onbellek Cache Rule · `hasat_kontrol.py` atif-turu kapisi.
 
