@@ -35,7 +35,7 @@
  *     kirliyi GORUNUR reddetmesidir.
  *   * OpenSCAD render'i CAGRILMAZ (bu makinede SIGABRT) -> geometri iddiasi YOK.
  *
- * KIRMIZI-MUTASYON (kanit RAPOR-MIMARA.md'de ham cikti):
+ * KIRMIZI-MUTASYON (kanit muhendis raporunda ham cikti):
  *   (a) konfigurator.js `metin` dalindaki beyaz-liste satiri silinir -> (B) KIRMIZI.
  *   (b) kontrol no-op yapilir (`if (false)`)                        -> (B) KIRMIZI.
  *   (c) kontrol "her metni reddet" yapilir                          -> (C) KIRMIZI.

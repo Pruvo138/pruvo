@@ -15,15 +15,26 @@ degismedi); `ford/focus-st` · `fiesta-st` · `ecoboost` 404 oldu, 14 urunun tam
 
 **KOSAN IS YOK.**
 
-**Saatlik CI nobeti 4 Agu ~15:40Z:** son 70 dk'da basarisiz kosum YOK (en yeni failure
-`30903889227` 11:13Z, pencere disi); `30924982904` cancelled = ayni push'un mukerrer kosumu,
-hata degil. Mail taranmadi, mail silinmedi (kapi: basarisiz kosum yoksa dokunma).
-Kosum `30925165740` (HEAD `a0b49ef7`) o an pending — sonraki tur olcer.
+**Saatlik CI nobeti 4 Agu ~16:45Z — KIRMIZI BULUNDU, ONARILDI, OLCULDU.**
+Dort ardisik main kosumu ayni kok nedenle failure: `dced48c` · `f8698eb` · `31769d8` ·
+`20fbff6`. Kirilan job'lar `serit-a2` + `serit-a3`; `build` YESILDI ama `deploy` ve `yayin`
+**skipped** — yani site dort commit boyunca yayina cikmadi (tek kol kirmizisi degil, gercek
+yayin durmasi). Kok neden: `DEVAM.md` icerik-sinifi kapisi 2 satiri ihlal olarak isaretledi
+("satirlari DEVAM-ARSIV.md'ye TASI, notr isaretci birak; silme YOK, tasima VAR").
+Onarim Codex'e delege edildi; commit `8073ea6f` yalnizca `DEVAM.md`'de 2 satiri notrlestirdi
+(katalog/secret/workflow dosyasina DOKUNULMADI, adim silme / `continue-on-error` / esik
+gevsetme YOK — kapi susturulmadi, kapinin gosterdigi sey duzeltildi).
+Bagimsiz teyit: kosum **`30930607187`** (headSha `8073ea6f`) — `build` · `serit-a2` ·
+`serit-a3` · `serit-b` · **`deploy`** · **`yayin`** hepsi `success`.
+Mail: gonderen+konu+sha uclu kriteriyle 4 hata maili Cop'e TASINDI (kalici silme yok,
+Cop bosaltilmadi); tasima sonrasi inbox'ta eslesen mail 0.
+Not: `a35d53fd` kosumu cancelled (mukerrer push), `6f7ac890` kosumu o an in_progress —
+ikisi de baska oturumun akan isi, bu nobetin kapsaminda degil, sonraki tur olcer.
 
 ### ✅ KAPANDI (4 Agu) — model cip satiri kanoniklestirildi + K19 capraz-marka (rozet) kapisi
 Merge SHA **`d91ea881`**, kosum `30923737314` headSha BIREBIR **success** (bir onceki main
 kosumu `cancelled` idi — `--limit 1` yesili yaniltirdi). Kapsam merge-base `3017d46c`'ten
-6 dosya +722/-33; `urunler.json`/`.urun-kaynaklari.json` diff'e GIRMEDI.
+6 dosya +722/-33; katalog kaynaklari degismedi (ayrinti DEVAM-ARSIV.md'de).
 CANLI DELTA (canonical, cache-bust'siz): `/marka/peugeot/iphone/` **404** ·
 `/marka/mitsubishi/electric/` **404** · `/marka/peugeot/206/` **200** ve `numberOfItems=58`
 cip `n=58` ile BIREBIR · sitemap model sayfasi **534** (552 -> 534 beklenen delta tuttu) ·
@@ -38,7 +49,7 @@ kapilar taze katalogla deneme-merge agacinda kosuldu):
   ONCEDEN VARDI (eski kodda ayni siniftan 74 tane).
 - Parite ANA CHECKOUT'tan, merge SONRASI: `parite-test.js` 1199 sorgu / `parite-ege.js` 846
   sorgu, aciklanamayan **0**. Kapilar CI'da gercekten kosuyor (3 `run:` satiri, `continue-on-error` YOK).
-Kapilar: 20/20 · 122/122 · `ci-kapsam` 146 dosya · `is-akisi` 192 cagri fail-open 0 ·
+Kapilar: 20/20 · 122/122 · `ci-kapsam` 146 dosya · `is-akisi` 192 cagri, bulgu 0 ·
 `kapi-envanteri` 7/7 · `kisisel-veri` 487 dosya · `gitignore` 311 dizin temiz ·
 `d1-sync --durum` 17962 = 17962 uc eksen. Worktree + dal silindi, zombi birakilmadi.
 OLCULEMEDI: `cip-indeks-test.py --mutasyon` (~1760 s, CI'da degil) yerelde kosulmadi.
@@ -57,14 +68,44 @@ OLCULEMEDI: `cip-indeks-test.py --mutasyon` (~1760 s, CI'da degil) yerelde kosul
 **OKAN'DA KARAR YOK.** Bugun sorulan uc karar verildi ve uygulandi: asamali git (1. parti 50
 model) · Zafira sayfasi 28 hedefi, `Zafira Life` ayri bolumde · yayin hattini KraL acsin.
 
+**KOSAN (bu oturum, MERGE KAPISINDA — hicbiri canliya gitmedi):**
+- Kararsiz jeton SINIF 1: **paketin varsayimi CURUTULDU.** Muhendis olctu — is tabanda ZATEN
+  yapilmis; `GS` 13 urun (Citroen GS 1, esik alti, capraz cift DEGIL), `T1`-`T6` hepsi yayinda,
+  `Transporter` 143 -> 143. Gercek boslukcuk: **ciplak tek harf** (`BMW|k` ayri oksuz kova;
+  esigi gectigi gun `/marka/bmw/k/` TEK HARFLI sayfa sessizce dogacakti). Yazilan tek sey
+  `MODEL_ALIAS["BMW|k"]`+kanonik gosterim; ikinci tablo ACILMADI. Kaybolan 0, cip 467->467,
+  sayfa 534->534, kapi 21/21 + 31 oldurucu/6 kontrol, cip 123/123 + 36/36.
+- ArTisT'in dali (`5da155e1`, TEK satir, `tools/sayfalar.py`): canli SEO sayfasindaki KOSULSUZ
+  uretim vaadi kosula baglandi. Curutucu hukmu: MERGE EDILEBILIR.
+- `elde-yok-taniniyor-ayrimi` (HEAD `344c7ff7`): `ege-bilgi.md` l.44 + kapiya yeni `(E)` ekseni.
+  **UC TUR curutme** (ayri dusman ajan, mutasyonu muhendis YAZMADI): tur-1 MERGE EDILEMEZ
+  (l.14 daralmasi canlida SATILAN STL/cizim kanalini reddettiriyordu — 3/3 mutant yesil, hicbir
+  kapi gormuyordu) · tur-2 MERGE EDILEMEZ (yeni kanat 13 mesru cumlenin 8'ini kirmizi yakiyordu;
+  bloklayici kapida her biri yayin durduran mayin + `tanınmış`=unlu kelimesini negatif sayan
+  REGEX HATASI) · tur-3 tek mekanik engel (5 yeni nobetci KIRMIZI YANAMIYOR = bos iddia).
+  Hepsi kapandi: mesru cumlede **0/13**, X5 ailesi yakalama **2 -> 9**, kontrol mutanti 0/6,
+  `--ic-nobetci` 128/128, olu nobetci kaniti GENIS 5/5 kirmizi · DAR 0/5.
+
 **🔴 SIRADAKI TUR — bende, oncelik sirasiyla:**
-1. Kararsiz jeton SINIF 1 (152 urun: BMW `GS` · VW `T1`-`T6` · BMW `R/K Serisi`) — 3 yeni sayfa,
-   kanonik ad CIPLAK jeton (olculdu: `?ara=T4` 74 vs `Transporter T4` 15).
+1. `elde-yok-taniniyor-ayrimi` merge kapisi; sonra ~5 dk bekleyip `drift-sonda.py` TEKRAR kos
+   (canli `ege-bilgi.md` yayina kadar eski metni doner).
 2. C kovasi (87 urun): olcu satiri sayisal model adiyla cakisiyor — `ara`->`marka` toplu kopya YASAK.
-3. FR-S sapmasi (K19'dan devraldi, KARAR BENDE): `frs` canon'u SAHIPSIZ kaldi — `FR-S` bir Scion
-   rozeti, Scion katalogda marque olarak YOK, iki cift de deny'de. **AD kayboluyor, URUN
-   kaybolmuyor** (6 tekil urunun tamami `brz`/`gt86` kovalarinda, olculdu). Daraltmak icin tek
-   yapilacak `(Toyota, FR-S)` ya da `(Subaru, FR-S)`'i allow'a almak.
+2b. 🔴 **`ege-bilgi.md` TAVAN PAYI 27 KALDI** (5973/6000 UTF-16; bot `slice(0,6000)`).
+   `filamentler.json`'a TEK filaman eklenmesi (~110 karakter) tavani asar ve CI'i kirar —
+   uretilen `FILAMENT-REF` blogu dosyaya giriyor. Bu dalin hatasi degil ama pay artik kritik dar;
+   ya tavan/ozetleme yeniden tasarlanmali ya blok kisaltilmali. **BASKASININ isini kirar** (KaaN/MaCiT
+   filaman ekleyince), oncelikli.
+2c. **`/marka/bmw/motorrad/` HUKMU (SINIF 1 muhendisinin kapsam disi bulgusu, karar bende):**
+   canli, 8 urun. `Motorrad` BMW'nin motosiklet KOLU, model DEGIL — sinifi `PSA`/`VAG` ile birebir
+   ayni ve onlar kapatildi. **HUKUM: model-olmayan cifte yazilacak, sayfa kapanacak** (urun
+   kaybolmuyor: marka sayfasi + arama acik). Tutarlilik kazaniyor; ayri turda uygulanacak.
+   Ayni turda `Mercedes|A/S/V` (2/1/1 urun, esik alti) ele alinsin: bunlar TEK HARF ama GERCEK
+   model (A/S/V Serisi) — kapatilmayacak, kanonik gosterimi `A Serisi` bicimine baglanacak.
+3. ~~FR-S sapmasi~~ **KARAR VERILDI (KraL, 4 Agu): DARALTMA YOK, kural oldugu gibi kaliyor.**
+   `frs` canon'u SAHIPSIZ kalacak. Gerekce: `FR-S` bir Scion rozeti, Scion katalogda marque
+   olarak YOK; `(Toyota, FR-S)` ya da `(Subaru, FR-S)`'i allow'a almak o adla SATILMAMIS bir
+   aracin sayfasini dogururdu — K19'un kurdugu kuralin tam ihlali. **AD kayboluyor, URUN
+   kaybolmuyor** (6 tekil urunun tamami `brz`/`gt86` kovalarinda, olculdu). Yeniden acilmasin.
 4. Kutudan devralinanlar: gorsel-kutu bosluk kusuru (`build.py` `height` niteligi) · negatif
    onbellek Cache Rule · `hasat_kontrol.py` atif-turu kapisi.
 
@@ -117,8 +158,8 @@ kapatilamaz — ayri tur gerekiyor.
 (b) Kapi `pre-commit`/`pre-push` icinden cagrildiginda git kendi kancalarini
 `GIT_DIR`/`GIT_INDEX_FILE` TANIMLI olarak kosar; yani (a) kapandiginda ortam kirliligi
 GERCEK bir yol olur — bu tur tam o yolu kapatti, kayda gecsin.
-(c) Ic rapor dosyasi adina atif izlenen dosyalarda 26 yerde daha var (olculdu: 26 dosya
-/ 55 gecis) — depo PUBLIC, hijyen isi, ayri tur.
+(c) KAPANDI — ic isci-rapor protokol adina yapilan atiflarin hijyeni: asagidaki
+"public depo hijyeni" kalemine bak (merge 20fbff61).
 
 KAPANDI: nabiz nobetcisi A5 TESLIM ekseni — dokum DEVAM-ARSIV.md de (git disi).
 
@@ -134,3 +175,72 @@ ACIK KALEM: yayin hatti icerik denetimi — dokum DEVAM-ARSIV.md de (git disi).
 
 ## 🟡 YENI ACIK KALEM — `CLAUDE.md`/`AGENTS.md` git disi symlink
 ACIK KALEM: symlink surumleme ayrintisi — dokum DEVAM-ARSIV.md de (git disi).
+
+## ✅ KAPANDI — public depo hijyeni: ic surec dosyasi adina yorum atiflari (merge `20fbff61`)
+Izlenen dosyalarda ic isci-rapor protokol adina YORUM/DOCSTRING metni olarak yapilan
+atiflar notrlestirildi; tekrarini engelleyen nobetci `tools/ic-rapor-adi-kapisi.py`
+CI'da (`serit-a3`, `deploy: needs` listesinde) BLOKLAYICI kosuyor.
+BAGIMSIZ OLCUM (curutucu): dal oncesi 55 vurus / 27 dosya · dal sonrasi muaf 31 vurus /
+7 dosya · temizlenen 24 satir / 20 dosya (55 − 31 = 24, aritmetik TUTUYOR; iscinin
+beyaniyla TAM ESIT). Oldurucu: temizlenmis dosyaya desen geri konunca TEK KIRMIZI,
+dogru dosya:satir basildi. Kontrol: benzer ama kapsam disi 4 metin YESIL (yanlis
+pozitif yok). Muafiyet ICERIK-hash'ine bagli dogrulandi — kayitli satirin metni
+degisince VE ayni satir baska dosyaya kopyalaninca muafiyet DUSTU, ikisinde de kirmizi;
+yol-bazli genel kacis DEGIL. Determinizm 3/3 ayni, sure 0,24 sn, sig checkout'ta
+calisiyor (489 dosya). Mutasyon: 2 mutantin her biri IDDIA kumesinde TEK KIRMIZI,
+Traceback 0, iddia sayisi 2→2 sabit, canli dosya sha256 once=sonra AYNI.
+Kod davranisi DEGISMEDI: 14 `.py`de docstring-normalize AST 0 fark (ham AST'de 12
+dosyada fark → edit gercekten docstring icinde), 4 JS/MJS `node --check` rc=0.
+Kapilar rc=0: is-akisi · ci-kapsam (+kendini-test) · kapi-envanteri 7/7 · kisisel-veri ·
+urunler-guard-provenans 28/0 · mukerrer-kontrol · duzelt-toplu. Katalog dosyalari
+kapsam DISI (push oncesi `origin/main..HEAD` urun diffi BOS). D1 uc eksen 18008 = 18008.
+
+MUAFIYET HUKMU (mimar karari icin): 31 muaf vurusun 30'u MESRU — `tools/durum.py` (2)
+protokol adini fiilen arayan kod + ona bagli print etiketi; `tools/kisisel-veri-test.py`
+(22) kardes sizinti nobetcisinin KENDI kirmizi/yesil fikstur ve hata-mesaji verisi;
+`tools/paket-*.md` (6 satir / 4 dosya) delegasyon spec'lerinin TESLIM talimatinin
+kendisi ("bu ad ZORUNLU", "baska ad YASAK") — metnin KENDISI mekanizma oldugu icin
+genellestirilirse spec islevini yitirir, `durum.py` ile ayni gerekce sinifinda.
+1 KACI: `tools/olculmemis-siparis-test.py` (1) — bir `print()` etiketi; "calisan kod,
+yorum degil" ayrimi bicimsel, hicbir test bu dizgeye dayanmiyor, genellestirilmesinin
+davranissal maliyeti SIFIR. Ayri turde kapatilabilir (muafiyet govdesinden cikarilir).
+ARTIK POZ (daha genis eksen, bu dalin isi DEGIL): `tools/paket-*.md` delegasyon
+spec'lerinin PUBLIC depoda DURUYOR olmasi, ic surec gorunurlugu acisindan dosya
+adindan daha buyuk bir yuzey — ayri karar (Okan/mimar).
+BILINEN KOR NOKTA: olculdu ve dar kapsamli, kardes nobetcinin ayni desenli istisnasiyla
+tutarli; dokum DEVAM-ARSIV.md de (git disi). Kapatilmasi istenirse ayri tur.
+
+YAYIN: bu SHA'nin kosumunda (id 30929902990) yeni IKI adim FIILEN kostu ve `success`
+verdi (`5/5 gecti` + `temiz (0 muafiyet-disi isabet)`). Kosum yine de KIRMIZI, `deploy`
+SKIPPED — sebep BASKA ve ONCEDEN VAR: `devam-sinif-kapisi` (serit-a2 + serit-a3), ayni
+iki adim `dced48ce`/`f8698ebe`/`31769d88` kosumlarinda da kirmiziydi, yani dal ONCESI.
+Dal DEVAM ile ilgili hicbir dosyaya dokunmadi. Baska bir oturum `8073ea6f` ile ihlalleri
+arsivledi; kapi yerelde artik YESIL (0 sinif ihlali) — sonraki kosumda yayin beklenir.
+
+## ✅ KAPANDI — numune-olmadan sayfasindaki KOSULSUZ uretim vaadi kapasite sinirina baglandi (merge `6f7ac890`)
+Canli ve indeksli SEO sayfasi `/numune-olmadan-plastik-parca-yaptirilir-mi/` govdesindeki tek
+`<p>`, bot tarafinda bugun kapatilan ayni kuralla hizalandi: marka/model/yildan taniniyorsa akis
+surer; taninamiyorsa VE elde numune de yoksa net sinir ("tahminle uretim yapmayiz, once yeterli
+referans isteriz"). Sayfa yayinda kaldi, yalniz metin duzeltildi.
+KAPSAM (merge-base `f8698ebe`'ten olculdu, `main..HEAD` DEGIL): 1 dosya `tools/sayfalar.py`,
++1/-1 satir. Push oncesi `origin/main..HEAD` net farki da ayni tek dosya/tek satir — baskasinin
+isi geri alinmadi. Cakisma on-testi temiz (`merge-tree` yalniz agac OID'i bastı). Public-depo
+metin taramasi (dalin ekledigi satirlar): desen vurusu 0.
+KAPILAR (dalin KENDI agacinda, izole klonda, exit kodlari goruldu): build ONCESI **15/15 YESIL**
+— kisisel-veri · odeme-beyani · landing-hukuk · malzeme-dayanak · ege-kabiliyet (+`--ic-nobetci`) ·
+fiziksel-urun · cayma-beyani · yayin-ic-dil `--kaynak` · devam-sinif · yasal-sayfa-drift · is-akisi ·
+onizleme-vaat · gramer-artigi · iki-govde. Build SONRASI **4/4 YESIL** — `build.py` · yayin-ic-dil ·
+uretim-butunluk · enjeksiyon. `gitignore-kapisi` TEMIZ (311 uretilen dizin). `kapi-envanteri` 7/7.
+DEVRALINAN KIRMIZI TARIHLE COZULDU (baseline diye gecilmedi): ilk turda `devam-sinif-kapisi`
+KIRMIZI idi (`DEVAM.md:26` E3 + `DEVAM.md:41` E5). Dalin sucu DEGIL — DEVAM.md blob'u dalda,
+main'de ve merge-base'te BIREBIR ayni (`4f68c5be`). Baska bir oturum `8073ea6f` ile ihlalleri
+arsivleyince guncel tabanda kapi **0 sinif ihlali** ile yesile dondu.
+URETILEN HTML: yeni cumle **1**, eski cumle **0**; govde bag sayisi degismedi (duzenlenen
+paragrafta oncesinde de sonrasinda da 1 bag).
+D1 UC EKSEN: **18008 = 18008** · sema goc indeksleri KURULU · `urun_hash` uyusmazlik 0 / eksik 0 /
+fazla 0.
+CANLI (canonical, cache-bust'SIZ): HTTP **200** · yeni cumle **1** · eski cumle **0**.
+Kosum `30931519589` headSha **BIREBIR** `6f7ac890`, conclusion **success**; 11 isten `build`,
+`deploy` ve `yayin` UCU de success (`--limit 1` yesiline guvenilmedi — bir onceki main kosumu
+`cancelled` idi). Push bir kez non-fast-forward reddedildi (main arada iki kez ilerledi);
+`--force` KULLANILMADI, fetch + merge ile tekrarlandi. Gecici klon ve iki yerel dal silindi.

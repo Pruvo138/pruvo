@@ -123,7 +123,7 @@ bu kapi da kosmaz. CI'daki degeri (a) DIGER is akislarini (onizleme-imaj.yml) ko
 (b) bozulmayi bir sonraki YESIL push'ta yakalamak. GERCEK koruma PUSH ONCESIDIR:
     python3 tools/is-akisi-kapisi.py
 tek komut olarak kosar (ag YOK, dosya YAZMAZ, ~0,1 s). Onerilen .git/hooks/pre-push
-satiri RAPOR-MIMARA.md'de (hook'lar bu depoda COMMIT EDILMEZ).
+satiri muhendis raporunda (hook'lar bu depoda COMMIT EDILMEZ).
 
 AYRISTIRICI SECIMI (30 Tem — AYRISTIRICI BAGIMSIZLIGI, push-oncesi yolu acar):
   1. PyYAML (CI'da var: deploy.yml "pip install boto3 pyyaml")

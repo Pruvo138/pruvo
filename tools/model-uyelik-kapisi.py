@@ -102,6 +102,29 @@ KATLAMA_FIKSTURU = [
 ]
 
 
+# ---------------------------------------------------------------- ÇIPLAK TEK HARF (SINIF 1)
+# KARARSIZ JETON SINIF 1 — mimar hükmü: "ÇIPLAK TEK HARF model adı OLMAZ; o ailenin kanonik
+# adı TAM YAZIMDIR (`R Serisi` / `K Serisi`)". Ölçüldü (4 Ağu, 17.962 ürün): BMW altında
+# `K` (1 ürün) ve `K Serisi` (1 ürün) AYRI kovalardı — aynı aile iki öksüz kovaya bölünmüş,
+# `K` kovası ESIK'i geçtiği gün /marka/bmw/k/ TEK HARFLİ sayfası sessizce doğacaktı.
+#
+# 🔴 FİKSTÜR: (marka, çıplak jeton, tam yazım, beklenen anahtar, beklenen GÖRÜNEN ad).
+# KATLAMA_FIKSTURU ile AYNI disiplin: kural GERÇEK jetonlarla çivilenir ve İKİ TARAFTA
+# (JS gövdesi + Python portu) ayrı ayrı ölçülür.
+# 🔴 KONTROL SATIRLARI (`birlesir=False`) AYNI fikstürde durur — kural marka-KÖR yazılsaydı
+# `Opel Astra K` (12 ürün, CANLI sayfa) ve `Renault 5` (11 ürün, RAKAM = gerçek model) ölürdü.
+# Ölçüldü; bu yüzden kontrol satırları iddianın PARÇASIDIR, ayrı bir "not" değil.
+TEK_HARF_FIKSTURU = [
+    # (marka, ham jeton, beklenen anahtar, beklenen görünen ad, çıplak-tek-harf mi)
+    ("BMW", "K", "kserisi", "K Serisi", True),
+    ("BMW", "K Serisi", "kserisi", "K Serisi", False),
+    # KONTROL: tek KARAKTER ama RAKAM — Renault 5 gerçek bir modeldir, birleşmez/ölmez.
+    ("Renault", "5", "5", "5", False),
+    # KONTROL: son kelimesi tek harf olan BİLEŞİK model adı — kuşak sayfası, dokunulmaz.
+    ("Opel", "Astra K", "astrak", "Astra K", False),
+]
+
+
 def _kusak_tasiyor(jetonlar, hedef):
     """Ürünün jetonlarından biri, hedef modelin BİR KUŞAĞI mı (bağımsız ölçüt)?
     'astrah' -> hedef 'astra' + sonek 'h' ✔ · 'golfmk4' -> 'golf'+'mk4' ✔ ·
@@ -130,6 +153,7 @@ const urunler = girdi.urunler;          // [{i, m:[ham marka...]}]
 const ciftler = girdi.ciftler;          // [[marka, display], ...]
 const sondalar = girdi.sondalar || [];  // [[marka, deger], ...] — anahtar SONDASI
 const kusaklar = girdi.kusaklar || [];  // [[marka, deger], ...] — KUSAK KATLAMA SONDASI
+const birlesmeler = girdi.birlesmeler || []; // [[marka, ciplak jeton], ...] — ALIAS BIRLESMESI
 
 /* marka -> o markanin UYESI urun indeksleri (filtered() brandOk yuklemi) */
 const markaIx = new Map();
@@ -164,7 +188,13 @@ for (const [marka, deger] of sondalar) { sonda[marka + "\t" + deger] = modelAnah
    ancak paritede gorunurdu; gramer/istisna ayrismasi ise SESSIZ kalirdi. */
 const kusak = {};
 for (const [marka, deger] of kusaklar) { kusak[marka + "\t" + deger] = kusakTabanlari(marka, deger); }
+/* BIRLESME SONDASI: ciplak tek harf jeton ("K") ile tam yazim ("K Serisi") AYNI anahtara mi
+   dusuyor? Iki taraf (JS govdesi + Python portu) AYRI olculur — tek taraf alias'i okumayi
+   birakirsa kova sessizce IKIYE bolunur ve TEK HARFLI bir sayfa dogar. */
+const birlesme = {};
+for (const [marka, deger] of birlesmeler) { birlesme[marka + "\t" + deger] = modelAnahtar(marka, deger); }
 process.stdout.write(JSON.stringify({ok: true, sonuc: cikti, sonda: sonda, kusak: kusak,
+  birlesme: birlesme,
   anahtarOrnek: {f150: modelAnahtar("Ford", "F150"), fSerisi: modelAnahtar("Ford", "F-Series")}}));
 """
 
@@ -201,7 +231,7 @@ def _blok_ayikla(index_html):
     return norm_src, kurator, kanon
 
 
-def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=()):
+def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=(), birlesmeler=()):
     """{(marka, display): set(urun_id)} — index.html'in GERÇEK yüklemiyle (node)."""
     try:
         subprocess.run(["node", "--version"], capture_output=True, check=True)
@@ -225,7 +255,8 @@ def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=()):
                                    for p in urunler if p.get("id")],
                        "ciftler": [[a, b] for a, b in ciftler],
                        "sondalar": [[a, b] for a, b in sondalar],
-                       "kusaklar": [[a, b] for a, b in kusaklar]}, f, ensure_ascii=False)
+                       "kusaklar": [[a, b] for a, b in kusaklar],
+                       "birlesmeler": [[a, b] for a, b in birlesmeler]}, f, ensure_ascii=False)
         p = subprocess.run(["node", jsyol, veriyol], capture_output=True, text=True, timeout=900)
         if p.returncode != 0 or not (p.stdout or "").strip():
             raise Olculemedi("node koşumu çöktü (rc=%d): %s"
@@ -240,7 +271,8 @@ def filtre_kumeleri(index_html, urunler, ciftler, sondalar=(), kusaklar=()):
             veri.get("anahtarOrnek", {}),
             dict((tuple(k.split("\t")), v) for k, v in (veri.get("sonda") or {}).items()),
             dict((tuple(k.split("\t")), [tuple(x) for x in (v or [])])
-                 for k, v in (veri.get("kusak") or {}).items()))
+                 for k, v in (veri.get("kusak") or {}).items()),
+            dict((tuple(k.split("\t")), v) for k, v in (veri.get("birlesme") or {}).items()))
 
 
 # ---------------------------------------------------------------- ölçüm
@@ -315,8 +347,9 @@ def olc(kok, modul_yolu=None):
                     _gorulen_sonda.add((_kan, _t))
                     kusak_sondalar.append((_kan, _t))
 
-    filtre, ornek, sonda, kusak_js = filtre_kumeleri(index_html, urunler, ciftler,
-                                                     sondalar, kusak_sondalar)
+    birlesme_sondalar = [(mk, jt) for mk, jt, _a, _d, _b in TEK_HARF_FIKSTURU]
+    filtre, ornek, sonda, kusak_js, birlesme_js = filtre_kumeleri(
+        index_html, urunler, ciftler, sondalar, kusak_sondalar, birlesme_sondalar)
 
     # JS ↔ Python kuşak okuması BİREBİR mi (gramer + istisna + kelime sınırı)?
     kusak_sapan = []
@@ -680,6 +713,59 @@ def olc(kok, modul_yolu=None):
                 and (emk, jeton_k) not in set((a, b) for (a, _d), (_i, b) in sayfa.items()):
             esleme_kapanan.append((emk, ejt, len(gk["urunler"])))
 
+    # --- ÇIPLAK TEK HARF JETON BİRLEŞMESİ — K20 (4 Ağu, kararsız jeton SINIF 1) ---------
+    # İDDİA ÜÇ PARÇALI: (1) kural fikstürle çivili ve JS↔Python AYNI · (2) ETKİSİ ölçülür
+    # (çıplak jetonlu ürün TAM YAZIM kovasına ULAŞTI, çıplak yazımın AYRI kovası KALMADI,
+    # ürün KAYBOLMADI) · (3) POZİTİF ÇAPA (marka-kör bir kuralın öldüreceği CANLI sayfalar
+    # duruyor). Yalnız (1) yazılsaydı "tablo duruyor" demiş olurduk — [[beyan-edilmis-survivor]].
+    tekharf_sapan, tekharf_ulasmayan, tekharf_ayri_kova, tekharf_kaybolan = [], [], [], []
+    for mk, jt, beklenen_a, beklenen_d, _ciplak in TEK_HARF_FIKSTURU:
+        js, py = birlesme_js.get((mk, jt)), evren.model_anahtari(mk, jt)
+        if js != beklenen_a or py != beklenen_a:
+            tekharf_sapan.append((mk, jt, "js=%s" % js, "py=%s" % py,
+                                  "beklenen=%s" % beklenen_a))
+            continue
+        g = (veri.get(mk) or {}).get("gruplar", {}).get(beklenen_a)
+        if not g:
+            tekharf_sapan.append((mk, jt, "KOVA YOK (%s)" % beklenen_a, "", ""))
+        elif (g.get("display") or "") != beklenen_d:
+            tekharf_sapan.append((mk, jt, "gosterim=%r" % g.get("display"),
+                                  "beklenen=%r" % beklenen_d, ""))
+    for mk, jt, beklenen_a, _bd, ciplak in TEK_HARF_FIKSTURU:
+        if not ciplak:
+            continue
+        ciplak_k = _bagimsiz_kanon(jt)
+        hedef = (veri.get(mk) or {}).get("gruplar", {}).get(beklenen_a) or {}
+        hedef_ids = set(p.get("id") for p in hedef.get("urunler", []) if p.get("id"))
+        agac = set()
+        for _g2 in (veri.get(mk) or {}).get("gruplar", {}).values():
+            agac |= set(p.get("id") for p in _g2["urunler"] if p.get("id"))
+        agac |= set(p.get("id") for p in ((veri.get(mk) or {}).get("marka_only", [])
+                                          + (veri.get(mk) or {}).get("ikincil", []))
+                    if p.get("id"))
+        for p in urunler:
+            m = [(x or "").strip() for x in (p.get("marka") or []) if (x or "").strip()]
+            if not any(_bagimsiz_kanon(t) == ciplak_k for t in m):
+                continue
+            if mk not in mm.marka_uyelikleri(m, evren, ek):
+                continue
+            if p.get("id") not in hedef_ids:
+                tekharf_ulasmayan.append((mk, jt, p.get("id")))
+            if p.get("id") not in agac:
+                tekharf_kaybolan.append((mk, jt, p.get("id")))
+        # ÇIPLAK yazımın KENDİ (ayrı) kovası KALMAMALI — kalsaydı eşiği geçtiği gün TEK
+        # HARFLİ bir sayfa doğardı (ölçülen sessiz doğum sınıfı).
+        for canon, g2 in (veri.get(mk) or {}).get("gruplar", {}).items():
+            if canon != beklenen_a and _bagimsiz_kanon(g2.get("display") or canon) == ciplak_k:
+                tekharf_ayri_kova.append((mk, g2.get("display"), canon, len(g2["urunler"])))
+    # POZİTİF ÇAPA — marka-KÖR bir "tek harf" kuralı bunları öldürürdü (ölçüldü: Renault 5
+    # RAKAM ve gerçek model · Opel Astra K meşru kuşak sayfası). İkisi de YAYINDA kalmalı.
+    tekharf_capa_dusen = []
+    for mk, dsp in (("Renault", "5"), ("Opel", "Astra K")):
+        ids = sayfa.get((mk, dsp), (set(), None))[0]
+        if not ids:
+            tekharf_capa_dusen.append((mk, dsp))
+
     # --- ALT BÖLÜM AYRIM KANITI: RENDER EDİLMİŞ HTML üzerinden -------------------------
     # 🔴 NEDEN HTML (veri değil): ayrımı `g["kusak_bolum"]` sözlüğünden ölçseydik, bölümleri
     # GÖRMEZDEN gelip hepsini tek listeye döken bir RENDERER mutantı veriyi bozmadığı için
@@ -784,6 +870,11 @@ def olc(kok, modul_yolu=None):
                    "deny_imza": deny_imza, "deny_sizan": deny_sizan,
                    "deny_kaybolan": deny_kaybolan, "deny_etkilenen": deny_etkilenen,
                    "esleme_fark": esleme_fark, "esleme_imza": esleme_imza,
+                   "tekharf_sapan": tekharf_sapan, "tekharf_ulasmayan": tekharf_ulasmayan,
+                   "tekharf_ayri_kova": tekharf_ayri_kova,
+                   "tekharf_kaybolan": tekharf_kaybolan,
+                   "tekharf_capa_dusen": tekharf_capa_dusen,
+                   "tekharf_sayisi": len(TEK_HARF_FIKSTURU),
                    "esleme_ayna": esleme_ayna, "esleme_ulasmayan": esleme_ulasmayan,
                    "esleme_kapanan": esleme_kapanan,
                    "envanter": _envanter(urunler, veri, evren, mm, sayfa),
@@ -997,6 +1088,22 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
         print("  BILGI KÜRATÖRLÜ KUŞAK EŞLEMESİ ile açıklanan üyelik: %d ürün (muafiyet "
               "listesi DEĞİL, KUSAK_ESLEME kaynağından türer; kimliği/etkisi K18'de ölçülür)"
               % a["esleme_aciklamali"])
+    # K20 — ÇIPLAK TEK HARF JETON: tam yazımla TEK kovada birleşir, AYRI kovası KALMAZ,
+    #       ürünü KAYBOLMAZ; marka-KÖR bir kuralın öldüreceği CANLI sayfalar YERİNDE.
+    #       Ölçüldü (4 Ağu): BMW `K` (1) ile `K Serisi` (1) ayrı kovalardı — `K` eşiği geçtiği
+    #       gün /marka/bmw/k/ TEK HARFLİ sayfası sessizce doğacaktı (mimar hükmü: çıplak tek
+    #       harf model adı OLMAZ, kanonik ad TAM YAZIMDIR).
+    dogrula("K20 ÇIPLAK TEK HARF JETON TAM YAZIMA BİRLEŞİYOR (%d fikstür × 2 taraf; ayrı "
+            "kova=%d, tabana ulaşmayan ürün=%d)"
+            % (a["tekharf_sayisi"], len(a["tekharf_ayri_kova"]), len(a["tekharf_ulasmayan"])),
+            not a["tekharf_sapan"] and not a["tekharf_ulasmayan"]
+            and not a["tekharf_ayri_kova"] and not a["tekharf_kaybolan"]
+            and not a["tekharf_capa_dusen"] and a["tekharf_sayisi"] > 0,
+            "fikstür sapan=%s · ayrı kova (tek harfli sayfa adayı)=%s · tabana ulaşmayan=%s · "
+            "kaybolan ürün=%d · DÜŞEN POZİTİF ÇAPA=%s"
+            % (a["tekharf_sapan"][:2] or "-", a["tekharf_ayri_kova"][:2] or "-",
+               a["tekharf_ulasmayan"][:2] or "-", len(a["tekharf_kaybolan"]),
+               a["tekharf_capa_dusen"] or "-"))
     if a["kusak_aciklamali"]:
         print("  BILGI KUŞAK KATLAMASI ile açıklanan üyelik: %d ürün (muafiyet listesi DEĞİL, "
               "bağımsız kuşak dilbilgisiyle ölçülür; ayrımı K14 doğrular)"
@@ -1193,7 +1300,33 @@ MUTANTLAR = [
      "            if mm.yayimlanir_mi(_g):", "KIRMIZI",
      "M28 ÖLÇÜTÜ 'SAYFA DOĞDU MU'YA ÇEVİR -> deny'e alınan çift ölçümden DÜŞER, karşısındaki "
      "gerçek rozet tek başına kalır ve tablo KENDİ kanıtını siler (totoloji koruması)"),
+    # --- ÇIPLAK TEK HARF (SINIF 1) EKSENİ — K20 (4 Ağu, mimar hükmü) ---
+    # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — BMW `K` (1 ürün)
+    # ile `K Serisi` (1 ürün) AYRI kovalardı ve kapı 20/20 YEŞİL geçiyordu; `K` kovası ESIK'i
+    # geçtiği gün /marka/bmw/k/ TEK HARFLİ sayfası SESSİZCE doğacaktı.
+    ("index.html", 'var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};',
+     'var MODEL_ALIAS = {"Ford|fseries":"fserisi"};', "KIRMIZI",
+     "M29 ÇIPLAK TEK HARF BİRLEŞMESİNİ KALDIR -> `K` yeniden AYRI kova olur (tek harfli "
+     "sayfa adayı), ürün TAM YAZIM kovasına ULAŞMAZ; K20 TEK BAŞINA kırmızı yakmalı"),
+    ("tools/marka_model_build.py", '    ("BMW", "kserisi"): "K Serisi",\n', "", "KIRMIZI",
+     "M30 KANONİK GÖSTERİM ZORLAMASINI DÜŞÜR -> 1-1 sıklıkta alfabetik tie-break kazanır ve "
+     "kovanın adı TEK HARFE ('K') düşer; birleşme doğru, AD yanlış olurdu"),
+    # --- ÇAPRAZ-MARKA `GS` HÜKMÜNÜN KANITI (SINIF 1 ön ölçümü) ---
+    # ÖLÇÜLDÜ (4 Ağu, 17.962 ürün): BMW `GS` 13 ürünle YAYINDA, Citroën `GS` 1 ürün (ESIK=3
+    # ALTINDA) -> `gs` bugün ÇAPRAZ bir çift DEĞİL. Bu yüzden ROZET_CAPRAZ_IZINLI'ye bir
+    # `BMW|gs` girişi yazmak ÖLÜ giriştir ve envanteri BAYATLATIR. Mutant tam da bunu yapar:
+    # hüküm ("bugün allow yazma; K19 ileriye dönük bekçidir") böylece ÇALIŞTIRILABİLİR olur.
+    ("tools/arama.py", '    "Volkswagen|golf": ("ROZET", "Golf VW\'nin kendi rozeti"),',
+     '    "Volkswagen|golf": ("ROZET", "Golf VW\'nin kendi rozeti"),\n'
+     '    "BMW|gs": ("ROZET", "MUTANT — Citroen GS 1 urun, ESIK altinda: capraz cift DEGIL"),',
+     "KIRMIZI",
+     "M31 `GS` İÇİN ÖLÜ ALLOW GİRİŞİ YAZ -> envanter bayat (küme birebir değil); K19 TEK "
+     "BAŞINA kırmızı yakar. Ön ölçümün hükmünün kanıtı: GS allow girişi BUGÜN yazılamaz"),
     # --- KONTROL (YEŞİL bekleniyor) ---
+    ("index.html", 'var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};',
+     'var MODEL_ALIAS = {"Ford|fseries":"fserisi","BMW|k":"kserisi"};', "YESIL",
+     "K20 KONTROL: MODEL_ALIAS'ı YENİDEN SIRALA -> tablo ve davranış AYNI (daima-kırmızı bir "
+     "K20 M29/M30'u da geçerdi; kontrol bunu ayırt eder)"),
     ("tools/arama.py",
      '    "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),\n'
      '    "Citroen|c1": ("ROZET", "Citroen C1 gercek rozet"),',

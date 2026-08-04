@@ -21,7 +21,7 @@ kilitliyordu; 4 kez mesru isi engelledi, bir isci sed'e kacti = kapi guvenligi A
     kopyalari serbesttir.
 
 MUAF KALAN (bilerek — kapatirsan mimarin isi durur):
-  * .md her yerde (spec, DEVAM.md, hafiza, RAPOR-MIMARA) — mimarin ASIL isi
+  * .md her yerde (spec, DEVAM.md, hafiza, isci raporu) — mimarin ASIL isi
   * scratchpad'de VERI/NOT dosyalari (.txt/.json — commit mesaji, olcum notu)
   * worktree'ler: /Users/okan/dev/pruvo/.claude/worktrees/ ONEKI + git'e KAYITLI
     worktree kokleri (or. /private/tmp/pruvo-toka-jenerator) — mesru muhendis alani

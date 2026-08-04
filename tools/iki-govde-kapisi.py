@@ -34,7 +34,7 @@ NE KANITLAMAZ (iddia edilmez):
   * Onbellek anahtari / worker yonlendirmesi (o eksen: onizleme/test/iki-govde-kabul.mjs).
   * Fiyat (2-renk ucreti bu turda DEGISMEDI; sifir).
 
-KIRMIZI-MUTASYON (ham cikti RAPOR-MIMARA.md'de):
+KIRMIZI-MUTASYON (ham cikti muhendis raporunda):
   (a) `parcalar` blogu esleme json'undan silinir            -> KIRMIZI (kapsam bos)
   (b) parca blogunun `Output`u tabanla ayni yapilir         -> KIRMIZI (ayrisma yok)
   (c) parca blogunun `metin`/`sayisal` bloguna dokunulur    -> KIRMIZI (hizalama)

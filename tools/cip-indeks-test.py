@@ -351,6 +351,29 @@ def kabul(kok):
     dogrula("M4 HER MODEL CIPININ YAYIMLANAN SAYFASI VAR (olu cip yok)",
             not sayfasiz, "sayfasiz=%d %s" % (len(sayfasiz), sayfasiz[:3]))
 
+    # M9 — CIP ETIKETI == SAYFA DISPLAY'I (TEK KAYNAK; 4 Agu, kararsiz jeton SINIF 1).
+    # cip-indeks modul docstring'i "CIP ETIKETI = sayfa basligiyla AYNI kanonik gosterim
+    # (tek kaynak, ikinci secim YOK)" DIYORDU ama hicbir iddia bunu OLCMUYORDU: M3 yalniz
+    # SAYIYI karsilastiriyor, M1 yalniz mukerrer canon'a bakiyor. Iki taraf ETIKETTE
+    # ayrissaydi musteri ana sayfada bir ad, sayfada BASKA bir ad gorurdu ve cipin urettigi
+    # `?model=<etiket>` istegi de o adla giderdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    # 🔴 SINIF 1 BAGI: `K`/`K Serisi` gibi CIPLAK-TEK-HARF ailelerinde ad, kuratorlu
+    # gosterim zorlamasindan gelir (marka_model_build._KANONIK_GOSTERIM); zorlama yalniz BIR
+    # tarafta uygulansaydi cip "K", sayfa "K Serisi" derdi. Bu iddia o ayrismayi olcer.
+    etiket_sapan = []
+    for kat, kd in ix["kat"].items():
+        for mk, d in kd.items():
+            for md in d["m"]:
+                canon = mevren.model_anahtari(mk, md)
+                _g = (_veri.get(mk) or {}).get("gruplar", {}).get(canon)
+                _dsp = (_g or {}).get("display")
+                if _dsp != md:
+                    etiket_sapan.append("%s/%s: cip=%r sayfa=%r (canon=%s)"
+                                        % (kat, mk, md, _dsp, canon))
+    dogrula("M9 CIP ETIKETI == SAYFA DISPLAY'I (kanonik gosterim TEK KAYNAK)",
+            not etiket_sapan, "model=%d sapan=%d %s"
+            % (toplam_model, len(etiket_sapan), etiket_sapan[:3]))
+
     # M5 — ASIRI ELEME NOBETI (M2'nin TERS yonu). Marka-KOR bir eleme baska markadaki
     # GERCEK modeli oldururdu (or. "DS" kor elenirse /marka/citroen/ds/ cipi de OLURDU,
     # oysa Citroen DS gercek bir modeldir). Yuklem: YAYIMLANAN + uyum BAGI olan + cip
@@ -708,6 +731,21 @@ MUTANTLAR = [
      '      p.set("model", activeModel);', "KIRMIZI",
      "(e) ISTEMCI KANONIGI GONDERSIN (model): uc katlamaz -> 'F-Serisi'/'5 E-Tech' cipleri "
      "0 urun dondurur (olculen canli: model=F-Serisi -> 0, model=F-Series -> 8)"),
+    # --- CIP ETIKETI TEK KAYNAK EKSENI — M9 (4 Agu, kararsiz jeton SINIF 1) ---
+    # 🔴 KANIT: bu mutant EKLENMEDEN ONCE batarya bu sinifi GORMUYORDU — etiket secimini
+    # degistiren mutant SAYILARI (M3) ve CANON'lari (M1) bozmadigi icin YESIL geciyordu;
+    # oysa musteri ana sayfada bir ad, model sayfasinda BASKA bir ad gorurdu.
+    # OLCULDU: en-az-sik yazima cevirmek 3 cipin adini kaydiriyor (Yamaha DT125/DT 125 ·
+    # Yamaha YZF-R1/YZF R1 · Toyota Hilux/HiLux).
+    # ⚠️ KURATORLU GOSTERIMI (_KANONIK_GOSTERIM) YOK SAYAN mutant BUGUN ESDEGERDIR (olculdu:
+    # 0 cip degisir — tek uyesi Ford|fserisi ve orada en sik yazim zaten "F-Serisi"). O yuzden
+    # bataryaya KONMADI; `K Serisi` gibi 1-1 sıklıklı aileler zorlamaya BAGLIDIR ve o eksen
+    # tools/model-uyelik-kapisi.py :: K20'de OLDURUCU mutantla (M30) olculur.
+    ("cip-indeks.py",
+     "    return sorted(kalanlar.items(), key=lambda t: (-t[1], t[0]))[0][0]",
+     "    return sorted(kalanlar.items(), key=lambda t: (t[1], t[0]))[0][0]", "KIRMIZI",
+     "CIP ETIKETINI SAYFADAN AYIR: cip kendi yazimini secer -> ana sayfada 'DT 125', model "
+     "sayfasinda 'DT125' (M9 tek kaynak ekseni)"),
     # --- KONTROL MUTANTLARI (YESIL bekleniyor) — iddialar ILGISIZ degisikliklere
     # PINLENMIS mi? Yesil kalmazlarsa kapi asiri-baglanmistir ([[kapi-kapsam-eksen-secimi]]).
     ("index.html", '.brand-btn:hover{border-color:var(--navy-2)}',

@@ -5,7 +5,7 @@
 NEDEN VAR (30 Tem yargi turu, OLCULEN 4 SESSIZ KACIS YOLU): CI nobetcilerinin
 "cagri duruyor mu" olcumu DUZ METIN uzerinden yapiliyordu. Metin "duruyor" dedigi
 halde CI'da HICBIR SEY olculmeyen dort yol geciciler kopyada olculdu ve DORT
-denetci de rc=0 verdi (tam ham cikti RAPOR-MIMARA.md'de):
+denetci de rc=0 verdi (tam ham cikti muhendis raporunda):
 
   1. `run: python3 tools/ci-kapsam-test.py --help`   -> argparse kullanim metnini
      basip exit 0; kapi hala "kosuluyor" sayiyordu.

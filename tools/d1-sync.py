@@ -500,7 +500,7 @@ def d1_mevcut(konfigur_kolonu=True):
     konfigur da OKUNUR (konfigur_kolonu=True ise): konfigur senkronu (main) onu urunler.json'dan
     turetilenle KIYASLAR — degismemisse yazmaz (taban_fiyat/baski ile AYNI desen).
     NOT: taban_fiyat kolonu --sema (GOC_KOLON ALTER) ile eklenir; bu SELECT'ten ONCE
-    --sema kosmus olmali (canli uygulama sirasi RAPOR-MIMARA.md'de). konfigur kolonu icin bu
+    --sema kosmus olmali (canli uygulama sirasi muhendis raporunda). konfigur kolonu icin bu
     sart YUMUSATILDI: kolon yoksa cagiran konfigur_kolonu=False verir ve SELECT onu istemez
     (bkz. kolon_var_mi) -> --sema unutulsa bile katalog senkronu AKMAYA DEVAM EDER."""
     kolonlar = "id, hash, baski, taban_fiyat, seq" + (", konfigur" if konfigur_kolonu else "")

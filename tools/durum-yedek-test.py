@@ -2176,7 +2176,7 @@ def main():
     # yok) da KOSAR. Alt kosumda (ps-siz PATH taklidi) KOSTURULMAZ: bu nobetler kendi
     # sahte ortamini kurar, ps/git eksenleriyle ilgisi yoktur (gereksiz maliyet + delikat
     # alt-kosum muhasebesini bozma riski). Env-bagimsizligin kendi kaniti asagidaki
-    # bos-HOME alt kosumundadir (RAPOR-MIMARA kabul).
+    # bos-HOME alt kosumundadir (muhendis raporu kabulunde).
     if ALT_KOSUM not in sys.argv:
         print("\n10) YEDEKLE 3 GUVENCE (flock / damga-finally-degil / cikis-damgasi) "
               "— tam-izole DAVRANISSAL, env-bagimsiz")
