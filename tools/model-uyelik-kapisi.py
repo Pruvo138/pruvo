@@ -1196,8 +1196,8 @@ MUTANTLAR = [
     # --- KONTROL (YEŞİL bekleniyor) ---
     ("tools/arama.py",
      '    "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),\n'
-     '    "Toyota|brz": ("BEKLER", "Toyota\'nin karsiligi GT86/GR86; \'Toyota BRZ\' rozet DEGIL"),',
-     '    "Toyota|brz": ("BEKLER", "Toyota\'nin karsiligi GT86/GR86; \'Toyota BRZ\' rozet DEGIL"),\n'
+     '    "Citroen|c1": ("ROZET", "Citroen C1 gercek rozet"),',
+     '    "Citroen|c1": ("ROZET", "Citroen C1 gercek rozet"),\n'
      '    "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),', "YESIL",
      "K19 KONTROL: çapraz envanteri YENİDEN SIRALA -> küme ve kimlik AYNI, davranış AYNI "
      "(daima-kırmızı bir K19 M25-M28'i de geçerdi; kontrol bunu ayırt eder)"),
@@ -1254,9 +1254,18 @@ def kendini_test():
             yol = os.path.join(tmp, *dosya.split("/"))
             with open(yol, encoding="utf-8") as f:
                 metin = f.read()
-            if eski not in metin:
-                print("  HATA M%02d: mutant ÇAPASI BULUNAMADI (%s) -> %s" % (i, dosya, aciklama))
-                basarisiz.append("M%02d capa yok" % i)
+            # 🔴 ÇAPA TAM BİR KEZ EŞLEŞMELİ (4 Ağu, kardeş harness ile HİZALAMA).
+            # ÖNCEDEN yalnız `eski not in metin` bakılıyordu; tools/cip-indeks-test.py ise
+            # `count(...) == 1` istiyordu. İKİZ TANIM: bugün zararsız, yarın biri gevşeyince
+            # sessizce ayrışır ([[ikiz-tanim-sessiz-ayrisma]]). ÖLÇÜLDÜ: K19 mutantının tek
+            # satırlık çapası bu dosyada 2 kez geçiyordu (MUTANTLAR listesinin KENDİSİNDE de)
+            # ve gevşek kontrol bunu SESSİZCE geçiriyordu — mutantın hangi kopyaya vurduğu
+            # belirsizdi. Çapa kayması "geçti" DEĞİL, o eksen ÖLÇÜLMEMİŞ demektir.
+            sayi = metin.count(eski)
+            if sayi != 1:
+                print("  HATA M%02d: mutant ÇAPASI %s (%d eşleşme, %s) | EKSEN ÖLÇÜLMEDİ -> %s"
+                      % (i, "BULUNAMADI" if sayi == 0 else "ÇOK EŞLEŞTİ", sayi, dosya, aciklama))
+                basarisiz.append("M%02d capa %d eslesme" % (i, sayi))
                 continue
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(metin.replace(eski, yeni, 1))
