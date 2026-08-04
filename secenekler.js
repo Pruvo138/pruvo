@@ -249,10 +249,10 @@
   /* Faz E (isletme karari 16 Tem: onizleme TUM sari ailelerde): 13 uyelik-motoru
      ailesinin eslem/hacim duzeltme turu sonrasi <=%3 olcum kapisini gecen 12 aile
      listeye alindi (aile basina 25 set eslem olcumu yapildi).
-     VIDA yok: hacim/fiyat formulu OLCUYE DUYARLI (2026-08-04 olcumu — cap ve boy
-     degisince civata/somun/pul/mil hacmi degisiyor); aileyi onizleme+satis disinda
-     tutan bugunku sebep FIYAT FORMULU DEGIL, sema araligi kusurudur (asagidaki
-     CIKARILANLAR blogu). Bazi ailelerde motorda karsiligi olmayan
+     VIDA yok: hacim/fiyat formulu OLCUYE DUYARLI (2026-08-04 olcumu — civata ve mil
+     CAP+BOY'a, somun ve pul YALNIZ CAP'e duyarli; dort tipte de cap degisince hacim
+     degisiyor); aileyi onizleme+satis disinda tutan bugunku sebep FIYAT FORMULU DEGIL,
+     sema araligi kusurudur (asagidaki CIKARILANLAR blogu). Bazi ailelerde motorda karsiligi olmayan
      secenekler ONIZLEME_KISITLAR ile onizleme disi (fiyat/siparis etkilenmez).
      DIKKAT — yayin kapisi: bu listeye aile eklemek = butonun o urun sayfalarinda
      MUSTERIYE gorunmesi; main'e merge MIMAR kabulu ister. */

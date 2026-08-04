@@ -20,15 +20,22 @@ beyan olctu. Ikisi bu kapinin ekseninde:
 Ikisi de BAYATLADI cunku beyani olcen HICBIR SEY YOKTU ([[ikiz-tanim-sessiz-ayrisma]]).
 Bu kapi o bosluktur: beyan ile davranis birbirinden ayrilirsa CI kirmizi yanar.
 
-IDDIALAR (5 — sayi SABIT, mutant kosumlarinda da 5)
+IDDIALAR (6 — sayi SABIT, mutant kosumlarinda da 6)
 ---------------------------------------------------
-  A1  jenerator/hacim.js `vida` disa veriliyor ve dort urun tipinde de SONLU POZITIF
-      hacim uretiyor. FAIL-CLOSED on kosul: olculemiyorsa A2/A3 bedavaya gecemez.
+  A1  jenerator/hacim.js `vida` disa veriliyor ve dort urun tipinde de (cap+boy iki
+      olcum noktasi = 12 nokta) SONLU POZITIF hacim uretiyor. FAIL-CLOSED on kosul:
+      olculemiyorsa A2/A3/A4 bedavaya gecemez.
   A2  DAVRANIS — vida hacmi OLCUYE DUYARLI: civata cap, civata boy, somun cap, pul cap
       ve mil cap eksenlerinin BESINDE de hacim >%1 degisiyor.
   A3  IKIZ (TEK YONLU IMA) — `secenekler.js` vida icin bir DUYARSIZLIK beyani
       tasiyorsa, olculen davranis da duyarsiz olmalidir. Beyan yoksa iddia bos gecer;
       olduruculugu M1 mutantiyla KANITLANIR (bos gecen iddia OLU iddiadir).
+  A4  IKIZ (PER-PARCA) — musteri yorumu cekirdek iddianin ustune "hangi parca BOY'a
+      duyarli" AYRINTISI ekliyor (bugun: civata+mil boy'a duyarli, somun+pul yalniz
+      cap'e). Bu ayrinti node probe'un OLCTUGU boy duyarliligiyla PARCA-PARCA
+      karsilastirilir; yorum "pul boy'a duyarli" gibi yanlis bir ayrinti derse KIRMIZI
+      (olduruculugu M7). FAIL-CLOSED: yorum dort parcanin birini adlandirmazsa da
+      KIRMIZI (not curumesin). Olduruculugu M7, korlugu M8 kontrolu kanitlar.
   B1  DAVRANIS — shop/src/yonet.js giris kolunda hiz siniri YASIYOR: uc sabit tanimli
       ve POZITIF, bloke yordami tanim DISINDA fiilen cagriliyor, gecikme `await`li.
   B2  IKIZ (TEK YONLU IMA) — izlenen `.md` belgelerinde "yonetim uclari hiz sinirsiz"
@@ -50,8 +57,12 @@ KAPSAM — bu kapi NE OLCMEZ (durustluk)
   - Hukuki acik: zaten NOBETCISI VAR (`tools/cayma-beyani-kapisi.py`, dort beyan
     yuzeyi). Ikinci bir kapi ayni ekseni IKI KEZ sayardi; belgedeki metin artik
     "kapandi + nobetcisi su" diyor ve nobetci dususe kirmizi yakiyor.
-* A2 hacmi olcer, FIYATI degil: taban fiyat × hacim orani ayri kapilarda (fiyat
+* A2/A4 hacmi olcer, FIYATI degil: taban fiyat × hacim orani ayri kapilarda (fiyat
   prova / konfigur) olculur. Buradaki iddia "formul olcuye bakiyor mu" ekseni.
+* A4 yorumun PROSE'unu ayristirir (per-parca boy iddiasi): cumleyi virgul/nokta ile
+  fragmanlara bolup her fragmanda parca-adi + `boy` jetonu birlikte geciyor mu bakar.
+  Katı bir bicim DAYATMAZ (musteri notu prose kalir); yalnizca "boy" iddiasinin
+  olcumle celismesini yakalar.
 * B1 STRUKTUREL bir olcumdur (kaynak metni), calisma zamani degil: yonet.js bir
   Worker modulu, izole kosumu wrangler ister. Sinir SOYLENIR, gizlenmez.
 
@@ -80,7 +91,7 @@ HACIM_YOL = os.path.join(ROOT, "jenerator", "hacim.js")
 SECENEKLER_YOL = os.path.join(ROOT, "secenekler.js")
 YONET_YOL = os.path.join(ROOT, "shop", "src", "yonet.js")
 
-IDDIA_SAYISI = 5  # SABIT — mutant kosumlarinda da bu kadar iddia olculur.
+IDDIA_SAYISI = 6  # SABIT — mutant kosumlarinda da bu kadar iddia olculur.
 
 # --------------------------------------------------------------------------- sozluk
 # 🔴 SOZLUK DISIPLINI ([[nobetci-kendi-dosyasinda-sizinti]]): asagidaki desenler YALNIZ
@@ -99,6 +110,20 @@ DUYARSIZLIK_RE = re.compile(
     r"|olcuye\s+gore\s+degismiyor")
 VIDA_RE = re.compile(r"vida")
 VIDA_PENCERE = 260  # karakter — "vida" gecen yerin iki yani
+
+# A4 — MUSTERI YORUMUNDAKI "HANGI PARCA NEYE DUYARLI" IDDIASI.
+# Yorum, cekirdek iddianin ("olcuye duyarli") ustune HANGI parcanin BOY'a duyarli
+# oldugunu da soyluyor. Bu ayrinti node probe'un OLCTUGU boy duyarliligiyla
+# AYRISIRSA (or. yorum "pul boy'a duyarli" derse ama olcum 0 gosterirse) kirmizi
+# yanmali ([[ikiz-tanim-sessiz-ayrisma]]).
+VIDA_PARCALARI = ("civata", "somun", "pul", "mil")
+# Yorumdaki per-parca iddiasini bulmak icin: "vida yok" capasindan ileri bir pencere;
+# icindeki cumle virgul/noktali-virgul/nokta ile PARCALARA bolunur, her parcada
+# ilgili parca-adi + "boy" jetonu birlikte geciyorsa o parca "boy'a duyarli" IDDIA
+# edilmis demektir.
+VIDA_YOK_CAPA_RE = re.compile(r"vida\s+yok")
+VIDA_YOK_ILERI = 320   # karakter — sensitivite cumlesini kapsar, sonrasina tasmaz
+BOY_JETON_RE = re.compile(r"\bboy\b")
 
 # "yonetim uclari hiz sinirsiz" ailesindeki beyanlar.
 YONETIM_RE = re.compile(r"yonetim\s+uc|yonetim\s+panel|yonet\s+uc")
@@ -133,6 +158,35 @@ def pencereler(metin, capa_re, genislik):
             for m in capa_re.finditer(metin)]
 
 
+def parca_boy_iddialari(secenekler_metni):
+    """Musteri yorumundan per-parca BOY duyarliligi iddiasini cikarir.
+
+    Donen: {parca: True/False} — yorumun o parca icin "boy'a duyarli" DEDIGI.
+    Parca yorumda gecmiyorsa anahtar YOK (iddia edilmemis). Anlam:
+      True  = yorum bu parcayi boy'a duyarli SAYIYOR
+      False = yorum bu parcayi (boy'suz) yalniz cap'e duyarli SAYIYOR
+
+    Cumle virgul/noktali-virgul/nokta ile bolunur; her fragmanda gecen parca-adi,
+    o fragmanda `\\bboy\\b` jetonu VARSA boy-duyarli iddia edilmis sayilir. Boylece
+    "civata ve mil cap+boy'a" fragmani civata+mil'i boy-duyarli, "somun ve pul yalniz
+    cap'e" fragmani somun+pul'u cap-yalniz isaretler.
+    """
+    k = katla(secenekler_metni)
+    m = VIDA_YOK_CAPA_RE.search(k)
+    if not m:
+        return {}
+    bolge = k[m.start():m.start() + VIDA_YOK_ILERI]
+    iddialar = {}
+    for fragman in re.split(r"[,;.]", bolge):
+        boy_var = bool(BOY_JETON_RE.search(fragman))
+        for parca in VIDA_PARCALARI:
+            if re.search(r"\b%s\b" % parca, fragman):
+                # Ayni parca birden cok fragmanda gecerse "boy'a duyarli" diyen
+                # fragman baskin (fail-loud: yanlis boy iddiasi gizlenmesin).
+                iddialar[parca] = iddialar.get(parca, False) or boy_var
+    return iddialar
+
+
 # --------------------------------------------------------------------------- probe
 PROBE = r"""
 const H = require(%(hacim)s);
@@ -147,10 +201,13 @@ if (!H || typeof H.vida !== "function") {
     civata_uzun:  v("civata", 5, 40),
     somun_kucuk:  v("somun", 5, 20),
     somun_buyuk:  v("somun", 12, 20),
+    somun_uzun:   v("somun", 5, 40),
     pul_kucuk:    v("pul", 5, 20),
     pul_buyuk:    v("pul", 12, 20),
+    pul_uzun:     v("pul", 5, 40),
     mil_kucuk:    v("mil", 5, 20),
     mil_buyuk:    v("mil", 12, 20),
+    mil_uzun:     v("mil", 5, 40),
   }));
 }
 """
@@ -203,7 +260,7 @@ def _ayrisiyor(a, b, esik=0.01):
 
 # --------------------------------------------------------------------------- kosum
 def kosum(probe, secenekler, yonet, belgeler):
-    """Bes iddiayi olcer. (hatalar, rapor) dondurur; hatalar bos = YESIL.
+    """Alti iddiayi olcer. (hatalar, rapor) dondurur; hatalar bos = YESIL.
 
     belgeler: {gorunur_yol: metin} — izlenen .md govdeleri.
     """
@@ -219,11 +276,13 @@ def kosum(probe, secenekler, yonet, belgeler):
     # ============================================ A — VIDA FIYAT BEYANI (MUSTERI YUZU)
     rapor.append("A) VIDA OLCU DUYARLILIGI (jenerator/hacim.js  <->  secenekler.js beyani)")
 
-    olculenler = ["civata_kucuk", "civata_buyuk", "civata_uzun", "somun_kucuk",
-                  "somun_buyuk", "pul_kucuk", "pul_buyuk", "mil_kucuk", "mil_buyuk"]
+    olculenler = ["civata_kucuk", "civata_buyuk", "civata_uzun",
+                  "somun_kucuk", "somun_buyuk", "somun_uzun",
+                  "pul_kucuk", "pul_buyuk", "pul_uzun",
+                  "mil_kucuk", "mil_buyuk", "mil_uzun"]
     vida_var = bool(probe.get("vidaVar"))
     bozuk = [ad for ad in olculenler if not _sonlu_pozitif(probe.get(ad))]
-    ol("A1", "hacim.js `vida` disa veriliyor, 9 olcum noktasi SONLU POZITIF",
+    ol("A1", "hacim.js `vida` disa veriliyor, 12 olcum noktasi SONLU POZITIF",
        vida_var and not bozuk,
        "" if (vida_var and not bozuk)
        else ("vida disa verilmemis" if not vida_var else "bozuk nokta: %s" % bozuk))
@@ -254,6 +313,39 @@ def kosum(probe, secenekler, yonet, belgeler):
        if not beyan_var
        else ("beyan VAR ama davranis DUYARLI — musteri yuzu dosyada BAYAT iddia: %r"
              % (beyan_pencereleri[0][-120:],) if fiilen_duyarli else "beyan davranisla uyumlu"))
+
+    # A4 — PER-PARCA BOY IDDIASI <-> OLCULEN BOY DUYARLILIGI (musteri yorumu ayrintisi).
+    # Cekirdek "olcuye duyarli" iddiasi A2/A3'te; A4 yorumun EKLEDIGI "hangi parca BOY'a
+    # duyarli" ayrintisini olcumle karsilastirir. Yorum "pul boy'a duyarli" derse ama
+    # olcum bunu 0 gosterirse -> BAYAT ayrinti -> KIRMIZI.
+    olculen_boy = {
+        "civata": _ayrisiyor(probe.get("civata_kucuk"), probe.get("civata_uzun")),
+        "somun": _ayrisiyor(probe.get("somun_kucuk"), probe.get("somun_uzun")),
+        "pul": _ayrisiyor(probe.get("pul_kucuk"), probe.get("pul_uzun")),
+        "mil": _ayrisiyor(probe.get("mil_kucuk"), probe.get("mil_uzun")),
+    }
+    iddia_boy = parca_boy_iddialari(secenekler)
+    eksik_parca = [p for p in VIDA_PARCALARI if p not in iddia_boy]
+    ayrisan = [p for p in VIDA_PARCALARI
+               if p in iddia_boy and iddia_boy[p] != olculen_boy[p]]
+    # 🔴 BIRIM AYRIMI ([[hukum-yanlis-birimde]]): A4, davranis GENELDE duyarliyken
+    # (A2 yesil) per-parca AYRINTIYI olcer. Formul topyekun duyarsizlassa (A2 KIRMIZI)
+    # zaten per-parca boy da 0 olur; A4 o hali A2'ye BIRAKIR (tek mutant iki lambayi
+    # yakmasin). Fail-closed yon korunur: A2 o durumda zaten kirmizi, kosum kirmizi.
+    if not fiilen_duyarli:
+        ol("A4", "IKIZ: yorumdaki per-parca BOY iddiasi <-> olculen boy duyarliligi AYRISMIYOR",
+           True, "A2 ekseni sahipleniyor (davranis genelde duyarsiz) — A4 ertelendi")
+    else:
+        # FAIL-CLOSED: musteri notu bugun DORT parcayi da adlandiriyor. Biri kaybolursa
+        # (not curudu) A4 kirmizi yanar — bos kume uzerinde sessizce yesillenmesin.
+        a4 = not eksik_parca and not ayrisan
+        ol("A4", "IKIZ: yorumdaki per-parca BOY iddiasi <-> olculen boy duyarliligi AYRISMIYOR",
+           a4,
+           ("adlandirilmayan parca: %s" % eksik_parca) if eksik_parca
+           else ("ayrisan (yorum!=olcum): %s | yorum=%s olcum=%s"
+                 % (ayrisan, {p: iddia_boy[p] for p in ayrisan},
+                    {p: olculen_boy[p] for p in ayrisan})) if ayrisan
+           else "4 parca da uyumlu (civata/mil boy+, somun/pul boy-)")
 
     # ============================================ B — YONETIM HIZ SINIRI BEYANI
     rapor.append("B) YONETIM GIRIS HIZ SINIRI (shop/src/yonet.js  <->  izlenen .md beyani)")
@@ -389,6 +481,7 @@ CAPA_YAY_FN = "  function yay(p) {"
 CAPA_BLOKE_CAGRI = "  if (girisBlokeMi(simdi)) {"
 CAPA_BELGE = "tools/paket-siparis-yonetimi.md"
 CAPA_BELGE_SATIRI = "- GÜVENLİK ÇİZGİLERİ: yönetim uçları anahtarsız istekte 404;"
+CAPA_PUL_SATIRI = "somun ve pul YALNIZ CAP'e duyarli"
 
 
 def mutantlar():
@@ -429,6 +522,18 @@ def mutantlar():
          set(),
          lambda g: dict(g, probe=_hacim_mutanti(
              CAPA_YAY_FN, CAPA_YAY_FN + "\n    if (p) { return 1234.5; }"))),
+        ("M7", "OLDURUCU",
+         "yorum 'pul boy'a duyarli' der (olcumde 0) — bayat per-parca ayrinti",
+         {"A4"},
+         lambda g: dict(g, secenekler=_metin_mutanti(
+             g["secenekler"], CAPA_PUL_SATIRI,
+             "somun YALNIZ CAP'e, pul ise CAP+BOY'a duyarli", "secenekler.js"))),
+        ("M8", "KONTROL",
+         "per-parca iddiayi KORUYAN reword (YALNIZ->SADECE) — A4 kor degil",
+         set(),
+         lambda g: dict(g, secenekler=_metin_mutanti(
+             g["secenekler"], CAPA_PUL_SATIRI,
+             "somun ve pul SADECE CAP'e duyarli", "secenekler.js"))),
     ]
 
 
