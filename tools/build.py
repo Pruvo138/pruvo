@@ -155,7 +155,16 @@ GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVK
   try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
     gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}
 </script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE"></script>
+<script>
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE';
+      document.head.appendChild(s);
+    }, 1500);
+  });
+</script>
 <script>
   gtag('js', new Date());
   gtag('config', 'G-5V53CQMSCE', { 'anonymize_ip': true });
