@@ -44,7 +44,18 @@ A0 ile A4 AYNI karar kodundan gecer (`_damga_satiri`) — ikiz mantik tutulmaz
 
 NE OLCER (5 EKSEN, hepsi FAIL-CLOSED)
 =====================================
-  A0 DAMGA  (AG · BIRINCIL) — SON BASARILI UZLASTIRMA damgasi N saatten eski mi.
+  A0 DAMGA  (AG · BIRINCIL) — SON BASARILI **CRON TESLIMI** UZLASTIRMA damgasi N saatten
+     eski mi.
+     🔴 TETIKLEYICI SARTI (4 Agu 2026 — ALARM ELLE SONDURULEBILIYORDU): eksen once
+     yalniz damganin ADINA/`created_at`ine/`expired`ina bakiyordu. OLCULDU: 09:45:48Z'de
+     elle (`workflow_dispatch`) kosturulan bir kosum taze damga yazdi ve A0'i 9 SAAT DAHA
+     sifirladi (09:49Z kosumunda `cron-nabzi` = success) — cron ise 00:17:30Z'den beri
+     OLUYDU. Yani bir insan elle tetikledikce alarm HIC yanmayabilirdi. Artik damgayi
+     yazan kosum, is akisinin `event=schedule` kosumlari arasinda DEGILSE damga "taze"
+     SAYILMAZ: ayri bir hal basilir ("DENETIM YAPILDI AMA CRON YAPMADI") ve cron
+     sessizligi surdugu surece KIRMIZI yanar. Denetimin FIILEN yapilip yapilmadigi
+     satirda AYRICA gorunur — kadans (yapildi mi) ile cron sagligi (kim yapti) AYRI
+     olculur, karistirilmaz.
      Damgayi uzlastirici KENDI kosar: olcum FIILEN yapildiktan (ve sapma varsa onarim
      TEYIT edildikten) sonra `uzlastirma-damgasi` adli GitHub Actions ARTIFACT'ini yukler.
      Bu nobetci `GET /repos/{depo}/actions/artifacts?name=uzlastirma-damgasi`'yi okur ve
@@ -84,9 +95,14 @@ NE OLCER (5 EKSEN, hepsi FAIL-CLOSED)
   A3 NABIZ  (AG · IKINCIL, KAYBOLMADI) — o is akisinin SON `event=schedule` kosumu son N
      saat icinde mi. "Cron HIC ateslemiyor" hali AYRI bir arizadir (damga tazeyken bile
      elle dispatch'le beslenmis olabilir) ve AYRI raporlanir. Yeni kaydedilen is akisina
-     veya cron tanimi degisen is akisina ilk teslim icin ayni N penceresi taninir; kosum
-     hala yoksa N'den sonra alarm yanar. Yeniden-kayit zamani workflow API'sinin bayat
-     `updated_at` alanindan degil, dosyaya dokunan son commit zamanindan okunur.
+     is akisina ilk teslim icin ayni N penceresi taninir; kosum hala yoksa N'den sonra
+     alarm yanar.
+     🔴 CAPA A5 ILE HIZALANDI (4 Agu 2026): eksen `max(kayit_an, yenileme_an)` kullaniyordu,
+     yani cron DOSYASINA HER DOKUNUS alarmi N=9 saat SUSTURUYORDU. Bu depoda o dosyalara
+     dokunma araligi medyan 5,2-5,5 saat -> eksen pratikte surekli 🟡'de kalabiliyordu
+     (canli olcum 4 Agu 10:04Z: cron 9,8 saattir oluyken A3 satiri 🟡 idi). Capa artik
+     TEK KAYNAKTAN gelir (`gecmis_capasi`, A5 ile AYNI): `kayit_an`. Tanim degisikligi
+     SUSTURMAZ, satirda ⚠ ile GORUNUR.
      Esik NOMINAL cron araligindan DEGIL, OLCULEN TESLIM ORANINDAN turetilir
      (bkz. esik_saat).
 
@@ -460,6 +476,36 @@ def teslim_tabani(aralik_dk, pencere_saat=TESLIM_PENCERESI_SAAT):
                                 * TESLIM_TABAN_ORANI - 1e-9)))
 
 
+def gecmis_capasi(g, simdi, pencere_saat):
+    """🔴 TEK KAYNAK — A3 ve A5'in GOZLEM CAPASI. (kayit_an, gecmis_saat, uyari|None)
+
+    CAPA `kayit_an`dir: is akisinin GitHub'da KAYITLI oldugu an. `yenileme_an` (cron
+    dosyasina dokunan son commit) capa DEGILDIR, yalnizca GORUNURLUK uyarisidir.
+
+    NEDEN (4 Agu 2026 OLCUMU — A3'un capasi buydu ve alarmi SUSTURUYORDU):
+    A3 `max(kayit_an, yenileme_an)` kullaniyordu; bu depoda alarm dosyalarina dokunma
+    araligi medyan 5,2 sa (paket) / 5,5 sa (d1) ve son 8 araligin yalnizca 1'i 9 saati
+    asiyor. Yani cron dosyasina her dokunus A3'u N=9 saat SUSTURUYORDU: canli olcumde
+    (4 Agu 10:04Z) cron 9,8 saattir OLU iken A3 satiri 🟡 ("tanim 1,1 sa once
+    kaydedildi") yaziyordu. A5 ekseni AYNI capayi olcup REDDETMISTI; iki eksen AYNI
+    soruyu (gozlem gecmisi yeterli mi) IKI FARKLI cevapla yanitliyordu
+    ([[ikiz-tanim-sessiz-ayrisma]]). Capa TEK KAYNAKTAN turetilir: bu fonksiyon.
+
+    KARSI RISK SUSTURULMAZ, BASILIR: cron tanimi gercekten yeni degistiyse ilk teslim
+    gecikebilir; bu hal satirda ⚠ ile ve YASIYLA gorunur, ama hukum vermeyi ENGELLEMEZ."""
+    kayit_an = g.get("kayit_an")
+    gecmis_saat = ((simdi - kayit_an).total_seconds() / 3600.0) if kayit_an else None
+    uyari = None
+    yenileme = g.get("yenileme_an")
+    if yenileme is not None:
+        yenileme_yas = (simdi - yenileme).total_seconds() / 3600.0
+        if yenileme_yas < pencere_saat:
+            uyari = ("⚠ cron tanimina dokunan son commit %.1f sa once (< %g sa): tanim "
+                     "degistiyse ilk teslim gecikebilir — bu bir SUSTURMA DEGIL, "
+                     "GORUNURLUKTUR" % (yenileme_yas, pencere_saat))
+    return kayit_an, gecmis_saat, uyari
+
+
 def teslim_hukmu(g, simdi):
     """A5 — (satir, alarm_mi). Cron METNINI degil FIILI DAGILIMI olcer.
 
@@ -510,11 +556,20 @@ def teslim_hukmu(g, simdi):
     maks_bosluk = max(bosluklar) if bosluklar else None
     sirali = sorted(bosluklar)
     medyan = sirali[len(sirali) // 2] if sirali else None
+    # 🔴 TABANIN NE OLDUGU HER SATIRDA YAZAR (KraL karari, 4 Agu 2026): taban COKMUS
+    # teslime KALIBREDIR (olculen EN KOTU 48 sa penceresi 7/192 = %3,65'in YARISI).
+    # Bu yuzden ✅ "teslim SAGLIKLI" DEMEK DEGILDIR; yalnizca "bugunku cokmus seviyenin
+    # de altina DUSMEDI" demektir. Yazilmazsa yesil YANLIS OKUNUR.
     olcu = ("teslim %d / nominal %.0f (%%%.2f) · en uzun bosluk %s · medyan bosluk %s · "
-            "taban %d kosum / %d sa"
+            "taban %d kosum / %d sa (taban %%%.2f COKMUS teslime KALIBRE: olculen en kotu "
+            "%d sa penceresi %d/%d = %%%.2f'in yarisi — ✅ 'teslim saglikli' DEMEK DEGIL, "
+            "'cokmus seviyenin de altina dusmedi' demek)"
             % (teslim, nominal, oran,
                ("%.0f dk" % maks_bosluk) if maks_bosluk is not None else "-",
-               ("%.0f dk" % medyan) if medyan is not None else "-", taban, W))
+               ("%.0f dk" % medyan) if medyan is not None else "-", taban, W,
+               100.0 * TESLIM_TABAN_ORANI, TESLIM_PENCERESI_SAAT, OLCULEN_TABAN_TESLIM,
+               OLCULEN_TABAN_NOMINAL,
+               100.0 * OLCULEN_TABAN_TESLIM / OLCULEN_TABAN_NOMINAL))
     # Sayfa DOLDU ve en eski cekilen kosum HALA pencerenin icindeyse pencerenin tamami
     # gozlenmemistir. Bu SESSIZ KALMAZ; ama teslim sayfa boyu kadar oldugu icin hukum
     # zaten yesildir (taban her gercekci cron icin TESLIM_SAYFA'nin altindadir).
@@ -529,25 +584,11 @@ def teslim_hukmu(g, simdi):
                 "eksenidir (%s)" % (etiket, olcu)), False
 
     # GOZLEM GECMISI: teslim orani ancak W kadar gecmis varsa hukum verir.
-    #
-    # 🔴 CAPA A3'TEN BILEREK FARKLI — OLCULEN GEREKCE (4 Agu 2026):
-    # A3'un capasi max(kayit_an, yenileme_an)'dir; `yenileme_an` = dosyaya dokunan son
-    # commit. A5 icin AYNI capa OLCULDU ve REDDEDILDI: bu depoda alarm dosyalarinin
-    # dokunma araligi medyan 5,2 sa (paket) / 5,5 sa (d1); son 8 araligin YALNIZ 1'i
-    # 48 saati asiyor. Yani `yenileme_an` capasiyla A5 pratikte HER ZAMAN 🟡 kalirdi —
-    # yani tam olarak kapatmak icin yazildigi KORLUGU kendi icinde uretirdi.
-    # Capa `kayit_an` (is akisinin GitHub'da kayit ani). Karsi risk BEYAN EDILIR: cron
-    # cadansi W icinde degistiyse `nominal` gecmisle uyusmayabilir; bu hal SUSTURULMAZ,
-    # satirda ⚠ ile ve yenileme yasiyla BASILIR, ve en gec W sonra kendiliginden gecer.
-    kayit_an = g.get("kayit_an")
-    gecmis_saat = ((simdi - kayit_an).total_seconds() / 3600.0) if kayit_an else None
-    yenileme = g.get("yenileme_an")
-    if yenileme is not None:
-        yenileme_yas = (simdi - yenileme).total_seconds() / 3600.0
-        if yenileme_yas < W:
-            olcu += (" · ⚠ cron tanimina dokunan son commit %.1f sa once (< %d sa): "
-                     "cadans degistiyse nominal gecmisle tam uyusmayabilir"
-                     % (yenileme_yas, W))
+    # CAPA `gecmis_capasi`den gelir — A3 ile AYNI TEK KAYNAK (4 Agu 2026'da A3 de bu
+    # capaya tasindi; gerekce ve olcum o fonksiyonun docstring'indedir).
+    _kayit_an, gecmis_saat, capa_uyarisi = gecmis_capasi(g, simdi, W)
+    if capa_uyarisi:
+        olcu += " · " + capa_uyarisi
     if gecmis_saat is not None and gecmis_saat < W:
         return ("🟡 A5 TESLIM %s -> gozlem gecmisi %.1f sa < pencere %d sa (is akisi "
                 "GitHub'da bu kadar once kaydedildi): teslim orani HENUZ hukum "
@@ -649,7 +690,12 @@ def gozlem_topla(dosyalar, getir=api_getir):
         g = {"dosya": dosya, "cron": cron, "kayitli": wf is not None,
              "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
              "kayit_an": _iso(wf["created_at"]) if wf is not None else None,
-             "yenileme_an": None, "tum_kosumlar": [], "pencere_kirpildi": False}
+             "yenileme_an": None, "tum_kosumlar": [], "pencere_kirpildi": False,
+             # A0/A4 TETIKLEYICI SARTININ KAYNAGI: `event=schedule` kosumlarinin KIMLIK
+             # kumesi. Bir damganin CRON teslimi olup olmadigi, damganin `workflow_run.id`
+             # degerinin bu kumede olup olmamasiyla olculur. EK API CAGRISI YOK — bu
+             # liste A5 icin ZATEN cekiliyor.
+             "schedule_kimlikleri": []}
         try:
             g["aralik"] = aralik_dakika(dakika_kumesi(cron) or {0})
         except OlcumHatasi:
@@ -677,9 +723,19 @@ def gozlem_topla(dosyalar, getir=api_getir):
                 # HER kayit dogrulanir: tek kaydi suzup gerisini korlemesine saymak,
                 # suzgecin yarim calistigi hali sessizce gecirirdi.
                 damgalar = []
+                kimlikler = []
                 for k in satirlar:
                     if not isinstance(k, dict) or "created_at" not in k:
                         raise OlcumHatasi("%s: kosum kaydinda `created_at` yok" % dosya)
+                    # KIMLIK SART: damganin CRON teslimi olup olmadigi TAM BU kumeyle
+                    # olculur. `id` dusmus bir kayit, kumeyi SESSIZCE eksiltir ve cron
+                    # kaynakli bir damgayi "elle tazelendi" gosterirdi (ters yonde sahte
+                    # kirmizi) -> fail-closed.
+                    if not isinstance(k.get("id"), int):
+                        raise OlcumHatasi("%s: kosum kaydinda `id` YOK/tamsayi degil (%r) "
+                                          "-> damga tetikleyicisi SINIFLANDIRILAMAZ"
+                                          % (dosya, k.get("id")))
+                    kimlikler.append(k["id"])
                     if k.get("event") != "schedule":
                         raise OlcumHatasi("%s: event=schedule istendi ama kayit event=%r "
                                           "-> suzgec calismiyor" % (dosya, k.get("event")))
@@ -694,6 +750,7 @@ def gozlem_topla(dosyalar, getir=api_getir):
                 g["son_kosum_id"] = k.get("id")
                 g["son_sonuc"] = k.get("conclusion")
                 g["tum_kosumlar"] = damgalar
+                g["schedule_kimlikleri"] = kimlikler
                 # Sayfa DOLU ise pencerenin tamami gozlenmemis olabilir — bu BEYAN EDILIR.
                 g["pencere_kirpildi"] = len(satirlar) >= TESLIM_SAYFA
             # GitHub cron tanimi degistiginde zamanlayici yeniden kaydedilir. Workflow API'sinin
@@ -721,7 +778,14 @@ def damga_gozle(getir=api_getir, ad=DAMGA_ADI):
     """En yeni SURESI DOLMAMIS `<ad>` artifact'i -> gozlem sozlugu (A0 ve A4 AYNI kod).
 
     Doner: {"var": bool, "an": datetime|None, "kosum": id|None, "sha": str|None,
-            "toplam": int, "suresi_dolan": int, "sebep": str|None}
+            "toplam": int, "suresi_dolan": int, "sebep": str|None,
+            "taze_kayitlar": [{"an", "kosum", "sha"}, ...]}   # YENIDEN ESKIYE sirali
+
+    🔴 `taze_kayitlar` NEDEN VAR (4 Agu 2026 olcumu): "en yeni damga" TEK BASINA yetmez.
+    09:45:48Z'de ELLE (`workflow_dispatch`) kosturulan bir kosum taze damga yazdi ve A0
+    ekseni 9 saat daha YESIL yandi; cron ise 00:17:30Z'den beri OLUYDU. Damganin CRON
+    teslimi olup olmadigi hukum katmaninda (`_cron_kaynakli_damga`) olculur ve bunun icin
+    yalniz EN YENI degil, PENCEREYE DUSEN TUM taze damgalar gerekir.
     HER sekil arizasi OlcumHatasi (rc 2): eksik alan, ad suzgecinin calismamasi,
     cozulemeyen zaman damgasi. "Damga YOK" ise SEKIL arizasi degil OLCUM'dur ->
     var=False doner ve hukum katmani bunu ALARM sayar."""
@@ -747,21 +811,30 @@ def damga_gozle(getir=api_getir, ad=DAMGA_ADI):
     taze = [a for a in kayitlar if not a["expired"]]
     if not kayitlar:
         return {"var": False, "an": None, "kosum": None, "sha": None, "toplam": 0,
-                "suresi_dolan": 0,
+                "suresi_dolan": 0, "taze_kayitlar": [],
                 "sebep": "depoda `%s` adli HIC artifact YOK" % ad}
     if not taze:
         return {"var": False, "an": None, "kosum": None, "sha": None,
                 "toplam": len(kayitlar), "suresi_dolan": len(kayitlar),
+                "taze_kayitlar": [],
                 "sebep": "TUM damgalarin (%d adet) SURESI DOLMUS (expired) — saklama "
                          "%d saat, yani en yeni denetim bundan da eski"
                          % (len(kayitlar), DAMGA_SAKLAMA_SAAT)}
-    en_yeni = max(taze, key=lambda a: _iso(a["created_at"]))
-    kosum = en_yeni.get("workflow_run") or {}
-    return {"var": True, "an": _iso(en_yeni["created_at"]),
-            "kosum": kosum.get("id") if isinstance(kosum, dict) else None,
-            "sha": (kosum.get("head_sha") if isinstance(kosum, dict) else None),
-            "toplam": len(kayitlar), "suresi_dolan": len(kayitlar) - len(taze),
-            "sebep": None}
+    # 🔴 BURADA SIRALANIR (TEK YER): API sirasina guvenmek, tek bir sira degisikliginde
+    # "en yeni damga"yi ve tetikleyici sinifini sessizce yanlis hesaplatirdi.
+    sirali = sorted(taze, key=lambda a: _iso(a["created_at"]), reverse=True)
+
+    def _kayit(a):
+        wr = a.get("workflow_run") if isinstance(a.get("workflow_run"), dict) else {}
+        return {"an": _iso(a["created_at"]), "kosum": wr.get("id"),
+                "sha": wr.get("head_sha")}
+
+    kayitlar_taze = [_kayit(a) for a in sirali]
+    en_yeni = kayitlar_taze[0]
+    return {"var": True, "an": en_yeni["an"], "kosum": en_yeni["kosum"],
+            "sha": en_yeni["sha"], "toplam": len(kayitlar),
+            "suresi_dolan": len(kayitlar) - len(taze),
+            "taze_kayitlar": kayitlar_taze, "sebep": None}
 
 
 def is_akisi_esigi(dosyalar, hedef, capa_tanisi):
@@ -806,23 +879,96 @@ def paket_alarm_esigi(dosyalar):
 
 
 # ---- HUKUM ------------------------------------------------------------------
+def _damga_kaynagi(gozlemler, dosya):
+    """Damgayi YAZAN is akisinin `event=schedule` kosum KIMLIKLERI + sayfa sinirlari.
+
+    Bu, A0/A4'un TETIKLEYICI SARTININ tek veri kaynagidir ve EK API CAGRISI GEREKTIRMEZ:
+    kosum listesi A5 icin ZATEN cekiliyor."""
+    for g in gozlemler:
+        if g["dosya"] == dosya:
+            tum = g.get("tum_kosumlar") or []
+            return {"dosya": dosya,
+                    "kimlikler": set(g.get("schedule_kimlikleri") or ()),
+                    "kirpik": bool(g.get("pencere_kirpildi")),
+                    "en_eski": min(tum) if tum else None}
+    return None
+
+
+def _cron_kaynakli_damga(eksen, damga, kaynak, n, simdi):
+    """N penceresine dusen EN YENI **CRON TESLIMI** damga -> kayit | None. Fail-closed.
+
+    🔴 NEDEN VAR (OLCULDU 4 Agu 2026 — alarm ELLE SONDURULEBILIYORDU): A0 yalnizca
+    damganin ADINA, `created_at`ine ve `expired`ina bakiyordu; damgayi YAZAN kosumun
+    tetikleyicisine BAKMIYORDU. 09:45:48Z'de elle (`workflow_dispatch`) kosturulan bir
+    kosum taze damga yazdi ve A0'i 9 SAAT DAHA sifirladi (09:49Z kosumunda
+    `cron-nabzi` = success); cron ise 00:17:30Z'den beri OLUYDU. Yani bir insan elle
+    tetikledikce alarm HIC yanmayabilirdi.
+
+    SINIFLANDIRMA OLCUSU: damganin `workflow_run.id`si, capa is akisinin
+    `event=schedule` kosum kimlikleri kumesinde mi.
+    🔴 ARTIFACT API'SI `event` ALANINI TASIMAZ — OLCULDU (4 Agu 2026,
+    `GET /repos/Pruvo138/pruvo/actions/artifacts?name=uzlastirma-damgasi`):
+    `workflow_run` alanlari TAM OLARAK {id, repository_id, head_repository_id,
+    head_branch, head_sha}. Fikstur bu SEKLI taklit eder; olmayan bir `event` alani
+    UYDURULMAZ ([[nobetci-fikstur-sekli]]) ve damga basina ayri bir
+    `GET /actions/runs/{id}` cagrisi da YAPILMAZ (kadans kolu devreye girince pencerede
+    onlarca damga olur; jeton kotasi 1000/saat)."""
+    if kaynak is None:
+        raise OlcumHatasi(
+            "%s: damgayi yazan is akisinin kosum listesi YOK -> damganin CRON teslimi mi "
+            "yoksa elle mi tazelendigi SINIFLANDIRILAMAZ" % eksen)
+    pencere_basi = simdi - timedelta(hours=n)
+    for kayit in damga.get("taze_kayitlar") or []:
+        if kayit["an"] <= pencere_basi:
+            break            # daha eskisi zaten esigin DISINDA: hukmu degistiremez
+        kimlik = kayit.get("kosum")
+        if kimlik is None:
+            raise OlcumHatasi(
+                "%s: damga kaydinda `workflow_run.id` YOK -> damgayi hangi kosum yazdi "
+                "OKUNAMADI, tetikleyici sarti olculemez" % eksen)
+        if kimlik in kaynak["kimlikler"]:
+            return kayit
+        # Kosum sayfasi DOLU ve damga, cekilen EN ESKI zamanlanmis kosumdan da eskiyse
+        # "kumede yok" hukmu VERILEMEZ (kume o zamani KAPSAMIYOR olabilir).
+        if kaynak["kirpik"] and (kaynak["en_eski"] is None
+                                 or kayit["an"] < kaynak["en_eski"]):
+            raise OlcumHatasi(
+                "%s: damga %s, cekilen zamanlanmis kosum sayfasinin (%d kayit) KAPSAMI "
+                "DISINDA -> CRON teslimi mi degil mi SINIFLANDIRILAMAZ (sessiz 'elle' "
+                "hukmu sahte kirmizi olurdu)" % (eksen, kayit["an"].isoformat(),
+                                                 TESLIM_SAYFA))
+    return None
+
+
 # A0 ve A4 TEK karar yolundan gecer. Ikinci bir "damga yasi" kopyasi yazilsaydi biri
 # gevsedigi zaman oburu sessizce dogru kalir ve ayrisma gorunmezdi
 # ([[ikiz-tanim-sessiz-ayrisma]]). Konu metinleri disaridan verilir; MANTIK ORTAK.
-def _damga_satiri(eksen, damga, n, simdi, sablon):
-    """(satir, alarm_mi). `sablon` = {"yok": ..., "bayat": ..., "taze": ...} bicim dizeleri.
+def _damga_satiri(eksen, damga, n, simdi, sablon, kaynak=None):
+    """(satir, alarm_mi). `sablon` = {"yok", "bayat", "taze", "elle"} bicim dizeleri.
        yok   <- (sebep, N)
        bayat <- (yas, N, yas, kosum, sha12)
-       taze  <- (yas, N, taze_sayi, suresi_dolan, kosum)"""
+       taze  <- (yas, N, taze_sayi, suresi_dolan, kosum)
+       elle  <- (yas, kosum, N)
+
+    UC HAL DEGIL DORT: "denetim YAPILDI" ile "denetim CRON TARAFINDAN yapildi" AYRI
+    seylerdir. Ikincisi olmadan alarm elle sondurulebilir (bkz. `_cron_kaynakli_damga`)."""
     if not damga.get("var"):
         return ("🔴 %s -> " % eksen) + sablon["yok"] % (damga.get("sebep"), n), True
     yas = (simdi - damga["an"]).total_seconds() / 3600.0
-    if yas > n:
-        return (("🔴 %s -> " % eksen) + sablon["bayat"]
-                % (yas, n, yas, damga.get("kosum"), str(damga.get("sha"))[:12])), True
-    return (("✅ %s -> " % eksen) + sablon["taze"]
-            % (yas, n, damga["toplam"] - damga["suresi_dolan"], damga["suresi_dolan"],
-               damga.get("kosum"))), False
+    cron_kayit = _cron_kaynakli_damga(eksen, damga, kaynak, n, simdi)
+    if cron_kayit is not None:
+        cron_yas = (simdi - cron_kayit["an"]).total_seconds() / 3600.0
+        satir = (("✅ %s -> " % eksen) + sablon["taze"]
+                 % (cron_yas, n, damga["toplam"] - damga["suresi_dolan"],
+                    damga["suresi_dolan"], cron_kayit.get("kosum")))
+        if cron_kayit.get("kosum") != damga.get("kosum"):
+            satir += (" · en yeni damga CRON DISI bir kosumdan (%.1f sa once · kosum %s) "
+                      "— hukum CRON damgasina gore verildi" % (yas, damga.get("kosum")))
+        return satir, False
+    if yas <= n:
+        return (("🔴 %s -> " % eksen) + sablon["elle"] % (yas, damga.get("kosum"), n)), True
+    return (("🔴 %s -> " % eksen) + sablon["bayat"]
+            % (yas, n, yas, damga.get("kosum"), str(damga.get("sha"))[:12])), True
 
 
 A0_SABLON = {
@@ -836,7 +982,14 @@ A0_SABLON = {
               "gosteriyor olabilir ve baska hicbir kapi bunu gormez. (damga kosumu %s · "
               "sha %s)"),
     "taze": ("son basarili uzlastirma %.1f saat once (esik N=%d sa · taze damga %d, "
-             "suresi dolan %d · kosum %s)"),
+             "suresi dolan %d · CRON kosumu %s)"),
+    "elle": ("DENETIM YAPILDI AMA CRON YAPMADI: en yeni damga %.1f saat once, ancak onu "
+             "yazan kosum (%s) bu is akisinin `event=schedule` kosumlari arasinda YOK — "
+             "yani damga ELLE (`workflow_dispatch`) ya da YAYIN KOLUYLA (`push` kadans "
+             "isi) tazelendi. Zamanlanmis teslim %d saattir YOK. OLCULDU (4 Agu 2026 "
+             "09:45:48Z): elle bir kosum taze damga yazdi ve bu ekseni 9 SAAT DAHA "
+             "sifirladi; cron 00:17:30Z'den beri oluydu ve alarm HIC yanmadi. Katalog "
+             "denetimi suruyor olabilir (kadans kolu), CRON TESLIMI SURMUYOR."),
 }
 
 A4_SABLON = {
@@ -851,7 +1004,13 @@ A4_SABLON = {
               "kostugu her seferde drift/olculemedi donuyor. Musteriden yanlis tutar "
               "tahsil ediliyor olabilir. (damga kosumu %s · sha %s)"),
     "taze": ("son basarili paket tazeligi olcumu %.1f saat once (esik N=%d sa · taze "
-             "damga %d, suresi dolan %d · kosum %s)"),
+             "damga %d, suresi dolan %d · CRON kosumu %s)"),
+    "elle": ("OLCUM YAPILDI AMA CRON YAPMADI: en yeni paket damgasi %.1f saat once, "
+             "ancak onu yazan kosum (%s) alarmin `event=schedule` kosumlari arasinda "
+             "YOK -> damga ELLE tazelendi. Canli fiyat yolunu ZAMANLANMIS olarak olcen "
+             "kol %d saattir sessiz; elle tetikleme bu ekseni SUSTURAMAZ (aksi halde "
+             "1 Agu'daki 14,5 saatlik fazla tahsilat penceresi tek bir elle kosumla "
+             "gorunmez kalirdi)."),
 }
 
 
@@ -872,12 +1031,18 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
                    "sessiz YESIL verilmez."]
 
     # --- A0 DAMGA + A4 PAKET (BIRINCIL EKSENLER, AYNI KARAR YOLU) ------------
-    for eksen, gozlem, esik, sablon in (
-            ("A0 DAMGA", damga, damga_esigi, A0_SABLON),
-            ("A4 PAKET", paket, paket_esigi, A4_SABLON)):
+    for eksen, gozlem, esik, sablon, capa in (
+            ("A0 DAMGA", damga, damga_esigi, A0_SABLON, UZLASTIRICI_DOSYA),
+            ("A4 PAKET", paket, paket_esigi, A4_SABLON, PAKET_ALARM_DOSYA)):
         if gozlem is None:
             continue
-        satir, yandi = _damga_satiri(eksen, gozlem, esik or ESIK_TABAN_SAAT, simdi, sablon)
+        try:
+            satir, yandi = _damga_satiri(eksen, gozlem, esik or ESIK_TABAN_SAAT, simdi,
+                                         sablon, _damga_kaynagi(gozlemler, capa))
+        except OlcumHatasi as e:
+            satirlar.append("🔴 %s -> OLCULEMEDI: %s" % (eksen, e))
+            olculemedi = True
+            continue
         satirlar.append(satir)
         alarm = alarm or yandi
 
@@ -916,18 +1081,19 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
         alarm = alarm or yandi5
 
         n = g["esik"]
-        son_tanim_an = max(g["kayit_an"], g["yenileme_an"])
-        son_tanim_yasi = (simdi - son_tanim_an).total_seconds() / 3600.0
-        yeni_tanim = (g["son_kosum"] is None or son_tanim_an > g["son_kosum"])
-        if yeni_tanim and son_tanim_yasi <= n:
-            satirlar.append("🟡 A3 NABIZ %s -> cron tanimi %.1f saat once kaydedildi; "
-                            "bu tanimdan event=schedule kosumu henuz YOK (esik N=%d sa). "
-                            "Ilk tetikleme icin olculen teslim penceresi dolmadi; eski "
-                            "cron kosumu yeni tanimin nabzi SAYILMADI."
-                            % (etiket, son_tanim_yasi, n))
+        # 🔴 CAPA A5 ILE HIZALANDI (4 Agu 2026): `max(kayit_an, yenileme_an)` DEGIL,
+        # yalniz `kayit_an`. Gerekce + olcum: `gecmis_capasi` docstring'i. Dosyaya
+        # dokunmak alarmi 9 saat SUSTURUYORDU; artik SUSTURMAZ, satirda ⚠ olarak GORUNUR.
+        kayit_an, kayit_yasi, capa_uyarisi = gecmis_capasi(g, simdi, n)
+        ek = (" · " + capa_uyarisi) if capa_uyarisi else ""
+        yeni_tanim = (g["son_kosum"] is None or kayit_an > g["son_kosum"])
+        if yeni_tanim and kayit_yasi <= n:
+            satirlar.append("🟡 A3 NABIZ %s -> is akisi GitHub'da %.1f saat once "
+                            "KAYDEDILDI; bu kayittan sonra event=schedule kosumu henuz "
+                            "YOK (esik N=%d sa). Ilk tetikleme icin olculen teslim "
+                            "penceresi dolmadi.%s" % (etiket, kayit_yasi, n, ek))
             continue
         if g["kosum_sayisi"] == 0:
-            kayit_yasi = (simdi - g["kayit_an"]).total_seconds() / 3600.0
             if kayit_yasi <= n:
                 satirlar.append("🟡 A3 NABIZ %s -> event=schedule kosumu henuz YOK; "
                                 "is akisi %.1f saat once kaydedildi (esik N=%d sa). "
@@ -937,8 +1103,8 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
                 satirlar.append("🔴 A3 NABIZ %s -> event=schedule kosum sayisi SIFIR: "
                                 "cron HIC ATESLENMEMIS. Is akisi %.1f saattir kayitli ve aktif "
                                 "(esik N=%d sa) -> bu is akisinin yaptigi HICBIR SEY "
-                                "yapilmiyor ve hicbir yerde kirmizi yanmiyor."
-                                % (etiket, kayit_yasi, n))
+                                "yapilmiyor ve hicbir yerde kirmizi yanmiyor.%s"
+                                % (etiket, kayit_yasi, n, ek))
                 alarm = True
             continue
         if g["son_kosum"] is None:
@@ -952,16 +1118,16 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
             satirlar.append("🔴 A3 NABIZ (ikincil) %s -> son event=schedule kosumu %.1f "
                             "saat once (esik N=%d sa · nominal aralik %d dk · efektif "
                             "%.0f dk · bu surede nominal ~%d tetikleme, teslim 0). "
-                            "Cron SESSIZ."
+                            "Cron SESSIZ.%s"
                             % (etiket, yas, n, g["aralik"],
-                               efektif_aralik_dk(g["aralik"]), beklenen))
+                               efektif_aralik_dk(g["aralik"]), beklenen, ek))
             alarm = True
         else:
             satirlar.append("✅ A3 NABIZ (ikincil) %s -> son event=schedule kosumu %.1f "
                             "saat once (esik N=%d sa · efektif cadans %.0f dk · toplam "
-                            "%d zamanlanmis kosum)"
+                            "%d zamanlanmis kosum)%s"
                             % (etiket, yas, n, efektif_aralik_dk(g["aralik"]),
-                               g["kosum_sayisi"]))
+                               g["kosum_sayisi"], ek))
     if olculemedi:
         return 2, satirlar
     return (1 if alarm else 0), satirlar
@@ -1085,10 +1251,21 @@ _HAM_ARTIFACT = {
 }
 
 
-def _damga_kaydi(yas_saat, expired=False, ad=None, kimlik=8806704610):
-    """GERCEK artifact govdesinin ayni seklinde tek damga kaydi."""
+# 4 Agu 2026'da OLCULEN GERCEK kosum kimligi: 09:45:48Z'de ELLE (`workflow_dispatch`)
+# kosturulan ve A0'i 9 saat susturan kosum. Fikstur "cron DISI damga" halini bu kimlikle
+# kurar — uydurma bir sayi degil, olayin kendisi.
+_CRON_DISI_KOSUM = 30897735170
+
+
+def _damga_kaydi(yas_saat, expired=False, ad=None, kimlik=8806704610, kosum_kimlik=None):
+    """GERCEK artifact govdesinin ayni seklinde tek damga kaydi.
+
+    `kosum_kimlik` verilmezse `_HAM_ARTIFACT`in kimligi kalir ve `_sahte_api` onu
+    `damga_kosum` moduna gore (cron / cron-disi) DOLDURUR."""
     a = json.loads(json.dumps(_HAM_ARTIFACT))
     a["id"] = kimlik
+    if kosum_kimlik is not None:
+        a["workflow_run"]["id"] = kosum_kimlik
     a["name"] = DAMGA_ADI if ad is None else ad
     a["expired"] = expired
     an = datetime.now(timezone.utc) - timedelta(hours=yas_saat)
@@ -1115,14 +1292,60 @@ def _kosum_kaydi(yas_saat, event="schedule", dosya="d1-uzlastirici.yml", kimlik=
 def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                kayit_yas_saat=24.0, yenileme_yas_saat=24.0,
                dosya="d1-uzlastirici.yml", bozuk=None, event="schedule",
-               damgalar=None, kosum_yaslari=None):
+               damgalar=None, kosum_yaslari=None, damga_kosum="schedule"):
     """GERCEK govdenin ayni seklini ureten enjekte edilebilir `getir`.
 
     `damgalar`: artifact kayitlari listesi (None -> tek TAZE damga).
     `kosum_yaslari`: `event=schedule` kosumlarinin YASLARI (saat). None -> TEK kayit
       (`yas_saat`) doner; bu, A5 acisindan "gecmis penceresi kadar veri YOK" halidir ve
       varsayilan fikstur kayit/yenileme yasi 24 sa oldugu icin A5 🟡 kalir — yani A5
-      MEVCUT iddialarin higbirinin isaretini degistirmez, kendi fiksturleriyle olculur."""
+      MEVCUT iddialarin higbirinin isaretini degistirmez, kendi fiksturleriyle olculur.
+    `damga_kosum`: damgayi HANGI kosum yazdi.
+      "schedule" (varsayilan) -> damganin `workflow_run.id`si fiksturun EN YENI
+        zamanlanmis kosumunun kimligidir (yani damga CRON teslimidir);
+      "elle" -> kimlik `_CRON_DISI_KOSUM` olur (4 Agu'da OLCULEN gercek
+        `workflow_dispatch` kosumu) ve zamanlanmis kosum kumesinde BULUNMAZ.
+      🔴 Bu ayrim MEVCUT damga fiksturlerini DEGISTIRMEZ (varsayilan cron teslimidir),
+      yalniz tetikleyici sartini AYIRT EDICI hale getirir: TEK DEGISKEN degisir."""
+    _kosum_onbellek = []
+
+    def _kosum_kayitlari():
+        """Fikstur kosum kayitlari — TEK KEZ uretilir (kimlikler iki dalda AYNI olsun)."""
+        if _kosum_onbellek:
+            return _kosum_onbellek[0]
+        if kosum_sayisi == 0:
+            uretilen = []
+        elif kosum_yaslari is None:
+            uretilen = [_kosum_kaydi(yas_saat, event, dosya)]
+        else:
+            uretilen = [_kosum_kaydi(y, event, dosya, kimlik=1000 + i)
+                        for i, y in enumerate(kosum_yaslari)]
+        _kosum_onbellek.append(uretilen)
+        return uretilen
+
+    def _damga_kosum_kimligi(mod=None):
+        if (mod or damga_kosum) != "schedule":
+            return _CRON_DISI_KOSUM
+        kayitlar = _kosum_kayitlari()
+        if not kayitlar:
+            # Zamanlanmis kosum YOKSA damga cron kaynakli OLAMAZ (fail-closed fikstur).
+            return _CRON_DISI_KOSUM
+        return max(kayitlar, key=lambda k: k["created_at"])["id"]
+
+    def _damgalari_kosuma_bagla(kayitlar, mod=None):
+        """Damga kaydinin `workflow_run.id`si HENUZ DOLDURULMAMISSA (ham fikstur degeri)
+        `damga_kosum` (ya da `mod`) moduna gore doldurulur. Acikca kimlik verilmis
+        kayitlara DOKUNULMAZ."""
+        kimlik = _damga_kosum_kimligi(mod)
+        cikti = []
+        for a in kayitlar:
+            b = json.loads(json.dumps(a))
+            wr = b.get("workflow_run")
+            if isinstance(wr, dict) and wr.get("id") == _HAM_ARTIFACT["workflow_run"]["id"]:
+                wr["id"] = kimlik
+            cikti.append(b)
+        return cikti
+
     def getir(yol, zaman_asimi=25):   # noqa: ARG001
         if bozuk == "ag":
             raise OlcumHatasi("GitHub API cagrilamadi (URLError: [Errno 8] nodename nor "
@@ -1142,7 +1365,8 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                 boz = _damga_kaydi(0.5)
                 boz["created_at"] = "dun aksam"
                 return {"total_count": 1, "artifacts": [boz]}
-            kayitlar = [_damga_kaydi(1.0)] if damgalar is None else damgalar
+            kayitlar = _damgalari_kosuma_bagla(
+                [_damga_kaydi(1.0)] if damgalar is None else damgalar)
             return {"total_count": len(kayitlar), "artifacts": kayitlar}
         if "actions/workflows?" in yol:
             if bozuk == "liste-sekli":
@@ -1166,13 +1390,11 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
                 return {"total_count": 0, "workflow_runs": []}
             if kosum_yaslari is None:
                 return {"total_count": kosum_sayisi,
-                        "workflow_runs": [_kosum_kaydi(yas_saat, event, dosya)]}
+                        "workflow_runs": list(_kosum_kayitlari())}
             # 🔴 SIRA BILEREK BOZUK: GERCEK API yeniden eskiye doner; kod BUNA
             # GUVENMEMELIDIR. Fikstur listeyi karistirarak "siralamayi API'ye birakma"
             # iddiasini KOSAR (siralamayi kaldiran mutant KIRMIZI yanar).
-            yaslar = list(kosum_yaslari)
-            kayitlar = [_kosum_kaydi(y, event, dosya, kimlik=1000 + i)
-                        for i, y in enumerate(yaslar)]
+            kayitlar = [dict(k) for k in _kosum_kayitlari()]
             kayitlar = kayitlar[1::2] + kayitlar[0::2]
             if bozuk == "ikinci-kayit-event":   # suzgec YARIM calismis
                 kayitlar[-1]["event"] = "workflow_dispatch"
@@ -1187,6 +1409,9 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
             return [{"sha": "f0b8b0b44b61e447a81c46bde4b4998e4c1eb89b",
                      "commit": {"committer": {"date": an.strftime("%Y-%m-%dT%H:%M:%SZ")}}}]
         raise OlcumHatasi("fikstur bilinmeyen yol: %s" % yol)
+    # A4 fiksturu (paket_api) damgalarini KENDI uretir; ayni baglama kuralini kullansin
+    # diye binder DISARI verilir (iki yerde iki kural = ikiz ayrisma).
+    getir.damgalari_bagla = _damgalari_kosuma_bagla
     return getir
 
 
@@ -1345,6 +1570,157 @@ def uzlastirici_kablosu():
                             "denetimli YESIL kosumu da damgalanirdi." % (etiket, ariza))
     return sorunlar, {"yazilan": yazilan, "yukleme": yukleme is not None,
                       "surucu": surucu, "tazeleme": tazeleme, "kosullu": kosullu}
+
+
+# ---- KADANS KOLU: uzlastirma GitHub cron KUYRUGUNA bagimli DEGIL ------------
+# 🔴 OLCULEN GEREKCE (4 Agu 2026): `d1-uzlastirici.yml` cron'u `9,24,39,54` (ofsetli
+# ACIK dakika listesi) oldugu halde 48 saatte nominal 192 tetiklemenin 7'si teslim
+# edildi (%3,65) ve EN UZUN ARDISIK BOSLUK 1053 dk = 17,6 SAAT oldu. Ofset hipotezi
+# CURUTULDU: `13,28,43,58` tasiyan paket alarmi AYNI DAKIKALARDA, PARTI HALINDE ve AYNI
+# oranda dustu -> hal DEPO/HESAP duzeyinde bir teslim sorunudur, cron METNI degil.
+# Cron dakikasini DEGISTIRMEK bu sinifi COZMEZ (olculdu) ve her dokunus A3/A5'i uyarir.
+# COZUM CRON'U ONARMAK DEGIL, UZLASTIRMAYI CRON'A BAGIMLI BIRAKMAMAKTIR: depo saatte
+# onlarca push aliyor; `deploy.yml` icinden BLOKLAMAYAN bir kol AYNI is akisini
+# (`workflow_call`) cagirirsa uzlastirma fiilen 15 dakikadan SIK kosar ve GitHub'in
+# zamanlanmis kuyruguna hic bagimli olmaz. Cron IKINCI KOL olarak KALIR (push'suz
+# geceler). Bu iki kol AYNI DOSYADAN kosar — govde kopyalanmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+KADANS_CAGRISI = "./.github/workflows/%s" % UZLASTIRICI_DOSYA
+DEPLOY_DOSYA = "deploy.yml"
+YAYIN_ISI = "deploy"
+
+
+def _gecisli_needs(joblar, kok):
+    """`kok` job'unun GECISLI `needs:` kapanisi (kendisi HARIC)."""
+    def _needs(job):
+        ham = (job or {}).get("needs")
+        if isinstance(ham, str):
+            return {ham}
+        if isinstance(ham, list):
+            return set(str(x) for x in ham)
+        if isinstance(ham, dict):
+            return set(str(k) for k in ham)
+        return set()
+
+    bulunan = set()
+    yigin = list(_needs(joblar.get(kok) or {}))
+    while yigin:
+        ad = yigin.pop()
+        if ad in bulunan:
+            continue
+        bulunan.add(ad)
+        yigin.extend(_needs(joblar.get(ad) or {}))
+    return bulunan
+
+
+def kadans_kablosu():
+    """KADANS KOLU YASIYOR MU + YAYINI BLOKLUYOR MU — GERCEK dosyalardan OLCULUR.
+
+    ALTI sart, hepsi fail-closed:
+      (1) deploy.yml'de `uses: ./.github/workflows/d1-uzlastirici.yml` cagiran bir job VAR
+          (govde KOPYALANMAZ: cron kolu ile push kolu AYNI dosyayi kosar),
+      (2) 🔴 o job `deploy`nin GECISLI `needs:` kapanisinda DEGIL -> yayini BLOKLAMAZ.
+          (Bu sartin mutanti: job'u `deploy: needs`'e sizdirmak. Kadans kolu D1/ag'a
+          bagimlidir; bloklayici yapilirsa tek bir ag arizasi TUM EKIBIN yayinini
+          durdurur — bu depoda olculen kapi-birikimi zararinin ta kendisi.)
+      (3) `continue-on-error`/DAIMA-YANLIS `if:` ile SUSTURULMAMIS: bloklamamak SESSIZ
+          OLMAK DEGILDIR, kol kendi kirmizisini GOSTERIR (fail-open yazimi nobetci
+          ihlalidir),
+      (4) ESZAMANLILIK — TEK KILIT, IS DUZEYINDE: grup d1-uzlastirici.yml'in
+          `uzlastir` JOB'unda beyan edilmis olmali (is akisi duzeyinde DEGIL: cagrilan
+          kolda uygulanip uygulanmadigi belirsiz olurdu) VE cagiran job KENDI
+          `concurrency` grubunu beyan ETMEMELI (cagiran job grubu tutarken cagrilan is
+          ayni grubu isterse kosum KILITLENEBILIR). Boylece cron kolu ile push kolu
+          AYNI grupta ve TEK KEZ kilitlenir -> ayni anda IKI uzlastirma kosamaz,
+      (5) `secrets: inherit` -> olcum CLOUDFLARE_API_TOKEN'siz kosarsa her kosumda
+          "olculemedi" verir ve damga HIC dogmaz (sessiz olu kol),
+      (6) d1-uzlastirici.yml'de `schedule` KOLU DURUYOR (cron IKINCI KOL olarak kalir)
+          ve `workflow_call` acik (aksi halde cagri COZULMEZ).
+    Doner: (sorunlar, bulgular)."""
+    uzl_yol = os.path.join(WORKFLOW_DIZIN, UZLASTIRICI_DOSYA)
+    dep_yol = os.path.join(WORKFLOW_DIZIN, DEPLOY_DOSYA)
+    for yol in (uzl_yol, dep_yol):
+        if not os.path.exists(yol):
+            raise OlcumHatasi("is akisi YOK: %s" % yol)
+    with open(uzl_yol, encoding="utf-8") as f:
+        uzl = yaml_belge(f.read())
+    with open(dep_yol, encoding="utf-8") as f:
+        dep = yaml_belge(f.read())
+    if not isinstance(dep, dict) or not isinstance(dep.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % DEPLOY_DOSYA)
+    if not isinstance(uzl, dict):
+        raise OlcumHatasi("%s: kok dugum okunamadi" % UZLASTIRICI_DOSYA)
+
+    sorunlar = []
+    tetik = _on_bolumu(uzl)
+    tetik_adlari = set(str(k) for k in tetik) if isinstance(tetik, (dict, list)) else set()
+    for gerekli, tani in (
+            ("schedule", "cron IKINCI KOL olarak KALMALI (push'suz gecelerin kapsamasi); "
+                         "kadans kolu cron'un YERINE DEGIL, YANINA kondu"),
+            ("workflow_call", "deploy.yml kolu bu is akisini `uses:` ile cagirir; "
+                              "tetikleyici yoksa cagri COZULMEZ")):
+        if gerekli not in tetik_adlari:
+            sorunlar.append("%s icinde `%s` tetikleyicisi YOK -> %s"
+                            % (UZLASTIRICI_DOSYA, gerekli, tani))
+    # TEK KAYNAK: eszamanlilik grubu is akisinin KENDI IS'INDEN okunur (is akisi
+    # duzeyinden DEGIL — bkz. docstring (4)).
+    grup = None
+    for _ad, job in (uzl.get("jobs") or {}).items():
+        if not isinstance(job, dict):
+            continue
+        ham = job.get("concurrency")
+        aday = ham.get("group") if isinstance(ham, dict) else ham
+        if aday and str(aday).strip():
+            grup = str(aday).strip()
+            break
+    if not grup:
+        sorunlar.append(
+            "%s icinde IS DUZEYINDE `concurrency.group` YOK -> cron kolu ile "
+            "`workflow_call` kolu ayni anda kosabilir (D1'e cift yazim). Grup is akisi "
+            "duzeyine konursa cagrilan kolda uygulanip uygulanmadigi BELIRSIZDIR."
+            % UZLASTIRICI_DOSYA)
+
+    joblar = dep["jobs"]
+    kadans_ad, kadans = None, None
+    for ad, job in joblar.items():
+        if isinstance(job, dict) and str(job.get("uses") or "").strip() == KADANS_CAGRISI:
+            kadans_ad, kadans = str(ad), job
+            break
+    if kadans is None:
+        sorunlar.append(
+            "KADANS KOLU YOK: %s icinde `uses: %s` cagiran job bulunamadi -> uzlastirma "
+            "YALNIZ GitHub cron kuyruguna bagimli kalir (olculdu 4 Agu: 48 saatte teslim "
+            "%%3,65, en uzun bosluk 17,6 saat)." % (DEPLOY_DOSYA, KADANS_CAGRISI))
+        return sorunlar, {"job": None, "grup": grup, "tetikler": sorted(tetik_adlari)}
+
+    engel = _gecisli_needs(joblar, YAYIN_ISI)
+    blokluyor = kadans_ad in engel
+    if blokluyor:
+        sorunlar.append(
+            "🔴 KADANS KOLU YAYINI BLOKLUYOR: `%s` job'u `%s`nin GECISLI `needs:` "
+            "kapanisinda (%s). Bu kol D1'e ve aga bagimlidir; bloklayici yapilirsa tek "
+            "bir ag/D1 arizasi TUM EKIBIN yayinini durdurur. Kadans GORUNURLUK isidir, "
+            "yayin kapisi DEGIL." % (kadans_ad, YAYIN_ISI, ", ".join(sorted(engel))))
+    if kadans.get("continue-on-error") in (True, "true"):
+        sorunlar.append("`%s` job'u `continue-on-error` ile FAIL-OPEN -> bloklamamak "
+                        "SESSIZ OLMAK DEGILDIR, kol kendi kirmizisini gostermelidir"
+                        % kadans_ad)
+    kosul = str(kadans.get("if") or "").strip().lower()
+    if kosul in ("false", "${{ false }}"):
+        sorunlar.append("`%s` job'u DAIMA-YANLIS `if:` ile OLU" % kadans_ad)
+    if kadans.get("concurrency") is not None:
+        sorunlar.append(
+            "`%s` job'u KENDI `concurrency` grubunu beyan ediyor (%r). Kilit cagrilan "
+            "isin (`%s`) JOB'unda ve grup %r; cagiran job da bir grup tutarsa (ozellikle "
+            "AYNI grup) kosum KILITLENEBILIR, farkli grup ise IKINCI bir kilit demektir. "
+            "TEK KILIT: cagrilan iste." % (kadans_ad, kadans.get("concurrency"),
+                                           UZLASTIRICI_DOSYA, grup))
+    if str(kadans.get("secrets") or "").strip() != "inherit":
+        sorunlar.append("`%s` job'unda `secrets: inherit` YOK (%r) -> olcum "
+                        "CLOUDFLARE_API_TOKEN'siz kosar, HER kosumda 'olculemedi' verir "
+                        "ve damga HIC dogmaz (sessiz olu kol)"
+                        % (kadans_ad, kadans.get("secrets")))
+    return sorunlar, {"job": kadans_ad, "grup": grup, "blokluyor": blokluyor,
+                      "engel": sorted(engel), "tetikler": sorted(tetik_adlari)}
 
 
 def paket_kosul_arizasi(adim):
@@ -1879,8 +2255,46 @@ def kendini_test():
     rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=0.4,
                               damgalar=[_damga_kaydi(1.5)]), damga_ile=True)
     iddia("A0 (a) TAZE damga (1,5 sa < N=9) -> YESIL", rc == 0, "rc=%d" % rc)
-    iddia("A0 (a) rapor damga yasini ve kosumunu SAYIYLA yazar",
-          any("A0 DAMGA" in x and "1.5 saat" in x and "30663827609" in x for x in s))
+    iddia("A0 (a) rapor damga yasini ve DAMGAYI YAZAN CRON KOSUMUNU SAYIYLA yazar",
+          any("A0 DAMGA" in x and "1.5 saat" in x and str(_HAM_KOSUM["id"]) in x
+              for x in s), s)
+
+    # ── 🔴 TETIKLEYICI SARTI (4 Agu 2026) — ALARM ELLE SONDURULEBILIYORDU ──────
+    # TEK DEGISKEN: damgayi yazan kosum. Yas (1,5 sa), damga sayisi, kosum dagilimi,
+    # cron metni, is akisi durumu AYNI kalir; yalniz damganin `workflow_run.id`si
+    # zamanlanmis kosum kumesinin ICINDE ya da DISINDA olur.
+    ELLE = dict(kosum_sayisi=137, yas_saat=0.4, damgalar=[_damga_kaydi(1.5)])
+    rc, s = kos(D, _sahte_api(damga_kosum="elle", **ELLE), damga_ile=True)
+    iddia("A0 TETIKLEYICI (a) ELLE tazelenmis damga (1,5 sa TAZE ama kosum "
+          "`event=schedule` kumesinde YOK) -> KIRMIZI. Bu, 4 Agu'da OLDURULEMEYEN "
+          "mutantin ta kendisidir: 09:45:48Z'de elle kosum damgayi tazeledi ve A0 "
+          "9 saat daha YESIL yandi.", rc == 1, "rc=%d" % rc)
+    iddia("A0 TETIKLEYICI (a) teshis 'DENETIM YAPILDI AMA CRON YAPMADI' der ve elle "
+          "kosumun kimligini yazar",
+          any("A0 DAMGA" in x and "CRON YAPMADI" in x and str(_CRON_DISI_KOSUM) in x
+              for x in s), s)
+    rc, s = kos(D, _sahte_api(damga_kosum="schedule", **ELLE), damga_ile=True)
+    iddia("A0 TETIKLEYICI (b) AYNI fikstur, TEK FARK damgayi CRON yazmis -> YESIL "
+          "(sart yanlis-pozitif URETMEZ)", rc == 0, "rc=%d" % rc)
+    # Cron damgasi TAZE iken elle bir kosum da damga yazmissa: hukum CRON damgasina gore
+    # verilir (elle tetikleme YESILI de BOZMAZ) ve durum satirda GORUNUR.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=0.4,
+                              damgalar=[_damga_kaydi(0.3, kimlik=1,
+                                                     kosum_kimlik=_CRON_DISI_KOSUM),
+                                        _damga_kaydi(2.0, kimlik=2)]), damga_ile=True)
+    iddia("A0 TETIKLEYICI (c) elle damga EN YENI ama CRON damgasi da esik icinde "
+          "-> YESIL (sart cron sagligini olcer, elle kosumu CEZALANDIRMAZ)",
+          rc == 0, "rc=%d" % rc)
+    iddia("A0 TETIKLEYICI (c) satir en yeni damganin CRON DISI oldugunu da YAZAR "
+          "(kadans ile cron sagligi AYRI AYRI gorunur)",
+          any(x.startswith("✅ A0 DAMGA") and "CRON DISI" in x for x in s), s)
+    # FAIL-CLOSED: damgayi hangi kosumun yazdigi OKUNAMAZSA yesil DEGIL, rc 2.
+    kimliksiz = _damga_kaydi(1.5)
+    del kimliksiz["workflow_run"]["id"]
+    rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=0.4, damgalar=[kimliksiz]),
+                damga_ile=True)
+    iddia("A0 TETIKLEYICI FAIL-CLOSED: damgada `workflow_run.id` YOK -> rc 2 "
+          "(siniflandirilamayan damga 'taze' SAYILAMAZ)", rc == 2, "rc=%d" % rc)
     rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=0.4,
                               damgalar=[_damga_kaydi(12.0)]), damga_ile=True)
     iddia("A0 (b) ESKI damga (12,0 sa > N=9) -> KIRMIZI", rc == 1, "rc=%d" % rc)
@@ -1990,13 +2404,38 @@ def kendini_test():
           "-> GORUNUR ve YESIL", rc == 0, "rc=%d" % rc)
     iddia("A3 (a0) rapor ilk tetikleme penceresini ve yasi SAYIYLA yazar",
           any("🟡 A3 NABIZ" in x and "0.8 saat" in x and "esik N=9" in x for x in s), s)
+    # 🔴 CAPA KILIDI (4 Agu 2026 — BU IDDIA TERSINE CEVRILDI): burada eskiden "cron
+    # dosyasina dokunulmus, A3 SUSAR -> YESIL" yaziyordu, yani test SUSTURMAYI KUTSUYORDU
+    # ([[test-hatali-davranisi-kutsar]]). OLCULDU: bu depoda alarm dosyalarina dokunma
+    # araligi medyan 5,2-5,5 sa < N=9 sa; canli olcumde (10:04Z) cron 9,8 saattir oluyken
+    # A3 satiri 🟡 idi. Capa artik `gecmis_capasi` (A5 ile TEK KAYNAK) ve dokunus
+    # SUSTURMAZ.
     rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=12.0,
+                              kayit_yas_saat=400.0, yenileme_yas_saat=0.8))
+    iddia("A3 CAPA KILIDI: is akisi ESKI kayitli, son kosum 12,0 sa once (N=9), cron "
+          "dosyasina 0,8 sa once DOKUNULMUS -> A3 SUSMAZ, KIRMIZI (capa "
+          "max(kayit,yenileme)'ye dondurulurse bu iddia duser)", rc == 1, "rc=%d" % rc)
+    iddia("A3 CAPA KILIDI: karsi risk SUSTURULMAZ — satir taze dokunusu ⚠ ile ve "
+          "YASIYLA yazar",
+          any(x.startswith("🔴 A3 NABIZ") and "⚠ cron tanimina dokunan son commit 0.8 sa"
+              in x for x in s), s)
+    # GERCEKTEN YENI KAYITLI is akisi (kayit N icinde) HALA korunur: bos kirmizi yok.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=12.0, kayit_yas_saat=0.8,
                               yenileme_yas_saat=0.8))
-    iddia("A3 (a0b) cron YENIDEN KAYDEDILDI, eski kosum N disinda ama yeni tanim "
-          "N icinde -> GORUNUR ve YESIL", rc == 0, "rc=%d" % rc)
-    iddia("A3 (a0b) eski kosumu yeni tanimin nabzi saymaz; ilk teslim penceresini yazar",
-          any("🟡 A3 NABIZ" in x and "cron tanimi 0.8 saat" in x
-              and "eski cron kosumu" in x for x in s), s)
+    iddia("A3 (a0b) GERCEKTEN YENI KAYIT (is akisi 0,8 sa once kaydedildi) -> GORUNUR "
+          "ve YESIL (ilk teslim penceresi taninir)", rc == 0, "rc=%d" % rc)
+    iddia("A3 (a0b) satir kayit yasini SAYIYLA yazar",
+          any("🟡 A3 NABIZ" in x and "GitHub'da 0.8 saat once" in x for x in s), s)
+    # 🔴 IKIZ KAPISI: A3 ile A5 AYNI capadan gecer. Ayni fikstur (eski kayit + taze
+    # dokunus + cokmus teslim) IKI eksende de HUKUM vermeli; biri 🟡'ye duserse capalar
+    # AYRISMIS demektir ([[ikiz-tanim-sessiz-ayrisma]]).
+    rc, s = kos(D, _sahte_api(kosum_sayisi=3, yas_saat=12.0,
+                              kosum_yaslari=[12.0, 20.0, 40.0],
+                              kayit_yas_saat=400.0, yenileme_yas_saat=1.0))
+    iddia("IKIZ CAPA: eski kayit + 1,0 sa once dokunus -> A3 VE A5 IKISI DE hukum verir "
+          "(ikisi de kirmizi; biri 🟡'ye duserse capalar ayrismistir)",
+          rc == 1 and any(x.startswith("🔴 A3 NABIZ") for x in s)
+          and any(x.startswith("🔴 A5 TESLIM") for x in s), s)
     rc, s = kos(D, _sahte_api(kosum_sayisi=0))
     iddia("A3 (a) N'yi asmis is akisinda HIC schedule kosumu YOK -> KIRMIZI",
           rc == 1, "rc=%d" % rc)
@@ -2231,6 +2670,28 @@ def kendini_test():
           "olursa 20:47Z'nin SIFIR denetimli YESIL kosumu da damgalanirdi)",
           bool(kablo_bulgu.get("kosullu")), kablo_ariza or "; ".join(kablo_sorun)
           or repr(kablo_bulgu))
+    # --- KADANS KOLU: uzlastirma cron KUYRUGUNA bagimli mi (GERCEK dosyalar) ---
+    try:
+        kad_sorun, kad_bulgu = kadans_kablosu()
+        kad_ariza = None
+    except Exception as e:  # noqa: BLE001
+        kad_sorun, kad_bulgu, kad_ariza = ["olculemedi"], {}, "%s: %s" % (
+            type(e).__name__, e)
+    iddia("KADANS: %s icinde `uses: %s` cagiran BLOKLAMAYAN bir kol VAR (uzlastirma "
+          "GitHub cron kuyruguna bagimli DEGIL; olculdu 4 Agu: cron teslimi %%3,65, "
+          "en uzun bosluk 17,6 sa)" % (DEPLOY_DOSYA, KADANS_CAGRISI),
+          not kad_sorun, kad_ariza or "; ".join(kad_sorun) or repr(kad_bulgu))
+    iddia("KADANS: 🔴 kol `%s`nin GECISLI `needs:` kapanisinda DEGIL — yayini "
+          "BLOKLAMAZ (bu iddia yorum degil, KOSULAN kapidir: job'u `deploy: needs`'e "
+          "sizdirmak KIRMIZI yakar)" % YAYIN_ISI,
+          kad_bulgu.get("job") and not kad_bulgu.get("blokluyor"), repr(kad_bulgu))
+    iddia("KADANS: cron IKINCI KOL olarak KALIR (`schedule` tetikleyicisi duruyor) — "
+          "kadans kolu cron'un YERINE DEGIL YANINA konuldu",
+          "schedule" in (kad_bulgu.get("tetikler") or []), repr(kad_bulgu))
+    iddia("KADANS: TEK KILIT — grup cagrilan isin JOB'unda (%r) ve cagiran job kendi "
+          "grubunu tutmuyor -> ayni anda IKI uzlastirma kosamaz, kilitlenme riski de YOK"
+          % kad_bulgu.get("grup"), bool(kad_bulgu.get("grup")), repr(kad_bulgu))
+
     # Fikstur: kosul katmaninin kendisi IKI YONLU olcusun (gercek dosyaya bagimli kalmasin).
     iddia("A0 KOSUL FIKSTURU: `if:` YOK -> ariza (kosulsuz damga yakalanir)",
           damga_kosul_arizasi({"run": "x"}) is not None,
@@ -2265,7 +2726,7 @@ def kendini_test():
          (PAKET_ALARM_DOSYA, "11,26,41,56 * * * *")]
 
     def paket_api(paket_damgalari, yas_saat=0.4, kosum_sayisi=137, bozuk=None,
-                  kosum_yaslari=None):
+                  kosum_yaslari=None, damga_kosum="schedule"):
         """Iki is akisi + IKI AYRI damga adi donduren `getir` (ad suzgeci FIILEN calisir).
 
         🔴 KOSUM DAGILIMI SAGLIKLI VERILIR (varsayilan 48 sa'te 8 teslim): bu blogun
@@ -2276,7 +2737,8 @@ def kendini_test():
         if kosum_yaslari is None:
             kosum_yaslari = [yas_saat, 6.0, 12.0, 18.0, 24.0, 30.0, 36.0, 42.0]
         temel = _sahte_api(kosum_sayisi=kosum_sayisi, yas_saat=yas_saat, bozuk=bozuk,
-                           kosum_yaslari=kosum_yaslari)
+                           kosum_yaslari=kosum_yaslari, damga_kosum=damga_kosum)
+        bagla = temel.damgalari_bagla   # damga -> kosum baglama kurali TEK KAYNAK
 
         def getir(yol, zaman_asimi=25):
             if "actions/artifacts?" in yol:
@@ -2285,11 +2747,14 @@ def kendini_test():
                 if ("name=%s" % PAKET_DAMGA_ADI) in yol:
                     if bozuk == "paket-suzgec":
                         return {"total_count": 1,
-                                "artifacts": [_damga_kaydi(0.5, ad=DAMGA_ADI)]}
+                                "artifacts": bagla([_damga_kaydi(0.5, ad=DAMGA_ADI)])}
                     return {"total_count": len(paket_damgalari),
-                            "artifacts": [dict(a, name=PAKET_DAMGA_ADI)
-                                          for a in paket_damgalari]}
-                return {"total_count": 1, "artifacts": [_damga_kaydi(1.0)]}
+                            "artifacts": bagla([dict(a, name=PAKET_DAMGA_ADI)
+                                                for a in paket_damgalari])}
+                # A0 damgasi: bu blogun iddialari A4'u YALITIR, o yuzden A0 HER ZAMAN
+                # CRON teslimi ve TAZE verilir (tek degisken A4 damgasi olsun).
+                return {"total_count": 1,
+                        "artifacts": bagla([_damga_kaydi(1.0)], "schedule")}
             if "actions/workflows?" in yol:
                 wf1 = dict(_HAM_WF)
                 wf1["path"] = ".github/workflows/d1-uzlastirici.yml"
@@ -2334,6 +2799,18 @@ def kendini_test():
     rc, s = kos(P, paket_api([_damga_kaydi(30.0, expired=True)]),
                 damga_ile=True, paket_ile=True)
     iddia("A4 (d) TUM paket damgalari SURESI DOLMUS -> KIRMIZI", rc == 1, "rc=%d" % rc)
+
+    # 🔴 TETIKLEYICI SARTI A4'TE DE GECERLI (A0 ile AYNI KOD YOLU): elle tetiklenmis bir
+    # paket alarmi damgasi da ekseni SUSTURAMAZ. Sart yalnizca A0'a konsaydi ikiz mantik
+    # AYRISIRDI ([[ikiz-tanim-sessiz-ayrisma]]); TEK DEGISKEN: damgayi yazan kosum.
+    rc, s = kos(P, paket_api([_damga_kaydi(1.5)], damga_kosum="elle"),
+                damga_ile=True, paket_ile=True)
+    iddia("A4 TETIKLEYICI: ELLE tazelenmis paket damgasi (1,5 sa TAZE) -> KIRMIZI",
+          rc == 1, "rc=%d" % rc)
+    iddia("A4 TETIKLEYICI: AYIRT EDICI — ayni raporda A0 YESIL (cron damgasi), YALNIZ "
+          "A4 KIRMIZI (iki eksen AYNI kodu paylasir ama AYRI capadan olcer)",
+          any(x.startswith("✅ A0 DAMGA") for x in s)
+          and any(x.startswith("🔴 A4 PAKET") and "CRON YAPMADI" in x for x in s), s)
 
     # EKSEN AYRIMI: A0 taze iken A4 bayat olabilir (ve tersi) — ikisi AYRI raporlanir.
     rc, s = kos(P, paket_api([_damga_kaydi(14.5)]), damga_ile=True, paket_ile=True)

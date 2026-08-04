@@ -1822,6 +1822,44 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tools/cron-nabiz-kapisi.py
   # ═════════════════════════════════════════════════════════════════════════════
+  # D1 KADANS KOLU — uzlastirmayi GitHub CRON KUYRUGUNDAN kurtarir (4 Agu 2026)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN HAL: `d1-uzlastirici.yml` cron'u ofsetli ACIK dakika listesi (`9,24,39,54`)
+  # oldugu halde 48 saatte nominal 192 tetiklemenin 7'si teslim edildi (%3,65) ve EN UZUN
+  # ARDISIK BOSLUK 1053 dk = 17,6 SAAT oldu. Ofset hipotezi CURUTULDU: `13,28,43,58`
+  # tasiyan paket alarmi AYNI DAKIKALARDA, PARTI HALINDE ve ayni oranda dustu -> teslim
+  # sorunu DEPO/HESAP duzeyinde; cron METNINI bir daha oynatmak COZMEZ (ve her dokunus
+  # nabiz eksenlerinde ⚠ uretir).
+  #
+  # COZUM: cron'u ONARMAYA calismak yerine uzlastirmayi CRON'A BAGIMLI BIRAKMAMAK. Depo
+  # saatte onlarca push aliyor; bu job her push'ta AYNI is akisini (`workflow_call`)
+  # cagirir -> uzlastirma fiilen 15 dk'dan SIK kosar. Cron IKINCI KOL olarak KALIR
+  # (push'suz gecelerin kapsamasi). Govde KOPYALANMADI: tek dosya, iki kol
+  # ([[ikiz-tanim-sessiz-ayrisma]]).
+  #
+  # 🔴 NEDEN BLOKLAMAZ: `needs:` YOK ve `deploy: needs: [build, serit-a2, serit-a3]`
+  # listesinde ADI GECMEZ -> `deploy` ile PARALEL kosar, yayin yolunu tek saniye uzatmaz.
+  # Bu kol D1'e ve aga bagimlidir; bloklayici yapilsaydi tek bir ag/D1 arizasi TUM EKIBIN
+  # yayinini durdururdu ([[kapi-birikimi-yayin-gecikmesi]]).
+  # ⚠️ `continue-on-error` KULLANILMADI: bloklamamak SESSIZ OLMAK DEGILDIR — sapma olursa
+  #    ya da onarim tutmazsa bu job KIRMIZI yanar ve bildirim duser.
+  # 🔴 ESZAMANLILIK BURADA BEYAN EDILMEZ — BILEREK: kilit cagrilan is akisinin `uzlastir`
+  #    JOB'undadir (`group: d1-uzlastirici`) ve cron kolu ile bu kol icin AYNI sekilde,
+  #    TEK KEZ uygulanir. Buraya da ayni grup konsaydi cagiran job grubu tutarken
+  #    cagrilan is ayni grubu ister ve kosum KILITLENEBILIRDI. Ayri bir grup koymak ise
+  #    ikinci bir kilit demek olurdu. tools/cron-nabiz-kapisi.py::kadans_kablosu bu
+  #    job'da `concurrency` OLMADIGINI ve grubun cagrilan iste durdugunu OLCER.
+  # 🔴 CRON SAGLIGI BUNUNLA SUSMAZ: bu kolun yazdigi damga `event=push` kosumundan dogar
+  #    ve tools/cron-nabiz-kapisi.py A0 ekseni onu "cron teslimi" SAYMAZ. Kadans ayri,
+  #    cron sagligi ayri olculur.
+  # Kablo kapisi: tools/cron-nabiz-kapisi.py::kadans_kablosu (bu job'un varligini,
+  # `deploy.needs` kapanisinda OLMADIGINI, grubunu ve `secrets: inherit`ini OLCER).
+  d1-kadans:
+    uses: ./.github/workflows/d1-uzlastirici.yml
+    secrets: inherit
+    permissions:
+      contents: read
+  # ═════════════════════════════════════════════════════════════════════════════
   # COMMIT MESAJI SIZINTI NOBETI — IKINCI KOL (1 Agu 2026)
   # ═════════════════════════════════════════════════════════════════════════════
   # OLCULEN OLAY: depo PUBLIC. Tedarikci adi commit MESAJLARINDA 5 commit'te, satici/

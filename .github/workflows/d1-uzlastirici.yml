@@ -63,24 +63,58 @@ name: D1 uzlastirici (katalog sapmasi)
 # turetilen esikle (N=9 sa) tartar; A5 ekseni ise cron METNI yerine FIILI TESLIM
 # SAYISINI olcer (48 saatte 4 kosumun altina duserse KIRMIZI) -> bu isin bir daha
 # SESSIZCE olmesi ya da sessizce SEYRELMESI mumkun degil.
+#
+# 🔴 KADANS KURTARMA — CRON ARTIK TEK KOL DEGIL (4 Agu 2026, OLCULDU)
+# ─────────────────────────────────────────────────────────────────────────────
+# Ustteki duzeltmenin sonucu net: ofsetli acik dakika listesi teslimi DUZELTMEDI
+# (48 saatte 192 nominal tetiklemenin 7'si = %3,65; en uzun bosluk 1053 dk = 17,6 sa)
+# ve hal DEPO/HESAP duzeyinde oldugu icin dakikayi bir daha oynatmak COZUM DEGIL.
+# Bu yuzden is akisi `workflow_call` ile de tetiklenebilir hale getirildi: `deploy.yml`
+# icindeki BLOKLAMAYAN `d1-kadans` job'u her push'ta bu AYNI DOSYAYI cagirir. Depo saatte
+# onlarca push aldigi icin uzlastirma fiilen 15 dakikadan sik kosar ve GitHub'in
+# zamanlanmis kuyruguna HIC bagimli olmaz.
+#   · Govde KOPYALANMADI: iki kol da bu dosyadan kosar ([[ikiz-tanim-sessiz-ayrisma]]).
+#   · Cron KALDI (ikinci kol): push'suz gecelerde kapsamayi o saglar.
+#   · Eszamanlilik: asagidaki `concurrency` grubunu deploy.yml'deki cagiran job da
+#     BEYAN EDER -> ayni anda IKI uzlastirma kosamaz (D1'e cift yazim penceresi kapali).
+#     tools/cron-nabiz-kapisi.py::kadans_kablosu grup adini BU DOSYADAN okur ve ikisinin
+#     ayrismasini KIRMIZI yakar.
+#   · 🔴 CRON SAGLIGI AYRI OLCULUR: bu kolun yazdigi damgayi (`event=push`) A0 ekseni
+#     "cron teslimi" SAYMAZ. Kadans (denetim yapildi mi) ile cron sagligi (kim yapti)
+#     ayri eksenlerdir; karistirmak alarmin elle sondurulmesi demekti.
 on:
   schedule:
     - cron: "9,24,39,54 * * * *"
   # Elle kosturma yolu HER ZAMAN acik (cron kacarsa/kuyruk duserse insan tetikleyebilir).
   workflow_dispatch:
+  # deploy.yml `d1-kadans` job'u (BLOKLAMAYAN kol) bu is akisini cagirir.
+  workflow_call:
 
 permissions:
   contents: read
 
-# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup: uzlastirici hicbir
-# yayin adimini beklemez ve hicbir yayin adimini bekletmez.
-concurrency:
-  group: d1-uzlastirici
-  cancel-in-progress: true
-
 jobs:
   uzlastir:
     runs-on: ubuntu-latest
+    # ═══════════════════════════════════════════════════════════════════════
+    # ESZAMANLILIK — IS DUZEYINDE (is akisi duzeyinde DEGIL). 4 Agu 2026 kararı.
+    # ═══════════════════════════════════════════════════════════════════════
+    # Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup: uzlastirici hicbir yayin
+    # adimini beklemez ve hicbir yayin adimini bekletmez.
+    #
+    # 🔴 NEDEN IS DUZEYINDE: bu is akisi artik IKI koldan kosuyor — cron (kendi kosumu)
+    # ve deploy.yml `d1-kadans` (`workflow_call`). Kilit IS AKISI duzeyinde kalsaydi
+    # cagrilan kolda uygulanip uygulanmadigi BELIRSIZ olurdu; cagiran job da ayni grubu
+    # tutsaydi (kendi kosumunu beklemek) KILITLENME riski dogardi. IS duzeyindeki grup
+    # HER IKI kolda da AYNI sekilde ve TEK KEZ uygulanir -> "ayni anda iki uzlastirma"
+    # penceresi kapali, kilitlenme riski YOK.
+    # 🔴 `cancel-in-progress: false`: D1 yazmasinin ORTASINDA kesmek yerine SIRAYA gir.
+    # GitHub grup basina en fazla 1 kosan + 1 bekleyen tutar (yenisi eskiyi kuyrukta
+    # duşurur) -> kadans kolu push firtinasinda da yigilmaz.
+    # Kablo kapisi: tools/cron-nabiz-kapisi.py::kadans_kablosu bu grubu BURADAN okur.
+    concurrency:
+      group: d1-uzlastirici
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
