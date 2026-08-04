@@ -1,5 +1,772 @@
 [
   {
+    "id": "yamaha-ef3000-jenerator-yag-bakim-seti",
+    "kategori": "Jeneratör",
+    "marka": [
+      "Yamaha",
+      "EF3000"
+    ],
+    "baslik": "Yamaha EF3000 Jeneratör Yağ Bakım Seti (Tahliye Oluğu + Dolum Hunisi)",
+    "aciklama": "Yamaha EF3000 serisi jeneratörlerde yağ değişimini temiz yapmak için hazırlanmış iki parçalı bakım setidir.\nTahliye oluğu, karter tapasının yuvasına oturur ve boşalan yağı gövdeden uzağa yönlendirir; dolum hunisi ise dar dolum ağzına geçerek yağın şaseye taşmasını engeller.\n- Yamaha EF3000 serisi jeneratör gövdesine göre biçimlendirilmiştir.\n- Tahliye ve dolum işlemlerinin ikisinde de kullanılır.\n- Bakım sonrası sökülüp saklanabilen, tekrar kullanılabilir bir aparattır.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw884152-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw884152-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw884152-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw884152-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw884152-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Boxerman",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-mt-07-tracer-7-hava-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07",
+      "Tracer 7"
+    ],
+    "baslik": "Yamaha MT-07 / Tracer 7 Hava Kutusu (Stage 2 Geçiş Ağzı)",
+    "aciklama": "2023 model yılına kadar olan Yamaha MT-07 ve Tracer 700 motosikletler için hazırlanmış hava kutusu geçiş ağzıdır.\nOrijinal kutuya göre genişletilmiş iç kesiti sayesinde emme yolundaki hava akışını serbestleştirir; gaz tepkisi ve üst devir davranışında iyileşmeye yardımcı olur.\n- Orijinal bağlantı delikleri ve conta yüzeyi korunmuştur.\n- Fabrika hava filtresi yuvasıyla uyumludur.\n- Motor sıcaklığına dayanıklı malzeme tercih edilmesi uygun olur.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2347230-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2347230-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2347230-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CoreMakers",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-waverunner-superjet-kill-switch-klipsi",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha",
+      "WaveRunner",
+      "SuperJet"
+    ],
+    "baslik": "Yamaha WaveRunner / SuperJet Kill Switch Kordon Klipsi",
+    "aciklama": "Yamaha WaveRunner ve SuperJet deniz motosikletlerinde emniyet kordonunu stop şalterine bağlayan klipstir.\nKordonun ucundaki halkaya geçer ve şalter kolunun altına oturarak motorun çalışmasına izin verir; kordon çekildiğinde klips yuvadan ayrılır.\n- Kaybolan veya çatlayan orijinal klipsin yerine yedek olarak kullanılır.\n- Teknede birkaç adet yedek bulundurmaya uygun küçük bir parçadır.\n- Şalter yuvasına geçme sıkılığı orijinal ölçüye göre biçimlendirilmiştir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw578254-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Core",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-alto-blok-flut-standi",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha Alto Blok Flüt Standı (Masaüstü)",
+    "aciklama": "Yamaha alto blok flütler için hazırlanmış masaüstü standdır.\nEnstrümanı yatay konumda, ağızlık ve delik sırası havada kalacak şekilde taşır; provada elden bırakıldığında flütün yuvarlanmasını ve masaya sürtünmesini engeller.\n- Alto blok flüt gövde çapına göre biçimlendirilmiş iki oturma yuvası vardır.\n- Sökülüp taşınabilen, düz zeminde dengeli duran bir gövdesi bulunur.\n- Çanta içinde yer kaplamayacak boyuttadır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1383021-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1383021-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-kyb-on-catal-koruma-bilezigi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "KYB"
+    ],
+    "baslik": "Yamaha KYB Ön Çatal Koruma Bileziği",
+    "aciklama": "Yamaha motosikletlerin KYB (Kayaba) ön çatallarında iç boruyu çevreleyen koruma bileziğidir.\nÇatal ayağının üst ağzına oturur, taş ve çamurun keçe bölgesine ulaşmasını azaltır; standart koruma halkasına göre daha geniş bir yüzey kapatır.\n- KYB çatal ölçüsüne göre biçimlendirilmiştir.\n- Çatalı sökmeden yerine takılabilecek şekilde açık uçludur.\n- Keçe ve iç boru yüzeyindeki çizilme ve aşınmayı azaltmaya yardımcı olur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw949060-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "McRae77",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-montage-klavye-fader-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "Montage"
+    ],
+    "baslik": "Yamaha Montage Klavye Fader (Slider) Düğmesi",
+    "aciklama": "Yamaha Montage serisi klavyelerin sürgülü kontrol (fader) millerine geçen yedek düğmedir.\nKırılan veya kaybolan orijinal düğmenin yerine takılır; mil üzerine geçme sıkılığıyla oturur, ayrıca bağlantı elemanı gerektirmez.\n- Montage panelindeki fader mil kesitine göre biçimlendirilmiştir.\n- Üst yüzeyindeki oluk parmakla kavramayı kolaylaştırır.\n- Farklı renklerde çoğaltılarak kanal ayrımı için kullanılabilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1392780-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1392780-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1392780-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1392780-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KingArthur456",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-tenere-700-on-catal-camurluk-vidasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tenere 700"
+    ],
+    "baslik": "Yamaha Tenere 700 Ön Çatal Çamurluk Vidası (M6 x 20 Feda Vidası)",
+    "aciklama": "Yamaha Tenere 700 ön çamurluğunu çatal ayağına bağlayan M6 x 20 ölçüsündeki çelik cıvatanın yerine kullanılan vidadır.\nArazide çamurluğa taş çarptığında çelik cıvata çatal ayağındaki kulaktan parça kopartabilir; bu vida darbede önce kendisi kırılarak çatalı korur.\n- Orijinal M6 x 20 cıvatayla aynı diş ve boy ölçüsündedir.\n- Ön çamurluğun her iki bağlantı noktasında kullanılır.\n- Yedeğinin çanta içinde taşınmasına uygun küçük bir parçadır.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw15721-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw15721-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chris1974",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-yz-on-fren-hatti-kilavuzu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZ"
+    ],
+    "baslik": "Yamaha YZ Ön Fren Hattı Kılavuzu",
+    "aciklama": "Yamaha YZ serisi motokros motosikletlerinde ön fren hortumunu çatal ayağı boyunca sabit tutan kılavuz parçasıdır.\nHortumun tekerlek ve çamurluk bölgesinde savrulmasını engeller, hattı orijinal güzergâhında tutar.\n- Çatal ayağındaki mevcut bağlantı deliğine oturur.\n- Kırılan veya kaybolan orijinal kılavuzun yerine takılır.\n- Hortumu sıkıştırmadan kavrayan açık kesitli bir yuvası vardır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw485225-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw485225-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw485225-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "56AR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-rx-v459-ses-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "RX-V459"
+    ],
+    "baslik": "Yamaha RX-V459 Receiver Ses Düğmesi",
+    "aciklama": "Yamaha RX-V459 ev sinema alıcısının ön panelindeki ses seviyesi düğmesinin yedeğidir.\nKırılan veya boşluk yapan orijinal düğmenin yerine takılır; potansiyometre miline geçerek çevirme hissini geri kazandırır.\n- RX-V459 ön panel mil çapına göre biçimlendirilmiştir.\n- Dış yüzeyindeki tırtıl parmakla kavramayı kolaylaştırır.\n- Mil ile arasındaki boşluk ince bir kama ile kapatılabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1164097-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1164097-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1164097-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1164097-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-super-tenere-750-far-koruma-izgarasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Super Tenere 750",
+      "XTZ"
+    ],
+    "baslik": "Yamaha Super Tenere 750 XTZ Far Koruma Izgarası",
+    "aciklama": "Yamaha Super Tenere 750 (XTZ) ikiz farlarının önüne takılan koruma ızgarasıdır.\nArazide ve stabilize yolda sıçrayan taşların far camına çarpmasını engeller; çubuk aralıkları ışık çıkışını fazla kapatmayacak şekilde düzenlenmiştir.\n- İkiz far gövdesinin ölçüsüne göre biçimlendirilmiş çift gözlü tek parçadır.\n- Grenaj üzerindeki mevcut bağlantı noktalarına oturur.\n- Klasik XTZ görünümünü bozmayan sade bir çerçevesi vardır.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1634583-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xt660-catal-tasiyici-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XT660"
+    ],
+    "baslik": "Yamaha XT660 Ön Çatal Taşıyıcı Adaptörü",
+    "aciklama": "Universal tip ön taşıyıcı kelepçelerini Yamaha XT660 ön çatalına uyarlayan ara adaptör çiftidir.\nÇatal borusuyla kelepçe arasına girer, çap farkını kapatır ve taşıyıcının kaymadan sıkılmasını sağlar.\n- XT660 ön çatal boru çapına göre biçimlendirilmiştir.\n- İki yarım kabuk halinde takılır, çatalı sökmeyi gerektirmez.\n- Boru yüzeyini çizmeyen düz iç yüzeyi vardır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw502741-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw502741-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw502741-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw502741-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw502741-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "juan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-atv-jant-gobek-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha ATV Jant Göbek Kapağı",
+    "aciklama": "Yamaha ATV (dört tekerlekli arazi aracı) jantlarının göbek bölümünü kapatan kapaktır.\nPoyra somununun ve mil ucunun üzerine geçer; çamur, kum ve suyun bu bölgeye dolmasını azaltır.\n- Jant göbeğindeki yuvaya geçme sıkılığı ile oturur.\n- Kaybolan orijinal kapağın yerine yedek olarak kullanılır.\n- Somun bakımı için elle sökülüp takılabilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw852472-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw852472-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xt660z-yan-ayak-pabucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XT660Z"
+    ],
+    "baslik": "Yamaha XT660Z Yan Ayak Pabucu (Genişletme Plakası)",
+    "aciklama": "Yamaha XT660Z Tenere yan ayağının ucuna vidalanan genişletme pabucudur.\nBasma alanını büyüterek motosikletin toprak, kum ve sıcak asfaltta gömülmesini azaltır; park duruşunu dengeler.\n- Dört adet M4 x 12 cıvata ve pul ile yan ayağa sabitlenir.\n- Diş yuvalı sürüm için dört adet M4 gömme somun kullanılır.\n- XT660Z yan ayak ucu biçimine göre hazırlanmıştır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1390074-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1390074-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1390074-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1390074-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xt600-xtz750-kablo-kelepcesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XT600",
+      "XTZ750"
+    ],
+    "baslik": "Yamaha XT600 / XTZ750 Kilometre Saati Kablo Kelepçesi (3LD-23318-00)",
+    "aciklama": "Yamaha XT600 ve XTZ750 modellerinde kilometre saati kablosunu ön çatala sabitleyen kelepçedir.\nOrijinal 3LD-23318-00-00 numaralı parçanın karşılığıdır; kabloyu çatal borusuna yaslar ve tekerlek dönerken savrulmasını engeller.\n- Çatal boru çapına oturan halka gövde ve kablo yuvası tek parçadır.\n- Kırılan veya sertleşip çatlayan orijinal kelepçenin yerine takılır.\n- Kabloyu ezmeden kavrayan yumuşak geçişli iç yüzeyi vardır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2530897-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2530897-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2530897-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2530897-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw2530897-5.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-tracer-900-sele-alti-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tracer 900"
+    ],
+    "baslik": "Yamaha Tracer 900 Sele Altı Kapağı (2SC-2482H-00-00)",
+    "aciklama": "Yamaha Tracer 900 sürücü selesinin altında kalan gövde açıklığını kapatan parçadır.\nOrijinali kauçuk olan 2SC-2482H-00-00 numaralı kapağın karşılığıdır; sele söküldüğünde düşüp kaybolmaması için bağlantı deliği eklenmiştir.\n- Sele altındaki mevcut yuvaya oturur.\n- Kaybolan orijinal kapağın yerine yedek olarak kullanılır.\n- Şaseye bağlanabilmesi için ek bir delik açılmıştır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw244950-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw244950-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw244950-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw244950-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "adrwin95",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-yz250-motor-takozu-damperi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZ250"
+    ],
+    "baslik": "Yamaha YZ250 Motor Takozu Titreşim Damperi (Çift)",
+    "aciklama": "Yamaha YZ250 motorunun üst bağlantı noktasında, şase ile motor kulağı arasına giren titreşim damperi çiftidir.\nHer iki yana birer adet takılır; motordan şaseye geçen yüksek frekanslı titreşimi azaltmaya yardımcı olur.\n- YZ250 üst motor takozu ölçüsüne göre biçimlendirilmiştir.\n- Esnek malzeme tercih edilmesi uygun olur.\n- İki yandan simetrik takılır, ek bağlantı elemanı gerektirmez.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2574915-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gardstrom2",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-yzf-r1-on-grenaj-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZF-R1"
+    ],
+    "baslik": "Yamaha YZF-R1 Ön Grenaj Braketi (4XV-2836E / 4XV-2836A)",
+    "aciklama": "2000-2006 model Yamaha YZF-R1 ön grenajını taşıyan yan brakettir.\nOrijinal 4XV-2836E-00-00 ve 4XV-2836A-00-00 numaralı parçaların karşılığıdır; sağ taraf için hazırlanmıştır, aynalanarak sol taraf da elde edilir.\n- Grenaj iç iskeletindeki mevcut vida noktalarına oturur.\n- Kaza sonrası kırılan orijinal braketin yerine yedek olarak kullanılır.\n- Yük taşıyan bir parça olduğu için sağlam ve tok bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2388856-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2388856-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2388856-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2388856-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KevLard",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-ck-potansiyometre-dugme-seti",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "CK"
+    ],
+    "baslik": "Yamaha CK Serisi Potansiyometre ve Drawbar Düğme Seti",
+    "aciklama": "Yamaha CK serisi sahne klavyelerinin panel düğmelerinin yedeğidir; potansiyometre düğmesi ve drawbar düğmesi birlikte verilir.\nPotansiyometre düğmesi D kesitli mile geçer, bu sayede çoğu D milli potansiyometre ile de uyumludur.\n- Kırılan veya aşınan orijinal düğmelerin yerine takılır.\n- Panel üzerindeki mil boyuna göre tam oturur.\n- Yan yüzeydeki tırtıl ince ayar yaparken kavramayı kolaylaştırır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2453340-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MartinV",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-p-125-klavye-ustu-dizustu-sehpasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "P-125"
+    ],
+    "baslik": "Yamaha P-125 Klavye Üstü Dizüstü Bilgisayar Sehpası",
+    "aciklama": "Yamaha P-125 dijital piyanonun üst yüzeyine oturan, dizüstü bilgisayar veya tablet taşımaya yönelik sehpa çiftidir.\nİki ray hâlinde klavyenin arka kenarına geçer; cihazı tuşların üzerinde ve göz hizasında tutar, hava akışı için altında boşluk bırakır.\n- P-125 gövde kenarına oturan geçme yuvaları vardır.\n- Klavyeye vida veya yapıştırıcı gerektirmeden takılır.\n- Kullanılmadığında sökülüp yassı hâlde saklanabilir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1996364-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1996364-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1996364-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xt-125-emme-manifoldu-mansonu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XT 125"
+    ],
+    "baslik": "Yamaha XT 125 Emme Manifoldu Manşonu",
+    "aciklama": "Yamaha XT 125 X ve XT 125 R modellerinde karbüratör ile silindir kapağı arasındaki emme manşonudur.\nSertleşip çatlayan orijinal kauçuk manşonun yerine takılır; yalancı hava kaçağını keserek rölanti düzensizliğini gidermeye yardımcı olur.\n- Karbüratör ve manifold ağız çaplarına göre biçimlendirilmiştir.\n- Mevcut kelepçelerle sıkılır, ek parça gerektirmez.\n- Esnek ve ısıya dayanıklı bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw919033-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw919033-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw919033-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw919033-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw919033-5.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-yz250-gidon-titresim-sonumleyici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZ250"
+    ],
+    "baslik": "Yamaha YZ250 Gidon Titreşim Sönümleyici Takozu",
+    "aciklama": "Yamaha YZ250 gidon bağlantısında, gidon ile üst çatal tablası arasına giren titreşim sönümleyici takoz çiftidir.\nGidondan ele geçen titreşimi azaltarak uzun sürüşlerde kol yorgunluğunu (arm pump) hafifletmeye yardımcı olur.\n- 2022 model YZ250'nin düz gidon tablasına göre hazırlanmıştır.\n- Gidon kelepçeleri gevşetilerek yerine yerleştirilir.\n- Esnek malzeme tercih edilmesi uygun olur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2569545-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gardstrom2",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-fz6-s2-vites-gostergesi-muhafazasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "FZ6 S2"
+    ],
+    "baslik": "Yamaha FZ6 S2 Vites Göstergesi Muhafazası",
+    "aciklama": "Yamaha FZ6 S2 üzerine sonradan takılan dijital vites göstergeleri için hazırlanmış muhafazadır.\nGösterge gövdesi kutunun içine geçme sıkılığı ile oturur, yapıştırıcı gerektirmez; ekranı toz ve suya karşı kapatır.\n- FZ6, FZ8 ve FZ1 gösterge panellerinde de kullanılabilecek yaygın ölçüdedir.\n- Piyasadaki çoğu vites göstergesi gövdesine uyar.\n- Kablo çıkışı arka taraftan verilmiştir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2902187-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2902187-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2902187-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2902187-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-yz250f-ayaklik-korumasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZ250F"
+    ],
+    "baslik": "Yamaha YZ250F Supermoto Ayaklık Koruması (Çift)",
+    "aciklama": "Yamaha YZ250F ayaklıklarının dış yanına takılan supermoto tipi koruma çiftidir.\nAyaklığın dişli üst yüzeyini yandan kapatır; virajda bot tabanının kaymasını azaltır ve pist bordürüne temasta ayaklık ucunu korur.\n- YZ250F orijinal ayaklık gövdesine geçer.\n- Sağ ve sol için iki parça hâlinde kullanılır.\n- Ayaklık katlanma hareketini engellemez.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2241669-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2241669-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2241669-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-yz-125-yan-sase-kablo-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZ 125"
+    ],
+    "baslik": "Yamaha YZ 125 Yan Şase Kablo Tutucusu",
+    "aciklama": "Yamaha YZ 125 yan şase borusu üzerinde tesisat kablolarını toplayan tutucudur.\nKabloları şase hattı boyunca yatırır; arazide sallanıp egzoza veya zincire yaklaşmalarını engeller.\n- Yan şase borusunun kavis ve çapına göre biçimlendirilmiştir.\n- İki uçtaki delikten mevcut bağlantı noktalarına vidalanır.\n- Kablo demetini ezmeyen geniş bir köprü kesiti vardır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw485228-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw485228-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-tracer-7-gidon-gecis-cihazi-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tracer 7"
+    ],
+    "baslik": "Yamaha Tracer 7 Gidon Geçiş Cihazı (Telepass) Tutucusu",
+    "aciklama": "Yamaha Tracer 7 gidonuna otoyol geçiş cihazı (Telepass) takmak için hazırlanmış tutucudur.\nCihazı gidon borusuna dik ve sabit konumda tutar; gişe okuma yüzeyinin öne bakmasını sağlar.\n- Gidon boru çapına kelepçe hâlinde oturur.\n- Cihaz gövdesi yuvaya geçme sıkılığı ile yerleşir.\n- Titreşimi azaltmak için esnek malzeme tercih edilmesi uygun olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1560369-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1560369-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nicolapignatiello",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-ybr-125-gosterge-paneli-onarim-mili",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YBR 125"
+    ],
+    "baslik": "Yamaha YBR 125 Gösterge Paneli Onarım Mili",
+    "aciklama": "Yamaha YBR 125 gösterge panelinin (kilometre saati kadranının) iç mekanizmasında kırılan mili yenileyen onarım parçasıdır.\nPanel açıldığında eski milin yerine geçer; kadran ibresinin ve kilometre tamburunun yeniden düzgün dönmesine yardımcı olur.\n- YBR 125 gösterge iç yuvasına göre biçimlendirilmiştir.\n- Panelin tamamını değiştirmeden onarım yapmayı sağlar.\n- İnce ve hassas bir parça olduğu için tok bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1298289-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1298289-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1298289-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-r6-jikle-kolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "R6"
+    ],
+    "baslik": "Yamaha R6 Jikle Kolu",
+    "aciklama": "Yamaha R6 üzerinde jikle (soğuk çalıştırma) mekanizmasını elle çeken koldur.\nKırılan veya kaybolan orijinal kolun yerine takılır; mil ucuna geçer ve parmakla itip çekmeye uygun geniş bir yüzey verir.\n- R6 jikle mil kesitine göre biçimlendirilmiştir.\n- Kavisli üst yüzeyi eldivenle de kullanıma uygundur.\n- Motor bloğuna yakın çalıştığı için ısıya dayanıklı malzeme tercih edilmesi uygun olur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw66616-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xj900-gidon-ara-pulu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XJ900"
+    ],
+    "baslik": "Yamaha XJ900 Gidon Ara Pulu (Elcik Dönüşüm Bileziği)",
+    "aciklama": "Yamaha XJ900S Diversion gidonunda orijinal elcikler sökülüp piyasa tipi ısıtmalı elciklere geçilirken kullanılan ara pul çiftidir.\nGidon borusu ile elcik iç çapı arasındaki farkı kapatır; elciğin dönmeden ve boşluk yapmadan oturmasını sağlar.\n- 1995 XJ900S Diversion gidon ölçüsüne göre hazırlanmıştır.\n- Sağ ve sol taraf için iki adet kullanılır.\n- Elcik iç yüzeyine tam oturan düz bir dış yüzeyi vardır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1310663-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1310663-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1310663-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-apx1200-gitar-rezonans-deligi-tapasi",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha",
+      "APX1200"
+    ],
+    "baslik": "Yamaha APX1200 II Gitar Rezonans Deliği Tapası",
+    "aciklama": "Yamaha APX1200 II elektro-akustik gitarın ses deliğini kapatan tapadır.\nSahnede ve yüksek ses düzeyinde oluşan geri besleme uğultusunu (feedback) azaltmaya yardımcı olur; kullanılmadığında elle çıkarılır.\n- APX1200 II ses deliği ölçüsüne göre biçimlendirilmiştir.\n- Kenar kanalı üst tablaya oturarak boyayı çizmeden tutunur.\n- Esnek malzeme tercih edilmesi takıp çıkarmayı kolaylaştırır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2536559-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2536559-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2536559-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2536559-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw2536559-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Konst_flint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xsr900-kask-askisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR900"
+    ],
+    "baslik": "Yamaha XSR900 (2019) Kask Askısı",
+    "aciklama": "2019 model Yamaha XSR900 için sele altına yerleşen kask askısıdır.\nSele kaldırıldığında ortaya çıkan bağlantı noktasına oturur; kaskın çene bağı halkasından asılmasını sağlar.\n- XSR900 sele altı yuvasına göre biçimlendirilmiştir.\n- Park hâlinde kaskı motosiklette bırakmaya yarar.\n- Sele kapandığında dışarıdan görünmez.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2677247-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-hi-hat-sehpasi-vh14d-donme-onleyici",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "Roland",
+      "VH14D"
+    ],
+    "baslik": "Yamaha Alüminyum Hi-Hat Sehpası İçin Roland VH14D Dönme Önleyici Adaptörü",
+    "aciklama": "Roland VH14D elektronik hi-hat ünitesini Yamaha alüminyum seri hi-hat sehpasına bağlayan dönme önleyici adaptördür.\nVH14D ile birlikte gelen adaptör kalın alüminyum boruya ince kaldığı için bu ara parça kullanılır; ünitenin çalarken kendi ekseninde dönmesini engeller.\n- Yamaha alüminyum seri sehpanın boru çapına göre biçimlendirilmiştir.\n- VH14D taban yuvasına oturan çıkıntısı vardır.\n- Sehpayı sökmeden takılıp çıkarılabilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw949138-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xvs-650-1100-on-sinyal-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XVS 650",
+      "XVS 1100"
+    ],
+    "baslik": "Yamaha XVS 650 / 1100 Ön Sinyal Tutucusu",
+    "aciklama": "Yamaha XVS 650 ve XVS 1100 modellerinde ön sinyalleri çatal bölgesinde taşıyan tutucu takımıdır.\nOrijinal sinyal sapı istenen boyda kesilip M6 diş açıldıktan sonra bu parçalar sapa geçirilir; sinyal gövdesi yuvaya oturtularak sabitlenir.\n- XVS 650 ve XVS 1100 ön sinyal ölçülerine göre hazırlanmıştır.\n- Parçalar yuvaya geçirilip vidalanarak veya yapıştırılarak sabitlenir.\n- Sinyal açısını daha derli toplu bir konuma getirir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw481631-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw481631-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw481631-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw481631-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw481631-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Harun E.",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-wr250f-zincir-kilavuzu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "WR250F"
+    ],
+    "baslik": "Yamaha WR250F Zincir Kılavuzu",
+    "aciklama": "Yamaha WR250F arka salıncağında zinciri dişli hizasında tutan kılavuz parçasıdır.\nZincirin arka dişliden atmasını engeller ve salıncak yüzeyini zincir teması ile aşınmaya karşı korur.\n- WR250F salıncak bağlantı noktalarına oturur.\n- Aşınan veya kırılan orijinal kılavuzun yerine takılır.\n- Zincirin geçtiği kanal aşınmaya karşı kalın bırakılmıştır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1386882-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "noobestimado",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-sr250-sinyal-sapi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "SR250"
+    ],
+    "baslik": "Yamaha SR250 Sinyal Sapı (Yedek)",
+    "aciklama": "Yamaha SR250 orijinal sinyallerinin gövde ile bağlantı noktası arasında kalan sapının yedeğidir.\nOrijinal somun yeniden kullanılır; sapın içindeki yamuk kesitli parça somunu yerinde kilitleyerek sinyalin dönmesini engeller.\n- SR250 sinyal gövdesi ve bağlantı deliğine göre biçimlendirilmiştir.\n- Titreşimden çatlayan orijinal sapın yerine takılır.\n- Kablo geçişi için içi boş bırakılmıştır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3004677-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw3004677-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rsre",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-dvd-s550-guc-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "DVD-S550"
+    ],
+    "baslik": "Yamaha DVD-S550 Güç (Standby/On) Düğmesi",
+    "aciklama": "Yamaha DVD-S550 oynatıcının ön panelindeki güç düğmesinin yedeğidir.\nKırılan veya içeri kaçan orijinal düğmenin yerine takılır; panel deliğine oturarak mikro anahtara temas eden bir gövde verir.\n- DVD-S550 ön panel delik çapına göre biçimlendirilmiştir.\n- Benzer panel düzenine sahip yakın modellerde ölçü büyütülerek kullanılabilir.\n- Panel yüzeyi ile aynı hizada duran düz bir üst yüzü vardır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2005540-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Damian",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-r6-r1-gosterge-tutma-rondelasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "R6",
+      "R1"
+    ],
+    "baslik": "Yamaha R6 / R1 Gösterge Tutma Rondelası (Takım)",
+    "aciklama": "Yamaha R6 ve R1 modellerinde gösterge panelini braketine bastıran tutma rondelası takımıdır.\nSertleşip dağılan orijinal kauçuk rondelaların yerine takılır; panelin oynamasını ve titreşimle çatırdamasını engeller.\n- R6 ve R1 gösterge bağlantı cıvatalarına geçer.\n- Takımda birden fazla rondela bulunur.\n- Titreşimi yumuşatması için esnek malzeme tercih edilmesi uygun olur.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3073268-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw3073268-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jlr",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-yzf600r-ayna-uzatici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZF600R",
+      "Thundercat"
+    ],
+    "baslik": "Yamaha YZF600R Thundercat Ayna Uzatıcı (Çift)",
+    "aciklama": "Yamaha YZF600R Thundercat aynalarını gövdeden dışarı taşıyan ara uzatıcı çiftidir.\nAyna ile grenaj bağlantısı arasına girer; omuz bölgesinin aynada kapladığı alanı azaltarak arka görüşü genişletir.\n- YZF600R ayna bağlantı deliklerine göre hazırlanmıştır.\n- Sağ ve sol için iki adet kullanılır.\n- Cıvata boyu uzatıcı kalınlığı kadar artırılmalıdır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1214996-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1214996-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1214996-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Itsmve",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-pss-30-pil-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "PSS-30"
+    ],
+    "baslik": "Yamaha PSS-30 Pil Kapağı",
+    "aciklama": "Yamaha PSS-30 klavyenin arka yüzündeki pil bölmesi kapağıdır.\nKaybolan veya tırnağı kırılan orijinal kapağın yerine takılır; pilleri yerinde tutar ve taşıma sırasında bölmeyi kapalı tutar.\n- PSS-30 pil bölmesi ölçüsüne göre biçimlendirilmiştir.\n- Benzer bölme düzenine sahip diğer küçük klavyelerde de kullanılabilir.\n- Kilit tırnağı elle bastırılarak açılıp kapanır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2576084-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2576084-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2576084-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2576084-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CJ2K",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-handysound-hs-500-pil-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "HandySound HS-500"
+    ],
+    "baslik": "Yamaha HandySound HS-500 Pil Kapağı",
+    "aciklama": "Yamaha HandySound HS-500 taşınabilir klavyenin pil bölmesi kapağıdır.\nKaybolan orijinal kapağın yerine takılır; pilleri yuvada sabit tutar ve bölmeyi toza karşı kapatır.\n- HS-500 pil bölmesi ölçüsüne göre biçimlendirilmiştir.\n- Orijinal kaydırmalı tırnak düzeni korunmuştur.\n- Gövde yüzeyiyle aynı hizada oturur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1519385-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1519385-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dalekav",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-e-bike-ekran-ve-anahtar-duvar-askisi",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha E-Bike Ekranı ve Anahtar Duvar Askısı",
+    "aciklama": "Yamaha sürüş motoru kullanan elektrikli bisikletlerin gidon ekranını (bisiklet bilgisayarını) duvarda saklamak için hazırlanmış askıdır.\nEkran üstten kızak boyunca aşağı kaydırılarak yerine oturur; alt kısmındaki çengele bisiklet anahtarları da asılır.\n- Yamaha e-bike ekran kızak profiline göre biçimlendirilmiştir.\n- İki vida deliğinden duvara sabitlenir.\n- Ekran ve anahtarı bir arada tutarak arama süresini kısaltır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2129799-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2129799-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2129799-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2129799-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lakors",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-vibrafon-aksesuar-kancasi",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha Vibrafon Aksesuar Kancası (Çift)",
+    "aciklama": "Yamaha vibrafon çerçevesine takılan aksesuar kancası takımıdır.\nÜçgen, parmak zili, havlu veya su şişesi gibi çalma sırasında elin altında olması gereken parçaları enstrümanın kenarında tutar.\n- Vibrafon yan çerçeve profiline geçme yuvası ile oturur.\n- Enstrümana delik açmayı veya vida takmayı gerektirmez.\n- İki kancalı takım hâlinde kullanılır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1701348-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1701348-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-rx-a780-hdmi-port-koruyucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "RX-A780"
+    ],
+    "baslik": "Yamaha RX-A780 HDMI Port Koruyucusu (Kablo Gerilim Azaltıcı)",
+    "aciklama": "Yamaha RX-A780 ev sinema alıcısının arka panelindeki HDMI portlarını kablo ağırlığından koruyan aparattır.\nPort sırasının üzerine oturur ve kabloları aşağı doğru yatırır; kablonun kendi ağırlığıyla porta kaldıraç yapmasını engeller.\n- RX-A780 arka panel HDMI port dizilimine göre biçimlendirilmiştir.\n- Benzer port düzenine sahip diğer alıcılarda da kullanılabilir.\n- Cihazı sökmeden takılıp çıkarılır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3128989-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw3128989-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw3128989-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw3128989-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw3128989-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "otttech",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "suzuki-dr650-hava-kutusu-kapagi",
     "kategori": "Motosiklet",
     "marka": [
