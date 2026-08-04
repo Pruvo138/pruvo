@@ -1,0 +1,22 @@
+{
+  "_not": "MARKA INVARYANT TABANI — bugunku BORC buraya civilendi; kapi yalnizca sayi ARTARSA kirmizi yanar. Dusus de kirmizidir (circir): borc kapandiktan sonra sessizce geri gelmesin. Guncelleme: python3 tools/marka-invaryant-kapisi.py --taban-yaz",
+  "_olcum": "4 Agu 2026 · katalog 18080 urun · canli uc ile 128/128 birebir eslesti (marka sayfasi / ?marka= / ?q= ucu ayri ayri)",
+  "arama_fazla_toplam_BLOKLAMAZ": 6449,
+  "arama_kayip": {
+    "Citroen": 1,
+    "Opel": 3
+  },
+  "filtre_fazla": {},
+  "filtre_kayip": {
+    "Black+Decker": 1,
+    "Citroen": 4,
+    "Datsun": 1,
+    "IKEA": 2,
+    "Kia": 1,
+    "Mini": 1,
+    "Opel": 3,
+    "Smart": 1,
+    "Volvo": 106
+  },
+  "marka_sayisi": 128
+}
