@@ -1675,7 +1675,10 @@ TABLO_TABANLARI = (
     # bayraksiz GERCEK olcum kolu serit A'da `build` job'unda BLOKLAYICI kosar).
     # 3 Agu: 40 -> 41 (yayin erisim nobetcisinin kabul testi beyan edildi; GERCEK
     # olcum kolu CI'da HIC kosmaz, ayri cron alarm is akisindadir).
-    ("SERIT_B", 41),
+    # 4 Agu: 41 -> 43 (spec/tasarim ifsa nobetinin IKI kolu: `ifsa-nobeti` job'unda
+    # tools/spec-ifsa-kapisi.py GERCEK olcum kolu + tools/spec-ifsa-mutasyon.py
+    # bataryasi; gerekce zinciri tabloda, geri tasima kosulu rc=0).
+    ("SERIT_B", 43),
 )
 
 TABLO_TANI = (
@@ -2242,6 +2245,36 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
         "SAF MUTASYON BATARYASI (17 mutant): kapilarin kendi kirmizi-yolunu olcer, "
         "yayinlanan hicbir ciktiya bakmaz.",
+    # --- SPEC/TASARIM IFSA NOBETI (4 Agu 2026) — GERCEK olcum kolu da burada ---------
+    # 🔴 ISTISNAI GIRIS, commit-mesaji ve gecmis-geri-donus kardesleriyle AYNI gerekce
+    # zinciri (bu tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer):
+    #   (a) YAYINA CIKMIYOR: Pages artefakti `_site` bir IZIN LISTESIDIR; kapinin
+    #       taradigi yuzeyin (mimar spec'leri, worker kaynagi, wrangler konfigurasyonu,
+    #       is akisi yorumlari) HICBIRI oraya kopyalanmaz -> "sizintili icerik canliya
+    #       cikmasin" sinifi DEGILDIR, yani serit secim olcutu bu adimi A'ya CAGIRMAZ.
+    #   (b) TAMIR DEGERI SIFIR: deploy.yml yalniz `push: branches:[main]` ile ve
+    #       PUSHTAN SONRA kosar; dosyalar o an ZATEN public remote'tadir. Yayini
+    #       durdurmak ifsayi geri ALMAZ (tek onarim: metni duzelt + yeni commit).
+    #   (c) BEDEL OLCULDU: kapi BUGUN KIRMIZI (temizlik Okan kapisinda, AYRI karar).
+    #       Serit A'da TUM EKIBIN yayini o birikim yuzunden dururdu — bu depoda kapi
+    #       birikmesi 6 SAATLIK canli 404 pencereleri acti
+    #       ([[kapi-birikimi-yayin-gecikmesi]]).
+    #   (d) GECIS MUAFIYETI SECILMEDI: bugunku bulgulari serit A'da gecici muaf tutmak
+    #       muaf satirlarin METNINI ya da yuzlerce opak hash'i kaynaga yazmayi
+    #       gerektirirdi — birincisi ifsanin ta kendisi, ikincisi DENETLENEMEZ liste.
+    # 🔴 GERI TASIMA KOSULU (olculebilir): ana dalda `python3 tools/spec-ifsa-kapisi.py`
+    #    rc=0 verdigi gun bayraksiz cagri `build` job'una tasinir ve BU IKI GIRIS
+    #    SILINIR (TABLO_TABANLARI::SERIT_B 43 -> 41).
+    ("deploy.yml", "ifsa-nobeti", "tools/spec-ifsa-kapisi.py"):
+        "Taradigi yuzey `_site` IZIN LISTESINDE DEGIL -> canliya cikan icerik sinifi "
+        "degildir; deploy.yml pushtan SONRA kostugu icin yayini durdurmanin tamir "
+        "degeri SIFIRDIR (dosyalar o an zaten public remote'ta). Kapi bugun KIRMIZI "
+        "ve temizlik Okan kapisinda; bloklayici seritte TUM EKIBIN yayini o birikim "
+        "yuzunden dururdu. rc=0 oldugu gun serit A'ya tasinir, bu giris silinir.",
+    ("deploy.yml", "ifsa-nobeti", "tools/spec-ifsa-mutasyon-test.py"):
+        "Aracin KENDINI sinamasi: 22 mutantlik batarya, her biri TEK IDDIA dusurur. "
+        "Yayinlanan hicbir ciktiya bakmaz, ag ISTEMEZ, canli dosyaya YAZMAZ "
+        "(sha256 once==sonra kendisi olcer).",
     ("deploy.yml", "serit-b", "tools/ci-kapsam-test.py"):
         "CI KAPSAM KAPISI — olctugu sey CI KABLOLAMASIDIR, yayinlanan icerik DEGIL. "
         "28 Tem'de o gunku 13 fail'in HEPSI bu adimdandi ve 6 SAATLIK 404 pencereleri "
