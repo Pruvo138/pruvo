@@ -140,21 +140,61 @@ X5 = ("X5", "🔴 PENCERE BASI ucu GIZLENDI: ilk kosumdan ONCEKI sessizlik boslu
 
 # ── PUSH SERIDI KABLO CAPASI (4 Agu 2026) ───────────────────────────────────
 # Bayatlik olcumu artik cron'a EK olarak push tetikli `odeme-bayatlik-push.yml`
-# seridinde de kosuyor. O seridin "yayini durdurmaz" ozelligi BEYAN DEGIL, KOSULAN bir
-# kapidir (`push_serit_kablosu`). Bu mutant o kapinin yasadigini SAYIYLA kanitlar:
-# yasak tetik listesinden `pull_request` dusurulunce PS10 fiksturu — ve YALNIZ o —
-# kirmizi yanar.
-X6 = ("X6", "🔴 PUSH SERIDI YAYIN-YOLU KAPISI DELINDI: yasak tetik listesinden "
-            "`pull_request` dusuruldu (fork PR'i seridi baslatabilir; secret kapsami "
-            "ve yayin kuyrugu degisir)",
-      [('PUSH_SERIT_YASAK_TETIK = ("pull_request", "workflow_call")',
-        'PUSH_SERIT_YASAK_TETIK = ("workflow_call",)')], True, {"PS10"})
+# seridinde de kosuyor. O seridin "yayini durdurmaz + disaridan surulemez" ozelligi
+# BEYAN DEGIL, KOSULAN bir kapidir (`push_serit_kablosu`).
+#
+# 🔴 ILK TURDA KUSURLU IDI (bagimsiz curutucu iadesi): kapi bir KARA LISTE tutuyordu
+# ("pull_request", "workflow_call") ve `pull_request_target` ACIK KALMISTI — o tetigi
+# tasiyan bir is akisi kapidan YESIL geciyordu. Kara liste TAMAMLANAMAZ
+# ([[maskeleme-kismi-kapatma]]); kapi IZIN LISTESINE cevrildi. Asagidaki mutantlar izin
+# listesini TEK TEK genisletir: her biri BIR fiksturu — ve YALNIZ onu — kirmizi yakar.
+# Mutanti OLMAYAN bir yasak yine BEYAN'dir; bu yuzden her yasak tetigin bir satiri var.
+def _izin(*ekler):
+    return [('PUSH_SERIT_IZINLI_TETIK = ("push", "workflow_dispatch")',
+             'PUSH_SERIT_IZINLI_TETIK = ("push", "workflow_dispatch", %s)'
+             % ", ".join('"%s"' % e for e in ekler))]
+
+
+X6 = ("X6", "🔴 IZIN LISTESI GENISLETILDI: `pull_request` mesru sayiliyor (fork PR'i "
+            "seridi baslatir; olcum cadansini ve kuyruk yukunu disaridan surdurur)",
+      _izin("pull_request"), True, {"PS10"})
+
+X7 = ("X7", "🔴 BLOKE EDEN KUSURUN NOBETI: `pull_request_target` mesru sayiliyor — fork "
+            "PR'ini TABAN DEPO baglaminda ve DEPO SECRET'leriyle kosturur, yani yabanci "
+            "koda CLOUDFLARE_API_TOKEN acar (ilk turda kapi bu tetikte YESIL geciyordu)",
+      _izin("pull_request_target"), True, {"PS17"})
+
+X8 = ("X8", "🔴 `issue_comment` mesru sayiliyor (herkesin yazabildigi bir yorum taban "
+            "depo baglaminda secret'li kosum baslatir)",
+      _izin("issue_comment"), True, {"PS18"})
+
+X9 = ("X9", "🔴 `workflow_run` mesru sayiliyor (serit deploy.yml'in TAMAMLANMASINA "
+            "baglanir; nobetci olctugu hatta bagimli olur — Y4 sinifi)",
+      _izin("workflow_run"), True, {"PS19"})
+
+X10 = ("X10", "🔴 MEKANIZMA NOBETI: ENUMERE EDILMEMIS bir tetik (`repository_dispatch`) "
+              "izin listesine giriyor -> izin listesinin fail-closed'ligi coker",
+       _izin("repository_dispatch"), True, {"PS20"})
+
+X11 = ("X11", "🔴 DAL CIVISI (GENIS desen kolu) NO-OP: `branches: ['**']` kabul edilir "
+              "-> serit HER dala kosar, gurultu alarmi FIILEN susturur",
+       [("        elif dal_listesi != [PUSH_SERIT_DAL]:\n", "        elif False:\n")],
+       True, {"PS21"})
+
+X12 = ("X12", "🔴 DAL CIVISI (TANIMSIZ kolu) NO-OP: `push.branches` hic tanimli "
+              "olmadiginda (varsayilan = TUM dallar) ariza URETILMEZ",
+       [("        if not dal_listesi:\n", "        if False:\n")], True, {"PS22"})
+
+X13 = ("X13", "🔴 `workflow_call` mesru sayiliyor (is akislari arasi TEK bag yolu; serit "
+              "deploy.yml'in `needs` grafinin ICINE girebilir)",
+       _izin("workflow_call"), True, {"PS11"})
 
 # ── KONTROL MUTANTI (YESIL kalmali) ─────────────────────────────────────────
 K1 = ("K1", "ilgisiz: A5 sabitinin yanina aciklama yorumu eklendi",
       [("TESLIM_SAYFA = 100", "TESLIM_SAYFA = 100   # GitHub sayfa boyu")], False, set())
 
-MUTANTLAR = (M1, M2, M3, M4, M5, M6, X4, X5, X6, K1)
+MUTANTLAR = (M1, M2, M3, M4, M5, M6, X4, X5,
+             X6, X7, X8, X9, X10, X11, X12, X13, K1)
 
 IDDIA_RE = re.compile(r"^(\d+) iddia kosturuldu, (\d+) KIRMIZI\.$", re.M)
 # Kirmizi EKSEN kodu = `[FAIL]` satirinin ilk sozcugu (kapinin `iddia()` bicimi).
@@ -210,7 +250,7 @@ def kos(ayna, kaynak_metni):
 
 
 def main():
-    print("A5 TESLIM EKSENI — CURUTME (mutasyon) KOSUMU")
+    print("A5 TESLIM EKSENI + PUSH SERIDI KABLO CAPASI — CURUTME (mutasyon) KOSUMU")
     print("hedef: %s\n" % KAPI)
     once = {y: sha(y) for y in DOKUNULMAZ}
 

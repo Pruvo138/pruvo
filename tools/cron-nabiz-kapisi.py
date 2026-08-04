@@ -197,10 +197,41 @@ PUSH_SERIT_ARACI = "tools/shop-bayatlik-kapisi.py"
 # Yayin is akisi: eszamanlilik grubu BURADAN kosarak okunur (ikiz dize TUTULMAZ,
 # [[ikiz-tanim-sessiz-ayrisma]]).
 YAYIN_DOSYA = "deploy.yml"
-# `pull_request`: fork PR'i seridi baslatir ve secret kapsamini degistirir.
-# `workflow_call`: is akislari arasi TEK bag yolu budur; kapaliysa serit deploy.yml'in
-# `needs` grafinin ICINE giremez (GitHub'da is akislari arasi `needs` zaten yoktur).
-PUSH_SERIT_YASAK_TETIK = ("pull_request", "workflow_call")
+# 🔴 IZIN LISTESI — KARA LISTE DEGIL (4 Agu 2026, bagimsiz curutucu bulgusu)
+# ILK HAL kara listeydi: ("pull_request", "workflow_call"). OLCULDU (kopya dizin):
+# is akisina `pull_request_target` eklendiginde `push_serit_kablosu()` YESIL kaliyordu
+# (olculen tetikler: ['pull_request_target','push','workflow_dispatch']) ve
+# `is-akisi-kapisi.py` de rc=0 veriyordu; `git grep pull_request_target` tools/ + .github/
+# icinde 0 vurus -> IKINCI KATMAN DA YOKTU. Cok parcali bir jetonda parcalardan birini
+# kapatmak sizintiyi KAPATMAZ ([[maskeleme-kismi-kapatma]]): kara liste TAMAMLANAMAZ
+# (yarin GitHub yeni bir tetik ekler ve kapi sessizce delik kalir), izin listesi TANIM
+# GEREGI kapalidir. Serit YALNIZ bu iki tetigi tasiyabilir.
+PUSH_SERIT_IZINLI_TETIK = ("push", "workflow_dispatch")
+# TESHIS TABLOSU — KAPI DEGIL: kapi izin listesidir, bu tablo yalnizca ariza metnini
+# adiyla soyler. Bir tetigin BURADA OLMAMASI onu mesru yapmaz (izin listesinde degilse
+# zaten KIRMIZI). Girisler "fork/yabanci tetikleyebilir + TABAN DEPO baglami + secret"
+# ve "seridi yayin yoluna baglar" eksenlerinden secildi.
+PUSH_SERIT_TEHLIKE = {
+    "pull_request_target": "fork PR'ini TABAN DEPO baglaminda ve DEPO SECRET'leriyle "
+                           "kosturur -> yabanci kod CLOUDFLARE_API_TOKEN'a erisebilir "
+                           "(secret tasiyan bir is akisi icin EN tehlikeli tetik)",
+    "pull_request": "fork PR'i seridi baslatir; olcum cadansini ve kuyruk yukunu "
+                    "disaridan surdurur",
+    "issue_comment": "herkesin yazabildigi bir yorum, TABAN DEPO baglaminda secret'li "
+                     "bir kosum baslatir",
+    "pull_request_review": "ayni sinif: dis katkinin tetikleyebildigi, taban depo "
+                           "baglaminda secret'li kosum",
+    "pull_request_review_comment": "ayni sinif: dis katkinin tetikleyebildigi, taban "
+                                   "depo baglaminda secret'li kosum",
+    "workflow_call": "is akislari arasi TEK bag yolu budur; acik olursa serit "
+                     "deploy.yml'in `needs` grafinin ICINE girebilir",
+    "workflow_run": "seridi deploy.yml'in TAMAMLANMASINA baglar -> nobetci OLCTUGU "
+                    "hatta bagimli olur ve hat tikandiginda O DA susar (Y4 sinifi)",
+}
+# Serit YALNIZ ana dalda kosar. `branches: ['**']` gibi genis bir desen her dala kosar,
+# gurultuyu kat kat artirir ve alarmi FIILEN susturur (olculdu: bu depoda kapi birikmesi
+# yayin suresini 21 gunde 15,6x uzatti — [[kapi-birikimi-yayin-gecikmesi]]).
+PUSH_SERIT_DAL = "main"
 # Seridin canli kolunun ihtiyac duydugu secret. Kapsami VARSAYILMAZ, OLCULUR:
 # bkz. `_secret_ortam_kapsami`.
 PUSH_SERIT_SECRET = "CLOUDFLARE_API_TOKEN"
@@ -1582,13 +1613,16 @@ def push_serit_kablosu(ham=None, yayin_ham=None):
     """PUSH SERIDI — bayatlik olcumu FIILEN ATESLENEN tetige bagli MI ve yayin yolundan
     AYRI MI. GERCEK dosyadan olculur; `ham`/`yayin_ham` verilirse FIKSTUR olculur.
 
-    YEDI sart, hepsi fail-closed:
+    SEKIZ sart, hepsi fail-closed:
       (1) `push` tetigi VAR. Yoksa serit OLU'dur ve korluk penceresi cron'un olculen
           1053,5 dk'sina geri doner.
-      (2) 🔴 `pull_request` ve `workflow_call` tetigi YOK. Birincisi fork PR'ini seride
-          sokar (secret kapsami ve yayin kuyrugu degisir); ikincisi is akislari arasi
-          TEK bag yoludur — kapali oldugu surece bu serit deploy.yml'in `needs`
-          grafinin ICINE giremez.
+      (2) 🔴 IZIN LISTESI: `push` ve `workflow_dispatch` DISINDA HICBIR tetik YOK.
+          Kara liste DEGIL (olculdu: `pull_request` yasakliyken `pull_request_target`
+          acik kalmisti ve kapi YESIL geciyordu — [[maskeleme-kismi-kapatma]]).
+          En tehlikeli hal `pull_request_target`tir: fork PR'ini TABAN DEPO baglaminda
+          ve DEPO SECRET'leriyle kosturur, yani yabanci koda CLOUDFLARE_API_TOKEN acar.
+      (2b) 🔴 DAL CIVISI: `push.branches` TANIMLI ve TAM OLARAK `[main]`. Iki AYRI
+          kontrol (tanimsiz · genis) — her birinin AYIRT EDICI mutanti vardir.
       (3) `concurrency` grubu VAR ve deploy.yml'in grubuna ESIT DEGIL (grup adi
           deploy.yml'den KOSARAK okunur; ikinci kopya tutulmaz).
       (4) deploy.yml hicbir isi bu dosyayi `uses:` ile CAGIRMIYOR.
@@ -1627,13 +1661,38 @@ def push_serit_kablosu(ham=None, yayin_ham=None):
             "%s icinde `push` tetigi YOK -> serit OLU: bayatlik olcumu yine yalnizca "
             "cron'a bagli kalir (olculen teslim %%4,31, en uzun sessizlik 1053,5 dk)"
             % PUSH_SERIT_DOSYA)
-    for yasak in PUSH_SERIT_YASAK_TETIK:
-        if yasak in tetik_adlari:
+    # 🔴 IZIN LISTESI: izinli olmayan HER tetik kirmizidir (kara liste degil — bkz.
+    # PUSH_SERIT_IZINLI_TETIK yanindaki olculen gerekce).
+    for t in sorted(tetik_adlari):
+        if t in PUSH_SERIT_IZINLI_TETIK:
+            continue
+        sorunlar.append(
+            "🔴 IZINSIZ TETIK `%s`: %s icinde izin listesi disinda bir tetik VAR. "
+            "GEREKCE: %s. Bu seridin TEK gerekcesi 'kirmizisi yayini durdurmaz' ve "
+            "'disaridan surulemez' olmasidir ([[kapi-kapsam-eksen-secimi]] · "
+            "[[maskeleme-kismi-kapatma]]). Izinli tetikler: %s."
+            % (t, PUSH_SERIT_DOSYA,
+               PUSH_SERIT_TEHLIKE.get(t, "bu tetik ENUMERE EDILMEMIS — izin listesi "
+                                         "fail-closed oldugu icin yine de REDDEDILIR"),
+               ", ".join(PUSH_SERIT_IZINLI_TETIK)))
+
+    # 🔴 DAL CIVISI — iki AYRI kontrol (her birinin AYIRT EDICI mutanti var).
+    push_govdesi = tetik.get("push") if isinstance(tetik, dict) else None
+    ham_dallar = push_govdesi.get("branches") if isinstance(push_govdesi, dict) else None
+    dal_listesi = [str(d) for d in ham_dallar] if isinstance(ham_dallar, list) else []
+    if "push" in tetik_adlari:
+        if not dal_listesi:
             sorunlar.append(
-                "🔴 YAYIN YOLUNA BAGLANMIS: %s icinde `%s` tetigi VAR. Bu seridin TEK "
-                "gerekcesi 'kirmizisi yayini durdurmaz' olmasidir; ag'a bagimli tek bir "
-                "yanlis pozitif TUM EKIBIN yayinini durdururdu "
-                "([[kapi-kapsam-eksen-secimi]])." % (PUSH_SERIT_DOSYA, yasak))
+                "🔴 DAL SUZGECI YOK: %s icinde `push.branches` tanimli DEGIL -> serit HER "
+                "dalda kosar. Gurultu kat kat artar ve alarm FIILEN susar; ayrica olcum "
+                "uzak main ucu hakkinda hukum verirken baska bir dalin ucunu olcerdi."
+                % PUSH_SERIT_DOSYA)
+        elif dal_listesi != [PUSH_SERIT_DAL]:
+            sorunlar.append(
+                "🔴 DAL SUZGECI GENIS: %s `push.branches` = %r; YALNIZ [%r] olmali. "
+                "Joker/coklu desen seridi her dala yayar: gurultu alarmi susturur ve "
+                "olcum ana dal disindaki bir ucu 'canli bayat' sanar."
+                % (PUSH_SERIT_DOSYA, dal_listesi, PUSH_SERIT_DAL))
 
     grup = _eszamanlilik_grubu(govde)
     if grup is None:
@@ -1717,7 +1776,8 @@ def push_serit_kablosu(ham=None, yayin_ham=None):
             "KAPSAM KANITI COKTU: %s icinde secret'i tuketen is(ler) `environment:` "
             "beyan ediyor (%s) -> secret ORTAM'a bagli olabilir ve bu seritte "
             "COZULMEYEBILIR" % (PAKET_ALARM_DOSYA, ", ".join(kardes_ortamli)))
-    return sorunlar, {"tetikler": sorted(tetik_adlari), "grup": grup,
+    return sorunlar, {"tetikler": sorted(tetik_adlari), "dallar": dal_listesi,
+                      "grup": grup,
                       "yayin_grup": yayin_grup, "cagiran": cagiran,
                       "olcum": olcum_adimi is not None, "tazeleme": tazeleme,
                       "token": token_var, "ortamli": ortamli,
@@ -2353,10 +2413,11 @@ def kendini_test():
           "DUSURDUGU tetige degil FIILEN ateslenen tetige bagli"
           % (PUSH_SERIT_DOSYA, PUSH_SERIT_ARACI),
           not ps_sorun, ps_ariza or "; ".join(ps_sorun) or repr(ps_bulgu))
-    iddia("PS2 PUSH SERIT: 🔴 YAYINI DURDURAMAZ — `pull_request`/`workflow_call` tetigi "
-          "YOK (bu iddia yorum degil, KOSULAN kapidir)",
+    iddia("PS2 PUSH SERIT: 🔴 IZIN LISTESI — is akisi `push`/`workflow_dispatch` DISINDA "
+          "HICBIR tetik tasimiyor (kara liste degil: `pull_request` yasaklanip "
+          "`pull_request_target` acik kalmasi [[maskeleme-kismi-kapatma]] sinifidir)",
           bool(ps_bulgu.get("tetikler"))
-          and not (set(PUSH_SERIT_YASAK_TETIK) & set(ps_bulgu["tetikler"])),
+          and set(ps_bulgu["tetikler"]) <= set(PUSH_SERIT_IZINLI_TETIK),
           repr(ps_bulgu.get("tetikler")))
     iddia("PS3 PUSH SERIT: `push` tetigi VAR (yoksa serit OLU ve korluk penceresi "
           "cron'un 1053,5 dk'sina geri doner)",
@@ -2424,8 +2485,67 @@ def kendini_test():
               "shop-bayatlik-kapisi.py --gh-ozet",
               "shop-bayatlik-kapisi.py --gh-ozet || true"))))
     # KONTROL (TEK DEGISKEN: fikstur bozulmadi) — kapi "her seye ariza" demiyor.
-    iddia("PS16 FIKSTUR KONTROL: bozulmamis iskelet -> ARIZA YOK (yanlis-pozitif yok)",
+    # 🔴 Bu satir ASAGIDAKI PS17-PS22'nin ORTAK KONTROLUDUR: her biri BU iskelete TEK
+    # DEGISIKLIK uygular; iskeletin kendisi ARIZASIZ oldugu icin kirmizi degisikligin
+    # KENDISINE atfedilir.
+    iddia("PS16 FIKSTUR KONTROL: bozulmamis iskelet -> ARIZA YOK (yanlis-pozitif yok; "
+          "PS17-PS22'nin TEK DEGISKENLI kontrolu)",
           _ps_sorun(PUSH_SERIT_FIKSTUR) == [], repr(_ps_sorun(PUSH_SERIT_FIKSTUR)))
+
+    # ── IZIN LISTESI NOBETI (4 Agu 2026, curutucu iadesi) ────────────────────
+    # 🔴 OLCULEN KUSUR: kara liste ("pull_request", "workflow_call") ile
+    # `pull_request_target` tasiyan bir is akisi kapidan YESIL geciyordu; ikinci katman
+    # da yoktu (`git grep pull_request_target` -> tools/ + .github/ icinde 0 vurus).
+    # Asagidaki iddialar TEHLIKELI tetikleri ADIYLA, ENUMERE EDILMEMIS tetigi ise
+    # MEKANIZMA olarak civiler. Her biri ariza METNINI olcer (yalnizca "ariza var mi"
+    # DEGIL): boylece her yasak icin AYIRT EDICI (tek kirmizi) bir mutant yazilabilir.
+    def _ps_tetik_eklenmis(ad):
+        return _ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+            "  workflow_dispatch:\n", "  %s:\n  workflow_dispatch:\n" % ad))
+
+    def _ps_metinde(sorunlar, parca):
+        return any(parca in s for s in sorunlar)
+
+    iddia("PS17 FIKSTUR: 🔴 `pull_request_target` -> ARIZA. Fork PR'ini TABAN DEPO "
+          "baglaminda ve DEPO SECRET'leriyle kosturur; secret tasiyan bu seritte "
+          "yabanci koda CLOUDFLARE_API_TOKEN acardi. (Kara listede EKSIKTI: kapi "
+          "YESIL geciyordu.)",
+          _ps_metinde(_ps_tetik_eklenmis("pull_request_target"),
+                      "IZINSIZ TETIK `pull_request_target`"),
+          repr(_ps_tetik_eklenmis("pull_request_target")[:1]))
+    iddia("PS18 FIKSTUR: 🔴 `issue_comment` -> ARIZA (herkesin yazabildigi bir yorum "
+          "taban depo baglaminda secret'li kosum baslatirdi)",
+          _ps_metinde(_ps_tetik_eklenmis("issue_comment"),
+                      "IZINSIZ TETIK `issue_comment`"))
+    iddia("PS19 FIKSTUR: 🔴 `workflow_run` -> ARIZA (serit deploy.yml'in TAMAMLANMASINA "
+          "baglanirdi; nobetci olctugu hatta bagimli olur ve hat tikandiginda O DA "
+          "susar — Y4 sinifi)",
+          _ps_metinde(_ps_tetik_eklenmis("workflow_run"),
+                      "IZINSIZ TETIK `workflow_run`"))
+    iddia("PS20 FIKSTUR: 🔴 ENUMERE EDILMEMIS tetik (`repository_dispatch`) -> ARIZA. "
+          "Bu MEKANIZMA iddiasidir: kara liste TAMAMLANAMAZ (yarin GitHub yeni bir "
+          "tetik ekler), izin listesi TANIM GEREGI kapalidir",
+          _ps_metinde(_ps_tetik_eklenmis("repository_dispatch"),
+                      "IZINSIZ TETIK `repository_dispatch`"))
+
+    # ── DAL CIVISI NOBETI — iki AYRI kontrol, iki AYRI mutant ────────────────
+    iddia("PS21 FIKSTUR: 🔴 `branches: ['**']` -> ARIZA (serit HER dala kosar; gurultu "
+          "alarmi FIILEN susturur ve olcum ana dal disindaki bir ucu 'canli bayat' "
+          "sanar)",
+          _ps_metinde(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "    branches: [main]\n", "    branches: ['**']\n")),
+              "DAL SUZGECI GENIS"),
+          repr(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "    branches: [main]\n", "    branches: ['**']\n"))[:1]))
+    iddia("PS22 FIKSTUR: 🔴 `push:` var ama `branches` TANIMSIZ -> ARIZA (varsayilan "
+          "davranis TUM dallardir; 'yalniz main' iddiasi susarak coker)",
+          _ps_metinde(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "  push:\n    branches: [main]\n", "  push:\n")), "DAL SUZGECI YOK"),
+          repr(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "  push:\n    branches: [main]\n", "  push:\n"))[:1]))
+    iddia("PS23 GERCEK DOSYA: `push.branches` TAM OLARAK [%r] (fikstur degil, canli "
+          "is akisi)" % PUSH_SERIT_DAL,
+          ps_bulgu.get("dallar") == [PUSH_SERIT_DAL], repr(ps_bulgu.get("dallar")))
 
     # DAMGA KUTUGU: yazici iki adi da tanir, kutuk disina cikamaz.
     for ad in (DAMGA_ADI, PAKET_DAMGA_ADI):

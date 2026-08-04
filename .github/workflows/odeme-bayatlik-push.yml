@@ -33,20 +33,31 @@ name: Odeme yolu bayatlik nabzi (push seridi)
 # ══════════════════════════════════════════════════════════════════════════════
 # 🔴 NEDEN YAYINI DURDURAMAZ (yapisal, beyan DEGIL — KOSULAN kapi)
 # ══════════════════════════════════════════════════════════════════════════════
-#   * `pull_request` tetigi YOK -> fork PR'i bu seridi baslatamaz (secret sizmaz,
-#     dis katki yayin kuyrugunu mesgul edemez).
-#   * `workflow_call` YOK -> deploy.yml bu is akisini `uses:` ile CAGIRAMAZ, yani
-#     yayinin `needs` grafinin ICINE giremez. GitHub'da is akislari arasi `needs`
+#   * 🔴 TETIK IZIN LISTESI (kara liste DEGIL): bu is akisi YALNIZ `push` ve
+#     `workflow_dispatch` tasiyabilir. ILK HALDE kara liste vardi ve
+#     `pull_request_target` ACIK KALMISTI — o tetik fork PR'ini TABAN DEPO baglaminda,
+#     DEPO SECRET'leriyle kosturur, yani yabanci koda `CLOUDFLARE_API_TOKEN` acardi.
+#     Kara liste TAMAMLANAMAZ ([[maskeleme-kismi-kapatma]]); izin listesi tanim geregi
+#     kapalidir ve yarin GitHub yeni bir tetik eklese de delik acilmaz.
+#   * `workflow_call` izinli DEGIL -> deploy.yml bu is akisini `uses:` ile CAGIRAMAZ,
+#     yani yayinin `needs` grafinin ICINE giremez. GitHub'da is akislari arasi `needs`
 #     ZATEN yoktur; tek bag yolu `workflow_call`tur ve o kapali.
+#   * `workflow_run` izinli DEGIL -> serit deploy.yml'in TAMAMLANMASINA baglanamaz;
+#     nobetci olctugu hatta bagimli olmaz (Y4 sinifi).
+#   * 🔴 DAL CIVISI: `branches: [main]` — TAM OLARAK bu. Genis desen (`['**']`) ya da
+#     tanimsiz `branches` seridi her dala yayardi: gurultu alarmi FIILEN susturur ve
+#     olcum ana dal disindaki bir ucu "canli bayat" sanardi.
 #   * `concurrency` grubu AYRI (`odeme-bayatlik-push` ≠ deploy.yml'in `pages` grubu)
 #     -> hicbir yayin kosumunu bekletmez, hicbiri tarafindan bekletilmez.
 #   * Buradaki kirmizi GORUNUR (kosum kirmizi + GitHub bildirimi + is ozeti), yayin
 #     yoluna maliyeti 0 sn.
 # Bu sartlarin HEPSI `tools/cron-nabiz-kapisi.py::push_serit_kablosu()` tarafindan
-# OLCULUR ve `--kendini-test` icinde KOSAR: bu dosyaya `pull_request:` ya da
-# `workflow_call:` eklenirse, `push:` dusurulurse, concurrency grubu deploy.yml'in
-# grubuyla esitlenirse ya da canli kol `--kendini-test`e dusurulurse nabiz kapisi
-# KIRMIZI yanar ([[kapi-kapsam-eksen-secimi]]).
+# OLCULUR ve `--kendini-test` icinde KOSAR (PS1-PS23): bu dosyaya izin listesi disinda
+# HERHANGI bir tetik eklenirse, `push:` dusurulurse, `branches` genisletilir/silinirse,
+# concurrency grubu deploy.yml'in grubuyla esitlenirse ya da canli kol
+# `--kendini-test`e dusurulurse nabiz kapisi KIRMIZI yanar
+# ([[kapi-kapsam-eksen-secimi]]). Her yasagin AYIRT EDICI (tek kirmizi) mutanti
+# `tools/cron-teslim-mutasyon.py`de kayitlidir (X6-X13) — mutanti olmayan yasak BEYAN'dir.
 #
 # ══════════════════════════════════════════════════════════════════════════════
 # SECRET KAPSAMI — `CLOUDFLARE_API_TOKEN` BU IS AKISINDA COZULUR MU
