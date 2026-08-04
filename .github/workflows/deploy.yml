@@ -2012,6 +2012,62 @@ jobs:
         run: python3 tools/gecmis-geri-donus-kapisi.py --kendini-test
       - name: "Geri-donus: bu itmenin GETIRDIGI commit'ler (mesaj + icerik; ALARM — yayini DURDURMAZ)"
         run: python3 tools/gecmis-geri-donus-kapisi.py --ci
+  # ═════════════════════════════════════════════════════════════════════════════
+  # SPEC/TASARIM IFSA NOBETI — UCUNCU SIZINTI KOLU (4 Agu 2026)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN OLAY: depo PUBLIC. Iki ayri tur olctu ki (1) izlenen mimar spec'lerinde 28
+  # tasarim/topoloji ifsasi var (10'u YUKSEK, dogrudan sir DEGERI 0) ve (2) KAYNAK,
+  # BELGEDEN FAZLA IFSA EDIYOR (worker'in bas yorum blogu uc envanterini + sir/baslik/
+  # cerez adlarini tek yerde topluyor; konfigurasyon ozel kova adini duz metin tasiyor;
+  # bir yorum kapatilmamis bir zayifligi beyan ediyor). Mevcut nobetcilerin HICBIRI bu
+  # yuzeye BAKMIYORDU: kisisel-veri-test.py'nin ekseni DOSYA ADI ve icerik taramasi
+  # KASITLA disarida; mimar-kod-kilidi.py `.md`yi her yerde muaf tutuyor.
+  #
+  # 🔴 NEDEN AYRI IS ve NEDEN BLOKLAMAZ (`envanter` · `cron-nabzi` · `mesaj-nobeti` ile
+  # AYNI desen): `needs:` YOK ve hicbir is buna bagli DEGIL -> `deploy` ile PARALEL
+  # kosar, yayin yolunu tek saniye uzatmaz.
+  #   (a) YAYINA CIKMIYOR: Pages artefakti `_site` bir IZIN LISTESIDIR; taranan yuzeyin
+  #       (spec · worker kaynagi · konfigurasyon · is akisi) hicbiri oraya kopyalanmaz
+  #       -> "sizintili icerik canliya cikmasin" sinifi DEGILDIR (o sinif serit A'da).
+  #   (b) TAMIR DEGERI SIFIR: bu is akisi yalniz `push: branches:[main]` ile ve PUSHTAN
+  #       SONRA kosar; dosyalar o an ZATEN public remote'tadir. Yayini durdurmak ifsayi
+  #       geri ALMAZ (tek onarim: metni duzelt + yeni commit).
+  #   (c) BEDELI OLCULDU: kapi BUGUN KIRMIZI yaniyor (temizlik Okan kapisinda, ayri
+  #       karar). Bloklayici seride TUM EKIBIN yayini o birikim yuzunden DURURDU — bu
+  #       depoda kapi birikmesi 6 SAATLIK canli 404 pencereleri acti
+  #       ([[kapi-birikimi-yayin-gecikmesi]]).
+  # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi nobetci ihlalidir): rc dogrudan
+  #    konusur, job KIRMIZI yanar, bildirim duser. Kapi OLCEMEZSE rc 2 ile kirmizi yanar
+  #    — "olcemedim" YESIL degildir.
+  # 🔴 TESHIS MASKELI: tarama kolu eslesen SATIRIN METNINI HIC yazmaz, yalniz
+  #    `dosya:satir [EKSEN]` basar. Aksi halde nobetci ifsayi PUBLIC Actions gunlugune
+  #    kendi eliyle kopyalardi ([[nobetci-kendi-dosyasinda-sizinti]]).
+  # 🔴 SERIT A'YA TASIMA KOSULU (olculebilir): ana dalda tarama kolu rc=0 verdigi gun
+  #    bayraksiz cagri `build` job'una tasinir ve is-akisi-kapisi.py::SERIT_B girisleri
+  #    silinir (taban 43 -> 41).
+  ifsa-nobeti:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 1 YETER — kapi CALISMA AGACINI tarar, git GECMISINI okumaz
+      # (`git ls-files` yalniz indeksi gezer). SIG klonda da AYNI sonucu verir; bu
+      # olculdu ve raporda sayiyla duruyor.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Once nobetcinin KENDI kabulu (22 iddia; ag YOK, gercek dosyaya YAZMA YOK).
+      # ADIM ADINDA IDDIA SAYISI YAZMAZ — bayat sayi yanlis bilgi verir; gercek sayiyi
+      # betigin kendisi "TOPLAM: N/N" satiriyla basar.
+      - name: "Spec ifsa nobetcisi: kendini test (sayi ciktida)"
+        run: python3 tools/spec-ifsa-kapisi.py --kendini-test
+      # Sonra MUTASYON BATARYASI: her iddianin AYIRT EDICI bir mutantla oldurulebildigi
+      # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Canli dosyaya YAZMAZ ve bunu sha256
+      # once==sonra ile KENDISI olcer.
+      - name: "Spec ifsa nobetcisi: mutasyon bataryasi (TEK KIRMIZI + beyana esitlik)"
+        run: python3 tools/spec-ifsa-mutasyon-test.py
+      # GERCEK OLCUM — bugun KIRMIZI yanmasi BEKLENEN sonuctur (temizlik ayri karar).
+      - name: "Spec/tasarim ifsasi: izlenen anlatim yuzeyi (ALARM — yayini DURDURMAZ)"
+        run: python3 tools/spec-ifsa-kapisi.py
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================
