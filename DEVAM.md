@@ -33,6 +33,10 @@ Bayatlik nobetcisinin iki iddiasi eskiden coker halde susuyordu; artik cokme yer
   SUCCESS**; ardindan `f4c285c7` → 30906064032 SUCCESS; `896f05fa` → 30907303355 SUCCESS.
   Uc kosumun ucu de yesil ve UCUNDE de serit, ayni SHA'nin `Build & deploy` kosumu HALA
   `in_progress` iken TAMAMLANDI — "yayini geciktirmiyor" iddiasinin canli ilk kaniti.
+- CI teyidi: merge SHA'min KENDI yayin kosumu (30906008558) `concurrency` ile IPTAL oldu;
+  gecerli kanit ardil kosum **30906064355** (headSha `f4c285c7`, **SUCCESS**) ve merge SHA'm
+  bu SHA'nin ATASI (`merge-base --is-ancestor` cikis 0). "En son kosum yesildi" degil,
+  SHA'yi ICEREN kosum olculdu.
 - Temizlik: worktree kaldirildi, dal silindi (`a3cfb181`); ana agacta yetim degisiklik YOK
   (kalan 2 untracked kalem baska oturuma ait, DOKUNULMADI).
 
