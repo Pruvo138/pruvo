@@ -104,11 +104,26 @@ Ayrım için alan **zaten kararlı**: `"tur": "fiziksel"`, alan yoksa özel üre
 ([[fiziksel-urun-ayrimi]], 31 Tem Okan kararı). İkinci bir alan açmak ikiz tanım üretir.
 Marka-model sayfasında ayrım **ayrı sayfa değil**, kartta rozet + filtre çipidir.
 
-### 🔴 3.1 OKAN KAPISI — CAYMA HAKKI (kod kapatamaz)
-Fiziki üründe 14 gün cayma hakkı VAR, özel üretimde YOK; mesafeli satış + teslimat-iade
-sayfaları şu an **tek dil** konuşuyor. Bu paket ikisini **yan yana** gösterdiği için risk
-görünür hâle gelir. Sayfalar ayrışana kadar bu HUKUKİ açıktır ve karar Okan'dadır.
-Bu paket o kararı beklemeden ilerleyebilir; **canlıya alma** o karara bağlıdır.
+### ✅ 3.1 CAYMA HAKKI — BOŞLUK KAPANDI (1 Ağu 2026); aşağısı TARİHSEL KAYIT
+
+**GEÇMİŞTE ŞU BOŞLUK VARDI (bu paket yazılırken, 2 Ağu'dan önce):** fiziki üründe 14 gün
+cayma hakkı VAR, özel üretimde YOK; mesafeli satış + teslimat-iade sayfaları **tek dil**
+konuşuyordu. Paket ikisini yan yana gösterdiği için risk görünür hâle geliyordu ve bu
+HUKUKİ bir açık olarak kaydedilmişti.
+
+**KAPANDI — 1 Ağu 2026** (ölçüldü 4 Ağu 2026, bu satır o yüzden yazıldı):
+- Sayfa üretecinde ayrım var: hazır/stok üründe 14 gün cayma hakkı, ölçüye özel üretimde
+  m.15 istisnası ayrı ayrı yazılı (`tools/sayfalar.py`, mesafeli satış + teslimat-iade).
+- Teslimat kolundaki tek-sınıflı boşluk tek kaynaktan iki gövdeye basılıyor (ikiz metin yok).
+- **NÖBETÇİSİ VAR:** `tools/cayma-beyani-kapisi.py` (1 Ağu) — sınıf ayrımını e-posta, ürün
+  sayfası, sözleşme ve ödeme ekranı olmak üzere dört beyan yüzeyinde birden ölçer; ayrım
+  kaybolursa KIRMIZI yanar (`--mutasyon` kolu körlüğü ayrıca kanıtlar).
+- Canlı yasal sayfada iki sınıfın cümleleri birlikte geçiyor (4 Ağu doğrulaması).
+
+🔴 Bu paragraf **silinmedi, kapatıldı**: kayıt değeri var (boşluğun varlığı + kapanış
+tarihi + nöbetçisi). "Çözülmemiş açık" diye okunacak hâli 4 Ağu'da kaldırıldı.
+KALAN OKAN KAPISI: iade kargo bedelinin kime ait olduğu — cevap BEKLİYOR; metne
+yazılmasını `cayma-beyani-kapisi.py` C4 iddiası engelliyor.
 
 ---
 

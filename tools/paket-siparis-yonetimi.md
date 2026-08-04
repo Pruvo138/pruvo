@@ -60,7 +60,11 @@ RESEND_API_KEY canlıya Okan `wrangler secret put` ile girer — koda/dosyaya an
   kendisi AYRI mikro paket (yönet API'den sipariş+dosyayı çeker, macOS'ta Bambu Studio'da
   açar; tam otomatik dilim+başlat Bambu LAN API'si ayrı karar). Bu pakette yönet liste
   JSON'unun yerel araca yetecek alanları içermesi YETERLİ (dosya ucu + malzeme/renk/öneri).
-- GÜVENLİK ÇİZGİLERİ: yönetim uçları rate-limit'siz ama anahtarsız istekte 404; anahtar
+- GÜVENLİK ÇİZGİLERİ: yönetim uçları anahtarsız istekte 404; giriş formunda **worker-içi
+  hız sınırı VAR** (pencere başına başarısız deneme tavanı + her denemede sabit gecikme +
+  gövde boyutu sınırı; `shop/src/yonet.js` giriş kolu — 2026-08-04 kaynak ölçümü. Sayaç
+  isolate başına tutulur, yani mutlak tavan değil ucuz yavaşlatıcı; kalıcı/global tavan
+  ayrı bir binding ister). Nöbetçi: `tools/bayat-beyan-kapisi.py` (B ekseni); anahtar
   loglara/HATA metinlerine yazılmaz; PII (müşteri ad/tel/adres) sadece anahtarlı yanıtta;
   CORS'ta yönetim uçları site origin'ine AÇILMAZ (same-origin kullanım). Kart verisi zaten yok.
 
