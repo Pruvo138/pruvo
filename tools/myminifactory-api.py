@@ -110,7 +110,7 @@ COP_FIREARM = (
 COP = COP_LOGO + COP_MERCH + COP_OTHER + COP_FIREARM
 
 # MMF indirme sayisi VERMEZ -> populerlik goruntuleme (views) + begeni (likes) uzerinden.
-# Esikler OLCUM BEKLEYEN varsayilan (anahtar gelince kalibre edilecek; bkz. RAPOR-MIMARA.md).
+# Esikler OLCUM BEKLEYEN varsayilan (anahtar gelince kalibre edilecek; bkz. muhendis raporu).
 POP_VIEW = 20000     # >= goruntuleme -> populer
 POP_LIKE = 200       # >= begeni     -> populer
 

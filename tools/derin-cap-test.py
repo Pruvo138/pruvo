@@ -13,7 +13,7 @@ Biri `while` kosulundan `derin or`'u ya da inner-break'ten `not derin and`'i ger
 derin+maxn=5 yine 5'te durur -> test KIRMIZI yanar.
 
 AG YOK: her adaptorun search kaynagi + `mevcut` dedup fonksiyonu MOCK'lanir (deterministik, offline).
-Canli smoke (gercek API'de havuz>50) AYRI kosulur; sayilar RAPOR-MIMARA.md'de.
+Canli smoke (gercek API'de havuz>50) AYRI kosulur; sayilar muhendis raporunda.
 
 Kosum:  python3 tools/derin-cap-test.py   -> her adaptor icin satir; son 'N/N GECTI' ya da exit 1.
 """

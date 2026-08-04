@@ -16,7 +16,7 @@ KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
      string'e uygulanir (makerworld/cults3d/myminifactory-api.py; tespit _kaynak_satilabilir_fn).
      Fallback (Printables/Thingiverse/bilinmeyen): serbest-metin lisans adi once lisans_kisaltma()
      ile kisaltmaya cevrilip printables-api.satilabilir() ile denetlenir. Her iki yol FAIL-CLOSED.
-  2. MAKET / LOGO (OLCUM ile iki katman — RAPOR-MIMARA.md):
+  2. MAKET / LOGO (OLCUM ile iki katman — kanit muhendis raporunda):
      - TIER-A auto_sil: olcekli-model/maket ARAÇ (maket/olcekli/diorama/minyatur/figur/
        "model araç"/"1/N olcek") — YASAK sinif, yanlis-pozitif dusuk.
      - TIER-B/C ESKALASYON (silme YOK): baslikta logo/amblem/plaket/rozet/koleksiyon
@@ -107,7 +107,7 @@ tr_lower = pr.tr_lower
 _OLCU_PREFIX = r"Yakla[şs][ıi]k\s+d[ıi][şs]\s+[öo]l[çc][üu]ler"
 _OLCU_RE = re.compile(_OLCU_PREFIX + r"[^\n]*?\d[\d\s.,×xX*+-]*mm\b", re.UNICODE)
 
-# --- KAPI 2: maket/logo tiers (OLCUM temelli — bkz. RAPOR-MIMARA.md) ----------
+# --- KAPI 2: maket/logo tiers (OLCUM temelli — bkz. muhendis raporu) ----------
 # metin tr_lower'lanmis (kucuk, Turkce-duyarli) verilir; desenler de oyle yazilir.
 #
 # TIER-A auto_sil = MAKET/olcekli arac (YASAK: Okan 16 Tem "olcekli model / maket

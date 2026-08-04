@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS urunler (
   hs_govde_kok   TEXT NOT NULL DEFAULT '',  -- ayni metin, kelimeler kokune cevrilmis
 
   -- ATOMIK YAYIN (31 Tem) — "karti gorunen urun asla 404 vermez".
-  -- OLCULEN PENCERE (bu kolonun VAR OLMA SEBEBI, ham sayilar RAPOR-MIMARA.md'de):
+  -- OLCULEN PENCERE (bu kolonun VAR OLMA SEBEBI, ham sayilar muhendis raporunda):
   --   .git/hooks/pre-push d1-sync'i push'tan ONCE kosar -> urun D1'e girer; Pages deploy'u
   --   ise CI'nin sonunda biter. Son 8 basarili kosumda push -> canli MEDYAN 593 sn (9,9 dk),
   --   max 740 sn. CI KIRMIZI olursa pencere CI kirmizi kaldigi surece SURER: 31 Tem

@@ -55,7 +55,7 @@ IZIN LISTESI: bir aile ancak GEREKCE ile muaf tutulabilir. Muaf aile GECERSE kap
 KIRMIZI yanar (bayat muafiyet), gerekcesi bossa KIRMIZI yanar, kesifte yoksa
 KIRMIZI yanar -> muafiyet curuyemez.
 
-KIRMIZI-MUTASYON (kanit turleri, RAPOR-MIMARA.md'de ham cikti):
+KIRMIZI-MUTASYON (kanit turleri, muhendis raporunda ham cikti):
   (a) acik_eslem_uret'ten `metin` dali kaldirilir      -> KIRMIZI
   (b) bir ailenin metni `sabit`e geri konur            -> KIRMIZI
   (c) bu dosyanin govdesi no-op yapilir                -> --kendini-test KIRMIZI

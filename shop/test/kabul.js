@@ -1584,7 +1584,7 @@ async function test17ParametrikSatirAyirt() {
 
 // ---------------------------------------------------------------- SIPARIS YONETIMI
 // (tools/paket-siparis-yonetimi.md kabul 1-4 + 7; ONCE-KIRMIZI: bu testler uclar yokken
-// 404/eksik-kolon ile kirmizi yanar — kanit icin src'siz kosum RAPOR-MIMARA.md'de.)
+// 404/eksik-kolon ile kirmizi yanar — kanit icin src'siz kosum muhendis raporunda.)
 
 async function yonetIstek(yontem, altYol, govdeObj, anahtar) {
   const basliklar = {};
@@ -1907,7 +1907,7 @@ async function test22Stl() {
 
 /** 24 — URUN KODU + LINK (mimar mikro paketi, kalem basligi urun sayfasina tiklanabilir
  *  link + "Urun kodu" satiri). ONCE-KIRMIZI: eski satirHtml urun_url/"Urun kodu" uretmiyordu
- *  -> asagidaki kontroller kod degismeden kirmizi yanar (kanit: RAPOR-MIMARA.md).
+ *  -> asagidaki kontroller kod degismeden kirmizi yanar (kanit: muhendis raporunda).
  *  (a) /liste JSON'da kalemde urun_url = SITE_URL + /urun/<id>/ ;
  *  (b) sayfadan (deploy edilecek GERCEK kaynak, kopya DEGIL) esc()+satirHtml() cekilip
  *      vm'de calistirilir: normal kalemde href+target=_blank+rel=noopener+"Urun kodu: <id>"

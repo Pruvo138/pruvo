@@ -11,7 +11,7 @@ NEDEN VAR
 ════════════════════════════════════════════════════════════════════════════════════
 Site tarafinda urunler.json ile /urun/<id>/ sayfalari AYNI Pages artefaktinda
 (deploy.yml `_site` beyaz listesi) yayinlanir — yani "JSON yayinlandi ama sayfa
-yayinlanmadi" diye bir ZAMAN penceresi YOKTUR (olculdu: RAPOR-MIMARA.md §0.1).
+yayinlanmadi" diye bir ZAMAN penceresi YOKTUR (olculdu: muhendis raporu §0.1).
 Kalan tek ayrisma yolu URETIM'dir: JSON'da olan bir id icin build.py'nin sayfa
 URETMEMESI (ya da URL'i dosya yoluyla ayrisan bir id). O halde kart 200, sayfa 404
 olur ve bunu bugune kadar HICBIR kapi olcmuyordu.
