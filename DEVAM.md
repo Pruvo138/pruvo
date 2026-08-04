@@ -216,3 +216,31 @@ SKIPPED — sebep BASKA ve ONCEDEN VAR: `devam-sinif-kapisi` (serit-a2 + serit-a
 iki adim `dced48ce`/`f8698ebe`/`31769d88` kosumlarinda da kirmiziydi, yani dal ONCESI.
 Dal DEVAM ile ilgili hicbir dosyaya dokunmadi. Baska bir oturum `8073ea6f` ile ihlalleri
 arsivledi; kapi yerelde artik YESIL (0 sinif ihlali) — sonraki kosumda yayin beklenir.
+
+## ✅ KAPANDI — numune-olmadan sayfasindaki KOSULSUZ uretim vaadi kapasite sinirina baglandi (merge `6f7ac890`)
+Canli ve indeksli SEO sayfasi `/numune-olmadan-plastik-parca-yaptirilir-mi/` govdesindeki tek
+`<p>`, bot tarafinda bugun kapatilan ayni kuralla hizalandi: marka/model/yildan taniniyorsa akis
+surer; taninamiyorsa VE elde numune de yoksa net sinir ("tahminle uretim yapmayiz, once yeterli
+referans isteriz"). Sayfa yayinda kaldi, yalniz metin duzeltildi.
+KAPSAM (merge-base `f8698ebe`'ten olculdu, `main..HEAD` DEGIL): 1 dosya `tools/sayfalar.py`,
++1/-1 satir. Push oncesi `origin/main..HEAD` net farki da ayni tek dosya/tek satir — baskasinin
+isi geri alinmadi. Cakisma on-testi temiz (`merge-tree` yalniz agac OID'i bastı). Public-depo
+metin taramasi (dalin ekledigi satirlar): desen vurusu 0.
+KAPILAR (dalin KENDI agacinda, izole klonda, exit kodlari goruldu): build ONCESI **15/15 YESIL**
+— kisisel-veri · odeme-beyani · landing-hukuk · malzeme-dayanak · ege-kabiliyet (+`--ic-nobetci`) ·
+fiziksel-urun · cayma-beyani · yayin-ic-dil `--kaynak` · devam-sinif · yasal-sayfa-drift · is-akisi ·
+onizleme-vaat · gramer-artigi · iki-govde. Build SONRASI **4/4 YESIL** — `build.py` · yayin-ic-dil ·
+uretim-butunluk · enjeksiyon. `gitignore-kapisi` TEMIZ (311 uretilen dizin). `kapi-envanteri` 7/7.
+DEVRALINAN KIRMIZI TARIHLE COZULDU (baseline diye gecilmedi): ilk turda `devam-sinif-kapisi`
+KIRMIZI idi (`DEVAM.md:26` E3 + `DEVAM.md:41` E5). Dalin sucu DEGIL — DEVAM.md blob'u dalda,
+main'de ve merge-base'te BIREBIR ayni (`4f68c5be`). Baska bir oturum `8073ea6f` ile ihlalleri
+arsivleyince guncel tabanda kapi **0 sinif ihlali** ile yesile dondu.
+URETILEN HTML: yeni cumle **1**, eski cumle **0**; govde bag sayisi degismedi (duzenlenen
+paragrafta oncesinde de sonrasinda da 1 bag).
+D1 UC EKSEN: **18008 = 18008** · sema goc indeksleri KURULU · `urun_hash` uyusmazlik 0 / eksik 0 /
+fazla 0.
+CANLI (canonical, cache-bust'SIZ): HTTP **200** · yeni cumle **1** · eski cumle **0**.
+Kosum `30931519589` headSha **BIREBIR** `6f7ac890`, conclusion **success**; 11 isten `build`,
+`deploy` ve `yayin` UCU de success (`--limit 1` yesiline guvenilmedi — bir onceki main kosumu
+`cancelled` idi). Push bir kez non-fast-forward reddedildi (main arada iki kez ilerledi);
+`--force` KULLANILMADI, fetch + merge ile tekrarlandi. Gecici klon ve iki yerel dal silindi.
