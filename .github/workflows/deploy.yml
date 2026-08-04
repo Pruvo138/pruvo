@@ -393,6 +393,33 @@ jobs:
       - name: Marka uyelik kabul testi (katlanmis uyelik + anlamsiz URL nobeti)
         run: python3 tools/marka-uyelik-test.py
 
+      # MARKA INVARYANTI (Okan hukmu): "TUM markalarda sayfa ve arama urun adetlerinin
+      # AYNI olmasi." Tek tek yama degil, INVARYANT. OLCULEN SESSIZ HATA (4 Agu): uctaki
+      # `?marka=` kolu HAM STRING ESITLIGI yapiyor, site ise markayi KATLIYOR -> 128
+      # markanin 9'unda cip ile sayfa AYRISIYOR ve 120 urun-kalemi MUSTERI CIPE BASINCA
+      # KAYBOLUYOR (Volvo sayfa 726 · cip 620). Site dogru gosterir, cip kaybeder, hicbir
+      # sey kirmizi yanmaz. Kapi her kanonik marka icin UC KUME kurar (sayfa · ?marka= ·
+      # ?q=) ve farklari MARKA MARKA tabana (tools/marka-invaryant-taban.json) karsi olcer:
+      # MEVCUT BORC BLOKLAMAZ, REGRESYON BLOKLAR (circir: dusus de kirmizidir, taban
+      # bayatlamasin). AG CAGRISI YOK (CI'da deterministik); uc davranisi yerel portla
+      # modellenir ve modelin canliyla 128/128 eslestigi bir kez olculdu (kapinin
+      # docstring'inde). Totoloji tuzagina karsi 5 POZITIF CAPA + mutasyon bataryasi
+      # (tools/marka-invaryant-mutasyon.py). Saf Python, offline, ~2 s.
+      - name: Marka invaryant kapisi (sayfa ↔ cip ↔ arama, taban civili)
+        run: python3 tools/marka-invaryant-kapisi.py
+
+      # D1 `marka_kanon` KOLONU (ayni sessiz hatanin KAYNAKTA kapatilmasi): katlama
+      # mantigi Worker'a KOPYALANMAZ (ikinci govde = sessiz ayrisma); kanonik marka
+      # uyeligi senkron aninda deponun TEK KAYNAGINDAN turetilip D1'e ONCEDEN yazilir.
+      # Test gercek d1-sema.sql'i yerel sqlite3'e yukler, gercek d1-sync fonksiyonlarini
+      # ve gercek urunler.json'u kullanir; CANLI D1'e/wrangler'a/AGA DOKUNMAZ. NE OLCER:
+      # kolonun dogru SINIFTA olmasi (hash'e karismaz -> hedefli UPDATE), kanonik sayimin
+      # marka sayfasiyla 128/128 birebir olmasi, 120 kalemlik kaybin KAPANMASI, idempotens,
+      # olcek (markasiz urune dokunmama), FAIL-CLOSED yonunun "bosalt" degil "dokunma"
+      # olmasi ve SEMA SIRASI (kolon yokken SELECT'e girmez -> kimsenin push'u kirilmaz).
+      - name: Marka kanon D1 kolonu kabul testi (120 kalemlik cip kaybi kapaniyor mu)
+        run: python3 tools/marka-kanon-d1-test.py
+
       # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
       # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
       # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye

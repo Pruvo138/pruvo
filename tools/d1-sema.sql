@@ -27,7 +27,43 @@ CREATE TABLE IF NOT EXISTS urunler (
   -- hash kapsamasaydi altkategori degisimi satiri yeniden yazdirmaz, D1 sessizce bayat
   -- alt-filtre servis ederdi.
   altkategori TEXT NOT NULL DEFAULT '',
-  marka     TEXT NOT NULL DEFAULT '[]',   -- JSON dizi
+  marka     TEXT NOT NULL DEFAULT '[]',   -- JSON dizi (urunler.json'daki HAM deger)
+  -- KANONIK MARKA UYELIGI — urunun UYE OLDUGU /marka/<slug>/ sayfalarinin kanonik adlari,
+  -- JSON dizi. '[]' = hicbir kanonik markaya uye degil (jenerik urun).
+  --
+  -- NEDEN VAR (OLCULEN SESSIZ HATA, 4 Agu 2026 — musteri urunu KAYBEDIYOR ve alarm YOK):
+  -- Uctaki (Worker) `?marka=` kolu `marka` kolonunda HAM STRING ESITLIGI ariyor; site ise
+  -- markayi KATLIYOR (index.html markaKatla: "Volvo Penta" -> "Volvo", "Citroen" aksani,
+  -- "Black and Decker" == "Black+Decker", "KIA" -> "Kia"). Sonuc: 128 kanonik markanin
+  -- 9'unda cip ile sayfa AYRISIYOR, 120 urun-kalemi musteri CIPE BASINCA KAYBOLUYOR
+  -- (olculdu: Volvo sayfa 726 · cip 620 = 106 kalem "Volvo Penta"; Citroen 4, IKEA 2,
+  -- Opel 3, Datsun/Smart/Kia/Mini/Black+Decker 1'er). Site dogru gosterir, cip kaybeder,
+  -- hicbir sey kirmizi yanmaz.
+  --
+  -- 🔴 NEDEN KOLON, NEDEN WORKER'DA KATLAMA DEGIL: katlama mantigini Worker'a KOPYALAMAK
+  -- IKINCI GOVDE dogururdu ([[ikiz-tanim-sessiz-ayrisma]]) — index.html'deki kuratorluk
+  -- (TANINMIS_MARKALAR + MARKA_ALIAS + cip evreni) degistiginde uc SESSIZCE ayrisirdi.
+  -- Bunun yerine kanonik deger SENKRON ANINDA, deponun TEK KAYNAGINDAN
+  -- (marka_model_build.marka_uyelikleri — ana sayfa filtresinin ta kendisi) turetilip
+  -- ONCEDEN yazilir. Uc yalnizca hazir degeri okur; yeni bir kural OGRENMEZ.
+  --
+  -- BICIM: json.dumps(uyeler, kompakt ayirac). SIRA marka_uyelikleri'nden gelir (urunun
+  -- kendi `marka` dizisinin sirasi); UYELIK anlami siradan BAGIMSIZDIR.
+  --
+  -- 🔴 HASH'e KARISMAZ (konfigur/taban_fiyat deseni, tur/stokta/uyum'un TERSI) — BILEREK:
+  -- deger yalnizca urunun `marka` dizisine DEGIL, index.html'deki KURATORLUGE de baglidir.
+  -- Yeni bir marka TANINMIS_MARKALAR'a eklendiginde HICBIR urunun hash'i degismez; icerik
+  -- upsert'ine baglansaydi kolon o urunler icin SONSUZA DEK BAYAT kalirdi ve uc, cipi yeni
+  -- markaya basan musteriye BOS sayfa dondururdu. Bu yuzden HEDEFLI UPDATE + TAM DIFF
+  -- (d1-sync.marka_kanon_plan / sema_plan): her senkron urunler.json'dan turetilen HEDEFI
+  -- D1'dekiyle karsilastirir, kuratorluk degisimi de yakalanir. Yan fayda: content-rewrite
+  -- ve FTS thrash uretmez (hs'e dokunulmaz).
+  --
+  -- 🔴 FAIL-CLOSED YONU "ATLA", "BOSALT" DEGIL: katlama tek kaynagi (index.html / cip
+  -- indeksi) okunamazsa d1-sync bu kolonun senkronunu GURULTULU ATLAR ve eski degeri
+  -- OLDUGU GIBI birakir. Hedefleri bos kabul edip '[]' yazmak, TEK bir okuma hatasinda
+  -- TUM katalogu marka cipinden dusururdu — bayat deger, bos degerden iyidir.
+  marka_kanon TEXT NOT NULL DEFAULT '[]',
   -- UYUM (arac uyumlulugu) — JSON dizi, ogeler {marka,model,motor,yil,oem} (arama.UYUM_ALANLARI).
   -- '[]' = uyum bilgisi YOK. Veri urunler.json "uyum" alaninda YASIYORDU (olculdu 2026-08-02:
   -- 16.874 kaydin 13.040'inda DOLU) ama d1-sync'in alan listesinde HIC yoktu -> D1'e, oradan
