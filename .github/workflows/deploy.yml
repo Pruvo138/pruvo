@@ -666,12 +666,12 @@ jobs:
       # shop Worker'i CI'da HIC yayinlanmiyor, elle deploy bekliyor ve beklerken alarm YOKTU.
       # Olculen bedel: canli bundle 13 sa 15 dk bayat kaldi; main yesil, CI yesil, site taze,
       # ODEME YOLU eski kodu kosuyordu (ayni sinif 30 Tem ve 1 Agu'da da PARA maliyeti uretti).
-      # Bu test 32 iddia kosar: bundle dosya kumesinin ITHALAT GRAFINDEN turetilmesi (elle
+      # Bu test 39 iddia kosar: bundle dosya kumesinin ITHALAT GRAFINDEN turetilmesi (elle
       # liste `secenekler.js` / `jenerator/*`'i kacirirdi), canli surum yorumu (secret
       # degisimi nesli TAZELEMEZ; geri alma; bilinmeyen tetik -> OLCULEMEDI), 120 dk esiginin
       # IKI YONU (119 -> bekliyor / 121 -> bayat), sig checkout'ta gecmisin acilmasi ve
       # uctan uca OLDURUCU+KONTROL cifti. Curutme kaniti: tools/shop-bayatlik-mutasyon.py
-      # (12 mutant, kontrol mutanti dahil; CI adimi DEGIL).
+      # (16 mutant, kontrol mutanti dahil; CI adimi DEGIL).
       #
       # 🔴 NEDEN SERIT A (job `build`, BLOKLAYICI): bu kol OFFLINE ve DETERMINISTIK — ag,
       # wrangler, Cloudflare yetkisi ISTEMEZ, dolayisiyla yanlis-pozitif kaynagi degildir.
