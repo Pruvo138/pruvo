@@ -127,8 +127,14 @@ Bu kapi AGA ve CLOUDFLARE YETKISINE bagimlidir. Ag'a bagimli bir yanlis-pozitif
 ayni gerekceyle `tools/fiziksel-canli-kapisi.py`nin CANLI kolu da bilerek
 `paket-tazelik-alarmi.yml`e (cron serisi, `push` tetigi YOK, `deploy.yml`e `needs` ile
 BAGLI DEGIL) kablolandi. Bu kapi da ORAYA girer: kirmizisi GORUNUR (kosum kirmizi + GitHub
-bildirimi + is ozeti), yayin yoluna maliyeti 0 sn. Cadans 15 dk -> 13 sa 15 dk'lik korluk
-penceresi <= 15 dk'ya duser (olculen iyilesme: 53 kat).
+bildirimi + is ozeti), yayin yoluna maliyeti 0 sn.
+🔴 "Cadans 15 dk -> korluk penceresi <= 15 dk'ya duser (olculen iyilesme: 53 kat)"
+IDDIASI CURUTULDU (olculdu 4 Agu 2026): zamanlanmis kosumlar beklenen siklikta TESLIM
+EDILMIYOR. `paket-tazelik-alarmi.yml` 3482,2 dk pencerede BEKLENEN 232 kosumun 10'unu
+kostu (teslim %4,31); bosluk medyani 237,4 dk, EN UZUN ardisik bosluk 1053,5 dk (17,6 sa).
+Gercek korluk penceresi bu yuzden 15 dk DEGIL. Dusme DEPO/HESAP duzeyindedir (ayni
+pencerede d1-uzlastirici.yml de %5,06), bu kapiya OZGU DEGIL; ofset degisikligi teslim
+oranini duzeltmez. Olculen deger icin bkz. tools/cron-nabiz-kapisi.py A5 ekseni.
 OFFLINE kolu (`--kendini-test`) deterministiktir ve `deploy.yml` `build` isinde BLOKLAYICI
 kosar — ag gerektirmeyen kismi bloklamak yanlis-pozitif uretmez.
 
