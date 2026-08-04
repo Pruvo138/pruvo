@@ -42,4 +42,13 @@ if [ "$HEDEF" != "$ANA" ]; then
     cp "$ANA/DEVAM.md" "$HEDEF/DEVAM.md" 2>/dev/null || true
   fi
 fi
+
+# 🔴 DELIK 1 ONARIMI (ikinci tetik): bir branch checkout izlenen `tools/kancalar`i
+# degistirebilir (or. kancalari guncelleyen bir dala gecmek). Kurulu kopyayi
+# idempotent tazele -> checkout ile gelen guncel mantik aninda devreye girer.
+# FAIL-OPEN: checkout'u bloklamak yanlis olurdu (hijyen). Bayat kalirsa bir
+# sonraki commit/push'taki `--tazele` kolu FAIL-CLOSED yakalar.
+if [ -n "$HEDEF" ] && [ -f "$HEDEF/tools/kanca-kur.py" ]; then
+  python3 "$HEDEF/tools/kanca-kur.py" --tazele >/dev/null 2>&1 || true
+fi
 exit 0

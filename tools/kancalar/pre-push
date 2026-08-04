@@ -1,4 +1,26 @@
 #!/bin/sh
+# PRUVO pre-push — IZLENEN KANCA KAYNAGI (tools/kancalar/pre-push).
+# Kurulum: python3 tools/kanca-kur.py (izlenen kaynak ORTAK `.git/pruvo-kancalar/`a
+# kopyalanir, core.hooksPath o kopyanin MUTLAK yoluna baglanir).
+
+# --- 0) KOPYA TAZELIGI (FAIL-CLOSED, DELIK 1) -------------------------------
+# `git pull` izlenen kaynagi guncelleyince kurulan KOPYA bayat kalir ve bu kanca
+# (kopyadan kosan) SESSIZCE eski mantigi calistirir. `--tazele` kopya bayatsa
+# yeniden serer; rc 3 -> PUSH'u DURDUR, sonraki push taze mantikla kosar.
+# stdin'e DOKUNMAZ (asagidaki geri-donus blogu ref listesini okur).
+pruvo_pp_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kok/tools/kanca-kur.py" ]; then
+  python3 "$pruvo_pp_kok/tools/kanca-kur.py" --tazele </dev/null
+  pruvo_pp_tazele_rc=$?
+  if [ "$pruvo_pp_tazele_rc" = "3" ]; then
+    echo "!! PUSH DURDURULDU — kurulu kanca kopyasi BAYATTI ve tazelendi. Tekrar push et." >&2
+    exit 1
+  elif [ "$pruvo_pp_tazele_rc" != "0" ]; then
+    echo "!! PUSH DURDURULDU — kanca kopyasi tazelenemedi (rc=$pruvo_pp_tazele_rc)." >&2
+    exit 1
+  fi
+fi
+
 # >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir — ELLE DUZENLEME) >>>
 # FAIL-CLOSED: bu itme temizlenmis sizintiyi (mesaj YA DA icerik ekseni) GERI
 # GETIRIYORSA PUSH DURUR. Gerekce: tools/gecmis-geri-donus-hook-kur.py basligi.
@@ -101,12 +123,36 @@ done
 
 echo "→ urunler.json degisti: D1 senkronlaniyor (Ege urunleri D1'den okuyor)..."
 if python3 "$sync"; then
-  exit 0
+  :
+else
+  echo ""
+  echo "!! D1 SENKRONU BASARISIZ — push DEVAM ediyor ama EGE YENI URUNU GOREMEZ."
+  echo "!! Duzeltip elle calistir:  python3 $sync"
+  echo "!! (Kontrol: python3 $sync --durum  -> sayi urunler.json ile ayni olmali)"
+  echo ""
 fi
 
-echo ""
-echo "!! D1 SENKRONU BASARISIZ — push DEVAM ediyor ama EGE YENI URUNU GOREMEZ."
-echo "!! Duzeltip elle calistir:  python3 $sync"
-echo "!! (Kontrol: python3 $sync --durum  -> sayi urunler.json ile ayni olmali)"
-echo ""
+# --- KAPAK THUMBNAIL URETIMI (yeni urun eklendikce otomatik) ---
+# 🔴 KAYNAK: paralel `pagespeed-thumb-fix` oturumu (a7dd82ba, HENUZ main'de DEGIL).
+# Canli `.git/hooks/pre-push`ta duruyordu; kurulum izlenen kaynaga gecince blok
+# dusmesin diye BURAYA TASINDI. `tools/thumbnail-uret.py` main'de yok -> `[ -f ]`
+# kapisi bunu SESSIZCE atlar (zararsiz); pagespeed-thumb-fix main'e inince
+# etkinlesir. SIRA KOORDINASYONU GEREKEBILIR (o dal aktifse iki taraf ayni blogu
+# tasir; merge'te cakismaz ama tekrar dusmesin).
+# NEDEN VAR: kart gridi kucuk "-thumb" R2 varyantini deniyor (bkz index.html
+# thumbUrl()). Bu adim olmazsa YENI eklenen urunlerin kapaginda thumb hic uretilmez,
+# kart sessizce orijinal buyuk gorseli ceker (PageSpeed bulgusu geri gelir).
+# Idempotent (R2'de VARSA atlar) -> ucuz, yalniz yeni kapaklari isler.
+# FAIL-OPEN: patlasa/Pillow eksik olsa bile push ASLA durmaz (D1 blogu ile ayni desen).
+thumb="$root/tools/thumbnail-uret.py"
+if [ -f "$thumb" ]; then
+  echo "→ kapak thumbnail'leri uretiliyor (yalniz yeni urunler)..."
+  if python3 "$thumb"; then
+    :
+  else
+    echo "!! THUMBNAIL URETIMI BASARISIZ — push DEVAM ediyor ama yeni urunlerin karti buyuk gorsel cekebilir."
+    echo "!! Duzeltip elle calistir:  python3 $thumb"
+  fi
+fi
+
 exit 0

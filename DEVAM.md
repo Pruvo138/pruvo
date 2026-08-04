@@ -1,5 +1,12 @@
 # DEVAM (KraL) — 4 Agu 2026
 
+## 🟠 ACIK KALEM (kanca kablolama dali, agent-aabf841a) — bu turda GENISLETILMEDI
+`tools/is-akisi-kapisi.py::SERIT_B` tablosu (is_akisi, job, **betik-yolu**) granulunde
+anahtarlaniyor. Yani bir betik SERIT_B'de beyanliysa o betigin GELECEKTEKI TUM bayrakli
+cagrilari da sessizce muaf sayilir. Bu dalin getirdigi bir gerileme DEGIL — mevcut tasarim;
+`kanca-kablolama-test.py`nin `--mutasyon` kolu da bu yuzden ayrica beyan istemeden gecti.
+Gelecek is: SERIT_B'yi (is_akisi, job, betik, **bayrak**) granulune tasimak (bu turda kapsam disi).
+
 ## 🔚 OTURUM KAPANISI — 4 Agu · YENI OTURUM ONCE BUNU OKU
 
 **CANLIYA GITTI (bu oturum, hepsi SHA-kanitli + canli olculdu):**

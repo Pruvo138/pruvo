@@ -2316,8 +2316,10 @@ SERIT_B = {
     # 🔴 AYRIM ACIK OLSUN: bu ailenin ICERIK kapisi
     # `tools/kanca-kablolama-nobeti.py --ci` adimidir ve SERIT A'da (job
     # `serit-a3`) BLOKLAYICI kosar — izlenen kanca kaynagi fail-open'a donerse
-    # yayin DURUR. Asagidaki IKI giris o kapinin degil, ARACIN KENDISININ
-    # sinamasidir; serit kuralinin "aracin kendini sinamasi" maddesine girer.
+    # yayin DURUR. Asagidaki TEK giris (betik `kanca-kablolama-test.py`) o
+    # kapinin degil, ARACIN KENDISININ sinamasidir; serit kuralinin "aracin
+    # kendini sinamasi" maddesine girer. Betik iki adimda kosar (bayraksiz kabul
+    # + `--mutasyon`); ikisi de bu tek giriste kapsanir.
     ("deploy.yml", "serit-b", "tools/kanca-kablolama-test.py"):
         "ARACIN KENDINI SINAMASI, YAYIN KAPISI DEGIL. Bu dosya iki kolu birden "
         "kosar: (a) bayraksiz kabul testi — tempfile icinde SENTETIK git depolari "

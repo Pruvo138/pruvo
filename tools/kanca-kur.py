@@ -87,10 +87,24 @@ BAKILIR (kur -> DOGRULA halkasi kapanir).
 
 IDEMPOTENT: zaten dogru kabloluysa ve kopya guncelse hicbir sey YAZILMAZ.
 
+🔴 DELIK 2 KAPISI (mimar iadesi): bulundugumuz LINKED WORKTREE kendi
+`config.worktree`sinde `core.hooksPath`i BASKA yere baglamissa, kurulan `--local`
+degeri o worktree'de GOLGELENIR ve worktree ESKI fail-open kancalari kosturmaya
+DEVAM EDER. Dogrulama artik o worktree'nin FIILEN halini de olcer; gercek-yol
+golge varsa "ETKIN ✅" DEMEZ, sifir-disi cikip gercek careyi basar. (/dev/null
+golgesi KASITLI izolasyondur -> NOT basilir, hata degil.)
+
+🔴 DELIK 1 KAPISI: `git pull` izlenen kaynagi guncelleyince kurulan KOPYA bayat
+kalir. `--tazele` (kanca govdelerinden + post-merge/post-checkout'tan cagrilir)
+kopya bayatsa yeniden serer ve TAZELE_BAYATTI (3) doner; kanca bunu gorunce
+commit/push'u DURDURUR -> bayat mantik ASLA sessizce kosmaz.
+
 Kullanim:
     python3 tools/kanca-kur.py            # kur/tazele + DOGRULA (rc 0/1)
     python3 tools/kanca-kur.py --kuru     # hicbir sey yazma, ne yapacagini yaz
     python3 tools/kanca-kur.py --dogrula  # yalniz dogrula (kurma)
+    python3 tools/kanca-kur.py --tazele   # kopya bayatsa yeniden ser (kanca ici;
+                                          # rc 3 = bayatti+tazelendi, 0 = guncel)
     python3 tools/kanca-kur.py --depo X   # baska bir checkout'u hedefle (test/tani)
 """
 import os
@@ -113,7 +127,13 @@ KURULU_DIZIN_ADI = "pruvo-kancalar"
 AYAR = "core.hooksPath"
 KAPSAM = "--local"
 
-BEKLENEN_KANCALAR = ("pre-commit", "commit-msg", "pre-push", "post-commit", "post-checkout")
+BEKLENEN_KANCALAR = ("pre-commit", "commit-msg", "pre-push", "post-commit",
+                     "post-checkout", "post-merge")
+
+# `--tazele` cikis kodu: kopya BAYATTI ve YENIDEN SERILDI. Kancalar bu kodu
+# GORUNCE commit/push'u DURDURUR ("kopya bayatti, tazelendi, tekrar dene") —
+# boylece BAYAT mantik ASLA sessizce kosmaz (DELIK 1 onarimi).
+TAZELE_BAYATTI = 3
 
 
 class Hata(Exception):
@@ -195,6 +215,117 @@ def sapma(kaynak_dizin, kurulu):
     return sapanlar
 
 
+def cari_toplevel(baslangic):
+    """(yol|None) — <baslangic>'in bulundugu calisma agacinin tepesi."""
+    rc, cikti, _h = _git(baslangic, "rev-parse", "--path-format=absolute",
+                         "--show-toplevel")
+    return cikti if rc == 0 and cikti else None
+
+
+def en_iyi_kaynak(baslangic, ana_kok):
+    """(kaynak_dizin|None) — sapma/tazeleme icin en guvenilir izlenen kaynak.
+
+    🔴 KUSUR 2 dersinin ikizi: kaynak ONCE bulundugumuz agactan alinir (o agac
+    izlenen `tools/kancalar`i tasiyorsa), yoksa ANA checkout'tan. Ikisi de
+    tasimiyorsa (agac eski bir commit'te) kaynak YOKTUR -> kopya otoritedir,
+    tazeleme yapilamaz (bu SESSIZ olum DEGILDIR: kurulu kopya ortak `.git`
+    altindadir ve kosar)."""
+    cari = cari_toplevel(baslangic)
+    for aday in (cari, ana_kok):
+        if not aday:
+            continue
+        dizin = os.path.join(aday, KANCA_DIZINI)
+        if os.path.isdir(dizin) and all(
+                os.path.isfile(os.path.join(dizin, a)) for a in BEKLENEN_KANCALAR):
+            return dizin
+    return None
+
+
+def tazele(baslangic):
+    """(rc, mesaj) — kurulu kopya izlenen kaynaktan BAYATSA yeniden ser.
+
+    🔴 DELIK 1 ONARIMI: `git pull` izlenen kaynagi guncelleyince kopya BAYAT
+    kalir ve commit aninda SESSIZCE eski mantigi kosturur. Bu fonksiyon kanca
+    govdesinden (pre-commit/pre-push basi) ve post-merge/post-checkout'tan
+    cagrilir.
+
+    Cikis:
+      0             -> kopya zaten GUNCEL, ya da karsilastirilacak kaynak YOK
+                       (agac eski commit'te) -> yapacak sey yok, commit devam.
+      TAZELE_BAYATTI-> kopya BAYATTI, YENIDEN SERILDI. Cagiran kanca commit'i
+                       DURDURUR (sonraki commit taze mantikla kosar).
+      1             -> tazeleme HATASI (fail-closed: cagiran kanca durdurur)."""
+    try:
+        ana_kok = ana_checkout(baslangic)
+        kurulu = kurulu_dizin(baslangic)
+    except Hata as e:
+        return 1, "tazeleme baglami cozulemedi: %s" % e
+    kaynak_dizin = en_iyi_kaynak(baslangic, ana_kok)
+    if kaynak_dizin is None:
+        return 0, "karsilastirilacak izlenen kaynak yok (agac eski commit'te olabilir)"
+    sapanlar = sapma(kaynak_dizin, kurulu)
+    if not sapanlar:
+        return 0, "kurulu kopya guncel"
+    try:
+        _ser(kaynak_dizin, kurulu, kuru=False)
+    except Hata as e:
+        return 1, "kopya bayatti ama YENIDEN SERILEMEDI: %s" % e
+    return TAZELE_BAYATTI, ("kurulu kopya BAYATTI (%s) -> yeniden serildi (kaynak: %s)"
+                            % (", ".join(sapanlar), kaynak_dizin))
+
+
+def golge_worktree_kontrol(baslangic, kurulu):
+    """(tamam, mesaj) — bulundugumuz worktree kurulan degeri GOLGELIYOR mu?
+
+    🔴 DELIK 2 ONARIMI ([[hukum-yanlis-birimde]]): kurulum `--local` degeri ANA
+    checkout'un paylasilan config'ine yazar. Bir LINKED WORKTREE kendi
+    `config.worktree`sinde `core.hooksPath`i FARKLI bir yere baglamissa (or.
+    eski `.git/hooks`), o worktree kurulumdan SONRA da ESKI fail-open kancalari
+    kosturur — kurulum ise ANA agaci dogrulayip "ETKIN ✅" der. Yanlis birimde
+    yesil. Bu kontrol o worktree'nin FIILEN halini yargilar.
+
+    hal:
+      tamam=True  -> golge yok, ya da golge KASITLI izolasyon (/dev/null +
+                     config.worktree). Ikinci halde mesaj NOT'tur, hata degil.
+      tamam=False -> gercek-yol golge: worktree kurulan degeri golgeliyor ve
+                     ESKI kancalari kosturuyor -> FAIL-CLOSED + gercek care."""
+    top = cari_toplevel(baslangic)
+    if not top:
+        return True, None
+    try:
+        ana_kok = ana_checkout(baslangic)
+    except Hata:
+        return True, None
+    if os.path.normpath(top) == os.path.normpath(ana_kok):
+        return True, None                        # ana checkout, worktree degil
+
+    deger, kaynak = etkin_deger(top)
+    kaynak_dosya = (kaynak or "").replace("file:", "")
+    # Golge YALNIZ worktree'ye ozel katmandan gelir; paylasilan config'ten gelen
+    # deger zaten ANA ile aynidir, golge degildir.
+    if os.path.basename(kaynak_dosya) != "config.worktree":
+        return True, None
+    if deger is None:
+        return True, None
+
+    ham = deger.strip()
+    cozulen = ham if os.path.isabs(ham) else os.path.normpath(os.path.join(top, ham))
+    if os.path.normpath(cozulen) == os.path.normpath(kurulu):
+        return True, None                        # worktree de dogru yeri gosteriyor
+
+    if os.path.normpath(ham) == os.path.normpath("/dev/null"):
+        return True, ("NOT: bu worktree config.worktree ile /dev/null'a baglanmis "
+                      "(KASITLI izolasyon) -> ana deponun kancalari burada "
+                      "KOSMAYACAK; mesru.")
+
+    return False, ("bu LINKED WORKTREE'nin config.worktree'si core.hooksPath'i "
+                   "%r'a baglamis -> kurulan %s'i GOLGELIYOR ve ESKI kancalar "
+                   "kosmaya DEVAM EDER. Care: git -C %s config --worktree --unset "
+                   "core.hooksPath   (ya da bu worktree'yi de kurulan dizine "
+                   "bagla: git -C %s config --worktree core.hooksPath %s)"
+                   % (ham, kurulu, top, top, kurulu))
+
+
 def _ser(kaynak_dizin, kurulu, kuru):
     """Kaynagi kurulu dizine ser (idempotent). Serilen kanca adlarini doner."""
     islemler = []
@@ -216,10 +347,23 @@ def _ser(kaynak_dizin, kurulu, kuru):
         islemler.append(ad)
         if kuru:
             continue
+        # 🔴 ATOMIK RENAME, in-place copyfile DEGIL (olculdu): `--tazele` bir
+        # KANCA GOVDESINDEN cagrilir ve kancanin KENDI dosyasini yeniden serer.
+        # `copyfile` AYNI inode'u truncate edip yeniden yazar; git'in o an KOSAN
+        # kanca icin acik tuttugu FD bozulur (shell scripti byte-offset'ten okur,
+        # icerik kayinca GERISINI COP OKUR). Gecici dosyaya yazip `os.replace` ile
+        # atomik degistirince YENI bir inode olusur; kosan process ESKI inode'unu
+        # (acik FD'siyle) SAGLAM okumaya devam eder, sonraki cagri yeniyi alir.
+        gecici = h + ".pruvo-tmp"
         try:
-            shutil.copyfile(k, h)
-            os.chmod(h, 0o755)
+            shutil.copyfile(k, gecici)
+            os.chmod(gecici, 0o755)
+            os.replace(gecici, h)
         except OSError as e:
+            try:
+                os.remove(gecici)
+            except OSError:
+                pass
             raise Hata("%s kurulu dizine serilemedi (%s): %s -> kablolama YARIM "
                        "kalirdi" % (ad, h, e))
     return islemler
@@ -397,13 +541,25 @@ def main(argv=None):
         del argv[i:i + 2]
     kuru = "--kuru" in argv
     yalniz_dogrula = "--dogrula" in argv
-    bilinmeyen = [a for a in argv if a not in ("--kuru", "--dogrula")]
+    yalniz_tazele = "--tazele" in argv
+    bilinmeyen = [a for a in argv if a not in ("--kuru", "--dogrula", "--tazele")]
     if bilinmeyen:
         print("HATA: bilinmeyen arguman: " + ", ".join(bilinmeyen), file=sys.stderr)
         return 2
 
+    baslangic = kok_arg or os.path.dirname(TOOLS)
+
+    # --tazele: kanca govdesinden cagrilan HAFIF yol (DELIK 1). Kablolamaya
+    # DOKUNMAZ, config YAZMAZ; yalniz kopya bayatsa yeniden serer ve durumu
+    # cikis koduyla bildirir.
+    if yalniz_tazele:
+        rc, mesaj = tazele(baslangic)
+        if rc != 0:
+            print("kanca-kur --tazele: %s" % mesaj, file=sys.stderr)
+        return rc
+
     try:
-        kok = ana_checkout(kok_arg or os.path.dirname(TOOLS))
+        kok = ana_checkout(baslangic)
     except Hata as e:
         print("🔴 KURULAMADI: %s" % e, file=sys.stderr)
         return 1
@@ -431,9 +587,26 @@ def main(argv=None):
     for eksen, tamam, mesaj in bulgular:
         print("  %s %-16s %s" % ("✅" if tamam else "🔴", eksen, mesaj))
     kirmizi = [b for b in bulgular if not b[1]]
-    if kirmizi:
+
+    # 🔴 DELIK 2: bulundugumuz worktree kurulan degeri GOLGELIYOR mu? dogrula()
+    # ANA checkout'u yargilar; bir linked worktree'nin config.worktree'si baska
+    # yere baglanmissa o worktree ESKI kancalari kosturur ve "ETKIN ✅" YALAN
+    # olurdu. Bu kontrol o worktree'nin FIILEN halini olcer.
+    try:
+        kurulu = kurulu_dizin(baslangic)
+        golge_ok, golge_mesaj = golge_worktree_kontrol(baslangic, kurulu)
+    except Hata as e:
+        golge_ok, golge_mesaj = True, None
+        print("  ⚪ golge kontrolu OLCULEMEDI: %s" % e)
+    if golge_mesaj and golge_ok:
+        print("  ℹ️  %s" % golge_mesaj)
+    elif not golge_ok:
+        print("  🔴 golge worktree   %s" % golge_mesaj)
+
+    if kirmizi or not golge_ok:
+        n = len(kirmizi) + (0 if golge_ok else 1)
         print("SONUC: KURULU DEGIL (%d eksen kirmizi) — fail-closed -> cikis 1"
-              % len(kirmizi), file=sys.stderr)
+              % n, file=sys.stderr)
         return 1
     print("SONUC: KABLOLAMA ETKIN ✅ (%d eksen)" % len(bulgular))
     return 0

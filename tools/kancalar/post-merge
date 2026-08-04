@@ -1,0 +1,29 @@
+#!/bin/sh
+# PRUVO post-merge — IZLENEN KANCA KAYNAGI (tools/kancalar/post-merge).
+#
+# 🔴 DELIK 1 ONARIMI (mimar iadesi): kurulum izlenen `tools/kancalar`i ORTAK
+# `.git/pruvo-kancalar/`a KOPYALAR. `git pull` (= fetch + MERGE) izlenen kaynagi
+# guncelleyince o KOPYA bayat kalir ve bir sonraki commit/push SESSIZCE eski
+# mantigi kosturur. Bu kanca her merge sonrasi kopyayi idempotent olarak yeniden
+# serer -> `git pull` ile gelen guncel kanca mantigi ANINDA devreye girer.
+#
+# Olculen maliyet ~0,05 sn (yalniz bayt-karsilastirmasi; degisiklik yoksa yazma yok).
+#
+# FAIL-OPEN (bilincli): bir MERGE'i bloklamak yanlis olurdu (yayin/veri kapisi
+# degil, hijyen). Tazeleme patlasa bile merge tamamlanir; kopya bayat kalirsa
+# bir sonraki commit/push'taki pre-commit/pre-push `--tazele` kolu onu FAIL-CLOSED
+# yakalar (ikinci savunma hatti). Blokta 'exit 1' YOK.
+pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kanca-kur.py" ]; then
+  if python3 "$pruvo_kok/tools/kanca-kur.py" --tazele >/dev/null 2>&1; then
+    :
+  else
+    pruvo_rc=$?
+    if [ "$pruvo_rc" = "3" ]; then
+      echo "→ kanca kopyasi merge sonrasi tazelendi (guncel mantik devrede)."
+    else
+      echo "!! kanca kopyasi tazelenemedi (rc=$pruvo_rc, merge DEVAM etti) — kontrol: python3 tools/kanca-kur.py --dogrula"
+    fi
+  fi
+fi
+exit 0

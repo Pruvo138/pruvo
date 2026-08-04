@@ -59,6 +59,7 @@ Kullanim:
 import hashlib
 import importlib.util
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -698,6 +699,102 @@ def kos_vakalar(tools_dizini, ayrintili=True):
                 "AYNI deger PAYLASILAN .git/config'ten gelirse 1 Agu'ta olculen "
                 "OLAYDIR -> KIRMIZI olmali; rc=%d" % rc7b)
 
+        # ================= VAKA 8: BAYAT KOPYA (DELIK 1) =====================
+        # 🔴 `git pull` izlenen kaynagi guncelleyince kurulan KOPYA bayat kalir
+        # ve commit aninda SESSIZCE eski mantigi kosturur. Kanca govdesindeki
+        # `--tazele` kolu bunu FAIL-CLOSED yakalamali.
+        if ayrintili:
+            print("VAKA 8 — bayat kopya (DELIK 1: tazele kolu)")
+        o8 = yeni_ortam("v8")
+
+        def bayat_kopya_senaryo(tazele_var):
+            """Kaynak degisir, kopya bayat kalir; sonraki commit YENI mantigi
+            kosturuyor mu? tazele_var=False ONCE halini (ilk tur) taklit eder."""
+            d = depo_kur(os.path.join(kok, "v8-%s" % ("var" if tazele_var else "yok")),
+                         kanca_kaynagi, ortam=o8)
+            # kanca-kur.py GERCEK dosya (kanca `--tazele` icin onu cagirir)
+            shutil.copy2(kur_yolu, os.path.join(d, "tools", "kanca-kur.py"))
+            rc, c = kur_kos(d, env=o8)
+            if rc != 0:
+                print("    ⚠️ v8 kurulum basarisiz: %s" % c[-200:])
+            if not tazele_var:
+                # ONCE halini uret: kurulu KOPYANIN pre-commit'inden --tazele
+                # blogunu cikar (ilk turda bu blok yoktu).
+                kopya = os.path.join(kurulu_yolu(d), "pre-commit")
+                g0 = open(kopya, encoding="utf-8").read()
+                g1 = re.sub(r"# --- 0\) KOPYA TAZELIGI.*?# --- 1\)", "# --- 1)",
+                            g0, flags=re.S)
+                yaz(kopya, g1, True)
+            # kaynak degisir, kopyaya DOKUNULMAZ
+            pc = os.path.join(d, "tools", "kancalar", "pre-commit")
+            gg = open(pc, encoding="utf-8").read()
+            yaz(pc, gg.replace("#!/bin/sh\n", '#!/bin/sh\necho "YENI-MANTIK" >&2\n', 1), True)
+            g(d, "add", "-A", env=o8)
+            # commit A: kaynak degisti, kopya bayat. tazele VARsa burada BLOKLANIR.
+            rc_a, _oa, _ea = g(d, "commit", "-m", "kaynak guncellendi", env=o8)
+            yaz(os.path.join(d, "b.txt"), "y\n")
+            g(d, "add", "-A", env=o8)
+            rc_b, ob, eb = g(d, "commit", "-m", "dene", env=o8)
+            return rc_a, ("YENI-MANTIK" in (ob + eb))
+
+        _a_once, v8_once = bayat_kopya_senaryo(tazele_var=False)
+        a_sonra, v8_sonra = bayat_kopya_senaryo(tazele_var=True)
+        if ayrintili:
+            print("    ONCE (tazele YOK): YENI mantik kostu mu? %s" % v8_once)
+            print("    SONRA (tazele VAR): stale-commit rc=%d, YENI mantik kostu mu? %s"
+                  % (a_sonra, v8_sonra))
+        # ONCE: bayat kopya SESSIZCE eski mantigi kosturur (YENI gorunmez) -> delik
+        s.bekle("V8.once-sessiz", v8_once is False,
+                "TUZAK KURULUMU: tazele YOKken bayat kopya ESKI mantigi sessizce "
+                "kosturmali (delik gosterilsin); YENI gorundu=%s" % v8_once)
+        # SONRA-A: bayat kopyayla yapilan commit DURMALI (stale wiring sessizce kosmaz)
+        s.bekle("V8.sonra-A-durdu", a_sonra != 0,
+                "tazele VARken BAYAT kopyayla yapilan commit DURMALI (rc!=0); "
+                "rc=%d" % a_sonra)
+        # SONRA-B: tazelendikten sonra bir sonraki commit YENI mantikla kosar
+        s.bekle("V8.sonra-yakalandi", v8_sonra is True,
+                "tazele VARken bayat kopya tazelenmeli ve sonraki commit YENI "
+                "mantikla kosmali; YENI gorundu=%s" % v8_sonra)
+
+        # ================= VAKA 9: GOLGELEYEN WORKTREE (DELIK 2) =============
+        # 🔴 Bir linked worktree'nin config.worktree'si kurulan degeri GERCEK bir
+        # yola golgeliyorsa, o worktree kurulumdan SONRA da ESKI kancalari
+        # kosturur. Kurulum "ETKIN ✅" DEMEMELI; sifir-disi + gercek care.
+        if ayrintili:
+            print("VAKA 9 — golgeleyen worktree (DELIK 2)")
+        o9 = yeni_ortam("v9")
+        ana9 = depo_kur(os.path.join(kok, "v9-ana"), kanca_kaynagi, ortam=o9)
+        # (KONTROL) golge YOK -> kurulum rc=0
+        wt9k = os.path.join(kok, "v9-wt-kontrol")
+        g(ana9, "worktree", "add", "-q", wt9k, "-b", "kontrol", env=o9, zorunlu=True)
+        rc9k, c9k = kur_kos(wt9k, env=o9)
+        s.bekle("V9.golge-yok-rc0", rc9k == 0,
+                "KONTROL: golge YOKken worktree'den kurulum rc=0 olmali; rc=%d "
+                "cikti=%r" % (rc9k, c9k[-200:]))
+        # (OLDURUCU) gercek-yol golge -> kurulum rc!=0 + care
+        eski_hooks = os.path.join(kok, "v9-eski-hooks")
+        os.makedirs(eski_hooks)
+        yaz(os.path.join(eski_hooks, "pre-commit"), GECER, True)
+        wt9 = os.path.join(kok, "v9-wt-golge")
+        g(ana9, "worktree", "add", "-q", wt9, "-b", "golge", env=o9, zorunlu=True)
+        g(wt9, "config", "--worktree", "core.hooksPath", eski_hooks, env=o9, zorunlu=True)
+        rc9, c9 = kur_kos(wt9, env=o9)
+        s.bekle("V9.golge-rc-sifirdisi", rc9 != 0,
+                "gercek-yol golge varken kurulum SIFIR-DISI cikmali (yanlis birimde "
+                "'ETKIN ✅' YASAK); rc=%d" % rc9)
+        s.bekle("V9.golge-care-basildi",
+                "--worktree --unset" in c9 and "GOLGELIYOR" in c9,
+                "gercek care BASILMALI (git config --worktree --unset ...); "
+                "cikti=%r" % c9[-300:])
+        # (KONTROL, tek degisken: /dev/null golge KASITLI izolasyon -> rc=0 + NOT)
+        wt9d = os.path.join(kok, "v9-wt-devnull")
+        g(ana9, "worktree", "add", "-q", wt9d, "-b", "izole9", env=o9, zorunlu=True)
+        g(wt9d, "config", "--worktree", "core.hooksPath", "/dev/null", env=o9, zorunlu=True)
+        rc9d, c9d = kur_kos(wt9d, env=o9)
+        s.bekle("V9.devnull-golge-rc0", rc9d == 0,
+                "/dev/null golgesi KASITLI izolasyondur -> rc=0 olmali (yanlis-pozitif "
+                "yok); rc=%d cikti=%r" % (rc9d, c9d[-200:]))
+
     finally:
         shutil.rmtree(kok, ignore_errors=True)
     return s
@@ -742,7 +839,7 @@ MUTANTLAR = (
      '    return os.path.join(baslangic, KANCA_DIZINI)',
      frozenset({"V2.deger-mutlak", "V3.deger-oldurucu-degil",
                 "V4.saglikli-yesil", "V4.sapma-kirmizi",
-                "V6.saglikli-agac-yesil"})),
+                "V6.saglikli-agac-yesil", "V8.once-sessiz", "V8.sonra-A-durdu"})),
 
     ("MU5 kur: idempotens kirilir (her kosum config'i YENIDEN yazar)",
      "kanca-kur.py",
@@ -839,7 +936,41 @@ MUTANTLAR = (
                 "V4.rc-kontrolsuz-kirmizi", "V4.gerekce-kirmizi",
                 "V6.kurulum-basarili", "V6.olu-agacta-kanca-kosuyor",
                 "V6.yeniden-kurulum", "V6.saglikli-agac-yesil",
-                "V6.ana-saglikli", "V7.kurulum-basarili"})),
+                "V6.ana-saglikli", "V7.kurulum-basarili",
+                "V8.once-sessiz", "V9.devnull-golge-rc0", "V9.golge-yok-rc0"})),
+
+    # 🔴 MU16a DELIK 1: tazele BAYATSA yeniden SERMEZ -> kopya bayat kalir,
+    # commit sonsuza dek bloklanir, YENI mantik hic kosmaz.
+    ("MU16a kur: tazele bayatsa YENIDEN SERMEZ (DELIK 1)",
+     "kanca-kur.py",
+     "    try:\n        _ser(kaynak_dizin, kurulu, kuru=False)\n"
+     "    except Hata as e:\n"
+     '        return 1, "kopya bayatti ama YENIDEN SERILEMEDI: %s" % e',
+     '    pass',
+     frozenset({"V8.sonra-yakalandi"})),
+
+    # 🔴 MU16b DELIK 1: tazele bayat kopyayi YENIDEN SERER ama BAYATTI kodunu
+    # bildirmez -> commit DURMAZ, BAYAT wiring o commit'te sessizce kosar.
+    ("MU16b kur: tazele bayati BILDIRMEZ (0 doner, DELIK 1 blok kolu)",
+     "kanca-kur.py",
+     '    return TAZELE_BAYATTI, ("kurulu kopya BAYATTI',
+     '    return 0, ("kurulu kopya BAYATTI',
+     frozenset({"V8.sonra-A-durdu"})),
+
+    # 🔴 MU17 DELIK 2: golge kontrolu gercek-yol golgeyi GORMEZDEN gelir.
+    ("MU17 kur: golge worktree kontrolu devrilir (DELIK 2)",
+     "kanca-kur.py",
+     '    return False, ("bu LINKED WORKTREE\'nin config.worktree\'si core.hooksPath\'i "',
+     '    return True, ("bu LINKED WORKTREE\'nin config.worktree\'si core.hooksPath\'i "',
+     frozenset({"V9.golge-rc-sifirdisi"})),
+
+    # 🔴 MU18 DELIK 2: /dev/null muafiyeti kalkar -> KASITLI izolasyon KIRMIZI
+    # yanar (yanlis-pozitif).
+    ("MU18 kur: /dev/null izolasyon muafiyeti kalkar (DELIK 2 yanlis-pozitif)",
+     "kanca-kur.py",
+     '    if os.path.normpath(ham) == os.path.normpath("/dev/null"):',
+     '    if False:',
+     frozenset({"V9.devnull-golge-rc0"})),
 
     ("N1 ILGISIZ: yorum eklenir (davranis degismez)",
      "kanca-kablolama-nobeti.py",

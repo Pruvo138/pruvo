@@ -1,6 +1,8 @@
 #!/bin/sh
 # PRUVO pre-commit — IZLENEN KANCA KAYNAGI (tools/kancalar/pre-commit).
-# Kurulum: python3 tools/kanca-kur.py   (core.hooksPath -> tools/kancalar)
+# Kurulum: python3 tools/kanca-kur.py
+#   -> izlenen tools/kancalar ORTAK `.git/pruvo-kancalar/`a KOPYALANIR ve
+#      core.hooksPath o kopyanin MUTLAK yoluna baglanir (agactan bagimsiz kosar).
 # Nobetci: python3 tools/kanca-kablolama-nobeti.py
 #
 # 🔴 4 AGU 2026 ONARIMI — UC AYRI FAIL-OPEN KAPATILDI.
@@ -26,6 +28,26 @@ if [ -z "$pruvo_kok" ]; then
   echo "!! COMMIT DURDURULDU — depo koku cozulemedi (git rev-parse basarisiz)." >&2
   echo "!! Hicbir katalog/gizlilik nobetcisi kosturulamadi; sessiz gecis YOK." >&2
   exit 1
+fi
+
+# --- 0) KOPYA TAZELIGI (FAIL-CLOSED, DELIK 1) -------------------------------
+# Kurulum izlenen kaynagi ORTAK `.git/pruvo-kancalar/`a kopyalar. `git pull`
+# izlenen kaynagi guncelleyince bu KOPYA bayat kalir ve BU KANCA (kopyadan
+# kosan) SESSIZCE eski mantigi calistirir. `--tazele` kopya bayatsa yeniden
+# serer; rc 3 = "bayatti+tazelendi" -> commit'i DURDUR, sonraki commit taze
+# mantikla kosar. (Kaynak yoksa/guncelse rc 0 -> devam.)
+pruvo_kur="$pruvo_kok/tools/kanca-kur.py"
+if [ -f "$pruvo_kur" ]; then
+  python3 "$pruvo_kur" --tazele
+  pruvo_tazele_rc=$?
+  if [ "$pruvo_tazele_rc" = "3" ]; then
+    echo "!! COMMIT DURDURULDU — kurulu kanca kopyasi BAYATTI ve tazelendi." >&2
+    echo "!! Commit'i TEKRAR dene (bu sefer guncel mantik kosar)." >&2
+    exit 1
+  elif [ "$pruvo_tazele_rc" != "0" ]; then
+    echo "!! COMMIT DURDURULDU — kanca kopyasi tazelenemedi (rc=$pruvo_tazele_rc)." >&2
+    exit 1
+  fi
 fi
 
 # --- 1) urunler.json PROVENANS GUARD'i (FAIL-CLOSED) ------------------------
