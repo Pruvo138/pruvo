@@ -68,10 +68,39 @@ OLCULEMEDI: `cip-indeks-test.py --mutasyon` (~1760 s, CI'da degil) yerelde kosul
 **OKAN'DA KARAR YOK.** Bugun sorulan uc karar verildi ve uygulandi: asamali git (1. parti 50
 model) · Zafira sayfasi 28 hedefi, `Zafira Life` ayri bolumde · yayin hattini KraL acsin.
 
+**KOSAN (bu oturum, MERGE KAPISINDA — hicbiri canliya gitmedi):**
+- Kararsiz jeton SINIF 1: **paketin varsayimi CURUTULDU.** Muhendis olctu — is tabanda ZATEN
+  yapilmis; `GS` 13 urun (Citroen GS 1, esik alti, capraz cift DEGIL), `T1`-`T6` hepsi yayinda,
+  `Transporter` 143 -> 143. Gercek boslukcuk: **ciplak tek harf** (`BMW|k` ayri oksuz kova;
+  esigi gectigi gun `/marka/bmw/k/` TEK HARFLI sayfa sessizce dogacakti). Yazilan tek sey
+  `MODEL_ALIAS["BMW|k"]`+kanonik gosterim; ikinci tablo ACILMADI. Kaybolan 0, cip 467->467,
+  sayfa 534->534, kapi 21/21 + 31 oldurucu/6 kontrol, cip 123/123 + 36/36.
+- ArTisT'in dali (`5da155e1`, TEK satir, `tools/sayfalar.py`): canli SEO sayfasindaki KOSULSUZ
+  uretim vaadi kosula baglandi. Curutucu hukmu: MERGE EDILEBILIR.
+- `elde-yok-taniniyor-ayrimi` (HEAD `344c7ff7`): `ege-bilgi.md` l.44 + kapiya yeni `(E)` ekseni.
+  **UC TUR curutme** (ayri dusman ajan, mutasyonu muhendis YAZMADI): tur-1 MERGE EDILEMEZ
+  (l.14 daralmasi canlida SATILAN STL/cizim kanalini reddettiriyordu — 3/3 mutant yesil, hicbir
+  kapi gormuyordu) · tur-2 MERGE EDILEMEZ (yeni kanat 13 mesru cumlenin 8'ini kirmizi yakiyordu;
+  bloklayici kapida her biri yayin durduran mayin + `tanınmış`=unlu kelimesini negatif sayan
+  REGEX HATASI) · tur-3 tek mekanik engel (5 yeni nobetci KIRMIZI YANAMIYOR = bos iddia).
+  Hepsi kapandi: mesru cumlede **0/13**, X5 ailesi yakalama **2 -> 9**, kontrol mutanti 0/6,
+  `--ic-nobetci` 128/128, olu nobetci kaniti GENIS 5/5 kirmizi · DAR 0/5.
+
 **🔴 SIRADAKI TUR — bende, oncelik sirasiyla:**
-1. Kararsiz jeton SINIF 1 (152 urun: BMW `GS` · VW `T1`-`T6` · BMW `R/K Serisi`) — 3 yeni sayfa,
-   kanonik ad CIPLAK jeton (olculdu: `?ara=T4` 74 vs `Transporter T4` 15).
+1. `elde-yok-taniniyor-ayrimi` merge kapisi; sonra ~5 dk bekleyip `drift-sonda.py` TEKRAR kos
+   (canli `ege-bilgi.md` yayina kadar eski metni doner).
 2. C kovasi (87 urun): olcu satiri sayisal model adiyla cakisiyor — `ara`->`marka` toplu kopya YASAK.
+2b. 🔴 **`ege-bilgi.md` TAVAN PAYI 27 KALDI** (5973/6000 UTF-16; bot `slice(0,6000)`).
+   `filamentler.json`'a TEK filaman eklenmesi (~110 karakter) tavani asar ve CI'i kirar —
+   uretilen `FILAMENT-REF` blogu dosyaya giriyor. Bu dalin hatasi degil ama pay artik kritik dar;
+   ya tavan/ozetleme yeniden tasarlanmali ya blok kisaltilmali. **BASKASININ isini kirar** (KaaN/MaCiT
+   filaman ekleyince), oncelikli.
+2c. **`/marka/bmw/motorrad/` HUKMU (SINIF 1 muhendisinin kapsam disi bulgusu, karar bende):**
+   canli, 8 urun. `Motorrad` BMW'nin motosiklet KOLU, model DEGIL — sinifi `PSA`/`VAG` ile birebir
+   ayni ve onlar kapatildi. **HUKUM: model-olmayan cifte yazilacak, sayfa kapanacak** (urun
+   kaybolmuyor: marka sayfasi + arama acik). Tutarlilik kazaniyor; ayri turda uygulanacak.
+   Ayni turda `Mercedes|A/S/V` (2/1/1 urun, esik alti) ele alinsin: bunlar TEK HARF ama GERCEK
+   model (A/S/V Serisi) — kapatilmayacak, kanonik gosterimi `A Serisi` bicimine baglanacak.
 3. ~~FR-S sapmasi~~ **KARAR VERILDI (KraL, 4 Agu): DARALTMA YOK, kural oldugu gibi kaliyor.**
    `frs` canon'u SAHIPSIZ kalacak. Gerekce: `FR-S` bir Scion rozeti, Scion katalogda marque
    olarak YOK; `(Toyota, FR-S)` ya da `(Subaru, FR-S)`'i allow'a almak o adla SATILMAMIS bir
