@@ -31,20 +31,28 @@ _spec.loader.exec_module(mw)
 # --- \bMARKA\b kelime-siniri (Turkce-duyarli) ---
 _KELIME = "a-z0-9çğıöşü"
 
-
-def _tr_lower(s):
-    # Turkce'ye ozgu: 'İ'->'i', 'I'->'ı' (dogru kucultme), sonra lower().
-    return (s or "").replace("İ", "i").replace("I", "ı").lower()
+# Buyuk/kucuk KATLAMA kurali TEK KAYNAK: printables-api.marka_katlamalari().
+# Kendi _tr_lower kopyasi vardi ve TUMU-BUYUK latin marka adini kaciriyordu
+# ('NISSAN' -> 'nıssan' != 'nissan'); kusur ILK KEZ Nissan x MakerWorld hasadinda
+# goruldu (2026-08-04). Kelime-siniri regex'i (yukaridaki _KELIME sinifi) DEGISMEDI.
+_pr_spec = importlib.util.spec_from_file_location("pr_api", os.path.join(_HERE, "printables-api.py"))
+_pr = importlib.util.module_from_spec(_pr_spec)
+_pr_spec.loader.exec_module(_pr)
 
 
 def marka_geciyor(marka, *metinler):
     """marka, verilen metinlerden en az birinde TAM KELIME olarak geciyor mu?
-    'ford' -> 'Ford Mustang' EVET; 'Oxford'/'afford' HAYIR (alt-dize)."""
-    m = _tr_lower(marka).strip()
-    if not m:
+    'ford' -> 'Ford Mustang' EVET; 'Oxford'/'afford' HAYIR (alt-dize).
+    'nissan' -> 'NISSAN GTR' EVET (latin katlama; bkz. printables-api.marka_katlamalari)."""
+    if not (marka or "").strip():
         return False
-    pat = re.compile(r"(?<![%s])%s(?![%s])" % (_KELIME, re.escape(m), _KELIME))
-    return any(pat.search(_tr_lower(t or "")) for t in metinler)
+    for m, katla in _pr.marka_katlamalari(marka):
+        if not m:
+            continue
+        pat = re.compile(r"(?<![%s])%s(?![%s])" % (_KELIME, re.escape(m), _KELIME))
+        if any(pat.search(katla(t or "")) for t in metinler):
+            return True
+    return False
 
 
 def mevcut_idler():

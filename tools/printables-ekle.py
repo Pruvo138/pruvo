@@ -102,8 +102,10 @@ def prep(pid, key):
         jpg = os.path.join(outdir, "g%d.jpg" % (len(saved) + 1))
         if sips_jpeg(blob, jpg):
             saved.append(os.path.basename(jpg))
-    # model dosyasi (en buyuk gercek .stl; yoksa .3mf'e duser) + olcu
-    stls = [s for s in (d.get("stls") or []) if (s.get("name") or "").lower().endswith((".stl", ".3mf"))]
+    # model dosyasi (en buyuk gercek .stl; yoksa .3mf, o da yoksa .obj) + olcu
+    # .obj 2026-08-04'te eklendi: tek dosyasi .obj olan gercek kayitlar (733167, 196889)
+    # burada eleniyordu -> download_stl hic cagrilmiyor, olcu ELLE kurtariliyordu.
+    stls = [s for s in (d.get("stls") or []) if (s.get("name") or "").lower().endswith((".stl", ".3mf", ".obj"))]
     olcu = None
     if stls:
         stlpath_noext = os.path.join(STLDIR, key); os.makedirs(STLDIR, exist_ok=True)

@@ -197,6 +197,84 @@ def _mut_metre(path):
     return d
 
 
+# ================== KUSUR 2 (.obj okunmuyordu) fikstyur + mutantlari ==================
+# KUSUR: model_bbox .obj'i stl_bbox'a yonlendiriyordu -> None; download_stl ise .obj'i
+# tumden reddediyordu ("bu modelde .stl/.3mf yok"). Tek dosyasi .obj olan GERCEK kayitlar
+# (Printables 733167 kaput klipsi, 196889 konsol kor plakasi) otomatik OLCULEMIYOR, elle
+# kurtariliyordu (2026-08-04). FIX: obj_bbox() + model_bbox yonlendirmesi + download_stl havuzu.
+def obj_bytes(tris, tuzak=True):
+    """Wavefront OBJ metni. tuzak=True ise ALDATICI 'vn'/'vt'/yorum satirlari eklenir:
+    koordinat SANILIRSA bbox 900x800x700 cikar. Dogru parser 'v' TAM esitligi arar."""
+    satir = ["# PRUVO test obj"]
+    if tuzak:
+        satir += ["vn 900.0 800.0 700.0",      # normal — koordinat DEGIL
+                  "vn -900.0 -800.0 -700.0",
+                  "vt 0.0 0.0",                # doku — koordinat DEGIL
+                  "# v 5000 5000 5000"]        # yorum — koordinat DEGIL
+    kose, indeks = [], {}
+    for tri in tris:
+        for v in tri:
+            if v not in indeks:
+                indeks[v] = len(kose) + 1
+                kose.append(v)
+    for (x, y, z) in kose:
+        satir.append("v %g %g %g" % (x, y, z))
+    for tri in tris:
+        satir.append("f %d %d %d" % tuple(indeks[v] for v in tri))
+    return ("\n".join(satir) + "\n").encode("utf-8")
+
+
+def yaz_obj(blob):
+    fd, yol = tempfile.mkstemp(suffix=".obj")
+    with os.fdopen(fd, "wb") as w:
+        w.write(blob)
+    return yol
+
+
+def _obj_dims(path, kabul):
+    """Ortak OBJ tarayici; `kabul(p)` jeton listesini koordinat sayar mi karari verir."""
+    with open(path, "rb") as f:
+        data = f.read()
+    head = data[:512].lstrip().lower()
+    if head.startswith(b"<") or b"<html" in head or b"just a moment" in head:
+        return None
+    xs, ys, zs = [], [], []
+    for line in data.decode("utf-8", "ignore").splitlines():
+        p = line.split()
+        if not kabul(p):
+            continue
+        try:
+            xs.append(float(p[1])); ys.append(float(p[2])); zs.append(float(p[3]))
+        except ValueError:
+            continue
+    if not xs:
+        return None
+    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    if max(d) < 2.0 or d[0] <= 0 or d[0] > 100000:
+        return None
+    return d
+
+
+def _mut_obj_prefix(path):
+    """MUTANT D (naif OBJ parser) = 'v' ile BASLAYAN her satiri koordinat sayar -> 'vn'
+    aldatici satirlarini yutar ve 900x800x700 verir. TUZAK vakasini KIRMIZI yakmali."""
+    return _obj_dims(path, lambda p: len(p) >= 4 and p[0].startswith("v"))
+
+
+def _mut_obj_kontrol(path):
+    """KONTROL MUTANT = canli kural + 'v x y z w' (5 jetonlu) satirlari da kabul et.
+    Fikstyurlerde 5-jetonlu v satiri YOK -> davranis AYNI -> YESIL kalmali."""
+    return _obj_dims(path, lambda p: len(p) in (4, 5) and p[0] == "v")
+
+
+def _mut_eski_model_bbox(path):
+    """MUTANT E = FIX ONCESI model_bbox yonlendirmesi (.obj -> stl_bbox). .obj'de None
+    dondurup olcuyu kaybetmeli -> KIRMIZI."""
+    if path.lower().endswith(".3mf"):
+        return pa.bbox_3mf(path)
+    return pa.stl_bbox(path)
+
+
 def _mut_anydim(path):
     """MUTANT C (too-STRICT) = HERHANGI boyut <2 -> None (naif asiri-kati alternatif fix). Canli
     dosyada DEGIL; ince levhayi (0.5) yanlislikla eleyip vaka 7'yi KIRMIZI yakmasi beklenir."""
@@ -324,13 +402,105 @@ def main():
         if canli7 is None:
             hata.append("MUT-C canli: ince levha None dondu (elenmemeliydi)")
 
+        # ==================== KUSUR 2: .obj olcumu (2026-08-04) ====================
+        print("-" * 64)
+        p_obj = yaz_obj(obj_bytes(CUBE)); tmp.append(p_obj)                     # tuzakli 10mm kup
+        p_obj_kucuk = yaz_obj(obj_bytes(box_tris(0.65, 0.65, 0.65), tuzak=False)); tmp.append(p_obj_kucuk)
+        p_obj_levha = yaz_obj(obj_bytes(box_tris(100.0, 100.0, 0.5), tuzak=False)); tmp.append(p_obj_levha)
+        p_obj_html = yaz_obj(b"<html><body>Just a moment...</body></html>"); tmp.append(p_obj_html)
+        p_obj_bos = yaz_obj(b"# yalniz yorum\nvn 1 2 3\nvt 0 0\n"); tmp.append(p_obj_bos)
+
+        # 8) OBJ-TUZAK: 'vn'/'vt'/yorum satirlari koordinat SAYILMAMALI -> 10x10x10
+        d8 = pa.obj_bbox(p_obj)
+        ok8 = kup_mu(d8)
+        print("  8 OBJ-TUZAK   vn/vt aldaticili 10mm kup -> %-18s %s" % (d8, "OK" if ok8 else "FAIL"))
+        if not ok8:
+            hata.append("OBJ-TUZAK: beklenen [10,10,10], gelen %r" % (d8,))
+
+        # 9) YONLENDIRME: model_bbox .obj'i obj_bbox'a vermeli (eskiden stl_bbox -> None)
+        d9 = pa.model_bbox(p_obj)
+        ok9 = kup_mu(d9)
+        print("  9 OBJ-YONLEND model_bbox('.obj')        -> %-18s %s" % (d9, "OK" if ok9 else "FAIL"))
+        if not ok9:
+            hata.append("OBJ-YONLEND: model_bbox .obj'i olcemedi, gelen %r" % (d9,))
+
+        # 10) FAIL-CLOSED (STL ile AYNI esikler): html / koordinatsiz / belirsiz-birim -> None
+        for etiket, yol in (("obj-html", p_obj_html), ("obj-koordinatsiz", p_obj_bos),
+                            ("obj-belirsiz-0.65", p_obj_kucuk)):
+            try:
+                d = pa.obj_bbox(yol)
+            except Exception as e:  # noqa: BLE001
+                d = "<EXC:%s>" % e
+                hata.append("OBJ FAIL-CLOSED %s: fonksiyon FIRLATTI (%s)" % (etiket, e))
+            ok = (d is None)
+            print("  10 FAIL-CLOSED %-18s        -> %-18s %s" % (etiket, d, "OK" if ok else "FAIL"))
+            if not ok and not str(d).startswith("<EXC"):
+                hata.append("OBJ FAIL-CLOSED %s: None bekleniyordu, gelen %r" % (etiket, d))
+
+        # 11) INCE-LEVHA (OBJ): 100 x 100 x 0.5 DONMELI (esik EN BUYUK boyutta)
+        d11 = pa.obj_bbox(p_obj_levha)
+        ok11 = yaklasik(d11, [100, 100, 0.5])
+        print("  11 OBJ-LEVHA  100 x 100 x 0.5           -> %-18s %s" % (d11, "OK" if ok11 else "FAIL"))
+        if not ok11:
+            hata.append("OBJ-LEVHA: [100,100,0.5] bekleniyordu, gelen %r" % (d11,))
+
+        # 12) _is_obj_bytes: PNG/HTML sahtesi RED, gercek OBJ KABUL (STL'deki PNG tuzagi)
+        png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+        for etiket, blob, bek in (("png", png, False),
+                                  ("html", b"<html>x</html>", False),
+                                  ("gercek-obj", obj_bytes(CUBE), True)):
+            got = pa._is_obj_bytes(blob)
+            ok = (got is bek)
+            print("  12 IS-OBJ     %-14s              -> %-18s %s" % (etiket, got, "OK" if ok else "FAIL"))
+            if not ok:
+                hata.append("_is_obj_bytes(%s): %r bekleniyordu, gelen %r" % (etiket, bek, got))
+
+        # KIRMIZI-MUTASYON D (naif 'v' prefix parser): vn satirlarini yutup 900x800x700 verir
+        print("-" * 64)
+        mD = _mut_obj_prefix(p_obj)
+        mD_kirmizi = not kup_mu(mD)
+        print("  MUT-D  'v' prefix parser  OBJ-TUZAK -> %-18s %s" % (mD, "RED(beklenen)" if mD_kirmizi else "GREEN(!)"))
+        print("  MUT-D  canli obj_bbox     OBJ-TUZAK -> %-18s %s" % (d8, "GREEN" if ok8 else "RED(!)"))
+        if not mD_kirmizi:
+            hata.append("MUT-D ETKISIZ: naif prefix parser da 10x10x10 verdi -> test tuzagi olcmuyor")
+        elif not (isinstance(mD, list) and mD[0] > 800):
+            hata.append("MUT-D beklenen ~900 (aldatici vn yutuldu), gelen %r" % (mD,))
+
+        # KIRMIZI-MUTASYON E (FIX ONCESI yonlendirme): .obj -> stl_bbox -> None
+        mE = _mut_eski_model_bbox(p_obj)
+        mE_kirmizi = mE is None
+        print("  MUT-E  eski model_bbox    OBJ        -> %-18s %s" % (mE, "RED(beklenen)" if mE_kirmizi else "GREEN(!)"))
+        print("  MUT-E  canli model_bbox   OBJ        -> %-18s %s" % (d9, "GREEN" if ok9 else "RED(!)"))
+        if not mE_kirmizi:
+            hata.append("MUT-E ETKISIZ: eski yonlendirme de .obj'i olctu -> kusur zaten yoktu?")
+        # MUT-E AYIRT EDICI mi: .stl/.3mf yolunu BOZMAMALI (her seyi kiran mutant kanit degildir)
+        if not kup_mu(_mut_eski_model_bbox(p_bin)):
+            hata.append("MUT-E ayirt edici DEGIL: .stl yolunu da kirdi")
+
+        # KONTROL MUTANT (OBJ): davranissal olarak ayni -> TUM obj vakalarinda YESIL kalmali
+        _kontrol_sapma = [y for y in (p_obj, p_obj_levha, p_obj_kucuk, p_obj_bos, p_obj_html)
+                          if _mut_obj_kontrol(y) != pa.obj_bbox(y)]
+        print("  KONTROL MUTANT (5-jetonlu v kabulu) sapma: %d" % len(_kontrol_sapma))
+        if _kontrol_sapma:
+            hata.append("KONTROL MUTANT YESIL kalmadi (%d sapma) -> batarya davranisi degil metni olcuyor"
+                        % len(_kontrol_sapma))
+
+        # CAPA: download_stl havuzunda .obj GERCEKTEN var mi (kaynak, TAM BIR KEZ)
+        _src = open(os.path.join(HERE, "printables-api.py"), encoding="utf-8").read()
+        for capa in ('objs = [s for s in files', 'pool = stls or threemf or objs',
+                     'def _is_obj_bytes(', 'def obj_bbox('):
+            if _src.count(capa) != 1:
+                hata.append("CAPA %r printables-api.py'de TAM BIR KEZ gecmiyor (%d)"
+                            % (capa, _src.count(capa)))
+
         print("-" * 64)
         if hata:
             for h in hata:
                 print("  X " + h)
             print("SONUC: KIRMIZI  (%d sorun)" % len(hata))
             return 1
-        print("SONUC: YESIL  — 7 vaka + 3 kirmizi-mutasyon (A ASCII-once, B metre-lax, C min-strict) gecti.")
+        print("SONUC: YESIL  — 12 vaka + 5 kirmizi-mutasyon (A ASCII-once, B metre-lax, "
+              "C min-strict, D obj-prefix, E eski-yonlendirme) + 1 kontrol mutant gecti.")
         return 0
     finally:
         for y in tmp:
