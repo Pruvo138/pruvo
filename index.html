@@ -2489,7 +2489,7 @@
   var MARKA_KANONIK = {};                 // markaNorm(ad) → listedeki kanonik yazım
   TANINMIS_MARKALAR.forEach(function(m){ MARKA_KANONIK[markaNorm(m)] = m; });
   var MARKA_NORMLU = TANINMIS_MARKALAR.map(markaNorm);
-  // 🔴 MARKA-DÜZEYİ ALIAS — TEK KAYNAK (Python tarafı tools/model_kanon.py BU SATIRDAN okur;
+  // 🔴 MARKA-DÜZEYİ ALIAS — TEK KAYNAK (sunucu tarafı da BU SATIRDAN okur;
   // ikinci tablo YAZILMAZ). Aynı markanın iki ayrı adı ("Vauxhall" = Opel'in İngiltere adı)
   // TEK kaleme iner. Tablo eskiden YALNIZ sayfa üretecinde vardı: /marka/ Vauxhall'ı Opel'e
   // katlıyor, ana sayfa katlamıyordu → "Vauxhall" ayrı çip doğuyor, hedefi 404 oluyor ve
@@ -2520,9 +2520,9 @@
 
   // --- KANONİK MODEL EŞLEMESİ BAŞ (model üyelik anahtarı; marker satırlarını değiştirme) ---
   // 🔴 TEK KAYNAK: bu blok ile aşağıdaki iki tablo, /marka/<marka>/<model>/ sayfalarını üreten
-  // tools/marka_model_build.py'nin de kullandığı KANONİK TANIMDIR — Python tarafı bloğu
-  // tools/model_kanon.py ile AYIKLAR, ikinci bir tablo tutmaz; ayrışmayı
-  // tools/model-uyelik-kapisi.py (node ile GERÇEK bu kodu koşturarak) fail-closed ölçer.
+  // sunucu tarafının da kullandığı KANONİK TANIMDIR — blok doğrudan AYIKLANIR,
+  // ikinci bir tablo tutulmaz; ayrışmayı GERÇEK bu kodu koşturan üyelik kapısı
+  // fail-closed ölçer.
   //
   // ÖLÇÜLEN SESSİZ HATA (3 Ağu, 429 marka-model çifti): sayfa tarafı "F150"/"F-150"/"F 150"
   // ve "Peugeot 206"/"206" değerlerini AYNI modele katlıyordu, ana sayfa filtresi ise HAM
@@ -2541,12 +2541,12 @@
     return t.replace(/[\s\-\._\/]/g, "");
   }
   // 🔴 BİLEŞİK MARKA KORUMASI — ÇOK KELİMELİ kanonik marka adları TEK PARÇA kalır.
-  // OTORİTE tools/arama.py'deki KAPALI MARKA KÜMESİ'dir (UYUM_MARKA_IZINLI ∪ URETICI_MARKA);
+  // OTORİTE sunucu tarafındaki KAPALI MARKA KÜMESİ'dir (UYUM_MARKA_IZINLI ∪ URETICI_MARKA);
   // aşağıdaki dizi o kümenin çok-kelimeli üyelerinin AYNASIDIR ve ayrışması
-  // tools/model-uyelik-kapisi.py tarafından fail-closed KIRMIZI yakılır (K7). Elle üye EKLEME:
-  // önce arama.py'deki kümeye gir, sonra ayna güncellenir.
+  // üyelik kapısı tarafından fail-closed KIRMIZI yakılır (K7). Elle üye EKLEME:
+  // önce otorite kümeye gir, sonra ayna güncellenir.
   // NEDEN (ölçülen hata, 3 Ağu): "Volvo Penta" bir MODEL değil, bağımsız bir üretici
-  // markasıdır (deniz motoru); `arama.py` onu Volvo'dan AYRI ev sahibi ilan etti. Önek
+  // markasıdır (deniz motoru); otorite onu Volvo'dan AYRI ev sahibi ilan etti. Önek
   // sıyırma onu "Volvo" + "Penta" diye bölünce 106 Marin ürünü otomobil markası Volvo'nun
   // ağacına asılıyor ve /marka/volvo/penta/ diye anlamı yanlış bir sayfa doğuyordu.
   var BILESIK_MARKA = ["Alfa Romeo","Black and Decker","Briggs & Stratton","Dürkopp Adler",
