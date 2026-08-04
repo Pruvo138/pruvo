@@ -73,8 +73,9 @@ surecinin env'inde kosar, komutun env'ini GORMEZ (olculdu: rc=2, hala bloklu).
           dosyadan duzeltilemez; her makinede ELLE kurulur. Sonuc: harness'siz bir
           oturumda (duz terminal, Codex, baska makine, CI) bu guard commit'i
           BLOKLAMAZ — yalnizca `.urunler-guard.log`a yazar.
-  Onerilen kanca duzeltmesi RAPOR-MIMARA.md madde 7'dedir; uygulanana kadar
-  "koruma her yerde gecerli" SANILMAMALIDIR.
+  Onerilen kanca duzeltmesi: `pre-commit` cikis kodunu YUTMASIN — `|| true` ve
+  `>/dev/null 2>&1` kaldirilip guard'in rc'si ve stderr'i oldugu gibi gecirilsin.
+  Uygulanana kadar "koruma her yerde gecerli" SANILMAMALIDIR.
 
 Manifest DEGER-BAGLI'dir: bir alanin degisimine ancak working-tree'deki yeni
 deger, manifeste yazilan beklenen deger ile birebir esitse izin verilir. Bu

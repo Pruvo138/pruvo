@@ -3,9 +3,10 @@
 """tools/urunler-guard-provenans-mutasyon.py — CURUTME (mutasyon) araci.
 
 NE OLCER: "kabul testi YESIL" demek "koruma CANLI" demek DEGILDIR. Bu arac
-urunler-guard.py / urunler-guard-hook.py'yi BILEREK bozar ve
-tools/urunler-guard-provenans-test.py'nin GERCEKTEN kirmizi yandigini — ve HANGI
-EKSENIN yandigini — olcer.
+urunler-guard.py / urunler-guard-hook.py'yi — ve testin KENDI mekanizmalari
+(ortam temizligi X1, belge capasi X2) icin kabul testinin kendisini — BILEREK
+bozar, sonra tools/urunler-guard-provenans-test.py'nin GERCEKTEN kirmizi
+yandigini ve HANGI EKSENIN yandigini olcer.
 
 🔴 KABUL = CIKIS KODU DEGIL, OLCULEN IDDIA SAYISI + ISARET SARTI
    ([[mutasyon-kaniti-yeniden-uretilebilir]]):
@@ -42,7 +43,12 @@ GUARD = os.path.join(TOOLS, "urunler-guard.py")
 KOPRU = os.path.join(TOOLS, "urunler-guard-hook.py")
 TEST = os.path.join(TOOLS, "urunler-guard-provenans-test.py")
 
-G, K = "guard", "kopru"
+# Mutasyon hedefleri. T (kabul testinin KENDISI) yalnizca testin KENDI
+# mekanizmalarini — ortam temizligi (X1) ve belge capasi (X2) — oldurulebilir
+# kilmak icin vardir: bu ikisi guard'da degil TESTTE yasar, dolayisiyla guard'i
+# bozarak olculemezler. Aynada mutasyonlu test kopyasi kosar; --kaynak/--kaynak-kopru
+# hep ACIKCA verildigi icin kopyanin kendi varsayilanlari devreye girmez.
+G, K, T = "guard", "kopru", "test"
 
 # Mutasyon AYNAYA uygulanir; su BES canli dosyanin sha256'si kosum basinda ve
 # sonunda karsilastirilir (mutasyon araci hicbirine YAZMAZ).
@@ -199,6 +205,23 @@ MUTANTLAR = [
      "    for kod, tarif in CIKIS_YOLLARI[:1]:  # M15\n"
      '        _bas("     [%s] %s" % (kod, tarif))',
      {"E4"}),
+
+    # ORTAM SIZINTISI: temizlik kaldirilinca miras alinan GIT_* hem fikstur
+    # depolarini hem guard'in `git -C ROOT` cagrilarini YABANCI depoya baktirir.
+    # X1 DIFERANSIYEL oldugu icin (temiz kosum vs kirli kosum) bu mutant TEK
+    # KIRMIZI yakar: guard'in davranisi degismez, yalnizca iki taraf AYRISIR.
+    ("M16", "ORTAM SIZINTISI: alt-surec env'inden GIT_* depo degiskenleri SILINMIYOR", T,
+     "    for ad in SIZINTI_ENV:\n"
+     "        e.pop(ad, None)\n",
+     "    # M16: sizinti temizligi kaldirildi\n",
+     {"X1"}),
+
+    # BELGE CAPASI: docstring'deki sayi ile len(KODLAR) ayrisirsa X2 kirmizi
+    # yanmali — yoksa "TAM N IDDIA" satiri bir daha sessizce bayatlar.
+    ("M17", "BELGE AYRISMASI: docstring'deki iddia sayisi KODLAR'dan sapiyor", T,
+     "TAM 28 `IDDIA:`",
+     "TAM 27 `IDDIA:`",
+     {"X2"}),
 ]
 
 IDDIA_RE = re.compile(r"^IDDIA: (\S+) (YESIL|KIRMIZI)\b")
@@ -209,8 +232,8 @@ def sha(yol):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def kos(guard_yol, kopru_yol):
-    p = subprocess.run([sys.executable, TEST,
+def kos(guard_yol, kopru_yol, test_yol=TEST):
+    p = subprocess.run([sys.executable, test_yol,
                         "--kaynak", guard_yol, "--kaynak-kopru", kopru_yol],
                        capture_output=True, text=True)
     cikti = p.stdout + p.stderr
@@ -226,21 +249,23 @@ def kos(guard_yol, kopru_yol):
 
 
 def ayna(kod, hedef, eski, yeni):
-    """Gecici aynada mutasyonu uygula -> (guard_yolu, kopru_yolu, hata)."""
+    """Gecici aynada mutasyonu uygula -> (guard_yolu, kopru_yolu, test_yolu, hata)."""
     d = tempfile.mkdtemp(prefix="guard-mutant-%s-" % kod)
     gy = os.path.join(d, "urunler-guard.py")
     ky = os.path.join(d, "urunler-guard-hook.py")
+    ty = os.path.join(d, "urunler-guard-provenans-test.py")
     shutil.copy(GUARD, gy)
     shutil.copy(KOPRU, ky)
-    yol = gy if hedef == G else ky
+    shutil.copy(TEST, ty)
+    yol = {G: gy, K: ky, T: ty}[hedef]
     with open(yol, encoding="utf-8") as f:
         metin = f.read()
     n = metin.count(eski)
     if n != 1:
-        return gy, ky, "DESEN %d kez eslesti (1 bekleniyordu)" % n
+        return gy, ky, ty, "DESEN %d kez eslesti (1 bekleniyordu)" % n
     with open(yol, "w", encoding="utf-8") as f:
         f.write(metin.replace(eski, yeni, 1))
-    return gy, ky, None
+    return gy, ky, ty, None
 
 
 def main():
@@ -260,12 +285,12 @@ def main():
 
     print("\n%-4s %-6s %-6s %s" % ("KOD", "IDDIA", "TB", "KIRMIZI KUME (beyan -> olculen)"))
     for kod, aciklama, hedef, eski, yeni, beyan in MUTANTLAR:
-        gy, ky, hata = ayna(kod, hedef, eski, yeni)
+        gy, ky, ty, hata = ayna(kod, hedef, eski, yeni)
         if hata:
             sapma.append("%s: %s" % (kod, hata))
             print("%-4s %-6s %-6s !! %s" % (kod, "-", "-", hata))
             continue
-        kirmizi, toplam, tb = kos(gy, ky)
+        kirmizi, toplam, tb = kos(gy, ky, ty)
         uydu = (kirmizi == beyan)
         if toplam != t_toplam:
             sapma.append("%s: iddia sayisi %d != taban %d (mutant testi COKERTTI)"
