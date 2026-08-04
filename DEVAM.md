@@ -17,8 +17,12 @@ sessizce rc 0 "taze / 0,0 dk" veriyordu (sahte-taze).
 - D1 teyidi: **17817 = 17817** (sayi ekseni ✅ · sema ekseni ✅ · icerik ekseni
   17817 urun_hash birebir, uyusmaz 0 / eksik 0 / fazla 0).
 - CI: merge SHA `4225711d`'nin kosumu (30893172664) KENDI ikinci push'umla iptal oldu;
-  gecerli kosum **30893246326** (headSha `ba0b4a8c`) ve `4225711d` bu SHA'nin ATASI
-  (`merge-base --is-ancestor` exit 0 ile dogrulandi).
+  gecerli kosum **30893246326** (headSha `ba0b4a8c`) **BASARILI** ve `4225711d` bu SHA'nin
+  ATASI (`merge-base --is-ancestor` exit 0). `Shop bayatlik kapisi — kendini test` adimi
+  bu kosumda **success**.
+- 🟡 KAYDA GECSIN (bu turda DUZELTILMEDI, kapsam disi): `deploy.yml` yorumu bu adimi
+  "SERIT A (job `build`)" diye anlatiyor; kosumda adim FIILEN **`serit-a2`** job'unda.
+  Yorumdaki job adi ile gercek job adi ayrisiyor — mimar karari beklesin.
 - Dal + worktree `agent-a8f11e73f1c0fb7aa` temizlendi (icerigi main'de, worktree temizdi).
 
 ## 🔴 YENI ACIK KALEM — katalog geneli metin/alan bosluğu (envanter cikti)
