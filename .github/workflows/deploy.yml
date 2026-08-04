@@ -1795,7 +1795,14 @@ jobs:
       # 4 Agu: A5 TESLIM ekseni eklendi — cron METNI degil kosumlarin FIILEN gerceklesen
       # dagilimi (beklenen/gerceklesen orani + EN UZUN ardisik bosluk). A1/A3 bu sinifa
       # KORDU: cron metni dogru + son kosum taze iken teslim orani %4,31 olabiliyor.
-      # Cift yonlu mutasyon (6 oldurucu KIRMIZI + 1 kontrol YESIL) elle:
+      # 4 Agu (ikinci tur): PUSH SERIDI kablo capasi eklendi (PS1-PS16) — odeme yolu
+      # bayatlik olcumu artik cron'a EK olarak push tetikli
+      # `.github/workflows/odeme-bayatlik-push.yml` seridinde de kosuyor. OLCULDU: cron
+      # tetigi 3482,2 dk pencerede 10 kez teslim edildi (en uzun sessizlik 1053,5 dk),
+      # AYNI pencerede push tetigi 152 kez teslim edildi (en uzun bosluk 418,9 dk).
+      # Seridin "yayini durdurmaz" ozelligi BEYAN DEGIL, burada KOSULAN kapidir.
+      # Cift yonlu mutasyon (7 oldurucu KIRMIZI + 1 kontrol YESIL; X4/X5 en-uzun-bosluk
+      # UC terimlerini, X6 push seridi yayin-yolu kapisini TEK KIRMIZI ile civiler) elle:
       #   python3 tools/cron-teslim-mutasyon.py
       - name: "Uzlastirma nabiz kapisi: kendini test (agsiz fikstur, iki yonlu)"
         run: python3 tools/cron-nabiz-kapisi.py --kendini-test

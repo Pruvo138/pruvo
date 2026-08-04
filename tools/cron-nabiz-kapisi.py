@@ -186,6 +186,25 @@ PAKET_OLCUM_ARACI = "tools/fiziksel-canli-kapisi.py"
 # `--kendini-test` bunu KOSARAK dogrular (elle senkron tutulan ikinci kopya YOK).
 PAKET_PARITE_ETIKETI = "parite"
 
+# ─── PUSH SERIDI (4 Agu 2026) — bayatlik olcumunun FIILEN ATESLENEN tetigi ───
+# Cron teslimi %4,31; en uzun sessizlik 1053,5 dk (A5 ekseninin olctugu hal). Ayni
+# depoda `deploy.yml` event=push kosumlari AYNI pencerede 152 kez teslim edildi ve en
+# uzun boslugu 418,9 dk idi. Bu yuzden bayatlik olcumu AYRICA push tetikli bir seride
+# baglandi. Serit EK'tir: cron kolu KALDIRILMADI.
+# Bu capa, seridin YAYIN YOLUNA BAGLANMADIGINI olcer — iddia yorum degil KOSULAN kapidir.
+PUSH_SERIT_DOSYA = "odeme-bayatlik-push.yml"
+PUSH_SERIT_ARACI = "tools/shop-bayatlik-kapisi.py"
+# Yayin is akisi: eszamanlilik grubu BURADAN kosarak okunur (ikiz dize TUTULMAZ,
+# [[ikiz-tanim-sessiz-ayrisma]]).
+YAYIN_DOSYA = "deploy.yml"
+# `pull_request`: fork PR'i seridi baslatir ve secret kapsamini degistirir.
+# `workflow_call`: is akislari arasi TEK bag yolu budur; kapaliysa serit deploy.yml'in
+# `needs` grafinin ICINE giremez (GitHub'da is akislari arasi `needs` zaten yoktur).
+PUSH_SERIT_YASAK_TETIK = ("pull_request", "workflow_call")
+# Seridin canli kolunun ihtiyac duydugu secret. Kapsami VARSAYILMAZ, OLCULUR:
+# bkz. `_secret_ortam_kapsami`.
+PUSH_SERIT_SECRET = "CLOUDFLARE_API_TOKEN"
+
 # DAMGA KUTUGU — ad -> (yazan is akisi, damganin IDDIASI). `--damga-yaz` bu kutukten
 # DISARI cikamaz: bilinmeyen bir ad verilirse hata verir (uydurma adla yuklenen bir
 # artifact hicbir eksen tarafindan okunmaz, yani sessiz bir hicligi damgalardi).
@@ -1480,6 +1499,255 @@ def paket_alarmi_kablosu():
                       "tetikler": sorted(tetik_adlari), "arac_etiketi": arac_etiketi}
 
 
+def _metin_iceriyor(dugum, aranan):
+    """Ayristirilmis YAML agacinda `aranan` alt dizesini tasiyan bir METIN var mi."""
+    if isinstance(dugum, str):
+        return aranan in dugum
+    if isinstance(dugum, dict):
+        return any(_metin_iceriyor(v, aranan) for v in dugum.values())
+    if isinstance(dugum, list):
+        return any(_metin_iceriyor(v, aranan) for v in dugum)
+    return False
+
+
+def _eszamanlilik_grubu(govde):
+    """`concurrency.group` (kisa yazim `concurrency: <grup>` de kabul) -> str | None."""
+    es = govde.get("concurrency")
+    grup = es.get("group") if isinstance(es, dict) else es
+    return grup.strip() if isinstance(grup, str) and grup.strip() else None
+
+
+def _yayin_is_akisi(ham=None):
+    """(yayin_eszamanlilik_grubu, deploy.yml_govdesi) — GRUP ADI KOSARAK OKUNUR.
+
+    Push seridinin "yayin kuyrugunu bekletmez" iddiasi iki dizenin ESITSIZLIGIDIR;
+    ikisini iki dosyada ELLE tutmak ikiz tanimdir ve sessizce ayrisir. deploy.yml
+    grubunu degistirirse bu okuma onunla birlikte kayar."""
+    if ham is None:
+        yol = os.path.join(WORKFLOW_DIZIN, YAYIN_DOSYA)
+        if not os.path.exists(yol):
+            raise OlcumHatasi("yayin is akisi YOK: %s" % yol)
+        with open(yol, encoding="utf-8") as f:
+            ham = f.read()
+    govde = yaml_belge(ham)
+    if not isinstance(govde, dict):
+        raise OlcumHatasi("%s: kok govde sozluk DEGIL" % YAYIN_DOSYA)
+    grup = _eszamanlilik_grubu(govde)
+    if grup is None:
+        raise OlcumHatasi(
+            "%s: `concurrency.group` okunamadi -> push seridinin yayin kuyrugundan AYRI "
+            "oldugu KANITLANAMAZ (fail-closed)" % YAYIN_DOSYA)
+    return grup, govde
+
+
+def _secret_ortam_kapsami(ad, secret_adi, ham=None):
+    """(tuketen_is_sayisi, ORTAM beyan eden isler) — bir secret'in KAPSAMINI OLCER.
+
+    🔴 NEDEN OLCULUR, VARSAYILMAZ: ORTAM (environment) secret'i YALNIZ o ortami beyan
+    eden ise cozulur; DEPO/ORG secret'i depodaki HER is akisina cozulur (tek istisna
+    fork PR'lari). Push seridi bu token olmadan rc 2 (OLCULEMEDI) verir ve HER PUSH'TA
+    kirmizi yanardi — yani "token erisilebilir" bir BEYAN olarak birakilamaz.
+    Kanit: ayni secret'i `environment:` TASIMAYAN bir isten FIILEN tuketen, FIILEN kosan
+    bir is akisi varsa secret ORTAM'a bagli DEGILDIR."""
+    if ham is None:
+        yol = os.path.join(WORKFLOW_DIZIN, ad)
+        if not os.path.exists(yol):
+            raise OlcumHatasi("is akisi YOK: %s" % yol)
+        with open(yol, encoding="utf-8") as f:
+            ham = f.read()
+    govde = yaml_belge(ham)
+    if not isinstance(govde, dict) or not isinstance(govde.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % ad)
+    tuketen = 0
+    ortamli = []
+    for job_ad, job in govde["jobs"].items():
+        if not isinstance(job, dict):
+            continue
+        if not _metin_iceriyor(job, "secrets.%s" % secret_adi):
+            continue
+        tuketen += 1
+        if "environment" in job:
+            ortamli.append(str(job_ad))
+    return tuketen, ortamli
+
+
+def push_serit_kablosu(ham=None, yayin_ham=None):
+    """PUSH SERIDI — bayatlik olcumu FIILEN ATESLENEN tetige bagli MI ve yayin yolundan
+    AYRI MI. GERCEK dosyadan olculur; `ham`/`yayin_ham` verilirse FIKSTUR olculur.
+
+    YEDI sart, hepsi fail-closed:
+      (1) `push` tetigi VAR. Yoksa serit OLU'dur ve korluk penceresi cron'un olculen
+          1053,5 dk'sina geri doner.
+      (2) 🔴 `pull_request` ve `workflow_call` tetigi YOK. Birincisi fork PR'ini seride
+          sokar (secret kapsami ve yayin kuyrugu degisir); ikincisi is akislari arasi
+          TEK bag yoludur — kapali oldugu surece bu serit deploy.yml'in `needs`
+          grafinin ICINE giremez.
+      (3) `concurrency` grubu VAR ve deploy.yml'in grubuna ESIT DEGIL (grup adi
+          deploy.yml'den KOSARAK okunur; ikinci kopya tutulmaz).
+      (4) deploy.yml hicbir isi bu dosyayi `uses:` ile CAGIRMIYOR.
+      (5) CANLI olcum kolu kosuyor: bayrakSIZ `python3 tools/shop-bayatlik-kapisi.py`.
+          `--kendini-test`e dusurulmus bir serit hicbir canli sey olcmez ama YESIL yanar.
+      (6) Olcum adimi cikis kodunu YUTMUYOR (`continue-on-error`, `||`, `;`, `&&`,
+          `set +e` yok) — yoksa serit hic kirmizi yanamaz.
+      (7) 🔴 SECRET KAPSAMI: olcum adimi `secrets.CLOUDFLARE_API_TOKEN` kullanir, onu
+          tasiyan is `environment:` BEYAN ETMEZ ve ayni secret'i tuketen kardes is
+          akisi (`paket-tazelik-alarmi.yml`) da etmez -> secret DEPO duzeyindedir ve bu
+          seritte COZULUR. Cozulmeseydi kapi rc 2 verip her push'ta bos kirmizi yakardi.
+    Doner: (sorunlar, bulgular)."""
+    if ham is None:
+        yol = os.path.join(WORKFLOW_DIZIN, PUSH_SERIT_DOSYA)
+        if not os.path.exists(yol):
+            raise OlcumHatasi(
+                "push seridi is akisi YOK: %s -> odeme yolu bayatlik olcumu YENIDEN "
+                "yalnizca cron'a (olculen teslim %%4,31) bagli kalir" % yol)
+        with open(yol, encoding="utf-8") as f:
+            ham = f.read()
+    govde = yaml_belge(ham)
+    if not isinstance(govde, dict) or not isinstance(govde.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % PUSH_SERIT_DOSYA)
+    yayin_grup, yayin_govde = _yayin_is_akisi(yayin_ham)
+
+    sorunlar = []
+    tetik = _on_bolumu(govde)
+    if isinstance(tetik, dict) or isinstance(tetik, list):
+        tetik_adlari = set(str(k) for k in tetik)
+    elif isinstance(tetik, str):
+        tetik_adlari = {tetik}
+    else:
+        tetik_adlari = set()
+    if "push" not in tetik_adlari:
+        sorunlar.append(
+            "%s icinde `push` tetigi YOK -> serit OLU: bayatlik olcumu yine yalnizca "
+            "cron'a bagli kalir (olculen teslim %%4,31, en uzun sessizlik 1053,5 dk)"
+            % PUSH_SERIT_DOSYA)
+    for yasak in PUSH_SERIT_YASAK_TETIK:
+        if yasak in tetik_adlari:
+            sorunlar.append(
+                "🔴 YAYIN YOLUNA BAGLANMIS: %s icinde `%s` tetigi VAR. Bu seridin TEK "
+                "gerekcesi 'kirmizisi yayini durdurmaz' olmasidir; ag'a bagimli tek bir "
+                "yanlis pozitif TUM EKIBIN yayinini durdururdu "
+                "([[kapi-kapsam-eksen-secimi]])." % (PUSH_SERIT_DOSYA, yasak))
+
+    grup = _eszamanlilik_grubu(govde)
+    if grup is None:
+        sorunlar.append(
+            "%s icinde `concurrency.group` YOK -> serit kosumlari varsayilan gruba "
+            "duser ve yayin kuyrugundan AYRI oldugu KANITLANAMAZ" % PUSH_SERIT_DOSYA)
+    elif grup == yayin_grup:
+        sorunlar.append(
+            "🔴 YAYIN KUYRUGUNA GIRMIS: %s eszamanlilik grubu (%r) %s'in grubuyla AYNI "
+            "-> serit yayin kosumlarini BEKLETIR (ve onlar tarafindan bekletilir); "
+            "'yayina maliyeti 0 sn' iddiasi COKER"
+            % (PUSH_SERIT_DOSYA, grup, YAYIN_DOSYA))
+
+    cagiran = sorted(
+        str(job_ad) for job_ad, job in (yayin_govde.get("jobs") or {}).items()
+        if isinstance(job, dict) and PUSH_SERIT_DOSYA in str(job.get("uses") or ""))
+    if cagiran:
+        sorunlar.append(
+            "🔴 %s bu seridi `uses:` ile CAGIRIYOR (is: %s) -> serit yayinin `needs` "
+            "grafinin ICINE girmis, kirmizisi yayini DURDURUR"
+            % (YAYIN_DOSYA, ", ".join(cagiran)))
+
+    olcum_adimi = None
+    olcum_isi = None
+    olcum_kendini_test = False
+    tazeleme = False
+    for job_ad, job in govde["jobs"].items():
+        if not isinstance(job, dict) or not isinstance(job.get("steps"), list):
+            continue
+        for a in job["steps"]:
+            if not isinstance(a, dict):
+                continue
+            for satir in str(a.get("run") or "").splitlines():
+                s = satir.strip()
+                if s.startswith("git reset --hard FETCH_HEAD"):
+                    tazeleme = True
+                if PUSH_SERIT_ARACI in s and s.startswith("python3"):
+                    if "--kendini-test" in s.split():
+                        olcum_kendini_test = True
+                    else:
+                        olcum_adimi, olcum_isi = a, job
+                        for yutan in ("||", "|", ";", "set +e", "&&"):
+                            if yutan in s:
+                                sorunlar.append(
+                                    "olcum satiri cikis kodunu YUTABILIR (%r icinde %r) "
+                                    "-> serit kirmizi yanamaz" % (s[:90], yutan))
+    if olcum_adimi is None:
+        sorunlar.append(
+            "CANLI OLCUM KOLU YOK: %s icinde bayrakSIZ `python3 %s` cagrisi bulunamadi%s "
+            "-> serit hicbir canli sey olcmez ama kosum YESIL yanar."
+            % (PUSH_SERIT_DOSYA, PUSH_SERIT_ARACI,
+               " (yalniz `--kendini-test` kolu var)" if olcum_kendini_test else ""))
+    elif olcum_adimi.get("continue-on-error"):
+        sorunlar.append("olcum adimi `continue-on-error` ile FAIL-OPEN")
+    if not tazeleme:
+        sorunlar.append(
+            "`git reset --hard FETCH_HEAD` tazelemesi YOK -> donmus github.sha checkout'u "
+            "olculen ref ile olculmesi GEREKEN ref'i ayristirir; kapi (fail-closed) rc 2 "
+            "verir ve serit her push'ta BOS kirmizi yakar")
+
+    token_var = bool(olcum_adimi is not None
+                     and _metin_iceriyor(olcum_adimi, "secrets.%s" % PUSH_SERIT_SECRET))
+    if olcum_adimi is not None and not token_var:
+        sorunlar.append(
+            "olcum adimi `secrets.%s` KULLANMIYOR -> canli surum okunamaz, kapi rc 2 "
+            "(OLCULEMEDI) verir ve serit her push'ta kirmizi yanar" % PUSH_SERIT_SECRET)
+    ortamli = bool(isinstance(olcum_isi, dict) and "environment" in olcum_isi)
+    if ortamli:
+        sorunlar.append(
+            "olcum isi `environment:` BEYAN EDIYOR -> secret ORTAM kapsamina duser; "
+            "onay bekleyen bir ortam seridi her push'ta askiya alir")
+    kardes_tuketen, kardes_ortamli = _secret_ortam_kapsami(
+        PAKET_ALARM_DOSYA, PUSH_SERIT_SECRET)
+    if kardes_tuketen == 0:
+        sorunlar.append(
+            "KAPSAM KANITI YOK: %s icinde `secrets.%s` tuketen is bulunamadi -> secret'in "
+            "DEPO duzeyinde oldugu (yani bu seritte cozulecegi) OLCULEMEZ"
+            % (PAKET_ALARM_DOSYA, PUSH_SERIT_SECRET))
+    if kardes_ortamli:
+        sorunlar.append(
+            "KAPSAM KANITI COKTU: %s icinde secret'i tuketen is(ler) `environment:` "
+            "beyan ediyor (%s) -> secret ORTAM'a bagli olabilir ve bu seritte "
+            "COZULMEYEBILIR" % (PAKET_ALARM_DOSYA, ", ".join(kardes_ortamli)))
+    return sorunlar, {"tetikler": sorted(tetik_adlari), "grup": grup,
+                      "yayin_grup": yayin_grup, "cagiran": cagiran,
+                      "olcum": olcum_adimi is not None, "tazeleme": tazeleme,
+                      "token": token_var, "ortamli": ortamli,
+                      "kardes_tuketen": kardes_tuketen,
+                      "kardes_ortamli": kardes_ortamli}
+
+
+# Push seridi FIKSTURU — kablolama katmani GERCEK dosyaya bagimli kalmasin diye kabul
+# testi bu iskeleti bozarak IKI YONLU olcer (temiz fikstur -> ariza YOK).
+PUSH_SERIT_FIKSTUR = """
+name: fikstur
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: odeme-bayatlik-push
+  cancel-in-progress: true
+jobs:
+  bayatlik:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: uca tazele
+        run: |
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+      - name: olcum
+        id: nesil
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: python3 tools/shop-bayatlik-kapisi.py --gh-ozet
+"""
+
+
 def kendini_test():
     """IKI YONLU kabul: kirmizi yol da yesil yol da FIKSTURLE kosturulur."""
     hatalar = []
@@ -2027,6 +2295,98 @@ def kendini_test():
           paket_kosul_arizasi({"if": "steps.olcum.outputs.durum != ''"}) is not None)
     iddia("A4 KOSUL FIKSTURU: gercek kosul -> ariza YOK (yanlis-pozitif yok)",
           paket_kosul_arizasi({"if": "steps.olcum.outputs.durum == 'parite'"}) is None)
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # PUSH SERIDI — BAYATLIK OLCUMU FIILEN ATESLENEN TETIGE BAGLI MI
+    # ═══════════════════════════════════════════════════════════════════════
+    # 🔴 OLCULEN GEREKCE (4 Agu 2026): cron tetigi teslim %4,31, en uzun sessizlik
+    # 1053,5 dk. AYNI pencerede `deploy.yml` event=push 152 kez teslim edildi ve en
+    # uzun boslugu 418,9 dk idi (7 gunde 567 kosum, en uzun bosluk 663,5 dk). Ofset
+    # degistirmek teslimi DUZELTMEDIGI icin olcum push tetigine de baglandi.
+    # Asagidaki iddialar hem GERCEK dosyayi hem FIKSTURU olcer (tek yonlu kapi bu
+    # depoda daha once isirdi, [[kapi-kapsam-eksen-secimi]]).
+    try:
+        ps_sorun, ps_bulgu = push_serit_kablosu()
+        ps_ariza = None
+    except Exception as e:  # noqa: BLE001
+        ps_sorun, ps_bulgu, ps_ariza = ["olculemedi"], {}, "%s: %s" % (type(e).__name__, e)
+    iddia("PS1 PUSH SERIT: %s bayatlik olcumunu (%s) CANLI kolla kosar — cron'un "
+          "DUSURDUGU tetige degil FIILEN ateslenen tetige bagli"
+          % (PUSH_SERIT_DOSYA, PUSH_SERIT_ARACI),
+          not ps_sorun, ps_ariza or "; ".join(ps_sorun) or repr(ps_bulgu))
+    iddia("PS2 PUSH SERIT: 🔴 YAYINI DURDURAMAZ — `pull_request`/`workflow_call` tetigi "
+          "YOK (bu iddia yorum degil, KOSULAN kapidir)",
+          bool(ps_bulgu.get("tetikler"))
+          and not (set(PUSH_SERIT_YASAK_TETIK) & set(ps_bulgu["tetikler"])),
+          repr(ps_bulgu.get("tetikler")))
+    iddia("PS3 PUSH SERIT: `push` tetigi VAR (yoksa serit OLU ve korluk penceresi "
+          "cron'un 1053,5 dk'sina geri doner)",
+          "push" in (ps_bulgu.get("tetikler") or []), repr(ps_bulgu.get("tetikler")))
+    iddia("PS4 PUSH SERIT: eszamanlilik grubu %s'in grubundan FARKLI (grup adi o "
+          "dosyadan KOSARAK okunur, ikiz dize YOK)" % YAYIN_DOSYA,
+          bool(ps_bulgu.get("grup")) and bool(ps_bulgu.get("yayin_grup"))
+          and ps_bulgu["grup"] != ps_bulgu["yayin_grup"],
+          "%r vs %r" % (ps_bulgu.get("grup"), ps_bulgu.get("yayin_grup")))
+    iddia("PS5 PUSH SERIT: %s bu seridi `uses:` ile CAGIRMIYOR (yayinin `needs` "
+          "grafinin ICINDE degil)" % YAYIN_DOSYA,
+          ps_bulgu.get("cagiran") == [], repr(ps_bulgu.get("cagiran")))
+    iddia("PS6 PUSH SERIT: canli (bayrakSIZ) olcum kolu kosuyor — `--kendini-test`e "
+          "dusurulmus bir serit hicbir canli sey olcmez ama YESIL yanar",
+          bool(ps_bulgu.get("olcum")), repr(ps_bulgu))
+    iddia("PS7 PUSH SERIT: kosum agaci uzak main UCUNA tazelenir (donmus github.sha "
+          "olculen ref'i ayristirir -> her push'ta BOS rc 2)",
+          bool(ps_bulgu.get("tazeleme")), repr(ps_bulgu))
+    # 🔴 TOKEN KAPSAMI OLCULUR, VARSAYILMAZ: token cozulmezse kapi rc 2 verir ve serit
+    # HER PUSH'TA kirmizi yanar — yani "erisilebilir" bir beyan olarak birakilamaz.
+    iddia("PS8 PUSH SERIT TOKEN: olcum adimi `secrets.%s` kullanir ve onu tasiyan is "
+          "`environment:` BEYAN ETMEZ (ortam secret'i olsaydi serit askida kalirdi)"
+          % PUSH_SERIT_SECRET,
+          bool(ps_bulgu.get("token")) and not ps_bulgu.get("ortamli"), repr(ps_bulgu))
+    iddia("PS9 PUSH SERIT TOKEN: KARDES KANIT — ayni secret'i FIILEN kosan %s icinde "
+          "tuketen is(ler) VAR ve hicbiri `environment:` tasimiyor -> secret DEPO "
+          "duzeyindedir, bu seritte de cozulur" % PAKET_ALARM_DOSYA,
+          (ps_bulgu.get("kardes_tuketen") or 0) > 0
+          and ps_bulgu.get("kardes_ortamli") == [],
+          "tuketen=%r ortamli=%r" % (ps_bulgu.get("kardes_tuketen"),
+                                     ps_bulgu.get("kardes_ortamli")))
+
+    # --- FIKSTURLER: kablolama katmani GERCEK dosyaya bagimli kalmasin ------
+    def _ps_sorun(ham):
+        try:
+            return push_serit_kablosu(ham=ham)[0]
+        except OlcumHatasi as e:
+            return ["olculemedi: %s" % e]
+
+    iddia("PS10 FIKSTUR: `pull_request` eklenmis -> ARIZA (fork PR'i seridi baslatir; "
+          "secret kapsami ve yayin kuyrugu degisir)",
+          bool(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "  workflow_dispatch:\n", "  pull_request:\n  workflow_dispatch:\n"))),
+          repr(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "  workflow_dispatch:\n", "  pull_request:\n  workflow_dispatch:\n"))[:1]))
+    iddia("PS11 FIKSTUR: `workflow_call` eklenmis -> ARIZA (is akislari arasi TEK bag "
+          "yolu budur; acik olursa serit yayinin `needs` grafina girebilir)",
+          bool(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "  workflow_dispatch:\n", "  workflow_call:\n  workflow_dispatch:\n"))))
+    iddia("PS12 FIKSTUR: `push` tetigi dusurulmus -> ARIZA (serit OLU)",
+          bool(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "  push:\n    branches: [main]\n", ""))))
+    iddia("PS13 FIKSTUR: eszamanlilik grubu %s'in grubuyla AYNI -> ARIZA (serit yayin "
+          "kuyrugunu bekletirdi)" % YAYIN_DOSYA,
+          bool(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "  group: odeme-bayatlik-push\n",
+              "  group: %s\n" % (ps_bulgu.get("yayin_grup") or "pages")))))
+    iddia("PS14 FIKSTUR: canli kol `--kendini-test`e dusurulmus -> ARIZA (serit YESIL "
+          "yanar ama hicbir canli sey olcmez)",
+          bool(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "shop-bayatlik-kapisi.py --gh-ozet",
+              "shop-bayatlik-kapisi.py --kendini-test"))))
+    iddia("PS15 FIKSTUR: olcum satiri cikis kodunu YUTUYOR (`|| true`) -> ARIZA",
+          bool(_ps_sorun(PUSH_SERIT_FIKSTUR.replace(
+              "shop-bayatlik-kapisi.py --gh-ozet",
+              "shop-bayatlik-kapisi.py --gh-ozet || true"))))
+    # KONTROL (TEK DEGISKEN: fikstur bozulmadi) — kapi "her seye ariza" demiyor.
+    iddia("PS16 FIKSTUR KONTROL: bozulmamis iskelet -> ARIZA YOK (yanlis-pozitif yok)",
+          _ps_sorun(PUSH_SERIT_FIKSTUR) == [], repr(_ps_sorun(PUSH_SERIT_FIKSTUR)))
 
     # DAMGA KUTUGU: yazici iki adi da tanir, kutuk disina cikamaz.
     for ad in (DAMGA_ADI, PAKET_DAMGA_ADI):

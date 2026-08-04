@@ -135,6 +135,15 @@ kostu (teslim %4,31); bosluk medyani 237,4 dk, EN UZUN ardisik bosluk 1053,5 dk 
 Gercek korluk penceresi bu yuzden 15 dk DEGIL. Dusme DEPO/HESAP duzeyindedir (ayni
 pencerede d1-uzlastirici.yml de %5,06), bu kapiya OZGU DEGIL; ofset degisikligi teslim
 oranini duzeltmez. Olculen deger icin bkz. tools/cron-nabiz-kapisi.py A5 ekseni.
+🔴 ONARIM (4 Agu 2026, ikinci tur): bu kapinin CANLI kolu ARTIK ayrica PUSH tetikli bir
+seritte de kosuyor — `.github/workflows/odeme-bayatlik-push.yml`. Gerekce OLCUM: AYNI
+3482,2 dk penceresinde cron 10 kez teslim edildi (en uzun sessizlik 1053,5 dk), push
+tetigi 152 kez teslim edildi (medyan bosluk 12,2 dk, EN UZUN bosluk 418,9 dk); son 7
+gunde push 567 kosum / en uzun bosluk 663,5 dk. Yani KORLUK PENCERESI 1053,5 -> 418,9 dk
+(2,51 kat), medyan korluk 237,4 -> ~11 dk (~22 kat). "15 dakika" DEGILDIR: push da insan
+faaliyetidir ve gece durur. Cron kolu KALDIRILMADI, serit EK'tir. Yeni seridin yayin
+yolundan bagimsizligi BEYAN DEGIL, `tools/cron-nabiz-kapisi.py::push_serit_kablosu()`
+tarafindan KOSULAN bir kapidir (PS1-PS16; mutant X6 onu kirmizi yakar).
 OFFLINE kolu (`--kendini-test`) deterministiktir ve `deploy.yml` `build` isinde BLOKLAYICI
 kosar — ag gerektirmeyen kismi bloklamak yanlis-pozitif uretmez.
 
