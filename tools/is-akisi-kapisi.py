@@ -2175,6 +2175,15 @@ SERIT_B = {
         "Yani 'yanlis/uretilemez icerik canliya cikmasin' hukmunu veren kol A'dadir; "
         "buraya YALNIZ kapinin KENDI kirmizi yolunu deneyen mutasyon turu girer "
         "(agac temizken bloklayici kol DAIMA yesildir, kirmizi yolu hic denemez).",
+    ("deploy.yml", "serit-b", "tools/bayat-beyan-kapisi.py"):
+        "HER IKI kol da (bayraksiz gercek tarama + `--kendini-test` mutasyonu) serit "
+        "B'de kosar — komsularindan farkli olarak GERCEK olcum kolu da burada. Gerekce "
+        "(KraL karari, 4 Agu 2026): bu bir 'sizintili/uretilemez icerik canliya "
+        "cikmasin' A-kapisi DEGIL; kod YORUMU / izlenen .md BEYANI ile olculen "
+        "davranisin (hacim.js · yonet.js) ic tutarliligini olcer. Korudugu yuzey "
+        "musteriye render edilen icerik degil, kaynak yorumdur; yanlis-pozitifi TUM "
+        "ekibin yayinini durdurmasi orantisiz olurdu. Offline, ag YOK, deterministik, "
+        "mutasyon DAIMA KOPYAYA (kaynak sha256 bas=son).",
     ("deploy.yml", "serit-b", "tools/denetim-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; urun denetimi `--commit-farki` serit A'da bloklayici.",
     ("deploy.yml", "serit-b", "tools/gramer-artigi-kapisi.py"):

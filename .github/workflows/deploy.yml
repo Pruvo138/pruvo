@@ -2540,6 +2540,18 @@ jobs:
       - name: Onizleme vaat kapisi kirmizi-mutasyon turu (oldurucu + kontrol + fail-closed)
         run: python3 tools/onizleme-vaat-kapisi.py --kendini-test
 
+      # BAYAT BEYAN KAPISI (4 Agu 2026): depo BEYANI (kod yorumu / izlenen .md) ile
+      # olculen DAVRANIS (jenerator/hacim.js · shop/src/yonet.js) ayrismasini yakalar.
+      # Musteri yuzu ornek: secenekler.js VIDA yorumu, uretim motorunun per-parca olcu
+      # duyarliligini (civata/mil cap+boy, somun/pul yalniz cap) yanlis anlatirsa KIRMIZI.
+      # SERIT B (KraL karari): bir beyan/yorum ayrismasidir, "sizintili icerik canliya
+      # cikmasi" degil; yayini durdurmasi olculmus zarardir (beyan: is-akisi-kapisi.py ::
+      # SERIT_B). Offline, ag YOK, mutasyon DAIMA KOPYAYA (kaynak sha256 bas=son), ~1 s.
+      - name: Bayat beyan kapisi ic nobetci (mutasyon — beyan/davranis ayrismasi kor mu)
+        run: python3 tools/bayat-beyan-kapisi.py --kendini-test
+      - name: Bayat beyan kapisi (depo beyani == olculen davranis)
+        run: python3 tools/bayat-beyan-kapisi.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

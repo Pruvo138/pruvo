@@ -1704,23 +1704,6 @@ IZIN_LISTESI = {
         "yesil olsa da testin cekirdek iddiasi 'gercek skill agaci planda mi' CI'da "
         "olculemez). Ayrica yedekle.py yayin hattinin parcasi degil: yerel disk-kaybi "
         "sigortasi -> Pages build'ini bloklamasi orantisiz."),
-    # 🔴 GECICI KAYIT — SURECSEL MUAFIYET, TEKNIK DEGIL (4 Agu 2026, bayat-beyan turu).
-    # Dosya CI'ya HAZIR: agsiz, deterministik, node disinda hicbir sey istemez
-    # (setup-node deploy.yml'de zaten BLOKLAYICI on-kosul), olculdu bu agacta:
-    #   python3 tools/bayat-beyan-kapisi.py                -> rc=0, 5 iddia / 0 KIRMIZI
-    #   python3 tools/bayat-beyan-kapisi.py --kendini-test -> rc=0, 4 olduruculuk mutanti
-    #     TAM beklenen iddiayi dusurdu (A3/A2/B2/B1), 2 KONTROL mutanti YESIL, iddia
-    #     sayisi 5'te SABIT, kaynak sha256 basta = sonda.
-    # EKLENMEME SEBEBI TEK: bu tur deploy.yml'e 0 hunk sartiyla acildi — dosyayi IKI
-    # PARALEL DAL tutuyor (git kanca kablolamasi + yeni ifsa kapisi adimi). MIMAR o
-    # dallar indikten sonra iki adimi (bayraksiz + --kendini-test) deploy.yml'e baglar
-    # ve BU GIRISI SILER; silmezse kural 4 (hem kosuyor hem muaf) KIRMIZI yakar.
-    "tools/bayat-beyan-kapisi.py": (
-        "GECICI/SURECSEL: bu tur deploy.yml'e dokunamiyor (dosya iki paralel dalda). "
-        "Teknik engel YOK — agsiz + deterministik, olculdu: bayraksiz rc=0 (5 iddia / "
-        "0 kirmizi), --kendini-test rc=0 (4 olduruculuk + 2 kontrol mutanti, iddia "
-        "sayisi sabit, kaynak sha256 bozulmadi). MIMAR paralel dallar indikten sonra "
-        "iki adimi deploy.yml'e baglayip BU GIRISI SILECEK."),
 }
 
 
