@@ -51,10 +51,33 @@ NE OLCER (KAPSAM DAR — bilerek):
       · SURE jetonu   + ILETME cekimi  ("en kisa surede ileteceğim")      -> yanar
       · karar nesnesi YOK ("talebi ekibe ileteceğini soyle")              -> YANMAZ
       · ciplak 3. tekil ("fiyati hesaplar", "fiyat ... cikar")            -> YANMAZ
-Dort sinif oldu. (D) 1 Agu'da MIMAR KARARIYLA eklendi — "ucu gecme" kurali ozel
+  (E) ELDE-YOK KOSULSUZ VAADI — musteride OLMAYAN ya da TANINMAYAN parcada
+      kosulsuz ARASTIRMA/COZUM sozu (bkz. PARCA_BAGLAM_RE + ELDE_YOK_RE +
+      E_VAAT_RE + TANIMA_SARTI_RE):
+      KANAT 1 (genel):
+      · [satirda parca] + [yokluk|taninmama] + [DAR vaat listesi], cumlede
+        TANIMA SARTI YOK   ("yoksa arastirip donecegini soyle")           -> yanar
+      · ayni cumlede TANIMA SARTI VAR ("...TANINIYORSA arastirip donecegini
+        soyle")                                                           -> YANMAZ
+      · satirda parca/urun baglami YOK ("Liste fiyati yoksa ...")         -> YANMAZ
+      KANAT 2 (taninmama dali — X5 kacagini kapatir):
+      · [negatif tanima: tanınm- (tanınmış HARIC)] + [DAR acik-kapi listesi]
+        ("TANINMIYORSA da kapiyi kapatma, bakip haber edecegini soyle")  -> yanar
+        (parca baglami SARTI ARANMAZ; "tanınmıyorsa" zaten parca hakkindadir)
+      · vaadin CUMLECIGINDE pozitif tanima jetonu ("Parça tanınıyorsa ...
+        döneceğini söyle, tanınmıyorsa kes")                              -> YANMAZ
+      Her iki kanat: vaat cumleciginde olumsuzlama ("...SOYLEME")         -> YANMAZ
+Bes sinif oldu. (D) 1 Agu'da MIMAR KARARIYLA eklendi — "ucu gecme" kurali ozel
 olarak kaldirildi, cunku olculdu: yasak kalibin DORT ozgun satiri da (A)/(B)/(C)'den
 0 bulguyla geciyordu ve fikstur Z6 yasak cumleyi beklenen-YESIL olarak KILITLIYORDU.
-BESINCI sinifi kendi basina EKLEME. Kapsam buyutmek pozitif nobetciyi sessizce
+(E) 4 Agu'da AYNI GEREKCEYLE, MIMAR KARARIYLA eklendi: kardes mimar HocA canli
+agza PARCA_ELDE_YOK_METNI'ni koyup TANINIYOR/TANINMIYOR dalini SART kosarken bu
+belge hala KOSULSUZ "yoksa arastirip donecegini soyle" diyordu. Iki zit talimat
+ayni prompt'a girer, model rastgele birini secer ve TANINMAYAN parcada musteriye
+YERINE GETIREMEYECEGIMIZ bir arastirma sozu — yani TICARI TAAHHUT — gider.
+OLCULDU: o satir (A)/(B)/(C)/(D)'den 0 bulguyla geciyordu ve fikstur M3 onu
+beklenen-YESIL olarak KILITLIYORDU (Z6'nun 1 Agu'daki hikayesinin AYNISI).
+ALTINCI sinifi kendi basina EKLEME. Kapsam buyutmek pozitif nobetciyi sessizce
 oldurur (olculdu, bu repoda: [[kapi-kapsam-genisletme-tuzagi]]).
 
 ⚠️ BU KAPI `build` ISINDE KOSAR VE `deploy: needs: build` -> bir YANLIS-POZITIF
@@ -353,6 +376,123 @@ OLUMSUZ_RE = re.compile(
     r"|\bkapsam\s+dışı\b|\bmez\b|\bmaz\b",
     re.IGNORECASE)
 
+# --- (E) ELDE-YOK KOSULSUZ VAADI (4 Agu 2026, mimar karari) ----------------
+# CANLI KURAL (pruvo-bot/worker/src/index.js, PARCA_ELDE_YOK_METNI): musteri
+# parcanin KENDISINDE olmadigini yazdiysa IKI DAL vardir —
+#   (1) TANINIYORSA (arac marka+model+yili ve adiyla belli STANDART parca) ->
+#       mevcut "arastirip donecegim" akisi AYNEN isler;
+#   (2) TANINMIYORSA (parcanin kendisi olmadan hangi parca oldugu CIKMIYOR) ->
+#       arastirma sozu VERILMEZ, ACIK KAPI BIRAKILMAZ; tek ve yalin bir cumleyle
+#       parca elimize ulasmadan uretilemeyecegi soylenir.
+# Bu kapinin okudugu belge ise KOSULSUZ "yoksa arastirip donecegini soyle"
+# diyordu. ZARAR SINIFI: yerine getirilemeyecek bir arastirma sozu, musteriye
+# TICARI TAAHHUT olarak gider ("yardimci olamiyoruz" ile ayni sey DEGILDIR).
+#
+# TASARIM — (D) ile AYNI disiplin: FIIL OBEGI + GEREKLI KOSUL; tek jetonla ASLA
+# yanmaz. Uc sart BIRLIKTE aranir, biri eksikse YANMAZ:
+#   [1] SATIRDA parca/urun baglami (PARCA_BAGLAM_RE)
+#   [2] AYNI CUMLEDE yokluk / taninmama baglami (ELDE_YOK_RE)
+#   [3] AYNI CUMLEDE arastirma-cozum VAADI (E_VAAT_RE)
+# ve GEREKLI KOSUL cumlede YOKSA yanar: POZITIF TANIMA SARTI (TANIMA_SARTI_RE).
+# 🔴 TANIMA SARTI BIR BASTIRICI DEGIL, KURALIN KENDISIDIR: vaat ancak TANIMA
+# testine BAGLIYSA mesrudur. Bedeli ne_olculmedi()'de ILAN EDILIYOR.
+PARCA_BAGLAM_RE = re.compile(r"\bparça\w*|\bürün\w*", re.IGNORECASE)
+
+# YOKLUK/TANINMAMA baglami.
+# 🔴 `\btanınm\w*` BILEREK BURADA: parcanin TANINMAMASI, elde olmamasiyla AYNI
+# zarar dalidir (canli kuralin (2) dali). Pozitif "tanınan/tanınıyorsa" ile
+# karismasin diye guard tarafinda `(?!m)` ile disarida tutulur — yani "tanınmıyorsa"
+# GUARD SAYILMAZ, tam tersine (E)'nin ta kendisidir (fikstur E2).
+ELDE_YOK_RE = re.compile(
+    r"\byoksa\b|\byok\s+ise\b|\bbulunamayan\b|\bbulunamazsa\b|\bbulamazsa\b"
+    r"|\belinde\s+yok\w*|\belimizde\s+yok\w*|\belde\s+yok\w*|\bmüşteride\s+yok\w*"
+    r"|parça\w*\s+(?:\w+\s+){0,2}olmadan|\bparçasız\b"
+    r"|\bkayboldu\w*|\bkayıpsa\b|\batıldıysa\b|\batılmışsa\b"
+    r"|\btanınm\w*",
+    re.IGNORECASE)
+
+# ARASTIRMA/COZUM VAADI — FIIL OBEGI listesi, tek kelime DEGIL.
+# 🔴 CIPLAK "araştır" BILEREK YOK: kuralin DOGRU hali "araştırma sözü VERME"
+#    ve mesru "koşulu araştır" ayni koke oturur; ciplak kok sahte-kirmizi yakardi.
+# 🔴 "üretip kargolarız" BILEREK YOK: canli l.14 firma-kimligi/surec anlatimidir
+#    ve fikstur G3 onu beklenen-YESIL olarak nobetler (fikstur E13).
+E_VAAT_RE = re.compile(
+    r"araştırıp\s+dön\w*|araştırıp\s+bildir\w*|araştırıp\s+ilet\w*"
+    r"|araştırıp\s+haber\s+\w+|\baraştırırız\b|\baraştırırım\b"
+    r"|\baraştıracağız\b|\baraştıracağım\b"
+    r"|\bçözeriz\b|\bçözebiliriz\b|çözüme\s+kavuştur\w*|çözüm\s+bul\w*",
+    re.IGNORECASE)
+
+# GEREKLI KOSUL — POZITIF tanima testi. `(?!m)` "tanınmıyorsa / tanınmayan"i
+# DISARIDA tutar (yukariya bak).
+# 🔴 `\btanınmış\w*` ACIKCA POZITIF TARAFTA (4 Agu, 2. curutme — REGEX HATASI
+#    duzeltmesi, TAKAS DEGIL): Turkcede "tanınmış" = UNLU/BILINEN, yani tam da
+#    POZITIF tanimadir. `\btanın(?!m)\w*` onu disariya atiyordu ve asagidaki
+#    NEGATIF desen iceri aliyordu -> "Tanınmış bir markaysa katalogdan git"
+#    KIRMIZI yaniyordu (fikstur X11).
+TANIMA_SARTI_RE = re.compile(
+    r"\btanın(?!m)\w*|\btanınmış\w*|\btanıyabil\w*|kimliği\s+\w*çık(?!m)\w*"
+    r"|kimliği\s+belli|hangi\s+parça\s+olduğu\s+(?:\w+\s+)?çık(?!m)\w*",
+    re.IGNORECASE)
+
+# NEGATIF tanima — canli kuralin (2) dali. AYRI desen: (E)'nin IKINCI KANADI
+# bunu TETIKLEYICI olarak kullanir; rolu ELDE_YOK_RE'dekinden farklidir.
+# 🔴 `(?!ış)`: "tanınmış / tanınmışsa / tanınmışlık" HARIC (yukariya bak).
+NEGATIF_TANIMA_RE = re.compile(
+    r"\btanınm(?!ış)\w*|hangi\s+parça\s+olduğu\s+(?:\w+\s+)?çıkm\w*",
+    re.IGNORECASE)
+
+# 🔴 (E) IKINCI KANAT — "TANINMAMA DALINDA ACIK KAPI" (4 Agu, curutucu bulgusu X5).
+# OLCULDU: `TANINMIYORSA da kapıyı kapatma, bakıp haber edeceğini söyle.` ILK
+# surumden YESIL geciyordu — yani dalin VAROLUS SEBEBI olan zarar kapidan kaciyordu.
+# SEBEP: birinci kanat, vaadi E_VAAT_RE'nin DAR fiil obegi listesiyle arar
+# ("arastirip don-"); "bakip haber ed-" o listede YOK.
+# COZUM (bastirici DEGIL, KANAT): metin TANINMAMA dalini ACIKCA adlandirdiginda
+# dogru davranis TEK ve YALIN REDDIR — o baglamda HERHANGI bir acik-kapi/vaat
+# ifadesi zarardir. Bu yuzden ikinci kanat DAHA GENIS bir vaat listesi kullanir,
+# ama YALNIZ negatif-tanima baglaminda ates alir; (A)-(D) ve birinci kanat
+# DEGISMEDI, hicbiri daraltilmadi.
+# ⚠️ CUMLECIK duzeyinde POZITIF tanima jetonu ayrica veto eder: "Parça tanınıyorsa
+#    araştırıp döneceğini söyle, tanınmıyorsa kes." MESRUDUR (vaat POZITIF dala
+#    aittir) — fikstur X6 bunu nobetler.
+# 🔴 DAR TUTULMASININ SEBEBI OLCULDU (4 Agu, 2. curutme — GERI ALINMIS GENISLIK).
+# ILK surumde bu desen E_VAAT_RE + GENIS bir musteri-hizmeti fiil listesiydi
+# (`haber ver`, `döneceğ-`, `dönerim`, `dönebilir-`, `bakıp \w+`). Kanat 2 alan
+# (parca) sartini BILEREK kaldirdigi icin sinifi alan icinde tutan tek cit
+# gitmisti; sonuc OLCULDU: 13 tamamen MESRU cumlenin 8'i KIRMIZI yaniyordu
+# (kargo adresi · kart · malzeme adi · dosya bicimi · numara · dil · fotograf
+# baglamlari). Kazanc +1 yakalama (yalniz X5), bedel 8/13 yanlis-pozitif —
+# ve bu kapi `deploy: needs: build`, yani her biri bir gun TUM pruvo3d.com
+# yayinini durduracak bir mayin. TAKAS TERS YONDEYDI.
+# ARTIK YALNIZ GERCEK "ACIK KAPI" IFADELERI: sıradan musteri-hizmeti fiilleri
+# (haber ver / dön- / bakıp <herhangi>) BU LISTEDE YOKTUR.
+# ILAN EDILEN BEDEL: "...yoksa bir yolunu buluruz" gibi, negatif tanima dalini
+# ADLANDIRMAYAN parafrazlar KACAR (ne_olculmedi'de yazili).
+ACIK_KAPI_DAR_RE = re.compile(
+    r"açık\s+kapı\s+bırak(?!ma)|kapıyı\s+kapatma|kapıyı\s+açık\s+bırak"
+    r"|\bumut\s+ver\w*|bakıp\s+haber\w*|\bhallederiz\b|\bhallederim\b"
+    r"|bir\s+yolunu\s+bul\w*|\bilgilen\w*|\bdestek\s+ol\w*"
+    r"|teklif\s+hazırla\w*",
+    re.IGNORECASE)
+
+# (E)-YE OZEL OLUMSUZLAMA EKI — ortak OLUMSUZ_RE'ye DOKUNULMADI (o (A)/(B)/(C)
+# ile paylasilir; oraya kelime eklemek uc sinifi da gevsetirdi).
+# GEREKCE: kuralin DOGRU yazilisi tam bu kelimelerdir —
+#   "Parça elinde yoksa araştırıp döneceğini SÖYLEME."
+# ve "söyleme/bırakma" ortak listede YOKTU -> eksiz surumde bu YASAK METIN
+# KIRMIZI yanar, `deploy: needs: build` yuzunden TUM SITE yayini dururdu (E10).
+# ⚠️ ILAN EDILEN BEDEL: her bastirici bir BYPASS yuzeyidir.
+E_OLUMSUZ_EK_RE = re.compile(
+    r"\bsöyleme\b|\bsöylemeyin\b|\bkurma\b|\bkurmayın\b|\bbırakma\b"
+    r"|\bbırakmayın\b|\bvaat\s+etme\b",
+    re.IGNORECASE)
+
+
+def e_olumsuz(c):
+    """(E) icin olumsuzlama: ortak liste + (E) fiillerinin olumsuz emir bicimleri."""
+    return bool(OLUMSUZ_RE.search(c)) or bool(E_OLUMSUZ_EK_RE.search(c))
+
+
 # Cumlecik ayirici: noktalama + BAGLAC.
 # 🔴 Baglaclar (cunku/ama/fakat/ancak/zira) 26 Tem denetiminde eklendi: olumsuzlama
 # maskesi bypass'i OLCULDU -> "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" tek
@@ -486,6 +626,45 @@ def bulgular(metin):
                 out.append((no, "D/SURE-VAADI", c,
                             "SURE TAAHHUDU (zaman jetonu + iletme/donus cekimi) — "
                             "ne zaman donulecegi de Okan'in karari"))
+
+        # ---- (E) ELDE-YOK KOSULSUZ VAADI: SATIR baglami + CUMLE penceresi ----
+        # Jeton/kosul penceresi CUMLE (virgul BOLMEZ): "Parça müşteride YOKSA,
+        # tanınıyorsa araştırıp döneceğini söyle" TEK beyandir, virgul onu
+        # bolseydi TANIMA SARTI vaatten ayrilir ve kuralin DOGRU hali KIRMIZI
+        # yanardi. Olumsuzlama penceresi CUMLECIK — ayni asimetri (A)'da da var,
+        # ayni gerekceyle (yasak metni sahte-kirmizi yakmasin).
+        parca_baglam = bool(PARCA_BAGLAM_RE.search(satir))
+        for cumle in cumleler(satir):
+            # KANAT 1 — GENEL: parca baglami + yokluk + DAR vaat listesi, cumlede
+            #                  POZITIF tanima sarti YOKKEN.
+            kanat1 = (parca_baglam
+                      and ELDE_YOK_RE.search(cumle)
+                      and E_VAAT_RE.search(cumle)
+                      and not TANIMA_SARTI_RE.search(cumle))
+            # KANAT 2 — TANINMAMA DALI: metin negatif tanima dalini ACIKCA
+            #   adlandirmissa dogru davranis TEK ve YALIN REDDIR; orada GENIS
+            #   acik-kapi listesi kullanilir. Parca baglami SARTI ARANMAZ:
+            #   "tanınmıyorsa" jetonu zaten PARCANIN taninmasi hakkindadir
+            #   (X5 satirinda 'parça' kelimesi GECMIYOR — sart arasaydik kacardi).
+            kanat2 = bool(NEGATIF_TANIMA_RE.search(cumle)
+                          and ACIK_KAPI_DAR_RE.search(cumle))
+            if not (kanat1 or kanat2):
+                continue
+            desen = E_VAAT_RE if kanat1 else ACIK_KAPI_DAR_RE
+            for c in cumlecikler(cumle):
+                # Cumlecik duzeyinde POZITIF tanima jetonu VETO eder: vaat o zaman
+                # TANINIYOR dalina aittir ve MESRUDUR (fikstur X6).
+                if (desen.search(c) and not e_olumsuz(c)
+                        and not TANIMA_SARTI_RE.search(c)):
+                    out.append((no, "E/ELDE-YOK-VAADI", cumle,
+                                "musteride OLMAYAN / TANINMAYAN parcada KOSULSUZ "
+                                "arastirma-cozum ya da ACIK KAPI sozu — canli "
+                                "PARCA_ELDE_YOK_METNI TANINIYOR/TANINMIYOR dalini "
+                                "SART kosar; taninmayan parcada acik kapi "
+                                "BIRAKILMAZ, tek yalin cumleyle uretilemeyecegi "
+                                "soylenir (kanat: %s)"
+                                % ("1/genel" if kanat1 else "2/taninmama-dali")))
+                    break
         i += 1
     return out
 
@@ -498,11 +677,15 @@ def olcumu_bas(yol, metin, sessiz=False):
         print("  Olcum : %d satir, %d karakter" % (len(metin.split("\n")), len(metin)))
         print("  Kapsam: (A) olcu/cizim ISTEGI · (B) uretim sozu · (C) fiyat TAAHHUDU")
         print("          · (D) KARAR VAADI (fiyat/malzeme kararini cikarip iletme sozu)")
+        print("          · (E) ELDE-YOK KOSULSUZ VAADI (taninmayan parcada arastirma sozu)")
         print("          (C) = para + GUCLU kip, ya da para + YAKLASIK + ZAYIF kip.")
         print("          (C) OLCMEZ: duz kesin fiyat beyani · tahmin jetonu tasimayan")
         print("          betimleme ('fiyat sayfada yazar') — ilan edilmis kor noktalar.")
         print("          (D) = [karar nesnesi | sure jetonu] + [Ege-oznesi cekimi];")
         print("          tek jetonla yanmaz. OLCMEZ: parafraz ('bakip haber ederim').")
+        print("          (E) = [satirda parca] + [yokluk/taninmama] + [arastirma vaadi],")
+        print("          cumlede POZITIF TANIMA SARTI YOKKEN. OLCMEZ: parafraz vaat")
+        print("          ('bakip haber ederim') · parca kelimesi gecmeyen satir.")
         print("-" * 70)
         if not b:
             print("  Bulgu YOK.")
@@ -673,7 +856,84 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
   · KAPSAM DISI — (D) "kim karar verir" sorusunu KELIMEDEN okur. "Malzeme ve
     fiyat karari bizde" (canli l.39, D14) ile "Malzemeyi biz belirleriz" (D30
     sinifi) ANLAMCA yakin ama biri YESIL biri KIRMIZI: fark, ikincisinin bir
-    TAAHHUT CEKIMI tasimasidir. Sinir kelimeseldir, anlamsal degil.""")
+    TAAHHUT CEKIMI tasimasidir. Sinir kelimeseldir, anlamsal degil.
+
+  ── (E) ELDE-YOK KOSULSUZ VAADI — 4 Agu'da eklendi, NEYI OLCMEDIGI ───────────
+  · 🔴 TANIMA SARTI BIR BYPASS YUZEYIDIR VE BILEREK KABUL EDILDI. (E) "vaat,
+    TANIMA testine BAGLI mi" diye sorar; testi CUMLEDE bir POZITIF tanima jetonu
+    (tanınıyorsa / tanınırsa / tanınan / kimliği çıkıyorsa) olarak okur. Ayni
+    cumleye ANLAMSIZCA "tanınıyorsa" sokusturan bir metin (E)'yi SUSTURUR.
+    Alternatifi olculdu: sart olmadan kuralin DOGRU hali ("...TANINIYORSA
+    arastirip donecegini soyle + [DEVRET]") KIRMIZI yanar ve `deploy: needs:
+    build` yuzunden TUM pruvo3d.com yayini durur. Fiksturler E5/E6 sartin POZITIF
+    tarafini kalici olarak nobetler.
+  · 🔴 PARAFRAZ KACISI (E)'de de GENISTIR ve ilk maddedeki hukum aynen gecerlidir.
+    E_VAAT_RE bir FIIL OBEGI listesidir; ayni sozu baska fiillerle kuran metin
+    RAHATCA gecer: "yoksa bakip haber ederim" · "parca elinde yoksa bir yolunu
+    buluruz" · "bulamazsak biz ilgilenelim". Yesil, "metin dogru" DEMEK DEGILDIR.
+  · KOR NOKTA — SATIR BAGLAMI SARTI: (E) yalniz satirda parca/urun jetonu varken
+    olcer. GEREKCE: "Liste fiyati yoksa arastirip donecegini soyle" FIYAT
+    eksenidir ve canli talimatta ACIKCA SERBESTTIR (FIYAT_VAADI_YASAGI: "Kesin
+    fiyat gerekiyorsa YALNIZCA 'sizin icin arastirip ... donecegim' de"). O satiri
+    yakan bir kural tum siteyi sahte-kirmiziyla durdururdu. BEDELI: parca/urun
+    kelimesi GECMEYEN bir satirda kurulan elde-yok vaadi YAKALANMAZ (fikstur E9).
+  · KOR NOKTA — CUMLE PENCERESI: yokluk baglami ile vaat AYRI cumlelerdeyse
+    (nokta / noktali virgul / cunku-ama-fakat-ancak-zira ile ayrilmissa) (E)
+    onlari BIRLESTIREMEZ. Ornek: "Parca elinde yok. Arastirip donecegini soyle."
+    -> YANMAZ. Virgul BILEREK bolmez (yoksa kuralin dogru hali kirmizi yanardi).
+  · KOR NOKTA — (E) OLUMSUZLAMA EKI (söyleme/kurma/bırakma/vaat etme) bir
+    BASTIRICIDIR: bu kelimelerden birini ayni cumlecige sokusturan metin (E)'yi
+    susturabilir. Ortak OLUMSUZ_RE'ye DOKUNULMADI.
+  · KAPSAM DISI — (E) belgenin canli SISTEM_TALIMATI ile GERCEKTEN hizali olup
+    olmadigini KANITLAMAZ; yalnizca KOSULSUZ vaat KALIBININ girmedigini soyler.
+    Iki dalin (TANINIYOR / TANINMIYOR) anlamca dogru yazildigi, "acik kapi
+    birakilmadigi" ve cumlenin YALIN kaldigi INSAN okumasi ister.
+  · KAPSAM DISI — (E) "uretip kargolariz" tipi FIRMA-KIMLIGI/surec anlatimini
+    olcmez (canli l.14; fiksturler G3/E13). 4 Agu'da OLCULDU: l.14'u kosulsuza
+    geri alan, tersine ceviren ve asiri daraltan UC mutantin UCU DE YESIL kaldi —
+    yani o satirin kapsami bu kapiyla KORUNMUYOR. Mimar karari: l.14 KOSULSUZ
+    kalir (tartismali olguyu duzeltmek yerine KALDIR); kapsam hukmu INSANDA.
+  · 🔴 IKINCI KANAT (TANINMAMA DALI) DE BIR BYPASS YUZEYIDIR. Kanat 2 yalniz
+    metin negatif tanima dalini ACIKCA adlandirdiginda (tanınm- / "hangi parça
+    olduğu çıkmıyorsa") ates alir. Ayni zarari negatif dali ADLANDIRMADAN kuran
+    metin KACAR — orn. "Ürün elinde yoksa bakıp haber edeceğini söyle" ya da
+    "...yoksa bir yolunu buluruz": yokluk + acik kapi var ama kanat 1 DAR
+    listesi bu fiilleri gormez, kanat 2'nin tetikleyicisi yoktur. ILAN EDILMIS
+    BOSLUK; kapatmak icin acik-kapi listesini kosulsuz yapmak gerekirdi ve o
+    zaman X8/X12-X16 sinifi mesru cumleler KIRMIZI yanip TUM SITE yayinini
+    durdururdu. OLCULDU (2. curutme): kosulsuz/genis surumde 13 mesru cumlenin
+    8'i KIRMIZI idi; daraltma sonrasi 0. Kazanc-bedel takasi ACIKCA bu yonde
+    secildi — kapi bloklayicidir, yanlis-pozitif bir kacaktan AGIRDIR.
+  · 🔴 VETO KACAGI — DEKORATIF POZITIF JETON. Kanat 2'nin cumlecik duzeyindeki
+    "pozitif tanima jetonu varsa vaat POZITIF dala aittir" vetosu (X10),
+    ANLAMSIZ yere serpistirilmis bir pozitif jetonla KIRILIR. Olculdu (2.
+    curutme) — su UC cumle canli kuralin TAM TERSI oldugu halde YESIL gecer:
+      · "Parça tanınmıyorsa bile tanınan bir muadili olabilir diye araştırıp
+         döneceğini söyle."
+      · "Tanınmıyorsa da kimliği çıkarsa diye bakıp haber edeceğini söyle."
+      · "Parça tanınmıyorsa, hangi parça olduğu çıkıyorsa diye umut ver ve
+         döneceğini söyle."
+    KAPATILMADI (veto olmadan kuralin DOGRU yazilisi kirmizi yanar, X10), ama
+    BEYAN EDILDI — beyan edilmemis survivor birakilmaz.
+    ⚠️ VETO SOZLUGU 3. TURDA BIR JETON DAHA KAZANDI: `tanınmış` (=unlu) POZITIF
+    listeye alindi (X11 regex hatasi onarimi ZORUNLU kildi), dolayisiyla o da
+    dekoratif veto jetonu olarak kullanilabilir — "Parça tanınmıyorsa da
+    tanınmış markalarda bir yolunu buluruz." KACAR. Mekanizma YENI DEGIL,
+    yukarida ilan edilen sinifin yeni bir jetonudur; onarimin bedeli budur.
+  · 🔴 BYPASS SOZLUGU BU TURDA BUYUDU, farkinda olarak: `hangi parça olduğu …
+    çık` ifadesi TANIMA_SARTI_RE'ye eklendi (l.44'un TANINIYOR testini canli
+    kuralla esitlemek icin ZORUNLUYDU) ve yeni l.44 bu ifadeyi belgenin KANONIK
+    dili yapti. Yani gelecekteki bir editor bu kalibi parafraz ederken BEDAVA
+    MUAFIYET aliyor: cumleye "hangi parça olduğu çıkıyorsa" sokusturan her metin
+    hem kanat 1'in sartini hem kanat 2'nin vetosunu susturur. Bu, esitlemenin
+    ILAN EDILMIS bedelidir.
+  · 🔴 "YANLIS REDDETME" EKSENI BU KAPIDA HIC OLCULMUYOR. Kapi yalnizca FAZLA SOZ
+    VERMEYI arar; metnin satilan bir kanali SESSIZCE REDDETTIRMESINI (or. cizim/
+    STL veren musteriyi de "tanınmıyor" sayan DAR bir tanima testi) OLCMEZ. Bu
+    olculdu (4 Agu, curutucu): 3 "yanlis reddetme" mutantinin 3'u de YESIL kaldi.
+    Ayri bir eksendir ve BILEREK bu tura ALINMADI — kapsam buyutmek pozitif
+    nobetciyi sessizce oldurur ([[kapi-kapsam-genisletme-tuzagi]]). O yuzden
+    TANINIYOR testinin canli kuralla ESIT kalmasi INSAN denetimine baglidir.""")
 
 
 # --------------------------------------------------------------------------
@@ -686,9 +946,35 @@ ESKI_DAL_SATIR = ("- *Yapabilir misiniz?* → Önce parçayı tanı; katalogda b
                   "+ [DEVRET]; özel üretim ya da kesin fiyat sözü verme.")
 MAIN_SATIR = ("- *Yapabilir misiniz?* → Foto/ölçü/çizim varsa kolaylaşır; katalogda "
               "benzeri varsa oradan git, yoksa özel üretiriz.")
-YENI_SATIR = ("- *Yapabilir misiniz?* → Parçayı tanı; katalogdakine yönlendir, yoksa "
+# 26 Tem - 4 Agu arasi l.44. (A)/(B)/(C)/(D)'den TEMIZ gecer — ama canli agizdaki
+# PARCA_ELDE_YOK_METNI ile CELISIR: "yoksa arastirip donecegini soyle" KOSULSUZDUR.
+# 4 Agu'da (E) sinifinin ONCE-KIRMIZI capasi oldu (fikstur M3).
+L44_ONCEKI = ("- *Yapabilir misiniz?* → Parçayı tanı; katalogdakine yönlendir, yoksa "
               "araştırıp döneceğini söyle + [DEVRET]. Ölçü/çizim isteme, "
               "üretim/fiyat sözü verme.")
+# 4 Agu'dan sonraki GUNCEL l.44 — iki dalli hal (fikstur E5).
+# 🔴 TANINIYOR TESTI CANLI KURALLA ESITLENDI (curutucu bulgusu, mimar karari):
+# ilk yazim "marka+model+yıl+ad ile TANINIYORSA" idi ve canli kuralin testinin
+# ("parcanin kendisi olmadan hangi parca oldugu CIKMIYORSA") DAR BIR ALT KUMESIYDI.
+# Aradaki fark SATILAN BIR KANAL: musteri parcayi kaybetmis ama cizim/STL
+# veriyorsa geometri CIKAR — pruvo3d.com/teknik-cizim-veya-stl-ile-parca-urettirme/
+# tam bunu satiyor. Dar test o musteriyi SESSIZCE REDDETTIRIYORDU.
+L44_GUNCEL = ("- *Yapabilir misiniz?* → Parçayı tanı; katalogdakine yönlendir. "
+              "Parça müşteride YOKSA: hangi parça olduğu ÇIKIYORSA "
+              "(marka+model+yıl+ad ya da müşterinin verdiği çizim/STL) TANINIYOR "
+              "sayılır, araştırıp döneceğini söyle + [DEVRET]; TANINMIYORSA açık "
+              "kapı bırakma, \"parça elimize ulaşmadan üretemeyiz\" de. "
+              "Ölçü/çizim isteme, üretim/fiyat sözü verme.")
+# l.14 — KOSULSUZ firma-kimligi cumlesi (fikstur E13).
+# 🔴 4 Agu: bu satir bir ara "elimize ulasan ya da ... TANINAN parcayi" diye
+# DARALTILMISTI; mimar karariyla GERI ALINDI. GEREKCE (olculdu): l.14 katalog
+# dalindan BAGIMSIZ, HER konusmada enjekte edilir — kosullu bir kurali her zaman
+# acik bir kimlik cumlesine TERFI ettirir. Ustelik o daraltmayi hicbir kapi
+# korumuyordu (kosulsuza geri alan / tersine ceviren / asiri daraltan uc mutantin
+# UCU DE YESIL kaldi). Tartismali olguyu duzeltmek yerine KALDIR (SKILL §2).
+L14_GUNCEL = ("- PRUVO — endüstriyel + oto yedek parça **özel üretimi**; "
+              "kırılan/aşınan/bulunamayan parçayı üretip kargolarız. Özel üretim "
+              "kalemlerinde **stok yok**: sipariş sonrası size özel üretilir.")
 
 # Belgenin KENDI mesru satirlari — canli metnin (C)/(A) sinifina en yakin cumleleri.
 BELGE_L9 = ('- **Kargo — NET söyle, "siparişte netleşir" DEME:** 2.500 TL ve üzeri '
@@ -700,9 +986,17 @@ BELGE_L11 = ("- **Doğru parça:** ölçü/koşul belirsizse netleştir, belirsi
 FIKSTURLER = [
     # (ad, metin, KIRMIZI_bekleniyor_mu, aciklama)
     # ═══ DOGRU-POZITIF (yakalama) ═══
-    ("M1 eski dal metni (26 Tem kazasi)", ESKI_DAL_SATIR, True,
+    # 🔴 M1 4 Agu'da SINIF CAPALI hale getirildi (curutucu olcumu). (E) eklenince
+    # M1'in sinif kumesi ['A'] -> ['A','E'] oldu ama beklenti duz `True` kalmisti:
+    # (A) sinifini olduren bir mutantta M1 hala KIRMIZI yaniyor (artik (E)
+    # sayesinde) ve SESSIZCE geciyordu. OLCULDU: o mutantta main'de 10 fikstur
+    # kirilirken bu dalda 9 kiriliyordu — cikis kodu ayni, BASILAN IDDIA SAYISI
+    # 1 EKSIK ([[kapi-yan-etkisi-gizli-onkosul]]: cikis kodunu degil BASTIGI SAYIYI
+    # karsilastir). "A,E" capasi (A) iddiasini geri getirir.
+    ("M1 eski dal metni (26 Tem kazasi)", ESKI_DAL_SATIR, "A,E",
      "'olcu/cizim iste' EMRI — ayni satirda 'verme' olmasina ragmen yakalanmali "
-     "(satir duzeyi olumsuzlama maskeleme testi)"),
+     "(satir duzeyi olumsuzlama maskeleme testi). (E) de yakalar: 'Yoksa ... "
+     "arastirip donecegini soyle' KOSULSUZ vaattir — iki iddia VEYA'lanmamali"),
     ("M2 main eski l.43", MAIN_SATIR, True, "'yoksa ozel uretiriz' = uretim taahhudu"),
     ("M6 mm degeri isteme",
      "- Deliğin çapını mm olarak gönderin, ona göre üretelim.", True,
@@ -750,7 +1044,22 @@ FIKSTURLER = [
     # ═══ YANLIS-POZITIF NOBETCILERI ═══
     # ⚠️ Bu kapi `build` isinde kosar, `deploy: needs: build` -> asagidakilerden biri
     # KIRMIZI yanarsa yalniz Ege degil TUM pruvo3d.com yayini durur.
-    ("M3 duzeltilmis satir", YENI_SATIR, False, "dort sarti da saglayan metin YESIL olmali"),
+    # 🔴 M3 4 Agu'da TERSINE CEVRILDI (mimar karari) — Z6'nun 1 Agu'daki
+    # hikayesinin AYNISI. ESKI HALI: bu satir beklenen-YESIL kayitliydi, gerekcesi
+    # "dort sarti da saglayan metin". Iddia DOGRUYDU ama EKSIKTI: satir (A)-(D)'den
+    # temiz gecerken canli agizdaki PARCA_ELDE_YOK_METNI ile CELISIYORDU ("yoksa
+    # arastirip donecegini soyle" KOSULSUZDUR; canli kural TANINMAYAN parcada
+    # arastirma sozunu YASAKLAR). Fikstur o celiskiyi beklenen-YESIL olarak
+    # KILITLIYORDU: (E) eklendigi an ic nobetci kirilir, muhendis "demek ki desen
+    # yanlis" diye geri alirdi.
+    # 🔴 SINIF CAPALI BEKLENTI ("E") — duz `True` DEGIL. Duz True katmanlarin
+    # VEYA'sini olcer: (A)-(D)'de acilan bir yanlis-pozitif (E) bulgusunun
+    # arkasina gizlenir ve bu fikstur yine yesil yanardi ([[beyan-edilmis-survivor]]).
+    # "E" demek: satir KIRMIZI yanacak VE bulgu siniflari TAM OLARAK {E} olacak —
+    # yani eski "(A)-(D)'den temiz gecer" iddiasi AYNEN korunuyor.
+    ("M3 eski l.44 (KOSULSUZ arastirma sozu)", L44_ONCEKI, "E",
+     "(A)-(D)'den TEMIZ gecer AMA canli kuralin TANINIYOR/TANINMIYOR ayrimini "
+     "TASIMAZ -> yalniz (E) yakalamali"),
     ("M4 teshis fotosu",
      "- Ne olduğunu anlamak için tek bir net fotoğraf ya da ek açı isteyebilirsin.",
      False, "TESHIS fotosu SERBEST (:52 istisnasi) — kapi buna dokunmamali"),
@@ -1024,7 +1333,138 @@ FIKSTURLER = [
      "- Malzemeyi belirleyip ileteceğini söyle.", True,
      "'uygun' kelimesi CIKARILARAK kural susturulamamali — D7'nin tek-kelimelik "
      "parafrazi; bu dosyanin TUR 4 dersi"),
+    # ═══ (E) ELDE-YOK KOSULSUZ VAADI — 4 Agu, YENI SINIF ═══
+    # 🔴 ONCE-KIRMIZI CAPASI: M3 + E1. Ikisi de degisiklikten ONCEKI ege-bilgi.md
+    # metnidir ve (E) OLMADAN 0 bulgu alir — yani bu zarar sinifi kapiya TAMAMEN
+    # GORUNMEZDI (aynen (D)'nin 1 Agu'daki durumu).
+    # 🔴 UC SART VE BIR GEREKLI KOSUL AYRI AYRI NOBETLENIR (TUR 5 dersi: bir
+    # davranisin YANINDAN gecen fikstur seni YANILTIR). Her mutant ayri fiksturle
+    # olur: E9 = satir/parca sarti · E11 = yokluk sarti · E12 = vaat sarti ·
+    # E5/E6 = TANIMA SARTI · E10 = olumsuzlama.
+    ("E1 elde yok + KOSULSUZ vaat",
+     "- Parça müşterinin elinde yoksa araştırıp döneceğini söyle + [DEVRET].", "E",
+     "canli kuralin (2) dalini YOK sayar: TANINMAYAN parcada arastirma sozu YASAK"),
+    ("E2 'tanınmıyorsa' GUARD DEGILDIR",
+     "- Parça tanınmıyorsa da araştırıp döneceğini söyle, açık kapı bırak.", "E",
+     "olumsuz dal (E) BAGLAMIDIR; `(?!m)` olmasa TANIMA_SARTI onu guard sanip "
+     "TAM ZARAR VAKASINI susturur"),
+    ("E3 kayip/atilmis parcada cozum sozu",
+     "- Parça kayboldu ya da atıldıysa da ürünü çözeriz.", "E",
+     "parca fiziksel olarak bize ULASMADAN uretim de tarama da YAPILAMAZ"),
+    ("E4 1. tekil vaat kipi", "- Ürün elinde yoksa araştırırım.", "E",
+     "vaat 1. tekil de olsa ayni ticari taahhut"),
+    # ═══ (E) YANLIS-POZITIF NOBETCILERI ═══
+    # ⚠️ `deploy: needs: build`: asagidakilerden biri KIRMIZI yanarsa yalniz Ege
+    # degil TUM pruvo3d.com yayini durur. E5/E7/E8/E11/E13 canli belgenin GUNCEL
+    # cumleleridir.
+    ("E5 canli l.44 GUNCEL hali (iki dalli)", L44_GUNCEL, False,
+     "TANINIYORSA sartina BAGLI vaat MESRUDUR — canli kuralin (1) dali; bu satir "
+     "kirmizi yanarsa yayin durur"),
+    ("E6 TANIMA SARTI'nin TAM USTUNDE (MUT: sart kontrolunu kaldir)",
+     "- Parça müşteride yoksa marka+model+yıl ile tanınıyorsa araştırıp "
+     "döneceğini söyle + [DEVRET].", False,
+     "uc sart da VAR + TANIMA SARTI VAR -> YESIL; sart kaldirilirsa KIRMIZI yanar"),
+    ("E7 canli l.46: FIYAT ekseninde vaat (MUT: ELDE_YOK sartini kaldir)",
+     "- *Kesin fiyat?* → Liste fiyatı olanı söyle; özel/parametrikte araştırıp "
+     "döneceğini söyle + [DEVRET].", False,
+     "yokluk jetonu YOK; sart dusurulurse canli l.46 yanar ve yayin durur"),
+    ("E8 canli l.19: 'Emin degilsen ... arastirip donecegini soyle'",
+     "- Emin değilsen uydurma: araştırıp döneceğini söyle + [DEVRET].", False,
+     "yokluk jetonu YOK, parca jetonu YOK — kuralin DOGRU hali"),
+    ("E9 FIYAT ekseninde 'yoksa' (MUT: satir/parca sartini kaldir)",
+     "- Liste fiyatı yoksa araştırıp döneceğini söyle + [DEVRET].", False,
+     "FIYAT_VAADI_YASAGI bu vaadi ACIKCA SERBEST birakir; satirda parca/urun "
+     "jetonu YOK -> (E) olcmez. ILAN EDILMIS BOSLUK (ne_olculmedi)"),
+    ("E10 kuralin OLUMSUZ yazilisi (MUT: e_olumsuz kontrolunu kaldir)",
+     "- Parça elinde yoksa araştırıp döneceğini SÖYLEME, üretemeyeceğini yalın söyle.",
+     False,
+     "'söyleme' ortak OLUMSUZ_RE'de YOK; E_OLUMSUZ_EK_RE olmadan bu YASAK METIN "
+     "KIRMIZI yanar ve TUM SITE yayini durur"),
+    ("E11 parca VAR, vaat VAR, yokluk YOK (MUT: ELDE_YOK sartini kaldir)",
+     "- Ürün için fiyat çalışması birkaç saat sürebilir; araştırıp döneceğini yinele.",
+     False, "yokluk baglami YOK -> (E) tek jetonla ASLA yanmaz"),
+    ("E12 parca VAR, yokluk VAR, vaat YOK (MUT: E_VAAT sartini kaldir)",
+     "- Katalogda yoksa önce parçayı tanımaya çalış.", False,
+     "arastirma/cozum VAADI YOK; ayrica 'tanımaya' TANIMA tarafinda"),
+    ("E13 canli l.14 (KOSULSUZ kimlik cumlesi)", L14_GUNCEL, False,
+     "'bulunamayan' yokluk jetonu tasir ama 'uretip kargolariz' FIRMA-KIMLIGI "
+     "anlatimidir ve E_VAAT listesinde YOKTUR — G3'un (E) ikizi. Bu satirin "
+     "KOSULSUZ kalmasi MIMAR KARARIDIR (bkz. L14_GUNCEL yorumu)"),
+    # ═══ (E) IKINCI KANAT — TANINMAMA DALINDA ACIK KAPI (X5, curutucu bulgusu) ═══
+    # 🔴 X5 ILK SURUMDE YESIL GECIYORDU: dalin VAROLUS SEBEBI olan zarar kapidan
+    # kaciyordu. Birinci kanadin DAR vaat listesi ("arastirip don-") "bakip haber
+    # ed-" parafrazini gormuyordu. Ikinci kanat bunu kapatir.
+    ("X5 taninmama dalinda ACIK KAPI (curutucu)",
+     "- TANINMIYORSA da kapıyı kapatma, bakıp haber edeceğini söyle.", "E",
+     "canli kuralin (2) dalinin TAM TERSI: taninmayan parcada acik kapi "
+     "BIRAKILMAZ. Satirda 'parça' kelimesi GECMIYOR -> kanat 2 parca sarti ARAMAZ"),
+    ("X6 YAKIN-MESRU: vaat POZITIF dala ait",
+     "- Parça tanınıyorsa araştırıp döneceğini söyle, tanınmıyorsa kes.", False,
+     "ayni cumlede iki dal var; vaadin cumleciginde POZITIF tanima jetonu VAR -> "
+     "veto. Bu vaka kirmizi yanarsa kuralin DOGRU yazilisi yayini durdurur"),
+    ("X7 canli l.44'un TANINMIYORSA dali",
+     "- TANINMIYORSA açık kapı bırakma, \"parça elimize ulaşmadan üretemeyiz\" de.",
+     False,
+     "'açık kapı bırakma' -> `bırak(?!ma)` + e_olumsuz; kuralin DOGRU hali YESIL "
+     "kalmali (canli l.44'un ikinci yarisi)"),
+    ("X8 negatif tanima jetonu YOK (kanat 2 kapali)",
+     "- Ürün için ölçü onayından sonra bakıp haber edeceğini söyle.", False,
+     "acik-kapi listesi YALNIZ negatif-tanima baglaminda calisir; kanat 2 "
+     "kosulsuz olsaydi bu mesru cumle KIRMIZI yanar ve yayin dururdu"),
+    ("X9 DAR listenin baska bir jetonu hala yakaliyor",
+     "- Parça tanınmıyorsa da bir yolunu buluruz.", "E",
+     "kanat 2 daraltildi ama OLDURULMEDI: 'bir yolunu bul-' gercek bir acik "
+     "kapi ifadesidir ve negatif dalda yasaktir"),
+    ("X10 VETO capasi (MUT: cumlecik pozitif-tanima vetosunu kaldir)",
+     "- Parça tanınıyorsa açık kapı bırak, tanınmıyorsa kes.", False,
+     "DAR liste jetonu ('açık kapı bırak') POZITIF dalin cumleciginde -> veto. "
+     "Veto kaldirilirsa bu MESRU cumle KIRMIZI yanar. X6 daraltmadan sonra "
+     "vetoya ULASMIYOR; veto'yu nobetleyen tek fikstur BUDUR"),
+    # ═══ KANAT 2 — ALAN DISI YANLIS-POZITIF NOBETCILERI (2. curutme sarti) ═══
+    # 🔴 NEDEN: kanat 2 parca/urun ALAN SARTINI bilerek kaldirir (X5'te 'parça'
+    # kelimesi gecmiyor). O cit gidince "tanınm-" jetonu PARCA DISI her baglamda
+    # kanadi acar. Olculdu (2. curutme): genis listeyle 13 mesru cumlenin 8'i
+    # KIRMIZI yaniyordu. Asagidakiler o alanlarin TAM USTUNE oturur — hicbiri
+    # parca-tanima alaninda DEGIL. `deploy: needs: build`: biri kirmizi yanarsa
+    # TUM pruvo3d.com yayini durur.
+    ("X11 'tanınmış' = UNLU (REGEX HATASI nobetcisi)",
+     "- Tanınmış bir markaysa katalogdan git, değilse fiyatı sorup döneceğini söyle.",
+     False,
+     "'tanınmış' Turkcede POZITIF tanimadir; `(?!ış)` olmadan NEGATIF sayilip "
+     "kirmizi yaniyordu — takas degil, DUZ HATA"),
+    # 🔴 METINLER 3. CURUTMEDE DEGISTI — ESKI HALLERI NOBET TUTMUYORDU.
+    # Olculdu: ilk yazimlarinda ciplak "dön/söyle" vardi ve kanat 2'den KALDIRILAN
+    # jetonlardan (döneceğ- · dönerim · dönebilir- · haber ver · bakıp \w+)
+    # HICBIRINI tasimiyorlardi -> GENISLETILMIS kapida (a0b2cb6e) da YESIL
+    # kaliyorlardi. Yani kirmizi YANAMAYAN, BOS iddialardi: biri kanat 2'yi geri
+    # genisletse 128/128 yesil kalir ve 8 yayin-durduran mayin sessizce donerdi.
+    # Yeni metinlerin HEPSI kaldirilan jetonlardan en az birini tasir; kanit:
+    #   a0b2cb6e surumunde 5/5 KIRMIZI · bu surumde 5/5 YESIL.
+    ("X12 alan disi: kargo adresi",
+     "- Kargo firması adresi tanınmıyorsa müşteriye haber ver, adresi teyit et.",
+     False, "kargo baglami; parca tanima ile ILGISI YOK. 'haber ver' GENIS "
+            "listede vardi -> bu fikstur artik KIRMIZI YANABILIR"),
+    ("X13 alan disi: odeme/kart",
+     "- Ödeme sayfasında kart tanınmıyorsa müşteriye haber ver, havale/EFT "
+     "seçeneğini hatırlat.", False,
+     "odeme baglami; 'haber ver' capasi"),
+    ("X14 alan disi: dosya bicimi",
+     "- Gönderilen dosya biçimi tanınmıyorsa STL istediğimizi haber ver.", False,
+     "dosya bicimi baglami; 'haber ver' capasi"),
+    ("X15 alan disi: malzeme adi",
+     "- Malzeme adı tanınmıyorsa kullanım yerini sor, sonra döneceğini söyle.",
+     False, "malzeme adi baglami; 'döneceğ-' capasi (GENIS listede vardi)"),
+    ("X16 alan disi: fotograf/dil",
+     "- Fotoğraftaki parça tanınmıyorsa daha net bir kare isteyebilirsin, sonra "
+     "değerlendirip haber verirsin.", False,
+     "fotograf baglami + satirda 'parça' GECIYOR (kanat 1 alan sarti da olculur); "
+     "'haber ver-' capasi"),
 ]
+
+
+def _sinif_kumesi(bulgu_listesi):
+    """Bulgu sinifi etiketinin ONEKI: 'A/ISTEK' -> 'A'."""
+    return set(x[1].split("/")[0] for x in bulgu_listesi)
 
 
 def ic_nobetci():
@@ -1037,11 +1477,23 @@ def ic_nobetci():
         ad, metin, kirmizi_bekle, aciklama = FIKSTURLER[i]
         b = bulgular(metin)
         oldu = len(b) > 0
-        ok = (oldu == kirmizi_bekle)
-        print("  [%s] %-42s bekleniyor=%-7s gercek=%-7s" % (
-            "OK" if ok else "HATA", ad,
-            "KIRMIZI" if kirmizi_bekle else "YESIL",
-            "KIRMIZI" if oldu else "YESIL"))
+        gercek_kume = _sinif_kumesi(b)
+        # 🔴 IKI BEKLENTI BICIMI (4 Agu):
+        #   bool  -> yalnizca KIRMIZI/YESIL (eski, gevsek: katmanlarin VEYA'si)
+        #   str   -> KIRMIZI *VE* bulgu siniflari TAM OLARAK bu kume ("E", "A,B")
+        # Sinif capasi, bir fiksturun birden cok iddiayi VEYA'lamasini onler:
+        # (A)-(D)'de acilan bir yanlis-pozitif, (E) bulgusunun arkasina gizlenemez
+        # ([[beyan-edilmis-survivor]] — "beyan edilmis survivor delik gizler").
+        if isinstance(kirmizi_bekle, str):
+            bekle_kume = set(p.strip() for p in kirmizi_bekle.split(",") if p.strip())
+            ok = oldu and (gercek_kume == bekle_kume)
+            bekle_str = "KIRMIZI[%s]" % ",".join(sorted(bekle_kume))
+        else:
+            ok = (oldu == kirmizi_bekle)
+            bekle_str = "KIRMIZI" if kirmizi_bekle else "YESIL"
+        gercek_str = ("KIRMIZI[%s]" % ",".join(sorted(gercek_kume))) if oldu else "YESIL"
+        print("  [%s] %-42s bekleniyor=%-13s gercek=%-13s" % (
+            "OK" if ok else "HATA", ad, bekle_str, gercek_str))
         print("        %s" % aciklama)
         if b:
             j = 0
@@ -1083,14 +1535,16 @@ def main():
     if b:
         print("SONUC: KIRMIZI ❌ — %d bulgu. ege-bilgi.md, Ege'nin canli talimatiyla "
               "CELISEN bir kabiliyet/fiyat sozu iceriyor." % len(b))
-        print("  Dogrusu: tani -> katalogdakine yonlendir -> yoksa arastirip donecegini")
-        print("  soyle + [DEVRET]. Olcu/cizim isteme, uretim/fiyat sozu verme.")
+        print("  Dogrusu: tani -> katalogdakine yonlendir -> parca musteride yoksa")
+        print("  TANINIYORSA arastirip donecegini soyle + [DEVRET], TANINMIYORSA acik")
+        print("  kapi birakma. Olcu/cizim isteme, uretim/fiyat sozu verme.")
         return 1
     # 🔴 "fiyat sozu YOK" DEME — kapi duz kesin fiyat beyanini OLCMUYOR.
     # Bir kapi olcmedigi seyi olcmus gibi raporlayamaz (mimar hukmu 26 Tem).
-    print("SONUC: YESIL ✅ — aranan dort kalip BULUNAMADI:")
+    print("SONUC: YESIL ✅ — aranan bes kalip BULUNAMADI:")
     print("  (A) olcu/cizim istegi · (B) uretim sozu · (C) fiyat TAAHHUDU")
     print("  · (D) karar vaadi (fiyat/malzeme kararini cikarip iletme sozu)")
+    print("  · (E) elde-yok KOSULSUZ vaadi (taninmayan parcada arastirma sozu)")
     print("  ⚠️  BU 'fiyat sozu yok' DEMEK DEGILDIR. (C) sunlari OLCMEZ:")
     print("      · duz kesin fiyat beyani            ('Bu parca 1.200 TL')")
     print("      · tahmin jetonu tasimayan betimleme ('Fiyat sayfada yazar')")
