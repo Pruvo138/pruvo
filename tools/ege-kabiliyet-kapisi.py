@@ -915,6 +915,11 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
          döneceğini söyle."
     KAPATILMADI (veto olmadan kuralin DOGRU yazilisi kirmizi yanar, X10), ama
     BEYAN EDILDI — beyan edilmemis survivor birakilmaz.
+    ⚠️ VETO SOZLUGU 3. TURDA BIR JETON DAHA KAZANDI: `tanınmış` (=unlu) POZITIF
+    listeye alindi (X11 regex hatasi onarimi ZORUNLU kildi), dolayisiyla o da
+    dekoratif veto jetonu olarak kullanilabilir — "Parça tanınmıyorsa da
+    tanınmış markalarda bir yolunu buluruz." KACAR. Mekanizma YENI DEGIL,
+    yukarida ilan edilen sinifin yeni bir jetonudur; onarimin bedeli budur.
   · 🔴 BYPASS SOZLUGU BU TURDA BUYUDU, farkinda olarak: `hangi parça olduğu …
     çık` ifadesi TANIMA_SARTI_RE'ye eklendi (l.44'un TANINIYOR testini canli
     kuralla esitlemek icin ZORUNLUYDU) ve yeni l.44 bu ifadeyi belgenin KANONIK
@@ -1427,20 +1432,33 @@ FIKSTURLER = [
      False,
      "'tanınmış' Turkcede POZITIF tanimadir; `(?!ış)` olmadan NEGATIF sayilip "
      "kirmizi yaniyordu — takas degil, DUZ HATA"),
-    ("X12 alan disi: kargo adresi", "- Adres tanınmıyorsa kargo takip numarasıyla dön.",
-     False, "kargo baglami; parca tanima ile ILGISI YOK"),
+    # 🔴 METINLER 3. CURUTMEDE DEGISTI — ESKI HALLERI NOBET TUTMUYORDU.
+    # Olculdu: ilk yazimlarinda ciplak "dön/söyle" vardi ve kanat 2'den KALDIRILAN
+    # jetonlardan (döneceğ- · dönerim · dönebilir- · haber ver · bakıp \w+)
+    # HICBIRINI tasimiyorlardi -> GENISLETILMIS kapida (a0b2cb6e) da YESIL
+    # kaliyorlardi. Yani kirmizi YANAMAYAN, BOS iddialardi: biri kanat 2'yi geri
+    # genisletse 128/128 yesil kalir ve 8 yayin-durduran mayin sessizce donerdi.
+    # Yeni metinlerin HEPSI kaldirilan jetonlardan en az birini tasir; kanit:
+    #   a0b2cb6e surumunde 5/5 KIRMIZI · bu surumde 5/5 YESIL.
+    ("X12 alan disi: kargo adresi",
+     "- Kargo firması adresi tanınmıyorsa müşteriye haber ver, adresi teyit et.",
+     False, "kargo baglami; parca tanima ile ILGISI YOK. 'haber ver' GENIS "
+            "listede vardi -> bu fikstur artik KIRMIZI YANABILIR"),
     ("X13 alan disi: odeme/kart",
-     "- Kart tanınmıyorsa bankasına danışmasını söyle, sen dönme.", False,
-     "odeme baglami"),
+     "- Ödeme sayfasında kart tanınmıyorsa müşteriye haber ver, havale/EFT "
+     "seçeneğini hatırlat.", False,
+     "odeme baglami; 'haber ver' capasi"),
     ("X14 alan disi: dosya bicimi",
-     "- Dosya biçimi tanınmıyorsa STEP ya da STL olarak yollamasını söyle.", False,
-     "dosya bicimi baglami"),
+     "- Gönderilen dosya biçimi tanınmıyorsa STL istediğimizi haber ver.", False,
+     "dosya bicimi baglami; 'haber ver' capasi"),
     ("X15 alan disi: malzeme adi",
-     "- Malzeme adı tanınmıyorsa listedeki karşılığını söyle.", False,
-     "malzeme adi baglami"),
+     "- Malzeme adı tanınmıyorsa kullanım yerini sor, sonra döneceğini söyle.",
+     False, "malzeme adi baglami; 'döneceğ-' capasi (GENIS listede vardi)"),
     ("X16 alan disi: fotograf/dil",
-     "- Fotoğrafta yazı tanınmıyorsa mesajın diline göre devam et.", False,
-     "fotograf + dil baglami"),
+     "- Fotoğraftaki parça tanınmıyorsa daha net bir kare isteyebilirsin, sonra "
+     "değerlendirip haber verirsin.", False,
+     "fotograf baglami + satirda 'parça' GECIYOR (kanat 1 alan sarti da olculur); "
+     "'haber ver-' capasi"),
 ]
 
 
