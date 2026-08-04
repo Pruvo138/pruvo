@@ -320,16 +320,25 @@ esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
    kapalı formunun en kötü sapması %0,0000079. Şemasında `kisitlar` YOK →
    onizleme-vaat-kapisi A3 tetiklenmiyor. Açık aile 17 → 18, kapalı 6 → 5.
    Sürücü: jenerator/test/rampa-uretilebilirlik-olcum.py (25 iddia / 0 kırmızı).
-   KAPALI KALAN (5): vida (hiç ölçülmedi), rulman + petek + cetvel + kase (hacmi yeşil
+   2026-08-04 ÜRETİLEBİLİRLİK PARİTESİ — `rulman` AÇILDI. Öncül değişti: "şemasında
+   `kisitlar` var" tek başına kapatmıyor; kapatan şey "kısıt var VE yeşil+taze parite
+   kaydı YOK". Kayıt üretildi: şema kapısı ↔ üretim motoru dört kovada karşılaştırıldı,
+   "şema KABUL + motor RET" (para alınıp ürün çıkmayan) kovası 16.000 ölçülen noktada 0,
+   çözülmeyen 0; ölçümün kör olmadığı kontrol mutantlarıyla kanıtlandı (kısıdı GENİŞLETEN
+   M1/M2/M3 tehlikeli nokta üretti, DARALTAN M4 üretmedi). Hacim ekseni ayrı: en kötü
+   sapma %1,2848 (%3 tavanının altında). Açık aile 18 → 19, kapalı 5 → 4.
+   Sürücü: jenerator/test/rulman-uretilebilirlik-olcum.py --parite ·
+   kayıt sözleşmesi: tools/parite_kaydi.py · okuyucu kapı: tools/onizleme-vaat-kapisi.py A3.
+   KAPALI KALAN (4): vida (hiç ölçülmedi), petek + cetvel + kase (hacmi yeşil
    ama ŞEMA ARALIĞI üretilemez kombinasyon veriyor — üretemediğimiz konfigürasyon
    satılabilir görünmez; şema onarılana kadar fail-closed).
    Yapısal kural + kapı: tools/onizleme-vaat-kapisi.py. */
-var KAPALI_AILELER = ["cetvel", "kase", "petek", "rulman", "vida"];
+var KAPALI_AILELER = ["cetvel", "kase", "petek", "vida"];
 var ACIK_AILELER = ["adaptor", "braket", "cerceve", "disli", "huni", "izgara",
                     "jeton", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
-                    "oring", "pervane", "profil", "rampa", "toka", "yay"];
-esit("kapı sayacı: kapalı 5 / açık 18 (2026-08-03 rampa açılışı sonrası)",
-     [KAPALI_AILELER.length, ACIK_AILELER.length], [5, 18]);
+                    "oring", "pervane", "profil", "rampa", "rulman", "toka", "yay"];
+esit("kapı sayacı: kapalı 4 / açık 19 (2026-08-04 rulman açılışı sonrası)",
+     [KAPALI_AILELER.length, ACIK_AILELER.length], [4, 19]);
 
 // POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
 KAPALI_AILELER.forEach(function (aile) {

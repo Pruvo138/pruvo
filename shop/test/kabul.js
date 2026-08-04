@@ -834,13 +834,20 @@ async function test26SariFailClosed() {
      sapmasi %0,0000079. Acilan aile artik POZITIF yonde olculur (fiyat-test.js:
      "ACILAN ailede fiyat ucu taban uretir (rampa)"), burada NEGATIF fiksturde
      kalamaz — kalsaydi bu vaka 'hacim-hesaplanamadi' ile kirmizi yanardi.
-     Fikstur bu yuzden KAPALI kalan BES aile: cetvel + kase + petek + rulman + vida
-     (acik 18 / kapali 5).
+     2026-08-04 (ucuncu tur): `rulman` ACILDI ve ayni gerekcelerle fikstur listesinden
+     CIKARILDI. Oncul degisti: "semada `kisitlar` var" tek basina kapatmiyor, kapatan
+     "kisit var VE yesil+taze parite kaydi YOK". Kayit uretildi (sema kapisi <-> uretim
+     motoru dort kova): "sema KABUL + motor RET" kovasi 16.000 olculen noktada 0,
+     cozulmeyen 0, kontrol mutantlari 4/4 beyanina uydu; hacim ekseninde en kotu sapma
+     %1,2848. Surucu: jenerator/test/rulman-uretilebilirlik-olcum.py --parite.
+     Rampa'da oldugu gibi NEGATIF vakadan cikan aile POZITIF kanaryayla olculur (asagida).
+     Fikstur bu yuzden KAPALI kalan DORT aile: cetvel + kase + petek + vida
+     (acik 19 / kapali 4).
      Semanin geri kalani GECERLI oldugu icin bu vakalar yalniz kapiyi olcer.
      ⚠️ hacimFormulu degistirilince hacim fonksiyonu da degisir; sema.parametreler kutu'nun
      kaldigi icin hacim hesabi yine calisir ya da null doner — iki halde de tutar CIKMAMALI,
      iddia zaten "hata dolu + birimKurus YOK". */
-  for (const kirmiziAile of ["cetvel", "kase", "petek", "rulman", "vida"]) {
+  for (const kirmiziAile of ["cetvel", "kase", "petek", "vida"]) {
     vakalar.push(["N13-" + kirmiziAile + " hacim formulu dogrulanmamis aile",
                   Object.assign({}, sema, { hacimFormulu: kirmiziAile }),
                   null, "hacim-dogrulanmamis"]);
@@ -896,12 +903,32 @@ async function test26SariFailClosed() {
                  " beklenen 16000");
   }
 
+  /* 🔴 ACILAN AILE POZITIF KANARYASI (2026-08-04) — ayni gerekce, `rulman`: NEGATIF
+     listesinden cikarilan aile POZITIF yonde olculur, yoksa kapsam sessizce daralir.
+     Beklenen 20000 kurus SABIT yazilir (varsayilan set: bilya, genislik 9) — kapi
+     acikken bile yanlis bir tutar (olcek/tavan/kisit regresyonu) kirmizi yansin. */
+  const rulmanSema = JSON.parse(fs.readFileSync(
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-rulman.json"), "utf8"));
+  const rulmanVd = KONF.varsayilanDegerler(rulmanSema);
+  const rulmanSonuc = PAR.parametrikHesapla(
+    { id: rulmanSema.id, malzeme: "PLA", renk: "Siyah",
+      parametreler: JSON.parse(JSON.stringify(rulmanVd)), adet: 1 },
+    SECENEK, rulmanSema);
+  if (rulmanSonuc.hata) {
+    hatalar.push("ACILAN AILE (rulman) reddedildi: " + rulmanSonuc.hata);
+  } else if (rulmanSonuc.birimKurus !== 20000) {
+    hatalar.push("ACILAN AILE (rulman) varsayilan tutar=" + rulmanSonuc.birimKurus +
+                 " beklenen 20000");
+  }
+
   rapor("26 sari seri fail-closed (eksik/bozuk sema -> 0 TL YOK, sessiz varsayilan YOK)",
     hatalar.length === 0,
     vakalar.length + " negatif vaka + 1 pozitif kanarya (" +
     (pozitif.hata ? "REDDEDILDI" : kurusMetin(pozitif.birimKurus)) + ")" +
     " + acilan aile kanaryasi rampa (" +
     (rampaSonuc.hata ? "REDDEDILDI" : kurusMetin(rampaSonuc.birimKurus)) + ")" +
+    " + acilan aile kanaryasi rulman (" +
+    (rulmanSonuc.hata ? "REDDEDILDI" : kurusMetin(rulmanSonuc.birimKurus)) + ")" +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
