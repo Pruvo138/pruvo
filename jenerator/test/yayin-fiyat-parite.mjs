@@ -158,10 +158,15 @@ function fiyatlariKarsilastir(A, B, semalar, setTablosu, hacimA, hacimB) {
       if (!Object.is(va, vb)) { hacimSapan++; }
       for (const malzeme of filamentler) {
         for (const renk of renkler) {
+          /* CAP CAPALI AILE (rulman): baglam GECILMEZSE iki taraf da fail-closed
+             null doner ve karsilastirma o aileyi SESSIZCE olcmez — para yuzeyinde
+             kapsam kaybi. Baglami her iki kume KENDI modulleriyle kurar. */
           const a = (va == null) ? null : A.SECENEK.parametrikFiyatKurus(
-            sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, va, malzeme, renk);
+            sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, va, malzeme, renk,
+            A.KONF.fiyatBaglami(sema, degerler, A.HACIM));
           const b = (vb == null) ? null : B.SECENEK.parametrikFiyatKurus(
-            sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, vb, malzeme, renk);
+            sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, vb, malzeme, renk,
+            B.KONF.fiyatBaglami(sema, degerler, B.HACIM));
           toplam++;
           if (a != null) { anlamli++; }
           if (!Object.is(a, b)) {

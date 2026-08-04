@@ -4,10 +4,15 @@
 
 NE OLCER: "kabul testi YESIL" demek "eksen CANLI" demek DEGILDIR. Bu arac eksenleri
 BILEREK bozar ve `--kendini-test`in GERCEKTEN kirmizi yandigini SAYIYLA olcer.
-Kapsam: A5 TESLIM · A0 TETIKLEYICI SARTI · A3/A5 ORTAK CAPA · KADANS KOLU KABLOSU.
-Mutantlar IKI dosyaya uygulanabilir: `tools/cron-nabiz-kapisi.py` ve
-`.github/workflows/deploy.yml` (kadans kolunun bloklamama sarti YALNIZ is akisi
-dosyasindan olculebilir).
+Kapsam: A5 TESLIM · A0 TETIKLEYICI SARTI · A3/A5 ORTAK CAPA · KADANS KOLU KABLOSU ·
+EN UZUN BOSLUGUN UC TERIMLERI (X4/X5) · PUSH SERIDI TETIK IZIN LISTESI + DAL CIVISI
+(X6-X13). Mutantlar UC dosyaya uygulanabilir: `tools/cron-nabiz-kapisi.py`,
+`.github/workflows/deploy.yml` ve `.github/workflows/d1-uzlastirici.yml` (kadans kolunun
+bloklamama sarti ve eszamanlilik kilidi YALNIZ is akisi dosyalarindan olculebilir).
+
+🔴 KABUL IKI KATLIDIR: (a) mutant OLDU MU (kirmizi > 0) ve (b) HANGI EKSENI oldurdu
+   (beyan kumesine TAM ESIT). Yalniz (a) olcen bir batarya, bir mutantin beklenmedik bir
+   ekseni dusurmesini "oldurucu" sayar ([[beyan-edilmis-survivor]]).
 
 NEDEN VAR (olculen korluk, 4 Agu 2026)
 ======================================
@@ -72,11 +77,23 @@ def sha(yol):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# MUTANTLAR — (kod, aciklama, HEDEF_DOSYA, [(bulunacak, yerine), ...], kirmizi_mi)
+# MUTANTLAR — (kod, aciklama, HEDEF_DOSYA, [(bulunacak, yerine), ...], kirmizi_mi,
+#             BEYAN_KUMESI)
+#
+# 🔴 ALTINCI ALAN = BEYAN EDILEN KIRMIZI EKSEN KUMESI (4 Agu 2026, uzlasma turu).
+#    "kirmizi > 0" olcutu bir mutantin BEKLENMEDIK bir ekseni dusurmesini ve yine de
+#    "oldurucu" sayilmasini ENGELLEMEZ ([[beyan-edilmis-survivor]]). Beyan verilen
+#    mutantlarda olculen kirmizi eksen kumesi beyana TAM ESIT olmali (gevsek "kapsar"
+#    olcutu YOK; fazladan kirmizi da kusurdur).
+#      · `None`  -> yalnizca eski isaret sarti (kirmizi > 0) uygulanir.
+#      · `set()` -> KONTROL: hicbir eksen kirmizi yanmamali.
+#    Eksen kodu = `[FAIL]` satirinin ILK SOZCUGUDUR (A5 / PS10 / X4 ... gibi).
+#    ALAN SAYISI KOSARAK DOGRULANIR (asagida): 6 alani olmayan bir mutant harness'i
+#    GURULTULU dusurur — sessizce "beyansiz" moda kayamaz.
 # ─────────────────────────────────────────────────────────────────────────────
 M1 = ("M1", "🔴 TABAN KONTROLU NO-OP: `teslim < taban` -> `False` (A5 hicbir zaman "
             "alarm vermez; 4 Agu'daki hal aynen geri gelir)", KAPI,
-      [("    if teslim < taban:\n", "    if False:\n")], True)
+      [("    if teslim < taban:\n", "    if False:\n")], True, None)
 
 M2 = ("M2", "🔴 OLCULEMEDI -> YESIL: cozulemeyen zaman damgasi hata yerine SESSIZCE "
             "ATLANIYOR (teslim 8 -> 7, ikisi de tabanin ustunde: hal yesil kalir)", KAPI,
@@ -84,11 +101,11 @@ M2 = ("M2", "🔴 OLCULEMEDI -> YESIL: cozulemeyen zaman damgasi hata yerine SES
         '                    try:\n'
         '                        damgalar.append(_iso(k["created_at"]))\n'
         '                    except OlcumHatasi:\n'
-        '                        continue\n')], True)
+        '                        continue\n')], True, None)
 
 M3 = ("M3", "🔴 ESIK 'kirmizi gormeyeyim' DIYE DUSURULDU (guvenlik boleni 2 -> 8; "
             "15 dk cron tabani 4 -> 1)", KAPI,
-      [("TESLIM_GUVENLIK_BOLENI = 2.0", "TESLIM_GUVENLIK_BOLENI = 8.0")], True)
+      [("TESLIM_GUVENLIK_BOLENI = 2.0", "TESLIM_GUVENLIK_BOLENI = 8.0")], True, None)
 
 M4 = ("M4", "🔴 ORTAK CAPA `yenileme_an`e cevrildi (A3 + A5 TEK KAYNAK): dosyaya her "
             "dokunus IKI ekseni birden susturur (olculdu: dokunma araligi medyan "
@@ -98,14 +115,14 @@ M4 = ("M4", "🔴 ORTAK CAPA `yenileme_an`e cevrildi (A3 + A5 TEK KAYNAK): dosya
         '    _capalar = [x for x in (g.get("kayit_an"), g.get("yenileme_an")) if x]\n'
         '    kayit_an = max(_capalar) if _capalar else None\n'
         '    gecmis_saat = ((simdi - kayit_an).total_seconds() / 3600.0) if kayit_an else None\n')],
-      True)
+      True, None)
 
 M5 = ("M5", "🔴 SIRALAMA API'YE BIRAKILDI: pencere kosumlari siralanmiyor -> EN UZUN "
             "BOSLUK (korluk penceresinin gercek degeri) yanlis hesaplanir", KAPI,
       [("    damgalar = sorted(x for x in (g.get(\"tum_kosumlar\") or []) "
         "if x > pencere_basi)",
         "    damgalar = [x for x in (g.get(\"tum_kosumlar\") or []) if x > pencere_basi]")],
-      True)
+      True, None)
 
 M6 = ("M6", "🔴 EVET SUZGECI YALNIZ ILK KAYITTA: listenin gerisi korlemesine sayiliyor "
             "(yarim calisan `event=schedule` suzgeci sahte YESIL uretir)", KAPI,
@@ -115,7 +132,7 @@ M6 = ("M6", "🔴 EVET SUZGECI YALNIZ ILK KAYITTA: listenin gerisi korlemesine s
         "                    if k.get(\"event\") != \"schedule\" and False:\n"
         "                        raise OlcumHatasi(\"%s: event=schedule istendi ama "
         "kayit event=%r \"\n")],
-      True)
+      True, None)
 
 # ── 4 AGU 2026'DA OLDURULEMEYEN MUTANTLAR (bu turun sebebi) ─────────────────
 M7 = ("M7", "🔴 A0 TETIKLEYICI SARTI NO-OP: damgayi yazan kosumun `event=schedule` "
@@ -123,7 +140,7 @@ M7 = ("M7", "🔴 A0 TETIKLEYICI SARTI NO-OP: damgayi yazan kosumun `event=sched
             "bir damga alarmi 9 saat susturur. 4 Agu 09:45:48Z'de FIILEN olan budur ve "
             "o gun bu mutant OLDURULEMIYORDU.", KAPI,
       [('        if kimlik in kaynak["kimlikler"]:\n            return kayit\n',
-        '        if True:\n            return kayit\n')], True)
+        '        if True:\n            return kayit\n')], True, None)
 
 M8 = ("M8", "🔴 A3 CAPASI ESKI HALINE (max(kayit_an, yenileme_an)) DONDURULDU — YALNIZ "
             "A3 cagri yerinde: cron dosyasina her dokunus A3'u N=9 sa SUSTURUR (canli "
@@ -132,19 +149,19 @@ M8 = ("M8", "🔴 A3 CAPASI ESKI HALINE (max(kayit_an, yenileme_an)) DONDURULDU 
         '        kayit_an = max(kayit_an, g["yenileme_an"] or kayit_an)\n'
         '        kayit_yasi = (simdi - kayit_an).total_seconds() / 3600.0\n'
         '        yeni_tanim = (g["son_kosum"] is None or kayit_an > g["son_kosum"])\n')],
-      True)
+      True, None)
 
 M9 = ("M9", "🔴 KADANS KOLU YAYIN YOLUNA SIZDIRILDI: `d1-kadans` job'u `deploy: needs` "
             "listesine eklendi -> D1/ag'a bagimli bir kol TUM EKIBIN yayinini durdurur "
             "(bu depoda olculen kapi-birikimi zarari)", DEPLOY,
       [("    needs: [build, serit-a2, serit-a3]\n",
-        "    needs: [build, serit-a2, serit-a3, d1-kadans]\n")], True)
+        "    needs: [build, serit-a2, serit-a3, d1-kadans]\n")], True, None)
 
 M10 = ("M10", "🔴 ESZAMANLILIK KILIDI SILINDI: uzlastiran isin `concurrency` grubu "
               "kaldirildi -> cron kolu ile push kolu AYNI ANDA kosabilir (D1'e cift "
               "yazim penceresi acilir)", UZLASTIRICI,
        [("    concurrency:\n      group: d1-uzlastirici\n      cancel-in-progress: false\n",
-         "")], True)
+         "")], True, None)
 
 M12 = ("M12", "🔴 KILITLENME RISKI: cagiran job da AYNI eszamanlilik grubunu tutuyor "
               "(cagiran job grubu tutarken cagrilan is ayni grubu ister -> kosum "
@@ -152,29 +169,111 @@ M12 = ("M12", "🔴 KILITLENME RISKI: cagiran job da AYNI eszamanlilik grubunu t
        [("  d1-kadans:\n    uses: ./.github/workflows/d1-uzlastirici.yml\n",
          "  d1-kadans:\n    concurrency:\n      group: d1-uzlastirici\n"
          "      cancel-in-progress: false\n"
-         "    uses: ./.github/workflows/d1-uzlastirici.yml\n")], True)
+         "    uses: ./.github/workflows/d1-uzlastirici.yml\n")], True, None)
 
 M11 = ("M11", "🔴 CRON IKINCI KOLU SILINDI ('kadans yetiyor' varsayimi): push'suz gecede "
               "uzlastirma HIC kosmaz ve A0/A3 capasi da kaybolur", UZLASTIRICI,
        [('  schedule:\n    - cron: "9,24,39,54 * * * *"\n',
-         "  # cron KALDIRILDI (mutant)\n")], True)
+         "  # cron KALDIRILDI (mutant)\n")], True, None)
 
 # ── KONTROL MUTANTLARI (YESIL kalmali) ──────────────────────────────────────
 K1 = ("K1", "ilgisiz: A5 sabitinin yanina aciklama yorumu eklendi", KAPI,
-      [("TESLIM_SAYFA = 100", "TESLIM_SAYFA = 100   # GitHub sayfa boyu")], False)
+      [("TESLIM_SAYFA = 100", "TESLIM_SAYFA = 100   # GitHub sayfa boyu")], False, set())
 
 K2 = ("K2", "ilgisiz: deploy.yml'de kadans job'unun USTUNE yorum satiri eklendi "
             "(is akisi semantigi DEGISMEZ)", DEPLOY,
       [("  d1-kadans:\n    uses:", "  # kadans kolu — gerekce ustteki blokta\n"
-                                   "  d1-kadans:\n    uses:")], False)
+                                   "  d1-kadans:\n    uses:")], False, set())
 
 K3 = ("K3", "ilgisiz: olculen elle-kosum kimliginin yanina aciklama yorumu eklendi", KAPI,
       [("_CRON_DISI_KOSUM = 30897735170",
-        "_CRON_DISI_KOSUM = 30897735170   # 4 Agu 09:45:48Z")], False)
+        "_CRON_DISI_KOSUM = 30897735170   # 4 Agu 09:45:48Z")], False, set())
 
-MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, K1, K2, K3)
+# ── EN UZUN BOSLUGUN UC TERIMLERI (4 Agu 2026 kanit-kalitesi onarimi) ───────
+# 🔴 NEDEN VAR: "en uzun bosluk" UC ucu sayar (ic bosluklar · devam eden sessizlik ·
+# pencere basi) ve kod bunlari satir satir gerekcelendiriyordu — ama TEK A5 fiksturunun
+# maks boslugu bir IC bosluktu (2370 dk). Bagimsiz curutucu olctu: iki UC terimini silen
+# mutantlar 0 KIRMIZI ile SURVIVOR veriyordu; yani "1053,5 dk korluk penceresinin GERCEK
+# degeridir" iddiasinin HESABI OLCULMEMISTI ([[fikstur-degeri-mutasyon-koru]]).
+# Kapiya X4/X5 fiksturleri eklendi; bu iki mutant onlarin AYIRT EDICI oldugunu kanitlar.
+X4 = ("X4", "🔴 DEVAM EDEN SESSIZLIK ucu SILINDI: son kosumdan SIMDIYE kadar gecen sure "
+            "bosluk sayilmiyor -> 44 saattir HIC kosmayan bir is akisi 'en uzun bosluk "
+            "60 dk' diye SAGLIKLI raporlanir", KAPI,
+      [("        bosluklar.append((simdi - damgalar[-1]).total_seconds() / 60.0)\n", "")],
+      True, {"X4"})
+
+X5 = ("X5", "🔴 PENCERE BASI ucu GIZLENDI: ilk kosumdan ONCEKI sessizlik bosluk "
+            "sayilmiyor -> 'pencerenin 45 saati sessiz, son 3 saatte 4 kosum' (PARTI "
+            "HALINDE teslim, 4 Agu'da OLCULEN hal) kucucuk bir bosluk gibi gorunur", KAPI,
+      [("        if not g.get(\"pencere_kirpildi\"):\n"
+        "            bosluklar.append((damgalar[0] - pencere_basi).total_seconds() / 60.0)",
+        "        if False:\n"
+        "            bosluklar.append((damgalar[0] - pencere_basi).total_seconds() / 60.0)")],
+      True, {"X5"})
+
+# ── PUSH SERIDI KABLO CAPASI — TETIK IZIN LISTESI + DAL CIVISI ──────────────
+# Odeme yolu bayatlik olcumu cron'a EK olarak push tetikli `odeme-bayatlik-push.yml`
+# seridinde de kosuyor. O seridin "yayini durdurmaz + disaridan surulemez" ozelligi
+# BEYAN DEGIL, KOSULAN bir kapidir (`push_serit_kablosu`).
+#
+# 🔴 ILK TURDA KUSURLU IDI (bagimsiz curutucu): kapi bir KARA LISTE tutuyordu
+# ("pull_request", "workflow_call") ve `pull_request_target` ACIK KALMISTI — o tetigi
+# tasiyan bir is akisi kapidan YESIL geciyordu. Kara liste TAMAMLANAMAZ
+# ([[maskeleme-kismi-kapatma]]); kapi IZIN LISTESINE cevrildi. Asagidaki mutantlar izin
+# listesini TEK TEK genisletir: her biri BIR fiksturu — ve YALNIZ onu — kirmizi yakar.
+# Mutanti OLMAYAN bir yasak yine BEYAN'dir; bu yuzden her yasak tetigin bir satiri var.
+def _izin(*ekler):
+    return [('PUSH_SERIT_IZINLI_TETIK = ("push", "workflow_dispatch")',
+             'PUSH_SERIT_IZINLI_TETIK = ("push", "workflow_dispatch", %s)'
+             % ", ".join('"%s"' % e for e in ekler))]
+
+
+X6 = ("X6", "🔴 IZIN LISTESI GENISLETILDI: `pull_request` mesru sayiliyor (fork PR'i "
+            "seridi baslatir; olcum cadansini ve kuyruk yukunu disaridan surdurur)",
+      KAPI, _izin("pull_request"), True, {"PS10"})
+
+X7 = ("X7", "🔴 BLOKE EDEN KUSURUN NOBETI: `pull_request_target` mesru sayiliyor — fork "
+            "PR'ini TABAN DEPO baglaminda ve DEPO SECRET'leriyle kosturur, yani yabanci "
+            "koda CLOUDFLARE_API_TOKEN acar (ilk turda kapi bu tetikte YESIL geciyordu)",
+      KAPI, _izin("pull_request_target"), True, {"PS17"})
+
+X8 = ("X8", "🔴 `issue_comment` mesru sayiliyor (herkesin yazabildigi bir yorum taban "
+            "depo baglaminda secret'li kosum baslatir)",
+      KAPI, _izin("issue_comment"), True, {"PS18"})
+
+X9 = ("X9", "🔴 `workflow_run` mesru sayiliyor (serit deploy.yml'in TAMAMLANMASINA "
+            "baglanir; nobetci olctugu hatta bagimli olur — Y4 sinifi)",
+      KAPI, _izin("workflow_run"), True, {"PS19"})
+
+X10 = ("X10", "🔴 MEKANIZMA NOBETI: ENUMERE EDILMEMIS bir tetik (`repository_dispatch`) "
+              "izin listesine giriyor -> izin listesinin fail-closed'ligi coker",
+       KAPI, _izin("repository_dispatch"), True, {"PS20"})
+
+X11 = ("X11", "🔴 DAL CIVISI (GENIS desen kolu) NO-OP: `branches: ['**']` kabul edilir "
+              "-> serit HER dala kosar, gurultu alarmi FIILEN susturur", KAPI,
+       [("        elif dal_listesi != [PUSH_SERIT_DAL]:\n", "        elif False:\n")],
+       True, {"PS21"})
+
+X12 = ("X12", "🔴 DAL CIVISI (TANIMSIZ kolu) NO-OP: `push.branches` hic tanimli "
+              "olmadiginda (varsayilan = TUM dallar) ariza URETILMEZ", KAPI,
+       [("        if not dal_listesi:\n", "        if False:\n")], True, {"PS22"})
+
+X13 = ("X13", "🔴 `workflow_call` mesru sayiliyor (is akislari arasi TEK bag yolu; serit "
+              "deploy.yml'in `needs` grafinin ICINE girebilir)",
+       KAPI, _izin("workflow_call"), True, {"PS11"})
+
+MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12,
+             X4, X5, X6, X7, X8, X9, X10, X11, X12, X13,
+             K1, K2, K3)
+
+# 🔴 ALAN SAYISI NOBETI: 6 alani olmayan bir mutant sessizce "beyansiz" moda kayardi.
+_bozuk = [m[0] for m in MUTANTLAR if len(m) != 6]
+if _bozuk:
+    raise SystemExit("🔴 HARNESS BAYAT: 6 alani olmayan mutant(lar): %s" % _bozuk)
 
 IDDIA_RE = re.compile(r"^(\d+) iddia kosturuldu, (\d+) KIRMIZI\.$", re.M)
+# Kirmizi EKSEN kodu = `[FAIL]` satirinin ilk sozcugu (kapinin `iddia()` bicimi).
+EKSEN_RE = re.compile(r"^  \[FAIL\] (\S+)", re.M)
 
 
 def ayna_kur(hedef):
@@ -225,7 +324,7 @@ def kos(ayna, metinler):
     m = IDDIA_RE.search(cikti)
     iddia = int(m.group(1)) if m else None
     kirmizi = int(m.group(2)) if m else None
-    return r.returncode, iddia, kirmizi, cikti[-2500:]
+    return r.returncode, iddia, kirmizi, set(EKSEN_RE.findall(cikti)), cikti[-2500:]
 
 
 def main():
@@ -234,7 +333,7 @@ def main():
     once = {y: sha(y) for y in DOKUNULMAZ}
 
     pristine = {}
-    for kod, _a, hedef, _d, _k in MUTANTLAR:
+    for kod, _a, hedef, _d, _k, _b in MUTANTLAR:
         if hedef in pristine:
             continue
         yol = os.path.join(ROOT, hedef)
@@ -251,7 +350,7 @@ def main():
               not baglar, "symlink: %s" % (baglar[:6] or "-"))
 
         print("\n1) TABAN KOSUMU (mutasyonsuz ayna — YESIL olmali)")
-        t_rc, t_iddia, t_kirmizi, t_kuyruk = kos(ayna, dict(pristine))
+        t_rc, t_iddia, t_kirmizi, _t_eksen, t_kuyruk = kos(ayna, dict(pristine))
         if not check("taban YESIL (cikis 0, kirmizi iddia 0)",
                      t_rc == 0 and t_kirmizi == 0,
                      "cikis=%s kirmizi=%s" % (t_rc, t_kirmizi)):
@@ -262,10 +361,10 @@ def main():
         print("   taban iddia sayisi: %s" % t_iddia)
 
         print("\n2) MUTANTLAR")
-        for kod, aciklama, hedef, degisimler, kirmizi_bekleniyor in MUTANTLAR:
+        for kod, aciklama, hedef, degisimler, kirmizi_bekleniyor, beyan in MUTANTLAR:
             metinler = dict(pristine)
             metinler[hedef] = mutasyonla(pristine[hedef], degisimler, kod)
-            rc, iddia, kirmizi, kuyruk = kos(ayna, metinler)
+            rc, iddia, kirmizi, eksenler, kuyruk = kos(ayna, metinler)
             print("\n  %s [%s] %s" % (kod, hedef, aciklama))
             # 🔴 ISARET SARTI: iddia sayisi degismemeli. Dusmusse mutant testi COKERTMIS
             # demektir ve o kirmizi bir olcum degildir.
@@ -279,7 +378,16 @@ def main():
                 ok = check("%s: KONTROL — mutant YESIL kaldi (gurultu yok)" % kod,
                            rc == 0 and kirmizi == 0,
                            "cikis=%s kirmizi=%s" % (rc, kirmizi))
-            if not (ok and ok_sayi):
+            # 🔴 BEYAN SARTI: kirmizi EKSEN kumesi beyana TAM ESIT olmali. Fazladan
+            # kirmizi da kusurdur — "oldurucu" hukmu o zaman baska bir eksene aittir.
+            ok_beyan = True
+            if beyan is not None:
+                ok_beyan = check(
+                    "%s: kirmizi EKSEN kumesi beyana TAM ESIT (%s)"
+                    % (kod, sorted(beyan) or "BOS"), eksenler == beyan,
+                    "olculen=%s beyan=%s" % (sorted(eksenler) or "-", sorted(beyan) or "-"))
+            print("     olculen kirmizi eksen: %s" % (sorted(eksenler) or "-"))
+            if not (ok and ok_sayi and ok_beyan):
                 print("  --- kuyruk ---\n%s" % kuyruk)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -297,7 +405,8 @@ def main():
         for f in FAILS:
             print("   - %s" % f)
         return 1
-    print("✅ CURUTME GECTI — her oldurucu mutant KIRMIZI yandi, kontrol mutantlari "
+    print("✅ CURUTME GECTI — her oldurucu mutant KIRMIZI yandi, beyanli mutantlarin "
+          "kirmizi eksen kumesi beyana TAM ESIT cikti, kontrol mutantlari "
           "YESIL kaldi (A5 TESLIM · A0 TETIKLEYICI · A3/A5 ORTAK CAPA · KADANS KOLU).")
     return 0
 

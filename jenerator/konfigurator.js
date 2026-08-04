@@ -276,12 +276,29 @@
     return (typeof h === "number" && isFinite(h) && h > 0) ? h : null;
   }
 
+  /* ÇAPA BAĞLAMI — `parametrikFiyatKurus`in çap çapalı ailelerde (bugün: rulman)
+     ihtiyaç duyduğu tek şey. Fiyat kuralı secenekler.js'te TEKTİR; burada yalnız
+     ona ŞEMAYI, seçilen ölçüleri, ŞEMANIN VARSAYILANLARINI ve AYNI hacim motorunu
+     taşırız (referans hacim çalışma anında hesaplanır, sabit tablo YOK).
+     🔴 TEK ÜRETİCİ: dört çağrı yerinin (bu dosyadaki 3 + Worker parametrik.js)
+     hepsi bu fonksiyonu kullanır; ikinci bir bağlam kurucu YAZILMAZ. */
+  function fiyatBaglami(sema, degerler, hacimModulu) {
+    return {
+      sema: sema,
+      parametreler: hacimGirdisi(sema, degerler),
+      varsayilanlar: hacimGirdisi(sema, varsayilanDegerler(sema)),
+      hacimFn: function (p) { return hacimMm3(sema, p, hacimModulu); }
+    };
+  }
+
   function fiyatKurus(sema, degerler, malzeme, renk, moduller) {
     var SECENEK = (moduller && moduller.secenek) || root.PRUVO_SECENEK;
-    var h = hacimMm3(sema, degerler, moduller && moduller.hacim);
+    var hacimModulu = moduller && moduller.hacim;
+    var h = hacimMm3(sema, degerler, hacimModulu);
     if (h == null) { return null; }
     return SECENEK.parametrikFiyatKurus(sema.hacimFormulu, sema.tabanFiyatTL,
-                                        sema.tabanHacimMm3, h, malzeme, renk);
+                                        sema.tabanHacimMm3, h, malzeme, renk,
+                                        fiyatBaglami(sema, degerler, hacimModulu));
   }
 
   // "İç çap: 32 mm · Kesit: 4 mm · Üzerindeki yazı: AHŞAP" — sepet/WhatsApp satır detayı.
@@ -503,7 +520,8 @@
       var renk = (secim && secim.renk) || (renkEl ? renkEl.value : "Siyah") || "Siyah";
       var kurus = (h == null || cerHata) ? null
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
-            sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
+            sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk,
+            fiyatBaglami(sema, d));
       // 2-renk yazi ek ucreti: front gosterimi Worker (parametrik.js) ile AYNI olmali,
       // yoksa musteri 600 gorup 675 tahsil edilirdi (clamp DISI ek ucret). Tutar tek
       // kaynaktan (secenekler.js); bugun 0 -> gosterilen fiyat degismez.
@@ -533,6 +551,7 @@
     varsayilanDegerler: varsayilanDegerler,
     hacimGirdisi: hacimGirdisi,
     hacimMm3: hacimMm3,
+    fiyatBaglami: fiyatBaglami,
     fiyatKurus: fiyatKurus,
     detayMetni: detayMetni,
     hacimMetni: hacimMetni,
@@ -580,7 +599,7 @@
       var kurus = (h == null) ? null
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
             durum.sema.hacimFormulu, durum.sema.tabanFiyatTL, durum.sema.tabanHacimMm3,
-            h, satir.malzeme, satir.renk);
+            h, satir.malzeme, satir.renk, fiyatBaglami(durum.sema, d));
       // 2-renk yazi: yazi_renk satira yazilir (ayri-satir anahtari + Worker teyidi) + ek ucret
       // (clamp DISI, tutar+metin secenekler.js'ten — Worker parametrik.js ile AYNI kaynak).
       // Tek-renkte alan hic yazilmaz.

@@ -739,12 +739,11 @@
   }
 
   /* ---- FİYAT TAVANI ÇARPANI (× tabanFiyat) — TEK KAYNAK -------------------
-     İşletme kuralı: parametrik fiyat tabanın belli bir katını AŞMAZ (malzeme+renk
-     DAHİL). Çarpan 2026-08-04'e kadar tüm ürün ailelerinde 3'tü; o gün `rulman`
-     ailesinin ölçü aralığı dış çap 60 → 100 mm'ye genişletildi ve 100 mm noktasında
-     1.000,00 TL hedeflendi: taban 200 TL × 100 × 5 = 100000 kuruş. Çarpanı tüm
-     ailelerde yükseltmek diğer 7 ailenin tavanını da sessizce %66 artırırdı, o
-     yüzden istisna AİLE ADIYLA yazılır.
+     İşletme kuralı: HACİM-ORANLI fiyat tabanın belli bir katını AŞMAZ (malzeme+renk
+     DAHİL). Çarpan bugün tüm hacim-oranlı ailelerde 3'tür; aile adıyla istisna
+     yazılabilir (bugün istisna YOK — tablo bilerek BOŞ, mekanizma duruyor).
+     Çap çapalı ailelerde (aşağıdaki AILE_CAP_CAPASI) tavan ÇAPAYA görelidir ve
+     BU tablodan gelmez; oradaki `tavanCarpani` alanı kullanılır.
 
      🔴 İKİNCİ LİSTE YOK: tavanı kullanan tek yer `parametrikFiyatKurus`, tavanı
      beyan eden tek yer bu tablodur; nöbetçi de sayıyı buradan DEĞİL, gerçek
@@ -752,10 +751,7 @@
      geçerlidir (hasOwnProperty: prototip zincirinden gelen "toString" gibi bir ad
      çarpan SAYILMAZ). */
   var TAVAN_CARPANI_VARSAYILAN = 3;
-  var AILE_TAVAN_CARPANI = {
-    // rulman: 2026-08-04 işletme kararı — dış çap 100 mm'de 1.000,00 TL.
-    rulman: 5
-  };
+  var AILE_TAVAN_CARPANI = {};
 
   function tavanCarpani(aile) {
     return (typeof aile === "string" &&
@@ -763,9 +759,107 @@
       ? AILE_TAVAN_CARPANI[aile] : TAVAN_CARPANI_VARSAYILAN;
   }
 
+  /* ---- ÇAP ÇAPALI FİYAT (aile-özel) — TEK KAYNAK ---------------------------
+     İşletme kuralı (2026-08-04): `rulman` fiyatı DIŞ ÇAPLA DOĞRU ORANTILI
+     olsun — 60 mm = 600,00 TL · 80 mm = 800,00 TL · 100 mm = 1.000,00 TL, yani
+     çapa 10 TL × dış çap (mm) = `kurusMm` × mm.
+
+     Çapa fiyatın ZEMİNİNİ değil ÇAPASINI verir; müşterinin seçtiği diğer ayarlar
+     (eleman, flanş, genişlik, boşluk, iç çap) bu çapanın etrafında HACİM ORANINCA
+     modüle eder:
+         kuruş = kurusMm × çap × (hacim / REFERANS hacim(çap))
+     REFERANS = o çaptaki ORANTILI/VARSAYILAN konfigürasyon: şemanın kendi
+     varsayılanları + `oran` tablosundaki ölçüler çapla ölçeklenir (şemanın `adim`
+     ızgarasına yuvarlanarak — referans GERÇEKTEN seçilebilir bir konfigürasyondur).
+     Varsayılan ayarlarda pay = payda olur ve üç nokta BİREBİR tutar; buna karşılık
+     "Flanşlı"/"Makara" seçimi BEDAVA olmaz (hacmi büyütür, oranı 1'in üstüne çıkarır).
+
+     🔴 REFERANS HACİM ÇALIŞMA ANINDA HESAPLANIR (sabit tablo GÖMÜLMEZ): çağıran
+     `baglam.hacimFn` ile aynı hacim motorunu (jenerator/hacim.js) verir. Sabit
+     tablo, hacim motoru değişince sessizce yanlış fiyat üretirdi.
+     🔴 `oran` yalnız ÇAPLA ÖLÇEKLENEN ölçüleri sayar; ölçeklenmeyen ayarlar
+     (eleman/flanş/boşluk) şemanın VARSAYILANINDAN gelir — burada ikinci kopya YOK.
+     🔴 TAVAN ARTIK TABANIN DEĞİL ÇAPANIN KATIDIR: çapa × `tavanCarpani`. Eski
+     kural (taban × 5 = 100000 kuruş) bu ailede ARTIK ANLAMSIZ olurdu — çapa zaten
+     çapla sınırlı, ama sabit 100000 kuruş tavanı 100 mm'de flanş/makara seçimini
+     BEDAVA yapardı (kırpardı). Ölçüldü (2026-08-04, şema ızgarasındaki 1.791.424
+     geçerli konfigürasyonun TAMAMI): en büyük hacim/referans oranı 4,461;
+     malzeme+renk azamisi (ASA ×1,60 · Diğer ×1,15 = ×1,84) ile çapanın 8,21 katı.
+     Tavan 20 seçildi: meşru HİÇBİR konfigürasyonu kırpmaz (ölçüm: 0/1.791.424) ve
+     kutu ileride genişlerse 2,4× pay bırakır; buna karşılık hacim motoru bozulursa
+     tutarı çapanın 20 katıyla (100 mm'de 20.000,00 TL) sınırlar. Tavanın meşru işi
+     kırpmadığı nöbetçide AYRI iddiadır (en pahalı meşru konfigürasyon ölçülür). */
+  var AILE_CAP_CAPASI = {
+    rulman: {
+      parametre: "dis_cap",
+      kurusMm: 1000,                            // 10,00 TL / mm
+      oran: { ic_cap: 1 / 3, genislik: 0.3 },   // çapla ölçeklenen ölçüler
+      tavanCarpani: 20                          // × çapa (kaçak sınırı; meşru işi kırpmaz)
+    }
+  };
+
+  function capCapasi(aile) {
+    return (typeof aile === "string" &&
+            Object.prototype.hasOwnProperty.call(AILE_CAP_CAPASI, aile))
+      ? AILE_CAP_CAPASI[aile] : null;
+  }
+
+  /* Değeri şemanın kendi `adim` ızgarasına yuvarlar. Parametre şemada yoksa null
+     (fail-closed): ızgarasını bilmediğimiz bir ölçüyü referansa koymayız. */
+  function semaIzgarasina(sema, ad, deger) {
+    var liste = sema && sema.parametreler;
+    if (!Array.isArray(liste)) { return null; }
+    for (var i = 0; i < liste.length; i++) {
+      if (liste[i].ad === ad) {
+        var adim = liste[i].adim;
+        return (typeof adim === "number" && adim > 0)
+          ? Math.round(deger / adim) * adim : deger;
+      }
+    }
+    return null;
+  }
+
+  /* Çapa hesabı — {temel, tavan} (kuruş) veya null (fail-closed).
+     `baglam` eksik/bozuksa TUTAR ÜRETİLMEZ: eski hacim-oranı kuralına SESSİZCE
+     düşmek, çağrı yeri güncellenmeden kalınca YANLIŞ FİYAT tahsil ettirirdi. */
+  function capaHesabi(capa, hacimMm3, baglam) {
+    if (!baglam || typeof baglam !== "object") { return null; }
+    var sema = baglam.sema, varsayilanlar = baglam.varsayilanlar,
+        parametreler = baglam.parametreler, hacimFn = baglam.hacimFn;
+    if (!sema || typeof hacimFn !== "function") { return null; }
+    if (!varsayilanlar || typeof varsayilanlar !== "object") { return null; }
+    if (!parametreler || typeof parametreler !== "object") { return null; }
+    var ham = parametreler[capa.parametre];
+    var deger = (typeof ham === "number") ? ham
+      : parseFloat(String(ham).replace(",", "."));
+    if (!isFinite(deger) || deger <= 0) { return null; }
+
+    var ref = {};
+    for (var k in varsayilanlar) {
+      if (Object.prototype.hasOwnProperty.call(varsayilanlar, k)) { ref[k] = varsayilanlar[k]; }
+    }
+    if (!Object.prototype.hasOwnProperty.call(ref, capa.parametre)) { return null; }
+    ref[capa.parametre] = deger;
+    for (var ad in capa.oran) {
+      if (!Object.prototype.hasOwnProperty.call(capa.oran, ad)) { continue; }
+      if (!Object.prototype.hasOwnProperty.call(ref, ad)) { return null; }
+      var olcek = semaIzgarasina(sema, ad, deger * capa.oran[ad]);
+      if (olcek == null || !isFinite(olcek)) { return null; }
+      ref[ad] = olcek;
+    }
+    var refHacim = hacimFn(ref);
+    if (typeof refHacim !== "number" || !isFinite(refHacim) || refHacim <= 0) { return null; }
+    return {
+      temel: capa.kurusMm * deger * (hacimMm3 / refHacim),
+      tavan: capa.kurusMm * deger * capa.tavanCarpani
+    };
+  }
+
   // ---- parametrik ("ölçüye özel") fiyat ----
-  // İşletme kuralı (16 Tem, sarı fiyat paketi):
+  // İşletme kuralı (16 Tem, sarı fiyat paketi) — ÇAPASIZ ailelerde (bugün 18/19):
   //   fiyat = tabanFiyat × max(1, hacim/tabanHacim) × malzemeKatsayı × renkFaktör.
+  // ÇAPA ailelerinde (AILE_CAP_CAPASI, bugün yalnız rulman) zemin/malzeme/renk/tavan
+  // SIRASI aynıdır, yalnız temel tutar hacim oranı yerine ÇAPADAN türer (yukarıdaki blok).
   // Taban fiyat ZEMİNDİR — varsayılandan küçük ölçüde çarpan 1'e sabitlenir, altına
   // İNİLMEZ; taban üstünde hacimle SÜREKLİ oran (basamak yok: eşik uçurumu güven kırar
   // + eşik-altı oynamaya iter). Kuruş cinsinden tutulur; yuvarlama YALNIZ kuruş
@@ -776,16 +870,32 @@
   // sırayla çağıran bir yer güncellenmeden kalırsa `aile` yerine tabanFiyat (sayı)
   // geçer, allowlist'te bulunmaz ve fiyat null döner — yani unutulan çağrı yeri
   // sessizce YANLIŞ FİYAT değil, KAPALI KART üretir (fail-closed refactor).
-  function parametrikFiyatKurus(aile, tabanFiyatTL, tabanHacimMm3, hacimMm3, malzeme, renk) {
+  function parametrikFiyatKurus(aile, tabanFiyatTL, tabanHacimMm3, hacimMm3, malzeme, renk,
+                                baglam) {
     // HACİM DOĞRULAMA KAPISI — her şeyden ÖNCE (bkz. yukarıdaki blok).
     if (!hacimDogrulanmisMi(aile)) { return null; }
     if (tabanFiyatTL == null || !tabanHacimMm3 || !hacimMm3) { return null; }
+    // ÇAPA KOLU (aile-özel): fiyatın çapasını bir ÖLÇÜ belirler, hacim onu modüle
+    // eder. Çapasız ailelerde bugünkü hacim-oranı kuralı AYNEN geçerlidir.
+    var capa = capCapasi(aile);
+    var temelKurus, tavanKurus;
+    if (capa) {
+      var c = capaHesabi(capa, hacimMm3, baglam);
+      if (c == null) { return null; }                 // FAIL-CLOSED (bkz. capaHesabi)
+      // Taban fiyat ZEMİN olarak KORUNUR — çapa kolunda da altına inilmez.
+      temelKurus = Math.max(tabanFiyatTL * 100, c.temel);
+      tavanKurus = c.tavan;
+    } else {
+      temelKurus = tabanFiyatTL * 100 * Math.max(1, hacimMm3 / tabanHacimMm3);
+      tavanKurus = tabanFiyatTL * 100 * tavanCarpani(aile);
+    }
+    // SIRA DEĞİŞMEZ: zemin -> malzeme -> renk -> tavan -> kuruş yuvarlaması.
     var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
-    var kurus = tabanFiyatTL * 100 * Math.max(1, hacimMm3 / tabanHacimMm3) * (1 + yuzde / 100);
+    var kurus = temelKurus * (1 + yuzde / 100);
     if (renk === "Diğer") { kurus = kurus * (1 + RENK_DIGER_YUZDE / 100); }
-    // AİLE-ÖZEL TAVAN (işletme kuralı) — malzeme+renk DAHİL. Çarpanın TEK kaynağı
-    // yukarıdaki AILE_TAVAN_CARPANI/TAVAN_CARPANI_VARSAYILAN ikilisidir.
-    kurus = Math.min(kurus, tabanFiyatTL * 100 * tavanCarpani(aile));
+    // TAVAN (işletme kuralı) — malzeme+renk DAHİL. Çarpanın TEK kaynağı yukarıdaki
+    // AILE_TAVAN_CARPANI/TAVAN_CARPANI_VARSAYILAN ikilisi ya da AILE_CAP_CAPASI'dır.
+    kurus = Math.min(kurus, tavanKurus);
     return Math.round(kurus);
   }
 
@@ -1019,6 +1129,8 @@
     TAVAN_CARPANI_VARSAYILAN: TAVAN_CARPANI_VARSAYILAN,
     AILE_TAVAN_CARPANI: AILE_TAVAN_CARPANI,
     tavanCarpani: tavanCarpani,
+    AILE_CAP_CAPASI: AILE_CAP_CAPASI,
+    capCapasi: capCapasi,
     HACIM_DOGRULANMIS_AILELER: HACIM_DOGRULANMIS_AILELER,
     hacimDogrulanmisMi: hacimDogrulanmisMi,
     IKI_RENK_EK_KURUS: IKI_RENK_EK_KURUS,

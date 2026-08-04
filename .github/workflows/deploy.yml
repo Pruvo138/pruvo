@@ -132,9 +132,16 @@ jobs:
       # secenekler.js'i yukleyip index.html'deki `kartFiyatMetni` fonksiyonunun KENDI
       # kaynagini kosturur; KAPALI ailede kartta sayisal TL YOK + sayfayla AYNI cumle VAR,
       # ACIK ailede tutar AYNEN VAR.
+      # UCUNCU YUZEY (4 Agu): CAP CAPALI FIYAT — `rulman` fiyati dis capla dogru
+      # orantili (10 TL/mm -> 60/80/100 mm = 600/800/1000 TL), diger ayarlar capanin
+      # etrafinda hacim oraninca module eder. Fiyat fonksiyonu TUM ailelerce
+      # PAYLASILDIGI icin kapi H bolumu hem capa noktalarini (birebir kurus), hem
+      # egrinin kesin artan oldugunu, hem modulasyonun canliligini (flans/eleman
+      # bedava DEGIL), hem de capasiz 18 ailenin kurusunun + 3x tavaninin
+      # DEGISMEDIGINI ayri ayri olcer.
       # build.py'den SONRA kosmak ZORUNDA (urun/ + taban-fiyatlar.js ciktisina muhtac).
       # Offline, ~10 s. Mutasyon surucusu repoda (CI'da kosmaz — her mutant tam build ister):
-      #   python3 tools/kapali-aile-fiyat-kapisi.py --mutasyon   (6 mutant: 4 kirmizi, 2 kontrol)
+      #   python3 tools/kapali-aile-fiyat-kapisi.py --mutasyon   (11 mutant: 8 kirmizi, 3 kontrol)
       - name: Kapali aile fiyat beyani kapisi (uretilen sayfalar + ana sayfa karti)
         run: python3 tools/kapali-aile-fiyat-kapisi.py
 
@@ -1795,7 +1802,19 @@ jobs:
       # 4 Agu: A5 TESLIM ekseni eklendi — cron METNI degil kosumlarin FIILEN gerceklesen
       # dagilimi (beklenen/gerceklesen orani + EN UZUN ardisik bosluk). A1/A3 bu sinifa
       # KORDU: cron metni dogru + son kosum taze iken teslim orani %4,31 olabiliyor.
-      # Cift yonlu mutasyon (6 oldurucu KIRMIZI + 1 kontrol YESIL) elle:
+      # 4 Agu (ikinci tur): PUSH SERIDI kablo capasi eklendi (PS1-PS16) — odeme yolu
+      # bayatlik olcumu artik cron'a EK olarak push tetikli
+      # `.github/workflows/odeme-bayatlik-push.yml` seridinde de kosuyor. OLCULDU: cron
+      # tetigi 3482,2 dk pencerede 10 kez teslim edildi (en uzun sessizlik 1053,5 dk),
+      # AYNI pencerede push tetigi 152 kez teslim edildi (en uzun bosluk 418,9 dk).
+      # Seridin "yayini durdurmaz" ozelligi BEYAN DEGIL, burada KOSULAN kapidir.
+      # 🔴 Tetik kapisi KARA LISTE DEGIL IZIN LISTESIDIR (curutucu iadesi): kara listede
+      # `pull_request_target` acik kalmisti ve secret tasiyan bir is akisinda fork PR'ina
+      # CLOUDFLARE_API_TOKEN acardi ([[maskeleme-kismi-kapatma]]). `push.branches` de
+      # `[main]`e CIVILI.
+      # Cift yonlu mutasyon (16 oldurucu KIRMIZI + 1 kontrol YESIL; X4/X5 en-uzun-bosluk
+      # UC terimlerini, X6-X13 push seridinin tetik izin listesi + dal civisini TEK
+      # KIRMIZI ile civiler) elle:
       #   python3 tools/cron-teslim-mutasyon.py
       - name: "Uzlastirma nabiz kapisi: kendini test (agsiz fikstur, iki yonlu)"
         run: python3 tools/cron-nabiz-kapisi.py --kendini-test
