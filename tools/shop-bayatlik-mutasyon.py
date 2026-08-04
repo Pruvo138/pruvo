@@ -14,6 +14,10 @@ BILEREK bozar ve kabul testinin GERCEKTEN kirmizi yandigini — ve HANGI EKSENIN
      fazladan kirmizi da kusurdur).
    * KONTROL MUTANTI (K0) zararsizdir ve kirmizi kumesi BOS olmalidir — kontrol mutanti
      olmayan bir batarya "her seye kirmizi yanan" bir testi kanit sayar.
+   * 🔴 KAYITLI SURVIVOR (S1) KONTROL DEGILDIR: anlamli bir davranisi degistirdigi halde
+     hicbir iddiayi kirmizi yakmayan bir mutanttir ve BILEREK, BEYANI BOS olarak tutulur.
+     Isi, "bu kod parcasinin faydasi OLCULMEMISTIR" hukmunu KOSAN bir sekilde tasimaktir;
+     ilgili kemer bir gun OLCULURSE bu satir SAPMA verir ve beyan guncellenir.
 
 🔴 GUVENLIK: mutasyon yalnizca gecici bir AYNAYA uygulanir; canli dosyaya DOKUNULMAZ
    ([[mutasyon-diske-yazma-tuzagi]]). Kosum basinda ve sonunda kaynagin sha256'si
@@ -119,6 +123,30 @@ MUTANTLAR = [
             "kanit bulunamaz (duzeltme her 15 dk'da bir YANLIS kirmizi yakardi)",
      'UZAK_UC_ADAYLARI = ("refs/remotes/origin/%s" % ANA_DAL, "FETCH_HEAD")',
      'UZAK_UC_ADAYLARI = ("refs/remotes/origin/%s" % ANA_DAL,)', {"G4"}),
+    # 🔴 M16/M17 — 4 Agu 2026 KANIT-KALITESI ONARIMI. Bu iki EKSENIN (G3 · G7) ayirt
+    # edici mutanti YOKTU: mutant yazildiginda kabul testi Traceback ile COKUYOR,
+    # `IDDIA:` satiri BASILMIYOR ve olculen iddia sayisi 39 -> 0'a dusuyordu. rc=1
+    # disaridan "kirmizi" gorunur ama olcum YOKTUR ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+    # Kapi tarafindaki onarim: G3/G7 cagrilari `_olcum_veya_none` ile sarildi.
+    ("M16", "olculen ref ATA kontrolu TERSINE cevrildi: HEAD uzak ucun ILERISINDE "
+            "olan MESRU hal (itilmemis yerel commit) OLCULEMEDI sayilir -> kapi her "
+            "15 dk'da bir YANLIS kirmizi yakardi",
+     '        if a.returncode == 1:\n', '        if a.returncode == 0:\n', {"G3"}),
+    ("M17", "calisma agaci kontrolunun YOL SUZGECI kaldirildi: bundle DISI kirlilik "
+            "(bu depoda `urunler.json` parti yazimi SUREKLI var) kapiyi OLCULEMEDI'ye "
+            "dusurur -> nobetci pratikte hicbir zaman hukum veremezdi",
+     '    r = _git(kok, "diff", "--name-only", "HEAD", "--", *yollar)',
+     '    r = _git(kok, "diff", "--name-only", "HEAD")', {"G7"}),
+    # 🔴 S1 KONTROL DEGIL, KAYITLI SURVIVOR (durust beyan, 4 Agu 2026): esitlik-once
+    # kisayolunun "sig agacta yanlis kirmiziyi onler" gerekcesi OLCULMEMISTIR ve koddan
+    # ERISILEBILIR DEGILDIR (ayrinti kapinin `olculen_ref_dogrula` yorumunda). Kisayol
+    # devre disi birakildiginda HICBIR iddia kirmizi yanmaz. Bu satir o olcumu YENIDEN
+    # URETILEBILIR kilar: beyan BOS'tur, yani batarya "bu kemer olculmuyor" hukmunu
+    # KOSARAK tasir. Kisayolu bir gun OLCEN bir iddia yazilirsa bu beyan SAPMA verir.
+    ("S1", "KAYITLI SURVIVOR — esitlik-once kisayolu devre disi (olculen fayda YOK: "
+           "39 iddia / 0 kirmizi; kemer, koruma degil)",
+     "        if sha == head:\n            return head, ad\n",
+     "        if False:\n            return head, ad\n", set()),
 ]
 
 IDDIA_RE = re.compile(r"^IDDIA: (\d+) · KIRMIZI: (\d+)\s*(.*)$", re.M)

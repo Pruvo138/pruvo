@@ -67,7 +67,16 @@ name: Paket tazeligi alarmi (canli fiyat yolu)
 #     HIC OLUSMUYOR.
 # HUKUM: dusme is akisina OZGU DEGIL, DEPO/HESAP duzeyindedir; ofset degisikligi
 # teslim oranini DUZELTMEZ. GERCEK korluk penceresi "15 dk" DEGIL, olculen ~4 saatlik
-# medyan bosluk ve 17,6 saatlik en kotu bosluktur. `tools/shop-bayatlik-kapisi.py`
+# medyan bosluk ve 17,6 saatlik en kotu bosluktur.
+#
+# 🔴 ONARIM (4 Agu 2026, ikinci tur) — BU DOSYA DEGISMEDI, YANINA SERIT EKLENDI:
+# odeme yolu bayatlik olcumu (`tools/shop-bayatlik-kapisi.py`) ARTIK ayrica PUSH tetikli
+# `.github/workflows/odeme-bayatlik-push.yml` seridinde de kosuyor. Olculdu (ayni
+# pencere): cron 10 teslim / en uzun sessizlik 1053,5 dk · push 152 teslim / en uzun
+# bosluk 418,9 dk. Bu dosyadaki cron kolu KALDIRILMADI: cron bazen calisiyor ve push'suz
+# gece pencerelerinde tek kaynak odur; gercek korluk IKISININ BIRLESIMIDIR.
+# ⚠️ Bu dosyaya `push:` EKLENMEZ — `cron-nabiz-kapisi.py::paket_alarmi_kablosu()` onu
+# KIRMIZI yakar (ve dogru yapar: alarmin tum gerekcesi yayin yolundan ayri olmasidir). `tools/shop-bayatlik-kapisi.py`
 # dosya basindaki "korluk penceresi <= 15 dk (53 kat iyilesme)" cumlesi de AYNI
 # CURUTULMUS sayiya dayaniyordu; o cumle bu dal main'e alinirken GUNCELLENDI ve
 # olculen degerler icin cron-nabiz-kapisi A5 eksenine yonlendiriliyor.

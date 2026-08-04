@@ -1,0 +1,125 @@
+name: Odeme yolu bayatlik nabzi (push seridi)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — OLCUM BEKLENEN TETIGE DEGIL, TESLIM EDILEN TETIGE BAGLANIR
+# ══════════════════════════════════════════════════════════════════════════════
+# `paket-tazelik-alarmi.yml` odeme yolu bayatligini `13,28,43,58` cron'uyla olcer:
+# gunde 96 kosum BEKLENIR. FIILEN olculen (4 Agu 2026, gh run list, event=schedule):
+#   · 3482,2 dk pencerede BEKLENEN 232, GERCEKLESEN 10 -> teslim %4,31
+#   · en uzun ardisik bosluk 1053,5 dk (17,6 sa) — `d1-uzlastirici.yml` de AYNI
+#     pencerede dusuyor (%5,06), yani hal DEPO/HESAP duzeyindedir, is akisina OZGU
+#     DEGIL; `cancelled` kosum 0 -> kosumlar iptal EDILMIYOR, HIC OLUSMUYOR.
+# HUKUM: cron ofsetini degistirmek bu sinifi COZMEZ. Olcum, GitHub'in DUSURDUGU
+# tetige degil FIILEN ATESLENEN bir tetige baglanmalidir.
+#
+# 🔴 OLCULEN CADANS — PUSH TETIGI (ayni araclarla, ayni depoda, 4 Agu 2026 kesimi)
+# ──────────────────────────────────────────────────────────────────────────────
+# `deploy.yml` event=push kosumlari (GitHub'in FIILEN olusturdugu kosumlar):
+#   · ayni 3482,2 dk penceresinde ...... 152 kosum · medyan bosluk 12,2 dk ·
+#     EN UZUN BOSLUK 418,9 dk   (cron'un ayni penceredeki 1053,5 dk'sinin 2,51 KATI KUCUK)
+#   · son 7 gun ......................... 567 kosum (81,0/gun) · medyan bosluk 10,6 dk ·
+#     EN UZUN BOSLUK 663,5 dk   (1,59 kat kucuk)
+#   · cron'un 1053,5 dk'lik EN UZUN SESSIZLIGININ ICINDE 46 push kosumu kostu;
+#     o pencerede push'un en uzun boslugu 361,6 dk idi.
+# YENI KORLUK PENCERESI (durust beyan): 418,9 dk (ayni pencere) / 663,5 dk (7 gun).
+# "15 dakika" DEGIL — push da suruclu bir insan faaliyetidir ve gece durur. Ama
+# 1053,5 dk'dan KUCUKTUR ve medyan korluk 237,4 dk -> 10,6 dk'ya iner (22,4 kat).
+#
+# 🔴 CRON KOLU KALDIRILMADI — BU SERIT EK'TIR
+# `paket-tazelik-alarmi.yml` aynen duruyor: cron BAZEN calisiyor ve gece/hafta sonu
+# gibi push'suz pencerelerde tek kaynak odur. Gercek korluk = IKISININ BIRLESIMI;
+# olculdu: birlesimin en uzun boslugu da 418,9 dk (o pencerede push baskin).
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN YAYINI DURDURAMAZ (yapisal, beyan DEGIL — KOSULAN kapi)
+# ══════════════════════════════════════════════════════════════════════════════
+#   * 🔴 TETIK IZIN LISTESI (kara liste DEGIL): bu is akisi YALNIZ `push` ve
+#     `workflow_dispatch` tasiyabilir. ILK HALDE kara liste vardi ve
+#     `pull_request_target` ACIK KALMISTI — o tetik fork PR'ini TABAN DEPO baglaminda,
+#     DEPO SECRET'leriyle kosturur, yani yabanci koda `CLOUDFLARE_API_TOKEN` acardi.
+#     Kara liste TAMAMLANAMAZ ([[maskeleme-kismi-kapatma]]); izin listesi tanim geregi
+#     kapalidir ve yarin GitHub yeni bir tetik eklese de delik acilmaz.
+#   * `workflow_call` izinli DEGIL -> deploy.yml bu is akisini `uses:` ile CAGIRAMAZ,
+#     yani yayinin `needs` grafinin ICINE giremez. GitHub'da is akislari arasi `needs`
+#     ZATEN yoktur; tek bag yolu `workflow_call`tur ve o kapali.
+#   * `workflow_run` izinli DEGIL -> serit deploy.yml'in TAMAMLANMASINA baglanamaz;
+#     nobetci olctugu hatta bagimli olmaz (Y4 sinifi).
+#   * 🔴 DAL CIVISI: `branches: [main]` — TAM OLARAK bu. Genis desen (`['**']`) ya da
+#     tanimsiz `branches` seridi her dala yayardi: gurultu alarmi FIILEN susturur ve
+#     olcum ana dal disindaki bir ucu "canli bayat" sanardi.
+#   * `concurrency` grubu AYRI (`odeme-bayatlik-push` ≠ deploy.yml'in `pages` grubu)
+#     -> hicbir yayin kosumunu bekletmez, hicbiri tarafindan bekletilmez.
+#   * Buradaki kirmizi GORUNUR (kosum kirmizi + GitHub bildirimi + is ozeti), yayin
+#     yoluna maliyeti 0 sn.
+# Bu sartlarin HEPSI `tools/cron-nabiz-kapisi.py::push_serit_kablosu()` tarafindan
+# OLCULUR ve `--kendini-test` icinde KOSAR (PS1-PS23): bu dosyaya izin listesi disinda
+# HERHANGI bir tetik eklenirse, `push:` dusurulurse, `branches` genisletilir/silinirse,
+# concurrency grubu deploy.yml'in grubuyla esitlenirse ya da canli kol
+# `--kendini-test`e dusurulurse nabiz kapisi KIRMIZI yanar
+# ([[kapi-kapsam-eksen-secimi]]). Her yasagin AYIRT EDICI (tek kirmizi) mutanti
+# `tools/cron-teslim-mutasyon.py`de kayitlidir (X6-X13) — mutanti olmayan yasak BEYAN'dir.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# SECRET KAPSAMI — `CLOUDFLARE_API_TOKEN` BU IS AKISINDA COZULUR MU
+# ══════════════════════════════════════════════════════════════════════════════
+# Cozulmezse kapi rc 2 (OLCULEMEDI) verir ve serit HER PUSH'TA kirmizi yanar; bu
+# yuzden kapsam VARSAYILMADI, OLCULDU:
+#   · `gh secret list --repo Pruvo138/pruvo` -> CLOUDFLARE_API_TOKEN DEPO duzeyinde
+#     kayitli (2026-07-13T00:55:17Z).
+#   · Ayni secret'i tuketen `paket-tazelik-alarmi.yml :: tazelik` isinde `environment:`
+#     anahtari YOKTUR -> secret ORTAM'a degil DEPO'ya baglidir, yani bu depodaki HER
+#     is akisina cozulur (tek istisna fork PR'lari; bu seritte `pull_request` YOK).
+#   · Bu iki sart `push_serit_kablosu()` icinde KOSULAN iddialardir (bu isin ve kardes
+#     isin `environment:` tasimadigi FIILEN olculur) — yorum degil.
+# 🔴 CLOUDFLARE_API_TOKEN yalniz OKUNUR (`deployments|versions list`). Bu is akisi
+# `wrangler deploy` KOSMAZ — yayin karari mimarda/Okan'da.
+
+on:
+  push:
+    branches: [main]
+  # Elle kosum yolu her zaman acik (teshis icin).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup — kapi bu esitsizligi
+# deploy.yml'den KOSARAK okur, ikinci bir dize kopyasi TUTULMAZ.
+concurrency:
+  group: odeme-bayatlik-push
+  cancel-in-progress: true
+
+jobs:
+  bayatlik:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # node ZORUNLU: kapi canli surumu `npx wrangler versions|deployments list` ile
+      # okur. node yoksa rc 2 (OLCULEMEDI) — sessiz yesil YOKTUR.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Kosum tetikleme anindaki `github.sha`'yi checkout eder; kuyruk gecikmesinde main
+      # ilerlerse olculen ref ile olculmesi GEREKEN ref ayrisir. `shop-bayatlik-kapisi.py`
+      # bu hali ZATEN fail-closed yakalar (OLCULEMEDI, rc 2) — bu adim onu ONLER, yani
+      # serit her push'ta bos rc 2 uretmez.
+      - name: Uca tazele — agaci uzak main ucuna getir (donmus github.sha DEGIL)
+        run: |
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+          git rev-parse HEAD
+
+      # UC HAL, ucu de anlamli (arac dosya basinda beyan eder):
+      #   durum=taze/bekliyor rc 0 · durum=bayat rc 1 · durum=olculemedi rc 2.
+      # Cikis kodu DOGRUDAN konusur; kabukta yakalanmaz (`|| true` / `set +e` bu depoda
+      # beyansiz fail-open sayilir, is-akisi-kapisi Bolum D).
+      - name: "Olcum — canli shop worker nesli (odeme yolu bayatligi; yayini DURDURMAZ)"
+        id: nesil
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: python3 tools/shop-bayatlik-kapisi.py --gh-ozet
