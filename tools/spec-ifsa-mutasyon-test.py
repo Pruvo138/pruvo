@@ -1,0 +1,228 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""tools/spec-ifsa-mutasyon-test.py — tools/spec-ifsa-kapisi.py KABUL BATARYASININ
+MUTASYON SURUCUSU. Kapinin 22 beyan edilmis iddiasinin her birinin AYIRT EDICI bir
+mutantla OLDURULEBILDIGINI olcer.
+
+NEDEN VAR ([[mutasyon-kaniti-yeniden-uretilebilir]]): "batarya kostu" iddiasi KANIT
+DEGILDIR; surucu depoda DURMALI ve yeniden kosulabilmelidir. Kabul, cikis kodu degil
+OLCULEN SAYIDIR: her mutant TEK bir IDDIA'yi dusurmeli, dusen etiket beyan edilenle
+TAM ESIT olmali, iddia sayisi SABIT kalmali ve hicbir mutant COKMEMELIDIR (cokme
+kirmiziyla karisir — `Traceback` sayisi 0 olmali).
+
+🔴 CANLI DOSYAYA YAZMAZ. Mutant, kapinin kaynagi GECICI bir dizine KOPYALANIP orada
+uygulanir. Surucu, kapinin kaynak sha256'sini ONCE ve SONRA olcer ve esit degilse
+KIRMIZI yanar — "yazmadim" iddiasi da OLCULUR.
+
+Kullanim:
+    python3 tools/spec-ifsa-mutasyon-test.py            # tum bataryayi kostur
+    python3 tools/spec-ifsa-mutasyon-test.py --liste    # mutant<->iddia eslemesini yaz
+Cikis kodu: 0 = her mutant TEK KIRMIZI + beyana esit, 1 = sapma, 2 = OLCULEMEDI.
+"""
+import argparse
+import hashlib
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+sys.dont_write_bytecode = True
+
+KAPI = "tools/spec-ifsa-kapisi.py"
+BEKLENEN_IDDIA_SAYISI = 22
+
+# (mutant_adi, eski_metin, yeni_metin, dusmesi_beklenen_TEK_iddia)
+# Eski metinler kapinin kaynagindan BIREBIR alinir; bulunamazsa surucu KIRMIZI yanar
+# (bayat mutant tablosu sessizce yesil gecemez).
+MUTANTLAR = (
+    # --- EKSEN A ---
+    ("MUT-A-KOR", "    if _A_BEYAN.search(satir):\n        return True\n",
+     "    if _A_BEYAN.search(satir):\n        return True\n    return False\n",
+     "IDDIA-A1"),
+    ("MUT-A-GENIS", '_A_JETON = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`")',
+     '_A_JETON = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)[^`]*`")',
+     "IDDIA-A2"),
+    # --- EKSEN B ---
+    ("MUT-B-KOR", '_B_ONEK = ("ic-",)', '_B_ONEK = ()\n_B_ISARET = frozenset()',
+     "IDDIA-B1"),
+    ("MUT-B-GENIS", '            for parca in re.split(r"[-_.]", s):\n'
+                    '                if parca in _B_ISARET:\n'
+                    '                    return True\n',
+     '            for parca in re.split(r"[-_.]", s):\n'
+     '                if parca in _B_ISARET or True:\n'
+     '                    return True\n',
+     "IDDIA-B2"),
+    # --- EKSEN C ---
+    ("MUT-C-KOR", "    for m in _C_SIR.finditer(satir):\n"
+                  "        if _projeye_ozgu_mu(m.group(1)):\n"
+                  "            return True\n",
+     "    for m in _C_SIR.finditer(satir):\n"
+     "        if False:\n"
+     "            return True\n",
+     "IDDIA-C1"),
+    ("MUT-C-GENIS", "    ilk = re.split(r\"[_\\-]\", ad.strip(\"`\"), maxsplit=1)[0].upper()\n"
+                    "    return ilk not in _SATICI_JETONLARI",
+     "    ilk = re.split(r\"[_\\-]\", ad.strip(\"`\"), maxsplit=1)[0].upper()\n"
+     "    return True or ilk not in _SATICI_JETONLARI",
+     "IDDIA-C2"),
+    # --- EKSEN D ---
+    ("MUT-D-KOR", "    return bool(_D_HOST.search(satir) or _D_DEPO_HOST.search(satir)\n"
+                  "                or _D_HEX32.search(satir))",
+     "    return bool(_D_DEPO_HOST.search(satir))",
+     "IDDIA-D1"),
+    ("MUT-D-GENIS",
+     '_D_HOST = re.compile(r"\\b[a-z0-9][a-z0-9-]*\\.[a-z0-9][a-z0-9-]*\\.(?:workers|pages)\\.dev\\b", re.I)',
+     '_D_HOST = re.compile(r"\\b(?:[a-z0-9][a-z0-9-]*\\.)*(?:workers|pages)\\.dev\\b", re.I)',
+     "IDDIA-D2"),
+    # --- EKSEN E ---
+    ("MUT-E-KOR", "    return bool(_E_KANAL.search(satir) and _E_ELLE.search(satir))",
+     "    return bool(_E_KANAL.search(satir) and _E_ELLE.search(satir) and False)",
+     "IDDIA-E1"),
+    ("MUT-E-GENIS", "    return bool(_E_KANAL.search(satir) and _E_ELLE.search(satir))",
+     "    return bool(_E_KANAL.search(satir) or _E_ELLE.search(satir))",
+     "IDDIA-E2"),
+    # --- EKSEN F ---
+    ("MUT-F-KOR", "    return bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir))",
+     "    return bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir) and False)",
+     "IDDIA-F1"),
+    ("MUT-F-GENIS", "    return bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir))",
+     "    return bool(_F_ZAYIFLIK.search(satir) or _F_KAPANMAMIS.search(satir))",
+     "IDDIA-F2"),
+    # --- BEYAN yuzeyi (konfigurasyon) ---
+    ("MUT-BEYAN-KOR", '    ("A", "depolama-kovasi", _eksen_a, (ANLATIM, BEYAN)),',
+     '    ("A", "depolama-kovasi", _eksen_a, (ANLATIM,)),', "IDDIA-BEYAN1"),
+    ("MUT-BEYAN-GENIS", '    ("C", "sir-degisken-adi", _eksen_c, (ANLATIM,)),',
+     '    ("C", "sir-degisken-adi", _eksen_c, (ANLATIM, BEYAN)),', "IDDIA-BEYAN2"),
+    # --- YUZEY ayrimi: ISLEVI GEREGI TASINAN AD ile ANLATILAN TOPOLOJI ---
+    ("MUT-YUZEY-KOR", '        if d.startswith("/*"):\n'
+                      '            yield i, s, ANLATIM\n'
+                      '            if "*/" not in d[2:]:',
+     '        if d.startswith("/*"):\n'
+     '            yield i, s, ICRA\n'
+     '            if "*/" not in d[2:]:', "IDDIA-YUZEY1"),
+    ("MUT-YUZEY-GENIS", '        yield (i, s[k + 2:], ANLATIM) if k >= 0 else (i, s, ICRA)',
+     '        yield (i, s, ANLATIM)', "IDDIA-YUZEY2"),
+    ("MUT-PY-KOR", "        if belge is not None and i in belge:\n"
+                   "            yield i, s, ANLATIM\n",
+     "        if False:\n"
+     "            yield i, s, ANLATIM\n", "IDDIA-YUZEY3"),
+    ("MUT-PY-GENIS", "        if belge is not None and i in belge:",
+     '        if belge is not None and ("\\"\\"\\"" in s or i in belge):', "IDDIA-YUZEY4"),
+    # --- KAPSAM: bilinmeyen uzanti yuzey URETMEZ ---
+    ("MUT-KAPSAM-GENIS", "    return iter(())  # kapsam disi uzanti: hic satir uretilmez",
+     "    return _yuzey_md(satirlar)", "IDDIA-KAPSAM"),
+    # --- MUAFIYET: icerik-hash bagi ---
+    ("MUT-MUAF-YOL", "    return (dosya, _satir_hash(satir_metni)) in muafiyet_kumesi",
+     "    return any(d == dosya for d, _h in muafiyet_kumesi)", "IDDIA-MUAF1"),
+    ("MUT-MUAF-KOR", "    return (dosya, _satir_hash(satir_metni)) in muafiyet_kumesi",
+     "    return False", "IDDIA-MUAF2"),
+    # --- MASKE: teshis ciktisi sizdirmasin ---
+    ("MUT-MASKE", '    return "  %s:%d  [EKSEN-%s %s]" % (yol, satir_no, kod, adlar[kod])',
+     '    return "  %s:%d  [EKSEN-%s %s] %s" % (yol, satir_no, kod, adlar[kod],\n'
+     '                                          _satir_metni)', "IDDIA-MASKE"),
+)
+
+
+def _sha256_dosya(yol):
+    with open(yol, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def _kos(kaynak_yolu):
+    """Verilen kapi kopyasini --kendini-test ile kostur; (dusen_etiketler, iddia_sayisi,
+    cokme_var_mi, ham_cikti) dondurur."""
+    r = subprocess.run([sys.executable, kaynak_yolu, "--kendini-test"],
+                       capture_output=True, text=True)
+    cikti = r.stdout + r.stderr
+    dusen = set(re.findall(r"^\s*\[FAIL\]\s+(\S+)", cikti, re.M))
+    etiketler = re.findall(r"^\s*\[(?:PASS|FAIL)\]\s+(\S+)", cikti, re.M)
+    return dusen, len(etiketler), ("Traceback" in cikti), cikti
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--liste", action="store_true", help="mutant<->iddia eslemesini yaz")
+    args = ap.parse_args()
+
+    if args.liste:
+        print("MUTANT <-> IDDIA ESLEMESI (%d mutant / %d iddia)"
+              % (len(MUTANTLAR), BEKLENEN_IDDIA_SAYISI))
+        for ad, _e, _y, iddia in MUTANTLAR:
+            print("  %-18s -> %s" % (ad, iddia))
+        return 0
+
+    kok = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                         capture_output=True, text=True).stdout.strip()
+    if not kok:
+        print("OLCULEMEDI: git kok dizini bulunamadi")
+        return 2
+    canli = os.path.join(kok, KAPI)
+    if not os.path.exists(canli):
+        print("OLCULEMEDI: %s yok" % KAPI)
+        return 2
+
+    once = _sha256_dosya(canli)
+    with open(canli, "r", encoding="utf-8") as f:
+        govde = f.read()
+
+    # TABAN: mutasyonsuz kosum TEMIZ olmali (0 FAIL, beklenen iddia sayisi).
+    dusen, sayi, cokme, cikti = _kos(canli)
+    hatalar = []
+    if dusen or cokme:
+        hatalar.append("TABAN kosumu temiz DEGIL: dusen=%s cokme=%s" % (sorted(dusen), cokme))
+    if sayi != BEKLENEN_IDDIA_SAYISI:
+        hatalar.append("TABAN iddia sayisi %d, beklenen %d (tablo/govde ayrismis)"
+                       % (sayi, BEKLENEN_IDDIA_SAYISI))
+    print("TABAN: %d iddia, %d dusen, cokme=%s" % (sayi, len(dusen), cokme))
+
+    beyan = {ad: iddia for ad, _e, _y, iddia in MUTANTLAR}
+    if len(set(beyan.values())) != len(MUTANTLAR):
+        hatalar.append("MUTANTLAR tablosunda IKI mutant AYNI iddiaya isaret ediyor")
+    if len(MUTANTLAR) != BEKLENEN_IDDIA_SAYISI:
+        hatalar.append("mutant sayisi (%d) iddia sayisindan (%d) FARKLI — her iddianin "
+                       "oldurucu mutanti OLMALI" % (len(MUTANTLAR), BEKLENEN_IDDIA_SAYISI))
+
+    with tempfile.TemporaryDirectory() as d:
+        for ad, eski, yeni, iddia in MUTANTLAR:
+            if govde.count(eski) != 1:
+                hatalar.append("%-18s BAYAT: hedef metin kaynakta %d kez geciyor (1 olmali)"
+                               % (ad, govde.count(eski)))
+                print("  [KIRMIZI] %-18s hedef metin bulunamadi/tekil degil" % ad)
+                continue
+            hedef = os.path.join(d, "mutant.py")
+            with open(hedef, "w", encoding="utf-8") as f:
+                f.write(govde.replace(eski, yeni))
+            m_dusen, m_sayi, m_cokme, m_cikti = _kos(hedef)
+            iyi = (m_dusen == {iddia}) and (m_sayi == BEKLENEN_IDDIA_SAYISI) and not m_cokme
+            print("  [%s] %-18s dusen=%s sayi=%d cokme=%s"
+                  % ("OLDU" if iyi else "KIRMIZI", ad, sorted(m_dusen) or "-", m_sayi, m_cokme))
+            if not iyi:
+                hatalar.append("%-18s beklenen TEK KIRMIZI {%s}, olculen %s "
+                               "(iddia sayisi %d, cokme %s)"
+                               % (ad, iddia, sorted(m_dusen), m_sayi, m_cokme))
+                if m_cokme:
+                    hatalar.append("   ilk satirlar: %s" % m_cikti.strip().splitlines()[:3])
+
+    sonra = _sha256_dosya(canli)
+    if once != sonra:
+        hatalar.append("🔴 CANLI DOSYA DEGISTI (sha256 once != sonra) — mutasyon araci "
+                       "kaynaga YAZMAMALIYDI")
+    print("CANLI DOSYA sha256 once==sonra: %s" % (once == sonra))
+
+    if hatalar:
+        print()
+        print("MUTASYON BATARYASI KIRMIZI (%d sapma):" % len(hatalar))
+        for h in hatalar:
+            print("  - %s" % h)
+        return 1
+    print()
+    print("MUTASYON BATARYASI YESIL: %d/%d mutant TEK KIRMIZI ve beyana TAM ESIT; "
+          "iddia sayisi %d sabit; Traceback 0."
+          % (len(MUTANTLAR), len(MUTANTLAR), BEKLENEN_IDDIA_SAYISI))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

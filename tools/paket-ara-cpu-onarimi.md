@@ -1,12 +1,18 @@
 # /ara CPU tavani olayi — ONARIM PAKETI (uygulanacak depo: `~/dev/pruvo-bot`)
 
 **Kat:** MÜHENDİS = Claude Opus (arama semantiği "hatası sessiz" sınıfı).
-**Durum:** kök neden ÖLÇÜLDÜ, onarım CANLI D1'de (salt-okunur) KANITLANDI, kod DEĞİŞİKLİĞİ
-HENÜZ UYGULANMADI — çünkü dosya bu deponun dışında (HocA evi) ve deploy Okan kapısıdır.
+
+**Durum (2026-08-04 CANLI ÖLÇÜMÜ ile GÜNCELLENDİ): ONARIM İNMİŞ — bu belgedeki reçete
+ARTIK TEKRAR ÜRETİLEMİYOR.** Aşağıdaki §1 ve §4 tabloları **olay günündeki** hâli
+belgeler (tarihsel kayıt, silinmedi). Bugünkü ölçüm: belgenin "kesin patlar" dediği
+uzun sorgu sınıfı dahil **tüm sınıflar 200 dönüyor**, en yavaşı saniyenin üçte biri
+altında. Yani "kod değişikliği henüz uygulanmadı" beyanı **BAYATTI ve kaldırıldı**.
+⚠️ Ölçüm canlı uçtan (sınıf başına tek istek, 3 sn arayla) yapıldı; kardeş depodaki
+(`~/dev/pruvo-bot`) kaynak bu turda okunmadı, hüküm **canlı davranıştan** verildi.
 
 ---
 
-## 1. OLAY (canlı, müşteri 500 gördü)
+## 1. OLAY (2026-07-31 hâli — TARİHSEL KAYIT; canlı, müşteri 500 gördü)
 
 Canlı `/ara` ucu `D1_ERROR: D1 DB exceeded its CPU time limit and was reset` dönüyor.
 
@@ -105,7 +111,8 @@ SQLite'ta `CROSS JOIN` sonuç kümesini **değiştirmez**; yalnızca planlayıc�
 sırasını yeniden düzenlemesini KAPATIR (soldaki tablo daima dış döngü). Yani `f` sürücü
 kalır, trigram indeksi her token için çalışır.
 
-### Uygulanacak diff — `~/dev/pruvo-bot/worker/src/index.js`, `araD1()` (≈ satır 2231)
+### Onarım diff'i — `~/dev/pruvo-bot/worker/src/index.js`, `araD1()` (≈ satır 2231)
+*(4 Ağu canlı ölçümü onarımın İNDİĞİNİ gösteriyor; kardeş depo kaynağı bu turda okunmadı.)*
 
 ```diff
    // Token yoksa FTS'e hiç girme — kısıtsız FTS taraması boşuna okuma olur.

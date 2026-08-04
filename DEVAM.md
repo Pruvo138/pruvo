@@ -38,6 +38,19 @@ Cop bosaltilmadi); tasima sonrasi inbox'ta eslesen mail 0.
 Not: `a35d53fd` kosumu cancelled (mukerrer push), `6f7ac890` kosumu o an in_progress —
 ikisi de baska oturumun akan isi, bu nobetin kapsaminda degil, sonraki tur olcer.
 
+**Saatlik CI nobeti 4 Agu ~17:40Z — TEMIZ, ISLEM YOK (duzeltme de mail silme de yapilmadi).**
+Ev kontrolu: `/Users/okan/dev/pruvo` (dogru ev). Mail taramasi isciye delege edildi:
+inbox 7537 mesaj, uc toplu Apple Event listesi tutarli (ornekleme yok); son 70 dk icinde
+gonderen `notifications@github.com` + konu "Run failed" eslesmesi **0** — dolayisiyla
+Cop'e tasinan mail **0**. Bagimsiz teyit (`gh run list`): son 70 dk'daki tek failure
+`30929902990` (headSha `20fbff61`, 16:35Z, `serit-a2`+`serit-a3`, deploy/yayin skipped) —
+bu, 16:45Z turunda `8073ea6f` ile zaten kapatilan kok nedenin son kosumu; sonraki main
+kosumu **`30932568804`** (headSha `cc625f42`) `build`+`serit-a2`+`serit-a3`+`serit-b`+
+**`deploy`**+**`yayin`** hepsi `success` -> yeni kirmizi yok, yeni duzeltme gerekmedi.
+Kapsam disi (akan is, sonraki tur olcer): `30933417243` (17:20Z) `build` yesil, `serit-a3`
+hala in_progress; `30935031779` (17:40Z) yeni push ile pending. Cancelled kosumlar
+(`30933307590`, `30933255362`) mukerrer push kaynakli, failure degil.
+
 ### ✅ KAPANDI (4 Agu) — model cip satiri kanoniklestirildi + K19 capraz-marka (rozet) kapisi
 Merge SHA **`d91ea881`**, kosum `30923737314` headSha BIREBIR **success** (bir onceki main
 kosumu `cancelled` idi — `--limit 1` yesili yaniltirdi). Kapsam merge-base `3017d46c`'ten

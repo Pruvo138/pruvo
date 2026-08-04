@@ -393,6 +393,33 @@ jobs:
       - name: Marka uyelik kabul testi (katlanmis uyelik + anlamsiz URL nobeti)
         run: python3 tools/marka-uyelik-test.py
 
+      # MARKA INVARYANTI (Okan hukmu): "TUM markalarda sayfa ve arama urun adetlerinin
+      # AYNI olmasi." Tek tek yama degil, INVARYANT. OLCULEN SESSIZ HATA (4 Agu): uctaki
+      # `?marka=` kolu HAM STRING ESITLIGI yapiyor, site ise markayi KATLIYOR -> 128
+      # markanin 9'unda cip ile sayfa AYRISIYOR ve 120 urun-kalemi MUSTERI CIPE BASINCA
+      # KAYBOLUYOR (Volvo sayfa 726 · cip 620). Site dogru gosterir, cip kaybeder, hicbir
+      # sey kirmizi yanmaz. Kapi her kanonik marka icin UC KUME kurar (sayfa · ?marka= ·
+      # ?q=) ve farklari MARKA MARKA tabana (tools/marka-invaryant-taban.json) karsi olcer:
+      # MEVCUT BORC BLOKLAMAZ, REGRESYON BLOKLAR (circir: dusus de kirmizidir, taban
+      # bayatlamasin). AG CAGRISI YOK (CI'da deterministik); uc davranisi yerel portla
+      # modellenir ve modelin canliyla 128/128 eslestigi bir kez olculdu (kapinin
+      # docstring'inde). Totoloji tuzagina karsi 5 POZITIF CAPA + mutasyon bataryasi
+      # (tools/marka-invaryant-mutasyon.py). Saf Python, offline, ~2 s.
+      - name: Marka invaryant kapisi (sayfa ↔ cip ↔ arama, taban civili)
+        run: python3 tools/marka-invaryant-kapisi.py
+
+      # D1 `marka_kanon` KOLONU (ayni sessiz hatanin KAYNAKTA kapatilmasi): katlama
+      # mantigi Worker'a KOPYALANMAZ (ikinci govde = sessiz ayrisma); kanonik marka
+      # uyeligi senkron aninda deponun TEK KAYNAGINDAN turetilip D1'e ONCEDEN yazilir.
+      # Test gercek d1-sema.sql'i yerel sqlite3'e yukler, gercek d1-sync fonksiyonlarini
+      # ve gercek urunler.json'u kullanir; CANLI D1'e/wrangler'a/AGA DOKUNMAZ. NE OLCER:
+      # kolonun dogru SINIFTA olmasi (hash'e karismaz -> hedefli UPDATE), kanonik sayimin
+      # marka sayfasiyla 128/128 birebir olmasi, 120 kalemlik kaybin KAPANMASI, idempotens,
+      # olcek (markasiz urune dokunmama), FAIL-CLOSED yonunun "bosalt" degil "dokunma"
+      # olmasi ve SEMA SIRASI (kolon yokken SELECT'e girmez -> kimsenin push'u kirilmaz).
+      - name: Marka kanon D1 kolonu kabul testi (120 kalemlik cip kaybi kapaniyor mu)
+        run: python3 tools/marka-kanon-d1-test.py
+
       # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
       # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
       # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye
@@ -1791,6 +1818,41 @@ jobs:
       # Olculdu: yerelde 24+4 mutant 108 s iken 31+6 mutant 165 s (serit-a3 +25 s).
       - name: "Model uyeligi mutasyon bataryasi (31 oldurucu + 6 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
+
+      # KANCA KABLOLAMASI (tools/kanca-kablolama-nobeti.py --ci) — kancalar artik
+      # `.git/hooks` altinda (commit EDILMEYEN, elle duzenlenen) dosyalar degil,
+      # IZLENEN `tools/kancalar` kaynagidir; kablolamayi tools/kanca-kur.py kurar.
+      # Bu nobetci tools/kanca-nobeti.py'nin OLCMEDIGI ekseni sahiplenir: bir
+      # kanca beklenen araci CAGIRIYOR olup yine de HICBIR SEYI BLOKLAMIYOR
+      # olabilir. 4 Agu 2026'da olculen hal tam buydu:
+      #     python3 "$guard" --tetik commit >/dev/null 2>&1 || true
+      # `tools/urunler-guard.py` FAIL-LOUD bir nobetciye cevrilmisti ama git
+      # tarafinda cikis kodunu KIMSE OKUMUYORDU -> koruma yalniz bu makinenin
+      # oturum kablosuyla (PreToolUse) blokluyor, DUZ TERMINALDE / CODEX'TE /
+      # BASKA MAKINEDE bloklamiyordu.
+      #
+      # 🔴 NEDEN SERIT-A3 (BLOKLAYICI: `deploy: needs`te) — `envanter`/`ifsa-nobeti`/
+      # `mesaj-nobeti`den FARKI: onlar PUSH-SONRASI CANLI durumu raporlar, yayini
+      # durdurmanin tamir degeri sifirdir. Bu adim ise izlenen KANCA KAYNAGININ
+      # fail-open'a donup donmedigini olcer — biri `|| true` geri koyarsa ya da
+      # guard cagrisini silerse. O kaynak main'e girip `kanca-kur.py` ile HER
+      # makineye yayilirsa katalog guard'i · D1 senkronu · mimar kapisi · mukerrer ·
+      # commit-mesaji sizinti kapisi SESSIZCE susar. Bu PUSH-ONCESI kaynak
+      # butunlugu eksenidir ve is-akisi-kapisi'nin kendisi gibi BLOKLAYICI olmali
+      # ("SUPHEDE A", is-akisi Bolum D). Kabul testi + mutasyon turu ise "aracin
+      # kendini sinamasi"dir ve SERIT B'dedir (orada TEK TEK beyanli).
+      #
+      # 🔴 NEDEN `--ci`: kablolama `core.hooksPath`te yasar ve `.git/` COMMIT
+      # EDILMEZ -> CI checkout'unda ASLA kurulu degildir. O ekseni CI'da kirmizi
+      # yakmak yanlis-pozitif olurdu; sessizce yesil saymak ise fail-open'i geri
+      # getirirdi. `--ci` hali YALNIZ kablolama/sapma eksenlerini OLCULEMEDI olarak
+      # ILAN EDER (log'da GORUNUR) ve cikis kodunu ETKILEMEZ; BASKA bir eksen
+      # olculemezse cikis YINE sifir-disidir (muafiyet DAR — kabul testi olcer).
+      # CI'da olculen sey IZLENEN KAYNAKTIR: govdeler fail-closed mi, reddetme
+      # gerekcesi basiliyor mu, cagrilar duruyor mu, dosyalar git INDEKSINDE 100755
+      # mi. Tamamen offline; taze klonda rc=0 oldugu KOSULARAK olculdu.
+      - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
+        run: python3 tools/kanca-kablolama-nobeti.py --ci
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
   # ═════════════════════════════════════════════════════════════════════════════
@@ -2012,39 +2074,62 @@ jobs:
         run: python3 tools/gecmis-geri-donus-kapisi.py --kendini-test
       - name: "Geri-donus: bu itmenin GETIRDIGI commit'ler (mesaj + icerik; ALARM — yayini DURDURMAZ)"
         run: python3 tools/gecmis-geri-donus-kapisi.py --ci
-
-      # KANCA KABLOLAMASI (tools/kanca-kablolama-nobeti.py) — kancalar artik
-      # `.git/hooks` altinda (commit EDILMEYEN, elle duzenlenen) dosyalar degil,
-      # IZLENEN `tools/kancalar` kaynagidir; kablolamayi tools/kanca-kur.py kurar.
-      # Bu nobetci tools/kanca-nobeti.py'nin OLCMEDIGI ekseni sahiplenir: bir
-      # kanca beklenen araci CAGIRIYOR olup yine de HICBIR SEYI BLOKLAMIYOR
-      # olabilir. 4 Agu 2026'da olculen hal tam buydu:
-      #     python3 "$guard" --tetik commit >/dev/null 2>&1 || true
-      # `tools/urunler-guard.py` FAIL-LOUD bir nobetciye cevrilmisti ama git
-      # tarafinda cikis kodunu KIMSE OKUMUYORDU -> koruma yalniz bu makinenin
-      # oturum kablosuyla (PreToolUse) blokluyor, DUZ TERMINALDE / CODEX'TE /
-      # BASKA MAKINEDE bloklamiyordu.
-      #
-      # 🔴 NEDEN SERIT A (yayini DURDURUR): bu bir ICERIK kapisidir, "aracin
-      # kendini sinamasi" DEGIL. Izlenen kanca kaynagi fail-open'a geri donerse
-      # o kod HER makinede kurulur ve katalog guard'i · mukerrer · mimar kapisi ·
-      # commit-mesaji sizinti kapisi · pre-push gecmis kapisi SESSIZCE devre disi
-      # kalir. Serit kurali "yanlis/eksik/sizintili icerik canliya cikmasin" ve
-      # "SUPHEDE A" der; bu adim tam o siniftir. Kabul testi ve mutasyon turu ise
-      # "aracin kendini sinamasi"dir ve SERIT B'dedir (orada TEK TEK beyanli).
-      #
-      # 🔴 NEDEN `--ci`: kablolama `core.hooksPath`te yasar ve `.git/` COMMIT
-      # EDILMEZ -> CI checkout'unda ASLA kurulu degildir. O ekseni CI'da kirmizi
-      # yakmak TUM EKIBIN yayinini durdururdu (yanlis-pozitif); sessizce yesil
-      # saymak ise fail-open'i geri getirirdi. `--ci` hali YALNIZ kablolama/sapma
-      # eksenlerini OLCULEMEDI olarak ILAN EDER (log'da GORUNUR) ve cikis kodunu
-      # ETKILEMEZ; BASKA bir eksen olculemezse cikis YINE sifir-disidir (muafiyet
-      # DAR — kabul testi bu darligi ayrica olcer). CI'da olculen sey IZLENEN
-      # KAYNAKTIR: govdeler fail-closed mi, reddetme gerekcesi basiliyor mu,
-      # cagrilar duruyor mu, dosyalar git INDEKSINDE 100755 mi. Tamamen offline;
-      # taze klonda rc=0 oldugu KOSULARAK olculdu.
-      - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
-        run: python3 tools/kanca-kablolama-nobeti.py --ci
+  # ═════════════════════════════════════════════════════════════════════════════
+  # SPEC/TASARIM IFSA NOBETI — UCUNCU SIZINTI KOLU (4 Agu 2026)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN OLAY: depo PUBLIC. Iki ayri tur olctu ki (1) izlenen mimar spec'lerinde 28
+  # tasarim/topoloji ifsasi var (10'u YUKSEK, dogrudan sir DEGERI 0) ve (2) KAYNAK,
+  # BELGEDEN FAZLA IFSA EDIYOR (worker'in bas yorum blogu uc envanterini + sir/baslik/
+  # cerez adlarini tek yerde topluyor; konfigurasyon ozel kova adini duz metin tasiyor;
+  # bir yorum kapatilmamis bir zayifligi beyan ediyor). Mevcut nobetcilerin HICBIRI bu
+  # yuzeye BAKMIYORDU: kisisel-veri-test.py'nin ekseni DOSYA ADI ve icerik taramasi
+  # KASITLA disarida; mimar-kod-kilidi.py `.md`yi her yerde muaf tutuyor.
+  #
+  # 🔴 NEDEN AYRI IS ve NEDEN BLOKLAMAZ (`envanter` · `cron-nabzi` · `mesaj-nobeti` ile
+  # AYNI desen): `needs:` YOK ve hicbir is buna bagli DEGIL -> `deploy` ile PARALEL
+  # kosar, yayin yolunu tek saniye uzatmaz.
+  #   (a) YAYINA CIKMIYOR: Pages artefakti `_site` bir IZIN LISTESIDIR; taranan yuzeyin
+  #       (spec · worker kaynagi · konfigurasyon · is akisi) hicbiri oraya kopyalanmaz
+  #       -> "sizintili icerik canliya cikmasin" sinifi DEGILDIR (o sinif serit A'da).
+  #   (b) TAMIR DEGERI SIFIR: bu is akisi yalniz `push: branches:[main]` ile ve PUSHTAN
+  #       SONRA kosar; dosyalar o an ZATEN public remote'tadir. Yayini durdurmak ifsayi
+  #       geri ALMAZ (tek onarim: metni duzelt + yeni commit).
+  #   (c) BEDELI OLCULDU: kapi BUGUN KIRMIZI yaniyor (temizlik Okan kapisinda, ayri
+  #       karar). Bloklayici seride TUM EKIBIN yayini o birikim yuzunden DURURDU — bu
+  #       depoda kapi birikmesi 6 SAATLIK canli 404 pencereleri acti
+  #       ([[kapi-birikimi-yayin-gecikmesi]]).
+  # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi nobetci ihlalidir): rc dogrudan
+  #    konusur, job KIRMIZI yanar, bildirim duser. Kapi OLCEMEZSE rc 2 ile kirmizi yanar
+  #    — "olcemedim" YESIL degildir.
+  # 🔴 TESHIS MASKELI: tarama kolu eslesen SATIRIN METNINI HIC yazmaz, yalniz
+  #    `dosya:satir [EKSEN]` basar. Aksi halde nobetci ifsayi PUBLIC Actions gunlugune
+  #    kendi eliyle kopyalardi ([[nobetci-kendi-dosyasinda-sizinti]]).
+  # 🔴 SERIT A'YA TASIMA KOSULU (olculebilir): ana dalda tarama kolu rc=0 verdigi gun
+  #    bayraksiz cagri `build` job'una tasinir ve is-akisi-kapisi.py::SERIT_B girisleri
+  #    silinir (taban 43 -> 41).
+  ifsa-nobeti:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 1 YETER — kapi CALISMA AGACINI tarar, git GECMISINI okumaz
+      # (`git ls-files` yalniz indeksi gezer). SIG klonda da AYNI sonucu verir; bu
+      # olculdu ve raporda sayiyla duruyor.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Once nobetcinin KENDI kabulu (22 iddia; ag YOK, gercek dosyaya YAZMA YOK).
+      # ADIM ADINDA IDDIA SAYISI YAZMAZ — bayat sayi yanlis bilgi verir; gercek sayiyi
+      # betigin kendisi "TOPLAM: N/N" satiriyla basar.
+      - name: "Spec ifsa nobetcisi: kendini test (sayi ciktida)"
+        run: python3 tools/spec-ifsa-kapisi.py --kendini-test
+      # Sonra MUTASYON BATARYASI: her iddianin AYIRT EDICI bir mutantla oldurulebildigi
+      # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Canli dosyaya YAZMAZ ve bunu sha256
+      # once==sonra ile KENDISI olcer.
+      - name: "Spec ifsa nobetcisi: mutasyon bataryasi (TEK KIRMIZI + beyana esitlik)"
+        run: python3 tools/spec-ifsa-mutasyon-test.py
+      # GERCEK OLCUM — bugun KIRMIZI yanmasi BEKLENEN sonuctur (temizlik ayri karar).
+      - name: "Spec/tasarim ifsasi: izlenen anlatim yuzeyi (ALARM — yayini DURDURMAZ)"
+        run: python3 tools/spec-ifsa-kapisi.py
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================
@@ -2572,6 +2657,18 @@ jobs:
       # SERIT B (yayini durdurmaz sinifinda degil — bu adim BLOKLAYICI). Offline, ~10 s.
       - name: Onizleme vaat kapisi kirmizi-mutasyon turu (oldurucu + kontrol + fail-closed)
         run: python3 tools/onizleme-vaat-kapisi.py --kendini-test
+
+      # BAYAT BEYAN KAPISI (4 Agu 2026): depo BEYANI (kod yorumu / izlenen .md) ile
+      # olculen DAVRANIS (jenerator/hacim.js · shop/src/yonet.js) ayrismasini yakalar.
+      # Musteri yuzu ornek: secenekler.js VIDA yorumu, uretim motorunun per-parca olcu
+      # duyarliligini (civata/mil cap+boy, somun/pul yalniz cap) yanlis anlatirsa KIRMIZI.
+      # SERIT B (KraL karari): bir beyan/yorum ayrismasidir, "sizintili icerik canliya
+      # cikmasi" degil; yayini durdurmasi olculmus zarardir (beyan: is-akisi-kapisi.py ::
+      # SERIT_B). Offline, ag YOK, mutasyon DAIMA KOPYAYA (kaynak sha256 bas=son), ~1 s.
+      - name: Bayat beyan kapisi ic nobetci (mutasyon — beyan/davranis ayrismasi kor mu)
+        run: python3 tools/bayat-beyan-kapisi.py --kendini-test
+      - name: Bayat beyan kapisi (depo beyani == olculen davranis)
+        run: python3 tools/bayat-beyan-kapisi.py
 
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
