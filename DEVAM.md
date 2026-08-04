@@ -1,6 +1,26 @@
 # DEVAM (KraL) — 3 Agu 2026
 KAPANDI: 4 Agu marka-model uyeligi canli turu — dokum DEVAM-ARSIV.md de (git disi).
 
+## ✅ KAPANDI — 4 Agu: shop bayatlik nobetcisine iki fail-closed kanit (merge `4225711d`)
+Canli odeme worker'inin bayatlik kapisi, olctugu ref uzak main ucu DEGILSE ya da bundle
+dosyalarinda kaydedilmemis fark varsa artik rc 2 "olculemedi" donuyor; eskiden bu iki halde
+sessizce rc 0 "taze / 0,0 dk" veriyordu (sahte-taze).
+- OLCULDU (dalin worktree'sinde, merge oncesi): kabul testi **39 iddia / 0 kirmizi**
+  (main'de 32/0) · mutasyon bataryasi **16 mutant / 0 sapma** (main'de 12/0) ·
+  kaynak sha256 kosum oncesi = sonrasi (arac diske yazmiyor).
+- Kapsam merge-base `1159540c`'ten YALNIZ 2 dosya (`tools/shop-bayatlik-kapisi.py`,
+  `tools/shop-bayatlik-mutasyon.py`); hicbir urun veri dosyasi diff'te YOK.
+- Ardil commit `ba0b4a8c`: `deploy.yml` yorumundaki BAYAT sayilar duzeltildi
+  (satir 669 `32 iddia`→`39 iddia`, satir 674 `12 mutant`→`16 mutant`). Bu depoda yorumdaki
+  sayi olcumun kaynagi sayilir; bayat sayi yanlis guven verir.
+  `is-akisi-kapisi.py` ve `ci-kapsam-test.py` sonrasinda YESIL.
+- D1 teyidi: **17817 = 17817** (sayi ekseni ✅ · sema ekseni ✅ · icerik ekseni
+  17817 urun_hash birebir, uyusmaz 0 / eksik 0 / fazla 0).
+- CI: merge SHA `4225711d`'nin kosumu (30893172664) KENDI ikinci push'umla iptal oldu;
+  gecerli kosum **30893246326** (headSha `ba0b4a8c`) ve `4225711d` bu SHA'nin ATASI
+  (`merge-base --is-ancestor` exit 0 ile dogrulandi).
+- Dal + worktree `agent-a8f11e73f1c0fb7aa` temizlendi (icerigi main'de, worktree temizdi).
+
 ## 🔴 YENI ACIK KALEM — katalog geneli metin/alan bosluğu (envanter cikti)
 1700 marka-model cifti, **943'unde** serbest metin aramasi ile alan uyeligi ayrisiyor,
 **5585 urun** etkileniyor. Kovalar (baslik okunarak, kural uydurulmadan):
