@@ -674,10 +674,19 @@ MUTANTLAR = [
      "KIRMIZI",
      "(b) FARKLI ARACLARI BIRLESTIR: ilk kelimeye katla -> 'Zafira Life' Zafira'ya, "
      "'Grand Vitara' Vitara'ya... duser; cip iki ayri araci tek kutuya yigar"),
-    ("cip-indeks.py",
-     "    if _mmb.marka_jetonu_mu(t, mevren):\n        return (\"\", \"\", ())",
-     "    if False:\n        return (\"\", \"\", ())", "KIRMIZI",
-     "(b2) MARKA JETONU ELEMESINI KALDIR: 'PSA'/'VAG'/'Geo' yeniden MODEL cipi olur"),
+    # 🔴 IDDIA EDILMEYEN EKSEN — DURUST KAYIT ([[beyan-edilmis-survivor]], olculdu 4 Agu):
+    # "MARKA JETONU (PSA/VAG/Geo) CIP OLMAZ" ekseni BU KAPIDA iddia SAYILMIYOR. Denendi:
+    #   * `_jeton_uyeligi`deki `marka_jetonu_mu` guardini dusuren mutant YESIL kaldi
+    #     (batarya koşumu: 1/36 tutmadi) — cunku `indeks_uret`in BAG (cift) dongusu ayni
+    #     yargiyi ikinci kez uyguluyor, jeton bagsiz kalinca cip zaten dogmuyor.
+    #   * Tersi de dogru: yalniz BAG dongusundeki guardi dusurmek de cip uretmiyor
+    #     (uyelik tarafi eliyor). Yani IKI KATMAN da TEK BASINA gozlenemiyor.
+    #   * Ortak kaynagi (`marka_model_build.marka_jetonu_mu` -> False) bozan mutant ise
+    #     M2'nin OKUDUGU yuklemi de bozar (totoloji) — kapi kendi lehine buker.
+    # Bu eksen BAGIMSIZ oracle ile tools/model-uyelik-kapisi.py :: K7'de olculuyor (yargi
+    # arama.py KAPALI MARKA KUMESI'nden AYRI okunur) ve orada oldurucu mutanti VAR.
+    # Ayirt edici mutanti olmayan eksen burada AYRI IDDIA olarak SAYILMAZ; M2 bu kapida
+    # ROZET_DISI + MODEL_OLMAYAN_CIFT eksenini tasir ve o eksen (c) mutantiyla oldurulebiliyor.
     # 🔴 (c) MARKA-KOR ELEME: OLCULDU (4 Agu) — koru MODEL_OLMAYAN_CIFT uzerinden yapmak
     # bugunku katalogda 0 cip olduruyor (ESDEGER mutant, yesil kalirdi). Ayirt edici olan
     # ROZET_DISI ekseni: kor yapilinca `(Peugeot, ds)` denial'i `(Citroen, DS)`i, `(Audi,

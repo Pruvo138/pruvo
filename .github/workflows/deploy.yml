@@ -1390,7 +1390,12 @@ jobs:
       # cip sayisi ile SAYFA sayisi FARKLI. M3 iki tarafi TEK KAYNAKTAN kiyaslar,
       # M5 ters yonu (asiri eleme) olcer, M6/M8 uc etiketi yolunu olcer.
       # OFFLINE: ag YOK, DISKE YAZMAZ, ~47 s (M ekseni +0,9 s). node ZORUNLU (setup-node).
-      # Cift yonlu mutasyon (31 oldurucu KIRMIZI + 5 ilgisiz/kontrol YESIL + M00) elle
+      # 🔴 IDDIA EDILMEYEN EKSEN (durust kayit): "marka jetonu (PSA/VAG/Geo) CIP OLMAZ"
+      # yargisi BU kapida iddia SAYILMIYOR — olculdu (4 Agu): iki koruma katmani da TEK
+      # BASINA gozlenemiyor (birini dusuren mutant YESIL kaliyor), ortak kaynagi bozan
+      # mutant ise iddianin OKUDUGU yuklemi de bozuyor (totoloji). Eksen BAGIMSIZ oracle
+      # ile model uyeligi kapisinda (K7) olculuyor ve orada oldurucu mutanti VAR.
+      # Cift yonlu mutasyon (30 oldurucu KIRMIZI + 5 ilgisiz/kontrol YESIL + M00) elle
       # — sayilar 4 Agu'da SAYILARAK duzeltildi (yorumda 17+3 yaziyordu, gercek 25+3 idi):
       #   python3 tools/cip-indeks-test.py --mutasyon
       - name: "Cip satirlari capraz daralma + model ekseni (olu uc + fail-open nobeti)"
