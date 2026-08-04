@@ -484,6 +484,52 @@ def olc(kok, modul_yolu=None):
             "gercek_sayfada": sum(1 for pid in ids if pid in yayin_id),
             "kaybolan": len(kaybolan)})
 
+    # (a3) ÇAPRAZ-MARKA (ROZET) TUTARLILIK KAPISI — K19 (4 Ağu, mimar hükmü)
+    #      ÖLÇÜLEN SINIF: `ROZET_DISI_CIFT` bugüne kadar ELLE bulunmuş örnekleri tutuyordu;
+    #      yeni bir rozet ihlali ancak biri CANLIDA görünce yakalanıyordu. Ölçüldü: 17.914
+    #      üründe `(Peugeot, Berlingo)` 9 ürünle, `(Peugeot, DS)` 3 ürünle YAYINDAYDI;
+    #      `(Opel, Berlingo)` 3 ürünle eşiğin DİBİNDE bekliyordu (veri partisi yazılınca
+    #      sessizce doğacaktı).
+    #      YÜKLEM (İLERİYE DÖNÜK): aynı KANONİK model anahtarı İKİ ya da daha çok markada
+    #      sayfa eşiğini geçiyorsa, o (marka, canon) çifti ya ROZET_DISI_CIFT'te (deny) ya
+    #      ROZET_CAPRAZ_IZINLI'de (allow) olmalı. İkisinde de yoksa KIRMIZI — karar istenir.
+    #      🔴 BİRİM KÜME (sayı DEĞİL): bir çift ölüp biri doğunca sayı sabit kalır ve sapma
+    #      gizlenirdi ([[hukum-yanlis-birimde]]) — K16 ile aynı disiplin.
+    #      🔴 EŞİK ÖLÇÜTÜ "sayfa doğuracak mı" olmalı, "sayfa doğdu mu" DEĞİL: deny'e alınan
+    #      çift yayından düşer, ölçüt yayına baksaydı tablo KENDİ kanıtını siler (totoloji).
+    capraz_aday = {}
+    for _mk, _d in veri.items():
+        for _canon, _g in _d["gruplar"].items():
+            if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:
+                capraz_aday.setdefault(_canon, []).append((_mk, _g.get("display") or _canon,
+                                                           len(_g["urunler"])))
+    capraz_cift = set()
+    for _canon, _lst in capraz_aday.items():
+        if len(_lst) >= 2:
+            for _mk, _dsp, _n in _lst:
+                capraz_cift.add("%s|%s" % (_mk, _canon))
+    try:
+        _izin = dict(_arama.ROZET_CAPRAZ_IZINLI)
+        capraz_imza = (_arama.rozet_capraz_imzasi(), _arama.ROZET_CAPRAZ_IZINLI_IMZA,
+                       len(_izin), _arama.ROZET_CAPRAZ_IZINLI_SAYISI)
+    except Exception as e:                                          # noqa: BLE001
+        raise Olculemedi("tools/arama.py ROZET_CAPRAZ_IZINLI okunamadı: %r" % (e,))
+    _deny_anahtar = set("%s|%s" % (mk, canon) for (mk, canon) in rozet_disi)
+    # (1) YARGISIZ ÇİFT = SIZINTI: ne deny'de ne allow'da -> sessiz sayfa doğuyor.
+    capraz_yargisiz = sorted(capraz_cift - set(_izin) - _deny_anahtar)
+    # (2) ENVANTER BAYAT: allow'da duran ama artık ÇAPRAZ OLMAYAN kayıt (küme birebir).
+    capraz_bayat = sorted(set(_izin) - capraz_cift)
+    # (3) ÇELİŞKİ: aynı çift hem deny hem allow -> hangi hüküm geçerli belirsiz.
+    capraz_celiski = sorted(set(_izin) & _deny_anahtar)
+    # (4) BEKLEYEN HÜKÜM: allow'da "BEKLER" sınıfı — hata DEĞİL, GÖRÜNÜR rapor kalemi.
+    capraz_bekler = sorted(k for k, v in _izin.items() if v[0] == "BEKLER")
+    capraz_ozet = []
+    for _canon in sorted(capraz_aday):
+        _lst = capraz_aday[_canon]
+        if len(_lst) < 2:
+            continue
+        capraz_ozet.append((_canon, sorted(_lst, key=lambda t: -t[2])))
+
     # (b) AYNA DRIFT — index.html BILESIK_MARKA == arama.py'nin ÇOK KELİMELİ üyeleri.
     #     Otorite arama.py; index.html yalnızca JS'in çalışma anı kopyasıdır.
     ayna = list(getattr(evren, "bilesik", []))
@@ -720,6 +766,10 @@ def olc(kok, modul_yolu=None):
                    "sonda_sapan": sonda_sapan, "sonda_sayisi": len(sondalar),
                    "rozet_ihlal": rozet_ihlal, "rozet_elenen": rozet_elenen,
                    "rozet_kaybolan": rozet_kaybolan, "rozet_imza": rozet_imza,
+                   "capraz_cift": sorted(capraz_cift), "capraz_yargisiz": capraz_yargisiz,
+                   "capraz_bayat": capraz_bayat, "capraz_celiski": capraz_celiski,
+                   "capraz_bekler": capraz_bekler, "capraz_imza": capraz_imza,
+                   "capraz_ozet": capraz_ozet,
                    "kusak_sapan": kusak_sapan, "kusak_sonda_sayisi": len(kusak_sondalar),
                    "fikstur_sapan": fikstur_sapan, "fikstur_sayisi": len(KATLAMA_FIKSTURU),
                    "kusak_aciklamali": len(kusak_aciklamali),
@@ -869,6 +919,22 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
     dogrula("K12 ROZET_DISI_CIFT KİMLİĞİ DONMUŞ (sessiz sayfa kapatma/açma yok)",
             _zi[0] == _zi[1] and _zi[2] == _zi[3],
             "imza=%s beklenen=%s sayı=%d beklenen=%d" % _zi)
+    # K19 — ÇAPRAZ-MARKA (ROZET) TUTARLILIK KAPISI: sayfa DOĞMADAN ÖNCE yakalar.
+    #       Aynı model adı iki markada da sayfa eşiğini geçiyorsa çiftin YARGISI olmalı
+    #       (deny ya da allow). Birim KÜME; envanter bayatlaması da KIRMIZI yakar.
+    _ci = a["capraz_imza"]
+    dogrula("K19 ÇAPRAZ-MARKA ÇİFTİNİN YARGISI VAR (yargısız sayfa doğmaz; %d çift/%d model)"
+            % (len(a["capraz_cift"]), len(a["capraz_ozet"])),
+            not a["capraz_yargisiz"] and not a["capraz_bayat"] and not a["capraz_celiski"]
+            and len(a["capraz_cift"]) > 0 and _ci[0] == _ci[1] and _ci[2] == _ci[3],
+            "YARGISIZ (sızıntı)=%s · envanterde var üretimde yok=%s · deny/allow çelişkisi=%s"
+            " · imza=%s beklenen=%s sayı=%d beklenen=%d"
+            % (a["capraz_yargisiz"] or "-", a["capraz_bayat"] or "-",
+               a["capraz_celiski"] or "-", _ci[0], _ci[1], _ci[2], _ci[3]))
+    if a["capraz_bekler"]:
+        print("  BILGI ÇAPRAZ-MARKA 'BEKLER' sınıfı — bugünkü CANLI sayfayı korumak için açık, "
+              "rozet hükmü MİMAR/İŞLETME kararı (%d çift): %s"
+              % (len(a["capraz_bekler"]), a["capraz_bekler"]))
     # ═══ KUŞAK/VARYANT KATLAMASI (4 Ağu, KraL hükmü) ═══════════════════════════════════
     # K13 — KURAL FİKSTÜRLE ÇİVİLİ: "Golf 4"/"Astra H" TABAN modele katlanır; "Zafira Life"/
     #       "Ami 6"/"Golf" KATLANMAZ. İki taraf (JS gövdesi + Python portu) AYRI AYRI ölçülür.
@@ -1072,8 +1138,8 @@ MUTANTLAR = [
     # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — /marka/ford/
     # focus-st/ CANLIDA duruyordu ve kapı 16/16 YEŞİL geçiyordu.
     ("tools/arama.py",
-     '    ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",\n}',
-     '    ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",\n'
+     '                                "esya/klima kolu) — arac modeli degil; urunler Ev kategorisinde",\n}',
+     '                                "esya/klima kolu) — arac modeli degil; urunler Ev kategorisinde",\n'
      '    ("Volkswagen", "T4"): "MUTANT",\n}', "KIRMIZI",
      "M21 KUŞAK SAYFASINI DENY'E AL (Volkswagen T4) -> yayın kümesi tam olarak "
      "volkswagen/t4'ü kaybeder; 'kuşak sayfaları KAPANMAZ' hükmü kırılır"),
@@ -1097,7 +1163,40 @@ MUTANTLAR = [
     # mutant DAVRANIŞI DEĞİŞTİRMEZ (eşdeğer mutant), o yüzden bataryaya KONMADI ve "mükerrer
     # kart engelleniyor" diye bir iddia SAYILMIYOR. Veri o sınıfı üretmeye başlarsa K14'ün
     # bölüm-ayrıklığı ölçümü onu yakalar (kesitler AYRIK olmalı).
+    # --- ÇAPRAZ-MARKA (ROZET) TUTARLILIK EKSENİ — K19 (4 Ağu, mimar hükmü) ---
+    # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — `(Peugeot,
+    # Berlingo)` 9 ürünle CANLIDA duruyordu ve kapı 19/19 YEŞİL geçiyordu. Rozet ihlali
+    # ancak bir insan ana sayfada görünce yakalanabiliyordu.
+    ("tools/arama.py",
+     '    ("Peugeot", "Berlingo"): "Berlingo Citroen rozetidir; Peugeot\'daki karsiligi Partner/"\n'
+     '                             "Rifter — gercek sayfa /marka/citroen/berlingo/",\n',
+     "", "KIRMIZI",
+     "M25 `(Peugeot, Berlingo)` ÇİFTİNİ SAYFA DOĞURACAK HALE GETİR (deny'den düşür) -> "
+     "çapraz-marka çifti YARGISIZ kalır; K19 sızıntıyı sayfa DOĞMADAN yakalamalı"),
+    ("tools/arama.py",
+     '    "Peugeot|boxer": ("ROZET", "Peugeot Boxer gercek rozet (SEVEL ucuzu; her marka KENDI adiyla)"),\n',
+     "", "KIRMIZI",
+     "M26 ENVANTERDEN BİR ÇAPRAZ ÇİFTİ DÜŞÜR -> allow'da da deny'de de olmayan çift doğar "
+     "(yargısız = sessiz sayfa); kimlik imzası da kayar"),
+    ("tools/arama.py",
+     '    "Citroen|berlingo": ("ROZET", "Berlingo Citroen\'in kendi rozeti"),',
+     '    "Citroen|berlingo": ("ROZET", "Berlingo Citroen\'in kendi rozeti"),\n'
+     '    "Peugeot|xyzyok": ("ROZET", "MUTANT — uretimde KARSILIGI YOK"),', "KIRMIZI",
+     "M27 ENVANTERE ÜRETİMDE KARŞILIĞI OLMAYAN ÇİFT EKLE -> envanter BAYAT (küme birebir "
+     "değil); sayı ölçütü olsaydı bu sapma gizlenirdi ([[hukum-yanlis-birimde]])"),
+    ("tools/model-uyelik-kapisi.py",
+     '            if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:',
+     "            if mm.yayimlanir_mi(_g):", "KIRMIZI",
+     "M28 ÖLÇÜTÜ 'SAYFA DOĞDU MU'YA ÇEVİR -> deny'e alınan çift ölçümden DÜŞER, karşısındaki "
+     "gerçek rozet tek başına kalır ve tablo KENDİ kanıtını siler (totoloji koruması)"),
     # --- KONTROL (YEŞİL bekleniyor) ---
+    ("tools/arama.py",
+     '    "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),\n'
+     '    "Toyota|brz": ("BEKLER", "Toyota\'nin karsiligi GT86/GR86; \'Toyota BRZ\' rozet DEGIL"),',
+     '    "Toyota|brz": ("BEKLER", "Toyota\'nin karsiligi GT86/GR86; \'Toyota BRZ\' rozet DEGIL"),\n'
+     '    "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),', "YESIL",
+     "K19 KONTROL: çapraz envanteri YENİDEN SIRALA -> küme ve kimlik AYNI, davranış AYNI "
+     "(daima-kırmızı bir K19 M25-M28'i de geçerdi; kontrol bunu ayırt eder)"),
     ("tools/marka_model_build.py",
      '            g["kusak_bolum"] = sorted(bolumler,\n'
      '                                      key=lambda b: (-len(b["urunler"]), b["display"]))',

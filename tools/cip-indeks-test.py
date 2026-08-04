@@ -275,6 +275,164 @@ def kabul(kok):
             % (sum(1 for kd in ix["kat"].values() for d in kd.values() if "e" in d),
                len(sapan), sapan[:3]))
 
+    # --- M) MODEL CIPI KANONIKLESTIRME EKSENI (4 Agu) -----------------------
+    # OLCULEN CANLI HATA (Okan ana sayfada gordu): model cipleri HAM jetondu; sayfa
+    # ureticisinin kanoniklestirmesi CIP SATIRINA UYGULANMIYORDU. Peugeot secili iken satir
+    # `206` ile `Peugeot 206`yi AYRI AYRI, `PSA` ve `iPhone`u MODEL diye, `DS`i (bagimsiz
+    # marque) ve `Berlingo`yu (Citroen rozeti) Peugeot MODELI diye gosteriyordu.
+    # OLCULDU (17.914 urun): 5 mukerrer grup · 12 model-olmayan cip · 479 cipin 73'unde
+    # cip sayisi ile SAYFA sayisi FARKLI (cip 206 -> 52, sayfa 206 -> 58).
+    #
+    # 🔴 IDDIA GERCEK KATALOG UZERINDE KURULUR (fikstur uzerinde DEGIL): kusur veriden
+    # dogdu; kucuk fiksture tasinsaydi mutantlar veriye degil fikstore nisan alirdi.
+    # 🔴 KARSILASTIRMA TARAFI SAYFA URETECIDIR (marka_model_build) — ikinci bir "dogru sayi"
+    # formulu YAZILMAZ; iki taraf ayrisirsa MUSTERI iki farkli sayi gorur.
+    mmb = _modul(os.path.join(kok, "tools", "marka_model_build.py"), "mmb_cip_kabul")
+    mevren = mmb.MarkaEvreni(index_metni)
+    # `cip_evreni_markalari` CAGRILMAZ: o fonksiyon indeksi BIR KEZ DAHA uretirdi (olculdu:
+    # +18 sn). Dondurdugu deger ZATEN elimizdeki indeksin marka kumesidir — ayni tanim,
+    # ikinci kosum yok (kaynak yine indeks; ikinci bir kural YAZILMADI).
+    _ek = set(b for kd in ix["kat"].values() for b in kd)
+    _veri = mmb.gruplandir(gercek, mevren, _ek)
+    sayfa_kova = {}     # (marka, canon) -> {kategori: {urun id}}
+    sayfa_yayim = set()
+    for _marka, _d in _veri.items():
+        for _canon, _g in _d["gruplar"].items():
+            _kats = {}
+            for _p in _g["urunler"]:
+                _kats.setdefault((_p.get("kategori") or "").strip(), set()).add(_p.get("id"))
+            sayfa_kova[(_marka, _canon)] = _kats
+            if mmb.yayimlanir_mi(_g):
+                sayfa_yayim.add((_marka, _canon))
+    marka_sayfa_ids = {}
+    for _marka, _d in _veri.items():
+        _ids = set()
+        for _g in _d["gruplar"].values():
+            _ids |= set(_p.get("id") for _p in _g["urunler"])
+        _ids |= set(_p.get("id") for _p in (_d["marka_only"] + _d.get("ikincil", [])))
+        marka_sayfa_ids[_marka] = _ids
+
+    mukerrer, jeton_ihlal, sayi_sapan, sayfasiz = [], [], [], []
+    cip_canon = {}      # (kat, marka) -> {canon: cip adi}
+    for kat, kd in ix["kat"].items():
+        for mk, d in kd.items():
+            gorulen = cip_canon.setdefault((kat, mk), {})
+            for md, y in d["m"].items():
+                canon = mevren.model_anahtari(mk, md)
+                if not canon:
+                    jeton_ihlal.append("%s/%s/%s: anahtar BOS" % (kat, mk, md))
+                    continue
+                if canon in gorulen:
+                    mukerrer.append("%s/%s: '%s' + '%s' -> %s"
+                                    % (kat, mk, gorulen[canon], md, canon))
+                gorulen[canon] = md
+                # (b)/(c) sinifi: marka jetonu · model-olmayan cift · rozet disi cift
+                if mmb.marka_jetonu_mu(md, mevren):
+                    jeton_ihlal.append("%s/%s/%s: MARKA/grup jetonu" % (kat, mk, md))
+                if mmb.model_olmayan_cift_mi(mk, md):
+                    jeton_ihlal.append("%s/%s/%s: MODEL OLMAYAN cift" % (kat, mk, md))
+                if (mk, canon) in mmb.ROZET_DISI:
+                    jeton_ihlal.append("%s/%s/%s: ROZET DISI cift" % (kat, mk, md))
+                # (d) sinifi: cipin gosterdigi sayi == o modelin SAYFASINDAKI sayi
+                _kats = sayfa_kova.get((mk, canon))
+                _n = len(_kats.get(kat, ())) if _kats else None
+                if _n != y["n"]:
+                    sayi_sapan.append("%s/%s/%s: cip=%s sayfa=%s" % (kat, mk, md, y["n"], _n))
+                if (mk, canon) not in sayfa_yayim:
+                    sayfasiz.append("%s/%s/%s" % (kat, mk, md))
+    dogrula("M1 MODEL CIPI MUKERRER YOK (ayni kanonik degere iki cip dusmez)",
+            not mukerrer, "model=%d mukerrer=%d %s"
+            % (toplam_model, len(mukerrer), mukerrer[:3]))
+    dogrula("M2 MODEL CIPI MODEL-OLMAYAN JETON TASIMAZ (marka/grup/rozet elenmis)",
+            not jeton_ihlal, "ihlal=%d %s" % (len(jeton_ihlal), jeton_ihlal[:3]))
+    dogrula("M3 CIP SAYISI == O MODELIN SAYFASINDAKI SAYI (tek kaynak)",
+            not sayi_sapan, "model=%d sapan=%d %s"
+            % (toplam_model, len(sayi_sapan), sayi_sapan[:3]))
+    dogrula("M4 HER MODEL CIPININ YAYIMLANAN SAYFASI VAR (olu cip yok)",
+            not sayfasiz, "sayfasiz=%d %s" % (len(sayfasiz), sayfasiz[:3]))
+
+    # M5 — ASIRI ELEME NOBETI (M2'nin TERS yonu). Marka-KOR bir eleme baska markadaki
+    # GERCEK modeli oldururdu (or. "DS" kor elenirse /marka/citroen/ds/ cipi de OLURDU,
+    # oysa Citroen DS gercek bir modeldir). Yuklem: YAYIMLANAN + uyum BAGI olan + cip
+    # esiklerini gecen her model CIP OLMALI.
+    # 🔴 `uyum` BAGI SARTI: cip evreninin sayfa evreninden FAZLADAN bir on kosulu vardir —
+    # marka<->model bagini yalniz `uyum` cifti kurar (bkz. cip-indeks modul docstring'i).
+    # Bu sart olmadan iddia 66 sahte ihlal basiyordu (or. Citroen/ami: sayfada 15 urun,
+    # uyum bagi YOK). Bag BURADA BAGIMSIZ hesaplanir (uretecin `cift` kumesi CAGRILMAZ) ki
+    # iddia uretecin kendi tanimini aynalamasin.
+    _cip_evreni = ci.MarkaEvreni(index_metni)
+    _kuratorlu = ci.kuratorluk_kolu(gercek)
+    bagli = set()
+    for u in gercek:
+        _kat = (u.get("kategori") or "").strip()
+        _uyeler = ci.markalari(u, _cip_evreni, kuratorluk=_kuratorlu.get(_kat, True))
+        for oge in (u.get("uyum") or []):
+            _mk = _cip_evreni.katla((oge.get("marka") or "").strip())
+            _md = (oge.get("model") or "").strip()
+            if not _md or _mk not in _uyeler:
+                continue
+            _c = mevren.model_anahtari(_mk, _md)
+            if _c:
+                bagli.add((_kat, _mk, _c))
+    eksik_cip = []
+    for (mk, canon) in sayfa_yayim:
+        for kat, ids in sayfa_kova[(mk, canon)].items():
+            kd = ix["kat"].get(kat) or {}
+            if mk not in kd or len(ids) < ci.ESIK_MODEL:
+                continue
+            if len(kd[mk]["m"]) < ci.EN_AZ_MODEL or (kat, mk, canon) not in bagli:
+                continue
+            if canon not in cip_canon.get((kat, mk), {}):
+                eksik_cip.append("%s/%s/%s (%d urun)" % (kat, mk, canon, len(ids)))
+    dogrula("M5 ESIGI GECEN HER YAYIMLANAN MODEL CIP OLUR (asiri eleme yok)",
+            not eksik_cip, "eksik=%d %s" % (len(eksik_cip), eksik_cip[:3]))
+
+    # M6 — UC MODEL ETIKETI: uc `model` parametresini `uyum[].model` alaninda suzuyor
+    # (olculdu CANLI: model=F-Serisi -> 0 · model=F-Series -> 8). Istemcinin gonderecegi
+    # etiket o kategoride uyum[].model olarak GECMELI, yoksa cip OLU UC.
+    uyum_sayim = {}
+    for u in gercek:
+        k = (u.get("kategori") or "").strip()
+        for oge in (u.get("uyum") or []):
+            md = (oge.get("model") or "").strip()
+            if md:
+                uyum_sayim[(k, md)] = uyum_sayim.get((k, md), 0) + 1
+    olu_model = []
+    for kat, kd in ix["kat"].items():
+        for mk, d in kd.items():
+            for md, y in d["m"].items():
+                etiket = y.get("e", md)
+                if uyum_sayim.get((kat, etiket), 0) <= 0:
+                    olu_model.append("%s/%s/%s->'%s'=0" % (kat, mk, md, etiket))
+    dogrula("M6 GORUNEN HER MODEL CIPININ UC ETIKETI KATALOGDA >0 (olu uc YOK)",
+            not olu_model, "model=%d olu=%d %s"
+            % (toplam_model, len(olu_model), olu_model[:3]))
+
+    # M7 KONTROL — katlama GERCEKTEN is yapiyor mu (dejenere olcum degil): en az bir cip,
+    # HAM esitligin sayacagindan DAHA COK urun sayiyor olmali. Bu iddia olmadan "katlamayi
+    # tumuyle kaldir" mutanti M1/M3'u de birlikte kaydirip yesil kalabilirdi.
+    ham_model_sayim = {}
+    for u in gercek:
+        k = (u.get("kategori") or "").strip()
+        for ham in set((x or "").strip() for x in (u.get("marka") or []) if (x or "").strip()):
+            ham_model_sayim[(k, ham)] = ham_model_sayim.get((k, ham), 0) + 1
+    katlayan = [(kat, mk, md, y["n"], ham_model_sayim.get((kat, md), 0))
+                for kat, kd in ix["kat"].items() for mk, d in kd.items()
+                for md, y in d["m"].items() if y["n"] > ham_model_sayim.get((kat, md), 0)]
+    dogrula("M7 KONTROL: KATLAMA IS YAPIYOR (ham esitlikten COK sayan cip VAR)",
+            len(katlayan) > 0, "katlayan cip=%d ornek=%s" % (len(katlayan), katlayan[:2]))
+
+    # M8 — KABLOLAMA: `e` uretilse de istemci onu GONDERMEZSE cip yine olu uc olur.
+    # M6 INDEKSI olcer, bu iddia YOLU olcer (B3'un marka ekseninde yaptiginin aynisi).
+    # Davranissal olcum JS kosumunda YAPILAMADI: fikstur Otomobil marka cip listesine yeni
+    # bir marka eklemeden bu vakayi tasiyamiyor ve o liste baska 8 iddianin beklenen
+    # degerine PINLI. Bu yuzden eksen BURADA kablolama olarak olculur — raporda boyle gecer.
+    dogrula("M8 ISTEMCI UCA `e` MODEL ETIKETINI GONDERIR (kablolama)",
+            'p.set("model", ucModelEtiketi(activeCat, activeBrand, activeModel));' in index_metni
+            and 'function ucModelEtiketi(' in index_metni
+            and 'kd[marka].m[model]' in index_metni,
+            "edgeIstek -> ucModelEtiketi -> indeks `e`")
+
     # --- B) YAYIN KOPYASINA ENJEKSIYON GERCEKTEN OLUYOR ---------------------
     # Kaynak index.html'de indeks YOKTUR (bilerek); build.py yayin kopyasina gomer.
     # Enjeksiyon kopmusssa capraz daralma canlida SESSIZCE kaybolurdu.
@@ -409,8 +567,9 @@ MUTANTLAR = [
      'var modelOk = true;', "KIRMIZI",
      "MODEL FILTRESINI KALDIR (yerel): cip tiklanir, liste DEGISMEZ"),
     ("index.html",
-     '    if(activeModel !== "Tümü"){ p.set("model", activeModel); }',
-     '    if(false){ p.set("model", activeModel); }', "KIRMIZI",
+     '    if(activeModel !== "Tümü"){\n      p.set("model", ucModelEtiketi(activeCat, activeBrand, activeModel));\n    }',
+     '    if(false){\n      p.set("model", ucModelEtiketi(activeCat, activeBrand, activeModel));\n    }',
+     "KIRMIZI",
      "EDGE MODEL PARAMETRESINI DUSUR: Worker suzmez, canlida liste daralmaz"),
     ("index.html", '    if(mdl){ activeModel = mdl; }', '    if(false){ activeModel = mdl; }',
      "KIRMIZI", "URL OKUMASINI KALDIR: paylasilan link model secimini tasimaz"),
@@ -495,6 +654,41 @@ MUTANTLAR = [
      "    return dict((k, v >= ESIK_UYUM_KAPSAM) for k, v in uyum_kapsami(urunler).items())",
      "    return dict((k, False) for k, v in uyum_kapsami(urunler).items())", "KIRMIZI",
      "KURATORLUGU HER YERDE KALDIR: Otomobil'de tanınmayan deger cip olur (sisme)"),
+    # --- MODEL CIPI KANONIKLESTIRME EKSENI (4 Agu) ---------------------------
+    # 🔴 KANIT: bu mutantlar EKLENMEDEN ONCE batarya bu sinifi GORMUYORDU — model cipleri
+    # HAM jetondu ve hicbir iddia "cip evreni sayfa evreniyle ayni mi" diye SORMUYORDU.
+    ("cip-indeks.py",
+     "        k = mevren.model_anahtari(marka, t)\n        if not k or k == marka_kanon:",
+     "        k = _model_kanon.kanon(t)\n        if not k or k == marka_kanon:", "KIRMIZI",
+     "(a) CIP KANONIKLESTIRMESINI KALDIR: onek siyirma + alias duser -> '206' ile "
+     "'Peugeot 206' yine AYRI cip (olculen canli hata geri gelir)"),
+    ("cip-indeks.py",
+     "        k = mevren.model_anahtari(marka, t)\n        if not k or k == marka_kanon:",
+     "        k = _model_kanon.kanon(t.split()[0])\n        if not k or k == marka_kanon:",
+     "KIRMIZI",
+     "(b) FARKLI ARACLARI BIRLESTIR: ilk kelimeye katla -> 'Zafira Life' Zafira'ya, "
+     "'Volvo Penta' Volvo'ya duser; cip iki ayri araci tek kutuya yigar"),
+    ("cip-indeks.py",
+     "        if not t or _mmb.marka_jetonu_mu(t, mevren):\n            continue\n        kalan =",
+     "        if not t:\n            continue\n        kalan =", "KIRMIZI",
+     "(b2) MARKA JETONU ELEMESINI KALDIR: 'PSA'/'VAG'/'Geo' yeniden MODEL cipi olur"),
+    ("cip-indeks.py",
+     "        return (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k])",
+     "        return (k[1], k[2]) in _mmb.ROZET_DISI or any(\n"
+     "            _model_kanon.kanon(mm_ad[k]) == _model_kanon.kanon(_j)\n"
+     "            for _m, _j in __import__('arama').MODEL_OLMAYAN_CIFT)", "KIRMIZI",
+     "(c) MODEL-OLMAYAN ELEMESINI MARKA-KOR YAP: marka ekseni dusunce baska markadaki "
+     "GERCEK model de olur (M5 asiri-eleme ekseni)"),
+    ("cip-indeks.py",
+     "            for canon in (tam | katlanan):",
+     "            for canon in tam:", "KIRMIZI",
+     "(d) CIP SAYISINI SAYFADAN AYIR: kusak katlamasi sayimdan duser -> cip 'Focus' 297 "
+     "der, sayfa 305 gosterir (olculen 73 sapmali cip sinifi)"),
+    ("index.html",
+     '      p.set("model", ucModelEtiketi(activeCat, activeBrand, activeModel));',
+     '      p.set("model", activeModel);', "KIRMIZI",
+     "(e) ISTEMCI KANONIGI GONDERSIN (model): uc katlamaz -> 'F-Serisi'/'5 E-Tech' cipleri "
+     "0 urun dondurur (olculen canli: model=F-Serisi -> 0, model=F-Series -> 8)"),
     # --- KONTROL MUTANTLARI (YESIL bekleniyor) — iddialar ILGISIZ degisikliklere
     # PINLENMIS mi? Yesil kalmazlarsa kapi asiri-baglanmistir ([[kapi-kapsam-eksen-secimi]]).
     ("index.html", '.brand-btn:hover{border-color:var(--navy-2)}',
@@ -504,6 +698,16 @@ MUTANTLAR = [
      "ILGISIZ: sayfa boyu — iddialar sayfalama sabitine PINLENMEMELI"),
     ("cip-indeks.py", "SURUM = 1", "SURUM = 2", "YESIL",
      "ILGISIZ: indeks surum alani — cip davranisina DOKUNMAZ"),
+    ("cip-indeks.py",
+     "    for (kat, mk, canon) in sorted(gecerli_model):",
+     "    for (kat, mk, canon) in sorted(gecerli_model, reverse=True):", "YESIL",
+     "KONTROL: cip montaj SIRASI degisir, KUME ve SAYILAR degismez -> iddia bozulmamali "
+     "(daima-kirmizi bir M-ekseni boylece ayirt edilir)"),
+    ("cip-indeks.py",
+     '    mm_uyum = {}            # (kat, marka, CANON) -> {uyum[].model yazimi: n} (uc etiketi)',
+     '    mm_uyum = dict()        # (kat, marka, CANON) -> {uyum[].model yazimi: n} (uc etiketi)',
+     "YESIL",
+     "KONTROL: esdeger sozluk kurulusu — davranis birebir ayni"),
 ]
 
 

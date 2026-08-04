@@ -2901,6 +2901,21 @@
     var kd = _ixKat(kat), d = kd && kd[marka];
     return (d && typeof d.e === "string" && d.e) ? d.e : marka;
   }
+  // UÇ MODEL ETİKETİ — marka ekseniyle AYNI sınıf, AYNI çözüm (yukarıdaki ucMarkaEtiketi).
+  // Model çipinin etiketi artık KATLANMIŞ kanoniktir ("206" çipi "Peugeot 206" etiketli
+  // ürünleri de kapsar, "F-Serisi" çipi "F-Series" yazımını da). Uç ise KATLAMAZ, TAM
+  // eşleşir ve TEK değer kabul eder.
+  // 🔴 ÖLÇÜLDÜ (4 Ağu, CANLI): model=206 → 52 · model=Peugeot 206 → 5 (KESİŞİM 0) ·
+  // model=206,Peugeot 206 (virgül) → 0 · aynı adı iki kez göndermek 2.'yi YOK SAYIYOR ·
+  // model=F-Serisi → 0 ama model=F-Series → 8. Yani çip etiketi uçta geçmiyorsa çip ÖLÜ UÇ.
+  // Etiket burada UYDURULMAZ: çip indeksinin `e` alanından gelir.
+  // FAIL-CLOSED: indeks ya da `e` yoksa bugünkü davranış (çip etiketi) AYNEN kalır; dönen
+  // kartlar zaten edgeSuzgecSapmasi ile DEĞER ekseninde doğrulanır.
+  function ucModelEtiketi(kat, marka, model){
+    if(marka === "Tümü" || model === "Tümü"){ return model; }
+    var kd = _ixKat(kat), d = kd && kd[marka] && kd[marka].m[model];
+    return (d && typeof d.e === "string" && d.e) ? d.e : model;
+  }
   // Model, (kategori, marka) çiftinde TANIMLI mı (grup ekseninden bağımsız)?
   function modelTanimliMi(kat, marka, model){
     var kd = _ixKat(kat);
@@ -3683,7 +3698,12 @@
     // `model` SESSİZCE YOK SAYILIYORDU (marka+model → 1673 = marka toplamının aynısı).
     // Bu yüzden parametreyi göndermek YETMEZ — cevap edgeSuzgecSapmasi() ile DEĞER
     // ekseninde doğrulanır; uç süzmeyi bırakırsa liste SESSİZCE KABUL EDİLMEZ.
-    if(activeModel !== "Tümü"){ p.set("model", activeModel); }
+    // MODEL: markada olduğu gibi uca KANONİK çip etiketi DEĞİL, ucun tanıdığı HAM etiket
+    // gider (ucModelEtiketi). Kanonik gönderilirse katlama sonucu doğan etiketler ("206",
+    // "F-Serisi", "5 E-Tech") uçta 0 döner ve görünen çip ölü uç olur.
+    if(activeModel !== "Tümü"){
+      p.set("model", ucModelEtiketi(activeCat, activeBrand, activeModel));
+    }
     if(q){
       // /ara sayfa DEĞİL limit alıyor (parite testinin referans aldığı uç — imzasına
       // DOKUNMUYORUZ). "Daha fazla" = limiti bir sayfa büyütüp listeyi tazele.

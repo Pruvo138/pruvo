@@ -84,6 +84,12 @@ KOK = os.path.dirname(DIR)
 if DIR not in sys.path:
     sys.path.insert(0, DIR)
 import model_kanon as _model_kanon                                  # noqa: E402
+# MODEL EKSENININ TEK KAYNAGI — sayfa ureteci ile AYNI modul (kanonik anahtar, kusak
+# katlamasi, marka-jetonu/model-olmayan/rozet elemeleri). IKINCI BIR KURAL YAZILMAZ.
+# 🔴 DONGU YOK: marka_model_build cip-indeks'i YALNIZ calisma aninda (cip_evreni_markalari)
+# yukler; modul duzeyinde cagirmaz. Burada da yalniz SAF YUKLEMLER kullanilir —
+# `gruplandir()` CAGRILMAZ (cagrilsaydi cip evreni <-> sayfa evreni sonsuz ozyineleme olurdu).
+import marka_model_build as _mmb                                    # noqa: E402
 
 SURUM = 1
 ESIK_MARKA = 15      # marka cipi: kategori icinde en az bu kadar urun
@@ -215,6 +221,124 @@ def _ham_kume(urun):
     return set((x or "").strip() for x in (urun.get("marka") or []) if (x or "").strip())
 
 
+# ---------------------------------------------------------------- MODEL EKSENI (KANONIK)
+# 🔴 OLCULEN SESSIZ HATA (4 Agu, CANLI — Okan ana sayfada gordu): model cipleri HAM jetondu.
+# Peugeot secili iken satir su 20 cipi yan yana gosteriyordu:
+#   206 · 205 · 307 · 207 · Partner · PSA · 3008 · Boxer · Berlingo · 308 · Rifter · 5008 ·
+#   Peugeot 205 · Peugeot 206 · 406 · iPhone · 106 · Bipper · DS · Peugeot 307
+# UC AYRI KUSUR, hepsi AYNI kokten (kanoniklestirme SAYFA ureticisinde vardi, CIP satirinda YOKTU):
+#   (a) MUKERRER — `206` ile `Peugeot 206` AYNI model; ham ve katlanmis bicim AYNI ANDA cip
+#       oluyordu (katalog geneli: 5 grup, 5 fazla cip).
+#   (b) MODEL DEGIL — `PSA` (grup kisaltmasi), `iPhone` (arac bile degil): katalog geneli 12 cip.
+#   (c) ROZET — `DS` bagimsiz marque; `Berlingo` Citroen rozeti oldugu halde Peugeot altinda.
+# AYRICA sayim ayrismisti: cip `206` icin 52 diyor, ana sayfa filtresi (modelEsler KATLAR) 58
+# gosteriyordu — 479 model cipinin 73'unde cip sayisi ile sayfa/filtre sayisi FARKLI idi.
+#
+# ONARIM: ikinci bir tablo/kural YAZILMAZ. Eleme ve kanonik anahtar sayfa ureticisinin
+# (marka_model_build) YUKLEMLERINDEN gelir; o da index.html KANONIK MODEL ESLEMESI blogundan
+# ve arama.py'nin kapali/gerekceli tablolarindan turer ([[ikiz-tanim-sessiz-ayrisma]]).
+def model_uyeligi(marka, ham_liste, mevren):
+    """Urunun `marka` kovasi altinda uye oldugu KANONIK model anahtarlari.
+
+    Donus: (tam, katlanan, yazim)
+      tam      : {canon} — jetonun KENDI anahtari (kovanin DOGMASINI bu saglar)
+      katlanan : {canon} — kusak katlamasiyla ulasilan TABAN anahtarlari ('Golf 4' -> 'golf')
+      yazim    : {canon: [(ham jeton, onek siyrilmis yazim), ...]} — etiket secimi icin
+
+    ELENEN jetonlar (sayfa ureteci model_jetonlari() ile BIREBIR ayni sira):
+      * degerin KENDISI bir MARKA ya da grup kisaltmasi/uretici (marka_jetonu_mu),
+      * marka oneki siyrilinca geriye bir sey kalmayan deger ("Peugeot"),
+      * anahtari markanin kendisine esit olan deger.
+
+    🔴 MODEL-OLMAYAN CIFT ve ROZET DISI BURADA ELENMEZ (olculdu: elenirse SAYIYI BOZAR).
+    Sayfa ureteci de o iki yargiyi KOVA duzeyinde (yayimlanir_mi) uygular, jeton duzeyinde
+    DEGIL: `Focus ST` urunu kendi kovasi YAYIMLANMASA da kusak katlamasiyla ANA `Focus`
+    kovasina girer. Jeton duzeyinde elenseydi cip `Focus` 297, sayfa 305 derdi — tam da
+    kapatmaya calistigimiz ayrisma. Eleme cip MONTAJINDA, kova duzeyinde yapilir.
+
+    🔴 `tam`/`katlanan` AYRI dondurulur: cip ancak KENDI yaziminin gectigi kovada dogar
+    (sayfa ureteci de tabana ancak taban kovasi VARSA katlar). Yalnizca katlamayla ulasilan
+    bir canon icin cip UYDURULMAZ."""
+    # BELLEK: ayni (marka, jeton) cifti katalogda BINLERCE kez gecer; yuklemler SAF ve
+    # tablolar DONMUS oldugu icin sonuc degismez (emsal: index.html `_kusakBellek`).
+    # Olculdu: kapi adimi 47,8 sn -> 12,3 sn. Bellek `mevren` ornegine baglanir —
+    # gecici ROOT ile kosan mutasyon bataryasi baska bir belge okur, kirlenme OLMAZ.
+    bellek = getattr(mevren, "_cip_uyelik_bellek", None)
+    if bellek is None:
+        bellek = {}
+        mevren._cip_uyelik_bellek = bellek
+    tam, katlanan, yazim = set(), set(), {}
+    for x in ham_liste:
+        t = (x or "").strip()
+        if not t:
+            continue
+        sonuc = bellek.get((marka, t))
+        if sonuc is None:
+            sonuc = _jeton_uyeligi(marka, t, mevren)
+            bellek[(marka, t)] = sonuc
+        k, kalan, tabanlar = sonuc
+        if not k:
+            continue
+        tam.add(k)
+        yazim.setdefault(k, []).append((t, kalan))
+        katlanan.update(tabanlar)
+    return tam, katlanan, yazim
+
+
+def _jeton_uyeligi(marka, t, mevren):
+    """TEK jetonun (anahtar, onek siyrilmis yazim, katlanan taban kumesi) uclusu.
+    Elenen jetonda anahtar BOS doner. Saf fonksiyon — model_uyeligi bunu bellekler."""
+    if _mmb.marka_jetonu_mu(t, mevren):
+        return ("", "", ())
+    kalan = _model_kanon.onek_siyir(marka, t, mevren)
+    if not kalan:
+        return ("", "", ())
+    if kalan == t and mevren.katla(t) == marka:
+        return ("", "", ())
+    k = mevren.model_anahtari(marka, t)
+    if not k or k == _model_kanon.kanon(marka):
+        return ("", "", ())
+    return (k, kalan, tuple(taban for taban, _e in mevren.kusak_tabanlari(marka, t)
+                            if taban != k))
+
+
+def model_gosterimi(marka, canon, kalanlar):
+    """Cip ETIKETI — sayfa ureticisinin basligiyla AYNI kural (tek kaynak, ikinci secim YOK):
+    kuratorlu gosterim varsa O, yoksa en sik yazim (esitlikte alfabetik -> deterministik)."""
+    kur = _mmb._KANONIK_GOSTERIM.get((marka, canon))
+    if kur:
+        return kur
+    return sorted(kalanlar.items(), key=lambda t: (-t[1], t[0]))[0][0]
+
+
+def uc_model_etiketi(uyum_yazimlari, gosterim):
+    """UC'e gonderilecek HAM model etiketi — ya da None (gosterim uc tarafinda ZATEN var).
+
+    🔴 NEDEN GEREKLI (olculdu 4 Agu, CANLI uc):
+        /katalog?kategori=Otomobil&marka=Peugeot&model=206         -> 52
+        /katalog?kategori=Otomobil&marka=Peugeot&model=Peugeot 206 -> 5   (KESISIM 0)
+        /katalog?...&model=206,Peugeot 206 (virgul)                -> 0   (fail-closed)
+        /katalog?...&model=206&model=Peugeot 206 (tekrarli param)  -> 52  (2.'yi YOK SAYAR)
+    Yani UC KATLAMAZ, TAM eslesir ve TEK deger kabul eder — marka ekseninde olculen
+    davranisin AYNISI (uc_etiketi). Cip etiketi katlanmis kanonige donunce, o etiket ucta
+    GECMIYORSA cip OLU UC olurdu.
+
+    🔴 KAYNAK `uyum[].model`, `marka[]` DEGIL (olculdu 4 Agu, CANLI — ayirt edici vaka):
+        canon `fserisi` -> marka[] {F-Series:8, F-Serisi:16, F Serisi:2}
+                           uyum[]  {F-Series:8}
+        /katalog?model=F-Serisi -> 0   ·   /katalog?model=F-Series -> 8
+    `marka[]`den turetilseydi en cok urunlu yazim `F-Serisi` secilir ve cip OLU UC olurdu.
+    Uc `model` parametresini `uyum[].model` alaninda suzuyor; etiket de ORADAN turer.
+    Etiket UYDURULMAZ — urunler.json'daki degerden gelir.
+
+    ⚠️ SAYI DEGIL YOL: `e` cipin OLU UC olmasini engeller; ucun dondurdugu SAYI ile cipin
+    gosterdigi sayi ayrica ayrisabilir (uc katlamiyor). O ayrisma bu paketin ONCESINDEN
+    beri vardir ve raporda AYRI bir kalem olarak olculur — burada gizlenmez."""
+    if not uyum_yazimlari or gosterim in uyum_yazimlari:
+        return None
+    return sorted(uyum_yazimlari.items(), key=lambda t: (-t[1], t[0]))[0][0]
+
+
 def uc_etiketi(hamlar, kanonik):
     """UC'e gonderilecek HAM etiket — ya da None (kanonik zaten ham olarak var).
 
@@ -234,6 +358,9 @@ def indeks_uret(urunler, index_metni):
     Yalnizca DOLU kombinasyon tasinir; SIFIR sayi HIC yazilmaz (menu veriden turer,
     kartezyen DEGIL)."""
     evren = MarkaEvreni(index_metni)
+    # MODEL EKSENI evreni — sayfa ureticisiyle AYNI sinif (kanonik anahtar + kusak katlamasi
+    # + eleme yuklemleri). Marka ekseni kendi evrenini (kuratorluk kolu) kullanmaya devam eder.
+    mevren = _mmb.MarkaEvreni(index_metni)
     # KURATORLUK KOLU kategori bazinda VERIDEN secilir (ESIK_UYUM_KAPSAM); koda kategori
     # ADI yazilmaz — yeni kategori ya da veri kaymasi kuralı KENDILIGINDEN takip etsin.
     kuratorlu = kuratorluk_kolu(urunler)
@@ -245,7 +372,8 @@ def indeks_uret(urunler, index_metni):
     kat_marka = {}          # (kat, marka)        -> n
     kat_alt_marka = {}      # (kat, altk, marka)  -> n
     kat_marka_ham = {}      # (kat, marka)        -> {HAM etiket: n}  (uc etiketi icin)
-    cift = set()            # (kat, marka, model) — `uyum`un kurdugu marka<->model bagi
+    cift = set()            # (kat, marka, CANON) — `uyum`un kurdugu marka<->model bagi
+    mm_uyum = {}            # (kat, marka, CANON) -> {uyum[].model yazimi: n} (uc etiketi)
 
     # --- 1. gecis: marka sayimlari + marka<->model bagi + etiket sahipligi ---
     for u in urunler:
@@ -264,29 +392,64 @@ def indeks_uret(urunler, index_metni):
                 continue
             d = kat_marka_ham.setdefault((kat, kan), {})
             d[ham] = d.get(ham, 0) + 1
+        # BAG DA KANONIKLESTIRILIR: `uyum` "Peugeot 206" derken `marka` "206" diyorsa iki
+        # taraf HAM halde bulusamazdi -> bag kurulmaz, cip HIC dogmazdi.
         for oge in (u.get("uyum") or []):
             mk = evren.katla((oge.get("marka") or "").strip())
             md = (oge.get("model") or "").strip()
-            if md and mk in markalar:
-                cift.add((kat, mk, md))
+            if not md or mk not in markalar:
+                continue
+            if _mmb.marka_jetonu_mu(md, mevren):
+                continue
+            kanon = mevren.model_anahtari(mk, md)
+            if kanon and kanon != _model_kanon.kanon(mk):
+                cift.add((kat, mk, kanon))
+                # UC ETIKETI ADAYI: uc `model`i BU alanda suzuyor (uc_model_etiketi olcumu).
+                du = mm_uyum.setdefault((kat, mk, kanon), {})
+                du[md] = du.get(md, 0) + 1
 
     # --- 2. gecis: model sayimlari (bag tamamlandiktan SONRA, FILTRE yuklemiyle) ---
-    kat_marka_model = {}    # (kat, marka, model)       -> n
-    kat_alt_mm = {}         # (kat, altk, marka, model) -> n
+    # 🔴 SAYIM YUKLEMI = index.html modelEsler(): jetonun KENDI anahtari VEYA kusak
+    # katlamasiyla ulastigi TABAN. Cip "206" artik "Peugeot 206" etiketli urunu de sayar;
+    # cipin gosterdigi sayi ile o modelin SAYFASINDAKI sayi ayni olur (kapi olcer).
+    kat_marka_model = {}    # (kat, marka, canon)       -> n
+    kat_alt_mm = {}         # (kat, altk, marka, canon) -> n
+    mm_kalan = {}           # (kat, marka, canon)       -> {onek siyrilmis yazim: n} (etiket)
+    mm_tam = set()          # (kat, marka, canon) — KENDI yazimiyla gecen (kova DOGAR)
     for u in urunler:
         kat = (u.get("kategori") or "").strip()
         altk = (u.get("altkategori") or "").strip()
         ham = _ham_kume(u)
         for b in _markalari(u, kat):
-            for md in ham:
-                if (kat, b, md) not in cift:
+            tam, katlanan, yazim = model_uyeligi(b, ham, mevren)
+            for canon in (tam | katlanan):
+                if (kat, b, canon) not in cift:
                     continue
-                kat_marka_model[(kat, b, md)] = kat_marka_model.get((kat, b, md), 0) + 1
-                kat_alt_mm[(kat, altk, b, md)] = kat_alt_mm.get((kat, altk, b, md), 0) + 1
+                kat_marka_model[(kat, b, canon)] = kat_marka_model.get((kat, b, canon), 0) + 1
+                kat_alt_mm[(kat, altk, b, canon)] = kat_alt_mm.get((kat, altk, b, canon), 0) + 1
+                if canon not in tam:
+                    continue                            # etiket YALNIZ kendi yazimindan
+                mm_tam.add((kat, b, canon))
+                dk = mm_kalan.setdefault((kat, b, canon), {})
+                for _ham_jeton, kalan in yazim.get(canon, ()):
+                    dk[kalan] = dk.get(kalan, 0) + 1
 
     gecerli_marka = set(k for k, v in kat_marka.items() if v >= ESIK_MARKA)
+    # CIP ETIKETI = sayfa basligiyla AYNI kanonik gosterim (tek kaynak, ikinci secim YOK).
+    mm_ad = dict((k, model_gosterimi(k[1], k[2], mm_kalan[k])) for k in mm_kalan)
+    # SAYFASI OLMAYAN KOVA CIP DE OLMAZ — eleme KOVA duzeyinde ve sayfa ureticisinin
+    # (yayimlanir_mi) AYNI iki yargisiyla: rozet disi cift + model-olmayan cift. Sayim
+    # ETKILENMEZ: elenen kovanin urunleri kusak katlamasiyla ANA modelin cipinde durur.
+    # 🔴 ELEME ESIKLERDEN ONCE: "marka basina en az 2 model" sarti NIHAI kumeyi gormeli,
+    # yoksa iki cipten biri elenince satir tek cip kalir ve HIC cizilmezdi.
+    def _elendi(k):
+        return (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k])
+
+    # KOVA ANCAK KENDI YAZIMIYLA DOGAR (mm_tam): yalnizca kusak katlamasiyla ulasilan bir
+    # canon icin cip UYDURULMAZ — sayfa ureteci de tabana ancak taban kovasi VARSA katlar.
     aday = set(k for k, v in kat_marka_model.items()
-               if v >= ESIK_MODEL and (k[0], k[1]) in gecerli_marka)
+               if v >= ESIK_MODEL and (k[0], k[1]) in gecerli_marka and k in mm_tam
+               and not _elendi(k))
     sayac = {}
     for (kat, mk, _md) in aday:
         sayac[(kat, mk)] = sayac.get((kat, mk), 0) + 1
@@ -315,11 +478,28 @@ def indeks_uret(urunler, index_metni):
     for (kat, altk, mk), n in kat_alt_marka.items():
         if (kat, mk) in gecerli_marka:
             agac[kat][mk]["a"][str(alt_ix[altk])] = n
-    for (kat, mk, md) in gecerli_model:
-        agac[kat][mk]["m"][md] = {"n": kat_marka_model[(kat, mk, md)], "a": {}}
-    for (kat, altk, mk, md), n in kat_alt_mm.items():
-        if (kat, mk, md) in gecerli_model:
-            agac[kat][mk]["m"][md]["a"][str(alt_ix[altk])] = n
+    # Anahtar CANON, gorunen DISPLAY. Ayni (kat, marka) icinde iki canon AYNI gosterime
+    # duserse FAIL-CLOSED: sessizce ustune yazmak iki farkli araci TEK cipe yigar ve sayiyi
+    # da bozardi.
+    gosterim = {}
+    for (kat, mk, canon) in sorted(gecerli_model):
+        ad = mm_ad[(kat, mk, canon)]
+        onceki = gosterim.get((kat, mk, ad))
+        if onceki is not None and onceki != canon:
+            raise RuntimeError(
+                "cip-indeks: '%s' / '%s' cip etiketi CAKISTI (%r ile %r ayni gosterime "
+                "dusuyor) — iki farkli model tek cipe yigilirdi (fail-closed)."
+                % (kat, mk, onceki, canon))
+        gosterim[(kat, mk, ad)] = canon
+        dugum = {"n": kat_marka_model[(kat, mk, canon)], "a": {}}
+        e = uc_model_etiketi(mm_uyum.get((kat, mk, canon), {}), ad)
+        if e is not None:
+            dugum["e"] = e
+        agac[kat][mk]["m"][ad] = dugum
+    ad_of = dict(((kat, mk, canon), ad) for (kat, mk, ad), canon in gosterim.items())
+    for (kat, altk, mk, canon), n in kat_alt_mm.items():
+        if (kat, mk, canon) in ad_of:
+            agac[kat][mk]["m"][ad_of[(kat, mk, canon)]]["a"][str(alt_ix[altk])] = n
 
     return {"surum": SURUM, "alt": alt_tablo, "kat": agac, "katalt": katalt}
 

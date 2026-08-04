@@ -1382,8 +1382,15 @@ jobs:
       # NASIL: index.html'in GERCEK inline scripti node:vm'de kosar (kod kopyalanmaz), IKI
       # MOD da olculur (edge + yerel). Cip indeksi UYDURULMAZ: gercek uretec
       # (tools/cip-indeks.py) fikstur katalogu uzerinde calistirilip verilir.
-      # OFFLINE: ag YOK, DISKE YAZMAZ, ~25 s. node ZORUNLU (setup-node yukarida).
-      # Cift yonlu mutasyon (17 oldurucu KIRMIZI + 3 ilgisiz YESIL + M00 kontrol) elle:
+      # MODEL CIPI KANONIKLESTIRME EKSENI (M1-M8, 4 Agu — olculen CANLI hata): model cipleri
+      # HAM jetondu, sayfa ureticisinin kanoniklestirmesi CIP SATIRINA UYGULANMIYORDU.
+      # Peugeot secili iken satir `206` ile `Peugeot 206`yi AYRI, `PSA`/`iPhone`i MODEL,
+      # `DS` (bagimsiz marque) ve `Berlingo`yu (Citroen rozeti) Peugeot MODELI gosteriyordu.
+      # Olculdu (17.914 urun): 5 mukerrer grup · 12 model-olmayan cip · 479 cipin 73'unde
+      # cip sayisi ile SAYFA sayisi FARKLI. M3 iki tarafi TEK KAYNAKTAN kiyaslar,
+      # M5 ters yonu (asiri eleme) olcer, M6/M8 uc etiketi yolunu olcer.
+      # OFFLINE: ag YOK, DISKE YAZMAZ, ~47 s (M ekseni +0,9 s). node ZORUNLU (setup-node).
+      # Cift yonlu mutasyon (23 oldurucu KIRMIZI + 5 ilgisiz/kontrol YESIL + M00) elle:
       #   python3 tools/cip-indeks-test.py --mutasyon
       - name: "Cip satirlari capraz daralma + model ekseni (olu uc + fail-open nobeti)"
         run: python3 tools/cip-indeks-test.py
@@ -1702,7 +1709,13 @@ jobs:
       # K17 model-olmayan (marka, jeton) ciftinin yayimlanan kovasi 0 VE urunu kaybolmadi
       # (tabloyu OKUYARAK degil, jeneratoru KOSTURARAK olculur) ·
       # K18 kuratorlu kusak eslemesi aynasi+kimligi donmus, urun taban sayfaya ULASTI ve
-      # kusagin KENDI sayfasi KAPANMADI.
+      # kusagin KENDI sayfasi KAPANMADI ·
+      # K19 CAPRAZ-MARKA (ROZET) TUTARLILIGI — ILERIYE DONUK: ayni kanonik model adi IKI
+      # markada birden sayfa esigini geciyorsa cift ya deny (ROZET_DISI_CIFT) ya allow
+      # (ROZET_CAPRAZ_IZINLI) tablosunda OLMALI; ikisinde de yoksa KIRMIZI. Olculdu (4 Agu):
+      # (Peugeot, Berlingo) 9 urunle, (Peugeot, DS) 3 urunle CANLIDA duruyordu, (Opel,
+      # Berlingo) esigin dibinde bekliyordu. Birim KUME (sayi DEGIL) ve olcut "sayfa
+      # DOGURACAK MI" (yayimlandi mi DEGIL) — aksi halde deny tablosu kendi kanitini silerdi.
       # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ.
       # Olculdu: 3,1 s -> 3,6 s (ayni makinede katlama ONCESI 5,7 s idi; kusakTabanlari
       # bellegi hem kapiyi hem ana sayfa filtresini hizlandirdi -> serit A3 UZAMADI).
@@ -1727,9 +1740,12 @@ jobs:
       # yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
       # 🔴 `ESIK` mutanti KONTROL'den OLDURUCU'ye TASINDI: donmus envanter ekseni eklenince
       # esik degisimi ARTIK gorunur bir sapmadir (parite yesil kalirken 8 sayfa oluyor).
-      # Olculdu: 48,0 s -> yerelde 16 mutant 96 s iken 28 mutant ~110 s (kusak bellegi
-      # mutant basina suredeki artisi buyuk olcude yuttu).
-      - name: "Model uyeligi mutasyon bataryasi (24 oldurucu + 4 kontrol)"
+      # Capraz-marka (rozet) ekseni 4 oldurucu daha ekledi (deny'den cifti dusuren ·
+      # envanterden cifti dusuren · envantere uretimde karsiligi olmayan cift ekleyen ·
+      # olcutu "sayfa DOGDU MU"ya cevirip tabloyu kendi kaniti yapan) + 1 kontrol
+      # (envanteri yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
+      # Olculdu: yerelde 24+4 mutant 108 s iken 28+5 mutant 140 s (serit-a3 +32 s).
+      - name: "Model uyeligi mutasyon bataryasi (28 oldurucu + 5 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
