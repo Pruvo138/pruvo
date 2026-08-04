@@ -50,8 +50,10 @@ MUTANTLAR = [
      "# ---------------------------------------------------------------- zaman",
      "# ---------------------------------------------------------------- ZAMAN(K0)",
      set()),
+    # G2 (360,0 dk -> BAYAT) esigin USTUNDE bir vakadir; esik 600'e cekilince o da
+    # "bekliyor"a duser. Beyan OLCULEN kumeye esitlenir (gevsek "kapsar" olcutu YOK).
     ("M1", "ESIK 120 -> 600 dk (esigi YUKARI cekmek)",
-     "\nESIK_DK = 120\n", "\nESIK_DK = 600\n", {"D3", "D5", "F1"}),
+     "\nESIK_DK = 120\n", "\nESIK_DK = 600\n", {"D3", "D5", "F1", "G2"}),
     ("M2", "ESIK 120 -> 30 dk (esigi ASAGI cekmek)",
      "\nESIK_DK = 120\n", "\nESIK_DK = 30\n", {"D2"}),
     # 🔴 M3 TEK SATIRLIK OLAMAZ: yalniz KOD_TASIYAN'a "secret" eklemek ETKISIZ kalir
@@ -94,6 +96,29 @@ MUTANTLAR = [
     ("M11", "sig (shallow) gecmis derinlestirilmiyor -> kesik gecmis 'taze' gosteriyor",
      '        if r.stdout.strip() != "true":\n            return True',
      "        if True:\n            return True", {"F4"}),
+    # 🔴 M12-M15: 4 Agu sorusturmasinda OLCULEN fail-open'in (HEAD uzak main ucunun
+    # gerisindeyken sahte 'taze') kapatilmasini nobet altina alir. Dordu de TEK KIRMIZI
+    # verir: her biri AYRI bir ekseni civiler, kirmizi kumesi tautoloji degildir.
+    ("M12", "olculen ref ATA kontrolu etkisiz: HEAD uzak ucun GERISINDE olsa da olcum "
+            "surer (4 Agu sorusturmasinda olculen sahte-taze geri geliyor)",
+     '    for ad, sha in cozulen:\n'
+     '        a = _git(kok, "merge-base", "--is-ancestor", sha, head)',
+     '    for ad, sha in cozulen:\n'
+     '        a = _git(kok, "rev-parse", "HEAD")', {"G1"}),
+    ("M13", "uzak uc HIC okunamayinca 'guncel' VARSAYILIYOR (fail-open)",
+     '    if not cozulen:\n'
+     '        raise Olculemedi(\n'
+     '            "uzak %s ucu OKUNAMADI (denenen: %s): HEAD\'in olculmesi GEREKEN ref '
+     'oldugu "\n'
+     '            "KANITLANAMIYOR" % (ANA_DAL, ", ".join(UZAK_UC_ADAYLARI)))',
+     '    if not cozulen:\n        return head, "VARSAYIM"', {"G5"}),
+    ("M14", "calisma agaci / HEAD ayrisma kapisi kaldirildi",
+     "    sapan = sorted(s for s in r.stdout.splitlines() if s.strip())",
+     "    sapan = []", {"G6"}),
+    ("M15", "FETCH_HEAD aday uc listesinden dusuruldu -> CI'nin FIILEN kurdugu halde "
+            "kanit bulunamaz (duzeltme her 15 dk'da bir YANLIS kirmizi yakardi)",
+     'UZAK_UC_ADAYLARI = ("refs/remotes/origin/%s" % ANA_DAL, "FETCH_HEAD")',
+     'UZAK_UC_ADAYLARI = ("refs/remotes/origin/%s" % ANA_DAL,)', {"G4"}),
 ]
 
 IDDIA_RE = re.compile(r"^IDDIA: (\d+) · KIRMIZI: (\d+)\s*(.*)$", re.M)
