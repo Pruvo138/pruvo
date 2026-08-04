@@ -122,6 +122,23 @@ def sha256(yol):
         return hashlib.sha256(f.read()).hexdigest()
 
 
+def _gecici_kok(prefix):
+    """🔴 ORTAM YALITIMI: tempfile.mkdtemp KOKU realpath-NORMALIZE eder.
+
+    NEDEN (4 Agu 2026, olculdu): macOS'ta `/var` -> `/private/var` SEMBOLIK
+    BAGLIDIR, dolayisiyla `tempfile.mkdtemp()` HAM yol (`/var/...`) doner ama
+    `git rev-parse --path-format=absolute` GERCEK yolu (`/private/var/...`)
+    verir. Kurulum config'e GERCEK yolu yazar; MU4 mutanti `kurulu_dizin`i
+    git-rev-parse'tan gecmeyen HAM `os.path.join(baslangic, ...)`e cevirir ->
+    `beklenen` HAM, `deger` GERCEK olur ve YALNIZ raw!=realpath olan ortamda
+    (mac) ayrisir. Sonuc: MU4'un oldurdugu kume mac'te `V4.saglikli-yesil`
+    iceriyordu, Linux CI'da (`/tmp` bagli DEGIL) icermiyordu -> ayni batarya
+    yerelde YESIL, CI'da KIRMIZI. Koku BASTAN realpath'e cozerek raw==realpath
+    invaryantini TUM ortamlarda saglar; MU4 artik her yerde AYNI kumeyi oldurur
+    ([[ikiz-tanim-sessiz-ayrisma]])."""
+    return os.path.realpath(tempfile.mkdtemp(prefix=prefix))
+
+
 def g(cwd, *args, **kw):
     p = subprocess.run(["git"] + list(args), cwd=cwd, capture_output=True,
                        text=True, timeout=60, env=kw.get("env"))
@@ -219,7 +236,9 @@ def kos_vakalar(tools_dizini, ayrintili=True):
     kanca_kaynagi = os.path.join(tools_dizini, "kancalar")
     nobetci = nobetci_yukle(tools_dizini)
     kur_mod = kur_yukle(tools_dizini)
-    kok = tempfile.mkdtemp(prefix="kanca-kablolama-test-")
+    # 🔴 realpath-NORMALIZE: symlinked temp koku (mac /var) MU4 kill kumesini
+    # ortama bagimli yapardi -> _gecici_kok raw==realpath invaryantini saglar.
+    kok = _gecici_kok("kanca-kablolama-test-")
 
     def kurulu_yolu(depo):
         """Kurulu kanca dizini — TEK KAYNAKTAN (kanca-kur.py) sorulur."""
@@ -833,12 +852,19 @@ MUTANTLAR = (
     # o yuzden `V6.olu-agacta-kanca-kosuyor` bu mutanti OLDURMEZ; secenek 2'yi
     # eleyen sey ana agacin `git checkout`uyla kablolamanin degismesidir.
     # Secenek 1'in (goreli) mutanti MU15'tir.
+    # 🔴 V4.saglikli-yesil MU4'un TASARLANMIS detektoru DEGILDIR: bu mutantin
+    # ASIL oldurdugu eksen "config degeri pruvo-kancalar'i gostermeli" (V2.deger-
+    # mutlak + V3.deger-oldurucu-degil). `V4.saglikli-yesil` yalniz raw!=realpath
+    # olan ortamda (mac symlinked /var) ARIZI olarak kirmizi yaniyordu; realpath
+    # yalitimi (bkz. _gecici_kok) sonrasi TUM ortamlarda YESIL kalir, o yuzden
+    # beklenen kumeden CIKARILDI. MU4'un gercek tespiti ZAYIFLAMAZ (6 detektor
+    # kalir) ([[hukum-yanlis-birimde]]).
     ("MU4 kur: kurulu dizin ANA agacin izlenen dizinine doner (elenen secenek 2)",
      "kanca-kur.py",
      '    return os.path.join(ortak_git_dizini(baslangic), KURULU_DIZIN_ADI)',
      '    return os.path.join(baslangic, KANCA_DIZINI)',
      frozenset({"V2.deger-mutlak", "V3.deger-oldurucu-degil",
-                "V4.saglikli-yesil", "V4.sapma-kirmizi",
+                "V4.sapma-kirmizi",
                 "V6.saglikli-agac-yesil", "V8.once-sessiz", "V8.sonra-A-durdu"})),
 
     ("MU5 kur: idempotens kirilir (her kosum config'i YENIDEN yazar)",
@@ -1003,9 +1029,62 @@ def _kirmizi_kume(cikti):
     return frozenset()
 
 
+def _ortam_yalitimi_nabzi():
+    """🔴 NABIZ: ortam yalitimi (realpath) YERINDE ve YUK TASIYOR mu?
+
+    Bu adimin bulup kapattigi olay: symlinked temp koku (mac `/var` ->
+    `/private/var`), MU4 altinda `beklenen` (ham) ile `deger` (realpath)
+    arasinda ayrisma yaratip `V4.saglikli-yesil`i YALNIZ mac'te kirmizi
+    yakiyordu -> ayni batarya yerelde YESIL, CI'da KIRMIZI. Yalitim `_gecici_kok`
+    icindeki `os.path.realpath`tir. Bu nabiz, o yalitim kalkarsa (ya da sembolik
+    baglarin ayrismayi sizdirdigi bir ortamda) KIRMIZI yakar.
+
+    Uc iddia:
+      (1) HAZARD GERCEK — sembolik-bagli bilesenli HAM yol, hedeften ayrisir
+          (yalitim gerekli oldugunun kaniti; her platformda ACIK symlink ile
+          zorlanir, ortama bagli DEGIL).
+      (2) YALITIM ETKILI — ayni yola `realpath` uygulaninca ayrisma KAPANIR.
+      (3) YALITIM FIILEN BAGLI — kos_vakalar'in kullandigi `_gecici_kok` GERCEKTEN
+          realpath-normalize dizin doner (raw==realpath). Yalitim satiri
+          silinirse mac'te bu iddia KIRMIZI yanar."""
+    seg = os.path.join("tools", "kancalar")
+    ust = os.path.realpath(tempfile.mkdtemp(prefix="kanca-nabiz-"))
+    try:
+        gercek = os.path.join(ust, "gercek")
+        os.makedirs(gercek)
+        bagli = os.path.join(ust, "bagli")
+        os.symlink(gercek, bagli)  # bagli -> gercek (ACIK sembolik bag)
+        hedef = os.path.normpath(os.path.join(gercek, seg))
+        ham = os.path.normpath(os.path.join(bagli, seg))
+        assert ham != hedef, (
+            "(1) HAZARD fikstürü bozuk: sembolik-bagli HAM yol hedefle AYNI "
+            "cikti (ham=%s hedef=%s) -> nabiz ayrismayi olcemiyor" % (ham, hedef))
+        yalitimli = os.path.normpath(os.path.join(os.path.realpath(bagli), seg))
+        assert yalitimli == hedef, (
+            "(2) YALITIM ETKISIZ: realpath sonrasi yol hala ayrisiyor "
+            "(yalitimli=%s hedef=%s)" % (yalitimli, hedef))
+        k = _gecici_kok("kanca-nabiz-kok-")
+        try:
+            assert k == os.path.realpath(k), (
+                "(3) YALITIM BAGLI DEGIL: _gecici_kok realpath-normalize DEGIL "
+                "(k=%s realpath=%s) -> MU4 kill kumesi ortama bagli olur, CI "
+                "yesil/yerel kirmizi ayrismasi geri gelir" % (k, os.path.realpath(k)))
+        finally:
+            shutil.rmtree(k, ignore_errors=True)
+    finally:
+        shutil.rmtree(ust, ignore_errors=True)
+
+
 def mutasyon_turu():
     print("MUTASYON TURU — mutant KOPYAYA uygulanir, CANLI dosyalar DEGISMEZ")
     once = {y: sha256(y) for y in _canli_dosyalar()}
+    nabiz_kirmizi = []
+    try:
+        _ortam_yalitimi_nabzi()
+        print("  ORTAM-YALITIMI NABZI: realpath yalitimi YERINDE ✅")
+    except AssertionError as e:
+        nabiz_kirmizi.append("ORTAM-YALITIMI NABZI KIRMIZI: %s" % e)
+        print("  🔴 ORTAM-YALITIMI NABZI: %s" % e)
 
     taban = subprocess.run([sys.executable, os.path.abspath(__file__), "--sessiz"],
                            capture_output=True, text=True, timeout=1800)
@@ -1013,7 +1092,7 @@ def mutasyon_turu():
     taban_iddia = _iddia_sayisi(taban_cikti)
     print("  TABAN: rc=%d iddia=%s kirmizi=%s"
           % (taban.returncode, taban_iddia, sorted(_kirmizi_kume(taban_cikti)) or "{}"))
-    kirmizi = []
+    kirmizi = list(nabiz_kirmizi)
     if taban.returncode != 0:
         kirmizi.append("TABAN KIRMIZI — mutasyon turu anlamsiz: %s" % taban_cikti[-500:])
     if taban_iddia is None:
