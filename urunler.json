@@ -1,5 +1,706 @@
 [
   {
+    "id": "mitsubishi-klima-kumandasi-duvar-yuvasi-uzay-desenli",
+    "kategori": "Ev",
+    "marka": [
+      "Mitsubishi",
+      "Mitsubishi Electric"
+    ],
+    "baslik": "Mitsubishi Klima Kumandası Duvar Yuvası (Uzay Desenli)",
+    "aciklama": "Mitsubishi klima kumandasını duvarda dik konumda tutan yuvadır.\nKumanda yuvaya yukarıdan bırakılır, öne doğru daralan ağız sayesinde tek elle alınıp geri konur.\n- Ön yüzü uzay temalı bir desenle bezenmiştir.\n- Arka yüzey düzdür; duvara vidayla ya da çift taraflı bantla sabitlenir.\n- Kumandanın düşüp kaybolmasını ve kumanda tuşlarının aşınmasını önler.\n- Isıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 88 × 66 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr312453-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr312453-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr312453-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr312453-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr312453-5.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-sg16l-klima-kumandasi-duvar-yuvasi",
+    "kategori": "Ev",
+    "marka": [
+      "Mitsubishi",
+      "Mitsubishi Electric"
+    ],
+    "baslik": "Mitsubishi SG16L Klima Kumandası Duvar Yuvası",
+    "aciklama": "Mitsubishi klimaların SG16L tipi kumandası için tam oturmalı duvar yuvasıdır.\nKumanda yuvaya sıkı geçer, sarsıntıda öne doğru düşmez.\n- Ön yüzdeki hilal biçimli açıklık kumandanın parmakla kavranmasını sağlar.\n- Gövde üzerinde iki adet vida deliği bulunur; duvara doğrudan vidalanabilir.\n- SG16L dışındaki kumandalarda ölçü uyumu değişebilir.\n- Isıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 65 × 64 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr101783-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr101783-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr101783-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr101783-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hackolyte",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-klima-kumandasi-duvar-askisi-genis-govde",
+    "kategori": "Ev",
+    "marka": [
+      "Mitsubishi",
+      "Mitsubishi Electric"
+    ],
+    "baslik": "Mitsubishi Klima Kumandası Duvar Askısı (Geniş Gövde)",
+    "aciklama": "Mitsubishi klima kumandasına ölçüsünde biçimlendirilmiş geniş gövdeli duvar askısıdır.\nKumanda gövdenin içine tümüyle girer, ekran ve tuşlar dışarıda kalır.\n- Alt köşesindeki oval açıklık kumandayı çıkarırken parmağa yer bırakır.\n- Vida delikleri gövdeye gömülüdür; duvara düz oturur.\n- Isıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 100 × 64 × 27 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr314243-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr314243-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr314243-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr314243-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-split-klima-kumandasi-duvar-kelepcesi",
+    "kategori": "Ev",
+    "marka": [
+      "Mitsubishi",
+      "Mitsubishi Electric"
+    ],
+    "baslik": "Mitsubishi Split Klima Kumandası Duvar Kelepçesi",
+    "aciklama": "Mitsubishi split klimaların ince gövdeli kumandaları için açık kelepçe tipi duvar tutucusudur.\nKumanda iki yandan kavranır; kutu tipi yuvaların aksine kumandanın tamamı görünür kalır.\n- Ortadaki tek vida deliğinden duvara sabitlenir.\n- Yassı gövdesi sayesinde duvardan çok az taşar.\n- Esnek ve sağlam bir malzeme tercih edilmesi, kolların kırılmadan açılmasına yardımcı olur.\nYaklaşık dış ölçüler: 123 × 66 × 24 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1192822-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1192822-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1192822-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1192822-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Thomas",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-2011-kul-tablasi-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer (2011) Kül Tablası Telefon Tutucusu",
+    "aciklama": "2011 model Mitsubishi Lancer'da kül tablası yerine geçen telefon yatağıdır.\nTelefon konsol üstünde yatay olarak durur; kablosuz şarj pedi yatağın içine yerleştirilebilecek derinlikte bırakılmıştır.\n- Orijinal kül tablası yuvasına, tablanın kızaklarından oturur.\n- Yan kenarlardaki tırnaklar telefonun frenlemede öne kaymasını engeller.\n- Alt taraftaki kanal şarj kablosunu konsolun içine yönlendirir.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 181 × 91 × 85 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1784148-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1784148-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1784148-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1784148-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "YahBoiGerald",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-minicab-u42t-koltuk-kaldirma-kayisi-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Minicab"
+    ],
+    "baslik": "Mitsubishi Minicab (U42T) Koltuk Kaldırma Kayışı Braketi",
+    "aciklama": "1994 model Mitsubishi Minicab kei kamyonetinde koltukları kaldırık konumda tutan kayışın kabin duvarındaki bağlantı braketidir.\nMotor bölmesine koltukların altından ulaşırken koltuk kaldırık kalır; yıpranan orijinal metal braketin yerine geçer.\n- M6 × 18 mm vida ile kabin duvarındaki mevcut deliğe bağlanır.\n- Kayış deliği paraşüt ipi kalınlığındaki bağlara göre ölçülendirilmiştir.\n- Diğer kei kamyonetlerde delik aralığı farklılık gösterebilir.\n- Yük taşıdığından sert ve dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 25 × 16 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1798946-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1798946-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1798946-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1798946-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-3-6g72-motor-yagi-doldurma-hunisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero 3 (6G72) Motor Yağı Doldurma Hunisi",
+    "aciklama": "Mitsubishi Pajero 3'ün 6G72 motorunda yağ doldurma ağzına takılan iki parçalı hunidir.\nKapak yerine vidalanan dirsek parça ile ona geçen uzatma hunisinden oluşur; yağ, motor üstüne ve manifolda dökülmeden doğrudan ağza akar.\n- Dirsek parça orijinal kapak dişine oturur.\n- Huni kullanımdan sonra çıkarılır, dirsek yerinde kalabilir.\n- Motor bölmesinde kullanıldığından ısıya ve yağa dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 76 × 60 × 54 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr424126-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr424126-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr424126-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr424126-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bismark",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-io-kalorifer-filtre-kapagi-mr460337",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero IO Kalorifer Filtre Kapağı (MR460337)",
+    "aciklama": "Mitsubishi Pajero IO'da kabin (polen) filtresi yuvasını kapatan kapaktır.\nMR460337 numaralı orijinal kapağın ölçülerine göre biçimlendirilmiştir; kırılan ya da kaybolan kapağın yerine geçerek filtre yuvasını toza ve hava kaçağına karşı kapatır.\n- Yuvaya kendi tırnaklarıyla oturur, ilave bağlantı elemanı gerektirmez.\n- Kenar contası orijinal profil izlenerek biçimlendirilmiştir.\n- Isıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 124 × 44 × 22 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr404186-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr404186-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr404186-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr404186-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bismark",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-gen-2-v24-silecek-somun-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Gen 2 (V24) Silecek Somun Kapağı",
+    "aciklama": "Mitsubishi Pajero 2. nesil (V24) ön cam silecek kolunun mil somununu örten kapaktır.\nSomunu ve mil ucunu kapatarak hem görüntüyü toparlar hem de bağlantıyı yağmur suyundan korur.\n- Kol üzerindeki yuvaya geçme sıkılığıyla oturur.\n- Güneş altında kavlayan ya da kaybolan orijinal kapağın yerine yedek olarak kullanılır.\n- Esnek bir malzeme tercih edilmesi, kapağın kol üzerine geçişini kolaylaştırır.\nYaklaşık dış ölçüler: 22 × 22 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1265609-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1265609-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1265609-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1265609-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jonathan Bydendyk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-1-egim-gostergesi-konsol-adaptoru-autool-x95",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero 1 Eğim Göstergesi Konsol Adaptörü (Autool X95)",
+    "aciklama": "Mitsubishi Pajero 1. nesil orta konsolundaki eğim göstergesi (inklinometre) yuvasına Autool X95 dijital göstergeyi düz oturtan iki parçalı adaptör çerçevesidir.\nGösterge çerçevenin içine yerleştirildiğinde orijinal vida delikleri kullanılabilir hale gelir; panelde boşluk ya da eğiklik kalmaz.\n- Ön ve arka olmak üzere iki parçadan oluşur.\n- Orijinal voltmetre kablolaması yerinde kalır.\n- Detayları ince olduğundan yüzey kalitesi yüksek bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 77 × 69 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1362153-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1362153-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1362153-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1362153-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1362153-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Axel Torsson",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-pajero-sport-qf-teyp-gunes-siperi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Sport (QF) Teyp Güneş Siperi",
+    "aciklama": "QF kasa Mitsubishi Pajero Sport'un multimedya ekranına takılan güneş siperidir.\nÖğle saatlerinde ekrana vuran yansımayı keserek görüntünün okunabilir kalmasını sağlar.\n- Konsol yüzeyiyle hizalı oturur; ince yan tırnaklar ekran çerçevesinin kenarına kayarak tutunur.\n- Vida ya da yapıştırıcı gerektirmez, istenildiğinde çıkarılabilir.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 208 × 71 × 39 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1699442-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1699442-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1699442-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-3000gt-konsol-bardakligi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT"
+    ],
+    "baslik": "Mitsubishi 3000GT Konsol Bardaklığı",
+    "aciklama": "Mitsubishi 3000GT orta konsol gözüne oturan bardaklıktır.\nKonsol boşluğuna zorlanmadan girecek ölçüde daraltılmıştır; kenarlarını törpüleme ihtiyacı bırakmaz.\n- Üst çerçeve konsol kenarına oturur, gövde aşağı doğru sarkar.\n- Yan yüzeylerdeki açıklıklar hem ağırlığı azaltır hem de bardağın terini dışarı verir.\n- Konsolun diğer aksesuarlarıyla birlikte kullanılabilir.\n- Isıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 95 × 88 × 84 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr615227-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr615227-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr615227-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr615227-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ehren Lampcov",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-6g72-eksantrik-kece-takma-aleti-md998761",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT"
+    ],
+    "baslik": "Mitsubishi 3000GT 6G72 Eksantrik Keçe Takma Aleti (MD998761)",
+    "aciklama": "Mitsubishi 3000GT'nin 6G72 motorunda eksantrik mili yağ keçesini doğru derinlikte ve düzgün oturtan takma aleti takımıdır.\nArtık bulunamayan MD998761 servis aletinin yerine geçer: keçe elle mile geçirildikten sonra alet mil ucuna takılır ve eksantrik dişli cıvatası sıkılarak keçe fabrika derinliğine bastırılır.\n- Kısa gövde ön sıra, uzun gövde arka sıra için kullanılır.\n- Mil ucundaki konum piminin geçtiği indeks deliği bulunur.\n- Motor sökülmeden, motor bölmesi içinde de kullanılabilir.\n- Yük altında çalıştığından sert ve ısıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 107 × 50 × 47 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1306526-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1306526-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1306526-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-3000gt-active-aero-led-anahtar-paneli-v3",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT"
+    ],
+    "baslik": "Mitsubishi 3000GT Active Aero LED Anahtar Paneli (V3)",
+    "aciklama": "Mitsubishi 3000GT Active Aero anahtar yuvasına takılan, dört adet gösterge LED'ini taşıyan anahtar panelidir.\nTechworks ECS kumanda kartının V3 sürümüyle birlikte kullanılmak üzere biçimlendirilmiştir; LED'ler panele gömülü dört yuvaya oturur.\n- Konsoldaki orijinal anahtar yuvasına tırnaklarıyla geçer.\n- Arka taraftaki taban kablo geçişine yer bırakır.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 66 × 42 × 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr536947-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr536947-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr536947-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoInc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-stealth-reosta-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT",
+      "Stealth"
+    ],
+    "baslik": "Mitsubishi 3000GT / Stealth Reosta Çerçevesi",
+    "aciklama": "Mitsubishi 3000GT ve Dodge Stealth gösterge aydınlatma ayar düğmesinin (reosta) çevresini saran çerçevedir.\nYıllar içinde kırılan ya da kavlayan orijinal çerçevenin yerine geçerek düğmenin panele düzgün oturmasını ve etrafındaki boşluğun kapanmasını sağlar.\n- Panel arkasındaki tırnaklara oturur, vida gerektirmez.\n- Düğmenin dönme aralığını sınırlayan yan duvarlar korunmuştur.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 100 × 78 × 38 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr536948-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr536948-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr536948-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoInc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-stealth-hiz-sabitleyici-anahtar-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT",
+      "Stealth"
+    ],
+    "baslik": "Mitsubishi 3000GT / Stealth Hız Sabitleyici Anahtar Kör Kapağı",
+    "aciklama": "Mitsubishi 3000GT ve Dodge Stealth konsolunda hız sabitleyici (cruise control) anahtarı bulunmayan araçlar için kör kapaktır.\nAnahtar yuvasındaki boşluğu kapatarak konsolun düzgün görünmesini sağlar ve yuvaya toz kaçmasını önler.\n- Orijinal anahtar yuvasına dıştan geçme sıkılığıyla oturur.\n- Yüzeyi düz bırakılmıştır; kaplama ya da boyama yapılabilir.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 50 × 32 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr536949-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr536949-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr536949-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoInc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-stealth-kul-tablasi-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT",
+      "Stealth"
+    ],
+    "baslik": "Mitsubishi 3000GT / Stealth Kül Tablası Kör Kapağı",
+    "aciklama": "Mitsubishi 3000GT ve Dodge Stealth orta konsolundaki kül tablası yuvasına takılan deliksiz kör kapaktır.\nKül tablasını kullanmayan araçlarda yuvayı kapatır; üst yüzeyi düz olduğundan küçük eşya koymaya elverişli bir raf oluşturur.\n- Kül tablasının kızaklarına oturur, konsolda ek işlem gerektirmez.\n- İstenildiğinde çıkarılıp orijinal tabla geri takılabilir.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 94 × 87 × 76 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr536950-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr536950-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr536950-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoInc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-stealth-active-aero-anahtar-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT",
+      "Stealth"
+    ],
+    "baslik": "Mitsubishi 3000GT / Stealth Active Aero Anahtar Kör Kapağı",
+    "aciklama": "Mitsubishi 3000GT ve Dodge Stealth konsolunda Active Aero anahtarı bulunmayan araçlar için kör kapaktır.\nBoş kalan anahtar yuvasını kapatarak konsol yüzeyini tamamlar.\n- Orijinal anahtar yuvasının tırnak aralıklarına göre biçimlendirilmiştir.\n- Yüzeyi düz bırakılmıştır; kaplama ya da boyama yapılabilir.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 66 × 42 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr536952-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr536952-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr536952-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoInc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-stealth-cam-tavan-dugmesi-ve-bilezigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT",
+      "Stealth"
+    ],
+    "baslik": "Mitsubishi 3000GT / Stealth Cam Tavan Kumanda Düğmesi ve Bileziği",
+    "aciklama": "Mitsubishi 3000GT ve Dodge Stealth cam tavan kumandasının düğmesi ve düğmeyi çevreleyen bilezikten oluşan iki parçalı takımdır.\nKırılan ya da kaybolan orijinal düğmenin yerine geçerek kumandanın yeniden elle çevrilebilmesini sağlar.\n- Düğme, anahtar miline geçme sıkılığıyla oturur.\n- Bilezik panel yüzeyine gömülür ve düğmenin çevresindeki boşluğu kapatır.\n- Sık kullanılan bir parça olduğundan aşınmaya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 30 × 29 × 21 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr536953-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr536953-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr536953-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoInc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-3000gt-stealth-dortlu-flasor-anahtar-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "3000GT",
+      "Stealth"
+    ],
+    "baslik": "Mitsubishi 3000GT / Stealth Dörtlü Flaşör Anahtar Kör Kapağı",
+    "aciklama": "Mitsubishi 3000GT ve Dodge Stealth konsolundaki dörtlü flaşör anahtarı yuvası için kör kapaktır.\nAnahtarı sökülen ya da yeri değiştirilen araçlarda boş kalan yuvayı kapatır.\n- Yuvanın iç ölçüsüne göre biçimlendirilmiştir, sıkı geçer.\n- Yüzeyi düz bırakılmıştır; kaplama ya da boyama yapılabilir.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 50 × 30 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr536954-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr536954-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr536954-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GonzoInc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l400-uzun-huzme-h1-led-ampul-duyu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Delica"
+    ],
+    "baslik": "Mitsubishi Delica L400 Uzun Hüzme H1 LED Ampul Duyu",
+    "aciklama": "Mitsubishi Delica L400 uzun hüzme farında H1 halojen yerine LED ampul kullanılabilmesi için yapılmış duy adaptörüdür.\nOrijinal H1 duyunun iç ölçüleri örnek alınarak biçimlendirilmiş, arkasındaki soğutucu fanın dışarıda kalabilmesi için açıklık bırakılmıştır.\n- İç delik çapı 15,75 mm'dir.\n- Farın orijinal tespit yayına oturur; yay sıkı biner.\n- Far içinde ısıya maruz kaldığından ısıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 41 × 29 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr795699-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr795699-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr795699-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr795699-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Philip J Fry",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l400-orta-konsol-aku-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Delica"
+    ],
+    "baslik": "Mitsubishi Delica L400 Orta Konsol Akü Kutusu",
+    "aciklama": "Mitsubishi Delica L400'ün ön koltuklar arasındaki ölü hacmi değerlendiren yardımcı akü kutusudur.\nKamp ve karavan kullanımında buzdolabı, USB soket ve çevirici gibi tüketicileri besleyen ikinci aküyü kabin içinde düzenli biçimde taşır.\n- 26 Ah'lık bir akü, voltaj göstergesi, USB soketleri ve iki konumlu anahtar için yuvalar bulunur.\n- Üst tablası küçük eşya gözü olarak kullanılır.\n- Akünün üstündeki boşluk koruma devresi için yer bırakır.\n- Aracın diğer işlevlerini engellemeyecek biçimde konsol ölçülerine oturur.\nYaklaşık dış ölçüler: 220 × 220 × 80 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr797265-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr797265-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr797265-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr797265-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Philip J Fry",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l400-sunroof-perde-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Delica"
+    ],
+    "baslik": "Mitsubishi Delica L400 Sunroof Perde Kolu",
+    "aciklama": "Mitsubishi Delica L400 cam tavan perdesini öne arkaya çeken tutamak koludur.\nGüneş altında kavlayıp kırılan orijinal kolun yerine geçer; perde yeniden elle açılıp kapatılabilir hale gelir.\n- 1998 model Royal Exceed donanımındaki orijinal kol örnek alınarak biçimlendirilmiştir.\n- Perde profiline sıkı geçer ve yerine oturduğunda tok bir tık sesi verir.\n- Tavan sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 84 × 34 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr797251-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr797251-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr797251-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr797251-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Philip J Fry",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-delica-l400-s1-h1-led-ampul-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Delica"
+    ],
+    "baslik": "Mitsubishi Delica L400 S1 H1 LED Ampul Adaptörü",
+    "aciklama": "Mitsubishi Delica L400 birinci seri farlarında H1 LED ampulü konumlandıran adaptör bileziğidir.\nDört kanatlı gövdesi far yuvasının içine oturur, LED ampulü halojen ampulle aynı odak noktasında tutar.\n- Novsight N67 tipi H1 LED gövdesine göre ölçülendirilmiştir.\n- Arkadaki silindirik boyun ampulün geri kaymasını engeller.\n- Far içinde ısıya maruz kaldığından ısıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 42 × 29 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1267685-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1267685-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1267685-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1267685-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-delica-l400-gosterge-kabini-52-mm-gosterge-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Delica"
+    ],
+    "baslik": "Mitsubishi Delica L400 Gösterge Kabini 52 mm Gösterge Adaptörü",
+    "aciklama": "Mitsubishi Delica L400 gösterge kabininin orta yuvasına standart 52 mm çapında ek gösterge takmayı sağlayan adaptör bileziğidir.\nTurbo basıncı, yağ ısısı ya da voltmetre gibi göstergeler orijinal panel içine düzgün oturur.\n- Yuvaya sıkı geçer; yapıştırıcı ya da gösterge tespit braketi gerektirmez.\n- Bilezik kalınlığı göstergenin öne taşmasını engelleyecek biçimde ayarlanmıştır.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 68 × 68 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr819183-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr819183-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr819183-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr819183-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr819183-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Philip J Fry",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-3-arka-silecek-mil-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander 3 Arka Silecek Mil Kapağı",
+    "aciklama": "Mitsubishi Outlander 3. nesil arka cam sileceğinin mil somununu örten kapaktır.\nSomunu ve mil ucunu kapatarak bağlantıyı yağmur suyundan korur, bagaj camının görünümünü toparlar.\n- Silecek kolunun yuvasına geçme sıkılığıyla oturur.\n- Güneş altında kavlayan ya da kaybolan orijinal kapağın yerine yedek olarak kullanılır.\n- Dış ortamda kullanıldığından hava koşullarına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 60 × 33 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr510679-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr510679-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr510679-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr510679-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gcastle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-phev-kutu-icecek-bardaklik-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander PHEV Kutu İçecek Bardaklık Adaptörü",
+    "aciklama": "Mitsubishi Outlander PHEV bardaklığına takılan, ince kutu içecekleri sarsıntısız tutan daraltma bileziğidir.\nBardaklık ağzı geniş olduğu için kutular yolda devrilebiliyor; bilezik takıldığında kutu boşluksuz oturur.\n- Dış çapı 79 mm, yüksekliği 60 mm'dir.\n- İç kademeleri 54 mm ve 67 mm çapındaki iki farklı kutu ölçüsüne uyar.\n- İstenildiğinde çıkarılıp bardaklık orijinal haliyle kullanılabilir.\n- Isıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 79 × 79 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr134593-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr134593-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr134593-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr134593-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gordon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-outlander-2016-cd-yuvasi-ekran-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander (2016) CD Yuvası Ekran Tutucusu",
+    "aciklama": "2016 model Mitsubishi Outlander'ın teyp CD yuvasına oturan, 10 inç sınıfı ek ekranları taşıyan tutucudur.\nEkranı torpido üstüne bantlamak yerine konsola sabitler; fabrika görünümüne yakın, oynamayan bir bağlantı sağlar.\n- Tutucu yalnızca CD yuvasının dış çıtasını kavrar, yuvanın içine girmez; teypin CD algılaması tetiklenmez.\n- Ekran birkaç derece öne eğik durur, sürücüye dönük ve dik görünür.\n- Kablo konsol arkasından gizlenebilir.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 137 × 86 × 39 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1309866-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1309866-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1309866-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bob Doyle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-asx-2010-hararet-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "ASX"
+    ],
+    "baslik": "Mitsubishi ASX (2010) Hararet Deposu Kapağı",
+    "aciklama": "2010 model Mitsubishi ASX'in soğutma suyu genleşme deposunu (hararet deposu) kapatan kapaktır.\nKırılan ya da kaybolan orijinal kapağın yerine geçerek depo ağzını kapatır ve içeri toz kaçmasını önler.\n- Depo ağzının diş profiline göre biçimlendirilmiştir, elle çevrilerek takılır.\n- Üst yüzeyi düzdür; kavrama için kenarı tırtıklıdır.\n- Motor bölmesinde sıcaklık yükseldiğinden ısıya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 36 × 36 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr711619-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr711619-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr711619-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr711619-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr711619-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RenanW",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-evo-ct9a-kul-tablasi-52-mm-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer Evo (CT9A) Kül Tablası 52 mm Gösterge Yuvası",
+    "aciklama": "CT9A kasa Mitsubishi Lancer Evolution'da kül tablası yerine geçen, 52 mm çapında gösterge taşıyan yuvadır.\nTurbo basınç göstergesi konsolda sürücüye dönük ve göz hizasına yakın bir noktada durur; torpidoya ek braket takmaya gerek kalmaz.\n- Sağdan direksiyonlu gövde ölçülerine göre biçimlendirilmiştir.\n- Orijinal kül tablası klipsleri kullanılarak yerine kilitlenir.\n- Göstergenin kaymaması için iç yüzey tutuşlu bırakılmıştır.\n- Ön panel sıcaklığına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 102 × 95 × 87 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1182810-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1182810-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1182810-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1182810-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "blissfulpigeon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-legnum-galant-klima-menfezi-kanatcik-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Legnum",
+      "Galant"
+    ],
+    "baslik": "Mitsubishi Legnum / Galant Klima Menfezi Kanatçık Burcu",
+    "aciklama": "Mitsubishi Legnum ve Galant kabin havalandırma menfezindeki kanatçıkların dönme yatağını oluşturan burçtur.\nZamanla aşınıp boşluk yapan orijinal burç yerine takıldığında kanatçık yeniden sıkı durur ve hava yönü ayarı elde kalır.\n- Kanatçık miline oturan kare gövdeli küçük bir parçadır.\n- Menfez sökülmeden yerine bastırılarak takılabilir.\n- Aşınmaya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 15 × 15 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr259966-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr259966-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr259966-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peter Gunstone",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "mitsubishi-triton-arka-bulbar-uc-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Triton"
+    ],
+    "baslik": "Mitsubishi Triton Arka Bulbar Uç Kapağı",
+    "aciklama": "Mitsubishi Triton'un arka koruma demirinin (bulbar) açık boru uçlarını kapatan uç kapağıdır.\nBoru içine su, çamur ve böcek girmesini engeller; kesik boru ağzının keskin kenarını örter.\n- Boru ağzına geçme sıkılığıyla oturur, kaynak ya da vida gerektirmez.\n- Yüzeyi düzdür; aracın rengine boyanabilir.\n- Dış ortamda kullanıldığından hava koşullarına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 75 × 75 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr772360-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr772360-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr772360-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-mxz-2f53vfh3-isi-pompasi-damlama-tavasi",
+    "kategori": "Ev",
+    "marka": [
+      "Mitsubishi",
+      "Mitsubishi Electric"
+    ],
+    "baslik": "Mitsubishi MXZ-2F53VFH3 Isı Pompası Yoğuşma Damlama Tavası",
+    "aciklama": "Mitsubishi MXZ-2F53VFH3 dış ünitesinin altına takılan yoğuşma suyu damlama tavasıdır.\nÜnitenin altında biriken suyu toplayıp duvardan uzağa yönlendirir; duvar dibindeki nem lekelenmesini ve kışın oluşan buz birikimini azaltır.\n- Üçgen gövde ünitenin alt tablasına geçme tırnaklarla oturur.\n- Ön uçtaki oluk suyu tek noktadan akıtır.\n- Dış ortamda kullanıldığından hava koşullarına dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 190 × 169 × 24 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1373684-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1373684-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1373684-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1373684-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-lancer-evolution-wagon-cizgi-siluet-panosu",
+    "kategori": "Dekorasyon",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer Evolution Wagon Çizgi Silüet Panosu",
+    "aciklama": "2005 model Lancer Evolution station gövdesinin yandan çizgi konturunu veren düz duvar panosudur.\nYalnızca gövde hatları, cam çerçeveleri ve jant çizgileri işlenmiştir; yazı ya da amblem taşımaz.\n- Uzunluğu 334 mm, yüksekliği 124 mm, kalınlığı 5 mm'dir.\n- Duvara çift taraflı bantla ya da arkadan küçük bir çiviyle asılabilir.\n- Garaj, atölye ve çalışma odası duvarı için tasarlanmıştır.\n- Tek renk kullanıldığında kontur daha okunaklı görünür.\nYaklaşık dış ölçüler: 334 × 124 × 5 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr953155-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr953155-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr953155-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Shannon Iannone",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mitsubishi-lancer-evolution-x-siluet-duvar-panosu",
+    "kategori": "Dekorasyon",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer Evolution X Silüet Duvar Panosu",
+    "aciklama": "Lancer Evolution X gövdesinin arka çeyrek açıdan çizgi konturunu veren düz duvar panosudur.\nGövde hatları, arka kanat, tampon ve jant çizgileri tek düzlemde işlenmiştir; yazı ya da amblem taşımaz.\n- Genişliği 247 mm, yüksekliği 223 mm, kalınlığı yaklaşık 5 mm'dir.\n- Düz arka yüzeyi duvara tam oturur; çift taraflı bantla asılabilir.\n- Garaj ve çalışma odası duvarı için tasarlanmıştır.\n- Koyu renk zeminde açık renk kontur daha belirgin durur.\nYaklaşık dış ölçüler: 247 × 223 × 5 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1532958-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1532958-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1532958-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1532958-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Georgi Krastev",
+      "tur": "GPL"
+    }
+  },
+  {
     "id": "mitsubishi-pajero-tavan-havalandirma-kanatcik-braketi",
     "kategori": "Otomobil",
     "marka": [
