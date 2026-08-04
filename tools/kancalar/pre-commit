@@ -1,0 +1,80 @@
+#!/bin/sh
+# PRUVO pre-commit — IZLENEN KANCA KAYNAGI (tools/kancalar/pre-commit).
+# Kurulum: python3 tools/kanca-kur.py   (core.hooksPath -> tools/kancalar)
+# Nobetci: python3 tools/kanca-kablolama-nobeti.py
+#
+# 🔴 4 AGU 2026 ONARIMI — UC AYRI FAIL-OPEN KAPATILDI.
+# Bu kanca `.git/hooks/pre-commit` olarak yasarken govdesi soyleydi:
+#     root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+#     [ -f "$guard" ] || exit 0
+#     python3 "$guard" --tetik commit >/dev/null 2>&1 || true
+# Yani (a) kok cozulemezse TUM kanca sessizce atlaniyordu, (b) guard dosyasi
+# yoksa mukerrer kontrolu ve mimar kapisi DAHIL her sey atlaniyordu, (c) guard
+# reddetse bile `|| true` cikis kodunu, `>/dev/null 2>&1` ise GEREKCEYI yutuyordu.
+# Bu arada `tools/urunler-guard.py` FAIL-LOUD bir nobetciye cevrilmisti (sifir-disi
+# cikis + stderr'e gerekce) — ama git tarafinda o cikis kodunu KIMSE OKUMUYORDU.
+# Koruma yalniz bu makinenin oturum kablosuyla (PreToolUse) blokluyordu; duz
+# terminalde, Codex'te ve baska bir makinede BLOKLAMIYORDU.
+#
+# KURAL: bu kancadaki her nobetci FAIL-CLOSED'dir — kosturulamayan nobetci
+# "sorun yok" DEMEK DEGILDIR, commit DURUR ve NEDENI BASILIR.
+# Kasten atlamak icin:  git commit --no-verify
+# (--no-verify'a karsi asil koruma harness PreToolUse hook'udur.)
+
+pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_kok" ]; then
+  echo "!! COMMIT DURDURULDU — depo koku cozulemedi (git rev-parse basarisiz)." >&2
+  echo "!! Hicbir katalog/gizlilik nobetcisi kosturulamadi; sessiz gecis YOK." >&2
+  exit 1
+fi
+
+# --- 1) urunler.json PROVENANS GUARD'i (FAIL-CLOSED) ------------------------
+# Sifir-disi cikis = guard REDDETTI (bozuk JSON, cozulemeyen provenans, izinsiz
+# degisim...). Cikti YUTULMAZ: mimar "neden durdu"yu ekrandan okur.
+pruvo_guard="$pruvo_kok/tools/urunler-guard.py"
+if [ ! -f "$pruvo_guard" ]; then
+  echo "!! COMMIT DURDURULDU — tools/urunler-guard.py YOK." >&2
+  echo "!! Katalog korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+python3 "$pruvo_guard" --tetik commit
+pruvo_guard_rc=$?
+if [ "$pruvo_guard_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — urunler.json guard'i REDDETTI (rc=$pruvo_guard_rc)." >&2
+  echo "!! Gerekce yukarida. Mesru duzeltme yolu: python3 tools/duzelt.py" >&2
+  exit 1
+fi
+
+# --- 2) MUKERRER taramasi (FAIL-CLOSED) -------------------------------------
+# Ayni id / birebir ayni baslik / ayni kaynak linki commit'i BLOKLAR.
+# Istisna: .mukerrer-istisna.json. Acil atlama: PRUVO_MUKERRER_ATLA=1
+pruvo_kontrol="$pruvo_kok/tools/mukerrer-kontrol.py"
+if [ "$PRUVO_MUKERRER_ATLA" = "1" ]; then
+  echo "!! UYARI: PRUVO_MUKERRER_ATLA=1 — mukerrer taramasi ATLANDI (bilincli)." >&2
+elif [ ! -f "$pruvo_kontrol" ]; then
+  echo "!! COMMIT DURDURULDU — tools/mukerrer-kontrol.py YOK." >&2
+  echo "!! Mukerrer korumasi OLCULEMEDI. Atlamak icin: PRUVO_MUKERRER_ATLA=1" >&2
+  exit 1
+else
+  pruvo_mk_cikti=$(python3 "$pruvo_kontrol" 2>&1)
+  pruvo_mk_rc=$?
+  if [ "$pruvo_mk_rc" -ne 0 ]; then
+    printf '%s\n' "$pruvo_mk_cikti" >&2
+    echo "!! COMMIT ENGELLENDI — mukerrer taramasi rc=$pruvo_mk_rc." >&2
+    echo "!! Mesru cift ise .mukerrer-istisna.json'a ekle; acil atlama: PRUVO_MUKERRER_ATLA=1" >&2
+    exit 1
+  fi
+fi
+
+# --- 3) MIMAR KOD-KILIDI git backstop (FAIL-CLOSED) -------------------------
+# Ana repo'dan kaynak/veri commit'i worker onayi (PRUVO_MIMAR_ONAY=worker)
+# yoksa BLOKLANIR. Worktree'den serbest (kapinin kendi hukmu).
+pruvo_gate="$pruvo_kok/tools/mimar-commit-kapisi.py"
+if [ ! -f "$pruvo_gate" ]; then
+  echo "!! COMMIT DURDURULDU — tools/mimar-commit-kapisi.py YOK." >&2
+  echo "!! Mimar kod-kilidi backstop'u OLCULEMEDI." >&2
+  exit 1
+fi
+python3 "$pruvo_gate" || exit 1
+
+exit 0

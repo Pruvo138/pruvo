@@ -1,0 +1,45 @@
+#!/bin/sh
+# PRUVO post-checkout — IZLENEN KANCA KAYNAGI (tools/kancalar/post-checkout).
+#
+# Yeni git worktree'ye proje ayarlarini + gitignore'lu baglam dosyalarini kopyalar.
+# .claude/ ve CLAUDE.md/AGENTS.md/DEVAM.md gitignore'da oldugu icin worktree
+# checkout'unda YOKTUR. Ayarsiz oturum her komut icin onay soruyordu (Okan, 16 Tem);
+# CLAUDE.md'siz muhendis komut-stili kuralini gormeyip degiskenli komut yaziyor, o da
+# bypassPermissions'in GECEMEDIGI onay penceresi aciyordu (Okan, 16 Tem gece — ~100 tik).
+# Var olan dosya EZILMEZ.
+#
+# FAIL-OPEN (bilincli): bu bir KOLAYLIK kancasidir, YAYIN/VERI KAPISI DEGIL.
+# Kopyalama patlarsa checkout durmaz (blokta 'exit 1' YOK).
+#
+# 🔴 ANA yolu ARTIK GOMULU DEGIL: dosya izlenen (ve PUBLIC) bir depoda yasadigi
+# icin makineye ozel mutlak yol gomulmez; ana checkout `--git-common-dir`den
+# TURETILIR (linked worktree'de de ANA deponun `.git`'ini gosterir).
+ANA_GIT=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+if [ -z "$ANA_GIT" ]; then
+  exit 0
+fi
+ANA=$(dirname "$ANA_GIT")
+HEDEF=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$HEDEF" ]; then
+  exit 0
+fi
+
+if [ "$HEDEF" != "$ANA" ]; then
+  mkdir -p "$HEDEF/.claude"
+  for D in settings.json settings.local.json launch.json; do
+    if [ -f "$ANA/.claude/$D" ] && [ ! -f "$HEDEF/.claude/$D" ]; then
+      cp "$ANA/.claude/$D" "$HEDEF/.claude/$D" 2>/dev/null || true
+    fi
+  done
+  if [ -d "$ANA/.claude/commands" ] && [ ! -d "$HEDEF/.claude/commands" ]; then
+    cp -R "$ANA/.claude/commands" "$HEDEF/.claude/commands" 2>/dev/null || true
+  fi
+  if [ -f "$ANA/CLAUDE.md" ] && [ ! -f "$HEDEF/CLAUDE.md" ]; then
+    cp "$ANA/CLAUDE.md" "$HEDEF/CLAUDE.md" 2>/dev/null || true
+    ln -s "CLAUDE.md" "$HEDEF/AGENTS.md" 2>/dev/null || true
+  fi
+  if [ -f "$ANA/DEVAM.md" ] && [ ! -f "$HEDEF/DEVAM.md" ]; then
+    cp "$ANA/DEVAM.md" "$HEDEF/DEVAM.md" 2>/dev/null || true
+  fi
+fi
+exit 0

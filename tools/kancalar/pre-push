@@ -1,0 +1,112 @@
+#!/bin/sh
+# >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir — ELLE DUZENLEME) >>>
+# FAIL-CLOSED: bu itme temizlenmis sizintiyi (mesaj YA DA icerik ekseni) GERI
+# GETIRIYORSA PUSH DURUR. Gerekce: tools/gecmis-geri-donus-hook-kur.py basligi.
+pruvo_gd_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_gd_kok" ] || [ ! -f "$pruvo_gd_kok/tools/gecmis-geri-donus-kapisi.py" ]; then
+  echo "!! GECMIS GERI-DONUS NOBETI KOSULAMADI (tools/gecmis-geri-donus-kapisi.py yok) — PUSH DURDURULDU."
+  echo "!! Sizinti kapisi fail-closed'dir. Kasten atlamak icin: git push --no-verify"
+  exit 1
+fi
+# STDIN'i al, kapiyi ondan besle, sonra kalan kancaya AYNEN geri ver (D1 senkronu
+# ayni stdin'i okur — tuketip birakmak onu sessizce oldururdu).
+pruvo_gd_girdi=$(mktemp 2>/dev/null || echo /tmp/pruvo-gd-$$)
+cat > "$pruvo_gd_girdi"
+python3 "$pruvo_gd_kok/tools/gecmis-geri-donus-kapisi.py" --pre-push < "$pruvo_gd_girdi"
+pruvo_gd_rc=$?
+if [ "$pruvo_gd_rc" -ne 0 ]; then
+  rm -f "$pruvo_gd_girdi"
+  echo "!! PUSH DURDURULDU — bu itme temizlenmis sizintiyi geri getiriyor (rc=$pruvo_gd_rc)."
+  exit 1
+fi
+exec < "$pruvo_gd_girdi"
+rm -f "$pruvo_gd_girdi"
+# <<< PRUVO GECMIS GERI-DONUS NOBETI BLOGU <<<
+# >>> PRUVO YEDEK BLOGU (tools/yedek-hook-kur.py uretir — ELLE DUZENLEME) >>>
+# FAIL-OPEN: yedek patlasa/Drive olmasa bile push ASLA durmaz (blokta 'exit' YOK).
+# UCUZ: --gerekliyse son damgadan beri degisiklik yoksa tek dosya bile kopyalamaz.
+# Gorunurluk: python3 tools/durum.py  -> "7) YEDEK TAZELIGI"
+pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
+  if ! python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse >/dev/null 2>&1; then
+    echo "!! YEDEK alinamadi (push DEVAM ediyor) — kontrol: python3 tools/durum.py"
+  fi
+fi
+# --- ORTAK POSTA KUTUSU ARSIVI (tools/kutu-arsivle.py) ---
+# NEDEN BURADA (31 Tem olcumu): arac dogru calisir halde geldi ama HICBIR YERDEN
+# cagrilmiyordu. Tetiklenmeyen bir hijyen araci hicbir kapida kirmizi yakmaz -> sessizce
+# olur (bugun ayni sinif "hic kosmayan cron" olarak da olculdu). yedekle.py ile AYNI
+# kanca, AYNI desen, JETONSUZ.
+# FAIL-OPEN (pazarliksiz): arac patlasa, kilit baskasinda olsa, python3 bulunmasa bile
+# PUSH DEVAM EDER — bu bir HIJYEN araci, YAYIN KAPISI degil (blokta 'exit' YOK).
+# IDEMPOTENT + UCUZ: tavan altindaysa hicbir sey yazmaz.
+# GORUNUR: her push'a 6 satir gurultu basilmaz; yalniz ANLAMLI satir (YAZILDI/UYARI),
+# basarisizlikta ise uyari + tani kuyrugu basilir.
+if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kutu-arsivle.py" ]; then
+  pruvo_kutu_cikti=$(python3 "$pruvo_kok/tools/kutu-arsivle.py" 2>&1)
+  pruvo_kutu_rc=$?
+  if [ "$pruvo_kutu_rc" -ne 0 ]; then
+    echo "!! POSTA KUTUSU arsivlenemedi (rc=$pruvo_kutu_rc, push DEVAM ediyor) — kontrol: python3 tools/kutu-arsivle.py --kuru"
+    printf '%s
+' "$pruvo_kutu_cikti" | tail -3
+  else
+    printf '%s
+' "$pruvo_kutu_cikti" | grep -E '^(YAZILDI|UYARI)' || true
+  fi
+fi
+# <<< PRUVO YEDEK BLOGU <<<
+# urunler.json main'e push edilirken D1'i OTOMATIK senkronla.
+#
+# NEDEN VAR: Ege (WhatsApp botu) urunleri artik urunler.json'dan degil D1'DEN okuyor
+# (2026-07-15, Faz 2). D1 senkronlanmazsa SITE yeni urunu gosterir ama EGE GOREMEZ —
+# musteriye "yok" demez ama urunu de oneremez = sessiz satis kaybi. Bunu insanin
+# hatirlamasina birakmak = er ya da gec unutulur.
+#
+# NEDEN TOKEN GEREKMIYOR: yerelde wrangler KENDI oturumunu kullanir. Actions'taki
+# senkron adimi CLOUDFLARE_API_TOKEN'da D1 yetkisi olmadigi icin hata veriyor
+# (code 10000); bu hook o adima olan ihtiyaci ortadan kaldirir. Yetki verilirse
+# Actions da calisir, ikisi de idempotent (diff-upsert) — cakismaz.
+#
+# TASARIM:
+#  - SADECE main'e push'ta calisir. Feature dal/worktree push'unda calissaydi,
+#    birlesmemis urunler D1'e girer ve Ege onlari musteriye onerirdi.
+#  - urunler.json degismediyse hic calismaz (push'u yavaslatmaz).
+#  - Push'u ASLA bloklamaz (exit 0). Senkron patlarsa site yayini durmasin; zaten
+#    diff bekledigi icin BIR SONRAKI push kendiliginden tekrar dener.
+#  - Bu dosya git'e GIRMEZ (.git/hooks commit'lenmez) — CLAUDE.md'de yazili.
+#
+# NOT: d1-sync.py calisma agacindaki urunler.json'u okur, push edilen commit'i degil.
+# Fark ancak commit'lenmemis degisiklik varken olusur; guard katmani zaten onu koruyor.
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+sync="$root/tools/d1-sync.py"
+[ -f "$sync" ] || exit 0
+
+sifir="0000000000000000000000000000000000000000"
+degisti=0
+
+# pre-push stdin: <local_ref> <local_sha> <remote_ref> <remote_sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$remote_ref" = "refs/heads/main" ] || continue   # sadece main
+  [ "$local_sha" = "$sifir" ] && continue             # dal siliniyor
+  if [ "$remote_sha" = "$sifir" ]; then
+    degisti=1                                         # yeni dal: taban yok -> senkronla
+  else
+    # cikis 0=ayni, 1=farkli, >1=hata. Hatada da senkronla (emin olamiyorsak calis).
+    git diff --quiet "$remote_sha" "$local_sha" -- urunler.json 2>/dev/null || degisti=1
+  fi
+done
+
+[ "$degisti" = "0" ] && exit 0
+
+echo "→ urunler.json degisti: D1 senkronlaniyor (Ege urunleri D1'den okuyor)..."
+if python3 "$sync"; then
+  exit 0
+fi
+
+echo ""
+echo "!! D1 SENKRONU BASARISIZ — push DEVAM ediyor ama EGE YENI URUNU GOREMEZ."
+echo "!! Duzeltip elle calistir:  python3 $sync"
+echo "!! (Kontrol: python3 $sync --durum  -> sayi urunler.json ile ayni olmali)"
+echo ""
+exit 0

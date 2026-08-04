@@ -1,0 +1,8 @@
+#!/bin/sh
+# Mesru duzeltme/silme izni manifestlerini commit SONRASI temizle.
+# Manifestler deger-bagli/id-bagli oldugundan lingering zaten zararsizdir; bu yalnizca hijyendir.
+# post-commit `--no-verify` ile ATLANMAZ, dolayisiyla guvenilir temizliktir.
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+rm -f "$root/.urunler-duzelt-izin.json" 2>/dev/null || true
+rm -f "$root/.urunler-sil-izin.json" 2>/dev/null || true
+exit 0
