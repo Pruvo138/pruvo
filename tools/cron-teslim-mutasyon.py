@@ -115,6 +115,29 @@ M6 = ("M6", "🔴 EVET SUZGECI YALNIZ ILK KAYITTA: listenin gerisi korlemesine s
         "kayit event=%r \"\n")],
       True, None)
 
+# ── EN UZUN BOSLUGUN UC TERIMLERI (4 Agu 2026 kanit-kalitesi onarimi) ───────
+# 🔴 NEDEN EKLENDI: "en uzun bosluk" UC ucu sayar (ic bosluklar · devam eden sessizlik ·
+# pencere basi) ve kod bunlari satir satir gerekcelendiriyordu — ama TEK A5 fiksturunun
+# maks boslugu bir IC bosluktu (2370 dk). Bagimsiz curutucu olctu: iki UC terimini silen
+# mutantlar 124 iddia / 0 KIRMIZI ile SURVIVOR veriyordu; yani "1053,5 dk korluk
+# penceresinin GERCEK degeridir" iddiasinin hesabi OLCULMEMISTI
+# ([[fikstur-degeri-mutasyon-koru]]). Kapiya X4/X5 fiksturleri eklendi; bu iki mutant
+# onlarin AYIRT EDICI oldugunu (TEK KIRMIZI) kanitlar.
+X4 = ("X4", "🔴 DEVAM EDEN SESSIZLIK ucu SILINDI: son kosumdan SIMDIYE kadar gecen sure "
+            "bosluk sayilmiyor -> 44 saattir HIC kosmayan bir is akisi 'en uzun bosluk "
+            "60 dk' diye SAGLIKLI raporlanir",
+      [("        bosluklar.append((simdi - damgalar[-1]).total_seconds() / 60.0)\n", "")],
+      True, {"X4"})
+
+X5 = ("X5", "🔴 PENCERE BASI ucu GIZLENDI: ilk kosumdan ONCEKI sessizlik bosluk "
+            "sayilmiyor -> 'pencerenin 45 saati sessiz, son 3 saatte 4 kosum' (PARTI "
+            "HALINDE teslim, 4 Agu'da OLCULEN hal) kucucuk bir bosluk gibi gorunur",
+      [("        if not g.get(\"pencere_kirpildi\"):\n"
+        "            bosluklar.append((damgalar[0] - pencere_basi).total_seconds() / 60.0)",
+        "        if False:\n"
+        "            bosluklar.append((damgalar[0] - pencere_basi).total_seconds() / 60.0)")],
+      True, {"X5"})
+
 # ── PUSH SERIDI KABLO CAPASI (4 Agu 2026) ───────────────────────────────────
 # Bayatlik olcumu artik cron'a EK olarak push tetikli `odeme-bayatlik-push.yml`
 # seridinde de kosuyor. O seridin "yayini durdurmaz" ozelligi BEYAN DEGIL, KOSULAN bir
@@ -131,7 +154,7 @@ X6 = ("X6", "🔴 PUSH SERIDI YAYIN-YOLU KAPISI DELINDI: yasak tetik listesinden
 K1 = ("K1", "ilgisiz: A5 sabitinin yanina aciklama yorumu eklendi",
       [("TESLIM_SAYFA = 100", "TESLIM_SAYFA = 100   # GitHub sayfa boyu")], False, set())
 
-MUTANTLAR = (M1, M2, M3, M4, M5, M6, X6, K1)
+MUTANTLAR = (M1, M2, M3, M4, M5, M6, X4, X5, X6, K1)
 
 IDDIA_RE = re.compile(r"^(\d+) iddia kosturuldu, (\d+) KIRMIZI\.$", re.M)
 # Kirmizi EKSEN kodu = `[FAIL]` satirinin ilk sozcugu (kapinin `iddia()` bicimi).

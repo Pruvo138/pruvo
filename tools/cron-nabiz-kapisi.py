@@ -459,11 +459,18 @@ def teslim_hukmu(g, simdi):
     oran = (100.0 * teslim / nominal) if nominal else 0.0
 
     # EN UZUN BOSLUK = gercek korluk penceresi. UC ucu da sayilir:
-    #   · kosumlar ARASI bosluklar,
-    #   · son kosumdan SIMDIYE (devam eden sessizlik rapordan DUSMEZ),
+    #   · kosumlar ARASI bosluklar,                       -> nobet: A5 (a) fiksturu
+    #   · son kosumdan SIMDIYE (devam eden sessizlik rapordan DUSMEZ), -> nobet: X4
     #   · pencere BASINDAN ilk kosuma (bu sayilmazsa "48 saatin 47'si sessiz, son 20
     #     dakikada 2 kosum" hali kucucuk bir bosluk gibi gorunurdu — tam da parti
-    #     halinde teslimin URETTIGI hal).
+    #     halinde teslimin URETTIGI hal).                 -> nobet: X5
+    # 🔴 UC TERIMIN HEPSI AYRI FIKSTURLE OLCULUR (4 Agu 2026 kanit-kalitesi onarimi):
+    # ONCE yalnizca A5 (a) fiksturu vardi ve onun maks boslugu bir IC bosluktu (2370 dk);
+    # iki UC terimi silen mutantlar 124 iddia / 0 KIRMIZI ile SURVIVOR veriyordu — yani
+    # bu satirlarin gerekcesi kodda YAZILI ama OLCULMEMISTI
+    # ([[fikstur-degeri-mutasyon-koru]]). X4 fiksturunde maks bosluk DEVAM EDEN
+    # SESSIZLIKTEN (2640 dk), X5 fiksturunde PENCERE BASINDAN (2700 dk) gelir; mutant
+    # X4/X5 her birini TEK KIRMIZI ile civiler.
     bosluklar = [(b - a).total_seconds() / 60.0 for a, b in zip(damgalar, damgalar[1:])]
     if damgalar:
         bosluklar.append((simdi - damgalar[-1]).total_seconds() / 60.0)
@@ -2019,6 +2026,38 @@ def kendini_test():
     iddia("A5 (b) YESIL satir da teslim oranini ve en uzun boslugu YAZAR "
           "(gercek cadans her kosumda GORUNUR)",
           any(x.startswith("✅ A5 TESLIM") and "en uzun bosluk" in x for x in s), s)
+
+    # 🔴 EN UZUN BOSLUGUN UC TERIMI — HER BIRI KENDI FIKSTURUYLE (4 Agu 2026)
+    # A5 (a) fiksturunun maks boslugu bir IC bosluktur (2370 dk). Bu yuzden UC terimleri
+    # (devam eden sessizlik · pencere basi) O FIKSTURDE HIC OLCULMUYORDU: ikisini de
+    # silen mutantlar 124 iddia / 0 KIRMIZI ile SURVIVOR veriyordu
+    # ([[fikstur-degeri-mutasyon-koru]]). Asagidaki iki fikstur maks boslugu UCTAN
+    # getirir; mutant X4/X5 her birini TEK KIRMIZI ile civiler.
+    #
+    # X4 — DEVAM EDEN SESSIZLIK: 4 kosum 47/46/45/44 sa once (teslim 4 == taban, A5 YESIL)
+    # ama son kosumdan beri 44 saattir HIC kosum yok. Ic bosluklar 60 dk, pencere basi
+    # terimi 60 dk; GERCEK korluk penceresi 2640 dk'dir ve YALNIZ devam eden sessizlik
+    # terimi onu gorur. Bu terim silinirse rapor "en uzun bosluk 60 dk" der — nabiz
+    # OLU bir is akisini SAGLIKLI gosterirdi.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=4, yas_saat=44.0,
+                              kosum_yaslari=[47.0, 46.0, 45.0, 44.0], **TAM))
+    iddia("X4 EN UZUN BOSLUK — DEVAM EDEN SESSIZLIK ucu SAYILIR: son kosumdan beri 44 sa "
+          "gecmis, ic bosluklar 60 dk -> rapor 2640 dk yazar (terim silinirse 60 dk der "
+          "ve OLU bir is akisi SAGLIKLI gorunurdu)",
+          any(x.startswith("🟡 A5 TESLIM") or x.startswith("✅ A5 TESLIM")
+              or x.startswith("🔴 A5 TESLIM") for x in s)
+          and any("A5 TESLIM" in x and "en uzun bosluk 2640 dk" in x for x in s), s)
+    #
+    # X5 — PENCERE BASI (PARTI IMZASI): 4 kosum son 3 saatte (teslim 4 == taban, A5 YESIL);
+    # pencerenin ilk 45 saati TAMAMEN sessiz. Ic bosluklar <= 60 dk, devam eden sessizlik
+    # 12 dk. Bu, 4 Agu'da OLCULEN "parti halinde teslim" halinin ta kendisidir; terim
+    # silinirse rapor "en uzun bosluk 60 dk" der ve 45 saatlik korluk GORUNMEZ olur.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=4, yas_saat=0.2,
+                              kosum_yaslari=[3.0, 2.0, 1.0, 0.2], **TAM))
+    iddia("X5 EN UZUN BOSLUK — PENCERE BASI ucu SAYILIR: 4 kosum da son 3 saatte (parti "
+          "imzasi), pencerenin ilk 45 saati sessiz -> rapor 2700 dk yazar (terim "
+          "silinirse 60 dk der ve parti halinde teslim SAGLIKLI gorunurdu)",
+          any("A5 TESLIM" in x and "en uzun bosluk 2700 dk" in x for x in s), s)
 
     # SINIR: tam TABANDA yesil, tabanin BIR ALTINDA kirmizi.
     rc, _ = kos(D, _sahte_api(kosum_sayisi=4, yas_saat=0.2,

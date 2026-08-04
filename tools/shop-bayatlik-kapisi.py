@@ -94,8 +94,10 @@ mi" sorusunu DERINLIK ile olcer, GUNCELLIK ile degil (ayni fikstur: HEAD geride 
 `True` dondu).
 DUZELTME (fail-closed): `olculen_ref_dogrula()` HEAD'in uzak main ucu oldugunu KANIT ister.
 Aday ucler: `refs/remotes/origin/main` ve `FETCH_HEAD`. Hicbiri okunamazsa -> OLCULEMEDI.
-HEAD adaylardan BIRINE ESITSE kanit tamamdir (bu yol NESNE GRAFI GEZMEZ; sig checkout'ta
-eksik nesne yuzunden yanlis kirmizi URETMEZ). Esitlik yoksa her aday HEAD'in ATASI olmali
+HEAD adaylardan BIRINE ESITSE kanit tamamdir (esit ref kendisinin atasidir; bu kisayolun
+"sig agacta eksik nesneyi kurtarir" gerekcesi OLCULDU ve ERISILEMEZ cikti — ayrinti
+`olculen_ref_dogrula` icindeki yorumda, kaldirilma hali S1 mutantiyla KAYITLI). Esitlik
+yoksa her aday HEAD'in ATASI olmali
 (itilmemis yerel commit mesrudur); ata DEGILSE ya da ata iliskisi KARARLASTIRILAMIYORSA ->
 OLCULEMEDI. `paket-tazelik-alarmi.yml` her kosumda `git fetch --depth=1 origin main` +
 `git reset --hard FETCH_HEAD` yapar; OLCULDU (CI taklidi, gecici depo): o adimdan sonra
@@ -384,9 +386,23 @@ def olculen_ref_dogrula(kok):
             "uzak %s ucu OKUNAMADI (denenen: %s): HEAD'in olculmesi GEREKEN ref oldugu "
             "KANITLANAMIYOR" % (ANA_DAL, ", ".join(UZAK_UC_ADAYLARI)))
     for ad, sha in cozulen:
-        # 🔴 ESITLIK ONCE — bu yol NESNE GRAFI GEZMEZ. CI `git fetch --depth=1 origin
-        # main` + `git reset --hard FETCH_HEAD` yapar; sig agacta eksik bir nesne
-        # `merge-base`i patlatabilir, esitlik yolu o yanlis kirmiziyi URETMEZ.
+        # 🔴 ESITLIK ONCE — DURUST BEYAN: bu kisayol bir KEMERDIR, OLCULMUS bir koruma
+        # DEGIL. Onceki yorum "bu yol nesne grafi gezmez; sig agacta eksik bir nesne
+        # `merge-base`i patlatabilir, esitlik yolu o yanlis kirmiziyi URETMEZ" diyordu.
+        # OLCULDU (4 Agu 2026, gecici sig klon, UC hal):
+        #   · HEAD == uzak uc (CI'nin `git fetch --depth=1` + `reset --hard FETCH_HEAD`
+        #     ile FIILEN kurdugu hal) -> `merge-base --is-ancestor` rc 0, PATLAMIYOR:
+        #     kisayol OLMADAN da bu yol gecerdi.
+        #   · Nesnesi EKSIK bir commit ile `is-ancestor` gercekten rc 128 verir ("Not a
+        #     valid commit name") — AMA o aday `_ref_coz`den GECEMEZ (`rev-parse
+        #     --verify ...^{commit}` ayni nesneyi ister), yani `cozulen` listesine HIC
+        #     GIRMEZ ve merge-base'e ULASAMAZ. Iddia edilen koruma bu koddan
+        #     ERISILEBILIR DEGIL.
+        #   · Kisayol devre disi birakilinca kabul testi 39 iddia / 0 KIRMIZI verir —
+        #     yani hicbir iddia onu olcmuyor (SURVIVOR; mutasyon bataryasinda S1 olarak
+        #     KAYITLI, [[mutasyon-kaniti-yeniden-uretilebilir]]).
+        # KALMA SEBEBI (anlam + maliyet, OLCULMUS FAYDA DEGIL): esit ref kendisinin
+        # atasidir, yani kisayol hukmu DEGISTIREMEZ; bir alt surec cagrisi tasarruf eder.
         if sha == head:
             return head, ad
     for ad, sha in cozulen:
@@ -600,6 +616,24 @@ def _olculemedi_mi(fn, *a, **k):
     except Exception:
         return False
     return False
+
+
+def _olcum_veya_none(fn, *a, **k):
+    """`Olculemedi` -> None. "OLCUM SURMELI" diyen iddialarin (G3/G7) TASIYICISI.
+
+    🔴 NEDEN VAR (OLCULDU 4 Agu 2026, bagimsiz curutucu — kanit KALITESI kusuru):
+    G3 ekseninin mutanti (`olculen_ref_dogrula`daki ata kontrolu tersine cevrilir) ve
+    G7 ekseninin mutanti (`calisma_agaci_dogrula`dan yol suzgeci kaldirilir) altinda
+    `bundle_commitleri` DOGRU davranip `Olculemedi` firlatiyordu — ama iddia satirlari o
+    cagriyi CIPLAK yapiyordu, yani kabul testi Traceback ile COKUYOR ve `IDDIA:` OZET
+    SATIRI HIC BASILMIYORDU. Disaridan rc=1 gorunur (kirmizi sanilir), oysa OLCULEN
+    iddia sayisi 39'dan 0'a duser: cokme kirmiziyla KARISIR ve o iki eksen OLCULMEMIS
+    kalir ([[mutasyon-kaniti-yeniden-uretilebilir]]). Bu tasiyici ile mutant artik
+    KIRMIZI yakiyor, COKMUYOR; iddia sayisi 39'da SABIT kaliyor (M16/M17 bunu olcer)."""
+    try:
+        return fn(*a, **k)
+    except Olculemedi:
+        return None
 
 
 def _yaz(dizin, gorece, icerik):
@@ -865,9 +899,13 @@ def kendini_test():
         # Yanlis-pozitif butcesi: bu kapi 15 dk'da bir kosuyor, mesru hal kirmizi YAKMAZ.
         _yaz(depo, "shop/src/index.js", "// v3 — henuz itilmedi\n")
         _g_islet("itilmemis yerel commit", "2026-08-03T16:00:00+0000", uc_ilerlesin=False)
-        com_g3 = bundle_commitleri(depo, YOL, kz_g)
+        # 🔴 CAGRI `_olcum_veya_none` ILE SARILI: ata kontrolunu bozan bir mutant burada
+        # `Olculemedi` firlatir; ciplak cagri kabul testini COKERTIR ve `IDDIA:` satiri
+        # basilmaz (olculen sayi duser, cokme kirmiziyla karisir). Sarmalayici o mutanti
+        # KIRMIZI yakar, iddia sayisini SABIT tutar. Nobet: mutant M16.
+        com_g3 = _olcum_veya_none(bundle_commitleri, depo, YOL, kz_g)
         iddia("G3", "HEAD uzak ucun ILERISINDE (itilmemis commit) -> olcum SURER, kume "
-                    "eksik degil (2 commit)", len(com_g3) == 2)
+                    "eksik degil (2 commit)", com_g3 is not None and len(com_g3) == 2)
         _git(depo, "update-ref", "refs/remotes/origin/" + ANA_DAL, "HEAD")
 
         # G4 — CI'nin FIILEN kurdugu hal: `git fetch --depth=1 origin main` FETCH_HEAD
@@ -908,9 +946,11 @@ def kendini_test():
         # surekli yaziliyor ve bundle kumesinde DEGIL; kapi onu tetiklememeli.
         _yaz(depo, "shop/src/index.js", "// v3 — henuz itilmedi\n")   # geri al
         _yaz(depo, "belge.md", "bundle DISI kirlilik\n")
-        com_g7 = bundle_commitleri(depo, YOL, kz_g)
+        # 🔴 AYNI SARMALAYICI, AYNI GEREKCE: yol suzgecini kaldiran mutant (M17) burada
+        # `Olculemedi` firlatir; ciplak cagri testi COKERTIRDI. Sarilmis hali KIRMIZI yanar.
+        com_g7 = _olcum_veya_none(bundle_commitleri, depo, YOL, kz_g)
         iddia("G7", "KONTROL — kirlilik bundle DISINDA (belge.md): olcum SURER "
-                    "(yanlis-pozitif yok)", len(com_g7) == 2)
+                    "(yanlis-pozitif yok)", com_g7 is not None and len(com_g7) == 2)
 
     print("\nIDDIA: %d · KIRMIZI: %d %s"
           % (_SAYAC["n"], len(_SAYAC["kirmizi"]), _SAYAC["kirmizi"] or ""))
