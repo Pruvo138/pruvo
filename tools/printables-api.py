@@ -45,9 +45,31 @@ COP_MERCH = (
     "porte-clé", "porte-clés", "porte clé", "porte clés", "porte-clefs",
     "schlusselanhanger", "schluesselanhanger", "schlüsselanhänger",
     "portachiavi", "chaveiro", "anahtarlik",
-    "wall art", "wall decor", "wall decoration", "wall hanging", "wall plaque",
+    "wall hanging", "wall plaque",
     "plaque", "trophy", "ornament", "pendant", "charm",
     "letters", "lettering", "sticker", "coaster", "fridge magnet", "magnet", "keycap",
+)
+# KOSULLU merch: TEK BASINA elemez; ancak LOGO ya da WORDMARK sinyaliyle BIRLIKTE gelirse eler.
+# Gerekce (olculdu, 2026-08-04): "wall art"/"wall decoration" kosulsuz elerken LOGOSUZ gercek
+# 2D siluet sinifi da eleniyordu. Son hucrede 9 aday ELLE kurtarildi: 6'si temizdi (eklenmeliydi),
+# 3'u wordmark tasiyordu ve GORSEL KAPISI zaten RED verdi. Yani kapi zarar vermiyor ama elle
+# is yukunu katliyordu.
+#   🚫 POLITIKA DELINMEDI (Okan, 2026-07-20): baskida LOGO/wordmark tasiyan urun EKLENMEZ.
+#      Logo/wordmark SINYALI tasiyan duvar susu burada HALA elenir.
+#   ⚠️ SINIR — bu gevsetme ADAY LISTESINE girisi acar, KATALOGA girisi DEGIL. Basliktan
+#      anlasilmayan wordmark'i metin kapisi goremez; onu eleyen gorsel kapisi BU DEPODA
+#      DEGIL (MaCiT'in olcumu: 3/3 kirli aday orada RED aldi — burada DOGRULANAMADI).
+#      Yani kalan risk "gozden gecirilecek aday sayisi"dir, yayina cikan urun degil.
+#   ⚠️ "wall decor" LISTEDE OLMAK ZORUNDA: is_merch ALT-DIZE bakar, "wall decoration" metni
+#      "wall decor" girdisini de tetikler. Yalniz "wall art"/"wall decoration" tasinsaydi
+#      "wall decor" kosulsuz listede kalir ve gevsetme HICBIR SEY DEGISTIRMEZDI (sessiz no-op).
+COP_MERCH_KOSULLU = (
+    "wall art", "wall arts", "wall decor", "wall decoration",
+)
+# WORDMARK sinyali: marka ADI'nin HARF olarak basildigini gosteren terimler. COP_LOGO'da
+# olmayanlar burada (COP_MERCH'teki "letters"/"lettering" zaten kosulsuz eler).
+COP_WORDMARK = (
+    "wordmark", "word mark", "typography", "typeface", "schriftzug", "script",
 )
 # Populerlik DELEBILIR gurultu (olcek modeli/minyatur) — cok talep goren biri yine de alinir.
 COP_OTHER = ("miniature", "diecast", "die-cast", "diorama", "scale model",
@@ -76,11 +98,27 @@ def is_logo(name):
     return any(c in n for c in COP_LOGO)
 
 
+def is_wordmark(name):
+    """Baslik marka ADININ HARF olarak basildigini gosteren bir sinyal tasiyor mu?"""
+    n = " " + (name or "").lower() + " "
+    return any(c in n for c in COP_WORDMARK)
+
+
 def is_merch(name):
     """Marka-logolu aksesuar/merch formu mu (anahtarlik/askı/plaket/trofe...)?
-    LOGO gibi: populerlik DELMEZ."""
+    LOGO gibi: populerlik DELMEZ.
+
+    Iki katman:
+      * COP_MERCH        -> tek basina eler (kosulsuz).
+      * COP_MERCH_KOSULLU -> yalniz LOGO ya da WORDMARK sinyaliyle birlikte eler.
+        'Nissan GTR wall art' (logosuz siluet) GECER; 'Nissan logo wall art' ve
+        'Nissan wall art wordmark' ELENIR. Supheliyi gorsel kapisi ikinci katman olarak eler."""
     n = " " + (name or "").lower() + " "
-    return any(c in n for c in COP_MERCH)
+    if any(c in n for c in COP_MERCH):
+        return True
+    if any(c in n for c in COP_MERCH_KOSULLU):
+        return is_logo(name) or is_wordmark(name)
+    return False
 
 
 def is_firearm(name):
@@ -160,8 +198,48 @@ def satilabilir(abbr):
 def tr_lower(s):
     """Turkce-duyarli kucuk harf: 'I'->'ı', 'İ'->'i', sonra lower().
     Python str.lower() 'I'->'i' (yanlis) ve 'İ'->'i̇' (birlesik nokta) uretir; marka
-    kelime-siniri karsilastirmasi icin once bu duzeltme sart."""
+    kelime-siniri karsilastirmasi icin once bu duzeltme sart.
+
+    ⚠️ BU FONKSIYON TURKCE METIN ICINDIR ve DEGISMEZ: denetim-kapisi.py /
+    yayin-ic-dil-kapisi.py Turkce govde tarar, 'I'->'ı' orada DOGRU davranistir.
+    Yabanci (latin) marka adi kacagi icin ayri katlama vardir -> latin_lower()."""
     return (s or "").replace("İ", "i").replace("I", "ı").lower()
+
+
+def latin_lower(s):
+    """YABANCI (latin) kucuk harf: 'İ'->'i', gerisi Python varsayilani ('I'->'i').
+
+    Neden ayri: tr_lower 'I'->'ı' cevirir; bu Turkce metinde dogru, ama TUMU-BUYUK
+    yazilmis LATIN marka adinda YANLIS -> 'NISSAN' -> 'nıssan' olur ve 'nissan' ile
+    eslesmez (canlida IKI KEZ olculdu: Nissan x MakerWorld ve Nissan x Printables
+    hasatlari, 2026-08-04). 'İ'->'i' burada da elle yapilir; cunku Python'un
+    'İ'.lower() cevabi 'i'+U+0307 (birlesik nokta) olup kelime eslesmesini bozar."""
+    return (s or "").replace("İ", "i").lower()
+
+
+def marka_katlamalari(marka):
+    """Bir marka adi icin denenecek (katlanmis_marka, katlama_fonksiyonu) ciftleri.
+
+    TEK KAYNAK: marka eslesmesi yapan HER arac (marka_kelime_gecer, makerworld-ara
+    marka_geciyor, ...) katlama kuralini buradan alir — ikiz tanim sessizce ayrismasin.
+
+    KURAL (dar tutuldu, serbest metne UYGULANMAZ):
+      * Her zaman Turkce katlama (tr_lower) denenir.
+      * EK OLARAK latin katlama (latin_lower) SADECE marka adi Turkce'ye ozgu nokta
+        ayrimini TASIMIYORSA denenir; yani ham marka adinda 'ı' ya da 'İ' YOKSA.
+        'nissan'/'mini'/'fiat' -> latin katlama da denenir (TUMU-BUYUK baslik yakalanir).
+        'ışık'/'İzmir'        -> SADECE Turkce katlama; I/ı ayrimi KORUNUR.
+    Boylece 'kısa kollu' basligi 'kisa' markasiyla HALA eslesmez (iki katlamada da
+    ı != i); yani duzeltme "aksani soy" degildir, yalnizca I/i belirsizligini acar.
+
+    ⚠️ Katlanmis marka adlari AYNI ciksa bile ikinci cift ATILMAZ: eslesme METNI de
+    katlar, ve fark METINDE dogar ('nissan'=='nissan' ama 'NISSAN'->'nıssan' vs
+    'nissan'). Ihtiyacsiz sanip dedup eklemek kusuru geri getirir (bu turda olculdu)."""
+    ham = marka or ""
+    ciftler = [(tr_lower(ham).strip(), tr_lower)]
+    if "ı" not in ham and "İ" not in ham:
+        ciftler.append((latin_lower(ham).strip(), latin_lower))
+    return ciftler
 
 
 def marka_kelime_gecer(baslik, marka):
@@ -169,14 +247,17 @@ def marka_kelime_gecer(baslik, marka):
     geciyor mu? Amac: marka aramasinda ALT-DIZE gurultusunu kaynakta elemek.
 
       'Ford'  -> 'Ford Focus konsol' GECER; 'Oxford box'/'afford'/'Food tray' ELENIR.
+      'NISSAN GTR' + 'nissan' -> GECER (latin katlama; bkz. marka_katlamalari).
 
     marka bos ya da <2 karakterse filtre UYGULANMAZ (True doner) — asiri eleme onlenir.
     Turkce harfler (ç ş ğ ı ö ü) Unicode modda \w oldugundan \b sinirlari dogru calisir."""
-    m = tr_lower(marka).strip()
-    if len(m) < 2:
+    ciftler = marka_katlamalari(marka)
+    if len(ciftler[0][0]) < 2:
         return True
-    b = tr_lower(baslik)
-    return re.search(r"\b%s\b" % re.escape(m), b, re.UNICODE) is not None
+    for m, katla in ciftler:
+        if re.search(r"\b%s\b" % re.escape(m), katla(baslik), re.UNICODE):
+            return True
+    return False
 
 
 def model_url(pid, slug=None):
@@ -432,10 +513,53 @@ def bbox_3mf(path):
         return None                      # sozlesme: hicbir durumda firlatma, olcemezsen None
 
 
+def obj_bbox(path):
+    """Wavefront .OBJ sinir kutusu olcusu (mm, buyukten kucuge, tam sayi liste) ya da None.
+
+    Neden var: Printables'ta bazi modeller SADECE .obj tasiyor (olculen gercek kayitlar:
+    733167 "Nissan bonnet clip", 196889 "300ZX console blank" — ikisinde de tek dosya .obj).
+    Eskiden model_bbox bunlari stl_bbox'a yonlendiriyordu, o da None donuyordu; olcu kapisi
+    otomatik olcemiyor, ELLE kurtariliyordu (2026-08-04).
+
+    Bicim: 'v X Y Z [W]' satirlari koordinattir. 'vt' (doku) ve 'vn' (normal) satirlari
+    koordinat DEGILDIR ve sayilmaz — ilk jeton TAM 'v' olmali.
+
+    stl_bbox ile AYNI fail-closed korumalari (bilerek tekrarlanmadi, ayni esikler):
+      * HTML/hata sayfasi -> None
+      * OBJ de BIRIM BEYANI TASIMAZ -> en buyuk boyut < 2 birim ise olcu kaynak-dogrulanamaz,
+        uydurma yerine None (STL'deki ayni tuzak; x1000 tahmini YAPILMAZ)
+      * <=0 ya da > 100000 -> None"""
+    with open(path, "rb") as f:
+        data = f.read()
+    head = data[:512].lstrip().lower()
+    if head.startswith(b"<") or b"<html" in head or b"just a moment" in head:
+        return None
+    xs, ys, zs = [], [], []
+    for line in data.decode("utf-8", "ignore").splitlines():
+        p = line.split()
+        if len(p) < 4 or p[0] != "v":       # 'vt'/'vn' TAM esitlikle elenir
+            continue
+        try:
+            xs.append(float(p[1])); ys.append(float(p[2])); zs.append(float(p[3]))
+        except ValueError:
+            continue
+    if not xs:
+        return None
+    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    if max(d) < 2.0:
+        return None
+    if d[0] <= 0 or d[0] > 100000:
+        return None
+    return d
+
+
 def model_bbox(path):
-    """Uzantiya gore doğru olcum fonksiyonuna yonlendirir (.stl veya .3mf)."""
-    if path.lower().endswith(".3mf"):
+    """Uzantiya gore doğru olcum fonksiyonuna yonlendirir (.stl / .3mf / .obj)."""
+    p = path.lower()
+    if p.endswith(".3mf"):
         return bbox_3mf(path)
+    if p.endswith(".obj"):
+        return obj_bbox(path)
     return stl_bbox(path)
 
 
@@ -531,25 +655,53 @@ def _is_stl_bytes(blob):
     return False
 
 
+def _is_obj_bytes(blob):
+    """Indirilen baytlar GERCEKTEN Wavefront OBJ mi? _is_stl_bytes ile ayni amac: Printables
+    bazen .stl/.obj uzantili dosya yerine sessizce PNG kucuk resim donduruyor. OBJ metindir
+    ve en az bir 'v X Y Z' kose satiri tasimalidir."""
+    if blob[:8] == b"\x89PNG\r\n\x1a\n":
+        return False
+    bas = blob[:512].lstrip().lower()
+    if bas.startswith(b"<") or b"<html" in bas:
+        return False
+    metin = blob[:200000].decode("utf-8", "ignore")
+    for line in metin.splitlines():
+        p = line.split()
+        if len(p) >= 4 and p[0] == "v":
+            try:
+                float(p[1]); float(p[2]); float(p[3])
+                return True
+            except ValueError:
+                continue
+    return False
+
+
 def download_stl(print_id, save_path_noext):
-    """Modelin EN BUYUK gercek dosyasini indirir (.stl tercih edilir; yoksa .3mf'e duser —
-    step/obj gibi baski disi formatlar alinmaz). save_path_noext + dogru uzanti ile yazar.
-    Doner: (gercek_dosya_adi, kaydedilen_yol, bayt_uzunlugu). Uygun dosya yoksa RuntimeError."""
+    """Modelin EN BUYUK gercek dosyasini indirir. Tercih sirasi: .stl -> .3mf -> .obj
+    (step gibi CAD/baski-disi formatlar alinmaz). save_path_noext + dogru uzanti ile yazar.
+    Doner: (gercek_dosya_adi, kaydedilen_yol, bayt_uzunlugu). Uygun dosya yoksa RuntimeError.
+
+    .obj EN SONA konur, cunku .stl/.3mf dilimleyiciye dogrudan girer; .obj yalnizca OLCU
+    kapisini besleyebilsin diye kabul edilir. Eskiden .obj tumden reddediliyordu ve tek
+    dosyasi .obj olan gercek kayitlar (733167, 196889) elle kurtariliyordu (2026-08-04)."""
     d = detail(print_id)
     files = d.get("stls") or []
     stls = [s for s in files if (s.get("name") or "").lower().endswith(".stl")]
     threemf = [s for s in files if (s.get("name") or "").lower().endswith(".3mf")]
-    pool = stls or threemf
+    objs = [s for s in files if (s.get("name") or "").lower().endswith(".obj")]
+    pool = stls or threemf or objs
     if not pool:
-        raise RuntimeError("bu modelde .stl/.3mf yok (sadece step/obj olabilir)")
+        raise RuntimeError("bu modelde .stl/.3mf/.obj yok (sadece step/cad olabilir)")
     pool.sort(key=lambda s: s.get("fileSize") or 0, reverse=True)  # en buyuk = ana parca
     chosen = pool[0]
-    ext = ".stl" if stls else ".3mf"
+    ext = ".stl" if stls else (".3mf" if threemf else ".obj")
     save_path = save_path_noext + ext
     link = download_link(print_id, [chosen["id"]], "stl")
     blob = http_get(link)
     if ext == ".stl" and not _is_stl_bytes(blob):
         raise RuntimeError("indirilen dosya STL degil (Printables PNG/baska format donmus olabilir): %s" % chosen["name"])
+    if ext == ".obj" and not _is_obj_bytes(blob):
+        raise RuntimeError("indirilen dosya OBJ degil (Printables PNG/baska format donmus olabilir): %s" % chosen["name"])
     with open(save_path, "wb") as w:
         w.write(blob)
     return chosen["name"], save_path, len(blob)
