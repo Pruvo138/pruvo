@@ -143,7 +143,8 @@ class MarkaEvreni:
         self.bilesik = model_kanon.bilesik_markalar(index_html)
         self.bilesik_normlu = frozenset(model_kanon._marka_norm(x) for x in self.bilesik)
         # KUŞAK KATLAMASI tabloları — AYNI belgeden (modül düzeyi sabit KULLANILMAZ).
-        self.kusak_donanim, self.kusak_disi = model_kanon.kusak_tablolari(index_html)
+        (self.kusak_donanim, self.kusak_disi,
+         self.kusak_esleme) = model_kanon.kusak_tablolari(index_html)
         self._kusak_bellek = {}
 
     def taninmis_mi(self, m):
@@ -173,7 +174,8 @@ class MarkaEvreni:
         sonuc = self._kusak_bellek.get(anahtar)
         if sonuc is None:
             sonuc = model_kanon.kusak_tabanlari(marka, deger, self, self.model_alias,
-                                                self.kusak_donanim, self.kusak_disi)
+                                                self.kusak_donanim, self.kusak_disi,
+                                                self.kusak_esleme)
             self._kusak_bellek[anahtar] = sonuc
         return sonuc
 
@@ -371,6 +373,40 @@ def _rozet_disi_ciftler():
 
 
 ROZET_DISI = _rozet_disi_ciftler()
+
+
+def _model_olmayan_ciftler():
+    """tools/arama.py MODEL_OLMAYAN_CIFT — (marka, KANONİK jeton) çiftleri.
+
+    Marka-KÖR `MODEL_OLMAYAN_JETON`'dan AYRI tutulur: oraya `ST`/`GS` yazmak bütün
+    markalarda aynı jetonu öldürürdü (`/marka/bmw/gs/` ile `/marka/citroen/gs/` ayrı sınıf).
+    FAIL-CLOSED: tablo okunamazsa SystemExit (sessizce boş kümeye düşmek, mimarın kapattığı
+    donanım/motor sayfalarını geri açardı)."""
+    try:
+        import arama                                                # noqa: PLC0415
+        return set((mk, model_kanon.kanon(jt)) for mk, jt in arama.MODEL_OLMAYAN_CIFT)
+    except Exception as e:                                          # noqa: BLE001
+        raise SystemExit("HATA: tools/arama.py MODEL_OLMAYAN_CIFT okunamadı (%r) — donanım/"
+                         "motor jetonları yeniden MODEL sayfası olurdu (fail-closed)." % (e,))
+
+
+MODEL_OLMAYAN_CIFTLER = _model_olmayan_ciftler()
+
+
+def model_olmayan_cift_mi(marka, deger):
+    """(marka, jeton) çifti MODEL DEĞİL mi — ÇIPLAK ve BİLEŞİK yazımı birlikte kapsar.
+
+    🔴 BİLEŞİK YAZIM ŞART (ölçülen boşluk): `marka_jetonu_mu("Focus ST")` False dönüyordu,
+    çünkü o yüklem yalnız değerin TAMAMINA bakıyor. Donanım/motor jetonu katalogda çoğu
+    zaman `<model> <jeton>` biçiminde geçer (`Focus ST`, `Fiesta ST`) — bu yüzden SON
+    KELİME de sınanır. `EcoBoost` gibi çıplak yazım ilk sınamada yakalanır."""
+    t = (deger or "").strip()
+    if not marka or not t:
+        return False
+    if (marka, model_kanon.kanon(t)) in MODEL_OLMAYAN_CIFTLER:
+        return True
+    toks = t.split()
+    return len(toks) >= 2 and (marka, model_kanon.kanon(toks[-1])) in MODEL_OLMAYAN_CIFTLER
 
 
 def marka_jetonu_mu(deger, evren):
@@ -600,6 +636,11 @@ def yayimlanir_mi(g):
     donmuş: `arama.ROZET_DISI_CIFT`. Ürün KAYBOLMAZ: sayfası açılmayan kovanın ürünleri
     marka sayfasında ve kendi gerçek model sayfasında listelenmeye devam eder."""
     if (g.get("marka"), g.get("canon")) in ROZET_DISI:
+        return False
+    # MODEL OLMAYAN ÇİFT (4 Ağu, mimar hükmü): donanım paketi / motor ailesi SAYFA OLMAZ
+    # (`Focus ST`, `Fiesta ST`, `EcoBoost`). Ürün KAYBOLMAZ: kuşak katlamasıyla ana modelin
+    # varyant bölümünde, her hâlükârda marka sayfasında durur (kapı ölçer).
+    if model_olmayan_cift_mi(g.get("marka"), g.get("display") or g.get("canon")):
         return False
     return bool(g.get("birincil")) and len(g["urunler"]) >= ESIK
 

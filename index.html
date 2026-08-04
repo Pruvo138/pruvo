@@ -2614,6 +2614,24 @@
   function kusakDisiMi(marka, s){
     return KUSAK_DISI.indexOf((marka || "") + "|" + s) !== -1;
   }
+  // KÜRATÖRLÜ KUŞAK EŞLEMESİ — gramerin GÖREMEDİĞİ kuşak/taban bağı ("<marka>|<jeton>|<taban>").
+  // Ölçülen parçalanma: /transporter/ 44 ürünle yayındayken /t3/ /t4/ /t5/ /t6/ 97 ürünle
+  // ONDAN AYRI duruyordu — aynı araç. `T4` jetonu `Transporter` tabanını İÇERMEDİĞİ için
+  // kelime sınırından türetilebilecek bir bağ YOK; bağ küratörlüdür.
+  // MARKA-ÖZELDİR: Mercedes `T1` (ayrı araç) VW T1'e katlanmaz — anahtar (marka, jeton).
+  // OTORİTE sunucu tarafındaki kuşak eşleme tablosudur; aşağısı çalışma anı AYNASIDIR ve
+  // ayrışması üyelik kapısında fail-closed KIRMIZI yakar (K18). Elle üye EKLEME.
+  var KUSAK_ESLEME = ["Volkswagen|T1|Transporter","Volkswagen|T2|Transporter",
+    "Volkswagen|T3|Transporter","Volkswagen|T4|Transporter","Volkswagen|T5|Transporter",
+    "Volkswagen|T6|Transporter","Volkswagen|T6.1|Transporter",
+    "Volkswagen|Transporter T5|Transporter","Volkswagen|T4 Transporter|Transporter"];
+  function kusakEslemeTabani(marka, s){
+    var onek = (marka || "") + "|" + s + "|";
+    for(var i = 0; i < KUSAK_ESLEME.length; i++){
+      if(KUSAK_ESLEME[i].indexOf(onek) === 0){ return KUSAK_ESLEME[i].slice(onek.length); }
+    }
+    return "";
+  }
   function kusakSonekMi(w){
     var t = (w || "").toLowerCase();
     if(/^\d{1,2}$/.test(t)){ return true; }                          // "Golf 4" · "Megane 2"
@@ -2638,6 +2656,13 @@
     var out = [];
     var ham = (s === null || s === undefined ? "" : String(s)).trim();
     if(!marka || !ham || kusakDisiMi(marka, ham)){ return out; }
+    // KÜRATÖRLÜ bağ gramerden ÖNCE gelir (gramer bu bağı göremez; kuşak etiketi ÇIPLAK jetondur).
+    var eslenen = kusakEslemeTabani(marka, ham);
+    if(eslenen){
+      var ea = modelAnahtar(marka, eslenen);
+      if(ea){ out.push([ea, ham]); }
+      return out;
+    }
     var kalan = modelOnekSiyir(marka, ham);
     if(!kalan){ return out; }
     var toks = kalan.split(/\s+/);

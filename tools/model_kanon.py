@@ -149,7 +149,8 @@ def kusak_tablolari(index_html):
     filtreden ayrıştırır (donanım soneki katlanmaz) ya da istisnayı iptal eder."""
     blok(index_html)                      # blok yoksa fail-closed
     return (_dizi_ayikla(index_html, "KUSAK_DONANIM"),
-            _dizi_ayikla(index_html, "KUSAK_DISI"))
+            _dizi_ayikla(index_html, "KUSAK_DISI"),
+            _dizi_ayikla(index_html, "KUSAK_ESLEME"))
 
 
 _KUSAK_SAYI = re.compile(r"^\d{1,2}$")
@@ -168,15 +169,29 @@ def kusak_sonek_mi(w, donanim):
     return t in set(x.lower() for x in donanim)
 
 
-def kusak_tabanlari(marka, s, evren, model_alias, donanim, disi):
+def kusak_esleme_tabani(marka, s, esleme):
+    """index.html kusakEslemeTabani() portu — küratörlü (marka, jeton) -> taban model adı."""
+    onek = (marka or "") + "|" + (s or "") + "|"
+    for kayit in esleme:
+        if kayit.startswith(onek):
+            return kayit[len(onek):]
+    return ""
+
+
+def kusak_tabanlari(marka, s, evren, model_alias, donanim, disi, esleme=()):
     """index.html kusakTabanlari() portu: [(taban_anahtarı, kuşak etiketi)] UZUN tabandan
     kısaya. Boş liste = jeton bir kuşak varyantı DEĞİL.
 
     🔴 TEK YÖNLÜ: kusak_tabanlari('Golf') boştur — taban jeton varyanta katlanmaz.
-    🔴 KELİME SINIRI: bölme yalnız gerçek boşlukta olur ('Golf 4' evet, 'Golfr' hayır)."""
+    🔴 KELİME SINIRI: bölme yalnız gerçek boşlukta olur ('Golf 4' evet, 'Golfr' hayır).
+    🔴 KÜRATÖRLÜ BAĞ gramerden ÖNCE gelir ('T4' -> Transporter; gramer bunu göremez)."""
     ham = (s or "").strip()
     if not marka or not ham or ((marka + "|" + ham) in set(disi)):
         return []
+    eslenen = kusak_esleme_tabani(marka, ham, esleme)
+    if eslenen:
+        ea = anahtar(marka, eslenen, evren, model_alias)
+        return [(ea, ham)] if ea else []
     kalan = onek_siyir(marka, ham, evren)
     if not kalan:
         return []
@@ -207,7 +222,7 @@ def _index_oku():
 
 # Modül düzeyi tablolar (geriye dönük okuyucular için; ayıklama fail-closed).
 MARKA_ALIAS, MODEL_ALIAS = tablolar(_index_oku())
-KUSAK_DONANIM, KUSAK_DISI = kusak_tablolari(_index_oku())
+KUSAK_DONANIM, KUSAK_DISI, KUSAK_ESLEME = kusak_tablolari(_index_oku())
 
 
 if __name__ == "__main__":

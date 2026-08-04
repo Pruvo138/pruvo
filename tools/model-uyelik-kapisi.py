@@ -92,6 +92,13 @@ KATLAMA_FIKSTURU = [
     ("Volkswagen", "Golf", ""),
     ("Opel", "Corsa", ""),
     ("Mitsubishi", "Evolution", ""),
+    # KÜRATÖRLÜ KUŞAK EŞLEMESİ (gramerin göremediği bağ; kuşak etiketi ÇIPLAK jeton)
+    ("Volkswagen", "T4", "transporter"),
+    ("Volkswagen", "T6.1", "transporter"),
+    ("Volkswagen", "Transporter T5", "transporter"),
+    # 🔴 MARKA-ÖZEL: Mercedes T1 (Bremer) AYRI ARAÇTIR — VW T1'e katlanmaz.
+    ("Mercedes", "T1", ""),
+    ("Volkswagen", "Transporter", ""),      # taban jeton kuşağa DÜŞMEZ (tek yön)
 ]
 
 
@@ -368,7 +375,18 @@ def olc(kok, modul_yolu=None):
     for (mk, kaynak), hedef_canon in (evren.model_alias or {}).items():
         alias_kaynaklari.setdefault((mk, hedef_canon), set()).add(kaynak)
     sahte, alias_aciklamali = [], []
-    kusak_aciklamali = []
+    kusak_aciklamali, esleme_aciklamali = [], []
+    # KÜRATÖRLÜ KUŞAK EŞLEMESİ ile açıklanan üyelik (MODEL_ALIAS ile AYNI muamele): `T4`
+    # jetonu `Transporter` metnini İÇERMEZ, dolayısıyla hiçbir bağımsız dilbilgisi bu
+    # üyeliği türetemez — türetebilseydi zaten küratörlü tabloya gerek olmazdı. Bu yüzden
+    # muafiyet listesi DEĞİL, tablonun KAYNAĞINDAN türetilir ve raporda AYRI listelenir;
+    # tablonun kimliği/etkisi K18'de ayrıca ölçülür (sessiz genişleme KIRMIZI).
+    esleme_kaynaklari = {}
+    for _kayit in getattr(evren, "kusak_esleme", []):
+        _p = _kayit.split("|")
+        if len(_p) == 3:
+            esleme_kaynaklari.setdefault(
+                (_p[0], evren.model_anahtari(_p[0], _p[2])), set()).add(_p[1])
 
     def _tasiyor(jetonlar, hedef):
         # marka öneki taşıyan yazım da sayılır ("peugeot206" -> "206")
@@ -394,6 +412,10 @@ def olc(kok, modul_yolu=None):
             # K14'te ayrıca ölçülür — "katlandı ama ana listeye karıştı" yeşil geçemez.
             if _kusak_tasiyor(jetonlar, hedef):
                 kusak_aciklamali.append((marka, display, pid))
+                continue
+            _kaynaklar = esleme_kaynaklari.get((marka, canon), set())
+            if any(_tasiyor(jetonlar, _bagimsiz_kanon(k)) for k in _kaynaklar):
+                esleme_aciklamali.append((marka, display, pid, sorted(_kaynaklar)))
                 continue
             sahte.append((marka, display, pid, sorted(jetonlar)[:4]))
 
@@ -520,6 +542,98 @@ def olc(kok, modul_yolu=None):
                     and p.get("id") in hedef_ids:
                 kusak_disi_sizan.append((mk, jeton, p.get("id")))
 
+    # --- SIZINTI EKSENİ (A): DEĞİŞTİRİCİ ŞEKİLLİ YAYIN KÜMESİ == DONMUŞ ENVANTER --------
+    # 🔴 BİRİM KÜME, SAYI DEĞİL: bir sayfa ölüp biri doğunca sayı sabit kalır ve sapma
+    # gizlenirdi ([[hukum-yanlis-birimde]]). Şekil ölçütü BAĞIMSIZ (üretimin tablosu değil,
+    # kapının kendi dilbilgisi) — aksi halde iddia totoloji olurdu.
+    # 🔴 YAYIN KÜMESİ JENERATÖRÜ KOŞTURARAK çıkar (tabloyu OKUYARAK değil).
+    izin = dict(_arama.DEGISTIRICI_SAYFA_IZNI)
+    izin_imza = (_arama.degistirici_izni_imzasi(), _arama.DEGISTIRICI_SAYFA_IZNI_IMZA,
+                 len(izin), _arama.DEGISTIRICI_SAYFA_IZNI_SAYISI)
+    deny = dict(_arama.MODEL_OLMAYAN_CIFT)
+    deny_imza = (_arama.model_olmayan_cift_imzasi(), _arama.MODEL_OLMAYAN_CIFT_IMZA,
+                 len(deny), _arama.MODEL_OLMAYAN_CIFT_SAYISI)
+    deny_n = set((mk, _bagimsiz_kanon(jt)) for mk, jt in deny)
+
+    def _degistirici_sekilli(display):
+        toks = (display or "").split()
+        return len(toks) >= 2 and bool(_BAGIMSIZ_KUSAK_RE.match(_bagimsiz_kanon(toks[-1])))
+
+    yayin_degistirici = set()
+    for (mk, dsp), (_i, canon) in sayfa.items():
+        if _degistirici_sekilli(dsp):
+            yayin_degistirici.add("%s|%s" % (mk, canon))
+    izin_fark = (sorted(set(izin) - yayin_degistirici),        # envanterde VAR, yayında YOK
+                 sorted(yayin_degistirici - set(izin)))        # yayında VAR, envanterde YOK
+    # deny ile allow ÇELİŞMEMELİ (bir çift hem kapatılıp hem izinli olamaz)
+    izin_deny_celiski = []
+    for anahtar_metin in sorted(izin):
+        _mk, _cn = anahtar_metin.split("|", 1)
+        for (dmk, djt) in deny_n:
+            if dmk == _mk and _cn.endswith(djt):
+                izin_deny_celiski.append((anahtar_metin, djt))
+
+    # --- DENY EKSENİ (B): kapatılan çiftin YAYIMLANAN kovası 0 (ürünü de kaybolmadı) -----
+    deny_sizan, deny_kaybolan, deny_etkilenen = [], [], []
+    for (dmk, djt) in sorted(deny):
+        dn = _bagimsiz_kanon(djt)
+        vurus = 0
+        for (mk, dsp), (ids, canon) in sayfa.items():
+            if mk != dmk:
+                continue
+            toks = dsp.split()
+            if _bagimsiz_kanon(dsp) == dn or (len(toks) >= 2
+                                              and _bagimsiz_kanon(toks[-1]) == dn):
+                deny_sizan.append((mk, dsp))
+        # kapatılan kovaların ürünleri marka AĞACINDA duruyor mu (K11 deseni)
+        for canon, g in (veri.get(dmk) or {}).get("gruplar", {}).items():
+            dsp = g.get("display") or canon
+            toks = dsp.split()
+            if not (_bagimsiz_kanon(dsp) == dn or (len(toks) >= 2
+                                                   and _bagimsiz_kanon(toks[-1]) == dn)):
+                continue
+            vurus += 1
+            agac = set()
+            for g2 in veri[dmk]["gruplar"].values():
+                if mm.yayimlanir_mi(g2):
+                    agac |= set(p.get("id") for p in g2["urunler"] if p.get("id"))
+            agac |= set(p.get("id") for p in (veri[dmk]["marka_only"]
+                                              + veri[dmk].get("ikincil", [])
+                                              + g["urunler"]) if p.get("id"))
+            for p in g["urunler"]:
+                if p.get("id") and p["id"] not in agac:
+                    deny_kaybolan.append((dmk, dsp, p["id"]))
+        deny_etkilenen.append((dmk, djt, vurus))
+
+    # --- KÜRATÖRLÜ KUŞAK EŞLEMESİ: ayna + kimlik + ETKİ ---------------------------------
+    esleme_ayna = list(getattr(evren, "kusak_esleme", []))
+    esleme_otorite = sorted("%s|%s|%s" % (a, b, t)
+                            for (a, b), t in _arama.KUSAK_ESLEME.items())
+    esleme_fark = (sorted(set(esleme_otorite) - set(esleme_ayna)),
+                   sorted(set(esleme_ayna) - set(esleme_otorite)))
+    esleme_imza = (_arama.kusak_esleme_imzasi(), _arama.KUSAK_ESLEME_IMZA,
+                   len(_arama.KUSAK_ESLEME), _arama.KUSAK_ESLEME_SAYISI)
+    # ETKİ 1: eşlenen jetonun ürünü TABAN sayfada mı · ETKİ 2: kuşağın kendi sayfası KAPANMADI
+    esleme_ulasmayan, esleme_kapanan = [], []
+    for (emk, ejt), etaban in sorted(_arama.KUSAK_ESLEME.items()):
+        taban_k = evren.model_anahtari(emk, etaban)
+        jeton_k = evren.model_anahtari(emk, ejt)
+        gk = (veri.get(emk) or {}).get("gruplar", {}).get(jeton_k)
+        if not gk:
+            continue
+        hedef_ids = sayfa_ids.get((emk, taban_k))
+        if hedef_ids is not None:
+            for p in gk["urunler"]:
+                if p.get("id") and p["id"] not in hedef_ids:
+                    esleme_ulasmayan.append((emk, ejt, p["id"]))
+        # "kuşak sayfaları KAPANMAZ" (mimar hükmü): eşik+birincil şartını sağlayan kova
+        # yayımda OLMALI — eşleme bir sayfayı sessizce öldürmemeli.
+        if gk.get("birincil") and len(gk["urunler"]) >= mm.ESIK \
+                and (emk, jeton_k) not in mm.ROZET_DISI \
+                and not mm.model_olmayan_cift_mi(emk, gk.get("display") or ejt) \
+                and (emk, jeton_k) not in set((a, b) for (a, _d), (_i, b) in sayfa.items()):
+            esleme_kapanan.append((emk, ejt, len(gk["urunler"])))
+
     # --- ALT BÖLÜM AYRIM KANITI: RENDER EDİLMİŞ HTML üzerinden -------------------------
     # 🔴 NEDEN HTML (veri değil): ayrımı `g["kusak_bolum"]` sözlüğünden ölçseydik, bölümleri
     # GÖRMEZDEN gelip hepsini tek listeye döken bir RENDERER mutantı veriyi bozmadığı için
@@ -609,10 +723,19 @@ def olc(kok, modul_yolu=None):
                    "kusak_sapan": kusak_sapan, "kusak_sonda_sayisi": len(kusak_sondalar),
                    "fikstur_sapan": fikstur_sapan, "fikstur_sayisi": len(KATLAMA_FIKSTURU),
                    "kusak_aciklamali": len(kusak_aciklamali),
+                   "esleme_aciklamali": len(esleme_aciklamali),
                    "kusak_ayna_fark": kusak_ayna_fark, "kusak_ayna": kusak_ayna,
                    "kusak_disi_imza": kusak_disi_imza, "kusak_disi_sizan": kusak_disi_sizan,
                    "bolum_sayfa": bolum_sayfa, "bolum_urun": bolum_urun,
                    "bolum_sapan": bolum_sapan, "katlama_envanteri": _katlama_envanteri(veri),
+                   "izin_fark": izin_fark, "izin_imza": izin_imza,
+                   "izin_deny_celiski": izin_deny_celiski,
+                   "yayin_degistirici": len(yayin_degistirici),
+                   "deny_imza": deny_imza, "deny_sizan": deny_sizan,
+                   "deny_kaybolan": deny_kaybolan, "deny_etkilenen": deny_etkilenen,
+                   "esleme_fark": esleme_fark, "esleme_imza": esleme_imza,
+                   "esleme_ayna": esleme_ayna, "esleme_ulasmayan": esleme_ulasmayan,
+                   "esleme_kapanan": esleme_kapanan,
                    "envanter": _envanter(urunler, veri, evren, mm, sayfa),
                    "cok_kelimeli": cok_kelimeli}
 
@@ -772,6 +895,42 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
             "aynada eksik=%s fazla=%s · sızan=%s · imza=%s beklenen=%s sayı=%d beklenen=%d"
             % (a["kusak_ayna_fark"][0] or "-", a["kusak_ayna_fark"][1] or "-",
                a["kusak_disi_sizan"] or "-", _ki[0], _ki[1], _ki[2], _ki[3]))
+    # K16 — SIZINTI EKSENİ: değiştirici şekilli YAYIN kümesi, donmuş envanterle BİREBİR.
+    _ii = a["izin_imza"]
+    dogrula("K16 DEĞİŞTİRİCİ ŞEKİLLİ SAYFA KÜMESİ DONMUŞ ENVANTERLE BİREBİR (%d sayfa)"
+            % a["yayin_degistirici"],
+            not a["izin_fark"][0] and not a["izin_fark"][1] and not a["izin_deny_celiski"]
+            and a["yayin_degistirici"] > 0 and _ii[0] == _ii[1] and _ii[2] == _ii[3],
+            "envanterde var yayında yok=%s · yayında var envanterde yok (SIZINTI)=%s · "
+            "deny/allow çelişkisi=%s · imza=%s beklenen=%s"
+            % (a["izin_fark"][0] or "-", a["izin_fark"][1] or "-",
+               a["izin_deny_celiski"] or "-", _ii[0], _ii[1]))
+    # K17 — DENY EKSENİ: kapatılan (marka, jeton) çiftinin yayımlanan kovası 0, ürünü sağ.
+    _di = a["deny_imza"]
+    dogrula("K17 MODEL OLMAYAN ÇİFTİN SAYFASI YOK ve ürünü KAYBOLMADI (%d çift)" % _di[2],
+            not a["deny_sizan"] and not a["deny_kaybolan"] and _di[0] == _di[1]
+            and _di[2] == _di[3] and sum(v for _m, _j, v in a["deny_etkilenen"]) > 0,
+            "sızan sayfa=%s · kaybolan ürün=%d · imza=%s beklenen=%s"
+            % (a["deny_sizan"] or "-", len(a["deny_kaybolan"]), _di[0], _di[1]))
+    for _m, _j, _v in a["deny_etkilenen"]:
+        print("        KAPATILAN %-10s %-10s -> eşleşen kova %d (sayfa 0)" % (_m, _j, _v))
+    # K18 — KÜRATÖRLÜ KUŞAK EŞLEMESİ: ayna+kimlik donmuş, ürün TABAN sayfaya ULAŞTI,
+    #       kuşağın KENDİ sayfası KAPANMADI (mimar hükmü).
+    _ei = a["esleme_imza"]
+    dogrula("K18 KÜRATÖRLÜ KUŞAK EŞLEMESİ AYNASI+KİMLİĞİ DONMUŞ, ürün TABAN sayfada, "
+            "kuşak sayfası KAPANMADI (%d eşleme)" % _ei[2],
+            not a["esleme_fark"][0] and not a["esleme_fark"][1] and len(a["esleme_ayna"]) > 0
+            and not a["esleme_ulasmayan"] and not a["esleme_kapanan"]
+            and _ei[0] == _ei[1] and _ei[2] == _ei[3],
+            "aynada eksik=%s fazla=%s · tabana ulaşmayan ürün=%d %s · KAPANAN kuşak sayfası=%s"
+            " · imza=%s beklenen=%s"
+            % (a["esleme_fark"][0] or "-", a["esleme_fark"][1] or "-",
+               len(a["esleme_ulasmayan"]), a["esleme_ulasmayan"][:2],
+               a["esleme_kapanan"] or "-", _ei[0], _ei[1]))
+    if a["esleme_aciklamali"]:
+        print("  BILGI KÜRATÖRLÜ KUŞAK EŞLEMESİ ile açıklanan üyelik: %d ürün (muafiyet "
+              "listesi DEĞİL, KUSAK_ESLEME kaynağından türer; kimliği/etkisi K18'de ölçülür)"
+              % a["esleme_aciklamali"])
     if a["kusak_aciklamali"]:
         print("  BILGI KUŞAK KATLAMASI ile açıklanan üyelik: %d ürün (muafiyet listesi DEĞİL, "
               "bağımsız kuşak dilbilgisiyle ölçülür; ayrımı K14 doğrular)"
@@ -898,8 +1057,10 @@ MUTANTLAR = [
      "sızar; ayna otoriteyle (arama.py) ayrışır"),
     ("tools/model_kanon.py",
      '    return (_dizi_ayikla(index_html, "KUSAK_DONANIM"),\n'
-     '            _dizi_ayikla(index_html, "KUSAK_DISI"))',
-     '    return ([], _dizi_ayikla(index_html, "KUSAK_DISI"))', "KIRMIZI",
+     '            _dizi_ayikla(index_html, "KUSAK_DISI"),\n'
+     '            _dizi_ayikla(index_html, "KUSAK_ESLEME"))',
+     '    return ([], _dizi_ayikla(index_html, "KUSAK_DISI"),\n'
+     '            _dizi_ayikla(index_html, "KUSAK_ESLEME"))', "KIRMIZI",
      "M18 PYTHON TARAFI DONANIM TABLOSUNU OKUMAYI BIRAKIR -> 'Focus ST' sayfada katlanmaz, "
      "filtrede katlanır (SAYFA_DAR)"),
     ("tools/marka_model_build.py",
@@ -907,6 +1068,29 @@ MUTANTLAR = [
      '    ana = g["urunler"]', "KIRMIZI",
      "M19 ALT BÖLÜM AYRIMINI KALDIR (renderer tek listeye döker) -> kuşak-özel ürün ANA "
      "listeye karışır, kart mükerrer basılır"),
+    # --- SIZINTI / DENY / KÜRATÖRLÜ EŞLEME EKSENİ (4 Ağu, mimar hükmü) ---
+    # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — /marka/ford/
+    # focus-st/ CANLIDA duruyordu ve kapı 16/16 YEŞİL geçiyordu.
+    ("tools/arama.py",
+     '    ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",\n}',
+     '    ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",\n'
+     '    ("Volkswagen", "T4"): "MUTANT",\n}', "KIRMIZI",
+     "M21 KUŞAK SAYFASINI DENY'E AL (Volkswagen T4) -> yayın kümesi tam olarak "
+     "volkswagen/t4'ü kaybeder; 'kuşak sayfaları KAPANMAZ' hükmü kırılır"),
+    ("tools/arama.py",
+     '    ("Ford", "ST"): "donanim/performans paketi (Focus ST, Fiesta ST) — model degil; "\n'
+     '                    "urunler ana modelin varyant bolumunde",\n',
+     "", "KIRMIZI",
+     "M22 `Ford ST` DENIAL'INI KALDIR -> /marka/ford/focus-st/ + /fiesta-st/ geri doğar "
+     "(sızıntı ekseni: yayında var, envanterde yok)"),
+    ("tools/marka_model_build.py",
+     "        return set((mk, model_kanon.kanon(jt)) for mk, jt in arama.MODEL_OLMAYAN_CIFT)",
+     "        return set()", "KIRMIZI",
+     "M23 DENY TABLOSUNU OKUMAYI BIRAK (kuplaj ekseni; tablo kimliği BOZULMADAN) -> aynı "
+     "iki sayfa geri doğar, SIZINTI ekseni TEK BAŞINA kırmızı yakmalı"),
+    ("index.html", '"Volkswagen|T1|Transporter"', '"Mercedes|T1|Transporter"', "KIRMIZI",
+     "M24 KÜRATÖRLÜ EŞLEMEYİ FARKLI ARACA KAYDIR -> Mercedes T1 (Bremer) VW Transporter'a "
+     "katlanır; fikstür + ayna iki ayrı eksende kırmızı"),
     # 🔴 İDDİA EDİLMEYEN EKSEN (dürüst kayıt, [[beyan-edilmis-survivor]]): gruplandir'daki
     # `taban in jetonlar` (ürün zaten TAM eşleşmeyle üye) koruması bugünkü katalogda 0 kez
     # ateşliyor — ölçüldü 4 Ağu: hem TABAN hem VARYANT jetonu taşıyan ürün YOK. Kaldıran
@@ -920,8 +1104,22 @@ MUTANTLAR = [
      '            g["kusak_bolum"] = sorted(bolumler, key=lambda b: b["display"])', "YESIL",
      "K4 KONTROL: kuşak bölümlerinin SIRASI değişir, AYRIM değişmez -> iddia bozulmamalı "
      "(eksen sıralamaya değil ayrıma duyarlı olmalı)"),
-    ("tools/marka_model_build.py", "ESIK = 3", "ESIK = 4", "YESIL",
-     "K1 İLGİSİZ: eşiği yükseltmek çift SAYISINI düşürür, PARİTEYİ bozmaz"),
+    ("tools/arama.py",
+     '    ("Ford", "ST Line"): "gorunum paketi — ST ile ayni sinif, ayri yazim",\n'
+     '    ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",',
+     '    ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",\n'
+     '    ("Ford", "ST Line"): "gorunum paketi — ST ile ayni sinif, ayri yazim",', "YESIL",
+     "K5 KONTROL: deny tablosunu YENİDEN SIRALA -> küme ve kimlik AYNI, davranış AYNI "
+     "(daima-kırmızı bir kapı M21/M22'yi de geçerdi; kontrol bunu ayırt eder)"),
+    # 🔴 ESKİDEN KONTROLDÜ, ARTIK ÖLDÜRÜCÜ (4 Ağu): eşik SAYFA EVRENİNİ kaydırır ve donmuş
+    # envanter ekseni (K16) bunu GÖRÜR — parite (K1/K2/K3) YEŞİL kalırken. Mutant tam da bu
+    # ayrımı kanıtlar: "sayfa sayısı değişti ama parite bozulmadı" artık sessiz DEĞİL.
+    # ⚠️ BAĞIMLILIK (dürüst kayıt): bugün envanterdeki 17 kovanın 8'i TAM eşikte (3 ürün)
+    # duruyor; katalog hepsini 4+'a taşırsa bu mutant EŞDEĞERE düşer ve batarya "beklentiyi
+    # tutmayan" diye KENDİ raporlar — o gün yerine başka bir küme-kaydıran mutant yazılır.
+    ("tools/marka_model_build.py", "ESIK = 3", "ESIK = 4", "KIRMIZI",
+     "M25 EŞİĞİ YÜKSELT -> yayımlanan değiştirici-şekilli kova kümesi DARALIR (8 sayfa "
+     "sessizce ölür); parite YEŞİL kalır, donmuş envanter ekseni KIRMIZI yakar"),
     ("tools/cip-indeks.py", "SURUM = 1", "SURUM = 2", "YESIL",
      "K2 İLGİSİZ: indeks sürüm alanı model üyeliğinde rol OYNAMAZ"),
     ("index.html", 'var MODEL_TR = {"ı":"i"', 'var MODEL_TR = {"Û":"u","ı":"i"', "YESIL",

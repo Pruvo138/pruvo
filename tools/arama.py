@@ -684,6 +684,128 @@ def kusak_disi_imzasi():
         .encode("utf-8")).hexdigest()[:16]
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# MODEL OLMAYAN (marka, jeton) CIFTLERI — /marka/X/M/ sayfasi ACILMAZ (4 Agu, mimar hukmu)
+#
+# OLCULEN SIZINTI (canlida duruyordu): /marka/ford/focus-st/ (8 urun) ·
+# /marka/ford/fiesta-st/ (3) · /marka/ford/ecoboost/ (3). `ST` bir DONANIM PAKETI,
+# `EcoBoost` bir MOTOR AILESI — ikisi de MODEL degil; Focus ve Fiesta'yi BOLEREK kendi
+# sayfalarini acmislardi.
+#
+# 🔴 NEDEN DUZ `MODEL_OLMAYAN_JETON`A EKLENMEDI: o kume MARKA-KORDUR. Oraya `GS` yazilsa
+# /marka/bmw/gs/ ile /marka/citroen/gs/ BIRLIKTE olurdu, oysa ikisi ayri siniftir. Yargi
+# marka-ozeldir -> ROZET_DISI_CIFT deseninde (marka, jeton) cifti tutulur.
+#
+# 🔴 YUKLEM BILESIK YAZIMI DA KAPSAR: `marka_jetonu_mu("Focus ST")` bugun False donuyordu
+# (bilesik yazim hic yakalanmiyordu). Tuketici yuklem hem CIPLAK jetona ("ST", "EcoBoost")
+# hem de SON KELIMEYE bakar ("Focus ST" -> "ST").
+#
+# URUN KAYBOLMAZ: sayfasi kapanan kovanin urunleri (a) kusak katlamasiyla ana modelin
+# VARYANT ALT BOLUMUNDE (Focus ST -> /marka/ford/focus/), (b) her halukarda marka
+# sayfasinda durur. Kapi bunu OLCER (kaybolan=0).
+MODEL_OLMAYAN_CIFT = {
+    ("Ford", "ST"): "donanim/performans paketi (Focus ST, Fiesta ST) — model degil; "
+                    "urunler ana modelin varyant bolumunde",
+    ("Ford", "ST Line"): "gorunum paketi — ST ile ayni sinif, ayri yazim",
+    ("Ford", "EcoBoost"): "motor ailesi (1.0/1.5/2.3 EcoBoost) — arac modeli degil",
+}
+
+MODEL_OLMAYAN_CIFT_SAYISI = 3
+MODEL_OLMAYAN_CIFT_IMZA = "f578d0954c69c3da"
+
+
+def model_olmayan_cift_imzasi():
+    """Cift kumesinin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (a, b) for a, b in MODEL_OLMAYAN_CIFT), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DEGISTIRICI SEKILLI SAYFA IZNI — "<taban> <degistirici>" adli YAYIMLANAN kovalarin
+# DONMUS envanteri (4 Agu, mimar hukmu; sizinti ekseninin ALLOW tarafi)
+#
+# NE ICIN: kusak/donanim SEKILLI bir kova sayfa aciyorsa bu bir KARARDIR — ya mesru bir
+# kusak sayfasidir (Astra H, Golf 4: kapanmaz hukmu) ya da bir sizintidir (Focus ST).
+# Kapi jeneratoru KOSTURUP yayimlanan (marka, canon) KUMESINI cikarir ve bu envanterle
+# BIREBIR karsilastirir. Karsilastirma birimi KUME'dir, SAYI degil: bir sayfa olup biri
+# dogunca sayi sabit kalir ve sapma gizlenirdi ([[hukum-yanlis-birimde]]).
+#
+# YENI GIRIS = MIMAR HUKMU: katalog buyudukce yeni bir degistirici-sekilli kova ESIK'i
+# gecerse kapi KIRMIZI yanar ve karar ister (allow'a mi deny'a mi). Sessiz sayfa dogmaz.
+DEGISTIRICI_SAYFA_IZNI = {
+    "Ford|modelt": "Ford Model T — gercek model adi (T harfi degistirici DEGIL)",
+    "Opel|asconac": "Ascona C — mesru kusak sayfasi",
+    "Opel|astraf": "Astra F — mesru kusak sayfasi",
+    "Opel|astrag": "Astra G — mesru kusak sayfasi",
+    "Opel|astrah": "Astra H — mesru kusak sayfasi",
+    "Opel|astraj": "Astra J — mesru kusak sayfasi",
+    "Opel|astrak": "Astra K — mesru kusak sayfasi",
+    "Opel|corsac": "Corsa C — mesru kusak sayfasi",
+    "Opel|mantab": "Manta B — mesru kusak sayfasi",
+    "Opel|tigraa": "Tigra A — mesru kusak sayfasi",
+    "Opel|vectrac": "Vectra C — mesru kusak sayfasi",
+    "Renault|megane2": "Megane 2 — mesru kusak sayfasi",
+    "Renault|megane3": "Megane 3 — mesru kusak sayfasi",
+    "Volkswagen|golf4": "Golf 4 — mesru kusak sayfasi",
+    "Volkswagen|golfr": "Golf R — mesru donanim/kusak sayfasi (VW'nin R serisi)",
+    "Volkswagen|type2": "VW Type 2 (Bulli) — gercek model adi, Type 1'den AYRI arac",
+    "Yamaha|tracer7": "Tracer 7 — gercek model adi (motosiklet hacim kirilimi)",
+}
+
+DEGISTIRICI_SAYFA_IZNI_SAYISI = 17
+DEGISTIRICI_SAYFA_IZNI_IMZA = "ae4fc17fef7efbc5"
+
+
+def degistirici_izni_imzasi():
+    return hashlib.sha256(
+        json.dumps(sorted(DEGISTIRICI_SAYFA_IZNI), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# KURATORLU KUSAK ESLEMESI — gramerin GOREMEDIGI kusak/taban baglari (4 Agu, mimar hukmu)
+#
+# OLCULEN PARCALANMA: /marka/volkswagen/transporter/ 44 urunle yayindayken /t3/ /t4/ /t5/
+# /t6/ sayfalari 97 urunle ONDAN AYRI duruyordu. Ayni arac: "T4 parcasi" arayan musteri
+# Transporter sayfasindaki 44 urunu GORMUYOR, tersi de dogru.
+#
+# 🔴 GRAMER BUNU YAKALAYAMAZ: `T4` jetonu `Transporter` tabanini ICERMIYOR — kelime
+# sinirindan turetilebilecek bir bag YOK. Bu yuzden KURATORLU esleme sart; kural
+# ROZET_DISI_CIFT / KUSAK_DISI_JETON ile AYNI disiplinde: kapali, gerekceli, kimligi donmus.
+#
+# 🔴 MARKA-OZEL: Mercedes `T1` (Bremer transporter, ayri arac) VW T1'e KATLANMAZ — tablo
+# (marka, jeton) ciftiyle anahtarlandigi icin yapisal olarak imkansiz; kapi ayrica bunu
+# oldurucu mutantla olcer.
+#
+# KANONIK AD CIPLAK JETONDUR (mimar karari, olculdu): `?ara=T4` 74 vs `?ara=Transporter T4`
+# 15 (~5:1) — T5 97/15, T6 68/8, T3 64/5. Musteri ciplak kusak jetonunu ariyor; sayfa adi
+# ve alt bolum basligi `T4`'tur, `Transporter T4` DEGIL.
+KUSAK_ESLEME = {
+    ("Volkswagen", "T1"): "Transporter",
+    ("Volkswagen", "T2"): "Transporter",
+    ("Volkswagen", "T3"): "Transporter",
+    ("Volkswagen", "T4"): "Transporter",
+    ("Volkswagen", "T5"): "Transporter",
+    ("Volkswagen", "T6"): "Transporter",
+    # T6.1 = T6 makyajı (ayni arac kusagi); disarida birakilsaydi kendi basina duran
+    # ucuncu bir sayfa olurdu. MIMAR ONAYI BEKLIYOR (raporda isaretli).
+    ("Volkswagen", "T6.1"): "Transporter",
+    # Ayni aracin BILESIK yazimlari — yoksa tek urunluk oksuz kovalar olarak kalirlar.
+    ("Volkswagen", "Transporter T5"): "Transporter",
+    ("Volkswagen", "T4 Transporter"): "Transporter",
+}
+
+KUSAK_ESLEME_SAYISI = 9
+KUSAK_ESLEME_IMZA = "9dcae2fc27d7a581"
+
+
+def kusak_esleme_imzasi():
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s|%s" % (a, b, t) for (a, b), t in KUSAK_ESLEME.items()),
+                   ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+
+
 def model_olmayan_imzasi():
     """Tablonun ANAHTAR kimligi — sessiz buyume/daralma kapida KIRMIZI yakar (S2 dersi:
     SAYI degil KIMLIK; sayiyi sabit tutup uyeyi degistirmek gorunmez kalirdi)."""
