@@ -2350,6 +2350,11 @@
     return [phData(p.kategori)];
   }
   function coverOf(p){ return imagesOf(p)[0]; }
+  function thumbUrl(url){
+    var i = url.lastIndexOf(".");
+    if(i === -1) return url;
+    return url.slice(0, i) + "-thumb" + url.slice(i);
+  }
 
   /* ---------- ESKİ FİYAT (üstü çizili indirim gösterimi) ----------
      Opsiyonel `eski_fiyat` alanı ("1.200 TL"). 🔴 YALNIZ GÖSTERİM: sepet/ödeme/konfigür
@@ -3255,8 +3260,13 @@
     img.className = "card-img";
     img.alt = p.baslik;
     img.loading = "lazy";
-    img.src = coverOf(p);
-    img.onerror = function(){ this.src = phData(p.kategori); };
+    var kapak = coverOf(p);
+    img.src = thumbUrl(kapak);
+    img.onerror = function(){
+      if(this.src !== kapak){ this.src = kapak; return; }
+      this.onerror = function(){};
+      this.src = phData(p.kategori);
+    };
 
     var body = document.createElement("div");
     body.className = "card-body";
