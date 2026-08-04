@@ -62,6 +62,24 @@ jobs:
         with:
           node-version: "20"
 
+      # URUNLER-GUARD PROVENANS + FAIL-LOUD (4 Agu 2026 olayi): bir muhendis
+      # worktree'sinde `origin/main` dala merge edilirken guard, merge'in GETIRDIGI
+      # guncel katalogu dalin BAYAT haline SESSIZCE geri sardi (5 ekleme / 11 silme;
+      # bir uründen `lisans` ATFI + gorsel dustu, aciklama 461 -> 378 karaktere
+      # bayatladi). Cikis kodu 0, stdout/stderr BOS — HICBIR KAPI CALMADI; olay
+      # yalnizca isci kendi raporunda itiraf ettigi icin gorüldü. Atfin sessizce
+      # dusmesi ayrica HUKUKI risktir (CC BY sinifi atif KALMAK ZORUNDA).
+      #
+      # 🔴 NEDEN SERIT A (`build`), SERIT B DEGIL: bu kapinin korudugu sey urun
+      # VERISININ butunlugudur ve kendisi FAIL-LOUD bir korumadir. `serit-b` job'u
+      # `deploy.needs` listesinde YOKTUR -> oradaki kirmizi yayini DURDURMAZ; fail-loud
+      # bir korumanin kabul testini bloklamayan seride koymak korumayi KAGIT USTUNDE
+      # birakirdi (tam da bu kapinin kapattigi sinif). Bagimliligi yok, ~7 sn surer,
+      # kendi gecici git depolarini kurar; build.py'den ONCE kosar ki bozuk bir koruma
+      # ile sayfa uretilmesin.
+      - name: "urunler-guard provenans + fail-loud kabulu"
+        run: python3 tools/urunler-guard-provenans-test.py
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
@@ -2674,6 +2692,7 @@ jobs:
       # YESIL kalmali. Bu adim olmadan "kabul testi olu" hali GORUNMEZ kalirdi.
       - name: "Kanca nobeti cift yonlu mutasyon turu"
         run: python3 tools/kanca-nobeti-test.py --mutasyon
+
 
 
   # ===========================================================================

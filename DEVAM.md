@@ -6,8 +6,31 @@ KAPANDI: odeme yolu bayatlik seridi — dokum DEVAM-ARSIV.md de (git disi).
 ### 🟡 ACIK KALEM 1 — kuyruk geri tepmesi OLCULEMEDI (48 saat sonra yeniden olculecek)
 ACIK: ayrinti DEVAM-ARSIV.md de (git disi).
 
-### 🔴 ACIK KALEM 2 — guard, merge'in getirdigi katalogu dalin BAYAT haline geri sardi (olay + onarim)
-ACIK: ayrinti DEVAM-ARSIV.md de (git disi).
+### ✅ KAPANDI (4 Agu) — guard, merge'in getirdigi katalogu dalin BAYAT haline geri sariyordu
+Onarim main'de: merge SHA `0f8f5c01` (dal 2 commit, 5 dosya, +1276/-141; katalog dosyalari
+diff'e GIRMEDI). Guard artik merge halini gorur: iki ebeveynden birinden gelen degisim
+mesrudur; provenans cozulemedigi halde veriyi SESSIZCE degistirmek yerine commit'i
+gerekceyle REDDEDER ve calisan cikis yollarini basar.
+BAGIMSIZ OLCUM (curutucu): kabul testi **26 iddia / 0 kirmizi**, 5 kosumda ayni imza
+(determinist); mutasyon bataryasi **16 mutant + kontrol mutanti (bos kume), SAPMA 0**,
+TABAN_IDDIA 26, Traceback 0, izlenen 5 canli dosyanin sha256'si once=sonra AYNI.
+Kabul testi artik yayini BLOKLAYAN seritte kosuyor (`build` isi, sayfa uretiminden ONCE;
+yumusatma yok) — `is-akisi-kapisi.py` rc=0, olculen kapi cagrisi 192, serit tablosuna
+giris EKLENMEDI (dosya dala hic dokunmadi); ayni agacta onceki commit rc=1 veriyordu.
+Davranissal parite: urun partisi · merge (olay senaryosu) · rebase · amend · cakisma
+cozumu — 5 akisin 5'inde onceki commit ile ayni rc + ayni katalog sha; atif/gorsel/
+aciklama korundu. Yerel sure 2,6 s. Kapilar 8/8 rc=0. D1 teyidi 17914 = 17914 (uc eksen).
+
+### 🟡 ACIK KALEM — korumanin tasinabilirligi
+ACIK: koruma her ortamda ayni sekilde durdurmuyor; ayrinti DEVAM-ARSIV.md de (git disi).
+Dal icinden kapatilamaz (ilgili dosya depoya girmiyor) — ayri tur gerekiyor.
+
+### 🟡 ACIK KALEM — kabul testi ortam degiskeni kirliligine kirilgan
+Olculdu: ortamda `GIT_DIR`/`GIT_WORK_TREE` tanimliyken kabul testi 26 iddianin 21'inde
+KIRMIZI yaniyor (gecici depolar yerine dis depo hedefleniyor). Bugun ulasilamiyor —
+ne is akislari ne de yerel kancalar bu degiskenleri kuruyor — ama kapi artik yayini
+BLOKLADIGI icin ucuz sertlestirme onerilir: test kendi alt surec ortamindan bu uc
+degiskeni (indeks dosyasi dahil) SILSIN.
 
 KAPANDI: nabiz nobetcisi A5 TESLIM ekseni — dokum DEVAM-ARSIV.md de (git disi).
 
