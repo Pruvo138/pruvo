@@ -3057,7 +3057,10 @@
     // "Mercedes-Benz"li ürünü de bulur (görünümde tek kalem + eşleşmede aynı kural).
     var hedefMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
     return PRODUCTS.filter(function(p){
-      var catOk = activeCat === "Tümü" || p.kategori === activeCat;
+      // "Jeneratör" görünümü kategori adını paylaşan genel jeneratör parçalarını değil,
+      // yalnız gizli sarı/parametrik seriyi temsil eder. Diğer kategoriler tam eşitliktir.
+      var catOk = activeCat === "Tümü" ||
+        (activeCat === "Jeneratör" ? !!p.parametrik : p.kategori === activeCat);
       // ALT KATEGORİ: TAM eşitlik (Worker'ın `u.altkategori = ?` koşuluyla AYNI kural).
       // Katlama/normalleştirme YOK — marka ekseninin aksine değerler kanonik tek kaynaktan
       // gelir. İzinli küme DIŞI bir değer (deep-link `?altkategori=xyzyok`) hiçbir kayda
@@ -3495,6 +3498,7 @@
       if(activeCat !== "Tümü" && k.kategori !== undefined && k.kategori !== activeCat){
         return "kategori";
       }
+      if(activeCat === "Jeneratör" && !k.parametrik){ return "parametrik"; }
       if(activeAlt !== "Tümü" && k.altkategori !== undefined &&
          (k.altkategori || "") !== activeAlt){
         return "grup";
@@ -3594,6 +3598,38 @@
     return EDGE_UC + "/katalog?" + p.toString();
   }
 
+  // Gizli "Jeneratör" bağlantısı bir genel kategori değil, sarı/parametrik seri
+  // görünümüdür. ozet.json bu kümeyi zaten eksiksiz ve ayrı taşır; kategori adı aynı
+  // olan parametrik olmayan parçaları Worker'dan istemek görünümü genişletirdi.
+  function edgeJeneratorOzeti(){
+    if(activeCat !== "Jeneratör" || !OZET){ return null; }
+    var liste = edgeTekille((OZET.parametrik || []).slice());
+    if(activeAlt !== "Tümü"){
+      liste = liste.filter(function(p){ return (p.altkategori || "") === activeAlt; });
+    }
+    if(activeBrand !== "Tümü"){
+      var hedefMarka = markaKatla(activeBrand);
+      liste = liste.filter(function(p){
+        return (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
+      });
+    }
+    if(activeModel !== "Tümü"){
+      var modelMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
+      liste = liste.filter(function(p){ return modelEsler(p.marka, activeModel, modelMarka); });
+    }
+    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
+    if(tokens.length){
+      liste = liste.filter(function(p){
+        var hs = haystack(p);
+        for(var i = 0; i < tokens.length; i++){
+          if(hs.indexOf(tokens[i]) === -1){ return false; }
+        }
+        return true;
+      });
+    }
+    return liste;
+  }
+
   // ---------- SAYFA DEVAMLILIĞI (hata onarımı, 31 Tem) ----------
   // ESKİ HATA (ölçüldü): ana sayfanın 1. sayfası ozet.json'dan geliyor, "Daha fazla göster"
   // ise Worker'dan sayfa 2'yi istiyordu. Worker sayfa 1'i (ham katalogun ilk 24 ürünü) HİÇ
@@ -3621,6 +3657,17 @@
 
   function edgeYukle(sayfa, ekle, hedef, telafi){
     var no = ++edgeIstekNo;
+
+    var sariListe = edgeJeneratorOzeti();
+    if(sariListe){
+      edgeListe = kartBellegeAl(sariListe);
+      edgeToplam = sariListe.length;
+      edgeSayfa = 1;
+      edgeGoster = PAGE_SIZE;
+      edgeDurum = "";
+      renderGrid();
+      return;
+    }
 
     // Ana sayfanın 1. sayfası ozet.json'da HAZIR — ağa hiç çıkma (ilk boyama bedava).
     // Havuzun TAMAMI belleğe alınır (ön blok 164 slotu buradan beslenir); ekrana yalnız

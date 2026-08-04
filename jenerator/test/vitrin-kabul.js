@@ -10,7 +10,8 @@
  *  2 NAV: ana sayfa kategori menusunde "Jeneratör" YOK (gizli kategori) ama 12 gorunur
  *    kategori + "Tümü" tam.
  *  3 LINK: ?kategori=Jeneratör calisir — baslik "Jeneratör Ürünleri", gridde SADECE
- *    parametrik urunler, banner bu gorunumde YOK.
+ *    parametrik urunler, banner bu gorunumde YOK. Kaynak, ozet.json'daki ayrik
+ *    `parametrik` havuzudur; ayni kategori etiketli genel parcalar sizamaz.
  *  4 KART FIYATI: sari kartta "X TL'den başlayan" — X, jenerator/urunler/<id>.json
  *    tabanFiyatTL'sinden (TEK KAYNAK, elle kopya yok; bicim secenekler.js kurusMetni).
  *    Harita yuklenmemisse (build calismamis) eski "Ölçüye özel fiyat" fallback'i.
@@ -656,18 +657,14 @@ async function test9EdgeSozlesmesi() {
   if (anaIstek.length !== 1 || anaIstek[0].indexOf("ozet.json") !== 0) {
     hatalar.push("ana sayfa istekleri beklenen ['ozet.json'] degil: " + JSON.stringify(anaIstek));
   }
-  // (b) KATEGORI GORUNUMU: /katalog + kategori=Jeneratör + boy=PAGE_SIZE
+  // (b) GIZLI SARI SERI: ozet.json'daki ayrik parametrik havuz yeter; kategori adini
+  // paylasan parametrik olmayan urunleri /katalog'dan istemek sessizce sizdirirdi.
   const kat = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN });
   const katalogIstek = kat.istekler().filter((u) => u.indexOf(EDGE_UC + "/katalog") === 0);
-  if (katalogIstek.length !== 1) {
-    hatalar.push("/katalog istegi " + katalogIstek.length + " (beklenen 1): " +
+  if (katalogIstek.length !== 0 || kat.istekler().length !== 1 ||
+      kat.istekler()[0].indexOf("ozet.json") !== 0) {
+    hatalar.push("Jeneratör gorunumu yalniz ozet.json kullanmadi: " +
       JSON.stringify(kat.istekler()));
-  } else {
-    const p = new URL(katalogIstek[0]).searchParams;
-    if (p.get("kategori") !== "Jeneratör") { hatalar.push("kategori param '" + p.get("kategori") + "'"); }
-    if (p.get("sayfa") !== "1") { hatalar.push("sayfa param '" + p.get("sayfa") + "'"); }
-    if (p.get("boy") !== String(PAGE_SIZE)) { hatalar.push("boy param '" + p.get("boy") + "'"); }
-    if (p.get("q")) { hatalar.push("kategori gorunumunde q param VAR: " + p.get("q")); }
   }
   // (c) ARAMA GORUNUMU: /ara + q + limit (sayfa DEGIL — parite ucunun imzasi)
   const ara = await sayfaKur({ search: "?ara=vida", tabanHarita: TABAN });
@@ -680,7 +677,7 @@ async function test9EdgeSozlesmesi() {
     if (p.get("limit") !== String(PAGE_SIZE)) { hatalar.push("limit param '" + p.get("limit") + "'"); }
   }
   rapor("9 edge uc/parametre sozlesmesi + ana sayfa aga CIKMIYOR", hatalar,
-    "ana sayfa 1 istek (ozet.json), kategori /katalog, arama /ara");
+    "ana sayfa + sari seri ozet.json, arama /ara");
 }
 
 // -------------------------------------------------------------------------- akis
