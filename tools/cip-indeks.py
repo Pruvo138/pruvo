@@ -81,6 +81,10 @@ import sys
 DIR = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(DIR)
 
+if DIR not in sys.path:
+    sys.path.insert(0, DIR)
+import model_kanon as _model_kanon                                  # noqa: E402
+
 SURUM = 1
 ESIK_MARKA = 15      # marka cipi: kategori icinde en az bu kadar urun
 ESIK_MODEL = 3       # model cipi: marka icinde en az bu kadar urun
@@ -142,6 +146,11 @@ class MarkaEvreni(object):
             self._kanonik[_marka_norm(x)] = x
         self._normlu = [_marka_norm(x) for x in self.taninmis]
         self._bellek = {}
+        # MARKA_ALIAS de AYNI belgeden (index.html markaKatla ile birebir). Cip evreni
+        # alias tanimazsa "Vauxhall" AYRI cip dogar, /marka/vauxhall/ sayfasi YOKTUR
+        # (alias Opel'e katliyor) -> gorunur cip 404 hedefe gider
+        # ([[ikiz-tanim-sessiz-ayrisma]]; olculdu 3 Agu: 71 urunlu cip).
+        self._alias, _ = _model_kanon.tablolar(index_metni)
 
     def katla(self, m):
         if m in self._bellek:
@@ -154,6 +163,7 @@ class MarkaEvreni(object):
                 if n.startswith(mn + " ") or n.startswith(mn + "-"):
                     sonuc = self.taninmis[i]
                     break
+        sonuc = self._alias.get(sonuc, sonuc)
         self._bellek[m] = sonuc
         return sonuc
 

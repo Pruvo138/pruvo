@@ -1651,6 +1651,43 @@ jobs:
       # YAZMAZ, ~3 s.
       - name: Onizleme kisit kosul testi (kosullu `eger` beyani her tuketicide AYNI hukum)
         run: python3 tools/onizleme-kisit-kosul-test.py
+
+      # MODEL UYELIGI — /marka/<marka>/<model>/ SAYFASI ile ANA SAYFA FILTRESI AYNI URUNLERI
+      # GOSTERIYOR MU (2026-08-04). OLCULEN SESSIZ HATA: model kirilimi YALNIZ `marka[1]`den
+      # aciliyordu, ana sayfa filtresi ise dizinin HER elemanina HAM esitlikle bakiyordu ->
+      # 429 marka-model ciftinin 119'unda sayfa filtreden DAR, 28'inde filtre sayfadan dar,
+      # 366 urun etkileniyordu. Iki yuzey de KENDI ICINDE tutarli gorundugu icin kimse hata
+      # GORMUYOR: musteri sayfada gordugu parcayi filtrede bulamiyor (ya da tersi).
+      #
+      # KAPI NE OLCER: her yayimlanan model sayfasi icin SAYFA kumesi ile FILTRE kumesini
+      # karsilastirip `CIFT/TEMIZ/SAYFA_DAR/FILTRE_DAR/ETKILENEN_URUN` basar; esik
+      # SAYFA_DAR=0 · FILTRE_DAR=0 · CAPRAZ=0. FILTRE tarafi YENIDEN YAZILMAZ: index.html'in
+      # GERCEK kodu (norm + MARKA KURATORLUGU + KANONIK MODEL ESLEMESI bloklari) AYIKLANIP
+      # node ile kosturulur — Python'da bir "filtre portu" yazilsaydi kapi uretimi degil kendi
+      # varsayimini aynalardi. node YOKSA / blok ayiklanamazsa / katalog bossa rc=2
+      # (OLCULEMEDI), "sapma bulamadim" diye YESIL DEMEZ.
+      # Ayrica kilitlenenler: K4 yanlis-pozitif (sayfaya giren her urun o model jetonunu
+      # BAGIMSIZ normallestirmeyle GERCEKTEN tasiyor) · K5 her sayfa kendi adiyla
+      # sorgulanabilir · K7 bir MARKA'yi MODEL diye sunan sayfa YOK (yargi arama.py KAPALI
+      # MARKA KUMESI'nden) · K8 bilesik marka aynasi otoriteyle birebir · K10 bilesik marka
+      # anahtari iki tarafta da bolunmemis · K11 rozet disi cift sayfa olmaz VE urun kaybolmaz ·
+      # K9/K12 kuratorlu tablolarin kimligi donmus (sessiz genisleme KIRMIZI).
+      # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ. Olculdu: 3,1 s.
+      - name: "Model uyeligi kapisi (marka/model sayfasi <-> ana sayfa filtresi paritesi)"
+        run: python3 tools/model-uyelik-kapisi.py
+
+      # AYNI KAPININ MUTASYON BATARYASI — BLOKLAYICI ve AYRI ADIM (surenin ayri olcusun
+      # gorunmesi + kirmizinin hangi eksende yandiginin adimdan okunmasi icin).
+      # 13 OLDURUCU + 3 KONTROL mutant; mutant DAIMA GECICI KOPYAYA uygulanir, gercek agac
+      # DEGISMEZ. Kabul olcutu cikis kodu DEGIL OLCULEN IDDIA + isarettir: rc 0/1 disi ya da
+      # "KIRMIZI ama hicbir iddia KALDI demedi" COKME sayilir ve kirmiziyla KARISTIRILMAZ.
+      # 🔴 NEDEN CI'DA (elle degil): bu paketin tum amaci sapmanin SESSIZCE geri gelmemesi.
+      # Olculdu — tabloyu tek kaynakta (index.html) degistiren mutant kapiyi kirmizi YAKMAZ
+      # (tek kaynak iki tarafi BIRDEN kaydirir); ayrismayi doguran sey BIR TARAFIN kaynagi
+      # okumayi birakmasidir, oldurucu mutantlar onu taklit eder ([[beyan-edilmis-survivor]]).
+      # Olculdu: 48,0 s.
+      - name: "Model uyeligi mutasyon bataryasi (13 oldurucu + 3 kontrol)"
+        run: python3 tools/model-uyelik-kapisi.py --kendini-test
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
   # ═════════════════════════════════════════════════════════════════════════════

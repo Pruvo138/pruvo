@@ -36,13 +36,18 @@ MUTANTLAR = [
     ("OLDURUCU M1 sayfa evrenini kuratorluge geri dondur (cip evreni kopar)",
      "veri = gruplandir(products, evren, ek_markalar)",
      "veri = gruplandir(products, evren)", "KIRMIZI"),
+    # 🔴 ÇAPALAR 3 Ağu'da TAŞINDI (üreteç yeniden düzenlendi: model üyeliği pozisyondan
+    # kurtarıldı, birincil marka `birincil_marka()`ya çıktı). Mutantın KENDİSİ aynı ihlali
+    # anlatır; yalnız tutunduğu satır güncellendi — "çapa yok" gözlemi kanıt DEĞİLDİR.
     ("OLDURUCU M2 uyelik yalniz marka[0]'dan dogsun (ikincil marka uyeligi olur)",
-     "    for x in marka_dizisi:",
-     "    for x in marka_dizisi[:1]:", "KIRMIZI"),
+     "    uyeler = []\n    for x in marka_dizisi:",
+     "    uyeler = []\n    for x in marka_dizisi[:1]:", "KIRMIZI"),
     ("OLDURUCU M3 cip haritasi IKINCIL markaya kaysin",
-     "        birincil = (ham0_kan if (evren.taninmis_mi(ham0_kan) or ham0_kan in ek_markalar)\n"
-     "                    else uyeler[0])",
-     "        birincil = uyeler[-1]", "KIRMIZI"),
+     "    return ham0 if (evren.taninmis_mi(ham0) or ham0 in ek_markalar) else uyeler[0]",
+     "    return uyeler[-1]", "KIRMIZI"),
+    ("OLDURUCU M4 model uyeligini yeniden marka[1]'e sabitle (olculen eski sessiz hata)",
+     "    for x in marka_dizisi:\n        t = (x or \"\").strip()",
+     "    for x in marka_dizisi[1:2]:\n        t = (x or \"\").strip()", "KIRMIZI"),
     ("KONTROL K1 iddia edilmeyen eksen (meta description metni)",
      '<meta name="description" content="{desc}">',
      '<meta name="description" content="{desc} ">', "YESIL"),

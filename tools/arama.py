@@ -565,6 +565,90 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
 # yedek parca markasidir. Karar BACKFILL ANINDA verilecek (MaCiT duzlemi), sozlukte degil.
 URETICI_MARKA_MIMAR_EKI = frozenset({"Bosch"})
 
+# ─────────────────────────────────────────────────────────────────────────────
+# MODEL OLMAYAN JETONLAR — /marka/<marka>/<model>/ SAYFA EVRENI icin (3 Agu, KraL denetimi)
+#
+# 🔴 NE ICIN: `marka` dizisindeki her jeton model adayidir; bu tablo "bu jeton bir MODEL
+# DEGILDIR" yargisini tasir ve tools/marka_model_build.py o kovaya SAYFA ACMAZ. Uyum
+# eslemesine, aramaya, D1'e ve `marka` alanina DOKUNMAZ (kayit AYNEN durur; yalnizca o
+# jetondan model SAYFASI dogmaz) -> yukaridaki donmus kumelerin aritmetigini KIRMAZ.
+#
+# 🔴 NEDEN AYRI TABLO, URETICI_MARKA'ya EKLENMEDI: `URETICI_MARKA` uyeligi jetonu
+# `uyum[].marka` alaninda GECERSIZ kilar (fail-closed) ve `UYUM_MARKA_ONERI_SAYISI`
+# aritmetigine girer; oradaki her ekleme MaCiT'in uyum duzlemini degistirir. Buradaki yargi
+# yalnizca SEO sayfa evrenine dairdir. Iliski belgelidir: URETICI_MARKA'nin "ileride
+# uretici/parca markasi filtresi gerekirse kaynak burasidir" notunun MODEL ekseni karsiligi.
+#
+# OLCUM (3 Agu, 17032 urun): ESIK=3'u gecen 70 YENI kovanin 10'u bu jetonlardan doguyordu.
+# Her satir DENETIMDE tek tek bakilarak yazildi (urun basliklari okundu), sinifiyla birlikte:
+MODEL_OLMAYAN_JETON = {
+    # GRUP KISALTMASI — marque DEGIL (yukaridaki "REDDEDILEN ADAYLAR" notunda zaten
+    # yargilanmisti; orada YORUM, burada MAKINE OKUR hale geldi).
+    "PSA": "grup kisaltmasi (Peugeot-Citroen); musteri 'PSA parcasi' aramaz",
+    "VAG": "grup kisaltmasi (VW Audi Group); musteri 'VAG parcasi' aramaz",
+    # PARCA/DONANIM URETICISI — parca ONA takilir ama arac MODELI degildir. Kayitlarda
+    # gercek model AYRI jeton olarak zaten duruyor (Tundra/Defender/Supra/Tacoma).
+    "Carling": "anahtar (switch) ureticisi — Land Rover/Toyota konsol panellerinde gecer",
+    "AEM": "gosterge/performans parcasi ureticisi — kayitlarda model 'Supra'",
+    "Sprint Booster": "gaz tepki modulu urun markasi — kayitlarda model 'Tacoma'",
+    "Roland": "elektronik davul markasi — Yamaha/Alesis ile birlikte gecer, model degil",
+    # MARQUE — baska bir markanin ADI, dolayisiyla o markanin MODELI olamaz.
+    "Geo": "GM marque'i (Geo Tracker/Metro); Suzuki'nin modeli degil, kardes marka",
+}
+
+MODEL_OLMAYAN_SAYISI = 7
+MODEL_OLMAYAN_IMZA = "5b8777ee23cefcb1"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ROZET DISI (marka, model) CIFTLERI — /marka/X/M/ sayfasi ACILMAZ (4 Agu, KraL hukmu)
+#
+# HUKUM: "bir /marka/X/M/ sayfasi ancak M modeli GERCEKTEN X rozetiyle satilmissa acilir."
+# Golf hicbir zaman Audi, Octavia hicbir zaman Volkswagen rozetiyle satilmadi; bu kayitlar
+# platform/parca uyumudur, ROZET degil.
+#
+# 🔴 NEDEN YAPISAL KURAL DEGIL DE KURATORLU CIFT TABLOSU (olculdu, 4 Agu — uydurma degil):
+# Mimarin onerdigi yazilabilir kural "(a) uyum[].marka==X && uyum[].model==M  YA DA
+# (b) marka[0]==X" gercek katalogda TAM 0 cift eliyor: `/marka/audi/golf/` kayitlarinda
+# marka[0] ZATEN 'Audi' ve bir kayitta `uyum` fiilen {marka:Audi, model:Golf} DIYOR.
+# Yalniz (a)'ya inmek ise 46 cift eliyor ve mimarin ACIKCA korunmasini istedigi sayfalari
+# olduruyor (`/marka/toyota/brz/`, `/marka/subaru/gt86/`, `/marka/peugeot/jumper/`,
+# `/marka/toyota/107/`, hatta `/marka/ford/f-150/`) — cunku katalogun buyuk kismi `uyum`
+# TASIMIYOR. Veri, "Audi+Golf" ile "Subaru+BRZ"yi AYIRT EDEN yapisal bir sinyal ICERMIYOR:
+# ikisi de "cok markali uyumluluk listesi"dir; fark otomotiv ROZET bilgisidir.
+# Bu yuzden yargi, deponun mevcut deseniyle (MODEL_OLMAYAN_JETON / BILESIK_MARKA_REDDEDILEN)
+# KAPALI, GEREKCELI ve KIMLIGI DONMUS bir tabloya yazilir. Genel bir normalizasyon/heuristik
+# YAZILMAZ: yazilsaydi mesru rozet ikizlerini (Berlingo/Partner, GT86/BRZ, 107/C1/Aygo,
+# Ducato/Jumper/Boxer) sessizce oldururdu.
+#
+# ⚠️ BUYUME GORUNUR KARARDIR: kimlik donmus (ROZET_DISI_IMZA), sessiz genisleme
+# tools/model-uyelik-kapisi.py'de KIRMIZI yakar. Yeni giris = mimar hukmu.
+# Eleme URUN KAYBETTIRMEZ: sayfasi acilmayan kovanin urunleri marka sayfasinda ve kendi
+# GERCEK model sayfasinda (Golf -> /marka/volkswagen/golf/) durmaya devam eder (kapi olcer).
+ROZET_DISI_CIFT = {
+    ("Audi", "Golf"): "Golf VW rozetidir; Audi Golf diye bir arac satilmadi (VAG platform "
+                      "ortakligi) — gercek sayfa /marka/volkswagen/golf/",
+    ("Volkswagen", "Octavia"): "Octavia Skoda rozetidir; VW Octavia diye bir arac satilmadi "
+                               "— gercek sayfa /marka/skoda/octavia/",
+}
+
+ROZET_DISI_SAYISI = 2
+ROZET_DISI_IMZA = "79878bc5f7d242bc"
+
+
+def rozet_disi_imzasi():
+    """Cift kumesinin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (a, b) for a, b in ROZET_DISI_CIFT), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
+
+def model_olmayan_imzasi():
+    """Tablonun ANAHTAR kimligi — sessiz buyume/daralma kapida KIRMIZI yakar (S2 dersi:
+    SAYI degil KIMLIK; sayiyi sabit tutup uyeyi degistirmek gorunmez kalirdi)."""
+    return hashlib.sha256(
+        json.dumps(sorted(MODEL_OLMAYAN_JETON), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
 # URETICI EKSENI — GERCEK markalardir ama UYUM ekseni DEGILDIR: bunlar takilan sarf/parcanin
 # ureticisidir (buji, tutya, dolgu/yapistirici, tekne boyasi, temizleyici, zimpara, direksiyon
 # kablosu). "Bu urun NGK'ya takilir" cumlesi anlamsizdir; "bu urun bir NGK bujisidir" anlamlidir.
