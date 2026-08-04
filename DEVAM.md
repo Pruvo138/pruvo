@@ -36,7 +36,27 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
 - Kardes depodaki et kalinligi kapisi (`0,8 mm`) ile **ORTUSME SIFIR**: iki AYRI bolge
   (o kapi 336/634.725 noktayi reddediyor, hepsi bu deponun motorunda URETILEBILIR).
   Yani o kapi bu urunu KORUMUYOR — iki farkli uretim motoru.
-- ✅ **A3 kor noktasi KAPANDI (`193cd6f0`, dokum DEVAM-ARSIV.md'de). 🟡 Rulman satisa ACILMADI — karar hala BENDE.**
+- ✅ **A3 kor noktasi KAPANDI (`193cd6f0`, dokum DEVAM-ARSIV.md'de).**
+
+**✅ KAPANDI 4 Agu — RULMAN SATISA ACILDI. Merge `5701a1a4` (ff-only) + fikstur onarimi `a7e2289d`.**
+Oncul degisti: kapatan sey "semada `kisitlar` var" degil, "kisit var VE yesil+taze parite kaydi YOK".
+Olculen (kayit `jenerator/test/uretilebilirlik-parite.json`, surucu `--parite`): tehlikeli kova
+(sema KABUL + motor RET) **16.000 olculen noktada 0**, cozulmeyen 0, kontrol mutantlari 4/4
+beyanina uydu (M1=256 · M2=151 · M3=5460 genisletti, M4=0 daraltti); hacim ekseni en kotu sapma
+**%1,2848** (%3 tavani alti). Kapali kume 5→4, acik 18→19; rulman varsayilan tutar 20000 kurus.
+Kabul rc=0: onizleme-vaat-kapisi (13 iddia) · kisit-fail-closed.mjs (21 iddia) ·
+kapali-aile-fiyat-kapisi (137 iddia) · ci-kapsam · kapi-envanteri 7/7 · kisisel-veri-test ·
+build.py (17.246 sayfa) · fiyat-test.js + shop/test/kabul.js --sema-paritesi (mutasyon kanitli).
+D1 uc eksen yesil (17.246 = 17.246, hash uyusmaz 0).
+🔴 **CANLI FIYAT HENUZ CIKMADI — OLCULEMEDI degil, ENGELLENDI:** `deploy`+`yayin` isleri
+SKIPPED, cunku `serit-a2` **baska bir oturumun** `index.html` degisikliginde (`cc544a0e`)
+kirmizi yaniyor — "Yayin ic-dil kapisi — KAYNAK kolu": 16 vurus / 1 dosya, ic Python dosya
+yollari yayin yorumunda. Bizim dosyalarimizla ilgisi yok, ONARILMADI (baska mimarin duzlemi).
+O kapi yesillenince ilk `deploy` rulman fiyatini canliya tasir. Canli taban: sayfa TL yok,
+JSON-LD price yok, `taban-fiyatlar.js` 18 girdi, rulman hala `PRUVO_SATIS_KAPALI`'da.
+🔴 **AYRI, ONCEDEN VAR OLAN KIRMIZI:** `parite-test.js` main'de (merge ONCESI olculdu) YEREL VAR /
+D1'DE YOK **166 urun** — D1 satirlari tam (hash 0 sapma), sapma **uc/indeks** duzleminde
+(`/katalog?ids=` yayinda=1 kayitlari dondurmuyor). Bu dalla ilgisiz, MaCiT/HocA duzlemi.
 
 **MERGE EDILMEDIGI ICIN ACIK KALAN IKI KARAR (isci sordu, ben cevaplamadim):**
 1. `build.py`'deki `gecersiz-parca` kolu ayni "siparis verebilirsiniz, uretim etkilenmez"
