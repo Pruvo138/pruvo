@@ -102,7 +102,10 @@ MUTANTLAR = [
      "        restored.append((uid, sorted(changed)))",
      "        # M3: geri sarma yazimi kaldirildi\n"
      "        restored.append((uid, sorted(changed)))",
-     {"K1"}),
+     # X1 de duser: X1'in POZITIF CAPASI izin BEKLENEN degerini (geri sarilmis
+     # katalogun sha'si) sart kosar, geri sarma olmayinca capa kirilir. Bu ortusme
+     # capanin BEDELIDIR ve BEYAN EDILMISTIR; X1'i AYIRT EDEN mutantlar M16/M18-M21.
+     {"K1", "X1"}),
 
     ("M4", "KORUMA ETKISIZ: izinsiz SILME artik geri EKLENMIYOR", G,
      "    for uid in silinen:\n"
@@ -119,7 +122,8 @@ MUTANTLAR = [
      '            _bas("   GERI SARILDI  %s  alanlar: %s" % (uid, ", ".join(fs)))',
      "        for uid, fs in restored:\n"
      "            pass  # M5",
-     {"G1"}),
+     # X1 de duser: capanin ucuncu bileseni "GERI SARILDI stderr'e basildi" bayragi.
+     {"G1", "X1"}),
 
     ("M6", "BOZUK WT SESSIZ ATLANIYOR (eski fail-open)", G,
      '        raise Belirsiz("working-tree urunler.json BOZUK JSON",\n'
@@ -222,6 +226,41 @@ MUTANTLAR = [
      "TAM 28 `IDDIA:`",
      "TAM 27 `IDDIA:`",
      {"X2"}),
+
+    # 🔴 X1'IN OLCUM DEGERI — dort mutant, "iddia yesil ama HICBIR SEY olcmuyor"
+    # ailesini kapatir. X1 salt diferansiyelken (yalniz temiz==kirli) DORDU DE
+    # HAYATTA KALIYORDU; pozitif capa + POTENS kontrolu eklendikten sonra dordu de
+    # oluyor. Bu mutantlar olmadan X1'in yesili "olcum tamamen yok edilmis" haliyle
+    # UYUMLUYDU ([[fikstur-degeri-mutasyon-koru]], [[beyan-edilmis-survivor]]).
+    ("M18", "IZ URETIMI BOSALTILDI: _koruma_izi SABIT donduruyor", T,
+     '    d = kur_depo(guard, kopru, [GUNCEL], env=env)\n'
+     '    kat = oku_katalog(d)\n'
+     '    kat[0]["fiyat"] = "9999 TL"\n'
+     '    kat[0].pop("lisans", None)\n'
+     '    yaz_katalog(d, kat)\n'
+     '    rc, _o, err = kos_guard(d, env=env)\n'
+     '    return (rc, sha(d), "GERI SARILDI" in err)',
+     '    return (0, "M18-SABIT", True)',
+     {"X1"}),
+
+    ("M19", "KARSILASTIRMA SABITLENDI: _iz_esit her zaman True", T,
+     "    return iz == beklenen",
+     "    return True  # M19",
+     {"X1"}),
+
+    # NOT (olculdu): "degerleri BOS STRING yap" bu ekseni OLCMEZ — git bos
+    # GIT_DIR/GIT_WORK_TREE'yi de bozuk sayar, yani kirli taraf HALA potenttir ve
+    # X1 hakli olarak yesil kalir. Ekseni gercekten olcen mutant, kirli ortamin
+    # HIC KURULMAMASIDIR: o zaman POTENS kontrolu (ham kosum SAPMALI) kirilir.
+    ("M20", "KIRLI TARAF ZARARSIZLASTIRILDI: kirli ortam HIC kurulmuyor", T,
+     "        os.environ.update(kirli)\n",
+     "        pass  # M20: kirli ortam hic kurulmadi\n",
+     {"X1"}),
+
+    ("M21", "IZ DARALTILDI: sha + geri-sarma bayragi dusuruldu, yalniz rc kaldi", T,
+     '    return (rc, sha(d), "GERI SARILDI" in err)',
+     "    return (rc,)  # M21",
+     {"X1"}),
 ]
 
 IDDIA_RE = re.compile(r"^IDDIA: (\S+) (YESIL|KIRMIZI)\b")
