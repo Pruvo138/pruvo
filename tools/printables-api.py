@@ -42,6 +42,15 @@ COP_LOGO = (
     # BURAYA KONMADI -> COP_SEMBOL_ADI, yalniz duvar-susu baglaminda.
     "four rings", "three pointed star", "three-pointed star", "cavallino",
     "winged b", "quadrifoglio", "scudetto", "chevron logo",
+    # 2026-08-04 (2. curutme turu, B2): ayni olcutle atlanmis 13 sembol adi. Kapi
+    # "listede OLMAYAN sembol adi + kanit sozcugu" ile 75 denemede 70 kacak olctu.
+    # Bunlar da TEK ANLAMLI: 13'unun de KATALOG VURUSU 0 (18.080 kayit, baslik+aciklama
+    # tarandi) -> global elemeleri mesru urunu vurmaz. Belirsizler (star 156, bull 14,
+    # shield 6) BILEREK baglamda kalir; "propeller" katalogda 0 olsa da EN metinde
+    # gercek marin parca adi (pervane) oldugu icin global'e ALINMADI.
+    "bowtie", "bow tie", "biscione", "scorpion", "pleiades", "blitz",
+    "coat of arms", "leaper", "ram head", "three diamonds", "winged arrow",
+    "tri shield", "prancing pony",
 )
 # Marka markasini SERGILEYEN/tasiyan aksesuar-merch formlari — logo reprodüksiyonu sayilir,
 # POPULERLIK DELMEZ (cok dilli anahtarlik + duvar susu/plaket/trofe/rozet).

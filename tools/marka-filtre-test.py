@@ -320,6 +320,102 @@ check("MUT-4 ayirt edici (kanitsiz duvar-susu mutantta da eleniyor)",
 _merch_kontrol_sapma = [t for t in TUM_MERCH_VAKA if _mut_merch_kontrol(t) != pr.is_merch(t)]
 check("KONTROL MUTANT (merch) YESIL kalmali (sapma yok)", not _merch_kontrol_sapma)
 
+# --- 1e. B2: LISTEDE OLMAYAN sembol adi + KANIT sozcugu (2. curutme turu) ---------
+# KUSUR: "sinyal once, kanit sonra" sirasi DOGRU calisiyordu ama SEMBOL ADI LISTESI eksikti.
+# Kapi olctu: listede olmayan sembol adi + kanit sozcugu -> 75 denemede 70 KACAK.
+# ONARIM: 13 ad GLOBAL COP_LOGO'ya eklendi. Olcut DEGISMEDI (tek anlamli + katalogda 0 vurus):
+# 13'unun de katalog vurusu 0 (18.080 kayit, baslik+aciklama). Belirsizler (star 156, bull 14,
+# shield 6) BILEREK baglamda kaldi; "propeller" katalogda 0 olsa da EN metinde gercek marin
+# parca adi oldugu icin global'e ALINMADI.
+B2_YENI_ADLAR = ("bowtie", "bow tie", "biscione", "scorpion", "pleiades", "blitz",
+                 "coat of arms", "leaper", "ram head", "three diamonds", "winged arrow",
+                 "tri shield", "prancing pony")
+# Capa: 13 ad GERCEKTEN global COP_LOGO'da mi (baglam listesinde DEGIL)?
+for _ad in B2_YENI_ADLAR:
+    check("13 ad GLOBAL COP_LOGO'da: %r" % _ad, _ad in pr.COP_LOGO)
+check("13 ad baglam listesine SIZMADI",
+      not [a for a in B2_YENI_ADLAR if a in pr.COP_SEMBOL_ADI])
+# Kiyas capasi: bilerek BAGLAMDA birakilanlar global'e TASINMADI (o karar degismedi).
+for _ad in ("star", "bull", "shield", "propeller"):
+    check("belirsiz ad BAGLAMDA kaldi: %r" % _ad,
+          _ad in pr.COP_SEMBOL_ADI and _ad not in pr.COP_LOGO)
+
+B2_PARLAR = [
+    ("Chevrolet", "bowtie"), ("Chevrolet", "bow tie"), ("Abarth", "scorpion"),
+    ("Fiat", "scorpion"), ("Alfa Romeo", "biscione"), ("Porsche", "coat of arms"),
+    ("Mitsubishi", "three diamonds"), ("Jaguar", "leaper"), ("Dodge", "ram head"),
+    ("Subaru", "pleiades"), ("Opel", "blitz"), ("Vauxhall", "blitz"),
+    ("Skoda", "winged arrow"), ("Buick", "tri shield"), ("Ford", "prancing pony"),
+]
+B2_KANIT = ["silhouette", "outline", "line art", "stencil", "side view"]
+B2 = ["%s %s %s wall art" % (m, sem, k) for (m, sem) in B2_PARLAR for k in B2_KANIT]
+for t in B2:
+    check("B2 ELENMELI: %r" % t, pr.is_nobypass(t) is True)
+check("B2 batarya boyutu 75", len(B2) == 75)
+check("B2 hepsi elendi (75/75)", sum(1 for t in B2 if pr.is_nobypass(t)) == 75)
+# POZITIF koruma: 13 ad eklendi diye GERCEK siluet basliklari olmemeli.
+check("B2 eklemesi gercek silueti OLDURMEDI (6/6 hala geciyor)",
+      sum(1 for t in SILUET_GERCEK if not pr.is_nobypass(t)) == 6)
+check("gercek siluet basliklari 13 adin HICBIRINI tasimiyor (fikstyur bagimsiz)",
+      not [t for t in SILUET_GERCEK
+           if any(a in " " + t.lower() + " " for a in B2_YENI_ADLAR)])
+
+
+def _mut_13ad_yok(name):
+    """MUTANT 5 = 13 ad GLOBAL COP_LOGO'ya EKLENMEMIS hali. Bu KATMANI tek basina olcer:
+    B2 denemelerini gecirmeli -> KIRMIZI."""
+    eski_logo = tuple(c for c in pr.COP_LOGO if c not in B2_YENI_ADLAR)
+
+    def _logo(x):
+        n = " " + (x or "").lower() + " "
+        return any(c in n for c in eski_logo)
+
+    def _merch(x):
+        n = " " + (x or "").lower() + " "
+        if any(c in n for c in pr.COP_MERCH):
+            return True
+        if any(c in n for c in pr.COP_MERCH_KOSULLU):
+            if _logo(x) or pr.is_wordmark(x) or pr.is_sembol_adi(x):
+                return True
+            return not pr.is_siluet_kaniti(x)
+        return False
+    return _logo(name) or _merch(name) or pr.is_firearm(name)
+
+
+_m5_kacan = [t for t in B2 if _mut_13ad_yok(t) is False]
+check("MUT-5 (13 ad yok) KIRMIZI yakmali — B2 sizmali", len(_m5_kacan) >= 60)
+check("MUT-5 canli kod B2'yi ELIYOR", all(pr.is_nobypass(t) for t in B2))
+# MUT-5 AYIRT EDICI mi: gercek siluet basliklarini mutant da GECIRMELI (her seyi kirmiyor).
+check("MUT-5 ayirt edici (gercek siluet mutantta da geciyor)",
+      all(_mut_13ad_yok(t) is False for t in SILUET_GERCEK))
+# MUT-5 kapsam nobeti: 13 ad SADECE bu katmani acti, kosulsuz merch'e dokunmadi.
+check("MUT-5 kapsam: kosulsuz merch mutantta da eleniyor",
+      _mut_13ad_yok("BMW keychain") is True)
+
+
+def _mut_13ad_kontrol(name):
+    """KONTROL MUTANT = COP_LOGO'ya fikstyurde HIC gecmeyen bir ad eklenmis hali.
+    Davranis AYNI kalmali -> YESIL."""
+    genis = pr.COP_LOGO + ("zzz-olmayan-sembol",)
+    n = " " + (name or "").lower() + " "
+    logo = any(c in n for c in genis)
+
+    def _merch(x):
+        m = " " + (x or "").lower() + " "
+        if any(c in m for c in pr.COP_MERCH):
+            return True
+        if any(c in m for c in pr.COP_MERCH_KOSULLU):
+            if logo or pr.is_wordmark(x) or pr.is_sembol_adi(x):
+                return True
+            return not pr.is_siluet_kaniti(x)
+        return False
+    return logo or _merch(name) or pr.is_firearm(name)
+
+
+_m13_sapma = [t for t in (B2 + SILUET_GERCEK + SIZAN_15)
+              if _mut_13ad_kontrol(t) != pr.is_nobypass(t)]
+check("KONTROL MUTANT (13 ad) YESIL kalmali (sapma yok)", not _m13_sapma)
+
 # --- 2. Iki arama araci da fonksiyonu KULLANIYOR mu (kaynak-grep) --------------
 for f in ("printables-ara.py", "thing-ara.py"):
     src = open(os.path.join(DIR, f), encoding="utf-8").read()
