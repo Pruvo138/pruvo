@@ -1,28 +1,31 @@
 # DEVAM (KraL) — 3 Agu 2026
+KAPANDI: 4 Agu marka-model uyeligi canli turu — dokum DEVAM-ARSIV.md de (git disi).
 
-Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
+## 🔴 YENI ACIK KALEM — katalog geneli metin/alan bosluğu (envanter cikti)
+1700 marka-model cifti, **943'unde** serbest metin aramasi ile alan uyeligi ayrisiyor,
+**5585 urun** etkileniyor. Kovalar (baslik okunarak, kural uydurulmadan):
+- **A VERI EKSIGI 4784 urun** → MaCiT'te (is listesi 6288 kayit / 4513 urun / 817 cift; kanonik
+  deger `arama.py` fonksiyonlarindan turedi, gozle atama yok)
+- **B VARYANT JETON 735** (`Astra H` ile `Astra`) → KOD, BENDE
+- **C YANLIS-POZITIF 87** → olcu satiri sayisal model adiyla cakisiyor (Renault "17": 37 urun,
+  Renault "5": 18, Toyota "86": 16; `M4 vida` cumlesi motosiklet parcasini BMW M4 sayfasina
+  dusuruyor). 🔴 **TOPLU `ara`→`marka` KOPYASI YASAK.**
+- **D FARKLI ARAC AYNI AD 348** (`GS` BMW motosiklet ile Citroen GS · `C1` PSA ile BMW skuter ·
+  `Sierra` Volvo/Ford/Nissan) · **E ARAC-DISI JETON 32** (`/marka/volkswagen/iphone/`) → sayfa
+  kapatilacak, BENDE · **KARARSIZ 387** (`GS`·`ST`·`T4`·`GTI`·`TDI`·`Mk4` — urun gercek, jeton
+  model degil)
+🔴 **OKAN KAPISI ACIK:** bosluk kapanirsa **303 YENI model sayfasi** esigi asar (+%60).
+Hepsi birden mi, asamali mi? Cevap gelene kadar MaCiT'e parti parti ilerlemesi soylendi.
 
-KAPANDI 3 Agu: oturum kapanisi SHA dokumu (DEVAM-ARSIV.md'de).
+ACIK KALEM: yayin hatti icerik denetimi — dokum DEVAM-ARSIV.md de (git disi).
 
+## 🟡 YENI ACIK KALEM — `CLAUDE.md`/`AGENTS.md` git disi symlink
+ACIK KALEM: symlink surumleme ayrintisi — dokum DEVAM-ARSIV.md de (git disi).
 ## 🔄 DEVIR — 3 Agu 2026 (hesap rotasyonu) · YENI OTURUM ONCE BURAYI OKU
 
-Ritüel: `tools/DEVIR-KONTROL-LISTESI.md` (`2382c7f1`). Claude hesabi disinda **hicbir sey
-degismedi** — git/GitHub/Cloudflare/D1/R2/hafiza diskte ve aynen duruyor.
-
-**AGAC DURUMU (3 Agu, olculdu): worktree 1 (yalniz main).** Uzerinde is olan her dal origin'e itildi;
-uzerinde is olan her dal **origin'e itildi**, tek kopya kalan dal YOK. Devam etmek icin:
-`git -C /Users/okan/dev/pruvo worktree add .claude/worktrees/<ad> <dal>`.
-🔴 **Devir taramasinin dersi:** iki dal yalniz yerelde duruyordu, biri **detached HEAD**'de ve
-uretici oturumu kapanmisti — worktree silinseydi commit'e ulasan ref kalmayacakti. Bundan sonra
-devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulacak.
+TARIHSEL DEVIR: agac durumu ve dersler — dokum DEVAM-ARSIV.md de (git disi).
 
 **🔴 ACIK — 4 Agu CI nobeti: yayin hatti bir tur bloklandi; kok neden + kimlik dokumu DEVAM-ARSIV.md'de (git disi). Duzeltme baska mimarin duzlemi, posta kutusuna yazildi.**
-
-**✅ 1. IS — KAPANDI 3 Agu: merge `73149015` (dokum DEVAM-ARSIV.md'de).**
-
-**✅ 2. IS — KAPANDI 3 Agu: merge `bd8b8abb` + onarim `78b6651f` (dokum DEVAM-ARSIV.md'de).**
-
-**KAPANDI 3 Agu: 3. IS yayin hatti acligi + build duvar saati — `2c016309` (dokum DEVAM-ARSIV.md'de).**
 
 **🟡 RULMAN SATISA ACMA — hala BENDE, ayri tur. Karar dayanagi OLCULDU (3 Agu):**
 Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × eleman{3}` = **126.945 nokta**.
@@ -36,28 +39,6 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
 - Kardes depodaki et kalinligi kapisi (`0,8 mm`) ile **ORTUSME SIFIR**: iki AYRI bolge
   (o kapi 336/634.725 noktayi reddediyor, hepsi bu deponun motorunda URETILEBILIR).
   Yani o kapi bu urunu KORUMUYOR — iki farkli uretim motoru.
-- ✅ **A3 kor noktasi KAPANDI (`193cd6f0`, dokum DEVAM-ARSIV.md'de).**
-
-**✅ KAPANDI 4 Agu — RULMAN SATISA ACILDI. Merge `5701a1a4` (ff-only) + fikstur onarimi `a7e2289d`.**
-Oncul degisti: kapatan sey "semada `kisitlar` var" degil, "kisit var VE yesil+taze parite kaydi YOK".
-Olculen (kayit `jenerator/test/uretilebilirlik-parite.json`, surucu `--parite`): tehlikeli kova
-(sema KABUL + motor RET) **16.000 olculen noktada 0**, cozulmeyen 0, kontrol mutantlari 4/4
-beyanina uydu (M1=256 · M2=151 · M3=5460 genisletti, M4=0 daraltti); hacim ekseni en kotu sapma
-**%1,2848** (%3 tavani alti). Kapali kume 5→4, acik 18→19; rulman varsayilan tutar 20000 kurus.
-Kabul rc=0: onizleme-vaat-kapisi (13 iddia) · kisit-fail-closed.mjs (21 iddia) ·
-kapali-aile-fiyat-kapisi (137 iddia) · ci-kapsam · kapi-envanteri 7/7 · kisisel-veri-test ·
-build.py (17.246 sayfa) · fiyat-test.js + shop/test/kabul.js --sema-paritesi (mutasyon kanitli).
-D1 uc eksen yesil (17.246 = 17.246, hash uyusmaz 0).
-🔴 **CANLI FIYAT HENUZ CIKMADI — OLCULEMEDI degil, ENGELLENDI:** `deploy`+`yayin` isleri
-SKIPPED, cunku `serit-a2` **baska bir oturumun** `index.html` degisikliginde (`cc544a0e`)
-kirmizi yaniyor — "Yayin ic-dil kapisi — KAYNAK kolu": 16 vurus / 1 dosya, ic Python dosya
-yollari yayin yorumunda. Bizim dosyalarimizla ilgisi yok, ONARILMADI (baska mimarin duzlemi).
-O kapi yesillenince ilk `deploy` rulman fiyatini canliya tasir. Canli taban: sayfa TL yok,
-JSON-LD price yok, `taban-fiyatlar.js` 18 girdi, rulman hala `PRUVO_SATIS_KAPALI`'da.
-🔴 **AYRI, ONCEDEN VAR OLAN KIRMIZI:** `parite-test.js` main'de (merge ONCESI olculdu) YEREL VAR /
-D1'DE YOK **166 urun** — D1 satirlari tam (hash 0 sapma), sapma **uc/indeks** duzleminde
-(`/katalog?ids=` yayinda=1 kayitlari dondurmuyor). Bu dalla ilgisiz, MaCiT/HocA duzlemi.
-
 **MERGE EDILMEDIGI ICIN ACIK KALAN IKI KARAR (isci sordu, ben cevaplamadim):**
 1. `build.py`'deki `gecersiz-parca` kolu ayni "siparis verebilirsiniz, uretim etkilenmez"
    cumlesini tasiyor. Isci farkli eksen oldugu icin (2-renk siparisi gercekten var ve ≥10 mm
@@ -122,9 +103,7 @@ D1'DE YOK **166 urun** — D1 satirlari tam (hash 0 sapma), sapma **uc/indeks** 
 - **KaaN** → `rulman` semasi onarilinca satisa acma karari bende.
 - **ArTisT** → marka-model sayfasi acma esigi onerisi (1.062 ciftin 812'si 5'ten az urun).
 
-**KAPANDI 3 Agu: uyum yorumu, Worker bayatlik, onizleme kisitlari ve yayin erisimi — `242e4496` `88f3e63d` `7fc61f98` `45f30fd7` `7e2277c0` `f6f6492d` (dokum DEVAM-ARSIV.md'de).**
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
-- KAPANDI 3 Agu: marka uyelik ikiz tanimi — `51588d55` (dokum DEVAM-ARSIV.md'de).
 - 3 landing hâlâ canlıda 403: onarım kardeş depodaki worker rota deseninde (önek jokeri),
   bu depoda değil; nöbetçi o kapalılığı artık saatlik ölçüyor ve kırmızı yakıyor.
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
