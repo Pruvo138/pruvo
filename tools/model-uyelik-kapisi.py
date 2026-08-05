@@ -76,6 +76,48 @@ _BAGIMSIZ_KUSAK_RE = re.compile(
 #   Ami 6                       -> KUSAK_DISI istisnası (1961 klasik ≠ 2020 dörtteker)
 #   Golf / Corsa / Evolution    -> TEK YÖN + KELİME SINIRI (taban varyanta düşmez;
 #                                  sınırsız önek eşleşmesi "Golf"u "Gol"+"f" diye katlardı)
+# ---------------------------------------------------------------- BAŞLIK KOLU (5 Ağu)
+# BAĞIMSIZ başlık dilbilgisi — üretimin `baslikta_tam_kelime()`/`tehlike_jetonu_mu()`
+# gövdesi ÇAĞRILMAZ, burada ELLE yazılır. Aynı fonksiyon iki tarafta kullanılsaydı iddia
+# totoloji olurdu ([[beyan-edilmis-survivor]]); üretim kuralı gevşerse (tehlike koruması
+# düşerse, bitişiklik `markaKatla` ile yazılırsa) bu eksen KIRMIZI yanar.
+# Normalleştirme de BİLEREK farklıdır: `_bagimsiz_kanon` ile aynı ailedendir (unicodedata),
+# üretim `_norm` tablosunu kullanır.
+def _bagimsiz_kelimeler(metin):
+    t = unicodedata.normalize("NFKD", (metin or "").replace("ı", "i").replace("İ", "i").lower())
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    return [w for w in re.split(r"[^a-z0-9]+", t) if w]
+
+
+def _bagimsiz_tehlike(jeton):
+    """TEHLİKE sınıfı ölçütü BAĞIMSIZ yazılır: uzunluk <= 3 YA DA tamamen sayısal."""
+    j = "".join(_bagimsiz_kelimeler(jeton))
+    return (not j) or len(j) <= 3 or j.isdigit()
+
+
+def _bagimsiz_altdizi(hepsi, parca):
+    n, m = len(hepsi), len(parca)
+    return m > 0 and m <= n and any(hepsi[i:i + m] == parca for i in range(n - m + 1))
+
+
+def _bagimsiz_baslik_tasiyor(baslik, marka_adlari, jeton):
+    """Başlık, jetonu KABUL EDİLEBİLİR biçimde taşıyor mu (kademeli kural, bağımsız gövde)?
+    🔴 BİTİŞİKLİK DÜZ İFADEDİR: `<marka adı> <jeton>` kelime dizisi bitişik geçmeli.
+    Marka önekini KATLAYARAK ("Renault Espace" -> Renault) yazan bir üretim mutantı bu
+    ölçütü GEÇEMEZ — ayırt edici mutant M4'ün dayanağı budur."""
+    bw = _bagimsiz_kelimeler(baslik)
+    jw = _bagimsiz_kelimeler(jeton)
+    if not bw or not jw:
+        return False
+    if not _bagimsiz_tehlike(jeton):
+        return _bagimsiz_altdizi(bw, jw)
+    for ad in marka_adlari:
+        aw = _bagimsiz_kelimeler(ad)
+        if aw and _bagimsiz_altdizi(bw, aw + jw):
+            return True
+    return False
+
+
 KATLAMA_FIKSTURU = [
     ("Volkswagen", "Golf 4", "golf"),
     ("Volkswagen", "Golf Mk4", "golf"),
@@ -374,13 +416,61 @@ def olc(kok, modul_yolu=None):
                                       "gercek=%s" % (tabanlar or "-",)))
 
     urun_ix = dict((p["id"], p) for p in urunler if p.get("id"))
+
+    # --- BAŞLIK KOLU AÇIKLAMASI (5 Ağu) — BAĞIMSIZ gövdeyle ölçülür.
+    # Model sayfası artık üyeliği `marka[]` ∪ `uyum[].model` ∪ BAŞLIKTA TAM KELİME'den
+    # alıyor; index.html'in `?marka=&model=` filtresi ise (bugün) yalnız `marka[]`ye bakıyor.
+    # Bu YAPISAL bir fark: bu koldan gelen üyeliği filtre GÖREMEZ.
+    # 🔴 KAPI GEVŞEMEZ, EKSEN DEĞİŞİR: "FILTRE_DAR=0" yerine "AÇIKLANAMAYAN FILTRE_DAR=0"
+    # ölçülür. Sayı-tabanı yazsaydık (FILTRE_DAR<=N) katalog büyüdükçe taban bayatlar,
+    # yeni bir GERÇEK ayrışma da tabanın altında saklanırdı ([[hukum-yanlis-birimde]]).
+    # Ölçüt bağımsızdır: üretimin başlık gövdesi çağrılmaz, kapı kendi dilbilgisini koşar.
+    # 🟡 AÇIK BORÇ (ADIM 2): üçüncü yüzey (index.html filtresi + uç `?model=`) bu yüklemi
+    # HENÜZ almadı; kapı farkı SAYIYLA raporlar, sıfır saymaz.
+    def _marka_adlari(mk):
+        adlar = {mk}
+        for x in getattr(evren, "taninmis", ()):
+            if evren.marka_alias.get(x, x) == mk:
+                adlar.add(x)
+        return sorted(adlar)
+
+    _ad_bellek = {}
+    _yazim_bellek = {}
+    for _mk, _d in veri.items():
+        for _canon, _g in _d["gruplar"].items():
+            _yz = set(x for x in (_d["_spelling"].get(_canon) or ()) if x)
+            _yz.add(_g.get("display") or _canon)
+            _yazim_bellek[(_mk, _canon)] = sorted(_yz)
+
+    def _baslik_aciklar(pid, mk, canon):
+        """Ürünün o kovadaki üyeliği BAŞLIK KOLUYLA açıklanıyor mu (bağımsız ölçüt)?"""
+        p = urun_ix.get(pid) or {}
+        baslik = p.get("baslik") or ""
+        if not baslik:
+            return False
+        adlar = _ad_bellek.get(mk)
+        if adlar is None:
+            adlar = _ad_bellek[mk] = _marka_adlari(mk)
+        return any(_bagimsiz_baslik_tasiyor(baslik, adlar, y)
+                   for y in _yazim_bellek.get((mk, canon), ()))
+
     temiz = sayfa_dar = filtre_dar = capraz = 0
     etkilenen = set()
     dokum = []
+    baslik_aciklanan = 0
+    baslik_aciklanamayan = []
     for cift in ciftler:
         s, canon = sayfa[cift]
         f = filtre.get(cift, set())
         eksik_sayfada, eksik_filtrede = f - s, s - f
+        # BAŞLIK KOLUYLA AÇIKLANAN üyelik parite farkından DÜŞÜLÜR (açıklanamayan kalır).
+        if eksik_filtrede:
+            _aciklanan = set(pid for pid in eksik_filtrede
+                             if _baslik_aciklar(pid, cift[0], canon))
+            baslik_aciklanan += len(_aciklanan)
+            for pid in sorted(eksik_filtrede - _aciklanan):
+                baslik_aciklanamayan.append((cift[0], cift[1], pid))
+            eksik_filtrede = eksik_filtrede - _aciklanan
         if not eksik_sayfada and not eksik_filtrede:
             temiz += 1
             continue
@@ -408,7 +498,7 @@ def olc(kok, modul_yolu=None):
     for (mk, kaynak), hedef_canon in (evren.model_alias or {}).items():
         alias_kaynaklari.setdefault((mk, hedef_canon), set()).add(kaynak)
     sahte, alias_aciklamali = [], []
-    kusak_aciklamali, esleme_aciklamali = [], []
+    kusak_aciklamali, esleme_aciklamali, baslik_aciklamali = [], [], []
     # KÜRATÖRLÜ KUŞAK EŞLEMESİ ile açıklanan üyelik (MODEL_ALIAS ile AYNI muamele): `T4`
     # jetonu `Transporter` metnini İÇERMEZ, dolayısıyla hiçbir bağımsız dilbilgisi bu
     # üyeliği türetemez — türetebilseydi zaten küratörlü tabloya gerek olmazdı. Bu yüzden
@@ -449,6 +539,14 @@ def olc(kok, modul_yolu=None):
             _kaynaklar = esleme_kaynaklari.get((marka, canon), set())
             if any(_tasiyor(jetonlar, _bagimsiz_kanon(k)) for k in _kaynaklar):
                 esleme_aciklamali.append((marka, display, pid, sorted(_kaynaklar)))
+                continue
+            # BAŞLIK KOLU ile açıklanan üyelik (5 Ağu): ürünün `marka[]`/`uyum[]` alanında
+            # jeton YOK ama BAŞLIĞINDA model adı TAM KELİME geçiyor. Muafiyet DEĞİL: ölçüt
+            # kapının KENDİ bağımsız dilbilgisiyle kurulur (üretim gövdesi çağrılmaz), yani
+            # tehlike korumasını düşüren ya da bitişikliği `markaKatla` ile yazan bir mutant
+            # bu eksende YANLIŞ-POZİTİF üretir ve KIRMIZI yakar.
+            if _baslik_aciklar(pid, marka, canon):
+                baslik_aciklamali.append((marka, display, pid))
                 continue
             sahte.append((marka, display, pid, sorted(jetonlar)[:4]))
 
@@ -530,9 +628,16 @@ def olc(kok, modul_yolu=None):
     #      gizlenirdi ([[hukum-yanlis-birimde]]) — K16 ile aynı disiplin.
     #      🔴 EŞİK ÖLÇÜTÜ "sayfa doğuracak mı" olmalı, "sayfa doğdu mu" DEĞİL: deny'e alınan
     #      çift yayından düşer, ölçüt yayına baksaydı tablo KENDİ kanıtını siler (totoloji).
+    #      🟡 BAŞLIK YARGISI ÖLÇÜTE DAHİLDİR (5 Ağu): "yalnız başlık kolu sayesinde eşiği
+    #      geçen ama BASLIK_DOGAN_ALLOW'a girmemiş" kova bir SAYFA ADAYI DEĞİLDİR — o kova
+    #      zaten yargı bekliyor ve mimarın önüne TEK karar olarak gidiyor. Ölçüte alınsaydı
+    #      aynı bekleyen karar İKİ ayrı tabloda ayrı ayrı yazılmak zorunda kalırdı.
+    #      🔴 ROZET DENY'i ÖLÇÜTTEN DÜŞMEZ (M28 totoloji koruması aynen durur).
     capraz_aday = {}
     for _mk, _d in veri.items():
         for _canon, _g in _d["gruplar"].items():
+            if _g.get("baslik_dogan") and (_mk, _canon) not in mm.BASLIK_DOGAN_ALLOW:
+                continue
             if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:
                 capraz_aday.setdefault(_canon, []).append((_mk, _g.get("display") or _canon,
                                                            len(_g["urunler"])))
@@ -684,6 +789,46 @@ def olc(kok, modul_yolu=None):
                     deny_kaybolan.append((dmk, dsp, p["id"]))
         deny_etkilenen.append((dmk, djt, vurus))
 
+    # --- BAŞLIK-DOĞAN SAYFA YARGISI — K21 (5 Ağu, mimar hükmü: "yargısız sayfa DOĞMAZ") ---
+    # İDDİA ÜÇ PARÇALI (K16/K19 disiplini):
+    #   (1) SIZINTI: yalnız başlık kolu sayesinde YAYIMLANAN her kova envanterde OLMALI,
+    #   (2) BAYAT : envanterdeki her giriş üretimde GERÇEKTEN başlık-doğan bir kova OLMALI,
+    #   (3) ÇELİŞKİ: aynı çift hem allow'da hem deny'de (MODEL_OLMAYAN_CIFT) olamaz,
+    #   + KİMLİK DONMUŞ (sessiz genişleme/daralma KIRMIZI).
+    # 🔴 ÖLÇÜT YAYINA BAKAR AMA TABLOYU OKUMAZ: yayımlanan küme jeneratör KOŞTURULARAK
+    # çıkar. Ayrıca YARGISIZ BEKLEYENLER ayrı sayılır — "sayfa doğmadı" sessiz kalmasın.
+    try:
+        _b_izin = dict(_arama.BASLIK_DOGAN_ALLOW)
+        baslik_izin_imza = (_arama.baslik_dogan_allow_imzasi(),
+                            _arama.BASLIK_DOGAN_ALLOW_IMZA,
+                            len(_b_izin), _arama.BASLIK_DOGAN_ALLOW_SAYISI)
+    except Exception as e:                                          # noqa: BLE001
+        raise Olculemedi("tools/arama.py BASLIK_DOGAN_ALLOW okunamadı: %r" % (e,))
+    _b_izin_anahtar = set("%s|%s" % (mk, _mk_kanon(jt)) for mk, jt in _b_izin)
+    baslik_yayin, baslik_bekleyen = set(), []
+    for _mk, _d in veri.items():
+        for _canon, _g in _d["gruplar"].items():
+            if not _g.get("baslik_dogan"):
+                continue
+            if mm.yayimlanir_mi(_g):
+                baslik_yayin.add("%s|%s" % (_mk, _canon))
+            elif _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK \
+                    and (_mk, _canon) not in mm.ROZET_DISI \
+                    and not mm.model_olmayan_cift_mi(_mk, _g.get("display") or _canon):
+                baslik_bekleyen.append((_mk, _g.get("display") or _canon, len(_g["urunler"])))
+    baslik_sizinti = sorted(baslik_yayin - _b_izin_anahtar)
+    baslik_bayat = sorted(_b_izin_anahtar - baslik_yayin)
+    # ÇELİŞKİ: allow'daki bir çift AYNI ZAMANDA deny yüklemini tetikliyor mu? Ölçüt
+    # üretimin deny yüklemiyle AYNI birimde kurulur (çıplak jeton + SON KELİME); düz
+    # `endswith` yazsaydık "everest" -> "st" gibi kelime-içi eşleşme yanlış alarm verirdi.
+    baslik_celiski = []
+    for mk, jt in sorted(_b_izin):
+        _dn = _bagimsiz_kanon(jt)
+        _toks = jt.split()
+        if (mk, _dn) in deny_n or (len(_toks) >= 2
+                                   and (mk, _bagimsiz_kanon(_toks[-1])) in deny_n):
+            baslik_celiski.append("%s|%s" % (mk, _mk_kanon(jt)))
+
     # --- KÜRATÖRLÜ KUŞAK EŞLEMESİ: ayna + kimlik + ETKİ ---------------------------------
     esleme_ayna = list(getattr(evren, "kusak_esleme", []))
     esleme_otorite = sorted("%s|%s|%s" % (a, b, t)
@@ -702,11 +847,24 @@ def olc(kok, modul_yolu=None):
             continue
         hedef_ids = sayfa_ids.get((emk, taban_k))
         if hedef_ids is not None:
+            # İDDİA KÜRATÖRLÜ EŞLEMENİN ETKİSİNE DAİRDİR: eşleme yalnız JETON YOLUNA
+            # (marka[]/uyum[]) uygulanır, dolayısıyla ölçüm de o yolla üye olan ürünlerle
+            # sınırlıdır. Kovaya YALNIZ BAŞLIK KOLUNDAN giren ürün (ör. "VW T1 Beetle …")
+            # eşlemenin konusu değildir — onu tabana taşımak Beetle parçasını Transporter
+            # sayfasına sızdırırdı. Eşleme yoluyla gelen ürünün tabana ULAŞMAMASI hâlâ
+            # KIRMIZI (kolun kendisi ölçülüyor).
+            _baslik_ekli = set(gk.get("baslik_ekli") or ())
             for p in gk["urunler"]:
-                if p.get("id") and p["id"] not in hedef_ids:
+                if p.get("id") and p["id"] not in hedef_ids \
+                        and p["id"] not in _baslik_ekli:
                     esleme_ulasmayan.append((emk, ejt, p["id"]))
         # "kuşak sayfaları KAPANMAZ" (mimar hükmü): eşik+birincil şartını sağlayan kova
         # yayımda OLMALI — eşleme bir sayfayı sessizce öldürmemeli.
+        # 🟡 BAŞLIK YARGISI HARİÇ (5 Ağu, K19 ile aynı gerekçe): eşiği YALNIZ başlık kolu
+        # sayesinde geçen ve henüz yargılanmamış kova hiç var olmadı — "kapandı" denemez;
+        # o kova mimarın önünde TEK karar olarak bekliyor (K21 sayar).
+        if gk.get("baslik_dogan") and (emk, jeton_k) not in mm.BASLIK_DOGAN_ALLOW:
+            continue
         if gk.get("birincil") and len(gk["urunler"]) >= mm.ESIK \
                 and (emk, jeton_k) not in mm.ROZET_DISI \
                 and not mm.model_olmayan_cift_mi(emk, gk.get("display") or ejt) \
@@ -808,7 +966,12 @@ def olc(kok, modul_yolu=None):
         for pid in sorted(ana_kartlar):
             p = urun_ix.get(pid) or {}
             jet = set(_bagimsiz_kanon(x) for x in (p.get("marka") or []) if x)
-            if not _tasiyor(jet, hedef) and _kusak_tasiyor(jet, hedef):
+            # BAŞLIK KOLUYLA gelen üyelik kuşak-özel SAYILMAZ: ürün modelin adını BAŞLIĞINDA
+            # TAM KELİME taşıyor (katlanmadı, TAM eşleşti) — ana listede durması doğrudur.
+            # Ölçüt yine bağımsız gövdeden gelir; "katlandı ama ana listeye karıştı" sınıfı
+            # (jetonu yalnız varyant olan ürün) KIRMIZI yakmaya devam eder.
+            if not _tasiyor(jet, hedef) and _kusak_tasiyor(jet, hedef) \
+                    and not _baslik_aciklar(pid, marka, canon):
                 bolum_sapan.append((marka, display,
                                     "ANA LİSTEDE kuşak-özel ürün: %s %s" % (pid, sorted(jet)[:3])))
         html_bolum = dict((b, k) for b, k in kesitler[1:])
@@ -846,6 +1009,9 @@ def olc(kok, modul_yolu=None):
                    "filtre_dar": filtre_dar, "capraz": capraz,
                    "etkilenen": len(etkilenen), "dokum": dokum, "sahte": sahte,
                    "alias_aciklamali": alias_aciklamali,
+                   "baslik_aciklanan": baslik_aciklanan,
+                   "baslik_aciklanamayan": baslik_aciklanamayan,
+                   "baslik_aciklamali": len(baslik_aciklamali),
                    "sorgulanamaz": sorgulanamaz, "marka_sayisi": len(veri),
                    "anahtar_ornek": ornek, "marka_kovasi": marka_kovasi,
                    "ayna_fark": ayna_fark, "ayna": ayna, "red_imza": red_imza,
@@ -869,6 +1035,10 @@ def olc(kok, modul_yolu=None):
                    "yayin_degistirici": len(yayin_degistirici),
                    "deny_imza": deny_imza, "deny_sizan": deny_sizan,
                    "deny_kaybolan": deny_kaybolan, "deny_etkilenen": deny_etkilenen,
+                   "baslik_izin_imza": baslik_izin_imza, "baslik_yayin": len(baslik_yayin),
+                   "baslik_sizinti": baslik_sizinti, "baslik_bayat": baslik_bayat,
+                   "baslik_celiski": baslik_celiski,
+                   "baslik_bekleyen": sorted(baslik_bekleyen, key=lambda t: (-t[2], t[0])),
                    "esleme_fark": esleme_fark, "esleme_imza": esleme_imza,
                    "tekharf_sapan": tekharf_sapan, "tekharf_ulasmayan": tekharf_ulasmayan,
                    "tekharf_ayri_kova": tekharf_ayri_kova,
@@ -960,12 +1130,20 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
             "cift=%d (0 çift 'sapma yok' diye YEŞİL geçemez)" % a["cift"])
     dogrula("K1 SAYFA_DAR=0 (filtrenin gösterdiği her ürün sayfada VAR)", a["sayfa_dar"] == 0,
             "sayfa_dar=%d" % a["sayfa_dar"])
-    dogrula("K2 FILTRE_DAR=0 (sayfanın gösterdiği her ürünü filtre BULUR)", a["filtre_dar"] == 0,
-            "filtre_dar=%d" % a["filtre_dar"])
+    dogrula("K2 FILTRE_DAR: sayfanın gösterdiği her ürünü filtre BULUR ya da fark BAŞLIK "
+            "KOLUYLA açıklanır", a["filtre_dar"] == 0 and not a["baslik_aciklanamayan"],
+            "açıklanamayan filtre_dar=%d %s · başlık koluyla açıklanan üyelik=%d "
+            "(🟡 ADIM 2 borcu: index.html filtresi bu yüklemi HENÜZ almadı)"
+            % (a["filtre_dar"], [x[:2] for x in a["baslik_aciklanamayan"][:3]] or "-",
+               a["baslik_aciklanan"]))
     dogrula("K3 CAPRAZ=0 (iki yönde birden sapan çift YOK)", a["capraz"] == 0,
             "capraz=%d" % a["capraz"])
     dogrula("K4 YANLIŞ-POZİTİF YOK: sayfaya giren her ürün o model jetonunu GERÇEKTEN taşıyor",
             not a["sahte"], "sahte=%d %s" % (len(a["sahte"]), a["sahte"][:4]))
+    if a["baslik_aciklamali"]:
+        print("  BILGI BAŞLIK KOLU ile açıklanan üyelik: %d ürün (muafiyet listesi DEĞİL, "
+              "kapının KENDİ bağımsız başlık dilbilgisiyle ölçülür; tehlike koruması ya da "
+              "bitişiklik gevşerse bu eksen yanlış-pozitif üretir)" % a["baslik_aciklamali"])
     if a["alias_aciklamali"]:
         print("  BILGI KÜRATÖRLÜ ALIAS ile açıklanan üyelik: %d ürün (muafiyet listesi DEĞİL, "
               "MODEL_ALIAS tablosundan türer) örnek: %s"
@@ -1104,6 +1282,20 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
             % (a["tekharf_sapan"][:2] or "-", a["tekharf_ayri_kova"][:2] or "-",
                a["tekharf_ulasmayan"][:2] or "-", len(a["tekharf_kaybolan"]),
                a["tekharf_capa_dusen"] or "-"))
+    # K21 — BAŞLIK-DOĞAN SAYFA YARGISI: yargısız sayfa DOĞMAZ, envanter BAYATLAMAZ.
+    _bi = a["baslik_izin_imza"]
+    dogrula("K21 BAŞLIK KOLUNDAN DOĞAN SAYFA KÜMESİ YARGILANMIŞ ENVANTERLE BİREBİR (%d sayfa; "
+            "%d kova yargı BEKLİYOR ve DOĞMADI)" % (a["baslik_yayin"], len(a["baslik_bekleyen"])),
+            not a["baslik_sizinti"] and not a["baslik_bayat"] and not a["baslik_celiski"]
+            and _bi[0] == _bi[1] and _bi[2] == _bi[3],
+            "YARGISIZ DOĞMUŞ (SIZINTI)=%s · envanterde var üretimde yok (BAYAT)=%s · "
+            "allow/deny çelişkisi=%s · imza=%s beklenen=%s sayı=%d beklenen=%d"
+            % (a["baslik_sizinti"][:3] or "-", a["baslik_bayat"][:3] or "-",
+               a["baslik_celiski"][:3] or "-", _bi[0], _bi[1], _bi[2], _bi[3]))
+    if a["baslik_bekleyen"]:
+        print("  BILGI MİMAR HÜKMÜ BEKLEYEN KOVA: %d (sayfa DOĞMADI; ürünleri marka "
+              "sayfasında ve kendi gerçek model sayfasında duruyor) ilk 5: %s"
+              % (len(a["baslik_bekleyen"]), a["baslik_bekleyen"][:5]))
     if a["kusak_aciklamali"]:
         print("  BILGI KUŞAK KATLAMASI ile açıklanan üyelik: %d ürün (muafiyet listesi DEĞİL, "
               "bağımsız kuşak dilbilgisiyle ölçülür; ayrımı K14 doğrular)"
@@ -1245,8 +1437,8 @@ MUTANTLAR = [
     # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — /marka/ford/
     # focus-st/ CANLIDA duruyordu ve kapı 16/16 YEŞİL geçiyordu.
     ("tools/arama.py",
-     '                                "esya/klima kolu) — arac modeli degil; urunler Ev kategorisinde",\n}',
-     '                                "esya/klima kolu) — arac modeli degil; urunler Ev kategorisinde",\n'
+     '    ("Yamaha", "Stage"): "\'Stage 2\' tuning asamasi ifadesi — model degil",\n}',
+     '    ("Yamaha", "Stage"): "\'Stage 2\' tuning asamasi ifadesi — model degil",\n'
      '    ("Volkswagen", "T4"): "MUTANT",\n}', "KIRMIZI",
      "M21 KUŞAK SAYFASINI DENY'E AL (Volkswagen T4) -> yayın kümesi tam olarak "
      "volkswagen/t4'ü kaybeder; 'kuşak sayfaları KAPANMAZ' hükmü kırılır"),
@@ -1294,10 +1486,12 @@ MUTANTLAR = [
     # 🔴 ÇAPA İKİ SATIRLI: tek satırlık hâli bu listenin KENDİSİNDE de geçiyordu (kendine
     # atıf) ve mutant hangi kopyaya vurduğu belirsiz kalırdı.
     ("tools/model-uyelik-kapisi.py",
-     '        for _canon, _g in _d["gruplar"].items():\n'
-     '            if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:',
-     '        for _canon, _g in _d["gruplar"].items():\n'
-     "            if mm.yayimlanir_mi(_g):", "KIRMIZI",
+     '                continue\n'
+     '            if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:\n'
+     '                capraz_aday.setdefault',
+     '                continue\n'
+     "            if mm.yayimlanir_mi(_g):\n"
+     '                capraz_aday.setdefault', "KIRMIZI",
      "M28 ÖLÇÜTÜ 'SAYFA DOĞDU MU'YA ÇEVİR -> deny'e alınan çift ölçümden DÜŞER, karşısındaki "
      "gerçek rozet tek başına kalır ve tablo KENDİ kanıtını siler (totoloji koruması)"),
     # --- ÇIPLAK TEK HARF (SINIF 1) EKSENİ — K20 (4 Ağu, mimar hükmü) ---
@@ -1322,7 +1516,33 @@ MUTANTLAR = [
      "KIRMIZI",
      "M31 `GS` İÇİN ÖLÜ ALLOW GİRİŞİ YAZ -> envanter bayat (küme birebir değil); K19 TEK "
      "BAŞINA kırmızı yakar. Ön ölçümün hükmünün kanıtı: GS allow girişi BUGÜN yazılamaz"),
+    # --- BAŞLIK KOLU / YARGI KAPISI EKSENİ — K21 + K4 (5 Ağu, mimar hükmü) ---
+    # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — başlık kolu
+    # 4.046 yeni üyelik ve 173 yeni sayfa açıyor; yargı kapısı ya da tehlike koruması
+    # sessizce ölseydi kapı YEŞİL yanmaya devam ederdi.
+    ("tools/marka_model_build.py",
+     '    if g.get("baslik_dogan") and (g.get("marka"), g.get("canon")) '
+     "not in BASLIK_DOGAN_ALLOW:\n        return False",
+     "    if False:\n        return False", "KIRMIZI",
+     "M38 YARGI KAPISINI KALDIR -> mimar hükmü BEKLEYEN 340 kovanın eşiği geçenleri sayfa "
+     "olur; K21 SIZINTI eksenini TEK BAŞINA kırmızı yakmalı"),
+    ("tools/arama.py", '    ("Suzuki", "Escudo"): "arac/motosiklet model adi",\n', "",
+     "KIRMIZI",
+     "M39 ALLOW ENVANTERİNDEN BİR GİRİŞ DÜŞÜR -> /marka/suzuki/escudo/ sessizce ölür; "
+     "K21 BAYAT ekseni (küme birebir değil) + kimlik imzası kırmızı yakar"),
+    ("tools/marka_model_build.py",
+     '    j = "".join(_kelimeler(jeton))\n    return (not j) or len(j) <= 3 or j.isdigit()',
+     '    j = "".join(_kelimeler(jeton))\n    return not j', "KIRMIZI",
+     "M40 TEHLİKE SINIFI KORUMASINI DÜŞÜR -> çıplak `5`/`86`/`C5` başlıkta eşleşir; kapının "
+     "BAĞIMSIZ başlık dilbilgisi bunu açıklayamaz -> K4 yanlış-pozitif KIRMIZI"),
     # --- KONTROL (YEŞİL bekleniyor) ---
+    ("tools/arama.py",
+     '    ("Audi", "Q3"): "arac/motosiklet model adi",\n'
+     '    ("Audi", "TT"): "arac/motosiklet model adi",',
+     '    ("Audi", "TT"): "arac/motosiklet model adi",\n'
+     '    ("Audi", "Q3"): "arac/motosiklet model adi",', "YESIL",
+     "K21 KONTROL: allow envanterini YENİDEN SIRALA -> küme, kimlik ve davranış AYNI "
+     "(daima-kırmızı bir K21 M38/M39'u da geçerdi; kontrol bunu ayırt eder)"),
     ("index.html", 'var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};',
      'var MODEL_ALIAS = {"Ford|fseries":"fserisi","BMW|k":"kserisi"};', "YESIL",
      "K20 KONTROL: MODEL_ALIAS'ı YENİDEN SIRALA -> tablo ve davranış AYNI (daima-kırmızı bir "

@@ -416,12 +416,23 @@ def indeks_uret(urunler, index_metni):
     kat_alt_mm = {}         # (kat, altk, marka, canon) -> n
     mm_kalan = {}           # (kat, marka, canon)       -> {onek siyrilmis yazim: n} (etiket)
     mm_tam = set()          # (kat, marka, canon) — KENDI yazimiyla gecen (kova DOGAR)
+    jeton_yolu_n = {}       # (marka, canon) -> JETON YOLUYLA gelen urun sayisi (SAYFA birimi)
+    jeton_yolu_birincil = set()
     for u in urunler:
         kat = (u.get("kategori") or "").strip()
         altk = (u.get("altkategori") or "").strip()
         ham = _ham_kume(u)
+        _bir = _mmb.birincil_marka(sorted(ham), mevren) if ham else None
         for b in _markalari(u, kat):
             tam, katlanan, yazim = model_uyeligi(b, ham, mevren)
+            # SAYFA BIRIMINDE jeton-yolu sayimi: cip elemesi "bu kova BASLIK KOLU OLMADAN
+            # da sayfa olur mu" sorusunu sormak zorunda (sayfa ureticisinin `baslik_dogan`
+            # yuklemi). Kategori bazli sayim bu soruyu cevaplayamaz — sayfa kategorileri
+            # BIRLESTIRIR. Ayrisma M3/M4/M5'te fail-closed olculur.
+            for _c in (tam | katlanan):
+                jeton_yolu_n[(b, _c)] = jeton_yolu_n.get((b, _c), 0) + 1
+                if b == _bir:
+                    jeton_yolu_birincil.add((b, _c))
             for canon in (tam | katlanan):
                 if (kat, b, canon) not in cift:
                     continue
@@ -434,6 +445,48 @@ def indeks_uret(urunler, index_metni):
                 for _ham_jeton, kalan in yazim.get(canon, ()):
                     dk[kalan] = dk.get(kalan, 0) + 1
 
+    # --- 3. gecis: BASLIK KOLU (5 Agu, mimar hukmu) --------------------------------------
+    # SAYFA URETICISI artik uyeligi `marka[]` ∪ `uyum[].model` ∪ BASLIKTA TAM KELIME'den
+    # aliyor. Cip satiri o kolu okumasaydi cipin gosterdigi sayi ile sayfanin sayisi
+    # yeniden AYRISIRDI — tam da bu modulun kapatmak icin yazildigi kusur
+    # ([[ikiz-tanim-sessiz-ayrisma]]). Kural IKINCI KEZ YAZILMAZ: yuklem sayfa ureticisinin
+    # `baslikta_tam_kelime()` govdesidir (tehlike sinifi + bitisiklik dahil).
+    # 🔴 KOVA UYDURULMAZ: eslesme yalnizca KENDI yazimiyla ZATEN DOGMUS kovalara (mm_tam)
+    # yapilir; `cift` (uyum bagi) on kosulu da aynen korunur.
+    _ad_bellek = {}
+    _kova_yazim = {}
+    baslik_katkili = set()  # (marka, canon) — BASLIK KOLUNUN fiilen urun ekledigi kovalar
+    for k in mm_tam:
+        _yz = sorted(mm_kalan.get(k, {}))
+        if _yz:
+            _kova_yazim.setdefault((k[0], k[1]), []).append((k[2], _yz))
+    for u in urunler:
+        kat = (u.get("kategori") or "").strip()
+        altk = (u.get("altkategori") or "").strip()
+        baslik = _mmb._kelimeler(u.get("baslik") or "")
+        if not baslik:
+            continue
+        ham = _ham_kume(u)
+        for b in _markalari(u, kat):
+            kovalar = _kova_yazim.get((kat, b))
+            if not kovalar:
+                continue
+            adlar = _ad_bellek.get(b)
+            if adlar is None:
+                adlar = _ad_bellek[b] = [_mmb._kelimeler(x)
+                                         for x in _mmb.marka_yazimlari(b, mevren)]
+            tam, katlanan, _y = model_uyeligi(b, ham, mevren)
+            for canon, yazimlar in kovalar:
+                if canon in tam or canon in katlanan:
+                    continue                    # jeton yoluyla ZATEN sayildi
+                if (kat, b, canon) not in cift:
+                    continue
+                if not any(_mmb.baslikta_tam_kelime(baslik, adlar, y) for y in yazimlar):
+                    continue
+                kat_marka_model[(kat, b, canon)] = kat_marka_model.get((kat, b, canon), 0) + 1
+                kat_alt_mm[(kat, altk, b, canon)] = kat_alt_mm.get((kat, altk, b, canon), 0) + 1
+                baslik_katkili.add((b, canon))
+
     gecerli_marka = set(k for k, v in kat_marka.items() if v >= ESIK_MARKA)
     # CIP ETIKETI = sayfa basligiyla AYNI kanonik gosterim (tek kaynak, ikinci secim YOK).
     mm_ad = dict((k, model_gosterimi(k[1], k[2], mm_kalan[k])) for k in mm_kalan)
@@ -443,7 +496,20 @@ def indeks_uret(urunler, index_metni):
     # 🔴 ELEME ESIKLERDEN ONCE: "marka basina en az 2 model" sarti NIHAI kumeyi gormeli,
     # yoksa iki cipten biri elenince satir tek cip kalir ve HIC cizilmezdi.
     def _elendi(k):
-        return (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k])
+        if (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k]):
+            return True
+        # YARGISIZ SAYFA DOGMAZ -> YARGISIZ CIP DE DOGMAZ (5 Agu). Kova esigi/birincilligi
+        # YALNIZ baslik kolu sayesinde geciyorsa, sayfa ureticisi onu BASLIK_DOGAN_ALLOW'a
+        # baglar; cip de ayni yargiya baglanir, yoksa sayfasi olmayan OLU cip dogardi (M4).
+        # 🔴 SART BASLIK KOLUNUN FIILEN URUN EKLEDIGI KOVAYLA SINIRLI (olculdu 5 Agu):
+        # sinirsiz yazilinca kural "esik alti her kovayi ele" haline geliyor ve CIP
+        # ESIGINI (ESIK_MODEL) dusuren mutanti MASKELIYOR — M16 KIRMIZI iken YESIL'e
+        # donmustu. Yargi kapisi yalniz KENDI actigi kapiyi kapatir.
+        if (k[1], k[2]) not in baslik_katkili:
+            return False
+        _bd = (jeton_yolu_n.get((k[1], k[2]), 0) < _mmb.ESIK
+               or (k[1], k[2]) not in jeton_yolu_birincil)
+        return _bd and (k[1], k[2]) not in _mmb.BASLIK_DOGAN_ALLOW
 
     # KOVA ANCAK KENDI YAZIMIYLA DOGAR (mm_tam): yalnizca kusak katlamasiyla ulasilan bir
     # canon icin cip UYDURULMAZ — sayfa ureteci de tabana ancak taban kovasi VARSA katlar.

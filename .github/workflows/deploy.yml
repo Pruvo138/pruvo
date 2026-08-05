@@ -1837,6 +1837,17 @@ jobs:
       - name: "Model uyeligi kapisi (marka/model sayfasi <-> ana sayfa filtresi paritesi)"
         run: python3 tools/model-uyelik-kapisi.py
 
+      # MODEL UYELIK YUKLEMI — UC KOL (5 Agu 2026, mimar hukmu):
+      #   ham `uyum[].model` ∪ `model_kanon` (kusak/kanon) ∪ BASLIKTA TAM KELIME
+      # Kabul CAKILI CAPALARA karsi olcer (Vitara 27->66 · Transporter 145 · Golf 300 …),
+      # kendi urettigi kumeye DEGIL (totoloji). Ayrica kademeli kurali (guvenli jeton /
+      # tehlike sinifi) ve bitisikligin `markaKatla()`DAN BAGIMSIZ oldugunu civiler.
+      # Mutasyon bataryasi (4 oldurucu + 3 kontrol, 4 AYIRT EDICI kirmizi kume):
+      #   python3 tools/model-baslik-kolu-test.py --kendini-test
+      # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ.
+      - name: "Model baslik kolu kabul (uc kol + tehlike sinifi + yargisiz sayfa dogmaz)"
+        run: python3 tools/model-baslik-kolu-test.py
+
       # 🔴 AYNI KAPININ MUTASYON BATARYASI ARTIK `serit-a4` JOB'UNDADIR (5 Agu 2026).
       # NEDEN TASINDI: adim duzeyi olcum (son 6 basarili kosum, GitHub jobs API)
       # `serit-a3`i 968 sn (16,1 dk) gosterdi ve tek basina bu adim 440 sn (%45) idi.
@@ -1955,8 +1966,21 @@ jobs:
       # siralamak) ve `GS` hukmunu CALISTIRILABILIR kilan 1 oldurucu (olu allow girisi yazip
       # K19'u tek basina kirmizi yakan) geldi. Ikisi de TEK BASINA kirmizi yakiyor (olculdu).
       # Olculdu: yerelde 24+4 mutant 108 s iken 31+6 mutant 165 s; CI'da 440 sn.
-      - name: "Model uyeligi mutasyon bataryasi (31 oldurucu + 6 kontrol)"
+      # 5 Agu: BASLIK KOLU ekseni 3 oldurucu daha ekledi (yargi kapisini kaldiran ·
+      # allow envanterinden giris dusuren · tehlike korumasini dusuren) + 1 kontrol.
+      - name: "Model uyeligi mutasyon bataryasi (34 oldurucu + 7 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
+
+      # BASLIK KOLU MUTASYON BATARYASI (5 Agu 2026) — 4 oldurucu + 3 kontrol.
+      # 🔴 AYIRT EDICILIK ICERDE OLCULUR: oldurucu mutantlarin KIRMIZI YAKTIGI iddia
+      # kumeleri birbirinden FARKLI olmali (ayni kume cikarsa "daima kirmizi" tek bir
+      # eksen hepsini gecmis olurdu — batarya bunu kendi raporlar).
+      #   M1 kanon/kusak kolu  -> Transporter DUSER · M2 baslik kolu -> Vitara DUSER
+      #   M3 tehlike korumasi  -> Renault|5 TAVANI ASAR + markasiz baslik fiksturu kirilir
+      #   M4 bitisikligi markaKatla() ile yaz -> KATLAMALI fikstur kirilir (M3'ten AYRI kume)
+      # Olculdu: yerelde 7 mutant ~6 dk (her mutant tam jenerator kosumu).
+      - name: "Model baslik kolu mutasyon bataryasi (4 oldurucu + 3 kontrol)"
+        run: python3 tools/model-baslik-kolu-test.py --kendini-test
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
   # ═════════════════════════════════════════════════════════════════════════════

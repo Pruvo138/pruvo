@@ -216,37 +216,33 @@ function d1Kumeleri(fikstur) {
 // Yuklem BURADA YAZILMAZ: d1-sync.marka_arama_haritasi CALISTIRILIR (kolonu dolduran
 // gercek uretim govdesi). Kopyalansaydi tam kapattigimiz ikiz-tanim ayrismasini geri
 // getirirdik ([[ikiz-tanim-sessiz-ayrisma]]).
-const CAPRAZ_PY = [
-  "import importlib.util, json, os, sys",
-  "kok = sys.argv[1]; tools = os.path.join(kok, 'tools')",
-  "sys.path.insert(0, tools)",
-  "spec = importlib.util.spec_from_file_location('d1sync', os.path.join(tools, 'd1-sync.py'))",
-  "mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)",
-  "urunler = json.load(open(os.path.join(kok, 'urunler.json'), encoding='utf-8'))",
-  "harita, sebep = mod.marka_arama_haritasi(urunler)",
-  "ters = {}",
-  "for uid, deger in harita.items():",
-  "    for m in json.loads(deger):",
-  "        ters.setdefault(m, []).append(uid)",
-  "print(json.dumps({'sebep': sebep, 'kume': ters}, ensure_ascii=False))",
-].join("\n");
+//
+// 🔴 TEK CAGIRICI (06 Agu 2026): ureticiyi kosturan python parcasi eskiden BURADA da
+// ayrica yaziliydi. Iki kopya = iki fail-closed kurali; biri sertlesirken oteki bayatlardi
+// ([[ikiz-tanim-sessiz-ayrisma]]). Uretim yolundaki cagri artik TEK govdeden gelir:
+// tools/ege-marka-referansi.js `haritaUret`. Fikstur tarafindaki cagri (parite-fikstur-test.js)
+// BILEREK ayri kalir — bagimsizlik kaniti; ikisi de tek noktaya baglanirsa nobet KENDINI
+// dogrular ve uretici mutantlari sessizce hayatta kalir.
+const markaRef = require("./ege-marka-referansi.js");
 
-/** Map<marka, Set<id>> — deponun kanonik govdesinden. Doner: {kume, sebep}. */
+/** Map<marka, Set<id>> — deponun kanonik govdesinden. Fail-closed (EksenHatasi -> OLCULEMEDI). */
 function caprazKumeler(fikstur) {
   if (fikstur) return fikstur.caprazKumeler();
-  const p = cp.spawnSync("python3", ["-c", CAPRAZ_PY, KOK],
-    { encoding: "utf8", timeout: 300000, maxBuffer: 256 * 1024 * 1024 });
-  if (p.status !== 0) {
-    throw new EksenHatasi("capraz kaynak kosulamadi (python3/d1-sync.py): " +
-      ((p.stderr || "") + (p.stdout || "")).slice(-400));
-  }
   let j;
-  try { j = JSON.parse(p.stdout); } catch (e) {
-    throw new EksenHatasi("capraz kaynak ciktisi cozulemedi: " + e.message);
+  try {
+    j = markaRef.haritaUret(KOK, path.join(KOK, "urunler.json"));
+  } catch (e) {
+    // Ureticinin fail-closed dallari (kosulamadi / rc!=0 / sebep dolu / sekil taninmadi)
+    // burada YESILE cevrilmez; EksenHatasi = OLCULEMEDI.
+    throw new EksenHatasi("capraz kaynak: " + (e && e.message));
   }
-  if (j.sebep) throw new EksenHatasi("capraz kaynak FAIL-CLOSED atladi: " + j.sebep);
   const kume = new Map();
-  for (const m of Object.keys(j.kume)) kume.set(m, new Set(j.kume[m]));
+  for (const uid of Object.keys(j.harita)) {
+    for (const m of j.harita[uid]) {
+      if (!kume.has(m)) kume.set(m, new Set());
+      kume.get(m).add(uid);
+    }
+  }
   return kume;
 }
 
