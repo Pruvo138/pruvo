@@ -878,10 +878,16 @@ ROZET_CAPRAZ_IZINLI = {
                                "kamyonetiyle IKIZ DEGIL, ad cakismasi)"),
     "Renault|trafic": ("ROZET", "Renault Trafic gercek rozet"),
     "Opel|vivaro": ("ROZET", "Opel Vivaro gercek rozet"),
+    # 5 Agu — BASLIK KOLU acilinca capraz olan cift (Peugeot|107 kovasi ESIK'i gecti).
+    # PSA/Toyota ortak platformu: ayni arac UC rozetle satildi (107 / C1 / Aygo).
+    "Peugeot|107": ("ROZET", "Peugeot 107 Peugeot'nun KENDI rozeti (C1 ve Aygo kardesleri)"),
+    "Toyota|107": ("BEKLER", "Toyota'nin rozeti AYGO'dur; `107` Peugeot rozetidir. Kova "
+                             "katalogda ESIK ustunde — ROZET_DISI'ye alinsin mi, mimar hukmu "
+                             "bekliyor (deny yazilirsa urunler Toyota agacinda kalir)"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 24
-ROZET_CAPRAZ_IZINLI_IMZA = "ef97b85c870e71dc"
+ROZET_CAPRAZ_IZINLI_SAYISI = 26
+ROZET_CAPRAZ_IZINLI_IMZA = "2d90bac114d652b0"
 
 
 def rozet_capraz_imzasi():
@@ -958,10 +964,35 @@ MODEL_OLMAYAN_CIFT = {
                            "telefon tutucusu uyumundan geliyor (CANLIDA /marka/peugeot/iphone/)",
     ("Mitsubishi", "Electric"): "'Mitsubishi Electric' SIRKET adinin ikinci kelimesi (beyaz "
                                 "esya/klima kolu) — arac modeli degil; urunler Ev kategorisinde",
+    # --- 5 Agu, mimar hukmu: BASLIK KOLU acilinca dogacak olan ve ACIKCA MODEL
+    # OLMAYAN kovalar (cihaz/infotainment/aksesuar/govde-tipi/grup adi). Kalici deny:
+    # allow envanterine hic girmedikleri icin zaten dogmazlar, buradaki kayit YARGININ
+    # kendisidir (yarin baska bir kol ayni jetonu yeniden onerirse sessizce acilmasin).
+    ("Audi", "AdBlue"): "dizel egzoz katki sivisi (AdBlue) — arac modeli degil",
+    ("Audi", "Coupe"): "govde tipi sozcugu (Audi 80/B2 Coupe) — bagimsiz model adi degil",
+    ("BMW", "Adventure"): "GS Adventure donanim/varyant soneki — bagimsiz model degil",
+    ("BMW", "Cabrio"): "govde tipi sozcugu (1 Serisi Cabrio) — model degil",
+    ("BMW", "Compact"): "govde tipi sozcugu (3 Serisi Compact) — model degil",
+    ("BMW", "Connected Ride"): "BMW telefon kizagi AKSESUAR sistemi — arac modeli degil",
+    ("Ford", "MK1"): "ciplak kusak degistiricisi (Mk1 Escort/Capri/Transit) — model degil",
+    ("Ford", "Sync"): "Ford SYNC infotainment sistemi — arac modeli degil",
+    ("Ford", "Truck"): "arac sinifi sozcugu (Ford Truck 1973-1979) — model adi degil",
+    ("Opel", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Peugeot", "Stellantis"): "sirket/grup adi — arac modeli degil",
+    ("Skoda", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Toyota", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Volkswagen", "Cabriolet"): "govde tipi sozcugu — model degil",
+    ("Volkswagen", "MK2"): "ciplak kusak degistiricisi — model degil",
+    ("Volkswagen", "Mk4"): "ciplak kusak degistiricisi — model degil",
+    ("Volkswagen", "iPhone"): "Apple telefon modeli — arac modeli degil (Peugeot emsali)",
+    ("Volvo", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Volvo", "Sierra"): "deniz yedek parca URETICI markasi (Volvo Penta kayitlarindan) — Volvo'nun modeli degil",
+    ("Yamaha", "Quad Lock"): "ucuncu taraf telefon tutucu markasi — Yamaha modeli degil",
+    ("Yamaha", "Stage"): "'Stage 2' tuning asamasi ifadesi — model degil",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 5
-MODEL_OLMAYAN_CIFT_IMZA = "c3fcef6ac1363862"
+MODEL_OLMAYAN_CIFT_SAYISI = 26
+MODEL_OLMAYAN_CIFT_IMZA = "ebbb9031f2640b6f"
 
 
 def model_olmayan_cift_imzasi():
@@ -1001,16 +1032,223 @@ DEGISTIRICI_SAYFA_IZNI = {
     "Volkswagen|golfr": "Golf R — mesru donanim/kusak sayfasi (VW'nin R serisi)",
     "Volkswagen|type2": "VW Type 2 (Bulli) — gercek model adi, Type 1'den AYRI arac",
     "Yamaha|tracer7": "Tracer 7 — gercek model adi (motosiklet hacim kirilimi)",
+    # 5 Agu — BASLIK KOLU ile ESIK'i gecen, DEGISTIRICI SEKILLI ama GERCEK model adlari
+    # (yargilari BASLIK_DOGAN_ALLOW'da da duruyor; bu envanter sizinti eksenidir).
+    "Opel|grandlandx": "Opel Grandland X — gercek model adi (X harfi degistirici DEGIL)",
+    "Suzuki|wagonr": "Suzuki Wagon R — gercek model adi (R harfi degistirici DEGIL)",
+    "Volkswagen|type1": "VW Type 1 (Beetle) — gercek model adi, Type 2'den AYRI arac",
 }
 
-DEGISTIRICI_SAYFA_IZNI_SAYISI = 17
-DEGISTIRICI_SAYFA_IZNI_IMZA = "ae4fc17fef7efbc5"
+DEGISTIRICI_SAYFA_IZNI_SAYISI = 20
+DEGISTIRICI_SAYFA_IZNI_IMZA = "62cb38aacebbaa5f"
 
 
 def degistirici_izni_imzasi():
     return hashlib.sha256(
         json.dumps(sorted(DEGISTIRICI_SAYFA_IZNI), ensure_ascii=False)
         .encode("utf-8")).hexdigest()[:16]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BASLIK KOLUNDAN DOGAN SAYFA IZNI (5 Agu, mimar hukmu — "yargisiz sayfa DOGMAZ")
+#
+# NE ICIN: model uyelik yuklemine BASLIKTA TAM KELIME kolu eklendi. Bu kol MEVCUT
+# kovalari buyutur (olculdu: 455 sayfa buyudu, 0 kucuLdu) ama bir kismini da ESIK'in
+# uzerine tasiyarak YENI SAYFA dogurur. Yeni dogan her kova bir KARARDIR: kimi gercek
+# arac modelidir, kimi bir CIHAZ/INFOTAINMENT adidir (`Sync`, `iPhone`, `MagSafe`),
+# kimi bir MOTOR AILESI ya da SASI KODUDUR (`M54`, `N47`, `E92`).
+#
+# 🔴 KURAL FAIL-CLOSED: yalnizca bu envanterde yargilanmis (marka, jeton) cifti yeni
+# sayfa acar. Envanterde OLMAYAN kova SESSIZCE dogmaz — urunu KAYBOLMAZ (marka
+# sayfasinda ve kendi gercek model sayfasinda durur; kapi kaybolan=0 olcer).
+# 🔴 DENY AYRI TUTULUR: "acikca model DEGIL" hukmu MODEL_OLMAYAN_CIFT'e yazilir (kalici,
+# marka-ozel); buraya yazilmayan her sey "HENUZ YARGILANMADI" demektir, "reddedildi" degil.
+# 🔴 KARSILASTIRMA BIRIMI KUME'dir, SAYI degil (DEGISTIRICI_SAYFA_IZNI ile ayni disiplin).
+BASLIK_DOGAN_ALLOW = {
+    ("Audi", "Q3"): "arac/motosiklet model adi",
+    ("Audi", "TT"): "arac/motosiklet model adi",
+    ("BMW", "2 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "3 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "5 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "6 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "F900R"): "arac/motosiklet model adi",
+    ("BMW", "G650GS"): "arac/motosiklet model adi",
+    ("BMW", "K Serisi"): "arac/motosiklet model adi",
+    ("BMW", "K1200"): "arac/motosiklet model adi",
+    ("BMW", "K1200RS"): "arac/motosiklet model adi",
+    ("BMW", "R1150"): "arac/motosiklet model adi",
+    ("BMW", "R25"): "arac/motosiklet model adi",
+    ("BMW", "R80"): "arac/motosiklet model adi",
+    ("BMW", "S1000R"): "arac/motosiklet model adi",
+    ("BMW", "i4"): "arac/motosiklet model adi",
+    ("BMW", "iX1"): "arac/motosiklet model adi",
+    ("BMW", "iX3"): "arac/motosiklet model adi",
+    ("Chrysler", "300"): "arac/motosiklet model adi",
+    ("Chrysler", "Voyager"): "arac/motosiklet model adi",
+    ("Citroen", "AX"): "arac/motosiklet model adi",
+    ("Citroen", "BX"): "arac/motosiklet model adi",
+    ("Citroen", "C2"): "arac/motosiklet model adi",
+    ("Citroen", "C8"): "arac/motosiklet model adi",
+    ("Citroen", "XM"): "arac/motosiklet model adi",
+    ("Datsun", "280Z"): "arac/motosiklet model adi",
+    ("Fiat", "Doblo"): "arac/motosiklet model adi",
+    ("Fiat", "Fiorino"): "arac/motosiklet model adi",
+    ("Ford", "Bronco Sport"): "arac/motosiklet model adi",
+    ("Ford", "Connect"): "arac/motosiklet model adi",
+    ("Ford", "Contour"): "arac/motosiklet model adi",
+    ("Ford", "Cortina"): "arac/motosiklet model adi",
+    ("Ford", "Everest"): "arac/motosiklet model adi",
+    ("Ford", "Fairlane"): "arac/motosiklet model adi",
+    ("Ford", "Galaxy"): "arac/motosiklet model adi",
+    ("Ford", "Police Interceptor"): "arac/motosiklet model adi",
+    ("Ford", "Territory"): "arac/motosiklet model adi",
+    ("Honda", "CB250"): "arac/motosiklet model adi",
+    ("Honda", "CB450"): "arac/motosiklet model adi",
+    ("Honda", "CB500X"): "arac/motosiklet model adi",
+    ("Honda", "CB650R"): "arac/motosiklet model adi",
+    ("Honda", "CB750"): "arac/motosiklet model adi",
+    ("Honda", "CBR600RR"): "arac/motosiklet model adi",
+    ("Honda", "CR-Z"): "arac/motosiklet model adi",
+    ("Honda", "CRF1000"): "arac/motosiklet model adi",
+    ("Honda", "CRF250R"): "arac/motosiklet model adi",
+    ("Honda", "CRF450"): "arac/motosiklet model adi",
+    ("Honda", "CT90"): "arac/motosiklet model adi",
+    ("Honda", "CX500"): "arac/motosiklet model adi",
+    ("Honda", "Dominator"): "arac/motosiklet model adi",
+    ("Honda", "Fireblade"): "arac/motosiklet model adi",
+    ("Honda", "Forza"): "arac/motosiklet model adi",
+    ("Honda", "GL1500"): "arac/motosiklet model adi",
+    ("Honda", "HR-V"): "arac/motosiklet model adi",
+    ("Honda", "Hornet"): "arac/motosiklet model adi",
+    ("Honda", "Magna"): "arac/motosiklet model adi",
+    ("Honda", "NC700"): "arac/motosiklet model adi",
+    ("Honda", "NC700X"): "arac/motosiklet model adi",
+    ("Honda", "NC750"): "arac/motosiklet model adi",
+    ("Honda", "NX650"): "arac/motosiklet model adi",
+    ("Honda", "PA50"): "arac/motosiklet model adi",
+    ("Honda", "PCX"): "arac/motosiklet model adi",
+    ("Honda", "Super Cub"): "arac/motosiklet model adi",
+    ("Honda", "Talon"): "arac/motosiklet model adi",
+    ("Honda", "VFR 800"): "arac/motosiklet model adi",
+    ("Honda", "XL125"): "arac/motosiklet model adi",
+    ("Honda", "XL600R"): "arac/motosiklet model adi",
+    ("Honda", "XR400"): "arac/motosiklet model adi",
+    ("Jeanneau", "Cap Camarat"): "arac/motosiklet model adi",
+    ("Land Rover", "Range Rover"): "arac/motosiklet model adi",
+    ("Mazda", "MX-5"): "arac/motosiklet model adi",
+    ("Mercedes", "190E"): "arac/motosiklet model adi",
+    ("Mercedes", "Actros"): "arac/motosiklet model adi",
+    ("Mercedes", "CLA"): "arac/motosiklet model adi",
+    ("Mercedes", "GLK"): "arac/motosiklet model adi",
+    ("Mercedes", "GLS"): "arac/motosiklet model adi",
+    ("Mercedes", "SLK"): "arac/motosiklet model adi",
+    ("Mercedes", "T1"): "arac/motosiklet model adi",
+    ("Mitsubishi", "ASX"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Carisma"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Delica L300"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Delica L400"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Eclipse Cross"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Galant"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Lancer Evolution"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Minicab"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Pajero Mini"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Pajero Pinin"): "arac/motosiklet model adi",
+    ("Nissan", "240SX"): "arac/motosiklet model adi",
+    ("Nissan", "240Z"): "arac/motosiklet model adi",
+    ("Nissan", "370Z"): "arac/motosiklet model adi",
+    ("Nissan", "D21 Hardbody"): "arac/motosiklet model adi",
+    ("Nissan", "Juke"): "arac/motosiklet model adi",
+    ("Nissan", "Maxima"): "arac/motosiklet model adi",
+    ("Nissan", "Skyline GT-R"): "arac/motosiklet model adi",
+    ("Nissan", "Versa"): "arac/motosiklet model adi",
+    ("Opel", "Grandland X"): "arac/motosiklet model adi",
+    ("Peugeot", "1007"): "arac/motosiklet model adi",
+    ("Peugeot", "107"): "arac/motosiklet model adi",
+    ("Peugeot", "2008"): "arac/motosiklet model adi",
+    ("Peugeot", "206+"): "arac/motosiklet model adi",
+    ("Peugeot", "405"): "arac/motosiklet model adi",
+    ("Peugeot", "407"): "arac/motosiklet model adi",
+    ("Peugeot", "508"): "arac/motosiklet model adi",
+    ("Peugeot", "Expert"): "arac/motosiklet model adi",
+    ("Peugeot", "Traveller"): "arac/motosiklet model adi",
+    ("Porsche", "924"): "arac/motosiklet model adi",
+    ("Porsche", "964"): "arac/motosiklet model adi",
+    ("Porsche", "986"): "arac/motosiklet model adi",
+    ("Porsche", "993"): "arac/motosiklet model adi",
+    ("Porsche", "Cayenne"): "arac/motosiklet model adi",
+    ("Renault", "Arkana"): "arac/motosiklet model adi",
+    ("Seat", "Alhambra"): "arac/motosiklet model adi",
+    ("Seat", "Altea"): "arac/motosiklet model adi",
+    ("Seat", "Cordoba"): "arac/motosiklet model adi",
+    ("Skoda", "Rapid"): "arac/motosiklet model adi",
+    ("Suzuki", "Boulevard"): "arac/motosiklet model adi",
+    ("Suzuki", "DR-Z250"): "arac/motosiklet model adi",
+    ("Suzuki", "Escudo"): "arac/motosiklet model adi",
+    ("Suzuki", "Freewind"): "arac/motosiklet model adi",
+    ("Suzuki", "GS500E"): "arac/motosiklet model adi",
+    ("Suzuki", "GS550"): "arac/motosiklet model adi",
+    ("Suzuki", "GSF 650"): "arac/motosiklet model adi",
+    ("Suzuki", "GSX-S1000"): "arac/motosiklet model adi",
+    ("Suzuki", "GSX600F"): "arac/motosiklet model adi",
+    ("Suzuki", "Hayabusa"): "arac/motosiklet model adi",
+    ("Suzuki", "Katana"): "arac/motosiklet model adi",
+    ("Suzuki", "LT80"): "arac/motosiklet model adi",
+    ("Suzuki", "SJ410"): "arac/motosiklet model adi",
+    ("Suzuki", "SV1000"): "arac/motosiklet model adi",
+    ("Suzuki", "SV650S"): "arac/motosiklet model adi",
+    ("Suzuki", "TS50X"): "arac/motosiklet model adi",
+    ("Suzuki", "V-Strom 1000"): "arac/motosiklet model adi",
+    ("Suzuki", "V-Strom 650"): "arac/motosiklet model adi",
+    ("Suzuki", "Wagon R"): "arac/motosiklet model adi",
+    ("Suzuki", "X90"): "arac/motosiklet model adi",
+    ("Suzuki", "XF650"): "arac/motosiklet model adi",
+    ("Toyota", "Corolla Cross"): "arac/motosiklet model adi",
+    ("Toyota", "Corolla Verso"): "arac/motosiklet model adi",
+    ("Toyota", "FJ Cruiser"): "arac/motosiklet model adi",
+    ("Toyota", "Land Cruiser Prado"): "arac/motosiklet model adi",
+    ("Toyota", "Matrix"): "arac/motosiklet model adi",
+    ("Toyota", "Raize"): "arac/motosiklet model adi",
+    ("Toyota", "Starlet"): "arac/motosiklet model adi",
+    ("Toyota", "T100"): "arac/motosiklet model adi",
+    ("Toyota", "Tercel"): "arac/motosiklet model adi",
+    ("Toyota", "Vitz"): "arac/motosiklet model adi",
+    ("Volkswagen", "Bora"): "arac/motosiklet model adi",
+    ("Volkswagen", "CC"): "arac/motosiklet model adi",
+    ("Volkswagen", "Caravelle"): "arac/motosiklet model adi",
+    ("Volkswagen", "Crafter"): "arac/motosiklet model adi",
+    ("Volkswagen", "Eos"): "arac/motosiklet model adi",
+    ("Volkswagen", "Käfer"): "arac/motosiklet model adi",
+    ("Volkswagen", "Multivan"): "arac/motosiklet model adi",
+    ("Volkswagen", "Pointer"): "arac/motosiklet model adi",
+    ("Volkswagen", "Taos"): "arac/motosiklet model adi",
+    ("Volkswagen", "Type 1"): "arac/motosiklet model adi",
+    ("Volkswagen", "Vento"): "arac/motosiklet model adi",
+    ("Volvo", "340"): "arac/motosiklet model adi",
+    ("Volvo", "480"): "arac/motosiklet model adi",
+    ("Volvo", "Amazon"): "arac/motosiklet model adi",
+    ("Volvo", "EX30"): "arac/motosiklet model adi",
+    ("Volvo", "S80"): "arac/motosiklet model adi",
+    ("Volvo", "V90"): "arac/motosiklet model adi",
+    ("Volvo", "XC40"): "arac/motosiklet model adi",
+    ("Yamaha", "FZ1"): "arac/motosiklet model adi",
+    ("Yamaha", "Grizzly"): "arac/motosiklet model adi",
+    ("Yamaha", "Raptor 700"): "arac/motosiklet model adi",
+    ("Yamaha", "Seca"): "arac/motosiklet model adi",
+    ("Yamaha", "Tracer 900"): "arac/motosiklet model adi",
+    ("Yamaha", "XJ 600"): "arac/motosiklet model adi",
+    ("Yamaha", "XSR 700"): "arac/motosiklet model adi",
+    ("Yamaha", "YBR"): "arac/motosiklet model adi",
+}
+
+BASLIK_DOGAN_ALLOW_SAYISI = 173
+BASLIK_DOGAN_ALLOW_IMZA = "f026e3258a1d8062"
+
+
+def baslik_dogan_allow_imzasi():
+    """Envanterin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (a, b) for a, b in BASLIK_DOGAN_ALLOW),
+                   ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
 
 
 # ─────────────────────────────────────────────────────────────────────────────

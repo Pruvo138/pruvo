@@ -491,6 +491,121 @@ def marka_urun_sayisi(d):
     return n
 
 
+def _baslik_dogan_allow():
+    """tools/arama.py BASLIK_DOGAN_ALLOW — SAYFASI YALNIZ BAŞLIK KOLU sayesinde doğan
+    (marka, canon) kovalarının YARGILANMIŞ envanteri.
+
+    🔴 YARGISIZ SAYFA DOĞMAZ (5 Ağu, mimar hükmü — K19 doktrininin başlık ekseni):
+    başlık kolu olmadan eşiği/birincilliği SAĞLAMAYAN bir kova ancak bu envanterde
+    açıkça yargılanmışsa yayımlanır. Envanterde olmayan kova SESSİZCE doğmaz; ürünü
+    KAYBOLMAZ (marka sayfasında ve kendi gerçek model sayfasında durur).
+    FAIL-CLOSED: tablo okunamazsa SystemExit — boş kümeye düşmek "hiçbir kova doğmaz"
+    demek olurdu ve sessizce SEO yüzeyi kırpardı; sessiz genişleme kadar sessiz daralma
+    da kabul edilmez."""
+    try:
+        import arama                                                # noqa: PLC0415
+        return set((mk, model_kanon.kanon(jt)) for mk, jt in arama.BASLIK_DOGAN_ALLOW)
+    except Exception as e:                                          # noqa: BLE001
+        raise SystemExit("HATA: tools/arama.py BASLIK_DOGAN_ALLOW okunamadı (%r) — başlık "
+                         "kolundan doğan sayfalar yargılanamaz (fail-closed)." % (e,))
+
+
+BASLIK_DOGAN_ALLOW = _baslik_dogan_allow()
+
+
+# ---------------------------------------------------------- BAŞLIK KOLU (5 Ağu, mimar hükmü)
+# ÜYELİK YÜKLEMİ = marka üyeliği ∧ model; model disjunkt'ı =
+#     ham `uyum[].model`  ∪  `model_kanon` (kuşak/kanon katlaması)  ∪  BAŞLIKTA TAM KELİME
+# ÖLÇÜLEN BOŞLUK (5 Ağu): `?ara=Vitara` 68 ürün getirirken /marka/suzuki/vitara/ 27
+# gösteriyordu — arama SERBEST METİN evreninden, sayfa RESMİ `marka[]` üyeliğinden sayıyordu.
+# Başlıkta tam-kelime Vitara taşıyan 66 ürünün 66'sı da Suzuki üyesi; yani kayıp tamamen
+# ÜYELİK BOŞLUĞUYDU (başlıkta model var, `marka[]`de yok).
+def _kelimeler(metin):
+    """Başlık/jeton -> normalleşmiş KELİME dizisi (Türkçe-duyarlı; alfanümerik dışı ayırıcı).
+    `_norm` ana sayfanın kendi normalleştirmesidir (tek kaynak); kelime sınırı burada
+    ayırıcıya indirgenir, böylece "F-150" ile "F 150" AYNI diziye düşer."""
+    return [w for w in re.split(r"[^a-z0-9]+", _norm(metin or "")) if w]
+
+
+def tehlike_jetonu_mu(jeton):
+    """Jeton TEHLİKE SINIFINDA mı — çıplak tam-kelime YETMEZ, marka+model BİTİŞİK şart.
+
+    🔴 SABİT LİSTE YOK, KURAL TÜRETİR (mimar hükmü): ikinci bir ikiz tanım doğmasın diye
+    tehlike kümesi bir dosyada tutulmaz, jetonun ŞEKLİNDEN hesaplanır —
+        · GÜVENLİ  : uzunluk >= 4  VE  tamamen sayısal DEĞİL   -> çıplak tam-kelime yeter
+        · TEHLİKE  : uzunluk <= 3  YA DA  tamamen sayısal      -> yalnız bitişik ifade
+    ÖLÇÜLEN GEREKÇE (5 Ağu): kısa/sayısal model adı katalogda 260 adet (`5`,`A`,`V`,`205`,
+    `300`,`C5`,`E30`,`T4`,`FL`…). Renault ∧ çıplak `5` ∧ üye-değil turnusolunda 7 ürün
+    çıkıyordu; içinde hem GERÇEK yakalama ("Renault 5 E-Tech") hem YANLIŞ pozitif
+    ("Clio 5", "Espace 5" = kuşak sayısı) vardı. Bitişiklik şartı üçünü de doğru ayırır."""
+    j = "".join(_kelimeler(jeton))
+    return (not j) or len(j) <= 3 or j.isdigit()
+
+
+def _dizi_iceriyor(hepsi, parca):
+    """`parca` kelime dizisi, `hepsi` içinde BİTİŞİK alt-dizi olarak geçiyor mu?
+    TAM KELİME ölçütü budur: alt-dize taraması "Golf"u "Golfçü"de bulurdu."""
+    n, m = len(hepsi), len(parca)
+    if m == 0 or m > n:
+        return False
+    for i in range(n - m + 1):
+        if hepsi[i:i + m] == parca:
+            return True
+    return False
+
+
+def _onek_kovasi(jeton_kelimeleri, kova_yazimi):
+    """Kova yazımı, jetonun BAŞ kelimeleriyle birebir mi ("Ami 6" -> "Ami")?
+    Kuşak-dışı istisnasının başlık kolundaki karşılığı: taban okuması budur."""
+    yw = _kelimeler(kova_yazimi)
+    return bool(yw) and jeton_kelimeleri[:len(yw)] == yw
+
+
+def marka_yazimlari(marka, evren):
+    """Kanonik markanın BİTİŞİKLİK ifadesinde kullanılabilecek GÖRÜNEN adları
+    ({"Opel","Vauxhall"} gibi). Yalnız AD LİSTESİ üretir; başlık metnine katlama UYGULANMAZ."""
+    adlar = {marka}
+    for x in getattr(evren, "taninmis", ()):
+        if evren.marka_alias.get(x, x) == marka:
+            adlar.add(x)
+    return sorted(adlar)
+
+
+def baslikta_tam_kelime(baslik_kelimeleri, marka_ad_kelimeleri, jeton):
+    """Jeton, başlıkta KABUL EDİLEBİLİR biçimde geçiyor mu (kademeli kural)?
+
+    🔴 BİTİŞİKLİK `evren.katla()`/`markaKatla()` İLE YAZILMAZ — mimar hükmü, ölçülmüş tuzak:
+    katlama ÖNEK kuralı işletir, `katla("renault espace") -> "Renault"` döner. Bitişikliği
+    "jetondan önceki kelimeleri katla, markaya eşit mi" diye yazsaydık "Renault Espace 5"
+    testi GEÇER ve tehlike koruması SESSİZCE ölürdü (turnusol 3 -> 6). Burada yapılan şey
+    DÜZ İFADE eşleşmesidir: `<marka adı> <jeton>` kelime dizisi başlıkta BİTİŞİK geçmeli."""
+    jw = _kelimeler(jeton)
+    if not jw or not baslik_kelimeleri:
+        return False
+    if not tehlike_jetonu_mu(jeton):
+        return _dizi_iceriyor(baslik_kelimeleri, jw)
+    for aw in marka_ad_kelimeleri:
+        if aw and _dizi_iceriyor(baslik_kelimeleri, aw + jw):
+            return True
+    return False
+
+
+def uyelik_jetonlari(p):
+    """Ürünün MODEL ADAYI jetonları = `marka[]` ∪ ham `uyum[].model`.
+
+    `uyum[].model` disjunkt'ı bugünkü katalogda ÖLÜ ölçüldü (5 Ağu: 0 yeni sayfa, 0 yeni
+    kalem) — çünkü model taşıyan her `uyum` öğesinin jetonu zaten `marka[]`de kanonik
+    olarak geçiyor. YİNE DE OKUNUR: veri partileri `uyum`u `marka[]`den ÖNCE dolduruyor
+    ve kolun düşmesi o gün SESSİZ bir üyelik boşluğu açardı. Ölü kalması bir ÖLÇÜMDÜR,
+    bir garanti değil."""
+    out = [(x or "").strip() for x in (p.get("marka") or [])]
+    for o in (p.get("uyum") or []):
+        t = (o.get("model") or "").strip()
+        if t:
+            out.append(t)
+    return [x for x in out if x]
+
+
 def model_jetonlari(marka, marka_dizisi, evren):
     """`marka` SAYFASI altında ürünün üye olduğu model anahtarları -> {anahtar: Counter(yazım)}.
 
@@ -567,6 +682,11 @@ def gruplandir(products, evren, ek_markalar=()):
         if not uyeler:
             continue
         birincil = birincil_marka(m, evren, ek_markalar)
+        # MODEL disjunkt'ının ilk iki kolu (ham `uyum[].model` ∪ `model_kanon`) AYNI jeton
+        # listesinden beslenir; marka ÜYELİĞİ yalnız `marka[]`den türemeye devam eder
+        # (`uyum` marka açmaz — o ayrı bir yargı).
+        ham_marka = list(m)
+        m = uyelik_jetonlari(p)
         for kan in uyeler:
             d = kova(kan)
             if kan == birincil and p.get("id"):
@@ -575,6 +695,13 @@ def gruplandir(products, evren, ek_markalar=()):
                 # YANSIMAZ ve mutasyon bataryası körelirdi ([[beyan-edilmis-survivor]]).
                 d["birincil_ids"].add(p["id"])
             jetonlar = model_jetonlari(kan, m, evren)
+            # 🔴 AD OYU YALNIZ `marka[]`DEN GELİR: `uyum` kolu ÜYELİK açar, İSİM VERMEZ.
+            # Ölçülen risk (5 Ağu): `uyum[].model` yazımları gösterim oyuna karışınca
+            # `FJR1300` kovasının adı `FJR 1300`e döndü — H1 ve SLUG değişir, yani
+            # /marka/yamaha/fjr1300/ URL'i sessizce taşınırdı (SEO regresyonu).
+            # Kova YALNIZ `uyum`dan doğduysa (marka[]'de hiç yazımı yok) oy oradan alınır —
+            # aksi halde kovanın adı olmazdı.
+            ad_jetonlari = model_jetonlari(kan, ham_marka, evren)
             bekleyen.append((kan, m, birincil, p, jetonlar))
             if not jetonlar:                     # model kırılımı YOK (marka-only / çok markalı)
                 (d["marka_only"] if kan == birincil else d["ikincil"]).append(p)
@@ -587,7 +714,7 @@ def gruplandir(products, evren, ek_markalar=()):
                     d["gruplar"][canon] = g
                     d["_spelling"][canon] = Counter()
                 g["urunler"].append(p)           # jeton başına DEĞİL, anahtar başına tek kez
-                d["_spelling"][canon].update(yazimlar)
+                d["_spelling"][canon].update(ad_jetonlari.get(canon) or yazimlar)
                 if kan == birincil:
                     g["birincil"] = True
 
@@ -640,6 +767,73 @@ def gruplandir(products, evren, ek_markalar=()):
             g["display"] = display
             g["slug"] = _slug(display)
 
+    # ---- FAZ 3: BAŞLIK KOLU (5 Ağu, mimar hükmü) ------------------------------------
+    # Model disjunkt'ının ÜÇÜNCÜ kolu: ürünün BAŞLIĞINDA modelin adı TAM KELİME geçiyorsa
+    # (tehlike sınıfında yalnız marka+model BİTİŞİK ifadeyle) ürün o kovaya girer.
+    # 🔴 YENİ KOVA UYDURULMAZ (FAZ 2 ile aynı disiplin): eşleşme yalnız katalogda ZATEN VAR
+    # OLAN kovalara yapılır. Serbest metinden jeton türetmek "hangi kelime modeldir"
+    # yargısını kodun eline verirdi; kova evreni `marka[]`/`uyum[]` küratörlüğünde kalır.
+    # 🔴 SAYFA EVRENİ AYRICA YARGILANIR: yalnız bu kol sayesinde eşiği/birincilliği geçen
+    # kova `g["baslik_dogan"]` ile işaretlenir ve yayımı BASLIK_DOGAN_ALLOW'a bağlanır.
+    _urun_uyelik = []                        # (id, üye markalar, birincil, başlık kelimeleri)
+    for p in products:
+        pid = p.get("id")
+        m = p.get("marka") or []
+        if not pid or not m:
+            continue
+        uyeler = marka_uyelikleri(m, evren, ek_markalar)
+        if not uyeler:
+            continue
+        _urun_uyelik.append((pid, p, set(uyeler), birincil_marka(m, evren, ek_markalar),
+                             _kelimeler(p.get("baslik") or "")))
+    for marka, d in veri.items():
+        ad_kelimeleri = [_kelimeler(a) for a in marka_yazimlari(marka, evren)]
+        # KÜRATÖRLÜ "FARKLI ARAÇ" İSTİSNASI BAŞLIK KOLUNDA DA GEÇERLİDİR (ölçülen sızıntı,
+        # 5 Ağu): `Citroen|Ami 6` kuşak-dışı ilan edilmiştir (1961 Ami 6 ≠ 2020 Ami), ama
+        # ürünün BAŞLIĞI "Citroen Ami 6 …" olduğu için çıplak tam-kelime `Ami` eşleşiyor ve
+        # istisna sessizce ÖLÜYORDU. Kural yazılabilir, ikinci tablo YOK: ürün kuşak-dışı
+        # bir jeton taşıyorsa, o jetonun ÖNEKİ olan kovalara başlıktan GİRMEZ.
+        kusak_disi_jetonlari = []
+        for _kayit in getattr(evren, "kusak_disi", []):
+            _p = _kayit.split("|", 1)
+            if len(_p) == 2 and _p[0] == marka:
+                kusak_disi_jetonlari.append((_kelimeler(_p[1]),
+                                             evren.model_anahtari(marka, _p[1])))
+        kovalar = []
+        for canon, g in d["gruplar"].items():
+            # Kovanın ARANACAK yazımları: kanonik gösterim + katalogda görülen yazımlar.
+            # Her yazım tehlike sınıfına AYRI AYRI bakılır (kova "C5" yazımını da taşıyorsa
+            # o yazım için bitişiklik şartı ayrıca işler).
+            yazimlar = set(x for x in (d["_spelling"].get(canon) or ()) if x)
+            yazimlar.add(g["display"])
+            g["baslik_dogan"] = not (g.get("birincil") and len(g["urunler"]) >= ESIK)
+            kovalar.append((g, sorted(yazimlar),
+                            set(x.get("id") for x in g["urunler"] if x.get("id"))))
+        for pid, p, uyeler, birincil, baslik_kelimeleri in _urun_uyelik:
+            if marka not in uyeler or not baslik_kelimeleri:
+                continue
+            yasak = []                       # bu ürüne KAPALI kova anahtarları (kuşak-dışı)
+            if kusak_disi_jetonlari:
+                _urun_jetonlari = uyelik_jetonlari(p)
+                for _tw, _tk in kusak_disi_jetonlari:
+                    if any(evren.model_anahtari(marka, _t) == _tk for _t in _urun_jetonlari):
+                        yasak.append((_tw, _tk))
+            for g, yazimlar, mevcut in kovalar:
+                if pid in mevcut:
+                    continue
+                if any(g["canon"] != _tk and _onek_kovasi(_tw, y)
+                       for _tw, _tk in yasak for y in yazimlar):
+                    continue
+                if not any(baslikta_tam_kelime(baslik_kelimeleri, ad_kelimeleri, y)
+                           for y in yazimlar):
+                    continue
+                mevcut.add(pid)
+                g["urunler"].append(p)
+                g["ana"].append(p)               # TAM ADIYLA eşleşti -> ana liste (kuşak DEĞİL)
+                g.setdefault("baslik_ekli", set()).add(pid)
+                if marka == birincil:
+                    g["birincil"] = True
+
     # KUŞAK BÖLÜMLERİ — başlık/slug ancak TÜM display'ler atandıktan sonra kurulabilir.
     # Sıra deterministik: çok üründen aza, eşitlikte alfabetik (aynı katalog -> bayt-aynı sayfa).
     for marka, d in veri.items():
@@ -675,7 +869,15 @@ def yayimlanir_mi(g):
     # varyant bölümünde, her hâlükârda marka sayfasında durur (kapı ölçer).
     if model_olmayan_cift_mi(g.get("marka"), g.get("display") or g.get("canon")):
         return False
-    return bool(g.get("birincil")) and len(g["urunler"]) >= ESIK
+    if not (bool(g.get("birincil")) and len(g["urunler"]) >= ESIK):
+        return False
+    # YARGISIZ SAYFA DOĞMAZ (5 Ağu, mimar hükmü): kova SAYFA eşiğini/birincilliğini YALNIZ
+    # başlık kolu sayesinde geçiyorsa, o (marka, canon) çifti açıkça yargılanmış olmalı.
+    # Yargısız kova yayımlanmaz; ürünü KAYBOLMAZ (marka sayfasında ve kendi gerçek model
+    # sayfasında durur — kapı bunu ölçer).
+    if g.get("baslik_dogan") and (g.get("marka"), g.get("canon")) not in BASLIK_DOGAN_ALLOW:
+        return False
+    return True
 
 
 # --------------------------------------------------------------------- HTML yardımcıları
