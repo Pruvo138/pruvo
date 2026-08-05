@@ -1,3 +1,27 @@
+# DEVAM (KraL) — 5 Agu 2026
+
+## 🔴 5 AGU OTURUM ACILISI — HASAR TARAMASI (kota kesintisi sonrasi)
+**Kayip is YOK.** Bes deponun (pruvo · hasat · jenerator · pazarlama · bot) calisma agaci TEMIZ;
+dort worktree'nin hicbirinde commit'lenmemis degisiklik yok, ana checkout `origin/main` ile senkron.
+`d1-sync --durum` uc eksen YESIL: **18.997** urun, sayi/sema/icerik birebir.
+
+**🔴 GERCEK HASAR — yayin hatti 2026-08-04T18:55Z'den beri KESINTISIZ KIRMIZI (28 kosum).**
+Son yesil kosum `30939847242` (18:42Z). `deploy` job'i `needs: [build, serit-a2, serit-a3, serit-a4]`
+oldugu icin uc serit kirmiziyken **`deploy` + `yayin` HIC KOSMADI** → gece eklenen ~1.500 urun
+(katalog **17.488 → 18.997**) **Ege'de VAR, canli sitede YOK** (ayrisma her zamankinin TERSI yonde).
+Kirmizi yakan: `Marka->model pilot (Ford+BMW)` (a2) · `Model uyeligi kapisi` (a3) · `model uyeligi
+mutasyon bataryasi` (a4).
+📌 **Ayirt edici olcum:** bataryada 31 oldurucunun 31'i dogru kirmizi ama **6 KONTROL mutantinin
+6'si da kirmizi** → kapi **mutasyonsuz tabanda da kirmizi**, yani kusur kapinin kendisinde degil
+olctugu yuzeyde. Kok neden ayrimi (veri mi kod mu) muhendiste (Opus, worktree, dal push edecek,
+merge karari mimarda).
+🟡 `ifsa-nobeti` de kirmizi ama `deploy.needs` icinde DEGIL — yayini durdurmuyor; onarimi
+`ifsa-kaynak-onarim-ve-daraltma` dalinda hazir, merge kuyrugunda.
+
+**OKAN HUKMU (bugun):** (1) hat yesile donene kadar **diger mimar oturumlari ACILMAYACAK**,
+(2) worktree/dal hijyeni **onarimdan SONRA** yapilacak (su an 4 worktree + 3 push'suz yerel dal,
+tavan 2). Kutuya tum mimarlara "parti push etmeyin" notu yazildi.
+
 # DEVAM (KraL) — 4 Agu 2026
 
 ## 🟠 ACIK KALEM (kanca kablolama dali, agent-aabf841a) — bu turda GENISLETILMEDI
