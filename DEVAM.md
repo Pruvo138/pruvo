@@ -39,6 +39,25 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (20:37 turu) — DUR kosulu: ayni kok neden, onarim YERELDE, push OKAN KAPISINDA
+- Kutu: son ~75 dk'da **2** "Run failed" maili (inbox 7558, TOPLU cekim — taranan 7558 =
+  toplam 7558, ornekleme YOK): **1** yayin seridi + **1** bagimsiz alarm kolu.
+  **Hicbir mail Cop'e TASINMADI** (yesil yok -> silme yok).
+- **Bagimsiz teyit job DUZEYINDE OLCULDU** (18:37'de OLCULEMEDI olan yuzey bu turda geri
+  geldi): kosum `31027016757` (Build & deploy, `bf6af02d`) 13 job ->
+  `build`=success · `serit-b`/`serit-a4`/`cron-nabzi`/`envanter`/`mesaj-nobeti`/
+  `d1-kadans`=success · **`serit-a2`=failure** (adim "Devam sinif kapisi") ·
+  **`serit-a3`=failure** (ic nobetci) · `hacim-tam-takim`/`deploy`/`yayin`=**skipped**.
+- **KOK NEDEN YENI DEGIL, AYNISI:** `deploy` zincirini durduran sey `bf6af02d`'nin
+  tasidigi DEVAM.md sinif ihlali. Onarim (`b943fe40`) **19:37'de yapildi ve lokalde
+  duruyor**; `origin/main` hala `bf6af02d`. Yani CI'da duzeltilecek YENI bir kusur yok —
+  var olan duzeltmenin canliya inememesi var.
+- 🛑 **DUR KOSULU ISLETILDI:** ayni kok neden 3+ ardisik kosumda acik; cozum kod
+  degisikligi degil, push yetkisi. Bu turda kod DEGISMEDI, push DENENMEDI
+  (`DEGISEN_DOSYALAR=YOK`; sebep + risk gerekcesi sinif geregi `DEVAM-ARSIV.md`'de).
+- Lokalde bekleyen commit sirasi: **3** (`b943fe40` onarim + 2 nobet defteri blogu).
+- Ikinci alarm kolu (spec/tasarim) DOKUNULMADI — yayin zincirinin on kosulu DEGIL.
+
 ## CI NOBETI (19:37 turu) — yayin seridi KIRMIZI, duzeltme YERELDE, push OKAN KAPISINDA
 - Kutu: son ~70 dk'da **2** "Run failed" maili (inbox 7558, toplu cekim, ornekleme YOK):
   **1** yayin seridi + **1** bagimsiz alarm kolu. Hicbir mail Cop'e TASINMADI (yesil
