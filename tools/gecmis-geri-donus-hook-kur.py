@@ -60,15 +60,38 @@ if [ -z "$pruvo_gd_kok" ] || [ ! -f "$pruvo_gd_kok/tools/gecmis-geri-donus-kapis
   echo "!! Sizinti kapisi fail-closed'dir. Kasten atlamak icin: git push --no-verify"
   exit 1
 fi
+# 🔴 RC'YE GORE AYRI HUKUM (5 Agu 2026 olculen yanlis-atif): rc 1 ile rc 2 AYNI
+# metni basmak YANLIS TESHIS uretir. Olculdu: butce asimindan gelen rc=2 "sizinti
+# geri geliyor" diye okundu; bagimsiz TAM tarama 0 bulgu verdi. Kapinin sozlesmesi:
+#   rc 1 = SIZINTI (gercek bulgu) · rc 2 = OLCULEMEDI (fail-closed, bulgu DEGIL).
+# 🔴 MESAJ SECIMI FONKSIYONDA: rc yakalandiktan SONRAKI kod KISA kalmalidir; yoksa
+# `exit` cagrisi kablolama nobetcisinin (tools/kanca-kablolama-nobeti.py) fail-open
+# penceresinin DISINA taşar ve rc "okunup atiliyor" diye KIRMIZI yanar (bu olculdu).
+pruvo_gd_mesaj() {
+  if [ "$1" = "1" ]; then
+    echo "!! PUSH DURDURULDU — SIZINTI (rc=1): bu itme temizlenmis sizintiyi GERI GETIRIYOR."
+    echo "!! Yukaridaki kapi ciktisi hangi commit/eksende oldugunu yazar."
+  elif [ "$1" = "2" ]; then
+    echo "!! PUSH DURDURULDU — hukum OLCULEMEDI (rc=2, fail-closed)."
+    echo "!! ⚠️ BU 'SIZINTI VAR' DEMEK DEGILDIR: kapi tarayamadigi icin yesil diyemedi."
+    echo "!! Sebep: aday butcesi asildi (itmenin menzili patolojik genislikte)."
+    echo "!! COZUM: itmeyi daha kucuk parcalara bol; ya da bilerek atlamak icin"
+    echo "!!        'git push --no-verify' (gurultulu ve kayitli)."
+  else
+    echo "!! PUSH DURDURULDU — nobetci BEKLENMEDIK cikis verdi (rc=$1)."
+    echo "!! Bu ne SIZINTI ne de bilinen bir OLCULEMEDI hukmudur; ciktiyi oku."
+  fi
+}
 # STDIN'i al, kapiyi ondan besle, sonra kalan kancaya AYNEN geri ver (D1 senkronu
 # ayni stdin'i okur — tuketip birakmak onu sessizce oldururdu).
 pruvo_gd_girdi=$(mktemp 2>/dev/null || echo /tmp/pruvo-gd-$$)
 cat > "$pruvo_gd_girdi"
 python3 "$pruvo_gd_kok/tools/gecmis-geri-donus-kapisi.py" --pre-push < "$pruvo_gd_girdi"
 pruvo_gd_rc=$?
+# FAIL-CLOSED DEGISMEDI: rc ne olursa olsun (1 de 2 de) `exit 1` -> push DURUR.
 if [ "$pruvo_gd_rc" -ne 0 ]; then
   rm -f "$pruvo_gd_girdi"
-  echo "!! PUSH DURDURULDU — bu itme temizlenmis sizintiyi geri getiriyor (rc=$pruvo_gd_rc)."
+  pruvo_gd_mesaj "$pruvo_gd_rc"
   exit 1
 fi
 exec < "$pruvo_gd_girdi"
