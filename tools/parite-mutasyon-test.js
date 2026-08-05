@@ -29,7 +29,7 @@ const { spawn } = require("child_process");
 
 const TOOLS = __dirname;
 const DOSYALAR = ["parite-ortak.js", "parite-test.js", "parite-ege.js", "parite-fikstur-test.js",
-  "parite-yayin-fikstur-test.js"];
+  "parite-yayin-fikstur-test.js", "index-arama-referansi.js"];
 const VARSAYILAN_FIKSTUR = "parite-fikstur-test.js";
 
 /**
@@ -232,8 +232,13 @@ const FIKSTUR_SURE_SINIRI_MS = (() => {
 
 function fiksturKos(dizin, ad) {
   return new Promise((cozul) => {
+    // PARITE_INDEX_KOK: kopya GECICI dizinde kosar, orada index.html YOKTUR. Site arama
+    // referansi (tools/index-arama-referansi.js) index.html'i GERCEK agactan okumalidir —
+    // verilmezse referans fail-closed HATA atar ve pozitif kontrol de kirmizi yanar
+    // (mutant "yakalandi" sanilirdi, halbuki hicbir sey olculmemis olurdu).
     const c = spawn(process.execPath, [path.join(dizin, ad || VARSAYILAN_FIKSTUR)], {
-      env: process.env, cwd: os.tmpdir(),
+      env: Object.assign({}, process.env, { PARITE_INDEX_KOK: path.dirname(TOOLS) }),
+      cwd: os.tmpdir(),
     });
     let cikti = "";
     let bitti = false;
