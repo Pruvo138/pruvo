@@ -73,6 +73,26 @@
   sinif geregi `DEVAM-ARSIV.md`'de (git disi). **Yayin zinciri bu kapi acilana kadar kirmizi
   kalir**; CI'da duzeltilecek YENI kusur yok, var olan onarimin canliya inememesi var.
 - Yedek: onarim commit'i `gramer-sira-sayisi` dal referansinda da duruyor (push inince silinecek).
+
+### 🟢 SONUC — ONARIM CANLIYA INDI, YAYIN ZINCIRI ACILDI
+- `f926e0df` origin'e INDI (mimarin kendi push'uyla DEGIL; baska bir oturumun push'u
+  tasidi — mimar eliyle push iki kez denendi, ikisinde de ayni kimlik kapisinda dustu).
+- **Kosum `31036905871` job duzeyi:** `build`+`serit-a2`+**`serit-a3`**+`serit-a4`+`serit-b`+
+  **`deploy`** = **success** · tek kirmizi **`yayin`**. Yani gramer kapisi onarimi TUTTU,
+  `serit-a3` geri gelmedi ve **site canliya indi** (deploy 4 turdur ilk kez success).
+- **`yayin` kirmizisi YENI kusur DEGIL, bilinen TASARLANMIS TAVAN** (DEVAM.md'de zaten acik
+  kalemdi): logdan alinti — `ADAY SAYISI TAVANI ASTI: 408 > 300`. Tahmin dogrulandi:
+  19.325 (son yesil yayin) -> 19.733 = **408 aday**.
+- **Emsale gore kapatildi, esik BUYUTULMEDI:** `yayin-kapisi.py --geriye-doldur` -> **408 kayit**.
+  🔴 Esigi yukseltmek YASAKTI ve yapilmadi; asilan esik VERIYLE kapatildi.
+- **Bagimsiz geri-okuma (aracin kendi sayisina guvenilmedi):** `d1-sync.py --durum` uc eksen
+  TEMIZ — SAYI 19733/19733 · SEMA temiz · ICERIK 0 uyusmaz. **`yayinda=19733, taslak=0`**
+  -> tum katalog Ege'ye de gorunur durumda.
+- 🟡 **OLCULEMEDI:** dusen `yayin` job'i YENIDEN KOSULAMADI (kimlik kapisi yazma islemlerini
+  de kapatiyor; okuma calisiyor cunku depo public). Bu yuzden kosumun GitHub'daki rengi
+  `failure` kaldi, oysa altindaki kosul giderildi. Sonraki push taze kosum uretecek.
+- **MAIL SILINMEDI (bilerek):** kural "yeni kosum success OLCULDU" diyor; kosumun rengi
+  hala failure. Alt-olcumlerin iyi olmasi belirtilen BIRIMIN yerine gecmez -> 2 mail kutuda kaldi.
 - Ikinci bagimsiz alarm kolunun ayrintisi sinif geregi arsive tasindi (silinmedi).
 
 ## CI NOBETI (20:37 turu) — DUR kosulu: ayni kok neden, onarim YERELDE, push OKAN KAPISINDA
