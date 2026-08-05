@@ -47,7 +47,10 @@ KAPI_ADI = "marka-arama-d1-test.py"
 # Esik, kapinin erken cikip birkac kontrol basarak "kirmizi" gorunmesini AYIRT ETMEK icindir.
 TABAN_GECTI = 30
 
-# (ad, dosya [TOOLS'a gore], eski, yeni, beklenen)
+# (ad, dosya [TOOLS'a gore], eski, yeni, beklenen[, eksen])
+# `eksen` (istege bagli 6.): mutant KIRMIZI yanmakla kalmayip O IDDIAYI dusurmeli. Yoksa
+# "kirmizi yandi" hukmu katmanlarin VEYA'sidir ve tekil eksen olculmemis olur
+# ([[beyan-edilmis-survivor]]) — eksen verilirse KALDI satirlarindan biri onu ICERMELI.
 MUTANTLAR = [
     # ── OLDURUCU: yuklemin KENDISI ──────────────────────────────────────────────
     ("OLDURUCU M1 YUKLEMI SERBEST METNE CEVIR (bugunku uc davranisi: alt-dize)",
@@ -128,6 +131,46 @@ MUTANTLAR = [
      "d1-sync.py",
      "    for alias in sorted(getattr(evren, \"marka_alias\", None) or ()):",
      "    for alias in sorted(()):", "KIRMIZI"),
+    # ── AL3 KABUL EVRENI (5 Agu, mimar hukmu) ───────────────────────────────────
+    # AL3'un evreni kanonik ∪ alias ∪ KAPALI MARKA KUMESI'dir. Bu IKI mutant, evrenin
+    # GENISLETILMESI ile GEVSETILMESI arasindaki farki TEK BASINA olcer:
+    #   M14  uc kaynagin HICBIRINDE olmayan UYDURMA ad -> AL3 KIRMIZI kalmali (fail-open degil)
+    #   K4   kapali kumede OLAN ama bugun URUNU OLMAYAN ad -> AL3 YESIL (genisletmenin ta kendisi)
+    # Ikisi de AYNI yere ayni bicimde deger enjekte eder; tek fark ADIN KAYNAKTA OLMASI.
+    ("OLDURUCU M14 KOLONA UYDURMA MARKA ADI SOK (uc kaynagin hicbirinde YOK)",
+     "d1-sync.py",
+     "        for m in list(deger):\n"
+     "            for a in alias_ters.get(m, ()):\n"
+     "                if a not in deger:\n"
+     "                    deger.append(a)\n"
+     "        if deger:",
+     "        for m in list(deger):\n"
+     "            for a in alias_ters.get(m, ()):\n"
+     "                if a not in deger:\n"
+     "                    deger.append(a)\n"
+     "        if deger:\n"
+     "            deger.append(\"Zzyzx Motorworks\")", "KIRMIZI", "AL3"),
+    # K4 GERCEK DUNYA VAKASI: urunun KENDI `marka` dizisinde YAZAN, kapali kumeye MIMAR
+    # KARARIYLA girmis bir ad kolona sizar (suzgecten dusmustu). Bu, sozluk her
+    # genisletildiginde yasanan HAL — eski AL3 bunu "veri kusuru" sanip kirmizi yakiyordu.
+    # 🔴 K1 EKSENI TEMIZ KALIR: ad, o urunun KENDI kolonuna girdigi icin "ham jeton kolonda
+    # gecmiyor" ihlali DOGMAZ; yani bu kontrol YALNIZ AL3 eksenini yoklar.
+    ("KONTROL K4 KAPALI KUMEDEKI ADI URUNUN KENDI KOLONUNA SOK (genisletilen evren)",
+     "d1-sync.py",
+     "        for m in list(deger):\n"
+     "            for a in alias_ters.get(m, ()):\n"
+     "                if a not in deger:\n"
+     "                    deger.append(a)\n"
+     "        if deger:",
+     "        for m in list(deger):\n"
+     "            for a in alias_ters.get(m, ()):\n"
+     "                if a not in deger:\n"
+     "                    deger.append(a)\n"
+     "        for _t in (u.get(\"marka\") or []):\n"
+     "            _t = (_t or \"\").strip()\n"
+     "            if _t in arama.UYUM_MARKA_IZINLI and _t not in deger:\n"
+     "                deger.append(_t)\n"
+     "        if deger:", "YESIL"),
     # ── KONTROL: iddia edilmeyen eksen / davranissiz yazim ──────────────────────
     ("KONTROL K1 davranissiz yazim (harita = {} -> dict())",
      "d1-sync.py",
@@ -171,7 +214,9 @@ def main():
     tmp = tempfile.mkdtemp(prefix="marka-arama-mutasyon-")
     sonuc = []
     try:
-        for ad, dosya, eski, yeni, beklenen in MUTANTLAR:
+        for mutant in MUTANTLAR:
+            ad, dosya, eski, yeni, beklenen = mutant[:5]
+            eksen = mutant[5] if len(mutant) > 5 else None
             kaynak_yolu = os.path.normpath(os.path.join(TOOLS, dosya))
             taban = open(kaynak_yolu, encoding="utf-8").read()
             if taban.count(eski) != 1:
@@ -198,7 +243,13 @@ def main():
                 gozlem = "COKME(olculen GECTI sayisi dusuk: %d)" % gecti
             else:
                 gozlem = "KIRMIZI" if r.returncode == 1 else "YESIL"
-            sonuc.append((ad, beklenen, "%s (KALDI=%d GECTI=%d)" % (gozlem, fail, gecti)))
+            if eksen and gozlem == "KIRMIZI":
+                # TEKIL EKSEN SARTI: kirmizi yeterli DEGIL, O iddia dusmus olmali.
+                dusen = re.findall(r"^ *KALDI (.*)$", cikti, re.M)
+                if not any(eksen in s for s in dusen):
+                    gozlem = "EKSEN-YOK(%s dusmedi)" % eksen
+            sonuc.append((ad, beklenen, "%s (KALDI=%d GECTI=%d%s)"
+                          % (gozlem, fail, gecti, " eksen=%s" % eksen if eksen else "")))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
