@@ -1220,7 +1220,15 @@ BASLIK_DOGAN_ALLOW = {
     ("Mazda", "MX-5"): "arac/motosiklet model adi",
     ("Mercedes", "190E"): "arac/motosiklet model adi",
     ("Mercedes", "Actros"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum C — MERCEDES SINIF ADLARI):
+    # `C-Class` ve `E-Klasse` GERCEK Mercedes sinif adlaridir; birlesecek ikizleri YOK
+    # (katalogda `Mercedes|C` ya da `Mercedes|E` kovasi bulunmuyor), o yuzden MODEL_ALIAS
+    # degil TEKIL GIRIS ile yargilandilar. `A-Class` ve `V-Class` aileleri MODEL_ALIAS ile
+    # birlestigi icin resmi uyelikten (baslik kolu OLMADAN) esigi geciyor ve buraya
+    # YAZILMAZ — yazilsaydi envanter BAYAT olurdu (kapi K21 kirmizi yakar).
+    ("Mercedes", "C-Class"): "arac/motosiklet model adi (Mercedes C sinifi)",
     ("Mercedes", "CLA"): "arac/motosiklet model adi",
+    ("Mercedes", "E-Klasse"): "arac/motosiklet model adi (Mercedes E sinifi)",
     ("Mercedes", "GLK"): "arac/motosiklet model adi",
     ("Mercedes", "GLS"): "arac/motosiklet model adi",
     ("Mercedes", "SLK"): "arac/motosiklet model adi",
@@ -1347,8 +1355,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 192
-BASLIK_DOGAN_ALLOW_IMZA = "be24e0e2f86554ee"
+BASLIK_DOGAN_ALLOW_SAYISI = 194
+BASLIK_DOGAN_ALLOW_IMZA = "e4553fe84d9a4ef0"
 
 
 def baslik_dogan_allow_imzasi():

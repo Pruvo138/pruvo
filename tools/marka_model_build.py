@@ -204,6 +204,14 @@ _KANONIK_GOSTERIM = {
     # tie-break ALFABETİK davranır ve kova adı "K" olurdu — mimar hükmü tam yazımdır
     # ("TEK HARF ÇIPLAK KULLANILMAZ"). Zorlama olmadan sayfa/çip etiketi tek harfe düşer.
     ("BMW", "kserisi"): "K Serisi",
+    # 🔴 ÇIPLAK TEK HARF JETON — `BMW|kserisi` ile BİREBİR AYNI SINIF (6 Ağu, hüküm C):
+    # `V` + `V-Class` + `V-Klasse` MODEL_ALIAS ile tek kovada birleşti; üç yazımın sıklığı
+    # da 1 olduğu için deterministik tie-break ALFABETİK davranır ve kova adı TEK HARFE
+    # ("V") düşerdi -> sayfa `/marka/mercedes/v/` olurdu. Gösterim YENİ BİR KURALLA
+    # SEÇİLMEDİ: deponun mevcut çivileme deseni kullanıldı ve katalogda ZATEN VAR OLAN
+    # yazımlardan biri (`V-Class`) çivilendi — hedef kanon da odur (`vclass`).
+    # `A` ailesinde çivi GEREKMEDİ: `A-Class` yazımı sıklıkla kendiliğinden kazanıyor.
+    ("Mercedes", "vclass"): "V-Class",
 }
 
 # ---- Pilot model-özel gövde copy (seo/marka-model-pilot-ilan-paketi.md — BİREBİR) ----

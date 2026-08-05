@@ -185,6 +185,18 @@ HUKUM_ALLOW = [
     ("Ford", "Custom", 30), ("Honda", "Legend", 3),                     # D — tekil model adı
     ("Honda", "Prologue", 3), ("Honda", "Recon", 3), ("Honda", "Sabre", 3),
     ("Honda", "Stepwgn", 3), ("Honda", "Zoomer", 3), ("Volkswagen", "Vocho", 3),
+    ("Mercedes", "C-Class", 9), ("Mercedes", "E-Klasse", 5),   # C — birleşecek ikizi YOK
+]
+# C) MERCEDES SINIF/SERİ + `Renault|Traffic` YAZIM İKİZİ — MODEL_ALIAS BİRLEŞMESİ.
+# (aile adı, marka, [BİRLEŞEN yazımlar], HAYATTA KALAN gösterim, slug, EN AZ ürün)
+# 🔴 İKİ AYRI EKSEN: B17 ANAHTAR birleşmesini (kova tekilleşti mi, ürün düştü mü),
+# B19 GÖSTERİMİ ölçer. Ayrı olmalarının sebebi ölçüldü: gösterim çivisi düşerse üç
+# yazımın sıklığı 1-1-1 olduğu için alfabetik tie-break kazanır ve slug TEK HARFE
+# (`/marka/mercedes/v/`) düşer — birleşme DOĞRU, ADRES yanlış olurdu.
+BIRLESME_FIKSTURU = [
+    ("Mercedes A sınıfı", "Mercedes", ["A", "A-Klasse", "A-Class"], "A-Class", "a-class", 22),
+    ("Mercedes V sınıfı", "Mercedes", ["V", "V-Class", "V-Klasse"], "V-Class", "v-class", 11),
+    ("Renault Trafic", "Renault", ["Traffic", "Trafic"], "Trafic", "trafic", 55),
 ]
 # E) ARAÇ DIŞI — sayfa KALIR ama ŞEKİL KURALIYLA DEĞİL, TEKİL GİRİŞLE doğar.
 # (marka, ad, EN AZ ürün): P-45 dijital piyano (H1 şekli) · Recording Custom davul (H3 şekli)
@@ -564,6 +576,38 @@ def kabul(kok):
             "(%d çift: şekli kurala uyuyor, üretim kuralı SUSUYOR, sayfa YAYINDA)"
             % len(HUKUM_E_MUAF), not _muaf_sapan, "sapan=%s" % (_muaf_sapan[:4] or "-"))
 
+    # --- C) MODEL_ALIAS BİRLEŞMESİ: kova TEKİLLEŞTİ, ürün DÜŞMEDİ, ADRES doğru --------
+    _bir_sapan, _gost_sapan = [], []
+    for aile, marka, yazimlar, bek_disp, bek_slug, en_az in BIRLESME_FIKSTURU:
+        anahtarlar = dict((y, evren.model_anahtari(marka, y)) for y in yazimlar)
+        hedef = evren.model_anahtari(marka, bek_disp)
+        if len(set(anahtarlar.values())) != 1:
+            _bir_sapan.append("%s: yazımlar AYRI anahtara düşüyor %s" % (aile, anahtarlar))
+            continue
+        # sağ kalanın DIŞINDA aynı aileden AYRI kova KALMAMALI
+        ayri = sorted(set(c for (mk, c) in kova
+                          if mk == marka and c != hedef
+                          and c in set(_sade(y) for y in yazimlar)))
+        if ayri:
+            _bir_sapan.append("%s: AYRI kova hâlâ var %s" % (aile, ayri))
+        v = kova.get((marka, hedef))
+        if not v or not v[1] or v[0] < en_az:
+            _bir_sapan.append("%s: sağ kalan kova yayın=%s n=%s (en az %d) — BİRLEŞME "
+                              "ÜRÜN KAYBETTİ" % (aile, bool(v) and v[1],
+                                                 bool(v) and v[0], en_az))
+        if v and v[4] != bek_disp:
+            _gost_sapan.append("%s: gösterim %r (beklenen %r)" % (aile, v[4], bek_disp))
+        if v and mm._slug(v[4]) != bek_slug:
+            _gost_sapan.append("%s: slug %r (beklenen %r)"
+                               % (aile, mm._slug(v[4]), bek_slug))
+    dogrula("B17 HÜKÜM C — MODEL_ALIAS BİRLEŞMESİ: %d ailenin yazımları TEK anahtara "
+            "düşüyor, ayrı kova KALMADI ve sağ kalan sayfa çapasını tutuyor (birleşme "
+            "ÜRÜN KAYBETTİRMEDİ)" % len(BIRLESME_FIKSTURU),
+            not _bir_sapan, "sapan=%s" % (_bir_sapan[:4] or "-"))
+    dogrula("B19 HÜKÜM C — BİRLEŞEN KOVANIN GÖSTERİMİ/ADRESİ ÇİVİLİ (`A-Class`/`a-class`, "
+            "`V-Class`/`v-class`, `Trafic`/`trafic`; ÇIPLAK TEK HARF slug DOĞMADI)",
+            not _gost_sapan, "sapan=%s" % (_gost_sapan[:4] or "-"))
+
     # --- G) KAYBEDEN YOK: hiçbir ürün kovasından DÜŞMEZ ----------------------------
     # (Kol yalnız EKLER; ölçüt yapısal: başlık kolu hiçbir kovadan ürün ÇIKARMAZ.)
     dogrula("B9 KONTROL: ölçüm dejenere değil (başlık kolu GERÇEKTEN üyelik ekliyor)",
@@ -697,6 +741,18 @@ MUTANTLAR = [
      "    return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)", "KIRMIZI",
      "M16 HÜKÜM E MUAFİYETİNİ DÜŞÜR (tekil girişi ŞEKİL KURALINA geri bağla) -> araç DIŞI "
      "sayfa (`Yamaha|P-45`, `Recording Custom`) KURALLA/YARGISIZ doğar (B20 TEK BAŞINA)"),
+    # --- ÖLDÜRÜCÜ: hüküm C (MODEL_ALIAS birleşmesi) — İKİ AYRI EKSEN --------------------
+    ("index.html",
+     "\"Mercedes|a\":\"aclass\",\"Mercedes|aklasse\":\"aclass\",",
+     "\"Mercedes|aYOK\":\"aclass\",\"Mercedes|aklasse\":\"aclass\",", "KIRMIZI",
+     "M17 HÜKÜM C ALIAS BİRLEŞMESİNİ DÜŞÜR (`Mercedes|a`) -> `Mercedes|A` yeniden AYRI "
+     "kovaya bölünür ve `A-Class` sayfası 22 -> 7 ürüne DÜŞER (B17; gösterim ekseni B19 "
+     "DEĞİŞMEZ -> ayırt edici)"),
+    ("tools/marka_model_build.py",
+     "    (\"Mercedes\", \"vclass\"): \"V-Class\",\n", "", "KIRMIZI",
+     "M18 HÜKÜM C GÖSTERİM ÇİVİSİNİ DÜŞÜR -> 1-1-1 sıklıkta alfabetik tie-break kazanır, "
+     "birleşme DOĞRU kalır ama sayfa adresi `/marka/mercedes/v/` olur (B19 TEK BAŞINA; "
+     "M17'den ayırt edici — kova birleşmesi bozulmaz)"),
     # --- KONTROL (YEŞİL bekleniyor) ---
     ("tools/arama.py",
      "    (\"Audi\", \"AdBlue\"): \"dizel egzoz katki sivisi (AdBlue) — arac modeli degil\",\n"

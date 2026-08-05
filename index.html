@@ -2721,7 +2721,23 @@
   // gösterim marka_model_build._KANONIK_GOSTERIM ile çivili). Birleşme MARKA-ÖZELDİR: kural
   // marka-kör yazılsaydı `Opel Astra K` (12 ürün, CANLI sayfa) ve `Renault 5` (11 ürün, RAKAM
   // — gerçek model) ölürdü; ikisi de ölçüldü. Etkisi üyelik kapısında K20 ile ölçülür.
-  var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};
+  // MODEL_ALIAS — AYNI ARACI adlandıran kanon anahtarlarını TEK kovada birleştirir
+  // ("<kanonik marka>|<kanon>" -> hedef kanon). Kanon anahtarını DEĞİŞTİRİR: sayfa
+  // adresi, çip etiketi ve `?model=` filtresi birlikte kayar; bu yüzden her satır
+  // MİMAR HÜKMÜDÜR ve geri alınabilirliği için AYRI commit'te taşınır.
+  var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi",
+    // 6 Ağu, mimar hükmü (ADIM 3 / hüküm C): Mercedes SINIF adları katalogda ÜÇ dilde
+    // yazılmış ve aynı aile ÜÇ kovaya bölünmüştü (A 20 · A-Klasse 4 · A-Class 7 ·
+    // V 7 · V-Class 8 · V-Klasse 3). Emsal birebir `BMW|k -> kserisi` satırıdır.
+    // 🔴 HEDEF KANON, BUGÜN YAYINDA OLAN kovadır (A-Class canlı) ya da yoksa EN BÜYÜK
+    // kovadır (V-Class 8) — böylece yaşayan URL KORUNUR, kapanan sayfa 0 olur.
+    // 🔴 TEK HARFLİ JETON TEHLİKE SINIFINDA KALIR: `A`/`V` yalnız marka+model BİTİŞİK
+    // ifadeyle eşleşir; birleşme bunu DEĞİŞTİRMEZ, yalnız kovayı tekilleştirir.
+    "Mercedes|a":"aclass","Mercedes|aklasse":"aclass",
+    "Mercedes|v":"vclass","Mercedes|vklasse":"vclass",
+    // 6 Ağu, mimar hükmü (ADIM 3 / hüküm A): `Traffic` Renault'nun KENDİ modelinin
+    // YANLIŞ YAZIMIDIR (doğrusu `Trafic`) — deny değil, YAZIM İKİZİ; birleştirilir.
+    "Renault|traffic":"trafic"};
   // Bir değerin, `marka` altındaki MODEL ÜYELİK ANAHTARI. Boş dönerse eşleşme kurulmaz
   // (fail-closed: "" === "" ile marka geneli dönmesin).
   function modelAnahtar(marka, s){
