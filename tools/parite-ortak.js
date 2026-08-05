@@ -113,6 +113,7 @@ const FIKSTUR_ENV = [
   "PARITE_DENEME",
   "PARITE_BEKLEME_MS",
   "PARITE_SUPURME_TAVANI",
+  "PARITE_SUPURME_MUTLAK",       // supurme MUTLAK ust siniri ELLE degistirildi
   "PARITE_YAYIN_HALI",           // yayin hali komutu ELLE verildi (kanonik D1 okunmuyor)
   "PARITE_YAYIN_UST_SINIRI_SN",  // taslak yasi ust siniri (EKSEN A) ELLE degistirildi
   "PARITE_YAYIN_BEKLEME_UST_SINIRI_SN",  // bekleme ust siniri (EKSEN B) ELLE degistirildi
@@ -138,14 +139,39 @@ const ZAMAN_ASIMI_MS = sayiEnv("PARITE_ZAMAN_ASIMI_MS", 20000, 50, 120000);
 // Gecici hata (429 / zaman asimi / 5xx) icin sinirli yeniden deneme + ustel bekleme.
 const DENEME = sayiEnv("PARITE_DENEME", 3, 1, 6);
 const BEKLEME_MS = sayiEnv("PARITE_BEKLEME_MS", 400, 1, 5000);
-// SUPURME TAVANI: /katalog?ids= parti sayisi ust siniri (1 parti = 100 id).
-// Tavansizdi: 25k katalogda tek kosumda 250 ek istek atilirdi. Tavan asilirsa "yerel ⊆ D1"
-// kaniti URETILMEZ -> siniflandirma KAPALI, AF YOK (ayrisim varsa 1, yoksa 3; asla 0).
-// DEGER SECIMI (veri capasi DEGIL, olcek siniri): 200 parti = 20.000 id. Ege'nin bellek
-// modeli zaten ~20-25k'da 128 MB'i asiyor ([[katalog-olcek-siniri]]), yani bu tavanin
-// carpildigi nokta "kanit yontemi katalogu buyuttu" degil "katalog Ege'yi asti" noktasidir.
-// Tavan carpilirsa cikti bunu ACIKCA yazar (sessiz zayiflama yok).
-const SUPURME_TAVANI = sayiEnv("PARITE_SUPURME_TAVANI", 200, 1, 100000);
+// ── SUPURME TAVANI — SABIT DEGIL, KATALOG BOYUTUNDAN TURETILIR ──────────────────────
+// /katalog?ids= parti sayisi ust siniri (1 parti = IDS_PARTI id). Tavan asilirsa
+// "yerel ⊆ D1" kaniti URETILMEZ.
+//
+// 🔴 NEDEN SABIT DEGIL (olculdu 5-6 Agu 2026): tavan `200 parti = 20.000 id` diye SABIT
+// yazilmisti ve katalog 20.212'ye cikinca ASILDI. Sayilar esitken supurme hic kosmadigi
+// icin gorunmuyordu; sayilar ayristigi ANDA kanit uretilemedi, siniflandirma kapandi ve
+// katalog farkiyla ACIKLANABILIR her sapma KIRMIZI yandi (bir kosumda 526 kirmizi). Yani
+// sabit tavan, katalog buyudugu icin testin KENDISINI bozan bir zaman bombasiydi
+// ([[katalog-olcek-siniri]] · [[hukum-yanlis-birimde]]).
+//
+// KURAL: tavan = katalogun GEREKTIRDIGI parti sayisi, MUTLAK bir ust sinirla kapatilmis.
+//   · Katalog buyudukce tavan kendiliginden buyur -> sabit sayinin yarattigi sahte kirmizi
+//     sinifi KOKTEN kalkar (kabul: 20.212'de de, iki katinda da supurme EKSIKSIZ).
+//   · Ust sinir KALKMAZ: tavansiz birakmak istek/429 butcesini patlatir (500 parti =
+//     ~500 ek canli istek). Bu yuzden MUTLAK sinir korunur ve asilirsa kosum SESSIZ
+//     YANLIS-KIRMIZI degil ACIK OLCULEMEDI (cikis 3) uretir.
+// MUTLAK SINIR SECIMI (veri capasi DEGIL, butce siniri): 500 parti = 50.000 id. Ege'nin
+// bellek modeli ~20-25k'da 128 MB'i zaten asiyor ([[katalog-olcek-siniri]]); 50.000'i gecen
+// bir katalogda kirilan sey "kanit yontemi" degil, katalogun Ege'yi coktan asmis olmasidir.
+const SUPURME_MUTLAK_TAVAN = sayiEnv("PARITE_SUPURME_MUTLAK", 500, 1, 100000);
+
+/**
+ * Bu katalog icin supurme tavani (parti). SAF fonksiyon — fikstur dogrudan olcer.
+ * 🔴 Env override (PARITE_SUPURME_TAVANI) FIKSTUR_ENV listesindedir: verilirse kosum
+ * pariteyi ASLA BELGELENDIREMEZ (en iyi ihtimalle 3).
+ */
+function supurmeTavani(idAdedi) {
+  const elle = sayiEnv("PARITE_SUPURME_TAVANI", 0, 1, 100000);
+  if (elle) return elle;
+  const gerekli = Math.ceil(Math.max(0, idAdedi) / IDS_PARTI);
+  return Math.min(Math.max(1, gerekli), SUPURME_MUTLAK_TAVAN);
+}
 
 // ── 🔴 TASLAK YASI UST SINIRI — "uzun sure taslak kalan satir sessizce YESIL GECMEZ" ──
 // DEGER SECIMI (veri capasi DEGIL, OLCUME dayali sinir): push -> canli olculen pencere
@@ -348,10 +374,14 @@ async function d1deOlmayanlar(uc, idler, sayac, nonce) {
   const partiler = [];
   for (let i = 0; i < idler.length; i += IDS_PARTI) partiler.push(idler.slice(i, i + IDS_PARTI));
 
-  if (partiler.length > SUPURME_TAVANI) {
+  // Tavan KATALOGDAN turer (yukaridaki supurmeTavani): sabit sayi katalog buyuyunce
+  // sahte kirmizi uretiyordu. Asilmasi ancak MUTLAK sinirin otesinde mumkundur.
+  const tavan = supurmeTavani(idler.length);
+  if (partiler.length > tavan) {
     throw new OlcumHatasi("TAVAN",
-      "supurme TAVANI asildi: " + partiler.length + " parti > tavan " + SUPURME_TAVANI +
-      " (katalog " + idler.length + " id) — 'yerel ⊆ D1' kaniti URETILMEDI");
+      "supurme TAVANI asildi: " + partiler.length + " parti > tavan " + tavan +
+      " (katalog " + idler.length + " id, mutlak sinir " + SUPURME_MUTLAK_TAVAN +
+      " parti) — 'yerel ⊆ D1' kaniti URETILMEDI");
   }
   sayac.supurmeParti += partiler.length;
 
@@ -570,6 +600,22 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
     eksik = await d1deOlmayanlar(uc, yerelIdler, sayac, nonce);
   } catch (e) {
     if (e && e.waf) throw e;
+    // 🔴 TAVAN, oteki supurme arizalarindan AYRI BIRIMDE hukum alir ([[hukum-yanlis-birimde]]).
+    // Oteki arizalar = "uc cevap vermedi" -> eski kati davranis (siniflandirma KAPALI,
+    // ayrisim varsa KIRMIZI) aynen surer. TAVAN = "BIZ istek butcemizi asmamayi sectik",
+    // yani kanitin uretilmemesi UCUN degil OLCUM ARACININ halidir; orada bulunacak her
+    // "kirmizi" katalog farkiyla aciklanabilir bir sapma olabilir ve DAYANAKSIZDIR.
+    // O yuzden kosum sorgulari HIC olcmeden ACIK OLCULEMEDI ile durur (sessiz yanlis-kirmizi
+    // YERINE). Sira korunur: on-kosul KIRMIZISI bu noktadan ONCE donmustur (1 > 3 > 0).
+    if (e && e.tur === "TAVAN") {
+      const n = "SUPURME TAVANI: " + (e && e.message) + " -> kanit URETILEMEDI, hicbir " +
+        "ayrisim SINIFLANDIRILAMAZ. Bu kosum pariteyi BELGELENDIREMEZ (OLCULEMEDI); " +
+        "katalog farkiyla aciklanabilir sapmalari KIRMIZI saymak DAYANAKSIZ olurdu.";
+      notlar.push(n);
+      olculemedi.push(n);
+      return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,
+        canliSayi, yerelSayi, acik: 0, taslakIdler };
+    }
     return kapali("id supurmesi TAMAMLANAMADI (" + (e && e.message) +
       ") -> kanit yok, siniflandirma KAPALI (her ayrisim KIRMIZI)");
   }
@@ -969,7 +1015,8 @@ function fiksturNotu() {
 module.exports = {
   TARAYICI_UA, CIKIS_GECTI, CIKIS_KIRMIZI, CIKIS_KOSULAMADI, CIKIS_OLCULEMEDI,
   SINIF_GECTI, SINIF_ACIKLANAN, SINIF_ACIKLANAMAYAN,
-  ZAMAN_ASIMI_MS, DENEME, BEKLEME_MS, SUPURME_TAVANI, IDS_PARTI, FIKSTUR_ENV,
+  ZAMAN_ASIMI_MS, DENEME, BEKLEME_MS, SUPURME_MUTLAK_TAVAN, supurmeTavani, IDS_PARTI,
+  FIKSTUR_ENV,
   OlcumHatasi, WafHatasi, kardesUc, sayacYeni, canliGetir, nonceUret,
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
   sonucYaz, wafYaz, olcumNotu, fazlaKumeTutarli, fazlalikTeshis,

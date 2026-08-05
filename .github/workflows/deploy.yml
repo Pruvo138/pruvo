@@ -1727,11 +1727,16 @@ jobs:
       # YAYIN PENCERESI kolu: taslak (yayinda=0) satirin "gecici yayin gecikmesi" ile
       # "GERCEK KAYIP"tan ayrilmasi. Kendi sahte yayin-hali komutunu kullanir; canli D1'e
       # SIFIR sorgu atar, bot deposu yoksa Ege senaryolarini ATLAR (CI'da o depo yoktur).
-      - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi, AGSIZ)
+      # OLCEK EKSENI (tavan): supurme tavani SABIT yazilirsa katalog buyudugunde sahte
+      # kirmizi uretir (olculdu: katalog 20.212 > sabit 20.000 -> 526 sahte kirmizi).
+      # Bu kol tavanin KATALOGDAN turedigini, ust sinirin DURDUGUNU ve asilirsa hukmun
+      # ACIK OLCULEMEDI oldugunu olcer; sahte yerel HTTP ucu kullanir, canliya 0 istek.
+      - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi + tavan, AGSIZ)
         run: |
           python3 tools/parite-sozlesme-test.py
           node tools/parite-fikstur-test.js
           node tools/parite-yayin-fikstur-test.js
+          node tools/parite-tavan-test.js
       # shop birim testleri: wrangler/ag/D1 ISTEMEZ (modulu dogrudan import ederler).
       # OLU NOBETCI DEGIL: `wa-siparis.mjs`in YETKI YUZEYI iddialari (panel koku "Ege
       # anahtari anonimden fazlasini almiyor" + ozellik-kapali "YONET_ANAHTAR yoksa yazma

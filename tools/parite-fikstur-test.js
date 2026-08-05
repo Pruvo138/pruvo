@@ -616,13 +616,24 @@ async function main() {
     },
   });
   senaryolar.push({
-    ad: "S9 (K2) KIRMIZI + supurme TAVANI asildi -> cikis 1 (tavan AF vermez)",
+    // 🔴 IDDIA TERSINE CEVRILDI (6 Agu 2026, mimar hukmu). ESKI beklenti "cikis 1"di ve
+    // TAVAN'i gercek bir gerileme gibi raporluyordu. Olculdu: tavan SABIT oldugu icin
+    // katalog 20.212'ye cikinca asildi ve katalog farkiyla ACIKLANABILIR sapmalar KIRMIZI
+    // yandi (526 sahte kirmizi). Tavan BIZIM istek butcemizdir; asilmasi "uc bozuk" degil
+    // "kaniti URETEMEDIK" demektir -> hukum ACIK OLCULEMEDI (3) birimindedir
+    // ([[hukum-yanlis-birimde]] · [[test-hatali-davranisi-kutsar]]).
+    // AF YOK: 3 de BLOKE eder (sozlesme: 3 yayin yolunda gecirilmez); asil iddia
+    // "0 URETILMEZ"dir ve asagida AYRICA olculur.
+    ad: "S9 (K2) ayrisim VAR + supurme TAVANI asildi -> cikis 3 (dayanaksiz KIRMIZI YOK, 0 da YOK)",
     dosya: PARITE_SITE, yerel: TABAN, canli: EK.concat(TABAN), gizliAra: GIZLI,
     ekEnv: { PARITE_SUPURME_TAVANI: "1" },
     dogrula: (r) => {
-      ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-900));
+      ONA(r.kod === 3, "cikis 3 OLCULEMEDI", r.cikti.slice(-900));
+      ONA(r.kod !== 0, "AF YOK: tavan asimi hicbir kosulda 0 URETMEZ");
       ONA(/TAVANI asildi/.test(r.cikti), "tavan asimi GORUNUR");
-      ONA(/siniflandirma KAPALI/.test(r.cikti), "kanit yok -> siniflandirma KAPALI (fail-closed)");
+      ONA(/SUPURME TAVANI/.test(r.cikti), "sebep ADIYLA yazili");
+      ONA(/0\/\d+ sorgu olculdu/.test(r.cikti),
+        "kanitsiz sorgu OLCULMEDI (dayanaksiz kirmizi uretilmedi)");
     },
   });
   senaryolar.push({

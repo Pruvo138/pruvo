@@ -229,10 +229,13 @@ if (require.main === module) (async () => {
   const sorgular = sorgulariUret(Number.isFinite(hedef) ? hedef : 0, PRODUCTS);
   console.log("Parite testi: %d sorgu | %d urun (%s) | uc: %s",
     sorgular.length, PRODUCTS.length, URUNLER_YOLU, UC);
+  // TAVAN katalogdan TURER (sabit degil) -> tek kaynak: ortak.supurmeTavani.
   console.log("ISTEK BUTCESI: sorgu(%d) + on-kosul(1) [+ sayilar ayriysa supurme " +
     "min(ceil(%d/%d), tavan %d) = %d parti] | zaman asimi %d ms/istek, deneme %d\n",
-    sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI, ortak.SUPURME_TAVANI,
-    Math.min(Math.ceil(YEREL_IDLER.length / ortak.IDS_PARTI), ortak.SUPURME_TAVANI),
+    sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI,
+    ortak.supurmeTavani(YEREL_IDLER.length),
+    Math.min(Math.ceil(YEREL_IDLER.length / ortak.IDS_PARTI),
+      ortak.supurmeTavani(YEREL_IDLER.length)),
     ortak.ZAMAN_ASIMI_MS, ortak.DENEME);
 
   // Sessiz baypas olmasin: test-only env verildiyse HEM stdout HEM stderr'e (A15).
@@ -267,6 +270,18 @@ if (require.main === module) (async () => {
     console.log("   (Bu yon katalog farkiyla ACIKLANAMAZ: site gosterir, Ege GOREMEZ.)");
     console.log("canli istek: %d", SAYAC.istek);
     return bitir(ortak.CIKIS_KIRMIZI);
+  }
+
+  // ── SUPURME TAVANI: kanit uretilemedi -> ACIK OLCULEMEDI, sorgu OLCULMEZ ───────────
+  // 🔴 SIRA: on-kosul KIRMIZISI yukarida dondu (1 > 3 > 0). Buradaki durus, katalog
+  // farkiyla aciklanabilir sapmalari DAYANAKSIZ kirmiziya cevirmemek icindir.
+  if (onKosul.durdu) {
+    OLCULEMEDI.push("supurme tavani -> 0/" + sorgular.length + " sorgu olculdu");
+    return bitir(ortak.sonucYaz({
+      etiket: "site", gecti: 0, atlandi: 0, hatalar: [], onKosul,
+      sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
+      fazlaKume: null, olculemedi: OLCULEMEDI,
+    }));
   }
 
   let gecti = 0, atlandi = 0;
