@@ -28,10 +28,12 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 GERCEK_KOK = os.path.dirname(DIR)
@@ -96,6 +98,111 @@ BITISIKLIK_KATLAMALI = [
     ("Grand Vitara Tavan Rayı", "Suzuki", "Vitara", True),   # güvenli jeton: çıplak YETER
 ]
 
+# ---------------------------------------------------- H1/H3 ŞEKİL FİKSTÜRÜ (6 Ağu, mimar)
+# (kova adı, H1 ŞASİ/MOTOR KODU mu, H3 AYRI ARAÇ ADI mı, DONANIM KUYRUKLU mu)
+# 🔴 ÜÇ EKSEN AYRI AYRI ÇİVİLİ: tek bayrak yazsaydık "her şey sayfa alır" mutantı ile
+# "hiçbir şey almaz" mutantı AYNI satırı kırardı ve ayırt edilemezlerdi.
+# 🔴 ÇIPLAK SAYI satırları H1'in SINIRIDIR — mimar hükmü açık: `57`/`86`/`17` H1 DIŞI.
+SEKIL_FIKSTURU = [
+    # şasi/motor kodu (TEK jeton, harf+rakam) -> H1 ALLOW
+    ("E46", True, False, False), ("M54", True, False, False), ("M57", True, False, False),
+    ("N47", True, False, False), ("T4", True, False, False), ("W638", True, False, False),
+    ("4AGE", True, False, False), ("SW20", True, False, False), ("325i", True, False, False),
+    # ÇIPLAK SAYI -> H1 DIŞI (tehlike sınıfında kalır)
+    ("57", False, False, False), ("86", False, False, False), ("17", False, False, False),
+    ("660", False, False, False), ("5", False, False, False),
+    # rakamsız tek jeton -> ne H1 ne H3 (yargı envanterde/mimarda)
+    ("Custom", False, False, False), ("GSX", False, False, False), ("DR", False, False, False),
+    ("Ducato", False, False, False),
+    # çok jetonlu, kuyruğu DONANIM DEĞİL -> H3 ALLOW (ayrı araç adı)
+    ("Corsa D", False, True, False), ("Megane II", False, True, False),
+    ("Passat B8", False, True, False), ("Transporter T5", False, True, False),
+    ("Zafira Life", False, True, False), ("Transit MK3", False, True, False),
+    ("Megane E-Tech", False, True, False), ("Golf 4", False, True, False),
+    ("Astra H", False, True, False), ("E46 M3", False, True, False),
+    # çok jetonlu, kuyruğu DONANIM -> H3 DENY (tabana YAPIŞIK; katlanır, sayfa açmaz)
+    ("Focus ST", False, False, True), ("Fiesta ST", False, False, True),
+    ("206 GTI", False, False, True), ("Megane RS", False, False, True),
+    ("Clio GT", False, False, True), ("Astra GTC", False, False, True),
+]
+
+# H2 — DENY'in BİLEŞİK (son-kelime) kolu YALNIZ DEĞİŞTİRİCİLERE işler.
+# (marka, kova adı, MODEL DEĞİL mi = sayfası kapanır mı)
+DENY_BILESIK_FIKSTURU = [
+    ("Ford", "ST", True),                 # çıplak deny jetonu
+    ("Ford", "Focus ST", True),           # DEĞİŞTİRİCİ kuyruğu -> bileşik de kapanır
+    ("Ford", "Fiesta ST", True),
+    ("Ford", "Focus Mk1", True),          # `MK1` kuşak değiştiricisi
+    ("Volkswagen", "Golf Mk2", True),
+    ("Renault", "E-Tech", True),          # çıplak rozet -> KAPANIR
+    ("Renault", "5 E-Tech", False),       # ROZET kuyruğu değiştirici DEĞİL -> AÇIK KALIR
+    ("Renault", "Megane E-Tech", False),
+    ("Ford", "Focus EcoBoost", False),    # `EcoBoost` değiştirici DEĞİL -> bileşik AÇIK
+    ("Volkswagen", "Golf iPhone", False),
+    ("Ford", "Focus", False),             # ilgisiz kontrol
+]
+
+# H4 — AKSAN İKİZLERİ: iki yazım AYNI kanonik anahtara düşmeli.
+# H1 / H3 KURAL KOLLARININ CANLI VERİ ÇAPALARI — (marka, kova adı, en az ürün).
+# 🔴 İKİ KÜME AYRIK: H1 çapaları TEK JETON şasi/motor kodu, H3 çapaları ÇOK JETONLU ad.
+# H1 kuralını düşüren mutant yalnız birinciyi, H3'ü düşüren yalnız ikinciyi kırar —
+# "daima kırmızı" tek bir eksen ikisini birden geçemez.
+H1_CAPA_SAYFA = [
+    ("Mercedes", "W638", 16), ("Toyota", "SW20", 18), ("BMW", "M54", 8),
+    ("BMW", "E92", 11), ("Mercedes", "W220", 11),
+]
+H3_CAPA_SAYFA = [
+    ("Opel", "Corsa D", 25), ("Renault", "Megane II", 15), ("Volkswagen", "Passat B8", 14),
+    ("Volkswagen", "Transporter T5", 9), ("Ford", "Transit MK3", 8),
+]
+
+AKSAN_IKIZ_FIKSTURU = [
+    ("Renault", "Zoe", "Zoé"),
+    ("Yamaha", "Tenere", "Ténéré"),
+    ("Yamaha", "Tenere 700", "Ténéré 700"),
+    ("Citroen", "Citroen C3", "Citroën C3"),
+    ("Skoda", "Skoda Octavia", "Škoda Octavia"),
+]
+
+
+# ---------------------------------------------------------------- BAĞIMSIZ ŞEKİL ORACLE'I
+# 🔴 ÜRETİM GÖVDESİ ÇAĞRILMAZ: B8/B8a/B8b eksenlerinde kullanılan şekil yüklemleri BURADA
+# ELLE yazılır. `mm.sasi_motor_kodu_mu` çağrılsaydı "yargısız doğan=0" iddiası totoloji
+# olurdu ([[beyan-edilmis-survivor]]); B10 fikstürü ise ÜRETİM gövdesini bu bağımsız
+# beklentilere karşı ölçer — iki eksen bilerek ayrıdır.
+_DONANIM_BAGIMSIZ = frozenset(("gt", "gtc", "gtd", "gti", "rs", "st"))
+
+
+def _sade(s):
+    t = unicodedata.normalize("NFKD", (s or "").replace("ı", "i").replace("İ", "i").lower())
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]", "", t)
+
+
+def _aksanli(s):
+    return any(unicodedata.combining(c) for c in unicodedata.normalize("NFD", s or ""))
+
+
+def _donanim_kuyruklu(ad):
+    toks = (ad or "").split()
+    return len(toks) >= 2 and _sade(toks[-1]) in _DONANIM_BAGIMSIZ
+
+
+def _sasi_kodu(ad):
+    if len((ad or "").split()) != 1:
+        return False
+    j = _sade(ad)
+    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)
+
+
+def _ayri_arac(ad):
+    return len((ad or "").split()) >= 2 and not _donanim_kuyruklu(ad)
+
+
+def _ciplak_sayi(ad):
+    j = _sade(ad)
+    return bool(j) and j.isdigit()
+
 
 def _modul(yol, ad):
     spec = importlib.util.spec_from_file_location(ad, yol)
@@ -141,7 +248,8 @@ def olc(kok):
                                     len(g.get("baslik_ekli") or ()),
                                     bool(g.get("birincil"))
                                     and (marka, canon) not in mm.ROZET_DISI
-                                    and not mm.model_olmayan_cift_mi(marka, g["display"]))
+                                    and not mm.model_olmayan_cift_mi(marka, g["display"]),
+                                    g["display"])
     return kova, evren, mm
 
 
@@ -151,7 +259,7 @@ def sayi(kova, evren, marka, ad):
     canon = evren.model_anahtari(marka, ad)
     if not canon:
         return 0
-    return (kova.get((marka, canon)) or (0, False, 0, False))[0]
+    return (kova.get((marka, canon)) or (0, False, 0, False, ""))[0]
 
 
 def kabul(kok):
@@ -229,7 +337,7 @@ def kabul(kok):
                ["%s/%s=%d" % (m, a, sayi(kova, evren, m, a))
                 for m, a, _o, _t in TEHLIKE_TURNUSOL]))
     _ac = evren.model_anahtari(*AYIRT_TURNUSOL)
-    ayirt = (kova.get((AYIRT_TURNUSOL[0], _ac)) or (0, False, 0, False))[2]
+    ayirt = (kova.get((AYIRT_TURNUSOL[0], _ac)) or (0, False, 0, False, ""))[2]
     dogrula("B7 AYIRT EDİCİ TURNUSOL: %s|%s kovasına BAŞLIK KOLUNDAN ürün GİRMİYOR "
             "(katalogda 'Subaru <marka-dışı jeton> 86 …' başlıkları var; marka+model "
             "BİTİŞİK değil)" % AYIRT_TURNUSOL, ayirt == 0,
@@ -248,13 +356,24 @@ def kabul(kok):
     # eşiği geçen kova (yani hükmedilseydi SAYFA OLACAK olan). Eşiğin altında kalan kovalar
     # bir karar gerektirmez ve bu sayıya KARIŞMAZ — model-uyelik-kapisi K21 ile aynı birim.
     yargisiz_dogan, bekleyen = [], 0
-    for (mk, canon), (n, yayimda, bek, aday) in kova.items():
+    ciplak_sayi_dogan, donanim_dogan, kural_dogan = [], [], 0
+    for (mk, canon), (n, yayimda, bek, aday, dsp) in kova.items():
         if not bek:
             continue
         if n - bek >= mm.ESIK:
             continue                     # başlık kolu OLMADAN da eşiği geçiyordu
-        if yayimda and (mk, _arama.model_normalize(canon)) not in izin:
-            yargisiz_dogan.append("%s|%s" % (mk, canon))
+        envanterde = (mk, _arama.model_normalize(canon)) in izin
+        if yayimda:
+            if not (envanterde or _sasi_kodu(dsp) or _ayri_arac(dsp)):
+                yargisiz_dogan.append("%s|%s" % (mk, canon))
+            elif not envanterde:
+                kural_dogan += 1
+            # H1 SINIRI: ÇIPLAK SAYI kural koluyla DOĞAMAZ (`86`, `660`).
+            if not envanterde and _ciplak_sayi(dsp):
+                ciplak_sayi_dogan.append("%s|%s" % (mk, dsp))
+            # H3 DENY KOLU: donanım kuyruklu kova SAYFA AÇMAZ (`Focus ST`).
+            if _donanim_kuyruklu(dsp):
+                donanim_dogan.append("%s|%s" % (mk, dsp))
         if not yayimda and n >= mm.ESIK and aday:
             bekleyen += 1
     # 📌 Bu sayı, model-uyelik-kapisi K21'in bastığı sayıdan BİRKAÇ kova az olabilir ve bu
@@ -263,9 +382,84 @@ def kabul(kok):
     # BİRİNCİLLİK kazanan kovalar. İki ölçüt BİLEREK bağımsızdır (aynısı olsaydı iddia
     # totoloji olurdu); ikisi de aynı sıfırı — "yargısız doğan=0" — savunur.
     dogrula("B8 YARGISIZ SAYFA DOĞMUYOR (başlık kolu sayesinde eşiği geçen kova ancak "
-            "yargılanmışsa yayımlanır; SAYIM birimiyle %d kova hüküm BEKLİYOR ve DOĞMADI)"
-            % bekleyen,
+            "ENVANTERDE ya da H1/H3 KURALINDA yargılanmışsa yayımlanır; SAYIM birimiyle "
+            "%d kova hüküm BEKLİYOR ve DOĞMADI, %d kova KURALLA doğdu)"
+            % (bekleyen, kural_dogan),
             not yargisiz_dogan, "yargısız doğan=%s" % (yargisiz_dogan[:5] or "-"))
+    # --- H1/H3 KURAL KOLLARININ SINIRLARI (ayırt edici; kural gevşerse KIRMIZI) -----
+    dogrula("B8a H1 SINIRI: ÇIPLAK SAYI kural koluyla SAYFA AÇMIYOR (`86`, `660`, `17` "
+            "harf taşımaz -> H1 dışı; yalnız envanterle doğabilir)",
+            not ciplak_sayi_dogan, "çıplak sayı doğmuş=%s" % (ciplak_sayi_dogan[:5] or "-"))
+    dogrula("B8b H3 DENY KOLU: DONANIM kuyruklu kova SAYFA AÇMIYOR (`Focus ST` tabana "
+            "YAPIŞIK -> katlanır, sayfa açmaz)",
+            not donanim_dogan, "donanım kuyruklu doğmuş=%s" % (donanim_dogan[:5] or "-"))
+    # --- H1/H3 ŞEKİL FİKSTÜRÜ: kural, katalogdan BAĞIMSIZ olarak da çivilenir -------
+    # 🔴 NEDEN FİKSTÜR DE VAR: bugünkü katalogda donanım kuyruklu her kova ya deny
+    # tablosunda ya eşik altında (ölçüldü: 16 kova, 14'ü eşik altı) — yani B8b canlı
+    # veriyle TEK BAŞINA kırmızı yakılamaz. Fikstür ekseni mutantı yine de öldürür.
+    _sekil_sapan = []
+    for ad, b_sasi, b_ayri, b_donanim in SEKIL_FIKSTURU:
+        for etiket, gercek, beklenen in (("sasi", mm.sasi_motor_kodu_mu(ad), b_sasi),
+                                         ("ayri", mm.ayri_arac_adi_mi(ad), b_ayri),
+                                         ("donanim", mm.donanim_kuyruklu_mu(ad), b_donanim)):
+            if gercek != beklenen:
+                _sekil_sapan.append("%r %s -> %s (beklenen %s)"
+                                    % (ad, etiket, gercek, beklenen))
+    dogrula("B10 H1/H3 ŞEKİL KURALI FİKSTÜRE UYUYOR (%d ad × 3 eksen; ÇIPLAK SAYI ve "
+            "DONANIM kuyruğu ayrı ayrı çivili)" % len(SEKIL_FIKSTURU),
+            not _sekil_sapan, "sapan=%s" % (_sekil_sapan[:4] or "-"))
+    # --- H2: DENY'in SON-KELİME kolu YALNIZ DEĞİŞTİRİCİLERE işler ------------------
+    _h2_sapan = []
+    for marka, ad, beklenen in DENY_BILESIK_FIKSTURU:
+        g = mm.model_olmayan_cift_mi(marka, ad)
+        if g != beklenen:
+            _h2_sapan.append("%s|%s -> %s (beklenen %s)" % (marka, ad, g, beklenen))
+    dogrula("B11 H2 DENY SON-KELİME KOLU YALNIZ DEĞİŞTİRİCİYE İŞLER (%d fikstür; "
+            "`Focus ST` KAPANIR, `5 E-Tech`/`Megane E-Tech` AÇIK KALIR)"
+            % len(DENY_BILESIK_FIKSTURU), not _h2_sapan, "sapan=%s" % (_h2_sapan[:4] or "-"))
+    _etech = [k for k in kova
+              if k[0] == "Renault" and evren.model_anahtari("Renault", "E-Tech") == k[1]]
+    _etech_yayin = any(kova[k][1] for k in _etech)
+    _5etech = kova.get(("Renault", evren.model_anahtari("Renault", "5 E-Tech")))
+    dogrula("B12 H2 TURNUSOLU: çıplak `E-Tech` SAYFA AÇMAZ, `5 E-Tech` sayfası AÇIK KALIR, "
+            "`Renault|5` ürün sayısı DÜŞMEZ (>=14)",
+            (not _etech_yayin) and bool(_5etech) and _5etech[1]
+            and sayi(kova, evren, "Renault", "5") >= 14,
+            "E-Tech yayında=%s · 5 E-Tech yayında=%s · Renault|5=%d"
+            % (_etech_yayin, bool(_5etech) and _5etech[1],
+               sayi(kova, evren, "Renault", "5")))
+    # --- H1/H3 CANLI VERİ ÇAPALARI: kural kolları GERÇEKTEN sayfa doğuruyor ---------
+    def _capa_sapan(capalar):
+        sapan = []
+        for marka, ad, en_az in capalar:
+            c = evren.model_anahtari(marka, ad)
+            v = kova.get((marka, c))
+            if not v or not v[1] or v[0] < en_az:
+                sapan.append("%s|%s: yayın=%s n=%s (en az %d)"
+                             % (marka, ad, bool(v) and v[1], bool(v) and v[0], en_az))
+        return sapan
+
+    _h1s = _capa_sapan(H1_CAPA_SAYFA)
+    dogrula("B14a H1 KURALI CANLI VERİDE SAYFA DOĞURUYOR (%d çapa; şasi/motor kodu "
+            "sayfaları YAYINDA)" % len(H1_CAPA_SAYFA), not _h1s, "sapan=%s" % (_h1s[:3] or "-"))
+    _h3s = _capa_sapan(H3_CAPA_SAYFA)
+    dogrula("B14b H3 KURALI CANLI VERİDE SAYFA DOĞURUYOR (%d çapa; ayrı araç adı "
+            "sayfaları YAYINDA)" % len(H3_CAPA_SAYFA), not _h3s, "sapan=%s" % (_h3s[:3] or "-"))
+    # --- H4: AKSAN KANONDA ÇÖZÜLÜYOR — ikiz kova KALMIYOR --------------------------
+    _aksan_ikiz = []
+    for marka, a, b in AKSAN_IKIZ_FIKSTURU:
+        ka, kb = evren.model_anahtari(marka, a), evren.model_anahtari(marka, b)
+        if ka != kb:
+            _aksan_ikiz.append("%s|%s(%s) != %s(%s)" % (marka, a, ka, b, kb))
+        elif (marka, ka) in kova and (marka, kb) in kova and ka != kb:
+            _aksan_ikiz.append("%s: İKİ KOVA %s/%s" % (marka, ka, kb))
+    _ayri_kova = sorted(set(c for (_m, c) in kova
+                            if c != _arama.model_normalize(c) or _aksanli(c)))
+    dogrula("B13 H4 AKSAN KANONDA ÇÖZÜLÜYOR (%d ikiz çifti TEK anahtara düşüyor; aksanlı "
+            "kanon anahtarı KALMADI)" % len(AKSAN_IKIZ_FIKSTURU),
+            not _aksan_ikiz and not _ayri_kova,
+            "ikiz sapan=%s · aksanlı kanon=%s" % (_aksan_ikiz[:3] or "-",
+                                                  _ayri_kova[:3] or "-"))
 
     # --- G) KAYBEDEN YOK: hiçbir ürün kovasından DÜŞMEZ ----------------------------
     # (Kol yalnız EKLER; ölçüt yapısal: başlık kolu hiçbir kovadan ürün ÇIKARMAZ.)
@@ -311,7 +505,50 @@ MUTANTLAR = [
      "            return True\n    return False", "KIRMIZI",
      "M4 BİTİŞİKLİĞİ `markaKatla()` İLE YAZ -> önek kuralı 'Renault Espace'i 'Renault'a "
      "katlar, tehlike koruması SESSİZCE ölür (B5 fikstürü + B7 Subaru|86 turnusolu)"),
+    # --- ÖLDÜRÜCÜ: H1 / H2 / H3 / H4 (6 Ağu, mimar hükmü) — kırmızı kümeleri AYRI ---
+    ("tools/marka_model_build.py",
+     "    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)",
+     "    return False", "KIRMIZI",
+     "M5 H1 ŞASİ/MOTOR KODU DESENİNİ KALDIR -> `M54`/`W638`/`SW20` sayfaları ÖLÜR "
+     "(B14a çapaları + B10 fikstürü; H3 çapaları B14b DEĞİŞMEZ -> ayırt edici)"),
+    ("tools/marka_model_build.py",
+     "    j = \"\".join(_kelimeler(deger))\n"
+     "    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)",
+     "    j = \"\".join(_kelimeler(deger))\n    return bool(j) and any(c.isdigit() for c in j)",
+     "KIRMIZI",
+     "M6 H1'e ÇIPLAK SAYIYI SOK -> `Toyota|86` ve `Yamaha|660` sayfaları DOĞAR "
+     "(B8a + B10; H1 çapaları AYAKTA kalır -> M5'ten AYIRT EDİCİ)"),
+    ("tools/marka_model_build.py",
+     "    return (toks[-1] or \"\").lower() in set(x.lower() for x in model_kanon.KUSAK_DONANIM)",
+     "    return False", "KIRMIZI",
+     "M7 H3 KATLAMA KURALINI 'HER DEĞİŞTİRİCİ SAYFA ALIR'A ÇEVİR -> donanım kuyruklu kova "
+     "sayfa adayı olur (B10 + B8b; `Focus ST` sınıfı)"),
+    ("tools/marka_model_build.py",
+     "    if len(toks) < 2 or not degistirici_jetonu_mu(toks[-1]):\n        return False",
+     "    if len(toks) < 2:\n        return False", "KIRMIZI",
+     "M8 H2 KATLAMA/DENY DARALTMASINI KALDIR (son-kelime kolu kayıtsız koşsun) -> "
+     "`/marka/renault/5-e-tech/` ve `megane-e-tech` KAPANIR (B11 + B12)"),
+    ("tools/arama.py",
+     "    (\"Renault\", \"E-Tech\"): \"elektrifikasyon/guc aktarma rozeti",
+     "    (\"Renault\", \"E-TechYOK\"): \"elektrifikasyon/guc aktarma rozeti", "KIRMIZI",
+     "M9 H2 DENY'İNİ DÜŞÜR -> çıplak `E-Tech` kovası SAYFA AÇAR (B12; `5 E-Tech` AYAKTA "
+     "kalır -> M8'den AYIRT EDİCİ, ters yöne kayar)"),
+    ("tools/model_kanon.py",
+     "    t = unicodedata.normalize(\"NFD\", t)\n"
+     "    t = \"\".join(ch for ch in t if not unicodedata.combining(ch))\n"
+     "    return _AYIRAC.sub(\"\", t)",
+     "    return _AYIRAC.sub(\"\", t)", "KIRMIZI",
+     "M10 H4 AKSAN ÇÖZÜMÜNÜ KALDIR -> `Zoe`/`Zoé` yeniden İKİ kova, `Ténéré` ikizi geri "
+     "gelir (B13)"),
     # --- KONTROL (YEŞİL bekleniyor) ---
+    ("tools/arama.py",
+     "    (\"Audi\", \"AdBlue\"): \"dizel egzoz katki sivisi (AdBlue) — arac modeli degil\",\n"
+     "    (\"Audi\", \"Coupe\"): \"govde tipi sozcugu (Audi 80/B2 Coupe) — bagimsiz model adi degil\",",
+     "    (\"Audi\", \"Coupe\"): \"govde tipi sozcugu (Audi 80/B2 Coupe) — bagimsiz model adi degil\",\n"
+     "    (\"Audi\", \"AdBlue\"): \"dizel egzoz katki sivisi (AdBlue) — arac modeli degil\",",
+     "YESIL",
+     "K4 KONTROL: DENY tablosunu YENİDEN SIRALA -> küme ve davranış AYNI (daima-kırmızı "
+     "bir H2 ekseni M8/M9'u da geçerdi)"),
     ("tools/marka_model_build.py",
      "    (\"BMW\", \"kserisi\"): \"K Serisi\",\n",
      "    (\"BMW\", \"kserisi\"): \"K Serisi\",  # yorum (davranış AYNI)\n", "YESIL",

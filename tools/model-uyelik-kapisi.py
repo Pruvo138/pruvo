@@ -68,6 +68,42 @@ def _bagimsiz_kanon(s):
 # istenen budur: katlamanın kapsamı GÖRÜNÜR karardır (K9/K12 kimlik donması ile aynı ilke).
 _BAGIMSIZ_KUSAK_RE = re.compile(
     r"^(mk\d{1,2}|\d{1,2}|i|ii|iii|iv|v|vi|vii|viii|ix|x|[a-z]|gt|gtc|gtd|gti|rs|st)$")
+# BAĞIMSIZ DONANIM soneki (KUSAK_DONANIM aynası; üretim tablosu ÇAĞRILMAZ). H3 hükmünün
+# DENY kolu bu alt kümedir: `Focus ST` katlanır ve sayfa AÇMAZ, `Corsa D` sayfa ALIR.
+_BAGIMSIZ_DONANIM_RE = re.compile(r"^(gt|gtc|gtd|gti|rs|st)$")
+
+
+def _bagimsiz_donanim_kuyruklu(display):
+    """`<taban> <DONANIM>` mi (H3 DENY kolu, kapının kendi dilbilgisi)?"""
+    toks = (display or "").split()
+    return len(toks) >= 2 and bool(_BAGIMSIZ_DONANIM_RE.match(_bagimsiz_kanon(toks[-1])))
+
+
+def _bagimsiz_sasi_kodu(display):
+    """H1 ŞASİ/MOTOR KODU şekli — TEK jeton + en az bir HARF ve en az bir RAKAM.
+    🔴 ÇIPLAK SAYI DIŞARIDA (`86`, `660`, `5`): harf taşımayan jeton False döner."""
+    if len((display or "").split()) != 1:
+        return False
+    j = _bagimsiz_kanon(display)
+    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)
+
+
+def _bagimsiz_ayri_arac(display):
+    """H3 ALLOW kolu — çok jetonlu ve kuyruğu DONANIM DEĞİL (`Corsa D`, `Transporter T5`)."""
+    return len((display or "").split()) >= 2 and not _bagimsiz_donanim_kuyruklu(display)
+
+
+def _bagimsiz_ciplak_sayi(display):
+    """Jeton tümüyle SAYISAL mı (`86`, `660`, `5`) — H1'in DIŞINDA kalan sınıf."""
+    j = _bagimsiz_kanon(display)
+    return bool(j) and j.isdigit()
+
+
+def _bagimsiz_baslik_yargisi(marka, canon, display, izin_anahtar):
+    """Başlık-doğan kova YARGILANMIŞ mı — kapının KENDİ gövdesi (üretim ÇAĞRILMAZ).
+    Üç kaynak: envanter · H1 şasi/motor kodu · H3 ayrı araç adı."""
+    return ("%s|%s" % (marka, canon) in izin_anahtar
+            or _bagimsiz_sasi_kodu(display) or _bagimsiz_ayri_arac(display))
 
 # KATLAMA FİKSTÜRÜ — kural GERÇEK jetonlarla çivilenir (JS ve Python AYNI cevabı vermeli).
 # (marka, ham jeton, beklenen taban anahtarı) — taban BOŞ ise "katlanmaz" demektir.
@@ -744,11 +780,20 @@ def olc(kok, modul_yolu=None):
         return len(toks) >= 2 and bool(_BAGIMSIZ_KUSAK_RE.match(_bagimsiz_kanon(toks[-1])))
 
     yayin_degistirici = set()
+    yayin_degistirici_yargisiz = set()
     for (mk, dsp), (_i, canon) in sayfa.items():
-        if _degistirici_sekilli(dsp):
-            yayin_degistirici.add("%s|%s" % (mk, canon))
+        if not _degistirici_sekilli(dsp):
+            continue
+        yayin_degistirici.add("%s|%s" % (mk, canon))
+        # 🔴 H3 KURALI ENVANTERİN YERİNE GEÇER (6 Ağu, mimar hükmü): kuyruğu DONANIM
+        # OLMAYAN değiştirici-şekilli ad AYRI BİR ARACI adlandırır ve sayfa alır — bu
+        # KURALDIR, tekil yargı değil; envantere yazılması gerekmez (yazılsaydı katalog
+        # büyüdükçe elle bakım gerektirir ve sessizce bayatlardı).
+        # Envanter yalnız kuralın AÇIKLAMADIĞI (donanım kuyruklu) sayfalar için yargıdır.
+        if _bagimsiz_donanim_kuyruklu(dsp):
+            yayin_degistirici_yargisiz.add("%s|%s" % (mk, canon))
     izin_fark = (sorted(set(izin) - yayin_degistirici),        # envanterde VAR, yayında YOK
-                 sorted(yayin_degistirici - set(izin)))        # yayında VAR, envanterde YOK
+                 sorted(yayin_degistirici_yargisiz - set(izin)))  # DONANIM kuyruklu SIZINTI
     # deny ile allow ÇELİŞMEMELİ (bir çift hem kapatılıp hem izinli olamaz)
     izin_deny_celiski = []
     for anahtar_metin in sorted(izin):
@@ -758,6 +803,19 @@ def olc(kok, modul_yolu=None):
                 izin_deny_celiski.append((anahtar_metin, djt))
 
     # --- DENY EKSENİ (B): kapatılan çiftin YAYIMLANAN kovası 0 (ürünü de kaybolmadı) -----
+    # 🔴 SON-KELİME KOLU YALNIZ DEĞİŞTİRİCİLERE İŞLER (6 Ağu, mimar hükmü H2 — kapının
+    # KENDİ dilbilgisiyle yazılır, üretim yüklemi çağrılmaz): `<taban> <jeton>` bileşiği
+    # ancak jeton bir KUŞAK/DONANIM DEĞİŞTİRİCİSİYSE tabana yapışıktır (`Focus ST`,
+    # `Focus Mk1`); `E-Tech` gibi bir ROZET adı bileşikte AYRI BİR ARACI adlandırır ve
+    # `/marka/renault/5-e-tech/` KAPANMAZ. Kol kayıtsız yazılsaydı bu iki sayfa "sızıntı"
+    # sayılırdı (ölçüldü) ve `("Renault","E-Tech")` hükmü hiç yazılamazdı.
+    def _deny_vuruyor(dsp, dn):
+        if _bagimsiz_kanon(dsp) == dn:
+            return True
+        toks = (dsp or "").split()
+        return (len(toks) >= 2 and _bagimsiz_kanon(toks[-1]) == dn
+                and bool(_BAGIMSIZ_KUSAK_RE.match(_bagimsiz_kanon(toks[-1]))))
+
     deny_sizan, deny_kaybolan, deny_etkilenen = [], [], []
     for (dmk, djt) in sorted(deny):
         dn = _bagimsiz_kanon(djt)
@@ -765,16 +823,12 @@ def olc(kok, modul_yolu=None):
         for (mk, dsp), (ids, canon) in sayfa.items():
             if mk != dmk:
                 continue
-            toks = dsp.split()
-            if _bagimsiz_kanon(dsp) == dn or (len(toks) >= 2
-                                              and _bagimsiz_kanon(toks[-1]) == dn):
+            if _deny_vuruyor(dsp, dn):
                 deny_sizan.append((mk, dsp))
         # kapatılan kovaların ürünleri marka AĞACINDA duruyor mu (K11 deseni)
         for canon, g in (veri.get(dmk) or {}).get("gruplar", {}).items():
             dsp = g.get("display") or canon
-            toks = dsp.split()
-            if not (_bagimsiz_kanon(dsp) == dn or (len(toks) >= 2
-                                                   and _bagimsiz_kanon(toks[-1]) == dn)):
+            if not _deny_vuruyor(dsp, dn):
                 continue
             vurus += 1
             agac = set()
@@ -806,17 +860,36 @@ def olc(kok, modul_yolu=None):
         raise Olculemedi("tools/arama.py BASLIK_DOGAN_ALLOW okunamadı: %r" % (e,))
     _b_izin_anahtar = set("%s|%s" % (mk, _mk_kanon(jt)) for mk, jt in _b_izin)
     baslik_yayin, baslik_bekleyen = set(), []
+    # 🔴 YARGI ÜÇ KAYNAKLI (6 Ağu, mimar hükmü H1+H3): envanter ∪ ŞASİ/MOTOR KODU kuralı ∪
+    # AYRI ARAÇ ADI kuralı. Kapı bu üç kolu KENDİ bağımsız dilbilgisiyle kurar (üretimin
+    # `baslik_yargisi_var_mi` gövdesi ÇAĞRILMAZ — çağrılsaydı iddia totoloji olurdu,
+    # [[beyan-edilmis-survivor]]). Üretim kuralı gevşerse/sıkışırsa bu eksen KIRMIZI yanar.
+    baslik_sizinti, baslik_ciplak_sayi, baslik_donanim = [], [], []
+    baslik_kural_dogan = 0
     for _mk, _d in veri.items():
         for _canon, _g in _d["gruplar"].items():
             if not _g.get("baslik_dogan"):
                 continue
+            _dsp = _g.get("display") or _canon
             if mm.yayimlanir_mi(_g):
                 baslik_yayin.add("%s|%s" % (_mk, _canon))
+                if not _bagimsiz_baslik_yargisi(_mk, _canon, _dsp, _b_izin_anahtar):
+                    baslik_sizinti.append("%s|%s" % (_mk, _canon))
+                elif "%s|%s" % (_mk, _canon) not in _b_izin_anahtar:
+                    baslik_kural_dogan += 1
+                # H1 SINIRI: ÇIPLAK SAYI kural koluyla DOĞAMAZ (yalnız envanterle).
+                if _bagimsiz_ciplak_sayi(_dsp) \
+                        and "%s|%s" % (_mk, _canon) not in _b_izin_anahtar:
+                    baslik_ciplak_sayi.append("%s|%s" % (_mk, _dsp))
+                # H3 DENY KOLU: donanım kuyruklu kova SAYFA AÇMAZ.
+                if _bagimsiz_donanim_kuyruklu(_dsp):
+                    baslik_donanim.append("%s|%s" % (_mk, _dsp))
             elif _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK \
                     and (_mk, _canon) not in mm.ROZET_DISI \
-                    and not mm.model_olmayan_cift_mi(_mk, _g.get("display") or _canon):
-                baslik_bekleyen.append((_mk, _g.get("display") or _canon, len(_g["urunler"])))
-    baslik_sizinti = sorted(baslik_yayin - _b_izin_anahtar)
+                    and not mm.model_olmayan_cift_mi(_mk, _dsp):
+                baslik_bekleyen.append((_mk, _dsp, len(_g["urunler"])))
+    baslik_sizinti = sorted(baslik_sizinti)
+    # BAYAT ekseni ENVANTERE dairdir: kuralla doğan sayfalar envanterde ARANMAZ.
     baslik_bayat = sorted(_b_izin_anahtar - baslik_yayin)
     # ÇELİŞKİ: allow'daki bir çift AYNI ZAMANDA deny yüklemini tetikliyor mu? Ölçüt
     # üretimin deny yüklemiyle AYNI birimde kurulur (çıplak jeton + SON KELİME); düz
@@ -826,7 +899,9 @@ def olc(kok, modul_yolu=None):
         _dn = _bagimsiz_kanon(jt)
         _toks = jt.split()
         if (mk, _dn) in deny_n or (len(_toks) >= 2
-                                   and (mk, _bagimsiz_kanon(_toks[-1])) in deny_n):
+                                   and (mk, _bagimsiz_kanon(_toks[-1])) in deny_n
+                                   and bool(_BAGIMSIZ_KUSAK_RE.match(
+                                       _bagimsiz_kanon(_toks[-1])))):
             baslik_celiski.append("%s|%s" % (mk, _mk_kanon(jt)))
 
     # --- KÜRATÖRLÜ KUŞAK EŞLEMESİ: ayna + kimlik + ETKİ ---------------------------------
@@ -1038,6 +1113,9 @@ def olc(kok, modul_yolu=None):
                    "baslik_izin_imza": baslik_izin_imza, "baslik_yayin": len(baslik_yayin),
                    "baslik_sizinti": baslik_sizinti, "baslik_bayat": baslik_bayat,
                    "baslik_celiski": baslik_celiski,
+                   "baslik_ciplak_sayi": sorted(baslik_ciplak_sayi),
+                   "baslik_donanim": sorted(baslik_donanim),
+                   "baslik_kural_dogan": baslik_kural_dogan,
                    "baslik_bekleyen": sorted(baslik_bekleyen, key=lambda t: (-t[2], t[0])),
                    "esleme_fark": esleme_fark, "esleme_imza": esleme_imza,
                    "tekharf_sapan": tekharf_sapan, "tekharf_ulasmayan": tekharf_ulasmayan,
@@ -1287,11 +1365,17 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
     dogrula("K21 BAŞLIK KOLUNDAN DOĞAN SAYFA KÜMESİ YARGILANMIŞ ENVANTERLE BİREBİR (%d sayfa; "
             "%d kova yargı BEKLİYOR ve DOĞMADI)" % (a["baslik_yayin"], len(a["baslik_bekleyen"])),
             not a["baslik_sizinti"] and not a["baslik_bayat"] and not a["baslik_celiski"]
+            and not a["baslik_ciplak_sayi"] and not a["baslik_donanim"]
             and _bi[0] == _bi[1] and _bi[2] == _bi[3],
             "YARGISIZ DOĞMUŞ (SIZINTI)=%s · envanterde var üretimde yok (BAYAT)=%s · "
-            "allow/deny çelişkisi=%s · imza=%s beklenen=%s sayı=%d beklenen=%d"
+            "allow/deny çelişkisi=%s · ÇIPLAK SAYI doğmuş=%s · DONANIM kuyruklu doğmuş=%s · "
+            "imza=%s beklenen=%s sayı=%d beklenen=%d"
             % (a["baslik_sizinti"][:3] or "-", a["baslik_bayat"][:3] or "-",
-               a["baslik_celiski"][:3] or "-", _bi[0], _bi[1], _bi[2], _bi[3]))
+               a["baslik_celiski"][:3] or "-", a["baslik_ciplak_sayi"][:3] or "-",
+               a["baslik_donanim"][:3] or "-", _bi[0], _bi[1], _bi[2], _bi[3]))
+    print("  BILGI BAŞLIK-DOĞAN SAYFA YARGISININ KAYNAĞI: envanter %d · KURAL (H1 şasi/motor "
+          "kodu ∪ H3 ayrı araç adı) %d — kural kolu katalog büyüdükçe BAYATLAMAZ"
+          % (a["baslik_yayin"] - a["baslik_kural_dogan"], a["baslik_kural_dogan"]))
     if a["baslik_bekleyen"]:
         print("  BILGI MİMAR HÜKMÜ BEKLEYEN KOVA: %d (sayfa DOĞMADI; ürünleri marka "
               "sayfasında ve kendi gerçek model sayfasında duruyor) ilk 5: %s"
@@ -1520,9 +1604,13 @@ MUTANTLAR = [
     # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — başlık kolu
     # 4.046 yeni üyelik ve 173 yeni sayfa açıyor; yargı kapısı ya da tehlike koruması
     # sessizce ölseydi kapı YEŞİL yanmaya devam ederdi.
+    # 🔴 ÇAPA 6 Ağu'da TAZELENDİ: `yayimlanir_mi` yargı bloğu H1/H3 kural kollarını da
+    # okuyacak şekilde yeniden yazıldı; eski çapa 0 eşleşmeye düşmüştü ve eksen SESSİZCE
+    # ölçülmez olmuştu ([[mutasyon-kaniti-yeniden-uretilebilir]]).
     ("tools/marka_model_build.py",
-     '    if g.get("baslik_dogan") and (g.get("marka"), g.get("canon")) '
-     "not in BASLIK_DOGAN_ALLOW:\n        return False",
+     '    if g.get("baslik_dogan") and not baslik_yargisi_var_mi(\n'
+     '            g.get("marka"), g.get("canon"), g.get("display") or g.get("canon")):\n'
+     "        return False",
      "    if False:\n        return False", "KIRMIZI",
      "M38 YARGI KAPISINI KALDIR -> mimar hükmü BEKLEYEN 340 kovanın eşiği geçenleri sayfa "
      "olur; K21 SIZINTI eksenini TEK BAŞINA kırmızı yakmalı"),

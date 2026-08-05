@@ -25,6 +25,7 @@ FAIL-CLOSED: blok ya da tablolar okunamazsa SystemExit — sessizce boş tabloya
 import os
 import re
 import sys
+import unicodedata
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -87,12 +88,15 @@ def bilesik_marka_mi(deger, bilesik_normlu):
 
 
 def _marka_norm(s):
-    """index.html markaNorm() portu — bileşik marka karşılaştırması için."""
+    """index.html markaNorm() portu — bileşik marka karşılaştırması için.
+    🔴 AKSAN GENEL KURALLA (6 Ağu, H4): elle aksan listesi yerine NFD + birleşen işaret
+    atma; `modelKanon` ile TEK aksan tanımı ([[ikiz-tanim-sessiz-ayrisma]])."""
     n = (s or "").replace("I", "ı").replace("İ", "i").lower()
     for a, b in (("ı", "i"), ("ç", "c"), ("ğ", "g"), ("ö", "o"),
-                 ("ş", "s"), ("ü", "u"), ("â", "a"), ("î", "i"),
-                 ("é", "e"), ("è", "e"), ("ë", "e"), ("ä", "a")):
+                 ("ş", "s"), ("ü", "u"), ("â", "a"), ("î", "i")):
         n = n.replace(a, b)
+    n = unicodedata.normalize("NFD", n)
+    n = "".join(c for c in n if not unicodedata.combining(c))
     n = n.replace(" and ", " ").replace("&", " ").replace("+", " ")
     return re.sub(r"\s+", " ", n).strip()
 
@@ -113,10 +117,21 @@ def tablolar(index_html):
 
 
 def kanon(s):
-    """index.html modelKanon() portu: küçük harf + TR sadeleştirme + ayıraç atma.
-    'F-150'/'F150'/'F 150' -> 'f150'; 'S-Max'/'S-MAX' -> 'smax'."""
+    """index.html modelKanon() portu: küçük harf + TR sadeleştirme + AKSAN ÇÖZÜMÜ + ayıraç atma.
+    'F-150'/'F150'/'F 150' -> 'f150'; 'S-Max'/'S-MAX' -> 'smax'; 'Zoé'/'Zoe' -> 'zoe'.
+
+    🔴 AKSAN KANONDA ÇÖZÜLÜR (6 Ağu, mimar hükmü H4): `_TR` yalnız TÜRKÇE harfleri
+    sadeleştiriyordu; `é`/`ë`/`š` kanona olduğu gibi girip AYNI aracı İKİ kovaya bölüyordu
+    (ölçüldü, katalog 19.999: Renault zoe 42 ↔ zoé 42 · Yamaha tenere 30 ↔ ténéré 31 ·
+    tenere700 20 ↔ ténéré700 20 — son ikisinin İKİ sayfası da CANLIYDI). Kural yazılabilir:
+    NFD + birleşen işaret (U+0300-U+036F) atma; ikinci bir aksan tablosu TUTULMAZ.
+    SIRA: `_TR` ÖNCE koşar — `ı` ayrıştırılamaz, onu yalnız tablo çözer.
+    JS tarafı `String.prototype.normalize("NFD")` ile BİREBİR aynı algoritmayı koşar;
+    ayrışma tools/model-uyelik-kapisi.py'de GERÇEK node koşumuyla fail-closed ölçülür."""
     t = (s or "").strip().lower()
     t = "".join(_TR.get(ch, ch) for ch in t)
+    t = unicodedata.normalize("NFD", t)
+    t = "".join(ch for ch in t if not unicodedata.combining(ch))
     return _AYIRAC.sub("", t)
 
 

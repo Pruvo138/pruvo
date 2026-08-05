@@ -95,10 +95,13 @@ def _norm(s):
 
 
 def _marka_norm(s):
-    """index.html markaNorm() portu: norm + é/è/ë->e, ä->a + ayıraç ('and'/&/+) sadeleştirme."""
-    n = _norm(s)
-    for a, b in (("é", "e"), ("è", "e"), ("ë", "e"), ("ä", "a")):
-        n = n.replace(a, b)
+    """index.html markaNorm() portu: norm + AKSAN ÇÖZÜMÜ + ayıraç ('and'/&/+) sadeleştirme.
+
+    🔴 AKSAN GENEL KURALLA (6 Ağu, H4): elle liste (`é/è/ë/ä`) `Škoda` gibi caron/tilde
+    taşıyan yazımları görmüyordu ve `modelKanon`un aksan kuralıyla AYRIŞIYORDU. Aynı
+    NFD + birleşen-işaret kuralı iki eksende de koşar; ayrışma K10/K13'te node ile ölçülür."""
+    n = unicodedata.normalize("NFD", _norm(s))
+    n = "".join(c for c in n if not unicodedata.combining(c))
     n = n.replace(" and ", " ").replace("&", " ").replace("+", " ")
     return re.sub(r"\s+", " ", n).strip()
 
@@ -427,20 +430,57 @@ def _model_olmayan_ciftler():
 MODEL_OLMAYAN_CIFTLER = _model_olmayan_ciftler()
 
 
+def degistirici_jetonu_mu(kelime):
+    """Kelime bir KUŞAK/DONANIM DEĞİŞTİRİCİSİ mi — TEK KAYNAK index.html `kusakSonekMi()`.
+
+    'ST'/'GTI'/'4'/'Mk4'/'IV'/'H' evet · 'E-Tech'/'Life'/'EcoBoost'/'iPhone'/'Transporter'
+    hayır. İkinci bir "değiştirici listesi" YAZILMAZ: gramer index.html'deki kanonik
+    bloktan (model_kanon.kusak_sonek_mi + KUSAK_DONANIM) AYIKLANIR."""
+    return model_kanon.kusak_sonek_mi((kelime or "").lower(), model_kanon.KUSAK_DONANIM)
+
+
+def donanim_kuyruklu_mu(deger):
+    """Değer `<taban> <DONANIM>` biçiminde mi ("Focus ST", "206 GTI", "Megane RS")?
+
+    🔴 H3 AYRIMI (6 Ağu, mimar hükmü): taban modele YAPIŞIK geçen donanım/rozet soneki
+    ayrı bir aracı ADLANDIRMAZ — aynı araç, aynı parça; kuşak katlamasıyla ana modelin
+    varyant bölümünde görünür ve KENDİ SAYFASINI AÇMAZ. AYRI bir aracı adlandıran değer
+    (`Zafira Life`, `Transporter T4`, `Corsa D`) bu yüklemin DIŞINDADIR ve sayfa alır.
+    Ölçüt KAPALI DONANIM GRAMERİDİR (`KUSAK_DONANIM`), kuşak/sayı/harf grameri DEĞİL:
+    `Golf 4` · `Astra H` · `Megane 2` bugün YAYINDA olan meşru KUŞAK sayfalarıdır
+    (`DEGISTIRICI_SAYFA_IZNI` emsali) — onları kapatmak SEO yüzeyini geri sarardı."""
+    toks = (deger or "").strip().split()
+    if len(toks) < 2:
+        return False
+    return (toks[-1] or "").lower() in set(x.lower() for x in model_kanon.KUSAK_DONANIM)
+
+
 def model_olmayan_cift_mi(marka, deger):
-    """(marka, jeton) çifti MODEL DEĞİL mi — ÇIPLAK ve BİLEŞİK yazımı birlikte kapsar.
+    """(marka, jeton) çifti MODEL DEĞİL mi — ÇIPLAK yazım + DEĞİŞTİRİCİ kuyruğu.
 
     🔴 BİLEŞİK YAZIM ŞART (ölçülen boşluk): `marka_jetonu_mu("Focus ST")` False dönüyordu,
-    çünkü o yüklem yalnız değerin TAMAMINA bakıyor. Donanım/motor jetonu katalogda çoğu
-    zaman `<model> <jeton>` biçiminde geçer (`Focus ST`, `Fiesta ST`) — bu yüzden SON
-    KELİME de sınanır. `EcoBoost` gibi çıplak yazım ilk sınamada yakalanır."""
+    çünkü o yüklem yalnız değerin TAMAMINA bakıyor. Donanım/kuşak jetonu katalogda çoğu
+    zaman `<model> <jeton>` biçiminde geçer (`Focus ST`, `Focus Mk1`) — bu yüzden SON
+    KELİME de sınanır. `EcoBoost` gibi çıplak yazım ilk sınamada yakalanır.
+
+    🔴 SON-KELİME KOLU YALNIZ DEĞİŞTİRİCİLERE İŞLER (6 Ağu, mimar hükmü H2 — ölçülmüş
+    yan hasar): kol kayıtsız şartsız koşarken `("Renault","E-Tech")` deny'i yazılamıyordu,
+    çünkü aynı kol MEŞRU `/marka/renault/5-e-tech/` (4 ürün) ve `/marka/renault/megane-e-tech/`
+    sayfalarını da kapatıyordu — "kaybolan sayfa 0" şartı bozuluyordu. Ayrım KURALDIR,
+    istisna listesi DEĞİL: `<taban> <jeton>` bileşiği ancak jeton bir KUŞAK/DONANIM
+    DEĞİŞTİRİCİSİYSE tabana yapışıktır (`ST`, `Mk1`, `Mk2`, `Mk4`); `E-Tech` gibi bir
+    ROZET/güç aktarma adı bileşikte AYRI BİR ARACI adlandırır ve o sayfa kapanmaz.
+    ÖLÇÜLDÜ (katalog 19.999): bugün son-kelime koluyla ölen 13 kovanın 13'ü de değiştirici
+    kuyrukludur — daraltma bugünkü davranışı DEĞİŞTİRMEZ (diriltilen sayfa 0)."""
     t = (deger or "").strip()
     if not marka or not t:
         return False
     if (marka, model_kanon.kanon(t)) in MODEL_OLMAYAN_CIFTLER:
         return True
     toks = t.split()
-    return len(toks) >= 2 and (marka, model_kanon.kanon(toks[-1])) in MODEL_OLMAYAN_CIFTLER
+    if len(toks) < 2 or not degistirici_jetonu_mu(toks[-1]):
+        return False
+    return (marka, model_kanon.kanon(toks[-1])) in MODEL_OLMAYAN_CIFTLER
 
 
 def marka_jetonu_mu(deger, evren):
@@ -549,6 +589,59 @@ def tehlike_jetonu_mu(jeton):
     ("Clio 5", "Espace 5" = kuşak sayısı) vardı. Bitişiklik şartı üçünü de doğru ayırır."""
     j = "".join(_kelimeler(jeton))
     return (not j) or len(j) <= 3 or j.isdigit()
+
+
+def sasi_motor_kodu_mu(deger):
+    """Değer bir ŞASİ/MOTOR KODU (harf+rakam karışık ARAÇ TANIMLAYICISI) mı?
+
+    🔴 H1 (6 Ağu, mimar hükmü — SAYFA ALIR): `E46`, `M54`, `M57`, `N47`, `T4`, `W638`,
+    `SW20`, `4AGE` … Bu katalogda müşteri parçayı şasi/motor koduyla arıyor; emsal ZATEN
+    YAYINDA (`/marka/bmw/e46/`, `e36`, `e30`, `e39`).
+
+    🔴 KURAL, LİSTE DEĞİL: desen jetonun ŞEKLİNDEN türer — TEK jeton + normalleşmiş
+    gövdede EN AZ BİR HARF ve EN AZ BİR RAKAM. Elle envanter yazılsaydı katalog büyüdükçe
+    bayatlar ve yeni bir şasi kodu sessizce yargısız kalırdı ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    🔴 ÇIPLAK SAYI BU HÜKMÜN DIŞINDADIR (mimar hükmü, açık): `57`, `86`, `17`, `660`
+    HARF TAŞIMADIĞI için False döner. Onlar TEHLİKE sınıfında kalır (`tehlike_jetonu_mu`)
+    ve yalnız marka+model BİTİŞİK ifadeyle eşleşir; `Renault|5` turnusolu bunu ölçer.
+    İki eksen bilerek ayrıdır: bu yüklem SAYFA yargısıdır, tehlike sınıfı EŞLEŞME kuralı.
+
+    🔴 BİLEŞİK YAZIM DIŞARIDA: `E46 M3`, `Skyline R32`, `Civic EP3` çok jetonludur ve
+    H3 ekseninde (`<taban> <değiştirici>`) yargılanır — iki hükmün kırmızı kümesi
+    ayrışsın diye tek jeton şartı KONULDU."""
+    toks = (deger or "").strip().split()
+    if len(toks) != 1:
+        return False
+    j = "".join(_kelimeler(deger))
+    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)
+
+
+def ayri_arac_adi_mi(deger):
+    """Değer `<taban> <değiştirici>` biçiminde AYRI BİR ARACI mı adlandırıyor?
+
+    🔴 H3 (6 Ağu, mimar hükmü): çok jetonlu bir kova, kuyruğu KAPALI DONANIM grameri
+    DEĞİLSE ayrı bir aracı adlandırır ve SAYFA ALIR (`Zafira Life`, `Transporter T4`,
+    `Corsa D`, `Megane II`, `Passat B8`); kuyruğu donanım/rozet soneki ise taban modele
+    YAPIŞIKTIR, katlanır ve sayfa AÇMAZ (`Focus ST`, `Fiesta ST`, `206 GTI`).
+    Emsal: `DEGISTIRICI_SAYFA_IZNI` bugün `Golf 4`, `Astra H`, `Megane 2`, `Corsa C`
+    kuşak sayfalarını AÇIK tutuyor — kuşak işareti bu depoda meşru bir sayfadır."""
+    return len((deger or "").strip().split()) >= 2 and not donanim_kuyruklu_mu(deger)
+
+
+def baslik_yargisi_var_mi(marka, canon, ad):
+    """BAŞLIK KOLUYLA doğan (marka, canon) kovası YARGILANMIŞ mı — TEK KAYNAK.
+
+    🔴 İKİNCİ TANIM YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]): aynı yargıyı hem sayfa
+    üreteci (`yayimlanir_mi`) hem çip elemesi (`tools/cip-indeks.py::_elendi`) sorar.
+    İki gövde ayrışırsa sayfası OLAN kova çipsiz, çipi OLAN kova sayfasız kalır — ikisi de
+    SESSİZ. Yargı üç kaynaktan gelir:
+      (a) `BASLIK_DOGAN_ALLOW` envanteri — tekil, elle yargılanmış çiftler,
+      (b) H1 `sasi_motor_kodu_mu` — harf+rakam ŞASİ/MOTOR kodu (kural),
+      (c) H3 `ayri_arac_adi_mi` — `<taban> <değiştirici>` AYRI araç adı (kural).
+    """
+    return ((marka, canon) in BASLIK_DOGAN_ALLOW
+            or sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad))
 
 
 def _dizi_iceriyor(hepsi, parca):
@@ -878,13 +971,29 @@ def yayimlanir_mi(g):
     # varyant bölümünde, her hâlükârda marka sayfasında durur (kapı ölçer).
     if model_olmayan_cift_mi(g.get("marka"), g.get("display") or g.get("canon")):
         return False
+    # H3 DENY KOLU (6 Ağu, mimar hükmü): taban modele YAPIŞIK donanım/rozet soneki taşıyan
+    # kova AYRI BİR ARACI adlandırmaz -> SAYFA AÇMAZ. Ürün KAYBOLMAZ: kuşak katlaması onu
+    # ana modelin varyant bölümünde, her hâlükârda marka sayfasında gösterir.
+    # 🔴 ENVANTERDEN BAĞIMSIZ, MARKA-KÖR: `("Ford","ST")` gibi marka-özel deny kayıtları
+    # yalnız ELLE girilen çiftleri kapatır; bu kol kuralı KATALOG GENELİNDE işletir
+    # (ölçüldü: bugün donanım kuyruklu 16 kova var, 14'ü eşik altında -> etkisi 0 sayfa,
+    # ama kural yarın eşiği geçen `Clio GT`/`Yaris RS` için ÖNCEDEN kapalıdır).
+    if donanim_kuyruklu_mu(g.get("display") or g.get("canon")):
+        return False
     if not (bool(g.get("birincil")) and len(g["urunler"]) >= ESIK):
         return False
     # YARGISIZ SAYFA DOĞMAZ (5 Ağu, mimar hükmü): kova SAYFA eşiğini/birincilliğini YALNIZ
     # başlık kolu sayesinde geçiyorsa, o (marka, canon) çifti açıkça yargılanmış olmalı.
     # Yargısız kova yayımlanmaz; ürünü KAYBOLMAZ (marka sayfasında ve kendi gerçek model
     # sayfasında durur — kapı bunu ölçer).
-    if g.get("baslik_dogan") and (g.get("marka"), g.get("canon")) not in BASLIK_DOGAN_ALLOW:
+    # 🔴 YARGI ÜÇ KAYNAKTAN GELİR (6 Ağu, mimar hükmü — envanter TEK yol değil):
+    #   (a) `BASLIK_DOGAN_ALLOW` — tekil, elle yargılanmış çiftler,
+    #   (b) H1 `sasi_motor_kodu_mu` — harf+rakam ŞASİ/MOTOR kodu (kural, liste değil),
+    #   (c) H3 `ayri_arac_adi_mi` — `<taban> <değiştirici>` AYRI araç adı (kural).
+    # (b) ve (c) KURAL olduğu için katalog büyüdükçe bayatlamaz; envanter yalnız kuralın
+    # kapsamadığı tekil yargıları taşır ve böylece sessizce ŞİŞMEZ.
+    if g.get("baslik_dogan") and not baslik_yargisi_var_mi(
+            g.get("marka"), g.get("canon"), g.get("display") or g.get("canon")):
         return False
     return True
 

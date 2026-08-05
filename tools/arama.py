@@ -979,6 +979,17 @@ MODEL_OLMAYAN_CIFT = {
     ("Ford", "Truck"): "arac sinifi sozcugu (Ford Truck 1973-1979) — model adi degil",
     ("Opel", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
     ("Peugeot", "Stellantis"): "sirket/grup adi — arac modeli degil",
+    # 6 Agu, mimar hukmu H2: `E-Tech` Renault'nun ELEKTRIFIKASYON/guc aktarma ROZETIDIR
+    # (Megane E-Tech, Scenic E-Tech, 5 E-Tech), bagimsiz bir arac modeli DEGIL -> CIPLAK
+    # `E-Tech` kovasi (10 urun) SAYFA ACMAZ.
+    # 🔴 BILESIK YAZIMLAR KAPANMAZ: `model_olmayan_cift_mi` son-kelime kolu artik YALNIZ
+    # KUSAK/DONANIM DEGISTIRICILERINE isler (`ST`, `Mk1`); `E-Tech` degistirici GRAMERINDE
+    # DEGIL, bu yuzden `/marka/renault/5-e-tech/` (4 urun) ve `/marka/renault/megane-e-tech/`
+    # sayfalari ACIK KALIR. Rozeti tasiyan urunler ayrica taban modele KATLANIR: "Renault 5
+    # E-Tech ..." baslikli urunler `/marka/renault/5/` sayfasinda DURUR (turnusol: deny
+    # oncesi 14, sonrasi 14 — DUSMEZ).
+    ("Renault", "E-Tech"): "elektrifikasyon/guc aktarma rozeti (5 E-Tech, Megane E-Tech) — "
+                           "bagimsiz arac modeli degil; urunler taban model sayfasinda kalir",
     ("Skoda", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
     ("Toyota", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
     ("Volkswagen", "Cabriolet"): "govde tipi sozcugu — model degil",
@@ -991,8 +1002,8 @@ MODEL_OLMAYAN_CIFT = {
     ("Yamaha", "Stage"): "'Stage 2' tuning asamasi ifadesi — model degil",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 26
-MODEL_OLMAYAN_CIFT_IMZA = "ebbb9031f2640b6f"
+MODEL_OLMAYAN_CIFT_SAYISI = 27
+MODEL_OLMAYAN_CIFT_IMZA = "959ef71fcce99bb0"
 
 
 def model_olmayan_cift_imzasi():
