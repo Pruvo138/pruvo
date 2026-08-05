@@ -427,6 +427,21 @@ print("  ham model jetonu (uyum[].model ∪ uyum-bos marka[]): %d jeton / %d uru
 print("  KANONIK kumede OLMAYAN                             : %d jeton / %d urun-kalemi"
       % (len(disari), sum(disari.values())))
 print("  en agir 10: %s" % sorted(disari.items(), key=lambda t: -t[1])[:10])
+# 🔴 IKI TANIM, IKI SAYI — UZLASTIRMA BURADA BASILIR (kardes kapi ayni ekseni DAR tanimla
+# olcuyor ve sayilari farkli cikiyordu; "hangi sayi dogru" tartismasi tanim farkindan
+# doguyor, olcum hatasindan DEGIL). GENIS tanim ucun model kolunun IKI dalini da sayar
+# (uyum[].model VE uyum='[]' halinde marka[] dusme dali); DAR tanim yalniz birinci dali.
+_dar = {}
+for uid in _uyum_model:
+    for t in _uyum_model[uid]:
+        _dar[t] = _dar.get(t, 0) + 1
+_dar_disari = {t: n for t, n in _dar.items() if t not in _kanon_bellek}
+print("  UZLASTIRMA — DAR tanim (yalniz uyum[].model, dusme dali HARIC): "
+      "%d/%d jeton · %d/%d urun-kalemi disarda"
+      % (len(_dar_disari), len(_dar), sum(_dar_disari.values()), sum(_dar.values())))
+print("  UZLASTIRMA — GENIS tanim (dusme dali DAHIL, yukaridaki satirlar): "
+      "%d/%d jeton · %d/%d urun-kalemi disarda"
+      % (len(disari), len(ham_slot), sum(disari.values()), sum(ham_slot.values())))
 dogrula("H1 🔴 kanon ham'in UST KUMESI DEGIL — %d jeton / %d urun-kalemi kolonda HIC "
         "GECMIYOR, yani WHERE'i bu kolona CEVIRMEK toplu OLU LINK uretirdi (BIRLESIM SART)"
         % (len(disari), sum(disari.values())), len(disari) > 0)

@@ -357,6 +357,96 @@ def urunleri_oku():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# KATALOG KAYNAGI — VARSAYILAN CALISMA AGACI, ISTENIRSE COMMIT'LI HEAD
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 OLCULEN TUZAK (5 Agu 2026, iki kez ayni gun): d1-sync katalogu DAIMA calisma
+# agacindaki urunler.json'dan okur (`URUNLER` modul sabiti). Yani agacta baska bir
+# oturumun COMMIT'LENMEMIS urunleri varsa senkron onlari CANLIYA yazar — ve bunu hicbir
+# sey kirmizi yakmaz: bayatlik kapisi COMMIT GRAFIGINI olcer (HEAD uzak ucu biliyor mu),
+# calisma agacinin o commit'ten SAPIP SAPMADIGINI olcmez. O gun model_kanon geriye
+# doldurmasi tam bu yuzden ERTELENDI (agacta 105 commit'lenmemis urun vardi).
+#
+# COZUM: kaynak ACIKCA secilebilir olsun.
+#   (bayraksiz)      CALISMA AGACI — bugunku davranis, BAYT AYNI. Kancalar buna bagli;
+#                    varsayilani degistirmek 5 evin push yolunu tek hamlede degistirirdi.
+#   --kaynak <yol>   verilen dosya (baska bir checkout, gecici cikarim, fikstur...).
+#   --head           COMMIT'LI HEAD (`git show HEAD:urunler.json`) — agactaki
+#                    commit'lenmemis urunler senkrona GIRMEZ.
+#
+# FAIL-CLOSED: secilen kaynak okunamaz / JSON dizi degilse ARAC DURUR. Sessizce calisma
+# agacina DUSMEK, bayragin var olma sebebini yok ederdi (operator "HEAD'den kostum"
+# sanirken agactan kosardi — tam da kapatmaya calistigimiz sessiz hata).
+def head_katalogu():
+    """`git show HEAD:urunler.json` icerigini GECICI bir dosyaya yazar.
+    Doner: (yol, HEAD sha). FAIL-CLOSED: git okunamazsa sys.exit."""
+    rc, sha = _git(["rev-parse", "HEAD"])
+    if rc != 0 or not sha:
+        sys.exit("!! --head COZULEMEDI: `git rev-parse HEAD` basarisiz (rc=%s).\n"
+                 "   Sessizce calisma agacina DUSULMEZ — bayrak tam olarak bunu "
+                 "onlemek icin var." % rc)
+    try:
+        p = subprocess.run(["git", "show", "HEAD:urunler.json"], cwd=KOK,
+                           capture_output=True, text=True, timeout=120)
+    except Exception as e:                                        # noqa: BLE001
+        sys.exit("!! --head COZULEMEDI: git show calistirilamadi (%s)." % (e,))
+    if p.returncode != 0:
+        sys.exit("!! --head COZULEMEDI: `git show HEAD:urunler.json` rc=%d\n   %s"
+                 % (p.returncode, (p.stderr or "").strip()[:300]))
+    fd, yol = tempfile.mkstemp(prefix="d1-sync-head-", suffix=".json")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(p.stdout)
+    return yol, sha
+
+
+def kaynak_coz(kaynak=None, head=False):
+    """Katalog kaynagini SEC. Doner: (yol, beyan, gecici_mi).
+    yol None = bayrak VERILMEDI -> cagiran modul sabitine DOKUNMAZ (bayt-ayni davranis)."""
+    if kaynak and head:
+        sys.exit("!! --kaynak ve --head BIRLIKTE verilemez (hangi kaynak? belirsizlik "
+                 "fail-closed reddedilir).")
+    if head:
+        yol, sha = head_katalogu()
+        return yol, "COMMIT'LI HEAD (%s)" % sha[:12], True
+    if kaynak:
+        yol = os.path.abspath(kaynak)
+        if not os.path.exists(yol):
+            sys.exit("!! --kaynak dosyasi YOK: %s" % yol)
+        return yol, "--kaynak %s" % yol, False
+    return None, "calisma agaci (%s)" % URUNLER, False
+
+
+def kaynak_dogrula(yol):
+    """Secilen kaynagin SEKLINI fail-closed dogrula. Doner: benzersiz id sayisi."""
+    try:
+        with open(yol, encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception as e:                                        # noqa: BLE001
+        sys.exit("!! KAYNAK OKUNAMADI (%s): %s\n   Calisma agacina SESSIZCE dusulmez."
+                 % (yol, e))
+    if not isinstance(d, list) or not d:
+        sys.exit("!! KAYNAK gecerli bir urun DIZISI degil: %s" % yol)
+    return len({u.get("id") for u in d if isinstance(u, dict) and u.get("id")})
+
+
+def kaynak_sapmasi(secilen_yol):
+    """Secilen kaynak ile CALISMA AGACI arasindaki id/hash farki (yalniz OLCUM, yazmaz).
+    Doner: (yalniz_kaynakta, yalniz_agacta, hash_farki). Operatorun kaniti budur:
+    "commit'lenmemis urun canliya yazilmadi" iddiasi BU sayilarla olculur."""
+    def _oku(yol):
+        with open(yol, encoding="utf-8") as f:
+            return json.load(f)
+    try:
+        a = {u["id"]: arama.urun_hash(u) for u in _oku(secilen_yol)
+             if isinstance(u, dict) and u.get("id")}
+        b = {u["id"]: arama.urun_hash(u) for u in _oku(URUNLER)
+             if isinstance(u, dict) and u.get("id")}
+    except Exception as e:                                        # noqa: BLE001
+        sys.exit("!! KAYNAK SAPMASI OLCULEMEDI (%s) — 'olcemedim' YESIL DEGILDIR." % (e,))
+    return (sorted(set(a) - set(b)), sorted(set(b) - set(a)),
+            sorted(i for i in set(a) & set(b) if a[i] != b[i]))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # BAYATLIK KAPISI — "eski agac yeni partiyi D1'den SILMESIN" (31 Tem, adli olcum)
 # ══════════════════════════════════════════════════════════════════════════════
 # OLCULEN OLAY: CI'daki "Katalogu D1'e senkronla" adimi KENDI (eski) checkout'undan
@@ -2885,7 +2975,33 @@ def main():
     ap.add_argument("--bayatlik", action="store_true",
                     help="YALNIZ olc: bu agac uzak main'in UCUNDA mi? (D1'e DOKUNMAZ; "
                          "UC -> 0, BAYAT/OLCULEMEDI -> 1). CI adimi bunu on-kosul yapar.")
+    # KATALOG KAYNAGI (bkz. kaynak_coz ustundeki blok). BAYRAKSIZ DAVRANIS DEGISMEZ.
+    ap.add_argument("--kaynak", default=None,
+                    help="katalogu BU dosyadan oku (varsayilan: calisma agaci)")
+    ap.add_argument("--head", action="store_true",
+                    help="katalogu COMMIT'LI HEAD'den oku (git show HEAD:urunler.json) — "
+                         "agactaki commit'lenmemis urunler senkrona GIRMEZ")
     a = ap.parse_args()
+
+    # 🔴 SIRA: kaynak, katalogu okuyan HER daldan (senkron / --durum / --kuru) ONCE
+    # baglanir. Bayrak verilmediyse modul sabitine DOKUNULMAZ -> bugunku davranis BAYT
+    # AYNI (kancalar buna bagli). Verildiyse GURULTULU basilir: sessiz kaynak degisimi,
+    # kapatmaya calistigimiz hatanin ta kendisi olurdu.
+    _kaynak_yolu, _kaynak_beyan, _kaynak_gecici = kaynak_coz(a.kaynak, a.head)
+    if _kaynak_yolu:
+        _adet = kaynak_dogrula(_kaynak_yolu)
+        _yalniz_k, _yalniz_a, _hash_farki = kaynak_sapmasi(_kaynak_yolu)
+        globals()["URUNLER"] = _kaynak_yolu
+        print("KATALOG KAYNAGI: %s — %d benzersiz id" % (_kaynak_beyan, _adet))
+        print("  calisma agacindan SAPMA: yalniz kaynakta %d · yalniz agacta %d · "
+              "hash farki %d" % (len(_yalniz_k), len(_yalniz_a), len(_hash_farki)))
+        for _etiket, _liste in (("agacta VAR kaynakta YOK (senkrona GIRMEYECEK)", _yalniz_a),
+                                ("kaynakta VAR agacta YOK", _yalniz_k),
+                                ("iki tarafta da VAR ama ICERIGI FARKLI", _hash_farki)):
+            if _liste:
+                print("   - %s: %d — %s%s"
+                      % (_etiket, len(_liste), ", ".join(_liste[:5]),
+                         " ..." if len(_liste) > 5 else ""))
 
     if a.kendini:
         sys.exit(kendini_test())
