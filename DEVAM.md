@@ -1,5 +1,26 @@
 # DEVAM (KraL) — 5 Agu 2026
 
+## CI NOBETI (17:37 turu) — yayin serididi YESIL, spec-ifsa alarmi DUR kosulunda
+- Kutu tarandi (inbox 7554, toplu cekim, ornekleme YOK): son ~70 dk'da **6** "Run failed" maili.
+- **Bagimsiz teyit (`gh`), HEAD `e3f6ab7`:** `Build & deploy` 12 job — `build`+`deploy`+`yayin`
+  **success** (1 job `skipped`, bilinen kosullu kol); `D1 sapma alarmi` `sapma`=**success** (2 kosum).
+  Onceki `c358cb3` kirmizilarini `e3f6ab7` kapatmis.
+- **Tek kalan kirmizi: `Spec/tasarim ifsasi alarmi`** — 4 kosumdur ayni kok neden
+  (`fcf0db5` → `91fbd81` → `c358cb3` → `e3f6ab7`), kapi rc=1, yerel tekrar **164 muafiyet-disi
+  isabet / 37 dosya**. Kaynaktan olculdu: bu is akisi **BAGIMSIZ ALARM KOLU**, `deploy`/`yayin`
+  zincirinin on kosulu DEGIL — yayin durmuyor. Isabetler gercek anlatim/beyan icerigi,
+  nobetci fikstur hatasi degil; onarim (164 → 0) merge kuyrugunda.
+- **DUR kosulu uygulandi:** ayni kok neden 3+ kosumdur acik → push YOK, spec-ifsa mailleri
+  SILINMEDI (4'u kutuda kaldi). Cop'e tasinan: **2** (cozuldugu olculen `Build & deploy` +
+  `D1 sapma`). Alarm bloklamadigi ve onarim kuyrukta oldugu icin bu eksende Okan'a cikilmadi.
+- **🔴 TIKANMA (bu turda olculdu): GitHub token GECERSIZ.** `gh auth status` → "The token in
+  default is invalid" (hesap `Pruvo138`); `gh api user` → **401**. Kosum listesi/`--json jobs`
+  yalnizca depo PUBLIC oldugu icin calisti (kimliksiz okuma); `gh run view --log-failed` bu
+  yuzden **403** verdi — teshis job metadatasi + yerel tekrar uzerinden yapildi. `git push origin
+  main` → `could not read Username` ile DUSTU. Bu turun DEVAM.md commit'i (`fc47a199`) **LOKALDE
+  BEKLIYOR, push EDILMEDI**. Okan `gh auth login -h github.com` yapana dek: KraL push edemez,
+  CI loglari okunamaz (**olculemedi != yesil**).
+
 ## CI NOBETI (16:37 turu) — kapandi; ayrinti ARSIVDE
 - Onceki yayin kirmizisi kendi kendine kapandi: `tools/marka-arama-d1-test.py` HEAD'de 54/54, rc=0.
 - Turun geri kalan olcumleri ve acik kalemi sinif geregi `DEVAM-ARSIV.md`'ye tasindi (silinmedi).
