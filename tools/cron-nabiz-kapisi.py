@@ -309,6 +309,65 @@ TESLIM_TABAN_ORANI = OLCULEN_TABAN_TESLIM / (OLCULEN_TABAN_NOMINAL * TESLIM_GUVE
 # `--kendini-test`te KOSULUR (teslim_tabani(1) < TESLIM_SAYFA).
 TESLIM_SAYFA = 100
 
+# ─── CANLI KALIBRASYON (5 Agu 2026, kesim 11:42:54Z — OLCULEN KUSUR) ─────────
+# `TESLIM_ORANI` DONMUS bir sabitti: 31 Tem'de 4,016 SAATLIK tek bir pencerede olculdu
+# (2/16 = %12,5) ve N=9 saat ondan turedi. 5 Agu olcumu o rejimin ARTIK OLMADIGINI
+# gosterdi:
+#   · gozlem penceresi ...... 6636,6 dk = 110,6 sa (ilk 31 Tem 17:12:33Z, son 5 Agu 07:49:11Z)
+#   · nominal tetik ......... 442   (`9,24,39,54` = 15 dk)
+#   · FIILEN teslim ......... 20    -> %4,52  (donmus sabitin 2,77 KATI KOTU)
+#   · bosluklar (dk) ........ en kucuk 206,2 · medyan 236,3 · EN BUYUK 1053,2 (17,55 sa)
+# Sonuc: N=9 sa esigi, GERCEKLESEN cadansin ALTINDA kaldi ve BOS KIRMIZI uretti.
+# OLCULDU (son 30 deploy kosumu): `cron-nabzi` 3 kez KIRMIZI yandi (06:59:57Z · 07:24:00Z
+# · 08:05:50Z). Ilk ikisinde d1-uzlastirici cron boslugu 598,1 dk (9,97 sa) idi — yani
+# esigi 1,08x asan, bu rejimde NORMAL bir bosluk; kadans (push) kolu ayni dakikalarda
+# uzlastirmayi YAPMISTI (damga 06:46:26Z). Ucuncusunde kirmizi paket alarminin A4/A3
+# ekseninden geldi (9,3 sa). Bos kirmizi, kapinin ilk toplu iste devre disi
+# birakilmasinin YOLUDUR ([[kapi-birikimi-yayin-gecikmesi]]).
+#
+# ONARIM: esik DONMUS sabitten degil, o is akisinin KENDI CANLI teslim oranindan
+# turetilir (A5 ile AYNI pencere ve AYNI capa -> TEK KAYNAK, [[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 KENDINI SUSTURMA KAPISI — BU UC SART OLMADAN ONARIM FAIL-OPEN OLURDU:
+#   (1) Canli oran YALNIZ A5 TABANINI GECEN bir rejimden turetilir. Teslim cokerse
+#       (taban alti) oran KULLANILMAZ, DONMUS 9 saate geri DUSULUR: cokme "sabir"
+#       SATIN ALAMAZ. Bu sart olmasa kotulesen teslim esigi buyutur, esik buyudukce
+#       alarm susar — klasik geri besleme deligi.
+#   (2) MUTLAK SESSIZLIK TAVANI: turetilen N ne olursa olsun bu degeri ASAMAZ.
+#       Kalibrasyon = OLCULEN EN BUYUK bosluk 1053,2 dk = 17,55 sa -> yukari yuvarla 18.
+#       DAMGA_SAKLAMA_SAAT (24) ALTINDA tutulur, yoksa damga suresi dolar ve A0 hicbir
+#       zaman yesil olamazdi.
+#   (3) Turetilemeyen her hal (gecmis yetersiz · sayfa kirpik · aralik cozulemedi)
+#       DONMUS esige duser — yani DAHA SIKI olana, daha gevsek olana DEGIL.
+# Bu, esigin d1-uzlastirici icin 9 -> 18 saate GEVSEDIGI anlamina gelir; gerekce
+# ustteki OLCUMDUR ve gevseme yalniz teslim A5 tabaninin USTUNDEYKEN gecerlidir.
+OLCULEN_CANLI_PENCERE_SAAT = 110.6
+OLCULEN_CANLI_NOMINAL = 442
+OLCULEN_CANLI_TESLIM = 20                 # -> %4,52
+OLCULEN_EN_UZUN_BOSLUK_DK = 1053.2        # 17,55 sa
+MUTLAK_SESSIZLIK_SAAT = 18                # ceil(17,55); < DAMGA_SAKLAMA_SAAT (24)
+
+# 🔴 A4 TAVANI AYRIDIR — VE KUCUKTUR (curutucu iadesi, 5 Agu 2026)
+# ─────────────────────────────────────────────────────────────────────────────
+# ILK ONARIM TASLAGI TEK TAVAN (18 sa) KOYDU ve `--kendini-test` bunu KIRMIZI yakti:
+# "A4 (b) ONCE-KIRMIZI: 1 Agu'da OLCULEN 14,5 saatlik bayatlik penceresi" fiksturu
+# YESILE dondu. Yani onarim, tam da o eksenin VAR OLMA SEBEBINI fail-open yapiyordu
+# ([[duzeltme-fail-open-cevirebilir]]).
+#
+# AYRIM: iki tavan IKI FARKLI soruyu cevaplar ve KARISTIRILAMAZ.
+#   · MUTLAK_SESSIZLIK_SAAT (A0/A3) = "sessizlik NE ZAMAN ANORMALDIR" -> teslim
+#     ISTATISTIGINDEN turer (olculen en uzun bosluk 1053,2 dk). Katalog uzlastirmasinin
+#     GERCEK maruziyeti zaten kadans (push) koluyla ~20 dk'dir; cron sessizligi bir
+#     SAGLIK sinyalidir, zarar sinyali degil.
+#   · PAKET_BAYATLIK_TAVAN_SAAT (A4) = "sessizlik NE ZAMAN PAHALIYA PATLAR" -> OLCULEN
+#     ZARAR OLAYINDAN turer: 30 Tem 20:30 – 1 Agu 01:58 arasi canli paket 14,5 SAAT bayat
+#     kaldi ve 676 fiziksel urunde %84'e varan FAZLA TAHSILAT oldu. Bu eksenin esigi o
+#     pencerenin ALTINDA KALMAK ZORUNDADIR, yoksa AYNI olay yeniden sessizce gecer.
+# KURAL: hangi tavan daha KUCUKSE o baglar. Teslim istatistigi bir ZARAR esigini
+# GEVSETEMEZ.
+OLCULEN_PAKET_ZARAR_SAAT = 14.5           # 1 Agu OLCULEN fazla tahsilat penceresi
+PAKET_BAYATLIK_TAVAN_SAAT = 9             # < OLCULEN_PAKET_ZARAR_SAAT (iddia kosuluyor)
+
 
 class OlcumHatasi(Exception):
     """Veri cekilemedi/anlasilamadi -> YESIL degil OLCULEMEDI (rc 2)."""
@@ -442,16 +501,24 @@ def aralik_dakika(dakikalar):
     return min(farklar)
 
 
-def efektif_aralik_dk(nominal_aralik_dk):
+def efektif_aralik_dk(nominal_aralik_dk, oran=None):
     """NOMINAL cron araligini OLCULEN teslim oraniyla GERCEK cadansa cevirir.
 
     Eski esik NOMINAL araliktan turetiliyordu (15 dk -> N=3 sa) ve GERCEK cadansin
     (olculen 120 dk efektif, tek gozlenen aralik 214,75 dk) ALTINDA kaliyordu -> bos
-    kirmizi. Cron'un VAAT ETTIGI degil, GitHub'in TESLIM ETTIGI cadans esas alinir."""
-    return nominal_aralik_dk / TESLIM_ORANI
+    kirmizi. Cron'un VAAT ETTIGI degil, GitHub'in TESLIM ETTIGI cadans esas alinir.
+
+    `oran` verilmezse DONMUS `TESLIM_ORANI` kullanilir. FAIL-CLOSED: sifir/negatif oran
+    "sonsuz sabir" demek olurdu (bolme sonsuza gider) -> OLCULEMEDI."""
+    if oran is None:
+        oran = TESLIM_ORANI
+    if oran <= 0:
+        raise OlcumHatasi("teslim orani %r -> efektif cadans SONSUZ olurdu; sifir teslim "
+                          "bir esik TURETEMEZ (fail-closed)" % (oran,))
+    return nominal_aralik_dk / oran
 
 
-def esik_saat(nominal_aralik_dk):
+def esik_saat(nominal_aralik_dk, oran=None):
     """N (saat) — OLCULEN cadanstan turetilir, tahminle DEGIL.
 
     Teslim surecini hafizasiz (Poisson) say: lambda = 1/efektif_aralik (1/saat).
@@ -466,12 +533,84 @@ def esik_saat(nominal_aralik_dk):
     Sonuc [ESIK_TABAN_SAAT, ESIK_TAVAN_SAAT] araligina kirpilir; TAVAN artifact
     saklamasinin (olculen 24 sa) ALTINDA tutulur, aksi halde damga suresi dolar ve
     esik HICBIR ZAMAN yesil olamazdi."""
-    efektif_saat = efektif_aralik_dk(nominal_aralik_dk) / 60.0
+    efektif_saat = efektif_aralik_dk(nominal_aralik_dk, oran) / 60.0
     lam = 1.0 / efektif_saat
-    oran = (HAFTA_SAAT * lam) / BOS_ALARM_BUTCESI_HAFTA
-    butce_cozumu = (math.log(oran) / lam) if oran > 1.0 else 0.0
+    epizot = (HAFTA_SAAT * lam) / BOS_ALARM_BUTCESI_HAFTA
+    butce_cozumu = (math.log(epizot) / lam) if epizot > 1.0 else 0.0
     ham = max(butce_cozumu, 2.0 * efektif_saat)
     return int(min(ESIK_TAVAN_SAAT, max(ESIK_TABAN_SAAT, math.ceil(ham - 1e-9))))
+
+
+def canli_teslim_orani(g, simdi):
+    """(oran | None, sebep) — o is akisinin W penceresinde FIILEN olculen teslim orani.
+
+    🔴 A5 ILE TEK KAYNAK: ayni pencere (TESLIM_PENCERESI_SAAT), ayni capa
+    (`gecmis_capasi`), ayni sayim (pencereye dusen `event=schedule` kosumlari). Ikinci
+    bir sayim yazilsaydi iki eksen ayni soruya iki cevap verirdi
+    ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    TURETILEMEYEN HER HAL `None` DONER ve cagiran DONMUS (daha SIKI) esige duser —
+    gevsek olana DEGIL. Dort sart:
+      (1) cron araligi cozulebilmeli (yoksa nominal tetik sayilamaz; A1 zaten kirmizi),
+      (2) gozlem gecmisi >= W (kisa gecmis oran DEGIL, gurultu olcer),
+      (3) API sayfasi KIRPILMAMIS olmali (kirpik sayfa teslimi EKSIK sayar -> orani
+          DUSUK gosterir -> esigi HAKSIZ YERE buyutur; tam ters yonde tehlikeli),
+      (4) 🔴 TESLIM A5 TABANINI GECMELI. Cokmus bir rejim kendi esigini buyutemez;
+          cokme AYRI bir alarmdir (A5) ve sabir SATIN ALMAZ. Bu sart olmadan onarim
+          fail-open olurdu: teslim kotulestikce esik buyur, esik buyudukce alarm susar
+          ([[duzeltme-fail-open-cevirebilir]])."""
+    aralik = g.get("aralik")
+    if not aralik:
+        return None, "cron araligi cozulemedi"
+    W = TESLIM_PENCERESI_SAAT
+    _kayit_an, gecmis_saat, _uyari = gecmis_capasi(g, simdi, W)
+    if gecmis_saat is None or gecmis_saat < W:
+        return None, ("gozlem gecmisi %s < pencere %d sa"
+                      % (("%.1f sa" % gecmis_saat) if gecmis_saat is not None else "yok", W))
+    if g.get("pencere_kirpildi"):
+        return None, "API sayfa siniri doldu (teslim EKSIK sayilir)"
+    pencere_basi = simdi - timedelta(hours=W)
+    teslim = len([x for x in (g.get("tum_kosumlar") or []) if x > pencere_basi])
+    a5_tabani = teslim_tabani(aralik, W)
+    if teslim < a5_tabani:
+        return None, ("teslim %d < A5 tabani %d: COKMUS rejim kendi esigini BUYUTEMEZ"
+                      % (teslim, a5_tabani))
+    return teslim / teslim_nominal(aralik, W), ("teslim %d / nominal %.0f (W=%d sa)"
+                                                % (teslim, teslim_nominal(aralik, W), W))
+
+
+def canli_esik(g, simdi, tavan=MUTLAK_SESSIZLIK_SAAT):
+    """(N_saat, kaynak_metni, efektif_dk) — YURURLUKTEKI esik. A0/A3/A4 AYNI yoldan.
+
+    `tavan` EKSENE GORE degisir: A0/A3 icin MUTLAK_SESSIZLIK_SAAT (teslim istatistigi),
+    A4 icin PAKET_BAYATLIK_TAVAN_SAAT (OLCULEN ZARAR penceresi). Gerekce: sabit
+    tanimlarindaki "A4 TAVANI AYRIDIR" blogu.
+
+    Sira: canli oran (varsa) -> DONMUS oran (yoksa) -> MUTLAK SESSIZLIK TAVANI (her hal).
+    Tavan turetimden BAGIMSIZ ve KOSULSUZDUR: olcum ne derse desin, bu kadar saatlik
+    TAM SESSIZLIK alarmdir.
+
+    `efektif_dk` N ile AYNI orandan turer — rapor satiri ile hukum AYRISAMAZ
+    ([[ikiz-tanim-sessiz-ayrisma]]); ikisi ayri oran kullansaydi satir "efektif 120 dk"
+    derken esik bambaska bir cadanstan gelebilirdi."""
+    aralik = g.get("aralik")
+    donmus = esik_saat(aralik) if aralik else ESIK_TABAN_SAAT
+    try:
+        oran, sebep = canli_teslim_orani(g, simdi)
+    except OlcumHatasi as e:
+        oran, sebep = None, str(e)
+    if oran is None:
+        n = donmus
+        kaynak = ("DONMUS oran %.3f (canli oran turetilemedi: %s)" % (TESLIM_ORANI, sebep))
+    else:
+        n = esik_saat(aralik, oran)
+        kaynak = ("CANLI oran %.4f · %s · donmus oran %.3f -> N=%d sa"
+                  % (oran, sebep, TESLIM_ORANI, n))
+    efektif_dk = efektif_aralik_dk(aralik, oran) if aralik else None
+    if n > tavan:
+        kaynak += " · TAVAN %d sa BAGLADI" % tavan
+        n = tavan
+    return n, kaynak, efektif_dk
 
 
 def teslim_nominal(aralik_dk, pencere_saat=TESLIM_PENCERESI_SAAT):
@@ -1045,12 +1184,29 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
                    "boslukta calisiyor demektir (kesif bozulmus ya da cron silinmis) — "
                    "sessiz YESIL verilmez."]
 
+    # 🔴 YURURLUKTEKI ESIK — TEK YERDE, is akisi BASINA, A0/A3/A4 icin AYNI kaynak.
+    # `damga_esigi`/`paket_esigi` cagirandan NOMINAL cadansla gelir; gozlem varsa
+    # CANLI olculen teslim orani onu yeniler (bkz. canli_esik). Iki eksen ayri
+    # hesaplasaydi A0 ile A3 sessizce ayrisirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    canli_esikler = {}
+    for g in gozlemler:
+        if g.get("kayitli"):
+            canli_esikler[g["dosya"]] = canli_esik(g, simdi)
+    # A4'un KENDI tavani (OLCULEN ZARAR penceresi) — A3/A0 tavaniyla KARISTIRILMAZ.
+    paket_canli = None
+    for g in gozlemler:
+        if g.get("kayitli") and g["dosya"] == PAKET_ALARM_DOSYA:
+            paket_canli = canli_esik(g, simdi, tavan=PAKET_BAYATLIK_TAVAN_SAAT)
+
     # --- A0 DAMGA + A4 PAKET (BIRINCIL EKSENLER, AYNI KARAR YOLU) ------------
     for eksen, gozlem, esik, sablon, capa in (
             ("A0 DAMGA", damga, damga_esigi, A0_SABLON, UZLASTIRICI_DOSYA),
             ("A4 PAKET", paket, paket_esigi, A4_SABLON, PAKET_ALARM_DOSYA)):
         if gozlem is None:
             continue
+        turetilen = (paket_canli if capa == PAKET_ALARM_DOSYA
+                     else canli_esikler.get(capa))
+        esik = (turetilen[0] if turetilen else esik) or esik
         try:
             satir, yandi = _damga_satiri(eksen, gozlem, esik or ESIK_TABAN_SAAT, simdi,
                                          sablon, _damga_kaynagi(gozlemler, capa))
@@ -1067,8 +1223,10 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
             satirlar.append("🔴 " + hata)
             alarm = True
         else:
-            satirlar.append("✅ A1 BICIM %s -> cron %r · aralik %d dk · esik N=%d saat"
-                            % (dosya, cron, aralik, esik_saat(aralik)))
+            # A1 CRON BICIMINI olcer, esigi DEGIL: burada basilan N DONMUS TABANDIR.
+            # Yururlukteki N (canli teslim oranindan) A3/A0/A4 satirlarindadir.
+            satirlar.append("✅ A1 BICIM %s -> cron %r · aralik %d dk · donmus taban "
+                            "N=%d saat" % (dosya, cron, aralik, esik_saat(aralik)))
 
     for g in gozlemler:
         etiket = g["dosya"]
@@ -1095,7 +1253,14 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
         satirlar.append(satir5)
         alarm = alarm or yandi5
 
-        n = g["esik"]
+        # 🔴 ESIK CANLI (5 Agu 2026): `g["esik"]` NOMINAL cadanstan turetilmis DONMUS
+        # degerdi (15 dk -> 9 sa) ve GERCEKLESEN cadansin (%4,52) altinda kalip BOS
+        # KIRMIZI uretiyordu. Artik ayni gozlemin CANLI teslim oranindan turetilir;
+        # turetilemezse DONMUS degere (daha SIKI olana) duser. Gerekce: canli_esik.
+        n, esik_kaynak, efektif_dk = canli_esikler.get(
+            g["dosya"], (g["esik"], "donmus (gozlem yok)", None))
+        if efektif_dk is None and g["aralik"]:
+            efektif_dk = efektif_aralik_dk(g["aralik"])
         # 🔴 CAPA A5 ILE HIZALANDI (4 Agu 2026): `max(kayit_an, yenileme_an)` DEGIL,
         # yalniz `kayit_an`. Gerekce + olcum: `gecmis_capasi` docstring'i. Dosyaya
         # dokunmak alarmi 9 saat SUSTURUYORDU; artik SUSTURMAZ, satirda ⚠ olarak GORUNUR.
@@ -1128,21 +1293,24 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
             alarm = True
             continue
         yas = (simdi - g["son_kosum"]).total_seconds() / 3600.0
+        # 🔴 "N ARDISIK PENCEREDE HIC KOSMADI" — mimarin istedigi BIRIM. Sessizligi
+        # SAATTE degil, cron'un KENDI vaat ettigi pencere sayisinda da basar: "9,97 saat"
+        # soyut, "40 ardisik 15 dk penceresi teslim edilmedi" degil.
         beklenen = int(round(yas * 60 / g["aralik"])) if g["aralik"] else 0
         if yas > n:
             satirlar.append("🔴 A3 NABIZ (ikincil) %s -> son event=schedule kosumu %.1f "
                             "saat once (esik N=%d sa · nominal aralik %d dk · efektif "
-                            "%.0f dk · bu surede nominal ~%d tetikleme, teslim 0). "
-                            "Cron SESSIZ.%s"
-                            % (etiket, yas, n, g["aralik"],
-                               efektif_aralik_dk(g["aralik"]), beklenen, ek))
+                            "%.0f dk · bu surede nominal ~%d tetikleme, teslim 0 -> "
+                            "ARDISIK BOS PENCERE ~%d). Cron SESSIZ. [esik: %s]%s"
+                            % (etiket, yas, n, g["aralik"], efektif_dk, beklenen,
+                               beklenen, esik_kaynak, ek))
             alarm = True
         else:
             satirlar.append("✅ A3 NABIZ (ikincil) %s -> son event=schedule kosumu %.1f "
-                            "saat once (esik N=%d sa · efektif cadans %.0f dk · toplam "
-                            "%d zamanlanmis kosum)%s"
-                            % (etiket, yas, n, efektif_aralik_dk(g["aralik"]),
-                               g["kosum_sayisi"], ek))
+                            "saat once (esik N=%d sa · efektif cadans %.0f dk · ARDISIK "
+                            "BOS PENCERE ~%d · toplam %d zamanlanmis kosum) [esik: %s]%s"
+                            % (etiket, yas, n, efektif_dk, beklenen,
+                               g["kosum_sayisi"], esik_kaynak, ek))
     if olculemedi:
         return 2, satirlar
     return (1 if alarm else 0), satirlar
@@ -3651,6 +3819,104 @@ def kendini_test():
     iddia("DAMGA KUTUGU: kutukte OLMAYAN ad REDDEDILIR (hicbir eksenin okumadigi bir "
           "artifact sessiz bir hicligi damgalardi)", kutuk_kapali)
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # Y — CANLI KALIBRASYON (5 Agu 2026). IKI YONLU: hem BOS KIRMIZInin bittigi
+    #     hem de SUSTURMANIN imkansiz oldugu kosulur.
+    # ═══════════════════════════════════════════════════════════════════════
+    # SABIT INVARYANTLARI (tavanlar "kirmizi gormeyeyim" diye buyutulemez)
+    iddia("Y-INV tavan artifact saklamasinin ALTINDA (%d < %d): ustunde olsaydi damga "
+          "suresi dolar ve A0 HICBIR ZAMAN yesil olamazdi"
+          % (MUTLAK_SESSIZLIK_SAAT, DAMGA_SAKLAMA_SAAT),
+          MUTLAK_SESSIZLIK_SAAT < DAMGA_SAKLAMA_SAAT)
+    iddia("Y-INV tavan OLCULEN en uzun boslugun (%.0f dk = %.2f sa) USTUNDE -> gozlenen "
+          "en kotu hal tek basina bos kirmizi URETMEZ"
+          % (OLCULEN_EN_UZUN_BOSLUK_DK, OLCULEN_EN_UZUN_BOSLUK_DK / 60.0),
+          MUTLAK_SESSIZLIK_SAAT >= OLCULEN_EN_UZUN_BOSLUK_DK / 60.0)
+    iddia("Y-INV 🔴 A4 TAVANI OLCULEN ZARAR PENCERESININ ALTINDA (%d < %.1f sa): 1 Agu'nun "
+          "14,5 saatlik fazla tahsilat olayi bir daha SESSIZ GECEMEZ"
+          % (PAKET_BAYATLIK_TAVAN_SAAT, OLCULEN_PAKET_ZARAR_SAAT),
+          PAKET_BAYATLIK_TAVAN_SAAT < OLCULEN_PAKET_ZARAR_SAAT)
+    # FAIL-CLOSED: sifir teslim "sonsuz sabir" SATIN ALAMAZ.
+    # 🔴 UC HAL AYRI AYRI: "OlcumHatasi" (dogru) · "DONDU" (fail-open) · "COKTU" (cokme).
+    # Cokmeyi de KIRMIZI ama ADIYLA raporlamak sart: yakalanmayan bir istisna butun
+    # bataryayi dusurur ve o kirmizi bir OLCUM DEGILDIR
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+    try:
+        efektif_aralik_dk(15, 0.0)
+        sifir_hal = "DONDU (fail-open)"
+    except OlcumHatasi:
+        sifir_hal = "OlcumHatasi"
+    except Exception as e:                                   # noqa: BLE001
+        sifir_hal = "COKTU: %s" % type(e).__name__
+    iddia("Y-INV 🔴 SIFIR teslim orani -> OLCULEMEDI (sonsuz efektif cadans YOK). Bu "
+          "kapi olmasa teslim sifira giderken esik sonsuza giderdi",
+          sifir_hal == "OlcumHatasi", sifir_hal)
+
+    # --- Y1 SAGLIKLI FIKSTUR: teslim DUZENLI -> nabiz YESIL (tek yonlu nobetci tuzagi)
+    YY = dict(kayit_yas_saat=400.0, yenileme_yas_saat=400.0)
+    duzenli = [0.5 + 6.0 * i for i in range(8)]        # 8 teslim / 48 sa (taban 4)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=8, yas_saat=0.5, kosum_yaslari=duzenli,
+                              damgalar=[_damga_kaydi(0.5)], **YY), damga_ile=True)
+    iddia("Y1 SAGLIKLI FIKSTUR: teslim duzenli (8/48 sa) + damga taze -> YESIL "
+          "(nobetci saglikli hali kirmizi yakmaz)", rc == 0, "rc=%d" % rc)
+    iddia("Y1 satir esigin CANLI olcumden geldigini SAYIYLA yazar",
+          any("A3 NABIZ" in x and "esik: CANLI oran" in x for x in s), s)
+
+    # --- Y2 OLCULEN BOS KIRMIZI (5 Agu 06:59:57Z): cron boslugu 9,97 sa. DONMUS N=9
+    #     bunu KIRMIZI yakiyordu; olculen %4,52 teslim rejiminde bu bosluk NORMALDIR.
+    bos_kirmizi = [9.97, 19.0, 26.0, 31.0, 36.0, 41.0, 46.0]   # 7 teslim / 48 sa
+    rc, s = kos(D, _sahte_api(kosum_sayisi=7, yas_saat=9.97, kosum_yaslari=bos_kirmizi,
+                              damgalar=[_damga_kaydi(9.97)], **YY), damga_ile=True)
+    iddia("Y2 OLCULEN BOS KIRMIZI: 9,97 sa cron boslugu + teslim 7/48 sa (A5 tabani "
+          "USTUNDE) -> YESIL. Donmus N=9 bunu KIRMIZI yakiyordu ve kadans kolu ayni "
+          "dakikalarda uzlastirmayi YAPMISTI", rc == 0, "rc=%d" % rc)
+
+    # --- Y3 TAVAN BAGLAR: AYNI rejim, 19 saatlik sessizlik -> KIRMIZI (19 > 18).
+    #     Bu, "pencereyi sonsuz genisleten" mutantin AYIRT EDICI fiksturudur.
+    tavan_ustu = [19.0, 26.0, 31.0, 36.0, 41.0, 44.0, 46.0]    # 7 teslim / 48 sa
+    rc, s = kos(D, _sahte_api(kosum_sayisi=7, yas_saat=19.0, kosum_yaslari=tavan_ustu,
+                              damgalar=[_damga_kaydi(0.5)], **YY), damga_ile=True)
+    iddia("Y3 MUTLAK SESSIZLIK TAVANI: teslim orani ne derse desin 19,0 sa TAM SESSIZLIK "
+          "-> KIRMIZI (tavan %d sa). Tavan kaldirilirsa turetilen N=20 olur ve bu "
+          "fikstur YESILE doner" % MUTLAK_SESSIZLIK_SAAT, rc == 1, "rc=%d" % rc)
+    iddia("Y3 satir TAVANIN bagladigini ve ARDISIK BOS PENCERE sayisini yazar",
+          any(x.startswith("🔴 A3 NABIZ") and "TAVAN 18 sa BAGLADI" in x
+              and "ARDISIK BOS PENCERE" in x for x in s), s)
+
+    # --- Y4 COKMUS REJIM SABIR SATIN ALAMAZ: teslim A5 tabaninin ALTINDA (1/48 sa) ise
+    #     canli oran KULLANILMAZ, DONMUS 9 saate DUSULUR -> 12 sa sessizlik KIRMIZI.
+    rc, s = kos(D, _sahte_api(kosum_sayisi=1, yas_saat=12.0, kosum_yaslari=[12.0], **YY))
+    iddia("Y4 COKMUS REJIM: teslim 1/48 sa (taban 4 ALTI) -> canli oran REDDEDILIR, esik "
+          "DONMUS 9 sa'te duser, 12,0 sa sessizlik KIRMIZI. Bu kapi olmasa cokme kendi "
+          "esigini buyuturdu (fail-open)", rc == 1, "rc=%d" % rc)
+    iddia("Y4 satir REDDIN SEBEBINI adiyla yazar (A5 tabani)",
+          any("COKMUS rejim kendi esigini BUYUTEMEZ" in x for x in s), s)
+
+    # --- Y5 KIRPIK SAYFA: teslim EKSIK sayilir -> oran DUSUK cikar -> esik HAKSIZ YERE
+    #     buyurdu. Fail-closed: turetme YAPILMAZ.
+    g_kirpik = {"dosya": "d1-uzlastirici.yml", "aralik": 15, "pencere_kirpildi": True,
+                "kayit_an": datetime.now(timezone.utc) - timedelta(hours=400),
+                "yenileme_an": None,
+                "tum_kosumlar": [datetime.now(timezone.utc) - timedelta(hours=h)
+                                 for h in duzenli]}
+    oran_k, sebep_k = canli_teslim_orani(g_kirpik, datetime.now(timezone.utc))
+    iddia("Y5 KIRPIK SAYFA -> canli oran TURETILMEZ (eksik sayim esigi haksiz yere "
+          "buyuturdu)", oran_k is None and "sayfa siniri" in sebep_k, sebep_k)
+
+    # --- Y6 "KOSUM VAR" != "TESLIM VAR": oran PENCEREDEKI teslimden turer, is akisinin
+    #     TOPLAM kosum sayisindan DEGIL. Toplam 137 iken pencerede 7 teslim var.
+    g_toplam = {"dosya": "d1-uzlastirici.yml", "aralik": 15, "pencere_kirpildi": False,
+                "kosum_sayisi": 137,
+                "kayit_an": datetime.now(timezone.utc) - timedelta(hours=400),
+                "yenileme_an": None,
+                "tum_kosumlar": [datetime.now(timezone.utc) - timedelta(hours=h)
+                                 for h in bos_kirmizi]}
+    oran_t, _sebep_t = canli_teslim_orani(g_toplam, datetime.now(timezone.utc))
+    iddia("Y6 KOSUM != TESLIM: toplam 137 kosum kayitli ama W penceresinde 7 teslim var "
+          "-> oran 7/192 (0,0365), 137/192 (0,71) DEGIL. Toplam sayiya bakan bir turetim "
+          "esigi 18 sa'ten 3 sa'e cekip BOS KIRMIZI uretirdi",
+          oran_t is not None and abs(oran_t - 7 / 192.0) < 1e-9, "olculen %r" % oran_t)
+
     print("\n%d iddia kosturuldu, %d KIRMIZI." % (sayac[0], len(hatalar)))
     return hatalar
 
@@ -3743,12 +4009,18 @@ def main():
         print("SONUC: 🔴 OLCULEMEDI (fail-closed) — denetim yasi olculemedi, "
               "'yesil' SAYILMAZ.")
         return 2
-    print("  (A0 capasi: %s · nominal %d dk · olculen teslim orani %.3f · efektif %.0f dk "
-          "-> esik N=%d sa)"
+    # 🔴 BASLIK "DONMUS TABAN"DIR, YURURLUKTEKI ESIK DEGIL: yururlukteki N her eksenin
+    # KENDI satirinda `[esik: ...]` olarak basilir ve is akisinin CANLI teslim oranindan
+    # turer. Baslikta 9 yazip satirda 18 gormek, okuyucuya iki farkli hukum anlatirdi
+    # ([[ikiz-tanim-sessiz-ayrisma]]) — bu yuzden baslik ne oldugunu ACIKCA soyler.
+    print("  (A0 capasi: %s · nominal %d dk · DONMUS taban: teslim orani %.3f -> efektif "
+          "%.0f dk -> N=%d sa · yururlukteki N eksen satirinda, tavan %d sa)"
           % (uzl_dosya, uzl_aralik, TESLIM_ORANI, efektif_aralik_dk(uzl_aralik),
-             damga_esigi))
-    print("  (A4 capasi: %s · nominal %d dk · efektif %.0f dk -> esik N=%d sa)"
-          % (pkt_dosya, pkt_aralik, efektif_aralik_dk(pkt_aralik), paket_esigi))
+             damga_esigi, MUTLAK_SESSIZLIK_SAAT))
+    print("  (A4 capasi: %s · nominal %d dk · DONMUS taban N=%d sa · tavan %d sa = "
+          "OLCULEN ZARAR penceresinin (%.1f sa) ALTINDA)"
+          % (pkt_dosya, pkt_aralik, paket_esigi, PAKET_BAYATLIK_TAVAN_SAAT,
+             OLCULEN_PAKET_ZARAR_SAAT))
     return rapor(*degerlendir(dosyalar, gozlemler, damga=damga,
                               damga_esigi=damga_esigi, paket=paket,
                               paket_esigi=paket_esigi))
