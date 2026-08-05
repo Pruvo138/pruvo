@@ -1452,8 +1452,17 @@ MUTANTLAR = [
      "M4 PYTHON TARAFI MARKA ALIAS'INI OKUMAYI BIRAKIR -> sayfa Vauxhall'ı ayırır, filtre katlar"),
     ("tools/model_kanon.py", "    return marka, model", "    return marka, {}", "KIRMIZI",
      "M5 PYTHON TARAFI MODEL ALIAS'INI OKUMAYI BIRAKIR -> F-Series/F-Serisi kovası ikiye bölünür"),
-    ("tools/model_kanon.py", '    return _AYIRAC.sub("", t)', "    return t", "KIRMIZI",
-     "M7 PYTHON KANONU AYIRAÇ ATMAYI BIRAKIR -> 'F-150'/'F150' sayfada ayrışır, filtrede birleşik"),
+    # 🔴 MUTANT 6 Ağu'da DARALTILDI (eksen KORUNDU, ölçüm geri geldi): eski hâli
+    # `return t` idi ve BOŞLUĞU da bırakıyordu; `K Serisi`/`kserisi` çip etiketi çakışınca
+    # `cip-indeks.py` FAIL-CLOSED RuntimeError atıyor, koşum rc=1 ama KALDI satırı ÜRETMEDEN
+    # bitiyor -> harness bunu "ÇÖKME/ÖLÇÜLEMEDİ" sayıyor ve EKSEN ÖLÇÜLMÜYORDU
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]: çökme kırmızıyla karışmaz). Yeni mutant
+    # YALNIZ boşluğu atar, tire/nokta/eğik çizgiyi BIRAKIR: 'F-150' vs 'F150' ayrışması
+    # aynen doğar, çip etiketi çakışmaz -> eksen TEK BAŞINA temiz KIRMIZI yakar.
+    ("tools/model_kanon.py", '    return _AYIRAC.sub("", t)',
+     '    return re.sub(r"[\\s]", "", t)', "KIRMIZI",
+     "M7 PYTHON KANONU AYIRAÇ ATMAYI BIRAKIR (tire/nokta/eğik çizgi) -> 'F-150'/'F150' "
+     "sayfada ayrışır, filtrede birleşik"),
     ("index.html", 'return t.replace(/[\\s\\-\\._\\/]/g, "");', "return t;", "KIRMIZI",
      "M6 KANON AYIRAÇ ATMAYI KALDIR -> JS anahtarı Python anahtarından ayrışır"),
     # --- BİLEŞİK MARKA EKSENİ (3 Ağu, KraL denetimi) ---
