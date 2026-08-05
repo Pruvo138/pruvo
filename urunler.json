@@ -213099,7 +213099,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "Passat"
+      "Passat",
+      "Huawei"
     ],
     "baslik": "VW Passat B7 Telefon Montu (Huawei Uyumlu)",
     "aciklama": "Passat B7 ön montaj soketi için üç parçalı telefon tutucu setidir.\nParmak izi sensörü kullanımına engel vermeyecek açı düzeni sunar.\nP30 Pro için benzer ölçüde ikinci bir uyumluluk parçası sağlar.\nYaklaşık dış ölçüler: 62 × 30 × 26 mm.",
@@ -213119,6 +213120,9 @@
       {
         "marka": "Volkswagen",
         "model": "Passat"
+      },
+      {
+        "marka": "Huawei"
       }
     ]
   },
@@ -218638,7 +218642,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Mercedes",
-      "Sprinter"
+      "Sprinter",
+      "Stanley"
     ],
     "baslik": "Mercedes Sprinter Stanley Bardaklık Adaptörü",
     "aciklama": "Mercedes Sprinter içindeki orijinal bardaklık geometrisine Stanley veya benzeri ölçüde kaplar uyumu için tasarlanmıştır.\nÜst bölüm esnek, taban ise sert ve dayanıklı malzemeyle üretilir.\nKullanım anında bardaklığın sabitlenmesine ve daha güvenli oturmasına destek verir.\nYaklaşık dış ölçüler: 85 × 85 × 10 mm.",
@@ -218657,6 +218662,9 @@
       {
         "marka": "Mercedes",
         "model": "Sprinter"
+      },
+      {
+        "marka": "Stanley"
       }
     ]
   },
@@ -219378,7 +219386,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Mercedes",
-      "V-Class"
+      "V-Class",
+      "Huawei"
     ],
     "baslik": "Mercedes V Sınıfı Huawei M5 / Tablet Askı",
     "aciklama": "Sabit GPS ekrandan askıya alınıp asılabilen bir tablet-mount modelidir.\n1 cm’den kalın olmayan ve en fazla 27 cm genişliğe kadar tablet/tel cihazlarla kullanılabilecek şekilde anlatılır.\nEntegre 100 mm ara parçanın birlikte kullanılmasına dikkat edilir.",
@@ -219399,6 +219408,9 @@
       {
         "marka": "Mercedes",
         "model": "V-Class"
+      },
+      {
+        "marka": "Huawei"
       }
     ]
   },
@@ -221819,7 +221831,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Mercedes",
-      "W201"
+      "W201",
+      "Webasto"
     ],
     "baslik": "W201 Webasto Ön Isıtıcı Zamanlayıcı",
     "aciklama": "W201 araçlar için Webasto stand heater (ekstra ısıtıcı) zamanlayıcısı gövdesi.\nUzun ömürlü kullanım için ön panoda arka bağlantı uyumuna odaklıdır.\nÖzel kurulumun markaya göre yapılması, kablolama açısından önemlidir.\nYaklaşık dış ölçüler: 150 × 82 × 40 mm.",
@@ -221839,6 +221852,9 @@
       {
         "marka": "Mercedes",
         "model": "W201"
+      },
+      {
+        "marka": "Webasto"
       }
     ]
   },
@@ -233753,7 +233769,8 @@
     "kategori": "Motosiklet",
     "marka": [
       "BMW",
-      "R1200GS"
+      "R1200GS",
+      "TomTom"
     ],
     "baslik": "TomTom Rider Navigasyon Adaptörü (BMW R1200GS Motorrad Uyumlu)",
     "aciklama": "BMW Motorrad orijinal navigasyon braketine TomTom Rider 3 cihazını monte etmek için adaptördür.\n- Orijinal BMW braketine doğrudan takılır.\n- Cihazı sürüş sırasında sabit ve görünür tutar.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 80 × 45 × 39 mm.",
@@ -233773,6 +233790,9 @@
       {
         "marka": "BMW",
         "model": "R1200GS"
+      },
+      {
+        "marka": "TomTom"
       }
     ]
   },
@@ -237932,7 +237952,8 @@
     "id": "bmw-uyumlu-tomtom-navigasyon-adaptoru",
     "kategori": "Motosiklet",
     "marka": [
-      "BMW"
+      "BMW",
+      "TomTom"
     ],
     "baslik": "TomTom Rider Navigasyon Adaptörü (BMW Uyumlu)",
     "aciklama": "BMW motosikletlerinde orijinal navigasyon yuvasına TomTom Rider cihazı bağlamak için adaptördür.\n- Mevcut OEM montaj plakasına doğrudan oturur.\n- Cihazı sürüş sırasında sabit ve titreşimsiz tutar.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 74 × 62 × 12 mm.",
@@ -237949,6 +237970,9 @@
     "uyum": [
       {
         "marka": "BMW"
+      },
+      {
+        "marka": "TomTom"
       }
     ]
   },
@@ -249222,7 +249246,8 @@
     "kategori": "Motosiklet",
     "marka": [
       "BMW",
-      "F800GT"
+      "F800GT",
+      "TomTom"
     ],
     "baslik": "TomTom Rider 2013 GPS Tutucusu (BMW Motosiklet Uyumlu)",
     "aciklama": "BMW motosikletlerde TomTom Rider 2013 GPS cihazını sabitleyen tutucudur.\n- Gidon üzerine mevcut montaj noktasına takılır.\n- Cihazı titreşime karşı sabit tutar.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 52 × 48 × 41 mm.",
@@ -249241,6 +249266,9 @@
       {
         "marka": "BMW",
         "model": "F800GT"
+      },
+      {
+        "marka": "TomTom"
       }
     ]
   },
@@ -251382,7 +251410,8 @@
     "kategori": "Motosiklet",
     "marka": [
       "BMW",
-      "R1200GS"
+      "R1200GS",
+      "TomTom"
     ],
     "baslik": "TomTom Start 20 GPS Adaptörü (BMW R1200 GS Navigator Yuvası Uyumlu)",
     "aciklama": "BMW R1200 GS Navigator montaj yuvasına TomTom Start 20 GPS bağlamak için adaptördür.\n- Esnek malzemeyle üretilen top-mesnet sayesinde açı ayarı yapılabilir.\n- Mevcut Navigator yuvasına doğrudan oturur.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 95 × 86 × 28 mm.",
@@ -251401,6 +251430,9 @@
       {
         "marka": "BMW",
         "model": "R1200GS"
+      },
+      {
+        "marka": "TomTom"
       }
     ]
   },
@@ -309488,7 +309520,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Land Rover",
-      "Discovery"
+      "Discovery",
+      "Webasto"
     ],
     "baslik": "Land Rover Discovery 3 Webasto Multicontrol tutucu",
     "aciklama": "Land Rover Discovery 3 iç mekana uyumlu Webasto Multicontrol kumanda tutucusudur. Kumandayı sabit ve erişilebilir bir noktada tutmak için özel tasarım üretilir.\n- Gösterge/orta konsol çevresine düzenli yerleşim sağlar\n- Kumandanın düşmesini ve boşta kalmasını önler\n- Araca uygun montaj için pratik bir çözümdür\n- Özel siparişle üretim yapılır\nYaklaşık dış ölçüler: 84 × 58 × 32 mm.",
@@ -309504,6 +309537,9 @@
       {
         "marka": "Land Rover",
         "model": "Discovery"
+      },
+      {
+        "marka": "Webasto"
       }
     ]
   },
@@ -312612,7 +312648,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Master"
+      "Master",
+      "TomTom"
     ],
     "baslik": "Renault Master TomTom navigasyon tutucu",
     "aciklama": "Renault Master için tasarlanmış TomTom uyumlu navigasyon tutucu. Araç içi yerleşimi düzenli tutar ve cihazı görüş alanına yakın konumlandırmaya yardımcı olur.\nKonsola uygun oturacak şekilde kullanılır.\nGünlük kullanımda sağlam duruş hedeflenir.\nYaklaşık dış ölçüler: 225 × 62 × 26 mm.",
@@ -312625,6 +312662,9 @@
       {
         "marka": "Renault",
         "model": "Master"
+      },
+      {
+        "marka": "TomTom"
       }
     ]
   },
@@ -324519,7 +324559,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Toyota",
-      "Sienna"
+      "Sienna",
+      "Stanley"
     ],
     "baslik": "Toyota Sienna Stanley 30 oz Bardak Tutucu Adaptörü",
     "aciklama": "Toyota Sienna (2011-2015) araç içi bardaklık alanını Stanley 30 oz termoslarınızla tam uyumlu hale getiren özel tasarım adaptör.\n\nSeyahatlerinizde termosunuzun sarsılmasını ve devrilmesini önler.\nAracınızın orijinal bardaklık yuvasına tam oturacak şekilde tasarlanmıştır.\nYüksek dayanımlı malzemeden siparişiniz üzerine özel üretilir.\nKolayca takılıp çıkarılabilir, montaj gerektirmez.\n\nYaklaşık dış ölçüler: 95 × 95 × 82 mm.",
@@ -324537,6 +324578,9 @@
       {
         "marka": "Toyota",
         "model": "Sienna"
+      },
+      {
+        "marka": "Stanley"
       }
     ]
   },
@@ -337592,7 +337636,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volvo",
-      "FL"
+      "FL",
+      "Stanley"
     ],
     "baslik": "Volvo FL Stanley Termos Askı Aparatı",
     "aciklama": "Volvo FL serisi kamyon ve tırların ön konsol bölmesi için özel olarak tasarlanmış, Stanley termoslarınızı güvenle sabitleyen pratik askı aparatı.\n\n- Sürüş esnasında termosun devrilmesini veya kaymasını önler.\n- Konsoldaki mevcut cebe kolayca asılır, montaj için delme veya vidalama gerektirmez.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar ve sarsıntılara karşı dirençlidir.\n- Özel tasarım üretim yöntemiyle aracınızın iç mekanına tam uyum sağlayacak şekilde imal edilmiştir.\n\nYaklaşık dış ölçüler: 118 × 66 × 26 mm.",
@@ -337609,6 +337654,9 @@
       {
         "marka": "Volvo",
         "model": "FL"
+      },
+      {
+        "marka": "Stanley"
       }
     ]
   },
@@ -350448,7 +350496,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
-      "T5"
+      "T5",
+      "Webasto"
     ],
     "baslik": "Volkswagen T5 Webasto Multicontrol Torpido Braketi",
     "aciklama": "Volkswagen T5 Facelift araçlar için özel tasarlanmış Webasto Multicontrol kontrol paneli montaj aparatıdır. Kontrol ünitenizi torpido üzerine şık ve sağlam bir şekilde sabitlemenizi sağlar.\n\n- Aracın orijinal konsol hatlarıyla tam uyumludur.\n- Sürüş esnasında sarsıntı ve kaymaları önler.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Özel tasarım olarak sipariş üzerine üretilmektedir.\n\nYaklaşık dış ölçüler: 74 × 54 × 39 mm.",
@@ -350465,6 +350514,9 @@
       {
         "marka": "Volkswagen",
         "model": "T5"
+      },
+      {
+        "marka": "Webasto"
       }
     ]
   },
@@ -355219,7 +355271,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Citroen",
-      "C5"
+      "C5",
+      "Huawei"
     ],
     "baslik": "Citroen C5 Uyumlu Huawei Mate 20 Pro Telefon Tutucu Aparat",
     "aciklama": "Citroen C5 model araçların konsol yapısıyla tam uyumlu, Spigen kılıflı Mate 20 Pro telefonlar için özel tasarlanmış pratik telefon tutucu.\nAracınızın konsol bütünlüğünü bozmadan kolayca yerleşir ve sürüş esnasında güvenli bir görüş açısı sunar.\nÖzel tasarım üretim yöntemiyle yüksek dayanıklılıkta üretilmiştir.\nSarsıntılara karşı dayanıklı yapısıyla telefonunuzu sıkıca kavrar.\nHiçbir delme veya vidalama işlemi gerektirmeden doğrudan uygulanabilir.\nYaklaşık dış ölçüler: 85 × 85 × 72 mm.",
@@ -355239,6 +355292,9 @@
       {
         "marka": "Citroen",
         "model": "C5"
+      },
+      {
+        "marka": "Huawei"
       }
     ]
   },
@@ -364309,7 +364365,8 @@
     "kategori": "Motosiklet",
     "marka": [
       "BMW",
-      "Garmin"
+      "Garmin",
+      "TomTom"
     ],
     "baslik": "BMW GS Navigasyon Adaptörü (Garmin Zumo XT/XT2 ve TomTom Uyumlu)",
     "aciklama": "BMW GS serisi motosikletlerin ön cam destek barına Garmin Zumo XT, XT2 veya TomTom navigasyon cihazlarınızı güvenle sabitlemenizi sağlayan özel tasarım montaj adaptörüdür.\n\n- Sürüş esnasında sarsıntıyı en aza indirerek stabil bir görüş sunar.\n- Motosikletinizin orijinal yapısına mükemmel uyum sağlar.\n- Dayanıklı yapısıyla zorlu yol ve hava koşullarına karşı dirençlidir.\n- Kolay montaj imkanı sunar.\n\nYaklaşık dış ölçüler: 55 × 39 × 10 mm.",
@@ -364324,6 +364381,9 @@
       },
       {
         "marka": "Garmin"
+      },
+      {
+        "marka": "TomTom"
       }
     ]
   },
@@ -384324,7 +384384,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Renault",
-      "Master"
+      "Master",
+      "TomTom"
     ],
     "baslik": "Renault Master 3 TomTom Navigasyon Tutucu",
     "aciklama": "Renault Master 3 araçlar için özel olarak tasarlanan bu navigasyon tutucu, TomTom cihazınızı güvenli ve sabit bir şekilde konumlandırmanızı sağlar.\n\n- Aracın konsol yapısına tam uyum sağlar.\n- Sürüş esnasında sarsıntıyı minimuma indirerek güvenli bir görüş açısı sunar.\n- Dayanıklı malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\n- Kolay montaj imkanı sunar.\n\nYaklaşık dış ölçüler: 95 × 61 × 50 mm.",
@@ -384341,6 +384402,9 @@
       {
         "marka": "Renault",
         "model": "Master"
+      },
+      {
+        "marka": "TomTom"
       }
     ]
   },
