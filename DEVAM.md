@@ -39,6 +39,42 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (21:37 turu) — YENI kok neden BULUNDU+ONARILDI (yerelde), push OKAN KAPISINDA
+- Kutu: son ~70 dk'da **2** "Run failed" maili (inbox 7560, TOPLU cekim — taranan 7560 =
+  toplam 7560, ornekleme YOK; ORNEKLEME_RISKI=HAYIR): **1** yayin seridi + **1** bagimsiz
+  alarm kolu, ikisi de ayni HEAD (`c245624`). **Hicbir mail Cop'e TASINMADI** (yesil yok -> silme yok).
+- **Kok neden ONCEKI TURLARINKI DEGIL — DEGISTI.** `serit-a2` (onceki 3 turun suclusu)
+  bu kosumda **YESIL**; yani DEVAM.md sinif onarimi tuttu. Job duzeyi olculdu, kosum
+  `31031776322` / `c2456249`: `build`+`serit-a2`+`serit-a4`+`serit-b`+`envanter`+`cron-nabzi`+
+  `mesaj-nobeti`+`d1-kadans`=success · **`serit-a3`=failure** ·
+  `hacim-tam-takim`/`deploy`/`yayin`=**skipped**.
+- **Adim duzeyinde daraltildi:** `serit-a3`in 69 adiminin 1-57'si success, **adim 58 =
+  `Gramer artigi kapisi`** kirmizi, 59+ skipped. Yerelde birebir uretildi: rc=1, **1 ihlal**.
+- **KUSUR METINDE DEGIL KAPIDA (mimar hukmu).** Ihlal: `Honda Civic 7., 8. ve 9. nesil ...`
+  — bu **kusursuz Turkce** (sira sayisi noktayla yazilir, listede virgul alir).
+  `gramer-artigi-kapisi.py`nin `cift-noktalama` deseni `\.\s*,` kolu bunu enkaz saniyordu.
+  `urunler.json` MaCiT duzlemi + bu nobetin YASAK listesinde -> metin DEGISTIRILMEDI;
+  dogru Turkce'yi bozmak ayni yanlis-pozitifi her gelecek sira sayisinda yeniden dogururdu.
+- **Onarim `f926e0df` (TEK dosya, `tools/gramer-artigi-kapisi.py`):** kol `(?<!\d)\.\s*,`e
+  daraltildi, diger uc kol AYNEN kaldi. Daraltmadan ONCE kapsam olculdu: kolun canli katalogda
+  **toplam 1 isabeti** var ve **1'i rakam-onceli, 0'i harf-onceli** — yani kolun tek atesLEMEsi
+  bu yanlis-pozitifti, daraltma gercek enkaz kaybettirmiyor.
+- **Kabul (hepsi KOSULDU):** `--kendini-test` **rc=0**, iddia **56 -> 60** · canli katalog
+  kosumu **rc=0, 0 ihlal** · degisen dosya **1**. Mesru cumle `_MESRU`ya civilendi (dosyanin
+  kendi emsali: gevsetme girisimi oz-testi kirmizi yakar).
+- 🔴 **MUTASYON — daraltma ile SILME ayirt edildi (kritik):** `_BOZUK`a harf-onceli gercek
+  enkaz vakasi (`A5`) eklendi; onsuz "kolu daralt" ile "kolu tamamen sil" mutantlari
+  birbirinden ayirt EDILEMIYORDU. **M1** (kol tamamen silinir) **KIRMIZI**, **M2** (kol eski
+  gevsek haline doner) **KIRMIZI**, kontrol yesil. Mutasyon surucusu diskte birakildi
+  (anlatilan batarya kanit degil) — kaynak dosya mutasyona ugratilmadi, gecici kopya kullanildi.
+- 🔴 **ACIK KALEM — PUSH EDILEMEDI (3. ardisik tur):** `origin/main` hala `c2456249`;
+  yerelde bekleyen commit **2** (`96d168d8` baska oturumun urun partisi, katalog 19597 -> 19733
+  + `f926e0df` bu onarim). Push mimar eliyle BAGIMSIZ denendi, ayni kapida durdu — sebep
+  sinif geregi `DEVAM-ARSIV.md`'de (git disi). **Yayin zinciri bu kapi acilana kadar kirmizi
+  kalir**; CI'da duzeltilecek YENI kusur yok, var olan onarimin canliya inememesi var.
+- Yedek: onarim commit'i `gramer-sira-sayisi` dal referansinda da duruyor (push inince silinecek).
+- Ikinci bagimsiz alarm kolunun ayrintisi sinif geregi arsive tasindi (silinmedi).
+
 ## CI NOBETI (20:37 turu) — DUR kosulu: ayni kok neden, onarim YERELDE, push OKAN KAPISINDA
 - Kutu: son ~75 dk'da **2** "Run failed" maili (inbox 7558, TOPLU cekim — taranan 7558 =
   toplam 7558, ornekleme YOK): **1** yayin seridi + **1** bagimsiz alarm kolu.
