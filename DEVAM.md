@@ -39,6 +39,35 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (01:37 turu) — 🟢 YAYIN ZINCIRI UCTAN UCA YESIL; onceki turun kirmizisi KAPANDI
+- **Push kapisi ACIK:** `origin/main` = `81199aee`, bekleyen commit 0. Bir onceki turun
+  "push kimlik kapisinda bekliyor" acik kalemi KAPANDI.
+- 🟢 **YAYIN ZINCIRI YESIL** — kosum `31050753590` / `81199aee`, job DUZEYINDE olculdu:
+  `build`+`serit-a2`+`serit-a3`+`serit-a4`+`serit-b`+**`deploy`**+**`yayin`**+`envanter`+
+  `cron-nabzi`+`mesaj-nobeti`+`d1-kadans`=**success** · `hacim-tam-takim`=skipped.
+  Onceki turun sinif kapisi kirmizisi (`31046966630` / `14d40f86`, `serit-a2`+`serit-a3`
+  failure -> `deploy`/`yayin` skipped) bu kosumda KAPANDI: onarim TUTTU.
+  **Bu turda CI'da duzeltilecek YENI kusur cikmadi** — kod DEGISMEDI, merge YAPILMADI.
+- Kutu: inbox **7567**, TOPLU cekim (sender/subject/date uc listesinin uzunlugu 7567 =
+  `count of messages of inbox` 7567; ORNEKLEME_RISKI=HAYIR). "Run failed" maili:
+  son ~70 dk'da **3**, kutuda kalmis eski **25**.
+- **9 mail Cop'e TASINDI** (Cop BOSALTILMADI, kalici silme YOK): **8**'i yayin seridine ait
+  (1 taze + 7 eski; kolun kendisi HEAD'de yesil OLCULDU) + **1**'i sonraki dort kosumu
+  success olculen ayri bir alarm kolunun maili. Atlanan 0, coklu eslesme 0.
+- 🔴 **SAPMA ACILDI VE KAPATILDI (papatya yapilmadi):** silme sonrasi ilk sayim
+  `TASINAN=9` ama `FARK=8` verdi. Iki rakip hipotez ayri ayri OLCULDU; hukum **birim
+  degistirilerek** verildi — toplu sayi degil, **kalem kalem** geri-okuma: 9 mailin
+  9'u da `INBOXTA=HAYIR`, kalan "Run failed" maili **19** ve **hepsi** ayni bagimsiz
+  alarm koluna ait. Ikinci sayim **7558 = 7567 − 9** ile birebir oturdu; ilk turdaki
+  fark gecikmeli sayactan kaynaklandi, eksik silme DEGIL.
+- **19 mail KUTUDA KALDI (bilerek):** kural "yesil OLCULMEYEN kosumun maili silinmez";
+  bu 19'un kosumu hala kirmizi.
+- 🔵 **BAGIMSIZ ALARM KOLU 10/10 ARALIKSIZ KIRMIZI — YENI kusur DEGIL.** Kol `deploy`e
+  `needs:` ile bagli DEGIL, yayini bloklamiyor. Mimar karari 23:37 turunda alindi ve
+  KAYITLI: kapatilmasi desen daraltmasi degil kaynak temizligi isidir, saatlik nobetin
+  "en kucuk duzeltme" kapsamina girmez, ayri pakete alindi. Bu yuzden DUR kosulu
+  ISLETILMEDI — ortada kuyruga alinmis bir temizlik borcu var, acik bir CI arizasi yok.
+
 ## CI NOBETI (00:37 turu) — 🔴 YAYIN ZINCIRI DURMUSTU: SINIF KAPISI KIRMIZISI ONARILDI (lokalde YESIL), PUSH KIMLIK KAPISINDA
 - Kutu: inbox **7566**, TOPLU cekim (taranan 7566 = toplam 7566, ORNEKLEME_RISKI=HAYIR).
   "Run failed" maili: son ~70 dk'da **3**, kutuda kalmis eski **24**. **Hicbir mail Cop'e
