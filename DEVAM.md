@@ -39,6 +39,33 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (22:37 turu) — YAYIN KIRMIZISI BAYAT CIKTI, alarm kolu GERCEK; push hala kapida
+- Kutu: son ~70 dk'da **2** "Run failed" maili (inbox 7563, TOPLU cekim — taranan 7563 =
+  toplam 7563, ORNEKLEME_RISKI=HAYIR), ikisi de ayni HEAD (`f926e0df`): **1** yayin seridi +
+  **1** bagimsiz alarm kolu. **Hicbir mail Cop'e TASINMADI** (yesil yok -> silme yok).
+- **Bagimsiz teyit job DUZEYINDE** (kimliksiz REST; `gh` bu turda kimlik kapisinda):
+  kosum `31036905871` / `f926e0df` -> `build`+`serit-a2`+`serit-a3`+`serit-a4`+`serit-b`+
+  **`deploy`**+`envanter`+`cron-nabzi`+`mesaj-nobeti`+`d1-kadans`=**success** ·
+  `hacim-tam-takim`=skipped · tek kirmizi **`yayin`**, adim
+  "Atomik yayin: canli 200 dogrulanan taslaklari yayina al".
+- 🟢 **O KIRMIZI ARTIK BAYAT — OLCULDU, VARSAYILMADI:** `yayin-kapisi.py --durum` (CI'nin
+  kendi salt-okunur komutu) -> toplam **19733 · yayinda 19733 · TASLAK 0**. Aday kumesi
+  yalniz taslak satirlardan beslendigi icin **su anki aday sayisi 0**; 21:37 turunun
+  `--geriye-doldur`u TUTMUS. Yani bu adim taze bir kosumda gecer, CI'da duzeltilecek yeni
+  kusur yok — **var olan yesilin renginin guncellenememesi var** (kosum yeniden
+  KOSTURULAMADI: yazma islemleri kapida). Ikinci bagimsiz geri-okuma: `d1-sync --durum`
+  uc eksen TEMIZ (SAYI 19733=19733 · SEMA temiz · ICERIK 19733/19733, uyusmaz/eksik/fazla 0).
+- 🔴 **BAGIMSIZ ALARM KOLU GERCEK KIRMIZI (bayat DEGIL):** kosum `31036905530` yerelde birebir
+  uretildi -> `--kendini-test` **24/24**, mutasyon bataryasi **24/24 tek-kirmizi, taban 0 dusen**,
+  asil kapi **rc=1 / 164 ihlal / 37 dosya**. **164 sayisi 12:00 turunun kayitli onarim dalinin
+  "164 isabet -> 0" olcumuyle BIREBIR ayni** — yani bu kol icin cozum zaten kuyrukta, YENI
+  kusur degil. Dosya/eksen dokumu sinif geregi `DEVAM-ARSIV.md`'de (git disi). Bu kol
+  `deploy`/`yayin` zincirinin on kosulu DEGIL.
+- 🛑 **DUR KOSULU ISLETILDI (4. ardisik tur):** `origin/main` hala `f926e0df`, yerelde bekleyen
+  commit **2** (ikisi de nobet defteri). Push mimar eliyle YENIDEN denendi ve ayni kapida
+  dustu; alternatif kimlik yolu da BAGIMSIZ olculdu ve **kapali** (ayrinti sinif geregi
+  arsivde). Bu turda kod DEGISMEDI, merge YAPILMADI, mail SILINMEDI.
+
 ## CI NOBETI (21:37 turu) — YENI kok neden BULUNDU+ONARILDI (yerelde), push OKAN KAPISINDA
 - Kutu: son ~70 dk'da **2** "Run failed" maili (inbox 7560, TOPLU cekim — taranan 7560 =
   toplam 7560, ornekleme YOK; ORNEKLEME_RISKI=HAYIR): **1** yayin seridi + **1** bagimsiz
