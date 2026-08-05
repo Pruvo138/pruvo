@@ -167,6 +167,17 @@ async function araSor(q) {
 }
 
 async function main() {
+  // ── MARKA ADI SORGUSU EKSENI — EGE YUZEYI (opsiyonel, VARSAYILAN KAPALI) ─────────
+  // Bu test Ege'nin BUGUNKU aramasini (urunAra) referans alir; marka adiyla yapilan
+  // sorgunun `marka_arama` kolonuna baglanmasi AYRI bir iddiadir ve burada OLCULMEZ.
+  // Marka ekseni o iddiayi olcer (kume paritesi; Ege skorla siraladigi icin SIRA iddiasi
+  // YOK) ve uc gecmeden once KIRMIZI yanar — beklenen. Bloklayan seride DEGIL; govde TEK:
+  // tools/parite-marka-ekseni.js.  node tools/parite-ege.js --marka-ekseni [--ornek=N]
+  // NOT: bot kaynagi (egeKodu) bu yolda GEREKMEZ -> kontrol EN BASTA.
+  if (process.argv.includes("--marka-ekseni")) {
+    return process.exit(await require("./parite-marka-ekseni.js").calistirCLI({ yuzey: "ege" }));
+  }
+
   const EGE = await egeKodu();
   const PRODUCTS = JSON.parse(fs.readFileSync(URUNLER, "utf8"));
   const idx = EGE.katalogIndeksle(PRODUCTS);

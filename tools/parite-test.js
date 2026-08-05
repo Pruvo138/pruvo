@@ -189,6 +189,17 @@ async function araSor({ q, kat, marka }) {
 module.exports = { norm, aramaKok, haystack, filtered, sorgulariUret, urunleriYukle, KOK, LIMIT };
 
 if (require.main === module) (async () => {
+  // ── MARKA ADI SORGUSU EKSENI — SITE YUZEYI (opsiyonel, VARSAYILAN KAPALI) ─────────
+  // 🔴 NEDEN AYRI BAYRAK: yukaridaki referans filtered() BILEREK eski (serbest metin)
+  // halindedir, yani BU testin yesili marka sorgusunda site==uc DEMEK DEGILDIR. Marka
+  // ekseni o boslugu kapatir ve BUGUN (uc gecmeden once) KIRMIZI yanar — bu beklenendir.
+  // Bu yuzden varsayilan kosuma GIRMEZ ve bloklayan seride DEGILDIR; gecis indikten sonra
+  // baglanmasi MIMAR karariddir. Govde TEK: tools/parite-marka-ekseni.js (ikinci kopya YOK).
+  //   node tools/parite-test.js --marka-ekseni [--ornek=N]
+  if (process.argv.includes("--marka-ekseni")) {
+    return process.exit(await require("./parite-marka-ekseni.js").calistirCLI({ yuzey: "site" }));
+  }
+
   const PRODUCTS = urunleriYukle();
   const YEREL_IDLER = [...new Set(PRODUCTS.map((p) => p.id))];
   const YEREL_ID_KUME = new Set(YEREL_IDLER);
