@@ -64,6 +64,38 @@ CREATE TABLE IF NOT EXISTS urunler (
   -- OLDUGU GIBI birakir. Hedefleri bos kabul edip '[]' yazmak, TEK bir okuma hatasinda
   -- TUM katalogu marka cipinden dusururdu — bayat deger, bos degerden iyidir.
   marka_kanon TEXT NOT NULL DEFAULT '[]',
+  -- MARKA ARAMA UYELIGI (5 Agu 2026) — `?q=<marka>` kolunun UCTA cozulebilmesi icin gereken
+  -- deger: urunun MARKA SORGUSUYLA eslesecegi kanonik marka adlari (JSON dizi).
+  --
+  -- OLCULEN SESSIZ HATA: uctaki `?q=` kolu `hs` uzerinde ALT-DIZE aramasi yapiyor; marka
+  -- adiyla yapilan sorgu bu yuzden marka SAYFASINDAN cok daha fazla urun donduruyor
+  -- ("Mandali" -> MAN, "Havalandirma" -> Haval, "43mm" -> 3M, "Land Rover" -> Rover).
+  -- Site tarafi 8913db28 ile duzeltildi (fark 74 marka/6.089 kalem -> 20/75) ama CANLI arama
+  -- UCTAN geliyor (index.html EDGE_KATALOG -> Worker /ara): merge sonrasi bile olculdu
+  -- `?q=MAN` = 3539, `?q=Haval` = 581. Yani musteri HALA eski sonucu goruyor.
+  --
+  -- 🔴 NEDEN AYRI KOLON, NEDEN `marka_kanon` GENISLETILMEDI (mimar karari, olculu):
+  -- `marka_kanon` UYELIK tanimini tasir ve anasayfa CIPINI besler; ona baslik uyumu
+  -- eklenseydi cip sayfadan FAZLA urun sayar ve marka-invaryant-kapisi.py'nin FILTRE ekseni
+  -- bozulurdu. Iki kolon arasindaki iliski `marka_arama ⊇ marka_kanon` olarak nobetlenir
+  -- (tools/marka-arama-d1-test.py, S ekseni) — ihlal KIRMIZI yanar.
+  --
+  -- 🔴 DEGER IKINCI KEZ TANIMLANMAZ: aday markalar urunun IKI tek kaynagindan gelir
+  -- (marka_model_build.marka_uyelikleri = sayfa/cip yuklemi · arama.baslik_marka_uyumlari =
+  -- baslikta TAM KELIME) ve kolona yazilmadan once GECIS YUKLEMININ TA KENDISINDEN
+  -- (arama.marka_sorgusu_esler) gecirilir. Yuklem degisirse kolon KENDILIGINDEN izler;
+  -- katlama/jetonlama govdesi burada YENIDEN YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+  --
+  -- OLCULDU (5 Agu, 18.442 urun / 129 kanonik marka): kolon 16.144 satiri doldurur, 129 ayri
+  -- deger tasir; kolondan turetilen marka kumesi SITENIN uretttigi kumeyle 129/129 BIREBIR;
+  -- ters yon (kolonda VAR, sitede YOK) 0; ham `marka` esitliginin ekleyecegi kalem 0
+  -- (yani uc BIRLESIME IHTIYAC DUYMAZ, kolon TEK BASINA yeter — marka ekseninden FARKLI).
+  --
+  -- HASH'e KARISMAZ + HEDEFLI UPDATE (marka_kanon ile AYNI sinif ve AYNI gerekce): deger
+  -- urunun `marka` dizisine oldugu kadar BASLIGINA ve index.html kuratorluğune de baglidir;
+  -- icerik upsert'ine baglansaydi kuratorluk degisimi hicbir hash'i degistirmez ve kolon
+  -- SONSUZA DEK bayat kalirdi. FAIL-CLOSED YONU "ATLA", "BOSALT" DEGIL (ayni gerekce).
+  marka_arama TEXT NOT NULL DEFAULT '[]',
   -- UYUM (arac uyumlulugu) — JSON dizi, ogeler {marka,model,motor,yil,oem} (arama.UYUM_ALANLARI).
   -- '[]' = uyum bilgisi YOK. Veri urunler.json "uyum" alaninda YASIYORDU (olculdu 2026-08-02:
   -- 16.874 kaydin 13.040'inda DOLU) ama d1-sync'in alan listesinde HIC yoktu -> D1'e, oradan
