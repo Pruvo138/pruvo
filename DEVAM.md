@@ -50,35 +50,30 @@
   toplam 7566, LISTE_TUTARLI=evet, ORNEKLEME_RISKI=HAYIR). **Ikisi de yalniz alarm koluna ait**
   (`061d291` + `555202a`); yayin seridine ait mail YOK. **Hicbir mail Cop'e TASINMADI**
   (alarm kolu yesil degil -> silme yok; kural: yesil YOKSA silme YOK).
-- 🔵 **KIRMIZI BIR CI KUSURU DEGIL — KAPI BOZUK DEGIL (olculdu, varsayilmadi).** Kirilan
-  job `ifsa-nobeti` / adim 6; kapi betiginin KENDI govdesinde beyan ediliyor: bu kapi temizlik
-  yapmaz, kirmizi yanmasi BEKLENEN ve DOGRU. `grep` ile dogrulandi: baska hicbir workflow'da
-  yok, `deploy`e `needs:` bagi yok — **bagimsiz alarm kolu, yayini bloklamiyor.** Guncel main
-  agacinda birebir kosuldu: **164 ihlal / 37 dosya** (degismemis).
-- 🔴 **IKI ADAY ONARIM DALI DA REDDEDILDI (mimar hukmu).** Ikisi de ayni basligi ("164 -> 0")
-  tasiyordu; mukerrer dal main'i GERILETIR diye AYRI tartildi:
-  - **(A) `ci-ifsa-onarimi`** — main'e temiz merge oluyor ve kapiyi **0/0** yapiyor, AMA
-    **mutasyon bataryasi KIRMIZI (28 sapma)**: kapi 26 iddia uretirken `BEKLENEN_IDDIA_SAYISI`
-    24'te birakilmis. Yani merge, workflow'un kirmizisini adim 6'dan adim 5'e TASIR, yesil YAPMAZ.
-  - **"164 -> 0" iddiasinin gercek bilesimi olculdu (dort kombinasyon):** main/main **164/37** ·
-    main agaci + A'nin kapisi **6/6** · birlesik agac + main'in kapisi **157/34** · birlesik +
-    A **0/0**. Yani dususun **%96,3'u desen DARALTMASI**, kaynak temizligi degil.
-  - **Enjeksiyon testi (uydurma fikstur):** A toptan susturma DEGIL — bazi eksenler A altinda
-    da KIRMIZI yaniyor. Ama **beyan edilmemis bir kor nokta olculdu**: elenen 158 isabetin
-    **146'si** kapinin KURULUS bulgusunun sinifinda ve A o sinifta yesil yakiyor, main kirmizi.
-    A'nin iddialari daraltmanin CALISTIGINI olcuyor; o sinifin GORULEBILIR kaldigini olcen
-    capa YOK. (Eksen dokumu sinif geregi `DEVAM-ARSIV.md`'de.)
-  - **(B) `ifsa-kaynak-onarim-ve-daraltma`** — A'nin 50 commit daha bayat ikizi: main'e
-    **CAKISIYOR**, **80 commit** bayat, dosyalarina main'de **16** commit dokunmus (deploy.yml
-    serit bolumlemesi, d1-sync kaynak secimi, D1 kanon kolonlari geri gider) ve kapinin
-    main'de `2d5982e6` ile onarilan `--kok` kok eksenini GERI ALIYOR ("yanlis agacta yesil
-    yakma" sessiz-hata sinifi). **Kesin hayir.**
-- **KARAR (mimar, bu turda alindi):** alarm kolunun kirmizisi bir yayin engeli DEGIL, 37
-  dosyalik bir TEMIZLIK BORCU. Kapatilmasinin dogru yolu deseni daraltmak degil, kaynagi
-  temizlemek + daraltma yapilacaksa her daraltilan sinif icin AYRI capa iddiasi yazmak.
-  Bu is hacimlidir, saatlik nobetin "en kucuk duzeltme" kapsamina girmez -> ayri paket olarak
-  kuyruga alindi. Iki aday dal **merge edilmeyecek**; A'nin daraltma olcumleri (dort
-  kombinasyon + enjeksiyon) yeni pakette girdi olarak kullanilir.
+- 🔵 **BAGIMSIZ ALARM KOLU KIRMIZI — BIR CI KUSURU DEGIL, KAPI BOZUK DEGIL** (olculdu,
+  varsayilmadi). Kolun kirmizi yanmasi kapi betiginin KENDI govdesinde BEKLENEN olarak
+  beyan ediliyor; `deploy`e `needs:` bagi YOK, yayini bloklamiyor. Kol adi, sayilari ve
+  dosya dokumu sinif geregi `DEVAM-ARSIV.md`'de.
+- 🔴 **IKI ADAY ONARIM DALI DA REDDEDILDI (mimar hukmu).** Ikisi de ayni basligi tasiyordu;
+  mukerrer dal main'i GERILETIR diye AYRI tartildi. Ozet gerekce:
+  - **(A)** main'e temiz merge oluyor ve kolu sifirliyor, AMA **mutasyon bataryasi KIRMIZI
+    (28 sapma)**: kapi 26 iddia uretirken `BEKLENEN_IDDIA_SAYISI` 24'te birakilmis. Merge,
+    workflow'un kirmizisini bir adim ONCEYE TASIR, yesil YAPMAZ.
+  - **Dort kombinasyonlu olcum:** dususun **%96,3'u desen DARALTMASI**, kaynak temizligi
+    DEGIL. Enjeksiyon testi A'nin toptan susturma olmadigini gosterdi, ama **beyan edilmemis
+    bir kor nokta olculdu**: elenen isabetlerin buyuk cogunlugu tek bir sinifta ve o sinifin
+    GORULEBILIR kaldigini olcen capa YOK.
+  - **(B)** A'nin 50 commit daha bayat ikizi: main'e **CAKISIYOR**, **80 commit** bayat,
+    dosyalarina main'de **16** commit dokunmus (deploy.yml serit bolumlemesi, d1-sync kaynak
+    secimi, D1 kanon kolonlari geri gider) ve kapinin main'de `2d5982e6` ile onarilan `--kok`
+    kok eksenini GERI ALIYOR ("yanlis agacta yesil yakma" sessiz-hata sinifi). **Kesin hayir.**
+  - Dal adlari, sinif dokumu ve eksen kirilimi `DEVAM-ARSIV.md`'de.
+- **KARAR (mimar, 23:37 turunda alindi):** alarm kolunun kirmizisi bir yayin engeli DEGIL,
+  bir TEMIZLIK BORCU. Kapatilmasinin dogru yolu deseni daraltmak degil, kaynagi temizlemek +
+  daraltma yapilacaksa her daraltilan sinif icin AYRI capa iddiasi yazmak. Bu is hacimlidir,
+  saatlik nobetin "en kucuk duzeltme" kapsamina girmez -> ayri paket olarak kuyruga alindi.
+  Iki aday dal **merge edilmeyecek**; A'nin daraltma olcumleri (dort kombinasyon +
+  enjeksiyon) yeni pakette girdi olarak kullanilir.
 - Bu turda: kod DEGISMEDI, merge YAPILMADI, push YAPILMADI, mail SILINMEDI.
 
 ## CI NOBETI (22:37 turu) — YAYIN KIRMIZISI BAYAT CIKTI, alarm kolu GERCEK; push hala kapida
