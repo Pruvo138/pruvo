@@ -186,6 +186,33 @@ const MUTANTLAR = [
     ara: "  if (fiksturBayraklari(e).length) return null;",
     yaz: "  // fikstur kapisi KALDIRILDI (mutant)",
   },
+  {
+    ad: "M23 EKSEN B ESIGI ETKISIZ: bekleme ust siniri 24 saate cikarildi (5 Agu'da " +
+      "olculen 63 dk'lik GERCEK tikanma sessizce KANONIK sayilir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "const YAYIN_BEKLEME_UST_SINIRI_SN = sayiEnv(\"PARITE_YAYIN_BEKLEME_UST_SINIRI_SN\",\n" +
+      "  3600, 30, 86400);",
+    yaz: "const YAYIN_BEKLEME_UST_SINIRI_SN = sayiEnv(\"PARITE_YAYIN_BEKLEME_UST_SINIRI_SN\",\n" +
+      "  86400, 30, 86400);",
+  },
+  {
+    ad: "M24 BEKLEME TABANI KALDIRILDI: olcu yine 'artefakt yasi' (bosta gecen pencere " +
+      "tikanma sayilir — 2 Agu'da olculen YANLIS POZITIF geri gelir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "  return headYasSn < artefaktYasSn\n" +
+      "    ? { beklemeSn: headYasSn, headYasSn, tabani: \"yerel HEAD commit ani\" }\n" +
+      "    : { beklemeSn: artefaktYasSn, headYasSn, tabani: \"son yayin ani\" };",
+    yaz: "  return { beklemeSn: artefaktYasSn, headYasSn, tabani: \"son yayin ani\" };",
+  },
+  {
+    ad: "M25 FAIL-OPEN: yerel HEAD ani OKUNAMAYINCA bekleme 0 sayiliyor (olcemedigi " +
+      "hal sessizce YESILE dusuyor)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    return { beklemeSn: artefaktYasSn, headYasSn: null,\n" +
+      "      tabani: \"yerel HEAD ani OKUNAMADI -> artefakt yasi (KATI/fail-closed)\" };",
+    yaz: "    return { beklemeSn: 0, headYasSn: null,\n" +
+      "      tabani: \"yerel HEAD ani OKUNAMADI -> artefakt yasi (KATI/fail-closed)\" };",
+  },
 ];
 
 function kopyaKur() {

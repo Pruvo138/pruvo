@@ -55,7 +55,8 @@ BU_TEST_YOL = "tools/yayin-gecikme-test.py"
 DEPLOY = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 
 # Fikstur envanteri TABANI — buyuyebilir, ALTINA DUSEMEZ (bkz. modul basligi).
-FIKSTUR_TABANI = 21
+# 5 Agu: 21 -> 22 (EKSEN 3 kanarisi `bugun-iki-yayinsiz`; o gecenin GERCEK govdesi).
+FIKSTUR_TABANI = 22
 ZORUNLU_SINIFLAR = ("AKIYOR", "GECIKME", "TIKALI", "ACLIK", "OLCULEMEDI")
 
 # 🔴 FIKSTUR -> EKSEN PAYLASIMI. Burada ADI GECMEYEN her fikstur Y1'e aittir; Y1 bu
@@ -72,6 +73,11 @@ EKSEN_FIKSTURLERI = {
     # KOSUM OMRU ekseninin IKI kanarisi: biri alarmin DOGDUGUNU, digeri NORMAL omurde
     # DOGMADIGINI (yanlis alarm kapisi) tutar.
     "Y8": ("takilan-kosum-bekleyen-yok", "takilan-kosum-normal"),
+    # YAYINSIZ ZINCIR ekseninin kanarisi: 5 Agu gecesinin GERCEK govdesi. O gece IKI
+    # hizli eksen de SUSTU (hata zinciri 2'de kaldi / yas 61 dk, TIKALI esigi 65) ve
+    # yayin 74 dk durdu. Yanlis-alarm kontrolu FIKSTURDE DEGIL birim iddiadadir
+    # (y9_yayinsiz_zinciri): zincir 1 · zincir>=2 ama yas<50 · bekleyen icerik yok.
+    "Y9": ("bugun-iki-yayinsiz",),
 }
 
 YANLIS_ALARM_FIKSTURU = "bugun-serit-b-dustu"
@@ -83,8 +89,10 @@ VAKA_B_TAKILAN_KOSUM = "takilan-kosum-bekleyen-yok"
 VAKA_C_YAYIN_INMIYOR = "bugun-tikali"
 VAKA_D_NORMAL = "normal"
 
-EKSEN_1_ADLARI = ("yas_gecikme", "yas_tikali", "hata_zinciri", "iptal_zinciri", "birikme")
+EKSEN_1_ADLARI = ("yas_gecikme", "yas_tikali", "hata_zinciri", "iptal_zinciri", "birikme",
+                  "yayinsiz_zinciri")
 EKSEN_2_ADI = "sure_tavani"
+EKSEN_3_ADI = "yayinsiz_zinciri"
 
 SATIRLAR = []
 KIRMIZI = set()          # KIRMIZI YANAN EKSEN KODLARI (mutasyon surucusunun olctugu kume)
@@ -493,7 +501,7 @@ def y8_omur_ekseni(yg):
     # Eksen 1 BURADA hata zincirinden yakilir (yas'tan degil): yas kullanmak bu iddiayi
     # ACLIK kuralinin (`iptal_zinciri VE yas_gecikme`) mutantlarina da baglardi ve eksen
     # ayrimi bulanirdi.
-    ikisi = {"geride": 3, "yas_dk": 1.0, "ardisik_iptal": 0,
+    ikisi = {"geride": 3, "yas_dk": 1.0, "ardisik_iptal": 0, "ardisik_yayinsiz": 0,
              "ardisik_hata": yg.TIKALI_HATA_ZINCIR + 1, "son_basarili_sha": "abc12345",
              "pencere": 1, "tamamlanan": 1, "taranan": 1,
              "takilan_kosum_dk": yg.KOSUM_OMUR_TAVANI_DK + 10.0, "takilan_kosum_id": 7}
@@ -505,6 +513,90 @@ def y8_omur_ekseni(yg):
           "%s · %d gerekce" % (sinif3, len(gerekce3)))
 
 
+# ------------------------------------------------- Y9) EKSEN 3: YAYINSIZ ZINCIR
+def _sentetik(yg, **ustyazim):
+    """Nobetcinin `olcum` sozlugunun EN KUCUK gecerli hali — eksen izolasyonu icin.
+    Alanlar EKSIK BIRAKILMAZ: `eksen_hukumleri` dogrudan indeksler (fail-closed), yani
+    yeni bir eksen alani eklendiginde bu yardimci DA guncellenmek zorundadir."""
+    taban = {"geride": 3, "yas_dk": 0.0, "ardisik_iptal": 0, "ardisik_hata": 0,
+             "ardisik_yayinsiz": 0, "son_basarili_sha": "abc12345", "pencere": 1,
+             "tamamlanan": 1, "taranan": 1, "takilan_kosum_dk": None,
+             "takilan_kosum_id": None}
+    taban.update(ustyazim)
+    return taban
+
+
+def y9_yayinsiz_zinciri(yg):
+    """EKSEN 3: "kostu ama YAYINLAMADI" zinciri — 5 Agu'da olculen kor noktanin nobeti.
+
+    O gece IKI hizli eksen de sustu ve yayin 74 dk durdu (nobetci her 15 dk kostu).
+    Burada hem ALARMIN DOGDUGU hem NORMAL halde DOGMADIGI ayri ayri olculur.
+    """
+    # (1) GERCEK GOVDE: 5 Agu 01:13Z tigi -> TIKALI ve hukum YALNIZ eksen 3'ten.
+    sinif, beklenen, gerekce, olcum = _fikstur_hukmu(yg, "bugun-iki-yayinsiz")
+    eks = olcum.get("eksenler") or {}
+    yalniz3 = (eks.get(EKSEN_3_ADI)
+               and not eks.get("hata_zinciri") and not eks.get("yas_tikali")
+               and not eks.get("iptal_zinciri") and not eks.get("birikme")
+               and not eks.get(EKSEN_2_ADI))
+    kayit("Y9", "5 Agu GERCEK govdesi: TIKALI ve hukum YALNIZ eksen 3'ten",
+          sinif == beklenen == "TIKALI" and yalniz3,
+          "%s · yayinsiz=%s yas=%.0f dk · eksenler=%s"
+          % (sinif, olcum.get("ardisik_yayinsiz"), olcum.get("yas_dk") or 0,
+             sorted(a for a, v in eks.items() if v)))
+    kayit("Y9", "gerekce YAYINSIZ zinciri ADIYLA soyluyor (teshis var, sayi var)",
+          any("YAYINLAMADI" in g and str(olcum.get("ardisik_yayinsiz")) in g
+              for g in gerekce), "; ".join(gerekce)[:100])
+
+    # (2) O GECE MEVCUT ESIKLERIN IKISI DE SUSUYORDU — kor nokta CALISTIRILARAK gosterilir.
+    kayit("Y9", "AYNI govde MEVCUT eksenlerin ikisinde de SESSIZ (5 Agu kor noktasi)",
+          (olcum.get("ardisik_hata") or 0) < yg.TIKALI_HATA_ZINCIR
+          and (olcum.get("yas_dk") or 0) < yg.TIKALI_YAS_DK,
+          "hata zinciri %s (esik %d) · yas %.0f dk (esik %d)"
+          % (olcum.get("ardisik_hata"), yg.TIKALI_HATA_ZINCIR,
+             olcum.get("yas_dk") or 0, yg.TIKALI_YAS_DK))
+
+    # (3) YANLIS-ALARM KAPILARI — ucu de TEK BASINA olculur.
+    tek = _sentetik(yg, ardisik_yayinsiz=yg.TIKALI_YAYINSIZ_ZINCIR - 1,
+                    yas_dk=yg.GECIKME_YAS_DK + 30.0)
+    kayit("Y9", "KONTROL: zincir esigin ALTINDA (%d) -> eksen 3 SESSIZ"
+          % (yg.TIKALI_YAYINSIZ_ZINCIR - 1),
+          not yg.eksen_hukumleri(tek)[EKSEN_3_ADI])
+    taze = _sentetik(yg, ardisik_yayinsiz=yg.TIKALI_YAYINSIZ_ZINCIR + 3,
+                     yas_dk=yg.GECIKME_YAS_DK - 1.0)
+    kayit("Y9", "KONTROL: zincir uzun ama bekleyen icerik TAZE (yas < %d dk) -> SESSIZ "
+          "(olculen bedel: 2,51 -> 0,89 alarm/gun)" % yg.GECIKME_YAS_DK,
+          not yg.eksen_hukumleri(taze)[EKSEN_3_ADI])
+    bekleyensiz = _sentetik(yg, geride=0, yas_dk=0.0,
+                            ardisik_yayinsiz=yg.TIKALI_YAYINSIZ_ZINCIR + 9)
+    kayit("Y9", "KONTROL: bekleyen icerik YOKKEN uzun zincir alarm URETMIYOR "
+          "(ahead_by kapisi)", yg.degerlendir(bekleyensiz)[0] == "AKIYOR",
+          yg.degerlendir(bekleyensiz)[0])
+
+    # (4) MASKELEME YOK: eksen 3 ile hata zinciri AYNI ANDA yanabilir ve IKI gerekce de kalir.
+    ikisi = _sentetik(yg, ardisik_hata=yg.TIKALI_HATA_ZINCIR + 1,
+                      ardisik_yayinsiz=yg.TIKALI_HATA_ZINCIR + 1,
+                      yas_dk=yg.GECIKME_YAS_DK + 5.0)
+    _s, ger = yg.degerlendir(ikisi)
+    kayit("Y9", "eksen 3 ile hata zinciri birbirini MASKELEMIYOR (iki ayri gerekce)",
+          _s == "TIKALI" and any("ARDISIK dusen kosum" in g for g in ger)
+          and any("YAYINLAMADI" in g for g in ger), "%s · %d gerekce" % (_s, len(ger)))
+
+    # (5) SINIF SOZLESMESI: `cancelled` zincire GIRMEZ (deponun kendi kanarisi olculdu).
+    kayit("Y9", "`cancelled` YAYINSIZ sinifina girmiyor + sinif hata sonuclarini KAPSIYOR",
+          "cancelled" not in yg.YAYINSIZ_SONUCLARI
+          and not (set(yg.HATA_SONUCLARI) - set(yg.YAYINSIZ_SONUCLARI)),
+          "YAYINSIZ_SONUCLARI=%s" % (yg.YAYINSIZ_SONUCLARI,))
+
+    # (6) ESIK OLCULEN TABANIN USTUNDE (sozlesme nobeti ayrica kosar; burada TEK TEK).
+    kayit("Y9", "esik olculen saglikli tavanin USTUNDE ve hata zinciri esiginden KUCUK",
+          yg.OLCULEN_SAGLIKLI_YAYINSIZ_TAVANI < yg.TIKALI_YAYINSIZ_ZINCIR
+          < yg.TIKALI_HATA_ZINCIR,
+          "tavan %d < esik %d < hata esigi %d"
+          % (yg.OLCULEN_SAGLIKLI_YAYINSIZ_TAVANI, yg.TIKALI_YAYINSIZ_ZINCIR,
+             yg.TIKALI_HATA_ZINCIR))
+
+
 # ---------------------------------------------------------------- kosum
 IDDIALAR = (("Y1", "EKSEN 1 — bekleyen icerik (yas/zincir/birikme)"),
             ("Y2", "SOZLESME — sinif kodlari + esiklerin olculen tabani"),
@@ -513,7 +605,8 @@ IDDIALAR = (("Y1", "EKSEN 1 — bekleyen icerik (yas/zincir/birikme)"),
             ("Y5", "IS DUZEYI — yayin yetkilisi `deploy` isi"),
             ("Y6", "TESHIS + SIZINTI — gh stderr"),
             ("Y7", "YAS TABANI — yayin ani"),
-            ("Y8", "EKSEN 2 — kosum omur tavani"))
+            ("Y8", "EKSEN 2 — kosum omur tavani"),
+            ("Y9", "EKSEN 3 — yayinsiz zincir (kostu ama yayinlaMADI)"))
 
 
 def main():
@@ -539,7 +632,8 @@ def main():
                 ("Y5", lambda: y5_is_duzeyi(yg)),
                 ("Y6", lambda: y6_teshis_ve_sizinti(yg)),
                 ("Y7", lambda: y7_yas_tabani(yg)),
-                ("Y8", lambda: y8_omur_ekseni(yg)))
+                ("Y8", lambda: y8_omur_ekseni(yg)),
+                ("Y9", lambda: y9_yayinsiz_zinciri(yg)))
     for kod, fn in kosumlar:
         try:
             fn()

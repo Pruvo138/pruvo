@@ -248,8 +248,26 @@ function birimOlc() {
   ONA(ORTAK.yayinHaliArgv({ PARITE_YAYIN_HALI: "duz-metin" }) === null,
     "B9 bozuk PARITE_YAYIN_HALI sessizce YOK SAYILMAZ (null -> fail-closed)");
   ONA(ORTAK.FIKSTUR_ENV.indexOf("PARITE_YAYIN_HALI") !== -1 &&
-      ORTAK.FIKSTUR_ENV.indexOf("PARITE_YAYIN_UST_SINIRI_SN") !== -1,
+      ORTAK.FIKSTUR_ENV.indexOf("PARITE_YAYIN_UST_SINIRI_SN") !== -1 &&
+      ORTAK.FIKSTUR_ENV.indexOf("PARITE_YAYIN_BEKLEME_UST_SINIRI_SN") !== -1 &&
+      ORTAK.FIKSTUR_ENV.indexOf("PARITE_YEREL_HEAD_YAS_SN") !== -1,
     "B10 yeni env'ler FIKSTUR_ENV'de (baypas olarak kullanilamaz)");
+  // B11-B14 EKSEN B'nin KENDI siniri + BEKLEME TABANI (5 Agu 2026 olcumu).
+  ONA(ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN > 0 && ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN <= 86400,
+    "B11 bekleme UST SINIRI sonlu (sinirsiz muafiyet YOK)",
+    ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN);
+  // Olculen azami yayin penceresi 3078 sn (51,3 dk; 7 gun / 348 basarili deploy).
+  // Esik onun USTUNDE olmali (yoksa NORMAL kosum rc 3 uretir) ve 5 Agu'da olculen
+  // gercek tikanmanin (3780 sn) ALTINDA kalmali (yoksa o vaka SESSIZCE gecer).
+  ONA(3078 < ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN && ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN < 3780,
+    "B12 esik OLCULEN azami pencerenin USTUNDE ve OLCULEN gercek tikanmanin ALTINDA",
+    "3078 < " + ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN + " < 3780");
+  ONA(ORTAK.beklemeSuresi(9999, 120).beklemeSn === 120 &&
+      ORTAK.beklemeSuresi(120, 9999).beklemeSn === 120,
+    "B13 bekleme = artefakt yasi ile HEAD yasinin KUCUGU (bosta gecen pencere dusuluyor)");
+  ONA(ORTAK.beklemeSuresi(9999, null).beklemeSn === 9999 &&
+      ORTAK.beklemeSuresi(null, 120).beklemeSn === null,
+    "B14 FAIL-CLOSED: HEAD okunamazsa artefakt yasina duser · artefakt yoksa OLCULEMEDI");
 }
 
 // ── Senaryo kosucu ───────────────────────────────────────────────────────────
@@ -295,7 +313,22 @@ async function main() {
   const GIZLI = new Set(TASLAKLAR);
   const BOS = new Set();
   const TAZE = 120;                                  // ust sinirin ALTINDA (sn)
-  const YASLI = ORTAK.YAYIN_UST_SINIRI_SN + 60;      // ust sinirin USTUNDE (sn)
+  const YASLI = ORTAK.YAYIN_UST_SINIRI_SN + 60;      // EKSEN A sinirinin USTUNDE (sn)
+  // EKSEN B'nin KENDI siniri AYRIDIR (bekleme suresi, 5 Agu olcumu). Bu sabitleri
+  // ORTAK'tan TURETIRIZ: esik degisirse fikstur sessizce ayrismasin
+  // ([[ikiz-tanim-sessiz-ayrisma]]).
+  const BEKLEME_YASLI = ORTAK.YAYIN_BEKLEME_UST_SINIRI_SN + 60;   // sinirin USTUNDE
+  // 5 Agu 2026 GERCEK olayi: site 23:59'da deploy etti, icerik 00:12'de hazirdi,
+  // olcum 01:15'te alindi -> artefakt 76 dk, bekleme 63 dk.
+  const OLAY_ARTEFAKT_SN = 76 * 60;
+  const OLAY_BEKLEME_SN = 63 * 60;
+  // 7 gunluk olcum: push -> deploy bitisi MEDYANI 11,3 dk, yayin-arasi bosluk medyani
+  // 23,1 dk. Normal kosulun ust ucu olarak 23,1 dk alinir.
+  const NORMAL_SN = Math.round(23.1 * 60);
+  // 2 Agu 2026 GERCEK yanlis-pozitif sinifi: 00:57 -> 07:28 arasi HIC push yok
+  // (artefakt 6,5 saat), sonra push geldi (yerel icerik 2 dk once hazir oldu).
+  const BOSTA_ARTEFAKT_SN = Math.round(6.5 * 3600);
+  const BOSTA_BEKLEME_SN = 120;
 
   const senaryolar = [];
 
@@ -429,14 +462,65 @@ async function main() {
 
   // ── 8) UST SINIR — EKSEN B (ZARARSIZ): sayfa canli DEGIL ────────────────────
   senaryolar.push({
-    ad: "Y12 UST SINIR B (ZARARSIZ/YASLI): artefakt sinir USTUNDE -> KIRMIZI DEGIL ama cikis 3",
+    ad: "Y12 UST SINIR B (ZARARSIZ/BEKLEME SINIR USTUNDE) -> KIRMIZI DEGIL ama cikis 3",
     dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
-    spec: { taslak: TASLAKLAR, sayfa: 404, artefaktYas: YASLI },
+    spec: { taslak: TASLAKLAR, sayfa: 404, artefaktYas: BEKLEME_YASLI },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: String(BEKLEME_YASLI) },
     dogrula: (r) => {
       ONA(r.kod === 3, "cikis 3 (KIRMIZI DEGIL ama KANONIK de DEGIL)", r.cikti.slice(-900));
-      ONA(/UST SINIR/.test(r.cikti), "ust sinir notu basildi");
+      ONA(/UST SINIR \/ TIKANMA/.test(r.cikti),
+        "ust sinir notu TIKANMA sinifiyla basildi", r.cikti.slice(-900));
       ONA(/BELGELENDIRMEZ/.test(r.cikti), "sessiz yesil YOK — belgelendirmedigi yazildi");
       ONA(kosanSorgu(r.cikti) > 0, "sorgular yine de KOSTU");
+    },
+  });
+  // ── 8a) EKSEN B'nin 5 Agu 2026 KABUL VAKALARI (mimar spec'i M3) ────────────
+  senaryolar.push({
+    ad: "Y12a OLAY (5 Agu 74 dk TIKANMA): bekleme 63 dk -> HALA cikis 3 (kirmizi yanar)",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
+    spec: { taslak: TASLAKLAR, sayfa: 404, artefaktYas: OLAY_ARTEFAKT_SN },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: String(OLAY_BEKLEME_SN) },
+    dogrula: (r) => {
+      ONA(r.kod === 3, "cikis 3 — o gecenin vakasi HALA belgelendirilemiyor",
+        r.cikti.slice(-900));
+      ONA(/UST SINIR \/ TIKANMA/.test(r.cikti), "TIKANMA sinifi ADIYLA basildi",
+        r.cikti.slice(-900));
+      ONA(/yerel HEAD/.test(r.cikti), "teshis TABANI (yerel HEAD) raporda GORUNUYOR");
+    },
+  });
+  senaryolar.push({
+    ad: "Y12b NORMAL KOSUL (bekleme 23,1 dk = olculen medyan): eksen B YANMAZ",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
+    spec: { taslak: TASLAKLAR, sayfa: 404, artefaktYas: NORMAL_SN },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: String(NORMAL_SN) },
+    dogrula: (r) => {
+      ONA(!/UST SINIR/.test(r.cikti), "UST SINIR notu BASILMADI (yanlis pozitif YOK)",
+        r.cikti.slice(-900));
+      ONA(/YAYIN GECIKMESI/.test(r.cikti), "normal yayin penceresi sinifi basildi");
+      ONA(kosanSorgu(r.cikti) > 0, "sorgular KOSTU");
+    },
+  });
+  senaryolar.push({
+    ad: "Y12c BOSTA GECEN PENCERE (2 Agu sinifi): artefakt 6,5 SAAT ama icerik 2 dk -> YANMAZ",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
+    spec: { taslak: TASLAKLAR, sayfa: 404, artefaktYas: BOSTA_ARTEFAKT_SN },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: String(BOSTA_BEKLEME_SN) },
+    dogrula: (r) => {
+      ONA(!/UST SINIR/.test(r.cikti),
+        "ESKI olcunun (artefakt yasi) uretecegi YANLIS POZITIF kapandi", r.cikti.slice(-900));
+      ONA(/BAYAT ARTEFAKT ama TIKANMA DEGIL/.test(r.cikti),
+        "sebep AYRISTIRILDI: bayat artefakt ≠ tikanma", r.cikti.slice(-900));
+    },
+  });
+  senaryolar.push({
+    ad: "Y12d FAIL-CLOSED: yerel HEAD ani OKUNAMAZ -> ESKI (kati) olcuye duser, cikis 3",
+    dosya: PARITE_SITE, yerel: TABAN, gizli: GIZLI,
+    spec: { taslak: TASLAKLAR, sayfa: 404, artefaktYas: BEKLEME_YASLI },
+    ekEnv: { PARITE_YEREL_HEAD_YAS_SN: "cozulemez" },
+    dogrula: (r) => {
+      ONA(r.kod === 3, "cikis 3 (HEAD okunamayinca YESILE DUSMEZ)", r.cikti.slice(-900));
+      ONA(/KATI\/fail-closed/.test(r.cikti), "fail-closed tabani ADIYLA basildi",
+        r.cikti.slice(-900));
     },
   });
   senaryolar.push({
