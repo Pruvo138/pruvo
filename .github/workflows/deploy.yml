@@ -420,6 +420,22 @@ jobs:
       - name: Marka kanon D1 kolonu kabul testi (120 kalemlik cip kaybi kapaniyor mu)
         run: python3 tools/marka-kanon-d1-test.py
 
+      # D1 `model_kanon` KOLONU — AYNI sessiz hata sinifinin MODEL EKSENI (5 Agu). Uctaki
+      # `model` kolu `uyum[].model` alaninda TAM ESITLIK arar; site ise modeli KUSAK/VARYANT
+      # duzeyinde katlar (`Fiesta ST` -> Fiesta, `T4`/`T5` -> Transporter, `Astra H` -> Astra).
+      # Olculdu: 553 yayimlanan model kovasinin 96'sinda sayfa suzgecten GENIS, 390 urun-kalemi
+      # musteri MODEL CIPINE BASINCA kayboluyor. Cozum marka ekseniyle BIREBIR: katlama Worker'a
+      # KOPYALANMAZ, kanonik model uyeligi senkron aninda SAYFA URETICISININ KENDI yukleminden
+      # turetilip D1'e onceden yazilir. Test gercek d1-sema.sql'i yerel sqlite3'e yukler,
+      # CANLI D1'e/wrangler'a/AGA DOKUNMAZ ve semayi CANLIYA UYGULAMAZ. NE OLCER: kolonun
+      # dogru SINIFI (hash'e karismaz -> hedefli UPDATE), 5 AYRI katlama mekanizmasinin
+      # POZITIF CAPASI, 390 kalemlik kaybin 0'a inmesi, deger evreninin YAYIMLANAN kova
+      # etiketleriyle birebir olmasi (kapali sayfa sizmasin), idempotens/olcek, FAIL-CLOSED
+      # yonu ve SEMA SIRASI. Ayrica KAYIPSIZLIK sayisini basar (ucun BIRLESIM karari icin).
+      # Mutasyon bataryasi: python3 tools/model-kanon-mutasyon.py (10 mutant).
+      - name: Model kanon D1 kolonu kabul testi (390 kalemlik model cip kaybi kapaniyor mu)
+        run: python3 tools/model-kanon-d1-test.py
+
       # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
       # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
       # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye
