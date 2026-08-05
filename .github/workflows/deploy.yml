@@ -2208,32 +2208,10 @@ jobs:
   # 🔴 TESHIS MASKELI: tarama kolu eslesen SATIRIN METNINI HIC yazmaz, yalniz
   #    `dosya:satir [EKSEN]` basar. Aksi halde nobetci ifsayi PUBLIC Actions gunlugune
   #    kendi eliyle kopyalardi ([[nobetci-kendi-dosyasinda-sizinti]]).
-  # 🔴 SERIT A'YA TASIMA KOSULU (olculebilir): ana dalda tarama kolu rc=0 verdigi gun
-  #    bayraksiz cagri `build` job'una tasinir ve is-akisi-kapisi.py::SERIT_B girisleri
-  #    silinir (taban 43 -> 41).
-  ifsa-nobeti:
-    runs-on: ubuntu-latest
-    steps:
-      # fetch-depth: 1 YETER — kapi CALISMA AGACINI tarar, git GECMISINI okumaz
-      # (`git ls-files` yalniz indeksi gezer). SIG klonda da AYNI sonucu verir; bu
-      # olculdu ve raporda sayiyla duruyor.
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      # Once nobetcinin KENDI kabulu (22 iddia; ag YOK, gercek dosyaya YAZMA YOK).
-      # ADIM ADINDA IDDIA SAYISI YAZMAZ — bayat sayi yanlis bilgi verir; gercek sayiyi
-      # betigin kendisi "TOPLAM: N/N" satiriyla basar.
-      - name: "Spec ifsa nobetcisi: kendini test (sayi ciktida)"
-        run: python3 tools/spec-ifsa-kapisi.py --kendini-test
-      # Sonra MUTASYON BATARYASI: her iddianin AYIRT EDICI bir mutantla oldurulebildigi
-      # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Canli dosyaya YAZMAZ ve bunu sha256
-      # once==sonra ile KENDISI olcer.
-      - name: "Spec ifsa nobetcisi: mutasyon bataryasi (TEK KIRMIZI + beyana esitlik)"
-        run: python3 tools/spec-ifsa-mutasyon-test.py
-      # GERCEK OLCUM — bugun KIRMIZI yanmasi BEKLENEN sonuctur (temizlik ayri karar).
-      - name: "Spec/tasarim ifsasi: izlenen anlatim yuzeyi (ALARM — yayini DURDURMAZ)"
-        run: python3 tools/spec-ifsa-kapisi.py
+  # Alarmın kendi kırmızı sonucu ayrı workflow'da görünür; yayın workflow'unun sonucu
+  # yalnız yayın zincirini anlatır.
+  # Nöbet, kırmızısını yayın koşumuna taşımaması için `spec-ifsa-alarmi.yml` içinde
+  # aynı fail-closed komutlarla ayrı bir push workflow'u olarak çalışır.
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================
