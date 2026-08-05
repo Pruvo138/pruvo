@@ -1,5 +1,28 @@
 # DEVAM (KraL) — 5 Agu 2026
 
+## 🟢 CI NOBETI (12:00 turu) — yayin kosumunun RENGI onarildi, 24 mail Cop'e
+- Kutuda 4 Agu 17:00'den beri birikmis **24** "Run failed" maili tarandi (inbox 7565 mesaj,
+  toplu cekim, ornekleme YOK). Dagilim: 21 yayin is akisi + 2 D1 sapma alarmi + 1 yayin erisim alarmi.
+- **Kok neden yayin arizasi DEGIL:** bloklamayan bir alarm job'i yayin is akisinin ICINDE kosuyor,
+  kendi kirmizisini kosum sonucuna tasiyordu; 11 kosum bu yuzden kirmizi gorundu.
+- **Onarim (Codex, commit `5945c21e`):** o job deploy.yml'den AYRI bir push is akisina tasindi.
+  Komutlari AYNI, fail-closed AYNI, kapi SILINMEDI/gevsetilmedi, `continue-on-error` EKLENMEDI.
+  `is-akisi-kapisi.py::SERIT_B` tabani 43→41 (tasinan iki kol dustu).
+- **Bagimsiz teyit (mimar eliyle, job duzeyinde):** kosum `30990002466` / sha `5945c21e` →
+  `build`+`deploy`+`yayin`+`cron-nabzi` **success**. `D1 sapma alarmi` success (`30990906980`);
+  `Yayin erisim alarmi` elle tetiklenip **success** (`30991066350`).
+- **24/24 mail Cop'e tasindi** (inbox 7565→7541, Cop BOSALTILMADI); bulunamayan 0, coklu eslesme 0.
+
+**🟡 BU TURDAN ACIK KALEM (mimar karari, dokunulmadi):**
+1. Ayrilan alarm is akisi HALA kirmizi (bilinerek; kaynak onarimi ayri dalda, worktree
+   `agent-a294bf9bc19a3c740`). ⚠️ Yan etki: her `main` push'unda o is akisi adina **YENI**
+   "Run failed" maili gelecek — kutu gurultusu bitmedi, yalnizca yayin kosumundan AYRILDI.
+2. **OLCULMEDI:** "bloklamayan job mutanti ana kosumun `conclusion`'ini DEGISTIRMEMELI · yayini
+   durduran job mutanti DEGISTIRMELI" cift yonlu kabul testi bu turda kosulmadi. Yapisal kural
+   uygulandi ama kendi kabul testi hala YOK.
+3. Yeni is akisi dosyasi `is-akisi-kapisi.py` kapsam tablosunda beyanli DEGIL — adimlari sessizce
+   silinebilir mi olculmedi (kapsam kapisi ekseni).
+
 ## 🔴 5 AGU OTURUM ACILISI — HASAR TARAMASI (kota kesintisi sonrasi)
 **Kayip is YOK.** Bes deponun (pruvo · hasat · jenerator · pazarlama · bot) calisma agaci TEMIZ;
 dort worktree'nin hicbirinde commit'lenmemis degisiklik yok, ana checkout `origin/main` ile senkron.
