@@ -436,6 +436,19 @@ jobs:
       - name: Model kanon D1 kolonu kabul testi (390 kalemlik model cip kaybi kapaniyor mu)
         run: python3 tools/model-kanon-d1-test.py
 
+      # KATALOG KAYNAGI BAYRAGI (5 Agu) — d1-sync katalogu DAIMA calisma agacindan okuyordu,
+      # yani agacta baska bir oturumun COMMIT'LENMEMIS urunleri varsa senkron ONLARI CANLIYA
+      # yazardi ve hicbir sey kirmizi yanmazdi: bayatlik kapisi COMMIT GRAFIGINI olcer,
+      # calisma agacinin o commit'ten SAPMASINI OLCMEZ. Ayni gun iki kez karsimiza cikti.
+      # Artik kaynak ACIKCA secilebiliyor (`--head` / `--kaynak`) ve secim GURULTULU basiliyor.
+      # Test GERCEK bir git fiksturunde (2 urun commit'li, 1 urun agacta) iki yolun FARKLI
+      # sonuc verdigini olcer, fail-closed dallari (yok dosya / bicimsiz kaynak / iki bayrak
+      # birden) sinar ve 🔴 BAYRAKSIZ DAVRANISIN DEGISMEDIGINI iki yonlu olcer — 5 evin push
+      # kancasi bugunku davranisa baglidir. Offline; D1'e/aga DOKUNMAZ.
+      # Mutasyon bataryasi: python3 tools/d1-kaynak-mutasyon.py (7 mutant).
+      - name: D1 katalog kaynagi kabul testi (commit'lenmemis urun canliya yazilmasin)
+        run: python3 tools/d1-kaynak-test.py
+
       # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
       # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
       # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye
