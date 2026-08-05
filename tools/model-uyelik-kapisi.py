@@ -1568,8 +1568,13 @@ MUTANTLAR = [
     # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — /marka/ford/
     # focus-st/ CANLIDA duruyordu ve kapı 16/16 YEŞİL geçiyordu.
     ("tools/arama.py",
-     '    ("Yamaha", "Stage"): "\'Stage 2\' tuning asamasi ifadesi — model degil",\n}',
-     '    ("Yamaha", "Stage"): "\'Stage 2\' tuning asamasi ifadesi — model degil",\n'
+     # 🔴 ÇAPA 6 Ağu'da TAZELENDİ: `MODEL_OLMAYAN_CIFT`in SONU değişti (hüküm B/D ile iki
+     # yeni deny eklendi) ve eski çapa 0 eşleşmeye düşmüştü — eksen SESSİZCE ölçülmüyordu
+     # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Çapa artık tablonun SON satırına bakıyor.
+     '    ("Volkswagen", "Westfalia"): "kamper donusturucusu (Westfalia-Werke) — VW\'nin arac "\n'
+     '                                 "modeli degil; urunler taban model sayfasinda kalir",\n}',
+     '    ("Volkswagen", "Westfalia"): "kamper donusturucusu (Westfalia-Werke) — VW\'nin arac "\n'
+     '                                 "modeli degil; urunler taban model sayfasinda kalir",\n'
      '    ("Volkswagen", "T4"): "MUTANT",\n}', "KIRMIZI",
      "M21 KUŞAK SAYFASINI DENY'E AL (Volkswagen T4) -> yayın kümesi tam olarak "
      "volkswagen/t4'ü kaybeder; 'kuşak sayfaları KAPANMAZ' hükmü kırılır"),
@@ -1629,8 +1634,11 @@ MUTANTLAR = [
     # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — BMW `K` (1 ürün)
     # ile `K Serisi` (1 ürün) AYRI kovalardı ve kapı 20/20 YEŞİL geçiyordu; `K` kovası ESIK'i
     # geçtiği gün /marka/bmw/k/ TEK HARFLİ sayfası SESSİZCE doğacaktı.
-    ("index.html", 'var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};',
-     'var MODEL_ALIAS = {"Ford|fseries":"fserisi"};', "KIRMIZI",
+    # 🔴 ÇAPA 6 Ağu'da TAZELENDİ: `MODEL_ALIAS` literali Mercedes/Renault birleşmeleriyle
+    # ÇOK SATIRA çıktı ve eski tek-satır çapası 0 eşleşmeye düştü — eksen SESSİZCE
+    # ölçülmüyordu ([[mutasyon-kaniti-yeniden-uretilebilir]]). Çapa yalnız BMW girişine bakar.
+    ("index.html", '{"BMW|k":"kserisi","Ford|fseries":"fserisi",',
+     '{"Ford|fseries":"fserisi",', "KIRMIZI",
      "M29 ÇIPLAK TEK HARF BİRLEŞMESİNİ KALDIR -> `K` yeniden AYRI kova olur (tek harfli "
      "sayfa adayı), ürün TAM YAZIM kovasına ULAŞMAZ; K20 TEK BAŞINA kırmızı yakmalı"),
     ("tools/marka_model_build.py", '    ("BMW", "kserisi"): "K Serisi",\n', "", "KIRMIZI",
@@ -1654,13 +1662,23 @@ MUTANTLAR = [
     # 🔴 ÇAPA 6 Ağu'da TAZELENDİ: `yayimlanir_mi` yargı bloğu H1/H3 kural kollarını da
     # okuyacak şekilde yeniden yazıldı; eski çapa 0 eşleşmeye düşmüştü ve eksen SESSİZCE
     # ölçülmez olmuştu ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+    # 🔴 ÇAPA 6 Ağu'da İKİNCİ KEZ TAZELENDİ — bu sefer ÇAPA DEĞİL, MUTANTIN KENDİSİ
+    # EŞDEĞER olmuştu ([[mutasyon-kaniti-yeniden-uretilebilir]]). ADIM 3'te yargısız kova
+    # BİRİKİMİ TAMAMEN KAPANDI (K21 "BEKLEYEN" 8 -> 0): bugün yargı kapısının TUTTUĞU
+    # hiçbir kova yok, dolayısıyla kapıyı tek başına kaldırmak HİÇBİR sayfa doğurmuyor ve
+    # K21 YEŞİL kalıyordu — eksen sessizce ölçülmez olmuştu. Mutant artık kapıyı kaldırırken
+    # AYNI ZAMANDA kuralın AÇIKLAYAMADIĞI bir envanter girişini düşürüyor: `Suzuki|DR`
+    # TEK JETON + RAKAMSIZ olduğu için ne H1 ne H3 onu yargılayabilir -> sayfa YARGISIZ
+    # doğar ve K21 SIZINTI ekseni TEK BAŞINA kırmızı yanar.
     ("tools/marka_model_build.py",
      '    if g.get("baslik_dogan") and not baslik_yargisi_var_mi(\n'
      '            g.get("marka"), g.get("canon"), g.get("display") or g.get("canon")):\n'
      "        return False",
      "    if False:\n        return False", "KIRMIZI",
-     "M38 YARGI KAPISINI KALDIR -> mimar hükmü BEKLEYEN 340 kovanın eşiği geçenleri sayfa "
-     "olur; K21 SIZINTI eksenini TEK BAŞINA kırmızı yakmalı"),
+     "M38 YARGI KAPISINI KALDIR (+ kuralın açıklayamadığı `Suzuki|DR` girişini düşür) -> "
+     "yargısız kova sayfa olur; K21 SIZINTI eksenini TEK BAŞINA kırmızı yakmalı",
+     [("tools/arama.py",
+       '    ("Suzuki", "DR"): "arac/motosiklet AILE adi (DR serisi)",\n', "")]),
     ("tools/arama.py", '    ("Suzuki", "Escudo"): "arac/motosiklet model adi",\n', "",
      "KIRMIZI",
      "M39 ALLOW ENVANTERİNDEN BİR GİRİŞ DÜŞÜR -> /marka/suzuki/escudo/ sessizce ölür; "
@@ -1686,8 +1704,8 @@ MUTANTLAR = [
      '    ("Audi", "Q3"): "arac/motosiklet model adi",', "YESIL",
      "K21 KONTROL: allow envanterini YENİDEN SIRALA -> küme, kimlik ve davranış AYNI "
      "(daima-kırmızı bir K21 M38/M39'u da geçerdi; kontrol bunu ayırt eder)"),
-    ("index.html", 'var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};',
-     'var MODEL_ALIAS = {"Ford|fseries":"fserisi","BMW|k":"kserisi"};', "YESIL",
+    ("index.html", '{"BMW|k":"kserisi","Ford|fseries":"fserisi",',
+     '{"Ford|fseries":"fserisi","BMW|k":"kserisi",', "YESIL",
      "K20 KONTROL: MODEL_ALIAS'ı YENİDEN SIRALA -> tablo ve davranış AYNI (daima-kırmızı bir "
      "K20 M29/M30'u da geçerdi; kontrol bunu ayırt eder)"),
     ("tools/arama.py",
@@ -1743,7 +1761,12 @@ def _kok_kur(tmp):
 def kendini_test():
     print("MUTASYON — model üyeliği (mutant KOPYAYA uygulanır; gerçek ağaç DEĞİŞMEZ)")
     basarisiz, olcum = [], []
-    for i, (dosya, eski, yeni, beklenen, aciklama) in enumerate(MUTANTLAR, 1):
+    for i, _m in enumerate(MUTANTLAR, 1):
+        dosya, eski, yeni, beklenen, aciklama = _m[:5]
+        # 6. eleman (opsiyonel): EK DÜZENLEME listesi — bir eksen ancak İKİ yerde birden
+        # oynanınca ölçülebiliyorsa tek mutantta yapılır (yarısını yapmak mutantı EŞDEĞER
+        # bırakır ve eksen SESSİZCE ölçülmemiş olur, [[beyan-edilmis-survivor]]).
+        ek_duzenleme = _m[5] if len(_m) > 5 else ()
         tmp = tempfile.mkdtemp(prefix="model-uyelik-mut-")
         try:
             _kok_kur(tmp)
@@ -1763,8 +1786,31 @@ def kendini_test():
                       % (i, "BULUNAMADI" if sayi == 0 else "ÇOK EŞLEŞTİ", sayi, dosya, aciklama))
                 basarisiz.append("M%02d capa %d eslesme" % (i, sayi))
                 continue
+            metin = metin.replace(eski, yeni, 1)
+            # EK DÜZENLEMELER — her biri de TAM BİR KEZ eşleşmeli (aynı fail-closed disiplin).
+            _ek_hata = None
+            for _d2, _e2, _y2 in ek_duzenleme:
+                _yol2 = os.path.join(tmp, *_d2.split("/"))
+                if _yol2 == yol:
+                    _m2 = metin
+                else:
+                    with open(_yol2, encoding="utf-8") as f:
+                        _m2 = f.read()
+                if _m2.count(_e2) != 1:
+                    _ek_hata = "ek capa %d eslesme (%s)" % (_m2.count(_e2), _d2)
+                    break
+                _m2 = _m2.replace(_e2, _y2, 1)
+                if _yol2 == yol:
+                    metin = _m2
+                else:
+                    with open(_yol2, "w", encoding="utf-8") as f:
+                        f.write(_m2)
+            if _ek_hata:
+                print("  HATA M%02d: %s | EKSEN ÖLÇÜLMEDİ -> %s" % (i, _ek_hata, aciklama))
+                basarisiz.append("M%02d %s" % (i, _ek_hata))
+                continue
             with open(yol, "w", encoding="utf-8") as f:
-                f.write(metin.replace(eski, yeni, 1))
+                f.write(metin)
             p = subprocess.run([sys.executable, os.path.join(tmp, "tools", "model-uyelik-kapisi.py"),
                                 "--kok", tmp], capture_output=True, text=True, timeout=1800)
             kirmizi = [s for s in (p.stdout or "").splitlines() if s.strip().startswith("KALDI")]
