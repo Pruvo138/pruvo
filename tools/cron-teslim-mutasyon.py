@@ -154,8 +154,8 @@ M8 = ("M8", "🔴 A3 CAPASI ESKI HALINE (max(kayit_an, yenileme_an)) DONDURULDU 
 M9 = ("M9", "🔴 KADANS KOLU YAYIN YOLUNA SIZDIRILDI: `d1-kadans` job'u `deploy: needs` "
             "listesine eklendi -> D1/ag'a bagimli bir kol TUM EKIBIN yayinini durdurur "
             "(bu depoda olculen kapi-birikimi zarari)", DEPLOY,
-      [("    needs: [build, serit-a2, serit-a3]\n",
-        "    needs: [build, serit-a2, serit-a3, d1-kadans]\n")], True, None)
+      [("    needs: [build, serit-a2, serit-a3, serit-a4]\n",
+        "    needs: [build, serit-a2, serit-a3, serit-a4, d1-kadans]\n")], True, None)
 
 M10 = ("M10", "🔴 ESZAMANLILIK KILIDI SILINDI: uzlastiran isin `concurrency` grubu "
               "kaldirildi -> cron kolu ile push kolu AYNI ANDA kosabilir (D1'e cift "
