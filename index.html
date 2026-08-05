@@ -2528,7 +2528,7 @@
   // --- MARKA KÜRATÖRLÜĞÜ SON ---
 
   // --- MARKA SORGUSU BAŞ (marka adıyla yapılan arama; marker satırlarını değiştirme) ---
-  // 🔴 OKAN HÜKMÜ: "TÜM markalarda sayfa ve arama ürün adetlerinin aynı olması."
+  // 🔴 HEDEF (ürün sahibi kuralı): "TÜM markalarda sayfa ve arama ürün adetlerinin aynı olması."
   // ÖLÇÜLEN SESSİZ HATA (4 Ağu 2026, katalog 18.312 / 128 kanonik marka): `?q=<marka>`
   // ALT-DİZE araması olduğu için 79 markada sayfadan FAZLA ürün gösteriyordu (6.503 kalem):
   // Havalandırma→"Haval" (575) · Mandalı/manuel→"MAN" (3.531) · 43mm→"3M" · Land Rover→
@@ -2538,8 +2538,8 @@
   // KURAL (geçiş): sorgunun TAMAMI bir marka adıysa eşleşme SERBEST METİN değil
   // ÜYELİK ∪ BAŞLIKTA TAM KELİME'dir. Marka OLMAYAN sorgu ("jant kapağı", "menteşe")
   // AYNEN serbest metin kalır — arama semantiğinin geri kalanı DEĞİŞMEZ.
-  // Python ikizi: tools/arama.py (marka_sorgu_kanonu / baslik_marka_uyumlari /
-  // marka_sorgusu_esler) + tools/marka_model_build.py (marka_adi_kanonu).
+  // Sunucu tarafındaki ikiz gövde AYNI kuralı uygular (sorgu kanonu / başlık uyumları /
+  // eşleşme yüklemi + marka adı kanonu); iki taraf tek kaynaktan türer.
   // 🔴 ÖLÇÜLDÜ (5 Ağu): saf üyelik farkı 0/0 yapardı AMA başlıkta markayı tam kelime anıp
   // `marka[]` üyeliği olmayan 469 ürünü (505 kalem) düşürürdü; 125'inin HİÇBİR marka
   // üyeliği yok, yani hiçbir marka sorgusuyla bulunamaz olurlardı (Sierra/Teleflex marin
@@ -2578,8 +2578,8 @@
   // Kelime sınırı: harf/rakam/`+` DIŞI her şey ayıraç. `+` KORUNUR ("Black+Decker" tek
   // jeton kalsın); À-ɏ Latin aksanları içindir ("Citroën" bölünmesin).
   // 🔴 `\w` KULLANILMAZ: JS'te `\w` ASCII-only, Python'da Unicode — iki taraf aksanlı
-  // başlıkta SESSİZCE ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]). tools/arama.py
-  // _MARKA_KELIME_BOL ile BİREBİR aynı sınıf.
+  // başlıkta SESSİZCE ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]). Sunucu tarafındaki
+  // kelime-bölme sınıfıyla BİREBİR aynıdır.
   var MARKA_KELIME_BOL = /[^a-z0-9+À-ɏ]+/;
   var MARKA_BASLIK_AZAMI_KELIME = 3;
   // Başlıkta TAM KELİME geçen kanonik markalar. EN UZUN EŞLEŞME ÖNCE, sonra ilerle:
