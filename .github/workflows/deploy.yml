@@ -2182,9 +2182,21 @@ jobs:
       # onek zorunlulugu (N4)). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
       # (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
       # return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI olctu — nobetci sessizce olurse
-      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 mutant oluyor; olcumu
-      # tekrarlamak icin: python3 tools/ege-bilgi-tavan-mutasyon.py (kapiyi SALT OKUR,
-      # mutasyonu KOPYAYA uygular — CI adimi degil, elde kosulan kanit araci).
+      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 oldurucu mutant OLUYOR ve 3/3
+      # KONTROL mutanti YESIL KALIYOR; olcumu tekrarlamak icin:
+      #   python3 tools/ege-bilgi-tavan-mutasyon.py   (kapiyi SALT OKUR, mutasyonu KOPYAYA
+      #   uygular — CI adimi degil, elde kosulan kanit araci)
+      # 🔴 KONTROL MUTANTI NEDEN VAR (5 Agu): "14/14 kirmizi" tek yonlu bir sayidir; fikstur
+      # seti kaynaga dokunan HER degisiklige kirmizi yansaydi da ayni sayi cikardi ve o halde
+      # her mesru bakim duzenlemesi TUM EKIBIN yayinini durdururdu. C1-C3 (yorum metni · rapor
+      # sure bicimi · tempfile oneki) davranisi degistirmez ve YESIL kalmali; biri kirmizi
+      # yanarsa batarya KIRMIZI verir. Batarya ayrica kumelerden biri BOSSA da KIRMIZI verir
+      # (tek yonlu batarya "her degisiklik kirmizi" halini ayirt EDEMEZ).
+      # PAY SIMULASYONU (ayni duzlem, ayri soru — "kac filament daha sigar?"):
+      #   python3 tools/ege-tavan-pay-simulasyon.py --sablon en-uzun|en-kisa
+      # filamentler.json'a N sentetik kalem ekleyip ege-bilgi.md'yi GECICI AGAC KOPYASINDA
+      # yeniden uretir ve hukmu bu kapinin degerlendir()'inden okur (ikinci tavan mantigi
+      # YAZILMAZ). Canli uc dosyanin sha256'si bas=son dogrulanir. CI adimi DEGIL.
       # ⚠️ ILAN duzlemi UYARI'ya indigi icin oradaki mutantlarin cogu artik EXIT KODUNU degil
       # yalniz TESHIS METNINI bozar -> fiksturler "iceren/icermeyen" metin sartiyla yazilir;
       # sadece exit kodu karsilastiran bir fikstur onlari GOREMEZ.
