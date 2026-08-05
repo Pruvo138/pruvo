@@ -1,5 +1,32 @@
 # DEVAM (KraL) — 5 Agu 2026
 
+## 🟢 IKI DAL MAIN'DE — sozluk `e10a91ce` · cron nabiz esigi `ac533601`
+- **Sozluk (4 ad):** on kosul BAGIMSIZ olculdu — sozluk ACIKKEN `uyum-kapisi` **39/0 YESIL**;
+  pozitif kontrol: 7 kayit onarimindan ONCEKI veriyle (`16501e39`) ayni sozluk **A1 KIRMIZI 38/1**.
+  Sozlugu tuketen kapilar: `altkategori-sinifla-test` 114/0 · `marka-uyelik-test` YESIL ·
+  `model-uyelik-kapisi` 21/21. D1 uc eksen 19.126 birebir (merge oncesi ve sonrasi).
+- **Cron nabiz esigi:** A0/A3 tavani 9→18 sa GEVSEDI, A4 (zarar ekseni) **9 sa'te KALDI**.
+  Mimar tarafinda BAGIMSIZ curutme (dalin fiksturlerinden ayri, 23 iddia / **0 kusur**):
+  ayni teslim rejiminde A0/A3=18 · A4=9; paket damgasi 10,0/14,4/17,0 sa bayatken A4 KIRMIZI,
+  8,0 sa'te yesil. Teslim 96→0 taramasinda esik 3/6/11/15/18 seyredip A5 tabani altinda **9'a
+  GERI DUSUYOR** (kendini susturma yok); 18,4/19/24/30/47 sa sessizlik KIRMIZI (korelme yok).
+  Kapinin kendi kosumu 196 iddia/0 kirmizi · mutasyon **29 oldurucu + 6 kontrol, 0 kusur, sapan 0**
+  · `ci-kapsam-test` YESIL. `deploy.yml` job grafigine dokunulmadi (kapsam 3 dosya, hepsi `tools/`).
+- **Temizlik:** worktree 5→3 (main + korunan 2), iki dal silindi (porcelain temiz + icerik main'de
+  + ana agacta yetim is yok). Ortak kutu 285→215 satir, 4 kapanmis blok arsive TASINDI (silinmedi;
+  285 satirin 284'u kutuda ya da arsivde birebir dogrulandi, fark yalniz frontmatter damgasi).
+
+**🔴 BU TURDAN ACIK KALEM (benim merge'lerimden DEGIL, olculdu):**
+1. `serit-a2` (`marka-arama-d1-test.py`) **KALDI AL3** — `marka_arama` kolonundaki 4 deger kanonik
+   marka/alias degil. ⚠️ `50554385` kosumunda **birebir ayni iddia, birebir ayni 4 adla** zaten
+   kirmiziydi; sozluk merge'i onu ne acti ne kapatti (AL3 `marka_kanon`/alias tablosundan besleniyor).
+   Duzlem: `?q=` gecisi. **Yayin bu yuzden SKIPPED.**
+2. 🔴 `serit-a3` (`jenerator/test/vitrin-kabul.js` test 6) **DETERMINIST DEGIL** — degismemis main'de
+   15 kosum: **13 yesil / 2 kirmizi**, ayni urunle bir kez 1. bir kez 2. kartta. Kok neden
+   `index.html` `VITRIN_SEED = Math.random()`. Kapi `deploy: needs` zincirinde ve `continue-on-error`
+   YOK -> rastgele ~%13 ihtimalle TUM ekibin yayinini durduruyor. Tohum sabitlenmeli ya da iddia
+   "ilk 4"ten "parametrik on blok"a cekilmeli.
+
 ## 🟢 CI NOBETI (12:00 turu) — yayin kosumunun RENGI onarildi, 24 mail Cop'e
 - Kutuda 4 Agu 17:00'den beri birikmis **24** "Run failed" maili tarandi (inbox 7565 mesaj,
   toplu cekim, ornekleme YOK). Dagilim: 21 yayin is akisi + 2 D1 sapma alarmi + 1 yayin erisim alarmi.
