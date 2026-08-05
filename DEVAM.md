@@ -39,6 +39,31 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (00:37 turu) — 🔴 YAYIN ZINCIRI DURMUSTU: SINIF KAPISI KIRMIZISI ONARILDI (lokalde YESIL), PUSH KIMLIK KAPISINDA
+- Kutu: inbox **7566**, TOPLU cekim (taranan 7566 = toplam 7566, ORNEKLEME_RISKI=HAYIR).
+  "Run failed" maili: son ~70 dk'da **3**, kutuda kalmis eski **24**. **Hicbir mail Cop'e
+  TASINMADI** (bu turda dogrulanmis yesil YOK -> silme YOK).
+- 🔴 **GERCEK YAYIN KIRMIZISI (bagimsiz teyit, job duzeyinde):** kosum `31046966630` /
+  `14d40f86` -> `build`=success ama **`serit-a2`=failure**, **`serit-a3`=failure**,
+  **`deploy`=SKIPPED**, **`yayin`=SKIPPED**. Yani yayin zinciri DURDU. Onceki turun "uctan
+  uca yesil" hukmu `061d2918` icindi; **nobetin KENDI commit'i zinciri kirdi.**
+- **KOK NEDEN (logdan alintili):** `tools/devam-sinif-kapisi.py`, izlenen kok defteri
+  `DEVAM.md`'nin 54/60/71. satirlarini **E6 sinifinda** reddetti ("SINIF IHLALI ... Eslesen
+  metin BILEREK yazilmiyor"). `serit-a3` ayni bulgunun kapinin canli-korpus oz-testine
+  yansimasi — **fikstur bayat DEGIL, kapi bozuk DEGIL, kusur METINDE.** Kapi DOGRU calisti.
+- **ONARIM (en kucuk duzeltme):** uc ihlal satiri notr ozete cevrildi, dokum sinif geregi
+  git-disi `DEVAM-ARSIV.md`'ye tasindi. **Kapi betigi DEGISMEDI** (desen daraltilmadi,
+  istisna eklenmedi, `continue-on-error` eklenmedi). Lokal kosum: `serit-a2` **rc=0**,
+  `serit-a3` **rc=0**.
+- 🔴 **PUSH REDDEDILDI — kimlik kapisi:** commit `6afb4642` (yalniz `DEVAM.md`, 24+/29-)
+  lokalde hazir, `main...origin/main [ahead 1]`. `git push` -> "could not read Username";
+  `gh auth status` -> "The token in default is invalid"; SSH anahtari YOK, credential helper
+  osxkeychain'de jeton gecersiz. Yeniden giris OAuth = **OKAN KAPISI**.
+- **ACIK KALEM:** push acilana kadar canli yayin `061d2918`'de kaliyor -> `14d40f86`'nin
+  getirdigi model sayfasi marka uyeligi yuklemi **YAYINDA DEGIL**.
+- **DERS (yeni):** saatlik nobetin KENDI defter yazisi yayin zincirini durdurabilir; alarm
+  kolunun adi/bulgu dokumu izlenen deftere yazilamaz — ozet defterde, dokum arsivde.
+
 ## CI NOBETI (23:37 turu) — 🟢 YAYIN ZINCIRI TAM YESIL; alarm kolu TASARIM GEREGI kirmizi, iki aday dal da REDDEDILDI
 - **Push kapisi ACILDI** (4 turdur kapaliydi): `origin/main` = `061d2918` (23:28). Bekleyen
   commit 0.
