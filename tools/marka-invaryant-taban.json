@@ -1,7 +1,7 @@
 {
   "_not": "MARKA INVARYANT TABANI — bugunku BORC buraya civilendi; kapi yalnizca sayi ARTARSA kirmizi yanar. Dusus de kirmizidir (circir): borc kapandiktan sonra sessizce geri gelmesin. Guncelleme: python3 tools/marka-invaryant-kapisi.py --taban-yaz",
-  "_olcum": "5 Agu 2026 · katalog 18442 urun · marka sayfasi ve `?marka=` kollari canli uc ile 128/128 birebir; `?q=` kolu ARTIK CANLIYI MODELLEMEZ — marka sorgusu bu depoda uyelik yuklemine baglandi (uc henuz benimsemedi).",
-  "arama_fazla_toplam_BLOKLAMAZ": 77,
+  "_olcum": "5 Agu 2026 · katalog 19126 urun · marka sayfasi ve `?marka=` kollari canli uc ile 128/128 birebir; `?q=` kolu ARTIK CANLIYI MODELLEMEZ — marka sorgusu bu depoda uyelik yuklemine baglandi (uc henuz benimsemedi).",
+  "arama_fazla_toplam_BLOKLAMAZ": 70,
   "arama_kayip": {},
   "filtre_fazla": {},
   "filtre_kayip": {
@@ -13,7 +13,7 @@
     "Mini": 1,
     "Opel": 3,
     "Smart": 1,
-    "Volvo": 106
+    "Volvo": 109
   },
   "marka_sayisi": 129
 }
