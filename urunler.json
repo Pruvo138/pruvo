@@ -1,5 +1,1633 @@
 [
   {
+    "id": "honda-s2000-hvac-kontrol-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda S2000 Kalorifer Kontrol Düğmesi",
+    "aciklama": "Honda S2000 kokpitinde güneş etkisiyle yıpranan orijinal kalorifer/klima kontrol düğmelerinin değişimi için üretilen kaplama.\nOrijinal düğme milinin çapına uygun geçme geometrisi taşır.\nUV'ye dayanıklı sert malzeme tercih edilmesi güneş altında solmayı geciktirir.\nYaklaşık dış ölçüler: 30 × 27 × 26 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6005130-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6005130-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6005130-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6005130-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "S2KTOM",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-bardaklik-uzatma",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic Bardaklık Genişletme Eklentisi",
+    "aciklama": "Honda Civic ön konsolundaki standart bardaklığın üzerine oturarak ek bardak/kap yuvası sağlayan genişletme parçası.\nMevcut konsol bardaklık boşluğuna göre ölçülendirilmiştir.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 263 × 196 × 102 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5244246-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5244246-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5244246-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5244246-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JGentry5",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cb-kilometre-sayaci-dugmesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CB Serisi Kilometre Sayacı Sıfırlama Düğmesi",
+    "aciklama": "Honda CB serisi motosikletlerde gösterge panelindeki trip metre sıfırlama miline geçen sürtünme kilitli düğme.\nOrijinal mil çapına uygun geçme geometrisi taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi düğmenin ömrünü uzatır.\nYaklaşık dış ölçüler: 32 × 19 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3586731-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3586731-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3586731-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jdmonkeyfeet",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-dominator-takometre-sinyal-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Dominator Dijital Takometre Sinyal Adaptörü",
+    "aciklama": "Honda Dominator ve benzeri modellerde hız-darbe çeviricisiyle dijital göstergeye bağlanan takometre kablosu için ara adaptör.\nOrijinal kablo bağlantı noktasına uygun geçme geometrisi taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi bağlantının ömrünü uzatır.\nYaklaşık dış ölçüler: 30 × 15 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2656502-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2656502-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2656502-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2656502-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kolotoympas",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-odyssey-sureme-kapi-tamponu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Odyssey Sürme Kapı Lastik Tamponu",
+    "aciklama": "Honda Odyssey yan sürme kapılarının iki tarafındaki durdurucu lastik tamponun değişim parçası.\nOrijinal montaj yuvasına göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi darbe sönümlemesini iyileştirir.\nYaklaşık dış ölçüler: 26 × 20 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2998333-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2998333-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2998333-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2998333-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "daysaregreat",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-pilot-on-havalandirma-kanatciklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Pilot Ön Havalandırma Kanatçığı",
+    "aciklama": "Honda Pilot ön panel havalandırma ızgarasında kırılan yönlendirme kanatçıklarının değişim parçası.\nOrijinal menteşe noktalarına uygun geçme geometrisi taşır.\nEsnek bir malzeme tercih edilmesi kanatçığın hareketini kolaylaştırır.\nYaklaşık dış ölçüler: 95 × 18 × 4 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4943451-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4943451-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4943451-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4943451-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Playercrayon",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-prelude-accord-74-83-aku-filtre-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic/Prelude/Accord (1974-1983) Akü ve Filtre Tutucusu",
+    "aciklama": "1974-1983 model Honda Civic, Prelude ve Accord'ta akü ile hava filtresini yerinde sabitleyen tutucu parça.\nOrijinal motor bölmesi montaj noktalarına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi uzun kullanımda avantaj sağlar.\nYaklaşık dış ölçüler: 250 × 145 × 25 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4746816-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4746816-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4746816-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4746816-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bmpdesign",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-fit-hava-kutusu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Fit Hava Filtresi Kutusu Tutturma Klipsi",
+    "aciklama": "Honda Fit hava filtresi kutusunun yan metal braketine bastırarak kutuyu yerinde tutan tutturma klipsi.\nOrijinal kutu geometrisine uygun geçme noktaları taşır.\nEsnek bir malzeme tercih edilmesi klipsin takılıp çıkarılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 30 × 15 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1580399-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1580399-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1580399-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1580399-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Renoh",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-forza-300-bagaj-kutusu-klipsi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Forza 300 Bagaj Kutusu Kilit Klipsi",
+    "aciklama": "Honda Forza 300 üzerinde kilitli bagaj kutusunun kapanma mekanizmasındaki kırılan klipsin değişim parçası.\nOrijinal kutu geometrisine göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi klipsin ömrünü uzatır.\nYaklaşık dış ölçüler: 59 × 37 × 21 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5416352-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5416352-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5416352-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5416352-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ingmaniac",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-prelude-hoparlor-damlama-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Prelude Kapı Hoparlörü Su Damlama Kapağı",
+    "aciklama": "Honda Prelude kapı hoparlörünü nem ve su damlamasına karşı koruyan kapak parçası.\nOrijinal hoparlör montaj çapına göre ölçülendirilmiştir.\nHava koşullarına dayanıklı malzeme tercih edilmesi hoparlörün ömrünü uzatır.\nYaklaşık dış ölçüler: 145 × 145 × 51 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5895660-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5895660-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5895660-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5895660-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BishopsToenail",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-cam-kolu-makarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic Cam Kolu Makarası",
+    "aciklama": "Honda Civic'te el ile çalışan cam kolunun içindeki kırılan makara mekanizmasının değişim parçası.\nOrijinal kol miline uygun geçme geometrisi taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi makaranın ömrünü uzatır.\nYaklaşık dış ölçüler: 87 × 30 × 24 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4829592-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4829592-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4829592-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4829592-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "koyzumie",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-vfr800-on-sinyal-klipsi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda VFR800 RC46 Ön Sinyal Sabitleme Klipsi",
+    "aciklama": "Honda VFR800 RC46 ön sinyal lambasını gövdeye sabitleyen küçük tutturma klipsinin değişim parçası.\nOrijinal sinyal gövdesi geometrisine göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi klipsin takılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 45 × 16 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4624347-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4624347-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4624347-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4624347-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "llanterner",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cb-cl-cj-360-karburator-tapasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CB/CL/CJ 360 Karbüratör Gaz Mili Tapası",
+    "aciklama": "Honda CB360, CL360 ve CJ360 modellerinde karbüratör gaz miline oturan, sık yerinden çıkan tapa/conta parçasının değişimi.\nOrijinal mil çapına uygun geçme geometrisi taşır.\nEsnek bir malzeme tercih edilmesi sızdırmazlığı iyileştirir.\nYaklaşık dış ölçüler: 13 × 13 × 3 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1171326-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1171326-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1171326-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1171326-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "platoboogie",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-s2000-gosterge-led-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda S2000 Esinli LED Gösterge Kapağı",
+    "aciklama": "Honda S2000 gösterge tasarımından esinlenen, arkasına LED panel takılabilen 17 segmentli gösterge kapağı.\nStandart gösterge çerçevesi ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 77 × 59 × 10 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3674766-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3674766-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3674766-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3674766-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NilsR",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-ct110-lifan125-emis-ara-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CT110 (Lifan 125 Motor) Açılı Emiş Ara Parçası",
+    "aciklama": "Honda CT110 gövdesine Lifan 125 motor takıldığında orijinal emiş sistemini kullanabilmek için karbüratörü açılı konumlandıran ara parça.\nOrijinal hava filtresi kutusu bağlantı noktasına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi bağlantı vida deliğinin kırılmasını önler.\nYaklaşık dış ölçüler: 60 × 36 × 7 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5186186-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5186186-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5186186-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5186186-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jacksalssome1",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-88-91-on-camurluk-plastik-supurgesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic (1988-1991) Ön Çamurluk Plastik Süpürgesi",
+    "aciklama": "1988-1991 model Honda Civic ön çamurluğunun alt kenarındaki plastik süpürge/trim parçasının değişimi.\nOrijinal çamurluk kenar hattına uygun tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi uzun kullanımda avantaj sağlar.\nYaklaşık dış ölçüler: 183 × 60 × 15 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6098682-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6098682-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6098682-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "primzy6551",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-k-serisi-piston-segmani-hizalama-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda K Serisi Piston Segmanı Hizalama Aparatı (87mm)",
+    "aciklama": "Honda K serisi motorlarda piston segman aralığını ölçerken segmanları silindir içinde düz ve terazili tutan yardımcı aparat.\nStandart K serisi piston çapına göre ölçülendirilmiştir.\nSert bir malzeme tercih edilmesi ölçüm hassasiyetini korur.\nYaklaşık dış ölçüler: 104 × 91 × 36 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2806614-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2806614-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2806614-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2806614-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hyudryu",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cbr900-arka-sinyal-delik-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CBR900 (92-99) Arka Sinyal Delik Kapağı",
+    "aciklama": "Honda CBR900 (1992-1999) modellerinde sökülen arka sinyal lambalarının boş kalan montaj deliklerini kapatan kapak seti.\nOrijinal sinyal montaj deliği çapına uygun geçme geometrisi taşır.\nHava koşullarına dayanıklı malzeme tercih edilmesi dış mekan kullanımında avantaj sağlar.\nYaklaşık dış ölçüler: 53 × 30 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3034103-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3034103-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3034103-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3034103-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dobler",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-type-r-fn2-vites-korugu-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic Type R FN2 Vites Körüğü İç Halkası",
+    "aciklama": "Honda Civic Type R FN2 manuel vites kolundaki körüğün gövdeye oturan iç sabitleme halkası.\nOrijinal körük tabanı çapına göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi takılıp çıkarılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 35 × 35 × 33 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2534777-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2534777-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2534777-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2534777-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vorpentine",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-s2000-hardtop-yastikcigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda S2000 Hardtop Montaj Yastıkçığı",
+    "aciklama": "Honda S2000'e sert tavan (hardtop) takılırken yumuşak tavan çerçevesine oturan koruyucu yastıkçık.\nOrijinal çerçeve kesitine göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi tavan ile çerçeve arasında darbe sönümler.\nYaklaşık dış ölçüler: 27 × 20 × 18 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3477047-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3477047-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3477047-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3477047-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jimmyfu",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-grom-airtag-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Grom Alet Bölmesi Takip Etiketi Tutucusu",
+    "aciklama": "Honda Grom üzerindeki alet bölmesine sığan, konum takip etiketini sabit tutan yuva parçası.\nAlet bölmesi iç ölçülerine göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi tutucunun ömrünü uzatır.\nYaklaşık dış ölçüler: 150 × 40 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5383867-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5383867-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5383867-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5383867-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lpitulla",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-nc700x-toz-yag-koruyucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda NC700X Yolcu Toz ve Yağ Koruyucu Panel",
+    "aciklama": "Honda NC700X üzerinde yolcunun sırt ve bölgesini toz/yağ sıçramasından koruyan, yan çanta tutucusuna monte edilen panel.\nStandart yan çanta tutucu vida noktalarına uygun tasarlanmıştır.\nHava koşullarına dayanıklı malzeme tercih edilmesi dış mekan kullanımında avantaj sağlar.\nYaklaşık dış ölçüler: 208 × 90 × 43 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5393637-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5393637-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5393637-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5393637-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "emaklav",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-r18-debriyaj-hizalama-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic R18 (06-15) Debriyaj Hizalama Aparatı",
+    "aciklama": "Honda Civic R18 5 ileri manuel şanzımanda debriyaj balatasını montaj sırasında merkezde tutan hizalama aparatı.\nOrijinal debriyaj göbeği çapına göre ölçülendirilmiştir.\nSert bir malzeme tercih edilmesi hizalama hassasiyetini korur.\nYaklaşık dış ölçüler: 120 × 22 × 22 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5422250-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5422250-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5422250-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5422250-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Deez666",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-dax-far-dugmesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Dax Far Anahtarı Düğmesi",
+    "aciklama": "Honda Dax 50cc üzerinde far/sinyal anahtarının değişim düğmesi.\nOrijinal anahtar gövdesi geometrisine uygun geçme noktaları taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi düğmenin ömrünü uzatır.\nYaklaşık dış ölçüler: 21 × 8 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th807605-1.jpg",
+      "https://media.pruvo3d.com/urunler/th807605-2.jpg",
+      "https://media.pruvo3d.com/urunler/th807605-3.jpg",
+      "https://media.pruvo3d.com/urunler/th807605-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "janblo",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-goldwing-bagaj-kapagi-mandali",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Goldwing (1988-2000) Bagaj Kapağı Mandalı",
+    "aciklama": "1988-2000 model Honda Goldwing üzerinde bagaj (trunk) kapağını kilitleyip yerinde tutan sağ/sol mandal çifti.\nOrijinal kapak menteşe ve kilit noktalarına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi mandalın ömrünü uzatır.\nYaklaşık dış ölçüler: 43 × 34 × 24 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6749763-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6749763-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6749763-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6749763-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ogres_RR",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-accord-cam-motoru-disli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Accord (90-93) Cam Motoru Dişlisi",
+    "aciklama": "1990-1993 model Honda Accord ön kapı cam motorunun aşınan tahrik dişlisinin değişim parçası.\nOrijinal motor mili çapına uygun geçme geometrisi taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi dişlinin ömrünü uzatır.\nYaklaşık dış ölçüler: 56 × 56 × 10 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6931838-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6931838-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6931838-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kazakhstan3D",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-shadow-500-sigorta-kutusu-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Shadow 500 Sigorta Kutusu Kapağı",
+    "aciklama": "Honda Shadow 500 üzerinde sigorta kutusunu toz ve nemden koruyan kapak parçası.\nOrijinal kutu ağzı ölçülerine göre tasarlanmıştır.\nHava koşullarına dayanıklı malzeme tercih edilmesi dış mekan kullanımında avantaj sağlar.\nYaklaşık dış ölçüler: 77 × 72 × 66 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3672200-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3672200-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3672200-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3672200-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KinaCZ",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-ctx700-genisletilmis-sigorta-kutusu-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CTX700N Genişletilmiş Sigorta Kutusu Kapağı",
+    "aciklama": "Honda CTX700N üzerinde standart sigorta kutusu kapağının yerine geçen, ek devre kablolarına yer açan genişletilmiş kapak.\nOrijinal kutu montaj noktalarına göre tasarlanmıştır.\nHava koşullarına dayanıklı malzeme tercih edilmesi dış mekan kullanımında avantaj sağlar.\nYaklaşık dış ölçüler: 113 × 40 × 34 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2125003-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2125003-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2125003-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2125003-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chzdanish",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-x-adv-750-bagaj-alet-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda X-ADV 750 Bagaj Bölmesi Alet Kutusu",
+    "aciklama": "Honda X-ADV 750 bagaj bölmesindeki alet çantası alanına oturan düzenleyici kutu.\nBagaj bölmesi iç ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 222 × 127 × 90 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6911611-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6911611-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6911611-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6911611-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kikeam71",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-civic-96-00-kalorifer-klima-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic (1996-2000) Kalorifer ve Klima Düğmesi",
+    "aciklama": "1996-2000 model Honda Civic konsolunda eksik/kırık kalorifer-klima düğmelerinin değişim parçası.\nOrijinal düğme yuvası ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 30 × 20 × 12 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6542321-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6542321-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6542321-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6542321-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Camone",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-ruckus-arka-stop-lambasi-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Ruckus Arka Stop Lambası Braketi",
+    "aciklama": "Honda Ruckus üzerinde stop lambasını gövdeden biraz daha geriye alarak görünürlüğü artıran, ek ışık montaj delikli braket.\nOrijinal stop lambası montaj noktalarına uygun tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi braketin ömrünü uzatır.\nYaklaşık dış ölçüler: 229 × 69 × 34 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6753203-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6753203-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6753203-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6753203-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "diyWeeb",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-accord-9-vites-bosluk-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Accord 9 Vites Boşa Alma Kapağı",
+    "aciklama": "Honda Accord 9 üzerinde vites boşa alma mekanizmasının erişim deliğini kapatan tapa parçası.\nOrijinal delik ölçülerine göre tasarlanmıştır.\nEsnek bir malzeme tercih edilmesi takılıp çıkarılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 21 × 15 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6400292-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6400292-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6400292-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6400292-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Obey",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-nx250-zincir-kizagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda NX250 Zincir Kayar Kızağı",
+    "aciklama": "Honda NX250 (ve AX-1 uyumlu) üzerinde artık tedarik edilemeyen zincir kayar kızağının değişim parçası.\nOrijinal şase montaj noktalarına göre tasarlanmıştır.\nAşınmaya dayanıklı sert malzeme tercih edilmesi kızağın ömrünü uzatır.\nYaklaşık dış ölçüler: 65 × 35 × 26 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5447362-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5447362-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5447362-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5447362-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dhoff86",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-accord-99-04-on-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Accord (1999-2004) 6.5 İnç Ön Hoparlör Adaptörü",
+    "aciklama": "1999-2004 model Honda Accord orijinal ön hoparlör yuvasına 6.5 inç hoparlör sığdırmak için ara adaptör plakası.\nOrijinal hoparlör montaj deliklerine göre ölçülendirilmiştir.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 168 × 165 × 20 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5251025-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5251025-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5251025-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5251025-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mindmatter1216",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-st1300-telefon-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda ST1300 Pan European Telefon Tutucusu",
+    "aciklama": "Honda ST1300 Pan European üzerinde gövdeye delik açmadan orta konsola monte edilen telefon tutucu.\nOrijinal konsol yüzeyi geometrisine uygun tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi tutucunun ömrünü uzatır.\nYaklaşık dış ölçüler: 173 × 58 × 22 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3647292-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3647292-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3647292-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3647292-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "m_baczek",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cb750-cb900-depo-yastikcigi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CB750 / CB900 Yakıt Deposu Destek Yastıkçığı",
+    "aciklama": "Honda CB750 ve CB900 üzerinde yakıt deposunun şase üzerine oturduğu lastik destek yastıkçığının değişim parçası.\nOrijinal depo taban geometrisine göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi titreşim sönümlemesini iyileştirir.\nYaklaşık dış ölçüler: 115 × 55 × 37 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6673751-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6673751-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6673751-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6673751-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PopDukez",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-cb400n-motor-calistirma-dugmesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CB400N Motor Çalıştırma Düğmesi",
+    "aciklama": "Honda CB400N gidon anahtar grubunda motor çalıştırma düğmesinin değişim parçası.\nOrijinal düğme yuvası çapına uygun geçme geometrisi taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi düğmenin ömrünü uzatır.\nYaklaşık dış ölçüler: 14 × 12 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3809605-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3809605-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3809605-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3809605-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aquix",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-pa50-karburator-ust-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda PA50 Karbüratör Üst Kapağı",
+    "aciklama": "Honda PA50 (Camino/Hobbit) üzerinde karbüratör üst kapağının değişim parçası.\nOrijinal karbüratör gövdesi ağzına uygun geçme geometrisi taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi kapağın ömrünü uzatır.\nYaklaşık dış ölçüler: 23 × 23 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4712936-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4712936-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4712936-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4712936-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nys1",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-hid-ampul-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic HID Ampul Adaptörü",
+    "aciklama": "Honda Civic far grubuna sonradan takılan HID ampulü orijinal konumda ve doğru açıda tutan ara adaptör.\nOrijinal far duyu geometrisine göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi adaptörün ömrünü uzatır.\nYaklaşık dış ölçüler: 30 × 30 × 20 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4143526-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4143526-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4143526-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4143526-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wheelwizard",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-accord-orta-konsol-duzenleyici-2021",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Accord (2021) Orta Konsol Düzenleyici",
+    "aciklama": "2021 model Honda Accord orta konsolundaki boş alanı bölmelere ayıran, farklı boyutlarda ayırıcılarla özelleştirilebilen düzenleyici.\nMevcut konsol boşluğuna göre boyutlandırılmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 291 × 82 × 4 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5420124-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5420124-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5420124-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5420124-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "padrino73",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-monkey-gaz-kolu-tutamagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Monkey Gaz Kolu Tutamağı",
+    "aciklama": "Honda Monkey ve Skyteam Monkey 50 gidon çapına uygun gaz kolu tutamağının değişim parçası.\nStandart gidon çapına göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi tutuşu iyileştirir.\nYaklaşık dış ölçüler: 112 × 36 × 34 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4129513-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4129513-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4129513-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4129513-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Timovol",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cr-v-2004-termos-bardaklik-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-V (2004) 32OZ Termos Bardaklık Adaptörü",
+    "aciklama": "2004 model Honda CR-V bardaklığına geniş çaplı 32OZ termos/matara sığdırmak için ara adaptör.\nMevcut bardaklık boşluğuna göre ölçülendirilmiştir.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 97 × 97 × 74 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4528125-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4528125-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4528125-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4528125-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "negativ72rus",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cbf125-disli",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CBF125 Aşınan Ara Dişli",
+    "aciklama": "Honda CBF125 üzerinde hızlı aşınan bir ara dişlinin değişim parçası.\nOrijinal dişli mili çapına uygun geçme geometrisi taşır.\nAşınmaya dayanıklı sert malzeme tercih edilmesi dişlinin ömrünü uzatır.\nYaklaşık dış ölçüler: 43 × 11 × 11 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4585423-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4585423-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4585423-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4585423-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cmarinv2005",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-pa50-arka-camurluk-kablo-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda PA50 Arka Çamurluk Kablo Tutucusu",
+    "aciklama": "Honda PA50 (Camino/Hobbit) üzerinde arka çamurluk kablolarını yerinde tutan klips parçası.\nOrijinal çamurluk kenar geometrisine uygun geçme noktaları taşır.\nEsnek bir malzeme tercih edilmesi klipsin takılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 88 × 40 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3740847-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3740847-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3740847-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3740847-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nys1",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-hornet-tutamac-tapasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Hornet (1999-2006) Yolcu Tutamağı Delik Tapası",
+    "aciklama": "1999-2006 model Honda Hornet üzerinde yolcu tutamağı sökülünce boş kalan montaj deliğini kapatan tapa.\nOrijinal tutamak montaj deliği çapına uygun geçme geometrisi taşır.\nHava koşullarına dayanıklı malzeme tercih edilmesi dış mekan kullanımında avantaj sağlar.\nYaklaşık dış ölçüler: 10 × 10 × 0 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5078345-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5078345-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5078345-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5078345-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MrDB",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-africa-twin-yaglayici-sase-ara-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Africa Twin CRF1000 Zincir Yağlayıcı Şase Ara Parçası",
+    "aciklama": "Honda Africa Twin CRF1000 şasesine sonradan takılan zincir yağlayıcı ünitesinin montajı için ara parça.\nOrijinal şase montaj noktalarına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi ara parçanın ömrünü uzatır.\nYaklaşık dış ölçüler: 61 × 38 × 22 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2321250-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2321250-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2321250-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2321250-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bmacw",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-kapi-siridi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic Kapı Süsleme Şeridi Klipsi",
+    "aciklama": "Honda Civic kapı kenarındaki süsleme şeridini gövdeye sabitleyen tutturma klipsi.\nOrijinal şerit montaj deliğine uygun geçme geometrisi taşır.\nEsnek bir malzeme tercih edilmesi klipsin takılıp çıkarılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 18 × 18 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4012142-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4012142-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4012142-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4012142-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Timbiz",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-x-adv-750-lastik-basinc-sensoru-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda X-ADV 750 Lastik Basınç Sensörü Ekranı Braketi",
+    "aciklama": "Honda X-ADV 750 üzerinde sonradan takılan lastik basınç sensörü ekranını gösterge çevresine sabitleyen braket.\nOrijinal gösterge plastik kapağı geometrisine göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi braketin ömrünü uzatır.\nYaklaşık dış ölçüler: 108 × 35 × 30 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5639168-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5639168-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5639168-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5639168-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xVeMax",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-magna-voltmetre-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Magna Voltmetre Montaj Tutucusu",
+    "aciklama": "Honda Magna V30 üzerinde sonradan takılan voltmetre/saat ünitesini standart gidon çapına sabitleyen tutucu.\nStandart 7/8 inç gidon çapına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi tutucunun ömrünü uzatır.\nYaklaşık dış ölçüler: 72 × 55 × 3 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4853353-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4853353-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4853353-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4853353-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "trainscarfacedonut",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-fit-2015-hava-filtresi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Fit (2015) Hava Filtresi Kutusu Klipsi",
+    "aciklama": "2015 model Honda Fit hava filtresi kutusunun kapağını sabitleyen tutturma klipsinin değişim parçası.\nOrijinal kutu geometrisine göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi klipsin takılıp çıkarılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 32 × 16 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4862090-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4862090-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4862090-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4862090-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ducman999",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-shadow-amortisor-plaka-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Shadow Amortisör Tabanlı Plaka Tutucusu",
+    "aciklama": "Honda Shadow 750 üzerinde arka amortisör tabanına monte edilen plaka tutucusu.\nOrijinal amortisör taban montaj noktalarına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi tutucunun ömrünü uzatır.\nYaklaşık dış ölçüler: 180 × 109 × 89 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5929694-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5929694-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5929694-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5929694-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ugglymobile",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-hrv-motor-korumasi-klips-pim-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda HR-V Motor Koruma Kapağı Klips ve Pim Seti",
+    "aciklama": "Honda HR-V alt motor koruma kapağını gövdeye sabitleyen tutturma klipsi ve pim setinin değişimi.\nOrijinal montaj deliklerine uygun geçme geometrisi taşır.\nEsnek bir malzeme tercih edilmesi takılıp çıkarılmasını kolaylaştırır.\nYaklaşık dış ölçüler: 22 × 14 × 14 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3772032-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3772032-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3772032-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3772032-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Oko_3D",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cr-z-hava-yastigi-isik-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-Z Hava Yastığı Uyarı Işığı Braketi",
+    "aciklama": "Honda CR-Z EX (Navigasyonlu) modelinde sonradan takılan ses sistemi sonrası boşta kalan hava yastığı/dörtlü uyarı ışığı düğmesini sabitleyen braket.\nOrijinal konsol boşluğuna göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 27 × 25 × 12 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5977143-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5977143-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5977143-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5977143-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JamesonLA",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-transalp-xl570-spot-far-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Transalp XL570 Ek Spot Far Braketi",
+    "aciklama": "Honda Transalp XL570 üzerinde ek spot farları gövdeye sabitleyen montaj braketi.\nOrijinal gövde montaj noktalarına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi braketin ömrünü uzatır.\nYaklaşık dış ölçüler: 188 × 38 × 30 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6103300-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6103300-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6103300-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6103300-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tumad",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-dominator-rd02-emis-borusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Dominator RD02 Emiş Borusu",
+    "aciklama": "Honda Dominator RD02 üzerinde orijinal emiş borusunun yerine geçen değişim parçası.\nOrijinal boru bağlantı noktalarına göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi sızdırmazlığı iyileştirir.\nYaklaşık dış ölçüler: 192 × 78 × 77 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5577355-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5577355-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5577355-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5577355-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Babaone",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-pioneer-1000-genisletilmis-cam-kelepcesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Pioneer 1000 Genişletilmiş Ön Cam Kelepçesi",
+    "aciklama": "Honda Pioneer 1000 ön camının standart kelepçesinden daha uzun, camın daha geniş açılmasına imkan veren kelepçe.\nOrijinal cam çerçevesi kalınlığına göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi kelepçenin ömrünü uzatır.\nYaklaşık dış ölçüler: 224 × 68 × 25 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5105140-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5105140-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5105140-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5105140-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mattdahack",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-prelude-80-82-stereo-on-panel-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Prelude (1980-1982) Orijinal Teyp Ön Panel Kapağı",
+    "aciklama": "1980-1982 model Honda Prelude'da opsiyonel FM/AM teyp ünitesinin ön panel kapağının yeniden üretim parçası.\nOrijinal panel çerçevesi ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 209 × 65 × 16 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4750455-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4750455-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4750455-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4750455-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Parzval47",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-xr100-jant-kilidi-delik-tapasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda XR100 Jant Kilidi (Rimlock) Delik Tapası",
+    "aciklama": "Honda XR100 üzerinde yol yarışı için sökülen jant kilidinin boş kalan deliğini kapatan tapa parçası.\nOrijinal jant kilidi deliği çapına uygun geçme geometrisi taşır.\nDarbeye dayanıklı sert malzeme tercih edilmesi tapanın ömrünü uzatır.\nYaklaşık dış ölçüler: 14 × 13 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4739784-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4739784-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4739784-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4739784-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tiger666",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-civic-2006-tiz-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic (2006) Hatchback Tiz Hoparlör Montaj Adaptörü",
+    "aciklama": "2006 model Honda Civic Hatchback'te orijinal montaj noktalarına dokunmadan aftermarket tiz hoparlörü sabitleyen ara adaptör.\nOrijinal montaj yuvası ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 53 × 53 × 12 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5966372-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5966372-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5966372-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5966372-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tdmax",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cbr600rr-07-12-egzoz-ucu-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CBR600RR (2007-2012) Egzoz Ucu Kapağı",
+    "aciklama": "Honda CBR600RR (2007-2012) egzoz ucundaki boşluğu kapatan kozmetik kapak parçası.\nOrijinal egzoz ağzı çapına göre ölçülendirilmiştir.\nSıcaklığa dayanıklı sert malzeme tercih edilmesi kapağın ömrünü uzatır.\nYaklaşık dış ölçüler: 152 × 83 × 59 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4243198-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4243198-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4243198-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cademan40",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-cbr600f-kaporta-onarim-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CBR600F Kaporta Onarım Parçası Seti",
+    "aciklama": "Honda CBR600F kaportasında kırılan bağlantı bölümlerini onaran destek parçaları seti.\nOrijinal kaporta bağlantı noktalarına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi onarımın ömrünü uzatır.\nYaklaşık dış ölçüler: 51 × 42 × 8 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3834351-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3834351-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3834351-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3834351-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Georgew221",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-k20-24-ust-emis-flansi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda K20/K24 Üst Emiş Flanşı",
+    "aciklama": "Honda K20/K24 motor swap projelerinde emiş manifoldu bağlantısı için üretilen üst flanş parçası.\nOrijinal silindir kapağı emiş yüzeyine göre ölçülendirilmiştir.\nSert bir malzeme tercih edilmesi bağlantı sağlamlığını artırır.\nYaklaşık dış ölçüler: 294 × 68 × 5 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5662428-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5662428-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5662428-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5662428-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AmazingWhiteboy",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-super-cub-supap-yayi-sikistirma-ucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Super Cub 50cc Supap Yayı Sıkıştırma Aparatı Ucu",
+    "aciklama": "Honda Super Cub 50cc motorunda supap yayını sökerken kullanılan sıkıştırma aparatının değişim ucu.\nSupap yayı tablasının standart çapına göre ölçülendirilmiştir.\nSert bir malzeme tercih edilmesi aparatın ömrünü uzatır.\nYaklaşık dış ölçüler: 50 × 25 × 25 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5848505-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5848505-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5848505-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5848505-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Futeneco",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "honda-dax-siluet-dekor",
+    "kategori": "Dekorasyon",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Dax Motosiklet Siluet Duvar Dekoru",
+    "aciklama": "Honda Dax motosikletinin ince çizgi-kontur siluetiyle işlenmiş duvar/masa dekor parçası.\nİnce kesitli tek parça geometriyle tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 187 × 179 × 2 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7109351-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7109351-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7109351-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7109351-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CacamanPCMR",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-civic-ep-orta-panel-gozlu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic 7. Nesil (EP) Cepli Orta Konsol Paneli",
+    "aciklama": "Honda Civic 7. nesil (EP) orta konsoluna monte edilen, küçük eşya cebi ve medya cihazı yuvası bulunan panel.\nOrijinal konsol boşluğu ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 228 × 120 × 108 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7270000-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7270000-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7270000-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7270000-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kova23",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-pilot-2023-2026-konsol-cekmecesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Pilot (2023-2026) Gösterge Paneli Çekmecesi",
+    "aciklama": "Honda Pilot (2023-2026) gösterge panelindeki boş girintiye oturan küçük eşya çekmecesi.\nOrijinal panel girintisi ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 99 × 95 × 47 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7317189-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7317189-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7317189-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7317189-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "IdPay2CThat",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-navi-emis-destek-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Navi Emiş Filtresi Destek Parçası",
+    "aciklama": "Honda Navi üzerinde sonradan takılan hava filtresinin emiş ağzını sabit tutan destek parçası.\nOrijinal emiş ağzı çapına göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi destek parçasının ömrünü uzatır.\nYaklaşık dış ölçüler: 67 × 52 × 20 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6492772-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6492772-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6492772-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6492772-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raguvian",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-africa-twin-sis-far-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Africa Twin CRF1000 Sis Farı Tutucusu",
+    "aciklama": "Honda Africa Twin CRF1000 orijinal çarpma barlarına uyumlu aftermarket sis farlarını sabitleyen tutucu braket.\nOrijinal çarpma barı çapına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi tutucunun ömrünü uzatır.\nYaklaşık dış ölçüler: 111 × 51 × 19 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6816491-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6816491-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6816491-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6816491-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "malaguti_KRD",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-v6-emis-manifoldu-koruma-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda V6 Motor Emiş Manifoldu Koruma Plakası",
+    "aciklama": "Honda V6 motorlarda supap ayarı/bakım sırasında emiş kanallarını toz ve düşen parçalardan koruyan kapak plakası; aynı zamanda alet/vida için tepsi görevi görür.\nOrijinal emiş manifoldu yüzeyine göre ölçülendirilmiştir.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 327 × 81 × 11 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6791872-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6791872-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6791872-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6791872-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "D_Fresh",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-sl100-cl100-lastik-parca-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda SL100/CL100 Lastik Parça Seti",
+    "aciklama": "Honda SL100, CL100, XL100 ve CB100 modellerinde kullanılan çeşitli lastik conta ve tampon parçalarının seti.\nOrijinal parça ölçülerine göre tasarlanmıştır.\nEsnek bir malzeme tercih edilmesi sızdırmazlığı iyileştirir.\nYaklaşık dış ölçüler: 210 × 146 × 70 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6449848-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6449848-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6449848-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6449848-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JeffDyer",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-af18-karburator-izolatoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda AF18 (Dio Serisi) Karbüratör İzolatörü",
+    "aciklama": "Honda AF18 (Dio ve benzeri) skuterlerde karbüratörü emiş manifolduna bağlayan izolatör parçasının değişimi.\nOrijinal karbüratör ağzı çapına göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi titreşim sönümlemesini iyileştirir.\nYaklaşık dış ölçüler: 55 × 35 × 3 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6688045-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6688045-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6688045-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6688045-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "marcellmesz",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-valkyrie-alternator-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Valkyrie Alternatör Kapağı",
+    "aciklama": "Honda Valkyrie üzerinde alternatör bölmesini kapatan koruma kapağı.\nOrijinal motor gövdesi vida noktalarına göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi kapağın ömrünü uzatır.\nYaklaşık dış ölçüler: 172 × 149 × 137 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6974762-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6974762-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6974762-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6974762-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pvt_Douche",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-ridgeline-2024-arka-kapak-durdurucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Ridgeline (2024) Arka Kapak Durdurucu",
+    "aciklama": "Honda Ridgeline (2024) eğimli zeminde park edildiğinde arka kapağın (tailgate) kapanmasını önleyen destek parçası.\nBitişik kaporta hattına göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi uzun kullanımda avantaj sağlar.\nYaklaşık dış ölçüler: 76 × 68 × 20 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7118626-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7118626-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7118626-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7118626-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "klgnnn",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-acty-arka-jant-merkez-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Acty HX/VX Jantları için Arka Merkez Kapağı",
+    "aciklama": "Honda Acty HX/VX jantlarının arka aksında somun ile çakışmadan takılabilen genişletilmiş merkez kapağı.\nOrijinal jant merkez deliği çapına göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi kapağın ömrünü uzatır.\nYaklaşık dış ölçüler: 65 × 65 × 25 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6301817-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6301817-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6301817-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6301817-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FatJanky",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-cr-v-3-nesil-kapi-durdurucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-V 3. Nesil (2008) Kapı Durdurucu Elemanı",
+    "aciklama": "Honda CR-V 3. nesil (2008) modelinde kapı açıklık sınırlayıcısının aşınan iç elemanının değişimi.\nOrijinal mekanizma ölçülerine göre tasarlanmıştır.\nAşınmaya dayanıklı sert malzeme tercih edilmesi elemanın ömrünü uzatır.\nYaklaşık dış ölçüler: 24 × 16 × 12 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6633483-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6633483-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6633483-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6633483-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "marian1414",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-nighthawk-650-hava-temizleyici-borulari",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Nighthawk 650 (1983) Hava Temizleyici Bağlantı Boruları",
+    "aciklama": "1983 model Honda Nighthawk 650 üzerinde hava filtresi kutusunu karbüratörlere bağlayan sağ/sol boruların değişim seti.\nOrijinal kutu ve karbüratör bağlantı ağızlarına göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi sızdırmazlığı iyileştirir.\nYaklaşık dış ölçüler: 135 × 109 × 94 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7028768-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7028768-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7028768-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7028768-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "QB89Dragon",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-civic-16-21-koruma-plakasi-vidasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic (2016-2021) Koruma Plakası Çeyrek Tur Vidası",
+    "aciklama": "Honda Civic (2016-2021) alt koruma plakasını yerinde tutan çeyrek tur vidalarından birinin değişim parçası.\nOrijinal vida yuvası ölçülerine göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi vidanın ömrünü uzatır.\nYaklaşık dış ölçüler: 20 × 20 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6841525-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6841525-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6841525-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6841525-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WizardyMcWiz",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-crv-kaput-mandali-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-V Kaput Açma Mandalı Kolu",
+    "aciklama": "Honda CR-V üzerinde sık kırılan kaput açma mandalı kolunun kolay kavrama halkalı değişim parçası.\nOrijinal mandal gövdesi geometrisine göre tasarlanmıştır.\nDarbeye dayanıklı sert malzeme tercih edilmesi kolun ömrünü uzatır.\nYaklaşık dış ölçüler: 48 × 41 × 35 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3988840-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3988840-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3988840-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3988840-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DaveOB",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-cr-v-2006-multimedya-cerceve-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-V (2006) 7 İnç Multimedya Çerçeve Braketi",
+    "aciklama": "2006 model Honda CR-V (2. nesil) konsoluna 7 inç aftermarket multimedya ünitesi sığdırmak için çerçeve ve montaj braketi.\nOrijinal konsol boşluğu ölçülerine göre tasarlanmıştır.\nGenel kullanıma dayanıklı sert malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 223 × 110 × 57 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6916679-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6916679-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6916679-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6916679-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "waffqle",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "honda-accord-euro-ballast-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Accord (Euro) Xenon Balast Montaj Adaptörü",
+    "aciklama": "Honda Accord (Euro) farlarındaki orijinal büyük balast montaj noktalarına küçük gövdeli aftermarket xenon balast sığdırmak için ara adaptör.\nOrijinal montaj deliklerine göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi adaptörün ömrünü uzatır.\nYaklaşık dış ölçüler: 122 × 121 × 8 mm.",
+    "fiyat": "270 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5494789-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5494789-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5494789-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5494789-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Terminator_BG",
+      "tur": "Creative Commons - Attribution - No Derivatives"
+    }
+  },
+  {
+    "id": "honda-cx500-vites-korugu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CX500 Vites Pedalı Körüğü",
+    "aciklama": "Honda CX500 (CX650, GL500 ve GL650 ile de uyumlu olabilir) vites pedalı miline geçen lastik körüğün değişim parçası.\nOrijinal pedal mili çapına göre ölçülendirilmiştir.\nEsnek bir malzeme tercih edilmesi körüğün ömrünü uzatır.\nYaklaşık dış ölçüler: 37 × 28 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6523275-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6523275-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6523275-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6523275-4.jpg"
+    ]
+  },
+  {
+    "id": "honda-elite-far-ampulu-yuvasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Elite MR16 Far Ampulü Yuvası (52 Derece)",
+    "aciklama": "Honda Elite skuterinde düşük güç tüketimli MR16 LED ampulü orijinal far gövdesine 52 derece açıyla konumlandıran yuva parçası.\nOrijinal far gövdesi ağzına göre ölçülendirilmiştir.\nDarbeye dayanıklı sert malzeme tercih edilmesi yuvanın ömrünü uzatır.\nYaklaşık dış ölçüler: 124 × 68 × 59 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th246587-1.jpg",
+      "https://media.pruvo3d.com/urunler/th246587-2.jpg",
+      "https://media.pruvo3d.com/urunler/th246587-3.jpg",
+      "https://media.pruvo3d.com/urunler/th246587-4.jpg"
+    ]
+  },
+  {
     "id": "honda-gx160-hava-filtresi-adaptoru",
     "kategori": "Jeneratör",
     "marka": [
