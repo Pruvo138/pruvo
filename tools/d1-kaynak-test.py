@@ -209,7 +209,7 @@ print("     bir noktadan gecer (main'deki `globals()[\"URUNLER\"]` atamasi) ve o
 print("     C3/C4'te yapisal olarak olculur.")
 print("  2. Bayraksiz kosumun TAM BAYT ciktisi, degisiklik ONCESI surumle burada")
 print("     karsilastirilmaz (HEAD artik bayragi iceriyor -> kiyas totolojik olurdu).")
-print("     O kiyas bir kez ELLE olculdu, sayisi RAPOR-MIMARA.md'de.")
+print("     O kiyas bir kez ELLE olculdu, sayisi muhendis raporunda.")
 
 print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
 sys.exit(1 if kalan[0] else 0)
