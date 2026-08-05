@@ -12,7 +12,7 @@ Bu betik oradan bulur; istenirse ürünleri tools/duzelt.py --sil ile kaldırır
 (guard'ın meşru yolu) ve R2'deki görsellerini siler.
 
 🔴 R2 SİLME ARTIK KALDIRMAYI DURDURAMAZ (30 Tem 2026, K1):
-`pruvo-media` kovasında Bucket Lock + 30 gün retention var → kova FİİLEN append-only:
+Görsel kovasında Bucket Lock + retention penceresi var → kova FİİLEN append-only:
 silme ve aynı anahtara yazma `HTTP 409 ObjectLockedByBucketPolicy` ile REDDEDİLİYOR.
 Eskiden `sil_ve_dogrula` çağrısı try/except DIŞINDAydı ve `duzelt.py --sil` adımı bu
 döngüden SONRA geliyordu → ilk 409'da betik patlıyor, ürün siteden HİÇ kalkmıyordu

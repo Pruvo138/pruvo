@@ -2417,7 +2417,7 @@ def kendini_test():
                  '    "notes": [\n      {\n        "text": "D1 DB exceeded its CPU time '
                  'limit and was reset. [code: 7429]"\n      }\n    ],\n'
                  '    "kind": "error",\n    "name": "APIError",\n    "code": 7429,\n'
-                 '    "accountTag": "dbbe2a8620c3c3a57c586b8a98142fb9"\n  }\n}')
+                 '    "accountTag": "00000000000000000000000000000000"\n  }\n}')
     dogrula("V65 TANI POZITIF (GERCEK CI YUKU): 7429 CPU-reset zarfi -> GECICI",
             wrangler_hata_tanisi(_YUK_7429) == "gecici", wrangler_hata_tanisi(_YUK_7429))
     _bicimler = {

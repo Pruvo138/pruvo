@@ -49,7 +49,13 @@ class_name = "OnizlemeDerleyici"
 # ve bu iki varyanti TASIMIYORDU). CI run 30507143659; duman testi gercek OpenSCAD ile 44
 # iddia/0 sorun (hacim esdegerlik toleransi 1e-4, yazi ayak izi 2e/2f dahil).
 # GERI DONUS NOKTASI: onceki digest sha256:4c504f47072b7a6c745a2f448ae6b73998a9be35928c99647532552af7065f0d
-image = "registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici@sha256:29232677aa711d9755c1f738d1b8dc88c6c97bd6e4f0f5e74c7341d3dfae9663"
+# 🔴 `__HESAP_KIMLIGI__` YER TUTUCUDUR ve OYLE KALIR (5 Agu 2026): registry yolundaki hesap
+# kimligi bu PUBLIC depoda DUZ METIN durmaz. Deploy dosyasi komutla uretilir:
+#     CLOUDFLARE_ACCOUNT_ID=<kimlik> python3 tools/onizleme-deploy-hazirla.py
+#     npx wrangler deploy -c onizleme/wrangler.deploy.toml      # uretilen dosya git-DISI
+# Bu dosya DOGRUDAN deploy edilirse wrangler yer tutucuyu cozemez ve YUKSEK SESLE duser
+# (fail-closed; sessizce yanlis imaj cekilmez).
+image = "registry.cloudflare.com/__HESAP_KIMLIGI__/pruvo-onizleme-derleyici@sha256:29232677aa711d9755c1f738d1b8dc88c6c97bd6e4f0f5e74c7341d3dfae9663"
 max_instances = 2
 # 1/4 vCPU + 1 GiB: OpenSCAD derlemesi CPU isi; en kucuk tip (1/16 vCPU) olcumde
 # yavas kalirsa buradan buyutulur (kapi-1 raporuna bak).

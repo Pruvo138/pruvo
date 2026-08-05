@@ -663,7 +663,7 @@ async function test19() {
   ol("19c Purchase TEK KEZ gonderildi (Meta)", metaCagri.length === 1,
     "cagri=" + metaCagri.length);
 
-  // --- 19.2: olcum izi VAR ama durum elle 'havale-bekliyor'a dondurulmus (ham SQL) ---
+  // --- 19.2: olcum izi VAR ama durum worker DISINDAN 'havale-bekliyor'a dondurulmus ---
   // Durum makinesi bu kez gecise IZIN VERIR; ikinci savunma (durum_gecmisi "o":1) tutmali.
   const satir2 = havaleSatiri({
     siparis_no: "PR-260720-021133-IZL",

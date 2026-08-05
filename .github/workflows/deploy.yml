@@ -249,10 +249,13 @@ jobs:
         continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "CLOUDFLARE_API_TOKEN secret yok — D1 senkronu atlandi."
+          # Kimlik IKI parcali: token + hesap kimligi (kimlik 5 Agu 2026'da kaynaktan
+          # secret'a tasindi). Ikisinden biri yoksa wrangler zaten calisamaz -> ayni
+          # atlama kolu, ayni sesle.
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secret yok — D1 senkronu atlandi."
             exit 0
           fi
           if ! python3 tools/d1-sync.py --bayatlik; then
@@ -3031,10 +3034,10 @@ jobs:
       - name: "Atomik yayin: canli 200 dogrulanan taslaklari yayina al"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "CLOUDFLARE_API_TOKEN secret yok — yayin adimi KOSAMADI (taslaklar taslak kalir)."
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secret yok — yayin adimi KOSAMADI (taslaklar taslak kalir)."
             exit 1
           fi
           python3 tools/yayin-kapisi.py --yayinla
@@ -3042,5 +3045,5 @@ jobs:
         if: always()
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python3 tools/yayin-kapisi.py --durum

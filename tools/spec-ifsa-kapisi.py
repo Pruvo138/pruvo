@@ -23,7 +23,16 @@ korkuyu OLCUMLE cozer: gercek bulgudan turemis dar eksenler, olculmus yuzey ayri
 YOL DEGIL ICERIK bagli muafiyet.
 
 🔴 BU KAPI TEMIZLIK YAPMAZ. Bulunan satirlarin duzeltilmesi AYRI karardir (Okan).
-Kapinin bugun KIRMIZI yanmasi BEKLENEN ve DOGRU sonuctur.
+
+DURUM (5 Agu 2026): kapi TEMIZ (0 isabet). Iki is birlikte yapildi:
+  (1) KAYNAK ONARIMI — 4 gercek ifsa (F: yonetim kimlik yolundaki uzunluk-bagimli
+      karsilastirma KAPATILDI; D: hesap tanimlayicisi 13/13 kaynaktan kaldirildi;
+      E: iki belgedeki islem ayrintisi git-disi arsive tasindi) + 2 supheli yargilandi.
+  (2) DESEN DARALTMASI — asagidaki EKO ELEMESI. Once 164 isabet vardi ve OLCULDU ki
+      158'i (%96,3) "silsen de ifsa yerinde kalir" sinifindaydi; 4 gercek bulgu o
+      gurultunun icinde saklanmisti. Daraltma jetonu ICRA yuzeyinde de gecen ANLATIM
+      satirini ihlal saymaz — ama sentetik jeton sondasi ALTI EKSENDE de KIRMIZI yanar
+      (fail-open kontrolu; IDDIA-EKO1 + MUT-EKO-GENIS bunu capalar).
 
 🔴 YUZEY AYRIMI — ISLEVI GEREGI TASINAN AD KAPIYA GIRMEZ
 ─────────────────────────────────────────────────────────
@@ -135,6 +144,9 @@ kapi SERIT A'dadir, SUPHEDE A. Bu kapi o sinifa GIRMEZ ve bu OLCULDU:
    tools/is-akisi-kapisi.py::SERIT_B girisi SILINIR (taban 42 -> 41). Kosul rc'DIR,
    "bakildi temiz" DEGILDIR. ARA HEDEF olculebilir: `--dokum` ciktisindaki EKSEN-A ve
    EKSEN-F sayilari 0'a inince kalan eksenler icin ayri bir serit turu acilabilir.
+   ✅ 5 Agu 2026: kosul DAL uzerinde SAGLANDI (rc=0, 6 eksenin hepsi 0). Serit tasimasi
+   MIMAR KARARIDIR ve bu turda YAPILMADI: kosul "ANA DALDA rc=0" diyor, dal main'e
+   girmeden ana dal olculmus olmaz — hukmu merge sonrasi ana dalda olcup vermek gerekir.
 ⚠️ BEYAN EDILMIS ISTISNA: taranan dosyalardan YALNIZ BIRI (`ege-bilgi.md`) fiilen
    `_site`'a kopyalanir (deploy.yml:200) — o dosya icin (a) gerekcesi GECERSIZDIR.
    Icerigi AYRICA kendi kabul testleriyle korunur (bkz. skill: ege-diyalog); serit hukmu
@@ -287,6 +299,25 @@ def yuzeyler(yol, icerik):
 
 
 # ===========================================================================
+# EKSEN SOZLESMESI — TESPIT ile JETON TEK KAYNAKTAN TURER
+# Her eksen fonksiyonu ya None (isabet YOK) ya da bir JETON DEMETI dondurur. Demet BOS
+# olabilir: E ve F "jeton" degil CUMLE olcer (bir ad/yol/kimlik tasimazlar).
+# 🔴 NEDEN BOYLE: eko elemesi (asagida) tetikleyen jetonu bilmek zorunda. Jetonu AYRI bir
+# cikarici hesaplasaydi iki tanim SESSIZCE AYRISIRDI ([[ikiz-tanim-sessiz-ayrisma]]) ve
+# ayrisma fail-OPEN yonde olurdu: yanlis cikarilmis jeton, ihlali muaf gosterirdi.
+# Bugun "isabet var mi" sorusunun cevabi jeton demetinin KENDISIDIR.
+# ===========================================================================
+def _bulgu(jetonlar):
+    """Jeton listesinden eksen sonucu: bos ise isabet YOK (None), degilse tekil demet."""
+    return tuple(dict.fromkeys(jetonlar)) if jetonlar else None
+
+
+def _iddia(vurdu):
+    """Jetonsuz (cumle tabanli) eksen sonucu: isabet varsa BOS demet, yoksa None."""
+    return () if vurdu else None
+
+
+# ===========================================================================
 # EKSEN A — OZEL NESNE DEPOSU KOVA ADI
 # Ayirt edicilik DORT KATLI, dordu de OLCUMDEN dogdu:
 #  (1) KOVA SOZU zorunlu ("kova"/"bucket" ve cekimleri). Ciplak "R2" TETIKLEMEZ:
@@ -316,14 +347,15 @@ _A_BEYAN = re.compile(r"bucket[_\-]?name\s*=\s*[\"']([a-z][a-z0-9]*(?:-[a-z0-9]+
 
 def _eksen_a(satir, _yuzey):
     """A: ozel nesne deposu KOVA ADI ifsasi (kova sozune YAKIN, isaretli ad jetonu)."""
-    if _A_BEYAN.search(satir):
-        return True
+    jetonlar = []
+    for m in _A_BEYAN.finditer(satir):
+        jetonlar.append(m.group(1))
     for m in _A_KOVA_SOZU.finditer(satir):
         bas = max(0, m.start() - _A_PENCERE)
         son = min(len(satir), m.end() + _A_PENCERE)
-        if _A_JETON.search(satir[bas:son]):
-            return True
-    return False
+        for t in _A_JETON.finditer(satir[bas:son]):
+            jetonlar.append(t.group(1))
+    return _bulgu(jetonlar)
 
 
 # ===========================================================================
@@ -341,15 +373,23 @@ _B_ONEK = ("ic-",)
 
 def _eksen_b(satir, _yuzey):
     """B: yonetim/panel/dahili bir HTTP uc YOLUNUN ifsasi."""
+    jetonlar = []
     for m in _B_YOL.finditer(satir):
-        for segment in m.group(0).strip("/").split("/"):
+        segmentler = m.group(0).strip("/").split("/")
+        isaretli = False
+        for segment in segmentler:
             s = segment.lower()
-            if any(s.startswith(o) for o in _B_ONEK):
-                return True
-            for parca in re.split(r"[-_.]", s):
-                if parca in _B_ISARET:
-                    return True
-    return False
+            if any(s.startswith(o) for o in _B_ONEK) or \
+                    any(parca in _B_ISARET for parca in re.split(r"[-_.]", s)):
+                isaretli = True
+        # 🔴 JETON = yolun HER SEGMENTI, yalniz isaretli olan DEGIL (olculdu, 5 Agu 2026):
+        # eko elemesine yalniz isaretli segment ("/yonet") verildiginde YEPYENI bir yonetim
+        # yolu (`/sentetik9x/yonet/kapali-liste`) o tek ekonun sirtinda MUAF oluyordu —
+        # sentetik jeton sondasi B ekseninde YESIL yaniyordu (fail-open). Her segment
+        # istenince yeni AD kirmizi yakar; yalniz mevcut adlarin YENI DIZILIMI elenir.
+        if isaretli:
+            jetonlar.extend("/" + segment for segment in segmentler)
+    return _bulgu(jetonlar)
 
 
 # ===========================================================================
@@ -382,14 +422,15 @@ def _projeye_ozgu_mu(ad):
 
 def _eksen_c(satir, _yuzey):
     """C: projeye OZGU sir / cerez / ozel baslik adinin ifsasi."""
+    jetonlar = []
     for m in _C_SIR.finditer(satir):
         if _projeye_ozgu_mu(m.group(1)):
-            return True
+            jetonlar.append(m.group(0))
     for m in _C_BASLIK.finditer(satir):
         # Ozel baslik ancak KIMLIK tasiyorsa sayilir: bicim/teshis basliklari
         # (sikistirma, kaynak, boyut) ifsa degildir.
         if _C_KIMLIK_SOZU.search(m.group(0)) and _projeye_ozgu_mu(m.group(0)[2:]):
-            return True
+            jetonlar.append(m.group(0))
     if _C_CEREZ_SOZU.search(satir):
         for m in _C_TANIMLAYICI.finditer(satir):
             ad = m.group(1)
@@ -399,8 +440,8 @@ def _eksen_c(satir, _yuzey):
             if _C_CEREZ_SOZU.search(ad):
                 continue
             if _projeye_ozgu_mu(ad):
-                return True
-    return False
+                jetonlar.append(ad)
+    return _bulgu(jetonlar)
 
 
 # ===========================================================================
@@ -417,8 +458,11 @@ _D_HEX32 = re.compile(r"(?<![0-9a-fA-F])[0-9a-f]{32}(?![0-9a-fA-F])")
 
 def _eksen_d(satir, _yuzey):
     """D: hesap/proje kimligi tasiyan opak tanimlayici ifsasi."""
-    return bool(_D_HOST.search(satir) or _D_DEPO_HOST.search(satir)
-                or _D_HEX32.search(satir))
+    jetonlar = []
+    for rx in (_D_HOST, _D_DEPO_HOST, _D_HEX32):
+        for m in rx.finditer(satir):
+            jetonlar.append(m.group(0))
+    return _bulgu(jetonlar)
 
 
 # ===========================================================================
@@ -435,7 +479,7 @@ _E_ELLE = re.compile(r"manuel|\belle\b|otomatik doğrulama|otomatik dogrulama|"
 
 def _eksen_e(satir, _yuzey):
     """E: para isleyiciden gecmeyen kanalin ELLE onay yolunun tarifi."""
-    return bool(_E_KANAL.search(satir) and _E_ELLE.search(satir))
+    return _iddia(bool(_E_KANAL.search(satir) and _E_ELLE.search(satir)))
 
 
 # ===========================================================================
@@ -457,7 +501,7 @@ _F_KAPANMAMIS = re.compile(
 
 def _eksen_f(satir, _yuzey):
     """F: bilinen ama kapatilmamis bir zayifligin/acigin yazili beyani."""
-    return bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir))
+    return _iddia(bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir)))
 
 
 # (kod, ad, tespit_fn, bakilan_yuzeyler)
@@ -493,9 +537,68 @@ def _muaf_mi(dosya, satir_metni, muafiyet_kumesi):
     return (dosya, _satir_hash(satir_metni)) in muafiyet_kumesi
 
 
+def _eksen_bulgulari(metin, yuzey):
+    """[(eksen_kodu, jeton_demeti), ...] — O YUZEYDE tetiklenen eksenler + jetonlari."""
+    return [(kod, jetonlar) for kod, _ad, fn, kapsam in EKSENLER
+            if yuzey in kapsam
+            for jetonlar in (fn(metin, yuzey),) if jetonlar is not None]
+
+
 def _eksen_isabetleri(metin, yuzey):
-    """Verilen metnin, O YUZEYDE tetikledigi eksen KODLARI."""
-    return [kod for kod, _ad, fn, kapsam in EKSENLER if yuzey in kapsam and fn(metin, yuzey)]
+    """Verilen metnin, O YUZEYDE tetikledigi eksen KODLARI (bulgulardan TURER)."""
+    return [kod for kod, _jetonlar in _eksen_bulgulari(metin, yuzey)]
+
+
+# ---------------------------------------------------------------------------
+# EKO ELEMESI — "satiri silmek ifsayi KAPATIYOR MU?"
+# ---------------------------------------------------------------------------
+# 🔴 OLCULMUS DESEN KUSURU (5 Agu 2026, bagimsiz olcum): kapinin 164 isabetinin 158'inde
+# (%96,3) tetikleyen jeton AYNI PUBLIC deponun CALISAN yuzeyinde ZATEN duruyordu — yonetim
+# uc YOLU onu servis eden yonlendiricide, sir ADI `env.<AD>` okumasinda. Iki eksen tek
+# basina %100 yanlis-pozitifti (B 76/76, C 70/70). O satirlari temizlemek ifsayi KAPATMAZ:
+# jeton yerinde kalir. Gurultunun bedeli olculdu — 4 GERCEK bulgu 158 yanlis-pozitifin
+# icinde saklaniyordu.
+# KURAL: bir ANLATIM isabetinin TUM tetikleyici jetonlari deponun ICRA yuzeyinde de
+# geciyorsa, o satir IHLAL SAYILMAZ. "TUM" bilincli ve fail-CLOSED: tek bir jeton bile
+# yalniz anlatimda duruyorsa satir KIRMIZI kalir.
+# 🔴 HAVUZ YALNIZ ICRA SATIRLARIDIR. ANLATIM (ve BEYAN) yuzeyleri havuza GIRSEYDI bir
+# anlatim satiri KENDINI (ya da ikizini) muaf kilardi — kapinin fail-open olumu.
+# 🔴 KAPSAM DISI DOSYALAR (.json/.html/...) da havuza ALINMADI, ve bu OLCUMLE secildi:
+# havuza eklendiginde bugunku 157 elemenin 157'si ZATEN ICRA satirlarindan geliyordu, yani
+# o bacak SIFIR eleme kazandiriyor ama 25 MB'lik bir fail-open yuzeyi aciyordu (or. urun
+# verisinde tesadufen gecen bir jeton ihlali muaf gosterebilirdi). Bedeli olculdu, karsiligi
+# olculdu, bacak ALINMADI.
+# E ve F eksenleri JETONSUZDUR (bos demet) -> eko elemesi onlara UYGULANMAZ; cumle tabanli
+# ifsa, bir jetonun baska yerde durmasiyla mesrulasmaz.
+# NOBET: IDDIA-EKO1 (havuzda OLMAYAN sentetik jeton KIRMIZI kalir + anlatim ikizi eleme
+# YAPMAZ) ve IDDIA-EKO2 (gercek ICRA ekosu elenir); mutantlari MUT-EKO-GENIS / MUT-EKO-KOR.
+# ---------------------------------------------------------------------------
+def _icra_havuzu(dosya_icerik_ciftleri):
+    """Eko elemesinin arama yuzeyi (tek dize): YALNIZ ICRA satirlari.
+    ANLATIM/BEYAN satirlari ve kapsam DISI dosya icerikleri BILEREK disaridadir."""
+    parcalar = []
+    for yol, icerik in dosya_icerik_ciftleri:
+        for _no, metin, yuzey in yuzeyler(yol, icerik):
+            if yuzey == ICRA:
+                parcalar.append(metin)
+    return "\n".join(parcalar)
+
+
+def _eko_mu(jetonlar, havuz, onbellek=None):
+    """Jetonlarin HEPSI ICRA havuzunda mi? (jetonsuz eksen DAIMA False = elenmez)"""
+    if not jetonlar:
+        return False
+    for jeton in jetonlar:
+        if onbellek is None:
+            var = jeton in havuz
+        else:
+            var = onbellek.get(jeton)
+            if var is None:
+                var = jeton in havuz
+                onbellek[jeton] = var
+        if not var:
+            return False
+    return True
 
 
 def tara(dosya_icerik_ciftleri, govde=None):
@@ -503,15 +606,20 @@ def tara(dosya_icerik_ciftleri, govde=None):
     Muafiyet HAM SATIR uzerinden olculur (yuzey parcasi uzerinden degil): boylece
     muafiyet kaydi dosyadaki gercek satirla birebir esler."""
     kume = _muafiyet_kumesi_uret(_MUAFIYET_GOVDESI if govde is None else govde)
+    ciftler = list(dosya_icerik_ciftleri)
+    havuz = _icra_havuzu(ciftler)
+    onbellek = {}
     ihlaller = []
-    for yol, icerik in dosya_icerik_ciftleri:
+    for yol, icerik in ciftler:
         ham = icerik.splitlines()
         gorulen = set()
         for satir_no, metin, yuzey in yuzeyler(yol, icerik):
-            for kod in _eksen_isabetleri(metin, yuzey):
+            for kod, jetonlar in _eksen_bulgulari(metin, yuzey):
                 if (satir_no, kod) in gorulen:
                     continue
                 gorulen.add((satir_no, kod))
+                if _eko_mu(jetonlar, havuz, onbellek):
+                    continue
                 tam = ham[satir_no - 1] if 1 <= satir_no <= len(ham) else metin
                 if _muaf_mi(yol, tam, kume):
                     continue
@@ -554,9 +662,10 @@ def ana_tarama(kok):
 
 
 # ===========================================================================
-# KENDINI-TEST — 22 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
+# KENDINI-TEST — 24 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
 # (desen VAR -> KIRMIZI) + TEK DEGISKENLI KONTROL (benzer ama kapsam disi -> YESIL);
-# ustune YUZEY ayrimi (4), BEYAN yuzeyi (2), KAPSAM (1), MUAFIYET (2), MASKE (1).
+# ustune YUZEY ayrimi (4), BEYAN yuzeyi (2), KAPSAM (1), EKO ELEMESI (2), MUAFIYET (2),
+# MASKE (1).
 # Mutant<->iddia eslemesi TEK KAYNAK: tools/spec-ifsa-mutasyon-test.py :: MUTANTLAR.
 # 🔴 TUM FIKSTURLER UYDURMADIR: hicbiri bu depodaki gercek bir kova/uc/sir/cerez/
 # kimlik degildir (nobetci kendi dosyasinda sizdirmaz). Tek istisna IDDIA-C2'nin
@@ -657,6 +766,43 @@ def _kendini_test():
                          "kapsam ici .md yuzey=%d (>0), kapsam disi .json yuzey=%d (0), "
                          "uctan uca taramada gorunmuyor=%s"
                          % (ici_yuzey, disi_yuzey, not disi)))
+
+    # --- IDDIA-EKO1 / IDDIA-EKO2 (uctan uca, GERCEK git): eko elemesi DARALTIR ama
+    #     FAIL-OPEN YAPMAZ. Iki fikstur AYNI depoda, AYNI eksende (A/beyan deseni) ve
+    #     AYNI yuzeyde (ANLATIM) durur; aralarindaki TEK degisken, jetonun ICRA yuzeyinde
+    #     de gecip gecmedigidir.
+    #       * eko-tek-kaynak.md : jeton SADECE anlatimda (ikizi de anlatimda) -> KIRMIZI
+    #         kalmali. Anlatim ikizi BILEREK var: havuza anlatim sizsaydi bu iddia duserdi.
+    #       * eko-eko.md        : ayni jeton hem bir .js hem bir .py ICRA satirinda ->
+    #         ELENMELI. Eko IKI DILDEN verilir (bilincli redundans): tek dil olsaydi o
+    #         dilin YUZEY mutanti (MUT-YUZEY-GENIS / MUT-PY-*) bu iddiayi da dusurur ve
+    #         TEK-KIRMIZI sozlesmesi bozulurdu.
+    #     Gercek dosyaya YAZMA YOK (gecici depo). ---
+    with tempfile.TemporaryDirectory() as d:
+        g = lambda *a: subprocess.run(["git", "-C", d, *a], capture_output=True, text=True)
+        g("init", "-q")
+        g("config", "user.email", "test@test.local")
+        g("config", "user.name", "test")
+        dosyalar = {
+            "eko-tek-kaynak.md": 'bucket_name = "eko-yok-kova"\n',
+            "eko-anlatim-ikizi.md": 'bucket_name = "eko-yok-kova"\n',
+            "eko-eko.md": 'bucket_name = "eko-var-kova"\n',
+            "eko-icra.js": 'const kovaAdi = "eko-var-kova";\n',
+            "eko-icra.py": 'KOVA_ADI = "eko-var-kova"\n',
+        }
+        for ad, govde_ in dosyalar.items():
+            with open(os.path.join(d, ad), "w", encoding="utf-8") as f:
+                f.write(govde_)
+        g("add", "-A")
+        eko_ihlaller = ana_tarama(d)
+        tek_kaynak_var = ("eko-tek-kaynak.md", 1, "A") in eko_ihlaller
+        eko_elendi = not any(y == "eko-eko.md" for y, _n, _k in eko_ihlaller)
+    sonuclar.append(("IDDIA-EKO1 icra-disi-jeton-kirmizi-kalir", tek_kaynak_var,
+                     "ICRA yuzeyinde OLMAYAN jeton (anlatim ikizi olsa bile) ihlal "
+                     "SAYILMALI — eleme fail-open olamaz (olculen=%s)" % tek_kaynak_var))
+    sonuclar.append(("IDDIA-EKO2 icra-ekosu-elenir", eko_elendi,
+                     "jeton calisan kodda/kapsam disi public dosyada da geciyorsa anlatim "
+                     "satirini silmek ifsayi KAPATMAZ -> ihlal DEGIL (olculen=%s)" % eko_elendi))
 
     # --- Muafiyet mekanizmasi: SENTETIK govde (gercek bulgu MUAF DEGIL) ---
     s_dosya = "uydurma/ornek-spec.md"

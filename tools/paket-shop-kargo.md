@@ -51,10 +51,10 @@
      "HAVALE BEKLENİYOR: <no> <tutar>" bildirimi düşer.
    - IBAN + alıcı unvanı TEK yerden okunur (config/var; koda dağıtılmaz). Değerleri Okan
      verecek — MİMARDAN iste, placeholder ile geliştir, gerçek değer deploy'da girilir.
-   - Para iyzico'dan geçmediği için otomatik doğrulama YOK: onay adımı manuel (Okan dekontu/
-     hesabı görünce). Bu pakette onay = D1 durum güncellemesi için güvenli, TEK basit yol
-     (ör. ADMIN anahtarlı uç ya da belgelenmiş wrangler d1 komutu) — panel/arayüz KURMA,
-     kapsam şişirme; öneri varsa mimara yaz.
+   - Bu kanalda sipariş, YETKİLİ teyidi olmadan 'ödendi' olmaz. Teyit yolunun adımları ve
+     komutları PUBLIC depoda tarif EDİLMEZ (git-dışı işletme arşivi). Bu pakette teyit için
+     güvenli ve TEK basit yol seçilir — panel/arayüz KURMA, kapsam şişirme; öneri varsa
+     mimara yaz.
    - Havale siparişi 'ödendi' İŞARETLENMEDEN Telegram "ödeme geldi" DEMEZ (sandbox dersinin
      havale hali: para görülmeden üretim tetiklenmez).
 

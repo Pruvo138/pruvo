@@ -121,5 +121,5 @@ jobs:
         id: nesil
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python3 tools/shop-bayatlik-kapisi.py --gh-ozet

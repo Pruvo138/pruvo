@@ -2679,6 +2679,26 @@ async function yonetCerezAkisi() {
   rapor("C21d KONTROL: sabitEsit('abc','abc') === true (sertlestirme dogruyu bozmadi)",
     SE("abc", "abc") === true && SE("abc", "abd") === false, "esit=" + SE("abc", "abc"));
 
+  // C21e — TUR SAYISI IKINCI ARGUMANDAN (SIRDAN) BAGIMSIZ.
+  // Eski hal uzunluk esitsizliginde ERKEN DONUYORDU: ayni verilen deger icin calisan tur
+  // sayisi, sirrin uzunluguna gore 8 ya da 0 oluyordu — yani anahtarsiz cagiran, gozlemi
+  // sirrin uzunluguna baglayabiliyordu. Sonda DUVAR SAATI OLCMEZ (CI'da gurultulu, bu alt
+  // kume main'de BLOKLAYICI): sabitEsit'in KENDI tur sayacini okur, yani mutant "erken
+  // donus"u geri getirdiginde sayac 0'a duser ve bu iddia KIRMIZI yanar.
+  // AYIRT EDICI MUTANT: tools/yonet-cerez-mutasyon.py M27 — TEK kirmizi.
+  // ⚠️ Yuklem TEK EKSENLI: burada dogruluk (true/false) KIYASLANMAZ, onu C21a-C21d olcer.
+  const turOlc = (verilen, sir) => {
+    const once = YM.SABIT_ESIT_OLCUM.tur;
+    SE(verilen, sir);
+    return YM.SABIT_ESIT_OLCUM.tur - once;
+  };
+  const turKisa = turOlc("12345678", "s".repeat(8));     // uzunluk ESIT (icerik farkli)
+  const turOrta = turOlc("12345678", "s".repeat(40));    // uzunluk FARKLI
+  const turUzun = turOlc("12345678", "s".repeat(200));   // uzunluk COK FARKLI
+  rapor("C21e sabitEsit TUR SAYISI ikinci argumanin uzunlugundan BAGIMSIZ (> 0 ve esit)",
+    turKisa > 0 && turKisa === turOrta && turOrta === turUzun,
+    "turlar=" + JSON.stringify([turKisa, turOrta, turUzun]));
+
   // ---- 22. IKI SECRET KAPISI — HER BIRI AYRI AYRI (VEYA DEGIL, VE) ----
   // ESKI C22 ("secret yok + BOS sifre POST -> 404") istegi yonet() uzerinden gecirirdi,
   // yani IKI kapi da yoldaydi ve iddia ikisinin VEYA'sini olcuyordu: HER BIRI tek basina

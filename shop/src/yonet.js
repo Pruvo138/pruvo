@@ -20,8 +20,8 @@
  *  - 'kargolandi'ya SADECE /kargo ucundan gecilir (takip kodu zorunlu) — tek yol.
  *  - 'odendi'ye gecis (havale onayi) REKLAM OLCUMU tetikler: Purchase, event_id = siparis_no
  *    (kart akisiyla ayni dedup anahtari). IDEMPOTENS uc katmanli — bkz. durumDegistir().
- *    ⚠️ KURULUM.md'deki yedek ham SQL komutu bu uctan GECMEZ -> olcum de gitmez; havale
- *    onayinin normal yolu YONETIM SAYFASIDIR (ham SQL yalniz sayfa/anahtar yoksa).
+ *    ⚠️ Bu uctan GECMEYEN bir yedek yol kullanilirsa olcum de gitmez; teyidin normal yolu
+ *    YONETIM SAYFASIDIR (yedek yolun adimlari git-disi isletme arsivindedir).
  */
 
 import { SEMALAR } from "./semalar.js";
@@ -96,15 +96,37 @@ function baskiOnerisi(satir, d1Baski, sema) {
  * (yonet() secret'i once kontrol ediyordu). Koruma cagri sirasina birakilmaz — primitifin
  * KENDISI kapali olmali. (Olculdu: curutucunun "secret kapisini giris POST'undan sonraya
  * al" mutanti, bu satir duzelmeden bos sifreye 200 + yetki veriyordu.)
- * ⚠️ Uzunluk farkinda erken donuyor — yani anahtarin UZUNLUGUNU sizdirir. Bilinen,
- * mimarin kaydettigi ve bu tura ALINMAYAN kalem.
+ *
+ * 🔴 TUR SAYISI IKINCI ARGUMANDAN BAGIMSIZ (5 Agu 2026 onarimi). Karsilastirma uzunluk
+ * esitsizliginde ARTIK ERKEN DONMEZ. Onceki halde esit olmayan uzunlukta HIC tur
+ * calismiyordu; yani calisan tur sayisi "verilen deger ikinci argumanla ayni uzunlukta
+ * mi" sorusunun CEVABIYDI ve bu uc anahtarsiz cagriya aciktir (olculdu: ayni verilen
+ * deger icin 8 tur / 0 tur). Bugun tur sayisi `max(TABAN, |a|, |b|)`; uzunluk farki
+ * DALLANMAZ, tek bir sayiya (`fark`) katlanir. Ikinci argumanin uzunlugu TABAN'i
+ * asmadigi surece tur sayisi ondan hic etkilenmez — sinir kodda SABITTIR, yorumda degil.
+ * Nobetci: shop/test/kabul.js C21e + tools/yonet-cerez-mutasyon.py M27.
  */
+const SABIT_ESIT_TABAN_TUR = 256;
+
+/**
+ * Calistirilan tur SAYACI — OLCUM YUZEYI, davranisin parcasi DEGIL. Yukaridaki iddia
+ * ("tur sayisi ikinci argumana bakmaz") duvar saatiyle olculseydi CI'da gurultulu ve
+ * yanlis-kirmizi olurdu; sayac onu DETERMINISTIK olcturur. Yetki karari bu degere
+ * HICBIR yerde bakmaz.
+ */
+export const SABIT_ESIT_OLCUM = { tur: 0 };
+
 export function sabitEsit(a, b) {
   if (typeof a !== "string" || typeof b !== "string") { return false; }
   if (a.length === 0 || b.length === 0) { return false; }
-  if (a.length !== b.length) { return false; }
-  let fark = 0;
-  for (let i = 0; i < a.length; i++) { fark |= a.charCodeAt(i) ^ b.charCodeAt(i); }
+  const turSayisi = Math.max(SABIT_ESIT_TABAN_TUR, a.length, b.length);
+  let fark = a.length ^ b.length;
+  let tur = 0;
+  for (let i = 0; i < turSayisi; i++) {
+    fark |= a.charCodeAt(i % a.length) ^ b.charCodeAt(i % b.length);
+    tur++;
+  }
+  SABIT_ESIT_OLCUM.tur += tur;
   return fark === 0;
 }
 

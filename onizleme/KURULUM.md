@@ -44,7 +44,11 @@ yesil. KALAN TEK ADIM: `secenekler.js` `ONIZLEME_3D_ACIK=true` (MIMAR karari) �
    tetikten once elle tazeleme gerektiriyordu.
 3. CI logundaki YENI digest'i `onizleme/wrangler.toml` `image = ...@sha256:...`
    satirina yaz (`:ci` tag'i MUTABLE — ayni tag'e push rollout tetiklemez, 16 Tem'de
-   olculdu) → `npx wrangler deploy` → eski instance'i dusurmek icin
+   olculdu). **Registry yolundaki hesap kimligi izlenen dosyada YER TUTUCUDUR** (5 Agu
+   2026; public depo): deploy dosyasini once uret, sonra ONU deploy et —
+   `CLOUDFLARE_ACCOUNT_ID=<kimlik> python3 tools/onizleme-deploy-hazirla.py` →
+   `npx wrangler deploy -c onizleme/wrangler.deploy.toml` (uretilen dosya git-DISI) →
+   eski instance'i dusurmek icin
    `/api/onizleme/derleyici-kapat` (X-Kapat-Anahtar) → iki aileyle duman.
 
 ## Bilinen sapma (mimar karari bekliyor)

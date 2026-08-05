@@ -132,8 +132,9 @@ function originIzinli(request, env) {
 /**
  * IP basina soft-cap (D1 kota koruma). Native Cloudflare rate limiting binding
  * (env.REF_RATE_LIMIT) EK D1 YAZMASI YAPMAZ; cap asilinca true doner -> cagiran D1'e gitmeden
- * 204 verir. Binding tanimsizsa (yerel test / henuz deploy edilmemis) false = fail-open. Limiter
- * kendisi patlarsa da fail-open: beacon bloklanmaz (attribution best-effort), yuksek sesli log.
+ * 204 verir. Binding olmayan ortamda (yerel test) ya da limiter kendisi patladiginda beacon
+ * BLOKLANMAZ ve hata yuksek sesle loglanir — bu uc en-iyi-caba bir olcum beacon'idir, bir
+ * yetkilendirme/abuse SINIRI DEGILDIR; ayni kural shop/wrangler.toml'da da beyan edilir.
  */
 async function kotaAsildi(request, env) {
   const rl = env && env.REF_RATE_LIMIT;

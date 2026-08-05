@@ -31,36 +31,35 @@ import tempfile
 sys.dont_write_bytecode = True
 
 KAPI = "tools/spec-ifsa-kapisi.py"
-BEKLENEN_IDDIA_SAYISI = 22
+BEKLENEN_IDDIA_SAYISI = 24
 
 # (mutant_adi, eski_metin, yeni_metin, dusmesi_beklenen_TEK_iddia)
 # Eski metinler kapinin kaynagindan BIREBIR alinir; bulunamazsa surucu KIRMIZI yanar
 # (bayat mutant tablosu sessizce yesil gecemez).
 MUTANTLAR = (
     # --- EKSEN A ---
-    ("MUT-A-KOR", "    if _A_BEYAN.search(satir):\n        return True\n",
-     "    if _A_BEYAN.search(satir):\n        return True\n    return False\n",
-     "IDDIA-A1"),
+    ("MUT-A-KOR", "    for m in _A_KOVA_SOZU.finditer(satir):",
+     "    for m in ():", "IDDIA-A1"),
     ("MUT-A-GENIS", '_A_JETON = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`")',
      '_A_JETON = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)[^`]*`")',
      "IDDIA-A2"),
     # --- EKSEN B ---
     ("MUT-B-KOR", '_B_ONEK = ("ic-",)', '_B_ONEK = ()\n_B_ISARET = frozenset()',
      "IDDIA-B1"),
-    ("MUT-B-GENIS", '            for parca in re.split(r"[-_.]", s):\n'
-                    '                if parca in _B_ISARET:\n'
-                    '                    return True\n',
-     '            for parca in re.split(r"[-_.]", s):\n'
-     '                if parca in _B_ISARET or True:\n'
-     '                    return True\n',
+    ("MUT-B-GENIS", '            if any(s.startswith(o) for o in _B_ONEK) or \\\n'
+                    '                    any(parca in _B_ISARET for parca in re.split(r"[-_.]", s)):\n'
+                    '                isaretli = True\n',
+     '            if True or any(s.startswith(o) for o in _B_ONEK) or \\\n'
+     '                    any(parca in _B_ISARET for parca in re.split(r"[-_.]", s)):\n'
+     '                isaretli = True\n',
      "IDDIA-B2"),
     # --- EKSEN C ---
     ("MUT-C-KOR", "    for m in _C_SIR.finditer(satir):\n"
                   "        if _projeye_ozgu_mu(m.group(1)):\n"
-                  "            return True\n",
+                  "            jetonlar.append(m.group(0))\n",
      "    for m in _C_SIR.finditer(satir):\n"
      "        if False:\n"
-     "            return True\n",
+     "            jetonlar.append(m.group(0))\n",
      "IDDIA-C1"),
     ("MUT-C-GENIS", "    ilk = re.split(r\"[_\\-]\", ad.strip(\"`\"), maxsplit=1)[0].upper()\n"
                     "    return ilk not in _SATICI_JETONLARI",
@@ -68,27 +67,28 @@ MUTANTLAR = (
      "    return True or ilk not in _SATICI_JETONLARI",
      "IDDIA-C2"),
     # --- EKSEN D ---
-    ("MUT-D-KOR", "    return bool(_D_HOST.search(satir) or _D_DEPO_HOST.search(satir)\n"
-                  "                or _D_HEX32.search(satir))",
-     "    return bool(_D_DEPO_HOST.search(satir))",
-     "IDDIA-D1"),
+    ("MUT-D-KOR", "    for rx in (_D_HOST, _D_DEPO_HOST, _D_HEX32):",
+     "    for rx in (_D_DEPO_HOST,):", "IDDIA-D1"),
     ("MUT-D-GENIS",
      '_D_HOST = re.compile(r"\\b[a-z0-9][a-z0-9-]*\\.[a-z0-9][a-z0-9-]*\\.(?:workers|pages)\\.dev\\b", re.I)',
      '_D_HOST = re.compile(r"\\b(?:[a-z0-9][a-z0-9-]*\\.)*(?:workers|pages)\\.dev\\b", re.I)',
      "IDDIA-D2"),
     # --- EKSEN E ---
-    ("MUT-E-KOR", "    return bool(_E_KANAL.search(satir) and _E_ELLE.search(satir))",
-     "    return bool(_E_KANAL.search(satir) and _E_ELLE.search(satir) and False)",
+    ("MUT-E-KOR", "    return _iddia(bool(_E_KANAL.search(satir) and _E_ELLE.search(satir)))",
+     "    return _iddia(bool(_E_KANAL.search(satir) and _E_ELLE.search(satir) and False))",
      "IDDIA-E1"),
-    ("MUT-E-GENIS", "    return bool(_E_KANAL.search(satir) and _E_ELLE.search(satir))",
-     "    return bool(_E_KANAL.search(satir) or _E_ELLE.search(satir))",
+    ("MUT-E-GENIS", "    return _iddia(bool(_E_KANAL.search(satir) and _E_ELLE.search(satir)))",
+     "    return _iddia(bool(_E_KANAL.search(satir) or _E_ELLE.search(satir)))",
      "IDDIA-E2"),
     # --- EKSEN F ---
-    ("MUT-F-KOR", "    return bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir))",
-     "    return bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir) and False)",
+    ("MUT-F-KOR",
+     "    return _iddia(bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir)))",
+     "    return _iddia(bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir)\n"
+     "                       and False))",
      "IDDIA-F1"),
-    ("MUT-F-GENIS", "    return bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir))",
-     "    return bool(_F_ZAYIFLIK.search(satir) or _F_KAPANMAMIS.search(satir))",
+    ("MUT-F-GENIS",
+     "    return _iddia(bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir)))",
+     "    return _iddia(bool(_F_ZAYIFLIK.search(satir) or _F_KAPANMAMIS.search(satir)))",
      "IDDIA-F2"),
     # --- BEYAN yuzeyi (konfigurasyon) ---
     ("MUT-BEYAN-KOR", '    ("A", "depolama-kovasi", _eksen_a, (ANLATIM, BEYAN)),',
@@ -113,6 +113,13 @@ MUTANTLAR = (
     # --- KAPSAM: bilinmeyen uzanti yuzey URETMEZ ---
     ("MUT-KAPSAM-GENIS", "    return iter(())  # kapsam disi uzanti: hic satir uretilmez",
      "    return _yuzey_md(satirlar)", "IDDIA-KAPSAM"),
+    # --- EKO ELEMESI: daraltma DARALTIR ama fail-OPEN yapmaz ---
+    # MUT-EKO-GENIS, daraltmanin en pahali bozulma yonudur: eleme KOSULSUZ uygulanirsa
+    # ICRA yuzeyinde HIC gecmeyen bir jeton da muaf olur ve kapi sessizce olur.
+    ("MUT-EKO-GENIS", "    if not jetonlar:\n        return False\n",
+     "    if not jetonlar:\n        return False\n    return True\n", "IDDIA-EKO1"),
+    ("MUT-EKO-KOR", "    for jeton in jetonlar:\n", "    return False\n    for jeton in jetonlar:\n",
+     "IDDIA-EKO2"),
     # --- MUAFIYET: icerik-hash bagi ---
     ("MUT-MUAF-YOL", "    return (dosya, _satir_hash(satir_metni)) in muafiyet_kumesi",
      "    return any(d == dosya for d, _h in muafiyet_kumesi)", "IDDIA-MUAF1"),

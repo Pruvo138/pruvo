@@ -200,10 +200,10 @@ jobs:
         id: olcum
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "CLOUDFLARE_API_TOKEN secret yok — uzlastirici OLCEMEDI." >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secret yok — uzlastirici OLCEMEDI." >> "$GITHUB_STEP_SUMMARY"
             echo "sapma=olculemedi" >> "$GITHUB_OUTPUT"
             exit 1
           fi
@@ -237,7 +237,7 @@ jobs:
         if: steps.olcum.outputs.sapma == 'var'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python3 tools/uzlastirici-onarim.py
 
       # Geri yazilan satir TASLAK dogar; Ege taslagi GORMEZ. Canlida 200 donen
@@ -246,7 +246,7 @@ jobs:
         if: steps.olcum.outputs.sapma == 'var'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python3 tools/yayin-kapisi.py --yayinla
 
       # TEYIT: onarim IDDIA degil, KANIT olsun. Hala sapma varsa is KIRMIZI kalir
@@ -256,7 +256,7 @@ jobs:
         id: teyit
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           python3 tools/d1-sync.py --durum
           echo "✅ Onarim DOGRULANDI (D1 == urunler.json)" >> "$GITHUB_STEP_SUMMARY"

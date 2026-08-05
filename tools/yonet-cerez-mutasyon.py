@@ -260,12 +260,22 @@ M2 = ("M2", "sabitEsit FAIL-OPEN'a dondu (String(a || \"\") — bos girdide true
     """export function sabitEsit(a, b) {
   if (typeof a !== "string" || typeof b !== "string") { return false; }
   if (a.length === 0 || b.length === 0) { return false; }
-  if (a.length !== b.length) { return false; }""",
+  const turSayisi = Math.max(SABIT_ESIT_TABAN_TUR, a.length, b.length);""",
     """export function sabitEsit(a, b) {
   a = String(a || "");
   b = String(b || "");
-  if (a.length !== b.length) { return false; }""")],
+  const turSayisi = Math.max(SABIT_ESIT_TABAN_TUR, a.length, b.length);""")],
       ["C21a", "C21b", "C21c"])
+
+# 🔴 C21e'nin AYIRT EDICI mutanti (5 Agu 2026): karsilastirma uzunluk esitsizliginde ERKEN
+# DONER — bu, onarimdan ONCEKI hal. Dogruluk (true/false) DEGISMEZ, o yuzden C21a-C21d
+# YESIL kalir; kirmizi yanan TEK sey, tur sayisinin ikinci argumanin uzunluguna baglanmasidir.
+# Bu mutant olmasaydi onarim geri alinabilir ve hicbir kapi kirmizi yanmazdi (survivor).
+M27 = ("M27", "sabitEsit uzunluk esitsizliginde ERKEN DONER (tur sayisi girdiye baglanir)", [(
+    """  const turSayisi = Math.max(SABIT_ESIT_TABAN_TUR, a.length, b.length);""",
+    """  if (a.length !== b.length) { return false; }
+  const turSayisi = Math.max(SABIT_ESIT_TABAN_TUR, a.length, b.length);""")],
+      ["C21e"])
 
 # yonet()'in secret kapisini POST dagitiminin ARKASINA alir.
 # ⚠️ CAPA GUNCELLENDI: `/wa-siparis` blogu ozellik-kapali kapisi ile giris POST'unun
@@ -327,11 +337,21 @@ M9 = ("M9", "SameSite=Strict -> Lax (capraz-site gezinmede cerez gider)", [(
       ["C10c", "C12e"])
 
 K1 = ("K1", "KONTROL: sabitEsit'te yerel degisken adi degisti (davranis AYNI)", [(
-    """  let fark = 0;
-  for (let i = 0; i < a.length; i++) { fark |= a.charCodeAt(i) ^ b.charCodeAt(i); }
+    """  let fark = a.length ^ b.length;
+  let tur = 0;
+  for (let i = 0; i < turSayisi; i++) {
+    fark |= a.charCodeAt(i % a.length) ^ b.charCodeAt(i % b.length);
+    tur++;
+  }
+  SABIT_ESIT_OLCUM.tur += tur;
   return fark === 0;""",
-    """  let farkBiti = 0;
-  for (let i = 0; i < a.length; i++) { farkBiti |= a.charCodeAt(i) ^ b.charCodeAt(i); }
+    """  let farkBiti = a.length ^ b.length;
+  let tur = 0;
+  for (let i = 0; i < turSayisi; i++) {
+    farkBiti |= a.charCodeAt(i % a.length) ^ b.charCodeAt(i % b.length);
+    tur++;
+  }
+  SABIT_ESIT_OLCUM.tur += tur;
   return farkBiti === 0;""")],
       [])
 
@@ -656,6 +676,7 @@ MUTANTLAR = [
     tek_eksen(M20), tek_eksen(M21), tek_eksen(M22), tek_eksen(M23),
     tek_eksen(M24), tek_eksen(M25),
     tek_eksen(M26),                  # OLCULMEMIS eksenin (kaba kuvvet gecikmesi) nobetcisi
+    tek_eksen(M27),                  # onarimin geri alinmasinin nobetcisi (C21e)
     kontrol(K1), kontrol(K2), kontrol(K3),
 ]
 
@@ -675,8 +696,8 @@ MUTANTLAR = [
 #       o kararin bu satirda gerekcelenmesi gerekir.
 # Ayrica ayni kod IKI KEZ kaydedilirse (kopyala-yapistir) sayi sisirilebilirdi: kod
 # BENZERSIZLIGI de burada dogrulanir.
-ASGARI_KAYIT = 29        # bugun 29 (M1-M26 + K1-K3). TABAN; artirmak ZORUNLU degil.
-ASGARI_KIRMIZI = 20      # kirmizi-beklentili kayit tabani (bugun 26)
+ASGARI_KAYIT = 29        # bugun 30 (M1-M27 + K1-K3). TABAN; artirmak ZORUNLU degil.
+ASGARI_KIRMIZI = 20      # kirmizi-beklentili kayit tabani (bugun 27)
 ASGARI_KONTROL = 3       # K1/K2/K3 — "her sey kirmizi" diye ucuza gecmeyi engelleyen kayitlar
 
 

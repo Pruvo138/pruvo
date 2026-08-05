@@ -512,6 +512,10 @@ onizleme/node_modules/
 onizleme/.wrangler-test.toml
 kanit/
 
+# tools/onizleme-deploy-hazirla.py URETIR: izlenen wrangler.toml'un yer tutucusu ortamdaki
+# hesap kimligiyle doldurulmus DEPLOY kopyasi. Kimlik PUBLIC depoya girmez -> commit EDILMEZ.
+onizleme/wrangler.deploy.toml
+
 # pazar fiyat arastirmasi — ticari strateji, public repoya girmez (Drive backup/ta kopyasi var)
 tools/arastirma-sari-fiyat.md
 
