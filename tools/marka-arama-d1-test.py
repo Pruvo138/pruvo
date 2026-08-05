@@ -325,12 +325,37 @@ for alias, kanonik in alias_ciftleri:
                 bool(site_kume) and a_kume == site_kume,
                 "kolon=%d site=%d" % (len(a_kume), len(site_kume)))
 
-# 3) KOLONDA STRAY DEGER YOK: her deger ya kanonik marka ya da bir kanonigin alias'i.
+# 3) KOLONDA STRAY DEGER YOK: her deger KABUL EVRENINDE olmali.
+#
+# 🔴 KABUL EVRENI = kanonik marka ∪ alias ∪ KAPALI MARKA KUMESI (mimar hukmu, 5 Agu 2026).
+# UC KAYNAK DA KODA ELLE YAZILMAZ, VAR OLAN TEK KAYNAKLARINDAN OKUNUR — kopyalanan bir
+# liste IKIZ TANIM olurdu ve tam da bu kapinin kapattigi sinifi geri getirirdi
+# ([[ikiz-tanim-sessiz-ayrisma]]):
+#   1. kanonik marka -> `kumeler` (marka-invaryant-kapisi.olc, BASKA GOVDE — C bolumunun
+#      referansinin ta kendisi)
+#   2. alias yazimi  -> `alias_ciftleri` (d1.marka_alias_tersi -> index.html MARKA_ALIAS)
+#   3. kapali kume   -> `arama.UYUM_MARKA_IZINLI` (uyum sozlugu; her uyesi gerekcesiyle
+#      arama.py'de yazili, uyum-kapisi.py ayrica yargilar)
+#
+# NEDEN 3. KAYNAK SART: `kumeler` yalnizca BUGUN KATALOGDA URUNU OLAN markayi tasir.
+# Sozluge mimar kararıyla giren bir aksesuar ev-sahibi adi (GPS/telefon/el aleti/park
+# isiticisi ureticisi) kolona mesru olarak girdiginde — cunku urunun KENDI `marka`
+# dizisinde yazar — ama site kumesinde henuz gorunmediginde AL3 "veri kusuru YOKKEN"
+# kirmizi yaniyordu; olculdu (bugun sozlukteki 173 adin 76'si bu halde).
+#
+# 🔴 GEVSETME DEGIL GENISLETME: uc kaynagin HICBIRINDE olmayan uydurma bir ad HALA AL3'u
+# tek basina KIRMIZI yakar. Kanit repoda kosulabilir ([[mutasyon-kaniti-yeniden-uretilebilir]]):
+#   tools/marka-arama-mutasyon.py :: M14 (uydurma ad -> KIRMIZI, eksen=AL3)
+#                                    K4  (kapali kumedeki ad -> YESIL)
 alias_adlari = {a for a, _k in alias_ciftleri}
+kapali_kume = set(arama.UYUM_MARKA_IZINLI)
 if kumeler:
-    stray = sorted(m for m in kolon_kume if m not in kumeler and m not in alias_adlari)
-    dogrula("AL3 kolondaki HER deger ya kanonik marka ya bir kanonigin alias'i "
-            "(baska deger: %d %s)" % (len(stray), stray[:5]), not stray)
+    kabul_evreni = set(kumeler) | alias_adlari | kapali_kume
+    stray = sorted(m for m in kolon_kume if m not in kabul_evreni)
+    dogrula("AL3 kolondaki HER deger KABUL EVRENINDE — kanonik %d ∪ alias %d ∪ kapali kume "
+            "%d = %d ad (evren disi deger: %d %s)"
+            % (len(kumeler), len(alias_adlari), len(kapali_kume), len(kabul_evreni),
+               len(stray), stray[:5]), not stray)
 
 # 4) 🔴 ADAY AD COZUMU: uc `SELECT DISTINCT value` + norm ile kac adi cozebiliyor?
 distinct_normlu = {arama.norm(m): m for m in degerler}

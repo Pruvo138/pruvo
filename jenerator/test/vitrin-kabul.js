@@ -290,6 +290,7 @@ function ucAra(p) {
  * index.html scriptini verilen URL/haritayla calistirir.
  *   ayar.search       location.search (or. "?kategori=Jeneratör")
  *   ayar.tabanHarita  window.PRUVO_TABAN_FIYATLAR (yoksa hic tanimlanmaz — 404 fallback'i)
+ *   ayar.seed         vitrin tohumunu SABITLER (deterministik olcum; asagidaki nota bak)
  */
 async function sayfaKur(ayar) {
   const { belge } = belgeKur();
@@ -332,6 +333,18 @@ async function sayfaKur(ayar) {
     scrollTo() {}, scrollY: 0, innerHeight: 720,
   };
   ctx.window = ctx;
+  /* TOHUM ENJEKSIYONU — YALNIZ OLCUM TARAFINDA. index.html acilista
+     `VITRIN_SEED = Math.floor(Math.random() * 4294967296)` uretir; burada vm baglaminin
+     Math'i sabit `random`li bir turevle degistirilir. URETIM KODUNA TEK SATIR EKLENMEZ:
+     canlida vitrin her yenilemede yine farkli sirada gelir (bu bir URUN karari, testin
+     isi degil). r = seed / 2^32 tam olarak temsil edilebilir (2'nin kuvveti bolen), yani
+     floor(r * 2^32) === seed BIREBIR doner; testin kendisi bunu ayrica DOGRULAR. */
+  if (ayar.seed !== undefined) {
+    const oran = (ayar.seed >>> 0) / 4294967296;
+    const sabitMath = Object.create(Math);
+    sabitMath.random = () => oran;
+    ctx.Math = sabitMath;
+  }
   if (ayar.tabanHarita) { ctx.PRUVO_TABAN_FIYATLAR = ayar.tabanHarita; }
   /* Satisa kapali aile isareti + fiyatsiz cumle: taban-fiyatlar.js'in AYNI dosyada
      yayina koydugu iki global. Verilmezse sayfa "artefakt inmemis" halini yasar
@@ -352,16 +365,23 @@ async function sayfaKur(ayar) {
     el: (id) => belge.getElementById(id),
     kartlar: () => belge.getElementById("grid").children,
     istekler: () => istekler.slice(),
+    // Sayfanin KENDI `window`u: tani yuzeyi (PRUVO_VITRIN) buradan okunur, boylece
+    // vitrin blok duzeni bu dosyaya KOPYALANMAZ.
+    pencere: () => ctx,
   };
 }
 
-// Karttan (baslik, fiyat metni, parametrik-rozet) uclusu cikar.
+// Karttan (baslik, kategori, fiyat metni, parametrik-rozet) cikar. `kategori` ZIYARETCININ
+// GORDUGU degerdir (kartCiz `card-cat`e p.kategori'yi basar) — katalogdan ikinci kez
+// turetmeye gerek yok, kart-baslik esleme tablosu da ACILMAZ.
 function kartBilgi(card) {
   const baslik = sinifla(card, "card-title")[0];
+  const kategori = sinifla(card, "card-cat")[0];
   const fiyat = sinifla(card, "card-price")[0];
   const rozet = sinifla(card, "card-badge")[0];
   return {
     baslik: baslik ? baslik.textContent : "",
+    kategori: kategori ? kategori.textContent : "",
     fiyat: fiyat ? fiyat.textContent : "",
     parametrik: !!rozet,
   };
@@ -545,17 +565,127 @@ async function test5Banner() {
     "markup + link + gorunum kurali dogru");
 }
 
-/** 6 — VITRIN: ana sayfa ilk 4 kart sari (mevcut davranis KALIR) */
+/* SABIT TOHUM LISTESI — tek "sansli tohum" secmek kiraz-toplama olurdu; iddia bu listenin
+   TAMAMINDA aranir, bir tohumda bile dusen iddia KIRMIZI yakar. Liste deterministik
+   uretilir (altin oran adimi, 32-bit sarmali) — dosyaya elle sayi dizilmez. */
+const VITRIN_SEEDLER = [];
+for (let i = 0; i < 32; i++) { VITRIN_SEEDLER.push(((i + 1) * 0x9E3779B1) >>> 0); }
+
+/* ON BLOK KIRLILIK TAVANI — DONMUS, otomatik gevsemez.
+   On blok KATEGORI ile tanimli ("Jeneratör"), sari seri ise `parametrik` bayragiyla.
+   Ikisi ayrisabilir: bugun ozet.json havuzlarindaki Jeneratör kartlarinin 1'i
+   (honda-gx390-egzoz-flansi — gercek bir jenerator yedek parcasi, parametrik DEGIL)
+   sari degil. Tavan bu olculen halden dogar; ikinci bir kirletici gelirse kapi KIRMIZI
+   yanar ve karar MIMARINDIR (veri mi duzelir, blok uyeligi mi `parametrik`e baglanir).
+   Havuzdan dogan bir esik yazilsaydi kapi kendini SESSIZCE gevsetirdi. */
+const ON_BLOK_KIRLILIK_TAVANI = 1;
+
+/** 6 — VITRIN: ana sayfanin ilk `adet` slotu ON BLOK'tan gelir (deterministik tohum suprumu).
+ *
+ * 🔴 ESKI HALI KARARSIZDI — OLCULDU (5 Agu 2026, degismemis main, 25 ardisik kosum:
+ * 21 YESIL / 4 KIRMIZI). Iddia "ana sayfanin ilk 4 karti PARAMETRIK" idi; vitrin sirasi
+ * sayfa yuklemesi basina uretilen `VITRIN_SEED = Math.random()` ile her kosumda degisiyor
+ * ve parametrik OLMAYAN tek Jeneratör karti 4 slottan birine 4/24 = %16,7 ihtimalle
+ * dusuyordu. Kapi `continue-on-error`suz oldugu icin TUM EKIBIN yayini rastgele duruyordu.
+ * "Ilk 4 kart sari" HICBIR ZAMAN invaryant DEGILDI; yesil yandigi kosumlarda kapi
+ * gercek bir sey degil, YAZI-TURA olcuyordu.
+ *
+ * ONARIM (mimar hukmu: iddiayi zayiflatma, OLCUMU determinist yap):
+ *  (a) TOHUM ENJEKTE EDILIR (sayfaKur ayar.seed) — URETIM DAVRANISI DEGISMEZ, index.html'e
+ *      tek satir eklenmedi; canlida rastgelelik AYNEN durur.
+ *  (b) Enjeksiyonun TUTTUGU once dogrulanir: tutmasaydi olcum yine rastgele olur ve
+ *      "deterministik" iddiasi SESSIZCE yalan olurdu.
+ *  (c) Iddia gercek invaryanta baglanir: ilk `adet` slot ON BLOGUN uyesidir. Blok tanimi
+ *      (kategori + adet) sayfanin KENDI `window.PRUVO_VITRIN.bloklar`indan okunur — bu
+ *      dosyaya kopyalanmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+ *  (d) Sari serinin on bloktan dusme riski SESSIZ GECMEZ: havuz kirliligi sayiyla basilir,
+ *      donmus tavan asilirsa kirmizi yanar.
+ * KORELME KONTROLU: onarim gercek alarmi da susturmus olabilirdi
+ * ([[duzeltme-fail-open-cevirebilir]]) — tools/vitrin-kabul-mutasyon.js sari seriyi on
+ * bloktan dusuren gercek gerilemeleri uygular ve bu testin HALA kirmizi yandigini olcer.
+ */
 async function test6Vitrin() {
   const hatalar = [];
-  const s = await sayfaKur({ tabanHarita: TABAN });
-  const kartlar = s.kartlar();
-  if (kartlar.length < 4) { hatalar.push("ana sayfada " + kartlar.length + " kart"); }
-  for (let i = 0; i < Math.min(4, kartlar.length); i++) {
-    const k = kartBilgi(kartlar[i]);
-    if (!k.parametrik) { hatalar.push((i + 1) + ". kart sari degil: " + k.baslik); }
+  const ilk = await sayfaKur({ tabanHarita: TABAN, seed: VITRIN_SEEDLER[0] });
+  const vitrin = ilk.pencere().PRUVO_VITRIN;
+  if (!vitrin || !vitrin.bloklar || !vitrin.bloklar.length ||
+      typeof vitrin.seedAl !== "function") {
+    rapor("6 vitrin: ilk slotlar on bloktan (deterministik tohum suprumu)",
+      ["window.PRUVO_VITRIN tani yuzeyi okunamadi (bloklar/seedAl yok) — OLCUM YAPILAMADI"]);
+    return;
   }
-  rapor("6 vitrin: ilk 4 kart sari", hatalar, "ilk 4 kart parametrik rozetli");
+  const onBlok = vitrin.bloklar[0];
+  const adet = onBlok.adet;
+  /* 🔴 CAPA — blok tanimini sayfadan OKUMANIN BEDELI: beklenti kaynakla birlikte kayarsa
+     "on blogu tamamen kaldir" mutanti da YESIL gecerdi (anchor-coupling,
+     [[anahat-referans-tautolojisi]]). Bu iki satir kaymayan sozlesmedir: ilk blok SARI
+     SERININ blogudur (`kaynak:"parametrik"`) ve EN AZ BIR slotu vardir. */
+  if (onBlok.kaynak !== "parametrik") {
+    hatalar.push("ON BLOK sari seriye ait DEGIL: kaynak='" + onBlok.kaynak +
+      "' (beklenen 'parametrik') — vitrinin ilk slotlari sari seriden alinmis");
+  }
+  if (!(adet >= 1)) {
+    hatalar.push("ON BLOK slot adedi " + adet + " — sari seri vitrinden fiilen kalkmis " +
+      "(0 slot iddiayi da BOSA dusururdu)");
+  }
+  // (b) ENJEKSIYON FIILEN TUTTU MU
+  if (vitrin.seedAl() !== VITRIN_SEEDLER[0]) {
+    hatalar.push("tohum enjeksiyonu TUTMADI: seedAl()=" + vitrin.seedAl() +
+      " (beklenen " + VITRIN_SEEDLER[0] + ") — olcum DETERMINIST DEGIL");
+  }
+
+  // (d) ON BLOK HAVUZU — ana sayfanin yukledigi liste ozet.json havuzlarindan gelir.
+  const gorulen = new Set();
+  const onHavuz = [];
+  for (const anahtar of Object.keys(OZET)) {
+    const v = OZET[anahtar];
+    const listeler = Array.isArray(v) ? [v]
+      : (v && typeof v === "object" ? Object.keys(v).map((k) => v[k]) : []);
+    for (const liste of listeler) {
+      if (!Array.isArray(liste)) { continue; }
+      for (const c of liste) {
+        if (!c || !c.id || gorulen.has(c.id)) { continue; }
+        gorulen.add(c.id);
+        if ((c.kategori || "") === onBlok.kategori) { onHavuz.push(c); }
+      }
+    }
+  }
+  const kirli = onHavuz.filter((c) => !c.parametrik);
+  if (onHavuz.length < adet) {
+    hatalar.push("on blok havuzu " + onHavuz.length + " kart, slot " + adet +
+      " — blok KISALIR, ilk slotlar baska bloktan dolar");
+  }
+  if (kirli.length > ON_BLOK_KIRLILIK_TAVANI) {
+    hatalar.push("on blok havuzunda " + kirli.length + " parametrik OLMAYAN kart (donmus " +
+      "tavan " + ON_BLOK_KIRLILIK_TAVANI + "): " +
+      kirli.slice(0, 5).map((c) => c.id).join(", ") + " — sari seri on bloktan dusebilir");
+  }
+
+  // (c) TOHUM SUPRUMU: her sabit tohumda ilk `adet` slot ON BLOGUN uyesi mi?
+  let enAzSari = adet, enKotuTohum = null;
+  for (const s of VITRIN_SEEDLER) {
+    const sayfa = await sayfaKur({ tabanHarita: TABAN, seed: s });
+    const kartlar = sayfa.kartlar();
+    if (kartlar.length < adet) {
+      hatalar.push("tohum " + s + ": ana sayfada " + kartlar.length + " kart (< " + adet + ")");
+      continue;
+    }
+    let sari = 0;
+    for (let i = 0; i < adet; i++) {
+      const k = kartBilgi(kartlar[i]);
+      if (k.kategori !== onBlok.kategori) {
+        hatalar.push("tohum " + s + ": " + (i + 1) + ". slot ON BLOK DISI ('" + k.kategori +
+          "' != '" + onBlok.kategori + "'): " + k.baslik);
+      }
+      if (k.parametrik) { sari++; }
+    }
+    if (sari < enAzSari) { enAzSari = sari; enKotuTohum = s; }
+  }
+  rapor("6 vitrin: ilk " + adet + " slot ON BLOK '" + onBlok.kategori + "' (" +
+    VITRIN_SEEDLER.length + " sabit tohum)", hatalar,
+    VITRIN_SEEDLER.length + " tohum x " + adet + " slot; havuz " + onHavuz.length +
+    " kart / " + kirli.length + " parametrik degil (tavan " + ON_BLOK_KIRLILIK_TAVANI +
+    "); en kotu tohumda (" + enKotuTohum + ") " + enAzSari + "/" + adet + " sari");
 }
 
 /** 7 — URETIM: build.py --sadece-taban ciktisi semalarla birebir */
