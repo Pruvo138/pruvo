@@ -52,8 +52,7 @@
   uc eksen YESIL (SAYI 19325=19325 · SEMA temiz · ICERIK 19325/19325, uyusmaz 0/eksik 0/fazla 0).
   19325 katalogu `fac2223b` ile geldi ve o kosumda `deploy` SKIPPED'ti → canlida gorunmesi
   `88f111f7` kosumunun fiilen teslim ettiginin kanitidir.
-- **Alarm kolu (`Spec/tasarim ifsasi`) DOKUNULMADI** — DUR kosulunda (ayni kok neden 3+ kosum),
-  yayin zincirinin on kosulu DEGIL. Ona ait **3 mail kutuda BIRAKILDI**.
+- Alarm kolu ayri degerlendirildi; ayrinti sinif geregi DEVAM-ARSIV.md'de (git disi).
 - **2/2 mail Cop'e** (yalniz "Build & deploy" konulu ikisi; inbox 7558→7556, Cop BOSALTILMADI).
 - 🔴 **ACIK KALEM — olcum yuzeyi daraldi:** job-duzeyi `gh run view --json jobs` sorgusu bu turda
   **OLCULEMEDI** (kimliksiz istek → API kota tavani). Hukum canli+D1 davranisindan verildi.
