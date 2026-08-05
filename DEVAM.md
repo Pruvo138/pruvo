@@ -39,6 +39,48 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (23:37 turu) — 🟢 YAYIN ZINCIRI TAM YESIL; alarm kolu TASARIM GEREGI kirmizi, iki aday dal da REDDEDILDI
+- **Push kapisi ACILDI** (4 turdur kapaliydi): `origin/main` = `061d2918` (23:28). Bekleyen
+  commit 0.
+- 🟢 **YAYIN ZINCIRI ILK KEZ UCTAN UCA YESIL** — kosum `31044260148` / `061d2918`, job duzeyi
+  olculdu: `build`+`serit-a2`+`serit-a3`+`serit-a4`+`serit-b`+**`deploy`**+**`yayin`**+
+  `envanter`+`cron-nabzi`+`mesaj-nobeti`+`d1-kadans`=**success** · `hacim-tam-takim`=skipped.
+  Onceki turlarin "yayin" ve "gramer" kirmizilari kapandi.
+- Kutu: son ~70 dk'da **2** "Run failed" maili (inbox **7566**, TOPLU cekim — taranan 7566 =
+  toplam 7566, LISTE_TUTARLI=evet, ORNEKLEME_RISKI=HAYIR). **Ikisi de yalniz alarm koluna ait**
+  (`061d291` + `555202a`); yayin seridine ait mail YOK. **Hicbir mail Cop'e TASINMADI**
+  (alarm kolu yesil degil -> silme yok; kural: yesil YOKSA silme YOK).
+- 🔵 **KIRMIZI BIR CI KUSURU DEGIL — KAPI BOZUK DEGIL (olculdu, varsayilmadi).** Kirilan
+  job `ifsa-nobeti` / adim 6; kapi betiginin KENDI govdesinde beyan ediliyor: bu kapi temizlik
+  yapmaz, kirmizi yanmasi BEKLENEN ve DOGRU. `grep` ile dogrulandi: baska hicbir workflow'da
+  yok, `deploy`e `needs:` bagi yok — **bagimsiz alarm kolu, yayini bloklamiyor.** Guncel main
+  agacinda birebir kosuldu: **164 ihlal / 37 dosya** (degismemis).
+- 🔴 **IKI ADAY ONARIM DALI DA REDDEDILDI (mimar hukmu).** Ikisi de ayni basligi ("164 -> 0")
+  tasiyordu; mukerrer dal main'i GERILETIR diye AYRI tartildi:
+  - **(A) `ci-ifsa-onarimi`** — main'e temiz merge oluyor ve kapiyi **0/0** yapiyor, AMA
+    **mutasyon bataryasi KIRMIZI (28 sapma)**: kapi 26 iddia uretirken `BEKLENEN_IDDIA_SAYISI`
+    24'te birakilmis. Yani merge, workflow'un kirmizisini adim 6'dan adim 5'e TASIR, yesil YAPMAZ.
+  - **"164 -> 0" iddiasinin gercek bilesimi olculdu (dort kombinasyon):** main/main **164/37** ·
+    main agaci + A'nin kapisi **6/6** · birlesik agac + main'in kapisi **157/34** · birlesik +
+    A **0/0**. Yani dususun **%96,3'u desen DARALTMASI**, kaynak temizligi degil.
+  - **Enjeksiyon testi (uydurma fikstur):** A toptan susturma DEGIL — bazi eksenler A altinda
+    da KIRMIZI yaniyor. Ama **beyan edilmemis bir kor nokta olculdu**: elenen 158 isabetin
+    **146'si** kapinin KURULUS bulgusunun sinifinda ve A o sinifta yesil yakiyor, main kirmizi.
+    A'nin iddialari daraltmanin CALISTIGINI olcuyor; o sinifin GORULEBILIR kaldigini olcen
+    capa YOK. (Eksen dokumu sinif geregi `DEVAM-ARSIV.md`'de.)
+  - **(B) `ifsa-kaynak-onarim-ve-daraltma`** — A'nin 50 commit daha bayat ikizi: main'e
+    **CAKISIYOR**, **80 commit** bayat, dosyalarina main'de **16** commit dokunmus (deploy.yml
+    serit bolumlemesi, d1-sync kaynak secimi, D1 kanon kolonlari geri gider) ve kapinin
+    main'de `2d5982e6` ile onarilan `--kok` kok eksenini GERI ALIYOR ("yanlis agacta yesil
+    yakma" sessiz-hata sinifi). **Kesin hayir.**
+- **KARAR (mimar, bu turda alindi):** alarm kolunun kirmizisi bir yayin engeli DEGIL, 37
+  dosyalik bir TEMIZLIK BORCU. Kapatilmasinin dogru yolu deseni daraltmak degil, kaynagi
+  temizlemek + daraltma yapilacaksa her daraltilan sinif icin AYRI capa iddiasi yazmak.
+  Bu is hacimlidir, saatlik nobetin "en kucuk duzeltme" kapsamina girmez -> ayri paket olarak
+  kuyruga alindi. Iki aday dal **merge edilmeyecek**; A'nin daraltma olcumleri (dort
+  kombinasyon + enjeksiyon) yeni pakette girdi olarak kullanilir.
+- Bu turda: kod DEGISMEDI, merge YAPILMADI, push YAPILMADI, mail SILINMEDI.
+
 ## CI NOBETI (22:37 turu) — YAYIN KIRMIZISI BAYAT CIKTI, alarm kolu GERCEK; push hala kapida
 - Kutu: son ~70 dk'da **2** "Run failed" maili (inbox 7563, TOPLU cekim — taranan 7563 =
   toplam 7563, ORNEKLEME_RISKI=HAYIR), ikisi de ayni HEAD (`f926e0df`): **1** yayin seridi +
