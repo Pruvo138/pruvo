@@ -5,21 +5,53 @@
 dort worktree'nin hicbirinde commit'lenmemis degisiklik yok, ana checkout `origin/main` ile senkron.
 `d1-sync --durum` uc eksen YESIL: **18.997** urun, sayi/sema/icerik birebir.
 
-**🔴 GERCEK HASAR — yayin hatti 2026-08-04T18:55Z'den beri KESINTISIZ KIRMIZI (28 kosum).**
-Son yesil kosum `30939847242` (18:42Z). `deploy` job'i `needs: [build, serit-a2, serit-a3, serit-a4]`
-oldugu icin uc serit kirmiziyken **`deploy` + `yayin` HIC KOSMADI** → gece eklenen ~1.500 urun
-(katalog **17.488 → 18.997**) **Ege'de VAR, canli sitede YOK** (ayrisma her zamankinin TERSI yonde).
-Kirmizi yakan: `Marka->model pilot (Ford+BMW)` (a2) · `Model uyeligi kapisi` (a3) · `model uyeligi
-mutasyon bataryasi` (a4).
-📌 **Ayirt edici olcum:** bataryada 31 oldurucunun 31'i dogru kirmizi ama **6 KONTROL mutantinin
-6'si da kirmizi** → kapi **mutasyonsuz tabanda da kirmizi**, yani kusur kapinin kendisinde degil
-olctugu yuzeyde. Kok neden ayrimi (veri mi kod mu) muhendiste (Opus, worktree, dal push edecek,
-merge karari mimarda).
-🟡 Yayini DURDURMAYAN ayri bir alarm kalemi + onarim dali var; ayrinti arsivde (DEVAM-ARSIV.md, 5 Agu).
+**🔴 GERCEK HASAR — ONARILDI, YAYIN ZINCIRI YESIL: canli 18.550 → 18.997 (447 urun).**
 
-**OKAN HUKMU (bugun):** (1) hat yesile donene kadar **diger mimar oturumlari ACILMAYACAK**,
-(2) worktree/dal hijyeni **onarimdan SONRA** yapilacak (su an 4 worktree + 3 push'suz yerel dal,
-tavan 2). Kutuya tum mimarlara "parti push etmeyin" notu yazildi.
+🔴 **ONCE MIMARIN KENDI OKUMA HATASI — DERS BUDUR (`[[hukum-yanlis-birimde]]` birebir tekrari):**
+"28 ardisik kosum kirmizi" DOGRU ama bundan **"deploy hic kosmadi"** hukmunu cikarmak YANLISTI.
+Job duzeyinde olculdu: o 28 kosumun **14'unde `deploy`+`yayin` YESIL kostu**; kosumlari kirmiziya
+boyayan sey **bloklamayan** `ifsa-nobeti` alarmiydi. Yayini fiilen durduran **tek** kosum
+sonuncusuydu (`ecc01a25`). Yani hasar "11 saat / ~1.500 urun" DEGIL, **tek commit / 447 urun**.
+**Kural: kosum duzeyi sonuc, job duzeyi hukmu VERMEZ — `gh api` ile job'a bak.**
+
+**Kok neden: VERI degil KOD da degil — YARGI BOSLUGU.** Bisect: `f35c421f` agaci 21/21 yesil,
+`ecc01a25` 1/21; fark **yalniz `urunler.json`** (+8795 satir, 0 kod satiri). `Ford|raptor` zaten
+yayindaydi, son parti `Yamaha|raptor`'u 2→6 urune cikarip esigin ustune tasidi, cift **YARGISIZ**
+kaldi (K19). Ford Raptor (kamyonet) ≠ Yamaha Raptor (ATV) — ad cakismasi, emsal
+`Ford|sierra`/`Suzuki|sierra`. Hukum: `ROZET_CAPRAZ_IZINLI`'ye 2 gerekceli giris
+(`SAYISI` 22→24, `IMZA` hesaplandi). Kapi gevsetmesi YOK, `urunler.json`'a dokunulmadi,
+MaCiT'e devir 0 kayit.
+
+**Bagimsiz curutme (uc iddia da dogrulandi):** diff 1 dosya +12/−2, deny tablosu imzasi iki agacta
+AYNI · batarya 31 oldurucu + 6 kontrol, beklentiyi tutmayan 0 · capraz kume iki kosumda da
+43 cift / 20 model, main'in tek KALDI ekseni `YARGISIZ=[Ford|raptor, Yamaha|raptor]`, dalda `-`
+→ **bu 2 giris disinda hicbir ciftin yargisi degismiyor** (olculdu, varsayilmadi).
+
+**Merge + ikinci kilit:** merge `a4bcaf60`; ardindan `serit-a2/a3` **daha erken** bir adimda kirmizi
+yandi — `devam-sinif-kapisi.py`, bu dosyanin kendi satirlarinda 2 sinif ihlali (kaynak: mimarin
+push edilmemis `6d519e84` notu). Kapinin yazdigi cozum uygulandi (silme yok, arsive tasima),
+commit `ca01b743`. 📌 Ders: DEVAM.md'ye yazilan hasar notunun KENDISI yayini durdurabiliyor.
+
+**Canli dogrulama (kosum 30983315565, `--is-ancestor` rc=0):** `deploy` **success** · canli
+`urunler.json` canonical + cache-bust'siz **18.997**, 25 rastgele yeni urun sayfasi 25/25 HTTP 200 ·
+`d1-sync --durum` uc eksen yesil · **tam parite ana checkout'tan:** `parite-test.js` 1199 sorgu
+BIREBIR (cikis 0), `parite-ege.js` 848 sorgu BIREBIR (cikis 0) — merge oncesi ikisi de OLCULEMEDI'ydi.
+`yayin` job'i once failure verdi: tasarlanmis tavan (447 > `AZAMI_ADAY=300`); `yayin-kapisi.py
+--geriye-doldur` ile kapatildi → `yayinda=18997 · taslak=0`, geri-okuma dogrulandi.
+
+**🟡 ACIK KALEMLER (bu turda DOKUNULMADI, mimar karari):**
+1. `ifsa-nobeti` kirmizi — bloklamayan alarm, onarimi `ifsa-kaynak-onarim-ve-daraltma` dalinda
+   (164 isabet → 0) merge kuyrugunda. Kirmizi kaldigi surece "yayin zinciri kirmizi" sinyali
+   gercek yayin arizasindan **ayirt edilemiyor** — bugunku 11 saatlik yanlis okumanin sebebi budur.
+2. **`yayin` 300 tavani:** 447'lik parti tekrarlanirsa ayni kirmizi yeniden dogar (MaCiT'e yazildi).
+3. `cron-nabzi` kirmizi — `d1-uzlastirici.yml` zamanlanmis teslimi 9,2 saattir yok
+   (mevcut "A0 DAMGA" acik kaleminin ayni sinifi, bu merge'le ilgisiz).
+4. OLCULEMEDI: `kanca-kablolama-nobeti.py --ci` 18 ekseninin 2'si (16 yesil, 0 kirmizi, cikis 0).
+5. Depo hijyeni: 4 worktree → 3 (merge edilen silindi) + 3 push'suz yerel dal, tavan 2.
+
+**OKAN HUKMU (bugun):** (1) hat yesile donene kadar diger mimar oturumlari acilmayacak — **kosul
+KARSILANDI, acilabilir**; (2) worktree/dal hijyeni onarimdan SONRA. Ayrica bir hesabin kredisi
+07:15'te bitti; oturum acilis sirasi kotaya gore secilecek.
 
 # DEVAM (KraL) — 4 Agu 2026
 
