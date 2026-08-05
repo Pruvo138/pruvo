@@ -10,7 +10,7 @@ dort worktree'nin hicbirinde commit'lenmemis degisiklik yok, ana checkout `origi
 🔴 **ONCE MIMARIN KENDI OKUMA HATASI — DERS BUDUR (`[[hukum-yanlis-birimde]]` birebir tekrari):**
 "28 ardisik kosum kirmizi" DOGRU ama bundan **"deploy hic kosmadi"** hukmunu cikarmak YANLISTI.
 Job duzeyinde olculdu: o 28 kosumun **14'unde `deploy`+`yayin` YESIL kostu**; kosumlari kirmiziya
-boyayan sey **bloklamayan** `ifsa-nobeti` alarmiydi. Yayini fiilen durduran **tek** kosum
+boyayan sey **bloklamayan** bir alarm job'iydi (adi + dokum DEVAM-ARSIV.md de, git disi). Yayini fiilen durduran **tek** kosum
 sonuncusuydu (`ecc01a25`). Yani hasar "11 saat / ~1.500 urun" DEGIL, **tek commit / 447 urun**.
 **Kural: kosum duzeyi sonuc, job duzeyi hukmu VERMEZ — `gh api` ile job'a bak.**
 
@@ -40,7 +40,7 @@ BIREBIR (cikis 0), `parite-ege.js` 848 sorgu BIREBIR (cikis 0) — merge oncesi 
 --geriye-doldur` ile kapatildi → `yayinda=18997 · taslak=0`, geri-okuma dogrulandi.
 
 **🟡 ACIK KALEMLER (bu turda DOKUNULMADI, mimar karari):**
-1. `ifsa-nobeti` kirmizi — bloklamayan alarm, onarimi `ifsa-kaynak-onarim-ve-daraltma` dalinda
+1. Bir alarm job'i kirmizi — bloklamayan; job adi + onarim dalinin adi DEVAM-ARSIV.md de (git disi). Onarim dali
    (164 isabet → 0) merge kuyrugunda. Kirmizi kaldigi surece "yayin zinciri kirmizi" sinyali
    gercek yayin arizasindan **ayirt edilemiyor** — bugunku 11 saatlik yanlis okumanin sebebi budur.
 2. **`yayin` 300 tavani:** 447'lik parti tekrarlanirsa ayni kirmizi yeniden dogar (MaCiT'e yazildi).
