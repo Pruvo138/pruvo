@@ -63,6 +63,92 @@ def esles(hs, tokens):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# MARKA SORGUSU — marka ADIYLA yapilan sorgu SERBEST METNE degil UYELIK yuklemine baglanir.
+#
+# OKAN HUKMU: "TUM markalarda sayfa ve arama urun adetlerinin ayni olmasi."
+# OLCULEN SESSIZ HATA (4 Agu 2026, katalog 18.312 / 128 kanonik marka): `?q=<marka>` kolu
+# alt-DIZE aramasi oldugu icin 79 markada sayfadan FAZLA urun gosteriyordu (6.503 kalem):
+#   Havalandirma -> "Haval" (575) · Mandali/manuel -> "MAN" (3.531) · 33mm -> "3M" ·
+#   iPad mini -> "Mini" · Land Rover -> "Rover" (91).
+# Musteri "MAN" yazip 3.520 sonuc goruyordu; MAN marka SAYFASINDA 4 urun var. Iki yuzey de
+# kendi icinde tutarli gorunur, kimse hata BILDIRMEZ = sessiz hata.
+#
+# 🔴 GECIS KURALI (secim (a), OLCUMLE): UYELIK ∪ BASLIKTA TAM KELIME.
+#   Saf uyelik (secim (b)) farki 79 marka/6.507 kalem -> 0/0 yapar AMA baslikta markayi TAM
+#   KELIME tasiyip `marka[]` uyeligi OLMAYAN 469 urunu (505 kalem) marka sorgusundan DUSURUR:
+#   "Sierra 18-7713 Yamaha/Mercury Deniz Motoru Yakit Filtresi" (marka=['Sierra']),
+#   "Suzuki TL1000R Telefon/GoPro Tutucu Adaptoru", "BMW uyumlu TomTom Rider Adaptoru".
+#   Bunlar GERCEK uyum ve 125'inin HICBIR marka uyeligi YOK — yani saf uyelikte HICBIR marka
+#   sorgusuyla bulunamaz olurlardi: "sayilar esitlendi" derken gercek eslesme kaybedilirdi.
+#   Bu yuzden baslik kolu geciste ACIK kalir. Olculen kalan fark: 38 marka / 504 kalem
+#   (kalem ekseninde %92,3 dusus). Veri tarafi (marka[] tamamlanmasi) ilerledikce erir.
+#
+# 🔴 KATLAMA GOVDESI BURADA YAZILMAZ: "bu dizge bir MARKA ADI mi" yargisi `kanon` geri
+# cagrisiyla DISARIDAN gelir (tek kaynak: marka_model_build.marka_adi_kanonu -> index.html
+# markaKatla portu + cip evreni). Ikinci bir katlama tablosu dogsaydi sessizce ayrisirdi
+# ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 ONEK KATLAMASI YOK (uyelik yukleminin AKSINE): `marka[]` alaninda "Volvo Penta" -> Volvo
+# katlanir, ama METINDE "Yamaha Mercury" bir marka adi DEGILDIR — onek katlamasi burada
+# calissaydi bigram "yamaha mercury" tek basina "Yamaha"ya katlanir ve "Mercury" jetonu
+# YUTULURDU. `kanon` bu yuzden TAM AD eslesmesi yapar.
+
+# Kelime siniri: harf/rakam/`+` DISI her sey ayirac. `+` KORUNUR ("Black+Decker" tek jeton
+# kalsin); `À-ɏ` Latin aksanlari icindir ("Citroen" yazimi bolunmesin). Ayni sinif
+# index.html MARKA SORGUSU blogunda BIREBIR yazilidir (JS `\w` ASCII-only oldugu icin
+# `\w` KULLANILMAZ — kullanilsaydi iki taraf aksanli baslikta sessizce ayrisirdi).
+_MARKA_KELIME_BOL = re.compile(r"[^a-z0-9+À-ɏ]+")
+# Kac kelimelik marka adi taranir: "Alfa Romeo" (2), "Land Rover" (2), "Raspberry Pi" (2).
+# Uc, bugunku en uzun kanonik ada gore SECILDI; buyutmek gurultuyu artirir, kucultmek
+# cok kelimeli markayi TEK KELIMEYE bolerdi ("Land Rover" -> "Rover" = baska bir marque).
+MARKA_BASLIK_AZAMI_KELIME = 3
+
+
+def marka_sorgu_kanonu(q, kanon):
+    """Sorgunun TAMAMI bir markanin adi mi? -> kanonik ad | None.
+
+    `kanon(dizge) -> kanonik ad | None` disaridan gelir (bkz. blok basi).
+    "toyota jant kapagi" -> None (karma sorgu SERBEST METIN kalir; mimar siniri).
+    """
+    return kanon(" ".join((q or "").split()))
+
+
+def baslik_marka_uyumlari(baslik, kanon):
+    """Baslikta TAM KELIME gecen kanonik markalar. EN UZUN ESLESME ONCE, sonra ilerle.
+
+    Uzun-once SART: "Land Rover" basliginda once bigram denenir; bigram tutunca tekil
+    "Rover" URETILMEZ. Olculdu (5 Agu, 18.312 urun): uzun-once kurali olmadan 80 kalem daha
+    dogardi ve HEPSI "Rover" idi — yani Land Rover urunleri "Rover" sorgusuna sizardi
+    (mimarin "farkli marque ayni ad" sinifi). Donen dizide SIRA baslik sirasidir,
+    tekrar tekilleslir.
+    """
+    kel = [w for w in _MARKA_KELIME_BOL.split(norm(baslik or "")) if w]
+    uyumlar = []
+    i, n = 0, len(kel)
+    while i < n:
+        vuruldu = 0
+        for k in range(min(MARKA_BASLIK_AZAMI_KELIME, n - i), 0, -1):
+            kan = kanon(" ".join(kel[i:i + k]))
+            if kan:
+                if kan not in uyumlar:
+                    uyumlar.append(kan)
+                vuruldu = k
+                break
+        i += vuruldu or 1
+    return uyumlar
+
+
+def marka_sorgusu_esler(kanon_marka, uyeler, baslik_uyumlari):
+    """GECIS KURALI — TEK GOVDE: urun, marka sorgusuna UYELIK'ten ya da BASLIKTAKI TAM
+    KELIME uyumundan eslesir. Iki girdi de kendi TEK KAYNAGINDAN gelir:
+      `uyeler`          = marka_model_build.marka_uyelikleri()  (sayfa/cip ile AYNI yuklem)
+      `baslik_uyumlari` = baslik_marka_uyumlari()               (yukarida)
+    Bilerek AYRI iki kaynak: ikisi de ayni fonksiyondan turetilseydi olcum totoloji olurdu.
+    """
+    return kanon_marka in (uyeler or ()) or kanon_marka in (baslik_uyumlari or ())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # EGE TARAFI (FAZ 2) — bot'un urunAra()'si sitenin filtered()'indan BASKA bir arama.
 # Site: kati AND + alt-dize + katalog sirasi. Ege: es anlamli gruplar + Turkce ek
 # kirpma + cift yonlu onek + baslik/govde SKORU. Ikisi ayri normalizasyon kullanir

@@ -2426,11 +2426,15 @@
   // Sayfa boştayken yapılınca ilk tuş da diğerleri gibi ~15 ms'ye iniyor. requestIdleCallback
   // her Safari'de yok -> setTimeout'a düşüyoruz.
   var bosZaman = window.requestIdleCallback || function(f){ return setTimeout(f, 1); };
+  // Aynı gerekçe MARKA SORGUSU için de geçerli: marka adıyla arama başlıktaki marka
+  // uyumlarını kurar (baslikMarkalari) ve ölçüldü (5 Ağu, 18.312 ürün): SOĞUK ilk marka
+  // sorgusu 341 ms, ısıtılmış olanı 14 ms. Aynı boş-zaman parçalayıcısıyla kurulur ki
+  // müşteri "Yamaha" yazınca tek tuşta takılma yaşamasın.
   function isitHaystack(){
     var i = 0;
     (function parca(){
       var son = Math.min(i + 500, PRODUCTS.length);
-      for(; i < son; i++){ haystack(PRODUCTS[i]); }
+      for(; i < son; i++){ haystack(PRODUCTS[i]); baslikMarkalari(PRODUCTS[i]); }
       if(i < PRODUCTS.length){ bosZaman(parca); }
     })();
   }
@@ -2526,6 +2530,114 @@
   }
   function taninmisMarkaMi(m){ return MARKA_KANONIK[markaNorm(m)] !== undefined; }
   // --- MARKA KÜRATÖRLÜĞÜ SON ---
+
+  // --- MARKA SORGUSU BAŞ (marka adıyla yapılan arama; marker satırlarını değiştirme) ---
+  // 🔴 HEDEF (ürün sahibi kuralı): "TÜM markalarda sayfa ve arama ürün adetlerinin aynı olması."
+  // ÖLÇÜLEN SESSİZ HATA (4 Ağu 2026, katalog 18.312 / 128 kanonik marka): `?q=<marka>`
+  // ALT-DİZE araması olduğu için 79 markada sayfadan FAZLA ürün gösteriyordu (6.503 kalem):
+  // Havalandırma→"Haval" (575) · Mandalı/manuel→"MAN" (3.531) · 43mm→"3M" · Land Rover→
+  // "Rover". Müşteri "MAN" yazıp 3.520 sonuç görüyordu; MAN marka SAYFASINDA 4 ürün var.
+  // İki yüzey de kendi içinde tutarlı görünür → kimse bildirmez = sessiz hata.
+  //
+  // KURAL (geçiş): sorgunun TAMAMI bir marka adıysa eşleşme SERBEST METİN değil
+  // ÜYELİK ∪ BAŞLIKTA TAM KELİME'dir. Marka OLMAYAN sorgu ("jant kapağı", "menteşe")
+  // AYNEN serbest metin kalır — arama semantiğinin geri kalanı DEĞİŞMEZ.
+  // Sunucu tarafındaki ikiz gövde AYNI kuralı uygular (sorgu kanonu / başlık uyumları /
+  // eşleşme yüklemi + marka adı kanonu); iki taraf tek kaynaktan türer.
+  // 🔴 ÖLÇÜLDÜ (5 Ağu): saf üyelik farkı 0/0 yapardı AMA başlıkta markayı tam kelime anıp
+  // `marka[]` üyeliği olmayan 469 ürünü (505 kalem) düşürürdü; 125'inin HİÇBİR marka
+  // üyeliği yok, yani hiçbir marka sorgusuyla bulunamaz olurlardı (Sierra/Teleflex marin
+  // parçaları, GoPro/TomTom aparatları). Bu yüzden başlık kolu geçişte AÇIK.
+  var _cipEvreniBellek = null;
+  // Çip evreni markaları (TANINMIS listede OLMAYAN kanonik markalar: Sierra, Teleflex,
+  // NGK, Raymarine...). Kaynak window.PRUVO_CIP_INDEKS — Python tarafında
+  // marka_model_build.cip_evreni_markalari AYNI indeksten türetir. İndeks YOKSA (yerel
+  // kopya / eski yayın) harita BOŞ kalır: o markalar bugünkü serbest metin davranışında
+  // kalır, hiçbir ürün KAYBOLMAZ (fail-open yön BİLEREK — fail-closed olsaydı indeks
+  // düşünce marka sorguları 0 sonuç dönerdi).
+  function cipEvreniMarkalari(){
+    if(_cipEvreniBellek){ return _cipEvreniBellek; }
+    var out = {}, ix = cipIndeks();
+    if(ix){
+      Object.keys(ix.kat).forEach(function(kat){
+        Object.keys(ix.kat[kat]).forEach(function(b){ out[markaNorm(b)] = b; });
+      });
+    }
+    _cipEvreniBellek = out;
+    return out;
+  }
+  // Değer TAM OLARAK bir markanın adı mı? → kanonik ad | null.
+  // 🔴 markaKatla İLE FARKI BİLEREK: markaKatla ÖNEK kuralı işletir ("Volvo Penta"→Volvo),
+  // çünkü onun girdisi ürünün `marka[]` ALANIDIR. Burada girdi SERBEST METİNDİR (sorgu ya
+  // da başlık penceresi); önek kuralı çalışsaydı "Yamaha Mercury" bigramı tek başına
+  // "Yamaha"ya katlanır ve "Mercury" jetonu YUTULURDU. Kanonik yazım + MARKA_ALIAS ikinci
+  // kez YAZILMAZ: eşleşme doğrulandıktan sonra değer markaKatla'dan geçer (tek gövde).
+  function markaAdiKanonu(deger){
+    var n = markaNorm(deger || "");
+    if(!n){ return null; }
+    var kan = MARKA_KANONIK[n];
+    if(kan === undefined){ kan = cipEvreniMarkalari()[n]; }
+    return kan === undefined ? null : markaKatla(kan);
+  }
+  // Kelime sınırı: harf/rakam/`+` DIŞI her şey ayıraç. `+` KORUNUR ("Black+Decker" tek
+  // jeton kalsın); À-ɏ Latin aksanları içindir ("Citroën" bölünmesin).
+  // 🔴 `\w` KULLANILMAZ: JS'te `\w` ASCII-only, Python'da Unicode — iki taraf aksanlı
+  // başlıkta SESSİZCE ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]). Sunucu tarafındaki
+  // kelime-bölme sınıfıyla BİREBİR aynıdır.
+  var MARKA_KELIME_BOL = /[^a-z0-9+À-ɏ]+/;
+  var MARKA_BASLIK_AZAMI_KELIME = 3;
+  // Başlıkta TAM KELİME geçen kanonik markalar. EN UZUN EŞLEŞME ÖNCE, sonra ilerle:
+  // "Land Rover" başlığında bigram tutunca tekil "Rover" ÜRETİLMEZ (ölçüldü 5 Ağu:
+  // uzun-önce kuralı olmadan 80 kalem daha doğuyor ve HEPSİ "Rover" — Land Rover ürünleri
+  // başka bir marque'ın sorgusuna sızıyor). Ürün başına BİR KEZ hesaplanıp p._bm'de saklanır.
+  function baslikMarkalari(p){
+    if(p._bm === undefined){
+      var kel = norm(p.baslik || "").split(MARKA_KELIME_BOL).filter(Boolean);
+      var out = [], i = 0;
+      while(i < kel.length){
+        var vuruldu = 0, ust = Math.min(MARKA_BASLIK_AZAMI_KELIME, kel.length - i);
+        for(var k = ust; k >= 1; k--){
+          var kan = markaAdiKanonu(kel.slice(i, i + k).join(" "));
+          if(kan){
+            if(out.indexOf(kan) === -1){ out.push(kan); }
+            vuruldu = k; break;
+          }
+        }
+        i += vuruldu || 1;
+      }
+      p._bm = out;
+    }
+    return p._bm;
+  }
+  // ÜYELİK yüklemi — filtered() marka çipiyle AYNI GÖVDE (ikisi ayrı yazılsaydı çipin
+  // gösterdiği ürün ile marka aramasının bulduğu ürün sessizce ayrışırdı).
+  function markaUyeMi(p, hedefMarka){
+    return (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
+  }
+  // GEÇİŞ KURALI — TEK GÖVDE: üyelik ∪ başlıkta tam kelime.
+  function markaSorgusuEsler(p, hedefMarka){
+    return markaUyeMi(p, hedefMarka) || baslikMarkalari(p).indexOf(hedefMarka) !== -1;
+  }
+  // TEK ARAMA PLANI — dört serbest metin çağrı yeri (brandCounts, filtered,
+  // edgeJeneratorOzeti, yedek liste) BU fonksiyondan geçer; ikinci gövde doğmaz.
+  // kanon !== null → marka sorgusu; aksi halde bugünkü token listesi (davranış AYNEN).
+  function aramaPlani(q){
+    var kanon = markaAdiKanonu((q || "").replace(/\s+/g, " ").replace(/^ | $/g, ""));
+    return { kanon: kanon,
+             tokens: kanon ? [] : norm(q).split(/\s+/).filter(Boolean).map(aramaKok) };
+  }
+  // hsAl: ürünün arama metnini veren fonksiyon (yedek liste yalnız BAŞLIĞA bakar —
+  // o davranış korunur). Marka sorgusunda haystack HİÇ kurulmaz.
+  function aramaPlaniEsler(p, plan, hsAl){
+    if(plan.kanon){ return markaSorgusuEsler(p, plan.kanon); }
+    if(!plan.tokens.length){ return true; }
+    var hs = (hsAl || haystack)(p);
+    for(var i = 0; i < plan.tokens.length; i++){
+      if(hs.indexOf(plan.tokens[i]) === -1){ return false; }
+    }
+    return true;
+  }
+  // --- MARKA SORGUSU SON ---
 
   // --- KANONİK MODEL EŞLEMESİ BAŞ (model üyelik anahtarı; marker satırlarını değiştirme) ---
   // 🔴 TEK KAYNAK: bu blok ile aşağıdaki iki tablo, /marka/<marka>/<model>/ sayfalarını üreten
@@ -2748,14 +2860,11 @@
       });
       return out;
     }
-    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
+    var plan = aramaPlani(query);
     var counts = {};
     PRODUCTS.forEach(function(p){
       if(activeCat !== "Tümü" && p.kategori !== activeCat){ return; }
-      if(tokens.length){
-        var hs = haystack(p);
-        for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return; } }
-      }
+      if(!aramaPlaniEsler(p, plan)){ return; }
       // Katlama sayımda da uygulanır; aynı ürün "Toyota"+"Toyota 86" taşıyorsa TEK sayılır.
       var gorulen = {};
       (p.marka || []).forEach(function(b){
@@ -3182,7 +3291,9 @@
   }
 
   function filtered(){
-    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
+    // ARAMA: marka adıyla yapılan sorgu ÜYELİK yüklemine bağlıdır (MARKA SORGUSU bloğu);
+    // marka olmayan sorgu AYNEN serbest metindir.
+    var plan = aramaPlani(query);
     // Marka eşleşmesi KATLAMAYLA tutarlı: "Toyota" çipi "Toyota 86"lı, "Mercedes" çipi
     // "Mercedes-Benz"li ürünü de bulur (görünümde tek kalem + eşleşmede aynı kural).
     var hedefMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
@@ -3197,8 +3308,10 @@
       // eşit olmaz → 0 sonuç. Bu FAIL-CLOSED yön BİLEREK: değeri düşürseydik sessizce
       // TÜM liste dönerdi ve sunucu (0 döner) ile istemci AYRIŞIRDI.
       var altOk = activeAlt === "Tümü" || (p.altkategori || "") === activeAlt;
-      var brandOk = !hedefMarka ||
-        (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
+      // ÜYELİK yüklemi TEK GÖVDE (markaUyeMi): marka ÇİPİ ile marka ARAMASI aynı kuraldan
+      // beslenir; ayrı yazılsalardı çipin gösterdiği ürün ile aramanın bulduğu ürün
+      // sessizce ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]).
+      var brandOk = !hedefMarka || markaUyeMi(p, hedefMarka);
       // MODEL: etiket `marka` dizisinde mi. `marka` alanı `uyum`dan türetilir ve model
       // jetonunu da taşır (ör. ["BMW","E46"]) — bu yüzden model ekseni AYNI dizide yaşar.
       // MARKA katlaması BURAYA uygulanmaz (uygulasaydık "E46" → "BMW"ye düşer, model
@@ -3210,10 +3323,7 @@
       var modelOk = activeModel === "Tümü" ||
         modelEsler(p.marka, activeModel, hedefMarka);
       if(!catOk || !altOk || !brandOk || !modelOk){ return false; }
-      if(tokens.length === 0){ return true; }
-      var hs = haystack(p);
-      for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return false; } }
-      return true;
+      return aramaPlaniEsler(p, plan);
     });
   }
 
@@ -3757,15 +3867,9 @@
       var modelMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
       liste = liste.filter(function(p){ return modelEsler(p.marka, activeModel, modelMarka); });
     }
-    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
-    if(tokens.length){
-      liste = liste.filter(function(p){
-        var hs = haystack(p);
-        for(var i = 0; i < tokens.length; i++){
-          if(hs.indexOf(tokens[i]) === -1){ return false; }
-        }
-        return true;
-      });
+    var plan = aramaPlani(query);
+    if(plan.kanon || plan.tokens.length){
+      liste = liste.filter(function(p){ return aramaPlaniEsler(p, plan); });
     }
     return liste;
   }
@@ -3917,12 +4021,12 @@
         return modelEsler(p.marka, activeModel, hedefMarkaY);
       });
     }
-    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
-    if(tokens.length){
+    // YEDEK modda serbest metin YALNIZ BAŞLIĞA bakar (özet kartında açıklama yok) —
+    // o davranış hsAl ile AYNEN korunur. Marka sorgusunda ise üyelik/başlık yüklemi koşar.
+    var plan = aramaPlani(query);
+    if(plan.kanon || plan.tokens.length){
       liste = liste.filter(function(p){
-        var hs = norm(p.baslik || "");
-        for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return false; } }
-        return true;
+        return aramaPlaniEsler(p, plan, function(u){ return norm(u.baslik || ""); });
       });
     }
     kartBellegeAl(liste);

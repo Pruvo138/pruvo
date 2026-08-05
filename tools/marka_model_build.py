@@ -327,6 +327,34 @@ def marka_uyelikleri(marka_dizisi, evren, ek_markalar=()):
     return uyeler
 
 
+def ek_marka_normlu(ek_markalar):
+    """Çip evreninden gelen markaların {normalleşmiş ad: kanonik ad} indeksi.
+    Aramada ürün başına yeniden kurulmasın diye BİR KEZ hazırlanır (18.312 ürün × ~10 jeton
+    × 3 pencere; lineer tarama ölçüldüğünde ~26M karşılaştırma ederdi)."""
+    return {_marka_norm(x): x for x in (ek_markalar or ())}
+
+
+def marka_adi_kanonu(deger, evren, ek_normlu=None):
+    """Değer TAM OLARAK bir markanın adı mı? -> kanonik ad | None.
+
+    🔴 `marka_uyelikleri`/`evren.katla` İLE FARKI BİLEREKTİR: katlama ÖNEK kuralı işletir
+    ("Volvo Penta" -> Volvo), çünkü orada girdi ürünün `marka[]` ALANIDIR ve tek bir markayı
+    adlandırır. Burada girdi SERBEST METİNDİR (sorgu ya da başlık penceresi); önek kuralı
+    çalışsaydı "Yamaha Mercury" bigramı tek başına "Yamaha"ya katlanır ve "Mercury" jetonu
+    YUTULURDU. Bu yüzden yalnız TAM AD eşleşmesi kabul edilir.
+
+    Kanonik yazım + marka-düzeyi alias (Vauxhall -> Opel) İKİNCİ KEZ YAZILMAZ: eşleşme
+    doğrulandıktan sonra değer `evren.katla`dan geçirilir (tek gövde).
+    """
+    ad = " ".join((deger or "").split())
+    if not ad:
+        return None
+    if evren.taninmis_mi(ad):
+        return evren.katla(ad)
+    kan = (ek_normlu or {}).get(_marka_norm(ad))
+    return evren.katla(kan) if kan else None
+
+
 def birincil_marka(marka_dizisi, evren, ek_markalar=()):
     """Ürünün BİRİNCİL kanonik markası — TEK KAYNAK (gruplandir + ürün çip haritası aynı
     yüklemi kullanır; iki yerde yazılsaydı çipin gittiği sayfa ile ürünün sayıldığı sayfa
