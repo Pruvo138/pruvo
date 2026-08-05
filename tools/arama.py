@@ -595,7 +595,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 30 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 34 jeton) ──
     # 1. tur: paket §2'nin ornek degerleri.
     "Volvo Penta", "Yanmar",
     # 2. tur, A grubu (17) — arac / tekne / deniz motoru markasi. Heuristik bunlari
@@ -610,6 +610,25 @@ UYUM_MARKA_IZINLI = frozenset({
     # paket §4'teki sayfa acma esigi N'in isidir.
     "Anker", "Garmin", "GoPro", "Kenwood", "Krups", "Pioneer", "Raspberry Pi", "Remis",
     "Rode", "Samsung", "Sony",
+    # 3. tur, C grubu (4) — mimar karari 5 Agu 2026. Ayni B grubu sinifi: hepsi bir EV
+    # SAHIBI cihaz/ekipman ureticisi, parca ONLARA takilir. Katalogdaki agirlik OLCULDU
+    # (18.362 urun; `marka` dizisinde TAM yazimla gecen urun / `uyum[].model` alaninda
+    # gecen urun) ve her ad TEK TEK gerekcelendirildi — gerekcesiz giris YOK:
+    #   `TomTom`  (marka[] 2 · uyum[].model 2 · baslikta 7) GPS/navigasyon cihazi; aparat
+    #             TomTom cihazina TAKILIR (sinif: Garmin ile BIREBIR ayni, o zaten kumede).
+    #   `Huawei`  (marka[] 1 · uyum[].model 1 · baslikta 2) telefon/tablet ureticisi; kilif
+    #             ve tutucu Huawei cihazina TAKILIR (sinif: Apple/Samsung/Xiaomi ile ayni).
+    #   `Stanley` (marka[] 2 · uyum[].model 2 · baslikta 3) el aleti/depolama ureticisi;
+    #             adaptor Stanley kutusuna/aletine TAKILIR (sinif: Black and Decker,
+    #             Einhell, Ryobi, Husqvarna ile ayni — dordu de zaten kumede).
+    #   `Webasto` (marka[] 2 · uyum[].model 2 · baslikta 3) park isiticisi/klima ureticisi;
+    #             kumanda-braketi ve kanal parcasi Webasto cihazina TAKILIR (sinif: Dimplex,
+    #             Truma-benzeri karavan ekipmani; Remis/Fiamma ile ayni raf).
+    # 🔴 KUME KAPALI KALIR: dordu de yalnizca BU kumeye ve UYUM_MARKA_MIMAR_EKI'ne girer,
+    # yargilanmis bolumleme (izinli−eki / uretici−eki / elenen) DEGISMEZ -> S2 aritmetigi
+    # (UYUM_MARKA_ONERI_SAYISI=169) ve UYUM_MARKA_YARGI_IMZA AYNEN korunur. Dordu de bugun
+    # UYUM_MARKA_ELENEN'de DEGIL (olculdu) — yani elenmis bir jeton geri SIZMIYOR.
+    "Huawei", "Stanley", "TomTom", "Webasto",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -635,6 +654,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     "Smart", "Subaru", "Vauxhall",
     "Anker", "Garmin", "GoPro", "Kenwood", "Krups", "Pioneer", "Raspberry Pi", "Remis",
     "Rode", "Samsung", "Sony",
+    # 3. tur (5 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
+    # "C grubu" blogunda, ad ad yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
+    "Huawei", "Stanley", "TomTom", "Webasto",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
