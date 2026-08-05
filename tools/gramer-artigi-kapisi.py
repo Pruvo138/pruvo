@@ -119,7 +119,15 @@ _ARTIK = (
     #    "ve"/"veya" icin ayni yumusatma YOK: onlar virgul oncesinde de artiktir.
     ("asili-baglac", r"\bve\s*[.;,]|\bveya\s*[.;,]|\bile\s*[.;](?:\s|$)",
      "baglac/edat noktalamaya carpmis"),
-    ("cift-noktalama", r",\s*,|;\s*[;.]|\.\s*,|,\s*\.",
+    # ⚠️ `\.\s*,` kolu RAKAMDAN SONRA ATESLENMEZ (`(?<!\d)`): Turkce SIRA SAYISI
+    #    noktayla yazilir ve listede virgul alir — "Honda Civic 7., 8. ve 9. nesil"
+    #    KUSURSUZ Turkce'dir, enkaz DEGIL. Ayni kalip kisaltma/tarihte de dogar
+    #    ("md. 46, ...", "3.,"). Canli katalogda olculdu (5 Agu 2026, 19.733 kayit):
+    #    ham kol 1 isabet -> 1'i RAKAM-onceli (mesru), 0'i harf-onceli, 0'i diger;
+    #    yani kolun TEK vurusu yanlis-pozitifti ve tum ekibin yayinini durduruyordu.
+    #    Daraltma sonrasi katalog vurusu 1 -> 0. Kol OLDURULMEDI: harf/diger onceli
+    #    gercek enkaz ("düzdür., sabit") hala KIRMIZI yanar (oz-test A5).
+    ("cift-noktalama", r",\s*,|;\s*[;.]|(?<!\d)\.\s*,|,\s*\.",
      "art arda noktalama"),
     ("bosluk-once-noktalama", r"\s[,;]|\s\.(?:\s|$)",
      "noktalamadan once bosluk"),
@@ -299,7 +307,7 @@ def kos(yol=None, liste=False, taban=TABAN_ASGARI):
 
 
 # ------------------------------------------------------------------ oz-nobetci
-# 8 SENTETIK BOZUK (8/8 KIRMIZI olmali) — madde-46'da GERCEKTEN olusan enkaz
+# 9 SENTETIK BOZUK (9/9 KIRMIZI olmali) — madde-46'da GERCEKTEN olusan enkaz
 # siniflari + kacan cumle-ici yetim ek ekseni.
 _BOZUK = (
     ("B1 cumle-ici yetim ek (madde 46'da KACAN eksen)",
@@ -318,9 +326,15 @@ _BOZUK = (
      "Gövde yüzeyine yla, sabitlenir."),
     ("A4 cift noktalama + bos parantez",
      "Montaj yüzeyi ( ) düzdür,, sabit kalır."),
+    # 🔴 A5, `\.\s*,` kolunun RAKAM daraltmasinin BEDELINI olcer: nokta+virgul
+    #    kaliknin HARF onceli hali GERCEK ENKAZDIR ve KIRMIZI kalmalidir. Bu vaka
+    #    olmadan "kolu daralt" ile "kolu tamamen SIL" mutantlari ayirt EDILEMEZ —
+    #    batarya ikisini de yesil gecirirdi.
+    ("A5 nokta+virgul, HARF onceli (daraltma kolu OLDURMEDI nobeti)",
+     "Montaj yüzeyi düzdür., sabit kalır."),
 )
 
-# 12 MESRU (yanlis-pozitif 0 olmali) — ozellikle "de/da" baglaci, "ya da", "ile".
+# 21 MESRU (yanlis-pozitif 0 olmali) — ozellikle "de/da" baglaci, "ya da", "ile".
 _MESRU = (
     "Hem de küçük alanlarda kullanılabilir.",
     "Ofis ya da atölye masasında kullanılır.",
@@ -344,6 +358,13 @@ _MESRU = (
     "Çerçevesi lazer tarama ile, kapak kısmı modellenerek hazırlanmıştır.",
     "Motor bölümünü tatlı suyla temizlemek için kullanılan bağlantı kitidir.",
     "PA66+GF30 veya POM malzeme ile, malzeme çekmesi hesaba katılarak üretilir.",
+    # 🔴 SIRA SAYISI (5 Agu 2026): asagidaki cumle CANLI KATALOGDAN birebir alindi;
+    #    `\.\s*,` kolu bunu "art arda noktalama" sanip KIRMIZI yakti ve tum ekibin
+    #    yayin zincirini (deploy/yayin) durdurdu. Kol rakam-onceli hale daraltildi.
+    #    Nobetci burada durur ki kural bir daha gevsetilirse oz-test KIRMIZI yansin.
+    "Honda Civic 7., 8. ve 9. nesil 3 ve 5 kapılarda arka parsel rafı tutucu "
+    "milinin muadilidir; sağ taraf için baskı sonrası lastik hortum takılması gerekir.",
+    "Honda Civic 7., 8. ve 9. nesil 3 ve 5 kapılarda arka panele takılır.",
 )
 
 
@@ -358,7 +379,7 @@ def _olc(hatalar, etiket, kosul):
 
 
 def kendini_test():
-    """IC NOBETCI: pozitif eksen (8 sentetik bozuk) + negatif eksen (16 mesru)
+    """IC NOBETCI: pozitif eksen (9 sentetik bozuk) + negatif eksen (21 mesru)
     + TABAN KUME fail-closed + kapinin GOVDESI inert olamaz (mutasyon)."""
     hatalar = []
 
