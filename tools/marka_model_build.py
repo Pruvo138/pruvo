@@ -25,6 +25,7 @@ import os
 import re
 import sys
 import json
+import unicodedata
 from urllib.parse import quote
 from collections import Counter
 
@@ -523,8 +524,16 @@ BASLIK_DOGAN_ALLOW = _baslik_dogan_allow()
 def _kelimeler(metin):
     """Başlık/jeton -> normalleşmiş KELİME dizisi (Türkçe-duyarlı; alfanümerik dışı ayırıcı).
     `_norm` ana sayfanın kendi normalleştirmesidir (tek kaynak); kelime sınırı burada
-    ayırıcıya indirgenir, böylece "F-150" ile "F 150" AYNI diziye düşer."""
-    return [w for w in re.split(r"[^a-z0-9]+", _norm(metin or "")) if w]
+    ayırıcıya indirgenir, böylece "F-150" ile "F 150" AYNI diziye düşer.
+
+    🔴 AKSAN ÇÖZÜLÜR (ölçüldü 5 Ağu — 39 KAÇAN eşleşme): `_norm` yalnız Türkçe harfleri
+    sadeleştirir; "Citroën C3" başlığında `ë` ayırıcıya düşüp marka adı "citro"+"n" diye
+    İKİYE bölünüyordu ve `Citroen` ile BİTİŞİKLİK kurulamıyordu ("Citroën C3" 8 üründe,
+    "Renault Zoé" 1 üründe...). Yanlış-negatifti (ürün eklenmiyordu, yanlış ürün girmiyordu)
+    ama müşteri C3 sayfasında eksik görüyordu. Çözüm genel: NFKD + birleşen işaretleri at."""
+    t = unicodedata.normalize("NFKD", _norm(metin or ""))
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    return [w for w in re.split(r"[^a-z0-9]+", t) if w]
 
 
 def tehlike_jetonu_mu(jeton):
