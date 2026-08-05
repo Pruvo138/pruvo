@@ -15,8 +15,7 @@ mutasyon bataryasi` (a4).
 6'si da kirmizi** → kapi **mutasyonsuz tabanda da kirmizi**, yani kusur kapinin kendisinde degil
 olctugu yuzeyde. Kok neden ayrimi (veri mi kod mu) muhendiste (Opus, worktree, dal push edecek,
 merge karari mimarda).
-🟡 `ifsa-nobeti` de kirmizi ama `deploy.needs` icinde DEGIL — yayini durdurmuyor; onarimi
-`ifsa-kaynak-onarim-ve-daraltma` dalinda hazir, merge kuyrugunda.
+🟡 Yayini DURDURMAYAN ayri bir alarm kalemi + onarim dali var; ayrinti arsivde (DEVAM-ARSIV.md, 5 Agu).
 
 **OKAN HUKMU (bugun):** (1) hat yesile donene kadar **diger mimar oturumlari ACILMAYACAK**,
 (2) worktree/dal hijyeni **onarimdan SONRA** yapilacak (su an 4 worktree + 3 push'suz yerel dal,
