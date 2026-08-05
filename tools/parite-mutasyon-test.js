@@ -18,8 +18,11 @@
  * uygulanir, fikstur oradan kosturulur. Gercek repo dosyalari HIC degismez — mutasyon
  * yarida kesilse bile calisma agaci kirlenemez.
  *
- * KABUL: pozitif kontrol (mutasyonsuz kopya) YESIL + her mutant KIRMIZI. Biri bile
- * yesil kalirsa exit 1 ve "NOBETSIZ MUTANT" yazilir.
+ * KABUL: pozitif kontrol (mutasyonsuz kopya) YESIL + her OLDURUCU mutant KIRMIZI +
+ * her KONTROL mutanti (`kontrol: true`) YESIL. Oldurucu yesil kalirsa "NOBETSIZ MUTANT",
+ * kontrol kirmizi yanarsa "ASIRI-HASSAS NOBET" yazilir; ikisi de exit 1.
+ * 🔴 KONTROL SINIFI NEDEN VAR ([[beyan-edilmis-survivor]]): kontrol yoksa DAIMA KIRMIZI
+ * bir fikstur butun oldurucuLERI "yakalar" ve nobet ile gurultu ayirt edilemez.
  */
 
 const fs = require("fs");
@@ -29,7 +32,7 @@ const { spawn } = require("child_process");
 
 const TOOLS = __dirname;
 const DOSYALAR = ["parite-ortak.js", "parite-test.js", "parite-ege.js", "parite-fikstur-test.js",
-  "parite-yayin-fikstur-test.js", "index-arama-referansi.js"];
+  "parite-yayin-fikstur-test.js", "index-arama-referansi.js", "ege-marka-referansi.js"];
 const VARSAYILAN_FIKSTUR = "parite-fikstur-test.js";
 
 /**
@@ -213,6 +216,71 @@ const MUTANTLAR = [
     yaz: "    return { beklemeSn: 0, headYasSn: null,\n" +
       "      tabani: \"yerel HEAD ani OKUNAMADI -> artefakt yasi (KATI/fail-closed)\" };",
   },
+
+  // ══ MARKA EKSENI (06 Agu) — referans KANONIK URETICIDEN mi turuyor? ═══════════════
+  // Kapatilan kusur: `?q=<marka>` ucta `marka_arama` UYELIGINE baglandi, referans serbest
+  // metinde kaldi -> test KENDI bayatligini "gerileme" diye raporladi (37/847). Asagidaki
+  // mutantlar referansi eski/ikiz yukleme dondurur; SM1 (ve SM3) KIRMIZI yakmali.
+  {
+    ad: "M26 referans ham `marka[]` esitligine dondu (kanonik uretec BYPASS)",
+    dosya: "ege-marka-referansi.js",
+    ara: "  const { harita } = haritaUret(kok, urunlerYolu);",
+    yaz: "  const harita = {};\n" +
+      "  for (const u of urunler) { if (u && u.id && (u.marka || []).length) harita[u.id] = u.marka; }",
+  },
+  {
+    ad: "M27 ALIAS COZUMU DUSTU (kolon degeri ham marka evrenine suzuldu -> Vauxhall 0)",
+    dosya: "ege-marka-referansi.js",
+    ara: "  const satirlar = [...yayinda.keys()].sort().map((m) => ({ m }));",
+    yaz: "  const hamEvren = new Set();\n" +
+      "  for (const u of urunler) for (const m of (u && u.marka) || []) hamEvren.add(m);\n" +
+      "  for (const m of [...yayinda.keys()]) if (!hamEvren.has(m)) yayinda.delete(m);\n" +
+      "  const satirlar = [...yayinda.keys()].sort().map((m) => ({ m }));",
+  },
+  {
+    ad: "M28 referans KENDI marka yuklemini yazdi (hicbir sorgu marka sayilmiyor)",
+    dosya: "ege-marka-referansi.js",
+    ara: "  const kanon = (q) => EGE.markaSorguKanonu(env, q);",
+    yaz: "  const kanon = async () => null;",
+  },
+  {
+    ad: "M29 FAIL-CLOSED KALKTI: uretec yokken SESSIZCE eski serbest-metin referansi kosar",
+    dosya: "parite-ege.js",
+    ara: "  } catch (e) {\n" +
+      "    OLCULEMEDI.push(ortak.olcumNotu(e, \"ege\"));\n" +
+      "    OLCULEMEDI.push(\"marka referansi KURULAMADI -> 0/\" + sorgular.length + \" sorgu olculdu\");",
+    yaz: "  } catch (e) {\n" +
+      "    MARKA = { kanon: async () => null, kume: () => [] };\n" +
+      "  }\n" +
+      "  if (false) {\n" +
+      "    OLCULEMEDI.push(\"olu dal\");",
+  },
+
+  // ══ KONTROL MUTANTLARI — YESIL KALMALI ═══════════════════════════════════════════
+  // 🔴 NEDEN SART ([[beyan-edilmis-survivor]]): kontrol yoksa DAIMA KIRMIZI bir fikstur
+  // butun oldurucuLERI "yakalar" ve ayirt edilemez. Bunlar davranisi DEGISTIRMEYEN
+  // degisikliklerdir; fikstur YESIL kalmazsa nobet asiri-hassastir (yanlis-pozitif).
+  {
+    ad: "K1 KONTROL: sorgu havuzunun SIRASI degisti (kume ayni) -> YESIL kalmali",
+    kontrol: true,
+    dosya: "parite-ege.js",
+    ara: "    const j = (i * 2654435761) % (i + 1);",
+    yaz: "    const j = (i * 2246822519) % (i + 1);",
+  },
+  {
+    ad: "K2 KONTROL: davranis degistirmeyen yeniden adlandirma -> YESIL kalmali",
+    kontrol: true,
+    dosya: "ege-marka-referansi.js",
+    ara: "    kume: (deger) => yayinda.get(deger) || [],",
+    yaz: "    kume: (markaAdi) => yayinda.get(markaAdi) || [],",
+  },
+  {
+    ad: "K3 KONTROL: ILGISIZ alan eklendi (kimse okumuyor) -> YESIL kalmali",
+    kontrol: true,
+    dosya: "ege-marka-referansi.js",
+    ara: "    evrenBoyu: satirlar.length,",
+    yaz: "    evrenBoyu: satirlar.length,\n    olculmeyenIlgisizAlan: 0,",
+  },
 ];
 
 function kopyaKur() {
@@ -294,9 +362,11 @@ async function main() {
     }
   }
 
+  const kosan = { oldurucu: 0, kontrol: 0 };
   for (let i = 0; i < MUTANTLAR.length; i++) {
     const m = MUTANTLAR[i];
     if (Number.isFinite(yalniz) && yalniz !== i + 1) continue;
+    if (m.kontrol) kosan.kontrol++; else kosan.oldurucu++;
     const dizin = kopyaKur();
     try {
       const yol = path.join(dizin, m.dosya);
@@ -310,7 +380,19 @@ async function main() {
       fs.writeFileSync(yol, ham.replace(m.ara, m.yaz));
       const r = await fiksturKos(dizin, m.fikstur);
       const yak = yakalayanlar(r.cikti);
-      if (r.kod === 1 && yak.length) {
+      // KONTROL MUTANTI: beklenti TERSTIR — fikstur YESIL kalmali. Kirmizi yanarsa nobet
+      // asiri-hassastir ve "oldurucu yakalandi" sonuclari da anlamini kaybeder.
+      if (m.kontrol) {
+        if (r.kod === 0) {
+          console.log("\n✅ %s\n   -> fikstur YESIL kaldi (exit 0): nobet yanlis-pozitif URETMIYOR", m.ad);
+        } else {
+          console.log("\n❌ ASIRI-HASSAS NOBET: %s\n   -> fikstur exit %d (yakalayan senaryo: %d)",
+            m.ad, r.kod, yak.length);
+          for (const s of yak.slice(0, 4)) console.log("      • " + s);
+          console.log(r.cikti.slice(-600));
+          hatalar.push(m.ad + " — KONTROL KIRMIZI YANDI (fikstur exit " + r.kod + ")");
+        }
+      } else if (r.kod === 1 && yak.length) {
         console.log("\n✅ %s\n   -> fikstur KIRMIZI (exit 1). Yakalayan senaryo(lar):", m.ad);
         for (const s of yak.slice(0, 4)) console.log("      • " + s);
         if (yak.length > 4) console.log("      • (+%d senaryo daha)", yak.length - 4);
@@ -340,8 +422,12 @@ async function main() {
       hatalar.length, MUTANTLAR.length);
     process.exit(1);
   }
-  console.log("SONUC: YESIL ✅ — %d/%d mutant fikstur tarafindan YAKALANDI",
-    MUTANTLAR.length, MUTANTLAR.length);
+  // 🔴 KOSAN sayilir, TANIMLI degil ([[hukum-yanlis-birimde]]): tek mutantlik teshis
+  // kosumu "32/32 kanitlandi" diye OLGUSAL YANLIS basmasin.
+  console.log("SONUC: YESIL ✅ — %d/%d oldurucu YAKALANDI + %d/%d kontrol YESIL KALDI" +
+    " (tanimli: %d oldurucu + %d kontrol)",
+    kosan.oldurucu, kosan.oldurucu, kosan.kontrol, kosan.kontrol,
+    MUTANTLAR.filter((m) => !m.kontrol).length, MUTANTLAR.filter((m) => m.kontrol).length);
   process.exit(0);
 }
 
