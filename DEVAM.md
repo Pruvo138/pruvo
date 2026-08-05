@@ -1,25 +1,49 @@
 # DEVAM (KraL) — 5 Agu 2026
 
-## CI NOBETI (17:37 turu) — yayin serididi YESIL, spec-ifsa alarmi DUR kosulunda
-- Kutu tarandi (inbox 7554, toplu cekim, ornekleme YOK): son ~70 dk'da **6** "Run failed" maili.
-- **Bagimsiz teyit (`gh`), HEAD `e3f6ab7`:** `Build & deploy` 12 job — `build`+`deploy`+`yayin`
-  **success** (1 job `skipped`, bilinen kosullu kol); `D1 sapma alarmi` `sapma`=**success** (2 kosum).
-  Onceki `c358cb3` kirmizilarini `e3f6ab7` kapatmis.
-- **Tek kalan kirmizi: `Spec/tasarim ifsasi alarmi`** — 4 kosumdur ayni kok neden
-  (`fcf0db5` → `91fbd81` → `c358cb3` → `e3f6ab7`), kapi rc=1, yerel tekrar **164 muafiyet-disi
-  isabet / 37 dosya**. Kaynaktan olculdu: bu is akisi **BAGIMSIZ ALARM KOLU**, `deploy`/`yayin`
-  zincirinin on kosulu DEGIL — yayin durmuyor. Isabetler gercek anlatim/beyan icerigi,
-  nobetci fikstur hatasi degil; onarim (164 → 0) merge kuyrugunda.
-- **DUR kosulu uygulandi:** ayni kok neden 3+ kosumdur acik → push YOK, spec-ifsa mailleri
-  SILINMEDI (4'u kutuda kaldi). Cop'e tasinan: **2** (cozuldugu olculen `Build & deploy` +
-  `D1 sapma`). Alarm bloklamadigi ve onarim kuyrukta oldugu icin bu eksende Okan'a cikilmadi.
-- **🔴 TIKANMA (bu turda olculdu): GitHub token GECERSIZ.** `gh auth status` → "The token in
-  default is invalid" (hesap `Pruvo138`); `gh api user` → **401**. Kosum listesi/`--json jobs`
-  yalnizca depo PUBLIC oldugu icin calisti (kimliksiz okuma); `gh run view --log-failed` bu
-  yuzden **403** verdi — teshis job metadatasi + yerel tekrar uzerinden yapildi. `git push origin
-  main` → `could not read Username` ile DUSTU. Bu turun DEVAM.md commit'i (`fc47a199`) **LOKALDE
-  BEKLIYOR, push EDILMEDI**. Okan `gh auth login -h github.com` yapana dek: KraL push edemez,
-  CI loglari okunamaz (**olculemedi != yesil**).
+## 🟢 PARITE REFERANSI TEK KAYNAGA BAGLANDI — `82ab7fea` (site↔uc marka sorgusu)
+
+- **Kusur SITE'de DEGILDI, TESTTEYDI.** `tools/parite-test.js`'in elle kopyalanmis
+  `norm/haystack/filtered` uclusu, `8913db28` + uctaki gecis sonrasi BAYAT AYNA'ya donmustu.
+  Uc yuzey ayri ayri olculdu (uc `/ara` · index.html'in KENDI yuklemi · eski referans):
+  mini **69/69**/1134 · haval **2/2**/600 · rover **9/9**/91 · mercedes **1037/1037**/1041 ·
+  seat **90/90**/120 · aksanli citroen **413/413**/69. **(a) ile (b) 7/7 BIREBIR.**
+- **Musteri kusuru YOK.** Canli `index.html` satir 1629 `EDGE_KATALOG = true` → arama uca
+  gider; yerel/yedek kol da AYNI plandan gecer (`aramaPlani(query)` x4, marka-liste-test
+  bunu olcuyor). Uretim kodunda **0 satir** degisiklik.
+- **AKSAN ekseni ayri kok DEGIL:** eski referansin `norm()`'u aksanli `e`yi sadelestirmiyordu;
+  uc de index.html de kanona indiriyor → onarimdan sonra sapma 0.
+- **Onarim:** yeni `tools/index-arama-referansi.js` — index.html'in kanonik bloklarini
+  AYIKLAYIP `node:vm`'de CALISTIRIR (ikinci yuklem YAZILMADI). Cip indeksi uretim
+  ureticisinden gelir (uydurulmaz; index.html o indeks yokken gevsek davranir, uc davranmaz —
+  bos gecilseydi cip evreni markalarinda YENI ayrisma dogardi).
+- **Fail-closed, dogru birimde:** referans olcumden ONCE kurulur; index.html yok / capa bozuk /
+  uretec yok → **rc=3 (OLCULEMEDI)**, kontrol rc=0.
+- **Kapilar:** canli `parite-test.js` **1199/1199 rc=0** (onceki tur 33 ayrisim) · mutasyon
+  **25/25** · parite-fikstur **226/0** · yayin-fikstur **140/0** · marka-liste **34/0** ·
+  ci-kapsam YESIL · kisisel-veri YESIL.
+- **Korelme olculdu ve kapatildi:** onbelleksiz surumde uretici surec-basina ~1 sn → mutasyon
+  25/25'ten **9/25**'e dustu (yuk, gerileme degil). Taban degismemis agacta 25/25 olculerek
+  suclu bulundu, hipotez `PARITE_CIP_INDEKS` ile kanitlandi, iki girdinin damgasiyla
+  anahtarlanan disk onbellegi eklendi → onbelleksiz **25/25, 262,1 sn**.
+- **MARKA EKSENI (bagimsiz kanit, dal `worktree-agent-a85a9c2f60dce9910`):**
+  taban site **69 marka / 6.539 kalem** + uc **77 marka / 4.613 kalem** ayrisikti;
+  bugun IKI yuzeyde de **130 olculdu / 130 gecti / 0 ayrisik / 0 olculemedi (rc=0)**.
+  Toplam **11.152 kalem → 0**. (Dalin KENDI bayat kataloguyla 4 marka OLCULEMEDI cikiyordu;
+  Honda farki tam **126** = dilim 5 → guncel katalogla dordu de kapandi, veri kusuru DEGIL.)
+- **D1:** `--durum` uc eksen YESIL — SAYI 19252 = 19252 · SEMA temiz · ICERIK 19252/19252
+  (uyusmaz 0, eksik 0, fazla 0). Parite ciktisindaki `canli=19126` **bayat olcumdu**;
+  126 urun D1'e INMIS, senkron kosturmaya gerek olmadi.
+- 🔴 **ACIK KALEM (BASKA DEPO, dokunulmadi):** `parite-ege.js` hala **rc=1, 35/848** ve
+  sapanlarin TAMAMI marka adi sorgusu (24 marka). Sebep: botta IKI govde var — `/ara` D1 yolu
+  kurali benimsedi, bellek-ici arama govdesi benimsemedi (ornek: mercedes uc 1037 ↔ 1509,
+  haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
+  kapatilsin.
+
+## CI NOBETI (17:37 turu) — kapandi; ayrinti ARSIVDE
+- Yayin seridi o turda bagimsiz olculdu ve YESILDI; acik kalan bagimsiz alarm kolu
+  yayin zincirinin on kosulu DEGIL.
+- Turun tum olcumleri, acik kalemi ve arac/kimlik tikanmasi sinif geregi
+  `DEVAM-ARSIV.md`'ye tasindi (silinmedi).
 
 ## CI NOBETI (16:37 turu) — kapandi; ayrinti ARSIVDE
 - Onceki yayin kirmizisi kendi kendine kapandi: `tools/marka-arama-d1-test.py` HEAD'de 54/54, rc=0.
