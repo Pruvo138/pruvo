@@ -455,6 +455,7 @@ def indeks_uret(urunler, index_metni):
     # yapilir; `cift` (uyum bagi) on kosulu da aynen korunur.
     _ad_bellek = {}
     _kova_yazim = {}
+    baslik_katkili = set()  # (marka, canon) — BASLIK KOLUNUN fiilen urun ekledigi kovalar
     for k in mm_tam:
         _yz = sorted(mm_kalan.get(k, {}))
         if _yz:
@@ -484,6 +485,7 @@ def indeks_uret(urunler, index_metni):
                     continue
                 kat_marka_model[(kat, b, canon)] = kat_marka_model.get((kat, b, canon), 0) + 1
                 kat_alt_mm[(kat, altk, b, canon)] = kat_alt_mm.get((kat, altk, b, canon), 0) + 1
+                baslik_katkili.add((b, canon))
 
     gecerli_marka = set(k for k, v in kat_marka.items() if v >= ESIK_MARKA)
     # CIP ETIKETI = sayfa basligiyla AYNI kanonik gosterim (tek kaynak, ikinci secim YOK).
@@ -499,6 +501,12 @@ def indeks_uret(urunler, index_metni):
         # YARGISIZ SAYFA DOGMAZ -> YARGISIZ CIP DE DOGMAZ (5 Agu). Kova esigi/birincilligi
         # YALNIZ baslik kolu sayesinde geciyorsa, sayfa ureticisi onu BASLIK_DOGAN_ALLOW'a
         # baglar; cip de ayni yargiya baglanir, yoksa sayfasi olmayan OLU cip dogardi (M4).
+        # 🔴 SART BASLIK KOLUNUN FIILEN URUN EKLEDIGI KOVAYLA SINIRLI (olculdu 5 Agu):
+        # sinirsiz yazilinca kural "esik alti her kovayi ele" haline geliyor ve CIP
+        # ESIGINI (ESIK_MODEL) dusuren mutanti MASKELIYOR — M16 KIRMIZI iken YESIL'e
+        # donmustu. Yargi kapisi yalniz KENDI actigi kapiyi kapatir.
+        if (k[1], k[2]) not in baslik_katkili:
+            return False
         _bd = (jeton_yolu_n.get((k[1], k[2]), 0) < _mmb.ESIK
                or (k[1], k[2]) not in jeton_yolu_birincil)
         return _bd and (k[1], k[2]) not in _mmb.BASLIK_DOGAN_ALLOW
