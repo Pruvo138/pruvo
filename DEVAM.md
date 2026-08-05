@@ -9,31 +9,43 @@ Gelecek is: SERIT_B'yi (is_akisi, job, betik, **bayrak**) granulune tasimak (bu 
 
 ## 🔚 OTURUM KAPANISI — 4 Agu · YENI OTURUM ONCE BUNU OKU
 
-**CANLIYA GITTI (bu oturum, hepsi SHA-kanitli + canli olculdu):**
-`bd463ee1` marka-model uyeligi `marka[1]` konumundan kurtarildi — canli Zafira **10 -> 21**,
-Golf 177 -> 182, model sayfasi 433 -> 485, kaybolan urun 0 ·
-`948be793` kusak/varyant katlamasi + model-olmayan sayfalarin kapanmasi + Transporter
-birlestirme — Transporter **44 -> 143**, Astra 77 -> 126, Golf +17, Zafira +0 (degismemeli,
-degismedi); `ford/focus-st` · `fiesta-st` · `ecoboost` 404 oldu, 14 urunun tamami korundu ·
-`9cb1e3ee` cron nabiz korlugu + KADANS KURTARMA (uzlastirma artik push'a bagli, cron ikinci kol) ·
-`896f05fa` D1 sapma sinyali yayin sagligi sinyalinden AYRILDI (susturulmadan; yeni
-`workflow_run` alarm kanali canli ateslediği dogrulandi) · `117f1420` yayin hatti acildi ·
-`4373c02f` + `01bc95f9` DEVAM.md hijyeni.
+### ✅ 5 AGU GECE TURU — CANLIYA GIDENLER
+- `f6569d7f` kapi agaci sinifi kapandi — ayrinti DEVAM-ARSIV.md de (git disi).
+- `c912548f` yayin kilidi (tek urun) · `d3638a5c` DEVAM budamasi — ikisi de kapandi.
 
-**KOSAN IS YOK.**
+**🔴 SIRADAKI TUR — MERGE KUYRUGU (hepsi dal, hicbiri canlida degil):**
+1. **marka aramasi -> uyelik yuklemi** (Okan hukmunun ana kaldiraci): `sayfa != arama`
+   **79 marka / 6.507 kalem -> 20 marka / 75 kalem (-%98,8)**, kaybolan urun 0. Merge kapisinda.
+   🔴 Capa DINAMIKLESTIRILDI: havuz `srch - sayfa`dan DEGIL **veri iliskisinden** kuruluyor —
+   arama kumesinden turese kendini dogrulayan capa olurdu, `srch = set(sayfa)` mutanti havuzu
+   da bosaltip kapiyi "olculemedi"ye dusururdu. Bos kume -> rc=2 OLCULEMEDI (M14).
+2. **`model_kanon` kolonu** (8.727 urun / 549 deger) — 3 commit: `1) kolon · 2) taban · 3) sozluk`.
+   🔴 **MODEL EKSENI MARKADAN FARKLI:** kanon hamin UST KUMESI DEGIL — 1.572 jeton / 5.572 kalem
+   kolonda hic gecmiyor, yayimlanan etiketlerde bile "ham eslesiyor kanon eslesmiyor" 16 kova /
+   276 kalem. **Uc BIRLESIM kullanmali** (HocA'ya yazildi). Sayfa<->uc farki 96 kova/390 kalem -> 0/0.
+   🔴 Commit 3 (sozluk) TEK BASINA MERGE EDILEMEZ: sozluk acilinca 7 kaydin `uyum[].model`'i
+   yazim varyanti oluyor -> `uyum-kapisi` A1 KIRMIZI + `urun_hash` bayat -> sonraki senkron o 7
+   urunun `uyum`unu D1'de `[]` yapar (Ege uyum bilgisini KAYBEDER). MaCiT'in 7 kayitlik
+   duzeltmesiyle AYNI merge'de inecek.
+3. **`ege-bilgi.md` tavan payi 27 -> 369** (5 tur curutme). Mayin gercekti: eski pay 27 < en ucuz
+   filaman kaleminin 52 birimi, **1 kalem bile tasiriyordu** (KaaN/MaCiT'in isini kirardi).
+   🔴 Tur-4 dersi: sikistirma iddia DUSURMEDI ama **iddia EKLEDI** — `cozum DAIMA filament olsun`
+   mutlak hukmu, belgenin kendi onayli gomme-somun istisnasiyla (metal) celisiyordu; ikisi de her
+   prompta gidiyordu. Denetim tek yonluydu (yalniz kaybolani sayiyordu), cift yonlu yapildi.
+4. ACIK KALEM: depo hijyeni ve kapi daraltma — dokum DEVAM-ARSIV.md de (git disi).
+5. **Yayin hatti:** bu gece deploy **74 dk durdu** (bir commit inline JS ekleyip `varlik-test.py`i
+   kirdi) ve **hicbir alarm atesle­medi** — `deploy-aclik-kapisi` esigi 4 ardisik skipped'e ayarli.
+   Ayrica parite esigi bayat: pay 3,0x -> **1,33x**, normal kosulda bile "OLCULEMEDI" uretebilir;
+   kritik yol `serit-a3` pencerenin **%93'u**. Ucu birden mühendiste.
 
-**Saatlik CI nobeti 4 Agu ~17:40Z — TEMIZ, ISLEM YOK (duzeltme de mail silme de yapilmadi).**
-Ev kontrolu: `/Users/okan/dev/pruvo` (dogru ev). Mail taramasi isciye delege edildi:
-inbox 7537 mesaj, uc toplu Apple Event listesi tutarli (ornekleme yok); son 70 dk icinde
-gonderen `notifications@github.com` + konu "Run failed" eslesmesi **0** — dolayisiyla
-Cop'e tasinan mail **0**. Bagimsiz teyit (`gh run list`): son 70 dk'daki tek failure
-`30929902990` (headSha `20fbff61`, 16:35Z, `serit-a2`+`serit-a3`, deploy/yayin skipped) —
-bu, 16:45Z turunda `8073ea6f` ile zaten kapatilan kok nedenin son kosumu; sonraki main
-kosumu **`30932568804`** (headSha `cc625f42`) `build`+`serit-a2`+`serit-a3`+`serit-b`+
-**`deploy`**+**`yayin`** hepsi `success` -> yeni kirmizi yok, yeni duzeltme gerekmedi.
-Kapsam disi (akan is, sonraki tur olcer): `30933417243` (17:20Z) `build` yesil, `serit-a3`
-hala in_progress; `30935031779` (17:40Z) yeni push ile pending. Cancelled kosumlar
-(`30933307590`, `30933255362`) mukerrer push kaynakli, failure degil.
+**BEKLEYEN KUCUK KALEMLER (bende):** `_isi_yuvasi()` cift-onek korumasi (tek satir) ·
+"eklenen jeton gerekce tablosu" **calistirilabilir arac degil**, anlati — bir gun kapiya donerse
+ilk fiksturu "hukum ekleyip BICIM diye etiketleme" mutanti olsun · `/marka/bmw/motorrad/` hukmu
+(model degil marka KOLU, `PSA`/`VAG` sinifi — kapatilacak) + `Mercedes|A/S/V` (TEK HARF ama
+GERCEK model, kapatilmayacak, kanonik gosterime baglanacak) · C kovasi 87 urun · duvar-susu
+kapisinin yapisal cozumu (cip evreninden MODEL adi ara).
+
+**CI nobeti:** son tur dokumu DEVAM-ARSIV.md de (git disi).
 
 **BEKLIYOR — baskalarinda:**
 - **MaCiT** → metin/alan boslugu 1. PARTI (en buyuk 50 model; kaynak liste kararsiz jetonlar
@@ -49,38 +61,7 @@ hala in_progress; `30935031779` (17:40Z) yeni push ile pending. Cancelled kosuml
 **OKAN'DA KARAR YOK.** Bugun sorulan uc karar verildi ve uygulandi: asamali git (1. parti 50
 model) · Zafira sayfasi 28 hedefi, `Zafira Life` ayri bolumde · yayin hattini KraL acsin.
 
-**🔴 SIRADAKI TUR — bende, oncelik sirasiyla:**
-1. 🔴 **OKAN HUKMU — TUM markalarda sayfa adedi == arama adedi.** Olculdu (128 marka, 18.080):
-   **77 markada fark, 6.445 kalem.** Farkin **%94'u SAYFA EKSIKLIGI DEGIL, ARAMA GURULTUSU**:
-   `Havalandırma`->"Haval" 562 · `Mandalı/manuel`->"MAN" 3.488 · `33mm`->"3M". Yani sayfa
-   buyuyerek degil **arama daralarak** esitlenecek. Faz 0+1 canlida (yukarida); **kalan faz:
-   marka jetonlu sorgunun uyelik yuklemine yonlendirilmesi** -> 6.087 kalem KENDILIGINDEN kapanir.
-   🔴 **VERI partisi (486 kalem / 450 urun) AYNI ANDA gitmeli** (MaCiT: Sierra/NGK/Teleflex marin
-   parcalari, baslikta "Mercury Verado" yaziyor ama `marka[]`'de yok) — yoksa "sayilar esitlendi"
-   derken 450 GERCEK eslesme kaybedilir. Tam tablo: scratchpad `marka-sayfa-arama-fark.tsv`.
-2. C kovasi (87 urun): olcu satiri sayisal model adiyla cakisiyor — `ara`->`marka` toplu kopya YASAK.
-1b. 🔴 ACIK KALEM: kapi agaci dogrulama — dokum DEVAM-ARSIV.md de (git disi).
-1c. ACIK KALEM: icerik denetimi borcu — dokum DEVAM-ARSIV.md de (git disi).
-1d. Duvar-susu kapisinin YAPISAL cozumu (liste kovalamayi bitirir): kanit varsa metinde
-   **cip evreninden bilinen MODEL adi** ara — varsa gec, yoksa RED. Olctur, sonra uygula.
-2b. 🔴 **`ege-bilgi.md` TAVAN PAYI 27 KALDI** (5973/6000 UTF-16; bot `slice(0,6000)`).
-   `filamentler.json`'a TEK filaman eklenmesi (~110 karakter) tavani asar ve CI'i kirar —
-   uretilen `FILAMENT-REF` blogu dosyaya giriyor. Bu dalin hatasi degil ama pay artik kritik dar;
-   ya tavan/ozetleme yeniden tasarlanmali ya blok kisaltilmali. **BASKASININ isini kirar** (KaaN/MaCiT
-   filaman ekleyince), oncelikli.
-2c. **`/marka/bmw/motorrad/` HUKMU (SINIF 1 muhendisinin kapsam disi bulgusu, karar bende):**
-   canli, 8 urun. `Motorrad` BMW'nin motosiklet KOLU, model DEGIL — sinifi `PSA`/`VAG` ile birebir
-   ayni ve onlar kapatildi. **HUKUM: model-olmayan cifte yazilacak, sayfa kapanacak** (urun
-   kaybolmuyor: marka sayfasi + arama acik). Tutarlilik kazaniyor; ayri turda uygulanacak.
-   Ayni turda `Mercedes|A/S/V` (2/1/1 urun, esik alti) ele alinsin: bunlar TEK HARF ama GERCEK
-   model (A/S/V Serisi) — kapatilmayacak, kanonik gosterimi `A Serisi` bicimine baglanacak.
-3. ~~FR-S sapmasi~~ **KARAR VERILDI (KraL, 4 Agu): DARALTMA YOK, kural oldugu gibi kaliyor.**
-   `frs` canon'u SAHIPSIZ kalacak. Gerekce: `FR-S` bir Scion rozeti, Scion katalogda marque
-   olarak YOK; `(Toyota, FR-S)` ya da `(Subaru, FR-S)`'i allow'a almak o adla SATILMAMIS bir
-   aracin sayfasini dogururdu — K19'un kurdugu kuralin tam ihlali. **AD kayboluyor, URUN
-   kaybolmuyor** (6 tekil urunun tamami `brz`/`gt86` kovalarinda, olculdu). Yeniden acilmasin.
-4. Kutudan devralinanlar: gorsel-kutu bosluk kusuru (`build.py` `height` niteligi) · negatif
-   onbellek Cache Rule · `hasat_kontrol.py` atif-turu kapisi.
+ACIK KALEM: onceki tur kuyrugu — dokum DEVAM-ARSIV.md de (git disi).
 
 ### 🟡 ACIK KALEM 1 — kuyruk geri tepmesi OLCULEMEDI (48 saat sonra yeniden olculecek)
 ACIK: ayrinti DEVAM-ARSIV.md de (git disi).
