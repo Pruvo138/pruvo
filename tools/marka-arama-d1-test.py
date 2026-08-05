@@ -174,7 +174,13 @@ FIKSTURLER = [
      "MORFOLOJIK GURULTU: 'Mandali' TAM KELIME 'MAN' DEGILDIR"),
     ("fx-uyelik", ["Volvo Penta"], "Hava Filtresi 18-7908", ["Volvo"], [],
      "UYELIK KOLU: baslikta marka YOKKEN katlanmis uyelik kolona GIRER"),
-    ("fx-bos", [], "Torpido Klipsi", [], ["Volvo", "Rover", "MAN"],
+    # 🔴 ALIAS KOLU (mimar hukmu): urun `marka[]`inda 'Vauxhall' YAZMIYOR — alias kanonigi
+    # tasiyan HER satira eklenir, cunku site `?q=Vauxhall` icin Opel'in TAMAMINI dondurur.
+    ("fx-alias", ["Opel"], "Corsa D Bagaj Rafi Kayis Klipsi", ["Opel", "Vauxhall"], [],
+     "ALIAS KOLU: kanonik ad kolona girince alias yazimi da GIRER (`marka[]`da YAZMASA BILE)"),
+    ("fx-alias-baslik", [], "Vauxhall Astra Kapi Kolu Kapagi", ["Opel", "Vauxhall"], [],
+     "ALIAS + BASLIK: baslikta alias yazimi kanoniga katlanir, ikisi de kolona girer"),
+    ("fx-bos", [], "Torpido Klipsi", [], ["Volvo", "Rover", "MAN", "Vauxhall"],
      "ESLESMESI OLMAYAN urun haritaya HIC girmez (hedef '[]' = D1 varsayilani)"),
 ]
 
@@ -236,7 +242,7 @@ dogrula("B2 GERCEK KATALOG turetimi BASARILI (fail-closed dalina DUSMEDI)",
 degerler = set()
 for v in harita.values():
     degerler.update(json.loads(v))
-dogrula("B3 harita DOLU: %d urun, %d ayri kanonik marka degeri"
+dogrula("B3 harita DOLU: %d urun, %d ayri marka degeri (kanonik + alias)"
         % (len(harita), len(degerler)), len(harita) > 1000 and len(degerler) > 100,
         "%d / %d" % (len(harita), len(degerler)))
 
@@ -262,7 +268,7 @@ print("\n[C] SITE PARITESI — kolondan turetilen marka kumesi = SITENIN kumesi 
 try:
     veri, kumeler, serbeste_dusen, _uyelik, _bs, _kanon = kapi.olc(mmb, arama, URUNLER, INDEX)
 except SystemExit as e:                                               # noqa: BLE001
-    veri, kumeler, serbeste_dusen = {}, {}, []
+    veri, kumeler, serbeste_dusen, _kanon = {}, {}, [], None
     ATLANAN.append("site referansi (marka-invaryant-kapisi.olc) kosulamadi: SystemExit %s"
                    % (e.code,))
 
@@ -287,6 +293,74 @@ if kumeler:
             % ", ".join("%s=%d" % (m, n) for n, m in ornek), bool(ornek))
 else:
     ATLANAN.append("C bolumu (site paritesi) OLCULEMEDI — referans govde kosmadi")
+
+# ══ AL) ALIAS KOLU — `?q=<alias>` UCTA COZULEBILIYOR MU ══════════════════════════
+# 🔴 MIMAR HUKMU (5 Agu): kolon "hangi marka SORGULARIYLA eslesir" degerini tasir. Site
+# `?q=Vauxhall` sorgusunu Opel'e KATLAR ve Opel'in TAM kumesini dondurur; kolon alias
+# yazimini tasimasaydi uc o sorguyu HIC cozemez, musteri 493 urunluk markayi BULAMAZDI.
+print("\n[AL] ALIAS KOLU — alias sorgusu kolondan cozuluyor mu")
+mmb_evren = mmb.MarkaEvreni(INDEX)
+mmb_ek = mmb.cip_evreni_markalari(URUNLER, INDEX)
+mmb_ek_normlu = mmb.ek_marka_normlu(mmb_ek)
+alias_ters = d1.marka_alias_tersi(mmb, mmb_evren, mmb_ek_normlu)
+alias_ciftleri = [(a, k) for k, alar in alias_ters.items() for a in alar]
+dogrula("AL0 alias tablosu TEK KAYNAKTAN okundu ve BOS DEGIL: %s"
+        % ", ".join("%s->%s" % c for c in alias_ciftleri), bool(alias_ciftleri))
+
+for alias, kanonik in alias_ciftleri:
+    a_kume = kolon_kume.get(alias, set())
+    k_kume = kolon_kume.get(kanonik, set())
+    # 1) ALIAS kumesi = KANONIK kume (alt kume yazmak yeni bir ayrisma acardi)
+    dogrula("AL1 '%s' kumesi = '%s' kumesi (%d urun) — alt kume DEGIL"
+            % (alias, kanonik, len(k_kume)),
+            bool(k_kume) and a_kume == k_kume,
+            "alias=%d kanonik=%d" % (len(a_kume), len(k_kume)))
+    # 2) 🔴 SITE PARITESI (alias ekseni): sitenin `?q=<alias>` kumesi ile BIREBIR.
+    #    Site once alias'i KATLAR (marka_sorgu_kanonu) sonra kanonigin kumesini dondurur.
+    if kumeler and _kanon:
+        km = arama.marka_sorgu_kanonu(alias, _kanon)
+        site_kume = kumeler.get(km, (set(), set(), set()))[2] if km else set()
+        dogrula("AL2 🔴 SITE PARITESI '%s': site `?q=%s` -> kanon '%s' (%d urun) = kolon "
+                "kumesi" % (alias, alias, km, len(site_kume)),
+                bool(site_kume) and a_kume == site_kume,
+                "kolon=%d site=%d" % (len(a_kume), len(site_kume)))
+
+# 3) KOLONDA STRAY DEGER YOK: her deger ya kanonik marka ya da bir kanonigin alias'i.
+alias_adlari = {a for a, _k in alias_ciftleri}
+if kumeler:
+    stray = sorted(m for m in kolon_kume if m not in kumeler and m not in alias_adlari)
+    dogrula("AL3 kolondaki HER deger ya kanonik marka ya bir kanonigin alias'i "
+            "(baska deger: %d %s)" % (len(stray), stray[:5]), not stray)
+
+# 4) 🔴 ADAY AD COZUMU: uc `SELECT DISTINCT value` + norm ile kac adi cozebiliyor?
+distinct_normlu = {arama.norm(m): m for m in degerler}
+adaylar_ad = sorted(set(mmb_evren.taninmis) | set(mmb_ek) | set(mmb_evren.marka_alias))
+cozulen, cozulemeyen = [], []
+
+
+def _kanon_ad(ad):
+    return mmb.marka_adi_kanonu(ad, mmb_evren, mmb_ek_normlu)
+
+
+for ad in adaylar_ad:
+    k = _kanon_ad(ad)
+    if not k:
+        continue
+    bulunan = distinct_normlu.get(arama.norm(ad))
+    # Cozum SARTI: DISTINCT'ten cikan deger, o adin kolondaki kumesini KANONIGIN kumesine
+    # esitlemeli. Alias icin bulunan alias'in KENDISIDIR; kumesi kanonikle ayni (AL1).
+    if bulunan is not None and kolon_kume.get(bulunan) == kolon_kume.get(k):
+        cozulen.append(ad)
+    else:
+        cozulemeyen.append((ad, k, len(kolon_kume.get(k, ()))))
+urunsuz = [c for c in cozulemeyen if c[2] == 0]
+dogrula("AL4 🔴 ADAY AD COZUMU: %d adayin %d'i DISTINCT kolon degerinden cozuluyor; "
+        "cozulemeyen %d" % (len(adaylar_ad), len(cozulen), len(cozulemeyen)),
+        len(cozulen) >= 130, str(cozulemeyen[:6]))
+dogrula("AL5 🔴 cozulemeyenlerin HEPSI URUNSUZ marka (site de 0 dondurur — musteri hicbir "
+        "sey KAYBETMEZ): urunlu cozulemeyen %d"
+        % (len(cozulemeyen) - len(urunsuz)), len(urunsuz) == len(cozulemeyen),
+        str([c for c in cozulemeyen if c[2] > 0]))
 
 # ══ S) SOZLESME — marka_arama ⊇ marka_kanon ══════════════════════════════════════
 print("\n[S] SOZLESME — marka_arama ⊇ marka_kanon (ayri kolon olmasinin bedeli)")
@@ -476,9 +550,12 @@ print("  1. CANLI UC KODU. Worker `/ara` BU DEPODA DEGIL (pruvo-bot, HocA). Bu t
 print("     DOGRU DOLDUGUNU olcer; ucun onu OKUDUGUNU olcmez. O eksen HocA'nin kapisidir.")
 print("  2. CANLI D1'DEKI DEGER. Test yerel sqlite ikizinde olcer; canlida ne yazdigi")
 print("     `python3 tools/d1-sync.py --durum` ile olculur (ALTER canliya UYGULANMADI).")
-print("  3. `?q=` SORGUSUNUN MARKA ADI OLDUGU YARGISI. Kolon 'hangi urun' sorusunu cevaplar,")
-print("     'bu dizge marka mi' sorusunu CEVAPLAMAZ. Olculdu (5 Agu): DISTINCT kolon degeri")
-print("     146 aday marka adinin 129'unu cozer; kalan 17'nin 16'si URUNSUZ markadir")
-print("     (site de 0 dondurur), 1'i ALIAS'tir: 'Vauxhall' -> 'Opel' (493 urun).")
+print("  3. UCUN NORMALIZASYONU. AL4/AL5 'DISTINCT kolon degeri + arama.norm' yolunu")
+print("     PYTHON tarafinda olcer; Worker'in kendi normalizasyonunun bu porta esit oldugu")
+print("     BU DEPODA olculemez (uc kodu burada degil) — parite testleri o ekseni tasir.")
+print("  4. ALIAS TABLOSUNUN BUYUMESI. Bugun tek giris var (Vauxhall -> Opel). Yeni bir")
+print("     alias index.html MARKA_ALIAS'a eklenirse kolon KENDILIGINDEN izler (AL0-AL3")
+print("     tabloyu tek kaynaktan okur), ama UCUN o adi taniyabilmesi icin kolonun")
+print("     YENIDEN SENKRONLANMASI gerekir — bu bir ZAMAN penceresidir, kapisi yoktur.")
 print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
 sys.exit(1 if kalan[0] else 0)

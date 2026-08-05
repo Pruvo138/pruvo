@@ -42,9 +42,9 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI_ADI = "marka-arama-d1-test.py"
 
-# Bunun altina dusen kosum "yesil/kirmizi" degil COKME'dir. Saglam kosum 46 GECTI basar;
-# en cok iddia dusuren OLDURUCU (M8, fail-closed dali) 40'in ustunde kalir. Esik, kapinin
-# erken cikip birkac kontrol basarak "kirmizi" gorunmesini AYIRT ETMEK icindir.
+# Bunun altina dusen kosum "yesil/kirmizi" degil COKME'dir. Saglam kosum 54 GECTI basar;
+# en cok iddia dusuren OLDURUCU (M1, yuklemi serbest metne cevirir) 35'in ustunde kalir.
+# Esik, kapinin erken cikip birkac kontrol basarak "kirmizi" gorunmesini AYIRT ETMEK icindir.
 TABAN_GECTI = 30
 
 # (ad, dosya [TOOLS'a gore], eski, yeni, beklenen)
@@ -101,6 +101,33 @@ MUTANTLAR = [
      "marka_model_build.py",
      "        kan = evren.katla((x or \"\").strip())",
      "        kan = (x or \"\").strip()", "KIRMIZI"),
+    # ── ALIAS KOLU (5 Agu, mimar hukmu) ─────────────────────────────────────────
+    # Uc `?q=Vauxhall` sorgusunu ancak kolondan cozebilir; alias kolu duserse musteri
+    # 493 urunluk bir markayi canli aramada HIC bulamaz ve hicbir sey kirmizi yanmaz.
+    ("OLDURUCU M11 ALIAS KOLUNU DUSUR (uc `?q=Vauxhall` sorgusunu cozemez, 493 urun kaybolur)",
+     "d1-sync.py",
+     "        for m in list(deger):\n"
+     "            for a in alias_ters.get(m, ()):\n"
+     "                if a not in deger:\n"
+     "                    deger.append(a)",
+     "        pass", "KIRMIZI"),
+    # ALT KUME TUZAGI: alias'i YALNIZ `marka[]`inda o yazim GECEN satirlara eklemek
+    # "calisiyor gibi" gorunur (kolon Vauxhall degerini TASIR) ama kume SITENINKINDEN
+    # KUCUKTUR -> tam da kapatmaya calistigimiz ayrisma geri gelir. AL1/AL2 bunu yakalamali.
+    ("OLDURUCU M12 ALIAS'i ALT KUMEYE BAGLA (yalniz `marka[]`inda alias YAZAN satirlar)",
+     "d1-sync.py",
+     "        for m in list(deger):\n"
+     "            for a in alias_ters.get(m, ()):\n"
+     "                if a not in deger:\n"
+     "                    deger.append(a)",
+     "        for m in list(deger):\n"
+     "            for a in alias_ters.get(m, ()):\n"
+     "                if a not in deger and a in (u.get(\"marka\") or []):\n"
+     "                    deger.append(a)", "KIRMIZI"),
+    ("OLDURUCU M13 ALIAS TABLOSUNU BOSALT (tek kaynak okunmasin)",
+     "d1-sync.py",
+     "    for alias in sorted(getattr(evren, \"marka_alias\", None) or ()):",
+     "    for alias in sorted(()):", "KIRMIZI"),
     # ── KONTROL: iddia edilmeyen eksen / davranissiz yazim ──────────────────────
     ("KONTROL K1 davranissiz yazim (harita = {} -> dict())",
      "d1-sync.py",

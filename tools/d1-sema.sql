@@ -86,10 +86,21 @@ CREATE TABLE IF NOT EXISTS urunler (
   -- (arama.marka_sorgusu_esler) gecirilir. Yuklem degisirse kolon KENDILIGINDEN izler;
   -- katlama/jetonlama govdesi burada YENIDEN YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
   --
-  -- OLCULDU (5 Agu, 18.442 urun / 129 kanonik marka): kolon 16.144 satiri doldurur, 129 ayri
-  -- deger tasir; kolondan turetilen marka kumesi SITENIN uretttigi kumeyle 129/129 BIREBIR;
-  -- ters yon (kolonda VAR, sitede YOK) 0; ham `marka` esitliginin ekleyecegi kalem 0
-  -- (yani uc BIRLESIME IHTIYAC DUYMAZ, kolon TEK BASINA yeter — marka ekseninden FARKLI).
+  -- 🔴 ALIAS YAZIMLARI DA GIRER (5 Agu, MIMAR HUKMU): kolon "hangi marka SORGULARIYLA
+  -- eslesir" degerini tasir, yalniz kanonik adi DEGIL. Site `?q=Vauxhall` sorgusunu Opel'e
+  -- KATLAR ve Opel'in TAM kumesini dondurur; kolon alias yazimini tasimasaydi uc o sorguyu
+  -- HIC cozemez ve musteri 493 urunluk bir markayi canli aramada BULAMAZDI. Alias tablosunu
+  -- uca KOPYALAMAK ise ikiz tanim olurdu. Bu yuzden alias, kanonigi tasiyan HER satira
+  -- eklenir (yalniz `marka[]`inda o yazim GECEN satirlara degil — site kumesi kanonigin
+  -- TAMAMIDIR). Kaynak: index.html MARKA_ALIAS + AYNI marka-adi yargisi
+  -- (d1-sync.marka_alias_tersi). `marka_kanon` BUNDAN ETKILENMEZ: cip/sayfa evreni kanonik
+  -- kalir, marka-invaryant-kapisi.py FILTRE ekseni bozulmaz.
+  --
+  -- OLCULDU (5 Agu, 18.442 urun / 129 kanonik marka): kolon 16.144 satiri doldurur, 130 ayri
+  -- deger tasir (129 kanonik + 1 alias); kolondan turetilen marka kumesi SITENIN urettigi
+  -- kumeyle 129/129 BIREBIR, alias adlarinda 1/1 BIREBIR; ters yon (kolonda VAR, sitede YOK)
+  -- 0; ham `marka` esitliginin ekleyecegi kalem 0 (yani uc BIRLESIME IHTIYAC DUYMAZ, kolon
+  -- TEK BASINA yeter — marka ekseninden FARKLI).
   --
   -- HASH'e KARISMAZ + HEDEFLI UPDATE (marka_kanon ile AYNI sinif ve AYNI gerekce): deger
   -- urunun `marka` dizisine oldugu kadar BASLIGINA ve index.html kuratorluğune de baglidir;

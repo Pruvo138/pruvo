@@ -937,26 +937,52 @@ def marka_kanon_haritasi(urunler):
     return harita, None
 
 
+def marka_alias_tersi(mmb, evren, ek_normlu):
+    """{kanonik ad: [alias yazimi, ...]} — SAF, katalogdan BAGIMSIZ (birim testi burayi cagirir).
+
+    🔴 IKINCI LISTE ACILMAZ: alias adlari index.html MARKA_ALIAS'tan (evren.marka_alias)
+    gelir, kanonik karsilik ise `mmb.marka_adi_kanonu` — yani SORGU YOLUNUN KULLANDIGI
+    YARGININ TA KENDISI — ile hesaplanir. Tabloya bakip degeri OKUMAK yerine yargiyi
+    CALISTIRMAK sart: katlama kurali bir gun degisirse alias kolu kendiliginden izler.
+    Kendine katlanan (k == alias) ya da taninmayan (k None) giris ATLANIR.
+    Sira DETERMINISTIK (alfabetik) -> bayt-ayni kolon degeri, sahte UPDATE yok."""
+    ters = {}
+    for alias in sorted(getattr(evren, "marka_alias", None) or ()):
+        k = mmb.marka_adi_kanonu(alias, evren, ek_normlu)
+        if k and k != alias:
+            ters.setdefault(k, []).append(alias)
+    return ters
+
+
 def marka_arama_haritasi(urunler):
     """{id: kanonik JSON dizi metni} — urunun MARKA SORGUSUYLA (`?q=<marka>`) eslesecegi
-    kanonik marka adlari. Doner: (harita, sebep); marka_kanon_haritasi ile AYNI sozlesme.
+    marka adlari. Doner: (harita, sebep); marka_kanon_haritasi ile AYNI sozlesme.
 
-    🔴 KATLAMA/JETONLAMA GOVDESI BURADA YAZILMAZ. Deger UC tek kaynaktan turer:
+    🔴 KATLAMA/JETONLAMA GOVDESI BURADA YAZILMAZ. Deger DORT tek kaynaktan turer:
       1. `mmb.marka_uyelikleri`      -> UYELIK kolu   (sayfa/cip ile AYNI yuklem)
       2. `arama.baslik_marka_uyumlari` -> BASLIK kolu (baslikta TAM KELIME, uzun-once)
       3. `arama.marka_sorgusu_esler` -> GECIS YUKLEMININ TA KENDISI (suzgec)
-    Adaylar 1 ve 2'den toplanir, sonra 3'ten GECIRILIR. Yani kolon "birlesim" formulunu
-    KOPYALAMAZ, uretim yuklemini CALISTIRIR: yuklem bir gun daralirsa (or. saf uyelige
-    donulurse) kolon KENDILIGINDEN izler ve ikiz tanim dogamaz
-    ([[ikiz-tanim-sessiz-ayrisma]]).
+      4. `marka_alias_tersi`         -> ALIAS kolu    (index.html MARKA_ALIAS + ayni yargi)
+    Adaylar 1 ve 2'den toplanir, 3'ten GECIRILIR, sonra 4 ile GENISLETILIR. Yani kolon
+    "birlesim" formulunu KOPYALAMAZ, uretim yuklemini CALISTIRIR: yuklem bir gun daralirsa
+    (or. saf uyelige donulurse) kolon KENDILIGINDEN izler ([[ikiz-tanim-sessiz-ayrisma]]).
 
     🔴 "MARKA ADI MI" YARGISI DA TEK KAYNAKTAN: `mmb.marka_adi_kanonu` (index.html
-    markaKatla portu + cip evreni). Baslik jetonlamasi bu geri cagriyi kullanir; ikinci bir
-    marka listesi ACILMAZ.
+    markaKatla portu + cip evreni). Baslik jetonlamasi VE alias kolu bu geri cagriyi
+    kullanir; ikinci bir marka listesi ACILMAZ.
 
-    SIRA: once UYELIK kolu (urunun kendi `marka` dizisi sirasi), sonra BASLIK kolunun
-    ekledikleri (baslik sirasi). Deterministik -> ayni katalog, bayt-ayni deger, sahte
-    UPDATE yok.
+    🔴 ALIAS KOLU NEDEN VAR (5 Agu, MIMAR HUKMU): kolon "bu urun hangi marka SORGULARIYLA
+    eslesir" degerini tasir. Site `?q=Vauxhall` sorgusunu `Opel`e KATLAR ve Opel'in TAM
+    kumesini dondurur; kolon alias yazimini tasimasaydi uc o sorguyu HIC cozemez, musteri
+    493 urunluk bir markayi canli aramada BULAMAZDI. Alternatif — uca alias tablosunu
+    kopyalamak — IKIZ TANIM olurdu. Bu yuzden alias, KANONIGIN TASIYICI HER SATIRINA
+    eklenir (yalniz `marka[]` alaninda 'Vauxhall' YAZAN satirlara DEGIL): site kumesi
+    Opel'in TAMAMIDIR, alt kume yazmak yeni bir ayrisma acardi.
+    🔴 `marka_kanon` BUNDAN ETKILENMEZ: alias YALNIZ bu kolona girer. Cip/sayfa evreni
+    kanonik kalir, marka-invaryant-kapisi.py FILTRE ekseni bozulmaz.
+
+    SIRA: UYELIK kolu (urunun `marka` dizisi sirasi) -> BASLIK kolunun ekledikleri (baslik
+    sirasi) -> ALIAS kolu (alfabetik). Deterministik -> bayt-ayni deger, sahte UPDATE yok.
 
     FAIL-CLOSED YONU "ATLA", "BOSALT" DEGIL (marka_kanon ile ayni gerekce)."""
     mmb, evren, ek, sebep = marka_kaynaklari(urunler)
@@ -971,6 +997,7 @@ def marka_arama_haritasi(urunler):
             _bellek[dizge] = mmb.marka_adi_kanonu(dizge, evren, ek_normlu)
         return _bellek[dizge]
 
+    alias_ters = marka_alias_tersi(mmb, evren, ek_normlu)
     harita = {}
     for u in urunler:
         if not isinstance(u, dict):
@@ -985,6 +1012,11 @@ def marka_arama_haritasi(urunler):
         # verirdi ama YUKLEMIN KOPYASI olurdu; boyle yazildiginda kolon yuklemi TASIR.
         deger = [m for m in adaylar
                  if arama.marka_sorgusu_esler(m, uyeler, baslik_uyum)]
+        # ALIAS KOLU: kanonik ad kolona girdiyse onun alias yazimlari da girer (bkz. docstring).
+        for m in list(deger):
+            for a in alias_ters.get(m, ()):
+                if a not in deger:
+                    deger.append(a)
         if deger:
             # Eslesmesi olmayan urun haritaya GIRMEZ -> hedef '[]' = D1 varsayilani ->
             # UPDATE URETILMEZ (olcek kapisi; marka_kanon/konfigur deseni).
