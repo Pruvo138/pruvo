@@ -38,6 +38,17 @@ const LIMIT = 1000;          // /ara'nin azami limiti; ustu sorgular sadece sayi
 const ESZAMANLI = 8;
 
 // ─── index.html'den BIREBIR KOPYA (referans — degistirme) ────────────────────
+// 🔴 5 AGU 2026 — BU REFERANSIN KAPSAMI DARALDI, OKUMADAN DOKUNMA:
+// index.html'de "marka adiyla yapilan sorgu" artik SERBEST METIN DEGIL, UYELIK ∪ BASLIKTA
+// TAM KELIME yuklemidir (index.html MARKA SORGUSU blogu + tools/arama.py). Uctaki Worker
+// (pruvo-bot, HocA deposu) o kurali HENUZ BENIMSEMEDI ve `hs` uzerinde alt-dize aramasi
+// yapmaya devam ediyor. Asagidaki filtered() KOPYASI BILEREK ESKI (serbest metin) halinde
+// BIRAKILDI: bu test "UC ile UCUN SOZLESMESI" paritesini olcer, "uc ile index.html"
+// paritesini DEGIL. Yani bu testin YESIL olmasi marka sorgusunda site==uc DEMEK DEGILDIR.
+//   * Marka sorgusunun IKI GOVDESI (index.html ↔ tools/arama.py) arasindaki parite
+//     tools/marka-liste-test.py'de OLCULUR (68 sorgu, gercek katalog).
+//   * Uc kural degistiginde BURASI da guncellenir; o gune kadar kopyayi index.html'e
+//     hizalamak bu testi marka sorgularinda KIRMIZI yakar (gercek ve beklenen ayrisim).
 function norm(s) {
   return (s || "").toLocaleLowerCase("tr")
     .replace(/ı/g, "i").replace(/İ/g, "i")
