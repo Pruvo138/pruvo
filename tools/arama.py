@@ -844,12 +844,22 @@ ROZET_CAPRAZ_IZINLI = {
     # Suzuki Jimny Sierra ayni arac degildir; ikisi de KENDI rozetiyle satildi.
     "Ford|sierra": ("ROZET", "Ford Sierra gercek model (Suzuki Sierra ile IKIZ DEGIL, ad cakismasi)"),
     "Suzuki|sierra": ("ROZET", "Suzuki (Jimny) Sierra gercek model"),
+    # 5 Agu, ayni AD CAKISMASI sinifi (emsal birebir Ford|sierra / Suzuki|sierra satiridir).
+    # Ford Raptor = F-150/Ranger/Bronco Raptor (kamyonet performans rozeti, 2010->);
+    # Yamaha Raptor = YFM660R/YFM700R Raptor (ATV rozeti, 2001->). Ayni fiziksel arac DEGIL,
+    # rozet muhendisligi DEGIL, ortak platform DEGIL — sadece ayni ad. Iki sayfa da KENDI
+    # rozetiyle dogar. Cift `ecc01a25` veri partisiyle capraz oldu: Ford|raptor kovasi
+    # 5 urunle ZATEN yayindaydi, Yamaha|raptor 2 -> 6 urune cikip ESIK'i gecti.
+    "Ford|raptor": ("ROZET", "Ford Raptor gercek rozet (F-150/Ranger/Bronco Raptor; Yamaha "
+                             "Raptor ATV ile IKIZ DEGIL, ad cakismasi)"),
+    "Yamaha|raptor": ("ROZET", "Yamaha Raptor gercek rozet (YFM660R/YFM700R ATV; Ford Raptor "
+                               "kamyonetiyle IKIZ DEGIL, ad cakismasi)"),
     "Renault|trafic": ("ROZET", "Renault Trafic gercek rozet"),
     "Opel|vivaro": ("ROZET", "Opel Vivaro gercek rozet"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 22
-ROZET_CAPRAZ_IZINLI_IMZA = "043f8dab3465c877"
+ROZET_CAPRAZ_IZINLI_SAYISI = 24
+ROZET_CAPRAZ_IZINLI_IMZA = "ef97b85c870e71dc"
 
 
 def rozet_capraz_imzasi():
