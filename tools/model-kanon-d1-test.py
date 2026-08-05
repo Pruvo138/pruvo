@@ -216,6 +216,9 @@ _ek = mmb.cip_evreni_markalari(URUNLER, INDEX)
 _veri = mmb.gruplandir(URUNLER, _evren, _ek)
 _rozet = set((mk, arama.model_normalize(md)) for mk, md in arama.ROZET_DISI_CIFT)
 _olmayan = set((mk, arama.model_normalize(jt)) for mk, jt in arama.MODEL_OLMAYAN_CIFT)
+# BASLIK KOLUNDAN DOGAN SAYFA YARGISI (5 Agu) — ucuncu yargi tablosu; yine BAGIMSIZ
+# okunur (uretecin BASLIK_DOGAN_ALLOW kumesi degil, arama.py'nin kendisi).
+_baslik_izin = set((mk, arama.model_normalize(jt)) for mk, jt in arama.BASLIK_DOGAN_ALLOW)
 
 
 def _yayin_bagimsiz(marka, g):
@@ -229,7 +232,14 @@ def _yayin_bagimsiz(marka, g):
     son = ad.split()
     if len(son) >= 2 and (marka, arama.model_normalize(son[-1])) in _olmayan:
         return False
-    return bool(g.get("birincil")) and len(g["urunler"]) >= mmb.ESIK
+    if not (bool(g.get("birincil")) and len(g["urunler"]) >= mmb.ESIK):
+        return False
+    # YARGISIZ SAYFA DOGMAZ: yalnizca baslik kolu sayesinde esigi gecen kova, ancak
+    # BASLIK_DOGAN_ALLOW'da yargilanmissa yayimlanir -> etiketi de UC evrenine girer.
+    if g.get("baslik_dogan") and (marka, n) not in _baslik_izin \
+            and (marka, arama.model_normalize(g.get("canon") or "")) not in _baslik_izin:
+        return False
+    return True
 
 
 _beklenen_evren = set(g["display"] for marka, d in _veri.items()
