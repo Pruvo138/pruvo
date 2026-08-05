@@ -111,18 +111,45 @@ CAPALAR = [
     ("datsun-mido-far-arka-kapagi", "Datsun", "onek katlamasi (Datsun MiDo -> Datsun)"),
 ]
 
-# ── UYUM CAPASI (marka sorgusu gecis kurali) ────────────────────────────────────
-# (urun id, kanonik marka, uyum turu). Her biri OLCULDU (5 Agu): urunun `marka[]` dizisi bu
-# markayi TASIMAZ (yani /marka/<slug>/ SAYFASINDA YOKTUR) ama BASLIGI markayi TAM KELIME
-# anar ve bu GERCEK bir uyumdur. Uc AYRI uyum mekanizmasi secildi ki tek mekanizmayi
-# kapatan mutant capayi kacirmasin. Sart CIFT YONLU: aramada VAR + sayfada YOK.
-UYUM_CAPALARI = [
-    ("sierra-yakit-filtresi-18-7713", "Yamaha", "deniz motoru uyumu (marka[]=Sierra)"),
-    ("sierra-yakit-filtresi-18-7713", "Mercury",
-     "BITISIK IKINCI MARKA (Yamaha/Mercury): onek katlamasi metne sizarsa 'yamaha mercury' "
-     "bigrami tek basina Yamaha'ya katlanir ve bu jeton YUTULUR"),
-    ("suzuki-tl1000r-telefon-gopro-tutucu-adaptoru", "GoPro", "cihaz aparati (marka[]=Suzuki)"),
-    ("bmw-uyumlu-tomtom-navigasyon-adaptoru", "TomTom", "navigasyon aparati (marka[]=BMW)"),
+# ── UYUM CAPASI — DINAMIK SECIM (sabit id CIVILENMEZ) ───────────────────────────
+# 🔴 NEDEN SABIT ID DEGIL (olculen, YAPISAL sorun): bu capalarin havuzu "baslikta markayi TAM
+# KELIME anip uyeligi OLMAYAN urunler"dir ve o havuz VERI PARTILERIYLE SURekli BOSALIR —
+# tam da amaci budur (MaCiT'in uyelik partisi ARAMA_FAZLA'yi 6.503 -> 504 -> 75'e indirdi).
+# Sabit id civilenirse capa BAYATLAR ve kapi iki kotu secenekten birine dusUr:
+#   (1) sahte KIRMIZI yakip tum ekibin yayinini durdurur (5 Agu'da AYNEN yasandi: MaCiT'in
+#       partisi capa urunlerine uyelik yazdi, kapi birlesmis agacta 3 FAIL verdi), ya da
+#   (2) capa elle "guncellenip" iddia sessizce kaybolur.
+# COZUM: capa KOSUM ANINDA olculen havuzdan DETERMINISTIK secilir (asagida).
+#
+# 🔴 HAVUZ `srch - sayfa`DAN DEGIL, VERI ILISKISINDEN (baslik_uyum \ uyelik) KURULUR.
+# Sebep KENDINI-DOGRULAMA tuzagi: havuzu ARAMA kumesinden turetseydik, ARAMA'yi bozan bir
+# mutant (ornegin `srch = set(sayfa)`) havuzu da BOSALTIR ve kapi "olculemedi" deyip
+# gecerdi. Veri iliskisi mutanttan BAGIMSIZDIR: mutant altinda havuz DOLU kalir, capa
+# "aramada VAR" iddiasi KIRMIZI yanar.
+UYUM_CAPA_ADEDI = 3      # kac capa secilir (ayarlanabilir; artirmak iddiayi guclendirir)
+UYUM_CAPA_ASGARI = 3     # CIVILI TABAN: bu sayidan az capa OLCULDUYSE iddia YOK sayilir.
+#                          ADEDI'den AYRI durur: ADEDI'yi 0'a indiren bir mutant, kendi
+#                          esigini de dusurerek sessizce yesil gecemesin.
+
+# ── SEMANTIK FIKSTUR — KATALOGDAN BAGIMSIZ (bayatlamaz) ─────────────────────────
+# 🔴 Dinamik capanin bilinen zayifligi: mutasyona UYUM SAGLAR. Jetonlama kuralini bozan bir
+# mutant (onek katlamasini metne sizdirmak, cok kelimeli markayi bolmek) havuzun ICERIGINI
+# degistirir ve dinamik secim yeni havuzdan yine gecerli capalar secer. O yuzden jetonlama
+# SEMANTIGI sabit dizgelerle civilenir — bunlarin katalogla HICBIR bagi yoktur, veri partisi
+# bayatlatamaz. (baslik, ICERMELI, ICERMEMELI, ne kanitlar)
+BASLIK_FIKSTURLERI = [
+    ("Land Rover Defender Kapi Kolu Kapagi", ["Land Rover"], ["Rover"],
+     "UZUN-ONCE: bigram tutunca tekil 'Rover' URETILMEZ (farkli marque)"),
+    ("Rover 75 Torpido Klipsi", ["Rover"], [],
+     "KONTROL: 'Land' oneki YOKKEN tekil Rover DOGAR (kural 'Rover'i hep ezmek degil)"),
+    ("Sierra 18-8076 Yamaha Mercury Ortak Tip Benzin Fisi", ["Yamaha", "Mercury"], [],
+     "ONEK KATLAMASI METINDE YOK: bitisik ikinci marka jetonu YUTULMAZ"),
+    ("Alfa Romeo 156 Vites Topuzu", ["Alfa Romeo"], [],
+     "COK KELIMELI marka BUTUN kalir"),
+    ("Suzuki Samurai Kalorifer Havalandirma Dugmesi", [], ["Haval"],
+     "MORFOLOJIK GURULTU: 'Havalandirma' TAM KELIME 'Haval' DEGILDIR"),
+    ("Bagaj Ici 43mm Kece Montaj Aleti", [], ["3M"],
+     "ALT-DIZE GURULTUSU: '43mm' icindeki '3m' marka DEGILDIR"),
 ]
 
 # ── GURULTU CAPASI (serbest metne geri donusu yakar) ────────────────────────────
@@ -168,6 +195,9 @@ def ne_olculmedi():
     print("     urunler (Sierra/Teleflex marin parcalari, GoPro/TomTom aparatlari). Veri")
     print("     tarafi tamamlandikca kendiliginden erir; KATALOG BUYUDUKCE de artar, o")
     print("     yuzden civilenmez (her urun partisi kapiyi kirmizi yakardi).")
+    print("     🔴 AYNI SAYI UYUM CAPA HAVUZUDUR ve TUKENMESI BEKLENIR (6.503 -> 504 -> 75).")
+    print("     Havuz UYUM_CAPA_ASGARI'nin altina inince kapi YESIL DEMEZ, OLCULEMEDI der;")
+    print("     o an insan karari gerekir: ekseni emekli et ya da FIKSTURlerle surdur.")
     print("  3. 🔴 ARAMA_KAYIP EKSENI ARTIK TOTOLOJIYE YAKINDIR. Marka sorgusu UYELIK ∪")
     print("     BASLIK oldugundan ARAMA ⊇ SAYFA yapisaldir; bu eksenin 0 olmasi bir SONUC")
     print("     degil, kurulusun sonucudur. Gercek olcum yuku UYUM/GURULTU CAPALARINA ve")
@@ -192,9 +222,11 @@ def modul_yukle(yol):
 
 
 def olc(mmb, arama, urunler, index_html):
-    """Uc kumeyi kur. Doner: (veri, kumeler, serbeste_dusen).
+    """Uc kumeyi kur. Doner: (veri, kumeler, serbeste_dusen, uyelik, baslik_uyum, kanon).
     kumeler = {marka: (sayfa, filtre, arama)}; serbeste_dusen = MARKA SORGUSU olarak
-    TANINMAYIP serbest metne dusen kanonik markalar (0 olmali)."""
+    TANINMAYIP serbest metne dusen kanonik markalar (0 olmali). `uyelik`/`baslik_uyum`
+    urun basina iki AYRI kaynaktir ve UYUM CAPA HAVUZU onlardan kurulur (bkz. blok basi);
+    `kanon` fikstur olcumunun kullandigi TEK KAYNAK marka-adi yargisidir."""
     evren = mmb.MarkaEvreni(index_html)
     ek = mmb.cip_evreni_markalari(urunler, index_html)
     veri = mmb.gruplandir(urunler, evren, ek)
@@ -243,7 +275,7 @@ def olc(mmb, arama, urunler, index_html):
             tok = arama.tokenlar(marka)
             srch = {i for i, h in hs if i and arama.esles(h, tok)}
         kumeler[marka] = (sayfa, filtre, srch)
-    return veri, kumeler, serbeste_dusen
+    return veri, kumeler, serbeste_dusen, uyelik, baslik_uyum, kanon
 
 
 def taban_kur(veri, kumeler, katalog):
@@ -308,7 +340,8 @@ def main():
         olculemedi("kaynaklar okunamadi (%s: %s)" % (type(e).__name__, e))
 
     try:
-        veri, kumeler, serbeste_dusen = olc(mmb, arama, urunler, index_html)
+        (veri, kumeler, serbeste_dusen,
+         uyelik, baslik_uyum, kanon) = olc(mmb, arama, urunler, index_html)
     except SystemExit as e:
         olculemedi("olcum kosulamadi (SystemExit: %s)" % (e.code,))
     except Exception as e:                                        # noqa: BLE001
@@ -385,20 +418,67 @@ def main():
     kontrol("Q: her kanonik marka adi MARKA SORGUSU olarak taniniyor (serbeste dusen: %d %s)"
             % (len(serbeste_dusen), serbeste_dusen[:4]), not serbeste_dusen)
 
-    # ── U) UYUM CAPASI — baslikta TAM KELIME, uyelik YOK: ARAMADA VAR / SAYFADA YOK ──
-    for pid, marka, tur in UYUM_CAPALARI:
-        if kimlik_sayaci.get(pid, 0) != 1:
-            kontrol("UYUM CAPASI %s (%s): katalogda TAM BIR KEZ gecmeli (bulunan: %d)"
-                    % (pid, tur, kimlik_sayaci.get(pid, 0)), False)
-            continue
-        uc = kumeler.get(marka)
-        if uc is None:
-            kontrol("UYUM CAPASI %s: '%s' markasi evrende YOK" % (pid, marka), False)
-            continue
-        sayfa, _filtre, srch = uc
-        kontrol("UYUM CAPASI %s -> '%s' ARAMASINDA (%s)" % (pid, marka, tur), pid in srch)
-        kontrol("UYUM CAPASI %s -> /marka/%s/ SAYFASINDA DEGIL (capa totoloji degil)"
-                % (pid, marka), pid not in sayfa)
+    # ── F) SEMANTIK FIKSTUR — jetonlama kurali (katalogdan BAGIMSIZ, bayatlamaz) ─────
+    for baslik, icermeli, icermemeli, kanit in BASLIK_FIKSTURLERI:
+        try:
+            bulunan = arama.baslik_marka_uyumlari(baslik, kanon)
+        except Exception as e:                                    # noqa: BLE001
+            olculemedi("FIKSTUR olculemedi (%s: %s)" % (type(e).__name__, e))
+        eksik = [m for m in icermeli if m not in bulunan]
+        sizan = [m for m in icermemeli if m in bulunan]
+        kontrol("FIKSTUR %s | %s -> %s (eksik: %s · sizan: %s)"
+                % (kanit, baslik[:46], bulunan, eksik or "-", sizan or "-"),
+                not eksik and not sizan)
+
+    # ── U) UYUM CAPASI — DINAMIK SECIM (havuz: baslikta TAM KELIME, uyelik YOK) ──────
+    # Havuz VERI ILISKISINDEN kurulur (ARAMA kumesinden DEGIL — bkz. blok basi).
+    kova = {}
+    for pid in sorted(baslik_uyum):
+        uy = uyelik.get(pid) or ()
+        for marka in baslik_uyum[pid]:
+            if marka not in uy and marka in kumeler:
+                kova.setdefault(marka, []).append(pid)
+    for marka in kova:
+        kova[marka].sort()
+    havuz_kalem = sum(len(v) for v in kova.values())
+
+    # FAIL-CLOSED: havuz tukendiyse hukum "OLCULEMEDI"dir, sessiz YESIL DEGIL.
+    # Bu, kapinin MESRU son durumu da olabilir (veri tarafi tamamen kapaninca havuz 0'a
+    # iner) — o zaman bile karar INSANIN: ekseni emekli etmek ya da fiksturlerle surdurmek.
+    if havuz_kalem < UYUM_CAPA_ASGARI:
+        olculemedi("UYUM CAPA HAVUZU TUKENDI (kalem: %d < asgari %d). Havuz 'baslikta TAM "
+                   "KELIME marka anip uyeligi OLMAYAN urunler'dir; bosalmasi ya gecis "
+                   "kuralinin BASLIK kolunun KOPTUGUNU ya da veri tarafinin TAMAMEN "
+                   "kapandigini gosterir. Ikisi de sessizce gecilemez."
+                   % (havuz_kalem, UYUM_CAPA_ASGARI))
+
+    # DETERMINISTIK SECIM: markalar kanonik siraya gore, her turda her markadan BIRER capa
+    # (marka cesitliligi maksimum, sira girdiye BAGLI degil -> koşumlar arasi oynamaz).
+    secim = []
+    for tur in range(max((len(v) for v in kova.values()), default=0)):
+        for marka in sorted(kova):
+            if len(secim) >= UYUM_CAPA_ADEDI:
+                break
+            if tur < len(kova[marka]):
+                secim.append((marka, kova[marka][tur]))
+        if len(secim) >= UYUM_CAPA_ADEDI:
+            break
+
+    print("  UYUM CAPA HAVUZU: %d kalem / %d marka -> secilen %d (deterministik: kanonik "
+          "marka sirasi, marka basina ilk id)" % (havuz_kalem, len(kova), len(secim)))
+    kontrol("U0: en az %d UYUM CAPASI OLCULDU (iddia sessizce kaybolamaz; secilen: %d)"
+            % (UYUM_CAPA_ASGARI, len(secim)), len(secim) >= UYUM_CAPA_ASGARI)
+    for marka, pid in secim:
+        sayfa, _filtre, srch = kumeler[marka]
+        uy, bs = uyelik.get(pid) or [], baslik_uyum.get(pid) or []
+        # 1) GECIS KURALI bu urunu GERCEKTEN eslestiriyor mu (uretim yuklemi kosulur)
+        kontrol("UYUM CAPASI %s x '%s' -> gecis kurali ESLESTIRIYOR (uyelik YOK, baslik VAR)"
+                % (pid, marka), arama.marka_sorgusu_esler(marka, uy, bs))
+        # 2) ARAMA kumesinde GORUNUYOR mu (kapinin kurdugu kume ile uretim yuklemi ayni mi)
+        kontrol("UYUM CAPASI %s x '%s' -> ARAMA kumesinde" % (pid, marka), pid in srch)
+        # 3) SAYFADA YOK (capa totoloji degil: sayfa uyelikten turer, capanin uyeligi yok)
+        kontrol("UYUM CAPASI %s x '%s' -> /marka/ SAYFASINDA DEGIL" % (pid, marka),
+                pid not in sayfa)
 
     # ── G) GURULTU CAPASI — serbest metnin yanlis bagladigi urun ARAMADA OLMAMALI ──
     for pid, marka, sinif in GURULTU_CAPALARI:

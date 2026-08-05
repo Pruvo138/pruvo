@@ -4,8 +4,16 @@
 
   SERIT 1 (varsayilan kapi): tools/marka-invaryant-kapisi.py — OLCUM/model tarafi.
   SERIT 2 (kapi: marka-liste-test.py): index.html MARKA SORGUSU blogu — ISTEMCI tarafi.
-Iki serit SART: marka sorgusu kurali IKI GOVDEDE yasar. Yalniz Python seridi mutasyona
+  SERIT 3 (varsayilan kapi): DINAMIK CAPA SECIMININ KENDISI (M12-M14, K5).
+Iki govde serit SART: marka sorgusu kurali IKI GOVDEDE yasar. Yalniz Python seridi mutasyona
 ugratilsaydi, musterinin tarayicisindaki gerileme KANITSIZ kalirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+Ucuncu serit 5 Agu'da eklendi: capa artik sabit id degil, kosum aninda olculen havuzdan
+DETERMINISTIK secilir; secim mekanizmasinin kendisi mutasyona ugratilmazsa "capa gecti"
+diyerek iddia sessizce kaybolabilirdi.
+
+🔴 UCUNCU BEKLENTI DEGERI — "OLCULEMEDI": fail-closed cikisin (rc=2) KANITI. Yalnizca
+CIVILI SEBEP DIZGESI ciktida gorulurse kill sayilir; aksi halde COKME'dir. Boylece rastgele
+bir istisna "olculemedi" damgasiyla yesile donusemez.
 
 
 NEDEN REPODA DURUYOR: anlatilan batarya kanit DEGILDIR ([[mutasyon-kaniti-yeniden-uretilebilir]]).
@@ -43,10 +51,12 @@ KAPI_ADI = "marka-invaryant-kapisi.py"
 # oldugu icin index.html mutantlari O KAPIYLA kosulur.
 LISTE_KAPI = "marka-liste-test.py"
 # Bunun altina dusen kosum "yesil/kirmizi" degil COKME'dir. Kapi basina olculur: saglam
-# kosumda invaryant kapisi 30, marka-liste-test 34+ PASS basar; en cok iddia dusuren
-# OLDURUCU (M1) 22'de kaliyor. Esik, kapinin erken cikip birkac kontrol basarak "kirmizi"
-# gorunmesini AYIRT ETMEK icindir.
-TABAN_PASS = {KAPI_ADI: 20, LISTE_KAPI: 25}
+# kosumda invaryant kapisi 38, marka-liste-test 59 PASS basar; en cok iddia dusuren
+# OLDURUCU (M13, capa sayisini sifirlar) 28'de kaliyor. Esik, kapinin erken cikip birkac
+# kontrol basarak "kirmizi" gorunmesini AYIRT ETMEK icindir.
+# NOT: beklenen "OLCULEMEDI" olan mutant bu esige TABI DEGILDIR — fail-closed cikis
+# TASARIM GEREGI erken doner (az PASS basar); onun kaniti CIVILI SEBEP DIZGESIDIR.
+TABAN_PASS = {KAPI_ADI: 25, LISTE_KAPI: 40}
 
 # (ad, mutasyona ugrayan dosya [ROOT'a gore], eski, yeni, beklenen[, kosulacak kapi])
 MUTANTLAR = [
@@ -119,6 +129,28 @@ MUTANTLAR = [
      "../index.html",
      "  // --- MARKA SORGUSU SON ---",
      "  // --- MARKA SORGUSU SON --- ", "YESIL", LISTE_KAPI),
+    # ── DINAMIK CAPA SERIDI ─────────────────────────────────────────────────────────
+    # Capa artik sabit id degil, kosum aninda olculen havuzdan secilir. O yuzden SECIMIN
+    # KENDISI de mutasyona ugratilir: bozuk secim, "capa gecti" diyerek iddiayi sessizce
+    # kaybettirebilirdi.
+    ("OLDURUCU M12 CAPA SECIMI BOZUK — havuzu UYELIKTEN kur (baslik yerine)",
+     KAPI_ADI,
+     "            if marka not in uy and marka in kumeler:",
+     "            if marka in uy and marka in kumeler:", "KIRMIZI"),
+    ("OLDURUCU M13 CAPA SAYISINI 0'A INDIR (iddia sessizce kaybolur)",
+     KAPI_ADI,
+     "UYUM_CAPA_ADEDI = 3      # kac capa secilir",
+     "UYUM_CAPA_ADEDI = 0      # kac capa secilir", "KIRMIZI"),
+    # FAIL-CLOSED KANITI: havuz bosalinca hukum SESSIZ YESIL degil OLCULEMEDI olmali.
+    # Beklenen sebep dizgesi CIVILI — rastgele bir cokme "olculemedi" diye gecemesin.
+    ("OLDURUCU M14 HAVUZU BOSALT (sentetik) — fail-closed OLCULEMEDI mi?",
+     KAPI_ADI,
+     "        for marka in baslik_uyum[pid]:",
+     "        for marka in []:", "OLCULEMEDI", KAPI_ADI, "UYUM CAPA HAVUZU TUKENDI"),
+    ("KONTROL K5 dinamik capa blogunda davranissiz yazim (kova.setdefault ayni)",
+     KAPI_ADI,
+     "                kova.setdefault(marka, []).append(pid)",
+     "                kova.setdefault(marka, list()).append(pid)", "YESIL"),
 ]
 
 
@@ -143,6 +175,9 @@ def main():
         for mutant in MUTANTLAR:
             ad, dosya, eski, yeni, beklenen = mutant[:5]
             kapi_adi = mutant[5] if len(mutant) > 5 else KAPI_ADI
+            # 7. alan: OLCULEMEDI beklentisinde ciktida ARANACAK sebep dizgesi. Civili
+            # olmasi SART: aksi halde herhangi bir cokme "olculemedi" diye kill sayilirdi.
+            beklenen_metin = mutant[6] if len(mutant) > 6 else None
             # Yollar TOOLS'a goredir; "../index.html" ROOT'taki istemci dosyasina cikar.
             kaynak_yolu = os.path.normpath(os.path.join(TOOLS, dosya))
             taban = open(kaynak_yolu, encoding="utf-8").read()
@@ -160,7 +195,11 @@ def main():
             cikti = r.stdout + r.stderr
             fail = len(re.findall(r"^ *FAIL ", cikti, re.M))
             gecen = len(re.findall(r"^ *PASS ", cikti, re.M))
-            if r.returncode not in (0, 1):
+            if r.returncode == 2 and beklenen == "OLCULEMEDI":
+                # Sadece CIVILI sebep dizgesi varsa "olculemedi" sayilir; yoksa COKME'dir.
+                gozlem = ("OLCULEMEDI" if (beklenen_metin and beklenen_metin in cikti)
+                          else "COKME(rc=2 ama beklenen sebep YOK: %r)" % (beklenen_metin,))
+            elif r.returncode not in (0, 1):
                 gozlem = "COKME(rc=%d: %s)" % (r.returncode, cikti.strip().split("\n")[-1][:80])
             elif r.returncode == 1 and fail == 0:
                 gozlem = "COKME(kirmizi ama olculen iddia yok)"
