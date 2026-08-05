@@ -138,7 +138,10 @@ def olc(kok):
     for marka, d in veri.items():
         for canon, g in d["gruplar"].items():
             kova[(marka, canon)] = (len(g["urunler"]), mm.yayimlanir_mi(g),
-                                    len(g.get("baslik_ekli") or ()))
+                                    len(g.get("baslik_ekli") or ()),
+                                    bool(g.get("birincil"))
+                                    and (marka, canon) not in mm.ROZET_DISI
+                                    and not mm.model_olmayan_cift_mi(marka, g["display"]))
     return kova, evren, mm
 
 
@@ -148,7 +151,7 @@ def sayi(kova, evren, marka, ad):
     canon = evren.model_anahtari(marka, ad)
     if not canon:
         return 0
-    return (kova.get((marka, canon)) or (0, False, 0))[0]
+    return (kova.get((marka, canon)) or (0, False, 0, False))[0]
 
 
 def kabul(kok):
@@ -226,7 +229,7 @@ def kabul(kok):
                ["%s/%s=%d" % (m, a, sayi(kova, evren, m, a))
                 for m, a, _o, _t in TEHLIKE_TURNUSOL]))
     _ac = evren.model_anahtari(*AYIRT_TURNUSOL)
-    ayirt = (kova.get((AYIRT_TURNUSOL[0], _ac)) or (0, False, 0))[2]
+    ayirt = (kova.get((AYIRT_TURNUSOL[0], _ac)) or (0, False, 0, False))[2]
     dogrula("B7 AYIRT EDİCİ TURNUSOL: %s|%s kovasına BAŞLIK KOLUNDAN ürün GİRMİYOR "
             "(katalogda 'Subaru <marka-dışı jeton> 86 …' başlıkları var; marka+model "
             "BİTİŞİK değil)" % AYIRT_TURNUSOL, ayirt == 0,
@@ -241,19 +244,27 @@ def kabul(kok):
                    for mk, jt in _arama.BASLIK_DOGAN_ALLOW)
     except Exception as e:                                         # noqa: BLE001
         raise Olculemedi("arama.BASLIK_DOGAN_ALLOW okunamadı: %r" % (e,))
+    # 🔴 BİRİM: "hüküm BEKLEYEN" = başlık kolu olmadan eşiği geçemeyen AMA başlık koluyla
+    # eşiği geçen kova (yani hükmedilseydi SAYFA OLACAK olan). Eşiğin altında kalan kovalar
+    # bir karar gerektirmez ve bu sayıya KARIŞMAZ — model-uyelik-kapisi K21 ile aynı birim.
     yargisiz_dogan, bekleyen = [], 0
-    for (mk, canon), (n, yayimda, bek) in kova.items():
+    for (mk, canon), (n, yayimda, bek, aday) in kova.items():
         if not bek:
             continue
-        jeton_yolu = n - bek
-        if jeton_yolu >= mm.ESIK:
+        if n - bek >= mm.ESIK:
             continue                     # başlık kolu OLMADAN da eşiği geçiyordu
         if yayimda and (mk, _arama.model_normalize(canon)) not in izin:
             yargisiz_dogan.append("%s|%s" % (mk, canon))
-        if not yayimda:
+        if not yayimda and n >= mm.ESIK and aday:
             bekleyen += 1
+    # 📌 Bu sayı, model-uyelik-kapisi K21'in bastığı sayıdan BİRKAÇ kova az olabilir ve bu
+    # BEKLENENDİR: burada ölçüt SAYIMDIR (`n - başlık ekli < ESIK`), K21'de üreticinin
+    # `baslik_dogan` bayrağıdır (eşik VE birincillik). Aradaki fark = başlık koluyla
+    # BİRİNCİLLİK kazanan kovalar. İki ölçüt BİLEREK bağımsızdır (aynısı olsaydı iddia
+    # totoloji olurdu); ikisi de aynı sıfırı — "yargısız doğan=0" — savunur.
     dogrula("B8 YARGISIZ SAYFA DOĞMUYOR (başlık kolu sayesinde eşiği geçen kova ancak "
-            "yargılanmışsa yayımlanır; %d kova hüküm BEKLİYOR)" % bekleyen,
+            "yargılanmışsa yayımlanır; SAYIM birimiyle %d kova hüküm BEKLİYOR ve DOĞMADI)"
+            % bekleyen,
             not yargisiz_dogan, "yargısız doğan=%s" % (yargisiz_dogan[:5] or "-"))
 
     # --- G) KAYBEDEN YOK: hiçbir ürün kovasından DÜŞMEZ ----------------------------
