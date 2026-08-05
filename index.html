@@ -233,7 +233,7 @@
   .info-strip p{font-size:14px;color:var(--gray-text);line-height:1.5;margin:0}
   .info-strip strong{color:var(--navy);font-weight:700}
   .help-cta-btn{
-    background:#25D366;              /* WhatsApp yeşili */
+    background:#0E7A3D;              /* WhatsApp yeşili */
     color:#fff;
     border:none;
     border-radius:24px;
@@ -250,7 +250,7 @@
     box-shadow:0 3px 10px rgba(37,211,102,.35);
     transition:.15s;
   }
-  .help-cta-btn:hover{background:#1ebe5a}
+  .help-cta-btn:hover{background:#0B6E36}
   .help-cta-btn svg{width:19px;height:19px;fill:#fff}
 
   /* ---------- MAIN ---------- */
@@ -366,13 +366,17 @@
   .marin-slider .marin-slide.active{ opacity:1; pointer-events:auto; z-index:1; }
   .marin-slider-dots{
     position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-    display:flex; gap:7px; z-index:2;
+    display:flex; gap:2px; z-index:2;
   }
   .marin-slider-dot{
-    width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.45);
-    border:none; cursor:pointer; padding:0; transition:.15s;
+    width:24px; height:24px; padding:0; border:none; background:transparent;
+    cursor:pointer; transition:.15s; display:flex; align-items:center; justify-content:center;
   }
-  .marin-slider-dot.active{ background:#fff; width:20px; border-radius:5px; }
+  .marin-slider-dot::after{
+    content:""; width:8px; height:8px; border-radius:50%;
+    background:rgba(255,255,255,.45); transition:.15s;
+  }
+  .marin-slider-dot.active::after{ background:#fff; width:20px; height:8px; border-radius:5px; }
   @media(max-width:640px){
     .marin-slider{min-height:140px}
   }
@@ -562,7 +566,7 @@
     right:20px;
     bottom:20px;
     z-index:60;
-    background:#25D366;               /* WhatsApp yeşili */
+    background:#0E7A3D;               /* WhatsApp yeşili */
     color:#fff;
     border:none;
     border-radius:30px;
@@ -576,7 +580,7 @@
     box-shadow:0 6px 20px rgba(0,0,0,.25);
     transition:.15s;
   }
-  .cart-fab:hover{background:#1ebe5a}
+  .cart-fab:hover{background:#0B6E36}
   .cart-fab svg{width:20px;height:20px;fill:#fff}
   .cart-fab-count{
     background:#fff;
@@ -780,12 +784,12 @@
   }
   .odeme-vazgec:hover{border-color:var(--navy-2);color:var(--navy)}
   .cart-order-btn{
-    background:#25D366;color:#fff;text-decoration:none;
+    background:#0E7A3D;color:#fff;text-decoration:none;
     border-radius:12px;padding:14px;font-size:15.5px;font-weight:800;
     display:flex;align-items:center;justify-content:center;gap:9px;transition:.15s;
   }
   .cart-order-btn svg{width:20px;height:20px;fill:#fff}
-  .cart-order-btn:hover{background:#1ebe5a}
+  .cart-order-btn:hover{background:#0B6E36}
   .cart-order-btn.disabled{background:#b9c6b9;pointer-events:none}
   /* ODEME_ACIK=true iken birincil buton ÖDEME olur; WhatsApp kanalı YAŞAR ama ikincil
      (kontur) görünüme iner. ODEME_ACIK=false iken bu sınıf hiç verilmez — bugünkü görünüm. */
