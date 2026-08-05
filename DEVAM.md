@@ -39,6 +39,26 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (18:37 turu) — yayin seridi YESIL, 2 mail Cop'e
+- Kutu: son ~70 dk'da **5** "Run failed" maili (inbox 7558, toplu cekim, ornekleme YOK).
+  Dagilim: **2** yayin seridi + **3** bagimsiz alarm kolu.
+- **Yayin seridi (Build & deploy):** `82ab7fea` ve `fac2223b` kosumlarinda `build=success`,
+  `serit-a2`/`serit-a3`=failure, `deploy`/`yayin`=**skipped**. Kok neden ikisinde de AYNI ve
+  DEVAM.md'nin KENDI satirlarindaki sinif ihlaliydi (kapinin yazdigi cozum: satirlari arsive
+  TASI, silme YOK). **Duzeltme zaten `88f111f7` ile inmisti** — bu turda kod DEGISMEDI,
+  commit/push YAPILMADI (`DEGISEN_DOSYALAR=YOK`).
+- **Bagimsiz teyit (job sorgusu OLCULEMEDI, davranissal kanit YESIL):** canli `pruvo3d.com`
+  200 · `sitemap.xml` 200 · canli `urunler.json` **19325** = yerel **19325** · `d1-sync --durum`
+  uc eksen YESIL (SAYI 19325=19325 · SEMA temiz · ICERIK 19325/19325, uyusmaz 0/eksik 0/fazla 0).
+  19325 katalogu `fac2223b` ile geldi ve o kosumda `deploy` SKIPPED'ti → canlida gorunmesi
+  `88f111f7` kosumunun fiilen teslim ettiginin kanitidir.
+- **Alarm kolu (`Spec/tasarim ifsasi`) DOKUNULMADI** — DUR kosulunda (ayni kok neden 3+ kosum),
+  yayin zincirinin on kosulu DEGIL. Ona ait **3 mail kutuda BIRAKILDI**.
+- **2/2 mail Cop'e** (yalniz "Build & deploy" konulu ikisi; inbox 7558→7556, Cop BOSALTILMADI).
+- 🔴 **ACIK KALEM — olcum yuzeyi daraldi:** job-duzeyi `gh run view --json jobs` sorgusu bu turda
+  **OLCULEMEDI** (kimliksiz istek → API kota tavani). Hukum canli+D1 davranisindan verildi.
+  Arac/kimlik tikanmasinin ayrintisi sinif geregi `DEVAM-ARSIV.md`'de (git disi).
+
 ## CI NOBETI (17:37 turu) — kapandi; ayrinti ARSIVDE
 - Yayin seridi o turda bagimsiz olculdu ve YESILDI; acik kalan bagimsiz alarm kolu
   yayin zincirinin on kosulu DEGIL.
