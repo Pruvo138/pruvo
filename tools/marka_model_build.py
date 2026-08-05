@@ -554,6 +554,27 @@ def _baslik_dogan_allow():
 BASLIK_DOGAN_ALLOW = _baslik_dogan_allow()
 
 
+def _sekil_kurali_muaf():
+    """tools/arama.py SEKIL_KURALI_MUAF — H1/H3 KURALININ yargı VERMEDİĞİ çiftler.
+
+    🔴 6 Ağu, mimar hükmü (E): şekil kuralı jetonun ŞEKLİNE bakar, "bu bir ARAÇ mı"
+    sorusunu bilemez. Araç DIŞI olduğu yargılanmış çiftte kural susar; sayfa yalnız
+    `BASLIK_DOGAN_ALLOW`'daki TEKİL girişle doğar. İki eksen AYRI: muafiyet sayfa
+    KAPATMAZ (envanterde varsa doğar), envanter kuralı GEVŞETMEZ.
+    FAIL-CLOSED: tablo okunamazsa SystemExit — sessizce boş kümeye düşmek kuralı
+    araç dışı jetonlara yeniden açardı."""
+    try:
+        import arama                                                # noqa: PLC0415
+        return set((mk, model_kanon.kanon(jt)) for mk, jt in arama.SEKIL_KURALI_MUAF)
+    except Exception as e:                                          # noqa: BLE001
+        raise SystemExit("HATA: tools/arama.py SEKIL_KURALI_MUAF okunamadı (%r) — H1/H3 "
+                         "şekil kuralı araç dışı jetonlara yeniden yargı verirdi "
+                         "(fail-closed)." % (e,))
+
+
+SEKIL_MUAF = _sekil_kurali_muaf()
+
+
 # ---------------------------------------------------------- BAŞLIK KOLU (5 Ağu, mimar hükmü)
 # ÜYELİK YÜKLEMİ = marka üyeliği ∧ model; model disjunkt'ı =
 #     ham `uyum[].model`  ∪  `model_kanon` (kuşak/kanon katlaması)  ∪  BAŞLIKTA TAM KELİME
@@ -629,6 +650,21 @@ def ayri_arac_adi_mi(deger):
     return len((deger or "").strip().split()) >= 2 and not donanim_kuyruklu_mu(deger)
 
 
+def sekil_kurali_yargisi(marka, canon, ad):
+    """YALNIZ ŞEKİL KURALININ (H1 ∪ H3) yargısı — envanter SORULMAZ.
+
+    🔴 AYRI GÖVDE OLMASININ SEBEBİ ÖLÇÜLEBİLİRLİKTİR (6 Ağu, hüküm E): "sayfa şekil
+    kuralıyla mı yoksa tekil girişle mi doğdu" sorusu `baslik_yargisi_var_mi` bileşiğine
+    bakarak CEVAPLANAMAZ (ikisi de True döner). Kapı bu gövdeyi ayrıca sorar ve muafiyetin
+    GERÇEKTEN iş yaptığını ölçer — muafiyeti düşüren mutant burada KIRMIZI yakar.
+
+    🔴 ARAÇ DIŞI MUAFİYETİ (`SEKIL_MUAF`): kural jetonun ŞEKLİNE bakar, "bu bir ARAÇ mı"
+    sorusunu bilemez. Araç dışı olduğu yargılanmış çiftte kural SUSAR."""
+    if (marka, canon) in SEKIL_MUAF:
+        return False
+    return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)
+
+
 def baslik_yargisi_var_mi(marka, canon, ad):
     """BAŞLIK KOLUYLA doğan (marka, canon) kovası YARGILANMIŞ mı — TEK KAYNAK.
 
@@ -639,9 +675,11 @@ def baslik_yargisi_var_mi(marka, canon, ad):
       (a) `BASLIK_DOGAN_ALLOW` envanteri — tekil, elle yargılanmış çiftler,
       (b) H1 `sasi_motor_kodu_mu` — harf+rakam ŞASİ/MOTOR kodu (kural),
       (c) H3 `ayri_arac_adi_mi` — `<taban> <değiştirici>` AYRI araç adı (kural).
+    (b)+(c) `sekil_kurali_yargisi` gövdesinde toplanır ve ARAÇ DIŞI muafiyetine tabidir:
+    muaf çift ancak (a) ile doğar — kural araç dışı jetonlara açık kalmaz (hüküm E).
     """
     return ((marka, canon) in BASLIK_DOGAN_ALLOW
-            or sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad))
+            or sekil_kurali_yargisi(marka, canon, ad))
 
 
 def _dizi_iceriyor(hepsi, parca):

@@ -904,6 +904,32 @@ def olc(kok, modul_yolu=None):
                                        _bagimsiz_kanon(_toks[-1])))):
             baslik_celiski.append("%s|%s" % (mk, _mk_kanon(jt)))
 
+    # --- ŞEKİL KURALI MUAFİYETİ (ARAÇ DIŞI) — K22 (6 Ağu, mimar hükmü E) ---------------
+    # İDDİA DÖRT PARÇALI ([[beyan-edilmis-survivor]]: "tablo duruyor" demek YETMEZ):
+    #   (1) KİMLİK DONMUŞ — sessiz genişleme/daralma KIRMIZI,
+    #   (2) MUAFİYET İŞ YAPIYOR — çift GERÇEKTEN şekil kuralının şeklinde (kapının KENDİ
+    #       bağımsız dilbilgisiyle ölçülür); değilse ölü giriş,
+    #   (3) ÜRETİM KURALI SUSUYOR — `mm.sekil_kurali_yargisi` False dönmeli,
+    #   (4) SAYFA DÜŞMEDİ — çift envanterde olduğu için YAYINDA olmalı (muafiyet bir
+    #       DENY değildir; sayfayı tekil giriş taşır).
+    try:
+        _muaf = dict(_arama.SEKIL_KURALI_MUAF)
+        muaf_imza = (_arama.sekil_kurali_muaf_imzasi(), _arama.SEKIL_KURALI_MUAF_IMZA,
+                     len(_muaf), _arama.SEKIL_KURALI_MUAF_SAYISI)
+    except Exception as e:                                          # noqa: BLE001
+        raise Olculemedi("tools/arama.py SEKIL_KURALI_MUAF okunamadı: %r" % (e,))
+    muaf_olu, muaf_konusan, muaf_dusen = [], [], []
+    for (_mk, _jt) in sorted(_muaf):
+        _canon = evren.model_anahtari(_mk, _jt)
+        _g = (veri.get(_mk) or {}).get("gruplar", {}).get(_canon)
+        _dsp = (_g or {}).get("display") or _jt
+        if not (_bagimsiz_sasi_kodu(_dsp) or _bagimsiz_ayri_arac(_dsp)):
+            muaf_olu.append("%s|%s" % (_mk, _jt))
+        if mm.sekil_kurali_yargisi(_mk, _canon, _dsp):
+            muaf_konusan.append("%s|%s" % (_mk, _jt))
+        if not _g or not mm.yayimlanir_mi(_g):
+            muaf_dusen.append("%s|%s" % (_mk, _jt))
+
     # --- KÜRATÖRLÜ KUŞAK EŞLEMESİ: ayna + kimlik + ETKİ ---------------------------------
     esleme_ayna = list(getattr(evren, "kusak_esleme", []))
     esleme_otorite = sorted("%s|%s|%s" % (a, b, t)
@@ -1117,6 +1143,8 @@ def olc(kok, modul_yolu=None):
                    "baslik_donanim": sorted(baslik_donanim),
                    "baslik_kural_dogan": baslik_kural_dogan,
                    "baslik_bekleyen": sorted(baslik_bekleyen, key=lambda t: (-t[2], t[0])),
+                   "muaf_imza": muaf_imza, "muaf_olu": muaf_olu,
+                   "muaf_konusan": muaf_konusan, "muaf_dusen": muaf_dusen,
                    "esleme_fark": esleme_fark, "esleme_imza": esleme_imza,
                    "tekharf_sapan": tekharf_sapan, "tekharf_ulasmayan": tekharf_ulasmayan,
                    "tekharf_ayri_kova": tekharf_ayri_kova,
@@ -1380,6 +1408,16 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
         print("  BILGI MİMAR HÜKMÜ BEKLEYEN KOVA: %d (sayfa DOĞMADI; ürünleri marka "
               "sayfasında ve kendi gerçek model sayfasında duruyor) ilk 5: %s"
               % (len(a["baslik_bekleyen"]), a["baslik_bekleyen"][:5]))
+    # K22 — ŞEKİL KURALI MUAFİYETİ (ARAÇ DIŞI): sayfa TEKİL GİRİŞLE doğar, KURALLA değil.
+    _mi = a["muaf_imza"]
+    dogrula("K22 ARAÇ DIŞI SAYFA ŞEKİL KURALIYLA DEĞİL TEKİL GİRİŞLE DOĞUYOR (%d muaf çift; "
+            "şekli kurala UYUYOR, üretim kuralı SUSUYOR, sayfa YAYINDA)" % _mi[2],
+            not a["muaf_olu"] and not a["muaf_konusan"] and not a["muaf_dusen"]
+            and _mi[0] == _mi[1] and _mi[2] == _mi[3],
+            "ÖLÜ giriş (şekil kuralının şeklinde DEĞİL)=%s · ÜRETİM KURALI KONUŞUYOR "
+            "(muafiyet ölü)=%s · SAYFA DÜŞTÜ=%s · imza=%s beklenen=%s sayı=%d beklenen=%d"
+            % (a["muaf_olu"] or "-", a["muaf_konusan"] or "-", a["muaf_dusen"] or "-",
+               _mi[0], _mi[1], _mi[2], _mi[3]))
     if a["kusak_aciklamali"]:
         print("  BILGI KUŞAK KATLAMASI ile açıklanan üyelik: %d ürün (muafiyet listesi DEĞİL, "
               "bağımsız kuşak dilbilgisiyle ölçülür; ayrımı K14 doğrular)"
@@ -1632,6 +1670,14 @@ MUTANTLAR = [
      '    j = "".join(_kelimeler(jeton))\n    return not j', "KIRMIZI",
      "M40 TEHLİKE SINIFI KORUMASINI DÜŞÜR -> çıplak `5`/`86`/`C5` başlıkta eşleşir; kapının "
      "BAĞIMSIZ başlık dilbilgisi bunu açıklayamaz -> K4 yanlış-pozitif KIRMIZI"),
+    # --- ARAÇ DIŞI ŞEKİL MUAFİYETİ EKSENİ — K22 (6 Ağu, mimar hükmü E) ---
+    ("tools/marka_model_build.py",
+     "    if (marka, canon) in SEKIL_MUAF:\n        return False\n"
+     "    return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)",
+     "    return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)", "KIRMIZI",
+     "M41 ARAÇ DIŞI MUAFİYETİNİ DÜŞÜR (tekil girişi ŞEKİL KURALINA geri bağla) -> "
+     "`/marka/yamaha/p-45/` (piyano) ve `/marka/yamaha/recording-custom/` (davul) yeniden "
+     "KURALLA/yargısız doğar; K22 'ÜRETİM KURALI KONUŞUYOR' eksenini TEK BAŞINA yakar"),
     # --- KONTROL (YEŞİL bekleniyor) ---
     ("tools/arama.py",
      '    ("Audi", "Q3"): "arac/motosiklet model adi",\n'

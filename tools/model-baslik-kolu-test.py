@@ -156,6 +156,40 @@ H3_CAPA_SAYFA = [
     ("Volkswagen", "Transporter T5", 9), ("Ford", "Transit MK3", 8),
 ]
 
+# ------------------------------------------- ADIM 3 HÜKÜM FİKSTÜRLERİ (6 Ağu, mimar hükmü)
+# 🔴 HER HÜKÜM AYRI EKSENDE ÇİVİLİ: A/B/D'nin DENY tarafları AYRI listelerdir; tek listeye
+# yazılsaydı "bir deny'i allow'a çeviren" mutantların hepsi AYNI iddiayı kırar ve birbirinden
+# AYIRT EDİLEMEZ olurlardı ([[beyan-edilmis-survivor]]).
+#
+# A) ÇAPRAZ MARKA ROZETİ — DENY: model o markanın KENDİ rozetiyle satılmadı -> SAYFA YOK.
+HUKUM_A_DENY = [
+    ("Chevrolet", "Ampera"), ("Citroen", "Aygo"), ("Citroen", "Boxer"),
+    ("Citroen", "Combo"), ("Citroen", "Expert"), ("Citroen", "Rifter"),
+    ("Citroen", "Scudo"), ("Opel", "Primastar"), ("Opel", "Volt"),
+    ("Peugeot", "Aygo"), ("Peugeot", "Combo"), ("Peugeot", "Ducato"),
+    ("Renault", "Primastar"), ("Seat", "Golf"), ("Seat", "Sharan"),
+    ("Volkswagen", "Alhambra"), ("Volkswagen", "CITIGO"),
+]
+# B) ÇIPLAK AİLE ÖNEKİ — DENY: çıplak sayı, hangi aracı adlandırdığı BELİRSİZ.
+HUKUM_B_DENY = [("Yamaha", "660")]
+# D) TEKİL MODEL ADI — DENY: kamper dönüştürücüsü, VW'nin modeli DEĞİL.
+HUKUM_D_DENY = [("Volkswagen", "Westfalia")]
+# ALLOW tarafları — (marka, ad, EN AZ ürün). Sayılar bu turda ÖLÇÜLDÜ (katalog 19.999);
+# ölçüt ">= çapa"dır, yüklem yalnız genişletir.
+HUKUM_ALLOW = [
+    ("Citroen", "Relay", 3),          # A — Jumper'ın GERÇEK İngiltere rozeti
+    ("Toyota", "86", 9),              # A — ÇIPLAK SAYI, TEKİL giriş (kural değişmedi)
+    ("Honda", "CBR", 9), ("Honda", "CRF", 9), ("Honda", "GX", 4),       # B — aile öneki
+    ("Suzuki", "DR", 31), ("Suzuki", "GSX", 22), ("Suzuki", "RM", 3),   # B
+    ("Mitsubishi", "Evolution", 6),                                     # B
+    ("Ford", "Custom", 30), ("Honda", "Legend", 3),                     # D — tekil model adı
+    ("Honda", "Prologue", 3), ("Honda", "Recon", 3), ("Honda", "Sabre", 3),
+    ("Honda", "Stepwgn", 3), ("Honda", "Zoomer", 3), ("Volkswagen", "Vocho", 3),
+]
+# E) ARAÇ DIŞI — sayfa KALIR ama ŞEKİL KURALIYLA DEĞİL, TEKİL GİRİŞLE doğar.
+# (marka, ad, EN AZ ürün): P-45 dijital piyano (H1 şekli) · Recording Custom davul (H3 şekli)
+HUKUM_E_MUAF = [("Yamaha", "P-45", 4), ("Yamaha", "Recording Custom", 3)]
+
 AKSAN_IKIZ_FIKSTURU = [
     ("Renault", "Zoe", "Zoé"),
     ("Yamaha", "Tenere", "Ténéré"),
@@ -461,6 +495,75 @@ def kabul(kok):
             "ikiz sapan=%s · aksanlı kanon=%s" % (_aksan_ikiz[:3] or "-",
                                                   _ayri_kova[:3] or "-"))
 
+    # --- ADIM 3 HÜKÜMLERİ (6 Ağu) — DENY tarafları AYRI AYRI ölçülür ----------------
+    def _yayimda(marka, ad):
+        c = evren.model_anahtari(marka, ad)
+        v = kova.get((marka, c)) if c else None
+        return (bool(v) and v[1], (v or (0,))[0])
+
+    def _deny_sapan(fikstur):
+        sapan = []
+        for marka, ad in fikstur:
+            yayimda, n = _yayimda(marka, ad)
+            if yayimda:
+                sapan.append("%s|%s SAYFA DOĞDU (n=%d)" % (marka, ad, n))
+        return sapan
+
+    _a = _deny_sapan(HUKUM_A_DENY)
+    dogrula("B15a HÜKÜM A — ÇAPRAZ MARKA ROZETİ DENY: %d çiftin HİÇBİRİ sayfa AÇMIYOR "
+            "(model o markanın KENDİ rozetiyle satılmadı; ürünler gerçek rozet sayfasında "
+            "ve marka sayfasında durur)" % len(HUKUM_A_DENY),
+            not _a, "sahte sayfa=%s" % (_a[:4] or "-"))
+    _b = _deny_sapan(HUKUM_B_DENY)
+    dogrula("B15b HÜKÜM B — ÇIPLAK SAYI DENY: `Yamaha|660` sayfa AÇMIYOR (hangi aracı "
+            "adlandırdığı belirsiz; 3 ürün için tekil giriş AÇILMADI)",
+            not _b, "sahte sayfa=%s" % (_b or "-"))
+    _d = _deny_sapan(HUKUM_D_DENY)
+    dogrula("B15c HÜKÜM D — MODEL OLMAYAN AD DENY: `Volkswagen|Westfalia` sayfa AÇMIYOR "
+            "(kamper dönüştürücüsü, VW modeli DEĞİL)",
+            not _d, "sahte sayfa=%s" % (_d or "-"))
+    _allow_sapan = []
+    for marka, ad, en_az in HUKUM_ALLOW:
+        yayimda, n = _yayimda(marka, ad)
+        if not yayimda or n < en_az:
+            _allow_sapan.append("%s|%s: yayın=%s n=%d (en az %d)"
+                                % (marka, ad, yayimda, n, en_az))
+    dogrula("B16 HÜKÜM A/B/D ALLOW — hükmedilen %d sayfanın hepsi YAYINDA ve çapasını "
+            "tutuyor (tekil giriş GERÇEKTEN sayfa doğuruyor)" % len(HUKUM_ALLOW),
+            not _allow_sapan, "sapan=%s" % (_allow_sapan[:4] or "-"))
+    # 🔴 ÇIPLAK SAYI KURALI GEVŞEMEDİ — CANLI VERİ EKSENİ (B10 fikstür eksenidir, bu değil):
+    # `Toyota|86` TEKİL GİRİŞLE açıldı; kuralın kendisi çıplak sayıya HÂLÂ kapalı olmalı.
+    _ciplak_kural = sorted("%s|%s" % (mk, dsp) for (mk, _c), (_n, _y, _b, _a, dsp)
+                           in kova.items() if _ciplak_sayi(dsp) and mm.sasi_motor_kodu_mu(dsp))
+    dogrula("B8c H1 KURALI ÇIPLAK SAYIYA KAPALI (katalog geneli: üretim yüklemi çıplak "
+            "sayılı hiçbir kova adına ŞASİ/MOTOR KODU demiyor; `Toyota|86` sayfası "
+            "ENVANTERDEN doğdu, kuraldan DEĞİL)",
+            not _ciplak_kural, "kural çıplak sayıya True dedi=%s" % (_ciplak_kural[:5] or "-"))
+    # --- E) ARAÇ DIŞI MUAFİYETİ: sayfa DURUYOR ama KURAL onu doğurmuyor -------------
+    # 🔴 ÜÇ PARÇALI İDDİA: (1) çift GERÇEKTEN şekil kuralının şeklinde (muafiyet iş yapıyor,
+    # ölü giriş değil — bağımsız oracle ile ölçülür), (2) ÜRETİM kuralı ona yargı VERMİYOR,
+    # (3) sayfa yine de YAYINDA (tekil giriş onu taşıyor). Yalnız (3) yazılsaydı muafiyeti
+    # düşüren mutant sayfayı bozmadığı için YEŞİL geçerdi.
+    _muaf_sapan = []
+    for marka, ad, en_az in HUKUM_E_MUAF:
+        c = evren.model_anahtari(marka, ad)
+        v = kova.get((marka, c)) if c else None
+        dsp = (v or (0, False, 0, False, ad))[4] or ad
+        if not (_sasi_kodu(dsp) or _ayri_arac(dsp)):
+            _muaf_sapan.append("%s|%s ŞEKİL KURALININ ŞEKLİNDE DEĞİL -> muafiyet ÖLÜ giriş"
+                               % (marka, ad))
+        if mm.sekil_kurali_yargisi(marka, c, dsp):
+            _muaf_sapan.append("%s|%s ÜRETİM ŞEKİL KURALI YARGI VERİYOR (muafiyet ÖLÜ)"
+                               % (marka, ad))
+        if (marka, c) not in mm.SEKIL_MUAF:
+            _muaf_sapan.append("%s|%s SEKIL_MUAF'ta YOK" % (marka, ad))
+        if not v or not v[1] or v[0] < en_az:
+            _muaf_sapan.append("%s|%s SAYFA DÜŞTÜ (yayın=%s n=%s)"
+                               % (marka, ad, bool(v) and v[1], bool(v) and v[0]))
+    dogrula("B20 HÜKÜM E — ARAÇ DIŞI SAYFA TEKİL GİRİŞLE DOĞUYOR, ŞEKİL KURALIYLA DEĞİL "
+            "(%d çift: şekli kurala uyuyor, üretim kuralı SUSUYOR, sayfa YAYINDA)"
+            % len(HUKUM_E_MUAF), not _muaf_sapan, "sapan=%s" % (_muaf_sapan[:4] or "-"))
+
     # --- G) KAYBEDEN YOK: hiçbir ürün kovasından DÜŞMEZ ----------------------------
     # (Kol yalnız EKLER; ölçüt yapısal: başlık kolu hiçbir kovadan ürün ÇIKARMAZ.)
     dogrula("B9 KONTROL: ölçüm dejenere değil (başlık kolu GERÇEKTEN üyelik ekliyor)",
@@ -540,6 +643,60 @@ MUTANTLAR = [
      "    return _AYIRAC.sub(\"\", t)", "KIRMIZI",
      "M10 H4 AKSAN ÇÖZÜMÜNÜ KALDIR -> `Zoe`/`Zoé` yeniden İKİ kova, `Ténéré` ikizi geri "
      "gelir (B13)"),
+    # --- ÖLDÜRÜCÜ: ADIM 3 hükümleri (6 Ağu) — A / B / D / E, kırmızı kümeleri AYRI ------
+    # 🔴 HER MUTANT TEK BİR HÜKMÜ VURUR: A/B/D'nin deny'leri AYRI iddialara (B15a/b/c)
+    # bağlı olduğu için "deny -> allow" mutantları birbirinden AYIRT EDİLEBİLİR.
+    # 6. eleman = EK DÜZENLEME listesi (deny'i kaldır + allow'a yaz aynı mutantta olmalı;
+    # yalnız birini yapmak sayfayı doğurmaz ve eksen ÖLÇÜLMEZ).
+    ("tools/arama.py",
+     "    (\"Citroen\", \"Aygo\"): \"Citroen'in rozeti C1;",
+     "    (\"Citroen\", \"AygoYOK\"): \"Citroen'in rozeti C1;", "KIRMIZI",
+     "M11 HÜKÜM A DENY'İNİ ALLOW'A ÇEVİR (`Citroen|Aygo`) -> SAHTE çapraz-rozet sayfası "
+     "/marka/citroen/aygo/ DOĞAR (B15a; B15b/B15c DEĞİŞMEZ -> ayırt edici)",
+     [("tools/arama.py",
+       "    (\"Citroen\", \"C8\"): \"arac/motosiklet model adi\",",
+       "    (\"Citroen\", \"C8\"): \"arac/motosiklet model adi\",\n"
+       "    (\"Citroen\", \"Aygo\"): \"MUTANT allow\",")]),
+    ("tools/arama.py",
+     "    (\"Yamaha\", \"660\"): \"ciplak sayi",
+     "    (\"Yamaha\", \"660YOK\"): \"ciplak sayi", "KIRMIZI",
+     "M12 HÜKÜM B DENY'İNİ ALLOW'A ÇEVİR (`Yamaha|660`) -> ÇIPLAK SAYI sayfası DOĞAR "
+     "(B15b; A ve D deny'leri AYAKTA -> ayırt edici)",
+     [("tools/arama.py",
+       "    (\"Yamaha\", \"Seca\"): \"arac/motosiklet model adi\",",
+       "    (\"Yamaha\", \"660\"): \"MUTANT allow\",\n"
+       "    (\"Yamaha\", \"Seca\"): \"arac/motosiklet model adi\",")]),
+    ("tools/arama.py",
+     "    (\"Volkswagen\", \"Westfalia\"): \"kamper donusturucusu",
+     "    (\"Volkswagen\", \"WestfaliaYOK\"): \"kamper donusturucusu", "KIRMIZI",
+     "M13 HÜKÜM D DENY'İNİ ALLOW'A ÇEVİR (`Volkswagen|Westfalia`) -> kamper "
+     "dönüştürücüsüne MODEL sayfası DOĞAR (B15c; A ve B deny'leri AYAKTA -> ayırt edici)",
+     [("tools/arama.py",
+       "    (\"Volkswagen\", \"Vento\"): \"arac/motosiklet model adi\",",
+       "    (\"Volkswagen\", \"Vento\"): \"arac/motosiklet model adi\",\n"
+       "    (\"Volkswagen\", \"Westfalia\"): \"MUTANT allow\",")]),
+    ("tools/arama.py",
+     "    (\"Toyota\", \"86\"): \"Toyota 86 GERCEK rozet",
+     "    (\"Toyota\", \"86YOK\"): \"Toyota 86 GERCEK rozet", "KIRMIZI",
+     "M14 `Toyota|86` TEKİL GİRİŞİNİ KURALA ÇEVİR (envanterden çıkar + H1'i çıplak sayıya "
+     "aç) -> ÇIPLAK SAYI KORUMASI ÖLÜR ve sayfa KURALDAN doğar (B8a + B8c + B10; M6'dan "
+     "B8a ile AYRILIR — M6 girişi envanterde BIRAKIR)",
+     [("tools/marka_model_build.py",
+       "    j = \"\".join(_kelimeler(deger))\n"
+       "    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)",
+       "    j = \"\".join(_kelimeler(deger))\n"
+       "    return bool(j) and any(c.isdigit() for c in j)")]),
+    ("tools/arama.py",
+     "    (\"Suzuki\", \"DR\"): \"arac/motosiklet AILE adi (DR serisi)\",",
+     "    (\"Suzuki\", \"DRYOK\"): \"arac/motosiklet AILE adi (DR serisi)\",", "KIRMIZI",
+     "M15 HÜKÜM B ALLOW'UNU DÜŞÜR (`Suzuki|DR`) -> hükmedilen sayfa DOĞMAZ (B16; deny "
+     "eksenleri B15a/b/c DEĞİŞMEZ -> ters yön, ayırt edici)"),
+    ("tools/marka_model_build.py",
+     "    if (marka, canon) in SEKIL_MUAF:\n        return False\n"
+     "    return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)",
+     "    return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)", "KIRMIZI",
+     "M16 HÜKÜM E MUAFİYETİNİ DÜŞÜR (tekil girişi ŞEKİL KURALINA geri bağla) -> araç DIŞI "
+     "sayfa (`Yamaha|P-45`, `Recording Custom`) KURALLA/YARGISIZ doğar (B20 TEK BAŞINA)"),
     # --- KONTROL (YEŞİL bekleniyor) ---
     ("tools/arama.py",
      "    (\"Audi\", \"AdBlue\"): \"dizel egzoz katki sivisi (AdBlue) — arac modeli degil\",\n"
@@ -586,7 +743,12 @@ def _kok_kur(tmp):
 def kendini_test():
     print("MUTASYON — başlık kolu (mutant KOPYAYA uygulanır; gerçek ağaç DEĞİŞMEZ)")
     basarisiz, olcum = [], []
-    for i, (dosya, eski, yeni, beklenen, aciklama) in enumerate(MUTANTLAR, 1):
+    for i, m in enumerate(MUTANTLAR, 1):
+        dosya, eski, yeni, beklenen, aciklama = m[:5]
+        # 6. eleman (opsiyonel): EK DÜZENLEME listesi — bir hüküm ancak İKİ tabloda birden
+        # oynanınca ölçülebiliyorsa (deny'i kaldır + allow'a yaz) tek mutantta yapılır;
+        # yarısını yapmak sayfayı doğurmaz ve eksen SESSİZCE ölçülmemiş olurdu.
+        ek_duzenleme = m[5] if len(m) > 5 else ()
         tmp = tempfile.mkdtemp(prefix="baslik-kolu-mut-")
         try:
             _kok_kur(tmp)
@@ -600,6 +762,24 @@ def kendini_test():
                 basarisiz.append("M%02d capa %d" % (i, metin.count(eski)))
                 continue
             metin = metin.replace(eski, yeni, 1)
+            # EK DÜZENLEMELER — her biri de TAM BİR KEZ eşleşmeli (aynı fail-closed disiplin).
+            _ek_hata = None
+            for _d2, _e2, _y2 in ek_duzenleme:
+                _yol2 = os.path.join(tmp, *_d2.split("/"))
+                _m2 = metin if _yol2 == yol else open(_yol2, encoding="utf-8").read()
+                if _m2.count(_e2) != 1:
+                    _ek_hata = "ek capa %d (%s)" % (_m2.count(_e2), _d2)
+                    break
+                _m2 = _m2.replace(_e2, _y2, 1)
+                if _yol2 == yol:
+                    metin = _m2
+                else:
+                    with open(_yol2, "w", encoding="utf-8") as f:
+                        f.write(_m2)
+            if _ek_hata:
+                print("  HATA M%02d: %s | EKSEN ÖLÇÜLMEDİ -> %s" % (i, _ek_hata, aciklama))
+                basarisiz.append("M%02d %s" % (i, _ek_hata))
+                continue
             if "_MARKA_KATLA" in yeni:
                 metin = metin.replace("def baslikta_tam_kelime(", _M4_KANCA, 1)
                 # Mutantın GERÇEKTEN katlama yapması için kancayı evrene bağla.
