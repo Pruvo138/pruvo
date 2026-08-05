@@ -449,6 +449,25 @@ jobs:
       - name: D1 katalog kaynagi kabul testi (commit'lenmemis urun canliya yazilmasin)
         run: python3 tools/d1-kaynak-test.py
 
+      # D1 `marka_arama` KOLONU — Okan hukmunun UC ayagi (marka_kanon CIP, model_kanon MODEL
+      # CIPI, bu kolon ARAMA). Site tarafi 8913db28 ile duzeltildi (marka adiyla yapilan sorgu
+      # artik UYELIK ∪ BASLIKTA TAM KELIME; fark 74 marka/6.089 kalem -> 20/75) ama CANLI arama
+      # UCTAN geliyor (index.html EDGE_KATALOG -> Worker /ara) ve uc hala `hs` uzerinde
+      # ALT-DIZE ariyor: olculdu `?q=MAN` = 3539 ("Mandali"), `?q=Haval` = 581
+      # ("Havalandirma"). Musteri hala eski sonucu goruyor ve iki yuzey de kendi icinde
+      # tutarli oldugu icin kimse BILDIRMEZ. Yuklem Worker'a KOPYALANMAZ; deger senkron
+      # aninda deponun TEK KAYNAKLARINDAN turetilip ONCEDEN yazilir — ALIAS yazimlari dahil
+      # (site `?q=Vauxhall`i Opel'e katlar; kolon alias tasimasaydi uc 493 urunluk markayi
+      # HIC bulamazdi, alias tablosunu uca kopyalamak ise ikiz tanim olurdu). Test gercek
+      # d1-sema.sql'i yerel sqlite3'e yukler; CANLI D1'e/wrangler'a/AGA DOKUNMAZ ve semayi
+      # CANLIYA UYGULAMAZ. NE OLCER: kolonun dogru SINIFI (hash'e karismaz -> hedefli UPDATE),
+      # kolondan turetilen kumenin SITENIN kumesiyle 129/129 + alias 1/1 birebir olmasi,
+      # `marka_arama ⊇ marka_kanon` sozlesmesi, kayipsizlik (ham `marka` birlesimi 0 kalem
+      # ekler -> model_kanon'un AKSINE kolon TEK BASINA okunur), idempotens, olcek,
+      # FAIL-CLOSED yonu ve SEMA SIRASI. Mutasyon: python3 tools/marka-arama-mutasyon.py.
+      - name: Marka arama D1 kolonu kabul testi (uctaki `?q=<marka>` gurultusu kapaniyor mu)
+        run: python3 tools/marka-arama-d1-test.py
+
       # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
       # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
       # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye
