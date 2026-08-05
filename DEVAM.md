@@ -1,5 +1,31 @@
 # DEVAM (KraL) — 5 Agu 2026
 
+## CI NOBETI (16:37 turu) — deploy KAPANDI, spec-ifsa alarmi acik kalem
+- Ev kontrolu: `/Users/okan/dev/pruvo` (dogru ev). Kutu taramasi: inbox 7551 mesaj, toplu cekim,
+  ornekleme YOK → son 70 dk'da **6** "Run failed" maili (3 deploy + 3 spec-ifsa alarmi).
+- **Deploy (`e10a91c`/`ac53360`/`f671d58`) KENDI KENDINE KAPANDI:** kok neden acik kalem 1 ile ayni —
+  `tools/marka-arama-d1-test.py` **AL3 KIRMIZI** ("baska deger: 4 [Huawei, Stanley, TomTom, Webasto]",
+  53 gecti/1 kaldi). Sozluk `e10a91ce`'de acildi, veriyi ayni commit'te yazmadi; `995cabc4` 16 kayda
+  `uyum[]` yazinca 4 ad kanoniklesti → HEAD'de **rc=0, 54/54**. Uc agacta ayri ayri kosuldu
+  (e10a91ce rc=1 · 995cabc4 rc=0 · HEAD rc=0). Rozet: `deploy.yml` **passing**. → **acik kalem 1 KAPANDI.**
+- **`Spec/tasarim ifsasi alarmi` KIRMIZI ve BILEREK oyle:** kapi bozuk DEGIL (kendini-test 24/24,
+  mutasyon 24/24, her mutant tek-kirmizi), alarm HAKLI (5 orneklem isabetin 5'i de gercek, ANLATIM/BEYAN
+  yuzeyinde). 37 dosyada **164** muafiyet-disi isabet. Kapinin kendi belgesi kirmiziyi "BEKLENEN ve DOGRU"
+  ilan ediyor, temizlik AYRI karar (Okan). Muafiyet/`continue-on-error`/adim silme = YASAK liste → **DUR
+  kosulu, push YOK, degisen dosya YOK.**
+- ⚠️ Yan sonuc: alarm her push'ta kirmizi yandigi icin **YENI** bir ifsa, duran 164'ten AYIRT EDILEMIYOR
+  (regresyon sinyali olu). Kapinin kendi terfi sarti: taban `rc=0` olunca `build`/serit A'ya alinacak.
+- Mail: yalnizca dogrulanmis kume Cop'e tasindi — **4** deploy maili (`ac53360` kutuda mukerrerdi),
+  7 spec-ifsa maili DOKUNULMADI (hala kirmizi). Cop bosaltilmadi.
+- 🔴 **Nobetin kendi engeli: `gh` token'i GECERSIZ** ("The token in default is invalid") + yetkisiz API
+  bu IP'de rate-limit. Kok neden LOKAL YENIDEN URETIMLE bulundu, dogrulama rozet SVG'siyle yapildi;
+  **kosum id / job duzeyi bu turda OLCULEMEDI** (olculemedi != yesil). Okan `gh auth login` yapana dek
+  sonraki turlar da job duzeyinde kor kosar.
+- 🔴🔴 Ayni kok neden **PUSH'U DA KESIYOR** (olculdu): `git push` → "could not read Username for
+  'https://github.com': Device not configured"; SSH yedegi de yok ("Permission denied (publickey)").
+  Yani su an bu makineden main'e HICBIR mimar push edemez. Bu DEVAM.md commit'i (`aa95361c`) LOKALDE
+  BEKLIYOR, yayina cikmadi. Okan `gh auth login` yaptiktan sonra ilk is: `git -C /Users/okan/dev/pruvo push`.
+
 ## 🟢 IKI DAL MAIN'DE — sozluk `e10a91ce` · cron nabiz esigi `ac533601`
 - **Sozluk (4 ad):** on kosul BAGIMSIZ olculdu — sozluk ACIKKEN `uyum-kapisi` **39/0 YESIL**;
   pozitif kontrol: 7 kayit onarimindan ONCEKI veriyle (`16501e39`) ayni sozluk **A1 KIRMIZI 38/1**.
