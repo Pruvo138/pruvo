@@ -39,6 +39,27 @@
   haval 2 ↔ 1359). Karar MIMARIN: o govde de gecsin mi, yoksa "Ege semantigi ayridir" diye mi
   kapatilsin.
 
+## CI NOBETI (19:37 turu) — yayin seridi KIRMIZI, duzeltme YERELDE, push OKAN KAPISINDA
+- Kutu: son ~70 dk'da **2** "Run failed" maili (inbox 7558, toplu cekim, ornekleme YOK):
+  **1** yayin seridi + **1** bagimsiz alarm kolu. Hicbir mail Cop'e TASINMADI (yesil
+  yok -> silme yok).
+- **Bagimsiz teyit (kimliksiz REST, HTTP 200):** kosum `31023498467` (Build & deploy,
+  `cf075c83`) -> `build`=success, `serit-a2`=failure (adim "Devam sinif kapisi"),
+  `serit-a3`=failure (adim "Devam sinif kapisi ic nobetci"), `deploy`=**skipped**,
+  `yayin`=**skipped**. Ikinci bagimsiz alarm kolu ayni HEAD'de failure (ayrinti
+  sinif geregi DEVAM-ARSIV.md'de, git disi).
+- **Kok neden LOKALDE birebir uretildi:** `devam-sinif-kapisi.py` -> DEVAM.md'nin
+  KENDI satirinda 1 sinif ihlali (18:37 turunun yazdigi madde). Kapinin yazdigi
+  cozum uygulandi: satir arsive TASINDI (silinmedi), yerine notr isaretci birakildi.
+- **Kapilar:** `devam-sinif-kapisi.py` rc=0 · `--kendini-test` **63/63 rc=0**.
+  Commit `b943fe40` (yalniz DEVAM.md).
+- 🔴 **ACIK KALEM:** `b943fe40` **PUSH EDILEMEDI**; `origin/main` hala `bf6af02d`.
+  Bu yuzden `deploy`/`yayin` hala skipped ve onarim CANLIYA INMEDI. Sebep sinif
+  geregi DEVAM-ARSIV.md'de (git disi). Okan kapisi acilana kadar sonraki nobet
+  turleri de push edemez.
+- Ikinci alarm kolu (spec/tasarim, ayrinti ARSIVDE) DOKUNULMADI — DUR kosulunda,
+  yayin zincirinin on kosulu DEGIL, bu turda kapsam disi.
+
 ## CI NOBETI (18:37 turu) — yayin seridi YESIL, 2 mail Cop'e
 - Kutu: son ~70 dk'da **5** "Run failed" maili (inbox 7558, toplu cekim, ornekleme YOK).
   Dagilim: **2** yayin seridi + **3** bagimsiz alarm kolu.
