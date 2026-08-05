@@ -440,8 +440,8 @@ def bayatlik_olc():
 def bayatlik_engel_metni(b, sayilar, silinen_ornek):
     """Yazma engellendiginde basilan YUKSEK SESLI metin (liste halinde satirlar).
 
-    sayilar: {"yeni","degisen","silinen","baski","taban","konfigur","marka_kanon"} ->
-    engellenen is.
+    sayilar: {"yeni","degisen","silinen","baski","taban","konfigur","marka_kanon",
+    "model_kanon"} -> engellenen is.
     silinen_ornek: engellenen DELETE id'leri (en yikici kalem; ornekleri basilir).
     """
     toplam = sum(sayilar.values())
@@ -451,11 +451,11 @@ def bayatlik_engel_metni(b, sayilar, silinen_ornek):
         "   HEAD=%s · uzak %s ucu=%s"
         % (str(b["head"])[:12], UZAK_DAL, str(b["uzak"])[:12]),
         "   Engellenen is (toplam %d): yeni %d | degisen %d | silinen %d | baski %d | "
-        "taban %d | konfigur %d | marka_kanon %d"
+        "taban %d | konfigur %d | marka_kanon %d | model_kanon %d"
         % (toplam, sayilar.get("yeni", 0), sayilar.get("degisen", 0),
            sayilar.get("silinen", 0), sayilar.get("baski", 0),
            sayilar.get("taban", 0), sayilar.get("konfigur", 0),
-           sayilar.get("marka_kanon", 0)),
+           sayilar.get("marka_kanon", 0), sayilar.get("model_kanon", 0)),
         "   NEDEN: bu agac yayindaki ucu bilmiyor. Yazma UYGULANSAYDI baska bir push'un",
         "   D1'e yeni yazdigi urunler SILINIR ya da alanlari ESKI degerlere GERI ALINIRDI",
         "   (site dogru gosterir, Ege bayat gorur = sessiz satis kaybi).",
@@ -490,7 +490,7 @@ def kolon_var_mi(tablo, kolon):
     return kolon in {s["name"] for s in (r[0].get("results") or [])}
 
 
-def d1_mevcut(konfigur_kolonu=True, marka_kanon_kolonu=False):
+def d1_mevcut(konfigur_kolonu=True, marka_kanon_kolonu=False, model_kanon_kolonu=False):
     """D1'deki {id: (hash, baski)} + {id: taban_fiyat} + {id: seq} + en buyuk seq.
     baski da OKUNUR: baski senkronu (main) onu D1'dekiyle KIYASLAR — degismemisse yazmaz
     (yoksa her yerel kosum tum baski'lari yeniden yazardi).
@@ -508,10 +508,13 @@ def d1_mevcut(konfigur_kolonu=True, marka_kanon_kolonu=False):
     marka_kanon da OKUNUR (marka_kanon_kolonu=True ise): AYNI kosullu desen — kolon canliya
     ALTER ile girmeden once bu kodu push'lamak GUVENLIDIR (SELECT'e KONMAZ, senkron akar).
     🔴 Bu sart, "kolonu SELECT eden kod once push'lanirsa HERKESIN push'u 'no such column'
-    ile kirilir" tuzagini yapisal olarak kapatir (merge-kapisi §6.2 sema sirasi)."""
+    ile kirilir" tuzagini yapisal olarak kapatir (merge-kapisi §6.2 sema sirasi).
+    model_kanon da OKUNUR (model_kanon_kolonu=True ise): marka_kanon ile BIREBIR ayni
+    kosullu desen ve AYNI gerekce."""
     kolonlar = ("id, hash, baski, taban_fiyat, seq"
                 + (", konfigur" if konfigur_kolonu else "")
-                + (", marka_kanon" if marka_kanon_kolonu else ""))
+                + (", marka_kanon" if marka_kanon_kolonu else "")
+                + (", model_kanon" if model_kanon_kolonu else ""))
     r = sorgu("SELECT %s FROM urunler" % kolonlar)
     satirlar = (r[0].get("results") or []) if r else []
     mevcut = {s["id"]: (s["hash"], s.get("baski") or "") for s in satirlar}
@@ -521,10 +524,12 @@ def d1_mevcut(konfigur_kolonu=True, marka_kanon_kolonu=False):
                        if konfigur_kolonu else {})
     mevcut_marka_kanon = ({s["id"]: (s.get("marka_kanon") or "") for s in satirlar}
                           if marka_kanon_kolonu else {})
+    mevcut_model_kanon = ({s["id"]: (s.get("model_kanon") or "") for s in satirlar}
+                          if model_kanon_kolonu else {})
     r2 = sorgu("SELECT COALESCE(MAX(seq), 0) AS m FROM urunler")
     mseq = ((r2[0].get("results") or [{}])[0] or {}).get("m") or 0
     return (mevcut, mevcut_taban, mevcut_seq, int(mseq), mevcut_konfigur,
-            mevcut_marka_kanon)
+            mevcut_marka_kanon, mevcut_model_kanon)
 
 
 # Sonradan eklenen kolonlar. Mevcut D1 tablosunda CREATE TABLE IF NOT EXISTS bunlari
@@ -584,6 +589,15 @@ GOC_KOLON = [
     # kadarki pencerede mevcut satirlar "kanonik uyelik bilinmiyor" der — YANLIS uyelik
     # VAAT ETMEZ (uc bu kolona ancak dolduktan sonra gecirilir; bkz. muhendis raporu).
     ("marka_kanon", "TEXT NOT NULL DEFAULT '[]'"),
+    # KANONIK MODEL UYELIGI (5 Agu) — urunun uye oldugu YAYIMLANAN /marka/<m>/<model>/
+    # sayfalarinin kanonik etiketleri (JSON dizi). marka_kanon ile AYNI SINIF: HASH'e
+    # KARISMAZ, HEDEFLI UPDATE ile senkronlanir (model_kanon_plan). Gerekce + olculen
+    # sessiz hata (96 kovada 390 kalem sayfa-suzgec ayrismasi) ve "uc bunu HAM `model`in
+    # YERINE degil BIRLESIM olarak okur" olcumu: d1-sema.sql model_kanon yorumu.
+    # ALTER DEFAULT'u '[]' ('' DEGIL): kolon JSON DIZI tasir (marka/uyum/marka_kanon deseni);
+    # goc anindan senkron bitene kadarki pencerede satirlar "kanonik model uyeligi bilinmiyor"
+    # der — YANLIS uyelik VAAT ETMEZ.
+    ("model_kanon", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -898,6 +912,62 @@ def marka_kanon_haritasi(urunler):
     return harita, None
 
 
+def model_kanon_haritasi(urunler):
+    """{id: kanonik JSON dizi metni} — urunun UYE OLDUGU YAYIMLANAN /marka/<m>/<model>/
+    sayfalarinin kanonik ETIKETLERI. Doner: (harita, sebep). sebep None = turetildi.
+
+    🔴 IKINCI KATLAMA TABLOSU YOK (marka_kanon ile birebir ayni ilke): deger SAYFA
+    URETICISININ KENDI YUKLEMINDEN — marka_model_build.gruplandir()'in kurdugu kovalardan —
+    okunur. Kova["urunler"] TAM eslesmeyle giren urunlerin YANI SIRA kusak/varyant
+    katlamasiyla giren urunleri de tasir ("Fiesta ST" -> Fiesta, "T4"/"T5" -> Transporter);
+    yani ucun TAM ESITLIKLE kacirdigi tam da bu kalemler kolona yazilir.
+
+    🔴 YALNIZ YAYIMLANAN KOVA (yayimlanir_mi): yayimlanmayan kovanin etiketi mimarin
+    KAPATTIGI bir sayfanin adidir (rozet disi cift, model-olmayan cift, esik alti). Kanonik
+    deger diye yazilsaydi kapali sayfa uc tarafindan geri acilirdi. Urun KAYBOLMAZ: kusak
+    katlamasi onu ANA kovaya zaten koyar (olculdu). Cip evreni de bu kumenin ALTINDADIR.
+
+    🔴 SIRA ALFABETIK: marka_kanon'un aksine urunun kendi dizisinden gelen dogal bir sira
+    YOK. Sirasiz birakilsaydi kova yineleme sirasi degistiginde metin degisir ve HER senkron
+    sahte UPDATE uretirdi (olcek kapisi).
+
+    🔴 FAIL-CLOSED YONU "ATLA", "BOSALT" DEGIL: tek kaynak okunamazsa BOS harita DONMEZ —
+    sebep dondurulur ve cagiran senkronu ATLAR. Bos harita sema_plan'a girseydi TUM katalog
+    '[]' olurdu: tek okuma hatasi katalog capinda sessiz kayip. Bayat deger, bos degerden iyi.
+    """
+    try:
+        import marka_model_build as mmb                            # noqa: PLC0415
+        with open(os.path.join(KOK, "index.html"), encoding="utf-8") as f:
+            index_html = f.read()
+        evren = mmb.MarkaEvreni(index_html)
+        ek = mmb.cip_evreni_markalari(urunler, index_html)
+        veri = mmb.gruplandir(urunler, evren, ek)
+    except SystemExit as e:            # tek kaynak modulleri fail-closed sys.exit eder
+        return {}, "SystemExit: %s" % (e.code,)
+    except Exception as e:                                         # noqa: BLE001
+        return {}, "%s: %s" % (type(e).__name__, e)
+    if not evren.taninmis:
+        return {}, "marka evreni BOS (index.html TANINMIS_MARKALAR okunamamis)"
+    if not veri:
+        return {}, "model kova evreni BOS (gruplandir hicbir marka dondurmedi)"
+    toplam = {}
+    for _marka, d in veri.items():
+        for _canon, g in d["gruplar"].items():
+            if not mmb.yayimlanir_mi(g):
+                continue
+            ad = g.get("display")
+            if not ad:
+                continue
+            for p in g["urunler"]:
+                uid = p.get("id") if isinstance(p, dict) else None
+                if uid:
+                    toplam.setdefault(uid, set()).add(ad)
+    if not toplam:
+        return {}, "yayimlanan model kovasi YOK (katlama/kuratorluk tek kaynagi bos okundu)"
+    return ({uid: json.dumps(sorted(adlar), ensure_ascii=False, separators=(",", ":"))
+             for uid, adlar in toplam.items()}, None)
+
+
 def sema_senkron_sql(kolon, uid, deger):
     """Tek urun icin SADECE verilen METIN SEMA kolonunu gunceller (content'e/hs'e DOKUNMAZ ->
     hash ayni, FTS tetigi (WHEN old.hs<>new.hs) CALISMAZ, ek FTS satiri yazmaz).
@@ -954,6 +1024,14 @@ def marka_kanon_plan(urunler, kanonlar, mevcut_kanon, izleme=None):
     """marka_kanon kolonu icin sema_plan (ince sarmalayici). VARSAYILAN '[]' — kolonun D1
     DEFAULT'u odur; uyesiz urun icin UPDATE URETILMEZ (olcek kapisi)."""
     return sema_plan("marka_kanon", urunler, kanonlar, mevcut_kanon, izleme,
+                     varsayilan="[]")
+
+
+def model_kanon_plan(urunler, kanonlar, mevcut_kanon, izleme=None):
+    """model_kanon kolonu icin sema_plan (ince sarmalayici). VARSAYILAN '[]' — kolonun D1
+    DEFAULT'u odur; hicbir yayimlanan model kovasina uye olmayan urun icin UPDATE URETILMEZ
+    (olcek kapisi: katalogun ~%52'si model kovasi disinda)."""
+    return sema_plan("model_kanon", urunler, kanonlar, mevcut_kanon, izleme,
                      varsayilan="[]")
 
 
@@ -1444,11 +1522,12 @@ def beklenti_karsilastir(beklenti, bulunan):
     return fark
 
 
-def geri_oku(idler, konfigur_kolonu, marka_kanon_kolonu=False):
+def geri_oku(idler, konfigur_kolonu, marka_kanon_kolonu=False, model_kanon_kolonu=False):
     """Yazilan id'leri D1'den geri oku. Doner: ({id: satir}, olcum)."""
     kolonlar = (["id"] + GERI_OKUMA_KOLONLARI
                 + (["konfigur"] if konfigur_kolonu else [])
-                + (["marka_kanon"] if marka_kanon_kolonu else []))
+                + (["marka_kanon"] if marka_kanon_kolonu else [])
+                + (["model_kanon"] if model_kanon_kolonu else []))
     sec = ", ".join(kolonlar)
     idler = sorted(idler)
     t0 = time.time()
@@ -1476,14 +1555,16 @@ def geri_oku(idler, konfigur_kolonu, marka_kanon_kolonu=False):
                      "sure": time.time() - t0, "yol": yol}
 
 
-def geri_okuma_dogrula(beklenti, konfigur_kolonu, marka_kanon_kolonu=False):
+def geri_okuma_dogrula(beklenti, konfigur_kolonu, marka_kanon_kolonu=False,
+                       model_kanon_kolonu=False):
     """Yazilan satirlari geri okur, ALAN DEGERLERINI karsilastirir; uyusmazlikta ayni
     ifadeleri BIR KEZ yeniden uygular ve TEKRAR okur. Doner: kalan fark listesi (bos = OK).
     SONSUZ DONGU YOK — tam 2 tur, ucuncu deneme yapilmaz."""
     if not beklenti:
         print("geri-okuma: yazilan satir yok — dogrulanacak sey yok")
         return []
-    bulunan, olcum = geri_oku(list(beklenti), konfigur_kolonu, marka_kanon_kolonu)
+    bulunan, olcum = geri_oku(list(beklenti), konfigur_kolonu, marka_kanon_kolonu,
+                              model_kanon_kolonu)
     print("geri-okuma [%s]: %d id | %d sorgu | okunan satir: %d | %.2f s"
           % (olcum["yol"], olcum["id"], olcum["sorgu"], olcum["okunan"], olcum["sure"]))
     fark = beklenti_karsilastir(beklenti, bulunan)
@@ -1502,7 +1583,8 @@ def geri_okuma_dogrula(beklenti, konfigur_kolonu, marka_kanon_kolonu=False):
     yaz, _ = dosya_calistir("\n".join(onarim))
     print("   yeniden deneme: %d ifade uygulandi (wrangler IDDIASI: %d satir yazildi)"
           % (len(onarim), yaz))
-    bulunan2, olcum2 = geri_oku(kotu, konfigur_kolonu, marka_kanon_kolonu)
+    bulunan2, olcum2 = geri_oku(kotu, konfigur_kolonu, marka_kanon_kolonu,
+                                model_kanon_kolonu)
     print("   2. geri-okuma [%s]: %d id | %d sorgu | okunan satir: %d | %.2f s"
           % (olcum2["yol"], olcum2["id"], olcum2["sorgu"], olcum2["okunan"], olcum2["sure"]))
     fark2 = beklenti_karsilastir({u: beklenti[u] for u in kotu}, bulunan2)
@@ -1590,7 +1672,8 @@ CREATE TABLE urunler (
   stokta INTEGER NOT NULL DEFAULT -1,
   altkategori TEXT NOT NULL DEFAULT '',
   uyum TEXT NOT NULL DEFAULT '[]',
-  marka_kanon TEXT NOT NULL DEFAULT '[]'
+  marka_kanon TEXT NOT NULL DEFAULT '[]',
+  model_kanon TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
 """
@@ -2937,14 +3020,21 @@ def main():
     # ALTER ile girmeden bu kod push'lansa bile SELECT'e KONMAZ -> "no such column" ile
     # HERKESIN push'unu kiran sema SIRASI tuzagi yapisal olarak kapanir.
     marka_kanon_kolonu = "marka_kanon" in tablo_kolonlari
+    # MODEL_KANON kolonu icin de AYNI kosullu desen (marka_kanon ile birebir): bu dal
+    # ALTER'dan ONCE alinsa bile kolon SELECT'e KONMAZ, kimsenin push'u kirilmaz.
+    model_kanon_kolonu = "model_kanon" in tablo_kolonlari
     (mevcut, mevcut_taban, mevcut_seq, mseq, mevcut_konfigur,
-     mevcut_marka_kanon) = d1_mevcut(konfigur_kolonu, marka_kanon_kolonu)
+     mevcut_marka_kanon, mevcut_model_kanon) = d1_mevcut(
+        konfigur_kolonu, marka_kanon_kolonu, model_kanon_kolonu)
     baskilar = baski_haritasi()
     tabanlar = taban_fiyat_haritasi()
     konfigurlar, konfigur_atlanan = konfigur_haritasi_d1(urunler)
     marka_kanonlar, marka_kanon_sebep = ({}, "kolon YOK")
     if marka_kanon_kolonu:
         marka_kanonlar, marka_kanon_sebep = marka_kanon_haritasi(urunler)
+    model_kanonlar, model_kanon_sebep = ({}, "kolon YOK")
+    if model_kanon_kolonu:
+        model_kanonlar, model_kanon_sebep = model_kanon_haritasi(urunler)
     # baski YETKISI = gizli kayit dosyasi bu ortamda VAR mi? YOKSA (CI) baski'ya HIC dokunma
     # (yoksa CI baski'yi D1'den silerdi). VARSA (yerel) baski'yi ayrica senkronla.
     baski_yetki = os.path.exists(KAYNAKLAR)
@@ -2955,6 +3045,9 @@ def main():
     print("kanonik marka uyeligi (marka_kanon): %s"
           % ("%d urun" % len(marka_kanonlar) if marka_kanon_kolonu and not marka_kanon_sebep
              else "ATLANDI (%s)" % marka_kanon_sebep))
+    print("kanonik model uyeligi (model_kanon): %s"
+          % ("%d urun" % len(model_kanonlar) if model_kanon_kolonu and not model_kanon_sebep
+             else "ATLANDI (%s)" % model_kanon_sebep))
     if not konfigur_kolonu:
         print("!! KONFIGUR KOLONU YOK — konfigur senkronu ATLANDI (katalog senkronu devam eder).\n"
               "   Coz: python3 tools/d1-sync.py --sema")
@@ -2969,6 +3062,15 @@ def main():
         print("!! MARKA_KANON TURETILEMEDI — kolon OLDUGU GIBI birakildi (bayat > bos): %s\n"
               "   Coz: python3 tools/marka-invaryant-kapisi.py   (ayni tek kaynagi olcer)"
               % marka_kanon_sebep)
+    if not model_kanon_kolonu:
+        print("!! MODEL_KANON KOLONU YOK — kanonik model senkronu ATLANDI (katalog senkronu\n"
+              "   devam eder; uc HENUZ bu kolonu okumamali).\n"
+              "   Coz: python3 tools/d1-sync.py --sema")
+    elif model_kanon_sebep:
+        # 🔴 marka_kanon ile AYNI gerekce: TURETILEMEDI = "BOSALT" DEGIL "DOKUNMA".
+        print("!! MODEL_KANON TURETILEMEDI — kolon OLDUGU GIBI birakildi (bayat > bos): %s\n"
+              "   Coz: python3 tools/model-kanon-d1-test.py   (ayni tek kaynagi olcer)"
+              % model_kanon_sebep)
     if konfigur_atlanan:
         # GURULTU: bozuk konfigur SESSIZCE dusmesin. Kolon '' yapilir -> Worker fail-closed
         # 400 (WhatsApp); CI'daki bundle kapisi ayni veriyi zaten kirmizi yakar.
@@ -2997,10 +3099,14 @@ def main():
     marka_kanon_guncelle = (marka_kanon_plan(urunler, marka_kanonlar, mevcut_marka_kanon,
                                              izleme)
                             if (marka_kanon_kolonu and not marka_kanon_sebep) else [])
-    print("yeni: %d | degisen: %d | baski-guncelle: %d | taban-guncelle: %d | konfigur-guncelle: %d | marka-kanon-guncelle: %d | silinen: %d | dokunulmayan: %d"
+    # MODEL_KANON senkronu: marka_kanon ile AYNI desen ve AYNI fail-closed yonu.
+    model_kanon_guncelle = (model_kanon_plan(urunler, model_kanonlar, mevcut_model_kanon,
+                                             izleme)
+                            if (model_kanon_kolonu and not model_kanon_sebep) else [])
+    print("yeni: %d | degisen: %d | baski-guncelle: %d | taban-guncelle: %d | konfigur-guncelle: %d | marka-kanon-guncelle: %d | model-kanon-guncelle: %d | silinen: %d | dokunulmayan: %d"
           % (len(yeni), len(degisen), len(baski_guncelle), len(taban_guncelle),
-             len(konfigur_guncelle), len(marka_kanon_guncelle), len(silinen),
-             len(gorulen) - len(yeni) - len(degisen)))
+             len(konfigur_guncelle), len(marka_kanon_guncelle), len(model_kanon_guncelle),
+             len(silinen), len(gorulen) - len(yeni) - len(degisen)))
 
     if a.kuru:
         # KURU KOSUM: yazma da geri-okuma da YAPILMAZ (ikisi de D1'e cagri demektir).
@@ -3008,7 +3114,8 @@ def main():
         print("(--kuru: hicbir sey yazilmadi, geri-okuma da yapilmadi)")
         return
     if (not yeni and not degisen and not baski_guncelle and not taban_guncelle
-            and not konfigur_guncelle and not marka_kanon_guncelle and not silinen):
+            and not konfigur_guncelle and not marka_kanon_guncelle
+            and not model_kanon_guncelle and not silinen):
         # YAZACAK BIR SEY YOK -> bayatlik OLCULMEZ (maliyet 0). Yazmayan kosum zarar veremez.
         print("degisiklik yok — D1'e yazilmadi ✅")
         return
@@ -3032,7 +3139,8 @@ def main():
             "yeni": len(yeni), "degisen": len(degisen), "silinen": len(silinen),
             "baski": len(baski_guncelle), "taban": len(taban_guncelle),
             "konfigur": len(konfigur_guncelle),
-            "marka_kanon": len(marka_kanon_guncelle)}, silinen)))
+            "marka_kanon": len(marka_kanon_guncelle),
+            "model_kanon": len(model_kanon_guncelle)}, silinen)))
 
     ifadeler = []
     for parca in [silinen[i:i + PARCA] for i in range(0, len(silinen), PARCA)]:
@@ -3040,7 +3148,7 @@ def main():
     # SIRA ONEMLI: yeni (INSERT) taban_guncelle/konfigur_guncelle'den (UPDATE) ONCE gelmeli ->
     # yeni urun once eklenir, sonra taban_fiyat'i ve konfigur'u yazilir (ayni --file'da sirali).
     ifadeler += (degisen + yeni + baski_guncelle + taban_guncelle + konfigur_guncelle
-                 + marka_kanon_guncelle)
+                 + marka_kanon_guncelle + model_kanon_guncelle)
 
     top_yaz = 0
     for i in range(0, len(ifadeler), PARCA):
@@ -3064,7 +3172,8 @@ def main():
     # canli deger eski). Hata sinifi SESSIZ: site dogru gosterir, Ege bayat okur.
     beklenti = beklenti_kur(izleme, silinen)
     try:
-        fark = geri_okuma_dogrula(beklenti, konfigur_kolonu, marka_kanon_kolonu)
+        fark = geri_okuma_dogrula(beklenti, konfigur_kolonu, marka_kanon_kolonu,
+                                  model_kanon_kolonu)
     except SystemExit as e:
         # sorgu()/dosya_calistir() kendi icinde sys.exit ediyor olabilir. YUTMA: bu bir
         # "yesil" degil OLCULEMEDI'dir -> sifir-disi cikilir.
