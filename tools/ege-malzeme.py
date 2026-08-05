@@ -30,6 +30,21 @@ BASLA = "<!-- FILAMENT-REF-BASLA · URETILIR: tools/ege-malzeme.py · ELLE DUZEN
 BITIR = "<!-- FILAMENT-REF-BITIR -->"
 
 
+def _isi_yuvasi(f):
+    """Kalem satirinin UCUNCU yuvasi. Deger SAYISAL sicaklik degilse basina 'ısı ' konur.
+
+    🔴 NEDEN (5 Agu, bagimsiz curutucu bulgusu): eski bicimde her kalemde " — ısı DEGER — "
+    yaziyordu; sikistirmada " — ısı " ayraci dustu ve yuva "(ETIKET, DEGER)" oldu. Alti
+    kalemin BESINDE deger sayisal ("~55-60°C") oldugu icin yuva kendini anlatiyor, ama
+    Karbon kaleminin degeri "taşıyıcıya göre" -> "(En yüksek mukavemet, taşıyıcıya göre)"
+    okunusu "MUKAVEMET taşıyıcıya göre" cagrisimi veriyordu. Bu, iki satir asagidaki
+    "karbon katkı ISI dayanımını ARTIRMAZ ... mukavemet/sertlik için öner" kuralinin TERSI
+    anlama gelir. Kural veri-guduml u: '°' tasimayan her degere onek konur, Karbon'a ozel
+    dallanma YAZILMAZ (ozel dallanma yeni bir kalemde sessizce bayatlardi)."""
+    isi = f["isiDayanimi"]
+    return isi if "°" in isi else "ısı " + isi
+
+
 def bolum_uret():
     ref = filament_ortak.referans()
     satirlar = []
@@ -45,7 +60,7 @@ def bolum_uret():
         # acilmasin, EGIM de dussun).
         satirlar.append("- **%s** (%s, %s): %s"
                         % (f.get("uzunAd") or f["ad"], f["kisaEtiket"],
-                           f["isiDayanimi"], f["kisa"]))
+                           _isi_yuvasi(f), f["kisa"]))
     ozel_satirlar = []
     for f in ref["filamentler"]:
         if f.get("site"):
@@ -66,7 +81,7 @@ def bolum_uret():
         # bilerek 7'de sabit tutuldu ve devret refleksi kalem duzeyinde gorunur kaldi.
         ozel_satirlar.append(
             "- **%s** (%s, %s) — [DEVRET]"
-            % (f.get("uzunAd") or f["ad"], f["kisaEtiket"], f["isiDayanimi"]))
+            % (f.get("uzunAd") or f["ad"], f["kisaEtiket"], _isi_yuvasi(f)))
 
     # Kategori -> varsayilan tavsiye ozeti (ayni listeyi paylasanlar gruplanir)
     gruplar, sira = {}, []
@@ -91,12 +106,15 @@ def bolum_uret():
         #   "özel üretim filamentleri" · "Ege SADECE bu aileden" · "seçenek sunar" ·
         #   "adını da söyleyebilir" · "sitede doğrudan sipariş edilen" (= standart aile
         #   tanimi) · "dürüst değerleri" · "HDT @ 0.45 MPa" · "yaklaşık aralık" ·
-        #   "abartma, taahhüt sayılır". DUSEN TEK SEY: "uygun filament(ler)i önerebilir"
-        #   ifadesi — ayni iddiayi "seçenek sunar, adını da söyleyebilir" TASIYOR
-        #   (izin: oneri yapmak + adi anmak), yani parafraz tekrariydi.
-        "Malzememiz = özel üretim **filamentleri**; Ege SADECE bu aileden seçenek sunar, adını da "
-        "söyleyebilir. Standart aile (sitede doğrudan sipariş edilen) ve dürüst değerleri "
-        "(ısı = HDT @ 0.45 MPa, yaklaşık aralık; abartma, taahhüt sayılır):",
+        #   "abartma, taahhüt sayılır".
+        # 🔴 "uygun olanı önerebilir" GERI KONDU (5 Agu, curutucu): sikistirmada bu ONERME
+        #   IZNI "seçenek sunar" ile ayni sayilip dusurulmustu. Degiller: "sunar" secenegi
+        #   ONUNE KOYAR, "önerebilir" ARALARINDAN SECIP TAVSIYE ETME iznidir. Izin
+        #   dustugunde Ege'nin asiri temkinli davranmasi (secenekleri sayip tavsiye
+        #   vermemesi) mumkun; izin tek tek verilir, ortuk BIRAKILMAZ.
+        "Malzememiz = özel üretim **filamentleri**; Ege SADECE bu aileden seçenek sunar, uygun "
+        "olanı önerebilir, adını da söyleyebilir. Standart aile (sitede doğrudan sipariş edilen) "
+        "ve dürüst değerleri (ısı = HDT @ 0.45 MPa, yaklaşık aralık; abartma, taahhüt sayılır):",
     ] + satirlar + [
         "",
         # GRUP BASLIGI = kalemlerden HOISTLANMIS ortak kuyruk (yukaridaki nota bak).
@@ -160,12 +178,24 @@ def bolum_uret():
         "topla (hangi sıvı/yakıt · sürekli mi ara sıra mı · kaç derece · esnek mi sert mi), "
         "araştırıp döneceğini söyle + [DEVRET]. Malzeme ve fiyat kararı bizde; kesin performans "
         "garantisi verme.",
-        # "ama filament-dışı bir malzemeyi çözüm diye sunma" -> "ama çözüm DAİMA filament
-        # olsun": ayni yasagin UCUNCU yazimiydi (1. ege-bilgi.md "Kapsam SADECE filament"
-        # satiri, 2. yukaridaki "ASLA filament DIŞI sunma"). Yasak KALDIRILMADI, egitici
-        # kip icindeki CAPASI kisa POZITIF bicimde korundu.
+        # 🔴 GERI ALINDI (5 Agu, bagimsiz curutucu — TEK BLOKLAYICI bulgu).
+        # Sikistirma turunda bu satirin kuyrugu "ama filament-dışı bir malzemeyi çözüm diye
+        # sunma" -> "ama çözüm DAİMA filament olsun" yapilmisti. YANLIS: ikisi ayni iddia
+        # DEGIL. Ilki bir YASAK (filament-disi malzemeyi COZUM DIYE sunma), ikincisi MUTLAK
+        # bir OLUMLU HUKUM (cozum daima filament olacak) ve ayni belgenin l.10'undaki
+        # ONAYLI istisnasiyla CELISIR:
+        #   "TEK İSTİSNA — GÖMME SOMUN: ... hazır gömme somun (threaded/heat-set insert)
+        #    yuvası açıp somunu oturturuz; rahatça sun."
+        # Gomme somun METALDIR. Eski yazim celismiyordu (somun "cozum diye sunulan malzeme"
+        # degil, bizim parcamiza oturttugumuz baglanti elemani); yeni yazim istisnasiz oldugu
+        # icin ONAYLANMIS bir satisi reddettirebilir. Ustelik l.10'un tasarimi "yasak +
+        # ISTISNASI BITISIK" iken bu ucuncu mutlak hukum ondan UZAKTA ve istisnasiz duruyordu;
+        # iki zit talimat AYNI prompta gidince cevap RASTGELELESIR ve hicbir alarm calmaz.
+        # DERS: sikistirma yalniz iddia DUSUREBILIR diye denetlenmisti; iddia EKLEYEBILDIGI
+        # olculdu -> denetim artik EKLENEN jetonlari da tabloluyor.
         "- Uzmanlığını doğru soruları sorarak göster; eğitici olabilirsin (\"yanlış malzeme yakıtta "
-        "şişer/bozulur, o yüzden koşulu netleştiriyorum\") — ama çözüm DAİMA filament olsun.",
+        "şişer/bozulur, o yüzden koşulu netleştiriyorum\") ama filament-dışı bir malzemeyi çözüm "
+        "diye sunma.",
         BITIR,
     ])
 
