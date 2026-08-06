@@ -31,7 +31,8 @@ import tempfile
 sys.dont_write_bytecode = True
 
 KAPI = "tools/spec-ifsa-kapisi.py"
-BEKLENEN_IDDIA_SAYISI = 26  # 22 taban + KOK ekseni 2 ("yanlis agacta yesil") + EKO ekseni 2
+MODUL = "tools/git_ortami.py"   # kapinin import ettigi TEK KAYNAK (kopyayla tasinir)
+BEKLENEN_IDDIA_SAYISI = 27  # 22 taban + KOK ekseni 3 ("yanlis agacta yesil" 2 + kanca/worktree 1) + EKO 2
 
 
 # (mutant_adi, eski_metin, yeni_metin, dusmesi_beklenen_TEK_iddia)
@@ -139,6 +140,21 @@ MUTANTLAR = (
     # olculen kusurun ta kendisi -> yalniz IDDIA-KOK2 duser.
     ("MUT-KOK-CWD-DUS", "    if cwd_kok and os.path.realpath(cwd_kok) != os.path.realpath(betik_kok):",
      "    if False:", "IDDIA-KOK2"),
+    # MUT-KOK-ORTAM: 6 Agu 2026 onarimini geri alir — git cagrisi MIRAS ALINAN git
+    # baglamiyla kosar. Kancasiz ayak (temiz ortam) etkilenmez; yalniz WORKTREE+KANCA
+    # vakasi duser -> TEK KIRMIZI: IDDIA-KOK3.
+    ("MUT-KOK-ORTAM", "    return git_kok(dizin, git_ortami())",
+     "    return git_kok(dizin, os.environ.copy())", "IDDIA-KOK3"),
+)
+
+# KONTROL MUTANTLARI — beyan edilmis bir iddiaya ISARET ETMEZLER: davranisi
+# DEGISTIRMEYEN degisikliklerdir ve batarya YESIL kalmalidir. Yoksa batarya "ayirt
+# edici" degil sadece HASSAS olur (her dokunusta kirmizi yanan bir olcum, hangi
+# eksenin olctugunu SOYLEYEMEZ). Bunlar iddia sayimina GIRMEZ.
+KONTROL_MUTANTLARI = (
+    ("KONTROL-METIN",
+     'print("COZUM: satiri ACIP oku (bu rapor metni BILEREK yazmaz — gunluk PUBLIC\'tir).")',
+     'print("COZUM: satiri ACIP oku; bu rapor metni bilerek yazmaz (gunluk PUBLIC).")'),
 )
 
 
@@ -164,10 +180,12 @@ def main():
     args = ap.parse_args()
 
     if args.liste:
-        print("MUTANT <-> IDDIA ESLEMESI (%d mutant / %d iddia)"
-              % (len(MUTANTLAR), BEKLENEN_IDDIA_SAYISI))
+        print("MUTANT <-> IDDIA ESLEMESI (%d oldurucu / %d iddia + %d KONTROL)"
+              % (len(MUTANTLAR), BEKLENEN_IDDIA_SAYISI, len(KONTROL_MUTANTLARI)))
         for ad, _e, _y, iddia in MUTANTLAR:
             print("  %-18s -> %s" % (ad, iddia))
+        for ad, _e, _y in KONTROL_MUTANTLARI:
+            print("  %-18s -> (KONTROL: hicbir iddia dusmemeli)" % ad)
         return 0
 
     # 🔴 OLCULECEK KAPI, SURUCUNUN KENDI AGACINDAN bulunur — CWD'DEN DEGIL.
@@ -187,8 +205,13 @@ def main():
     if not os.path.exists(canli):
         print("OLCULEMEDI: %s yok" % KAPI)
         return 2
+    canli_modul = os.path.join(kok, MODUL)
+    if not os.path.exists(canli_modul):
+        print("OLCULEMEDI: %s yok (kapi onu import eder; fallback YOK)" % MODUL)
+        return 2
 
     once = _sha256_dosya(canli)
+    modul_once = _sha256_dosya(canli_modul)
     with open(canli, "r", encoding="utf-8") as f:
         govde = f.read()
 
@@ -210,6 +233,10 @@ def main():
                        "oldurucu mutanti OLMALI" % (len(MUTANTLAR), BEKLENEN_IDDIA_SAYISI))
 
     with tempfile.TemporaryDirectory() as d:
+        # Mutant kopyasi TEK KAYNAK modulunu import eder -> modul de YANINDA olmali.
+        # Mutasyon YALNIZ kapi kopyasina uygulanir; modul kopyasi DEGISTIRILMEZ (capa
+        # kapinin KENDI cagri yerindedir), canli modul ise hic acilmaz.
+        shutil.copyfile(canli_modul, os.path.join(d, os.path.basename(MODUL)))
         for ad, eski, yeni, iddia in MUTANTLAR:
             if govde.count(eski) != 1:
                 hatalar.append("%-18s BAYAT: hedef metin kaynakta %d kez geciyor (1 olmali)"
@@ -230,11 +257,35 @@ def main():
                 if m_cokme:
                     hatalar.append("   ilk satirlar: %s" % m_cikti.strip().splitlines()[:3])
 
+        for ad, eski, yeni in KONTROL_MUTANTLARI:
+            if govde.count(eski) != 1:
+                hatalar.append("%-18s BAYAT: hedef metin kaynakta %d kez geciyor (1 olmali)"
+                               % (ad, govde.count(eski)))
+                print("  [KIRMIZI] %-18s hedef metin bulunamadi/tekil degil" % ad)
+                continue
+            hedef = os.path.join(d, "mutant.py")
+            with open(hedef, "w", encoding="utf-8") as f:
+                f.write(govde.replace(eski, yeni))
+            k_dusen, k_sayi, k_cokme, _k_cikti = _kos(hedef)
+            iyi = (not k_dusen) and (k_sayi == BEKLENEN_IDDIA_SAYISI) and not k_cokme
+            print("  [%s] %-18s dusen=%s sayi=%d cokme=%s (KONTROL: YESIL kalmali)"
+                  % ("YESIL" if iyi else "SAPMA", ad, sorted(k_dusen) or "-", k_sayi, k_cokme))
+            if not iyi:
+                hatalar.append("KONTROL mutanti %-18s KIRMIZI yakti (dusen=%s, iddia "
+                               "sayisi %d, cokme %s) — batarya ayirt edici degil, HASSAS"
+                               % (ad, sorted(k_dusen), k_sayi, k_cokme))
+
     sonra = _sha256_dosya(canli)
+    modul_sonra = _sha256_dosya(canli_modul)
     if once != sonra:
         hatalar.append("🔴 CANLI DOSYA DEGISTI (sha256 once != sonra) — mutasyon araci "
                        "kaynaga YAZMAMALIYDI")
+    if modul_once != modul_sonra:
+        hatalar.append("🔴 PAYLASILAN MODUL DEGISTI (sha256 once != sonra) — mutasyon "
+                       "yalniz KOPYAYA uygulanmaliydi")
     print("CANLI DOSYA sha256 once==sonra: %s" % (once == sonra))
+    print("PAYLASILAN MODUL (%s) sha256 once==sonra: %s"
+          % (os.path.basename(MODUL), modul_once == modul_sonra))
 
     if hatalar:
         print()
@@ -243,9 +294,10 @@ def main():
             print("  - %s" % h)
         return 1
     print()
-    print("MUTASYON BATARYASI YESIL: %d/%d mutant TEK KIRMIZI ve beyana TAM ESIT; "
-          "iddia sayisi %d sabit; Traceback 0."
-          % (len(MUTANTLAR), len(MUTANTLAR), BEKLENEN_IDDIA_SAYISI))
+    print("MUTASYON BATARYASI YESIL: %d/%d oldurucu mutant TEK KIRMIZI ve beyana TAM "
+          "ESIT, %d KONTROL mutanti YESIL; iddia sayisi %d sabit; Traceback 0."
+          % (len(MUTANTLAR), len(MUTANTLAR), len(KONTROL_MUTANTLARI),
+             BEKLENEN_IDDIA_SAYISI))
     return 0
 
 
