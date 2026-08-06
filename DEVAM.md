@@ -1,5 +1,49 @@
 # DEVAM (KraL) — 5 Agu 2026
 
+## 🟢 DIRILTME KUSURU KAPANDI — kayit cikarildi + alarmin TEK ATIMLIK sonmesi onarildi
+
+Uc commit: `867c1b0d` (veri) · `a964d385` (kapi kolu) · `08b86c34` (taban). Ucu de push edildi.
+
+- **Kayit CIKARILDI, mesrulastirilmadi.** Feed politikasi gerekcesiyle `c912548f`'te cikarilan
+  id, bir toplu ekleme dilimiyle (`841aab67`) geri dirilmis, sonra borc tabanina yazilarak kapi
+  susturulmustu. Karar: kayit sakincalidir -> `duzelt.py --sil`, **katalog 20850 -> 20849**,
+  gizli kaynak kaydi da temizlendi (yetim birakilmadi). `.diriltme-izin.json` **ACILMADI** —
+  muafiyet yazmak onceki karari geri almak olurdu.
+- **Parti taramasi (genis pencere):** **1073** id'lik yasak kumeye karsi dirilen = **1**
+  (yalnizca bu kayit). Alan gerilemesi (EKSEN 2) = **0**. Kapinin kendini-testi 66/66 rc=0.
+- 🔴 **OLCULEN SINIF — alarm TEK ATIMLIKTI.** Kapi diriltme push'unda gercekten kirmizi yandi
+  ve deploy atlandi, ama bir SONRAKI push'ta yesile dondu: yasak kume `ever_seen − <taban>`
+  ile turuyor, ihlal commit'lendigi an bir sonraki tabana GIRIYOR ve alarm KENDI KENDINE
+  SONUYOR. Hunide (yazim oncesi) hicbir katman "bir zamanlar vardi ve cikarildi" kumesine
+  bakmiyordu. **Aynadaki tuzak:** tabani daha eskiye cekmek duyarliligi ARTIRMIYOR —
+  ekle/sil/geri-ekle dongusunun tamami tabanin sonrasinda kalinca kayit "yeni id" sayiliyor
+  ve kapi kor kaliyor (ayni vaka: yakin taban KIRMIZI, uzak taban YESIL).
+- **ONARIM (`a964d385`):** pre-commit'e bloklayici `diriltme-kapisi.py --calisma-agaci` kolu.
+  `urunler.json` degismediyse tarama kosmuyor ama **gerekce BASILIYOR** (sessiz atlama yok);
+  rc=2 OLCULEMEDI yesil sayilmiyor. Kabul **78 iddia rc=0**, sekizi DAVRANISSAL (sentetik
+  depoda gercek `git commit` denenip HEAD'in kaymadigi ve id'nin commit'e girmedigi olculuyor,
+  beyan degil). Kontrol mutanti yeniden uretilebilir (`--kanca-mutasyon`, 12 iddia):
+  iki oldurucu mutant pozitif vakayi yesile dondurdu, kontrol mutanti **dondurmedi**.
+  Kanca nobetcileri 47 ve 62 iddia yesil; kanca kablolamasi DEGISMEDI (bayt-esit dogrulandi,
+  dokum `DEVAM-ARSIV.md`).
+- **YAPISKAN EKSEN OLCULDU ve UYGULANMADI:** terk-edilmis ∩ HEAD = **18.227** id
+  (**%87,4** — gecmisteki toplu yeniden-girintileme yuzunden `-U0` diffinde neredeyse her id
+  icin `-"id"` satiri var). Esik 20'ydi. Uygulansaydi yayin KALICI dururdu ve 18.227 satirlik
+  beyan yazilamazdi. Gerekce olculen sayilarla kapi basligina dusuldu.
+- **TABAN BOSALTILDI (`08b86c34`):** 7 kaydin 7'si de kapinin KENDI fonksiyonlariyla olculdu —
+  feed'e **hala giriyorlar** (yanlis-negatif degil) ama bloklayici jeton tasimiyorlar, borc
+  gercekten odenmis. `kok` **7 -> 0** VE `kok_baslangic` **7 -> 0**, AYNI commit'te.
+  🔴 Mandal geride biraksaydik ratchet **7 yeni borca** kadar sessiz kalacakti — bu varsayim
+  degil, KARSI-OLGU olarak olculdu: `kok_baslangic`=7 iken 1 yeni borc eklenince uyari
+  **URETILMEDI**. Gevseme nobeti: +1 kayitli sentetik tabanda uyari URETILDI, esit sayida
+  URETILMEDI. Feed kapisi rc=0, taban/baslangic 0/0, RAPOR katmani birebir DEGISMEDI
+  (164/20879).
+- 🟡 **ACIK KALEM (kardes mimardan gelen, benim duzlemimde):** yayin tavani geriye-doldurmasinda
+  **2 kayit** gorsel-gate politikasini ihlal ediyor (biri render'da kabartma ucuncu-taraf
+  wordmark, biri marka-ozgu olmayan jenerik urun); ikisi de hala canli, karar bende/Okan'da.
+  Ayrica bir denetim aracinin tum-katalog kipi rapor degil FIILEN silme uyguluyor — davranis
+  kafa karistirici, ayri bir karar konusu.
+
 ## CI NOBETI (6 Agu 11:37 turu) — `yayin` tavani KAPANDI, 28 mail Cop'e
 
 - **Mail toplu cekildi, ORNEKLEME YOK:** gelen kutusu tek Apple Event ile alindi, cekilen
@@ -25,8 +69,9 @@
   `OLCULEMEDI/rc=1`. Kod dogru, **DEGER yanlis**. Nobet secret'a DOKUNMAZ (YASAK liste).
   ⚠️ Bu turun geriye-doldurmasi D1'de DOGRU; ama secret duzelene kadar CI'daki `yayin`
   yine kirmizi yanabilir — artik TAVAN sebebiyle degil, KIMLIK sebebiyle. Ayrimi karistirma.
-- 🔴 **ACIK KALEM 2 (BASKA MIMARIN DUZLEMI, dokunulmadi):** `serit-a3` diriltme kapisi
-  kirmizi — katalogdan cikarilmis bir urun id'si geri gelmis. Karar MaCiT/Okan'da.
+- ✅ **ACIK KALEM 2 KAPANDI (6 Agu):** `serit-a3` diriltme kapisi kirmizisi — katalogdan
+  cikarilmis id geri gelmisti. Kayit tekrar cikarildi ve alarmin sonme sinifi onarildi;
+  ayrinti icin yukaridaki "DIRILTME KUSURU KAPANDI" bolumu.
 
 ## 🟢 ANLATIM-YUZEY NOBETI KAPANDI — `493b286c` (dal main'e alindi)
 
