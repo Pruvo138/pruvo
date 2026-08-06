@@ -1699,12 +1699,17 @@ TABLO_TABANLARI = (
     ("B_IDDIALAR", 5), ("B_MUTANTLAR", 10), ("B_JETON_MUTANTLAR", 4),
     ("B_TETIK_MUTANTLAR", 2), ("B_ADIM_IDDIALARI", 1), ("BOZUK_ORNEKLER", 9),
     # E_MUTANTLAR 1 Agu: 22 -> 25 (durum-test.py KOL GRANULU mutantlari eklendi).
-    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 25), ("K26_SATIR_FIKSTURLERI", 26),
+    # E_MUTANTLAR 7 Agu: 25 -> 28 (konfigur-bundle bayraksiz kol mutantlari: 2 oldurucu
+    # + 1 kanarya).
+    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 28), ("K26_SATIR_FIKSTURLERI", 26),
     ("K26_BAGLAM_MUTANTLAR", 5), ("K29_MUTANTLAR", 13),
     # 1 Agu: 4 -> 6 (durum-test.py'nin IKI kolu KOL GRANULUNDE eklendi). Taban
     # yukseltildi cunku kolu tabloDAN silmek, adimi deploy.yml'den silmekle AYNI
     # kapiyi acar: iddia dusar, kimse kirmizi gormez.
-    ("E_ZORUNLU_CAGRILAR", 6), ("E_ZORUNLU_VARLIKLAR", 1),
+    # 7 Agu: 6 -> 7 (konfigur-bundle-kapisi.py'nin deploy.yml'deki BAYRAKSIZ kolu;
+    # serit ayrimi `--kendini-test` kolunu nobet.yml'e tasiyinca dosya granullu kapsam
+    # kapisi bayraksiz kolun silinmesini GORMEZ olmustu — olculdu, rc=0).
+    ("E_ZORUNLU_CAGRILAR", 7), ("E_ZORUNLU_VARLIKLAR", 1),
     ("KABLO_TABLOSU", 5), ("B_MESRU_YAZIMLAR", 6),
     # 🔴 SERIT_B (31 Tem): tablo BUYUYEBILIR ama TABANIN ALTINA DUSEMEZ. Kucultmek
     # tek basina bir kacis DEGILDIR (S3 bayatlik kurali zaten kirmizi yakar), ama
@@ -3173,6 +3178,23 @@ E_ZORUNLU_CAGRILAR = (
      "olcumu). Bu kol dusmesi muafiyetin SESSIZCE genisletilebilmesi demektir: "
      "muafiyeti `return True`e cevirmek ya da S2 tavanini silmek 6c'yi sonsuza dek "
      "yesil birakirdi (olculdu 1 Agu — tavan silinince bu kol 7/12 KIRMIZI yaniyor)."),
+    # 🔴 7 AGU — SERIT AYRIMININ ACTIGI KOL DELIGI ([[kapi-yan-etkisi-gizli-onkosul]]).
+    # konfigur-bundle-kapisi.py'nin IKI kolu var ve serit ayriminda AYRI DOSYALARA
+    # dagildi: BAYRAKSIZ (gercek artefakt DRIFT olcumu) deploy.yml `serit-a3`'te
+    # BLOKLAYICI, `--kendini-test` ise nobet.yml `serit-b`de. OLCULDU (7 Agu): deploy.yml'
+    # deki BAYRAKSIZ ADIM butunuyle silindiginde ci-kapsam-test.py rc=0 veriyordu —
+    # cunku o kapi DOSYA granulunde bakar ve nobet.yml'deki `--kendini-test` cagrisi
+    # dosyayi "kapsanmis" gosteriyordu. SERIT_B tablosundaki
+    # ("nobet.yml","serit-b","tools/konfigur-bundle-kapisi.py") beyani zaten "artefakt
+    # DRIFT olcumu serit A'da bloklayici" DIYORDU ama bu iddiayi kimse OLCMUYORDU.
+    # NEDEN BLOKLAYICI: shop/src/konfigurlar.js urunler.json'dan URETILEN artefakttir;
+    # kol duserse artefakt bayat kalir ve konfigurlu urun YANLIS/eksik fiyatla satilir
+    # (sessiz tahsilat hatasi, PARA EKSENI).
+    (E_DOSYA, "tools/konfigur-bundle-kapisi.py", None,
+     "KONFIGUR BUNDLE DRIFT kapisi — BAYRAKSIZ (gercek artefakt karsilastirmasi) kolu. "
+     "Yayin seridinde BLOKLAYICI kosmali; `--kendini-test` kolu nobet.yml'dedir ve "
+     "onun varligi bu kolun yerini TUTMAZ (dosya granullu kapsam kapisi bu farki "
+     "GORMEZ — olculdu, [[kapi-yan-etkisi-gizli-onkosul]])."),
 )
 
 # ---- ZORUNLU YAYIN VARLIKLARI (adim TURU korlugunun ikinci ekseni) ---------
@@ -3895,6 +3917,8 @@ jobs:
         run: python3 tools/durum-test.py
       - name: "6c sizinti muafiyeti ic nobetcisi"
         run: python3 tools/durum-test.py --ic-nobetci
+      - name: "Konfigur bundle kapisi"
+        run: python3 tools/konfigur-bundle-kapisi.py
       - name: "Yayin klasorunu topla"
         run: |
           mkdir -p _site/jenerator
@@ -3989,6 +4013,25 @@ E_MUTANTLAR = (
      E_FIKSTUR_TEMIZ.replace("        run: python3 tools/durum-test.py --ic-nobetci\n",
                              "        run: python3 tools/durum-test.py --ic-nobetci "
                              "|| true\n"), True),
+    # 🔴 7 AGU — KONFIGUR BUNDLE BAYRAKSIZ KOLU (serit ayriminin actigi delik).
+    # Olculdu: bu adim GERCEK deploy.yml'den silindiginde ci-kapsam-test.py rc=0
+    # veriyordu (nobet.yml'deki `--kendini-test` cagrisi dosyayi kapsanmis gosterir).
+    # Iki oldurucu + bir kanarya: kolun AYRI ADIMDA/JOB'DA olmasi MESRUDUR.
+    ("KONFIGUR BUNDLE bayraksiz kol adimi SILINDI (`--kendini-test` baska dosyada)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Konfigur bundle kapisi"\n'
+                             "        run: python3 tools/konfigur-bundle-kapisi.py\n",
+                             ""), True),
+    ("KONFIGUR BUNDLE bayraksiz kolu `--kendini-test`e cevrildi (drift olcumu duser)",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/konfigur-bundle-kapisi.py\n",
+                             "        run: python3 tools/konfigur-bundle-kapisi.py "
+                             "--kendini-test\n"), True),
+    ("KONFIGUR BUNDLE adimi AYRI bir job'a tasindi (MESRU)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Konfigur bundle kapisi"\n'
+                             "        run: python3 tools/konfigur-bundle-kapisi.py\n",
+                             "  dorduncu:\n    runs-on: ubuntu-latest\n    steps:\n"
+                             '      - name: "Konfigur bundle kapisi"\n'
+                             "        run: python3 tools/konfigur-bundle-kapisi.py\n"),
+     False),
     ("YAYIN VARLIGI `cp jenerator/hacim.js` -> `echo cp ...` (OLCULEN SAG KALAN MUTANT)",
      E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
                              "          echo cp jenerator/hacim.js _site/jenerator/\n"),

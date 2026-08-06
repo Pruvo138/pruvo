@@ -1841,31 +1841,127 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
     } else { ham.push("    ✅ M2: " + m2Kalan.length + " iddia KIRMIZI"); }
   }
 
-  // ---- M3: KAPININ CAGRI SATIRI deploy.yml'den SILINDI ----
-  ham.push("  -- M3: kapinin CI cagri satiri silindi --");
-  const deployYol = path.join(KOK, ".github", "workflows", "deploy.yml");
+  // ---- M3: KAPININ CAGRI SATIRI CI'DAN SILINDI — IKI AYRI GRANUL ----
+  // 🔴 NEDEN IKI EKSEN (olculdu 7 Agu, [[kapi-yan-etkisi-gizli-onkosul]]): bu mutant
+  // eskiden TEK bir sabit kurban (`tools/konfigur-bundle-kapisi.py`) uzerinden
+  // ci-kapsam-test.py'yi olcuyordu. 5 Agu serit ayriminda o kapinin `--kendini-test`
+  // KOLU nobet.yml'e TASINDI; ci-kapsam-test.py DOSYA granulunde baktigi icin
+  // deploy.yml'deki BAYRAKSIZ (bloklayici) cagri silinse bile dosyayi "kapsanmis"
+  // goruyor ve rc=0 veriyordu. Iki hata birden vardi:
+  //   (a) FIKSTUR BAYATLADI — dosya granullu iddia artik BU kurbanla olculemez;
+  //       kurban KANONIK olarak secilir (deploy.yml'de kosan, BASKA HICBIR is
+  //       akisinda GECMEYEN ilk kesif adayi) -> tasima olunca iddia SESSIZCE olmez.
+  //   (b) GERCEK DELIK — "deploy.yml'deki BLOKLAYICI KOL silindi" halini HICBIR kapi
+  //       gormuyordu. O eksen KOL granulundedir ve tools/is-akisi-kapisi.py BOLUM
+  //       E'ye aittir (E_ZORUNLU_CAGRILAR); giris oraya eklendi, burada UCTAN UCA
+  //       davranissal olarak dogrulanir.
+  ham.push("  -- M3: kapinin CI cagri satiri silindi (dosya granulu + kol granulu) --");
+  const AKIS_DIZINI = path.join(KOK, ".github", "workflows");
+  const deployYol = path.join(AKIS_DIZINI, "deploy.yml");
   const deploy = fs.readFileSync(deployYol, "utf8");
-  const cagriDeseni = /^.*python3 tools\/konfigur-bundle-kapisi\.py\s*$/m;
-  const cagriVar = cagriDeseni.test(deploy);
-  const mutantDeploy = deploy.replace(/^.*konfigur-bundle-kapisi\.py.*$/gm, "");
-  const mutantDeployYol = path.join(gecici, "deploy-mutant.yml");
-  fs.writeFileSync(mutantDeployYol, mutantDeploy);
+  const digerAkisAdlari = fs.readdirSync(AKIS_DIZINI)
+    .filter((ad) => /\.ya?ml$/.test(ad) && ad !== "deploy.yml").sort();
+  const digerAkisMetni = digerAkisAdlari
+    .map((ad) => fs.readFileSync(path.join(AKIS_DIZINI, ad), "utf8")).join("\n");
+  // 🔴 CIKIS KODU TEK BASINA YETMEZ ([[mutasyon-kaniti-yeniden-uretilebilir]]): mutant
+  // deploy.yml BASKA bir sebeple de rc=1 verebilir (or. ayristirma bozulur) ve iddia
+  // TOTOLOJIYE doner. Bu yuzden DUSEN IDDIANIN KIMLIGI de eslenir: kirmizi metin
+  // KURBANIN adini ANMALI.
   function kapsamKos(yol) {
     try {
-      execFileSync("python3", [path.join(KOK, "tools", "ci-kapsam-test.py"), "--deploy", yol],
-                   { encoding: "utf8", stdio: "pipe" });
-      return 0;
-    } catch (e) { return e.status; }
+      const c = execFileSync("python3",
+                             [path.join(KOK, "tools", "ci-kapsam-test.py"), "--deploy", yol],
+                             { encoding: "utf8", stdio: "pipe" });
+      return { rc: 0, cikti: c || "" };
+    } catch (e) {
+      return { rc: e.status, cikti: (e.stdout || "") + (e.stderr || "") };
+    }
   }
-  const rcGercek = kapsamKos(deployYol);
-  const rcMutant = kapsamKos(mutantDeployYol);
-  not("M3: deploy.yml'de kapi cagrisi=" + (cagriVar ? "VAR" : "YOK") +
-      "; ci-kapsam gercek rc=" + rcGercek + " (0 olmali), cagri silinmis rc=" + rcMutant +
-      " (1 olmali)");
-  if (!(cagriVar && rcGercek === 0 && rcMutant === 1)) {
+  // (a) DOSYA GRANULU — ci-kapsam-test.py CANLI mi: kapsam kapisinin kesif predikatina
+  //     giren, deploy.yml'de kosulan ve BASKA is akisinda GECMEYEN bir kapinin TUM
+  //     mensiyonlari silinince dosya kapsamsiz kalir -> rc=1 olmali.
+  const KESIF_DESENI =
+    /python3\s+(tools\/(?:[\w.-]+-test\.py|test-[\w.-]+\.py|[\w.-]+-kapisi\.py))(?:\s|$)/gm;
+  const kurbanAdaylari = [...new Set([...deploy.matchAll(KESIF_DESENI)].map((m) => m[1]))]
+    .filter((y) => !digerAkisMetni.includes(y)).sort();
+  const kurban = kurbanAdaylari[0];
+  const gercek = kapsamKos(deployYol);
+  let mutantKapsam = { rc: null, cikti: "" };
+  if (kurban) {
+    const kurbansiz = deploy.split("\n").filter((s) => !s.includes(kurban)).join("\n");
+    const kurbansizYol = path.join(gecici, "deploy-kapsam-mutant.yml");
+    fs.writeFileSync(kurbansizYol, kurbansiz);
+    mutantKapsam = kapsamKos(kurbansizYol);
+  }
+  const rcGercek = gercek.rc;
+  const rcKurban = mutantKapsam.rc;
+  const kurbanAnildi = Boolean(kurban) && mutantKapsam.cikti.includes(kurban);
+  not("M3a DOSYA GRANULU: yalniz-deploy kurban adayi=" + kurbanAdaylari.length +
+      " secilen=" + (kurban || "YOK") + "; ci-kapsam gercek rc=" + rcGercek +
+      " (0 olmali), kurban silinmis rc=" + rcKurban + " (1 olmali), kirmizi metin " +
+      "kurbani aniyor=" + (kurbanAnildi ? "EVET" : "HAYIR") + " (EVET olmali)");
+  if (!(kurban && rcGercek === 0 && rcKurban === 1 && kurbanAnildi)) {
     kirmizi += 1;
-    ham.push("    ❌ M3 KALDI — kapi CI'dan silinince kimse uyarmiyor");
-  } else { ham.push("    ✅ M3: cagri satiri silinince ci-kapsam-test.py KIRMIZI"); }
+    ham.push("    ❌ M3a KALDI — bir kapi CI'nin HER YERINDEN silinince kimse uyarmiyor");
+  } else {
+    ham.push("    ✅ M3a: kapsamsiz kalan kapi icin ci-kapsam-test.py KIRMIZI (" + kurban + ")");
+  }
+
+  // (b) KOL GRANULU — is-akisi-kapisi.py BOLUM E: BLOKLAYICI kolun ADIMI deploy.yml'den
+  //     silinince KIRMIZI yanmali. Kurban BILEREK "ikinci kolu BASKA is akisinda olan"
+  //     kapidir; temiz kopya KONTROL'dur (yanlis-pozitif yakalanir).
+  const KOL_HEDEFI = "tools/konfigur-bundle-kapisi.py";
+  const kolIkinciAkista = digerAkisMetni.includes(KOL_HEDEFI);
+  const akisKopyasi = path.join(gecici, "akis-kopyasi");
+  fs.mkdirSync(akisKopyasi, { recursive: true });
+  for (const ad of [...digerAkisAdlari, "deploy.yml"]) {
+    fs.copyFileSync(path.join(AKIS_DIZINI, ad), path.join(akisKopyasi, ad));
+  }
+  function isAkisiKos() {
+    try {
+      const c = execFileSync("python3", [path.join(KOK, "tools", "is-akisi-kapisi.py"),
+                                         "--dizin", akisKopyasi],
+                             { encoding: "utf8", stdio: "pipe" });
+      return { rc: 0, cikti: c || "" };
+    } catch (e) {
+      return { rc: e.status, cikti: (e.stdout || "") + (e.stderr || "") };
+    }
+  }
+  const kolTemiz = isAkisiKos();
+  const rcKolTemiz = kolTemiz.rc;
+  // ADIM (name + run) butunuyle silinir — "adim SILINMIS" kanonik etkisizlestirme hali.
+  const kolSatirlari = deploy.split("\n");
+  const kolMutant = [];
+  let kolSilinen = 0;
+  for (const s of kolSatirlari) {
+    if (new RegExp("^\\s*run:\\s*python3\\s+" + KOL_HEDEFI.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+                   "\\s*$").test(s)) {
+      if (kolMutant.length && /^\s*-\s*name:/.test(kolMutant[kolMutant.length - 1])) {
+        kolMutant.pop();
+      }
+      kolSilinen += 1;
+      continue;
+    }
+    kolMutant.push(s);
+  }
+  fs.writeFileSync(path.join(akisKopyasi, "deploy.yml"), kolMutant.join("\n"));
+  const kolMutantSonuc = isAkisiKos();
+  const rcKolMutant = kolMutantSonuc.rc;
+  const kolAnildi = kolMutantSonuc.cikti.includes(KOL_HEDEFI);
+  not("M3b KOL GRANULU: `" + KOL_HEDEFI + "` ikinci kolu baska is akisinda=" +
+      (kolIkinciAkista ? "EVET" : "HAYIR") + "; silinen bloklayici adim=" + kolSilinen +
+      "; is-akisi-kapisi temiz rc=" + rcKolTemiz + " (0 olmali), kol silinmis rc=" +
+      rcKolMutant + " (1 olmali), kirmizi metin kolu aniyor=" +
+      (kolAnildi ? "EVET" : "HAYIR") + " (EVET olmali)");
+  if (!(kolIkinciAkista && kolSilinen === 1 && rcKolTemiz === 0 && rcKolMutant === 1
+        && kolAnildi)) {
+    kirmizi += 1;
+    ham.push("    ❌ M3b KALDI — deploy.yml'deki BLOKLAYICI kol silinince kimse uyarmiyor " +
+             "(dosya granullu kapsam kapisi bunu GORMEZ)");
+  } else {
+    ham.push("    ✅ M3b: bloklayici kol adimi silinince is-akisi-kapisi.py KIRMIZI, " +
+             "temiz kopya YESIL");
+  }
 
   // ---- M4: PROVA YAN ETKI URETIYOR (D1 yazma + Telegram) ----
   ham.push("  -- M4: prova yan etki uretiyor (D1 INSERT + Telegram) --");

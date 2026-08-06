@@ -922,10 +922,21 @@ ROZET_CAPRAZ_IZINLI = {
     "Toyota|107": ("BEKLER", "Toyota'nin rozeti AYGO'dur; `107` Peugeot rozetidir. Kova "
                              "katalogda ESIK ustunde — ROZET_DISI'ye alinsin mi, mimar hukmu "
                              "bekliyor (deny yazilirsa urunler Toyota agacinda kalir)"),
+    # 7 Agu — Nissan/Datsun veri partisiyle capraz olan cift (K19 KIRMIZI yakti).
+    # S30 (1969-1978) ihracat pazarlarinda DATSUN 240Z rozetiyle satildi; ureticisi
+    # Nissan'dir ve marka bugun ayni araci NISSAN 240Z diye anar. Emsal birebir
+    # `Dacia|duster`/`Renault|duster` satirlaridir: ayni arac, IKI GERCEK rozet, iki
+    # sayfa. Katalogda iki yazim da GERCEK urun basliklarinda geciyor (ornek:
+    # `datsun-240z-...` ve `nissan-240z-alternator-braketi-kapagi`). Nissan kolu ayrica
+    # BASLIK_DOGAN_ALLOW'da ZATEN yargilanmisti — bu satir o hukmun capraz eksendeki
+    # karsiligidir, YENI bir sayfa acmaz.
+    "Datsun|240z": ("ROZET", "Datsun 240Z (S30) ihracat pazarlarinin ORIJINAL rozeti"),
+    "Nissan|240z": ("ROZET", "Nissan 240Z ayni S30'un uretici rozeti (Datsun Nissan'in "
+                             "ihracat markasidir; ikizin adi DEGIL, KENDI adi)"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 26
-ROZET_CAPRAZ_IZINLI_IMZA = "2d90bac114d652b0"
+ROZET_CAPRAZ_IZINLI_SAYISI = 28
+ROZET_CAPRAZ_IZINLI_IMZA = "d4057b051e9c2bb4"
 
 
 def rozet_capraz_imzasi():
@@ -1154,7 +1165,10 @@ BASLIK_DOGAN_ALLOW = {
     # emsal birebir `Renault|Duster`/`Renault|Logan` satirlaridir.
     ("Citroen", "Relay"): "Citroen Relay = Jumper'in GERCEK Ingiltere rozeti",
     ("Citroen", "XM"): "arac/motosiklet model adi",
-    ("Datsun", "280Z"): "arac/motosiklet model adi",
+    # ("Datsun", "280Z") — 7 Agu KALDIRILDI: kova artik BASLIK KOLUYLA DOGMUYOR
+    # (jeton yolundan gelen urun sayisi ESIK'i tek basina geciyor), yani envanterdeki
+    # giris ISLEVSIZ kalmisti ve K21 "BAYAT" eksenini kirmizi yakiyordu. Sayfa DUSMEZ;
+    # kova yeniden yalniz-baslik haline gelirse K21 SIZINTI ekseni yargi ister.
     ("Fiat", "Doblo"): "arac/motosiklet model adi",
     ("Fiat", "Fiorino"): "arac/motosiklet model adi",
     ("Ford", "Bronco Sport"): "arac/motosiklet model adi",
@@ -1210,7 +1224,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Honda", "Stepwgn"): "arac/motosiklet model adi",
     ("Honda", "Super Cub"): "arac/motosiklet model adi",
     ("Honda", "Talon"): "arac/motosiklet model adi",
-    ("Honda", "VFR 800"): "arac/motosiklet model adi",
+    # ("Honda", "VFR 800") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
+    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
     ("Honda", "XL125"): "arac/motosiklet model adi",
     ("Honda", "XL600R"): "arac/motosiklet model adi",
     ("Honda", "XR400"): "arac/motosiklet model adi",
@@ -1241,12 +1256,14 @@ BASLIK_DOGAN_ALLOW = {
     # 6 Agu, mimar hukmu (ADIM 3 / hukum B): `Evolution` Lancer Evolution AILESIDIR
     # (`Mitsubishi|Lancer Evolution` zaten bu envanterde) — ciplak aile adi da sayfa alir.
     ("Mitsubishi", "Evolution"): "arac/motosiklet AILE adi (Lancer Evolution)",
-    ("Mitsubishi", "Galant"): "arac/motosiklet model adi",
+    # ("Mitsubishi", "Galant") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
+    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
     ("Mitsubishi", "Lancer Evolution"): "arac/motosiklet model adi",
     ("Mitsubishi", "Minicab"): "arac/motosiklet model adi",
     ("Mitsubishi", "Pajero Mini"): "arac/motosiklet model adi",
     ("Mitsubishi", "Pajero Pinin"): "arac/motosiklet model adi",
-    ("Nissan", "240SX"): "arac/motosiklet model adi",
+    # ("Nissan", "240SX") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
+    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
     ("Nissan", "240Z"): "arac/motosiklet model adi",
     ("Nissan", "370Z"): "arac/motosiklet model adi",
     ("Nissan", "D21 Hardbody"): "arac/motosiklet model adi",
@@ -1282,7 +1299,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Suzuki", "Freewind"): "arac/motosiklet model adi",
     ("Suzuki", "GS500E"): "arac/motosiklet model adi",
     ("Suzuki", "GS550"): "arac/motosiklet model adi",
-    ("Suzuki", "GSF 650"): "arac/motosiklet model adi",
+    # ("Suzuki", "GSF 650") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
+    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
     ("Suzuki", "GSX"): "arac/motosiklet AILE adi (GSX serisi)",
     ("Suzuki", "GSX-S1000"): "arac/motosiklet model adi",
     ("Suzuki", "GSX600F"): "arac/motosiklet model adi",
@@ -1361,8 +1379,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 190
-BASLIK_DOGAN_ALLOW_IMZA = "3dadbb6a00265ddc"
+BASLIK_DOGAN_ALLOW_SAYISI = 185
+BASLIK_DOGAN_ALLOW_IMZA = "e30f93432d886dda"
 
 
 def baslik_dogan_allow_imzasi():
