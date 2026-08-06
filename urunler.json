@@ -1,5 +1,24 @@
 [
   {
+    "id": "nissan-navara-d22-kul-tablasi-bardaklik-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Navara"
+    ],
+    "baslik": "Nissan Navara (D22) Kül Tablası Yuvası Bardaklık Seti",
+    "aciklama": "Nissan Navara D22 kabininde kül tablası yuvasına oturarak o boşluğu bardaklığa dönüştüren ikili settir.\n- Orijinal kül tablası vidası kullanılarak sabitlenir, ek delme gerekmez.\n- Bardak gözü vites ve transfer kolunun yanında kalır, uzanma mesafesi korunur.\n- Yakın yılların D22 kabinlerine de uyumludur (iç tasarım büyük ölçüde aynıdır).\n- Özel üretim olarak hazırlanır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1361307-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1361307-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JayJay",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "mitsubishi-4g63-eksantrik-mili-kilit-aparati",
     "kategori": "Otomobil",
     "marka": [
