@@ -83,6 +83,9 @@ conclusion DEGIL) success'i beklenecek, sonra iki olcumle canli dogrulama.
   (`3aec9eba`) daha genis (85/19 iddia, W1..W4 vs 84/18, W1..W3).
   **DERS:** "kok yanlis cozuluyor" bulgusu tek basina kusur DEGIL — o kokun HUKMU degistirdigi
   gosterilmeli. Ayirt edici mutant yoksa eksen ayri iddia olarak main'e girmez.
+  **Dusurulen dal SILINDI** (yerel + uzak). Kayit icin iki commit: `badc84a1` (mimar kapisi
+  kok sertlestirmesi + 27-29 vakalari + M11) · `0d5ef292` (diriltme kok onarimi, main'deki
+  `3aec9eba`'nin DAR ikizi). Kurtarilan tek parca `kok-cozum-taramasi.py` zaten `fd801a88`de.
 - **BEKLEYEN 1 (2 IKIZ kok-turetme) ile iliski:** surucu tam da o soruyu olcumle yanitlayan
   arac; kardes oturum ayni sinifta calisiyor, mukerrer is riski var.
 - 🔴 **YAYIN ACIK (depo kaynakli DEGIL):** `durum.py` §9 **ACLIK rc 4** — son 38 tamamlanmis
