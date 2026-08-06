@@ -113,6 +113,33 @@ KAPSAM DISI ve NEDENI (kapsami buyutmek pozitif nobetciyi oldurur,
   bu alan YOK MUYDU" bilgisi satir-diffinden TURETILEMEZ; uydurmak yerine ACIKCA
   olculmedigi soylenir. Silme sinifi `urunler-guard.py` + EKSEN 1 kapsamindadir.
 
+🔴 KABUL FIKSTURU (A20/A21/A22) — CAPA DOSYA ADINDAN DEGIL GECMISTEN SECILIR
+  (7 Agu 2026, olculdu; onarim ONCESI A20 KIRMIZI yaniyordu ve sebebi kapinin bozuk
+  olmasi DEGIL, IDDIANIN YANLIS YAZILMIS olmasiydi.)
+  Bir kapak gorseli duzeltilirken onbellek kurali geregi AYNI anahtarin UZERINE
+  YAZILMAZ, YENI dosya adi verilir (`...-1.jpg` -> `...-1-v2.jpg`). Kabul testi eskiden
+  bu deseni tarayip DIZIDEKI ILK `-vN` gorselini capa seciyor ve `onceki` degeri
+  YALNIZ DOSYA ADINDAN turetiyordu. Bu bir VARSAYIMDIR: `-vN` soneki bir DUZELTMENIN
+  KANITI DEGILDIR — bir kayit dogrudan `-1-v2` ile DOGMUS olabilir; o zaman `-1`e
+  donmek GERI GITME degil, O KAYITTA HIC GORULMEMIS bir degere gitmektir ve kapi
+  HAKLI olarak YESIL der. Olculen taban: HEAD'de 11 `-vN` (kayit,gorsel) cifti /
+  10 kayit -> 9 NITELIKLI + 2 DOGUSTAN-vN; dizideki ILK aday DOGUSTAN olandi, yani
+  A20 kapiyi degil KENDI VARSAYIMINI olcuyordu (kapi KOR DEGILDI: ayni kod yolu
+  NITELIKLI bir kayitla KIRMIZI hukum veriyordu).
+  CARE: capa kapinin KENDI semantiginden turer — `onceki` deger O KAYDIN gecmisinde
+  HEM `+` GORULMUS HEM `-` TERK EDILMIS olmali (EKSEN 2 hukmunun ta kendisi). Secim
+  TEK ek gecmis taramasindan beslenir (`vn_adaylarini_sinifla`). IKI FAIL-CLOSED SART:
+    1) NITELIKLI aday 0 ise A20 KIRMIZI yanar — "capa bulunamadi" bir YESIL sebebi
+       DEGILDIR, iddia sessizce ATLANMAZ.
+    2) DOGUSTAN-vN aday 0 ise A22 KIRMIZI yanar ve "fikstur arzi tukendi" der —
+       iddianin KURULAMAMASI yesil sayilmaz.
+  A22 AYIRT EDICIDIR: hukumden TERK EDILME (`-`) sarti dusurulup DOSYA ADI DESENI tek
+  basina gerileme sayilirsa (bugunku kirmizinin "kolay" onarimi tam da budur) A22
+  KIRMIZI yanar. Kanit repoda durur: `--capa-mutasyon` (A-M1 -> yalniz A20 duser,
+  A-M2 -> yalniz A22 duser, KONTROL -> hicbiri).
+  📏 ARZ NOBETI: her iki arz sayisi (NITELIKLI · DOGUSTAN-vN) koşum ciktisinda BASILIR;
+  arz duserse gorunur olur, sessizce zayiflamaz.
+
 ATTRIBUTION (bir diff satiri HANGI kaydin?) — `-U0` diffinde alan satiri kendi id'sini
   TASIMAZ. Cozum: git'in HUNK BASLIGI FONKSIYON BAGLAMI, `xfuncname` ile `"id"`
   satirina ayarlanir (`core.attributesFile` GECICI bir dosyaya yazilir, DEPO KIRLETILMEZ):
@@ -190,6 +217,8 @@ KULLANIM:
     python3 tools/diriltme-kapisi.py --kendini-test   # POZITIF+NEGATIF kabul (ag YOK)
     python3 tools/diriltme-kapisi.py --kanca-mutasyon # pre-commit + WORKTREE KOK ayagi
                                                       # + mutasyon bataryalari (hizli)
+    python3 tools/diriltme-kapisi.py --alan-capa      # YALNIZ A20/A21/A22 ayagi
+    python3 tools/diriltme-kapisi.py --capa-mutasyon  # A20/A22 AYIRT EDICI mutantlar
 
 CIKIS KODLARI: 0 = YESIL · 1 = KIRMIZI (diriltme / alan gerilemesi) · 2 = OLCULEMEDI.
 """
@@ -843,6 +872,164 @@ def _gorsel(uid, n):
     return "https://media.pruvo3d.com/urunler/%s-%d.jpg" % (uid, n)
 
 
+# ------------------------------------- ALAN CAPA FIKSTURU (A20/A21/A22) — GERCEK KATALOG
+# Gerekce + olculen taban + iki FAIL-CLOSED sart: dosya basligi, "KABUL FIKSTURU".
+# 🔴 CAPA GECMISTEN TURER: `-vN` DESENI yalniz ADAY uretir, HUKUM uretmez.
+VN_GORSEL = re.compile(r"^(?P<kok>.+?)-v(?P<n>\d+)(?P<uzanti>\.[A-Za-z0-9]+)$")
+
+
+def vn_adaylari(govde):
+    """[(sira, id, indeks, onceki_url, simdiki_url)] — katalog DIZI sirasinda.
+
+    `onceki` = `-vN` sonekinin bir onceki adimi (`-v2` -> soneksiz kok). Bu YALNIZCA
+    bir ADAYDIR; o degerin gercekten TERK EDILMIS olup olmadigi gecmisten olculur."""
+    out = []
+    for sira, u in enumerate(govde):
+        if not isinstance(u, dict) or not isinstance(u.get("gorseller"), list):
+            continue
+        for i, g in enumerate(u["gorseller"]):
+            if not isinstance(g, str):
+                continue
+            m = VN_GORSEL.match(g)
+            if not m:
+                continue
+            n = int(m.group("n"))
+            onceki = (m.group("kok") + m.group("uzanti") if n == 2
+                      else "%s-v%d%s" % (m.group("kok"), n - 1, m.group("uzanti")))
+            out.append((sira, u["id"], i, onceki, g))
+    return out
+
+
+def _deger_satiri(url):
+    """Bir gorsel URL'sinin `urunler.json` icinde uretecegi NORMALLESTIRILMIS satir —
+    gecmis taramasinin aradigi bicimin TA KENDISI (`alan_satirlari` ile ayni kaynak)."""
+    return satir_normalle(json.dumps(url, ensure_ascii=False))
+
+
+def vn_adaylarini_sinifla(depo, adaylar, rev="HEAD"):
+    """(nitelikli, dogustan, olcum) — TEK ek gecmis taramasi, TUM adaylar birlikte.
+
+    NITELIKLI  : `onceki` deger O KAYDIN gecmisinde HEM `+` GORULMUS HEM `-` TERK
+                 EDILMIS -> kapinin EKSEN 2 hukmuyle AYNI semantik (A20 capasi).
+    DOGUSTAN-vN: `onceki` deger o kaydin gecmisinde HIC gorulmemis (0 `+`, 0 `-`) ->
+                 `-vN` soneki bir DUZELTME degil, kaydin DOGDUGU haldir (A22 capasi).
+    Ikisine de girmeyen aday (yalniz `+` ya da yalniz `-`) HICBIR fikstura capa OLMAZ:
+    belirsiz vaka sessizce bir yone sayilmaz."""
+    aday_satirlar = {}
+    for _s, uid, _i, onceki, _g in adaylar:
+        aday_satirlar.setdefault(uid, set()).add(_deger_satiri(onceki))
+    if not aday_satirlar:
+        return [], [], {}
+    _ever, arti, eksi, olc = gecmiste_gorulen(depo, rev, None, aday_satirlar)
+    nitelikli, dogustan = [], []
+    for aday in adaylar:
+        uid, onceki = aday[1], aday[3]
+        s = _deger_satiri(onceki)
+        gorulmus, terk = (uid, s) in arti, (uid, s) in eksi
+        if gorulmus and terk:
+            nitelikli.append(aday)
+        elif not gorulmus and not terk:
+            dogustan.append(aday)
+    return nitelikli, dogustan, olc
+
+
+def _gecici_kapi_yap(gercek):
+    """Fikstur kosucusu: `urunler.json`'a DOKUNULMAZ — govde GECICI dosyaya yazilir.
+    Dosya adinda PID vardir: iki surec (or. `--capa-mutasyon` ile paralel bir kabul
+    koşumu) birbirinin fiksturunu EZMEZ."""
+    gecici = os.path.join(tempfile.gettempdir(),
+                          "pruvo-diriltme-gercek-%d.json" % os.getpid())
+
+    def _gecici_kapi(govde):
+        try:
+            with open(gecici, "w", encoding="utf-8") as f:
+                json.dump(govde, f, ensure_ascii=False, indent=2)
+            return kapi(depo=gercek, taban="HEAD", yeni_dosya=gecici)
+        finally:
+            if os.path.exists(gecici):
+                os.remove(gecici)
+    return _gecici_kapi
+
+
+def alan_capa_iddialari(gercek, gercek_govde, gecici_kapi, iddia, not_yaz=None):
+    """A20/A21/A22 — GERCEK katalog, ALAN EKSENI. DAIMA 3 iddia basar.
+
+    TEK KAYNAK: `--kendini-test` ve `--alan-capa` AYNI govdeyi kosar; mutasyon surucusu
+    da bu yuzeyi olcer (ikiz fikstur tanimi ACILMAZ, [[ikiz-tanim-sessiz-ayrisma]])."""
+    adaylar = vn_adaylari(gercek_govde)
+    nitelikli, dogustan, _olc = vn_adaylarini_sinifla(gercek, adaylar)
+    if not_yaz:
+        not_yaz("📏 ARZ NOBETI: `-vN` aday %d cift / %d kayit · A20 NITELIKLI arzi %d · "
+                "A22 DOGUSTAN-vN arzi %d (arz duserse BU SATIRDA gorunur)"
+                % (len(adaylar), len({a[1] for a in adaylar}), len(nitelikli),
+                   len(dogustan)))
+
+    def govde_ile(hedef_uid, indeks, yeni_url):
+        out = []
+        for u in gercek_govde:
+            if isinstance(u, dict) and u.get("id") == hedef_uid:
+                k = dict(u)
+                gs = list(k["gorseller"])
+                gs[indeks] = yeni_url
+                k["gorseller"] = gs
+                out.append(k)
+            else:
+                out.append(u)
+        return out
+
+    # ---- A20 [POZITIF] GERCEK duzeltmenin GERI ALINMASI (merge kurbani) -> KIRMIZI
+    # 🔴 FAIL-CLOSED: nitelikli capa YOKSA iddia KIRMIZI yanar (atlanmaz).
+    if not nitelikli:
+        iddia("A20 [POZITIF] NITELIKLI `-vN` capa YOK (arz 0) -> fikstur KURULAMADI; "
+              "'capa bulunamadi' bir YESIL sebebi DEGILDIR", False,
+              ("aday", len(adaylar), "dogustan", len(dogustan)))
+    else:
+        _s, uid, i, onceki, simdiki = nitelikli[0]
+        du20, sa20, o20 = gecici_kapi(govde_ile(uid, i, onceki))
+        iddia("A20 [POZITIF] GERCEK katalogda `%s` -> `%s` gerilemesi KIRMIZI (capa "
+              "GECMISTEN: onceki deger BU KAYITTA `+` gorulmus VE `-` terk edilmis; "
+              "arz %d)" % (os.path.basename(simdiki), os.path.basename(onceki),
+                           len(nitelikli)),
+              du20 == "KIRMIZI"
+              and any(s[0] == "GERILEME" and s[1] == uid + "#gorseller" for s in sa20),
+              (du20, o20.get("alan_gerilemesi"), sa20[:3]))
+
+    # ---- A21 [NEGATIF] ILERI yonde yeniden duzeltme -> YESIL
+    # Capa A20 ile AYNI kayittir; A20 capasi kurulamazsa ilk `-vN` adayina DUSER:
+    # yanlis-pozitif kanaryasi, POZITIF iddiayi olduren kusur tarafindan SUSTURULMAMALI
+    # ([[beyan-edilmis-survivor]]). Hicbir aday yoksa A21 de KIRMIZI yanar.
+    a21_kaynak = nitelikli or adaylar
+    if not a21_kaynak:
+        iddia("A21 [NEGATIF] `-vN` aday YOK -> ILERI yon fiksturu KURULAMADI "
+              "(kurulamamak YESIL sayilmaz)", False, len(adaylar))
+    else:
+        _s, uid, i, _onceki, simdiki = a21_kaynak[0]
+        uz = simdiki.rsplit(".", 1)
+        ileri = uz[0] + "-ileri-fikstur." + uz[1]
+        du21, sa21, o21 = gecici_kapi(govde_ile(uid, i, ileri))
+        iddia("A21 [NEGATIF] AYNI kaydin ILERI yonde (duzelt.py) yeniden "
+              "duzeltilmesi -> YESIL (mesru duzeltme BLOKLANMAZ)",
+              du21 == "YESIL" and o21.get("aday_alan") == 1,
+              (du21, o21.get("aday_alan"), sa21[:3]))
+
+    # ---- A22 [NEGATIF] DOGUSTAN-`-vN`: ESKI GORUNEN ad, YENI DEGER -> YESIL
+    # 🔴 FAIL-CLOSED: arz 0'a duserse iddia "kurulamadi" diye YESIL GECMEZ.
+    if not dogustan:
+        iddia("A22 [NEGATIF] DOGUSTAN-`-vN` FIKSTUR ARZI TUKENDI (arz 0) -> iddia "
+              "KURULAMADI; kurulamamak YESIL sebebi DEGILDIR", False,
+              ("aday", len(adaylar), "nitelikli", len(nitelikli)))
+    else:
+        _s, uid, i, onceki, simdiki = dogustan[0]
+        du22, sa22, o22 = gecici_kapi(govde_ile(uid, i, onceki))
+        iddia("A22 [NEGATIF] DOGUSTAN-`-vN` kayitta `%s` -> `%s` YESIL: deger O KAYDIN "
+              "gecmisinde HIC gorulmemis (0 `+`, 0 `-`) -> ESKI GORUNEN dosya adi YENI "
+              "DEGERDIR (arz %d)" % (os.path.basename(simdiki), os.path.basename(onceki),
+                                     len(dogustan)),
+              du22 == "YESIL" and o22.get("aday_alan") == 1
+              and not any(s[0] == "GERILEME" for s in sa22),
+              (du22, o22.get("aday_alan"), sa22[:3]))
+
+
 # ------------------------------------------------- PRE-COMMIT KANCASI: DAVRANIS ayagi
 # 🔴 NEDEN BEYAN DEGIL DAVRANIS OLCULUR ([[kapi-beyanin-dogrulugunu-degil-varligini-olcer]]):
 # "kancaya adim eklendi" beyani, adimin FIILEN commit'i durdurdugunu KANITLAMAZ —
@@ -1249,6 +1436,190 @@ def kanca_kendini_test():
         return 0
     print("SONUC: KIRMIZI ❌ — %d iddia kaldi" % kirmizi)
     return 1
+
+
+def alan_capa_kendini_test(depo=None):
+    """YALNIZ A20/A21/A22 ayagi (GERCEK katalog + GERCEK gecmis).
+
+    `--kendini-test` bu ayagi ZATEN icerir; bu giris noktasi (a) fikstur/capa
+    semantigine dokunan bir degisiklikten sonra 3 iddiayi tek basina kosturmak,
+    (b) `--capa-mutasyon` surucusunun OLCTUGU YUZEY olmak icindir."""
+    ham = ["ALAN CAPA AYAGI — GERCEK katalog `-vN` fiksturleri (A20/A21/A22)"]
+    kirmizi = 0
+
+    def iddia(ad, kosul, detay=""):
+        nonlocal kirmizi
+        if kosul:
+            ham.append("    ✅ " + ad)
+        else:
+            kirmizi += 1
+            ham.append("    ❌ " + ad + (" — " + str(detay) if detay else ""))
+
+    try:
+        gercek = depo_kok(depo)
+        rc, metin, hata = _git(gercek, "show", "HEAD:" + URUNLER_ADI)
+        if rc != 0:
+            raise Olculemedi("HEAD:%s okunamadi: %s" % (URUNLER_ADI, hata.strip()[:200]))
+        govde = json.loads(metin)
+        alan_capa_iddialari(gercek, govde, _gecici_kapi_yap(gercek), iddia,
+                            lambda s: ham.append("    " + s))
+    except Exception as e:                                   # pragma: no cover
+        iddia("ALAN CAPA ayagi kosturulamadi (yesil SAYILMAZ)", False, repr(e))
+    print("\n".join(ham))
+    print("----------------------------------------------------------------------")
+    print("IDDIA SAYISI: %d" % len([s for s in ham if s.strip()[:1] in ("✅", "❌")]))
+    if kirmizi == 0:
+        print("SONUC: YESIL ✅ (alan capa ayagi)")
+        return 0
+    print("SONUC: KIRMIZI ❌ — %d iddia kaldi" % kirmizi)
+    return 1
+
+
+# --------------------------------- ALAN CAPA MUTASYON BATARYASI (A20 <-> A22 AYRIMI)
+# SOZLESME (KANCA_MUTASYONLARI / KOK_MUTASYONLARI ile AYNI):
+#   * <capa> CANLI govdede TEKIL bulunmali — bayat capa "mutasyon uygulanmadi, test
+#     yesil" uretemez, vaka KIRMIZI yanar;
+#   * mutasyon YALNIZ KOPYAYA uygulanir, canli dosyanin sha256'si ONCE==SONRA BASILIR;
+#   * OLDURUCU mutant, BEYAN EDILEN TEK iddiayi dusurmeli (ne eksik ne fazla) —
+#     "iki iddia birden dustu" bir kanit degil, olcunun kor olduguna isarettir;
+#   * KONTROL mutanti hicbirini dusurmemeli (batarya AYIRT EDICI olmali, HASSAS degil).
+# NEDEN BU IKI MUTANT: A20 ve A22 AYNI kod yolunu ters yonlerden olcer. A-M1 gerileme
+# hukmunu KORLESTIRIR (kapi hicbir sey goremez) -> yalniz POZITIF iddia duser. A-M2
+# hukmu GEVSETIR: TERK EDILME (`-`) sarti yerine DOSYA ADI DESENI hukum uretir — bu,
+# bugunku kirmizinin "kolay onarimi"dir ve tam da DOGUSTAN-vN kaydi yanlis yakar ->
+# yalniz NEGATIF iddia duser.
+ALAN_CAPA_MUTASYONLARI = (
+    ("A-M1 terk-edilme kaniti korlestirilir", "A20",
+     "                    ctx, hedef = ctx_eksi, eksi_gorulen",
+     "                    ctx, hedef = ctx_eksi, set()",
+     "gecmisteki `-` (TERK EDILME) kaniti HIC toplanmaz -> gerileme hukmu korelir; "
+     "NITELIKLI capa arzi 0'a duser ve A20 fail-closed KIRMIZI yanar"),
+    ("A-M2 dosya adi deseni hukum uretir", "A22",
+     "        kanit = sorted(s for s in adaylar[(uid, alan)]\n"
+     "                       if (uid, s) in arti_gorulen and (uid, s) in eksi_gorulen)",
+     "        kanit = sorted(s for s in adaylar[(uid, alan)]\n"
+     "                       if ((uid, s) in arti_gorulen and (uid, s) in eksi_gorulen)\n"
+     "                       or re.search(r'-\\d+\\.[A-Za-z0-9]+\"$', s))",
+     "TERK EDILME sarti DUSURULUR: soneksiz DOSYA ADI tek basina gerileme sayilir -> "
+     "DOGUSTAN-vN kayitta HIC GORULMEMIS deger sessizce 'eski' sanilir"),
+    ("A-M3 teshis metni", "KONTROL",
+     '                             "alan GECMISTE GORULMUS ve TERK EDILMIS bir degere donmus "',
+     '                             "alan GECMISTE gorulmus ve TERK EDILMIS bir degere donmus "',
+     "yalniz rapor metni degisir -> hicbir hukum DEGISMEMELI"),
+)
+
+
+# 🔴 CAPA SAYIMI TABLOYU ICERMEZ: bu batarya OLCTUGU DOSYANIN ICINDE durur, yani her
+# capa metni govdede EN AZ IKI KEZ gecer (biri KOD, biri BU TABLO). "Tekil capa" sarti
+# bu yuzden OLCULEN KOD YUZEYINDE aranir: tablo baslangicindan ONCEKI govde. Mutasyon da
+# yalniz o yuzeye uygulanir. Bir capa kod yuzeyinde bulunamaz/tekil degilse vaka KIRMIZI
+# yanar (bayat capa sessizce "mutasyon uygulanmadi, test yesil" uretemez).
+CAPA_TABLO_AYRACI = "\nALAN_CAPA_MUTASYONLARI = ("
+
+
+def _capa_yuzeyi(govde):
+    """(kod_yuzeyi, tablo_ve_sonrasi) — mutasyon capalari YALNIZ kod yuzeyinde aranir."""
+    kesim = govde.find(CAPA_TABLO_AYRACI)
+    if kesim < 0:
+        raise Olculemedi("mutasyon tablosu ayraci govdede YOK: %r" % CAPA_TABLO_AYRACI)
+    return govde[:kesim], govde[kesim:]
+
+
+def _capa_ayagi_kos(kaynak_yolu, depo):
+    """(dusen_etiketler, iddia_sayisi, cokme_var_mi, ham_cikti) — verilen kapi KOPYASINI
+    `--alan-capa` ile kostur. Hukum, kopyanin BASTIGI ETIKETLERDEN okunur."""
+    p = subprocess.run([sys.executable, kaynak_yolu, "--alan-capa", "--depo", depo],
+                       capture_output=True, text=True, errors="replace",
+                       env=git_ortami())
+    cikti = (p.stdout or "") + (p.stderr or "")
+    dusen = set(re.findall(r"^\s*❌\s+(A2\d)\b", cikti, re.M))
+    etiket = re.findall(r"^\s*[✅❌]\s+(A2\d)\b", cikti, re.M)
+    return dusen, len(etiket), ("Traceback" in cikti), cikti
+
+
+def capa_mutasyon_test(depo=None):
+    """A20 <-> A22 AYIRT EDICI mutasyon bataryasi (surucu REPODA durur,
+    [[mutasyon-kaniti-yeniden-uretilebilir]]). Kabul = cikis kodu DEGIL, olculen
+    iddia sayisi + her mutantin DUSURDUGU IDDIA KUMESI."""
+    canli = os.path.abspath(__file__)
+    canli_modul = os.path.join(TOOLS, "git_ortami.py")
+    hatalar = []
+    try:
+        kok = depo_kok(depo)
+    except Olculemedi as e:
+        print("OLCULEMEDI: %s" % e)
+        return 2
+    if not os.path.exists(canli_modul):
+        print("OLCULEMEDI: git_ortami.py yok (kapi onu import eder; fallback YOK)")
+        return 2
+
+    once = _arac_kaynak_sha()
+    modul_once = hashlib.sha256(open(canli_modul, "rb").read()).hexdigest()
+    with open(canli, encoding="utf-8") as f:
+        govde = f.read()
+    try:
+        kod_yuzeyi, tablo_kuyrugu = _capa_yuzeyi(govde)
+    except Olculemedi as e:
+        print("OLCULEMEDI: %s" % e)
+        return 2
+
+    print("ALAN CAPA MUTASYON BATARYASI — A20 (POZITIF) <-> A22 (NEGATIF) ayrimi")
+    print("  olculen yuzey        : %s --alan-capa --depo %s" % (canli, kok))
+    dusen, sayi, cokme, _c = _capa_ayagi_kos(canli, kok)
+    print("  TABAN                : %d iddia, %d dusen, cokme=%s"
+          % (sayi, len(dusen), cokme))
+    if dusen or cokme or sayi != 3:
+        hatalar.append("TABAN kosumu temiz DEGIL (dusen=%s, iddia=%d/3, cokme=%s)"
+                       % (sorted(dusen), sayi, cokme))
+
+    with tempfile.TemporaryDirectory(prefix="pruvo-capa-mut-") as d:
+        # Mutant kopya TEK KAYNAK modulunu import eder -> modul de YANINDA olmali.
+        # Mutasyon YALNIZ kapi kopyasina uygulanir; modul kopyasi DEGISTIRILMEZ.
+        shutil.copyfile(canli_modul, os.path.join(d, "git_ortami.py"))
+        for ad, beyan, capa, yerine, gerekce in ALAN_CAPA_MUTASYONLARI:
+            if kod_yuzeyi.count(capa) != 1:
+                hatalar.append("%-38s BAYAT CAPA: olculen KOD yuzeyinde %d kez geciyor "
+                               "(1 olmali)" % (ad, kod_yuzeyi.count(capa)))
+                print("  [KIRMIZI] %-38s capa bulunamadi/tekil degil" % ad)
+                continue
+            hedef = os.path.join(d, "mutant-kapi.py")
+            with open(hedef, "w", encoding="utf-8") as f:
+                f.write(kod_yuzeyi.replace(capa, yerine, 1) + tablo_kuyrugu)
+            m_dusen, m_sayi, m_cokme, m_cikti = _capa_ayagi_kos(hedef, kok)
+            beklenen = set() if beyan == "KONTROL" else {beyan}
+            iyi = (m_dusen == beklenen) and (m_sayi == 3) and not m_cokme
+            print("  [%-7s] %-38s dusen=%-7s beklenen=%-7s iddia=%d cokme=%s"
+                  % ("OLDU" if iyi else "SAPMA", ad, sorted(m_dusen) or "-",
+                     sorted(beklenen) or "-", m_sayi, m_cokme))
+            print("            %s" % gerekce)
+            if not iyi:
+                hatalar.append("%-38s beklenen dusen %s, olculen %s (iddia %d/3, "
+                               "cokme %s)" % (ad, sorted(beklenen) or "-",
+                                              sorted(m_dusen) or "-", m_sayi, m_cokme))
+                if m_cokme:
+                    hatalar.append("   ilk satirlar: %s"
+                                   % m_cikti.strip().splitlines()[:3])
+
+    sonra = _arac_kaynak_sha()
+    modul_sonra = hashlib.sha256(open(canli_modul, "rb").read()).hexdigest()
+    if once != sonra:
+        hatalar.append("🔴 CANLI DOSYA DEGISTI (sha256 once != sonra) — mutasyon YALNIZ "
+                       "KOPYAYA uygulanmaliydi")
+    if modul_once != modul_sonra:
+        hatalar.append("🔴 PAYLASILAN MODUL DEGISTI (sha256 once != sonra)")
+    print("  CANLI DOSYA sha256   : once=%s sonra=%s (esit: %s)"
+          % (once[:12], sonra[:12], once == sonra))
+    print("  git_ortami.py sha256 : once==sonra: %s" % (modul_once == modul_sonra))
+    print("----------------------------------------------------------------------")
+    if hatalar:
+        print("MUTASYON BATARYASI KIRMIZI (%d sapma):" % len(hatalar))
+        for h in hatalar:
+            print("  - %s" % h)
+        return 1
+    print("MUTASYON BATARYASI YESIL: %d oldurucu mutant BEYAN EDILEN TEK iddiayi "
+          "dusurdu, KONTROL mutanti hicbirini; iddia sayisi 3 sabit, Traceback 0."
+          % len([m for m in ALAN_CAPA_MUTASYONLARI if m[1] != "KONTROL"]))
+    return 0
 
 
 def kendini_test():
@@ -1785,17 +2156,7 @@ def kendini_test():
         gercek_head = {u["id"] for u in gercek_govde
                        if isinstance(u, dict) and isinstance(u.get("id"), str)}
         gercek_silinmis = sorted(gercek_ever - gercek_head)
-        gecici = os.path.join(tempfile.gettempdir(), "pruvo-diriltme-gercek.json")
-
-        def _gecici_kapi(govde):
-            """urunler.json'a DOKUNULMAZ — kopya GECICI dosyaya yazilir."""
-            try:
-                with open(gecici, "w", encoding="utf-8") as f:
-                    json.dump(govde, f, ensure_ascii=False, indent=2)
-                return kapi(depo=gercek, taban="HEAD", yeni_dosya=gecici)
-            finally:
-                if os.path.exists(gecici):
-                    os.remove(gecici)
+        _gecici_kapi = _gecici_kapi_yap(gercek)
 
         # V15 YANLIS-POZITIF KANARYASI: HEAD^1 -> HEAD'in YESIL oldugunu varsaymak
         # bayat bir fiksturdur; HEAD mesru bir geri alma commit'i de olabilir. Gercek
@@ -1818,61 +2179,14 @@ def kendini_test():
                                             for s in sa16),
                   (du16, o16.get("dirilen")))
 
-        # ---- A20/A21 GERCEK KATALOG, ALAN EKSENI: `-vN` kapak gorseli duzeltmesi.
+        # ---- A20/A21/A22 GERCEK KATALOG, ALAN EKSENI: `-vN` kapak gorseli.
         #   A20 [POZITIF] duzeltmenin GERI ALINMASI (merge kurbani)      -> KIRMIZI
         #   A21 [NEGATIF] AYNI kaydin ILERI yonde yeniden duzeltilmesi   -> YESIL
-        # Fikstur GERCEK gecmisten turetilir; sabit SHA / urun adi GOMULMEZ (bayatlar).
-        vn = re.compile(r"^(?P<kok>.+?)-v(?P<n>\d+)(?P<uzanti>\.[A-Za-z0-9]+)$")
-        hedef = None
-        for u in gercek_govde:
-            if not isinstance(u, dict) or not isinstance(u.get("gorseller"), list):
-                continue
-            for i, g in enumerate(u["gorseller"]):
-                if not isinstance(g, str):
-                    continue
-                m = vn.match(g)
-                if not m:
-                    continue
-                n = int(m.group("n"))
-                onceki = (m.group("kok") + m.group("uzanti") if n == 2
-                          else "%s-v%d%s" % (m.group("kok"), n - 1, m.group("uzanti")))
-                hedef = (u["id"], i, onceki, g)
-                break
-            if hedef:
-                break
-        if not hedef:
-            iddia("A20/A21 GERCEK `-vN` gorsel duzeltmesi katalogda BULUNAMADI -> "
-                  "fikstur kurulamadi (sessiz gecilmez)", False)
-        else:
-            uid, i, onceki, simdiki = hedef
-
-            def _govde_ile(yeni_url):
-                out = []
-                for u in gercek_govde:
-                    if isinstance(u, dict) and u.get("id") == uid:
-                        k = dict(u)
-                        gs = list(k["gorseller"])
-                        gs[i] = yeni_url
-                        k["gorseller"] = gs
-                        out.append(k)
-                    else:
-                        out.append(u)
-                return out
-
-            du20, sa20, o20 = _gecici_kapi(_govde_ile(onceki))
-            iddia("A20 [POZITIF] GERCEK katalogda `%s` -> `%s` gerilemesi KIRMIZI"
-                  % (os.path.basename(simdiki), os.path.basename(onceki)),
-                  du20 == "KIRMIZI"
-                  and any(s[0] == "GERILEME" and s[1] == uid + "#gorseller"
-                          for s in sa20),
-                  (du20, o20.get("alan_gerilemesi"), sa20[:3]))
-            uz = simdiki.rsplit(".", 1)
-            ileri = uz[0] + "-ileri-fikstur." + uz[1]
-            du21, sa21, o21 = _gecici_kapi(_govde_ile(ileri))
-            iddia("A21 [NEGATIF] AYNI kaydin ILERI yonde (duzelt.py) yeniden "
-                  "duzeltilmesi -> YESIL (mesru duzeltme BLOKLANMAZ)",
-                  du21 == "YESIL" and o21.get("aday_alan") == 1,
-                  (du21, o21.get("aday_alan"), sa21[:3]))
+        #   A22 [NEGATIF] DOGUSTAN-`-vN` kayitta ESKI GORUNEN ada donmek -> YESIL
+        # Capa DOSYA ADINDAN DEGIL GECMISTEN secilir; iki fail-closed sart ve olculen
+        # arz dosya basligindaki "KABUL FIKSTURU" blogundadir.
+        alan_capa_iddialari(gercek, gercek_govde, _gecici_kapi, iddia,
+                            lambda s: ham.append("    " + s))
     except Exception as e:                                   # pragma: no cover
         kirmizi += 1
         ham.append("    ❌ GERCEK depo olcumu yapilamadi — %r" % (e,))
@@ -1900,11 +2214,20 @@ def main():
     ap.add_argument("--kanca-mutasyon", action="store_true", dest="kanca",
                     help="pre-commit kanca ayagi + WORKTREE KOK ayagi (W1..W4) + "
                          "mutasyon bataryalari (hizli, gercek gecmis taramasi YOK)")
+    ap.add_argument("--alan-capa", action="store_true", dest="alan_capa",
+                    help="YALNIZ A20/A21/A22 ayagi (gercek katalog `-vN` fiksturleri)")
+    ap.add_argument("--capa-mutasyon", action="store_true", dest="capa_mutasyon",
+                    help="A20 <-> A22 AYIRT EDICI mutasyon bataryasi (canli dosyaya "
+                         "YAZMAZ; sha256 once==sonra basilir)")
     a = ap.parse_args()
     if a.kendini:
         return kendini_test()
     if a.kanca:
         return kanca_kendini_test()
+    if a.alan_capa:
+        return alan_capa_kendini_test(a.depo)
+    if a.capa_mutasyon:
+        return capa_mutasyon_test(a.depo)
     yeni_dosya = None
     if a.calisma_agaci:
         yeni_dosya = os.path.join(depo_kok(a.depo), URUNLER_ADI)
