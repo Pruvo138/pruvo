@@ -163,4 +163,19 @@ Uc commit: `867c1b0d` (veri) · `a964d385` (kapi kolu) · `08b86c34` (taban). Uc
   deneme 1 / basarili 0. Ariza gecince `deploy` **JOB** success'i + iki olcumle canli dogrulama.
   **Okan'da karar yok** (dis servis arizasi).
 
+## CI NOBETI 21:37Z turu — DEPO KAYNAKLI ARIZA 0, DIS ARIZA 5 SAATTIR SURUYOR (olculdu)
+
+- Ev dogrulandi (`/Users/okan/dev/pruvo`). Kosulsuz mail supurmesi: **tasinan 2 / kalan 0**
+  (7544 → 7542 mesaj; ikisi de Cop'e, kalici silme yok).
+- **Depo kaynakli hata 0 — kanit `steps=0`:** tamamlanmis **14** `failure` kosumun HICBIRINDE
+  adim calismadi; log alintilari runner tahsis/iletisim ve action indirme 503'unu gosteriyor.
+  Ayni push'tan (21:13Z) bir kol **success** tamamladi → depo YAML'i ayakta. Onarilacak sey yok,
+  commit/push **yapilmadi**.
+- **Dis ariza:** Actions+Pages **`major_outage`**, **16:33:31Z**'den beri (5+ saat).
+- **Kuyruk:** takili (completed olmayan) kosum **10**, en eskisi **220 dk** (>90 dk esigi
+  → teslim/kuyruk arizasi hukmu). Yayin acigi bir onceki turdan **degismedi**.
+- Codex kati **KULLANILAMADI**: `codex exec` kota limitiyle reddetti (8 Ağu 10:19'a kadar);
+  is USTA katina (Opus isci) dustu. Sonraki turlarda ayni sinir beklenir.
+- **Okan'da karar yok** (dis servis arizasi).
+
 ## CI NOBETI 11:37 / 15:37Z / 16:37Z / 19:37Z turlari — dokum `DEVAM-ARSIV.md`de (git disi).
