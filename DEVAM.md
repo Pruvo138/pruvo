@@ -1,50 +1,64 @@
 # DEVAM (KraL) — 6 Agu 2026
 
-## ⏱️ SAATLIK CI NOBETI — 6 Agu ~16:37Z turu (ev dogrulandi: `~/dev/pruvo`)
+## 🔚 OTURUM KAPANISI — 6 Agu aksam · 4 MERGE CANLIYA HAZIR, YAYIN ALTYAPIDA TAKILI
 
-- **Mail:** gelen kutusundaki tum "Run failed" bildirimi Cop'e tasindi — **13 tasindi**, tur sonu
-  kutuda kalan **0** (ayri bir sayimla teyit; Cop bosaltilmadi).
-- **CI olcumu:** `cd00bac9` uzerindeki 4 kosum kirmizi ve patlayan adim TUM job'larda **"Set up
-  job"** — yani bizim hicbir betigimiz calismadi. `b5b0a623` kosumlari **40+ dk `queued`**,
-  hicbiri baslamadi; biri yeni push'la `cancelled` oldu.
-- **Bagimsiz teyit:** GitHub durum sayfasi → **Actions `major_outage`, impact `critical`,
-  status `investigating`**; Pages de `major_outage`. **KOK NEDEN = ALTYAPI**, bizim kod/YAML
-  degil. Bu yuzden hicbir duzeltme yapilmadi, hicbir sey push edilmedi — onarilacak bir
-  arizamiz yok, yesile boyanacak bir adim da yok.
-- **Etkisi:** `deploy`+`yayin` **skipped** → `b5b0a623`'teki 21 yeni urun **canliya GITMEDI**;
-  katalog kaydi 21206 iken canli site bayat. Bu bir yayin gecikmesidir, kod arizasi degil.
-- **SONRAKI TURUN ILK ISI (yarim is devri):** once ariza gecti mi olc (durum sayfasi +
-  `gh run list`); gectiyse en son HEAD icin kosumu yeniden tetikle ve `build` / `deploy` /
-  `yayin` job'larini **AYRI AYRI** yesil dogrula (skipped ≠ success). Asagidaki BEKLEYEN
-  madde 1'deki merge de bu ariza gecmeden alinmaz — canli dogrulama imkansiz.
-- Okan'a cikilmadi: GitHub arizasinda Okan'in yapabilecegi bir sey yok (karar kapisi degil).
+**MAIN'E GIREN (SHA + olculen sayi):**
+1. **Varlik kaldiraci `8bbd760c`** — her urun sayfasina GOMULU basilan atif modulu tek
+   same-origin varliga (`/varlik/atif-<sha256>.js`) tasindi. Artefakt **833,6 → 617,1 MiB**
+   (1 GB tavaninda **%81,4 → %60,3**), sayfa basi **61.625 → 26.252 bayt**, **kaybolan URL 0**
+   (sitemap ve sayfa yolu iki yonde de 22.511=22.511). `varlik-test` 10/10 · `varlik-mutasyon`
+   M1-M5 KIRMIZI / M6 kontrol YESIL · yasal-sayfa drift 4/4 birebir · gitignore temiz.
+   🔴 Yoldan cikan bulgu: `enjeksiyon-kapisi.py` **2b ekseni DISSIZDI** — uretilen sayfada
+   HTML yorumu ariyordu ama `yayin_html` yorumlari SOYUYOR → hep bos dize olcuyordu (uretilen
+   sayfada isaret gecisi **0**). 4 davranissal eksenle degistirildi, kapi **9 → 12 iddia**.
+   Bagimsiz curutme: oldurucu 5/5 KIRMIZI, kontrol 2/2 YESIL, artefakt deltasi bagimsiz
+   hesapla **birebir tuttu** (227.007.713 bayt). **Yasal eksen elendi:** tasinan blok CC BY
+   lisans atfi DEGIL (pazarlama/yonlendirme modulu); CC BY atfi ayri ve **statik HTML**,
+   diff ona dokunmuyor — JS kosmasa da gorunur.
+2. **Nobet ayrimi `ffc72a6a`** — 6 bloklamayan nobet/alarm job'u `deploy.yml`'den `nobet.yml`'e.
+   `deploy: needs` **4..4** · yayin zincirindeki bloklayici adim **132..132** · tasinan **6/6** ·
+   **KAYBOLAN 0** · batarya 40 iddia / 9 oldurucu / 5 kontrol (beyanla birebir) · susturma 0.
+   🟢 **YAN KAZANC — CONCURRENCY KILIDI COZULDU:** kilidi tutan `d1-kadans / uzlastir` artik
+   `nobet.yml`'de, grubu `nobet-serit-b`, `pages`'i PAYLASMIYOR. `pages` grubunda kalan 6/6
+   job'un hepsi yayin zincirinde → grubu tutan kosum artik **her zaman yayinlayabilen** kosum.
+3. **Denetim kapisi kapsam-patlamasi korumasi `3b369e34`** — `--evet-sil N` onayi, tavan 50.
+   Curutme sentetik depoda: onaysiz toplu silme **rc=4 / silinen 0 / sha256 DEGISMEDI**;
+   karsi-vaka dogru N ile 6 kayit silindi, tavan alti mesru parti kirilmadi. Oldurucu mutant
+   KIRMIZI (4/50 dustu), kontrol mutanti YESIL. Kendini-test **50 iddia rc=0**.
+4. **Kanca koku `3aec9eba`** — `diriltme-kapisi.py` worktree'de KANCA ICINDEN kosarken koku
+   yanlis buluyordu: `GIT_DIR` **mutlak** geldigi icin `rev-parse --show-toplevel` cwd'yi
+   donuyor → kok `<wt>/tools` → **rc=2 OLCULEMEDI → commit BLOK**. Ana checkout'ta gorunmuyordu
+   (orada `GIT_DIR` set edilmiyor). Onarim: kok ortamdan degil `-C` kesfinden turuyor.
+   Curutme: **fail-closed dogrulandi** (kesfi bozan 6 baglamin hicbirinde rc=0 yok), yuzey
+   **214.553..214.553 KUCULMEDI**, oldurucu 3 KIRMIZI / kontrol 2 YESIL, kendini-test 78 → 85.
+   🔴 Bu kusur isciyi kanca atlama bayragina itiyordu — kapinin kendisini es gecmeyi
+   normallestiriyordu.
 
-## 🔚 OTURUM KAPANISI — 6 Agu · CANLIYA GIDENLER / KOSAN / BEKLEYEN
+**TEMIZLIK:** mukerrer bir CI dali **merge EDILMEDEN silindi** — dal adi arsivde (icerigi `14a378bb`'de,
+16 dosyanin 13'u birebir ayni blob) VE **gerileme tasiyordu**: `onizleme-imaj.yml`'de hesap
+kimligini `secrets.` yerine **duz metne** geri ceviriyordu (2 satir). `git worktree list`
+**6 → 1 satir** (yalniz ana checkout). `DEVAM.md` olculdu: **119 satir / 9160 bayt**, hedefin
+(≤130 / ≤12288) altinda — kardes oturum onceden budamis, tasima gerekmedi.
 
-**CANLIDA (SHA):** model sayfasi uyelik yuklemi `061d2918`+`b00a1f99` (sayfa 576→892, sayfada
-gorunen tekil urun 8.839→12.879, `/marka/suzuki/vitara/` **27→66** canli dogrulandi, kaybolan
-urun 0 · slug degisen 0) · parite referanslari tek kaynaga `82ab7fea`+`99a2fe3b`+`2819d561`
-(site **1199/1199**, uc **847/847**, marka ekseni **142/142 ayrisan 0**; 11.152 kalem → 0) ·
-olcek tavani katalogdan turuyor `128d7b34` · cron nabiz esigi canli orandan `ac533601` ·
-kapali sozluk + AL3 kabul evreni `e10a91ce`+`c358cb3d` · anlatim yuzeyi kolu `493b286c` ·
-**D1 DORDUNCU EKSEN** (turetilmis kolonlar artik sessiz bayatlayamaz) `d23eeb88` · model
-kapisi olu giris onarimlari `9654b7c2` · yayin olcegi olcumu `e10ef665`+`482713d1` ·
-Volvo Penta veri+taban tek commit `fcf0db57`. Ana repo temiz, `main`=`origin/main`=`ca86d941`.
-
-**KOSAN:** yok — delege edilen tum isler kapandi.
+**🔴 ACIK — YAYIN (tek kirmizi eksen, depo kaynakli DEGIL):** canli **20.849 urun /
+19.864.882 bayt**, hedef **21.221** → acik **372 urun**; yeni urun sayfasi **404**.
+Onbellek elendi: onbellekli ve `?cb=` olcumu **bayt-birebir ayni** → **origin bayat, CDN degil**.
+Kok neden **GitHub'in kendi arizasi**: durum sayfasi Actions+Pages **`major_outage`**, olay
+`investigating`, 15:22Z'den beri; tum kirmizilar `Set up job` (`Failed to resolve action
+download info` / `not acquired by Runner`), **depo kaynakli hata 0**. `gh run rerun` bu
+durumda reddediliyor (`cannot be rerun; This workflow is already running`) → 4 vardiyada
+**0 deneme**, hicbir kosum iptal EDILMEDI. Ariza gecince `deploy` **JOB**'unun (kosum-duzeyi
+conclusion DEGIL) success'i beklenecek, sonra iki olcumle canli dogrulama.
 
 **BEKLEYEN:**
-1. Dal `worktree-agent-ab4cf53b74000b09c` **MERGE'E HAZIR, alinmadi**: bloklamayan nobet kollari
-   ayri bir is akisina tasindi, kabul **40 iddia · 9 oldurucu · 5 kontrol · sapan 0**,
-   `deploy: needs` KUCULMEDI. Alinmama sebebi: yayin kosumu **GitHub'in kendi arizasi** yuzunden
-   tamamlanamiyor, canli dogrulama IMKANSIZ. Ariza gecince merge + job duzeyi teyidi.
-2. **269 MiB'lik varlik kaldiraci** (her sayfaya inline basilan atif blogu, `build.py:114`) —
-   artefakt 827,7 MiB / 1 GB'in %80,8'i; tasima 558,7 MiB'a indirir, kaybolan URL 0.
-   Kabul testi repoda hazir (`varlik-test.py` 10 eksen). Muhendis isi, acik.
-3. HocA → ADIM 2 (`?model=` uyelik yuklemi); hedefler canlidan tazelenecek (sayfa buyudu).
-4. MaCiT → 2 kayit geri cekilecek (hukum kutuda: baskida wordmark + agiz temasli sinif).
+1. **2 IKIZ kok-turetme** — iki CI kapisi betigi (adlari arsivde) ayni deseni
+   (`-C <alt dizin>` + ortam scrub'i YOK) tasiyor; yalniz CI'da kostuklari icin gizil.
+2. `pages` grubundaki **6/6 job'da `timeout-minutes` YOK** (varsayilan 360 dk) — kilit
+   yapisal olarak cozuldu, bu artik ikincil sertlestirme. Workflow degisikligi Okan kapisi.
+3. HocA → ADIM 2 (`?model=` uyelik yuklemi); hedefler canlidan tazelenecek.
+4. MaCiT → 2 kayit geri cekilecek (baskida wordmark + agiz temasli sinif).
 
-**OKAN'DA KARAR YOK.** Secret degeri duzeldi; D1 kollari yesil.
+**OKAN'DA KARAR YOK.** Concurrency kilidi merge ile kapandi; kalan engel GitHub arizasi.
 
 ## 🟢 DIRILTME KUSURU KAPANDI — kayit cikarildi + alarmin TEK ATIMLIK sonmesi onarildi
 
@@ -53,86 +67,37 @@ Uc commit: `867c1b0d` (veri) · `a964d385` (kapi kolu) · `08b86c34` (taban). Uc
 - **Kayit CIKARILDI, mesrulastirilmadi.** Feed politikasi gerekcesiyle `c912548f`'te cikarilan
   id, bir toplu ekleme dilimiyle (`841aab67`) geri dirilmis, sonra borc tabanina yazilarak kapi
   susturulmustu. Karar: kayit sakincalidir -> `duzelt.py --sil`, **katalog 20850 -> 20849**,
-  gizli kaynak kaydi da temizlendi (yetim birakilmadi). `.diriltme-izin.json` **ACILMADI** —
-  muafiyet yazmak onceki karari geri almak olurdu.
-- **Parti taramasi (genis pencere):** **1073** id'lik yasak kumeye karsi dirilen = **1**
-  (yalnizca bu kayit). Alan gerilemesi (EKSEN 2) = **0**. Kapinin kendini-testi 66/66 rc=0.
-- 🔴 **OLCULEN SINIF — alarm TEK ATIMLIKTI.** Kapi diriltme push'unda gercekten kirmizi yandi
-  ve deploy atlandi, ama bir SONRAKI push'ta yesile dondu: yasak kume `ever_seen − <taban>`
-  ile turuyor, ihlal commit'lendigi an bir sonraki tabana GIRIYOR ve alarm KENDI KENDINE
-  SONUYOR. Hunide (yazim oncesi) hicbir katman "bir zamanlar vardi ve cikarildi" kumesine
-  bakmiyordu. **Aynadaki tuzak:** tabani daha eskiye cekmek duyarliligi ARTIRMIYOR —
-  ekle/sil/geri-ekle dongusunun tamami tabanin sonrasinda kalinca kayit "yeni id" sayiliyor
-  ve kapi kor kaliyor (ayni vaka: yakin taban KIRMIZI, uzak taban YESIL).
-- **ONARIM (`a964d385`):** pre-commit'e bloklayici `diriltme-kapisi.py --calisma-agaci` kolu.
-  `urunler.json` degismediyse tarama kosmuyor ama **gerekce BASILIYOR** (sessiz atlama yok);
-  rc=2 OLCULEMEDI yesil sayilmiyor. Kabul **78 iddia rc=0**, sekizi DAVRANISSAL (sentetik
-  depoda gercek `git commit` denenip HEAD'in kaymadigi ve id'nin commit'e girmedigi olculuyor,
-  beyan degil). Kontrol mutanti yeniden uretilebilir (`--kanca-mutasyon`, 12 iddia):
-  iki oldurucu mutant pozitif vakayi yesile dondurdu, kontrol mutanti **dondurmedi**.
-  Kanca nobetcileri 47 ve 62 iddia yesil; kanca kablolamasi DEGISMEDI (bayt-esit dogrulandi,
-  dokum `DEVAM-ARSIV.md`).
-- **YAPISKAN EKSEN OLCULDU ve UYGULANMADI:** terk-edilmis ∩ HEAD = **18.227** id
-  (**%87,4** — gecmisteki toplu yeniden-girintileme yuzunden `-U0` diffinde neredeyse her id
-  icin `-"id"` satiri var). Esik 20'ydi. Uygulansaydi yayin KALICI dururdu ve 18.227 satirlik
-  beyan yazilamazdi. Gerekce olculen sayilarla kapi basligina dusuldu.
-- **TABAN BOSALTILDI (`08b86c34`):** 7 kaydin 7'si de kapinin KENDI fonksiyonlariyla olculdu —
-  feed'e **hala giriyorlar** (yanlis-negatif degil) ama bloklayici jeton tasimiyorlar, borc
-  gercekten odenmis. `kok` **7 -> 0** VE `kok_baslangic` **7 -> 0**, AYNI commit'te.
-  🔴 Mandal geride biraksaydik ratchet **7 yeni borca** kadar sessiz kalacakti — bu varsayim
-  degil, KARSI-OLGU olarak olculdu: `kok_baslangic`=7 iken 1 yeni borc eklenince uyari
-  **URETILMEDI**. Gevseme nobeti: +1 kayitli sentetik tabanda uyari URETILDI, esit sayida
-  URETILMEDI. Feed kapisi rc=0, taban/baslangic 0/0, RAPOR katmani birebir DEGISMEDI
-  (164/20879).
+  gizli kaynak kaydi da temizlendi. `.diriltme-izin.json` **ACILMADI**.
+- **Parti taramasi:** **1073** id'lik yasak kumeye karsi dirilen = **1**. Alan gerilemesi = **0**.
+- 🔴 **OLCULEN SINIF — alarm TEK ATIMLIKTI.** Yasak kume `ever_seen − <taban>` ile turuyor,
+  ihlal commit'lendigi an bir sonraki tabana GIRIYOR ve alarm KENDI KENDINE SONUYOR.
+  **Aynadaki tuzak:** tabani daha eskiye cekmek duyarliligi ARTIRMIYOR — ekle/sil/geri-ekle
+  dongusunun tamami tabanin sonrasinda kalinca kayit "yeni id" sayiliyor ve kapi kor kaliyor.
+- **ONARIM (`a964d385`):** pre-commit'e bloklayici `--calisma-agaci` kolu; `urunler.json`
+  degismediyse tarama kosmuyor ama **gerekce BASILIYOR**; rc=2 OLCULEMEDI yesil sayilmiyor.
+  Kabul **78 iddia rc=0**, sekizi DAVRANISSAL. Kontrol mutanti yeniden uretilebilir.
+- **YAPISKAN EKSEN OLCULDU ve UYGULANMADI:** terk-edilmis ∩ HEAD = **18.227** id (**%87,4**).
+  Esik 20'ydi; uygulansaydi yayin KALICI dururdu.
+- **TABAN BOSALTILDI (`08b86c34`):** `kok` **7 -> 0** VE `kok_baslangic` **7 -> 0**, AYNI
+  commit'te. Mandal geride biraksaydik ratchet 7 yeni borca kadar sessiz kalacakti — KARSI-OLGU
+  olarak olculdu: `kok_baslangic`=7 iken 1 yeni borc eklenince uyari **URETILMEDI**.
+
 ## 🟢 BACKFILL GORSEL-GATE KALEMLERI KAPANDI — `33ecfa4a` (katalog 20949 -> 20948)
 
 Kardes mimarin bildirdigi 2 kalem gozle olculdu: **1 dogrulandi, 1 curutuldu, 1 YENI kusur cikti.**
 
 - **DOGRULANDI -> SILINDI:** bir motosiklet aparatinda ucuncu-taraf wordmark 4 gorselin 2'sinde,
-  biri **gercek baski fotografi** — yani model geometrisinde, basildiginda da orada. "Tasarimcinin
-  kendi imzasi" savunmasi olculerek dustu (kaynak metninde **0** isabet, tasarimcinin adiyla
-  ortusmuyor, diger 9 modelinde iz yok). Yasak tur -> `duzelt.py --sil`; gizli kaynak kaydi da
-  temizlendi (21690 -> 21689). 4 kapi rc=0 (guard · diriltme · feed · mukerrer 20948 tarandi).
-- 🔴 **CURUTULDU (iddia yanlis olculmus):** jenerik sanilan bir muzik aleti parcasinda marka
-  iddiasi MESRU — kaynagin etiket+aciklamasinda marka **3** isabet; yalnizca kaynagin BASLIGI
-  markasiz. **DERS: marka iddiasini basliktan degil, kaynagin etiket+aciklama metninden olc;**
-  baslik tek basina yanlis-pozitif uretiyor. Kategori de sapma degil (katalogdaki 74 muzik parcasinin
-  45'i ayni kategoride, emsal kayit da orada).
-- 🆕 **OLCUM SIRASINDA CIKAN UCUNCU KUSUR -> DUZELTILDI:** ayni kaydin kart kapagi bizim bastigimiz
-  parca DEGILDI, ticari bir urunun fotografiydi (parlak, katman izi yok, aksesuarlari takili; ayni
-  modelin kendi render'inda govde isaretsiz). Musteriyi yaniltir. Fotograf listeden cikarildi, notr
-  render kapak oldu (`gorseller` 2 -> 1); R2'ye HICBIR SEY yuklenmedi, hicbir anahtarin uzerine
-  yazilmadi. 🔴 **EKSEN ACIGI: gorsel-gate "logo var mi" diye soruyor ama "bu gorsel BIZIM
-  urunumuz mu" diye SORMUYOR.** Parti/backfill hunilerinde olculmeye deger.
-- 🟡 **ACIK KALEM (kardes mimarin duzlemi, devredildi):** duzeltilen kayit artik **1 gorselli**
-  (3-4 kuralinin altinda), notr render eklenmeli.
-- 🟡 **ACIK KALEM (siraya alindi, bu turda ele ALINMADI):** bir denetim aracinin tum-katalog kipi
-  rapor degil FIILEN silme uyguluyor (kardes mimar bilmeden 760 kaydi silmis, commit oncesi geri
-  onarmis); ayrica yetim SECIM kayitlari R2 kilidine dusuyor. Ikisi de ayri karar konusu.
+  biri **gercek baski fotografi**. "Tasarimcinin kendi imzasi" savunmasi olculerek dustu
+  (kaynak metninde **0** isabet). `duzelt.py --sil`; gizli kaynak kaydi da temizlendi.
+- 🔴 **CURUTULDU:** jenerik sanilan bir muzik aleti parcasinda marka iddiasi MESRU — kaynagin
+  etiket+aciklamasinda marka **3** isabet; yalnizca BASLIGI markasiz. **DERS: marka iddiasini
+  basliktan degil, kaynagin etiket+aciklama metninden olc.**
+- 🆕 **UCUNCU KUSUR -> DUZELTILDI:** kart kapagi bizim bastigimiz parca DEGILDI, ticari bir
+  urunun fotografiydi. Musteriyi yaniltir → listeden cikarildi, notr render kapak oldu.
+  🔴 **EKSEN ACIGI: gorsel-gate "logo var mi" diye soruyor ama "bu gorsel BIZIM urunumuz mu"
+  diye SORMUYOR.**
+- 🟡 **ACIK:** duzeltilen kayit **1 gorselli** (3-4 kuralinin altinda), notr render eklenmeli.
+- 🟡 **ACIK:** bir denetim aracinin tum-katalog kipi rapor degil FIILEN silme uyguluyor
+  (760 kayit silinmisti) — `3b369e34` onay tavanini getirdi, tum-katalog kipi ayri karar.
 
-## CI NOBETI (6 Agu 11:37 turu) — KAPANDI (yayin tavani + 28 mail); ayrinti DEVAM-ARSIV.md de (git disi).
-
-## Saatlik CI nobeti — 6 Agu 15:37Z turu (YARIM KAPANDI, sonraki tur DEVRALSIN)
-- **Mail supurmesi (kosulsuz, Okan emri) TAMAM:** birlesik `inbox`ta `notifications@github.com`
-  + "Run failed" = **5** mail, **5**'i Cop'e tasindi, tur sonu kalan **0** (bagimsiz ikinci
-  sayimla dogrulandi). Cop BOSALTILMADI.
-- **CI kirmizisi — kok neden DEPO DEGIL, GitHub altyapisi.** Kosum `31115417788`
-  (headSha `e10ef665`) `build` job'u tek adimda dustu: "Set up job". Ham job logu alintisi:
-  `Failed to resolve action download info. Error: Internal Server Error` / `Service
-  Unavailable`. Duzeltilecek kaynak kod YOK → dogru onarim yeniden kosum. DEGISEN DOSYA: YOK.
-- **Codex kotasi DOLU** ("You've hit your usage limit", 8 Agu 10:19'a kadar) → is Claude
-  iscisine dustu; isci `sleep` dongusunde ucu ucuna kapanmadi, olcumu mimar `gh` ile aldi.
-- **Tikanma olculdu — `concurrency: group: pages, cancel-in-progress: false`** (deploy.yml:33).
-  `31115417788` hala `in_progress` (yalniz `serit-a4` kosuyor) → sonraki tum build/deploy
-  kosumlari KUYRUKTA. `serit-a4` HUNG DEGIL: onceki basarili kosumda suresi 13:46:40→14:34:35
-  = ~48 dk; bu tur 15:21:24'te basladi, ~16:09'da bitmesi beklenir.
-- **Tetiklenen temiz kosum: `31117484955`** (`workflow_dispatch`, headSha `482713d1`).
-  Tur sonunda hala `pending` (kuyrukta) → **build/deploy/yayin OLCULEMEDI** (yesil DEGIL).
-  ➡️ SONRAKI TURUN ILK ISI: `gh run view 31117484955 --repo Pruvo138/pruvo --json jobs` ile
-  `build`/`deploy`/`yayin` conclusion'ini olc; kirmiziysa `--log-failed` ile kok nedeni alintila.
-- **Izlenecek AYRI sinif:** kosum `31107527748` `deploy` job'u
-  `##[error]Timeout reached, aborting!` (GitHub Pages yayin adimi, 13:46→14:57). Bu turda
-  KOD DEGISTIRILMEDI. Ayni sinif bir kez daha duserse `deploy-pages` timeout parametresi
-  degerlendirilir; ucuncu tekrarda DUR kosulu isler.
-- DUR kosulu bu turda ISLEMEDI (ayni kok neden 3 kosum ust uste tekrarlamadi). Okan'a cikilmadi.
-
+## CI NOBETI 11:37 / 15:37Z / 16:37Z turlari — KAPANDI, dokum `DEVAM-ARSIV.md`de (git disi).
