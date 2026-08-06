@@ -1,5 +1,52 @@
 # DEVAM (KraL) — 6 Agu 2026
 
+## 🟢 DIRILTME KAPISI A20 CAPASI GECMISTEN TURER — MAIN'DE `7f950921`
+
+- **Kapsam** (merge-base `08a3bb5d`'den, `main..HEAD` DEGIL): **1 dosya / +400 −64**, yalniz
+  `tools/diriltme-kapisi.py`. Urun verisi ve gizli kaynak kaydi **KAPSAM DISI**. Cakisma
+  on-testi temiz (cikti tek agac OID `834c20ed`) · public-repo desen taramasi **0 vurus** · yabanci
+  kirlilik 3 izlenen + 2 untracked, **DOKUNULMADI** (uretilen-sayfa sapmasi **0**).
+- **Ne girdi:** A20 kabul fikstürünün capasi artik DOSYA ADI DESENINDEN degil kapinin KENDI
+  semantiginden turer (`onceki` deger o kaydin gecmisinde HEM `+` gorulmus HEM `-` terk
+  edilmis olmali). `-vN` soneki yalniz ADAY uretir, HUKUM uretmez. Iki fail-closed sart:
+  nitelikli capa arzi 0 -> A20 KIRMIZI, dogustan-`-vN` arzi 0 -> A22 KIRMIZI ("arz tukendi"
+  bir YESIL sebebi degil). Her koşumda ARZ NOBETI satiri basilir.
+- **Merge ONCESI gerekce duzeltmesi `c945fd04` — YALNIZ ACIKLAMA METNI, hukum yolu
+  DEGISMEDI:** A-M2 mutantinin neden salt `-` conjunct'ini dusurmedigi yanlis gerekcelendirilmisti
+  ("sinif YAPISAL olarak bos"). Dogrusu: sinif **bugunku katalogda olculen 11 adayda** bos
+  (**9 nitelikli + 2 dogustan-vN + 0 karisik**) — yapi zorunlulugu DEGIL, olculen taban, degisebilir.
+  Mekanizma yazildi: aday turetimi ALAN-bazli, `+`/`-` gorulme kumeleri KAYIT-bazli; tabanda o
+  kayitta baska alanda duran bir satir o alanda aday olabilir ve hic terk edilmemis olabilir.
+  Ayrica `-` conjunct'inin `--alan-capa` yuzeyinde gorunmese de `--kendini-test` icindeki **A17d**
+  saf-karar iddiasi tarafindan olculdugu yazildi (onceki metin bunu beyan sanip karamsardi).
+  Kabul: sayilarin HICBIRI korelmedi.
+- **Kapilar — DALIN worktree'sinde kosuldu, hepsi rc=0:** `diriltme-kapisi --kendini-test`
+  **86 iddia** · `--capa-mutasyon` TABAN **3 iddia**, A-M1 -> yalniz **A20**, A-M2 -> yalniz **A22**,
+  KONTROL hicbirini dusurmedi, canli dosya sha256 once==sonra **True** · `--kanca-mutasyon`
+  **19 iddia** · bayraksiz · `--calisma-agaci` · `git_ortami` kendini-test **11/11** + mutasyon
+  (8 oldurucu TEK KIRMIZI + 1 KONTROL YESIL, iddia **11** sabit) · `ic-rapor-adi-kapisi`
+  **10/10** + mutasyon (6 oldurucu + 1 kontrol) + bayraksiz **0 isabet** · spec kapisi
+  **27/27** + bayraksiz **0 isabet** · spec mutasyon testi **27/27 oldurucu + 1 kontrol** ·
+  `kok-cozum-taramasi` **6 arac / 9 ifade / worktree kolunda 2 yanlis / ana kolda 0** ·
+  `ci-kapsam-test` (+kendini-test) · `is-akisi-kapisi` (+kendini-test, **199 iddia**) ·
+  `kapi-envanteri` **7/7**. Arama/`worker/` duzlemine dokunulmadi -> parite GEREKMEDI.
+- **D1 teyidi YESIL:** D1 **21373** == katalog benzersiz **21373**; sema ekseni · turetilmis
+  kolon ekseni (5 kolon GUNCEL) · icerik ekseni de temiz (hash uyusmaz **0**, eksik **0**,
+  fazla **0**).
+- 🟡 **CI KISMEN OLCULDU — `deploy` kosumu OLCULEMEDI, sebep: Actions kuyrugu (dis ariza).**
+  SHA'yi ICEREN **4 kosum** ata kanitiyla bulundu (`merge-base --is-ancestor` rc=0, headSha
+  birebir): "Odeme yolu bayatlik nabzi" **success** · spec alarm kosumu **success** ·
+  "Nöbet şeridi (SERIT B)" **failure** · "Build & deploy to GitHub Pages" **pending** (bitmedi,
+  YESIL SAYILMADI, rerun'a ZORLANMADI).
+  SERIT B kirmizisi **bu merge'den DEGIL**: dusen adim `cron-nabzi` job'undaki uzlastirma
+  nabzi alarmi (tanimi geregi yayini DURDURMAZ) ve ayni kirmizi merge ONCESI `efd1d69b`,
+  `08a3bb5d`, `a1c343b6` SHA'larinda da yaniyordu. Bu merge site ICERIGINI degistirmiyor
+  (yalniz `tools/`) -> canli dogrulama GEREKMIYOR.
+- **Temizlik:** worktree kaldirildi + yerel dal silindi + **uzak dal da silindi**
+  (`origin/muh/a20-capa-semantik`). Uc on kontrol yesildi: worktree porcelain temiz · `durum.py`
+  dali "0 ileri | ucu main'de" siniflandirdi · ana agacta bu ise ait yetim degisiklik yok.
+  `git worktree list` **3 -> 2**; kalan ikisi BASKA oturumlarin, DOKUNULMADI.
+
 ## 🟢 GIT KOK TURETIMI ORTAMDAN BAGIMSIZ — MAIN'DE `335caeda` (BEKLEYEN 1 KAPANDI)
 
 - **Kapsam** (merge-base `c3c23d2e`'den, `main..HEAD` DEGIL): **9 dosya / +1182 −48**, yalniz
