@@ -1,5 +1,36 @@
 # DEVAM (KraL) — 6 Agu 2026
 
+## 🟢 GIT KOK TURETIMI ORTAMDAN BAGIMSIZ — MAIN'DE `335caeda` (BEKLEYEN 1 KAPANDI)
+
+- **Kapsam** (merge-base `c3c23d2e`'den, `main..HEAD` DEGIL): **9 dosya / +1182 −48**, yalniz
+  `tools/` + `.github/workflows/nobet.yml`. Urun verisi ve gizli kaynak kaydi **KAPSAM DISI**.
+  Cakisma on-testi temiz (cikti tek agac OID) · desen taramasi **0 vurus** · yabanci kirlilik
+  2 untracked dizin, DOKUNULMADI.
+- **Ne girdi:** iki nobetci daha koku ortamdan degil `-C` kesfinden turetiyor (kanca+worktree
+  baglami), scrub kumesi TEK KAYNAGA baglandi, drift nobeti CI'da bloklayici serite alindi.
+  Bu, "BEKLEYEN 1 — 2 IKIZ kok-turetme" kalemini kapatir.
+- **Merge ONCESI tamamlama `e9cb5cb4`:** drift nobetcisinin BEYAN EDILMIS SINIR listesine
+  anahtar-kelime cagri bicimi ACIKCA yazildi. **YALNIZ BEYAN METNI** — tespit mantigi
+  degismedi; depoda o bicimde ornek **0**, yani delik TEORIK. Kabul: sayilar KORELMEDI.
+- **Kapilar — dalin worktree'sinde kosuldu, 13/13 rc=0:** `git_ortami` kendini-test **11/11** ·
+  mutasyon TABAN **11**, **8 oldurucu TEK KIRMIZI + 1 KONTROL YESIL**, Traceback 0 ·
+  ikinci-tanimlar temiz · `ic-rapor-adi-kapisi` **10/10** + mutasyon **6 oldurucu + 1 kontrol** +
+  bayraksiz **0 isabet** · spec kapisi **27/27** + bayraksiz **0 isabet** ·
+  spec mutasyon testi **27/27 oldurucu + 1 kontrol** · `diriltme-kapisi` **85 iddia** +
+  kanca-mutasyon **19 iddia** · `kok-cozum-taramasi` **6 arac / 9 ifade / worktree kolunda 2
+  yanlis / ana kolda 0** · `ci-kapsam-test` (+kendini-test) · `is-akisi-kapisi` (+kendini-test) ·
+  `urunler-guard-provenans` **28 iddia 0 kirmizi** · `kapi-envanteri` **7/7**.
+- **D1 teyidi YESIL:** D1 **21259** == katalog benzersiz **21259**; sema · turetilmis kolon (5) ·
+  icerik ekseni de temiz (hash uyusmaz **0**, eksik **0**, fazla **0**).
+- 🔴 **CI OLCULEMEDI — sebep: Actions kuyrugu (dis ariza suruyor).** `335caeda` icin kosum kaydi
+  HIC olusmadi: son 30 kosumun **7 benzersiz headSha**'sinin HICBIRI bu SHA'yi ata olarak
+  tasimiyor (`merge-base --is-ancestor` **7/7 rc=1**). Kuyruktaki en yeni kayit `ce6eb5fd`
+  (pending). Bu merge site ICERIGINI degistirmiyor (yalniz `tools/` + `nobet.yml`) -> canli
+  dogrulama GEREKMIYOR, yayin acigina etkisi YOK.
+- **Temizlik:** worktree kaldirildi + dal silindi (porcelain temizdi, icerik main'de dogrulandi,
+  ana agacta yetim degisiklik yok). `git worktree list` **3 -> 2**; kalan biri BASKA oturumun,
+  DOKUNULMADI. Uzak dal `origin`'de DURUYOR (silinmedi).
+
 ## 🔚 OTURUM KAPANISI — 6 Agu aksam · 4 MERGE CANLIYA HAZIR, YAYIN ALTYAPIDA TAKILI
 
 **MAIN'E GIREN (SHA + olculen sayi):**
