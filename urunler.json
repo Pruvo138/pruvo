@@ -1,5 +1,200 @@
 [
   {
+    "id": "nissan-rogue-2014-guneslik-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan Rogue 2014 Güneşlik Tutucu Klipsi",
+    "aciklama": "Nissan Rogue 2014 model aracın ön güneşliğini kapalı konumda tutan tavan klipsidir.\n\n- Kırılan veya gevşeyen orijinal klipsin yerine takılmak üzere tasarlanmıştır.\n- Güneşliğin sarkmasını önleyerek düzgün oturmasını sağlar.\n- Tavan döşemesindeki mevcut yuvaya ek delik açmadan geçer.\n- Özel sipariş üzerine üretilir, montaja hazır gönderilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4309618-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4309618-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4309618-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4309618-4.jpg"
+    ],
+    "altkategori": "Tavan ve Güneşlik",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
+    "id": "nissan-x-trail-t32-ic-dikiz-aynasi-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan X-Trail / Rogue T32 İç Dikiz Aynası Tutucusu",
+    "aciklama": "Nissan X-Trail ve Rogue T32 kasa araçlarda iç dikiz aynasını ön cama bağlayan tutucu parçadır (OEM referans: 963219Y000).\n\n- Aynası düşen veya tutucusu kırılan araçlar için yedek parça olarak tasarlanmıştır.\n- Cama yapıştırılan taban pimine oturur, ayna gövdesini sabitler.\n- Orijinal parçanın geometrisi birebir alınmıştır.\n- Özel sipariş üzerine üretilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6970088-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6970088-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6970088-3.jpg"
+    ],
+    "altkategori": "Ayna ve Silecek",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
+    "id": "nissan-silvia-s13-camurluk-gecis-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan Silvia S13 Çamurluk İçi Geçiş Tapası",
+    "aciklama": "Nissan S13 kasa (Silvia / 180SX) araçlarda çamurluk iç kısmındaki gövde açıklığını kapatan geçiş tapasıdır.\n\n- Tekerlek davlumbazından gövdeye su, çamur ve toz girişini engeller.\n- Orijinali sertleşip kırılan araçlarda birebir yedek olarak kullanılır.\n- Esnek yapısı sayesinde açıklığa elle bastırılarak oturur, bağlantı elemanı gerektirmez.\n- Özel sipariş üzerine üretilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3677363-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3677363-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3677363-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3677363-4.jpg"
+    ],
+    "altkategori": "Montaj Parçaları ve Klipsler",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
+    "id": "nissan-maxima-far-arka-ampul-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan Maxima Far Arka Ampul Kapağı",
+    "aciklama": "Nissan Maxima farının arka yüzündeki ampul erişim açıklığını kapatan servis kapağıdır (referans: 30-316-1116n).\n\n- Far gövdesine nem, toz ve su girişini engelleyerek buğulanmayı önler.\n- Havalandırma kanatları orijinal kapak formuna göre tasarlanmıştır.\n- Çeyrek tur çevrilerek kilitlenen bayonet yuvaya oturur.\n- Kaybolan veya kırılan orijinal kapağın yerine özel sipariş üzerine üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5743231-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5743231-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5743231-3.jpg"
+    ],
+    "altkategori": "Aydınlatma",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
+    "id": "nissan-x-trail-t32-orta-konsol-duzenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan X-Trail T32 Orta Konsol Düzenleyici Kutusu",
+    "aciklama": "Nissan X-Trail T32 kasa araçlarda kol dayama altındaki derin saklama gözünü bölmelere ayıran düzenleyici tepsidir.\n\n- Kutunun üst kısmına oturarak alt hacmi kapatmadan ikinci bir kat oluşturur.\n- Telefon, cüzdan, gözlük ve bozuk para için ayrı bölmeler sunar.\n- Konsol iç ölçüsüne göre tasarlanmıştır, sabitleme gerektirmez, çıkarılıp temizlenebilir.\n- Özel sipariş üzerine üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt7303442-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7303442-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7303442-3.jpg"
+    ],
+    "altkategori": "Konsol ve Torpido",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
+    "id": "nissan-nv300-renault-trafic-hava-emis-kanali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Renault"
+    ],
+    "baslik": "Nissan NV300 / Renault Trafic Hava Emiş Kanalı",
+    "aciklama": "Ortak gövde kullanan Nissan NV300, Renault Trafic ve Vivaro araçlarda hava filtresi kutusuna giden emiş kanalıdır.\n\n- Çatlayan veya kırılan orijinal plastik kanalın yerine yedek olarak tasarlanmıştır.\n- İç yönlendirme kanatçıkları orijinal formda korunmuştur.\n- Mevcut tırnak ve yuvalara oturur, ek parça gerektirmez.\n- Özel sipariş üzerine üretilir.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5718522-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5718522-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5718522-3.jpg"
+    ],
+    "altkategori": "Motor Bölümü",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Renault"
+      }
+    ]
+  },
+  {
+    "id": "nissan-primera-p12-kapi-kilit-aktuator-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan Primera P12 Kapı Kilit Aktüatör Kolu",
+    "aciklama": "Nissan Primera P12 kapı kilit mekanizmasında motordan kilit diline hareketi ileten aktüatör kolu parçasıdır (OEM referans: 4515509).\n\n- Bu kol kırıldığında kapı merkezi kilit komutuna yanıt vermez; parça değişimiyle mekanizma yeniden çalışır.\n- Orijinal parçanın mil ve çatal geometrisi birebir alınmıştır.\n- Kilit mekanizması sökülerek takılır, kapı içi kablo tesisatına müdahale gerektirmez.\n- Özel sipariş üzerine üretilir.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3508831-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3508831-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3508831-3.jpg"
+    ],
+    "altkategori": "Kapı ve Cam",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
+    "id": "nissan-qashqai-j12-far-cerceve-citasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan Qashqai J12 2021 Far Çerçeve Çıtası",
+    "aciklama": "Nissan Qashqai J12 (2021 ve sonrası) modelde farın alt kenarını çevreleyen dekoratif çerçeve çıtasıdır (OEM referans: 7650U100).\n\n- Çarpma, taş darbesi veya yaşlanma sonucu kırılan orijinal çıtanın yerine tasarlanmıştır.\n- Far ile tampon arasındaki geçişi kapatarak bütünsel bir ön görünüm sağlar.\n- Mevcut tırnak yuvalarına oturur, ek delik açılmasını gerektirmez.\n- Özel sipariş üzerine üretilir.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5783691-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5783691-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5783691-3.jpg"
+    ],
+    "altkategori": "Dış Aksam",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
+    "id": "nissan-x-trail-t31-kapi-kilit-mekanizma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan X-Trail T31 Kapı Kilit Mekanizması Kapağı",
+    "aciklama": "Nissan X-Trail T31 kasa araçlarda kapı kilit mekanizmasının yuvasını kapatan tırnaklı kapak parçasıdır.\n\n- Mekanizmanın içine su, toz ve nem girmesini engelleyerek kilidin donmasını ve paslanmasını önler.\n- Yaşlanıp kırılan veya montaj sırasında kopan orijinal kapağın yerine tasarlanmıştır.\n- Yan tırnakları sayesinde yuvaya bastırılarak oturur, vida gerektirmez.\n- Özel sipariş üzerine üretilir.",
+    "fiyat": "10000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4486541-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4486541-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4486541-3.jpg"
+    ],
+    "altkategori": "Kapı ve Cam",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      }
+    ]
+  },
+  {
     "id": "mitsubishi-lancer-koltuk-kizak-ayar-kolu-uc-kapagi",
     "kategori": "Otomobil",
     "marka": [
