@@ -1,5 +1,493 @@
 [
   {
+    "id": "mitsubishi-lancer-koltuk-kizak-ayar-kolu-uc-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer Koltuk Kızak Ayar Kolu Uç Kapağı",
+    "aciklama": "Mitsubishi Lancer ön koltuk kızak ayar kolunun ucundaki kapak parçası (OEM referansı 6921A092). Zamanla kırılıp düşen bu kapak, kolun keskin metal ucunu örter ve kızak ayarını yeniden rahat kullanılır hale getirir. Orijinal parçanın geometrisi birebir alınmıştır; kola geçme tırnaklarıyla oturur, ek vida gerektirmez.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4245003-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4245003-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4245003-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4245003-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-outlander-silecek-mekanizmasi-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander Silecek Mekanizması Burcu",
+    "aciklama": "Mitsubishi Outlander silecek trapez mekanizmasında aşınan bağlantı burcu. Burç boşluk yapmaya başladığında silecek kolları takılır, tıkırtı ve düzensiz süpürme başlar; bu parça mafsalı yeniden sıkı çalıştırır. Trapez kolunun küresel bağlantısına geçer, mekanizmanın tamamını değiştirmeye gerek kalmaz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt7194050-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7194050-2.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-outlander-2022-2024-on-ceki-demiri-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander (2022-2024) Ön Çeki Demiri Kapağı",
+    "aciklama": "2022-2024 Mitsubishi Outlander ön tamponundaki çeki demiri yuvasının kör kapağı. Kaybolan ya da kırılan kapağın yerine takılır; yuvayı kapatarak tampon içine su, toz ve böcek girmesini engeller. Tampon kesitine oturan tırnaklı geçme yapısı orijinaliyle aynıdır.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6427476-1.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-outlander-sigorta-kutusu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander Sigorta Kutusu Kapağı",
+    "aciklama": "Mitsubishi Outlander motor bölmesindeki sigorta kutusunun üst kapağı. Menteşe tırnakları yıllar içinde kırıldığında kapak yerinde durmaz ve sigorta grubu nem ile kire açık kalır. Bu kapak kutunun kenar profiline kilitlenir, sigorta ve röle yerleşim şemasının okunmasına engel olmaz.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6477795-1.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-on-cam-silecek-mafsal-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Ön Cam Silecek Mafsal Gövdesi",
+    "aciklama": "Mitsubishi ön cam silecek mekanizmasının mafsal gövdesi (OEM referansı MB952178). Bu gövde çatladığında silecek kolları senkronunu kaybeder, cam üzerinde vurma ve boşluk yapar. Parça orijinal bağlantı deliklerine ve mil çapına göre modellenmiştir, mevcut kollarla birlikte kullanılır.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5263488-1.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-arka-koltuk-katlama-dugmesi-ve-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Arka Koltuk Katlama Düğmesi ve Tutucusu",
+    "aciklama": "Mitsubishi arka koltuk sırtlığını katlamaya yarayan çekme düğmesi ile onu yerinde tutan bilezik (OEM referansı MR607284). Düğme koptuğunda koltuk katlama mandalı kavranamaz hale gelir. İki parça birlikte çalışır; düğme sırtlık sacındaki deliğe geçer, tutucu arkadan kilitleyerek düğmenin çıkmasını önler.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt7270501-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt7270501-2.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-sport-bagaj-kilidi-motor-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Sport Bagaj Kilidi Motor Dişlisi",
+    "aciklama": "Mitsubishi Pajero Sport bagaj kilit motorunun içindeki plastik dişli. Dişin sıyrılması kilit motorunun boşa dönmesinin en sık sebebidir: motor çalışır, kilit hareket etmez. Bu dişli aktüatörün içine takılır ve motorun tamamını değiştirme masrafını ortadan kaldırır. Mil yuvası ve diş sayısı orijinaliyle birebirdir.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4985162-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4985162-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4985162-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4985162-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-torpido-havalandirma-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Torpido Havalandırma Izgarası",
+    "aciklama": "Mitsubishi Pajero torpido üzerindeki havalandırma ızgarası ve çevresindeki kaplama. Güneş altında kalan orijinal parça kırılganlaşır, kanatlar ve tutma tırnakları kopar. Bu kaplama torpidodaki mevcut yuvaya oturur, kanat açıklıkları hava yönlendirme işlevini koruyacak biçimde modellenmiştir.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6476712-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6476712-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6476712-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-orta-konsol-kaplamasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Orta Konsol Kaplaması",
+    "aciklama": "Birinci nesil Mitsubishi Pajero orta konsolunun yan kaplama parçası. Bu kaplama kaybolduğunda konsol kenarındaki tesisat ve sac kenarı açıkta kalır. Parça konsolun orijinal tutma noktalarına geçer ve iç döşemenin bütünlüğünü tamamlar; klasik Pajero restorasyonlarında bulunması güç parçalardandır.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248387-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248387-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248387-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-arka-silecek-motoru-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Arka Silecek Motoru Kapağı",
+    "aciklama": "Birinci nesil Mitsubishi Pajero arka kapıdaki silecek motoru erişim kapağı (OEM referansı MB286369). Kapak eksik olduğunda motor yuvasına su ve toz dolar. İki parçalı takımda kapak ve çerçeve birlikte gelir; kapı sacındaki mevcut deliklere oturur, orijinal tırnak yerleşimi korunmuştur.",
+    "fiyat": "3350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6257727-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6257727-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6257727-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-kapi-ic-acma-kolu-kaplamasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Kapı İç Açma Kolu Kaplaması",
+    "aciklama": "Birinci nesil Mitsubishi Pajero kapı iç açma kolunun çevresindeki kaplama çanağı. Orijinali genelde çatlar ya da rengi solar; kolun etrafındaki bu parça hem kapı döşemesini korur hem de kolun düzgün hizada durmasını sağlar. Kapı panelindeki orijinal vida ve tırnak noktalarına göre modellenmiştir.",
+    "fiyat": "4200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248296-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248296-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248296-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248296-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-klima-kumandasi-duvar-tutucusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Mitsubishi"
+    ],
+    "baslik": "Mitsubishi Klima Kumandası Duvar Tutucusu",
+    "aciklama": "Mitsubishi klima kumandası için duvara monte edilen tutucu. Kumandanın sürekli kaybolmasını önler, kanepe altında ezilmesinin ve düşmesinin önüne geçer. Arka yüzdeki tek delikten vida ya da çift taraflı bantla sabitlenir; kumanda öne doğru kayarak kolayca alınır ve yerine bırakılır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt997625-1.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-lancer-fren-hidrolik-borusu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer Fren Hidrolik Borusu Klipsi",
+    "aciklama": "Mitsubishi Lancer fren hidrolik borusunu şasiye sabitleyen klips (OEM referansı MR129462). Klips kırıldığında boru serbest kalır, titreşimle sürtünüp aşınır. Parça boruyu iki yataklı gövdesinde kavrar ve şasi üzerindeki orijinal deliğe geçer; ek bağlantı elemanı gerekmez.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4261642-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4261642-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4261642-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4261642-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-lancer-evo-x-ikili-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer / Evo X İkili Gösterge Yuvası",
+    "aciklama": "Mitsubishi Lancer ve Evo X için A direği ya da torpido üstüne takılan ikili gösterge yuvası. Yağ basıncı, turbo basıncı, hararet gibi ek göstergeleri sürüş hattında tutar. Standart yuvarlak gösterge çapına göre modellenmiştir; iki göz yan yana yerleşir ve yuvanın tabanı direk eğrisine oturur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4916933-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4916933-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4916933-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-montero-arka-kapi-kilit-mekanizmasi-onarim-takimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero / Montero Arka Kapı Kilit Onarım Takımı",
+    "aciklama": "1994-2000 Mitsubishi Pajero ve Montero arka kapı kilit mekanizmasının kırılan plastik gövdesi ile koltuk kolu parçası. Bu gövde çatladığında arka kapı içeriden ve dışarıdan açılamaz hale gelir. Takım, mekanizmanın metal aksamını yerinde bırakarak yalnız kırılan plastik bölümü yeniler.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5720053-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5720053-2.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-lancer-space-wagon-gaz-kelebegi-dislileri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer / Space Wagon Gaz Kelebeği Dişlileri",
+    "aciklama": "Mitsubishi Lancer ve Space Wagon gaz kelebeği gövdesindeki kontrol dişli takımı. Dişler aşındığında rölanti dalgalanır, gaz tepkisi gecikir ve arıza lambası yanabilir. Takımdaki mil ve dişli, gövdenin içine orijinal yerleşimiyle girer; gaz kelebeği gövdesinin tamamını değiştirmeye gerek bırakmaz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4973002-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4973002-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4973002-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4973002-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-sport-kapi-kilit-aktuator-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Sport Kapı Kilit Aktüatör Dişlisi",
+    "aciklama": "Mitsubishi Pajero Sport kapı kilit aktüatörünün ana dişlisi. Dişlerin sıyrılması merkezi kilidin çalışırken 'vızıldayıp' kapıyı kilitlememesinin tipik sebebidir. Dişli aktüatör gövdesinin içine takılır; mil deliği, tahrik tırnağı ve diş adımı orijinal parçayla aynıdır.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3401323-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3401323-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3401323-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3401323-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-outlander-konsol-saklama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander Konsol Saklama Kutusu",
+    "aciklama": "Mitsubishi Outlander orta konsolundaki ölü boşluğu kullanılabilir gözlere çeviren saklama kutusu takımı. Kablo, bağlama kayışı, gözlük ve benzeri küçük parçalar konsolun dibine düşmek yerine bu gözde durur. Kutu konsolun mevcut boşluğuna oturacak biçimde şekillendirilmiştir, sabitleme için delme gerektirmez.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3249757-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3249757-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3249757-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-lancer-evo-tavan-hava-yonlendirici-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer Evo Tavan Hava Yönlendirici Seti",
+    "aciklama": "Mitsubishi Lancer Evo tavanının arka kenarına dizilen hava yönlendirici (vortex generator) seti. Tavandan gelen havayı arka cam ve kanat bölgesine daha düzenli aktarması için tasarlanmıştır. Parçalar tavan kavisine oturan tabanlarıyla sıralı olarak yapıştırılır; gövdede delik açılmaz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4367663-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4367663-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4367663-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4367663-4.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-outlander-phev-sis-fari-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Outlander"
+    ],
+    "baslik": "Mitsubishi Outlander PHEV Sis Farı Izgarası",
+    "aciklama": "Mitsubishi Outlander PHEV ön tamponundaki sis farı çevresi ızgarası (sağ ve sol takım). Taş çarpması ve park darbeleriyle en sık kırılan tampon parçalarındandır. Izgara tampondaki orijinal yuvaya tırnaklarıyla oturur, farın ışık açısını kapatmayacak kesitte modellenmiştir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6477792-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6477792-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6477792-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-kor-dugme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Kör Düğme Kapağı",
+    "aciklama": "Birinci nesil Mitsubishi Pajero torpidosundaki boş anahtar yuvasını kapatan kör düğme. Donanımda bulunmayan bir düğmenin yeri boş kaldığında yuvadan toz girer ve gösterge paneli dağınık görünür. Kapak orijinal anahtar gövdesiyle aynı dış ölçüde ve tırnak yerleşimindedir; yuvaya iterek takılır.",
+    "fiyat": "2700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248319-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248319-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248319-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-sol-on-panel-kaplamasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Sol Ön Panel Kaplaması",
+    "aciklama": "Birinci nesil Mitsubishi Pajero sol ön ayak bölgesindeki panel kaplaması (OEM referansı MB476231). Orijinali sertleşip parçalandığında tesisat ve sac kenarı açıkta kalır. Kaplama gövdedeki mevcut klips deliklerine göre modellenmiştir ve üzerindeki dikdörtgen açıklık orijinal fonksiyonunu korur.",
+    "fiyat": "4200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6257749-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6257749-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6257749-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-vites-konsolu-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Vites Konsolu Çerçevesi",
+    "aciklama": "Birinci nesil Mitsubishi Pajero vites ve arazi şanzıman kollarının çevresindeki konsol çerçevesi. Orijinal parça köşelerinden çatlar ve vida kulakları kopar. Çerçeve konsoldaki orijinal vida noktalarına oturur, körük ve kol geçiş açıklıkları birebir korunmuştur.",
+    "fiyat": "4350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248361-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248361-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248361-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-uclu-gosterge-konsolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Üçlü Gösterge Konsolu",
+    "aciklama": "Birinci nesil Mitsubishi Pajero torpido üstündeki üçlü gösterge konsolu. Eğim, voltaj ve saat göstergelerini taşıyan bu parça yaşlanan araçlarda genelde kırık ya da eksiktir. Konsol, orijinal göstergelerin yuvarlak yuvalarını ve torpidoya oturan taban eğrisini birebir tekrarlar.",
+    "fiyat": "4850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248268-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248268-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248268-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-arka-hoparlor-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Arka Hoparlör Izgarası",
+    "aciklama": "Birinci nesil Mitsubishi Pajero arka hoparlör ızgarası ve taşıyıcı çerçevesi. Orijinal ızgaranın telleri kopar, çerçeve kulakları kırılır ve hoparlör korumasız kalır. Parça hoparlör çapına ve döşemedeki vida noktalarına göre modellenmiştir; kafes aralıkları ses geçişini kısıtlamaz.",
+    "fiyat": "5200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248287-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248287-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248287-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-on-tampon-koruma-takozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Ön Tampon Koruma Takozu",
+    "aciklama": "Birinci nesil Mitsubishi Pajero ön tamponunun köşelerine takılan koruma takozu. Klasik Pajero görünümünü tamamlayan bu parça park darbelerinde ilk teması alır ve tampon sacını korur. Takoz tampon profilindeki orijinal deliklere oturur, çift olarak sağ ve sol köşeye takılır.",
+    "fiyat": "5850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248307-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248307-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248307-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-tavan-kanadi-yan-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Tavan Kanadı Yan Plakası",
+    "aciklama": "Mitsubishi Pajero tavan kanadını (spoiler) tavana bağlayan yan plaka. Orijinal plakalar paslanır ya da çatlar; kanat gevşediğinde yüksek hızda titrer. Plaka kanadın yan kesitiyle tavan hattı arasındaki geçişi kapatır ve mevcut bağlantı deliklerini kullanır. Sağ ve sol olarak çift kullanılır.",
+    "fiyat": "18000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6226018-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6226018-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6226018-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-galant-1999-hoparlor-podyumu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Galant"
+    ],
+    "baslik": "Mitsubishi Galant (1999) Hoparlör Podyumu",
+    "aciklama": "1999 model Mitsubishi Galant için hoparlör podyumu (çift takım). Hoparlörü kapı sacından ayırıp sürücüye doğru açılandırarak sesin daha düzgün ulaşmasını sağlar. Podyumun tabanı kapı iç panelinin eğrisine oturur, ön yüzü standart yuvarlak hoparlör çapına göre şekillendirilmiştir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2777126-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2777126-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2777126-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-lancer-evolution-ix-arka-kanat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Lancer Evolution IX Arka Kanat",
+    "aciklama": "Mitsubishi Lancer Evolution IX bagaj kapağına takılan arka kanat gövdesi. Aracın kendine özgü arka görünümünü tamamlar ve bagaj hattının üstünde tek parça olarak durur. Kanat, bagaj kapağının kavisine oturan taban yüzeyi ve orijinal ayak yerleşimi dikkate alınarak modellenmiştir.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5820013-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5820013-2.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-evo-kanat-baglanti-pedi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Lancer"
+    ],
+    "baslik": "Mitsubishi Evo Kanat Bağlantı Pedi",
+    "aciklama": "Mitsubishi Evo bagaj kapağı ile arka kanat ayağı arasına giren bağlantı pedi. Ayakla sac arasındaki boşluğu doldurur, yükü geniş bir alana yayar ve boyanın ezilmesini önler. Pedin alt yüzü bagaj kapağı kavisine, üst yüzü kanat ayağının oturma yüzeyine göre şekillendirilmiştir. Çift olarak kullanılır.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4311161-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4311161-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4311161-3.jpg"
+    ]
+  },
+  {
+    "id": "mitsubishi-pajero-mk1-arka-saklama-gozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Pajero"
+    ],
+    "baslik": "Mitsubishi Pajero Mk1 Arka Saklama Gözü",
+    "aciklama": "Birinci nesil Mitsubishi Pajero bagaj bölümündeki arka saklama gözü. Orijinal gözler kırıldığında yerine bulmak güçtür; bu parça yan panelin içindeki boşluğu yeniden kullanılabilir hale getirir. Göz, panelin orijinal açıklığına oturur ve mevcut sabitleme noktalarını kullanır.",
+    "fiyat": "4200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6248380-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248380-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6248380-3.jpg"
+    ]
+  },
+  {
     "id": "honda-civic-2007-far-hava-kanali",
     "kategori": "Otomobil",
     "marka": [
