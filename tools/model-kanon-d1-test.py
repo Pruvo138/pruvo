@@ -221,6 +221,34 @@ _olmayan = set((mk, arama.model_normalize(jt)) for mk, jt in arama.MODEL_OLMAYAN
 _baslik_izin = set((mk, arama.model_normalize(jt)) for mk, jt in arama.BASLIK_DOGAN_ALLOW)
 
 
+_BAGIMSIZ_DEGISTIRICI = re.compile(
+    r"^(mk\.?\d{1,2}|\d{1,2}|i|ii|iii|iv|v|vi|vii|viii|ix|x|[a-z]|gt|gtc|gtd|gti|rs|st)$")
+_BAGIMSIZ_DONANIM = frozenset(("gt", "gtc", "gtd", "gti", "rs", "st"))
+
+
+def _bagimsiz_degistirici(w):
+    """Kelime KUSAK/DONANIM degistiricisi mi — uretim tablosu CAGRILMAZ (bagimsiz ayna)."""
+    return bool(_BAGIMSIZ_DEGISTIRICI.match(arama.model_normalize(w or "")))
+
+
+def _bagimsiz_donanim_kuyruklu(ad):
+    toks = (ad or "").split()
+    return len(toks) >= 2 and arama.model_normalize(toks[-1]) in _BAGIMSIZ_DONANIM
+
+
+def _bagimsiz_sasi_kodu(ad):
+    """H1 sekli: TEK jeton + en az bir HARF ve en az bir RAKAM (ciplak sayi DISARIDA)."""
+    if len((ad or "").split()) != 1:
+        return False
+    j = re.sub(r"[^a-z0-9]", "", arama.model_normalize(ad))
+    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)
+
+
+def _bagimsiz_ayri_arac(ad):
+    """H3 sekli: cok jetonlu ve kuyrugu DONANIM DEGIL."""
+    return len((ad or "").split()) >= 2 and not _bagimsiz_donanim_kuyruklu(ad)
+
+
 def _yayin_bagimsiz(marka, g):
     """yayimlanir_mi()'nin BAGIMSIZ yeniden kurulusu — yargi tablolari arama.py'den."""
     ad = g.get("display") or g.get("canon")
@@ -230,14 +258,22 @@ def _yayin_bagimsiz(marka, g):
     if (marka, n) in _olmayan:
         return False
     son = ad.split()
-    if len(son) >= 2 and (marka, arama.model_normalize(son[-1])) in _olmayan:
+    # 🔴 SON-KELIME KOLU YALNIZ DEGISTIRICILERE ISLER (6 Agu, mimar hukmu H2): `Focus ST`
+    # kapanir, `5 E-Tech` KAPANMAZ — burada da BAGIMSIZ dilbilgisiyle kurulur.
+    if len(son) >= 2 and (marka, arama.model_normalize(son[-1])) in _olmayan \
+            and _bagimsiz_degistirici(son[-1]):
+        return False
+    # H3 DENY KOLU: `<taban> <DONANIM>` sayfa ACMAZ.
+    if _bagimsiz_donanim_kuyruklu(ad):
         return False
     if not (bool(g.get("birincil")) and len(g["urunler"]) >= mmb.ESIK):
         return False
     # YARGISIZ SAYFA DOGMAZ: yalnizca baslik kolu sayesinde esigi gecen kova, ancak
-    # BASLIK_DOGAN_ALLOW'da yargilanmissa yayimlanir -> etiketi de UC evrenine girer.
+    # ENVANTERDE (BASLIK_DOGAN_ALLOW) ya da H1/H3 KURALINDA yargilanmissa yayimlanir ->
+    # etiketi de UC evrenine girer. Kural kollari BAGIMSIZ yazilir (uretim cagrilmaz).
     if g.get("baslik_dogan") and (marka, n) not in _baslik_izin \
-            and (marka, arama.model_normalize(g.get("canon") or "")) not in _baslik_izin:
+            and (marka, arama.model_normalize(g.get("canon") or "")) not in _baslik_izin \
+            and not _bagimsiz_sasi_kodu(ad) and not _bagimsiz_ayri_arac(ad):
         return False
     return True
 

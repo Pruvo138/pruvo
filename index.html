@@ -2492,7 +2492,12 @@
   // markaNorm: norm() (Türkçe-duyarlı) + Latin aksan sadeleştirme ("Citroën"→"citroen").
   // norm()'un KENDİSİNE dokunulmaz (arama/skorlama değişmez); bu yalnız marka karşılaştırması için.
   function markaNorm(s){
-    var n = norm(s).replace(/[éèë]/g,"e").replace(/ä/g,"a");
+    // 🔴 AKSAN GENEL KURALLA COZULUR (6 Agu, mimar hukmu H4): once elle bir liste vardi
+    // (`[eee]` + `a`) ve `Skoda`/`Citroen` gibi caron/tilde tasiyan yazimlari GORMUYORDU —
+    // `modelKanon` ile AYRI bir aksan tanimi demekti ([[ikiz-tanim-sessiz-ayrisma]]).
+    // Ayni NFD + birlesen-isaret kurali iki eksende de kosar. Olculdu (katalog 19.999):
+    // katalogda su an caron/tilde tasiyan MARKA jetonu YOK -> davranis DEGISMEZ, delik KAPANIR.
+    var n = norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     // marka ayıraç kanonikleştirme: "Black+Decker" == "Black & Decker" == "Black and Decker"
     // (yalnız marka karşılaştırması; norm()/arama DEĞİŞMEZ). Liste dışı & / + / and içeren
     // değerler (K&N, Briggs & Stratton) tanınmaz kalır — collapse yalnız eşleştirmeyi hizalar.
@@ -2654,11 +2659,27 @@
   // YÖN: yüklem yalnız GENİŞLETİR. modelEsler() önce bugünkü HAM eşitliğe bakar; ham eşitlik
   // geçen her ürün burada da geçer, yani filtrenin DARALMASI yapısal olarak imkansızdır.
   var MODEL_TR = {"ı":"i","ş":"s","ğ":"g","ü":"u","ö":"o","ç":"c","â":"a","î":"i","û":"u"};
-  // Gruplama anahtarı: küçük harf + boşluk/tire/nokta/alt-çizgi/eğik çizgi at.
-  // "F-150"/"F150"/"F 150" → "f150" · "S-Max"/"S-MAX" → "smax".
+  // Gruplama anahtarı: küçük harf + TR sadeleştirme + AKSAN ÇÖZÜMÜ + ayıraç atma.
+  // "F-150"/"F150"/"F 150" → "f150" · "S-Max"/"S-MAX" → "smax" · "Zoé"/"Zoe" → "zoe".
+  //
+  // 🔴 AKSAN KANONDA ÇÖZÜLÜR (6 Ağu, mimar hükmü H4 — ölçülmüş MÜKERRER SAYFA):
+  // `MODEL_TR` yalnız TÜRKÇE harfleri sadeleştiriyordu; `é`/`ë`/`š` gibi işaretler kanona
+  // OLDUĞU GİBİ giriyor ve AYNI aracı İKİ kovaya bölüyordu. Ölçüldü (katalog 19.999):
+  //   Renault `zoe` 42 ürün (YAYINDA) ↔ `zoé` 42 ürün · Yamaha `tenere` 30 ↔ `ténéré` 31
+  //   (İKİSİ DE CANLI) · Yamaha `tenere700` 20 ↔ `ténéré700` 20 (İKİSİ DE CANLI).
+  // Yani hem envanter hem SEO bölünüyordu: aynı araç için iki ayrı /marka/…/ sayfası.
+  //
+  // 🔴 KURAL YAZILABİLİR, TABLO DEĞİL: NFD ayrıştırması + BİRLEŞEN İŞARET (U+0300-U+036F)
+  // atma. İkinci bir "aksan tablosu" tutulsaydı `markaNorm`daki liste ile sessizce ayrışırdı
+  // ([[ikiz-tanim-sessiz-ayrisma]]). Sıra ÖNEMLİ: `MODEL_TR` ÖNCE koşar — `ı` ayrıştırılamaz
+  // (birleşen işareti yoktur), onu yalnız tablo çözebilir.
+  // 🔴 GÖSTERİM/SLUG KURALI DEĞİŞMEZ: birleşen kovanın adı deponun MEVCUT kanonik gösterim
+  // kuralından gelir (`_KANONIK_GOSTERIM` → yoksa EN SIK yazım); ölçüldü: üç birleşmede de
+  // aksansız yazım kazanıyor, yaşayan sayfaların slug'ı AYNI kalıyor (slug değişen 0).
   function modelKanon(s){
     var t = (s === null || s === undefined ? "" : String(s)).trim().toLowerCase();
     t = t.replace(/[ışğüöçâîû]/g, function(c){ return MODEL_TR[c]; });
+    t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     return t.replace(/[\s\-\._\/]/g, "");
   }
   // 🔴 BİLEŞİK MARKA KORUMASI — ÇOK KELİMELİ kanonik marka adları TEK PARÇA kalır.
@@ -2700,7 +2721,23 @@
   // gösterim marka_model_build._KANONIK_GOSTERIM ile çivili). Birleşme MARKA-ÖZELDİR: kural
   // marka-kör yazılsaydı `Opel Astra K` (12 ürün, CANLI sayfa) ve `Renault 5` (11 ürün, RAKAM
   // — gerçek model) ölürdü; ikisi de ölçüldü. Etkisi üyelik kapısında K20 ile ölçülür.
-  var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi"};
+  // MODEL_ALIAS — AYNI ARACI adlandıran kanon anahtarlarını TEK kovada birleştirir
+  // ("<kanonik marka>|<kanon>" -> hedef kanon). Kanon anahtarını DEĞİŞTİRİR: sayfa
+  // adresi, çip etiketi ve `?model=` filtresi birlikte kayar; bu yüzden her satır
+  // MİMAR HÜKMÜDÜR ve geri alınabilirliği için AYRI commit'te taşınır.
+  var MODEL_ALIAS = {"BMW|k":"kserisi","Ford|fseries":"fserisi",
+    // 6 Ağu, mimar hükmü (ADIM 3 / hüküm C): Mercedes SINIF adları katalogda ÜÇ dilde
+    // yazılmış ve aynı aile ÜÇ kovaya bölünmüştü (A 20 · A-Klasse 4 · A-Class 7 ·
+    // V 7 · V-Class 8 · V-Klasse 3). Emsal birebir `BMW|k -> kserisi` satırıdır.
+    // 🔴 HEDEF KANON, BUGÜN YAYINDA OLAN kovadır (A-Class canlı) ya da yoksa EN BÜYÜK
+    // kovadır (V-Class 8) — böylece yaşayan URL KORUNUR, kapanan sayfa 0 olur.
+    // 🔴 TEK HARFLİ JETON TEHLİKE SINIFINDA KALIR: `A`/`V` yalnız marka+model BİTİŞİK
+    // ifadeyle eşleşir; birleşme bunu DEĞİŞTİRMEZ, yalnız kovayı tekilleştirir.
+    "Mercedes|a":"aclass","Mercedes|aklasse":"aclass",
+    "Mercedes|v":"vclass","Mercedes|vklasse":"vclass",
+    // 6 Ağu, mimar hükmü (ADIM 3 / hüküm A): `Traffic` Renault'nun KENDİ modelinin
+    // YANLIŞ YAZIMIDIR (doğrusu `Trafic`) — deny değil, YAZIM İKİZİ; birleştirilir.
+    "Renault|traffic":"trafic"};
   // Bir değerin, `marka` altındaki MODEL ÜYELİK ANAHTARI. Boş dönerse eşleşme kurulmaz
   // (fail-closed: "" === "" ile marka geneli dönmesin).
   function modelAnahtar(marka, s){

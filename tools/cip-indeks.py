@@ -498,6 +498,10 @@ def indeks_uret(urunler, index_metni):
     def _elendi(k):
         if (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k]):
             return True
+        # H3 DENY KOLU (6 Agu, mimar hukmu): taban modele YAPISIK donanim soneki tasiyan
+        # kova sayfa ACMAZ -> cip de ACMAZ (`yayimlanir_mi` ile ayni govde, ayni sira).
+        if _mmb.donanim_kuyruklu_mu(mm_ad[k]):
+            return True
         # YARGISIZ SAYFA DOGMAZ -> YARGISIZ CIP DE DOGMAZ (5 Agu). Kova esigi/birincilligi
         # YALNIZ baslik kolu sayesinde geciyorsa, sayfa ureticisi onu BASLIK_DOGAN_ALLOW'a
         # baglar; cip de ayni yargiya baglanir, yoksa sayfasi olmayan OLU cip dogardi (M4).
@@ -509,7 +513,10 @@ def indeks_uret(urunler, index_metni):
             return False
         _bd = (jeton_yolu_n.get((k[1], k[2]), 0) < _mmb.ESIK
                or (k[1], k[2]) not in jeton_yolu_birincil)
-        return _bd and (k[1], k[2]) not in _mmb.BASLIK_DOGAN_ALLOW
+        # 🔴 YARGI GOVDESI TEK KAYNAK: envanter + H1 sasi/motor kodu + H3 ayri arac adi
+        # (`_mmb.baslik_yargisi_var_mi`). Buraya yalnizca envanter yazilsaydi H1/H3 ile
+        # DOGAN sayfalar cipsiz kalirdi — sessiz ayrisma.
+        return _bd and not _mmb.baslik_yargisi_var_mi(k[1], k[2], mm_ad[k])
 
     # KOVA ANCAK KENDI YAZIMIYLA DOGAR (mm_tam): yalnizca kusak katlamasiyla ulasilan bir
     # canon icin cip UYDURULMAZ — sayfa ureteci de tabana ancak taban kovasi VARSA katlar.
