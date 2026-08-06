@@ -63438,22 +63438,6 @@
     ]
   },
   {
-    "id": "nissan-micra-k11-bardaklik",
-    "kategori": "Otomobil",
-    "marka": [
-      "Nissan",
-      "Micra K11"
-    ],
-    "baslik": "Nissan Micra K11 El Freni Yanı Bardaklığı",
-    "aciklama": "Nissan Micra K11 (March) kasasında el freninin arkasındaki boşluğa oturan tek gözlü bardaklıktır.\n73 mm çapındaki bardak/kupa ölçüsüne göre biçimlendirilmiştir.\n- Konsoldaki mevcut boşluğa oturarak sabitlenir.\n- Fabrikada bardaklık bulunmayan K11 kasası için pratik bir tamamlayıcıdır.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw933444-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw933444-2.jpg",
-      "https://media.pruvo3d.com/urunler/mw933444-3.jpg"
-    ]
-  },
-  {
     "id": "nissan-300zx-z32-line-art-panosu",
     "kategori": "Otomobil",
     "marka": [
@@ -72325,21 +72309,6 @@
       "tasarimci": "Spanx",
       "tur": "CC BY 4.0"
     }
-  },
-  {
-    "id": "honda-accord-hararet-deposu-kapagi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Honda",
-      "Accord"
-    ],
-    "baslik": "Honda Accord Hararet Deposu Kapağı",
-    "aciklama": "Honda Accord modellerinde soğutma sıvısı yedek deposunun ağzını kapatan kapaktır.\nDepo ağzına dişli oturur ve sıvının çalkalanarak dışarı taşmasını engeller.\n- 2010 Accord deposuna göre biçimlendirilmiştir.\n- Yaşlanıp çatlayan orijinal kapağın yerine yedek olarak kullanılır.\n- Isıya dayanıklı malzeme tercih edilmesi uygun olur.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw1431802-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw1431802-2.jpg"
-    ]
   },
   {
     "id": "honda-vfr800-kuyruk-tutamak-kapak-plakasi",
@@ -234895,27 +234864,6 @@
     ]
   },
   {
-    "id": "ford-cati-tasiyici-koruyucu-kapak",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford"
-    ],
-    "baslik": "Çatı Rafı Kapağı Koruması (Ford)",
-    "aciklama": "Çatı taşıyıcı/raf kapağı için koruyucu işlevli yedek parça.\nKapak açma-kapama ve rijit taşıyıcının korunmasına yardımcı olur.\nAraca uygun yuvalama ile servis sonrası pratik değişim sağlayabilir.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw1629089-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw1629089-2.jpg",
-      "https://media.pruvo3d.com/urunler/mw1629089-3.jpg"
-    ],
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "Ford"
-      }
-    ]
-  },
-  {
     "id": "ford-nugget-buzdolabi-kapagi-mentesesi",
     "kategori": "Otomobil",
     "marka": [
@@ -306752,36 +306700,6 @@
     "uyum": [
       {
         "marka": "BMW"
-      }
-    ]
-  },
-  {
-    "id": "toyota-kap-paneli-klipsi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Toyota"
-    ],
-    "baslik": "Toyota kapı paneli klipsi",
-    "aciklama": "Toyota kapı paneli ve trim sabitleme için kullanılan itmeli klips.\n- Kapı döşemesi, trim ve iç plastik parçaları sabitlemeye yardımcı olur.\n- Uygulamada birebir yedek parça olarak kullanılır.\n- Farklı renk seçenekleriyle üretilebilir.",
-    "fiyat": "250 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw3070705-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw3070705-2.jpg",
-      "https://media.pruvo3d.com/urunler/mw3070705-3.jpg",
-      "https://media.pruvo3d.com/urunler/mw3070705-4.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA",
-      "PETG"
-    ],
-    "lisans": {
-      "tasarimci": "AshFeather",
-      "tur": "CC BY-SA 4.0"
-    },
-    "altkategori": "Kapı ve Cam",
-    "uyum": [
-      {
-        "marka": "Toyota"
       }
     ]
   },

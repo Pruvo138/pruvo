@@ -264,10 +264,15 @@ class Olculemedi(Exception):
 # `git -C <TOOLS> rev-parse --show-toplevel` idi (TOOLS = `<agac>/tools`) ve
 # OLCULEN cikti aynen sudur:
 #     rev-parse --show-toplevel (cwd=tools): /.../wt/tools      ← YANLIS
-# ANA checkout'ta ayni satir dogru cevap verir cunku orada GIT_DIR GORELI (`.git`)
-# gelir: `-C <kok>/tools` altinda `.git` YOKTUR, cagri BASARISIZ olur ve kod
-# ikinci adaya (cwd = depo koku) duser. Yani hata dala degil, KANCA+WORKTREE
-# baglamina baglidir ve ana checkout'ta GORUNMEZ.
+# ANA checkout'ta ayni satir dogru cevap verir — ama SEBEBI "GIT_DIR orada GORELI
+# (`.git`) gelir, cagri basarisiz olur, kod ikinci adaya duser" DEGILDIR. Bu ilk
+# teshis SONRADAN OLCULEREK CURUTULDU (6 Agu 2026, tools/kok-cozum-taramasi.py,
+# GERCEK kanca): git bu degiskeni ANA CHECKOUT'ta kancaya HIC VERMEZ —
+#     ana checkout    : GIT_DIR='<yok>'   · GIT_WORK_TREE='<yok>'
+#     linked worktree : GIT_DIR=<mutlak>  · GIT_WORK_TREE='<yok>'
+# Yani ana checkout'ta ilk aday ZATEN dogru cevabi verir (kesif calisir), ikinci
+# adaya DUSULMEZ. Hata dala degil KANCA+WORKTREE baglamina baglidir ve ana
+# checkout'ta GORUNMEZ; bunun olculmus sebebi ihrac edilen degiskenin YOKLUGUDUR.
 #
 # CARE: kok ORTAMDAN degil, `-C <yol>` KESFINDEN turer. Bu kapinin cagirdigi HER
 # git komutu, cagiran surecten MIRAS ALINAN git baglami SILINMIS bir ortamda
@@ -1082,8 +1087,9 @@ def kanca_iddialari(kok, iddia):
 
 
 # ------------------------------------------- WORKTREE/KANCA KOK EKSENI (6 Agu 2026)
-# 🔴 NEDEN AYRI BIR EKSEN: kok turetme hatasi ANA CHECKOUT'ta GORUNMEZ (orada GIT_DIR
-# GORELI gelir ve kod ikinci adaya duser). K1..K8 ayagi ana checkout'ta kostugu icin
+# 🔴 NEDEN AYRI BIR EKSEN: kok turetme hatasi ANA CHECKOUT'ta GORUNMEZ (orada git
+# GIT_DIR'i kancaya HIC VERMEZ -> kesif calisir; olculdu 6 Agu 2026,
+# tools/kok-cozum-taramasi.py). K1..K8 ayagi ana checkout'ta kostugu icin
 # bu sinifi HIC olcmuyordu; kapi worktree'de rc=2 verip commit'i durduruyor, isci de
 # `--no-verify`ye itiliyordu. Bu eksen UC BAGLAMI da DAVRANISSAL olcer:
 #   (a) ANA checkout, DOGRUDAN cagri        -> kok = ana
