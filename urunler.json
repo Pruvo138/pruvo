@@ -1,5 +1,491 @@
 [
   {
+    "id": "yamaha-xs750s-hava-filtresi-dirsegi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XS750"
+    ],
+    "baslik": "Yamaha XS750S Hava Filtresi Bağlantı Dirseği",
+    "aciklama": "Yamaha XS750S üzerinde karbüratör ile konik hava filtresi arasındaki bağlantıyı sağlayan açılı dirsek parçasıdır.\n- Karbüratör ağzı ile yan sanayi konik filtre arasına oturur.\n- Açılı gövdesi sayesinde filtreyi şasi ve gövde parçalarından uzaklaştırır.\n- Isıya dayanıklı bir malzemeden üretilmesi önerilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt82048-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt82048-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt82048-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-virago-gen2-sag-aku-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Virago"
+    ],
+    "baslik": "Yamaha Virago (2. Nesil) Sağ Akü Kapağı",
+    "aciklama": "1984 ve sonrası ikinci nesil Yamaha Virago modellerinde sağ taraftaki akü bölmesini kapatan yan kapak parçasıdır.\n- Kırılan veya kaybolan orijinal sağ yan kapağın yerine kullanılabilir.\n- Orijinal lastik takozlara oturan sabitleme pimleri bulunur.\n- Boyanabilir yüzey yapısına sahiptir.",
+    "fiyat": "690 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt958063-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt958063-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt958063-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-sessiz-gitar-pena-tutucusu",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha Sessiz Gitar İçin Pena Tutucusu",
+    "aciklama": "Yamaha sessiz gitarın gövde çerçevesine takılan, penaların çalarken elin altında durmasını sağlayan tutucudur.\n- Gitarın gövde çerçevesine vida gerektirmeden kenetlenir.\n- Birden fazla penayı yan yana taşıyabilir.\n- Enstrümanın yüzeyine zarar vermeyecek şekilde oturur.",
+    "fiyat": "430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2425479-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2425479-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2425479-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2425479-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2425479-5.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-mt-07-fren-hidrolik-deposu-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "baslik": "Yamaha MT-07 / FZ-07 Fren Hidrolik Deposu Braketi (5 Tasarım)",
+    "aciklama": "Yamaha MT-07 ve FZ-07 modellerinde arka fren hidrolik deposunu şaseye taşıyan bağlantı braketidir; beş farklı tasarım seçeneği içerir.\n- Beş ayrı gövde tasarımı sunar; sürücü istediğini üretebilir.\n- Orijinal depo ve şase bağlantı noktalarını kullanır.\n- Sağlam ve ısıya dayanıklı bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "480 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2442994-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2442994-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2442994-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2442994-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-aerox-mbk-nitro-sogutma-suyu-deposu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Aerox"
+    ],
+    "baslik": "Yamaha Aerox / MBK Nitro Soğutma Suyu Deposu",
+    "aciklama": "Yamaha Aerox ve MBK Nitro scooterlarda soğutma suyu genleşme deposunun yerine kullanılan yedek depo gövdesidir.\n- Orijinal depo bağlantı kulakları ve hortum ağızlarıyla uyumludur.\n- Çatlayan veya kırılan orijinal deponun yerine takılabilir.\n- Sıvı ve sıcaklığa dayanıklı bir malzemeden üretilmelidir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2444514-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2444514-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2444514-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2444514-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-sessiz-gitar-kisa-klavye-destegi",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha Sessiz Gitar İçin Kısa Klavye Desteği",
+    "aciklama": "Yamaha sessiz gitarın klavye ucunda boşta kalan bölgeyi dolduran, gövde çerçevesine oturan destek parçasıdır.\n- Gitarın açık gövde çerçevesine takılır.\n- Klavye ucunda düz bir dayanma yüzeyi oluşturur.\n- Takıp çıkarması kolaydır, enstrümanda kalıcı değişiklik gerektirmez.",
+    "fiyat": "430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2583862-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2583862-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2583862-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2583862-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2583862-5.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-tmax-500-emme-agzi-takimi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "TMAX"
+    ],
+    "baslik": "Yamaha TMAX 500 Emme Ağzı Takımı",
+    "aciklama": "Yamaha TMAX 500 üzerinde konik hava filtresini emme ağızlarına bağlayan iki çıkışlı adaptör takımıdır.\n- İki emme ağzını tek konik filtreye birleştirir.\n- Orijinal hava kutusu çıkarıldığında kullanılmak üzere tasarlanmıştır.\n- Isıya ve titreşime dayanıklı bir malzeme tercih edilmelidir.",
+    "fiyat": "860 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2746393-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2746393-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2746393-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2746393-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2746393-5.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-super-tenere-el-korumasi-uzatmasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Ténéré"
+    ],
+    "baslik": "Yamaha Super Ténéré XT1200Z El Koruması Üst Uzatması",
+    "aciklama": "Yamaha Super Ténéré XT1200Z el korumalarının üst kenarına eklenerek rüzgâr ve yağmur korumasını artıran uzatma parçasıdır.\n- Orijinal el korumasının üst kenarına geçmeli olarak oturur.\n- Ele gelen rüzgâr ve yağmuru belirgin şekilde azaltır.\n- Reflektif bant yapıştırmaya uygun düz yüzeyi vardır.",
+    "fiyat": "860 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2761273-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2761273-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2761273-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2761273-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-super-tenere-alt-el-korumasi-uzatmasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Ténéré"
+    ],
+    "baslik": "Yamaha Super Ténéré XT1200Z Alt El Koruması Uzatması",
+    "aciklama": "Yamaha Super Ténéré XT1200 ve XT1200Z el korumalarının alt tarafına eklenen, elin alt bölgesini rüzgârdan koruyan uzatma çiftidir.\n- Sağ ve sol taraf için iki parçadan oluşur.\n- Orijinal el koruması gövdesine geçmeli olarak sabitlenir.\n- Soğuk havada ele gelen hava akışını keser.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2858275-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2858275-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2858275-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt2858275-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-125-jikle-kolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha 125 Jikle Kolu",
+    "aciklama": "Yamaha 125 modellerinde karbüratör jikle mekanizmasını çeken, tırtıklı tutma yüzeyine sahip kol parçasıdır.\n- Kırılan orijinal jikle kolunun yerine kullanılabilir.\n- Tırtıklı yüzeyi eldivenle bile kavramayı kolaylaştırır.\n- Yakıt ve ısıya dayanıklı bir malzemeden üretilmesi önerilir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2878726-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-r15-ayna-kanatcigi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "R15"
+    ],
+    "baslik": "Yamaha R15 Ayna Kanatçığı",
+    "aciklama": "Yamaha R15 üzerinde ayna gövdesinin yanına takılan, hava akışını yönlendiren dekoratif-fonksiyonel kanatçık parçasıdır.\n- Ayna bağlantı vidalarını kullanarak sabitlenir.\n- Sağ ve sol taraf için ayna simetrisine uygundur.\n- İnce yapısı nedeniyle esnek dayanımı yüksek malzeme tercih edilmelidir.",
+    "fiyat": "1030 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3331876-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3331876-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3331876-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3331876-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-r3-mt-03-hava-kutusu-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-03"
+    ],
+    "baslik": "Yamaha R3 / MT-03 Petek Desenli Hava Kutusu Kapağı",
+    "aciklama": "Yamaha R3 ve MT-03 modellerinde hava kutusu kapağının yerine takılan, petek delikli açık kapaktır.\n- Orijinal kapağın vida deliklerini birebir kullanır.\n- Petek deseni emme sesini ve hava akışını değiştirir.\n- Isıya dayanıklı bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "860 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3428816-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3428816-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3428816-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-pivot-mili-burcu-68dg",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha Pivot Mili Burcu (68DG-25390000)",
+    "aciklama": "Yamaha pivot mili için 68DG-25390000 parça numaralı burcun muadili yedek parçasıdır.\n- Orijinal parça numarasına göre ölçülendirilmiştir.\n- Aşınan orijinal burcun yerine takılabilir.\n- Aşınmaya dayanıklı bir malzemeden üretilmesi önerilir.",
+    "fiyat": "430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3640826-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-tenere-660-kaplama-destegi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Ténéré"
+    ],
+    "baslik": "Yamaha Ténéré 660 Kaplama Destek Parçası",
+    "aciklama": "Yamaha Ténéré 660 ön kaplamasının kırılan iç bağlantı kulağını yenileyen destek parçasıdır.\n- Kaplamanın kırılan bağlantı kulağının yerine yapıştırılarak kullanılır.\n- Orijinal vida ve takoz konumlarını korur.\n- Titreşime dayanıklı bir malzeme tercih edilmelidir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3689128-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3689128-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3689128-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-mt-09-2021-on-cami",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-09"
+    ],
+    "baslik": "Yamaha MT-09 (2021 ve Sonrası) Ön Camı",
+    "aciklama": "Yamaha MT-09'un 2021 ve sonrası modellerinde gösterge önüne takılan, sürücüye gelen rüzgârı azaltan ön cam parçasıdır.\n- Orijinal gösterge kaportası bağlantı noktalarına oturur.\n- Sürücünün göğüs ve kask bölgesindeki türbülansı azaltır.\n- Montaj için standart cıvata ve pul takımı gerekir.",
+    "fiyat": "2150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3940210-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3940210-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3940210-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-tracer-9-yan-canta-ic-duzenleyici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tracer"
+    ],
+    "baslik": "Yamaha Tracer 9 (2021 ve Sonrası) Yan Çanta Düzenleyici Takımı",
+    "aciklama": "Yamaha Tracer 9 yan çantalarının içinde eşyaların sabit durmasını sağlayan bölme ve destek parçalarından oluşan takımdır.\n- Orijinal yan çanta iç ölçülerine göre tasarlanmıştır.\n- Bölme çubukları ve köşe takozları ile içerik kaymasını önler.\n- Çantada kalıcı değişiklik gerektirmez.",
+    "fiyat": "1290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3958814-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3958814-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3958814-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3958814-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xsr700-far-kaplamasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR700"
+    ],
+    "baslik": "Yamaha XSR700 Özel Far Kaplaması",
+    "aciklama": "Yamaha XSR700 için yuvarlak farı çevreleyen, çatal boruları arasına oturan özel tasarım far kaplamasıdır.\n- Yuvarlak far gövdesini ve çatal borularını kavrayarak oturur.\n- Ön görünümü café racer tarzına yaklaştırır.\n- Dış yüzeyi zımparalanıp boyanmaya uygundur.",
+    "fiyat": "6000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4534866-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4534866-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4534866-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4534866-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-f15-f20-mars-kolu-baglantisi",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha F15 / F20 Dış Motor Marş Kolu Bağlantısı",
+    "aciklama": "Yamaha F15 ve F20 dış takma motorlarda marş kolunun bağlantı parçası olarak kullanılan yedek aparattır.\n- Yamaha F15 ve F20 dış motor modelleri için tasarlanmıştır.\n- Kırılan orijinal bağlantının yerine kullanılabilir.\n- Deniz koşullarına dayanıklı bir malzeme tercih edilmelidir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4679786-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4679786-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4679786-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4679786-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-mt-09-2021-on-camurlugu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-09"
+    ],
+    "baslik": "Yamaha MT-09 (2021-2023) Ön Çamurluğu",
+    "aciklama": "Yamaha MT-09'un 2021-2023 modellerinde ön tekerlek üzerine takılan çamurluk gövdesidir.\n- Orijinal çatal bağlantı noktalarını ve vida deliklerini kullanır.\n- Kırılan veya çizilen orijinal çamurluğun yerine takılabilir.\n- Sağlam ve darbeye dayanıklı bir malzeme tercih edilmelidir.",
+    "fiyat": "3430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4772901-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4772901-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4772901-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4772901-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-mt-09-2021-topuk-korumasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-09"
+    ],
+    "baslik": "Yamaha MT-09 (2021-2023) Topuk Koruması",
+    "aciklama": "Yamaha MT-09'un 2021-2023 modellerinde sürücü ayaklığının yanına takılan, topuğu egzoz ve şaseden ayıran koruma plakasıdır.\n- Orijinal ayaklık taşıyıcısına vidalanır.\n- Topuğun sıcak parçalara temasını engeller.\n- Isıya dayanıklı bir malzemeden üretilmesi önerilir.",
+    "fiyat": "3000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4772936-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4772936-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4772936-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4772936-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-mt-09-2023-far-kanatcigi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-09"
+    ],
+    "baslik": "Yamaha MT-09 (2023) Far Kanatçığı",
+    "aciklama": "Yamaha MT-09'un 2023 modelinde far grubunun iki yanına takılan aerodinamik kanatçık takımıdır.\n- Far gövdesinin yan yüzeylerine oturacak şekilde tasarlanmıştır.\n- Ön görünüme belirgin bir hat kazandırır.\n- Karbon görünümlü malzemeyle de üretilebilir.",
+    "fiyat": "3860 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4806293-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4806293-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4806293-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4806293-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-r6-winglet-cifti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "R6"
+    ],
+    "baslik": "Yamaha R6 (2017-2022) Winglet Çifti",
+    "aciklama": "Yamaha R6'nın 2017-2022 modellerinde ön kaportanın iki yanına takılan aerodinamik winglet çiftidir.\n- Sağ ve sol taraf için iki parça halindedir.\n- Kaporta yan yüzeyine yapışkan bant veya vida ile sabitlenir.\n- Yüksek hızda ön tekerleğe binen yükü artırmayı amaçlar.",
+    "fiyat": "2570 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4897979-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4897979-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-r15-far-arka-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "R15"
+    ],
+    "baslik": "Yamaha R15 (V1 / V2) Far Arka Kapağı",
+    "aciklama": "Yamaha R15 V1 ve V2 modellerinde far gövdesinin arkasını kapatan, ampul bölmesini toz ve suya karşı koruyan kapaktır.\n- Far gövdesinin arka ağzına geçmeli olarak oturur.\n- Kaybolan veya yıpranan orijinal kapağın yerine kullanılabilir.\n- Isıya dayanıklı bir malzeme tercih edilmelidir.",
+    "fiyat": "520 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5301936-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5301936-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xs400-ayak-dayama-lastigi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XS400"
+    ],
+    "baslik": "Yamaha XS400 Ayak Dayama Lastiği",
+    "aciklama": "Yamaha XS400 üzerinde sürücü ayaklığının üzerine geçen, tırtıklı yüzeyli ayak dayama lastiğidir.\n- Orijinal ayaklık gövdesine geçmeli olarak oturur.\n- Tırtıklı yüzeyi ıslak havada kaymayı azaltır.\n- İşlevi için esnek bir malzemeden üretilmesi gerekir.",
+    "fiyat": "860 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5432664-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5432664-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5432664-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-super-tenere-cam-ayar-somunu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Ténéré"
+    ],
+    "baslik": "Yamaha Super Ténéré XT1200 Ön Cam Ayar Somunu",
+    "aciklama": "Yamaha XT1200 ve XT1200Z Super Ténéré modellerinde ön camın yükseklik ayar mekanizmasında kullanılan tırnaklı somundur.\n- Ön cam ayar mekanizmasının arka yuvasına oturur.\n- Kaybolan veya sıyrılan orijinal somunun yerine kullanılabilir.\n- Elle sıkmaya uygun tırnaklı gövdeye sahiptir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5704242-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5704242-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5704242-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5704242-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-x-city-ozel-on-cami",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "X-City"
+    ],
+    "baslik": "Yamaha X-City Özel Ön Camı",
+    "aciklama": "Yamaha X-City scooter için gösterge önüne takılan, sürücüye gelen rüzgârı kesen özel tasarım ön camdır.\n- Orijinal ön panel bağlantı noktalarını kullanır.\n- Geniş yüzeyi göğüs ve kask hizasındaki rüzgârı azaltır.\n- Şeffaf veya opak malzemeyle üretilebilir.",
+    "fiyat": "12850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6278159-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6278159-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6278159-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6278159-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-r7-winglet-cifti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "R7"
+    ],
+    "baslik": "Yamaha R7 Winglet Çifti",
+    "aciklama": "Yamaha R7 için ön kaportanın iki yanına takılan aerodinamik winglet çiftidir.\n- Sağ ve sol taraf için iki parça halindedir.\n- Kaporta yan yüzeyine oturacak şekilde biçimlendirilmiştir.\n- Darbeye dayanıklı bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "2570 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6354653-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6354653-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6354653-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-dtr-125-catal-kablo-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "DT125"
+    ],
+    "baslik": "Yamaha DTR 125 Çatal Kablo Tutucusu",
+    "aciklama": "Yamaha DTR 125'in ön çatal borusuna geçen, fren hortumu ve kabloları düzenli tutan kelepçe tipi tutucudur.\n- Çatal borusunu saran kelepçe gövdesine sahiptir.\n- Kablo ve hortumun tekerleğe temasını önler.\n- Titreşime dayanıklı bir malzeme tercih edilmelidir.",
+    "fiyat": "520 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6518418-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6518418-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6518418-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6518418-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-yzf-r3-plaka-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZF-R3"
+    ],
+    "baslik": "Yamaha YZF-R3 (2019-2024) Kısa Plaka Tutucusu",
+    "aciklama": "Yamaha YZF-R3'ün 2019-2024 modellerinde plakayı sele altına yaklaştıran kısa plaka tutucusudur.\n- Orijinal plaka bağlantı noktalarını kullanır.\n- Uzun orijinal plakalığın yerine takılarak arka görünümü toparlar.\n- Plaka aydınlatması için geçiş boşluğu bulunur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6565401-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-mt-07-2025-on-winglet",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "baslik": "Yamaha MT-07 (2025) Ön Winglet",
+    "aciklama": "Yamaha MT-07'nin 2025 modelinde ön kaportanın yanına takılan aerodinamik winglet parçasıdır.\n- Ön kaporta yan yüzeyine oturacak şekilde tasarlanmıştır.\n- Yüksek hızda ön bölgedeki hava akışını yönlendirir.\n- Darbeye dayanıklı bir malzeme tercih edilmelidir.",
+    "fiyat": "1030 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6848011-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6848011-2.jpg"
+    ]
+  },
+  {
     "id": "nissan-rogue-2014-guneslik-klipsi",
     "kategori": "Otomobil",
     "marka": [
