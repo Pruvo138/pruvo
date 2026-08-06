@@ -30,17 +30,23 @@ import subprocess
 import sys
 import tempfile
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 🔴 TEK KAYNAK (6 Agu 2026 duzeltmesi): kume ARTIK BURADA YENIDEN YAZILMIYOR.
+# Eski hal bir IKIZ TANIMDI ve yorumu "import edilemedigi icin acikca yeniden yazilir,
+# sapmasi bu surucuyu YANILTMAZ" diyordu. Ikisi de artik gecersiz: (a) kume
+# `tools/git_ortami.py`de IMPORT EDILEBILIR halde duruyor, (b) kume ZATEN SAPMISTI —
+# burada 10 ad vardi, `GIT_INDEX_VERSION` EKSIKTI. Sapma bu surucunun ANLATTIGI seyi
+# de bozar: "[YENI] ifade" satiri `diriltme-kapisi.py`nin FIILEN yaptigi temizligi
+# temsil ettigini iddia eder; farkli bir kumeyle olcerse o iddia YANLIS olur
+# ([[ikiz-tanim-sessiz-ayrisma]]). FALLBACK YOK: modul yoksa cagri COKSUN.
+from git_ortami import GIT_BAGLAM_DEGISKENLERI   # noqa: E402
+
 # Taranan kume: `tools/kancalar/pre-commit` + `pre-push`in FIILEN cagirdigi araclar.
 ARACLAR = ("diriltme-kapisi.py", "urunler-guard.py", "mukerrer-kontrol.py",
            "mimar-commit-kapisi.py", "kanca-kur.py", "commit-mesaji-kapisi.py")
 
-# `diriltme-kapisi.py::git_ortami` ile AYNI SINIF kume (ikiz tanim: burada KOPYA degil,
-# import edilemedigi icin ACIKCA yeniden yazilir ve sapmasi bu surucuyu YANILTMAZ —
-# olculen sey "temizlenmis ortamda kok DOGRU mu"dur, kumenin kendisi degil).
-KESIF_ORTAMI = ("GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE",
-                "GIT_PREFIX", "GIT_OBJECT_DIRECTORY",
-                "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE",
-                "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM")
+KESIF_ORTAMI = GIT_BAGLAM_DEGISKENLERI
 
 
 def kos(*args, **kw):
