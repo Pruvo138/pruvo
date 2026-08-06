@@ -137,6 +137,19 @@ KAPSAM DISI ve NEDENI (kapsami buyutmek pozitif nobetciyi oldurur,
   basina gerileme sayilirsa (bugunku kirmizinin "kolay" onarimi tam da budur) A22
   KIRMIZI yanar. Kanit repoda durur: `--capa-mutasyon` (A-M1 -> yalniz A20 duser,
   A-M2 -> yalniz A22 duser, KONTROL -> hicbiri).
+  ⚠️ NEDEN A-M2 SALT `-` CONJUNCT'INI DUSURMEZ (gerekce DUZELTILDI — eski metin bunu
+  "sinif YAPISAL OLARAK BOS" diye yaziyordu, YANLIS OLCUM): hukum kosulundan yalniz
+  TERK EDILME sartini atan mutant `--alan-capa` yuzeyinde hicbir iddia dusurmez, cunku
+  "yalniz `+` gorulmus, `-` terk edilmemis" sinifi BUGUNKU KATALOGDA OLCULEN 11 adayda
+  BOStur (9 NITELIKLI + 2 DOGUSTAN-vN + 0 KARISIK) — bu bir YAPI zorunlulugu DEGIL,
+  OLCULEN bir tabandir ve degisebilir. MEKANIZMA: aday turetimi ALAN-bazlidir
+  (`alan_satirlari(alan, yv) - t_satir`) ama `+`/`-` gorulme kumeleri KAYIT-bazlidir,
+  yani tabanda o KAYITTA baska bir alanda duran bir satir O ALANDA aday olabilir ve
+  hic terk edilmemis olabilir; sinif bugun bos, dolabilir. Bu yuzden A-M2 `-` yerine
+  DOSYA ADI DESENINI hukum ureticisi yapar (bu yuzeyde AYIRT EDICI kalir). `-`
+  conjunct'i OLCUSUZ KALMAZ: `--kendini-test` icindeki A17d saf-karar iddiasi (`+`
+  gorulmus ama `-` YOK -> gerileme DEGIL) tam da o conjunct'i olcer; conjunct
+  dusurulurse A17d KIRMIZI yanar.
   📏 ARZ NOBETI: her iki arz sayisi (NITELIKLI · DOGUSTAN-vN) koşum ciktisinda BASILIR;
   arz duserse gorunur olur, sessizce zayiflamaz.
 
