@@ -5,8 +5,8 @@
   python3 tools/d1-sync.py --sema     # semayi kur (bir kez / degisince)
   python3 tools/d1-sync.py            # DIFF-UPSERT: sadece degisen/yeni/silinen
   python3 tools/d1-sync.py --kuru     # hicbir sey yazma, ne yapacagini soyle
-  python3 tools/d1-sync.py --durum    # SAYI ekseni + ICERIK ekseni (urun_hash) teyidi
-  python3 tools/d1-sync.py --durum --hizli   # yalniz SAYI ekseni (icerik ekseni ATLANIR)
+  python3 tools/d1-sync.py --durum    # SAYI + SEMA + ICERIK (urun_hash) + TURETILMIS KOLON
+  python3 tools/d1-sync.py --durum --hizli   # yalniz SAYI + SEMA (icerik + turetilmis ATLANIR)
   python3 tools/d1-sync.py --kendini-test    # OFFLINE kabul testi (sqlite; D1'e dokunmaz)
 
 *** NEDEN GERI-OKUMA (write-verify) VAR — 31 Tem, OLCULMUS OLAY ***
@@ -25,6 +25,12 @@ Bu yuzden iki eksen eklendi:
       SIFIR-DISI cikar ve NE'nin yazilmadigini (id + alan + beklenen/bulunan) basar.
       Wrangler'in "N satir yazildi" ciktisi artik IDDIA'dir, dogrulanmadan basari sayilmaz.
   (2) --durum ICERIK EKSENI — sayi degil, urun_hash duzeyinde D1 ↔ urunler.json karsilastirmasi.
+  (3) --durum TURETILMIS KOLON EKSENI (6 Agu) — urun_hash'in KAPSAMADIGI kolonlar
+      (konfigur/taban_fiyat/marka_kanon/model_kanon/marka_arama) hedefli UPDATE ile
+      senkronlanir; hash onlari OZETLEMEDIGI icin ICERIK ekseni de KORDUR. Olculen vaka:
+      canli `marka_arama`da Honda 1898 iken olmasi gereken 1979 idi ve UC EKSEN DE YESIL
+      yaniyordu. Eksen, kolonu URETEN govdeyi calistirir (ikinci yuklem YOK) ve fail-closed
+      calisir: uretilemezse OLCULEMEDI, asla yesil. Ayrintili gerekce: turetilmis_eksen().
 
 *** NEDEN DIFF-UPSERT SART ***
 D1 ucretsiz katmanda GUNDE 100.000 SATIR YAZMA siniri var (okuma 100M, depolama 5 GB
@@ -1855,6 +1861,194 @@ def icerik_ekseni(urunler, d1_hash):
     return uyusmaz, eksik, fazla
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# TURETILMIS KOLON EKSENI (4. eksen) — urun_hash'in KAPSAMADIGI kolonlarin BAYATLIGI
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🔴 OLCULEN SESSIZ HATA (6 Agu 2026): `marka_arama` (ve kardesleri marka_kanon /
+# model_kanon / konfigur / taban_fiyat) BILEREK urun_hash'in DISINDADIR — hedefli UPDATE
+# ile senkronlanirlar (bkz. sema_plan / taban_plan). Ama --durum'un UC ekseni de bu
+# kolonlara HIC BAKMIYORDU:
+#     SAYI ekseni   -> satir sayisi degismez (kolon guncellemesi satir EKLEMEZ/SILMEZ)
+#     SEMA ekseni   -> indeks/kolon VARLIGINA bakar, DEGERINE degil
+#     ICERIK ekseni -> urun_hash'i kiyaslar; hash bu kolonlari OZETLEMEZ -> gormez
+# Sonuc: kolon BAYAT kalirken UC EKSEN DE YESIL yanardi. Olculen vaka: bir urun partisinden
+# sonra canli `marka_arama` kolonunda Honda 1898 (olmasi gereken 1979), Grom 43 (44) —
+# Ege marka aramasinda yeni urunleri GOREMEZ, site gorur, hicbir alarm calmaz
+# ([[ege-d1-bagimliligi]] sinifi sessiz satis kaybi).
+#
+# 🔴 IKINCI YUKLEM YOK: bu eksen kolonun degerini YENIDEN HESAPLAMAZ. Kolonu URETEN govdeyi
+# (marka_arama_haritasi / marka_kanon_haritasi / model_kanon_haritasi / konfigur_haritasi_d1
+# / taban_fiyat_haritasi) ve senkronun KENDI plan fonksiyonunu CALISTIRIR. Bayatlik tanimi
+# bu yuzden "bir senkron bu kolona YAZAR MIYDI?" sorusunun ta kendisidir; uretim kurali bir
+# gun degisirse eksen kendiliginden izler ([[ikiz-tanim-sessiz-ayrisma]]).
+# 🔴 FAIL-CLOSED: uretici govde deger uretemezse (tek kaynak okunamadi, kolon canlida yok,
+# modul dustu) sonuc YESIL DEGIL "OLCULEMEDI"dir ve cikis kodu bunu yansitir. Senkron
+# yolunda ayni hal "DOKUNMA" (bayat > bos) demektir ve exit 0 doner — burada olculebilirlik
+# ISTENIR, bilinmezlik yesil SAYILMAZ.
+
+# HASH'IN (dolayisiyla ICERIK ekseninin) KAPSADIGI D1 kolonlari — IKINCI LISTE ACILMAZ,
+# KOLONLAR'dan TURETILIR. Gerekce: KOLONLAR, icerik upsert'inin ON CONFLICT yolunda hash ILE
+# AYNI IFADEDE yazilan kolonlardir; hash D1'de dogruysa o kolonlar FIILEN yazilmistir
+# (satir_sql / GERI_OKUMA_KOLONLARI yorumlarindaki ayni gerekce). `id` catisma anahtaridir.
+HASH_KAPSAMI = frozenset(KOLONLAR) | {"id"}
+
+# TURETILMIS EKSENIN BILEREK DISINDA BIRAKILANLAR — her biri GEREKCELI (gerekcesiz giris
+# YOK; kapsam_acigi() gerekcesi olmayan her kolonu OLCULEMEDI sayar).
+EKSEN_DISI = {
+    "rid": "SQLite rowid — urunler.json'dan TURETILMEZ, kiyaslanacak bir hedefi yok",
+    "seq": "katalog sirasi; diff_plan'in SEQ SANDVIC mantigiyla ILK eklemede sabitlenir, "
+           "urunler.json'dan yeniden turetilemez (dizi indeksi seq DEGILDIR)",
+    "baski": "gizli .urun-kaynaklari.json'dan gelir; dosya CI'da YOKTUR -> hedef degeri "
+             "ORTAMA BAGLI. Bu eksene alinsaydi CI'da her kosum OLCULEMEDI yakardi. "
+             "🔴 ACIK KALAN YUZEY: baski bayatligi bugun HICBIR eksende olculmuyor",
+    "yayinda": "atomik yayin hali — yayin-kapisi.py yazar, urunler.json'dan turetilmez "
+               "(taslak/yayinda ayrimi icerik degil SUREC halidir)",
+    "release_id": "atomik yayin damgasi — yayin-kapisi.py yazar, ayni sinif",
+}
+
+TK_GUNCEL = "GUNCEL"
+TK_BAYAT = "BAYAT"
+TK_OLCULEMEDI = "OLCULEMEDI"
+
+
+def konfigur_hedefleri(urunler):
+    """(harita, sebep) sozlesmesine INCE sarmalayici — uretici govde konfigur_haritasi_d1.
+    `atlanan` (bozuk konfigur) BILEREK yutulur: senkron yolunda da hedef '' olur (satir
+    duzeyinde fail-closed), yani eksen senkronun GORDUGU hedefi gorur."""
+    harita, _atlanan = konfigur_haritasi_d1(urunler)
+    return harita, None
+
+
+def taban_hedefleri(urunler):
+    """(harita, sebep) sarmalayici — uretici govde taban_fiyat_haritasi (katalogu okumaz,
+    jenerator semalarini okur).
+    🔴 BOS HARITA = OLCULEMEDI, "guncel" DEGIL: taban_plan bos haritada [] doner (dokunma),
+    yani sema dizini okunamadiginda eksen SESSIZCE YESIL yanardi — tam da kapattigimiz hal."""
+    del urunler
+    harita = taban_fiyat_haritasi()
+    if not harita:
+        return None, ("jenerator/urunler semasi BOS/okunamadi (%s) — taban fiyat hedefi "
+                      "URETILEMEDI" % JEN_URUN_DIR)
+    return harita, None
+
+
+# HASH'A KARISMAYAN + urunler.json/git'teki semalardan TURETILEN kolonlarin KAYIT DEFTERI.
+# Her giris: uretici govde (harita) + senkronun KENDI plan fonksiyonu + cozum komutu.
+TURETILMIS_KAYIT = [
+    {"kolon": "konfigur", "hedef": konfigur_hedefleri, "plan": konfigur_plan,
+     "coz": "python3 tools/konfigur-bundle-kapisi.py"},
+    {"kolon": "taban_fiyat", "hedef": taban_hedefleri, "plan": taban_plan,
+     "coz": "python3 tools/d1-sync.py   (taban_plan hedefli UPDATE uretir)"},
+    {"kolon": "marka_kanon", "hedef": marka_kanon_haritasi, "plan": marka_kanon_plan,
+     "coz": "python3 tools/marka-invaryant-kapisi.py"},
+    {"kolon": "model_kanon", "hedef": model_kanon_haritasi, "plan": model_kanon_plan,
+     "coz": "python3 tools/model-kanon-d1-test.py"},
+    {"kolon": "marka_arama", "hedef": marka_arama_haritasi, "plan": marka_arama_plan,
+     "coz": "python3 tools/marka-arama-d1-test.py"},
+]
+
+
+def kapsam_acigi(tablo_kolonlari, kayit=None):
+    """CANLI tabloda olup HICBIR eksenin kapsamadigi kolonlar (sirali liste).
+
+    🔴 BU FONKSIYON OLMASA EKSEN KENDI KORLUGUNU TASIRDI: `marka_arama` tam olarak boyle
+    dogdu — kolon canliya girdi, hash'e girmedi, kayit defterine de girmedi ve hicbir kapi
+    onu SORMADI. Yeni bir kolon uc kumeden birine (hash kapsami / turetilmis kayit /
+    GEREKCELI eksen disi) YAZILMADAN --durum yesil YANAMAZ."""
+    kayit = TURETILMIS_KAYIT if kayit is None else kayit
+    kapsanan = HASH_KAPSAMI | {k["kolon"] for k in kayit} | set(EKSEN_DISI)
+    return sorted(k for k in tablo_kolonlari if k not in kapsanan)
+
+
+def turetilmis_mevcut(tablo_kolonlari, kayit=None):
+    """CANLI D1'deki turetilmis kolon degerleri: {kolon: {id: deger}}. TEK SELECT.
+    Tabloda OLMAYAN kolon donen haritaya GIRMEZ -> cagiran onu OLCULEMEDI sayar."""
+    kayit = TURETILMIS_KAYIT if kayit is None else kayit
+    kolonlar = [k["kolon"] for k in kayit if k["kolon"] in tablo_kolonlari]
+    if not kolonlar:
+        return {}
+    r = sorgu("SELECT id, %s FROM urunler" % ", ".join(kolonlar))
+    satirlar = (r[0].get("results") or []) if r else []
+    out = {}
+    for kolon in kolonlar:
+        if kolon == "taban_fiyat":     # taban_plan INT kiyaslar ('700' != 700 tuzagi)
+            out[kolon] = {s["id"]: int(s.get(kolon) or 0) for s in satirlar}
+        else:
+            out[kolon] = {s["id"]: (s.get(kolon) or "") for s in satirlar}
+    return out
+
+
+def turetilmis_eksen(urunler, tablo_kolonlari, mevcutlar, kayit=None):
+    """SAF (canli D1'e DOKUNMAZ — canli degerler `mevcutlar` ile GELIR) -> birim testi
+    burayi cagirir, wrangler gerekmez.
+    Doner: [{kolon, hal, sayi, sebep, ornek, coz}]; hal ∈ {GUNCEL, BAYAT, OLCULEMEDI}."""
+    kayit = TURETILMIS_KAYIT if kayit is None else kayit
+    out = []
+    for k in kayit:
+        kolon, coz = k["kolon"], k["coz"]
+
+        def _olculemedi(sebep, _kolon=kolon, _coz=coz):
+            out.append({"kolon": _kolon, "hal": TK_OLCULEMEDI, "sayi": None,
+                        "sebep": sebep, "ornek": [], "coz": _coz})
+
+        if kolon not in tablo_kolonlari:
+            _olculemedi("kolon CANLI tabloda YOK (--sema kosmadi)")
+            continue
+        if kolon not in mevcutlar:
+            _olculemedi("canli deger OKUNAMADI (SELECT bu kolonu dondurmedi)")
+            continue
+        try:
+            hedefler, sebep = k["hedef"](urunler)
+        except SystemExit as e:        # tek kaynak modulleri fail-closed sys.exit eder
+            hedefler, sebep = None, "SystemExit: %s" % (e.code,)
+        except Exception as e:                                     # noqa: BLE001
+            hedefler, sebep = None, "%s: %s" % (type(e).__name__, e)
+        if sebep or hedefler is None:
+            _olculemedi("URETICI GOVDE hedef uretemedi: %s" % (sebep or "harita None"))
+            continue
+        izleme = []
+        try:
+            plan = k["plan"](urunler, hedefler, mevcutlar[kolon], izleme)
+        except SystemExit as e:
+            _olculemedi("PLAN govdesi dustu: SystemExit: %s" % (e.code,))
+            continue
+        except Exception as e:                                     # noqa: BLE001
+            _olculemedi("PLAN govdesi dustu: %s: %s" % (type(e).__name__, e))
+            continue
+        out.append({"kolon": kolon, "hal": TK_BAYAT if plan else TK_GUNCEL,
+                    "sayi": len(plan), "sebep": None, "coz": coz,
+                    "ornek": [(i["id"], i["alanlar"].get(kolon)) for i in izleme[:5]]})
+    return out
+
+
+def turetilmis_sorunlari(hal, acik=()):
+    """Halden INSAN OKUR sorun satirlari (bos liste = temiz).
+    🔴 OLCULEMEDI de SORUNDUR: "bilmiyorum"u yesile saymak, kapatmaya calistigimiz
+    sessizligin ta kendisi olurdu (fail-closed)."""
+    satirlar = []
+    for h in hal:
+        if h["hal"] == TK_BAYAT:
+            s = ("BAYAT TURETILMIS KOLON (%s): %d satirin CANLI degeri urunler.json'dan "
+                 "TURETILEN degerle AYNI DEGIL. Bu kolon urun_hash'in KAPSAMI DISINDADIR -> "
+                 "SAYI/SEMA/ICERIK eksenlerinin UCU DE bunu GOREMEZ (Ege bu kolondan okuyan "
+                 "sorguda urunleri BULAMAZ, site bulur). Coz: %s"
+                 % (h["kolon"], h["sayi"], h["coz"]))
+            for uid, deger in h["ornek"]:
+                s += "\n      - %s -> olmasi gereken: %s" % (uid, deger)
+            satirlar.append(s)
+        elif h["hal"] == TK_OLCULEMEDI:
+            satirlar.append(
+                "OLCULEMEDI (%s): %s — kolonun guncel olup olmadigi BILINMIYOR; YESIL "
+                "SAYILMAZ (fail-closed). Coz: %s" % (h["kolon"], h["sebep"], h["coz"]))
+    for kolon in acik:
+        satirlar.append(
+            "KAPSAM ACIGI (%s): canli tabloda VAR ama HICBIR eksen kapsamiyor — ne hash "
+            "(KOLONLAR), ne TURETILMIS_KAYIT, ne GEREKCELI EKSEN_DISI. Bu kolon bugun "
+            "sessizce bayatlayabilir. Coz: kolonu uc kumeden BIRINE yaz (d1-sync.py)."
+            % kolon)
+    return satirlar
+
+
 def durum_uyumlu(d1_sayisi, urunler_benzersiz):
     """--durum FAIL-LOUD teyidi: D1 satir sayisi urunler.json'daki BENZERSIZ id sayisina
     ESIT mi? SAF fonksiyon (D1'e/dosyaya DOKUNMAZ) -> birim testi burayi cagirir, wrangler
@@ -1931,14 +2125,22 @@ def _kt_urun(uid, kategori="Oyun/Hobi", baslik=None):
 
 
 def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
-            bayatlik="UC", kok=None):
+            bayatlik="UC", kok=None, turetilmis=None):
     """d1-sync'i OFFLINE kosar. Doner: (cikis_kodu, cikti_metni, sayac).
     dusur(sql, sayac) -> True ise o yazma UYGULANMAZ ama BASARI raporlanir (sessiz ariza).
     oku_patlat -> geri-okuma sorgusu istisna atar (OLCULEMEDI yolu).
     bayatlik -> bayatlik_olc()'un dondurecegi durum ("UC"/"BAYAT"/"OLCULEMEDI"); AG YOK.
        sayac["bayatlik"] kac kez olculdugunu tutar (maliyet ekseni: yazma yoksa 0 olmali).
     kok -> verilirse GERCEK bayatlik_olc() o git agacinda kosar (stub YOK) ve KOK oraya
-       ayarlanir; uctan uca (git soyagaci + senkron) olcum icin."""
+       ayarlanir; uctan uca (git soyagaci + senkron) olcum icin.
+    turetilmis -> TURETILMIS_KAYIT yerine gecen FIKSTUR defteri.
+       🔴 NEDEN GEREKLI: gercek kayit defteri KATALOG OLCEGINDE calisir — 3 urunluk
+       fiksturde `model_kanon` "kova evreni BOS" der ve `taban_fiyat` semasi bu harness'ta
+       BILEREK yok edilmistir (JEN_URUN_DIR yok-dizin). Ikisi de DOGRU sekilde OLCULEMEDI
+       yakar; yani fikstur verilmezse --durum senaryolari fiksturden dogan bir kirmiziyla
+       kosardi. Defter fiksturlenince EKSEN MAKINESI (sqlite'tan GERCEK SELECT ile) uctan
+       uca olculur; URETICI GOVDELERIN kendisi tools/d1-sync-durum-test.py'de gercek
+       koduyla olculur."""
     import contextlib
     import io
     import sqlite3
@@ -1983,7 +2185,7 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
     g = globals()
     eski = {k: g[k] for k in ("sorgu", "dosya_calistir", "URUNLER", "KAYNAKLAR",
                               "JEN_URUN_DIR", "taban_fiyat_haritasi", "bayatlik_olc",
-                              "KOK")}
+                              "KOK", "TURETILMIS_KAYIT")}
     eski_argv = sys.argv
     tampon = io.StringIO()
     try:
@@ -1998,6 +2200,8 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
         g["JEN_URUN_DIR"] = os.path.join(tempfile.gettempdir(), "pruvo-kt-yok-dizin")
         if tabanlar is not None:
             g["taban_fiyat_haritasi"] = lambda: dict(tabanlar)
+        if turetilmis is not None:
+            g["TURETILMIS_KAYIT"] = turetilmis
         sys.argv = ["d1-sync.py"] + argv
         kod = 0
         with contextlib.redirect_stdout(tampon):
@@ -2018,6 +2222,24 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
         sys.argv = eski_argv
         os.unlink(yol)
     return kod, tampon.getvalue(), sayac
+
+
+def _kt_turetilmis(hedefler=None, sebep=None):
+    """TURETILMIS_KAYIT fiksturu — GERCEK kolon adlarini ve GERCEK plan govdelerini KORUR,
+    yalnizca HEDEF URETICISINI fiksturler.
+    hedefler = {kolon: {id: istenen deger}} · sebep = doluysa her kolon URETILEMEDI doner.
+    🔴 Kolon adlari korunur: yoksa kapsam_acigi() fikstur yuzunden yanlis-pozitif yakardi
+    (canli tabloda olup defterde olmayan kolonlar 'siniflandirilmamis' gorunurdu)."""
+    hedefler = hedefler or {}
+
+    def _uret(kolon):
+        def _f(_urunler):
+            if sebep:
+                return None, sebep
+            return dict(hedefler.get(kolon) or {}), None
+        return _f
+
+    return [dict(k, hedef=_uret(k["kolon"]), coz="fikstur") for k in TURETILMIS_KAYIT]
 
 
 def _kt_baglan(yayinda_default=0):
@@ -2393,17 +2615,38 @@ def kendini_test():
     # ── --durum ICERIK EKSENI ─────────────────────────────────────────────────────
     conn12 = _kt_baglan()
     _kt_kos(conn12, urunler, [])
-    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum"])
+    tk = _kt_turetilmis()
+    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum"], turetilmis=tk)
     dogrula("V31 DURUM POZITIF: sayi + icerik ekseni uyumlu -> exit 0",
             kod == 0 and "teyit (ICERIK ekseni)" in cikti, (kod, cikti[-400:]))
+    dogrula("V31b DURUM TURETILMIS POZITIF: hash-disi kolonlar guncel -> teyit satiri + exit 0",
+            kod == 0 and "teyit (TURETILMIS KOLON ekseni)" in cikti, (kod, cikti[-400:]))
+    # 🔴 6 AGU SINIFI: SAYI tutuyor, HASH tutuyor, kolon BAYAT. Uc eksen de yesil yanardi.
+    kod2, cikti2, _ = _kt_kos(conn12, urunler, ["--durum"],
+                              turetilmis=_kt_turetilmis({"marka_arama": {"a": '["Honda"]'}}))
+    dogrula("V31c DURUM TURETILMIS NEGATIF (6 AGU SINIFI): sayi + hash TUTUYOR ama "
+            "marka_arama BAYAT -> sifir-disi + kolon adi + 'olmasi gereken'",
+            kod2 != 0 and "BAYAT TURETILMIS KOLON (marka_arama)" in cikti2
+            and "teyit (SAYI ekseni)" in cikti2 and "teyit (ICERIK ekseni)" in cikti2
+            and "olmasi gereken" in cikti2, (kod2, cikti2[-600:]))
+    kod3, cikti3, _ = _kt_kos(conn12, urunler, ["--durum"],
+                              turetilmis=_kt_turetilmis(sebep="tek kaynak okunamadi"))
+    dogrula("V31d DURUM TURETILMIS FAIL-CLOSED: uretici govde uretemedi -> OLCULEMEDI + "
+            "sifir-disi (bilinmezlik YESIL sayilmaz)",
+            kod3 != 0 and "OLCULEMEDI (marka_arama)" in cikti3, (kod3, cikti3[-500:]))
     conn12.execute("UPDATE urunler SET hash='BAYATHASH' WHERE id='a'")
-    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum"])
+    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum"], turetilmis=tk)
     dogrula("V32 DURUM NEGATIF (31 TEM SINIFI): SAYI TUTUYOR ama hash bayat -> sifir-disi",
             kod != 0 and "ICERIK EKSENI DRIFT" in cikti and "teyit (SAYI ekseni)" in cikti,
             (kod, cikti[-500:]))
-    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum", "--hizli"])
+    dogrula("V32b KORELME: turetilmis eksen eklendikten SONRA da 31 Tem vakasi ICERIK "
+            "ekseninden yakalanir (turetilmis kolonlar GUNCEL iken)",
+            kod != 0 and "teyit (TURETILMIS KOLON ekseni)" in cikti, (kod, cikti[-500:]))
+    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum", "--hizli"], turetilmis=tk)
     dogrula("V33 DURUM --hizli: icerik ekseni BEYAN EDILEREK atlanir -> exit 0 + uyari",
             kod == 0 and "ICERIK EKSENI ATLANDI" in cikti, (kod, cikti[-400:]))
+    dogrula("V33b DURUM --hizli: turetilmis eksen de BEYAN EDILEREK atlanir (sessiz DEGIL)",
+            kod == 0 and "TURETILMIS KOLON EKSENI ATLANDI" in cikti, (kod, cikti[-400:]))
 
     # ── ORNEKLEME YASAGI: 30 urunluk partide YALNIZ 1 urunun yazmasi kaybolur ────
     # Geri-okuma yazilan id kumesinin TAMAMINI dogrulamazsa (ornekleme/kisaltma) bu vaka
@@ -3219,6 +3462,41 @@ def main():
                 % sum(1 for h in hal if h["hal"] in (IX_INDEKS_YOK, IX_KOLON_YARIM)))
         else:
             print("teyit (SEMA ekseni): beyan edilen goc indekslerinin hali temiz ✅")
+
+        # ── TURETILMIS KOLON EKSENI (4.) — urun_hash'in KAPSAMADIGI kolonlar ───────
+        # NEDEN VARSAYILAN ACIK: bu eksenin var olma sebebi, UC eksenin de YESIL yanarken
+        # kolonun bayat kalabilmesiydi. Ayri bir bayrakta dursa merge-kapisi'nin zorunlu
+        # D1 teyidi ayni korlukte kalirdi. --hizli BEYAN EDEREK atlar (sessiz atlama YOK).
+        # MALIYET (olculdu, 20.850 urun): yerel turetim 18,0 s (model_kanon 12,9 · marka_arama
+        # 4,9 · marka_kanon 0,2) + 1 SELECT. Karsiligi: kolon bayatligi artik SESSIZ degil.
+        if a.hizli:
+            print("!! TURETILMIS KOLON EKSENI ATLANDI (--hizli): konfigur/taban_fiyat/"
+                  "marka_kanon/model_kanon/marka_arama urun_hash'in DISINDADIR -> ICERIK "
+                  "ekseni onlari GORMEZ. Tam teyit: --hizli'siz kos.")
+        else:
+            t0 = time.time()
+            tablo_kolonlari = kolonlari_oku("urunler")
+            thal = turetilmis_eksen(urunler, tablo_kolonlari,
+                                    turetilmis_mevcut(tablo_kolonlari))
+            acik = kapsam_acigi(tablo_kolonlari)
+            print("turetilmis kolon ekseni (urun_hash KAPSAMI DISI, %.2f s): "
+                  % (time.time() - t0)
+                  + " · ".join("%s=%s%s" % (h["kolon"], h["hal"],
+                                            "" if h["sayi"] in (None, 0)
+                                            else "(%d)" % h["sayi"]) for h in thal))
+            turetilmis_sorun = turetilmis_sorunlari(thal, acik)
+            if turetilmis_sorun:
+                for s in turetilmis_sorun:
+                    print("   " + s)
+                sorunlar.append(
+                    "TURETILMIS KOLON EKSENI: %d kolon BAYAT/OLCULEMEDI (ayrinti yukarida) "
+                    "— SAYI, SEMA ve ICERIK eksenlerinin UCU DE bu hale KORDUR."
+                    % len(turetilmis_sorun))
+            else:
+                print("teyit (TURETILMIS KOLON ekseni): %d hash-disi kolonun canli degeri "
+                      "uretici govdenin bugun urettigiyle birebir ✅ "
+                      "(eksen disi + GEREKCELI: %s)"
+                      % (len(thal), ", ".join(sorted(EKSEN_DISI))))
 
         # ── ICERIK EKSENI (urun_hash) — VARSAYILAN ACIK ────────────────────────────
         # NEDEN VARSAYILAN: merge-kapisi'nin zorunlu D1 teyidi `d1-sync.py --durum` cagirir.
