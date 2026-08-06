@@ -1,5 +1,24 @@
 [
   {
+    "id": "mitsubishi-4g63-eksantrik-mili-kilit-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "4G63"
+    ],
+    "baslik": "Mitsubishi 4G63 Eksantrik Mili Kilit Aparatı",
+    "aciklama": "Mitsubishi'nin 4G63 motorlarında triger kayışı sökülüp takılırken eksantrik millerini dönmeden tutan kilit aparatıdır.\n- Mil üzerindeki kam loblarının arasına oturur, valf yaylarının mili çevirmesini engeller.\n- Kayış çıkarıldığında ayarın kaçmasını önler, işlem bitince kolayca alınır.\n- Kuvvet aktaran bir alet olduğu için sert ve tok gövdelidir.\n- Aynı motor ailesini paylaşan Lancer Evo ve Eclipse kaportalarında kullanılır.",
+    "fiyat": "240 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2988614-2.jpg"
+    ],
+    "tavsiyeFilament": "PETG",
+    "lisans": {
+      "tasarimci": "Jenn",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "mitsubishi-minicab-u42t-dikiz-aynasi-tasiyici-plakasi",
     "kategori": "Otomobil",
     "marka": [
