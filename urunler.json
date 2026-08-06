@@ -494153,5 +494153,222 @@
         "marka": "Mercury"
       }
     ]
+  },
+  {
+    "id": "suzuki-grand-vitara-kalorifer-fan-pervanesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Grand Vitara"
+    ],
+    "baslik": "Suzuki Grand Vitara Kalorifer / Klima Fan Pervanesi (2009)",
+    "aciklama": "Suzuki Grand Vitara iç mekân havalandırma (kalorifer/klima) körüğünün içindeki kanatlı fan pervanesi. Motorun miline oturur ve havayı üfleyici kutusundan kabin kanallarına basar; kanatları kırıldığında ya da göbeği mil üzerinde boşluk yaptığında üfleme zayıflar, fan tırmalama/vızıltı sesi çıkarır veya hiç dönmez. Kanat açıları ve göbek yuvası orijinaline uygun olarak, dengeli dönmesi için tek parça halinde özel üretilir. Isıya ve sürekli dönme yüküne dayanıklı malzeme (PETG/ABS/ASA) ile üretilir. Uyumlu araç: Suzuki Grand Vitara (2009 kasa). Almadan önce eski pervanenizin mil yuvasıyla ve dönüş yönüyle karşılaştırın.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt800945-1.jpg"
+    ],
+    "altkategori": "Klima ve Havalandırma",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "Grand Vitara"
+      }
+    ]
+  },
+  {
+    "id": "suzuki-jimny-jb74-sokulebilir-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny",
+      "JB74"
+    ],
+    "baslik": "Suzuki Jimny JB74 Sökülebilir Bardaklık (Çıkarılabilir Tip)",
+    "aciklama": "Suzuki Jimny JB74 için gerektiğinde tek hareketle çıkarılabilen bardaklık. Sabit bardaklıkların aksine takılıp sökülebildiği için kullanılmadığında konsolu boşaltır, temizlemek için de yerinden alınabilir. Kare kafesli gövde bardağı kavrar, arka kanadı mevcut yuvaya kızaklı olarak oturur ve vida noktasından sabitlenir. Darbeye dayanıklı malzeme (PETG/ABS/ASA) ile özel üretilir. Uyumlu araç: Suzuki Jimny JB74. Almadan önce konsolunuzdaki montaj noktasıyla karşılaştırın.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5772330-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5772330-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5772330-3.jpg"
+    ],
+    "altkategori": "Bardaklık",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "Jimny"
+      }
+    ]
+  },
+  {
+    "id": "suzuki-sx4-s-cross-kol-dayama-saklama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "SX4"
+    ],
+    "baslik": "Suzuki SX4 S-Cross Kol Dayama İçi Saklama Kutusu (Bölmeli Tepsi)",
+    "aciklama": "Suzuki SX4 S-Cross orta konsol kol dayamasının içine oturan bölmeli saklama kutusu. Kol dayamasının derin boşluğunu kullanılabilir hale getirir; bozuk para, anahtar, kablo ve kart gibi küçük eşyaların dibe düşüp dağılmasını engeller. Ayrı bölmeleri ve kenar tırnakları sayesinde yuvaya oturur, sabitlemek için vida ya da yapıştırıcı gerektirmez, temizlik için yerinden alınabilir. Çizilmeye dayanıklı malzeme (PETG/ABS/ASA) ile özel üretilir. Uyumlu araç: Suzuki SX4 S-Cross. Almadan önce kol dayaması bölmenizin iç ölçüsüyle karşılaştırın.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4953237-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4953237-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4953237-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4953237-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4953237-5.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4953237-6.jpg"
+    ],
+    "altkategori": "Konsol ve Torpido",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "SX4"
+      }
+    ]
+  },
+  {
+    "id": "suzuki-liana-2004-2din-teyp-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Liana"
+    ],
+    "baslik": "Suzuki Liana 2004 2-DIN Teyp / Multimedya Çerçevesi (Dönüşüm Paneli)",
+    "aciklama": "Suzuki Liana torpidosuna 2-DIN ölçüsünde teyp / multimedya ekranı takmak için kullanılan geçiş çerçevesi. Fabrika çıkışı tek sıra yuvayı çift sıra (2-DIN) ölçüsüne çevirir; ekranın etrafındaki boşluğu kapatarak orijinal görünümlü, boşluksuz bir montaj sağlar. Torpido hatlarına ve mevcut tırnak noktalarına göre şekillendirilmiştir, havalandırma ızgarası ile klima kumandası arasına oturur. Dayanıklı malzeme (PETG/ABS/ASA) ile özel üretilir, aracınızın iç rengine göre boyanabilir. Uyumlu araç: Suzuki Liana (2004 kasa). Almadan önce takacağınız ekranın çerçeve ölçüsüyle karşılaştırın.",
+    "fiyat": "430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt2677520-1.jpg"
+    ],
+    "altkategori": "Ses ve Multimedya",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "Liana"
+      }
+    ]
+  },
+  {
+    "id": "suzuki-vitara-cam-dugmesi-butonu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Vitara"
+    ],
+    "baslik": "Suzuki Vitara Elektrikli Cam Düğmesi Butonu (Basma Kapağı)",
+    "aciklama": "Suzuki Vitara kapı panelindeki elektrikli cam anahtarının üzerine geçen basma butonu. Parmakla bastığınız kapak parçasıdır; içindeki ince tırnaklar zamanla kırıldığında buton yerinden çıkar, boşta kalır ya da bastığınızda cam hareket etmez. Alt tırnak yapısı ve basma yüzeyi orijinaline uygun olarak özel üretilir. Aşınmaya dayanıklı malzeme (PETG/ABS/ASA) ile üretilir; iç döşeme tonuna göre boyanabilir. Uyumlu araç: Suzuki Vitara. Almadan önce eski butonunuzla ve anahtar takımınızın tırnak yönüyle karşılaştırın (sürücü/yolcu tarafı farkı olabilir).",
+    "fiyat": "1290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3281658-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3281658-2.jpg"
+    ],
+    "altkategori": "Kapı ve Cam",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "Vitara"
+      }
+    ]
+  },
+  {
+    "id": "suzuki-grand-vitara-on-camurluk-ucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Grand Vitara"
+    ],
+    "baslik": "Suzuki Grand Vitara Ön Çamurluk Ucu / Tampon Ara Parçası",
+    "aciklama": "Suzuki Grand Vitara ön çamurluğunun tampona bakan uç parçası. Çamurluk ile tampon arasındaki boşluğu kapatır ve tekerlek kemerinden gelen çamur/suyun içeri girmesini engeller; kaza, kaldırım teması ya da plastik yorgunluğuyla kırıldığında tampon köşesi boşluk yapar, sarkar ve titrer. Kavisli yüzeyi ve üstteki bağlantı tırnağı orijinaline uygun olarak özel üretilir. Dış ortama dayanıklı, UV'ye dirençli malzeme (ASA/PETG) ile üretilir ve aracınızın rengine boyanabilir. Uyumlu araç: Suzuki Grand Vitara. Almadan önce eski parçanızla ve montaj yönüyle karşılaştırın (sağ/sol farkı vardır).",
+    "fiyat": "2150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4244418-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4244418-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4244418-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4244418-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4244418-5.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4244418-6.jpg"
+    ],
+    "altkategori": "Dış Aksam",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "Grand Vitara"
+      }
+    ]
+  },
+  {
+    "id": "suzuki-gsf-650-bandit-far-ustu-kapak",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "Bandit",
+      "GSF 650"
+    ],
+    "baslik": "Suzuki GSF 650 Bandit Far Üstü Kapak / Ön Gösterge Paneli",
+    "aciklama": "Suzuki GSF 650 Bandit için farın üzerine oturan kapak / ön panel. Far ile gösterge grubu arasındaki açık alanı kapatır, kabloları ve braketleri gizler; sürüş sırasında göğse gelen rüzgârı bir miktar keser ve motosiklete toparlanmış bir ön görünüm verir. Mevcut far kulaklarına vidalanır, ek delik açmayı gerektirmez. Dış ortama dayanıklı, UV'ye dirençli malzeme (ASA/PETG) ile özel üretilir ve istenirse motosikletinizin rengine boyanabilir. Uyumlu motosiklet: Suzuki GSF 650 Bandit. Almadan önce far braketlerinizin vida aralığıyla karşılaştırın.",
+    "fiyat": "4290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt4206825-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4206825-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4206825-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4206825-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4206825-5.jpg",
+      "https://media.pruvo3d.com/urunler/cgt4206825-6.jpg"
+    ],
+    "altkategori": "Grenaj ve Kaporta",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "Bandit"
+      }
+    ]
+  },
+  {
+    "id": "suzuki-grand-vitara-on-tampon-kose-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Grand Vitara"
+    ],
+    "baslik": "Suzuki Grand Vitara Ön Tampon Köşe Kapağı (Yan Uç Parçası)",
+    "aciklama": "Suzuki Grand Vitara ön tamponunun yan köşesini kapatan uç parçası. Tamponun çamurluğa dönen köşesini tamamlar; arazi kullanımında, park darbelerinde ya da plastik yorgunluğuyla ilk kırılan bölge burasıdır. Kırıldığında tampon köşesi açık kalır, kenar sarkar ve gövdeyle arasındaki hat bozulur. Kavisli yüzey, montaj tırnakları ve vida delikleri orijinal parçaya göre şekillendirilmiş olarak özel üretilir. Dış ortama ve UV'ye dayanıklı malzeme (ASA/PETG) ile üretilir, aracınızın rengine boyanabilir. Uyumlu araç: Suzuki Grand Vitara. Almadan önce eski köşe parçanızla ve montaj yönüyle karşılaştırın (sağ/sol farkı vardır).",
+    "fiyat": "12860 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6226926-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6226926-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6226926-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6226926-4.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6226926-5.jpg",
+      "https://media.pruvo3d.com/urunler/cgt6226926-6.jpg"
+    ],
+    "altkategori": "Dış Aksam",
+    "uyum": [
+      {
+        "marka": "Suzuki"
+      },
+      {
+        "marka": "Suzuki",
+        "model": "Grand Vitara"
+      }
+    ]
   }
 ]
