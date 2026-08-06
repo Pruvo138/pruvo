@@ -221,6 +221,43 @@ jobs:
           # ... ayni sekilde yorumu soyulmus kopyalar (_yayin/jenerator/).
           cp _yayin/jenerator/hacim.js _yayin/jenerator/konfigurator.js _yayin/jenerator/viewer.js _site/jenerator/
           cp -r jenerator/urunler _site/jenerator/urunler
+
+      # ══════════════════════════════════════════════════════════════════════════
+      # YAYIN OLCEGI OLCUMU (6 Agu 2026) — "OLCULEMEDI" halini kapatir.
+      #
+      # NEDEN: 6 Agu'da `deploy` isi ust uste `GitHub Pages'e yayinla` adiminda
+      # 600 sn'de dustu ve "artefakt olcek duvarina mi carpti" sorusu SAYIYLA
+      # cevaplanamadi — elimizde yalnizca SIKISTIRILMIS zip boyu (upload-artifact
+      # basar: 5 Agu 211,3 MB -> 6 Agu 220,3 MB) vardi. GitHub Pages'in BELGELENMIS
+      # siniri ise ACILMIS site boyudur: "Published GitHub Pages sites may be no
+      # larger than 1 GB" (docs.github.com/pages ... /github-pages-limits). Yani
+      # bugune dek TAM DA SINIRA GORE OLCULEN sayi hic basilmiyordu.
+      #
+      # NE BASAR: acilmis toplam bayt, dosya sayisi, dizin sayisi ve en buyuk 10
+      # ust dizin. 1 GB'a gore doluluk yuzdesi de basilir ki egri (gun gun) log'dan
+      # okunabilsin.
+      #
+      # 🔴 NEDEN BLOKLAYICI DEGIL: bu bir OLCUM adimidir, kapi degildir. Esik
+      # koymak (ornegin ">%90 ise kirmizi") YAYIN MIMARISI karari olup mimarindir;
+      # olcum yokken esik koymak da tanim geregi kor olurdu. Adim yalnizca sayi
+      # basar ve `du`/`find` hatasi yayini durdurmasin diye `|| true` ile biter.
+      # Sayi bir kez birikince esik AYRI bir kapi olarak eklenebilir.
+      - name: "Yayin olcegi olcumu (acilmis _site bayt/dosya dokumu — 1 GB Pages siniri)"
+        run: |
+          TOPLAM=$(du -sb _site | cut -f1)
+          DOSYA=$(find _site -type f | wc -l)
+          DIZIN=$(find _site -type d | wc -l)
+          echo "YAYIN-OLCEK toplam_bayt=$TOPLAM"
+          echo "YAYIN-OLCEK dosya_sayisi=$DOSYA"
+          echo "YAYIN-OLCEK dizin_sayisi=$DIZIN"
+          echo "YAYIN-OLCEK insan_okur=$(du -sh _site | cut -f1)"
+          awk -v b="$TOPLAM" 'BEGIN{printf "YAYIN-OLCEK 1GB_doluluk_yuzde=%.1f\n", b*100/1073741824}'
+          echo "YAYIN-OLCEK --- en buyuk 10 ust dizin (bayt) ---"
+          du -sb _site/* | sort -rn | head -10
+          echo "YAYIN-OLCEK --- en buyuk 10 kok dosya (bayt) ---"
+          find _site -maxdepth 1 -type f -printf '%s\t%p\n' | sort -rn | head -10
+        continue-on-error: true
+
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
         with:
