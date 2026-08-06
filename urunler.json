@@ -1,5 +1,890 @@
 [
   {
+    "id": "yamaha-fz6-fz6r-ayak-pedali-braketi-rondela-izolatoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "FZ6",
+      "FZ6R"
+    ],
+    "baslik": "Yamaha FZ6 / FZ6R Ayak Pedalı Braketi Rondela İzolatörü",
+    "aciklama": "FZ6 ve FZ6R modellerinde ayak pedalı braketinin rondelası ile gövde arasına yerleşen orijinal kauçuk izolatörün yerini alan parçadır.\n- Orijinal montaj noktalarına uyumludur.\n- Diğer bazı Yamaha modellerinde de kullanılabilir.\n- Esnek malzeme tercih edilmesi titreşim sönümlemesi için uygun olur.\nYaklaşık dış ölçüler: 25 × 25 × 5 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7090182-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7090182-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "phatherphish",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-zuma-125-askilik-kancasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Zuma 125"
+    ],
+    "baslik": "Yamaha Zuma 125 Askılık Kancası",
+    "aciklama": "Zuma 125 scooterlar için torba/çanta asmaya yarayan küçük bir kancadır.\n- Uygun bir noktaya vida veya bant ile sabitlenir.\n- Tek parçadan oluşur; sağlam malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 50 × 33 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3549471-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lipevalencia90",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-yxz1000-arka-hoparlor-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YXZ1000"
+    ],
+    "baslik": "Yamaha YXZ1000 Arka Hoparlör Kutusu",
+    "aciklama": "YXZ1000 arazi aracının arka bölümüne 6,5 inç'lik hoparlör yerleştirmek için tasarlanmış kutudur.\n- Seçtiğiniz hoparlöre göre montaj deliklerini uyarlayabilirsiniz.\n- Şasiye yakın konumlandığı için montaj öncesi boşluk kontrolü önerilir.\n- İki parçadan oluşur.\nYaklaşık dış ölçüler: 439 × 150 × 90 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6683559-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6683559-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6683559-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6683559-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chrisyork9",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-e-bike-batarya-ucu-pulu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Yamaha",
+      "CrossCore",
+      "Wabash"
+    ],
+    "baslik": "Yamaha CrossCore / Wabash E-Bike Batarya Ucu Pulu (Shim)",
+    "aciklama": "Yamaha CrossCore RC ve Wabash RT e-bike bataryalarında uç kapak ile batarya arasına yerleşen ince pul (shim) parçasıdır.\n- Batarya konektörünün geriye kaçmasını önler.\n- Orijinal montaj vidalarıyla kullanılabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 83 × 65 × 4 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7075361-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7075361-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7075361-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gladfelter",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-isa-pci-ses-karti-braketi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha ISA/PCI Ses Kartı Braketi",
+    "aciklama": "1 oyun portu ve 3 analog ses girişine sahip Yamaha ISA ses kartları için arka panel braketidir.\n- Aynı bağlantı düzenine sahip PCI ses kartlarıyla da uyumlu olabilir.\n- Kasaya vida ile sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 121 × 21 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6292115-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ericmnv777",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xt600-1vj-hava-kutusu-kapagi-genis-girisli",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XT600"
+    ],
+    "baslik": "Yamaha XT600 Ténéré 1VJ Hava Kutusu Kapağı (Geniş Girişli)",
+    "aciklama": "XT600 Ténéré 1VJ modelinin hava kutusu kapağının, oturma yüksekliğini artırmadan mümkün olan en geniş hava giriş yüzeyiyle yeniden tasarlanmış hâlidir.\n- Büyük parçaların hava kutusuna girmesini önleyen kaburgalar taşır.\n- Orijinal kapağın yerine takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 149 × 110 × 49 mm.",
+    "fiyat": "230 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7287187-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "maslozbobra",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xs1100-nefeslik-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XS1100"
+    ],
+    "baslik": "Yamaha XS1100 Şaft Tahriki Nefeslik Kapağı",
+    "aciklama": "XS1100 motosikletinin şaft tahrik ünitesi üzerindeki nefeslik (breather) kapağıdır.\n- Orijinal yuvaya oturacak ölçüde tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 22 × 22 × 14 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th873224-1.jpg",
+      "https://media.pruvo3d.com/urunler/th873224-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "spool3d_canada",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-mt-09-gen4-on-cam-montaj-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-09"
+    ],
+    "baslik": "Yamaha MT-09 Gen4 (2024) Ön Cam Montaj Adaptörü",
+    "aciklama": "2024 model (Gen4) MT-09'a, önceki nesil (Gen3) için üretilmiş ön camların takılabilmesini sağlayan montaj adaptörüdür.\n- Orijinal Yamaha ön cam montaj braketi ve birlikte gelen cıvata/somunlarla kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 228 × 127 × 50 mm.",
+    "fiyat": "230 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6717070-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6717070-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6717070-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jmgami",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-tmax-530-iphone-tutucusu-v2",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "TMAX 530"
+    ],
+    "baslik": "Yamaha TMAX 530 iPhone Tutucusu V2",
+    "aciklama": "TMAX 530 üzerine iPhone sabitlemek için tasarlanmış tutucudur.\n- Telefonun kolayca takılıp çıkarılması için kanca uzatılmıştır.\n- Arka tarafta üst plakayı sabitlemek için dört bağlantı noktası bulunur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 151 × 67 × 67 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th92818-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "al1971",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-mt-07-guclendirilmis-top-mont-aparati",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "baslik": "Yamaha MT-07 Güçlendirilmiş 1 İnç Top Mont Aparatı",
+    "aciklama": "MT-07 üzerine standart 1 inç top (ball) tipi telefon/kamera tutucu bağlamak için güçlendirilmiş montaj aparatıdır.\n- İçinden geçen bir cıvata ile ek destek alır.\n- Sağlam malzeme tercih edilmesi uygun olur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 68 × 58 × 45 mm.",
+    "fiyat": "230 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6689752-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6689752-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6689752-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Natter_LT",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xsr700-2022-sonrasi-sinyal-montaj-aparati",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR700"
+    ],
+    "baslik": "Yamaha XSR700 (2022 Sonrası) Sinyal Montaj Aparatı",
+    "aciklama": "2022 ve sonrası (yenilenmiş far braketli) XSR700 modellerinde far braketinin üçgen boşluğuna evrensel sinyal lambası yerleştirmek için tasarlanmıştır.\n- 2022 öncesi modellerde far braketi farklı olduğu için uyumlu değildir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 51 × 37 × 10 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6972904-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6972904-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6972904-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cfmackey",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-mt-09-far-alti-gopro-montaj-aparati-mk2",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-09"
+    ],
+    "baslik": "Yamaha MT-09 Far Altı GoPro Montaj Aparatı (Mk2)",
+    "aciklama": "MT-09 farının altına aksiyon kamerası sabitlemek için tasarlanmış, titreşimi azaltmak amacıyla ek destekli ikinci sürüm montaj aparatıdır.\n- Standart aksiyon kamerası bağlantılarına uygundur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 55 × 52 × 42 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th495601-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pilbara",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-virago-535-sol-damla-suslemesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Virago 535"
+    ],
+    "baslik": "Yamaha Virago 535 Sol Damla (Teardrop) Süslemesi",
+    "aciklama": "Virago 535 custom projelerinde şasi yan yüzeyine takılan sol damla (teardrop) formundaki süsleme parçasıdır.\n- Uygun noktaya yapıştırma veya vida ile sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 140 × 140 × 111 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6492076-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6492076-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6492076-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Blasphemor",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-vmax-sahte-depo-konumlandirma-tamponu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "VMAX"
+    ],
+    "baslik": "Yamaha VMAX Sahte Depo Konumlandırma Tamponu",
+    "aciklama": "VMAX'ın hava filtrelerinin üzerinde duran sahte (dekoratif) deposunu şasiye sabitleyen konumlandırma tamponudur.\n- Zamanla yıpranıp çatlayan orijinal kauçuk tamponun yerine kullanılır.\n- Esnek malzeme tercih edilmesi uygun olur.\n- İki adet gerekir.\nYaklaşık dış ölçüler: 29 × 29 × 17 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7363077-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7363077-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mikeyintn",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-tracer-7-gt-navigasyon-cihazi-montaj-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tracer 7 GT"
+    ],
+    "baslik": "Yamaha Tracer 7 GT Navigasyon Cihazı Montaj Adaptörü",
+    "aciklama": "Tracer 7 GT için gidon braketine takılan, Garmin Montana serisi gibi taşınabilir navigasyon cihazlarına uygun montaj adaptörüdür.\n- Standart gidon braketleriyle birlikte kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 100 × 51 × 48 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7173789-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7173789-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Eiswasser",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xsr-ayna-sapi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XSR"
+    ],
+    "baslik": "Yamaha XSR Ayna Sapı Ayar Kapağı",
+    "aciklama": "XSR700 ve benzer XSR/MT modellerinde ayna sapının ayar mekanizmasını koruyan kauçuk kapağın kaybolması durumunda kullanılan yedek parçadır.\n- Doğrudan orijinal kapağın kalıbından çıkarılmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 22 × 22 × 11 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6645507-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6645507-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-tracer-900-ayna-sapi-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tracer 900"
+    ],
+    "baslik": "Yamaha Tracer 900 Ayna Sapı Kapağı",
+    "aciklama": "Tracer 900'ün ayna saplarındaki somunları kapatan, kaybolan orijinal kapakların yerini alan parçadır.\n- Sıkı geçme ile takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 16 × 16 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7297897-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7297897-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7297897-3.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-warrior-350-hava-filtresi-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Warrior 350"
+    ],
+    "baslik": "Yamaha Warrior 350 Hava Filtresi Adaptörü",
+    "aciklama": "Warrior 350'de orijinal filtre yerine silindirik (konik) tipte yedek hava filtresi kullanılmasını sağlayan adaptördür.\n- Standart karbüratör ağzına takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 102 × 89 × 25 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5319450-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5319450-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Slamlancer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-ma2030-receiver-dugmesi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "MA2030"
+    ],
+    "baslik": "Yamaha MA2030 Receiver Yedek Düğmesi",
+    "aciklama": "MA2030 receiver cihazının kaybolan veya kırılan kontrol düğmesinin yerini alan yedek parçadır.\n- Orijinal mil ölçüsüne uygun tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 11 × 11 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4594969-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4594969-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BlueblackEye",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-vx-waverunner-guvenlik-suyu-yonlendirme-agzi",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha",
+      "VX"
+    ],
+    "baslik": "Yamaha VX Waverunner Güvenlik Suyu Yönlendirme Ağzı",
+    "aciklama": "VX waverunner modelinde soğutucunun altından çıkan güvenlik su akışını farklı yöne yönlendiren ağızlıktır.\n- Diğer bazı VX modellerinde de kullanılabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 38 × 32 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5959175-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stephenwwalker",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-shs-200-keytar-pil-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "SHS-200"
+    ],
+    "baslik": "Yamaha SHS-200 Keytar Pil Kapağı",
+    "aciklama": "SHS-200 keytar'ın pil bölmesi için yedek kapaktır.\n- Orijinal yuvaya oturacak ölçüde tasarlanmıştır.\n- Esnek bölümün doğru şekillenmesi için ince kenarı zemine bakacak şekilde konumlandırılması önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 69 × 57 × 22 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4629039-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4629039-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Itxi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-dis-motor-baglanti-mafsali",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha Dış Motor Bağlantı Mafsalı (Joint Linkage)",
+    "aciklama": "Yamaha dış motorlarda kullanılan bağlantı mafsalı (joint linkage) parçasıdır.\n- Çubuk kısmının diş açılması gerekir.\n- Sağlam malzeme tercih edilmesi uygun olur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 28 × 13 × 8 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6492585-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6492585-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "VEXADM",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-tenere-yan-canta-kilidi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Ténéré"
+    ],
+    "baslik": "Yamaha Ténéré Yan Çanta Kilit Parçası",
+    "aciklama": "Ténéré yan çantalarında zamanla kırılan kilit parçasının yerine kullanılan yedek parçadır.\n- Orijinalinden daha sıkı kilitleme sağlar.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 72 × 40 × 11 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4590377-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "teunvdooren",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-phazer-karburator-o-ring-ve-tapa-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Phazer"
+    ],
+    "baslik": "Yamaha Phazer Kar Aracı Karbüratör O-Ring ve Tapa Seti",
+    "aciklama": "Eski nesil Phazer kar araçlarının karbüratörü için o-ring ve tapa setidir.\n- Esnek malzeme tercih edilmesi sızdırmazlık için uygun olur.\n- Set birden çok parçadan oluşur.\nYaklaşık dış ölçüler: 28 × 11 × 8 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5922702-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5922702-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Firosche",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-yzf-r125-2017-on-sinyal-kapama-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZF-R125"
+    ],
+    "baslik": "Yamaha YZF-R125 (2017) Ön Sinyal Kapatma Kapağı",
+    "aciklama": "2017 model YZF-R125'te orijinal sinyal lambaları aftermarket olanlarla değiştirildiğinde kaportadaki boşluğu kapatan kapaktır.\n- Kaportanın rengine göre boyanabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 38 × 20 × 6 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5276106-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DPrintjack",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-rx-s70-bluetooth-modulu-kutusu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "RX-S70"
+    ],
+    "baslik": "Yamaha RX-S70 Bluetooth Modülü Kutusu",
+    "aciklama": "RX-S70 cihazının arka iç duvarına monte edilebilen, harici bir Bluetooth alıcı modülü için koruyucu kutudur.\n- M3 vida ile sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 80 × 60 × 18 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4258956-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4258956-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4258956-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mrrudzin",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-cr440-led-yuvasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "CR440"
+    ],
+    "baslik": "Yamaha CR440 LED Gösterge Yuvası",
+    "aciklama": "CR440 receiver için LED şeritten kesilen tekli LED'i yerleştirmek üzere tasarlanmış küçük bir yuvadır.\n- Gösterge ışığı olarak kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 14 × 12 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3149639-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nikitz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-htr-4069-raspberry-pi-montaj-klipsi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Yamaha",
+      "HTR-4069"
+    ],
+    "baslik": "Yamaha HTR-4069 Receiver Raspberry Pi Montaj Klipsi",
+    "aciklama": "HTR-4069 receiver'ın havalandırma deliklerine vida veya delik açmadan takılan, üzerine Raspberry Pi sabitlenebilen klipstir.\n- Raspberry Pi'yi tutturmak için ayrıca vida gerekir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 56 × 7 × 7 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2774464-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2774464-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2774464-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jancoow",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-babboe-kargo-bisikleti-gosterge-duvar-tutucusu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Yamaha",
+      "Babboe"
+    ],
+    "baslik": "Yamaha Babboe Kargo Bisikleti Gösterge Duvar Tutucusu",
+    "aciklama": "Babboe kargo bisikletinin Yamaha sürüş göstergesini duvara monte etmek için tasarlanmış tutucudur.\n- Duvara vida ile sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 40 × 30 × 5 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5167437-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tuxntosh",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-trx850-sinyal-lambasi-tabani",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "TRX850"
+    ],
+    "baslik": "Yamaha TRX850 Ön Sinyal Lambası Tabanı",
+    "aciklama": "TRX850'de orijinal sinyal lambaları LED tip ile değiştirildiğinde kaporta içindeki boşluğu dolduran ve desteği sağlayan tabandır.\n- Dişli gövdeli LED sinyallere uygundur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 61 × 41 × 7 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2355493-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2355493-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ozziedave",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-fz750-karburator-hava-kutusu-baglanti-korugu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "FZ750"
+    ],
+    "baslik": "Yamaha FZ750 Karbüratör - Hava Kutusu Bağlantı Körüğü",
+    "aciklama": "FZ750'de karbüratörü hava kutusuna bağlayan esnek körük parçasıdır.\n- Esnek malzeme tercih edilmesi sızdırmazlık için uygun olur.\n- İki adet gerekir.\nYaklaşık dış ölçüler: 60 × 60 × 23 mm.",
+    "fiyat": "240 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7122380-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "johnwade13",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xj900-gidon-vida-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XJ900"
+    ],
+    "baslik": "Yamaha XJ900 Gidon Bağlantı Vida Kapağı",
+    "aciklama": "XJ900 gidon bağlantı vidalarının üzerine geçen, sıkça kaybolan ama bulunması zor olan kapaktır.\n- Sıkı geçme ile takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 31 × 31 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4962260-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "smartie72",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xt600-sinyal-flasher-dugmesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XT600"
+    ],
+    "baslik": "Yamaha XT600 Sinyal (Flasher) Düğmesi",
+    "aciklama": "Eski nesil XT600 modelleri için sinyal kumanda düğmesidir.\n- Orijinal şalter gövdesine uygun tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 140 × 70 × 70 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4924289-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "XT350TTX",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-mt-09-navigasyon-cihazi-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-09"
+    ],
+    "baslik": "Yamaha MT-09 Navigasyon Cihazı Tutucusu",
+    "aciklama": "MT-09 gidon çapına özel tasarlanmış navigasyon cihazı tutucusudur.\n- Standart braketlerin sığmadığı gidon orta çapına uygundur.\n- Gerekirse ölçüsü büyütülebilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 54 × 27 × 20 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3381004-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3381004-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3381004-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3381004-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sweeg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xj-supap-yayi-sikistirma-aleti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XJ750",
+      "XJ650"
+    ],
+    "baslik": "Yamaha XJ750 / XJ650 SECA Supap Yayı Sıkıştırma Aleti",
+    "aciklama": "Hava soğutmalı XJ750/650 SECA silindir kapaklarındaki gömük supap yaylarını sıkıştırmak için kullanılan alettir.\n- Bir C-kelepçe ile birlikte kullanılır.\n- Supap yayının sıkıştırılıp emniyet klipslerinin sökülmesini/takılmasını sağlar.\nYaklaşık dış ölçüler: 33 × 33 × 32 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4170358-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jgaultus",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-mt-07-on-amortisor-borusu-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "baslik": "Yamaha MT-07 (2018-2020) Ön Amortisör Borusu Kapağı",
+    "aciklama": "2018-2020 model MT-07'de fabrikadan siyah kapak bulunmayan ön amortisör borularını kapatmak için tasarlanmıştır.\n- İstediğiniz renkte üretilebilir.\n- Bir çift olarak kullanılır.\nYaklaşık dış ölçüler: 181 × 47 × 47 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5571430-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5571430-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5571430-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nick_b_fpv",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-tenor-saksofon-yts-280-kilif-tekerlegi",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha",
+      "YTS-280"
+    ],
+    "baslik": "Yamaha Tenor Saksofon YTS-280 Kılıf Tekerleği (V2)",
+    "aciklama": "YTS-280 tenor saksofon kılıfına takılan tekerlek ve tekerlek durdurucusudur (V2, titreşim emici ve düzgün yüzeyli).\n- Rulmanlar tekerleğe yapıştırılarak takılmalıdır (sıkı geçme toleranslıdır).\n- Set birden çok parçadan oluşur.\nYaklaşık dış ölçüler: 44 × 44 × 7 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5805234-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5805234-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5805234-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5805234-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ANudibranch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-sx230-tekne-merdiveni-uc-tapasi",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha",
+      "SX230"
+    ],
+    "baslik": "Yamaha SX230 Tekne Merdiveni Uç Tapası",
+    "aciklama": "SX230 teknelerinde kullanılan merdivenin açık uçlarını kapatan tapadır; aynı merdiven diğer bazı tekne markalarında da kullanılır.\n- Metal ucun keskin kenarına karşı koruma sağlar.\n- Sıkı geçme ile takılır.\nYaklaşık dış ölçüler: 30 × 26 × 26 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4461879-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GavWorks",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-invertor-jenerator-ip-cekme-destek-halkasi",
+    "kategori": "Jeneratör",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha İnvertör Jeneratör İp Çekme (Recoil) Destek Halkası",
+    "aciklama": "Yamaha invertör jeneratörlerde kırılan ip çekmeli (recoil) starter mekanizmasını güçlendirmek için kullanılan ince destek halkasıdır.\n- Üç montaj vidası ve kullanılmayan üç ek delikten destek alır.\n- Aynı motoru paylaşan bazı diğer marka jeneratörlerde de kullanılabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 154 × 148 × 7 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4914993-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4914993-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dboymuthafuqa",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-tricity-300-xmax-300-ayna-ara-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Tricity 300",
+      "XMAX 300"
+    ],
+    "baslik": "Yamaha Tricity 300 / XMAX 300 Ayna Ara Parçası Seti",
+    "aciklama": "Tricity 300 ve XMAX 300 rüzgar siperi üzerine ayna montajında kullanılan ara parça (spacer) setidir.\n- Dört adet aynı parçadan oluşur.\nYaklaşık dış ölçüler: 54 × 52 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4902262-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4902262-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "beringsea",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-at2-125-1974-gosterge-lastik-yatagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "AT2"
+    ],
+    "baslik": "Yamaha AT2 125 (1974) Gösterge Lastik Yatağı",
+    "aciklama": "1974 model AT2 125 Trail motosikletinde hız göstergesi ve devir göstergesi için ortak kullanılan lastik yataktır.\n- Gerekirse parça ayna görüntüsü alınarak diğer taraf için de kullanılabilir.\n- Esnek malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 84 × 84 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3951793-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3951793-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jackiejackjack",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-silent-guitar-destek-adaptoru",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha",
+      "Silent Guitar"
+    ],
+    "baslik": "Yamaha Silent Guitar Destek Adaptörü",
+    "aciklama": "Metal plakalı gitar desteklerinin Silent Guitar gövdesine bağlanabilmesi için kullanılan adaptördür.\n- Orijinal vantuz yerine vida ile sabitlenir.\n- Vida deliklerinin konumu gerekirse ayarlanabilir.\nYaklaşık dış ölçüler: 70 × 70 × 51 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4975617-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4975617-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4975617-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slideglide",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-dt250d-hava-kutusu-yan-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "DT250D"
+    ],
+    "baslik": "Yamaha DT250D Hava Kutusu Yan Kapağı",
+    "aciklama": "DT250D'nin hava kutusu için yan kapaktır.\n- Şasi çevresine oturacak şekilde ısıtılıp şekillendirilebilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 251 × 171 × 32 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4841972-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4841972-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zonathan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-fj1200-yakit-musluk-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "FJ1200"
+    ],
+    "baslik": "Yamaha FJ1200 Yakıt Musluğu Kapağı",
+    "aciklama": "Yakıt deposu pas temizliği gibi işlemler sırasında yakıt musluğu ağzını geçici olarak kapatmak için kullanılan kapaktır.\n- Depo bakımı sırasında sızıntıyı önler.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 55 × 23 × 4 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5215972-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "newguinea",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-phazer-radyator-fan-pervanesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Phazer"
+    ],
+    "baslik": "Yamaha Phazer Kar Aracı Radyatör Fan Pervanesi",
+    "aciklama": "Yamaha Phazer kar aracının radyatör fan pervanesi için yedek parçadır.\n- Orijinal göbek ölçüsüne uygun tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 140 × 140 × 13 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6016568-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nykyly",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-mt-07-led-sinyal-rolesi-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07"
+    ],
+    "baslik": "Yamaha MT-07 3 Pinli LED Sinyal Rölesi Kutusu",
+    "aciklama": "MT-07'de 3 pinli LED sinyal rölesini yerleştirmek için tasarlanmış koruyucu kutudur.\n- Uygun bir noktaya sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 38 × 34 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6455579-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6455579-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6455579-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wanderligne",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-gl1-ukulele-guitarlele-duvar-tutucusu",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Yamaha",
+      "GL1"
+    ],
+    "baslik": "Yamaha GL1 Ukulele / Guitarlele Duvar Tutucusu",
+    "aciklama": "Yamaha GL1 guitarlele/ukulele için duvara vidalanan askı tutucusudur.\n- Benzer gövde ölçülerindeki diğer ukulele/guitarlele modelleriyle de uyumlu olabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 100 × 80 × 80 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6083454-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "instruxi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "yamaha-mt-07-quad-lock-gopro-usb-montaj-aparati",
     "kategori": "Motosiklet",
     "marka": [
