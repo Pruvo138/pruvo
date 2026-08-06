@@ -186,6 +186,29 @@ def _suzgec_yukle():
 SUZGEC = _suzgec_yukle()
 
 
+def _git_ortami_yukle():
+    """tools/git_ortami.py — "bayat kayit" hukmunun TEK KAYNAGI (fail-closed, SUZGEC
+    ile ayni desen: modul yoksa TAHMIN URETILMEZ, kapi konusur)."""
+    import importlib.util
+    yol = os.path.join(TOOLS, "git_ortami.py")
+    if not os.path.exists(yol):
+        raise RuntimeError(
+            "tools/git_ortami.py YOK -> 'kayit defterinin isaret ettigi dosya artik "
+            "izlenmiyor' hukmunun TEK KAYNAGI yuklenemedi. Ikinci bir kopya YAZILMAZ "
+            "(ikiz tanim sessizce ayrisir), o yuzden YESIL SAYILMAZ (fail-closed).")
+    spec = importlib.util.spec_from_file_location("pruvo_git_ortami", yol)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["pruvo_git_ortami"] = mod
+    spec.loader.exec_module(mod)
+    if not hasattr(mod, "bayat_kayit_yollari"):
+        raise RuntimeError("tools/git_ortami.py'de bayat_kayit_yollari YOK -> sozlesme "
+                           "degismis, tuketicileri guncelle (fail-closed)")
+    return mod
+
+
+GIT_ORTAMI = _git_ortami_yukle()
+
+
 # ---- GERCEK YAML AYRISTIRICISI — TEK KARAR MERCII (PARSER-FIRST) -----------
 # tools/yaml-oku.py (KATMAN 0): `run:` degerlerini GERCEK bir ayristiriciyla
 # (PyYAML | ruby/psych) cozer ve HAM satir araligini verir. FAIL-CLOSED yuklenir:
@@ -262,10 +285,14 @@ def acik_kesif_kontrol():
                        + r.stderr.strip()]
     izlenen = set(r.stdout.splitlines())
     hatalar = []
+    # 🔴 "kayit defterinin isaret ettigi dosya artik IZLENMIYOR" hukmu TEK KAYNAKTAN
+    # gelir: tools/git_ortami.py::bayat_kayit_yollari. Ayni kural orada drift muafiyeti
+    # defteri icin de uygulanir; ikinci bir kopya YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    bayat_yollar = set(GIT_ORTAMI.bayat_kayit_yollari(ACIK_KESIF.keys(), izlenen))
     for yol, gerekce in sorted(ACIK_KESIF.items()):
         if not (gerekce and gerekce.strip()):
             hatalar.append("GEREKCESIZ ACIK_KESIF girisi (bos gerekce): %s" % yol)
-        if yol not in izlenen:
+        if yol in bayat_yollar:
             hatalar.append("BAYAT ACIK_KESIF girisi (artik IZLENMIYOR — sil ya da yolu "
                            "duzelt): %s" % yol)
         elif TOOLS_PAT.match(yol) or DIR_PAT.match(yol):

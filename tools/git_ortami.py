@@ -194,15 +194,54 @@ def worktree_kanca_kok_olcumu(kapi_kaynagi, hedef_ad):
 # "GIT_DIR ve GIT_WORK_TREE'yi BIRLIKTE tasiyan her tuple/liste/kume LITERALI" bir
 # scrub kumesidir; degisken adi, parantez bicimi ve nerede durdugu ONEMSIZDIR.
 #
+# SOZLUK EKSENI (7 Agu 2026, curutucu enjeksiyon olcumu): `{"GIT_DIR": None,
+# "GIT_WORK_TREE": None}` ve `ortam.update({...})` bicimleri DIZI eksenine takilmiyordu
+# -> delik VARDI ama BEYANDA YOKTU (okuyucu kapsami oldugundan GENIS saniyordu).
+# Sozluk ANAHTARLARI da taranir; ANCAK dizi ekseninden DAHA DAR bir sartla:
+#   sozlugun TUM sabit-dize anahtarlari KANONIK git baglam adlarindan olmali.
+# NEDEN ASIMETRIK (olculdu, yanlis-pozitif kaniti): sozluk bu depoda MESRU olarak
+# "her degiskenin DEGERINI raporlayan" bir teshis kaydi icin de kullaniliyor
+# (`tools/kok-cozum-taramasi.py` -> `{"agac": ..., "GIT_DIR": ..., "GIT_WORK_TREE": ...,
+# "araclar": {...}}`). O kayit bir scrub kumesi DEGILDIR; ham "iki ad ayni sozlukte"
+# olcutu onu KIRMIZI yakardi (yanlis pozitif). YABANCI ANAHTAR sarti onu eler ve
+# gercek scrub sozluklerini yakalar (olculen yanlis pozitif: 0).
+# Dizi ekseninde ayni daraltma UYGULANMAZ: orada yabanci dize gorulen bir kume bugun
+# YOK ve daraltmak DETEKSIYONU KUCULTUR (kapsam kaybi > yanlis-pozitif kazanci).
+#
 # 🔴 BEYAN EDILMIS SINIR (OLCULMEDI, uydurma degil — ACIKCA yazili): asagidaki bicimler
 # YAKALANMAZ ve bugun bu depoda ORNEGI YOKTUR:
 #   (a) adlarin AYRI AYRI ifadelerde silinmesi (`ort.pop("GIT_DIR"); ort.pop("GIT_WORK_TREE")`),
 #   (b) adlarin CALISMA ZAMANINDA uretilmesi (`"GIT_" + "DIR"`, konfigurasyondan okuma),
-#   (c) .py DISI dosyalar (kabuk kancalari, YAML) — bu nobet YALNIZ izlenen `.py` tarar.
+#   (c) .py DISI dosyalar (kabuk kancalari, YAML) — bu nobet YALNIZ izlenen `.py` tarar,
+#   (d) git baglam adlarinin YANINDA YABANCI anahtar da tasiyan SOZLUK (or.
+#       `{"GIT_DIR": ..., "aciklama": ...}`) — yukaridaki yanlis-pozitif ayrimi geregi.
 # Olculen alternatif eksen ("dosyada 11 addan >=4'u dizi sabiti olarak geciyor") bugun
-# AYNI 3 dosyayi buluyor (V1 == V2) -> ek yakalama getirmiyor, ek yanlis-pozitif riski
+# AYNI dosyalari buluyor (V1 == V2) -> ek yakalama getirmiyor, ek yanlis-pozitif riski
 # getiriyor; bu yuzden DAR eksen secildi ve sinir burada BEYAN EDILDI.
 _CIFT = frozenset(("GIT_DIR", "GIT_WORK_TREE"))
+
+
+def _dizi_adlari(dugum):
+    """Tuple/List/Set literalindeki sabit dize ogeleri."""
+    return {e.value for e in dugum.elts
+            if isinstance(e, ast.Constant) and isinstance(e.value, str)}
+
+
+def _sozluk_adlari(dugum):
+    """Sozluk literalinin sabit dize ANAHTARLARI — ancak HER anahtari `GIT_` onekliyse.
+
+    Yabanci anahtar (or. `"agac"`, `"araclar"`) tasiyan sozluk bir TESHIS/RAPOR
+    kaydidir, scrub kumesi DEGILDIR. Onek olcutu KANONIK 11 ADA capalanmaz: yarin
+    listeye girecek bir `GIT_*` adini tasiyan scrub sozlugu de yakalanmalidir (ada
+    capalamak bu nobetcinin ZATEN olculmus kusuruydu)."""
+    anahtarlar = [k for k in dugum.keys if k is not None]
+    adlar = {k.value for k in anahtarlar
+             if isinstance(k, ast.Constant) and isinstance(k.value, str)}
+    if len(adlar) != len(anahtarlar):
+        return set()                      # sabit-dize OLMAYAN anahtar var -> kayit degil
+    if not all(a.startswith("GIT_") for a in adlar):
+        return set()                      # YABANCI anahtar -> teshis kaydi (yanlis pozitif)
+    return adlar
 
 
 def scrub_kumeleri(kaynak):
@@ -212,10 +251,12 @@ def scrub_kumeleri(kaynak):
     agac = ast.parse(kaynak)
     bulgular = []
     for dugum in ast.walk(agac):
-        if not isinstance(dugum, (ast.Tuple, ast.List, ast.Set)):
+        if isinstance(dugum, (ast.Tuple, ast.List, ast.Set)):
+            adlar = _dizi_adlari(dugum)
+        elif isinstance(dugum, ast.Dict):
+            adlar = _sozluk_adlari(dugum)
+        else:
             continue
-        adlar = {e.value for e in dugum.elts
-                 if isinstance(e, ast.Constant) and isinstance(e.value, str)}
         if _CIFT <= adlar:
             bulgular.append(frozenset(adlar))
     return bulgular
@@ -227,11 +268,14 @@ def kume_imzasi(adlar):
     return hashlib.sha256("|".join(sorted(adlar)).encode("utf-8")).hexdigest()
 
 
-# KAYITLI MUAFIYET — (yol, kume imzasi, gerekce). Muafiyet KUMENIN ICERIGINE baglidir:
-# o dosyadaki kume tek ad bile degisirse imza tutmaz ve dosya KIRMIZI yanar.
+# KAYITLI MUAFIYET — (yol, MUAF KUME, gerekce). Muafiyet KUMENIN ICERIGINE baglidir:
+# o dosyadaki kume tek ad bile degisirse imza tutmaz ve dosya KIRMIZI yanar. Kume
+# ACIKCA yazilir (imza ondan TURETILIR): hem okunur, hem kabul testi defteri KARSILAYAN
+# fikstur uretebilir — "sentetik agacta nobeti kapat" kacisina gerek kalmaz.
 DRIFT_MUAFIYETI = (
     ("tools/urunler-guard-provenans-test.py",
-     "2ed8a9b7c1f5e7aef46fdbde842e6ddf3c0ffce1a3ac90af30c6f5747d9c0977",
+     ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
+      "GIT_OBJECT_DIRECTORY"),
      "AYRI EKSEN + BILEREK DAR, OLCUMLE secilmis kume: bu liste depo KOKU KESFI icin "
      "degil, kabul testinin ALT SURECLERINE git degiskeni SIZMASINI onlemek icin var "
      "ve her ad icin 'bu degisken kac iddiayi kirmizi yakiyor' AYRI AYRI olculmus, "
@@ -245,16 +289,80 @@ DRIFT_MUAFIYETI = (
 )
 
 
-def _muafiyet_kumesi():
-    return {(yol, imza) for yol, imza, _g in DRIFT_MUAFIYETI}
+def _muafiyet_kumesi(govde):
+    return {(yol, kume_imzasi(adlar)) for yol, adlar, _g in govde}
 
 
-def ikinci_tanimlar(kok=None):
+GEREKCE_YER_TUTUCU = "GEREKCE YAZ — bu kume neden AYRI EKSEN, OLCUMLE anlat"
+
+
+def muafiyet_kaydi(dosya_yolu, kok=None):
+    """<dosya_yolu> icin DRIFT_MUAFIYETI'ne OLDUGU GIBI yapistirilabilir kayit(lar).
+
+    🔴 NEDEN AYRI FONKSIYON: yardimcinin BASTIGI govde ile defterin BEKLEDIGI govde ayri
+    ayri yazilirsa sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]]). 7 Agu 2026 OLCULDU:
+    defter (yol, IMZA HEX, gerekce)'den (yol, AD DIZISI, gerekce)'ye gecti ama yardimci
+    ESKI bicimde kaldi -> bastigi 3 kaydin 3'u de defterde TUTMUYORDU (uyan=0/3). Bicim
+    artik TEK YERDE (burada) uretilir ve `IDDIA-KAYIT-BICIM` onu defterin TUKETICISIYLE
+    (`_muafiyet_kumesi`) capalar: emitter kayarsa kabul testi KIRMIZI yanar.
+
+    Yol REPO-GORELI dondurulur: hijyen nobeti (`bayat_kayit_yollari`) kaydi `git ls-files`
+    ciktisiyla karsilastirir; MUTLAK yol orada HIC bulunmaz -> kayit DOGDUGU AN bayat olur.
+    Ayni kume dosyada birden cok yerde geciyorsa TEK kayit basilir (defterde mukerrer
+    satir gurultuden baska ise yaramaz; muafiyet zaten kume ICERIGINE baglidir)."""
+    tam = os.path.realpath(dosya_yolu)
+    with open(tam, "r", encoding="utf-8") as f:
+        kumeler = scrub_kumeleri(f.read())
+    agac = git_kok(os.path.dirname(tam), git_ortami()) if kok is None else kok
+    yol = dosya_yolu
+    if agac:
+        goreli = os.path.relpath(tam, os.path.realpath(agac))
+        if not goreli.startswith(".."):
+            yol = goreli
+    tekil = {}
+    for adlar in kumeler:
+        tekil[tuple(sorted(adlar))] = None
+    return [(yol, adlar, GEREKCE_YER_TUTUCU) for adlar in tekil]
+
+
+def muafiyet_fiksturu_yaz(depo, govde=None):
+    """Sentetik depoya kayit defterinin YOLLARINI, KAYITLI kumeyle serer.
+
+    Defter hijyeni (bayat kayit nobeti) boylece sentetik agaclarda da FIILEN kosar;
+    "kabul testinde nobeti kapat" gibi bir kacis yolu ACILMAZ. Fikstur govdesi defterden
+    TURETILIR — ikinci bir yerde ad listesi tutulmaz."""
+    for yol, adlar, _g in (DRIFT_MUAFIYETI if govde is None else govde):
+        tam = os.path.join(depo, yol)
+        os.makedirs(os.path.dirname(tam), exist_ok=True)
+        with open(tam, "w", encoding="utf-8") as f:
+            f.write("# sentetik fikstur — kayitli muaf kume\nMUAF = (%s)\n"
+                    % ", ".join('"%s"' % a for a in adlar))
+
+
+def bayat_kayit_yollari(kayit_yollari, izlenen_yollar):
+    """🔴 TEK KAYNAK — "kayit defterinin isaret ettigi dosya artik IZLENMIYOR" hukmu.
+
+    Bu depoda AYNI hukum iki yerde veriliyor: burada (drift muafiyeti) ve
+    `tools/ci-kapsam-test.py::acik_kesif_kontrol` (acik kesif kaydi). Ikisi de BU
+    fonksiyonu cagirir — ikinci bir kopya yazilmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+    Kural: kayit YENIDEN ADLANDIRMADA da SILINMEDE de BAYATTIR; "dosya yoksa kayit
+    zararsiz" muhakemesi kaydi SESSIZCE OLU birakir ve kimse kirmizi gormez."""
+    return sorted(y for y in set(kayit_yollari) if y not in set(izlenen_yollar))
+
+
+def ikinci_tanimlar(kok=None, muafiyet=None, hijyen=None):
     """Izlenen `.py` dosyalarinda IKINCI bir scrub kumesi arar (bu modul HARIC).
 
     Dondurur: (bulgular, hata); bulgular = [(yol, sirali ad listesi)].
     hata != None -> OLCULEMEDI (fail-closed: tarama yapilamadiysa 'ikinci tanim yok'
-    HUKMU VERILMEZ). <kok> verilmezse BETIGIN kendi agaci olculur."""
+    HUKMU VERILMEZ). <kok> verilmezse BETIGIN kendi agaci olculur.
+
+    <muafiyet> kayit defteri (varsayilan DRIFT_MUAFIYETI) — kabul testi SENTETIK
+    defterle de cagirir. <hijyen> defterin BAYAT olup olmadigini da olcer; varsayilani
+    "yalniz betigin KENDI agaci taranirken" (defter O agaci tarif eder, rastgele bir
+    fikstur agacini DEGIL)."""
+    govde = DRIFT_MUAFIYETI if muafiyet is None else muafiyet
+    hijyen = (kok is None) if hijyen is None else hijyen
     if kok is None:
         # 🔴 realpath (abspath DEGIL): `git_kok` COZULMUS yol dondurur; symlink'li bir
         # kokten (macOS `/tmp` -> `/private/tmp`) bakildiginda `abspath` symlink'i
@@ -268,17 +376,14 @@ def ikinci_tanimlar(kok=None):
     if r.returncode != 0:
         return None, "git ls-files basarisiz: %s" % r.stderr.strip()[:200]
     kendi = os.path.realpath(__file__)
-    muaf = _muafiyet_kumesi()
-    muaf_yollar = {y for y, _i in muaf}
-    gorulen_yol = set()      # muafiyet yolu TARANAN AGACTA var mi
+    muaf = _muafiyet_kumesi(govde)
+    izlenen = [y for y in r.stdout.split("\0") if y]
     kullanilan = set()       # muafiyet FIILEN bir kumeye denk geldi mi
     bulunan = []
-    for yol in [y for y in r.stdout.split("\0") if y]:
+    for yol in izlenen:
         tam = os.path.join(kok, yol)
         if not yol.endswith(".py") or os.path.realpath(tam) == kendi:
             continue
-        if yol in muaf_yollar:
-            gorulen_yol.add(yol)
         try:
             with open(tam, "r", encoding="utf-8") as f:
                 icerik = f.read()
@@ -294,15 +399,23 @@ def ikinci_tanimlar(kok=None):
                 kullanilan.add((yol, imza))
                 continue
             bulunan.append((yol, sorted(adlar)))
-    # BAYAT MUAFIYET: yol TARANAN AGACTA VAR ama kayitli imza artik TUTMUYOR ->
-    # kume degismis, gerekce yeniden olculmeli (fail-closed). Yol bu agacta HIC yoksa
-    # (or. sentetik fikstur agaci) muafiyet KULLANILMAMIS sayilir, hata DEGILDIR —
-    # hukum yalniz olculebilen agac icin verilir.
-    bayat = sorted(a for a in muaf if a[0] in gorulen_yol and a not in kullanilan)
-    if bayat:
-        return None, ("BAYAT DRIFT MUAFIYETI (kume DEGISMIS -> muafiyet ARTIK "
-                      "GECERSIZ, gerekceyi yeniden olc): %s"
-                      % [(y, i[:12]) for y, i in bayat])
+    if hijyen:
+        # BAYAT MUAFIYET — IKI YON, ikisi de fail-closed KIRMIZI:
+        #   (a) kayit YOLU artik IZLENMIYOR (silinmis YA DA yeniden adlandirilmis) ->
+        #       hukum `bayat_kayit_yollari` TEK KAYNAGINDAN gelir (ci-kapsam-test.py'nin
+        #       acik kesif kaydiyla AYNI kural, ikinci bir mantik yazilmaz);
+        #   (b) yol duruyor ama KAYITLI IMZA artik tutmuyor -> kume degismis, gerekce
+        #       yeniden olculmeli.
+        yok_olan = bayat_kayit_yollari([y for y, _i in muaf], izlenen)
+        if yok_olan:
+            return None, ("BAYAT DRIFT MUAFIYETI (kaydin isaret ettigi dosya IZLENEN "
+                          "kumede YOK — silinmis ya da yeniden adlandirilmis; kaydi "
+                          "sil ya da yolu duzelt): %s" % yok_olan)
+        bayat = sorted(a for a in muaf if a not in kullanilan)
+        if bayat:
+            return None, ("BAYAT DRIFT MUAFIYETI (kume DEGISMIS -> muafiyet ARTIK "
+                          "GECERSIZ, gerekceyi yeniden olc): %s"
+                          % [(y, i[:12]) for y, i in bayat])
     return sorted(bulunan), None
 
 
@@ -341,10 +454,11 @@ def _kendini_test():
     sonuclar.append(("IDDIA-TEK-KAYNAK ikinci-tanim-yok", hata is None and ikinci == [],
                      "ikinci kume tasiyan izlenen .py: %r (hata=%r)" % (ikinci, hata)))
 
-    # IDDIA-DRIFT (SENTETIK AGAC): tespit ekseni AD'DAN CAPASIZ mi? Fikstur GERCEK
+    # IDDIA-DRIFT (SENTETIK AGAC): DIZI ekseni AD'DAN CAPASIZ mi? Fikstur GERCEK
     # dosyalara BAGIMLI DEGILDIR (repo temizlense de bu iddia ayakta kalir) ve dort
     # AYRI bicim tasir: `(...)` · `[...]` · BASKA AD · satir-ici `for` dongusu.
-    # Ada capali ESKI desen bunlarin UCUNU birden kacirir -> MUT-DRIFT-ADA-CAPALI.
+    # SOZLUK ekseni AYRI bir iddiadir (IDDIA-DRIFT-SOZLUK) — yoksa tek mutant ikisini
+    # birden dusurur ve hangi eksenin oldugu ANLASILMAZ.
     with tempfile.TemporaryDirectory(prefix="pruvo-drift-") as d:
         sdepo = os.path.join(d, "sdepo")
         os.makedirs(os.path.join(sdepo, "tools"))
@@ -383,6 +497,120 @@ def _kendini_test():
                          "isaretli, 2 kontrol temiz; olculen=%r (hata=%r)"
                          % (s_yollar, s_hata)))
 
+    # IDDIA-DRIFT-SOZLUK (SENTETIK AGAC): SOZLUK ekseni. Curutucu enjeksiyonla olctu:
+    # `{"GIT_DIR": None, "GIT_WORK_TREE": None}` ve `update({...})` bicimleri DIZI
+    # eksenine takilmiyordu. Fikstur ayrica YANLIS-POZITIF kontrolu tasir: yabanci
+    # anahtarli TESHIS kaydi (gercek ornegi `tools/kok-cozum-taramasi.py`de vardir)
+    # isaretlenMEmeli — yoksa eksen kapiyi cope atar.
+    with tempfile.TemporaryDirectory(prefix="pruvo-drift-sozluk-") as d:
+        sdepo = os.path.join(d, "sdepo")
+        os.makedirs(os.path.join(sdepo, "tools"))
+        _kos(sdepo, "init", "-q", "-b", "main")
+        s_fiksturler = {
+            # (1) sozluk ATAMASI — anahtarlarin HEPSI git baglam adi
+            "tools/d1-sozluk.py": 'SCRUB = {"GIT_DIR": None, "GIT_WORK_TREE": None}\n',
+            # (2) satir-ici `update({...})` — hicbir atama YOK
+            "tools/d2-update.py":
+                'import os\n\n\ndef kur(ortam):\n'
+                '    ortam.update({"GIT_DIR": "", "GIT_WORK_TREE": ""})\n'
+                '    return ortam\n',
+            # (3) KONTROL/YANLIS-POZITIF: TESHIS kaydi — yabanci anahtar tasir
+            "tools/d3-kontrol-teshis.py":
+                'def rapor(agac):\n    return {"agac": agac, "GIT_DIR": "<yok>",\n'
+                '            "GIT_WORK_TREE": "<yok>", "araclar": {}}\n',
+            # (4) KONTROL: tek git adi tasiyan sozluk
+            "tools/d4-kontrol-tek-ad.py": 'X = {"GIT_DIR": "a"}\n',
+        }
+        for yol, govde in s_fiksturler.items():
+            with open(os.path.join(sdepo, yol), "w", encoding="utf-8") as f:
+                f.write(govde)
+        _kos(sdepo, "add", "-A")
+        d_bulgu, d_hata = ikinci_tanimlar(kok=sdepo)
+        d_yollar = sorted({y for y, _a in (d_bulgu or [])})
+        iddia_sozluk = d_hata is None and d_yollar == ["tools/d1-sozluk.py",
+                                                       "tools/d2-update.py"]
+        sonuclar.append(("IDDIA-DRIFT-SOZLUK sozluk-ekseni", iddia_sozluk,
+                         "sozluk + update isaretli, TESHIS kaydi (yabanci anahtar) ve "
+                         "tek-ad temiz; olculen=%r (hata=%r)" % (d_yollar, d_hata)))
+
+    # --- KAYIT YARDIMCISI (`--kume-imzasi`) DEFTERLE AYNI GOVDEYI MI URETIYOR?
+    #     7 Agu 2026 OLCULDU: defterin govdesi (yol, IMZA HEX, gerekce) -> (yol, AD
+    #     DIZISI, gerekce) olarak degisti, yardimci ESKI bicimde kaldi; bastigi 3 kaydin
+    #     3'u de defterde TUTMUYORDU (uyan=0/3) -> yardimciyi izleyen bir insan, kapinin
+    #     kendi talimatiyla COZULEMEYEN bir kirmizi uretiyordu. IKI AYRI IDDIA (bicim /
+    #     yol) — tek mutant ikisini birden dusurmesin.
+    with tempfile.TemporaryDirectory(prefix="pruvo-kayit-") as d:
+        d = os.path.realpath(d)
+        kdepo = os.path.join(d, "kdepo")
+        os.makedirs(os.path.join(kdepo, "tools"))
+        _kos(kdepo, "init", "-q", "-b", "main")
+        k_yol = "tools/k1-kaynak.py"
+        with open(os.path.join(kdepo, k_yol), "w", encoding="utf-8") as f:
+            # TUPLE bicimi BILEREK: dizi/sozluk eksen mutantlari bu fiksturu
+            # dusurmesin (MUT-DRIFT-DIZI-KOR tuple'i KORUR, MUT-DRIFT-SOZLUK-KOR
+            # sozluge bakar) -> bu iki iddia AYIRT EDICI kalir.
+            f.write('SCRUB = ("GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX")\n')
+        _kos(kdepo, "add", "-A")
+        k_kayitlar = muafiyet_kaydi(os.path.join(kdepo, k_yol))
+        with open(os.path.join(kdepo, k_yol), "r", encoding="utf-8") as f:
+            k_gercek = {kume_imzasi(a) for a in scrub_kumeleri(f.read())}
+        try:
+            k_uretilen = {i for _y, i in _muafiyet_kumesi(k_kayitlar)}
+        except Exception as _e:                       # govde defterle UYUSMUYOR
+            k_uretilen = set()
+
+        # IDDIA-KAYIT-BICIM: kayit defterin TUKETICISINE verilince DOSYADAKI kumenin
+        # imzasini uretmeli — yani "yapistir ve kapi yesillenir" FIILEN dogru olmali.
+        iddia_bicim = bool(k_kayitlar) and k_uretilen == k_gercek
+        sonuclar.append(("IDDIA-KAYIT-BICIM yapistirilabilir-govde", iddia_bicim,
+                         "yardimcinin kaydi defter govdesine UYMALI; kayit=%r "
+                         "uretilen=%r dosyadaki=%r"
+                         % (k_kayitlar, sorted(i[:12] for i in k_uretilen),
+                            sorted(i[:12] for i in k_gercek))))
+
+        # IDDIA-KAYIT-YOL: kayit REPO-GORELI yol tasimali. Mutlak yol `git ls-files`
+        # ciktisinda HIC bulunmaz -> `bayat_kayit_yollari` kaydi DOGDUGU AN bayat sayar.
+        k_yollar = [y for y, _a, _g in k_kayitlar]
+        iddia_kayit_yol = k_yollar == [k_yol]
+        sonuclar.append(("IDDIA-KAYIT-YOL repo-goreli", iddia_kayit_yol,
+                         "kayit izlenen kumeyle karsilastirilir -> REPO-GORELI olmali; "
+                         "olculen=%r beklenen=%r" % (k_yollar, [k_yol])))
+
+    # --- KAYIT DEFTERI HIJYENI: IKI AYRI YON, IKI AYRI IDDIA (tek mutant ikisini
+    #     birden dusurmesin diye BILEREK ayri kuruldu). Defter SENTETIKTIR: gercek
+    #     DRIFT_MUAFIYETI'ne bagimli DEGIL.
+    _s_defter = (("tools/muaf-ornek.py",
+                  ("GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX"), "sentetik gerekce"),)
+    with tempfile.TemporaryDirectory(prefix="pruvo-muaf-") as d:
+        mdepo = os.path.join(d, "mdepo")
+        os.makedirs(os.path.join(mdepo, "tools"))
+        _kos(mdepo, "init", "-q", "-b", "main")
+        # Kayitli kume BASKA BIR YOLDA duruyor (dosya yeniden adlandirilmis gibi).
+        with open(os.path.join(mdepo, "tools", "baska-ad-almis.py"), "w",
+                  encoding="utf-8") as f:
+            f.write('MUAF = ("GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX")\n')
+        _kos(mdepo, "add", "-A")
+
+        # IDDIA-MUAF-AD-DEGISTI: muafiyet YOLA BAGLIDIR — ayni kume BASKA bir yolda
+        # belirirse MUAF DEGILDIR, ihlal olarak BASILIR.
+        a_bulgu, a_hata = ikinci_tanimlar(kok=mdepo, muafiyet=_s_defter, hijyen=False)
+        iddia_ad = a_hata is None and [y for y, _a in (a_bulgu or [])] == [
+            "tools/baska-ad-almis.py"]
+        sonuclar.append(("IDDIA-MUAF-AD-DEGISTI yol-bagli-muafiyet", iddia_ad,
+                         "kayitli kume BASKA yolda -> ihlal SAYILMALI; olculen=%r "
+                         "(hata=%r)" % (a_bulgu, a_hata)))
+
+        # IDDIA-MUAF-SILINDI: kaydin yolu IZLENEN kumede YOKSA (silinmis ya da yeniden
+        # adlandirilmis) kayit OLUDUR -> fail-closed KIRMIZI. Eski hal burada SESSIZCE
+        # rc=0 veriyordu (7 Agu 2026 olculdu); hukum artik `bayat_kayit_yollari`
+        # TEK KAYNAGINDAN gelir (ci-kapsam-test.py acik kesif kaydiyla AYNI kural).
+        s_bulgu2, s_hata2 = ikinci_tanimlar(kok=mdepo, muafiyet=_s_defter, hijyen=True)
+        iddia_silme = s_bulgu2 is None and s_hata2 is not None and \
+            "IZLENEN kumede YOK" in s_hata2
+        sonuclar.append(("IDDIA-MUAF-SILINDI olu-kayit-kirmizi", iddia_silme,
+                         "kaydin yolu agacta YOK -> OLCULEMEDI olmali; hata=%r"
+                         % (s_hata2,)))
+
     # IDDIA-SYMLINK (REGRESYON BEKCISI): depo SYMLINK'li bir yoldan gorulunce modul
     # KENDINI ikiz SAYMAMALI. Olculen kusur: `abspath` symlink COZMEZ, `git_kok` ise
     # COZULMUS yol dondurur -> kendi yolu tutmaz, nobet YANLIS KIRMIZI verirdi.
@@ -393,6 +621,7 @@ def _kendini_test():
         _kos(gercek, "init", "-q", "-b", "main")
         shutil.copyfile(os.path.realpath(__file__),
                         os.path.join(gercek, "tools", MODUL_ADI))
+        muafiyet_fiksturu_yaz(gercek)     # defter hijyeni burada da FIILEN kosar
         _kos(gercek, "add", "-A")
         bag = os.path.join(d, "bag")            # symlink -> gercek
         os.symlink(gercek, bag)
@@ -430,24 +659,34 @@ def _kendini_test():
 # ===========================================================================
 # (ad, eski, yeni, dusmesi beklenen TEK iddia | None = KONTROL)
 MUTANTLAR = (
-    # Tespit ekseni ADA CAPALI eski haline doner: `[...]`, BASKA AD ve satir-ici
-    # bicimler kacar -> sentetik fikstur KIRMIZI yanar (bugun YESIL yakiyordu).
-    ("MUT-DRIFT-ADA-CAPALI",
-     "    agac = ast.parse(kaynak)\n"
-     "    bulgular = []\n"
-     "    for dugum in ast.walk(agac):\n"
-     "        if not isinstance(dugum, (ast.Tuple, ast.List, ast.Set)):\n"
-     "            continue\n"
-     "        adlar = {e.value for e in dugum.elts\n"
-     "                 if isinstance(e, ast.Constant) and isinstance(e.value, str)}\n"
-     "        if _CIFT <= adlar:\n"
-     "            bulgular.append(frozenset(adlar))\n"
-     "    return bulgular\n",
-     "    bulgular = []\n"
-     "    if re.search(r\"^\\s*GIT_BAGLAM_DEGISKENLERI\\s*=\\s*\\(\", kaynak, re.M):\n"
-     "        bulgular.append(frozenset(_CIFT))\n"
-     "    return bulgular\n",
-     "IDDIA-DRIFT"),
+    # DIZI ekseni DARALTILIR: `[...]` bicimi kacar (tuple kalir) -> dizi fiksturu
+    # KIRMIZI. 🔴 NEDEN "tumunu oldur" DEGIL: tuple tespiti kayit defteri hijyeninin
+    # fiksturlerini de tasir; tumunu oldurmek DORT iddiayi birden dusurur ve mutant
+    # AYIRT EDICI olmaz (olculdu: IDDIA-DRIFT + MUAF-AD-DEGISTI + SYMLINK + TEK-KAYNAK).
+    ("MUT-DRIFT-DIZI-KOR",
+     "        if isinstance(dugum, (ast.Tuple, ast.List, ast.Set)):",
+     "        if isinstance(dugum, (ast.Tuple, ast.Set)):", "IDDIA-DRIFT"),
+    # SOZLUK ekseni geri alinir (7 Agu ONCESI hal): `{...}` ve `update({...})` kacar.
+    ("MUT-DRIFT-SOZLUK-KOR", "        elif isinstance(dugum, ast.Dict):",
+     "        elif False:", "IDDIA-DRIFT-SOZLUK"),
+    # Muafiyet YOLDAN kopartilir (yalniz imzaya bakar): kume BASKA bir yola tasinsa
+    # bile muaf sayilir -> ad degisikligi SESSIZ gecer.
+    ("MUT-MUAF-IMZASIZ", "            if (yol, imza) in muaf:",
+     "            if imza in {i for _y, i in muaf}:", "IDDIA-MUAF-AD-DEGISTI"),
+    # K2 onarimini geri alir: kaydin yolu agacta YOKSA "zararsiz" sayilir -> olu kayit.
+    ("MUT-BAYAT-SILME-KOR",
+     "        yok_olan = bayat_kayit_yollari([y for y, _i in muaf], izlenen)",
+     "        yok_olan = []", "IDDIA-MUAF-SILINDI"),
+    # Yardimci defterin ESKI (imza HEX) govdesine doner -> bastigi kayit yapistirilinca
+    # TUTMAZ. 7 Agu 2026'nin FIILI hali buydu; mutant o hali geri getirir.
+    ("MUT-KAYIT-BICIM-HEX",
+     "    return [(yol, adlar, GEREKCE_YER_TUTUCU) for adlar in tekil]",
+     "    return [(yol, kume_imzasi(adlar), GEREKCE_YER_TUTUCU) for adlar in tekil]",
+     "IDDIA-KAYIT-BICIM"),
+    # Yardimci yolu REPO-GORELI yapmaz (verilen argumani aynen basar) -> kayit izlenen
+    # kumede HIC bulunmaz, DOGDUGU AN bayat olur.
+    ("MUT-KAYIT-YOL-MUTLAK", "            yol = goreli", "            pass",
+     "IDDIA-KAYIT-YOL"),
     # Symlink onarimini geri alir: `abspath` symlink COZMEZ -> modul KENDINI ikiz sayar.
     ("MUT-SYMLINK-ABSPATH", "    kendi = os.path.realpath(__file__)",
      "    kendi = os.path.abspath(__file__)", "IDDIA-SYMLINK"),
@@ -481,6 +720,13 @@ def _mutasyon_bataryasi():
         govde = f.read()
     once_hash = hashlib.sha256(govde.encode("utf-8")).hexdigest()
     _on, _tablo, _arka = _tablo_disi(govde)
+    # HIJYEN: bu bataryanin DOKUNMAMASI gereken canli dosyalar (mutasyon YALNIZ
+    # kopyaya). Kok tespit edilemezse hijyen OLCULEMEDI olarak basilir, sessiz gecmez.
+    _kok = git_kok(os.path.dirname(kaynak_yolu), git_ortami())
+    komsu = ["tools/kok-cozum-taramasi.py", "tools/urunler-guard-provenans-test.py"]
+    komsu_once = {y: (_sha256_dosya(os.path.join(_kok, y))
+                      if _kok and os.path.exists(os.path.join(_kok, y)) else None)
+                  for y in komsu}
 
     def kos_kopya(icerik, kok_d):
         depo = os.path.join(kok_d, "depo")
@@ -489,6 +735,7 @@ def _mutasyon_bataryasi():
         hedef = os.path.join(depo, "tools", MODUL_ADI)
         with open(hedef, "w", encoding="utf-8") as f:
             f.write(icerik)
+        muafiyet_fiksturu_yaz(depo)   # defter hijyeni sentetik depoda da KOSAR
         _kos(depo, "add", "-A")
         r = subprocess.run([sys.executable, hedef, "--kendini-test"],
                            capture_output=True, text=True, errors="replace",
@@ -539,9 +786,22 @@ def _mutasyon_bataryasi():
                   % ("OLDU" if ok else "SAPMA", ad, sorted(dusen), sayi, cokme))
 
     sonra_hash = _sha256_dosya(kaynak_yolu)
-    print("CANLI DOSYA sha256 once==sonra: %s" % (once_hash == sonra_hash))
+    print("CANLI DOSYA (git_ortami.py) sha256 once==sonra: %s"
+          % (once_hash == sonra_hash))
     if once_hash != sonra_hash:
         hatalar.append("CANLI DOSYA DEGISTI — mutasyon yalniz KOPYAYA uygulanmali")
+    for yol in komsu:
+        tam = os.path.join(_kok, yol) if _kok else None
+        sonra = _sha256_dosya(tam) if tam and os.path.exists(tam) else None
+        esit = (komsu_once[yol] is not None and komsu_once[yol] == sonra)
+        print("CANLI DOSYA (%s) sha256 once==sonra: %s"
+              % (os.path.basename(yol), esit if komsu_once[yol] is not None
+                 else "OLCULEMEDI (dosya/kok bulunamadi)"))
+        if komsu_once[yol] is None:
+            hatalar.append("%s sha256 OLCULEMEDI (fail-closed: 'dokunmadim' iddiasi "
+                           "olculmeden gecemez)" % yol)
+        elif not esit:
+            hatalar.append("%s DEGISTI — batarya komsu canli dosyaya YAZMAMALI" % yol)
     print()
     if hatalar:
         print("MUTASYON BATARYASI KIRMIZI:")
@@ -583,14 +843,14 @@ def main():
             print("  %s  imza=%s  ad sayisi=%d" % (yol, kume_imzasi(adlar)[:16], len(adlar)))
         return 1
     if args.kume_imzasi:
-        with open(args.kume_imzasi, "r", encoding="utf-8") as f:
-            kumeler = scrub_kumeleri(f.read())
-        if not kumeler:
+        kayitlar = muafiyet_kaydi(args.kume_imzasi)
+        if not kayitlar:
             print("kume YOK: %s" % args.kume_imzasi)
             return 1
-        for adlar in kumeler:
-            print("('%s', '%s', 'GEREKCE YAZ')  # %d ad: %s"
-                  % (args.kume_imzasi, kume_imzasi(adlar), len(adlar), sorted(adlar)))
+        print("# DRIFT_MUAFIYETI'ne OLDUGU GIBI yapistirilabilir kayit(lar) "
+              "(gerekceyi OLCUMLE doldur):")
+        for kayit in kayitlar:
+            print("    %r," % (kayit,))
         return 0
     ap.print_help()
     return 0
