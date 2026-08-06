@@ -52,9 +52,13 @@ ROOT = os.path.dirname(TOOLS)
 
 KAPI = "tools/cron-nabiz-kapisi.py"
 DEPLOY = os.path.join(".github", "workflows", "deploy.yml")
+# 🔴 5 Agu 2026 SERIT AYRIMI: kadans kolunun GOVDESI nobet.yml'de. SIZINTI mutanti
+# (S6) yine deploy.yml'in `needs` listesine yazar (iddia GERCEK yayin dosyasindan
+# olculur); govdeye dokunan mutantlar (S7...) nobet.yml'i hedefler.
+NOBET = os.path.join(".github", "workflows", "nobet.yml")
 UZLASTIRICI = os.path.join(".github", "workflows", "d1-uzlastirici.yml")
 ALARM = os.path.join(".github", "workflows", "d1-sapma-alarmi.yml")
-HEDEFLER = (KAPI, DEPLOY, UZLASTIRICI, ALARM)
+HEDEFLER = (KAPI, DEPLOY, NOBET, UZLASTIRICI, ALARM)
 DOKUNULMAZ = [os.path.join(ROOT, y) for y in HEDEFLER]
 
 FAILS = []
@@ -153,7 +157,7 @@ S6 = ("S6", "🔴 KADANS KOLU YAYIN YOLUNA SIZDIRILDI: `d1-kadans` `deploy: need
 # ── KOL BAYRAGINI DUSUREN / TERSE CEVIREN MUTANTLAR ────────────────────────
 S7 = ("S7", "🔴 KOL BAYRAGI DUSURULDU: `with: kadans_kolu: true` silindi -> cagrilan is "
             "varsayilan `false` ile kosar, ONARILAN sapmada `exit 1` verir ve deploy.yml "
-            "conclusion'i YINE iki soruyu birden cevaplar", DEPLOY,
+            "conclusion'i YINE iki soruyu birden cevaplar", NOBET,
       [("    uses: ./.github/workflows/d1-uzlastirici.yml\n"
         "    with:\n      kadans_kolu: true\n",
         "    uses: ./.github/workflows/d1-uzlastirici.yml\n")], True)

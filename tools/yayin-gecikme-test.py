@@ -53,6 +53,8 @@ ROOT = os.path.dirname(TOOLS)
 NOBETCI_YOL = "tools/yayin-gecikme-nobeti.py"
 BU_TEST_YOL = "tools/yayin-gecikme-test.py"
 DEPLOY = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+# 5 Agu 2026: SERIT B adimlari (bloklamayan nobet/alarm) ayri is akisinda.
+NOBET = os.path.join(ROOT, ".github", "workflows", "nobet.yml")
 
 # Fikstur envanteri TABANI — buyuyebilir, ALTINA DUSEMEZ (bkz. modul basligi).
 # 5 Agu: 21 -> 22 (EKSEN 3 kanarisi `bugun-iki-yayinsiz`; o gecenin GERCEK govdesi).
@@ -248,20 +250,28 @@ def y3_pano_kablosu():
 
 
 # ------------------------------------------------- Y4) BAGIMSIZLIK + SERIT
-def _deploy_cagrilari(suzgec, iak):
-    """deploy.yml'deki (job_id, yol, argumanlar) uclulerinin listesi.
+def _deploy_cagrilari(suzgec, iak, is_akisi=None):
+    """<is_akisi>'ndaki (job_id, yol, argumanlar) uclulerinin listesi.
 
     `run:` degerleri GERCEK ayristiriciyla cozulur (metin taklidi YOK) ve her satirin
     ANLAMLI bir icra olup olmadigina ortak suzgec (tools/icra-suzgeci.py) karar verir.
+
+    🔴 5 Agu 2026 SERIT AYRIMI: SERIT B adimlari deploy.yml'den nobet.yml'e TASINDI
+    (bloklamayan joblarin kirmizisi yayin kosumunun rengini boyamasin diye,
+    [[hukum-yanlis-birimde]]). Fonksiyon artik dosya alir: BAGIMSIZLIK iddiasi
+    (canli kol yayin is akisinda KOSMASIN) deploy.yml'den, SERIT iddiasi
+    (kabul testi bloklamayan seritte KOSSUN) nobet.yml'den olculur.
     """
-    with open(DEPLOY, encoding="utf-8") as f:
+    yol_ = is_akisi or DEPLOY
+    ad_ = os.path.basename(yol_)
+    with open(yol_, encoding="utf-8") as f:
         metin = f.read()
     govde, hata = iak.ayristir(metin)
     if govde is None:
-        raise RuntimeError("deploy.yml ayristirilamadi: %s" % hata)
-    serit_b, tani = iak._serit_b_joblar(govde)
+        raise RuntimeError("%s ayristirilamadi: %s" % (ad_, hata))
+    serit_b, tani = iak._serit_b_joblar(govde, ad_)
     if serit_b is None:
-        raise RuntimeError("serit B joblari olculemedi: %s" % tani)
+        raise RuntimeError("%s serit B joblari olculemedi: %s" % (ad_, tani))
     cikti = []
     for job_id, job in (govde.get("jobs") or {}).items():
         for adim in (job.get("steps") or []):
@@ -278,19 +288,23 @@ def _deploy_cagrilari(suzgec, iak):
 
 def y4_bagimsizlik(suzgec, iak):
     try:
-        cagrilar, serit_b = _deploy_cagrilari(suzgec, iak)
+        cagrilar, _d_serit_b = _deploy_cagrilari(suzgec, iak, DEPLOY)
+        n_cagrilar, serit_b = _deploy_cagrilari(suzgec, iak, NOBET)
     except Exception as e:                     # noqa: BLE001
         # FAIL-CLOSED: olculemeyen kablolama "sorun yok" DEGILDIR.
         kayit("Y4", "BAGIMSIZLIK olculdu", False, "%s: %s" % (type(e).__name__, e))
         return
 
-    canli = [(j, a) for j, y, a in cagrilar
+    # CANLI kol IKI is akisinda da kosmamali: deploy.yml'de yayini durdururdu,
+    # nobet.yml'de ise nobetci OLCTUGU HATTA bagimli hale gelirdi (hat tikandiginda
+    # o da kosamaz -> tam ihtiyac aninda susar; 1 Agu'da olculen ariza budur).
+    canli = [(j, a) for j, y, a in (cagrilar + n_cagrilar)
              if y == NOBETCI_YOL and "--kendini-test" not in a and "--liste" not in a]
-    kayit("Y4", "BAGIMSIZLIK: nobetcinin CANLI OLCUM kolu deploy.yml'de KOSMUYOR",
-          not canli, "ihlal: %s" % (canli if canli else "-"))
+    kayit("Y4", "BAGIMSIZLIK: nobetcinin CANLI OLCUM kolu CI'da (deploy.yml + "
+          "nobet.yml) KOSMUYOR", not canli, "ihlal: %s" % (canli if canli else "-"))
 
-    kendi = [(j, a) for j, y, a in cagrilar if y == BU_TEST_YOL]
-    kayit("Y4", "bu kabul testi deploy.yml'de FIILEN kosuyor (olu nobetci degil)",
+    kendi = [(j, a) for j, y, a in n_cagrilar if y == BU_TEST_YOL]
+    kayit("Y4", "bu kabul testi nobet.yml'de FIILEN kosuyor (olu nobetci degil)",
           bool(kendi), "job(lar): %s" % (sorted({j for j, _ in kendi}) or "YOK"))
 
     bloklayan = sorted({j for j, _ in kendi if j not in serit_b})

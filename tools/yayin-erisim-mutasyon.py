@@ -43,9 +43,13 @@ NOBETCI = "tools/yayin-erisim-nobeti.py"
 TEST = "tools/yayin-erisim-test.py"
 IS_AKISI = "tools/is-akisi-kapisi.py"
 DEPLOY = ".github/workflows/deploy.yml"
+# 🔴 5 Agu 2026 SERIT AYRIMI: bu kabul testinin adimi (serit B) nobet.yml'e TASINDI.
+# Ayna agacta IKISI DE bulunmali: E7 hem "canli kol YAYIN is akisinda kosmuyor"
+# (deploy.yml) hem "kabul testi BLOKLAMAYAN seritte kosuyor" (nobet.yml) der.
+NOBET = ".github/workflows/nobet.yml"
 ALARM = ".github/workflows/yayin-erisim-alarmi.yml"
 
-HEDEFLER = (NOBETCI, TEST, IS_AKISI, DEPLOY, ALARM)
+HEDEFLER = (NOBETCI, TEST, IS_AKISI, DEPLOY, NOBET, ALARM)
 DOKUNULMAZ = [os.path.join(ROOT, y) for y in HEDEFLER]
 
 EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7")
@@ -137,17 +141,17 @@ M12 = ("M12", "🔴 ALARM KOLU YAYIN YOLUNA BAGLANDI (`push` tetikleyicisi eklen
 M13 = ("M13", "ALARM CRON'U YOGUN DAKIKAYA KAYDIRILDI (tetikleme sessizce dusuyor)",
        ALARM, [('- cron: "26 * * * *"', '- cron: "0 * * * *"')], ["E7"], "ESIT")
 
-M14 = ("M14", "deploy.yml'deki kabul testi adimi ETKISIZLESTIRILDI (olu nobetci)",
-       DEPLOY,
+M14 = ("M14", "nobet.yml'deki kabul testi adimi ETKISIZLESTIRILDI (olu nobetci)",
+       NOBET,
        [("        run: python3 tools/yayin-erisim-test.py",
          "        run: python3 tools/yayin-erisim-test.py || true")],
        ["E7"], "ESIT")
 
 M15 = ("M15", "SERIT_B beyani SILINDI (serit degisimi gerekcesiz kaliyor)",
        IS_AKISI,
-       [('    ("deploy.yml", "serit-b", "tools/yayin-erisim-test.py"):\n'
+       [('    ("nobet.yml", "serit-b", "tools/yayin-erisim-test.py"):\n'
          '        "Aracin KENDINI sinamasi: yerel HTTP fikstur sunucusu (dis ag YOK) + kume "',
-         '    ("deploy.yml", "serit-b", "tools/yayin-erisim-SILINDI.py"):\n'
+         '    ("nobet.yml", "serit-b", "tools/yayin-erisim-SILINDI.py"):\n'
          '        "Aracin KENDINI sinamasi: yerel HTTP fikstur sunucusu (dis ag YOK) + kume "')],
        ["E7"], "ESIT")
 
@@ -216,7 +220,7 @@ def ayna_kur(hedef):
                     ignore=shutil.ignore_patterns("__pycache__", "arsiv", "fikstur"),
                     symlinks=False)
     os.makedirs(os.path.join(hedef, ".github", "workflows"))
-    for ad in (DEPLOY, ALARM):
+    for ad in (DEPLOY, NOBET, ALARM):
         shutil.copy2(os.path.join(ROOT, ad), os.path.join(hedef, ad),
                      follow_symlinks=True)
     return hedef

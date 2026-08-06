@@ -1611,8 +1611,12 @@ def _modul(ad):
 
 
 def deploy_cagrilari():
-    """(bayraksiz_var, kendini_test_var) — deploy.yml bu betigin HANGI kollarini
-    ANLAMLI OLARAK icra ediyor.
+    """(bayraksiz_var, kendini_test_var) — bu betigin adimlarini tasiyan is akisi
+    (KADANS_IS_AKISI) HANGI kollari ANLAMLI OLARAK icra ediyor.
+
+    🔴 5 Agu 2026: `cron-nabzi` job'u serit ayriminda deploy.yml'den nobet.yml'e
+    TASINDI. Aranan DOSYA degisti, IDDIA DEGISMEDI ("iki kol da CI'da GERCEKTEN
+    icra ediliyor"). Dosya yoksa OlcumHatasi -> fail-closed KIRMIZI.
 
     KESIF AYNALANMAZ ([[ayna-kapi-kesif-ekseni]]): `run:` dugumleri tools/yaml-oku.py'nin
     GERCEK ayristiricisiyla, "bu satir gercekten icra ediyor mu" hukmu ise
@@ -1624,13 +1628,13 @@ def deploy_cagrilari():
     bir betikte GERCEK olcum kolu silinince dort denetci de rc=0 veriyordu."""
     yaml_oku = _modul("yaml-oku")
     suzgec = _modul("icra-suzgeci")
-    yol = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+    yol = os.path.join(ROOT, ".github", "workflows", KADANS_IS_AKISI)
     if not os.path.exists(yol):
-        raise OlcumHatasi("deploy.yml YOK: %s" % yol)
+        raise OlcumHatasi("%s YOK: %s" % (KADANS_IS_AKISI, yol))
     with open(yol, encoding="utf-8") as f:
         bloklar, hata = yaml_oku.run_dugumleri(f.read())
     if hata:
-        raise OlcumHatasi("deploy.yml `run:` dugumleri okunamadi: %s" % hata)
+        raise OlcumHatasi("%s `run:` dugumleri okunamadi: %s" % (KADANS_IS_AKISI, hata))
     hedef = "tools/cron-nabiz-kapisi.py"
     bayraksiz = kendini = False
     for _anahtar, _bas, _son, deger in bloklar:
@@ -1779,6 +1783,14 @@ def uzlastirici_kablosu():
 # geceler). Bu iki kol AYNI DOSYADAN kosar — govde kopyalanmaz ([[ikiz-tanim-sessiz-ayrisma]]).
 KADANS_CAGRISI = "./.github/workflows/%s" % UZLASTIRICI_DOSYA
 DEPLOY_DOSYA = "deploy.yml"
+# 🔴 5 Agu 2026 SERIT AYRIMI: kadans kolu (bloklamayan bir job) deploy.yml'den
+# nobet.yml'e TASINDI — bloklamayan joblarin kirmizisi YAYIN kosumunun rengini
+# boyuyordu ([[hukum-yanlis-birimde]]; olculdu: 28 ardisik "failure" kosumun 14'unde
+# deploy+yayin YESILDI). Kol ARANDIGI YER degisti, IDDIA DEGISMEDI: "yayini
+# BLOKLAMIYOR" hala deploy.yml'in GERCEK `needs` kapanisindan olculur ve kolu geri
+# sizdiran mutant (tools/cron-teslim-mutasyon.py M9 · tools/d1-sapma-mutasyon.py S6)
+# KIRMIZI yakmaya devam eder.
+KADANS_IS_AKISI = "nobet.yml"
 YAYIN_ISI = "deploy"
 
 
@@ -1831,15 +1843,20 @@ def kadans_kablosu():
     Doner: (sorunlar, bulgular)."""
     uzl_yol = os.path.join(WORKFLOW_DIZIN, UZLASTIRICI_DOSYA)
     dep_yol = os.path.join(WORKFLOW_DIZIN, DEPLOY_DOSYA)
-    for yol in (uzl_yol, dep_yol):
+    nob_yol = os.path.join(WORKFLOW_DIZIN, KADANS_IS_AKISI)
+    for yol in (uzl_yol, dep_yol, nob_yol):
         if not os.path.exists(yol):
             raise OlcumHatasi("is akisi YOK: %s" % yol)
     with open(uzl_yol, encoding="utf-8") as f:
         uzl = yaml_belge(f.read())
     with open(dep_yol, encoding="utf-8") as f:
         dep = yaml_belge(f.read())
+    with open(nob_yol, encoding="utf-8") as f:
+        nob = yaml_belge(f.read())
     if not isinstance(dep, dict) or not isinstance(dep.get("jobs"), dict):
         raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % DEPLOY_DOSYA)
+    if not isinstance(nob, dict) or not isinstance(nob.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % KADANS_IS_AKISI)
     if not isinstance(uzl, dict):
         raise OlcumHatasi("%s: kok dugum okunamadi" % UZLASTIRICI_DOSYA)
 
@@ -1872,9 +1889,13 @@ def kadans_kablosu():
             "duzeyine konursa cagrilan kolda uygulanip uygulanmadigi BELIRSIZDIR."
             % UZLASTIRICI_DOSYA)
 
+    # KOL, SERIT AYRIMINDAN SONRA NOBET IS AKISINDA ARANIR (govde yine KOPYALANMAZ:
+    # tek `d1-uzlastirici.yml`, iki kol). BLOKLAMA IDDIASI ise hala DEPLOY grafiginden
+    # olculur — "baska dosyada oldugu icin bloklayamaz" demek BEYAN olurdu, olcum degil.
     joblar = dep["jobs"]
+    nobet_joblar = nob["jobs"]
     kadans_ad, kadans = None, None
-    for ad, job in joblar.items():
+    for ad, job in nobet_joblar.items():
         if isinstance(job, dict) and str(job.get("uses") or "").strip() == KADANS_CAGRISI:
             kadans_ad, kadans = str(ad), job
             break
@@ -1882,17 +1903,27 @@ def kadans_kablosu():
         sorunlar.append(
             "KADANS KOLU YOK: %s icinde `uses: %s` cagiran job bulunamadi -> uzlastirma "
             "YALNIZ GitHub cron kuyruguna bagimli kalir (olculdu 4 Agu: 48 saatte teslim "
-            "%%3,65, en uzun bosluk 17,6 saat)." % (DEPLOY_DOSYA, KADANS_CAGRISI))
+            "%%3,65, en uzun bosluk 17,6 saat)." % (KADANS_IS_AKISI, KADANS_CAGRISI))
         return sorunlar, {"job": None, "grup": grup, "tetikler": sorted(tetik_adlari)}
 
     engel = _gecisli_needs(joblar, YAYIN_ISI)
-    blokluyor = kadans_ad in engel
-    if blokluyor:
+    # IKI YOLDAN SIZABILIR: (a) adi `deploy: needs` kapanisina yazilir, (b) job'un
+    # KENDISI deploy.yml'e geri tasinir. Ikisi de olculur (her biri TEK BASINA
+    # kirmizi yakabilmeli — [[beyan-edilmis-survivor]]).
+    deploy_kopyasi = [str(a) for a, j in joblar.items()
+                      if isinstance(j, dict)
+                      and str(j.get("uses") or "").strip() == KADANS_CAGRISI]
+    blokluyor = (kadans_ad in engel) or bool(set(deploy_kopyasi) & engel)
+    if kadans_ad in engel or deploy_kopyasi:
         sorunlar.append(
-            "🔴 KADANS KOLU YAYINI BLOKLUYOR: `%s` job'u `%s`nin GECISLI `needs:` "
-            "kapanisinda (%s). Bu kol D1'e ve aga bagimlidir; bloklayici yapilirsa tek "
-            "bir ag/D1 arizasi TUM EKIBIN yayinini durdurur. Kadans GORUNURLUK isidir, "
-            "yayin kapisi DEGIL." % (kadans_ad, YAYIN_ISI, ", ".join(sorted(engel))))
+            "🔴 KADANS KOLU YAYIN GRAFIGINE SIZDI: kol `%s` (%s icinde) ama %s'de "
+            "%s. Bu kol D1'e ve aga bagimlidir; bloklayici yapilirsa tek bir ag/D1 "
+            "arizasi TUM EKIBIN yayinini durdurur ve kirmizisi YAYIN kosumunun rengini "
+            "boyar. Kadans GORUNURLUK isidir, yayin kapisi DEGIL. (`%s` needs kapanisi: %s)"
+            % (kadans_ad, KADANS_IS_AKISI, DEPLOY_DOSYA,
+               ("`%s` adi needs kapanisinda" % kadans_ad) if kadans_ad in engel
+               else ("ayni cagriyi tasiyan job(lar) VAR: %s" % ", ".join(deploy_kopyasi)),
+               YAYIN_ISI, ", ".join(sorted(engel)) or "(bos)"))
     if kadans.get("continue-on-error") in (True, "true"):
         sorunlar.append("`%s` job'u `continue-on-error` ile FAIL-OPEN -> bloklamamak "
                         "SESSIZ OLMAK DEGILDIR, kol kendi kirmizisini gostermelidir"
@@ -3349,7 +3380,7 @@ def kendini_test():
             type(e).__name__, e)
     iddia("KADANS: %s icinde `uses: %s` cagiran BLOKLAMAYAN bir kol VAR (uzlastirma "
           "GitHub cron kuyruguna bagimli DEGIL; olculdu 4 Agu: cron teslimi %%3,65, "
-          "en uzun bosluk 17,6 sa)" % (DEPLOY_DOSYA, KADANS_CAGRISI),
+          "en uzun bosluk 17,6 sa)" % (KADANS_IS_AKISI, KADANS_CAGRISI),
           not kad_sorun, kad_ariza or "; ".join(kad_sorun) or repr(kad_bulgu))
     iddia("KADANS: 🔴 kol `%s`nin GECISLI `needs:` kapanisinda DEGIL — yayini "
           "BLOKLAMAZ (bu iddia yorum degil, KOSULAN kapidir: job'u `deploy: needs`'e "
@@ -3492,10 +3523,10 @@ def kendini_test():
     except Exception as e:  # noqa: BLE001 — OlcumHatasi + import arizalari
         bayraksiz = kendini = False
         kablo_hata = "%s: %s" % (type(e).__name__, e)
-    iddia("CI KABLOSU: deploy.yml GERCEK olcum kolunu (bayraksiz) ANLAMLI olarak kosuyor",
-          bayraksiz, kablo_hata or "bulunamadi")
-    iddia("CI KABLOSU: deploy.yml `--kendini-test` kolunu ANLAMLI olarak kosuyor",
-          kendini, kablo_hata or "bulunamadi")
+    iddia("CI KABLOSU: %s GERCEK olcum kolunu (bayraksiz) ANLAMLI olarak kosuyor"
+          % KADANS_IS_AKISI, bayraksiz, kablo_hata or "bulunamadi")
+    iddia("CI KABLOSU: %s `--kendini-test` kolunu ANLAMLI olarak kosuyor"
+          % KADANS_IS_AKISI, kendini, kablo_hata or "bulunamadi")
 
     # ═══════════════════════════════════════════════════════════════════════
     # A4 PAKET TAZELIGI — ONCE-KIRMIZI FIKSTURLERI

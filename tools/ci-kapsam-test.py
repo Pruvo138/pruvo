@@ -101,6 +101,20 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 DEPLOY_VARSAYILAN = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 
+# ---- BU BETIGIN KENDI ADIMLARININ YASADIGI IS AKISI (5 Agu 2026) ------------
+# 🔴 NEDEN AYRI SABIT: bu betigin IKI kolu (bayraksiz KAPSAM + `--kendini-test`)
+# "aracin KENDINI sinamasi" sinifindadir ve serit ayriminda deploy.yml'den
+# nobet.yml'e TASINDI (bloklamayan nobet/alarm joblari yayin kosumunun rengini
+# boyamasin diye; olculen bedel: 28 ardisik "failure" kosumun 14'unde deploy+yayin
+# YESILDI, mimar yanlis hukum verdi — [[hukum-yanlis-birimde]]).
+# Asagidaki UC oz-nobetci (bulgu1 · kendini-test adimi · bayraksiz adim) "bu betigin
+# su kolu CI'da GERCEKTEN icra ediliyor mu" der; o yuzden ADIMLARIN BULUNDUGU dosyaya
+# bakmalidir. Dosya yoksa fail-closed KIRMIZI (yoklugu YESIL degildir).
+# DOSYA GRANULU AYRICA OLCULUR: tools/is-akisi-kapisi.py :: BOLUM E her zorunlu
+# cagriyi HANGI is akisinda arayacagini tablosunda tasir (ikiz tanim degil, iki AYRI
+# surecten olculen ayni iddia — biri susarsa oteki konusur).
+KENDI_IS_AKISI = os.path.join(ROOT, ".github", "workflows", "nobet.yml")
+
 # ---- COKLU IS AKISI (BOLUM A) ----------------------------------------------
 # 🔴 OLCULEN KUSUR (2 Agu): bu kapi SADECE deploy.yml'e bakiyordu. Repoda IZLENEN
 # DORT is akisi var ve ucu OTOMATIK tetikleniyor:
@@ -1826,15 +1840,18 @@ def bulgu1_mutasyon_kontrol():
     mutasyon sonrasi geriye kosan satir KALIRSA sessizce yesil GECMEZ -> (False, tani).
     (ok, hata_satirlari) dondurur."""
     hedef = HEDEF_BETIK
-    if not os.path.exists(DEPLOY_VARSAYILAN):
-        return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
-    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+    if not os.path.exists(KENDI_IS_AKISI):
+        return False, ["bu betigin adimlarini tasiyan is akisi bulunamadi: %s"
+                       % KENDI_IS_AKISI]
+    with open(KENDI_IS_AKISI, encoding="utf-8") as f:
         gercek = f.read()
 
     icra_idx = _icra_satir_indeksleri(gercek, hedef)
     if not icra_idx:
-        return False, ["gercek deploy.yml'de %s'yi KOSAN hicbir icra satiri yok "
-                       "(cagri bicimi degistiyse bu nobetciyi guncelle)" % hedef]
+        return False, ["gercek %s'de %s'yi KOSAN hicbir icra satiri yok "
+                       "(cagri bicimi degistiyse ya da adim baska bir is akisina "
+                       "tasindiysa KENDI_IS_AKISI sabitini guncelle)"
+                       % (os.path.basename(KENDI_IS_AKISI), hedef)]
 
     mutant, silinen = _silme_mutanti(gercek, hedef)
     yorum_mutant, cevrilen = _yorum_mutanti(gercek, hedef)
@@ -2011,7 +2028,8 @@ HEDEF_BETIK = "tools/ci-kapsam-test.py"
 
 KENDINI_TEST_BAYRAGI = "--kendini-test"
 KENDINI_TEST_TANI = (
-    "deploy.yml'de bu betigi `--kendini-test` ile ANLAMLI olarak kosan hicbir adim YOK "
+    "nobet.yml'de (bu betigin adimlarinin yasadigi is akisi — bkz. KENDI_IS_AKISI) "
+    "bu betigi `--kendini-test` ile ANLAMLI olarak kosan hicbir adim YOK "
     "-> oz-nobetci adimi kalkmis, bayragi dusmus ya da cagri MENSIYONA cevrilmis. "
     "GERI KOY: 'CI kapsam kapisi oz-nobetcileri' adimi, "
     "`run: python3 tools/ci-kapsam-test.py --kendini-test`.\n"
@@ -2029,13 +2047,14 @@ KENDINI_TEST_TANI = (
     "   Bayrak adi bilerek degistiyse KENDINI_TEST_BAYRAGI sabitini guncelle.")
 
 BAYRAKSIZ_TANI = (
-    "deploy.yml'de bu betigi BAYRAKSIZ (kapsam kolu) ANLAMLI olarak kosan hicbir adim YOK.\n"
+    "nobet.yml'de (bu betigin adimlarinin yasadigi is akisi — bkz. KENDI_IS_AKISI) bu "
+    "betigi BAYRAKSIZ (kapsam kolu) ANLAMLI olarak kosan hicbir adim YOK.\n"
     "   OLCULEN IKI DELIK (30 Tem, geçici kopyada; dort denetci de rc=0 idi):\n"
     "     (1) `run: python3 tools/ci-kapsam-test.py --help` -> adim CI'da YESIL kosar,\n"
     "         argparse kullanim metnini basip exit 0 verir, HICBIR kapsam iddiasi olculmez.\n"
     "     (2) bayraksiz ADIM butunuyle SILINIR, yalniz `--kendini-test` adimi kalir ->\n"
     "         KAPSAM kurali (her kabul testi kosuluyor/muaf) CI'da HIC olculmez.\n"
-    "   Ikisi de `kosulan()` tarafindan gorulemez: bu betigin deploy.yml'de IKI cagrisi\n"
+    "   Ikisi de `kosulan()` tarafindan gorulemez: bu betigin o is akisinda IKI cagrisi\n"
     "   vardir, biri kalinca yol yine 'kosuluyor' sayilir. O yuzden AYRI nobetci sart.\n"
     "   🔴 NEDEN `--kendini-test` KOLUNDA YASAR: iki mutantta da BAYRAKSIZ kol CI'da\n"
     "   ya hic kosmaz (2) ya da olcum govdesine HIC girmez (1) -> kendi olumunu haber\n"
@@ -2316,9 +2335,10 @@ def kendini_test_adimi_kontrol():
     # bayrak sorgusunu ANLAMSIZ kilar -> adim silinse bile nobetci YESIL kalirdi.
     if not KENDINI_TEST_BAYRAGI or not KENDINI_TEST_BAYRAGI.startswith("--"):
         return False, [KENDINI_TEST_SABIT_TANI % (KENDINI_TEST_BAYRAGI,)]
-    if not os.path.exists(DEPLOY_VARSAYILAN):
-        return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
-    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+    if not os.path.exists(KENDI_IS_AKISI):
+        return False, ["bu betigin adimlarini tasiyan is akisi bulunamadi: %s"
+                       % KENDI_IS_AKISI]
+    with open(KENDI_IS_AKISI, encoding="utf-8") as f:
         gercek = f.read()
     anlamli, reddedilen = _hedef_cagrilari(gercek, HEDEF_BETIK)
     for argumanlar in anlamli:
@@ -2359,9 +2379,10 @@ def bayraksiz_adim_kontrol():
     kapsam kolunu KOSTURUR -> gecerli sayilir; kolu baska bir kola ceviren tek
     bayrak `--kendini-test`tir.)
     (ok, hata_satirlari) dondurur."""
-    if not os.path.exists(DEPLOY_VARSAYILAN):
-        return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
-    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+    if not os.path.exists(KENDI_IS_AKISI):
+        return False, ["bu betigin adimlarini tasiyan is akisi bulunamadi: %s"
+                       % KENDI_IS_AKISI]
+    with open(KENDI_IS_AKISI, encoding="utf-8") as f:
         gercek = f.read()
     anlamli, reddedilen = _hedef_cagrilari(gercek, HEDEF_BETIK)
     for argumanlar in anlamli:
