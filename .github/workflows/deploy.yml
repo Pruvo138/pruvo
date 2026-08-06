@@ -237,25 +237,36 @@ jobs:
       # ust dizin. 1 GB'a gore doluluk yuzdesi de basilir ki egri (gun gun) log'dan
       # okunabilsin.
       #
+      # 🔴 NEDEN `du -sb _site` DEGIL (olculdu 6 Agu — YANLIS OLCUM TUZAGI): `du`
+      # DIZIN inode'larini da sayar (dizin basina 4096 B). Bu agacta 22.359 dizin
+      # var -> `du -sb` gercek icerigi ~91 MB SISIRIR (%+10,5) ve 1 GB doluluk
+      # %80,8 yerine ~%89 gorunur. Pages'in yayinladigi ve 1 GB'a saydigi sey DOSYA
+      # icerigidir; bu yuzden toplam `find -type f -printf '%s'` ile YALNIZ DOSYA
+      # baytlarindan toplanir. Yanlis olcum olcumsuzlukten KOTUDUR: sahte esik
+      # alarmi uretip yanlis mimari karar dogurur. Referans (ayni agac, kosum
+      # 31107527748 artefakt tar'indan sayildi): 867.958.072 B / 22.399 dosya —
+      # bu adimin ilk ciktisi buna YAKIN olmali, `du` degeri olmamali.
+      #
       # 🔴 NEDEN BLOKLAYICI DEGIL: bu bir OLCUM adimidir, kapi degildir. Esik
       # koymak (ornegin ">%90 ise kirmizi") YAYIN MIMARISI karari olup mimarindir;
-      # olcum yokken esik koymak da tanim geregi kor olurdu. Adim yalnizca sayi
-      # basar ve `du`/`find` hatasi yayini durdurmasin diye `|| true` ile biter.
-      # Sayi bir kez birikince esik AYRI bir kapi olarak eklenebilir.
+      # olcum yokken esik koymak da tanim geregi kor olurdu. `continue-on-error:
+      # true` ile bu adim hicbir sekilde yayini durduramaz. Sayi birikince esik
+      # AYRI bir kapi olarak eklenebilir.
       - name: "Yayin olcegi olcumu (acilmis _site bayt/dosya dokumu — 1 GB Pages siniri)"
         run: |
-          TOPLAM=$(du -sb _site | cut -f1)
+          TOPLAM=$(find _site -type f -printf '%s\n' | awk '{s+=$1} END{printf "%d", s}')
           DOSYA=$(find _site -type f | wc -l)
           DIZIN=$(find _site -type d | wc -l)
           echo "YAYIN-OLCEK toplam_bayt=$TOPLAM"
           echo "YAYIN-OLCEK dosya_sayisi=$DOSYA"
           echo "YAYIN-OLCEK dizin_sayisi=$DIZIN"
-          echo "YAYIN-OLCEK insan_okur=$(du -sh _site | cut -f1)"
+          awk -v b="$TOPLAM" 'BEGIN{printf "YAYIN-OLCEK mib=%.1f\n", b/1048576}'
           awk -v b="$TOPLAM" 'BEGIN{printf "YAYIN-OLCEK 1GB_doluluk_yuzde=%.1f\n", b*100/1073741824}'
-          echo "YAYIN-OLCEK --- en buyuk 10 ust dizin (bayt) ---"
-          du -sb _site/* | sort -rn | head -10
-          echo "YAYIN-OLCEK --- en buyuk 10 kok dosya (bayt) ---"
-          find _site -maxdepth 1 -type f -printf '%s\t%p\n' | sort -rn | head -10
+          echo "YAYIN-OLCEK --- ust dizinler (yalniz dosya baytlari) ---"
+          find _site -mindepth 1 -maxdepth 1 -printf '%f\n' | while IFS= read -r ust; do
+            find "_site/$ust" -type f -printf '%s\n' \
+              | awk -v u="$ust" '{s+=$1; n++} END{printf "%d\t%s\t(%d dosya)\n", s+0, u, n+0}'
+          done | sort -rn | head -12
         continue-on-error: true
 
       - name: Pages artefaktini yukle
