@@ -183,14 +183,23 @@ def _sonuc(durum, gerekce, ata=None, host=None, kimlik=None, lisans=None, adapto
     }
 
 
-def ata_yargi(ata, defter, genel_satilabilir):
-    """TEK ata referansi icin yargi (dict). Ag'a yalnizca adaptor.detay ile cikar."""
+def ata_yargi(ata, defter, genel_satilabilir, kaynak_adaptor=None):
+    """TEK ata referansi icin yargi (dict). Ag'a yalnizca adaptor.detay ile cikar.
+
+    kaynak_adaptor: ata referansini BASAN (turev) platformun adaptoru. Gomulu `license`
+    alani O PLATFORMUN kendi lisans SOZLUGUNDE yazilidir (ornegin CC'yi ciplak yazan bir
+    platformda "BY-SA"), atanin kendi sozlugunde DEGIL. 🔴 CANLI OLCUM (250 kayitlik kuru
+    kosum): gomulu alan GENEL normalize zinciriyle yargilaninca ciplak "BY"/"BY-SA" degerleri
+    satilamaz sanildi -> 10 YANLIS-POZITIF. Yanlis-pozitif tum ekibin yayinini durdurur;
+    bu yuzden gomulu alan DAIMA BASAN platformun kendi satilabilir()'i ile yargilanir
+    (denetim-kapisi.py'nin `_KAYNAK_SATILABILIR` dersi ile ayni)."""
     link = (ata.get("link") or "").strip()
     gomulu = (ata.get("license") or "").strip()
+    gomulu_yargi = kaynak_adaptor.satilabilir if kaynak_adaptor is not None else genel_satilabilir
 
     # 1) Gomulu lisans DOLU ve SATILAMAZ ise ag'a cikmadan ihlal (siki yon).
     #    DOLU ve satilabilir ise hukum VERILMEZ -> host cozumlemesi yine kosar.
-    if gomulu and not genel_satilabilir(gomulu):
+    if gomulu and not gomulu_yargi(gomulu):
         return _sonuc(DURUM_IHLAL, "ata referansindaki lisans satilamaz (gomulu alan)",
                       ata, host_coz(link), None, gomulu)
 
@@ -234,14 +243,14 @@ def ata_yargi(ata, defter, genel_satilabilir):
                   ata, host, kimlik, lisans_metni, adaptor.ad)
 
 
-def kayit_yargi(urun_id, detay, defter, genel_satilabilir):
+def kayit_yargi(urun_id, detay, defter, genel_satilabilir, kaynak_adaptor=None):
     """Bir turev kaydin TUM ata referanslarinin yargisi -> sonuc dict listesi."""
     atalar = ata_kayitlari(detay)
     if not atalar:
         return [_sonuc(DURUM_ATA_YOK, "detayda ata referansi yok")]
     out = []
     for ata in atalar:
-        s = ata_yargi(ata, defter, genel_satilabilir)
+        s = ata_yargi(ata, defter, genel_satilabilir, kaynak_adaptor)
         s["urun"] = urun_id
         out.append(s)
     for s in out:
@@ -451,10 +460,27 @@ _KIMLIK_STRATEJI = {
 }
 
 
+def yargi_kaynagi(etiket):
+    """Lisans SOZLUGUNE gore yargi fonksiyonu (var olanlar; kopya YOK). Etiketler platform
+    adi DEGIL, lisans yazim bicimidir:
+      'ciplak-cc' : CC'yi ciplak yazan sozluk ("BY", "BY-SA", "CC0")
+      'kisaltma'  : onekli kisaltma sozlugu ("CC-BY", "GPL 3.0")
+      'insan-adi' : insan-okur ad sozlugu ("Attribution - NonCommercial")
+      'genel'     : normalize + kisaltma zinciri (fallback)"""
+    if etiket == "ciplak-cc":
+        return _modul("makerworld-api.py", "ata_makerworld_api").satilabilir
+    if etiket == "kisaltma":
+        return _modul("printables-api.py", "ata_printables_api").satilabilir
+    if etiket == "insan-adi":
+        return _modul("cults3d-api.py", "ata_cults3d_api").satilabilir
+    return genel_satilabilir
+
+
 def sentetik_defter(spec):
     """Fikstur tanimindan adaptor defteri kurar (AG YOK).
 
     spec: [{"ad","hostlar":[...],"kimlik":"bas-sayi:models","ata_destegi":bool,
+            "yargi":"genel|ciplak-cc|kisaltma|insan-adi",
             "detaylar":{"<kimlik>": {"license": "..."} | null | "__GECICI__" | "__KALICI__"}}]
     """
     defter = []
@@ -487,7 +513,7 @@ def sentetik_defter(spec):
             kimlik_cikar=kimlik_fn,
             detay=detay_fn,
             lisans_cikar=lambda d: str((d or {}).get("license") or ""),
-            satilabilir=genel_satilabilir,
+            satilabilir=yargi_kaynagi(s.get("yargi") or "genel"),
             ata_destegi=bool(s.get("ata_destegi"))))
     return tuple(defter)
 
@@ -552,7 +578,10 @@ def fikstur_kosum(yol, defter=None, gs=None):
     gs = gs or genel_satilabilir
     sonuclar = []
     for urun_id in sorted(kayitlar):
-        sonuclar.extend(kayit_yargi(urun_id, detaylar.get(urun_id), defter, gs))
+        kayit = kayitlar[urun_id] if isinstance(kayitlar[urun_id], dict) else {}
+        # turevin KENDI platformu (gomulu lisans alani onun sozlugundedir)
+        kaynak_ad = adaptor_bul(host_coz(str(kayit.get("link") or "")), defter)
+        sonuclar.extend(kayit_yargi(urun_id, detaylar.get(urun_id), defter, gs, kaynak_ad))
     return sonuclar, len(kayitlar)
 
 
@@ -619,7 +648,8 @@ def kuru_kosum(limit=40, kaynak_filtre=None, yaz=None):
             sonuclar.append(s)
             continue
         taranan += 1
-        sonuclar.extend(kayit_yargi(urun_id, detay, defter, genel_satilabilir))
+        # kaynak_adaptor: gomulu lisans alani BASAN platformun sozlugundedir -> onun yargisi
+        sonuclar.extend(kayit_yargi(urun_id, detay, defter, genel_satilabilir, ad))
     return sonuclar, taranan, kapsam_disi
 
 

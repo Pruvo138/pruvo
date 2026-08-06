@@ -15,6 +15,9 @@ MUTANTLAR:
       test KIRMIZI yanmali. Bu, kapinin YENI eksen (host cozumlemesi) olctugunun kanitidir.
   OLDURUCU-2 (yargi tersine) : satilabilir() hukmu tersine cevrilir (NC gecer, CC-BY ihlal
       sayilir) -> test KIRMIZI yanmali.
+  OLDURUCU-3 (sozluk korlugu): gomulu lisans alani BASAN platformun sozlugu yerine GENEL
+      zincirle yargilanir. CANLI kuru kosumda olculen YANLIS-POZITIF sinifidir (ciplak "BY"/
+      "BY-SA" satilamaz sanilir; 250 kayitta 10 vurus) -> test KIRMIZI yanmali.
   KONTROL-1 (ilgisiz davranis): kuru kosum tavani 40 -> 41. Gercek bir davranis degisikligi
       ama OLCULEN EKSENIN DISINDA -> test YESIL kalmali (batarya her mutasyonu kirmizi
       yakan gurultu makinesi degil).
@@ -47,6 +50,10 @@ MUTANTLAR = [
      '    if not adaptor.satilabilir(lisans_metni):',
      '    if adaptor.satilabilir(lisans_metni):',
      "KIRMIZI", "POZITIF"),
+    ("OLDURUCU-3 gomulu lisans sozlugu korlugu",
+     '    gomulu_yargi = kaynak_adaptor.satilabilir if kaynak_adaptor is not None else genel_satilabilir',
+     '    gomulu_yargi = genel_satilabilir',
+     "KIRMIZI", "YANLIS-POZITIF KAPISI"),
     ("KONTROL-1 ilgisiz davranis (kuru kosum tavani)",
      'ap.add_argument("--limit", type=int, default=40,',
      'ap.add_argument("--limit", type=int, default=41,',

@@ -39,7 +39,13 @@ _spec.loader.exec_module(K)
 
 # --------------------------------------------------------------- UYDURMA defter
 # alfa ve beta AYNI kimligi (7788) TASIR ama lisanslari ZITTIR -> host ekseni load-bearing.
+#
+# "turev" = ata referansini BASAN platform: lisansi CIPLAK CC sozluguyle yazar ("BY-SA").
+# Gomulu lisans alani BU sozluktedir; genel/onekli zincirle yargilanirsa "BY-SA" satilamaz
+# sanilir -> YANLIS-POZITIF (canli kuru kosumda 10 kayitta olculdu).
 ADAPTORLER = [
+    {"ad": "turev", "hostlar": ["turev-platform.example"], "kimlik": "bas-sayi:models",
+     "yargi": "ciplak-cc", "ata_destegi": True, "detaylar": {}},
     {"ad": "alfa", "hostlar": ["ata-alfa.example"], "kimlik": "bas-sayi:models",
      "ata_destegi": True,
      "detaylar": {
@@ -140,11 +146,33 @@ SENARYOLAR = [
 ]
 
 
-def _fikstur_yaz(dizin, ad, detaylar):
+# --------------------------------------------------------------- SOZLUK EKSENI
+# Gomulu `license` alani ATANIN degil, ata referansini BASAN platformun sozlugundedir.
+# (ad, detay, kaynak_platform_var_mi, beklenen durum, beklenen rc)
+SOZLUK_SENARYOLARI = [
+    ("YANLIS-POZITIF KAPISI: gomulu ciplak 'BY-SA' basan sozlukte SATILABILIR -> ihlal YOK",
+     _detay(_ata("https://ata-alfa.example/models/7788-parca", license_="BY-SA")),
+     True, K.DURUM_SATILABILIR, 0),
+
+    ("YANLIS-POZITIF KAPISI: gomulu ciplak 'BY' -> ihlal YOK",
+     _detay(_ata("https://ata-alfa.example/models/5500-parca", license_="BY")),
+     True, K.DURUM_SATILABILIR, 0),
+
+    ("gomulu ciplak 'BY-NC' basan sozlukte SATILAMAZ -> IHLAL",
+     _detay(_ata("https://ata-alfa.example/models/7788-parca", license_="BY-NC")),
+     True, K.DURUM_IHLAL, 1),
+
+    ("kaynak platform bilinmiyorsa gomulu alan GENEL zincire duser (fail-closed)",
+     _detay(_ata("https://ata-alfa.example/models/7788-parca", license_="BY-SA")),
+     False, K.DURUM_IHLAL, 1),
+]
+
+
+def _fikstur_yaz(dizin, ad, detaylar, kayitlar=None):
     yol = os.path.join(dizin, ad)
     with open(yol, "w", encoding="utf-8") as f:
         json.dump({"adaptorler": ADAPTORLER,
-                   "kayitlar": {k: {} for k in detaylar},
+                   "kayitlar": kayitlar or {k: {} for k in detaylar},
                    "detaylar": detaylar}, f)
     return yol
 
@@ -176,6 +204,23 @@ def main():
     for ad, detay, beklenen_durum, beklenen_rc in SENARYOLAR:
         n += 1
         sonuclar = K.kayit_yargi("uydurma-urun-%d" % n, detay, defter, K.genel_satilabilir)
+        durum = sonuclar[0]["durum"] if sonuclar else "(sonuc yok)"
+        rc = K.cikis_kodu(sonuclar)
+        ok = (durum == beklenen_durum and rc == beklenen_rc)
+        if not ok:
+            hatalar.append("%s -> durum=%s (bek %s) rc=%s (bek %s)"
+                           % (ad, durum, beklenen_durum, rc, beklenen_rc))
+        print("  %-4s %-96s durum=%-22s rc=%s"
+              % ("ok" if ok else "HATA", ad[:96], durum, rc))
+
+    # --- 1b) SOZLUK EKSENI: gomulu lisans BASAN platformun sozlugunde yargilanir ---
+    turev_ad = K.adaptor_bul("turev-platform.example", defter)
+    if turev_ad is None:
+        hatalar.append("turev platform adaptoru fiksturde YOK")
+    for ad, detay, kaynak_var, beklenen_durum, beklenen_rc in SOZLUK_SENARYOLARI:
+        n += 1
+        sonuclar = K.kayit_yargi("uydurma-urun-%d" % n, detay, defter, K.genel_satilabilir,
+                                 turev_ad if kaynak_var else None)
         durum = sonuclar[0]["durum"] if sonuclar else "(sonuc yok)"
         rc = K.cikis_kodu(sonuclar)
         ok = (durum == beklenen_durum and rc == beklenen_rc)
@@ -228,6 +273,20 @@ def main():
                 hatalar.append("CLI %s: rc=%d (bek %d)\n%s" % (ad, r.returncode, beklenen, r.stdout))
             print("  %-4s CLI --fikstur %-7s -> rc=%d (bek %d)"
                   % ("ok" if ok else "HATA", ad, r.returncode, beklenen))
+
+        # UCTAN UCA sozluk ekseni: turev kaydin link'i CLI'da kaynak adaptorunu secmeli
+        n += 1
+        yol = _fikstur_yaz(
+            tmp, "fx-sozluk.json",
+            {"a": _detay(_ata("https://ata-alfa.example/models/7788-p", license_="BY-SA"))},
+            kayitlar={"a": {"link": "https://turev-platform.example/models/1-x"}})
+        r = subprocess.run([sys.executable, _KAPI_YOL, "--fikstur", yol],
+                           capture_output=True, text=True)
+        ok = (r.returncode == 0)
+        if not ok:
+            hatalar.append("CLI sozluk ekseni: rc=%d (bek 0)\n%s" % (r.returncode, r.stdout))
+        print("  %-4s CLI: turev kaydin link'i kaynak sozlugunu seciyor -> rc=%d (bek 0)"
+              % ("ok" if ok else "HATA", r.returncode))
 
         # ELLE-BAK kuyrugu raporda GORUNUYOR mu (sessizce gecirmeme kanidi)
         n += 1
