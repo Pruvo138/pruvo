@@ -79,7 +79,7 @@ conclusion DEGIL) success'i beklenecek, sonra iki olcumle canli dogrulama.
   GERCEK exit koduyla **dort baglamda da SIFIR** olctu: o kapi `kok != ANA_REPO -> return 0`
   der, worktree'de hem `<agac>` hem `<agac>/tools` ANA_REPO'dan farklidir → ayni hukum
   (tasarlanmis muafiyet). Ustelik sertlestirmenin kendisi realpath'siz dizge kiyasi yuzunden
-  **uykuda bir fail-open** aciyordu. Ayni turun diriltme onarimi da DUSURULDU: main'deki
+  (E5 sinifina giren ayrinti ARSIVDE: DEVAM-ARSIV.md). Ayni turun diriltme onarimi da DUSURULDU: main'deki
   (`3aec9eba`) daha genis (85/19 iddia, W1..W4 vs 84/18, W1..W3).
   **DERS:** "kok yanlis cozuluyor" bulgusu tek basina kusur DEGIL — o kokun HUKMU degistirdigi
   gosterilmeli. Ayirt edici mutant yoksa eksen ayri iddia olarak main'e girmez.
@@ -116,53 +116,8 @@ Uc commit: `867c1b0d` (veri) · `a964d385` (kapi kolu) · `08b86c34` (taban). Uc
   commit'te. Mandal geride biraksaydik ratchet 7 yeni borca kadar sessiz kalacakti — KARSI-OLGU
   olarak olculdu: `kok_baslangic`=7 iken 1 yeni borc eklenince uyari **URETILMEDI**.
 
-## 🟢 BACKFILL GORSEL-GATE KALEMLERI KAPANDI — `33ecfa4a` (katalog 20949 -> 20948)
+## 🟢 BACKFILL GORSEL-GATE KALEMLERI KAPANDI — ARSIVDE (DEVAM-ARSIV.md)
 
-Kardes mimarin bildirdigi 2 kalem gozle olculdu: **1 dogrulandi, 1 curutuldu, 1 YENI kusur cikti.**
-
-- **DOGRULANDI -> SILINDI:** bir motosiklet aparatinda ucuncu-taraf wordmark 4 gorselin 2'sinde,
-  biri **gercek baski fotografi**. "Tasarimcinin kendi imzasi" savunmasi olculerek dustu
-  (kaynak metninde **0** isabet). `duzelt.py --sil`; gizli kaynak kaydi da temizlendi.
-- 🔴 **CURUTULDU:** jenerik sanilan bir muzik aleti parcasinda marka iddiasi MESRU — kaynagin
-  etiket+aciklamasinda marka **3** isabet; yalnizca BASLIGI markasiz. **DERS: marka iddiasini
-  basliktan degil, kaynagin etiket+aciklama metninden olc.**
-- 🆕 **UCUNCU KUSUR -> DUZELTILDI:** kart kapagi bizim bastigimiz parca DEGILDI, ticari bir
-  urunun fotografiydi. Musteriyi yaniltir → listeden cikarildi, notr render kapak oldu.
-  🔴 **EKSEN ACIGI: gorsel-gate "logo var mi" diye soruyor ama "bu gorsel BIZIM urunumuz mu"
-  diye SORMUYOR.**
-- 🟡 **ACIK:** duzeltilen kayit **1 gorselli** (3-4 kuralinin altinda), notr render eklenmeli.
-- 🟡 **ACIK:** bir denetim aracinin tum-katalog kipi rapor degil FIILEN silme uyguluyor
-  (760 kayit silinmisti) — `3b369e34` onay tavanini getirdi, tum-katalog kipi ayri karar.
-
-## CI NOBETI 19:37Z turu — DEPO KAYNAKLI KIRMIZI **0**, ENGEL GITHUB ARIZASI (surüyor)
-
-- **Mail:** kutuda `notifications@github.com` + "Run failed" **0** — tasinan 0, kalan 0
-  (inbox 7541). Kosulsuz supurme kosuldu, silinecek mail cikmadi.
-- **CI rengi depo kaynakli DEGIL:** ornekleneden 5 kirmizi kosumun hepsi ya `Set up job`ta
-  ya da **0 adimla `cancelled`** — repo betigi/kapisi hic kosmadi. Duzeltilecek kok neden YOK,
-  bu yuzden **push YOK, Codex ACILMADI** (yesile boyama riski olmadan yapilacak is yok).
-- **Kuyruk aclıgi olculdu:** tamamlanmamis kosum **15**, `in_progress` **0**;
-  **17:47Z'den beri hicbir job baslamadi** (~2 saat). En eski kuyruktaki yayin kosumu
-  `31123654220` 17:37Z'den beri **queued** (jobs 0 adim).
-- 🆕 **YENI OLCUM — push olayi teslim EDILMEDI:** `origin/main` ucu `2cb1aeeb` icin Actions'ta
-  kosum sayisi **0** (bir onceki `86246f46` icin 4). Yani arıza yalniz runner degil,
-  **kosum yaratmayi da dusuruyor**. Icerik etkisi yok (`2cb1aeeb` sadece `DEVAM.md`), ama
-  arıza gecince HEAD kendiliğinden yayina girmez.
-- **GitHub durumu (statuspage ile olculdu):** Actions **major_outage**, Pages **major_outage**,
-  API operational. Olay 15:22:49Z'den beri **investigating/critical**, son guncelleme 18:46Z:
-  "jobs may remain queued for an extended period". (Ayri "Pages Deployment Lag" olayi 16:22Z'de
-  resolved oldu, bu ondan bagimsiz.)
-- **CANLI ACIK (onbellek elendi):** canli **20.849 urun / 19.864.882 bayt**; `?cb=` ile
-  **bayt-birebir ayni** → origin bayat, CDN degil. Depo hedefi **21.217** → acik **368 urun**
-  (onceki tur 372; fark urun geri cekmelerinden). Yeni urun sayfasi hem `/urun/<id>/` hem
-  `.html` kalibinda **404**.
-- **KARAR — kuyruk IPTAL EDILMEDI:** `deploy.yml` `concurrency: pages / cancel-in-progress:false`
-  bilincli bir sozlesme; ustelik `durum.py` §9 zaten **ardisik iptal 8** (esik 6) sayiyor.
-  Iptal runner getirmez, yalnizca aclik sinyalini bozardi.
-- **SONRAKI TURUN ILK ISI:** (1) arıza `resolved` mi diye statuspage'i olc; (2) resolved ise
-  kuyruk kendiliğinden akiyor mu bak, akmiyorsa `gh workflow run deploy.yml --ref main` ile
-  HEAD'i **yeniden tetikle** (kosum yaratilmadigi icin gerekli); (3) `deploy` **JOB**'unun
-  success'ini ve iki olcumle canli sayiyi dogrula.
-- **Okan'a cikilmadi:** insan karari gerektiren eksen yok — arıza GitHub tarafinda.
+## CI NOBETI 19:37Z turu — ARSIVDE (DEVAM-ARSIV.md)
 
 ## CI NOBETI 11:37 / 15:37Z / 16:37Z turlari — KAPANDI, dokum `DEVAM-ARSIV.md`de (git disi).
