@@ -494565,5 +494565,456 @@
         "model": "Grand Vitara"
       }
     ]
+  },
+  {
+    "id": "nissan-300zx-z32-egzoz-tarafi-yarim-ay-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "300ZX",
+      "Z32"
+    ],
+    "baslik": "Nissan 300ZX (Z32) Egzoz Tarafı Külbütör Kapağı Yarım Ay Tapası",
+    "aciklama": "Nissan 300ZX (Z32) VG30 motorunda egzoz tarafı külbütör (subap) kapağının uç kısmındaki yarım ay biçimli tapa. Kam milinin çıktığı yarım daire boşluğu kapatır ve conta ile birlikte yağ sızdırmazlığını sağlar; sertleşip büzüşen ya da kırılan orijinal tapada motor kapağının ucundan yağ terlemesi/damlaması başlar, egzoz manifolduna damlayan yağ is ve koku yapar. Yarım daire yayı, oturma kanalı ve kalınlığı orijinaline uygun olarak tek parça halinde özel üretilir. Yüksek sıcaklığa ve motor yağına dayanıklı malzeme (ABS/ASA/PETG) ile üretilir. Uyumlu araç: Nissan 300ZX (Z32). Almadan önce sökülen tapanızın yay çapı ve kalınlığıyla karşılaştırın.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d905377-1.jpg"
+    ],
+    "altkategori": "Motor Bölümü",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "300ZX"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "DocFoFo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "datsun-120y-hitachi-dcg306-karburator-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Datsun",
+      "120Y",
+      "B210"
+    ],
+    "baslik": "Datsun 120Y (B210) Hitachi DCG-306 Karbüratör Şamandıra Haznesi Contası",
+    "aciklama": "Datsun 120Y (B210) ve aynı karbüratörü kullanan Japon modellerde Hitachi DCG-306 karbüratörünün şamandıra haznesi (üst kapak) contası. Karbüratörün üst gövdesi ile hazne arasını yakıt sızdırmaz biçimde ayırır; kuruyup çatlayan ya da elde kesildiği için delikleri kaçık olan contada yakıt sızıntısı, benzin kokusu ve rölanti bozulması görülür. Jikle, jet ve cıvata delikleri orijinal karbüratör gövdesinden alınan ölçülerle konumlandırılmıştır; tek parça, düz kesim olarak özel üretilir. Yakıta dayanıklı conta malzemesinden üretilir. Uyumlu karbüratör: Hitachi DCG-306. Almadan önce sökülen contanızın delik düzeniyle karşılaştırın.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d857888-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d857888-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d857888-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3d857888-4.jpg"
+    ],
+    "altkategori": "Motor Bölümü",
+    "uyum": [
+      {
+        "marka": "Datsun"
+      },
+      {
+        "marka": "Datsun",
+        "model": "120Y"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "robwhi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "datsun-280z-kolcak-kapak-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Datsun",
+      "280Z",
+      "260Z"
+    ],
+    "baslik": "Datsun 280Z / 260Z Kolçak Kapak Plakası",
+    "aciklama": "Datsun 280Z ve 260Z kapı kolçağının üstünü kapatan kapak plakası. Kolçak gövdesinin iç boşluğunu ve montaj vidalarını gizler, döşeme kenarını bastırarak düzgün bir yüzey bırakır; yıllar içinde çatlayan, kenarları kavlayan ya da kaybolan orijinal plakada kolçak açıkta kalır ve döşeme kenarı kalkar. Ortadaki açıklık, kolçağın kumaş kaplı olduğu araçlarda rahat oturması için bir miktar geniş bırakılmıştır. Kenar profili ve vida noktaları orijinaline uygun olarak tek parça halinde özel üretilir. Dayanıklı ve UV'ye direnç gösteren malzeme (PETG/ABS/ASA) ile üretilir. Uyumlu araçlar: Datsun 280Z, Datsun 260Z. Almadan önce mevcut kolçağınızın delik aralığıyla karşılaştırın.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d1831611-1.jpg"
+    ],
+    "altkategori": "İç Aksam",
+    "uyum": [
+      {
+        "marka": "Datsun"
+      },
+      {
+        "marka": "Datsun",
+        "model": "280Z"
+      },
+      {
+        "marka": "Datsun",
+        "model": "260Z"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "sippelcj",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "datsun-bobin-paketi-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Datsun"
+    ],
+    "baslik": "Datsun Bobin (Coil Pack) Montaj Braketi — Yazısız Sürüm",
+    "aciklama": "Datsun motorlarda ateşleme bobinlerini (coil pack) motor bölmesinde sabitlemek için kullanılan montaj braketi. Bobinleri sıralı biçimde taşır, kablo demetini gergin bırakmadan yerinde tutar ve titreşimle sallanmalarını önler; braketsiz ya da kırık braketle bağlanan bobinlerde kablo uçları yorulur, temassızlık ve teklemeye yol açar. Bu sürümde gövde üzerinde hiçbir yazı ya da işaret yoktur, yüzey tamamen düzdür. Cıvata delikleri ve bobin yuvaları tek parça halinde özel üretilir. Motor bölmesi sıcaklığına dayanıklı malzeme (PETG/ABS/ASA) ile üretilir. Almadan önce bobinlerinizin taban ölçüsü ve cıvata aralığıyla karşılaştırın.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d1689729-1.jpg"
+    ],
+    "altkategori": "Motor Bölümü",
+    "uyum": [
+      {
+        "marka": "Datsun"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "leehambley",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "datsun-240z-temiz-hava-kanali-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Datsun",
+      "240Z"
+    ],
+    "baslik": "Datsun 240Z Temiz Hava Kanalı (Sürücü + Yolcu Takımı)",
+    "aciklama": "Datsun 240Z'de motor bölmesindeki temiz hava girişini kabin menfezlerine taşıyan dirsekli hava kanalı takımı. Sürücü ve yolcu tarafı için iki ayrı parça halinde gelir; orijinal kanallar genelde yırtılıp dağıldığı için bu bölüm çoğu araçta tamamen boş kalır ve menfezden hava yerine motor bölmesi kokusu ve sıcak hava gelir. Dirsek açısı, ağız çapı ve gövdedeki montaj tırnağı orijinal yerleşime göre modellenmiştir; her parça tek gövde halinde özel üretilir. Motor bölmesi sıcaklığına dayanıklı malzeme (ABS/ASA/PETG) ile, iç yüzeyi pürüzsüz kalacak biçimde üretilir. Uyumlu araç: Datsun 240Z. Sürücü ve yolcu parçaları birbirinin aynası olduğundan takım halinde gönderilir.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d1427965-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d1427965-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d1427965-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3d1427965-4.jpg"
+    ],
+    "altkategori": "Klima ve Havalandırma",
+    "uyum": [
+      {
+        "marka": "Datsun"
+      },
+      {
+        "marka": "Datsun",
+        "model": "240Z"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "joshcarz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "datsun-240z-kalorifer-kumanda-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Datsun",
+      "240Z"
+    ],
+    "baslik": "Datsun 240Z Kalorifer Kumanda Topuzu",
+    "aciklama": "Datsun 240Z konsolundaki kalorifer/havalandırma kumanda kollarının ucundaki tutamak topuzu. Kolun ucuna geçer ve yan taraftaki sıkma vidasıyla mile kilitlenir; orijinal topuzlar zamanla kırılıp dağıldığından çıplak metal kol kalır, kol hem kavranmaz hem de eli çizer. Dış yüzeydeki tırtıklı kavrama profili ve iç mil yuvası orijinal parça ölçü alınarak modellenmiştir; tek parça halinde özel üretilir. Isıya ve sürtünmeye dayanıklı malzeme (PETG/ABS/ASA) ile üretilir. Uyumlu araç: Datsun 240Z. Almadan önce kolunuzun mil kesiti ve vida yuvasıyla karşılaştırın.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d1245377-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d1245377-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d1245377-3.jpg"
+    ],
+    "altkategori": "Klima ve Havalandırma",
+    "uyum": [
+      {
+        "marka": "Datsun"
+      },
+      {
+        "marka": "Datsun",
+        "model": "240Z"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "jvandyke",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nissan-350z-dortlu-gosterge-yuvasi-60mm-52mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "350Z"
+    ],
+    "baslik": "Nissan 350Z Dörtlü Gösterge Yuvası (3 x 60 mm + 1 x 52 mm)",
+    "aciklama": "Nissan 350Z için üç adet 60 mm ve bir adet 52 mm ek gösterge taşıyan çoklu gösterge yuvası. Yağ basıncı, su sıcaklığı, turbo basıncı gibi ek göstergeleri sürücünün görüş alanında düzenli biçimde toplar; göstergeleri konsola bantla ya da gelişigüzel braketle tutturmak yerine tek gövdede sabitler, kabloları arkada gizler. Gösterge çapları standart 60 mm ve 52 mm kadranlara göre boşluk paylı modellenmiştir, kadranlar arkadan geçirilip yerine oturur. Tek parça halinde özel üretilir; darbeye ve güneşe dayanıklı malzeme (PETG/ABS/ASA) ile üretilir. Uyumlu araç: Nissan 350Z. Almadan önce göstergelerinizin gövde çapı ve derinliğiyle karşılaştırın.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d508705-1.jpg"
+    ],
+    "altkategori": "Konsol ve Torpido",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "350Z"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "rudutoit",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nissan-qashqai-j10-arka-ceki-kancasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Qashqai",
+      "J10"
+    ],
+    "baslik": "Nissan Qashqai J10 +2 Arka Tampon Çeki Kancası Kapağı",
+    "aciklama": "Nissan Qashqai J10 ve Qashqai+2 modellerinde arka tampondaki çeki kancası yuvasını kapatan kör kapak. Kanca kullanılmadığında yuvayı kapatarak tampon içine su, çamur ve taş kaçmasını engeller, tamponun düz görünmesini sağlar; yıkamada ya da park darbesinde kolayca düşen bu kapak kaybolduğunda yuva açıkta kalır ve içeride pas başlar. Tırnak geometrisi ve dış yüzey eğimi tampon hattına uyacak biçimde modellenmiştir, elle bastırılarak takılır. Tek parça halinde, dış ortam koşullarına dayanıklı malzeme (ASA/ABS/PETG) ile özel üretilir; boyanmaya uygundur. Uyumlu araçlar: Nissan Qashqai J10, Qashqai+2. Almadan önce tamponunuzdaki yuva ölçüsüyle karşılaştırın.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d225141-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d225141-2.jpg"
+    ],
+    "altkategori": "Dış Aksam",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "Qashqai"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "maxmafia",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nissan-nv200-bardaklik-yuvasi-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "NV200"
+    ],
+    "baslik": "Nissan NV200 Bardaklık Yuvası Telefon Tutucusu (İki Parçalı)",
+    "aciklama": "Nissan NV200 torpidosunda direksiyonun yanındaki bardaklık yuvasına oturan iki parçalı telefon tutucu. Alt gövde bardaklık çukuruna geçer, üst kızak telefonu dik konumda kavrar; böylece delik açmadan, vantuz ya da bant kullanmadan telefon sürücünün göz hizasına yakın sabitlenir ve şarj kablosu alttan geçirilir. Kalın koruma kılıflı telefonlarla da çalışacak genişlikte tasarlanmıştır. İki parça halinde özel üretilir; sıcakta yumuşamayan, darbeye dayanıklı malzeme (PETG/ABS/ASA) ile üretilir. Uyumlu araç: Nissan NV200. Almadan önce telefonunuzun kılıflı genişliğiyle karşılaştırın.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d141214-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d141214-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d141214-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3d141214-4.jpg"
+    ],
+    "altkategori": "Telefon ve Şarj",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "NV200"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "moXDesigns",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nissan-nv200-torpido-bardakligi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "NV200"
+    ],
+    "baslik": "Nissan NV200 Torpido Üstü Ek Bardaklık",
+    "aciklama": "Nissan NV200'de torpido üzerindeki bardaklık yuvasına oturan ek bardak/termos tutucu. Yuvaya geçen alt kademesi sayesinde vida veya bant gerektirmez; halka gövde bardağı dik tutar, alttaki taban içeceğin çukura kaymasını engeller. Özellikle orijinal bardaklığı telefon tutucu gibi başka bir aparata verilmiş araçlarda ikinci bir içecek yeri kazandırır. Halka iç çapı standart karton kahve bardağı ve termos gövdelerine göre modellenmiştir. Tek parça halinde özel üretilir; sıcak içecekten etkilenmeyen, darbeye dayanıklı malzeme (PETG/ABS/ASA) ile üretilir. Uyumlu araç: Nissan NV200. Almadan önce kullandığınız bardağın gövde çapıyla karşılaştırın.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d141217-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d141217-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d141217-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3d141217-4.jpg"
+    ],
+    "altkategori": "Bardaklık",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "NV200"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "moXDesigns",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "datsun-510-yuvarlak-far-adaptor-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Datsun",
+      "510"
+    ],
+    "baslik": "Datsun 510 Yuvarlak Far Adaptör Halkası",
+    "aciklama": "Datsun 510'un yuvarlak far yuvasına takılan adaptör halkası. Far yuvasını kapatıp gövdeye oturan bir kademe oluşturur; farlardan biri sökülüp yerine intercooler hortumu, hava girişi ya da farklı çaplı bir lamba geçirildiğinde açıkta kalan boşluğu düzgün biçimde çevreler ve yuvayı toz/su girişine karşı kapatır. Gövde aracın gerçek far yuvası ölçüsünde modellenmiştir; dış çapı orijinal far kasnağı hattına oturur. Tek parça halinde özel üretilir; dış ortama ve motor bölmesi sıcaklığına dayanıklı malzeme (ASA/ABS/PETG) ile üretilir. Uyumlu araç: Datsun 510. Almadan önce far yuvanızın iç çapıyla karşılaştırın.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d2990657-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d2990657-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d2990657-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3d2990657-4.jpg"
+    ],
+    "altkategori": "Aydınlatma",
+    "uyum": [
+      {
+        "marka": "Datsun"
+      },
+      {
+        "marka": "Datsun",
+        "model": "510"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "gauderio",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nissan-micra-k10-ic-dikiz-aynasi-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Micra",
+      "K10"
+    ],
+    "baslik": "Nissan Micra K10 (1982-1991) İç Dikiz Aynası Braketi",
+    "aciklama": "Nissan Micra K10 (1982-1991) modelinde iç dikiz aynasını ön cama bağlayan plastik braket. Camdaki metal ayağa oturur ve aynanın mafsal gövdesini taşır; yaşlanan plastikte kırılma çok yaygındır, kırıldığında ayna cama tutunamaz ve sürekli düşer. Cam ayağının kama profili, kilitleme tırnağı ve ayna gövdesinin oturma yüzeyi orijinal parçaya göre modellenmiştir; tek parça halinde özel üretilir. Güneş altında camın arkasında oluşan yüksek sıcaklığa dayanıklı malzeme (ABS/ASA/PETG) ile üretilir. Uyumlu araç: Nissan Micra K10. Almadan önce camınızdaki metal ayağın ölçüsüyle karşılaştırın.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d608952-1.jpg"
+    ],
+    "altkategori": "Ayna ve Silecek",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "Micra"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "firebird",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nissan-terrano-pickup-torpido-gosterge-kor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "Terrano"
+    ],
+    "baslik": "Nissan Terrano / Pick-Up Torpido Gösterge Kör Tapası",
+    "aciklama": "Nissan Terrano ve Nissan Pick-Up modellerinde gösterge paneli / torpido üzerindeki küçük gösterge-uyarı yuvasını kapatan kör tapa. Donanım farkı nedeniyle boş kalan ya da parçası kaybolmuş yuvayı kapatır, panelin içindeki elektrik tesisatını gözden ve tozdan gizler ve panelin düzgün görünmesini sağlar. Yaklaşık 38 x 23 mm ölçüsündedir; kenar tırnaklarıyla yuvaya elle bastırılarak takılır. Tasarım lisansı gereği hiçbir değişiklik yapılmadan aynen üretilir. Tek parça halinde, güneş altında sararmaya ve çatlamaya dirençli malzeme (ASA/ABS/PETG) ile özel üretilir. Uyumlu araçlar: Nissan Terrano, Nissan Pick-Up. Almadan önce panelinizdeki yuvanın ölçüsüyle karşılaştırın.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d435128-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d435128-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3d435128-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3d435128-4.jpg"
+    ],
+    "altkategori": "Konsol ve Torpido",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "Terrano"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "Sema3d",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "nissan-240sx-180sx-geri-vites-lambasi-t20-duyu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan",
+      "240SX",
+      "180SX"
+    ],
+    "baslik": "Nissan 240SX / 180SX Type X Geri Vites Lambası T20 Ampul Duyu",
+    "aciklama": "Nissan 180SX ve 240SX Type X arka grubunda geri vites lambasının T20 ampulünü taşıyan duy gövdesi. Ampulü lamba gövdesine dik ve merkezde tutar, çeyrek tur çevrilerek yuvaya kilitlenir; ısı ve nemle kırılganlaşan orijinal duylarda tırnaklar koptuğunda ampul yuvada oynar, temassızlık yapar ve geri vites lambası yanıp sönmeye başlar. İçine kontak lamelleri yerleştirilip kablolar lehimlenerek kullanıma hazır hale getirilir. Ampul yuvası ve kilit tırnakları orijinal ölçüye göre modellenmiştir; tek parça halinde özel üretilir. Ampul sıcaklığına dayanıklı malzeme (PETG/ABS/ASA) ile üretilir. Uyumlu araçlar: Nissan 180SX, Nissan 240SX (Type X arka grup). Almadan önce lamba gövdenizdeki duy yuvasıyla karşılaştırın.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d933757-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d933757-2.jpg"
+    ],
+    "altkategori": "Aydınlatma",
+    "uyum": [
+      {
+        "marka": "Nissan"
+      },
+      {
+        "marka": "Nissan",
+        "model": "240SX"
+      },
+      {
+        "marka": "Nissan",
+        "model": "180SX"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "CheesyPrint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "datsun-240z-17mm-motor-bolmesi-kor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Datsun",
+      "240Z"
+    ],
+    "baslik": "Datsun 240Z 17 mm Motor Bölmesi Ara Duvar Kör Tapası",
+    "aciklama": "Datsun 240Z'de motor bölmesi ile kabin arasındaki ara duvarda (firewall) kalan 17 mm çapındaki geçiş deliklerini kapatan kör tapa. Kaldırılan bir donanımdan (klima, ek kablo, vakum hattı) boş kalan delikleri kapatarak motor bölmesi sıcaklığının, egzoz kokusunun ve suyun kabine geçmesini engeller. Kenarındaki esnek dudak sayesinde elle bastırılarak takılır, sac kalınlığına oturur. 17 mm delikler için ölçülendirilmiştir; ara duvar dışında sac gövdedeki aynı çaptaki deliklerde de kullanılabilir. Tek parça halinde, motor bölmesi sıcaklığına dayanıklı malzeme (ABS/ASA/PETG) ile özel üretilir. Uyumlu araç: Datsun 240Z ve aynı çapta deliği olan araçlar. Almadan önce deliğinizin çapını ölçün.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d1427967-1.jpg"
+    ],
+    "altkategori": "Montaj Parçaları ve Klipsler",
+    "uyum": [
+      {
+        "marka": "Datsun"
+      },
+      {
+        "marka": "Datsun",
+        "model": "240Z"
+      }
+    ],
+    "lisans": {
+      "tasarimci": "joshcarz",
+      "tur": "CC BY 4.0"
+    }
   }
 ]
