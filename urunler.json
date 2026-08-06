@@ -234895,27 +234895,6 @@
     ]
   },
   {
-    "id": "ford-cati-tasiyici-koruyucu-kapak",
-    "kategori": "Otomobil",
-    "marka": [
-      "Ford"
-    ],
-    "baslik": "Çatı Rafı Kapağı Koruması (Ford)",
-    "aciklama": "Çatı taşıyıcı/raf kapağı için koruyucu işlevli yedek parça.\nKapak açma-kapama ve rijit taşıyıcının korunmasına yardımcı olur.\nAraca uygun yuvalama ile servis sonrası pratik değişim sağlayabilir.",
-    "fiyat": "500 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw1629089-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw1629089-2.jpg",
-      "https://media.pruvo3d.com/urunler/mw1629089-3.jpg"
-    ],
-    "altkategori": "Montaj Parçaları ve Klipsler",
-    "uyum": [
-      {
-        "marka": "Ford"
-      }
-    ]
-  },
-  {
     "id": "ford-nugget-buzdolabi-kapagi-mentesesi",
     "kategori": "Otomobil",
     "marka": [
