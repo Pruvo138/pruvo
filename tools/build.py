@@ -111,11 +111,47 @@ ATTRIBUTION_START = "<!-- PRUVO attribution module: start -->"
 ATTRIBUTION_END = "<!-- PRUVO attribution module: end -->"
 
 
-def attribution_head_snippet():
-    """Tek kaynak modülü inline basar; yayın beyaz listesine yeni varlık gerekmez."""
+def attribution_kaynak():
+    """attribution-ref.js gövdesi — TEK KAYNAK. İki basım yolu (inline + /varlik/) da
+    BU dizeden türer; elle tutulan ikinci bir kopya YOK ([[ikiz-tanim-sessiz-ayrisma]])."""
     with open(ATTRIBUTION_JS_PATH, encoding="utf-8") as f:
-        source = f.read().strip()
-    return ATTRIBUTION_START + "\n<script>\n" + source + "\n</script>\n" + ATTRIBUTION_END
+        return f.read().strip()
+
+
+def attribution_head_snippet():
+    """Tek kaynak modülü inline basar; yayın beyaz listesine yeni varlık gerekmez.
+
+    KİMİN İÇİN: elle yazılmış 4 statik yasal sayfa (attribution_ekle), ana sayfanın
+    yayın kopyası (yayin_index) ve marka/model + landing + içerik şablonları. Bunlar
+    SAYICA az (~1.300 sayfa) — gömülü kalmaları yayın ölçeğinde ölçülebilir bir yük
+    değil, buna karşılık byte-birebirlik kapıları (tools/enjeksiyon-kapisi.py) ve
+    marka/model attribution zemin+tavan ekseni (tools/marka-model-test.py) tam da
+    GÖMÜLÜ gövdeyi ölçer. Ölçek kaldıracı ürün sayfalarındadır (aşağıya bak)."""
+    return ATTRIBUTION_START + "\n<script>\n" + attribution_kaynak() + "\n</script>\n" + ATTRIBUTION_END
+
+
+def attribution_varlik_head():
+    """AYNI tek kaynak, sayfaya GÖMÜLMEDEN: içerik-adresli /varlik/atif-<hash>.js referansı.
+
+    NEDEN (ölçüldü, 6 Ağu 2026): atıf modülü ürün sayfasına inline basılıyordu ve yayına
+    inen (yorumu soyulmuş) hâli sayfa başına 10.768 bayt tutuyordu. 21.185 ürün sayfasında
+    bu, açılmış yayın artefaktının 216,5 MiB'ı demekti — 1 GB'lık GitHub Pages sınırının
+    beşte birinden fazlası, hem de HER SAYFADA BİREBİR AYNI bayt. Blok PAGE_CSS ve ürün
+    JS'iyle aynı mekanizmaya (varlik_adres) alındı: same-origin /varlik/ altında TEK dosya,
+    adı içeriğinin sha256'sından türüyor.
+
+    ⚠️ HARİCİ HOST/CDN/KÜTÜPHANE YOK — dosya kendi origin'imizde; dışarıdan hiçbir şey
+    çekilmez. ÖNBELLEK: ad içerikten türediği için aynı adın ÜSTÜNE yazılmaz; bir bayt
+    değişirse ad değişir, bayat modül servis edilemez ([[r2-sessiz-uzerine-yazma]]).
+
+    🔴 `defer`/`async` EKLENMEZ: modül `window.pruvoRef` / `window.pruvoRefRiza`'yı tanımlar
+    ve sayfanın SONRAKİ satır-içi script'leri (rıza bannerı, WhatsApp huni prefill'i) bunları
+    çağırır. Düz harici <script> tıpkı gömülü blok gibi SIRAYLA ve parse'ı bloklayarak koşar;
+    defer eklemek çalışma sırasını sessizce tersine çevirir ve atıf ekranda hata vermeden
+    kaybolurdu."""
+    return (ATTRIBUTION_START + '\n<script src="'
+            + varlik_adres("atif", "js", attribution_kaynak())
+            + '"></script>\n' + ATTRIBUTION_END)
 
 
 def attribution_ekle(html_metni):
@@ -3131,7 +3167,9 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         ga_head=GA_HEAD_SNIPPET,
         meta_head=META_HEAD_SNIPPET,
         meta_view_content=meta_view_content,
-        attribution_head=attribution_head_snippet(),
+        # ATIF MODULU: gomulu DEGIL, paylasilan /varlik/atif-<hash>.js referansi.
+        # Olcek kaldiracinin tamami burada: 21.185 sayfa x 10.718 bayt.
+        attribution_head=attribution_varlik_head(),
         ga_banner=GA_BANNER_SNIPPET,
     )
     # script src'lerine ?v=<icerik-hash> (onbellek kirici) — tek yer, yayin=render.

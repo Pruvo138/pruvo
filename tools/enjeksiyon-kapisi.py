@@ -141,17 +141,43 @@ kontrol("1d meta_ekle sonrasi attribution govdesi hâlâ BAYT BAYT ayni",
 # ---------------------------------------------------------------- 2) SOZDIZIMI
 tamam, hata = node_check(govde_y or "")
 kontrol("2a node --check: yenilenen sayfadaki attribution script'i TEMIZ", tamam, hata)
-tamam_u, hata_u = node_check(govdeyi_cikar(B.render_product({
+
+# (2b) URUN SAYFASI — modul artik GOMULU DEGIL, /varlik/atif-<hash>.js REFERANSI.
+# 🔴 ESKI HALI DISSIZDI (olculdu 6 Agu 2026): bu eksen `govdeyi_cikar(urun_sayfasi)` ile
+# ATTRIBUTION_START isaretini ariyordu; oysa render_product ciktisi yayin_html'den gecer ve
+# HTML YORUMLARI (yani isaretler) SOYULUR -> `govdeyi_cikar` HEP None doner, `node_check("")`
+# de BOS dosyayi "temiz" sayar. Yani eksen yillardir bir sey olcmuyordu ([[nobetci-cagri-satiri-nobetsiz]]).
+# YENI CAPA yorumdan bagimsiz ve DAVRANISSAL: sayfa TAM BIR /varlik/atif-*.js referansi
+# tasimali, o dosya DISKTE olmali, sozdizimi temiz olmali ve KOSUNCA pruvoRef/pruvoRefRiza
+# tanimlanmali. Referans kirilirsa (ad ayrisirsa) ya da dosya bosalirsa sayfa ATIFSIZ kalir
+# ve bu eksen kirmizi yanar.
+ornek_urun = B.render_product({
     "id": "enjeksiyon-kapisi-ornek", "kategori": "Otomobil", "marka": ["Test"],
     "baslik": "Örnek", "aciklama": "Örnek açıklama.", "fiyat": "100 TL",
     "gorseller": ["https://media.pruvo3d.com/urunler/x-1.jpg"],
-}, [])) or "")
-kontrol("2b node --check: URUN sayfasindaki attribution script'i TEMIZ", tamam_u, hata_u)
+}, [])
+atif_refleri = re.findall(r'<script src="(' + re.escape(B.VARLIK_URL_ONEK) + r'atif-[0-9a-f]+\.js)">',
+                          ornek_urun)
+kontrol("2b URUN sayfasi atif modulunu TAM BIR /varlik/atif-*.js referansiyla cagiriyor",
+        len(atif_refleri) == 1, "bulunan referans: %r" % (atif_refleri,))
+atif_govde_u = ""
+if len(atif_refleri) == 1:
+    atif_yol = os.path.join(B.VARLIK_DIR, atif_refleri[0][len(B.VARLIK_URL_ONEK):])
+    if os.path.isfile(atif_yol):
+        with open(atif_yol, encoding="utf-8") as f:
+            atif_govde_u = f.read()
+kontrol("2c Referans edilen /varlik/atif-*.js DISKTE var ve BOS DEGIL",
+        len(atif_govde_u.strip()) > 0, "yol: %r" % (atif_refleri[:1],))
+tamam_u, hata_u = node_check(atif_govde_u) if atif_govde_u else (False, "govde bos")
+kontrol("2d node --check: URUN sayfasinin cagirdigi atif varligi TEMIZ", tamam_u, hata_u)
 
 # ---------------------------------------------------------------- 3) RUNTIME TANIMLILIK
 tamam_r, cikti_r = runtime_tanimli(govde_y or "")
-kontrol("3 RUNTIME: window.pruvoRef + window.pruvoRefRiza TANIMLI (riza geri alma buna bagli)",
-        tamam_r, cikti_r)
+kontrol("3a RUNTIME (gomulu yol): window.pruvoRef + window.pruvoRefRiza TANIMLI "
+        "(riza geri alma buna bagli)", tamam_r, cikti_r)
+tamam_ru, cikti_ru = runtime_tanimli(atif_govde_u) if atif_govde_u else (False, "govde bos")
+kontrol("3b RUNTIME (varlik yolu): urun sayfasinin cagirdigi dosya KOSUNCA pruvoRef + "
+        "pruvoRefRiza TANIMLI", tamam_ru, cikti_ru)
 
 # ---------------------------------------------------------------- 4) NEGATIF KONTROL
 # Eski (kacis yorumlayan) yol kullanilsaydi kapi kirmizi yanar miydi? Kaynakta `\s` varken
