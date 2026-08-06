@@ -159,18 +159,31 @@ print("\n6) ESLEME 4/4 — %s" % CAGRI_ADI)
 node_betik = (
     "const o=require(" + repr(ORTAK) + ");"
     "console.log(JSON.stringify([o.CIKIS_GECTI,o.CIKIS_KIRMIZI,o.CIKIS_KOSULAMADI,"
-    "o.CIKIS_OLCULEMEDI,o.FIKSTUR_ENV,o.SUPURME_TAVANI,o.ZAMAN_ASIMI_MS,o.DENEME]));"
+    "o.CIKIS_OLCULEMEDI,o.FIKSTUR_ENV,o.SUPURME_MUTLAK_TAVAN,o.ZAMAN_ASIMI_MS,o.DENEME,"
+    # TAVAN artik SABIT DEGIL: katalog boyutundan turer. Sozlesme "sayi tanimli mi" degil
+    # "OLCEKLENIYOR mu + ust sinir DURUYOR mu" diye olcer (sabitleyen mutant burada da yanar).
+    "o.supurmeTavani(10000),o.supurmeTavani(20212),o.supurmeTavani(40424),"
+    "o.supurmeTavani(100000000),o.IDS_PARTI]));"
 )
 p = subprocess.run(["node", "-e", node_betik], capture_output=True, text=True)
 ONA(p.returncode == 0, "parite-ortak.js require edilebiliyor (%s)" % (p.stderr.strip()[:120] or "ok"))
 if p.returncode == 0:
     import json
-    gecti_k, kirmizi_k, kosulamadi_k, olculemedi_k, fenv, tavan, za, den = json.loads(p.stdout)
+    (gecti_k, kirmizi_k, kosulamadi_k, olculemedi_k, fenv, mutlak, za, den,
+     t10k, t20k, t40k, tdev, ids_parti) = json.loads(p.stdout)
     ONA([gecti_k, kirmizi_k, kosulamadi_k, olculemedi_k] == [0, 1, 2, 3],
         "dogrudan cagri cikis kodlari = 0/1/2/3 (sozlesme tablosu)")
     ONA("PARITE_URUNLER" in fenv, "PARITE_URUNLER fikstur-env listesinde (0 uretemez)")
     ONA("ARA_UC" in fenv, "ARA_UC fikstur-env listesinde (kanonik uc degistirilirse 0 yok)")
-    ONA(isinstance(tavan, int) and tavan > 0, "supurme TAVANI tanimli (%s parti)" % tavan)
+    ONA("PARITE_SUPURME_MUTLAK" in fenv,
+        "supurme MUTLAK siniri fikstur-env listesinde (esik baypasi 0 uretemez)")
+    ONA(isinstance(mutlak, int) and mutlak > 0,
+        "supurme MUTLAK ust siniri tanimli (%s parti)" % mutlak)
+    ONA(t10k == -(-10000 // ids_parti) and t20k == -(-20212 // ids_parti)
+        and t40k == -(-40424 // ids_parti),
+        "tavan KATALOGDAN turuyor (10000->%s, 20212->%s, 40424->%s parti)" % (t10k, t20k, t40k))
+    ONA(t20k > t10k and t40k > t20k, "katalog buyudukce tavan BUYUYOR (sabit DEGIL)")
+    ONA(tdev == mutlak, "MUTLAK ust sinir DURUYOR (sinirsiz buyume YOK: %s parti)" % tdev)
     ONA(isinstance(za, int) and za > 0, "zaman asimi tanimli (%s ms)" % za)
     ONA(isinstance(den, int) and den >= 2, "yeniden deneme tanimli (%s)" % den)
 

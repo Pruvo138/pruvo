@@ -20,6 +20,17 @@
  * olarak ice aktarilir (dosyada package.json/"type":"module" yok, o yuzden uzanti hilesi).
  * Elle kopyalasaydik kod degisince test sessizce ESKI davranisi dogrulamaya devam ederdi.
  *
+ * 🔴 REFERANS IKI GOVDEDEN OLUSUR (06 Agu 2026) — cunku UC de iki daldan olusur:
+ *   SERBEST METIN : bot'un `urunAra`si (asagida, degismedi).
+ *   MARKA ADI     : `?q=<marka>` 05 Agu'da `marka_arama` UYELIGINE baglandi. `urunAra` o
+ *                   kurali TASIMAZ (bot deposunda 1 tanim / 0 cagri yeri = OLU KOD), yani
+ *                   tek basina referans olarak birakilmasi testin KENDISINI bayatlatti:
+ *                   38/848 kirmizi, TAMAMI marka sorgusu, yon daima "referans FAZLA sayar".
+ *                   Marka dali artik tools/ege-marka-referansi.js'ten gelir; orada da ikinci
+ *                   bir yuklem YAZILMAZ, iki uretim govdesi KOSTURULUR (d1-sync.py
+ *                   marka_arama_haritasi + ucun kendi markaSorguKanonu'su).
+ *                   Kurulamazsa OLCULEMEDI (cikis 3), sessiz yesil DEGIL.
+ *
  * ⚠️ CIKIS KODLARI: TEK KAYNAK -> tools/parite-ortak.js dosya basindaki "CIKIS KODU
  *   SOZLESMESI" blogu (burada IKINCI TABLO YAZILMAZ). Ozet: 0 parite · 1 aciklanamayan
  *   ayrisim · 2 test kosulamadi (bot kaynagi/fonksiyonu yok) · 3 OLCULEMEDI.
@@ -31,6 +42,7 @@ const os = require("os");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const ortak = require("./parite-ortak.js");
+const markaRef = require("./ege-marka-referansi.js");
 
 const UC = process.env.ARA_UC || "https://pruvo-whatsapp-bot.gmlmz.workers.dev/ara";
 // 🔴 KATALOG YOLU = BU CHECKOUT (mutlak yol DEGIL). Eskiden /Users/okan/dev/pruvo/urunler.json
@@ -53,10 +65,15 @@ async function egeKodu() {
   }
   const kaynak = fs.readFileSync(BOT, "utf8");
   const gecici = path.join(os.tmpdir(), "pruvo-ege-ref-" + process.pid + ".mjs");
-  fs.writeFileSync(gecici, kaynak + "\nexport { katalogIndeksle, urunAra, sorguKavramlari, nrm };\n");
+  // markaSorguKanonu = UCUN KENDI marka yargisi (olu kod DEGIL, canli dalin ta kendisi).
+  // Marka referansi onu sahte bir D1 uzerinde CALISTIRIR; norm/aksan/ayirac kanonu ve
+  // cakisma davranisi bu govdeden gelir, kopyalanmaz.
+  fs.writeFileSync(gecici, kaynak +
+    "\nexport { katalogIndeksle, urunAra, sorguKavramlari, nrm, markaSorguKanonu };\n");
   try {
     const M = await import(pathToFileURL(gecici).href);
-    for (const ad of ["katalogIndeksle", "urunAra", "sorguKavramlari", "nrm"]) {
+    for (const ad of ["katalogIndeksle", "urunAra", "sorguKavramlari", "nrm",
+      "markaSorguKanonu"]) {
       if (typeof M[ad] !== "function") {
         console.error("index.js'te " + ad + "() bulunamadi — yeniden adlandirildi mi? Test durdu.");
         process.exit(2);
@@ -167,6 +184,17 @@ async function araSor(q) {
 }
 
 async function main() {
+  // ── MARKA ADI SORGUSU EKSENI — EGE YUZEYI (opsiyonel, VARSAYILAN KAPALI) ─────────
+  // Bu test Ege'nin BUGUNKU aramasini (urunAra) referans alir; marka adiyla yapilan
+  // sorgunun `marka_arama` kolonuna baglanmasi AYRI bir iddiadir ve burada OLCULMEZ.
+  // Marka ekseni o iddiayi olcer (kume paritesi; Ege skorla siraladigi icin SIRA iddiasi
+  // YOK) ve uc gecmeden once KIRMIZI yanar — beklenen. Bloklayan seride DEGIL; govde TEK:
+  // tools/parite-marka-ekseni.js.  node tools/parite-ege.js --marka-ekseni [--ornek=N]
+  // NOT: bot kaynagi (egeKodu) bu yolda GEREKMEZ -> kontrol EN BASTA.
+  if (process.argv.includes("--marka-ekseni")) {
+    return process.exit(await require("./parite-marka-ekseni.js").calistirCLI({ yuzey: "ege" }));
+  }
+
   const EGE = await egeKodu();
   const PRODUCTS = JSON.parse(fs.readFileSync(URUNLER, "utf8"));
   const idx = EGE.katalogIndeksle(PRODUCTS);
@@ -180,8 +208,10 @@ async function main() {
     sorgular.length, PRODUCTS.length, URUNLER, UC);
   console.log("ISTEK BUTCESI: sorgu(%d) + on-kosul(1) [+ sayilar ayriysa supurme " +
     "min(ceil(%d/%d), tavan %d) = %d parti] | zaman asimi %d ms/istek, deneme %d\n",
-    sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI, ortak.SUPURME_TAVANI,
-    Math.min(Math.ceil(YEREL_IDLER.length / ortak.IDS_PARTI), ortak.SUPURME_TAVANI),
+    sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI,
+    ortak.supurmeTavani(YEREL_IDLER.length),
+    Math.min(Math.ceil(YEREL_IDLER.length / ortak.IDS_PARTI),
+      ortak.supurmeTavani(YEREL_IDLER.length)),
     ortak.ZAMAN_ASIMI_MS, ortak.DENEME);
 
   // Sessiz baypas olmasin: test-only env verildiyse HEM stdout HEM stderr'e (A15).
@@ -211,11 +241,47 @@ async function main() {
     throw e;
   }
   for (const n of onKosul.notlar) console.log("  " + n);
+
   if (onKosul.kirmizi) {
     console.log("\nSONUC: PARITE YOK ❌ — %s", onKosul.kirmizi);
     console.log("   (Bu yon katalog farkiyla ACIKLANAMAZ: site gosterir, Ege GOREMEZ.)");
     console.log("canli istek: %d", SAYAC.istek);
     return process.exit(ortak.CIKIS_KIRMIZI);
+  }
+
+  // ── SUPURME TAVANI: kanit uretilemedi -> ACIK OLCULEMEDI, sorgu OLCULMEZ ───────────
+  // parite-test.js ile AYNI kural; gerekce orada yazili (dayanaksiz kirmizi uretme).
+  if (onKosul.durdu) {
+    OLCULEMEDI.push("supurme tavani -> 0/" + sorgular.length + " sorgu olculdu");
+    return process.exit(ortak.sonucYaz({
+      etiket: "ege", gecti: 0, atlandi: 0, hatalar: [], onKosul,
+      sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
+      fazlaKume: null, olculemedi: OLCULEMEDI,
+    }));
+  }
+
+  // ── MARKA REFERANSI — on-kosul KIRMIZISINDAN SONRA kurulur ────────────────────
+  // 🔴 SIRA HUKUMDUR (1 > 3 > 0): once kurulsaydi, referans kurulamadiginda on-kosulun
+  // KIRMIZI hukmu OLCULEMEDI'ye (3) donusur, yani ariza bulunmus kirmiziyi SILERDI.
+  // Taslak id kaniti on-kosuldan gelir, o yuzden daha erkene de alinamaz.
+  // 🔴 FAIL-CLOSED: kurulamazsa sorgular OLCULMEZ. Eski (serbest metin) referansla devam
+  // etmek "bayat referans" kusurunu geri getirir; marka sorgularinda KIRMIZI yakip gercek
+  // gerilemeyi gurultuye gomerdi.
+  let MARKA;
+  try {
+    MARKA = await markaRef.markaReferansi({
+      EGE, urunler: PRODUCTS, urunlerYolu: URUNLER, taslakKume: onKosul.taslakIdler,
+    });
+    console.log("  marka referansi: %d marka / %d kalem (kaynak: d1-sync.marka_arama_haritasi" +
+      " + ucun markaSorguKanonu'su)", MARKA.evrenBoyu, MARKA.kalem);
+  } catch (e) {
+    OLCULEMEDI.push(ortak.olcumNotu(e, "ege"));
+    OLCULEMEDI.push("marka referansi KURULAMADI -> 0/" + sorgular.length + " sorgu olculdu");
+    return process.exit(ortak.sonucYaz({
+      etiket: "ege", gecti: 0, atlandi: 0, hatalar: [], onKosul,
+      sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
+      fazlaKume: null, olculemedi: OLCULEMEDI,
+    }));
   }
 
   let gecti = 0;
@@ -231,9 +297,22 @@ async function main() {
     while (sirada < sorgular.length && !olcumArizasi) {
       const q = sorgular[sirada++];
 
-      // BEKLENEN = Ege'nin gercek kodu, TUM eslesmeler (sirali).
-      const bek = EGE.urunAra(idx, q, Infinity);
-      const bekIds = bek.map((u) => u.id);
+      // BEKLENEN = UCUN GECTIGI DALIN yerel karsiligi, TUM eslesmeler (sirali).
+      //  · marka adi sorgusu -> `marka_arama` uyeligi, katalog sirasi (uc: seq DESC,
+      //    skor SABIT 3 -> sira SAF seq DESC, yani iddia SIRA ekseninde de gecerlidir).
+      //  · degilse           -> serbest metin (urunAra), eskisi gibi.
+      // Dal secimi UCUN KENDI yargisidir (markaSorguKanonu); burada "marka mi" diye
+      // ikinci bir karar YAZILMAZ.
+      let bekIds;
+      try {
+        const markaDeger = await MARKA.kanon(q);
+        bekIds = markaDeger
+          ? MARKA.kume(markaDeger).slice()
+          : EGE.urunAra(idx, q, Infinity).map((u) => u.id);
+      } catch (e) {
+        olcumArizasi = olcumArizasi || Object.assign(e, { olcum: true });
+        return;
+      }
 
       let g;
       try { g = await araSor(q); } catch (e) {

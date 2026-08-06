@@ -31,7 +31,8 @@ import tempfile
 sys.dont_write_bytecode = True
 
 KAPI = "tools/spec-ifsa-kapisi.py"
-BEKLENEN_IDDIA_SAYISI = 24
+BEKLENEN_IDDIA_SAYISI = 26  # 22 taban + KOK ekseni 2 ("yanlis agacta yesil") + EKO ekseni 2
+
 
 # (mutant_adi, eski_metin, yeni_metin, dusmesi_beklenen_TEK_iddia)
 # Eski metinler kapinin kaynagindan BIREBIR alinir; bulunamazsa surucu KIRMIZI yanar
@@ -129,6 +130,15 @@ MUTANTLAR = (
     ("MUT-MASKE", '    return "  %s:%d  [EKSEN-%s %s]" % (yol, satir_no, kod, adlar[kod])',
      '    return "  %s:%d  [EKSEN-%s %s] %s" % (yol, satir_no, kod, adlar[kod],\n'
      '                                          _satir_metni)', "IDDIA-MASKE"),
+    # --- KOK EKSENI: kapi hangi AGACI olctugunu CWD'den almaz ---
+    # MUT-KOK-ARG-KOR: acik --kok yok sayilir -> yalniz IDDIA-KOK1 duser
+    # (belirsizlik dali bozulmadigi icin IDDIA-KOK2 AYAKTA kalir).
+    ("MUT-KOK-ARG-KOR", "    if arg_kok:\n        k = _git_kok(arg_kok)",
+     "    if False:\n        k = _git_kok(arg_kok)", "IDDIA-KOK1"),
+    # MUT-KOK-CWD-DUS: belirsizlikte fail-closed yerine SESSIZCE cwd'ye dusulur —
+    # olculen kusurun ta kendisi -> yalniz IDDIA-KOK2 duser.
+    ("MUT-KOK-CWD-DUS", "    if cwd_kok and os.path.realpath(cwd_kok) != os.path.realpath(betik_kok):",
+     "    if False:", "IDDIA-KOK2"),
 )
 
 
@@ -160,7 +170,15 @@ def main():
             print("  %-18s -> %s" % (ad, iddia))
         return 0
 
-    kok = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+    # 🔴 OLCULECEK KAPI, SURUCUNUN KENDI AGACINDAN bulunur — CWD'DEN DEGIL.
+    # 5 Agu 2026 olcumu: kok CWD'den (`git rev-parse --show-toplevel`, argumansiz)
+    # turetiliyordu. Ayni surucu, cwd baska bir agacta iken O AGACIN kapi kopyasini
+    # olcuyordu: saglam kapi icin "TABAN: 22 iddia / rc=0", BOZUK bir kopya iceren
+    # agactan kosuldugunda "TABAN: 0 iddia / rc=1". Yani bir dalin kapiyi bozdugu
+    # kosumda surucu ANA CHECKOUT'un saglam kopyasini olcup YESIL yanabilirdi
+    # (bu adim CI'da BLOKLAYICIDIR). `-C` ile surucunun kendi dizini sorulur.
+    kok = subprocess.run(["git", "-C", os.path.dirname(os.path.abspath(__file__)),
+                          "rev-parse", "--show-toplevel"],
                          capture_output=True, text=True).stdout.strip()
     if not kok:
         print("OLCULEMEDI: git kok dizini bulunamadi")

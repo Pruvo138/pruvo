@@ -58,7 +58,7 @@ FIKSTUR = os.path.join(TOOLS, "fikstur", "yayin-gecikme")
 DEPLOY_YOL = os.path.join(ROOT, ".github", "workflows", DEPLOY)
 DOKUNULMAZ = [os.path.join(TOOLS, a) for a in AYNA_TOOLS] + [DEPLOY_YOL]
 
-EKSENLER = ("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8")
+EKSENLER = ("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9")
 
 FAILS = []
 
@@ -106,16 +106,21 @@ M3 = ("M3", "IPTAL = HATA: eszamanlilik iptali TIKANMA sayiliyor (yanlis alarm)"
         "\"action_required\")",
         "HATA_SONUCLARI = (\"failure\", \"startup_failure\", \"timed_out\", "
         "\"action_required\", \"cancelled\")")],
-      ["Y1"], "ESIT")
+      # CAPRAZ (gerekce): YAYINSIZ_SONUCLARI bu tuple'dan TURETILIR (ikiz tanim YOK), yani
+      # ayni mutasyon EKSEN 3'un sinifini da kirletir. Sonuc: `dagilmis-hatalar-saglikli`
+      # kanarisi (Y1) + "cancelled zincire girmesin" sozlesme nobeti (Y2) + EKSEN 3'un
+      # sinif iddiasi (Y9) BIRLIKTE duser. Uc kirmizi da AYNI olgunun sonucudur.
+      ["Y1", "Y2", "Y9"], "ESIT")
 
 M4 = ("M4", "BIRIKME SIFIRLAMA: `ahead_by` okunmuyor (bekleyen icerik GORUNMEZ)",
       NOBETCI,
       [("    geride = g[\"ahead_by\"]", "    geride = 0")],
       # CAPRAZ (gerekce): `ahead_by` icerige dair HER olcumun UST AKISIDIR. Sifirlaninca
       # icerik ekseni (Y1), `bugun-build-dustu` korelme kanarisi (Y5) ve yas TABANI
-      # olcumu (Y7 — yas artik hic hesaplanmiyor) AYNI ANDA duser. Uc eksen de ayni
-      # fiziksel olgunun (bekleyen icerigin gorunmez olmasi) sonucudur.
-      ["Y1", "Y5", "Y7"], "ESIT")
+      # olcumu (Y7 — yas artik hic hesaplanmiyor) ve EKSEN 3 (Y9 — yas kapisinin
+      # arkasindadir) AYNI ANDA duser. Dort eksen de ayni fiziksel olgunun (bekleyen
+      # icerigin gorunmez olmasi) sonucudur.
+      ["Y1", "Y5", "Y7", "Y9"], "ESIT")
 
 M5 = ("M5", "ZINCIR BASARIDA DURMUYOR: pencere boyu hatalar toplaniyor",
       NOBETCI,
@@ -134,7 +139,10 @@ M7 = ("M7", "ACLIK'ta VE -> VEYA: tek basina iptal zinciri alarm uretiyor",
       NOBETCI,
       [("    if eksen[\"iptal_zinciri\"] and eksen[\"yas_gecikme\"]:",
         "    if eksen[\"iptal_zinciri\"] or eksen[\"yas_gecikme\"]:")],
-      ["Y1"], "ESIT")
+      # CAPRAZ (gerekce): kural VEYA'ya donunce `yas_gecikme` TEK BASINA ACLIK uretir ve
+      # ACLIK, TIKALI'dan ONCE dondugu icin EKSEN 3'un hukmunu de yutar (Y9 kanarisi
+      # ACLIK'a duser). Ayni tek satir iki ekseni birden bozuyor.
+      ["Y1", "Y9"], "ESIT")
 
 M8 = ("M8", "YAS TABANI KALDIRILDI: ff-only ile gelen eski tarihli commit yasi sisiriyor",
       NOBETCI,
@@ -163,6 +171,18 @@ M12 = ("M12", "ETKIN SONUC KOSUM DUZEYINE DONDU (`deploy` isi yetkili degil)",
        NOBETCI,
        [("    if isler.get(YAYIN_ISI) == \"success\":",
          "    if kosum.get(\"conclusion\") == \"success\":")],
+       # CAPRAZ (gerekce): EKSEN 3'un zinciri de ETKIN SONUC uzerinde sayilir; yetki
+       # kosum duzeyine donunce Y9 kanarisinin son yayinlayan kosumu (genel `failure`,
+       # deploy=success) kaybolur ve zincir/taban BIRDEN kayar.
+       ["Y5", "Y9"], "ESIT")
+
+M19 = ("M19", "IS DUZEYI OZ-NOBETI CURUDU: `yayinsiz` sinifi sozlesme vakasindan dusuruldu "
+              "(kosum yesil + deploy skipped artik 'yayinlandi' sayilir)",
+       NOBETCI,
+       [("        ({\"conclusion\": \"success\"}, {YAYIN_ISI: \"skipped\"}, \"yayinsiz\"),",
+         "        ({\"conclusion\": \"success\"}, {YAYIN_ISI: \"skipped\"}, \"success\"),")],
+       # Y5'in AYIRT EDICI mutanti: yalnizca is-duzeyi SOZLESME nobetini bozar, hicbir
+       # fiksturun hukmunu degistirmez ([[beyan-edilmis-survivor]]).
        ["Y5"], "ESIT")
 
 M13 = ("M13", "`gh` STDERR'I OLDUGU GIBI DISARI CIKIYOR (sir/kimlik sizintisi)",
@@ -189,6 +209,26 @@ M16 = ("M16", "OLCULEN TAVAN CAPASI GEVSETILDI: esik nobeti kendi tabanindan kop
          "\nOLCULEN_SAGLIKLI_IPTAL_TAVANI = 7\n")],
        ["Y2"], "ESIT")
 
+M17 = ("M17", "EKSEN 3 DEVRE DISI: yayinsiz zincir ekseni hep False -> 5 Agu'da olculen "
+              "kor nokta (74 dk yayin durmasi, alarm YOK) geri gelir",
+       NOBETCI,
+       [("        \"yayinsiz_zinciri\": (olcum[\"ardisik_yayinsiz\"] >= "
+         "TIKALI_YAYINSIZ_ZINCIR",
+         "        \"yayinsiz_zinciri\": (False and olcum[\"ardisik_yayinsiz\"] >= "
+         "TIKALI_YAYINSIZ_ZINCIR")],
+       # TEK-KIRMIZI: sozlesme nobetleri (Y2) esikleri hala tutarli gorur — bozulan sey
+       # esik DEGIL, eksenin KENDISIDIR; o yuzden yalniz Y9 duser.
+       ["Y9"], "ESIT")
+
+M18 = ("M18", "EKSEN 3 ESIGI ETKISIZ: TIKALI_YAYINSIZ_ZINCIR yukseltildi (esik gevsetme "
+              "yoluyla ayni kor nokta)",
+       NOBETCI,
+       [("\nTIKALI_YAYINSIZ_ZINCIR = 2\n", "\nTIKALI_YAYINSIZ_ZINCIR = 999\n")],
+       # CAPRAZ (gerekce): esik hata zinciri esiginin (4) USTUNE cikinca SOZLESME nobeti
+       # de konusur ("daha genis sinifi daha GEC yakalar") -> Y2 ile Y9 BIRLIKTE duser.
+       # Ayirt edici (yalniz Y9) mutant M17'dir; bu giris esik yuzeyini ayrica olcer.
+       ["Y2", "Y9"], "ESIT")
+
 # ── KONTROL MUTANTLARI (YESIL kalmali) ──────────────────────────────────────────────
 # Surucu "her seye kirmizi yanan" gurultulu bir alarma donusmesin: anlam tasimayan
 # degisiklikler bataryayi KIRMIZI yakmamali, yoksa yukaridaki "OLDU" hukumlerinin hicbiri
@@ -214,8 +254,14 @@ K4 = ("K4", "ilgisiz: kabul testi basligindaki bir kelime degisti",
         "    print(\"YAYIN GECIKME NOBETCISI - KABUL TESTI\")")],
       [], "ESIT")
 
+K5 = ("K5", "ilgisiz: EKSEN 3 sabitinin yanina aciklama yorumu eklendi (esik DEGISMEDI)",
+      NOBETCI,
+      [("TIKALI_YAYINSIZ_ZINCIR = 2\n",
+        "TIKALI_YAYINSIZ_ZINCIR = 2   # olculen tavan 1 (5 Agu, 7 gun)\n")],
+      [], "ESIT")
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, M16,
-             K1, K2, K3, K4)
+             M17, M18, M19, K1, K2, K3, K4, K5)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)

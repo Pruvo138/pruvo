@@ -154,8 +154,8 @@ M8 = ("M8", "🔴 A3 CAPASI ESKI HALINE (max(kayit_an, yenileme_an)) DONDURULDU 
 M9 = ("M9", "🔴 KADANS KOLU YAYIN YOLUNA SIZDIRILDI: `d1-kadans` job'u `deploy: needs` "
             "listesine eklendi -> D1/ag'a bagimli bir kol TUM EKIBIN yayinini durdurur "
             "(bu depoda olculen kapi-birikimi zarari)", DEPLOY,
-      [("    needs: [build, serit-a2, serit-a3]\n",
-        "    needs: [build, serit-a2, serit-a3, d1-kadans]\n")], True, None)
+      [("    needs: [build, serit-a2, serit-a3, serit-a4]\n",
+        "    needs: [build, serit-a2, serit-a3, serit-a4, d1-kadans]\n")], True, None)
 
 M10 = ("M10", "🔴 ESZAMANLILIK KILIDI SILINDI: uzlastiran isin `concurrency` grubu "
               "kaldirildi -> cron kolu ile push kolu AYNI ANDA kosabilir (D1'e cift "
@@ -262,9 +262,97 @@ X13 = ("X13", "🔴 `workflow_call` mesru sayiliyor (is akislari arasi TEK bag y
               "deploy.yml'in `needs` grafinin ICINE girebilir)",
        KAPI, _izin("workflow_call"), True, {"PS11"})
 
+# ── CANLI KALIBRASYON (5 Agu 2026) — Y EKSENLERI ────────────────────────────
+# 🔴 NEDEN VAR: esik DONMUS bir sabitten (31 Tem, 4,016 sa penceresi, %12,5) turuyordu.
+# 5 Agu olcumu rejimi %4,52 buldu (110,6 sa · 442 nominal · 20 teslim; en uzun bosluk
+# 1053,2 dk) ve N=9 sa esigi BOS KIRMIZI uretmeye basladi (son 30 deploy kosumunda 3 kez).
+# Esik artik CANLI olculen orandan turer. Bu onarim KENDI BASINA fail-open olabilirdi:
+# teslim kotulestikce esik buyur, esik buyudukce alarm susar. Asagidaki mutantlar tam o
+# geri besleme deligini ve tavanlari civiler.
+Y1 = ("Y1", "🔴 MUTLAK SESSIZLIK TAVANI KALDIRILDI ('olcum ne derse o olsun'): turetilen "
+            "N=20 sa'e cikar ve 19,0 saatlik TAM SESSIZLIK YESILE doner — pencereyi "
+            "olcumun insafina birakan mutant", KAPI,
+      [("    if n > tavan:\n        kaynak += \" · TAVAN %d sa BAGLADI\" % tavan\n"
+        "        n = tavan\n", "")], True, {"A4", "EKSEN", "Y3"})
+
+Y2 = ("Y2", "🔴 TAVAN SONSUZA ACILDI (tavan sabiti 18 -> 9999): 'pencereyi sonsuz "
+            "genisletme' mutantinin sabit kolu; ayni 19,0 sa fiksturu YESILE doner",
+      KAPI, [("MUTLAK_SESSIZLIK_SAAT = 18", "MUTLAK_SESSIZLIK_SAAT = 9999")],
+      True, {"Y-INV", "Y3"})
+
+Y3 = ("Y3", "🔴 COKMUS REJIM SABIR SATIN ALIYOR: A5 TABAN SARTI kaldirildi -> teslim "
+            "cokerken (1/48 sa) canli oran KABUL EDILIR, esik 9 -> 18 sa'e cikar ve "
+            "12 saatlik sessizlik YESILE doner. Onarimin fail-open'a cevrilebildigi "
+            "TAM NOKTA ([[duzeltme-fail-open-cevirebilir]])", KAPI,
+      [("    if teslim < a5_tabani:\n        return None, "
+        "(\"teslim %d < A5 tabani %d: COKMUS rejim kendi esigini BUYUTEMEZ\"\n"
+        "                      % (teslim, a5_tabani))\n", "")], True, {"A3", "IKIZ", "Y4"})
+
+Y4 = ("Y4", "🔴 'KOSUM VAR' ile 'TESLIM VAR' KARISTIRILDI: oran W penceresindeki "
+            "teslimden degil is akisinin TOPLAM kosum sayisindan turetiliyor (137/192 "
+            "= %71) -> esik 18 sa'ten 3 sa'e duser ve saglikli fikstur BOS KIRMIZI "
+            "yakar", KAPI,
+      [("    teslim = len([x for x in (g.get(\"tum_kosumlar\") or []) "
+        "if x > pencere_basi])\n",
+        "    teslim = g.get(\"kosum_sayisi\") or len(\n"
+        "        [x for x in (g.get(\"tum_kosumlar\") or []) if x > pencere_basi])\n")],
+      True, {"A4", "Y6"})
+
+# 🔴 Y5 ILK YAZIMINDA `raise`i `if False:`e cevirmisti; o mutant ZeroDivisionError ile
+# bataryayi COKERTTI (iddia sayisi None) — cokme kirmizisi bir OLCUM DEGILDIR
+# ([[mutasyon-kaniti-yeniden-uretilebilir]]). Mutant, gercek bir muhendisin yazacagi
+# SESSIZ FALLBACK'e cevrildi; kapi ayrica cokme halini de ADIYLA kirmizi yakiyor.
+Y5 = ("Y5", "🔴 SIFIR TESLIM FAIL-OPEN: sifir/negatif oran OLCULEMEDI demek yerine "
+            "SESSIZCE donmus orana dusuruluyor -> 'sifir teslim' ile '%12,5 teslim' "
+            "AYNI esigi uretir; teslim sifira giderken alarm bunu HIC gormez", KAPI,
+      [("    if oran <= 0:\n        raise OlcumHatasi(\"teslim orani %r -> efektif "
+        "cadans SONSUZ olurdu; sifir teslim \"\n                          \"bir esik "
+        "TURETEMEZ (fail-closed)\" % (oran,))\n",
+        "    if oran <= 0:\n        oran = TESLIM_ORANI\n")],
+      True, {"Y-INV"})
+
+Y6 = ("Y6", "🔴 A4 TAVANI (OLCULEN ZARAR penceresi) A0 TAVANINA ESITLENDI: 9 -> 18 sa. "
+            "1 Agu'nun 14,5 saatlik fazla tahsilat penceresi (676 fiziksel urunde %84'e "
+            "varan) YESILE doner — teslim istatistigi bir ZARAR esigini GEVSETEMEZ",
+      KAPI, [("PAKET_BAYATLIK_TAVAN_SAAT = 9", "PAKET_BAYATLIK_TAVAN_SAAT = 18")],
+      True, {"A4", "Y-INV", "EKSEN"})
+
+Y7 = ("Y7", "🔴 KIRPIK SAYFA FAIL-OPEN: API sayfa siniri dolmusken oran YINE de "
+            "turetiliyor -> teslim EKSIK sayilir, oran DUSUK cikar, esik HAKSIZ YERE "
+            "buyur (yanlis yonde tehlikeli)", KAPI,
+      [("    if g.get(\"pencere_kirpildi\"):\n"
+        "        return None, \"API sayfa siniri doldu (teslim EKSIK sayilir)\"\n", "")],
+      True, {"Y5"})
+
+# ── KONTROL MUTANTLARI (Y kolu — YESIL kalmali) ─────────────────────────────
+K4 = ("K4", "ilgisiz: canli kalibrasyon sabitinin yanina aciklama yorumu eklendi", KAPI,
+      [("OLCULEN_CANLI_TESLIM = 20", "OLCULEN_CANLI_TESLIM = 20   # 5 Agu kesimi")],
+      False, set())
+
+K5 = ("K5", "ANLAM TASIMAYAN YENIDEN ADLANDIRMA: `canli_teslim_orani` icindeki yerel "
+            "`a5_tabani` degiskeni `alt_sinir` olarak yeniden adlandirildi (davranis AYNI)",
+      KAPI,
+      [("    a5_tabani = teslim_tabani(aralik, W)\n",
+        "    alt_sinir = teslim_tabani(aralik, W)\n"),
+       ("    if teslim < a5_tabani:\n", "    if teslim < alt_sinir:\n"),
+       ("                      % (teslim, a5_tabani))\n",
+        "                      % (teslim, alt_sinir))\n")],
+      False, set())
+
+K6 = ("K6", "SIRALAMA DEGISIKLIGI: `canli_esik` icinde birbirinden BAGIMSIZ iki atama "
+            "(`aralik` ve `donmus`) yer degistirdi — bagimlilik yok, davranis AYNI",
+      KAPI,
+      [("    aralik = g.get(\"aralik\")\n"
+        "    donmus = esik_saat(aralik) if aralik else ESIK_TABAN_SAAT\n",
+        "    aralik = g.get(\"aralik\")\n"
+        "    _ = None\n"
+        "    donmus = esik_saat(aralik) if aralik else ESIK_TABAN_SAAT\n")],
+      False, set())
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12,
              X4, X5, X6, X7, X8, X9, X10, X11, X12, X13,
-             K1, K2, K3)
+             Y1, Y2, Y3, Y4, Y5, Y6, Y7,
+             K1, K2, K3, K4, K5, K6)
 
 # 🔴 ALAN SAYISI NOBETI: 6 alani olmayan bir mutant sessizce "beyansiz" moda kayardi.
 _bozuk = [m[0] for m in MUTANTLAR if len(m) != 6]

@@ -716,9 +716,11 @@ MUTANTLAR = [
     # golf)` denial'i `(Volkswagen, Golf)`u oldururuyor — TAM olarak "baska markada gercek
     # bir modeli oldurme" sinifi (4 cip: VW Golf, Skoda Octavia, Citroen Berlingo, Citroen DS).
     ("cip-indeks.py",
-     "        return (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k])",
-     "        return any(_c == k[2] for _m, _c in _mmb.ROZET_DISI) \\\n"
-     "            or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k])", "KIRMIZI",
+     "        if (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k]):\n"
+     "            return True",
+     "        if any(_c == k[2] for _m, _c in _mmb.ROZET_DISI) \\\n"
+     "                or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k]):\n"
+     "            return True", "KIRMIZI",
      "(c) ELEMEYI MARKA-KOR YAP: marka ekseni dusunce BASKA markadaki GERCEK model de olur "
      "(VW Golf · Skoda Octavia · Citroen Berlingo · Citroen DS); M5 asiri-eleme ekseni"),
     ("cip-indeks.py",

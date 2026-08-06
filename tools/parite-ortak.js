@@ -113,8 +113,11 @@ const FIKSTUR_ENV = [
   "PARITE_DENEME",
   "PARITE_BEKLEME_MS",
   "PARITE_SUPURME_TAVANI",
+  "PARITE_SUPURME_MUTLAK",       // supurme MUTLAK ust siniri ELLE degistirildi
   "PARITE_YAYIN_HALI",           // yayin hali komutu ELLE verildi (kanonik D1 okunmuyor)
-  "PARITE_YAYIN_UST_SINIRI_SN",  // taslak yasi ust siniri ELLE degistirildi
+  "PARITE_YAYIN_UST_SINIRI_SN",  // taslak yasi ust siniri (EKSEN A) ELLE degistirildi
+  "PARITE_YAYIN_BEKLEME_UST_SINIRI_SN",  // bekleme ust siniri (EKSEN B) ELLE degistirildi
+  "PARITE_YEREL_HEAD_YAS_SN",    // yerel HEAD commit yasi ELLE verildi (git OKUNMAZ)
 ];
 
 /** Set edilmis test-only env degiskenleri (bos string sayilmaz). SAF. */
@@ -136,14 +139,39 @@ const ZAMAN_ASIMI_MS = sayiEnv("PARITE_ZAMAN_ASIMI_MS", 20000, 50, 120000);
 // Gecici hata (429 / zaman asimi / 5xx) icin sinirli yeniden deneme + ustel bekleme.
 const DENEME = sayiEnv("PARITE_DENEME", 3, 1, 6);
 const BEKLEME_MS = sayiEnv("PARITE_BEKLEME_MS", 400, 1, 5000);
-// SUPURME TAVANI: /katalog?ids= parti sayisi ust siniri (1 parti = 100 id).
-// Tavansizdi: 25k katalogda tek kosumda 250 ek istek atilirdi. Tavan asilirsa "yerel ⊆ D1"
-// kaniti URETILMEZ -> siniflandirma KAPALI, AF YOK (ayrisim varsa 1, yoksa 3; asla 0).
-// DEGER SECIMI (veri capasi DEGIL, olcek siniri): 200 parti = 20.000 id. Ege'nin bellek
-// modeli zaten ~20-25k'da 128 MB'i asiyor ([[katalog-olcek-siniri]]), yani bu tavanin
-// carpildigi nokta "kanit yontemi katalogu buyuttu" degil "katalog Ege'yi asti" noktasidir.
-// Tavan carpilirsa cikti bunu ACIKCA yazar (sessiz zayiflama yok).
-const SUPURME_TAVANI = sayiEnv("PARITE_SUPURME_TAVANI", 200, 1, 100000);
+// ── SUPURME TAVANI — SABIT DEGIL, KATALOG BOYUTUNDAN TURETILIR ──────────────────────
+// /katalog?ids= parti sayisi ust siniri (1 parti = IDS_PARTI id). Tavan asilirsa
+// "yerel ⊆ D1" kaniti URETILMEZ.
+//
+// 🔴 NEDEN SABIT DEGIL (olculdu 5-6 Agu 2026): tavan `200 parti = 20.000 id` diye SABIT
+// yazilmisti ve katalog 20.212'ye cikinca ASILDI. Sayilar esitken supurme hic kosmadigi
+// icin gorunmuyordu; sayilar ayristigi ANDA kanit uretilemedi, siniflandirma kapandi ve
+// katalog farkiyla ACIKLANABILIR her sapma KIRMIZI yandi (bir kosumda 526 kirmizi). Yani
+// sabit tavan, katalog buyudugu icin testin KENDISINI bozan bir zaman bombasiydi
+// ([[katalog-olcek-siniri]] · [[hukum-yanlis-birimde]]).
+//
+// KURAL: tavan = katalogun GEREKTIRDIGI parti sayisi, MUTLAK bir ust sinirla kapatilmis.
+//   · Katalog buyudukce tavan kendiliginden buyur -> sabit sayinin yarattigi sahte kirmizi
+//     sinifi KOKTEN kalkar (kabul: 20.212'de de, iki katinda da supurme EKSIKSIZ).
+//   · Ust sinir KALKMAZ: tavansiz birakmak istek/429 butcesini patlatir (500 parti =
+//     ~500 ek canli istek). Bu yuzden MUTLAK sinir korunur ve asilirsa kosum SESSIZ
+//     YANLIS-KIRMIZI degil ACIK OLCULEMEDI (cikis 3) uretir.
+// MUTLAK SINIR SECIMI (veri capasi DEGIL, butce siniri): 500 parti = 50.000 id. Ege'nin
+// bellek modeli ~20-25k'da 128 MB'i zaten asiyor ([[katalog-olcek-siniri]]); 50.000'i gecen
+// bir katalogda kirilan sey "kanit yontemi" degil, katalogun Ege'yi coktan asmis olmasidir.
+const SUPURME_MUTLAK_TAVAN = sayiEnv("PARITE_SUPURME_MUTLAK", 500, 1, 100000);
+
+/**
+ * Bu katalog icin supurme tavani (parti). SAF fonksiyon — fikstur dogrudan olcer.
+ * 🔴 Env override (PARITE_SUPURME_TAVANI) FIKSTUR_ENV listesindedir: verilirse kosum
+ * pariteyi ASLA BELGELENDIREMEZ (en iyi ihtimalle 3).
+ */
+function supurmeTavani(idAdedi) {
+  const elle = sayiEnv("PARITE_SUPURME_TAVANI", 0, 1, 100000);
+  if (elle) return elle;
+  const gerekli = Math.ceil(Math.max(0, idAdedi) / IDS_PARTI);
+  return Math.min(Math.max(1, gerekli), SUPURME_MUTLAK_TAVAN);
+}
 
 // ── 🔴 TASLAK YASI UST SINIRI — "uzun sure taslak kalan satir sessizce YESIL GECMEZ" ──
 // DEGER SECIMI (veri capasi DEGIL, OLCUME dayali sinir): push -> canli olculen pencere
@@ -166,8 +194,47 @@ const SUPURME_TAVANI = sayiEnv("PARITE_SUPURME_TAVANI", 200, 1, 100000);
 // "depo bir sure sessizdi, sonra push geldi" halinde YANLIS POZITIF uretir. Doktrin
 // gereği cozulemeyen 3'tur, 1 DEGIL (1 > 3 > 0 sirasi bozulmaz: gercek kayip yine 1).
 const YAYIN_UST_SINIRI_SN = sayiEnv("PARITE_YAYIN_UST_SINIRI_SN", 1800, 30, 86400);
+
+// ── 🔴 EKSEN B'NIN KENDI SINIRI + KENDI TABANI (5 Agu 2026, OLCULDU) ────────────────
+// ESKI HAL: eksen B de YAYIN_UST_SINIRI_SN'i (1800 sn) kullaniyordu ve OLCUSU "canli
+// artefaktin yasi" idi. IKI KUSUR birden olculdu (surucu: scratchpad/yz/olcum.py,
+// son 7 gun / 607 deploy kosumu / 348 yayin):
+//
+//   (1) ESIK BAYAT. Gerekce yorumu "olculen AZAMI pencere 740 sn, 1800 onun ~2,4 kati"
+//       diyordu. BUGUN olculen push -> `deploy` isi bitisi: medyan 678 sn (11,3 dk) ·
+//       p90 1914 sn (31,9 dk) · AZAMI 3078 sn (51,3 dk). Yani 1800 sn artik olculen
+//       azaminin ALTINDA: 348 basarili yayinin 44'u (%12,6) tek basina esigi asiyor.
+//   (2) OLCU YANLIS BIRIMDE. "Artefakt yasi" = "site en son ne zaman deploy etti";
+//       bu sayi BOSTA GECEN pencereyi de tasir. Olculen ornek (2 Agu): 00:57'den
+//       07:28'e kadar HIC push yok, 07:28'de push geldi -> o an artefakt yasi 6,5 SAAT
+//       ve D1'de taslak VAR -> eksen B ANINDA yanardi, oysa hat SAGLIKLIYDI.
+//       (Dosyanin kendi yorumu bu kusuru zaten ILAN EDIYORDU: "depo bir sure sessizdi,
+//       sonra push geldi" halinde yanlis pozitif.)
+//
+// ONARIM — OLCU DEGISTI: eksen B artik "artefakt kac yasinda"yi degil "YEREL ICERIK NE
+// KADARDIR YAYINSIZ BEKLIYOR"u olcer. Taban, yayin-gecikme nobetcisinin OLCULMUS
+// doktriniyle AYNI: bir commit son yayindan ONCE bekliyor OLAMAZ ->
+//     bekleme = simdi - max(son_yayin_ani, yerel_HEAD_commit_ani)
+//             = min(artefakt_yasi, yerel_HEAD_yasi)
+// HEAD yasi OKUNAMAZSA (git yok / govde bozuk) eski OLCUYE (artefakt yasi) DUSULUR:
+// fail-closed, yeni bir YESIL yol acilmaz.
+//
+// ESIK SECIMI (veri capasi): bekleme suresinin olculen dagilimi = push -> deploy bitisi
+// penceresidir (yukarida): AZAMI 3078 sn. 3600 sn = 1,17 x olculen azami.
+//   * SAHTE ALARM: 348 basarili yayin dongusunun HICBIRI 3600 sn'yi asmadi -> 0/348.
+//   * 4/5 Agu gecesinde OLCULEN GERCEK TIKANMA (yerel icerik 63 dk = 3780 sn bekledi)
+//     esigin USTUNDE kalir -> o vaka HALA rc 3.
+//   * Pay neden 2,4x DEGIL: 2,4 x 3078 = 7387 sn (123 dk) olurdu ve yakalanmasi
+//     gereken 74 dk'lik olayi KACIRIRDI. Ayirt etme gucu artik CARPANDAN degil
+//     TABANDAN gelir (bosta gecen pencere bekleme suresine girmez).
+// M2 (kritik yol bolunmesi) bu pencereyi 17,3 dk -> 11,0 dk'ya cektigi icin pay
+// zamanla BUYUR; daralirsa bu sabit YENIDEN OLCULEREK guncellenir.
+const YAYIN_BEKLEME_UST_SINIRI_SN = sayiEnv("PARITE_YAYIN_BEKLEME_UST_SINIRI_SN",
+  3600, 30, 86400);
 // Yayin hali komutunun kendi sure siniri: asilan kapi OLU kapidir.
 const YAYIN_HALI_ZAMAN_ASIMI_MS = 240000;
+// HEAD commit anini okuma butcesi. Asilirsa OLCULEMEDI -> fail-closed (eski olcuye duser).
+const HEAD_ZAMAN_ASIMI_MS = 10000;
 
 /**
  * OLCUM ARIZASI — "ayrisma" DEGIL, "hukum veremedim". Asla KIRMIZI'ya (1) donusmez, ama
@@ -307,10 +374,14 @@ async function d1deOlmayanlar(uc, idler, sayac, nonce) {
   const partiler = [];
   for (let i = 0; i < idler.length; i += IDS_PARTI) partiler.push(idler.slice(i, i + IDS_PARTI));
 
-  if (partiler.length > SUPURME_TAVANI) {
+  // Tavan KATALOGDAN turer (yukaridaki supurmeTavani): sabit sayi katalog buyuyunce
+  // sahte kirmizi uretiyordu. Asilmasi ancak MUTLAK sinirin otesinde mumkundur.
+  const tavan = supurmeTavani(idler.length);
+  if (partiler.length > tavan) {
     throw new OlcumHatasi("TAVAN",
-      "supurme TAVANI asildi: " + partiler.length + " parti > tavan " + SUPURME_TAVANI +
-      " (katalog " + idler.length + " id) — 'yerel ⊆ D1' kaniti URETILMEDI");
+      "supurme TAVANI asildi: " + partiler.length + " parti > tavan " + tavan +
+      " (katalog " + idler.length + " id, mutlak sinir " + SUPURME_MUTLAK_TAVAN +
+      " parti) — 'yerel ⊆ D1' kaniti URETILMEDI");
   }
   sayac.supurmeParti += partiler.length;
 
@@ -424,6 +495,58 @@ function yayinHaliOku(idler) {
   };
 }
 
+/**
+ * YEREL HEAD COMMIT'ININ YASI (saniye) — EKSEN B'nin ikinci tabani.
+ * Doner: tam sayi >= 0 | null (OKUNAMADI -> cagiran FAIL-CLOSED davranir).
+ *
+ * 🔴 NE ISE YARAR: "artefakt yasi" bosta gecen pencereyi de tasir; yerel icerigin
+ * bekleme suresi ise en fazla HEAD'in yasi kadardir (o commit'ten once bu icerik
+ * ORTADA YOKTU). Ikisinin KUCUGU gercek bekleme suresidir.
+ * ⚠️ `--ff-only` ile alinan dallarda committer tarihi ESKI olabilir; o halde HEAD yasi
+ * BUYUK cikar ve olcu artefakt yasina geri duser — yani sapma DAIMA fail-closed yonde.
+ * PARITE_YEREL_HEAD_YAS_SN YALNIZ fikstur icindir ve FIKSTUR_ENV'dedir (bir kabul
+ * kosumu asla gercek git gecmisini okumaz, ayrica o kosum 0 URETEMEZ).
+ */
+function yerelHeadYasiSn(env) {
+  const e = env || process.env;
+  const ham = e.PARITE_YEREL_HEAD_YAS_SN;
+  if (ham !== undefined && String(ham).trim() !== "") {
+    const n = parseInt(String(ham).trim(), 10);
+    return Number.isFinite(n) && n >= 0 ? n : null;   // cozulemedi -> OKUNAMADI
+  }
+  let r;
+  try {
+    r = cp.spawnSync("git", ["-C", __dirname, "log", "-1", "--format=%ct", "HEAD"],
+      { encoding: "utf8", timeout: HEAD_ZAMAN_ASIMI_MS });
+  } catch (x) {
+    return null;
+  }
+  if (!r || r.error || r.status !== 0) return null;
+  const t = parseInt(String(r.stdout || "").trim(), 10);
+  if (!Number.isFinite(t) || t <= 0) return null;
+  return Math.max(0, Math.floor(Date.now() / 1000) - t);
+}
+
+/**
+ * EKSEN B'nin OLCUSU: yerel icerik NE KADARDIR yayinsiz bekliyor (saniye).
+ * Doner: { beklemeSn, headYasSn, tabani } — beklemeSn null ise OLCULEMEDI.
+ * SAF: girdi olarak artefakt yasi + HEAD yasi alir (fikstur bunlari verebilsin).
+ */
+function beklemeSuresi(artefaktYasSn, headYasSn) {
+  if (artefaktYasSn === null || artefaktYasSn === undefined) {
+    return { beklemeSn: null, headYasSn, tabani: "artefakt yasi OLCULEMEDI" };
+  }
+  if (headYasSn === null || headYasSn === undefined) {
+    // FAIL-CLOSED: HEAD okunamadi -> ESKI olcuye (artefakt yasi) duseriz. Bu, bosta
+    // gecen pencereyi tikanma sayan KATI davranistir; yeni bir YESIL yol acmaz.
+    return { beklemeSn: artefaktYasSn, headYasSn: null,
+      tabani: "yerel HEAD ani OKUNAMADI -> artefakt yasi (KATI/fail-closed)" };
+  }
+  return headYasSn < artefaktYasSn
+    ? { beklemeSn: headYasSn, headYasSn, tabani: "yerel HEAD commit ani" }
+    : { beklemeSn: artefaktYasSn, headYasSn, tabani: "son yayin ani" };
+}
+
 /** "1837 sn" -> "30,6 dk" (cikti insan okusun diye; hesap SANIYE uzerinden yapilir). */
 function dk(sn) {
   return sn === null || sn === undefined ? "OLCULEMEDI" : (sn / 60).toFixed(1) + " dk";
@@ -477,6 +600,22 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
     eksik = await d1deOlmayanlar(uc, yerelIdler, sayac, nonce);
   } catch (e) {
     if (e && e.waf) throw e;
+    // 🔴 TAVAN, oteki supurme arizalarindan AYRI BIRIMDE hukum alir ([[hukum-yanlis-birimde]]).
+    // Oteki arizalar = "uc cevap vermedi" -> eski kati davranis (siniflandirma KAPALI,
+    // ayrisim varsa KIRMIZI) aynen surer. TAVAN = "BIZ istek butcemizi asmamayi sectik",
+    // yani kanitin uretilmemesi UCUN degil OLCUM ARACININ halidir; orada bulunacak her
+    // "kirmizi" katalog farkiyla aciklanabilir bir sapma olabilir ve DAYANAKSIZDIR.
+    // O yuzden kosum sorgulari HIC olcmeden ACIK OLCULEMEDI ile durur (sessiz yanlis-kirmizi
+    // YERINE). Sira korunur: on-kosul KIRMIZISI bu noktadan ONCE donmustur (1 > 3 > 0).
+    if (e && e.tur === "TAVAN") {
+      const n = "SUPURME TAVANI: " + (e && e.message) + " -> kanit URETILEMEDI, hicbir " +
+        "ayrisim SINIFLANDIRILAMAZ. Bu kosum pariteyi BELGELENDIREMEZ (OLCULEMEDI); " +
+        "katalog farkiyla aciklanabilir sapmalari KIRMIZI saymak DAYANAKSIZ olurdu.";
+      notlar.push(n);
+      olculemedi.push(n);
+      return { gecikmeModu: false, kirmizi: null, durdu: n, notlar, olculemedi,
+        canliSayi, yerelSayi, acik: 0, taslakIdler };
+    }
     return kapali("id supurmesi TAMAMLANAMADI (" + (e && e.message) +
       ") -> kanit yok, siniflandirma KAPALI (her ayrisim KIRMIZI)");
   }
@@ -531,22 +670,40 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
       " | ornek: " + hal.taslak.slice(0, 3).map((t) => t.id).join(", "));
 
     // EKSEN B — ZARARSIZ taslaklarin ust siniri: KIRMIZI degil, ama KANONIK de degil.
+    // 🔴 OLCU "artefakt yasi" DEGIL "YEREL ICERIGIN BEKLEME SURESI"dir (bkz. dosya basi
+    // YAYIN_BEKLEME_UST_SINIRI_SN): bosta gecen pencere bekleme SAYILMAZ.
     // (Kosul AYRI degiskende: mutasyon nobeti bu satiri TEK TEK bozabilsin.)
+    const bekleme = beklemeSuresi(hal.artefaktYasSn, yerelHeadYasiSn());
     const eksenBAsti = gizliKalan > 0 &&
-      (hal.artefaktYasSn === null || hal.artefaktYasSn > YAYIN_UST_SINIRI_SN);
+      (bekleme.beklemeSn === null || bekleme.beklemeSn > YAYIN_BEKLEME_UST_SINIRI_SN);
     if (!hal.sayfaOlculdu) {
       const n = "TASLAK yigini sayfa probu TAVANINI asti -> hangi taslagin sayfasi canli " +
         "OLCULMEDI. Gerileme sayilmaz (KIRMIZI DEGIL) ama bu kosum pariteyi BELGELENDIREMEZ.";
       notlar.push(n);
       olculemedi.push(n);
     } else if (eksenBAsti) {
-      const n = "UST SINIR: " + gizliKalan + " taslagin sayfasi canli degil ve site en son " +
-        dk(hal.artefaktYasSn) + " once deploy etmis (sinir " + dk(YAYIN_UST_SINIRI_SN) +
-        "). 'Pencere' ile 'tikanmis deploy' AYIRT EDILEMEDI (D1'de zaman damgasi kolonu " +
-        "YOK; artefakt yasi tek basina bu ayrimi kurmaz) -> KIRMIZI DEGIL ama YESIL DE " +
-        "DEGIL: bu kosum pariteyi BELGELENDIRMEZ.";
+      // 🔴 SEBEP AYRISTIRILIR — iki hal AYNI kutuya konmaz ([[hukum-yanlis-birimde]]).
+      const n = bekleme.beklemeSn === null
+        ? "UST SINIR / OLCULEMEDI: " + gizliKalan + " taslagin sayfasi canli degil ve " +
+          "site en son NE ZAMAN deploy etti OKUNAMADI (" + bekleme.tabani + ") -> bekleme " +
+          "suresi hesaplanamadi. KIRMIZI DEGIL ama YESIL DE DEGIL."
+        : "UST SINIR / TIKANMA: " + gizliKalan + " taslagin sayfasi canli degil ve YEREL " +
+          "ICERIK " + dk(bekleme.beklemeSn) + " once yayina hazirdi (sinir " +
+          dk(YAYIN_BEKLEME_UST_SINIRI_SN) + " · taban: " + bekleme.tabani + " · site en " +
+          "son " + dk(hal.artefaktYasSn) + " once deploy etti · yerel HEAD " +
+          dk(bekleme.headYasSn) + " once). Bekleme olculen azami yayin penceresinin " +
+          "(51,3 dk) USTUNDE -> bu 'pencere' DEGIL, hat TIKANMIS olabilir. KIRMIZI DEGIL " +
+          "ama YESIL DE DEGIL: bu kosum pariteyi BELGELENDIRMEZ.";
       notlar.push(n);
       olculemedi.push(n);
+    } else if (gizliKalan > 0 && hal.artefaktYasSn !== null &&
+               hal.artefaktYasSn > YAYIN_BEKLEME_UST_SINIRI_SN) {
+      // BAYAT ARTEFAKT ama TIKANMA DEGIL: eski olcu burada KIRMIZI/rc3 uretirdi.
+      // Olculen yanlis-pozitif sinifi (2 Agu 00:57 -> 07:28: 6,5 saat BOSTA, sonra push).
+      notlar.push("BAYAT ARTEFAKT ama TIKANMA DEGIL: site en son " + dk(hal.artefaktYasSn) +
+        " once deploy etti, ama yerel icerik yalnizca " + dk(bekleme.beklemeSn) +
+        " once hazir oldu (" + bekleme.tabani + ") -> aradaki fark BOSTA GECEN penceredir, " +
+        "bekleme suresi degildir. Eksen B YANMAZ.");
     }
   }
 
@@ -858,10 +1015,12 @@ function fiksturNotu() {
 module.exports = {
   TARAYICI_UA, CIKIS_GECTI, CIKIS_KIRMIZI, CIKIS_KOSULAMADI, CIKIS_OLCULEMEDI,
   SINIF_GECTI, SINIF_ACIKLANAN, SINIF_ACIKLANAMAYAN,
-  ZAMAN_ASIMI_MS, DENEME, BEKLEME_MS, SUPURME_TAVANI, IDS_PARTI, FIKSTUR_ENV,
+  ZAMAN_ASIMI_MS, DENEME, BEKLEME_MS, SUPURME_MUTLAK_TAVAN, supurmeTavani, IDS_PARTI,
+  FIKSTUR_ENV,
   OlcumHatasi, WafHatasi, kardesUc, sayacYeni, canliGetir, nonceUret,
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
   sonucYaz, wafYaz, olcumNotu, fazlaKumeTutarli, fazlalikTeshis,
   fiksturBayraklari, fiksturNotu,
-  YAYIN_UST_SINIRI_SN, yayinHaliArgv, yayinHaliOku, dk,
+  YAYIN_UST_SINIRI_SN, YAYIN_BEKLEME_UST_SINIRI_SN,
+  yayinHaliArgv, yayinHaliOku, yerelHeadYasiSn, beklemeSuresi, dk,
 };

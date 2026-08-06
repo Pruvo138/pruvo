@@ -144,6 +144,61 @@ Secilen degerler ve TEK CUMLE gerekceleri:
   GECIKME_BIRIKME    = 12 — olculen dongu basi birikme: ortanca 3 · p90 7 · max 17;
                            12 saglikli p90'in cok ustu, olculen tepenin altidir.
 
+🔴 EKSEN 3 — YAYINSIZ ZINCIR (5 Agu 2026, OLCULEN SESSIZLIK: 74 DK YAYIN DURDU, ALARM YOK)
+==========================================================================================
+4/5 Agu gecesi `a1b50214` bir kapiyi kirmizi yakti; `deploy: needs` zinciri geregi IKI
+ardisik kosumda `deploy` SKIPPED kaldi ve yayin 74 dakika durdu. Bu nobetci o gece HER 15
+DAKIKADA bir kostu (paket-tazelik-alarmi.yml :: yayin-nabzi) ve **hicbir eksen atesmedi**.
+Tik tik yeniden kuruldu (scratchpad/yz/tik-sim.py, gercek kosum govdeleri):
+
+    tik      zincir  yas     zincir>=4 (TIKALI_HATA)   yas>=65 (TIKALI_YAS)
+    23:58      0       0 dk    sessiz                   sessiz
+    00:13      0       1 dk    sessiz                   sessiz
+    00:28      1      16 dk    sessiz                   sessiz
+    00:43      1      31 dk    sessiz                   sessiz
+    00:58      1      46 dk    sessiz                   sessiz
+    01:13      2      61 dk    sessiz                   sessiz     <- son tik; 01:16'da acildi
+
+Yani iki hizli eksenin IKISI DE bu sinifi kaciriyordu: hata zinciri esigi (4) olaydan
+IKI KAT buyuk, yas esigi (65 dk) ise olay 74 dk surerken ANCAK 01:17'de dolacakti — hat
+01:16'da kendiliginden acildigi icin o tik hic gelmedi. "Esik dogru olay icin yandi" bile
+denemez: HIC yanmadi.
+
+🔴 IKI BIRIM KARISMISTI ([[hukum-yanlis-birimde]]): `OLCULEN_SAGLIKLI_HATA_TAVANI = 3`
+1 Agu'da KOSUM DUZEYI `conclusion` uzerinden olculmustu; `ardisik_hata` ise 1 Agu'daki
+is-duzeyi onarimindan beri ETKIN SONUC uzerinden sayiliyor (deploy=success ise kosum
+`failure` olsa da zincir KIRILIR). Ham kosum zincirinde "gurultu" olan halkalarin cogu
+etkin zincirde ZATEN YOK; yani 4 esigi, artik olcmedigi bir dagilimdan miras kalmisti.
+
+OLCUM (5 Agu, son 7 gun: 607 deploy kosumu / 606 tamamlanmis / 348 yayin · 651 alarm tigi
+yeniden kuruldu; `yz/cek.py` + `yz/tik-sim.py` sruculeri):
+  * ETKIN sonuc dagilimi: success 348 · failure 90 · cancelled 168.
+  * "yas >= 50 dk (bekleyen icerik yaslanmis)" olan HER tikte yayinsiz zincir ZATEN >= 2
+    idi: zincir>=1 kurali ile zincir>=2 kurali AYNI 6 epizodu uretti. Yani 2 esigi
+    KAPSAM KAYBETTIRMEZ ama tek gurultu kosumuna karsi ikinci bir teyit ISTER.
+  * ALARM HACMI (651 tigin 579'unda bekleyen icerik vardi):
+        zincir>=2 TEK BASINA          32 tik · 17 epizot (2,51/gun)  <- GURULTULU
+        zincir>=2 VE yas>=50 dk        8 tik ·  6 epizot (0,89/gun)  <- SECILEN
+        zincir>=4 (bugunku esik)       5 tik ·  3 epizot (0,44/gun)  <- bugunku olayi KACIRIR
+        yas>=65 (bugunku esik)         2 tik ·  2 epizot (0,30/gun)  <- bugunku olayi KACIRIR
+  * SAHTE ALARM: secilen kuralin urettigi 6 epizodun ALTISI DA gercek yayin durmasidir
+    (her birinde >=2 ardisik yayinlaMAYAN kosum VE >=50 dk bekleyen icerik); is duzeyinde
+    tek tek dogrulandi: 08-01 15:13 · 08-01 17:58 (bes ardisik build hatasi) ·
+    08-02 08:28 (2 hata, 73 dk yayinsiz) · 08-02 19:28 (2 hata, 58 dk) · 08-04 00:43 ·
+    08-05 01:13 (BU OLAY). **Sahte alarm: 0/6.**
+  * zincir>=2'yi TEK BASINA almanin bedeli: 11 ek epizot, hepsinin yasi 50 dk'nin ALTINDA
+    ve hepsi kendiliginden acildi -> hicbiri yeni bir gercek olay YAKALAMADI, yalnizca
+    ayni 6 olayi daha erken ilan etti. Yanlis alarm = kapatilan nobetci
+    ([[kapi-disiplin-ilkesi]]) oldugu icin VE kurali secildi.
+
+  TIKALI_YAYINSIZ_ZINCIR = 2 — olculen SAGLIKLI (gercek tikanma OLMAYAN) yayinsiz zincir
+                           tavani, "yas >= 50 dk" kosulu altinda 0'dir; tavan 1 ilan
+                           edildi (tek gurultu kosumuna pay) ve esik onun USTUNDEDIR.
+
+⚠️ EKSEN 3, `ardisik_hata` ekseninin YERINE GECMEZ: sinifi DAHA GENISTIR ("kostu ama
+yayinlaMADI" = hata sonuclari + `yayinsiz`) ama yas kapisi ARKASINDADIR. `ardisik_hata`
+(esik 4) yas'tan BAGIMSIZ hukum verir ve oyle KALIR; ikisi ayri satir uretir.
+
 🔴 BEYAN EDILMIS KALINTI SINIF (olculdu, ONARILMADI): gece boyu push gelmeyen pencerede
 (00:57 -> 08:41) sabah gelen commit'ler `--ff-only` ile ESKI committer tarihi tasidi ve
 taban da 7,7 saat oncesinin yayin aniydi -> yas 464,5 dk. ESKI tabanda da 491,7 idi, yani
@@ -226,6 +281,13 @@ TIKALI_HATA_ZINCIR = 4
 ACLIK_IPTAL_ZINCIR = 6
 GECIKME_BIRIKME = 12
 
+# 🔴 EKSEN 3 — YAYINSIZ ZINCIR (5 Agu 2026). "Kostu ama YAYINLAMADI" siniftir ve
+# `ardisik_hata`dan GENISTIR: `yayinsiz` (kosum yesil ama `deploy` success DEGIL) da
+# sayilir. Sayinin GELDIGI YER modul basligindaki 7 gunluk tik simulasyonudur; bu esik
+# TEK BASINA degil, `yas >= GECIKME_YAS_DK` kosuluyla BIRLIKTE hukum verir (bkz. baslik:
+# zincir>=2 tek basina 2,51 alarm/gun, yas kosuluyla 0,89 alarm/gun ve 0 sahte alarm).
+TIKALI_YAYINSIZ_ZINCIR = 2
+
 # 🔴 EKSEN 2 — KOSUM OMUR TAVANI (dk). "Kosum basladi ama HIC bitmiyor" sinifinin TEK
 # olcusu budur ve `ahead_by` kapisinin ONUNDEDIR (bkz. baslik). Sayinin GELDIGI YER:
 # 2 Agu 2026 olcumunde 99 tamamlanmis kosumun EN UZUNU 49,1 dk surdu (kuyruk beklemesi
@@ -244,9 +306,19 @@ OLCULEN_SAGLIKLI_IPTAL_TAVANI = 5
 OLCULEN_SAGLIKLI_HATA_TAVANI = 3
 OLCULEN_KOSUM_OMRU_MAX_DK = 49.1
 OLCULEN_SAGLIKLI_YAS_TAVANI_DK = 51.8
+# 5 Agu 2026 / 7 gun / 651 alarm tigi: "bekleyen icerik >= 50 dk yaslanmis" olan HER tikte
+# yayinsiz zincir >= 2 idi ve o tiklerin HEPSI gercek yayin durmasiydi -> saglikli tavan
+# FIILEN 0 olculdu. 1 ILAN EDILIR (tek gurultu kosumuna pay); esik onun USTUNDE olmali.
+OLCULEN_SAGLIKLI_YAYINSIZ_TAVANI = 1
 
 # GitHub `conclusion` degerleri: hangisi "dustu" sayilir.
 HATA_SONUCLARI = ("failure", "startup_failure", "timed_out", "action_required")
+# 🔴 "KOSTU AMA YAYINLAMADI" sinifi = hata sonuclari + `yayinsiz` (etkin_sonuc: kosum
+# YESIL ama `deploy` isi success DEGIL, or. skipped). `cancelled` BILEREK DISARIDA:
+# kuyrukta iptal bu depoda NORMAL bir olaydir ve icerigi ayakta kalan kosum tasir
+# (modul basligi (b) olcumu) -> iptali bu sinifa katmak `dagilmis-hatalar-saglikli`
+# kanarisini KIRMIZI yakardi (olculdu: iptal-notr varyanti 1 -> 4 zincir).
+YAYINSIZ_SONUCLARI = HATA_SONUCLARI + ("yayinsiz",)
 # "completed" DISI her status kosumun HALA CALISTIGI/BEKLEDIGI anlamina gelir; zincir
 # sayiminda ATLANIR (kanit degil) ama raporda sayilir.
 TAMAMLANDI = "completed"
@@ -536,10 +608,14 @@ def takilan_kosum(kosumlar, simdi):
 
 # ---------------------------------------------------------------- zincirler
 def zincirler(kosumlar, etkin):
-    """(ardisik_iptal, ardisik_hata, tamamlanan, calisan).
+    """(ardisik_iptal, ardisik_hata, ardisik_yayinsiz, tamamlanan, calisan).
 
     Zincirler YALNIZ tamamlanmis kosumlarin ETKIN sonuclari uzerinde, EN YENIDEN geriye
     sayilir ve ilk FARKLI sonucta DURUR. Kosan/bekleyen kosum kanit degildir -> atlanir.
+
+    `ardisik_yayinsiz` EKSEN 3'un olcusudur ve `ardisik_hata`nin USTKUMESIDIR
+    (YAYINSIZ_SONUCLARI ⊇ HATA_SONUCLARI); ikisi AYRI raporlanir cunku ayri esikleri ve
+    ayri kapilari vardir ([[hukum-yanlis-birimde]]).
     """
     tamam = [k for k in kosumlar if k.get("status") == TAMAMLANDI]
     calisan = len(kosumlar) - len(tamam)
@@ -553,7 +629,8 @@ def zincirler(kosumlar, etkin):
                 break
         return n
 
-    return zincir(("cancelled",)), zincir(HATA_SONUCLARI), len(tamam), calisan
+    return (zincir(("cancelled",)), zincir(HATA_SONUCLARI), zincir(YAYINSIZ_SONUCLARI),
+            len(tamam), calisan)
 
 
 # ---------------------------------------------------------------- olcum
@@ -567,7 +644,8 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
 
     (etkin, son_basarili, son_isler, son_bitisler,
      taranan, tavana_dayandi) = yayin_taramasi(kosumlar, is_getir)
-    ardisik_iptal, ardisik_hata, tamamlanan, calisan = zincirler(kosumlar, etkin)
+    (ardisik_iptal, ardisik_hata, ardisik_yayinsiz,
+     tamamlanan, calisan) = zincirler(kosumlar, etkin)
     takilan_dk, takilan_id = takilan_kosum(kosumlar, simdi)
 
     olcum = {
@@ -579,6 +657,8 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
         "is_tavanina_dayandi": tavana_dayandi,
         "ardisik_iptal": ardisik_iptal,
         "ardisik_hata": ardisik_hata,
+        # EKSEN 3 — "kostu ama yayinlaMADI" zinciri (hata + yayinsiz; iptal HARIC)
+        "ardisik_yayinsiz": ardisik_yayinsiz,
         "son_basarili_sha": None,
         "son_basarili_baslangic": None,
         "son_basarili_bitis": None,
@@ -652,6 +732,12 @@ def eksen_hukumleri(olcum):
         "hata_zinciri": olcum["ardisik_hata"] >= TIKALI_HATA_ZINCIR,
         "iptal_zinciri": olcum["ardisik_iptal"] >= ACLIK_IPTAL_ZINCIR,
         "birikme": geride is not None and geride >= GECIKME_BIRIKME,
+        # EKSEN 3 — YAYINSIZ ZINCIR. IKI SART BIRDEN (bkz. modul basligi): zincir tek
+        # basina 2,51 alarm/gun uretiyordu ve o alarmlarin hicbiri yeni bir gercek olay
+        # yakalamiyordu; yas kosulu eklenince 0,89 alarm/gun ve 0 sahte alarm olculdu.
+        # KOPYA YOK: yas karsilastirmasi yukaridaki `yas_gecikme` ile AYNI esikten gelir.
+        "yayinsiz_zinciri": (olcum["ardisik_yayinsiz"] >= TIKALI_YAYINSIZ_ZINCIR
+                             and yas is not None and yas >= GECIKME_YAS_DK),
         # EKSEN 2 — KOSUM OMRU (yas ekseninden BAGIMSIZ; `ahead_by` kapisinin ONUNDE)
         "sure_tavani": takilan is not None and takilan >= KOSUM_OMUR_TAVANI_DK,
     }
@@ -712,6 +798,13 @@ def _icerik_hukmu(olcum, eksen):
 
     if eksen["hata_zinciri"]:
         neden.append("%d ARDISIK dusen kosum (esik %d)" % (ah, TIKALI_HATA_ZINCIR))
+    # EKSEN 3 — AYRI SATIR: hata zinciri esigi (4) bu sinifi 5 Agu'da KACIRDI (2'de kaldi).
+    # Iki eksen birbirini MASKELEMESIN diye gerekce her halukarda EKLENIR.
+    if eksen["yayinsiz_zinciri"]:
+        neden.append("%d ARDISIK kosum KOSTU ama YAYINLAMADI (`%s` isi success degil; "
+                     "esik %d) + bekleyen icerik %.0f dk (esik %d dk) -> yayin DURMUS"
+                     % (olcum["ardisik_yayinsiz"], YAYIN_ISI, TIKALI_YAYINSIZ_ZINCIR,
+                        yas, GECIKME_YAS_DK))
     if eksen["yas_tikali"]:
         neden.append("en eski bekleyen commit %.0f dk (esik %d dk, taban: yayin ani)"
                      % (yas, TIKALI_YAS_DK))
@@ -779,6 +872,11 @@ def _ozet_satirlari(olcum):
     s.append("ardisik iptal: %d (aclik esigi %d) · ardisik hata: %d (tikanma esigi %d)"
              % (olcum["ardisik_iptal"], ACLIK_IPTAL_ZINCIR,
                 olcum["ardisik_hata"], TIKALI_HATA_ZINCIR))
+    # EKSEN 3 HER ZAMAN BASILIR (yandi ya da yanmadi): "olculdu ve temiz" ile "hic
+    # olculmedi" ayni satirda karismasin. Esik karsilastirmasi TEK KANONIK YERDE.
+    s.append("ardisik YAYINSIZ kosum: %d (esik %d, ayrica yas >= %d dk sarti) · eksen 3 %s"
+             % (olcum["ardisik_yayinsiz"], TIKALI_YAYINSIZ_ZINCIR, GECIKME_YAS_DK,
+                "KIRMIZI" if eksen_hukumleri(olcum)["yayinsiz_zinciri"] else "temiz"))
     # EKSEN 2 HER ZAMAN BASILIR (yandi ya da yanmadi): "olculdu ve temiz" ile "hic
     # olculmedi" ayni satirda karismasin.
     takilan = olcum.get("takilan_kosum_dk")
@@ -1050,6 +1148,31 @@ def sozlesme_kusurlari():
         kusur.append("SOZLESME: tikanma esigi (%d) OLCULEN saglikli hata tavaninin (%d) "
                      "ustunde DEGIL — gurultu hatalari alarm uretir"
                      % (TIKALI_HATA_ZINCIR, OLCULEN_SAGLIKLI_HATA_TAVANI))
+    if TIKALI_YAYINSIZ_ZINCIR <= OLCULEN_SAGLIKLI_YAYINSIZ_TAVANI:
+        kusur.append("SOZLESME: yayinsiz zincir esigi (%d) OLCULEN saglikli tavanin (%d) "
+                     "ustunde DEGIL — tek gurultu kosumu alarm uretir"
+                     % (TIKALI_YAYINSIZ_ZINCIR, OLCULEN_SAGLIKLI_YAYINSIZ_TAVANI))
+    if TIKALI_YAYINSIZ_ZINCIR >= TIKALI_HATA_ZINCIR:
+        kusur.append("SOZLESME: yayinsiz zincir esigi (%d) hata zinciri esiginden (%d) "
+                     "kucuk DEGIL — EKSEN 3 daha GENIS bir sinifi DAHA GEC yakalar, yani "
+                     "5 Agu'da olculen kor nokta geri gelir"
+                     % (TIKALI_YAYINSIZ_ZINCIR, TIKALI_HATA_ZINCIR))
+    if set(HATA_SONUCLARI) - set(YAYINSIZ_SONUCLARI):
+        kusur.append("SOZLESME: YAYINSIZ_SONUCLARI, HATA_SONUCLARI'nin USTKUMESI DEGIL — "
+                     "EKSEN 3 hata zincirinin gordugunu goremez hale gelmis")
+    if "cancelled" in YAYINSIZ_SONUCLARI:
+        kusur.append("SOZLESME: `cancelled` YAYINSIZ_SONUCLARI'na girmis — kuyrukta iptal "
+                     "bu depoda NORMAL bir olaydir, zincire katilmasi yanlis alarm uretir")
+    # 🔴 EKSEN 3'un yas kapisi: zincir TEK BASINA yeterli OLMAMALI (olculen bedel:
+    # 2,51 alarm/gun -> 0,89 alarm/gun; ek gercek olay 0).
+    yalniz_zincir = {"geride": 3, "yas_dk": GECIKME_YAS_DK - 1.0, "ardisik_iptal": 0,
+                     "ardisik_hata": 0, "ardisik_yayinsiz": TIKALI_YAYINSIZ_ZINCIR + 5,
+                     "son_basarili_sha": "abc12345", "pencere": 1, "tamamlanan": 1,
+                     "taranan": 1, "takilan_kosum_dk": None, "takilan_kosum_id": None}
+    if eksen_hukumleri(yalniz_zincir)["yayinsiz_zinciri"]:
+        kusur.append("SOZLESME: yayinsiz zincir ekseni YAS kapisini KAYBETMIS — zincir "
+                     "tek basina alarm uretiyor (olculen bedel: 2,51 alarm/gun, ek gercek "
+                     "olay 0; yanlis alarm = kapatilan nobetci)")
     if TIKALI_YAS_DK <= OLCULEN_SAGLIKLI_YAS_TAVANI_DK:
         kusur.append("SOZLESME: tikanma yas esigi (%d dk) OLCULEN saglikli tepe yasinin "
                      "(%.1f dk) ustunde DEGIL — normal kuyruk alarm uretir"
@@ -1108,6 +1231,7 @@ def omur_ekseni_kusurlari():
     """
     kusur = []
     bekleyensiz = {"geride": 0, "yas_dk": 0.0, "ardisik_iptal": 0, "ardisik_hata": 0,
+                   "ardisik_yayinsiz": 0,
                    "son_basarili_sha": "abc12345", "pencere": 1, "tamamlanan": 1,
                    "taranan": 1, "takilan_kosum_dk": KOSUM_OMUR_TAVANI_DK + 1.0,
                    "takilan_kosum_id": 1}

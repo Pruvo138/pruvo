@@ -74,6 +74,43 @@ function urunUret(n, onek) {
 }
 
 /**
+ * MARKA CAPA KATALOGU — serbest metin ile `marka_arama` UYELIGININ AYRISTIGI urunler.
+ * 🔴 VERI CAPASI YOK: hicbir gercek urun id'si / sayisi yok; ayrisma URUN SEKLINDEN dogar:
+ *   · alias yazimi  : marka[] "Opel" -> uyelik {Opel, Vauxhall} (ham katalogda "Vauxhall"
+ *                     GECMEDEN de `?q=Vauxhall` Opel'in TAMAMINI dondurmeli)
+ *   · baslik jetonu : marka[] "Volvo" ama BASLIK "Opel ..." -> uyelik Opel'i de tasir
+ *                     (ham marka[] esitligi bunu KACIRIR)
+ *   · serbest metin tuzagi: "Havalandirma" urunu `?q=haval` SERBEST METINDE eslesir,
+ *                     marka dalinda ESLESMEZ (uc bu yuzden gecti; olculen kusur buydu)
+ * Filler urunler sozlugu 90 ayri kelimenin uzerinde tutar (sorgu ureteci sarti).
+ */
+function markaKatalogUret() {
+  const capa = [
+    { marka: ["Opel"], baslik: "Opel kapı kolu klipsi" },
+    { marka: ["Opel"], baslik: "Opel far braketi" },
+    // Alias yazimi BASLIKTA, ham `marka[]`de HIC YOK: `?q=Vauxhall` sorgu havuzuna
+    // baslik kelimesi olarak girer, ama "ham marka evrenine suz" mutanti onu DUSURUR.
+    { marka: ["Opel"], baslik: "Vauxhall pervane kapağı" },
+    { marka: ["Volvo"], baslik: "Opel menteşe tutucu" },
+    { marka: [], baslik: "Audi kapı stoperi" },
+    { marka: ["Audi"], baslik: "Audi conta seti" },
+    { marka: ["Haval"], baslik: "Haval jant göbeği" },
+    { marka: [], baslik: "Havalandırma ızgarası kapağı" },
+    { marka: [], baslik: "Havalandırma kanalı klipsi" },
+  ];
+  const liste = capa.map((c, i) => ({
+    id: "capa-" + i + "-" + i,
+    kategori: "Otomobil",
+    marka: c.marka,
+    baslik: c.baslik,
+    aciklama: "Özel üretim parça capa" + i + ". Yaklaşık dış ölçüler: 20 × 30 × 10 mm.",
+    fiyat: (100 + i) + " TL",
+    gorseller: [],
+  }));
+  return liste.concat(urunUret(140, "mfx"));
+}
+
+/**
  * KLON — kurbanin ARANABILIR metnini AYNEN tasiyan, id'si kurbanin id'sini ONEK olarak
  * iceren yeni "D1'e sonradan giren" urun. Site tarafinda haystack(klon) =
  * haystack(kurban) + " klonN", Ege tarafinda vocab UST KUMESI -> klon, kurbanin eslestigi
@@ -85,6 +122,66 @@ function klonla(kurban, n) {
   const out = [];
   for (let i = 0; i < n; i++) out.push(Object.assign({}, kurban, { id: kurban.id + "-klon" + i }));
   return out;
+}
+
+// ── MARKA EKSENI: sahte ucun MARKA DALI + BAGIMSIZ GERCEK ────────────────────
+/**
+ * 🔴 NEDEN BURADA IKINCI BIR URETEC CAGRISI VAR (bilerek, kopya DEGIL — BAGIMSIZLIK):
+ * Fikstur, tools/ege-marka-referansi.js'e mutasyon uygulanmis KOPYADAN kosar (mutasyon
+ * harness'i dosyalari gecici dizine kopyalar). Sahte ucun "gercek"i o modulden alinsaydi
+ * mutant HER IKI tarafi birden bozar ve SESSIZCE HAYATTA KALIRDI
+ * ([[beyan-edilmis-survivor]]: katman ancak TEK BASINA kirmizi yakilabiliyorsa kanittir).
+ * Bu yuzden ucun tarafi ureticiyi KENDI cagirir; yuklem yine YAZILMAZ, KOSTURULUR.
+ */
+const MARKA_GERCEK_PY = [
+  "import importlib.util, json, os, sys",
+  "kok, katalog = sys.argv[1], sys.argv[2]",
+  "sys.path.insert(0, os.path.join(kok, 'tools'))",
+  "spec = importlib.util.spec_from_file_location('d1sync', os.path.join(kok, 'tools', 'd1-sync.py'))",
+  "mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)",
+  "harita, sebep = mod.marka_arama_haritasi(json.load(open(katalog, encoding='utf-8')))",
+  "print(json.dumps({'sebep': sebep, 'harita': {k: json.loads(v) for k, v in harita.items()}}))",
+].join("\n");
+
+/**
+ * Sahte ucun marka dali icin GERCEK: {kanon(q), uyeMi(id, deger)}.
+ * kanon = ucun KENDI yargisi (bot markaSorguKanonu'su, sahte D1 uzerinde) — burada da
+ * elle bir "marka mi" kurali yazilmaz. Kurulamazsa senaryo KURULAMAZ (fail-closed):
+ * sessizce serbest metne dusseydi marka ekseni HIC olculmeden yesil gorunurdu.
+ */
+function markaGercegiKur(EGE, urunler) {
+  const kok = process.env.PARITE_INDEX_KOK || path.dirname(TOOLS);
+  const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "parite-marka-gercek-"));
+  const katalog = path.join(gecici, "urunler.json");
+  fs.writeFileSync(katalog, JSON.stringify(urunler));
+  let j;
+  try {
+    const p = require("child_process").spawnSync("python3",
+      ["-c", MARKA_GERCEK_PY, kok, katalog],
+      { encoding: "utf8", timeout: 600000, maxBuffer: 256 * 1024 * 1024 });
+    if (p.status !== 0) {
+      throw new Error("uretec rc=" + p.status + ": " + ((p.stderr || "") + (p.stdout || "")).slice(-300));
+    }
+    j = JSON.parse(p.stdout);
+  } finally {
+    fs.rmSync(gecici, { recursive: true, force: true });
+  }
+  if (j.sebep) throw new Error("uretec FAIL-CLOSED atladi: " + j.sebep);
+
+  const uyelik = new Map();          // id -> Set(marka)
+  const evren = new Set();
+  for (const id of Object.keys(j.harita)) {
+    uyelik.set(id, new Set(j.harita[id]));
+    for (const m of j.harita[id]) evren.add(m);
+  }
+  if (!evren.size) throw new Error("marka evreni BOS — senaryo marka ekseni OLCEMEZ");
+  const satirlar = [...evren].sort().map((m) => ({ m }));
+  const env = { KATALOG: { prepare: () => ({ all: async () => ({ results: satirlar }) }) } };
+  return {
+    kanon: (q) => EGE.markaSorguKanonu(env, q),
+    uyeMi: (id, deger) => (uyelik.get(id) || new Set()).has(deger),
+    evrenBoyu: evren.size,
+  };
 }
 
 // ── Sahte "D1" ucu + ARIZA ENJEKSIYONU ───────────────────────────────────────
@@ -105,7 +202,7 @@ function klonla(kurban, n) {
  */
 function sunucuKur(secenek) {
   const { canli, EGE, mod403, wafSonraAra, r429SonraAra, r429IlkKere, susSonraAra,
-    idsHata, sayimHata, gizliAra, sayiSapma, araToplamSapma } = secenek;
+    idsHata, sayimHata, gizliAra, sayiSapma, araToplamSapma, markaGercek } = secenek;
   const idx = EGE ? EGE.katalogIndeksle(canli) : null;
   const canliIdHarita = new Map(canli.map((p) => [p.id, p]));
   const gizli = gizliAra || new Set();
@@ -156,8 +253,20 @@ function sunucuKur(secenek) {
       const sap = (n) => n + (araToplamSapma || 0);
       if (mod === "ege") {
         if (!q.trim()) return gonder({ hata: "q gerekli", toplam: 0, urunler: [] }, 400);
-        const hepsi = suz(EGE.urunAra(idx, q, Infinity));
-        return gonder({ toplam: sap(hepsi.length), urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
+        const serbest = () => {
+          const hepsi = suz(EGE.urunAra(idx, q, Infinity));
+          return gonder({ toplam: sap(hepsi.length),
+            urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
+        };
+        // MARKA DALI — canli ucla AYNI sira: marka adi sorgusu serbest metinden ONCE.
+        // Sonuc `marka_arama` uyeligi, sira KATALOG sirasi (uc: skor SABIT + seq DESC).
+        if (!markaGercek) return serbest();
+        return markaGercek.kanon(q).then((deger) => {
+          if (!deger) return serbest();
+          const hepsi = suz(canli.filter((p) => markaGercek.uyeMi(p.id, deger)));
+          return gonder({ toplam: sap(hepsi.length),
+            urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
+        }).catch((e) => gonder({ hata: "marka dali: " + String(e) }, 500));
       }
       const kat = u.searchParams.get("kategori") || "";
       const marka = u.searchParams.get("marka") || "";
@@ -341,6 +450,10 @@ function birimOlc() {
 
 // ── Senaryo kosucu ───────────────────────────────────────────────────────────
 async function senaryoKos(s) {
+  // MARKA EKSENI senaryolari: sahte uc marka dalini da tasir (canli ucla AYNI sozlesme).
+  // Kurulamazsa senaryo COKER — sessizce serbest metne dusmek ekseni olculmemis halde
+  // yesil gosterirdi.
+  if (s.markaEkseni) s.markaGercek = markaGercegiKur(s.EGE, s.canli);
   const sunucu = await sunucuKur(s);
   const gecici = fs.mkdtempSync(path.join(os.tmpdir(), "parite-fikstur-"));
   const urunlerYolu = path.join(gecici, "urunler.json");
@@ -503,13 +616,24 @@ async function main() {
     },
   });
   senaryolar.push({
-    ad: "S9 (K2) KIRMIZI + supurme TAVANI asildi -> cikis 1 (tavan AF vermez)",
+    // 🔴 IDDIA TERSINE CEVRILDI (6 Agu 2026, mimar hukmu). ESKI beklenti "cikis 1"di ve
+    // TAVAN'i gercek bir gerileme gibi raporluyordu. Olculdu: tavan SABIT oldugu icin
+    // katalog 20.212'ye cikinca asildi ve katalog farkiyla ACIKLANABILIR sapmalar KIRMIZI
+    // yandi (526 sahte kirmizi). Tavan BIZIM istek butcemizdir; asilmasi "uc bozuk" degil
+    // "kaniti URETEMEDIK" demektir -> hukum ACIK OLCULEMEDI (3) birimindedir
+    // ([[hukum-yanlis-birimde]] · [[test-hatali-davranisi-kutsar]]).
+    // AF YOK: 3 de BLOKE eder (sozlesme: 3 yayin yolunda gecirilmez); asil iddia
+    // "0 URETILMEZ"dir ve asagida AYRICA olculur.
+    ad: "S9 (K2) ayrisim VAR + supurme TAVANI asildi -> cikis 3 (dayanaksiz KIRMIZI YOK, 0 da YOK)",
     dosya: PARITE_SITE, yerel: TABAN, canli: EK.concat(TABAN), gizliAra: GIZLI,
     ekEnv: { PARITE_SUPURME_TAVANI: "1" },
     dogrula: (r) => {
-      ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-900));
+      ONA(r.kod === 3, "cikis 3 OLCULEMEDI", r.cikti.slice(-900));
+      ONA(r.kod !== 0, "AF YOK: tavan asimi hicbir kosulda 0 URETMEZ");
       ONA(/TAVANI asildi/.test(r.cikti), "tavan asimi GORUNUR");
-      ONA(/siniflandirma KAPALI/.test(r.cikti), "kanit yok -> siniflandirma KAPALI (fail-closed)");
+      ONA(/SUPURME TAVANI/.test(r.cikti), "sebep ADIYLA yazili");
+      ONA(/0\/\d+ sorgu olculdu/.test(r.cikti),
+        "kanitsiz sorgu OLCULMEDI (dayanaksiz kirmizi uretilmedi)");
     },
   });
   senaryolar.push({
@@ -727,6 +851,51 @@ async function main() {
       dogrula: (r) => {
         ONA(r.kod === 3, "cikis 3 (yanlis-pozitif YOK)", r.cikti.slice(-900));
         ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") === 0, "aciklanamayan = 0");
+      },
+    });
+
+    // ══ MARKA EKSENI (06 Agu) — referans `marka_arama` UYELIGINDEN turuyor mu? ═══════
+    // Uc 05 Agu'da marka adi sorgusunu uyelige bagladi; referans serbest metinde kaldigi
+    // icin test KENDI bayatligini "gerileme" diye rapor ediyordu (37/847, tamami marka
+    // sorgusu). Asagidaki uc senaryo o ekseni OLCER; mutantlar (parite-mutasyon-test.js
+    // M26-M29) referansi eski/ikiz yukleme dondurdugunde SM1 kirmizi yanar.
+    // 🔴 argv=[] (TUM sorgu havuzu): marka adlari havuzun ORTASINDA; 220'lik dilim
+    // capalari (Vauxhall/Haval) DISARIDA birakabilirdi -> eksen sessizce olculmezdi.
+    const MARKA_KATALOG = markaKatalogUret();
+    senaryolar.push({
+      ad: "SM1 MARKA EKSENI: referans `marka_arama` uyeliginden turer -> ayrisim 0 + cikis 3",
+      dosya: PARITE_EGE, yerel: MARKA_KATALOG, canli: MARKA_KATALOG.slice(),
+      markaEkseni: true, argv: [],
+      dogrula: (r) => {
+        ONA(fiksturYesil(r), "cikis 3 + ayrisim 0 + FIKSTUR: BIREBIR ESLESTI", r.cikti.slice(-1200));
+        ONA(/marka referansi: \d+ marka/.test(r.cikti),
+          "marka referansi FIILEN KURULDU (sessizce serbest metne dusulmedi)");
+      },
+    });
+    senaryolar.push({
+      ad: "SM2 KORELME NOBETI: marka dalinda GERCEK uc gerilemesi (bir urun eksik) -> cikis 1",
+      dosya: PARITE_EGE, yerel: MARKA_KATALOG, canli: MARKA_KATALOG.slice(),
+      markaEkseni: true, argv: [],
+      // Uc, marka kumesinden TEK urunu dusuruyor (Ege GOREMEZ = sessiz satis kaybi).
+      // Onarim bayat referansi susturdu; bu senaryo GERCEK alarmin hala caldigini olcer.
+      gizliAra: new Set([MARKA_KATALOG[0].id]),
+      dogrula: (r) => {
+        ONA(r.kod === 1, "cikis 1 KIRMIZI (gercek gerileme hala yakalaniyor)", r.cikti.slice(-1200));
+        ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") > 0, "ayrisim SAYILDI");
+        ONA(!/PARITE KIRIK DEGIL/.test(r.cikti), "kesin hukum BASILMIYOR");
+      },
+    });
+    senaryolar.push({
+      ad: "SM3 FAIL-CLOSED: kanonik uretec YOKKEN cikis 3 (ASLA 0, eski referansa DUSMEZ)",
+      dosya: PARITE_EGE, yerel: MARKA_KATALOG, canli: MARKA_KATALOG.slice(),
+      markaEkseni: true, argv: [],
+      // Cocuk kosuma BOZUK bir agac koku verilir -> tools/d1-sync.py bulunamaz. Sahte uc
+      // (ebeveyn) GERCEK koku kullanmaya devam eder, yani uc DOGRU, referans OLCULEMEZ.
+      ekEnv: { PARITE_INDEX_KOK: path.join(os.tmpdir(), "pruvo-yok-boyle-bir-kok") },
+      dogrula: (r) => {
+        ONA(r.kod === 3, "cikis 3 OLCULEMEDI", r.cikti.slice(-1200));
+        ONA(/marka referansi KURULAMADI/.test(r.cikti), "sebep ADIYLA yazili");
+        ONA(sayiOku(r.cikti, "gecti") === 0, "0 sorgu olculdu (eski referansla DEVAM ETMEDI)");
       },
     });
   }

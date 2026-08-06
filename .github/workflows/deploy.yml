@@ -423,6 +423,54 @@ jobs:
       - name: Marka kanon D1 kolonu kabul testi (120 kalemlik cip kaybi kapaniyor mu)
         run: python3 tools/marka-kanon-d1-test.py
 
+      # D1 `model_kanon` KOLONU — AYNI sessiz hata sinifinin MODEL EKSENI (5 Agu). Uctaki
+      # `model` kolu `uyum[].model` alaninda TAM ESITLIK arar; site ise modeli KUSAK/VARYANT
+      # duzeyinde katlar (`Fiesta ST` -> Fiesta, `T4`/`T5` -> Transporter, `Astra H` -> Astra).
+      # Olculdu: 553 yayimlanan model kovasinin 96'sinda sayfa suzgecten GENIS, 390 urun-kalemi
+      # musteri MODEL CIPINE BASINCA kayboluyor. Cozum marka ekseniyle BIREBIR: katlama Worker'a
+      # KOPYALANMAZ, kanonik model uyeligi senkron aninda SAYFA URETICISININ KENDI yukleminden
+      # turetilip D1'e onceden yazilir. Test gercek d1-sema.sql'i yerel sqlite3'e yukler,
+      # CANLI D1'e/wrangler'a/AGA DOKUNMAZ ve semayi CANLIYA UYGULAMAZ. NE OLCER: kolonun
+      # dogru SINIFI (hash'e karismaz -> hedefli UPDATE), 5 AYRI katlama mekanizmasinin
+      # POZITIF CAPASI, 390 kalemlik kaybin 0'a inmesi, deger evreninin YAYIMLANAN kova
+      # etiketleriyle birebir olmasi (kapali sayfa sizmasin), idempotens/olcek, FAIL-CLOSED
+      # yonu ve SEMA SIRASI. Ayrica KAYIPSIZLIK sayisini basar (ucun BIRLESIM karari icin).
+      # Mutasyon bataryasi: python3 tools/model-kanon-mutasyon.py (10 mutant).
+      - name: Model kanon D1 kolonu kabul testi (390 kalemlik model cip kaybi kapaniyor mu)
+        run: python3 tools/model-kanon-d1-test.py
+
+      # KATALOG KAYNAGI BAYRAGI (5 Agu) — d1-sync katalogu DAIMA calisma agacindan okuyordu,
+      # yani agacta baska bir oturumun COMMIT'LENMEMIS urunleri varsa senkron ONLARI CANLIYA
+      # yazardi ve hicbir sey kirmizi yanmazdi: bayatlik kapisi COMMIT GRAFIGINI olcer,
+      # calisma agacinin o commit'ten SAPMASINI OLCMEZ. Ayni gun iki kez karsimiza cikti.
+      # Artik kaynak ACIKCA secilebiliyor (`--head` / `--kaynak`) ve secim GURULTULU basiliyor.
+      # Test GERCEK bir git fiksturunde (2 urun commit'li, 1 urun agacta) iki yolun FARKLI
+      # sonuc verdigini olcer, fail-closed dallari (yok dosya / bicimsiz kaynak / iki bayrak
+      # birden) sinar ve 🔴 BAYRAKSIZ DAVRANISIN DEGISMEDIGINI iki yonlu olcer — 5 evin push
+      # kancasi bugunku davranisa baglidir. Offline; D1'e/aga DOKUNMAZ.
+      # Mutasyon bataryasi: python3 tools/d1-kaynak-mutasyon.py (7 mutant).
+      - name: D1 katalog kaynagi kabul testi (commit'lenmemis urun canliya yazilmasin)
+        run: python3 tools/d1-kaynak-test.py
+
+      # D1 `marka_arama` KOLONU — Okan hukmunun UC ayagi (marka_kanon CIP, model_kanon MODEL
+      # CIPI, bu kolon ARAMA). Site tarafi 8913db28 ile duzeltildi (marka adiyla yapilan sorgu
+      # artik UYELIK ∪ BASLIKTA TAM KELIME; fark 74 marka/6.089 kalem -> 20/75) ama CANLI arama
+      # UCTAN geliyor (index.html EDGE_KATALOG -> Worker /ara) ve uc hala `hs` uzerinde
+      # ALT-DIZE ariyor: olculdu `?q=MAN` = 3539 ("Mandali"), `?q=Haval` = 581
+      # ("Havalandirma"). Musteri hala eski sonucu goruyor ve iki yuzey de kendi icinde
+      # tutarli oldugu icin kimse BILDIRMEZ. Yuklem Worker'a KOPYALANMAZ; deger senkron
+      # aninda deponun TEK KAYNAKLARINDAN turetilip ONCEDEN yazilir — ALIAS yazimlari dahil
+      # (site `?q=Vauxhall`i Opel'e katlar; kolon alias tasimasaydi uc 493 urunluk markayi
+      # HIC bulamazdi, alias tablosunu uca kopyalamak ise ikiz tanim olurdu). Test gercek
+      # d1-sema.sql'i yerel sqlite3'e yukler; CANLI D1'e/wrangler'a/AGA DOKUNMAZ ve semayi
+      # CANLIYA UYGULAMAZ. NE OLCER: kolonun dogru SINIFI (hash'e karismaz -> hedefli UPDATE),
+      # kolondan turetilen kumenin SITENIN kumesiyle 129/129 + alias 1/1 birebir olmasi,
+      # `marka_arama ⊇ marka_kanon` sozlesmesi, kayipsizlik (ham `marka` birlesimi 0 kalem
+      # ekler -> model_kanon'un AKSINE kolon TEK BASINA okunur), idempotens, olcek,
+      # FAIL-CLOSED yonu ve SEMA SIRASI. Mutasyon: python3 tools/marka-arama-mutasyon.py.
+      - name: Marka arama D1 kolonu kabul testi (uctaki `?q=<marka>` gurultusu kapaniyor mu)
+        run: python3 tools/marka-arama-d1-test.py
+
       # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
       # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
       # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye
@@ -1682,11 +1730,16 @@ jobs:
       # YAYIN PENCERESI kolu: taslak (yayinda=0) satirin "gecici yayin gecikmesi" ile
       # "GERCEK KAYIP"tan ayrilmasi. Kendi sahte yayin-hali komutunu kullanir; canli D1'e
       # SIFIR sorgu atar, bot deposu yoksa Ege senaryolarini ATLAR (CI'da o depo yoktur).
-      - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi, AGSIZ)
+      # OLCEK EKSENI (tavan): supurme tavani SABIT yazilirsa katalog buyudugunde sahte
+      # kirmizi uretir (olculdu: katalog 20.212 > sabit 20.000 -> 526 sahte kirmizi).
+      # Bu kol tavanin KATALOGDAN turedigini, ust sinirin DURDUGUNU ve asilirsa hukmun
+      # ACIK OLCULEMEDI oldugunu olcer; sahte yerel HTTP ucu kullanir, canliya 0 istek.
+      - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi + tavan, AGSIZ)
         run: |
           python3 tools/parite-sozlesme-test.py
           node tools/parite-fikstur-test.js
           node tools/parite-yayin-fikstur-test.js
+          node tools/parite-tavan-test.js
       # shop birim testleri: wrangler/ag/D1 ISTEMEZ (modulu dogrudan import ederler).
       # OLU NOBETCI DEGIL: `wa-siparis.mjs`in YETKI YUZEYI iddialari (panel koku "Ege
       # anahtari anonimden fazlasini almiyor" + ozellik-kapali "YONET_ANAHTAR yoksa yazma
@@ -1792,36 +1845,25 @@ jobs:
       - name: "Model uyeligi kapisi (marka/model sayfasi <-> ana sayfa filtresi paritesi)"
         run: python3 tools/model-uyelik-kapisi.py
 
-      # AYNI KAPININ MUTASYON BATARYASI — BLOKLAYICI ve AYRI ADIM (surenin ayri olcusun
-      # gorunmesi + kirmizinin hangi eksende yandiginin adimdan okunmasi icin).
-      # 24 OLDURUCU + 4 KONTROL mutant; mutant DAIMA GECICI KOPYAYA uygulanir, gercek agac
-      # DEGISMEZ. Kabul olcutu cikis kodu DEGIL OLCULEN IDDIA + isarettir: rc 0/1 disi ya da
-      # "KIRMIZI ama hicbir iddia KALDI demedi" COKME sayilir ve kirmiziyla KARISTIRILMAZ.
-      # 🔴 NEDEN CI'DA (elle degil): bu paketin tum amaci sapmanin SESSIZCE geri gelmemesi.
-      # Olculdu — tabloyu tek kaynakta (index.html) degistiren mutant kapiyi kirmizi YAKMAZ
-      # (tek kaynak iki tarafi BIRDEN kaydirir); ayrismayi doguran sey BIR TARAFIN kaynagi
-      # okumayi birakmasidir, oldurucu mutantlar onu taklit eder ([[beyan-edilmis-survivor]]).
-      # Katlama eksenine 6 oldurucu eklendi (katlamayi kaldiran · farkli araca genisleten ·
-      # kelime sinirini kaldiran · istisnayi dusuren · tek tarafi tabloyu okumaz yapan ·
-      # alt bolum ayrimini tek listeye doken) + 1 kontrol (bolum SIRASI degisir, ayrim degil).
-      # Sizinti/deny/esleme ekseni 5 oldurucu daha ekledi (kusak sayfasini deny'e alan ·
-      # ST denial'ini kaldiran · deny tablosunu okumayi birakan · eslemeyi FARKLI ARACA
-      # kaydiran · esigi yukselterek 8 sayfayi sessizce olduren) + 1 kontrol (tabloyu
-      # yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
-      # 🔴 `ESIK` mutanti KONTROL'den OLDURUCU'ye TASINDI: donmus envanter ekseni eklenince
-      # esik degisimi ARTIK gorunur bir sapmadir (parite yesil kalirken 8 sayfa oluyor).
-      # Capraz-marka (rozet) ekseni 4 oldurucu daha ekledi (deny'den cifti dusuren ·
-      # envanterden cifti dusuren · envantere uretimde karsiligi olmayan cift ekleyen ·
-      # olcutu "sayfa DOGDU MU"ya cevirip tabloyu kendi kaniti yapan) + 1 kontrol
-      # (envanteri yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
-      # CIPLAK TEK HARF (kararsiz jeton SINIF 1) ekseni 2 oldurucu daha ekledi (birlesmeyi
-      # kaldiran · kuratorlu gosterim zorlamasini dusuren) + 1 kontrol (MODEL_ALIAS'i yeniden
-      # siralamak) ve `GS` hukmunu CALISTIRILABILIR kilan 1 oldurucu (olu allow girisi yazip
-      # K19'u tek basina kirmizi yakan) geldi. Ikisi de TEK BASINA kirmizi yakiyor (olculdu).
-      # Olculdu: yerelde 24+4 mutant 108 s iken 31+6 mutant 165 s (serit-a3 +25 s).
-      - name: "Model uyeligi mutasyon bataryasi (31 oldurucu + 6 kontrol)"
-        run: python3 tools/model-uyelik-kapisi.py --kendini-test
+      # MODEL UYELIK YUKLEMI — UC KOL (5 Agu 2026, mimar hukmu):
+      #   ham `uyum[].model` ∪ `model_kanon` (kusak/kanon) ∪ BASLIKTA TAM KELIME
+      # Kabul CAKILI CAPALARA karsi olcer (Vitara 27->66 · Transporter 145 · Golf 300 …),
+      # kendi urettigi kumeye DEGIL (totoloji). Ayrica kademeli kurali (guvenli jeton /
+      # tehlike sinifi) ve bitisikligin `markaKatla()`DAN BAGIMSIZ oldugunu civiler.
+      # Mutasyon bataryasi (4 oldurucu + 3 kontrol, 4 AYIRT EDICI kirmizi kume):
+      #   python3 tools/model-baslik-kolu-test.py --kendini-test
+      # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ.
+      - name: "Model baslik kolu kabul (uc kol + tehlike sinifi + yargisiz sayfa dogmaz)"
+        run: python3 tools/model-baslik-kolu-test.py
 
+      # 🔴 AYNI KAPININ MUTASYON BATARYASI ARTIK `serit-a4` JOB'UNDADIR (5 Agu 2026).
+      # NEDEN TASINDI: adim duzeyi olcum (son 6 basarili kosum, GitHub jobs API)
+      # `serit-a3`i 968 sn (16,1 dk) gosterdi ve tek basina bu adim 440 sn (%45) idi.
+      # `deploy: needs` zincirinin tabani = EN YAVAS serit oldugundan, bu tek adim
+      # yayin penceresinin en buyuk kalemiydi. Ayrintili gerekce + kapi sayisi
+      # esitligi: bkz. `serit-a4` job basligi.
+      # ⚠️ ADIM SILINMEDI, TASINDI: `serit-a4` da `deploy: needs` listesindedir ->
+      # kirmizisi yayini AYNEN durdurur (kapi sayisi ve semantigi DEGISMEDI).
       # KANCA KABLOLAMASI (tools/kanca-kablolama-nobeti.py --ci) — kancalar artik
       # `.git/hooks` altinda (commit EDILMEYEN, elle duzenlenen) dosyalar degil,
       # IZLENEN `tools/kancalar` kaynagidir; kablolamayi tools/kanca-kur.py kurar.
@@ -1856,6 +1898,97 @@ jobs:
       # mi. Tamamen offline; taze klonda rc=0 oldugu KOSULARAK olculdu.
       - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
         run: python3 tools/kanca-kablolama-nobeti.py --ci
+
+  # ═════════════════════════════════════════════════════════════════════════════
+  # SERIT A4 — KRITIK YOLUN BOLUNMESI (5 Agu 2026, ADIM DUZEYINDE OLCULDU)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN OLGU (son 6 basarili kosum, GitHub `runs/<id>/jobs` adim sureleri; surucu
+  # scratchpad/yz/adim-sure.py):
+  #     build     586 sn (9,8 dk)   <- "Statik sayfalari uret" 328 sn + fiyat paritesi 138 sn
+  #     serit-a2  553 sn (9,2 dk)
+  #     serit-a3  968 sn (16,1 dk)  <- KRITIK YOL
+  #        icinden: "Model uyeligi mutasyon bataryasi"  440 sn (%45)
+  #                 "Piksel <-> katalog parite kapisi"  314 sn (%32)
+  #                 kalan 68 adim                       214 sn (%22)
+  # `deploy: needs` tabani = EN YAVAS serit + deploy (36 sn) + yayin (36 sn) = 1040 sn
+  # (17,3 dk). Mutasyon bataryasi AYRI bir job'a alininca:
+  #     serit-a3  528 sn (8,8 dk) · serit-a4 461 sn (7,7 dk; ~21 sn kurulum dahil)
+  #     yeni taban = max(586, 553, 528, 461) + 72 = 658 sn (11,0 dk)
+  # BEKLENEN KAZANC: 1040 -> 658 sn = 382 sn (6,4 dk, %36,7). Daha fazla bolmenin
+  # kazanci YOKTUR: kritik yol artik `build` (586 sn) ve o AYRI bir istir.
+  #
+  # 🔴 KAPI SAYISI DEGISMEDI — SILME DEGIL TASIMA. Adim aynen, bayragiyla birlikte
+  # tasindi ve bu job `deploy: needs` listesindedir. Olculdu (tools/is-akisi-kapisi.py,
+  # bolme ONCESI ve SONRASI): "Olculen kapi cagrisi 203" · "SERIT B beyani 55" ·
+  # "BLOKLAYICI beyan (F) 56 iddia" — UCU DE AYNI. tools/ci-kapsam-test.py:
+  # "OTOMATIK'te kosulan 149" — AYNI.
+  # ⚠️ `deploy: needs` listesine EKLENMEZSE bu job SERIT B'ye duser ve kapi CI'da
+  # gorunur ama yayini BLOKLAMAZ (sessiz fail-open). O hal bir yorum degil, KOSULAN
+  # bir kapidir: is-akisi-kapisi Bolum D o cagriyi "beyansiz fail-open" sayar ve
+  # KIRMIZI yanar (mutasyonla olculdu, scratchpad/yz/m2-mutasyon.py).
+  #
+  # NEDEN BU ADIM SECILDI (baska bir kapi degil): tek basina en buyuk kalem ve
+  # ONCESINDEKI hicbir adima BAGIMLI DEGIL — `tools/model-uyelik-kapisi.py` yalniz
+  # urunler.json + index.html okur, mutantini GECICI KOPYAYA uygular, uretilmis agaca
+  # (urun/ · _yayin/ · varlik/) DOKUNMAZ. Yani `serit-a3`te URETIM ZINCIRI baglantisi
+  # yok; tools/deploy-aclik-kapisi.py::E2b bunu ayrica olcer.
+  # Kurulum: `node` ZORUNLU (kapi filtre tarafini index.html'in GERCEK koduyla node'da
+  # kosturur — Python portu yazmak kapiyi totolojiye cevirirdi, bkz. model-uyelik-kapisi
+  # :: filtre_kumeleri). `pip install` GEREKMEZ: arac saf stdlib'dir.
+  serit-a4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # MODEL UYELIGI KAPISININ MUTASYON BATARYASI — BLOKLAYICI ve AYRI ADIM (surenin
+      # ayri olcusun gorunmesi + kirmizinin hangi eksende yandiginin adimdan okunmasi
+      # icin). GERCEK olcum kolu (bayraksiz cagri) `serit-a3`te kalir; ikisi de SERIT A.
+      # 24 OLDURUCU + 4 KONTROL mutant; mutant DAIMA GECICI KOPYAYA uygulanir, gercek agac
+      # DEGISMEZ. Kabul olcutu cikis kodu DEGIL OLCULEN IDDIA + isarettir: rc 0/1 disi ya da
+      # "KIRMIZI ama hicbir iddia KALDI demedi" COKME sayilir ve kirmiziyla KARISTIRILMAZ.
+      # 🔴 NEDEN CI'DA (elle degil): bu paketin tum amaci sapmanin SESSIZCE geri gelmemesi.
+      # Olculdu — tabloyu tek kaynakta (index.html) degistiren mutant kapiyi kirmizi YAKMAZ
+      # (tek kaynak iki tarafi BIRDEN kaydirir); ayrismayi doguran sey BIR TARAFIN kaynagi
+      # okumayi birakmasidir, oldurucu mutantlar onu taklit eder ([[beyan-edilmis-survivor]]).
+      # Katlama eksenine 6 oldurucu eklendi (katlamayi kaldiran · farkli araca genisleten ·
+      # kelime sinirini kaldiran · istisnayi dusuren · tek tarafi tabloyu okumaz yapan ·
+      # alt bolum ayrimini tek listeye doken) + 1 kontrol (bolum SIRASI degisir, ayrim degil).
+      # Sizinti/deny/esleme ekseni 5 oldurucu daha ekledi (kusak sayfasini deny'e alan ·
+      # ST denial'ini kaldiran · deny tablosunu okumayi birakan · eslemeyi FARKLI ARACA
+      # kaydiran · esigi yukselterek 8 sayfayi sessizce olduren) + 1 kontrol (tabloyu
+      # yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
+      # 🔴 `ESIK` mutanti KONTROL'den OLDURUCU'ye TASINDI: donmus envanter ekseni eklenince
+      # esik degisimi ARTIK gorunur bir sapmadir (parite yesil kalirken 8 sayfa oluyor).
+      # Capraz-marka (rozet) ekseni 4 oldurucu daha ekledi (deny'den cifti dusuren ·
+      # envanterden cifti dusuren · envantere uretimde karsiligi olmayan cift ekleyen ·
+      # olcutu "sayfa DOGDU MU"ya cevirip tabloyu kendi kaniti yapan) + 1 kontrol
+      # (envanteri yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
+      # CIPLAK TEK HARF (kararsiz jeton SINIF 1) ekseni 2 oldurucu daha ekledi (birlesmeyi
+      # kaldiran · kuratorlu gosterim zorlamasini dusuren) + 1 kontrol (MODEL_ALIAS'i yeniden
+      # siralamak) ve `GS` hukmunu CALISTIRILABILIR kilan 1 oldurucu (olu allow girisi yazip
+      # K19'u tek basina kirmizi yakan) geldi. Ikisi de TEK BASINA kirmizi yakiyor (olculdu).
+      # Olculdu: yerelde 24+4 mutant 108 s iken 31+6 mutant 165 s; CI'da 440 sn.
+      # 5 Agu: BASLIK KOLU ekseni 3 oldurucu daha ekledi (yargi kapisini kaldiran ·
+      # allow envanterinden giris dusuren · tehlike korumasini dusuren) + 1 kontrol.
+      - name: "Model uyeligi mutasyon bataryasi (34 oldurucu + 7 kontrol)"
+        run: python3 tools/model-uyelik-kapisi.py --kendini-test
+
+      # BASLIK KOLU MUTASYON BATARYASI (5 Agu 2026) — 4 oldurucu + 3 kontrol.
+      # 🔴 AYIRT EDICILIK ICERDE OLCULUR: oldurucu mutantlarin KIRMIZI YAKTIGI iddia
+      # kumeleri birbirinden FARKLI olmali (ayni kume cikarsa "daima kirmizi" tek bir
+      # eksen hepsini gecmis olurdu — batarya bunu kendi raporlar).
+      #   M1 kanon/kusak kolu  -> Transporter DUSER · M2 baslik kolu -> Vitara DUSER
+      #   M3 tehlike korumasi  -> Renault|5 TAVANI ASAR + markasiz baslik fiksturu kirilir
+      #   M4 bitisikligi markaKatla() ile yaz -> KATLAMALI fikstur kirilir (M3'ten AYRI kume)
+      # Olculdu: yerelde 7 mutant ~6 dk (her mutant tam jenerator kosumu).
+      - name: "Model baslik kolu mutasyon bataryasi (4 oldurucu + 3 kontrol)"
+        run: python3 tools/model-baslik-kolu-test.py --kendini-test
   # ═════════════════════════════════════════════════════════════════════════════
   # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
   # ═════════════════════════════════════════════════════════════════════════════
@@ -2107,32 +2240,10 @@ jobs:
   # 🔴 TESHIS MASKELI: tarama kolu eslesen SATIRIN METNINI HIC yazmaz, yalniz
   #    `dosya:satir [EKSEN]` basar. Aksi halde nobetci ifsayi PUBLIC Actions gunlugune
   #    kendi eliyle kopyalardi ([[nobetci-kendi-dosyasinda-sizinti]]).
-  # 🔴 SERIT A'YA TASIMA KOSULU (olculebilir): ana dalda tarama kolu rc=0 verdigi gun
-  #    bayraksiz cagri `build` job'una tasinir ve is-akisi-kapisi.py::SERIT_B girisleri
-  #    silinir (taban 43 -> 41).
-  ifsa-nobeti:
-    runs-on: ubuntu-latest
-    steps:
-      # fetch-depth: 1 YETER — kapi CALISMA AGACINI tarar, git GECMISINI okumaz
-      # (`git ls-files` yalniz indeksi gezer). SIG klonda da AYNI sonucu verir; bu
-      # olculdu ve raporda sayiyla duruyor.
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      # Once nobetcinin KENDI kabulu (22 iddia; ag YOK, gercek dosyaya YAZMA YOK).
-      # ADIM ADINDA IDDIA SAYISI YAZMAZ — bayat sayi yanlis bilgi verir; gercek sayiyi
-      # betigin kendisi "TOPLAM: N/N" satiriyla basar.
-      - name: "Spec ifsa nobetcisi: kendini test (sayi ciktida)"
-        run: python3 tools/spec-ifsa-kapisi.py --kendini-test
-      # Sonra MUTASYON BATARYASI: her iddianin AYIRT EDICI bir mutantla oldurulebildigi
-      # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Canli dosyaya YAZMAZ ve bunu sha256
-      # once==sonra ile KENDISI olcer.
-      - name: "Spec ifsa nobetcisi: mutasyon bataryasi (TEK KIRMIZI + beyana esitlik)"
-        run: python3 tools/spec-ifsa-mutasyon-test.py
-      # GERCEK OLCUM — bugun KIRMIZI yanmasi BEKLENEN sonuctur (temizlik ayri karar).
-      - name: "Spec/tasarim ifsasi: izlenen anlatim yuzeyi (ALARM — yayini DURDURMAZ)"
-        run: python3 tools/spec-ifsa-kapisi.py
+  # Alarmın kendi kırmızı sonucu ayrı workflow'da görünür; yayın workflow'unun sonucu
+  # yalnız yayın zincirini anlatır.
+  # Nöbet, kırmızısını yayın koşumuna taşımaması için `spec-ifsa-alarmi.yml` içinde
+  # aynı fail-closed komutlarla ayrı bir push workflow'u olarak çalışır.
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================
@@ -2185,9 +2296,21 @@ jobs:
       # onek zorunlulugu (N4)). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
       # (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
       # return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI olctu — nobetci sessizce olurse
-      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 mutant oluyor; olcumu
-      # tekrarlamak icin: python3 tools/ege-bilgi-tavan-mutasyon.py (kapiyi SALT OKUR,
-      # mutasyonu KOPYAYA uygular — CI adimi degil, elde kosulan kanit araci).
+      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 oldurucu mutant OLUYOR ve 3/3
+      # KONTROL mutanti YESIL KALIYOR; olcumu tekrarlamak icin:
+      #   python3 tools/ege-bilgi-tavan-mutasyon.py   (kapiyi SALT OKUR, mutasyonu KOPYAYA
+      #   uygular — CI adimi degil, elde kosulan kanit araci)
+      # 🔴 KONTROL MUTANTI NEDEN VAR (5 Agu): "14/14 kirmizi" tek yonlu bir sayidir; fikstur
+      # seti kaynaga dokunan HER degisiklige kirmizi yansaydi da ayni sayi cikardi ve o halde
+      # her mesru bakim duzenlemesi TUM EKIBIN yayinini durdururdu. C1-C3 (yorum metni · rapor
+      # sure bicimi · tempfile oneki) davranisi degistirmez ve YESIL kalmali; biri kirmizi
+      # yanarsa batarya KIRMIZI verir. Batarya ayrica kumelerden biri BOSSA da KIRMIZI verir
+      # (tek yonlu batarya "her degisiklik kirmizi" halini ayirt EDEMEZ).
+      # PAY SIMULASYONU (ayni duzlem, ayri soru — "kac filament daha sigar?"):
+      #   python3 tools/ege-tavan-pay-simulasyon.py --sablon en-uzun|en-kisa
+      # filamentler.json'a N sentetik kalem ekleyip ege-bilgi.md'yi GECICI AGAC KOPYASINDA
+      # yeniden uretir ve hukmu bu kapinin degerlendir()'inden okur (ikinci tavan mantigi
+      # YAZILMAZ). Canli uc dosyanin sha256'si bas=son dogrulanir. CI adimi DEGIL.
       # ⚠️ ILAN duzlemi UYARI'ya indigi icin oradaki mutantlarin cogu artik EXIT KODUNU degil
       # yalniz TESHIS METNINI bozar -> fiksturler "iceren/icermeyen" metin sartiyla yazilir;
       # sadece exit kodu karsilastiran bir fikstur onlari GOREMEZ.
@@ -2976,7 +3099,7 @@ jobs:
     # kapilarin kirmizisi yayini DURDURMAZ (sessiz fail-open).
     # tools/is-akisi-kapisi.py::_serit_b_joblar bunu gecisli olcer;
     # tools/deploy-aclik-kapisi.py::e2_degerlendir URETIM ZINCIRI eksenini olcer.
-    needs: [build, serit-a2, serit-a3]
+    needs: [build, serit-a2, serit-a3, serit-a4]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

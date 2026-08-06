@@ -37,33 +37,43 @@ const UC = process.env.ARA_UC || "https://pruvo-whatsapp-bot.gmlmz.workers.dev/a
 const LIMIT = 1000;          // /ara'nin azami limiti; ustu sorgular sadece sayidan karsilastirilir
 const ESZAMANLI = 8;
 
-// ─── index.html'den BIREBIR KOPYA (referans — degistirme) ────────────────────
-function norm(s) {
-  return (s || "").toLocaleLowerCase("tr")
-    .replace(/ı/g, "i").replace(/İ/g, "i")
-    .replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ö/g, "o")
-    .replace(/ş/g, "s").replace(/ü/g, "u").replace(/â/g, "a").replace(/î/g, "i");
-}
-// Türkçe ek kırpma (SORGU tarafı) — index.html ile BİREBİR (degistirme).
-var ARAMA_EKLER=["lerimiz","larimiz","lerim","larim","lerin","larin","imiz","iniz","umuz","unuz","leri","lari","nin","nun","den","dan","tan","ten","ler","lar","yle","yla","si","su","yi","yu","ye","ya","na","ne","de","da","te","ta","in","im","un","um","i","u","e","a","m","n"];
-function aramaKok(w){for(var i=0;i<ARAMA_EKLER.length;i++){var ek=ARAMA_EKLER[i];if(w.length-ek.length>=4&&w.slice(-ek.length)===ek){return w.slice(0,w.length-ek.length);}}return w;}
-function haystack(p) {
-  if (p._hs === undefined) {
-    p._hs = norm([p.baslik, p.aciklama, (p.marka || []).join(" "),
-                  p.kategori, (p.id || "").replace(/-/g, " ")].join(" "));
-  }
-  return p._hs;
-}
+// ─── REFERANS = index.html'in GERCEK KODU (kopya DEGIL) ──────────────────────
+// 🔴 5 AGU 2026 — BURADA ELLE KOPYA TUTULMAZ, OKUMADAN DOKUNMA:
+// Bu dosya eskiden index.html'in norm()+haystack()+filtered() uclusunu ELLE KOPYALIYORDU.
+// index.html "marka adiyla yapilan sorgu"yu UYELIK ∪ BASLIKTA TAM KELIME yuklemine
+// baglayinca (8913db28) ve uc da ayni kurala gecince (`marka_arama` uyeligi), kopya
+// sessizce BAYAT AYNA'ya dondu: test 33/1199 ayrisim basiyordu ama SITE ile UC ARASINDA
+// KUSUR YOKTU — sapan taraf testin kendisiydi (olculdu: mini 69/69, haval 2/2, rover 9/9,
+// mercedes 1037/1037, seat 90/90, citroën 413/413; kopya sirasiyla 1134/600/91/1041/120/69
+// veriyordu). [[ikiz-tanim-sessiz-ayrisma]]
+//
+// Referans artik tools/index-arama-referansi.js uzerinden index.html'den AYIKLANIP
+// CALISTIRILIR: musterinin tarayicisinda kosan yuklemin TA KENDISI. Ikinci bir govde
+// olmadigi icin yapisal olarak bayatlayamaz; capa tutmazsa (blok yeniden adlandi,
+// cip indeksi uretilemedi) HATA atilir -> OLCULEMEDI (cikis 3), sessiz YESIL DEGIL.
+//
+// KAPSAM: bu test "site (index.html) ile uc (/ara) ayni kumeyi mi veriyor" olcer.
+// Marka sorgusunun IKI GOVDESI (index.html ↔ tools/arama.py) arasindaki parite AYRICA
+// tools/marka-liste-test.py'de olculur (68 sorgu, gercek katalog).
+const REFERANS = require("./index-arama-referansi.js");
+// TEMBEL: modul `require` edildiginde (fikstur/mutasyon harness'i) index.html okunmaz.
+function ref() { return REFERANS.referans(); }
+function norm(s) { return ref().norm(s); }
+function aramaKok(w) { return ref().aramaKok(w); }
+function haystack(p) { return ref().haystack(p); }
 function filtered(PRODUCTS, query, activeCat, activeBrand) {
-  var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
+  const R = ref();
+  // Arama yuklemi: index.html'in TEK ARAMA PLANI (marka sorgusu -> uyelik ∪ baslikta tam
+  // kelime; marka olmayan sorgu -> serbest metin). Ikinci kez yazilmaz.
+  const plan = R.aramaPlani(query);
+  // Marka cipi: index.html filtered() ile AYNI GOVDE (markaUyeMi, KATLAMALI). Duz
+  // `indexOf(activeBrand)` yazsaydik "Mercedes" cipi "Mercedes-Benz"li urunu kacirirdi
+  // ve cip ile arama sessizce ayrisirdi.
+  const hedefMarka = activeBrand === "Tümü" ? null : R.markaKatla(activeBrand);
   return PRODUCTS.filter(function (p) {
-    var catOk = activeCat === "Tümü" || p.kategori === activeCat;
-    var brandOk = activeBrand === "Tümü" || (p.marka && p.marka.indexOf(activeBrand) !== -1);
-    if (!catOk || !brandOk) { return false; }
-    if (tokens.length === 0) { return true; }
-    var hs = haystack(p);
-    for (var i = 0; i < tokens.length; i++) { if (hs.indexOf(tokens[i]) === -1) { return false; } }
-    return true;
+    if (activeCat !== "Tümü" && p.kategori !== activeCat) { return false; }
+    if (hedefMarka && !R.markaUyeMi(p, hedefMarka)) { return false; }
+    return R.aramaPlaniEsler(p, plan);
   });
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -178,18 +188,54 @@ async function araSor({ q, kat, marka }) {
 module.exports = { norm, aramaKok, haystack, filtered, sorgulariUret, urunleriYukle, KOK, LIMIT };
 
 if (require.main === module) (async () => {
+  // ── MARKA ADI SORGUSU EKSENI — SITE YUZEYI (opsiyonel, VARSAYILAN KAPALI) ─────────
+  // 🔴 NEDEN AYRI BAYRAK: yukaridaki referans filtered() BILEREK eski (serbest metin)
+  // halindedir, yani BU testin yesili marka sorgusunda site==uc DEMEK DEGILDIR. Marka
+  // ekseni o boslugu kapatir ve BUGUN (uc gecmeden once) KIRMIZI yanar — bu beklenendir.
+  // Bu yuzden varsayilan kosuma GIRMEZ ve bloklayan seride DEGILDIR; gecis indikten sonra
+  // baglanmasi MIMAR karariddir. Govde TEK: tools/parite-marka-ekseni.js (ikinci kopya YOK).
+  //   node tools/parite-test.js --marka-ekseni [--ornek=N]
+  if (process.argv.includes("--marka-ekseni")) {
+    return process.exit(await require("./parite-marka-ekseni.js").calistirCLI({ yuzey: "site" }));
+  }
+
+  const t0 = Date.now();
+  const OLCULEMEDI = [];
+  const bitir = (kod) => process.exit(kod);
+  // ── REFERANS KURULUMU: HICBIR SEY OLCULMEDEN once ([[hukum-yanlis-birimde]]) ──
+  // Referans index.html'den turer; capa tutmazsa (blok yeniden adlandi / cip indeksi
+  // uretilemedi) hata sorgu URETIMINDE ya da dongude patlar ve kosum "ayrisma buldu"
+  // (cikis 1) ya da ham cokme gibi gorunurdu — halbuki hicbir sey OLCULMEMISTIR.
+  // Ariza KENDI biriminde, OLCULEMEDI (cikis 3) olarak raporlanir.
+  // 🔴 SIRA ONEMLI: sorgulariUret() norm() cagirir, norm() referansa gider. Bu blok
+  // sorgu uretiminden SONRAYA alinirsa fail-closed yol yeniden cikis 1'e duser.
+  try {
+    ref();
+  } catch (e) {
+    OLCULEMEDI.push("site arama referansi KURULAMADI (" + (e && e.message) +
+      ") -> 0 sorgu olculdu");
+    console.log("⚪ " + OLCULEMEDI[0]);
+    return bitir(ortak.sonucYaz({
+      etiket: "site", gecti: 0, atlandi: 0, hatalar: [], onKosul: null,
+      sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
+      fazlaKume: null, olculemedi: OLCULEMEDI,
+    }));
+  }
+
   const PRODUCTS = urunleriYukle();
   const YEREL_IDLER = [...new Set(PRODUCTS.map((p) => p.id))];
   const YEREL_ID_KUME = new Set(YEREL_IDLER);
   const hedef = parseInt(process.argv[2] || "", 10);
   const sorgular = sorgulariUret(Number.isFinite(hedef) ? hedef : 0, PRODUCTS);
-  const OLCULEMEDI = [];
   console.log("Parite testi: %d sorgu | %d urun (%s) | uc: %s",
     sorgular.length, PRODUCTS.length, URUNLER_YOLU, UC);
+  // TAVAN katalogdan TURER (sabit degil) -> tek kaynak: ortak.supurmeTavani.
   console.log("ISTEK BUTCESI: sorgu(%d) + on-kosul(1) [+ sayilar ayriysa supurme " +
     "min(ceil(%d/%d), tavan %d) = %d parti] | zaman asimi %d ms/istek, deneme %d\n",
-    sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI, ortak.SUPURME_TAVANI,
-    Math.min(Math.ceil(YEREL_IDLER.length / ortak.IDS_PARTI), ortak.SUPURME_TAVANI),
+    sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI,
+    ortak.supurmeTavani(YEREL_IDLER.length),
+    Math.min(Math.ceil(YEREL_IDLER.length / ortak.IDS_PARTI),
+      ortak.supurmeTavani(YEREL_IDLER.length)),
     ortak.ZAMAN_ASIMI_MS, ortak.DENEME);
 
   // Sessiz baypas olmasin: test-only env verildiyse HEM stdout HEM stderr'e (A15).
@@ -199,9 +245,6 @@ if (require.main === module) (async () => {
     console.error("⚠️ " + fikstur);
     OLCULEMEDI.push(fikstur);
   }
-
-  const t0 = Date.now();
-  const bitir = (kod) => process.exit(kod);
 
   // ── ON-KOSUL: checkout katalogu CANLI ile ayni mi? (gurultu imzasini ayirmak icin) ──
   let onKosul;
@@ -227,6 +270,18 @@ if (require.main === module) (async () => {
     console.log("   (Bu yon katalog farkiyla ACIKLANAMAZ: site gosterir, Ege GOREMEZ.)");
     console.log("canli istek: %d", SAYAC.istek);
     return bitir(ortak.CIKIS_KIRMIZI);
+  }
+
+  // ── SUPURME TAVANI: kanit uretilemedi -> ACIK OLCULEMEDI, sorgu OLCULMEZ ───────────
+  // 🔴 SIRA: on-kosul KIRMIZISI yukarida dondu (1 > 3 > 0). Buradaki durus, katalog
+  // farkiyla aciklanabilir sapmalari DAYANAKSIZ kirmiziya cevirmemek icindir.
+  if (onKosul.durdu) {
+    OLCULEMEDI.push("supurme tavani -> 0/" + sorgular.length + " sorgu olculdu");
+    return bitir(ortak.sonucYaz({
+      etiket: "site", gecti: 0, atlandi: 0, hatalar: [], onKosul,
+      sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
+      fazlaKume: null, olculemedi: OLCULEMEDI,
+    }));
   }
 
   let gecti = 0, atlandi = 0;

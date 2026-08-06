@@ -147,8 +147,8 @@ S5 = ("S5", "🔴 ONARILAMADI HUKMU SILINDI: `failure()` kollu ayri adim kaldiri
 S6 = ("S6", "🔴 KADANS KOLU YAYIN YOLUNA SIZDIRILDI: `d1-kadans` `deploy: needs` "
             "listesine eklendi -> D1/ag'a bagimli bir kol TUM EKIBIN yayinini durdurur "
             "VE iki kirmizi yine TEK birimde toplanir", DEPLOY,
-      [("    needs: [build, serit-a2, serit-a3]\n",
-        "    needs: [build, serit-a2, serit-a3, d1-kadans]\n")], True)
+      [("    needs: [build, serit-a2, serit-a3, serit-a4]\n",
+        "    needs: [build, serit-a2, serit-a3, serit-a4, d1-kadans]\n")], True)
 
 # ── KOL BAYRAGINI DUSUREN / TERSE CEVIREN MUTANTLAR ────────────────────────
 S7 = ("S7", "🔴 KOL BAYRAGI DUSURULDU: `with: kadans_kolu: true` silindi -> cagrilan is "

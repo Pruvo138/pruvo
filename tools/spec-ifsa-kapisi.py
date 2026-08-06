@@ -173,6 +173,44 @@ import tokenize
 
 sys.dont_write_bytecode = True  # SALT-OKUNUR tarama: hedef repoya __pycache__ yazma.
 
+# 🔴 KOK EKSENI (5 Agu 2026 olculen "kapi yanlis agacta yesil yakiyor" sinifi):
+# taranacak agac ONCEDEN argumansiz `git rev-parse --show-toplevel` ile CWD'den
+# turetiliyordu. AYNI betik, yalniz cwd degistirilerek kosuldugunda BASKA bir agaci
+# olcuyordu (olculdu: 164 isabet/37 dosya <-> 166 isabet/38 dosya). Artik kok
+# CWD'den TUREMEZ: `--kok` ile ACIKCA verilir, verilmezse BETIGIN kendi agacidir;
+# ikisi celisirse hukum verilmez (OLCULEMEDI).
+BETIK_DIZINI = os.path.dirname(os.path.abspath(__file__))
+
+
+def _git_kok(dizin):
+    """dizin'in AIT OLDUGU git agacinin koku ("" = git agaci degil). `-C` ZORUNLU:
+    argumansiz cagri CWD'ye bakar — olculen kusur tam olarak buydu."""
+    p = subprocess.run(["git", "-C", dizin, "rev-parse", "--show-toplevel"],
+                       capture_output=True, text=True)
+    return p.stdout.strip() if p.returncode == 0 else ""
+
+
+def kok_coz(arg_kok, cwd, betik_dizini=BETIK_DIZINI):
+    """Olculecek agaci belirler. Dondurur: (kok, hata); hata != None -> OLCULEMEDI."""
+    if arg_kok:
+        k = _git_kok(arg_kok)
+        if not k:
+            return None, ("--kok ile verilen yol bir git agaci DEGIL: %s" % arg_kok)
+        return k, None
+    betik_kok = _git_kok(betik_dizini)
+    if not betik_kok:
+        return None, ("betigin bulundugu agac bir git deposu DEGIL: %s "
+                      "(cozum: --kok ile olculecek agaci ver)" % betik_dizini)
+    cwd_kok = _git_kok(cwd)
+    if cwd_kok and os.path.realpath(cwd_kok) != os.path.realpath(betik_kok):
+        return None, (
+            "AGAC BELIRSIZ (fail-closed) — betigin agaci ile calisma dizininin agaci "
+            "FARKLI:\n  betik agaci: %s\n  cwd  agaci : %s\n"
+            "Hangi agacin olculecegi betikten anlasilamaz; sessiz bir hukum YANLIS "
+            "agaca atfedilebilir.\nCOZUM: agaci ACIKCA soyle -> --kok %s"
+            % (betik_kok, cwd_kok, cwd_kok))
+    return betik_kok, None
+
 # Kendi kaynagi + mutasyon aracinin kaynagi: deseni TANIMLAMAK icin tasirlar.
 KENDI_YOLLARI = ("tools/spec-ifsa-kapisi.py", "tools/spec-ifsa-mutasyon-test.py")
 
@@ -822,6 +860,29 @@ def _kendini_test():
     sonuclar.append(("IDDIA-MASKE cikti-sizdirmaz", maske,
                      "rapor satiri konum+eksen tasir, eslesen METIN TASIMAZ"))
 
+    # --- KOK EKSENI (5 Agu 2026): kapi HANGI AGACI olctugunu CWD'den ALMAZ. ---
+    # Iki AYRI davranis, iki AYIRT EDICI mutant (bkz. tools/spec-ifsa-mutasyon-test.py).
+    with tempfile.TemporaryDirectory() as _kd:
+        _a, _b = os.path.join(_kd, "a"), os.path.join(_kd, "b")
+        for _y in (_a, _b):
+            os.makedirs(os.path.join(_y, "tools"))
+            subprocess.run(["git", "-C", _y, "init", "-q"], capture_output=True)
+        _a_tools = os.path.join(_a, "tools")
+
+        # IDDIA-KOK1: ACIKCA verilen kok USTUNDUR (cwd de betik dizini de etkisiz).
+        _k1, _h1 = kok_coz(_b, cwd=_a, betik_dizini=_a_tools)
+        kok1 = _h1 is None and _k1 is not None and \
+            os.path.realpath(_k1) == os.path.realpath(_b)
+        sonuclar.append(("IDDIA-KOK1 acik-kok-ustundur", kok1,
+                         "--kok verilince O agac olculur (k=%r, hata=%r)" % (_k1, _h1)))
+
+        # IDDIA-KOK2: bayraksiz + cwd BASKA agacta -> hukum VERILMEZ (fail-closed).
+        # Sessizce cwd'ye dusmek olculen kusurun TA KENDISIDIR.
+        _k2, _h2 = kok_coz(None, cwd=_b, betik_dizini=_a_tools)
+        kok2 = _h2 is not None and _k2 is None
+        sonuclar.append(("IDDIA-KOK2 belirsizlik-fail-closed", kok2,
+                         "bayraksiz + cwd BASKA agac -> OLCULEMEDI olmali (k=%r)" % (_k2,)))
+
     basarisiz = [s for s in sonuclar if not s[1]]
     for etiket, gecti, detay in sonuclar:
         print("  [%s] %s — %s" % ("PASS" if gecti else "FAIL", etiket, detay))
@@ -851,15 +912,17 @@ def main():
     ap.add_argument("--dokum", action="store_true", help="eksen basina sayim (teshis)")
     ap.add_argument("--muafiyet-hash", nargs=2, metavar=("DOSYA", "SATIR_NO"),
                     help="bir satirin muafiyet hash'ini uret (govdeye elle eklemek icin)")
+    ap.add_argument("--kok", metavar="YOL", default=None,
+                    help="OLCULECEK agac (varsayilan: BETIGIN kendi agaci; CWD ASLA)")
     args = ap.parse_args()
 
     if args.kendini_test:
         return _kendini_test()
 
-    kok = subprocess.run(["git", "rev-parse", "--show-toplevel"],
-                         capture_output=True, text=True).stdout.strip()
-    if not kok:
-        print("OLCULEMEDI: git kok dizini bulunamadi (bu bir git deposu mu?)")
+    kok, _kok_hatasi = kok_coz(args.kok, os.getcwd())
+    if _kok_hatasi:
+        print("SPEC IFSA KAPISI: OLCULEMEDI (fail-closed)")
+        print(_kok_hatasi)
         return 2
 
     if args.muafiyet_hash:
@@ -879,6 +942,9 @@ def main():
         return _dokum(kok)
 
     ihlaller = ana_tarama(kok)
+    # 🔴 OLCULEN AGAC HER KOSUMDA (yesilde de) BASILIR: bir hukum artik sessizce
+    # BASKA bir agaca atfedilemez.
+    print("SPEC IFSA KAPISI: olculen agac = %s" % kok)
     if not ihlaller:
         print("SPEC IFSA KAPISI: temiz (0 muafiyet-disi isabet).")
         return 0

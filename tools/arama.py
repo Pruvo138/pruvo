@@ -63,6 +63,92 @@ def esles(hs, tokens):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# MARKA SORGUSU — marka ADIYLA yapilan sorgu SERBEST METNE degil UYELIK yuklemine baglanir.
+#
+# OKAN HUKMU: "TUM markalarda sayfa ve arama urun adetlerinin ayni olmasi."
+# OLCULEN SESSIZ HATA (4 Agu 2026, katalog 18.312 / 128 kanonik marka): `?q=<marka>` kolu
+# alt-DIZE aramasi oldugu icin 79 markada sayfadan FAZLA urun gosteriyordu (6.503 kalem):
+#   Havalandirma -> "Haval" (575) · Mandali/manuel -> "MAN" (3.531) · 33mm -> "3M" ·
+#   iPad mini -> "Mini" · Land Rover -> "Rover" (91).
+# Musteri "MAN" yazip 3.520 sonuc goruyordu; MAN marka SAYFASINDA 4 urun var. Iki yuzey de
+# kendi icinde tutarli gorunur, kimse hata BILDIRMEZ = sessiz hata.
+#
+# 🔴 GECIS KURALI (secim (a), OLCUMLE): UYELIK ∪ BASLIKTA TAM KELIME.
+#   Saf uyelik (secim (b)) farki 79 marka/6.507 kalem -> 0/0 yapar AMA baslikta markayi TAM
+#   KELIME tasiyip `marka[]` uyeligi OLMAYAN 469 urunu (505 kalem) marka sorgusundan DUSURUR:
+#   "Sierra 18-7713 Yamaha/Mercury Deniz Motoru Yakit Filtresi" (marka=['Sierra']),
+#   "Suzuki TL1000R Telefon/GoPro Tutucu Adaptoru", "BMW uyumlu TomTom Rider Adaptoru".
+#   Bunlar GERCEK uyum ve 125'inin HICBIR marka uyeligi YOK — yani saf uyelikte HICBIR marka
+#   sorgusuyla bulunamaz olurlardi: "sayilar esitlendi" derken gercek eslesme kaybedilirdi.
+#   Bu yuzden baslik kolu geciste ACIK kalir. Olculen kalan fark: 38 marka / 504 kalem
+#   (kalem ekseninde %92,3 dusus). Veri tarafi (marka[] tamamlanmasi) ilerledikce erir.
+#
+# 🔴 KATLAMA GOVDESI BURADA YAZILMAZ: "bu dizge bir MARKA ADI mi" yargisi `kanon` geri
+# cagrisiyla DISARIDAN gelir (tek kaynak: marka_model_build.marka_adi_kanonu -> index.html
+# markaKatla portu + cip evreni). Ikinci bir katlama tablosu dogsaydi sessizce ayrisirdi
+# ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 ONEK KATLAMASI YOK (uyelik yukleminin AKSINE): `marka[]` alaninda "Volvo Penta" -> Volvo
+# katlanir, ama METINDE "Yamaha Mercury" bir marka adi DEGILDIR — onek katlamasi burada
+# calissaydi bigram "yamaha mercury" tek basina "Yamaha"ya katlanir ve "Mercury" jetonu
+# YUTULURDU. `kanon` bu yuzden TAM AD eslesmesi yapar.
+
+# Kelime siniri: harf/rakam/`+` DISI her sey ayirac. `+` KORUNUR ("Black+Decker" tek jeton
+# kalsin); `À-ɏ` Latin aksanlari icindir ("Citroen" yazimi bolunmesin). Ayni sinif
+# index.html MARKA SORGUSU blogunda BIREBIR yazilidir (JS `\w` ASCII-only oldugu icin
+# `\w` KULLANILMAZ — kullanilsaydi iki taraf aksanli baslikta sessizce ayrisirdi).
+_MARKA_KELIME_BOL = re.compile(r"[^a-z0-9+À-ɏ]+")
+# Kac kelimelik marka adi taranir: "Alfa Romeo" (2), "Land Rover" (2), "Raspberry Pi" (2).
+# Uc, bugunku en uzun kanonik ada gore SECILDI; buyutmek gurultuyu artirir, kucultmek
+# cok kelimeli markayi TEK KELIMEYE bolerdi ("Land Rover" -> "Rover" = baska bir marque).
+MARKA_BASLIK_AZAMI_KELIME = 3
+
+
+def marka_sorgu_kanonu(q, kanon):
+    """Sorgunun TAMAMI bir markanin adi mi? -> kanonik ad | None.
+
+    `kanon(dizge) -> kanonik ad | None` disaridan gelir (bkz. blok basi).
+    "toyota jant kapagi" -> None (karma sorgu SERBEST METIN kalir; mimar siniri).
+    """
+    return kanon(" ".join((q or "").split()))
+
+
+def baslik_marka_uyumlari(baslik, kanon):
+    """Baslikta TAM KELIME gecen kanonik markalar. EN UZUN ESLESME ONCE, sonra ilerle.
+
+    Uzun-once SART: "Land Rover" basliginda once bigram denenir; bigram tutunca tekil
+    "Rover" URETILMEZ. Olculdu (5 Agu, 18.312 urun): uzun-once kurali olmadan 80 kalem daha
+    dogardi ve HEPSI "Rover" idi — yani Land Rover urunleri "Rover" sorgusuna sizardi
+    (mimarin "farkli marque ayni ad" sinifi). Donen dizide SIRA baslik sirasidir,
+    tekrar tekilleslir.
+    """
+    kel = [w for w in _MARKA_KELIME_BOL.split(norm(baslik or "")) if w]
+    uyumlar = []
+    i, n = 0, len(kel)
+    while i < n:
+        vuruldu = 0
+        for k in range(min(MARKA_BASLIK_AZAMI_KELIME, n - i), 0, -1):
+            kan = kanon(" ".join(kel[i:i + k]))
+            if kan:
+                if kan not in uyumlar:
+                    uyumlar.append(kan)
+                vuruldu = k
+                break
+        i += vuruldu or 1
+    return uyumlar
+
+
+def marka_sorgusu_esler(kanon_marka, uyeler, baslik_uyumlari):
+    """GECIS KURALI — TEK GOVDE: urun, marka sorgusuna UYELIK'ten ya da BASLIKTAKI TAM
+    KELIME uyumundan eslesir. Iki girdi de kendi TEK KAYNAGINDAN gelir:
+      `uyeler`          = marka_model_build.marka_uyelikleri()  (sayfa/cip ile AYNI yuklem)
+      `baslik_uyumlari` = baslik_marka_uyumlari()               (yukarida)
+    Bilerek AYRI iki kaynak: ikisi de ayni fonksiyondan turetilseydi olcum totoloji olurdu.
+    """
+    return kanon_marka in (uyeler or ()) or kanon_marka in (baslik_uyumlari or ())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # EGE TARAFI (FAZ 2) — bot'un urunAra()'si sitenin filtered()'indan BASKA bir arama.
 # Site: kati AND + alt-dize + katalog sirasi. Ege: es anlamli gruplar + Turkce ek
 # kirpma + cift yonlu onek + baslik/govde SKORU. Ikisi ayri normalizasyon kullanir
@@ -509,7 +595,7 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 30 jeton) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 34 jeton) ──
     # 1. tur: paket §2'nin ornek degerleri.
     "Volvo Penta", "Yanmar",
     # 2. tur, A grubu (17) — arac / tekne / deniz motoru markasi. Heuristik bunlari
@@ -524,6 +610,25 @@ UYUM_MARKA_IZINLI = frozenset({
     # paket §4'teki sayfa acma esigi N'in isidir.
     "Anker", "Garmin", "GoPro", "Kenwood", "Krups", "Pioneer", "Raspberry Pi", "Remis",
     "Rode", "Samsung", "Sony",
+    # 3. tur, C grubu (4) — mimar karari 5 Agu 2026. Ayni B grubu sinifi: hepsi bir EV
+    # SAHIBI cihaz/ekipman ureticisi, parca ONLARA takilir. Katalogdaki agirlik OLCULDU
+    # (18.362 urun; `marka` dizisinde TAM yazimla gecen urun / `uyum[].model` alaninda
+    # gecen urun) ve her ad TEK TEK gerekcelendirildi — gerekcesiz giris YOK:
+    #   `TomTom`  (marka[] 2 · uyum[].model 2 · baslikta 7) GPS/navigasyon cihazi; aparat
+    #             TomTom cihazina TAKILIR (sinif: Garmin ile BIREBIR ayni, o zaten kumede).
+    #   `Huawei`  (marka[] 1 · uyum[].model 1 · baslikta 2) telefon/tablet ureticisi; kilif
+    #             ve tutucu Huawei cihazina TAKILIR (sinif: Apple/Samsung/Xiaomi ile ayni).
+    #   `Stanley` (marka[] 2 · uyum[].model 2 · baslikta 3) el aleti/depolama ureticisi;
+    #             adaptor Stanley kutusuna/aletine TAKILIR (sinif: Black and Decker,
+    #             Einhell, Ryobi, Husqvarna ile ayni — dordu de zaten kumede).
+    #   `Webasto` (marka[] 2 · uyum[].model 2 · baslikta 3) park isiticisi/klima ureticisi;
+    #             kumanda-braketi ve kanal parcasi Webasto cihazina TAKILIR (sinif: Dimplex,
+    #             Truma-benzeri karavan ekipmani; Remis/Fiamma ile ayni raf).
+    # 🔴 KUME KAPALI KALIR: dordu de yalnizca BU kumeye ve UYUM_MARKA_MIMAR_EKI'ne girer,
+    # yargilanmis bolumleme (izinli−eki / uretici−eki / elenen) DEGISMEZ -> S2 aritmetigi
+    # (UYUM_MARKA_ONERI_SAYISI=169) ve UYUM_MARKA_YARGI_IMZA AYNEN korunur. Dordu de bugun
+    # UYUM_MARKA_ELENEN'de DEGIL (olculdu) — yani elenmis bir jeton geri SIZMIYOR.
+    "Huawei", "Stanley", "TomTom", "Webasto",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -549,6 +654,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
     "Smart", "Subaru", "Vauxhall",
     "Anker", "Garmin", "GoPro", "Kenwood", "Krups", "Pioneer", "Raspberry Pi", "Remis",
     "Rode", "Samsung", "Sony",
+    # 3. tur (5 Agu 2026) — gerekce + olculen katalog agirligi UYUM_MARKA_IZINLI'nin
+    # "C grubu" blogunda, ad ad yazili. Burada TEKRAR EDILMEZ (ikiz metin yasagi).
+    "Huawei", "Stanley", "TomTom", "Webasto",
 })
 
 # 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
@@ -694,10 +802,48 @@ ROZET_DISI_CIFT = {
     ("Subaru", "FR-S"): "FR-S Scion rozetidir; Subaru'nun rozeti BRZ — /marka/subaru/brz/",
     # A-segment ucuzu (107 · C1 · Aygo):
     ("Toyota", "C1"): "Toyota'nin rozeti Aygo; C1 Citroen'in — /marka/citroen/c1/",
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum A — "capraz marka rozeti", 17 cift).
+    # Kural AYNEN yukaridaki satirlarin kurali: "/marka/X/M/ sayfasi ancak M modeli
+    # GERCEKTEN X rozetiyle satilmissa acilir." Bu 17 cift BASLIK KOLUYLA esigi geciyordu
+    # ve yargisiz bekliyordu; hicbiri o markanin KENDI rozeti degil. URUN KAYBOLMAZ:
+    # her cift icin urunler marka sayfasinda ve gercek rozet sayfasinda durur (kapi olcer).
+    # A-segment ucuzu (107 · C1 · Aygo) — Aygo TOYOTA rozeti:
+    ("Citroen", "Aygo"): "Citroen'in rozeti C1; Aygo Toyota'nin — /marka/citroen/c1/",
+    ("Peugeot", "Aygo"): "Peugeot'nun rozeti 107; Aygo Toyota'nin — /marka/peugeot/107/",
+    # SEVEL hafif ticari ucuzu — her marque KENDI adiyla (Ducato/Jumper/Boxer):
+    ("Citroen", "Boxer"): "Citroen'in rozeti Jumper; Boxer Peugeot'nun — "
+                          "/marka/peugeot/boxer/",
+    ("Peugeot", "Ducato"): "Peugeot'nun rozeti Boxer; Ducato Fiat'in — /marka/fiat/ducato/",
+    # Hafif ticari ikizler (Berlingo/Partner/Combo/Rifter · Expert/Jumpy/Scudo/Proace):
+    ("Citroen", "Combo"): "Citroen'in rozeti Berlingo; Combo Opel'in — "
+                          "/marka/citroen/berlingo/",
+    ("Peugeot", "Combo"): "Peugeot'nun rozeti Partner/Rifter; Combo Opel'in — "
+                          "/marka/peugeot/partner/",
+    ("Citroen", "Rifter"): "Citroen'in rozeti Berlingo; Rifter Peugeot'nun — "
+                           "/marka/citroen/berlingo/",
+    ("Citroen", "Expert"): "Citroen'in rozeti Jumpy/Dispatch; Expert Peugeot'nun — "
+                           "/marka/peugeot/expert/",
+    ("Citroen", "Scudo"): "Citroen'in rozeti Jumpy; Scudo Fiat'in — /marka/citroen/jumpy/",
+    # Renault/Opel/Nissan hafif ticari (Trafic/Vivaro/Primastar):
+    ("Opel", "Primastar"): "Opel'in rozeti Vivaro; Primastar Nissan'in — /marka/opel/vivaro/",
+    ("Renault", "Primastar"): "Renault'nun rozeti Trafic; Primastar Nissan'in — "
+                              "/marka/renault/trafic/",
+    # GM menzil-genisletmeli elektrikli ikizi (Volt/Ampera):
+    ("Opel", "Volt"): "Opel'in rozeti Ampera; Volt Chevrolet'nin",
+    ("Chevrolet", "Ampera"): "Chevrolet'nin rozeti Volt; Ampera Opel'in",
+    # VAG ic ikizler (Golf/Sharan/Alhambra/Citigo/Up):
+    ("Seat", "Golf"): "Golf VW rozetidir; Seat Golf diye bir arac satilmadi (VAG platform "
+                      "ortakligi) — gercek sayfa /marka/volkswagen/golf/",
+    ("Seat", "Sharan"): "Seat'in rozeti Alhambra; Sharan VW'nin — "
+                        "/marka/volkswagen/sharan/",
+    ("Volkswagen", "Alhambra"): "VW'nin rozeti Sharan; Alhambra Seat'in — "
+                                "/marka/seat/alhambra/",
+    ("Volkswagen", "CITIGO"): "VW'nin rozeti Up; Citigo Skoda'nin — /marka/skoda/citigo/",
 }
 
-ROZET_DISI_SAYISI = 20
-ROZET_DISI_IMZA = "621346d7cd54bc0f"
+ROZET_DISI_SAYISI = 37
+ROZET_DISI_IMZA = "3ef3cea71b4e58de"
 
 
 def rozet_disi_imzasi():
@@ -758,12 +904,28 @@ ROZET_CAPRAZ_IZINLI = {
     # Suzuki Jimny Sierra ayni arac degildir; ikisi de KENDI rozetiyle satildi.
     "Ford|sierra": ("ROZET", "Ford Sierra gercek model (Suzuki Sierra ile IKIZ DEGIL, ad cakismasi)"),
     "Suzuki|sierra": ("ROZET", "Suzuki (Jimny) Sierra gercek model"),
+    # 5 Agu, ayni AD CAKISMASI sinifi (emsal birebir Ford|sierra / Suzuki|sierra satiridir).
+    # Ford Raptor = F-150/Ranger/Bronco Raptor (kamyonet performans rozeti, 2010->);
+    # Yamaha Raptor = YFM660R/YFM700R Raptor (ATV rozeti, 2001->). Ayni fiziksel arac DEGIL,
+    # rozet muhendisligi DEGIL, ortak platform DEGIL — sadece ayni ad. Iki sayfa da KENDI
+    # rozetiyle dogar. Cift `ecc01a25` veri partisiyle capraz oldu: Ford|raptor kovasi
+    # 5 urunle ZATEN yayindaydi, Yamaha|raptor 2 -> 6 urune cikip ESIK'i gecti.
+    "Ford|raptor": ("ROZET", "Ford Raptor gercek rozet (F-150/Ranger/Bronco Raptor; Yamaha "
+                             "Raptor ATV ile IKIZ DEGIL, ad cakismasi)"),
+    "Yamaha|raptor": ("ROZET", "Yamaha Raptor gercek rozet (YFM660R/YFM700R ATV; Ford Raptor "
+                               "kamyonetiyle IKIZ DEGIL, ad cakismasi)"),
     "Renault|trafic": ("ROZET", "Renault Trafic gercek rozet"),
     "Opel|vivaro": ("ROZET", "Opel Vivaro gercek rozet"),
+    # 5 Agu — BASLIK KOLU acilinca capraz olan cift (Peugeot|107 kovasi ESIK'i gecti).
+    # PSA/Toyota ortak platformu: ayni arac UC rozetle satildi (107 / C1 / Aygo).
+    "Peugeot|107": ("ROZET", "Peugeot 107 Peugeot'nun KENDI rozeti (C1 ve Aygo kardesleri)"),
+    "Toyota|107": ("BEKLER", "Toyota'nin rozeti AYGO'dur; `107` Peugeot rozetidir. Kova "
+                             "katalogda ESIK ustunde — ROZET_DISI'ye alinsin mi, mimar hukmu "
+                             "bekliyor (deny yazilirsa urunler Toyota agacinda kalir)"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 22
-ROZET_CAPRAZ_IZINLI_IMZA = "043f8dab3465c877"
+ROZET_CAPRAZ_IZINLI_SAYISI = 26
+ROZET_CAPRAZ_IZINLI_IMZA = "2d90bac114d652b0"
 
 
 def rozet_capraz_imzasi():
@@ -840,10 +1002,57 @@ MODEL_OLMAYAN_CIFT = {
                            "telefon tutucusu uyumundan geliyor (CANLIDA /marka/peugeot/iphone/)",
     ("Mitsubishi", "Electric"): "'Mitsubishi Electric' SIRKET adinin ikinci kelimesi (beyaz "
                                 "esya/klima kolu) — arac modeli degil; urunler Ev kategorisinde",
+    # --- 5 Agu, mimar hukmu: BASLIK KOLU acilinca dogacak olan ve ACIKCA MODEL
+    # OLMAYAN kovalar (cihaz/infotainment/aksesuar/govde-tipi/grup adi). Kalici deny:
+    # allow envanterine hic girmedikleri icin zaten dogmazlar, buradaki kayit YARGININ
+    # kendisidir (yarin baska bir kol ayni jetonu yeniden onerirse sessizce acilmasin).
+    ("Audi", "AdBlue"): "dizel egzoz katki sivisi (AdBlue) — arac modeli degil",
+    ("Audi", "Coupe"): "govde tipi sozcugu (Audi 80/B2 Coupe) — bagimsiz model adi degil",
+    ("BMW", "Adventure"): "GS Adventure donanim/varyant soneki — bagimsiz model degil",
+    ("BMW", "Cabrio"): "govde tipi sozcugu (1 Serisi Cabrio) — model degil",
+    ("BMW", "Compact"): "govde tipi sozcugu (3 Serisi Compact) — model degil",
+    ("BMW", "Connected Ride"): "BMW telefon kizagi AKSESUAR sistemi — arac modeli degil",
+    ("Ford", "MK1"): "ciplak kusak degistiricisi (Mk1 Escort/Capri/Transit) — model degil",
+    ("Ford", "Sync"): "Ford SYNC infotainment sistemi — arac modeli degil",
+    ("Ford", "Truck"): "arac sinifi sozcugu (Ford Truck 1973-1979) — model adi degil",
+    ("Opel", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Peugeot", "Stellantis"): "sirket/grup adi — arac modeli degil",
+    # 6 Agu, mimar hukmu H2: `E-Tech` Renault'nun ELEKTRIFIKASYON/guc aktarma ROZETIDIR
+    # (Megane E-Tech, Scenic E-Tech, 5 E-Tech), bagimsiz bir arac modeli DEGIL -> CIPLAK
+    # `E-Tech` kovasi (10 urun) SAYFA ACMAZ.
+    # 🔴 BILESIK YAZIMLAR KAPANMAZ: `model_olmayan_cift_mi` son-kelime kolu artik YALNIZ
+    # KUSAK/DONANIM DEGISTIRICILERINE isler (`ST`, `Mk1`); `E-Tech` degistirici GRAMERINDE
+    # DEGIL, bu yuzden `/marka/renault/5-e-tech/` (4 urun) ve `/marka/renault/megane-e-tech/`
+    # sayfalari ACIK KALIR. Rozeti tasiyan urunler ayrica taban modele KATLANIR: "Renault 5
+    # E-Tech ..." baslikli urunler `/marka/renault/5/` sayfasinda DURUR (turnusol: deny
+    # oncesi 14, sonrasi 14 — DUSMEZ).
+    ("Renault", "E-Tech"): "elektrifikasyon/guc aktarma rozeti (5 E-Tech, Megane E-Tech) — "
+                           "bagimsiz arac modeli degil; urunler taban model sayfasinda kalir",
+    ("Skoda", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Toyota", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Volkswagen", "Cabriolet"): "govde tipi sozcugu — model degil",
+    ("Volkswagen", "MK2"): "ciplak kusak degistiricisi — model degil",
+    ("Volkswagen", "Mk4"): "ciplak kusak degistiricisi — model degil",
+    ("Volkswagen", "iPhone"): "Apple telefon modeli — arac modeli degil (Peugeot emsali)",
+    ("Volvo", "MagSafe"): "Apple manyetik tutucu standardi — arac modeli degil",
+    ("Volvo", "Sierra"): "deniz yedek parca URETICI markasi (Volvo Penta kayitlarindan) — Volvo'nun modeli degil",
+    ("Yamaha", "Quad Lock"): "ucuncu taraf telefon tutucu markasi — Yamaha modeli degil",
+    ("Yamaha", "Stage"): "'Stage 2' tuning asamasi ifadesi — model degil",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum B + D — yargisiz kovalarin DENY tarafi):
+    # 🔴 `Yamaha|660` CIPLAK SAYIDIR: hangi araci adlandirdigi BELIRSIZ (XT660, MT-660,
+    # Raptor 660 …). H1 zaten ciplak sayiyi disarida tutuyor; bu satir hukmu KALICI kilar
+    # (yarin bir kol ayni jetonu yeniden onerirse sessizce acilmasin). Tekil giris
+    # ACILMADI: 3 urun icin ayri sayfa yargisi verilmedi.
+    ("Yamaha", "660"): "ciplak sayi — hangi araci adlandirdigi belirsiz (XT660/Raptor 660); "
+                       "arac modeli adi degil, urunler marka sayfasinda kalir",
+    # `Westfalia` bir KAMPER DONUSTURUCUSUDUR (Westfalia-Werke); VW Transporter/T3'u
+    # donusturur ama VW'nin bir MODELI degildir. Urunler taban model sayfasinda kalir.
+    ("Volkswagen", "Westfalia"): "kamper donusturucusu (Westfalia-Werke) — VW'nin arac "
+                                 "modeli degil; urunler taban model sayfasinda kalir",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 5
-MODEL_OLMAYAN_CIFT_IMZA = "c3fcef6ac1363862"
+MODEL_OLMAYAN_CIFT_SAYISI = 29
+MODEL_OLMAYAN_CIFT_IMZA = "868bc698dd69224e"
 
 
 def model_olmayan_cift_imzasi():
@@ -883,16 +1092,314 @@ DEGISTIRICI_SAYFA_IZNI = {
     "Volkswagen|golfr": "Golf R — mesru donanim/kusak sayfasi (VW'nin R serisi)",
     "Volkswagen|type2": "VW Type 2 (Bulli) — gercek model adi, Type 1'den AYRI arac",
     "Yamaha|tracer7": "Tracer 7 — gercek model adi (motosiklet hacim kirilimi)",
+    # 5 Agu — BASLIK KOLU ile ESIK'i gecen, DEGISTIRICI SEKILLI ama GERCEK model adlari
+    # (yargilari BASLIK_DOGAN_ALLOW'da da duruyor; bu envanter sizinti eksenidir).
+    "Opel|grandlandx": "Opel Grandland X — gercek model adi (X harfi degistirici DEGIL)",
+    "Suzuki|wagonr": "Suzuki Wagon R — gercek model adi (R harfi degistirici DEGIL)",
+    "Volkswagen|type1": "VW Type 1 (Beetle) — gercek model adi, Type 2'den AYRI arac",
 }
 
-DEGISTIRICI_SAYFA_IZNI_SAYISI = 17
-DEGISTIRICI_SAYFA_IZNI_IMZA = "ae4fc17fef7efbc5"
+DEGISTIRICI_SAYFA_IZNI_SAYISI = 20
+DEGISTIRICI_SAYFA_IZNI_IMZA = "62cb38aacebbaa5f"
 
 
 def degistirici_izni_imzasi():
     return hashlib.sha256(
         json.dumps(sorted(DEGISTIRICI_SAYFA_IZNI), ensure_ascii=False)
         .encode("utf-8")).hexdigest()[:16]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BASLIK KOLUNDAN DOGAN SAYFA IZNI (5 Agu, mimar hukmu — "yargisiz sayfa DOGMAZ")
+#
+# NE ICIN: model uyelik yuklemine BASLIKTA TAM KELIME kolu eklendi. Bu kol MEVCUT
+# kovalari buyutur (olculdu: 455 sayfa buyudu, 0 kucuLdu) ama bir kismini da ESIK'in
+# uzerine tasiyarak YENI SAYFA dogurur. Yeni dogan her kova bir KARARDIR: kimi gercek
+# arac modelidir, kimi bir CIHAZ/INFOTAINMENT adidir (`Sync`, `iPhone`, `MagSafe`),
+# kimi bir MOTOR AILESI ya da SASI KODUDUR (`M54`, `N47`, `E92`).
+#
+# 🔴 KURAL FAIL-CLOSED: yalnizca bu envanterde yargilanmis (marka, jeton) cifti yeni
+# sayfa acar. Envanterde OLMAYAN kova SESSIZCE dogmaz — urunu KAYBOLMAZ (marka
+# sayfasinda ve kendi gercek model sayfasinda durur; kapi kaybolan=0 olcer).
+# 🔴 DENY AYRI TUTULUR: "acikca model DEGIL" hukmu MODEL_OLMAYAN_CIFT'e yazilir (kalici,
+# marka-ozel); buraya yazilmayan her sey "HENUZ YARGILANMADI" demektir, "reddedildi" degil.
+# 🔴 KARSILASTIRMA BIRIMI KUME'dir, SAYI degil (DEGISTIRICI_SAYFA_IZNI ile ayni disiplin).
+BASLIK_DOGAN_ALLOW = {
+    ("Audi", "Q3"): "arac/motosiklet model adi",
+    ("Audi", "TT"): "arac/motosiklet model adi",
+    ("BMW", "2 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "3 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "5 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "6 Serisi"): "arac/motosiklet model adi",
+    ("BMW", "F900R"): "arac/motosiklet model adi",
+    ("BMW", "G650GS"): "arac/motosiklet model adi",
+    ("BMW", "K Serisi"): "arac/motosiklet model adi",
+    ("BMW", "K1200"): "arac/motosiklet model adi",
+    ("BMW", "K1200RS"): "arac/motosiklet model adi",
+    ("BMW", "R1150"): "arac/motosiklet model adi",
+    ("BMW", "R25"): "arac/motosiklet model adi",
+    ("BMW", "R80"): "arac/motosiklet model adi",
+    ("BMW", "S1000R"): "arac/motosiklet model adi",
+    ("BMW", "i4"): "arac/motosiklet model adi",
+    ("BMW", "iX1"): "arac/motosiklet model adi",
+    ("BMW", "iX3"): "arac/motosiklet model adi",
+    ("Chrysler", "300"): "arac/motosiklet model adi",
+    ("Chrysler", "Voyager"): "arac/motosiklet model adi",
+    ("Citroen", "AX"): "arac/motosiklet model adi",
+    ("Citroen", "BX"): "arac/motosiklet model adi",
+    ("Citroen", "C2"): "arac/motosiklet model adi",
+    ("Citroen", "C8"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum A — capraz marka rozetinin TEK ALLOW'u):
+    # `Relay` Jumper'in GERCEK Ingiltere rozetidir (ikizin adi degil, KENDI adi) —
+    # emsal birebir `Renault|Duster`/`Renault|Logan` satirlaridir.
+    ("Citroen", "Relay"): "Citroen Relay = Jumper'in GERCEK Ingiltere rozeti",
+    ("Citroen", "XM"): "arac/motosiklet model adi",
+    ("Datsun", "280Z"): "arac/motosiklet model adi",
+    ("Fiat", "Doblo"): "arac/motosiklet model adi",
+    ("Fiat", "Fiorino"): "arac/motosiklet model adi",
+    ("Ford", "Bronco Sport"): "arac/motosiklet model adi",
+    ("Ford", "Connect"): "arac/motosiklet model adi",
+    ("Ford", "Contour"): "arac/motosiklet model adi",
+    ("Ford", "Cortina"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum D — TEKIL GERCEK MODEL ADI):
+    # Transit/Tourneo **Custom** gercek bir model adidir (govde tipi/donanim sozcugu degil).
+    ("Ford", "Custom"): "arac/motosiklet model adi (Transit/Tourneo Custom)",
+    ("Ford", "Everest"): "arac/motosiklet model adi",
+    ("Ford", "Fairlane"): "arac/motosiklet model adi",
+    ("Ford", "Galaxy"): "arac/motosiklet model adi",
+    ("Ford", "Police Interceptor"): "arac/motosiklet model adi",
+    ("Ford", "Territory"): "arac/motosiklet model adi",
+    ("Honda", "CB250"): "arac/motosiklet model adi",
+    ("Honda", "CB450"): "arac/motosiklet model adi",
+    ("Honda", "CB500X"): "arac/motosiklet model adi",
+    ("Honda", "CB650R"): "arac/motosiklet model adi",
+    ("Honda", "CB750"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum B — CIPLAK AILE ONEKI SAYFA ALIR):
+    # `CBR`/`CRF`/`GX` tek bir arac degil bir AILE adidir; musteri parcayi aile adiyla
+    # ariyor. Emsal `BMW|K Serisi` ve `2/3/5/6 Serisi` satirlaridir (aile sayfasi mesru).
+    # 🔴 KURAL DEGIL TEKIL GIRIS: sekil kurali (H1/H3) bu jetonlari GORMEZ (tek jeton,
+    # rakamsiz) — envanter yalnizca yargilanmis cifti tasir, kural gevsemez.
+    ("Honda", "CBR"): "arac/motosiklet AILE adi (CBR serisi)",
+    ("Honda", "CBR600RR"): "arac/motosiklet model adi",
+    ("Honda", "CR-Z"): "arac/motosiklet model adi",
+    ("Honda", "CRF"): "arac/motosiklet AILE adi (CRF serisi)",
+    ("Honda", "CRF1000"): "arac/motosiklet model adi",
+    ("Honda", "CRF250R"): "arac/motosiklet model adi",
+    ("Honda", "CRF450"): "arac/motosiklet model adi",
+    ("Honda", "CT90"): "arac/motosiklet model adi",
+    ("Honda", "CX500"): "arac/motosiklet model adi",
+    ("Honda", "Dominator"): "arac/motosiklet model adi",
+    ("Honda", "Fireblade"): "arac/motosiklet model adi",
+    ("Honda", "Forza"): "arac/motosiklet model adi",
+    ("Honda", "GL1500"): "arac/motosiklet model adi",
+    ("Honda", "GX"): "arac/motosiklet AILE adi (GX motor serisi)",
+    ("Honda", "HR-V"): "arac/motosiklet model adi",
+    ("Honda", "Hornet"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum D — TEKIL GERCEK MODEL ADI, rakamsiz tek jeton):
+    ("Honda", "Legend"): "arac/motosiklet model adi",
+    ("Honda", "Magna"): "arac/motosiklet model adi",
+    ("Honda", "NC700"): "arac/motosiklet model adi",
+    ("Honda", "NC700X"): "arac/motosiklet model adi",
+    ("Honda", "NC750"): "arac/motosiklet model adi",
+    ("Honda", "NX650"): "arac/motosiklet model adi",
+    ("Honda", "PA50"): "arac/motosiklet model adi",
+    ("Honda", "PCX"): "arac/motosiklet model adi",
+    ("Honda", "Prologue"): "arac/motosiklet model adi",
+    ("Honda", "Recon"): "arac/motosiklet model adi",
+    ("Honda", "Sabre"): "arac/motosiklet model adi",
+    ("Honda", "Stepwgn"): "arac/motosiklet model adi",
+    ("Honda", "Super Cub"): "arac/motosiklet model adi",
+    ("Honda", "Talon"): "arac/motosiklet model adi",
+    ("Honda", "VFR 800"): "arac/motosiklet model adi",
+    ("Honda", "XL125"): "arac/motosiklet model adi",
+    ("Honda", "XL600R"): "arac/motosiklet model adi",
+    ("Honda", "XR400"): "arac/motosiklet model adi",
+    ("Honda", "Zoomer"): "arac/motosiklet model adi",
+    ("Jeanneau", "Cap Camarat"): "arac/motosiklet model adi",
+    ("Land Rover", "Range Rover"): "arac/motosiklet model adi",
+    ("Mazda", "MX-5"): "arac/motosiklet model adi",
+    ("Mercedes", "190E"): "arac/motosiklet model adi",
+    ("Mercedes", "Actros"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum C — MERCEDES SINIF ADLARI):
+    # `C-Class` ve `E-Klasse` GERCEK Mercedes sinif adlaridir; birlesecek ikizleri YOK
+    # (katalogda `Mercedes|C` ya da `Mercedes|E` kovasi bulunmuyor), o yuzden MODEL_ALIAS
+    # degil TEKIL GIRIS ile yargilandilar. `A-Class` ve `V-Class` aileleri MODEL_ALIAS ile
+    # birlestigi icin resmi uyelikten (baslik kolu OLMADAN) esigi geciyor ve buraya
+    # YAZILMAZ — yazilsaydi envanter BAYAT olurdu (kapi K21 kirmizi yakar).
+    ("Mercedes", "C-Class"): "arac/motosiklet model adi (Mercedes C sinifi)",
+    ("Mercedes", "CLA"): "arac/motosiklet model adi",
+    ("Mercedes", "E-Klasse"): "arac/motosiklet model adi (Mercedes E sinifi)",
+    ("Mercedes", "GLK"): "arac/motosiklet model adi",
+    ("Mercedes", "GLS"): "arac/motosiklet model adi",
+    ("Mercedes", "SLK"): "arac/motosiklet model adi",
+    ("Mercedes", "T1"): "arac/motosiklet model adi",
+    ("Mitsubishi", "ASX"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Carisma"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Delica L300"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Delica L400"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Eclipse Cross"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum B): `Evolution` Lancer Evolution AILESIDIR
+    # (`Mitsubishi|Lancer Evolution` zaten bu envanterde) — ciplak aile adi da sayfa alir.
+    ("Mitsubishi", "Evolution"): "arac/motosiklet AILE adi (Lancer Evolution)",
+    ("Mitsubishi", "Galant"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Lancer Evolution"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Minicab"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Pajero Mini"): "arac/motosiklet model adi",
+    ("Mitsubishi", "Pajero Pinin"): "arac/motosiklet model adi",
+    ("Nissan", "240SX"): "arac/motosiklet model adi",
+    ("Nissan", "240Z"): "arac/motosiklet model adi",
+    ("Nissan", "370Z"): "arac/motosiklet model adi",
+    ("Nissan", "D21 Hardbody"): "arac/motosiklet model adi",
+    ("Nissan", "Juke"): "arac/motosiklet model adi",
+    ("Nissan", "Maxima"): "arac/motosiklet model adi",
+    ("Nissan", "Skyline GT-R"): "arac/motosiklet model adi",
+    ("Nissan", "Versa"): "arac/motosiklet model adi",
+    ("Opel", "Grandland X"): "arac/motosiklet model adi",
+    ("Peugeot", "1007"): "arac/motosiklet model adi",
+    ("Peugeot", "107"): "arac/motosiklet model adi",
+    ("Peugeot", "2008"): "arac/motosiklet model adi",
+    ("Peugeot", "206+"): "arac/motosiklet model adi",
+    ("Peugeot", "405"): "arac/motosiklet model adi",
+    ("Peugeot", "407"): "arac/motosiklet model adi",
+    ("Peugeot", "508"): "arac/motosiklet model adi",
+    ("Peugeot", "Expert"): "arac/motosiklet model adi",
+    ("Peugeot", "Traveller"): "arac/motosiklet model adi",
+    ("Porsche", "924"): "arac/motosiklet model adi",
+    ("Porsche", "964"): "arac/motosiklet model adi",
+    ("Porsche", "986"): "arac/motosiklet model adi",
+    ("Porsche", "993"): "arac/motosiklet model adi",
+    ("Porsche", "Cayenne"): "arac/motosiklet model adi",
+    ("Renault", "Arkana"): "arac/motosiklet model adi",
+    ("Seat", "Alhambra"): "arac/motosiklet model adi",
+    ("Seat", "Altea"): "arac/motosiklet model adi",
+    ("Seat", "Cordoba"): "arac/motosiklet model adi",
+    ("Skoda", "Rapid"): "arac/motosiklet model adi",
+    ("Suzuki", "Boulevard"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum B — CIPLAK AILE ONEKI):
+    ("Suzuki", "DR"): "arac/motosiklet AILE adi (DR serisi)",
+    ("Suzuki", "DR-Z250"): "arac/motosiklet model adi",
+    ("Suzuki", "Escudo"): "arac/motosiklet model adi",
+    ("Suzuki", "Freewind"): "arac/motosiklet model adi",
+    ("Suzuki", "GS500E"): "arac/motosiklet model adi",
+    ("Suzuki", "GS550"): "arac/motosiklet model adi",
+    ("Suzuki", "GSF 650"): "arac/motosiklet model adi",
+    ("Suzuki", "GSX"): "arac/motosiklet AILE adi (GSX serisi)",
+    ("Suzuki", "GSX-S1000"): "arac/motosiklet model adi",
+    ("Suzuki", "GSX600F"): "arac/motosiklet model adi",
+    ("Suzuki", "Hayabusa"): "arac/motosiklet model adi",
+    ("Suzuki", "Katana"): "arac/motosiklet model adi",
+    ("Suzuki", "LT80"): "arac/motosiklet model adi",
+    ("Suzuki", "RM"): "arac/motosiklet AILE adi (RM/RM-Z kros serisi)",
+    ("Suzuki", "SJ410"): "arac/motosiklet model adi",
+    ("Suzuki", "SV1000"): "arac/motosiklet model adi",
+    ("Suzuki", "SV650S"): "arac/motosiklet model adi",
+    ("Suzuki", "TS50X"): "arac/motosiklet model adi",
+    ("Suzuki", "V-Strom 1000"): "arac/motosiklet model adi",
+    ("Suzuki", "V-Strom 650"): "arac/motosiklet model adi",
+    ("Suzuki", "Wagon R"): "arac/motosiklet model adi",
+    ("Suzuki", "X90"): "arac/motosiklet model adi",
+    ("Suzuki", "XF650"): "arac/motosiklet model adi",
+    # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum A — TEKIL GIRIS, KURAL DEGISMEDI):
+    # `86` Toyota'nin GERCEK rozetidir (GT86/GR86 kardesleri zaten yayinda) AMA CIPLAK
+    # SAYIDIR: H1 sekil kurali ciplak sayiyi DISARIDA tutar ve TUTMAYA DEVAM EDER.
+    # Bu satir yalnizca BU cifti acar; `Yamaha|660` gibi diger ciplak sayilar kapali kalir
+    # (emsal: `Ford|raptor`/`Yamaha|raptor` ad-cakismasi satirlari — tekil vaka yargisi).
+    # Jeton TEHLIKE sinifinda kalir: yalniz marka+model BITISIK ifadeyle eslesir.
+    ("Toyota", "86"): "Toyota 86 GERCEK rozet (ciplak sayi — TEKIL giris, H1 kurali disi)",
+    ("Toyota", "Corolla Cross"): "arac/motosiklet model adi",
+    ("Toyota", "Corolla Verso"): "arac/motosiklet model adi",
+    ("Toyota", "FJ Cruiser"): "arac/motosiklet model adi",
+    ("Toyota", "Land Cruiser Prado"): "arac/motosiklet model adi",
+    ("Toyota", "Matrix"): "arac/motosiklet model adi",
+    ("Toyota", "Raize"): "arac/motosiklet model adi",
+    ("Toyota", "Starlet"): "arac/motosiklet model adi",
+    ("Toyota", "T100"): "arac/motosiklet model adi",
+    ("Toyota", "Tercel"): "arac/motosiklet model adi",
+    ("Toyota", "Vitz"): "arac/motosiklet model adi",
+    ("Volkswagen", "Bora"): "arac/motosiklet model adi",
+    ("Volkswagen", "CC"): "arac/motosiklet model adi",
+    ("Volkswagen", "Caravelle"): "arac/motosiklet model adi",
+    ("Volkswagen", "Crafter"): "arac/motosiklet model adi",
+    ("Volkswagen", "Eos"): "arac/motosiklet model adi",
+    ("Volkswagen", "Käfer"): "arac/motosiklet model adi",
+    ("Volkswagen", "Multivan"): "arac/motosiklet model adi",
+    ("Volkswagen", "Pointer"): "arac/motosiklet model adi",
+    ("Volkswagen", "Taos"): "arac/motosiklet model adi",
+    ("Volkswagen", "Type 1"): "arac/motosiklet model adi",
+    ("Volkswagen", "Vento"): "arac/motosiklet model adi",
+    # 6 Agu, mimar hukmu (ADIM 3 / hukum D): `Vocho` Beetle'in MEKSIKA lakabidir —
+    # gercek bir arac adlandirmasi (emsal `Volkswagen|Käfer` satiri, Almanca lakap).
+    ("Volkswagen", "Vocho"): "arac/motosiklet model adi (Beetle'in Meksika adi)",
+    ("Volvo", "340"): "arac/motosiklet model adi",
+    ("Volvo", "480"): "arac/motosiklet model adi",
+    ("Volvo", "Amazon"): "arac/motosiklet model adi",
+    ("Volvo", "EX30"): "arac/motosiklet model adi",
+    ("Volvo", "S80"): "arac/motosiklet model adi",
+    ("Volvo", "V90"): "arac/motosiklet model adi",
+    ("Volvo", "XC40"): "arac/motosiklet model adi",
+    ("Yamaha", "FZ1"): "arac/motosiklet model adi",
+    ("Yamaha", "Grizzly"): "arac/motosiklet model adi",
+    # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum E — ARAC DISI, TEKIL GIRISLE DOGAR):
+    # Yamaha cok-dikey bir markadir; bu iki sayfa GERCEK Yamaha urun modelidir ama ARAC
+    # DEGILDIR (P-45 dijital piyano, Recording Custom davul kiti). Sayfalar KALIR — bu
+    # katalog arac disi kategorileri de satiyor — ama SEKIL KURALIYLA degil BURADAN dogar:
+    # ciftler ayrica SEKIL_KURALI_MUAF'ta ve H1/H3 onlara yargi VERMEZ, boylece kural
+    # arka planda rastgele arac disi jetonlara acik kalmaz.
+    ("Yamaha", "P-45"): "ARAC DISI urun modeli (dijital piyano) — tekil giris",
+    ("Yamaha", "Raptor 700"): "arac/motosiklet model adi",
+    ("Yamaha", "Recording Custom"): "ARAC DISI urun modeli (davul kiti) — tekil giris",
+    ("Yamaha", "Seca"): "arac/motosiklet model adi",
+    ("Yamaha", "Tracer 900"): "arac/motosiklet model adi",
+    ("Yamaha", "XJ 600"): "arac/motosiklet model adi",
+    ("Yamaha", "XSR 700"): "arac/motosiklet model adi",
+    ("Yamaha", "YBR"): "arac/motosiklet model adi",
+}
+
+BASLIK_DOGAN_ALLOW_SAYISI = 194
+BASLIK_DOGAN_ALLOW_IMZA = "e4553fe84d9a4ef0"
+
+
+def baslik_dogan_allow_imzasi():
+    """Envanterin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (a, b) for a, b in BASLIK_DOGAN_ALLOW),
+                   ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SEKIL KURALI MUAFIYETI — H1/H3 KURALININ YARGI VERMEDIGI (marka, jeton) ciftleri
+# (6 Agu, mimar hukmu — ADIM 3 / hukum E)
+#
+# NE ICIN: H1 (`sasi_motor_kodu_mu`) ve H3 (`ayri_arac_adi_mi`) ARAC TANIMLAYICISI
+# hukmudur ve YAZILABILIR bir kuraldir — ama kural jetonun SEKLINE bakar, "bu bir ARAC
+# mi" sorusunu bilemez. Olculdu (6 Agu, 19.999 urun): kural 113 sayfa doguruyor ve
+# bunlarin 111'i Otomobil/Motosiklet; IKISI ARAC DISI (Yamaha cok-dikey bir marka):
+#   /marka/yamaha/p-45/            (4 urun, Elektronik — dijital piyano; H1 sekli)
+#   /marka/yamaha/recording-custom/ (3 urun, Oyun/Hobi — davul kiti; H3 sekli)
+#
+# 🔴 HUKUM: SAYFALAR KALIR (gercek model, gercek parca, bu katalog arac disi kategorileri
+# de satiyor) AMA SEKIL KURALIYLA DEGIL, BASLIK_DOGAN_ALLOW'daki TEKIL GIRISLE dogarlar.
+# Bu tablo kuralin yargisini o ciftlerde KAPATIR; boylece kural arka planda rastgele
+# arac disi jetonlara acik kalmaz ve her yeni arac disi sayfa MIMAR ONUNE gelir.
+#
+# 🔴 TEK BASINA SAYFA KAPATMAZ / ACMAZ: muaf bir cift envanterde DE varsa dogar, yoksa
+# dogmaz. Ikisi AYRI eksendir ve kapi ikisini AYRI olcer (K22).
+# 🔴 KARSILASTIRMA BIRIMI KUME'dir, SAYI degil (ROZET_DISI_CIFT ile ayni disiplin).
+SEKIL_KURALI_MUAF = {
+    ("Yamaha", "P-45"): "dijital piyano (Elektronik) — H1 sekline uyuyor ama ARAC DEGIL",
+    ("Yamaha", "Recording Custom"): "davul kiti (Oyun/Hobi) — H3 sekline uyuyor ama "
+                                    "ARAC DEGIL",
+}
+
+SEKIL_KURALI_MUAF_SAYISI = 2
+SEKIL_KURALI_MUAF_IMZA = "03460dcdcdea42c0"
+
+
+def sekil_kurali_muaf_imzasi():
+    """Muafiyet kumesinin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (a, b) for a, b in SEKIL_KURALI_MUAF),
+                   ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
 
 
 # ─────────────────────────────────────────────────────────────────────────────

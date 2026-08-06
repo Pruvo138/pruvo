@@ -1,0 +1,23 @@
+name: Spec/tasarim ifsasi alarmi
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ifsa-nobeti:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: "Spec ifsa nobetcisi: kendini test (sayi ciktida)"
+        run: python3 tools/spec-ifsa-kapisi.py --kendini-test
+      - name: "Spec ifsa nobetcisi: mutasyon bataryasi (TEK KIRMIZI + beyana esitlik)"
+        run: python3 tools/spec-ifsa-mutasyon-test.py
+      - name: "Spec/tasarim ifsasi: izlenen anlatim yuzeyi (ALARM)"
+        run: python3 tools/spec-ifsa-kapisi.py

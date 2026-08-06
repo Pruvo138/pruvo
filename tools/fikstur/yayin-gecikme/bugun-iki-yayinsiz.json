@@ -1,0 +1,105 @@
+{
+ "_aciklama": "EKSEN 3 KANARISI (5 Agu 2026 GERCEK govdesi, 00:12-01:16 UTC). IKI ardisik kosumda build YESILDI ama `serit-a3` kirmizi oldugu icin `deploy` SKIPPED kaldi; yayin 74 dk durdu. O gece nobetci HER 15 DK kostu ve HICBIR eksen ateslemedi: hata zinciri 2'de kaldi (esik 4), yas 61 dk idi (TIKALI esigi 65 — 01:17'de dolacakti, hat 01:16'da acildi). Bu fikstur son alarm tigini (01:13Z) yeniden kurar ve hukum YALNIZ EKSEN 3'ten gelir (yayinsiz zincir 2 + yas 61 dk). Eksen 3 korelirse burasi GECIKME'ye (rc 1) duser ve KIRMIZI yanar. Kosan kosum (30964812598, 18 dk) omur tavaninin (75 dk) ALTINDA -> eksen 2 de sessiz.",
+ "_beklenen": "TIKALI",
+ "_isler": {
+  "30960681792": {
+   "build": "success",
+   "deploy": {"conclusion": "success", "completed_at": "2026-08-04T23:59:07Z"},
+   "serit-a2": "success",
+   "serit-a3": "success",
+   "serit-b": "success",
+   "yayin": "success"
+  },
+  "30962542307": {
+   "build": "success",
+   "deploy": "skipped",
+   "serit-a2": "success",
+   "serit-a3": "failure",
+   "serit-b": "success",
+   "yayin": "skipped"
+  },
+  "30964489358": {
+   "build": "success",
+   "deploy": "skipped",
+   "serit-a2": "success",
+   "serit-a3": "failure",
+   "serit-b": "success",
+   "yayin": "skipped"
+  }
+ },
+ "_karsilastirma_tabani": "f79b1ddac49eb5b1d188317a7f951c99de7d3a14",
+ "_simdi": "2026-08-05T01:13:00Z",
+ "karsilastirma": {
+  "ahead_by": 3,
+  "commits": [
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-05T00:12:16Z"
+     }
+    },
+    "sha": "a1b50214937d6a77a3f4ad3ec3ef015b8df9283a"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-05T00:48:57Z"
+     }
+    },
+    "sha": "ff719ec8c4c1e73f56131a96fb9099c376de95b0"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-05T00:55:10Z"
+     }
+    },
+    "sha": "b43dc4b82e024a51ad11c4f5e643c8f73d884a26"
+   }
+  ],
+  "status": "ahead",
+  "total_commits": 3
+ },
+ "kosumlar": [
+  {
+   "conclusion": null,
+   "created_at": "2026-08-05T00:55:10Z",
+   "event": "push",
+   "head_sha": "b43dc4b82e024a51ad11c4f5e643c8f73d884a26",
+   "id": 30964812598,
+   "run_started_at": "2026-08-05T00:55:10Z",
+   "status": "in_progress",
+   "updated_at": "2026-08-05T01:13:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-05T00:48:57Z",
+   "event": "push",
+   "head_sha": "ff719ec8c4c1e73f56131a96fb9099c376de95b0",
+   "id": 30964489358,
+   "run_started_at": "2026-08-05T00:48:57Z",
+   "status": "completed",
+   "updated_at": "2026-08-05T00:59:12Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-05T00:12:16Z",
+   "event": "push",
+   "head_sha": "a1b50214937d6a77a3f4ad3ec3ef015b8df9283a",
+   "id": 30962542307,
+   "run_started_at": "2026-08-05T00:12:16Z",
+   "status": "completed",
+   "updated_at": "2026-08-05T00:22:40Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-04T23:38:44Z",
+   "event": "push",
+   "head_sha": "f79b1ddac49eb5b1d188317a7f951c99de7d3a14",
+   "id": 30960681792,
+   "run_started_at": "2026-08-04T23:38:44Z",
+   "status": "completed",
+   "updated_at": "2026-08-04T23:59:52Z"
+  }
+ ]
+}

@@ -93,6 +93,26 @@ MUTASYONLAR = [
      "A5e"),
 ]
 
+# 🔴 KONTROL MUTANTLARI (5 Agu) — "her mutant KIRMIZI" TEK BASINA KANIT DEGILDIR.
+# Eksik olan sordu: fikstur seti kapinin HUKMUNU mu kilitliyor, yoksa kaynaga dokunan HER
+# degisiklige mi kirmizi yaniyor? Ikincisi olsaydi batarya bir SEY olcmuyor demekti — ve
+# ayni zamanda mesru her bakim degisikligi TUM EKIBIN yayinini durdururdu. Asagidaki
+# mutantlar kaynagi GERCEKTEN degistirir ama kapinin verdigi HUKMU degistirmez; ic nobetci
+# YESIL kalmali. Bir kontrol mutanti KIRMIZI yanarsa fikstur seti asiri-sikidir (bir
+# fikstur davranis yerine BICIM olcuyordur) -> batarya KIRMIZI verir.
+# (etiket, aciklama, eski_parca, yeni_parca)
+KONTROL_MUTANTLARI = [
+    ("C1", "yorum metni degisimi (hicbir davranis yok)",
+     "# Ilan BASTA olmali: HUKUM icin yalniz ilk ILAN_SATIR_SAYISI satir taranir.",
+     "# Ilan BASTA olmali (kontrol mutanti C1 — yalniz yorum degisti)."),
+    ("C2", "kosum suresi bicimi %.2f -> %.5f (rapor kozmetigi, hukum yok)",
+     '    r.append("  Kosum suresi          : %.2f ms" % sure_ms)',
+     '    r.append("  Kosum suresi          : %.5f ms" % sure_ms)'),
+    ("C3", "ic nobetci tempfile onekini degistir (disk yolu, hukum yok)",
+     'dizin = tempfile.mkdtemp(prefix="ege-tavan-fikstur-")',
+     'dizin = tempfile.mkdtemp(prefix="ege-tavan-fikstur-C3-")'),
+]
+
 
 def kos(yol, bayrak):
     r = subprocess.run([sys.executable, yol] + bayrak, capture_output=True, text=True)
@@ -111,6 +131,7 @@ def main():
 
     hayatta = []
     uygulanamayan = []
+    yanlis_kirmizi = []
     try:
         # TABAN: mutasyonsuz kopya YESIL mi (harness'in kendi dogrulugu)
         taban = os.path.join(dizin, "taban.py")
@@ -145,19 +166,53 @@ def main():
                 print("        beklenen nobetci: %s" % bekleyen)
                 for y in yakalayan:
                     print("        yakalayan: %s" % y)
+        print("-" * 78)
+        print("  KONTROL MUTANTLARI (YESIL kalmali — batarya bicime degil HUKME baksin)")
+        for etiket, aciklama, eski, yeni in KONTROL_MUTANTLARI:
+            adet = kaynak.count(eski)
+            if adet != 1:
+                uygulanamayan.append((etiket, adet))
+                print("  ⚠️  %-4s UYGULANAMADI (desen %d kez gecti) — %s"
+                      % (etiket, adet, aciklama))
+                continue
+            yol = os.path.join(dizin, "kontrol-%s.py" % etiket)
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(kaynak.replace(eski, yeni, 1))
+            kod, cikti = kos(yol, ["--ic-nobetci"])
+            if kod == 0:
+                print("  ✅ %-4s YESIL KALDI (beklenen) — %s" % (etiket, aciklama))
+            else:
+                yanlis_kirmizi.append(etiket)
+                print("  ❌ %-4s KIRMIZI YANDI (yanlis-pozitif) — %s" % (etiket, aciklama))
+                for s in cikti.splitlines():
+                    if s.strip().startswith("❌"):
+                        print("        " + s.strip()[:90])
     finally:
         shutil.rmtree(dizin, ignore_errors=True)
 
     print("-" * 78)
-    print("  Mutasyon sayisi : %d" % len(MUTASYONLAR))
-    print("  Hayatta kalan   : %d %s" % (len(hayatta), hayatta if hayatta else ""))
-    print("  Uygulanamayan   : %d %s" % (len(uygulanamayan),
-                                         uygulanamayan if uygulanamayan else ""))
-    if hayatta or uygulanamayan:
-        print("SONUC: KIRMIZI ❌ — fikstur setinde delik var ya da mutasyon deseni bayat "
-              "(kapi kaynagi degistiyse desenleri guncelle).")
+    print("  Oldurucu mutant   : %d" % len(MUTASYONLAR))
+    print("  Hayatta kalan     : %d %s" % (len(hayatta), hayatta if hayatta else ""))
+    print("  Kontrol mutanti   : %d" % len(KONTROL_MUTANTLARI))
+    print("  Yanlis-pozitif    : %d %s" % (len(yanlis_kirmizi),
+                                           yanlis_kirmizi if yanlis_kirmizi else ""))
+    print("  Uygulanamayan     : %d %s" % (len(uygulanamayan),
+                                           uygulanamayan if uygulanamayan else ""))
+    # KABUL = cikis kodu DEGIL, olculen iddia sayisi + ISARET sarti
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]): batarya hicbir mutant KOSTURAMADAN da
+    # rc=0 dondurebilirdi. Iki yonun de OLCULDUGU dogrulanir.
+    if not MUTASYONLAR or not KONTROL_MUTANTLARI:
+        print("SONUC: KIRMIZI ❌ — batarya tek yonlu (oldurucu ya da kontrol kumesi BOS); "
+              "tek yonlu batarya 'her degisiklik kirmizi' halini ayirt EDEMEZ.")
         return 1
-    print("SONUC: YESIL ✅ — her mutant ic nobetci tarafindan yakalandi.")
+    if hayatta or uygulanamayan or yanlis_kirmizi:
+        print("SONUC: KIRMIZI ❌ — fikstur setinde delik var (hayatta kalan), fikstur asiri "
+              "siki (kontrol mutanti kirmizi yandi) ya da mutasyon deseni bayat.")
+        return 1
+    print("SONUC: YESIL ✅ — %d oldurucu mutantin %d'i ic nobetci tarafindan OLDURULDU, "
+          "%d kontrol mutantinin %d'i YESIL KALDI (batarya bicime degil HUKME bakiyor)."
+          % (len(MUTASYONLAR), len(MUTASYONLAR),
+             len(KONTROL_MUTANTLARI), len(KONTROL_MUTANTLARI)))
     return 0
 
 
