@@ -221,6 +221,54 @@ jobs:
           # ... ayni sekilde yorumu soyulmus kopyalar (_yayin/jenerator/).
           cp _yayin/jenerator/hacim.js _yayin/jenerator/konfigurator.js _yayin/jenerator/viewer.js _site/jenerator/
           cp -r jenerator/urunler _site/jenerator/urunler
+
+      # ══════════════════════════════════════════════════════════════════════════
+      # YAYIN OLCEGI OLCUMU (6 Agu 2026) — "OLCULEMEDI" halini kapatir.
+      #
+      # NEDEN: 6 Agu'da `deploy` isi ust uste `GitHub Pages'e yayinla` adiminda
+      # 600 sn'de dustu ve "artefakt olcek duvarina mi carpti" sorusu SAYIYLA
+      # cevaplanamadi — elimizde yalnizca SIKISTIRILMIS zip boyu (upload-artifact
+      # basar: 5 Agu 211,3 MB -> 6 Agu 220,3 MB) vardi. GitHub Pages'in BELGELENMIS
+      # siniri ise ACILMIS site boyudur: "Published GitHub Pages sites may be no
+      # larger than 1 GB" (docs.github.com/pages ... /github-pages-limits). Yani
+      # bugune dek TAM DA SINIRA GORE OLCULEN sayi hic basilmiyordu.
+      #
+      # NE BASAR: acilmis toplam bayt, dosya sayisi, dizin sayisi ve en buyuk 10
+      # ust dizin. 1 GB'a gore doluluk yuzdesi de basilir ki egri (gun gun) log'dan
+      # okunabilsin.
+      #
+      # 🔴 NEDEN `du -sb _site` DEGIL (olculdu 6 Agu — YANLIS OLCUM TUZAGI): `du`
+      # DIZIN inode'larini da sayar (dizin basina 4096 B). Bu agacta 22.359 dizin
+      # var -> `du -sb` gercek icerigi ~91 MB SISIRIR (%+10,5) ve 1 GB doluluk
+      # %80,8 yerine ~%89 gorunur. Pages'in yayinladigi ve 1 GB'a saydigi sey DOSYA
+      # icerigidir; bu yuzden toplam `find -type f -printf '%s'` ile YALNIZ DOSYA
+      # baytlarindan toplanir. Yanlis olcum olcumsuzlukten KOTUDUR: sahte esik
+      # alarmi uretip yanlis mimari karar dogurur. Referans (ayni agac, kosum
+      # 31107527748 artefakt tar'indan sayildi): 867.958.072 B / 22.399 dosya —
+      # bu adimin ilk ciktisi buna YAKIN olmali, `du` degeri olmamali.
+      #
+      # 🔴 NEDEN BLOKLAYICI DEGIL: bu bir OLCUM adimidir, kapi degildir. Esik
+      # koymak (ornegin ">%90 ise kirmizi") YAYIN MIMARISI karari olup mimarindir;
+      # olcum yokken esik koymak da tanim geregi kor olurdu. `continue-on-error:
+      # true` ile bu adim hicbir sekilde yayini durduramaz. Sayi birikince esik
+      # AYRI bir kapi olarak eklenebilir.
+      - name: "Yayin olcegi olcumu (acilmis _site bayt/dosya dokumu — 1 GB Pages siniri)"
+        run: |
+          TOPLAM=$(find _site -type f -printf '%s\n' | awk '{s+=$1} END{printf "%d", s}')
+          DOSYA=$(find _site -type f | wc -l)
+          DIZIN=$(find _site -type d | wc -l)
+          echo "YAYIN-OLCEK toplam_bayt=$TOPLAM"
+          echo "YAYIN-OLCEK dosya_sayisi=$DOSYA"
+          echo "YAYIN-OLCEK dizin_sayisi=$DIZIN"
+          awk -v b="$TOPLAM" 'BEGIN{printf "YAYIN-OLCEK mib=%.1f\n", b/1048576}'
+          awk -v b="$TOPLAM" 'BEGIN{printf "YAYIN-OLCEK 1GB_doluluk_yuzde=%.1f\n", b*100/1073741824}'
+          echo "YAYIN-OLCEK --- ust dizinler (yalniz dosya baytlari) ---"
+          find _site -mindepth 1 -maxdepth 1 -printf '%f\n' | while IFS= read -r ust; do
+            find "_site/$ust" -type f -printf '%s\n' \
+              | awk -v u="$ust" '{s+=$1; n++} END{printf "%d\t%s\t(%d dosya)\n", s+0, u, n+0}'
+          done | sort -rn | head -12
+        continue-on-error: true
+
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
         with:

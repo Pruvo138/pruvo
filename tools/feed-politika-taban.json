@@ -26,63 +26,7 @@
  },
  "_KANITSIZ_VAKA": "ArTisT raporundaki ucuncu red — tenere-700 titresim-onleyici braket — TETIKLEYICISI BELIRSIZ; metninden bloklayici jeton TURETILEMEDI. Tahminle jeton uydurmak yerine ACIK birakildi (kanit gelirse eklenir).",
  "_DURBUN_KAYDI_NEDEN_SILINDI": "schmidt-bender-...-durbun-koruyucu-kapak-seti kaydi S4 turunda (mimar karari) SILINDI: 'dürbün' jetonu BLOKLAYICI'dan RAPOR katmanina tasindi (mesru bir Marin/Kamera durbun urunu tum ekibin yayinini durdururdu; olculdu: jetonun tam katalogdaki TEK isabeti zaten bu kayitti -> koruma kaybi 0). Urun katalogda DURUYOR ve RAPOR katmaninda sayilmaya devam ediyor; yalniz bloklayici borc listesinden dustu. Tabandan kayit silmek tasarimi geregi serbest ve sessizdir.",
- "kok_baslangic": 7,
- "kok": [
-  {
-   "id": "citroen-c4-elektronik-sigara-ve-bardakl-k-d-zenleyici",
-   "jeton": [
-    "elektronik sigara"
-   ],
-   "nerede": "baslik+aciklama",
-   "baslik": "Citroen C4 Elektronik Sigara ve Bardaklık Düzenleyici"
-  },
-  {
-   "id": "renault-laguna-elektronik-sigara-tutucu",
-   "jeton": [
-    "elektronik sigara"
-   ],
-   "nerede": "baslik+aciklama",
-   "baslik": "Renault Laguna Elektronik Sigara Tutucu — Kart Yuvası Tipi"
-  },
-  {
-   "id": "renault-laguna-elektronik-sigara-tutucu-3481712",
-   "jeton": [
-    "elektronik sigara"
-   ],
-   "nerede": "baslik+aciklama",
-   "baslik": "Renault Laguna Elektronik Sigara Tutucu — Konsol Tipi"
-  },
-  {
-   "id": "seat-leon-5f-bardakl-k-adapt-r",
-   "jeton": [
-    "elektronik sigara"
-   ],
-   "nerede": "aciklama",
-   "baslik": "Seat Leon 5F Bardaklık Adaptörü"
-  },
-  {
-   "id": "toyota-bardakl-k-uyumlu-vape-stand-nord-aio",
-   "jeton": [
-    "vape"
-   ],
-   "nerede": "baslik",
-   "baslik": "Toyota Bardaklık Uyumlu Vape Standı (Nord AIO)"
-  },
-  {
-   "id": "toyota-nord-aio-elektronik-sigara-stand",
-   "jeton": [
-    "elektronik sigara"
-   ],
-   "nerede": "baslik",
-   "baslik": "Toyota Nord AIO Elektronik Sigara Standı"
-  },
-  {
-   "id": "toyota-nord-aio-vape-stand",
-   "jeton": [
-    "vape"
-   ],
-   "nerede": "baslik",
-   "baslik": "Toyota Nord AIO vape standı"
-  }
- ]
+ "_TABAN_BOSALTILDI_2026-08-06": "7 kaydin 7'si de SILINDI (kok 7 -> 0): borc ODENDI. Olculdu 2026-08-06, 20879 feed kalemi, kapinin KENDI fonksiyonlariyla (ihlalleri_topla / feed_kalemleri) — bugun bloklayici ihlal 0 urun. 7 kaydin 7'si de katalogda DURUYOR ve 7'si de feed'e GIRIYOR; yani 'ihlal yok' hukmu, kalemin feed disi kalmasindan dogan bir YANLIS-NEGATIF degil, gercek olcumdur. Basliklar notr cihaz/duzenleyici ifadelerine cevrildigi icin e-sigara/vape jetonlari musteriye gorunen metinden dustu. 🔴 kok_baslangic AYNI COMMIT'te 7 -> 0 indirildi: W1 uyarisi 'len(taban) > kok_baslangic' ile ateslenir; kok 0'a inerken kok_baslangic 7'de birakilsaydi ratchet 7 YENI borca kadar SESSIZ kalirdi — yani temizlik kapiyi GEVSETMIS olurdu. Yeni esik: 1 yeni kayit bile W1'i atesler (davranissal olarak olculdu 2026-08-06: 1 kayitli sentetik tabanda W1 URETILDI, 0 kayitli sentetik tabanda URETILMEDI). Tabandan kayit silmek tasarimi geregi serbest ve sessizdir; sessiz olmayan tek sey kok_baslangic'in geride birakilmasi olurdu.",
+ "kok_baslangic": 0,
+ "kok": []
 }

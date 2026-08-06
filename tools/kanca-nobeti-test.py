@@ -75,6 +75,11 @@ gate="$root/tools/mimar-commit-kapisi.py"
 if [ -f "$gate" ]; then
   python3 "$gate" || exit 1
 fi
+
+diriltme="$root/tools/diriltme-kapisi.py"
+if [ -f "$diriltme" ]; then
+  python3 "$diriltme" --calisma-agaci || exit 1
+fi
 exit 0
 """
 

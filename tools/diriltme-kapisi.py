@@ -38,6 +38,34 @@ SILINMIS ID KUMESI GIT GECMISINDEN TURETILIR (ELLE LISTE TUTULMAZ — bayatlar):
     ebeveynine gore alinir -> bir dalda yapilip merge edilen silme de gorunur, ayni
     diff IKI KEZ sayilmaz. Siralama/yeniden dizme sonucu ETKILEMEZ.
 
+🔴 BEYAN EDILEN SINIR — EKSEN 1 KOLU "TEK ATIMLIK"tir, ve CARESI BU DOSYADA DEGIL
+   PRE-COMMIT KANCASINDADIR (6 Agu 2026, olculdu):
+     `silinmis = ever_seen - <taban>'daki id'ler` -> bir diriltme COMMIT'LENDIGI an
+     BIR SONRAKI koşumun TABANI o id'yi ICERIR, id "silinmis" olmaktan CIKAR ve alarm
+     KENDILIGINDEN SONER. Olculen vaka: `c912548f` bir kaydi cikardi · `841aab67`
+     toplu parti onu diriltti · CI'da bu kapi KIRMIZI yandi, deploy ATLANDI · bir
+     sonraki push'ta (`d95f6f13`) kapi YESILE dondu, ihlal repoda KALDI.
+   CARE: `tools/kancalar/pre-commit` adim 4 — `--calisma-agaci` kipi COMMIT ANINDA
+     bloklar; diriltme repoya HIC girmez, dolayisiyla "taban ihlali yutar" mekanizmasi
+     devreye GIREMEZ. Kabul: `--kendini-test` K1..K8 (GERCEK `git commit` davranisi)
+     + `--kanca-mutasyon` (adimi olduren mutasyon POZITIF vakayi YESILE dondurur mu).
+
+🔴 NEDEN "YAPISKAN EKSEN" YOK — OLCULDU VE ELENDI (6 Agu 2026):
+   Onerilen ucuncu eksen: "gecmiste `-` ile TERK EDILMIS VE su an HEAD'de VAR olan id
+   -> KIRMIZI" (pencereden bagimsiz, sonmez). MALIYETI KOSULARAK OLCULDU:
+       ever_seen (`+` gorulen)         21.922 id
+       terk-edilmis (`-` gorulen)      19.300 id
+       HEAD                            20.849 id
+       TERK-EDILMIS ∩ HEAD ........... 18.227 id   ← esik 20 idi
+   Sebep: `urunler.json` gecmisinde toplu YENIDEN-GIRINTILEME / YENIDEN-SIRALAMA
+   commit'leri var; `-U0` diffinde neredeyse HER kayit icin bir `-"id"` satiri
+   gorunmus. Yapiskan eksen katalogun %87,4'unu (18.227/20.849) kirmizi yakar ve TUM
+   EKIBIN yayinini KALICI durdururdu — beyanla kacis da yazilamaz (18.227 satir).
+   HUKUM: eksen UYGULANMADI. Kapsami buyutmek pozitif nobetciyi oldurur
+   ([[kapi-kapsam-genisletme-tuzagi]]); tek atimlik sonme yerine PRE-COMMIT kolu ile
+   kapatildi (yukarida). Olcum yeniden uretilebilir:
+       git log -U0 -p --first-parent HEAD -- urunler.json | grep '^-  *"id"'
+
 --------------------------------------------------------------------------------
 EKSEN 2 — ALAN GERILEMESI (30 Tem'de IKINCI KEZ olculen sinif)
 --------------------------------------------------------------------------------
@@ -150,6 +178,7 @@ KULLANIM:
     python3 tools/diriltme-kapisi.py --calisma-agaci  # HEAD -> calisma agaci (push oncesi)
     python3 tools/diriltme-kapisi.py --taban main --yeni <dal>   # merge oncesi on-test
     python3 tools/diriltme-kapisi.py --kendini-test   # POZITIF+NEGATIF kabul (ag YOK)
+    python3 tools/diriltme-kapisi.py --kanca-mutasyon # YALNIZ pre-commit ayagi+mutasyon
 
 CIKIS KODLARI: 0 = YESIL · 1 = KIRMIZI (diriltme / alan gerilemesi) · 2 = OLCULEMEDI.
 """
@@ -158,6 +187,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -750,6 +780,264 @@ def _gorsel(uid, n):
     return "https://media.pruvo3d.com/urunler/%s-%d.jpg" % (uid, n)
 
 
+# ------------------------------------------------- PRE-COMMIT KANCASI: DAVRANIS ayagi
+# 🔴 NEDEN BEYAN DEGIL DAVRANIS OLCULUR ([[kapi-beyanin-dogrulugunu-degil-varligini-olcer]]):
+# "kancaya adim eklendi" beyani, adimin FIILEN commit'i durdurdugunu KANITLAMAZ —
+# shell'de `|| true`, yanlis sirada bir `exit 0`, bayat kurulu kopya ya da yanlis
+# on-eleme kolu adimi sessizce olduren yollardir ve HEPSI rc=0 verir. Bu ayak
+# SENTETIK gecici depoya GERCEK `tools/kancalar` kaynagini serer, `tools/kanca-kur.py`
+# ile GERCEKTEN kablolar ve GERCEK `git commit` dener; hukum commit'in cikis kodu VE
+# HEAD'in fiilen degisip degismedigidir.
+# DIGER KAPILAR STUB'DIR: bu ayagin olctugu eksen DIRILTME adimidir; urunler-guard /
+# mukerrer / mimar kapisi kendi kabul testlerine sahiptir ve burada kosmalari yalniz
+# gurultu + bagimlilik uretirdi.
+KANCA_ADLARI = ("pre-commit", "commit-msg", "pre-push", "post-commit",
+                "post-checkout", "post-merge")
+KANCA_GERCEK_ARAC = ("kanca-kur.py", "diriltme-kapisi.py")
+KANCA_STUB_ARAC = ("urunler-guard.py", "mukerrer-kontrol.py",
+                   "mimar-commit-kapisi.py", "commit-mesaji-kapisi.py")
+
+# MUTASYON BATARYASI — SURUCU REPODA DURUR ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+# Her giris: (ad, sinif, capa, yerine, gerekce). <capa> GERCEK `tools/kancalar/pre-commit`
+# govdesinde BULUNMAK ZORUNDADIR; bulunamazsa vaka KIRMIZI yanar (capa bayatlamasi
+# sessizce "mutasyon uygulanmadi, test yesil" uretemez).
+#   sinif "OLDURUCU" -> mutasyon POZITIF vakayi YESILE dondurmeli (donmezse test o
+#                       ekseni OLCMUYOR demektir).
+#   sinif "KONTROL"  -> mutasyon POZITIF vakayi yesile DONDURMEMELI (vakanin kirmizisi
+#                       gercekten bu adimdan geliyor mu, yoksa her seyden mi).
+KANCA_MUTASYONLARI = (
+    ("M1 adim oldurme", "OLDURUCU",
+     '    python3 "$pruvo_diriltme" --calisma-agaci', "    true",
+     "kapinin cagrisi `true` ile degistirilir -> adim hic kosmaz"),
+    ("M2 on-eleme oldurme", "OLDURUCU",
+     "  git diff --quiet HEAD -- urunler.json", "  true",
+     "on-eleme daima 'DEGISMEDI' der -> adim daima ATLANIR"),
+    ("M3 teshis metni", "KONTROL",
+     "!! Gerekce yukarida. Mesru geri alma:",
+     "!! GEREKCE YUKARIDA. Mesru geri alma:",
+     "yalniz mesaj metni degisir -> hukum DEGISMEMELI"),
+)
+
+
+def _kanca_deposu(kok, ad, mutasyon=None):
+    """Sentetik depo: GERCEK kancalar + GERCEK diriltme/kanca-kur + STUB diger kapilar.
+
+    <mutasyon> = (capa, yerine) -> yalniz KOPYAYA uygulanir. ANA DEPODAKI
+    `tools/kancalar/pre-commit` dosyasina ASLA yazilmaz -> calisma agaci mutasyon
+    batarayasi sirasinda da TEMIZ kalir ([[mutasyon-diske-yazma-tuzagi]])."""
+    d = _depo_kur(kok, ad)
+    t = os.path.join(d, "tools")
+    kh = os.path.join(t, "kancalar")
+    os.makedirs(kh)
+    for a in KANCA_ADLARI:
+        with open(os.path.join(TOOLS, "kancalar", a), encoding="utf-8") as f:
+            govde = f.read()
+        if a == "pre-commit" and mutasyon:
+            capa, yerine = mutasyon
+            if capa not in govde:
+                raise RuntimeError(
+                    "MUTASYON CAPASI gercek tools/kancalar/pre-commit govdesinde YOK: %r "
+                    "-> mutasyon UYGULANMADAN test yesil yanardi" % capa)
+            govde = govde.replace(capa, yerine, 1)
+        hedef = os.path.join(kh, a)
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(govde)
+        os.chmod(hedef, 0o755)
+    for a in KANCA_GERCEK_ARAC:
+        shutil.copyfile(os.path.join(TOOLS, a), os.path.join(t, a))
+    for a in KANCA_STUB_ARAC:
+        with open(os.path.join(t, a), "w", encoding="utf-8") as f:
+            f.write("import sys\nsys.exit(0)\n")   # kapsam disi kapi — bkz. yukarisi
+    return d
+
+
+def _kanca_kabloyu_kur(d):
+    p = subprocess.run([sys.executable, os.path.join(d, "tools", "kanca-kur.py"),
+                        "--depo", d], capture_output=True, text=True)
+    if p.returncode != 0:
+        raise RuntimeError("kanca-kur.py sentetik depoda KURAMADI (rc=%d): %s"
+                           % (p.returncode, (p.stdout + p.stderr)[-400:]))
+    rc, deger, _e = _git(d, "config", "--local", "core.hooksPath")
+    if rc != 0 or not deger.strip():
+        raise RuntimeError("kablolama yazilmadi: core.hooksPath BOS")
+    return deger.strip()
+
+
+def _kanca_tarih(d):
+    """a,b,c eklendi -> b CIKARILDI (politika) -> d eklendi. Kancalar HENUZ kurulu degil."""
+    _yaz(d, ["a", "b", "c"])
+    _commit(d, "ilk katalog")
+    _yaz(d, ["a", "c"])
+    _commit(d, "b CIKARILDI (feed politikasi)")
+    _yaz(d, ["a", "c", "d"])
+    _commit(d, "d eklendi")
+
+
+def _commit_dene(d, mesaj):
+    """(rc, cikti) — GERCEK commit denemesi; kancalar KOSAR, istisna atilmaz."""
+    _kos(d, "add", "-A")
+    p = subprocess.run(["git", "-C", d, "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-q", "-m", mesaj], capture_output=True, text=True,
+                       errors="replace")
+    return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+
+def _head_idler(d):
+    rc, out, _e = _git(d, "show", "HEAD:" + URUNLER_ADI)
+    if rc != 0:
+        return set()
+    try:
+        return {u["id"] for u in json.loads(out)
+                if isinstance(u, dict) and isinstance(u.get("id"), str)}
+    except ValueError:
+        return set()
+
+
+def _kanca_pozitif_vaka(kok, ad, mutasyon=None):
+    """(rc, cikti, head_idler_sonra, head_sha_degisti) — POZITIF vaka: b DIRILTILIR."""
+    d = _kanca_deposu(kok, ad, mutasyon)
+    _kanca_tarih(d)
+    _kanca_kabloyu_kur(d)
+    _rc, once_sha, _e = _git(d, "rev-parse", "HEAD")
+    _yaz(d, ["a", "c", "d", "b"])
+    rc, cikti = _commit_dene(d, "toplu parti: b geri geldi (DIRILTME)")
+    _rc, sonra_sha, _e = _git(d, "rev-parse", "HEAD")
+    return rc, cikti, _head_idler(d), once_sha.strip() != sonra_sha.strip()
+
+
+def _kanca_kaynak_sha():
+    """GERCEK `tools/kancalar/pre-commit` govdesinin sha256'si (mutasyon hijyeni)."""
+    with open(os.path.join(TOOLS, "kancalar", "pre-commit"), "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def kanca_iddialari(kok, iddia):
+    """PRE-COMMIT adiminin DAVRANIS ayagi + MUTASYON bataryasi (ag YOK)."""
+    kaynak_once = _kanca_kaynak_sha()
+    # ---- K1/K2 POZITIF: diriltme commit'i GERCEKTEN durur ve repoya GIRMEZ
+    rc, cikti, idler, sha_degisti = _kanca_pozitif_vaka(kok, "k-pozitif")
+    iddia("K1 [POZITIF] diriltme iceren GERCEK commit REDDEDILIR (rc!=0)",
+          rc != 0, (rc, cikti[-300:]))
+    iddia("K2 [POZITIF/DAVRANIS] urunler.json COMMIT EDILMEDI: HEAD degismedi VE "
+          "dirilen id HEAD'de YOK (beyan degil DAVRANIS)",
+          (not sha_degisti) and "b" not in idler, (sha_degisti, sorted(idler)))
+
+    # ---- K3 ON-ELEME: urunler.json degismemisse tarama KOSMAZ ama SESSIZ de gecmez
+    d3 = _kanca_deposu(kok, "k-oneleme")
+    _kanca_tarih(d3)
+    _kanca_kabloyu_kur(d3)
+    with open(os.path.join(d3, "NOT.md"), "w", encoding="utf-8") as f:
+        f.write("kod duzlemi degisikligi\n")
+    rc3, cikti3 = _commit_dene(d3, "yalniz kod/metin degisti")
+    iddia("K3 [ON-ELEME] urunler.json degismemis commit GECER (rc=0) ve atlama "
+          "GEREKCESIYLE BASILIR (sessiz atlama YOK)",
+          rc3 == 0 and "diriltme kapisi ATLANDI" in cikti3 and "DEGISMEDI" in cikti3,
+          (rc3, cikti3[-300:]))
+
+    # ---- K4/K5 NEGATIF: normal ekleme partisi BLOKLANMAZ (yanlis-pozitif nobeti)
+    d4 = _kanca_deposu(kok, "k-negatif")
+    _kanca_tarih(d4)
+    _kanca_kabloyu_kur(d4)
+    _yaz(d4, ["a", "c", "d"] + ["yeni-urun-%03d" % i for i in range(12)])
+    rc4, cikti4 = _commit_dene(d4, "12 yeni urun eklendi (normal ekleme partisi)")
+    idler4 = _head_idler(d4)
+    iddia("K4 [NEGATIF] YENI id'lerle normal ekleme partisi GECER (rc=0) ve "
+          "urunler.json COMMIT EDILIR",
+          rc4 == 0 and "yeni-urun-000" in idler4 and len(idler4) == 15,
+          (rc4, len(idler4), cikti4[-300:]))
+    iddia("K5 [NEGATIF] cikarilmis id GERI GELMEDIGI icin kapi susar (b HEAD'de YOK)",
+          "b" not in idler4, sorted(idler4)[:5])
+
+    # ---- K6 NEGATIF: GEREKCELI beyan mesru geri-alma yolunu ACIK BIRAKIR
+    d6 = _kanca_deposu(kok, "k-beyan")
+    _kanca_tarih(d6)
+    _kanca_kabloyu_kur(d6)
+    _yaz(d6, ["a", "c", "d", "b"])
+    with open(os.path.join(d6, IZIN_ADI), "w", encoding="utf-8") as f:
+        json.dump({"b": "politika degisti, KraL onayiyla geri alindi"}, f)
+    rc6, cikti6 = _commit_dene(d6, "b beyanla geri alindi")
+    iddia("K6 [NEGATIF] `%s`'da GEREKCELI beyan -> commit GECER (rc=0) ve b HEAD'e girer"
+          % IZIN_ADI,
+          rc6 == 0 and "b" in _head_idler(d6), (rc6, cikti6[-300:]))
+
+    # ---- K7 POZITIF: BOS gerekceli beyan kacis deligi ACMAZ
+    d7 = _kanca_deposu(kok, "k-beyan-bos")
+    _kanca_tarih(d7)
+    _kanca_kabloyu_kur(d7)
+    _yaz(d7, ["a", "c", "d", "b"])
+    with open(os.path.join(d7, IZIN_ADI), "w", encoding="utf-8") as f:
+        json.dump({"b": "   "}, f)
+    rc7, cikti7 = _commit_dene(d7, "b bos gerekceli beyanla geri alindi")
+    iddia("K7 [POZITIF] BOS gerekceli beyan commit'i DURDURUR (rc!=0) ve b HEAD'e GIRMEZ",
+          rc7 != 0 and "b" not in _head_idler(d7), (rc7, cikti7[-300:]))
+
+    # ---- K8 ILK COMMIT: taban YOKKEN kapi fail-closed'a takilip depoyu KILITLEMEZ
+    d8 = _kanca_deposu(kok, "k-ilk-commit")
+    _kanca_kabloyu_kur(d8)
+    _yaz(d8, ["a", "b", "c"])
+    rc8, cikti8 = _commit_dene(d8, "ilk katalog")
+    iddia("K8 [NEGATIF] HEAD YOKKEN (ilk commit) adim gerekcesiyle ATLANIR, commit GECER",
+          rc8 == 0 and "HEAD YOK" in cikti8, (rc8, cikti8[-300:]))
+
+    # ---- MUTASYON BATARYASI: POZITIF vaka ADIMI FIILEN mi olcuyor?
+    for ad, sinif, capa, yerine, gerekce in KANCA_MUTASYONLARI:
+        try:
+            mrc, mcikti, midler, msha = _kanca_pozitif_vaka(
+                kok, "k-mut-" + ad.split()[0], (capa, yerine))
+        except RuntimeError as e:
+            iddia("MUTASYON %s (%s) kurulamadi" % (ad, sinif), False, str(e))
+            continue
+        yesile_dondu = (mrc == 0 and msha and "b" in midler)
+        if sinif == "OLDURUCU":
+            iddia("MUTASYON %s [OLDURUCU] POZITIF vaka YESILE dondu (%s) -> vaka bu "
+                  "adimi FIILEN olcuyor" % (ad, gerekce),
+                  yesile_dondu, (mrc, msha, "b" in midler, mcikti[-250:]))
+        else:
+            iddia("MUTASYON %s [KONTROL] POZITIF vaka YESILE DONMEDI (%s) -> kirmizi "
+                  "gercekten bu adimdan geliyor" % (ad, gerekce),
+                  not yesile_dondu, (mrc, msha, "b" in midler, mcikti[-250:]))
+
+    # ---- MUTASYON HIJYENI: ANA DEPODAKI kanca kaynagi bataryadan ETKILENMEDI.
+    # Olcum GIT DURUMUNA DEGIL govdenin sha256'sina bakar: kaynak dosya (mesru
+    # olarak) zaten degistirilmis/staged olabilir; olculecek sey bataryanin
+    # ONA DOKUNUP DOKUNMADIGIDIR ([[mutasyon-diske-yazma-tuzagi]]).
+    iddia("MUTASYON HIJYENI: ana depodaki tools/kancalar/pre-commit sha256'si batarya "
+          "ONCESI == SONRASI (mutasyon yalniz sentetik KOPYAYA uygulandi)",
+          _kanca_kaynak_sha() == kaynak_once, (kaynak_once[:12], _kanca_kaynak_sha()[:12]))
+
+
+def kanca_kendini_test():
+    """YALNIZ pre-commit kanca ayagi + mutasyon bataryasi (gercek depo taramasi YOK).
+
+    `--kendini-test` bu ayagi ZATEN icerir; bu giris noktasi kancaya dokunan bir
+    degisiklikten sonra 70 MB'lik gecmis taramasini beklemeden ayni iddialari
+    kosturmak icindir (mutasyon kaniti YENIDEN URETILEBILIR olmali)."""
+    ham = ["PRE-COMMIT KANCA AYAGI — DAVRANIS + MUTASYON BATARYASI (offline)"]
+    kirmizi = 0
+
+    def iddia(ad, kosul, detay=""):
+        nonlocal kirmizi
+        if kosul:
+            ham.append("    ✅ " + ad)
+        else:
+            kirmizi += 1
+            ham.append("    ❌ " + ad + (" — " + str(detay) if detay else ""))
+
+    with tempfile.TemporaryDirectory(prefix="pruvo-diriltme-kanca-") as kok:
+        try:
+            kanca_iddialari(kok, iddia)
+        except Exception as e:                               # pragma: no cover
+            iddia("KANCA DAVRANIS ayagi kosturulamadi (yesil SAYILMAZ)", False, repr(e))
+    print("\n".join(ham))
+    print("----------------------------------------------------------------------")
+    print("IDDIA SAYISI: %d" % len([s for s in ham if s.strip()[:1] in ("✅", "❌")]))
+    if kirmizi == 0:
+        print("SONUC: YESIL ✅ (kanca ayagi)")
+        return 0
+    print("SONUC: KIRMIZI ❌ — %d iddia kaldi" % kirmizi)
+    return 1
+
+
 def kendini_test():
     """POZITIF + NEGATIF vakalar. Her iddia icin IKI YON de olculur (yalniz pozitif =
     olu nobetci). Ag YOK; sentetik gecici git depolari, CANLI VERIYE DOKUNULMAZ."""
@@ -1247,6 +1535,14 @@ def kendini_test():
                                   "kategori", "lisans", "parametrik"),
               KAPSAM_ALANLARI)
 
+        # ============ K1..K8 + MUTASYON — PRE-COMMIT KANCASININ DAVRANISI ============
+        # (Bu ayak `--calisma-agaci` kipinin FIILEN commit'i durdurdugunu olcer; beyan
+        #  degil davranis. Ayrinti + mutasyon bataryasi: `kanca_iddialari` docstring'i.)
+        try:
+            kanca_iddialari(kok, iddia)
+        except Exception as e:                               # pragma: no cover
+            iddia("KANCA DAVRANIS ayagi kosturulamadi (yesil SAYILMAZ)", False, repr(e))
+
     # ---- GERCEK DEPO ayagi: salt-okunurluk + yanlis-pozitif kanaryasi + iki eksen
     try:
         gercek = depo_kok()
@@ -1388,9 +1684,13 @@ def main():
     ap.add_argument("--azami-sure", type=float, default=None,
                     help="gecmis taramasi icin saniye tavani; asilirsa OLCULEMEDI")
     ap.add_argument("--kendini-test", action="store_true", dest="kendini")
+    ap.add_argument("--kanca-mutasyon", action="store_true", dest="kanca",
+                    help="YALNIZ pre-commit kanca ayagi + mutasyon bataryasi (hizli)")
     a = ap.parse_args()
     if a.kendini:
         return kendini_test()
+    if a.kanca:
+        return kanca_kendini_test()
     yeni_dosya = None
     if a.calisma_agaci:
         yeni_dosya = os.path.join(depo_kok(a.depo), URUNLER_ADI)

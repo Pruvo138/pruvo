@@ -163,9 +163,12 @@ def izole_ortam(ev):
 
 
 def _araclari_ser(kok):
+    # 6 Agu 2026: `diriltme-kapisi.py` eklendi — pre-commit adim 4 onu FAIL-CLOSED
+    # arar (dosya yoksa commit DURUR). Sentetik depoda urunler.json bulunmadigi icin
+    # stub fiilen KOSMAZ; varligi kancanin "arac YOK" kolunu tetiklememesi icindir.
     for ad in ("urunler-guard.py", "mukerrer-kontrol.py", "mimar-commit-kapisi.py",
                "commit-mesaji-kapisi.py", "gecmis-geri-donus-kapisi.py",
-               "yedekle.py", "kutu-arsivle.py", "d1-sync.py"):
+               "yedekle.py", "kutu-arsivle.py", "d1-sync.py", "diriltme-kapisi.py"):
         yaz(os.path.join(kok, "tools", ad), GECER, True)
 
 

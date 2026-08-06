@@ -99,4 +99,58 @@ if [ ! -f "$pruvo_gate" ]; then
 fi
 python3 "$pruvo_gate" || exit 1
 
+# --- 4) DIRILTME KAPISI — YAZIM ONCESI kol (FAIL-CLOSED) --------------------
+# 🔴 6 AGU 2026 ONARIMI — "TEK ATIMLIK SONME" SINIFI KAPATILDI (olculdu):
+#   `c912548f` bir kaydi feed politikasi gerekcesiyle katalogdan CIKARDI.
+#   `841aab67` toplu ekleme partisi onu GERI DIRILTTI; tools/diriltme-kapisi.py
+#   o push'ta CI'da (deploy.yml) KIRMIZI yandi ve deploy ATLANDI. AMA bir
+#   sonraki push'ta (`d95f6f13`) KENDILIGINDEN YESILE dondu:
+#       silinmis = ever_seen - <taban>'daki id'ler
+#   Diriltme COMMIT'LENDIGI an bir sonraki koşumun TABANI o id'yi ICERIR, id
+#   "silinmis" olmaktan CIKAR ve alarm SONER. Yani CI kolu tek atimliktir:
+#   ihlal repoda KALIR, kapi susar. Kayit elle geri cikarildi ama SINIF acikti.
+#   Ayrica huninin YAZIM ONCESI hicbir katmani (urunler-guard.py,
+#   mukerrer-kontrol.py, parti-kontrol.py, urun-ekle.py) "bir zamanlar vardi ve
+#   CIKARILDI" kumesine BAKMIYOR; hepsi guncel kataloga/HEAD'e bakiyor.
+#   Bu adim ihlali COMMIT ANINDA durdurur -> diriltme repoya HIC girmez, dolayisi
+#   ile "taban ihlali yutar" mekanizmasi hic devreye giremez.
+#
+# ON-ELEME (maliyet): kapi TAM gecmisi tarar (olculdu 6 Agu: ~200 MB diff,
+#   ~5,1 s). urunler.json HEAD'e gore DEGISMEMISSE tarama KOSMAZ. Atlama
+#   SESSIZ DEGIL: nedeni her seferinde BASILIR (sessiz atlama = sessiz yesil).
+# OLCUM EKSENI: kapinin `--calisma-agaci` kipi HEAD -> CALISMA AGACI olcer;
+#   on-eleme de AYNI ekseni (git diff HEAD) kullanir ki kapsam ile on-eleme
+#   ayrisip sessiz delik acmasin ([[kabul-araligi-karsilastirma-araligi]]).
+# rc=2 (OLCULEMEDI) YESIL SAYILMAZ -> commit DURUR.
+pruvo_diriltme="$pruvo_kok/tools/diriltme-kapisi.py"
+if [ ! -f "$pruvo_diriltme" ]; then
+  echo "!! COMMIT DURDURULDU — tools/diriltme-kapisi.py YOK." >&2
+  echo "!! Diriltme korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+if ! git rev-parse --verify --quiet HEAD >/dev/null 2>&1; then
+  echo "-- diriltme kapisi ATLANDI: HEAD YOK (ilk commit) — karsilastirilacak taban yok." >&2
+elif [ ! -f "$pruvo_kok/urunler.json" ]; then
+  echo "-- diriltme kapisi ATLANDI: urunler.json calisma agacinda YOK." >&2
+else
+  git diff --quiet HEAD -- urunler.json
+  pruvo_dir_fark=$?
+  if [ "$pruvo_dir_fark" = "0" ]; then
+    echo "-- diriltme kapisi ATLANDI: urunler.json HEAD'e gore DEGISMEDI (on-eleme)." >&2
+  elif [ "$pruvo_dir_fark" = "1" ]; then
+    python3 "$pruvo_diriltme" --calisma-agaci
+    pruvo_dir_rc=$?
+    if [ "$pruvo_dir_rc" -ne 0 ]; then
+      echo "!! COMMIT DURDURULDU — diriltme kapisi rc=$pruvo_dir_rc (0=YESIL 1=KIRMIZI 2=OLCULEMEDI)." >&2
+      echo "!! Gerekce yukarida. Mesru geri alma: .diriltme-izin.json'a GEREKCEYLE yaz" >&2
+      echo "!!   kayit ekseni -> \"<id>\"   ·   alan ekseni -> \"<id>#<alan>\"" >&2
+      exit 1
+    fi
+  else
+    echo "!! COMMIT DURDURULDU — 'git diff HEAD -- urunler.json' rc=$pruvo_dir_fark;" >&2
+    echo "!! on-eleme OLCULEMEDI, olculemeyen sey yesil sayilmaz." >&2
+    exit 1
+  fi
+fi
+
 exit 0
