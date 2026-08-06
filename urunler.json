@@ -1,5 +1,106 @@
 [
   {
+    "id": "suzuki-dr-z400-yag-doldurma-hunisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki DR-Z400 Yağ Doldurma Hunisi",
+    "aciklama": "Suzuki DR-Z400 motor yağı doldurma ağzı için hazırlanmış eğik gövdeli hunidir. Gidon ve şasi boruları doldurma ağzının önünü kapattığı için düz huniler bu dar aralığa girmez; huninin yana yatık gövdesi boşluktan geçer, uçtaki ince boru yağı doğrudan doldurma ağzına yönlendirir. Geniş üst haznesi yağın dökülmeden boşalmasını sağlar, alt kenarı düz olduğu için kullanılmadığı zaman tezgâhta dik durur. Yağa ve motor sıcaklığına dayanıklı malzemeden özel üretilir.\nYaklaşık dış ölçüler: 110 × 88 × 64 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1629660-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1629660-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1629660-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1629660-4.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PETG"
+    ],
+    "lisans": {
+      "tasarimci": "Ohthtguy101",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dr-z400-gidon-gosterge-ve-anahtar-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki DR-Z400 Gidon Gösterge ve Anahtar Tutucusu",
+    "aciklama": "Suzuki DR-Z400E / DR-Z400S gidon kelepçelerinin arasına oturan çok işlevli tutucudur. Ön yüzündeki büyük yuvarlak yuva dijital yol bilgisayarı ünitesini taşır; yanındaki iki delik ısıtmalı el veya ısıtmalı sele anahtarları içindir, böylece sürüş sırasında hepsi elin ulaşabileceği yerde kalır. Alt gövde gidon borusunu alttan kavrar; köşelerdeki altıgen cepler somunu içeride tutar, sıkma tek taraftan cıvatayla yapılır. Arazi titreşimine dayanacak dolgun kesitte, sert malzemeden özel üretilir. Gösterge ünitesi, anahtarlar ve bağlantı elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 74 × 62 × 60 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr941533-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr941533-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr941533-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MichaelW",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-gs500e-7-inc-far-adaptor-halkasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "GS500"
+    ],
+    "baslik": "Suzuki GS500E 7 İnç Far Adaptör Halkası",
+    "aciklama": "Suzuki GS500 ve GS500E (1989 ve sonrası modeller) far kovanına yedi inç yuvarlak far takmaya yarayan adaptör halkasıdır. Halkanın dış çemberi orijinal far yuvasına oturur, iç kanalı satın alınan yuvarlak farın kenarını kavrar; üst ve alt tırnaklar parçayı yerinde tutar, dışarıdan görünen vida gerekmez. Böylece kırılan ya da eksik orijinal far tutucusunun yerine geniş far seçenekleri kullanılabilir. Far gövdesi uzun sürüşlerde ısındığı için yüksek sıcaklığa dayanıklı malzemeden özel üretilir. Far ünitesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 182 × 146 × 19 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr517586-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr517586-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr517586-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "opl1",
+      "tur": "GPL 3.0"
+    }
+  },
+  {
+    "id": "suzuki-gsx-r-on-cam-aksesuar-bari",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "GSX-R"
+    ],
+    "baslik": "Suzuki GSX-R Ön Cam Aksesuar Barı",
+    "aciklama": "Suzuki GSX-R ön camının iç kavisine oturan aksesuar barıdır. Aksiyon kamerası, radar dedektörü ya da kelepçeli telefon tutucusu doğrudan bu bara sabitlenir; bar gösterge panelinin üst hizasında kaldığı için sürücünün yol görüşünü kapatmaz ve gidona ek yük bindirmez. Gövde cam profiline uyacak şekilde kavislidir, uçlarındaki düz yüzeyler yapıştırma ya da vidalı bağlantıya olanak verir. Yüksek hızda rüzgâr yükünü taşıyacak sert malzemeden özel üretilir. Tutucular ve kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 221 × 50 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr501313-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr501313-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr501313-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pystlz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-vitara-on-konsol-usb-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Vitara"
+    ],
+    "baslik": "Suzuki Vitara Ön Konsol USB Yuvası (İki Parça)",
+    "aciklama": "Suzuki Vitara ön konsolundaki boş yuvaya USB soketi yerleştirmek için hazırlanmış iki parçalı settir. Kare ön plaka yuvanın ağzını kapatır ve soketi konsol yüzeyiyle aynı hizada tutar; silindirik arka gövde soketi arkadan kavrayarak sabitler, kabloyu düzenli biçimde arkaya yönlendirir. İki parça birbirine geçer, ek bağlantı elemanı gerekmez. Böylece torpido altına sarkan gevşek adaptör yerine yerleşik görünümlü bir şarj noktası elde edilir. Araç içi sıcaklığına dayanıklı malzemeden özel üretilir. USB soketi ve kablosu ürüne dahil değildir.\nYaklaşık dış ölçüler: 106 × 80 × 43 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1705067-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1705067-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1705067-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1705067-4.jpg"
+    ]
+  },
+  {
     "id": "yamaha-mt-07-tracer-7-gidon-capraz-bari",
     "kategori": "Motosiklet",
     "marka": [
