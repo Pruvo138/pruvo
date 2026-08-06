@@ -1,5 +1,415 @@
 [
   {
+    "id": "honda-vfr800-arka-jant-balans-merkezleme-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "VFR800"
+    ],
+    "baslik": "Honda VFR800 Fi / VTEC Arka Jant Balans Merkezleme Adaptörü",
+    "aciklama": "Honda VFR800 Fi ve VTEC arka jantını balans tezgâhının miline ortalayan silindirik ara kovan. Jant göbeğinin iç yatağına oturur, mil ile jant arasındaki boşluğu kapatır ve tekerleğin tam merkezde dönmesini sağlar. Lastik değişimi sonrası balans alınırken jantın kaçık merkezlenmesinden doğan ölçüm hatalarını önler. Ölçüler kaynak modelden alınmıştır; kendi jantınızda geçme toleransının kontrol edilmesi önerilir.\nYaklaşık dış ölçüler: 82 × 50 × 50 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1796035-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1796035-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1796035-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TTT78",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-goldwing-gl1500-vites-kolu-lastigi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Goldwing"
+    ],
+    "baslik": "Honda Goldwing GL1500 Vites Kolu Lastik Kılıfı",
+    "aciklama": "1988-2000 Honda Goldwing GL1500 modellerinde vites kolunun ucuna geçen tırtıklı lastik kılıf. Orijinal parça zamanla sertleşip çatladığında ayakkabı tabanı kol üzerinde kayar; bu kılıf tutuşu geri kazandırır. Kol ucuna sıkı geçer, ayrıca bağlantı elemanı gerektirmez. Dış yüzeydeki elmas desen ıslak havada kavramayı artırır. Esnek ve aşınmaya dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 40 × 20 × 13 mm.",
+    "fiyat": "240 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1768732-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768732-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768732-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768732-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768732-5.jpg"
+    ]
+  },
+  {
+    "id": "honda-xrv750-africa-twin-gosterge-cercevesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "baslik": "Honda XRV750 Africa Twin Gösterge Paneli Çerçevesi",
+    "aciklama": "Honda XRV750 Africa Twin'in üç gözlü gösterge takımını çevreleyen ön çerçeve. Hız, devir ve sıcaklık saatlerinin çevresine tam oturur; sıkı geçmeyle tutunduğu için vida ya da klips gerektirmez. Yıllar içinde çatlayan, kırılan veya güneşte rengi solan orijinal çerçevenin yerine takılır ve gösterge grubunun toplu görünümünü tazeler.\nYaklaşık dış ölçüler: 277 × 126 × 10 mm.",
+    "fiyat": "380 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1736493-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1736493-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1736493-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1736493-4.jpg"
+    ]
+  },
+  {
+    "id": "honda-civic-si-9-hava-filtresi-kutusu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Civic"
+    ],
+    "baslik": "Honda Civic Si (9. Nesil) Hava Filtresi Kutusu Arka Burcu",
+    "aciklama": "2012-2015 Honda Civic Si (2.4) hava filtresi kutusunun arka tarafındaki yuvalara geçen titreşim burcu. Orijinal burçlar sertleşip parçalandığında filtre kutusu yerinde oynar ve motor bölmesinde tıkırtı yapar; bu parça kutuyu yeniden sabit ve sessiz tutar. Yuvaya bastırılarak takılır, ek bağlantı elemanı gerekmez. Esnek bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 25 × 25 × 20 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1731486-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1731486-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1731486-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1731486-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "berg",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "honda-cr-v-2026-bilyeli-telefon-tutucu-tabani",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "CR-V"
+    ],
+    "baslik": "Honda CR-V (2026) Torpido Üstü Bilyeli Telefon Tutucu Tabanı",
+    "aciklama": "2026 Honda CR-V'nin multimedya ekranı yanındaki torpido yüzeyine oturan bilyeli tutucu tabanı. Üzerindeki küresel uç, yaygın manyetik ve kıskaçlı telefon tutucularının bilye yuvasına geçer; telefon ekranın hemen yanında, sürücünün görüş hattına yakın konumlanır. Taban çift taraflı bant ile yapıştırılır, panelde delik açılmasını gerektirmez. Yolcu tarafı için aynalanmış hâli kullanılabilir. Telefon tutucu başlığı ürüne dahil değildir.\nYaklaşık dış ölçüler: 84 × 65 × 39 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1693088-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1693088-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1693088-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1693088-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1693088-5.jpg"
+    ]
+  },
+  {
+    "id": "honda-acura-nsx-fren-sogutma-hava-kanali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Acura",
+      "NSX"
+    ],
+    "baslik": "Honda / Acura NSX Fren Soğutma Hava Kanalı",
+    "aciklama": "1991 Acura NSX ön tekerlek içine takılan fren soğutma hava kanalı. Ön tamponun alt bölgesinden gelen havayı fren diskine yönlendirir; uzun inişlerde ve sert kullanımda disk sıcaklığının yükselmesini geciktirir. Sağ ve sol için ayrı gövde bulunur, parçanın üzerindeki tek harf yalnızca taraf işaretidir. Diskten yayılan ısı nedeniyle ısıya dayanıklı bir malzeme tercih edilmesi uygun olur. Geniş lastik kullanan araçlarda direksiyon sonuna kadar çevrildiğinde temas olup olmadığı kontrol edilmelidir.\nYaklaşık dış ölçüler: 220 × 206 × 114 mm.",
+    "fiyat": "420 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1642060-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1642060-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1642060-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1642060-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alpine Fab",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-civic-type-r-fl5-magsafe-sarj-pedi-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Civic"
+    ],
+    "baslik": "Honda Civic Type R (FL5) Orta Konsol Manyetik Şarj Pedi Yuvası",
+    "aciklama": "11. nesil Honda Civic Type R (FL5) orta konsolundaki kablosuz şarj bölmesinin üzerine oturan manyetik şarj pedi yuvası. Yuvarlak manyetik şarj ünitesi ortadaki yuvaya sıkı geçer; telefon mıknatısla sabitlendiği için virajlarda kaymaz. Yuva bölmenin içine oturur, delik açmayı veya panel sökmeyi gerektirmez. Manyetik şarj ünitesi ve kablosu ürüne dahil değildir; aracın kendi kablosuz şarj ünitesinin kapatılması önerilir.\nYaklaşık dış ölçüler: 166 × 148 × 9 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1606571-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1606571-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1606571-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1606571-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1606571-5.jpg"
+    ]
+  },
+  {
+    "id": "honda-crf1100-africa-twin-aku-terminal-somunu-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "baslik": "Honda CRF1100 Africa Twin Akü Terminal Somunu Tutucusu",
+    "aciklama": "Honda CRF1100 Africa Twin'de akü kablosu bağlanırken terminal somununu yuvasında tutan küçük aparat. Dar boşlukta elle tutulamayan somun sık sık düşer; bu parça somunu yerinde sabitleyerek bağlantının tek elle yapılmasını sağlar. Kablo bağı sıkıştırmak gibi geçici çözümlerin yerini alır ve montajdan sonra yerinde kalır.\nYaklaşık dış ölçüler: 13 × 11 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1567305-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1567305-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1567305-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1567305-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1567305-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kasper Halsas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-cb500-four-regulator-redresor-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "CB500"
+    ],
+    "baslik": "Honda CB500 Four Regülatör / Redresör Montaj Braketi",
+    "aciklama": "1972 Honda CB500 Four ve yakın CB550 modellerinde, ayrı duran regülatör ile redresörün yerine tek gövdeli modern bir regülatör-redresör takmak için kullanılan ara braket. Orijinal bağlantı noktasını ve o noktadaki yassı yüzeyli cıvatayı aynen kullanır; şasede delik açılmasını gerektirmez. Honda'nın orijinal parçası değildir, uyumlu bir yedek olarak tasarlanmıştır.\nYaklaşık dış ölçüler: 86 × 45 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1504207-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1504207-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1504207-3.jpg"
+    ]
+  },
+  {
+    "id": "honda-cr-v-4-nesil-orta-konsol-duzenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "CR-V"
+    ],
+    "baslik": "Honda CR-V (4. Nesil) Orta Konsol Düzenleyici",
+    "aciklama": "2012 Honda CR-V orta kolçak bölmesine oturan iki parçalı düzenleyici. Alt gövde bölmenin tabanına yerleşir, üst tepsi onun üzerine istiflenir; böylece derin ve dağınık bölme, küçük eşyalar ile büyük parçaların ayrıldığı iki katlı bir düzene dönüşür. Üst tepsi kaldırılarak alttaki bölmeye erişilir. Sıcak iklimde biçimini iyi koruyan bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 197 × 133 × 80 mm.",
+    "fiyat": "340 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1475199-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475199-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475199-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475199-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475199-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SamA",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-cr-v-4-nesil-buyuk-matara-bardaklik-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "CR-V"
+    ],
+    "baslik": "Honda CR-V (4. Nesil) Büyük Matara Bardaklık Adaptörü",
+    "aciklama": "2012 Honda CR-V bardaklığını geniş çaplı termos ve mataralara uyarlayan adaptör. Konik gövde bardaklığın içine oturur, geniş üst ağzı büyük kapları kavrar; ince enerji içeceği kutuları için iç kademe destek verir. Alt tarafa geçen ayrı yumuşak taban parçası titreşim sesini keser ve kabın tabanını korur; taban parçası gövdeye yapıştırılarak kullanılır.\nYaklaşık dış ölçüler: 147 × 99 × 99 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1475181-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475181-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475181-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475181-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1475181-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SamA",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-civic-5-kapi-klima-klape-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Civic"
+    ],
+    "baslik": "Honda Civic (5 Kapı) Kalorifer Klape Kolu",
+    "aciklama": "Honda Civic 5 kapı modellerinde kalorifer-klima kutusundaki hava yönlendirme klapesini çeviren kol. Orijinal parça plastik yorulmasıyla kırıldığında klape hareketsiz kalır ve üfleme yönü değiştirilemez. Bu yedek kol klape miline geçer, çatal ucu kumanda teline bağlanır; takımda iki adet gövde bulunur. Torpido altındaki dar alanda çalışıldığı için sökme sırasında bağlantı telinin konumunun not edilmesi önerilir.\nYaklaşık dış ölçüler: 40 × 31 × 14 mm.",
+    "fiyat": "230 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1268563-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1268563-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1268563-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1268563-4.jpg"
+    ]
+  },
+  {
+    "id": "honda-s2000-havalandirma-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "S2000"
+    ],
+    "baslik": "Honda S2000 Havalandırma Gösterge Yuvası",
+    "aciklama": "Honda S2000'in yan havalandırma ızgarasının yerine geçen ek gösterge yuvası. Yağ basıncı ve yağ sıcaklığı gibi sonradan takılan yuvarlak göstergeleri sürücünün görüş açısında konumlandırır. Kutu gövde havalandırma boşluğuna oturur, üstteki tırnak orijinal tespit noktasına geçer. Gösterge ünitesi ve kablo tesisatı ürüne dahil değildir.\nYaklaşık dış ölçüler: 81 × 80 × 50 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1246186-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1246186-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1246186-3.jpg"
+    ]
+  },
+  {
+    "id": "honda-crf1000l-africa-twin-ekran-navigasyon-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "Africa Twin"
+    ],
+    "baslik": "Honda CRF1000L Africa Twin Ekran / Navigasyon Braketi",
+    "aciklama": "Honda CRF1000L Africa Twin'e ek bir navigasyon veya multimedya ekranı bağlamak için kullanılan iki parçalı kelepçe braketi. İç ve dış gövde, gösterge üstündeki taşıyıcı boruyu iki yandan sarar; dört adet cıvata ve kilitli somunla sıkılır, ekranın gövdesi öndeki yuvaya oturur. İç çap titreşimde kaymayı önleyecek biçimde ölçülendirilmiştir. Isıya ve dış hava koşullarına dayanıklı bir malzeme tercih edilmesi uygun olur. Cıvata, somun ve ekran ünitesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 45 × 45 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1213949-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1213949-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1213949-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1213949-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1213949-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DrElectron",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "honda-acura-rdx-bagaj-alti-drenaj-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Acura",
+      "RDX"
+    ],
+    "baslik": "Honda / Acura RDX Bagaj Altı Drenaj Kapağı",
+    "aciklama": "2022 Acura RDX A-Spec'te bagaj döşemesinin altında bulunan ve aracın dışına açılan drenaj ağzının kapağı. Kaybolan ya da kırılan orijinal kapağın yerine geçer; kenarındaki tırnaklar sac yuvaya kilitlenir. Gövde üzerindeki kanallar, ince bir hortumun kapaktan dışarı çıkarılmasına da izin verecek biçimde düzenlenmiştir.\nYaklaşık dış ölçüler: 89 × 86 × 7 mm.",
+    "fiyat": "240 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1211293-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1211293-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1211293-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ShadowMK3.5",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-ct125-hunter-cub-on-kamera-braketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "CT125"
+    ],
+    "baslik": "Honda CT125 Hunter Cub Ön Kamera Braketi",
+    "aciklama": "Honda CT125 Hunter Cub'ın ön tarafına yol kayıt kamerası bağlamak için kullanılan braket. Alt plakadaki dört delik mevcut gövde bağlantı noktalarına oturur; yukarı uzanan kollu gövde kamerayı far hizasının üzerine taşır. Kademeli biçim, kameranın gidon hareketinden ve far gölgesinden etkilenmemesini sağlar. Kamera ve bağlantı elemanları ürüne dahil değildir.\nYaklaşık dış ölçüler: 95 × 60 × 30 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1202458-1-v2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1202458-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1202458-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1202458-4.jpg"
+    ]
+  },
+  {
+    "id": "honda-acura-kalorifer-klape-aktuator-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Acura"
+    ],
+    "baslik": "Honda / Acura Kalorifer Klape Aktüatör Dişlisi",
+    "aciklama": "Acura kalorifer-klima kutusundaki klape motorunun sektör dişlisi. Dişleri aşınan veya göbeği çatlayan orijinal parça, klapenin komut almasına rağmen hareket etmemesine ve panelden tıkırtı gelmesine yol açar. Bu yedek dişli motor miline geçer; yay ve tahrik kolu yuvalarını aynen taşır. Sürtünmeye dayanıklı, biçimini koruyan bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 56 × 55 × 21 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1128679-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1128679-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1128679-3.jpg"
+    ]
+  },
+  {
+    "id": "honda-acura-rsx-havalandirma-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Acura",
+      "RSX"
+    ],
+    "baslik": "Honda / Acura RSX Havalandırma Gösterge Yuvası",
+    "aciklama": "2000'li yılların Acura RSX modelinde sürücü tarafındaki havalandırma ızgarasının yerine geçen gösterge yuvası. Sonradan takılan yuvarlak göstergeleri panele gömülü görünümde taşır ve orijinal vida noktalarını kullanır. İki farklı iç ölçü sunulur; biri sıkı, diğeri hafif boşluklu oturma içindir. Gösterge ünitesi ürüne dahil değildir. Panelin sökülmesi ve havalandırma grubunun çıkarılması gerektiğinden aracın kendi bakım yordamına uyulması önerilir.\nYaklaşık dış ölçüler: 77 × 77 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr999451-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr999451-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr999451-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Regithalli",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "honda-civic-eg-torpido-gozu-kulpu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Civic"
+    ],
+    "baslik": "Honda Civic (1992-1996) Torpido Gözü Kulpu",
+    "aciklama": "1992-1996 Honda Civic'te torpido gözü kapağının açma kulpu. Orijinal kulp plastik yorulmasıyla kırıldığında kapak açılamaz hâle gelir. Bu yedek gövde, kapağın iç yüzeyindeki tespit noktalarına ve mandal miline aynen oturur; sökülen orijinal metal mandal parçası bu gövdenin üzerine takılarak kullanılır. Kenardaki uzun oluk, kapağın kilit diline geçen bölümdür.\nYaklaşık dış ölçüler: 84 × 36 × 15 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr472813-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr472813-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr472813-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr472813-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr472813-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Flo mars",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-vfr800-vidali-yag-doldurma-hunisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda",
+      "VFR800"
+    ],
+    "baslik": "Honda VFR800 Vidalı Yağ Doldurma Hunisi",
+    "aciklama": "Honda VFR800 (RC46) yağ doldurma ağzına vidalanan kıvrımlı huni. Standart hunilerin açılı ağızda durmaması sorununu çözer; alttaki diş doğrudan doldurma ağzına oturduğu için huni elle tutulmadan yerinde kalır. İki parçadan oluşur: huni gövdesi ve gövde üzerinde serbest dönen sıkma somunu. Aynı diş ölçüsüne sahip başka motosikletlerde de kullanılabilir.\nYaklaşık dış ölçüler: 99 × 76 × 57 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr365701-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr365701-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr365701-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr365701-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr365701-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nismo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-accord-2006-kolcak-kilit-dili",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Accord"
+    ],
+    "baslik": "Honda Accord (2006) Kolçak Kilit Dili",
+    "aciklama": "2006 Honda Accord'da orta kolçak kapağını kapalı tutan kilit dili. Orijinal parça kırıldığında kapak kendiliğinden açılır ve yolda savrulur. Bu yedek gövde kolçak kapağının içindeki iki vida noktasına oturur; yükselen dil karşı yuvaya geçerek kapağı sabitler. Öndeki oval boşluk açma düğmesinin hareket alanıdır.\nYaklaşık dış ölçüler: 52 × 42 × 32 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr214718-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr214718-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr214718-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RassaB",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "nissan-s13-kapi-esigi-plakasi-klipsi",
     "kategori": "Otomobil",
     "marka": [
