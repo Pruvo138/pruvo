@@ -1,5 +1,26 @@
 [
   {
+    "id": "mitsubishi-minicab-u42t-dikiz-aynasi-tasiyici-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mitsubishi",
+      "Minicab"
+    ],
+    "baslik": "Mitsubishi Minicab (U42T) Dikiz Aynası Taşıyıcı Plakası",
+    "aciklama": "Mitsubishi Minicab (U42T) kei kamyonetinde tavana bağlı ayna kolunun 13 mm bilyesine geçen, klipsli geniş açılı dikiz aynaları için taşıyıcı plakadır.\nOrtadaki bilye yuvası kolun ucuna geçirilir, aynanın kendi klipsleri plakanın alt kenarını kavrar; ayna açısı bilye üzerinde serbestçe ayarlanır.\n- Yuvanın yan kulakçıkları M3 vida ile sıkılarak seçilen açı sabitlenir.\n- Plakanın taşıyıcı yüzeyi düz ve geniştir; farklı klips aralığındaki aynalara uyum sağlar.\n- Ayna camı ürüne dahil değildir; kendi klipsli aynanızla birlikte kullanılır.\n- Ön camın hemen arkasında, doğrudan güneş gören bir bölgede durur; ısıya ve UV'ye dayanıklı bir malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 175 × 60 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1801693-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1801693-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1801693-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1801693-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Robert Francis Duke & Gyrobot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "suzuki-burgman-an650-aku-yukseltme-adaptoru",
     "kategori": "Motosiklet",
     "marka": [
