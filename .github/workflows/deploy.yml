@@ -2899,6 +2899,12 @@ jobs:
       # Offline, stdlib, ~30 ms.
       - name: "6c sizinti muafiyeti ic nobetcisi (mutasyon)"
         run: python3 tools/durum-test.py --ic-nobetci
+      # d1-sync-durum-test.py 6 Agu'da TURETILMIS KOLON EKSENINI (4.) de kapsar: urun_hash'in
+      # KAPSAMADIGI kolonlarin (konfigur/taban_fiyat/marka_kanon/model_kanon/marka_arama)
+      # canlida bayat kalmasi SAYI + SEMA + ICERIK eksenlerinin UCUNE DE gorunmuyordu
+      # (olculen vaka: marka_arama'da Honda 1898, olmasi gereken 1979). Mutasyon kaniti
+      # (13 olduruculu / 5 kontrollu batarya): python3 tools/d1-sync-durum-mutasyon.py.
+      # Agsiz + wrangler'siz kosar (sorgu() fikstur, uretici govdeler index.html'den okur).
       - name: D1 durum tanisi + baski senkron kabul testi
         run: |
           python3 tools/d1-sync-durum-test.py
