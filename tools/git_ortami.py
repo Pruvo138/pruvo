@@ -215,6 +215,14 @@ def worktree_kanca_kok_olcumu(kapi_kaynagi, hedef_ad):
 #   (c) .py DISI dosyalar (kabuk kancalari, YAML) — bu nobet YALNIZ izlenen `.py` tarar,
 #   (d) git baglam adlarinin YANINDA YABANCI anahtar da tasiyan SOZLUK (or.
 #       `{"GIT_DIR": ..., "aciklama": ...}`) — yukaridaki yanlis-pozitif ayrimi geregi.
+#   (e) sozlugun LITERAL yerine ANAHTAR-KELIME CAGRISIYLA kurulmasi (or.
+#       `dict(GIT_DIR=None, GIT_WORK_TREE=None)`): bu bicimde adlar `ast.Constant`
+#       dize anahtari DEGIL, `ast.keyword.arg` tanimlayicisidir; ne dizi ne sozluk
+#       ekseni gorur. Bagimsiz curutucu 7 Agu 2026'da enjeksiyonla OLCTU (kaciyor,
+#       rc=0). Depoda bu bicimde ornek SAYISI: 0 -> delik bugun TEORIK; kabul
+#       edilemez olan "delik VAR ama beyanda YOK" haliydi, bu satirla kapatildi.
+#       Tespit mantigi BILEREK degistirilmedi: ornegi olmayan bir eksen icin
+#       tarama yuzeyini genisletmek yanlis-pozitif riskini bedelsiz artirirdi.
 # Olculen alternatif eksen ("dosyada 11 addan >=4'u dizi sabiti olarak geciyor") bugun
 # AYNI dosyalari buluyor (V1 == V2) -> ek yakalama getirmiyor, ek yanlis-pozitif riski
 # getiriyor; bu yuzden DAR eksen secildi ve sinir burada BEYAN EDILDI.
