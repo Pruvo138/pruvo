@@ -889,7 +889,16 @@ jobs:
       # Offline, stdlib, ~12 s (suresi build.py'nin kendisidir).
       - name: "Yasal sayfa drift kapisi (build.py uretimi == commit'li icerik)"
         run: python3 tools/yasal-sayfa-drift-kapisi.py
-      - name: Kaynak/lisans kabul testleri (makerworld + printables + havuz + entegrasyon)
+      # ATA ZINCIRI (ata-lisans-kapisi): depodaki TUM lisans kapilari kaynak-platform-ICI
+      # bakiyordu; turev kaydin ATASININ lisansi hicbir kapinin ekseninde DEGILDI. Dort canli
+      # emsalde ata referansi `license` BOS + kimlik 0 geldi, ata ANCAK serbest-metin linkin
+      # HOST'undan cozuldu ve dordu de NC (SATILAMAZ) cikti — hicbir test kirmizi yanmadi.
+      # Buradaki iki cagri OFFLINE'dir (kapinin oz-denetimi + uydurma fiksturlu kabul testi);
+      # ag isteyen `--kuru-kosum` kolu CI'da KOSMAZ. Bagimsiz curutucu ilk surumde 12 SESSIZ
+      # GECIS olctu (rc=0 ile gecen NC/cozulmemis ata); her delik icin D-iddiasi + AYRI
+      # oldurucu mutant eklendi. Mutasyon bataryasi (surucu repoda, sayiyi GUNCEL TUT):
+      #   python3 tools/ata-lisans-mutasyon.py   (oldurucu 20/20 KIRMIZI, kontrol 3/3 YESIL)
+      - name: Kaynak/lisans kabul testleri (makerworld + printables + havuz + entegrasyon + ata zinciri)
         run: |
           python3 tools/makerworld-ara-test.py
           python3 tools/makerworld-lisans-test.py
@@ -897,6 +906,8 @@ jobs:
           python3 tools/lisans-havuz-test.py
           python3 tools/kaynak-entegrasyon-test.py
           python3 tools/thingiverse-gallery-test.py
+          python3 tools/ata-lisans-kapisi.py --kendini-test
+          python3 tools/ata-lisans-test.py
       # YAYIN EKSENI: uretilen sayfalarda piksel/riza, script surumleme (4 saatlik
       # tarayici onbellegi) ve Google Merchant feed g:id 50-karakter siniri.
       - name: Yayin cikti kabul testleri (meta piksel + surum damgasi + merchant feed)
