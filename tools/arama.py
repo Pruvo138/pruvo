@@ -1337,7 +1337,14 @@ BASLIK_DOGAN_ALLOW = {
     ("Volvo", "S80"): "arac/motosiklet model adi",
     ("Volvo", "V90"): "arac/motosiklet model adi",
     ("Volvo", "XC40"): "arac/motosiklet model adi",
-    ("Yamaha", "FZ1"): "arac/motosiklet model adi",
+    # 6 Agu — UC GIRIS BURADAN CIKARILDI (giris OLU idi, SAYFA DEGIL): `Yamaha|FZ1`,
+    # `Yamaha|Tracer 900`, `Yamaha|XSR 700`. Yamaha partileri (dilim 4-5) bu kovalara
+    # marka[]/uyum[] jetonu tasiyan urunler ekledi; jeton-yollu urun sayisi ESIK'i gecince
+    # kova artik BASLIK KOLU SAYESINDE dogmuyor (`baslik_dogan=False`) ve yargi girisi
+    # ISLEVSIZ kaliyor. Envanterde birakilan olu giris hicbir sayfa acmaz ama K21'in BAYAT
+    # eksenini kirmizi yakar. Ucunun de sayfasi YAYINDA, ayni slug, ayni urun kumesi
+    # (FZ1 5 urun / Tracer 900 7 urun / XSR700 4 urun; olculdu: kaybolan sayfa 0,
+    # kuculen sayfa 0, slug degisen 0).
     ("Yamaha", "Grizzly"): "arac/motosiklet model adi",
     # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum E — ARAC DISI, TEKIL GIRISLE DOGAR):
     # Yamaha cok-dikey bir markadir; bu iki sayfa GERCEK Yamaha urun modelidir ama ARAC
@@ -1349,14 +1356,12 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "Raptor 700"): "arac/motosiklet model adi",
     ("Yamaha", "Recording Custom"): "ARAC DISI urun modeli (davul kiti) — tekil giris",
     ("Yamaha", "Seca"): "arac/motosiklet model adi",
-    ("Yamaha", "Tracer 900"): "arac/motosiklet model adi",
     ("Yamaha", "XJ 600"): "arac/motosiklet model adi",
-    ("Yamaha", "XSR 700"): "arac/motosiklet model adi",
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 194
-BASLIK_DOGAN_ALLOW_IMZA = "e4553fe84d9a4ef0"
+BASLIK_DOGAN_ALLOW_SAYISI = 191
+BASLIK_DOGAN_ALLOW_IMZA = "d55b0142682b35d9"
 
 
 def baslik_dogan_allow_imzasi():
