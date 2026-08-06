@@ -43936,7 +43936,6 @@
     "aciklama": "Tenor saksafon için 2 mm tip açıklığına sahip, Yamaha YTS-280 gibi modellerde görülen tiz nota sorununu gidermeyi hedefleyen ağızlıktır.\n- Standart tenor saksafon kamışlarıyla kullanılabilir.\nYaklaşık dış ölçüler: 108 × 30 × 28 mm.",
     "fiyat": "230 TL",
     "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6498231-1.jpg",
       "https://media.pruvo3d.com/urunler/th6498231-2.jpg"
     ],
     "lisans": {
@@ -44667,28 +44666,6 @@
     ],
     "lisans": {
       "tasarimci": "alexhasker",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
-    "id": "yamaha-tracer-900-on-amortisor-ayar-aparati",
-    "kategori": "Motosiklet",
-    "marka": [
-      "Yamaha",
-      "Tracer",
-      "900"
-    ],
-    "baslik": "Yamaha Tracer 900 Ön Amortisör Ayar Aparatı",
-    "aciklama": "Yamaha Tracer 900 ön amortisör sertlik/rebound ayarını elle çevirmeyi kolaylaştıran yardımcı parçadır.\nYaklaşık dış ölçüler: 53 × 53 × 15 mm.",
-    "fiyat": "220 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/th6878182-1.jpg",
-      "https://media.pruvo3d.com/urunler/th6878182-2.jpg",
-      "https://media.pruvo3d.com/urunler/th6878182-3.jpg",
-      "https://media.pruvo3d.com/urunler/th6878182-4.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Pomorzanin",
       "tur": "CC BY-SA 4.0"
     }
   },
