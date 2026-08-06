@@ -1,5 +1,33 @@
 # DEVAM (KraL) — 5 Agu 2026
 
+## CI NOBETI (6 Agu 11:37 turu) — `yayin` tavani KAPANDI, 28 mail Cop'e
+
+- **Mail toplu cekildi, ORNEKLEME YOK:** gelen kutusu tek Apple Event ile alindi, cekilen
+  satir sayisi kutu sayisiyla esitlendi. `notifications@github.com` + "Run failed" =
+  **36** mail (son 90 dk: **6** · daha eski: **30**).
+- **ONARILDI — `yayin` job'i; kok neden TASARLANMIS TAVAN, kusur DEGIL.** Kosum
+  `31080098990`: `build`+`deploy`=success, tek kirmizi `yayin`. Log alintisi:
+  `TASLAK: 493 · aday: 493` + `ADAY SAYISI TAVANI ASTI: 493 > 300`. Ayni kok neden bir
+  onceki kosumu da (`31078248697`) dusurmustu. **Emsale birebir uyuldu; esik BUYUTULMEDI,
+  kaynak kod DEGISMEDI:** `yayin-kapisi.py --geriye-doldur` -> **493 kayit**.
+- **Bagimsiz teyit (`--durum`, aracin kendi geri-okumasi):** ONCE `20850:20212:638` ->
+  SONRA `20850:20705:145`. **YAYIN GECIKMESI 0** · DEGISMEZ IHLALI 0. Kalan 145 taslak
+  canli `urunler.json`'da bulunmayan en yeni dilim — tasarim geregi taslak, kirmizi degil.
+- **28 mail Cop'e TASINDI** (Cop BOSALTILMADI, kalici silme YOK): yalnizca `gh` ile YESIL
+  DOGRULANAN iki alarm koluna ait mailler (ikisi de son iki HEAD'de `success`). Hala
+  kirmizi olan `Build & deploy` (3) ve odeme-yolu bayatlik (5) mailleri KUTUDA KALDI.
+  Iki bagimsiz tarama birbirini tutuyor: 36 - 28 = **8** kalan.
+- 🔴 **ACIK KALEM 1 SURUYOR — su an TEK bloklayici, OKAN KAPISI (yetki):** depo secret'i
+  `CLOUDFLARE_ACCOUNT_ID` degeri gecersiz. Bu turda BAGIMSIZ dogrulandi (kosum
+  `31083433353` kadans kolu logu): `Could not route to /accounts/***/d1/database, perhaps
+  your object identifier is invalid? [code: 7003]`. Etki: D1'e dokunan HER CI adimi —
+  kadans kolu, odeme-yolu bayatlik olcumu ve **bundan sonraki `yayin` adimi** —
+  `OLCULEMEDI/rc=1`. Kod dogru, **DEGER yanlis**. Nobet secret'a DOKUNMAZ (YASAK liste).
+  ⚠️ Bu turun geriye-doldurmasi D1'de DOGRU; ama secret duzelene kadar CI'daki `yayin`
+  yine kirmizi yanabilir — artik TAVAN sebebiyle degil, KIMLIK sebebiyle. Ayrimi karistirma.
+- 🔴 **ACIK KALEM 2 (BASKA MIMARIN DUZLEMI, dokunulmadi):** `serit-a3` diriltme kapisi
+  kirmizi — katalogdan cikarilmis bir urun id'si geri gelmis. Karar MaCiT/Okan'da.
+
 ## 🟢 ANLATIM-YUZEY NOBETI KAPANDI — `493b286c` (dal main'e alindi)
 
 - **Kol YESIL:** ilgili is akisi 6 Agu 08:04 kosumunda **success** (5 Agu 21:56'dan beri
