@@ -546,11 +546,20 @@ def _kimlik_slug(url, isaret):
 
 
 def _kimlik_thing(url):
-    """.../thing:<sayi> -> sayi."""
-    for parca in _yol_parcalari(url):
+    """.../thing:<sayi>  VE  .../things/<sayi> (API bicimi) -> sayi.
+
+    🔴 CANLI KURU KOSUMDA OLCULDU: ata baglantisi bazen SITE bicimiyle degil API bicimiyle
+    (`.../things/<sayi>`) yazilmis geliyor. Tek bicim taninirsa kimlik cikmaz ve kayit
+    gereksiz yere ELLE-BAK kuyruguna duser (fail-closed ama COZULEBILIR bir vaka)."""
+    parcalar = _yol_parcalari(url)
+    for i, parca in enumerate(parcalar):
         m = re.match(r"thing:(\d+)", parca, re.IGNORECASE)
         if m:
             return m.group(1)
+        if parca.lower() in ("things", "thing") and i + 1 < len(parcalar):
+            m2 = re.match(r"(\d+)", parcalar[i + 1])
+            if m2:
+                return m2.group(1)
     return None
 
 
@@ -899,6 +908,10 @@ def kendini_test(yaz=None):
     k.append(("ata alan listesi 6 ad", len(ATA_ALANLARI) >= 6))
     k.append(("zarf acilir", "originals" in _zarf_ac({"data": {"originals": []}})))
     k.append(("coklu URL cikar", len(urlleri_cikar("a https://x.example/1 b https://y.example/2")) == 2))
+    k.append(("kimlik: site bicimi", _kimlik_thing("https://ornek.example/thing:2304418") == "2304418"))
+    k.append(("kimlik: API bicimi", _kimlik_thing("https://api.ornek.example/things/2304418")
+              == "2304418"))
+    k.append(("kimlik: bicim yoksa None", _kimlik_thing("https://ornek.example/x/1") is None))
     k.append(("turev detayi None -> KALICI",
               kayit_yargi("u", None, defter, genel_satilabilir)[0]["durum"] == DURUM_KALICI))
     k.append(("turev detayi BOS -> KALICI",

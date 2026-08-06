@@ -152,6 +152,12 @@ MUTANTLAR = [
      '            out.append(_sonuc(DURUM_KALICI, "ust kademe: " + h, ata, host, kimlik, None,',
      "KIRMIZI", "D11b"),
 
+    # ---------------- kimlik cikarimi: API bicimi (canli kuru kosumda olculdu) ----------------
+    ("OLD-20 kimlik cikariminda API bicimi taninmaz",
+     '        if parca.lower() in ("things", "thing") and i + 1 < len(parcalar):',
+     '        if False:',
+     "KIRMIZI", "kendini-test"),
+
     # ---------------- KONTROL (yanlis-pozitif olmadigi kaniti) ----------------
     ("KONTROL-1 ilgisiz davranis (kuru kosum tavani)",
      'ap.add_argument("--limit", type=int, default=40,',
