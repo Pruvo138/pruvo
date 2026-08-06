@@ -2192,6 +2192,23 @@ SERIT_B = {
     ("nobet.yml", "serit-b", "tools/diriltme-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; silinmis urun diriltme OLCUMU (bayraksiz kol) "
         "serit A'da bloklayici kosuyor.",
+    # --- GIT BAGLAM SCRUB'I / TEK KAYNAK DRIFT NOBETI (6 Agu 2026) -----------------
+    # Modulun BAYRAKSIZ kolu bir OLCUM DEGILDIR (yardim metni basar); tek kabul kolu
+    # `--kendini-test`tir, yani giris "aracin KENDINI sinamasi" sinifina TAM oturur.
+    # Serit A'ya konmadi cunku olctugu sey CANLIYA CIKAN ICERIK degil, kapilarin
+    # KOK TURETIMININ tek kaynaktan gelmesidir: ikiz bir tanim belirse bile o gunun
+    # yayini yanlis/sizintili icerik TASIMAZ — ama kapilar worktree/kanca baglaminda
+    # sessizce yanlis agaci olcmeye baslar. Ikinci katman zaten SERIT A'dadir:
+    # ic-rapor-adi-kapisi.py::IDDIA-6, spec-ifsa-kapisi.py::IDDIA-KOK3 ve
+    # diriltme-kapisi.py::W1-W4 ayni onarimi DAVRANISSAL olcer (gercek worktree +
+    # gercek commit + gercek kanca), yani bu adim TEK savunma hatti DEGILDIR.
+    ("nobet.yml", "serit-b", "tools/git_ortami.py"):
+        "YALNIZ `--kendini-test` kolu (scrub davranisi + `GIT_BAGLAM_DEGISKENLERI` "
+        "ikinci-tanim/drift nobeti); bayraksiz kol olcum YAPMAZ. 'Canliya sizintili/"
+        "yanlis icerik cikmasin' sinifi DEGILDIR — kok turetiminin TEK KAYNAKTAN "
+        "gelmesini olcer. Ayni onarimin DAVRANISSAL ayagi serit A'da bloklayici "
+        "kosuyor (ic-rapor-adi-kapisi.py --kendini-test :: IDDIA-6 ve "
+        "spec-ifsa-alarmi.yml'deki spec-ifsa-kapisi.py --kendini-test :: IDDIA-KOK3).",
     ("nobet.yml", "serit-b", "tools/ege-bilgi-tavan-test.py"):
         "YALNIZ `--ic-nobetci` kolu (30 gecici fikstur); canli ege-bilgi.md tavan olcumu "
         "serit A'da bloklayici kosuyor.",
