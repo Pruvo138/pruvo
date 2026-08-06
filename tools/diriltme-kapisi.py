@@ -50,6 +50,16 @@ SILINMIS ID KUMESI GIT GECMISINDEN TURETILIR (ELLE LISTE TUTULMAZ — bayatlar):
      devreye GIREMEZ. Kabul: `--kendini-test` K1..K8 (GERCEK `git commit` davranisi)
      + `--kanca-mutasyon` (adimi olduren mutasyon POZITIF vakayi YESILE dondurur mu).
 
+🔴 WORKTREE + KANCA BAGLAMI (6 Agu 2026 onarimi, YENIDEN URETILDI): bu kapi bir
+   LINKED WORKTREE'de kanca icinden kosunca depo kokunu `<agac>/tools` saniyor ve
+   rc=2 OLCULEMEDI verip commit'i DURDURUYORDU — kusur, isciyi `--no-verify`ye
+   iterek KAPININ KENDISINI atlatmayi normallestiriyordu. Kok artik ORTAMDAN degil
+   `-C <yol>` KESFINDEN turer (olculen ortam + gerekce: `git_ortami` ustundeki not).
+   KAPI ZAYIFLAMADI: rc=2 hala rc=2, worktree'de hicbir kol ATLANMAZ. Kabul: W1..W4
+   uc baglami (ana/dogrudan · worktree/dogrudan · worktree/kanca-ici GERCEK
+   `git commit`) DAVRANISSAL olcer; `KOK_MUTASYONLARI` onarimi geri alan mutantin W
+   eksenini KIRMIZI yaktigini, ilgisiz KONTROL mutantinin YAKMADIGINI kanitlar.
+
 🔴 NEDEN "YAPISKAN EKSEN" YOK — OLCULDU VE ELENDI (6 Agu 2026):
    Onerilen ucuncu eksen: "gecmiste `-` ile TERK EDILMIS VE su an HEAD'de VAR olan id
    -> KIRMIZI" (pencereden bagimsiz, sonmez). MALIYETI KOSULARAK OLCULDU:
@@ -178,7 +188,8 @@ KULLANIM:
     python3 tools/diriltme-kapisi.py --calisma-agaci  # HEAD -> calisma agaci (push oncesi)
     python3 tools/diriltme-kapisi.py --taban main --yeni <dal>   # merge oncesi on-test
     python3 tools/diriltme-kapisi.py --kendini-test   # POZITIF+NEGATIF kabul (ag YOK)
-    python3 tools/diriltme-kapisi.py --kanca-mutasyon # YALNIZ pre-commit ayagi+mutasyon
+    python3 tools/diriltme-kapisi.py --kanca-mutasyon # pre-commit + WORKTREE KOK ayagi
+                                                      # + mutasyon bataryalari (hizli)
 
 CIKIS KODLARI: 0 = YESIL · 1 = KIRMIZI (diriltme / alan gerilemesi) · 2 = OLCULEMEDI.
 """
@@ -229,7 +240,52 @@ class Olculemedi(Exception):
 
 
 # ---------------------------------------------------------------- git yardimcilari
+# 🔴 6 AGU 2026 ONARIMI — WORKTREE + KANCA BAGLAMINDA YANLIS KOK (olculdu, yeniden
+# uretildi). Bu kapi bir LINKED WORKTREE'de pre-commit kancasi icinden kosunca
+# `depo_kok()` depo koku olarak `<agac>/tools`u buluyordu -> `--calisma-agaci`
+# kipi `<agac>/tools/urunler.json`i ariyor, bulamiyor ve **rc=2 OLCULEMEDI**
+# donduruyordu; commit BLOKLANIYOR, isci `--no-verify`ye itiliyordu. Yani kusur
+# kapinin KENDISINI atlatmayi normallestiriyordu.
+#
+# OLCULEN ORTAM (sentetik depo + gercek `git commit`, worktree icinde):
+#     PWD           = <worktree>                       (git kanca oncesi buraya cd eder)
+#     GIT_DIR       = <ana>/.git/worktrees/<w>         ← MUTLAK
+#     GIT_WORK_TREE = <BOS>
+#     GIT_INDEX_FILE= <ana>/.git/worktrees/<w>/index
+# GIT_DIR MUTLAK ve GIT_WORK_TREE BOS oldugunda git depo KESFINI ATLAR ve calisma
+# agacinin tepesi olarak CARI DIZINI kabul eder. Koku tureten satir
+# `git -C <TOOLS> rev-parse --show-toplevel` idi (TOOLS = `<agac>/tools`) ve
+# OLCULEN cikti aynen sudur:
+#     rev-parse --show-toplevel (cwd=tools): /.../wt/tools      ← YANLIS
+# ANA checkout'ta ayni satir dogru cevap verir cunku orada GIT_DIR GORELI (`.git`)
+# gelir: `-C <kok>/tools` altinda `.git` YOKTUR, cagri BASARISIZ olur ve kod
+# ikinci adaya (cwd = depo koku) duser. Yani hata dala degil, KANCA+WORKTREE
+# baglamina baglidir ve ana checkout'ta GORUNMEZ.
+#
+# CARE: kok ORTAMDAN degil, `-C <yol>` KESFINDEN turer. Bu kapinin cagirdigi HER
+# git komutu, cagiran surecten MIRAS ALINAN git baglami SILINMIS bir ortamda
+# kosar. Kapi zaten her cagriya ACIK `-C <depo>` verir; miras alinan GIT_DIR bu
+# acik hedefi SESSIZCE eziyordu.
+# 🔴 KAPI ZAYIFLAMAZ: rc=2 hala rc=2'dir, worktree'de HICBIR kol atlanmaz —
+# yalnizca kok DOGRU bulunur, boylece kapi worktree'de de FIILEN OLCER.
+GIT_BAGLAM_DEGISKENLERI = (
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+    "GIT_PREFIX", "GIT_NAMESPACE", "GIT_INDEX_VERSION",
+)
+
+
+def git_ortami():
+    """Miras alinan git baglami SILINMIS ortam kopyasi (bkz. yukaridaki onarim notu)."""
+    ort = os.environ.copy()
+    for ad in GIT_BAGLAM_DEGISKENLERI:
+        ort.pop(ad, None)
+    return ort
+
+
 def _git(depo, *args, **kw):
+    kw.setdefault("env", git_ortami())
     p = subprocess.run(["git", "-C", depo, *args], capture_output=True, text=True,
                        errors="replace", **kw)
     return p.returncode, p.stdout, p.stderr
@@ -237,7 +293,11 @@ def _git(depo, *args, **kw):
 
 def depo_kok(verilen=None):
     """Depo koku: verilen > bu dosyanin dizini > cwd. Kapinin BIR KOPYASI depo disina
-    (or. scratchpad'e) konup mutasyon icin kosuldugunda ikinci dal devreye girer."""
+    (or. scratchpad'e) konup mutasyon icin kosuldugunda ikinci dal devreye girer.
+
+    Kesif ORTAMDAN BAGIMSIZDIR: `_git` miras alinan GIT_DIR/GIT_WORK_TREE'yi siler,
+    boylece ANA checkout · WORKTREE · KANCA ICI uc baglamin UCUNDE de AYNI koku
+    bulur (kabul: W1/W2/W3, `--kanca-mutasyon`)."""
     if verilen:
         return os.path.abspath(verilen)
     for aday in (TOOLS, os.getcwd()):
@@ -419,7 +479,8 @@ def gecmiste_gorulen(depo, rev, azami_sure=None, aday_satirlar=None):
     t0 = time.time()
     try:
         p = subprocess.Popen(komut, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             text=True, errors="replace", bufsize=1024 * 1024)
+                             text=True, errors="replace", bufsize=1024 * 1024,
+                             env=git_ortami())   # miras alinan GIT_DIR `-C`yi ezmesin
     except OSError as e:
         if attr_yolu and os.path.exists(attr_yolu):
             os.remove(attr_yolu)
@@ -819,12 +880,14 @@ KANCA_MUTASYONLARI = (
 )
 
 
-def _kanca_deposu(kok, ad, mutasyon=None):
+def _kanca_deposu(kok, ad, mutasyon=None, arac_mutasyon=None):
     """Sentetik depo: GERCEK kancalar + GERCEK diriltme/kanca-kur + STUB diger kapilar.
 
-    <mutasyon> = (capa, yerine) -> yalniz KOPYAYA uygulanir. ANA DEPODAKI
-    `tools/kancalar/pre-commit` dosyasina ASLA yazilmaz -> calisma agaci mutasyon
-    batarayasi sirasinda da TEMIZ kalir ([[mutasyon-diske-yazma-tuzagi]])."""
+    <mutasyon>      = (capa, yerine) -> yalniz KOPYALANAN `pre-commit` govdesine.
+    <arac_mutasyon> = (capa, yerine) -> yalniz KOPYALANAN `diriltme-kapisi.py`ye
+                      (KOK EKSENI mutasyon bataryasi; bkz. KOK_MUTASYONLARI).
+    Ikisi de yalniz KOPYAYA uygulanir. ANA DEPODAKI kaynak dosyalara ASLA yazilmaz
+    -> calisma agaci batarya sirasinda da TEMIZ kalir ([[mutasyon-diske-yazma-tuzagi]])."""
     d = _depo_kur(kok, ad)
     t = os.path.join(d, "tools")
     kh = os.path.join(t, "kancalar")
@@ -844,7 +907,19 @@ def _kanca_deposu(kok, ad, mutasyon=None):
             f.write(govde)
         os.chmod(hedef, 0o755)
     for a in KANCA_GERCEK_ARAC:
-        shutil.copyfile(os.path.join(TOOLS, a), os.path.join(t, a))
+        kaynak = os.path.join(TOOLS, a)
+        if a == "diriltme-kapisi.py" and arac_mutasyon:
+            capa, yerine = arac_mutasyon
+            with open(kaynak, encoding="utf-8") as f:
+                arac_govde = f.read()
+            if capa not in arac_govde:
+                raise RuntimeError(
+                    "ARAC MUTASYON CAPASI gercek tools/diriltme-kapisi.py govdesinde "
+                    "YOK: %r -> mutasyon UYGULANMADAN test yesil yanardi" % capa)
+            with open(os.path.join(t, a), "w", encoding="utf-8") as f:
+                f.write(arac_govde.replace(capa, yerine, 1))
+            continue
+        shutil.copyfile(kaynak, os.path.join(t, a))
     for a in KANCA_STUB_ARAC:
         with open(os.path.join(t, a), "w", encoding="utf-8") as f:
             f.write("import sys\nsys.exit(0)\n")   # kapsam disi kapi — bkz. yukarisi
@@ -853,7 +928,7 @@ def _kanca_deposu(kok, ad, mutasyon=None):
 
 def _kanca_kabloyu_kur(d):
     p = subprocess.run([sys.executable, os.path.join(d, "tools", "kanca-kur.py"),
-                        "--depo", d], capture_output=True, text=True)
+                        "--depo", d], capture_output=True, text=True, env=git_ortami())
     if p.returncode != 0:
         raise RuntimeError("kanca-kur.py sentetik depoda KURAMADI (rc=%d): %s"
                            % (p.returncode, (p.stdout + p.stderr)[-400:]))
@@ -878,7 +953,7 @@ def _commit_dene(d, mesaj):
     _kos(d, "add", "-A")
     p = subprocess.run(["git", "-C", d, "-c", "user.email=t@t", "-c", "user.name=t",
                         "commit", "-q", "-m", mesaj], capture_output=True, text=True,
-                       errors="replace")
+                       errors="replace", env=git_ortami())
     return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 
@@ -1005,14 +1080,149 @@ def kanca_iddialari(kok, iddia):
           "ONCESI == SONRASI (mutasyon yalniz sentetik KOPYAYA uygulandi)",
           _kanca_kaynak_sha() == kaynak_once, (kaynak_once[:12], _kanca_kaynak_sha()[:12]))
 
+    # ---- W1..W4 + KOK MUTASYONU: uc baglamda da depo koku DOGRU mu
+    kok_iddialari(kok, iddia)
+
+
+# ------------------------------------------- WORKTREE/KANCA KOK EKSENI (6 Agu 2026)
+# 🔴 NEDEN AYRI BIR EKSEN: kok turetme hatasi ANA CHECKOUT'ta GORUNMEZ (orada GIT_DIR
+# GORELI gelir ve kod ikinci adaya duser). K1..K8 ayagi ana checkout'ta kostugu icin
+# bu sinifi HIC olcmuyordu; kapi worktree'de rc=2 verip commit'i durduruyor, isci de
+# `--no-verify`ye itiliyordu. Bu eksen UC BAGLAMI da DAVRANISSAL olcer:
+#   (a) ANA checkout, DOGRUDAN cagri        -> kok = ana
+#   (b) WORKTREE,     DOGRUDAN cagri        -> kok = worktree
+#   (c) WORKTREE,     KANCA ICINDEN         -> GERCEK `git commit`; kapi FIILEN OLCER
+#       (hukum KIRMIZI/rc=1, OLCULEMEDI/rc=2 DEGIL) ve ihlali worktree'de YAKALAR
+#   (d) WORKTREE,     KANCA ICINDEN, TEMIZ  -> mesru ekleme partisi BLOKLANMAZ
+# (c) ve (d) birlikte "kapi worktree'de atlanmiyor AMA yanlis-pozitif de uretmiyor"u
+# olcer; tek basina (c) bir `exit 1`i de yesil sayardi ([[hukum-yanlis-birimde]]).
+KOK_MUTASYONLARI = (
+    ("W-M1 ortam scrub'i geri alinir", "OLDURUCU",
+     'kw.setdefault("env", git_ortami())', 'kw.pop("env", None)',
+     "git cagrilari MIRAS ALINAN GIT_DIR ile kosar -> worktree kancasinda kok "
+     "<agac>/tools sanilir, kapi rc=2 OLCULEMEDI verir"),
+    ("W-M2 teshis metni", "KONTROL",
+     "  DOKTRIN: urunler.json cakismasi satir-duzeyi merge ile COZULMEZ.",
+     "  DOKTRIN: urunler.json cakismasi SATIR-DUZEYI merge ile COZULMEZ.",
+     "yalniz mesaj metni degisir -> kok ve hukum DEGISMEMELI"),
+)
+
+
+def _kok_satiri(cikti):
+    """Kapinin rapor basligindaki `depo / taban / yeni : <kok> | ...` degeri."""
+    for s in cikti.splitlines():
+        if "depo / taban / yeni" in s:
+            _e, _s, kalan = s.partition(":")
+            return kalan.split("|")[0].strip()
+    return None
+
+
+def _kapi_dogrudan(agac):
+    """(rc, cikti) — KANCASIZ, DOGRUDAN cagri; cwd = ilgili calisma agacinin tepesi."""
+    p = subprocess.run([sys.executable, os.path.join(agac, "tools", "diriltme-kapisi.py"),
+                        "--calisma-agaci"], cwd=agac, capture_output=True, text=True,
+                       errors="replace", env=git_ortami())
+    return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+
+def _ayni_yol(a, b):
+    return os.path.realpath(a) == os.path.realpath(b)
+
+
+def _kok_ekseni_olc(kok, ad, arac_mutasyon=None):
+    """{eksen: (gecti_mi, detay)} — uc baglamin UCU + worktree yanlis-pozitif nobeti."""
+    ana = _kanca_deposu(kok, ad, arac_mutasyon=arac_mutasyon)
+    _kanca_tarih(ana)                                  # a,b,c -> b CIKARILDI -> d
+    wt = os.path.join(kok, ad + "-wt")
+    _kos(ana, "worktree", "add", "-q", "-b", "dal-" + ad, wt)
+    _kanca_kabloyu_kur(ana)                            # ortak .git/pruvo-kancalar
+    out = {}
+
+    rc_a, cikti_a = _kapi_dogrudan(ana)
+    kok_a = _kok_satiri(cikti_a)
+    out["W1"] = (rc_a == 0 and kok_a is not None and _ayni_yol(kok_a, ana),
+                 (rc_a, kok_a))
+
+    rc_b, cikti_b = _kapi_dogrudan(wt)
+    kok_b = _kok_satiri(cikti_b)
+    out["W2"] = (rc_b == 0 and kok_b is not None and _ayni_yol(kok_b, wt),
+                 (rc_b, kok_b))
+
+    # (c) POZITIF: worktree'de KANCA ICINDEN gercek commit — ihlal YAKALANMALI
+    _rc, once_sha, _e = _git(wt, "rev-parse", "HEAD")
+    _yaz(wt, ["a", "c", "d", "b"])
+    rc_c, cikti_c = _commit_dene(wt, "toplu parti: b geri geldi (DIRILTME)")
+    _rc, sonra_sha, _e = _git(wt, "rev-parse", "HEAD")
+    kok_c = _kok_satiri(cikti_c)
+    out["W3"] = (rc_c != 0
+                 and once_sha.strip() == sonra_sha.strip()
+                 and "b" not in _head_idler(wt)
+                 and "diriltme kapisi rc=1" in cikti_c        # OLCTU (rc=2 DEGIL)
+                 and "SONUC: KIRMIZI" in cikti_c
+                 and "SONUC: ⚪ OLCULEMEDI" not in cikti_c
+                 and any(s.startswith("    DIRILTME") for s in cikti_c.splitlines())
+                 and kok_c is not None and _ayni_yol(kok_c, wt),
+                 (rc_c, kok_c, once_sha.strip() == sonra_sha.strip(), cikti_c[-260:]))
+
+    # (d) NEGATIF: ayni worktree'de MESRU ekleme partisi BLOKLANMAMALI
+    _yaz(wt, ["a", "c", "d"] + ["yeni-urun-%03d" % i for i in range(5)])
+    rc_d, cikti_d = _commit_dene(wt, "5 yeni urun eklendi (normal ekleme partisi)")
+    idler_d = _head_idler(wt)
+    out["W4"] = (rc_d == 0 and "yeni-urun-000" in idler_d and "b" not in idler_d,
+                 (rc_d, len(idler_d), cikti_d[-260:]))
+    return out
+
+
+def kok_iddialari(kok, iddia):
+    """W1..W4 (taban) + KOK_MUTASYONLARI (oldurucu/kontrol) — ag YOK."""
+    kaynak_once = _arac_kaynak_sha()
+    taban = _kok_ekseni_olc(kok, "w-taban")
+    iddia("W1 [ANA/DOGRUDAN] depo koku ANA checkout'un tepesi (rc=0)", *taban["W1"])
+    iddia("W2 [WORKTREE/DOGRUDAN] depo koku WORKTREE'nin tepesi (rc=0) — `<agac>/tools` "
+          "DEGIL", *taban["W2"])
+    iddia("W3 [WORKTREE/KANCA ICI, POZITIF] GERCEK commit'te kapi FIILEN OLCER: hukum "
+          "KIRMIZI (rc=1, OLCULEMEDI DEGIL), diriltme YAKALANIR, HEAD degismez",
+          *taban["W3"])
+    iddia("W4 [WORKTREE/KANCA ICI, NEGATIF] mesru ekleme partisi worktree'de "
+          "BLOKLANMAZ (kapi atlanmiyor ama yanlis-pozitif de uretmiyor)", *taban["W4"])
+
+    for ad, sinif, capa, yerine, gerekce in KOK_MUTASYONLARI:
+        try:
+            m = _kok_ekseni_olc(kok, "w-mut-" + ad.split()[0].lower(), (capa, yerine))
+        except RuntimeError as e:
+            iddia("KOK MUTASYONU %s (%s) kurulamadi" % (ad, sinif), False, str(e))
+            continue
+        hepsi_yesil = all(m[e][0] for e in ("W1", "W2", "W3", "W4"))
+        kalan = sorted(e for e in ("W1", "W2", "W3", "W4") if not m[e][0])
+        if sinif == "OLDURUCU":
+            iddia("KOK MUTASYONU %s [OLDURUCU] W ekseni KIRMIZI yandi (%s) -> vaka "
+                  "onarimi FIILEN olcuyor" % (ad, gerekce),
+                  not hepsi_yesil, (kalan, m["W3"][1]))
+        else:
+            iddia("KOK MUTASYONU %s [KONTROL] W ekseni YESIL kaldi (%s) -> kirmizi "
+                  "gercekten kok turetiminden geliyor" % (ad, gerekce),
+                  hepsi_yesil, (kalan, m["W3"][1]))
+
+    iddia("KOK MUTASYON HIJYENI: ana depodaki tools/diriltme-kapisi.py sha256'si "
+          "batarya ONCESI == SONRASI (mutasyon yalniz sentetik KOPYAYA uygulandi)",
+          _arac_kaynak_sha() == kaynak_once,
+          (kaynak_once[:12], _arac_kaynak_sha()[:12]))
+
+
+def _arac_kaynak_sha():
+    """GERCEK `tools/diriltme-kapisi.py` govdesinin sha256'si (mutasyon hijyeni)."""
+    with open(os.path.join(TOOLS, "diriltme-kapisi.py"), "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
 
 def kanca_kendini_test():
-    """YALNIZ pre-commit kanca ayagi + mutasyon bataryasi (gercek depo taramasi YOK).
+    """pre-commit kanca ayagi + WORKTREE KOK ayagi + mutasyon bataryalari
+    (gercek depo gecmis taramasi YOK).
 
     `--kendini-test` bu ayagi ZATEN icerir; bu giris noktasi kancaya dokunan bir
     degisiklikten sonra 70 MB'lik gecmis taramasini beklemeden ayni iddialari
     kosturmak icindir (mutasyon kaniti YENIDEN URETILEBILIR olmali)."""
-    ham = ["PRE-COMMIT KANCA AYAGI — DAVRANIS + MUTASYON BATARYASI (offline)"]
+    ham = ["PRE-COMMIT KANCA + WORKTREE KOK AYAGI — DAVRANIS + MUTASYON (offline)"]
     kirmizi = 0
 
     def iddia(ad, kosul, detay=""):
@@ -1685,7 +1895,8 @@ def main():
                     help="gecmis taramasi icin saniye tavani; asilirsa OLCULEMEDI")
     ap.add_argument("--kendini-test", action="store_true", dest="kendini")
     ap.add_argument("--kanca-mutasyon", action="store_true", dest="kanca",
-                    help="YALNIZ pre-commit kanca ayagi + mutasyon bataryasi (hizli)")
+                    help="pre-commit kanca ayagi + WORKTREE KOK ayagi (W1..W4) + "
+                         "mutasyon bataryalari (hizli, gercek gecmis taramasi YOK)")
     a = ap.parse_args()
     if a.kendini:
         return kendini_test()
