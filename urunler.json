@@ -1,5 +1,25 @@
 [
   {
+    "id": "suzuki-burgman-an650-aku-yukseltme-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "Burgman"
+    ],
+    "baslik": "Suzuki Burgman AN650 Lityum Akü Yükseltme Adaptörü",
+    "aciklama": "Suzuki Burgman AN650 akü yuvasına oturan, standart aküden alçak kalan lityum (LiFePO4) aküleri kablo başlarının hizasına taşıyan yükseltme adaptörüdür.\nYTX9-BS gövdeli lityum aküler orijinal kurşun aküye göre kısa olduğu için kutup başları kablolara ulaşmaz; bu adaptör aküyü gereken yüksekliğe oturtur ve yanlardan kavrayarak yuvada sabit tutar.\nDış yüzeylere yapıştırılan keçe pedler yuvadaki boşluğu doldurur, titreşimde oynamayı ve tıkırtıyı önler.",
+    "fiyat": "380 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2640181-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2640181-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2640181-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2640181-4.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PETG"
+    ]
+  },
+  {
     "id": "mitsubishi-3000gt-usb-soketli-cift-din-teyp-cercevesi",
     "kategori": "Otomobil",
     "marka": [
