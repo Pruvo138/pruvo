@@ -36,8 +36,10 @@
 - 🟡 **CI KISMEN OLCULDU — `deploy` kosumu OLCULEMEDI, sebep: Actions kuyrugu (dis ariza).**
   SHA'yi ICEREN **4 kosum** ata kanitiyla bulundu (`merge-base --is-ancestor` rc=0, headSha
   birebir): "Odeme yolu bayatlik nabzi" **success** · spec alarm kosumu **success** ·
-  "Nöbet şeridi (SERIT B)" **failure** · "Build & deploy to GitHub Pages" **pending** (bitmedi,
-  YESIL SAYILMADI, rerun'a ZORLANMADI).
+  "Nöbet şeridi (SERIT B)" **failure** · "Build & deploy to GitHub Pages" **cancelled**
+  (esszamanlilikla ezildi — BASARISIZ DEGIL, ama YESIL de SAYILMADI; rerun'a ZORLANMADI).
+  Ardil SHA'larda da (`336a16bc` cancelled, `ab56cae6` pending) `deploy` HENUZ yesil degil;
+  yayin kolu bu tur icinde **OLCULEMEDI** kaldi.
   SERIT B kirmizisi **bu merge'den DEGIL**: dusen adim `cron-nabzi` job'undaki uzlastirma
   nabzi alarmi (tanimi geregi yayini DURDURMAZ) ve ayni kirmizi merge ONCESI `efd1d69b`,
   `08a3bb5d`, `a1c343b6` SHA'larinda da yaniyordu. Bu merge site ICERIGINI degistirmiyor
