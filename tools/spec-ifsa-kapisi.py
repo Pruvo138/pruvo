@@ -179,15 +179,26 @@ sys.dont_write_bytecode = True  # SALT-OKUNUR tarama: hedef repoya __pycache__ y
 # olcuyordu (olculdu: 164 isabet/37 dosya <-> 166 isabet/38 dosya). Artik kok
 # CWD'den TUREMEZ: `--kok` ile ACIKCA verilir, verilmezse BETIGIN kendi agacidir;
 # ikisi celisirse hukum verilmez (OLCULEMEDI).
+# 🔴 KOK EKSENI, IKINCI KATMAN (6 Agu 2026, gizil kusur): kesif ORTAMDAN da bagimsiz
+# olmalidir. Bir git kancasi cagirdigi surece git baglam degiskenlerini IHRAC EDER;
+# linked worktree kancasinda GIT_DIR MUTLAK gelir, GIT_WORK_TREE bostur ve git depo
+# KESFINI ATLAYIP CARI DIZINI agacin tepesi sayar -> ACIK `-C` hedefi SESSIZCE EZILIR.
+# Olculdu (sentetik depo + gercek `git worktree add` + gercek `git commit`): bu kapi
+# kanca icinden "betik agaci = <worktree>/tools" bulup rc=2 OLCULEMEDI veriyordu.
+# CARE: git cagrilari miras alinan git baglami SILINMIS ortamda kosar; scrub'in TEK
+# tanimi tools/git_ortami.py'dir (FALLBACK YOK). Kabul: IDDIA-KOK3 / MUT-KOK-ORTAM.
 BETIK_DIZINI = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BETIK_DIZINI)
+from git_ortami import git_kok, git_ortami   # noqa: E402
+from git_ortami import worktree_kanca_kok_olcumu   # noqa: E402
 
 
 def _git_kok(dizin):
     """dizin'in AIT OLDUGU git agacinin koku ("" = git agaci degil). `-C` ZORUNLU:
-    argumansiz cagri CWD'ye bakar — olculen kusur tam olarak buydu."""
-    p = subprocess.run(["git", "-C", dizin, "rev-parse", "--show-toplevel"],
-                       capture_output=True, text=True)
-    return p.stdout.strip() if p.returncode == 0 else ""
+    argumansiz cagri CWD'ye bakar — olculen kusur tam olarak buydu. Ortam ACIKCA temiz
+    verilir: miras alinan git baglami acik `-C` hedefini ezer (yukaridaki ikinci katman;
+    scrub'in TANIMI tools/git_ortami.py'dedir, burasi yalniz o secimi TASIR)."""
+    return git_kok(dizin, git_ortami())
 
 
 def kok_coz(arg_kok, cwd, betik_dizini=BETIK_DIZINI):
@@ -672,7 +683,10 @@ def _rapor_satiri(yol, satir_no, kod, _satir_metni):
 
 
 def _git_izlenen_dosyalar(kok):
-    r = subprocess.run(["git", "-C", kok, "ls-files", "-z"], capture_output=True, text=True)
+    # Ortam ayni sebeple temiz: kanca baglamindan kosuldugunda miras alinan GIT_DIR
+    # `-C kok` hedefini ezip BASKA bir agacin indeksini listeleyebilir.
+    r = subprocess.run(["git", "-C", kok, "ls-files", "-z"], capture_output=True,
+                       text=True, env=git_ortami())
     if r.returncode != 0:
         print("OLCULEMEDI: git ls-files basarisiz: " + r.stderr.strip())
         sys.exit(2)
@@ -700,10 +714,10 @@ def ana_tarama(kok):
 
 
 # ===========================================================================
-# KENDINI-TEST — 24 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
+# KENDINI-TEST — 27 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
 # (desen VAR -> KIRMIZI) + TEK DEGISKENLI KONTROL (benzer ama kapsam disi -> YESIL);
 # ustune YUZEY ayrimi (4), BEYAN yuzeyi (2), KAPSAM (1), EKO ELEMESI (2), MUAFIYET (2),
-# MASKE (1).
+# MASKE (1), KOK ekseni (3: acik kok · belirsizlik · worktree+kanca baglami).
 # Mutant<->iddia eslemesi TEK KAYNAK: tools/spec-ifsa-mutasyon-test.py :: MUTANTLAR.
 # 🔴 TUM FIKSTURLER UYDURMADIR: hicbiri bu depodaki gercek bir kova/uc/sir/cerez/
 # kimlik degildir (nobetci kendi dosyasinda sizdirmaz). Tek istisna IDDIA-C2'nin
@@ -882,6 +896,20 @@ def _kendini_test():
         kok2 = _h2 is not None and _k2 is None
         sonuclar.append(("IDDIA-KOK2 belirsizlik-fail-closed", kok2,
                          "bayraksiz + cwd BASKA agac -> OLCULEMEDI olmali (k=%r)" % (_k2,)))
+
+    # IDDIA-KOK3 (DAVRANISSAL, 6 Agu 2026): kok ORTAMDAN da bagimsizdir. Sentetik depo +
+    # GERCEK `git worktree add` + GERCEK `git commit` ile tetiklenen GERCEK pre-commit
+    # kancasi kurulur (ortam ELLE set edilip kanca TAKLIT EDILMEZ). Kapinin bu KOPYASI
+    # (a) kancasiz ve (b) kanca icinden kosar; olculen sey BASILAN KOK'tur — ihlal
+    # SAYISI DEGIL, boylece eksen/desen mutantlarindan BAGIMSIZ duser (TEK KIRMIZI).
+    # Onarim ONCESI: (a) dogru kok, (b) rc=2 OLCULEMEDI ve kok HIC BASILMAZ.
+    try:
+        _s3 = worktree_kanca_kok_olcumu(os.path.abspath(__file__), "spec-ifsa-kapisi.py")
+        kok3 = _s3["kanca_kosti"] and _s3["kancasiz"][2] and _s3["kanca"][2]
+        _d3 = "wt=%s kancasiz=%r kanca=%r" % (_s3["wt"], _s3["kancasiz"], _s3["kanca"])
+    except Exception as _e:                                  # pragma: no cover
+        kok3, _d3 = False, "sonda kurulamadi: %r" % (_e,)
+    sonuclar.append(("IDDIA-KOK3 worktree-kanca-kok-ortamdan-bagimsiz", kok3, _d3))
 
     basarisiz = [s for s in sonuclar if not s[1]]
     for etiket, gecti, detay in sonuclar:

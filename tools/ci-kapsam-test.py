@@ -186,6 +186,29 @@ def _suzgec_yukle():
 SUZGEC = _suzgec_yukle()
 
 
+def _git_ortami_yukle():
+    """tools/git_ortami.py — "bayat kayit" hukmunun TEK KAYNAGI (fail-closed, SUZGEC
+    ile ayni desen: modul yoksa TAHMIN URETILMEZ, kapi konusur)."""
+    import importlib.util
+    yol = os.path.join(TOOLS, "git_ortami.py")
+    if not os.path.exists(yol):
+        raise RuntimeError(
+            "tools/git_ortami.py YOK -> 'kayit defterinin isaret ettigi dosya artik "
+            "izlenmiyor' hukmunun TEK KAYNAGI yuklenemedi. Ikinci bir kopya YAZILMAZ "
+            "(ikiz tanim sessizce ayrisir), o yuzden YESIL SAYILMAZ (fail-closed).")
+    spec = importlib.util.spec_from_file_location("pruvo_git_ortami", yol)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["pruvo_git_ortami"] = mod
+    spec.loader.exec_module(mod)
+    if not hasattr(mod, "bayat_kayit_yollari"):
+        raise RuntimeError("tools/git_ortami.py'de bayat_kayit_yollari YOK -> sozlesme "
+                           "degismis, tuketicileri guncelle (fail-closed)")
+    return mod
+
+
+GIT_ORTAMI = _git_ortami_yukle()
+
+
 # ---- GERCEK YAML AYRISTIRICISI — TEK KARAR MERCII (PARSER-FIRST) -----------
 # tools/yaml-oku.py (KATMAN 0): `run:` degerlerini GERCEK bir ayristiriciyla
 # (PyYAML | ruby/psych) cozer ve HAM satir araligini verir. FAIL-CLOSED yuklenir:
@@ -223,9 +246,65 @@ TOOLS_PAT = re.compile(
     r"^tools/([^/]*-test\.(?:py|js)|test-[^/]*\.(?:py|js)|[^/]*-kapisi\.py)$")
 DIR_PAT = re.compile(r"^(?:shop/test|onizleme/test|jenerator/test)/[^/]+\.(?:py|js|mjs|cjs)$")
 
+# ---- ACIK KESIF KAYDI (6 Agu 2026) -----------------------------------------
+# 🔴 OLCULEN KESIF KORLUGU: yukaridaki predikatlar AD tabanlidir. Kabul kolu
+# (`--kendini-test` / `--ic-nobetci` / `--mutasyon`) TASIYAN ama bu adlarin hicbirine
+# uymayan IZLENEN `tools/*.py` dosyalari kesfe HIC girmez -> CI'da hic kosmasalar bile
+# bu kapi YESIL yanar. Kosmayan nobetci nobetsizdir ([[nobetci-cagri-satiri-nobetsiz]]).
+#
+# 🔴 NEDEN PREDIKAT GENISLETILMEDI, ACIK KAYIT SECILDI (OLCULDU, 6 Agu 2026):
+# "kabul kolu olan her tools/*.py" predikatı bugun 7 dosya getirir; 6'si BU ISIN
+# KAPSAMI DISINDADIR (cip-sayfa-bagi · d1-sync · onizleme-deploy-hazirla ·
+# uzlastirici-onarim · yayin-erisim-nobeti · yayin-gecikme-nobeti). Bunlarin her biri
+# icin "CI cagri satiri mi, gerekceli muafiyet mi" karari AYRI bir serit/maliyet
+# yargisidir (ikisi zaten BILEREK CI'da kosmayan canli-olcum nobetcileridir — bkz.
+# is-akisi-kapisi.py::SERIT_B gerekceleri). Predikati simdi genisletmek o 6 dosyayi
+# ANINDA "KAPSAMSIZ" yapip kapiyi kirmiziya cakardi ve tek cikis yolu 6 aceleci
+# muafiyet yazmak olurdu — yani genisleme, kapiyi GUCLENDIRMEK yerine MUAFIYET
+# LISTESINI sisirirdi ([[kapi-kapsam-genisletme-tuzagi]]). Acik kayit DAR ve
+# ratchet'lidir: kayitli dosyanin cagri satiri silinirse kapi KIRMIZI yanar.
+# (yol -> NEDEN kesfe zorla alindigi)
+ACIK_KESIF = {
+    "tools/git_ortami.py":
+        "Kutuphane modulu (alt cizgili ad -> `import` edilebilir olmak ZORUNDA, bu "
+        "yuzden `*-kapisi.py` adlandirmasina uymaz) ama KABUL KOLU vardir: "
+        "`--kendini-test` hem scrub DAVRANISINI hem `GIT_BAGLAM_DEGISKENLERI` "
+        "listesinin IKINCI bir tanimini (drift) fail-closed olcer. Uc kapi kok "
+        "turetimini bu modulden alir; nobet kosmazsa ikiz sessizce geri gelir.",
+}
+
+
+def acik_kesif_kontrol():
+    """ACIK_KESIF girisleri hala IZLENIYOR mu (bayat kayit = sessiz kapsam kaybi).
+
+    Bir kayit yeniden adlandirilir/silinirse kesif listesinden SESSIZCE duser ve o
+    dosya icin kapsam sorusu sorulmaz olur. Fail-closed: kayit izlenmiyorsa KIRMIZI."""
+    r = subprocess.run(["git", "-C", ROOT, "ls-files"], capture_output=True, text=True)
+    if r.returncode != 0:
+        return False, ["ACIK_KESIF dogrulanamadi: git ls-files basarisiz: "
+                       + r.stderr.strip()]
+    izlenen = set(r.stdout.splitlines())
+    hatalar = []
+    # 🔴 "kayit defterinin isaret ettigi dosya artik IZLENMIYOR" hukmu TEK KAYNAKTAN
+    # gelir: tools/git_ortami.py::bayat_kayit_yollari. Ayni kural orada drift muafiyeti
+    # defteri icin de uygulanir; ikinci bir kopya YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    bayat_yollar = set(GIT_ORTAMI.bayat_kayit_yollari(ACIK_KESIF.keys(), izlenen))
+    for yol, gerekce in sorted(ACIK_KESIF.items()):
+        if not (gerekce and gerekce.strip()):
+            hatalar.append("GEREKCESIZ ACIK_KESIF girisi (bos gerekce): %s" % yol)
+        if yol in bayat_yollar:
+            hatalar.append("BAYAT ACIK_KESIF girisi (artik IZLENMIYOR — sil ya da yolu "
+                           "duzelt): %s" % yol)
+        elif TOOLS_PAT.match(yol) or DIR_PAT.match(yol):
+            hatalar.append("GEREKSIZ ACIK_KESIF girisi (ad predikati ZATEN yakaliyor — "
+                           "kayit kaldirilmali, ikiz kapsam kaydi tutma): %s" % yol)
+    return (not hatalar), hatalar
+
 
 def kesfet():
-    """git ls-files uzerinden IZLENEN kabul-testi dosyalarini (repo-rel yol) dondur."""
+    """git ls-files uzerinden IZLENEN kabul-testi dosyalarini (repo-rel yol) dondur.
+
+    AD predikatlarina ek olarak ACIK_KESIF kaydindaki (izlenen) yollar da girer."""
     r = subprocess.run(["git", "-C", ROOT, "ls-files"], capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit("git ls-files basarisiz: " + r.stderr.strip())
@@ -233,7 +312,7 @@ def kesfet():
     for yol in r.stdout.splitlines():
         if yol.startswith("tools/arsiv/"):
             continue
-        if TOOLS_PAT.match(yol) or DIR_PAT.match(yol):
+        if TOOLS_PAT.match(yol) or DIR_PAT.match(yol) or yol in ACIK_KESIF:
             bulunan.append(yol)
     return sorted(bulunan)
 
@@ -4002,6 +4081,11 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, muaf_hata = muaf_sayaci_kontrol()
         for h in muaf_hata:
             hatalar.append("MUAF-SAYACI: " + h)
+        # ACIK KESIF KAYDI hijyeni: bayat/gerekcesiz/gereksiz giris SESSIZ kapsam
+        # kaybidir (kayit dusense o dosya icin kapsam sorusu hic sorulmaz olur).
+        _, acik_hata = acik_kesif_kontrol()
+        for h in acik_hata:
+            hatalar.append("ACIK-KESIF: " + h)
         # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
         # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
         # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.

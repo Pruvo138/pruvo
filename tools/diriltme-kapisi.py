@@ -205,6 +205,13 @@ import tempfile
 import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+sys.dont_write_bytecode = True   # import ONCESI: hedef repoya __pycache__ yazma
+sys.path.insert(0, TOOLS)
+# 🔴 TEK KAYNAK: git baglam scrub'i tools/git_ortami.py'de tanimlidir (bkz. asagidaki
+# onarim notu). FALLBACK YOK — modul yoksa cagri COKSUN; sessiz bir yerel kopya ikizin
+# ta kendisi olur ve gevsek yonde ayrisir ([[ikiz-tanim-sessiz-ayrisma]]).
+from git_ortami import git_ortami   # noqa: E402
+
 URUNLER_ADI = "urunler.json"
 IZIN_ADI = ".diriltme-izin.json"
 
@@ -273,20 +280,10 @@ class Olculemedi(Exception):
 # acik hedefi SESSIZCE eziyordu.
 # 🔴 KAPI ZAYIFLAMAZ: rc=2 hala rc=2'dir, worktree'de HICBIR kol atlanmaz —
 # yalnizca kok DOGRU bulunur, boylece kapi worktree'de de FIILEN OLCER.
-GIT_BAGLAM_DEGISKENLERI = (
-    "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE",
-    "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM",
-    "GIT_PREFIX", "GIT_NAMESPACE", "GIT_INDEX_VERSION",
-)
-
-
-def git_ortami():
-    """Miras alinan git baglami SILINMIS ortam kopyasi (bkz. yukaridaki onarim notu)."""
-    ort = os.environ.copy()
-    for ad in GIT_BAGLAM_DEGISKENLERI:
-        ort.pop(ad, None)
-    return ort
+# Degisken listesi + `git_ortami()` BURADA TANIMLI DEGILDIR: TEK KAYNAK
+# tools/git_ortami.py'dir (yukarida import edildi). Ikinci bir tanim koymak
+# [[ikiz-tanim-sessiz-ayrisma]] sinifidir ve `python3 tools/git_ortami.py --kendini-test`
+# icindeki drift nobeti onu KIRMIZI yakar.
 
 
 def _git(depo, *args, **kw):
@@ -859,7 +856,7 @@ def _gorsel(uid, n):
 # gurultu + bagimlilik uretirdi.
 KANCA_ADLARI = ("pre-commit", "commit-msg", "pre-push", "post-commit",
                 "post-checkout", "post-merge")
-KANCA_GERCEK_ARAC = ("kanca-kur.py", "diriltme-kapisi.py")
+KANCA_GERCEK_ARAC = ("kanca-kur.py", "diriltme-kapisi.py", "git_ortami.py")
 KANCA_STUB_ARAC = ("urunler-guard.py", "mukerrer-kontrol.py",
                    "mimar-commit-kapisi.py", "commit-mesaji-kapisi.py")
 

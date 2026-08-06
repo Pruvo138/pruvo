@@ -58,6 +58,18 @@ ONARIM — KOK ARTIK CWD'DEN TUREMEZ:
   4. Olculen kok + taranan dosya sayisi HER kosumda (yesilde de) BASILIR — bir
      yesil artik sessizce baska bir agaca atfedilemez.
 
+🔴 KOK TURETIMI ORTAMDAN BAGIMSIZDIR (6 Agu 2026 onarimi, gizil kusur):
+Kok `git -C <yol> rev-parse --show-toplevel` ile turer. Bir GIT KANCASI icinden
+kosuldugunda cagiran surec git baglam degiskenlerini IHRAC EDER; linked worktree
+kancasinda GIT_DIR MUTLAK gelir ve GIT_WORK_TREE bostur -> git depo KESFINI ATLAR,
+CARI DIZINI agacin tepesi sayar ve ACIK `-C` hedefi SESSIZCE EZILIR. Olculdu (sentetik
+depo + gercek `git worktree add` + gercek `git commit`): kanca icinden kosan bu kapi
+"betik agaci = <worktree>/tools" bulup rc=2 OLCULEMEDI veriyordu — commit BLOKLANIR,
+isci `--no-verify`ye itilir (yani kusur kapinin KENDISINI atlatmayi normallestirir).
+CARE: git cagrilari miras alinan git baglami SILINMIS ortamda kosar; scrub'in TEK
+tanimi tools/git_ortami.py'dir (FALLBACK YOK — modul yoksa cagri coker).
+Kabul: IDDIA-6, mutant MUT-KOK-ORTAM.
+
 Kullanim:
     python3 tools/ic-rapor-adi-kapisi.py                 # BETIGIN agacini tarar, exit 0/1
     python3 tools/ic-rapor-adi-kapisi.py --kok /yol/dal  # ACIKCA verilen agaci tarar
@@ -71,20 +83,27 @@ import argparse
 import hashlib
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 
 sys.dont_write_bytecode = True  # SALT-OKUNUR tarama: hedef repoya __pycache__ yazma.
 
+# Betigin KENDI dizini. Kok bundan turer -> CWD ne olursa olsun AYNI agac olculur.
+BETIK_DIZINI = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BETIK_DIZINI)
+# 🔴 TEK KAYNAK ([[ikiz-tanim-sessiz-ayrisma]]): git baglam scrub'i ve onunla kok
+# turetimi tools/git_ortami.py'de TANIMLIDIR. Burada `try/except ImportError -> yerel
+# tanim` YAZILMAZ: o dusus yolu ikizin ta kendisidir ve gevsek yonde ayrisir.
+from git_ortami import git_kok, git_ortami   # noqa: E402
+from git_ortami import worktree_kanca_kok_olcumu   # noqa: E402
+
 DESEN = "rapor-mimara"  # kucuk harfe cevrilmis satirda aranir (harf-duyarsiz)
 
 RC_TEMIZ = 0
 RC_IHLAL = 1
 RC_OLCULEMEDI = 2  # fail-closed: hangi agacin sorulduğu belirsiz / yol git agaci degil
-
-# Betigin KENDI dizini. Kok bundan turer -> CWD ne olursa olsun AYNI agac olculur.
-BETIK_DIZINI = os.path.dirname(os.path.abspath(__file__))
 
 # KENDI DOSYASI ISTISNASI (govde-disi, TEK path, GEREKCELI): bu nobetci deseni
 # TANIMLAMAK icin onu DOGRUDAN tasimak ZORUNDADIR (docstring ornekleri, asagidaki
@@ -207,10 +226,11 @@ def _git_kok(dizin):
     """dizin'in AIT OLDUGU git agacinin kokunu doner ("" = git agaci degil).
 
     🔴 `-C dizin` ZORUNLU: argumansiz `git rev-parse --show-toplevel` CWD'ye bakar —
-    olculen kusur tam olarak buydu. Burada cwd'nin HICBIR etkisi yoktur."""
-    p = subprocess.run(["git", "-C", dizin, "rev-parse", "--show-toplevel"],
-                       capture_output=True, text=True)
-    return p.stdout.strip() if p.returncode == 0 else ""
+    5 Agu 2026'da olculen kusur tam olarak buydu. Burada cwd'nin HICBIR etkisi yoktur.
+    🔴 ORTAM ACIKCA TEMIZ VERILIR: miras alinan GIT_DIR/GIT_WORK_TREE acik `-C` hedefini
+    SESSIZCE ezer (kanca + linked worktree baglami; 6 Agu 2026 onarimi, IDDIA-6).
+    Scrub'in TANIMI tools/git_ortami.py'dedir; burasi yalniz o secimi TASIR."""
+    return git_kok(dizin, git_ortami())
 
 
 def kok_coz(arg_kok, cwd, betik_dizini=BETIK_DIZINI):
@@ -242,7 +262,10 @@ def kok_coz(arg_kok, cwd, betik_dizini=BETIK_DIZINI):
 
 
 def _git_izlenen_dosyalar(kok):
-    r = subprocess.run(["git", "-C", kok, "ls-files", "-z"], capture_output=True, text=True)
+    # Ortam ayni sebeple temiz: kanca baglamindan kosuldugunda miras alinan GIT_DIR
+    # `-C kok` hedefini ezip BASKA bir agacin indeksini listeleyebilir.
+    r = subprocess.run(["git", "-C", kok, "ls-files", "-z"], capture_output=True,
+                       text=True, env=git_ortami())
     if r.returncode != 0:
         sys.exit("git ls-files basarisiz: " + r.stderr.strip())
     return [y for y in r.stdout.split("\0") if y]
@@ -274,10 +297,12 @@ def ana_tarama(kok):
 
 # ===========================================================================
 # KENDINI-TEST — izole gecici git deposunda offline kabul testi.
-# IDDIA-1..IDDIA-5: mutasyon testinin "TEK KIRMIZI" hedefledigi, SABIT SAYIDA
-# (5) DECLARE EDILMIS ana iddia — surucusu REPODA durur: tools/ic-rapor-adi-mutasyon.py.
+# IDDIA-1..IDDIA-6: mutasyon testinin "TEK KIRMIZI" hedefledigi, SABIT SAYIDA
+# (6) DECLARE EDILMIS ana iddia — surucusu REPODA durur: `--mutasyon` kolu.
 #   1-2 = desen/muafiyet ekseni · 3-5 = KOK ekseni (5 Agu 2026 olculen "yanlis agacta
-#   yesil" kusuru). KONTROL-*: ek saglamlik/yanlis-pozitif kontrolleri; IDDIA kumesinin
+#   yesil" kusuru) · 6 = WORKTREE+KANCA baglami (6 Agu 2026 olculen "kok ortamdan
+#   turuyor" kusuru; DAVRANISSAL: gercek worktree + gercek commit + gercek kanca).
+#   KONTROL-*: ek saglamlik/yanlis-pozitif kontrolleri; IDDIA kumesinin
 # PARCASI DEGILDIR. KONTROL-C E2E oldugu icin IDDIA-2 ile AYNI alt fonksiyonu
 # (_desenler_bul) paylasir — "desen kontrolunu no-op yap" mutantinda YAN ETKI
 # olarak o da kirmizi yanabilir; bu, IDDIA kumesindeki TEK-KIRMIZI sartini
@@ -378,6 +403,9 @@ def _kendini_test():
             _kaynak = f.read()
         with open(kopya, "w", encoding="utf-8") as f:
             f.write(_kaynak)
+        # Kopya TEK KAYNAK modulunu import eder -> modul de yaninda olmali (fallback YOK).
+        shutil.copyfile(os.path.join(BETIK_DIZINI, "git_ortami.py"),
+                        os.path.join(a_tools, "git_ortami.py"))
         with open(os.path.join(depo_a, "ihlal.md"), "w", encoding="utf-8") as f:
             # 🔴 FIKSTUR BILEREK KUCUK HARF: IDDIA-5 KOK eksenini olcer, harf-duyarsizligi
             # DEGIL. Buyuk harfle yazilsaydi harf-duyarsizlik mutanti (IDDIA-2'nin
@@ -401,6 +429,23 @@ def _kendini_test():
         kontrol_d = p6.returncode == RC_TEMIZ
         sonuclar.append(("KONTROL-D acik-temiz-agac-yesil", kontrol_d,
                           "--kok ile verilen TEMIZ agac rc=0 vermeli (rc=%d)" % p6.returncode))
+
+    # --- IDDIA-6 (WORKTREE + KANCA BAGLAMI, DAVRANISSAL): kokun ORTAMDAN BAGIMSIZLIGI.
+    # Sentetik depo + GERCEK `git worktree add` + GERCEK `git commit` ile tetiklenen
+    # GERCEK pre-commit kancasi kurulur (ortam ELLE set edilip kanca TAKLIT EDILMEZ).
+    # Kapinin bu KOPYASI iki baglamda kosar ve BASTIGI KOK olculur:
+    #   (a) kancasiz, cwd = worktree koku      (b) kanca icinden (GIT_DIR MUTLAK miras)
+    # 🔴 IDDIA BASILAN KOKE baglidir, ihlal SAYISINA degil: boylece desen/muafiyet
+    # eksenlerinin mutantlarindan BAGIMSIZ duser ve "TEK KIRMIZI" sozlesmesi korunur.
+    # Onarim ONCESI olculen davranis: (a) DOGRU kok, (b) rc=2 OLCULEMEDI + kok BASILMAZ
+    # (betik agaci `<worktree>/tools` sanilir).
+    try:
+        s6 = worktree_kanca_kok_olcumu(os.path.abspath(__file__), "ic-rapor-adi-kapisi.py")
+        iddia6 = s6["kanca_kosti"] and s6["kancasiz"][2] and s6["kanca"][2]
+        detay6 = "wt=%s kancasiz=%r kanca=%r" % (s6["wt"], s6["kancasiz"], s6["kanca"])
+    except Exception as e:                                   # pragma: no cover
+        iddia6, detay6 = False, "sonda kurulamadi: %r" % (e,)
+    sonuclar.append(("IDDIA-6 worktree-kanca-kok-ortamdan-bagimsiz", iddia6, detay6))
 
     basarisiz = [s for s in sonuclar if not s[1]]
     for etiket, gecti, detay in sonuclar:
@@ -429,6 +474,10 @@ MUTANTLAR = (
     # Onarimin TA KENDISINI geri alir: kok yine CWD'den turer.
     ("MUT-KOK-CWD-GERI", '    kok, hata = kok_coz(args.kok, os.getcwd())',
      '    kok, hata = _git_kok(os.getcwd()) or None, None', "IDDIA-5"),
+    # 6 Agu 2026 onarimini geri alir: git cagrisi MIRAS ALINAN git baglamiyla kosar.
+    # Kancasiz vaka (temiz ortam) etkilenmez -> yalniz KANCA ayagi duser: TEK KIRMIZI.
+    ("MUT-KOK-ORTAM", "    return git_kok(dizin, git_ortami())",
+     "    return git_kok(dizin, os.environ.copy())", "IDDIA-6"),
     # --- DESEN/MUAFIYET ekseni (onarim ONCESI de var olan iddialar) ---
     ("MUT-MUAF-YOL", "    return (dosya, _satir_hash(satir_metni)) in muafiyet_kumesi",
      "    return any(d == dosya for d, _h in muafiyet_kumesi)", "IDDIA-1"),
@@ -459,11 +508,18 @@ def _tablo_disi(govde):
     return govde[:bas], govde[bas:son], govde[son:]
 
 
+def _sha256_dosya(yol):
+    with open(yol, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
 def _mutasyon_bataryasi():
     kaynak_yolu = os.path.abspath(__file__)
+    modul_yolu = os.path.join(BETIK_DIZINI, "git_ortami.py")
     with open(kaynak_yolu, "r", encoding="utf-8") as f:
         govde = f.read()
     once_hash = hashlib.sha256(govde.encode("utf-8")).hexdigest()
+    modul_once = _sha256_dosya(modul_yolu)
     _on, _tablo, _arka = _tablo_disi(govde)
 
     def kos(yol):
@@ -482,6 +538,10 @@ def _mutasyon_bataryasi():
 
     hatalar = []
     with tempfile.TemporaryDirectory() as d:
+        # Kopyalar TEK KAYNAK modulunu import eder; mutasyon YALNIZ kapi kopyasina
+        # uygulanir, modul kopyasi DEGISTIRILMEZ (capa kapinin KENDI cagri yerindedir).
+        shutil.copyfile(os.path.join(BETIK_DIZINI, "git_ortami.py"),
+                        os.path.join(d, "git_ortami.py"))
         taban_yolu = os.path.join(d, "taban.py")
         with open(taban_yolu, "w", encoding="utf-8") as f:
             f.write(govde)
@@ -527,9 +587,14 @@ def _mutasyon_bataryasi():
 
     with open(kaynak_yolu, "r", encoding="utf-8") as f:
         sonra_hash = hashlib.sha256(f.read().encode("utf-8")).hexdigest()
+    modul_sonra = _sha256_dosya(modul_yolu)
     print("CANLI DOSYA sha256 once==sonra: %s" % (once_hash == sonra_hash))
+    print("PAYLASILAN MODUL (git_ortami.py) sha256 once==sonra: %s"
+          % (modul_once == modul_sonra))
     if once_hash != sonra_hash:
         hatalar.append("CANLI DOSYA DEGISTI — mutasyon kopyaya uygulanmali")
+    if modul_once != modul_sonra:
+        hatalar.append("PAYLASILAN MODUL DEGISTI — mutasyon yalniz KOPYAYA uygulanmali")
     print()
     if hatalar:
         print("MUTASYON BATARYASI KIRMIZI:")

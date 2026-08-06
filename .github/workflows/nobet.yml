@@ -345,6 +345,23 @@ jobs:
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         run: python3 tools/diriltme-kapisi.py --kendini-test
 
+      # GIT BAGLAM SCRUB'I — TEK KAYNAK DRIFT NOBETI (6 Agu 2026).
+      # tools/git_ortami.py bu depoda `GIT_BAGLAM_DEGISKENLERI` listesinin TEK
+      # tanimidir; uc kapi (diriltme · ic-rapor-adi · spec-ifsa) kok turetimini
+      # ondan alir. Bu adim IKI seyi olcer: (a) DAVRANIS — miras alinan GIT_DIR
+      # altinda `git_kok()` agacin TEPESINI dondurur (ayirt edici KONTROL: scrub'siz
+      # cagri AYNI girdide ALT DIZINI dondurur), (b) DRIFT — izlenen tum .py
+      # dosyalarinda listenin IKINCI bir tanimi varsa KIRMIZI. Ikinci tanim
+      # [[ikiz-tanim-sessiz-ayrisma]] sinifidir ve DAIMA gevsek yonde ayrisir
+      # (bir ad eksik kalir, miras alinan baglam o ad uzerinden geri sizar).
+      # Nobet YALNIZ lokalde kosarsa nobetsizdir: ikiz bir gun sessizce geri gelir
+      # ve hicbir kirmizi yanmaz ([[nobetci-cagri-satiri-nobetsiz]]).
+      # Fail-closed: tarama yapilamazsa (git agaci degil / ls-files hata) "ikinci
+      # tanim yok" hukmu VERILMEZ, adim KIRMIZI yanar. `continue-on-error` YOK.
+      # Offline, stdlib, ~200 ms.
+      - name: Git baglam scrub'i — tek kaynak drift nobeti
+        run: python3 tools/git_ortami.py --kendini-test
+
       # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 30 gecici fiksturle olcer
       # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · kesilen kuyruk onizlemesi ·
       # dar/genis pay · dosya yok · dosya OKUNAMIYOR · UTF-8 degil · ilan sapmasi + ters yonu ·
