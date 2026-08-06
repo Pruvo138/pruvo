@@ -27,9 +27,13 @@ ROOT = os.path.dirname(TOOLS)
 KAPI = os.path.join(TOOLS, "commit-mesaji-kapisi.py")
 KUR = os.path.join(TOOLS, "commit-mesaji-hook-kur.py")
 OZET = os.path.join(TOOLS, "sizinti-desen-ozetleri.json")
-YML = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+# 🔴 5 Agu 2026 SERIT AYRIMI: `mesaj-nobeti` job'u deploy.yml'den nobet.yml'e TASINDI
+# (bloklamayan nobet joblari yayin kosumunun rengini boyamasin diye;
+# [[hukum-yanlis-birimde]]). K bolumunun capasi da onunla birlikte tasindi.
+YML_ADI = "nobet.yml"
+YML = os.path.join(ROOT, ".github", "workflows", YML_ADI)
 # Kabul bataryasinin J bolumu katalog markalarini `urunler.json`'dan turetir, K bolumu
-# `deploy.yml` adim adlarini okur -> mutant agacinda IKISI DE bulunmalidir, yoksa her
+# `nobet.yml` adim adlarini okur -> mutant agacinda IKISI DE bulunmalidir, yoksa her
 # mutant (ilgisiz kontroller dahil) "olcemedim" yuzunden kirmizi yanar ve arac korlesir.
 URUNLER = os.path.join(ROOT, "urunler.json")
 
@@ -143,8 +147,8 @@ MUTANTLAR = (
     # 🔴 BU MUTANT KAPIYI DEGIL IS AKISINI bozar: adim adina yeniden sabit bir iddia
     # SAYISI konur. Nobetci (K1) bunu KIRMIZI yakmali — yoksa "56 iddia / gercek 58"
     # arizasi sessizce geri gelir. Guvenlik iddialarini olduren mutantlarin aksine
-    # bunun capasi deploy.yml'dedir, bu yuzden `yml` hedefi vardir.
-    ("M23 adim adina bayat iddia SAYISI geri kondu (deploy.yml)", "yml",
+    # bunun capasi nobet.yml'dedir (serit ayrimindan sonra), bu yuzden `yml` hedefi var.
+    ("M23 adim adina bayat iddia SAYISI geri kondu (nobet.yml)", "yml",
      '- name: "Commit mesaji sizinti nobetcisi: kendini test (gercek git; sayi ciktida)"',
      '- name: "Commit mesaji sizinti nobetcisi: kendini test (56 iddia, gercek git)"',
      True),
@@ -239,13 +243,13 @@ def main():
             os.makedirs(t_yml)
             for kaynak in (KAPI, KUR, OZET):
                 shutil.copy2(kaynak, os.path.join(t_tools, os.path.basename(kaynak)))
-            shutil.copy2(YML, os.path.join(t_yml, "deploy.yml"))
+            shutil.copy2(YML, os.path.join(t_yml, YML_ADI))
             # urunler.json 14,4 MB'dir ve HICBIR mutant onu degistirmez -> kopya yerine
             # sembolik bag (23 mutantta ~330 MB gereksiz I/O'dan kacinilir).
             os.symlink(URUNLER, os.path.join(tmp, "urunler.json"))
             yol = {"kapi": os.path.join(t_tools, os.path.basename(KAPI)),
                    "kur": os.path.join(t_tools, os.path.basename(KUR)),
-                   "yml": os.path.join(t_yml, "deploy.yml")}[hedef]
+                   "yml": os.path.join(t_yml, YML_ADI)}[hedef]
             with open(yol, encoding="utf-8") as f:
                 metin = f.read()
             if eski not in metin:

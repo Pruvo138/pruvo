@@ -52,11 +52,18 @@ DURUM = "durum.py"
 SUZGEC = "icra-suzgeci.py"
 IS_AKISI = "is-akisi-kapisi.py"
 DEPLOY = "deploy.yml"                     # .github/workflows/ altinda
+# 🔴 5 Agu 2026 SERIT AYRIMI: kabul testinin adimi (serit B) nobet.yml'e TASINDI
+# (bloklamayan joblarin kirmizisi yayin kosumunun rengini boyamasin diye,
+# [[hukum-yanlis-birimde]]). Ayna agacta IKISI DE bulunmali: Y4 hem "canli kol
+# CI'da kosmuyor" hem "kabul testi BLOKLAMAYAN seritte kosuyor" der.
+NOBET = "nobet.yml"                       # .github/workflows/ altinda
 
 AYNA_TOOLS = (NOBETCI, TEST, DURUM, SUZGEC, IS_AKISI)
 FIKSTUR = os.path.join(TOOLS, "fikstur", "yayin-gecikme")
 DEPLOY_YOL = os.path.join(ROOT, ".github", "workflows", DEPLOY)
-DOKUNULMAZ = [os.path.join(TOOLS, a) for a in AYNA_TOOLS] + [DEPLOY_YOL]
+NOBET_YOL = os.path.join(ROOT, ".github", "workflows", NOBET)
+DOKUNULMAZ = ([os.path.join(TOOLS, a) for a in AYNA_TOOLS]
+              + [DEPLOY_YOL, NOBET_YOL])
 
 EKSENLER = ("Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9")
 
@@ -197,8 +204,8 @@ M14 = ("M14", "PANO KABLOSU KESILDI: durum.py bolum 9'u artik CAGIRMIYOR",
          "        yayin_satirlari = []")],
        ["Y3"], "ESIT")
 
-M15 = ("M15", "deploy.yml'de kabul testi adimi SILINDI (olu nobetci)",
-       DEPLOY,
+M15 = ("M15", "nobet.yml'de kabul testi adimi SILINDI (olu nobetci)",
+       NOBET,
        [("        run: python3 tools/yayin-gecikme-test.py",
          "        run: python3 -c \"pass\"")],
        ["Y4"], "ESIT")
@@ -284,7 +291,7 @@ def kayitlari_dogrula():
         if olcut not in OLCUTLER:
             hata.append("%s: bilinmeyen olcut %r — TEK izinli olcut: %s"
                         % (kod, olcut, ", ".join(OLCUTLER)))
-        if hedef != DEPLOY and hedef not in AYNA_TOOLS:
+        if hedef not in (DEPLOY, NOBET) and hedef not in AYNA_TOOLS:
             hata.append("%s: bilinmeyen hedef %r" % (kod, hedef))
         for b in beyan:
             if b not in EKSENLER:
@@ -301,6 +308,8 @@ def ayna_kur(hedef):
                      follow_symlinks=True)
     shutil.copytree(FIKSTUR, os.path.join(hedef, "tools", "fikstur", "yayin-gecikme"))
     shutil.copy2(DEPLOY_YOL, os.path.join(hedef, ".github", "workflows", DEPLOY),
+                 follow_symlinks=True)
+    shutil.copy2(NOBET_YOL, os.path.join(hedef, ".github", "workflows", NOBET),
                  follow_symlinks=True)
     return hedef
 
@@ -331,8 +340,8 @@ def mutasyonla(pristine, degisimler, kod):
 
 
 def _ayna_yolu(ayna, ad):
-    if ad == DEPLOY:
-        return os.path.join(ayna, ".github", "workflows", DEPLOY)
+    if ad in (DEPLOY, NOBET):
+        return os.path.join(ayna, ".github", "workflows", ad)
     return os.path.join(ayna, "tools", ad)
 
 
@@ -379,6 +388,8 @@ def main():
             pristine[ad] = f.read()
     with open(DEPLOY_YOL, encoding="utf-8") as f:
         pristine[DEPLOY] = f.read()
+    with open(NOBET_YOL, encoding="utf-8") as f:
+        pristine[NOBET] = f.read()
 
     print("\n0) KAYNAK SHA256 (kosum BASI)")
     for y in DOKUNULMAZ:

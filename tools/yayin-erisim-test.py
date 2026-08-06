@@ -36,6 +36,8 @@ ROOT = os.path.dirname(TOOLS)
 NOBETCI_YOL = "tools/yayin-erisim-nobeti.py"
 BU_TEST_YOL = "tools/yayin-erisim-test.py"
 DEPLOY = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+# 5 Agu 2026: SERIT B adimlari (bloklamayan nobet/alarm) ayri is akisinda.
+NOBET = os.path.join(ROOT, ".github", "workflows", "nobet.yml")
 ALARM_ADI = "yayin-erisim-alarmi.yml"
 ALARM = os.path.join(ROOT, ".github", "workflows", ALARM_ADI)
 
@@ -404,17 +406,37 @@ def e7_kablolama(ye, iak, suzgec, cron):
     kayit("E7", "🔴 BAGIMSIZLIK: nobetcinin CANLI kolu deploy.yml'de KOSMUYOR "
           "(ag'a bagimli kapi TUM EKIBIN yayinini durdururdu)",
           not d_canli, "ihlal=%s" % ([(c[0], c[2]) for c in d_canli] or "-"))
-    kendi = [c for c in d_cagri if c[1] == BU_TEST_YOL]
-    kayit("E7", "bu kabul testi deploy.yml'de FIILEN kosuyor (olu nobetci degil)",
+    # 🔴 5 Agu 2026 SERIT AYRIMI: bu kabul testi (bir SERIT B adimi) deploy.yml'den
+    # nobet.yml'e TASINDI — bloklamayan joblarin kirmizisi yayin kosumunun rengini
+    # boyamasin diye ([[hukum-yanlis-birimde]]). IDDIA DEGISMEDI, ARANAN DOSYA degisti:
+    # "kabul testi CI'da FIILEN kosuyor + yayini BLOKLAMAYAN seritte + beyani VAR".
+    # Nobet dosyasi okunamazsa fail-closed KIRMIZI.
+    try:
+        with open(NOBET, encoding="utf-8") as f:
+            nobet_metin = f.read()
+    except OSError as e:
+        kayit("E7", "nobet.yml okunabildi (serit B is akisi)", False, str(e)[:80])
+        return
+    n_govde, n_hata = iak.ayristir(nobet_metin)
+    if n_govde is None:
+        kayit("E7", "nobet.yml ayristirilabiliyor", False, str(n_hata)[:80])
+        return
+    n_serit_b, n_tani = iak._serit_b_joblar(n_govde, "nobet.yml")
+    if n_serit_b is None:
+        kayit("E7", "nobet.yml serit B joblari olculebildi", False, str(n_tani)[:80])
+        return
+    n_cagri = _cagrilar(iak, suzgec, nobet_metin, [NOBETCI_YOL, BU_TEST_YOL])
+    kendi = [c for c in n_cagri if c[1] == BU_TEST_YOL]
+    kayit("E7", "bu kabul testi nobet.yml'de FIILEN kosuyor (olu nobetci degil)",
           bool(kendi), "job(lar)=%s" % (sorted({c[0] for c in kendi}) or "YOK"))
-    bloklayan = sorted({c[0] for c in kendi if c[0] not in serit_b})
+    bloklayan = sorted({c[0] for c in kendi if c[0] not in n_serit_b})
     kayit("E7", "cagri YAYINI BLOKLAMAYAN seritte (serit B)",
           bool(kendi) and not bloklayan, "bloklayan job=%s" % (bloklayan or "-"))
     etkisiz2 = [(c[0], c[3]) for c in kendi if c[3]]
-    kayit("E7", "deploy.yml cagrisi ETKISIZLESTIRILMEMIS",
+    kayit("E7", "nobet.yml cagrisi ETKISIZLESTIRILMEMIS",
           not etkisiz2, "sebepler=%s" % (etkisiz2 or "-"))
     beyan = getattr(iak, "SERIT_B", {})
-    anahtar = ("deploy.yml", "serit-b", BU_TEST_YOL)
+    anahtar = ("nobet.yml", "serit-b", BU_TEST_YOL)
     kayit("E7", "serit B beyani is-akisi-kapisi::SERIT_B tablosunda VAR ve GEREKCELI",
           bool((beyan.get(anahtar) or "").strip()),
           (beyan.get(anahtar) or "BEYAN YOK")[:60])

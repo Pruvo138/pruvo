@@ -55,10 +55,15 @@ ROOT = os.path.dirname(TOOLS)
 
 KAPI = "tools/cron-nabiz-kapisi.py"
 DEPLOY = os.path.join(".github", "workflows", "deploy.yml")
+# 🔴 5 Agu 2026 SERIT AYRIMI: kadans kolunun GOVDESI nobet.yml'dedir (bloklamayan
+# joblar yayin kosumunun rengini boyamasin diye tasindi). SIZINTI mutantlari
+# (M9) yine deploy.yml'in `needs` listesine yazar — "kol yayin grafigine geri
+# sizdirilirsa KIRMIZI yanar" iddiasi ancak GERCEK yayin dosyasindan olculebilir.
+NOBET = os.path.join(".github", "workflows", "nobet.yml")
 UZLASTIRICI = os.path.join(".github", "workflows", "d1-uzlastirici.yml")
 # Mutasyona UGRAYABILEN her canli dosya burada: kosum basinda ve sonunda sha256
 # karsilastirilir ([[mutasyon-diske-yazma-tuzagi]]).
-HEDEFLER = (KAPI, DEPLOY, UZLASTIRICI)
+HEDEFLER = (KAPI, DEPLOY, NOBET, UZLASTIRICI)
 DOKUNULMAZ = [os.path.join(ROOT, y) for y in HEDEFLER]
 
 FAILS = []
@@ -165,7 +170,7 @@ M10 = ("M10", "🔴 ESZAMANLILIK KILIDI SILINDI: uzlastiran isin `concurrency` g
 
 M12 = ("M12", "🔴 KILITLENME RISKI: cagiran job da AYNI eszamanlilik grubunu tutuyor "
               "(cagiran job grubu tutarken cagrilan is ayni grubu ister -> kosum "
-              "kilitlenebilir); kilit TEK YERDE olmali", DEPLOY,
+              "kilitlenebilir); kilit TEK YERDE olmali", NOBET,
        [("  d1-kadans:\n    uses: ./.github/workflows/d1-uzlastirici.yml\n",
          "  d1-kadans:\n    concurrency:\n      group: d1-uzlastirici\n"
          "      cancel-in-progress: false\n"
@@ -180,8 +185,8 @@ M11 = ("M11", "🔴 CRON IKINCI KOLU SILINDI ('kadans yetiyor' varsayimi): push'
 K1 = ("K1", "ilgisiz: A5 sabitinin yanina aciklama yorumu eklendi", KAPI,
       [("TESLIM_SAYFA = 100", "TESLIM_SAYFA = 100   # GitHub sayfa boyu")], False, set())
 
-K2 = ("K2", "ilgisiz: deploy.yml'de kadans job'unun USTUNE yorum satiri eklendi "
-            "(is akisi semantigi DEGISMEZ)", DEPLOY,
+K2 = ("K2", "ilgisiz: nobet.yml'de kadans job'unun USTUNE yorum satiri eklendi "
+            "(is akisi semantigi DEGISMEZ)", NOBET,
       [("  d1-kadans:\n    uses:", "  # kadans kolu — gerekce ustteki blokta\n"
                                    "  d1-kadans:\n    uses:")], False, set())
 

@@ -861,7 +861,12 @@ KAYNAK_TARAMA = (
     "tools/commit-mesaji-hook-kur.py",
     "tools/commit-mesaji-mutasyon.py",
     "tools/sizinti-desen-ozetleri.json",
-    ".github/workflows/deploy.yml",
+    # 🔴 5 Agu 2026: `mesaj-nobeti` job'u serit ayriminda deploy.yml'den nobet.yml'e
+    # TASINDI (bloklamayan nobet joblari yayin kosumunun rengini boyamasin diye).
+    # Izlenen kaynak listesi de onunla birlikte tasinir: eski yol kalsaydi bu betigin
+    # KENDI adim adlari/yorumlari (duz metin ad sizintisi ekseni) HIC taranmazdi ve
+    # nobetci kendi yuzeyinde KOR kalirdi ([[nobetci-kendi-dosyasinda-sizinti]]).
+    ".github/workflows/nobet.yml",
 )
 # 🔴 KAPSAM DARALTMA — OLCULEN MALIYET. Tam kapsam (5 dosyanin TAMAMI) 31,7 s surdu;
 # CI'da (olculen 3,58x) ~113 s eder ve bu deponun tekrar tekrar olctugu KAPI BIRIKMESI
@@ -871,7 +876,7 @@ KAYNAK_TARAMA = (
 # ve onlar zaten tools/kisisel-veri-test.py'nin icerik ekseninde. Bu yuzden deploy.yml
 # BLOK olarak taranir. Daraltma OLCULDU: 31,7 s -> 12,2 s, kapsam kaybi YOK (bu
 # nobetcinin yazdigi/yazabilecegi tek yer o bloktur).
-_BLOK_KAPSAM = {".github/workflows/deploy.yml": ("\n  mesaj-nobeti:", "\n  # ")}
+_BLOK_KAPSAM = {".github/workflows/nobet.yml": ("\n  mesaj-nobeti:", "\n  # ")}
 
 
 def _kaynak_metni(yol, rel):
@@ -1687,15 +1692,23 @@ def kendini_test():
         # Bayat sayi kosumun neyi olctugu hakkinda YANLIS bilgi verir ve kimse
         # duzeltmez. COZUM: sayi adim ADINDAN CIKARILDI (gercek sayiyi bu betik
         # "SONUC: N/N" satiriyla KENDI basar) ve tekrari bu iddia engeller.
-        yml = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+        # 🔴 5 Agu 2026: job nobet.yml'e tasindi (serit ayrimi). Capa dosya adiyla
+        # birlikte guncellendi; AYRICA "job blogu GERCEKTEN bulundu mu" AYRI bir
+        # iddiaya baglandi — eski yazimda `split()` job yokken TUM DOSYAYI dondurur
+        # ve K1/K2 yanlis bir govde uzerinden YESIL yanabilirdi (olculdu: ayrimdan
+        # hemen sonra K1 "13 adim" diyerek gecti, oysa job baska dosyadaydi).
+        yml = os.path.join(ROOT, ".github", "workflows", "nobet.yml")
         try:
             with open(yml, encoding="utf-8") as f:
                 yml_metin = f.read()
         except OSError:
             yml_metin = ""
-        kontrol("K0 deploy.yml okunabildi (izlenen dosya; yoklugu OLCULEMEDI'dir)",
+        kontrol("K0 nobet.yml okunabildi (izlenen dosya; yoklugu OLCULEMEDI'dir)",
                 bool(yml_metin))
-        job = yml_metin.split("\n  mesaj-nobeti:", 1)[-1].split("\n  # ", 1)[0]
+        kontrol("K0b `mesaj-nobeti` job blogu BULUNDU (capa bayatlarsa K1/K2 yanlis "
+                "govdeyi olcerdi)", "\n  mesaj-nobeti:" in yml_metin)
+        job = (yml_metin.split("\n  mesaj-nobeti:", 1)[-1].split("\n  # ", 1)[0]
+               if "\n  mesaj-nobeti:" in yml_metin else "")
         adlar = re.findall(r"- name:.*", job)
         bayat = [a for a in adlar if re.search(r"\d+\s+iddia", a)]
         kontrol("K1 mesaj-nobeti adim ADLARINDA sabitlenmis iddia SAYISI YOK "
