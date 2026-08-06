@@ -38,11 +38,31 @@ Uc commit: `867c1b0d` (veri) · `a964d385` (kapi kolu) · `08b86c34` (taban). Uc
   **URETILMEDI**. Gevseme nobeti: +1 kayitli sentetik tabanda uyari URETILDI, esit sayida
   URETILMEDI. Feed kapisi rc=0, taban/baslangic 0/0, RAPOR katmani birebir DEGISMEDI
   (164/20879).
-- 🟡 **ACIK KALEM (kardes mimardan gelen, benim duzlemimde):** yayin tavani geriye-doldurmasinda
-  **2 kayit** gorsel-gate politikasini ihlal ediyor (biri render'da kabartma ucuncu-taraf
-  wordmark, biri marka-ozgu olmayan jenerik urun); ikisi de hala canli, karar bende/Okan'da.
-  Ayrica bir denetim aracinin tum-katalog kipi rapor degil FIILEN silme uyguluyor — davranis
-  kafa karistirici, ayri bir karar konusu.
+## 🟢 BACKFILL GORSEL-GATE KALEMLERI KAPANDI — `33ecfa4a` (katalog 20949 -> 20948)
+
+Kardes mimarin bildirdigi 2 kalem gozle olculdu: **1 dogrulandi, 1 curutuldu, 1 YENI kusur cikti.**
+
+- **DOGRULANDI -> SILINDI:** bir motosiklet aparatinda ucuncu-taraf wordmark 4 gorselin 2'sinde,
+  biri **gercek baski fotografi** — yani model geometrisinde, basildiginda da orada. "Tasarimcinin
+  kendi imzasi" savunmasi olculerek dustu (kaynak metninde **0** isabet, tasarimcinin adiyla
+  ortusmuyor, diger 9 modelinde iz yok). Yasak tur -> `duzelt.py --sil`; gizli kaynak kaydi da
+  temizlendi (21690 -> 21689). 4 kapi rc=0 (guard · diriltme · feed · mukerrer 20948 tarandi).
+- 🔴 **CURUTULDU (iddia yanlis olculmus):** jenerik sanilan bir muzik aleti parcasinda marka
+  iddiasi MESRU — kaynagin etiket+aciklamasinda marka **3** isabet; yalnizca kaynagin BASLIGI
+  markasiz. **DERS: marka iddiasini basliktan degil, kaynagin etiket+aciklama metninden olc;**
+  baslik tek basina yanlis-pozitif uretiyor. Kategori de sapma degil (katalogdaki 74 muzik parcasinin
+  45'i ayni kategoride, emsal kayit da orada).
+- 🆕 **OLCUM SIRASINDA CIKAN UCUNCU KUSUR -> DUZELTILDI:** ayni kaydin kart kapagi bizim bastigimiz
+  parca DEGILDI, ticari bir urunun fotografiydi (parlak, katman izi yok, aksesuarlari takili; ayni
+  modelin kendi render'inda govde isaretsiz). Musteriyi yaniltir. Fotograf listeden cikarildi, notr
+  render kapak oldu (`gorseller` 2 -> 1); R2'ye HICBIR SEY yuklenmedi, hicbir anahtarin uzerine
+  yazilmadi. 🔴 **EKSEN ACIGI: gorsel-gate "logo var mi" diye soruyor ama "bu gorsel BIZIM
+  urunumuz mu" diye SORMUYOR.** Parti/backfill hunilerinde olculmeye deger.
+- 🟡 **ACIK KALEM (kardes mimarin duzlemi, devredildi):** duzeltilen kayit artik **1 gorselli**
+  (3-4 kuralinin altinda), notr render eklenmeli.
+- 🟡 **ACIK KALEM (siraya alindi, bu turda ele ALINMADI):** bir denetim aracinin tum-katalog kipi
+  rapor degil FIILEN silme uyguluyor (kardes mimar bilmeden 760 kaydi silmis, commit oncesi geri
+  onarmis); ayrica yetim SECIM kayitlari R2 kilidine dusuyor. Ikisi de ayri karar konusu.
 
 ## CI NOBETI (6 Agu 11:37 turu) — `yayin` tavani KAPANDI, 28 mail Cop'e
 
