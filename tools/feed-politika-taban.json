@@ -29,6 +29,16 @@
  "kok_baslangic": 7,
  "kok": [
   {
+   "id": "nissan-rogue-cift-vape-bardaklik-adaptoru",
+   "jeton": [
+    "elektronik sigara",
+    "vape"
+   ],
+   "nerede": "baslik+aciklama",
+   "baslik": "Nissan Rogue çift vape bardaklık adaptörü",
+   "eklendi": "2026-08-06"
+  },
+  {
    "id": "citroen-c4-elektronik-sigara-ve-bardakl-k-d-zenleyici",
    "jeton": [
     "elektronik sigara"
