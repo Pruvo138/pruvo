@@ -134,6 +134,11 @@ FAIL_CLOSED = {
     ("pre-commit", "tools/mimar-commit-kapisi.py"):
         "mimar kod-kilidi backstop'u; yutulursa ana repodan onaysiz kaynak/veri "
         "commit'i gecer.",
+    ("pre-commit", "tools/diriltme-kapisi.py"):
+        "yazim oncesi diriltme kolu. CI kolu TEK ATIMLIKTIR: diriltme "
+        "commit'lendigi an bir sonraki koşumun TABANI id'yi icerir, id 'silinmis' "
+        "olmaktan cikar ve alarm KENDILIGINDEN soner (olculdu 6 Agu 2026). Cikis "
+        "kodu yutulursa cikarilmis urun repoya girer ve HICBIR yerde alarm calmaz.",
     ("commit-msg", "tools/commit-mesaji-kapisi.py"):
         "commit MESAJI yazildiktan sonra degistirilemez (depo PUBLIC) -> tek "
         "onleyici yuzey budur; yutulursa tedarikci kimligi kalici olarak sizar.",

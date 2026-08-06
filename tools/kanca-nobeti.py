@@ -90,6 +90,14 @@ BEKLENEN = (
          "mukerrer id/baslik/kaynak linki commit'i BLOKLAR"),
         ("tools/mimar-commit-kapisi.py",
          "mimar kod-kilidi git backstop (ana repodan onaysiz kaynak/veri commit'i)"),
+        # 6 Agu 2026 eklendi. GEREKCE: CI kolu TEK ATIMLIKTIR — diriltme
+        # commit'lendigi an bir sonraki koşumun TABANI id'yi icerir, id
+        # "silinmis" olmaktan cikar ve alarm KENDILIGINDEN soner (olculdu:
+        # c912548f cikardi -> 841aab67 diriltti -> CI KIRMIZI -> d95f6f13'te
+        # YESIL). Yazim oncesi kol kaybolursa ihlal repoya girer ve kapi susar.
+        ("tools/diriltme-kapisi.py",
+         "yazim oncesi diriltme kolu: gecmiste CIKARILMIS urun id'si commit "
+         "aninda BLOKLANIR (CI kolu tek atimliktir, kendiliginden soner)"),
     )),
     ("pre-push", (
         ("tools/yedekle.py",
