@@ -118,6 +118,18 @@ Uc commit: `867c1b0d` (veri) · `a964d385` (kapi kolu) · `08b86c34` (taban). Uc
 
 ## 🟢 BACKFILL GORSEL-GATE KALEMLERI KAPANDI — ARSIVDE (DEVAM-ARSIV.md)
 
-## CI NOBETI 19:37Z turu — ARSIVDE (DEVAM-ARSIV.md)
+## CI NOBETI 20:37Z turu — DEPO KAYNAKLI ARIZA 0, ENGEL DIS ARIZA (olculdu)
 
-## CI NOBETI 11:37 / 15:37Z / 16:37Z turlari — KAPANDI, dokum `DEVAM-ARSIV.md`de (git disi).
+- Ev dogrulandi. Mail supurmesi **tasinan 0 / kalan 0** (7542 mesaj tarandi, eslesme yok).
+- **Depo kaynakli hata 0:** son `failure` **17:08:46Z**; son 70 dk'da basarisiz kosum yok.
+- **Dis ariza SURUYOR:** Actions+Pages **`major_outage`**, olay `investigating` 15:22Z'den beri,
+  webhook **%15**e kisik → kuyruktakiler kosucu ALAMIYOR.
+- **Yayin acigi 372 → 410:** canli **20.849 / 19.864.882 bayt**, yerel **21.259**; `?cb=` olcumu
+  bayt-birebir ayni (**origin bayat, CDN degil**); en yeni urun sayfasi **404**.
+- `pages` grubunu **17:37Z `ffc72a6a`** tutuyor (4 job 3 saattir `queued`, `cancel-in-progress:
+  false`); en yeni push **`86246f46` 19:08Z** arkasinda `pending`. Bayat isgalciyi dusurme
+  DENENDI → **`gh run cancel` HTTP 502 reddetti** (`rerun` gibi `cancel` de arizada gecmiyor);
+  deneme 1 / basarili 0. Ariza gecince `deploy` **JOB** success'i + iki olcumle canli dogrulama.
+  **Okan'da karar yok** (dis servis arizasi).
+
+## CI NOBETI 11:37 / 15:37Z / 16:37Z / 19:37Z turlari — dokum `DEVAM-ARSIV.md`de (git disi).
