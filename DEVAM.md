@@ -1,5 +1,24 @@
 # DEVAM (KraL) — 6 Agu 2026
 
+## ⏱️ SAATLIK CI NOBETI — 6 Agu ~16:37Z turu (ev dogrulandi: `~/dev/pruvo`)
+
+- **Mail:** gelen kutusundaki tum "Run failed" bildirimi Cop'e tasindi — **13 tasindi**, tur sonu
+  kutuda kalan **0** (ayri bir sayimla teyit; Cop bosaltilmadi).
+- **CI olcumu:** `cd00bac9` uzerindeki 4 kosum kirmizi ve patlayan adim TUM job'larda **"Set up
+  job"** — yani bizim hicbir betigimiz calismadi. `b5b0a623` kosumlari **40+ dk `queued`**,
+  hicbiri baslamadi; biri yeni push'la `cancelled` oldu.
+- **Bagimsiz teyit:** GitHub durum sayfasi → **Actions `major_outage`, impact `critical`,
+  status `investigating`**; Pages de `major_outage`. **KOK NEDEN = ALTYAPI**, bizim kod/YAML
+  degil. Bu yuzden hicbir duzeltme yapilmadi, hicbir sey push edilmedi — onarilacak bir
+  arizamiz yok, yesile boyanacak bir adim da yok.
+- **Etkisi:** `deploy`+`yayin` **skipped** → `b5b0a623`'teki 21 yeni urun **canliya GITMEDI**;
+  katalog kaydi 21206 iken canli site bayat. Bu bir yayin gecikmesidir, kod arizasi degil.
+- **SONRAKI TURUN ILK ISI (yarim is devri):** once ariza gecti mi olc (durum sayfasi +
+  `gh run list`); gectiyse en son HEAD icin kosumu yeniden tetikle ve `build` / `deploy` /
+  `yayin` job'larini **AYRI AYRI** yesil dogrula (skipped ≠ success). Asagidaki BEKLEYEN
+  madde 1'deki merge de bu ariza gecmeden alinmaz — canli dogrulama imkansiz.
+- Okan'a cikilmadi: GitHub arizasinda Okan'in yapabilecegi bir sey yok (karar kapisi degil).
+
 ## 🔚 OTURUM KAPANISI — 6 Agu · CANLIYA GIDENLER / KOSAN / BEKLEYEN
 
 **CANLIDA (SHA):** model sayfasi uyelik yuklemi `061d2918`+`b00a1f99` (sayfa 576→892, sayfada
