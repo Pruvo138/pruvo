@@ -1,5 +1,145 @@
 [
   {
+    "id": "yamaha-mt-07-tracer-7-gidon-capraz-bari",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "MT-07",
+      "Tracer 7"
+    ],
+    "baslik": "Yamaha MT-07 / Tracer 7 Gidon Çapraz Barı (28 mm)",
+    "aciklama": "Yamaha MT-07 ve Tracer 7 gidonunda, telefon ve navigasyon aparatlarına 28 mm çapında düz bir tutunma yüzeyi veren çapraz bardır.\nİki ucundaki ayaklar orijinal çapraz bar bağlantı noktalarına oturur ve mevcut vidalarla sabitlenir; orta bölüm kelepçeli tutucuların kavradığı bölgedir.\n- 28 mm kesiti yaygın gidon tipi tutucularla uyumludur.\n- Uçlardaki kulaklar ek aparat bağlamak için delik taşır.\n- Sürekli titreşim aldığı için darbeye toleranslı, dayanıklı malzeme tercih edilmesi uygun olur.",
+    "fiyat": "380 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw483419-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw483419-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw483419-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PETG"
+    ]
+  },
+  {
+    "id": "yamaha-tenere-700-on-cami",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Ténéré 700"
+    ],
+    "baslik": "Yamaha Ténéré 700 Ön Camı (Türbülans Azaltan)",
+    "aciklama": "2021 ve sonrası Yamaha Ténéré 700 için hazırlanmış, kask hizasındaki hava girdabını azaltmayı hedefleyen ön camdır.\nOrijinal cam bağlantı noktalarına ve ayar mekanizmasına göre biçimlendirilmiştir; gövde birbirine geçen parçalar hâlinde birleşir.\n- Fabrika bağlantı delikleri ve vida yerleşimi korunmuştur.\n- Üst kenardaki yönlendirici profil hava akışını sürücünün üzerinden geçirir.\n- Açık havada ve güneş altında kaldığı için ısıya ve dış etkenlere dayanıklı malzeme tercih edilmesi uygun olur.",
+    "fiyat": "750 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2847668-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2847668-2.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PETG"
+    ],
+    "lisans": {
+      "tasarimci": "MeshWeaver",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-x-max-topcase-kapak-tutma-kayisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "X-MAX"
+    ],
+    "baslik": "Yamaha X-MAX Topcase Kapak Tutma Kayışı",
+    "aciklama": "Yamaha X-MAX üst çantasının kapağı ile gövdesi arasına takılan, kapağı açık konumda tutan bağlantı kayışıdır.\nBir ucu kapağın iç yüzündeki pime, diğer ucu çanta gövdesindeki yuvaya geçer; kapağın geriye doğru fazla açılmasını sınırlar.\n- Kapak açıkken çantaya yükleme yapmayı kolaylaştırır.\n- Yıpranan ya da kopan orijinal bağlantının yerine yedek olarak kullanılır.\n- Her açılışta bükülme aldığı için esnek ve yorulmaya dayanıklı malzeme tercih edilmesi uygun olur.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2593586-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2593586-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_4201587459",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-xt660-ayna-kaidesi-salter-kutusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "XT660"
+    ],
+    "baslik": "Yamaha XT660 Ayna Kaidesi Şalter Kutusu",
+    "aciklama": "Yamaha XT660'ın gidon kumandası yanındaki ayna kaidesine oturan, küçük bir yaylı şalteri taşıyan kutudur.\nAyna vidasının altına sıkışarak sabitlenir; kablo çıkışı için yan yüzey kullanıcı tarafından delinir.\n- Ek far, korna ya da yardımcı aydınlatma şalterini gidona taşımak için kullanılır.\n- Kaide yüzeyine oturan tabanı sıkma sırasında dönmeyi engeller.\n- Açıkta kaldığı için ısıya ve dış etkenlere dayanıklı malzeme tercih edilmesi uygun olur.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw502738-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw502738-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw502738-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "juan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-yz250-depo-kayisi-baglanti-parcasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZ250"
+    ],
+    "baslik": "Yamaha YZ250 Yakıt Deposu Kayışı Bağlantı Parçası",
+    "aciklama": "Yamaha YZ250'de yakıt deposu kayışının bağlandığı noktada kullanılan ara bağlantı parçasıdır.\nİki delikli taban plakası mevcut vida yuvalarına oturur; açılı kolun ucundaki silindirik pim kayışın halkasını içine alır.\n- Kırılan ya da kaybolan orijinal bağlantının yerine kullanılır.\n- Pim boyu, kayışın gergin kalmasını sağlayacak biçimde konumlandırılmıştır.\n- Titreşim alan ve yakıtla temas edebilen bir bölgede durduğu için dayanıklı malzeme tercih edilmesi uygun olur.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2534913-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2534913-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2534913-3.jpg"
+    ]
+  },
+  {
+    "id": "honda-acura-mdx-ince-kutu-bardaklik-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Acura",
+      "MDX"
+    ],
+    "baslik": "Honda/Acura MDX (2025) İnce Kutu Bardaklık Adaptörü",
+    "aciklama": "Acura MDX (2025) orta konsol bardaklığına oturan, ince gövdeli enerji içeceği kutularını dengede tutan adaptör kovanıdır.\nFabrika bardaklığındaki kavrama dilleri ince kutuları tutamadığı için kutu sürüşte yana yatar; bu kovanın yan duvarlarındaki kanallar o dillerin üzerine geçer ve kutuyu ortalar.\n- Ön bardaklıkta üst hizada oturur, arka derin bardaklıkta ise kenarından asılarak yine üst hizada kalır.\n- Kutu çıkarıldığında kovan yuvada kalır, tek hareketle alınıp temizlenebilir.\nYaz sıcağında araç içinde kaldığı için ısıya dayanıklı bir malzeme tercih edilmesi uygun olur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1155078-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1155078-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1155078-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1155078-4.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PETG"
+    ],
+    "lisans": {
+      "tasarimci": "forrestcook",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-acty-tek-gozlu-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda",
+      "Acty"
+    ],
+    "baslik": "Honda Acty Tek Gözlü Bardaklık",
+    "aciklama": "Honda Acty kei kamyonet ve vanlarda konsol yuvasına asılan tek gözlü bardaklıktır.\nÜst kenarındaki kanca dili yuvanın ağzına geçirilir; bardaklık gövdesi yuvanın içine sarkarak kutu veya bardağı dik tutar.\n- Kabin içinde delik açılmasını veya sökme işlemi yapılmasını gerektirmez.\n- Dış duvarındaki geometrik doku kavramayı kolaylaştırır ve çizikleri gizler.\n- Tek parçadır, çıkarılıp boşaltılabilir.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1074929-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_1183398932",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "nissan-navara-d22-kul-tablasi-bardaklik-seti",
     "kategori": "Otomobil",
     "marka": [
@@ -71459,28 +71599,6 @@
       "https://media.pruvo3d.com/urunler/mw1429965-3.jpg",
       "https://media.pruvo3d.com/urunler/mw1429965-4.jpg"
     ]
-  },
-  {
-    "id": "honda-vezel-kapi-citasi-klipsi",
-    "kategori": "Otomobil",
-    "marka": [
-      "Honda",
-      "Vezel"
-    ],
-    "baslik": "Honda Vezel Kapı Fitili Çıtası Klipsi",
-    "aciklama": "Honda Vezel kapı çevresindeki lastik fitili ve çıtayı sac gövdeye tutturan klipstir.\nFitil kanalına oturur ve çıtanın kapı hattı boyunca gergin durmasını sağlar.\n- Vezel kapı fitili kanal ölçülerine göre biçimlendirilmiştir.\n- Piyasada karşılığı bulunamayan orijinal klipsin yerini alır.\n- Kapı başına birden fazla adet kullanılır.",
-    "fiyat": "200 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw615086-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw615086-2.jpg",
-      "https://media.pruvo3d.com/urunler/mw615086-3.jpg",
-      "https://media.pruvo3d.com/urunler/mw615086-4.jpg",
-      "https://media.pruvo3d.com/urunler/mw615086-5.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "mischief modelled",
-      "tur": "CC BY 4.0"
-    }
   },
   {
     "id": "honda-civic-6-nesil-bardaklik",
