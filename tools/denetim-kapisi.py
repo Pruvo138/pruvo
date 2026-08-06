@@ -43,10 +43,19 @@ VARSAYILAN report-only (hicbir sey silmez). --uygula ile auto_sil + dedup.sil,
 tools/duzelt.py --sil ile UYGULANIR (flock+manifest+guard uyumlu; baska yolla
 urunler.json'a yazilmaz). Eskalasyon HER ZAMAN sadece raporlanir.
 
+🔴 KAPSAM-PATLAMASI KORUMASI (--evet-sil; bkz SILME_ONAY_TAVANI): --uygula su iki
+kosuldan HERHANGI BIRI dogruysa ONAY ISTER ve onaysiz HICBIR SEY SILMEZ (rc 4):
+  (a) --tum-katalog ile --uygula BIRLIKTE verilmisse (kapsam = tum katalog), VEYA
+  (b) uygulanacak silme sayisi SILME_ONAY_TAVANI'ni asiyorsa (parti kipinde bile).
+Onay bicimi: --evet-sil N; N o koşumda OLCULEN silme sayisina BIREBIR esit olmali.
+Report-only koşum, uygulamak icin gereken TAM KOMUTU olculen N ile DOLDURULMUS basar.
+
 Kullanim:
   python3 tools/denetim-kapisi.py                 # partiyi denetle, rapor yaz (report-only)
   python3 tools/denetim-kapisi.py --idler a b c   # bu id'leri "yeni" say
-  python3 tools/denetim-kapisi.py --uygula        # auto_sil + dedup.sil'i duzelt.py ile uygula
+  python3 tools/denetim-kapisi.py --uygula        # PARTI kapsami; N<=TAVAN ise onaysiz uygular
+  python3 tools/denetim-kapisi.py --tum-katalog   # TUM katalogda denetim/olcum (report-only)
+  python3 tools/denetim-kapisi.py --tum-katalog --uygula --evet-sil 760   # onayli tam-katalog silme
 """
 import argparse
 import importlib.util
@@ -1203,6 +1212,62 @@ def _oku_json(path, default):
         return default
 
 
+# =============================================================================
+# KAPSAM-PATLAMASI KORUMASI — `--uygula` onay kapisi
+# =============================================================================
+# 🔴 OLCULMUS VAKA (5 Agu 2026): `--tum-katalog --uygula` kosuldu; `--uygula`nin PARTI
+# kapsaminda calisacagi SANILDI. Arac TUM KATALOGDA kostu ve 2878 auto_sil adayindan
+# 760'ini FIILEN SILDI. Commit'ten once fark edilip HEAD icerigiyle geri onarildi
+# (urunler.json'a sizmadi). KOK NEDEN: --tum-katalog yardim metni "denetim/olcum"
+# diyordu ama --uygula yine de tetikleniyordu — KAPSAM CELISKISI, hicbir yerde uyari yok.
+#
+# COZUM: sert yasak DEGIL, KAZAYLA TETIKLENEMEYEN onay. TEK mekanizma (--evet-sil N),
+# IKI giris kosulu. Ikiz tanim ACILMAZ: iki kosul da AYNI esitlik karsilastirmasindan
+# gecer (_onay_gerekce -> tek `!=` kiyasi), kopya kural yok.
+#   (a) --tum-katalog + --uygula BIRLIKTE  -> onay gerekir (kapsam tum katalog)
+#   (b) olculen sil_ids sayisi > TAVAN     -> onay gerekir (parti kipinde bile)
+# N NEDEN BIREBIR ESITLIK: sayiyi bilmek once report-only koşum gerektirir (kazayla
+# yazilamaz) VE olcum ile uygulama arasinda katalog kaydiysa sayi TUTMAZ -> fail-closed.
+#
+# TAVAN NEDEN 50 (OLCULDU — urunler.json git gecmisi, son 400 commit, 5 Agu 2026):
+#   silme iceren 20 commit var. En buyuk uc (193 / 87 / 70) OKAN EMRIYLE yapilan ELLE
+#   kategori temizligleri (duzelt.py --toplu), denetim-kapisi partisi DEGIL. Kalan 17
+#   commit'in EN BUYUGU 11 (yasak-tur temizligi), medyan 1, p90 (kapi-disi dahil) 87.
+#   50 = olculen en buyuk mesru KAPI silmesinin (11) ~4,5 kati -> mesru parti akisi
+#   ENGELLENMEZ, 760'lik kapsam patlamasi DURUR. Deger TEK isimli sabit (magic yok).
+SILME_ONAY_TAVANI = 50
+
+# onaysiz silme reddedildiginde donen cikis kodu (0/1/2/3 zaten kullanimda)
+RC_ONAY_GEREKLI = 4
+
+
+def _onay_gerekce(tum_katalog, sil_sayisi, tavan=SILME_ONAY_TAVANI):
+    """Onay gerektiren kosullarin insan-okur listesi. BOS liste = onay gerekmez.
+    TEK KAYNAK: hem reddetme teshisi hem report-only ipucu bunu cagirir."""
+    nedenler = []
+    if tum_katalog:
+        nedenler.append("(a) --tum-katalog ile --uygula BIRLIKTE verildi — kapsam PARTI "
+                        "degil TUM KATALOG")
+    if sil_sayisi > tavan:
+        nedenler.append("(b) uygulanacak silme sayisi TAVAN'i asiyor: %d > %d"
+                        % (sil_sayisi, tavan))
+    return nedenler
+
+
+def _uygula_komutu(sil_sayisi, tum_katalog=False, commit_farki=False, idler=None):
+    """Olculen N ile DOLDURULMUS uygulama komutu (mesru yol kolay olsun)."""
+    p = ["python3 tools/denetim-kapisi.py"]
+    if tum_katalog:
+        p.append("--tum-katalog")
+    if commit_farki:
+        p.append("--commit-farki")
+    if idler:
+        p.append("--idler " + " ".join(str(x) for x in idler))
+    p.append("--uygula")
+    p.append("--evet-sil %d" % sil_sayisi)
+    return " ".join(p)
+
+
 def _uygula(sil_ids, gerekce_map):
     """auto_sil + dedup.sil id'lerini duzelt.py --sil ile SIRAYLA uygular (flock+guard)."""
     ok, hata = [], []
@@ -1231,6 +1296,170 @@ def _kt_urun(uid, **kw):
          "gorseller": ["https://media.pruvo3d.com/urunler/%s-1.jpg" % uid]}
     u.update(kw)
     return u
+
+
+def _kt_onay_batarya(iddia):
+    """ONAY KAPISI (kapsam-patlamasi korumasi) kabul testi — SENTETIK depo, AG YOK,
+    canli veriye DOKUNMAZ.
+
+    🔴 CIKIS KODU YETMEZ: her vakada silmenin FIILEN olup olmadigi DAVRANISSAL olculur —
+    sentetik urunler.json'un sha256'si koşum oncesi==sonrasi VE kayit sayisi farki.
+    Sentetik depoda .urun-kaynaklari.json YOKTUR -> lisans kapisi fail-closed calisir ve
+    kapsamdaki HER urun auto_sil olur; boylece sil_ids sayisi DETERMINISTIK (= kapsam).
+    """
+    import hashlib
+    import shutil
+    import tempfile
+
+    gercek = os.path.abspath(__file__)
+    with open(gercek, "rb") as f:
+        gercek_sha_once = hashlib.sha256(f.read()).hexdigest()
+
+    tmp = tempfile.mkdtemp(prefix="denetim-kapisi-onay-")
+    depo = os.path.join(tmp, "depo")
+    os.makedirs(depo)
+    shutil.copytree(_TOOLS, os.path.join(depo, "tools"),
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    kapi = os.path.join(depo, "tools", os.path.basename(gercek))
+    uy = os.path.join(depo, "urunler.json")
+
+    def g(*a):
+        subprocess.run(["git", "-C", depo, *a], capture_output=True)
+
+    def yaz(liste):
+        with open(uy, "w", encoding="utf-8") as f:
+            json.dump(liste, f, ensure_ascii=False)
+
+    def sha_sayi():
+        with open(uy, "rb") as f:
+            ham = f.read()
+        return hashlib.sha256(ham).hexdigest(), len(json.loads(ham.decode("utf-8")))
+
+    TAM = 6                                   # tum-katalog kapsami (= sil_ids sayisi)
+    taban = [_kt_urun("t%d" % i) for i in range(TAM)]
+    ek_buyuk = [_kt_urun("x%d" % i) for i in range(SILME_ONAY_TAVANI + 5)]   # TAVAN'i ASAR
+    ek_kucuk = [_kt_urun("k%d" % i) for i in range(3)]                       # TAVAN ALTI
+
+    yaz(taban)
+    g("init", "-q")
+    g("add", "-A")
+    g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "taban")
+
+    def kos(ek, ek_urun=None, betik=None):
+        """Tabani GERI YUKLE -> kos -> (rc, cikti, sha_DEGISMEDI, silinen_kayit_sayisi)."""
+        yaz(taban)
+        g("add", "-A")
+        g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "vaka tabani")
+        if ek_urun:
+            yaz(taban + ek_urun)              # COMMIT EDILMEZ -> parti = ek_urun
+        s0, n0 = sha_sayi()
+        p = subprocess.run([sys.executable, betik or kapi, *ek,
+                            "--rapor", os.path.join(tmp, "rapor.json")],
+                           cwd=depo, capture_output=True, text=True)
+        s1, n1 = sha_sayi()
+        return p.returncode, (p.stdout or "") + (p.stderr or ""), s0 == s1, n0 - n1
+
+    # --- P1 [KIRMIZI]: --tum-katalog --uygula, ONAYSIZ -> silme YOK -------------------
+    rc, out, ayni, d = kos(["--tum-katalog", "--uygula"])
+    iddia("ONAY-P1 --tum-katalog --uygula ONAYSIZ -> rc!=0, sha256 DEGISMEDI",
+          rc != 0 and ayni and d == 0, "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+    iddia("ONAY-P1b teshis TETIKLEYEN kosulu (a) SOYLUYOR",
+          "TETIKLEYEN" in out and "(a)" in out and "--tum-katalog" in out,
+          "TETIKLEYEN=%s (a)=%s" % ("TETIKLEYEN" in out, "(a)" in out))
+
+    # --- P2 [KIRMIZI]: YANLIS N -> silme YOK -----------------------------------------
+    rc, out, ayni, d = kos(["--tum-katalog", "--uygula", "--evet-sil", str(TAM - 1)])
+    iddia("ONAY-P2 --evet-sil YANLIS N -> rc!=0, sha256 DEGISMEDI",
+          rc != 0 and ayni and d == 0, "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+
+    # --- P3 [KIRMIZI]: PARTI kipi, sil_ids > TAVAN, onaysiz -> silme YOK --------------
+    rc, out, ayni, d = kos(["--uygula"], ek_urun=ek_buyuk)
+    iddia("ONAY-P3 parti kipi sil_ids>%d ONAYSIZ -> rc!=0, sha256 DEGISMEDI"
+          % SILME_ONAY_TAVANI, rc != 0 and ayni and d == 0,
+          "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+    iddia("ONAY-P3b teshis TETIKLEYEN kosulu (b) TAVAN'i SOYLUYOR",
+          "(b)" in out and str(SILME_ONAY_TAVANI) in out,
+          "(b)=%s tavan=%s" % ("(b)" in out, str(SILME_ONAY_TAVANI) in out))
+
+    # --- N1 [YESIL]: DOGRU N -> uygular, kayit sayisi N kadar DUSER -------------------
+    rc, out, ayni, d = kos(["--tum-katalog", "--uygula", "--evet-sil", str(TAM)])
+    iddia("ONAY-N1 --tum-katalog --uygula --evet-sil %d -> uygular, kayit %d DUSTU"
+          % (TAM, TAM), rc == 0 and (not ayni) and d == TAM,
+          "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+
+    # --- N2 [YESIL]: parti kipi, TAVAN ALTI, onaysiz -> ESKISI GIBI uygular -----------
+    #     (REGRESYON NOBETI: koruma mesru dar parti akisini KIRMAMALI)
+    rc, out, ayni, d = kos(["--uygula"], ek_urun=ek_kucuk)
+    iddia("ONAY-N2 parti kipi sil_ids=%d (<=TAVAN) ONAYSIZ -> ESKISI GIBI uygular"
+          % len(ek_kucuk), rc == 0 and (not ayni) and d == len(ek_kucuk),
+          "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+
+    # --- N3 [YESIL]: --tum-katalog TEK BASINA (report-only) -> silme YOK --------------
+    rc, out, ayni, d = kos(["--tum-katalog"])
+    iddia("ONAY-N3 --tum-katalog tek basina (report-only) -> silme YOK, sha DEGISMEDI",
+          rc == 0 and ayni and d == 0, "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+
+    # --- H1: report-only ciktisi OLCULEN N ile DOLDURULMUS komutu BASIYOR -------------
+    iddia("ONAY-H1 report-only, olculen N ile DOLDURULMUS uygulama komutunu BASIYOR",
+          ("--evet-sil %d" % TAM) in out and "--tum-katalog" in out,
+          "'--evet-sil %d' ciktida: %s" % (TAM, ("--evet-sil %d" % TAM) in out))
+
+    # --- N4 [YESIL]: --envanter --tum-katalog (BLOKLAMAYAN kol) DEGISMEDI -------------
+    rc, out, ayni, d = kos(["--envanter", "--tum-katalog"])
+    iddia("ONAY-N4 --envanter --tum-katalog -> rc 0, silme YOK, onay kapisi KARISMIYOR",
+          rc == 0 and ayni and d == 0 and "ENVANTER" in out
+          and "SILME REDDEDILDI" not in out,
+          "rc=%d sha_ayni=%s silinen=%d" % (rc, ayni, d))
+
+    # =================================================================================
+    # 🔬 KONTROL MUTANTI — surucu REPODA, yeniden uretilebilir. Mutasyon YALNIZ sentetik
+    # KOPYAYA yazilir (depo/tools/), gercek dosyaya ASLA. Kabul: cikis kodu degil, hangi
+    # vakanin YESILE DONDUGU.
+    # =================================================================================
+    with open(kapi, encoding="utf-8") as f:
+        kaynak = f.read()
+
+    _MUT = [
+        ("M1", "[OLDURUCU] onay kontrolu KALDIRILDI (kosul -> False)",
+         "if nedenler or args.evet_sil is not None:", "if False:",
+         (True, True, True)),
+        ("M2", "[OLDURUCU] N esitligi 'N verildi mi'ye INDIRGENDI",
+         "if args.evet_sil != len(sil_ids):", "if args.evet_sil is None:",
+         (False, True, False)),
+        ("M3", "[KONTROL] yalniz TESHIS METNI degisti (davranis AYNI)",
+         "=== SILME REDDEDILDI (onay kapisi) — HICBIR SEY SILINMEDI ===",
+         "### silme yapilmadi ###",
+         (False, False, False)),
+    ]
+
+    for ad, aciklama, capa, yerine, beklenen in _MUT:
+        if capa not in kaynak:
+            iddia("%s mutasyon capasi TUTMADI (OLCULEMEDI) — %s" % (ad, aciklama),
+                  False, "capa yok: %r" % capa[:48])
+            continue
+        myol = os.path.join(depo, "tools", "_mutant-onay-%s.py" % ad)
+        with open(myol, "w", encoding="utf-8") as f:
+            f.write(kaynak.replace(capa, yerine))
+        r1 = kos(["--tum-katalog", "--uygula"], betik=myol)
+        r2 = kos(["--tum-katalog", "--uygula", "--evet-sil", str(TAM - 1)], betik=myol)
+        r3 = kos(["--uygula"], ek_urun=ek_buyuk, betik=myol)
+        # "YESILE DONDU" = silme FIILEN oldu (rc 0 VE kayit dustu) — metin degil davranis
+        olculen = tuple((r[0] == 0 and r[3] > 0) for r in (r1, r2, r3))
+        os.remove(myol)
+        iddia("%s %s -> P1/P2/P3 donusu %s (beklenen %s)"
+              % (ad, aciklama, olculen, beklenen), olculen == beklenen,
+              "silinen: P1=%d P2=%d P3=%d" % (r1[3], r2[3], r3[3]))
+
+    shutil.rmtree(tmp, ignore_errors=True)
+
+    with open(gercek, "rb") as f:
+        gercek_sha_sonra = hashlib.sha256(f.read()).hexdigest()
+    iddia("ONAY-MUT-DISK gercek denetim-kapisi.py sha256 ONCE==SONRA (mutant diske YAZILMADI)",
+          gercek_sha_once == gercek_sha_sonra,
+          "once=%s sonra=%s" % (gercek_sha_once[:12], gercek_sha_sonra[:12]))
+    _artik = sorted(x for x in os.listdir(_TOOLS) if x.startswith("_mutant"))
+    iddia("ONAY-MUT-TEMIZ gercek tools/ dizininde mutant artigi YOK",
+          not _artik, "artik: %s" % (_artik or "yok"))
 
 
 def kendini_test():
@@ -1752,6 +1981,9 @@ def kendini_test():
 
     shutil.rmtree(tmp, ignore_errors=True)
 
+    # --- ONAY KAPISI (kapsam-patlamasi korumasi) — KENDI sentetik deposu -------------
+    _kt_onay_batarya(iddia)
+
     print("DENETIM KAPISI — KENDINI TEST (--commit-farki CI kolu)")
     kalan = 0
     for ad, ok, detay in sonuc:
@@ -1771,10 +2003,18 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--idler", nargs="*", help="'yeni' sayilacak id listesi (HEAD farki yerine)")
     ap.add_argument("--uygula", action="store_true",
-                    help="auto_sil + dedup.sil'i duzelt.py --sil ile UYGULA (varsayilan: report-only)")
+                    help="auto_sil + dedup.sil'i duzelt.py --sil ile UYGULA (varsayilan: "
+                         "report-only). ONAY KAPISI: --tum-katalog ile birlikte verilirse VEYA "
+                         "silme sayisi %d'yi asarsa --evet-sil N ZORUNLU; onaysiz HICBIR SEY "
+                         "SILINMEZ (rc %d)." % (SILME_ONAY_TAVANI, RC_ONAY_GEREKLI))
+    ap.add_argument("--evet-sil", type=int, default=None, metavar="N",
+                    help="ONAY: o koşumda OLCULEN silme sayisina BIREBIR esit olmali. Esit "
+                         "degilse (ya da eksikse) silme YAPILMAZ. N'yi report-only koşum basar.")
     ap.add_argument("--rapor", default=RAPOR, help="rapor JSON cikti yolu")
     ap.add_argument("--tum-katalog", action="store_true",
-                    help="KAPI 7/8'i TUM katalogda kostur (denetim/olcum; parti farki yerine)")
+                    help="kapsami TUM KATALOG yap (parti farki yerine). Tek basina report-only "
+                         "denetim/olcumdur; --uygula ile BIRLIKTE verilirse --evet-sil N ZORUNLU "
+                         "olur (kapsam-patlamasi korumasi).")
     ap.add_argument("--commit-farki", action="store_true",
                     help="CI KOLU: parti = HEAD^ -> HEAD arasinda urunler.json'a eklenen/degisen "
                          "id'ler (fresh checkout'ta calisma-agaci farki DAIMA BOS oldugu icin)")
@@ -1896,11 +2136,35 @@ def main():
         if not sil_ids:
             print("uygulanacak silme yok.")
             return 0
+        # --- ONAY KAPISI (kapsam-patlamasi korumasi; bkz SILME_ONAY_TAVANI) ----------
+        # Onay iki kosuldan biri dogruysa SART. Ayrica --evet-sil VERILDIYSE kosul
+        # olmasa bile esitlik aranir (fail-closed: verilen sayi tutmuyorsa olcum ile
+        # uygulama arasinda katalog kaymistir).
+        nedenler = _onay_gerekce(args.tum_katalog, len(sil_ids))
+        if nedenler or args.evet_sil is not None:
+            if args.evet_sil != len(sil_ids):
+                print("\n=== SILME REDDEDILDI (onay kapisi) — HICBIR SEY SILINMEDI ===",
+                      file=sys.stderr)
+                for n in (nedenler or ["(-) --evet-sil verildi; sayi esitligi ZORUNLU"]):
+                    print("  TETIKLEYEN: %s" % n, file=sys.stderr)
+                print("  olculen silme sayisi : %d" % len(sil_ids), file=sys.stderr)
+                print("  verilen --evet-sil   : %s"
+                      % ("YOK" if args.evet_sil is None else args.evet_sil), file=sys.stderr)
+                print("  Uygulamak icin (olculen N ile DOLDURULMUS):", file=sys.stderr)
+                print("    %s" % _uygula_komutu(len(sil_ids), args.tum_katalog,
+                                                args.commit_farki, args.idler), file=sys.stderr)
+                return RC_ONAY_GEREKLI
         print("--uygula: %d urun duzelt.py --sil ile kaldiriliyor..." % len(sil_ids))
         ok, hata = _uygula(sil_ids, rapor["_gerekce"])
         print("uygulandi: %d silindi, %d hata" % (len(ok), len(hata)))
         return 1 if (hata or rapor["ihlal"]) else 0
 
+    _sil_n = len(rapor["_sil_ids"])
+    if _sil_n:
+        print("\nUYGULAMAK ICIN (olculen N ile DOLDURULMUS komut):")
+        print("  %s" % _uygula_komutu(_sil_n, args.tum_katalog, args.commit_farki, args.idler))
+        for n in _onay_gerekce(args.tum_katalog, _sil_n):
+            print("  onay kapisi ETKIN — %s" % n)
     print("(report-only — silmek icin --uygula)")
     return 1 if rapor["ihlal"] else 0
 
