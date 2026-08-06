@@ -60,6 +60,37 @@ conclusion DEGIL) success'i beklenecek, sonra iki olcumle canli dogrulama.
 
 **OKAN'DA KARAR YOK.** Concurrency kilidi merge ile kapandi; kalan engel GitHub arizasi.
 
+## 🟢 KOK COZUM TARAMASI MAIN'DE `fd801a88` — bir TESHIS olculerek CURUTULDU
+
+- **Giren:** `tools/kok-cozum-taramasi.py` (yeni surucu) + `diriltme-kapisi.py`'de IKI bayat
+  yorumun duzeltmesi. Onarimin KENDISI degismedi, yalniz gerekcesi olcume cekildi.
+- **Surucu ne olcer:** gercek `git worktree add` + gercek pre-commit kancasi kurup kancadan
+  cagrilan **6 aracin** kok cozum ifadesinin o baglamda hangi yolu dondurdugunu. GIT_DIR elle
+  KURULMAZ; ihrac edilen degiskeni surucu RAPORDA BASAR.
+- 🔴 **CURUTULEN TESHIS:** "ana checkout'ta GIT_DIR **GORELI** (`.git`) gelir, cagri basarisiz
+  olur, kod ikinci adaya duser" YANLIS. Olculen: ana checkout `GIT_DIR='<yok>'` (kesif calisir,
+  ILK aday zaten dogru) · linked worktree `GIT_DIR=<mutlak>`. Ikinci adaya HIC dusulmuyor.
+- **Sayilar:** taranan arac **6** · olculen ifade **9** · ANA CHECKOUT kolunda yanlis kok cozen
+  **0** · WORKTREE kolunda **2** (biri onarimin geri alindigi hal = sinifin gosterimi, biri
+  BEYAN EDILEN SINIR). Kabul: surucu rc=0 · `--kanca-mutasyon` rc=0 **19 iddia** (korelme yok) ·
+  `ci-kapsam-test.py` rc=0 · `mimar-commit-kapisi-test.py` rc=0 **26 vaka**.
+- 🔴 **DUSURULEN IS (bagimsiz curutucu hukmu, MERGE EDILMEDI):** ayni turda hazirlanan
+  mimar-commit-kapisi **kok sertlestirmesi** main'e ALINMADI. Curutucu davranissal etkisini
+  GERCEK exit koduyla **dort baglamda da SIFIR** olctu: o kapi `kok != ANA_REPO -> return 0`
+  der, worktree'de hem `<agac>` hem `<agac>/tools` ANA_REPO'dan farklidir → ayni hukum
+  (tasarlanmis muafiyet). Ustelik sertlestirmenin kendisi realpath'siz dizge kiyasi yuzunden
+  **uykuda bir fail-open** aciyordu. Ayni turun diriltme onarimi da DUSURULDU: main'deki
+  (`3aec9eba`) daha genis (85/19 iddia, W1..W4 vs 84/18, W1..W3).
+  **DERS:** "kok yanlis cozuluyor" bulgusu tek basina kusur DEGIL — o kokun HUKMU degistirdigi
+  gosterilmeli. Ayirt edici mutant yoksa eksen ayri iddia olarak main'e girmez.
+- **BEKLEYEN 1 (2 IKIZ kok-turetme) ile iliski:** surucu tam da o soruyu olcumle yanitlayan
+  arac; kardes oturum ayni sinifta calisiyor, mukerrer is riski var.
+- 🔴 **YAYIN ACIK (depo kaynakli DEGIL):** `durum.py` §9 **ACLIK rc 4** — son 38 tamamlanmis
+  kosumun **7'si IPTAL**, taranan 8 kosumda `deploy` isini BASARIYLA kosan kosum **YOK**, bir
+  kosum **89 dk**dir bitmiyor (omur tavani 75 dk). `fd801a88` icin Actions'ta **hic kosum kaydi
+  yok** (kuyruk `3aec9eba`'da queued/pending). Canli dogrulama **OLCULEMEDI — sebep: kuyruk**.
+  Bu commit site icerigini degistirmiyor (yalniz `tools/`), yayin etkisi yok.
+
 ## 🟢 DIRILTME KUSURU KAPANDI — kayit cikarildi + alarmin TEK ATIMLIK sonmesi onarildi
 
 Uc commit: `867c1b0d` (veri) · `a964d385` (kapi kolu) · `08b86c34` (taban). Ucu de push edildi.
