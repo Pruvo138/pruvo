@@ -35,8 +35,38 @@ SESSIZ-GECIS ONARIMLARI (bagimsiz curutucu 12 delik olctu — hepsi rc=0 ile gec
   D11 ata detayi zarf acildiktan sonra BOS/taninmayan sekilse gecerdi. ARTIK: KALICI.
   D12 bozuk JSON gecici sayiliyordu. ARTIK: KALICI (yeniden deneme fayda etmez).
 
+═══════════════════════════════════════════════════════════════════════════════
+IKINCI TUR — "ALAN-YOK" IDDIASININ KENDISI OLCULMEMISTI (D13..D18 + V1)
+═══════════════════════════════════════════════════════════════════════════════
+ALAN-YOK bir OLCUM IDDIASIDIR: gerekce metni "detay OLCULDU: ata alani yok" DER. Bagimsiz
+curutucu bu iddianin YANLIS oldugu 5 vaka olctu (hepsi rc=0 ile geciyordu). Vakalar bugun
+TARANAN tek platformda (ata_destegi=True) ERISILMEZ — cunku o platformun JSON sekli CANLI
+olculdu — ama ata_destegi HERHANGI bir platformda sekil OLCULMEDEN True'ya cevrildigi an
+SESSIZ FAIL-OPEN olurlar. Onarim: ALAN-YOK artik VARSAYILMAZ, KANITLANIR.
+  D13 zarf derinlik tavani 3'tu: 4 kademeli zarf ({"data":{"result":{"response":{"payload":
+      {"originals":[...]}}}}}) HIC acilmiyordu -> ALAN-YOK. ARTIK tavan ZARF_TAVANI ve
+      tavan ASILIRSA fail-closed SEKIL (ALAN-YOK DEGIL).
+  D14 ayni duzeyde IKI zarf anahtari (ör. hem "data" hem "model" dict) -> eski kod
+      `len(icler) != 1` ile DIS sozlugu donuyordu -> ata alani gorulmuyor -> ALAN-YOK.
+      ARTIK: BELIRSIZ zarf = fail-closed SEKIL ("hangisi govde OLCULMEDI").
+  D15 ata alan adlari TAM ESLESME ile araniyordu ("Originals" gorulmuyordu).
+  D16 ayni korluk ayrac/yazim varyantinda ("remixparents").
+  D17 ayni korluk buyuk harfte ("REMIXOF").
+      ARTIK: ad NORMALIZASYONU (buyuk-kucuk + ayrac duyarsiz) — TEK kanonik fonksiyon
+      (`_ad`) hem tarama hem zarf ekseninde kullanilir ([[ikiz-tanim-sessiz-ayrisma]]).
+      🔴 6 addan YALNIZ "originals" CANLI olculdu; kalan 5'i TAHMINDIR — yeni platformda
+      yazim varyanti CANLI RISKTIR.
+  D18 taninmayan/olculmemis sekildeki HER detay ALAN-YOK sayiliyordu ("olculdu" YALANI).
+      ARTIK: ALAN-YOK yalniz detay TANINAN bir govde ise (GOVDE_ALANLARI isareti tasiyorsa)
+      verilir; taninmayan sekil -> COZULEMEDI-SEKIL (rc 1).
+  V1  lisans VETOSU duz alt-dizi ariyordu: "exclusive" jetonu yuzunden TAM METIN CC lisanslari
+      ("... worldwide, royalty-free, non-exclusive ...") veto yiyordu (yanlis-pozitif; yon
+      fail-closed ama yayin durdurur). ARTIK: "non-exclusive" onek muafiyetli desen; tescilli
+      "Exclusive License" VETO'da KALIR.
+
 FAIL-CLOSED YON (supheli = satilamaz):
   * host'un adaptoru YOK        -> COZULEMEDI-ADAPTORSUZ (ELLE-BAK kuyruguna) -> rc 1
+  * detay sekli TANINMADI       -> COZULEMEDI-SEKIL (ELLE-BAK; sekli OLC)     -> rc 1
   * kimlik/sekil/null/403/bozuk -> COZULEMEDI-KALICI (eskalasyon)             -> rc 1
   * 429 / 5xx / timeout         -> OLCULEMEDI-GECICI (yeniden denenebilir)    -> rc 2
   * ata lisansi satilamaz       -> IHLAL                                      -> rc 1
@@ -88,12 +118,18 @@ DURUM_IHLAL = "IHLAL"
 DURUM_ADAPTORSUZ = "COZULEMEDI-ADAPTORSUZ"
 DURUM_KALICI = "COZULEMEDI-KALICI"
 DURUM_GECICI = "OLCULEMEDI-GECICI"
+# 🔴 D18: detayin SEKLI taninmadi -> "ata alani yok" DENEMEZ (iddia olculmemistir).
+# Yeniden deneme fayda etmez; cozum SEKLI OLCMEKTIR -> ELLE-BAK kuyruguna, rc 1.
+DURUM_SEKIL = "COZULEMEDI-SEKIL"
 
-IHLAL_DURUMLARI = (DURUM_IHLAL, DURUM_ADAPTORSUZ, DURUM_KALICI)   # rc 1
-OLCULEMEDI_DURUMLARI = (DURUM_GECICI,)                            # rc 2
+IHLAL_DURUMLARI = (DURUM_IHLAL, DURUM_ADAPTORSUZ, DURUM_KALICI, DURUM_SEKIL)   # rc 1
+OLCULEMEDI_DURUMLARI = (DURUM_GECICI,)                                         # rc 2
 
 # Zincir kac kademe yukari cikilir (ata -> atanin atasi -> ...). Tavan ASILIRSA fail-closed.
 DERINLIK_TAVANI = 3
+
+# Detay JSON'u kac ZARF kademesi acilir. Tavan ASILIRSA fail-closed (D13).
+ZARF_TAVANI = 6
 
 
 class GeciciHata(Exception):
@@ -151,9 +187,15 @@ def adaptor_bul(host, defter):
 # tanima birlesiminden ONCE calisir; boylece "tanima genis" olmasi NC'yi ASLA gecirmez.
 _NC_METIN = ("noncommercial", "non-commercial", "non commercial", "not for commercial",
              "no commercial")
-_TESCILLI_METIN = ("standard digital file", "exclusive", "all rights reserved",
+_TESCILLI_METIN = ("standard digital file", "all rights reserved",
                    "community use", "personal use", "private use", "ocl v",
                    "official content", "premium")
+# 🔴 V1: "exclusive" ALT-DIZI olarak arandiginda TAM METIN lisanslari veto ediyordu —
+# "non-exclusive" ibaresi HER standart CC/royalty-free tam metninde gecer ("... a worldwide,
+# royalty-free, non-exclusive license ..."). Tescilli olan "Exclusive License"tir, "non-
+# exclusive" DEGILDIR. Onek muafiyeti + kelime siniri ile ayrilir; "MakerWorld Exclusive
+# License" VETO'da KALIR. (Kalan tescilli ibareler bilerek genis birakildi: yon fail-closed.)
+_TESCILLI_DESEN = (re.compile(r"(?<!non)(?<!non[ -])\bexclusive\b"),)
 
 
 def lisans_vetosu(ham):
@@ -167,11 +209,17 @@ def lisans_vetosu(ham):
         return True
     if any(t in s for t in _TESCILLI_METIN):
         return True
-    toks = set(re.split(r"[^a-z0-9]+", s))
-    toks.discard("")
+    if any(d.search(s) for d in _TESCILLI_DESEN):
+        return True
+    toks = [t for t in re.split(r"[^a-z0-9]+", s) if t]
     if "nc" in toks:
         return True
-    if "non" in toks and "commercial" in toks:
+    # 🔴 V1 — BITISIKLIK SARTI: "non" ve "commercial" jetonlari YAN YANA olmali. Kume uyeligi
+    # (ikisi de metnin HERHANGI bir yerinde) TAM METIN lisanslari veto ediyordu:
+    # "... non-exclusive, worldwide, royalty-free; commercial use permitted ..." -> "non" +
+    # "commercial" VAR ama lisans SATILABILIR (olculdu). Yan yana sarti ayractan BAGIMSIZ
+    # olarak NC'yi yakalamaya devam eder: "non-commercial", "non–commercial", "non_commercial".
+    if any(a == "non" and b == "commercial" for a, b in zip(toks, toks[1:])):
         return True
     return False
 
@@ -220,22 +268,84 @@ ATA_ALANLARI = ("originals", "remixParents", "derivedFrom", "ancestors",
 # GORULMEZ ve kayit sessizce "ata yok" sayilir.
 ZARF_ANAHTARLARI = ("data", "result", "response", "payload", "design", "model")
 
+# 🔴 D18: "ata alani yok" bir OLCUM IDDIASIDIR ve ancak detayin GOVDE oldugu TANINIRSA
+# verilebilir. Bu isaretler 4 canli adaptorun detay JSON'larinda GECEN alanlardir
+# (mw: id/title/license/coverUrl/instances · pr: id/name/license/stls ·
+#  c3: name/url/shortUrl/license/illustrationImageUrl · mmf: id/name/license/designer/images).
+# Hicbiri yoksa detay ya zarftir ya da SEKLI OLCULMEMISTIR -> fail-closed.
+GOVDE_ALANLARI = ("license", "licence", "id", "title", "name", "slug", "url", "shortUrl",
+                  "description", "summary", "designId", "modelId", "cover", "coverUrl",
+                  "images", "pictures", "instances", "files", "stls", "designer",
+                  "author", "creator", "username", "tags", "category", "createdAt",
+                  "publishedAt")
+
 _URL_RE = re.compile(r"https?://[^\s,;<>\"'\)\]}]+", re.IGNORECASE)
+_AD_TEMIZ = re.compile(r"[^a-z0-9]+")
 
 
-def _zarf_ac(detay, tavan=3):
-    """Zarfli detay JSON'unu acar: ata alani ust duzeyde yoksa TEK ic dict'e iner."""
+def _ad(anahtar):
+    """JSON alan adini KANONIK bicime indirger: buyuk-kucuk ve ayrac (_ - bosluk) duyarsiz.
+
+    🔴 TEK KANONIK FONKSIYON: alan tarama (ata_kayitlari), zarf inisi ve govde tanima
+    AYNI normalizeri kullanir; ikiz tanim sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]])."""
+    return _AD_TEMIZ.sub("", str(anahtar).lower())
+
+
+_ATA_N = frozenset(_ad(a) for a in ATA_ALANLARI)
+_ZARF_N = frozenset(_ad(z) for z in ZARF_ANAHTARLARI)
+_GOVDE_N = frozenset(_ad(g) for g in GOVDE_ALANLARI)
+_ATA_SIRA = {_ad(a): i for i, a in enumerate(ATA_ALANLARI)}
+
+
+def ata_anahtarlari(d):
+    """Sozlukteki GERCEK ata alan adlari (yazim varyantlari dahil), kanonik sirada.
+
+    🔴 D15/D16/D17: eski kod TAM ESLESME ariyordu; "Originals" / "remixparents" / "REMIXOF"
+    GORUNMUYOR ve kayit sessizce ALAN-YOK oluyordu."""
+    if not isinstance(d, dict):
+        return []
+    varlar = [k for k in d if _ad(k) in _ATA_N]
+    return sorted(varlar, key=lambda k: (_ATA_SIRA.get(_ad(k), 99), str(k)))
+
+
+def _govde_mi(d):
+    """Detay sozlugu TANINAN bir kayit govdesi mi? (ALAN-YOK'un ON KOSULU — D18)"""
+    return isinstance(d, dict) and any(_ad(k) in _GOVDE_N for k in d)
+
+
+def _zarf_ac(detay, tavan=ZARF_TAVANI):
+    """Zarfli detay JSON'unu acar. Doner (govde, hata|None, govde_gorundu).
+
+    hata DOLU ise FAIL-CLOSED (hukum VERILMEZ). govde_gorundu = inilen yol uzerinde EN AZ BIR
+    kademenin TANINAN govde oldugu; ALAN-YOK'un ON KOSULUDUR (D18).
+
+    Sira her kademede: (1) ata alani BURADA mi -> bittik · (2) govde izi kaydedilir ·
+    (3) tek zarf cocuguna inilir. Tavan asilirsa ya da ayni duzeyde BIRDEN COK zarf cocugu
+    varsa hukum VERILMEZ: eski kod ikisinde de sessizce disaridaki sozlugu donuyor ve kayit
+    ALAN-YOK sayiliyordu (D13/D14).
+
+    🔴 GOVDE ISARETI INISI DURDURMAZ: {"id":1,"title":"x","data":{"originals":[...]}} gibi
+    HEM govde isareti tasiyan HEM zarflayan detayda erken durmak, ata alanini yeniden
+    gorunmez yapardi (ilk onarim denemesinde olculdu)."""
     d = detay
     n = 0
-    while isinstance(d, dict) and n < tavan:
-        if any(k in d for k in ATA_ALANLARI):
-            return d
-        icler = [d[k] for k in ZARF_ANAHTARLARI if isinstance(d.get(k), dict)]
-        if len(icler) != 1:
-            return d
+    govde_gorundu = False
+    while isinstance(d, dict) and d:
+        if ata_anahtarlari(d):
+            return d, None, True                  # ata alani BULUNDU: iz aramaya gerek yok
+        govde_gorundu = govde_gorundu or _govde_mi(d)
+        icler = [d[k] for k in d if _ad(k) in _ZARF_N and isinstance(d[k], dict)]
+        if len(icler) > 1:
+            return d, ("detay zarfi BELIRSIZ: ayni duzeyde %d ic sozluk — govde OLCULMEDI"
+                       % len(icler)), govde_gorundu
+        if not icler:
+            return d, None, govde_gorundu         # zarf bitti; hukmu cagiran verir (D18)
+        if n >= tavan:
+            return d, ("detay zarfi %d kademeden derin (tavan %d) — govde ACILAMADI"
+                       % (n + 1, tavan)), govde_gorundu
         d = icler[0]
         n += 1
-    return d
+    return d, None, govde_gorundu
 
 
 def urlleri_cikar(metin):
@@ -272,9 +382,7 @@ def ata_kayitlari(detay):
     if not isinstance(detay, dict):
         return [], ["detay sekli taninmiyor (%s)" % type(detay).__name__]
     refs, hatalar = [], []
-    for alan in ATA_ALANLARI:
-        if alan not in detay:
-            continue
+    for alan in ata_anahtarlari(detay):
         ham = detay[alan]
         if ham is None or ham == "" or ham == [] or ham == {}:
             continue                                    # alan var ama BOS -> ata yok
@@ -362,7 +470,10 @@ def ata_yargi(ata, defter, gs, kaynak_adaptor=None, derinlik=1, gorulen=None):
         return [_sonuc(DURUM_KALICI, "API null dondu (kayit yok/erisilemez)",
                        ata, host, kimlik, None, adaptor.ad, derinlik)]
 
-    detay = _zarf_ac(detay)
+    detay, zarf_hatasi, _iz = _zarf_ac(detay)
+    if zarf_hatasi:
+        return [_sonuc(DURUM_SEKIL, "ata detayi: " + zarf_hatasi,
+                       ata, host, kimlik, None, adaptor.ad, derinlik)]
     if not isinstance(detay, dict) or not detay:
         return [_sonuc(DURUM_KALICI, "ata detayi BOS ya da taninmayan sekilde",
                        ata, host, kimlik, None, adaptor.ad, derinlik)]
@@ -400,21 +511,31 @@ def kayit_yargi(urun_id, detay, defter, gs, kaynak_adaptor=None):
     """Bir turev kaydin TUM ata zincirinin yargisi -> sonuc dict listesi.
 
     🔴 Detay dogrulamasi BURADADIR: None / dict-degil / (zarf acildiktan sonra) BOS
-    detay ARTIK 'ata yok' SAYILMAZ — fail-closed KALICI."""
+    detay ARTIK 'ata yok' SAYILMAZ — fail-closed KALICI.
+
+    🔴 D18: ALAN-YOK bir OLCUM IDDIASIDIR; yalniz detay TANINAN bir govde ise verilir.
+    Taninmayan sekil -> DURUM_SEKIL (fail-closed) — 'olculdu' DIYE YALAN SOYLENMEZ."""
     if detay is None:
         out = [_sonuc(DURUM_KALICI, "turev detayi YOK (API null / kayit silinmis-gizli)")]
     elif not isinstance(detay, dict):
         out = [_sonuc(DURUM_KALICI, "turev detayi taninmayan sekilde (%s)"
                       % type(detay).__name__)]
     else:
-        acik = _zarf_ac(detay)
-        if not isinstance(acik, dict) or not acik:
+        acik, zarf_hatasi, govde_gorundu = _zarf_ac(detay)
+        if zarf_hatasi:
+            out = [_sonuc(DURUM_SEKIL, "turev detayi: " + zarf_hatasi)]
+        elif not isinstance(acik, dict) or not acik:
             out = [_sonuc(DURUM_KALICI, "turev detayi BOS (zarf acildiktan sonra da)")]
         else:
             atalar, sekil_hatalari = ata_kayitlari(acik)
             out = [_sonuc(DURUM_KALICI, h) for h in sekil_hatalari]
             if not atalar and not sekil_hatalari:
-                out = [_sonuc(DURUM_ALAN_YOK, "detay OLCULDU: ata alani yok")]
+                if govde_gorundu:
+                    out = [_sonuc(DURUM_ALAN_YOK, "detay OLCULDU (govde TANINDI): ata alani yok")]
+                else:
+                    out = [_sonuc(DURUM_SEKIL,
+                                  "turev detayi TANINMAYAN sekilde (govde isareti yok) — "
+                                  "'ata alani yok' DENEMEZ; bu platformun sekli OLCULMEMIS")]
             else:
                 gorulen = set()
                 for ata in atalar:
@@ -774,6 +895,8 @@ def rapor_yaz(sonuclar, kapsam=None, taranan=0, yaz=None):
     yaz("  cozuldu / SATILABILIR         : %d" % say[DURUM_SATILABILIR])
     yaz("  IHLAL (ata satilamaz)         : %d" % say[DURUM_IHLAL])
     yaz("  COZULEMEDI-ADAPTORSUZ         : %d   -> ELLE-BAK" % say[DURUM_ADAPTORSUZ])
+    yaz("  COZULEMEDI-SEKIL              : %d   -> SEKLI OLC (ALAN-YOK DENEMEZ)"
+        % say[DURUM_SEKIL])
     yaz("  COZULEMEDI-KALICI             : %d   -> ESKALASYON" % say[DURUM_KALICI])
     yaz("  OLCULEMEDI-GECICI             : %d   -> YENIDEN DENE" % say[DURUM_GECICI])
     if kapsam:
@@ -791,7 +914,7 @@ def rapor_yaz(sonuclar, kapsam=None, taranan=0, yaz=None):
                 % (s.get("urun"), s.get("derinlik"), s.get("host") or "?",
                    s.get("ata_kimlik") or "?", s.get("ata_lisans"), s["gerekce"]))
 
-    elle = [s for s in sonuclar if s["durum"] in (DURUM_ADAPTORSUZ, DURUM_KALICI)]
+    elle = [s for s in sonuclar if s["durum"] in (DURUM_ADAPTORSUZ, DURUM_KALICI, DURUM_SEKIL)]
     if elle:
         yaz("")
         yaz("ELLE-BAK KUYRUGU (cozulemedi -> SATILAMAZ SAY):")
@@ -905,8 +1028,36 @@ def kendini_test(yaz=None):
     k.append(("coklu sozluk: insan-adi satilabilir",
               coklu_sozluk_satilabilir("Attribution 4.0 International") is True))
     k.append(("coklu sozluk: NC ASLA", coklu_sozluk_satilabilir("BY-NC") is False))
+    k.append(("veto: tam metin 'non-exclusive' VETO YEMEZ",
+              lisans_vetosu("Attribution 4.0 International — a worldwide, royalty-free, "
+                            "non-exclusive, perpetual license") is False))
+    k.append(("veto: tescilli 'Exclusive License' VETO YER",
+              lisans_vetosu("MakerWorld Exclusive License") is True))
     k.append(("ata alan listesi 6 ad", len(ATA_ALANLARI) >= 6))
-    k.append(("zarf acilir", "originals" in _zarf_ac({"data": {"originals": []}})))
+    k.append(("zarf acilir", "originals" in _zarf_ac({"data": {"originals": []}})[0]))
+    k.append(("ad normalize: buyuk-kucuk/ayrac duyarsiz", _ad("Remix_Of") == _ad("remixOf")))
+    k.append(("ata alani yazim varyantiyla GORULUR",
+              ata_anahtarlari({"Originals": [], "REMIXOF": []}) == ["Originals", "REMIXOF"]))
+    k.append(("derin zarf (4 kademe) acilir",
+              "originals" in _zarf_ac(
+                  {"data": {"result": {"response": {"payload": {"originals": []}}}}})[0]))
+    k.append(("zarf TAVANI asilirsa fail-closed", bool(_zarf_ac(
+        {"data": {"data": {"data": {"data": {"data": {"data": {"data": {"data": {}}}}}}}}},
+        tavan=2)[1])))
+    k.append(("BELIRSIZ zarf (2 ic sozluk) fail-closed",
+              bool(_zarf_ac({"data": {"a": 1}, "model": {"b": 2}})[1])))
+    k.append(("govde ISARETLI zarfin icindeki ata alani GORULUR",
+              ata_anahtarlari(_zarf_ac(
+                  {"id": 1, "title": "x", "data": {"originals": []}})[0]) == ["originals"]))
+    k.append(("govde izi ALAN-YOK'un on kosulu",
+              _zarf_ac({"title": "x"})[2] is True and _zarf_ac({"foo": 1})[2] is False))
+    k.append(("taninan govde -> ALAN-YOK",
+              kayit_yargi("u", {"title": "x"}, defter, genel_satilabilir)[0]["durum"]
+              == DURUM_ALAN_YOK))
+    k.append(("TANINMAYAN sekil -> ALAN-YOK DEGIL (SEKIL)",
+              kayit_yargi("u", {"foo": 1}, defter, genel_satilabilir)[0]["durum"]
+              == DURUM_SEKIL))
+    k.append(("rc: SEKIL ASLA 0", cikis_kodu([{"durum": DURUM_SEKIL}]) != 0))
     k.append(("coklu URL cikar", len(urlleri_cikar("a https://x.example/1 b https://y.example/2")) == 2))
     k.append(("kimlik: site bicimi", _kimlik_thing("https://ornek.example/thing:2304418") == "2304418"))
     k.append(("kimlik: API bicimi", _kimlik_thing("https://api.ornek.example/things/2304418")
@@ -917,7 +1068,7 @@ def kendini_test(yaz=None):
     k.append(("turev detayi BOS -> KALICI",
               kayit_yargi("u", {}, defter, genel_satilabilir)[0]["durum"] == DURUM_KALICI))
     k.append(("ALAN-YOK sonucunda urun kimligi VAR",
-              kayit_yargi("u", {"baslik": "x"}, defter, genel_satilabilir)[0].get("urun") == "u"))
+              kayit_yargi("u", {"title": "x"}, defter, genel_satilabilir)[0].get("urun") == "u"))
     bos_ata = {"link": "", "license": "", "alan": "originals"}
     k.append(("linksiz ata fail-closed",
               ata_yargi(bos_ata, defter, genel_satilabilir)[0]["durum"] == DURUM_KALICI))
