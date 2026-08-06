@@ -1,4 +1,31 @@
-# DEVAM (KraL) — 5 Agu 2026
+# DEVAM (KraL) — 6 Agu 2026
+
+## 🔚 OTURUM KAPANISI — 6 Agu · CANLIYA GIDENLER / KOSAN / BEKLEYEN
+
+**CANLIDA (SHA):** model sayfasi uyelik yuklemi `061d2918`+`b00a1f99` (sayfa 576→892, sayfada
+gorunen tekil urun 8.839→12.879, `/marka/suzuki/vitara/` **27→66** canli dogrulandi, kaybolan
+urun 0 · slug degisen 0) · parite referanslari tek kaynaga `82ab7fea`+`99a2fe3b`+`2819d561`
+(site **1199/1199**, uc **847/847**, marka ekseni **142/142 ayrisan 0**; 11.152 kalem → 0) ·
+olcek tavani katalogdan turuyor `128d7b34` · cron nabiz esigi canli orandan `ac533601` ·
+kapali sozluk + AL3 kabul evreni `e10a91ce`+`c358cb3d` · anlatim yuzeyi kolu `493b286c` ·
+**D1 DORDUNCU EKSEN** (turetilmis kolonlar artik sessiz bayatlayamaz) `d23eeb88` · model
+kapisi olu giris onarimlari `9654b7c2` · yayin olcegi olcumu `e10ef665`+`482713d1` ·
+Volvo Penta veri+taban tek commit `fcf0db57`. Ana repo temiz, `main`=`origin/main`=`ca86d941`.
+
+**KOSAN:** yok — delege edilen tum isler kapandi.
+
+**BEKLEYEN:**
+1. Dal `worktree-agent-ab4cf53b74000b09c` **MERGE'E HAZIR, alinmadi**: bloklamayan nobet kollari
+   ayri bir is akisina tasindi, kabul **40 iddia · 9 oldurucu · 5 kontrol · sapan 0**,
+   `deploy: needs` KUCULMEDI. Alinmama sebebi: yayin kosumu **GitHub'in kendi arizasi** yuzunden
+   tamamlanamiyor, canli dogrulama IMKANSIZ. Ariza gecince merge + job duzeyi teyidi.
+2. **269 MiB'lik varlik kaldiraci** (her sayfaya inline basilan atif blogu, `build.py:114`) —
+   artefakt 827,7 MiB / 1 GB'in %80,8'i; tasima 558,7 MiB'a indirir, kaybolan URL 0.
+   Kabul testi repoda hazir (`varlik-test.py` 10 eksen). Muhendis isi, acik.
+3. HocA → ADIM 2 (`?model=` uyelik yuklemi); hedefler canlidan tazelenecek (sayfa buyudu).
+4. MaCiT → 2 kayit geri cekilecek (hukum kutuda: baskida wordmark + agiz temasli sinif).
+
+**OKAN'DA KARAR YOK.** Secret degeri duzeldi; D1 kollari yesil.
 
 ## 🟢 DIRILTME KUSURU KAPANDI — kayit cikarildi + alarmin TEK ATIMLIK sonmesi onarildi
 
@@ -64,34 +91,7 @@ Kardes mimarin bildirdigi 2 kalem gozle olculdu: **1 dogrulandi, 1 curutuldu, 1 
   rapor degil FIILEN silme uyguluyor (kardes mimar bilmeden 760 kaydi silmis, commit oncesi geri
   onarmis); ayrica yetim SECIM kayitlari R2 kilidine dusuyor. Ikisi de ayri karar konusu.
 
-## CI NOBETI (6 Agu 11:37 turu) — `yayin` tavani KAPANDI, 28 mail Cop'e
-
-- **Mail toplu cekildi, ORNEKLEME YOK:** gelen kutusu tek Apple Event ile alindi, cekilen
-  satir sayisi kutu sayisiyla esitlendi. `notifications@github.com` + "Run failed" =
-  **36** mail (son 90 dk: **6** · daha eski: **30**).
-- **ONARILDI — `yayin` job'i; kok neden TASARLANMIS TAVAN, kusur DEGIL.** Kosum
-  `31080098990`: `build`+`deploy`=success, tek kirmizi `yayin`. Log alintisi:
-  `TASLAK: 493 · aday: 493` + `ADAY SAYISI TAVANI ASTI: 493 > 300`. Ayni kok neden bir
-  onceki kosumu da (`31078248697`) dusurmustu. **Emsale birebir uyuldu; esik BUYUTULMEDI,
-  kaynak kod DEGISMEDI:** `yayin-kapisi.py --geriye-doldur` -> **493 kayit**.
-- **Bagimsiz teyit (`--durum`, aracin kendi geri-okumasi):** ONCE `20850:20212:638` ->
-  SONRA `20850:20705:145`. **YAYIN GECIKMESI 0** · DEGISMEZ IHLALI 0. Kalan 145 taslak
-  canli `urunler.json`'da bulunmayan en yeni dilim — tasarim geregi taslak, kirmizi degil.
-- **28 mail Cop'e TASINDI** (Cop BOSALTILMADI, kalici silme YOK): yalnizca `gh` ile YESIL
-  DOGRULANAN iki alarm koluna ait mailler (ikisi de son iki HEAD'de `success`). Hala
-  kirmizi olan `Build & deploy` (3) ve odeme-yolu bayatlik (5) mailleri KUTUDA KALDI.
-  Iki bagimsiz tarama birbirini tutuyor: 36 - 28 = **8** kalan.
-- 🔴 **ACIK KALEM 1 SURUYOR — su an TEK bloklayici, OKAN KAPISI (yetki):** depo secret'i
-  `CLOUDFLARE_ACCOUNT_ID` degeri gecersiz. Bu turda BAGIMSIZ dogrulandi (kosum
-  `31083433353` kadans kolu logu): `Could not route to /accounts/***/d1/database, perhaps
-  your object identifier is invalid? [code: 7003]`. Etki: D1'e dokunan HER CI adimi —
-  kadans kolu, odeme-yolu bayatlik olcumu ve **bundan sonraki `yayin` adimi** —
-  `OLCULEMEDI/rc=1`. Kod dogru, **DEGER yanlis**. Nobet secret'a DOKUNMAZ (YASAK liste).
-  ⚠️ Bu turun geriye-doldurmasi D1'de DOGRU; ama secret duzelene kadar CI'daki `yayin`
-  yine kirmizi yanabilir — artik TAVAN sebebiyle degil, KIMLIK sebebiyle. Ayrimi karistirma.
-- ✅ **ACIK KALEM 2 KAPANDI (6 Agu):** `serit-a3` diriltme kapisi kirmizisi — katalogdan
-  cikarilmis id geri gelmisti. Kayit tekrar cikarildi ve alarmin sonme sinifi onarildi;
-  ayrinti icin yukaridaki "DIRILTME KUSURU KAPANDI" bolumu.
+## CI NOBETI (6 Agu 11:37 turu) — KAPANDI (yayin tavani + 28 mail); ayrinti DEVAM-ARSIV.md de (git disi).
 
 ## Saatlik CI nobeti — 6 Agu 15:37Z turu (YARIM KAPANDI, sonraki tur DEVRALSIN)
 - **Mail supurmesi (kosulsuz, Okan emri) TAMAM:** birlesik `inbox`ta `notifications@github.com`
