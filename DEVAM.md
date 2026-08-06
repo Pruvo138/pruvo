@@ -1,5 +1,42 @@
 # DEVAM (KraL) — 5 Agu 2026
 
+## 🟢 ANLATIM-YUZEY NOBETI KAPANDI — `493b286c` (dal main'e alindi)
+
+- **Kol YESIL:** ilgili is akisi 6 Agu 08:04 kosumunda **success** (5 Agu 21:56'dan beri
+  kesintisiz kirmiziydi). Uc adimi da gecti: kendini-test **26/26**, mutasyon bataryasi
+  **26/26 TEK KIRMIZI** (Traceback 0), asil kapi **0 isabet / rc=0**.
+- **Dusus AYRISTIRILDI (dort kombinasyon, ayni surumlerle):** taban 164/37 dosya ·
+  yalniz desen daraltmasi **164 -> 6** (-158) · yalniz kaynak onarimi **164 -> 157** (-7) ·
+  birlesik **0**. Yani daraltma gercek bulgulari **elemiyor**: onarilmamis agacta 6 gercek
+  isabetin ALTISINI de yakalamaya devam ediyor.
+- **Bagimsiz enjeksiyon sondasi:** calisan-kod yuzeyinde HIC gecmeyen sentetik jetonlu satir
+  her eksene tek tek enjekte edildi -> **6/6 KIRMIZI**; jetonlari calisan kodda gercekten
+  gecen iki kontrol satiri -> **2/2 YESIL** (eleme calisiyor, olu degil). Sonda hedef dosyayi
+  degistirmedi (sha256 esit). Ayrintili dokum: `DEVAM-ARSIV.md`.
+- **Cakisma tek satirdaydi ve SESSIZ tuzak tasiyordu:** iki taraf da `BEKLENEN_IDDIA_SAYISI=24`
+  diyordu ama AYNI 24 degildi (biri 22+2, digeri 22+2 BASKA iddia). Birlesik kapi 26 uretiyor;
+  sabit **26**'ya cekildi. Main'in agac-kok ekseni birlesmede korundu.
+- **Dalin worktree'sinde 20 kapi rc=0** (ci-kapsam · kisisel-veri 26 ad · ic-rapor-adi ·
+  is-akisi · kapi-envanteri 7/7 · gitignore · devam-sinif · kategori 20705 · yasal-sayfa-drift ·
+  cerez mutasyonu 27+3 · d1-sync kendini-test 126 · shop kabul 72 iddia · ref-route 50/50 ...).
+- **D1 `--durum` uc eksen YESIL:** SAYI 20705 = 20705 · SEMA temiz · ICERIK 20705/20705
+  (uyusmaz 0, eksik 0, fazla 0).
+- **Parite:** `parite-test.js` **1199 gecti / 0 aciklanamayan**, `parite-ege.js`
+  **847 gecti / 0 aciklanamayan**; ikisi de **rc=3 OLCULEMEDI** — sebep KARDES MIMARIN
+  493 taslak satiri (`yayinda=0`, sayfa probu tavanini asti). **KIRMIZI DEGIL.**
+- 🔴 **ACIK KALEM 1 (OKAN KAPISI, yetki):** depo secret'i `CLOUDFLARE_ACCOUNT_ID` 6 Agu
+  07:49'da eklendi ama **degeri gecerli bir hesap tanimlayicisi degil** — bulut API'si
+  `object identifier is invalid [code: 7003]` donuyor. Deterministik (iki denemede ayni).
+  Etki: D1 uzlastirici kolu + odeme-yolu bayatlik olcumu + yayin adimi **OLCULEMEDI/rc=1**.
+  Ayni adimlar 07:13 kosumunda, kaynaktaki duz metin deger ile CALISIYORDU. Kod dogru,
+  **deger yanlis**. Cozum: secret'i dogru degerle guncelle.
+- 🔴 **ACIK KALEM 2 (BASKA MIMARIN DUZLEMI, dokunulmadi):** diriltme kapisi bu kosumda
+  KIRMIZI yandi — `nissan-rogue-...-adaptoru` id'si feed politikasi geregi `c912548f`'te
+  katalogdan CIKARILMISTI, `841aab67` ile GERI GELDI. **Merge'in sucu DEGIL:** `urunler.json`
+  blob'u merge oncesi/sonrasi **birebir ayni** (`1b5b91a1`). Kapi bugun kirmizi yandi cunku
+  merge commit'inin `HEAD^1`'i 103 commit geride ve pencere genisledi; sonraki push'ta pencere
+  daralir ve bulgu **tekrar gorunmez olur**. Karar MaCiT/Okan'da.
+
 ## 🟢 PARITE REFERANSI TEK KAYNAGA BAGLANDI — `82ab7fea` (site↔uc marka sorgusu)
 
 - **Kusur SITE'de DEGILDI, TESTTEYDI.** `tools/parite-test.js`'in elle kopyalanmis
