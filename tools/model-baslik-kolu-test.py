@@ -202,6 +202,17 @@ BIRLESME_FIKSTURU = [
 # (marka, ad, EN AZ ürün): P-45 dijital piyano (H1 şekli) · Recording Custom davul (H3 şekli)
 HUKUM_E_MUAF = [("Yamaha", "P-45", 4), ("Yamaha", "Recording Custom", 3)]
 
+# TEKİL GİRİŞ TAŞIYICILARI — (marka, ad, EN AZ ürün): sayfası ŞEKİL KURALIYLA DEĞİL,
+# `BASLIK_DOGAN_ALLOW` envanterindeki TEKİL GİRİŞLE ayakta duran çiftler.
+# 🔴 NEDEN AYRI EKSEN (6 Ağu, ÖLÇÜLDÜ): `Toyota|86` ÇIPLAK SAYIDIR; H1 şekil kuralı ona
+# yargı VERMEZ, sayfayı yalnız tekil giriş taşır. Envanter girişi düşerken H1 aynı turda
+# çıplak sayıya AÇILIRSA sayfa YAYINDA KALIR — "sayfa var mı" ölçütü bu değişimi GÖREMEZ,
+# tekil hüküm SESSİZCE kurala devredilmiş olur. Ölçülen kusur tam buydu: M6 (yalnız kural
+# açılır) ile M14 (kural açılır + giriş düşer) B8/B8a/B8c/B10'u AYNI kimlikle kırıyor,
+# yalnız payload ayrışıyordu ("çıplak sayı doğmuş=['Datsun|510']" ↔ "[…, 'Toyota|86']");
+# ayırt edicilik payload'a değil İDDİA KİMLİĞİNE bakar. Provenans EKSENİ o kimliği verir.
+TEKIL_GIRIS_TASIYICI = [("Toyota", "86", 9)]
+
 AKSAN_IKIZ_FIKSTURU = [
     ("Renault", "Zoe", "Zoé"),
     ("Yamaha", "Tenere", "Ténéré"),
@@ -551,6 +562,31 @@ def kabul(kok):
             "sayılı hiçbir kova adına ŞASİ/MOTOR KODU demiyor; `Toyota|86` sayfası "
             "ENVANTERDEN doğdu, kuraldan DEĞİL)",
             not _ciplak_kural, "kural çıplak sayıya True dedi=%s" % (_ciplak_kural[:5] or "-"))
+    # --- PROVENANS: sayfa AYAKTA ≠ sayfa HAKLI ayakta ------------------------------
+    # 🔴 B8a/B8c KATALOĞU TARAR ("kuralla doğan çıplak sayı VAR mı"), bu iddia ADI KONMUŞ
+    # ÇİFTİN YARGI KAYNAĞINI sorar. Ayrı olmalarının sebebi ÖLÇÜLDÜ: envanter girişi
+    # düşerken kural aynı turda açılırsa B8a zaten başka bir kovadan (`Datsun|510`)
+    # kırmızıydı ve `Toyota|86`'nın devri o kırmızının İÇİNDE GİZLENİYORDU.
+    _tasiyici_sapan = []
+    for marka, ad, en_az in TEKIL_GIRIS_TASIYICI:
+        c = evren.model_anahtari(marka, ad)
+        v = kova.get((marka, c)) if c else None
+        if (marka, c) not in mm.BASLIK_DOGAN_ALLOW:
+            _tasiyici_sapan.append("%s|%s ENVANTERDE YOK -> sayfa TEKİL GİRİŞLE değil "
+                                   "ŞEKİL KURALIYLA ayakta (tekil hüküm SESSİZCE düştü)"
+                                   % (marka, ad))
+        # 🔴 "ŞEKİL KURALI BU ÇİFTE SUSUYOR" BURAYA YAZILMAZ: o iddia B8c'dir (katalog
+        # geneli) ve kuralı açan HER mutant onu zaten kırar. Buraya konsaydı M6 da bu
+        # iddiayı düşürürdü ve eksen M14'ü M6'dan AYIRT EDEMEZDİ — düzeltilen kusurun
+        # ta kendisi. Bu iddianın TEK ekseni YARGININ KAYNAĞIDIR.
+        if not v or not v[1] or v[0] < en_az:
+            _tasiyici_sapan.append("%s|%s SAYFA DÜŞTÜ (yayın=%s n=%s)"
+                                   % (marka, ad, bool(v) and v[1], bool(v) and v[0]))
+    dogrula("B18 TEKİL GİRİŞ PROVENANSI: envanterle hükmedilmiş %d çiftin sayfasını "
+            "ENVANTER GİRİŞİ taşıyor (giriş `BASLIK_DOGAN_ALLOW`'da DURUYOR ve sayfa "
+            "YAYINDA) — giriş kurala devredilirse sayfa ayakta kalır ama TEKİL HÜKÜM "
+            "KAYBOLUR" % len(TEKIL_GIRIS_TASIYICI),
+            not _tasiyici_sapan, "sapan=%s" % (_tasiyici_sapan[:4] or "-"))
     # --- E) ARAÇ DIŞI MUAFİYETİ: sayfa DURUYOR ama KURAL onu doğurmuyor -------------
     # 🔴 ÜÇ PARÇALI İDDİA: (1) çift GERÇEKTEN şekil kuralının şeklinde (muafiyet iş yapıyor,
     # ölü giriş değil — bağımsız oracle ile ölçülür), (2) ÜRETİM kuralı ona yargı VERMİYOR,
@@ -723,8 +759,11 @@ MUTANTLAR = [
      "    (\"Toyota\", \"86\"): \"Toyota 86 GERCEK rozet",
      "    (\"Toyota\", \"86YOK\"): \"Toyota 86 GERCEK rozet", "KIRMIZI",
      "M14 `Toyota|86` TEKİL GİRİŞİNİ KURALA ÇEVİR (envanterden çıkar + H1'i çıplak sayıya "
-     "aç) -> ÇIPLAK SAYI KORUMASI ÖLÜR ve sayfa KURALDAN doğar (B8a + B8c + B10; M6'dan "
-     "B8a ile AYRILIR — M6 girişi envanterde BIRAKIR)",
+     "aç) -> ÇIPLAK SAYI KORUMASI ÖLÜR ve sayfa KURALDAN doğar (B8 + B8a + B8c + B10 + "
+     "B18; M6'dan **B18 PROVENANS ekseniyle** AYRILIR — M6 girişi envanterde BIRAKIR). "
+     "🔴 ESKİ BEYAN 'B8a ile ayrılır' İDİ ve ÖLÇÜM TUTMUYORDU: B8a her ikisinde de "
+     "`Datsun|510` yüzünden zaten kırmızıydı, `Toyota|86` o listenin İÇİNDE gizleniyordu "
+     "(payload ayrışıyor, iddia KİMLİĞİ ayrışmıyor). Beyan ölçüme göre DÜZELTİLDİ.",
      [("tools/marka_model_build.py",
        "    j = \"\".join(_kelimeler(deger))\n"
        "    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)",
