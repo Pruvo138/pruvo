@@ -1460,7 +1460,7 @@ _EPOSTA_MUAFIYET = {
         "shop olcum testinin uydurma musteri e-postasi",
     ("hotmail.com", "urunler.json"):
         "urunler.json lisans.tasarimci ATIF degeri — URUN VERI DUZLEMI (tek yazar MaCiT); "
-        "KraL dokunmaz, bulgu RAPOR-MIMARA.md ile mimara bildirildi",
+        "KraL dokunmaz, bulgu muhendis raporuyla ilgili mimara bildirildi",
 }
 # ORNEK/REZERVE alan adlari — SINIF kurali, "yasakli ad" listesi degil. RFC 2606 rezerve
 # ucluye bu deponun Turkce fikstur karsiligi eklendi: `ornek.com` depo genelinde ORNEK
