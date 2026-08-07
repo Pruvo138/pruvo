@@ -47,13 +47,52 @@ gecen = [0]
 kalan = [0]
 
 
+# 🔴 RAPOR YUZEYI KESMESI KONUSUR (7 Agu 2026 — OLCULEN ZARAR, tahmin degil).
+# Kapi A1'de 6 sema ihlali SAYDI ama ekrana `ihlal[:5]` ile 5 kayit basti; ustelik
+# `dogrula`nin `str(detay)[:400]` kesmesi o 5'i de kayit ORTASINDAN kesti (gorunen
+# ~2,5 kayit). IKISI DE KESTIGINI SOYLEMIYORDU -> mimar bu ciktiya bakip EKSIK teshis
+# yazdi ve isi bayat bilgiyle delege etti. Kesmenin KENDISI mesru (cikti sisirmez);
+# SESSIZ olmasi degil.
+# 🔴 HUKUM YOLU DEGIL: bu iki yardimci yalnizca `detay` METNINI uretir; hicbir kosulu,
+# hicbir iddia sayisini ve hicbir cikis kodunu etkilemez (iddia 39 SABIT kalir).
+KIRP_GOSTER = 5      # listelerde varsayilan gosterim tavani
+KIRP_METIN = 400     # `detay` metninin karakter tavani
+
+
+def kirp(oge, n=KIRP_GOSTER):
+    """Ilk `n` ogeyi dondur; KESILDIYSE TOPLAM sayiyi da METNE yaz.
+
+    Uzunlugu olculemeyen deger OLDUGU GIBI doner — bu bir olcut degil, GORUNURLUK
+    katmanidir.
+    """
+    try:
+        toplam = len(oge)
+    except TypeError:
+        return oge
+    if toplam <= n:
+        return oge
+    # 🔴 SAYI ONDE (olculdu): notu SONA koyunca `dogrula`nin karakter kesmesi tam da o
+    # notu yiyordu — liste kirpilmis oldugu HALDE toplam yine GORUNMUYORDU. Iki kesme
+    # UST USTE binebilir; hayatta kalmasi gereken parca SAYIDIR.
+    return "(ilk %d gosteriliyor, TOPLAM %d) %s" % (n, toplam, list(oge)[:n])
+
+
+def kirp_metin(s, n=KIRP_METIN):
+    """Metni `n` karakterde kes ama KESTIGINI ve kac karakter gizlendigini SOYLE."""
+    s = str(s)
+    if len(s) <= n:
+        return s
+    return "%s … (metin KESILDI: +%d karakter gizlendi)" % (s[:n], len(s) - n)
+
+
 def dogrula(ad, kosul, detay=""):
     if kosul:
         gecen[0] += 1
         print("  GECTI " + ad)
     else:
         kalan[0] += 1
-        print("  KALDI " + ad + (" — " + str(detay)[:400] if detay else ""))
+        _d = kirp_metin(str(detay), KIRP_METIN)
+        print("  KALDI " + ad + (" — " + _d if detay else ""))
 
 
 def yukle(kok, ad, dosya):
@@ -129,7 +168,7 @@ def kabul(kok, katalog_yolu=None):
     bicimsiz = [d for d in birlesim
                 if not isinstance(d, str) or not d or d.strip() != d]
     dogrula("S3 kumelerin HER degeri KANONIK (metin, bos degil, bas/son bosluksuz)",
-            not bicimsiz, bicimsiz[:5])
+            not bicimsiz, kirp(bicimsiz))
     katlanan = {}
     for d in sorted(izinli | uretici):
         katlanan.setdefault(A.model_normalize(d), []).append(d)
@@ -142,8 +181,9 @@ def kabul(kok, katalog_yolu=None):
             "boya/kablo ureticisi 'uyum markasi' diye SAHTE sayfa acamaz)" % len(uretici),
             not sizan, sizan)
     elenen_sizan = [d for d in elenen if A.uyum_marka_kanonik(d)]
-    dogrula("S6 ELENEN jetonlarin hicbiri kabul EDILMIYOR (%s ...)"
-            % ", ".join(sorted(elenen)[:4]), not elenen_sizan, elenen_sizan)
+    dogrula("S6 ELENEN jetonlarin hicbiri kabul EDILMIYOR (ilk 4 ornek: %s; TOPLAM %d)"
+            % (", ".join(sorted(elenen)[:4]), len(elenen)), not elenen_sizan,
+            kirp(elenen_sizan))
     print("  OLCUM: uyum markasi %d · uretici %d · elenen %d · toplam %d"
           % (len(izinli), len(uretici), len(elenen), len(birlesim)))
 
@@ -197,7 +237,7 @@ def kabul(kok, katalog_yolu=None):
     dogrula("V4 BOZUK tip RED ve COKME YOK (%d fikstur: metin/sayi/bool/sozluk/"
             "ic-ice dizi/karisik dizi/liste-marka/taninmayan anahtar)" % len(_bozuk),
             not _v4_red and not _v4_cokme,
-            "reddedilmeyen=%s cokme=%s" % (_v4_red[:3], _v4_cokme[:3]))
+            "reddedilmeyen=%s cokme=%s" % (kirp(_v4_red, 3), kirp(_v4_cokme, 3)))
 
     # V5 yil
     _yil_ok = ([2003, 2015], [2015, 0], [], [1900, 1900], [2015, 2015])
@@ -337,7 +377,8 @@ def kabul(kok, katalog_yolu=None):
             "RED) ama ayni markanin FARKLI modelleri KABUL — kartezyen sisme ve yanlis "
             "'kac araca uyuyor' sayisi uretilemez" % len(_mukerrer_uyum),
             not _mukerrer_sizan and not _farkli_red,
-            "sizan=%s farkli_model_reddedildi=%s" % (_mukerrer_sizan[:2], _farkli_red))
+            "sizan=%s farkli_model_reddedildi=%s"
+            % (kirp(_mukerrer_sizan, 2), _farkli_red))
 
     # V7 model normalizasyonu
     _ayni = (("F-150", "F150"), ("XSR 700", "XSR700"), ("ID.Buzz", "ID Buzz"),
@@ -386,7 +427,7 @@ def kabul(kok, katalog_yolu=None):
             % len(_ozdes_fikstur),
             not _ayrisan and not _paylasan and _derin_kopya,
             "ayrisan=%s paylasilan-referans=%s derin_kopya=%s%s"
-            % (_ayrisan[:2], _paylasan[:2], _derin_kopya,
+            % (kirp(_ayrisan, 2), kirp(_paylasan, 2), _derin_kopya,
                " (kanonik cikti BOS — kayit REDDEDILDI, derin kopya OLCULEMEDI)"
                if not _mut else ""))
 
@@ -427,7 +468,7 @@ def kabul(kok, katalog_yolu=None):
             "sizinti 0" % len(_enjeksiyon),
             not _marka_sizan and not _model_sizan and not _cikti_sizan,
             "marka=%s model=%s cikti=%s"
-            % (_marka_sizan[:3], _model_sizan[:3], _cikti_sizan[:3]))
+            % (kirp(_marka_sizan, 3), kirp(_model_sizan, 3), kirp(_cikti_sizan, 3)))
 
     # V11 kapi gereginden DAR degil (yanlis-pozitif nobeti)
     _mesru = [
@@ -450,7 +491,7 @@ def kabul(kok, katalog_yolu=None):
                   if A.uyum_sebebi(u) is not None]
     dogrula("V11 YANLIS-POZITIF YOK: %d mesru kayit (tire/nokta/bogumlu OEM, coklu uyum, "
             "acik uc yil, Turkce harf, bosluklu model, '+' sonekli model) KABUL"
-            % len(_mesru), not _mesru_red, _mesru_red[:3])
+            % len(_mesru), not _mesru_red, kirp(_mesru_red, 3))
 
     # ══ A EKSENI — GERCEK KATALOG ══════════════════════════════════════════════════
     print("\n[A] KATALOG — urunler.json (yalniz OKUNUR)")
@@ -476,7 +517,7 @@ def kabul(kok, katalog_yolu=None):
                     if isinstance(ham, str) and ham.strip():
                         model_ham.setdefault(A.model_normalize(ham), set()).add(ham)
     dogrula("A1 katalogtaki HICBIR kayit `uyum` semasini ihlal etmiyor", not ihlal,
-            ihlal[:5])
+            kirp(ihlal))
     # 🔴 A2 ARTIK BAGIMSIZ. Onceki hali A1'in `ihlal` bayragini TEKRAR okuyordu — ayni
     # kosulu iki kez sayan bir TOTOLOJI, iddia sayisini sisirir ve hicbir sey olcmez.
     # Simdi K5 ekseni AYRI bir kod yolundan (`marka_uyumdan_turet` DOGRUDAN, `uyum_sebebi`
@@ -491,9 +532,9 @@ def kabul(kok, katalog_yolu=None):
     dogrula("A2 K5 TARAMASI (A1'den BAGIMSIZ kod yolu): `uyum` dolu %d gercek kayitta "
             "`marka` == turetilen VE tarayici fiilen calisiyor — sentetik bozuk kayit "
             "TAM OLARAK yakalaniyor (pozitif kontrol)" % uyumlu,
-            _k5_ihlal == ["K5-POZITIF-KONTROL"], _k5_ihlal[:5])
+            _k5_ihlal == ["K5-POZITIF-KONTROL"], kirp(_k5_ihlal))
     dogrula("A3 KABUL EDILEN her kayitta katalog metni == D1 metni (urunler.json ile D1 "
-            "SESSIZCE ayrisamaz)", not kanonik_ayrisan, kanonik_ayrisan[:5])
+            "SESSIZCE ayrisamaz)", not kanonik_ayrisan, kirp(kanonik_ayrisan))
     model_ikiz = {k: sorted(v) for k, v in model_ham.items() if len(v) > 1}
     dogrula("A4 MODEL IKIZI YOK: ayni normalize degere DUSEN 2+ ham model yazimi yok "
             "(`F-150`/`F150` ayni araci IKI sayfaya bolemez)", not model_ikiz, model_ikiz)
@@ -568,7 +609,8 @@ def kabul(kok, katalog_yolu=None):
             % (ornek, ele, ele_mukerrer),
             ornek > 0 and not ayrisan_gercek and not red_gercek,
             "ornek=%d ele=%d ele_mukerrer=%d ayrisan=%s red=%s"
-            % (ornek, ele, ele_mukerrer, ayrisan_gercek[:3], red_gercek[:3]))
+            % (ornek, ele, ele_mukerrer, kirp(ayrisan_gercek, 3),
+               kirp(red_gercek, 3)))
 
     # BACKFILL HAZIRLIGI — sayi, iddia degil. Mevcut `marka` jetonlarinin ne kadari
     # bugunku sozlukten/serbest metin kuralindan gecerdi?
@@ -756,7 +798,7 @@ def kabul(kok, katalog_yolu=None):
             "B7-POZITIF-KONTROL" in _b7_duz_kayip and not _b7_kalan_kayip
             and len(_b7_tasiyan) > 1,
             "tasiyan=%d duz_kayip=%s kalan_kayip=%s"
-            % (len(_b7_tasiyan), _b7_duz_kayip[:6], _b7_kalan_kayip[:6]))
+            % (len(_b7_tasiyan), kirp(_b7_duz_kayip, 6), kirp(_b7_kalan_kayip, 6)))
     print("  OLCUM (bilesik ad): `marka` ICINDE tasiyan %d kayit · `marka[0]` olan %d "
           "(MaCiT 'marka-basi' kovasi) · duz eslemenin arama jetonunu DUSURDUGU %d · "
           "mekanizmadan sonra kalan kayip %d"
@@ -924,8 +966,8 @@ def kabul(kok, katalog_yolu=None):
             not _b10_yapisal_bozan and not _b10_sap and len(_b10_faydasiz) > 0
             and _b10_pdeg == 1 and _b10_psap.get("mercedes", 0) > 0,
             "yapisal_bozan=%s sapma=%s pozitif_kontrol=%s"
-            % (_b10_yapisal_bozan, sorted(_b10_sap.items())[:8],
-               sorted(_b10_psap.items())[:4]))
+            % (_b10_yapisal_bozan, kirp(sorted(_b10_sap.items()), 8),
+               kirp(sorted(_b10_psap.items()), 4)))
     # OLCUM (BLOKLAMAZ): katalog buyudukce yeni bir bilesik aday dogabilir. Sayi kapiya
     # baglanmaz — baglansaydi kardes mimarin her yeni partisi yayini durdurabilirdi; ama
     # GORUNUR kalir ki bir sonraki tur onu yargilasin.
@@ -1338,7 +1380,18 @@ def mutasyon():
           "SAYISI = %d" % ("OK  " if kontrol_ok else "HATA",
                            "YESIL" if kontrol_ok else "KIRMIZI", taban_iddia))
     if not kontrol_ok:
-        print("     " + (p0.stderr or p0.stdout).strip().splitlines()[-1][:300])
+        # 🔴 TESHIS YUZEYI: eskiden YALNIZ son satir, 300 karakterde SESSIZCE
+        # kesilip basiliyordu -> harness NEDEN bozuldu sorusunun cevabi tam o anda
+        # gizleniyordu. Artik KIRMIZI iddialar adiyla ve SAYISIYLA basilir.
+        _ham = (p0.stderr or p0.stdout).strip().splitlines()
+        _kirmizi_satir = [s for s in _ham if s.strip().startswith("KALDI ")]
+        _goster = _kirmizi_satir or _ham[-1:]
+        for _s in _goster[:10]:
+            print("     " + kirp_metin(_s.strip(), 300))
+        if len(_goster) > 10:
+            print("     … (ilk 10 gosteriliyor, TOPLAM %d)" % len(_goster))
+        print("     TESHIS: %d cikti satiri · %d KIRMIZI iddia · rc=%d"
+              % (len(_ham), len(_kirmizi_satir), p0.returncode))
         shutil.rmtree(tmp0, ignore_errors=True)
         print("\nMUTASYON SONUCU: OLCULEMEDI — harness bozuk, mutant sonuclari YALANCI.")
         return 1
@@ -1357,7 +1410,7 @@ def mutasyon():
         mutant, sayi = _mutasyon_uygula(metin, eski, yeni)
         if mutant is None:
             basarisiz.append("%s CAPA BAYAT (%d kez eslesti, 1 olmali) %s: %s"
-                             % (kod, sayi, dosya, _capa_metni(eski)[:70]))
+                             % (kod, sayi, dosya, kirp_metin(_capa_metni(eski), 70)))
             print("  HATA %s [%s] %s -> CAPA BAYAT (%d eslesme) | EKSEN OLCULMEDI | %s"
                   % (kod, etiket, dosya, sayi, aciklama))
             matris.append((kod, etiket, "-", "-", "-", ",".join(beyan) or "-"))
@@ -1413,8 +1466,12 @@ def mutasyon():
                  taban_iddia, ",".join(sorted(kirmizi)) or "-",
                  ("  ⚠️ " + " ⚠️ ".join(notlar)) if notlar else "", aciklama))
         if not gecti:
-            for s in cikti.splitlines()[-6:]:
-                print("        " + s.strip()[:150])
+            _sat = cikti.splitlines()
+            if len(_sat) > 6:
+                print("        … (son 6 satir gosteriliyor, TOPLAM %d satir)"
+                      % len(_sat))
+            for s in _sat[-6:]:
+                print("        " + kirp_metin(s.strip(), 150))
         matris.append((kod, etiket, str(p.returncode), "%s/%d" % (iddia, taban_iddia),
                        ",".join(sorted(kirmizi)) or "-", ",".join(beyan) or "-"))
         shutil.rmtree(tmp, ignore_errors=True)
@@ -1461,16 +1518,215 @@ def mutasyon():
     return 0
 
 
+# ══════════════════════════════════════════════════════════════════════════════════
+# KESME GORUNURLUGU — IDDIA + AYIRT EDICI MUTASYON BATARYASI (7 Agu 2026)
+# ══════════════════════════════════════════════════════════════════════════════════
+# 🔴 BU KOL M00'A BAGLI DEGIL. `--mutasyon` kolu gercek `urunler.json` uzerinde
+# MUTASYONSUZ YESIL sart kosar (M00); katalogda bugun 6 sema ihlali oldugu icin o kol
+# "OLCULEMEDI" verir ve BU eksen de onunla birlikte olculemez hale gelirdi. Kesme
+# gorunurlugu VERI DUZLEMINDEN BAGIMSIZ bir RAPOR ozelligidir; bu yuzden SENTETIK
+# katalogla olculur ([[hukum-yanlis-birimde]]: ayri eksen AYRI olculur).
+#
+# 🔴 KABUL CIKIS KODU DEGIL: her mutantin KIRMIZI YAKTIGI IDDIA KUMESI beyanla BIREBIR
+# esitlenir (ESIT olcutu; fazladan kirmizi da KUSURDUR). Iki oldurucunun kumeleri
+# FARKLI olmali — ayni olsaydi "daima kirmizi" tek bir eksen ikisini de gecirirdi
+# ([[beyan-edilmis-survivor]]). KONTROL mutantlari YESIL kalmali.
+KIRP_IHLAL_SAYISI = 8          # sentetik katalogtaki A1 ihlali (KIRP_GOSTER'den BUYUK)
+
+KIRP_MUTANTLARI = [
+    # (kod, eski, yeni, beyan, aciklama)
+    ("KM1",
+     '    return "(ilk %d gosteriliyor, TOPLAM %d) %s" % (n, toplam, list(oge)[:n])',
+     "    return list(oge)[:n]",
+     ["KIRP1"],
+     "KM1 LISTE KESMESINI SESSIZ HALE GERI DONDUR -> liste yine 5'te kesilir ama TOPLAM "
+     "(8) yazilmaz; olculen zararin TA KENDISI (metin kesmesi ETKILENMEZ -> AYIRT EDICI)"),
+    ("KM2",
+     "        _d = kirp_metin(str(detay), KIRP_METIN)",
+     "        _d = str(detay)[:KIRP_METIN]",
+     ["KIRP2"],
+     "KM2 METIN KESMESINI SESSIZ HALE GERI DONDUR -> detay 400 karakterde kesilir, "
+     "kesildigi SOYLENMEZ (TOPLAM sayi ONDE oldugu icin KIRP1 ETKILENMEZ -> AYIRT EDICI)"),
+    ("KM3", "KIRP_GOSTER = 5", "KIRP_GOSTER = 3", [],
+     "KM3 KONTROL: gosterim TAVANINI degistir -> kesme HALA konusuyor, TOPLAM HALA "
+     "yaziliyor; iddia TAVANA degil SESSIZLIGE duyarli olmali"),
+    ("KM4", "KIRP_METIN = 400", "KIRP_METIN = 250", [],
+     "KM4 KONTROL: metin tavanini degistir -> kesme HALA ilan ediliyor; daima-kirmizi "
+     "bir iddia bu kontrolu de DUSURURDU"),
+]
+
+
+def _kirp_sentetik_katalog(yol):
+    """A1'i TAM `KIRP_IHLAL_SAYISI` kez ihlal eden katalog (IKIZ TANIM sinifi).
+
+    Kayit basina uzun bir sebep metni dogar; toplam detay 400 karakteri ASAR, boylece
+    HER IKI kesme de (liste + metin) AYNI kosumda FIILEN devreye girer.
+    """
+    kayitlar = []
+    for i in range(KIRP_IHLAL_SAYISI):
+        u = _urun(uyum=[{"marka": "Ford", "model": "Focus"}],
+                  marka=["Ford", "Focus", "FAZLADANJETON%02d" % i])
+        u["id"] = "kirp-ihlal-fiksturu-%02d" % i
+        kayitlar.append(u)
+    with open(yol, "w", encoding="utf-8") as f:
+        json.dump(kayitlar, f, ensure_ascii=False)
+
+
+def _kirp_kostur(tmp, katalog):
+    return subprocess.run(
+        [sys.executable, os.path.join(tmp, "tools", "uyum-kapisi.py"),
+         "--kok", tmp, "--katalog", katalog], capture_output=True, text=True)
+
+
+def _kirp_a1_satiri(cikti):
+    for s in cikti.splitlines():
+        if s.strip().startswith("KALDI A1 "):
+            return s
+    return ""
+
+
+def _kirp_iddialar(cikti):
+    """(kirmizi_iddia_kumesi, olculebildi_mi).
+
+    A1 hic kirmizi yanmadiysa fikstur/harness BOZUKTUR: bu "yesil" DEGIL, OLCULEMEDI
+    ([[hukum-yanlis-birimde]] — cokme kirmiziyla KARISTIRILMAZ).
+    """
+    a1 = _kirp_a1_satiri(cikti)
+    if not a1:
+        return set(), False
+    kirmizi = set()
+    if "TOPLAM %d" % KIRP_IHLAL_SAYISI not in a1:
+        kirmizi.add("KIRP1")
+    if "metin KESILDI" not in a1:
+        kirmizi.add("KIRP2")
+    return kirmizi, True
+
+
+def kirpma_mutasyonu():
+    print("=== KESME GORUNURLUGU — mutant KOPYAYA uygulanir, CANLI dosyaya ASLA")
+    print("    IDDIA KIRP1: %d ihlal varken cikti TOPLAM sayiyi ICERIR (liste kesmesi konusur)"
+          % KIRP_IHLAL_SAYISI)
+    print("    IDDIA KIRP2: detay metni kesildiginde ciktida KESILDIGI YAZAR")
+    canli = os.path.join(GERCEK_KOK, "tools", "uyum-kapisi.py")
+    once = _sha(canli)
+    print("    CANLI DOSYA sha256 ONCE : %s" % once)
+
+    tmp = tempfile.mkdtemp(prefix="pruvo-kirp-")
+    os.makedirs(os.path.join(tmp, "tools"))
+    for ad in KOPYALANAN + ["uyum-kapisi.py"]:
+        shutil.copy2(os.path.join(GERCEK_KOK, "tools", ad), os.path.join(tmp, "tools", ad))
+    os.symlink(os.path.join(GERCEK_KOK, "index.html"), os.path.join(tmp, "index.html"))
+    os.symlink(os.path.join(GERCEK_KOK, "urunler.json"), os.path.join(tmp, "urunler.json"))
+    katalog = os.path.join(tmp, "sentetik-katalog.json")
+    _kirp_sentetik_katalog(katalog)
+    hedef = os.path.join(tmp, "tools", "uyum-kapisi.py")
+    with open(hedef, encoding="utf-8") as f:
+        temiz = f.read()
+    # 🔴 CAPA KENDI TABLOSUNU SAYMASIN: mutant capalari KIRP_MUTANTLARI tablosunda da
+    # METIN olarak geciyor (tablo bu dosyada yasiyor). Tablodan ONCEKI KOD BOLGESI
+    # mutasyon yuzeyidir; tablo/aciklama bolgesi capa sayimina GIRMEZ. Bu ayrim
+    # olmadan her capa 2 eslesir ve fail-closed kapi butun ekseni OLCULMEDI'ye dusurur.
+    _kesim = temiz.index("\nKIRP_MUTANTLARI = [")
+    kod_bolgesi, tablo_bolgesi = temiz[:_kesim], temiz[_kesim:]
+
+    basarisiz, matris = [], []
+
+    # K00 — MUTASYONSUZ KONTROL (ZORUNLU ON-KOSUL): sentetik fikstur A1'i GERCEKTEN
+    # kirmizi yakmali VE her iki kesme de FIILEN devrede olmali. Yoksa butun "KIRMIZI"
+    # sonuclari YALANCIDIR (mutant degil, cokme olculur).
+    p0 = _kirp_kostur(tmp, katalog)
+    k0, olculdu0 = _kirp_iddialar(p0.stdout + p0.stderr)
+    k00_ok = olculdu0 and not k0
+    print("  %s K00 [YESIL] MUTASYONSUZ KONTROL -> %s"
+          % ("OK  " if k00_ok else "HATA", "YESIL" if k00_ok else "KIRMIZI"))
+    print("       A1: %s" % (kirp_metin(_kirp_a1_satiri(p0.stdout + p0.stderr).strip(), 160)
+                             or "A1 SATIRI YOK"))
+    if not k00_ok:
+        shutil.rmtree(tmp, ignore_errors=True)
+        print("\nKESME SONUCU: OLCULEMEDI — fikstur/harness bozuk (kirmizi=%s, olculdu=%s)"
+              % (",".join(sorted(k0)) or "-", olculdu0))
+        return 1
+
+    for kod, eski, yeni, beyan, aciklama in KIRP_MUTANTLARI:
+        etiket = "KIRMIZI" if beyan else "YESIL"
+        if kod_bolgesi.count(eski) != 1:
+            basarisiz.append("%s CAPA BAYAT (%d eslesme, 1 olmali): %s"
+                             % (kod, kod_bolgesi.count(eski), kirp_metin(eski, 70)))
+            print("  HATA %s [%s] -> CAPA BAYAT | EKSEN OLCULMEDI | %s"
+                  % (kod, etiket, aciklama))
+            matris.append((kod, etiket, "-", "-", ",".join(beyan) or "-"))
+            continue
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(kod_bolgesi.replace(eski, yeni) + tablo_bolgesi)
+        p = _kirp_kostur(tmp, katalog)
+        kirmizi, olculdu = _kirp_iddialar(p.stdout + p.stderr)
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(temiz)
+        if not olculdu:
+            gecti = False
+            notu = "A1 KIRMIZI YANMADI -> mutant kapiyi COKERTTI (bu bir OLCUM DEGIL)"
+        else:
+            gecti = (kirmizi == set(beyan))
+            notu = "" if gecti else ("beyan=%s olculen=%s"
+                                     % (",".join(beyan) or "-",
+                                        ",".join(sorted(kirmizi)) or "-"))
+        if not gecti:
+            basarisiz.append("%s: %s" % (kod, notu))
+        print("  %s %s [%s] -> %s (kirmizi %s) | %s"
+              % ("OK  " if gecti else "HATA", kod, etiket,
+                 "KIRMIZI" if kirmizi else "YESIL",
+                 ",".join(sorted(kirmizi)) or "-", aciklama))
+        matris.append((kod, etiket, "KIRMIZI" if kirmizi else "YESIL",
+                       ",".join(sorted(kirmizi)) or "-", ",".join(beyan) or "-"))
+
+    shutil.rmtree(tmp, ignore_errors=True)
+
+    print("\n  --- KESME MUTASYON MATRISI (beyan ↔ olculen) ---")
+    print("  %-5s %-9s %-9s %-18s %s"
+          % ("kod", "beklenti", "goruldu", "olculen kirmizi", "beyan"))
+    for satir in matris:
+        print("  %-5s %-9s %-9s %-18s %s" % satir)
+
+    kumeler = [tuple(sorted(b)) for _k, _e, _y, b, _a in KIRP_MUTANTLARI if b]
+    ayirt = len(set(kumeler)) == len(kumeler)
+    print("  AYIRT EDICILIK: oldurucu kirmizi kumeleri %s (%s)"
+          % ("FARKLI ✔" if ayirt else "AYNI ✘ (daima-kirmizi eksen ayirt edilemez)",
+             " · ".join("+".join(k) for k in kumeler)))
+    if not ayirt:
+        basarisiz.append("oldurucu mutantlarin kirmizi kumeleri AYNI")
+
+    sonra = _sha(canli)
+    print("  CANLI DOSYA sha256 SONRA: %s -> %s"
+          % (sonra, "DEGISMEDI ✔" if sonra == once else "DEGISTI ✘"))
+    if sonra != once:
+        basarisiz.append("CANLI DOSYA DEGISTI")
+
+    if basarisiz:
+        print("\nKESME SONUCU: %d/%d beklenti TUTMADI"
+              % (len(basarisiz), len(KIRP_MUTANTLARI)))
+        for s in basarisiz:
+            print("  - " + s)
+        return 1
+    print("\nKESME SONUCU: %d/%d mutant BEYANINA UYDU — 2 oldurucu + 2 kontrol, "
+          "2 iddia (KIRP1 + KIRP2) ✔" % (len(KIRP_MUTANTLARI), len(KIRP_MUTANTLARI)))
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--kok", default=GERCEK_KOK,
                     help="modulu bu agactan oku (mutasyon kopyasi)")
     ap.add_argument("--mutasyon", action="store_true",
                     help="cift yonlu mutasyon olcumu (elle; canli dosyaya DOKUNMAZ)")
+    ap.add_argument("--kirpma-mutasyonu", action="store_true",
+                    help="rapor yuzeyindeki kesmenin KONUSTUGUNU olcer (sentetik "
+                         "katalog; canli dosyaya DOKUNMAZ; M00'a BAGLI DEGIL)")
     ap.add_argument("--katalog", default=None,
                     help="A ekseni katalogunu BASKA dosyadan oku (sentetik vaka olcumu; "
                          "varsayilan gercek urunler.json)")
     a = ap.parse_args()
+    if a.kirpma_mutasyonu:
+        return kirpma_mutasyonu()
     if a.mutasyon:
         return mutasyon()
     print("=== UYUM KAPISI (kok: %s%s)"
