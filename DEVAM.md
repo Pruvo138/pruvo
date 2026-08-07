@@ -1,10 +1,15 @@
 # DEVAM (KraL) — 7 Agu 2026
 
 ## 🔁 DEVIR — 7 Agu 2026, hesap rotasyonu: eski hesap → yeni hesap
-**SIRADAKI TEK IS:** `serit-a3` onarimi (asagida, ONARILDI-ama-OLCULEMEDI) CI'da DOGRULANACAK:
-kosum `31214768865` (head `ab1800d6`) bitince `serit-a3` job'inin `conclusion`'ini ol. Yesilse
-`deploy`/`yayin` de olculecek; kirmizi kalirsa kok neden logdan YENIDEN turetilecek (eski teshis
-kapandi sayilmaz).
+**✅ KAPANDI (20:37Z nobeti):** `serit-a3` onarimi CI'da DOGRULANDI — kosum `31215563000`
+(head `7e811e5e`) job `serit-a3` **success** (20:46:12Z), `build` **success**, `serit-a2` **success**.
+Devralinan tek is bitti; eski teshis kapandi.
+
+**SIRADAKI TEK IS:** ayni kosumda `serit-a4` **hala kosuyor** (20:30Z basladi, tarihsel 42-50 dk,
+tavani O koyuyor) → `deploy`/`yayin` job'lari HENUZ BASLAMADI. Sonraki tur ILK IS: `31215563000`
+ve ardili `31217961897` icin `deploy`+`yayin` `conclusion`'ini ol; sonra
+`git merge-base --is-ancestor d3fbc1e5 <son basarili deploy head>` ile onarimin canliya inip
+inmedigini olc. **"yayin temiz" YAZMA** — bu tur olculmedi.
 
 **SIRADAKI TEK IS (2. sira) — OKAN'IN KARARI:** marka sayfasi 330 parcanin TAMAMINI tek sayfada
 kart olarak listelesin, model cipleri ayri adrese gitmek yerine sayfa icinde filtrelesin; once
@@ -22,13 +27,14 @@ sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
   Maruziyet olculdu: KUME-1 (repo-ici kok turetimi) **5 dosya** = onarildi · KUME-2 (kasten sabit
   yol / veri duzlemi / kilit-kanca-yedek araclari) **132 satir** = BILEREK dokunulmadi (naif
   `__file__` yamasi orada baska bir sessiz-hata sinifini yeniden acardi).
-- 🔴 **ONARIM CI'DA HENUZ DOGRULANMADI — "yesil" YAZMA.** Onarimi tasiyan kosum `31214768865`
-  tur kapanirken `pending` (0 job basladi); onundeki `31209586759` (head `8dc954e0`, onarim
-  ONCESI) hala `in_progress` ve tavani `serit-a4` (~52 dk) koyuyor. Yerel kanit VAR, CI kaniti YOK.
-- Yayin HALA acilmadi: son basarili `Build & deploy` **`31198525055`** (head `bb804c24`, 17:53:02Z).
-  `git merge-base --is-ancestor b8ab7091 bb804c24` **rc=1** → r2-onek onarimi canliya INMEDI.
-  Ucusta olan `31203297696` (head `76ca1341`, `in_progress`) onarimi ICERIYOR (rc=0); ardindan
-  `31204533840` (`5eae2b5e`) `pending`. Aradaki 8 kosum `cancelled` = kuyruk davranisi, ariza DEGIL.
+- ✅ **ONARIM CI'DA DOGRULANDI (20:37Z nobeti):** `31214768865` kuyruk davranisiyla `cancelled`
+  oldu (ariza DEGIL); onarimi tasiyan ARDIL kosum `31215563000` (head `7e811e5e`) `serit-a3`
+  **success** verdi. Yerel kanit + CI kaniti artik ikisi de VAR. Ayrica ayni turda bagimsiz bir
+  isci "3 ardisik kirmizi" gorunen yayin-nabzi kolunun AYRI bir ariza OLMADIGINI, ayni
+  `serit-a3` kok nedenini dogru raporladigini logdan olctu → o kol icin ayri onarim GEREKMEDI.
+- Yayin HENUZ acilmadi (OLCULDU, kapanmadi): son basarili `Build & deploy` **`31198525055`**
+  (head `bb804c24`, 16:38:12Z). `merge-base --is-ancestor d3fbc1e5 bb804c24` **rc=1** → onarim
+  canliya INMEDI. Tavani `serit-a4` koyuyor (bkz. SIRADAKI TEK IS).
 - Bu oturumda main'e giren ve DOGRULANAN: `e3880c89` · `197fd396` · `d0534fd2` · `c616e556` ·
   `b8ab7091` — besi de `merge-base --is-ancestor origin/main` rc=0.
 - Yedek kapsami dali **MERGE EDILDI** (`644f22a7`, oncesi `cd9fb30c`): `~/.claude` altindaki gorev
@@ -42,12 +48,20 @@ sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
   hedef ise **ortak** bir surucu → **erisim cevresi OLCULMELI**, yenileme karari Okan'in.
   Kalemlerin dokumu `DEVAM-ARSIV.md`de (git disi).
 
-- 📬 **Nobet mail supurmesi (Okan'in kosulsuz emri):** taşinan **2** mail, tur sonu gelen kutusunda
-  kalan "Run failed" **0** (birlesik `inbox`, alt kutulara girilmedi, Cop bosaltilmadi).
-- ⚠️ **Ayri sinif, yayini BLOKLAMAZ (devralinacak):** bir veri-senkron alarm kolu `failure`
-  (kosum `31214568441`, job `uzlastir`; dusen iki adim "sapma gorunurlugu" + "ONARILAMADI: sapma
-  KAPANMADI"). Taze katalog partisinden dogmus olabilir; kok neden OLCULMEDI. Bu kol `deploy`
-  zincirinde DEGIL — ama kapanmazsa botun gordugu katalog bayat kalir.
+- 📬 **Nobet mail supurmesi (Okan'in kosulsuz emri, 20:37Z turu):** taşinan **3** mail, tur sonu
+  gelen kutusunda kalan "Run failed" **0** (birlesik `inbox`, alt kutulara girilmedi, Cop
+  bosaltilmadi). Onceki turda 2 idi.
+- ✅ **ONARILDI (20:37Z nobeti) — veri-senkron uzlastirici kolunun YANLIS-KIRMIZISI:** kosum
+  `31214568441`, job `uzlastir`. Kok neden kaynaktan dogrulandi: olcum/onarim/atomik-yayin/teyit
+  adimlarinin **hepsi `success`** idi (sapma 1 kayit, yon "D1'de FAZLA"; onarimdan sonra
+  hash-uyusmaz 0 / eksik 0 / fazla 0), ama "sapma gorunurlugu" adimi kasitli `exit 1` verdigi icin
+  `failure()` true oluyor ve "ONARILAMADI" adimi teyidin GERCEK sonucuna bakmadan atesliyordu.
+  Kosul `failure() && sapma=='var'` → **`always() && sapma=='var' && steps.teyit.outcome != 'success'`**
+  (fail-closed: teyit `skipped`/`cancelled` olursa da KIRMIZI yakar). Commit **`94402074`**.
+  Kanit repoda: `tools/d1-uzlastirici-kosul-test.py` — **6 iddia**, kontrol mutanti (eski kosul)
+  vaka-2'de (sapma=var + teyit=success) atesleyerek DUSTU → test ayirt edici. Sinif:
+  [[kapi-beyanin-dogrulugunu-degil-varligini-olcer]] + [[envanter-drift-parti-basina]].
+  ⚠️ Yeni kosumun `conclusion`'i HENUZ olculmedi (cron kolu 21:09Z) → sonraki tur teyit etsin.
 - 🔴 **Codex KOTASI DOLU:** `codex exec` bu turda "usage limit" ile reddetti, **8 Agu 10:19**'a
   kadar kapali → is Claude iscisine dustu. Sonraki turlarda kat secimi buna gore yapilsin.
 
