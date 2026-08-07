@@ -1,37 +1,58 @@
 # DEVAM (KraL) — 7 Agu 2026
 
-## ⏱ SAATLIK CI NOBETI — 7 Agu 10:37 turu (ev DOGRU: ~/dev/pruvo)
+## ⏱ SAATLIK CI NOBETI — 7 Agu 13:37Z turu (ev DOGRU: ~/dev/pruvo)
 
-**Mail supurmesi:** tasinan **3** · tur sonu inbox'ta "Run failed" **0** (inbox 7541).
-Cop BOSALTILMADI; Cop'teki eslesmeyen kova islem boyunca **14..14** sabit (adli teyit).
+**Mail supurmesi (kosulsuz):** tasinan **3** · tur sonu inbox'ta "Run failed" **0**
+(inbox 7544 → 7542). Cop BOSALTILMADI, baska maile dokunulmadi.
 
-**Olculen CI (HEAD `9969e256`):**
-- 🔴 `r2-onek-nobeti` (nobet.yml, `deploy: needs`'te DEGIL → yayini durdurmaz) **7 kosumdur ust
-  uste kirmizi**; ilk kirmizi kapinin girdigi merge `e3880c89`. Kok neden **TEK DEGIL, IKI**:
-  **B2** = 1 kayit bilinmeyen `x` onekli R2 anahtariyla yayinda (**MaCiT duzlemi**, dokunulmadi,
-  olcum posta kutusuna yazildi) · **E3/E4** = ikiz tanim kaynagi kardes (private) depoda, workflow
-  yalniz bu depoyu checkout ediyor → yol runner'da **hicbir zaman var olmayacak**; HEAD'deki kapi
-  bunu `ok=False` ile **gercek kirmizi** sayiyor → deterministik kalici kirmizi. **Onarim ZATEN
-  UCUSTA** (kardes oturumun calisma kopyasi; dokunulmadi). → [[olculdu-diyen-hukum-kaniti]]
-- 🔴 `serit-a3` adim "Ic rapor adi kapisi" kosum `31168200266`'da (headSha `3f5b62aa`) dustu —
-  bu job `deploy: needs`'te, yani **yayini DURDURUR**. Onarimi BASKA oturum `9969e256` ile push
-  etti; teyit kosumu `31170570974` pending (`pages` grubunu `serit-a4` bataryasi tutuyor).
-- 🟢 D1 sapma sinifi kendiliginden kapandi: `d1-kadans / uzlastir` success, bagimsiz uzlastirici
-  `31170816343` success.
-- ⚪ `5f5ae7b9`'daki `yayin` / "Atomik yayin" dususu HEAD'de **OLCULEMEDI** (yesil DEGIL).
-- Tur sonu `nobet.yml` `31170571384`: `serit-b`·`envanter`·`mesaj-nobeti`·`cron-nabzi`·`d1-kadans`
-  **success**, tek kirmizi `r2-onek-nobeti` → o seritte kirmizi TEK kaynakli.
-- `serit-a3` LOKAL sinyal (yesili sahiplenmiyorum, onarim BASKA oturumun): `9969e256` yalniz
-  `kisisel-veri-test.py`'yi degistiriyor; lokalde **rc=0** (327 sayfa · 535 dosya). **CI'da OLCULMEDI.**
-- `serit-a4` suresi: basladi **10:19:45Z**, **≥46 dk** → 42-50 dk bandinin ICINDE (anomali degil).
+**Olculen CI:**
+- 🟢 **BLOKLAYICI ZINCIR TEMIZ.** `Build & deploy` sinifinda 09:59Z'den (`3f5b62aa`) bu yana
+  **kirmizi YOK**. Son TAMAMLANAN deploy `31176004860` (`f75135e0`) **success**, 12:55:19Z.
+- ✅ **DEVIR SORUSU (1) CEVAPLANDI — yayin gecikmesi henuz YAPISAL DEGIL.** `4517b76a`'dan
+  (11:09Z) SONRA basarili deploy **OLUSTU** (`31176004860`, 12:55Z). Onceki turun koydugu kosul
+  ("olusmadiysa `serit-a4`'u `nobet.yml` seridine tasi") **GERCEKLESMEDI** → tasima bu turun isi
+  DEGIL, YAPILMADI. Kosul bir sonraki turda yeniden olculecek.
+- 🟡 **YAYIN GECIKMESI SURUYOR (kirmizi degil, KUYRUK):** ucustaki deploy `31179569334`
+  (`0ea3ed27`): `build`·`serit-a2`·`serit-a3` **success**, `serit-a4` 12:55:23Z'den beri
+  **~45 dk** ucusta; `31183437899` (`32c6567f`) arkasinda `pending`. Parti push kadansi
+  (13:08 · 13:36) `serit-a4` suresinden KISA → her yeni push oncekini supersede ediyor,
+  canli katalog yerelin (21.811) gerisinde kaliyor. Yapisal kaynak: BEKLEYEN #5.
+  → [[kapi-birikimi-yayin-gecikmesi]]
+- 🟢 **`r2-onek-nobeti` B2 KAPANDI** (`d420ecb0`): ONCE/SONRA kosum kiyasiyla olculdu —
+  `9682a561`'de `KIRMIZI B2` (1 ihlal) vardi, `0ea3ed27`'de B2 **temiz**. Veri duzlemi kusuru bitti.
+- 🔴 `r2-onek-nobeti` (SERIT B, `deploy: needs`'te DEGIL → yayini durdurmaz): **9. kosum**
+  kirmizi, ama kok neden artik IKI degil **TEK parcali: yalnizca E3/E4.** Dusen adim
+  `python3 tools/r2-onek-gelenek-kapisi.py`; iddia "ikiz kaynagi okundu ve >=5 platform
+  ayristirildi" → `ayristirilan=0`, cunku ikiz tanim kaynagi KARDES (private) depoda ve
+  runner'da o yol YOK. **Bu iddia CI'da yapisal olarak HIC yesil YANAMAZ** — "olculemedi"yi
+  "kirmizi" sayan bir kapi. Isci ayrica arastirdi: **YENI kok neden sinifi YOK.**
+  Ayrimi yapan onarim (`OLCULEMEDI` ≠ `KIRMIZI`) kardes oturumun calisma kopyasinda hala
+  UCUSTA (commit'siz) — DOKUNULMADI. Sinif **DUR kosulunda**, Okan karari GEREKMEZ.
+  → [[hukum-yanlis-birimde]]
+- 🟢 Ayni kosumdaki diger SERIT B job'lari success (`cron-nabzi` · `serit-b` · `mesaj-nobeti` ·
+  `envanter` · `d1-kadans / uzlastir`); `hacim-tam-takim` skipped.
+
+**Bu turda KOD DEGISIKLIGI YAPILMADI** (gerekcesi olculdu): bloklayici zincirde kirmizi yok ·
+tek kirmizi sinifin (r2-onek E3/E4) onarimi baska oturumun ucustaki calisma kopyasinda ·
+`serit-a4` tasimasi icin devir kosulu gerceklesmedi. Calisma agacindaki yabanci degisikliklere
+(5 dosya) DOKUNULMADI.
+
+**DEVIR — sonraki turun ILK isi:**
+(1) `31179569334` + `31183437899` deploy'larinin `conclusion`'ini olc. Ikisi de cancelled/supersede
+olduysa VE 12:55Z'den sonra hic basarili deploy yoksa → yayin gecikmesi ARTIK yapisaldir ve
+`serit-a4`'un `nobet.yml` seridine tasinmasi (precedent `ffc72a6a`, "kaybolan 0" olcumuyle)
+o turun ISI olur.
+(2) `r2-onek-nobeti`: kardes oturumun `OLCULEMEDI` ayrimi main'e girdi mi olc. Girdiyse job
+yesile ya da sari `OLCULEMEDI`'ye donmeli; girmediyse 10. kirmizi — yayini durdurmadigi icin
+DUR kosulunda kalir, sifirdan teshise BASLAMA.
 
 **✅ DEFTER SINIF KAPISI MAYINI KALKTI (`c9d9f362`):** defterdeki 6 satir kayipsiz arsive tasindi,
 `devam-sinif-kapisi.py` **rc 1 → 0**. Defteri commit'leyen push artik `build`'i kirmiyor
 (3 Agu'daki `deploy`+`yayin` skipped olayinin sinifi). → [[nobet-kendi-defteri-yayini-durdurur]]
 
-**DEVIR — sonraki turun ILK isi:** `31170570974` kosumunun `serit-a3` + `deploy` + `yayin`
-JOB'larini olc (sifirdan teshise BASLAMA). Beklenen: `serit-a3` yesil. Hala kirmizi ise kok neden
-ayni demektir → **DUR kosulu** yaklasiyor.
+**ESKI DEVIR KAPANDI (13:37Z turunda olculdu):** `31170570974` supersede edilip `cancelled`
+oldu; ondan sonraki `31172929243` ve `31176004860` deploy'lari **success** → o turun bekledigi
+`serit-a3` kirmizisi TEKRARLAMADI, sinif kapandi. Guncel devir yukaridaki 13:37Z bloguna tasindi.
 
 **Codex NOT:** kredi kotasi **TUKENDI** (yenilenme 8 Agu 10:19) → is Claude katinda; sonraki tur
 da Codex'siz planlanmali.
