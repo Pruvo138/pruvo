@@ -1,4 +1,30 @@
-# DEVAM (KraL) — 6 Agu 2026
+# DEVAM (KraL) — 7 Agu 2026
+
+## 🟡 DIRILTME KAPISI EKSEN 2 `+` CONJUNCT'I OLCUYE ALINDI — DALDA `7107b697` (MERGE EDILMEDI)
+
+- **Kapsam:** 1 dosya, `tools/diriltme-kapisi.py` (**+232 −8**). Urun verisi KAPSAM DISI,
+  `urunler.json`'a dokunulmadi. Dal push edildi, **merge EDILMEDI**.
+- **Kapatilan delik (bagimsiz curutucu, 7 Agu):** EKSEN 2 hukmunun `arti_gorulen` (`+`
+  GORULMUS) conjunct'i HICBIR kabul iddiasi tarafindan kapsanmiyordu — kosul salt `-`
+  gorulmeye indirgense `--kendini-test` de `--alan-capa` da YESIL kaliyordu.
+- **Ne girdi:** yeni saf-karar iddiasi **A17j** ("yalniz `-` TERK EDILMIS, `+` HIC GORULMEMIS
+  -> gerileme DEGIL"; etiket A17g DEGIL, o dolu) + yeni surucu `--karar-mutasyon`. Tablo
+  `ALAN_CAPA_MUTASYONLARI`'ndan **SONRA** konuldu: onunde olsaydi ortak capa kod yuzeyinde
+  iki kez gecer ve `--capa-mutasyon` BOZULMAMIS kapiyla KIRMIZI yanardi (6 capa icin
+  `kod_yuzeyi.count == 1` dogrulandi).
+- **AYIRT EDICILIK olculdu:** K-M1 (`+` dusurulur) -> yalniz **{A17j}** · K-M2 (`-` dusurulur)
+  -> yalniz **{A17d}** · KONTROL -> **bos**. Iki oldurucu FARKLI tek iddiayi dusuruyor.
+  Mutasyon yalniz KOPYAYA; canli dosya sha256 once==sonra **True**.
+- **Kapilar rc=0:** `--kendini-test` **86 -> 87 iddia** · `--karar-mutasyon` TABAN **87** ·
+  korelme YOK: `--kanca-mutasyon` **19** · `--capa-mutasyon` TABAN **3** (A-M1 -> A20,
+  A-M2 -> A22, kontrol bos) · bayraksiz kol · `--calisma-agaci`.
+  ⚠️ Asagidaki `7f950921` blogundaki **86**, O MERGE'in olcumudur; geriye donuk DEGISTIRILMEDI.
+- **Ek kablolama (beyan):** `--kendini-test` artik `--depo`yu FIILEN kullaniyor (once sessizce
+  yok sayiliyordu; varsayilan davranis DEGISMEDI). Mutant kopyanin yanina mutasyona UGRAMAYAN
+  yardimci dosyalar kopyalaniyor, yoksa K/W ayaklari iddia yuzeyini kucultuyordu. Etiketsiz
+  iddialar icin **etiketsiz > 0 = SAPMA** nobeti eklendi.
+- **Belge:** basliktaki "sinif YAPISAL OLARAK BOS" gerekcesi ZATEN duzeltilmisti (satir 141
+  alinti, dogru gerekce 143-145) -> DOKUNULMADI. `--karar-mutasyon` CI'ya BAGLANMADI.
 
 ## 🟢 DIRILTME KAPISI A20 CAPASI GECMISTEN TURER — MAIN'DE `7f950921`
 
