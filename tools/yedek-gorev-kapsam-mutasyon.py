@@ -1,35 +1,43 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""KABUL + MUTASYON SURUCUSU — yedekle.py'nin ZAMANLANMIS GOREV kapsami ve DISLAMASI.
+"""KABUL + MUTASYON SURUCUSU — yedekle.py'nin ~/.claude AGAC KAPSAMI ve DISLAMASI.
 
-NEDEN VAR (olculdu, 7 Agu 2026): ~/.claude/scheduled-tasks agaci yedekle.py'nin
-kapsaminda HIC GECMIYORDU -> 15 zamanlanmis gorevin TANIM METNI diskte TEK KOPYA,
-surum gecmisi YOK. Bu makinede 2-3 gunde bir hesap rotasyonu var; gorev KAYDI zaten
-hesapla oluyor, METIN de yedeksizse gorev KALICI olarak kayboluyor.
+KAPSAM: AGAC_KAPSAMI tablosundaki uc agac —
+  gorev  ~/.claude/scheduled-tasks  (zamanlanmis gorev TANIM metinleri)
+  cron   ~/.claude/cron             (nobet surucusu + crontab; ICINDE GERCEK JETON VAR)
+  plan   ~/.claude/plans            (elle yazilmis plan belgeleri)
 
-Agac kapsama alinirken IKINCI bir risk dogar: kardes dizin ~/.claude/cron altinda
-GERCEK `.ci-token` / `.gh-token` duruyor ve yedek hedefi ORTAK Drive. Yani bu is bir
-JETON YUZEYINE KOMSU. Bu yuzden iki ayri iddia var ve IKISI DE tek tek olculur:
-  (A) KAPSAM     — gorev metinleri yedege GIRIYOR (bayt bayt).
-  (B) DISLAMA    — sir/izinsiz dosya yedege GIRMIYOR, SEBEBIYLE SAYILIYOR.
+NEDEN VAR (olculdu, 7 Agu 2026): uc agac da yedek kapsaminda HIC GECMIYORDU ->
+diskte TEK KOPYA, surum gecmisi YOK, hicbir depoda karsiligi YOK. Bu makinede
+2-3 gunde bir hesap rotasyonu var; KOSUM KAYITLARI hesapla zaten olur, ama bu
+METINLER de yedeksizse yordamin KENDISI kalici olarak kaybolur.
+
+Agaclar kapsama alinirken IKINCI risk dogar: `cron` agacinin ICINDE gercek
+`.ci-token` ve `.gh-token` duruyor ve yedek hedefi ORTAK Drive. Iki ayri iddia:
+  (A) KAPSAM  — metinler yedege GIRIYOR (bayt bayt).
+  (B) DISLAMA — jeton/izinsiz dosya yedege GIRMIYOR, SEBEBIYLE SAYILIYOR.
 
 🔴 KATMANLAR TEK TEK OLCULUR (beyan edilmis survivor tuzagi): "jeton yedekte yok"
-iddiasi katmanlarin VEYA'sidir — sir nobeti kapatilsa bile allowlist ayni dosyayi
-elerdi ve iddia YESIL kalirdi. Bu yuzden fikstur AYIRT EDICI kurulur:
-  * izinli uzantili ama JETON ADLI dosya   -> YALNIZ sir nobeti eler   (G4)
-  * izinli uzantili ama IMZALI icerik      -> YALNIZ sir nobeti eler   (G5)
-  * zararsiz adli/icerikli IZINSIZ uzanti  -> YALNIZ allowlist eler    (G6)
-G11 (uctan uca "jeton hedefte yok") BILEREK bir survivor'dur ve katman kaniti
-SAYILMAZ; kabul metninin istedigi uctan uca olcum olarak ayrica tutulur.
+katmanlarin VEYA'sidir — bir katman kapansa oteki ayni dosyayi elerdi ve iddia
+YESIL kalirdi. Bu yuzden her agacta AYIRT EDICI fikstur var:
+  * IZINLI uzantili ama JETON ADLI dosya    -> YALNIZ sir nobeti eler
+  * IZINLI uzantili ama IMZALI icerik       -> YALNIZ sir nobeti eler
+  * zararsiz ad/icerik + IZINSIZ uzanti     -> YALNIZ allowlist eler
+Uctan uca iddialar (G11 / C7) BILEREK survivor'dur; katman kaniti SAYILMAZ ve
+ancak IKI KATMAN BIRDEN kapatan M10 mutanti ile kirmiziya doner (yani bos degil).
 
-🔴 BYTECODE ONBELLEK TUZAGI ELE ALINDI: ayni uzunlukta mutasyon ayni saniyede
-yazilinca .pyc onbellegi yuzunden UYGULANMAYABILIR (mutant kirmizi yanar ama dusen
-bir oncekinin iddiasidir). Uc onlem birden:
-  1. PYTHONDONTWRITEBYTECODE=1 + sys.dont_write_bytecode -> onbellek HIC yazilmaz.
-  2. Her mutant AYRI tempdir + AYRI dosya adi.
-  3. POZITIF KANIT: mutant diskten GERI OKUNUR; capa metni gitmis, yerine konan
-     metin gelmis ve sha256 tabandan farkli olmali. Degilse SURUCU PATLAR.
-  4. Kosum sonrasi kum havuzunda __pycache__ OLUSMADIGI ayrica olculur.
+🔴 FIKSTUR DEGERI SECIMI KURALI (bu depoda 2. tekrar): fikstur ADEDI, mutantin
+koyacagi hicbir sabitle CAKISMAMALI — ilk turda `return 5, yeni` mutanti fikstur
+5 dosya oldugu icin SAG KALDI (sayac yalan soylerken batarya yesildi). Adetler
+simdi 6 / 4 / 2 ve hicbiri mutant sabiti 5 ile cakismiyor; ayrica sayac IKI
+bagimsiz eksenden olculuyor (tek kosum degeri + idempotens).
+
+🔴 BYTECODE ONBELLEK TUZAGI ELE ALINDI (dort onlem):
+  1. PYTHONDONTWRITEBYTECODE=1 + sys.dont_write_bytecode -> onbellek HIC yazilmaz
+  2. her mutant AYRI tempdir + AYRI dosya adi
+  3. POZITIF KANIT: mutant diskten GERI OKUNUR; capa gitmis, yeni metin gelmis ve
+     sha256 tabandan farkli olmali — degilse SURUCU PATLAR
+  4. kosum sonrasi kum havuzunda __pycache__ SAYILIR (0 olmali)
 
 ⚠️ GERCEK HEDEFE / GERCEK HOME'a YAZMAZ: her sey sahte HOME + sahte git deposu +
 drive_yolu STUB'u ile izole tempdir'de kosar.
@@ -50,61 +58,109 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 YEDEKLE = os.path.join(TOOLS, "yedekle.py")
 DRIVE_YOLU = os.path.join(TOOLS, "drive_yolu.py")
 
-# ---------------------------------------------------------------- fikstur ----
 # GERCEK ANAHTAR DEGIL. Dize PARCALI kurulur: hicbir KAYNAK SATIRI jeton desenine
-# uymaz (repo geneli sir tarayicilarini bosuna kirmizi yakmasin), CALISMA ANINDAKI
+# uymaz (repo geneli sir tarayicilari bosuna kirmizi yakmasin), CALISMA ANINDAKI
 # dize ise yedekle.SIR_IMZALARI "GitHub jetonu" imzasini BIREBIR tetikler.
 SAHTE_IMZA = "gh" + "p_" + ("S" * 36)
+SAHTE_GOVDE = "SENTETIK-SAHTE-GERCEK-DEGIL\n"
 
-GOREV_DIZIN = "scheduled-tasks"
-
-# (gorece yol, icerik) — ALLOWLIST'ten ve sir nobetinden GECMESI beklenenler.
-#
-# 🔴 SAYI BILEREK 6 (FIKSTUR DEGERI MUTASYONU KOR ETMESIN): ilk kurulumda 5 idi ve
-# "sayaci sabitle" mutanti (`return 5, yeni`) fikstur degeriyle CAKISTIGI icin SAG
-# KALDI — sayac yalan soylerken batarya yesil yandi. Fikstur adedi artik yedekle.py
-# icinde gecen hicbir sabitle cakismiyor.
-BEKLENEN_IZINLI = (
-    ("gorev-a/SKILL.md", "# gorev a\nsaat basi kosar\n"),
-    ("gorev-b/SKILL.md", "# gorev b\ngunluk kosar\n"),
-    ("gorev-c/SKILL.md", "# gorev c\nhaftalik kosar\n"),
-    ("gorev-a/olcum.json", '{"esik": 3, "birim": "saat"}\n'),
-    ("gorev-c/olcum-2.json", '{"esik": 11, "birim": "gun"}\n'),
-    ("gorev-a/notlar.txt", "elle yazilmis nobet notu\n"),
-)
-
-# (gorece yol, icerik, beklenen katman) — yedege GIRMEMESI gerekenler.
-#   katman "sir"       -> YALNIZ sir nobeti eler (uzantisi IZINLI)
-#   katman "allowlist" -> YALNIZ allowlist eler (adi/icerigi ZARARSIZ)
-#   katman "ikisi"     -> gercek jetonun sekli; uctan uca olcum (G11)
-BEKLENEN_HARIC = (
-    ("gorev-b/gizli-token.md", "sahte govde, gercek jeton DEGIL\n", "sir"),
-    ("gorev-b/imza-notu.md", "not\n" + SAHTE_IMZA + "\n", "sir"),
-    ("gorev-c/artik.bin", "duz metin, zararsiz ad, IZINSIZ uzanti\n", "allowlist"),
-    (".gh-token", "SENTETIK-SAHTE-JETON-GERCEK-DEGIL\n", "ikisi"),
-)
-
-SENTETIK_JETON = ".gh-token"
-
-TABAN_IDDIALAR = ("G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10",
-                  "G11", "G12")
-
-IDDIA_METNI = {
-    "G1": "plan-kapsami: izinli gorev dosyalarinin TAMAMI yedek planinda",
-    "G2": "bayt-bayt: her izinli dosya hedefte kaynakla BIREBIR ayni",
-    "G3": "damga-sayaci: damga['gorev'] == fikstur adedi (sabit degil, gercek kopya sayisi)",
-    "G4": "katman-1a: jeton ADLI ama IZINLI uzantili dosyayi SIR NOBETI eledi",
-    "G5": "katman-1b: IMZALI icerikli ama IZINLI uzantili dosyayi SIR NOBETI eledi",
-    "G6": "katman-2: zararsiz ama IZINSIZ uzantili dosyayi ALLOWLIST eledi",
-    "G7": "dislama-sayaci: damga['gorev_haric'] == 4 VE stdout'ta 4 'DISLANDI:' satiri",
-    "G8": "mesru-yutulmadi: izinli dosyalarin HEPSI hedefte (allowlist fazla genis degil)",
-    "G9": "imza-plan-hizasi: kaynak_imzasi['adet'] == len(yedek_plani)",
-    "G10": "dogrula-yesil: --dogrula cikis kodu 0 (plandaki her dosya hedefte)",
-    "G11": "uctan-uca: sentetik sahte jeton hedefte HICBIR YERDE yok (survivor, katman kaniti DEGIL)",
-    "G12": "idempotent-sayac: 1. kosum yeni==N, 2. kosum yeni==0 ve gorev YINE N",
+# ---------------------------------------------------------------- fikstur ----
+# agac etiketi -> {"dizin": ~/.claude altindaki ad,
+#                  "izinli": ((gorece yol, icerik), ...),
+#                  "haric":  ((gorece yol, icerik, beklenen katman), ...)}
+# katman "sir"       -> YALNIZ sir nobeti eler (uzantisi IZINLI)
+# katman "allowlist" -> YALNIZ allowlist eler (adi/icerigi ZARARSIZ)
+# katman "ikisi"     -> gercek jetonun sekli (uzantisiz + jeton adli)
+FIKSTUR = {
+    "gorev": {
+        "dizin": "scheduled-tasks",
+        "izinli": (
+            ("gorev-a/SKILL.md", "# gorev a\nsaat basi kosar\n"),
+            ("gorev-b/SKILL.md", "# gorev b\ngunluk kosar\n"),
+            ("gorev-c/SKILL.md", "# gorev c\nhaftalik kosar\n"),
+            ("gorev-a/olcum.json", '{"esik": 3, "birim": "saat"}\n'),
+            ("gorev-c/olcum-2.json", '{"esik": 11, "birim": "gun"}\n'),
+            ("gorev-a/notlar.txt", "elle yazilmis nobet notu\n"),
+        ),
+        "haric": (
+            ("gorev-b/gizli-token.md", SAHTE_GOVDE, "sir"),
+            ("gorev-b/imza-notu.md", "not\n" + SAHTE_IMZA + "\n", "sir"),
+            ("gorev-c/artik.bin", "duz metin, zararsiz ad, IZINSIZ uzanti\n", "allowlist"),
+            (".gh-token", SAHTE_GOVDE, "ikisi"),
+        ),
+    },
+    "cron": {
+        "dizin": "cron",
+        "izinli": (
+            ("ci-nobeti.sh", "#!/bin/sh\necho nobet\n"),
+            ("ci-nobeti.crontab", "40 * * * * /bin/sh ci-nobeti.sh\n"),
+            ("gecici.crontab", "0 3 * * * /bin/sh temizlik.sh\n"),
+            ("nobet-gorev.md", "# nobet yordami\n"),
+        ),
+        "haric": (
+            # 🔴 GERCEK JETONLARIN SENTETIK IKIZLERI — ayri iddia (C3).
+            (".ci-token", SAHTE_GOVDE, "ikisi"),
+            (".gh-token", SAHTE_GOVDE, "ikisi"),
+            # IZINLI uzanti (.sh) ama IMZALI icerik -> YALNIZ sir nobeti eler.
+            ("kurulum.sh", "#!/bin/sh\nAUTH=" + SAHTE_IMZA + "\n", "sir"),
+            # log: turetilmis + sinirsiz buyur -> YALNIZ allowlist eler (C4).
+            ("ci-nobeti.log", "2026-08-07 kosum tamam\n", "allowlist"),
+            ("mail-supurme.log", "2026-08-07 supuruldu\n", "allowlist"),
+        ),
+    },
+    "plan": {
+        "dizin": "plans",
+        "izinli": (
+            ("plan-bir.md", "# plan bir\n"),
+            ("plan-iki.md", "# plan iki\n"),
+        ),
+        "haric": (
+            ("taslak.bin", "zararsiz taslak, IZINSIZ uzanti\n", "allowlist"),
+        ),
+    },
 }
 
-PYC_SAYAC = []          # her batarya kosumunda olusan __pycache__ girisi sayisi
+# Tum agaclardaki SENTETIK jeton dosya adlari (uctan uca taramada aranir).
+SENTETIK_JETONLAR = (".gh-token", ".ci-token")
+
+TABAN_IDDIALAR = (
+    # ---- gorev agaci + global eksenler ----
+    "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11", "G12",
+    # ---- cron agaci (YENI YUZEY: icinde gercek jeton var) ----
+    "C1", "C2", "C3", "C4", "C5", "C6", "C7",
+    # ---- plan agaci ----
+    "P1", "P2", "P3",
+    # ---- yapisal ----
+    "S1",
+)
+
+IDDIA_METNI = {
+    "G1": "gorev/plan-kapsami: izinli gorev dosyalarinin TAMAMI yedek planinda",
+    "G2": "gorev/bayt-bayt: her izinli dosya hedefte kaynakla BIREBIR ayni",
+    "G3": "gorev/damga-sayaci: damga['gorev'] == fikstur adedi (sabit degil)",
+    "G4": "gorev/katman-1a: jeton ADLI ama IZINLI uzantili dosyayi SIR NOBETI eledi",
+    "G5": "gorev/katman-1b: IMZALI icerik + IZINLI uzanti -> SIR NOBETI eledi",
+    "G6": "gorev/katman-2: zararsiz ama IZINSIZ uzantili dosyayi ALLOWLIST eledi",
+    "G7": "gorev/dislama-sayaci: damga['gorev_haric'] beklenen sayida VE stdout'ta o kadar 'DISLANDI:'",
+    "G8": "gorev/mesru-yutulmadi: izinli dosyalarin HEPSI hedefte",
+    "G9": "GLOBAL/imza-plan-hizasi: kaynak_imzasi['adet'] == len(yedek_plani)",
+    "G10": "GLOBAL/dogrula-yesil: --dogrula cikis kodu 0",
+    "G11": "gorev/uctan-uca: sentetik jeton hedefte yok (SURVIVOR — katman kaniti DEGIL)",
+    "G12": "gorev/idempotens: 1.kosum yeni==N, 2.kosum yeni==0 ve gorev YINE N",
+    "C1": "cron/plan-kapsami: .sh + .crontab + .md dosyalarinin TAMAMI planda",
+    "C2": "cron/bayt-bayt: 4 nobet dosyasi hedefte kaynakla BIREBIR ayni",
+    "C3": "🔴 cron/JETON: .ci-token VE .gh-token SIR NOBETI ile elendi + hedefte YOK",
+    "C4": "cron/LOG: iki .log da ALLOWLIST ile elendi + hedefte YOK (sayildi)",
+    "C5": "cron/katman-1: IMZALI .sh (IZINLI uzanti) -> YALNIZ sir nobeti eledi",
+    "C6": "cron/sayaclar: damga cron/cron_haric beklenen + idempotens (yeni 4 -> 0)",
+    "C7": "cron/uctan-uca: sentetik jetonlar TUM backup agacinda yok (SURVIVOR)",
+    "P1": "plan/kapsam+bayt-bayt: plan belgeleri planda VE hedefte birebir",
+    "P2": "plan/sayaclar: damga plan/plan_haric beklenen sayida",
+    "P3": "plan/katman-2: IZINSIZ uzantili taslak ALLOWLIST ile elendi + hedefte YOK",
+    "S1": "yapisal: AGAC_KAPSAMI tam olarak beklenen 3 agaci tasiyor (fail-closed)",
+}
+
+PYC_SAYAC = []
 
 OLCUM_KODU = (
     "import sys;sys.dont_write_bytecode=True\n"
@@ -113,10 +169,13 @@ OLCUM_KODU = (
     "m=importlib.util.module_from_spec(spec)\n"
     "spec.loader.exec_module(m)\n"
     "plan=m.yedek_plani()\n"
-    "gp=m.gorev_plani()\n"
-    "print(json.dumps({'plan_hedefleri':[h for _k,h in plan],'plan_adet':len(plan),"
-    "'dahil':gp[0],'haric':gp[1],'gurultu':gp[2],'imza':m.kaynak_imzasi(),"
-    "'gorev_klasor':m.GOREV_KLASOR,'gorevler':m.GOREVLER}))\n"
+    "agaclar=[]\n"
+    "for a in m.AGAC_KAPSAMI:\n"
+    "    d,h,g=m.agac_plani(a)\n"
+    "    agaclar.append({'etiket':a[0],'kok':a[1],'hedef':a[2],'izinli':list(a[3]),\n"
+    "                    'dahil':d,'haric':h,'gurultu':g})\n"
+    "print(json.dumps({'plan_hedefleri':[h for _k,h in plan],'plan_adet':len(plan),\n"
+    "                  'agaclar':agaclar,'imza':m.kaynak_imzasi()}))\n"
 )
 
 
@@ -141,7 +200,6 @@ def kum_havuzu(td, kaynak_betik):
          % (os.path.join(pruvo, "STL"), pruvo))
     subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
 
-    # yedekle.REPO_BEKLENEN'i kaynaktan OKU (fikstur bayatlamasin).
     beklenen = ()
     with open(kaynak_betik, encoding="utf-8") as f:
         for satir in f:
@@ -159,17 +217,21 @@ def kum_havuzu(td, kaynak_betik):
         _yaz(os.path.join(mem, "not-%02d.md" % i), "hafiza %d\n" % i)
     _yaz(os.path.join(ev, ".claude", "skills", "ornek", "SKILL.md"), "skill\n")
 
-    gorev_kok = os.path.join(ev, ".claude", GOREV_DIZIN)
-    for gor, icerik in BEKLENEN_IZINLI:
-        _yaz(os.path.join(gorev_kok, gor), icerik)
-    for gor, icerik, _katman in BEKLENEN_HARIC:
-        _yaz(os.path.join(gorev_kok, gor), icerik)
+    koklar = {}
+    for etiket, fx in FIKSTUR.items():
+        agac_kok = os.path.join(ev, ".claude", fx["dizin"])
+        os.makedirs(agac_kok, exist_ok=True)
+        for gor, icerik in fx["izinli"]:
+            _yaz(os.path.join(agac_kok, gor), icerik)
+        for gor, icerik, _k in fx["haric"]:
+            _yaz(os.path.join(agac_kok, gor), icerik)
+        koklar[etiket] = agac_kok
 
     ortam = dict(os.environ)
     ortam["HOME"] = ev
-    ortam["PYTHONDONTWRITEBYTECODE"] = "1"      # bytecode onbellek tuzagi (onlem 1)
+    ortam["PYTHONDONTWRITEBYTECODE"] = "1"
     return {"kok": kok, "betik": os.path.join(kok, "tools", "yedekle.py"),
-            "ev": ev, "gorev_kok": gorev_kok, "hedef": os.path.join(pruvo, "backup"),
+            "ev": ev, "koklar": koklar, "hedef": os.path.join(pruvo, "backup"),
             "ortam": ortam}
 
 
@@ -184,7 +246,7 @@ def olc(o):
     try:
         return json.loads(r.stdout.strip())
     except ValueError:
-        return {"_hata": (r.stdout + r.stderr)[-400:]}
+        return {"_hata": (r.stdout + r.stderr)[-400:], "agaclar": []}
 
 
 def _damga(hedef):
@@ -204,10 +266,7 @@ def hedef_dosyalari(hedef):
 
 # ------------------------------------------------------------------ batarya --
 def bataryayi_kos(kaynak_betik, atla=None):
-    """Adlandirilmis iddialari kosar. Doner: (sonuc dict, notlar list).
-
-    `atla`: bir iddia kimligi -> O IDDIA HIC KOSMAZ (iddia-atlama mutantinin
-    kolu). Sonuc sozlugunde YER ALMAZ; hukum bunu 'IDDIA-EKSIK' sayar."""
+    """Adlandirilmis iddialari kosar. Doner: (sonuc dict, notlar list)."""
     sonuc, notlar = {}, []
 
     def iddia(kimlik, ok, ayrinti=""):
@@ -217,111 +276,197 @@ def bataryayi_kos(kaynak_betik, atla=None):
         if not ok and ayrinti:
             notlar.append("%s: %s" % (kimlik, ayrinti))
 
-    td = tempfile.mkdtemp(prefix="gorev-kapsam-")
+    td = tempfile.mkdtemp(prefix="agac-kapsam-")
     try:
         o = kum_havuzu(td, kaynak_betik)
-        r = kos(o)
+        r1 = kos(o)
         damga1 = _damga(o["hedef"])
-        # IKINCI KOSUM — idempotens ekseni: hicbir kaynak degismedi, dolayisiyla
-        # "yeni" 0 olmali ama "gorev" (hedefte duran dosya) AYNI kalmali. Bu eksen
-        # olmadan "sayaci sabitle" sinifindaki mutantlar tek bir sayiya bakan
-        # iddiayla ayirt edilemiyor (fikstur degeri sabitle CAKISABILIYOR).
-        r = kos(o)
+        r = kos(o)                       # 2. kosum: idempotens ekseni
         m = olc(o)
         hedef = o["hedef"]
-        gk = m.get("gorev_klasor", "gorev-tanimlari")
-        hedefte = set(hedef_dosyalari(hedef))
-        haric_sozluk = dict(tuple(x) for x in m.get("haric", []))
-        plan_hedefleri = set(m.get("plan_hedefleri", []))
-
-        # G1 — plan kapsami
-        eksik_plan = [g for g, _i in BEKLENEN_IZINLI
-                      if os.path.join(gk, g) not in plan_hedefleri]
-        iddia("G1", not eksik_plan, "planda yok: %s" % eksik_plan)
-
-        # G2 — bayt bayt
-        bozuk = []
-        for g, _i in BEKLENEN_IZINLI:
-            try:
-                with open(os.path.join(o["gorev_kok"], g), "rb") as f:
-                    a = f.read()
-                with open(os.path.join(hedef, gk, g), "rb") as f:
-                    b = f.read()
-            except OSError:
-                bozuk.append(g + " (hedefte YOK)")
-                continue
-            if a != b:
-                bozuk.append(g + " (bayt farki)")
-        iddia("G2", not bozuk, "; ".join(bozuk))
-
-        # G3 — damga sayaci (BEKLENEN SABIT SAYI ile; kendi kendine tutarlilik DEGIL)
         damga = _damga(hedef)
-        iddia("G3", damga.get("gorev") == len(BEKLENEN_IZINLI),
-              "damga['gorev']=%r beklenen %d" % (damga.get("gorev"), len(BEKLENEN_IZINLI)))
+        hedefte = set(hedef_dosyalari(hedef))
+        plan_hedefleri = set(m.get("plan_hedefleri", []))
+        agaclar = {a["etiket"]: a for a in m.get("agaclar", [])}
+        stdout_dislanan = sum(1 for s in r.stdout.splitlines() if "DISLANDI:" in s)
 
-        # G4/G5/G6 — KATMAN KATMAN. Sebep metni hangi katmandan geldigini soylemeli.
-        def katman(gor):
-            sebep = haric_sozluk.get(gor)
+        # S1 — yapisal: tablo beklenen 3 agaci tasiyor (fail-closed)
+        iddia("S1", set(agaclar) == set(FIKSTUR),
+              "tablodaki agaclar=%s beklenen=%s" % (sorted(agaclar), sorted(FIKSTUR)))
+
+        def hedef_klasor(etiket):
+            return (agaclar.get(etiket) or {}).get("hedef", "?" + etiket)
+
+        def haric_sozluk(etiket):
+            return dict(tuple(x) for x in (agaclar.get(etiket) or {}).get("haric", []))
+
+        def katman(etiket, gor):
+            sebep = haric_sozluk(etiket).get(gor)
             if sebep is None:
                 return "ELENMEDI"
-            return "allowlist" if sebep.startswith("allowlist disi") else "sir"
+            if sebep.startswith("allowlist disi"):
+                return "allowlist"
+            if sebep.startswith("icerik imzasi"):
+                return "sir-icerik"
+            return "sir"
 
-        iddia("G4", katman("gorev-b/gizli-token.md") == "sir"
-              and os.path.join(gk, "gorev-b/gizli-token.md") not in hedefte,
-              "katman=%s" % katman("gorev-b/gizli-token.md"))
-        s5 = haric_sozluk.get("gorev-b/imza-notu.md", "")
-        iddia("G5", s5.startswith("icerik imzasi")
-              and os.path.join(gk, "gorev-b/imza-notu.md") not in hedefte,
-              "sebep=%r" % s5)
-        iddia("G6", katman("gorev-c/artik.bin") == "allowlist"
-              and os.path.join(gk, "gorev-c/artik.bin") not in hedefte,
-              "katman=%s" % katman("gorev-c/artik.bin"))
+        def planda_eksik(etiket):
+            hk = hedef_klasor(etiket)
+            return [g for g, _i in FIKSTUR[etiket]["izinli"]
+                    if os.path.join(hk, g) not in plan_hedefleri]
 
-        # G7 — dislama SAYISI hem damgada hem STDOUT'ta, BEKLENEN sabit sayiyla
-        stdout_dislanan = sum(1 for s in r.stdout.splitlines() if "DISLANDI:" in s)
-        iddia("G7", damga.get("gorev_haric") == len(BEKLENEN_HARIC)
-              and stdout_dislanan == len(BEKLENEN_HARIC),
-              "damga=%r stdout=%d beklenen=%d"
-              % (damga.get("gorev_haric"), stdout_dislanan, len(BEKLENEN_HARIC)))
+        def bayt_bozuk(etiket):
+            hk = hedef_klasor(etiket)
+            bozuk = []
+            for gor, _i in FIKSTUR[etiket]["izinli"]:
+                try:
+                    with open(os.path.join(o["koklar"][etiket], gor), "rb") as f:
+                        a = f.read()
+                    with open(os.path.join(hedef, hk, gor), "rb") as f:
+                        b = f.read()
+                except OSError:
+                    bozuk.append(gor + " (hedefte YOK)")
+                    continue
+                if a != b:
+                    bozuk.append(gor + " (bayt farki)")
+            return bozuk
 
-        # G8 — mesru dosya yutulmadi (allowlist FAZLA GENIS degil)
-        yutulan = [g for g, _i in BEKLENEN_IZINLI if os.path.join(gk, g) not in hedefte]
+        def hedefte_yok(etiket, gor):
+            return os.path.join(hedef_klasor(etiket), gor) not in hedefte
+
+        # =================== GOREV AGACI ===================
+        n_g = len(FIKSTUR["gorev"]["izinli"])
+        h_g = len(FIKSTUR["gorev"]["haric"])
+        iddia("G1", not planda_eksik("gorev"), "planda yok: %s" % planda_eksik("gorev"))
+        iddia("G2", not bayt_bozuk("gorev"), "; ".join(bayt_bozuk("gorev")))
+        iddia("G3", damga.get("gorev") == n_g,
+              "damga['gorev']=%r beklenen %d" % (damga.get("gorev"), n_g))
+        iddia("G4", katman("gorev", "gorev-b/gizli-token.md") == "sir"
+              and hedefte_yok("gorev", "gorev-b/gizli-token.md"),
+              "katman=%s" % katman("gorev", "gorev-b/gizli-token.md"))
+        iddia("G5", katman("gorev", "gorev-b/imza-notu.md") == "sir-icerik"
+              and hedefte_yok("gorev", "gorev-b/imza-notu.md"),
+              "katman=%s" % katman("gorev", "gorev-b/imza-notu.md"))
+        iddia("G6", katman("gorev", "gorev-c/artik.bin") == "allowlist"
+              and hedefte_yok("gorev", "gorev-c/artik.bin"),
+              "katman=%s" % katman("gorev", "gorev-c/artik.bin"))
+        toplam_haric = sum(len(f["haric"]) for f in FIKSTUR.values())
+        iddia("G7", damga.get("gorev_haric") == h_g and stdout_dislanan == toplam_haric,
+              "damga=%r stdout=%d beklenen %d/%d"
+              % (damga.get("gorev_haric"), stdout_dislanan, h_g, toplam_haric))
+        yutulan = [g for g, _i in FIKSTUR["gorev"]["izinli"]
+                   if hedefte_yok("gorev", g)]
         iddia("G8", not yutulan, "hedefte yok: %s" % yutulan)
-
-        # G9 — imza ile plan AYNI kumeden turer (ayrisma nobetcisi)
         imza = m.get("imza") or {}
         iddia("G9", imza.get("adet") == m.get("plan_adet"),
               "imza=%r plan=%r" % (imza.get("adet"), m.get("plan_adet")))
-
-        # G10 — --dogrula yesil
         rd = kos(o, "--dogrula")
         iddia("G10", rd.returncode == 0, "rc=%d %s" % (rd.returncode, rd.stdout[-200:]))
-
-        # G11 — UCTAN UCA (BILEREK SURVIVOR; katman kaniti sayilmaz)
-        jeton_izi = [y for y in hedefte if SENTETIK_JETON in os.path.basename(y)]
+        jeton_izi = [y for y in hedefte
+                     if os.path.basename(y) in SENTETIK_JETONLAR]
         iddia("G11", not jeton_izi, "hedefte iz: %s" % jeton_izi)
-
-        # G12 — IDEMPOTENS: 1. kosumda hepsi YENI, 2. kosumda HICBIRI yeni degil ama
-        # hedefte duran sayi AYNI. Sayacin GERCEGI izledigini tek sayidan daha guclu
-        # olcer (sabitlenmis sayac ikinci kosumda ele verir).
-        n = len(BEKLENEN_IZINLI)
-        iddia("G12", damga1.get("gorev_yeni") == n and damga.get("gorev_yeni") == 0
-              and damga.get("gorev") == n,
-              "1.kosum yeni=%r  2.kosum yeni=%r gorev=%r  beklenen %d/0/%d"
+        iddia("G12", damga1.get("gorev_yeni") == n_g and damga.get("gorev_yeni") == 0
+              and damga.get("gorev") == n_g,
+              "1.kosum yeni=%r 2.kosum yeni=%r gorev=%r beklenen %d/0/%d"
               % (damga1.get("gorev_yeni"), damga.get("gorev_yeni"),
-                 damga.get("gorev"), n, n))
+                 damga.get("gorev"), n_g, n_g))
 
-        # bytecode onbellek onlemi 4 — kum havuzunda .pyc birikmedi (POZITIF OLCUM)
+        # =================== CRON AGACI (YENI YUZEY) ===================
+        n_c = len(FIKSTUR["cron"]["izinli"])
+        h_c = len(FIKSTUR["cron"]["haric"])
+        iddia("C1", not planda_eksik("cron"), "planda yok: %s" % planda_eksik("cron"))
+        iddia("C2", not bayt_bozuk("cron"), "; ".join(bayt_bozuk("cron")))
+        # 🔴 C3 — GERCEK JETONLARIN SENTETIK IKIZLERI, AYRI IDDIA.
+        jeton_kat = [(a, katman("cron", a)) for a in (".ci-token", ".gh-token")]
+        iddia("C3", all(k == "sir" for _a, k in jeton_kat)
+              and all(hedefte_yok("cron", a) for a, _k in jeton_kat),
+              "katmanlar=%s" % jeton_kat)
+        log_kat = [(a, katman("cron", a)) for a in ("ci-nobeti.log", "mail-supurme.log")]
+        iddia("C4", all(k == "allowlist" for _a, k in log_kat)
+              and all(hedefte_yok("cron", a) for a, _k in log_kat),
+              "katmanlar=%s" % log_kat)
+        iddia("C5", katman("cron", "kurulum.sh") == "sir-icerik"
+              and hedefte_yok("cron", "kurulum.sh"),
+              "katman=%s" % katman("cron", "kurulum.sh"))
+        iddia("C6", damga.get("cron") == n_c and damga.get("cron_haric") == h_c
+              and damga1.get("cron_yeni") == n_c and damga.get("cron_yeni") == 0,
+              "cron=%r haric=%r yeni1=%r yeni2=%r beklenen %d/%d/%d/0"
+              % (damga.get("cron"), damga.get("cron_haric"), damga1.get("cron_yeni"),
+                 damga.get("cron_yeni"), n_c, h_c, n_c))
+        # C7 — UCTAN UCA (SURVIVOR): tum backup agacinda jeton adi gecmiyor.
+        iddia("C7", not jeton_izi, "hedefte iz: %s" % jeton_izi)
+
+        # =================== PLAN AGACI ===================
+        n_p = len(FIKSTUR["plan"]["izinli"])
+        h_p = len(FIKSTUR["plan"]["haric"])
+        iddia("P1", not planda_eksik("plan") and not bayt_bozuk("plan"),
+              "eksik=%s bozuk=%s" % (planda_eksik("plan"), bayt_bozuk("plan")))
+        iddia("P2", damga.get("plan") == n_p and damga.get("plan_haric") == h_p,
+              "plan=%r haric=%r beklenen %d/%d"
+              % (damga.get("plan"), damga.get("plan_haric"), n_p, h_p))
+        iddia("P3", katman("plan", "taslak.bin") == "allowlist"
+              and hedefte_yok("plan", "taslak.bin"),
+              "katman=%s" % katman("plan", "taslak.bin"))
+
         pyc = [y for y in hedef_dosyalari(o["kok"]) if "__pycache__" in y]
         PYC_SAYAC.append(len(pyc))
         if pyc:
             notlar.append("UYARI: kum havuzunda __pycache__ olustu: %s" % pyc[:3])
+        if r1.returncode != 0:
+            notlar.append("1. kosum rc=%d" % r1.returncode)
         return sonuc, notlar
     finally:
         shutil.rmtree(td, ignore_errors=True)
 
 
 # ----------------------------------------------------------------- mutantlar --
+SIR_CAPA = "            sebep = sir_sebebi(tam, ad)                 # KATMAN 1 — sir nobeti"
+ALW_CAPA = "            if not _agac_izinli_mi(ad, izinli):         # KATMAN 2 — acik allowlist"
+CRON_CAPA = '    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json")),'
+GOREV_CAPA = '    ("gorev", GOREVLER, "gorev-tanimlari", (".md", ".txt", ".json")),'
+
+MUTANTLAR = (
+    ("M1-sir-katmani-noop", "oldurucu", (
+        (SIR_CAPA, "            sebep = None  # MUTANT: sir nobeti devre disi"),)),
+    ("M2a-plandan-cikar", "oldurucu", (
+        ("        for gor in agac_plani(agac)[0]:",
+         "        for gor in []:  # MUTANT: agaclar plandan cikarildi"),)),
+    ("M2b-kopyalama-noop", "oldurucu", (
+        ("            olan, yeni_a = agac_yaz(kok, a_hedef, a_dahil, etiket=etiket)",
+         "            olan, yeni_a = agac_yaz(kok, a_hedef, [], etiket=etiket)  # MUTANT"),)),
+    ("M3a-sayac-sabitle", "oldurucu", (
+        ("    return olan, yeni",
+         "    return 5, yeni  # MUTANT: dosya sayaci sabitlendi"),)),
+    ("M3b-yeni-sayaci-olu", "oldurucu", (
+        ("            if _kopyala_gerekliyse(os.path.join(kok, gor), os.path.join(hedef, gor)):\n"
+         "                yeni += 1",
+         "            if _kopyala_gerekliyse(os.path.join(kok, gor), os.path.join(hedef, gor)):\n"
+         "                yeni += 0  # MUTANT: 'yeni' sayaci olu"),)),
+    ("M4-gorev-allowlist-dar", "oldurucu", (
+        (GOREV_CAPA,
+         '    ("gorev", GOREVLER, "gorev-tanimlari", (".txt", ".json")),  # MUTANT'),)),
+    ("M6-allowlist-noop", "oldurucu", (
+        (ALW_CAPA, "            if False:  # MUTANT: allowlist devre disi"),)),
+    # ---- YENI YUZEYE OZGU MUTANTLAR ----
+    ("M7-cron-agacini-cikar", "oldurucu", (
+        (CRON_CAPA, "    # MUTANT: cron agaci kapsamdan cikarildi"),)),
+    ("M8-cron-log-kapsama-alindi", "oldurucu", (
+        (CRON_CAPA,
+         '    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json",\n'
+         '                                  ".log")),  # MUTANT: log kapsama alindi'),)),
+    ("M10-IKI-KATMAN-BIRDEN", "oldurucu", (
+        (SIR_CAPA, "            sebep = None  # MUTANT"),
+        (ALW_CAPA, "            if False:  # MUTANT"))),
+    # ---- KONTROL: yesil KALMALI ----
+    ("K1-yorum-degisikligi", "kontrol", (
+        ("    🔴 SEBEP METNI ASLA SIRRIN KENDISINI TASIMAZ",
+         "    🔴 (kontrol mutanti — anlamsiz metin degisikligi) SEBEP METNI SIRRI TASIMAZ"),)),
+    ("K2-allowlist-zararsiz-genisleme", "kontrol", (
+        (GOREV_CAPA,
+         '    ("gorev", GOREVLER, "gorev-tanimlari", (".md", ".txt", ".json", ".rst")),  # KONTROL'),)),
+)
+
+
 def mutant_uret(td, ad, degisimler, taban_sha):
     """Mutant kaynagi uretir ve UYGULANDIGINI POZITIF olarak kanitlar."""
     with open(YEDEKLE, encoding="utf-8") as f:
@@ -333,7 +478,7 @@ def mutant_uret(td, ad, degisimler, taban_sha):
     yol = os.path.join(td, ad)
     with open(yol, "w", encoding="utf-8") as f:
         f.write(kaynak)
-    with open(yol, encoding="utf-8") as f:               # DISKTEN GERI OKU
+    with open(yol, encoding="utf-8") as f:
         geri = f.read()
     sha = hashlib.sha256(geri.encode("utf-8")).hexdigest()
     if sha == taban_sha:
@@ -342,43 +487,6 @@ def mutant_uret(td, ad, degisimler, taban_sha):
         if eski in geri and yeni not in geri:
             raise RuntimeError("MUTASYON DISKTE YOK: " + ad)
     return yol
-
-
-MUTANTLAR = (
-    # ---- OLDURUCU olmasi beklenenler ----
-    ("M1-sir-katmani-noop", "oldurucu", (
-        ("            sebep = sir_sebebi(tam, ad)                 # KATMAN 1 — sir nobeti",
-         "            sebep = None  # MUTANT: sir nobeti devre disi"),)),
-    ("M2a-plandan-cikar", "oldurucu", (
-        ("    for gor in gorev_plani()[0]:\n"
-         "        plan.append((os.path.join(GOREVLER, gor), os.path.join(GOREV_KLASOR, gor)))",
-         "    for gor in []:  # MUTANT: yeni agac plandan cikarildi\n"
-         "        plan.append((os.path.join(GOREVLER, gor), os.path.join(GOREV_KLASOR, gor)))"),)),
-    ("M2b-kopyalama-noop", "oldurucu", (
-        ("        gorev_olan, gorev_yeni = gorev_yaz(GOREVLER, g_hedef, g_dahil)",
-         "        gorev_olan, gorev_yeni = gorev_yaz(GOREVLER, g_hedef, [])  # MUTANT"),)),
-    ("M3a-sayac-sabitle", "oldurucu", (
-        ("    return olan, yeni",
-         "    return 5, yeni  # MUTANT: dosya sayaci sabitlendi"),)),
-    ("M3b-yeni-sayaci-olu", "oldurucu", (
-        ("            if _kopyala_gerekliyse(os.path.join(kok, gor), os.path.join(hedef, gor)):\n"
-         "                yeni += 1",
-         "            if _kopyala_gerekliyse(os.path.join(kok, gor), os.path.join(hedef, gor)):\n"
-         "                yeni += 0  # MUTANT: 'yeni' sayaci olu"),)),
-    ("M4-allowlist-asiri-dar", "oldurucu", (
-        ('GOREV_IZINLI_UZANTI = (".md", ".txt", ".json")',
-         'GOREV_IZINLI_UZANTI = (".txt", ".json")  # MUTANT: .md yutuldu'),)),
-    ("M6-allowlist-noop", "oldurucu", (
-        ("            if not _gorev_izinli_mi(ad):                # KATMAN 2 — acik allowlist",
-         "            if False:  # MUTANT: allowlist devre disi"),)),
-    # ---- KONTROL: yesil KALMALI ----
-    ("K1-yorum-degisikligi", "kontrol", (
-        ("    🔴 SEBEP METNI ASLA SIRRIN KENDISINI TASIMAZ",
-         "    🔴 (kontrol mutanti — anlamsiz metin degisikligi) SEBEP METNI SIRRI TASIMAZ"),)),
-    ("K2-allowlist-zararsiz-genisleme", "kontrol", (
-        ('GOREV_IZINLI_UZANTI = (".md", ".txt", ".json")',
-         'GOREV_IZINLI_UZANTI = (".md", ".txt", ".json", ".rst")  # KONTROL'),)),
-)
 
 
 def main():
@@ -391,8 +499,7 @@ def main():
     print("=" * 78)
     taban, notlar = bataryayi_kos(YEDEKLE)
     for k in TABAN_IDDIALAR:
-        d = taban.get(k)
-        print("  %s %-4s %s" % ("✅" if d else "❌", k, IDDIA_METNI[k]))
+        print("  %s %-5s %s" % ("✅" if taban.get(k) else "❌", k, IDDIA_METNI[k]))
     for n in notlar:
         print("     ! " + n)
     taban_gecen = sum(1 for k in TABAN_IDDIALAR if taban.get(k))
@@ -404,7 +511,7 @@ def main():
     print("\n" + "=" * 78)
     print("MUTASYON — dusen iddia kimlikleri AYRISMALI")
     print("=" * 78)
-    td = tempfile.mkdtemp(prefix="gorev-mutant-")
+    td = tempfile.mkdtemp(prefix="agac-mutant-")
     oldurucu_bek = oldurucu_ok = kontrol_bek = kontrol_ok = 0
     imzalar = {}
     try:
@@ -415,27 +522,23 @@ def main():
             dusen = tuple(sorted(k for k in TABAN_IDDIALAR if not sonuc.get(k, False)))
             if sinif == "oldurucu":
                 oldurucu_bek += 1
-                oldu = bool(dusen)
-                oldurucu_ok += 1 if oldu else 0
+                oldurucu_ok += 1 if dusen else 0
                 print("  %s %-32s dusen: %s"
-                      % ("✅" if oldu else "❌ SAG KALDI", ad, ", ".join(dusen) or "-"))
+                      % ("✅" if dusen else "❌ SAG KALDI", ad, ", ".join(dusen) or "-"))
                 imzalar[ad] = dusen
             else:
                 kontrol_bek += 1
-                yesil = not dusen
-                kontrol_ok += 1 if yesil else 0
+                kontrol_ok += 1 if not dusen else 0
                 print("  %s %-32s dusen: %s"
-                      % ("✅ YESIL" if yesil else "❌ KONTROL DUSTU", ad,
+                      % ("✅ YESIL" if not dusen else "❌ KONTROL DUSTU", ad,
                          ", ".join(dusen) or "-"))
 
-        # IDDIA ATLAMA MUTANTI — batarya bir iddiayi HIC kosmazsa hukum KIRMIZI olmali.
-        atlanmis, _n = bataryayi_kos(YEDEKLE, atla="G4")
+        atlanmis, _n = bataryayi_kos(YEDEKLE, atla="C3")
         eksikler = [k for k in TABAN_IDDIALAR if k not in atlanmis]
         oldurucu_bek += 1
-        atla_oldu = bool(eksikler)
-        oldurucu_ok += 1 if atla_oldu else 0
+        oldurucu_ok += 1 if eksikler else 0
         print("  %s %-32s dusen: %s"
-              % ("✅" if atla_oldu else "❌ SAG KALDI", "M5-iddia-atla",
+              % ("✅" if eksikler else "❌ SAG KALDI", "M5-iddia-atla",
                  "IDDIA-EKSIK(%s)" % ",".join(eksikler) if eksikler else "-"))
         imzalar["M5-iddia-atla"] = ("IDDIA-EKSIK",)
     finally:
@@ -451,13 +554,11 @@ def main():
     print("OLDURUCU   = %d/%d" % (oldurucu_ok, oldurucu_bek))
     print("KONTROL    = %d/%d" % (kontrol_ok, kontrol_bek))
     print("AYRISMAYAN = %d" % ayrismayan)
-    # Bytecode onbellek tuzagi POZITIF olarak kapatildi mi? (bkz. modul basligi)
-    print("BYTECODE   = %d batarya kosumu, toplam %d __pycache__ girisi "
-          "(0 olmali: PYTHONDONTWRITEBYTECODE + ayri tempdir + sha dogrulamasi)"
-          % (len(PYC_SAYAC), sum(PYC_SAYAC)))
     for imza, adlar in sorted(gorulen.items()):
         if len(adlar) > 1:
             print("  ⚠️ AYNI IMZA %s -> %s" % (list(imza), adlar))
+    print("BYTECODE   = %d batarya kosumu, toplam %d __pycache__ girisi (0 olmali)"
+          % (len(PYC_SAYAC), sum(PYC_SAYAC)))
     hazir = (taban_gecen == len(TABAN_IDDIALAR) and oldurucu_ok == oldurucu_bek
              and kontrol_ok == kontrol_bek and ayrismayan == 0)
     print("HUKUM      = " + ("hazir" if hazir else "KIRMIZI"))
