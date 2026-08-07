@@ -16,7 +16,7 @@ import os
 import subprocess
 import sys
 
-ROOT = "/Users/okan/dev/pruvo"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(ROOT, "tools")
 LOCK = os.path.join(ROOT, ".parity-batch.lock")
 PY = sys.executable or "python3"

@@ -10,7 +10,7 @@ Token GEREKMEZ.
 """
 import importlib.util, os, sys
 
-ROOT = "/Users/okan/dev/pruvo"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _spec = importlib.util.spec_from_file_location("pr_api", os.path.join(ROOT, "tools", "printables-api.py"))
 pr = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(pr)

@@ -27,7 +27,7 @@ import os
 import subprocess
 import sys
 
-ROOT = "/Users/okan/dev/pruvo"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable or "python3"
 
 

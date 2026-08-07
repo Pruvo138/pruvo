@@ -17,9 +17,9 @@ import os
 import sys
 import tempfile
 
-ROOT = "/Users/okan/dev/pruvo"
-# worktree'de de calissin diye betigin kendi dizininden yukle:
 HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+# worktree'de de calissin diye betigin kendi dizininden yukle:
 _spec = importlib.util.spec_from_file_location(
     "gmk", os.path.join(HERE, "gorsel_mukerrer_kapisi.py"))
 gmk = importlib.util.module_from_spec(_spec)
