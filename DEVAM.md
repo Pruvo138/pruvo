@@ -1,182 +1,64 @@
 # DEVAM (KraL) — 7 Agu 2026
 
-## ✅ OKAN'IN BILDIRDIGI MARKA SAYFASI KUSURU KAPANDI — merge `d0534fd2`
-Kapsam sayaci kart yerine model kovasini sayiyordu (audi ekran 201→gercek 329) + `uret()`
-mukerrer kart uretiyordu (282→0); sinif olcumuyle KAPANDI, canlida DOGRULANDI (ford 2582==2582,
-bmw 2310==2310, kia 341==341). Tam dokum `DEVAM-ARSIV.md`de.
+## 🔁 DEVIR — 7 Agu 2026, hesap rotasyonu: eski hesap → yeni hesap
+**SIRADAKI TEK IS:** Marka sayfasini Okan'in yeni hukmune gore yeniden kur — 330 parcanin TAMAMI
+tek sayfada kart olarak listelensin, model cipleri ayri adrese gitmek yerine sayfa icinde
+filtrelesin; once sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
 
-## ⏱ SAATLIK CI NOBETI — 7 Agu 17:37Z turu (ev DOGRU: ~/dev/pruvo)
+**Nerede kaldim (sayiyla):**
+- Yayin HALA acilmadi: son basarili `Build & deploy` **`31198525055`** (head `bb804c24`, 17:53:02Z).
+  `git merge-base --is-ancestor b8ab7091 bb804c24` **rc=1** → r2-onek onarimi canliya INMEDI.
+  Ucusta olan `31203297696` (head `76ca1341`, `in_progress`) onarimi ICERIYOR (rc=0); ardindan
+  `31204533840` (`5eae2b5e`) `pending`. Aradaki 8 kosum `cancelled` = kuyruk davranisi, ariza DEGIL.
+- Bu oturumda main'e giren ve DOGRULANAN: `e3880c89` · `197fd396` · `d0534fd2` · `c616e556` ·
+  `b8ab7091` — besi de `merge-base --is-ancestor origin/main` rc=0.
+- Yedek kapsami dali **MERGE EDILDI** (`cd9fb30c` + `644f22a7`): `~/.claude` altindaki gorev
+  tanimlari / nobet surucusu / plan agaclari artik `tools/yedekle.py` KAPSAMINDA.
+  ⚠️ Hafizadaki "kapsamda DEGIL" notu BAYAT, duzeltilecek.
 
-**Mail supurmesi (kosulsuz, ilk is):** eslesen **2** · Cop'e tasinan **2** · tur sonu inbox'ta
-"Run failed" **0**. Cop BOSALTILMADI, baska maile dokunulmadi.
+**Acik worktree/dal (4 worktree + main; KraL bu turda YENI worktree ACMADI):**
+- `agent-ad8653d553f9bde31` → `muh/marka-bolum-kimligi` (`9a716873`, uzakta, main'de DEGIL, 1 onde).
+  Kapi 15175/15175, oldurucu 19/19, kontrol 4/4, sapan sayfa 31→0, kaybolan 0, Audi 174+156=330.
+  🔴 YARIM: `.olcum/temiz-kosum.py` zinciri KOSMADI · `cip-sayfa-bagi.py` olcumu GECERSIZ (batarya
+  mutanti yukluyken kosuldu) · `marka-liste-test` · `marka-invaryant-kapisi` · `marka-model-test` ·
+  `cip-indeks-test` · `model-baslik-kolu-test` HIC kosturulmadi → merge'den ONCE kosulacak.
+  ⚠️ Bu dal Okan'in yeni hukmuyle CELISEBILIR: gorunur karti 199→174'e dusuruyor.
+- `agent-aecb6db6145c47ad2` → `muh/yedekle-desen-kilidi` (`78056f4c`), **icerigi main'de** → kapanabilir.
+- `agent-a3bff0d31c85f5714` → `worktree-agent-a3bff0d31c85f5714` (`5eae2b5e`), main'le ayni, `locked`.
+- `blissful-mcnulty-e7162d` → `claude/sad-elbakyan-a7b009` (`76ca1341`), icerigi main'de.
+- Pushsuz dal **1→0**: `claude/marka-uyelik-tazeleme` (`a9c7a22d`) uzaga itildi; commit mesajinin
+  kendisi "mukerrer, MERGE EDILMEYECEK" diyor — merge karari yeni oturuma kalir, dal kaybolmaz.
+- `.claude/worktrees/` altinda `worktree list`'te gorunmeyen artik dizin **YOK** (4 dizin = 4 kayit).
 
-**CI hukmu: GERCEK KIRMIZI YOK.** Tek `failure` = `Odeme yolu bayatlik nabzi` (`31202774942`,
-head `74bbc9e8`): `wrangler deployments rc=1: fetch failed` → kapi fail-closed **OLCULEMEDI**
-verdi (dogru davranis, "guncel" VARSAYMADI, yayini durdurmaz). Ayni is akisi bir sonraki
-kosumda `31203297731` **success** → kosucu ag flake'i, kendiliginden kapandi. **Onarim GEREKMEDI.**
+**Baskasinin calisma kopyasinda duran (DOKUNULMADI, 6 kalem):**
+`tools/uyum-kapisi.py` · `tools/yayin-gecikme-nobeti.py` · `tools/fikstur/yayin-gecikme/` altindaki
+2 fikstur → dokum kesmesi beyani + kosum omur tavani 75→128 kalibrasyonu; **UC tur** ustuste
+commit'siz, sahiplik sorusu kutuda cevapsiz → bir tur daha durursa oksuz sayilip devralinacak.
+Untracked: `.scratch-ci-nobeti/` (nobet spec'i) · `urun-gorsel-koken/` (MaCiT duzlemi).
 
-**🔎 BU TURDA KENDI TESHISIMI CURUTTUM (kayda gecirilir):** once "art arda push'lar yayini
-iptal ediyor" hukmunu kurup `~/.claude/cron/ci-nobeti-gorev.md`'ye "TEK COMMIT/TEK PUSH" kurali
-yazdim. **Kaynaktan olcum curuttu:** `deploy.yml` → `concurrency: group: pages` +
-**`cancel-in-progress: false` (BILEREK, gerekcesi dosyanin kendi basliginda)**. Bu ayarda KOSAN
-zincir korunur, yalniz KUYRUKTAKI eski kosum duser ve **icerigi KAYBOLMAZ** (yeni kosumun head'i
-eskisini ata olarak tasir). Yani `cancelled` + `jobs: []` yigini beklenen kuyruk davranisi.
-Kural GERI ALINDI, yerine "teshisi SUREDEN kur" kurali yazildi (§4.5). Kardeslere de posta
-kutusundan duzeltme gecildi — yanlis hukum yayilmadan kapandi. → [[hukum-yanlis-birimde]]
+**Zamanlanmis nobetler — 🔴 15 TANIM DISKTE, KAYITLI 0** (rotasyon oncesi 2 idi; kayit hesapta
+yasar, yeni hesapta YENIDEN KURULACAK — cron kaynagi `~/.claude/skills/devir/SKILL.md` envanteri):
+- `gunluk-mimar-ihtar` `0 15 * * *` · `teftis-takip` `0 17,23 * * *` ·
+  `pazar-mimar-optimizasyon` `0 12 * * 0` · `macit-parti-surucusu` `0 */2 * * *`
+- `saatlik-github-hata-nobeti` — crontab surumu (`37 * * * *`) CANLI kosuyor; kayit acmak MUKERRER
+  olur, acmadan once karar ver.
+- `kuyruk-geri-tepmesi-48sa` — tek seferlik, penceresi 6 Agu'da gecti → YENIDEN KURMA.
+- `gunluk-mail-nobeti` · `ege-saglik-taramasi` · 6 `posta-kutusu-*-izleme` ·
+  `posta-kral-pom-cevabi-izle` — periyot defterde YOK, tanim metinleri diskte TAM.
+- 🔴 crontab'taki `37 * * * *` CI nobeti kimligini HESABA BAGLI jetondan aliyor → yeni hesapta
+  **ILK IS** Okan'a `setup-token` yaptirmak; gecen rotasyonda tazelenmeyince nobet 18 saat sessizce
+  oldu (21 ardisik rc=1). Kabul: tazelemeden sonraki ilk kosum log'da rc=0.
 
-**📏 GERCEK KALDIRAC OLCULDU — YAYIN TAVANINI `serit-a4` KOYUYOR** (kosum `31191071227`, ADIM birimi):
-`serit-a4` **47m58s** = `model-uyelik-kapisi.py --kendini-test` **34m23s** +
-`model-baslik-kolu-test.py --kendini-test` **13m22s** + `yedekle-test.py --hermetik` ~4 s.
-Diger kollar: `build` ~11m · `serit-a3` ~12m · `serit-a2` ~21m. `deploy: needs` dordunu birden
-bekliyor. ⚠️ Adimin KENDI yorumu "CI'da 440 sn" diyor, olculen **2063 sn** → **beyan 4,7× BAYAT**.
-Bu tur ayrica `bb804c24` kosumunda `serit-a4` **67 dk**'ya ulasti (47m58s tabanini 19 dk asti).
+**Okan'da bekleyen karar:** kardes mimarin sordugu satin-alma kalemi — sorunun tam metni ve
+kuyruk buyuklugu `DEVAM-ARSIV.md`de (git disi). Yanit gelmeden o kuyruk islenmez.
 
-**🔧 ACILAN IS (mühendis dalda, MERGE EDILMEDI):** `serit-a4`'un ucu de araç-kendini-sinama
-(`--kendini-test`) — doktrin geregi yayini durdurmamali ([[kapi-birikimi-yayin-gecikmesi]]),
-ICERIK koruyan gercek olcum kolu zaten `serit-a3`te bloklayici kaliyor. Spec:
-`.scratch-ci-nobeti/spec-serit-a4-tasima.md` — iki batarya `nobet.yml`'e TASINIR (kopyalanmaz),
-`yedekle-test --hermetik` BLOKLAYICI kalir (`serit-a3`e), `deploy: needs` **4→3**.
-Kabul cikis kodu DEGIL BASILAN SAYI: iddia kaybi 0 · bloklayici adim envanteri once/sonra ·
-`is-akisi-kapisi.py` BOLUM G rc=0 + **kontrol mutanti** (baglantisiz job kirmizi yakmali) ·
-davranissal dogrulama (YAML'den, beyandan degil). Emsal: `ffc72a6a`.
-
-**Devir maddesi (2) — sahipsiz calisma agaci:** `tools/uyum-kapisi.py` +
-`tools/yayin-gecikme-nobeti.py` + 2 fikstur IKI TUR ustuste commit'siz. DOKUNULMADI;
-posta kutusuna **sahiplik sorusu YAZILDI**. Bir tur daha durursa oksuz sayilip devralinacak
-([[oksuz-commitsiz-onarim-curur]]).
-
-**Defter kotasi:** DEVAM **190→158** satir / 15398→12872 bayt, `DEVAM-ARSIV.md`
-955371→**960233** (+4862 bayt kayipsizlik kaniti), `devam-sinif-kapisi.py` rc=0 / 0 ihlal.
-
-**DEVIR — sonraki turun ILK isi:**
-(1) **`b8ab7091` (r2-onek onarimi) HALA YAYINA INMEDI** — son basarili deploy `31195954169`
-    (16:06:30Z, head `3f3e299a`, onarimdan ONCE). `bb804c24` zinciri `serit-a4`te takili,
-    `76ca1341` kuyrukta. Kabul DEGISMEDI: `git merge-base --is-ancestor b8ab7091 <headSha>`
-    exit 0 + `deploy`/`yayin` job'lari success. "En son kosum yesil" KANIT DEGIL.
-(2) **Mühendis dalini yargila** (`serit-a4` tasimasi): `RAPOR-MIMARA.md` oku, KABUL sayilarini
-    CURUT (kontrol mutanti KIRMIZI yaniyor mu), sonra **skill: merge-kapisi** ile al.
-(3) `r2-onek`/`serit-b` sinifi KAPALI, oradan teshise BASLAMA.
-
-**Codex NOT:** kredi kotasi TUKENDI (yenilenme 8 Agu 10:19) → bu tur da tamamen Claude katinda.
-
-## ⏱ SAATLIK CI NOBETI — 7 Agu 16:37Z turu (ev DOGRU: ~/dev/pruvo)
-
-**Mail supurmesi (kosulsuz):** taranan **7.545** · Cop'e tasinan **3** ·
-tur sonu inbox'ta "Run failed" **0**. Cop BOSALTILMADI, baska maile dokunulmadi.
-
-**🔴→🟢 10 KOSUMLUK KIRMIZI SERISI KAPANDI (bu turun ISI):**
-`Nöbet şeridi (SERIT B)` / `r2-onek-nobeti` job'i (SERIT B `deploy: needs`'te DEGIL → yayini
-DURDURMAZ, ama her push'ta mail uretiyordu). Dusen iddialar: **E3 + E4**.
-- **KOK NEDEN:** E3/E4 ikiz tanimi PRIVATE kardes depodan MUTLAK yolla okuyordu
-  (`pruvo-hasat/olcum/hasat_ortak.py`); GitHub Actions kosucusunda o depo **YOK** →
-  kapi ikizi degil **KOSUCUNUN DOSYA DUZENINI** olcuyordu. Her kosumda kirmizi, sifir bilgi.
-  Log: `ayrıştırılan=0, kaynak=/Users/okan/dev/pruvo-hasat/...`. → [[hukum-yanlis-birimde]]
-- **DEVIR:** onarim ~3 saattir kardes oturumun calisma agacinda **COMMIT'SIZ** duruyordu
-  (onceki tur DUR kosulunda birakmisti). Devralindi, sifirdan teshise BASLANMADI.
-- Yama **TEK BASINA yesil YAPMIYORDU** (olculdu: yerel `rc=1`, CI taklidi `rc=1`, tek kirmizi
-  **E3**) — sahte kirmiziyi kaldirip geriye **GERCEK** bir ayrisma birakiyordu.
-- **🔴 KraL HUKMU:** kanonik CGTrader oneki **`cgt` (TIRESIZ)**. Uc kaynak boyle diyor:
-  ikiz `hasat_ortak`=`cgt` · canli katalog **101 tiresiz / 16 tireli** · `CLAUDE.md` "(pr/th/cgt)".
-  Tek aykiri kaynak `r2_anahtar.ONEKLER='cgt-'` ve **onu kutsayan kendi testi**
-  (`r2-anahtar-test.py` "(d) cgt oneki tireli kaliyor") → [[test-hatali-davranisi-kutsar]].
-  Iddia SILINMEDI, **cevrildi**. Canlidaki 16 tireli anahtar **DOKUNULMADI** (MaCiT duzlemi).
-- **SATIR-ICI KOPYA KAPATILDI:** `tools/cgt-ekle.py` R2 anahtarini `r2_anahtar`'i HIC
-  kullanmadan `"cgt-" + itemid` ile basiyordu → hukum kozmetik kalacakti. Tek kaynaga baglandi
-  (`r2k.gkey`). Kapinin **E1 iddiasi yalniz Cults3D'yi tariyor**, bu kolu GORMUYOR.
-  → [[ikiz-tanim-sessiz-ayrisma]]
-- **OLCUM:** kapi `rc=0`, iddia **14 → 16** (ARTIS; hicbir esik gevsetilmedi, adim silinmedi,
-  `continue-on-error` YOK) · CI taklidi `rc=0` (`OLCULEMEDI_IDDIALAR: E6` — ucuncu hal, "yesil"
-  DEMIYOR) · `r2-anahtar-test.py` `rc=0` · **KONTROL MUTANTLARI OLDU:** `cgt-` geri konunca
-  E3 KIRMIZI; `cgt-ekle` yeni hal `cgt123456` vs eski hal `cgt-123456`.
-- **MERGE `b8ab7091`** (dal `r2-onek-cgt-hukmu`, merge-kapisi prosedürü): kapsam merge-base'den
-  **4 dosya**, hepsi `tools/` (`r2_anahtar.py` · `r2-anahtar-test.py` · `r2-onek-gelenek-kapisi.py`
-  · `cgt-ekle.py`) · cakisma **YOK** · sizinti taramasi **YOK** · dal kapilari **5/5 `rc=0`**
-  (dalin KENDI worktree'sinde kosuldu) · `urunler.json` **0 satir**. Worktree ve dal
-  (yerel+uzak) silindi, `durum.py` icerigin main'de oldugunu dogruladi.
-- **KANIT:** kosum `31200925522` (`b8ab7091`) — `r2-onek-nobeti` **success**,
-  `Nöbet şeridi` workflow'u **success**. 10 kosumluk seri kapandi.
-
-**📌 YOL NOTU (bu turda iki kez oduyup asildi):**
-1. Ana checkout'ta kaynak commit'i `mimar-commit-kapisi.py` tarafindan REDDEDILIR
-   ("kaynak kodu worktree'de commit'lenir") — kapiya UYULDU, is worktree'ye tasindi.
-   (Ayrica: `devam-sinif-kapisi.py` bu turda BU DEFTERI kirmizi yakti — E5 kolu jetonu
-   cumlenin OLUMSUZ oldugunu gormeden yakaliyor. Metin notrlestirildi, kapi degistirilmedi;
-   kolun olumsuzlama korlugu ACIK IS. → [[nobet-kendi-defteri-yayini-durdurur]])
-2. `Agent` kapisi `codex-muafiyet: <is> — <sinif>` beyaninda **sinif jetonunu TURKCE
-   DIAKRITIKLI** ister (`güvenlik`/`ölçüm`/`sessiz-hata`...); ASCII `guvenlik` REDDEDILIR.
-
-**Kalan olcumler:**
-- ⚠️ **BU ONARIM HENUZ YAYINA CIKMADI (durust hal, "yesil" DEMIYORUZ).** `b8ab7091`'in
-  `Build & deploy` kosumu **`cancelled`**; ardil `8d7b637a` de **`cancelled`** ve `jobs: []`
-  (kuyruktayken `pages` eszamanlilik grubu iptal etti, HICBIR job baslamadi).
-  **`cancelled` yayin kaniti DEGILDIR** → [[hukum-yanlis-birimde]]
-- 📊 **YAYIN KADANSI OLCULDU (yeni arıza DEGIL, yapisal desen):** son basarili `Build & deploy`
-  **`31195954169`** (`3f3e299a`, **16:06:30Z**). O gunden beri 17:28Z'ye dek: **4 `cancelled`**
-  (`99821606` · `4d85f7e5` · `b8ab7091` · `8d7b637a`) + `bb804c24` **~50 dk'dir `in_progress`**
-  + `cd9fb30c` `pending`. Gun boyu desen ayni: zincir ~50 dk suruyor, push'lar daha sik geliyor,
-  aradakiler iptal oluyor ve **40-90 dk'da bir** bir kosum yayina iniyor (bugunku basarilar:
-  08:35 · 11:09 · 11:54 · 12:45 · 15:07 · 16:06Z). Yani onarim bir sonraki basarili zincirde
-  yayina cikar. Kok kaldirac `serit-a4`'un **47m58s** suresi → [[kapi-birikimi-yayin-gecikmesi]].
-- 🔍 **"1 saattir asili" DUZELTILDI — birim hatasiydi.** `bb804c24` kosumu `createdAt`'e gore
-  ~1 saat gorunuyordu, ama JOB birimiyle olculdu: `build` success (11m06s), `serit-a3` success
-  (11m56s), `serit-a2` success (20m43s), **`serit-a4` 16:59:10Z'de basladi ve ~36 dk'da hala
-  kosuyordu** — tarihsel **42-50 dk** bandinin ICINDE. Aradaki ~21 dk **KUYRUK** suresiydi.
-  Yani asilma YOK; onceki turun devir maddesi (2)'deki **60 dk esigi FIILEN ASILMADI**,
-  `nobet.yml` seridine tasima kosulu yine olusmadi. → [[hukum-yanlis-birimde]]
-- 🧪 **IPTAL MEKANIZMASI KANITLANDI (sonraki tur yeniden teshis ETMESIN):** merge'i ATA olarak
-  tasiyan **5 ardisik** `Build & deploy` kosumu — `8d7b637a`/`31201680021` · `cd9fb30c`/`31202449759`
-  · `74bbc9e8`/`31202774015` · `89e7c510`/`31202908057` (+`1a1d5a17`/`31203049881` pending) —
-  hepsi `cancelled` ve hepsinde `gh run view --json jobs` **BOS** dondu: **hicbir job hic
-  baslamadi.** Her birinde atalik `git merge-base --is-ancestor` ile KANITLANDI, iddia edilmedi.
-  Yani sebep test/build hatasi DEGIL, `pages` eszamanlilik grubunun kuyrukta yalniz EN YENIyi
-  birakmasi: onde `bb804c24` ~50 dk'lik zinciri tutuyor, arkadaki her push suprulüyor.
-  Sonraki turun isi bu deseni yeniden olcmek DEGIL, **onde kosanin bitmesinden sonraki ilk
-  yesil zinciri** merge'i iceriyor mu diye yoklamak.
-- 📌 Bu turun yetim-is dersi hafizaya yazildi → [[oksuz-commitsiz-onarim-curur]].
-- 🟡 D1 (`d1-sync.py --durum`): D1 **22.089** vs yerel **22.136** (47 satir), `marka_kanon` ·
-  `model_kanon` · `marka_arama` BAYAT — hepsi ucustaki urun partisinin satirlari.
-  MaCiT duzlemi, DOKUNULMADI. → [[yayin-penceresi-taslak-satir]]
-- Calisma agacindaki YABANCI dosyalara DOKUNULMADI: `tools/uyum-kapisi.py` ·
-  `tools/yayin-gecikme-nobeti.py` · `tools/fikstur/yayin-gecikme/*.json` (olculdu: **AYRI** is
-  birimi — dokum kesmesi beyani + kosum omur tavani 75→128 yeniden kalibrasyonu) ·
-  `urunler.json` (esazamanli oturum) · untracked `urun-gorsel-koken/`.
-
-**DEVIR — sonraki turun ILK isi:**
-(1) **`b8ab7091`'i ICEREN ilk basarili `Build & deploy` zincirini bul ve JOB birimiyle olc**
-    (`deploy` + `yayin` success mi). Kabul: `git merge-base --is-ancestor b8ab7091 <kosum-headSha>`
-    exit 0 — "en son kosum yesil" KANIT DEGIL. Yesilse onarim canlida, defterde yesile cek.
-    16:37Z turunda son yesil deploy `31195954169` (16:06Z) idi, onarim HENUZ inmemisti.
-    **`r2-onek`/`serit-b` sinifi KAPANDI, oradan teshise BASLAMA.**
-(2) `tools/uyum-kapisi.py` + `tools/yayin-gecikme-nobeti.py` calisma agacinda HALA commit'siz
-    duruyorsa sahibini posta kutusundan sor; bir tur daha duruyorsa oksuz say ve devral
-    (bu turun `r2-onek` devri aynen bu sekilde cozuldu).
-(3) **ACIK IS:** kapinin `E1` iddiasi satir-ici anahtar-turetme kopyasini yalniz **Cults3D**
-    ekseninde tariyor; ayni sinif bu turda **CGTrader**'da yasandi (`cgt-ekle.py`). E1'i tum
-    platformlara genisletmek acik is — kapsam genisletme tuzagina dikkat
-    → [[kapi-kapsam-genisletme-tuzagi]], pozitif VE negatif vaka birlikte yazilmali.
-
-**Codex NOT:** kredi kotasi **TUKENDI** (yenilenme 8 Agu 10:19) → bu tur da tamamen Claude
-katinda kosuldu; sonraki tur da Codex'siz planlanmali.
-
-<!-- 14:37Z turunun tam dokumu ARSIVDE (defter kotasi 1:1) -->
-
-## 🗄 (arsive alindi) 7 Agu 14:37Z turu — ozet
-Gramer kapisi kisaltma muafiyetiyle onarildi (`a0beef7a`), `serit-a3` yesil, `deploy`+`yayin` success; `serit-a4` 47m58s (60 dk esigi asilmadi). Tam dokum `DEVAM-ARSIV.md`.
-
-## 🔚 7 Agu OTURUMU — MAIN'E GIREN (tek satir + SHA; TAM DOKUM ARSIVDE)
-1. Varlik kaldiraci `8bbd760c` — artefakt **833,6→617,1 MiB** (1 GB tavaninda %81,4→%60,3), sayfa basi 61.625→26.252 bayt, kaybolan URL 0, `enjeksiyon-kapisi.py` ekseni 9→12.
-2. Nobet ayrimi `ffc72a6a` — 6 job `nobet.yml`'e; `deploy: needs` 4..4, bloklayici adim 132..132, KAYBOLAN 0.
-3. Denetim kapisi `3b369e34` — `--evet-sil N` onayi (tavan 50); onaysiz rc=4/silinen 0/sha256 DEGISMEDI; kendini-test 50 iddia.
-4. Kanca koku `3aec9eba` — kok artik `-C` kesfinden turuyor; yuzey 214.553..214.553.
-5. Ata-lisans kapisi `c3c23d2e` — sessiz gecis 12..0, yanlis-pozitif 0/31, yanlis-negatif 0/22, iddia 28→54, oldurucu 20/20.
-6. `serit-a3` + is-akisi kapisi `336a16bc` — kurban artik kanonik seciliyor.
-7. `serit-a4` ayirt edicilik `07f4bb44`+`1141be85` — ayirt-edilemeyen 1..0, mutant sayisi DUSMEDI.
-8. 6 kayit `marka` duzeltmesi `67820319` — Okan izniyle tek seferlik; `uyum-kapisi` rc 1→0, katalog 21376..21376, arama kaybi 0, D1 dort eksen yesil.
-9. Defter budama `33e0a27e`+`7eed7d68`+`c9d9f362` — kayipsiz arsivleme, sinif kapisi 0 ihlal.
-10. `r2_anahtar.py` onek onarimi merge `e3880c89` — deploy `31162365695` success, canli 21376, ornek 200, D1 dort eksen yesil, parite 1199/1199+848/848 rc=0.
-11. Gizlilik nobetcisi merge `197fd396` (dal `b3f3e3da`) — iddia 5, oldurucu 7/7, kontrol 2/2, ayrisan-olmayan 0.
-12. Yayin acildi: kosum `31155302659` (`655ae5e2`) — canli katalog 20.849→21.376, acik 527 KAPANDI, katmanli ornek 60/60→200, sitemap 21.376=kayit, etkilenen kayit 0.
-13. Temizlik: mukerrer CI dali merge edilmeden silindi; `git worktree list` 6→2.
+## 🔴 OKAN'IN YENI HUKMU — MARKA SAYFASI TEK SAYFA (siradaki tek isin gerekcesi)
+Marka sayfasi **330 parcanin TAMAMINI tek sayfada** kart olarak listeleyecek; model cipleri ayri
+adrese gitmek yerine **sayfa icinde filtreleyecek**. Bugunku `d0534fd2` onarimi sayaci dogru birime
+aldi (audi ekran 201→gercek 329, mukerrer kart 282→0, canlida ford 2582==2582 / bmw 2310==2310 /
+kia 341==341 dogrulandi) ama **gorunur karti 199→174'e dusurdu** — Okan'in istedigi yon bu DEGIL.
+Olculecek iki sey: (a) 330 kartin sayfa agirligi, (b) model sayfalarinin ayri adres olarak
+getirdigi arama trafigi (kaldirilirsa kaybi). Tam dokum `DEVAM-ARSIV.md`de.
 
 **BEKLEYEN (acik kalemler):**
 1. 🔴 `tools/yayin-kapisi.py` yalnizca D1'de `yayinda=0` olan TASLAK satirlarin adresine HTTP atar;
