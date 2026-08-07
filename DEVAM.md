@@ -1,5 +1,37 @@
 # DEVAM (KraL) — 7 Agu 2026
 
+## 🔴 SAATLIK NOBET 7 Agu ~04:40Z — 4. TUR AYNI KIRMIZI (`serit-a2`); YAYIN ~18 SAATTIR DURDU
+
+- **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev, tur gecerli.
+- **Mail supurmesi (0.5, kosulsuz):** birlesik gelen kutusu **7541** mesaj topluca tarandi
+  (sender+subject tek Apple Event, sayi `count of messages of inbox` ile dogrulandi);
+  `notifications@github.com` + "Run failed" eslesmesi **1** -> Cop'e tasinan **1**
+  (Build & deploy `fcab459`), tur sonu kalan **0** (bagimsiz ikinci taramayla teyit).
+  Cop BOSALTILMADI, baska maile dokunulmadi.
+- **CI olcumu (`gh`, maile guvenilmedi):** son 20 kosum; `in_progress`/`queued` **0**.
+  Kirmizi 4 kosum: `31145171177` · `31140965001` · `31139503974` (Build & deploy) ·
+  `31144468636` (paket tazeligi / `yayin-nabzi`).
+- **Zincir DEGISMEDI:** `31145171177` (HEAD `fcab459`): `build` ✅ · `serit-a3` ✅ · `serit-a4` ✅ ·
+  **`serit-a2` ❌** -> `deploy` skipped · `yayin` skipped. `serit-a4` yesili ikinci kosumda da tuttu.
+- **`serit-a2` kok nedeni yine VERI duzleminde** (6 kayitta `marka` dizisinin 3. jetonu = sasi/varyant
+  kodu, `uyum` semasinin hicbir alaninda yok). Kod kusuru DEGIL; onarim `urunler.json` = nobetin
+  YASAK listesi + tek yazar baska mimar -> **DUR kosulu 4. TURDUR SURUYOR.** Kapida esik/iddia
+  GEVSETILMEDI, adim silinmedi, `continue-on-error` eklenmedi, yesile boyama YOK.
+- **✅ CELISKI HAKEMLENDI — onceki turlar HAKLIYDI:** bu turun ilk olcumu "son basarili deploy =
+  `31055516084` (5 Agu 23:11Z)" dedi; hakem olcumu bunu CURUTTU. Dogru: **`31090680564`, `deploy`
+  job'u `success`, tamamlanma 2026-08-06T10:36:11Z** -> **yayin ~18 saattir durdu.**
+  **Tuzak:** o kosumun GENEL `conclusion` degeri `failure` (dusen is `cron-nabzi` alarm kolu), bu
+  yuzden "sadece genel rengi yesil kosumlari tara" yontemi en yeni basarili deploy'u KACIRDI.
+  Ikinci tuzak: iki iddiadaki saat de kosumun `createdAt`'iydi, job'un `completedAt`'i degil.
+  -> Hüküm job biriminde verilir; kosum rengi `deploy` icin vekil DEGILDIR.
+- **Sema tarafi alternatifi ACILMADI:** `uyum` semasina varyant alani acmak KraL duzlemi ama
+  `tools/uyum-kapisi.py` calisma agacinda **baska bir oturumun commit'lenmemis surumu duruyor**
+  -> tek kritik dosyada tek yazar kurali geregi DOKUNULMADI.
+- **`muh/serit-a4-teshis` dalindaki kirpma onarimi** (kapi `sema ihlali 6` sayarken ekrana 5 basiyor)
+  ayni kirlilik yuzunden **HALA PARK HALINDE**. `git worktree list` **3 satir**; ikisi baska oturumlarin.
+- **Okan'a YAZILDI (tek cumle):** ayni karar 01:40Z'de bir kez iletilmisti ve 3 turdur hareket yok;
+  yayin kesintisi ~18 saate cikinca DUR kosulu yeniden eskale edildi (insan karari gerekiyor).
+
 ## 🟡 SAATLIK NOBET 7 Agu ~03:40Z — `serit-a4` CI'DA YESIL TEYITLENDI, ZINCIRDE TEK KIRMIZI `serit-a2`
 
 - **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev, tur gecerli.
