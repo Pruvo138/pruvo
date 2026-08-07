@@ -1,5 +1,1286 @@
 [
   {
+    "id": "hyundai-elantra-fren-musuru-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra Fren Müşürü Burcu",
+    "aciklama": "Fren pedalı kolu ile fren müşürü arasına giren burçtur.\n- Dağılan ya da ortası delinen orijinal burç yüzünden fren lambaları sönmeden kalır; bu parça o boşluğu kapatır\n- Eski burcun kalıntıları temizlendikten sonra yuvasına bastırılarak geçirilir\n- Dolu gövdeli üretildiği için uzun ömürlüdür\n- Elantra ve aynı pedal grubunu kullanan diğer kasalara uyar\nYaklaşık dış ölçüler: 18 × 18 × 11 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1776623-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1776623-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1776623-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1776623-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-accent-arka-hoparlor-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Accent Arka Hoparlör Izgarası",
+    "aciklama": "Arka koltuk arkasındaki bagaj rafına oturan hoparlör koruma ızgarasıdır.\n- Güneş altında kırılganlaşıp çatlayan orijinal ızgaranın yerine geçer\n- Petek dokusu hoparlör konisini korurken sesi kısıtlamaz\n- Rafın kendi yuvasına oturur, ek bağlantı gerektirmez\n- Işık ve ısı dayanımı yüksek malzeme tercih edilmesi uygun olur\nYaklaşık dış ölçüler: 207 × 196 × 1 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1775515-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1775515-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1775515-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1775515-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stefan",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-bagaj-perdesi-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 Bagaj Kapağı Perde Kancası",
+    "aciklama": "Bagaj kapağının iç yüzündeki, bagaj perdesini yukarı kaldıran ip kancasının yedeğidir.\n- Kırılan orijinal kancanın yerine geçer\n- Orijinal perçin yerine gövdeyle birlikte gelen pim kullanılır\n- Kanca ve pim ayrı parçalar hâlinde birleşir\n- Yüksek mukavemetli, takviyeli malzeme tercih edilmesi uygun olur\nYaklaşık dış ölçüler: 19 × 13 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1768951-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768951-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768951-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768951-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LaHo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-kol-dayama-ic-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 Kol Dayama İç Saklama Kutusu",
+    "aciklama": "Kol dayamanın içine oturan, bölmeli saklama kutusudur.\n- Kol dayamanın üst kısmındaki çıkıntılar yüzünden standart kutular oturmaz; bu kutu o çıkıntılara göre boşaltılmıştır\n- İçindeki bölme, bozuk para ve küçük eşyaları ayrı tutar\n- Taban ve yan yüzeylere geçen yumuşak pedler tıkırtıyı keser\n- Yeni kasa i30 kol dayama ölçüsüne göre hazırlanmıştır\nYaklaşık dış ölçüler: 157 × 130 × 60 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1759618-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1759618-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1759618-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1759618-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-i20-kapi-paneli-vida-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i20 Kapı Paneli Vida Kapağı",
+    "aciklama": "Kapı iç panelindeki vida başını gizleyen yuvarlak kapaktır.\n- Düşen ya da kaybolan orijinal kapakların yerine geçer\n- Çevresindeki tırnaklar sayesinde panel deliğine oturur ve kilitlenir\n- Yumuşak malzeme tercih edilirse takıp çıkarmak kolaylaşır\n- 2008-2014 i20 kasasının kapı panellerine uyar\nYaklaşık dış ölçüler: 18 × 18 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1725573-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1725573-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1725573-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1725573-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MavicMini",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-6-sarj-kablosu-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 6 Orta Konsol Şarj Kablosu Kancası",
+    "aciklama": "Orta konsol kapağının altına geçen, telefon şarj kablosunun ucunu askıda tutan kancadır.\n- Kablo ucunun konsol tabanına düşmesini ve kaybolmasını önler\n- Kabloyu yandaki yarığa oturttuktan sonra uç kısım kancaya kilitlenir\n- Konsol kapağının iç kenarına takılır, kalıcı bir müdahale gerektirmez\n- Ioniq 6 orta konsolunda kullanılır, benzer konsollu diğer kasalara da uyabilir\nYaklaşık dış ölçüler: 54 × 24 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1695327-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1695327-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1695327-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1695327-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1695327-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Andrew Brown",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-5-on-bagaj-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 5 Ön Bagaj (Frunk) Mandalı",
+    "aciklama": "Ioniq 5'in ön bagaj kapağını kapalı tutan mandal grubunun yedeğidir.\n- Yorulup açılmayan ya da kapanmayan orijinal mandalın yerine takılır\n- Orijinal parçanın taranmasıyla çıkarıldığı için yuvasına birebir oturur\n- Yaylı dil ve gövde ayrı parçalar hâlinde birleşir\n- 2021 sonrası Ioniq 5 kasalarında aynı mandal yuvası kullanılır\nYaklaşık dış ölçüler: 81 × 53 × 48 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1693605-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1693605-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1693605-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1693605-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-torpido-gozu-toka-kelepcesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai / Kia Torpido Gözü Toka Kelepçesi",
+    "aciklama": "Torpido gözünün kilit dilini gövdeye bağlayan kelepçe parçasıdır.\n- Kırılan orijinal kelepçenin yerine geçer\n- Torpido kapağının kapalı konumda kilitli kalmasını sağlar\n- Orijinal parça numarasıyla aynı ölçülerde hazırlanmıştır\n- Hyundai ve Kia kasalarında ortak kullanılan bir parçadır\nYaklaşık dış ölçüler: 46 × 23 × 21 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1691370-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1691370-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1691370-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1691370-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-elantra-xd-saat-dugmesi-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra XD Saat Ayar Düğmesi Seti",
+    "aciklama": "Gösterge üstü saatin ayar düğmelerinin, yüzeyden yükseltilmiş yedek takımıdır.\n- Orijinal düğmeler kaplama yüzeyiyle aynı hizada olduğu için parmakla basılamaz; bu takım yüzeyden dışarı taşar\n- Saat ayarını kalem gibi bir cisme ihtiyaç duymadan yapmayı sağlar\n- Üç düğme birlikte gelir\n- 2000-2006 Elantra XD kasasında kullanılır\nYaklaşık dış ölçüler: 55 × 38 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1663388-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1663388-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1663388-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1663388-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-kona-electric-saklama-kutusu-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Kona Electric Ön Saklama Kutusu Tutucusu",
+    "aciklama": "Ön bölmedeki motor kapağının yerine geçen, saklama kutusu taşıyan iki kollu tutucudur.\n- Orijinal kapağın lastik takozları kullanılarak takılır, ek delik açılmaz\n- Standart bir saklama kutusunu ön bölmede sabit tutar\n- Kollar tek parça ya da ortadan M4 cıvatayla birleşen iki parça hâlinde gelir\n- Kona elektrikli kasasının ön bölmesine uyar\nYaklaşık dış ölçüler: 371 × 46 × 33 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1649579-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1649579-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1649579-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1649579-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1649579-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Muťák",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-yakit-filtresi-kapak-anahtari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai / Kia Yakıt Filtresi Kapak Anahtarı",
+    "aciklama": "Yakıt filtresi gövdesinin kapağını sökmeye yarayan halka anahtardır.\n- Kapağın çevresindeki tırnaklara oturur ve düzgün tork aktarır\n- Kapağı zedelemeden sökmeyi ve yerine takmayı sağlar\n- Kol kısmı elle çevrilecek şekilde uzatılmıştır\n- Sorento MQ4 kasasının filtre kapağı ölçüsüne göre hazırlanmıştır, aynı ölçüdeki Hyundai kasalarına da uyar\nYaklaşık dış ölçüler: 190 × 129 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1595684-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1595684-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1595684-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1595684-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-ioniq-5-bagaj-kapagi-titresim-simi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 5 Bagaj Kapağı Titreşim Şimi",
+    "aciklama": "Bagaj kapağının kilit karşılığı ile gövde arasına giren, boşluk alan ince şim plakasıdır.\n- Kapağın yolda sağa sola oynamasından kaynaklanan tıkırtıyı keser\n- Kilit karşılığının vidalarını gevşetip plakayı araya yerleştirmek yeterlidir\n- İki farklı kalınlıkta gelir, boşluğa göre biri seçilir\n- Isıya ve dış hava koşullarına dayanıklı malzeme tercih edilmesi uygun olur\nYaklaşık dış ölçüler: 64 × 30 × 2 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1581403-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1581403-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1581403-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1581403-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-ioniq-6-direk-tweeter-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 6 Ön Direk Tweeter Braketi",
+    "aciklama": "Ön direklerdeki fabrika tweeter yuvasına satış sonrası tweeter takmayı sağlayan brakettir.\n- Bant yerine mekanik bağlantı kurduğu için hoparlör yerinden oynamaz\n- Tweeter önden geçirilip arkadan vidalı halkasıyla sıkıştırılır\n- Orijinal tweeter deliğinin kendi vida yuvalarını kullanır, ek delik açılmaz\n- Ioniq 6 ön direk kaplamasına uyar\nYaklaşık dış ölçüler: 85 × 55 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1570744-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1570744-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1570744-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1570744-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ittastic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-esik-kaplama-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai / Kia Eşik ve Tavan Kaplama Klipsi",
+    "aciklama": "İç kaplama panellerini sac gövdeye tutturan geçme klipstir.\n- Kırılan ya da yorulup tutmayan orijinal klipslerin yerine geçer\n- Gövde deliğine bastırılarak geçer, ek bir alet gerektirmez\n- Tolerans dar tutulduğu için sıkı oturur\n- Hyundai ve Kia kasalarında yaygın kullanılan klips ölçüsündedir\nYaklaşık dış ölçüler: 18 × 16 × 16 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1538978-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1538978-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1538978-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1538978-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "K1lljoy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-6-arka-kapi-hoparlor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 6 Arka Kapı Hoparlör Adaptör Halkası",
+    "aciklama": "Arka kapılardaki fabrika hoparlörünün yerine daha büyük hoparlör takmayı sağlayan adaptör halkasıdır.\n- Kapı sacına ek delik açmadan orijinal hoparlör vidalarını kullanır\n- Sağ ve sol kapı için iki halka olarak gelir\n- Halkanın üzerindeki vida delikleri farklı hoparlör kalıplarına göre düzenlenebilir\n- Su bariyerine temas etmemesi için hoparlör vidalarının boyu kontrol edilmelidir\nYaklaşık dış ölçüler: 180 × 173 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1508941-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1508941-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1508941-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1508941-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ittastic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-5-orta-konsol-coklu-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 5 Orta Konsol Çoklu Tutucusu",
+    "aciklama": "Orijinal bardaklık ünitesinin yerine geçen; telefon, şişe ve küçük çöp gözü içeren konsol modülüdür.\n- Orijinal bardaklık iki vidayla sökülür, modül aynı yuvaya iki M4 cıvatayla bağlanır\n- İki bardaklık gözü, arada telefon yuvası ve kapatma kapağı ile birlikte gelir\n- Konsolun çizilmemesi için taban ile konsol arasına ince yumuşak bir katman konması önerilir\n- 2021-2024 Ioniq 5 konsol ölçüsüne göre tasarlanmıştır\nYaklaşık dış ölçüler: 222 × 100 × 70 mm.",
+    "fiyat": "750 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1342882-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1342882-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1342882-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1342882-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1342882-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Yanev",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-orta-konsol-miknatisli-telefon-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq Orta Konsol Mıknatıslı Telefon Braketi",
+    "aciklama": "Orta konsolun kavisli yüzeyine oturan, mıknatıslı kablosuz şarj ünitesini taşıyan brakettir.\n- Konsolun kendi kıvrımına göre şekillendirildiği için ek yapıştırıcı olmadan oturur\n- Standart yuvarlak kablosuz şarj ünitesi ve yapışkanlı mıknatıs halkası ile kullanılır\n- Telefonu sürüş sırasında sabit tutar, kablo konsol içinden gizlenir\n- Ioniq elektrikli kasalarının orta konsoluna uyar\nYaklaşık dış ölçüler: 134 × 62 × 55 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1289005-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1289005-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1289005-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1289005-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1289005-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "matroosoft",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-6-sise-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 6 Orta Konsol Şişe Tutucusu",
+    "aciklama": "Orta konsolun alt tepsisinin yanına bağlanan, termos ve büyük şişeleri sabit tutan tutucudur.\n- Bardaklık gözüne sığmayan termos ve büyük içecek şişeleri için kullanılır\n- Tutucu, konsola iki M4 cıvatalı bir çubukla kilitlenir ve yerinden çıkmaz\n- İki farklı gövde çapı seçeneği vardır\n- Araç içi yüksek sıcaklıklara dayanıklı malzeme tercih edilmesi uygun olur\nYaklaşık dış ölçüler: 115 × 100 × 100 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1193930-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1193930-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1193930-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1193930-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-getz-arka-silecek-onarim-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Getz Arka Silecek Onarım Burcu",
+    "aciklama": "Arka silecek motoru ile silecek kolu arasındaki dişli burcun onarım yedeğidir.\n- Dişleri yalanıp silecek kolunu döndürmeyen orijinal burcun yerine geçer\n- Motor mili ile kol arasındaki hareketi yeniden aktarır\n- Esnek, aşınmaya dayanıklı malzeme tercih edilmesi uygun olur\n- Getz kasasının arka silecek grubuna uyar\nYaklaşık dış ölçüler: 60 × 54 × 51 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1106876-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1106876-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1106876-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1106876-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Евгений Дышлов",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-tucson-el-freni-dugmesi-onarim-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Tucson El Freni Düğmesi Onarım Parçası",
+    "aciklama": "Elektrikli el freni düğmesini yerinde tutan tırnaklı taşıyıcının onarım parçasıdır.\n- Orijinal taşıyıcının ince tırnakları yorulunca düğme yuvasında durmaz; bu parça o bölümün yerini alır\n- Kırılan bölüm kesilip çıkarıldıktan sonra yerine oturtulur\n- Düğme grubunun tamamını değiştirmeye gerek bırakmaz\n- 2015-2021 Tucson kasasında kullanılır\nYaklaşık dış ölçüler: 66 × 38 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1085791-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085791-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085791-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1085791-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ArtificalSUN",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-5-sarj-portu-isik-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 5 Şarj Portu Işık Kapağı",
+    "aciklama": "Şarj sırasında yanıp sönen durum ışığını kapatan ince örtü plakasıdır.\n- Gece şarjda rahatsız eden ışık sızıntısını keser\n- Şarj portu çerçevesine oturur, ek bir bağlantı gerektirmez\n- Şarj kapağı kapatılmadan önce çıkarılması gerekir\n- Ioniq 5 şarj portu çerçevesine göre tasarlanmıştır\nYaklaşık dış ölçüler: 85 × 60 × 2 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1062828-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1062828-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1062828-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1062828-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Domarunner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-yag-tapasi-ve-filtre-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq Motor Alt Muhafaza Yağ Tapası ve Filtre Kapağı",
+    "aciklama": "Motor alt muhafazasındaki yağ boşaltma ve yağ filtresi erişim ağızlarını kapatan iki kapaktan oluşur.\n- Kırılan ya da düşen orijinal kapakların yerine geçer\n- Her iki kapak da M6 başlı vidalarla muhafazaya bağlanır\n- Bakım sırasında alt muhafazanın tamamını sökmeden yağ tahliyesine erişim sağlar\n- 2017-2021 Ioniq hibrit ve şarjlı hibrit kasalarında kullanılır\nYaklaşık dış ölçüler: 177 × 174 × 11 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1008970-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1008970-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1008970-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1008970-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-santa-fe-arka-amortisor-toz-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Fe Arka Amortisör Toz Kapağı",
+    "aciklama": "Arka amortisörün üst kısmını kapatan, yükseltilmiş toz kapağıdır.\n- Satış sonrası amortisörler orijinalden bir miktar uzun olduğu için orijinal kapak yuvasına oturmaz; bu kapak daha derindir\n- Amortisör miline toz ve su girmesini engeller\n- Gövdedeki yuvalara orijinal kapak gibi kilitlenir\n- 2019 Santa Fe arka süspansiyon grubunda kullanılır\nYaklaşık dış ölçüler: 70 × 70 × 31 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr918532-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr918532-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr918532-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr918532-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GutterGames_CA",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-bardaklik-ic-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq Bardaklık İçi Anahtar ve Kart Tepsisi",
+    "aciklama": "Bardaklık gözüne oturan, araç anahtarı ve kart için ayrı yuvaları olan iç tepsidir.\n- Anahtarın konsolda savrulmasını ve çizilmesini önler\n- İkinci yuva otopark ya da şarj kartı için ayrılmıştır\n- Bardaklık gözüne sürtünmeyle oturur, sabitleme gerektirmez\n- Ioniq elektrikli kasalarının orta konsol bardaklığına uyar\nYaklaşık dış ölçüler: 75 × 72 × 70 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr895764-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr895764-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr895764-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr895764-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "B. I.",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-anahtar-kumanda-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra Anahtar Kumanda Gövdesi",
+    "aciklama": "Uzaktan kumandalı araç anahtarının kırılan plastik gövdesinin yedeğidir.\n- Alt ve üst kapak ile ayrı düğme parçasından oluşur\n- Orijinal devre kartı ve pil aynen aktarılır\n- Pil yönü gövdenin içine kabartma olarak işlenmiştir\n- 2006 Elantra ve aynı kumanda gövdesini kullanan kasalara uyar\nYaklaşık dış ölçüler: 53 × 35 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr868817-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr868817-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr868817-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr868817-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "adlaws",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-tucson-kol-dayama-duzenleyicisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Tucson Kol Dayama İçi Düzenleyici",
+    "aciklama": "Kol dayamanın ön bölümüne oturan, bölmeli düzenleyici tepsidir.\n- Kalem, bozuk para, kart ve mendil için ayrı gözler içerir\n- Kol dayamanın merkezleme pimlerine ve lastik contasına göre boşaltılmıştır\n- İçine ince keçe eklenerek tıkırtı tamamen kesilebilir\n- Otomatik şanzımanlı Tucson NX4 kol dayamasına uyar\nYaklaşık dış ölçüler: 187 × 84 × 76 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr863336-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr863336-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr863336-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr863336-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr863336-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaroslav Krčál",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-tucson-usb-c-kablo-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Tucson Telefon Gözü USB-C Kablo Tutucusu",
+    "aciklama": "Sürücü telefon gözünün içine oturan, açılı USB-C kablosunu sabitleyen tutucudur.\n- Kablonun göz içinde savrulmasını ve fişin yerinden çıkmasını önler\n- Açılı uçlu kısa kablolarla kullanılmak üzere tasarlanmıştır\n- Göz tabanına çift taraflı bantla sabitlenir\n- Tucson NX4 telefon gözüne uyar\nYaklaşık dış ölçüler: 70 × 34 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr844162-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr844162-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr844162-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr844162-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr844162-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaroslav Krčál",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-bagaj-rafi-mentesesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 Bagaj Rafı Menteşesi",
+    "aciklama": "Bagaj kapak rafını gövdeye bağlayan menteşe takımıdır.\n- Kırılan orijinal menteşenin yerine iki parça hâlinde geçer\n- Raf kapağının açılıp kapanma hareketini yeniden sağlar\n- Yuvaya oturduktan sonra ek bir sabitleme gerektirmez\n- i30 ve benzer bagaj rafı kullanan kasalara uyar\nYaklaşık dış ölçüler: 46 × 25 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr515483-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr515483-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr515483-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr515483-4.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-far-ampulu-sokme-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai / Kia Far Ampulü Sökme Aparatı",
+    "aciklama": "Far gövdesindeki ampul yuvasını kavrayıp çevirmeye yarayan servis aparatıdır.\n- Elin girmediği dar far boşluğunda ampul yuvasını çevirmeyi sağlar\n- Yandaki deliklere bir tornavida geçirilerek kol kuvveti uygulanır\n- Yuvanın dikdörtgen plastik gövdesini kavrayacak şekilde boşaltılmıştır\n- Hyundai ve Kia kasalarında yaygın kullanılan yuva tipine uyar\nYaklaşık dış ölçüler: 45 × 32 × 27 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr400056-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr400056-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr400056-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr400056-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "eried",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-n-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 N Vites Topuzu",
+    "aciklama": "Manuel şanzıman kolunun üstüne geçen, silindirik gövdeli vites topuzudur.\n- Orijinal topuz çekilerek çıkarılır, iç klipsler bu gövdeye aktarılır\n- İki farklı boyda gövde seçeneği vardır\n- Aşınmaya dayanıklı, takviyeli malzeme tercih edilmesi uygun olur\n- i30 N ve aynı kol çapını kullanan kasalara uyar\nYaklaşık dış ölçüler: 90 × 36 × 36 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr326368-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr326368-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr326368-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr326368-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Clem",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ix35-bagaj-kapagi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai ix35 Bagaj Bölme Kapağı Klipsi",
+    "aciklama": "Bagaj bölme kapağını gövdeye tutturan yan klipstir.\n- Kırılan orijinal klipsin yerine geçer\n- Sağ ve sol taraf için iki parça hâlinde gelir\n- Kapağın yuvasına geçtikten sonra kilitlenir\n- ix35 bagaj bölmesine uyar\nYaklaşık dış ölçüler: 70 × 28 × 19 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr319844-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr319844-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr319844-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr319844-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "punisher_1211",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ev9-kolcak-tampon-yastigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV9 Kolçak Alt Tampon Yastığı",
+    "aciklama": "Kolçağın alt kısmındaki kırılmaya eğilimli tampon parçalarının yenisidir.\n- Kia EV9 kolçak alt yüzeyindeki iki tampon yastığının yerine geçer\n- Kırılan/aşınan orijinal parçaların doğrudan değişimidir\n- Yumuşak dokulu esnek malzeme ile üretilmesi önerilir\nYaklaşık dış ölçüler: 13 × 12 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6899126-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6899126-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6899126-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6899126-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "funkflute",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-2022-orta-konsol-kaplamasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage 2022 Orta Konsol Kaplaması",
+    "aciklama": "Orta konsoldaki bardaklık bölgesini kaplayan ek yüzey parçasıdır.\n- 2022 model Kia Sportage orta konsol bardaklık alanına oturur\n- Mevcut yüzeyin üzerine yapıştırılarak kullanılır\n- Bardaklık deliklerini kapatmadan görünümü değiştirir\nYaklaşık dış ölçüler: 229 × 150 × 1 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6984726-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6984726-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6984726-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6984726-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Toni_eschbow",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-2024-bardaklik-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sorento 2024 Bardaklık Adaptörü",
+    "aciklama": "Bardaklık yuvasına oturan, geniş ağızlı bardaklara uyum sağlayan adaptördür.\n- 2024 model Kia Sorento bardaklık yuvasına doğrudan oturur\n- Geniş çaplı termos ve bardakların sabit durmasını sağlar\n- Bardaklık yuvasından kolayca çıkarılıp takılabilir\nYaklaşık dış ölçüler: 190 × 107 × 107 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6935540-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6935540-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6935540-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6935540-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ltjdangle1",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-tavan-cubugu-kilit-anahtari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Tavan Çubuğu Kilit Anahtarı",
+    "aciklama": "Tavan taşıma çubuklarının kilit mekanizmasını açıp kapatan kelebek kollu anahtardır.\n- Kia tavan çubuğu kilit sistemiyle uyumludur\n- Kelebek kol tasarımı sıkma/gevşetme işlemini kolaylaştırır\n- Kaybolan orijinal anahtarın yerine kullanılabilir\nYaklaşık dış ölçüler: 53 × 40 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7094192-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7094192-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7094192-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7094192-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mack371",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev3-kablosuz-sarj-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV3 Kablosuz Şarj Pedi Tutucusu",
+    "aciklama": "Air trim seviyesinde bulunmayan kablosuz şarj pedini konsola entegre eden tutucudur.\n- Kia EV3 Air donanım seviyesi için tasarlanmıştır\n- Telefonun sabit ve doğru konumda şarj olmasını sağlar\n- Konsolun mevcut boşluğuna oturacak şekilde tasarlanmıştır\nYaklaşık dış ölçüler: 200 × 177 × 17 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6993974-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6993974-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6993974-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6993974-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rogerfroud",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-3-led-far-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage 3 LED Far Kapağı",
+    "aciklama": "LED ampul montajı sonrası far gövdesindeki erişim ağzını kapatan kapaktır.\n- Kia Sportage 3 LED ampul dönüşümlerinde kullanılır\n- Belirtilen kanca yönü yukarı bakacak şekilde monte edilir\n- Sabitleme delikleri mevcut yuvaya göre hizalanmıştır\nYaklaşık dış ölçüler: 73 × 73 × 51 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7047598-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7047598-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7047598-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7047598-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sergeykurmelev",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-plaka-adaptor-tamponu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Ceed Plaka Adaptör Tamponu",
+    "aciklama": "Ön plakanın gövdeye temasını önleyen ara tampon parçasıdır.\n- Kia Ceed ön plaka montaj noktasına yerleştirilir\n- Plaka ile gövde arasında koruyucu boşluk oluşturur\n- Mevcut plaka vidalarıyla birlikte kullanılır\nYaklaşık dış ölçüler: 113 × 16 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6437620-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6437620-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6437620-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6437620-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aftansin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-eniro-bagaj-zemini-tutamagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia e-Niro Bagaj Zemini Tutamağı",
+    "aciklama": "Bagaj zemin panelini kaldırmak için kullanılan tutamak parçasıdır.\n- 2021 model Kia e-Niro bagaj zemin paneline oturur\n- Zemin panelinin kolayca kaldırılmasını sağlar\n- Mevcut yuvaya doğrudan yerleştirilir\nYaklaşık dış ölçüler: 131 × 124 × 57 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5419920-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5419920-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5419920-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5419920-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "polos5tdi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-led-ampul-adaptor-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Rio LED Ampul Adaptör Yuvası",
+    "aciklama": "Harici LED ampulü orijinal far yuvasına uyarlayan bağlantı halkasıdır.\n- 2013 model Kia Rio far yuvasına uyumludur\n- Farklı LED ampul markalarıyla ek uyarlama gerekmeden kullanılabilir\n- Ampulün doğru açıda sabit kalmasını sağlar\nYaklaşık dış ölçüler: 41 × 37 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5391053-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5391053-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5391053-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5391053-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "juanbanc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sedona-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sedona Telefon Tutucusu",
+    "aciklama": "Orta konsolun yanına yerleştirilen yapışkan bantlı telefon tutucusudur.\n- 2019 model Kia Sedona orta konsol yanına monte edilir\n- Benzer konsol yapısına sahip diğer modellerde de kullanılabilir\n- Çift taraflı bant ile sabitlenir\nYaklaşık dış ölçüler: 130 × 102 × 51 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5638097-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5638097-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5638097-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5638097-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alan_johnson",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-ev-2023-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Niro EV 2023 Telefon Tutucusu",
+    "aciklama": "Konsol bölgesine monte edilen, içecek kutusu boşluğu da bulunan telefon tutucusudur.\n- 2023 model Kia Niro EV için tasarlanmıştır\n- İçecek kutusu için ek bir boşluk içerir\n- Mevcut montaj noktalarına kolayca sabitlenir\nYaklaşık dış ölçüler: 124 × 94 × 80 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6208576-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6208576-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6208576-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6208576-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "OliverDippel",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-2000-ralanti-motoru-ara-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage 2000 Rölanti Kontrol Motoru Ara Parçası",
+    "aciklama": "Manuel rölanti kontrol motorunun sızdırmazlık contasının yerini alan ara parçadır.\n- 2000 model Kia Sportage rölanti kontrol motoru montajında kullanılır\n- Orijinal conta ölçüsü baz alınarak tasarlanmıştır\n- Motorun açık konumda sabit tutulmasını sağlar\nYaklaşık dış ölçüler: 54 × 34 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4728398-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4728398-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4728398-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4728398-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fragatron",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-3-vites-kolu-baglanti-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage 3 Vites Kolu Bağlantı Halkası",
+    "aciklama": "Vites kolu kılıfının deri korumasını gövdeye sabitleyen bağlantı halkasıdır.\n- Vites kolu tutamağı sökülürken kırılan orijinal tırnaklı halkanın yenisidir\n- Deri koruma kılıfının gövdeye doğru oturmasını sağlar\n- Mevcut vites kolu montaj noktasına uyumludur\nYaklaşık dış ölçüler: 27 × 27 × 18 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6106656-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6106656-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6106656-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6106656-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sergeykurmelev",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-cekme-kancasi-ucu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Niro Çekme Kancası Ucu Kapağı",
+    "aciklama": "Sökülebilir çekme kancasının kilit mekanizmasını dış etkenlerden koruyan kapaktır.\n- Kilitleme bilyelerinin üzerine takılarak korunmasını sağlar\n- Kancanın araçta takılı olmadığı zamanlarda kullanılır\n- Kancanın erkek ucuna doğrudan oturur\nYaklaşık dış ölçüler: 60 × 37 × 37 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4560251-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4560251-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4560251-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4560251-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GrodanB",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-k5-kablosuz-sarj-yuvasi-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia K5 Kablosuz Şarj Yuvası Adaptörü",
+    "aciklama": "Derin kablosuz şarj yuvasını daraltarak telefonun doğru konumda durmasını sağlayan blok parçadır.\n- Kia K5 GT-Line kablosuz şarj yuvasına oturur\n- Büyük ekranlı telefonların yuvada kaymasını önler\n- Yuvaya doğrudan yerleştirilir, ek sabitleme gerektirmez\nYaklaşık dış ölçüler: 120 × 11 × 11 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6034809-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6034809-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6034809-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6034809-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rcook55",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-frunk-led-spot-montaji",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV6 Ön Bagaj (Frunk) LED Spot Montajı",
+    "aciklama": "Ön bagaj bölmesine LED aydınlatma eklemek için kullanılan montaj parçalarıdır.\n- Kia EV6 ön bagaj (frunk) bölmesine monte edilir\n- LED spot ve anahtarın sabit durmasını sağlayan tutucu içerir\n- Mevcut bölme yüzeyine sabitlenir\nYaklaşık dış ölçüler: 50 × 32 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6483896-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6483896-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6483896-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6483896-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xbow42",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-mk1-silecek-kolu-somun-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sorento MK1 Ön Silecek Kolu Somun Kapağı",
+    "aciklama": "Silecek kolunu sabitleyen somunu örten dekoratif kapaktır.\n- Kia Sorento MK1 ön silecek kollarında kullanılır\n- Kırılan veya kaybolan orijinal kapağın yerine takılır\n- Silecek koluna çıtçıt mekanizmasıyla oturur\nYaklaşık dış ölçüler: 30 × 30 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7032978-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7032978-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7032978-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7032978-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Volvo_things",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-retona-kapi-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Retona Kapı Kolu",
+    "aciklama": "Kırılan iç kapı kolunun yenisidir.\n- Kia Retona modelinde kullanılır\n- Orijinal kapı açma mekanizmasına doğrudan bağlanır\n- Kırılan orijinal kolun yerine takılır\nYaklaşık dış ölçüler: 122 × 77 × 33 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4805204-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4805204-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4805204-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4805204-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lope26",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-2022-tavan-rayi-profili",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Niro 2022 Tavan Rayı Profili",
+    "aciklama": "Orijinal tavan rayı şeklinin taranarak yeniden üretilmiş profilidir.\n- 2022 model Kia Niro Hybrid tavan rayı formuna göre üç boyutlu tarama ile üretilmiştir\n- Hasar gören veya eksik ray parçasının yerine kullanılabilir\n- Orijinal montaj noktalarıyla uyumludur\nYaklaşık dış ölçüler: 41 × 34 × 21 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5416415-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5416415-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5416415-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5416415-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dzboyd",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-stinger-helix-conductor-montaji",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Stinger Helix Conductor Ses İşlemci Montajı",
+    "aciklama": "Ses sistemi işlemcisinin araç içine sabit montajını sağlayan tutucudur.\n- Kia Stinger GT modelinde kullanılan ses işlemci cihazı için tasarlanmıştır\n- Tabanındaki delikler vida ile sabitlemeye uygundur\n- Cihazın araç hareketlerinde yerinden oynamasını önler\nYaklaşık dış ölçüler: 109 × 55 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5200377-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5200377-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5200377-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5200377-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RaceShowDrive",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-kablosuz-sarj-kilavuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV6 Kablosuz Şarj Kılavuzu",
+    "aciklama": "Telefonun kablosuz şarj sırasında kaymasını önleyen kılavuz parçadır.\n- Büyük ekranlı telefon gövdelerine uygun tasarlanmıştır\n- Şarj yuvasına yerleştirilerek telefonun sabit durmasını sağlar\n- Sürüş sırasında şarj kesilmesini azaltır\nYaklaşık dış ölçüler: 93 × 83 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6147079-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6147079-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6147079-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6147079-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zajber",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-cok-amacli-konsol-bardagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV6 Çok Amaçlı Konsol Bardağı",
+    "aciklama": "Konsol boşluğuna yerleştirilen, küçük eşyaları da düzenleyen çok amaçlı bardaktır.\n- Kia EV6 konsol bardaklık boşluğuna oturur\n- İç bölmeleri sayesinde bardak dışında küçük eşyalar için de kullanılabilir\n- Bardaklık yuvasından kolayca çıkarılıp takılabilir\nYaklaşık dış ölçüler: 74 × 70 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6704244-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6704244-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6704244-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6704244-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Blockmove",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev3-orta-konsol-saklama-bolmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV3 Orta Konsol Saklama Bölmesi",
+    "aciklama": "Konsol boşluğunu bölmeli hale getiren saklama düzenleyicisidir.\n- Kia EV3 orta konsol boşluğuna oturacak şekilde tasarlanmıştır\n- Garaj kapısı kumandası, market arabası jetonu gibi küçük eşyalar için bölme içerir\n- Kart bölmesi de bulunur\nYaklaşık dış ölçüler: 180 × 130 × 55 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7306812-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7306812-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7306812-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7306812-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Xsmaker",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-dokunmatik-dugme-koruma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV6 Dokunmatik Düğme Koruma Kapağı",
+    "aciklama": "Isıtmalı/soğutmalı koltuk dokunmatik düğmelerinin yanlışlıkla tetiklenmesini azaltan koruma parçasıdır.\n- Kia EV6 GT-Line dokunmatik düğme sırasının üzerine oturur\n- İstenmeyen dokunmatik etkileşimi azaltır\n- Düğmelere erişimi tamamen kapatmayan delikli tasarıma sahiptir\nYaklaşık dış ölçüler: 153 × 44 × 3 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6660543-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6660543-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6660543-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6660543-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "anupamsambi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-2012-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Ceed 2012 Telefon Tutucusu",
+    "aciklama": "Kül tablası kapağına sabitlenen telefon tutucusudur.\n- 2012 model Kia Ceed kül tablası bölgesine monte edilir\n- Telefonun sürüş sırasında görünür ve erişilebilir konumda durmasını sağlar\n- Mevcut kapak yüzeyine sabitlenerek kullanılır\nYaklaşık dış ölçüler: 130 × 60 × 48 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6223757-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6223757-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6223757-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6223757-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Timur02",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-ed-kaput-gaz-amortisoru-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Ceed ED Kaput Gaz Amortisörü Contası",
+    "aciklama": "Kaput gaz amortisörünün geçtiği bölgedeki sızdırmazlığı sağlayan conta parçasıdır.\n- Kia Ceed ED kasa kaput açma mekanizmasında kullanılır\n- Amortisör milinin geçtiği delikte sızdırmazlık sağlar\n- Yumuşak dokulu esnek malzeme ile üretilmesi önerilir\nYaklaşık dış ölçüler: 105 × 75 × 24 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7338813-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7338813-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7338813-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7338813-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dimun",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-qi-sarj-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV6 Qi Kablosuz Şarj Adaptörü",
+    "aciklama": "Büyük ekranlı telefonların kablosuz şarj yuvasında doğru hizada durmasını sağlayan ara adaptördür.\n- Kia EV6 kablosuz şarj yuvasına oturacak şekilde tasarlanmıştır\n- Büyük gövdeli telefonlarda şarj noktasının hizalanmasını kolaylaştırır\n- Yuvaya yerleştirilerek doğrudan kullanılır\nYaklaşık dış ölçüler: 182 × 88 × 3 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6549145-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6549145-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6549145-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6549145-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "otaku13",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-h7-led-ampul-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia H7 LED Ampul Adaptörü",
+    "aciklama": "H7 tipi LED ampulü orijinal far yuvasına uyarlayan bağlantı parçasıdır.\n- H7 duylu LED ampul dönüşümlerinde kullanılır\n- Kia Sorento ve benzeri far yuvası ölçüsüne sahip modellerde denenebilir\n- Ampulün doğru açıda ve sabit konumda kalmasını sağlar\nYaklaşık dış ölçüler: 39 × 38 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6842563-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6842563-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6842563-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6842563-4.jpg"
+    ]
+  },
+  {
+    "id": "kia-bagaj-kapagi-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Bagaj Kapağı Kancası",
+    "aciklama": "Bagaj kapağının iç kaplamasını tutan kancadır.\n- Kırılan orijinal kancanın yerine takılır\n- Bagaj kapağı iç kaplama montaj noktasına uyumludur\n- Ek bağlantı elemanı gerektirmez\nYaklaşık dış ölçüler: 80 × 36 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4343756-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4343756-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4343756-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4343756-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "milczas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-optima-koltuk-konumu-dugme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Optima Koltuk Konumu Düğme Kapağı",
+    "aciklama": "Koltuk hafıza düğmesi grubunun yıpranan kapağının yenisidir.\n- Kia Optima koltuk konum düğmesi değişiminde kullanılır\n- Düğme pimlerinin geçtiği delikler orijinal aralığa göre hizalanmıştır\n- Mevcut düğme mekanizmasına doğrudan oturur\nYaklaşık dış ölçüler: 59 × 18 × 16 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1582240-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1582240-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1582240-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1582240-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FontMaker83",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-2015-ayna-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sorento 2015 Dış Ayna Parçası",
+    "aciklama": "Dış dikiz aynası gövdesindeki kırılan parçanın yenisidir.\n- 2015 model Kia Sorento dış ayna gövdesinde kullanılır\n- Kırılan orijinal parçanın yerine takılır\n- Ayna gövdesinin mevcut montaj noktalarıyla uyumludur\nYaklaşık dış ölçüler: 58 × 36 × 14 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5798119-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5798119-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5798119-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TEXNOme",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-optima-2018-saklama-gozu-acik-tutma-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Optima 2018 Saklama Gözü Açık Tutma Klipsi",
+    "aciklama": "Saklama gözü kapağını hafifçe aralık bırakarak açık tutan klipstir.\n- 2018 model Kia Optima saklama gözü kapağını parmak aralığı kadar açık tutar\n- Kablo geçişi gereken bağlantılarda kapağın tam kapanmasını önler\n- Kapak menteşesine doğrudan takılır\nYaklaşık dış ölçüler: 21 × 16 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4980767-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4980767-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4980767-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4980767-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GaseousSolid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-stinger-alp-far-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Stinger ALP Far Montaj Braketleri",
+    "aciklama": "Ek far/ışık ünitelerinin ön ve arkaya sabit montajını sağlayan braket takımıdır.\n- Kia Stinger GT2 ön ve arka montaj noktaları için ayrı braket içerir\n- Arka braket açısı yukarı eğimli olacak şekilde tasarlanmıştır\n- Mevcut gövde noktalarına vida ile sabitlenir\nYaklaşık dış ölçüler: 295 × 177 × 30 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4699881-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4699881-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4699881-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4699881-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Swap_File",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-soul-anahtar-dugmesi-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Soul Anahtar Kumandası Düğme Seti",
+    "aciklama": "Anahtar kumandasının yıpranan düğmelerinin yenisidir.\n- Kia Soul akıllı anahtar kumandası düğme grubuna uyumludur\n- Üç düğme tek parça halinde birleştirilmiştir\n- Kumanda gövdesindeki orijinal yuvaya oturur\nYaklaşık dış ölçüler: 33 × 10 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5383765-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5383765-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5383765-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5383765-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kvikindi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-proceed-ed-sis-fari-montaj-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia ProCeed ED Sis Farı Montaj Halkası",
+    "aciklama": "Sis farının tampon içine sabit montajını sağlayan halka parçadır.\n- Kia ProCeed ED kasa sis farı montajında kullanılır\n- Sis farının tampon yuvasına doğru hizada oturmasını sağlar\n- Mevcut tampon montaj noktalarıyla uyumludur\nYaklaşık dış ölçüler: 85 × 85 × 24 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6597833-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6597833-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6597833-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6597833-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "skadudu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "kia-niro-far-toz-kapagi-genis-led-boslugu",
     "kategori": "Otomobil",
     "marka": [
