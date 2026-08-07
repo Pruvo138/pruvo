@@ -2074,6 +2074,23 @@ jobs:
       # Olculdu: yerelde 7 mutant ~6 dk (her mutant tam jenerator kosumu).
       - name: "Model baslik kolu mutasyon bataryasi (4 oldurucu + 3 kontrol)"
         run: python3 tools/model-baslik-kolu-test.py --kendini-test
+
+      # YEDEK GLOB KOD YOLU — HERMETIK ALT KUME (7 Agu 2026). BLOKLAYICI, continue-on-error YOK.
+      # 🔴 NEDEN ALT KUME, TAM BATARYA DEGIL: `tools/yedekle-test.py` bayraksiz kosumu
+      # gercek `~/.claude/skills` agacina, Drive mount'una ve repo kokundeki GITIGNORE'LU
+      # dosyalara bakar. OLCULDU (temiz klon + bos HOME + kardes ev yok): rc=1, 220 kontrol,
+      # 6 ORTAM KAYNAKLI kirmizi -> bloklayici baglansaydi TUM ekibin yayini YANLIS-POZITIF
+      # ile dururdu. Ayrica 13/13e/14 bolumleri flock + paralel kosum + 2000 orneklik
+      # zamanlama olcer (paylasilan kosucuda FLAKE sinifi). Tam batarya bu yuzden hala
+      # ci-kapsam-test.py'de gerekceli MUAF; CI'ya baglanan sey `--hermetik` koludur.
+      # 🔴 KABUL CIKIS KODU DEGIL, BASILAN IDDIA SAYISI ([[kapi-yan-etkisi-gizli-onkosul]]):
+      # kol "HERMETIK IDDIA SAYISI: <n>" basar ve kendi ASGARI esigini (yedekle-test.py
+      # icindeki HERMETIK_ASGARI, TEK KAYNAK — buraya sayi YAZILMAZ) fail-closed olcer.
+      # Kume kirpilirsa/bosalirsa kol KIRMIZI yanar, sessizce bos kosamaz. Tam batarya da
+      # ayrica SERIT PARITESI olcer: bu kolun bastigi sayi ile yerindeki sayi ESIT olmali.
+      # OLCULDU (ayni CI taklidi): rc=0, 60 iddia, 61 kontrol, 0 kirmizi, ~4 s.
+      - name: "Yedek glob kod yolu — hermetik alt kume (kok + alt-dizin deger kilidi)"
+        run: python3 tools/yedekle-test.py --hermetik
   # ═════════════════════════════════════════════════════════════════════════════
   # BURADA BIR ZAMANLAR 6 BLOKLAMAYAN JOB VARDI -> `.github/workflows/nobet.yml`
   # ═════════════════════════════════════════════════════════════════════════════
