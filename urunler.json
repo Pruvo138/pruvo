@@ -1,5 +1,85 @@
 [
   {
+    "id": "hyundai-genesis-sedan-fren-stop-musuru-takozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Genesis",
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Genesis Sedan Fren Stop Müşürü Takozu",
+    "aciklama": "2011 model Hyundai Genesis (BH gövde) sedanın fren pedalı kolunda stop müşürüne dayanan takozdur.\n- Yıllar içinde ufalanan orijinal takozun yerine geçer; müşürün boşta kalmasını ve fren lambalarının sürekli yanmasını önler.\n- Arka yüzdeki yuvarlak çıkıntı pedal kolundaki yuvaya oturur; ek bağlantı parçası ya da yapıştırıcı gerekmez.\n- Müşür ucunun bastığı ön yüzey orijinal yüksekliğinde bırakılmıştır, pedal boşluğu değişmez.\n- Esnekliğini koruyan, aşınmaya dayanıklı bir malzeme önerilir.\n- Genesis Coupe gövdesi bu takozun daha büyük ölçülü bir türevini kullanır; sedan gövdesi için bu ölçü seçilmelidir.\nYaklaşık dış ölçüler: 17 × 17 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1592372-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1592372-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1592372-3.jpg"
+    ],
+    "tavsiyeFilament": [
+      "TPU"
+    ]
+  },
+  {
+    "id": "ssangyong-tivoli-hoparlor-adaptor-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "SsangYong"
+    ],
+    "baslik": "SsangYong Tivoli Hoparlör Adaptör Halkası (2020+)",
+    "aciklama": "SsangYong Tivoli (2020 ve sonrası) kapı hoparlörü yuvasına satış sonrası hoparlör takarken kullanılan ara halka.\n- Fabrika yuvasının vida düzenini koruyarak yeni hoparlörü doğru derinlikte konumlandırır.\n- Hoparlör kenarı ile sac gövde arasındaki boşluğu kapatır, titreşimi azaltır.\n- Yalıtım süngeri kullanılan ve kullanılmayan montajlar için iki yükseklik seçeneği vardır.\n- Araç içi yaz sıcaklığına dayanıklı malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 174 × 174 × 10 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr581678-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr581678-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr581678-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr581678-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr581678-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Insane_Man",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ssangyong-actyon-2-korando-c-9-inc-teyp-braket-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "SsangYong"
+    ],
+    "baslik": "SsangYong Actyon 2 / Korando C 9 İnç Teyp Çerçevesi Braket Seti (2010-2013)",
+    "aciklama": "SsangYong Actyon 2 ve Korando C (2010-2013) modellerinde 9 inç ekranlı multimedya ünitesi için kullanılan geçiş çerçevesinin gövdeye bağlanmasını sağlayan braket seti.\n- Sol ve sağ kulak braketi, artık bulunamayan orijinal bağlantı kulaklarının yerine geçer.\n- Braketler geçiş çerçevesine kendinden kılavuzlu küçük vidalarla sabitlenir.\n- Sette üst kulaklarda vida yerine kullanılabilen iki takoz bulunur; dar alanda tornavida çevirme zorunluluğunu ortadan kaldırır.\n- Braketler sağlam, takozlar esnek malzemeden tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 248 × 158 × 13 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr867697-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr867697-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr867697-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "J.D. user",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ssangyong-tivoli-kamera-tutucu-2024",
+    "kategori": "Otomobil",
+    "marka": [
+      "SsangYong"
+    ],
+    "baslik": "SsangYong Tivoli Kamera Tutucusu (2024)",
+    "aciklama": "SsangYong Tivoli (2024 model) torpido üstündeki havalandırma çıtasına klipslenen aksiyon kamerası tutucusu.\n- Çıtanın üst kenarına geçer; delme, vidalama veya yapıştırma gerektirmez.\n- Standart aksiyon kamerası çatal bağlantısı ve vidasıyla uyumludur.\n- Kamerayı ön cam ortasına yakın, gösterge görüşünü kapatmayan konumda taşır.\n- Araç içi sıcaklığa dayanıklı, sağlam malzeme tercih edilmesi uygun olur.\nYaklaşık dış ölçüler: 37 × 27 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1049634-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1049634-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1049634-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1049634-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1049634-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jiří Šilhavík",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "hyundai-accent-tavan-lambasi-dugmesi-1995-2000",
     "kategori": "Otomobil",
     "marka": [
