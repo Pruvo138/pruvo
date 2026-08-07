@@ -1,5 +1,34 @@
 # DEVAM (KraL) — 7 Agu 2026
 
+## 🟡 SAATLIK NOBET 7 Agu ~02:20Z — a4 ONARIMI MAIN'DE, TEK ENGEL `serit-a2` (VERI DUZLEMI)
+
+- **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev.
+- **Mail supurmesi (0.5, kosulsuz):** inbox **7541** mesaj toplu tarandi (sender+subject tek
+  Apple Event, sayi `count of messages of inbox` ile dogrulandi); `notifications@github.com` +
+  "Run failed" eslesmesi **0** -> tasinan **0**, tur sonu kalan **0**. (Onceki tur 3 tasimisti.)
+- **Codex hatti KAPALI:** `codex exec` "usage limit" ile reddedildi (kota **8 Agu 10:19**'a
+  kadar) -> teshis Claude Opus muhendisine `codex-muafiyet` beyaniyla verildi.
+- **`serit-a4` — kok neden bulundu, onarim MAIN'DE:** onceki turun baslattigi is `07f4bb44` +
+  `1141be85` ile girdi (B18 provenans ekseni). Olculen kok neden: `2fa00347` veri partisiyle
+  katalogda **ILK KEZ** bir ciplak-sayi kovasi (`Datsun|510`) olustu -> B8a ekseni H1'i acan
+  HER mutantta kirmizi yandi, M6 ile M14'un iddia KIMLIK kumesi esitlendi
+  (`ayirt-edilemeyen [[6, 14]]`). Yerelde `--kendini-test` **rc=0 · ayirt edici kume=18 ·
+  beklentiyi tutmayan 0**. **CI teyidi bu turda OLCULEMEDI:** `1141be85` kosumu `31139503974`
+  02:20Z'de hala `in_progress` -> yesil SAYILMADI, sonraki tur devralir.
+- **`serit-a2` — DEGISMEDI, kirmizi** (ayni kosumda `failure`). Kok neden **VERI**: 6 kayitta
+  `marka` dizisinin 3. jetonu (sasi/varyant kodu) `uyum`un HICBIR alaninda yok; turetme
+  fonksiyonu (`tools/arama.py:2012`) `motor`/`oem` alanlarini BILEREK tasimiyor -> **kod kusuru
+  DEGIL**. Tetik: `719fa9f3` + `2fa00347` veri partileri (7 Agu 01:00/01:19+03); kapi tarafinda
+  son degisiklik 3 Agu, turetme yoluna dokunulmadi.
+- **Yayin zinciri:** `deploy: needs [build, serit-a2, serit-a3, serit-a4]` (deploy.yml:2074),
+  `yayin: needs: deploy` (:2118) -> `serit-a2` kirmizi oldukca `deploy` skipped. Son basarili
+  `deploy` **6 Agu 09:49Z**.
+- **DUR kosulu SURUYOR** (onarim `urunler.json` = YASAK liste + tek yazar baska mimar). Posta
+  kutusundaki talimat duruyor; **mukerrer mesaj YAZILMADI**, Okan'a **tekrar yazilmadi** (ayni
+  karar bir onceki turda bir kez iletildi).
+- **Yabanci kirlilik:** `tools/uyum-kapisi.py` calisma agacinda baska bir oturumun degisikligi
+  var (dokum kesme beyani + iddia tabani) — **DOKUNULMADI**.
+
 ## 🔴 SAATLIK NOBET 7 Agu ~01:40Z — YAYIN ZINCIRI HALA KAPALI, ENGEL VERI DUZLEMINDE
 
 - **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev, tur gecerli.
