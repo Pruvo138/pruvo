@@ -1,5 +1,35 @@
 # DEVAM (KraL) — 7 Agu 2026
 
+## 🟡 SAATLIK NOBET 7 Agu ~03:40Z — `serit-a4` CI'DA YESIL TEYITLENDI, ZINCIRDE TEK KIRMIZI `serit-a2`
+
+- **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev, tur gecerli.
+- **Mail supurmesi (0.5, kosulsuz):** birlesik gelen kutusu **7541** mesaj toplu tarandi
+  (sender+subject tek Apple Event, sayi `count of messages of inbox` ile dogrulandi);
+  `notifications@github.com` + "Run failed" eslesmesi **2** -> Cop'e tasinan **2**
+  (Build&deploy 406c99e · paket-tazeligi 406c99e), tur sonu kalan **0** (ikinci olcumle teyit).
+  Cop BOSALTILMADI, baska maile dokunulmadi.
+- **CI olcumu (`gh`, maile guvenilmedi):** son 15 kosum; `in_progress`/`queued` **yok**.
+  Kirmizi 3 kosum: `31144468636` (paket tazeligi) · `31140965001` + `31139503974` (Build & deploy).
+- **🟢 ONCEKI TURUN YARIM KALEMI KAPANDI:** `serit-a4` **CI'da yesil olculdu**
+  (`31140965001`: `build` ✅ · `serit-a3` ✅ · **`serit-a4` ✅** · `serit-a2` ❌ ·
+  `deploy` skipped · `yayin` skipped). B18 provenans onarimi (`07f4bb44`+`1141be85`) tuttu.
+- **`serit-a2` DEGISMEDI, kirmizi — kok neden VERI duzleminde:** 6 kayitta `marka` dizisinin
+  3. jetonu (sasi/varyant kodu) `uyum` semasinin hicbir alaninda yok. **Kod kusuru DEGIL.**
+  Onarim `urunler.json` = nobetin YASAK listesi + tek yazar baska mimar -> **DUR kosulu SURUYOR**
+  (ayni kok neden 3. tur). Kapida esik/iddia GEVSETILMEDI, adim silinmedi, `continue-on-error` yok.
+- **`yayin-nabzi` kirmizisi GERCEK POZITIF, ayri ariza DEGIL:** "taranan 8 kosumda `deploy` isini
+  BASARIYLA kosan kosum YOK" — ayni tikanmanin alarm kolu.
+- **Acik:** `urunler.json` **21.376** vs canli **20.849** -> **527 kayit yayina giremiyor**;
+  son basarili `deploy` job'u **6 Agu 09:49Z**.
+- **BU TURDA YAPILAN TEK ICRA:** veri duzlemi talimati posta kutusunda **5 yeni mesajin altina
+  gomulmustu** -> guncel sayilarla ve "zincirde tek kirmizi" hukmuyle **USTE TASINDI**.
+  Okan'a **YAZILMADI**: ayni karar 01:40Z turunda bir kez iletildi, istenen sey degismedi
+  (mukerrer bildirim = gurultu).
+- **Yabanci kirlilik SURUYOR:** `tools/uyum-kapisi.py` calisma agacinda baska bir oturumun
+  commit'lenmemis surumu duruyor -> `muh/serit-a4-teshis` dalindaki **kirpma onarimi**
+  (kapi `sema ihlali 6` sayarken ekrana 5 basiyor) cherry-pick'i **HALA PARK HALINDE**.
+  DOKUNULMADI. `git worktree list` **3 satir**; ikisi baska oturumlarin.
+
 ## 🟡 SAATLIK NOBET 7 Agu ~02:20Z — a4 ONARIMI MAIN'DE, TEK ENGEL `serit-a2` (VERI DUZLEMI)
 
 - **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev.
