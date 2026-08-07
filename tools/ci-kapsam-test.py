@@ -1803,6 +1803,19 @@ IZIN_LISTESI = {
     # 13/13e/14 flock + paralel kosum + 2000 orneklik zamanlama olcer (paylasilan
     # kosucuda FLAKE), 15 GERCEK Drive damgasina bakar. Gerekce ve tam kirmizi dokumu
     # deploy.yml'deki adim yorumundadir.
+    "tools/yayin-kapisi-mutasyon-test.py": (
+        "GIT GECMISI GEREKTIRIR -> sig checkout'ta YAPISAL CI-KIRMIZI (R_YOL/R_FTS5 "
+        "sinifi). A kolu 'onarim ONCESI surum' ile 'yeni surum'u AYNI fiksturle kosar "
+        "ve bunun icin `git show <onarim-oncesi-sha>:tools/yayin-kapisi.py` ister. "
+        "OLCULDU (7 Agu 2026, `git clone --depth 1` ile kurulan CI-benzeri klon): "
+        "commit sayisi 1, `git cat-file -e db836975` -> ERISILEMEZ, surucu "
+        "'OLCULEMEDI: git show basarisiz' basip rc=1 verir. B kolu (mutasyon bataryasi) "
+        "gecmis ISTEMEZ ve ayni klonda 12/12 ayirt edici mutant + kontrol mutanti "
+        "YESIL verir; yani muafiyet yalniz A kolunun gecmis bagimliligindan dogar. "
+        "OLCULEN NOBET YERI: kapinin KENDI kabul testi (tools/yayin-kapisi.py "
+        "--kendini-test, ayni klonda 105 iddia / rc=0) nobet.yml:552'de OTOMATIK "
+        "kosuyor -> kapi kapsamsiz DEGIL; bu dosya onun uzerine 'eski davranis "
+        "curutuldu mu' arkeoloji kolunu ekler."),
 }
 
 

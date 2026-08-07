@@ -2,8 +2,15 @@
 # -*- coding: utf-8 -*-
 """YAYIN KAPISI — CURUTME + MUTASYON SURUCUSU (elle kosar; ag YOK, D1 YOK, wrangler YOK)
 
-    python3 tools/yayin-kapisi-mutasyon.py
-    python3 tools/yayin-kapisi-mutasyon.py --eski-surum <git-ref>
+    python3 tools/yayin-kapisi-mutasyon-test.py
+    python3 tools/yayin-kapisi-mutasyon-test.py --eski-surum <git-ref>
+
+🔴 ADI NEDEN `-test.py`: `tools/ci-kapsam-test.py` kesfi YALNIZ `<ad>-test.py` /
+`test-<ad>.py` / `<ad>-kapisi.py` adlarina bakar. `-mutasyon.py` adiyla bu dosya
+kapsam kapisina GORUNMUYORDU (ne kosulan ne KAPSAMSIZ) — yani sessizce curuyebilirdi.
+Artik GORUNUR ve IZIN_LISTESI'nde OLCULMUS gerekceyle muaf: A kolu `git show <sha>`
+ile ONARIM ONCESI surumu ister, CI'nin sig checkout'unda (fetch-depth varsayilan 1)
+o commit ERISILEMEZ -> yapisal CI-kirmizi (R_YOL/R_FTS5 sinifi).
 
 NEDEN VAR ([[mutasyon-kaniti-yeniden-uretilebilir]]): "batarya kostu, hepsi kirmizi yandi"
 ANLATIMI KANIT DEGILDIR. Bu surucu repoda durur; kabul, cikis kodu degil BASILAN
@@ -146,54 +153,84 @@ def yeni_kos(m, d1_satirlari, canli_liste, kod_haritasi):
 # ═══════════════════════════════════════════════════════════════════════════════
 # MUTASYON BATARYASI
 # ═══════════════════════════════════════════════════════════════════════════════
-# (ad, eski_metin, yeni_metin, beklenen)  beklenen: "KIRMIZI" | "YESIL"(kontrol)
+# (ad, [(eski_metin, yeni_metin), ...], beklenen)   beklenen: "KIRMIZI" | "YESIL"(kontrol)
+# 🔴 COKLU EDIT DESTEKLI: bazi eksenler ancak IKI yer birlikte bozulunca ayirt edici olur
+# (or. "gecici kod listesi" tek basina bozulsa MODELLENMEYEN-kod dali onu yine GECICI
+# yapardi -> beyan edilmis survivor). Kac edit uygulandigi raporda gecer.
 MUTANTLAR = [
     ("M-A BOS YUZEY hali silinir (eski kor yesil GERI GELIR)",
-     '        return (HUKUM_OLCULEMEDI,\n                "BOS YUZEY:',
-     '        return (HUKUM_YESIL,\n                "BOS YUZEY:', "KIRMIZI"),
+     [('        return (HUKUM_OLCULEMEDI,\n                "BOS YUZEY:',
+       '        return (HUKUM_YESIL,\n                "BOS YUZEY:')], "KIRMIZI"),
     ("M-B nobet satiri (404 tanima izni) kaldirilir",
-     '    if nobet_id:\n        ekle(KAYNAK_NOBET, nobet_id, 404, False)',
-     '    if False:\n        ekle(KAYNAK_NOBET, nobet_id, 404, False)', "KIRMIZI"),
+     [('    if nobet_id:\n        ekle(KAYNAK_NOBET, nobet_id, 404, False)',
+       '    if False:\n        ekle(KAYNAK_NOBET, nobet_id, 404, False)')], "KIRMIZI"),
     ("M-C adres bicimi `.html`'e cevrilir (sahte 404 tuzagi)",
-     '    return "/urun/" + uid + "/"',
-     '    return "/urun/" + uid + ".html"', "KIRMIZI"),
-    ("M-D ag hatasi YESIL sayilir (sessiz yesil)",
-     '    if ag:\n        return (HUKUM_OLCULEMEDI,',
-     '    if ag and False:\n        return (HUKUM_OLCULEMEDI,', "KIRMIZI"),
+     [('    return "/urun/" + uid + "/"',
+       '    return "/urun/" + uid + ".html"')], "KIRMIZI"),
+    ("M-D gecici/olculemeyen olcum YESIL sayilir (sessiz yesil)",
+     [('    if gecici:\n        o, g = gecici[0]',
+       '    if gecici and False:\n        o, g = gecici[0]')], "KIRMIZI"),
     ("M-E nobet satiri katalog POZITIFI sayilir (yuzey sisirilir)",
-     '    pozitif = [o for o in olcumler if o.get("katalog") and o.get("alinan") == 200]',
-     '    pozitif = [o for o in olcumler if o.get("alinan") == 200]', "KIRMIZI"),
-    ("M-F canli katalog kesiti kaldirilir (yuzey yalniz taslak kalir)",
-     "YENI_N = 5 ", "YENI_N = 0 ", "KIRMIZI"),
-    ("M-G gercek sapma ag gurultusune yenilir (sira ters)",
-     '    if sapan:\n        return (HUKUM_KIRMIZI,',
-     '    if sapan and not ag:\n        return (HUKUM_KIRMIZI,', "KIRMIZI"),
-    ("M-H KONTROL: yalniz dokum basliginin metni degisir (anlam AYNI)",
-     '──── OLCUM DOKUMU (yoklanan sayfa yuzeyi) ────',
-     '──── OLCUM DOKUMU / yoklanan sayfa yuzeyi ────', "YESIL"),
+     [('               if s == SINIF_OK and o.get("katalog") and o.get("alinan") == 200]',
+       '               if s == SINIF_OK and o.get("alinan") == 200]')], "KIRMIZI"),
+    ("M-F canli katalogun EN YENI kolu kaldirilir (yuzey daralir)",
+     [("YENI_N = 5 ", "YENI_N = 0 ")], "KIRMIZI"),
+    ("M-G gercek kusur gecici gurultuye yenilir (sira ters)",
+     [('    if kirmizi:\n        o, g = kirmizi[0]',
+       '    if kirmizi and not gecici:\n        o, g = kirmizi[0]')], "KIRMIZI"),
+    # ── 2. TUR: rc SEMANTIGI + gecici/gercek ayrimi ────────────────────────────────
+    ("M-I OLCULEMEDI rc'si 0'a dondurulur (kor yesil JOB biriminde GERI GELIR)",
+     [("RC_OLCULEMEDI = 2", "RC_OLCULEMEDI = 0")], "KIRMIZI"),
+    ("M-J canli-YENI 404 istisnasi kaldirilir (edge rollout KIRMIZI yanar)",
+     [('        if kaynak == KAYNAK_YENI:\n            return SINIF_GECICI,',
+       '        if kaynak == KAYNAK_YENI and False:\n            return SINIF_GECICI,')],
+     "KIRMIZI"),
+    ("M-K MODELLENMEYEN kod dali KIRMIZI'ya cevrilir (yanlis-pozitif kapisi acilir)",
+     [('    return SINIF_GECICI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan',
+       '    return SINIF_KIRMIZI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan')],
+     "KIRMIZI"),
+    ("M-L gecici KOD LISTESI + 5xx dali dusurulur VE fallback KIRMIZI olur (403/429/503 "
+     "artik gercek kusur sayilir) [2 edit]",
+     [('    if alinan in GECICI_KODLAR or 500 <= int(alinan) <= 599:',
+       '    if False and (alinan in GECICI_KODLAR or 500 <= int(alinan) <= 599):'),
+      ('    return SINIF_GECICI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan',
+       '    return SINIF_KIRMIZI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan')],
+     "KIRMIZI"),
+    ("M-M TASLAK kolunun 404'u de 'edge rollout' sayilir (kayip kirmizi geri kaybolur)",
+     [('        if kaynak == KAYNAK_YENI:',
+       '        if kaynak in (KAYNAK_YENI, KAYNAK_TASLAK):')], "KIRMIZI"),
+    ("M-N KONTROL: yalniz dokum basliginin metni degisir (anlam AYNI)",
+     [('──── OLCUM DOKUMU (yoklanan sayfa yuzeyi · kol bazinda) ────',
+       '──── OLCUM DOKUMU / yoklanan sayfa yuzeyi / kol bazinda ────')], "YESIL"),
 ]
 
 
-def mutant_kos(kaynak, ad, eski, yeni, sira, tmp_kok):
-    """Mutasyonu BENZERSIZ dizine yazip `python3 -B` ile kosar.
-    Doner: (uygulandi_mi, rc, son_satir, sebep)"""
-    if kaynak.count(eski) != 1:
-        return (False, None, "", "desen %d kez bulundu (1 olmali) -> mutasyon UYGULANMADI"
-                % kaynak.count(eski), False, 0)
-    mutant = kaynak.replace(eski, yeni)
+def mutant_kos(kaynak, ad, editler, sira, tmp_kok):
+    """Mutasyon(lar)i BENZERSIZ dizine yazip `python3 -B` ile kosar.
+    editler: [(eski_metin, yeni_metin), ...] — her deseni TAM 1 kez bulmak SART.
+    Doner: (uygulandi_mi, rc, son_satir, sebep, tamamlandi_mi, dusen_iddia)"""
+    mutant = kaynak
+    for eski, yeni in editler:
+        if mutant.count(eski) != 1:
+            return (False, None, "", "desen %d kez bulundu (1 olmali) -> mutasyon "
+                    "UYGULANMADI: %r" % (mutant.count(eski), eski[:60]), False, 0)
+        mutant = mutant.replace(eski, yeni)
     if mutant == kaynak:
         return False, None, "", "kaynak DEGISMEDI", False, 0
     dizin = os.path.join(tmp_kok, "mutant-%02d-%s" % (sira, hashlib.sha1(
-        (ad + eski).encode("utf-8")).hexdigest()[:8]))
+        (ad + repr(editler)).encode("utf-8")).hexdigest()[:8]))
     os.makedirs(dizin, exist_ok=True)
     yol = os.path.join(dizin, "kapi_m%02d.py" % sira)
     with open(yol, "w", encoding="utf-8") as f:
         f.write(mutant)
     # 🔴 DISKTEN GERI OKU: mutasyonun FIILEN uygulandigini iddiadan degil dosyadan dogrula.
+    # (Ayni uzunluk / ayni saniye / __pycache__ tuzaklari icin: benzersiz dizin+ad, -B.)
     with open(yol, encoding="utf-8") as f:
         diskteki = f.read()
-    if eski in diskteki or yeni not in diskteki:
-        return False, None, "", "diskteki kopyada mutasyon YOK (yazma tuzagi)", False, 0
+    for eski, yeni in editler:
+        if eski in diskteki or yeni not in diskteki:
+            return (False, None, "", "diskteki kopyada mutasyon YOK (yazma tuzagi): %r"
+                    % eski[:60], False, 0)
     p = subprocess.run([sys.executable, "-B", yol, "--kendini-test"],
                        capture_output=True, text=True)
     satirlar = [s for s in p.stdout.strip().splitlines() if s.strip()]
@@ -258,6 +295,20 @@ def main():
                     cikti_y.strip()[-200:])
             dogrula("A6 YENI + ayni fikstur -> 'KATALOG POZITIF DOGRULANAN SAYFA: 0' basar",
                     "KATALOG POZITIF DOGRULANAN SAYFA: 0" in cikti_y)
+            # 🔴 JOB BIRIMI: hukum jetonunu hicbir is akisi tuketmiyor -> karar yuzeyi rc.
+            # Onarimin "artik success DEGIL" iddiasi ANCAK burada dogrulanabilir.
+            dogrula("A6b JOB BIRIMI: ESKI rc=0 (`success`) · YENI rc=2 (OLCULEMEDI) — "
+                    "degisen yalniz stdout metni DEGIL, CIKIS KODU",
+                    rc_e == 0 and rc_y == 2, (rc_e, rc_y))
+            dogrula("A6c JOB BIRIMI: uc jeton -> uc AYRI rc (yeni surumde)",
+                    (yeni.hukum_cikis_kodu(yeni.HUKUM_YESIL),
+                     yeni.hukum_cikis_kodu(yeni.HUKUM_KIRMIZI),
+                     yeni.hukum_cikis_kodu(yeni.HUKUM_OLCULEMEDI)) == (0, 1, 2),
+                    [yeni.hukum_cikis_kodu(h) for h in (yeni.HUKUM_YESIL,
+                                                        yeni.HUKUM_KIRMIZI,
+                                                        yeni.HUKUM_OLCULEMEDI)])
+            dogrula("A6d ESKI surumde rc=2 (OLCULEMEDI) hali HIC YOK",
+                    "RC_OLCULEMEDI" not in eski_kaynak)
 
             # FIKSTUR 2: taslak YOK + canli katalogda 404 veren sayfa.
             kirik = {yeni.urun_yolu(u): 200 for u in UYDURMA_CANLI}
@@ -279,10 +330,12 @@ def main():
                                capture_output=True, text=True)
         dogrula("B0 MUTASYONSUZ taban YESIL (rc=0) — taban kirmizi olsa batarya anlamsizdi",
                 temiz.returncode == 0, temiz.returncode)
-        oldu, kontrol_hali, cokme = 0, "OLCULEMEDI", 0
-        for i, (ad, eski_m, yeni_m, beklenen) in enumerate(MUTANTLAR, 1):
+        oldu, kontrol_hali, cokme, uygulanmayan = 0, "OLCULEMEDI", 0, 0
+        for i, (ad, editler, beklenen) in enumerate(MUTANTLAR, 1):
             uygulandi, rc, son, dusenler, tamam, dusen_n = mutant_kos(
-                yeni_kaynak, ad, eski_m, yeni_m, i, tmp_kok)
+                yeni_kaynak, ad, editler, i, tmp_kok)
+            if not uygulandi:
+                uygulanmayan += 1
             if not uygulandi:
                 dogrula("B%d %s" % (i, ad), False, dusenler)
                 continue
@@ -303,9 +356,12 @@ def main():
                 dogrula("B%d %s -> rc=%s (KONTROL: YESIL kalmali)" % (i, ad, rc),
                         rc == 0 and tamam, son)
 
-        kirmizi_toplam = sum(1 for x in MUTANTLAR if x[3] == "KIRMIZI")
+        kirmizi_toplam = sum(1 for x in MUTANTLAR if x[2] == "KIRMIZI")
         print("\nAYIRT_EDICI_MUTANT = %d/%d (COKEREK dusen: %d — sayilmaz)"
               % (oldu, kirmizi_toplam, cokme))
+        print("MUTASYON_UYGULANDI = %s (%d/%d desen diskte dogrulandi)"
+              % ("EVET" if uygulanmayan == 0 else "HAYIR",
+                 len(MUTANTLAR) - uygulanmayan, len(MUTANTLAR)))
         print("KONTROL_MUTANTI    = %s" % kontrol_hali)
         print("IDDIA_SAYISI       = %d (gecen %d, kalan %d)"
               % (gecen[0] + kalan[0], gecen[0], kalan[0]))
