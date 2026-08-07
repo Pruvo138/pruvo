@@ -77,6 +77,13 @@ DURDURMAZ, ama her push'ta mail uretiyordu). Dusen iddialar: **E3 + E4**.
   aradakiler iptal oluyor ve **40-90 dk'da bir** bir kosum yayina iniyor (bugunku basarilar:
   08:35 · 11:09 · 11:54 · 12:45 · 15:07 · 16:06Z). Yani onarim bir sonraki basarili zincirde
   yayina cikar. Kok kaldirac `serit-a4`'un **47m58s** suresi → [[kapi-birikimi-yayin-gecikmesi]].
+- 🔍 **"1 saattir asili" DUZELTILDI — birim hatasiydi.** `bb804c24` kosumu `createdAt`'e gore
+  ~1 saat gorunuyordu, ama JOB birimiyle olculdu: `build` success (11m06s), `serit-a3` success
+  (11m56s), `serit-a2` success (20m43s), **`serit-a4` 16:59:10Z'de basladi ve ~36 dk'da hala
+  kosuyordu** — tarihsel **42-50 dk** bandinin ICINDE. Aradaki ~21 dk **KUYRUK** suresiydi.
+  Yani asilma YOK; onceki turun devir maddesi (2)'deki **60 dk esigi FIILEN ASILMADI**,
+  `nobet.yml` seridine tasima kosulu yine olusmadi. → [[hukum-yanlis-birimde]]
+- 📌 Bu turun yetim-is dersi hafizaya yazildi → [[oksuz-commitsiz-onarim-curur]].
 - 🟡 D1 (`d1-sync.py --durum`): D1 **22.089** vs yerel **22.136** (47 satir), `marka_kanon` ·
   `model_kanon` · `marka_arama` BAYAT — hepsi ucustaki urun partisinin satirlari.
   MaCiT duzlemi, DOKUNULMADI. → [[yayin-penceresi-taslak-satir]]
