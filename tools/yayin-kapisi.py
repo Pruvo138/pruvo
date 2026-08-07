@@ -215,14 +215,76 @@ def urun_yolu(uid):
     return "/urun/" + uid + "/"
 
 
-def urun_capasi(uid):
-    """SOFT-404 CAPASI — sayfanin tasimasi ZORUNLU dizge. TEK KAYNAK: urun_yolu().
-    build.py her urun sayfasina `<link rel="canonical" href="<SITE>/urun/<id>/">` basar.
-    Capa buradan TURETILIR; ikinci bir sabit yazilmaz ([[ikiz-tanim-sessiz-ayrisma]])."""
+def yerel_capa(uid):
+    """KAPININ KENDI hesabi. 🔴 URETIM YOLUNDA KULLANILMAZ — yalniz (a) build.py hic
+    yuklenemezse son care, (b) ESITLIK IDDIASININ karsi tarafi (kendini-test)."""
     return SITE + urun_yolu(uid)
 
 
-def govde_isareti(uid, govde):
+_BUILD_ONBELLEK = {}
+
+
+def build_capa_ureticisi():
+    """🔴 CAPANIN TEK KAYNAGI: tools/build.py::product_url — sayfayi URETEN fonksiyonun
+    KENDISI cagrilir. Doner: (fn | None, sebep).
+
+    NEDEN IMPORT (ve neden METIN ESLEMESI DEGIL): capa iki dosyada iki kez yazilirsa
+    siradan bir build.py duzenlemesi (sondaki `/` kalkar · yol kisalir · SITE www'ye
+    doner · capa goreli olur) bu kapiyi SAGLIKLI govdede KIRMIZI yakar ve BLOKLAYICI
+    cagirani (d1-uzlastirici.yml) her kosumda durdurur — olculdu: 4 makul drift'in
+    DORDU DE yanlis-pozitif uretiyordu ([[ikiz-tanim-sessiz-ayrisma]]).
+    Kaynak METNINDEN regex'le cikarmak PARSER TAKLIDIDIR ve bu evde yasaktir
+    ([[mimar-kapi-parser-taklidi]]) -> modul yuklenir, FONKSIYON CAGRILIR.
+
+    OLCULDU (8 Agu 2026, bu depoda): import 0,029 sn · YAZMA yan etkisi YOK (uretilen
+    dosya 0) · `if __name__ == "__main__"` korumali. Yerel importlari (arama, sayfalar,
+    marka_model_build ...) icin tools/ gecici olarak sys.path'e eklenir.
+    🔴 DUZELTME (ayni gun, olculdu): import YAN ETKISIZ DEGIL — OKUMA bagimliligi VAR:
+    zincir `build -> marka_model_build -> model_kanon` MODUL DUZEYINDE `KOK/index.html`i
+    OKUR. index.html yoksa import patlar; o halde bu fonksiyon (fn=None, sebep) doner,
+    uretim yolu yerel_capa yedegine duser ve kendini-test'in Y77 ekseni KIRMIZI yanar —
+    yani sessiz yedege dusme YOK.
+    """
+    if "fn" in _BUILD_ONBELLEK:
+        return _BUILD_ONBELLEK["fn"], _BUILD_ONBELLEK["sebep"]
+    fn, sebep = None, ""
+    araclar = os.path.join(KOK, "tools")
+    eklendi = False
+    try:
+        if araclar not in sys.path:
+            sys.path.insert(0, araclar)
+            eklendi = True
+        yol = os.path.join(araclar, "build.py")
+        spec = importlib.util.spec_from_file_location("pruvo_build_capa", yol)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        fn = getattr(m, "product_url", None)
+        if fn is None:
+            sebep = "build.py yuklendi ama `product_url` YOK (ad degismis olabilir)"
+        else:
+            sebep = "build.py::product_url"
+    except Exception as e:
+        sebep = "build.py YUKLENEMEDI: %s: %s" % (type(e).__name__, e)
+    finally:
+        if eklendi:
+            with contextlib.suppress(ValueError):
+                sys.path.remove(araclar)
+    _BUILD_ONBELLEK["fn"], _BUILD_ONBELLEK["sebep"] = fn, sebep
+    return fn, sebep
+
+
+def urun_capasi(uid, uretici=None):
+    """SOFT-404 CAPASI — sayfanin tasimasi ZORUNLU dizge.
+    TEK KAYNAK build.py::product_url; `uretici` kabul testi icin enjekte edilebilir.
+    build.py cozulemezse yerel_capa yedegi kullanilir (ve kendini-test bunu KIRMIZI yakar)."""
+    if uretici is None:
+        uretici, _ = build_capa_ureticisi()
+    if uretici is None:
+        return yerel_capa(uid)
+    return uretici(uid)
+
+
+def govde_isareti(uid, govde, uretici=None):
     """Govde GERCEK urun sayfasi mi, yoksa 200 donen bir HATA sayfasi mi (SOFT-404)?
 
     Doner: True (gercek) | False (soft-404 / bozuk render) | None (govde YOK = olculemedi)
@@ -234,7 +296,7 @@ def govde_isareti(uid, govde):
         govde = govde.encode("utf-8", "replace")
     if len(govde) < GOVDE_ASGARI_BAYT:
         return False
-    return urun_capasi(uid).encode("utf-8") in govde
+    return urun_capasi(uid, uretici).encode("utf-8") in govde
 
 
 def kesit_indeksleri(n, adet):
@@ -490,15 +552,43 @@ def hal_bol(idler, harita):
     return sorted(yok), sorted(yayinda), sorted(taslak)
 
 
-def yas_sn(kod, tarih, degisim):
-    """HTTP `date` - `last-modified` (saniye). Artefaktin NE KADARDIR CANLI oldugu.
+def age_cozumle(age):
+    """🔴 `Age` BASLIGI — YAS OLCUMUNUN EKSIK TERIMI (olculdu: sapma carpani 16,0).
+
+    Cloudflare istemcinin `Cache-Control: no-cache`'ini YOK SAYIP onbellekten servis
+    edebiliyor (`cf-cache-status: HIT`, `age: 227`) ve o halde `date` basligi ONBELLEGE
+    YAZILDIGI ANIN degil, ama IKI ARDIL ISTEKTE AYNI kalabiliyor -> `date - last-modified`
+    artefaktin gercek yasini `age` kadar EKSIK olcer. Ust sinir `max-age=14400` (4 saat);
+    rollout esigi 900 sn -> en kotu halde 16,0 katlik sapma, yon FAIL-OPEN (af hedeflenen
+    15 dk yerine saatlerce acik kalir). Bu yuzden yas = (date - last-modified) + age.
+
+    Doner: (saniye, not)
+      age YOK   -> (0, "age YOK -> 0 varsayildi")   yaygin ve mesru hal, AMA dokumde basilir
+      age SAYI  -> (n, "age=n sn eklendi")
+      age BOZUK -> (None, "...")  FAIL-CLOSED: sayi olmayan/negatif bir age'i 0 saymak
+                   olcumu sessizce fail-open'a cevirirdi ([[olcum-birimi-bayt-utf16]] sinifi)
+    """
+    if age is None:
+        return 0, "age YOK -> 0 varsayildi"
+    ham = str(age).strip()
+    try:
+        n = int(ham)
+    except Exception:
+        return None, "age BOZUK (sayi degil: %r) -> yas OLCULEMEZ (fail-closed)" % ham[:40]
+    if n < 0:
+        return None, "age BOZUK (negatif: %d) -> yas OLCULEMEZ (fail-closed)" % n
+    return n, "age=%d sn eklendi" % n
+
+
+def yas_sn(kod, tarih, degisim, age=None):
+    """HTTP (`date` + `age`) - `last-modified` (saniye). Artefaktin NE KADARDIR CANLI oldugu.
 
     🔴 NEDEN BU SAAT: D1 semasinda zaman damgasi kolonu YOKTUR (d1-sema.sql) — satirin
     "ne zamandir taslak" oldugu D1'den OLCULEMEZ. Olculebilen tek gercek saat, o satirin
     sayfasini tasiyan Pages artefaktinin CANLI OLMA suresidir; ve zararli hal (sayfa
     canli + satir taslak) icin gereken sure TAM OLARAK budur: yayin adiminin elinde ne
     kadar zaman oldugu. Sunucu saati kullanilir (yerel saat kaymasi olcumu bozmasin).
-    Doner: int saniye | None (basliklar okunamadi -> OLCULEMEDI).
+    Doner: int saniye | None (basliklar okunamadi ya da `age` BOZUK -> OLCULEMEDI).
     """
     if kod is None or not tarih or not degisim:
         return None
@@ -509,7 +599,10 @@ def yas_sn(kod, tarih, degisim):
         return None
     if d is None or m is None:
         return None
-    return max(0, int((d - m).total_seconds()))
+    age_sn, _ = age_cozumle(age)
+    if age_sn is None:
+        return None                      # BOZUK age -> fail-closed (0 SAYILMAZ)
+    return max(0, int((d - m).total_seconds()) + age_sn)
 
 
 def parcala(idler, boy=PARCA):
@@ -560,13 +653,22 @@ def canli_urun_idleri():
 
 
 def canli_hal(yol):
-    """Canli bir yolun (kod, yas_sn) hali. Govde INDIRILMEZ (HEAD) — /urunler.json 14 MB.
+    """Canli bir yolun (kod, yas_sn, age_notu) hali. Govde INDIRILMEZ (HEAD).
 
     SINIFLANDIRMA PROBU (yayin kararindan AYRI, bilerek daha ucuz): temiz bir 404
     KESINDIR, tekrar denemek yalniz sure yakar; yalniz AG/5xx hatasinda tek bir tekrar
     yapilir. Yayina alma karari BU FONKSIYONU KULLANMAZ — o hala sayfa_kodu()'nun
     3 denemeli, CDN isinmasina paylı yolundan gecer.
+    🔴 `age` BASLIGI OKUNUR ve yasa EKLENIR (bkz. age_cozumle): CDN onbellekten HIT
+    verdiginde `date` bayat kalir ve yas EKSIK olculurdu.
     """
+    def olc(kod, basliklar):
+        if basliklar is None:
+            return None, "baslik YOK"
+        _, notu = age_cozumle(basliklar.get("age"))
+        return (yas_sn(kod, basliklar.get("date"), basliklar.get("last-modified"),
+                       basliklar.get("age")), notu)
+
     for i in range(2):
         istek = urllib.request.Request(SITE + yol, method="HEAD",
                                        headers={"User-Agent": UA, "Cache-Control": "no-cache"})
@@ -579,11 +681,12 @@ def canli_hal(yol):
         except Exception:
             kod, basliklar = None, None
         if kod is not None and (kod == 200 or kod == 404):
-            return kod, yas_sn(kod, basliklar.get("date"), basliklar.get("last-modified"))
+            yas, notu = olc(kod, basliklar)
+            return kod, yas, notu
         if i == 0:
             time.sleep(1.5)
-    return kod, (yas_sn(kod, basliklar.get("date"), basliklar.get("last-modified"))
-                 if basliklar is not None else None)
+    yas, notu = olc(kod, basliklar)
+    return kod, yas, notu
 
 
 def yol_kodu(yol, beklenen=200, uid=None):
@@ -643,7 +746,7 @@ def bos_sayac():
 
 
 def dokum_bas(olcumler, hukum, sebep, sayac, atlanan_taslak, rc=None, artefakt_yas=None,
-              ariza=None):
+              ariza=None, yas_notu=None):
     """🔴 BASILAN SAYI = HUKMUN KANITI. Cikis kodu tek basina hukum degildir; HANGI KOL
     HANGI KODU verdi, kaynak basina ACIKCA basilir (kod dagilimi dahil).
 
@@ -652,9 +755,15 @@ def dokum_bas(olcumler, hukum, sebep, sayac, atlanan_taslak, rc=None, artefakt_y
     = hukum kaniti") en olasi operasyonel arizada COKER ([[damga-finally-tuzagi]]).
     Bu yuzden burada HICBIR sey firlatmamali; cagiran taraf ayrica sarmalar."""
     print("──── OLCUM DOKUMU (yoklanan sayfa yuzeyi · kol bazinda) ────")
-    print("ARTEFAKT YASI (canli /urunler.json, sunucu saati): %s  ·  ROLLOUT ESIGI: %d sn"
-          % (("%d sn" % int(artefakt_yas)) if artefakt_yas is not None
-             else "OLCULEMEDI (rollout affi VERILMEZ)", ROLLOUT_ESIK_SN))
+    print("ARTEFAKT YASI (canli /urunler.json, sunucu saati + age): %s  ·  "
+          "ROLLOUT ESIGI: %d sn" % (("%d sn" % int(artefakt_yas))
+                                    if artefakt_yas is not None
+                                    else "OLCULEMEDI (rollout affi VERILMEZ)",
+                                    ROLLOUT_ESIK_SN))
+    # 🔴 `age` TERIMI HER KOSUMDA GORUNUR: "age YOK -> 0 varsayildi" da bir OLCUM
+    # beyanidir; gorunmezse onbellekten HIT alan bir kosumda yas eksik olculur ve
+    # kimse farketmez (olculdu: sapma carpani 16,0).
+    print("YAS TERIMI (age): %s" % (yas_notu or "OLCULEMEDI (not YOK)"))
     if ariza:
         print("!! ARIZA (olcum yarida kesildi): %s" % ariza)
     print("%-12s %9s %5s %8s %8s  %s"
@@ -826,9 +935,10 @@ def komut_hal_json(idler):
     sonuc["yok"] = yok
     sonuc["yayinda"] = yayinda
 
-    # ARTEFAKT SAATI: canli /urunler.json ne kadardir yayinda (sunucu saatiyle).
-    kod, yas = canli_hal("/urunler.json")
+    # ARTEFAKT SAATI: canli /urunler.json ne kadardir yayinda (sunucu saati + `age`).
+    kod, yas, age_notu = canli_hal("/urunler.json")
     sonuc["artefakt_yas_sn"] = yas if kod == 200 else None
+    sys.stderr.write("artefakt yas notu: %s\n" % age_notu)
 
     # SAYFA HALI: taslak satirin ZARARLI mi ZARARSIZ mi oldugunu belirleyen TEK olcu.
     #   sayfa 200 + satir TASLAK -> ZARARLI  (site satiyor, Ege GOREMEZ)
@@ -839,7 +949,7 @@ def komut_hal_json(idler):
             haller = list(havuz.map(lambda u: canli_hal("/urun/" + u + "/"), taslak))
         sonuc["sayfa_olculdu"] = True
         sonuc["taslak"] = [{"id": u, "sayfa": h[0], "yas_sn": h[1]}
-                           for u, h in zip(taslak, haller)]
+                           for u, h in zip(taslak, haller)]   # h = (kod, yas, age_notu)
     else:
         if taslak:
             sys.stderr.write("!! TASLAK sayisi tavani asti (%d > %d): sayfa hali OLCULMEDI.\n"
@@ -851,10 +961,12 @@ def komut_hal_json(idler):
 
 
 def artefakt_yasi():
-    """CANLI /urunler.json artefaktinin yasi (sn) — ROLLOUT AFFININ SAATI.
-    None = olculemedi (af VERILMEZ). TEK HEAD istegi (govde 14 MB, indirilmez)."""
-    kod, yas = canli_hal("/urunler.json")
-    return yas if kod == 200 else None
+    """CANLI /urunler.json artefaktinin yasi — ROLLOUT AFFININ SAATI.
+    Doner: (yas_sn | None, not). None = olculemedi (af VERILMEZ). TEK HEAD istegi."""
+    kod, yas, age_notu = canli_hal("/urunler.json")
+    if kod != 200:
+        return None, "artefakt HEAD kodu %s -> yas OLCULEMEDI" % kod
+    return yas, age_notu
 
 
 def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
@@ -879,7 +991,8 @@ def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
     yas_kaynak = yas_kaynak or artefakt_yasi
 
     d = {"olcumler": [], "hukum": HUKUM_OLCULEMEDI, "sayac": bos_sayac(), "atlanan": {},
-         "sebep": "olcum TAMAMLANMADI", "rc": RC_OLCULEMEDI, "yas": None, "ariza": None}
+         "sebep": "olcum TAMAMLANMADI", "rc": RC_OLCULEMEDI, "yas": None, "ariza": None,
+         "yas_notu": "yas HIC OLCULMEDI"}
     try:
         if not kolon_hazir(m):
             # 🔴 rc=2 (rc=1 DEGIL): sema eksigi bir OLCUM ENGELIDIR, "sitede 404 var"
@@ -888,7 +1001,12 @@ def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
             d["ariza"] = "D1 semasinda `yayinda` kolonu yok (once: d1-sync.py --sema)"
             return d["rc"]
 
-        d["yas"] = yas_kaynak()
+        # yas_kaynak -> (yas, not). Duz sayi dondurulurse de kabul edilir (fikstur uyumu).
+        _y = yas_kaynak()
+        if isinstance(_y, tuple):
+            d["yas"], d["yas_notu"] = _y[0], (_y[1] if len(_y) > 1 else "not YOK")
+        else:
+            d["yas"], d["yas_notu"] = _y, "not VERILMEDI (duz deger)"
         taslaklar = taslak_idler(m)
         canli, hata = canli_kaynak()
         canli_sirali = list(canli) if canli is not None else []
@@ -973,7 +1091,8 @@ def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None,
         # GIZLEMEZ: yakalanir ve AYRI satirda basilir.
         try:
             dokum_bas(d["olcumler"], d["hukum"], d["sebep"], d["sayac"], d["atlanan"],
-                      rc=d["rc"], artefakt_yas=d["yas"], ariza=d["ariza"])
+                      rc=d["rc"], artefakt_yas=d["yas"], ariza=d["ariza"],
+                      yas_notu=d["yas_notu"])
         except Exception as e2:
             print("!! DOKUM BASILAMADI (orijinal ariza yukarida durur): %s: %s"
                   % (type(e2).__name__, e2))
@@ -1354,6 +1473,141 @@ def kendini_test():
             and sinif(KAYNAK_TASLAK, 200, 404, yas=0) == SINIF_KIRMIZI)
     dogrula("Y69g AF: esik kodda TEK SABIT ve makul (0 < esik <= 1 saat)",
             0 < ROLLOUT_ESIK_SN <= 3600, ROLLOUT_ESIK_SN)
+    # 🔴 DAVRANISSAL CAPA (4. tur): Y69g yalniz bir SINIR iddiasidir — esigi 900'den
+    # 3600'e cikaran bir mutant ondan GECER. Asagidaki iki iddia esigin DEGERINI
+    # davranisla capalar: sabitler BILEREK duz sayi (ROLLOUT_ESIK_SN'den TUREMEZ),
+    # yoksa mutantla birlikte kayar ve tautoloji olur ([[anahat-referans-tautolojisi]]).
+    dogrula("Y69q AF DAVRANISSAL CAPA: yas 899 sn -> af ACIK (GECICI)",
+            sinif(KAYNAK_YENI, 200, 404, yas=899) == SINIF_GECICI,
+            sinif(KAYNAK_YENI, 200, 404, yas=899))
+    dogrula("Y69r AF DAVRANISSAL CAPA: yas 901 sn -> af KAPALI (KIRMIZI)",
+            sinif(KAYNAK_YENI, 200, 404, yas=901) == SINIF_KIRMIZI,
+            sinif(KAYNAK_YENI, 200, 404, yas=901))
+
+    # ══════════════════════════════════════════════════════════════════════════════
+    # YAS BIRIMI: `age` terimi (4. tur — olculen sapma carpani 16,0)
+    # ══════════════════════════════════════════════════════════════════════════════
+    D1 = "Sat, 08 Aug 2026 12:30:00 GMT"
+    LM = "Sat, 08 Aug 2026 12:00:00 GMT"
+    dogrula("Y76 AGE: age YOKKEN yas = date - last-modified (1800 sn)",
+            yas_sn(200, D1, LM) == 1800, yas_sn(200, D1, LM))
+    dogrula("Y76b AGE: age=227 -> yas 227 sn ARTAR (1800 -> 2027)",
+            yas_sn(200, D1, LM, "227") == 2027, yas_sn(200, D1, LM, "227"))
+    # 🔴 COKME DEGIL OLCUM: iki taraf da sayi OLMALI; None'la aritmetik yapmak COKER ve
+    # cokme "kirmizi"yla karisir ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+    _a, _b = yas_sn(200, D1, LM, "227"), yas_sn(200, D1, LM)
+    dogrula("Y76c AGE: fark tam olarak age kadar (birim ekseni: 227)",
+            isinstance(_a, int) and isinstance(_b, int) and _a - _b == 227, (_a, _b))
+    dogrula("Y76d AGE: age=0 -> yas DEGISMEZ", yas_sn(200, D1, LM, "0") == 1800)
+    dogrula("Y76e AGE: age BOZUK (sayi degil) -> yas None (FAIL-CLOSED, 0 SAYILMAZ)",
+            yas_sn(200, D1, LM, "abc") is None, yas_sn(200, D1, LM, "abc"))
+    dogrula("Y76f AGE: age NEGATIF -> yas None (fail-closed)",
+            yas_sn(200, D1, LM, "-5") is None)
+    dogrula("Y76g AGE NOTU: age yok -> (0, 'age YOK -> 0 varsayildi')",
+            age_cozumle(None) == (0, "age YOK -> 0 varsayildi"), age_cozumle(None))
+    dogrula("Y76h AGE NOTU: age=227 -> (227, 'age=227 sn eklendi')",
+            age_cozumle("227") == (227, "age=227 sn eklendi"), age_cozumle("227"))
+    dogrula("Y76i AGE NOTU: bozuk age -> (None, 'BOZUK...') ve not sebebi TASIR",
+            age_cozumle("x")[0] is None and "BOZUK" in age_cozumle("x")[1],
+            age_cozumle("x"))
+    # UST SINIR OLCUSU: max-age=14400 iken age tek basina esigi 16 kat asabilir.
+    dogrula("Y76j AGE: age=14400 (max-age ust siniri) yasa TAM eklenir -> af KAPANIR",
+            sinif(KAYNAK_YENI, 200, 404, yas=yas_sn(200, D1, LM, "14400"))
+            == SINIF_KIRMIZI, yas_sn(200, D1, LM, "14400"))
+    # 🔴 IKI YONLU ISARET — ONBELLEK HIT SENARYOSU: date-last_modified = 300 sn (af
+    # penceresi ICINDE) ama CDN `age: 1200` diyor, yani artefakt gercekte 1500 sn'dir.
+    # ESKI hesap (age'siz) 300 gorup AF VERIRDI; YENI hesap 1500 gorup AF VERMEZ.
+    DK = "Sat, 08 Aug 2026 12:05:00 GMT"      # last-modified + 300 sn
+    dogrula("Y76k AGE: onbellek HIT — age'siz hesap 300 sn (af ACIK), age'li hesap "
+            "1500 sn (af KAPALI); AYNI basliklar, IKI YON",
+            yas_sn(200, DK, LM) == 300
+            and yas_sn(200, DK, LM, "1200") == 1500
+            and sinif(KAYNAK_YENI, 200, 404, yas=yas_sn(200, DK, LM)) == SINIF_GECICI
+            and sinif(KAYNAK_YENI, 200, 404,
+                      yas=yas_sn(200, DK, LM, "1200")) == SINIF_KIRMIZI,
+            (yas_sn(200, DK, LM), yas_sn(200, DK, LM, "1200")))
+
+    # ══════════════════════════════════════════════════════════════════════════════
+    # CAPA TEK KAYNAK: build.py::product_url (4. tur — capa IKIZI kapatildi)
+    # ══════════════════════════════════════════════════════════════════════════════
+    _bfn, _bsebep = build_capa_ureticisi()
+    dogrula("Y77 CAPA: build.py::product_url FIILEN yuklendi (capanin TEK KAYNAGI)",
+            _bfn is not None, _bsebep)
+    dogrula("Y77b CAPA: uretim yolu build.py'nin URETTIGI degeri kullanir",
+            _bfn is not None and urun_capasi("uydurma-parca-a1")
+            == _bfn("uydurma-parca-a1"),
+            (urun_capasi("uydurma-parca-a1"), _bsebep))
+    # 🔴 FAIL-CLOSED ESITLIK IDDIASI: build.py ile kapinin yerel yedegi AYRISIRSA bu
+    # iddia DUSER (rc=1). Uretim yolu build.py'yi kullandigi icin ayrisma yanlis-pozitif
+    # URETMEZ; ama sessizce de gecmez — kapi kendi yedegine guvenemedigini SOYLER.
+    _ornekler = ["uydurma-parca-a1", "uydurma-parca-b2", "k00", "canli-0"]
+    _sapan = [u for u in _ornekler if _bfn is None or _bfn(u) != yerel_capa(u)]
+    dogrula("Y77c CAPA ESITLIK: build.py::product_url == yerel_capa (4 ornekte) — "
+            "ayrisirsa KIRMIZI (kapi kendi yedegine guvenemez)",
+            _sapan == [], (_sapan, _bsebep,
+                           [(u, _bfn(u) if _bfn else None, yerel_capa(u))
+                            for u in _sapan[:2]]))
+    dogrula("Y77d CAPA: build.py METNI ayristirilmadi — FONKSIYON cagrildi "
+            "(parser taklidi YOK)", callable(_bfn), _bsebep)
+    # 🔴 DELEGASYON DAVRANISSAL OLCULUR ([[beyan-edilmis-survivor]]): build.py ile yerel
+    # yedek BUGUN AYNI degeri uretiyor, dolayisiyla "degerler esit" iddiasi uretim
+    # yolunun build.py'yi FIILEN cagirdigini KANITLAMAZ — delegasyonu kaldiran mutant
+    # ESDEGER olur ve SAG KALIR (olculdu: M-X ilk turda sag kaldi). Cozum: onbellege
+    # NISANLI bir uretec konur; uretim yolu onu kullanmiyorsa iddia DUSER.
+    _yedek = dict(_BUILD_ONBELLEK)
+    try:
+        _BUILD_ONBELLEK["fn"] = lambda u: "https://nisan.gecersiz/urun/" + u + "/"
+        _BUILD_ONBELLEK["sebep"] = "kendini-test nisani"
+        _nisanli = urun_capasi("uydurma-parca-a1")
+        _nisanli_govde = govde_isareti(
+            "uydurma-parca-a1",
+            b"<html><link rel=\"canonical\" href=\"https://nisan.gecersiz/urun/"
+            b"uydurma-parca-a1/\">" + b"w" * GOVDE_ASGARI_BAYT + b"</html>")
+    finally:
+        _BUILD_ONBELLEK.clear()
+        _BUILD_ONBELLEK.update(_yedek)
+    dogrula("Y77e CAPA DELEGASYON: uretim yolu build.py ureteccisini FIILEN cagirir "
+            "(nisanli uretec ciktiya YANSIR)",
+            _nisanli == "https://nisan.gecersiz/urun/uydurma-parca-a1/", _nisanli)
+    dogrula("Y77f CAPA DELEGASYON: govde_isareti de nisanli capayi arar "
+            "(delegasyon govde ekseninde de gecerli)", _nisanli_govde is True,
+            _nisanli_govde)
+    dogrula("Y77g CAPA: nisan geri alindi — onbellek gercek build.py'ye dondu",
+            urun_capasi("uydurma-parca-a1") == _bfn("uydurma-parca-a1"),
+            urun_capasi("uydurma-parca-a1"))
+
+    # 🔴 DORT MAKUL build.py DRIFT'i: SAGLIKLI govde YANLIS-POZITIF URETMEMELI.
+    # Her drift AYRI iddia; govde o drift'in URETTIGI capayi tasir (build.py ne
+    # basiyorsa kapi onu arar).
+    print("\n  ┌─ build.py CAPA DRIFT'i (saglikli govde yanlis-pozitif uretiyor mu) ─")
+    _driftler = [
+        ("v1 sondaki `/` kalkar", lambda u: SITE + "/urun/" + u),
+        ("v2 yol `/u/`ya kisalir", lambda u: SITE + "/u/" + u + "/"),
+        ("v3 SITE www'ye doner", lambda u: "https://www.pruvo3d.com/urun/" + u + "/"),
+        ("v4 capa GORELI olur", lambda u: "/urun/" + u + "/"),
+    ]
+    _drift_sonuc = []
+    for ad, uret in _driftler:
+        uid = "uydurma-parca-a1"
+        govde = (b"<html><head><link rel=\"canonical\" href=\"" + uret(uid).encode()
+                 + b"\">" + b"z" * GOVDE_ASGARI_BAYT + b"</head></html>")
+        isaret = govde_isareti(uid, govde, uretici=uret)
+        s = olcum_sinifi({"kaynak": KAYNAK_KESIT, "id": uid, "beklenen": 200,
+                          "alinan": 200, "katalog": True, "govde": isaret}, 0)[0]
+        _drift_sonuc.append((ad, isaret, s))
+        print("  │ %-26s govde_isareti=%-5s sinif=%-8s rc=%d"
+              % (ad, isaret, s, RC_KIRMIZI if s == SINIF_KIRMIZI else RC_YESIL))
+    print("  └──────────────────────────────────────────────────────────────")
+    for i, (ad, isaret, s) in enumerate(_drift_sonuc, 1):
+        dogrula("Y78.%d CAPA DRIFT [%s]: saglikli govde YANLIS-POZITIF URETMEZ "
+                "(isaret True, sinif OK)" % (i, ad),
+                isaret is True and s == SINIF_OK, (isaret, s))
+    # KONTROL: drift olsa bile GERCEK hata sayfasi hala yakalanir (af degil, KOR olma).
+    _hata_govdesi = b"<html>Sayfa bulunamadi</html>" + b"q" * GOVDE_ASGARI_BAYT
+    dogrula("Y78e CAPA DRIFT KONTROLU: drift'li uretecte de HATA govdesi False verir "
+            "(kapi kor olmadi)",
+            govde_isareti("uydurma-parca-a1", _hata_govdesi,
+                          uretici=_driftler[0][1]) is False)
 
     # ── SOFT-404 (200 + hata govdesi) ──────────────────────────────────────────────
     dogrula("Y69h SOFT404: 200 + govde isareti FALSE -> hard 404 gibi yargilanir "
@@ -1416,7 +1670,7 @@ def kendini_test():
 
     def kos(d1_satirlari, canli_liste, kod_haritasi, varsayilan=404, canli_hata=None,
             yerel=None, yas=0, govde_haritasi=None, kolon=True, sorgu_patlar=False,
-            yazma_patlar=False):
+            yazma_patlar=False, yas_notu=None):
         """komut_yayinla'yi FIKSTURLE kosar; stdout yakalanir (dokum gurultusu tasmasin).
         `yas` = artefakt yasi (rollout affinin saati). Doner: (rc, d1, prob, cikti)"""
         m = SahteD1(d1_satirlari, kolon=kolon, sorgu_patlar=sorgu_patlar,
@@ -1428,7 +1682,8 @@ def kendini_test():
             rc = komut_yayinla(m, "test-release", prob=prob, canli_kaynak=kaynak,
                                yerel_kaynak=(lambda: list(yerel if yerel is not None
                                                           else canli_liste)),
-                               yas_kaynak=(lambda: yas))
+                               yas_kaynak=(lambda: (yas, yas_notu)
+                                           if yas_notu is not None else yas))
         return rc, m, prob, tampon.getvalue()
 
     def hukum_of(cikti):
@@ -1591,6 +1846,32 @@ def kendini_test():
     dogrula("Y63 NOBET: var olmayan id 200 verdi -> rc=1 (kapinin gozu bozuk)",
             kos({}, canli12, dict(tum_200, **{"/urun/" + NOBET_ID + "/": 200}))[0]
             == RC_KIRMIZI)
+
+    # ── 5a2) `age` TERIMI UCTAN UCA (yas birimi; dokumde GORUNMELI) ───────────────
+    print("\n  ┌─ AGE TERIMI (uctan uca; date-lm = 300 sn, esik 900) ─────────")
+    DKG, LMG = "Sat, 08 Aug 2026 12:05:00 GMT", "Sat, 08 Aug 2026 12:00:00 GMT"
+    age_sonuc = []
+    for etiket, age_ham, beklenen_rc in (("age=227", "227", RC_OLCULEMEDI),
+                                         ("age YOK", None, RC_OLCULEMEDI),
+                                         ("age BOZUK ('abc')", "abc", RC_KIRMIZI)):
+        _yas = yas_sn(200, DKG, LMG, age_ham)
+        _notu = age_cozumle(age_ham)[1]
+        rcv, mv, pv, ckv = kos({}, canli12, yeni404, yas=_yas, yas_notu=_notu)
+        age_sonuc.append((etiket, _yas, _notu, rcv, hukum_of(ckv), ckv, beklenen_rc))
+        print("  │ %-18s yas=%-6s rc=%d hukum=%-11s not=%s"
+              % (etiket, _yas, rcv, hukum_of(ckv), _notu))
+    print("  └──────────────────────────────────────────────────────────────")
+    for etiket, _yas, _notu, rcv, hv, ckv, brc in age_sonuc:
+        dogrula("Y79 [%s]: rc=%d (beklenen %d)" % (etiket, rcv, brc), rcv == brc,
+                (rcv, _yas, hv))
+        dogrula("Y79b [%s]: `age` notu DOKUMDE gorunuyor" % etiket,
+                "YAS TERIMI (age): " + _notu in ckv, ckv.strip()[:400])
+    dogrula("Y79c AGE: age=227 yasi 300 -> 527 yapti (fark 227) ve af HALA ACIK",
+            age_sonuc[0][1] == 527 and age_sonuc[1][1] == 300,
+            (age_sonuc[0][1], age_sonuc[1][1]))
+    dogrula("Y79d AGE: BOZUK age yasi OLCULEMEZ yapti (None) -> af KAPANDI, rc=1",
+            age_sonuc[2][1] is None and age_sonuc[2][3] == RC_KIRMIZI,
+            (age_sonuc[2][1], age_sonuc[2][3]))
 
     # ── 5b) SOFT-404 UCTAN UCA ────────────────────────────────────────────────────
     print("\n  ┌─ SOFT-404 (200 + govde ekseni) ──────────────────────────────")

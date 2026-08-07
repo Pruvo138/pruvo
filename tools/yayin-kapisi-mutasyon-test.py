@@ -37,6 +37,7 @@ B. MUTASYON BATARYASI (yeni surumun iddialari FIILEN olduruyor mu?)
    beklenen jeton yok) yazmadan SONRA diskten OKUNARAK dogrulanir.
 """
 import argparse
+import contextlib
 import hashlib
 import os
 import shutil
@@ -217,9 +218,9 @@ MUTANTLAR = [
     ("M-R govde OLCULEMEDI hali 'saglam' sayilir (fail-open)",
      [('            if isaret is None:', '            if isaret is None and False:')],
      "KIRMIZI"),
-    ("M-S kanonik capa sartı kaldirilir (her govde 'gercek urun sayfasi' olur)",
-     [('    return urun_capasi(uid).encode("utf-8") in govde', '    return True')],
-     "KIRMIZI"),
+    ("M-S kanonik capa sarti kaldirilir (her govde 'gercek urun sayfasi' olur)",
+     [('    return urun_capasi(uid, uretici).encode("utf-8") in govde',
+       '    return True')], "KIRMIZI"),
     ("M-T KOVA SINIRI geri alinir (yeni-kova tum katalogu yutar -> kucuk katalogda "
      "KIRMIZI sinifi ULASILAMAZ olur)",
      [('    yeni_adet = min(max(0, yeni_n), max(0, n - 1))',
@@ -235,6 +236,29 @@ MUTANTLAR = [
        '        d["ariza"] = "%s: %s" % (type(e).__name__, e)')], "KIRMIZI"),
     ("M-W KULLANIM hatasi kodu OLCULEMEDI ile ayni kovaya geri konur",
      [("RC_KULLANIM = 64", "RC_KULLANIM = 2")], "KIRMIZI"),
+    # ── 4. TUR: capa TEK KAYNAK · yas birimi (age) · esik davranissal capasi ───────
+    ("M-X CAPA IKIZI GERI GELIR (uretim yolu build.py'yi DEGIL yerel hesabi kullanir)",
+     [('    if uretici is None:\n        uretici, _ = build_capa_ureticisi()',
+       '    if uretici is None:\n        uretici = None')], "KIRMIZI"),
+    ("M-Y CAPA YEDEGI AYRISIR (yerel_capa bozulur -> esitlik iddiasi KIRMIZI yakar)",
+     [('    return SITE + urun_yolu(uid)', '    return SITE + "/u/" + uid')],
+     "KIRMIZI"),
+    ("M-Z1 `age` TERIMI KALDIRILIR (yas eksik olculur -> af fail-open)",
+     [('    return max(0, int((d - m).total_seconds()) + age_sn)',
+       '    return max(0, int((d - m).total_seconds()))')], "KIRMIZI"),
+    ("M-Z2 `age` YOK hali 0 DEGIL None sayilir (yaygin hal fail-closed'a devrilir)",
+     [('        return 0, "age YOK -> 0 varsayildi"',
+       '        return None, "age YOK -> 0 varsayildi"')], "KIRMIZI"),
+    ("M-Z3 BOZUK `age` 0 sayilir (fail-open: olcemedigini 'iyi' sanar)",
+     [('        return None, "age BOZUK (sayi degil: %r) -> yas OLCULEMEZ '
+       '(fail-closed)" % ham[:40]',
+       '        return 0, "age BOZUK (sayi degil: %r) -> yas OLCULEMEZ '
+       '(fail-closed)" % ham[:40]')], "KIRMIZI"),
+    ("M-Z4 ESIK 900 -> 3600 (sinir iddiasi GECER, DAVRANISSAL capa dusmeli)",
+     [("ROLLOUT_ESIK_SN = 900", "ROLLOUT_ESIK_SN = 3600")], "KIRMIZI"),
+    ("M-Z5 `age` notu dokumde BASILMAZ (olcum beyani gizlenir)",
+     [('    print("YAS TERIMI (age): %s" % (yas_notu or "OLCULEMEDI (not YOK)"))',
+       '    pass  # YAS TERIMI satiri kaldirildi')], "KIRMIZI"),
     ("M-N KONTROL: yalniz dokum basliginin metni degisir (anlam AYNI)",
      [('──── OLCUM DOKUMU (yoklanan sayfa yuzeyi · kol bazinda) ────',
        '──── OLCUM DOKUMU / yoklanan sayfa yuzeyi / kol bazinda ────')], "YESIL"),
@@ -249,14 +273,36 @@ def mutant_kos(kaynak, ad, editler, sira, tmp_kok):
     for eski, yeni in editler:
         if mutant.count(eski) != 1:
             return (False, None, "", "desen %d kez bulundu (1 olmali) -> mutasyon "
-                    "UYGULANMADI: %r" % (mutant.count(eski), eski[:60]), False, 0)
+                    "UYGULANMADI: %r" % (mutant.count(eski), eski[:60]), False, 0, frozenset())
         mutant = mutant.replace(eski, yeni)
     if mutant == kaynak:
-        return False, None, "", "kaynak DEGISMEDI", False, 0
+        return False, None, "", "kaynak DEGISMEDI", False, 0, frozenset()
+    # 🔴 SADIK AGAC: kapi kendi KOK'unu `__file__`den turetir ve `KOK/tools/build.py`yi
+    # (capanin TEK KAYNAGI) FIILEN yukler. Mutant ciplak bir tmp dizinine yazilirsa
+    # build.py BULUNAMAZ ve capa iddialari HER mutantta (KONTROL dahil) duser — yani
+    # sinyal ortama bagli sahte kirmiziya doner ([[parite-testi-olculemedi-basiyor]]).
+    # Cozum: mutant `<dizin>/tools/` icine yazilir ve gercek tools/ icerigi oraya
+    # SYMLINK'lenir (mutasyon YALNIZ kapinin kopyasinda; digerleri degismez).
     dizin = os.path.join(tmp_kok, "mutant-%02d-%s" % (sira, hashlib.sha1(
         (ad + repr(editler)).encode("utf-8")).hexdigest()[:8]))
-    os.makedirs(dizin, exist_ok=True)
-    yol = os.path.join(dizin, "kapi_m%02d.py" % sira)
+    # OLCULDU: build.py'nin IMPORT ZINCIRI (build -> marka_model_build -> model_kanon)
+    # `KOK/index.html`i OKUR. Yani sadik agac yalniz tools/ degil KOK'un ust duzeyini de
+    # icermeli; yoksa import FileNotFoundError verir ve capa iddialari ORTAM yuzunden
+    # duser (mutasyonsuz taban dahil).
+    araclar = os.path.join(dizin, "tools")
+    os.makedirs(araclar, exist_ok=True)
+    for giris in os.listdir(KOK):
+        if giris in (".git", "tools"):
+            continue
+        with contextlib.suppress(OSError):
+            os.symlink(os.path.join(KOK, giris), os.path.join(dizin, giris))
+    gercek_araclar = os.path.join(KOK, "tools")
+    for giris in os.listdir(gercek_araclar):
+        hedef = os.path.join(araclar, giris)
+        if not os.path.exists(hedef):
+            with contextlib.suppress(OSError):
+                os.symlink(os.path.join(gercek_araclar, giris), hedef)
+    yol = os.path.join(araclar, "kapi_m%02d.py" % sira)
     with open(yol, "w", encoding="utf-8") as f:
         f.write(mutant)
     # 🔴 DISKTEN GERI OKU: mutasyonun FIILEN uygulandigini iddiadan degil dosyadan dogrula.
@@ -266,7 +312,7 @@ def mutant_kos(kaynak, ad, editler, sira, tmp_kok):
     for eski, yeni in editler:
         if eski in diskteki or yeni not in diskteki:
             return (False, None, "", "diskteki kopyada mutasyon YOK (yazma tuzagi): %r"
-                    % eski[:60], False, 0)
+                    % eski[:60], False, 0, frozenset())
     p = subprocess.run([sys.executable, "-B", yol, "--kendini-test"],
                        capture_output=True, text=True)
     satirlar = [s for s in p.stdout.strip().splitlines() if s.strip()]
@@ -275,8 +321,14 @@ def mutant_kos(kaynak, ad, editler, sira, tmp_kok):
     # mutantin rc!=0 olmasi yetmez — suite SONUNA KADAR kosmus ("SONUC:" basmis) ve
     # EN AZ BIR IDDIA fiilen DUSMUS olmali. Aksi halde mutant "COKTU" sayilir.
     tamamlandi = "SONUC:" in p.stdout
-    return True, p.returncode, (satirlar[-1] if satirlar else ""), "; ".join(
-        d.split("—")[0].strip() for d in dusen[:3]), tamamlandi, len(dusen)
+    # 🔴 IDDIA KIMLIKLERI: "ayni iddia kumesine dusen mutant cifti" olculebilsin
+    # ([[beyan-edilmis-survivor]]: iki mutant ayni kumeyi dusuruyorsa ikisi AYRI eksen
+    # DEGILDIR ve "N/N" sayisi eksen sayisini SISIRIR).
+    kimlikler = frozenset(d.split("KALDI ", 1)[1].split()[0] for d in dusen
+                          if "KALDI " in d)
+    return (True, p.returncode, (satirlar[-1] if satirlar else ""),
+            "; ".join(d.split("—")[0].strip() for d in dusen[:3]), tamamlandi,
+            len(dusen), kimlikler)
 
 
 def main():
@@ -375,9 +427,12 @@ def main():
         dogrula("B0 MUTASYONSUZ taban YESIL (rc=0) — taban kirmizi olsa batarya anlamsizdi",
                 temiz.returncode == 0, temiz.returncode)
         oldu, kontrol_hali, cokme, uygulanmayan = 0, "OLCULEMEDI", 0, 0
+        kumeler = {}
         for i, (ad, editler, beklenen) in enumerate(MUTANTLAR, 1):
-            uygulandi, rc, son, dusenler, tamam, dusen_n = mutant_kos(
+            uygulandi, rc, son, dusenler, tamam, dusen_n, kimlikler = mutant_kos(
                 yeni_kaynak, ad, editler, i, tmp_kok)
+            if uygulandi and beklenen == "KIRMIZI" and kimlikler:
+                kumeler.setdefault(kimlikler, []).append(ad.split()[0])
             if not uygulandi:
                 uygulanmayan += 1
             if not uygulandi:
@@ -406,6 +461,14 @@ def main():
         print("MUTASYON_UYGULANDI = %s (%d/%d desen diskte dogrulandi)"
               % ("EVET" if uygulanmayan == 0 else "HAYIR",
                  len(MUTANTLAR) - uygulanmayan, len(MUTANTLAR)))
+        # 🔴 AYNI IDDIA KUMESINE DUSEN CIFT: iki mutant AYNI iddia kumesini dusuruyorsa
+        # ikisi AYRI eksen DEGILDIR; "N/N" sayisi eksen sayisini SISIRIR.
+        cift = {k: v for k, v in kumeler.items() if len(v) > 1}
+        print("AYNI_KUMEYE_DUSEN  = %s"
+              % ("YOK" if not cift
+                 else "VAR: " + " · ".join("+".join(v) for v in cift.values())))
+        dogrula("B* AYIRT EDICILIK: hicbir mutant CIFTI ayni iddia kumesini dusurmuyor",
+                not cift, {tuple(sorted(k)): v for k, v in cift.items()})
         print("KONTROL_MUTANTI    = %s" % kontrol_hali)
         print("IDDIA_SAYISI       = %d (gecen %d, kalan %d)"
               % (gecen[0] + kalan[0], gecen[0], kalan[0]))
