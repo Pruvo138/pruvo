@@ -37,11 +37,18 @@ tek kirmizi sinifin (r2-onek E3/E4) onarimi baska oturumun ucustaki calisma kopy
 `serit-a4` tasimasi icin devir kosulu gerceklesmedi. Calisma agacindaki yabanci degisikliklere
 (5 dosya) DOKUNULMADI.
 
+**✅ TUR ICINDE KAPANDI — TAM YESIL YAYIN:** `31179569334` (`0ea3ed27`) beklendi ve JOB birimiyle
+olculdu: `build`·`serit-a2`·`serit-a3`·`serit-a4`·`deploy`·`yayin` **hepsi success**. Yani 12:55Z'den
+sonra IKINCI basarili yayin da olustu → yayin gecikmesi **yapisal DEGIL, kuyruk**; `serit-a4` tasimasi
+GEREKMEDI. Kuyruk davranisi da olculdu: `pages` grubu **1 in-progress + 1 pending** tutuyor, yeni push
+yalnizca PENDING slotu iptal ediyor, ucustaki deploy'a DOKUNMUYOR (defter push'u `31183437899`'u
+supersede etti, `31179569334`'u ETMEDI).
+
 **DEVIR — sonraki turun ILK isi:**
-(1) `31179569334` + `31183437899` deploy'larinin `conclusion`'ini olc. Ikisi de cancelled/supersede
-olduysa VE 12:55Z'den sonra hic basarili deploy yoksa → yayin gecikmesi ARTIK yapisaldir ve
-`serit-a4`'un `nobet.yml` seridine tasinmasi (precedent `ffc72a6a`, "kaybolan 0" olcumuyle)
-o turun ISI olur.
+(1) `31184326063` (`b3d7dc95`, bu defterin push'u — tum urun commit'lerini KAPSAR) `conclusion`'ini
+olc; success ise canli katalog **21.811**'e ulasmis olmali (`d1-sync.py --durum` ile teyit).
+Basarisiz/cancelled zinciri 12:55Z sonrasi TEKRAR uzarsa `serit-a4`'un `nobet.yml` seridine
+tasinmasi (precedent `ffc72a6a`, "kaybolan 0" olcumuyle) o turun ISI olur.
 (2) `r2-onek-nobeti`: kardes oturumun `OLCULEMEDI` ayrimi main'e girdi mi olc. Girdiyse job
 yesile ya da sari `OLCULEMEDI`'ye donmeli; girmediyse 10. kirmizi — yayini durdurmadigi icin
 DUR kosulunda kalir, sifirdan teshise BASLAMA.
