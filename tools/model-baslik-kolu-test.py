@@ -25,6 +25,7 @@ kapı hepsini geçemez):
     + KONTROLLER (sıralama · davranışsız yeniden adlandırma · ilgisiz alan) YEŞİL kalmalı.
 """
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -567,6 +568,15 @@ def kabul(kok):
             "GEÇEMEZ)" % len(_ciplak_allow),
             bool(_ciplak_allow) and not _ciplak_kayip,
             "envanterden düşmüş=%s · çapa=%s" % (_ciplak_kayip or "-", _ciplak_allow))
+    # --- B23: AYIRT EDICILIK HUKMUNUN KENDI KIMLIGI (bkz. KIMLIK_FIKSTURU basligi) ----
+    _kimA = _iddia_kimligi(KIMLIK_FIKSTURU[0])
+    _kimB = _iddia_kimligi(KIMLIK_FIKSTURU[1])
+    dogrula("B23 MUTANT KIMLIGI IDDIA KODUNDAN TURUYOR (12-karakter metin oneginden DEGIL): "
+            "12-karakter oneki CAKISAN iki AYRI mutant kumesi AYRI kimlik uretiyor — ayirt "
+            "edicilik hukmu iddia METNININ bicimine DEGIL KODUNA dayanir",
+            _kimA != _kimB,
+            "kimlikA=%s kimlikB=%s (AYNI ciktiysa iki AYRI mutant SESSIZCE 'ayirt "
+            "edilemiyor' sayilirdi)" % (list(_kimA), list(_kimB)))
     # 🔴 ÇIPLAK SAYI KURALI GEVŞEMEDİ — CANLI VERİ EKSENİ (B10 fikstür eksenidir, bu değil):
     # `Toyota|86` TEKİL GİRİŞLE açıldı; kuralın kendisi çıplak sayıya HÂLÂ kapalı olmalı.
     _ciplak_kural = sorted("%s|%s" % (mk, dsp) for (mk, _c), (_n, _y, _b, _a, dsp)
@@ -808,6 +818,109 @@ _M4_KANCA = ("_MARKA_KATLA = None\n_KATLA_HEDEF = frozenset()\n\n\n"
              "def baslikta_tam_kelime(")
 
 
+# ══════════════════════════════════════════════════════════════════════════════════
+# MUTANT KIMLIGI KESILMEZ — B23 + AYIRT EDICI ALT BATARYA (7 Agu 2026)
+# ══════════════════════════════════════════════════════════════════════════════════
+# 🔴 OLCULEN RISK (RAPOR DEGIL **HUKUM** YUZEYI): ayirt edicilik hukmu iddia kimligini
+# `s.strip()[:12]` ile, yani 12 KARAKTERLIK METIN ONEGIYLE kuruyordu. "KALDI " 6 karakter
+# oldugundan oneke iddia KODUNUN yalnizca ILK 6 KARAKTERI girer; 6. karakterden sonra
+# ayrisan iki KOD (`B15a-CAPRAZ` / `B15a-CIPLAK`) AYNI kimlige COKER. Sonuc iki yonlu ve
+# ikisi de sessiz: (1) AYRI iki mutant "ayni kumeyi yakiyor" gorunur ve batarya YANLIS
+# yere kirmizi yakar; (2) GERCEK bir cakisma, iddia metinleri farkli oldugu icin GIZLENIR.
+# Kimlik artik iddia KODUNDAN turer — metin bicimine duyarsiz, koda duyarli.
+# ⚠️ Bugunku kodlar kisa oldugu icin cakisma HENUZ yoktu (7 Agu'da olculdu: `[[6,14]]`
+# tam kodlarla da ayni cikti, yani o bulgunun artefakti DEGILDI). Bu kapi ILERIYE
+# DONUKTUR: kod adlari uzadigi an sessizce devreye girecek olan sapmayi civiler.
+# IKI AYRI MUTANTIN kirmizi kume ORNEGI. Kodlari FARKLI (`B15a-CAPRAZ` / `B15a-CIPLAK`)
+# ama 12-karakter onekleri AYNI ("KALDI B15a-C"). Kimlik KODDAN turuyorsa iki kume AYRI,
+# METIN ONEGINDEN turuyorsa AYNI cikar ve iki AYRI mutant sessizce "ayirt edilemiyor"
+# sayilirdi. Iddia tam bu FARKI olcer.
+KIMLIK_FIKSTURU = (["  KALDI B15a-CAPRAZ ROZET ekseni — sapan=['x']"],
+                   ["  KALDI B15a-CIPLAK SAYI ekseni — sapan=['y']"])
+
+
+def _iddia_kimligi(satirlar):
+    """Iddia KIMLIGI = iddia KODU (ikinci jeton). METIN ONEGI DEGIL."""
+    return tuple(sorted(set((s.strip().split() + ["?"])[1] for s in satirlar)))
+
+
+def _kimlik_mutasyonu():
+    """B23'u AYIRT EDICI mutantla capala. Mutant YALNIZ KOPYAYA; canli dosya DEGISMEZ.
+
+    Doner: basarisiz aciklamalarinin listesi (bos = YESIL).
+    """
+    print("  --- KIMLIK KESMESI ALT BATARYASI (1 oldurucu + 1 kontrol) ---")
+    canli = os.path.abspath(__file__)
+    with open(canli, "rb") as f:
+        once = hashlib.sha256(f.read()).hexdigest()
+    print("      CANLI DOSYA sha256 ONCE : %s" % once)
+
+    OLDURUCU = (
+        '    return tuple(sorted(set((s.strip().split() + ["?"])[1] for s in satirlar)))',
+        "    return tuple(s.strip()[:12] for s in satirlar)")
+    KONTROL = (
+        '  KALDI B15a-CAPRAZ ROZET ekseni — sapan=[\'x\']',
+        '  KALDI B15a-CAPRAZ BAMBASKA BIR METIN, AYNI KOD — sapan=[\'x\']')
+
+    hatalar = []
+    for kod, (eski, yeni), beklenen, aciklama in (
+            ("KK1", OLDURUCU, "KIRMIZI",
+             "KK1 KIMLIGI 12-KARAKTER METIN ONEGINE GERI DONDUR -> oneki paylasan iki "
+             "FARKLI kod TEK kimlige coker; B23 TEK BASINA kirmizi yanmali"),
+            ("KK2", KONTROL, "YESIL",
+             "KK2 KONTROL: iddia METNINI degistir, KODU degistirme -> kimlik AYNI kalmali "
+             "(iddia METNE degil KODA duyarli; daima-kirmizi bir B23 bunu da dusururdu)")):
+        tmp = tempfile.mkdtemp(prefix="baslik-kimlik-mut-")
+        try:
+            _kok_kur(tmp)
+            yol = os.path.join(tmp, "tools", os.path.basename(canli))
+            with open(yol, encoding="utf-8") as f:
+                govde = f.read()
+            # 🔴 CAPA KENDINI SAYMASIN: capalar bu fonksiyonun ICINDE de METIN olarak
+            # geciyor (mutant tablosu ayni dosyada yasiyor). Mutasyon yuzeyi bu
+            # fonksiyondan ONCEKI KOD BOLGESIDIR; tablo bolgesi capa sayimina GIRMEZ.
+            # Bu ayrim olmadan her capa 2 eslesir ve fail-closed kapi ekseni
+            # OLCULMEDI'ye dusurur (7 Agu'da tam bunu olctuk).
+            _kes = govde.index("\ndef _kimlik_mutasyonu(")
+            bas, kuyruk = govde[:_kes], govde[_kes:]
+            if bas.count(eski) != 1:
+                hatalar.append("%s CAPA BAYAT (%d eslesme, 1 olmali)" % (kod, bas.count(eski)))
+                print("      HATA %s [%s] -> CAPA BAYAT | EKSEN OLCULMEDI" % (kod, beklenen))
+                continue
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(bas.replace(eski, yeni) + kuyruk)
+            p = subprocess.run([sys.executable, yol, "--kok", GERCEK_KOK],
+                               capture_output=True, text=True)
+            cikti = (p.stdout or "") + (p.stderr or "")
+            kirmizi = sorted(set((s.strip().split() + ["?"])[1]
+                                 for s in cikti.splitlines() if s.strip().startswith("KALDI ")))
+            # 🔴 KABUL CIKIS KODU DEGIL: B23 TEK BASINA mi dustu?
+            if not any(s.strip().startswith("GECTI ") or s.strip().startswith("KALDI ")
+                       for s in cikti.splitlines()):
+                gecti, notu = False, "kapi HIC IDDIA BASMADI -> cokme (olcum DEGIL)"
+            elif beklenen == "KIRMIZI":
+                gecti = (kirmizi == ["B23"])
+                notu = "" if gecti else "beklenen [B23], olculen %s" % (kirmizi or "-")
+            else:
+                gecti = not kirmizi
+                notu = "" if gecti else "KONTROL kirmizi yakti: %s" % kirmizi
+            if not gecti:
+                hatalar.append("%s: %s" % (kod, notu))
+            print("      %s %s [%s] -> %s (kirmizi %s) | %s"
+                  % ("OK  " if gecti else "HATA", kod, beklenen,
+                     "KIRMIZI" if kirmizi else "YESIL", ",".join(kirmizi) or "-", aciklama))
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    with open(canli, "rb") as f:
+        sonra = hashlib.sha256(f.read()).hexdigest()
+    print("      CANLI DOSYA sha256 SONRA: %s -> %s"
+          % (sonra, "DEGISMEDI ✔" if sonra == once else "DEGISTI ✘"))
+    if sonra != once:
+        hatalar.append("CANLI DOSYA DEGISTI")
+    return hatalar
+
+
 def _kok_kur(tmp):
     os.makedirs(os.path.join(tmp, "tools"))
     for ad in os.listdir(os.path.join(GERCEK_KOK, "tools")):
@@ -824,6 +937,10 @@ def _kok_kur(tmp):
 def kendini_test():
     print("MUTASYON — başlık kolu (mutant KOPYAYA uygulanır; gerçek ağaç DEĞİŞMEZ)")
     basarisiz, olcum = [], []
+    # 🔴 ONCE HUKUM YUZEYININ KENDISI: ayirt edicilik kiyasi bozuksa ASAGIDAKI butun
+    # "ayni kume / farkli kume" sonuclari YALANCIDIR. Bu yuzden kimlik kapisi bataryadan
+    # ONCE kosar ve kirmizisi ayni cikis koduna baglanir.
+    basarisiz.extend(_kimlik_mutasyonu())
     for i, m in enumerate(MUTANTLAR, 1):
         dosya, eski, yeni, beklenen, aciklama = m[:5]
         # 6. eleman (opsiyonel): EK DÜZENLEME listesi — bir hüküm ancak İKİ tabloda birden
@@ -889,7 +1006,7 @@ def kendini_test():
                   % ("OK" if ok else "HATA", i, beklenen, gercek, len(kirmizi), aciklama))
             for s in kirmizi[:2]:
                 print("        " + s.strip()[:170])
-            olcum.append((i, beklenen, gercek, tuple(s.strip()[:12] for s in kirmizi)))
+            olcum.append((i, beklenen, gercek, _iddia_kimligi(kirmizi)))
             if not ok:
                 basarisiz.append("M%02d" % i)
         finally:
