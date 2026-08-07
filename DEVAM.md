@@ -1,9 +1,14 @@
 # DEVAM (KraL) — 7 Agu 2026
 
 ## 🔁 DEVIR — 7 Agu 2026, hesap rotasyonu: eski hesap → yeni hesap
-**SIRADAKI TEK IS:** Marka sayfasini Okan'in yeni hukmune gore yeniden kur — 330 parcanin TAMAMI
-tek sayfada kart olarak listelensin, model cipleri ayri adrese gitmek yerine sayfa icinde
-filtrelesin; once sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
+**SIRADAKI TEK IS:** `serit-a3` adim 60 (Gorsel anahtar + STL bbox kabul testi) CI'da kirmizi ama
+ayni iki betik yerelde main'de rc=0 — bu yerel↔CI asimetrisini
+`gh run view 31203297696 --log-failed` ile teshis edip yayini ac.
+
+**SIRADAKI TEK IS (2. sira) — OKAN'IN KARARI:** marka sayfasi 330 parcanin TAMAMINI tek sayfada
+kart olarak listelesin, model cipleri ayri adrese gitmek yerine sayfa icinde filtrelesin; once
+sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
+(Yayin tikanikligi gorunurluk iyilestirmesinden ONCE gelir — sira bilerek boyle.)
 
 **Nerede kaldim (sayiyla):**
 - 🔴 **YAYINI BLOKLAYAN YENI KIRMIZI (kuyruk DEGIL, gercek):** kosum `31203297696` (head `76ca1341`)
@@ -19,9 +24,16 @@ filtrelesin; once sayfa agirligi ve model sayfalarinin getirdigi arama trafigi O
   `31204533840` (`5eae2b5e`) `pending`. Aradaki 8 kosum `cancelled` = kuyruk davranisi, ariza DEGIL.
 - Bu oturumda main'e giren ve DOGRULANAN: `e3880c89` · `197fd396` · `d0534fd2` · `c616e556` ·
   `b8ab7091` — besi de `merge-base --is-ancestor origin/main` rc=0.
-- Yedek kapsami dali **MERGE EDILDI** (`cd9fb30c` + `644f22a7`): `~/.claude` altindaki gorev
-  tanimlari / nobet surucusu / plan agaclari artik `tools/yedekle.py` KAPSAMINDA.
+- Yedek kapsami dali **MERGE EDILDI** (`644f22a7`, oncesi `cd9fb30c`): `~/.claude` altindaki gorev
+  tanimlari / nobet surucusu / plan agaclari artik `tools/yedekle.py` KAPSAMINDA — olculen kapsam
+  **15 dosya / 57.873 B** · **4 / 14.904 B** · **4 / 41.222 B**; `devir` ve `devir-basla`
+  skill'leri **bayt bayt** dogrulandi. ⚠️ Ama **`deploy` JOB'u OLCULEMEDI** (kosum `cancelled`,
+  ardillar pending) → bu kalem icin "yayinlandi" YAZMA.
   ⚠️ Hafizadaki "kapsamda DEGIL" notu BAYAT, duzeltilecek.
+- 🔴 **OKAN KAPISI (yeni, aksiyon Okan'da):** ortak Drive yedeginin kokunde eski bir kosum kolundan
+  kalma **3 bayat kalem** duruyor (Temmuz tarihli). Bugunku kosum onlari YAZMIYOR ama SILMIYOR da,
+  hedef ise **ortak** bir surucu → **erisim cevresi OLCULMELI**, yenileme karari Okan'in.
+  Kalemlerin dokumu `DEVAM-ARSIV.md`de (git disi).
 
 **Acik worktree/dal (4 worktree + main; KraL bu turda YENI worktree ACMADI):**
 - `agent-ad8653d553f9bde31` → `muh/marka-bolum-kimligi` (`9a716873`, uzakta, main'de DEGIL, 1 onde).
