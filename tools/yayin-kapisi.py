@@ -28,6 +28,25 @@ AYRI bir adimdir ve ancak /urun/<id>/ CANLIDA 200 dondugu FIILEN dogrulaninca ya
 ASLA "404 veren kart" uretmez. Yanlis yon (kolon okunamayinca hepsini gostermek) bu
 dosyada BILEREK yoktur.
 
+════════════════════════════════════════════════════════════════════════════════════
+KOR YESIL ONARIMI (7 Agu) — "OLCECEK BIR SEY BULAMADIM" ≠ "KATALOG YAYINDA"
+════════════════════════════════════════════════════════════════════════════════════
+OLCULEN KUSUR: `--yayinla` kolu YALNIZCA D1'de `yayinda=0` olan TASLAK satirlarin
+adresine HTTP atiyordu. Taslak satir yoksa fonksiyon "TASLAK yok ... (exit 0)" basip
+HICBIR SAYFA OLCMEDEN `success` donuyordu. Deploy'un `yayin` job'unun yesili boylece
+"katalog yayinda" hukmunu kapatmak icin KULLANILAMAZ bir yesildi: yoklanan sayfa
+sayisi 0 iken de yesildi ([[beyan-edilmis-survivor]] · [[olculdu-diyen-hukum-kaniti]]).
+
+ONARIM — UC HAL, IKI EKSEN:
+  * YUZEY (olculen sayfalar): taslak adaylarinin YANINDA canli katalogdan DETERMINISTIK
+    bir kesit de yoklanir (en yeni N + katalogun tamamina yayilmis N) ARTI var olmayan
+    bir id'nin 404 VERDIGINI dogrulayan nobet satiri.
+  * HUKUM: YESIL yalniz POZITIF OLCUM varsa (>=1 katalog sayfasi fiilen yoklandi ve
+    beklenen kodu verdi). Yoklanacak sayfa yoksa hukum `success` DEGIL, ayri bir
+    OLCULEMEDI/BOS YUZEY halidir ve BUYUK harfle basilir.
+  * CIKIS KODU tek basina hukum degildir; her kosumda BASILAN SAYILAR (kaynak basina
+    yoklanan / beklenen-alinan / sapan / atlanan) hukmun kanitidir.
+
 ⚠️ SIRA (bozulursa TUM KATALOG gizlenir):
   1. python3 tools/d1-sync.py --sema        (yayinda/release_id kolonlari + indeksler)
   2. python3 tools/yayin-kapisi.py --geriye-doldur    (canlidaki her urun -> yayinda=1)
@@ -69,6 +88,33 @@ AZAMI_ADAY = 300
 # YENI satir da (canlida sayfasi YOKKEN) yayina alinirdi — tam da kapattigimiz pencere.
 PARCA = 400
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# OLCUM YUZEYI (kor yesil onarimi)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Canli katalogdan yoklanacak DETERMINISTIK kesit. Rastgelelik BILEREK YOK: ayni
+# katalog ayni sayfalari yoklar -> iki kosumun sayilari KARSILASTIRILABILIR olur
+# ([[kapi-yan-etkisi-gizli-onkosul]]: cikis kodu degil BASILAN SAYI karsilastirilir).
+YENI_N = 5      # urunler.json'un BASINDAKI N kayit = EN YENI N urun (yeni urun basa girer)
+KESIT_N = 5     # katalogun tamamina esit adimla yayilmis N kayit (bas/orta/son)
+
+# 🔴 NOBET SATIRI — "kapi 200 gormeyi biliyor ama 404'u AYIRT EDEBILIYOR MU?"
+# Var olmayan bir id 404 VERMEK ZORUNDADIR. 200 donerse site her yola 200 basiyor
+# (catch-all / SPA fallback / yanlis 404 sayfasi) demektir ve o kosumdaki TUM 200
+# olcumleri ANLAMSIZDIR -> hukum KIRMIZI. Pozitif tanima izni olmadan "olctum" demek
+# yasak ([[olculdu-diyen-hukum-kaniti]]). Id UYDURMADIR, katalogda bulunmaz.
+NOBET_ID = "olmayan-urun-nobet-satiri-zzq"
+
+KAYNAK_TASLAK = "taslak"        # D1'de yayinda=0 olan, yayina alma ADAYI satirlar
+KAYNAK_YENI = "canli-yeni"      # canli katalogun en yeni N kaydi
+KAYNAK_KESIT = "canli-kesit"    # canli katalogun deterministik kesiti
+KAYNAK_NOBET = "nobet-404"      # var olmayan id (404 bekleniyor)
+
+# HUKUM — ucuncu hal ("OLCULEMEDI") YESIL ve KIRMIZI'dan AYRI TUTULUR.
+# ([[hukum-yanlis-birimde]]: basarili / basarisiz / olculemedi ayni kovaya konmaz.)
+HUKUM_YESIL = "YESIL"
+HUKUM_KIRMIZI = "KIRMIZI"
+HUKUM_OLCULEMEDI = "OLCULEMEDI"
+
 
 def yukle_d1sync():
     """d1-sync.py'yi modul olarak yukle (tire iceren ad -> importlib).
@@ -104,6 +150,121 @@ def adaylari_sec(taslaklar, yerel_idler, canli_idler):
         else:
             adaylar.append(uid)
     return sorted(adaylar), atlanan
+
+
+def urun_yolu(uid):
+    """KANONIK urun adresi — TEK KAYNAK.
+
+    🔴 `.html` URETILMEZ: kanonik adres `/urun/<id>/` bicimindedir. `/urun/<id>.html`
+    ile yoklamak SAHTE 404 uretir ve kapiyi saglikli sitede kirmiziya surukler
+    ([[kanonik-adres-olcum-yanlisi]]). Adres uretimi tek fonksiyonda toplandi ki
+    "kabul araligi" ile "kiyas araligi" ayrisamasin ([[kabul-araligi-karsilastirma-araligi]]).
+    """
+    return "/urun/" + uid + "/"
+
+
+def kesit_indeksleri(n, adet):
+    """`n` uzunlugundaki listeden `adet` kadar DETERMINISTIK, esit adimli indeks.
+    Rastgelelik yok; n<=adet ise TUM indeksler doner. Bas/orta/son kapsanir."""
+    if n <= 0 or adet <= 0:
+        return []
+    if n <= adet:
+        return list(range(n))
+    adim = (n - 1) / float(adet - 1) if adet > 1 else 1.0
+    return sorted({int(round(i * adim)) for i in range(adet)})
+
+
+def olcum_plani(taslak_adaylari, canli_idler, yeni_n=YENI_N, kesit_n=KESIT_N,
+                nobet_id=NOBET_ID):
+    """SAF PLANLAMA — yoklanacak sayfalarin TAM listesi (aga/D1'e DOKUNMAZ).
+
+    canli_idler: canli urunler.json'daki id'ler DOSYA SIRASIYLA (yeni urun BASA girer,
+    yani ilk N = en yeni N). Doner: [{"kaynak","id","yol","beklenen","katalog"}]
+      beklenen : bu yoldan beklenen HTTP kodu (None = iddia yok)
+      katalog  : bu satir "katalog sayfasi canli" POZITIF olcumu sayilabilir mi
+                 (nobet satiri sayilmaz — o yalniz kapinin gozunu test eder)
+    Ayni id iki kaynaga girmez; sira deterministik (tekrar edilebilir sayilar)."""
+    plan, gorulen = [], set()
+
+    def ekle(kaynak, uid, beklenen, katalog):
+        if uid in gorulen:
+            return
+        gorulen.add(uid)
+        plan.append({"kaynak": kaynak, "id": uid, "yol": urun_yolu(uid),
+                     "beklenen": beklenen, "katalog": katalog})
+
+    for uid in taslak_adaylari:
+        # TASLAK ADAYI zaten "yerel VE canli urunler.json'da var" suzgecinden gecmistir
+        # (adaylari_sec) -> sayfasi da AYNI artefaktta yayinlanmis olmali: 200 SART.
+        # Canli JSON'da OLMAYAN taslak hic aday olmaz, yani "normal yayin gecikmesi"
+        # penceresi bu listeye HIC girmez; buradaki 404 GERCEK arizadir (eski kod da
+        # bu hali rc=1 sayiyordu — o duyarlilik AYNEN korunur).
+        ekle(KAYNAK_TASLAK, uid, 200, True)
+    for uid in list(canli_idler)[:max(0, yeni_n)]:
+        # CANLI KATALOG: id canli urunler.json'da -> sayfasi da AYNI artefaktta, 200 SART.
+        ekle(KAYNAK_YENI, uid, 200, True)
+    for i in kesit_indeksleri(len(canli_idler), kesit_n):
+        ekle(KAYNAK_KESIT, canli_idler[i], 200, True)
+    if nobet_id:
+        ekle(KAYNAK_NOBET, nobet_id, 404, False)
+    return plan
+
+
+def yuzey_hukmu(olcumler):
+    """SAF HUKUM — "bos yuzey" ve "ag hatasi" YESIL'den AYRI hallerdir.
+
+    olcumler: olcum_plani satirlari + "alinan" (int HTTP kodu | None = istek patladi).
+    Doner: (hukum, sebep, sayac)
+
+    SIRA (fail-closed):
+      1. GERCEK SAPMA (beklenen iddia edilmis ve BASKA bir kod alinmis) -> KIRMIZI.
+         Gercek kirmizi, ag gurultusunu YENER: sapmayi ag hatasiyla ortmek kapiyi olduruR.
+      2. AG HATASI (alinan None) -> OLCULEMEDI (sessiz yesil DEGIL).
+      3. POZITIF OLCUM YOK (hicbir katalog sayfasi 200 dogrulanmadi) -> OLCULEMEDI:
+         BOS YUZEY. 🔴 ESKI DAVRANIS BURADA `success` DONUYORDU.
+      4. Aksi halde YESIL (>=1 katalog sayfasi fiilen yoklandi ve beklenen kodu verdi).
+    """
+    sapan = [o for o in olcumler
+             if o.get("beklenen") is not None and o.get("alinan") is not None
+             and o["alinan"] != o["beklenen"]]
+    ag = [o for o in olcumler if o.get("alinan") is None]
+    pozitif = [o for o in olcumler if o.get("katalog") and o.get("alinan") == 200]
+    sayac = {"yoklanan": len(olcumler), "sapan": len(sapan), "ag_hatasi": len(ag),
+             "katalog_pozitif": len(pozitif)}
+    if sapan:
+        return (HUKUM_KIRMIZI,
+                "yoklanan %d sayfa beklenen kodu VERMEDI (or. %s: bekleniyordu %s, alindi %s)"
+                % (len(sapan), sapan[0]["id"], sapan[0]["beklenen"], sapan[0]["alinan"]),
+                sayac)
+    if ag:
+        return (HUKUM_OLCULEMEDI,
+                "%d yoklamada AG HATASI (kod alinamadi) — sessiz yesil verilmez" % len(ag),
+                sayac)
+    if not pozitif:
+        return (HUKUM_OLCULEMEDI,
+                "BOS YUZEY: hicbir katalog sayfasi yoklanmadi/dogrulanmadi "
+                "(yoklanan=%d) — 'olcecek sey yok' YAYINDA demek DEGILDIR" % len(olcumler),
+                sayac)
+    return (HUKUM_YESIL, "%d katalog sayfasi beklenen kodu verdi" % len(pozitif), sayac)
+
+
+def hukum_cikis_kodu(hukum):
+    """🔴 CIKIS KODU POLITIKASI (gerekcesi kodda dursun):
+
+      KIRMIZI    -> 1. Yoklanan bir sayfa beklenen kodu vermedi: ya canli katalogda
+                    404 veren kart var, ya kapinin gozu bozuk (nobet satiri 200 verdi).
+                    Ikisi de GERCEK arizadir, gorunur olmali.
+      OLCULEMEDI -> 0. BU JOB `deploy`'DAN SONRA KOSAR: sitenin yayina girmesi bu kodun
+                    kararina BAGLI DEGIL. Ag/CDN gurultusunden dogan yanlis-pozitif bir
+                    kirmizi burada hicbir seyi KURTARMAZ, yalnizca tum ekibin yayin
+                    hukmunu bloklar ([[kapi-birikimi-yayin-gecikmesi]]). Bu yuzden notr
+                    hal rc=0'dir — AMA ekranda BUYUK harfle OLCULEMEDI basar ve
+                    `KATALOG POZITIF DOGRULANAN SAYFA: 0` sayisi loga girer; yani hukum
+                    "yesil" olarak OKUNAMAZ. (Fail-closed yon korunur: taslak satirlar
+                    olculemeyince YAYINA ALINMAZ, urun gorunmez kalir, 404 uretilmez.)
+      YESIL      -> 0.
+    """
+    return 1 if hukum == HUKUM_KIRMIZI else 0
 
 
 def yayin_karari(adaylar, kodlar):
@@ -248,16 +409,24 @@ def canli_hal(yol):
                  if basliklar is not None else None)
 
 
-def sayfa_kodu(uid):
-    """/urun/<id>/ icin HTTP kodu. 200 disi kodlarda DENEME kez tekrar (CDN isinmasi)."""
+def yol_kodu(yol, beklenen=200):
+    """Bir yolun HTTP kodu. `beklenen` DISI kodlarda DENEME kez tekrar (CDN isinmasi).
+
+    NEDEN `beklenen` PARAMETRESI: nobet satiri 404 BEKLER; sabit "200 olana kadar dene"
+    mantigi orada bosa 3 deneme + 8 sn yakardi. Tekrar sarti beklenen koddan TUREtilir."""
     kod = None
     for i in range(DENEME):
-        kod, _ = canli_getir("/urun/" + uid + "/")
-        if kod == 200:
-            return 200
+        kod, _ = canli_getir(yol)
+        if kod == beklenen:
+            return kod
         if i < DENEME - 1:
             time.sleep(DENEME_BEKLE)
     return kod
+
+
+def sayfa_kodu(uid):
+    """/urun/<id>/ icin HTTP kodu (adres TEK KAYNAKTAN: urun_yolu)."""
+    return yol_kodu(urun_yolu(uid), 200)
 
 
 def kodlari_olc(idler):
@@ -265,6 +434,55 @@ def kodlari_olc(idler):
         return {}
     with ThreadPoolExecutor(max_workers=ES_ZAMAN) as havuz:
         return dict(zip(idler, havuz.map(sayfa_kodu, idler)))
+
+
+def olcumleri_yap(plan, prob=None):
+    """Plan satirlarini FIILEN yokla; her satira "alinan" ekle.
+
+    prob(yol, beklenen) -> kod | None  ENJEKTE EDILEBILIR: kabul testi AG CAGIRMADAN
+    sahte bir prob ile ayni karar yolunu olcer (fikstur gercek cikti seklini taklit
+    eder: (yol, beklenen) -> HTTP kodu ya da None) ([[nobetci-fikstur-sekli]])."""
+    if not plan:
+        return []
+    if prob is None:
+        prob = yol_kodu
+    with ThreadPoolExecutor(max_workers=ES_ZAMAN) as havuz:
+        kodlar = list(havuz.map(lambda o: prob(o["yol"], o["beklenen"] or 200), plan))
+    return [dict(o, alinan=k) for o, k in zip(plan, kodlar)]
+
+
+def dokum_bas(olcumler, hukum, sebep, sayac, atlanan_taslak):
+    """🔴 BASILAN SAYI = HUKMUN KANITI. Cikis kodu tek basina hukum degildir; her kolda
+    kaynak basina yoklanan / beklenen-alinan / sapan / ag-hatasi ACIKCA basilir."""
+    print("──── OLCUM DOKUMU (yoklanan sayfa yuzeyi) ────")
+    print("%-12s %9s %9s %7s %10s" % ("kaynak", "yoklanan", "beklendi", "SAPAN", "AG_HATASI"))
+    for kaynak in (KAYNAK_TASLAK, KAYNAK_YENI, KAYNAK_KESIT, KAYNAK_NOBET):
+        k = [o for o in olcumler if o["kaynak"] == kaynak]
+        if not k:
+            print("%-12s %9d %9s %7d %10d" % (kaynak, 0, "-", 0, 0))
+            continue
+        beklendi = sum(1 for o in k if o["beklenen"] is not None
+                       and o["alinan"] == o["beklenen"])
+        sapan = sum(1 for o in k if o["beklenen"] is not None and o["alinan"] is not None
+                    and o["alinan"] != o["beklenen"])
+        agh = sum(1 for o in k if o["alinan"] is None)
+        iddiali = sum(1 for o in k if o["beklenen"] is not None)
+        print("%-12s %9d %9s %7d %10d"
+              % (kaynak, len(k), ("%d/%d" % (beklendi, iddiali)) if iddiali else "iddiasiz",
+                 sapan, agh))
+    print("KATALOG POZITIF DOGRULANAN SAYFA: %d" % sayac["katalog_pozitif"])
+    print("ATLANAN (hic yoklanmadi): %d taslak aday secimde dustu — sebepleri yukarida "
+          "(canli/yerel JSON sarti; NORMAL yayin gecikmesi penceresi)" % len(atlanan_taslak))
+    if hukum == HUKUM_YESIL:
+        print("HUKUM: YESIL — %s" % sebep)
+    else:
+        print("HUKUM: %s — %s" % (hukum.upper(), sebep))
+        if HUKUM_OLCULEMEDI == hukum:
+            print("!! ##################################################################")
+            print("!! OLCULEMEDI — BU YESIL 'KATALOG YAYINDA' DEMEK DEGILDIR.")
+            print("!! Yoklanan sayfa: %d · katalog pozitif dogrulanan: %d"
+                  % (sayac["yoklanan"], sayac["katalog_pozitif"]))
+            print("!! ##################################################################")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -400,37 +618,55 @@ def komut_hal_json(idler):
     return bitir(0)
 
 
-def komut_yayinla(m, release):
-    """DEPLOY'DAN SONRA kosar. Canli 200 dogrulanmadan hicbir satir yayina alinmaz."""
+def komut_yayinla(m, release, prob=None, canli_kaynak=None, yerel_kaynak=None):
+    """DEPLOY'DAN SONRA kosar. IKI IS BIR ARADA, AMA AYRI RAPORLANIR:
+
+      1. YAYINA ALMA (yazma): canli 200 dogrulanmadan hicbir satir yayina alinmaz.
+      2. YUZEY HUKMU (okuma): taslak olsun olmasin, canli katalogdan DETERMINISTIK bir
+         kesit yoklanir. Yoklanacak sayfa yoksa hukum `success` DEGIL, OLCULEMEDI/BOS
+         YUZEY'dir. Eski kod burada hicbir sayfa olcmeden `success` donuyordu.
+
+    prob / canli_kaynak / yerel_kaynak: kabul testi icin IO dikisleri (AG CAGRILMAZ)."""
     if not kolon_hazir(m):
         return 1
+    canli_kaynak = canli_kaynak or canli_urun_idleri
+    yerel_kaynak = yerel_kaynak or yerel_idler
+
     taslaklar = taslak_idler(m)
-    if not taslaklar:
-        print("TASLAK yok — yayina alinacak urun yok (exit 0).")
-        return 0
-    canli, hata = canli_urun_idleri()
+    canli, hata = canli_kaynak()
+    canli_sirali = list(canli) if canli is not None else []
     if canli is None:
-        print("OLCULEMEDI: %s — hicbir satir yayina ALINMADI (fail-closed)." % hata)
-        return 1
-    adaylar, atlanan = adaylari_sec(taslaklar, yerel_idler(), canli)
-    print("TASLAK: %d · aday: %d · atlanan: %d" % (len(taslaklar), len(adaylar), len(atlanan)))
+        # Canli JSON okunamadi: yayina alma FAIL-CLOSED durur (satirlar taslak kalir,
+        # yani gorunmez — 404 uretilemez). Yuzey de bos kalir -> hukum OLCULEMEDI.
+        print("!! CANLI KATALOG OKUNAMADI: %s" % hata)
+
+    adaylar, atlanan = adaylari_sec(taslaklar, yerel_kaynak(), canli_sirali)
+    print("D1 TASLAK: %d · yayin adayi: %d · aday-disi: %d"
+          % (len(taslaklar), len(adaylar), len(atlanan)))
     for uid, sebep in sorted(atlanan.items())[:20]:
-        print("   atlandi %s — %s" % (uid, sebep))
-    if not adaylar:
-        print("Yayina alinacak aday yok (exit 0).")
-        return 0
-    if len(adaylar) > AZAMI_ADAY:
+        print("   aday DEGIL %s — %s" % (uid, sebep))
+
+    tavan_asildi = len(adaylar) > AZAMI_ADAY
+    if tavan_asildi:
         print("!! ADAY SAYISI TAVANI ASTI: %d > %d. Bu bir GOC yigini; tek tek HTTP "
               "dogrulamasi bu olcekte yapilmaz." % (len(adaylar), AZAMI_ADAY))
         print("!! Coz: python3 tools/yayin-kapisi.py --geriye-doldur")
-        return 1
+        adaylar = []          # yazma yapilmaz; yuzey hukmu YINE DE olculur
 
-    kodlar = kodlari_olc(adaylar)
+    # ── OLCUM: taslak adaylari + canli katalog kesiti + nobet satiri ───────────────
+    plan = olcum_plani(adaylar, canli_sirali)
+    olcumler = olcumleri_yap(plan, prob=prob)
+    hukum, sebep, sayac = yuzey_hukmu(olcumler)
+
+    # ── YAZMA: yalniz TASLAK kaynagindan 200 alanlar ───────────────────────────────
+    kodlar = {o["id"]: o["alinan"] for o in olcumler if o["kaynak"] == KAYNAK_TASLAK}
     yayinlanacak, basarisiz = yayin_karari(adaylar, kodlar)
-    print("canli 200 dogrulanan : %d / %d" % (len(yayinlanacak), len(adaylar)))
+    if adaylar:
+        print("canli 200 dogrulanan aday: %d / %d" % (len(yayinlanacak), len(adaylar)))
     for uid, kod in basarisiz[:20]:
         print("   TASLAK KALDI %s — HTTP %s" % (uid, kod))
 
+    yazma_hatasi = False
     if yayinlanacak:
         for parca in parcala(yayinlanacak):
             m.dosya_calistir(yayin_sql(parca, release, m.q))
@@ -443,15 +679,18 @@ def komut_yayinla(m, release):
         if kalan:
             print("!! YAZMA DOGRULANAMADI: %d id hala TASLAK (or. %s)"
                   % (len(kalan), ", ".join(kalan[:5])))
-            return 1
-        print("YAYINA ALINDI: %d urun (release=%s) — geri-okuma ile DOGRULANDI"
-              % (len(yayinlanacak), release))
+            yazma_hatasi = True
+        else:
+            print("YAYINA ALINDI: %d urun (release=%s) — geri-okuma ile DOGRULANDI"
+                  % (len(yayinlanacak), release))
 
-    if basarisiz:
-        print("!! %d urun canlida 200 VERMEDI -> TASLAK kaldi (Ege gostermez, 404 uretmez)."
-              % len(basarisiz))
-        return 1
-    return 0
+    dokum_bas(olcumler, hukum, sebep, sayac, atlanan)
+
+    # ── CIKIS KODU: hukum politikasi + yazma/olcek arizalari ──────────────────────
+    rc = hukum_cikis_kodu(hukum)
+    if yazma_hatasi or tavan_asildi:
+        rc = 1
+    return rc
 
 
 def komut_geriye_doldur(m, release):
@@ -483,6 +722,56 @@ def komut_geriye_doldur(m, release):
         return 1
     print("GERIYE DOLDURMA DOGRULANDI: canli JSON'daki hicbir id TASLAK degil.")
     return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# KABUL FIKSTURLERI — SAHTE D1 + SAHTE HTTP (ag CAGRILMAZ, dosya YAZILMAZ)
+# ═══════════════════════════════════════════════════════════════════════════════
+class SahteD1:
+    """D1 taklidi: gercek d1-sync sozlesmesinin YALNIZ bu kapinin kullandigi yuzeyi.
+    Id'ler UYDURMADIR (gercek katalog id'si, tedarikci ya da kova adi GECMEZ)."""
+
+    def __init__(self, satirlar, kolon=True):
+        self.satirlar = dict(satirlar)      # {uydurma_id: yayinda (0/1)}
+        self.kolon = kolon
+        self.yazilan_sql = []
+
+    def kolon_var_mi(self, tablo, kolon):
+        return self.kolon
+
+    @staticmethod
+    def q(s):
+        return "'" + str(s).replace("'", "''") + "'"
+
+    def sorgu(self, sql):
+        if "IN (" in sql:               # geri-okuma: WHERE yayinda=0 AND id IN (...)
+            secili = [i for i in self.satirlar if self.q(i) in sql]
+            return [{"results": [{"id": i} for i in sorted(secili)
+                                 if int(self.satirlar[i] or 0) == 0]}]
+        if "WHERE yayinda=0" in sql:
+            return [{"results": [{"id": i} for i, v in sorted(self.satirlar.items())
+                                 if int(v or 0) == 0]}]
+        raise AssertionError("SahteD1: beklenmeyen sorgu -> " + sql)
+
+    def dosya_calistir(self, sql):
+        self.yazilan_sql.append(sql)
+        for i in list(self.satirlar):
+            if self.q(i) in sql and int(self.satirlar[i] or 0) == 0:
+                self.satirlar[i] = 1
+
+
+def sahte_prob(kod_haritasi, varsayilan=404):
+    """(yol, beklenen) -> HTTP kodu | None. Gercek yol_kodu()'nun CIKTI SEKLINI taklit
+    eder. `kod_haritasi` yolu (tam string) koda esler; eslenmeyen yol `varsayilan`.
+    varsayilan=None verilirse AG HATASI taklit edilir."""
+    cagrilan = []
+
+    def prob(yol, beklenen=200):
+        cagrilan.append(yol)
+        return kod_haritasi.get(yol, varsayilan)
+
+    prob.cagrilan = cagrilan
+    return prob
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -599,6 +888,212 @@ def kendini_test():
     mutant_sql = "UPDATE urunler SET yayinda=1, release_id='r' WHERE id IN ('a');"
     dogrula("Y19 MUTASYON M3: WHERE yayinda=0 dusen mutant zaten-yayindaki satiri da yazar",
             "WHERE yayinda=0" not in mutant_sql, mutant_sql)
+
+    # ══════════════════════════════════════════════════════════════════════════════
+    # BOS YUZEY EKSENI (7 Agu) — "olcecek sey yok" ARTIK YESIL DEGIL
+    # ══════════════════════════════════════════════════════════════════════════════
+    # ── ADRES BICIMI: `.html` HIC URETILMEZ ([[kanonik-adres-olcum-yanlisi]]) ──────
+    dogrula("Y32 ADRES: kanonik bicim /urun/<id>/ (sonda egik cizgi)",
+            urun_yolu("uydurma-parca-a1") == "/urun/uydurma-parca-a1/",
+            urun_yolu("uydurma-parca-a1"))
+    tum_plan = olcum_plani(["taslak-a"], ["canli-%d" % i for i in range(12)])
+    dogrula("Y33 ADRES: planin HICBIR satirinda `.html` YOK (sahte 404 tuzagi)",
+            all(".html" not in o["yol"] for o in tum_plan),
+            [o["yol"] for o in tum_plan if ".html" in o["yol"]])
+    dogrula("Y34 ADRES: planin her yolu `/` ile biter (dizin bicimi)",
+            all(o["yol"].endswith("/") for o in tum_plan), [o["yol"] for o in tum_plan])
+    # SAHTE 404 TUZAGI: site `.html` yoluna 404, kanonik yola 200 verir. Kapi kanonik
+    # bicimi urettigi icin YESIL kalmali; `.html` uretse KIRMIZI yanardi.
+    kanonik_200 = {urun_yolu(u): 200 for u in ["taslak-a"] + ["canli-%d" % i for i in range(12)]}
+    kanonik_200["/urun/" + NOBET_ID + "/"] = 404
+    kanonik_200.update({"/urun/canli-%d.html" % i: 404 for i in range(12)})
+    h_c, _, s_c = yuzey_hukmu(olcumleri_yap(tum_plan, prob=sahte_prob(kanonik_200)))
+    # Beklenen 9 = 1 taslak + 5 en-yeni + kesitin YENI eklediyi 3 (indeks 0 ve 2 zaten
+    # en-yeni kumesinde; tekilleme yuzunden 13 DEGIL 9 — sayi tekillemeyi de olcer).
+    dogrula("Y35 ADRES: `.html` 404 verse bile kanonik yol olculdugu icin hukum YESIL",
+            h_c == HUKUM_YESIL and s_c["katalog_pozitif"] == 9, (h_c, s_c))
+
+    # ── KESIT: deterministik, bas/orta/son kapsanir, tekrar YOK ────────────────────
+    dogrula("Y36 KESIT: 100 kayittan 5 indeks -> bas ve son DAHIL, artan sirali",
+            kesit_indeksleri(100, 5) == [0, 25, 50, 74, 99], kesit_indeksleri(100, 5))
+    dogrula("Y37 KESIT: kayit sayisi adetten az -> TUM indeksler (kirpma yok)",
+            kesit_indeksleri(3, 5) == [0, 1, 2], kesit_indeksleri(3, 5))
+    dogrula("Y38 KESIT: bos katalog -> bos kesit (uydurma indeks URETILMEZ)",
+            kesit_indeksleri(0, 5) == [])
+    p2 = olcum_plani([], ["c%d" % i for i in range(30)])
+    dogrula("Y39 PLAN: ayni id iki kaynaga girmez (tekil id, deterministik sira)",
+            len({o["id"] for o in p2}) == len(p2), [o["id"] for o in p2])
+    dogrula("Y40 PLAN: ayni girdi ayni plani uretir (rastgelelik YOK)",
+            [o["id"] for o in p2] == [o["id"] for o in
+                                      olcum_plani([], ["c%d" % i for i in range(30)])])
+    # 🔴 COKME DEGIL OLCUM: nobet satiri hic uretilmezse liste BOS olur; indeksleme
+    # yapan bir iddia burada COKER ve cokme "kirmizi"yla karisir
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Bu yuzden VARLIK ayri olculur.
+    nobetler = [o for o in p2 if o["kaynak"] == KAYNAK_NOBET]
+    dogrula("Y41 PLAN: nobet satiri HER planda VAR (tam 1 tane)", len(nobetler) == 1,
+            len(nobetler))
+    dogrula("Y41b PLAN: nobet satiri 404 BEKLER",
+            bool(nobetler) and nobetler[0]["beklenen"] == 404, nobetler)
+    dogrula("Y42 PLAN: nobet satiri katalog POZITIFI SAYILMAZ",
+            bool(nobetler) and nobetler[0]["katalog"] is False, nobetler)
+
+    # ── HUKUM: uc hal ayri ────────────────────────────────────────────────────────
+    def olc(satirlar):
+        return yuzey_hukmu([dict(kaynak=k, id=i, yol=urun_yolu(i), beklenen=b,
+                                 katalog=kt, alinan=a)
+                            for (k, i, b, kt, a) in satirlar])
+    h, sb, sc = olc([(KAYNAK_KESIT, "c1", 200, True, 200),
+                     (KAYNAK_NOBET, NOBET_ID, 404, False, 404)])
+    dogrula("Y43 HUKUM POZITIF: 1+ katalog sayfasi beklenen kodu verdi -> YESIL",
+            h == HUKUM_YESIL and sc["katalog_pozitif"] == 1, (h, sc))
+    h, sb, sc = olc([])
+    dogrula("Y44 HUKUM BOS YUZEY: hic olcum yok -> OLCULEMEDI (success DEGIL)",
+            h == HUKUM_OLCULEMEDI and "BOS YUZEY" in sb, (h, sb))
+    h, sb, sc = olc([(KAYNAK_NOBET, NOBET_ID, 404, False, 404)])
+    dogrula("Y45 HUKUM BOS YUZEY: YALNIZ nobet satiri olculdu -> OLCULEMEDI "
+            "(nobet yesili katalog kanitina SAYILMAZ)",
+            h == HUKUM_OLCULEMEDI and "BOS YUZEY" in sb, (h, sb))
+    h, sb, sc = olc([(KAYNAK_KESIT, "c1", 200, True, 404),
+                     (KAYNAK_NOBET, NOBET_ID, 404, False, 404)])
+    dogrula("Y46 HUKUM KIRMIZI: yoklanan katalog sayfasi 404 verdi -> KIRMIZI",
+            h == HUKUM_KIRMIZI and sc["sapan"] == 1, (h, sc))
+    h, sb, sc = olc([(KAYNAK_KESIT, "c1", 200, True, 200),
+                     (KAYNAK_NOBET, NOBET_ID, 404, False, 200)])
+    dogrula("Y47 HUKUM KIRMIZI: nobet id'si 200 verdi (site her yola 200 basiyor) "
+            "-> tum 200 olcumleri anlamsiz, KIRMIZI",
+            h == HUKUM_KIRMIZI, (h, sb))
+    h, sb, sc = olc([(KAYNAK_KESIT, "c1", 200, True, None),
+                     (KAYNAK_NOBET, NOBET_ID, 404, False, None)])
+    dogrula("Y48 HUKUM AG HATASI: kod alinamadi -> OLCULEMEDI (sessiz yesil DEGIL)",
+            h == HUKUM_OLCULEMEDI and sc["ag_hatasi"] == 2, (h, sc))
+    dogrula("Y48b HUKUM AG HATASI: SEBEP 'AG HATASI' der, 'BOS YUZEY' ile KARISTIRILMAZ "
+            "(operator hangi ariza oldugunu logdan bilmeli)",
+            "AG HATASI" in sb and "BOS YUZEY" not in sb, sb)
+    # 🔴 KISMI OLCUM: 2 sayfa 200 + 1 ag hatasi. Pozitif olcum VAR ama yuzeyin bir
+    # parcasi OLCULEMEDI -> yesil VERILMEZ. Bu satir olmadan "ag hatasini yut" mutanti
+    # (BOS YUZEY dalina dusup ayni jetonu urettigi icin) SAG KALIYORDU.
+    h, sb, sc = olc([(KAYNAK_YENI, "c1", 200, True, 200),
+                     (KAYNAK_KESIT, "c2", 200, True, 200),
+                     (KAYNAK_NOBET, NOBET_ID, 404, False, None)])
+    dogrula("Y48c HUKUM KISMI: pozitif olcum VARKEN tek ag hatasi bile YESIL'i keser",
+            h == HUKUM_OLCULEMEDI and sc["katalog_pozitif"] == 2 and sc["ag_hatasi"] == 1,
+            (h, sb, sc))
+    # 🔴 `katalog` BAYRAGININ SOZLESMESI: katalog=False bir satir 200 verse de POZITIF
+    # SAYILMAZ. (Bugun boyle bir satir tipi yok; bu iddia bayragin anlamini kilitler ki
+    # yarin eklenen "katalog olmayan ama 200 bekleyen" bir prob yuzeyi SISIRMESIN.)
+    h, sb, sc = olc([(KAYNAK_NOBET, "yardimci-uc", 200, False, 200)])
+    dogrula("Y48d HUKUM: katalog=False satir 200 verse de POZITIF SAYILMAZ -> BOS YUZEY",
+            h == HUKUM_OLCULEMEDI and "BOS YUZEY" in sb and sc["katalog_pozitif"] == 0,
+            (h, sb, sc))
+    h, sb, sc = olc([(KAYNAK_KESIT, "c1", 200, True, 404),
+                     (KAYNAK_YENI, "c2", 200, True, None)])
+    dogrula("Y49 HUKUM SIRA: GERCEK SAPMA ag gurultusunu YENER (kirmizi ortulemez)",
+            h == HUKUM_KIRMIZI, (h, sc))
+    h, sb, sc = olc([(KAYNAK_TASLAK, "t1", 200, True, 404)])
+    dogrula("Y50 HUKUM: canli JSON'da olan TASLAK adayin sayfasi 404 -> KIRMIZI "
+            "(eski kodun rc=1 duyarliligi korundu)", h == HUKUM_KIRMIZI, (h, sc))
+
+    # ── CIKIS KODU POLITIKASI ─────────────────────────────────────────────────────
+    dogrula("Y51 RC: KIRMIZI -> 1", hukum_cikis_kodu(HUKUM_KIRMIZI) == 1)
+    dogrula("Y52 RC: YESIL -> 0", hukum_cikis_kodu(HUKUM_YESIL) == 0)
+    dogrula("Y53 RC: OLCULEMEDI -> 0 (notr ucuncu hal; ekranda BUYUK harfle basilir, "
+            "yanlis-pozitif kirmizi deploy SONRASI hicbir seyi kurtarmaz)",
+            hukum_cikis_kodu(HUKUM_OLCULEMEDI) == 0)
+    dogrula("Y54 RC: uc hal UC AYRI jeton (ikisi ayni degere COKMEZ)",
+            len({HUKUM_YESIL, HUKUM_KIRMIZI, HUKUM_OLCULEMEDI}) == 3)
+
+    # ══════════════════════════════════════════════════════════════════════════════
+    # UCTAN UCA: komut_yayinla, SAHTE D1 + SAHTE HTTP ile (ag/dosya YOK)
+    # ══════════════════════════════════════════════════════════════════════════════
+    canli12 = ["canli-%d" % i for i in range(12)]
+
+    def kos(d1_satirlari, canli_liste, kod_haritasi, varsayilan=404, canli_hata=None,
+            yerel=None):
+        m = SahteD1(d1_satirlari)
+        prob = sahte_prob(kod_haritasi, varsayilan)
+        cikti = []
+        kaynak = (lambda: (None, canli_hata)) if canli_hata else (lambda: (canli_liste, None))
+        rc = komut_yayinla(m, "test-release", prob=prob, canli_kaynak=kaynak,
+                           yerel_kaynak=(lambda: list(yerel if yerel is not None
+                                                      else canli_liste)))
+        return rc, m, prob, cikti
+
+    tum_200 = {urun_yolu(u): 200 for u in canli12}
+    tum_200["/urun/" + NOBET_ID + "/"] = 404
+
+    # 🟢 KONTROL MUTANTI — YESIL KALMALI: taslak YOK ama canli katalog var ve sayfalari 200.
+    print("\n  [KONTROL MUTANTI] taslak 0 + canli katalog 12 + hepsi 200")
+    rc, m, prob, _ = kos({}, canli12, tum_200)
+    dogrula("Y55 KONTROL: taslak yok + canli sayfalar 200 -> rc=0 VE >=1 sayfa FIILEN "
+            "yoklandi (kor yesil DEGIL)",
+            rc == 0 and len(prob.cagrilan) >= 6, (rc, len(prob.cagrilan)))
+    dogrula("Y56 KONTROL: yoklanan yollarin hepsi kanonik (`.html` YOK)",
+            all(".html" not in y for y in prob.cagrilan), prob.cagrilan)
+    # 🔴 YUZEY GENISLIGI: taslak olmasa bile UC kaynak da fiilen planlanmali. Bu satir
+    # olmadan "canli-yeni kaynagini kaldir" mutanti sag kaliyordu (kesit tek basina
+    # yeterli sanilirdi -> en yeni urunler hic yoklanmazdi).
+    kaynaklar = {o["kaynak"] for o in olcum_plani([], canli12)}
+    dogrula("Y56b KONTROL: taslak yokken bile YUZEY = canli-yeni + canli-kesit + nobet",
+            kaynaklar == {KAYNAK_YENI, KAYNAK_KESIT, KAYNAK_NOBET}, kaynaklar)
+
+    # 🔴 AYIRT EDICI (a) — BOS YUZEY: taslak 0 + canli kesit 0.
+    print("  [MUTANT a] taslak 0 + canli katalog 0 -> BOS YUZEY")
+    rc, m, prob, _ = kos({}, [], {"/urun/" + NOBET_ID + "/": 404})
+    h_a, sb_a, sc_a = yuzey_hukmu(olcumleri_yap(olcum_plani([], []),
+                                                prob=sahte_prob({"/urun/" + NOBET_ID + "/": 404})))
+    dogrula("Y57 MUTANT a: yoklanacak katalog sayfasi YOK -> hukum OLCULEMEDI/BOS YUZEY, "
+            "`success` hukmu VERILMEZ",
+            h_a == HUKUM_OLCULEMEDI and "BOS YUZEY" in sb_a and sc_a["katalog_pozitif"] == 0,
+            (h_a, sb_a, sc_a))
+    dogrula("Y58 MUTANT a: bos yuzeyde hicbir satir yayina ALINMAZ (yazma YOK)",
+            m.yazilan_sql == [], m.yazilan_sql)
+
+    # 🔴 AYIRT EDICI (b) — yoklanan sayfa 404 -> KIRMIZI, rc=1.
+    print("  [MUTANT b] canli katalog sayfasi 404 -> KIRMIZI")
+    bozuk = dict(tum_200)
+    bozuk[urun_yolu("canli-6")] = 404
+    rc, m, prob, _ = kos({}, canli12, bozuk)
+    dogrula("Y59 MUTANT b: canli JSON'daki id'nin sayfasi 404 -> rc=1 (gercek kirmizi)",
+            rc == 1, rc)
+
+    # 🔴 AYIRT EDICI (c) — nobet satiri 200 dondu (site catch-all): KIRMIZI.
+    print("  [MUTANT c] nobet id'si 200 -> kapinin gozu bozuk, KIRMIZI")
+    catch_all = dict(tum_200)
+    catch_all["/urun/" + NOBET_ID + "/"] = 200
+    rc, m, prob, _ = kos({}, canli12, catch_all)
+    dogrula("Y60 MUTANT c: var olmayan id 200 verirse tum 200 olcumleri anlamsiz -> rc=1",
+            rc == 1, rc)
+
+    # 🔴 AYIRT EDICI (d) — ag hatasi: OLCULEMEDI, SESSIZ YESIL DEGIL.
+    print("  [MUTANT d] ag hatasi -> OLCULEMEDI")
+    rc, m, prob, _ = kos({}, canli12, {}, varsayilan=None)
+    h_d, sb_d, sc_d = yuzey_hukmu(olcumleri_yap(olcum_plani([], canli12),
+                                                prob=sahte_prob({}, None)))
+    dogrula("Y61 MUTANT d: tum yoklamalar ag hatasi -> hukum OLCULEMEDI, katalog "
+            "pozitif = 0 (yesil OKUNAMAZ)",
+            h_d == HUKUM_OLCULEMEDI and sc_d["katalog_pozitif"] == 0
+            and sc_d["ag_hatasi"] == sc_d["yoklanan"], (h_d, sc_d))
+    dogrula("Y62 MUTANT d: ag hatasinda hicbir satir yayina ALINMAZ",
+            m.yazilan_sql == [], m.yazilan_sql)
+    # Canli JSON'un KENDISI okunamazsa da yuzey bostur.
+    rc, m, prob, _ = kos({"taslak-x": 0}, canli12, tum_200,
+                         canli_hata="canli urunler.json alinamadi (kod=None)")
+    dogrula("Y63 MUTANT d2: canli urunler.json okunamayinca yuzey BOS + yazma YOK",
+            m.yazilan_sql == [] and len(prob.cagrilan) <= 1,
+            (m.yazilan_sql, prob.cagrilan))
+
+    # 🟢 YAYINA ALMA hala calisiyor (onarim yazma yolunu KORELTMEDI).
+    print("  [KORELME KONTROLU] taslak 200 verdi -> yayina alinir")
+    ile_taslak = dict(tum_200)
+    ile_taslak[urun_yolu("taslak-y")] = 200
+    rc, m, prob, _ = kos({"taslak-y": 0}, canli12 + ["taslak-y"], ile_taslak)
+    dogrula("Y64 KORELME: canli 200 veren taslak yayina ALINDI (yayinda=1) ve rc=0",
+            rc == 0 and m.satirlar["taslak-y"] == 1, (rc, m.satirlar))
+    dogrula("Y65 KORELME: yazilan SQL tek yon (SET yayinda=1) ve WHERE yayinda=0 tasir",
+            len(m.yazilan_sql) == 1 and "SET yayinda=1" in m.yazilan_sql[0]
+            and "WHERE yayinda=0" in m.yazilan_sql[0], m.yazilan_sql)
+    dogrula("Y66 KORELME: yerel JSON'da OLMAYAN taslak aday olmaz -> yazma YOK",
+            kos({"hayalet-z": 0}, canli12, tum_200, yerel=canli12)[1].yazilan_sql == [])
 
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
