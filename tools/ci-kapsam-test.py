@@ -1791,12 +1791,31 @@ IZIN_LISTESI = {
         "fresh checkout'unda kurulu blok YOKTUR, 'olu konum' nobetcisi orada yapisal "
         "olarak kirmizi yanar. Yerel push disiplini araci; deploy CI adimi degil."),
     "tools/yedekle-test.py": (
-        "Olcum girdisi MAKINEYE OZGU ve git DISI: ~/.claude/skills agaci (yedeklenen sey) ile "
-        "Google Drive mount'u. CI fresh checkout'unda ikisi de YOK -> kapsam kontrolleri "
-        "yapisal olarak KIRMIZI yanar (R_YOL sinifi; sentetik sir/mutasyon bolumleri offline "
-        "yesil olsa da testin cekirdek iddiasi 'gercek skill agaci planda mi' CI'da "
-        "olculemez). Ayrica yedekle.py yayin hattinin parcasi degil: yerel disk-kaybi "
-        "sigortasi -> Pages build'ini bloklamasi orantisiz."),
+        "Olcum girdisi MAKINEYE OZGU ve git DISI: ~/.claude/skills agaci (yedeklenen sey), "
+        "repo kokundeki GITIGNORE'LU dosyalar ve Google Drive mount'u. "
+        "🔴 7 AGU 2026 — GERCEKTEN OLCULDU (beyan degil): CI TAKLIDI = temiz `git clone` "
+        "(calisma agaci `git status --porcelain` BOS), BOS HOME (.claude/skills ve "
+        ".claude/projects YOK), KARDES EV YOK (klonun tek kardesi bos HOME), Drive YOK. "
+        "KOMUT: `python3 tools/yedekle-test.py` (klon kokunde). CIKTI: rc=1, "
+        "\"TOPLAM 220 kontrol, 6 kirmizi\", COKME YOK, 6,1 s. Kirmizilarin HEPSI ORTAM "
+        "KAYNAKLI (kusur DEGIL): (1) \"skills dizini var — .../.claude/skills YOK\"; "
+        "(2)(3) \"kuru listede: skills/merge-kapisi/scripts/dal-olc.py\" + "
+        "\"skills/merge-kapisi/evals/kabul-test.py\" (ayni agaca bagli); "
+        "(4) \"beklenen repo dosyalarinin HEPSI bulundu — eksik: ['.urun-kaynaklari.json', "
+        "'AGENTS.md', 'DEVAM-ARSIV.md']\" (ucu de gitignore'lu; taze checkout'ta YOKTUR); "
+        "(5) \"_repo_dosyalari 4 dosya donduruyor — 1\"; (6) \"ajan baglam dosyasi "
+        "(AGENTS.md) yedek planinda — DEVAM.md\". Yani testin CEKIRDEK iddiasi (gercek "
+        "skill agaci + gercek kok dosyalari planda mi) CI'da YAPISAL olarak olculemez "
+        "(R_YOL sinifi) -> bloklayici baglanirsa TUM ekibin yayini YANLIS-POZITIF ile "
+        "durur. Ayrica yedekle.py yayin hattinin parcasi degil: yerel disk-kaybi "
+        "sigortasi -> Pages build'ini bloklamasi orantisiz. "
+        "ACIK KOL (olculdu, mimar karari bekliyor): 16/16b KOK GLOB bolumu TAMAMEN "
+        "hermetiktir (fikstur gecici dizinde KENDI git deposunu kurar; HOME/Drive/kardes "
+        "ev OKUMAZ). AYNI CI TAKLIDINDE OLCULDU: bolum FIILEN KOSTU ve 40 kontrolun "
+        "40'i YESIL, 0 kirmizi — yerel kosumla BIREBIR AYNI (40/0). Hermetik alt-kume kolu "
+        "acilirsa bloklayici baglanabilir; kalan engel 13/13e/14 bolumleridir (flock + "
+        "3 tur paralel kosum + 2000 orneklik zamanlama hassasiyeti) — paylasilan CI "
+        "kosucusunda FLAKE sinifi, bu yuzden kor baglanmadi."),
 }
 
 

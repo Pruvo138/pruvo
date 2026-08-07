@@ -119,14 +119,44 @@ def fikstur_kur(kok):
 #
 # ⚠️ FIKSTUR ADLARI TAMAMEN UYDURMA. Gercek defter adlari (ucuncu-taraf etiketleri)
 # bu dosyaya YAZILMAZ: yazilsaydi sizinti KALDIRILMAZ, nobetcinin kendi izlenen
-# dosyasina TASINIRDI. Desen EK_EVLER'den OKUNUR, sahte adlar ondan TURETILIR —
-# boylece ikiz tanim da olusmaz (desen degisirse fikstur kendiliginde uyar).
+# dosyasina TASINIRDI ([[nobetci-kendi-dosyasinda-sizinti]]). Uydurma adlar gercek
+# etiketlerin anlasilir turevi de DEGILDIR (1-harf mesafe yok).
 # ⚠️ GERCEK EVE BAGIMLI DEGIL: fikstur gecici dizinde kendi git deposunu kurar.
 KOK_GLOB_EV = "pruvo-hasat"          # EK_EVLER anahtari (basename ile cozulur)
 # Hukmun TEK TANIMI. Adiyla anilir ki (1) mutasyon capasi ona baglansin,
 # (2) "tek tanim / iki cagiran" ozelligi YAPISAL olarak da olculebilsin.
 KOK_GLOB_FN = "_kok_desen_tutuyor"
 KOK_GLOB_CAPA = "    return any(fnmatch.fnmatch(ad, d) for d in desenler)"
+# Mutasyon capalari — kok glob'un IKI AYRI kod/veri ekseni.
+KOK_GLOB_ISFILE_CAPA = (
+    "            if not os.path.isfile(os.path.join(ev, giris)):\n"
+    "                continue                       # dizin/soket: kok glob'u dosya alir")
+# Mutantin YUKLENEN MODULDE canli oldugunu kanitlayan isaret buraya enjekte edilir.
+KOK_GLOB_ISARET_CAPA = 'EK_KLASOR = "ek"'
+
+# ===================== SABIT FIKSTUR ADLARI (M-G onarimi) ====================
+# 🔴 NEDEN SABIT (7 Agu 2026 — olculdu): bu adlar eskiden DESENDEN TURETILIYORDU
+# (`_desenden_ad`). Turetildikleri surece desen HANGI DEGERE kayarsa kaysin fikstur
+# onunla BIRLIKTE kayiyordu: deseni "ZZZUYDURMAYOK-*.md" gibi TAMAMEN YANLIS bir
+# degere ceviren mutant 204 kontrolun HEPSINI YESIL geciyordu. Testin desen
+# hakkindaki tek iddiasi `bool(desenler)` idi — yani VARLIK, DEGER DEGIL
+# ([[kapi-beyanin-dogrulugunu-degil-varligini-olcer]] ile ayni sinif).
+# Adlar SABIT + desen EK_EVLER'den OKUNUR -> desen kayarsa eslesme SIFIRA duser ve
+# (a)+(b)+(i) iddialari KIRMIZI yanar. Desen dizesi buraya IKINCI KEZ YAZILMAZ:
+# tek kaynak EK_EVLER'de kalir, burada yalniz DEGERI IDDIA EDILIR
+# ([[ikiz-tanim-sessiz-ayrisma]]).
+KOK_GLOB_KAPSANAN = ("DEVAM-KUMHAVUZU-ALFA.md",
+                     "DEVAM-KUMHAVUZU-BETA.md",
+                     "DEVAM-KUMHAVUZU-GAMA.md")
+KOK_GLOB_ALTAGAC = "DEVAM-KUMHAVUZU-ALTAGAC/DERIN.md"   # '/' ayirmasaydi yutulurdu
+KOK_GLOB_IZLENEN = "DEVAM-KUMHAVUZU-IZLENEN.md"         # git'te var -> alinmaz
+KOK_GLOB_SIRLI = "DEVAM-KUMHAVUZU-token.md"             # sir nobetine takilir
+KOK_GLOB_DESEN_DISI = "KUMHAVUZU-KAPSAM-DISI-KAYDI.txt"  # gorunur bosluk (negatif)
+# UZANTI EKSENI (M-I): desen "DEVAM-*" olsaydi bu ikisi de kapsama girerdi.
+KOK_GLOB_UZANTISIZ = "DEVAM-KUMHAVUZU-UZANTISIZ"
+KOK_GLOB_BASKA_UZANTI = "DEVAM-KUMHAVUZU-BASKA.txt"
+# DIZIN EKSENI (M-D): desene UYAN ama DOSYA OLMAYAN giris.
+KOK_GLOB_DIZIN = "DEVAM-KUMHAVUZU-DIZIN.md"
 
 
 def kok_desen_yapisi(kaynak):
@@ -156,14 +186,11 @@ def _alt_dizin_glob(mod, ev_adi=KOK_GLOB_EV):
     return None
 
 
-def _desenden_ad(desen, jeton):
-    """Desendeki ilk '*' yerine UYDURMA jeton koyar -> desene UYAN sahte dosya adi."""
-    return desen.replace("?", "u").replace("*", jeton, 1).replace("*", "")
-
-
 def kok_glob_fiksturu(td, mod):
     """Sahte kardes ev (gercek git deposu). Doner: (ev_yolu, beklenen dict).
 
+    🔴 DOSYA ADLARI SABIT (yukaridaki KOK_GLOB_* sabitleri), DESENDEN TURETILMEZ:
+    desenin DEGERI ancak boyle iddia edilebilir (bkz. sabitlerin ustundeki blok).
     Capa bayatlarsa RuntimeError -> test KIRMIZI yanar, sessizce gecmez."""
     desenler = _kok_glob_desenleri(mod)
     if not desenler:
@@ -172,7 +199,6 @@ def kok_glob_fiksturu(td, mod):
     altglob = _alt_dizin_glob(mod)
     if not altglob:
         raise RuntimeError("ALT DIZIN GLOB CAPASI YOK: EK_EVLER[%r]" % KOK_GLOB_EV)
-    desen = desenler[0]
 
     ev = os.path.join(td, KOK_GLOB_EV)
     os.makedirs(ev)
@@ -187,29 +213,30 @@ def kok_glob_fiksturu(td, mod):
             f.write(icerik)
         return gor
 
-    # (1) HEDEF: desene uyan, IZLENMEYEN 3 kok kaydi — adlar UYDURMA.
-    kapsanan = [yaz(_desenden_ad(desen, "UYDURMA-%s" % j))
-                for j in ("BIR", "IKI", "UC")]
+    # (1) HEDEF: desene UYMASI BEKLENEN, IZLENMEYEN 3 kok kaydi — adlar SABIT+UYDURMA.
+    kapsanan = [yaz(ad) for ad in KOK_GLOB_KAPSANAN]
     # (2) ALT AGAC: desen "/" ayirmasaydi bunu da yutardi (fnmatch '/' ayirmaz).
-    altagac = yaz(_desenden_ad(desen, "UYDURMA-DIZIN/DERIN"))
+    altagac = yaz(KOK_GLOB_ALTAGAC)
     # (3) DESEN DISI kok dosyasi -> gorunur bosluk olarak KAPSAM-DISI'nda kalmali.
-    desendisi = "UYDURMA-KAPSAM-DISI-KAYDI.txt"
-    if any(fnmatch.fnmatch(desendisi, d) for d in desenler):
-        raise RuntimeError("FIKSTUR BAYAT: kontrol dosyasi %r desene UYUYOR "
-                           "(negatif eksen olculemez)" % desendisi)
-    yaz(desendisi)
+    yaz(KOK_GLOB_DESEN_DISI)
     # (4) IZLENEN eslesme -> git zaten yedek, kapsama ALINMAMALI.
-    izlenen = yaz(_desenden_ad(desen, "UYDURMA-IZLENEN"))
+    izlenen = yaz(KOK_GLOB_IZLENEN)
     subprocess.run(["git", "-C", ev, "add", izlenen], capture_output=True)
     subprocess.run(["git", "-C", ev, "commit", "-qm", "fikstur"], capture_output=True)
     # (5) SIR eksenli eslesme -> desene UYSA BILE yedege girmez, `haric`e duser.
-    sirli = yaz(_desenden_ad(desen, "UYDURMA-token"))
+    sirli = yaz(KOK_GLOB_SIRLI)
     # (6) Mevcut ALT-DIZIN glob'u (or. "<dizin>/*.<uzanti>") canli kalmali.
     altdizin = yaz(os.path.join(os.path.dirname(altglob),
                                 os.path.basename(altglob).replace("*", "uydurma-kayit", 1)))
-    return ev, {"kapsanan": kapsanan, "altagac": altagac, "desendisi": desendisi,
-                "izlenen": izlenen, "sirli": sirli, "altdizin": altdizin,
-                "desen_adet": len(desenler)}
+    # (7) UZANTI EKSENI (M-I): uzantisiz ve farkli uzantili kok kayitlari.
+    yaz(KOK_GLOB_UZANTISIZ)
+    yaz(KOK_GLOB_BASKA_UZANTI)
+    # (8) DIZIN EKSENI (M-D): desene UYAN ama DOSYA OLMAYAN kok girisi.
+    #     Ici DOLU olmali: bos dizin KAPSAM-DISI kesfinde bilerek atlanir.
+    yaz(os.path.join(KOK_GLOB_DIZIN, "icerik.txt"))
+    return ev, {"kapsanan": kapsanan, "altagac": altagac,
+                "desendisi": KOK_GLOB_DESEN_DISI, "izlenen": izlenen, "sirli": sirli,
+                "altdizin": altdizin, "desen_adet": len(desenler)}
 
 
 def kok_glob_iddialari(mod, ev, bek):
@@ -224,6 +251,12 @@ def kok_glob_iddialari(mod, ev, bek):
     kaps = bek["kapsanan"]
     icinde = len([x for x in kaps if x in d])
     dusen = len([x for x in kaps if x in k])
+    # (i) DEGER KILIDI: iddia MOD'un EK_EVLER'inden OKUNAN desen uzerinedir; sabit
+    # adlar desenden TURETILMEDIGI icin desen kayarsa bu sayi SIFIRA duser.
+    desenler = _kok_glob_desenleri(mod)
+    tutan = [a for a in KOK_GLOB_KAPSANAN
+             if any(fnmatch.fnmatch(a, x) for x in desenler)]
+    uzanti_ekseni = (KOK_GLOB_UZANTISIZ, KOK_GLOB_BASKA_UZANTI)
     return [
         ("(a) kok deseni ayni bicimdeki %d uydurma kaydi kapsama ALIR" % len(kaps),
          icinde == len(kaps), "%d/%d" % (icinde, len(kaps))),
@@ -244,6 +277,78 @@ def kok_glob_iddialari(mod, ev, bek):
          "dahil=%s haric=%s" % (bek["sirli"] in d, bek["sirli"] in h)),
         ("(h) SIR dosyasi KAPSAM-DISI'na da MUKERRER dusmez",
          bek["sirli"] not in k, "kapsam-disi mi: %s" % (bek["sirli"] in k)),
+        # ---- DEGER KILIDI: desen VAR MI degil, DOGRU DEGERDE MI ----
+        ("(i) EK_EVLER'den OKUNAN desen SABIT uydurma adlarin HEPSINI tutuyor "
+         "(desen DEGERI kilitli)",
+         len(tutan) == len(KOK_GLOB_KAPSANAN),
+         "%d/%d ad tutuluyor" % (len(tutan), len(KOK_GLOB_KAPSANAN))),
+        # ---- UZANTI EKSENI: desen uzantiyi GERCEKTEN suzuyor mu ----
+        ("(j) UZANTISIZ kok kaydi desene TAKILMAZ (kapsama girmez)",
+         KOK_GLOB_UZANTISIZ not in d, "dahil mi: %s" % (KOK_GLOB_UZANTISIZ in d)),
+        ("(k) FARKLI UZANTILI kok kaydi desene TAKILMAZ ve KAPSAM-DISI'nda GORUNUR",
+         KOK_GLOB_BASKA_UZANTI not in d and all(x in k for x in uzanti_ekseni),
+         "dahil=%s kapsam-disi=%s"
+         % (KOK_GLOB_BASKA_UZANTI in d, [x in k for x in uzanti_ekseni])),
+        # ---- DIZIN EKSENI: kok glob'u DOSYA alir, dizin GORUNUR bosluk kalir ----
+        ("(l) desene UYAN DIZIN yedege GIRMEZ, `haric`e de DUSMEZ, "
+         "KAPSAM-DISI'nda GORUNUR",
+         KOK_GLOB_DIZIN not in d and KOK_GLOB_DIZIN not in h and KOK_GLOB_DIZIN in k,
+         "dahil=%s haric=%s kapsam-disi=%s"
+         % (KOK_GLOB_DIZIN in d, KOK_GLOB_DIZIN in h, KOK_GLOB_DIZIN in k)),
+    ]
+
+
+def kok_glob_mutant_tarifleri(mod, kaynak):
+    """Kok glob eksenlerinin MUTANT TARIFLERI -> [(kod, etiket, degisimler, dogrula)].
+
+    🔴 CAPALAR CANLI KAYNAKTAN TURER: desen dizesi bu dosyaya IKINCI KEZ YAZILMAZ,
+    mutasyon capasi EK_EVLER'den OKUNAN degerden kurulur ([[ikiz-tanim-sessiz-ayrisma]]).
+    Capa kaynakta TEKIL degilse RuntimeError -> fail-loud (bayat capa sessizce gecmez).
+
+    🔴 HER MUTANT MODUL DUZEYI BIR ISARET TASIR (`MUTANT_ISARETI`): kabul, mutasyonun
+    DISKE YAZILMASI degil YUKLENEN MODULDE CANLI olmasidir. Ayni uzunlukta/ayni
+    saniyede yazilan mutasyon uygulanmayabilir ve mutant "oldurulmus" sanilir
+    ([[mutasyon-diske-yazma-tuzagi]] · [[mutasyon-bytecode-onbellegi]]). Isaret her
+    mutantta FARKLI bir degerdir ve mutasyonla AYNI yazimda dosyaya girer -> isaret
+    canliysa dosyanin TAMAMI canlidir; bayat bytecode bu esikten gecemez."""
+    desenler = _kok_glob_desenleri(mod)
+    if not desenler:
+        raise RuntimeError("KOK GLOB CAPASI YOK: EK_EVLER[%r]" % KOK_GLOB_EV)
+    desen = desenler[0]
+    desen_capa = '"%s"' % desen
+    for capa in (desen_capa, KOK_GLOB_CAPA, KOK_GLOB_ISFILE_CAPA, KOK_GLOB_ISARET_CAPA):
+        if kaynak.count(capa) != 1:
+            raise RuntimeError("MUTASYON CAPASI TEKIL DEGIL (%d kez): %r"
+                               % (kaynak.count(capa), capa[:60]))
+    # Mutant desen degerleri DE turetilir (elle yazilmis ikinci kopya olmasin):
+    yanlis_desen = '"ZZZUYDURMAYOK-%s"' % desen          # TAMAMEN baska bir deger
+    uzantisiz_desen = '"%s"' % (desen.rsplit(".", 1)[0] if "." in desen else desen + "*")
+
+    def isaret(kod):
+        return (KOK_GLOB_ISARET_CAPA,
+                'MUTANT_ISARETI = "%s"\n%s' % (kod, KOK_GLOB_ISARET_CAPA))
+
+    def _desen_kaydi(m):
+        yeni = _kok_glob_desenleri(m)
+        return bool(yeni) and yeni != desenler
+
+    return [
+        ("M1", "MUTANT-1 (eslesme hep False)",
+         [isaret("M1"), (KOK_GLOB_CAPA, "    return False  # MUTANT")],
+         lambda m: m._kok_desen_tutuyor("x", ["x"]) is False),
+        ("M2", "MUTANT-2 (eslesme hep True)",
+         [isaret("M2"), (KOK_GLOB_CAPA, "    return True  # MUTANT")],
+         lambda m: m._kok_desen_tutuyor("x", ["yok"]) is True),
+        ("MG", "M-G (kok deseni TAMAMEN YANLIS degere kaydi)",
+         [isaret("MG"), (desen_capa, yanlis_desen)], _desen_kaydi),
+        ("MI", "M-I (desenden UZANTI kontrolu dusuruldu)",
+         [isaret("MI"), (desen_capa, uzantisiz_desen)], _desen_kaydi),
+        ("MD", "M-D (kok yolundaki isfile suzgeci dusuruldu)",
+         [isaret("MD"),
+          (KOK_GLOB_ISFILE_CAPA,
+           "            if False:  # MUTANT (isfile suzgeci dusuruldu)\n"
+           "                continue")],
+         lambda m: True),   # isaret dosyanin TAMAMI icin kanit (bkz. docstring)
     ]
 
 
@@ -1349,6 +1454,20 @@ def main():
                                        bek_kg["sirli"])
         kontrol("fikstur TAZE: sir eksenli uydurma ad gercekten SIR sayiliyor",
                 bool(sir_sebep), str(sir_sebep))
+        # FIKSTUR TAZELIGI — negatif eksenler TEMIZ desende gercekten NEGATIF mi?
+        # (Bunlar RuntimeError DEGIL kontrol: mutant kosumunda cokme kirmiziyla
+        # karismasin diye yalniz SAGLAM kodda olculur.)
+        kontrol("fikstur TAZE: desen-disi kontrol dosyasi desene UYMUYOR",
+                not any(fnmatch.fnmatch(KOK_GLOB_DESEN_DISI, x) for x in desenler),
+                KOK_GLOB_DESEN_DISI)
+        uz_uyan = [a for a in (KOK_GLOB_UZANTISIZ, KOK_GLOB_BASKA_UZANTI)
+                   if any(fnmatch.fnmatch(a, x) for x in desenler)]
+        kontrol("fikstur TAZE: uzanti eksenli adlar TEMIZ desene UYMUYOR "
+                "(negatif eksen olculebilir)", not uz_uyan, "uyan: %s" % (uz_uyan or "-"))
+        kontrol("fikstur TAZE: dizin eksenli ad TEMIZ desene UYUYOR "
+                "(yalniz 'dosya degil' diye eleniyor)",
+                any(fnmatch.fnmatch(KOK_GLOB_DIZIN, x) for x in desenler),
+                KOK_GLOB_DIZIN)
         saglam_iddia = kok_glob_iddialari(yedekle, ev_kg, bek_kg)
         for etiket, ok, ayrinti in saglam_iddia:
             kontrol("SAGLAM " + etiket, ok, ayrinti)
@@ -1362,13 +1481,33 @@ def main():
     # karismasin diye AYRI basilir (cokmus mutant "oldurulmus" sayilmaz).
     print("\n16b) KOK GLOB KIRMIZI-MUTASYON — hukum bozulunca iddia DUSUYOR mu?")
     mutant_dusenler = {}
-    for sira, (etiket, govde) in enumerate((
-            ("MUTANT-1 (eslesme hep False)", "    return False  # MUTANT"),
-            ("MUTANT-2 (eslesme hep True)", "    return True  # MUTANT")), start=1):
+    # CAPA TAZELIGI = KIRMIZI KONTROL, COKME DEGIL: capa bayatlayinca traceback
+    # atmak "cokme mi kirmizi mi" ayrimini yok eder ve bataryanin GERISI hic
+    # kosmaz ([[mutasyon-kaniti-yeniden-uretilebilir]]: kabul cikis kodu degil,
+    # OLCULEN IDDIA SAYISIDIR).
+    try:
+        kg_tarifler = kok_glob_mutant_tarifleri(yedekle, kg_kaynak)
+    except RuntimeError as e:                           # capa bayat/tekil degil
+        kg_tarifler = []
+        kontrol("MUTASYON CAPALARI TAZE (yedekle.py kaynagiyla hizali)", False, str(e))
+    else:
+        kontrol("MUTASYON CAPALARI TAZE (yedekle.py kaynagiyla hizali)",
+                True, "%d mutant tarifi" % len(kg_tarifler))
+    for kod, etiket, degisimler, dogrula in kg_tarifler:
         with tempfile.TemporaryDirectory() as td:
-            mut = mutant_yaz(td, [(KOK_GLOB_CAPA, govde)],
-                             ad="mutant-kok-glob-%d.py" % sira)
-            mmod = modul_yukle(mut, "yedekle_mutant_kokglob_%d" % sira)
+            mut = mutant_yaz(td, degisimler, ad="mutant-kok-glob-%s.py" % kod)
+            mmod = modul_yukle(mut, "yedekle_mutant_kokglob_%s" % kod)
+            # 🔴 MUTASYON FIILEN UYGULANDI MI: yuklenen MODULDE isaret + eksen kaniti.
+            try:
+                eksen_ok = bool(dogrula(mmod))
+            except Exception as e:                      # noqa: BLE001
+                eksen_ok = False
+                kod_ayrinti = "%s: %s" % (type(e).__name__, e)
+            else:
+                kod_ayrinti = "isaret=%r" % getattr(mmod, "MUTANT_ISARETI", None)
+            canli = getattr(mmod, "MUTANT_ISARETI", None) == kod and eksen_ok
+            kontrol("%s MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)" % etiket,
+                    canli, kod_ayrinti)
             cokme = None
             try:
                 ev_m, bek_m = kok_glob_fiksturu(td, mmod)
@@ -1380,16 +1519,25 @@ def main():
             dusen = [e for e, ok, _a in mut_iddia if not ok]
             mutant_dusenler[etiket] = set(dusen)
             kontrol("%s KIRMIZI: en az 1 iddia DUSTU" % etiket,
-                    cokme is None and len(dusen) > 0,
+                    canli and cokme is None and len(dusen) > 0,
                     "dusen %d / %d iddia: %s"
                     % (len(dusen), len(mut_iddia),
                        " · ".join(x.split(")")[0] + ")" for x in dusen) or "-"))
     # AYIRT EDICI MUTANT: iki mutant AYNI iddiayi dusuruyorsa ikincisi ek kanit
-    # tasimaz (bkz. hafiza: beyan edilmis survivor delik gizler).
-    kumeler = list(mutant_dusenler.values())
-    kontrol("iki mutant AYRI iddia kumesi dusuruyor (mutantlar AYIRT EDICI)",
-            len(kumeler) == 2 and kumeler[0] and kumeler[1] and kumeler[0] != kumeler[1],
-            " || ".join("%d iddia" % len(x) for x in kumeler))
+    # tasimaz (bkz. hafiza: beyan edilmis survivor delik gizler). Kabul: TUM
+    # ciftler icin kume FARKI — bir mutantin kumesi bir digerine ESIT olamaz.
+    kumeler = list(mutant_dusenler.items())
+    kontrol("her mutant EN AZ 1 iddia dusurdu (survivor yok)",
+            all(v for _e, v in kumeler), "bos kume: %s"
+            % ([e for e, v in kumeler if not v] or "-"))
+    ayni = [(a, b) for i, (a, va) in enumerate(kumeler)
+            for b, vb in kumeler[i + 1:] if va == vb]
+    kontrol("%d mutantin HEPSI AYIRT EDICI (hicbir cift AYNI kumeyi dusurmuyor)"
+            % len(kumeler),
+            bool(kumeler) and not ayni and len(kumeler) == len(kg_tarifler),
+            "esit cift: %s | kumeler: %s"
+            % (ayni or "-", " || ".join("%s:%d" % (e.split(" ")[0], len(v))
+                                        for e, v in kumeler)))
     # KORELME KONTROLU: mutasyondan sonra saglam kod HALA yesil mi (bkz. hafiza:
     # onarimdan sonra korelme kontrolu kosulur).
     with tempfile.TemporaryDirectory() as td:
