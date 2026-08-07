@@ -23,7 +23,9 @@ STL/olcu YOK (dosya henuz bizde degil).
 """
 import collections, concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile, time
 
-ROOT = "/Users/okan/dev/pruvo"
+# Kok betigin KENDI konumundan turetilir (tools/<dosya> -> kok = ust dizin).
+# Mutlak hardcoded yol CI runner checkout'unda (/home/runner/work/pruvo/pruvo) DOSYA YOK verirdi.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(ROOT, "tools")
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 URUNLER = os.path.join(ROOT, "urunler.json")
