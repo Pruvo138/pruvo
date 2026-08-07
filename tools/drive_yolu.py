@@ -1,8 +1,10 @@
 """PRUVO Ortak Drive'indaki STL klasorunun yolunu bulur — hesap adi degisse bile.
 
-Neden var: yol, hesabin e-postasini iceriyor (.../GoogleDrive-info@pruvo3d.com/Ortak Drive'lar/...).
-Hesap yeniden adlandirilinca (15 Tem 2026: info@gocekbroker.com -> info@pruvo3d.com) Drive
-uygulamasi mount klasorunun adini degistirir ve `.stl-backup-dir` bayatlar.
+Neden var: yol, hesabin e-postasini iceriyor (.../GoogleDrive-<hesap>/Ortak Drive'lar/...).
+Hesap yeniden adlandirilinca (15 Tem 2026: ONCEKI kurumsal hesaptan bugunku hesaba
+gecildi) Drive uygulamasi mount klasorunun adini degistirir ve `.stl-backup-dir` bayatlar.
+🔴 ONCEKI HESABIN ALAN ADI BURAYA YAZILMAZ: depo PUBLIC ve o ad baska bir ticari
+olusuma aittir; tarihce notu icin ad DEGIL olay yeterlidir.
 
 Eskiden bu SESSIZCE kiriliyordu, en tehlikeli yaniydi:
   - thingiverse-fetch/printables-fetch: `if os.path.isdir(bdir)` -> yedegi sessizce ATLAR

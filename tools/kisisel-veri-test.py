@@ -1325,6 +1325,409 @@ def parmakizi_ad_nobeti():
     return hatalar, len(adlar) if isinstance(adlar, dict) else 0
 
 
+# ==================================================================================
+# ILETISIM YUZEYI NOBETCISI — IZLENEN DOSYA ICERIGI (7 Agu 2026)
+# ==================================================================================
+# 🔴 OLCULEN KOR NOKTA (bu bolumun VAR OLMA sebebi — sayilarla):
+#   Bu depoda "yasakli ad" IKI AYRI YERDE tanimliydi ve TEK BIR IDDIA onlari birbirine
+#   baglamiyordu ([[ikiz-tanim-sessiz-ayrisma]]):
+#     (1) KANONIK kaynak: tools/sizinti-desen-ozetleri.json (PBKDF2 ozetleri, IZLENEN,
+#         her klonda ve CI'da var). Tuketicisi: tools/commit-mesaji-kapisi.py — ve
+#         YALNIZ COMMIT MESAJLARI ekseninde.
+#     (2) IKIZ kaynak: yukaridaki `_TED_PARCALAR` — 3 duz literal, elle yazilmis, dosya
+#         ICERIGI ekseninde 532 izlenen dosyada kosuyor.
+#   Kesisimleri BOS; (2) hicbir zaman (1)'i okumadi. Yani bir tedarikci/vitrin adi
+#   commit MESAJINA yazilirsa yakalanir, AYNI ad bir .py YORUMUNA yazilirsa GECER.
+#
+#   AYNI KOR NOKTANIN IKINCI YARISI — ALAN ADI EKSENI: commit-mesaji-kapisi.py'de olgun
+#   bir BICIM kurali var (PUBLIC_ALAN + katalog markasi muafiyeti + gizli desen onceligi).
+#   O kural da YALNIZ commit mesajina bakiyordu. OLCULDU (7 Agu 2026): ayni kuralin
+#   E-POSTA kolu izlenen dosya ICERIGINE cevrildiginde 15 benzersiz host cikti ve
+#   bunlardan BIRI gercek bir sizintiydi — baska bir ticari olusuma ait ONCEKI hesabin
+#   alan adi tools/drive_yolu.py'nin docstring'inde duruyordu (bu dalda adsizlastirildi).
+#   Yani kural ZATEN DEPODAYDI, yalnizca bu YUZEYE dogrultulmamisti.
+#
+#   UCUNCU KOR NOKTA — TELEFON BAGLAM AYRIMI: CLAUDE.md kurali kesin ("4005 asla
+#   wa.me'de, 6526 arama/tel:'de olmaz") ama HICBIR kapi bunu olcmuyordu. Taban
+#   (7 Agu 2026): 386 satir WA numarasi, 5 satir arama numarasi tasiyor; capraz ihlal 0.
+#   Bugun temiz -> bu bir REGRESYON kapisidir, onarim degil. Beyan bu.
+#
+# 🔴 NEDEN OZET (AD) EKSENI DOSYA ICERIGININ TAMAMINA BAGLANMADI — OLCULDU, TAHMIN
+#   EDILMEDI: kanonik desenler PBKDF2/5000 ile eslesir ve dosya icerigi 532 izlenen
+#   dosyada 3 996 480 BENZERSIZ aday uretir (n=8: 1 233 757, n=12: 2 762 723).
+#   8 cekirdekte TAM tarama 188 saniye surdu (tek cekirdekte ~1600 s). Bloklayici bir
+#   kapiya bu maliyet KONULAMAZ: kapi birikmesi bu depoda OLCULMUS bir ariza sinifidir
+#   ([[kapi-birikimi-yayin-gecikmesi]]) ve yavas kapi devre disi birakilir.
+#   O TAM TARAMA BIR KEZ KOSTURULDU (7 Agu 2026, 532 dosya / 3 996 480 aday): ISABET 0.
+#   Yani bugunku icerik TEMIZ; kapatilamayan sey gelecekteki bir regresyonun UCUZ
+#   olcumudur. Ucuzlatmanin yolu bellidir ve BURADA YAZILAMAZ: ozet artefaktina ucuz
+#   bir on-elek alani eklemek gerekir, o alan ancak DUZ desen kaynagini
+#   (.sizinti-desenleri.txt, GITIGNORE'LU) elinde tutan makinede uretilebilir.
+#   Bu yuzden ad ekseni burada DAR ama KANONIK bir yuzeye baglandi: E-POSTA HOST'LARI
+#   (bugun 15 aday -> milisaniyeler). Gizlenen kapsam yok, sinir beyan edildi.
+_CMK_YOL = os.path.join(ROOT, "tools", "commit-mesaji-kapisi.py")
+_CMK_ONBELLEK = {}
+
+
+def _cmk():
+    """KANONIK modul (commit-mesaji-kapisi.py) -> (modul, hata). TEK kaynak.
+
+    Dosya adinda tire var -> duz `import` calismaz, importlib ile yuklenir.
+    FAIL-CLOSED: yuklenemezse bu nobetci YESIL VERMEZ."""
+    if "m" in _CMK_ONBELLEK:
+        return _CMK_ONBELLEK["m"], _CMK_ONBELLEK["h"]
+    m = h = None
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("pruvo_cmk", _CMK_YOL)
+        if spec is None or spec.loader is None:
+            h = "kanonik modul yuklenemedi (spec yok): %s" % _CMK_YOL
+        else:
+            m = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(m)
+    except Exception as e:                                    # noqa: BLE001
+        m, h = None, "kanonik modul yuklenemedi: %s (%s)" % (_CMK_YOL, e)
+    _CMK_ONBELLEK["m"], _CMK_ONBELLEK["h"] = m, h
+    return m, h
+
+
+# ----------------------------------------------------------------- TELEFON BAGLAM EKSENI
+# 🔴 NUMARALAR PARCALARDAN KURULUR: bu dosyanin KENDI kaynagi da izlenen ve PUBLIC'tir
+# ([[nobetci-kendi-dosyasinda-sizinti]]). Parcalar zaten sitede acik olan WhatsApp
+# numarasi ile JSON-LD'deki arama numarasidir; kural onlarin VARLIGI degil BAGLAMI
+# hakkindadir, o yuzden tam numarayi yeni bir duz literal olarak eklemeye gerek yok.
+_WA_PARCA = ("545", "138", "6526")
+_ARAMA_PARCA = ("532", "595", "4005")
+
+
+def _numara_deseni(parcalar):
+    """Parcalardan, aralarinda en fazla 3 rakam-disi karakter kabul eden desen kurar.
+    Bastaki 0/90/+90 opsiyoneldir; komsu RAKAM varsa eslesme YOK (baska bir numaranin
+    ortasina rastlamasin)."""
+    govde = r"\D{0,3}".join(parcalar)
+    return re.compile(r"(?<!\d)(?:\+?90|0)?\D{0,3}" + govde + r"(?!\d)")
+
+
+_WA_RE = _numara_deseni(_WA_PARCA)
+_ARAMA_RE = _numara_deseni(_ARAMA_PARCA)
+# Baglam isaretleri. DAR tutuldu: bu kapi BLOKLAYICI, bir yanlis-pozitif TUM yayini durdurur.
+# 🔴 `tel:` DEGIL `tel:<rakam|+>` — OLCULDU: cıplak "tel:" JavaScript/JSON ANAHTARINI da
+# yakaliyordu (shop/test/wa-siparis.mjs'de `tel: "0545..."` musteri alani) ve 4 MESRU
+# fikstur satirini kirmiziya boyuyordu. Gercek arama baglami `tel:` URI SEMASIDIR ve
+# ardindan bosluksuz `+` ya da rakam gelir (`href="tel:+90..."`).
+_ARAMA_BAGLAM_RE = re.compile(r"tel:[+0-9]|telephone|contact_?point", re.I)
+_WA_BAGLAM_RE = re.compile(r"wa\.me|whats_?app|wa_?me", re.I)
+
+
+def _satir(metin, konum):
+    """konum indeksini iceren SATIRI dondurur (baglam yargisi satir duzeyindedir)."""
+    bas = metin.rfind("\n", 0, konum) + 1
+    son = metin.find("\n", konum)
+    return metin[bas:] if son < 0 else metin[bas:son]
+
+
+def telefon_baglam_kusurlari(yol, metin):
+    """[(iddia, mesaj), ...] — CAPRAZ baglam ihlalleri.
+
+    IDDIA T1: WhatsApp numarasi ARAMA baglaminda (tel: / telephone / contactPoint) GECMEZ.
+    IDDIA T2: ARAMA numarasi WhatsApp baglaminda (wa.me / whatsapp) GECMEZ.
+    🔴 KURAL CAPRAZ SECILDI (numaranin KENDI baglaminda OLMASI sarti DEGIL): olculdu,
+    "kendi baglaminda olmali" kurali bugun 8 MESRU satiri kirmiziya boyardi
+    (attribution-ref.js TARGET_PHONE sabiti, 4 statik sayfadaki ayni sabit, test
+    docstring'leri). Capraz kural ise CLAUDE.md'nin YAZILI hukmunun birebir kendisidir."""
+    kusurlar = []
+    for m in _WA_RE.finditer(metin):
+        if _ARAMA_BAGLAM_RE.search(_satir(metin, m.start())):
+            kusurlar.append(("T1", "TELEFON BAGLAM IHLALI (T1): %s — WhatsApp numarasi "
+                                   "ARAMA baglaminda (tel:/telephone/contactPoint) geciyor. "
+                                   "CLAUDE.md: WhatsApp numarasi arama/tel:'de olmaz." % yol))
+    for m in _ARAMA_RE.finditer(metin):
+        if _WA_BAGLAM_RE.search(_satir(metin, m.start())):
+            kusurlar.append(("T2", "TELEFON BAGLAM IHLALI (T2): %s — ARAMA numarasi "
+                                   "WhatsApp baglaminda (wa.me/whatsapp) geciyor. "
+                                   "CLAUDE.md: arama numarasi asla wa.me'de olmaz." % yol))
+    return kusurlar
+
+
+# ----------------------------------------------------------------- E-POSTA HOST EKSENI
+# MUAFIYET (host, yol) CIFTIDIR — salt host DEGIL. Gerekce ZORUNLU (bos gerekce =
+# kirmizi). Cift olmasi bilincli: bir fikstur alan adinin BIR dosyada mesru olmasi onu
+# TUM depoda mesru yapmaz. Muafiyeti genisletmek = sizinti riski USTLENMEKTIR.
+_EPOSTA_MUAFIYET = {
+    ("gizli" + "vitrin.com", "tools/commit-mesaji-kapisi.py"):
+        "kanonik kapinin KENDI uydurma fiksturu (gercek ad degil; o dosyada beyan edilmis)",
+    ("ornek" + "musteri.com", "shop/test/olcum.mjs"):
+        "shop olcum testinin uydurma musteri e-postasi",
+    ("hotmail.com", "urunler.json"):
+        "urunler.json lisans.tasarimci ATIF degeri — URUN VERI DUZLEMI (tek yazar MaCiT); "
+        "KraL dokunmaz, bulgu RAPOR-MIMARA.md ile mimara bildirildi",
+}
+# ORNEK/REZERVE alan adlari — SINIF kurali, "yasakli ad" listesi degil. RFC 2606 rezerve
+# ucluye bu deponun Turkce fikstur karsiligi eklendi: `ornek.com` depo genelinde ORNEK
+# degeri sozlesmesidir (shop testleri, parmakizi fiksturleri). Hicbiri gercek bir
+# tedarikciye ait olamaz -> muafiyet listesini sismekten korur.
+_REZERVE_ALAN = frozenset(("example.com", "example.net", "example.org", "ornek.com"))
+
+
+def _eposta_hostlari(metin, cmk):
+    """metin -> [(host, konum), ...]. AYRISTIRMA KANONIK: cmk._EPOSTA_RE kullanilir;
+    ikinci bir e-posta deseni YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]])."""
+    return [(m.group(1).lower().strip("."), m.start(1))
+            for m in cmk._EPOSTA_RE.finditer(metin)]
+
+
+def _host_elenir_mi(host, cmk):
+    """Host GERCEK bir alan adi gorunumunde DEGIL mi (hukme girmez)?
+
+    Son etiket kanonik UZANTI listesindeyse DOSYA ADIdir ('x@ornek.com.scad');
+    kanonik TLD listesinde DEGILSE alan adi degildir ('@ornek.gecersiz', '@t.local',
+    '@x.invalid', '@x.test'). Iki liste de commit-mesaji-kapisi.py'den gelir — ikiz
+    tanim ACILMAZ, TLD/UZANTI politikasi tek yerde degisir."""
+    etiketler = [e for e in host.split(".") if e]
+    if len(etiketler) < 2:
+        return True
+    son = etiketler[-1]
+    return son in cmk.UZANTI or son not in cmk.TLD
+
+
+def eposta_host_kusurlari(yol, metin, cmk, kayit, markalar):
+    """[(iddia, mesaj), ...] — izlenen dosya ICERIGINDEKI e-posta host'larinin hukmu.
+
+    IDDIA E1: taninmayan (PUBLIC olmayan, katalog markasi olmayan, muaf olmayan) host YOK.
+    IDDIA E2: hicbir host KANONIK gizli desenle eslesmiyor (ad TESHISE YAZILMAZ).
+    🔴 SIRA SABIT (kanonik kapiyla AYNI): once gizli desen, sonra muafiyet. Gizli bir ad
+    muafiyet listesine (kazara ya da kasten) girse bile desen isabeti muafiyeti EZER."""
+    kusurlar = []
+    for host, konum in _eposta_hostlari(metin, cmk):
+        no = cmk._host_desen_isabeti(host, kayit)
+        if no is not None:
+            # 🔴 HOST YAZILMAZ: burada gorunen ad, ozet artefaktinin gizledigi adin ta
+            # kendisidir ve CI gunlugu PUBLIC'tir ([[maskeleme-kismi-kapatma]]).
+            kusurlar.append(("E2", "TEDARIKCI/SATICI ALAN ADI (E2): %s icinde, KANONIK "
+                                   "gizli desen #%d ile eslesen bir e-posta alan adi "
+                                   "geciyor (konum %d). Ad BILEREK yazilmiyor. Cozum: "
+                                   "notr ifadeye cevir ('kaynak platform')."
+                             % (yol, no, konum)))
+            continue
+        if _host_elenir_mi(host, cmk):
+            continue
+        if host in _REZERVE_ALAN:
+            continue
+        if cmk._public_mi(host):
+            continue
+        if (host, yol) in _EPOSTA_MUAFIYET:
+            continue
+        govde = cmk._kayitli_govde(host)
+        if govde is not None and govde in markalar:
+            continue
+        kusurlar.append(("E1", "TANINMAYAN E-POSTA ALAN ADI (E1): %s icinde %s (konum %d) "
+                               "— izlenen dosya iceriginde yalniz PUBLIC_ALAN, katalog "
+                               "markasi, RFC-rezerve ornek alan adi ve GEREKCELI muafiyet "
+                               "gecebilir. Satici/vitrin/tedarikci alan adi PUBLIC depoya "
+                               "girmez." % (yol, cmk.maskele(host), konum)))
+    return kusurlar
+
+
+# ----------------------------------------------------------------- IDDIA DEFTERI
+# 🔴 SAYAC DEGIL DEFTER: "kac iddia kostu" SABIT YAZILAMAZ — her iddia kendi ADIYLA
+# deftere islenir ve asagidaki kapi BEKLENEN AD KUMESINI arar. Boylece "sayaci sabitle
+# + bir iddiayi atla" mutasyonu kirmizi yanar (sayi tutar, AD eksilir).
+_BEKLENEN_IDDIA = frozenset(("K1", "T1", "T2", "E1", "E2"))
+
+
+def iletisim_fikstur_hatalari(cmk, kayit, markalar):
+    """Nobetcinin KENDI hukmunu olcer (olu nobetci + asiri-genisleme korumasi).
+    Bellekte calisir, diske/aga DOKUNMAZ. Fikstur metinleri PARCALARDAN kurulur ve
+    alan adlari UYDURMADIR — bu dosya kendi kaliplarini duz metin olarak tasimaz."""
+    hatalar = []
+    wa = "".join(_WA_PARCA)
+    ara = "".join(_ARAMA_PARCA)
+    # --- T1/T2 KIRMIZI fiksturler
+    for iddia, satir, gerekce in (
+            ("T1", 'contactPoint telephone "+90' + wa + '"', "WA numarasi arama baglaminda"),
+            ("T1", 'href="tel:+90' + wa + '"', "WA numarasi tel: baglaminda"),
+            ("T2", "https://wa.me/90" + ara, "arama numarasi wa.me baglaminda"),
+            ("T2", "WhatsApp hatti: 0" + ara, "arama numarasi whatsapp baglaminda")):
+        if iddia not in [i for i, _m in telefon_baglam_kusurlari("f/fikstur.py", satir)]:
+            hatalar.append("FIKSTUR(kirmizi) KACTI — %s zayifladi: %s" % (iddia, gerekce))
+    # --- T1/T2 YESIL fiksturler (yanlis-pozitif butcesi: bugun MESRU olan satirlar)
+    for satir, gerekce in (
+            ('href="https://wa.me/90' + wa + '?text=Merhaba"', "WA numarasi KENDI baglaminda"),
+            ('"telephone":"+90' + ara + '"', "arama numarasi KENDI baglaminda"),
+            ('var TARGET_PHONE = "90' + wa + '";', "baglamsiz sabit — capraz ihlal DEGIL"),
+            ("# numara sabitinden turetilen yazim: 90" + wa, "yorum icinde baglamsiz"),
+            ("tel: destek hatti 0850 000 0000", "ILGISIZ numara, arama baglami")):
+        bulunan = telefon_baglam_kusurlari("f/fikstur.py", satir)
+        if bulunan:
+            hatalar.append("FIKSTUR(yesil) YANLIS-POZITIF — kural DARALTILMALI: %s -> %r"
+                           % (gerekce, [i for i, _m in bulunan]))
+    # --- E1 KIRMIZI fiksturler. 🔴 ALAN ADLARI UYDURMA *VE* PARCALARDAN KURULU: aksi
+    # halde bu dosyanin KENDISI (izlenen) kendi E1 kuralini tetiklerdi
+    # ([[nobetci-kendi-dosyasinda-sizinti]] — olculdu: ilk surumde 5 self-hit).
+    _uv = "uydurma" + "vitrin.com"
+    _bo = "baska" + "olusum.com.tr"
+    for satir, gerekce in (
+            ("iletisim: satis@" + _uv, "taninmayan ticari alan adi"),
+            ("hesap: info@" + _bo, "taninmayan alan adi, cok parcali uzanti"),
+            ("bakim: admin@shop." + _uv, "alt alan — kayitli govde muaf degil")):
+        if "E1" not in [i for i, _m in eposta_host_kusurlari(
+                "f/fikstur.py", satir, cmk, kayit, markalar)]:
+            hatalar.append("FIKSTUR(kirmizi) KACTI — E1 zayifladi: %s" % gerekce)
+    # --- E1 YESIL fiksturler (yanlis-pozitif butcesi)
+    for satir, gerekce in (
+            ("iletisim: info@pruvo3d.com", "kendi PUBLIC alan adimiz"),
+            ("git config user.email t@example.invalid", "rezerve TLD -> alan adi degil"),
+            ("git config user.email test@example.com", "RFC 2606 rezerve ornek alan adi"),
+            ("fikstur: kt@pruvo.test", "rezerve .test -> alan adi degil"),
+            ('{"dosyalar": {"tasarimci@ornek.com.scad": "c"}}', "son etiket UZANTI -> dosya adi"),
+            ("noreply@anthropic.com kimlik trailer'i", "PUBLIC_ALAN kimlik alani")):
+        bulunan = eposta_host_kusurlari("f/fikstur.py", satir, cmk, kayit, markalar)
+        if bulunan:
+            hatalar.append("FIKSTUR(yesil) YANLIS-POZITIF — kural DARALTILMALI: %s -> %r"
+                           % (gerekce, [i for i, _m in bulunan]))
+    # --- MUAFIYET SAGLIGI: cift bicimi ZORUNLU, gerekce ZORUNLU (liste curumesin).
+    for anahtar, gerekce in _EPOSTA_MUAFIYET.items():
+        if not (isinstance(anahtar, tuple) and len(anahtar) == 2):
+            hatalar.append("MUAFIYET BICIMI BOZUK — (host, yol) cifti degil: %r" % (anahtar,))
+            continue
+        if not (gerekce and str(gerekce).strip()):
+            hatalar.append("GEREKCESIZ e-posta muafiyeti: %r" % (anahtar,))
+    # --- E2 CANLILIK: kanonik desen yargisi ISLIYOR mu? GERCEK desen KULLANILMADAN
+    #     olculur (sahte tuz + uydurma ad) — fikstur gercek sirri hic gormez.
+    _tuz = b"\x11" * 16
+    _ad = "uydurmagizli"
+    _sahte = {"dongu": 1000, "tuz": _tuz,
+              "desenler": [(len(_ad), cmk._ozetle(_ad, _tuz, 1000))]}
+    if "E2" not in [i for i, _m in eposta_host_kusurlari(
+            "f/fikstur.py", "iletisim: satis@" + _ad + ".com", cmk, _sahte, markalar)]:
+        hatalar.append("E2 YARGISI OLU: host'un KENDISI gizli desen oldugunda kapi kirmizi "
+                       "yakmiyor (kanonik desen ekseni kopmus)")
+    # --- SIRA KANITI: desen isabeti MUAFIYETI EZMELI (gizli ad muafiyete girse bile).
+    _gv = "gizli" + "vitrin"
+    _sahte2 = {"dongu": 1000, "tuz": _tuz,
+               "desenler": [(len(_gv), cmk._ozetle(_gv, _tuz, 1000))]}
+    if "E2" not in [i for i, _m in eposta_host_kusurlari(
+            "tools/commit-mesaji-kapisi.py", "iletisim: satis@" + _gv + ".com", cmk,
+            _sahte2, markalar)]:
+        hatalar.append("SIRA BOZUK: muafiyet listesindeki bir host gizli desenle eslestigi "
+                       "halde MUAF sayildi — desen ONCE bakilmali")
+    # --- E2E ENJEKSIYON: SENTETIK bir dosya korpusu verilir ve TARAMA DONGUSUNUN kendisi
+    # olculur (saf fonksiyon degil). 🔴 BU KATMAN "SAYACI SABITLE + IDDIAYI ATLA"
+    # MUTASYONUNU OLDURUR: defter kapisi susturulsa bile, planlanmis ihlalleri BULMAYAN
+    # bir tarama burada kirmizi yanar. Ozyineleme kapisi: fikstur=False.
+    _korpus = {
+        "s/tel1.html": 'x <a href="tel:+90' + wa + '">ara</a>',          # T1 ihlali
+        "s/tel2.js": 'const u = "https://wa.me/90' + ara + '";',          # T2 ihlali
+        "s/mail.py": "# iletisim: satis@" + _uv,                          # E1 ihlali
+        "s/temiz.js": 'href="https://wa.me/90' + wa + '?text=Merhaba"',   # YESIL
+        "s/temiz2.py": "# bildirim: info@pruvo3d.com",                    # YESIL
+        KAPI_YOLU: "# canlilik capasi",
+    }
+    _h, _t = iletisim_tara(_korpus, cmk, kayit, markalar)
+    _bekle_iddia = {"T1", "T2", "E1", "E2"}
+    _bulunan = {i for i, _m in _h}
+    if _bulunan != {"T1", "T2", "E1"}:
+        hatalar.append("E2E: sentetik korpusta beklenen ihlal kumesi %r yerine %r bulundu "
+                       "(tarama dongusu ihlalleri GORMUYOR ya da yanlis-pozitif uretti)"
+                       % (sorted({"T1", "T2", "E1"}), sorted(_bulunan)))
+    if _t["dosya"] != len(_korpus):
+        hatalar.append("E2E: taranan dosya sayisi %d yerine %d (tarama yuzeyi daralmis)"
+                       % (len(_korpus), _t["dosya"]))
+    if not _bekle_iddia <= _t["iddia"]:
+        hatalar.append("E2E: iddia defteri %r bekleniyordu, %r islendi (bir iddia HIC "
+                       "kosmadi — sayac sabitlense bile bu katman gorur)"
+                       % (sorted(_bekle_iddia), sorted(_t["iddia"])))
+    if _t["wa"] != 2 or _t["arama"] != 1:
+        hatalar.append("E2E: taban sayaclari bozuk — WA vurusu 2 bekleniyordu %d, arama "
+                       "vurusu 1 bekleniyordu %d" % (_t["wa"], _t["arama"]))
+    return hatalar
+
+
+def iletisim_tara(dosyalar, cmk, kayit, markalar):
+    """KAPI GOVDESI — {yol: metin} korpusu -> ([(iddia, mesaj), ...], taban).
+
+    GERCEK tarama ve E2E fikstur oz-kontrolu AYNI fonksiyonu kullanir: govdesi no-op
+    yapilirsa (or. 'return [], taban') fikstur de kirmizi yanar (olu tarayici korumasi).
+    Defter YALNIZ FIILEN KOSAN iddialarla doldurulur — sabit bir liste degil."""
+    defter = set()
+    taban = {"dosya": 0, "wa": 0, "arama": 0, "host": 0, "iddia": defter}
+    kusurlar = []
+    for yol in sorted(dosyalar):
+        metin = dosyalar[yol]
+        taban["dosya"] += 1
+        taban["wa"] += len(_WA_RE.findall(metin))
+        taban["arama"] += len(_ARAMA_RE.findall(metin))
+        defter.update(("T1", "T2"))
+        kusurlar.extend(telefon_baglam_kusurlari(yol, metin))
+        hostlar = _eposta_hostlari(metin, cmk)
+        taban["host"] += len(hostlar)
+        if hostlar:
+            defter.update(("E1", "E2"))
+        kusurlar.extend(eposta_host_kusurlari(yol, metin, cmk, kayit, markalar))
+    for iddia, _m in kusurlar:
+        defter.add(iddia)
+    return kusurlar, taban
+
+
+def iletisim_nobeti():
+    """(hatalar, taban) — izlenen dosya ICERIGI uzerinde iletisim yuzeyi nobeti.
+
+    taban: olculen sayilar (dosya · WA vurusu · arama vurusu · e-posta host · iddia adlari).
+    FAIL-CLOSED: kanonik modul ya da kanonik desen kaydi okunamazsa YESIL VERILMEZ."""
+    defter = set()
+    taban = {"dosya": 0, "wa": 0, "arama": 0, "host": 0, "iddia": defter}
+    cmk, cmk_hata = _cmk()
+    if cmk is None:
+        return ["OLCULEMEDI (iletisim nobeti) — %s" % cmk_hata], taban
+
+    # IDDIA K1 — KANONIK DESEN KAYNAGI: ikiz tanim YOK; tek kaynak YUKLENIR ve BOS DEGIL.
+    kayit, kayit_hata = cmk.ozet_kaydi_yukle()
+    if kayit is None:
+        return (["OLCULEMEDI (K1) — kanonik desen kaydi okunamadi: %s. Bu depoda ozet "
+                 "artefakti IZLENEN bir dosyadir; yoklugu normal calisma hali DEGIL "
+                 "(fail-closed)." % kayit_hata], taban)
+    defter.add("K1")
+
+    yollar, hata = _izlenen_dosyalar()
+    if hata:
+        return ["OLCULEMEDI (iletisim nobeti) — %s" % hata], taban
+    if KAPI_YOLU not in yollar:
+        return (["OLCULEMEDI (CANLILIK, iletisim nobeti) — izlenen dosya listesi kapinin "
+                 "KENDI yolunu (%s) icermiyor; tarama yuzeyi BOS ya da KISMI." % KAPI_YOLU],
+                taban)
+
+    markalar = cmk.katalog_markalari()
+    hatalar = iletisim_fikstur_hatalari(cmk, kayit, markalar)
+
+    korpus = {}
+    for yol in yollar:
+        try:
+            with open(os.path.join(ROOT, yol), "rb") as f:
+                korpus[yol] = f.read().decode("utf-8", "ignore")
+        except OSError:
+            continue
+    kusurlar, olculen = iletisim_tara(korpus, cmk, kayit, markalar)
+    hatalar.extend(m for _i, m in kusurlar)
+    # TABAN SAYILARI = iddianin GERCEKTEN bir sey uzerinde kostugunun kaniti.
+    for k in ("dosya", "wa", "arama", "host"):
+        taban[k] = olculen[k]
+    defter.update(olculen["iddia"])
+
+    # 🔴 DEFTER KAPISI: beklenen iddialarin HEPSI kosmus olmali.
+    eksik = sorted(_BEKLENEN_IDDIA - defter)
+    if eksik:
+        hatalar.append("IDDIA KOSMADI — beklenen iddia kumesi %s, EKSIK: %s. Bir iddia "
+                       "atlandi ya da tarama yuzeyi o iddiaya hic ulasmadi (sessiz yesil)."
+                       % (sorted(_BEKLENEN_IDDIA), eksik))
+    # ⚠️ VERI CAPASI DEGIL: sabit sayi/SHA/tarih iddiasi YOK, esik YOK. Yalniz
+    # "hic olculdu mu" sorulur; katalog buyudukce/kuculdukce degismez.
+    if not taban["wa"] or not taban["host"]:
+        hatalar.append("TABAN BOS — WA numarasi vurusu %d, e-posta host %d. Bu depoda "
+                       "ikisi de sifir olamaz; tarama yuzeyi daralmis demektir."
+                       % (taban["wa"], taban["host"]))
+    return hatalar, taban
+
+
 def normalize(metin):
     metin = metin.lower()
     for c in (" ", "\t", "\n", " ", "-", "(", ")"):
@@ -1446,6 +1849,18 @@ def main():
         sys.exit(gecmis_raporu())
     if "--pre-push" in argv:
         sys.exit(pre_push_ana())
+    if "--yalniz-iletisim" in argv:
+        # MUTASYON SURUCUSU icin dar kol: yalniz iletisim yuzeyi nobetcisi kosar
+        # (327 sayfa render edilmez). Hukum ve cikis kodu TAM kolla AYNIdir.
+        h, t = iletisim_nobeti()
+        if h:
+            _yaz_hatalar("iletişim yüzeyi nöbetçisi (içerik ekseni)", h)
+            sys.exit(1)
+        print("YEŞİL — iletişim yüzeyi nöbetçisi geçti (%d iddia: %s / taban: %d dosya · "
+              "%d WA vuruşu · %d arama vuruşu · %d e-posta host · %d gerekçeli muafiyet)."
+              % (len(t["iddia"]), ",".join(sorted(t["iddia"])), t["dosya"], t["wa"],
+                 t["arama"], t["host"], len(_EPOSTA_MUAFIYET)))
+        sys.exit(0)
     if "--aralik" in argv:
         i = argv.index("--aralik")
         aralik = argv[i + 1:]
@@ -1503,6 +1918,10 @@ def main():
     # 4) TEDARIKCI/URUN ADI SIZINTI NOBETCISI (kuresel negatif ICERIK kurali)
     tedarikci_hatalari, ted_taranan = tedarikci_nobeti()
 
+    # 4b) ILETISIM YUZEYI NOBETCISI (icerik ekseni: telefon baglami + e-posta alan adi,
+    #     KANONIK desen kaynagina bagli). Kor nokta gerekcesi icin bolum basligina bak.
+    iletisim_hatalari, iletisim_taban = iletisim_nobeti()
+
     # 5) PARMAKIZI KAYIT ADI NOBETCISI (O7 — adlar JENERIK kalmali)
     pk_hatalari, pk_taranan = parmakizi_ad_nobeti()
 
@@ -1517,13 +1936,16 @@ def main():
         for h in pk_hatalari:
             print("  - " + h)
 
-    if hatalar or rapor_hatalari or tedarikci_hatalari or pk_hatalari or gecmis_hatalari:
+    if (hatalar or rapor_hatalari or tedarikci_hatalari or pk_hatalari
+            or gecmis_hatalari or iletisim_hatalari):
         if hatalar:
             _yaz_hatalar("kişisel veri testi", hatalar)
         if rapor_hatalari:
             _yaz_hatalar("iç rapor sızıntı nöbetçisi", rapor_hatalari)
         if tedarikci_hatalari:
             _yaz_hatalar("tedarikçi/ürün adı sızıntı nöbetçisi", tedarikci_hatalari)
+        if iletisim_hatalari:
+            _yaz_hatalar("iletişim yüzeyi nöbetçisi (içerik ekseni)", iletisim_hatalari)
         if gecmis_hatalari:
             _yaz_hatalar("geçmiş ekseni fikstürleri", gecmis_hatalari)
         sys.exit(1)
@@ -1539,6 +1961,13 @@ def main():
     print("YEŞİL — tedarikçi/ürün adı sızıntı nöbetçisi geçti "
           "(%d izlenen dosya içeriği tarandı, %d dar literal)."
           % (ted_taranan, len(_TED_KALIPLAR)))
+    print("YEŞİL — iletişim yüzeyi nöbetçisi geçti (%d iddia: %s / taban: %d dosya · "
+          "%d WA vuruşu · %d arama vuruşu · %d e-posta host · %d gerekçeli muafiyet · "
+          "%d kanonik desen)."
+          % (len(iletisim_taban["iddia"]), ",".join(sorted(iletisim_taban["iddia"])),
+             iletisim_taban["dosya"], iletisim_taban["wa"], iletisim_taban["arama"],
+             iletisim_taban["host"], len(_EPOSTA_MUAFIYET),
+             len((_cmk()[0].ozet_kaydi_yukle()[0] or {}).get("desenler", ()))))
     kurulu, kanca_yolu = _kanca_kurulu_mu()
     print("YEŞİL — geçmiş ekseni fikstürleri geçti (%d kırmızı + %d yeşil senaryo + "
           "gerçek-git biçim çapası). Canlı aralık taraması pre-push kancasında: %s"
