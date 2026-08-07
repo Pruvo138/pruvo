@@ -1,5 +1,41 @@
 # DEVAM (KraL) — 7 Agu 2026
 
+## 🔴 SAATLIK NOBET 7 Agu ~05:40Z — 5. TUR AYNI KIRMIZI (`serit-a2`); YAYIN ~19 SAAT
+
+- **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev, tur gecerli.
+- **Mail supurmesi (0.5, kosulsuz):** birlesik gelen kutusu **7543** mesaj topluca tarandi;
+  `notifications@github.com` + "Run failed" eslesmesi **2** -> Cop'e tasinan **2**
+  (Build&deploy `8b121f3` · paket-tazeligi `8b121f3`), tur sonu kalan **0** (supurme SONRASI
+  ikinci tam taramayla teyit; inbox 7541). Cop BOSALTILMADI, baska maile dokunulmadi.
+  🔴 **OLCUM TUZAGI (yeni, kayda deger):** konu satirlari GOMULU SATIRSONU tasiyor — satir-basina
+  yazim 7543 kaydi **7786 satira** sisirdi ve sender/subject hizalamasini bozdu. Cozum: tek Apple
+  Event'te `id`+sender+subject ASCII-01 ayraciyla cekildi, silme **liste indeksiyle degil kararli
+  `id` ile** yapildi (iki toplu cagri arasinda canli mail dustu, sayi 7542 -> 7543 kaydi).
+- **CI olcumu (`gh`, maile guvenilmedi):** kosum `31148589484` (HEAD `8b121f37`) job biriminde:
+  `build` ✅ · `serit-a3` ✅ · **`serit-a4` ✅** · **`serit-a2` ❌** -> `deploy` **skipped** ·
+  `yayin` **skipped**. `serit-a4` yesili ucuncu kosumda da tuttu.
+- **Kok neden DEGISMEDI — VERI duzlemi:** 6 kayitta `marka` dizisinin 3. jetonu (sasi/varyant
+  kodu) `uyum` semasinin hicbir alaninda yok. Kod kusuru DEGIL; onarim `urunler.json` =
+  nobetin YASAK listesi + tek yazar baska mimar -> **DUR kosulu 5. TURDUR SURUYOR.**
+  Kapida esik/iddia GEVSETILMEDI, adim silinmedi, `continue-on-error` eklenmedi, yesile boyama YOK.
+- **Yayin acigi olculdu (bu tur, bagimsiz):** yerel **21.376** (benzersiz id de 21.376) vs canli
+  **20.849** -> **acik 527 kayit**. Onbellek ELENDI: onbellekli ve `?cb=` olcumu bayt-birebir
+  ayni (**19.864.882** == **19.864.882**) -> **origin bayat, CDN degil.**
+- **Yayin kesintisi hakemli ve TEYITLI:** son basarili `deploy` **JOB**'u `31090680564`,
+  `completedAt` **2026-08-06T10:36:11Z** -> **~19,1 saat.** (Kosumun GENEL rengi `failure`'dir;
+  hukum job biriminde verildi.) Son 12 `Build & deploy` kosumunda `deploy` success **0**.
+- **`yayin-nabzi` kirmizisi (`31150414850`) GERCEK POZITIF, ayri ariza DEGIL** — ayni tikanmanin
+  alarm kolu; `tazelik` ekseni yesil.
+- **Sema tarafi alternatifi YINE ACILMADI — ve bu turda GEREKCESI TAZELENDI:**
+  `tools/uyum-kapisi.py` calisma agacinda commit'lenmemis yabanci surum duruyor, dosya **04:51Z'de
+  degismis** (yani bir onceki nobet turundan SONRA) -> bayat artik degil, **AKTIF** baska oturum.
+  Tek kritik dosyada tek yazar kurali geregi DOKUNULMADI. `muh/serit-a4-teshis` dalindaki
+  kirpma onarimi (kapi `sema ihlali 6` sayarken ekrana 5 basiyor) ayni sebeple **PARK HALINDE**.
+  `git worktree list` **3 satir**; biri benim park dalim, biri baska oturumun.
+- **Okan'a YAZILDI (tek cumle) — MUKERRER DEGIL, YENI KARAR:** onceki turlar "MaCiT'i kostur"
+  dedi ve 5 turdur hareket yok; bu tur istenen sey **yetki**: 6 kayitlik duzeltme icin tek
+  seferlik tek-yazar muafiyeti. Yalniz Okan verebilir.
+
 ## 🔴 SAATLIK NOBET 7 Agu ~04:40Z — 4. TUR AYNI KIRMIZI (`serit-a2`); YAYIN ~18 SAATTIR DURDU
 
 - **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev, tur gecerli.
