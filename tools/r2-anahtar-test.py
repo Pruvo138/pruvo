@@ -11,10 +11,13 @@ Kosum:  python3 tools/r2-anahtar-test.py     (ag yok, yazma yok, exit 0 = yesil)
 Testler:
   (a) 4 cagri yerinde satir-ici anahtar turetme / satir-ici "urunler/%s-%d.jpg" KALMADI
   (b) GERIYE DONUK UYUM — urunler.json'daki gercek gorsel URL'lerinden en az 200 ornek:
-      URL'de FIILEN duran anahtar == modulun urettigi anahtar (th/pr/mw/cgt-)
+      URL'de FIILEN duran anahtar == modulun urettigi anahtar (th/pr/mw/cgt); ESKI 16
+      tireli CGTrader anahtari ("cgt-<id>") 7 Agu 2026 KraL hukmuyle artik YENIDEN
+      URETILMEZ (canlida oldugu gibi kalir) -> bu test yuzeyinden BILEREK disaridadir
       + TUM anahtarlarda normalize() no-op (mevcut hicbir anahtar kaymaz)
   (c) ASCII-disi / tirnakli / bosluklu girdilerde cikti guvenli ([a-z0-9-]+)
-  (d) th/pr/mw/cgt onekleri birebir (cgt'deki FAZLADAN TIRE tarihsel, korunmali)
+  (d) th/pr/mw/cgt/c3d onekleri birebir (cgt'deki tire 7 Agu 2026 KraL hukmuyle KALKTI,
+      kanonik artik tiresiz "cgt"; eski canli "cgt-" anahtar yeniden BASILMAZ)
 """
 import importlib.util
 import json
@@ -72,7 +75,10 @@ def test_a():
 
 
 # ------------------------------------------------------- (b) geriye donuk uyum (EN ONEMLI)
-ONEK_PLATFORM = [("cgt-", "CGTrader"), ("th", "Thingiverse"), ("pr", "Printables"),
+# 🔴 "cgt" (tiresiz) 7 Agu 2026 KraL hukmuyle kanonik. Eski 16 tireli canli anahtar
+# ("cgt-<id>") govde cikarilinca basinda tire kalir (isdigit() False) -> asagidaki dongu
+# onlari SESSIZCE atlar (yeniden uretme iddia edilmez, degistirilmezler de).
+ONEK_PLATFORM = [("cgt", "CGTrader"), ("th", "Thingiverse"), ("pr", "Printables"),
                   ("mw", "MakerWorld"), ("c3d", "Cults3D")]
 
 
@@ -161,13 +167,14 @@ def test_d():
         ("Thingiverse", "6543210", "th6543210"),
         ("Printables", 1234567, "pr1234567"),
         ("MakerWorld", 998877, "mw998877"),
-        ("CGTrader", "6267929", "cgt-6267929"),   # TARIHSEL fazladan tire — korunmali
+        ("CGTrader", "6267929", "cgt6267929"),    # 7 Agu 2026 KraL hukmu: tiresiz kanonik
         ("Cults3D", "s2000-console-organizer-v2-0", "c3ds2000-console-organizer-v2-0"),
     ]
     for platform, sid, bek in beklenen:
         a = r2k.gkey(platform, sid)
         sonuc("(d) %s -> %s" % (platform, bek), a == bek, a)
-    sonuc("(d) cgt oneki tireli kaliyor", r2k.ONEKLER["CGTrader"] == "cgt-", r2k.ONEKLER["CGTrader"])
+    sonuc("(d) cgt oneki tiresiz (7 Agu 2026 KraL hukmu)",
+          r2k.ONEKLER["CGTrader"] == "cgt", r2k.ONEKLER["CGTrader"])
     sonuc("(d) th/pr/mw/c3d onekleri tiresiz",
           (r2k.ONEKLER["Thingiverse"], r2k.ONEKLER["Printables"], r2k.ONEKLER["MakerWorld"],
            r2k.ONEKLER["Cults3D"]) == ("th", "pr", "mw", "c3d"), "")

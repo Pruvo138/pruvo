@@ -24,6 +24,20 @@ bosluktan yayina girdi. Ayrica AYNI platformda IKI anahtar gelenegi olustu: c3d+
      BUGUN AYRISMIS ("cgt-" vs "cgt"). -> E3/E4 gercek kaynagi okur, okuyamazsa
      FAIL-CLOSED kirmizi yakar ([[ikiz-tanim-sessiz-ayrisma]], ["olculdu" diyen hukum kanit ister]).
 
+🔴 IKINCI ONARIM (7 Agu 2026, CI kirmizi serisi 31163597070/31164490159/31166004655):
+  Yukaridaki (4) CI'da HUKMU YANLIS BIRIMDE veriyordu. Gercek ikiz PRIVATE kardes depodadir
+  (`pruvo-hasat`) ve GitHub Actions kosucusunda HIC YOKTUR -> CI logu:
+      "KIRMIZI E4 ... ayrıştırılan=0, kaynak=/Users/okan/dev/pruvo-hasat/olcum/hasat_ortak.py"
+  Yani E3/E4 CI'da ikizi degil KOSUCUNUN DOSYA DUZENINI olcuyordu: her kosumda kirmizi,
+  sifir bilgi. Ustelik iki AYRI olay (ikiz AYRISTI / ikiz OKUNAMADI) tek kirmiziya cokuyordu
+  ([[hukum-yanlis-birimde]]). Onarim SUSTURMA DEGIL, EKSEN AYIRMA:
+    - IKIZ_CAPA: ikizin KAYITLI govdesi (kaynaktan TURETILDI). E3 her ortamda capa/canli
+      tabloyu ONEKLER ile karsilastirir -> ikiz ayrismasi CI'da da KIRMIZI YANABILIR.
+    - E5 capayi sha256 ile kilitler (gizli gevsetme yanar).
+    - E6 capanin BAYAT olmadigini canli kaynak okunabildigi yerde olcer; okunamadigi yerde
+      "yesil" DEMEZ, ucuncu hal OLCULEMEDI basar (["olculdu" diyen hukum kanit ister]).
+  Iddia sayisi 14 -> 16 (ARTIS; hicbir esik gevsetilmedi).
+
 Kosum (ag yok, urunler.json'u SALT-OKUNUR acar, hicbir dosyaya YAZMAZ):
     python3 tools/r2-onek-gelenek-kapisi.py
 
@@ -48,12 +62,20 @@ IDDIALAR (her biri kisa, SABIT bir kimlikle basar; mutasyon surucusu kimlikleri 
   D2  gkey(..., bilinmeyen_sessiz=True) eski davranisa doner ("x42")
   E1  aktif tools/*.py icinde satir-ici Cults3D anahtar-turetme KOPYASI yok
   E2  gorsel-cakisma-onar.py gkey_for() tek onayli bilinmeyen_sessiz=True'yu tasiyor
-  E3  GERCEK ikiz (hasat_ortak.PLATFORMLAR) ile ONEKLER AYRISMAMIS
-  E4  GERCEK ikiz kaynagi OKUNDU ve en az BEKLENEN_IKIZ_ASGARI platform ayrıştırıldı
+  E3  GECERLI ikiz tablosu (canli kaynak, yoksa KAYITLI CAPA) ile ONEKLER AYRISMAMIS
+  E4  GECERLI ikiz tablosunda en az BEKLENEN_IKIZ_ASGARI platform var
+  E5  IKIZ_CAPA govdesi TAHRIF EDILMEMIS (len + sha256 sabiti)
+  E6  IKIZ_CAPA BAYAT DEGIL: canli ikiz kaynagi okunabildigi ortamda birebir esit
+      (kaynak bu ortamda YOKSA -> OLCULEMEDI; KIRMIZI degil, YESIL de degil)
 
 Cikis kodu: 0 = hic kirmizi yok VE iddia sayisi tabandan dusmedi; 1 = aksi.
-🔴 BUGUN BEKLENEN HAL: KIRMIZI (B2 + E3) — ikisi de OLCULMUS canli gercekliktir, kapinin
-hatasi degildir. Hukum mimarin: veri duzeltmesi MaCiT, onek karari KraL/MaCiT ortak.
+🔴 OLCULMUS HAL (7 Agu 2026, bu commit'ten SONRA): B2 YESIL — canlida "x" onekiyle
+uretilmis 3 anahtarin hepsi baslik-turevi (anahtar == urun id), gercek BILINMEYEN_ONEK
+ihlali YOK. E3 bu commit'le KAPANDI: KraL hukmu (7 Agu 2026) kanonik CGTrader onegini
+tiresiz "cgt" ilan etti — ikizin KAYITLI hukmu (hasat_ortak, 2026-08-06) zaten "cgt"
+lehineydi, tools/r2_anahtar.py ONEKLER['CGTrader'] artik "cgt" (eskiden "cgt-" idi) ve
+tools/r2-anahtar-test.py (d) da ayni yonde ("cgt oneki tiresiz") -> ikiz/ONEKLER/test
+UC KAYNAK da ayni yonu soyluyor, celiski KAPANDI.
 """
 import hashlib
 import importlib.util
@@ -86,21 +108,54 @@ TARAMA_TABANI_C3D = 1000
 
 #: 🔴 IDDIA TABANI — bu kapinin KOSMASI GEREKEN en az iddia sayisi. Kosum ici sayi sarti;
 #: DUSURMEK ancak iddianin neden kaldirildigini yazan AYNI commit'te mesrudur, ARTIS serbest.
-IDDIA_TABANI = 14
+#: 7 Agu 2026: 14 -> 16 (E5 capa butunlugu + E6 capa tazeligi eklendi).
+IDDIA_TABANI = 16
 
 #: gercek ikizde beklenen asgari platform sayisi (bugun 5: mw/pr/th/cgt/c3d)
 BEKLENEN_IKIZ_ASGARI = 5
 
+#: 🔴 IKIZ CAPASI — ikizin KAYITLI govdesi. NEDEN VAR: gercek ikiz PRIVATE kardes depoda
+#: (`pruvo-hasat`) durur ve GitHub Actions kosucusunda YOKTUR; capasiz halde E3/E4 CI'da
+#: ikizi degil kosucunun dosya duzenini olcuyordu (olculdu: 3 kosum ust uste kirmizi).
+#: Capa 7 Agu 2026'da KAYNAKTAN TURETILDI (elle yazilmadi) ve E6 her okunabilir ortamda
+#: canli kaynakla karsilastirir -> capa sessizce BAYATLAYAMAZ ([[envanter-drift-parti-basina]]).
+#: 🔴 Capa ONEKLER'den TURETILMEZ; turetilseydi E3 totolojiye donerdi.
+IKIZ_CAPA = {
+    "CGTrader": "cgt",
+    "Cults3D": "c3d",
+    "MakerWorld": "mw",
+    "Printables": "pr",
+    "Thingiverse": "th",
+}
+IKIZ_CAPA_BEKLENEN_UZUNLUK = 5
+IKIZ_CAPA_BEKLENEN_HASH = \
+    "9c13309bc75dae74ba2a01ab240bda49aff9cc99dd08cd96dacbe7e53d101ae3"
+
 hatalar = []
+olculemedi = []
 _iddialar = []
 
 
 def sonuc(kimlik, ad, ok, detay=""):
     _iddialar.append((kimlik, ok))
-    print("  %-7s %s. %s%s" % ("OK" if ok else "KIRMIZI", kimlik, ad,
-                               ("  -> " + str(detay)) if detay else ""))
+    print("  %-10s %s. %s%s" % ("OK" if ok else "KIRMIZI", kimlik, ad,
+                                ("  -> " + str(detay)) if detay else ""))
     if not ok:
         hatalar.append(kimlik)
+
+
+def olcum_yok(kimlik, ad, detay=""):
+    """UCUNCU HAL: iddia KOSTU ama bu ortamda OLCULEMEDI ([[hukum-yanlis-birimde]]).
+
+    🔴 DAR KAPSAM — yalniz "kaynak bu ortamda FIZIKSEL OLARAK YOK" ekseninde mesrudur ve
+    yalniz E6'da kullanilir. Iddia SAYILIR (taban kontrolu bosalmaz) ve OLCULEMEDI_IDDIALAR
+    satirinda ACIKCA basilir; "yesil" DEMEZ. Ayni eksenin ESAS iddiasi (E3: capa <-> ONEKLER)
+    her ortamda kosar ve KIRMIZI YANABILIR -> "olculemedi" bir delik degil, bir ETIKETTIR.
+    """
+    _iddialar.append((kimlik, True))
+    olculemedi.append(kimlik)
+    print("  %-10s %s. %s%s" % ("OLCULEMEDI", kimlik, ad,
+                                ("  -> " + str(detay)) if detay else ""))
 
 
 def _load_r2k():
@@ -153,6 +208,12 @@ HASH_FIKSTUR_BEKLENEN = \
 def _kanonik_hash(anahtarlar):
     """Anahtar listesinin kanonik sha256'si (sirali + newline ile birlestirilmis)."""
     kanon = "\n".join(sorted(anahtarlar))
+    return hashlib.sha256(kanon.encode("utf-8")).hexdigest()
+
+
+def _ikiz_hash(tablo):
+    """(ad -> onek) tablosunun kanonik sha256'si ("ad=onek" satirlari, ada gore sirali)."""
+    kanon = "\n".join("%s=%s" % (ad, tablo[ad]) for ad in sorted(tablo))
     return hashlib.sha256(kanon.encode("utf-8")).hexdigest()
 
 
@@ -307,12 +368,18 @@ PLATFORM_SATIR_RE = re.compile(
 
 
 def _gercek_ikiz_oku():
-    """(platform_adi -> onek, kaynak_yolu) — GERCEK ikiz tanimini kaynaktan ayrıştırır.
-    Bulunamazsa ({}, yol) doner; cagiran bunu FAIL-CLOSED kirmizi olarak isler."""
+    """(platform_adi -> onek, kaynak_yolu, kaynak_VAR_MI) — GERCEK ikizi kaynaktan ayrıştırır.
+
+    🔴 IKI FARKLI OLAY AYRI DONER (birlestirmek olcum korlugudur):
+      kaynak_var=False -> dosya bu ORTAMDA yok (CI). Capaya dusulur, E6 OLCULEMEDI.
+      kaynak_var=True  -> dosya VAR. Ayrıştırma BOS donduyse bu bir KUSURDUR (bozuk regex/
+                          degismis bicim) ve capaya DUSULMEZ: E3/E4 FAIL-CLOSED kirmizi yanar.
+                          (Ikisi tek kovaya konsaydi "ayrıştırıcıyi korlestir" mutanti sag kalirdi.)
+    """
     if not os.path.exists(HASAT_ORTAK):
-        return {}, HASAT_ORTAK
+        return {}, HASAT_ORTAK, False
     metin = open(HASAT_ORTAK, encoding="utf-8", errors="ignore").read()
-    return {ad: onek for ad, onek in PLATFORM_SATIR_RE.findall(metin)}, HASAT_ORTAK
+    return {ad: onek for ad, onek in PLATFORM_SATIR_RE.findall(metin)}, HASAT_ORTAK, True
 
 
 def test_e(ciftler):
@@ -349,25 +416,55 @@ def test_e(ciftler):
         sonuc("E2", "gorsel-cakisma-onar.py gkey_for() bilinmeyen_sessiz=True tasiyor",
               False, "dosya bulunamadi: %s (FAIL-CLOSED)" % onar_yolu)
 
-    # E3 + E4 — 🔴 GERCEK ikiz tanim (fikstur DEGIL): hasat_ortak.PLATFORMLAR <-> ONEKLER
-    ikiz, yol = _gercek_ikiz_oku()
+    # E3 + E4 — 🔴 IKIZ TANIM <-> ONEKLER. Gecerli tablo = CANLI kaynak (okunabiliyorsa),
+    # yoksa KAYITLI CAPA. Iki durumda da GERCEK bir karsilastirma yapilir: iddia CI'da da
+    # kirmizi YANABILIR. ("kaynak yok" -> otomatik kirmizi eski davranisti; o hukum yanlis
+    # birimdeydi, ikizi degil kosucuyu olcuyordu.)
+    ikiz, yol, kaynak_var = _gercek_ikiz_oku()
+    if kaynak_var:
+        # Kaynak VAR -> capaya DUSULMEZ. Bos ayrıştırma = kusur = FAIL-CLOSED (E3+E4 kirmizi).
+        gecerli, kaynak_eti = ikiz, "CANLI:%s" % yol
+    else:
+        gecerli, kaynak_eti = dict(IKIZ_CAPA), "CAPA (canli kaynak bu ortamda YOK: %s)" % yol
+
     ayrismalar = []
-    for ad, onek in sorted(ikiz.items()):
+    for ad, onek in sorted(gecerli.items()):
         if ad not in r2k.ONEKLER:
             ayrismalar.append("%s: ikizde '%s', ONEKLER'de YOK" % (ad, onek))
         elif r2k.ONEKLER[ad] != onek:
             ayrismalar.append("%s: ONEKLER='%s' vs ikiz='%s'" % (ad, r2k.ONEKLER[ad], onek))
+    e3_ok = bool(gecerli) and not ayrismalar
+    sonuc("E3", "ikiz tanim (PLATFORMLAR) ile ONEKLER ayrismamis", e3_ok,
+          ("OLCULEMEDI — kaynak VAR ama ayrıştırılamadi (FAIL-CLOSED): %s" % yol)
+          if not gecerli else
+          ("%s | kaynak=%s" % ("; ".join(ayrismalar), kaynak_eti)) if ayrismalar
+          else "%d platform birebir, kaynak=%s" % (len(gecerli), kaynak_eti))
+
+    sonuc("E4", "gecerli ikiz tablosunda >=%d platform var" % BEKLENEN_IKIZ_ASGARI,
+          len(gecerli) >= BEKLENEN_IKIZ_ASGARI,
+          "platform=%d, kaynak=%s" % (len(gecerli), kaynak_eti))
+
+    # E5 — capa govdesi tahrif edilmemis (C1 ile AYNI desen: gizli gevsetme burada yanar)
+    capa_uzunluk_ok = len(IKIZ_CAPA) == IKIZ_CAPA_BEKLENEN_UZUNLUK
+    capa_hash = _ikiz_hash(IKIZ_CAPA)
+    capa_hash_ok = capa_hash == IKIZ_CAPA_BEKLENEN_HASH
+    sonuc("E5", "IKIZ_CAPA govdesi tahrif edilmemis (len+sha256)",
+          capa_uzunluk_ok and capa_hash_ok,
+          "" if (capa_uzunluk_ok and capa_hash_ok) else
+          "len=%d (beklenen %d) hash=%s (beklenen %s)"
+          % (len(IKIZ_CAPA), IKIZ_CAPA_BEKLENEN_UZUNLUK, capa_hash[:16],
+             IKIZ_CAPA_BEKLENEN_HASH[:16]))
+
+    # E6 — 🔴 CAPA BAYAT MI? Yalniz canli kaynak okunabildigi ortamda OLCULEBILIR.
+    # Okunamiyorsa "yesil" DEMEK yasaktir -> ucuncu hal OLCULEMEDI.
     if not ikiz:
-        # FAIL-CLOSED: "ayrisma yok" hukmu ancak POZITIF tanima izinden turetilebilir.
-        sonuc("E3", "gercek ikiz (hasat_ortak.PLATFORMLAR) ile ONEKLER ayrismamis", False,
-              "OLCULEMEDI — ikiz kaynagi okunamadi/ayrıştırılamadi: %s" % yol)
+        olcum_yok("E6", "IKIZ_CAPA canli ikizle birebir (bayat degil)",
+                  "canli ikiz kaynagi bu ortamda yok: %s (E3 yine de CAPA ile OLCTU)" % yol)
     else:
-        sonuc("E3", "gercek ikiz (hasat_ortak.PLATFORMLAR) ile ONEKLER ayrismamis",
-              not ayrismalar,
-              "; ".join(ayrismalar) if ayrismalar else "%d platform birebir" % len(ikiz))
-    sonuc("E4", "gercek ikiz kaynagi okundu ve >=%d platform ayrıştırıldı" % BEKLENEN_IKIZ_ASGARI,
-          len(ikiz) >= BEKLENEN_IKIZ_ASGARI,
-          "ayrıştırılan=%d, kaynak=%s" % (len(ikiz), yol))
+        capa_fark = sorted(set(IKIZ_CAPA.items()) ^ set(ikiz.items()))
+        sonuc("E6", "IKIZ_CAPA canli ikizle birebir (bayat degil)", not capa_fark,
+              "CAPA BAYAT — fark=%s, kaynak=%s" % (capa_fark[:6], yol) if capa_fark
+              else "%d platform birebir" % len(ikiz))
 
 
 # ══════════════════════════════════════════════════════════════════════════════════ kosum
@@ -387,7 +484,8 @@ print("")
 print("OLCUM: TARANAN_KAYIT=%d (taban %d) · TARANAN_ANAHTAR=%d · C3D_ANAHTAR=%d (taban %d) · "
       "X_ONEKLI=%d" % (_olcum["kayit"], TARAMA_TABANI_KAYIT, _olcum["anahtar"],
                        _olcum["c3d"], TARAMA_TABANI_C3D, _olcum["x"]))
-print("OLCUM: CGT_TIRELI=%d · CGT_TIRESIZ=%d  (ONEKLER['CGTrader']=%r — mimar karari bekliyor)"
+print("OLCUM: CGT_TIRELI=%d · CGT_TIRESIZ=%d  (ONEKLER['CGTrader']=%r — 7 Agu 2026 KraL "
+      "hukmu: kanonik tiresiz; 16 tireli canlida DEGISMEDEN kalir, sayim izi surmeye devam)"
       % (_olcum["cgt_tireli"], _olcum["cgt_tiresiz"], r2k.ONEKLER.get("CGTrader")))
 
 _toplam = len(_iddialar)
@@ -395,8 +493,10 @@ _taban_dustu = _toplam < IDDIA_TABANI
 print("IDDIA: %d (taban %d)%s" % (_toplam, IDDIA_TABANI,
                                   "  🔴 TABAN ALTI — iddia SESSIZCE kayboldu" if _taban_dustu else ""))
 print("KIRMIZI_IDDIALAR: %s" % (",".join(hatalar) if hatalar else "-"))
-print("SONUC: %s — gecen %d · kalan %d"
-      % ("KIRMIZI" if (hatalar or _taban_dustu) else "YESIL", _toplam - len(hatalar), len(hatalar)))
+print("OLCULEMEDI_IDDIALAR: %s" % (",".join(olculemedi) if olculemedi else "-"))
+print("SONUC: %s — gecen %d · kalan %d · olculemedi %d"
+      % ("KIRMIZI" if (hatalar or _taban_dustu) else "YESIL",
+         _toplam - len(hatalar) - len(olculemedi), len(hatalar), len(olculemedi)))
 if hatalar or _taban_dustu:
     sys.exit(1)
 sys.exit(0)

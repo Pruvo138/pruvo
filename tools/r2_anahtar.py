@@ -10,11 +10,13 @@ TEMEL KURAL: anahtar KAYNAK-ID'den turer (th<tid> / pr<pid> / mw<did> / cgt-<ite
 c3d<slug>), urun BASLIGINDAN degil. Iki farkli urun ayni Turkce basligi uretse bile
 anahtarlari cakismaz.
 
-⚠️ TARIHSEL TUZAK — `cgt` onekinde FAZLADAN TIRE var ("cgt-"), th/pr/mw/c3d'de yok.
-Yayindaki CGTrader anahtarlari "cgt-<itemid>-<n>.jpg" bicimindedir. Bu bir tutarsizlik
-ama DUZELTILMEZ: tireyi kaldirmak gecmis anahtarlarla uyumsuzluk yaratir ve canli
-gorsel URL'lerini kirar (CGTrader zaten emekli platform). YENI platform eklerken bu
-hatayi TEKRARLAMA — onek tiresiz olsun ("mw" gibi).
+⚠️ TARIHSEL TUZAK (7 Agu 2026 KraL hukmuyle KAPANDI) — CGTrader oneginde ESKIDEN
+FAZLADAN TIRE vardi ("cgt-"), th/pr/mw/c3d'de hic olmadi. Kanonik onek artik TIRESIZ
+"cgt" (ikiz hasat_ortak.PLATFORMLAR="cgt" · canli katalogda 101 tiresiz / 16 tireli ·
+CLAUDE.md "pr/th/cgt"). ESKI 16 tireli canli anahtar ("cgt-<itemid>-<n>.jpg") OLDUGU
+GIBI KALIR (uzerine yazmak yasak) ve YENIDEN BASILMAZ; hukum yalniz BUNDAN SONRA
+uretilecek anahtarlari baglar. YENI platform eklerken bu eski hatayi TEKRARLAMA —
+onek tiresiz olsun ("mw" gibi).
 
 Cults3D'de kaynak kimligi SLUG'dir (cults3d.com/.../<slug>), sayisal id degil — "c3d"
 oneki + slug kullan (bkz r2-onek-gelenek-kapisi.py, `gkey("Cults3D", slug)`). Canli
@@ -32,7 +34,7 @@ Kullanim (MaCiT migrasyonu dahil):
     r2k.gkey("Thingiverse", "6543210")     -> "th6543210"
     r2k.gkey("Printables", 1234567)        -> "pr1234567"
     r2k.gkey("MakerWorld", 998877)         -> "mw998877"
-    r2k.gkey("CGTrader", "6267929")        -> "cgt-6267929"   (tarihsel tire, bkz yukarisi)
+    r2k.gkey("CGTrader", "6267929")        -> "cgt6267929"    (7 Agu 2026'dan sonra; eski canli "cgt-<id>" degismez)
     r2k.gkey("Cults3D", "some-model-slug") -> "c3dsome-model-slug"
     r2k.gkey_ham("th6543210")              -> "th6543210"     (onek zaten yapistiysa)
     r2k.gorsel_yolu("th6543210", 1)        -> "urunler/th6543210-1.jpg"
@@ -48,7 +50,10 @@ ile AYNIdir (":/?=&%") — orada ayrismasin diye buraya tasindi.
 import re
 import urllib.parse
 
-#: platform adi -> R2 anahtar oneki. cgt'deki tire TARIHSEL, korunuyor (bkz modul docstring).
+#: platform adi -> R2 anahtar oneki. CGTrader "cgt" (tiresiz) 7 Agu 2026 KraL hukmuyle
+#: kanonik oldu (ikiz hasat_ortak.PLATFORMLAR="cgt" · canli 101 tiresiz/16 tireli ·
+#: CLAUDE.md pr/th/cgt); ESKI 16 tireli canli anahtar ("cgt-...") DEGISMEZ, yeniden
+#: basilmaz — hukum yalniz BUNDAN SONRAKI mint'leri baglar (bkz modul docstring).
 #: Cults3D "c3d" (tiresiz) 7 Agu 2026 mimar hukmuyle eklendi — canli katalogda zaten
 #: BASKIN gelenek (1047/1063), sayisal-id azinlik (15) TARIHSEL kalinti (bkz
 #: r2-onek-gelenek-kapisi.py). BURAYA yeni platform eklerken canli veriyle DOGRULA.
@@ -56,7 +61,7 @@ ONEKLER = {
     "Thingiverse": "th",
     "Printables": "pr",
     "MakerWorld": "mw",
-    "CGTrader": "cgt-",
+    "CGTrader": "cgt",   # 7 Agu 2026 KraL hukmu: tiresiz kanonik; eski "cgt-" canlida degismeden kalir
     "Cults3D": "c3d",
 }
 

@@ -21,7 +21,7 @@ COMMIT ETMEZ. Sonda gozden gecirme tablosu basar.
 FIYAT: TL = round(USD × 100). Aktif indirim JSON-LD'yi sasirtabilir -> INDIRIMSIZ fiyatla dogrula.
 STL/olcu YOK (dosya henuz bizde degil).
 """
-import collections, concurrent.futures, fcntl, json, os, re, subprocess, sys, tempfile, time
+import collections, concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile, time
 
 ROOT = "/Users/okan/dev/pruvo"
 TOOLS = os.path.join(ROOT, "tools")
@@ -30,6 +30,9 @@ URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 PY = sys.executable or "python3"
+# R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
+_r2spec = importlib.util.spec_from_file_location("r2_anahtar", os.path.join(TOOLS, "r2_anahtar.py"))
+r2k = importlib.util.module_from_spec(_r2spec); _r2spec.loader.exec_module(r2k)
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
 WORKERS = int(os.environ.get("PRUVO_WORKERS", "6"))
 
@@ -146,11 +149,14 @@ def process_one(url, author, mode="list"):
             return {"url": url, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or itemid).lower()).strip("-")[:60] or itemid
-        # R2 gorsel anahtari KAYNAK-ID'den (cgt-<itemid>) turer, baslik-slug'indan (uid) DEGIL: iki
+        # R2 gorsel anahtari KAYNAK-ID'den (itemid) turer, baslik-slug'indan (uid) DEGIL: iki
         # farkli urun ayni basligi uretse bile anahtarlari cakismaz (bkz tools/gorsel-anahtar-test.py).
         # merge_safe eski yorumu "gorsel URL'leri etkilenmez" der; iste bu yuzden id -itemid ile
         # ayrilirken gorseller ESKI uid anahtarinda kalip EZILIYORDU. uid, JSON id + SEO URL icin kalir.
-        gkey = re.sub(r"[^a-z0-9-]+", "-", key.lower()).strip("-") or key
+        # Anahtar tek kaynak r2_anahtar.gkey() ile turetilir (7 Agu 2026 KraL hukmu: CGTrader
+        # oneki tiresiz "cgt", bkz tools/r2_anahtar.py); eski satir-ici "cgt-"+itemid kopyasi
+        # tireli anahtar uretiyordu, artik yalniz local cache/meta id'si (key) icin kullanilir.
+        gkey = r2k.gkey("CGTrader", itemid)
         secili = o.get("sec_gorseller") or sorted(os.path.basename(p) for p in imgs)
         urls = []
         for i, fn in enumerate(secili, 1):
