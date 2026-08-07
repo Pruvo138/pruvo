@@ -66,9 +66,17 @@ DURDURMAZ, ama her push'ta mail uretiyordu). Dusen iddialar: **E3 + E4**.
    DIAKRITIKLI** ister (`güvenlik`/`ölçüm`/`sessiz-hata`...); ASCII `guvenlik` REDDEDILIR.
 
 **Kalan olcumler:**
-- ⚠️ `b8ab7091`'in `Build & deploy` kosumu **`cancelled`** — esazamanli urun-ekleme oturumunun
-  `8d7b637a` push'u eszamanlilik grubuyla ezdi. Icerik ardil build'e tasindi. **`cancelled`
-  yayin kaniti DEGILDIR** → ardil zincir OLCUM ALTINDA. → [[hukum-yanlis-birimde]]
+- ⚠️ **BU ONARIM HENUZ YAYINA CIKMADI (durust hal, "yesil" DEMIYORUZ).** `b8ab7091`'in
+  `Build & deploy` kosumu **`cancelled`**; ardil `8d7b637a` de **`cancelled`** ve `jobs: []`
+  (kuyruktayken `pages` eszamanlilik grubu iptal etti, HICBIR job baslamadi).
+  **`cancelled` yayin kaniti DEGILDIR** → [[hukum-yanlis-birimde]]
+- 📊 **YAYIN KADANSI OLCULDU (yeni arıza DEGIL, yapisal desen):** son basarili `Build & deploy`
+  **`31195954169`** (`3f3e299a`, **16:06:30Z**). O gunden beri 17:28Z'ye dek: **4 `cancelled`**
+  (`99821606` · `4d85f7e5` · `b8ab7091` · `8d7b637a`) + `bb804c24` **~50 dk'dir `in_progress`**
+  + `cd9fb30c` `pending`. Gun boyu desen ayni: zincir ~50 dk suruyor, push'lar daha sik geliyor,
+  aradakiler iptal oluyor ve **40-90 dk'da bir** bir kosum yayina iniyor (bugunku basarilar:
+  08:35 · 11:09 · 11:54 · 12:45 · 15:07 · 16:06Z). Yani onarim bir sonraki basarili zincirde
+  yayina cikar. Kok kaldirac `serit-a4`'un **47m58s** suresi → [[kapi-birikimi-yayin-gecikmesi]].
 - 🟡 D1 (`d1-sync.py --durum`): D1 **22.089** vs yerel **22.136** (47 satir), `marka_kanon` ·
   `model_kanon` · `marka_arama` BAYAT — hepsi ucustaki urun partisinin satirlari.
   MaCiT duzlemi, DOKUNULMADI. → [[yayin-penceresi-taslak-satir]]
@@ -78,8 +86,10 @@ DURDURMAZ, ama her push'ta mail uretiyordu). Dusen iddialar: **E3 + E4**.
   `urunler.json` (esazamanli oturum) · untracked `urun-gorsel-koken/`.
 
 **DEVIR — sonraki turun ILK isi:**
-(1) `8d7b637a` (ve varsa ardili) `Build & deploy` zincirini **JOB birimiyle** olc:
-    `deploy` + `yayin` success mi? Degilse teshise ORADAN basla —
+(1) **`b8ab7091`'i ICEREN ilk basarili `Build & deploy` zincirini bul ve JOB birimiyle olc**
+    (`deploy` + `yayin` success mi). Kabul: `git merge-base --is-ancestor b8ab7091 <kosum-headSha>`
+    exit 0 — "en son kosum yesil" KANIT DEGIL. Yesilse onarim canlida, defterde yesile cek.
+    16:37Z turunda son yesil deploy `31195954169` (16:06Z) idi, onarim HENUZ inmemisti.
     **`r2-onek`/`serit-b` sinifi KAPANDI, oradan teshise BASLAMA.**
 (2) `tools/uyum-kapisi.py` + `tools/yayin-gecikme-nobeti.py` calisma agacinda HALA commit'siz
     duruyorsa sahibini posta kutusundan sor; bir tur daha duruyorsa oksuz say ve devral
