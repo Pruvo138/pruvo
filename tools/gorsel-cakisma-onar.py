@@ -95,9 +95,17 @@ def resolve(pid, kaynak):
 
 
 def gkey_for(platform, sid):
-    """Anahtar turetme TEK KAYNAK'ta (tools/r2_anahtar.py). Bilinmeyen platform -> "x" oneki;
-    yedek=False -> normalizasyon bosa duserse ham degere DONMEZ (eski davranis birebir)."""
-    return r2k.gkey(platform, sid, yedek=False)
+    """Anahtar turetme TEK KAYNAK'ta (tools/r2_anahtar.py). yedek=False -> normalizasyon
+    bosa duserse ham degere DONMEZ (eski davranis birebir).
+
+    bilinmeyen_sessiz=True ACIKCA gecilir: bu arac cakisan urunleri TUM kaynaklar icin
+    onarir; ONEKLER'de YER ALMAYAN ama gecerli kaynak etiketleri de vardir (gizli kaynak
+    kaydinda 14 ayri etiket / 2567 kayit, 7 Agu 2026 — adlar PUBLIC repoya YAZILMAZ, bkz CLAUDE.md
+    GIZLILIK; dagilim icin .urun-kaynaklari.json) — bunlar icin r2_anahtar.gkey() varsayilani
+    (fail-closed) onarimi HALT eder; burada bilincli/gorunur (stderr UYARI) sessizlige
+    devam edilir. 7 Agu 2026: bu satiri KALDIRMA/degistirme — r2-onek-gelenek-kapisi.py
+    kaynak metnini tarayip dogrular."""
+    return r2k.gkey(platform, sid, yedek=False, bilinmeyen_sessiz=True)
 
 
 # ----------------------------------------------------------------------------- gorsel getir

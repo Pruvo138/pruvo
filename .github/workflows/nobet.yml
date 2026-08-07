@@ -1091,6 +1091,52 @@ jobs:
 
 
 
+  # ═════════════════════════════════════════════════════════════════════════════
+  # R2 ONEK GELENEGI NOBETI (7 Agu 2026) — ONCEDEN VAR OLAN CANLI GERCEGI RAPORLAR
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN BOSLUK: tools/r2_anahtar.py ONEKLER tablosu bir kaynak platformu HIC
+  # tasimiyordu; gkey() bilinmeyen platformda sessizce "x<id>" uretiyordu ve o
+  # anahtar canliya cikti (haftalarca gorunmedi). Onarim (fail-closed gkey + eksik
+  # onek) DALDA yapildi; bu job onarimin GERI ALINMASINI ve YENI sapmanin dogmasini
+  # gorunur kilar.
+  #
+  # 🔴 BU JOB BUGUN KIRMIZI YANIYOR VE BU DOGRUDUR — iki ekseni ONCEDEN VAR OLAN
+  # canli gercegi raporluyor: (a) canli katalogda "x" onekli 1 bozuk anahtar
+  # (duzeltmesi BASKA bir mimarin duzleminde, urun VERISI KraL'a ait degil),
+  # (b) ONEKLER ile hasat tarafindaki ikiz tanim arasinda CGTrader ayrismasi
+  # (mimar karari bekliyor). Ikisi de bu daldaki kodun kusuru DEGIL.
+  #
+  # 🔴 NEDEN AYRI IS ve NEDEN BLOKLAMAZ (`envanter` · `cron-nabzi` · `mesaj-nobeti`
+  # ile AYNI desen): `needs:` YOK ve hicbir is buna bagli DEGIL -> `deploy` ile
+  # PARALEL kosar, yayin yolunu tek saniye uzatmaz.
+  #   (a) ONCEDEN VAR OLAN ihlali RAPORLAR, YENI ihlal URETMEZ: taradigi yuzey
+  #       canlida ZATEN duran anahtarlardir; onlari yayindan alikoymak sayfayi
+  #       404 yapar, gorseli ONARMAZ (ayni R2 anahtarinin uzerine yazmak YASAK).
+  #   (b) BEDELI OLCULDU: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
+  #       6 SAATLIK canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]);
+  #       bugun kirmizi yanan bir kapi bloklayici seride konsaydi TUM EKIBIN yayini
+  #       durur ve kapi ilk toplu iste devre disi birakilirdi.
+  #   (c) ONLEME kolu burada DEGIL: yeni sapmanin dogmasini r2_anahtar.gkey()'in
+  #       FAIL-CLOSED yolu (BilinmeyenPlatform) daha yazim aninda engeller; bu kol
+  #       GORUNURLUK hattidir.
+  # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi nobetci ihlalidir):
+  #    rc dogrudan konusur, job KIRMIZI yanar, bildirim duser. Katalog OKUNAMAZSA
+  #    kapi OLCULEMEDI ile kirmizi yanar — "olcemedim" YESIL degildir.
+  # ⚠️ IKIZ ekseni (E3/E4) kardes bir depodaki tanim dosyasini okur; o depo CI
+  #    runner'inda YOKTUR -> orada eksen OLCULEMEDI verir. Bu eksenin YESILI YALNIZ
+  #    yerelde anlamlidir; sessiz atlama YERINE gorunur kirmizi tercih edildi.
+  # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (bayat sayi yanlis guven verir) — betigin
+  #    KENDISI "IDDIA: N (taban N)" satirini basar.
+  r2-onek-nobeti:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: "R2 onek gelenegi: canli katalogda sapma + ikiz tanim ayrismasi (ALARM — yayini DURDURMAZ)"
+        run: python3 tools/r2-onek-gelenek-kapisi.py
+
   # ===========================================================================
   # HACIM TAM TAKIM (2026-08-02) — GERCEK TEST 1 (kapali-form vs RENDER)
   #

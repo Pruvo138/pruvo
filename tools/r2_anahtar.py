@@ -6,15 +6,22 @@ printables-ekle.py, makerworld-ekle.py, gorsel-cakisma-onar.py). Kopyalar birbir
 kaydiginda iki urunun gorseli AYNI R2 anahtarina yazilir ve biri digerini EZER
 (yayindaki gorsel kirilir). Artik tek yer burasi.
 
-TEMEL KURAL: anahtar KAYNAK-ID'den turer (th<tid> / pr<pid> / mw<did> / cgt-<itemid>),
-urun BASLIGINDAN degil. Iki farkli urun ayni Turkce basligi uretse bile anahtarlari
-cakismaz.
+TEMEL KURAL: anahtar KAYNAK-ID'den turer (th<tid> / pr<pid> / mw<did> / cgt-<itemid> /
+c3d<slug>), urun BASLIGINDAN degil. Iki farkli urun ayni Turkce basligi uretse bile
+anahtarlari cakismaz.
 
-⚠️ TARIHSEL TUZAK — `cgt` onekinde FAZLADAN TIRE var ("cgt-"), th/pr/mw'de yok.
+⚠️ TARIHSEL TUZAK — `cgt` onekinde FAZLADAN TIRE var ("cgt-"), th/pr/mw/c3d'de yok.
 Yayindaki CGTrader anahtarlari "cgt-<itemid>-<n>.jpg" bicimindedir. Bu bir tutarsizlik
 ama DUZELTILMEZ: tireyi kaldirmak gecmis anahtarlarla uyumsuzluk yaratir ve canli
 gorsel URL'lerini kirar (CGTrader zaten emekli platform). YENI platform eklerken bu
 hatayi TEKRARLAMA — onek tiresiz olsun ("mw" gibi).
+
+Cults3D'de kaynak kimligi SLUG'dir (cults3d.com/.../<slug>), sayisal id degil — "c3d"
+oneki + slug kullan (bkz r2-onek-gelenek-kapisi.py, `gkey("Cults3D", slug)`). Canli
+katalogda 1047/1063 kayit zaten bu gelenekle uyumlu (7 Agu 2026 olcumu); 15 kayit
+sayisal-id + 1 kayit "x" (bilinmeyen-onek) oneki tasiyan TARIHSEL kalinti — bunlar
+DEGISTIRILMEZ (ayni R2 anahtarinin uzerine yazmak yasak), yalniz YENILERININ dogmasi
+tools/r2-onek-gelenek-kapisi.py ile engellenir.
 
 Kullanim (MaCiT migrasyonu dahil):
 
@@ -26,6 +33,7 @@ Kullanim (MaCiT migrasyonu dahil):
     r2k.gkey("Printables", 1234567)        -> "pr1234567"
     r2k.gkey("MakerWorld", 998877)         -> "mw998877"
     r2k.gkey("CGTrader", "6267929")        -> "cgt-6267929"   (tarihsel tire, bkz yukarisi)
+    r2k.gkey("Cults3D", "some-model-slug") -> "c3dsome-model-slug"
     r2k.gkey_ham("th6543210")              -> "th6543210"     (onek zaten yapistiysa)
     r2k.gorsel_yolu("th6543210", 1)        -> "urunler/th6543210-1.jpg"
     r2k.gorsel_url("th6543210", 1)         -> "https://media.pruvo3d.com/urunler/th6543210-1.jpg"
@@ -41,14 +49,19 @@ import re
 import urllib.parse
 
 #: platform adi -> R2 anahtar oneki. cgt'deki tire TARIHSEL, korunuyor (bkz modul docstring).
+#: Cults3D "c3d" (tiresiz) 7 Agu 2026 mimar hukmuyle eklendi — canli katalogda zaten
+#: BASKIN gelenek (1047/1063), sayisal-id azinlik (15) TARIHSEL kalinti (bkz
+#: r2-onek-gelenek-kapisi.py). BURAYA yeni platform eklerken canli veriyle DOGRULA.
 ONEKLER = {
     "Thingiverse": "th",
     "Printables": "pr",
     "MakerWorld": "mw",
     "CGTrader": "cgt-",
+    "Cults3D": "c3d",
 }
 
-#: bilinmeyen platform icin onek (gorsel-cakisma-onar.py'nin eski davranisi)
+#: bilinmeyen platform icin onek (gorsel-cakisma-onar.py'nin eski davranisi, yalniz
+#: bilinmeyen_sessiz=True ile erisilir — bkz gkey())
 BILINMEYEN_ONEK = "x"
 
 #: R2'de gorsellerin durdugu klasor
@@ -79,13 +92,36 @@ def gkey_ham(ham, yedek=True):
     return str(ham) if yedek else k
 
 
-def gkey(platform, kaynak_id, yedek=True):
+class BilinmeyenPlatform(ValueError):
+    """gkey() bilinmeyen bir platform icin cagrildi ve bilinmeyen_sessiz=False (varsayilan).
+    FAIL-CLOSED: sessizce "x<id>" uretip devam etmek yerine burada durur — bkz modul
+    docstring'indeki 7 Agu 2026 olcumu (Cults3D bosluk 1 canli kaydi "x" onekiyle
+    yayina soktu, farkedilmesi haftalar surdu)."""
+
+
+def gkey(platform, kaynak_id, yedek=True, bilinmeyen_sessiz=False):
     """(platform, kaynak-id) -> R2 gorsel anahtari. Anahtarin TEK uretim yolu budur.
 
-    platform: "Thingiverse" | "Printables" | "MakerWorld" | "CGTrader" (bilinmeyen -> "x")
+    platform: "Thingiverse" | "Printables" | "MakerWorld" | "CGTrader" | "Cults3D"
     yedek=False: normalizasyon bos dizeye duserse ham degere DONMEZ (gorsel-cakisma-onar
-    davranisi)."""
-    onek = ONEKLER.get(platform, BILINMEYEN_ONEK)
+    davranisi).
+    bilinmeyen_sessiz=False (varsayilan): ONEKLER'de olmayan platform icin BilinmeyenPlatform
+    firlatir (FAIL-CLOSED — bkz 7 Agu 2026 Cults3D "x" onek olayi, modul docstring).
+    bilinmeyen_sessiz=True: eski davranisa doner ("x<id>" uretir, stderr'e UYARI basar) —
+    yalniz gorsel-cakisma-onar.py'nin cok-kaynakli (ONEKLER'de YER ALMAYAN ama gecerli
+    kaynak etiketleri tasiyan) collision-onarim akisinda ACIKCA istenmeli. Kaynak ADLARI
+    PUBLIC repoya YAZILMAZ (CLAUDE.md GIZLILIK); dagilim .urun-kaynaklari.json'dadir."""
+    if platform not in ONEKLER:
+        if not bilinmeyen_sessiz:
+            raise BilinmeyenPlatform(
+                "gkey: bilinmeyen platform %r (kaynak_id=%r) — ONEKLER'e ekle ya da "
+                "kasitliyse bilinmeyen_sessiz=True gec" % (platform, kaynak_id))
+        import sys as _sys
+        print("UYARI r2_anahtar.gkey: bilinmeyen platform %r -> %r oneki (id=%r)"
+              % (platform, BILINMEYEN_ONEK, kaynak_id), file=_sys.stderr)
+        onek = BILINMEYEN_ONEK
+    else:
+        onek = ONEKLER[platform]
     return gkey_ham(onek + str(kaynak_id), yedek=yedek)
 
 

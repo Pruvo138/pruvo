@@ -72,7 +72,8 @@ def test_a():
 
 
 # ------------------------------------------------------- (b) geriye donuk uyum (EN ONEMLI)
-ONEK_PLATFORM = [("cgt-", "CGTrader"), ("th", "Thingiverse"), ("pr", "Printables"), ("mw", "MakerWorld")]
+ONEK_PLATFORM = [("cgt-", "CGTrader"), ("th", "Thingiverse"), ("pr", "Printables"),
+                  ("mw", "MakerWorld"), ("c3d", "Cults3D")]
 
 
 def test_b():
@@ -161,17 +162,26 @@ def test_d():
         ("Printables", 1234567, "pr1234567"),
         ("MakerWorld", 998877, "mw998877"),
         ("CGTrader", "6267929", "cgt-6267929"),   # TARIHSEL fazladan tire — korunmali
-        ("Bilinmeyen", "42", "x42"),
+        ("Cults3D", "s2000-console-organizer-v2-0", "c3ds2000-console-organizer-v2-0"),
     ]
     for platform, sid, bek in beklenen:
         a = r2k.gkey(platform, sid)
         sonuc("(d) %s -> %s" % (platform, bek), a == bek, a)
     sonuc("(d) cgt oneki tireli kaliyor", r2k.ONEKLER["CGTrader"] == "cgt-", r2k.ONEKLER["CGTrader"])
-    sonuc("(d) th/pr/mw onekleri tiresiz",
-          (r2k.ONEKLER["Thingiverse"], r2k.ONEKLER["Printables"], r2k.ONEKLER["MakerWorld"])
-          == ("th", "pr", "mw"), "")
+    sonuc("(d) th/pr/mw/c3d onekleri tiresiz",
+          (r2k.ONEKLER["Thingiverse"], r2k.ONEKLER["Printables"], r2k.ONEKLER["MakerWorld"],
+           r2k.ONEKLER["Cults3D"]) == ("th", "pr", "mw", "c3d"), "")
     sonuc("(d) gkey_ham yedegi", r2k.gkey_ham("!!!") == "!!!" and r2k.gkey_ham("!!!", yedek=False) == "",
           repr(r2k.gkey_ham("!!!")))
+    # 7 Agu 2026: bilinmeyen platform artik VARSAYILAN olarak FAIL-CLOSED (once sessizce "x42"
+    # uretiyordu — bkz r2_anahtar.BilinmeyenPlatform + modul docstring).
+    try:
+        r2k.gkey("Bilinmeyen", "42")
+        sonuc("(d) bilinmeyen platform varsayilan FAIL-CLOSED (raise)", False, "raise etmedi")
+    except r2k.BilinmeyenPlatform:
+        sonuc("(d) bilinmeyen platform varsayilan FAIL-CLOSED (raise)", True)
+    a = r2k.gkey("Bilinmeyen", "42", bilinmeyen_sessiz=True)
+    sonuc("(d) bilinmeyen platform bilinmeyen_sessiz=True ile eski davranis (x42)", a == "x42", a)
 
 
 test_a()

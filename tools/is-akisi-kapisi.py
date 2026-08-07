@@ -2125,6 +2125,29 @@ D_TANI_ONEK = (
 # kapilari · pano/teshis araci testleri · onizleme ve ayri-dagitim arayuz testleri.
 # SUPHEDE A (fail-closed). Bir kapiyi buraya tasimak = KraL KARARI, tek basina alinmaz.
 SERIT_B = {
+    # --- R2 ONEK GELENEGI NOBETI (7 Agu 2026) — GERCEK olcum kolu da burada ----------
+    # 🔴 ISTISNAI GIRIS: tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer;
+    # burada GERCEK tarama kolu (bayraksiz) B'dedir. GEREKCE (olculdu):
+    #   (a) ONCEDEN VAR OLAN canli gercegi RAPORLAR: taranan yuzey katalogda ZATEN
+    #       duran R2 anahtarlaridir. Yayini durdurmanin TAMIR DEGERI SIFIR — sapan
+    #       anahtari yayindan alikoymak sayfayi 404 yapar, gorseli ONARMAZ (ayni R2
+    #       anahtarinin uzerine yazmak bu depoda YASAK).
+    #   (b) Kirmizinin sahibi KraL DEGIL: bir eksen urun VERISI duzlemindedir (baska
+    #       mimarin sahasi), digeri kardes depodaki ikiz tanimla ayrisma (mimar karari
+    #       bekliyor) -> bloklayici seritte TUM EKIBIN yayini baskasinin kuyrugunda
+    #       beklerdi.
+    #   (c) ONLEME kolu CI'da DEGIL kaynagin kendisindedir: r2_anahtar.gkey() bilinmeyen
+    #       platformda FAIL-CLOSED (BilinmeyenPlatform) firlatir -> yeni sapma yazim
+    #       aninda durur; bu kol GORUNURLUK hattidir.
+    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
+    #       6 saatlik canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+    ("nobet.yml", "r2-onek-nobeti", "tools/r2-onek-gelenek-kapisi.py"):
+        "ONLEME r2_anahtar.gkey()'in FAIL-CLOSED yolundadir (bilinmeyen platform "
+        "BilinmeyenPlatform firlatir); CI kolu GORUNURLUK hattidir. Kapi ONCEDEN VAR "
+        "OLAN canli anahtarlari raporlar — yayini durdurmanin tamir degeri SIFIR "
+        "(sapan anahtari yayindan alikoymak sayfayi 404 yapar, gorseli onarmaz; ayni "
+        "R2 anahtarinin uzerine yazmak yasaktir). Bugun kirmizi yanan iki eksenin "
+        "sahibi bu duzlem degil: biri urun VERISI, digeri kardes depodaki ikiz tanim.",
     # --- COMMIT MESAJI SIZINTI NOBETI (1 Agu 2026) — GERCEK olcum kolu da burada -----
     # 🔴 ISTISNAI GIRIS: bu tabloya kural olarak yalniz "aracin KENDINI sinamasi"
     # girer; burada GERCEK tarama kolu (`--ci`) da B'dedir. GEREKCE (olculdu):
