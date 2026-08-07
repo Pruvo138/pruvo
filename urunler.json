@@ -1,5 +1,1004 @@
 [
   {
+    "id": "hyundai-tiburon-rostra-kruz-kontrol-anahtari-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Tiburon Rostra Kruz Kontrol Anahtarı Tutucusu",
+    "aciklama": "Hyundai Tiburon'a sonradan takılan Rostra marka evrensel kruz kontrol anahtarını gösterge paneline sabitleyen montaj tutucusudur.\n- Anahtarın orijinal panel çıkışına uyacak şekilde tasarlanmıştır.\n- Anahtarı sağlam ve titremeden tutar.\n- Standart vidalarla monte edilebilir bir yapısı vardır.\nYaklaşık dış ölçüler: 67 × 63 × 48 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1091426-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1091426-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1091426-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1091426-4.jpg",
+      "https://media.pruvo3d.com/urunler/th1091426-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lycan004",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-i30-2022-on-kapi-hoparlor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra i30 (2022) Ön Kapı Hoparlör Braketi",
+    "aciklama": "Hyundai Elantra/i30 Sedan (2022) ön kapı hoparlör yuvasını standart dışı hoparlör montajına dönüştüren adaptör braketidir.\n- Orijinal hoparlör deliğinin vida noktalarına uyacak şekilde tasarlanmıştır.\n- Farklı çaptaki hoparlörlerin sağlam ve dengeli oturmasını sağlar.\n- Ses kalitesini olumsuz etkilemeyecek ince bir profile sahiptir.\nYaklaşık dış ölçüler: 206 × 206 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6380900-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6380900-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6380900-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6380900-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gturner30",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-fe-sport-carpuride-cd-yuvasi-montaji",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Fe Sport Carpuride CD Yuvası Montaj Aparatı",
+    "aciklama": "Hyundai Santa Fe Sport'un kullanılmayan CD yuvasına Carpuride marka taşınabilir multimedya ekranını sabitleyen montaj aparatıdır.\n- CD yuvasının standart ölçülerine oturacak şekilde tasarlanmıştır.\n- Ekranı sürüş sırasında sabit ve göz hizasında tutar.\n- Ek bir bağlantı parçası gerektirmeden doğrudan yuvaya takılır.\nYaklaşık dış ölçüler: 260 × 92 × 82 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6475010-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6475010-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6475010-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6475010-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "djinnsour",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-veloster-turbo-bov-erisim-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Veloster Turbo BOV Erişim Kapağı",
+    "aciklama": "Hyundai Veloster Turbo'nun turbo tahliye vanası (BOV) bölgesindeki erişim boşluğunu kapatan koruyucu kapaktır.\n- Boşluğun orijinal hatlarına oturacak şekilde tasarlanmıştır.\n- Klips mantığıyla takılıp çıkarılabilir bir yapısı vardır.\n- Vana bölgesini tozdan ve nemden korur.\nYaklaşık dış ölçüler: 163 × 121 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3536466-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3536466-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3536466-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3536466-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3536466-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SummersideGuy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-bagaj-agi-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq Bagaj Ağı Kancası",
+    "aciklama": "Hyundai Ioniq (2016-2019) bagajındaki taşıma ağını asmak için kullanılan kancadır.\n- Bagajın orijinal bağlantı noktasına oturacak şekilde tasarlanmıştır.\n- Ağı gergin ve yerinde tutarak eşyaların kaymasını önler.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 38 × 30 × 7 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4855856-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4855856-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4855856-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4855856-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jhead",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-arka-raf-kayis-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 Arka Raf Kayış Tutucusu",
+    "aciklama": "Hyundai i30'un arka parsel rafını açıp kapatan kayışın bağlantı noktasında kullanılan tutturma parçasıdır.\n- Rafın orijinal bağlantı deliğine oturacak şekilde tasarlanmıştır.\n- Kayışın kopması durumunda doğrudan yerine takılabilir.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 37 × 19 × 19 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4825888-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4825888-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4825888-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4825888-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4825888-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Toothwitch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-atos-kapi-kilit-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Atos Kapı Kilit Pimi",
+    "aciklama": "Hyundai Atos kapı kilit mekanizmasında kullanılan küçük pim parçasıdır.\n- Kilit mekanizmasının orijinal yuvasına oturacak şekilde tasarlanmıştır.\n- Orijinal pimin aşınması veya kırılması durumunda doğrudan yerine takılabilir.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 45 × 8 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3003374-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3003374-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3003374-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3003374-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Arie1",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-gt-n-line-bardaklik-uzatmasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra GT N Line Bardaklık Uzatması",
+    "aciklama": "Hyundai Elantra GT N Line'ın dar yolcu tarafı bardaklığını büyüten uzatma parçasıdır.\n- Bardaklığın standart çapına oturacak şekilde tabanlandırılmıştır.\n- Daha geniş çaplı bardak ve şişelerin sabit durmasını sağlar.\n- Kolay temizlenebilir düz yüzeyli bir yapısı vardır.\nYaklaşık dış ölçüler: 133 × 91 × 91 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6541016-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6541016-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6541016-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6541016-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bsiepel",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-cruz-orta-konsol-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Cruz Orta Konsol Tepsisi",
+    "aciklama": "Hyundai Santa Cruz (2022) orta konsol gözüne oturan düzenleyici tepsidir.\n- Konsolun iç hatlarına tam oturacak ölçüde tasarlanmıştır.\n- Küçük eşyaların sürüş sırasında dağılmasını önler.\n- Kolay temizlenebilir düz yüzeyli bir tabanı vardır.\nYaklaşık dış ölçüler: 165 × 100 × 27 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5031231-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5031231-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5031231-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5031231-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5031231-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hlacoss",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-palisade-kolcak-konsol-ic-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Palisade Kolçak Konsol İç Parçası",
+    "aciklama": "Hyundai Palisade'nin orta kolçak gözüne oturan, iç hacmi düzenleyen yerleştirme parçasıdır.\n- Gözün iç hatlarına tam oturacak ölçüde tasarlanmıştır.\n- Küçük eşyaları düzenli tutarak karışmasını önler.\n- Kolay temizlenebilir düz yüzeyli bir tabanı vardır.\nYaklaşık dış ölçüler: 190 × 148 × 105 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4075819-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4075819-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4075819-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4075819-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4075819-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jazgeek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-havalandirma-suruculu-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra Havalandırma Sürgülü Düğmesi",
+    "aciklama": "Hyundai Elantra hava kanalı ızgarasının yön ayar sürgüsünde kullanılan küçük düğme parçasıdır.\n- Orijinal sürgü mekanizmasının kırılan ucunun yerine geçecek şekilde tasarlanmıştır.\n- Izgaranın yön ayarını elle rahatça yapmayı sağlar.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 31 × 22 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1564865-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1564865-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1564865-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1564865-4.jpg",
+      "https://media.pruvo3d.com/urunler/th1564865-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "elhalpern",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-sonata-2006-orta-konsol-alt-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Sonata 2006 Orta Konsol Alt Mandalı",
+    "aciklama": "Hyundai Sonata (2006) orta konsol kapağının alt kısmında kullanılan mandal parçasıdır.\n- Konsolun orijinal mandal yuvasına oturacak şekilde tasarlanmıştır.\n- Kapağın sürüş sırasında kendiliğinden açılmasını önler.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 58 × 42 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5926402-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5926402-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5926402-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5926402-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5926402-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stonersteve666",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-fe-sm-arka-stop-klips-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Fe SM Arka Stop Klips Braketi",
+    "aciklama": "Hyundai Santa Fe SM (2004) arka stop lambası gövdesindeki küçük tutturma klipsidir.\n- Lamba gövdesinin orijinal bağlantı noktasına oturacak şekilde tasarlanmıştır.\n- Orijinal klipsin kırılması durumunda doğrudan yerine takılabilir.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 61 × 26 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3028085-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3028085-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3028085-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3028085-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "miki000",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-2001-2006-on-kapi-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra (2001-2006) Ön Kapı Hoparlör Adaptörü",
+    "aciklama": "Hyundai Elantra (2001-2006) ön kapı hoparlör yuvasına 6.5 inç standart dışı hoparlörlerin montajını sağlayan adaptördür.\n- Yuvanın orijinal çapına ve vida noktalarına uyacak şekilde tasarlanmıştır.\n- Farklı çaptaki hoparlörlerin sağlam ve dengeli oturmasını sağlar.\n- Ses kalitesini olumsuz etkilemeyecek ince bir profile sahiptir.\nYaklaşık dış ölçüler: 165 × 165 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3816897-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3816897-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3816897-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3816897-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mechracer84",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ix35-kapi-vida-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai ix35 Kapı Vida Kapağı",
+    "aciklama": "Hyundai ix35'in kapı panelindeki montaj vidasını kapatan kozmetik kapaktır.\n- Vidanın orijinal yuvasına klips mantığıyla oturur.\n- Orijinal kapağın kırılması veya kaybolması durumunda doğrudan yerine takılabilir.\n- Vidayı nem ve toza karşı korur.\nYaklaşık dış ölçüler: 17 × 17 × 5 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5371109-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5371109-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5371109-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5371109-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ArdTeh",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-avante-havalandirma-gozluk-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Avante Havalandırma Gözlük Tutucusu",
+    "aciklama": "Hyundai Avante'nin hava kanalı kanatlarına takılan, gözlüğü asılı tutan küçük aparattır.\n- Kanadın kalınlığına uyacak şekilde tasarlanmış kıskaç yapısı vardır.\n- Gözlüğü sürüş sırasında göz önünde ve güvenli bir yerde tutar.\n- Ek bir bağlantı parçası gerektirmeden doğrudan takılır.\nYaklaşık dış ölçüler: 50 × 25 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3188737-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3188737-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3188737-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3188737-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3188737-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lee_hyunseok",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-6-kolcak-orta-konsol-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq 6 Kolçak Orta Konsol Tepsisi",
+    "aciklama": "Hyundai Ioniq 6'nın kolçak kutusunun üst yarısına oturan ara tepsidir.\n- Kutunun iç hatlarına tam oturacak ölçüde tasarlanmıştır.\n- Küçük eşyaları üst katmanda düzenli tutar.\n- Kolayca çıkarılıp temizlenebilir bir yapısı vardır.\nYaklaşık dış ölçüler: 168 × 155 × 60 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7099151-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7099151-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7099151-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7099151-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7099151-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jbtrystram",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-2004-far-koruma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra 2004 Far Koruma Kapağı",
+    "aciklama": "Hyundai Elantra (2004, XD2) LED far grubunun arkasındaki ampul bölmesini koruyan kapaktır.\n- Kapak, far gövdesine nem geçirmeyecek şekilde sıkı oturur.\n- Orijinal kapağın kırılması veya kaybolması durumunda doğrudan yerine takılabilir.\n- Ampul değişimi sırasında kolay sökülüp takılabilir bir yapısı vardır.\nYaklaşık dış ölçüler: 73 × 73 × 24 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4295118-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4295118-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4295118-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4295118-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pixgen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-2017-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 (2017) Bardaklık",
+    "aciklama": "Hyundai i30 (2017) iç mekanındaki orijinal bardaklıkların yerine geçen değiştirme parçasıdır.\n- Bardaklık gözünün orijinal hatlarına tam oturacak şekilde tasarlanmıştır.\n- Farklı çaptaki bardak ve şişeleri sabit tutar.\n- Kolay temizlenebilir düz yüzeyli bir tabanı vardır.\nYaklaşık dış ölçüler: 30 × 17 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4305508-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4305508-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4305508-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4305508-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4305508-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "marigu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-cruz-arka-kasa-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Cruz Arka Kasa Tapası",
+    "aciklama": "Hyundai Santa Cruz'un arka kasa (pick-up kasası) gövdesindeki bağlantı deliğini kapatan sıkı geçmeli tapadır.\n- Deliğin orijinal ölçülerine sıkı oturacak şekilde tasarlanmıştır.\n- Bağlantı noktasını toz ve nemden korur.\n- Klips mantığıyla kolayca takılıp çıkarılabilir.\nYaklaşık dış ölçüler: 49 × 49 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6083131-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6083131-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6083131-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6083131-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6083131-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MarkB3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-fe-2008-paspas-kilitleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Fe 2008 Paspas Kilitleyici",
+    "aciklama": "Hyundai Santa Fe (2008) taban paspaslarının gevşeyip kaymasını önleyen kilitleme parçasıdır.\n- Paspasın orijinal bağlantı noktasına oturacak şekilde tasarlanmıştır.\n- Paspası yerinde sabit tutarak sürüş sırasında pedallara müdahale etmesini önler.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 30 × 30 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3660317-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3660317-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3660317-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GeirS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-iphone-6-plus-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 iPhone 6 Plus Telefon Tutucusu",
+    "aciklama": "Hyundai i30'un kullanılmayan CD yuvasına takılan, kılıflı iPhone 6 Plus boyutuna uygun telefon tutucusudur.\n- CD yuvasının standart ölçülerine oturacak şekilde tasarlanmıştır.\n- Telefonu kılıfıyla birlikte iki yandan kavrayan bir yapısı vardır.\n- Sürüş sırasında telefonu göz hizasında ve sabit tutar.\nYaklaşık dış ölçüler: 88 × 75 × 23 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3651644-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3651644-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3651644-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3651644-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3651644-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "andjoe",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-2010-hava-kanali-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 (2010) Hava Kanalı Telefon Tutucusu",
+    "aciklama": "Hyundai i30 (2010) hava kanalı çıkışına takılan, telefonu sürüş sırasında göz hizasında tutan aparattır.\n- Kanadın kalınlığına uyacak şekilde tasarlanmış kıskaç yapısı vardır.\n- Telefonu iki yandan kavrayarak titreşimde sabit durmasını sağlar.\n- Farklı telefon genişliklerine uyum sağlayan esnek bir yapısı vardır.\nYaklaşık dış ölçüler: 30 × 18 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2513178-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2513178-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2513178-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2513178-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2513178-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Varazir",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-kona-arka-raf-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Kona Arka Raf Tutucusu",
+    "aciklama": "Hyundai Kona'nın arka parsel rafını yerinde sabitleyen, sık kırılan orijinal tutucunun yerine geçen parçadır.\n- Rafın orijinal bağlantı noktasına oturacak şekilde tasarlanmıştır.\n- Rafın sarkmasını veya oynamasını önler.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 50 × 45 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6968304-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6968304-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6968304-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6968304-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6968304-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "themetis",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-coupe-tiburon-kapi-kablo-tutamagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Coupe (Tiburon) İç Kapı Kablo Tutamağı",
+    "aciklama": "Hyundai Coupe (Tiburon) iç kapı açma kolunun kablosunu tutan plastik tutamaktır.\n- Kablonun orijinal yönlendirme hattına oturacak şekilde tasarlanmıştır.\n- Kolun mekanizmaya sorunsuz oturmasını sağlar.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 20 × 16 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6514772-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6514772-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6514772-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6514772-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6514772-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wheatlay",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-solaris-kolcak-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Solaris Kolçak Mandalı",
+    "aciklama": "Hyundai Solaris orta kolçağının kapağını kapalı tutan mandal parçasıdır.\n- Kolçağın orijinal mandal yuvasına oturacak şekilde tasarlanmıştır.\n- Kapağın sürüş sırasında kendiliğinden açılmasını önler.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 48 × 38 × 37 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6186275-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6186275-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6186275-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6186275-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6186275-5.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-accent-vites-kolu-tutamagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Accent Vites Kolu Tutamağı",
+    "aciklama": "Hyundai Accent düz vites kolunun üst tutamak kısmını değiştiren yedek parçadır.\n- Vites koluna doğrudan takılabilecek iç dişli yapısına sahiptir.\n- Elde rahat kavranabilecek ergonomik bir formu vardır.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 77 × 60 × 45 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5946205-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5946205-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5946205-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5946205-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5946205-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Temulya",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-kona-ev-telefon-gozu-yukseltici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Kona EV Telefon Gözü Yükseltici",
+    "aciklama": "Hyundai Kona Electric'in telefon gözüne oturan, USB kablosunun düz bağlanabilmesi için tabanı yükselten parçadır.\n- Gözün iç hatlarına tam oturacak ölçüde tasarlanmıştır.\n- Telefonu USB girişine daha yakın ve sabit bir konumda tutar.\n- Kolay temizlenebilir düz yüzeyli bir yapısı vardır.\nYaklaşık dış ölçüler: 102 × 80 × 70 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5803305-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5803305-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5803305-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5803305-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5803305-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wctt",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-tucson-2016-2020-euro-bozuk-para-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Tucson (2016-2020) Euro Bozuk Para Tutucusu",
+    "aciklama": "Hyundai Tucson (2016-2020) iç mekanına yerleşen, 1-2-5-10-20-50 cent ve 1-2 Euro bozuk paralarını ayrı gözlerde tutan tutucudur.\n- Her göz ilgili para biriminin çapına uyacak şekilde tasarlanmıştır.\n- Paraları düzenli tutarak sürüş sırasında dağılmasını önler.\n- Konsolun uygun bir bölgesine yerleştirilebilecek kompakt ölçüdedir.\nYaklaşık dış ölçüler: 200 × 68 × 46 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4708809-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4708809-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4708809-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4708809-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4708809-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "faraz83",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-led-far-ampulu-adaptor-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq LED Far Ampulü Adaptör Halkası",
+    "aciklama": "Hyundai Ioniq EV kısa far yuvasına farklı LED ampul gövdelerinin sorunsuz oturmasını sağlayan adaptör halkasıdır.\n- Yuvanın orijinal çapına ve kilitleme tırnaklarına uyacak şekilde tasarlanmıştır.\n- Farklı gövde çapındaki LED ampullerin sabit ve dik durmasını sağlar.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 61 × 55 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4972431-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4972431-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4972431-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4972431-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "InseVH",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-veloster-magsafe-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Veloster Magsafe Telefon Tutucusu",
+    "aciklama": "Hyundai Veloster'ın iç mekanına monte edilen, mıknatıslı telefon aparatlarını sabitleyen tutucudur.\n- Konsolun uygun bir noktasına vidayla sabitlenecek şekilde tasarlanmıştır.\n- Mıknatıslı telefon aparatını sağlam ve titremeden tutar.\n- Farklı mıknatıslı aparat kalınlıklarına uyum sağlayan bir yapısı vardır.\nYaklaşık dış ölçüler: 86 × 82 × 68 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5832362-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5832362-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5832362-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5832362-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5832362-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EricAmador",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i20-telefon-tutucusu-usb-c-sarjli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i20 Telefon Tutucusu (USB-C Şarjlı)",
+    "aciklama": "Hyundai i20'nin iç mekanına uyumlu, telefonu USB-C şarj kablosuyla birlikte sabitleyen tutucudur.\n- Konsolun uygun bir bölgesine oturacak şekilde tasarlanmıştır.\n- Telefonu şarj kablosuyla birlikte sabit ve göz hizasında tutar.\n- Farklı telefon kalınlıklarına uyum sağlayan bir yapısı vardır.\nYaklaşık dış ölçüler: 36 × 7 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5388233-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5388233-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5388233-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5388233-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5388233-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AubsUK",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i20-bc3-kablosuz-sarj-pedi-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i20 BC3 Kablosuz Şarj Pedi Yuvası",
+    "aciklama": "Hyundai i20 BC3'ün klima kumandaları altındaki boşluğa kablosuz şarj pedi yerleştirmeyi sağlayan yuva parçasıdır.\n- Boşluğun orijinal hatlarına tam oturacak şekilde tasarlanmıştır.\n- Şarj pedini sabit ve düz bir zeminde tutar.\n- Kolay temizlenebilir düz yüzeyli bir yapısı vardır.\nYaklaşık dış ölçüler: 174 × 168 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5367538-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5367538-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5367538-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5367538-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5367538-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "visztpeter",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-hybrid-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra Hybrid Telefon Tutucusu",
+    "aciklama": "Hyundai Elantra Hybrid (2022) iç mekanına monte edilen telefon tutucu aparatıdır.\n- Konsolun uygun bir noktasına sabitlenecek şekilde tasarlanmıştır.\n- Telefonu sürüş sırasında göz hizasında ve sabit tutar.\n- Standart telefon tutucu aparatlarıyla uyumlu bir bağlantı noktası vardır.\nYaklaşık dış ölçüler: 50 × 45 × 43 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7064386-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7064386-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7064386-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7064386-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7064386-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Baad007",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-fe-2010-alt-konsol-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Fe 2010 Alt Konsol Mandalı",
+    "aciklama": "Hyundai Santa Fe (2010) alt konsol kapağının mandal parçasıdır.\n- Konsolun orijinal mandal yuvasına oturacak şekilde tasarlanmıştır.\n- Kapağın sürüş sırasında kendiliğinden açılmasını önler.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 45 × 31 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6824971-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6824971-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6824971-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6824971-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6824971-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "am387",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-tucson-5-vites-vites-kolu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Tucson 5 Vites Vites Kolu Kapağı",
+    "aciklama": "Hyundai Tucson'ın 5 ileri düz vites kutusu için üretilmiş, standart vites şemasını üzerinde taşıyan vites kolu kapağıdır.\n- Vites koluna doğrudan takılabilecek iç dişli yapısına sahiptir.\n- Üzerindeki vites şeması sürüş sırasında hızlı referans sağlar.\n- Elde rahat kavranabilecek bir formu vardır.\nYaklaşık dış ölçüler: 42 × 42 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5029312-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5029312-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5029312-3.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-kona-electric-kanada-bozuk-para-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Kona Electric Kanada Bozuk Para Tepsisi",
+    "aciklama": "Hyundai Kona Electric orta konsoluna oturan, Kanada bozuk para birimlerini (toonie, loonie, çeyrek, nikel, dime) ayrı gözlerde tutan tepsidir.\n- Her göz ilgili para biriminin çapına uyacak şekilde tasarlanmıştır.\n- Küçük eşyalar için ayrıca bir bölme içerir.\n- Konsolun uygun bir bölgesine yerleştirilebilecek kompakt ölçüdedir.\nYaklaşık dış ölçüler: 161 × 145 × 62 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3852148-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3852148-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3852148-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3852148-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3852148-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RS3DDesigns",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-accent-bagaj-ortusu-uc-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Accent Bagaj Örtüsü Uç Kapağı",
+    "aciklama": "Hyundai Accent (1999) bagaj örtüsünün iki ucundaki plastik kapaklardır.\n- Örtü milinin orijinal uç ölçüsüne oturacak şekilde tasarlanmıştır.\n- Orijinal kapağın kırılması durumunda doğrudan yerine takılabilir.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 26 × 24 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6500963-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6500963-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6500963-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6500963-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TheDoctorMD",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i30-telefon-tutucu-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i30 Telefon Tutucu Adaptörü",
+    "aciklama": "Hyundai i30'un iç mekanına standart bir telefon tutucu aparatının monte edilmesini sağlayan adaptör parçasıdır.\n- Konsolun uygun bir noktasına oturacak şekilde tasarlanmıştır.\n- Standart telefon tutucu aparatlarıyla uyumlu bir bağlantı noktası vardır.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 60 × 40 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2102838-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2102838-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2102838-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2102838-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2102838-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "g3org",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-fe-lastik-paspas-kilitleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Fe Lastik Paspas Kilitleyici",
+    "aciklama": "Hyundai Santa Fe (2. nesil) lastik paspaslarının gevşeyip kaymasını önleyen sabitleme parçasıdır.\n- Paspasın orijinal bağlantı noktasına oturacak şekilde tasarlanmıştır.\n- Paspası yerinde sabit tutarak sürüş sırasında kaymasını önler.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 13 × 13 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3433526-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3433526-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3433526-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3433526-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sibvic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-2003-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra 2003 Hoparlör Adaptörü",
+    "aciklama": "Hyundai Elantra (2003) kapı hoparlör yuvasına 6.5 inç standart dışı hoparlörlerin montajını sağlayan adaptördür.\n- Yuvanın orijinal çapına ve vida noktalarına uyacak şekilde tasarlanmıştır.\n- Farklı çaptaki hoparlörlerin sağlam ve dengeli oturmasını sağlar.\n- Ses kalitesini olumsuz etkilemeyecek ince bir profile sahiptir.\nYaklaşık dış ölçüler: 195 × 195 × 5 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3272780-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3272780-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3272780-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3272780-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dan_Yole",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-ioniq-kucuk-on-bagaj-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Ioniq Küçük Ön Bagaj Kutusu",
+    "aciklama": "Hyundai Ioniq'in motor bölümündeki boş alanı değerlendiren küçük ön bagaj (frunk) kutusudur.\n- Motor bölümünün uygun bir noktasına ara parça ve vidalarla sabitlenir.\n- Şarj kablosu veya küçük aksesuarları düzenli tutar.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 30 × 13 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6121475-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6121475-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6121475-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6121475-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "trandem",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-i40-kablosuz-sarj-telefon-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai I40 Kablosuz Şarj Telefon Yuvası",
+    "aciklama": "Hyundai I40 konsoluna oturan, telefonu kablosuz şarj cihazının üzerinde dik tutan yuva parçasıdır.\n- Konsolun uygun bir bölgesine oturacak şekilde tasarlanmıştır.\n- Telefonu şarj yüzeyine sabit hizada tutar.\n- Farklı telefon kalınlıklarına uyum sağlayan bir yapısı vardır.\nYaklaşık dış ölçüler: 118 × 110 × 92 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2733926-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2733926-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2733926-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2733926-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2733926-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "E_K",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-tucson-g1-dis-ayna-sinyal-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Tucson G1 Dış Ayna Sinyal Kapağı",
+    "aciklama": "Hyundai Tucson (1. nesil) dış dikiz aynasındaki sinyal lambası gövdesinin koruyucu kapağıdır.\n- Aynanın orijinal gövde hatlarına oturacak şekilde tasarlanmıştır.\n- Orijinal kapağın kırılması durumunda doğrudan yerine takılabilir.\n- Sinyal lambasını nem ve toza karşı korur.\nYaklaşık dış ölçüler: 128 × 41 × 24 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6791915-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6791915-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6791915-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6791915-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6791915-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ggzucco",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-palisade-konsol-duzenleyici-alt-tepsisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Palisade Konsol Düzenleyici Alt Tepsisi",
+    "aciklama": "Hyundai Palisade orta konsol gözünün alt katmanına oturan düzenleyici tepsidir.\n- Gözün iç hatlarına tam oturacak ölçüde tasarlanmıştır.\n- Küçük eşyaların sürüş sırasında dağılmasını önler.\n- Kolay temizlenebilir düz yüzeyli bir tabanı vardır.\nYaklaşık dış ölçüler: 214 × 158 × 50 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5649733-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5649733-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5649733-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5649733-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BluesunsXIV",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-santa-fe-grand-dis-ayna-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Santa Fe Grand (Maxcruz) Dış Ayna Tapası",
+    "aciklama": "Hyundai Santa Fe Grand (Maxcruz) dış dikiz aynasının kayıp montaj tapasının yerine geçen parçadır.\n- Aynanın orijinal tapa yuvasına oturacak şekilde tasarlanmıştır.\n- Bağlantı noktasını toz ve nemden korur.\n- Klips mantığıyla kolayca takılıp çıkarılabilir.\nYaklaşık dış ölçüler: 54 × 36 × 5 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4747333-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4747333-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4747333-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4747333-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mradionov",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-2021-yatay-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra 2021 Yatay Telefon Tutucusu",
+    "aciklama": "Hyundai Elantra (2021) gösterge paneli üzerine takılan, telefonu yatay konumda tutan aparattır.\n- Panelin orijinal hatlarına oturacak şekilde tabanlandırılmıştır.\n- Telefonu sürüş sırasında göz hizasında ve sabit tutar.\n- Ek bir bağlantı parçası gerektirmeden doğrudan yerine takılır.\nYaklaşık dış ölçüler: 175 × 108 × 100 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7097028-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7097028-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7097028-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7097028-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7097028-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "StatexKiller24",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-elantra-hybrid-orta-cubuk-telefon-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Elantra Hybrid Orta Çubuk Telefon Tutucusu",
+    "aciklama": "Hyundai Elantra Hybrid'in orta konsol çubuğuna takılan telefon tutucusudur.\n- Çubuğun standart kesitine uyacak şekilde tasarlanmıştır.\n- Mıknatıslı telefon aparatlarıyla birlikte kullanıma uygun bir yapısı vardır.\n- Sürüş sırasında telefonu göz hizasında ve sabit tutar.\nYaklaşık dış ölçüler: 45 × 40 × 23 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6641228-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6641228-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6641228-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6641228-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pavelhh",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyundai-veloster-1-nesil-h11b-far-sokme-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai Veloster (1. Nesil) H11B Far Sökme Aparatı",
+    "aciklama": "Hyundai Veloster (1. nesil) motor bölümünde dar alanda H11B far ampulünün sökülmesini kolaylaştıran servis aparatıdır.\n- Ampul soketinin standart profiline uyacak şekilde tasarlanmıştır.\n- Dar çalışma alanında elle erişimi kolaylaştırır.\n- Sağlam ve aşınmaya dayanıklı bir malzeme tercih edilmesi ömrünü uzatır.\nYaklaşık dış ölçüler: 55 × 55 × 27 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6412028-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6412028-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6412028-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6412028-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Irremarkable",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "hyundai-elantra-gt-dis-ayna-sonsuz-disli",
     "kategori": "Otomobil",
     "marka": [
