@@ -83,6 +83,15 @@ DURDURMAZ, ama her push'ta mail uretiyordu). Dusen iddialar: **E3 + E4**.
   kosuyordu** — tarihsel **42-50 dk** bandinin ICINDE. Aradaki ~21 dk **KUYRUK** suresiydi.
   Yani asilma YOK; onceki turun devir maddesi (2)'deki **60 dk esigi FIILEN ASILMADI**,
   `nobet.yml` seridine tasima kosulu yine olusmadi. → [[hukum-yanlis-birimde]]
+- 🧪 **IPTAL MEKANIZMASI KANITLANDI (sonraki tur yeniden teshis ETMESIN):** merge'i ATA olarak
+  tasiyan **5 ardisik** `Build & deploy` kosumu — `8d7b637a`/`31201680021` · `cd9fb30c`/`31202449759`
+  · `74bbc9e8`/`31202774015` · `89e7c510`/`31202908057` (+`1a1d5a17`/`31203049881` pending) —
+  hepsi `cancelled` ve hepsinde `gh run view --json jobs` **BOS** dondu: **hicbir job hic
+  baslamadi.** Her birinde atalik `git merge-base --is-ancestor` ile KANITLANDI, iddia edilmedi.
+  Yani sebep test/build hatasi DEGIL, `pages` eszamanlilik grubunun kuyrukta yalniz EN YENIyi
+  birakmasi: onde `bb804c24` ~50 dk'lik zinciri tutuyor, arkadaki her push suprulüyor.
+  Sonraki turun isi bu deseni yeniden olcmek DEGIL, **onde kosanin bitmesinden sonraki ilk
+  yesil zinciri** merge'i iceriyor mu diye yoklamak.
 - 📌 Bu turun yetim-is dersi hafizaya yazildi → [[oksuz-commitsiz-onarim-curur]].
 - 🟡 D1 (`d1-sync.py --durum`): D1 **22.089** vs yerel **22.136** (47 satir), `marka_kanon` ·
   `model_kanon` · `marka_arama` BAYAT — hepsi ucustaki urun partisinin satirlari.
