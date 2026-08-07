@@ -146,10 +146,19 @@ KAPSAM DISI ve NEDENI (kapsami buyutmek pozitif nobetciyi oldurur,
   (`alan_satirlari(alan, yv) - t_satir`) ama `+`/`-` gorulme kumeleri KAYIT-bazlidir,
   yani tabanda o KAYITTA baska bir alanda duran bir satir O ALANDA aday olabilir ve
   hic terk edilmemis olabilir; sinif bugun bos, dolabilir. Bu yuzden A-M2 `-` yerine
-  DOSYA ADI DESENINI hukum ureticisi yapar (bu yuzeyde AYIRT EDICI kalir). `-`
-  conjunct'i OLCUSUZ KALMAZ: `--kendini-test` icindeki A17d saf-karar iddiasi (`+`
-  gorulmus ama `-` YOK -> gerileme DEGIL) tam da o conjunct'i olcer; conjunct
-  dusurulurse A17d KIRMIZI yanar.
+  DOSYA ADI DESENINI hukum ureticisi yapar (bu yuzeyde AYIRT EDICI kalir). HUKMUN
+  IKI CONJUNCT'I DA OLCUSUZ KALMAZ, ve AYRIM REPODA KANITLIDIR — `--kendini-test`
+  icindeki iki saf-karar iddiasi:
+      A17d (`+` gorulmus ama `-` YOK      -> gerileme DEGIL)  = `-` conjunct'i
+      A17j (yalniz `-` TERK EDILMIS, `+` HIC GORULMEMIS -> gerileme DEGIL) = `+` conjunct'i
+  Ayirt edicilik BEYAN DEGIL, KOSULARAK gosterilir: `--karar-mutasyon` bataryasi
+  (K-M1 `+` conjunct'i dusurulur -> YALNIZ A17j duser · K-M2 `-` conjunct'i dusurulur
+  -> YALNIZ A17d duser · K-M3 KONTROL, yalniz teshis metni -> HICBIRI duser).
+  ⚠️ NEDEN A17j SONRADAN EKLENDI (7 Agu 2026, bagimsiz curutucu OLCTU): o gune kadar
+  `+` (GORULMUS) conjunct'i HICBIR kabul iddiasi tarafindan kapsanmiyordu — hukum
+  kosulu `if (uid, s) in eksi_gorulen`e indirgense HEM `--kendini-test` HEM
+  `--alan-capa` YESIL kaliyordu. Mevcut A17c/d/e/f arasinda "yalniz `-` gorulmus"
+  sinifi YOKTU; A17j tam da o sinifi kurar.
   📏 ARZ NOBETI: her iki arz sayisi (NITELIKLI · DOGUSTAN-vN) koşum ciktisinda BASILIR;
   arz duserse gorunur olur, sessizce zayiflamaz.
 
@@ -232,6 +241,8 @@ KULLANIM:
                                                       # + mutasyon bataryalari (hizli)
     python3 tools/diriltme-kapisi.py --alan-capa      # YALNIZ A20/A21/A22 ayagi
     python3 tools/diriltme-kapisi.py --capa-mutasyon  # A20/A22 AYIRT EDICI mutantlar
+    python3 tools/diriltme-kapisi.py --karar-mutasyon # EKSEN 2 hukmunun `+`/`-`
+                                                      # CONJUNCT'LERI (A17j <-> A17d)
 
 CIKIS KODLARI: 0 = YESIL · 1 = KIRMIZI (diriltme / alan gerilemesi) · 2 = OLCULEMEDI.
 """
@@ -1635,9 +1646,210 @@ def capa_mutasyon_test(depo=None):
     return 0
 
 
-def kendini_test():
+# ------------------- KARAR MUTASYON BATARYASI (EKSEN 2 HUKMUNUN CONJUNCT'LERI) -------
+# 🔴 YERLESIM ZORUNLU — BU TABLO `ALAN_CAPA_MUTASYONLARI`DAN SONRA DURUR (olculdu):
+#   `_capa_yuzeyi()` govdeyi `CAPA_TABLO_AYRACI` ile keser ve capalarin TEKILLIGINI
+#   YALNIZ kesimden ONCEKI KOD yuzeyinde arar. Asagidaki K-M1/K-M2 capasi A-M2'nin
+#   capasiyla AYNI iki satirdir; bu tablo kesimden ONCE konsaydi o capa KOD yuzeyinde
+#   IKI KEZ gecer ve `--capa-mutasyon` BOZULMAMIS bir kapiyla KIRMIZI yanardi.
+#   Ayni sebeple bu batarya da mutasyon yuzeyi olarak AYNI kod yuzeyini kullanir ->
+#   HER IKI tablo da mutasyon yuzeyinin DISINDA kalir ve ikisi de birbirini bozmaz.
+#
+# SOZLESME (`ALAN_CAPA_MUTASYONLARI` ile AYNI, harfiyen):
+#   * <capa> CANLI govdenin KOD yuzeyinde TEKIL bulunmali — bayat capa "mutasyon
+#     uygulanmadi, test yesil" URETEMEZ, vaka KIRMIZI yanar;
+#   * mutasyon YALNIZ KOPYAYA uygulanir; canli dosyanin sha256'si ONCE==SONRA BASILIR;
+#   * OLDURUCU mutant BEYAN EDILEN TEK iddiayi dusurmeli — kume ESITLIGI olculur,
+#     "iceriyor" DEGIL (fazla dusen = olcunun kor oldugunun isareti);
+#   * KONTROL mutanti hicbirini dusurmemeli (batarya AYIRT EDICI olmali, HASSAS degil);
+#   * kopyanin koşumunda "Traceback" gorulurse KIRMIZI (cokme yesille de kirmiziyla da
+#     KARISMASIN, [[mutasyon-kaniti-yeniden-uretilebilir]]);
+#   * her koşumda OLCULEN IDDIA SAYISI basilir ve TABANLA ayni olmali — mutant erken
+#     cokup iddia YUZEYINI kucultemesin ([[kapi-yan-etkisi-gizli-onkosul]]);
+#   * ETIKETSIZ dusen iddia (or. "GERCEK depo olcumu yapilamadi") SAPMA sayilir: kume
+#     karsilastirmasi onu goremez, sessizce yutulmasi olcuyu korlestirirdi.
+#
+# NEDEN BU IKI MUTANT: `alan_gerilemeleri_bul` hukmu IKI conjunct'in VE'sidir
+#   (`+` GORULMUS **ve** `-` TERK EDILMIS). Bir conjunct'i dusurmek DIGERINI olcen
+#   iddiayi DUSURMEZ; ayirt edicilik tam da budur. K-M1 ve K-M2 AYNI iki satiri ters
+#   yonlerde budar ve FARKLI tek iddia dusurur:
+#       K-M1 (`+` dusurulur) -> YALNIZ A17j duser (A17d ayakta kalir)
+#       K-M2 (`-` dusurulur) -> YALNIZ A17d duser (A17j ayakta kalir)
+#   Ikisi de AYNI iddiayi dusurseydi, o iddia conjunct'leri AYIRT ETMIYOR olurdu ve
+#   `+` conjunct'i olculmemis sayilirdi ([[beyan-edilmis-survivor]]).
+# 🔴 OLCULEN BOSLUK (7 Agu 2026, bagimsiz curutucu): A17j EKLENMEDEN ONCE K-M1 mutanti
+#   HICBIR iddiayi dusurmuyordu — `+` conjunct'i kapsamsizdi.
+KARAR_MUTASYONLARI = (
+    ("K-M1 `+` (GORULMUS) conjunct'i dusurulur", "A17j",
+     "        kanit = sorted(s for s in adaylar[(uid, alan)]\n"
+     "                       if (uid, s) in arti_gorulen and (uid, s) in eksi_gorulen)",
+     "        kanit = sorted(s for s in adaylar[(uid, alan)]\n"
+     "                       if (uid, s) in eksi_gorulen)",
+     "GORULME sarti DUSURULUR: o kayitta HIC `+` gorulmemis bir deger, salt `-` "
+     "taraninda gorunmus diye 'geri gelmis' sayilir"),
+    ("K-M2 `-` (TERK EDILME) conjunct'i dusurulur", "A17d",
+     "        kanit = sorted(s for s in adaylar[(uid, alan)]\n"
+     "                       if (uid, s) in arti_gorulen and (uid, s) in eksi_gorulen)",
+     "        kanit = sorted(s for s in adaylar[(uid, alan)]\n"
+     "                       if (uid, s) in arti_gorulen)",
+     "TERK EDILME sarti DUSURULUR: hic terk edilmemis, HALA gecerli bir deger "
+     "'gerileme' sayilir -> mesru duzeltmeler bloklanirdi"),
+    ("K-M3 teshis metni (EKSEN 1 satiri)", "KONTROL",
+     '                             "GECMISTE SILINMIS bu id geri geldi — satir-duzeyi merge "',
+     '                             "GECMISTE SILINMIS bu id GERI GELDI — satir-duzeyi merge "',
+     "yalniz rapor/teshis metni degisir -> hicbir hukum DEGISMEMELI"),
+)
+
+# ⚠️ CIVI BILEREK: `--kendini-test` yuzeyindeki iddia sayisi. Mutant koşumu bu sayidan
+# SAPARSA (erken cokme, ayak kurulamamasi) batarya KIRMIZI yanar — "mutant hicbir sey
+# dusurmedi" ile "mutant iddia yuzeyini kucultu" KARISMASIN. Yuzeye mesru bir iddia
+# eklenirse bu sayi ELLE guncellenir (A17h ile ayni desen: kapsam sessizce degismez).
+KARAR_TABAN_IDDIA = 87
+
+# Iddia satiri: "    ✅ <ETIKET> ..." / "    ❌ <ETIKET> ...". Etiket = harf+rakam
+# (V0c, A16b, A17j, K1, W3 ...). Etiketsiz dusen iddia AYRICA sayilir (bkz. sozlesme).
+KARAR_ETIKET = re.compile(r"^\s*[✅❌]\s+([A-Za-z]+[0-9][0-9A-Za-z]*)\b")
+KARAR_SAYI = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)
+
+
+def _karar_kopyasini_kur(d, govde):
+    """Mutant kapiyi <d>/tools/diriltme-kapisi.py olarak kur ve yolunu dondur.
+
+    `--kendini-test` kanca/kok ayaklari GERCEK dosyalari `TOOLS`tan (yani kosan
+    dosyanin YANINDAN) okur; kopya yalniz basina birakilirsa o ayaklar kurulamaz ve
+    iddia yuzeyi KUCULUR. Bu yuzden yanina `git_ortami.py`, `kanca-kur.py` ve
+    `kancalar/` KOPYALANIR. Hicbiri MUTASYONA UGRAMAZ — yalniz kapi govdesi degisir."""
+    t = os.path.join(d, "tools")
+    if not os.path.isdir(t):
+        os.makedirs(t)
+        for a in ("git_ortami.py", "kanca-kur.py"):
+            shutil.copyfile(os.path.join(TOOLS, a), os.path.join(t, a))
+        shutil.copytree(os.path.join(TOOLS, "kancalar"), os.path.join(t, "kancalar"))
+    hedef = os.path.join(t, "diriltme-kapisi.py")
+    with open(hedef, "w", encoding="utf-8") as f:
+        f.write(govde)
+    return hedef
+
+
+def _karar_ayagi_kos(kaynak_yolu, depo):
+    """(dusen_etiket, etiketsiz_dusen, iddia_sayisi, cokme_var_mi, ham_cikti) — verilen
+    kapi KOPYASINI `--kendini-test` ile kostur. Hukum kopyanin BASTIGI ETIKETLERDEN
+    okunur; iddia sayisi kopyanin KENDI bastigi `IDDIA SAYISI:` satirindan alinir
+    (bulunamazsa -1 -> SAPMA)."""
+    p = subprocess.run([sys.executable, kaynak_yolu, "--kendini-test", "--depo", depo],
+                       cwd=depo, capture_output=True, text=True, errors="replace",
+                       env=git_ortami())
+    cikti = (p.stdout or "") + (p.stderr or "")
+    dusen, etiketsiz = set(), 0
+    for satir in cikti.splitlines():
+        if satir.strip()[:1] != "❌":
+            continue
+        m = KARAR_ETIKET.match(satir)
+        if m:
+            dusen.add(m.group(1))
+        else:
+            etiketsiz += 1
+    m = KARAR_SAYI.search(cikti)
+    return dusen, etiketsiz, int(m.group(1)) if m else -1, ("Traceback" in cikti), cikti
+
+
+def karar_mutasyon_test(depo=None):
+    """EKSEN 2 hukmunun `+` <-> `-` CONJUNCT AYRIMI (surucu REPODA durur,
+    [[mutasyon-kaniti-yeniden-uretilebilir]]). Kabul = cikis kodu DEGIL, olculen
+    iddia sayisi + her mutantin DUSURDUGU ETIKET KUMESI."""
+    canli = os.path.abspath(__file__)
+    canli_modul = os.path.join(TOOLS, "git_ortami.py")
+    hatalar = []
+    try:
+        kok = depo_kok(depo)
+    except Olculemedi as e:
+        print("OLCULEMEDI: %s" % e)
+        return 2
+    if not os.path.exists(canli_modul):
+        print("OLCULEMEDI: git_ortami.py yok (kapi onu import eder; fallback YOK)")
+        return 2
+    if not os.path.isdir(os.path.join(TOOLS, "kancalar")):
+        print("OLCULEMEDI: tools/kancalar yok (kendini-test ayagi kurulamaz)")
+        return 2
+
+    once = _arac_kaynak_sha()
+    modul_once = hashlib.sha256(open(canli_modul, "rb").read()).hexdigest()
+    with open(canli, encoding="utf-8") as f:
+        govde = f.read()
+    try:
+        kod_yuzeyi, tablo_kuyrugu = _capa_yuzeyi(govde)
+    except Olculemedi as e:
+        print("OLCULEMEDI: %s" % e)
+        return 2
+
+    print("KARAR MUTASYON BATARYASI — EKSEN 2 hukmunun `+` (A17j) <-> `-` (A17d) ayrimi")
+    print("  olculen yuzey        : %s --kendini-test --depo %s" % (canli, kok))
+    dusen, etiketsiz, sayi, cokme, _c = _karar_ayagi_kos(canli, kok)
+    print("  TABAN                : %d iddia (beklenen %d), %d dusen, %d etiketsiz "
+          "dusen, cokme=%s" % (sayi, KARAR_TABAN_IDDIA, len(dusen), etiketsiz, cokme))
+    if dusen or etiketsiz or cokme or sayi != KARAR_TABAN_IDDIA:
+        hatalar.append("TABAN kosumu temiz DEGIL (dusen=%s, etiketsiz=%d, iddia=%d/%d, "
+                       "cokme=%s)" % (sorted(dusen), etiketsiz, sayi,
+                                      KARAR_TABAN_IDDIA, cokme))
+
+    with tempfile.TemporaryDirectory(prefix="pruvo-karar-mut-") as d:
+        for ad, beyan, capa, yerine, gerekce in KARAR_MUTASYONLARI:
+            if kod_yuzeyi.count(capa) != 1:
+                hatalar.append("%-42s BAYAT CAPA: olculen KOD yuzeyinde %d kez geciyor "
+                               "(1 olmali)" % (ad, kod_yuzeyi.count(capa)))
+                print("  [KIRMIZI] %-42s capa bulunamadi/tekil degil" % ad)
+                continue
+            hedef = _karar_kopyasini_kur(
+                d, kod_yuzeyi.replace(capa, yerine, 1) + tablo_kuyrugu)
+            m_dusen, m_etiketsiz, m_sayi, m_cokme, m_cikti = _karar_ayagi_kos(hedef, kok)
+            beklenen = set() if beyan == "KONTROL" else {beyan}
+            iyi = (m_dusen == beklenen and m_etiketsiz == 0
+                   and m_sayi == KARAR_TABAN_IDDIA and not m_cokme)
+            print("  [%-7s] %-42s dusen=%-8s beklenen=%-8s iddia=%d etiketsiz=%d "
+                  "cokme=%s" % ("OLDU" if iyi else "SAPMA", ad, sorted(m_dusen) or "-",
+                                sorted(beklenen) or "-", m_sayi, m_etiketsiz, m_cokme))
+            print("            %s" % gerekce)
+            if not iyi:
+                hatalar.append("%-42s beklenen dusen %s, olculen %s (iddia %d/%d, "
+                               "etiketsiz %d, cokme %s)"
+                               % (ad, sorted(beklenen) or "-", sorted(m_dusen) or "-",
+                                  m_sayi, KARAR_TABAN_IDDIA, m_etiketsiz, m_cokme))
+                if m_cokme:
+                    hatalar.append("   ilk satirlar: %s"
+                                   % m_cikti.strip().splitlines()[:3])
+
+    sonra = _arac_kaynak_sha()
+    modul_sonra = hashlib.sha256(open(canli_modul, "rb").read()).hexdigest()
+    if once != sonra:
+        hatalar.append("🔴 CANLI DOSYA DEGISTI (sha256 once != sonra) — mutasyon YALNIZ "
+                       "KOPYAYA uygulanmaliydi")
+    if modul_once != modul_sonra:
+        hatalar.append("🔴 PAYLASILAN MODUL DEGISTI (sha256 once != sonra)")
+    print("  CANLI DOSYA sha256   : once=%s sonra=%s (esit: %s)"
+          % (once[:12], sonra[:12], once == sonra))
+    print("  git_ortami.py sha256 : once==sonra: %s" % (modul_once == modul_sonra))
+    print("----------------------------------------------------------------------")
+    if hatalar:
+        print("KARAR MUTASYON BATARYASI KIRMIZI (%d sapma):" % len(hatalar))
+        for h in hatalar:
+            print("  - %s" % h)
+        return 1
+    print("KARAR MUTASYON BATARYASI YESIL: %d oldurucu mutant BEYAN EDILEN TEK ve FARKLI "
+          "iddiayi dusurdu (`+` -> A17j · `-` -> A17d), KONTROL mutanti hicbirini; "
+          "iddia sayisi %d sabit, Traceback 0."
+          % (len([m for m in KARAR_MUTASYONLARI if m[1] != "KONTROL"]),
+             KARAR_TABAN_IDDIA))
+    return 0
+
+
+def kendini_test(depo=None):
     """POZITIF + NEGATIF vakalar. Her iddia icin IKI YON de olculur (yalniz pozitif =
-    olu nobetci). Ag YOK; sentetik gecici git depolari, CANLI VERIYE DOKUNULMAZ."""
+    olu nobetci). Ag YOK; sentetik gecici git depolari, CANLI VERIYE DOKUNULMAZ.
+
+    `depo`: GERCEK depo ayaginin koku (`--depo`). Varsayilan davranis DEGISMEZ
+    (`depo_kok(None)` = bu dosyanin deposu / cwd). ACIK vermek `--karar-mutasyon`
+    icindir: kapinin bir KOPYASI depo DISINDA kosarken olculecek depo ORTAMA
+    (cwd'ye) DEGIL, ACIK ARGUMANA baglanir."""
     ham = ["DIRILTME KAPISI — KENDINI TEST (offline, sentetik git depolari)"]
     kirmizi = 0
 
@@ -2115,6 +2327,13 @@ def kendini_test():
               alan_gerilemeleri_bul({("x", "fiyat"): frozenset({"L"})},
                                     {("x", "L")}, {("x", "L")}, {"x#fiyat"})
               == ([], [("x#fiyat", ["L"])]))
+        # A17j — hukmun `+` (GORULMUS) CONJUNCT'INI olcen TEK iddia. A17d `-` (TERK
+        # EDILME) conjunct'ini olcer; ikisi AYRI mutantlarla dusurulebilir olmali
+        # (kanit: `--karar-mutasyon`, K-M1 -> yalniz A17j · K-M2 -> yalniz A17d).
+        iddia("A17j saf karar: yalniz `-` TERK EDILMIS (`+` HIC GORULMEMIS) -> "
+              "gerileme DEGIL",
+              alan_gerilemeleri_bul({("x", "fiyat"): frozenset({"L"})},
+                                    set(), {("x", "L")}, set()) == ([], []))
         iddia("A17g satir normallestirme SON VIRGULU atar (dizideki yer degisimi "
               "SAHTE fark uretmez)",
               satir_normalle('      "u1",') == satir_normalle('      "u1"') == '"u1"')
@@ -2142,7 +2361,7 @@ def kendini_test():
 
     # ---- GERCEK DEPO ayagi: salt-okunurluk + yanlis-pozitif kanaryasi + iki eksen
     try:
-        gercek = depo_kok()
+        gercek = depo_kok(depo)
         urunler_yolu = os.path.join(gercek, URUNLER_ADI)
 
         def _sha():
@@ -2232,15 +2451,20 @@ def main():
     ap.add_argument("--capa-mutasyon", action="store_true", dest="capa_mutasyon",
                     help="A20 <-> A22 AYIRT EDICI mutasyon bataryasi (canli dosyaya "
                          "YAZMAZ; sha256 once==sonra basilir)")
+    ap.add_argument("--karar-mutasyon", action="store_true", dest="karar_mutasyon",
+                    help="EKSEN 2 hukmunun `+` (A17j) <-> `-` (A17d) CONJUNCT ayrimi "
+                         "(canli dosyaya YAZMAZ; sha256 once==sonra basilir)")
     a = ap.parse_args()
     if a.kendini:
-        return kendini_test()
+        return kendini_test(a.depo)
     if a.kanca:
         return kanca_kendini_test()
     if a.alan_capa:
         return alan_capa_kendini_test(a.depo)
     if a.capa_mutasyon:
         return capa_mutasyon_test(a.depo)
+    if a.karar_mutasyon:
+        return karar_mutasyon_test(a.depo)
     yeni_dosya = None
     if a.calisma_agaci:
         yeni_dosya = os.path.join(depo_kok(a.depo), URUNLER_ADI)
