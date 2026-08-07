@@ -1,23 +1,63 @@
 # DEVAM (KraL) — 7 Agu 2026
 
-## ✅ OKAN'IN BILDIRDIGI MARKA SAYFASI KUSURU KAPANDI — merge `d0534fd2`, canlida dogrulandi
-Kusur: kapsam sayaci **yanlis birimde** sayiyordu — yalniz `.card` dugumlerini, model kovalarini
-DEGIL. `/marka/audi/?kategori=Otomobil` ekranda **201** derken gercek **329**; ayni sayfanin kendi
-meta'si zaten 330 diyordu (iki sayi, iki kaynak). Ikinci kusur: `uret()` birlesimi id bazinda
-tekillestirilmiyordu → 31 sayfada mukerrer kart.
-**Sinif olcumu (marka-ozel onarim DEGIL, Okan'in uyarisi uzerine sertlestirildi):** sapan marka
-sayfasi **40→0**, katmanlar ayri: >500 kalem **13→0** · 50-500 **13→0** · 2-49 **14→0** ·
-929 model sayfasi zaten 0. Gizlenen kalem **9.378→0** · mukerrer kart **282→0** · kaybolan kart
-**0** · kodda marka literali **0/8 yuzey** · iddia **8758/8758** · oldurucu **11/11** (esik ve
-"marka-ozel dal" mutantlari dahil) · kontrol **3/3** · ayrisan-olmayan **0** · `urunler.json` 0 satir.
-**Canli teyit** (kanonik adres, cache-bust YOK, render edilmis DOM): audi filtreli **201→329**,
-filtresiz **330**, mukerrer 202 ham→**199/199**; ford **2582**==2582 · bmw **2310**==2310
-(`?kategori=Motosiklet` **628**==628) · kia **341**==341 · subaru **35**==35 · gopro **45**==45.
-**Kapi serit karari (davranistan dogrulandi, beyandan DEGIL):** `marka-sayac-kapisi.py` tamamen
-yerel/deterministik (ag yok, kardes depo yolu yok) → `serit-a3`, yani `deploy: needs` icinde
-**BLOKLAYICI**; `continue-on-error` YOK. D1 dort eksen yesil (21845==21845).
-📌 Yol notu: iscinin `gorunenKart + Σ buton` formulu olcumde YANLIS cikti (kart ve kova kumeleri
-cakisiyor → 373). Sayi artik SSR'de tek kanonik fonksiyondan tekil birlesim olarak turuyor.
+## ✅ OKAN'IN BILDIRDIGI MARKA SAYFASI KUSURU KAPANDI — merge `d0534fd2`
+Kapsam sayaci kart yerine model kovasini sayiyordu (audi ekran 201→gercek 329) + `uret()`
+mukerrer kart uretiyordu (282→0); sinif olcumuyle KAPANDI, canlida DOGRULANDI (ford 2582==2582,
+bmw 2310==2310, kia 341==341). Tam dokum `DEVAM-ARSIV.md`de.
+
+## ⏱ SAATLIK CI NOBETI — 7 Agu 17:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Mail supurmesi (kosulsuz, ilk is):** eslesen **2** · Cop'e tasinan **2** · tur sonu inbox'ta
+"Run failed" **0**. Cop BOSALTILMADI, baska maile dokunulmadi.
+
+**CI hukmu: GERCEK KIRMIZI YOK.** Tek `failure` = `Odeme yolu bayatlik nabzi` (`31202774942`,
+head `74bbc9e8`): `wrangler deployments rc=1: fetch failed` → kapi fail-closed **OLCULEMEDI**
+verdi (dogru davranis, "guncel" VARSAYMADI, yayini durdurmaz). Ayni is akisi bir sonraki
+kosumda `31203297731` **success** → kosucu ag flake'i, kendiliginden kapandi. **Onarim GEREKMEDI.**
+
+**🔎 BU TURDA KENDI TESHISIMI CURUTTUM (kayda gecirilir):** once "art arda push'lar yayini
+iptal ediyor" hukmunu kurup `~/.claude/cron/ci-nobeti-gorev.md`'ye "TEK COMMIT/TEK PUSH" kurali
+yazdim. **Kaynaktan olcum curuttu:** `deploy.yml` → `concurrency: group: pages` +
+**`cancel-in-progress: false` (BILEREK, gerekcesi dosyanin kendi basliginda)**. Bu ayarda KOSAN
+zincir korunur, yalniz KUYRUKTAKI eski kosum duser ve **icerigi KAYBOLMAZ** (yeni kosumun head'i
+eskisini ata olarak tasir). Yani `cancelled` + `jobs: []` yigini beklenen kuyruk davranisi.
+Kural GERI ALINDI, yerine "teshisi SUREDEN kur" kurali yazildi (§4.5). Kardeslere de posta
+kutusundan duzeltme gecildi — yanlis hukum yayilmadan kapandi. → [[hukum-yanlis-birimde]]
+
+**📏 GERCEK KALDIRAC OLCULDU — YAYIN TAVANINI `serit-a4` KOYUYOR** (kosum `31191071227`, ADIM birimi):
+`serit-a4` **47m58s** = `model-uyelik-kapisi.py --kendini-test` **34m23s** +
+`model-baslik-kolu-test.py --kendini-test` **13m22s** + `yedekle-test.py --hermetik` ~4 s.
+Diger kollar: `build` ~11m · `serit-a3` ~12m · `serit-a2` ~21m. `deploy: needs` dordunu birden
+bekliyor. ⚠️ Adimin KENDI yorumu "CI'da 440 sn" diyor, olculen **2063 sn** → **beyan 4,7× BAYAT**.
+Bu tur ayrica `bb804c24` kosumunda `serit-a4` **67 dk**'ya ulasti (47m58s tabanini 19 dk asti).
+
+**🔧 ACILAN IS (mühendis dalda, MERGE EDILMEDI):** `serit-a4`'un ucu de araç-kendini-sinama
+(`--kendini-test`) — doktrin geregi yayini durdurmamali ([[kapi-birikimi-yayin-gecikmesi]]),
+ICERIK koruyan gercek olcum kolu zaten `serit-a3`te bloklayici kaliyor. Spec:
+`.scratch-ci-nobeti/spec-serit-a4-tasima.md` — iki batarya `nobet.yml`'e TASINIR (kopyalanmaz),
+`yedekle-test --hermetik` BLOKLAYICI kalir (`serit-a3`e), `deploy: needs` **4→3**.
+Kabul cikis kodu DEGIL BASILAN SAYI: iddia kaybi 0 · bloklayici adim envanteri once/sonra ·
+`is-akisi-kapisi.py` BOLUM G rc=0 + **kontrol mutanti** (baglantisiz job kirmizi yakmali) ·
+davranissal dogrulama (YAML'den, beyandan degil). Emsal: `ffc72a6a`.
+
+**Devir maddesi (2) — sahipsiz calisma agaci:** `tools/uyum-kapisi.py` +
+`tools/yayin-gecikme-nobeti.py` + 2 fikstur IKI TUR ustuste commit'siz. DOKUNULMADI;
+posta kutusuna **sahiplik sorusu YAZILDI**. Bir tur daha durursa oksuz sayilip devralinacak
+([[oksuz-commitsiz-onarim-curur]]).
+
+**Defter kotasi:** DEVAM **190→158** satir / 15398→12872 bayt, `DEVAM-ARSIV.md`
+955371→**960233** (+4862 bayt kayipsizlik kaniti), `devam-sinif-kapisi.py` rc=0 / 0 ihlal.
+
+**DEVIR — sonraki turun ILK isi:**
+(1) **`b8ab7091` (r2-onek onarimi) HALA YAYINA INMEDI** — son basarili deploy `31195954169`
+    (16:06:30Z, head `3f3e299a`, onarimdan ONCE). `bb804c24` zinciri `serit-a4`te takili,
+    `76ca1341` kuyrukta. Kabul DEGISMEDI: `git merge-base --is-ancestor b8ab7091 <headSha>`
+    exit 0 + `deploy`/`yayin` job'lari success. "En son kosum yesil" KANIT DEGIL.
+(2) **Mühendis dalini yargila** (`serit-a4` tasimasi): `RAPOR-MIMARA.md` oku, KABUL sayilarini
+    CURUT (kontrol mutanti KIRMIZI yaniyor mu), sonra **skill: merge-kapisi** ile al.
+(3) `r2-onek`/`serit-b` sinifi KAPALI, oradan teshise BASLAMA.
+
+**Codex NOT:** kredi kotasi TUKENDI (yenilenme 8 Agu 10:19) → bu tur da tamamen Claude katinda.
 
 ## ⏱ SAATLIK CI NOBETI — 7 Agu 16:37Z turu (ev DOGRU: ~/dev/pruvo)
 
@@ -121,40 +161,22 @@ katinda kosuldu; sonraki tur da Codex'siz planlanmali.
 <!-- 14:37Z turunun tam dokumu ARSIVDE (defter kotasi 1:1) -->
 
 ## 🗄 (arsive alindi) 7 Agu 14:37Z turu — ozet
-Gramer kapisi kisaltma muafiyetiyle onarildi (`a0beef7a`), `serit-a3` yesil, `deploy`+`yayin`
-success; `serit-a4` 47m58s (60 dk esigi asilmadi). Tam dokum `DEVAM-ARSIV.md`.
+Gramer kapisi kisaltma muafiyetiyle onarildi (`a0beef7a`), `serit-a3` yesil, `deploy`+`yayin` success; `serit-a4` 47m58s (60 dk esigi asilmadi). Tam dokum `DEVAM-ARSIV.md`.
 
 ## 🔚 7 Agu OTURUMU — MAIN'E GIREN (tek satir + SHA; TAM DOKUM ARSIVDE)
-1. Varlik kaldiraci `8bbd760c` — artefakt **833,6 → 617,1 MiB** (1 GB tavaninda %81,4 → %60,3),
-   sayfa basi **61.625 → 26.252 bayt**, kaybolan URL **0**; `enjeksiyon-kapisi.py` ekseni 9→12.
-2. Nobet ayrimi `ffc72a6a` — 6 bloklamayan job `nobet.yml`'e; `deploy: needs` **4..4**,
-   bloklayici adim **132..132**, **KAYBOLAN 0**; `pages` concurrency kilidi cozuldu.
-3. Denetim kapisi `3b369e34` — `--evet-sil N` onayi (tavan 50); onaysiz toplu silme rc=4 /
-   silinen 0 / sha256 DEGISMEDI; kendini-test **50 iddia**.
-4. Kanca koku `3aec9eba` — kok artik `-C` kesfinden turuyor; yuzey **214.553..214.553**.
-5. Ata-lisans kapisi `c3c23d2e` — sessiz gecis **12..0**, yanlis-pozitif 0/31, yanlis-negatif
-   0/22, iddia 28→54, oldurucu 20/20. → hafiza [[mutasyon-bytecode-onbellegi]]
-6. `serit-a3` + is-akisi kapisi `336a16bc` — kurban artik **kanonik** seciliyor.
-7. `serit-a4` ayirt edicilik `07f4bb44`+`1141be85` — `ayirt-edilemeyen` **1..0**, mutant sayisi DUSMEDI.
-8. 6 kayit `marka` duzeltmesi `67820319` — Okan'in ACIK IZNIYLE tek seferlik duzlem sinir asimi;
-   `uyum-kapisi` **rc 1→0**, katalog **21376..21376**, arama kaybi **0**, D1 dort eksen yesil.
-9. Defter budama `33e0a27e`+`7eed7d68`+`c9d9f362` — kayipsiz arsivleme, sinif kapisi **0 ihlal**.
-10. `r2_anahtar.py` onek onarimi merge `e3880c89` — deploy `31162365695` success (birebir headSha),
-   canli **21376**, ornek urun sayfasi **200**, D1 dort eksen yesil. Parite: `parite-test.js`
-   **1199/1199** · `parite-ege.js` **848/848**, rc=0 (onceki OLCULEMEDI bayat dal worktree'sindendi
-   → [[parite-testi-olculemedi-basiyor]]). **Ders: nihai agac temiz olmasi YETMEZ, ARA COMMIT'IN
-   DIFF'i de public.** Ikinci ders: **iscinin kabul sayisi curutulmeden alinmaz** (8 dusmanca
-   mutantin 5'i sag kalmisti; onarim sonrasi iddia 14/14 · oldurucu 18/18 · kontrol 4/4).
-11. Gizlilik nobetcisi merge `197fd396` (dal `b3f3e3da` MAIN'DE) — icerik ekseni kanonik kaynaga
-   baglandi; iddia **5** · oldurucu **7/7** · kontrol **2/2** · ayrisan-olmayan **0**.
-   → hafiza [[nobetci-kanonik-kaynagi-tek-eksende]]
-12. ✅ **YAYIN ACILDI — 19 SAATLIK TIKANIKLIK KAPANDI:** kosum `31155302659` (`655ae5e2`) JOB
-   birimiyle tamami yesil (`build`·`serit-a2`·`serit-a3`·`serit-a4`·`deploy`·`yayin`).
-   Canli katalog **20.849 → 21.376** = yerel → **acik 527 KAPANDI**. "404 anomalisi" COZULDU:
-   kusur OLCUMDEYDI — kanonik adres `/urun/<id>/`, katmanli ornek **60/60 → 200**, sitemap
-   **21.376 = kayit**, ETKILENEN KAYIT **0**. → hafiza [[kanonik-adres-olcum-yanlisi]]
-13. TEMIZLIK: mukerrer bir CI dali **merge EDILMEDEN silindi** (icerigi main'de VE gerileme
-   tasiyordu); `git worktree list` **6 → 2**, kalanlar baska oturumlarin, DOKUNULMADI.
+1. Varlik kaldiraci `8bbd760c` — artefakt **833,6→617,1 MiB** (1 GB tavaninda %81,4→%60,3), sayfa basi 61.625→26.252 bayt, kaybolan URL 0, `enjeksiyon-kapisi.py` ekseni 9→12.
+2. Nobet ayrimi `ffc72a6a` — 6 job `nobet.yml`'e; `deploy: needs` 4..4, bloklayici adim 132..132, KAYBOLAN 0.
+3. Denetim kapisi `3b369e34` — `--evet-sil N` onayi (tavan 50); onaysiz rc=4/silinen 0/sha256 DEGISMEDI; kendini-test 50 iddia.
+4. Kanca koku `3aec9eba` — kok artik `-C` kesfinden turuyor; yuzey 214.553..214.553.
+5. Ata-lisans kapisi `c3c23d2e` — sessiz gecis 12..0, yanlis-pozitif 0/31, yanlis-negatif 0/22, iddia 28→54, oldurucu 20/20.
+6. `serit-a3` + is-akisi kapisi `336a16bc` — kurban artik kanonik seciliyor.
+7. `serit-a4` ayirt edicilik `07f4bb44`+`1141be85` — ayirt-edilemeyen 1..0, mutant sayisi DUSMEDI.
+8. 6 kayit `marka` duzeltmesi `67820319` — Okan izniyle tek seferlik; `uyum-kapisi` rc 1→0, katalog 21376..21376, arama kaybi 0, D1 dort eksen yesil.
+9. Defter budama `33e0a27e`+`7eed7d68`+`c9d9f362` — kayipsiz arsivleme, sinif kapisi 0 ihlal.
+10. `r2_anahtar.py` onek onarimi merge `e3880c89` — deploy `31162365695` success, canli 21376, ornek 200, D1 dort eksen yesil, parite 1199/1199+848/848 rc=0.
+11. Gizlilik nobetcisi merge `197fd396` (dal `b3f3e3da`) — iddia 5, oldurucu 7/7, kontrol 2/2, ayrisan-olmayan 0.
+12. Yayin acildi: kosum `31155302659` (`655ae5e2`) — canli katalog 20.849→21.376, acik 527 KAPANDI, katmanli ornek 60/60→200, sitemap 21.376=kayit, etkilenen kayit 0.
+13. Temizlik: mukerrer CI dali merge edilmeden silindi; `git worktree list` 6→2.
 
 **BEKLEYEN (acik kalemler):**
 1. 🔴 `tools/yayin-kapisi.py` yalnizca D1'de `yayinda=0` olan TASLAK satirlarin adresine HTTP atar;
