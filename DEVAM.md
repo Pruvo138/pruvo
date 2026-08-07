@@ -6,6 +6,13 @@ tek sayfada kart olarak listelensin, model cipleri ayri adrese gitmek yerine say
 filtrelesin; once sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
 
 **Nerede kaldim (sayiyla):**
+- 🔴 **YAYINI BLOKLAYAN YENI KIRMIZI (kuyruk DEGIL, gercek):** kosum `31203297696` (head `76ca1341`)
+  → job **`serit-a3` `failure`**, dusen adim **60: "Gorsel anahtar + STL bbox kabul testi"**
+  (`gorsel-anahtar-test.py` + `stl-bbox-binary-test.py`). `serit-a3` `deploy: needs`'te → bu zincir
+  yayina INMEZ. Ayni iki betik **yerelde main'de rc=0 / rc=0** (ikisi de yesil) → yerel-CI ASIMETRISI;
+  teshise "hangi iddia yalniz kosucuda kiriliyor" ekseninden BASLA (test ag/dosya-duzeni okuyorsa
+  ortam farki, kod farki degil). Kirmizi `bb804c24` (serit-a3 success) ile `76ca1341` ARASINDA dogdu.
+  Log run bitmeden okunamadi; ilk is `gh run view 31203297696 --log-failed`.
 - Yayin HALA acilmadi: son basarili `Build & deploy` **`31198525055`** (head `bb804c24`, 17:53:02Z).
   `git merge-base --is-ancestor b8ab7091 bb804c24` **rc=1** → r2-onek onarimi canliya INMEDI.
   Ucusta olan `31203297696` (head `76ca1341`, `in_progress`) onarimi ICERIYOR (rc=0); ardindan
