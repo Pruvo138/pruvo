@@ -16,22 +16,49 @@ Ayrinti: tools/URUN-EKLEME-REHBERI.md
 """
 import importlib.util, json, os, re, struct, subprocess, sys, tempfile, time, urllib.parse, urllib.request
 
-ROOT = "/Users/okan/dev/pruvo"
-_bspec = importlib.util.spec_from_file_location("baski_ipucu", os.path.join(ROOT, "tools", "baski_ipucu.py"))
+# KOD KOKU vs VERI KOKU (bkz. tools/veri_kok.py) — eskiden ikisi de sabit
+# "<gelistirici-evi>/depo" idi. O sabit CI kosucusunda YOKTUR: ayni desen 7 Agu 2026'da
+# tools/cgt-ekle.py'de FileNotFoundError verip serit-a3'u kirmizi yakti, deploy+yayin
+# SKIPPED kaldi (yayin 4+ saat kapali). Yerelde HIC kirmizi yanmaz, cunku yol bu makinede
+# COZULUR — o yuzden "testler yesil" bu sinif icin kor bir olcumdur.
+# * TOOLS  = betigin KENDI dizini -> kardes moduller worktree'den de yuklenir.
+# * ROOT   = ANA kopya (veri_kok git'e sorar) -> stl/ ve .thing-cache DAIMA tek yere gider;
+#            naif __file__ turetimi bu VERI duzlemini worktree'ye tasirdi (S4 sinifi).
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+_vkspec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec); _vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
+_bspec = importlib.util.spec_from_file_location("baski_ipucu", os.path.join(TOOLS, "baski_ipucu.py"))
 bi = importlib.util.module_from_spec(_bspec)
 _bspec.loader.exec_module(bi)
-TOKEN = open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
 STLDIR = os.path.join(ROOT, "stl"); os.makedirs(STLDIR, exist_ok=True)
 IMGROOT = os.path.join(ROOT, ".thing-cache"); os.makedirs(IMGROOT, exist_ok=True)
-sys.path.insert(0, os.path.join(ROOT, "tools"))
+sys.path.insert(0, TOOLS)
 import drive_yolu
+
+
+# 🔴 TOKEN ARTIK MODUL SEVIYESINDE OKUNMUYOR (tembel + onbellekli). Eskiden
+# `TOKEN = open(...).read()` import aninda kosuyordu: `.thingiverse-token` gitignore'lu,
+# yani CI'da YOKTUR -> bu dosyayi ICE ALAN her kabul testi import aninda patlardi.
+# Sabit kokun duzeltilmesi o riski KENDILIGINDEN kapatmaz; erisim de tembel olmali.
+_TOKEN_ONBELLEK = []
+
+
+def token():
+    """Thingiverse jetonu (tembel okunur; yoksa GURULTULU hata — sessiz gecme yok)."""
+    if not _TOKEN_ONBELLEK:
+        with open(os.path.join(ROOT, ".thingiverse-token"), encoding="utf-8") as f:
+            _TOKEN_ONBELLEK.append(f.read().strip())
+    return _TOKEN_ONBELLEK[0]
 # makedirs YOK: Drive yolu olu ise klasoru YARATMA — Drive'a senkronlanmayan sahte bir yerel
 # klasor olur ve yedek aliniyor sanirsin. drive_yolu bayat yolu duzeltir, bulamazsa uyarir.
 DRIVE = drive_yolu.stl_dizini()
 
 
 def api(url):
-    r = urllib.request.Request(url, headers={"Authorization": "Bearer " + TOKEN,
+    r = urllib.request.Request(url, headers={"Authorization": "Bearer " + token(),
                                              "User-Agent": "pruvo/1.0"})
     return urllib.request.urlopen(r).read()
 
@@ -39,7 +66,7 @@ def api(url):
 def curl(url, out, bearer=False):
     cmd = ["curl", "-sSL", "-A", "Mozilla/5.0"]
     if bearer:
-        cmd += ["-H", "Authorization: Bearer " + TOKEN]
+        cmd += ["-H", "Authorization: Bearer " + token()]
     cmd += [url, "-o", out]
     subprocess.run(cmd, check=False)
 

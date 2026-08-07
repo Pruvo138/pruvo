@@ -60,9 +60,21 @@ capraz dener (kor eslemeye karsi ikinci siper).
 Import: dosya adinda '-' var -> `importlib.util` ile yuklenir (makerworld-api.py deseni).
 Burasi tek dogruluk kaynagi (endpoint + anahtar + lisans kurali).
 """
-import json, os, re, urllib.request, urllib.error, urllib.parse
+import importlib.util, json, os, re, sys, urllib.request, urllib.error, urllib.parse
 
-ROOT = "/Users/okan/dev/pruvo"
+# VERI KOKU: kimlik dosyalari (`.mmf-token` / `.mmf-credentials.json`) DAIMA ANA kopyada
+# durur, ama kok SABIT YAZILMAZ — sabit "<gelistirici-evi>/depo" CI kosucusunda YOKTUR
+# (7 Agu 2026: ayni desen serit-a3'u kirmizi yakip yayini 4+ saat kapatti; yerelde HIC
+# kirmizi yanmaz). veri_kok git'e sorar: worktree'de ANA kopyayi, CI'da klonun kokunu verir.
+# Bu dosya kimlik OKUMASINI zaten TEMBEL yapar (api_key() icinde, os.path.exists korumali)
+# ve MMF_KEY/MMF_TOKEN ortam degiskeniyle ezilebilir; yani import ani FS'e dokunmaz.
+_KENDI_DIZIN = os.path.dirname(os.path.abspath(__file__))
+_vkspec = importlib.util.spec_from_file_location("veri_kok",
+                                                os.path.join(_KENDI_DIZIN, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec); _vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 
 # ---- endpoint'ler ----
 BASE = "https://www.myminifactory.com/api/v2"

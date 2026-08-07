@@ -27,11 +27,20 @@ import subprocess
 import sys
 import time
 
-ROOT = "/Users/okan/dev/pruvo"
 # Arama/ekle/kapsama scriptlerini BU dosyanin YANINDAN cagir (worktree kopyasi kendi
 # adaptorlerini gorsun; adaptorler zaten cekirdegini `_HERE`'den yukluyor). main'e merge
 # edilince == ROOT/tools, davranis ayni; worktree'de ise worktree adaptorleri kosar.
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+# VERI KOKU: defter/urunler/rapor DAIMA ANA kopyada durur, ama kok SABIT YAZILMAZ —
+# sabit "<gelistirici-evi>/depo" CI kosucusunda YOKTUR (7 Agu 2026: ayni desen serit-a3'u
+# kirmizi yakip yayini 4+ saat kapatti; yerelde HIC kirmizi yanmaz). veri_kok git'e sorar:
+# worktree'de ANA kopyayi, temiz klonda/CI'da klonun kokunu dondurur. KOD koku (TOOLS)
+# ile VERI koku (ROOT) bilerek AYRI — bu dosyanin ustteki notu zaten o ayrima dayaniyor.
+_vkspec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec); _vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 PY = sys.executable or "python3"
 CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
 DEFTER = os.path.join(ROOT, ".marka-kapsama.json")

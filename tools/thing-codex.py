@@ -26,9 +26,18 @@ import importlib.util
 import json, os, re, subprocess, sys, tempfile
 import unicodedata
 
-ROOT = "/Users/okan/dev/pruvo"
-IMGROOT = os.path.join(ROOT, ".thing-cache")
 TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+# VERI KOKU: gorsel onbellegi (`.thing-cache`) DAIMA ANA kopyada durur, ama kok SABIT
+# YAZILMAZ — sabit "<gelistirici-evi>/depo" CI kosucusunda YOKTUR (7 Agu 2026: ayni desen
+# serit-a3'u kirmizi yakip yayini 4+ saat kapatti; yerelde HIC kirmizi yanmaz). veri_kok
+# git'e sorar: worktree'de ANA kopyayi, temiz klonda/CI'da klonun kokunu dondurur.
+_vkspec = importlib.util.spec_from_file_location("veri_kok",
+                                                os.path.join(TOOLS_DIR, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec); _vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
+IMGROOT = os.path.join(ROOT, ".thing-cache")
 
 # Codex PATH'te DEGIL — ChatGPT.app icinde geliyor, tam yol sart.
 CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
