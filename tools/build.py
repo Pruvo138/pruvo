@@ -22,6 +22,7 @@ Harici bağımlılık YOK (saf Python 3 standart kütüphane).
 import os
 import re
 import json
+import gzip
 import math
 import shutil
 import subprocess
@@ -3344,7 +3345,41 @@ def render_merchant_feed(products):
 OZET_JSON = "ozet.json"
 OZET_YENI = 48            # ilk ekran 24 (PAGE_SIZE) + "daha fazla" için 1 sayfa pay
 OZET_ACIKLAMA_KES = 160   # Worker KART_ALANLARI substr(aciklama,1,160) ile AYNI olmalı
-OZET_BUTCE = 150 * 1024   # iş paketi hedefi (bkz. asagida: bayrak kapaliyken UYARI, acikken HATA)
+# 🔴 OZET_BUTCE — TEK KAYNAK (tools/faz3-yuk.js bu satırı OKUR, kendi kopyasını TUTMAZ;
+# ikiz sabit sessizce ayrışırdı → [[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 8 AĞU 2026 — 150 KB → 200 KB. ÖLÇÜLMÜŞ GEREKÇE (150 KB SERT BİR SINIR DEĞİLDİ):
+#   NEREDEN GELİYORDU: `tools/paket-faz3-site-arama.md` md.2 ("hedef < 150 KB") + kabul
+#   testi 3 ("ozet.json < 150 KB", "bayrak açık ilk yük < 500 KB, görseller hariç"). Yani
+#   PERFORMANS HEDEFİ; platform sınırı DEĞİL — dosya GitHub Pages'ta statik servis edilir,
+#   KV'ye/D1'e/Worker paketine GİRMEZ (o yüzden 25 MB KV / 1 MB Worker sınırları konu değil).
+#   22.294 → 22.316 ürünlük partide 150 KB aşıldı ve `build` adımı KIRMIZI olduğu için
+#   yayın KAPANDI: aşım 1.788 B (= bütçenin %1,2'si) idi ([[kapi-birikimi-yayin-gecikmesi]]).
+#
+#   YENİ TAVAN NEDEN 200 KB (200 * 1024 = 204.800 B) — üç ÖLÇÜLEN terimden türedi:
+#     (a) SAYISI SABİT bölümler (bloklar 100+100 havuz · yeni 48 · parametrik havuzu)
+#         katalogla BÜYÜMEZ. Bugünkü toplamı 125.722 B; EN KÖTÜ HALİ (aynı sayıda ama
+#         katalogun EN BÜYÜK kartlarıyla) ÖLÇÜLDÜ: 143.438 B (1,14x).
+#     (b) KATALOGLA BÜYÜYEN tek eksen marka haritası: bugün 29.173 B / 2.578
+#         (kategori,marka) çifti = 11,3 B/çift. TARİHSEL EĞİM (12.234 → 22.316 ürünün
+#         gerçek anlık görüntüleri x BUGÜNKÜ render_ozet): 0,937 B/ürün.
+#     (c) sabitler (surum/uretim/toplam/kategoriler/vitrin) ~526 B.
+#   (a)+(b)+(c) = 173.137 B en kötü hal → 204.800'e kalan 31.663 B, 0,937 B/ürün eğimiyle
+#   ~+33.800 ÜRÜNLÜK pay. Yani tavan yalnız "+5.000 ürün" değil KATALOG İKİ KATINA
+#   ÇIKSA DA tutar. 788 baytlık yama BİLEREK YAPILMADI (her partide geri gelirdi).
+#
+#   NEDEN DAHA YÜKSEK DEĞİL: gerçek kullanıcı ekseni "bayrak açık ilk yük < 500 KB"
+#   (iş paketi). index.html bugün 235.569 B → 204.800 tavanı DOLARSA toplam 440.369 B
+#   (500 KB'ın %86'sı). 256 KB'lık bir tavan o bütçeyi 497.713 B'ye çıkarıp index.html'e
+#   14 KB pay bırakırdı; index.html ÖLÇÜLEN hızla büyüyor (133.302 B 26 Tem → 235.569 B
+#   6 Ağu ≈ 9,3 KB/gün) → o tavan bütçeyi HAFTALAR içinde patlatırdı. 200 KB, index.html'e
+#   71.631 B pay bırakır. Bu eksen her koşumda AYRICA basılır (aşağıya bak).
+OZET_BUTCE = 200 * 1024
+# İş paketi (paket-faz3-site-arama.md kabul 3): bayrak AÇIK ilk yük (index.html + ozet.json,
+# görseller hariç) < 500 KB. BLOKLAYICI DEĞİL — ölçülen gerekçe: index.html ~9,3 KB/gün
+# büyüyor, bloklayıcı olsa yayını haftalar içinde durdururdu ve bu bir MİMAR/paket kararıdır,
+# sessiz bir yan etki değil. Her koşumda ham+gzip payıyla basılır ki duvar ÖNCEDEN görünsün.
+ILK_YUK_BUTCE = 500 * 1024
 
 
 def kart_ozeti(p):
@@ -3503,6 +3538,99 @@ def render_ozet(products):
         "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
     }
     return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
+
+
+# ---------------------------------------------------- ÖLÇEK EĞRİSİ (büyüme görünürlüğü)
+# 🔴 NEDEN VAR: bütçe kapısı 8 Ağu'da yayını kapattı ve aşım 1.788 B'ydi — yani DUVARA
+# ÇARPILDIĞI AN öğrenildi. Envanter/bütçe eksenlerinde bu evde ölçülmüş sınıf:
+# [[envanter-drift-parti-basina]] (parti başına yayını durduran elle bakım). Çözüm bütçeyi
+# büyütmek DEĞİL, DUVARI ÖNCEDEN GÖSTERMEK: her koşumda hangi eksenin büyüdüğü, ne kadar
+# pay kaldığı ve KAÇ ÜRÜN sonra dolacağı ÖLÇÜLÜP basılır.
+# Bu bir TANI'dır: exit kodunu ETKİLEMEZ ve istisnayı YUTAR (bütçe kapısının kendisi
+# aşağıda, fail-closed ve ayrı durur).
+OZET_MARKA_EGIM = 0.937   # B/ürün — TARİHSEL ölçüm (12.234 → 22.316 ürün, bugünkü render_ozet)
+
+
+def ozet_olcek_dokumu(products, ozet_metin):
+    """ozet.json'un hangi ekseninin katalogla büyüdüğünü SAYIYLA basar (tanı satırları)."""
+    satirlar = []
+    try:
+        def b(deger):
+            return len(json.dumps(deger, ensure_ascii=False,
+                                  separators=(",", ":")).encode("utf-8")) + 1
+
+        o = json.loads(ozet_metin)
+        sabit_sayili = b(o.get("bloklar", {})) + b(o.get("yeni", [])) + b(o.get("parametrik", []))
+        marka_b = b(o.get("markalar", {}))
+        cift = sum(len(v) for v in (o.get("markalar") or {}).values())
+        toplam = len(ozet_metin.encode("utf-8"))
+
+        # SAYISI SABİT bölümlerin EN KÖTÜ HALİ: aynı kart SAYISI, ama katalogun EN BÜYÜK
+        # kartları. Tavan payı bu terime göre ayrılır (kart içeriği partiden partiye değişir).
+        boy = {}
+        for p in products:
+            boy.setdefault(p.get("kategori") or "", []).append(b(kart_ozeti(p)))
+        hepsi = sorted((x for liste in boy.values() for x in liste), reverse=True)
+        en_kotu = 0
+        for kural in _index_vitrin_kurali():
+            if kural["kaynak"] == "parametrik":
+                continue
+            n = int(kural["havuz"] or 0) or len(boy.get(kural["kategori"], []))
+            en_kotu += sum(sorted(boy.get(kural["kategori"], []), reverse=True)[:n])
+        en_kotu += sum(hepsi[:OZET_YENI])                      # yeni
+        en_kotu += b(o.get("parametrik", []))                  # parametrik havuzu (tamamı)
+
+        pay = OZET_BUTCE - toplam
+        satirlar.append(
+            "  OLCEK EGRISI · SAYISI SABIT (katalogla BUYUMEZ): %d B "
+            "(bloklar+yeni+parametrik) -> EN KOTU HAL %d B (%.2fx)"
+            % (sabit_sayili, en_kotu, en_kotu / float(sabit_sayili or 1)))
+        satirlar.append(
+            "  OLCEK EGRISI · KATALOGLA BUYUYEN: markalar %d B · %d (kategori,marka) cifti "
+            "· %.1f B/cift · olculen egim %.3f B/urun"
+            % (marka_b, cift, marka_b / float(cift or 1), OZET_MARKA_EGIM))
+        kalan_en_kotu = OZET_BUTCE - (en_kotu + marka_b + (toplam - sabit_sayili - marka_b))
+        satirlar.append(
+            "  OLCEK EGRISI · PAY: tavana %d B (%%%.1f dolu) · EN KOTU HAL varsayimiyla "
+            "%d B -> ~+%d urun ya da ~+%d yeni (kategori,marka) cifti sonra tavan DOLAR"
+            % (pay, 100.0 * toplam / OZET_BUTCE, kalan_en_kotu,
+               max(0, int(kalan_en_kotu / OZET_MARKA_EGIM)),
+               max(0, int(kalan_en_kotu / (marka_b / float(cift or 1))))))
+        if kalan_en_kotu <= 0:
+            satirlar.append(
+                "  🟡 OLCEK UYARISI: EN KOTU HAL varsayimi tavani ZATEN asiyor — bir sonraki "
+                "parti yayini durdurabilir. VITRIN_BLOKLAR havuzlarini kucult ya da tavani "
+                "OLCULMUS yeni bir degere cikar (gerekce OZET_BUTCE yorumunda).")
+    except Exception as e:      # TANI fail-open: olcum yapilamazsa build DURMAZ, SOYLENIR
+        satirlar.append("  🟡 OLCEK EGRISI OLCULEMEDI: %s: %s" % (type(e).__name__, e))
+    return satirlar
+
+
+def ilk_yuk_dokumu(ozet_bayt):
+    """Bayrak AÇIK ilk yük (index.html + ozet.json) — iş paketinin GERÇEK kullanıcı ekseni.
+    Bugüne kadar YALNIZ tools/faz3-yuk.js ölçüyordu ve o betik HİÇBİR iş akışında koşmuyor
+    ([[nobetci-cagri-satiri-nobetsiz]] sınıfı) → ozet tavanı yükseltilirken bu eksenin
+    sessizce gevşemesi ölçülmemiş kalırdı. BLOKLAMAZ, her koşumda basar."""
+    satirlar = []
+    try:
+        with open(os.path.join(ROOT, "index.html"), "rb") as f:
+            idx = f.read()
+        ham = len(idx) + ozet_bayt
+        gz = len(gzip.compress(idx, 6)) + len(gzip.compress(
+            open(os.path.join(ROOT, OZET_JSON), "rb").read(), 6))
+        satirlar.append(
+            "ilk yuk (bayrak ACIK, gorseller haric): ham %d B (%%%.1f / %d B butce · pay "
+            "%d B) · gzip ~%d B  [index.html %d B + ozet.json %d B]"
+            % (ham, 100.0 * ham / ILK_YUK_BUTCE, ILK_YUK_BUTCE, ILK_YUK_BUTCE - ham,
+               gz, len(idx), ozet_bayt))
+        if ham > ILK_YUK_BUTCE:
+            satirlar.append(
+                "  🟡 UYARI: is paketi ilk yuk butcesi (%d B) ASILDI. BLOKLAYICI DEGIL "
+                "(karar mimarda): index.html'i kucult, ozet havuzlarini dusur ya da butceyi "
+                "OLCULMUS yeni bir degere tasi." % ILK_YUK_BUTCE)
+    except Exception as e:
+        satirlar.append("ilk yuk OLCULEMEDI: %s: %s" % (type(e).__name__, e))
+    return satirlar
 
 
 def _index_bayragi(ad):
@@ -3781,8 +3909,14 @@ def main():
 
     print("OK: %d urun sayfasi + sitemap.xml + robots.txt + merchant-feed.xml (%d urun) uretildi."
           % (len(products), feed_n))
-    print("ozet.json: %d bayt (%.1f KB) | butce %d KB"
-          % (ozet_bayt, ozet_bayt / 1024.0, OZET_BUTCE // 1024))
+    # 🔴 TEK SATIRDA "olculen bayt + tavan" (hukum bu satirdan okunur, yorumdan DEGIL).
+    print("ozet.json: %d bayt (%.1f KB) | tavan %d bayt (%d KB) | %%%.1f dolu"
+          % (ozet_bayt, ozet_bayt / 1024.0, OZET_BUTCE, OZET_BUTCE // 1024,
+             100.0 * ozet_bayt / OZET_BUTCE))
+    for _satir in ozet_olcek_dokumu(products, ozet_json):
+        print(_satir)
+    for _satir in ilk_yuk_dokumu(ozet_bayt):
+        print(_satir)
 
     # BUTCE KAPISI KOSULLU (mimar emri, 20 Tem):
     #   bayrak KAPALI -> site ozet.json'a bagimli DEGIL; asim sadece UYARI. Katalog

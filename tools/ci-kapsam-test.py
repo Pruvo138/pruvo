@@ -53,6 +53,10 @@ KABUL (bu dosyanin kendi kabul testleri):
      (liste curumesin).
   4. IZIN_LISTESI'nde olup AYNI ZAMANDA deploy.yml'de kosulan giris -> exit 1 (bayat muafiyet;
      kosuluyorsa listeden cikarilmali).
+  4b. GECICI_MUAFIYET kaydindaki bir yol HERHANGI bir is akisinda (OTOMATIK **ya da**
+     YALNIZ ELLE) fiilen cagrilir hale gelirse -> exit 1 ("MUAFIYET BAYAT"). Kural 4
+     yalniz OTOMATIK'e bakar; gerekcesi "henuz hicbir yere kablolanmadi" olan gecici
+     muafiyetler icin bu KOR NOKTAYDI (elle takip birakmamak icin kapatildi).
 KIRMIZI-MUTASYON: deploy.yml'den bir "python3 tools/<x>-test.py" satiri silinirse o test
 kapsamsiz kalir -> kapi KIRMIZI (exit 1). (--deploy <yol> ile alternatif/mutasyonlu bir kopyaya
 isaret ederek GERCEK deploy.yml'e dokunmadan kanitlanabilir.)
@@ -1803,7 +1807,77 @@ IZIN_LISTESI = {
     # 13/13e/14 flock + paralel kosum + 2000 orneklik zamanlama olcer (paylasilan
     # kosucuda FLAKE), 15 GERCEK Drive damgasina bakar. Gerekce ve tam kirmizi dokumu
     # deploy.yml'deki adim yorumundadir.
+    # ---- GECICI MUAFIYETLER (8 Agu 2026) — asagidaki GECICI_MUAFIYET kaydiyla KILITLI:
+    #      dosya HERHANGI bir is akisinda cagrilmaya baslarsa satir KENDINI KIRMIZI yakar.
+    "tools/mutlak-yol-kapisi.py": (
+        "RAPOR-ONLY SINIF KAPISI, bloklayici kol BILEREK acilmadi — dosyanin kendi "
+        "sozlesmesi bunu yaziyor (\"bayraksiz kol SOZLESMEYE GORE rc=0'dir ve oyle "
+        "kalmalidir\"; bloklayici kol ayri bir bayrak: `--sifir-tolerans`). OLCULEN "
+        "GEREKCE (bagimsiz curutme, 8 Agu): bugunku kesif kumesinde 5 SESSIZ KACIRMA + "
+        "4 YANLIS-POZITIF var; `--sifir-tolerans` bugun CI'ya baglanirsa yanlis-pozitifler "
+        "yayini AYNI GUN yeniden durdurur (teshis edilen arizanin tekrari) — "
+        "[[envanter-drift-parti-basina]] sinifi. ASIL COZUM: kapi `serit-b`ye (bloklamayan "
+        "alarm seridi) baglanir; O AN bu satir DUSER (GECICI_MUAFIYET kaydi otomatik "
+        "KIRMIZI yakar). Bu bir SUSTURMA DEGIL: kapi yerelde ve merge kapisinda kosulur, "
+        "maruziyet SAYIYLA gorunur."),
+    "tools/d1-uzlastirici-kosul-test.py": (
+        "GECICI — SAHIBI BASKA OTURUM. 94402074 (7 Agu 23:55) ile geldi; olctugu sey "
+        "`.github/workflows/d1-uzlastirici.yml`'deki ONARILAMADI adiminin `if:` kosulu, "
+        "yani KABLOLAMASI o oturumun duzlemindedir ve bu evin (KraL) `.github/**` "
+        "dokunma yasagi altindadir (ana checkout'ta deploy.yml + nobet.yml YABANCI ve "
+        "COMMIT'SIZ). OLCULDU (8 Agu, bu worktree): agsiz/tokensiz rc=0, 6 iddia + 1 "
+        "KONTROL MUTANTI, 0,1 s -> testin KENDISI saglam, eksik olan yalniz CI kablosu. "
+        "KABLOLANDIGI AN bu satir DUSER (GECICI_MUAFIYET kaydi otomatik KIRMIZI yakar) — "
+        "elle takip BIRAKILMADI."),
 }
+
+
+# ---- GECICI MUAFIYET KAYDI (8 Agu 2026) ------------------------------------
+# 🔴 NEDEN VAR: bir muafiyetin GEREKCESI zamanla curur ve KIMSE GORMEZ
+# ([[envanter-drift-parti-basina]] · [[kapi-yan-etkisi-gizli-onkosul]]). Kural 4
+# ("hem izinde hem kosuluyor") bunu YALNIZ *OTOMATIK* tetikli is akislari icin yakalar:
+# dosya yalniz `workflow_dispatch`li bir is akisina baglanirsa kural 4 SESSIZ kalir ve
+# "henuz hicbir yere baglanmadi" gerekcesi YANLIS oldugu halde yesil durur.
+# Bu kayda giren yollarin gerekcesi TAM OLARAK "HENUZ HICBIR IS AKISINDA CAGRILMIYOR"
+# iddiasina dayanir; dolayisiyla OTOMATIK **ya da** ELLE — HERHANGI bir is akisinda
+# icra edilir hale gelirse muafiyet BAYATTIR ve satir KENDINI KIRMIZI YAKAR.
+# NEDEN GENEL BIR KURAL DEGIL: mevcut muafiyetlerin bir kismi (ornek:
+# tools/onizleme-kapisi.py, onizleme/test/duman_kabul.py) gerekcesi geregi ELLE tetikli
+# `onizleme-imaj.yml`de KOSAR. Genel "her yerde kosuyorsa bayat" kurali onlari ANINDA
+# yanlis-kirmizi yapardi -> kayit OPT-IN'dir (B_MUAFIYET_DAYANAGI emsali).
+# ⚠️ Buraya giren yol IZIN_LISTESI'nde de OLMAK ZORUNDA (tersi = olu kayit).
+GECICI_MUAFIYET = {
+    "tools/mutlak-yol-kapisi.py":
+        "rapor-only; asil cozum serit-b kablosu — baglanan an muafiyet DUSER",
+    "tools/d1-uzlastirici-kosul-test.py":
+        "sahibi baska oturum; kablolama o oturumun commit'siz kopyasinda — "
+        "kablolandigi an muafiyet DUSER",
+}
+
+
+def gecici_muafiyet_denetimi(izin_listesi, kos_otomatik, kos_elle):
+    """GECICI_MUAFIYET kaydinin BUGUN hala gecerli olup olmadigini olcer.
+
+    Iki yonlu (tek adimda kacamak yok):
+      (a) kayitta olup IZIN_LISTESI'nde OLMAYAN yol -> OLU KAYIT (hata).
+      (b) kayitta olup HERHANGI bir is akisinda (OTOMATIK **veya** ELLE) FIILEN
+          cagrilan yol -> MUAFIYET BAYAT (hata): gerekce "hicbir yerde kosmuyor"
+          diyor ama artik kosuyor.
+    Kural 4'un (yalniz OTOMATIK) tamamlayicisidir, YERINE GECMEZ."""
+    hatalar = []
+    for yol in sorted(GECICI_MUAFIYET):
+        if yol not in izin_listesi:
+            hatalar.append(
+                "OLU GECICI_MUAFIYET kaydi: '%s' artik IZIN_LISTESI'nde DEGIL -> kaydi "
+                "SIL (muafiyet kalktiysa bayatlik kontrolunun de konusu kalmaz)." % yol)
+            continue
+        if yol in kos_otomatik or yol in kos_elle:
+            nerede = "OTOMATIK" if yol in kos_otomatik else "YALNIZ ELLE"
+            hatalar.append(
+                "MUAFIYET BAYAT: '%s' ARTIK bir is akisinda (%s) FIILEN cagriliyor, ama "
+                "IZIN_LISTESI gerekcesi 'henuz kablolanmadi' iddiasina dayaniyor (%s). "
+                "Muafiyet satirini ve bu kaydi SIL." % (yol, nerede, GECICI_MUAFIYET[yol]))
+    return hatalar
 
 
 # ---- ALT KUME MUAFIYETLERI (BOLUM B) ---------------------------------------
@@ -4062,6 +4136,15 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
     for yol in izin_listesi:
         if yol in kos:
             hatalar.append("BAYAT izin (test ARTIK KOSULUYOR — izinden cikar): %s" % yol)
+
+    # 4b) GECICI MUAFIYET BAYATLIK KONTROLU (8 Agu) — kural 4'un ELLE ekseni.
+    # `akislar is None` iken ELLE/OTOMATIK ayrimi YOKTUR (kos zaten deploy.yml'den
+    # sayilir) -> kayit yine olculur, ELLE kumesi bos gecer. Ozyinelemeli nobetciler
+    # (muaf_sayaci_kontrol) bu koldan gecer ve SENTETIK izin sozlugu kullanir; bu yuzden
+    # (a) OLU KAYIT kolu YALNIZ gercek IZIN_LISTESI ile olculur.
+    hatalar.extend(gecici_muafiyet_denetimi(
+        izin_listesi if izin_listesi is IZIN_LISTESI else dict(IZIN_LISTESI, **izin_listesi),
+        kos, set(kos_elle)))
 
     # 1) kapsamsiz: kesfedilmis ama ne kosuluyor ne izinli
     # O5: ayristirici HIC yoksa bu liste 'kapsamsiz test' DEGIL, 'olculemeyen kapi'dir
