@@ -131,13 +131,15 @@ def eski_kos(m, d1_satirlari, canli_liste, kod_haritasi):
     return rc, tampon.getvalue(), istekler, d1
 
 
-def yeni_kos(m, d1_satirlari, canli_liste, kod_haritasi):
-    """YENI surumu AYNI fiksturle kosar (enjekte edilen IO dikisleriyle)."""
+def yeni_kos(m, d1_satirlari, canli_liste, kod_haritasi, yas=0):
+    """YENI surumu AYNI fiksturle kosar (enjekte edilen IO dikisleriyle).
+    prob CIKTI SEKLI gercek yol_kodu()'yla ayni: (kod, yas_sn, govde_isareti)."""
     istekler = []
 
-    def prob(yol, beklenen=200):
+    def prob(yol, beklenen=200, uid=None):
         istekler.append(yol)
-        return kod_haritasi.get(yol, 404)
+        kod = kod_haritasi.get(yol, 404)
+        return kod, None, (True if kod == 200 else None)
 
     d1 = SahteD1(d1_satirlari)
     import contextlib
@@ -146,7 +148,8 @@ def yeni_kos(m, d1_satirlari, canli_liste, kod_haritasi):
     with contextlib.redirect_stdout(tampon):
         rc = m.komut_yayinla(d1, "curutme", prob=prob,
                              canli_kaynak=(lambda: (list(canli_liste), None)),
-                             yerel_kaynak=(lambda: list(canli_liste) + list(d1_satirlari)))
+                             yerel_kaynak=(lambda: list(canli_liste) + list(d1_satirlari)),
+                             yas_kaynak=(lambda: yas))
     return rc, tampon.getvalue(), istekler, d1
 
 
@@ -171,8 +174,10 @@ MUTANTLAR = [
      [('    if gecici:\n        o, g = gecici[0]',
        '    if gecici and False:\n        o, g = gecici[0]')], "KIRMIZI"),
     ("M-E nobet satiri katalog POZITIFI sayilir (yuzey sisirilir)",
-     [('               if s == SINIF_OK and o.get("katalog") and o.get("alinan") == 200]',
-       '               if s == SINIF_OK and o.get("alinan") == 200]')], "KIRMIZI"),
+     [('               if s == SINIF_OK and o.get("katalog") and o.get("alinan") == 200\n'
+       '               and o.get("govde") is True]',
+       '               if s == SINIF_OK and o.get("alinan") == 200\n'
+       '               and o.get("govde") is True]')], "KIRMIZI"),
     ("M-F canli katalogun EN YENI kolu kaldirilir (yuzey daralir)",
      [("YENI_N = 5 ", "YENI_N = 0 ")], "KIRMIZI"),
     ("M-G gercek kusur gecici gurultuye yenilir (sira ters)",
@@ -181,10 +186,9 @@ MUTANTLAR = [
     # ── 2. TUR: rc SEMANTIGI + gecici/gercek ayrimi ────────────────────────────────
     ("M-I OLCULEMEDI rc'si 0'a dondurulur (kor yesil JOB biriminde GERI GELIR)",
      [("RC_OLCULEMEDI = 2", "RC_OLCULEMEDI = 0")], "KIRMIZI"),
-    ("M-J canli-YENI 404 istisnasi kaldirilir (edge rollout KIRMIZI yanar)",
-     [('        if kaynak == KAYNAK_YENI:\n            return SINIF_GECICI,',
-       '        if kaynak == KAYNAK_YENI and False:\n            return SINIF_GECICI,')],
-     "KIRMIZI"),
+    ("M-J canli-YENI rollout affi TAMAMEN kaldirilir (taze artefaktta bile KIRMIZI)",
+     [('    if int(artefakt_yas) < ROLLOUT_ESIK_SN:',
+       '    if False and int(artefakt_yas) < ROLLOUT_ESIK_SN:')], "KIRMIZI"),
     ("M-K MODELLENMEYEN kod dali KIRMIZI'ya cevrilir (yanlis-pozitif kapisi acilir)",
      [('    return SINIF_GECICI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan',
        '    return SINIF_KIRMIZI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan')],
@@ -196,9 +200,41 @@ MUTANTLAR = [
       ('    return SINIF_GECICI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan',
        '    return SINIF_KIRMIZI, "MODELLENMEYEN kod %s (fail-toward-NOTR)" % alinan')],
      "KIRMIZI"),
-    ("M-M TASLAK kolunun 404'u de 'edge rollout' sayilir (kayip kirmizi geri kaybolur)",
-     [('        if kaynak == KAYNAK_YENI:',
-       '        if kaynak in (KAYNAK_YENI, KAYNAK_TASLAK):')], "KIRMIZI"),
+    ("M-M af TASLAK ve KESIT kollarina da yayilir (kayip kirmizi geri kaybolur)",
+     [('    if o.get("kaynak") != KAYNAK_YENI:',
+       '    if o.get("kaynak") not in (KAYNAK_YENI, KAYNAK_TASLAK, KAYNAK_KESIT):')],
+     "KIRMIZI"),
+    # ── 3. TUR: kanit kaybi · yasa bagli af · soft-404 · N siniri · kullanim kodu ───
+    ("M-O SINIRSIZ AF geri gelir (yas esigi hic sorgulanmaz -> KALICI 404 ortulur)",
+     [('    if int(artefakt_yas) < ROLLOUT_ESIK_SN:',
+       '    if True or int(artefakt_yas) < ROLLOUT_ESIK_SN:')], "KIRMIZI"),
+    ("M-P yas OLCULEMEZ iken AF VERILIR (fail-open)",
+     [('    if artefakt_yas is None:\n        return (SINIF_KIRMIZI,',
+       '    if artefakt_yas is None:\n        return (SINIF_GECICI,')], "KIRMIZI"),
+    ("M-Q SOFT-404 gormezden gelinir (200 + hata govdesi YESIL sayilir)",
+     [('            if isaret is False:', '            if isaret is False and False:')],
+     "KIRMIZI"),
+    ("M-R govde OLCULEMEDI hali 'saglam' sayilir (fail-open)",
+     [('            if isaret is None:', '            if isaret is None and False:')],
+     "KIRMIZI"),
+    ("M-S kanonik capa sartı kaldirilir (her govde 'gercek urun sayfasi' olur)",
+     [('    return urun_capasi(uid).encode("utf-8") in govde', '    return True')],
+     "KIRMIZI"),
+    ("M-T KOVA SINIRI geri alinir (yeni-kova tum katalogu yutar -> kucuk katalogda "
+     "KIRMIZI sinifi ULASILAMAZ olur)",
+     [('    yeni_adet = min(max(0, yeni_n), max(0, n - 1))',
+       '    yeni_adet = min(max(0, yeni_n), n)')], "KIRMIZI"),
+    ("M-U KANIT KAYBI geri gelir (dokum `finally` icinde CAGRILMAZ)",
+     [('            dokum_bas(d["olcumler"], d["hukum"], d["sebep"], d["sayac"],',
+       '            None and dokum_bas(d["olcumler"], d["hukum"], d["sebep"], d["sayac"],')],
+     "KIRMIZI"),
+    ("M-V istisna rc'si 1'e COKER (wrangler arizasi 'site bozuk' sayilir)",
+     [('        d["hukum"], d["rc"] = HUKUM_OLCULEMEDI, RC_OLCULEMEDI\n'
+       '        d["ariza"] = "%s: %s" % (type(e).__name__, e)',
+       '        d["hukum"], d["rc"] = HUKUM_KIRMIZI, RC_KIRMIZI\n'
+       '        d["ariza"] = "%s: %s" % (type(e).__name__, e)')], "KIRMIZI"),
+    ("M-W KULLANIM hatasi kodu OLCULEMEDI ile ayni kovaya geri konur",
+     [("RC_KULLANIM = 64", "RC_KULLANIM = 2")], "KIRMIZI"),
     ("M-N KONTROL: yalniz dokum basliginin metni degisir (anlam AYNI)",
      [('──── OLCUM DOKUMU (yoklanan sayfa yuzeyi · kol bazinda) ────',
        '──── OLCUM DOKUMU / yoklanan sayfa yuzeyi / kol bazinda ────')], "YESIL"),
@@ -311,8 +347,16 @@ def main():
                     "RC_OLCULEMEDI" not in eski_kaynak)
 
             # FIKSTUR 2: taslak YOK + canli katalogda 404 veren sayfa.
+            # 🔴 KIRILAN ID PLANDAN TURETILIR (sabit indeks YAZILMAZ): kova kurali
+            # degisince sabit indeks "hic yoklanmayan" bir sayfaya kayar ve fikstur KOR
+            # olur — bu tam olarak 3. turda OLCULDU. Ayrica KESIT kolu secilir: o kolda
+            # ROLLOUT AFFI YOKTUR, yani 404 dogrudan KIRMIZI olmali.
+            _plan = yeni.olcum_plani([], UYDURMA_CANLI)
+            _kesit = [o["id"] for o in _plan if o["kaynak"] == yeni.KAYNAK_KESIT]
+            dogrula("A7a FIKSTUR: kesit kolu DOLU (kirilacak id plandan turedi)",
+                    bool(_kesit), _plan)
             kirik = {yeni.urun_yolu(u): 200 for u in UYDURMA_CANLI}
-            kirik[yeni.urun_yolu(UYDURMA_CANLI[6])] = 404
+            kirik[yeni.urun_yolu(_kesit[0] if _kesit else UYDURMA_CANLI[-1])] = 404
             rc_e2, cikti_e2, istek_e2, _ = eski_kos(eski, {}, UYDURMA_CANLI, kirik)
             dogrula("A7 ESKI + 'katalogda 404 veren sayfa VAR' -> rc=0 (arizayi HIC GORMEZ)",
                     rc_e2 == 0, rc_e2)
