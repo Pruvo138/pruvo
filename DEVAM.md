@@ -1,4 +1,38 @@
-# DEVAM (KraL) — 6 Agu 2026
+# DEVAM (KraL) — 7 Agu 2026
+
+## 🔴 SAATLIK NOBET 7 Agu ~01:40Z — YAYIN ZINCIRI HALA KAPALI, ENGEL VERI DUZLEMINDE
+
+- **Ev kontrolu:** olculdu `/Users/okan/dev/pruvo` — DOGRU ev, tur gecerli.
+- **Mail supurmesi (0.5, kosulsuz):** inbox toplam **7543** · Cop'e tasinan **3** ·
+  tur sonu inbox'ta kalan "Run failed" **0** (bagimsiz ikinci olcumle teyit). Cop BOSALTILMADI.
+- **CI olcumu (`gh`, maile guvenilmedi):** kirmizi olan tek workflow "paket tazeligi alarmi"
+  (31134496857 · 31125574059 · 31120047745 = **3 kosum uste uste failure**). Dusen is `tazelik`
+  **DEGIL** — `yayin-nabzi`; canli fiyat yolu ekseni **YESIL**. Alarm **GERCEK POZITIF**:
+  son basarili `deploy` job'u **31090680564 @ 2026-08-06T09:49:03Z**, yani yayin **~16 saat**
+  durdu. Alarmin 8'lik is-sorgu tavani siddeti EKSIK olcuyor (yanlis pozitif URETMIYOR).
+- **Kok neden zincirde:** `deploy: needs [build, serit-a2, serit-a3, serit-a4]`.
+  Olculen: `build=success` · `serit-a3=success` (onceki tur onardi) · **`serit-a2=failure`** ·
+  **`serit-a4=failure`** -> `deploy=skipped`, `yayin=skipped`.
+- **`serit-a2` = veri duzlemi, BU EVDE ONARILAMAZ (DUR kosulu).** `tools/uyum-kapisi.py`
+  lokalde de kirmizi: `gecen 37 · kalan 2 · iddia 39` (iddia == taban, susturma YOK) ·
+  `21376 kayit · sema ihlali 6`. Kalan 2 iddia A1+A2 = ikiz tanim: **6 kayitta** `marka`
+  dizisinin 3. jetonu bir sasi/varyant kodu, `uyum` semasi o alani tasimiyor. Onarim
+  urun VERISINDE -> tek yazar baska mimar; talimat + kabul kapisi posta kutusunda ZATEN yazili
+  (bu tur mukerrer mesaj YAZILMADI). Kapida kusur yok, esik/iddia GEVSETILMEDI.
+- **`serit-a4` = bu evin duzlemi, onarim BASLATILDI** (Opus muhendis, arka planda). Onceki tur
+  kismen onardi (`336a16bc`): dusen adim degisti, kalan iddia `ayirt-edilemeyen [[6, 14]]`.
+  a4 tek basina yesillense bile `deploy` `serit-a2` yuzunden `skipped` kalir — BEKLENEN.
+- **Codex hatti KAPALI:** `codex exec` "usage limit" ile reddedildi, kota **8 Agu 10:19**'a kadar
+  bitti -> teshis+onarim isi Claude katina alindi (`codex-muafiyet` beyani ile).
+- **Bayat hukum duzeltmesi:** DEVAM'daki 6 Agu 21:37Z hukmu ("depo kaynakli ariza 0, engel dis
+  ariza") ARTIK GECERSIZ. 21:13Z'den beri `build` yesil, kapi seritleri fiilen kosup kirmizi
+  yakiyor -> engel DIS DEGIL, depo/veri kaynakli.
+- **Ek olcum (bloklamiyor, sirada):** `uyum-kapisi.py` A1 ciktisi ihlalleri kesiyor ama kestigini
+  ve toplam sayiyi BASMIYOR -> "sema ihlali 6" sayilirken ekrana 5 basiliyor; bir turu yanilti.
+  Bu kor nokta bu evde, kalem acik. Ayrica alarmin 00:58Z ve 01:13Z cron yuvalari HIC atesledi
+  degil — olculen teslim kaybi suruyor.
+- **Okan'a cikis:** DUR kosulu (onarim YASAK listesindeki veri duzleminde + yayin ~16 saattir
+  kapali) -> tek cumle yazildi.
 
 ## 🟢 DIRILTME KAPISI A20 CAPASI GECMISTEN TURER — MAIN'DE `7f950921`
 
