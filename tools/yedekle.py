@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Makine olursa kaybolacak yeri-doldurulamaz yerel dosyalari Drive'a yedekler.
 Drive yolu tools/drive_yolu.py ile cozulur (kayitli .stl-backup-dir bayatsa kendini duzeltir).
-Hedef: <Pruvo>/backup/  (memory klasoru + global skill'ler + .urun-kaynaklari.json + baglam .md'leri).
+Hedef: <Pruvo>/backup/  (memory klasoru + global skill'ler + ~/.claude altindaki elle
+yazilmis agaclar: zamanlanmis gorev tanimlari / cron nobeti / planlar
++ .urun-kaynaklari.json + baglam .md'leri).
 
-SIRLAR — IKI AYRI REJIM, KARISTIRMA:
+SIRLAR — UC AYRI REJIM, KARISTIRMA:
   1. REPO KOKUNDEKI SANCAKLI SIR LISTESI (.thingiverse-token, .r2-credentials.json, ...):
      VARSAYILAN yedeklenmez; "--sirlar" ile ayni ozel Drive'a dahil edilir (klasoru PAYLASMA!).
      🔴 DIKKAT (1 Agu 2026 hizalamasi): "PAYLASMA" yalniz --sirlar'a OZGU DEGILDIR.
@@ -15,6 +17,14 @@ SIRLAR — IKI AYRI REJIM, KARISTIRMA:
      Bu filtre "--sirlar" ile ACILMAZ: sancakli liste bilinen 5 dosyadir, skills agaci degil.
      Elenen her dosya SEBEBIYLE raporlanir (sessiz atlamak yok). Icerik imzasi bulunursa
      yalniz IMZA SINIFI basilir — eslesen metin ASLA ekrana/loga yazilmaz.
+  3. ~/.claude ALTINDAKI ELLE YAZILMIS AGACLAR (7 Agu 2026, YENI KAPSAM — AGAC_KAPSAMI):
+     scheduled-tasks (gorev TANIM metinleri) · cron (nobet surucusu + crontab) ·
+     plans (plan belgeleri). `cron` agacinin ICINDE gercek `.ci-token` / `.gh-token`
+     duruyor ve hedef ORTAK Drive. Bu yuzden eleme kara-liste (desen) DEGIL, ACIK
+     ALLOWLIST ile yapilir: yalniz agacin izinli uzantilari girer, GERI KALAN HER SEY
+     (uzantisiz jetonlar dahil) disarida kalir ve SEBEBIYLE SAYILIR. Sir nobeti
+     allowlist'ten ONCE kosar (bkz. agac_plani: her katman TEK BASINA olculsun) —
+     bu sayede `.log` gibi allowlist disi dosyalarin ICERIGI de taranmis olur.
 
 BAYAT SIR NOBETI: bu filtre 26 Tem'de eklendi; ondan onceki surum skills agacini FILTRESIZ
 copytree ile kopyaliyordu. Hedefte elenmis bir dosyanin ESKI kopyasi duruyorsa gurultulu
@@ -136,6 +146,41 @@ def ana_calisma_agaci(taban=None):
 ROOT = ana_calisma_agaci()
 MEMORY = os.path.expanduser("~/.claude/projects/-Users-okan-dev-pruvo/memory")
 SKILLS = os.path.expanduser("~/.claude/skills")
+
+# ========== ~/.claude ALTINDAKI ELLE YAZILMIS AGACLAR (7 Agu 2026) ===========
+# 🔴 NEDEN (olculdu): bu agaclar yedek kapsaminda HIC GECMIYORDU -> diskte TEK
+# KOPYA, surum gecmisi YOK, hicbir depoda karsiligi YOK. Bu makinede 2-3 gunde bir
+# hesap rotasyonu var; KOSUM KAYITLARI zaten hesapla olur, ama bu METINLER de
+# yedeksizse yordamin KENDISI kalici olarak kaybolur (yeniden yazilamaz).
+GOREVLER = os.path.expanduser("~/.claude/scheduled-tasks")   # gorev TANIM metinleri
+CRON = os.path.expanduser("~/.claude/cron")                  # nobet surucusu + crontab
+PLANLAR = os.path.expanduser("~/.claude/plans")              # elle yazilmis plan belgeleri
+
+# 🔴 ACIK ALLOWLIST — FAIL-CLOSED, DESEN DEGIL.
+# Bu agaclar JETON YUZEYINE KOMSU, hatta `cron` agacinin ICINDE gercek `.ci-token`
+# ve `.gh-token` duruyor; yedek hedefi ise ORTAK Drive'dir.
+# Kara-liste (desen) yaklasimi burada YETMEZ: desen listesi "bugun bildigimiz"
+# jeton adlarini eler, YARIN eklenecek adi ELEMEZ (sessiz sizinti sinifi). Bu
+# yuzden kural TERSINE cevrildi: yalniz ACIKCA IZINLI uzantilar yedege girer,
+# geri kalan HER SEY disarida kalir ve SEBEBIYLE SAYILIR. Jeton dosyalari klasik
+# olarak UZANTISIZDIR -> adlarini onceden bilmemize GEREK KALMADAN elenirler.
+#
+# TEK TABLO, UC AGAC — BILEREK: ucu de ayni hukumden gecer. Her agac icin ayri
+# fonksiyon yazsaydik IKIZ TANIM olurdu ve bu depoda olculmus bicimde sessizce
+# AYRISIRDI (biri sertlesir, otekinde delik acik kalir).
+#
+# (etiket, kaynak kok, backup/ altindaki hedef klasor, IZINLI uzantilar)
+AGAC_KAPSAMI = (
+    # Gorev tanimi Markdown'dir; yaninda ayar/olcum JSON ve duz metin not olabilir.
+    ("gorev", GOREVLER, "gorev-tanimlari", (".md", ".txt", ".json")),
+    # Nobet surucusu bir kabuk betigi, zamanlama ise crontab metnidir.
+    # 🔴 `.log` BILEREK IZINSIZ: log turetilmis (yeniden uretilir), SINIRSIZ BUYUR
+    # ve icinde kosum ciktisi (jeton yankisi) tasiyabilir. Yedege ALINMAZ, ama
+    # SESSIZCE dusmez: kac dosya, hangi sebeple elendigi SAYILIR ve BASILIR.
+    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json")),
+    # Plan belgeleri saf Markdown.
+    ("plan", PLANLAR, "planlar", (".md", ".txt", ".json")),
+)
 
 # Repo kokunden BEKLENEN dosyalar. Biri eksikse yedek KISMIDIR -> tam guven
 # damgasi ATILMAZ (bkz. damga_yaz "tam" alani). Ilke: eksik yedek, eksik oldugunu SOYLER.
@@ -454,6 +499,90 @@ def skills_yaz(kok, hedef, dahil, haric, sir_temizle=False):
             if sir_temizle:
                 os.remove(varis)
     return yazilan, bayat
+
+
+def _agac_izinli_mi(ad, izinli):
+    """Bir dosya agacin ACIK ALLOWLIST'inde mi? (TEK tanim, fail-closed)
+
+    Uzantisiz dosya (".gh-token" / ".ci-token" gibi gizli dosyalar dahil) splitext
+    ile "" uzanti verir -> listede olmadigi icin ELENIR. Bu, kural konusunun ta
+    kendisidir: jeton dosyalari klasik olarak uzantisizdir ve tam da bu yolla
+    disarida kalirlar — ADLARINI onceden bilmemize GEREK KALMADAN."""
+    return os.path.splitext(ad)[1].lower() in izinli
+
+
+def agac_plani(agac):
+    """AGAC_KAPSAMI'ndaki BIR agaci tarar (skills_plani ile AYNI sekil).
+
+    `agac` = (etiket, kok, hedef_klasor, izinli_uzantilar)
+    Doner: (dahil, haric, gurultu)
+      dahil   : [koke gorece yol]        -> yedege GIRER
+      haric   : [(gorece yol, sebep)]    -> yedege GIRMEZ, SEBEBIYLE sayilir
+      gurultu : [gorece yol | "<dizin>/ (dizin budandi)"]
+
+    IKI KATMAN, IKI AYRI SORU — SIRA ONEMLI ve BILEREK BOYLE:
+      1. SIR NOBETI (sir_sebebi): ad kara-listesi + ad deseni + ICERIK imzasi.
+      2. ACIK ALLOWLIST (_agac_izinli_mi): uzanti izinli mi?
+    Sir nobeti ONCE kosar ki ELEME SEBEBI ayirt edici olsun: allowlist onde olsaydi
+    jeton-adli bir dosya "allowlist disi" diye elenir, sir katmani HIC ATESLEMEZ ve
+    "sir nobeti bunu yakaliyor" iddiasi BEYAN EDILMIS SURVIVOR olurdu (katmanlarin
+    VEYA'si yesil yanar, katmanin kendisi olculmemis kalir). Simdi her katman TEK
+    BASINA kirmiziya cevrilebiliyor: izinli uzantili ama jeton-adli/imzali dosyayi
+    YALNIZ katman 1, zararsiz adli ama izinsiz uzantili dosyayi YALNIZ katman 2 eler.
+
+    🔴 KATMAN 1 ONDE OLDUGU ICIN LOG'LARIN ICERIGI DE TARANIR: `cron` agacindaki
+    `.log` dosyalari zaten allowlist disidir, ama sir nobeti onlardan ONCE kosar ->
+    icinde jeton yankisi olan bir log "icerik imzasi" sebebiyle elenir. Yani
+    "log'u kapsama almiyoruz" karari, "log'un icine bakmiyoruz" demek DEGILDIR.
+
+    🔴 SEBEP METNI ASLA SIRRIN KENDISINI TASIMAZ (sir_sebebi sozlesmesi): yalniz
+    kural adi ya da imza SINIFI. Dosyanin ICERIGI okunmaz/yazilmaz/basilmaz."""
+    _etiket, kok, _hedef, izinli = agac
+    dahil, haric, gurultu = [], [], []
+    if not os.path.isdir(kok):
+        return dahil, haric, gurultu
+    for dizin, altlar, dosyalar in os.walk(kok):
+        for budanan in sorted(a for a in altlar if a in GURULTU_DIZIN):
+            gurultu.append(os.path.relpath(os.path.join(dizin, budanan), kok)
+                           + "/ (dizin budandi)")
+        altlar[:] = sorted(a for a in altlar if a not in GURULTU_DIZIN)
+        for ad in sorted(dosyalar):
+            tam = os.path.join(dizin, ad)
+            gor = os.path.relpath(tam, kok)
+            if os.path.islink(tam):
+                haric.append((gor, "symlink (hedefi agac disina cikabilir)"))
+                continue
+            if _gurultu_mu(ad):
+                gurultu.append(gor)
+                continue
+            sebep = sir_sebebi(tam, ad)                 # KATMAN 1 — sir nobeti
+            if sebep:
+                haric.append((gor, sebep))
+                continue
+            if not _agac_izinli_mi(ad, izinli):         # KATMAN 2 — acik allowlist
+                haric.append((gor, "allowlist disi: uzanti %r izinli degil (izinli: %s)"
+                                   % (os.path.splitext(ad)[1].lower(),
+                                      ", ".join(izinli))))
+                continue
+            dahil.append(gor)
+    return sorted(dahil), sorted(haric), sorted(gurultu)
+
+
+def agac_yaz(kok, hedef, dahil, etiket=""):
+    """Bir agacin izinli dosyalarini hedefe yazar. Doner: (hedefte_olan, yeni).
+
+    `hedefte_olan` = kopyalama BASARIYLA tamamlanan dosya sayisi (plan uzunlugu ile
+    esit olmali; kopyalanamayan dosya SAYILMAZ -> sayac gercegi soyler, iddiayi degil).
+    Idempotent kopya kullanilir: bu betik HER push'ta kosuyor."""
+    olan = yeni = 0
+    for gor in dahil:
+        try:
+            if _kopyala_gerekliyse(os.path.join(kok, gor), os.path.join(hedef, gor)):
+                yeni += 1
+            olan += 1
+        except (OSError, shutil.Error) as e:
+            print("  ⚠️ %s: kopyalanamadi %s (%s)" % (etiket.upper(), gor, type(e).__name__))
+    return olan, yeni
 
 
 def _agac_dosyalari(kok):
@@ -840,6 +969,13 @@ def yedek_plani(sirlar=False):
                                                   os.path.relpath(kaynak, MEMORY))))
     for gor in skills_plani()[0]:              # sir nobetinden GECMIS liste
         plan.append((os.path.join(SKILLS, gor), os.path.join("skills", gor)))
+    # ~/.claude altindaki elle yazilmis agaclar (gorev tanimlari / cron nobeti /
+    # planlar) — sir nobeti + acik allowlist'ten GECMIS liste. Plana buradan girer;
+    # imza/dogrulama/kopya ucu de bu TEK tanimdan turer.
+    for agac in AGAC_KAPSAMI:
+        _etiket, kok, hedef_klasor, _izinli = agac
+        for gor in agac_plani(agac)[0]:
+            plan.append((os.path.join(kok, gor), os.path.join(hedef_klasor, gor)))
     for ad in _repo_dosyalari(sirlar):
         plan.append((os.path.join(ROOT, ad), ad))
     # ---- EK KAPSAM: kardes evler + diger hafiza uzaylari + genel ayar -------
@@ -1545,6 +1681,22 @@ def main():
         print("[skills-gurultu (turetilmis)] %d giris" % len(gurultu))
         for g in gurultu:
             print("    skills/" + g)
+        # ---- ~/.claude ELLE YAZILMIS AGACLAR (gorev / cron / plan) --------
+        agac_toplam = 0
+        agac_haric_toplam = 0
+        for agac in AGAC_KAPSAMI:
+            etiket, kok, hedef_klasor, _izinli = agac
+            a_dahil, a_haric, a_gurultu = agac_plani(agac)
+            agac_toplam += len(a_dahil)
+            agac_haric_toplam += len(a_haric)
+            print("[%s] %d dosya  <- %s" % (hedef_klasor, len(a_dahil), kok))
+            for g in a_dahil:
+                print("    %s/%s" % (hedef_klasor, g))
+            print("[%s-DISLANAN (sir nobeti + acik allowlist)] %d dosya"
+                  % (etiket, len(a_haric)))
+            for g, sebep in a_haric:
+                print("    %s/%s   -> DISLANDI: %s" % (hedef_klasor, g, sebep))
+            print("[%s-gurultu (turetilmis)] %d giris" % (etiket, len(a_gurultu)))
         repo = _repo_dosyalari(sirlar)
         print("[repo] %d dosya  <- %s%s"
               % (len(repo), ROOT, "  (--sirlar ACIK)" if sirlar else ""))
@@ -1581,11 +1733,14 @@ def main():
                 ek_toplam += 1
                 print("[ek/claude-genel] 1 dosya  <- %s" % _genel[0])
         print("-" * 70)
-        print("TOPLAM YEDEKLENECEK: %d dosya (memory %d + skills %d + repo %d + ek %d)"
-              % (len(mem) + len(dahil) + len(repo) + ek_toplam,
-                 len(mem), len(dahil), len(repo), ek_toplam))
+        print("TOPLAM YEDEKLENECEK: %d dosya "
+              "(memory %d + skills %d + claude-agaclari %d + repo %d + ek %d)"
+              % (len(mem) + len(dahil) + agac_toplam + len(repo) + ek_toplam,
+                 len(mem), len(dahil), agac_toplam, len(repo), ek_toplam))
         if haric:
             print("SIR NOBETI: %d dosya paket DISINDA birakilacak." % len(haric))
+        if agac_haric_toplam:
+            print("AGAC DISLAMA: %d dosya paket DISINDA birakilacak." % agac_haric_toplam)
         # BEYAN HIZALAMASI (1 Agu 2026) — gercek kosumdaki uyarinin AYNISI kuru
         # kosumda da basilir; envanterin DOGRULAMA komutu budur, beyan orada da
         # gercekle ayni olmalidir. (Gerekce: gercek kosumdaki ayni metnin yaninda.)
@@ -1720,6 +1875,33 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     else:
         print("NOT: %s yok -> skill yedegi ATLANDI." % SKILLS)
 
+    # ~/.claude altindaki ELLE YAZILMIS agaclar. Hicbiri depoda YOK, surum gecmisi
+    # YOK; hesap rotasyonunda KOSUM KAYDI zaten olur, metin de kaybolursa yordam
+    # geri getirilemez. Her biri sir nobeti + ACIK ALLOWLIST'ten gecer — `cron`
+    # agacinin ICINDE gercek jetonlar duruyor (bkz. AGAC_KAPSAMI gerekcesi).
+    agac_sayilari = {}
+    for agac in AGAC_KAPSAMI:
+        etiket, kok, hedef_klasor, _izinli = agac
+        a_dahil, a_haric, a_gurultu = agac_plani(agac)
+        olan = yeni_a = 0
+        if os.path.isdir(kok):
+            a_hedef = os.path.join(backup, hedef_klasor)
+            olan, yeni_a = agac_yaz(kok, a_hedef, a_dahil, etiket=etiket)
+            print("yedek: %s/ -> %s  (%d dosya, %d yeni)"
+                  % (hedef_klasor, a_hedef, olan, yeni_a))
+            # 🔴 OLCULEBILIR DISLAMA: kac dosya, hangi sebeple yedek DISINDA kaldi.
+            # Sessiz atlama yok — sayilmayan eleme, olculmemis eleme demektir.
+            print("  %s DISLAMA: %d dosya yedege GIRMEDI (kaynak agac: %s)"
+                  % (etiket.upper(), len(a_haric), kok))
+            for g, sebep in a_haric:
+                print("    DISLANDI: %s/%s   -> %s" % (hedef_klasor, g, sebep))
+            print("  %s GURULTU (turetilmis): %d giris" % (etiket.upper(), len(a_gurultu)))
+        else:
+            print("NOT: %s yok -> %s yedegi ATLANDI." % (kok, etiket))
+        agac_sayilari[etiket] = olan
+        agac_sayilari[etiket + "_yeni"] = yeni_a
+        agac_sayilari[etiket + "_haric"] = len(a_haric)
+
     # Sirsiz kaynak haritasi + ajan baglam dosyalari. HEPSI GITIGNORE'DA (repo public, icerik
     # ticari gizli) -> git'te KOPYASI YOK, yani bu makine olurse tamamen kaybolurlardi.
     # (CLAUDE.md kopyalanmaz: AGENTS.md'ye SYMLINK, ayri dosya degil — yon 30 Tem'de
@@ -1760,6 +1942,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     sayilar = {"memory": len(_agac_dosyalari(MEMORY)),
                "skills": yazilan, "skills_haric": len(haric),
                "repo": len(repo_adlari)}
+    sayilar.update(agac_sayilari)
     sayilar.update(ek_sayilar)
     damga_yaz(backup, sayilar, eksik=eksik,
               baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)
