@@ -1770,6 +1770,16 @@ jobs:
       # bloklayici baglanabildi (denetim-kapisi gibi --commit-farki'na AYIRMAK
       # GEREKMEDI). urunler.json DIZI degilse / taban kume altindaysa OLCULEMEDI (3).
       # Saf Python, agsiz, ~1 s.
+      # KISALTMA MUAFIYETI (7 Agu 2026): `cift-noktalama` kolunun `\.\s*,` dali 2 gunde
+      # IKI kez yayini durdurdu — 5 Agu sira sayisi ("7., 8. ve 9. nesil"), 7 Agu Turkce
+      # kisaltma ("Redbull vb., 54mm cap"); ikisi de MESRU yazim, kusur betikteydi ve
+      # `serit-a3` kirmizi olunca deploy+yayin SKIPPED kaldi. Kol artik tekil string
+      # yamasiyla degil TEK yargi noktasiyla daraltiliyor: nokta oncesi jeton RAKAM ya
+      # da KANONIK KISALTMA (`KISALTMALAR`, tek kaynak) ise muaf, BASKA HER SEY ihlal.
+      # OLU NOBETCI DEGIL: mutasyon surucusu REPODA durur ->
+      #   python3 tools/gramer-kisaltma-mutasyon.py   (8/8 mutant olduruldu; taban
+      #   oz-test 96 iddia. Kume bosaltma/genel gevsetme/kol silme/maskeleme/kablo
+      #   kopmasi ayri ayri KIRMIZI yakiyor.)
       - name: "Gramer artigi kapisi (toplu yeniden yazim enkazi + cumle-ici yetim ek)"
         run: python3 tools/gramer-artigi-kapisi.py
       - name: Gorsel anahtar + STL bbox kabul testi (R2 anahtar cakismasi + olcu birimi)

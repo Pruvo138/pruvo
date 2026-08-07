@@ -83,6 +83,59 @@ TABAN_ASGARI = 1000
 
 ALANLAR = ("baslik", "aciklama")
 
+# Jeton harf sinifi — A ve B eksenleri AYNI kaynaktan turer (ikiz tanim yok).
+_HARF = "0-9A-Za-zÇĞİIÖŞÜçğıiöşüÂÎÛâîû"
+
+# --------------------------------------------------------- KANONIK KISALTMA KUMESI
+# 🔴 TEK KAYNAK. Buradan HEM A ekseni `\.\s*,` kolunun muafiyeti HEM oz-test
+#    fikstur beklentisi turer; kume iki yerde ELLE tutulmaz (ikiz tanim sessizce
+#    ayrisir → 7 Agu 2026 nobeti).
+#
+# NEDEN VAR (olculdu, 7 Agu 2026, 21.845 kayit): Turkce KISALTMA ardindan virgul
+#   MESRU yazimdir — "(Redbull vb., 54mm cap)". Kol bunu "art arda noktalama"
+#   sanip KIRMIZI yakti; `Build & deploy`/`serit-a3` iki ardisik push'ta dustu ve
+#   deploy+yayin SKIPPED oldu. Ayni kol 5 Agu'da SIRA SAYISI varyantiyla
+#   ("7., 8. ve 9. nesil") ayni zarari vermisti; o turda yalniz `(?<!\d)` eklendi,
+#   yani TEKIL string yamasiydi ve KISALTMA varyanti kapsanmadi. Bu yuzden onarim
+#   artik EKSEN duzeyinde: "nokta oncesi jeton RAKAM ya da KANONIK KISALTMA ise
+#   ihlal degildir".
+#
+# MARUZIYET (olculdu, ayni katalog):
+#   * nokta ile biten jeton: 101.221 vurus / 2.867 ayri jeton
+#   * bunlardan CUMLE-ICI olan (ardindan kucuk harf/virgul): 25 ayri jeton
+#   * icinde GERCEK kisaltma olanlar: vb(6) ör(16) bkz(3) örn(2) orn(1) orj(1)
+#   * `X.,` kalibina fiilen giren: 2 vurus — `vb.`(1, MESRU) + `7.`(1, MESRU)
+#   * `vb.` katalogda 70 yerde geciyor → tuzak HER PARTIDE yeniden dogar.
+#
+# ⚠️ GENISLETME KURALI: bu kumeye giren her jeton `<jeton>.,` yazimini ihlal
+#    olmaktan CIKARIR. Yalniz TAM KELIME OLMAYAN, noktali yazilan kisaltmalar
+#    girer. Cekimli fiil/isim (or. "düzdür", "sabittir") ASLA GIRMEZ — girerse
+#    oz-test A5/A6 kontrol mutantlari KIRMIZI yanar.
+KISALTMALAR = frozenset("""
+vb vd vs bkz br or ör orn örn orj md age yak yakl dk sn no nr mm cm
+""".split())
+
+# Nokta ile BITISIK duran onceki jeton (arada bosluk varsa muafiyet YOK —
+# "yüzeyi ., " zaten `bosluk-once-noktalama` kolunun isi).
+_ONCEKI_JETON_RE = re.compile("([" + _HARF + "]+)$", re.UNICODE)
+
+
+def _nokta_virgul_muaf(satir, m):
+    """`cift-noktalama` kolunun `\\.\\s*,` DALI icin muafiyet yargisi.
+
+    True dondurur (= ihlal SAYILMAZ) ancak ve ancak noktadan hemen onceki jeton
+    RAKAM (sira sayisi: "7., 8.") ya da KANONIK KISALTMA ("vb.,") ise.
+    Diger dallar (`,,` `;;` `;.` `,.`) ve harf-onceli her sey ihlal KALIR.
+    """
+    if not m.group(0).startswith("."):
+        return False                      # bu kolun baska bir dali, karisma
+    onc = _ONCEKI_JETON_RE.search(satir[:m.start()])
+    if not onc:
+        return False
+    jeton = onc.group(1)
+    return jeton.isdigit() or jeton.lower() in KISALTMALAR
+
+
 # Olculmus ham sayilar (31 Tem 2026, canli urunler.json = 15.558 kayit). Eleme
 # kurallarinin BEDELI burada yazilidir; kural gevsetilecekse once bu tablo okunur.
 _OLCUM_31TEM = {
@@ -119,15 +172,19 @@ _ARTIK = (
     #    "ve"/"veya" icin ayni yumusatma YOK: onlar virgul oncesinde de artiktir.
     ("asili-baglac", r"\bve\s*[.;,]|\bveya\s*[.;,]|\bile\s*[.;](?:\s|$)",
      "baglac/edat noktalamaya carpmis"),
-    # ⚠️ `\.\s*,` kolu RAKAMDAN SONRA ATESLENMEZ (`(?<!\d)`): Turkce SIRA SAYISI
-    #    noktayla yazilir ve listede virgul alir — "Honda Civic 7., 8. ve 9. nesil"
-    #    KUSURSUZ Turkce'dir, enkaz DEGIL. Ayni kalip kisaltma/tarihte de dogar
-    #    ("md. 46, ...", "3.,"). Canli katalogda olculdu (5 Agu 2026, 19.733 kayit):
-    #    ham kol 1 isabet -> 1'i RAKAM-onceli (mesru), 0'i harf-onceli, 0'i diger;
-    #    yani kolun TEK vurusu yanlis-pozitifti ve tum ekibin yayinini durduruyordu.
-    #    Daraltma sonrasi katalog vurusu 1 -> 0. Kol OLDURULMEDI: harf/diger onceli
-    #    gercek enkaz ("düzdür., sabit") hala KIRMIZI yanar (oz-test A5).
-    ("cift-noktalama", r",\s*,|;\s*[;.]|(?<!\d)\.\s*,|,\s*\.",
+    # ⚠️ `\.\s*,` DALI regex'te DEGIL, `_nokta_virgul_muaf` yargisiyla daraltilir
+    #    (bkz. KISALTMALAR bloku). Turkce SIRA SAYISI noktayla yazilir ve listede
+    #    virgul alir — "Honda Civic 7., 8. ve 9. nesil" KUSURSUZ Turkce'dir; ayni
+    #    sey KISALTMA icin de gecerlidir — "(Redbull vb., 54mm cap)". Ikisi de enkaz
+    #    DEGIL. Onceki tur bunu `(?<!\d)` lookbehind'iyla cozmustu; lookbehind SABIT
+    #    GENISLIK ister, degisken uzunluktaki kisaltma kumesini TASIYAMAZ ve tekil
+    #    yamada kaldigi icin 2 gun sonra kisaltma varyanti ayni yayini durdurdu.
+    #    Simdi TEK yargi noktasi var: nokta oncesi jeton RAKAM ya da KANONIK
+    #    KISALTMA ise muaf, BASKA HER SEY ihlal. Kol OLDURULMEDI: harf-onceli
+    #    gercek enkaz ("düzdür., sabit") hala KIRMIZI yanar (oz-test A5),
+    #    kisaltmaya BENZEYEN ama kumede olmayan jeton da yanar (A6, "zxq.,").
+    #    "Harf oncesini muaf tut" seklinde GENEL gevsetme YASAK — A5'i oldurur.
+    ("cift-noktalama", r",\s*,|;\s*[;.]|\.\s*,|,\s*\.",
      "art arda noktalama"),
     ("bosluk-once-noktalama", r"\s[,;]|\s\.(?:\s|$)",
      "noktalamadan once bosluk"),
@@ -144,7 +201,19 @@ _ARTIK = (
      r"(?![\wçğıöşüâîûÇĞİÖŞÜ])[,.]",
      "ek kelimeden kopup noktalamaya yapismis"),
 )
-ARTIK_RE = tuple((ad, re.compile(p, re.UNICODE), neden) for ad, p, neden in _ARTIK)
+# Desen adi -> muafiyet yargisi. Muafiyet ANCAK burada verilir; desen adi
+# yanlis yazilirsa filtre SESSIZCE devre disi kalirdi -> asagida fail-closed
+# dogrulama var (ad kumesi tutmuyorsa import ANINDA patlar).
+_MUAFIYET = {
+    "cift-noktalama": _nokta_virgul_muaf,
+}
+_ARTIK_ADLARI = {ad for ad, _p, _n in _ARTIK}
+if set(_MUAFIYET) - _ARTIK_ADLARI:                       # fail-closed
+    raise SystemExit("gramer-artigi-kapisi: _MUAFIYET'te tanimsiz desen adi: %s"
+                     % sorted(set(_MUAFIYET) - _ARTIK_ADLARI))
+
+ARTIK_RE = tuple((ad, re.compile(p, re.UNICODE), neden, _MUAFIYET.get(ad))
+                 for ad, p, neden in _ARTIK)
 
 
 # --------------------------------------------------------------------- B ekseni
@@ -173,8 +242,7 @@ _SERT_SESSIZ = set("pçtkfhsş")
 # isim "su", mustakil edat "ile", tum tek harfliler.
 _KUME_DISI = {"de", "da", "ne", "su", "ile", "ki", "mi", "mı", "mu", "mü"}
 
-_HARF = "0-9A-Za-zÇĞİIÖŞÜçğıiöşüÂÎÛâîû"
-_JETON_RE = re.compile("[" + _HARF + "]+", re.UNICODE)
+_JETON_RE = re.compile("[" + _HARF + "]+", re.UNICODE)   # _HARF: tek kaynak, yukarida
 _CUMLE_AYIRICI = re.compile(r"[.!?;]")
 
 
@@ -237,10 +305,15 @@ def yetim_ek_bulgulari(satir):
 def satir_bulgulari(satir):
     """Bir metin satirindaki TUM bulgular: [(eksen, ad, baglam)]."""
     bulgu = []
-    for ad, rx, _neden in ARTIK_RE:
-        m = rx.search(satir)
-        if m:
+    for ad, rx, _neden, muaf in ARTIK_RE:
+        # ⚠️ `search` DEGIL `finditer`: muaf bir isabet (or. "vb.,") satirdaki
+        #    GERCEK enkazi (or. "düzdür.,") MASKELEMESIN. Desen basina yine en
+        #    fazla 1 bulgu bildirilir (eski davranis), ama muaf olan atlanir.
+        for m in rx.finditer(satir):
+            if muaf is not None and muaf(satir, m):
+                continue
             bulgu.append(("A", ad, satir[max(0, m.start() - 40):m.end() + 40]))
+            break
     for jeton, baglam in yetim_ek_bulgulari(satir):
         bulgu.append(("B", "yetim-ek:" + jeton, baglam))
     return bulgu
@@ -307,8 +380,9 @@ def kos(yol=None, liste=False, taban=TABAN_ASGARI):
 
 
 # ------------------------------------------------------------------ oz-nobetci
-# 9 SENTETIK BOZUK (9/9 KIRMIZI olmali) — madde-46'da GERCEKTEN olusan enkaz
-# siniflari + kacan cumle-ici yetim ek ekseni.
+# SENTETIK BOZUK (TAMAMI KIRMIZI olmali) — madde-46'da GERCEKTEN olusan enkaz
+# siniflari + kacan cumle-ici yetim ek ekseni + kisaltma muafiyetinin kontrol
+# mutantlari. Adet ELLE yazilmaz, len(_BOZUK) ile raporlanir.
 _BOZUK = (
     ("B1 cumle-ici yetim ek (madde 46'da KACAN eksen)",
      "En ince bölgesi yla ölçülür."),
@@ -332,9 +406,21 @@ _BOZUK = (
     #    batarya ikisini de yesil gecirirdi.
     ("A5 nokta+virgul, HARF onceli (daraltma kolu OLDURMEDI nobeti)",
      "Montaj yüzeyi düzdür., sabit kalır."),
+    # 🔴 A6 KONTROL MUTANTI (7 Agu 2026): kisaltmaya BENZEYEN ama KISALTMALAR
+    #    kumesinde OLMAYAN jeton. A5'ten farki: A5 cekimli bir kelime, A6 ise
+    #    kisaltma bicimindedir. Ikisi birlikte "kume genisletmesi" ile "harf
+    #    oncesini topyekun muaf tutma" mutantlarini ayirt eder.
+    ("A6 nokta+virgul, kisaltma GORUNUMLU ama kume DISI jeton",
+     "Gövde zxq., sabit kalır."),
+    # 🔴 A7 MASKELEME NOBETI: ayni satirda MUAF kisaltma + GERCEK enkaz. Muaf
+    #    isabet ilk sirada; `search` ile ilk isabete bakan bir uygulama bunu
+    #    sessizce YESIL gecirirdi.
+    ("A7 muaf kisaltma GERCEK enkazi maskelemez (ayni satir)",
+     "Kutu (Redbull vb., 54mm çap) yüzeyi düzdür., sabit kalır."),
 )
 
-# 21 MESRU (yanlis-pozitif 0 olmali) — ozellikle "de/da" baglaci, "ya da", "ile".
+# MESRU cumleler (yanlis-pozitif 0 olmali) — ozellikle "de/da" baglaci, "ya da",
+# "ile", SIRA SAYISI ve KISALTMA. Adet ELLE yazilmaz, len(_MESRU) ile raporlanir.
 _MESRU = (
     "Hem de küçük alanlarda kullanılabilir.",
     "Ofis ya da atölye masasında kullanılır.",
@@ -365,6 +451,12 @@ _MESRU = (
     "Honda Civic 7., 8. ve 9. nesil 3 ve 5 kapılarda arka parsel rafı tutucu "
     "milinin muadilidir; sağ taraf için baskı sonrası lastik hortum takılması gerekir.",
     "Honda Civic 7., 8. ve 9. nesil 3 ve 5 kapılarda arka panele takılır.",
+    # 🔴 KISALTMA (7 Agu 2026): asagidaki cumle CANLI KATALOGDAN birebir alindi
+    #    (`kia-ceed-konserve-tutucu-adaptoru`); `\.\s*,` kolu bunu "art arda
+    #    noktalama" sanip KIRMIZI yakti, `serit-a3` iki ardisik push'ta dustu ve
+    #    deploy+yayin SKIPPED kaldi. Nobetci burada durur.
+    "0,33 litrelik ince konserve kutularının (Redbull vb., 54mm çap) "
+    "sığdırılmasını sağlayan adaptördür.",
 )
 
 
@@ -379,7 +471,8 @@ def _olc(hatalar, etiket, kosul):
 
 
 def kendini_test():
-    """IC NOBETCI: pozitif eksen (9 sentetik bozuk) + negatif eksen (21 mesru)
+    """IC NOBETCI: pozitif eksen (sentetik bozuk) + negatif eksen (mesru cumle)
+    + KISALTMA muafiyeti (kanonik kumeden turer) + kontrol mutantlari
     + TABAN KUME fail-closed + kapinin GOVDESI inert olamaz (mutasyon)."""
     hatalar = []
 
@@ -429,6 +522,48 @@ def kendini_test():
     _olc(hatalar, "4f asili 've,' virgul oncesinde de ARTIK",
          bool(satir_bulgulari("Kapak sabitlenir ve, gövde oturur.")))
 
+    print("-- (4b) KISALTMA MUAFIYETI — fikstur KANONIK KUMEDEN turer (elle liste YOK)")
+    for kis in sorted(KISALTMALAR):
+        cumle = "Konserve kutusu (Redbull %s., 54mm çap) için yuvadır." % kis
+        _olc(hatalar, "4b-yesil kanonik kisaltma %r muaf" % kis,
+             not satir_bulgulari(cumle))
+    # Ayni kume BUYUK harfle de muaf olmali (jeton kucuk harfe indirgeniyor mu).
+    _olc(hatalar, "4b-yesil BUYUK harfli kisaltma da muaf ('VB.,')",
+         not satir_bulgulari("Konserve kutusu (Redbull VB., 54mm çap) için yuvadır."))
+    _olc(hatalar, "4b-yesil sira sayisi + virgul muaf ('7., 8. ve 9. nesil')",
+         not satir_bulgulari("Honda Civic 7., 8. ve 9. nesil kapılara uyar."))
+    _olc(hatalar, "4b-yesil canli katalog cumlesi ('vb., 54mm çap') muaf",
+         not satir_bulgulari("0,33 litrelik konserve kutularının (Redbull vb., "
+                             "54mm çap) sığdırılmasını sağlar."))
+
+    print("-- (4c) KONTROL MUTANTLARI: muafiyet kolu GENEL gevsemeye donmedi")
+
+    def _cn(s):
+        """YALNIZ `cift-noktalama` bulgulari — baska bir desenin isabeti bu
+        kolun iddiasini SAHTE YESIL/KIRMIZI yapmasin (or. 'vb .,' satirinda
+        `bosluk-once-noktalama` zaten atesler)."""
+        return [b for b in satir_bulgulari(s) if b[1] == "cift-noktalama"]
+
+    _olc(hatalar, "4c-kirmizi kisaltma OLMAYAN kelime + '.,' hala vurur (A5 sinifi)",
+         bool(_cn("Montaj yüzeyi düzdür., sabit kalır.")))
+    _olc(hatalar, "4c-kirmizi kisaltma GORUNUMLU kume-disi jeton vurur ('zxq.,')",
+         bool(_cn("Gövde zxq., sabit kalır.")))
+    _olc(hatalar, "4c-kirmizi kume uyesinin TURETILMISI muaf DEGIL ('vbx.,')",
+         bool(_cn("Gövde vbx., sabit kalır.")))
+    _olc(hatalar, "4c-kirmizi muaf kisaltma ayni satirdaki enkazi MASKELEMEZ",
+         bool(_cn("Kutu (Redbull vb., 54mm çap) yüzeyi düzdür., sabit.")))
+    _olc(hatalar, "4c-kirmizi kisaltma + BOSLUK + '.,' muaf DEGIL ('vb .,')",
+         bool(_cn("Kutu (Redbull vb ., 54mm çap) için yuvadır.")))
+    _olc(hatalar, "4c-kirmizi kolun diger dallari bozulmadi (',,' ';.' ',.')",
+         all(bool(_cn(c)) for c in
+             ("Gövde sabittir,, kapak oturur.",
+              "Gövde sabittir;. kapak oturur.",
+              "Gövde sabittir,. kapak oturur.")))
+    _olc(hatalar, "4c-yesil muaf satirda `cift-noktalama` bulgusu SIFIR",
+         not _cn("Konserve kutusu (Redbull vb., 54mm çap) için yuvadır."))
+    _olc(hatalar, "4c-fail-closed _MUAFIYET adlari desen adlariyla ortusuyor",
+         not (set(_MUAFIYET) - {ad for ad, _rx, _n, _m in ARTIK_RE}))
+
     print("-- (5) FAIL-CLOSED: taban kume alti / bozuk katalog OLCULEMEDI (3) verir")
     import tempfile
     with tempfile.TemporaryDirectory() as d:
@@ -468,7 +603,9 @@ def kendini_test():
 
     print()
     if hatalar:
-        print("🔴 OZ-TEST KIRMIZI: %d iddia dustu" % len(hatalar))
+        # ⚠️ BIRIM: dusen sayi TEK BASINA anlamsiz — TOPLAM iddia da basilir ki
+        #    "iddia sayisi kuculdu" (yuzey kaybi) disaridan olculebilsin.
+        print("🔴 OZ-TEST KIRMIZI: %d/%d iddia dustu" % (len(hatalar), _IDDIA[0]))
         for h in hatalar:
             print("   - " + h)
         return 1
