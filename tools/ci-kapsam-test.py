@@ -1790,13 +1790,19 @@ IZIN_LISTESI = {
         R_YOL + " Somut olarak: .git/hooks/pre-push commit EDILMEZ (per-makine) -> CI "
         "fresh checkout'unda kurulu blok YOKTUR, 'olu konum' nobetcisi orada yapisal "
         "olarak kirmizi yanar. Yerel push disiplini araci; deploy CI adimi degil."),
-    "tools/yedekle-test.py": (
-        "Olcum girdisi MAKINEYE OZGU ve git DISI: ~/.claude/skills agaci (yedeklenen sey) ile "
-        "Google Drive mount'u. CI fresh checkout'unda ikisi de YOK -> kapsam kontrolleri "
-        "yapisal olarak KIRMIZI yanar (R_YOL sinifi; sentetik sir/mutasyon bolumleri offline "
-        "yesil olsa da testin cekirdek iddiasi 'gercek skill agaci planda mi' CI'da "
-        "olculemez). Ayrica yedekle.py yayin hattinin parcasi degil: yerel disk-kaybi "
-        "sigortasi -> Pages build'ini bloklamasi orantisiz."),
+    # 🔴 NOT: tools/yedekle-test.py 7 AGU 2026'da MUAFIYETTEN CIKARILDI — deploy.yml
+    # `serit-a4`te `--hermetik` koluyla BLOKLAYICI kosuyor (continue-on-error YOK) ve
+    # o kol BOLUM B'de dosyanin KENDI beyaniyla ("<etiket>: <bayrak>") kilitli, yani
+    # adim silinirse bu kapi KIRMIZI yanar. BURAYA GERI EKLEME: "hem kosuluyor hem
+    # muaf" celiskisini bu kapinin BAYAT-IZIN kolu zaten yakalar.
+    # TAM BATARYA (bayraksiz kol) BILEREK BAGLANMADI — OLCULDU (temiz `git clone`,
+    # BOS HOME, kardes ev YOK, Drive YOK): `python3 tools/yedekle-test.py` -> rc=1,
+    # "TOPLAM 220 kontrol, 6 kirmizi", COKME YOK, 6,1 s. Alti da ORTAM KAYNAKLI:
+    # HOME/.claude/skills YOK (3 kontrol) + gitignore'lu kok dosyalari YOK
+    # ('.urun-kaynaklari.json', 'AGENTS.md', 'DEVAM-ARSIV.md' -> 3 kontrol). Ayrica
+    # 13/13e/14 flock + paralel kosum + 2000 orneklik zamanlama olcer (paylasilan
+    # kosucuda FLAKE), 15 GERCEK Drive damgasina bakar. Gerekce ve tam kirmizi dokumu
+    # deploy.yml'deki adim yorumundadir.
 }
 
 
