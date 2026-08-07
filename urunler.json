@@ -1,5 +1,44 @@
 [
   {
+    "id": "genesis-g80-orta-konsol-mendil-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Genesis",
+      "G80"
+    ],
+    "baslik": "Genesis G80 Orta Konsol Mendil Kutusu",
+    "aciklama": "Genesis G80'in orta konsol saklama gözünde kalan boş hacme oturan, kâğıt mendilleri derli toplu tutan ve tek elle çekmeye izin veren mendil kutusudur.\nEğimli ön yüzdeki ince yarık mendilin ucunu daima erişilebilir yükseklikte tutar; kapak kapalıyken kutu konsol gözünün içinde tamamen gizli kalır.\nGövde konsol gözünün iç hattına göre biçimlendirilmiştir; ek bağlantı parçası veya yapıştırıcı gerektirmeden yerine oturur, seyir hâlinde kaymaz.\n2025 makyaj öncesi G80 gövdelerindeki konsol düzeni için tasarlanmıştır.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1773116-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1773116-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1773116-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AlanHell",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "genesis-g80-orta-konsol-bolmeli-duzenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Genesis",
+      "G80"
+    ],
+    "baslik": "Genesis G80 Orta Konsol Bölmeli Düzenleyici",
+    "aciklama": "Genesis G80'in orta konsol saklama gözündeki kadife kaplı rafa oturan, madenî para ile kartları ayrı bölmelerde tutan düzenleyici tepsidir.\nDar bölmeler bozuk paraları yan yana dizili tutar, geniş bölme ise banka ve üyelik kartlarını dik konumda saklar; böylece eşyalar seyir hâlinde birbirine karışmaz ve tıkırtı yapmaz.\nDış hatları orijinal raf boşluğuyla uyumludur, yerine bırakıldığında ayrıca sabitleme gerekmez; temizlik için tek parça hâlinde çıkarılabilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1768137-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1768137-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AlanHell",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "yamaha-yzf750r-radyator-fan-svic-konnektoru",
     "kategori": "Motosiklet",
     "marka": [
