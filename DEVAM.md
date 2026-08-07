@@ -1,9 +1,10 @@
 # DEVAM (KraL) — 7 Agu 2026
 
 ## 🔁 DEVIR — 7 Agu 2026, hesap rotasyonu: eski hesap → yeni hesap
-**SIRADAKI TEK IS:** `serit-a3` adim 60 (Gorsel anahtar + STL bbox kabul testi) CI'da kirmizi ama
-ayni iki betik yerelde main'de rc=0 — bu yerel↔CI asimetrisini
-`gh run view 31203297696 --log-failed` ile teshis edip yayini ac.
+**SIRADAKI TEK IS:** `serit-a3` onarimi (asagida, ONARILDI-ama-OLCULEMEDI) CI'da DOGRULANACAK:
+kosum `31214768865` (head `ab1800d6`) bitince `serit-a3` job'inin `conclusion`'ini ol. Yesilse
+`deploy`/`yayin` de olculecek; kirmizi kalirsa kok neden logdan YENIDEN turetilecek (eski teshis
+kapandi sayilmaz).
 
 **SIRADAKI TEK IS (2. sira) — OKAN'IN KARARI:** marka sayfasi 330 parcanin TAMAMINI tek sayfada
 kart olarak listelesin, model cipleri ayri adrese gitmek yerine sayfa icinde filtrelesin; once
@@ -11,13 +12,19 @@ sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
 (Yayin tikanikligi gorunurluk iyilestirmesinden ONCE gelir — sira bilerek boyle.)
 
 **Nerede kaldim (sayiyla):**
-- 🔴 **YAYINI BLOKLAYAN YENI KIRMIZI (kuyruk DEGIL, gercek):** kosum `31203297696` (head `76ca1341`)
-  → job **`serit-a3` `failure`**, dusen adim **60: "Gorsel anahtar + STL bbox kabul testi"**
-  (`gorsel-anahtar-test.py` + `stl-bbox-binary-test.py`). `serit-a3` `deploy: needs`'te → bu zincir
-  yayina INMEZ. Ayni iki betik **yerelde main'de rc=0 / rc=0** (ikisi de yesil) → yerel-CI ASIMETRISI;
-  teshise "hangi iddia yalniz kosucuda kiriliyor" ekseninden BASLA (test ag/dosya-duzeni okuyorsa
-  ortam farki, kod farki degil). Kirmizi `bb804c24` (serit-a3 success) ile `76ca1341` ARASINDA dogdu.
-  Log run bitmeden okunamadi; ilk is `gh run view 31203297696 --log-failed`.
+- ✅ **KOK NEDEN BULUNDU (7 Agu ~20:00Z nobeti, LOGDAN):** `serit-a3` adim 60'in patlama sebebi
+  `tools/cgt-ekle.py:26` → `ROOT = "<sabit yerel mutlak yol>"`. Modul **import aninda** o kokten
+  `tools/r2_anahtar.py` yukluyor; kosucuda agac baska yolda oldugu icin `FileNotFoundError`.
+  Okan'in makinesinde yol TESADUFEN dogru → yerelde rc=0. Asimetrinin sinifi: **ortam-bagimli
+  sabit mutlak yol**, kod farki degil. Onarim: kok `__file__`'dan turetiliyor.
+  Main'e giren iki commit: `d3fbc1e5` (cgt-ekle.py; ayirt edici probe + kontrol mutanti ile
+  kirmizi-yesil kaniti commit mesajinda) · `ab1800d6` (ayni siniftan **4 dosya daha**).
+  Maruziyet olculdu: KUME-1 (repo-ici kok turetimi) **5 dosya** = onarildi · KUME-2 (kasten sabit
+  yol / veri duzlemi / kilit-kanca-yedek araclari) **132 satir** = BILEREK dokunulmadi (naif
+  `__file__` yamasi orada baska bir sessiz-hata sinifini yeniden acardi).
+- 🔴 **ONARIM CI'DA HENUZ DOGRULANMADI — "yesil" YAZMA.** Onarimi tasiyan kosum `31214768865`
+  tur kapanirken `pending` (0 job basladi); onundeki `31209586759` (head `8dc954e0`, onarim
+  ONCESI) hala `in_progress` ve tavani `serit-a4` (~52 dk) koyuyor. Yerel kanit VAR, CI kaniti YOK.
 - Yayin HALA acilmadi: son basarili `Build & deploy` **`31198525055`** (head `bb804c24`, 17:53:02Z).
   `git merge-base --is-ancestor b8ab7091 bb804c24` **rc=1** → r2-onek onarimi canliya INMEDI.
   Ucusta olan `31203297696` (head `76ca1341`, `in_progress`) onarimi ICERIYOR (rc=0); ardindan
@@ -34,6 +41,15 @@ sayfa agirligi ve model sayfalarinin getirdigi arama trafigi OLCULSUN.
   kalma **3 bayat kalem** duruyor (Temmuz tarihli). Bugunku kosum onlari YAZMIYOR ama SILMIYOR da,
   hedef ise **ortak** bir surucu → **erisim cevresi OLCULMELI**, yenileme karari Okan'in.
   Kalemlerin dokumu `DEVAM-ARSIV.md`de (git disi).
+
+- 📬 **Nobet mail supurmesi (Okan'in kosulsuz emri):** taşinan **2** mail, tur sonu gelen kutusunda
+  kalan "Run failed" **0** (birlesik `inbox`, alt kutulara girilmedi, Cop bosaltilmadi).
+- ⚠️ **Ayri sinif, yayini BLOKLAMAZ (devralinacak):** bir veri-senkron alarm kolu `failure`
+  (kosum `31214568441`, job `uzlastir`; dusen iki adim "sapma gorunurlugu" + "ONARILAMADI: sapma
+  KAPANMADI"). Taze katalog partisinden dogmus olabilir; kok neden OLCULMEDI. Bu kol `deploy`
+  zincirinde DEGIL — ama kapanmazsa botun gordugu katalog bayat kalir.
+- 🔴 **Codex KOTASI DOLU:** `codex exec` bu turda "usage limit" ile reddetti, **8 Agu 10:19**'a
+  kadar kapali → is Claude iscisine dustu. Sonraki turlarda kat secimi buna gore yapilsin.
 
 **Acik worktree/dal (4 worktree + main; KraL bu turda YENI worktree ACMADI):**
 - `agent-ad8653d553f9bde31` → `muh/marka-bolum-kimligi` (`9a716873`, uzakta, main'de DEGIL, 1 onde).
