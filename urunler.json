@@ -1,5 +1,60 @@
 [
   {
+    "id": "yamaha-yzf750r-radyator-fan-svic-konnektoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "YZF750R"
+    ],
+    "baslik": "Yamaha YZF750R Radyatör Fan Şalteri Konnektörü",
+    "aciklama": "Yamaha YZF750R'de radyatör fan şalterine geçen elektrik konnektörünün muadilidir. Orijinali yıllar içinde ısı ve güneş etkisiyle kırılganlaşıp dağılan bu parçayı birebir yerine koyar.\n• Orijinal pinler sökülüp bu gövdeye takılabilir; kablo demeti kesilmeden onarım yapılır\n• İki gözlü yuvası ve kilit tırnağı orijinal geometriyi izler, şaltere oturduğunda yerinde tutar\n• Motor bölmesinde sıcağa ve titreşime maruz kaldığı için ısıya dayanıklı malzeme tercih edilmelidir\n• Tek parçadan oluşur, ek bağlantı elemanı gerektirmez",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d1994-yamaha-yzf750r-radiator-fan-switch-connector-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3d1994-yamaha-yzf750r-radiator-fan-switch-connector-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Monsterbishi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-aerox-phbg-karburator-hava-kutusu-mansonu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Aerox"
+    ],
+    "baslik": "Yamaha Aerox PHBG Karbüratör Hava Kutusu Manşonu",
+    "aciklama": "Yamaha Aerox ve aynı gövdeyi paylaşan scooterlarda hava kutusu ile PHBG karbüratör arasındaki bağlantı manşonudur. Yaşlanıp çatlayan, kaçak yapmaya başlayan orijinal kauçuk manşonun yerini alır.\n• Esnek gövde karbüratör ağzına sıkıca oturur, emiş kaçağını keser\n• İçine giren sert venturi göbeği ayrı üretilir; farklı kesitler için üç seçenek sunulur\n• İki parça vidayla birleştirilir; sökülüp temizlenebilir, göbek tek başına değiştirilebilir\n• Gövdenin esnek, göbeğin sert malzemeden üretilmesi çalışma için şarttır",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmanchon-boite-air-aprilia-rally-mbk-nitro-ovetto-yamaha-aerox-pour-carbu-phbg-20syl44-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "20syl44",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-virago-xv1000-selenoid-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha",
+      "Virago"
+    ],
+    "baslik": "Yamaha Virago XV1000 Selenoid Kapağı",
+    "aciklama": "Yamaha Virago XV1000'de marş selenoidini örten koruma kapağıdır. Aynı gövdeyi paylaşan XV750 ve XV1100 modellerinde de kullanılabilir.\n• Selenoidi üstten ve yanlardan kapatır, kablo uçlarını yol kirine ve suya karşı gölgeler\n• İki yanındaki kulakçıklar mevcut bağlantı noktalarına oturur, yeni delik açmayı gerektirmez\n• Yan yüzündeki açıklık kablo çıkışına yer bırakır, ısının birikmesini de engeller\n• Motora yakın bir noktada durduğu için ısıya dayanıklı malzeme tercih edilmelidir",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvirago-xv1000-solenoid-cover-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "syms",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "yamaha-xs750s-hava-filtresi-dirsegi",
     "kategori": "Motosiklet",
     "marka": [
