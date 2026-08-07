@@ -1092,6 +1092,9 @@ _MM_CSS = """
     font-weight:700;font-size:15px;text-decoration:none;border-radius:10px;padding:11px 20px}
   .mm-wa:hover{background:#1fb959}
   .mm-sec-h{font-size:16px;color:var(--navy);margin:26px 0 4px}
+  /* Sayfanın KANONİK toplamı (kart + model kovası TEKİL birleşimi; kapsam varken JS düşürür) */
+  .mm-toplam{margin:0 0 10px;font-size:14px;color:var(--gray-text)}
+  .mm-toplam .mm-sayim-toplam{font-weight:700;color:var(--navy)}
   /* KAPSAM şeridi (?kategori=<Kategori> ile gelindiğinde JS açar; kanonik/parametresiz
      sayfada display:none kalır → crawler tam koleksiyonu görür, SEO regresyonu yok). */
   .mm-kapsam{margin:0 0 14px;padding:10px 14px;border:1px solid var(--gray-line);
@@ -1168,6 +1171,22 @@ _KAPSAM_JS_GOVDE = r"""
     if(!c.gecerli){ return 0; }
     return tablo[c.kategori] || 0;
   }
+  // SAYFANIN KANONİK TOPLAMI (7 Ağu — Okan'ın bildirdiği "eksik görünüyor" kusuru).
+  // 🔴 BİRİM: ekrandaki "N parça" sayısı KART SAYISI DEĞİLDİR. Marka sayfasında ürünlerin
+  // bir kısmı yalnızca MODEL BUTONLARININ ARDINDADIR; kart saymak ölçülen bir sayfada 201
+  // yazdırıyordu, sayfadan ulaşılabilen gerçek küme 330'du. "kart + Σ buton" da yanlış:
+  // iki küme ÇAKIŞIR (o sayfada 40 ürün ikisinde de; naif toplam 373). Doğru sayı SSR'de
+  // tek Python fonksiyonundan (sayfa_kalemleri) türeyen TEKİL kategori kırılımıdır ve
+  // buradan AYNI sayimla() ile okunur — ikinci bir sayma kuralı yok.
+  // FAIL-CLOSED: kırılım yoksa/tekil değilse null döner (yanlış sayı basmaktansa sayı basma).
+  function toplamla(dok, c){
+    var el = dok.querySelectorAll(".mm-toplam[data-katsay]");
+    if(!el || el.length !== 1){ return null; }
+    var ham = el[0].getAttribute("data-katsay");
+    if(!ham){ return null; }
+    try{ if(!JSON.parse(ham)){ return null; } }catch(e){ return null; }
+    return sayimla(ham, c);
+  }
   // Kapsamı bir sonraki adıma taşıyan sorgu dizesi (geçersiz kapsam TAŞINMAZ).
   function sorgu(c){
     if(!c || !c.aktif || !c.gecerli){ return ""; }
@@ -1209,8 +1228,13 @@ _KAPSAM_JS_GOVDE = r"""
       var ht = tasi[i].getAttribute("href");
       if(ht && ht.indexOf("?") === -1){ tasi[i].setAttribute("href", ht + sorgu(c)); }
     }
+    // KANONİK TOPLAM. Tutarlılık kapısı: toplam görünen karttan KÜÇÜK olamaz (kartlar
+    // toplamın alt kümesidir) — ihlal = kırılım bayat/bozuk demektir, sayı BASILMAZ.
+    var toplam = toplamla(dok, c);
+    if(toplam !== null && toplam < gorunenKart){ toplam = null; }
     yazSayim(dok, ".mm-sayim-kart", gorunenKart);
     yazSayim(dok, ".mm-sayim-model", gorunenModel);
+    yazSayim(dok, ".mm-sayim-toplam", toplam === null ? "—" : toplam);
 
     // GÖRÜNÜR kapsam şeridi + kapsamı KALDIRMA yolu (kanonik, parametresiz adres).
     // Metin textContent ile yazılır (innerHTML YOK) -> URL'den gelen değer kod olamaz.
@@ -1219,7 +1243,8 @@ _KAPSAM_JS_GOVDE = r"""
     var metin = dok.getElementById("kapsamNotMetin");
     if(metin){
       metin.textContent = c.gecerli
-        ? ("Kapsam: yalnız " + c.kategori + " kategorisi — " + gorunenKart + " parça")
+        ? ("Kapsam: yalnız " + c.kategori + " kategorisi — " +
+           (toplam === null ? "parça sayısı ölçülemedi" : (toplam + " parça")))
         : ("Geçersiz kapsam: “" + c.kategori + "” bir kategori değil — " +
            "sonuç gösterilmiyor.");
     }
@@ -1230,7 +1255,7 @@ _KAPSAM_JS_GOVDE = r"""
     return c;
   }
   g.PRUVO_KAPSAM = {coz: coz, gorunur: gorunur, sayimla: sayimla, sorgu: sorgu,
-                    uygula: uygula, KATEGORILER: KATEGORILER};
+                    toplamla: toplamla, uygula: uygula, KATEGORILER: KATEGORILER};
 })(typeof window !== "undefined" ? window : globalThis);
 """
 
@@ -1624,6 +1649,51 @@ def _kat_sayim_json(urunler):
                       ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
 
+def _tekil(*kaynaklar):
+    """id bazında TEKİLLEŞTİRİLMİŞ ürün listesi — İLK GÖRÜLEN KALIR (sıra BOZULMAZ).
+
+    🔴 NEDEN VAR (7 Ağu, ölçüldü): marka sayfasının kart birleşimi
+    (`kucuk_urunler + marka_only + ikincil`) tekilleştirilmiyordu; FAZ 3 (başlık kolu)
+    `marka_only`'deki bir ürünü eşik-altı bir model kovasına da soktuğunda ürün AYNI
+    sayfaya İKİ KEZ basılıyordu (31 marka sayfasında 282 fazla kart). Sıra korunur:
+    kart dizilimi = katalog sırası, tekilleştirme onu yeniden dizmez."""
+    out, gorulen = [], set()
+    for kaynak in kaynaklar:
+        for p in kaynak or ():
+            anahtar = p.get("id") or ("#obj:%d" % id(p))
+            if anahtar in gorulen:
+                continue
+            gorulen.add(anahtar)
+            out.append(p)
+    return out
+
+
+def sayfa_kalemleri(kart_urunleri, kova_listeleri=()):
+    """Bir marka/model sayfasından ULAŞILABİLİR TEKİL ürünler — SAYACIN TEK KAYNAĞI.
+
+    🔴 SAYAÇ BİRİMİ (7 Ağu, Okan'ın bildirdiği kusur): ekrandaki "N parça" sayısı
+    KART SAYISI DEĞİLDİR. Marka sayfasında ürünlerin bir kısmı kart olarak basılır
+    (`diger`), bir kısmı yalnızca model butonlarının ARDINDADIR. Ölçülen bir sayfa 202 kart
+    basarken sayfadan ulaşılabilen gerçek küme 330 kalemdi; şerit "201 parça" yazıyordu.
+    "kart + Σ buton" da YANLIŞTIR: kart kümesi ile kova kümesi ÇAKIŞIR (aynı sayfada 40 ürün
+    hem kart hem kovada; naif toplam 373 verir). Doğru birim TEKİL BİRLEŞİMDİR.
+
+    Bu fonksiyon o birleşimi üretir; sayfa metni, meta açıklaması ve istemcideki kapsam
+    şeridi AYNI bu listeden türer (`_kat_sayim_json` ile kategori kırılımı olarak gömülür).
+    İkinci bir toplama formülü YAZILMAZ → [[ikiz-tanim-sessiz-ayrisma]]."""
+    return _tekil(kart_urunleri, *list(kova_listeleri))
+
+
+def _toplam_bloku(esc, kalemler, oncul):
+    """Sayfanın KANONİK toplamı: görünür cümle + istemcinin okuyacağı kategori kırılımı.
+
+    `data-katsay` ADI BİLEREK model butonlarıyla AYNI: istemci tarafında da AYNI
+    `sayimla()` fonksiyonu okur (tek sayma kuralı, iki ayrı okuyucu yok)."""
+    return ('<p class="mm-toplam" data-katsay="%s">%s <span class="mm-sayim-toplam">%d</span> '
+            '%s</p>' % (esc(_kat_sayim_json(kalemler)), esc(oncul), len(kalemler),
+                        esc("parça listeleniyor.")))
+
+
 def _urun_grid(ctx, urunler):
     parts = [_kart(ctx, p) for p in urunler if p.get("id")]
     if not parts:
@@ -1701,7 +1771,15 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
                       "WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına önceden iletirseniz "
                       "ön teyit veririz.")
 
-    n = len(g["urunler"])
+    # Model sayfasının KANONİK toplamı: ana liste + kuşak bölümleri, TEKİL (model butonu yok).
+    # Marka sayfasıyla AYNI fonksiyon — sayaç birimi iki sayfa türünde ayrışmasın.
+    _kalemler = sayfa_kalemleri(g.get("ana", g["urunler"]),
+                                [b["urunler"] for b in g.get("kusak_bolum", [])])
+    if len(_kalemler) != len(_tekil(g["urunler"])):
+        raise SystemExit("HATA: model sayfası toplamı ayrıştı — %s %s: sayfadan ulaşılabilen "
+                         "%d kalem, kova tekil %d (sayaç birimi bozuk)."
+                         % (marka, display, len(_kalemler), len(_tekil(g["urunler"]))))
+    n = len(_kalemler)
     description = (marka + " " + display + " için bulunamayan ya da kırılan plastik yedek "
                   "parçaları numunenizden ölçüye özel üretiyoruz. " + str(n) + " parça "
                   "listeleniyor; bulamadığınızı WhatsApp'tan üretelim.")
@@ -1729,6 +1807,7 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
             + '<p class="lead">' + esc(giris) + '</p>'
             + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
+            + _toplam_bloku(esc, _kalemler, "Bu sayfada")
             + '<h2 class="mm-sec-h">' + esc(display) + ' parçaları ('
             + '<span class="mm-sayim-kart">' + str(len(ana)) + '</span>)</h2>'
             + _urun_grid(ctx, ana)
@@ -1761,7 +1840,19 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     url = SITE + "/marka/" + marka_slug + "/"
 
     h1 = marka + " Yedek Parça — Ölçüye Özel Üretim"
-    toplam = marka_urun_sayisi(d)
+    # diğer parçalar: <ESIK modeller + yalnız-marka + İKİNCİL (çok markalı uyumluluk) ürünler.
+    # İkincil = marka[0]'ı başka marka olan ama marka[] dizisinde bu markayı da taşıyan ürün;
+    # index.html marka filtresi onu zaten bu markada gösteriyor -> sayfa da göstermeli.
+    # 🔴 TEKİLLEŞTİRİLİR: üç kol çakışabiliyor (bkz. _tekil) — çakışma 282 mükerrer karttı.
+    diger = _tekil(kucuk_urunler, d["marka_only"], d.get("ikincil", []))
+    kalemler = sayfa_kalemleri(diger, [g["urunler"] for g in buyuk_gruplar])
+    toplam = len(kalemler)
+    # FAIL-CLOSED İKİZ KONTROLÜ: sayfadan ulaşılabilen küme ile marka kovasının kanonik
+    # sayısı AYRIŞAMAZ. Ayrışırsa sayfa yanlış sayı basar ve kimse GÖRMEZ -> build durur.
+    if toplam != marka_urun_sayisi(d):
+        raise SystemExit("HATA: marka sayfası toplamı ayrıştı — %s: sayfadan ulaşılabilen "
+                         "%d kalem, kova kanonik %d (sayaç birimi bozuk)."
+                         % (marka, toplam, marka_urun_sayisi(d)))
     giris = _MARKA_GIRIS.get(marka, (
         marka + " için kırılan ya da artık bulunamayan plastik parçaları modele göre ölçüye "
         "özel üretiyoruz. Modelinizi seçin; klips, kapak, tutamak, dişli, braket ve bağlantı "
@@ -1786,10 +1877,6 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                        esc(g["display"]), len(g["urunler"])))
     model_html = '<div class="mm-models">' + "".join(btns) + "</div>" if btns else ""
 
-    # diğer parçalar: <ESIK modeller + yalnız-marka + İKİNCİL (çok markalı uyumluluk) ürünler.
-    # İkincil = marka[0]'ı başka marka olan ama marka[] dizisinde bu markayı da taşıyan ürün;
-    # index.html marka filtresi onu zaten bu markada gösteriyor -> sayfa da göstermeli.
-    diger = list(kucuk_urunler) + list(d["marka_only"]) + list(d.get("ikincil", []))
     diger_html = ""
     if diger:
         diger_html = ('<h2 class="mm-sec-h">Diğer ' + esc(marka)
@@ -1812,6 +1899,7 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
             + '<p class="lead">' + esc(giris) + '</p>'
             + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
+            + _toplam_bloku(esc, kalemler, "Bu markada")
             + ('<h2 class="mm-sec-h">Modele göre seçin (<span class="mm-sayim-model">'
                + str(len(btns)) + '</span>)</h2>' if btns else "")
             + model_html

@@ -1278,6 +1278,22 @@ jobs:
       - name: Marka kapsam kabul testi (marka x kategori + fail-closed)
         run: python3 tools/marka-kapsam-test.py
 
+      # MARKA SAYFASI SAYAC BIRIMI + MUKERRER KART (7 Agu, Okan bildirdi — SESSIZ kusur).
+      # Sayac YALNIZ `.card` dugumlerini sayiyordu, model kovalarinin ARDINDAKI parcalari
+      # saymiyordu: sayfa "201 parca" derken ulasilabilen tekil kume 330'du (40 marka
+      # sayfasi sapiyordu, 9.378 kalem gizli). Ayrica kart birlesimi tekillestirilmiyordu
+      # (31 sayfada 282 mukerrer kart). Ekranda hata GORUNMEZ; musteri katalogu eksik sanir.
+      # 🔴 NEDEN SERIT A (BLOKLAYICI, `serit-a3` -> `deploy: needs`): kapi TAMAMEN YEREL ve
+      # DETERMINISTIK — OLCULDU, beyan degil: kaynakta urllib/requests/socket/http YOK,
+      # kardes depo yolu YOK, canli siteye istek YOK; girdi yalniz bu depodaki
+      # urunler.json + index.html, sayfalar GECICI dizine uretilir, kapsam JS'i node'da
+      # KOSAR (setup-node bu seritte bloklayici on-kosul; node yoksa FAIL-CLOSED).
+      # Elle tutulan envanter/allow listesi YOK -> urun partileri kapiyi BAYATLATMAZ
+      # ([[envanter-drift-parti-basina]] sinifina girmez). continue-on-error YOK.
+      # 1022 marka/model adresinin TAMAMINI olcer (ornekleme yok), yerelde ~35 s.
+      - name: Marka sayac kapisi (sayac birimi + mukerrer kart)
+        run: python3 tools/marka-sayac-kapisi.py
+
       # MARKA CIP TAVANI (index.html MARKA_LIMIT) — R_NODE muafiyet sinifindan cikarildi
       # (30 Tem): gerekce "CI build job'u Python-only (setup-node yok)" diyordu, oysa
       # setup-node BLOKLAYICI on-kosul olarak VAR. NE KORUR: ana sayfadaki marka cipi
