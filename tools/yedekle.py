@@ -204,11 +204,17 @@ EK_EVLER = {
     # Bunlarin ezici cogunlugu platformlardan INDIRILMIS gorsel/STL (yeniden
     # indirilebilir), kalici bilgi DEGIL. Kalici olan, elle yazilmis olcum/ayiklama
     # betikleri ve tablolar: onlar uzantiyla alinir.
+    # 🔴 KOK DEFTERLERI ADSIZ GLOB (7 Agu 2026): burada eskiden 3 kok .md dosyasi
+    # TEK TEK adiyla yaziliyordu. Iki olculmus kusur:
+    #   (1) GIZLILIK — depo PUBLIC; o adlar 5 ucuncu-taraf pazaryeri etiketi tasiyordu,
+    #       yani hangi kanallardan calisildigini yayina veriyordu (ticari bilgi).
+    #   (2) DRIFT — elle yazilmis liste bayatliyor: 7 Agu olcumunde 3 adin 1'i evde
+    #       ARTIK YOK, buna karsilik ayni bicimde 4 ad kapsam DISINDA duruyordu.
+    # Glob ikisini birden kapatir: ad yayina girmez, yeni defter kendiliginden kapsanir.
     "pruvo-hasat": (".claude", "AGENTS.md",
                     "olcum/*.py", "olcum/*.md", "olcum/*.json", "olcum/*.tsv",
                     "kalibrasyon/*.tsv", "kalibrasyon/*.py", "kalibrasyon/*.md",
-                    "DEVAM-FAB365-3DEXPORT-MARIN.md", "DEVAM-GUMROAD-ETSY-MARIN.md",
-                    "DEVAM-PATREON-DIGER-MARIN.md"),
+                    "DEVAM-*.md"),
     "pruvo-jenerator": (".claude", ".codex", "AGENTS.md", "ciktilar", "kalibrasyon",
                         "referans", "dogrulama/hacim.js"),
     "pruvo-advisor": (".claude", "AGENTS.md"),
@@ -257,8 +263,17 @@ SIR_KOKENI = {
                   "shop worker'in yerel gelistirme kosumu calismaz"),
     "secrets.local.txt": ("Cloudflare Workers secret'lari (wrangler secret put)",
                           "Ege (bot) worker'i yerelde kosmaz"),
-    ".patreon-session-cookie": ("Patreon'a tarayicidan yeniden giris",
-                                "Patreon hasadi durur"),
+    # 🔴 ADSIZ KALEM (7 Agu 2026): burada eskiden ucuncu-taraf platformun ADI
+    # geciyordu; depo PUBLIC ve o ad hangi kanaldan calisildigini yayina verir.
+    # Anahtar HICBIR YERDE gercek dosyayla ESLESTIRILMEZ — SIR_KOKENI'nin tek
+    # okuyucusu _geri_kazanim_metni(), yani salt METIN uretimi (yol cozme,
+    # os.path.exists ya da uyelik testi YOK). GERI KAZANIM KAYBOLMAZ: dosyanin
+    # GERCEK adi ayni raporda, ad deseni ile elenen kalem olarak zaten satirlanir
+    # (ek_ev_plani -> haric -> SIR ENVANTERI); bu tablo ona RECETE ekler.
+    ".<platform>-session-cookie": (
+        "ilgili platforma tarayicidan yeniden giris "
+        "(gercek dosya adi bu raporun eleme satirlarinda)",
+        "o platformun hasadi durur"),
     "auth.json": ("ChatGPT/Codex girisi (codex login)", "Codex isci cagrilari durur"),
 }
 
@@ -535,6 +550,17 @@ def _turetilmis_mi(ad):
     return any(fnmatch.fnmatch(ad, d) for d in EK_TURETILMIS_DESEN)
 
 
+def _kok_desen_tutuyor(ad, desenler):
+    """Kok seviyesi glob eslesmesi — TEK TANIM.
+
+    🔴 NEDEN AYRI FONKSIYON: ayni hukum ek_ev_plani icinde IKI yerde gerekiyor —
+    (a) dosyayi kapsama ALIRKEN, (b) KAPSAM-DISI kesfinde ayni dosyayi TEKRAR
+    raporlamamak icin. Iki yerde ayri ayri yazilsaydi ikiz tanim sessizce
+    ayrisirdi: biri genisleyip digeri genislemeyince ayni dosya hem yedege girer
+    hem "alinmadi" diye raporlanir, ya da tam tersi sessiz bosluk kalirdi."""
+    return any(fnmatch.fnmatch(ad, d) for d in desenler)
+
+
 def _kanca_kapsamda_mi(ad):
     """`.git/hooks` altindaki bir dosya yedek KAPSAMINDA mi? (TEK tanim)
 
@@ -601,11 +627,26 @@ def ek_ev_plani(ev, izlenenler=None):
                 _dosya_ekle(gor, gor)
 
     glob_gruplari = []        # [(taban, [desen, ...])] — ilk gorulme sirasi korunur
+    kok_desenleri = []        # "/" TASIMAYAN glob'lar: yalniz evin KOKUNDE eslesir
     for giris in izin:
         # GLOB DESTEGI: "olcum/*.py" gibi girisler agir dizinleri UZANTIYLA daraltir.
         # Olculdu: hasat/olcum'da 13.838 izlenmeyen dosya / 6,06 GB var ve neredeyse
         # tamami YENIDEN INDIRILEBILIR gorsel; kalici olan yalniz elle yazilmis betikler.
         if "*" in giris or "?" in giris:
+            # 🔴 KOK SEVIYESI GLOB AYRI COZULUR (7 Agu 2026): "AD-*.md" gibi, icinde
+            # "/" OLMAYAN desen tek tek yazilmis KOK dosyalarinin yerini tutar ve
+            # os.walk ile cozulMEZ. Iki olculmus sebep:
+            #   (1) MALIYET/KAPSAM: asagidaki taban cozumu "/" yoksa evin KOKUNE duser;
+            #       hasat kokunde 22.173 giris (6,06 GB) var ve bu fonksiyon
+            #       `--gerekliyse` imza yolunda da kosuyor -> her nabizda tum agac
+            #       (olcum/ dahil, hem de IKINCI kez) gezilirdi.
+            #   (2) DOGRULUK: fnmatch "/" karakterini AYIRAC SAYMAZ; "AD-*.md" deseni
+            #       "AD-birdizin/derin/x.md" gibi ALT AGAC dosyalarini da yutardi —
+            #       yerini aldigi kok adlarindan DAHA GENIS bir kume.
+            # listdir cozumu kapsami elle yazilmis kok adlariyla AYNI sinifta tutar.
+            if "/" not in giris:
+                kok_desenleri.append(giris)
+                continue
             onek = giris.split("*")[0].split("?")[0].rstrip("/")
             taban = os.path.join(ev, os.path.dirname(onek) if "/" in onek else onek)
             if not os.path.isdir(taban):
@@ -628,6 +669,23 @@ def ek_ev_plani(ev, izlenenler=None):
 
     for taban, desenler in glob_gruplari:      # agir agac BIR KEZ gezilir
         _dizin_gez(taban, desenler=desenler)
+
+    # KOK SEVIYESI GLOB'LAR — yalniz `ev` kokundeki DOSYALAR (alt agaca INMEZ).
+    # Suzgecler tek tek yazilmis kok girisiyle AYNI: izlenen atlanir (git zaten yedek),
+    # turetilmis/gurultu elenir, symlink ve sir _dosya_ekle icinde `haric`e duser.
+    if kok_desenleri:
+        try:
+            kok_girisleri = sorted(os.listdir(ev))
+        except OSError:
+            kok_girisleri = []
+        for giris in kok_girisleri:
+            if not _kok_desen_tutuyor(giris, kok_desenleri):
+                continue
+            if giris in izlenenler or _turetilmis_mi(giris) or _gurultu_mu(giris):
+                continue
+            if not os.path.isfile(os.path.join(ev, giris)):
+                continue                       # dizin/soket: kok glob'u dosya alir
+            _dosya_ekle(giris, giris)
 
     # .git/hooks — "hook'lar commit EDILMEZ" kurali geregi git'te KOPYASI YOK.
     kancalar = os.path.join(ev, ".git", "hooks")
@@ -667,6 +725,12 @@ def ek_ev_plani(ev, izlenenler=None):
         girisler = []
     for giris in girisler:
         if giris in izin_kok or giris == ".git" or _turetilmis_mi(giris):
+            continue
+        # KOK GLOB'unun ALDIGI DOSYA zaten karara baglandi (dahil ya da sir-disi
+        # `haric`); burada tekrar raporlanirsa envanter/rapor MUKERRER satir alir.
+        # DIZIN eslesirse BILEREK dusmez: kok glob'u dizin gezmez, gorunur bosluk kalir.
+        if (kok_desenleri and _kok_desen_tutuyor(giris, kok_desenleri)
+                and os.path.isfile(os.path.join(ev, giris))):
             continue
         if giris in izlenenler or any(x.startswith(giris + "/") for x in izlenenler):
             continue                            # git'te var -> bosluk DEGIL
