@@ -1,5 +1,641 @@
 [
   {
+    "id": "kia-k5-6-5-inc-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia K5 6.5\" Hoparlör Adaptörü",
+    "aciklama": "Kapı hoparlörünü orijinal küçük çaplı yuvadan 6.5 inç hoparlöre uyarlayan montaj halkasıdır.\n- Kia K5 ve aynı platformu paylaşan Hyundai Sonata kapı hoparlör yuvasına oturur\n- Vida delikleri farklı marka hoparlörlere göre uyarlanabilir\n- Ön ve arka yüzeye conta/sızdırmazlık bandı uygulanması önerilir\n- Kapı içi rutubetten etkilenmeyecek şekilde sağlam bir malzeme tercih edilmelidir\nYaklaşık dış ölçüler: 185 × 185 × 35 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4945298-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4945298-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4945298-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4945298-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xolthrax",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-6-75-inc-hoparlor-montaj-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage 6.75 İnç Hoparlör Montaj Halkası",
+    "aciklama": "2015 model Kia Sportage kapı hoparlörünü 6.75 inç hoparlöre uyarlayan montaj halkasıdır.\n- Kenar tırnakları hoparlörü kapı yuvasına sabitler\n- Vida konumları orijinal yuvaya göre hizalanmıştır\n- Farklı hoparlör modellerinde vida deliklerinin uyarlanması gerekebilir\nYaklaşık dış ölçüler: 193 × 193 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2982959-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2982959-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2982959-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2982959-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonbourg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-far-yikama-fiskiyesi-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage Far Yıkama Fıskiyesi Tapası",
+    "aciklama": "Kullanılmayan far yıkama fıskiyesi deliğini kapatan tapadır.\n- 2016 model Kia Sportage ön tampon üzerindeki fıskiye deliğine oturur\n- Far yıkama sistemi sökülmüş veya iptal edilmiş araçlarda kullanılır\n- Tampon rengine uygun boyanabilir\nYaklaşık dış ölçüler: 90 × 52 × 28 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5747005-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5747005-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5747005-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5747005-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jeefse",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-miknatisli-konsol-organizeri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Rio Mıknatıslı Konsol Organizeri",
+    "aciklama": "2016 model Kia Rio konsoluna monte edilen, küçük eşyaları düzenleyen tutucudur.\n- Mıknatıslı aksesuarlar için mıknatıs yuvaları bulunur\n- Kalem, USB bellek ve bozuk para bölmesi içerir\n- Konsola mevcut vida/klips noktalarından sabitlenir\nYaklaşık dış ölçüler: 145 × 85 × 54 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4034041-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4034041-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4034041-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4034041-4.jpg"
+    ]
+  },
+  {
+    "id": "kia-sportage-kolcak-alti-duzenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage Kolçak Altı Düzenleyici",
+    "aciklama": "Kolçak içindeki boş hacmi değerlendiren düzenleme kutusudur.\n- Gözlük, cüzdan gibi eşyaların dağınık durmasını önler\n- Kolçak boşluğunun ölçüsüne göre tasarlanmıştır\n- Sökülüp takılabilir, aracın orijinal döşemesine kalıcı değişiklik gerektirmez\nYaklaşık dış ölçüler: 177 × 169 × 160 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7000475-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7000475-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7000475-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7000475-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aknclk",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-mk3-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage MK3 Telefon Tutucu (Samsung S23 Ultra)",
+    "aciklama": "CD yuvasının üzerindeki küçük rafa yapıştırılarak kullanılan telefon tutucudur.\n- Samsung Galaxy S23 Ultra ve kılıflı kullanım için tasarlanmıştır\n- Çift taraflı bant ile sabitlenir\n- Farklı telefon modelleri için uyarlanabilir temel tasarım sunar\nYaklaşık dış ölçüler: 175 × 44 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6432564-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6432564-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6432564-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6432564-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AndrzejA",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-yedek-anahtar-kilifi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Yedek Anahtar Kılıfı (KK8)",
+    "aciklama": "Sade görünümlü yedek anahtarı orijinaline benzer hale getiren esnek kılıftır.\n- Anahtar gövdesinin üzerine geçirilerek takılır\n- Anahtar başlığını çizik ve aşınmadan korur\n- 2013 model Kia Forte ve aynı anahtar gövdesini kullanan modellerde denenebilir\nYaklaşık dış ölçüler: 33 × 30 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1778310-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1778310-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1778310-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1778310-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LetsFlyRC",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-buyutulmus-arka-bardaklik-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV6 Büyütülmüş Arka Bardaklık Yuvası",
+    "aciklama": "Arka kolçaktaki bardaklık deliklerini büyüterek geniş çaplı termos ve bardaklara uyum sağlayan değişim parçasıdır.\n- Orijinal bardaklık kaydırağının yerine takılır\n- Ön kenarı yükseltilerek bardağın öne devrilmesini engeller\n- Standart bardaklardan daha geniş çaplı termoslarla uyumludur\nYaklaşık dış ölçüler: 195 × 125 × 15 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6561749-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6561749-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6561749-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6561749-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Musicfan145",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-koltuk-isitma-dugmesi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia EV6 Koltuk Isıtma Düğmesi Kapağı",
+    "aciklama": "Dokunmatik ekranın hemen altındaki koltuk ısıtma/soğutma düğmelerini yanlışlıkla ele değmekten koruyan kapaktır.\n- Düğme sırasının üzerine oturarak yanlış temaslı etkinleşmeyi azaltır\n- Yolcu koltuğu tarafında sürekli kullanılmadığında özellikle işlevlidir\n- Mevcut düğme grubunun üzerine kolayca takılıp çıkarılabilir\nYaklaşık dış ölçüler: 153 × 44 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6360984-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6360984-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6360984-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6360984-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "beta_L_user",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-magsafe-telefon-tutucu-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Niro Magsafe Telefon Tutucu Adaptörü",
+    "aciklama": "Konsol bölgesine monte edilen, mıknatıslı telefon tutucularla uyumlu adaptördür.\n- Üst kısmındaki boşluk sayesinde acil durum düğmesine erişim engellenmez\n- Uyumlu tutucu hafif bir kuvvetle takılıp çıkarılabilir\n- Sıcak iklimlerde dayanıklılığı artırmak için sağlam malzeme tercih edilmesi önerilir\nYaklaşık dış ölçüler: 62 × 60 × 60 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5277068-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5277068-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5277068-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5277068-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rzepa10",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-3-kapi-kilidi-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Rio 3 Kapı Kilidi Parçası",
+    "aciklama": "2011-2015 model Kia Rio (RIO III) kapı kilit mekanizmasındaki aşınan iç parçanın yenisidir.\n- Kilit mekanizmasının orijinal yuvasına oturacak şekilde ölçülendirilmiştir\n- Kapı içi kilit sesi/boşluk şikayetlerinde kullanılır\n- Montaj için kapı iç kaplamasının sökülmesi gerekir\nYaklaşık dış ölçüler: 21 × 14 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5238170-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5238170-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5238170-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5238170-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nikish33745",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-direksiyon-dugmesi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Ceed Direksiyon Simidi Düğme Kapağı",
+    "aciklama": "Direksiyon üzerindeki kumanda düğmelerinin kırılan kapağının yenisidir.\n- Ceed JD ve aynı düğme grubunu kullanan diğer Kia modellerinde kullanılabilir\n- Montaj sonrası eksen deliğinin açılması gerekir\n- Düğme mekanizmasının orijinal yayına oturacak şekilde tasarlanmıştır\nYaklaşık dış ölçüler: 19 × 16 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6539772-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6539772-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6539772-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6539772-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "blackgorunuch",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-cop-kutusu-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Niro Çöp Kutusu Çerçevesi",
+    "aciklama": "Konsol bölgesine asılan poşetli çöp kutusunun tutucu çerçevesidir.\n- Niro ve benzeri konsol yapısına sahip diğer Kia modellerinde kullanılabilir\n- Poşetle kullanılacaksa kapak parçasının da birlikte kullanılması önerilir\n- Kanca ve iç yüzeye keçe ped uygulanması sürtünme sesini azaltır\nYaklaşık dış ölçüler: 124 × 84 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6616024-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6616024-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6616024-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6616024-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mttmi82",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-kolcak-alti-saklama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Niro Kolçak Altı Saklama Kutusu",
+    "aciklama": "Orta kolçağın altındaki derin boşluğun üst kısmına oturan, küçük eşyaları düzenleyen kutudur.\n- 2019-2021 model Kia e-Niro için tasarlanmıştır, diğer Niro modellerinde de uyumlu olabilir\n- Bölmeli iç yapısı kalem, kart gibi eşyaların dağılmasını önler\n- Boşluğa oturacak şekilde ölçülendirilmiştir\nYaklaşık dış ölçüler: 161 × 159 × 58 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5408083-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5408083-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5408083-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5408083-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "babr",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-spectra-arka-tampon-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Spectra Arka Tampon Klipsi",
+    "aciklama": "Arka tampon iç kaplamasını gövdeye sabitleyen kayar klipstir.\n- Kia Spectra ve aynı klips ölçüsünü kullanan diğer Kia/Mazda modellerinde kullanılabilir\n- Kırılan orijinal klipsin yerine doğrudan takılır\n- Ek vida veya yapıştırıcı gerektirmez\nYaklaşık dış ölçüler: 28 × 20 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3953375-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3953375-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3953375-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3953375-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sd-worm",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-eniro-kolcak-alti-iki-parcali-organizer",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia e-Niro Kolçak Altı İki Parçalı Organizer",
+    "aciklama": "Kolçak altındaki boşluğu değerlendiren, alt ve üst parçadan oluşan düzenleyicidir.\n- 2019-2022 model yılı Kia Niro'larda kullanılabilir\n- Üst parça serbest durur, kolayca çıkarılıp temizlenebilir\n- Üst bölme kart, alt bölme bozuk para gibi küçük eşyalar için uygundur\nYaklaşık dış ölçüler: 151 × 141 × 45 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6445748-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6445748-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6445748-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6445748-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Higfoan4",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-spectra-1-6-sensor-montaj-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Spectra 1.6 Sensör Montaj Yuvası",
+    "aciklama": "Motor bölmesindeki sensörü sabitleyen montaj yuvasıdır.\n- 1.6 litre motorlu Kia Spectra modellerinde kullanılır\n- Orijinal sensör tutucusunun kırılması durumunda yenisi olarak kullanılabilir\n- Sensörün doğru açıda sabit kalmasını sağlar\nYaklaşık dış ölçüler: 26 × 22 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3684170-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3684170-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3684170-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3684170-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sergey34nov",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-far-arka-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Ceed Far Arka Kapağı",
+    "aciklama": "2008 model Kia Ceed farının ampul erişim ağzını kapatan arka kapaktır.\n- Kırılan orijinal kapağın yerine takılır\n- Orijinal lastik conta ile birlikte kullanılmalıdır\n- Far gövdesine çevirmeli tırnak yapısıyla oturur\nYaklaşık dış ölçüler: 73 × 73 × 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6298020-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6298020-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6298020-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6298020-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zlatomir",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-telefon-tutucu-top-baglantisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Niro Telefon Tutucu Top Bağlantısı",
+    "aciklama": "Telefon tutucu kolunu havalandırma menfezine minimum müdahaleyle bağlayan top uçlu adaptördür.\n- 2016-2019 model Kia Niro sol direksiyon araçlarında kullanılır\n- Standart top-mafsal telefon tutucularıyla uyumludur\n- Havalandırma akışını mümkün olduğunca az engelleyecek şekilde tasarlanmıştır\nYaklaşık dış ölçüler: 22 × 17 × 17 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5356632-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5356632-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5356632-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5356632-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "satalog",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-tiz-hoparlor-montaj-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sorento Tiz Hoparlör Montaj Yuvası",
+    "aciklama": "Yan ayna üçgeninde bulunan orijinal tiz hoparlör yuvasına harici tiz hoparlör uyarlayan montaj parçasıdır.\n- 2016-2019 model Kia Sorento'da kullanılır\n- Polk Audio DB 6502 serisi tiz hoparlörlerle uyumludur\n- Orijinal yuvaya ek parça takmadan doğrudan oturur\nYaklaşık dış ölçüler: 78 × 44 × 23 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3695336-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3695336-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3695336-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3695336-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jhkim41314",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-2-bagaj-cami-tutamak-grubu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage Bagaj Camı Tutamak Grubu",
+    "aciklama": "Bagaj camının açılmasını sağlayan tutamak grubu parçasıdır.\n- Kia Sportage II (KM) modelinde kullanılır\n- Orijinal parça numarası 81790-2E010 ile uyumludur\n- Kırılan orijinal tutamağın yerine takılır\nYaklaşık dış ölçüler: 81 × 44 × 32 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5543853-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5543853-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5543853-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5543853-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "duylab",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-spectra-kaput-tutucu-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Spectra Kaput Tutucu Klips",
+    "aciklama": "Kaput altı kapak/izolasyon panelini sabitleyen tutucu klipstir.\n- Kia Spectra modelinde kullanılır\n- Kırılan orijinal klipsin doğrudan yerine takılır\n- Ek bağlantı elemanı gerektirmez\nYaklaşık dış ölçüler: 16 × 16 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5348257-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5348257-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5348257-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5348257-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "packer97",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-eniro-akilli-anahtar-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia e-Niro Akıllı Anahtar Kapağı",
+    "aciklama": "Akıllı anahtarın üst yüzeyini çizik ve aşınmadan koruyan kapaktır.\n- Kia e-Niro akıllı anahtar gövdesine oturacak şekilde ölçülendirilmiştir\n- Anahtar tuşlarına erişimi engellemez\n- Kolayca takılıp çıkarılabilir\nYaklaşık dış ölçüler: 76 × 46 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3609308-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3609308-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3609308-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3609308-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wyts",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-2007-gunluk-stoperi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage 2007 Güneşlik Stoperi",
+    "aciklama": "Zamanla gerginliğini kaybedip aşağı düşen güneşliği sabit tutan destek parçasıdır.\n- 2007 model Kia Sportage güneşlik koluna takılır\n- Ek metal bağlantı elemanıyla güçlendirme seçeneği içerir\n- Güneşliğin istenen açıda sabit kalmasını sağlar\nYaklaşık dış ölçüler: 93 × 31 × 30 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5398684-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5398684-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5398684-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5398684-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RaduMe",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-bagaj-acma-dugmesi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Rio Bagaj Açma Düğmesi Kapağı",
+    "aciklama": "Zamanla yıpranan lastik bagaj açma düğmesinin yerini alan koruyucu kapaktır.\n- Mikro şalterin dış etkenlerden korunmasını sağlar\n- İnce kenar yapısı sayesinde düğmeye basma hissini korur\n- Mevcut yuvaya yapıştırılarak sabitlenir\nYaklaşık dış ölçüler: 47 × 21 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3983053-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3983053-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3983053-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3983053-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stuweo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-cok-amacli-montaj-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Rio Çok Amaçlı Montaj Aparatı",
+    "aciklama": "Kia Rio MK2 (2005-2011) modelleri için özelleştirilebilir montaj aparatıdır.\n- Farklı aksesuarların araca sabitlenmesinde temel parça olarak kullanılabilir\n- 2005-2011 model yılları arasındaki Rio'larda uyumludur\n- İhtiyaca göre uyarlanabilir sade bir tasarımdır\nYaklaşık dış ölçüler: 76 × 71 × 28 mm.",
+    "fiyat": "320 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4679736-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4679736-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4679736-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4679736-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fixfel",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-sl-hoparlor-montaj-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sportage SL Hoparlör Montaj Halkası",
+    "aciklama": "Kapı hoparlörünü standart 6.5 inç hoparlöre uyarlayan montaj halkasıdır.\n- 2011-2014 model Kia Sportage SL için özelleştirilmiştir\n- Vida delikleri orijinal kapı yuvasına göre hizalanmıştır\n- Farklı hoparlör markalarında delik uyarlaması gerekebilir\nYaklaşık dış ölçüler: 192 × 192 × 36 mm.",
+    "fiyat": "420 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3914016-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3914016-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3914016-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3914016-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xXxLeVIaFaNxXx",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-3-bagaj-ortusu-tutturma-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Rio 3 Bagaj Örtüsü Tutturma Klipsi",
+    "aciklama": "Bagaj örtüsünü gövdeye bağlayan tutturma klipsidir.\n- Kia Rio 3 hatchback modelinde kullanılır\n- Orijinal parçayla aynı montaj noktalarını kullanır\n- Kırılan orijinal klipsin doğrudan yerine geçer\nYaklaşık dış ölçüler: 45 × 25 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6125735-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6125735-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6125735-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6125735-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "murikt",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-tavan-rayi-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Ceed Tavan Rayı Tapası",
+    "aciklama": "Kullanılmayan tavan rayı deliklerini kapatan tapadır.\n- Kia Ceed SW ve benzeri ray yapısına sahip modellerde kullanılabilir\n- Ray sökülmüş araçlarda açıkta kalan delikleri kapatır\n- Ters yönde monte edilmesi önerilir\nYaklaşık dış ölçüler: 37 × 26 × 24 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5030317-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5030317-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5030317-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5030317-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GunbleR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-k5-gt-line-konsol-bozuk-para-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia K5 GT-Line Konsol Bozuk Para Kutusu",
+    "aciklama": "Orta konsolda bozuk para koymak için boş alan olmayan araçlara yönelik saklama kutusudur.\n- 2021 model Kia K5 GT-Line konsol boşluğuna oturacak şekilde tasarlanmıştır\n- Yamuk (trapez) gövde yapısı konsol köşesine uyum sağlar\n- Bardaklık veya konsol boşluğuna yerleştirilerek kullanılır\nYaklaşık dış ölçüler: 152 × 76 × 76 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4706025-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4706025-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4706025-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4706025-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "acamarda1103",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-hava-aktuatoru-disli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Sorento Hava Aktüatörü Dişlisi",
+    "aciklama": "Havalandırma yönlendirme aktüatörü içindeki aşınan dişlinin yenisidir.\n- 12/32 diş oranıyla orijinal dişliyle aynı ölçüdedir\n- Kia Sorento hava yönlendirme aktüatör grubunda kullanılan tipte dişliyle uyumludur\n- Mil çapı orijinal aktüatör miline göre ölçülendirilmiştir\nYaklaşık dış ölçüler: 20 × 20 × 14 mm.",
+    "fiyat": "280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6451164-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6451164-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6451164-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6451164-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nejkomesh",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-optima-arka-hoparlor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Optima Arka Hoparlör Braketi",
+    "aciklama": "Arka kapı hoparlörünü standart 6.5 inç hoparlöre uyarlayan montaj braketidir.\n- 2011 model Kia Optima arka kapı hoparlör değişiminde kullanılır\n- Orijinal hoparlörle birlikte gelen sünger contanın yeniden kullanılmasına uygundur\n- Kablo geçişi için kapı içi montaj kutusunda küçük bir yuva açılması gerekebilir\nYaklaşık dış ölçüler: 178 × 178 × 8 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2533181-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2533181-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2533181-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2533181-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MakeCents",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "kia-far-arka-toz-kapagi",
     "kategori": "Otomobil",
     "marka": [
