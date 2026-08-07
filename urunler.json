@@ -1,5 +1,1502 @@
 [
   {
+    "id": "kia-rio-uzatilmis-far-arka-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Rio"
+    ],
+    "baslik": "Kia Rio Uzatılmış Far Arka Kapağı",
+    "aciklama": "Kia Rio'da orijinal far ampulünden LED ampule geçildiğinde standart arka kapağın boy yetmediği durumlar için birkaç santim uzatılmış far arka kapağı. Orijinal kapak referans alınarak tasarlanmıştır, aynı montaj yuvasına oturur.\nYaklaşık dış ölçüler: 88 × 88 × 48 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr155425-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-soul-orta-konsol-tepsi-eklentisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Soul"
+    ],
+    "baslik": "Kia Soul Orta Konsol Tepsi Eklentisi",
+    "aciklama": "Kia Soul'un orta konsolundaki boşluğu düzenli bir bozuk para ve ufak eşya tepsisine dönüştüren ekleme parça. Mevcut boşluğa doğrudan oturur, ekstra sabitleme gerektirmez.\nYaklaşık dış ölçüler: 181 × 133 × 45 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr107843-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Neophyl",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-hyundai-havalandirma-klipsi-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Hyundai"
+    ],
+    "baslik": "Kia / Hyundai Havalandırma Kanadı Klipsi Seti",
+    "aciklama": "2009-2014 Kia Sorento ve akraba Hyundai Santa Fe modellerinde havalandırma kanatlarını hareket ettiren küçük klipslerin yedeği. Kia ve Hyundai bu klipsleri tek parça satmayıp tüm havalandırma grubunu değiştirmeyi dayattığı için tasarlanmıştır; tam takım için sağ ve sol olmak üzere ikişer adet gerekir.\nYaklaşık dış ölçüler: 37 × 33 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr588656-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tntkillercody",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-su-sisesi-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "EV6"
+    ],
+    "baslik": "Kia EV6 Su Şişesi Tutucu",
+    "aciklama": "Kia EV6 kabin içine monte edilen, su şişesini sabit tutan tutucu. Şişenin üst ve alt temas noktalarına keçe yastıklama eklenmesi önerilir.\nYaklaşık dış ölçüler: 140 × 115 × 42 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr351243-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr351243-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr351243-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "joey aronson",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-hyundai-hoparlor-adaptor-halkasi-hksb110",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Hyundai"
+    ],
+    "baslik": "Kia / Hyundai Hoparlör Adaptör Halkası (HKSB110)",
+    "aciklama": "2006-2021 arası birçok Hyundai ve Kia modelinde standart hoparlörü araç kapı yuvasına uyarlayan adaptör halkası, orijinal parçanın ölçüleri temel alınarak tasarlanmıştır.\nYaklaşık dış ölçüler: 168 × 168 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr412494-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-soul-sigorta-cekme-pensi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Soul"
+    ],
+    "baslik": "Kia Soul Sigorta Çekme Pensi",
+    "aciklama": "Kia Soul'un motor bölmesindeki sigorta kutusunda saklanan orijinal sigorta çekme pensinin yedeği. Kutu içindeki saklama yuvasına oturur ve sigortaları sökmek için beklendiği gibi çalışır.\nYaklaşık dış ölçüler: 39 × 11 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr851358-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr851358-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-sportage-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage Katlanır Kapaklı Bardaklık",
+    "aciklama": "Kia Sportage'ın orta konsolundaki dar ve alışılmadık boşluğa özel, ön ve arka menteşeli kapakları olan bardaklık.\nYaklaşık dış ölçüler: 183 × 97 × 78 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr939796-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr939796-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "David Sleep",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-far-arka-toz-kapagi-2",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed Kısa Far Toz Kapağı",
+    "aciklama": "Kia Ceed kısa far ünitesi için orijinal lastik contayla birlikte kullanılan toz kapağı; HID far ampulü montajına uygun deliksiz ve delikli iki versiyonu vardır.\nYaklaşık dış ölçüler: 101 × 88 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr318169-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr318169-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr318169-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GunbleR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-kablosuz-sarj-hizalama-yardimcisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "EV6"
+    ],
+    "baslik": "Kia EV6 Kablosuz Şarj Hizalama Yardımcısı",
+    "aciklama": "Kia EV6'nın kablosuz şarj bölmesine telefonu doğru konumda tutan yerleştirme parçası; büyük gövdeli telefonlara ve ince kılıflara uyacak şekilde geniş taban ve daraltılmış kılavuzlarla güncellenmiştir.\nYaklaşık dış ölçüler: 105 × 83 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr795717-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr795717-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr795717-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr795717-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr795717-5.jpg",
+      "https://media.pruvo3d.com/urunler/pr795717-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Simon Lelievre",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-havalandirma-hucre-onarim-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed Havalandırma Kanadı Onarım Parçası",
+    "aciklama": "Kia Ceed'de kırılan havalandırma kanadı parçasının yerine geçen küçük onarım parçası.\nYaklaşık dış ölçüler: 28 × 28 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr679233-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-niro-phev-sarj-kablosu-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Niro"
+    ],
+    "baslik": "Kia Niro PHEV Şarj Kablosu Tutucu",
+    "aciklama": "Kia Niro PHEV'in şarj kablosunu bagaj veya kabin içinde düzenli tutan tutucu; kabloyu dolamaya ve sabit bir yere asmaya yarar.\nYaklaşık dış ölçüler: 129 × 86 × 57 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr174812-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr174812-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr174812-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-stonic-2020-telefon-standi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Stonic"
+    ],
+    "baslik": "Kia Stonic 2020 Telefon Standı (Araca Özel Form)",
+    "aciklama": "Kia Stonic 2020'nin torpido formunu 3D tarama ile referans alarak tasarlanmış, aracın iç hatlarıyla uyumlu telefon standı.\nYaklaşık dış ölçüler: 98 × 93 × 83 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr123691-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr123691-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr123691-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr123691-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr123691-5.jpg"
+    ]
+  },
+  {
+    "id": "kia-ceed-h7-hid-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed H7 HID Ampul Adaptörü",
+    "aciklama": "Kia Ceed kısa hüzme farında (H7 duy) piyasadaki genel HID/xenon ampullerin montajını sağlayan adaptör; ampul yuvası ve daha sağlam bağlantı için soket pimleri içerir.\nYaklaşık dış ölçüler: 39 × 31 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr318187-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr318187-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr318187-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr318187-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GunbleR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-2023-konsol-ayirici-ve-tepsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Niro"
+    ],
+    "baslik": "Kia Niro (2023-2024) Orta Konsol Ayırıcı ve Tepsi",
+    "aciklama": "2023-2024 Kia Niro'nun orta konsolunda mevcut ayırıcının kayarak girip çıktığı yuvaya oturan tepsi ve ayırıcı takımı; kuyruklu geçme tam parça boyunca uzatılarak tepsi, ayırıcıyı çıkarmadan da sökülebilir hale getirilmiştir.\nYaklaşık dış ölçüler: 187 × 119 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr724003-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr724003-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-sportage-2015-hoparlor-montaj-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage 2015 Hoparlör Montaj Halkası (6.75\")",
+    "aciklama": "2015 Kia Sportage'da 6.75 inç hoparlörlerin orijinal yuvaya montajını sağlayan adaptör halka; dış kenarlara ek montaj kulakçıkları ve kablo geçişi için delik eklenmiştir. Hoparlör contası bandı ile birlikte kullanılması önerilir.\nYaklaşık dış ölçüler: 193 × 193 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr184883-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JB3Designs",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-tavan-cubugu-tapasi-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed SW Tavan Çubuğu Tapası (Roof Plug)",
+    "aciklama": "Kia Ceed SW ve benzer tavan raylı modellerde kullanılmayan tavan çubuğu deliklerini kapatan tapa.\nYaklaşık dış ölçüler: 37 × 26 × 24 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr316686-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr316686-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr316686-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr316686-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GunbleR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-uzatilmis-far-fisi-kilifi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed Uzatılmış Far Soket Kılıfı",
+    "aciklama": "Kia Ceed'de far soketini kablo demetinden uzağa taşıyarak montaj ve bakım kolaylığı sağlayan uzatılmış soket kılıfı.\nYaklaşık dış ölçüler: 81 × 81 × 60 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1458799-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1458799-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1458799-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-optima-direksiyon-vites-kulakcigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Optima"
+    ],
+    "baslik": "Kia Optima Direksiyon Vites Kulakçığı (Paddle Shifter)",
+    "aciklama": "Kia Optima direksiyonundaki vites kulakçığı düğme gövdesine oturan, zamanla yorulup kırılan orijinal parçanın yerini alan kulakçık. Değişim için direksiyonun sökülmesi ve orijinal mandal/yay parçalarının yeni gövdeye aktarılması gerekir.\nYaklaşık dış ölçüler: 90 × 57 × 49 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr207621-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr207621-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr207621-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "piranhaphish",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Rio"
+    ],
+    "baslik": "Kia Rio Montaj Braketi (2005-2011)",
+    "aciklama": "2005-2011 model yılları Kia Rio MK2 için özel olarak tasarlanmış montaj braketi.\nYaklaşık dış ölçüler: 76 × 71 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr141502-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-ceed-bardaklik-eklentisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed Bardaklık Küçültme Eklentisi",
+    "aciklama": "Kia Ceed'in bardaklığına oturan, teneke kutu ve ince şişelerin sallanmadan sabit durmasını sağlayan iç eklenti.\nYaklaşık dış ölçüler: 83 × 83 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr574665-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Connie",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-optima-2009-orta-konsol-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Optima"
+    ],
+    "baslik": "Kia Optima 2009 Orta Konsol Kapağı Mandalı",
+    "aciklama": "2009 Kia Optima orta konsol kapağının kırılan orijinal mandalının yerine geçen yedek parça.\nYaklaşık dış ölçüler: 68 × 40 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr295104-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "G2bb",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-soul-yedek-lastik-sabitleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Soul"
+    ],
+    "baslik": "Kia Soul Yedek Lastik Sabitleme Braketi",
+    "aciklama": "Kia Soul'da standart gelen dar (donut) yedek lastik yerine tam ölçü yedek lastik kullanmak isteyenler için tasarlanmış sabitleme braketi; orijinal braketteki kısa saplamanın yerine M8-1.25x80 altıgen başlı cıvata monte edilerek kullanılır.\nYaklaşık dış ölçüler: 100 × 100 × 21 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr577705-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr577705-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-soul-2016-direk-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Soul"
+    ],
+    "baslik": "Kia Soul 2016 Torpido Direk Kapağı",
+    "aciklama": "2016 Kia Soul'da torpido gözü uçlarındaki parlak gümüş halkalı direklerin üzerine geçen, yansımayı azaltan kapak. Koyu renk yansımayı daha da azaltır.\nYaklaşık dış ölçüler: 112 × 112 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr555712-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-seltos-cop-kutusu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Seltos"
+    ],
+    "baslik": "Kia Seltos Çöp Kutusu Sabitleme Klipsi",
+    "aciklama": "Kia Seltos'ta kabin içi çöp kutusu aksesuarını sabit tutan küçük montaj klipsi.\nYaklaşık dış ölçüler: 53 × 50 × 22 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr370809-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr370809-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr370809-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-hyundai-silecek-somunu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Hyundai"
+    ],
+    "baslik": "Kia / Hyundai Ön Cam Silecek Kolu Somun Kapağı",
+    "aciklama": "Silecek kolunu gövdeye bağlayan somunu hava koşullarından koruyan küçük kör kapak.\nYaklaşık dış ölçüler: 30 × 30 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1368441-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-park-sensoru-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Park Sensörü Montaj Yuvası",
+    "aciklama": "Park sensörünü tampon içine sabitleyen, orijinali gibi tampona yapıştırılarak monte edilen sensör yuvası; test edilmiş ve sorunsuz çalıştığı doğrulanmıştır.\nYaklaşık dış ölçüler: 74 × 34 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr851784-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hellscript3dprint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-optima-emme-mansonu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Optima"
+    ],
+    "baslik": "Kia Optima 2.4 Emme Manşonu (Intake Boot)",
+    "aciklama": "2001-2006 Kia Optima 2.4 motor ve aynı parça numarasını paylaşan 1998-2005 Hyundai Sonata için hava filtresinden MAF sensörüne giden esnek emme manşonunun repliği; parça artık üretilmediği ve mevcut kauçuk manşonların çoğu yırtık olduğu için orijinaline en yakın geometriyle tasarlanmıştır.\nYaklaşık dış ölçüler: 95 × 95 × 85 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1087235-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1087235-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-sportage-2007-guneslik-stoperi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage 2007 Güneşlik Stoperi (V3)",
+    "aciklama": "2007 Kia Sportage'da zamanla gerginlik mekanizması gevşeyen güneşliği kapalı tutan klips; sıcak günlerde eğilmeyi önlemek için M3x35mm cıvata ile güçlendirilmiş ince versiyonu da içerir.\nYaklaşık dış ölçüler: 93 × 31 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr325168-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr325168-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr325168-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr325168-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr325168-5.jpg",
+      "https://media.pruvo3d.com/urunler/pr325168-6.jpg",
+      "https://media.pruvo3d.com/urunler/pr325168-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Radu20",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-2023-ek-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Niro"
+    ],
+    "baslik": "Kia Niro (2023-2024) Vites Önü Ek Bardaklık",
+    "aciklama": "2023-2024 Kia Niro'da vites kolunun önündeki tepsiye takılan, ekstra bardaklık kazandıran ek parça.\nYaklaşık dış ölçüler: 104 × 93 × 84 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr818926-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr818926-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr818926-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-picanto-2011-kolcak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Picanto"
+    ],
+    "baslik": "Kia Picanto / Morning 2011 Kolçak (Saklama Bölmeli)",
+    "aciklama": "2011 Kia Picanto / Morning için koltuklar arasına bardaklığın üzerine oturan, ek konfor ve saklama alanı sağlayan kolçak. Menteşeli üst kapak neodim mıknatısla kapalı tutulur, montaj için M3 cıvata-somun ve mıknatıs gerekir.\nYaklaşık dış ölçüler: 106 × 97 × 70 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1352823-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1352823-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dvilardi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-anahtar-kabugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Niro"
+    ],
+    "baslik": "Kia Niro Yedek Anahtar Kabuğu (İnce Profil)",
+    "aciklama": "Cepte veya çantada yanlışlıkla basılan anahtar tuşlarını önlemek için tasarlanmış, anahtar kartını saran ince profilli yedek kabuk; iki parça geçmeli birleşir, istenirse yapıştırılabilir.\nYaklaşık dış ölçüler: 73 × 51 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr258321-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr258321-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr258321-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-optima-2011-arka-hoparlor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Optima"
+    ],
+    "baslik": "Kia Optima 2011 Arka Kapı Hoparlör Braketi (6.5\")",
+    "aciklama": "2011 Kia Optima arka kapı hoparlörü değişiminde, orijinal hoparlörle bütünleşik braketin standart 6.5 inç hoparlör delikleriyle örtüşmemesi sorununu çözen ara braket; orijinal köpük contanın yeniden kullanılmasına uygundur.\nYaklaşık dış ölçüler: 178 × 178 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr60097-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr60097-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr60097-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr60097-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MakeCents",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-plaka-aydinlatma-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed Plaka Aydınlatma Kutusu",
+    "aciklama": "Kia Ceed plaka lambası için iki adet 12V LED şerit barındıran kutu gövdesi; ön yüzüne şeffaf pleksiglas kapatılıp contalanması ve kablo deliğinin sızdırmaz hale getirilmesi gerekir.\nYaklaşık dış ölçüler: 96 × 32 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1429654-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "djcfg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-seltos-2021-sise-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Seltos"
+    ],
+    "baslik": "Kia Seltos 2021 Büyük Şişe Tutucu",
+    "aciklama": "Kia Seltos 2021'de standart bardaklıklara sığmayan büyük hacimli suluklar için koltuk yanına yerleştirilen tutucu.\nYaklaşık dış ölçüler: 210 × 136 × 136 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1686283-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-sorento-bardaklik-ayirici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sorento"
+    ],
+    "baslik": "Kia Sorento Bardaklık Ayırıcı",
+    "aciklama": "XM kasa (2013-2014 facelift) Kia Sorento'da konsol saklama bölmesini iki ayrı bardaklık gözüne bölen ayırıcı parça.\nYaklaşık dış ölçüler: 82 × 80 × 65 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr907898-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr907898-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Humeco",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ceed-proceed-jant-civatasi-kapagi-21mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed / Proceed Jant Cıvatası Kapağı (21mm)",
+    "aciklama": "Kia Ceed (GT dahil) ve Proceed jantlarındaki 21mm cıvata başlarını kapatan sade koruma kapağı; normal ve sıkı geçme olmak üzere iki versiyonu vardır.\nYaklaşık dış ölçüler: 31 × 28 × 27 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1694090-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1694090-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1694090-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-akilli-anahtar-acil-anahtar-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Akıllı Anahtar Acil Durum Anahtarı Yuvası",
+    "aciklama": "Kia akıllı anahtar kartının içine gizlenen mekanik acil durum anahtarını tutan yuva.\nYaklaşık dış ölçüler: 32 × 15 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr814502-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr814502-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr814502-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pourekk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-kamyonet-havalandirma-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Kamyonet Havalandırma Elemanı Braketi",
+    "aciklama": "Kia kamyonet modelinde havalandırma elemanını gövdenin diğer parçasına bağlayan braket; orijinal parçadan alınan ölçülerle birebir uyumlu olacak şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 114 × 114 × 23 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr4860-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr4860-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr4860-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr4860-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr4860-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KikeMaker",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-stinger-dinamik-viraj-fari-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Stinger"
+    ],
+    "baslik": "Kia Stinger Dinamik Viraj Farı Braketi (92126 G6000)",
+    "aciklama": "Kia Stinger'da 92126 G6000 parça numaralı dinamik viraj farı braketinin yedeği.\nYaklaşık dış ölçüler: 70 × 70 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1445493-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1445493-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1445493-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "magixx",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-optima-2009-enjektor-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Optima"
+    ],
+    "baslik": "Kia Optima 2009 Enjektör O-Ring Klipsi",
+    "aciklama": "2009 Kia Optima'da enjektör o-ring değişiminde kırılan tutucu klipsin yedeği; parça artık üretici tarafından ayrı satılmadığı için tasarlanmıştır.\nYaklaşık dış ölçüler: 13 × 13 × 2 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr625713-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr625713-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr625713-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brandon Haught",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-niro-2020-tweeter-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Niro"
+    ],
+    "baslik": "Kia Niro 2020 Tweeter Montaj Braketi",
+    "aciklama": "2017-2022 Kia Niro modellerine uyan, Audiofrog GB10 tweeter'a göre ölçülendirilmiş montaj braketi; tweeter sığ tarafa oturur, yay ve arka plaka ile diğer taraftan sabitlenir.\nYaklaşık dış ölçüler: 88 × 57 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr469595-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr469595-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr469595-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr469595-4.jpg"
+    ]
+  },
+  {
+    "id": "kia-hyundai-kablosuz-sarj-magsafe-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Hyundai"
+    ],
+    "baslik": "Kia / Hyundai Kablosuz Şarj Pedi MagSafe Adaptörü",
+    "aciklama": "Kılıflı telefonlarda araç kablosuz şarj pedinin yetersiz kalması sorununu çözmek için orijinal Qi lastik pede takılan, standart Apple MagSafe şarj başlığını kabul eden adaptör; kamera çıkıntısı için oyuk içerir.\nYaklaşık dış ölçüler: 170 × 82 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1023439-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1023439-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1023439-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sommerich",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-2022-konsol-kaplama-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage 2022 Orta Konsol Kaplama Paneli (İnce)",
+    "aciklama": "Kia Sportage 2022 orta konsolunun karbon desenli yüzeyiyle uyumlu, TPU'dan ince kaplama paneli.\nYaklaşık dış ölçüler: 229 × 150 × 1 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1235569-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1235569-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Toni",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hyundai-kia-klips-14206-08250-b",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Hyundai"
+    ],
+    "baslik": "Hyundai / Kia Alt Kaplama Klipsi (14206-08250-B)",
+    "aciklama": "Hyundai Ioniq 5'in alt kaplamasını tutan 14206-08250-B parça numaralı plastik klipslerin orijinal ölçüsünden yola çıkılarak tasarlanmış geçici/yedek versiyonu; otoyol hızında test edilmiştir.\nYaklaşık dış ölçüler: 18 × 15 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1748014-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1748014-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1748014-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-niro-klips-remiks",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Niro"
+    ],
+    "baslik": "Kia Niro Kaporta Klipsi",
+    "aciklama": "Kia Niro'da kullanılan kaporta/döşeme klipsi.\nYaklaşık dış ölçüler: 85 × 82 × 38 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr986618-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr986618-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr986618-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr986618-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lAth0m",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-kapi-ici-buyuk-sise-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Rio"
+    ],
+    "baslik": "Kia Rio Kapı İçi Büyük Şişe Tutucu",
+    "aciklama": "2013 Kia Rio'nun ön yolcu kapısı cebine klipslenen, yaklaşık 91mm çapa kadar büyük termos/su şişelerini (Hydro Flask, Nalgene vb.) sabit tutan tutucu; vida veya yapıştırıcı gerektirmez, kapı tam açılıp kapanabilir.\nYaklaşık dış ölçüler: 118 × 118 × 95 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1577896-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1577896-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1577896-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1577896-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1577896-5.jpg",
+      "https://media.pruvo3d.com/urunler/pr1577896-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Moloch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ev9-koltuk-sabitleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "EV9"
+    ],
+    "baslik": "Kia EV9 2. Sıra Koltuk Sabitleyici",
+    "aciklama": "7 koltuklu Kia EV9'da sağ tekli koltuk katlandığında 2. sıra koltuğu sabit tutmaya yarayan parça.\nYaklaşık dış ölçüler: 43 × 26 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr843909-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr843909-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr843909-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr843909-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr843909-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tornardo78",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-stinger-jant-gobek-kapagi-duz",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Stinger"
+    ],
+    "baslik": "Kia Stinger Jant Göbek Kapağı (Düz Yüzey)",
+    "aciklama": "Kia Stinger'ın 19 inç jantlarında kullanılan orijinal göbek kapağının kubbeli üst yüzeyi yerine, sonradan çıkartma/etiket uygulamayı kolaylaştıran düz yüzeyli alternatif versiyonu. Kapağın kendisi amblemsizdir.\nYaklaşık dış ölçüler: 59 × 59 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr927283-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr927283-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr927283-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peter",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-sorento-ayna-tamir-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage / Sorento Katlanır Ayna Tamir Dişlisi",
+    "aciklama": "2011-2016 Kia Sportage, Sorento ve Sonata modellerinde katlanır dış ayna motorunun içindeki 38 dişli, 32.40mm dış çaplı tahrik dişlisinin yedeği (876101U060 / 876201U060 parça no).\nYaklaşık dış ölçüler: 32 × 32 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1601126-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-optima-2013-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Optima"
+    ],
+    "baslik": "Kia Optima 2013 Ayarlanabilir Telefon Tutucu",
+    "aciklama": "Kia Optima 2013 için tasarlanmış, sol dişli mekanizmasıyla yükseklik ayarı yapılabilen telefon tutucu; kılıfsız Galaxy S8 boyutuna göre ölçülendirilmiştir.\nYaklaşık dış ölçüler: 156 × 112 × 80 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr148432-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ErikLutz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ev6-subwoofer-adaptoru-55inc",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "EV6"
+    ],
+    "baslik": "Kia EV6 Subwoofer Montaj Adaptörü (5.5\")",
+    "aciklama": "Kia EV6'da 5.5 inç subwoofer montajı için ince (orijinal vidalarla) ve kalın (yeni vida gerektiren) iki versiyonu bulunan adaptör plaka; subwoofer'ı sabitlemek için 4 yeni vidaya ihtiyaç duyar.\nYaklaşık dış ölçüler: 162 × 162 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1674498-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-spectra-vites-kolu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Spectra"
+    ],
+    "baslik": "Kia Spectra Vites Kolu Kapağı (Otomatikten Manuele)",
+    "aciklama": "Kia Spectra'da otomatik vites konsolunun manuel/standart konsola uyarlanması için tasarlanmış vites kolu kapağı.\nYaklaşık dış ölçüler: 283 × 171 × 5 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr965687-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr965687-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DINGENIERIA",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-hyundai-kaput-emniyet-mandali-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Hyundai"
+    ],
+    "baslik": "Kia / Hyundai Kaput Emniyet Mandalı Kolu",
+    "aciklama": "2007-2014 Kia Sedona ve Hyundai Entourage ile benzer yıllardaki diğer Kia/Hyundai modellerinde kullanılan kaput emniyet mandalı kolunun yedeği; parça ayrı satılmadığı için tüm mandal grubunun ölçüleri esas alınarak tasarlanmıştır.\nYaklaşık dış ölçüler: 62 × 54 × 33 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1285851-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1285851-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1285851-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-sorento-2022-kart-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sorento"
+    ],
+    "baslik": "Kia Sorento 2022 Kart Tutucu",
+    "aciklama": "Kia Sorento 2022'nin konsol gözünde kartların dağınık durmasını önleyen, kart yuvaları üstte kalacak şekilde dikey duran kart tutucu kutu.\nYaklaşık dış ölçüler: 77 × 68 × 44 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1314788-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1314788-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1314788-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-niro-guneslik-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Niro"
+    ],
+    "baslik": "Kia Niro Güneşlik Klipsi",
+    "aciklama": "Kia Niro'da güneşliği tavana sabitleyen klips; bacakların araca göre kesilip kesin ölçüye getirilmesi ve şeffaf güçlü yapıştırıcıyla monte edilmesi gerekir.\nYaklaşık dış ölçüler: 40 × 34 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1555030-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Printer570",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-ev5-bagaj-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "EV5"
+    ],
+    "baslik": "Kia EV5 Bagaj Kancası (Sıkı Geçme)",
+    "aciklama": "Kia EV5'in orijinal bagaj kancası düğmelerinin gevşek olması ve çanta saplarını tutmak için dar kalması sorununu gideren, daha sıkı geçen ve daha geniş ağızlı alternatif kanca.\nYaklaşık dış ölçüler: 36 × 36 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1702728-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1702728-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1702728-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-sportage-tavan-cubugu-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage Tavan Çubuğu Uç Tapası",
+    "aciklama": "Kia Sportage tavan rayının uç noktasını kapatan tapa; aynı parça ayna simetriyle karşı taraf için de kullanılabilir.\nYaklaşık dış ölçüler: 62 × 34 × 28 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1231087-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1231087-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Anthony Brown",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-ev5-addgear-alisveris-kancasi-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "EV5"
+    ],
+    "baslik": "Kia EV5 AddGear Bagaj Alışveriş Torbası Kancası Seti",
+    "aciklama": "Kia EV5'in AddGear rayına takılan, alışveriş torbalarının bagajda kaymasını önleyen kanca seti (4 parça).\nYaklaşık dış ölçüler: 152 × 144 × 30 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1753091-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1753091-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tobias Xyz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-anten-kor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Anten Kaidesi Kör Tapası",
+    "aciklama": "Anten kaldırıldığında geriye kalan tabanı kapatan kör tapa; orijinal kaideyle birebir örtüşmese de yerine oturup işlevini yerine getirir.\nYaklaşık dış ölçüler: 13 × 13 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr796884-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CheeseOverdose",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-forte-2011-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Forte"
+    ],
+    "baslik": "Kia Forte 2011 Vites Topuzu",
+    "aciklama": "2011 Kia Forte'de vites topuzunun gümüş/gri klips parçalarının kırılması üzerine 3D tarama ile ters mühendislik yapılarak yeniden tasarlanmış yedek topuz; yüzey basitleştirilmiş, vidalı parlak siyah kısım kaldırılmıştır.\nYaklaşık dış ölçüler: 62 × 39 × 32 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1426215-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Steves32",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-rio-2012-kalorifer-fan-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Rio"
+    ],
+    "baslik": "Kia Rio 2012 Kalorifer Fan Kontrol Düğmesi",
+    "aciklama": "Kia Rio 2012 klima/kalorifer fan kontrol düğmesinin yedeği; farklı Kia modellerine uyarlamak için taban açısının değiştirilmesi gerekebilir.\nYaklaşık dış ölçüler: 35 × 35 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1483275-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1483275-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1483275-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Abdulmohseen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-k5-telefon-tutucu-destek-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "K5"
+    ],
+    "baslik": "Kia K5 Manyetik Telefon Tutucu Destek Parçası",
+    "aciklama": "Kia K5'te havalandırma önüne çift taraflı bantla monte edilen manyetik telefon tutucuların, özellikle sıcak havada bandın telefon ağırlığını taşıyamamasına karşı ek destek sağlayan parça.\nYaklaşık dış ölçüler: 48 × 20 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr545712-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Russell Milliner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-2010-kolcak-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sorento"
+    ],
+    "baslik": "Kia Sorento 2010 Kolçak Mandalı",
+    "aciklama": "Kia Sorento 2010 kolçak kapağının kilitleme mandalının yedeği.\nYaklaşık dış ölçüler: 46 × 26 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1502624-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1502624-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-ceed-proceed-obd2-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed / Proceed CD Kasa OBD2 Adaptörü",
+    "aciklama": "Kia Ceed/Proceed (CD kasa) OBD2 soketini gövdeden çıkarıp 90 derece açıyla yönlendiren adaptör; Vgate iCar Pro 2S gibi kalıcı takılı OBD tarayıcıların sigorta kapağı kapatılırken sığmasını sağlar.\nYaklaşık dış ölçüler: 57 × 32 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1617913-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1617913-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1617913-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1617913-4.jpg"
+    ]
+  },
+  {
+    "id": "kia-optima-bagaj-anahtari-tutucu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Optima"
+    ],
+    "baslik": "Kia Optima Bagaj Açma Anahtarı Tutucu Klipsi",
+    "aciklama": "2014 Kia Optima'da bagaj açma anahtarını yerinde tutan metal tutucuların çürüyüp dağılması üzerine tasarlanmış yedek klips.\nYaklaşık dış ölçüler: 18 × 11 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1423525-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1423525-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-sedona-fren-pedali-stoperi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sedona"
+    ],
+    "baslik": "Kia Sedona Fren Pedalı Stoperi (32876-3X100)",
+    "aciklama": "2007-2014 Kia Sedona'da fren lambası anahtarının tam kapanmasını sağlayan, zamanla sertleşip kırılan lastik ara parçanın (32876-3X100 / 32876-1D900) yedeği; eksik olduğunda fren lambaları sürekli yanık kalıp aküyü boşaltabilir.\nYaklaşık dış ölçüler: 18 × 16 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1285828-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1285828-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1285828-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1285828-4.jpg"
+    ]
+  },
+  {
+    "id": "kia-picanto-anahtar-halka-baglantisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Picanto"
+    ],
+    "baslik": "Kia Picanto Anahtar Halka Bağlantı Parçası",
+    "aciklama": "Kia Picanto anahtarının sıkça kırılan arka anahtarlık halka bağlantısının yedeği.\nYaklaşık dış ölçüler: 20 × 13 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr725602-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-dikiz-aynasi-montaj-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Dikiz Aynası Montaj Yuvası",
+    "aciklama": "2014 Kia Rio'da kırılan dikiz aynası montaj yuvasının yedeği; top mafsallı ayna kolu kırık yuvaya geçmeli olarak takılır. Basımda toleranslar hassastır, top mafsalın tam oturması için kumaş yardımıyla kontrollü baskı uygulanması gerekir.\nYaklaşık dış ölçüler: 40 × 39 × 34 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1403105-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1403105-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1403105-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1403105-4.jpg",
+      "https://media.pruvo3d.com/urunler/pr1403105-5.jpg",
+      "https://media.pruvo3d.com/urunler/pr1403105-6.jpg",
+      "https://media.pruvo3d.com/urunler/pr1403105-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MauricioPach",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-2017-bardaklik-adaptoru-40oz",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sorento"
+    ],
+    "baslik": "Kia Sorento 2017 Bardaklık Adaptörü (40oz Termos)",
+    "aciklama": "2017 Kia Sorento'nun standart bardaklığına 40oz ThermoFlask gibi büyük termosları sığdıran adaptör.\nYaklaşık dış ölçüler: 135 × 105 × 105 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1329625-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-ev6-cekidemiri-tas-koruyucu-kesim-sablonu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "EV6"
+    ],
+    "baslik": "Kia EV6 Çeki Demiri Taş Koruyucu Kesim Şablonu",
+    "aciklama": "Kia EV6'ya üçüncü parti çeki demiri (Stealth Hitch) montajında, taş koruyucu (gravel guard) panelinin emniyet zinciri kancaları çevresinde kesilmesi gereken bölgeyi işaretleyen şablon.\nYaklaşık dış ölçüler: 305 × 98 × 1 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr871017-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr871017-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-ceed-konserve-tutucu-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Ceed"
+    ],
+    "baslik": "Kia Ceed Konserve Kutusu Bardaklık Adaptörü",
+    "aciklama": "Kia Ceed JD (2013-2017) bardaklığına 0.33 litrelik ince konserve kutularının (Redbull vb., 54mm çap) sığdırılmasını sağlayan adaptör halka; 5mm, 15mm ve 60mm yükseklik seçenekleri mevcuttur.\nYaklaşık dış ölçüler: 84 × 84 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr865879-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr865879-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr865879-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kyzor",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sorento-arka-perde-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sorento"
+    ],
+    "baslik": "Kia Sorento XM Arka Cam Perdesi Adaptörü (XJ Kasa Uyumlu)",
+    "aciklama": "Kia Sorento XJ kasa arka cam perdesini XM kasaya uyarlayan adaptör parça.\nYaklaşık dış ölçüler: 29 × 24 × 21 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr462443-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-pride-far-ampul-kapagi-oring",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Pride"
+    ],
+    "baslik": "Kia Pride Far Ampul Kapağı + TPU O-Ring",
+    "aciklama": "Kia Pride (2016) için eksik OEM far ampul kapağının yedeği ve kapağı sızdırmaz oturtan esnek TPU O-ring'den oluşan set. Ölçü uyumu kontrol edilerek Hyundai Elantra gibi modellerde de kullanılabilir.\nYaklaşık dış ölçüler: 99 × 99 × 4 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1359315-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1359315-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Frasin Vasile",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-carnival-2022-vites-topuzu-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Carnival"
+    ],
+    "baslik": "Kia Carnival 2022 Vites Topuzu Adaptörü",
+    "aciklama": "2022 Kia Carnival'de vites topuzunu kolayca çevirebilmek için tasarlanmış basit bir adaptör; ALS hastası bir sürücünün adaptif aracını kendi başına kullanabilmesi için geliştirilmiştir, M5 altıgen başlı vida ve M5 somunla topuza sıkıştırılır.\nYaklaşık dış ölçüler: 83 × 76 × 76 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr307146-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "yuvalb",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-oem-55348-a4000-yedek-parca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia OEM 55348-A4000 Yedek Kauçuk Parça (TPU)",
+    "aciklama": "Kia'nın 55348-A4000 parça numaralı orijinal kauçuk elemanının TPU'dan yeniden üretilmiş hâli.\nYaklaşık dış ölçüler: 90 × 56 × 56 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1299705-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1299705-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-oem-spoyler-tapasi-1731312000",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia OEM Spoyler Tapası (1731312000)",
+    "aciklama": "Kia'nın 1731312000 parça numaralı orijinal spoyler montaj tapasının yedeği.\nYaklaşık dış ölçüler: 27 × 27 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1350351-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1350351-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peter Baranya",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-forte-2013-vites-kolu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Forte"
+    ],
+    "baslik": "Kia Forte 2013 Vites Kolu Burcu",
+    "aciklama": "2013 Kia Forte'de vites kablosunu tutan çubuğa sürtünme geçmesiyle oturan, pim veya kilitleme mekanizması gerektirmeyen vites kolu burcu.\nYaklaşık dış ölçüler: 15 × 15 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1361961-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1361961-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-soul-2010-tweeter-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Soul"
+    ],
+    "baslik": "Kia Soul 2010-2013 Tweeter Braketi",
+    "aciklama": "1. nesil (2010-2013) Kia Soul için 1 inç tweeter'ları (1.72 inç dış kabuk çapı) orijinal montaj noktasına oturtan braket; kablo hattı için tweeter kapağının alt borusunun kısaltılması gerekir.\nYaklaşık dış ölçüler: 84 × 47 × 23 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1269205-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "IDE_IS_LIFE",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-kablosuz-sarj-iphone-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Kablosuz Şarj iPhone Adaptörü",
+    "aciklama": "Yeni nesil Kia araçlarındaki fabrika kablosuz şarj yuvasında iPhone'un düzgün algılanıp şarj olmasını sağlayan basit ara parça.\nYaklaşık dış ölçüler: 85 × 11 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1006958-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-carens-tavan-cubugu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Carens"
+    ],
+    "baslik": "Kia Carens Tavan Çubuğu Bağlantı Kapağı",
+    "aciklama": "Yaklaşık 2009 model Kia Carens'in tavan bagaj rayı bağlantı noktasını kapatan kapak.\nYaklaşık dış ölçüler: 49 × 31 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1575116-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1575116-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1575116-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-forte-2018-tweeter-montaj-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Forte"
+    ],
+    "baslik": "Kia Forte 2018 Tweeter Montaj Yuvası (Infinity REF757T)",
+    "aciklama": "Kia Forte 2018'de fabrika vida deliğine oturan, Infinity REF757T tweeter'a göre ölçülendirilmiş montaj yuvası.\nYaklaşık dış ölçüler: 80 × 37 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1495919-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-sorento-radyator-izgara-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sorento"
+    ],
+    "baslik": "Kia Sorento Radyatör Izgarası Parçalı Deseni",
+    "aciklama": "Kia Sorento radyatör ızgarasının ana ve köşe segmentlerini içeren onarım parçası; segmentler arası mesafe dikeyde yaklaşık 4cm olacak şekilde yerleştirilmelidir, ana elemandaki bağlantı çıkıntıları ızgara boyunca değiştiğinden tam örtüşmeyebilir.\nYaklaşık dış ölçüler: 100 × 32 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1548457-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alexander Rylkov",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kia-sportage-esik-kaplama-uc-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage Eşik Kaplaması Uç Tapası (4'lü Set)",
+    "aciklama": "Kia Sportage kapı eşiği kaplamalarının uçlarını kapatan 4 parçalık tapa seti.\nYaklaşık dış ölçüler: 172 × 58 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1768834-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1768834-2.jpg"
+    ]
+  },
+  {
+    "id": "kia-carens-bagaj-ortusu-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Carens"
+    ],
+    "baslik": "Kia Carens 2.0 CRDi LX Bagaj Örtüsü Adaptörü",
+    "aciklama": "Kia Carens 2.0 CRDi LX'te kullanımdan dolayı kırılan bagaj örtüsü (tenteleme) kancasının yedeği; kancanın dışa doğru genişlemesini sınırlamak için yanlara kalın lastik bant eklenmesi önerilir.\nYaklaşık dış ölçüler: 63 × 37 × 21 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr97550-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr97550-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr97550-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr97550-4.jpg"
+    ]
+  },
+  {
+    "id": "kia-sportage-kola-kutusu-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Sportage"
+    ],
+    "baslik": "Kia Sportage Kutu İçecek Tutucu (Kısa Model)",
+    "aciklama": "Kia Sportage'da standart kutu içeceklerin (kola vb.) sabit durmasını sağlayan kısa model tutucu.\nYaklaşık dış ölçüler: 84 × 84 × 80 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1780466-1.jpg"
+    ]
+  },
+  {
+    "id": "kia-cadenza-h1-led-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Cadenza"
+    ],
+    "baslik": "Kia Cadenza H1 LED Ampul Adaptörü",
+    "aciklama": "2012 Kia Cadenza'nın uzun far duylarına piyasadaki genel H1 LED ampullerin takılabilmesi için tasarlanmış adaptör.\nYaklaşık dış ölçüler: 37 × 36 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1657895-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1657895-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1657895-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "kia-kapi-civatasi-t30-kapagi",
     "kategori": "Otomobil",
     "marka": [
