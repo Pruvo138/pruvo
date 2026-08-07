@@ -1852,7 +1852,9 @@ ALT_KUME_IZIN_LISTESI = {
     ("tools/ticari-hal-kapisi.py", "--mutasyon"):
         A_MUTASYON + " Somut: rc=0, 13,3 s, \"ONCE-KIRMIZI: 1/1\".",
     ("tools/uyum-kapisi.py", "--mutasyon"):
-        A_MUTASYON + " Somut: rc=0, 2,8 s, \"13/13 beklenti TUTTU\".",
+        A_MUTASYON + " Somut: rc=0, 33,7 s, \"32/32 mutant BEYANINA UYDU (iddia sayisi "
+                     "40, hepsinde SABIT)\" (6 Agu olcumu; kapinin KENDI dosyasi da "
+                     "KOPYALANAN'a girdi -> rapor katmani mutasyonla olculuyor).",
     ("tools/yedek-hook-test.py", "--mutasyon"):
         A_MUTASYON + " Somut: rc=0, 2,7 s, \"2/2 beklendigi gibi\".",
     # --- gizli/uzak girdi isteyenler ----------------------------------------
