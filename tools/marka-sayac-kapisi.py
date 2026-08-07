@@ -9,9 +9,26 @@
      tek sayfada İKİ FARKLI SAYI. Ekranda hata görünmüyor; müşteri kataloğu eksik sanıyor.
   2. `marka_only + ikincil + kucuk_urunler` birleşimi id bazında tekilleştirilmiyordu →
      31 marka sayfasında 282 fazla kart (aynı ürün iki kez).
+  3. (7 Ağu, Okan İKİNCİ KEZ bildirdi) Sayfanın İKİ BÖLÜMÜ ÇAKIŞIYORDU: "Diğer … parçaları"
+     kartları ile model butonlarının ardındaki kümenin kesişimi boş değildi, üstelik kovalar
+     kendi aralarında da çakışıyordu. Ölçülen bir sayfada kart 199 + Σbuton 171 = 370 iken
+     sayfa toplamı 330'du; model butonu OLAN 31 marka sayfasının 31'i sapıyordu, sapma DAİMA
+     POZİTİF. Toplam DOĞRUYDU — yanlış olan, kullanıcının GÖRDÜĞÜ sayılardan toplamı
+     türetememesiydi. Bu kapı ilk turunda o sınıfı YEŞİL GEÇİRDİ: `sayim_kart`/`sayim_model`
+     alanlarını PARSE ediyordu ama hiçbir iddiada KULLANMIYORDU, `BIRIM_KALEM/cakisma` ise
+     çakışmayı DOĞRU DAVRANIŞ diye kutsuyordu → [[test-hatali-davranisi-kutsar]].
 
-KAPI NEYİ ÖLÇER (üretilen HTML üzerinden, ÖRNEKLEME YOK — 1022 marka adresinin TAMAMI):
+KAPI NEYİ ÖLÇER (üretilen HTML üzerinden, ÖRNEKLEME YOK — marka + model adreslerinin TAMAMI):
   MUKERRER      : sayfadaki ham kart sayısı == tekil kart sayısı.
+  BOLUM_KART    : bölüm başlıklarında BASILAN kart sayılarının toplamı == sayfada GERÇEKTEN
+                  basılan tekil kart sayısı.
+  BOLUM_AYRIK   : sayfadaki kartlar ile model butonlarının ardındaki küme AYRIK ("Diğer"
+                  gerçekten TÜMLEYEN mi).
+  BOLUM_KIMLIGI : Σ(bölüm kart sayıları) + |∪kova| == SSR toplamı. `|∪kova|` BAĞIMSIZ ölçülür
+                  (butonların BASTIĞI sayı değil, bağlı model sayfalarının GERÇEK kartları).
+  BOLUM_KOVA    : sayfada basılan HER `.mm-sayim-kova` == |∪kova| (Σbuton DEĞİL).
+  BOLUM_CUMLE   : toplam cümlesindeki üç sayı == ölçülen (toplam, kart, kova) üçlüsü — cümle
+                  ile rozet AYRI KAYNAKTAN türeyemez ([[ikiz-tanim-sessiz-ayrisma]]).
   KAYIP         : marka sayfasından ULAŞILABİLEN tekil küme == katalogdaki üyelik kümesi
                   (bağımsız türetme: `marka_uyelikleri`, gruplandır/sayfa üreticisi DEĞİL).
   TOPLAM        : SSR'de basılan `.mm-sayim-toplam` == ulaşılabilen tekil küme büyüklüğü.
@@ -23,6 +40,8 @@ KAPI NEYİ ÖLÇER (üretilen HTML üzerinden, ÖRNEKLEME YOK — 1022 marka adr
   JS_SERIT      : `?kategori=K` ile şeridin BASTIĞI metin == "… — <beklenen> parça"; beklenen
                   HTML'den bağımsız sayılır (kart+model sayfası birleşimi, o kategoride).
   JS_ALTKUME    : şeritteki sayı görünen kart sayısından küçük olamaz.
+  JS_KOVA       : kapsam altında istemcinin bastığı "model sayfalarında" sayısı == o
+                  kategorideki ∪kova (bağımsız ölçülen).
 
 Kullanım:
   python3 tools/marka-sayac-kapisi.py            # kapı (rc=0 yeşil, rc=1 kırmızı)
@@ -48,6 +67,12 @@ TOPLAM_RE = re.compile(r'<p class="mm-toplam" data-katsay="([^"]*)">.*?'
                        r'<span class="mm-sayim-toplam">(\d+)</span>')
 SAYIM_KART_RE = re.compile(r'<span class="mm-sayim-kart">(\d+)</span>')
 SAYIM_MODEL_RE = re.compile(r'<span class="mm-sayim-model">(\d+)</span>')
+SAYIM_KOVA_RE = re.compile(r'<span class="mm-sayim-kova">(\d+)</span>')
+SAYIM_TOPLAM_RE = re.compile(r'<span class="mm-sayim-toplam">(\d+)</span>')
+# Toplam CÜMLESİ tek parça olarak ayıklanır: cümlenin içindeki sayılar bölüm başlıklarındaki
+# sayılardan AYRI ölçülmeli (ikisi ayrışırsa sessiz hata — cümle ile rozet ayrı kaynaktan).
+TOPLAM_BLOK_RE = re.compile(r'<p class="mm-toplam" data-katsay="([^"]*)">(.*?)</p>', re.S)
+SEC_H_RE = re.compile(r'<h2 class="mm-sec-h[^"]*"[^>]*>(.*?)</h2>', re.S)
 
 
 def coz_katsay(ham):
@@ -88,6 +113,7 @@ function shim(sayfa){
   const sayimToplam = {textContent: ""};
   const sayimKart = {textContent: ""};
   const sayimModel = {textContent: ""};
+  const sayimKova = {textContent: ""};
   const kutu = {
     kapsamNot: {style: {display: "none"}},
     kapsamNotMetin: {textContent: ""},
@@ -103,11 +129,12 @@ function shim(sayfa){
     "a[data-kapsam-tasi]": [],
     ".mm-sayim-kart": [sayimKart],
     ".mm-sayim-model": [sayimModel],
+    ".mm-sayim-kova": [sayimKova],
     ".mm-sayim-toplam": [sayimToplam]
   };
   return {dok: {querySelectorAll: (s) => (harita[s] || []),
                 getElementById: (id) => (kutu[id] || null)},
-          kartlar, kutu, sayimToplam};
+          kartlar, kutu, sayimToplam, sayimKova};
 }
 
 // SENTETİK FAIL-CLOSED FİKSTÜRLERİ: gerçek sayfalarda kırılım HEP sağlamdır, bu yüzden
@@ -117,7 +144,8 @@ const sentetik = {};
 for(const f of VERI.sentetik){
   const s = shim(f);
   K.uygula(s.dok, {search: "?kategori=" + encodeURIComponent(f.kategori), pathname: "/x/"});
-  sentetik[f.ad] = {serit: s.kutu.kapsamNotMetin.textContent, rozet: s.sayimToplam.textContent};
+  sentetik[f.ad] = {serit: s.kutu.kapsamNotMetin.textContent, rozet: s.sayimToplam.textContent,
+                    kova: s.sayimKova.textContent};
 }
 
 const cikti = {sentetik: sentetik};
@@ -132,6 +160,7 @@ for(const yol of Object.keys(VERI.sayfalar)){
     kayit.kategoriler[kat] = {
       serit: s.kutu.kapsamNotMetin.textContent,
       rozet: s.sayimToplam.textContent,
+      kova: s.sayimKova.textContent,
       gorunenKart: s.kartlar.filter((k) => k.style.display !== "none").length
     };
   }
@@ -162,7 +191,9 @@ def kaynak_izi():
     (Aynı uzunlukta mutasyon + bytecode önbelleği tuzağı: mutant koşumu bu izi BASAR;
     iz değişmemişse mutasyon uygulanmamıştır ve o tur SAYILMAZ.)"""
     h = hashlib.sha1()
-    for ad in ("marka_model_build.py",):
+    # KAPININ KENDİSİ DE İZE GİRER: kapı-mutantları (iddiayı no-op'a çevirme, sayacı
+    # sabitleyip iddia atlama) yalnız bu dosyayı değiştirir; iz onları da KANITLAMALI.
+    for ad in ("marka_model_build.py", "marka-sayac-kapisi.py"):
         with open(os.path.join(TOOLS, ad), "rb") as f:
             h.update(f.read())
     return h.hexdigest()[:16]
@@ -196,6 +227,8 @@ def tara(tmp):
         kartlar = [(kat, urun_id(href)) for kat, href in KART_RE.findall(page)]
         butonlar = [(href, coz_katsay(ks)) for href, ks in BTN_RE.findall(page)]
         t = TOPLAM_RE.search(page)
+        blok = TOPLAM_BLOK_RE.search(page)
+        cumle = blok.group(2) if blok else ""
         sayfalar[rel] = {
             "kartlar": kartlar,
             "butonlar": butonlar,
@@ -204,6 +237,15 @@ def tara(tmp):
             "toplam": int(t.group(2)) if t else None,
             "sayim_kart": [int(x) for x in SAYIM_KART_RE.findall(page)],
             "sayim_model": [int(x) for x in SAYIM_MODEL_RE.findall(page)],
+            "sayim_kova": [int(x) for x in SAYIM_KOVA_RE.findall(page)],
+            # BÖLÜM başlıklarının BASTIĞI kart sayıları ("Diğer … parçaları (N)", model
+            # sayfasında "<model> parçaları (N)" + kuşak başlıkları). Toplam CÜMLESİ AYRI
+            # ayıklanır: cümle ile başlık ayrışabilmeli, yoksa iddia tautoloji olur.
+            "bolum_kart": [int(x) for h in SEC_H_RE.findall(page)
+                           for x in SAYIM_KART_RE.findall(h)],
+            "cumle_toplam": [int(x) for x in SAYIM_TOPLAM_RE.findall(cumle)],
+            "cumle_kart": [int(x) for x in SAYIM_KART_RE.findall(cumle)],
+            "cumle_kova": [int(x) for x in SAYIM_KOVA_RE.findall(cumle)],
         }
     return sayfalar
 
@@ -225,6 +267,16 @@ def bagimsiz_uyelik(products, mm, index_html):
     return uyelik, veri
 
 
+def _bolum_olc(mm, kart_kollari, kova_listeleri):
+    """`bolum_ayrimi` çağrısını FAIL-CLOSED dahil ölçer: fonksiyon SystemExit ile durabilir
+    (kimlik bozuksa üretim durmalı), o durum da bir ÖLÇÜM sonucudur — kapıyı çökertmemeli."""
+    try:
+        kart, _kalemler, sayilar = mm.bolum_ayrimi(kart_kollari, kova_listeleri)
+        return {"kart_id": [p.get("id") for p in kart], "sayilar": sayilar, "hata": None}
+    except SystemExit as e:                                  # noqa: PERF203
+        return {"kart_id": None, "sayilar": None, "hata": str(e)[:90]}
+
+
 def birim_iddialari(kapi):
     """BİRİM EKSENİ — kanonik sayma fonksiyonları, sayfa üretmeden.
 
@@ -244,9 +296,30 @@ def birim_iddialari(kapi):
     kapi.iddia("BIRIM_KALEM/kova",
                [p["id"] for p in mm.sayfa_kalemleri([a], [[b], [c]])] == ["a", "b", "c"],
                "kova kalemleri toplama girmedi")
-    kapi.iddia("BIRIM_KALEM/cakisma",
-               len(mm.sayfa_kalemleri([a, b], [[a2, c]])) == 3,
-               "kart ∩ kova çakışması iki kez sayıldı")
+
+    # ---------------------------------------------------------------- BÖLÜM AYRIMI (birim)
+    # 🔴 BU İDDİA ESKİDEN TERSİYDİ ([[test-hatali-davranisi-kutsar]]): `BIRIM_KALEM/cakisma`
+    # "kart ∩ kova çakışması iki kez SAYILMADI" diyordu — yani TOPLAMIN doğruluğunu ölçüp
+    # sayfanın bölümlerinin çakışmasını DOĞRU DAVRANIŞ sayıyordu. Okan'ın bildirdiği kusur tam
+    # buydu; iddia TERSİNE çevrildi: çakışan girdide kart kolu kovadaki ürünü DÜŞÜRMELİDİR.
+    #
+    # FİKSTÜR SEÇİMİ (bilinçli): kart=2, kova=4, toplam=6 ÜÇÜ DE FARKLI ve hiçbiri girdi
+    # uzunluklarıyla çakışmıyor — düzleştirilmiş kart kolu 4, Σ|kova listesi| 5, kova kolu
+    # eleman sayısı 5. Böylece "sabit bas", "Σ bas" ve "elemeyi atla" ikamelerinin HİÇBİRİ
+    # iddiayı sağlayamaz ([[fikstur-degeri-mutasyon-koru.md]]).
+    d, e, f = {"id": "d"}, {"id": "e"}, {"id": "f"}
+    olcum = _bolum_olc(mm, [[a, b], [b, c]], [[c, d, e], [e, f]])
+    kapi.iddia("BIRIM_BOLUM/ayrik", olcum["kart_id"] == ["a", "b"],
+               "kart kolu kovadaki ürünü DÜŞÜRMEDİ: %r (hata=%s)"
+               % (olcum["kart_id"], olcum["hata"]))
+    kapi.iddia("BIRIM_BOLUM/kimlik",
+               olcum["sayilar"] == {"toplam": 6, "kart": 2, "kova": 4, "kova_sayisi": 2},
+               "bölüm sayıları %r (hata=%s)" % (olcum["sayilar"], olcum["hata"]))
+    # FAIL-CLOSED KOLU: kimlik tutmayan girdide üretim DURMALI (sessizce yanlış sayı basmaz).
+    # Tetikleyici: id'siz ürün — kova kümesine giremez ama toplama girer, kimlik bozulur.
+    kapi.iddia("BIRIM_BOLUM/failclosed",
+               _bolum_olc(mm, [[{"baslik": "x"}]], [[{"baslik": "y"}]])["hata"] is not None,
+               "bölüm kimliği bozukken üretim DURMADI (fail-open)")
 
 
 def marka_literal_iddialari(kapi, mm, index_html):
@@ -263,6 +336,7 @@ def marka_literal_iddialari(kapi, mm, index_html):
     hedefler = {
         "mm._tekil": inspect.getsource(mm._tekil),
         "mm.sayfa_kalemleri": inspect.getsource(mm.sayfa_kalemleri),
+        "mm.bolum_ayrimi": inspect.getsource(mm.bolum_ayrimi),
         "mm._toplam_bloku": inspect.getsource(mm._toplam_bloku),
         "mm._marka_sayfasi": inspect.getsource(mm._marka_sayfasi),
         "mm._model_sayfasi": inspect.getsource(mm._model_sayfasi),
@@ -303,9 +377,13 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         slug_marka.setdefault("marka/" + mm._slug(kan), kan)
 
     # ---------------------------------------------------------- ulaşılabilir tekil kümeler
+    # kova[yol] = model BUTONLARININ ARDINDAKİ tekil küme — butonun BASTIĞI sayıdan DEĞİL,
+    # bağlı model sayfalarının GERÇEK kartlarından türer (bağımsız ölçüm; buton sayısını
+    # okusaydık "Σ bas" mutantı tautolojiye düşer, kapı onu göremezdi).
     erisim = {}          # marka yolu -> {kategori: set(id)}
+    kova = {}            # marka yolu -> {kategori: set(id)} (yalnız buton ardındakiler)
     for yol, s in marka_sayfalari.items():
-        kume = {}
+        kume, kkume = {}, {}
         for kat, pid in s["kartlar"]:
             kume.setdefault(kat, set()).add(pid)
         for href, _tablo in s["butonlar"]:
@@ -314,12 +392,15 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                 continue
             for kat, pid in mp["kartlar"]:
                 kume.setdefault(kat, set()).add(pid)
+                kkume.setdefault(kat, set()).add(pid)
         erisim[yol] = kume
+        kova[yol] = kkume
     for yol, s in model_sayfalari.items():
         kume = {}
         for kat, pid in s["kartlar"]:
             kume.setdefault(kat, set()).add(pid)
         erisim[yol] = kume
+        kova[yol] = {}          # model sayfasında buton YOK: bölümlerin tamamı sayfada
 
     def tumu(kume):
         out = set()
@@ -343,6 +424,39 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         beklenen_tablo = {k: len(v) for k, v in erisim[yol].items() if k}
         kapi.iddia("KIRILIM_KAT/" + yol, tablo == beklenen_tablo,
                    "gömülü %r != ölçülen %r" % (tablo, beklenen_tablo))
+
+    # ------------------------------------------------------------------- BÖLÜM KİMLİĞİ
+    # 🔴 KAPININ ESKİ KÖRLÜĞÜ (7 Ağu): `sayim_kart`/`sayim_model` PARSE ediliyor ama hiçbir
+    # iddiada kullanılmıyordu; kapı "toplam doğru mu?" sorusunu kapatıyor, "kullanıcı gördüğü
+    # sayılardan toplamı TÜRETEBİLİYOR mu?" sorusunu HİÇ sormuyordu. Okan'ın bildirdiği kusur
+    # ikincisiydi ve bu kapı 40 sayfanın sapmasını 0'a indirdiği turda %100 sapan bir sınıfı
+    # (buton taşıyan HER marka sayfası) yeşil geçirdi → [[kapi-kapsam-eksen-secimi]].
+    for yol, s in sayfalar.items():
+        kart_idleri = set(i for _k, i in s["kartlar"])
+        kova_idleri = tumu(kova[yol])
+        bolum = sum(s["bolum_kart"])
+        kapi.iddia("BOLUM_KART/" + yol, bolum == len(kart_idleri),
+                   "başlıklarda basılan %d, sayfada gerçek tekil kart %d (başlıklar %r)"
+                   % (bolum, len(kart_idleri), s["bolum_kart"]))
+        kapi.iddia("BOLUM_AYRIK/" + yol, not (kart_idleri & kova_idleri),
+                   "kart ∩ kova = %d ('Diğer' tümleyen DEĞİL)"
+                   % len(kart_idleri & kova_idleri))
+        kapi.iddia("BOLUM_KIMLIGI/" + yol, bolum + len(kova_idleri) == s["toplam"],
+                   "kart %d + kova %d = %d, SSR toplam %s"
+                   % (bolum, len(kova_idleri), bolum + len(kova_idleri), s["toplam"]))
+        kapi.iddia("BOLUM_KOVA/" + yol,
+                   s["sayim_kova"] == [len(kova_idleri)] * len(s["sayim_kova"])
+                   and bool(s["sayim_kova"]) == bool(kova_idleri),
+                   "basılan %r, ölçülen ∪kova %d (Σbuton %d)"
+                   % (s["sayim_kova"], len(kova_idleri),
+                      sum(sum(t.values()) for _h, t in s["butonlar"])))
+        # CÜMLE: rozetlerle AYNI kaynaktan mı türüyor. Kova yoksa cümlede kırılım BASILMAZ.
+        beklenen_cumle = ([s["toplam"]], [bolum], [len(kova_idleri)]) if kova_idleri \
+            else ([s["toplam"]], [], [])
+        kapi.iddia("BOLUM_CUMLE/" + yol,
+                   (s["cumle_toplam"], s["cumle_kart"], s["cumle_kova"]) == beklenen_cumle,
+                   "cümle %r != ölçülen %r"
+                   % ((s["cumle_toplam"], s["cumle_kart"], s["cumle_kova"]), beklenen_cumle))
 
     for yol, marka in slug_marka.items():
         s = marka_sayfalari.get(yol)
@@ -389,9 +503,12 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                     continue
                 gor.add(pid)
                 kucuk.append(pid)
-        beklenen = yerel_tekil([kucuk,
-                                [p.get("id") for p in d["marka_only"]],
-                                [p.get("id") for p in d.get("ikincil", [])]])
+        # 🔴 BÖLÜM AYRIMI SIRAYA DA GİRER: üç kolun HEPSİ yayımlanan kovadan elenir (kart
+        # bölümü kovanın TÜMLEYENİDİR). Eleme sırayı yeniden DİZMEZ, yalnız eleman düşürür.
+        beklenen = [pid for pid in yerel_tekil(
+            [kucuk,
+             [p.get("id") for p in d["marka_only"]],
+             [p.get("id") for p in d.get("ikincil", [])]]) if pid not in yayimda]
         gercek = [i for _k, i in s["kartlar"]]
         kapi.iddia("SIRA/" + yol, gercek == beklenen,
                    "kart dizilimi ayrıştı (sayfa %d, beklenen %d, ilk fark %s)"
@@ -405,31 +522,35 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
     js = js[js.index(mm._KAPSAM_JS_BAS):js.index(mm._KAPSAM_JS_SON)]
     KAT = kategoriler[0]
     OLCULEMEDI = "Kapsam: yalnız %s kategorisi — parça sayısı ölçülemedi" % KAT
+    # `kova` = istemcinin bastığı "model sayfalarında" sayısı. Toplam ölçülemediğinde bu sayı
+    # da BASILMAZ ("—"): yarım doğru sayı basmak, hiç basmamaktan daha sessiz bir hatadır.
     sentetik = [
         # kırılım YOK -> sayı BASILMAZ (fail-open olsaydı 0/kart sayısı basardı)
         {"ad": "eksik", "kategori": KAT, "kartlar": [KAT, KAT], "butonlar": [],
-         "toplamKatsay": None, "serit": OLCULEMEDI, "rozet": "—"},
+         "toplamKatsay": None, "serit": OLCULEMEDI, "rozet": "—", "kova": "—"},
         # kırılım YOK + görünen kart 0 ama kovada 5 parça VAR: "0 parça" basmak tam da
         # bildirilen sessiz kusurdur. Tutarlılık kapısı (toplam < kart) burada devreye
         # GİREMEZ (kart 0) -> fail-open'a dönen bir düzeltme YALNIZ bu fikstürde yakalanır
         # ([[duzeltme-fail-open-cevirebilir]]).
         {"ad": "eksik_kovali", "kategori": KAT, "kartlar": ["Ofis"],
          "butonlar": [{"href": "/marka/x/y/", "katsay": '{"%s":5}' % KAT}],
-         "toplamKatsay": None, "serit": OLCULEMEDI, "rozet": "—"},
+         "toplamKatsay": None, "serit": OLCULEMEDI, "rozet": "—", "kova": "—"},
         # kırılım BOZUK JSON
         {"ad": "bozuk", "kategori": KAT, "kartlar": [KAT], "butonlar": [],
-         "toplamKatsay": "{bozuk", "serit": OLCULEMEDI, "rozet": "—"},
+         "toplamKatsay": "{bozuk", "serit": OLCULEMEDI, "rozet": "—", "kova": "—"},
         # kırılım BOŞ metin
         {"ad": "bos", "kategori": KAT, "kartlar": [KAT], "butonlar": [],
-         "toplamKatsay": "", "serit": OLCULEMEDI, "rozet": "—"},
+         "toplamKatsay": "", "serit": OLCULEMEDI, "rozet": "—", "kova": "—"},
         # kırılım TUTARSIZ (toplam < görünen kart) -> bayat/bozuk veri, sayı BASILMAZ
         {"ad": "tutarsiz", "kategori": KAT, "kartlar": [KAT, KAT, KAT], "butonlar": [],
-         "toplamKatsay": '{"%s":1}' % KAT, "serit": OLCULEMEDI, "rozet": "—"},
-        # SAĞLAM kontrol: kova + kart, kapsam içindeki sayı basılır (hep-null mutantını öldürür)
+         "toplamKatsay": '{"%s":1}' % KAT, "serit": OLCULEMEDI, "rozet": "—", "kova": "—"},
+        # SAĞLAM kontrol: kova + kart, kapsam içindeki sayı basılır (hep-null mutantını öldürür).
+        # 🔴 SAYILAR BİLEREK ÜÇÜ DE FARKLI: toplam 7, görünen kart 2, kova 5 — "toplamı bas",
+        # "kart sayısını bas", "Σbuton bas" ikamelerinin hiçbiri üçünü birden sağlayamaz.
         {"ad": "saglam", "kategori": KAT, "kartlar": [KAT, KAT, "Ofis"],
          "butonlar": [{"href": "/marka/x/y/", "katsay": '{"%s":5}' % KAT}],
          "toplamKatsay": '{"%s":7,"Ofis":1}' % KAT,
-         "serit": "Kapsam: yalnız %s kategorisi — 7 parça" % KAT, "rozet": "7"},
+         "serit": "Kapsam: yalnız %s kategorisi — 7 parça" % KAT, "rozet": "7", "kova": "5"},
     ]
     veri = {"kapsamJs": js, "kategoriler": kategoriler, "sentetik": sentetik, "sayfalar": {}}
     for yol, s in sayfalar.items():
@@ -467,6 +588,8 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                    "şerit %r != %r" % (r.get("serit"), f["serit"]))
         kapi.iddia("JS_SENTETIK/%s/rozet" % f["ad"], r.get("rozet") == f["rozet"],
                    "rozet %r != %r" % (r.get("rozet"), f["rozet"]))
+        kapi.iddia("JS_SENTETIK/%s/kova" % f["ad"], r.get("kova") == f["kova"],
+                   "kova %r != %r" % (r.get("kova"), f["kova"]))
 
     for yol, s in sayfalar.items():
         r = js_sonuc.get(yol)
@@ -484,6 +607,12 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                        "rozet %r != %d" % (olcum["rozet"], bek))
             kapi.iddia("JS_ALTKUME/%s/%s" % (yol, kat), olcum["gorunenKart"] <= bek,
                        "görünen kart %d > toplam %d" % (olcum["gorunenKart"], bek))
+            # Kapsam altında da BÖLÜM KİMLİĞİ: istemcinin bastığı "model sayfalarında"
+            # sayısı, o kategorideki ∪kova ile BİREBİR (bağımsız ölçüm — butonların bastığı
+            # sayıdan değil, bağlı model sayfalarının gerçek kartlarından).
+            kova_bek = len(kova[yol].get(kat, ()))
+            kapi.iddia("JS_KOVA/%s/%s" % (yol, kat), olcum["kova"] == str(kova_bek),
+                       "kova %r != ölçülen %d" % (olcum["kova"], kova_bek))
 
     bilgi = {"mukerrer": mukerrer_toplam, "marka": len(marka_sayfalari),
              "model": len(model_sayfalari), "tmp": tmp}
@@ -503,8 +632,12 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
     katmanlar = {}
     for yol, s in sayfalar.items():
         seviye = "marka" if yol.count("/") == 1 else "model"
-        kt = katman(len(tumu(erisim[yol])))
-        d0 = katmanlar.setdefault((seviye, kt), {"sayfa": 0, "sapan": [], "mukerrer": 0})
+        # Model BUTONU olmayan marka sayfaları AYRI katman: bölüm kimliği orada zaten
+        # trivial tutar (kova boş) -> onarımın gerçek yükü buton TAŞIYAN sayfalarda ölçülür.
+        kt = ("modelsiz" if (seviye == "marka" and not s["butonlar"])
+              else katman(len(tumu(erisim[yol]))))
+        d0 = katmanlar.setdefault((seviye, kt),
+                                  {"sayfa": 0, "sapan": [], "mukerrer": 0, "bolum_sapan": []})
         d0["sayfa"] += 1
         d0["mukerrer"] += len(s["kartlar"]) - len(set(i for _k, i in s["kartlar"]))
         gercek = len(tumu(erisim[yol]))
@@ -514,15 +647,21 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
             marka = slug_marka.get(yol)
             if marka and tumu(erisim[yol]) != uyelik.get(marka, set()):
                 d0["sapan"].append("%s (katalog ayrışması)" % yol)
+        kb, kv = sum(s["bolum_kart"]), len(tumu(kova[yol]))
+        if kb + kv != s["toplam"]:
+            d0["bolum_sapan"].append("%s (%d+%d!=%s)" % (yol, kb, kv, s["toplam"]))
     bilgi["katmanlar"] = katmanlar
+    bilgi["bolum_sapan"] = sum(len(d0["bolum_sapan"]) for d0 in katmanlar.values())
 
     if dokum:
-        print("== BÜYÜKLÜK KATMANLARI (üretilen == gerçek) ==")
+        print("== BÜYÜKLÜK KATMANLARI (üretilen == gerçek · bölüm kimliği) ==")
         for anahtar in sorted(katmanlar):
             d0 = katmanlar[anahtar]
-            print("  %-6s %-13s sayfa=%4d  sapan=%d  mukerrer_kart=%d%s"
-                  % (anahtar[0], anahtar[1], d0["sayfa"], len(d0["sapan"]), d0["mukerrer"],
-                     ("  -> " + ", ".join(d0["sapan"][:10])) if d0["sapan"] else ""))
+            print("  %-6s %-13s sayfa=%4d  sapan=%d  bolum_sapan=%d  mukerrer_kart=%d%s"
+                  % (anahtar[0], anahtar[1], d0["sayfa"], len(d0["sapan"]),
+                     len(d0["bolum_sapan"]), d0["mukerrer"],
+                     ("  -> " + ", ".join((d0["sapan"] + d0["bolum_sapan"])[:6]))
+                     if (d0["sapan"] or d0["bolum_sapan"]) else ""))
     if sayfa_detay:
         s = sayfalar.get(sayfa_detay)
         if s is None:
@@ -534,6 +673,15 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                      json.dumps(s["toplam_katsay"], ensure_ascii=False, sort_keys=True)))
     shutil.rmtree(tmp, ignore_errors=True)
     return (0 if not kapi.dusen else 1), kapi, bilgi
+
+
+def _imza(dusen):
+    """Düşen iddianın KİMLİK imzası: sayfa yolu soyulur, iddia adı KORUNUR.
+    "BOLUM_KIMLIGI/marka/x" -> "BOLUM_KIMLIGI" · "BIRIM_BOLUM/ayrik" -> "BIRIM_BOLUM/ayrik"."""
+    ad = dusen.split(" — ")[0]
+    if "/marka/" in ad:
+        return ad.split("/marka/")[0]
+    return ad
 
 
 def main():
@@ -550,13 +698,20 @@ def main():
     # AİLE İMZASI: mutasyon bataryası mutantları BUNUNLA ayırt eder (çıkış kodu DEĞİL —
     # iki farklı kusur da rc=1 verir; ayrışmayan imza "aynı iddiayı düşürdüler" demektir).
     aile = {}
+    imza = {}
     for d in kapi.dusen:
         aile[d.split("/")[0]] = aile.get(d.split("/")[0], 0) + 1
+        k = _imza(d)
+        imza[k] = imza.get(k, 0) + 1
     print("AILELER=" + (",".join("%s:%d" % kv for kv in sorted(aile.items())) or "-"))
+    # İMZA = aileden DAHA İNCE ayrım: sayfa yolu soyulur ama iddianın KİMLİĞİ korunur
+    # ("BIRIM_BOLUM/ayrik" ile "BIRIM_BOLUM/kimlik" aynı aileye düşer, ayrı imzaya düşmez).
+    # Mutasyon bataryası ayrışmayı ve "kapı körleşti mi"yi BU satırdan okur.
+    print("IMZALAR=" + (",".join("%s:%d" % kv for kv in sorted(imza.items())) or "-"))
     print("IZ=" + kaynak_izi())
-    print("IDDIA=%d/%d  DUSEN=%d  MUKERRER_KART=%s  SAYFA=marka %s + model %s"
+    print("IDDIA=%d/%d  DUSEN=%d  MUKERRER_KART=%s  BOLUM_SAPAN=%s  SAYFA=marka %s + model %s"
           % (kapi.gecen, kapi.taban, len(kapi.dusen), bilgi.get("mukerrer"),
-             bilgi.get("marka"), bilgi.get("model")))
+             bilgi.get("bolum_sapan"), bilgi.get("marka"), bilgi.get("model")))
     print("HUKUM=" + ("YESIL" if rc == 0 else ("KIRMIZI" if rc == 1 else "OLCULEMEDI")))
     return rc
 

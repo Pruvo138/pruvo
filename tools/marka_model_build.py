@@ -1235,6 +1235,11 @@ _KAPSAM_JS_GOVDE = r"""
     yazSayim(dok, ".mm-sayim-kart", gorunenKart);
     yazSayim(dok, ".mm-sayim-model", gorunenModel);
     yazSayim(dok, ".mm-sayim-toplam", toplam === null ? "—" : toplam);
+    // BÖLÜM KİMLİĞİ istemcide de tutar. SSR'de bölümler AYRIK kurulur (bolum_ayrimi:
+    // kart + ∪kova == toplam), bu yüzden "model sayfalarında" kalan = toplam - görünen kart.
+    // Buton sayılarını TOPLAMAK yanlış olurdu (kovalar kendi aralarında çakışır: Σ171/∪156);
+    // ikinci bir sayma kuralı yazılmaz. Toplam ölçülemezse bu sayı da BASILMAZ (fail-closed).
+    yazSayim(dok, ".mm-sayim-kova", toplam === null ? "—" : (toplam - gorunenKart));
 
     // GÖRÜNÜR kapsam şeridi + kapsamı KALDIRMA yolu (kanonik, parametresiz adres).
     // Metin textContent ile yazılır (innerHTML YOK) -> URL'den gelen değer kod olamaz.
@@ -1684,14 +1689,71 @@ def sayfa_kalemleri(kart_urunleri, kova_listeleri=()):
     return _tekil(kart_urunleri, *list(kova_listeleri))
 
 
-def _toplam_bloku(esc, kalemler, oncul):
-    """Sayfanın KANONİK toplamı: görünür cümle + istemcinin okuyacağı kategori kırılımı.
+def bolum_ayrimi(kart_kollari, kova_listeleri):
+    """Sayfanın İKİ BÖLÜMÜNÜ AYRIK kurar ve üç sayıyı TEK KAYNAKTAN verir.
+
+    🔴 NEDEN VAR (7 Ağu 2026 — Okan BİZZAT İKİ KEZ bildirdi; hatası SESSİZ): marka sayfası
+    iki bölüm gösteriyor ("Modele göre seçin" butonları + "Diğer … parçaları" kartları) ama
+    bu iki bölüm ÇAKIŞIYORDU: kart kolu (`marka_only`/`ikincil`) yayımlanan model kovasında
+    ZATEN görünen ürünü ELEMİYORDU (`kucuk_urunler` eliyordu, diğer iki kol elemiyordu).
+    Ölçüldü: model butonu OLAN 31 marka sayfasının 31'i sapıyordu, sapma DAİMA POZİTİF
+    (mükerrer sayım); en büyük üç sapma +1138 / +854 / +528 ve üç sayfada Σbuton TEK BAŞINA
+    sayfa toplamını aşıyordu. "Diğer" kelimesi TÜMLEYEN vaat ederken küme kovalarla
+    kesişiyordu; kullanıcı ekranda gördüğü sayılardan sayfanın toplamını TÜRETEMİYORDU.
+
+    KİMLİK — bu fonksiyonun kurduğu ve FAIL-CLOSED doğruladığı değişmez:
+
+        |kart| + |∪kova| == |toplam|          ("Diğer" GERÇEK tümleyendir)
+
+    Kart kolu ∪kova ile AYRIKTIR. Ürün KAYBOLMAZ: kovada zaten görünen ürün ikinci kez kart
+    olarak basılmaz, ama sayfadan ULAŞILABİLEN tekil küme (`toplam`) DEĞİŞMEZ — eleme yalnız
+    ürünün hangi bölümde SAYILDIĞINI belirler.
+
+    Dönüş: (kart_urunleri, kalemler, sayilar);
+    `sayilar` = {"toplam", "kart", "kova", "kova_sayisi"}. Sayfadaki HER sayı ve HER cümle
+    BU sözlükten türer — ikinci bir toplama formülü YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]])."""
+    kova_listeleri = list(kova_listeleri)
+    kova_ids = set()
+    for lst in kova_listeleri:
+        for p in lst:
+            pid = p.get("id")
+            if pid:
+                kova_ids.add(pid)
+    kart_urunleri = [p for p in _tekil(*kart_kollari) if p.get("id") not in kova_ids]
+    kalemler = sayfa_kalemleri(kart_urunleri, kova_listeleri)
+    sayilar = {"toplam": len(kalemler), "kart": len(kart_urunleri),
+               "kova": len(kova_ids), "kova_sayisi": len(kova_listeleri)}
+    if sayilar["kart"] + sayilar["kova"] != sayilar["toplam"]:
+        raise SystemExit(
+            "HATA: bölüm kimliği ayrıştı — kart %d + kova %d != toplam %d (sayfanın "
+            "bölümleri çakışıyor; ekrandaki sayılar toplamı vermez)."
+            % (sayilar["kart"], sayilar["kova"], sayilar["toplam"]))
+    return kart_urunleri, kalemler, sayilar
+
+
+def _toplam_bloku(esc, kalemler, sayilar, oncul, kova_yeri=None):
+    """Sayfanın KANONİK toplam CÜMLESİ + istemcinin okuyacağı kategori kırılımı.
+
+    🔴 SAYI İLE CÜMLE TEK KAYNAKTAN: üç sayı da `bolum_ayrimi`nin döndürdüğü `sayilar`
+    sözlüğünden gelir; cümle burada YENİDEN HESAPLAMAZ. (Bu depoda ölçülmüş sınıf: iki
+    yerden türeyen sayı sessizce ayrışır → [[ikiz-tanim-sessiz-ayrisma]].)
+
+    `kova_yeri` verilmişse (marka sayfası: "model sayfalarında") cümle kullanıcının GÖRDÜĞÜ
+    ayrımı da basar: "N parça listeleniyor: K parça bu sayfada, M parça model sayfalarında."
+    Böylece 131 kalemin tıklama ardında kaldığı ekranda YAZILI olur, okuyucunun buton
+    sayılarını toplamasına gerek KALMAZ (toplamaları zaten yanlış sayı verirdi: kovalar
+    kendi aralarında da çakışır — ölçülen bir sayfada Σ171 iken ∪156).
 
     `data-katsay` ADI BİLEREK model butonlarıyla AYNI: istemci tarafında da AYNI
     `sayimla()` fonksiyonu okur (tek sayma kuralı, iki ayrı okuyucu yok)."""
-    return ('<p class="mm-toplam" data-katsay="%s">%s <span class="mm-sayim-toplam">%d</span> '
-            '%s</p>' % (esc(_kat_sayim_json(kalemler)), esc(oncul), len(kalemler),
-                        esc("parça listeleniyor.")))
+    govde = ('%s <span class="mm-sayim-toplam">%d</span> parça listeleniyor'
+             % (esc(oncul), sayilar["toplam"]))
+    if kova_yeri and sayilar["kova"]:
+        govde += (': <span class="mm-sayim-kart">%d</span> parça bu sayfada, '
+                  '<span class="mm-sayim-kova">%d</span> parça %s'
+                  % (sayilar["kart"], sayilar["kova"], esc(kova_yeri)))
+    return ('<p class="mm-toplam" data-katsay="%s">%s.</p>'
+            % (esc(_kat_sayim_json(kalemler)), govde))
 
 
 def _urun_grid(ctx, urunler):
@@ -1772,14 +1834,16 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
                       "ön teyit veririz.")
 
     # Model sayfasının KANONİK toplamı: ana liste + kuşak bölümleri, TEKİL (model butonu yok).
-    # Marka sayfasıyla AYNI fonksiyon — sayaç birimi iki sayfa türünde ayrışmasın.
-    _kalemler = sayfa_kalemleri(g.get("ana", g["urunler"]),
-                                [b["urunler"] for b in g.get("kusak_bolum", [])])
+    # Marka sayfasıyla AYNI fonksiyon (`bolum_ayrimi`) — bölüm kimliği iki sayfa türünde
+    # ayrışmasın: ana liste kuşak bölümleriyle AYRIK, |ana| + |∪kuşak| == toplam.
+    ana, _kalemler, _sayilar = bolum_ayrimi(
+        [g.get("ana", g["urunler"])],
+        [b["urunler"] for b in g.get("kusak_bolum", []) if b["urunler"]])
     if len(_kalemler) != len(_tekil(g["urunler"])):
         raise SystemExit("HATA: model sayfası toplamı ayrıştı — %s %s: sayfadan ulaşılabilen "
                          "%d kalem, kova tekil %d (sayaç birimi bozuk)."
                          % (marka, display, len(_kalemler), len(_tekil(g["urunler"]))))
-    n = len(_kalemler)
+    n = _sayilar["toplam"]
     description = (marka + " " + display + " için bulunamayan ya da kırılan plastik yedek "
                   "parçaları numunenizden ölçüye özel üretiyoruz. " + str(n) + " parça "
                   "listeleniyor; bulamadığınızı WhatsApp'tan üretelim.")
@@ -1801,13 +1865,13 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
     # ürünler ana listeye KARIŞMAZ (katlama uyum vaadi değildir: Golf Mk4 parçası Mk6'ya
     # takılmaz) — her kuşak kendi başlığı altında, kendi sayfasına linkle listelenir.
     # Ayrım RENDER EDİLMİŞ HTML üzerinden ölçülür (tools/model-uyelik-kapisi.py K14).
-    ana = g.get("ana", g["urunler"])
+    # `ana` yukarıda `bolum_ayrimi` ile kuşak bölümlerinden AYRIŞTIRILDI (bölüm kimliği).
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
             + '<p class="lead">' + esc(giris) + '</p>'
             + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
-            + _toplam_bloku(esc, _kalemler, "Bu sayfada")
+            + _toplam_bloku(esc, _kalemler, _sayilar, "Bu sayfada")
             + '<h2 class="mm-sec-h">' + esc(display) + ' parçaları ('
             + '<span class="mm-sayim-kart">' + str(len(ana)) + '</span>)</h2>'
             + _urun_grid(ctx, ana)
@@ -1844,9 +1908,13 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     # İkincil = marka[0]'ı başka marka olan ama marka[] dizisinde bu markayı da taşıyan ürün;
     # index.html marka filtresi onu zaten bu markada gösteriyor -> sayfa da göstermeli.
     # 🔴 TEKİLLEŞTİRİLİR: üç kol çakışabiliyor (bkz. _tekil) — çakışma 282 mükerrer karttı.
-    diger = _tekil(kucuk_urunler, d["marka_only"], d.get("ikincil", []))
-    kalemler = sayfa_kalemleri(diger, [g["urunler"] for g in buyuk_gruplar])
-    toplam = len(kalemler)
+    # 🔴 BÖLÜM AYRIMI (7 Ağu): üç kol AYRICA yayımlanan model kovalarından da ELENİR —
+    # `kucuk_urunler` bunu zaten yapıyordu, `marka_only`/`ikincil` YAPMIYORDU ve "Diğer"
+    # tümleyen olmaktan çıkıyordu (bkz. bolum_ayrimi). Kimlik: kart + ∪kova == toplam.
+    diger, kalemler, sayilar = bolum_ayrimi(
+        [kucuk_urunler, d["marka_only"], d.get("ikincil", [])],
+        [g["urunler"] for g in buyuk_gruplar])
+    toplam = sayilar["toplam"]
     # FAIL-CLOSED İKİZ KONTROLÜ: sayfadan ulaşılabilen küme ile marka kovasının kanonik
     # sayısı AYRIŞAMAZ. Ayrışırsa sayfa yanlış sayı basar ve kimse GÖRMEZ -> build durur.
     if toplam != marka_urun_sayisi(d):
@@ -1881,7 +1949,7 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     if diger:
         diger_html = ('<h2 class="mm-sec-h">Diğer ' + esc(marka)
                       + ' parçaları (<span class="mm-sayim-kart">'
-                      + str(len(diger)) + '</span>)</h2>'
+                      + str(sayilar["kart"]) + '</span>)</h2>'
                       + _urun_grid(ctx, diger))
 
     prefill = ("Merhaba, " + marka + " için bir parça arıyorum, sitede bulamadım. Elimdeki "
@@ -1899,9 +1967,13 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
             + '<p class="lead">' + esc(giris) + '</p>'
             + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
-            + _toplam_bloku(esc, kalemler, "Bu markada")
+            + _toplam_bloku(esc, kalemler, sayilar, "Bu markada", "model sayfalarında")
+            # 🔴 BAŞLIKTA Σ DEĞİL ∪: okuyucu buton sayılarını TOPLAMAYA davet edilmemeli —
+            # kovalar kendi aralarında da çakışır (ölçüldü: Σ171 ama ∪156, 15 çakışma). Başlık
+            # butonların ardındaki TEKİL BİRLEŞİMİ basar; sayı `sayilar`dan gelir.
             + ('<h2 class="mm-sec-h">Modele göre seçin (<span class="mm-sayim-model">'
-               + str(len(btns)) + '</span>)</h2>' if btns else "")
+               + str(len(btns)) + '</span> model · <span class="mm-sayim-kova">'
+               + str(sayilar["kova"]) + '</span> parça)</h2>' if btns else "")
             + model_html
             + diger_html
             + huni)
