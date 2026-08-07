@@ -359,8 +359,18 @@ jobs:
       # onarim/teyit duserse ZATEN atlanir; bu adim o hali ADIYLA beyan eder ve HER IKI
       # kolda KIRMIZI birakir. Emniyet aginin tutmamasi bir YAYIN kusuru degildir ama
       # "onarildi" ile ayni kutuya konamaz: onarilmayan sapma Ege'de SURER.
+      #
+      # 🔴 DUZELTME (7 Agu 2026, OLCULDU kosum 31214568441): eski kosul `failure() &&
+      # sapma=='var'` idi. `failure()` bu JOB'daki HERHANGI bir onceki adim dustuyse
+      # true olur — ve cron/elle kolunda "(1) Sapma gorunurlugu" adimi sapma=='var'
+      # oldugunda KASITLI OLARAK exit 1 verir (GORUNURLUK sinyali, o adim DEGISMEDI).
+      # Sonuc: bu adim, teyidin GERCEK sonucuna bakmadan, o kasitli kirmiziyi kendi
+      # `failure()` girdisi sanip "onarim ve/veya teyit DUSTU" diye YANLIS beyan
+      # ediyordu — kosum 31214568441'de onarim+teyit ikisi de success oldugu HALDE.
+      # `steps.teyit.outcome != 'success'` GERCEK sonucu okur (fail-closed: teyit
+      # skipped/cancelled olursa da != 'success' true'dur, adim yine KIRMIZI yanar).
       - name: "ONARILAMADI: sapma KAPANMADI (ayri hukum — her iki kolda KIRMIZI)"
-        if: failure() && steps.olcum.outputs.sapma == 'var'
+        if: always() && steps.olcum.outputs.sapma == 'var' && steps.teyit.outcome != 'success'
         run: |
           echo "🔴 D1 SAPMASI KAPANMADI — onarim ve/veya teyit adimi DUSTU."
           echo "### 🔴 D1 sapmasi ONARILAMADI (emniyet agi tutmadi)" >> "$GITHUB_STEP_SUMMARY"
