@@ -543,6 +543,30 @@ def kabul(kok):
     dogrula("B16 HÜKÜM A/B/D ALLOW — hükmedilen %d sayfanın hepsi YAYINDA ve çapasını "
             "tutuyor (tekil giriş GERÇEKTEN sayfa doğuruyor)" % len(HUKUM_ALLOW),
             not _allow_sapan, "sapan=%s" % (_allow_sapan[:4] or "-"))
+    # --- B16a: TEKİL GİRİŞ ENVANTERDE DURUYOR — SAYFA TARAFINDAN GÖRÜLEMEYEN EKSEN ---
+    # 🔴 NEDEN B16 YETMİYOR (ÖLÇÜLDÜ, 7 Ağu 2026 — tahmin değil): B16 sayfanın YAYINDA
+    # olmasına bakar. `Toyota|86` girişi envanterden DÜŞERKEN H1 kuralı ÇIPLAK SAYIYA
+    # açılırsa sayfa AYNEN yayında kalır — kural, düşen girişin yerine SESSİZCE geçer —
+    # ve B16 YEŞİL kalır, yargı KAYBOLMUŞ olduğu hâlde. Bu SESSİZ İKAME tam olarak M14'ün
+    # taklit ettiği sapmadır ve sayfa ekseninden GÖRÜLEMEZ ([[beyan-edilmis-survivor]]:
+    # zincirden geçen iddia katmanların VEYA'sını ölçer).
+    # 🔴 EKSEN ENVANTER İÇERİĞİNDE: M6 (yalnız kuralı açar) tabloya DOKUNMADIĞI için bu
+    # iddiayı DÜŞÜREMEZ -> M14 artık TEK BAŞINA ayırt edilir. Ölçülen hâl: M6 ve M14
+    # B16a'dan ÖNCE {B8,B8a,B8c,B10} kümesini BİREBİR aynı yakıyordu (ayırt edilemiyordu).
+    # 🔴 KAPSAM YALNIZ ÇIPLAK SAYI: `Suzuki|DR` gibi HARFLİ girişler sayfa ekseninde zaten
+    # tek başına yakılabiliyor (M15 -> B16). Onları buraya almak M15'i de bu iddiaya bağlar
+    # ve TEK KIRMIZI sözleşmesini bozardı (ölçüldü: M14'ü envanter eksenine indirgemek
+    # çakışmayı M6'dan M15'e TAŞIMIŞTI).
+    # 🔴 ÜYELİK ÖLÇÜTÜ `izin` KÜMESİNDEN TÜRER (ikinci bir tanım YAZILMAZ) —
+    # [[ikiz-tanim-sessiz-ayrisma]].
+    _ciplak_allow = [(mk, ad) for mk, ad, _n in HUKUM_ALLOW if _ciplak_sayi(ad)]
+    _ciplak_kayip = ["%s|%s" % (mk, ad) for mk, ad in _ciplak_allow
+                     if (mk, _arama.model_normalize(ad)) not in izin]
+    dogrula("B16a ÇIPLAK SAYI TEKİL GİRİŞİ ENVANTERDE DURUYOR (%d çapa; sayfa hangi yoldan "
+            "doğarsa doğsun yargı KAYBOLMAZ — açılan kural, düşen girişin yerine SESSİZCE "
+            "GEÇEMEZ)" % len(_ciplak_allow),
+            bool(_ciplak_allow) and not _ciplak_kayip,
+            "envanterden düşmüş=%s · çapa=%s" % (_ciplak_kayip or "-", _ciplak_allow))
     # 🔴 ÇIPLAK SAYI KURALI GEVŞEMEDİ — CANLI VERİ EKSENİ (B10 fikstür eksenidir, bu değil):
     # `Toyota|86` TEKİL GİRİŞLE açıldı; kuralın kendisi çıplak sayıya HÂLÂ kapalı olmalı.
     _ciplak_kural = sorted("%s|%s" % (mk, dsp) for (mk, _c), (_n, _y, _b, _a, dsp)
@@ -723,8 +747,9 @@ MUTANTLAR = [
      "    (\"Toyota\", \"86\"): \"Toyota 86 GERCEK rozet",
      "    (\"Toyota\", \"86YOK\"): \"Toyota 86 GERCEK rozet", "KIRMIZI",
      "M14 `Toyota|86` TEKİL GİRİŞİNİ KURALA ÇEVİR (envanterden çıkar + H1'i çıplak sayıya "
-     "aç) -> ÇIPLAK SAYI KORUMASI ÖLÜR ve sayfa KURALDAN doğar (B8a + B8c + B10; M6'dan "
-     "B8a ile AYRILIR — M6 girişi envanterde BIRAKIR)",
+     "aç) -> SESSİZ İKAME: sayfa KURALDAN doğduğu için AYAKTA kalır, B16 GÖREMEZ; "
+     "B16a envanter ekseninde TEK BAŞINA yakar (M6 tabloya DOKUNMADIĞI için B16a'yı "
+     "düşüremez -> ayırt edici; M15 harfli giriş olduğu için kapsam DIŞI)",
      [("tools/marka_model_build.py",
        "    j = \"\".join(_kelimeler(deger))\n"
        "    return bool(j) and any(c.isalpha() for c in j) and any(c.isdigit() for c in j)",
