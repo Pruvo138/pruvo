@@ -16,7 +16,17 @@ Token GEREKMEZ (MakerWorld public API). Sir icermez.
 """
 import importlib.util, os, re, sys
 
-ROOT = "/Users/okan/dev/pruvo"
+# VERI KOKU: `.urun-kaynaklari.json` DAIMA ANA kopyada durur, ama kok SABIT YAZILMAZ —
+# sabit "<gelistirici-evi>/depo" CI kosucusunda YOKTUR (7 Agu 2026: ayni desen serit-a3'u
+# kirmizi yakip yayini 4+ saat kapatti; yerelde HIC kirmizi yanmaz). veri_kok git'e sorar:
+# worktree'de ANA kopyayi, temiz klonda/CI'da klonun kokunu dondurur.
+_KENDI_DIZIN = os.path.dirname(os.path.abspath(__file__))
+_vkspec = importlib.util.spec_from_file_location("veri_kok",
+                                                os.path.join(_KENDI_DIZIN, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec); _vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
 # MakerWorld API'sinin ticari kullanima acik dort lisans havuzu. Her biri ayri sorgulanir.

@@ -989,6 +989,180 @@ def _gercek_vaka():
 
 
 # ---------------------------------------------------------------------------
+# KLON PROBE — "kok DINAMIK mi" iddiasini DAVRANISLA olcer
+# ---------------------------------------------------------------------------
+# 🔴 NEDEN AYRI BIR KOL: yukaridaki tarama STATIKtir — "dosyada makineye ozgu literal yok"
+# der. Bu, "kok CI'da dogru cozuluyor" DEMEK DEGILDIR: turetme yanlis yazilmis olabilir
+# (or. bir ust dizin eksik) ve statik kapi yine yesil kalir. Probe dosyayi TEMIZ BIR KLONDAN
+# yukler ve turettigi kokun KLONUN koku oldugunu olcer.
+# Ayirt etme sarti: ayni probe, SENTETIK KONTROL MUTANTINDA (turetme tek satirlik sabit
+# literale cevrilir) ANA depo kokunu basmali. Ayirt etmeyen probe degersizdir.
+_PROBE_KOSUCU = '''\
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("probe_hedef", sys.argv[1])
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+sys.stdout.write("PROBE_ROOT=" + str(getattr(m, "ROOT", "<YOK>")) + "\\n")
+'''
+
+
+def _root_atamasi(agac):
+    """Modul seviyesinde `ROOT`u TURETEN atama: (bas, son, hedef_adlar) ya da None.
+
+    Literal atama (`ROOT = "<yol>"`) DONMEZ: orasi zaten statik kapinin isi. Bu kol
+    yalniz "kok turetiliyor" IDDIASI olan dosyalari yargilar — yani probe kumesi de
+    kaynaktan turetilir, elle liste tutulmaz.
+    """
+    for d in agac.body:
+        if not isinstance(d, ast.Assign):
+            continue
+        adlar = []
+        for t in d.targets:
+            if isinstance(t, ast.Name):
+                adlar.append(t.id)
+            elif isinstance(t, ast.Tuple):
+                adlar += [e.id for e in t.elts if isinstance(e, ast.Name)]
+        if "ROOT" not in adlar:
+            continue
+        if isinstance(d.value, ast.Constant) and isinstance(d.value.value, str):
+            return None                                  # literal -> statik kapinin alani
+        return d.lineno, getattr(d, "end_lineno", d.lineno), adlar
+    return None
+
+
+def probe_kumesi(kok, kume):
+    """Kanonik kumede `ROOT`u TURETEN dosyalar (kaynaktan turetilmis probe kumesi)."""
+    out = []
+    for yol in sorted(kume):
+        agac, _k = _agac(yol)
+        if agac is None:
+            continue
+        bilgi = _root_atamasi(agac)
+        if bilgi:
+            out.append((yol, bilgi))
+    return out
+
+
+def _kontrol_mutanti_yaz(kaynak_yol, hedef_yol, bilgi, sabit_kok):
+    """Turetme satirlarini SABIT literale cevirir (onarim ONCESI hali taklit eder)."""
+    bas, son, adlar = bilgi
+    with open(kaynak_yol, encoding="utf-8") as f:
+        satirlar = f.read().splitlines(keepends=True)
+    yerine = []
+    for ad in adlar:
+        if ad == "ROOT" or ad.endswith("KOK") or ad.endswith("KOD_KOK"):
+            yerine.append('%s = %r\n' % (ad, sabit_kok))
+        else:
+            yerine.append('%s = None\n' % ad)
+    yeni = satirlar[:bas - 1] + yerine + satirlar[son:]
+    with open(hedef_yol, "w", encoding="utf-8") as f:
+        f.writelines(yeni)
+    # FIILEN UYGULANDI teyidi (ayni-uzunluk/ayni-saniye tuzagina karsi)
+    with open(hedef_yol, encoding="utf-8") as f:
+        teyit = f.read()
+    if repr(sabit_kok).strip("'\"") not in teyit:
+        raise AssertionError("kontrol mutanti diske UYGULANMADI: %s" % hedef_yol)
+
+
+def _probe_kosumu(klon, goreli, kosucu):
+    import subprocess
+    r = subprocess.run([sys.executable, kosucu, os.path.join(klon, goreli)],
+                       capture_output=True, text=True, cwd=klon, timeout=180)
+    for satir in (r.stdout or "").splitlines():
+        if satir.startswith("PROBE_ROOT="):
+            return satir[len("PROBE_ROOT="):].strip(), None
+    hata = ((r.stderr or "").strip().splitlines() or ["cikti YOK"])[-1]
+    return None, "rc=%d %s" % (r.returncode, hata[:160])
+
+
+def klon_probe(kok):
+    """Temiz klon probe'u: her turetilmis-kok dosyasi icin (onarim, kontrol) ikilisi."""
+    import shutil
+    import subprocess
+    import tempfile
+
+    yaml_oku, _t = _yaml_oku_yukle(os.path.join(kok, "tools"))
+    kume, _tohum, _n, _tan = kanonik_kume(kok, yaml_oku)
+    hedefler = probe_kumesi(kok, kume)
+    gecici = tempfile.mkdtemp(prefix="myk-klon-")
+    klon = os.path.join(gecici, "klon")
+    r = subprocess.run(["git", "clone", "--quiet", "--no-hardlinks", kok, klon],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return None, "git clone OLCULEMEDI: %s" % (r.stderr or "").strip()[:200]
+    # CALISMA AGACI hali probe edilir (commit edilmemis onarim da olculebilsin)
+    for yol, _b in hedefler:
+        goreli = os.path.relpath(yol, kok)
+        hedef = os.path.join(klon, goreli)
+        os.makedirs(os.path.dirname(hedef), exist_ok=True)
+        shutil.copy2(yol, hedef)
+    kosucu = os.path.join(gecici, "probe-kosucu.py")
+    with open(kosucu, "w", encoding="utf-8") as f:
+        f.write(_PROBE_KOSUCU)
+
+    sonuc = []
+    for yol, bilgi in hedefler:
+        goreli = os.path.relpath(yol, kok)
+        onarim, hata1 = _probe_kosumu(klon, goreli, kosucu)
+        yedek = os.path.join(gecici, "yedek-" + os.path.basename(goreli))
+        shutil.copy2(os.path.join(klon, goreli), yedek)
+        try:
+            _kontrol_mutanti_yaz(yol, os.path.join(klon, goreli), bilgi, kok)
+            kontrol, hata2 = _probe_kosumu(klon, goreli, kosucu)
+        finally:
+            shutil.copy2(yedek, os.path.join(klon, goreli))
+        sonuc.append({
+            "dosya": goreli,
+            "onarim_kok": onarim, "onarim_hata": hata1,
+            "kontrol_kok": kontrol, "kontrol_hata": hata2 if onarim or True else None,
+            "klon": klon,
+        })
+    return {"klon": klon, "kok": kok, "sonuc": sonuc}, None
+
+
+def klon_probe_bas(kok):
+    r, hata = klon_probe(kok)
+    if hata:
+        print("KLON PROBE " + hata)
+        return 0
+    klon = r["klon"]
+    print("KLON PROBE — turetilmis kok DAVRANISLA olculuyor")
+    print("  ana depo koku : %s" % maskele(kok))
+    print("  temiz klon    : %s" % maskele(klon))
+    print("  probe kumesi  : %d dosya (kanonik kumede `ROOT`u TURETEN dosyalar)"
+          % len(r["sonuc"]))
+    ayirt = 0
+    olculemedi = []
+    kontrol_ayirt = 0
+    print()
+    for s in r["sonuc"]:
+        o, k = s["onarim_kok"], s["kontrol_kok"]
+        if o is None:
+            olculemedi.append("%s (onarim kolu: %s)" % (s["dosya"], s["onarim_hata"]))
+            print("  ? %-32s OLCULEMEDI: %s" % (s["dosya"], s["onarim_hata"]))
+            continue
+        klon_mu = os.path.realpath(o).startswith(os.path.realpath(klon))
+        ana_degil = os.path.realpath(o) != os.path.realpath(kok)
+        kontrol_ana = k is not None and os.path.realpath(k) == os.path.realpath(kok)
+        if kontrol_ana:
+            kontrol_ayirt += 1
+        if klon_mu and ana_degil and kontrol_ana:
+            ayirt += 1
+            print("  ✓ %-32s onarim->KLON koku · kontrol mutanti->ANA kok (AYIRT ETTI)"
+                  % s["dosya"])
+        else:
+            print("  ✗ %-32s onarim=%s kontrol=%s" % (s["dosya"], maskele(o),
+                                                      maskele(k) if k else s["kontrol_hata"]))
+    print()
+    print("  AYIRT EDEN     : %d/%d" % (ayirt, len(r["sonuc"])))
+    print("  KONTROL MUTANTI: %d/%d dosyada ANA kok basildi (ayirt etme sarti)"
+          % (kontrol_ayirt, len(r["sonuc"])))
+    for m in olculemedi:
+        print("  ! OLCULEMEDI: %s" % m)
+    return 0
+
+
+# ---------------------------------------------------------------------------
 def main(argv=None):
     p = argparse.ArgumentParser(description="CI'da kosan betiklerde makineye ozgu "
                                             "mutlak yol sabiti kapisi (RAPOR-ONLY)")
@@ -1000,10 +1174,16 @@ def main(argv=None):
                    help="ihlal varsa rc=1 (MIMAR kolu; bayraksiz kol DAIMA rc=0)")
     p.add_argument("--kendini-test", action="store_true",
                    help="mutasyon bataryasi + gercek vaka regresyonu")
+    p.add_argument("--klon-probe", action="store_true",
+                   help="turetilmis kokleri TEMIZ KLONDA davranissal olarak olc "
+                        "(+ sentetik kontrol mutanti ile ayirt etme sarti)")
     a = p.parse_args(argv)
 
     if a.kendini_test:
         return kendini_test()
+
+    if a.klon_probe:
+        return klon_probe_bas(a.kok)
 
     if a.dosya:
         ihlal, belirsiz, hata = dosya_ihlalleri(a.dosya)
