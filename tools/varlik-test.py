@@ -131,6 +131,21 @@ BILEREK_DEGISEN_TAM = (
     # DEGIL; iddiasi tools/onizleme-kisit-kosul-test.py'de olculur.
     ("if(kis&&(!kisitFn||kisitFn(kis,s.parametreler,URUN_SEMA))){",
      "kisit cagrisina sema argumani eklendi — YENI ihlal kosulu"),
+    # 2026-08-08: Consent Mode v2'nin `ad_storage: denied` halinde Google'in SART KOSTUGU
+    # iki ayar GA head blogunda HIC YOKTU. Ikisi de YENI satirdir; kiyas commit'inden bu
+    # yana eklenmis bir ICERIK kazanimidir, varliga-tasima KAYBI DEGIL (eksen 2 yalniz
+    # tasima kaybini/eklentisini olcer). Hicbir alani 'granted' YAPMAZLAR; varsayilan
+    # denied aynen kalir -> riza yuzeyi genislemez.
+    #   url_passthrough    : reklam tiklama kimligi (gclid/gbraid/wbraid) CEREZ YAZILMADAN
+    #                        sayfadan sayfaya URL uzerinde tasinir.
+    #   ads_data_redaction : riza yokken reklam isteklerinden tanimlayicilar SILINIR.
+    # Iddialari ayri kapida olculur: tools/reklam-etiket-kapisi.py (eksen c) — o kapi
+    # ikisinin de HER sayfa sinifinda bulundugunu fail-closed nobetler, yani bu iki giris
+    # satirlarin GERCEKTEN durdugunu olcen bir iddiayi ORTADAN KALDIRMAZ.
+    ("gtag('set', 'url_passthrough', true);",
+     "Consent Mode v2 tasima ayari eklendi — YENI satir (nobetci: reklam-etiket-kapisi.py)"),
+    ("gtag('set', 'ads_data_redaction', true);",
+     "Consent Mode v2 tasima ayari eklendi — YENI satir (nobetci: reklam-etiket-kapisi.py)"),
 )
 
 _BILEREK_TAM = frozenset(d for d, _g in BILEREK_DEGISEN_TAM)

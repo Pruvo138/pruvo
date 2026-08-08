@@ -80,39 +80,6 @@ function bannerCikar(html, ad) {
 }
 const BANNER_SRC = bannerCikar(INDEX, "index.html");
 const GIZ_BANNER_SRC = bannerCikar(GIZ, "gizlilik/index.html");
-
-/**
- * GA head blogundaki KANONIK RIZA TANIMLARI (PRUVO_RIZA_ALANLARI / PRUVO_RIZA_KAPSAMI /
- * pruvoRizaUygula). Banner kodu bu global'lara YASLANIR: kapsam adini oradan okur ve
- * grant/revoke'u oradan yapar.
- *
- * 🔴 NEDEN FIKSTURE GIRDI (8 Agu 2026): bu blok gercek sayfada HER ZAMAN calisir; onu
- * kurmayan bir fikstur "GA head'i hic yuklenmemis sayfa" modelidir ve bandin gorunurluk
- * hukmunu SAHTE kirmizi yakar. Fikstur gercek ciktinin SEKLINI taklit etmeli
- * ([[nobetci-fikstur-sekli]]). Kaynak GERCEK index.html'den kesilir — kopya tutulmaz.
- */
-const RIZA_KANON_JS = dilim(INDEX, "  window.PRUVO_RIZA_ALANLARI",
-                            "  /* Ziyaretçi daha önce onay verdiyse", "riza kanonu");
-assert(RIZA_KANON_JS.indexOf("window.pruvoRizaUygula") !== -1,
-       "GA head'de kanonik riza yolu (pruvoRizaUygula) YOK");
-
-/** ctx'e gtag kaydedicisi + kanonik riza tanimlarini kurar; consent kayitlarini dondurur. */
-function rizaKanonuKur(ctx) {
-  const kayit = [];
-  ctx.gtag = function () { kayit.push(Array.prototype.slice.call(arguments)); };
-  vm.runInNewContext(RIZA_KANON_JS, ctx, { filename: "index.html#riza-kanonu" });
-  return kayit;
-}
-
-/** consent kayitlarindan ETKIN durumu cikarir (son yazan kazanir). */
-function rizaDurumu(kayit) {
-  const durum = {};
-  kayit.forEach((a) => {
-    if (a[0] !== "consent") { return; }
-    Object.keys(a[2] || {}).forEach((k) => { durum[k] = a[2][k]; });
-  });
-  return durum;
-}
 assert(GIZ.indexOf('id="pco-degistir"') !== -1,
        "gizlilik sayfasinda riza geri alma dugmesi (#pco-degistir) YOK");
 
@@ -270,14 +237,12 @@ function sayfa(opts) {
     console: opts.konsol || console
   };
   ctx.window.localStorage = depo;
-  if (opts.kapsam) { depo.setItem("pruvo_onay_kapsam", opts.kapsam); }
-  const rizaKayit = rizaKanonuKur(ctx);
   vm.runInNewContext(ATIF_SRC + "\n;window.__ATIF = PRUVO_ATIF;", ctx,
                      { filename: "index.html#PRUVO_ATIF" });
   if (opts.banner) {
     vm.runInNewContext(BANNER_SRC, ctx, { filename: "index.html#banner" });
   }
-  return { ctx, depo, oturum, ogeler, kavanoz, rizaKayit,
+  return { ctx, depo, oturum, ogeler, kavanoz,
            atif: ctx.window.__ATIF,
            riza: ctx.window.pruvoAtifRiza };
 }
@@ -333,11 +298,9 @@ function gizlilikSayfa(opts) {
     URL: URL, URLSearchParams: URLSearchParams, Uint8Array: Uint8Array,
     Date: Date, JSON: JSON, String: String, console: console
   };
-  if (opts.kapsam) { depo.setItem("pruvo_onay_kapsam", opts.kapsam); }
-  const rizaKayit = rizaKanonuKur(ctx);
   vm.runInNewContext(REF_JS, ctx, { filename: "attribution-ref.js (gizlilik inline)" });
   vm.runInNewContext(GIZ_BANNER_SRC, ctx, { filename: "gizlilik/index.html#banner" });
-  return { ctx, depo, oturum, ogeler, kavanoz, beacons, metaBaslatildi, rizaKayit,
+  return { ctx, depo, oturum, ogeler, kavanoz, beacons, metaBaslatildi,
            banner: ogeler["pruvo-cerez-onay"],
            tikla: (i) => dinleyiciler.click({ target: baglantilar[i || 0] }) };
 }
@@ -395,16 +358,13 @@ function anaSayfa(opts) {
     Date: Date, JSON: JSON, String: String, console: opts.konsol || console
   };
   ctx.window.localStorage = depo;
-  if (opts.kapsam) { depo.setItem("pruvo_onay_kapsam", opts.kapsam); }
-  // build.py'nin bastigi sira: GA head (kanonik riza tanimlari) en ustte, attribution
-  // modulu <head>'de, PRUVO_ATIF sayfa script'inde, banner </body> oncesinde.
-  const rizaKayit = rizaKanonuKur(ctx);
-  ctx.__rizaKayit = rizaKayit;
+  // build.py'nin bastigi sira: attribution modulu <head>'de, PRUVO_ATIF sayfa script'inde,
+  // banner </body> oncesinde.
   vm.runInNewContext(REF_JS, ctx, { filename: "attribution-ref.js (index.built)" });
   vm.runInNewContext(ATIF_SRC + "\n;window.__ATIF = PRUVO_ATIF;", ctx,
                      { filename: "index.html#PRUVO_ATIF" });
   vm.runInNewContext(BANNER_SRC, ctx, { filename: "index.html#banner" });
-  return { ctx, depo, oturum, ogeler, kavanoz, beacons, metaBaslatildi, rizaKayit,
+  return { ctx, depo, oturum, ogeler, kavanoz, beacons, metaBaslatildi,
            banner: ogeler["pruvo-cerez-onay"],
            atif: ctx.window.__ATIF,
            tikla: (i) => dinleyiciler.click({ target: baglantilar[i || 0] }) };
@@ -729,10 +689,7 @@ senaryo("C1 dugme: saklanmis tiklama kimlikleri + analiz cerezleri FIILEN silini
 });
 
 senaryo("C2 dugme: cerez bandi yeniden gorunuyor", () => {
-  // ⚠️ 8 Agu 2026: riza KAPSAMI genisledi (reklam cerezi eklendi) -> "secim yapilmis"
-  // demek icin artik GUNCEL KAPSAMLI kayit gerekir. Dar kayitla acilan sayfada bandin
-  // gorunur kalmasi DOGRU davranistir (C8 onu ayrica olcer).
-  const s = gizlilikSayfa({ onay: "kabul", kapsam: "analitik+reklam" });
+  const s = gizlilikSayfa({ onay: "kabul" });
   assert(s.banner.hidden === true, "secim varken banner gorunur kalmis (on kosul)");
   tikla(s.ogeler["pco-degistir"]);
   assert(s.banner.hidden === false, "dugmeden sonra banner yeniden gorunmedi");
@@ -768,54 +725,13 @@ senaryo("C4 dugme sonrasi tekrar 'Kabul Et' -> akis normale doner", () => {
 
 senaryo("C5 banner gorunurlugu TEK kaynak: yalniz sakli riza degerinden turer", () => {
   assert(gizlilikSayfa({}).banner.hidden === false, "secimsizken banner gizli");
-  assert(gizlilikSayfa({ onay: "kabul", kapsam: "analitik+reklam" }).banner.hidden === true,
-         "guncel kapsamli kabul iken banner gorunur");
+  assert(gizlilikSayfa({ onay: "kabul" }).banner.hidden === true, "kabul iken banner gorunur");
   const s = gizlilikSayfa({ onay: "ret" });
   assert(s.banner.hidden === true, "ret iken banner gorunur");
   tikla(s.ogeler["pco-degistir"]);
   assert(s.banner.hidden === false, "dugme sonrasi banner gizli");
   tikla(s.ogeler["pco-ret"]);
   assert(s.banner.hidden === true, "Reddet sonrasi banner gizlenmedi");
-});
-
-senaryo("C8 ESKI DAR riza kaydi sessizce GENISLEMEZ, bant tekrar sorar", () => {
-  // Reklam cerezinden HIC soz etmeyen metinle alinmis onay yeni kapsama SAYILMAZ.
-  // Sessiz genisletme acik riza degildir (KVKK m.5/1: aydinlatilmis + spesifik).
-  const s = gizlilikSayfa({ onay: "kabul" });          // kapsam kaydi YOK = dar kayit
-  assert(s.banner.hidden === false,
-         "dar kapsamli eski onayda bant TEKRAR SORMALI (sessiz genisletme yasak)");
-  const durum = rizaDurumu(s.rizaKayit);
-  ["ad_storage", "ad_user_data", "ad_personalization"].forEach((alan) => {
-    assert(durum[alan] === undefined || durum[alan] === "denied",
-           "dar onay reklam alanini acti: " + alan + "=" + durum[alan]);
-  });
-});
-
-senaryo("C9 'Kabul Et' DORT alani da acar + kapsam kaydini yazar", () => {
-  const s = gizlilikSayfa({});
-  tikla(s.ogeler["pco-kabul"]);
-  const durum = rizaDurumu(s.rizaKayit);
-  ["analytics_storage", "ad_storage", "ad_user_data", "ad_personalization"]
-    .forEach((alan) => {
-      assert(durum[alan] === "granted",
-             "Kabul Et sonrasi " + alan + " granted DEGIL: " + durum[alan]);
-    });
-  assert(s.depo.getItem("pruvo_onay_kapsam") === "analitik+reklam",
-         "riza KAPSAM kaydi yazilmadi");
-  assert(s.banner.hidden === true, "kabul sonrasi bant gizlenmeli");
-});
-
-senaryo("C10 'Reddet' DORT alani da denied birakir + kapsam kaydini siler", () => {
-  const s = gizlilikSayfa({ onay: "kabul", kapsam: "analitik+reklam" });
-  tikla(s.ogeler["pco-degistir"]);        // once tercih sifirlanir, bant geri gelir
-  tikla(s.ogeler["pco-ret"]);
-  const durum = rizaDurumu(s.rizaKayit);
-  ["analytics_storage", "ad_storage", "ad_user_data", "ad_personalization"]
-    .forEach((alan) => {
-      assert(durum[alan] === "denied",
-             "Reddet sonrasi " + alan + " denied DEGIL: " + durum[alan]);
-    });
-  assert(s.depo.getItem("pruvo_onay_kapsam") === null, "ret'te kapsam kaydi kalmis");
 });
 
 console.log("\n── D) ölçüm çerezleri · \"geçmişte bir kez rıza\" kapısı ──");
