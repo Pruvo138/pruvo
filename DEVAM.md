@@ -1,5 +1,38 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🔚 OTURUM KAPANISI — 8 Agu (yayin blokaji + marka sayfasi turu)
+
+**CANLIYA GITTI (SHA'larla, hepsi `origin/main` ve canli olcumle teyitli):**
+- `d3fbc1e5` — `tools/cgt-ekle.py`'deki modul-seviyesi **sabit `/Users/okan/dev/pruvo` koku** `__file__`'den turetildi. Bu kusur `serit-a3` **adim 60**'i kirmiziya cevirip `deploy`+`yayin`'i **skipped** yapiyordu. 🔴 Ders: bu sinif **yerelde ASLA kirmizi yanmaz** (temiz `git clone`'da bile yesil) → [[sabit-mutlak-yol-yerelde-yesil]].
+- `b36c208b` — sinifi kapatan **`tools/mutlak-yol-kapisi.py`** (report-only, kanonik kume **203** CI'da fiilen kosan dosya) + ayni kusurun bulundugu **8 dosya** onarildi (biri `thing-hazirla.py`, tam adim 60'in zincirinde). Kardes oturumun "128 kalem kasitli" beyani **22 dosyada curutuldu**.
+- `36d57ce6` — `tools/yayin-kapisi.py`'nin **kor yesili** kapandi: taslak yoksa hicbir sayfa olcmeden `success` veriyordu. Artik 4 kaynakli yuzey + uc jeton (YESIL=0 / KIRMIZI=1 / **OLCULEMEDI=2**) + kullanim hatasi 64 + yasa bagli rollout affi + soft-404 govde isareti; capa **`build.py::product_url` FONKSIYONUNDAN** cagriliyor. **223 iddia**, DORT tur bagimsiz curutme.
+- `d81349b6` — `BASLIK_DOGAN_ALLOW` **elle envanteri (185 kayit) TURETMEYE cevrildi** (kalinti 102, gerekceli). 6. kez tekrarlayan drift sinif olarak kapandi; `serit-a2` adim 30 + `serit-a4` adim 5 kirmizilari yesile dondu. Sayfa/arama **kimlik** kumesi bit bit ayni (kova 950/950 · baslik-dogan 327/327 · urun→model uyelik 14078), 56 sorguda bosalan 0.
+- `e94433f9` — **oksuz CI kablosu DEVRALINDI** (4 tur cagriya cevap gelmedi, mtime 4+ saat): `deploy.yml` serit-a3'e `d1-uzlastirici-kosul-test.py`, `nobet.yml` serit-b'ye `mutlak-yol-kapisi.py`. `serit-a3` **success** → yayin acildi.
+- **YAYIN ACIK (canli olcum):** artefakt `21:23:07Z` → **`05:48:50Z`**; canli katalog **22376 == yerel 22376** (mahsur **157** urun sifirlandi); ana sayfa + en yeni 3 urun + kontrol urunu **200**; `d1-sync --durum` **dort eksen YESIL**.
+- **Codex** (limitler yenilendi, devrede): 8 zombi dal silindi (yerel dal 20→12), uc kosullu kapiyla; worktree 7/7 ve calisma agaci dokunulmadan AYNI.
+
+**KOSUYOR:**
+- 🔧 `muh/marka-tek-sayfa` (worktree `.claude/worktrees/muh-marka-tek-sayfa`, commit `c02edb79`+) — **Okan'in hukmu:** marka sayfasi markanin TUM parcalarini kart listeler, cipler **sayfa ici filtre**. Olculen kusur: **9897 urun kartinin HICBIRI gorunmuyordu**; gorunur kart **11731 → 21628** (audi 200→331 · ford 488→2583 · bmw 1010→2347), **azalan marka 0**, kimlik sapan sayfa **32 → 0**, tavani asan sayfa **11 → 0**. Bagimsiz curutme 1. turda **MERGE_EDILEMEZ** verdi (C1 yuzey ekseni TEMIZ: mukerrer 0 · gecersiz id 0 · yanlis marka 0 · olu id 0), UC kirmizi kapatildi: (1) teslim yolu **tautolojisi** — test fetch URL'ini sayfanin kendi beyanindan okuyordu, artik `index.html`'den bagimsiz cikarilan `EDGE_UC` ile karsilastiriliyor; (2) **agirlik regresyonu** — artim kolu `/urunler.json` (3,3 MB gzip) cekiyordu, ana sayfanin kullandigi **edge `/katalog?ids=`** yoluna (100'luk parti) alindi, ilk acilista veri istegi 0; (3) `ci-kapsam-test.py` yesil→kirmizi — iki yeni nobetci `nobet.yml` **serit-b**'ye kablolandi (deploy:needs'te DEGIL), kapi YESIL. Iddia **10871**, davranis testi **20/20**.
+  ⏭ **SIRADAKI TEK IS:** mutasyon bataryasi + ilk-yuk bayt tablosu gelince → **dar curutme (yeni yuzey)** → **merge + canli dogrulama** (Okan yetki verdi).
+
+**BEKLIYOR (kim neyle bloke):**
+1. `muh/yayin-acan-iki-kirmizi` (`1cb3ee6c`, worktree acik) **MERGE EDILMEDI** — butce asimi main'de YOK (22337 katalogda 153112 ≤ 153600) ve kardes oturumun "butce YUKSELTILMEZ, ozet.json deterministik SIGDIRILACAK" karariyla celisiyor. Kurtarilacak kismi: `faz3-yuk.js` **ikiz sabit turetmesi** + `ozet_olcek_dokumu`/`ilk_yuk_dokumu` tani ciktisi. **Codex'e uygun.**
+2. `tools/mutlak-yol-kapisi.py` **5 sessiz kacirma** (f-string · `+` ile parcali kok · `os.path.join("/Users",…)` · `expanduser("~/…")`) + 4 yanlis-pozitif → **`--sifir-tolerans` BLOKLAYICI YAPILMAYACAK** (karar bende) ta ki kacirma sinifi kapanana kadar.
+3. `tools/yayin-kapisi.py`: `IZIN_LISTESI` muafiyeti **elle 29 kalem** (kanonik turetme yok) + surucuye `--yalniz-mutasyon` kolu → B kolu (12 mutant) su an CI DISINDA.
+4. H1/H3 kurali **16 model-olmayan** degeri model sayiyor (`M8x25` · `17mm` · `12V` · `Toyota Honda` …), 2'sinin sentetik olarak **sayfasi dogdu**. main'in mevcut kusuru, ayri is.
+5. Sayfa↔arama asimetrisi: basliginda marka gecen ama `marka[]` uyesi olmayan **215 urun** (Mini 42 · Grom 29 · K100 19 · Datsun 18 …). Onarim **VERI duzlemi (MaCiT)**; `arama.py`'deki gecis kolu **ONCE kapatilmayacak** (arama daralir, satis yolu).
+6. `serit-a4` **32-58 dk** — yayin tavanini bu job koyuyor (`model-uyelik-kapisi --kendini-test` + turetme alt bataryasi +155 sn). Kaldirac bende.
+7. `pages` grubundaki 6/6 job'da `timeout-minutes` YOK (varsayilan 360 dk) — **Okan kapisi**.
+
+**OKAN'DA BEKLEYEN KARARLAR:**
+- Kardes mimarin sordugu **satin-alma kalemi** — sorunun tam metni ve kuyruk buyuklugu `DEVAM-ARSIV.md`'de (git disi). Yanit gelmeden o kuyruk islenmez.
+- **GPL/LGPL/BSD satilabilir mi** (MaCiT'te bu yuzden RED edilen kayitlar var).
+- Ortak Drive yedeginin kokunde **3 bayat kalem** (Temmuz tarihli); hedef ORTAK surucu → erisim cevresi olculmeli, yenileme karari Okan'in.
+- `pages` job'larina `timeout-minutes` konmasi.
+- ℹ️ Nobet jetonu icin **`setup-token` GEREKMIYOR**: 18:37Z rc=1'in sebebi jeton bayatligi degil eski hesabin **haftalik kotasiydi**; 19:37Z ve sonrasi rc=0.
+
+**ACIK WORKTREE (5 + main):** `muh-marka-tek-sayfa` (KOSUYOR, benim) · `muh-yayin-iki-kirmizi` (bekliyor, benim) · `agent-a3bff0d31c85f5714` · `agent-ad8653d553f9bde31` (`muh/marka-bolum-kimligi` — Okan hukmuyle CELISIYOR, karti 200→174 dusuruyor, MERGE EDILMEYECEK) · `agent-aecb6db6145c47ad2` · `blissful-mcnulty-e7162d` (son dordu **baskasinin**, DOKUNULMADI).
+
 ## ⏱ SAATLIK CI NOBETI — 8 Agu 10:37Z turu (ev DOGRU: ~/dev/pruvo)
 
 🔴 **ONCEKI UC TURUN "KUTU TEMIZ" HUKMU CURUTULDU — supurme SESSIZ SIFIR KAPSAMLA gecmis.**
@@ -23,10 +56,6 @@ bant 32-58 dk) → normal seyir, TIKANMA DEGIL.
 turun "af02f7c1 ucusta" hukmu KAPANDI, CANLIDA. Ucusta kalan tek commit `85e3e523` (onceki turun
 kendi defter commit'i); beklenen.
 
-**SIRADAKI TEK IS** — degismedi: marka sayfasi 330 parcanin TAMAMINI tek sayfada kart olarak
-listelesin, model cipleri sayfa icinde filtrelesin; once sayfa agirligi + model sayfalarinin
-getirdigi arama trafigi OLCULSUN.
-
 ## ⏱ SAATLIK CI NOBETI — 8 Agu 09:37Z turu (ev DOGRU: ~/dev/pruvo)
 
 **Mail supurmesi (kosulsuz emir):** birlesik `inbox` **7546** mesaj TOPLU tarandi (ornekleme YOK;
@@ -45,37 +74,5 @@ pencereden dustu; YENI kirmizi YOK.
 (c) Son basarili `Build & deploy` = **`31246716497`** (head `82967d41`, bitis 09:08:46Z) → onceki
 turun "`9ab89786` + `82967d41` ucusta" hukmu KAPANDI, ikisi de CANLIDA. `merge-base --is-ancestor
 af02f7c1 82967d41` **rc=1** → yalnizca onceki turun defter commit'i (`af02f7c1`) ucusta; beklenen.
-
-**SIRADAKI TEK IS** — degismedi: marka sayfasi 330 parcanin TAMAMINI tek sayfada kart olarak
-listelesin, model cipleri sayfa icinde filtrelesin; once sayfa agirligi + model sayfalarinin
-getirdigi arama trafigi OLCULSUN.
-
-## ⏱ SAATLIK CI NOBETI — 8 Agu 08:37Z turu (ev DOGRU: ~/dev/pruvo)
-
-**Mail supurmesi (kosulsuz emir):** tasinan **0** · tur sonu birlesik `inbox`'ta "Run failed" **0**
-(kutu onceki turda supurulmustu; alt kutulara girilmedi, Cop BOSALTILMADI, baska maile dokunulmadi).
-
-**Gercek ariza YOK — Codex CAGRILMADI.** Son 25 kosumda tek `failure`: `31245852100` (07:18Z,
-uzlastirici kolu) — bir onceki turda logdan ALINTIYLA olculdu: adim 13 kasitli `exit 1`
-(gorunurluk kanali), olcum/onarim/teyit adimlarinin hepsi `success`. YENI kirmizi YOK.
-
-**Yayin ILERLEDI (§4.5'in UC ekseni de olculdu, tek eksen tek basina yazilmadi):**
-(a) KOSAN zincir VAR: `31246716497` (head `82967d41` = origin/main HEAD), push 07:41:03Z,
-is fiilen 08:07:09Z'de basladi (concurrency kuyrugu).
-(b) Tavani yine **`serit-a4`** koyuyor ("Model uyeligi mutasyon bataryasi" adimi; olcum ani
-08:39:41Z, ~32 dk gecmis). Bir onceki kosumda ayni job 07:07:21→08:05:36 = ~58 dk → normal
-seyir, TIKANMA DEGIL.
-(c) Son basarili `Build & deploy` = **`31245410610`** (head `1ede9543`, 08:07:05Z) → onceki turun
-"`1ede9543` canlida DEGIL" hukmu artik BAYAT. Kalan iki commit (`9ab89786`, `82967d41`) ucusta.
-
-**Zamanlanmis alarm kollari yesil.** Not: gorev dosyasinin andigi `cron-nabzi` adinda ayri bir
-workflow ARTIK YOK (isim eskimis) — yerine push/workflow_run tetikli kollar var, hepsi yesil.
-
-⚠️ Ana checkout `origin/main`'in 1 onundeydi: `a8697df4` = ONCEKI NOBETIN KENDI defter commit'i
-(yabanci degisiklik DEGIL, sahibi bu duzlem) → bu turun defter commit'iyle birlikte itildi.
-
-**SIRADAKI TEK IS** — degismedi: marka sayfasi 330 parcanin TAMAMINI tek sayfada kart olarak
-listelesin, model cipleri sayfa icinde filtrelesin; once sayfa agirligi + model sayfalarinin
-getirdigi arama trafigi OLCULSUN.
 
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
