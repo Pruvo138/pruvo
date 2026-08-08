@@ -17,6 +17,14 @@
     'analytics_storage': 'denied',
     'wait_for_update': 500
   });
+  /* ad_storage 'denied' iken Google'in SART KOSTUGU iki ayar (Consent Mode v2).
+     Rizaya BAGLI DEGIL — riza olmadan da calisan tek reklam-olcumu kazanimi:
+       url_passthrough    -> reklam tiklama kimligi (gclid/gbraid/wbraid) CEREZ
+                             YAZILMADAN sayfadan sayfaya URL uzerinde tasinir.
+       ads_data_redaction -> riza yokken reklam isteklerinden tanimlayicilar SILINIR.
+     Bu iki cagri hicbir alani 'granted' YAPMAZ; varsayilan denied AYNEN kalir. */
+  gtag('set', 'url_passthrough', true);
+  gtag('set', 'ads_data_redaction', true);
   /* Ziyaretçi daha önce onay verdiyse geri yükle (banner tekrar çıkmaz). */
   try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
     gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}

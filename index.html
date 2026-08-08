@@ -17,6 +17,14 @@
     'analytics_storage': 'denied',
     'wait_for_update': 500
   });
+  /* ad_storage 'denied' iken Google'in SART KOSTUGU iki ayar (Consent Mode v2).
+     Rizaya BAGLI DEGIL — riza olmadan da calisan tek reklam-olcumu kazanimi:
+       url_passthrough    -> reklam tiklama kimligi (gclid/gbraid/wbraid) CEREZ
+                             YAZILMADAN sayfadan sayfaya URL uzerinde tasinir.
+       ads_data_redaction -> riza yokken reklam isteklerinden tanimlayicilar SILINIR.
+     Bu iki cagri hicbir alani 'granted' YAPMAZ; varsayilan denied AYNEN kalir. */
+  gtag('set', 'url_passthrough', true);
+  gtag('set', 'ads_data_redaction', true);
   /* Ziyaretçi daha önce onay verdiyse geri yükle (banner tekrar çıkmaz). */
   try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
     gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}
@@ -1347,6 +1355,9 @@
        tıklama parametresi eklenirse İKİ yere birden eklenir: buraya (temizlik) + yakala()
        içindeki rıza-kapılı okuma yoluna. */
     var TIK_ALANLARI = ["fbc","fbclid","gclid","gbraid","wbraid","ttclid","msclkid"];
+    /* URL'de KORUNAN ama PRUVO_ATIF kaydına GİRMEYEN kampanya etiketleri. Kayda girmezler
+       (sunucu şeması değişmesin) ama sayfa içi gezinmede URL'den düşmemeleri gerekir. */
+    var EK_URL_ETIKET = ["utm_term","utm_content"];
     function rizaVar(){
       try { return localStorage.getItem(ONAY_ANAHTARI) === "kabul"; } catch(e){ return false; }
     }
@@ -1454,6 +1465,15 @@
       /* Çerez bannerı çağırır: 'kabul' yazıldıktan SONRA → fbclid artık saklanabilir;
          'ret' yazıldıktan SONRA → saklanmış tıklama kimlikleri silinir. */
       riza: yakala,
+      /* 🔴 TEK KANONİK KAYNAK — "sayfa içi gezinmede URL'den DÜŞMEYECEK" parametreler.
+         syncUrl() sorgu dizesini SIFIRDAN kurar; burada sayılmayan bir parametre ziyaretçi
+         ilk filtreye/aramaya dokunduğu an URL'den SİLİNİR → reklam tıklama kimliği (gclid…)
+         kaybolur ve dönüşüm atıfı sessizce çöker. Liste ELLE İKİNCİ KEZ YAZILMAZ: tıklama
+         kimlikleri TIK_ALANLARI'ndan, kampanya etiketleri UTM_ALANLARI + EK_URL_ETIKET'ten
+         türer — yeni bir tıklama parametresi TIK_ALANLARI'na eklendiği an burası da korur. */
+      urlKorunan: function(){
+        return TIK_ALANLARI.concat(UTM_ALANLARI, EK_URL_ETIKET);
+      },
       // Ödeme anında çağrılır: kalıcı UTM + (YALNIZ rıza varsa) tıklama/oturum kimlikleri.
       topla: function(){
         if(!rizaVar()){ tikTemizle(); cerezTemizle(); }
@@ -2869,6 +2889,21 @@
     if(activeBrand !== "Tümü"){ params.set("marka", activeBrand); }
     if(activeModel !== "Tümü"){ params.set("model", activeModel); }
     if(query.trim()){ params.set("ara", query.trim()); }
+    /* REKLAM PARAMETRELERİ KORUNUR (ölçüldü, 8 Ağu): sorgu dizesi sıfırdan kurulduğu için
+       ?gclid=… ziyaretçi bir filtreye/aramaya dokunduğu anda URL'den siliniyordu; gtag.js
+       `async` yüklendiğinden bu bir YARIŞ — silinme ölçümden önce olabiliyor. Değerler
+       MEVCUT URL'den taşınır (yeni değer üretilmez, hiçbir yere YAZILMAZ → rıza yüzeyi
+       değişmez). Liste tek kanonik kaynaktan: PRUVO_ATIF.urlKorunan(). */
+    try{
+      var mevcutQ = new URLSearchParams(location.search);
+      var korunan = PRUVO_ATIF.urlKorunan();
+      for(var ki = 0; ki < korunan.length; ki++){
+        var kad = korunan[ki];
+        if(params.has(kad)){ continue; }        /* filtre adıyla çakışırsa filtre kazanır */
+        var kdeg = mevcutQ.get(kad);
+        if(kdeg !== null){ params.set(kad, kdeg); }
+      }
+    }catch(e){}
     var s = params.toString();
     // Safari kısa aralıkta çok replaceState çağrısına SecurityError atabiliyor — görünümü
     // etkilemesin diye yutulur; bir sonraki başarılı çağrı URL'yi zaten düzeltir.

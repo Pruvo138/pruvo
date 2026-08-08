@@ -1208,6 +1208,55 @@ jobs:
       - name: "Kanca kablolama cift yonlu mutasyon turu"
         run: python3 tools/kanca-kablolama-test.py --mutasyon
 
+      # REKLAM/OLCUM ETIKET KAPSAM NOBETCISI (8 Agu 2026).
+      # OLCULEN BOSLUK: Ads panelindeki "Sayfa goruntuleme = Hatali yapilandirilmis"
+      # hipotezi "etiket bazi sayfalarda YOK" idi; olcum bunu CURUTTU (23.923/23.923
+      # sayfada etiket VAR). Ama o olcum ELDE yapildi ve HICBIR YERDE KALICILASMADI ->
+      # bir sablondan `{ga_head}` dusse, bir yasal sayfanin GA blogu tek kaynaktan
+      # ayrissa ya da `url_passthrough`/`ads_data_redaction` sessizce kalksa HICBIR
+      # kirmizi yanmazdi. Bu sinifin hatasi SESSIZDIR: etiket "var" gorunurken atif
+      # coker ve reklam butcesi YANLIS okunur.
+      # NE OLCER (sayfa sinifi basina, dort eksen): (a) olcum etiketi · (b) Consent
+      # Mode v2 riza blogu · (c) url_passthrough + ads_data_redaction · (d) ana
+      # sayfanin syncUrl'u reklam parametrelerini KORUYOR mu (liste TEK kanonik
+      # kaynaktan turemis mi).
+      # 🔴 KANONIK KUME TURETILIR, ELLE ENVANTER YOK: sayfa evreni `git ls-files`ten
+      # (SINIF A) ve izlenen .py dosyalarindaki dize sabitlerinden AST ile (SINIF B)
+      # cikar. Elle tutulan envanter bu depoda parti basina bayatliyor ve yayini
+      # durduruyor ([[envanter-drift-parti-basina]]). Ayirt edici iz `rel="canonical"`
+      # BILEREK secildi ve DAIRESEL DEGIL: olculdu, <html>+<head> tasiyan 13 dize
+      # sabitinin 4'u gercek yayin sablonu, 9'u fikstur/yerel teshis panosu.
+      # ⚠️ OLCULEMEYEN SINIF YESIL DEGIL: evren turetilemezse (git yok · .py
+      # ayristirilamiyor · kume BOS) kapi rc=3 ile OLCULEMEDI verir, YESIL DEMEZ.
+      # Offline, stdlib, urunler.json OKUNMAZ, ~200 ms.
+      - name: Reklam/olcum etiket kapsam nobetcisi (sayfa sinifi basina dort eksen)
+        run: python3 tools/reklam-etiket-kapisi.py
+
+      # ... ve nobetcinin KENDI hukmu 13 sentetik agacla olculur. IKI YONLU: K1-K8
+      # eksen fiilen dustugunde KIRMIZI yanmali; Y0/Y1-Y4 kapsam disi ama BENZER
+      # dosyalari (kanonik adres basmayan teshis panosu · kapi fiksturu · parca HTML)
+      # REDDETMEMELI — tek yonlu nobetci oludur ve her mesru bakim duzenlemesinde
+      # yayini durdurur; O1-O3 evren turetilemedigi hallerde YESIL degil OLCULEMEDI
+      # vermeli. Fiksturler tempfile'da (gercek `git init` ile); repo dosyalarina
+      # DOKUNMAZ. Mutasyon bataryasi CI adimi DEGILDIR, elde kosulur:
+      #   python3 tools/reklam-etiket-mutasyon.py   (7 oldurucu mutant + 1 KONTROL)
+      - name: Reklam etiket nobetcisi ic nobetci (kapinin kendi mantigi)
+        run: python3 tools/reklam-etiket-kapisi.py --kendini-test
+
+      # REKLAM TIKLAMA KIMLIGI DAVRANIS TESTI (node DOM/URL semantigi).
+      # OLCULEN ARIZA: index.html'deki syncUrl() sorgu dizesini SIFIRDAN kuruyordu ve
+      # kurdugu kume yalnizca kategori/altkategori/marka/model/ara idi -> `?gclid=…`
+      # ile gelen ziyaretci ilk cipe dokundugu an tiklama kimligi URL'den SILINIYORDU
+      # (gtag.js `async` yuklendigi icin bu bir YARIS; silinme olcumden ONCE olabilir).
+      # 7 senaryo: gclid/arama kollari · sekiz parametrenin hepsi · reklam parametresi
+      # YOKKEN regresyon yok · filtre adiyla cakisma (mukerrer yazim yok) · KAPSAM
+      # DISCIPLINI (ilgisiz parametre TASINMAZ — yoksa paylasilan link cop biriktirir)
+      # · tek kanonik kaynak (syncUrl govdesinde ikinci elle liste YOK).
+      # Kaynak GERCEK index.html'den kesilir (kopya tutulmaz). node ISTER (yukaridaki
+      # setup-node on-kosul); node yoksa adim 127 ile DUSER — sessiz "yesil" YOK.
+      - name: Reklam parametresi sayfalar arasi korunuyor mu (davranis testi)
+        run: node tools/reklam-url-test.js
+
 
 
   # ═════════════════════════════════════════════════════════════════════════════

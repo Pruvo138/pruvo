@@ -2387,6 +2387,37 @@ SERIT_B = {
         "kullanicinin aramasini/filtresini/siralamasini SIFIRLAMIYOR mu. Panel bir "
         "TESHIS ciktisidir, Pages'e yayinlanmaz; kendi adimi olmasi kapsamin GORUNUR "
         "olmasi icindir (dolayli cagri ci-kapsam-test.py'de kapsam SAYILMAZ).",
+    # --- REKLAM/OLCUM ETIKET KAPSAM NOBETCISI (8 Agu 2026) -----------------------
+    # 🔴 ISTISNAI GIRIS: bu tabloya kural olarak yalniz "aracin KENDINI sinamasi"
+    # girer; burada GERCEK olcum kolu (bayraksiz) da B'dedir. GEREKCE (olculdu):
+    #   (a) SINIF SECIMI: olculen yuzey ZIYARETCIYE GIDEN icerik DEGIL, OLCUM
+    #       kablolamasidir. Eksik bir GA etiketi musteriye yanlis/sizintili bir sey
+    #       gostermez; bizim reklam butcemizi yanlis okutur. "Yanlis/eksik/sizintili
+    #       icerik canliya cikmasin" sinifi DEGILDIR -> serit secim olcutu A'ya
+    #       cagirmaz.
+    #   (b) TAMIR DEGERI SIFIR: kapi kirmizi yandiginda yayini durdurmak canlida
+    #       ZATEN duran (ve ayni eksigi tasiyan) sayfalari yerinde birakir; etiketi
+    #       ONARMAZ, yalnizca onarimin yayina inmesini GECIKTIRIR.
+    #   (c) ONLEME kolu CI'da degil TEK KAYNAKTADIR: GA blogu build.py::
+    #       GA_HEAD_SNIPPET'ten turer ve dort sablon `{ga_head}` capasini kullanir;
+    #       bu kol GORUNURLUK hattidir (ikiz ayrismasini + capa dusmesini yakalar).
+    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
+    #       6 SAATLIK canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+    ("nobet.yml", "serit-b", "tools/reklam-etiket-kapisi.py"):
+        "Olculen yuzey ZIYARETCIYE GIDEN icerik DEGIL, OLCUM kablolamasidir (GA "
+        "etiketi · riza blogu · url_passthrough/ads_data_redaction · syncUrl'un "
+        "reklam parametresi korumasi) -> 'sizintili icerik canliya cikmasin' sinifi "
+        "DEGIL. Yayini durdurmanin TAMIR DEGERI SIFIR: kirmizi an canlida ZATEN ayni "
+        "eksigi tasiyan sayfalar durur, deploy'u bloklamak yalniz ONARIMI geciktirir. "
+        "ONLEME kolu tek kaynaktadir (build.py::GA_HEAD_SNIPPET + `{ga_head}` capasi); "
+        "bu kol GORUNURLUK hattidir. `--kendini-test` kolu ayni dosyanin ic nobetcisi.",
+    ("nobet.yml", "serit-b", "tools/reklam-url-test.js"):
+        "Ustteki kapinin (d) ekseninin DAVRANIS kolu (node DOM/URL saplamasi): "
+        "?gclid ile gelen ziyaretci filtreye dokununca parametre URL'de KALIYOR mu + "
+        "kapsam GENISLEMEDI mi. Ayni sinif ve ayni gerekce zinciri: olcum kablolamasi, "
+        "musteriye giden icerik degil; yayini durdurmanin tamir degeri SIFIR. Kendi "
+        "adimi olmasi kapsamin GORUNUR olmasi icindir (dolayli cagri ci-kapsam-test.py "
+        "kapsaminda SAYILMAZ).",
     ("nobet.yml", "serit-b", "tools/backfill-koruma-test.py"):
         "marka-kapsama.py --backfill'in VERI KAYBI kapisi: bos hucre dolar, dolu hucre "
         "EZILMEZ/KUCULTULMEZ. Korudugu varlik gitignore'daki YEREL kapsama defteridir "
