@@ -1,5 +1,33 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## ⏱ SAATLIK CI NOBETI — 8 Agu 08:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Mail supurmesi (kosulsuz emir):** tasinan **0** · tur sonu birlesik `inbox`'ta "Run failed" **0**
+(kutu onceki turda supurulmustu; alt kutulara girilmedi, Cop BOSALTILMADI, baska maile dokunulmadi).
+
+**Gercek ariza YOK — Codex CAGRILMADI.** Son 25 kosumda tek `failure`: `31245852100` (07:18Z,
+uzlastirici kolu) — bir onceki turda logdan ALINTIYLA olculdu: adim 13 kasitli `exit 1`
+(gorunurluk kanali), olcum/onarim/teyit adimlarinin hepsi `success`. YENI kirmizi YOK.
+
+**Yayin ILERLEDI (§4.5'in UC ekseni de olculdu, tek eksen tek basina yazilmadi):**
+(a) KOSAN zincir VAR: `31246716497` (head `82967d41` = origin/main HEAD), push 07:41:03Z,
+is fiilen 08:07:09Z'de basladi (concurrency kuyrugu).
+(b) Tavani yine **`serit-a4`** koyuyor ("Model uyeligi mutasyon bataryasi" adimi; olcum ani
+08:39:41Z, ~32 dk gecmis). Bir onceki kosumda ayni job 07:07:21→08:05:36 = ~58 dk → normal
+seyir, TIKANMA DEGIL.
+(c) Son basarili `Build & deploy` = **`31245410610`** (head `1ede9543`, 08:07:05Z) → onceki turun
+"`1ede9543` canlida DEGIL" hukmu artik BAYAT. Kalan iki commit (`9ab89786`, `82967d41`) ucusta.
+
+**Zamanlanmis alarm kollari yesil.** Not: gorev dosyasinin andigi `cron-nabzi` adinda ayri bir
+workflow ARTIK YOK (isim eskimis) — yerine push/workflow_run tetikli kollar var, hepsi yesil.
+
+⚠️ Ana checkout `origin/main`'in 1 onundeydi: `a8697df4` = ONCEKI NOBETIN KENDI defter commit'i
+(yabanci degisiklik DEGIL, sahibi bu duzlem) → bu turun defter commit'iyle birlikte itildi.
+
+**SIRADAKI TEK IS** — degismedi: marka sayfasi 330 parcanin TAMAMINI tek sayfada kart olarak
+listelesin, model cipleri sayfa icinde filtrelesin; once sayfa agirligi + model sayfalarinin
+getirdigi arama trafigi OLCULSUN.
+
 ## ⏱ SAATLIK CI NOBETI — 8 Agu 07:37Z turu (ev DOGRU: ~/dev/pruvo)
 
 **Mail supurmesi (kosulsuz emir):** tasinan **1** · tur sonu birlesik `inbox`'ta "Run failed" **0**
