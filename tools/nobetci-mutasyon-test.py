@@ -53,10 +53,13 @@ NE OLCULUR:
        E1 oldurucu: SERIT_B'den bir giris DUSURULDU        -> KIRMIZI + tablo jetonu
        E2 oldurucu: SERIT_B'ye giris EKLENDI (taban ayni)  -> KIRMIZI + tablo jetonu
        E3 oldurucu: tablo_sayaci_kontrol() govdesi `return []` -> `--kendini-test` KIRMIZI
-       🔴 AYIRT EDICILER (["eski kod bu girdide ne yapiyordu" ekseni]): E1b = E1 + ESKI
-          KOD (operator `<` + eski taban 42) -> jeton YOK (25 beyan sessizce silinebilirdi);
-          E2b = E2 + operator `<` -> jeton YOK (taban guncellenmeden buyume gorunmezdi).
-          Bu iki olcum olmadan E1/E2'nin kirmizisi degisiklige ATFEDILEMEZ.
+       E4 oldurucu: BOLUM G, G8 ekseninin `iddia += 1` sayaci SILINDI -> KIRMIZI
+       E5 oldurucu: BOLUM G, taban guncellenmeden fazladan eksen sayaci EKLENDI -> KIRMIZI
+       🔴 AYIRT EDICILER (["eski kod bu girdide ne yapiyordu" ekseni]): E1b/E2b/E4b/E5b
+          ayni mutasyonu ESKI KOD ile (operator `<`, gerekirse eski taban) kosar ve jetonun
+          HIC BASILMADIGINI olcer. Bu olcumler olmadan E1/E2/E4/E5'in kirmizisi degisiklige
+          ATFEDILEMEZ (["beyan-edilmis-survivor"] tuzagi).
+          Olculen paylar: SERIT_B 67/42 = 25 · BOLUM G iddia 8/7 = 1.
 
 Ag'a cikmaz. urunler.json / .urun-kaynaklari.json OKUNMAZ ve YAZILMAZ (sentetik katalog).
 Cikis: 0 = yesil, 1 = kirmizi.   Calistir: python3 tools/nobetci-mutasyon-test.py
@@ -596,6 +599,22 @@ E_GOVDE_NOOP = "    return []\n" + E_GOVDE_CAPA
 E_JETON = "TABLO SAYACI KIRMIZI"
 E_OZTEST_JETON = "TABLO-NOBETCISI OLU"
 
+# --- BOLUM G IDDIA SAYACI (8 Agu, 2. tur: `temiz_iddia < 7` -> `!= G_IDDIA_TABANI`) ---
+# Sayac G8 ekseninin `iddia += 1` satiri uzerinden surulur: bir eksenin sayaci DUSERSE
+# (E4) ya da taban guncellenmeden ARTARSA (E5) kapi konusmali. Olculdu: gercek 8, eski
+# taban 7 -> pay 1, yani eski `< 7` kolu E4'e de E5'e de KORDU (E4b/E5b bunu gosterir).
+E_G_CAPA = ("    iddia += 1\n"
+            "    if yayin is None:\n"
+            '        hatalar.append("G8 OLCULEMEDI')
+E_G_SAYAC_SIL = ('    if yayin is None:\n'
+                 '        hatalar.append("G8 OLCULEMEDI')
+E_G_SAYAC_EKLE = "    iddia += 1\n" + E_G_CAPA
+E_G_TABAN_CAPA = "G_IDDIA_TABANI = 8"
+E_G_TABAN_ESKI = "G_IDDIA_TABANI = 7"
+E_G_OP_CAPA = "        if temiz_iddia != G_IDDIA_TABANI:"
+E_G_OP_ESKI = "        if temiz_iddia < G_IDDIA_TABANI:"
+E_G_JETON = "G-IDDIA SAYACI BOZUK"
+
 
 def akis_ayna_kur(hedef_kok, mutasyonlar=None):
     """OZYINELEMELI ayna: DIZINLER gercek, DOSYALAR symlink. Doner: <hedef_kok>.
@@ -655,7 +674,7 @@ def bolum_e(tmp):
     print("E) TABLO SAYACI TAM ESITLIGI — mutant OZYINELEMELI AYNADA olculur "
           "(canli dosyaya dokunulmaz)")
     oldurulen = 0
-    toplam = 3
+    toplam = 5
 
     kok0 = akis_ayna_kur(os.path.join(tmp, "e0"))
     rc, cikti, coldu = _e_kos(kok0)
@@ -671,7 +690,11 @@ def bolum_e(tmp):
             ("E2 SERIT_B'ye giris EKLENDI (taban ayni)", {E_KAPI: [(E_SERIT_CAPA, E_EKLE)]},
              None, E_JETON),
             ("E3 tablo_sayaci_kontrol() govdesi `return []`",
-             {E_KAPI: [(E_GOVDE_CAPA, E_GOVDE_NOOP)]}, "--kendini-test", E_OZTEST_JETON)):
+             {E_KAPI: [(E_GOVDE_CAPA, E_GOVDE_NOOP)]}, "--kendini-test", E_OZTEST_JETON),
+            ("E4 BOLUM G: G8 ekseninin `iddia += 1` sayaci SILINDI",
+             {E_KAPI: [(E_G_CAPA, E_G_SAYAC_SIL)]}, None, E_G_JETON),
+            ("E5 BOLUM G: taban guncellenmeden fazladan eksen sayaci EKLENDI",
+             {E_KAPI: [(E_G_CAPA, E_G_SAYAC_EKLE)]}, None, E_G_JETON)):
         kok = akis_ayna_kur(os.path.join(tmp, "e-" + etiket.split()[0]), mut)
         rc, cikti, coldu = _e_kos(kok, bayrak)
         # 🔴 KIRMIZI DAVRANISTAN gelmeli, COKMEDEN degil: cikis kodu degil BASILAN
@@ -686,20 +709,28 @@ def bolum_e(tmp):
                             "OLDU" if olduruldu else "KACTI"))
 
     # --- AYIRT EDICILER: ayni girdide ESKI KOD ne yapiyordu ---
-    for etiket, mut, aciklama in (
+    for etiket, mut, jeton, aciklama in (
             ("E1b E1 + ESKI KOD (operator `<` + taban 42)",
              {E_KAPI: [(E_SERIT_CAPA, E_SIL), (E_OP_CAPA, E_OP_ESKI),
-                       (E_TABAN_CAPA, E_TABAN_ESKI)]},
+                       (E_TABAN_CAPA, E_TABAN_ESKI)]}, E_JETON,
              "eski taban 25 paylik OLU koruma idi: 25 beyan sessizce silinebilirdi"),
             ("E2b E2 + operator `<` (taban 67)",
-             {E_KAPI: [(E_SERIT_CAPA, E_EKLE), (E_OP_CAPA, E_OP_ESKI)]},
-             "taban guncellenmeden BUYUME gorunmezdi -> pay yeniden birikirdi")):
+             {E_KAPI: [(E_SERIT_CAPA, E_EKLE), (E_OP_CAPA, E_OP_ESKI)]}, E_JETON,
+             "taban guncellenmeden BUYUME gorunmezdi -> pay yeniden birikirdi"),
+            ("E4b E4 + ESKI KOD (operator `<` + taban 7)",
+             {E_KAPI: [(E_G_CAPA, E_G_SAYAC_SIL), (E_G_OP_CAPA, E_G_OP_ESKI),
+                       (E_G_TABAN_CAPA, E_G_TABAN_ESKI)]}, E_G_JETON,
+             "1 paylik olu koruma: bir eksenin sayaci dususu `7 < 7` ile YESIL kalirdi"),
+            ("E5b E5 + ESKI KOD (operator `<` + taban 7)",
+             {E_KAPI: [(E_G_CAPA, E_G_SAYAC_EKLE), (E_G_OP_CAPA, E_G_OP_ESKI),
+                       (E_G_TABAN_CAPA, E_G_TABAN_ESKI)]}, E_G_JETON,
+             "artis hic gorulmezdi -> pay birikir ve pay kadar eksen sessizce silinebilir")):
         kok = akis_ayna_kur(os.path.join(tmp, "e-" + etiket.split()[0]), mut)
         rc, cikti, coldu = _e_kos(kok)
-        kor = E_JETON not in cikti and not coldu
-        check(etiket + " -> tablo jetonu YOK (eski kod KOR)", kor,
+        kor = jeton not in cikti and not coldu
+        check(etiket + " -> %r jetonu YOK (eski kod KOR)" % jeton, kor,
               "MUTANT=%s · beklenen=jeton YOK · gozlenen=rc %d jeton %s%s · HUKUM=%s (%s)"
-              % (etiket.split()[0], rc, "VAR" if E_JETON in cikti else "YOK",
+              % (etiket.split()[0], rc, "VAR" if jeton in cikti else "YOK",
                  " ⚠️COKME" if coldu else "", "AYIRT EDICI" if kor else "AYIRT ETMIYOR",
                  aciklama))
 
