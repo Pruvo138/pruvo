@@ -182,4 +182,37 @@ if [ "$pruvo_alan_rc" -ne 0 ]; then
   exit 1
 fi
 
+# --- 6) DEVAM SINIF KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) ----------
+# 🔴 9 AGU 2026 ONARIMI — "DEFTER IHLALI YAYINI DURDURUYOR" SINIFI (olculdu):
+#   `bdddaee0` izlenen kok defterine bir E5 (kapi-bypass) satiri soktu. Kapi
+#   DOGRU calisti ama YALNIZ CI'da yasiyordu: `serit-a2` + `serit-a3` kirmizi
+#   yandi, `deploy` + `yayin` SKIPPED kaldi ve yayin ~1 SAAT durdu. Ihlal
+#   defterden arsive tasininca kapi kendiliginden yesile dondu — yani maliyet
+#   ihlalin buyuklugunden degil YAKALANDIGI YERDEN geliyordu. Bu adim ihlali
+#   COMMIT ANINDA durdurur: main'e HIC girmez, yayini HIC durduramaz.
+#   (Adim 5 ile AYNI sinif, KATALOG yerine DEFTER duzleminde.)
+# EKSEN INDEX'TIR, CALISMA AGACI DEGIL: bu checkout'u BES ev paylasir; calisma
+#   agacini yargilayan bir kol, baska bir oturumun yarim DEVAM.md taslagi
+#   yuzunden HERKESIN commit'ini kilitlerdi ([[kanca-stage-disi-agaci-tarar]]).
+# ON-ELEME KAPININ ICINDE, AYNI INDEX EKSENINDE: kabukta `git diff HEAD` ile
+#   elenseydi iki eksen sessizce ayrisirdi ([[kabul-araligi-karsilastirma-araligi]]).
+#   Atlama nedeni her seferinde BASILIR (sessiz atlama = sessiz yesil).
+# CI KOLU YERINDE KALIR: kancalar commit EDILMEZ ve atlanabilir; ZORLAYICI
+#   hukum `serit-a2`dedir. Bu kol onun YERINE GECMEZ, ONUNDE DURUR.
+# rc=2 (OLCULEMEDI) YESIL SAYILMAZ -> commit DURUR.
+pruvo_devam="$pruvo_kok/tools/devam-sinif-kapisi.py"
+if [ ! -f "$pruvo_devam" ]; then
+  echo "!! COMMIT DURDURULDU — tools/devam-sinif-kapisi.py YOK." >&2
+  echo "!! Defter icerik-sinifi korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+python3 "$pruvo_devam" --index
+pruvo_devam_rc=$?
+if [ "$pruvo_devam_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — defter sinif kapisi rc=$pruvo_devam_rc (0=YESIL 1=KIRMIZI 2=OLCULEMEDI)." >&2
+  echo "!! Gerekce yukarida. COZUM: ihlal eden satirlari DEVAM-ARSIV.md'ye (git DISI)" >&2
+  echo "!!   TASI, deftere notr tek satirlik isaretci birak. Silme YOK, tasima VAR." >&2
+  exit 1
+fi
+
 exit 0

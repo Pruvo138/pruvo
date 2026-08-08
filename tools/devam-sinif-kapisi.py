@@ -39,8 +39,13 @@ NEDEN CI'DAKI `build` KOLU (yer secimi — GEREKCE):
     kapi kirmizi yanar. Yani buradaki kablo KENDI nobetcisine sahiptir; bir
     kancadaki satirin boyle bir nobetcisi YOKTUR.
   Beyan edilen sinir: CI `push`ta kosar, yani ihlal main'e ULASTIKTAN sonra
-  yakalanir ve YAYINI durdurur. Daha erken (pre-commit) bir kol EKLENEBILIR ama
-  onun kurulu olmasi GARANTI EDILEMEZ; bu yuzden ZORLAYICI kol CI'dadir.
+  yakalanir ve YAYINI durdurur. O sinirin BEDELI 8-9 Agu 2026'da olculdu:
+  `bdddaee0` DEVAM.md'ye bir E5 satiri soktu, `serit-a2`+`serit-a3` kirmizi
+  yandi, `deploy`+`yayin` SKIPPED kaldi ve yayin ~1 SAAT durdu. Bu yuzden
+  9 Agu 2026'da IKINCI (daha erken) bir kol eklendi: `--index`, COMMIT ANINDA
+  INDEX'i yargilar (tools/kancalar/pre-commit adim 6). Kancanin kurulu olmasi
+  hala GARANTI DEGILDIR — o yuzden ZORLAYICI kol CI'DA KALDI; erken kol onun
+  YERINE GECMEZ, ONUNDE DURUR.
 
 KAPSAM: `git ls-files` ciktisindan KOK seviyedeki (yolda '/' YOK) BELGE
 uzantili dosyalar. Bugun uc dosya: DEVAM.md · README.md · ege-bilgi.md. Kural
@@ -85,6 +90,7 @@ Kullanim:
     python3 tools/devam-sinif-kapisi.py --kendini-test
     python3 tools/devam-sinif-kapisi.py --mutasyon    # KOPYA uzerinde mutasyon bataryasi
     python3 tools/devam-sinif-kapisi.py --dosya <yol> # tek dosya (tani/fikstur)
+    python3 tools/devam-sinif-kapisi.py --index       # INDEX (commit ani) kolu
 
 Cikis kodu: 0 = temiz · 1 = SINIF IHLALI · 2 = OLCULEMEDI (fail-closed).
 """
@@ -120,6 +126,31 @@ BELGE_UZANTILARI = (".md", ".markdown", ".txt", ".rst", ".adoc")
 # yuklenemezse bu kapi YESIL VERMEZ (rc 2) — "olcemedim" YESIL degildir.
 _OZET_SOZLESME = ("normalize", "ozet_kaydi_yukle", "ad_isabetleri", "adaylar",
                   "_ozetle", "alan_adi_isabetleri", "katalog_markalari")
+
+
+def _git_ortami_modulu():
+    """(fonksiyon, hata) — tools/git_ortami.py'nin `git_ortami()`si.
+
+    🔴 TEK KAYNAK: git baglam scrub'i BU DOSYADA TANIMLI DEGILDIR; ikinci bir
+    tanim [[ikiz-tanim-sessiz-ayrisma]] sinifidir ve `git_ortami.py --kendini-test`
+    onu KIRMIZI yakar. YOL UZERINDEN yuklenir (import DEGIL): mutasyon bataryasi
+    bu dosyanin KOPYASINI gecici bir dizinde kosturur ve orada `sys.path` ile
+    yapilan bir import COZULMEZDI; TOOLS ise `--kok` ile GERCEK depoyu gosterir.
+    Yalniz KABUL BATARYASI kullanir (sentetik depolar); GERCEK kol ortami
+    BILEREK temizlemez — bkz. `_git`."""
+    yol = os.path.join(TOOLS, "git_ortami.py")
+    if not os.path.isfile(yol):
+        return None, "git baglam scrub kaynagi YOK: %s" % yol
+    try:
+        spec = importlib.util.spec_from_file_location("pruvo_git_ortami", yol)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["pruvo_git_ortami"] = mod
+        spec.loader.exec_module(mod)
+    except Exception as e:                                  # noqa: BLE001
+        return None, "git baglam scrub kaynagi YUKLENEMEDI: %s (%s)" % (yol, e)
+    if not hasattr(mod, "git_ortami"):
+        return None, "git_ortami.py'de git_ortami() YOK (sozlesme degismis)"
+    return mod.git_ortami, None
 
 
 def ozet_modulu(yol=None):
@@ -356,6 +387,15 @@ def metin_bulgulari(metin, kayit=None, ozet=None, markalar=None):
 # ===========================================================================
 # KAPSAM — IZLENEN KOK BELGELERI (fail-closed + canlilik capasi)
 # ===========================================================================
+def _kok_belge_mi(yol):
+    """KOK seviyede BELGE mi? TEK KAYNAK ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    Hem IZLENEN kol (`git ls-files`) hem INDEX kolu (`git diff --cached`) kapsam
+    kuralini BU predikattan turetir. Iki yerde iki kopya olsaydi biri
+    daraltildiginda oteki sessizce genis kalirdi."""
+    return "/" not in yol and yol.lower().endswith(BELGE_UZANTILARI)
+
+
 def _git_ls_files(kok=None):
     try:
         r = subprocess.run(["git", "-C", kok or ROOT, "ls-files", "-z"],
@@ -384,8 +424,7 @@ def izlenen_kok_belgeleri(kosucu=None, kok=None):
         return None, ("CANLILIK — izlenen dosya listesi kapinin KENDI yolunu (%s) "
                       "icermiyor: git basarili dondu ama liste BOS ya da KISMI. "
                       "rc=0 geldi diye SESSIZ YESIL verilmez." % KAPI_YOLU)
-    kok_belge = [y for y in hepsi
-                 if "/" not in y and y.lower().endswith(BELGE_UZANTILARI)]
+    kok_belge = [y for y in hepsi if _kok_belge_mi(y)]
     if not kok_belge:
         return None, ("izlenen KOK belge dosyasi BULUNAMADI — bu depoda en az "
                       "DEVAM.md ve README.md izlenir. Kapsam bos: OLCULEMEDI.")
@@ -461,6 +500,147 @@ def tara(kok=None, dosyalar=None, ozet_yolu=None, kosucu=None, sessiz=False):
         else:
             print("temiz: 0 sinif ihlali.")
     return (RC_IHLAL if bulgular else RC_TEMIZ), bulgular, satir_sayisi
+
+
+# ===========================================================================
+# KOL: INDEX (COMMIT ANI) TARAMASI
+# ===========================================================================
+# 🔴 NEDEN VAR (olculdu 8-9 Agu 2026, BES KEZ tekrarlanan sinif): bu kapinin
+# ZORLAYICI kolu CI'dadir ve CI yalniz PUSH'tan SONRA kosar. `bdddaee0`
+# DEVAM.md:79'a bir E5 (kapi-bypass) satiri soktu; kapi dogru calisti, `serit-a2`
+# VE `serit-a3` kirmizi yandi, `deploy`+`yayin` SKIPPED kaldi ve yayin ~1 SAAT
+# durdu. Ihlal defterden cikarilinca kapi kendiliginden yesile dondu — yani
+# maliyet ihlalin BUYUKLUGUNDEN degil YAKALANDIGI YERDEN geliyordu.
+# Ayni sinif `bdddaee0`'de katalog alan kapisi icin de olculmustu: "kapilar
+# YALNIZ CI'da yasiyordu -> yazim yolunda hicbir kol yoktu" (kancalar/pre-commit
+# adim 5). Bu kol o adimin defter duzlemindeki esidir: ihlal COMMIT ANINDA durur,
+# main'e HIC girmez, dolayisi ile yayini HIC durduramaz.
+#
+# ⚠️ CI KOLUNUN YERINE GECMEZ, ONUNDE DURUR. Kancalar commit EDILMEZ ve
+# `--no-verify` ile atlanir; bu yuzden ZORLAYICI hukum `serit-a2`de KALIR
+# (fail-open'a cevirme YOK, yalnizca daha erken ikinci bir kol).
+#
+# 🔴 EKSEN SECIMI — INDEX, CALISMA AGACI DEGIL ([[kanca-stage-disi-agaci-tarar]]):
+# bu depoda BES ev ayni checkout'u paylasir. Calisma agacini yargilayan bir
+# pre-commit kolu, BASKA bir oturumun yarim DEVAM.md taslagi yuzunden HERKESIN
+# commit'ini kilitlerdi (olculmus zarar). Index ekseni yalnizca O COMMIT'in
+# tasidigi icerigi yargilar: baskasinin kirli agaci kimseyi bloklamaz.
+# ON-ELEME DE AYNI EKSENDEDIR (kabukta `git diff HEAD` ile elenmez) —
+# [[kabul-araligi-karsilastirma-araligi]].
+_BOS_AGAC = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+
+
+def _git(args, kok=None, ortam=None):
+    """(rc, stdout_bytes, stderr). GERCEK YOLDA ORTAM TEMIZLENMEZ: kanca
+    `GIT_INDEX_FILE` ihrac eder (`git commit <yol>` / `git commit -a` GECICI
+    index kurar) ve kapi commit'in FIILEN tasidigi index'i olcmelidir
+    (tools/katalog-alan-kapisi.py ile AYNI karar). <ortam> YALNIZ kabul
+    bataryasinin SENTETIK depolari icindir: orada miras alinan GIT_DIR gercek
+    depoyu isaret eder ve fikstur olcuLemez olurdu."""
+    try:
+        r = subprocess.run(["git", "-C", kok or ROOT] + list(args),
+                           capture_output=True, env=ortam)
+    except OSError as e:
+        return 127, b"", "git calistirilamadi: %s" % e
+    return r.returncode, r.stdout, r.stderr.decode("utf-8", "replace")
+
+
+def _index_taban(kok=None, ortam=None):
+    """Index'in karsilastirilacagi agac: HEAD varsa HEAD, yoksa BOS AGAC."""
+    rc, _, _ = _git(["rev-parse", "--verify", "--quiet", "HEAD"], kok, ortam)
+    return "HEAD" if rc == 0 else _BOS_AGAC
+
+
+def index_kok_belgeleri(kosucu=None, kok=None, ortam=None):
+    """(yollar, hata). INDEX'te EKLENEN/DEGISEN kok belgeleri (kapsam predikati
+    IZLENEN kolla AYNI: `_kok_belge_mi`). Bos liste MESRU bir sonuctur (o commit
+    kok defteri tasimiyor) — bu yuzden burada 'bos = OLCULEMEDI' KURALI YOKTUR;
+    kolun canliligi `--kendini-test` I* iddialariyla DAVRANISSAL olcuLur."""
+    if kosucu is None:
+        def kosucu():
+            return _git(["diff", "--cached", "--name-only",
+                         "--diff-filter=ACMR", "-z",
+                         _index_taban(kok, ortam)], kok, ortam)
+    rc, cikti, hata = kosucu()
+    if rc != 0:
+        return None, ("git diff --cached basarisiz (rc=%s): %s"
+                      % (rc, (hata or "").strip() or "?"))
+    if isinstance(cikti, bytes):
+        cikti = cikti.decode("utf-8", "replace")
+    return sorted(y for y in cikti.split("\0") if y and _kok_belge_mi(y)), None
+
+
+def index_metni(yol, kok=None, ortam=None):
+    """(metin, hata). Icerik INDEX BLOB'undan okunur — calisma agacindan DEGIL.
+    Ayristirilamayan blob YESIL DEGILDIR (fail-closed)."""
+    rc, ham, hata = _git(["cat-file", "blob", ":" + yol], kok, ortam)
+    if rc != 0:
+        return None, ("index blob'u okunamadi (rc=%s): %s"
+                      % (rc, (hata or "").strip() or "?"))
+    try:
+        return ham.decode("utf-8"), None
+    except UnicodeDecodeError as e:
+        return None, ("index blob'u UTF-8 olarak COZULEMEDI (%s) — icerik "
+                      "ayristirilamayan bir dosya taranmis SAYILMAZ" % e)
+
+
+def tara_index(kok=None, kosucu=None, ozet_yolu=None, sessiz=False, ortam=None):
+    """(rc, bulgular, satir, taranan_yollar). COMMIT ANI kolu."""
+    kok = kok or ROOT
+    yollar, hata = index_kok_belgeleri(kosucu=kosucu, kok=kok, ortam=ortam)
+    if yollar is None:
+        if not sessiz:
+            print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
+        return RC_OLCULEMEDI, [], 0, []
+    if not yollar:
+        # SESSIZ ATLAMA YOK: neden her seferinde basilir.
+        if not sessiz:
+            print("ATLANDI: bu commit'in INDEX'inde degisen KOK belge YOK "
+                  "(on-eleme, index ekseni).")
+        return RC_TEMIZ, [], 0, []
+
+    ozet, ohata = ozet_modulu(ozet_yolu)
+    if ozet is None:
+        if not sessiz:
+            print("OLCULEMEDI (fail-closed KIRMIZI): %s" % ohata, file=sys.stderr)
+        return RC_OLCULEMEDI, [], 0, yollar
+    kayit, khata = ozet.ozet_kaydi_yukle()
+    if kayit is None:
+        if not sessiz:
+            print("OLCULEMEDI (fail-closed KIRMIZI): desen ozet artefakti — %s"
+                  % khata, file=sys.stderr)
+        return RC_OLCULEMEDI, [], 0, yollar
+    try:
+        markalar = ozet.katalog_markalari()
+    except Exception:                                       # noqa: BLE001
+        markalar = None
+
+    bulgular = []
+    satir_sayisi = 0
+    for rel in yollar:
+        metin, mhata = index_metni(rel, kok, ortam)
+        if metin is None:
+            if not sessiz:
+                print("OLCULEMEDI (fail-closed KIRMIZI): %s — %s" % (rel, mhata),
+                      file=sys.stderr)
+            return RC_OLCULEMEDI, [], satir_sayisi, yollar
+        satir_sayisi += len(metin.splitlines())
+        for no, eksen, etiket in metin_bulgulari(metin, kayit, ozet, markalar):
+            bulgular.append((rel, no, eksen, etiket))
+
+    if not sessiz:
+        print("INDEX kolu: %d kok belgesi · satir: %d" % (len(yollar), satir_sayisi))
+        for rel, no, eksen, etiket in bulgular:
+            print("  * SINIF IHLALI (INDEX): %s:%d — %s [%s]. Eslesen metin "
+                  "BILEREK yazilmiyor." % (rel, no, eksen, etiket), file=sys.stderr)
+        if bulgular:
+            print("IHLAL: %d satir COMMIT'E GIRIYOR. COZUM: satirlari "
+                  "DEVAM-ARSIV.md'ye (git DISI) TASI, yerine notr tek satirlik "
+                  "isaretci birak. Silme YOK, tasima VAR." % len(bulgular),
+                  file=sys.stderr)
+        else:
+            print("temiz: 0 sinif ihlali (index).")
+    return ((RC_IHLAL if bulgular else RC_TEMIZ), bulgular, satir_sayisi, yollar)
 
 
 # ===========================================================================
@@ -547,6 +727,102 @@ def _gecici_ozet(tmp, ozet, adlar=(_UYDURMA_AD,)):
         f.write("\n".join(adlar) + "\n")
     ozet.desen_yaz(kaynak=kaynak, hedef=hedef, dongu=ozet.ASGARI_DONGU)
     return hedef
+
+
+def _sentetik_depo(t, ortam):
+    """Ic hukmu OLMAYAN bos bir git deposu (kanca YOK, imza YOK)."""
+    _git(["init", "-q", "-b", "main"], t, ortam)
+    for anahtar, deger in (("user.email", "kapi@ornek.gecersiz"),
+                           ("user.name", "Kapi Kabul Testi"),
+                           ("commit.gpgsign", "false"),
+                           ("core.hooksPath", os.path.join(t, "kanca-yok"))):
+        _git(["config", anahtar, deger], t, ortam)
+
+
+def _yaz_ekle(t, rel, icerik, ortam):
+    tam = os.path.join(t, rel)
+    if os.path.dirname(rel):
+        os.makedirs(os.path.dirname(tam), exist_ok=True)
+    if isinstance(icerik, bytes):
+        with open(tam, "wb") as f:
+            f.write(icerik)
+    else:
+        with open(tam, "w", encoding="utf-8") as f:
+            f.write(icerik)
+    _git(["add", "--", rel], t, ortam)
+
+
+def _index_iddialari(ortam, ihlal_satiri, temiz_satiri):
+    """[(ad, tamam_mi, gorulen), ...] — INDEX kolunun DAVRANIS iddialari."""
+    sonuc = []
+
+    def _kur(t):
+        _sentetik_depo(t, ortam)
+        _yaz_ekle(t, "README.md", "# depo\n", ortam)
+        _yaz_ekle(t, "DEVAM.md", "# Defter\n" + temiz_satiri, ortam)
+        _git(["commit", "-q", "-m", "ilk"], t, ortam)
+
+    # I1 — INDEX'te ihlal COMMIT'I DURDURUR
+    with tempfile.TemporaryDirectory() as t:
+        _kur(t)
+        _yaz_ekle(t, "DEVAM.md", "# Defter\n" + temiz_satiri + ihlal_satiri, ortam)
+        rc, bulgular, _, yollar = tara_index(kok=t, sessiz=True, ortam=ortam)
+        sonuc.append(("I1 index-ihlali-KIRMIZI", rc == RC_IHLAL and bool(bulgular),
+                      "rc=%s bulgular=%r yollar=%r" % (rc, bulgular[:3], yollar)))
+
+    # I2 — TEMIZ index YESIL ama FIILEN TARANMIS olmali (olu kol da yesil verir)
+    with tempfile.TemporaryDirectory() as t:
+        _kur(t)
+        _yaz_ekle(t, "DEVAM.md", "# Defter\n" + temiz_satiri * 3, ortam)
+        rc, bulgular, satir, yollar = tara_index(kok=t, sessiz=True, ortam=ortam)
+        sonuc.append(("I2 temiz-index-TARANDI",
+                      rc == RC_TEMIZ and yollar == ["DEVAM.md"] and satir >= 4,
+                      "rc=%s satir=%s yollar=%r" % (rc, satir, yollar)))
+
+    # I3 — EKSEN INDEX'TIR: baskasinin KIRLI calisma agaci commit'i KILITLEMEZ
+    #      ([[kanca-stage-disi-agaci-tarar]]). Ayirt edici: index temiz, agac ihlalli.
+    with tempfile.TemporaryDirectory() as t:
+        _kur(t)
+        _yaz_ekle(t, "DEVAM.md", "# Defter\n" + temiz_satiri * 2, ortam)
+        with open(os.path.join(t, "DEVAM.md"), "a", encoding="utf-8") as f:
+            f.write(ihlal_satiri)                    # STAGE EDILMEDI
+        rc, bulgular, _, yollar = tara_index(kok=t, sessiz=True, ortam=ortam)
+        sonuc.append(("I3 eksen-INDEX-agac-degil",
+                      rc == RC_TEMIZ and yollar == ["DEVAM.md"],
+                      "rc=%s bulgular=%r yollar=%r" % (rc, bulgular[:3], yollar)))
+
+    # I4 — KAPSAM: alt dizindeki belge KOK defteri DEGILDIR (izlenen kolla ayni kural)
+    with tempfile.TemporaryDirectory() as t:
+        _kur(t)
+        _yaz_ekle(t, "belge/NOT.md", "# not\n" + ihlal_satiri, ortam)
+        rc, _, _, yollar = tara_index(kok=t, sessiz=True, ortam=ortam)
+        sonuc.append(("I4 kapsam-alt-dizin-DISARIDA",
+                      rc == RC_TEMIZ and yollar == [],
+                      "rc=%s yollar=%r" % (rc, yollar)))
+
+    # I5 — AD-BAGIMSIZ: YENI bir kok defteri kapsama KENDILIGINDEN girer
+    #      (muafiyet/allow listesi YOK -> [[envanter-drift-parti-basina]])
+    with tempfile.TemporaryDirectory() as t:
+        _kur(t)
+        _yaz_ekle(t, "NOTLAR.md", "# yeni defter\n" + ihlal_satiri, ortam)
+        rc, _, _, yollar = tara_index(kok=t, sessiz=True, ortam=ortam)
+        sonuc.append(("I5 yeni-kok-defteri-KIRMIZI",
+                      rc == RC_IHLAL and yollar == ["NOTLAR.md"],
+                      "rc=%s yollar=%r" % (rc, yollar)))
+
+    # I6 — FAIL-CLOSED: git kapsam komutu dusrse YESIL VERILMEZ
+    rc, _, _, _ = tara_index(kok=ROOT, sessiz=True, ortam=ortam,
+                             kosucu=lambda: (128, b"", "fatal"))
+    sonuc.append(("I6 git-dustu-OLCULEMEDI", rc == RC_OLCULEMEDI, "rc=%s" % rc))
+
+    # I7 — FAIL-CLOSED: index blob'u UTF-8 degilse YESIL VERILMEZ
+    with tempfile.TemporaryDirectory() as t:
+        _kur(t)
+        _yaz_ekle(t, "DEVAM.md", b"# Defter\ngecerli\n\xff\xfe\x00 bozuk\n", ortam)
+        rc, _, _, _ = tara_index(kok=t, sessiz=True, ortam=ortam)
+        sonuc.append(("I7 bozuk-blob-OLCULEMEDI", rc == RC_OLCULEMEDI, "rc=%s" % rc))
+
+    return sonuc
 
 
 def kendini_test():
@@ -667,6 +943,25 @@ def kendini_test():
                        % (len(bulgular), bulgular[:8]))
     print("gercek kapsam: %d satir tarandi, %d ihlal" % (satir, len(bulgular)))
 
+    # ---- I) INDEX (COMMIT ANI) KOLU — DAVRANISSAL, SENTETIK DEPO UZERINDE
+    #      🔴 BEYAN DEGIL DAVRANIS ([[kapi-beyanin-dogrulugunu-degil-varligini-olcer]]):
+    #      "kola index ekseni eklendi" beyani kolun FIILEN gordugunu kanitlamaz.
+    #      Olu bir kol (bozuk --diff-filter, yanlis kapsam predikati, index yerine
+    #      calisma agacini okumak) HER durumda "degisen kok belge YOK" der ve
+    #      SESSIZ YESIL verir. Asagidaki iddialar o sessiz yesili KIRMIZI yakar.
+    ortam_fn, ohata = _git_ortami_modulu()
+    kontrol += 1
+    if ortam_fn is None:
+        hatalar.append("I OLCULEMEDI: %s" % ohata)
+    else:
+        ihlal_satiri = "- Acele push icin git push --no-verify kullanildi.\n"
+        temiz_satiri = "- Dal main'e alindi: `364095f6` (ileri-sarma).\n"
+        sonuc = _index_iddialari(ortam_fn(), ihlal_satiri, temiz_satiri)
+        for ad, tamam, gorulen in sonuc:
+            kontrol += 1
+            if not tamam:
+                hatalar.append("I %s -> %s" % (ad, gorulen))
+
     # ---- H) YANLIS-POZITIF BUTCESI: DEVAM-ARSIV.md (git DISI) kapsam DISIDIR
     arsiv = os.path.join(ROOT, "DEVAM-ARSIV.md")
     if os.path.isfile(arsiv):
@@ -714,6 +1009,19 @@ _MUTANTLAR = [
      "        return RC_TEMIZ, [], 0\n    kayit, khata", True),
     ("M10 canlilik nobetini oldur", "    if KAPI_YOLU not in hepsi:",
      "    if False:", True),
+    # --- INDEX (commit ani) kolunun OLDURUCU mutantlari -----------------------
+    ("M13 INDEX kolunu KOR ET (kapsam predikati)",
+     "    return sorted(y for y in cikti.split(\"\\0\") if y and _kok_belge_mi(y))",
+     "    return sorted(y for y in cikti.split(\"\\0\") if False)", True),
+    ("M14 INDEX kolunu CALISMA AGACINA cevir",
+     "        metin, mhata = index_metni(rel, kok, ortam)",
+     "        metin, mhata = dosya_metni(os.path.join(kok, rel))", True),
+    ("M15 INDEX kapsam fail-closed'unu sessiz yesile cevir",
+     "        return RC_OLCULEMEDI, [], 0, []",
+     "        return RC_TEMIZ, [], 0, []", True),
+    ("M16 INDEX blob fail-closed'unu sessiz yesile cevir",
+     "            return RC_OLCULEMEDI, [], satir_sayisi, yollar",
+     "            return RC_TEMIZ, [], satir_sayisi, yollar", True),
     ("M11 ILGISIZ: yorum satiri eklendi", "import argparse",
      "import argparse  # ilgisiz yorum (davranis degismez)", False),
     ("M12 ILGISIZ: cikti metni degistirildi", '"temiz: 0 sinif ihlali."',
@@ -779,6 +1087,13 @@ def main(argv=None):
     p.add_argument("--mutasyon", action="store_true")
     p.add_argument("--dosya", action="append", default=None,
                    help="tek dosya tara (tani/fikstur); tekrarlanabilir")
+    # --index: COMMIT ANI kolu (tools/kancalar/pre-commit adim 6). CI'da BILEREK
+    # kosmaz — taze bir CI checkout'unda index HEAD ile aynidir, yani olcecek
+    # STAGED icerik YOKTUR ve kol her seferinde "ATLANDI" derdi (sessiz yesil
+    # yuzeyi). CI'daki ZORLAYICI hukum bayraksiz kol (`serit-a2`) + bu kolun
+    # DAVRANISSAL kabul iddialari (`--kendini-test` I1..I7, `serit-a3`).
+    p.add_argument("--index", action="store_true",
+                   help="INDEX'te (staged) degisen kok belgelerini tara")
     # --kok: betik BASKA bir yerde dursa da GERCEK depoyu olcsun. MUTASYON
     # BATARYASI icin ZORUNLU: mutant kopya gecici bir dizinde kosar; --kok
     # olmadan kapsam olcumu o gecici dizinde OLCULEMEDI'ye duser ve HER mutant
@@ -796,6 +1111,9 @@ def main(argv=None):
         return kendini_test()
     if a.mutasyon:
         return mutasyon()
+    if a.index:
+        rc, _, _, _ = tara_index()
+        return rc
     rc, _, _ = tara(dosyalar=a.dosya)
     return rc
 
