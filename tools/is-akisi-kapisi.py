@@ -2398,6 +2398,35 @@ SERIT_B = {
         "Ustteki backfill-koruma-test.py'nin MUTASYON BATARYASI (6 mutant + 1 kontrol); "
         "olctugu sey KABUL TESTININ KENDISI. Korudugu kapi serit B'de oldugu icin "
         "batarya da serit B'dedir (panel-mutasyon-test.py ile ayni desen).",
+    # --- "SESSIZ UZERINE YAZMA YASAK" kapanis kanitlari (8 Agu 2026) ----------------
+    # Okan'in genel kurali ("sessiz uzerine yazma yasak") uc duzlemde kapatildi: hasat
+    # muhasebesi (backfill, ustte), GORSEL (R2 anahtari) ve KANIT DEFTERI (parite kaydi).
+    # Ucunun de GERCEK kapisi/kabul kolu SERIT A'da bloklayici kosuyor; buraya YALNIZ
+    # "kabul testi gercekten olcuyor mu" bataryalari ile aracin KENDINI sinama kolu girer.
+    ("nobet.yml", "serit-b", "tools/r2-ezme-mutasyon-test.py"):
+        "tools/r2-upload.py EZME-KORUMASININ mutasyon bataryasi (6 mutant + 1 kontrol): "
+        "koruma sokuldugunde TEK BASINA KIRMIZI yakiyor mu. Olctugu sey KABUL TESTININ "
+        "KENDISI, yayinlanan hicbir cikti DEGIL (backfill-mutasyon-test.py / "
+        "panel-mutasyon-test.py ile ayni desen). Korudugu KABUL TESTI "
+        "(tools/r2-upload-test.py) SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; "
+        "onleme kolu ise kaynagin kendisindedir (r2-upload.py varsayilanda fail-closed "
+        "REDDEDER, ezmek ACIK --ezmeye-izin-ver ister). S3 mock'lanir: gercek R2'ye ne "
+        "okuma ne yazma gider, adim ag GEREKTIRMEZ.",
+    ("nobet.yml", "serit-b", "tools/parite-kayit-test.py"):
+        "tools/parite_kaydi.py YAZICISININ kabul testi: sayisal alanda gerileme "
+        "varsayilanda REDDEDILIYOR mu (dosya BAYT BAYT degismeden), olcu iki kaynaktan "
+        "mi aliniyor (mevcut kayit + MONOTON tavan), --kuru-prova tek bayt yazmiyor mu. "
+        "SENTETIK gecici kokle kosar: canli jenerator/test/uretilebilirlik-parite.json "
+        "ACILMAZ, urunler.json / uretilen sayfa / D1 / R2 / odeme yuzeylerine tek bayt "
+        "yazmaz — 'canliya yanlis/sizintili icerik cikmasin' sinifi DEGILDIR. Ayni "
+        "sozlesmenin GERCEK okuyucu kapisi (tools/onizleme-vaat-kapisi.py, bayraksiz "
+        "kol) SERIT A'da, deploy.yml'de BLOKLAYICI kosmaya devam ediyor.",
+    ("nobet.yml", "serit-b", "tools/parite-kayit-mutasyon-test.py"):
+        "Ustteki parite-kayit-test.py'nin MUTASYON BATARYASI (8 mutant + 1 kontrol): "
+        "tavan blogu bayatlatilarak kapi atlatilamiyor mu. Olctugu sey KABUL TESTININ "
+        "KENDISI. Korudugu kabul testi serit B'de oldugu icin batarya da serit B'dedir "
+        "(backfill-mutasyon-test.py ile ayni desen). Mutasyon gecici SYMLINK aynasina "
+        "uygulanir, canli tools/ dizinine YAZILMAZ.",
     ("nobet.yml", "serit-b", "tools/durum-test.py"):
         "durum.py PANOSUNUN kabul testi; pano bir teshis ciktisidir, yayinlanmaz. "
         "IKI KOL DA bu job'da: bayraksiz (gercek pano ciktisi) + `--ic-nobetci` "
