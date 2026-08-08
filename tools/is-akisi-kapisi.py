@@ -2288,6 +2288,29 @@ SERIT_B = {
     ("nobet.yml", "serit-b", "tools/yayin-ic-dil-kapisi.py"):
         "YALNIZ `--kendini-test` kolu (tempfile fiksturu, index.built.html ISTEMEZ); "
         "uretilen ciktinin yorum yuzeyi taramasi serit A'da bloklayici kosuyor.",
+    # --- MUTLAK YOL KAPISI (8 Agu 2026) — GERCEK olcum kolu (bayraksiz) da burada ----
+    # 🔴 ISTISNAI GIRIS: tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer;
+    # burada bayraksiz RAPOR kolu B'dedir. GEREKCE (mimar hukmu, olculdu):
+    #   (a) Kapinin KENDI sozlesmesi: bayraksiz kol maruziyeti SAYIYLA basar ve rc=0
+    #       verir; bloklayiciya cevirme (`--sifir-tolerans`) ve esik karari MIMARDADIR.
+    #       Bloklayici kol, KACIRMA SINIFI kapanmadan ACILMAYACAK.
+    #   (b) Raporladigi yuzey ONCEDEN VAR OLAN gercektir (depoda duran betiklerdeki
+    #       makineye ozgu kok sabitleri) -> yayini durdurmanin TAMIR DEGERI SIFIR.
+    #   (c) Yine de CI'da KOSMASI GEREKIR: olctugu sinif YERELDE DAIMA YESIL yanar
+    #       (yol gelistirici makinesinde cozulur, yalniz kosucuda patlar). CI'da hic
+    #       kosmayan kapi ise OLU NOBETCIDIR — tools/ci-kapsam-test.py bu dosyayi
+    #       7 Agu'dan beri KAPSAMSIZ sayip serit A3'u BLOKLAMISTI (deploy+yayin
+    #       skipped, 157 urun mahsur).
+    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
+    #       6+ saatlik canli bayatlik pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+    ("nobet.yml", "serit-b", "tools/mutlak-yol-kapisi.py"):
+        "BAYRAKSIZ RAPOR KOLU (rc DAIMA 0): kapinin kendi sozlesmesi maruziyeti SAYIYLA "
+        "basmaktir; bloklayiciya cevirme (`--sifir-tolerans`) ve esik karari MIMARDADIR "
+        "ve kacirma sinifi kapanmadan acilmayacak. Raporladigi yuzey ONCEDEN VAR OLAN "
+        "gercektir (depoda duran makineye ozgu kok sabitleri) -> yayini durdurmanin tamir "
+        "degeri SIFIR. CI'da kosmasi ZORUNLU cunku olctugu sinif YERELDE DAIMA YESIL yanar; "
+        "CI'da hic kosmamak ise kapiyi ci-kapsam-test.py'ye KAPSAMSIZ gosterip serit A3'u "
+        "bloklamisti.",
     ("nobet.yml", "serit-b", "tools/yayin-kapisi.py"):
         "YALNIZ `--kendini-test` (aday secimi + 200 sarti) kolu; GERCEK atomik yayin "
         "`yayin` job'unda, yayindan SONRA kosar.",

@@ -1032,6 +1032,17 @@ jobs:
       - name: "Is akisi bicim kapisi (YAML ayristirma: startup_failure nobetcisi)"
         run: python3 tools/is-akisi-kapisi.py
 
+      # D1 UZLASTIRICI "ONARILAMADI" KOSUL KABULU (7 Agu 2026 onariminin nobetcisi).
+      # d1-uzlastirici.yml'deki (3) ONARILAMADI adiminin `if:` kosulu GERCEK dosyadan
+      # okunur ve GitHub kosul semantigi 5 vakada FIILEN calistirilir; 6. iddia bir
+      # KONTROL MUTANTIDIR (eski `failure() && sapma=='var'` kosulu vaka-2'de YANLIS
+      # KIRMIZI uretiyordu — kosum 31214568441'de olculdu). Mutant DUSMEZSE test
+      # kirmizi yanar, yani "yesil" bos degil OLCULMUS bir iddiadir.
+      # Offline, ag ISTEMEZ, dosya YAZMAZ, argumansiz, ~0,05 s. pyyaml ustteki
+      # bagimlilik adiminda zaten kuruludur.
+      - name: "D1 uzlastirici ONARILAMADI kosul kabul testi (fail-loud kolu)"
+        run: python3 tools/d1-uzlastirici-kosul-test.py
+
       # YAYIN ACLIGI KAPISI (3 Agu) — "baslamis bir kosum oldurulup icerigi yayinsiz
       # kalabilir mi". Ustteki bicim kapisi YAML'in AYRISTIRILABILIRLIGINI olcer; bu kapi
       # ayni dosyanin ESZAMANLILIK SOZLESMESINI olcer: `concurrency.group` VAR mi,
