@@ -3,6 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- LCP HIZLANDIRMA (PageSpeed mobil ölçümü, 8 Ağu 2026: LCP 10,7 sn / skor 74; tek kayıp
+     kalem LCP idi, LCP ögesi marin slider'ın 1. slaytı). Üç şey yapılır, HEPSİ head'de
+     olmak ZORUNDA (parser gövdeye inmeden bağlantı kurulsun + görsel keşfedilsin):
+       1) preconnect: banner görselleri AYRI alan adından (media.pruvo3d.com) gelir; DNS+TLS
+          el sıkışması gövdeye inince başlarsa LCP'ye ~300 ms ekler. crossorigin YAZILMAZ —
+          <img> istekleri CORS'suzdur, crossorigin'li preconnect AYRI bir bağlantı havuzu
+          açar ve ısıttığı bağlantı görsel tarafından KULLANILMAZ.
+       2) preload: LCP görseli gövdedeki <picture> içinde; ön-tarayıcı srcset'i görür ama
+          sıraya en sonda koyar. imagesrcset/imagesizes AŞAĞIDAKI <source> ile BİREBİR aynı
+          olmalı — ayrışırsa tarayıcı İKİ ayrı görsel indirir ([[ikiz-tanim-sessiz-ayrisma]]).
+       3) type="image/webp": WebP desteklemeyen tarayıcı bu preload'u ATLAR ve <picture>
+          JPEG yedeğine düşer — çift indirme olmaz. -->
+<link rel="preconnect" href="https://media.pruvo3d.com">
+<link rel="dns-prefetch" href="https://media.pruvo3d.com">
+<link rel="preload" as="image" type="image/webp" fetchpriority="high"
+      imagesrcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.webp 1376w"
+      imagesizes="(max-width:1140px) calc(100vw - 40px), 1060px">
 <!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır.
      TEK KAYNAK: aynı blok sayfa üretecinde (GA_HEAD_SNIPPET) + statik sayfalarda birebir tekrar eder — değiştirirsen HEPSİNİ değiştir. -->
 <script>
@@ -290,6 +307,13 @@
     position:absolute;top:0;left:0;width:100%;height:100%;
     object-fit:cover;object-position:right center;
   }
+  /* picture SARMALAYICISI LAYOUT'TA GÖRÜNMEZ OLMALI. .jen-banner bir flex kabıdır; picture
+     varsayılan `display:inline` ile oraya BİR FLEX ÖGESİ olarak girer, içindeki img ise
+     absolute (akış dışı) olduğu için sarmalayıcı BOŞ ama satır-yüksekliği olan bir kutu
+     bırakır -> banner yüksekliği kayar (CLS şu an 0, bozulamaz).
+     `display:contents` kutuyu tamamen kaldırır; img'in absolute konum referansı yine
+     .jen-banner'dır (en yakın konumlanmış ata), yani görsel yerleşimi DEĞİŞMEZ. */
+  .jen-banner picture{display:contents}
   .jen-banner-text{
     position:relative;z-index:1;
     max-width:62%;
@@ -966,16 +990,26 @@
        yazı BASILMAZ (CLAUDE.md kuralı); arka plan görselleri R2'de (logosuz). -->
   <div id="bannerRow" class="banner-row">
   <a id="jenBanner" class="jen-banner" href="/?kategori=Jenerat%C3%B6r">
-    <img class="jen-banner-img" alt=""
-         src="https://media.pruvo3d.com/urunler/jenerator-banner-cx1.jpg">
+    <picture>
+      <source type="image/webp" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
+              srcset="https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-560.webp 560w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-840.webp 840w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-1120.webp 1120w">
+      <img class="jen-banner-img" alt="" width="840" height="420"
+           decoding="async" fetchpriority="low"
+           src="https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-840.jpg">
+    </picture>
     <div class="jen-banner-text">
       <h2 class="jen-banner-title">Ölçüne özel parça tasarla</h2>
       <span class="jen-banner-btn">Keşfet &rarr;</span>
     </div>
   </a>
   <a id="skanBanner" class="jen-banner skan-banner" href="/?kategori=Skan%20Art">
-    <img class="jen-banner-img skan-banner-img" alt=""
-         src="https://media.pruvo3d.com/banner/skan-baykus-b5.jpg">
+    <picture>
+      <source type="image/webp" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
+              srcset="https://media.pruvo3d.com/banner/skan-baykus-b5-v2-448.webp 448w, https://media.pruvo3d.com/banner/skan-baykus-b5-v2-672.webp 672w, https://media.pruvo3d.com/banner/skan-baykus-b5-v2-896.webp 896w">
+      <img class="jen-banner-img skan-banner-img" alt="" width="672" height="900"
+           decoding="async" fetchpriority="low"
+           src="https://media.pruvo3d.com/banner/skan-baykus-b5-v2-672.jpg">
+    </picture>
     <div class="jen-banner-text skan-banner-text">
       <span class="skan-banner-ust">Skan Art</span>
       <h2 class="jen-banner-title">Sade çizgiler, sakin formlar</h2>
@@ -984,8 +1018,17 @@
   </a>
   <div id="marinSlider" class="marin-slider">
     <a class="jen-banner marin-slide active" href="/?kategori=Marin">
-      <img class="jen-banner-img" alt=""
-           src="https://media.pruvo3d.com/banner/marin-slide-1.jpg">
+      <!-- 🔴 LCP ÖGESİ (ölçüldü). srcset/sizes <head>'deki preload ile BİREBİR aynı olmak
+           ZORUNDA: bir karakter ayrışırsa tarayıcı preload'u eşleştiremez ve görseli İKİ
+           KEZ indirir (LCP düzelmez, bayt iki katına çıkar). fetchpriority=high bu tek
+           görseli kuyruğun başına alır. -->
+      <picture>
+        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.webp 1376w">
+        <img class="jen-banner-img" alt="" width="1100" height="614"
+             decoding="async" fetchpriority="high"
+             src="https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.jpg">
+      </picture>
       <div class="jen-banner-text">
         <span class="skan-banner-ust">Marin</span>
         <h2 class="jen-banner-title">Dış motor yedek parçaların burada</h2>
@@ -994,8 +1037,20 @@
       </div>
     </a>
     <a class="jen-banner marin-slide" href="/?kategori=Marin">
-      <img class="jen-banner-img" alt=""
-           src="https://media.pruvo3d.com/banner/marin-slide-2.jpg">
+      <!-- 2.-4. slaytlar ilk boyamada GÖRÜNMEZ (opacity:0) ama akışta oldukları için
+           tarayıcı onları LCP görseliyle AYNI anda, aynı öncelikte indiriyordu — yavaş 4G'de
+           LCP'nin önünü tıkayan asıl trafik buydu. loading=lazy + fetchpriority=low ikisi
+           birlikte gerekli: lazy tek başına "görüş alanında" sayıldıkları için indirmeyi
+           İPTAL ETMEZ, yalnız fetchpriority ağ kuyruğunda LCP'nin ARKASINA atar.
+           display:none KULLANILMAZ — slayt geçişi opacity animasyonudur, gizlemek dönüşü
+           kırardı. -->
+      <picture>
+        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.webp 1376w">
+        <img class="jen-banner-img" alt="" width="1100" height="614"
+             decoding="async" loading="lazy" fetchpriority="low"
+             src="https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.jpg">
+      </picture>
       <div class="jen-banner-text">
         <span class="skan-banner-ust">Marin</span>
         <h2 class="jen-banner-title">Yelken donanımı ve tekne aksesuarları</h2>
@@ -1004,8 +1059,13 @@
       </div>
     </a>
     <a class="jen-banner marin-slide" href="/?kategori=Marin">
-      <img class="jen-banner-img" alt=""
-           src="https://media.pruvo3d.com/banner/marin-slide-3.jpg">
+      <picture>
+        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.webp 1376w">
+        <img class="jen-banner-img" alt="" width="1100" height="614"
+             decoding="async" loading="lazy" fetchpriority="low"
+             src="https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.jpg">
+      </picture>
       <div class="jen-banner-text">
         <span class="skan-banner-ust">Marin</span>
         <h2 class="jen-banner-title">Elektronik montaj ve aksesuar parçaları</h2>
@@ -1015,8 +1075,13 @@
     </a>
     <a id="marinBanner" class="jen-banner marin-slide"
        href="https://wa.me/905451386526?text=Merhaba%2C%20teknemde%20k%C4%B1r%C4%B1lan%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCp%20taray%C4%B1p%20%C3%BCretebilir%20misiniz%3F">
-      <img class="jen-banner-img" alt=""
-           src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1.jpg">
+      <picture>
+        <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.webp 1376w">
+        <img class="jen-banner-img" alt="" width="1100" height="614"
+             decoding="async" loading="lazy" fetchpriority="low"
+             src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.jpg">
+      </picture>
       <div class="jen-banner-text">
         <span class="skan-banner-ust">Özel Üretim</span>
         <h2 class="jen-banner-title">Kırık parçanı getir, ölçüp tarayıp üretelim</h2>
@@ -1052,6 +1117,19 @@
     function next(){ goTo((idx + 1) % slides.length); }
     function resetTimer(){ clearInterval(timer); timer = setInterval(next, 5000); }
     resetTimer();
+    /* TEMBEL SLAYTLARI ISIT — LCP ile "boş panel" arasındaki dengeyi kuran yer.
+       2.-4. slayt görselleri loading="lazy" ile ilk boyamada ağı LCP görselinin önünden
+       çekiliyor. Ama slider 5 sn'de bir dönüyor: yavaş bağlantıda henüz inmemiş bir slayta
+       dönülürse kullanıcı BOŞ lacivert panel görür (yerelde ölçüldü, geçici de olsa görüldü).
+       Bu yüzden `load` olayından SONRA — yani LCP çoktan ölçüldükten sonra — tembellik
+       kaldırılır ve sayaç sıfırlanır (ısınma anından itibaren tam 5 sn). loading'i
+       "eager"a çevirmek bekleyen tembel yüklemeyi HEMEN başlatır (HTML spec). */
+    function slaytlariIsit(){
+      wrap.querySelectorAll('img[loading="lazy"]').forEach(function(im){ im.loading = "eager"; });
+      resetTimer();
+    }
+    if(document.readyState === "complete"){ slaytlariIsit(); }
+    else { window.addEventListener("load", slaytlariIsit); }
   })();
   </script>
   </div>

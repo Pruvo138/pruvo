@@ -1047,6 +1047,23 @@ jobs:
       - name: "Mutlak yol kapisi — rapor kolu (makineye ozgu kok sabiti maruziyeti)"
         run: python3 tools/mutlak-yol-kapisi.py
 
+      # LCP ONCULUK KAPISI (9 Agu 2026) — ana sayfa banner yaminin IKIZ TANIMI.
+      # Ne olcer: <head> `imagesrcset`/`imagesizes` ile gövdedeki LCP <picture>'in
+      # <source srcset>/<sizes> degeri BIREBIR ayni mi + fetchpriority=high tekil mi +
+      # preconnect eksiksiz mi + srcset genislik tanimlayicisi dosya adiyla tutarli mi.
+      # NEDEN NOBET GEREKIR: ayrisma TAMAMEN SESSIZDIR — sayfa dogru gorunur, hicbir
+      # mevcut test kirmizi yanmaz, ama tarayici preload'u eslestiremeyip LCP gorselini
+      # IKI KEZ indirir; PageSpeed'te 10,7 sn -> onarim geri sarilir
+      # ([[ikiz-tanim-sessiz-ayrisma]]). Tek komut, IKI KOL: gercek tarama + 8 mutantlik
+      # batarya (+1 KONTROL mutanti yesil kalmali). Offline, ag YOK, dosya YAZMAZ, ~1 s.
+      # NEDEN SERIT B (bloklayici DEGIL): olctugu sinif bir PERFORMANS gerilemesidir,
+      # dogruluk hatasi degil — sayfa her halukarda dogru gorunur ve urun/odeme/yasal
+      # yuzeye dokunmaz. Ilgisiz bir kapinin tum ekibin yayinini durdurmasi bu depoda
+      # saatlik canli bayatlik pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "LCP onculuk kapisi (preload <-> srcset ikiz tanimi + mutasyon bataryasi)"
+        run: python3 tools/lcp-onculuk-kapisi.py
+
       # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
       # KIRMIZI yolunu hic denemez (agac temizse daima yesil). Bu adim hermetik bir depo
       # kopyasinda 4 sayfayi tek tek bayatlatir (4/4 KIRMIZI bekler), kapsam daraltmayi

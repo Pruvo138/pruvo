@@ -1780,7 +1780,9 @@ TABLO_TABANLARI = (
     # Tam esitlikte bu YAPISAL OLARAK imkansiz. Taban bu satirda ELLE yazilmadi:
     # tablo birlestirmesinden SONRA agactan OLCULDU (len(SERIT_B) ile dogrulanir; bu
     # dosyanin oz-testi ve tools/nobetci-mutasyon-test.py BOLUM E o esitligi surer).
-    ("SERIT_B", 85),
+    # 9 Agu: +1 -> 86. Yeni giris ("nobet.yml", "serit-b", "tools/lcp-onculuk-kapisi.py");
+    # tam esitlik operatoru geregi taban BILINCLI olarak ayni commit'te guncellendi.
+    ("SERIT_B", 86),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2406,6 +2408,26 @@ SERIT_B = {
     ("nobet.yml", "serit-b", "tools/yayin-kapisi.py"):
         "YALNIZ `--kendini-test` (aday secimi + 200 sarti) kolu; GERCEK atomik yayin "
         "`yayin` job'unda, yayindan SONRA kosar.",
+    # --- LCP ONCULUK KAPISI (9 Agu 2026) — GERCEK tarama kolu da burada --------------
+    # 🔴 ISTISNAI GIRIS: tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer;
+    # burada gercek tarama kolu da B'dedir (bayrak YOK — tek komut hem tarar hem 8
+    # mutantlik bataryayi kosar; bayrak eklemek ci-kapsam-test.py'ye ayri bir alt-kume
+    # kapsam borcu yazardi). GEREKCE (olculdu):
+    #   (a) Olctugu sinif PERFORMANS gerilemesidir, DOGRULUK hatasi degil: ikiz ayrisirsa
+    #       sayfa yine DOGRU gorunur, yalniz LCP gorseli iki kez iner. Urun/odeme/yasal
+    #       yuzeye dokunmaz -> yayini durdurmanin tamir degeri yok.
+    #   (b) Yine de CI'da KOSMASI GEREKIR: ayrisma tamamen sessizdir ve mevcut hicbir
+    #       kapi olcmez; CI'da hic kosmayan kapi OLU NOBETCIDIR
+    #       ([[nobetci-cagri-satiri-nobetsiz]]).
+    #   (c) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda 6+
+    #       saatlik canli bayatlik pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+    ("nobet.yml", "serit-b", "tools/lcp-onculuk-kapisi.py"):
+        "GERCEK TARAMA + MUTASYON kolu (tek komut, bayraksiz). Olctugu sapma bir "
+        "PERFORMANS gerilemesidir (preload ile srcset ayrisirsa LCP gorseli IKI KEZ "
+        "iner), dogruluk hatasi DEGIL — sayfa her halukarda dogru gorunur ve urun/odeme/"
+        "yasal yuzeye dokunmaz, yayini durdurmanin tamir degeri yok. CI'da kosmasi yine "
+        "ZORUNLU cunku ayrisma tamamen sessizdir ve mevcut hicbir kapi bu ekseni olcmez; "
+        "kosmayan kapi olu nobetcidir.",
     # ═══ MUTASYON SURUCULERI (8 Agu 2026) — KESIF GENISLEMESIYLE KABLOLANANLAR ═══
     # 🔴 ORTAK SINIF GEREKCESI (her giris ASAGIDA AYRICA kendi olcumuyle durur):
     # Bir mutasyon surucusu "kabul testi" DEGIL, bir kabul testinin/kapinin AYIRT
