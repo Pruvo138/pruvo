@@ -1628,6 +1628,12 @@ KABLO_TABLOSU = (
     # kosmaz — oysa Bolum C sentetik fiksturle olcmeye devam eder ve YESIL der.
     # Tam olculmus K-29 sinifi; kablo bu yuzden burada da tutulur.
     ("bolum_d", ("kapi_cagrilari", "_serit_b_joblar", "_serit_b_hijyen")),
+    # 🔴 NOBETCININ NOBETCISI kablosu (8 Agu, 3. tur — bagimsiz curutucu M6): tablo/kablo
+    # mekanizma iddialari kendini_test() govdesinde INLINE dururken sayaci elle yazilmis
+    # bir IKIZDI; blok silinince sayac dusmuyordu ve eksen SESSIZCE kayboluyordu. Govde
+    # ADLI fonksiyona tasindi ve CAGRISI buraya kablolandi: cagriyi silmek artik AST
+    # kapisina takilir, govdeyi bosaltmak ise iddia sayisini dusurur (KENDINI_TEST_TABAN).
+    ("kendini_test", ("_tablo_mekanizma_kontrol",)),
 )
 
 MAIN_BOLUM_TANI = (
@@ -1733,7 +1739,10 @@ TABLO_TABANLARI = (
     # kapisi bayraksiz kolun silinmesini GORMEZ olmustu — olculdu, rc=0).
     ("E_ZORUNLU_CAGRILAR", 7), ("E_ZORUNLU_VARLIKLAR", 1),
     # 8 Agu: 5 -> 7 (taban tam-esitlige cevrildi; olculen pay 2 idi, olu koruma).
-    ("KABLO_TABLOSU", 7), ("B_MESRU_YAZIMLAR", 6),
+    # 8 Agu (3. tur): 7 -> 8 (kendini_test -> _tablo_mekanizma_kontrol kablosu eklendi;
+    # M6 sinifi: inline blok + elle yazili `iddia += 6` ikizi eksenin SESSIZCE
+    # silinmesine izin veriyordu).
+    ("KABLO_TABLOSU", 8), ("B_MESRU_YAZIMLAR", 6),
     # 🔴 SERIT_B (31 Tem): tablo TABANLA TAM ESIT olmali (8 Agu; once yalniz "altina
     # dusemez"di). Kucultmek
     # tek basina bir kacis DEGILDIR (S3 bayatlik kurali zaten kirmizi yakar), ama
@@ -1809,19 +1818,32 @@ def tablo_sayaci_kontrol():
         if len(tablo) != taban:
             hatalar.append(TABLO_TANI % (ad, len(tablo), taban, len(tablo) - taban,
                                          ad, taban, len(tablo)))
-    # K26 satir fiksturlerinde IKI SINIF da TAM SAYIDA yasamali. Tablo TOPLAMI tam
-    # esitlige cekilse bile siniflar arasi YENIDEN DAGITIM (bir oldurucu sil + bir
-    # kanarya ekle) toplami KORUR -> bu kol o sapmayi olcer. Sayilar tablodan
-    # TURETILMEZ (tabloyu kendisiyle karsilastirmak totolojidir): 8 Agu'da OLCULUP
-    # sabit yazildi (oldurucu 10 · kanarya 16, ikisinde de pay 0).
+    # K26 satir fiksturlerinde IKI SINIF da TABANIN USTUNDE yasamali (yalniz kanarya
+    # birakip oldurucularin hepsini silmek tablo BOYUNU korur ama nobetciyi bosaltirdi).
+    #
+    # 🔴 BU KOL BILEREK `<` (TAM ESITLIK DEGIL) — 8 Agu'da bir tur `!=` yapilip GERI
+    # ALINDI. Olculen gerekce (curutucu, ayni gun):
+    #   (a) KAZANC SIFIR: `!=`in hedefledigi kacis "toplami koruyup yeniden dagitim"
+    #       (or. 11 oldurucu / 15 kanarya) ZATEN `<` ile kirmizi yanar — toplam sabitken
+    #       bir sinif buyurken DIGERI mutlaka tabanin ALTINA duser. Ustelik bagimsiz K26
+    #       siniflandirma testi de o halde kirmizidir.
+    #   (b) BEDEL GERCEK: MESRU BUYUME (yeni bir GERCEK oldurucu fikstur eklenir; tablo
+    #       26 -> 27, siniflar 11/16) `<` ile dogru sekilde rc=0 verirken `!=` ile rc=1
+    #       veriyordu -> SAHTE-KIRMIZI, yani TUM EKIBIN yayini durur. Teshis metni de
+    #       yanlis sey soyluyordu ("tablo BOYU korunup yeniden dagitim" derken tablo
+    #       BUYUMUS oluyordu).
+    # Envanter ekseninde tam esitlik garantisini TABLO_TABANLARI zaten tablo-tablo
+    # veriyor (K26_SATIR_FIKSTURLERI dahil); bu SINIF kolu onun ustune ikinci bir
+    # tavan koymaz. "Tutarlilik" gerekcesiyle burayi `!=` yapmak OLCULMUS bir gerileme
+    # olur — BOLUM E'de iki vaka bunu koruyor (yeniden dagitim KIRMIZI · mesru buyume YESIL).
     oldurucu = sum(1 for m in K26_SATIR_FIKSTURLERI if m[2])
     kanarya = sum(1 for m in K26_SATIR_FIKSTURLERI if not m[2])
-    if oldurucu != 10 or kanarya != 16:
+    if oldurucu < 10 or kanarya < 16:
         hatalar.append("TABLO SAYACI: K26_SATIR_FIKSTURLERI sinif dengesi bozuldu "
-                       "(oldurucu=%d TABAN 10 · kanarya=%d TABAN 16) -> tablo BOYU "
-                       "korunup siniflar arasi YENIDEN DAGITIM yapilmis olabilir "
-                       "(oldurucu sil + kanarya ekle = toplam ayni kalir). Degisim "
-                       "bilincliyse bu iki SABITI ayni commit'te guncelle."
+                       "(oldurucu=%d taban 10 · kanarya=%d taban 16) -> tablo BOYU "
+                       "korunup bir SINIF bosaltilmis ya da siniflar arasi YENIDEN "
+                       "DAGITIM yapilmis olabilir. Bir sinifi bilerek kucultuyorsan o "
+                       "sinifin tabanini AYNI commit'te NEDENIYLE birlikte dusur."
                        % (oldurucu, kanarya))
     return hatalar
 
@@ -2548,8 +2570,12 @@ SERIT_B = {
         "girildigi SQLite SURUMUNE bagli -> CI davranisi yerelde tam dogrulanamiyor ve "
         "korudugu kaynak (araD1) bu depoda degil. Serit A'ya tasima karari MIMARIN.",
     ("nobet.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
-        "SAF MUTASYON BATARYASI (17 mutant): kapilarin kendi kirmizi-yolunu olcer, "
-        "yayinlanan hicbir ciktiya bakmaz.",
+        "SAF MUTASYON BATARYASI (bolumler A..E): kapilarin kendi kirmizi-yolunu olcer, "
+        "yayinlanan hicbir ciktiya bakmaz. Mutant envanteri o dosyanin bolum "
+        "TABLOLARINDADIR; buraya SAYI yazilmaz — 8 Agu'da buradaki '17 mutant' beyani "
+        "gercek envanterle ayrismis bulundu (A 14 + C 3 + D 6 tablo mutanti + BOLUM E "
+        "kollari), yani prozada tutulan sayi sessizce bayatliyor "
+        "([[ikiz-tanim-sessiz-ayrisma]]).",
     ("nobet.yml", "serit-b", "tools/ci-kapsam-test.py"):
         "CI KAPSAM KAPISI — olctugu sey CI KABLOLAMASIDIR, yayinlanan icerik DEGIL. "
         "28 Tem'de o gunku 13 fail'in HEPSI bu adimdandi ve 6 SAATLIK 404 pencereleri "
@@ -4438,7 +4464,21 @@ def _main_ast_return1_var():
 # birlikte guncelle.
 # 31 Tem: 143 -> 162. Fark = SERIT AYRIMI ekseninin 9 iddiasi (bkz.
 # _serit_b_mekanizma_kontrol). Taban yukseltilmezse o dokuz iddia SESSIZCE silinebilirdi.
-KENDINI_TEST_TABAN = 162
+# 8 Agu: 162 -> 204 (OLCULEN pay 42 idi = olu koruma; 42 iddia tek commit'te silinse bile
+# bu kol YESIL kalirdi). Yeni deger, A/B onarimlarindan SONRA olculdu.
+#
+# 🔴 OPERATOR BILEREK `<` KALIYOR (tam esitlige CEVRILMEZ — mimar karari, 8 Agu):
+#   (a) Bu sayi TEK bir envanterin uzunlugu DEGIL, dosya boyunca ~200 iddianin
+#       TOPLAMIDIR ve CALKANTISI YUKSEK: her kapi degisikligi iddia ekler. Tam esitlik
+#       her mesru eklemede yayini durduran sahte-kirmizi uretirdi (bedeli olculdu:
+#       [[kapi-birikimi-yayin-gecikmesi]]).
+#   (b) Envanter ekseninde tam esitlik garantisini TABLO_TABANLARI ZATEN tablo-tablo
+#       veriyor; bu toplam ikinci bir tavan koymaz, DUSUS nobetidir.
+#   (c) Bu kolun IKINCI bir gorevi var: KESIF OLUMUNDE fail-closed KIRMIZI yakmak.
+#       Olculdu (8 Agu, bagimsiz curutucu): git'siz bir agacta `git ls-files` bos doner,
+#       D ekseni ~45 iddia atlar ve sayi 204 -> 148 duser; bu kol o hali KIRMIZI yakar.
+#       Tam esitlik bu gorevi de yapardi ama (a) yuzunden bedeli agir.
+KENDINI_TEST_TABAN = 204
 
 KENDINI_TEST_TABAN_TANI = (
     "BOLUM C IDDIA SAYACI KIRMIZI: ariza-enjeksiyon %d iddia kosturdu, TABAN %d.\n"
@@ -4672,51 +4712,11 @@ def kendini_test():
             hatalar.extend(_bolum_f_mekanizma_kontrol())
 
     # ---- NOBETCININ NOBETCISI: tablo + kablo kontrolleri GERCEKTEN olcuyor mu -
-    # 🔴 OLCULEN KACIS (30 Tem oz-koruma turu, mutant 17/18): `tablo_sayaci_kontrol()`
-    # ve `bolum_kablosu_kontrol()` govdeleri `return []` yapilinca HICBIR sey konusmuyordu
-    # — onlar DIGER nobetcileri koruyor ama KENDILERI korumasizdi. Asagidaki iddialar
-    # o govdeleri SENTETIK tablolarla surer (kopya mantik yazilmaz).
-    # 🔴 8 Agu EKSEN GENISLEMESI: eskiden yalniz "tabanin ALTINDA" (9999) olculuyordu,
-    # yani tam esitligin KAZANDIRDIGI eksen (taban guncellenmeden BUYUME) kapida HIC
-    # olculmuyordu -> operator sessizce `<`'ye geri dondurulebilirdi. Iki iddia eklendi:
-    # buyume ekseni + tam tabanin sahte-kirmizi YAKMADIGI kontrol iddiasi.
-    iddia += 6
-    _t_yedek = globals()["TABLO_TABANLARI"]
-    _k_yedek = globals()["KABLO_TABLOSU"]
-    try:
-        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", 9999),)
-        if not any("TABLO SAYACI KIRMIZI" in h for h in tablo_sayaci_kontrol()):
-            hatalar.append("TABLO-NOBETCISI OLU: TABAN'in ALTINDA kalan bir tablo "
-                           "KIRMIZI yakmadi -> fikstur tablolari sessizce bosaltilabilir")
-        # BUYUME EKSENI (tam esitligin tek kanidi): taban = len - 1.
-        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", len(B_IDDIALAR) - 1),)
-        if not any("TABLO SAYACI KIRMIZI" in h for h in tablo_sayaci_kontrol()):
-            hatalar.append("TABLO-NOBETCISI OLU (BUYUME EKSENI): taban guncellenmeden "
-                           "BUYUME gorunmez -> pay birikir, taban kozmetiklesir ve pay "
-                           "kadar giris tek commit'te SESSIZCE silinebilir (olculdu: "
-                           "SERIT_B 67/42, pay 25). Operator `!=` olmali, `<` DEGIL.")
-        # KONTROL IDDIASI (yanlis-pozitif kanaryasi): TAM taban KIRMIZI YAKMAMALI.
-        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", len(B_IDDIALAR)),)
-        if [h for h in tablo_sayaci_kontrol() if "B_IDDIALAR" in h]:
-            hatalar.append("TABLO-NOBETCISI SAHTE-KIRMIZI: TAM tabanda (len == taban) "
-                           "hata uretildi -> tam esitlik yanlis kuruldu ve TUM EKIBIN "
-                           "yayini durur")
-        globals()["TABLO_TABANLARI"] = (("HIC_OLMAYAN_TABLO_XYZ", 1),)
-        if not any("ARTIK YOK" in h for h in tablo_sayaci_kontrol()):
-            hatalar.append("TABLO-NOBETCISI OLU: ARTIK OLMAYAN bir tablo adi KIRMIZI "
-                           "yakmadi -> yeniden adlandirma nobetciyi sessizce dusurur")
-        globals()["TABLO_TABANLARI"] = _t_yedek
-        globals()["KABLO_TABLOSU"] = (("main", ("hic_olmayan_fonksiyon_xyz",)),)
-        if not any("BOLUM KABLOSU KOPMUS" in h for h in bolum_kablosu_kontrol()):
-            hatalar.append("KABLO-NOBETCISI OLU: main()'de OLMAYAN bir zorunlu cagri "
-                           "KIRMIZI yakmadi -> bolum kablolari sessizce kopabilir")
-        globals()["KABLO_TABLOSU"] = (("hic_olmayan_fonksiyon_xyz", ("main",)),)
-        if not any("OLCULEMEDI" in h for h in bolum_kablosu_kontrol()):
-            hatalar.append("KABLO-NOBETCISI FAIL-OPEN: OLMAYAN bir SAHIP fonksiyon "
-                           "sessizce gecti (fail-closed KIRMIZI olmaliydi)")
-    finally:
-        globals()["TABLO_TABANLARI"] = _t_yedek
-        globals()["KABLO_TABLOSU"] = _k_yedek
+    # Govde ADLI bir fonksiyondadir (_tablo_mekanizma_kontrol) ve iddia sayisi ORADAN
+    # TURETILIR — `iddia += N` ikizi BILEREK kaldirildi, gerekcesi o fonksiyonda.
+    t_hatalar, t_iddia = _tablo_mekanizma_kontrol()
+    iddia += t_iddia
+    hatalar.extend(t_hatalar)
 
     # ---- K-26 EKSENI: KABUK YAPISI (cikis kodunu KIM belirliyor) --------------
     # Govde `satir_sebepleri()` no-op yapilirsa (or. `return []`) 10 NEGATIF iddia
@@ -5445,6 +5445,73 @@ def _bolum_f_mekanizma_kontrol():
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
     return hatalar
+
+
+def _tablo_mekanizma_kontrol():
+    """(hatalar, iddia) — NOBETCININ NOBETCISI: tablo_sayaci_kontrol() ve
+    bolum_kablosu_kontrol() govdeleri GERCEKTEN olcuyor mu (SENTETIK tablolarla surulur,
+    kopya mantik yazilmaz; canli tablolar `finally` ile geri konur).
+
+    🔴 OLCULEN KACIS (30 Tem oz-koruma turu, mutant 17/18): o iki govde `return []`
+    yapilinca HICBIR sey konusmuyordu — DIGER nobetcileri koruyorlar ama KENDILERI
+    korumasizdi.
+
+    🔴 NEDEN ADLI FONKSIYON + TURETILEN SAYAC (8 Agu, 3. tur — bagimsiz curutucu M6):
+    bu blok kendini_test() govdesinde INLINE dururken sayaci elle yazilmis bir IKIZDI
+    (`iddia += 6`). Curutucu olctu: BUYUME iddiasi silinip operator `<`'ye dondurulunce
+    kapi rc=0, `--kendini-test` rc=0 ve iddia sayisi HALA 204 kaliyordu -> yeni eksen
+    SESSIZCE silinebiliyordu ("kapiya eklenen eksen kendini koruyamiyorsa eksen degil
+    sustur"). Iki onarim birlikte:
+      (1) ADLI fonksiyon + KABLO_TABLOSU kablosu -> CAGRININ silinmesi kablo kapisina
+          takilir (bolum_kablosu_kontrol, AST ile).
+      (2) iddia her iddianin YANINDA +1 edilir (lump ikiz YOK) -> bir iddia silindiginde
+          sayac DUSER ve KENDINI_TEST_TABAN (`<`) o dususu KIRMIZI yakar.
+    Govdenin bosaltilmasi (`return [], 0`) BOLUM E'de mutant olarak olculur."""
+    hatalar = []
+    iddia = 0
+    _t_yedek = globals()["TABLO_TABANLARI"]
+    _k_yedek = globals()["KABLO_TABLOSU"]
+    try:
+        iddia += 1
+        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", 9999),)
+        if not any("TABLO SAYACI KIRMIZI" in h for h in tablo_sayaci_kontrol()):
+            hatalar.append("TABLO-NOBETCISI OLU: TABAN'in ALTINDA kalan bir tablo "
+                           "KIRMIZI yakmadi -> fikstur tablolari sessizce bosaltilabilir")
+        # BUYUME EKSENI (tam esitligin tek kanidi): taban = len - 1.
+        iddia += 1
+        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", len(B_IDDIALAR) - 1),)
+        if not any("TABLO SAYACI KIRMIZI" in h for h in tablo_sayaci_kontrol()):
+            hatalar.append("TABLO-NOBETCISI OLU (BUYUME EKSENI): taban guncellenmeden "
+                           "BUYUME gorunmez -> pay birikir, taban kozmetiklesir ve pay "
+                           "kadar giris tek commit'te SESSIZCE silinebilir (olculdu: "
+                           "SERIT_B 67/42, pay 25). Operator `!=` olmali, `<` DEGIL.")
+        # KONTROL IDDIASI (yanlis-pozitif kanaryasi): TAM taban KIRMIZI YAKMAMALI.
+        iddia += 1
+        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", len(B_IDDIALAR)),)
+        if [h for h in tablo_sayaci_kontrol() if "B_IDDIALAR" in h]:
+            hatalar.append("TABLO-NOBETCISI SAHTE-KIRMIZI: TAM tabanda (len == taban) "
+                           "hata uretildi -> tam esitlik yanlis kuruldu ve TUM EKIBIN "
+                           "yayini durur")
+        iddia += 1
+        globals()["TABLO_TABANLARI"] = (("HIC_OLMAYAN_TABLO_XYZ", 1),)
+        if not any("ARTIK YOK" in h for h in tablo_sayaci_kontrol()):
+            hatalar.append("TABLO-NOBETCISI OLU: ARTIK OLMAYAN bir tablo adi KIRMIZI "
+                           "yakmadi -> yeniden adlandirma nobetciyi sessizce dusurur")
+        globals()["TABLO_TABANLARI"] = _t_yedek
+        iddia += 1
+        globals()["KABLO_TABLOSU"] = (("main", ("hic_olmayan_fonksiyon_xyz",)),)
+        if not any("BOLUM KABLOSU KOPMUS" in h for h in bolum_kablosu_kontrol()):
+            hatalar.append("KABLO-NOBETCISI OLU: main()'de OLMAYAN bir zorunlu cagri "
+                           "KIRMIZI yakmadi -> bolum kablolari sessizce kopabilir")
+        iddia += 1
+        globals()["KABLO_TABLOSU"] = (("hic_olmayan_fonksiyon_xyz", ("main",)),)
+        if not any("OLCULEMEDI" in h for h in bolum_kablosu_kontrol()):
+            hatalar.append("KABLO-NOBETCISI FAIL-OPEN: OLMAYAN bir SAHIP fonksiyon "
+                           "sessizce gecti (fail-closed KIRMIZI olmaliydi)")
+    finally:
+        globals()["TABLO_TABANLARI"] = _t_yedek
+        globals()["KABLO_TABLOSU"] = _k_yedek
+    return hatalar, iddia
 
 
 def _d_izin_mekanizma_kontrol():

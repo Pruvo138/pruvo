@@ -66,10 +66,12 @@ Cikis: 0 = yesil, 1 = kirmizi.   Calistir: python3 tools/nobetci-mutasyon-test.p
 """
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -576,8 +578,23 @@ def bolum_d(tmp):
 # aynada 204 iddia ile YESIL. Yani kontrol mutantinin dususu aracin sekliydi, kapinin
 # kusuru degil ([[fikstur-degeri-mutasyon-koru]]: kontrol mutanti olmadan bu gorulmezdi).
 # 🔴 ayna_kur / genis_ayna_kur'a DOKUNULMADI: A..D bolumleri onlarin bugunku sekline bagli.
+#
+# 🔴🔴 CHECKOUT SEKLI TUZAGI (bagimsiz curutucu, 8 Agu — bu bolum BIR KEZ boyle KIRILDI):
+# ilk hali `.git`i yalniz DIZIN adlarindan atiyordu. Worktree'de `.git` bir DOSYADIR ->
+# symlink'lendi, aynada git CALISTI, kesif yasadi, E0 yesil yandi. TAZE KLONDA (=
+# `actions/checkout` sekli) `.git` bir DIZINDIR -> atildi, aynada git YOK,
+# ci-kapsam-test.py::kesfet (`git ls-files`) bos/None dondu, D ekseni ~45 iddia atladi,
+# iddia 204 -> 148 ve kapi FAIL-CLOSED kirmizi cikti. Sonuc: klonda E0 KIRMIZI,
+# E1..E5 "KACTI" ve E1b/E2b YANLIS SEBEPLE pass etti (jeton yok cunku eski kod kor degil,
+# KESIF olmus). Yani "ayirt edici kanit" CI'da hicbir sey olcmuyordu.
+# ONARIM (sekilden BAGIMSIZ, tek sekle ozel kod YOK): `.git` HER IKI sekilde de (dosya ve
+# dizin) atlanir ve aynaya KENDI git deposu kurulur; izlenen yol listesi GERCEK depodan
+# (`git -C ROOT ls-files`) turetilir. Boylece `git ls-files` ciktisi iki sekilde de AYNI
+# olur. Kanit E0b'de: aynanin iddia sayisi CANLI depodakiyle karsilastirilir (sabit 204
+# YAZILMAZ — ikiz sabit yine ayrisirdi, [[ikiz-tanim-sessiz-ayrisma]]).
 E_KAPI = "tools/is-akisi-kapisi.py"
-E_ATLA = {".git"}
+E_ATLA = {".git"}          # DIZIN ve DOSYA sekli: ikisi de atlanir (asagida)
+E_IDDIA_RE = re.compile(r"Kendini-test iddiasi\s*:\s*(\d+)")
 
 # --- MUTASYON CAPALARI (her biri TAM BIR KEZ eslesmeli; eslesmezse harness BAYAT) ---
 # Giris silme/ekleme METIN olarak degil, tablo TANIMINDAN SONRA calisan tek satirla
@@ -615,21 +632,80 @@ E_G_OP_CAPA = "        if temiz_iddia != G_IDDIA_TABANI:"
 E_G_OP_ESKI = "        if temiz_iddia < G_IDDIA_TABANI:"
 E_G_JETON = "G-IDDIA SAYACI BOZUK"
 
+# --- M6: YENI EKSENIN KENDISI SESSIZCE SILINEBILIYOR MU (3. tur, curutucu bulgusu) ---
+# Curutucu olctu: BUYUME iddiasi blogu silinip operator `<`'ye dondurulunce kapi rc=0,
+# `--kendini-test` rc=0 ve iddia sayisi HALA 204 idi -> eksen kendini koruyamiyordu.
+# Onarim: blok ADLI fonksiyona (_tablo_mekanizma_kontrol) tasindi, sayac her iddianin
+# YANINDA +1 edilir (lump ikiz YOK) ve KENDINI_TEST_TABAN gercek sayiya cekildi.
+# E6  = buyume iddiasi SILINDI + operator `<`  -> iddia DUSER -> C IDDIA SAYACI KIRMIZI
+# E6b = ayni + sayac ELLE TELAFI edildi (`iddia += 2`) -> sayi tekrar tabana esitlenir ->
+#       jeton YOK. Yani kirmiziyi getiren sey TURETILEN SAYACTIR; ikiz telafi edilirse
+#       eksen yine kaybolur. (Bugunku kodun M6'ya KOR olma hali bu mutantla gosterilir.)
+E_M6_CAPA = ("        # BUYUME EKSENI (tam esitligin tek kanidi): taban = len - 1.\n"
+             "        iddia += 1\n"
+             '        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", len(B_IDDIALAR) - 1),)\n'
+             '        if not any("TABLO SAYACI KIRMIZI" in h for h in tablo_sayaci_kontrol()):\n'
+             '            hatalar.append("TABLO-NOBETCISI OLU (BUYUME EKSENI): taban guncellenmeden "\n'
+             '                           "BUYUME gorunmez -> pay birikir, taban kozmetiklesir ve pay "\n'
+             '                           "kadar giris tek commit\'te SESSIZCE silinebilir (olculdu: "\n'
+             '                           "SERIT_B 67/42, pay 25). Operator `!=` olmali, `<` DEGIL.")\n')
+E_M6_SIL = "        # MUTANT M6: BUYUME EKSENI SILINDI\n"
+# Silinen blok TEK bir `iddia += 1` tasir -> telafi de +1 olmali. (Ilk yazimda +2 idi ve
+# E6b'nin `beklenen iddia` probu bunu YAKALADI: 205 != 204 -> "KESIF OLMUS/HUKUM GECERSIZ".
+# Prob calisiyor demektir; hukum, sayinin TESADUFEN denk gelmesine birakilmiyor.)
+E_M6_TELAFI = "        # MUTANT M6b: sayac ELLE TELAFI edildi\n        iddia += 1\n"
+E_C_IDDIA_JETON = "BOLUM C IDDIA SAYACI KIRMIZI"
+
+# --- K26 SINIF DENGESI: `<` BILEREK KALIYOR (3. tur, spec hatasi geri alindi) ---
+# Iki vaka AYNI capadan surulur (tablo TANIMINDAN SONRA calisan satir):
+#   E7 YENIDEN DAGITIM: bir kanarya DUSER + bir oldurucu KOPYASI eklenir -> toplam 26
+#      SABIT, siniflar 11/15 -> `<` ile KIRMIZI (kanarya 15 < 16). Yani `!=`in
+#      hedefledigi kacisi `<` ZATEN yakaliyor; `!=`in bu eksende kazanci SIFIR.
+#   E8 MESRU BUYUME (YANLIS-POZITIF KANARYASI): gercek bir oldurucu KOPYASI eklenir +
+#      TABLO_TABANLARI tabani 26 -> 27 -> siniflar 11/16, toplam 27 -> YESIL olmali.
+#      `!=` bu vakada rc=1 veriyordu = SAHTE-KIRMIZI = tum ekibin yayini durur.
+E_K26_CAPA = "K26_BAGLAM_MUTANTLAR = ("
+E_K26_DAGITIM = (
+    "_k26_kan = [m for m in K26_SATIR_FIKSTURLERI if not m[2]][0]\n"
+    "_k26_old = [m for m in K26_SATIR_FIKSTURLERI if m[2]][0]\n"
+    "K26_SATIR_FIKSTURLERI = tuple(\n"
+    "    m for m in K26_SATIR_FIKSTURLERI if m is not _k26_kan\n"
+    ") + ((\"MUTANT E7 KOPYA \" + _k26_old[0],) + tuple(_k26_old[1:]),)\n"
+    + E_K26_CAPA)
+E_K26_BUYUME = (
+    "_k26_old = [m for m in K26_SATIR_FIKSTURLERI if m[2]][0]\n"
+    "K26_SATIR_FIKSTURLERI = K26_SATIR_FIKSTURLERI + (\n"
+    "    (\"MUTANT E8 KOPYA \" + _k26_old[0],) + tuple(_k26_old[1:]),)\n"
+    + E_K26_CAPA)
+E_K26_TABAN_CAPA = '("K26_SATIR_FIKSTURLERI", 26)'
+E_K26_TABAN_27 = '("K26_SATIR_FIKSTURLERI", 27)'
+E_K26_JETON = "sinif dengesi bozuldu"
+
 
 def akis_ayna_kur(hedef_kok, mutasyonlar=None):
-    """OZYINELEMELI ayna: DIZINLER gercek, DOSYALAR symlink. Doner: <hedef_kok>.
+    """OZYINELEMELI ayna: DIZINLER gercek, DOSYALAR symlink, aynaya KENDI git deposu.
+    Doner: <hedef_kok>.
 
     mutasyonlar: {depo-goreli-yol: [(eski, yeni), ...]} -> o dosya GERCEK KOPYA yazilir.
     Canli calisma agacina HICBIR YAZMA yapilmaz. Mutasyon metni GERCEKTEN degistirmiyorsa
-    harness BAYATTIR -> SystemExit ile gurultulu olur."""
+    harness BAYATTIR -> SystemExit ile gurultulu olur.
+
+    🔴 SEKILDEN BAGIMSIZ: kaynak checkout'ta `.git` DOSYA (worktree) ya da DIZIN (klon)
+    olabilir; ikisi de ATLANIR ve ayna kendi deposunu kurar. Izlenen yol listesi GERCEK
+    depodan turetilir -> `git ls-files` ciktisi iki sekilde de AYNI. Git kurulamazsa
+    FAIL-CLOSED SystemExit: sessizce git'siz ayna kurmak, olcmedigi halde 'olctum' demektir
+    (bu bolum tam olarak boyle kirildi)."""
     mutasyonlar = mutasyonlar or {}
     uygulanan = set()
+    aynalanan = []
     for dizin, altlar, dosyalar in os.walk(ROOT):
         altlar[:] = [a for a in altlar if a not in E_ATLA]
         rel = os.path.relpath(dizin, ROOT)
         h = hedef_kok if rel == "." else os.path.join(hedef_kok, rel)
         os.makedirs(h, exist_ok=True)
         for ad in dosyalar:
+            if ad in E_ATLA:       # `.git` DOSYA sekli (worktree) — dizin sekliyle ayni
+                continue
             kaynak = os.path.join(dizin, ad)
             yol = ad if rel == "." else os.path.join(rel, ad)
             hedef = os.path.join(h, ad)
@@ -651,15 +727,43 @@ def akis_ayna_kur(hedef_kok, mutasyonlar=None):
                 uygulanan.add(yol)
             else:
                 os.symlink(kaynak, hedef)
+            aynalanan.append(yol)
     eksik = set(mutasyonlar) - uygulanan
     if eksik:
         raise SystemExit("HARNESS BAYAT (bolum E): mutasyon hedefi aynada bulunamadi: %s"
                          % sorted(eksik))
+
+    # ---- aynaya KENDI git deposu (kesif `git ls-files` ile yapiliyor) --------------
+    r = git("init", "--quiet", hedef_kok)
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna git init basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    r = git("-C", ROOT, "ls-files")
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): kaynak depo `ls-files` basarisiz "
+                         "(%s) -> aynanin izlenen listesi TURETILEMEZ"
+                         % (r.stderr or "").strip()[:200])
+    izlenen = [y for y in (r.stdout or "").splitlines() if y]
+    mevcut = set(aynalanan)
+    eklenecek = [y for y in izlenen if y in mevcut]
+    if not eklenecek:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): aynaya eklenecek IZLENEN dosya YOK "
+                         "(kaynak depoda %d izlenen yol vardi)" % len(izlenen))
+    # 🔴 `-f`: ayna kokunde .gitignore de aynalanir; izlenen listesi GERCEK depodan
+    # geldigi icin ignore kurallarinin aynada listeyi kirpmasina izin verilmez.
+    r = git("-C", hedef_kok, "add", "-f", "--", *eklenecek)
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna `git add` basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
     return hedef_kok
 
 
+E_KOSUM = [0]      # kac tam kapi kosumu yapildi (sure beyani ciktida turer)
+
+
 def _e_kos(kok, bayrak=None):
-    """Aynadaki kapiyi kostur. Doner: (rc, cikti, coldu)."""
+    """Kapiyi <kok> altinda kostur. Doner: (rc, cikti, coldu, iddia|None)."""
+    E_KOSUM[0] += 1
     cmd = [PY, os.path.join(kok, "tools", "is-akisi-kapisi.py")]
     if bayrak:
         cmd.append(bayrak)
@@ -667,22 +771,49 @@ def _e_kos(kok, bayrak=None):
     # eskisiyle karisabilir ([[mutasyon-bytecode-onbellegi]]).
     ortam = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
     r = subprocess.run(cmd, capture_output=True, text=True, env=ortam)
-    return r.returncode, (r.stdout or "") + (r.stderr or ""), "Traceback" in (r.stderr or "")
+    cikti = (r.stdout or "") + (r.stderr or "")
+    m = E_IDDIA_RE.search(cikti)
+    return (r.returncode, cikti, "Traceback" in (r.stderr or ""),
+            int(m.group(1)) if m else None)
 
 
 def bolum_e(tmp):
     print("E) TABLO SAYACI TAM ESITLIGI — mutant OZYINELEMELI AYNADA olculur "
           "(canli dosyaya dokunulmaz)")
+    e_baslangic = time.time()
+    E_KOSUM[0] = 0
     oldurulen = 0
-    toplam = 5
+    toplam = 7
+
+    # ---- CANLI TABAN: aynayi karsilastiracagimiz sayi CANLI depodan olculur -------
+    # 🔴 Sabit (204 gibi) YAZILMAZ: ikiz sabit yine sessizce ayrisirdi. Canli kosum
+    # kirmiziysa bu bolumun hukmu OLCULEMEDI'dir, "yesil" degil.
+    canli_rc, _cc, canli_coldu, canli_iddia = _e_kos(ROOT)
+    if canli_rc != 0 or canli_coldu or canli_iddia is None:
+        check("E-TABAN: CANLI depoda kapi YESIL ve iddia sayisi okunabilir", False,
+              "OLCULEMEDI: canli rc=%d coldu=%s iddia=%s -> ayna karsilastirmasi icin "
+              "taban YOK; bolum E hukum VERMEZ" % (canli_rc, canli_coldu, canli_iddia))
+        print("  MUTASYON: oldurulen=OLCULEMEDI/%d · kontrol=OLCULEMEDI" % toplam)
+        return
+    check("E-TABAN: CANLI depoda kapi YESIL (iddia=%d)" % canli_iddia, True,
+          "ayna hukumleri bu tabana GORE kurulur (sabit yazilmaz)")
 
     kok0 = akis_ayna_kur(os.path.join(tmp, "e0"))
-    rc, cikti, coldu = _e_kos(kok0)
+    rc, cikti, coldu, iddia0 = _e_kos(kok0)
     kontrol_yesil = rc == 0 and not coldu
     check("E0 KONTROL MUTANTI: mutasyonsuz ayna -> YESIL", kontrol_yesil,
           "MUTANT=<yok> · beklenen=YESIL(rc 0) · gozlenen=rc %d%s · HUKUM=%s "
-          "(dususe E1..E3 hukmu GECERSIZ: arac olcmuyor)"
+          "(dususe E1..E5 hukmu GECERSIZ: arac olcmuyor)"
           % (rc, " COKME" if coldu else "", "YESIL" if kontrol_yesil else "KIRMIZI"))
+    # 🔴 E0b — KESIF CANLILIK PROBU (bugunku kirilmanin tam nobetcisi): ayna rc=0 verse
+    # bile kesif olmus olabilir; o zaman TUM mutant hukumleri "kesif olu" yuzunden dogar
+    # ve degisiklige ATFEDILEMEZ. Iddia sayisi CANLI ile AYNI olmak ZORUNDA.
+    kesif_yasiyor = iddia0 == canli_iddia
+    check("E0b KESIF CANLILIK: aynanin iddia sayisi CANLI ile AYNI", kesif_yasiyor,
+          "MUTANT=<yok> · beklenen=iddia %d · gozlenen=%s · HUKUM=%s (sapmada `git "
+          "ls-files` aynada olmustur -> D ekseni atlanir, jeton yoklugu 'eski kod kor' "
+          "SANILIR; checkout sekli tuzagi)"
+          % (canli_iddia, iddia0, "KESIF YASIYOR" if kesif_yasiyor else "KESIF OLMUS"))
 
     for etiket, mut, bayrak, jeton in (
             ("E1 SERIT_B'den bir giris DUSURULDU", {E_KAPI: [(E_SERIT_CAPA, E_SIL)]},
@@ -694,9 +825,14 @@ def bolum_e(tmp):
             ("E4 BOLUM G: G8 ekseninin `iddia += 1` sayaci SILINDI",
              {E_KAPI: [(E_G_CAPA, E_G_SAYAC_SIL)]}, None, E_G_JETON),
             ("E5 BOLUM G: taban guncellenmeden fazladan eksen sayaci EKLENDI",
-             {E_KAPI: [(E_G_CAPA, E_G_SAYAC_EKLE)]}, None, E_G_JETON)):
+             {E_KAPI: [(E_G_CAPA, E_G_SAYAC_EKLE)]}, None, E_G_JETON),
+            ("E6 M6: BUYUME iddiasi SILINDI + operator `<` (yeni eksen sessizce silinir mi)",
+             {E_KAPI: [(E_M6_CAPA, E_M6_SIL), (E_OP_CAPA, E_OP_ESKI)]}, None,
+             E_C_IDDIA_JETON),
+            ("E7 K26 YENIDEN DAGITIM: kanarya dusuruldu + oldurucu kopyasi eklendi (11/15)",
+             {E_KAPI: [(E_K26_CAPA, E_K26_DAGITIM)]}, None, E_K26_JETON)):
         kok = akis_ayna_kur(os.path.join(tmp, "e-" + etiket.split()[0]), mut)
-        rc, cikti, coldu = _e_kos(kok, bayrak)
+        rc, cikti, coldu, _i = _e_kos(kok, bayrak)
         # 🔴 KIRMIZI DAVRANISTAN gelmeli, COKMEDEN degil: cikis kodu degil BASILAN
         # jeton yargilanir ([[hukum-yanlis-birimde]]).
         olduruldu = rc == 1 and not coldu and jeton in cikti
@@ -708,34 +844,67 @@ def bolum_e(tmp):
                             " ⚠️COKME" if coldu else "",
                             "OLDU" if olduruldu else "KACTI"))
 
+    # --- YANLIS-POZITIF KANARYASI: MESRU degisiklik YESIL kalmali ---
+    # 🔴 Bu iddia `<`i KORUYOR: K26 sinif kolu `!=` yapilirsa burada rc=1 cikar ve
+    # bolum KIRMIZI yanar. Yani "tutarlilik" gerekcesiyle geri donen biri aninda gorur.
+    kok = akis_ayna_kur(os.path.join(tmp, "e-E8"),
+                        {E_KAPI: [(E_K26_CAPA, E_K26_BUYUME),
+                                  (E_K26_TABAN_CAPA, E_K26_TABAN_27)]})
+    rc, cikti, coldu, iddia8 = _e_kos(kok)
+    e8_yesil = rc == 0 and not coldu
+    check("E8 K26 MESRU BUYUME (gercek oldurucu eklendi, taban 26->27, siniflar 11/16) "
+          "-> YESIL", e8_yesil,
+          "MUTANT=E8 · beklenen=YESIL(rc 0) · gozlenen=rc %d%s iddia=%s · HUKUM=%s "
+          "(KIRMIZI ise sinif kolu SAHTE-KIRMIZI yakiyor = tum ekibin yayini durur; "
+          "`!=` bu vakada rc=1 veriyordu)"
+          % (rc, " ⚠️COKME" if coldu else "", iddia8,
+             "YANLIS-POZITIF YOK" if e8_yesil else "SAHTE-KIRMIZI"))
+
     # --- AYIRT EDICILER: ayni girdide ESKI KOD ne yapiyordu ---
-    for etiket, mut, jeton, aciklama in (
+    # 🔴 `kor` hukmu KESIF CANLILIGINI da sart kosar: 8 Agu'da E1b/E2b tam olarak
+    # "jeton yok" diye PASS etmisti, ama sebep eski kodun korlugu DEGIL aynada olen
+    # kesifti. Beklenen iddia sayisi CANLI olcumden gelir (sabit yazilmaz).
+    for etiket, mut, jeton, bek_iddia, aciklama in (
             ("E1b E1 + ESKI KOD (operator `<` + taban 42)",
              {E_KAPI: [(E_SERIT_CAPA, E_SIL), (E_OP_CAPA, E_OP_ESKI),
-                       (E_TABAN_CAPA, E_TABAN_ESKI)]}, E_JETON,
+                       (E_TABAN_CAPA, E_TABAN_ESKI)]}, E_JETON, canli_iddia,
              "eski taban 25 paylik OLU koruma idi: 25 beyan sessizce silinebilirdi"),
             ("E2b E2 + operator `<` (taban 67)",
              {E_KAPI: [(E_SERIT_CAPA, E_EKLE), (E_OP_CAPA, E_OP_ESKI)]}, E_JETON,
+             canli_iddia,
              "taban guncellenmeden BUYUME gorunmezdi -> pay yeniden birikirdi"),
             ("E4b E4 + ESKI KOD (operator `<` + taban 7)",
              {E_KAPI: [(E_G_CAPA, E_G_SAYAC_SIL), (E_G_OP_CAPA, E_G_OP_ESKI),
-                       (E_G_TABAN_CAPA, E_G_TABAN_ESKI)]}, E_G_JETON,
+                       (E_G_TABAN_CAPA, E_G_TABAN_ESKI)]}, E_G_JETON, canli_iddia,
              "1 paylik olu koruma: bir eksenin sayaci dususu `7 < 7` ile YESIL kalirdi"),
             ("E5b E5 + ESKI KOD (operator `<` + taban 7)",
              {E_KAPI: [(E_G_CAPA, E_G_SAYAC_EKLE), (E_G_OP_CAPA, E_G_OP_ESKI),
-                       (E_G_TABAN_CAPA, E_G_TABAN_ESKI)]}, E_G_JETON,
-             "artis hic gorulmezdi -> pay birikir ve pay kadar eksen sessizce silinebilir")):
+                       (E_G_TABAN_CAPA, E_G_TABAN_ESKI)]}, E_G_JETON, canli_iddia,
+             "artis hic gorulmezdi -> pay birikir ve pay kadar eksen sessizce silinebilir"),
+            ("E6b E6 + sayac ELLE TELAFI (`iddia += 1`, lump ikiz taklidi)",
+             {E_KAPI: [(E_M6_CAPA, E_M6_SIL + E_M6_TELAFI), (E_OP_CAPA, E_OP_ESKI)]},
+             E_C_IDDIA_JETON, canli_iddia,
+             "ikiz sayac telafi edilirse eksen YINE sessizce kaybolur -> E6'nin "
+             "kirmizisini getiren sey TURETILEN sayactir, iddianin varligi degil")):
         kok = akis_ayna_kur(os.path.join(tmp, "e-" + etiket.split()[0]), mut)
-        rc, cikti, coldu = _e_kos(kok)
-        kor = jeton not in cikti and not coldu
+        rc, cikti, coldu, iddia = _e_kos(kok)
+        kesif_ok = iddia == bek_iddia
+        kor = jeton not in cikti and not coldu and kesif_ok
         check(etiket + " -> %r jetonu YOK (eski kod KOR)" % jeton, kor,
-              "MUTANT=%s · beklenen=jeton YOK · gozlenen=rc %d jeton %s%s · HUKUM=%s (%s)"
-              % (etiket.split()[0], rc, "VAR" if jeton in cikti else "YOK",
-                 " ⚠️COKME" if coldu else "", "AYIRT EDICI" if kor else "AYIRT ETMIYOR",
+              "MUTANT=%s · beklenen=jeton YOK + iddia %s (kesif YASIYOR) · gozlenen=rc %d "
+              "jeton %s iddia %s%s · HUKUM=%s (%s)"
+              % (etiket.split()[0], bek_iddia, rc, "VAR" if jeton in cikti else "YOK",
+                 iddia, " ⚠️COKME" if coldu else "",
+                 "AYIRT EDICI" if kor else
+                 ("KESIF OLMUS -> HUKUM GECERSIZ" if not kesif_ok else "AYIRT ETMIYOR"),
                  aciklama))
 
-    print("  MUTASYON: oldurulen=%d/%d · kontrol=%s"
-          % (oldurulen, toplam, "YESIL" if kontrol_yesil else "KIRMIZI"))
+    # 🔴 SURE CIKTIDA BASILIR, YORUMDA TUTULMAZ: is akisi yorumundaki sabit sure beyani
+    # ("olculdu 38 s") bu bolum eklenince bayatladi — olcum kendi ciktisinda yasar.
+    print("  MUTASYON: oldurulen=%d/%d · kontrol=%s · sure=%.0f sn (%d varyant: her biri "
+          "ayna + tam kapi kosumu)"
+          % (oldurulen, toplam, "YESIL" if kontrol_yesil and kesif_yasiyor else "KIRMIZI",
+             time.time() - e_baslangic, E_KOSUM[0]))
 
 
 def main():

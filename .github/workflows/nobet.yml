@@ -439,16 +439,19 @@ jobs:
       - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
         run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
 
-      # NOBETCI MUTASYON HARNESS: yukaridaki iki kapinin KENDISINI olcer — bozulunca GERCEKTEN
-      # kirmizi yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
+      # NOBETCI MUTASYON HARNESS: kapilarin KENDISINI olcer — bozulunca GERCEKTEN kirmizi
+      # yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
       # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
-      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). 14 kapi mutasyonu + 3
-      # gorsel-kablolama mutasyonu kosulur, hepsi KIRMIZI yanmali; mutasyonsuz kontrol kosumu
-      # YESIL yanmali (harness "hep kirmizi" olamaz). Son 4 mutant KENDI sebebiyle yanmak
-      # zorunda (isaret metni dogrulanir): feed kirpma + uc nobetci fiksturunun korlestirilmesi
-      # (_NEGATIF / _RAPOR_POZITIF / _ASIMETRIK — ucu de tek satirla susturulabiliyordu).
-      # Mutasyon DAIMA gecici SYMLINK aynasina uygulanir — canli tools/ dizinine YAZMA YOK.
-      # Offline, urunler.json OKUNMAZ (sentetik katalog), olculdu 38 s.
+      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). Her mutant KIRMIZI
+      # yanmali; mutasyonsuz KONTROL kosumu YESIL yanmali (harness "hep kirmizi" olamaz) ve
+      # bir kisim mutant KENDI sebebiyle yanmak zorunda (isaret metni/jeton dogrulanir).
+      # Mutasyon DAIMA gecici aynaya uygulanir — canli tools/ dizinine YAZMA YOK.
+      # Offline, urunler.json OKUNMAZ (sentetik katalog).
+      # 🔴 MUTANT SAYISI BURADA TUTULMAZ: envanter o dosyanin bolum tablolarindadir. 8 Agu'da
+      # buradaki "14 + 3" ve SERIT_B'deki "17 mutant" beyanlari gercek envanterle AYRISMIS
+      # bulundu ([[ikiz-tanim-sessiz-ayrisma]]) — prozada tutulan sayi sessizce bayatliyor.
+      # SURE de ayni sinifta: eski "olculdu 38 s" beyani BOLUM E eklendikten sonra bayatti.
+      # Bugunku olcum bolumun kendi ciktisindadir; buraya sabit sure YAZILMAZ.
       - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
         run: python3 tools/nobetci-mutasyon-test.py
 
