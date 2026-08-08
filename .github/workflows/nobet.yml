@@ -1016,6 +1016,20 @@ jobs:
       - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
         run: python3 tools/ci-kapsam-test.py --kendini-test
 
+      # VARLIK KAPISI — EKSEN 1'IN KENDI KIRMIZI YOLU. Kapinin BAYRAKSIZ kolu ("varliga
+      # tasima sirasinda icerik kaybolmadi/degismedi") serit A'da, deploy.yml job
+      # `serit-a3`te BLOKLAYICI kalir — o kol "yanlis icerik canliya cikmasin" sinifidir.
+      # Bu adim ise `cikarim_kaybi`nin GERCEK bir kaybi TEK BASINA yakalayip yakalamadigini
+      # gercek bir urun sayfasi uzerinde 12 mutantla (9 oldurucu + 3 kontrol) olcer:
+      # kirmizisi "kapi kor olabilir" demektir, "bozuk icerik yayinlaniyor" DEMEK DEGIL —
+      # konfigur-bundle-kapisi.py ve onizleme-vaat-kapisi.py ile AYNI sinif, ayni serit.
+      # 🔴 NEDEN SIMDI EKLENDI: bu kol temiz main'de KIRMIZIYDI ve gozden kacmisti, cunku
+      # HICBIR is akisinda CAGRI SATIRI YOKTU ([[nobetci-cagri-satiri-nobetsiz]]) — CI'da
+      # hic kosmayan kapi olu nobetcidir. Offline, ag YOK, canli agaca YAZMAZ, ~3 s.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "Varlik kapisi eksen-1 mutasyon bataryasi (kapi kendi kirmizisini yakiyor mu)"
+        run: python3 tools/varlik-test.py --kendini-test
+
       # MUTLAK YOL KAPISI — RAPOR KOLU (rc DAIMA 0, yayini DURDURMAZ). Kapinin kendi
       # sozlesmesi bu: bayraksiz kol maruziyeti SAYIYLA basar, bloklayiciya cevirme
       # (`--sifir-tolerans`) ve esik karari MIMARDADIR. Neden CI'da KOSMASI GEREKIR:

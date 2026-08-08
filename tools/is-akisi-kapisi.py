@@ -1724,7 +1724,10 @@ TABLO_TABANLARI = (
     # bayraksiz GERCEK olcum kolu serit A'da `build` job'unda BLOKLAYICI kosar).
     # 3 Agu: 40 -> 41 (yayin erisim nobetcisinin kabul testi beyan edildi; GERCEK
     # olcum kolu CI'da HIC kosmaz, ayri cron alarm is akisindadir).
-    ("SERIT_B", 41),
+    # 8 Agu: 41 -> 42 (varlik kapisinin `--kendini-test` kolu beyan edildi; bayraksiz
+    # GERCEK olcum kolu serit A'da `deploy.yml` job `serit-a3`te BLOKLAYICI kalir.
+    # O kol daha once HICBIR is akisinda cagrilmiyordu ve KIRMIZI kaldigi gorulmemisti).
+    ("SERIT_B", 42),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2268,6 +2271,12 @@ SERIT_B = {
         "Yani 'yanlis/uretilemez icerik canliya cikmasin' hukmunu veren kol A'dadir; "
         "buraya YALNIZ kapinin KENDI kirmizi yolunu deneyen mutasyon turu girer "
         "(agac temizken bloklayici kol DAIMA yesildir, kirmizi yolu hic denemez).",
+    ("nobet.yml", "serit-b", "tools/varlik-test.py"):
+        "YALNIZ `--kendini-test` kolu (eksen 1 `cikarim_kaybi` mutasyon bataryasi; "
+        "agsiz, canli agaca YAZMAZ). GERCEK olcum kolu BAYRAKSIZ cagridir ve serit "
+        "A'da (`deploy.yml` job `serit-a3`) BLOKLAYICI kosar — 'varliga tasimada icerik "
+        "kaybolmasin' hukmunu o kol verir. Buraya YALNIZ kapinin KENDI kirmizi yolunu "
+        "deneyen mutasyon turu girer.",
     ("nobet.yml", "serit-b", "tools/bayat-beyan-kapisi.py"):
         "HER IKI kol da (bayraksiz gercek tarama + `--kendini-test` mutasyonu) serit "
         "B'de kosar — komsularindan farkli olarak GERCEK olcum kolu da burada. Gerekce "

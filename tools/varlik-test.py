@@ -604,40 +604,62 @@ def kendini_test():
 
     vakalar = []
 
-    def vaka(ad, yeni_sayfa, beklenen):
-        vakalar.append((ad, yeni_sayfa, beklenen))
+    def vaka(ad, yeni_sayfa, beklenen, iz=None):
+        """`iz` = bu vakanin KANITLAMASI gereken EKSENIN bulgu imzasi.
+
+        Neden var: yalniz KIRMIZI/YESIL bakan bir batarya, katmanlarin VEYA'sini olcer —
+        bir vaka BASKA bir eksenden kirmizi alip kendi eksenini kanitlamis GORUNEBILIR
+        (or. bir oznitelik mutanti yalnizca "gorunur metin" kolundan kirmizi alir ve
+        oznitelik kolu kor kalir). `iz` verilmis KIRMIZI vakada bulgu listesi BOS OLMAMALI
+        ve imzayi TASIYAN en az bir bulgu bulunmali; aksi halde vaka BASARISIZ ve sebebi
+        `YANLIS EKSEN` yazilir (teshis yanlis yere bakmasin). `iz` verilmezse bugunku
+        davranis aynen korunur."""
+        vakalar.append((ad, yeni_sayfa, beklenen, iz))
 
     if fiyat:
-        vaka("JSON-LD fiyat KAYBI", sayfa.replace(fiyat, '"__x__":"0"', 1), "KIRMIZI")
+        vaka("JSON-LD fiyat KAYBI", sayfa.replace(fiyat, '"__x__":"0"', 1), "KIRMIZI",
+             "JSON-LD yapragi KAYIP")
         vaka("JSON-LD fiyat DEGISIMI",
-             sayfa.replace(fiyat, '"price":"999999"', 1), "KIRMIZI")
+             sayfa.replace(fiyat, '"price":"999999"', 1), "KIRMIZI",
+             "JSON-LD yapragi DEGISTI")
+    # Cip blogu tumden silinince YOL (`/`) hala baska baglantilarda durur; kaybolan sey
+    # o baglantinin SORGU parametreleridir — imza olculen kola gore secildi.
     vaka("marka cipi BLOGU DUSTU", re.sub(r'<a class="brand-chip"[^>]*>[^<]*</a>', "", sayfa),
-         "KIRMIZI")
+         "KIRMIZI", "sorgu parametresi KAYIP/DEGISTI")
     if marka_link:
         # 🔴 ASIL VAKA: kapsam parametresi EKLEMEK serbest, DEGERI degistirmek DEGIL.
         vaka("marka= parametresinin DEGERI degisti (katlanmis etikete kaydi)",
              sayfa.replace(marka_link, re.sub(r"marka=[^\"]*", "marka=Volvo", marka_link), 1),
-             "KIRMIZI")
+             "KIRMIZI", "sorgu parametresi KAYIP/DEGISTI")
         vaka("KONTROL: linke kapsam parametresi EKLENDI (mesru zenginlestirme)",
              sayfa.replace(marka_link, marka_link.replace("/?", "/?kategori=Marin&"), 1),
              "YESIL")
     if metin_ornegi:
         vaka("GORUNUR METIN (vaat/kisit cumlesi) DUSTU",
-             sayfa.replace(metin_ornegi, "", 1), "KIRMIZI")
-    vaka("<title> DEGISTI", _TITLE_RE.sub("<title>x</title>", sayfa, 1), "KIRMIZI")
-    vaka("canonical DUSTU", _CANON_RE.sub("", sayfa, 1), "KIRMIZI")
+             sayfa.replace(metin_ornegi, "", 1), "KIRMIZI", "GORUNUR METIN degisti")
+    vaka("<title> DEGISTI", _TITLE_RE.sub("<title>x</title>", sayfa, 1), "KIRMIZI",
+         "<title> degisti")
+    vaka("canonical DUSTU", _CANON_RE.sub("", sayfa, 1), "KIRMIZI", "canonical degisti")
     if gorsel:
-        vaka("<img src> DUSTU", sayfa.replace('src="%s"' % gorsel[0], 'src=""', 1), "KIRMIZI")
+        # 🔴 TUM GECISLER: hedef URL sayfada BIRDEN COK `<img src>` icinde gecer (galeri ana
+        # gorseli + ayni gorselin kucuk resmi). `count=1` yalniz ILKINI siliyordu; URL
+        # `cikarim_kaybi` icindeki yeni-gorsel KUMESINDE hala durdugu icin "<img src> KAYIP"
+        # bulgusu DOGMUYOR ve vaka sahte-YESIL geciyordu. Kayip GERCEKTEN olsun diye her
+        # gecis silinir. `src="<url>"` deseni JSON-LD (`"image":[...]`) ya da og:/twitter:
+        # (`content="..."`) yuzeyinde GECMEZ; olculdu — bu mutant o eksenleri kirletmez,
+        # `iz` sarti da zaten ayni eksenden kirmizi almayi zorunlu kilar.
+        vaka("<img src> DUSTU", sayfa.replace('src="%s"' % gorsel[0], 'src=""'), "KIRMIZI",
+             "<img src> KAYIP")
     vaka("meta description DEGISTI",
          re.sub(r'(<meta\s+name="description"\s+content=")[^"]*(")', r"\1x\2", sayfa, count=1),
-         "KIRMIZI")
+         "KIRMIZI", "<meta name=...> kumesi degisti")
     vaka("KONTROL: fazladan bosluk/satir sonu", sayfa.replace("\n", "\n\n"), "YESIL")
     vaka("KONTROL: hicbir sey degismedi", sayfa, "YESIL")
 
     print("EKSEN 1 KENDINI-TEST — `cikarim_kaybi` mutasyon bataryasi")
     basarisiz = []
     kirmizi_vaka = 0
-    for ad, mutant, beklenen in vakalar:
+    for ad, mutant, beklenen, iz in vakalar:
         # MUTANT FIILEN UYGULANDI MI: degismeyen bir "mutant" her zaman yesil gecer ve
         # bataryayi sessizce bosaltir. Kontrol vakasi "hicbir sey degismedi" HARIC.
         if beklenen == "KIRMIZI" and mutant == sayfa:
@@ -650,11 +672,17 @@ def kendini_test():
         if beklenen == "KIRMIZI":
             kirmizi_vaka += 1
         ok = gercek == beklenen
+        # EKSEN IMZASI: vaka KENDI eksenini mi olcuyor? Kirmizi olmak yetmez — bulgu
+        # listesi bu vakanin iddia ettigi kolun imzasini TASIMALI.
+        sebep = ""
+        if beklenen == "KIRMIZI" and iz and not any(iz in b for b in bulgu):
+            ok = False
+            sebep = "YANLIS EKSEN: beklenen imza YOK -> %s" % iz
         print("  %-4s %-58s beklenen=%-7s olculen=%-7s %s"
               % ("OK" if ok else "HATA", ad, beklenen, gercek,
-                 (bulgu[0][:70] if bulgu else "")))
+                 sebep or (bulgu[0][:70] if bulgu else "")))
         if not ok:
-            basarisiz.append(ad)
+            basarisiz.append(ad + (" [YANLIS EKSEN]" if sebep else ""))
     print()
     print("  vaka=%d (oldurucu=%d · kontrol=%d) · fikstur urun=%s"
           % (len(vakalar), kirmizi_vaka, len(vakalar) - kirmizi_vaka, aday[0]["id"]))
