@@ -107,4 +107,36 @@ sifirlandi. Ardindan `31259572161` (head `70fe3e4c` = main HEAD) uctu.
 15 dk kalmis (izlenecek kalem: esik degil SURE) · (c) son yesil yayin main'in atasi, kuyrukta
 bekleyen tek kosum guncel HEAD'i tasiyor.
 
+## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20 turu)
+
+**Merge `--ff-only`: `d9485a0d`** (merge-base `f6aaabf8` = main ucu; `is-ancestor` rc=0 ile
+kanitlandi). Push `f6aaabf8..d9485a0d`, yalniz bu dalin 5 commit'i. Kapsam **3 dosya
++589/-61**, eklenen/silinen dosya YOK, sizinti taramasi **0 vurus**.
+
+Ilk denemede merge YAPILMADI: dal `origin/main`'e gore ff-able olmasina ragmen YEREL main
+2 commit ilerideydi (baska oturumun itilmemis isi) -> `--ff-only` reddedilecekti. Dal yerel
+main'e yeniden taban aldi, sonra ff temiz gecti. **Ders:** ff uygunlugu `origin/main` ile
+degil YEREL main ile olculur (`merge-base --is-ancestor main <uc>`).
+
+**Kapatilan olu koruma 48 birim** (tam-esitlige cevrilen sayaclar): tablo payi 5 + G payi 1
++ kendini-test taban payi 42. Tablo artik **18/18, pay 0**. Surucu bataryasi: **7 oldurucu +
+3 kanarya + 5 ayirt edici** mutant; iki checkout seklinde de yesil.
+
+**Merge SONRASI kapilar (ana checkout, her biri ayri rc):**
+- D1 durum **rc=0** — D1 == urunler.json benzersiz **22685**; sema, turetilmis kolon ve
+  icerik eksenleri temiz (hash uyusmaz 0 · eksik 0 · fazla 0)
+- CI kapsam **rc=0** — kesfedilen kabul testi 246, otomatikte kosan 191
+- Is akisi kapisi **rc=0** (olculen kapi cagrisi 248 · etkisizlestirilmis 0) ·
+  `--kendini-test` **rc=0** (204 iddia)
+- Nobetci mutasyon **rc=0** — `oldurulen=7/7 · kontrol=YESIL · 15 varyant · 349 sn`
+  (iki bagimsiz kosumda tekrarlandi: 351 sn ve 349 sn)
+
+**CI: merge SHA'sini BIREBIR tasiyan 6 kosum var** (`headSha` esit); 4'u success, yayin
+zinciri ile nobet seridi olcum aninda **hala kosuyordu -> o eksen OLCULEMEDI** (uydurulmadi).
+Yayin kilidi bu dalin DISINDA: onceki sha'da da deploy kirmiziydi, kok neden ustteki turda
+yazili ve baska bir mimarin duzleminde.
+
+**Temizlik YAPILMADI (bilerek):** hicbir worktree/dal silinmedi, bu dalin worktree'sinde
+aktif oturum var. Envanter: 4 aktif worktree, 16 dal (2'si ucu main'de).
+
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
