@@ -29,11 +29,11 @@ DEFTER = os.path.join(KOK, ".marka-kapsama.json")
 KAYNAK = os.path.join(KOK, ".urun-kaynaklari.json")
 URUNLER = os.path.join(KOK, "urunler.json")
 
-PLATFORMLAR = ["Printables", "Thingiverse", "MakerWorld"]
-DOMAIN = {
-    "thingiverse.com": "Thingiverse", "printables.com": "Printables",
-    "makerworld.com": "MakerWorld",
-}
+# 🔴 ELLE LISTE YAZMA — tek kanonik tanim marka_katla.PLATFORM_TANIMI
+# (defter YAZICISI ile panel OKUYUCUSU ayni kumeyi gormezse: yazici bilinmeyen platform
+# uyarisi basar ama kaydeder, panel o kolonu HIC gostermez -> sessiz kor nokta.)
+PLATFORMLAR = mk.PLATFORMLAR
+DOMAIN = dict(mk.PLATFORM_DOMAIN)
 
 
 def _yukle(path, bos):

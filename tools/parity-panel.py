@@ -2,7 +2,16 @@
 # -*- coding: utf-8 -*-
 """Marka x platform DURUM PANELI -> yerel self-contained HTML (dis hosting YOK).
 🔴 hic aranmamis (yapilacak) · 🟡 az kalmis (markanin en dolu platformunun <1/2'si = dengesiz) ·
-⚪ arandi ama urun yok · 🟢 yeterli. Arama + 'sadece yapilacaklar' + siralama. Yenile: scripti tekrar kos."""
+⚪ arandi ama urun yok · 🟢 yeterli. Arama + 'sadece yapilacaklar' + siralama.
+
+TAZELEME: parity-server.py her GET'te bu modulu yeniden yukleyip render_html() cagirir,
+ayrica sayfa /veri ucundan periyodik fetch ile KENDINI tazeler (meta refresh YOK — o
+arama kutusunu/filtreyi/siralamayi sifirlardi). Dosyaya yazilan kopyada /veri yoktur,
+tazeleme sessizce no-op olur.
+
+TEK KAYNAK: kolon listesi ve esikler marka_katla.PLATFORM_TANIMI'ndan TURETILIR; burada
+elle platform listesi TUTULMAZ. HTML govdesi ile /veri ucu AYNI panel_data() ciktisini
+kullanir (iki ayri veri yolu = sessiz ayrisma)."""
 import json
 import os
 import sys
@@ -13,15 +22,24 @@ import marka_katla as mk  # noqa: E402
 
 DEFTER = "/Users/okan/dev/pruvo/.marka-kapsama.json"
 OUT = "/Users/okan/Desktop/pruvo-marka-durum.html"
-PLATS = ["Printables", "Thingiverse", "MakerWorld"]
-KISA = ["Printables", "Thingiverse", "MakerWorld"]
-AZ_ORAN = 0.5   # markanin en dolu platformunun bu oraninin altindaysa "az kalmis" (sari)
-AZ_MIN = 10     # en dolu platform bu sayidan azsa orantiya bakma (kucuk markada gurultu)
+# 🔴 ELLE LISTE YAZMA — tek kanonik tanim marka_katla.PLATFORM_TANIMI (bkz. [[ikiz-tanim-sessiz-ayrisma]])
+PLATS = mk.PLATFORMLAR
+KISA = mk.PLATFORM_KISA
+AZ_ORAN = mk.AZ_ORAN   # markanin en dolu platformunun bu oraninin altindaysa "az kalmis" (sari)
+AZ_MIN = mk.AZ_MIN     # en dolu platform bu sayidan azsa orantiya bakma (kucuk markada gurultu)
+
+if len(PLATS) != len(KISA):
+    # FAIL-LOUD: ayrisirsa asagida KISA[PLATS.index(p)] IndexError verir ve hata
+    # "panel bozuk" degil "liste tasti" gibi okunur. Sebebi burada ACIK soyle.
+    raise RuntimeError("PANEL IKIZ AYRISMASI: PLATS(%d) != KISA(%d) — kolon listesi "
+                       "marka_katla.PLATFORM_TANIMI'ndan TURETILMELI, elle yazilmamali."
+                       % (len(PLATS), len(KISA)))
 
 LAST_SUMMARY = {"toplam_marka": 0, "yapilacak_marka": 0, "kirmizi_hucre": 0, "sari_hucre": 0}
 
 
-def render_html():
+def panel_data():
+    """Panelin TEK veri uretimi. HTML govdesi de /veri ucu da BUNU kullanir."""
     # Satır evreni = KANONIK TANINMIS_MARKALAR (index.html'den PARSE, worktree kopyası);
     # ham defter anahtarları markaKatla ile kanonik markaya KATLANIR, çöp anahtar görünmez.
     raw = json.load(open(DEFTER, encoding="utf-8")) if os.path.exists(DEFTER) else {}
@@ -62,9 +80,19 @@ def render_html():
     sari_hucre = sum(s["sari"] for s in satirlar)
     LAST_SUMMARY.update({"toplam_marka": toplam_marka, "yapilacak_marka": yapilacak_marka,
                          "kirmizi_hucre": kirmizi_hucre, "sari_hucre": sari_hucre})
-    ts = datetime.now().strftime("%d.%m.%Y %H:%M")
+    ts = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+    return {"rows": satirlar, "plats": KISA, "azOran": AZ_ORAN, "azMin": AZ_MIN, "ts": ts}
 
-    DATA = json.dumps({"rows": satirlar, "plats": KISA, "azOran": AZ_ORAN, "azMin": AZ_MIN}, ensure_ascii=False)
+
+def veri_json():
+    """/veri ucunun govdesi — HTML ile AYNI panel_data()'dan."""
+    return json.dumps(panel_data(), ensure_ascii=False)
+
+
+def render_html():
+    data = panel_data()
+    ts = data["ts"]
+    DATA = json.dumps(data, ensure_ascii=False)
 
     HTML = r"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -101,7 +129,7 @@ td.t{font-weight:700}
 tr:hover td:not(.c){background:#fafbfd}
 </style></head><body>
 <header><h1>PRUVO — Marka × Platform Durum Paneli</h1>
-<div class="ts">son güncelleme: __TS__ · 🔴 hiç aranmadı · 🟡 az kalmış (liderin yarısından az) · 🟢 yeterli · ⚪ arandı-boş</div></header>
+<div class="ts">son güncelleme: <span id="tsx">__TS__</span> <span id="canli" title="sunucudan otomatik tazeleniyor"></span> · 🔴 hiç aranmadı · 🟡 az kalmış (liderin yarısından az) · 🟢 yeterli · ⚪ arandı-boş</div></header>
 <div class="tiles">
 <div class="tile"><b id="tm"></b>toplam marka</div>
 <div class="tile k"><b id="ty"></b>yapılacak marka</div>
@@ -118,9 +146,10 @@ tr:hover td:not(.c){background:#fafbfd}
 </div>
 <div class="wrap"><table id="t"><thead></thead><tbody></tbody></table></div>
 <script>
-const D=__DATA__;
-const plats=D.plats;
+let D=__DATA__;
+let plats=D.plats;
 let sortKey='t',sortDir=-1;
+const TAZELEME_MS=15000;
 const thead=document.querySelector('#t thead'),tbody=document.querySelector('#t tbody');
 function head(){let h='<tr><th data-k="m">Marka</th>';plats.forEach((p,i)=>h+='<th data-k="p'+i+'">'+p+'</th>');
  h+='<th data-k="t">Top</th><th data-k="todo">Yapılacak</th><th data-k="d" style="text-align:left">Durum</th></tr>';thead.innerHTML=h;
@@ -141,13 +170,31 @@ function render(){
  let h='';rows.forEach(r=>{const mx=rowMax(r);h+='<tr><td class="m">'+r.m+'</td>';r.cells.forEach(v=>h+=cellHtml(v,mx));
   const yap=r.kirmizi+r.sari;
   h+='<td class="t">'+r.t+'</td><td class="c '+(yap?(r.kirmizi?'red':'yellow'):'green')+'">'+(yap||'✓')+'</td><td class="d">'+(r.durum||'—')+'</td></tr>';});
- tbody.innerHTML=h||'<tr><td colspan="10" style="padding:20px;color:#9aa4b2">eşleşme yok</td></tr>';
+ tbody.innerHTML=h||'<tr><td colspan="'+(plats.length+4)+'" style="padding:20px;color:#9aa4b2">eşleşme yok</td></tr>';
  document.getElementById('tm').textContent=D.rows.length;
  document.getElementById('ty').textContent=D.rows.filter(r=>r.yapilacak).length;
  document.getElementById('tk').textContent=D.rows.reduce((s,r)=>s+r.kirmizi,0);
  document.getElementById('ts2').textContent=D.rows.reduce((s,r)=>s+r.sari,0);
+ document.getElementById('tsx').textContent=D.ts;
+}
+// OTOMATIK TAZELEME — <meta http-equiv="refresh"> KULLANILMAZ: o, arama kutusunu,
+// "sadece yapilacaklar" filtresini ve siralamayi SIFIRLAR. Burada yalnizca VERI degisir;
+// arama/filtre DOM'dan (input.value / checkbox.checked), siralama modul degiskeninden
+// (sortKey/sortDir) okundugu icin tazeleme sonrasi AYNEN korunur.
+async function tazele(){
+ try{
+  const r=await fetch('veri',{cache:'no-store'});
+  if(!r||!r.ok){document.getElementById('canli').textContent='';return;}
+  const yeni=await r.json();
+  if(!yeni||!Array.isArray(yeni.rows)||!Array.isArray(yeni.plats))return;
+  D=yeni;
+  if(yeni.plats.join('')!==plats.join('')){plats=yeni.plats;head();}
+  render();
+  document.getElementById('canli').textContent='· canlı';
+ }catch(e){/* dosyaya yazilmis kopyada /veri yok -> sessiz no-op */}
 }
 head();document.getElementById('q').oninput=render;document.getElementById('onlytodo').onchange=render;render();
+setInterval(tazele,TAZELEME_MS);
 </script></body></html>"""
 
     return HTML.replace("__DATA__", DATA).replace("__TS__", ts)

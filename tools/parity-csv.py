@@ -13,7 +13,9 @@ import marka_katla as mk  # noqa: E402
 
 DEFTER = "/Users/okan/dev/pruvo/.marka-kapsama.json"
 OUT = "/Users/okan/Desktop/pruvo-marka-platform.csv"
-PLATS = ["Printables", "Thingiverse", "MakerWorld"]
+# 🔴 ELLE LISTE YAZMA — tek kanonik tanim marka_katla.PLATFORM_TANIMI
+PLATS = mk.PLATFORMLAR
+KISA = mk.PLATFORM_KISA
 
 
 def oku():
@@ -52,7 +54,7 @@ markalar = sorted(d.keys(), key=lambda m: -toplam(m))
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w", encoding="utf-8-sig", newline="") as f:
     w = csv.writer(f)
-    w.writerow(["Marka", "Printables", "Thingiverse", "MakerWorld", "Toplam", "Eksik / dengesiz"])
+    w.writerow(["Marka"] + list(KISA) + ["Toplam", "Eksik / dengesiz"])
     for m in markalar:
         cells = []
         for p in PLATS:

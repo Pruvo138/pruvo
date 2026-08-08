@@ -84,9 +84,47 @@ def kanonik_veya_none(m):
 
 
 # ---- PANEL/CSV/RAPOR ortak katmanı (satır evreni = TANINMIS_MARKALAR) ----------
-PLATFORMLAR = ["Printables", "Thingiverse", "MakerWorld"]
+# 🔴 TEK KANONIK PLATFORM TANIMI. Panel (parity-panel.py), CSV (parity-csv.py) ve defter
+# yazıcısı (marka-kapsama.py) platform listelerini ELLE TUTMAZ, hepsi buradan TÜRETİR.
+# Gerekçe: elle tutulan ikiz listeler sessizce ayrışır ([[ikiz-tanim-sessiz-ayrisma]]) —
+# panel kolonu ile başlık satırı, ya da sunucu-tarafı durum ile istemci-tarafı renk
+# birbirini tutmaz ve hüküm yanlış birimde verilir. Sıra ANLAMLIDIR: panel/CSV kolon
+# sırası buradan gelir; YENİ PLATFORM SONA EKLENİR (mevcut kolonların kimliği korunur).
+# Alanlar: (defter anahtarı, panel/CSV'de görünen kısa ad, link domaini)
+PLATFORM_TANIMI = (
+    ("Printables",  "Printables",  "printables.com"),
+    ("Thingiverse", "Thingiverse", "thingiverse.com"),
+    ("MakerWorld",  "MakerWorld",  "makerworld.com"),
+    ("Cults3D",     "Cults3D",     "cults3d.com"),
+    ("CGTrader",    "CGTrader",    "cgtrader.com"),
+)
+PLATFORMLAR = [a for a, _k, _d in PLATFORM_TANIMI]
+PLATFORM_KISA = [k for _a, k, _d in PLATFORM_TANIMI]
+PLATFORM_DOMAIN = {d: a for a, _k, d in PLATFORM_TANIMI}
 AZ_ORAN = 0.5   # markanın en dolu platformunun bu oranının altı = "az kalmış" (sarı)
 AZ_MIN = 10     # en dolu platform bu sayıdan azsa orantıya bakma (küçük markada gürültü)
+
+
+def _platform_tanimi_dogrula():
+    """FAIL-CLOSED: türetilen listeler ayrışırsa import ANINDA patla (sessiz kalma).
+    Ayrışma tek yolla olur: birileri PLATFORM_TANIMI yerine türev listelerden birini
+    elle düzenler. O anda modül YÜKLENMEZ -> panel/CSV/test hepsi kırmızı yanar."""
+    n = len(PLATFORM_TANIMI)
+    if not (len(PLATFORMLAR) == len(PLATFORM_KISA) == n):
+        raise RuntimeError("PLATFORM ikiz ayrışması: uzunluklar %d/%d/%d"
+                           % (len(PLATFORMLAR), len(PLATFORM_KISA), n))
+    if len(set(PLATFORMLAR)) != n or len(set(PLATFORM_KISA)) != n:
+        raise RuntimeError("PLATFORM tanımında MÜKERRER anahtar/kısa ad")
+    if len(PLATFORM_DOMAIN) != n:
+        raise RuntimeError("PLATFORM tanımında MÜKERRER domain")
+    for i, (a, k, d) in enumerate(PLATFORM_TANIMI):
+        if PLATFORMLAR[i] != a or PLATFORM_KISA[i] != k:
+            raise RuntimeError("PLATFORM türevi tanımdan SAPMIŞ (index %d)" % i)
+        if not (a and k and d) or "." not in d:
+            raise RuntimeError("PLATFORM tanımı eksik/bozuk (index %d)" % i)
+
+
+_platform_tanimi_dogrula()
 
 
 def kanonik_kapsama(defter):

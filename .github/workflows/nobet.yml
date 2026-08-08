@@ -457,8 +457,21 @@ jobs:
       # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),
       # tanınmayan (tasarımcı-adı/model-kodu) çöp anahtar satır DEĞİL, harvest edilmemiş
       # tanınmış marka (DeWalt...) 🔴 to-do. Saf Python, sentetik fikstür, OFFLINE, ~1 s.
-      - name: Marka durum paneli kabul testi (kanonik satır + katlama)
+      # ... ayrica: platform kolonlari (Printables/Thingiverse/MakerWorld/Cults3D/CGTrader)
+      # TEK kanonik tanimdan (marka_katla.PLATFORM_TANIMI) turetilir — elle ikiz liste YASAK;
+      # null (🔴 hic aranmadi) ile 0 (⚪ arandi-bos) ayrimi korunur; ve panelin OTOMATIK
+      # TAZELEMESI arama/filtre/siralamayi bozmaz (node DOM testi: panel-tazeleme-test.js,
+      # node yoksa FAIL-CLOSED). Saf Python + node, sentetik fikstur, OFFLINE, ~2 s.
+      - name: Marka durum paneli kabul testi (kanonik satır + katlama + kolon + tazeleme)
         run: python3 tools/marka-panel-test.py
+
+      # ... ve kabul testinin KENDISI olculur: 7 mutant (onek kurali, katlama, null->0,
+      # ikiz liste, esik, platform genislemesi, tazeleme) TEK BASINA KIRMIZI yakmali;
+      # +1 KONTROL mutanti (davranis degismez) YESIL kalmali — yoksa batarya "her
+      # degisiklikte kirmizi"dir ve hicbir sey olcmuyordur. Mutasyon gecici SYMLINK
+      # aynasina uygulanir, canli tools/ dizinine YAZILMAZ. ~20 s.
+      - name: Marka paneli mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
+        run: python3 tools/panel-mutasyon-test.py
 
       # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
       # kalmali, 4 gercek drift mutanti KIRMIZI yanmali, CLI cikis kodlari (esit=0 / drift=1 /
