@@ -26,6 +26,7 @@ FAIL-CLOSED: node yoksa, blok ayıklanamazsa, katalog boşsa ya da harness çök
 OLCULEMEDI (çıkış 2) — "sapma bulamadım" diye YEŞİL denmez.
 """
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -104,6 +105,97 @@ def _bagimsiz_baslik_yargisi(marka, canon, display, izin_anahtar):
     Üç kaynak: envanter · H1 şasi/motor kodu · H3 ayrı araç adı."""
     return ("%s|%s" % (marka, canon) in izin_anahtar
             or _bagimsiz_sasi_kodu(display) or _bagimsiz_ayri_arac(display))
+
+
+# ───────────────────────────────────────────────────────────────────────────────────────
+# BAŞLIK-DOĞAN ENVANTERİNİN TÜRETME SINIFLAMASI — TEK KAYNAK (7 Ağu, mimar hükmü)
+#
+# 🔴 NEDEN AYRI GÖVDE: bu sınıflama K21'in "bayatlık" hükmünü verir ve ÖLÇÜLEBİLİR olmak
+# zorundadır. Fikstürle (sentetik envanter + sentetik kova durumu) sürülebilsin diye
+# ŞEKİL YÜKLEMİ ve KOVA DURUMU dışarıdan ENJEKTE edilir: kapı kendi bağımsız dilbilgisini,
+# büyüme fikstürü ise uydurma çiftleri verir. Aynı gövde iki tarafta koştuğu için
+# fikstürün yeşili gerçek envanterin yeşiliyle AYNI kuralı ölçer ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 ÜÇ SINIF, ÜÇ AYRI HÜKÜM (yayını 6 parti boyunca durduran sınıf tam burada kapanır):
+#   OLU           (KIRMIZI): kovanın KENDİSİ katalogda YOK -> hüküm hiçbir şeye işaret
+#                            etmiyor. Katalog BÜYÜMESİ bunu tetikleyemez (ürün eklemek
+#                            kova SİLMEZ) -> eksen parti başına kırmızı yakmaz.
+#   CAKISAN       (KIRMIZI): iki giriş AYNI kanona düşüyor -> biri sessizce işlevsiz.
+#   TURETILEBILIR (KIRMIZI): girişin ANAHTARI H1/H3 şeklinde -> kural zaten yargılıyor,
+#                            giriş YAZILMAMALIYDI. Ölçüt ANAHTARDIR (katalogtaki yazım
+#                            DEĞİL) -> yeni ürün partisi bu ekseni ASLA kırmızı yakamaz.
+#   UYKUDA        (BİLGİ)  : kova var ama `baslik_dogan` DEĞİL -> yargı SORULMUYOR. Hüküm
+#                            bayat DEĞİL, uykudadır; kova yeniden başlık-doğan olursa
+#                            sayfayı YİNE o hüküm taşır. ESKİ ÖLÇÜT BUNU KIRMIZI SAYIYORDU
+#                            ve envanteri KATALOG HACMİNİN FONKSİYONU yapıyordu
+#                            ([[envanter-drift-parti-basina]] · [[pencere-goreli-alarm-kendini-sonduruyor]]).
+def baslik_envanter_turetme(envanter, kanon, kova_durumu, muaf_mi, sekil_yargisi):
+    """(olu, cakisan, turetilebilir, uykuda, uygulanan) — her biri SIRALI liste.
+
+    envanter      : (marka, jeton) çiftleri
+    kanon         : (marka, jeton) -> kanonik kova anahtarı
+    kova_durumu   : (marka, canon) -> None (kova YOK) | {"baslik_dogan": bool}
+    muaf_mi       : (marka, canon) -> ARAÇ DIŞI muafiyeti (şekil kuralı o çiftte SUSAR)
+    sekil_yargisi : jeton -> H1 ∪ H3 (ANAHTARIN şekli; katalog yazımı DEĞİL)
+
+    🔴 TOPLAM KORUNUR: her giriş TAM OLARAK BİR yaşam sınıfına (olu | uykuda | uygulanan)
+    düşer; `turetilebilir` ORTOGONAL bir borç eksenidir. Kapı bu korunumu ayrıca ölçer —
+    sınıflamayı boşaltan bir mutant (kaynağı boşaltmak) toplamı düşürür ve yakalanır
+    ([[beyan-edilmis-survivor]]: "tablo duruyor" demek yetmez, TOPLAM sayılır)."""
+    olu, cakisan, turetilebilir, uykuda, uygulanan = [], [], [], [], []
+    sayac = {}
+    for (mk, jt) in sorted(envanter):
+        canon = kanon(mk, jt)
+        sayac.setdefault("%s|%s" % (mk, canon), []).append(jt)
+        # TÜRETME BORCU — ANAHTARIN şekli. MUAF çift hariç: orada kural bilerek SUSAR ve
+        # sayfayı YALNIZ bu giriş taşır (K22), yani giriş türetilebilir DEĞİLDİR.
+        if not muaf_mi(mk, canon) and sekil_yargisi(jt):
+            turetilebilir.append("%s|%s" % (mk, jt))
+        g = kova_durumu(mk, canon)
+        if g is None:
+            olu.append("%s|%s" % (mk, jt))
+        elif not g.get("baslik_dogan"):
+            uykuda.append("%s|%s" % (mk, jt))
+        else:
+            uygulanan.append("%s|%s" % (mk, jt))
+    for k, v in sorted(sayac.items()):
+        if len(v) > 1:
+            cakisan.append("%s <- %s" % (k, sorted(v)))
+    return (sorted(olu), cakisan, sorted(turetilebilir), sorted(uykuda), sorted(uygulanan))
+
+
+def _bagimsiz_sekil_yargisi(jeton):
+    """TÜRETME BORCU ölçütü — H1 ∪ H3, ANAHTARIN şekli üzerinden (katalog yazımı DEĞİL).
+
+    🔴 AYRI GÖVDE OLMASININ SEBEBİ ÖLÇÜLEBİLİRLİKTİR: `_bagimsiz_baslik_yargisi` aynı iki
+    yüklemi DISPLAY üzerinden okur ve SIZINTI eksenine bakar. İki çağrı yeri tek gövdeye
+    bağlanırsa "H1 kolunu kapatan" mutant hem SIZINTI hem TÜRETME iddiasını birlikte
+    düşürür ve eksenler AYIRT EDİLEMEZ olur ([[beyan-edilmis-survivor]])."""
+    return _bagimsiz_sasi_kodu(jeton) or _bagimsiz_ayri_arac(jeton)
+
+
+# TÜRETME FİKSTÜRÜ — SINIFLAMA sentetik envanterle sürülür (gerçek katalog DEĞİŞMEZ).
+# (jeton, kova durumu, MUAF mı, beklenen yaşam sınıfı, beklenen TÜRETİLEBİLİR mi, KOL)
+# 🔴 JETONLAR UYDURMADIR (gerçek model adı DEĞİL): fikstürün gerçek tabloyu okumadığı
+# BAKARAK anlaşılsın ([[nobetci-fikstur-sekli]] disiplini metne de uygulanır).
+# 🔴 HER KOL AYRI İDDİADIR: H1 (K21d) · H3 (K21e) · KALINTI+MUAF (K21f) · yaşam sınıfı (K21a).
+# Fikstür OLMADAN bu eksenler ÖLÇÜLEMEZ: gerçek envanterde bugün 0 ölü ve 0 türetilebilir
+# kayıt var, yani sınıflamayı boşaltan mutant gerçek veride YEŞİL kalırdı
+# ([[fikstur-degeri-mutasyon-koru]] — daima bir KONTROL satırı da bulunur).
+TURETME_FIKSTURU = [
+    ("T9x",          {"baslik_dogan": True},  False, "uygulanan", True,  "H1"),
+    ("Q1000",        {"baslik_dogan": True},  False, "uygulanan", True,  "H1"),
+    ("Zumbaq Nesli", {"baslik_dogan": True},  False, "uygulanan", True,  "H3"),
+    ("Kalibre Ustu", {"baslik_dogan": True},  False, "uygulanan", True,  "H3"),
+    ("Zumbaq",       {"baslik_dogan": True},  False, "uygulanan", False, "YOK"),
+    ("86",           {"baslik_dogan": True},  False, "uygulanan", False, "YOK"),
+    ("Hayalet9",     None,                    False, "olu",       True,  "H1"),
+    ("Hayalet",      None,                    False, "olu",       False, "YOK"),
+    ("Uykucu",       {"baslik_dogan": False}, False, "uykuda",    False, "YOK"),
+    ("Uykucu 9",     {"baslik_dogan": False}, False, "uykuda",    True,  "H3"),
+    ("Muaf-9",       {"baslik_dogan": True},  True,  "uygulanan", False, "MUAF"),
+    ("Muaf Kiti",    {"baslik_dogan": True},  True,  "uygulanan", False, "MUAF"),
+]
 
 # KATLAMA FİKSTÜRÜ — kural GERÇEK jetonlarla çivilenir (JS ve Python AYNI cevabı vermeli).
 # (marka, ham jeton, beklenen taban anahtarı) — taban BOŞ ise "katlanmaz" demektir.
@@ -669,10 +761,26 @@ def olc(kok, modul_yolu=None):
     #      zaten yargı bekliyor ve mimarın önüne TEK karar olarak gidiyor. Ölçüte alınsaydı
     #      aynı bekleyen karar İKİ ayrı tabloda ayrı ayrı yazılmak zorunda kalırdı.
     #      🔴 ROZET DENY'i ÖLÇÜTTEN DÜŞMEZ (M28 totoloji koruması aynen durur).
+    # 🔴 BAŞLIK YARGISI ÜÇ KAYNAKLI OKUNUR (7 Ağu, ÖLÇÜLEN İKİZ TANIM): bu filtre 5 Ağu'da
+    # yazıldığında yargının TEK kaynağı envanterdi; 6 Ağu'da H1/H3 KURAL kolları eklendi ama
+    # BU SATIR GÜNCELLENMEDİ ve sessizce ayrıştı ([[ikiz-tanim-sessiz-ayrisma]]). Ölçüldü
+    # (7 Ağu): kuralın yargıladığı `Nissan|240Z`/`Datsun|280Z` gibi YAYINDA kovalar çapraz
+    # adaylıktan düşüyor, K19 onları "envanterde var üretimde yok" sanıyordu. Kusur envanter
+    # türetilip kural kolu görünür olunca ORTAYA ÇIKTI — yargı burada da ÜÇ KAYNAKTAN sorulur
+    # ve gövde kapının KENDİ bağımsız dilbilgisidir (üretim ÇAĞRILMAZ, totoloji olurdu).
+    try:
+        _b_izin = dict(_arama.BASLIK_DOGAN_ALLOW)
+        baslik_izin_imza = (_arama.baslik_dogan_allow_imzasi(),
+                            _arama.BASLIK_DOGAN_ALLOW_IMZA,
+                            len(_b_izin), _arama.BASLIK_DOGAN_ALLOW_SAYISI)
+    except Exception as e:                                          # noqa: BLE001
+        raise Olculemedi("tools/arama.py BASLIK_DOGAN_ALLOW okunamadı: %r" % (e,))
+    _b_izin_anahtar = set("%s|%s" % (mk, _mk_kanon(jt)) for mk, jt in _b_izin)
     capraz_aday = {}
     for _mk, _d in veri.items():
         for _canon, _g in _d["gruplar"].items():
-            if _g.get("baslik_dogan") and (_mk, _canon) not in mm.BASLIK_DOGAN_ALLOW:
+            if _g.get("baslik_dogan") and not _bagimsiz_baslik_yargisi(
+                    _mk, _canon, _g.get("display") or _canon, _b_izin_anahtar):
                 continue
             if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:
                 capraz_aday.setdefault(_canon, []).append((_mk, _g.get("display") or _canon,
@@ -845,20 +953,12 @@ def olc(kok, modul_yolu=None):
 
     # --- BAŞLIK-DOĞAN SAYFA YARGISI — K21 (5 Ağu, mimar hükmü: "yargısız sayfa DOĞMAZ") ---
     # İDDİA ÜÇ PARÇALI (K16/K19 disiplini):
-    #   (1) SIZINTI: yalnız başlık kolu sayesinde YAYIMLANAN her kova envanterde OLMALI,
-    #   (2) BAYAT : envanterdeki her giriş üretimde GERÇEKTEN başlık-doğan bir kova OLMALI,
+    #   (1) SIZINTI: yalnız başlık kolu sayesinde YAYIMLANAN her kova YARGILANMIŞ OLMALI,
+    #   (2) BAYATLIK: K21b'de, HACME DUYARSIZ ölçütle (ölü kova / çakışan kanon),
     #   (3) ÇELİŞKİ: aynı çift hem allow'da hem deny'de (MODEL_OLMAYAN_CIFT) olamaz,
     #   + KİMLİK DONMUŞ (sessiz genişleme/daralma KIRMIZI).
     # 🔴 ÖLÇÜT YAYINA BAKAR AMA TABLOYU OKUMAZ: yayımlanan küme jeneratör KOŞTURULARAK
     # çıkar. Ayrıca YARGISIZ BEKLEYENLER ayrı sayılır — "sayfa doğmadı" sessiz kalmasın.
-    try:
-        _b_izin = dict(_arama.BASLIK_DOGAN_ALLOW)
-        baslik_izin_imza = (_arama.baslik_dogan_allow_imzasi(),
-                            _arama.BASLIK_DOGAN_ALLOW_IMZA,
-                            len(_b_izin), _arama.BASLIK_DOGAN_ALLOW_SAYISI)
-    except Exception as e:                                          # noqa: BLE001
-        raise Olculemedi("tools/arama.py BASLIK_DOGAN_ALLOW okunamadı: %r" % (e,))
-    _b_izin_anahtar = set("%s|%s" % (mk, _mk_kanon(jt)) for mk, jt in _b_izin)
     baslik_yayin, baslik_bekleyen = set(), []
     # 🔴 YARGI ÜÇ KAYNAKLI (6 Ağu, mimar hükmü H1+H3): envanter ∪ ŞASİ/MOTOR KODU kuralı ∪
     # AYRI ARAÇ ADI kuralı. Kapı bu üç kolu KENDİ bağımsız dilbilgisiyle kurar (üretimin
@@ -889,8 +989,107 @@ def olc(kok, modul_yolu=None):
                     and not mm.model_olmayan_cift_mi(_mk, _dsp):
                 baslik_bekleyen.append((_mk, _dsp, len(_g["urunler"])))
     baslik_sizinti = sorted(baslik_sizinti)
-    # BAYAT ekseni ENVANTERE dairdir: kuralla doğan sayfalar envanterde ARANMAZ.
-    baslik_bayat = sorted(_b_izin_anahtar - baslik_yayin)
+    # BAYATLIK — TÜRETME SINIFLAMASI (7 Ağu, mimar hükmü; ESKİ ÖLÇÜT KALDIRILDI).
+    # 🔴 ESKİ: `baslik_bayat = _b_izin_anahtar - baslik_yayin` — kova jeton yolundan eşiği
+    # geçince (yani KATALOG BÜYÜYÜNCE) girişi "BAYAT" ilan ediyordu ve `deploy: needs`
+    # listesindeki iki şeridi kırmızıya çevirip YAYINI DURDURUYORDU. Ölçüldü: 6 parti
+    # boyunca aynı kol tekrarladı ([[envanter-drift-parti-basina]]). Yeni ölçüt hacme
+    # DUYARSIZ: ölü (kova YOK) + çakışan (aynı kanon) KIRMIZI, uykuda BİLGİ.
+    (baslik_olu, baslik_cakisan, baslik_turetilebilir,
+     baslik_uykuda, baslik_uygulanan) = baslik_envanter_turetme(
+        list(_b_izin),
+        lambda mk, jt: evren.model_anahtari(mk, jt),
+        lambda mk, canon: (veri.get(mk) or {}).get("gruplar", {}).get(canon),
+        lambda mk, canon: (mk, canon) in mm.SEKIL_MUAF,
+        _bagimsiz_sekil_yargisi)
+    baslik_korunum = (len(baslik_olu) + len(baslik_uykuda) + len(baslik_uygulanan),
+                      len(_b_izin))
+
+    # TÜRETME FİKSTÜRÜ — AYNI gövde SENTETİK envanterle sürülür (gerçek katalog DEĞİŞMEZ).
+    # Fikstür kuralı ÇİVİLER: gerçek envanter bugün "0 ölü / 0 türetilebilir" olduğu için
+    # sınıflamayı boşaltan bir mutant gerçek veride YEŞİL kalırdı ([[fikstur-degeri-mutasyon-koru]]).
+    _f_kova = dict(("Fikstur|%s" % _mk_kanon(jt), st)
+                   for jt, st, _m, _s, _t, _k in TURETME_FIKSTURU)
+    _f_muaf = set("Fikstur|%s" % _mk_kanon(jt)
+                  for jt, _st, m, _s, _t, _k in TURETME_FIKSTURU if m)
+    _f_olu, _f_cakisan, _f_turetilebilir, _f_uykuda, _f_uygulanan = baslik_envanter_turetme(
+        [("Fikstur", jt) for jt, _st, _m, _s, _t, _k in TURETME_FIKSTURU],
+        lambda mk, jt: _mk_kanon(jt),
+        lambda mk, canon: _f_kova.get("%s|%s" % (mk, canon)),
+        lambda mk, canon: "%s|%s" % (mk, canon) in _f_muaf,
+        _bagimsiz_sekil_yargisi)
+    _f_sinif = {}
+    for _ad, _liste in (("olu", _f_olu), ("uykuda", _f_uykuda), ("uygulanan", _f_uygulanan)):
+        for _k in _liste:
+            _f_sinif[_k] = _ad
+    # 🔴 SAPMA LİSTELERİ KOLA GÖRE AYRILIR: aksi hâlde "H1 kolunu kapatan" ve "H3 kolunu
+    # kapatan" mutantlar AYNI iddiaya düşer ve batarya onları AYIRT EDEMEZ.
+    turetme_sinif_sapan, turetme_h1_sapan = [], []
+    turetme_h3_sapan, turetme_kalinti_sapan = [], []
+    _kol_kova = {"H1": turetme_h1_sapan, "H3": turetme_h3_sapan,
+                 "YOK": turetme_kalinti_sapan, "MUAF": turetme_kalinti_sapan}
+    for jt, _st, _m, beklenen_sinif, beklenen_turetilebilir, kol in TURETME_FIKSTURU:
+        _k = "Fikstur|%s" % jt
+        if _f_sinif.get(_k) != beklenen_sinif:
+            turetme_sinif_sapan.append("%s SINIF=%s beklenen=%s"
+                                       % (jt, _f_sinif.get(_k), beklenen_sinif))
+        if (_k in _f_turetilebilir) != beklenen_turetilebilir:
+            _kol_kova[kol].append("%s (%s) TURETILEBILIR=%s beklenen=%s"
+                                  % (jt, kol, _k in _f_turetilebilir,
+                                     beklenen_turetilebilir))
+    if _f_cakisan:
+        turetme_sinif_sapan.append("fikstürde kanon ÇAKIŞMASI=%s" % (_f_cakisan,))
+    if len(_f_olu) + len(_f_uykuda) + len(_f_uygulanan) != len(TURETME_FIKSTURU):
+        turetme_sinif_sapan.append("KORUNUM BOZUK: %d sınıflanan / %d giriş"
+                                   % (len(_f_olu) + len(_f_uykuda) + len(_f_uygulanan),
+                                      len(TURETME_FIKSTURU)))
+    # POZİTİF ÇAPA: kol başına satır SAYISI > 0 olmalı, yoksa fikstür boşaltılıp eksen
+    # sessizce ölçülmez hâle getirilebilir.
+    turetme_kol_sayisi = dict((k, sum(1 for _r in TURETME_FIKSTURU if _r[5] == k))
+                              for k in ("H1", "H3", "YOK", "MUAF"))
+
+    # BÜYÜME DAYANIKLILIĞI — SENTETİK katalog partisi (gerçek katalog OKUNMAZ, DEĞİŞMEZ).
+    # 🔴 İDDİA: yeni bir (marka, model) çifti başlık kolundan doğduğunda envantere ELLE
+    # DOKUNULMADAN doğru hüküm verilmeli — anahtarı kural şeklindeyse SAYFA DOĞAR, şekli
+    # kural GÖRMÜYORSA sayfa DOĞMAZ ve kova "yargı BEKLİYOR" olarak sınıflanır (SIZINTI
+    # DEĞİL). Bu eksen olmadan "türetme çalışıyor" iddiası bugünün verisine bağlı kalırdı.
+    buyume_sapan = []
+    try:
+        _sent = []
+        for _jt in ("XYZ9", "Zumbaq"):
+            for _i in range(2):
+                _sent.append({"id": "sent-uye-%s-%d" % (_jt, _i), "kategori": "Otomobil",
+                              "marka": ["Toyota", _jt],
+                              "baslik": "Toyota yedek parca %s-%d" % (_jt, _i)})
+            for _i in range(2):
+                _sent.append({"id": "sent-baslik-%s-%d" % (_jt, _i), "kategori": "Otomobil",
+                              "marka": ["Toyota"],
+                              "baslik": "Toyota %s konsol klipsi %d" % (_jt, _i)})
+        _sveri = mm.gruplandir(_sent, evren, ek)
+        for _jt, _sayfa_bekleniyor in (("XYZ9", True), ("Zumbaq", False)):
+            _c = evren.model_anahtari("Toyota", _jt)
+            _sg = (_sveri.get("Toyota") or {}).get("gruplar", {}).get(_c)
+            if not _sg:
+                buyume_sapan.append("%s SENTETİK KOVA DOĞMADI" % _jt)
+                continue
+            if not _sg.get("baslik_dogan"):
+                buyume_sapan.append("%s baslik_dogan DEĞİL (fikstür kurgusu bozuldu)" % _jt)
+                continue
+            if len(_sg["urunler"]) != 4:
+                buyume_sapan.append("%s kova %d ürün (4 bekleniyor)" % (_jt, len(_sg["urunler"])))
+            if ("Toyota", _c) in mm.BASLIK_DOGAN_ALLOW:
+                buyume_sapan.append("%s ENVANTERDE (sentetik çift olmamalı)" % _jt)
+            if mm.yayimlanir_mi(_sg) != _sayfa_bekleniyor:
+                buyume_sapan.append("%s sayfa=%s beklenen=%s"
+                                    % (_jt, mm.yayimlanir_mi(_sg), _sayfa_bekleniyor))
+            # SIZINTI mı BEKLEYEN mi: kapının BAĞIMSIZ dilbilgisi de aynı hükmü vermeli
+            _byargi = _bagimsiz_baslik_yargisi("Toyota", _c, _sg.get("display") or _c,
+                                               _b_izin_anahtar)
+            if _byargi != _sayfa_bekleniyor:
+                buyume_sapan.append("%s kapı BAĞIMSIZ yargısı=%s beklenen=%s"
+                                    % (_jt, _byargi, _sayfa_bekleniyor))
+    except Exception as e:                                          # noqa: BLE001
+        raise Olculemedi("büyüme dayanıklılığı fikstürü koşturulamadı: %r" % (e,))
     # ÇELİŞKİ: allow'daki bir çift AYNI ZAMANDA deny yüklemini tetikliyor mu? Ölçüt
     # üretimin deny yüklemiyle AYNI birimde kurulur (çıplak jeton + SON KELİME); düz
     # `endswith` yazsaydık "everest" -> "st" gibi kelime-içi eşleşme yanlış alarm verirdi.
@@ -1137,12 +1336,23 @@ def olc(kok, modul_yolu=None):
                    "deny_imza": deny_imza, "deny_sizan": deny_sizan,
                    "deny_kaybolan": deny_kaybolan, "deny_etkilenen": deny_etkilenen,
                    "baslik_izin_imza": baslik_izin_imza, "baslik_yayin": len(baslik_yayin),
-                   "baslik_sizinti": baslik_sizinti, "baslik_bayat": baslik_bayat,
+                   "baslik_sizinti": baslik_sizinti,
                    "baslik_celiski": baslik_celiski,
                    "baslik_ciplak_sayi": sorted(baslik_ciplak_sayi),
                    "baslik_donanim": sorted(baslik_donanim),
                    "baslik_kural_dogan": baslik_kural_dogan,
                    "baslik_bekleyen": sorted(baslik_bekleyen, key=lambda t: (-t[2], t[0])),
+                   "baslik_olu": baslik_olu, "baslik_cakisan": baslik_cakisan,
+                   "baslik_turetilebilir": baslik_turetilebilir,
+                   "baslik_uykuda": baslik_uykuda, "baslik_uygulanan": baslik_uygulanan,
+                   "baslik_korunum": baslik_korunum,
+                   "turetme_sinif_sapan": turetme_sinif_sapan,
+                   "turetme_h1_sapan": turetme_h1_sapan,
+                   "turetme_h3_sapan": turetme_h3_sapan,
+                   "turetme_kalinti_sapan": turetme_kalinti_sapan,
+                   "turetme_kol_sayisi": turetme_kol_sayisi,
+                   "turetme_fikstur_sayisi": len(TURETME_FIKSTURU),
+                   "buyume_sapan": buyume_sapan,
                    "muaf_imza": muaf_imza, "muaf_olu": muaf_olu,
                    "muaf_konusan": muaf_konusan, "muaf_dusen": muaf_dusen,
                    "esleme_fark": esleme_fark, "esleme_imza": esleme_imza,
@@ -1388,22 +1598,69 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
             % (a["tekharf_sapan"][:2] or "-", a["tekharf_ayri_kova"][:2] or "-",
                a["tekharf_ulasmayan"][:2] or "-", len(a["tekharf_kaybolan"]),
                a["tekharf_capa_dusen"] or "-"))
-    # K21 — BAŞLIK-DOĞAN SAYFA YARGISI: yargısız sayfa DOĞMAZ, envanter BAYATLAMAZ.
+    # K21 — BAŞLIK-DOĞAN SAYFA YARGISI: yargısız sayfa DOĞMAZ.
+    # 🔴 "ENVANTER BAYATLAMAZ" İDDİASI K21'DEN ÇIKARILDI (7 Ağu, mimar hükmü): eski ölçüt
+    # envanteri KATALOG HACMİNİN fonksiyonu yapıyordu ve 6 parti boyunca yayını durdurdu.
+    # Bayatlığın hacme DUYARSIZ kolu (ölü/çakışan) + TÜRETME BORCU artık K21b'de, sınıflama
+    # fikstürü K21a'da, büyüme dayanıklılığı K21c'de ölçülür.
     _bi = a["baslik_izin_imza"]
-    dogrula("K21 BAŞLIK KOLUNDAN DOĞAN SAYFA KÜMESİ YARGILANMIŞ ENVANTERLE BİREBİR (%d sayfa; "
-            "%d kova yargı BEKLİYOR ve DOĞMADI)" % (a["baslik_yayin"], len(a["baslik_bekleyen"])),
-            not a["baslik_sizinti"] and not a["baslik_bayat"] and not a["baslik_celiski"]
+    dogrula("K21 BAŞLIK KOLUNDAN DOĞAN HER SAYFA YARGILANMIŞ (%d sayfa; %d kova yargı "
+            "BEKLİYOR ve DOĞMADI)" % (a["baslik_yayin"], len(a["baslik_bekleyen"])),
+            not a["baslik_sizinti"] and not a["baslik_celiski"]
             and not a["baslik_ciplak_sayi"] and not a["baslik_donanim"]
             and _bi[0] == _bi[1] and _bi[2] == _bi[3],
-            "YARGISIZ DOĞMUŞ (SIZINTI)=%s · envanterde var üretimde yok (BAYAT)=%s · "
-            "allow/deny çelişkisi=%s · ÇIPLAK SAYI doğmuş=%s · DONANIM kuyruklu doğmuş=%s · "
-            "imza=%s beklenen=%s sayı=%d beklenen=%d"
-            % (a["baslik_sizinti"][:3] or "-", a["baslik_bayat"][:3] or "-",
+            "YARGISIZ DOĞMUŞ (SIZINTI)=%s · allow/deny çelişkisi=%s · ÇIPLAK SAYI doğmuş=%s · "
+            "DONANIM kuyruklu doğmuş=%s · imza=%s beklenen=%s sayı=%d beklenen=%d"
+            % (a["baslik_sizinti"][:3] or "-",
                a["baslik_celiski"][:3] or "-", a["baslik_ciplak_sayi"][:3] or "-",
                a["baslik_donanim"][:3] or "-", _bi[0], _bi[1], _bi[2], _bi[3]))
+    # K21a/K21d/K21e/K21f — SINIFLAMA GÖVDESİ FİKSTÜRLE ÇİVİLİ. Gerçek envanterde bugün
+    # 0 ölü / 0 türetilebilir kayıt var, yani gövdeyi boşaltan mutant gerçek veride YEŞİL
+    # kalırdı. KOLLAR AYRI İDDİADIR ki mutantlar birbirinden AYIRT EDİLEBİLSİN.
+    _tk = a["turetme_kol_sayisi"]
+    dogrula("K21a TÜRETME YAŞAM SINIFI FİKSTÜRLE ÇİVİLİ (%d sentetik giriş; kova YOK -> ÖLÜ, "
+            "kova var + başlık-doğan DEĞİL -> UYKUDA, aksi -> UYGULANAN; toplam KORUNUR)"
+            % a["turetme_fikstur_sayisi"],
+            not a["turetme_sinif_sapan"] and a["turetme_fikstur_sayisi"] > 0,
+            "sapan=%s" % (a["turetme_sinif_sapan"][:4] or "-"))
+    dogrula("K21d TÜRETME BORCU — H1 KOLU (%d fikstür satırı: tek jeton + harf&rakam "
+            "anahtarı TÜRETİLEBİLİR sayılmalı)" % _tk["H1"],
+            not a["turetme_h1_sapan"] and _tk["H1"] > 0,
+            "sapan=%s" % (a["turetme_h1_sapan"][:4] or "-"))
+    dogrula("K21e TÜRETME BORCU — H3 KOLU (%d fikstür satırı: `<taban> <değiştirici>` "
+            "anahtarı TÜRETİLEBİLİR sayılmalı)" % _tk["H3"],
+            not a["turetme_h3_sapan"] and _tk["H3"] > 0,
+            "sapan=%s" % (a["turetme_h3_sapan"][:4] or "-"))
+    dogrula("K21f TÜRETME BORCU — KALINTI KOLU (%d rakamsız/çıplak sayı + %d ARAÇ DIŞI muaf "
+            "satır: bunlar TÜRETİLEBİLİR SAYILMAZ, envanterde KALIR)"
+            % (_tk["YOK"], _tk["MUAF"]),
+            not a["turetme_kalinti_sapan"] and _tk["YOK"] > 0 and _tk["MUAF"] > 0,
+            "sapan=%s" % (a["turetme_kalinti_sapan"][:4] or "-"))
+    # K21b — HACME DUYARSIZ BAYATLIK + TÜRETME BORCU (gerçek envanter).
+    dogrula("K21b ENVANTER TÜRETİLMİŞ VE ÖLÜ KAYIT YOK (%d kayıt = %d uygulanan + %d UYKUDA "
+            "+ %d ölü)" % (a["baslik_korunum"][1], len(a["baslik_uygulanan"]),
+                           len(a["baslik_uykuda"]), len(a["baslik_olu"])),
+            not a["baslik_olu"] and not a["baslik_cakisan"]
+            and not a["baslik_turetilebilir"]
+            and a["baslik_korunum"][0] == a["baslik_korunum"][1],
+            "KOVASI YOK (ÖLÜ)=%s · aynı kanona ÇAKIŞAN=%s · KURAL ZATEN YARGILIYOR "
+            "(TÜRETİLEBİLİR — anahtarı H1/H3 şeklinde, yazılmamalıydı)=%s · korunum %d/%d"
+            % (a["baslik_olu"][:3] or "-", a["baslik_cakisan"][:2] or "-",
+               a["baslik_turetilebilir"][:5] or "-",
+               a["baslik_korunum"][0], a["baslik_korunum"][1]))
+    # K21c — BÜYÜME DAYANIKLILIĞI: yeni çift envantere ELLE DOKUNULMADAN doğru hüküm alır.
+    dogrula("K21c BÜYÜME DAYANIKLILIĞI: sentetik yeni (marka, model) çifti envanter "
+            "DEĞİŞMEDEN doğru hükmü alır (anahtarı kural şeklinde -> SAYFA DOĞAR; kural "
+            "GÖRMÜYORSA sayfa DOĞMAZ, kova yargı BEKLER)",
+            not a["buyume_sapan"], "sapan=%s" % (a["buyume_sapan"][:4] or "-"))
     print("  BILGI BAŞLIK-DOĞAN SAYFA YARGISININ KAYNAĞI: envanter %d · KURAL (H1 şasi/motor "
           "kodu ∪ H3 ayrı araç adı) %d — kural kolu katalog büyüdükçe BAYATLAMAZ"
           % (a["baslik_yayin"] - a["baslik_kural_dogan"], a["baslik_kural_dogan"]))
+    print("  BILGI UYKUDA HÜKÜM: %d kayıt (kova jeton yolundan eşiği tek başına geçiyor, "
+          "yargı SORULMUYOR) — BAYAT DEĞİL, kırmızı YAKMAZ; kova yeniden başlık-doğan "
+          "olursa sayfayı YİNE bu hüküm taşır%s"
+          % (len(a["baslik_uykuda"]),
+             (" ilk 5: %s" % (a["baslik_uykuda"][:5],)) if a["baslik_uykuda"] else ""))
     if a["baslik_bekleyen"]:
         print("  BILGI MİMAR HÜKMÜ BEKLEYEN KOVA: %d (sayfa DOĞMADI; ürünleri marka "
               "sayfasında ve kendi gerçek model sayfasında duruyor) ilk 5: %s"
@@ -1682,7 +1939,11 @@ MUTANTLAR = [
     ("tools/arama.py", '    ("Suzuki", "Escudo"): "arac/motosiklet model adi",\n', "",
      "KIRMIZI",
      "M39 ALLOW ENVANTERİNDEN BİR GİRİŞ DÜŞÜR -> /marka/suzuki/escudo/ sessizce ölür; "
-     "K21 BAYAT ekseni (küme birebir değil) + kimlik imzası kırmızı yakar"),
+     "K21 KİMLİK İMZASI kırmızı yakar (`Escudo` TEK JETON + RAKAMSIZDIR, yani H1/H3 kuralı "
+     "onu GÖRMEZ ve sayfa kuralla ayakta kalamaz). 🔴 BEYAN 7 Ağu'da ÖLÇÜME GÖRE DÜZELTİLDİ: "
+     "eski metin 'BAYAT ekseni' diyordu ama o eksen giriş SİLİNDİĞİNDE hiç yanmıyordu "
+     "(silinen anahtar `envanter - yayın` farkında da yok); kırmızıyı DAİMA imza veriyordu "
+     "([[mutasyon-kaniti-yeniden-uretilebilir]]: anlatılan iddia ölçülenle aynı olmalı)"),
     ("tools/marka_model_build.py",
      '    j = "".join(_kelimeler(jeton))\n    return (not j) or len(j) <= 3 or j.isdigit()',
      '    j = "".join(_kelimeler(jeton))\n    return not j', "KIRMIZI",
@@ -1697,11 +1958,14 @@ MUTANTLAR = [
      "`/marka/yamaha/p-45/` (piyano) ve `/marka/yamaha/recording-custom/` (davul) yeniden "
      "KURALLA/yargısız doğar; K22 'ÜRETİM KURALI KONUŞUYOR' eksenini TEK BAŞINA yakar"),
     # --- KONTROL (YEŞİL bekleniyor) ---
+    # 🔴 ÇAPA 7 Ağu'da TAZELENDİ: `Audi|Q3` satırı envanterden TÜRETİLDİ (anahtarı H1
+    # şeklinde) ve SİLİNDİ; eski çapa 0 eşleşmeye düşüp eksen SESSİZCE ölçülmez olmuştu
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Yeni çapa KALINTI kümesinden.
     ("tools/arama.py",
-     '    ("Audi", "Q3"): "arac/motosiklet model adi",\n'
-     '    ("Audi", "TT"): "arac/motosiklet model adi",',
-     '    ("Audi", "TT"): "arac/motosiklet model adi",\n'
-     '    ("Audi", "Q3"): "arac/motosiklet model adi",', "YESIL",
+     '    ("Chrysler", "300"): "arac/motosiklet model adi",\n'
+     '    ("Chrysler", "Voyager"): "arac/motosiklet model adi",',
+     '    ("Chrysler", "Voyager"): "arac/motosiklet model adi",\n'
+     '    ("Chrysler", "300"): "arac/motosiklet model adi",', "YESIL",
      "K21 KONTROL: allow envanterini YENİDEN SIRALA -> küme, kimlik ve davranış AYNI "
      "(daima-kırmızı bir K21 M38/M39'u da geçerdi; kontrol bunu ayırt eder)"),
     ("index.html", '{"BMW|k":"kserisi","Ford|fseries":"fserisi",',
@@ -1758,9 +2022,142 @@ def _kok_kur(tmp):
         os.symlink(os.path.join(GERCEK_KOK, ad), os.path.join(tmp, ad))
 
 
+# ───────────────────────────────────────────────────────────────────────────────────────
+# TÜRETME ALT BATARYASI (7 Ağu) — 7 öldürücü + 1 kontrol.
+#
+# 🔴 NEDEN AYRI BATARYA: ana bataryanın kabulü RENKTİR ("kırmızı yandı mı"), AYIRT EDİCİLİK
+# değil. Türetme kolları (kaynak · H1 · H3 · kalıntı/muaf · ölü · uykuda) tek renkle
+# ölçülürse "hepsini düşüren daima-kırmızı bir eksen" bataryayı geçer
+# ([[beyan-edilmis-survivor]] · [[mutasyon-kaniti-yeniden-uretilebilir]]). Burada kabul
+# ölçütü KIRMIZI YANAN İDDİA KİMLİK KÜMESİDİR ve kümeler PAIRWISE FARKLI olmak zorundadır.
+# 🔴 ÇÖKME KIRMIZIYLA KARIŞMAZ: hiç iddia basmayan koşum "öldürüldü" SAYILMAZ.
+# 🔴 MUTASYON DİSKTEN GERİ OKUNARAK DOĞRULANIR (aynı-uzunluk / aynı-saniye / __pycache__
+# tuzağı, [[mutasyon-diske-yazma-tuzagi]] · [[mutasyon-bytecode-onbellegi]]).
+_TURETME_MUTANTLARI = [
+    ("MT1", "    for (mk, jt) in sorted(envanter):",
+     "    for (mk, jt) in sorted(()):", ["K21a", "K21b", "K21d", "K21e"],
+     "MT1 KAYNAĞI BOŞALT (envanter hiç gezilmez) -> yaşam sınıfı + her iki borç kolu + "
+     "gerçek envanterin KORUNUMU birlikte düşer"),
+    ("MT2", "        if not muaf_mi(mk, canon) and sekil_yargisi(jt):",
+     "        if False:", ["K21d", "K21e"],
+     "MT2 TÜRETME BORCUNU TÜMDEN KAPAT -> H1 ve H3 kolları düşer; yaşam sınıfı ve gerçek "
+     "envanter (bugün 0 türetilebilir) DEĞİŞMEZ -> MT1'den AYIRT EDİCİ"),
+    ("MT3", "        if not muaf_mi(mk, canon) and sekil_yargisi(jt):",
+     "        if sekil_yargisi(jt):", ["K21b", "K21f"],
+     "MT3 KALINTI MUAFİYETİNİ YOK SAY (ARAÇ DIŞI çiftte kural SUSUYOR hükmü düşer) -> "
+     "fikstürün MUAF satırları ve GERÇEK envanterin 2 muaf kaydı türetilebilir sanılır"),
+    ("MT4", '            olu.append("%s|%s" % (mk, jt))',
+     '            uykuda.append("%s|%s" % (mk, jt))', ["K21a"],
+     "MT4 ÖLÜ KAYDI UYKUDA SAY (kovası OLMAYAN hüküm affedilir) -> yaşam sınıfı TEK BAŞINA "
+     "düşer; borç kolları DEĞİŞMEZ"),
+    ("MT5", '            not a["baslik_olu"] and not a["baslik_cakisan"]',
+     '            not a["baslik_olu"] and not a["baslik_uykuda"] and not a["baslik_cakisan"]',
+     ["K21b"],
+     "MT5 UYKUDA HÜKMÜ YENİDEN KIRMIZI SAYILSIN (6 parti boyunca yayını durduran ESKİ "
+     "ölçüt geri gelir) -> K21b TEK BAŞINA düşer. Bu mutant SINIF REGRESYONUNUN bekçisidir: "
+     "kırmızı yanması, kapının bugün dormant hükmü BİLEREK affettiğinin KANITIDIR"),
+    ("MT6", "    return _bagimsiz_sasi_kodu(jeton) or _bagimsiz_ayri_arac(jeton)",
+     "    return _bagimsiz_ayri_arac(jeton)", ["K21d"],
+     "MT6 H1 KOLUNU KAPAT (şasi/motor kodu anahtarı artık türetilebilir sayılmaz) -> "
+     "yalnız K21d; H3 kolu AYAKTA -> MT7'den AYIRT EDİCİ"),
+    ("MT7", "    return _bagimsiz_sasi_kodu(jeton) or _bagimsiz_ayri_arac(jeton)",
+     "    return _bagimsiz_sasi_kodu(jeton)", ["K21e"],
+     "MT7 H3 KOLUNU KAPAT (`<taban> <değiştirici>` anahtarı artık türetilebilir sayılmaz) "
+     "-> yalnız K21e; H1 kolu AYAKTA -> MT6'dan AYIRT EDİCİ"),
+    ("MTK", "    olu, cakisan, turetilebilir, uykuda, uygulanan = [], [], [], [], []",
+     "    olu, cakisan, turetilebilir, uykuda, uygulanan = [], [], [], [], []  # yorum",
+     [],
+     "MTK KONTROL: davranış değiştirmeyen yorum -> HİÇBİR iddia düşmemeli (daima-kırmızı "
+     "bir türetme ekseni MT1-MT7'yi de geçerdi; kontrol bunu ayırt eder)"),
+]
+
+
+def _turetme_mutasyonu():
+    """Türetme gövdesini AYIRT EDİCİ mutantlarla ölç. Döner: başarısız açıklamaları."""
+    print("  --- TÜRETME ALT BATARYASI (7 öldürücü + 1 kontrol; kabul = KIRMIZI İDDİA KÜMESİ) ---")
+    canli = os.path.abspath(__file__)
+    with open(canli, "rb") as f:
+        once = hashlib.sha256(f.read()).hexdigest()
+    print("      CANLI DOSYA sha256 ONCE : %s" % once)
+    hatalar, kumeler = [], {}
+    for kod, eski, yeni, beklenen, aciklama in _TURETME_MUTANTLARI:
+        tmp = tempfile.mkdtemp(prefix="model-turetme-mut-")
+        try:
+            _kok_kur(tmp)
+            yol = os.path.join(tmp, "tools", os.path.basename(canli))
+            with open(yol, encoding="utf-8") as f:
+                govde = f.read()
+            # 🔴 ÇAPA MUTANT TABLOSUNUN KENDİSİNİ SAYMASIN: çapalar bu dosyada METİN olarak
+            # da geçiyor. Mutasyon yüzeyi tablodan ÖNCEKİ kod bölgesidir.
+            _kes = govde.index("\n_TURETME_MUTANTLARI = [")
+            bas, kuyruk = govde[:_kes], govde[_kes:]
+            if bas.count(eski) != 1:
+                hatalar.append("%s CAPA BAYAT (%d eşleşme, 1 olmalı)" % (kod, bas.count(eski)))
+                print("      HATA %s -> CAPA BAYAT (%d) | EKSEN ÖLÇÜLMEDİ"
+                      % (kod, bas.count(eski)))
+                continue
+            _beklenen = bas.replace(eski, yeni, 1) + kuyruk
+            # 🔴 EŞDEĞER MUTANT ÖLÇÜM DEĞİLDİR: metin hiç değişmediyse eksen ölçülmemiştir.
+            if _beklenen == govde:
+                hatalar.append("%s MUTANT EŞDEĞER (metin DEĞİŞMEDİ)" % kod)
+                print("      HATA %s -> MUTANT EŞDEĞER | EKSEN ÖLÇÜLMEDİ" % kod)
+                continue
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(_beklenen)
+            # MUTASYON DİSKTE Mİ: dosyayı BAYT BAYT GERİ OKU. Ölçüt "beklenen gövdeye eşit"
+            # olmalı; "yeni metin var mı" ölçütü yanıltır (yeni metin gövdede BAŞKA yerde de
+            # geçebilir, eski metin de yeninin ÖNEKİ olabilir).
+            with open(yol, encoding="utf-8") as f:
+                _geri = f.read()
+            if _geri != _beklenen:
+                hatalar.append("%s MUTASYON DİSKE UYGULANMADI" % kod)
+                print("      HATA %s -> MUTASYON DİSKE UYGULANMADI | EKSEN ÖLÇÜLMEDİ" % kod)
+                continue
+            p = subprocess.run([sys.executable, yol, "--kok", tmp],
+                               capture_output=True, text=True, timeout=1800)
+            cikti = (p.stdout or "") + (p.stderr or "")
+            satirlar = [s.strip() for s in cikti.splitlines()]
+            kirmizi = sorted(set((s.split() + ["?"])[1] for s in satirlar
+                                 if s.startswith("KALDI ")))
+            if not any(s.startswith("GECTI ") or s.startswith("KALDI ") for s in satirlar):
+                hatalar.append("%s ÇÖKME (hiç iddia basmadı) rc=%d" % (kod, p.returncode))
+                print("      HATA %s -> ÇÖKME/ÖLÇÜLEMEDİ (rc=%d) | %s"
+                      % (kod, p.returncode, (cikti.strip().splitlines() or [""])[-1][:150]))
+                continue
+            gecti = (kirmizi == sorted(beklenen))
+            if not gecti:
+                hatalar.append("%s beklenen %s, ölçülen %s" % (kod, sorted(beklenen), kirmizi))
+            kumeler[kod] = tuple(kirmizi)
+            print("      %s %s -> KIRMIZI=%s (beklenen %s) | %s"
+                  % ("OK  " if gecti else "HATA", kod, ",".join(kirmizi) or "-",
+                     ",".join(sorted(beklenen)) or "-", aciklama))
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    # AYIRT EDİCİLİK: iki ÖLDÜRÜCÜ mutant AYNI iddia kümesine düşemez.
+    _old = dict((k, v) for k, v in kumeler.items() if v)
+    _cakisan = []
+    for k1 in sorted(_old):
+        for k2 in sorted(_old):
+            if k1 < k2 and _old[k1] == _old[k2]:
+                _cakisan.append("%s==%s (%s)" % (k1, k2, ",".join(_old[k1])))
+    print("      AYNI KÜMEYE DÜŞEN ÇİFT: %s" % (", ".join(_cakisan) or "YOK ✔"))
+    if _cakisan:
+        hatalar.append("AYNI KÜMEYE DÜŞEN ÇİFT: %s" % _cakisan)
+    with open(canli, "rb") as f:
+        sonra = hashlib.sha256(f.read()).hexdigest()
+    print("      CANLI DOSYA sha256 SONRA: %s -> %s"
+          % (sonra, "DEĞİŞMEDİ ✔" if sonra == once else "DEĞİŞTİ ✘"))
+    if sonra != once:
+        hatalar.append("CANLI DOSYA DEĞİŞTİ")
+    return hatalar
+
+
 def kendini_test():
     print("MUTASYON — model üyeliği (mutant KOPYAYA uygulanır; gerçek ağaç DEĞİŞMEZ)")
     basarisiz, olcum = [], []
+    # 🔴 ÖNCE TÜRETME EKSENİ: bu gövde K21'in bayatlık hükmünü veriyor ve ana bataryanın
+    # renk ölçütü onun kollarını AYIRT EDEMİYOR.
+    basarisiz.extend(_turetme_mutasyonu())
     for i, _m in enumerate(MUTANTLAR, 1):
         dosya, eski, yeni, beklenen, aciklama = _m[:5]
         # 6. eleman (opsiyonel): EK DÜZENLEME listesi — bir eksen ancak İKİ yerde birden

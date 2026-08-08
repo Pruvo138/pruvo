@@ -743,9 +743,11 @@ MUTANTLAR = [
      "    (\"Citroen\", \"AygoYOK\"): \"Citroen'in rozeti C1;", "KIRMIZI",
      "M11 HÜKÜM A DENY'İNİ ALLOW'A ÇEVİR (`Citroen|Aygo`) -> SAHTE çapraz-rozet sayfası "
      "/marka/citroen/aygo/ DOĞAR (B15a; B15b/B15c DEĞİŞMEZ -> ayırt edici)",
+     # 🔴 EKLEME ÇAPASI 7 Ağu'da TAZELENDİ: `Citroen|C8` türetildi (H1 şekli) ve satır
+     # SİLİNDİ; çapa KALINTI kümesindeki `Citroen|XM` satırına taşındı.
      [("tools/arama.py",
-       "    (\"Citroen\", \"C8\"): \"arac/motosiklet model adi\",",
-       "    (\"Citroen\", \"C8\"): \"arac/motosiklet model adi\",\n"
+       "    (\"Citroen\", \"XM\"): \"arac/motosiklet model adi\",",
+       "    (\"Citroen\", \"XM\"): \"arac/motosiklet model adi\",\n"
        "    (\"Citroen\", \"Aygo\"): \"MUTANT allow\",")]),
     ("tools/arama.py",
      "    (\"Yamaha\", \"660\"): \"ciplak sayi",
@@ -816,11 +818,14 @@ MUTANTLAR = [
      "    (\"BMW\", \"kserisi\"): \"K Serisi\",  # yorum (davranış AYNI)\n", "YESIL",
      "K1 KONTROL: davranış değiştirmeyen yorum -> iddia bozulmamalı (daima-kırmızı bir "
      "kabul M1-M4'ü de geçerdi)"),
+    # 🔴 ÇAPA 7 Ağu'da TAZELENDİ: `Audi|Q3` envanterden TÜRETİLDİ (anahtarı H1 şeklinde,
+    # kural onu zaten yargılıyor) ve satır SİLİNDİ -> eski çapa 0 eşleşmeye düşmüştü
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Yeni çapa KALINTI kümesinden seçildi.
     ("tools/arama.py",
-     "    (\"Audi\", \"Q3\"): \"arac/motosiklet model adi\",\n"
-     "    (\"Audi\", \"TT\"): \"arac/motosiklet model adi\",",
-     "    (\"Audi\", \"TT\"): \"arac/motosiklet model adi\",\n"
-     "    (\"Audi\", \"Q3\"): \"arac/motosiklet model adi\",", "YESIL",
+     "    (\"Chrysler\", \"300\"): \"arac/motosiklet model adi\",\n"
+     "    (\"Chrysler\", \"Voyager\"): \"arac/motosiklet model adi\",",
+     "    (\"Chrysler\", \"Voyager\"): \"arac/motosiklet model adi\",\n"
+     "    (\"Chrysler\", \"300\"): \"arac/motosiklet model adi\",", "YESIL",
      "K2 KONTROL: allow envanterini YENİDEN SIRALA -> küme ve davranış AYNI"),
     ("tools/cip-indeks.py", "SURUM = 1", "SURUM = 2", "YESIL",
      "K3 KONTROL: İLGİSİZ ALAN (çip indeksi sürümü) model üyeliğinde rol OYNAMAZ"),

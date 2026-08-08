@@ -933,10 +933,40 @@ ROZET_CAPRAZ_IZINLI = {
     "Datsun|240z": ("ROZET", "Datsun 240Z (S30) ihracat pazarlarinin ORIJINAL rozeti"),
     "Nissan|240z": ("ROZET", "Nissan 240Z ayni S30'un uretici rozeti (Datsun Nissan'in "
                              "ihracat markasidir; ikizin adi DEGIL, KENDI adi)"),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7 Agu — K19'un IKIZ TANIMI duzeltilince GORUNUR olan 12 cift.
+    # 🔴 BU SATIRLAR HICBIR SAYFA ACMAZ: ROZET_CAPRAZ_IZINLI'yi YALNIZ kapi okur (uretim
+    # `yayimlanir_mi` ROZET_DISI deny'ine bakar). Asagidaki kovalarin 12'si de BUGUN ZATEN
+    # YAYINDA. Neden simdi gorunuyorlar: K19'un capraz-aday filtresi "baslik-dogan kova
+    # BASLIK_DOGAN_ALLOW'da mi" diye soruyordu; 6 Agu'da yargiya H1/H3 KURAL kollari eklendi
+    # ama o filtre GUNCELLENMEDI ([[ikiz-tanim-sessiz-ayrisma]]) ve kuralla yargilanan
+    # capraz kovalar K19'un olcum yuzeyinden SESSIZCE dusmustu. Filtre 7 Agu'da uc kaynakli
+    # hale getirildi; aday kume 45 -> 59 cifte cikti ve bu 12'si yargisiz kaldi.
+    # SINIFLAR: emsali BIREBIR olan cift ROZET, gercek hukum gerektiren cift BEKLER.
+    "Datsun|260z": ("ROZET", "Datsun 260Z ayni Z ailesi (S30) — emsal birebir `Datsun|240z`"),
+    "Nissan|260z": ("ROZET", "Nissan 260Z ureticinin rozeti — emsal birebir `Nissan|240z`"),
+    "Datsun|280z": ("ROZET", "Datsun 280Z (S30/S130) — emsal birebir `Datsun|240z`"),
+    "Nissan|280z": ("ROZET", "Nissan 280Z ureticinin rozeti — emsal birebir `Nissan|240z`"),
+    "Toyota|gr86": ("ROZET", "Toyota GR86 Toyota'nin KENDI rozeti — emsal `Toyota|gt86`"),
+    "Ford|fserisi": ("ROZET", "Ford F-Serisi Ford'un KENDI rozeti (BMW F-Serisi ile IKIZ "
+                              "DEGIL, ad cakismasi — emsal `Ford|sierra`)"),
+    "Mercedes|t1": ("ROZET", "Mercedes T1 gercek tip adi (VW T1 ile IKIZ DEGIL, ad "
+                             "cakismasi — emsal `Ford|sierra`/`Suzuki|sierra`)"),
+    "Volkswagen|t1": ("ROZET", "VW T1 (Transporter/Type 1 nesli) gercek tip adi — ayni "
+                               "ad cakismasi ekseni"),
+    "BMW|fserisi": ("BEKLER", "BMW F-Serisi bir SASI NESLI ailesidir (F30/F32...), Ford "
+                              "F-Serisi ise kamyonet rozeti. Aile sayfasi mesru mu (emsal "
+                              "`BMW|K Serisi`) yoksa ROZET_DISI mi — mimar hukmu bekliyor"),
+    "Subaru|gr86": ("BEKLER", "Subaru'nun rozeti BRZ'dir; `GR86` Toyota rozetidir (emsal "
+                              "birebir `Toyota|107`). ROZET_DISI'ye alinsin mi — mimar "
+                              "hukmu bekliyor (deny yazilirsa urunler Subaru agacinda kalir)"),
+    "Ford|mk1": ("BEKLER", "`Mk1` bir NESIL isaretidir, rozet DEGIL; iki markada da ayni "
+                           "isaret. MODEL_OLMAYAN/ROZET_DISI mi olmali — mimar hukmu bekliyor"),
+    "Volkswagen|mk1": ("BEKLER", "`Mk1` nesil isareti — `Ford|mk1` ile AYNI hukmu bekliyor"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 28
-ROZET_CAPRAZ_IZINLI_IMZA = "d4057b051e9c2bb4"
+ROZET_CAPRAZ_IZINLI_SAYISI = 40
+ROZET_CAPRAZ_IZINLI_IMZA = "370bea8dcb76904f"
 
 
 def rozet_capraz_imzasi():
@@ -1104,7 +1134,9 @@ DEGISTIRICI_SAYFA_IZNI = {
     "Volkswagen|type2": "VW Type 2 (Bulli) — gercek model adi, Type 1'den AYRI arac",
     "Yamaha|tracer7": "Tracer 7 — gercek model adi (motosiklet hacim kirilimi)",
     # 5 Agu — BASLIK KOLU ile ESIK'i gecen, DEGISTIRICI SEKILLI ama GERCEK model adlari
-    # (yargilari BASLIK_DOGAN_ALLOW'da da duruyor; bu envanter sizinti eksenidir).
+    # (bu envanter SIZINTI eksenidir; ucunun BASLIK-DOGAN yargisi 7 Agu'dan beri H1/H3
+    # KURAL KOLUNDAN gelir — anahtarlari kural seklinde oldugu icin BASLIK_DOGAN_ALLOW'da
+    # YAZILI DEGIL, bkz. o tablonun TURETME KURALI).
     "Opel|grandlandx": "Opel Grandland X — gercek model adi (X harfi degistirici DEGIL)",
     "Suzuki|wagonr": "Suzuki Wagon R — gercek model adi (R harfi degistirici DEGIL)",
     "Volkswagen|type1": "VW Type 1 (Beetle) — gercek model adi, Type 2'den AYRI arac",
@@ -1121,7 +1153,9 @@ def degistirici_izni_imzasi():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# BASLIK KOLUNDAN DOGAN SAYFA IZNI (5 Agu, mimar hukmu — "yargisiz sayfa DOGMAZ")
+# BASLIK KOLUNDAN DOGAN SAYFA IZNI — KURALIN YARGILAYAMADIGI **KALINTI** ENVANTERI
+# (5 Agu mimar hukmu: "yargisiz sayfa DOGMAZ" · 7 Agu TURETME HUKMU: kuralin yargiladigi
+#  cift BURAYA YAZILMAZ · 7 Agu UYKUDA HUKMU: is yapmayan giris BAYAT DEGILDIR)
 #
 # NE ICIN: model uyelik yuklemine BASLIKTA TAM KELIME kolu eklendi. Bu kol MEVCUT
 # kovalari buyutur (olculdu: 455 sayfa buyudu, 0 kucuLdu) ama bir kismini da ESIK'in
@@ -1129,49 +1163,61 @@ def degistirici_izni_imzasi():
 # arac modelidir, kimi bir CIHAZ/INFOTAINMENT adidir (`Sync`, `iPhone`, `MagSafe`),
 # kimi bir MOTOR AILESI ya da SASI KODUDUR (`M54`, `N47`, `E92`).
 #
-# 🔴 KURAL FAIL-CLOSED: yalnizca bu envanterde yargilanmis (marka, jeton) cifti yeni
-# sayfa acar. Envanterde OLMAYAN kova SESSIZCE dogmaz — urunu KAYBOLMAZ (marka
-# sayfasinda ve kendi gercek model sayfasinda durur; kapi kaybolan=0 olcer).
+# 🔴 KURAL FAIL-CLOSED: yargisiz kova SESSIZCE dogmaz. Yargi UC KAYNAKLIDIR ve ikisi
+# KURALDIR (marka_model_build.baslik_yargisi_var_mi):
+#     (a) BU ENVANTER          — tekil, elle yargilanmis ciftler,
+#     (b) H1 sasi/motor kodu   — TEK jeton + en az bir HARF ve en az bir RAKAM,
+#     (c) H3 ayri arac adi     — `<taban> <degistirici>`, kuyrugu DONANIM degil.
+# Envanterde/kuralda OLMAYAN kova dogmaz — urunu KAYBOLMAZ (marka sayfasinda ve kendi
+# gercek model sayfasinda durur; kapi kaybolan=0 olcer).
+#
+# 🔴 TURETME KURALI (7 Agu, mimar hukmu — 6. tekrari SINIF olarak kapatir):
+#   GIRISIN ANAHTARI (b) ya da (c) SEKLINDEYSE O GIRIS BURAYA HIC YAZILMAZ: kural onu
+#   ZATEN yargiliyor ve KURAL KOLU KATALOG BUYUDUKCE BAYATLAMAZ. Bu envanter yalnizca
+#   kuralin SEKIL OLARAK goremedigi KALINTIYI tasir — uc sinif, hepsi gerekceli:
+#     · CIPLAK SAYI          (`86`, `107`, `300`, `340`, `924`; H1'in HARF sartinin disi)
+#     · TEK JETON + RAKAMSIZ (`Katana`, `Bora`, `CBR`, `C-Class`; ne H1 ne H3 gorur)
+#     · ARAC DISI MUAF       (`Yamaha|P-45`, `Yamaha|Recording Custom`; SEKIL_KURALI_MUAF
+#                             kurali o ciftte SUSTURUR, sayfayi yalniz bu giris tasir)
+#   OLCULDU (7 Agu, 22.376 urun): 185 kayittan 84'unun ANAHTARI H1/H3 seklindeydi ve giris
+#   ISLEVSIZDI -> silindi; asagida 101 kalinti + 1 geri konan (`Mitsubishi|Galant`) = 102.
+#   Yayimlanan baslik-dogan sayfa kumesi DEGISMEDI (327 -> 327).
+#   Kapi bu borcu K21b ekseninde olcer: anahtari H1/H3 seklinde bir giris KIRMIZI yakar.
+#   🔴 OLCUT GIRISIN ANAHTARIDIR, KATALOGTAKI YAZIM DEGIL -> yeni bir urun partisi bu
+#   ekseni ASLA kirmizi yakamaz (yasak kume tabana gore turemez).
+#
+# 🔴 UYKUDA ≠ BAYAT (7 Agu, mimar hukmu — YAYINI 6 PARTI BOYUNCA DURDURAN SINIF):
+#   Bir kova jeton yolundan (marka[]/uyum[]) ESIK'i TEK BASINA gecince artik yargiya
+#   IHTIYAC DUYMAZ (`baslik_dogan=False`) ve girisi o gun is yapmaz. ESKI olcut
+#   (`envanter - yayimlanan_baslik_dogan`) bunu "BAYAT" ilan edip kapiyi KIRMIZI
+#   yakiyordu; yani ENVANTERI KATALOG HACMININ FONKSIYONU yapmisti ve her urun partisinde
+#   yayini durduruyordu ([[envanter-drift-parti-basina]] · [[tekil-yama-sinifi-kapatmaz]]).
+#   HUKUM: giris bir HUKUMDUR, bir SAYAC DEGIL — kova yargiyi sormuyorsa hukum UYKUDADIR
+#   (kapi BILGI olarak sayar, KIRMIZI YAKMAZ) ve kova yeniden baslik-dogan olursa sayfayi
+#   YINE o hukum tasir. Kirmizi kalan TEK bayatlik: kovanin KENDISI katalogda YOK (OLU) ya
+#   da iki giris AYNI kanona cakisiyor — ikisi de katalog hacmine duyarsizdir.
+#   ⚠️ 6 Agu ve 7 Agu'da bu yuzden ELLE SILINEN dokuz giris (`Datsun|280Z`, `Honda|VFR 800`,
+#   `Nissan|240SX`, `Suzuki|GSF 650`, `Yamaha|FZ1`, `Yamaha|Tracer 900`, `Yamaha|XSR 700`,
+#   `Yamaha|XJ 600` H1/H3 kuralindadir — dogru yer kural kolu; `Mitsubishi|Galant` ise
+#   TEK JETON RAKAMSIZDIR, yani kural onu GORMEZ: o hukum GEREKSIZ kaybedilmisti ve
+#   asagida GERI KONDU (UYKUDA olarak durur, hicbir sayfayi degistirmez).
+#
 # 🔴 DENY AYRI TUTULUR: "acikca model DEGIL" hukmu MODEL_OLMAYAN_CIFT'e yazilir (kalici,
 # marka-ozel); buraya yazilmayan her sey "HENUZ YARGILANMADI" demektir, "reddedildi" degil.
 # 🔴 KARSILASTIRMA BIRIMI KUME'dir, SAYI degil (DEGISTIRICI_SAYFA_IZNI ile ayni disiplin).
 BASLIK_DOGAN_ALLOW = {
-    ("Audi", "Q3"): "arac/motosiklet model adi",
     ("Audi", "TT"): "arac/motosiklet model adi",
-    ("BMW", "2 Serisi"): "arac/motosiklet model adi",
-    ("BMW", "3 Serisi"): "arac/motosiklet model adi",
-    ("BMW", "5 Serisi"): "arac/motosiklet model adi",
-    ("BMW", "6 Serisi"): "arac/motosiklet model adi",
-    ("BMW", "F900R"): "arac/motosiklet model adi",
-    ("BMW", "G650GS"): "arac/motosiklet model adi",
-    ("BMW", "K Serisi"): "arac/motosiklet model adi",
-    ("BMW", "K1200"): "arac/motosiklet model adi",
-    ("BMW", "K1200RS"): "arac/motosiklet model adi",
-    ("BMW", "R1150"): "arac/motosiklet model adi",
-    ("BMW", "R25"): "arac/motosiklet model adi",
-    ("BMW", "R80"): "arac/motosiklet model adi",
-    ("BMW", "S1000R"): "arac/motosiklet model adi",
-    ("BMW", "i4"): "arac/motosiklet model adi",
-    ("BMW", "iX1"): "arac/motosiklet model adi",
-    ("BMW", "iX3"): "arac/motosiklet model adi",
     ("Chrysler", "300"): "arac/motosiklet model adi",
     ("Chrysler", "Voyager"): "arac/motosiklet model adi",
     ("Citroen", "AX"): "arac/motosiklet model adi",
     ("Citroen", "BX"): "arac/motosiklet model adi",
-    ("Citroen", "C2"): "arac/motosiklet model adi",
-    ("Citroen", "C8"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum A — capraz marka rozetinin TEK ALLOW'u):
     # `Relay` Jumper'in GERCEK Ingiltere rozetidir (ikizin adi degil, KENDI adi) —
     # emsal birebir `Renault|Duster`/`Renault|Logan` satirlaridir.
     ("Citroen", "Relay"): "Citroen Relay = Jumper'in GERCEK Ingiltere rozeti",
     ("Citroen", "XM"): "arac/motosiklet model adi",
-    # ("Datsun", "280Z") — 7 Agu KALDIRILDI: kova artik BASLIK KOLUYLA DOGMUYOR
-    # (jeton yolundan gelen urun sayisi ESIK'i tek basina geciyor), yani envanterdeki
-    # giris ISLEVSIZ kalmisti ve K21 "BAYAT" eksenini kirmizi yakiyordu. Sayfa DUSMEZ;
-    # kova yeniden yalniz-baslik haline gelirse K21 SIZINTI ekseni yargi ister.
     ("Fiat", "Doblo"): "arac/motosiklet model adi",
     ("Fiat", "Fiorino"): "arac/motosiklet model adi",
-    ("Ford", "Bronco Sport"): "arac/motosiklet model adi",
     ("Ford", "Connect"): "arac/motosiklet model adi",
     ("Ford", "Contour"): "arac/motosiklet model adi",
     ("Ford", "Cortina"): "arac/motosiklet model adi",
@@ -1181,59 +1227,32 @@ BASLIK_DOGAN_ALLOW = {
     ("Ford", "Everest"): "arac/motosiklet model adi",
     ("Ford", "Fairlane"): "arac/motosiklet model adi",
     ("Ford", "Galaxy"): "arac/motosiklet model adi",
-    ("Ford", "Police Interceptor"): "arac/motosiklet model adi",
     ("Ford", "Territory"): "arac/motosiklet model adi",
-    ("Honda", "CB250"): "arac/motosiklet model adi",
-    ("Honda", "CB450"): "arac/motosiklet model adi",
-    ("Honda", "CB500X"): "arac/motosiklet model adi",
-    ("Honda", "CB650R"): "arac/motosiklet model adi",
-    ("Honda", "CB750"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum B — CIPLAK AILE ONEKI SAYFA ALIR):
     # `CBR`/`CRF`/`GX` tek bir arac degil bir AILE adidir; musteri parcayi aile adiyla
-    # ariyor. Emsal `BMW|K Serisi` ve `2/3/5/6 Serisi` satirlaridir (aile sayfasi mesru).
+    # ariyor. Emsal, H3 KURAL KOLUNUN yargiladigi `BMW|K Serisi` ve `2/3/5/6 Serisi`
+    # sayfalaridir (aile sayfasi mesru; o ciftler kuralda oldugu icin BURADA YAZILI DEGIL).
     # 🔴 KURAL DEGIL TEKIL GIRIS: sekil kurali (H1/H3) bu jetonlari GORMEZ (tek jeton,
     # rakamsiz) — envanter yalnizca yargilanmis cifti tasir, kural gevsemez.
     ("Honda", "CBR"): "arac/motosiklet AILE adi (CBR serisi)",
-    ("Honda", "CBR600RR"): "arac/motosiklet model adi",
     ("Honda", "CR-Z"): "arac/motosiklet model adi",
     ("Honda", "CRF"): "arac/motosiklet AILE adi (CRF serisi)",
-    ("Honda", "CRF1000"): "arac/motosiklet model adi",
-    ("Honda", "CRF250R"): "arac/motosiklet model adi",
-    ("Honda", "CRF450"): "arac/motosiklet model adi",
-    ("Honda", "CT90"): "arac/motosiklet model adi",
-    ("Honda", "CX500"): "arac/motosiklet model adi",
     ("Honda", "Dominator"): "arac/motosiklet model adi",
     ("Honda", "Fireblade"): "arac/motosiklet model adi",
     ("Honda", "Forza"): "arac/motosiklet model adi",
-    ("Honda", "GL1500"): "arac/motosiklet model adi",
     ("Honda", "GX"): "arac/motosiklet AILE adi (GX motor serisi)",
     ("Honda", "HR-V"): "arac/motosiklet model adi",
     ("Honda", "Hornet"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum D — TEKIL GERCEK MODEL ADI, rakamsiz tek jeton):
     ("Honda", "Legend"): "arac/motosiklet model adi",
     ("Honda", "Magna"): "arac/motosiklet model adi",
-    ("Honda", "NC700"): "arac/motosiklet model adi",
-    ("Honda", "NC700X"): "arac/motosiklet model adi",
-    ("Honda", "NC750"): "arac/motosiklet model adi",
-    ("Honda", "NX650"): "arac/motosiklet model adi",
-    ("Honda", "PA50"): "arac/motosiklet model adi",
     ("Honda", "PCX"): "arac/motosiklet model adi",
     ("Honda", "Prologue"): "arac/motosiklet model adi",
     ("Honda", "Recon"): "arac/motosiklet model adi",
     ("Honda", "Sabre"): "arac/motosiklet model adi",
     ("Honda", "Stepwgn"): "arac/motosiklet model adi",
-    ("Honda", "Super Cub"): "arac/motosiklet model adi",
     ("Honda", "Talon"): "arac/motosiklet model adi",
-    # ("Honda", "VFR 800") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
-    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
-    ("Honda", "XL125"): "arac/motosiklet model adi",
-    ("Honda", "XL600R"): "arac/motosiklet model adi",
-    ("Honda", "XR400"): "arac/motosiklet model adi",
     ("Honda", "Zoomer"): "arac/motosiklet model adi",
-    ("Jeanneau", "Cap Camarat"): "arac/motosiklet model adi",
-    ("Land Rover", "Range Rover"): "arac/motosiklet model adi",
-    ("Mazda", "MX-5"): "arac/motosiklet model adi",
-    ("Mercedes", "190E"): "arac/motosiklet model adi",
     ("Mercedes", "Actros"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum C — MERCEDES SINIF ADLARI):
     # `C-Class` ve `E-Klasse` GERCEK Mercedes sinif adlaridir; birlesecek ikizleri YOK
@@ -1247,31 +1266,21 @@ BASLIK_DOGAN_ALLOW = {
     ("Mercedes", "GLK"): "arac/motosiklet model adi",
     ("Mercedes", "GLS"): "arac/motosiklet model adi",
     ("Mercedes", "SLK"): "arac/motosiklet model adi",
-    ("Mercedes", "T1"): "arac/motosiklet model adi",
     ("Mitsubishi", "ASX"): "arac/motosiklet model adi",
     ("Mitsubishi", "Carisma"): "arac/motosiklet model adi",
-    ("Mitsubishi", "Delica L300"): "arac/motosiklet model adi",
-    ("Mitsubishi", "Delica L400"): "arac/motosiklet model adi",
-    ("Mitsubishi", "Eclipse Cross"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum B): `Evolution` Lancer Evolution AILESIDIR
-    # (`Mitsubishi|Lancer Evolution` zaten bu envanterde) — ciplak aile adi da sayfa alir.
+    # (`Mitsubishi|Lancer Evolution` cifti H3 KURAL KOLUNDA yargilanir, envanterde YAZILI
+    # DEGIL) — ciplak aile adi da sayfa alir.
     ("Mitsubishi", "Evolution"): "arac/motosiklet AILE adi (Lancer Evolution)",
-    # ("Mitsubishi", "Galant") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
-    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
-    ("Mitsubishi", "Lancer Evolution"): "arac/motosiklet model adi",
+    # 🔴 7 Agu GERI KONDU (UYKUDA hukmu): `Galant` TEK JETON + RAKAMSIZDIR, yani H1/H3
+    # kurali onu GORMEZ. Giris 7 Agu'da yalnizca "bugun is yapmiyor" diye silinmisti —
+    # bayat degil UYKUDA idi. Kova bir gun yeniden baslik-dogan olursa sayfayi bu hukum
+    # tasir; bugun hicbir sayfayi degistirmez (olculdu: sayfa kumesi AYNI).
+    ("Mitsubishi", "Galant"): "arac/motosiklet model adi (tek jeton rakamsiz — kural GORMEZ)",
     ("Mitsubishi", "Minicab"): "arac/motosiklet model adi",
-    ("Mitsubishi", "Pajero Mini"): "arac/motosiklet model adi",
-    ("Mitsubishi", "Pajero Pinin"): "arac/motosiklet model adi",
-    # ("Nissan", "240SX") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
-    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
-    ("Nissan", "240Z"): "arac/motosiklet model adi",
-    ("Nissan", "370Z"): "arac/motosiklet model adi",
-    ("Nissan", "D21 Hardbody"): "arac/motosiklet model adi",
     ("Nissan", "Juke"): "arac/motosiklet model adi",
     ("Nissan", "Maxima"): "arac/motosiklet model adi",
-    ("Nissan", "Skyline GT-R"): "arac/motosiklet model adi",
     ("Nissan", "Versa"): "arac/motosiklet model adi",
-    ("Opel", "Grandland X"): "arac/motosiklet model adi",
     ("Peugeot", "1007"): "arac/motosiklet model adi",
     ("Peugeot", "107"): "arac/motosiklet model adi",
     ("Peugeot", "2008"): "arac/motosiklet model adi",
@@ -1294,29 +1303,12 @@ BASLIK_DOGAN_ALLOW = {
     ("Suzuki", "Boulevard"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum B — CIPLAK AILE ONEKI):
     ("Suzuki", "DR"): "arac/motosiklet AILE adi (DR serisi)",
-    ("Suzuki", "DR-Z250"): "arac/motosiklet model adi",
     ("Suzuki", "Escudo"): "arac/motosiklet model adi",
     ("Suzuki", "Freewind"): "arac/motosiklet model adi",
-    ("Suzuki", "GS500E"): "arac/motosiklet model adi",
-    ("Suzuki", "GS550"): "arac/motosiklet model adi",
-    # ("Suzuki", "GSF 650") — 7 Agu KALDIRILDI: ayni gerekce (kova baslik kolundan
-    # DOGMUYOR; jeton yolu tek basina ESIK ustunde). Sayfa yayinda kalir.
     ("Suzuki", "GSX"): "arac/motosiklet AILE adi (GSX serisi)",
-    ("Suzuki", "GSX-S1000"): "arac/motosiklet model adi",
-    ("Suzuki", "GSX600F"): "arac/motosiklet model adi",
     ("Suzuki", "Hayabusa"): "arac/motosiklet model adi",
     ("Suzuki", "Katana"): "arac/motosiklet model adi",
-    ("Suzuki", "LT80"): "arac/motosiklet model adi",
     ("Suzuki", "RM"): "arac/motosiklet AILE adi (RM/RM-Z kros serisi)",
-    ("Suzuki", "SJ410"): "arac/motosiklet model adi",
-    ("Suzuki", "SV1000"): "arac/motosiklet model adi",
-    ("Suzuki", "SV650S"): "arac/motosiklet model adi",
-    ("Suzuki", "TS50X"): "arac/motosiklet model adi",
-    ("Suzuki", "V-Strom 1000"): "arac/motosiklet model adi",
-    ("Suzuki", "V-Strom 650"): "arac/motosiklet model adi",
-    ("Suzuki", "Wagon R"): "arac/motosiklet model adi",
-    ("Suzuki", "X90"): "arac/motosiklet model adi",
-    ("Suzuki", "XF650"): "arac/motosiklet model adi",
     # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum A — TEKIL GIRIS, KURAL DEGISMEDI):
     # `86` Toyota'nin GERCEK rozetidir (GT86/GR86 kardesleri zaten yayinda) AMA CIPLAK
     # SAYIDIR: H1 sekil kurali ciplak sayiyi DISARIDA tutar ve TUTMAYA DEVAM EDER.
@@ -1324,14 +1316,9 @@ BASLIK_DOGAN_ALLOW = {
     # (emsal: `Ford|raptor`/`Yamaha|raptor` ad-cakismasi satirlari — tekil vaka yargisi).
     # Jeton TEHLIKE sinifinda kalir: yalniz marka+model BITISIK ifadeyle eslesir.
     ("Toyota", "86"): "Toyota 86 GERCEK rozet (ciplak sayi — TEKIL giris, H1 kurali disi)",
-    ("Toyota", "Corolla Cross"): "arac/motosiklet model adi",
-    ("Toyota", "Corolla Verso"): "arac/motosiklet model adi",
-    ("Toyota", "FJ Cruiser"): "arac/motosiklet model adi",
-    ("Toyota", "Land Cruiser Prado"): "arac/motosiklet model adi",
     ("Toyota", "Matrix"): "arac/motosiklet model adi",
     ("Toyota", "Raize"): "arac/motosiklet model adi",
     ("Toyota", "Starlet"): "arac/motosiklet model adi",
-    ("Toyota", "T100"): "arac/motosiklet model adi",
     ("Toyota", "Tercel"): "arac/motosiklet model adi",
     ("Toyota", "Vitz"): "arac/motosiklet model adi",
     ("Volkswagen", "Bora"): "arac/motosiklet model adi",
@@ -1343,7 +1330,6 @@ BASLIK_DOGAN_ALLOW = {
     ("Volkswagen", "Multivan"): "arac/motosiklet model adi",
     ("Volkswagen", "Pointer"): "arac/motosiklet model adi",
     ("Volkswagen", "Taos"): "arac/motosiklet model adi",
-    ("Volkswagen", "Type 1"): "arac/motosiklet model adi",
     ("Volkswagen", "Vento"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum D): `Vocho` Beetle'in MEKSIKA lakabidir —
     # gercek bir arac adlandirmasi (emsal `Volkswagen|Käfer` satiri, Almanca lakap).
@@ -1351,20 +1337,6 @@ BASLIK_DOGAN_ALLOW = {
     ("Volvo", "340"): "arac/motosiklet model adi",
     ("Volvo", "480"): "arac/motosiklet model adi",
     ("Volvo", "Amazon"): "arac/motosiklet model adi",
-    ("Volvo", "EX30"): "arac/motosiklet model adi",
-    ("Volvo", "S80"): "arac/motosiklet model adi",
-    ("Volvo", "V90"): "arac/motosiklet model adi",
-    ("Volvo", "XC40"): "arac/motosiklet model adi",
-    # 6 Agu — DORT GIRIS BURADAN CIKARILDI (giris OLU idi, SAYFA DEGIL): `Yamaha|FZ1`,
-    # `Yamaha|Tracer 900`, `Yamaha|XSR 700`, `Yamaha|XJ 600`. Yamaha partileri bu kovalara
-    # marka[]/uyum[] jetonu tasiyan urunler ekledi; jeton-yollu urun sayisi ESIK'i gecince
-    # kova artik BASLIK KOLU SAYESINDE dogmuyor (`baslik_dogan=False`) ve yargi girisi
-    # ISLEVSIZ kaliyor. Envanterde birakilan olu giris hicbir sayfa acmaz ama K21'in BAYAT
-    # eksenini kirmizi yakar. Ucunun de sayfasi YAYINDA, ayni slug, ayni urun kumesi
-    # (FZ1 5 urun / Tracer 900 6 urun / XSR700 4 urun / XJ600 4 urun; olculdu: kaybolan
-    # sayfa 0, kuculen sayfa 0, slug degisen 0). Dordu de H1/H3 KURAL KOLUNUN yargiladigi
-    # sekilde (olculdu) — kova bir gun yeniden baslik-dogan olursa sayfa KURALLA dogar,
-    # yargi KAYBOLMAZ.
     ("Yamaha", "Grizzly"): "arac/motosiklet model adi",
     # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum E — ARAC DISI, TEKIL GIRISLE DOGAR):
     # Yamaha cok-dikey bir markadir; bu iki sayfa GERCEK Yamaha urun modelidir ama ARAC
@@ -1373,14 +1345,13 @@ BASLIK_DOGAN_ALLOW = {
     # ciftler ayrica SEKIL_KURALI_MUAF'ta ve H1/H3 onlara yargi VERMEZ, boylece kural
     # arka planda rastgele arac disi jetonlara acik kalmaz.
     ("Yamaha", "P-45"): "ARAC DISI urun modeli (dijital piyano) — tekil giris",
-    ("Yamaha", "Raptor 700"): "arac/motosiklet model adi",
     ("Yamaha", "Recording Custom"): "ARAC DISI urun modeli (davul kiti) — tekil giris",
     ("Yamaha", "Seca"): "arac/motosiklet model adi",
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 185
-BASLIK_DOGAN_ALLOW_IMZA = "e30f93432d886dda"
+BASLIK_DOGAN_ALLOW_SAYISI = 102
+BASLIK_DOGAN_ALLOW_IMZA = "64b5816f2c9ea107"
 
 
 def baslik_dogan_allow_imzasi():
