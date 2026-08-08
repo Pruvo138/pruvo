@@ -567,6 +567,50 @@ AGENT_VAKALARI = [
      "sinif KELIMELERI var ama ETIKET yok -> RED"),
 ]
 
+# === 8 AGU MCP-TARAYICI KAPISI VAKALARI (Okan teftisi K17) ===
+# Mimar ANA oturumunda (agent_id YOK) uc tarayici MCP sunucusunun ARACLARI reddedilir;
+# ISCI'de (agent_id DOLU) serbest. IKI YON de olculur — yanlis-pozitif ekseni (kapsam
+# DISI benzer adli araclar) ayri vakalarla nobettedir; tek yonlu nobetci OLU nobetcidir.
+# MC1/MC2/MC3 mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
+MCP_VAKALARI = [
+    # --- ANA OTURUM: uc sunucu da REDDEDILIR (K1 red ayagi) ---
+    (500, "deny", "mcp__claude-in-chrome__computer", "", None,
+     "MIMAR + claude-in-chrome -> RED"),
+    (501, "deny", "mcp__Claude_Browser__computer", "", None,
+     "MIMAR + Claude_Browser -> RED"),
+    (502, "deny", "mcp__Control_Chrome__open_url", "", None,
+     "MIMAR + Control_Chrome -> RED"),
+    (503, "deny", "mcp__claude-in-chrome__navigate", "", None,
+     "MIMAR + ayni sunucu BASKA arac -> RED (onek kurali)"),
+    (504, "deny", "mcp__Claude_Browser__read_page", "", None,
+     "MIMAR + salt-okunur gorunen arac da RED (goruntu maliyeti)"),
+    # --- ISCI: ayni cagrilar SERBEST (K1 gecer ayagi) ---
+    (510, "allow", "mcp__claude-in-chrome__computer", "", ISCI_ID,
+     "ISCI + claude-in-chrome -> GECER"),
+    (511, "allow", "mcp__Claude_Browser__computer", "", ISCI_ID,
+     "ISCI + Claude_Browser -> GECER"),
+    (512, "allow", "mcp__Control_Chrome__open_url", "", ISCI_ID,
+     "ISCI + Control_Chrome -> GECER"),
+    # --- YANLIS-POZITIF NOBETCISI: KAPSAM DISI araclar ana oturumda REDDEDILMEZ ---
+    (520, "allow", "mcp__visualize__show_widget", "", None,
+     "KAPSAM DISI mcp__visualize__ -> ana oturumda ALLOW"),
+    (521, "allow", "mcp__Blender__get_objects_summary", "", None,
+     "KAPSAM DISI mcp__Blender__ -> ana oturumda ALLOW"),
+    (522, "allow", "mcp__ccd_session__mark_chapter", "", None,
+     "KAPSAM DISI mcp__ccd_session__ -> ana oturumda ALLOW"),
+    (523, "allow", "mcp__ccd_session_mgmt__list_sessions", "", None,
+     "KAPSAM DISI mcp__ccd_session_mgmt__ -> ana oturumda ALLOW"),
+    (524, "allow", "mcp__scheduled-tasks__list_scheduled_tasks", "", None,
+     "KAPSAM DISI mcp__scheduled-tasks__ -> ana oturumda ALLOW"),
+    (525, "allow", "mcp__mcp-registry__list_connectors", "", None,
+     "KAPSAM DISI mcp__mcp-registry__ -> ana oturumda ALLOW"),
+    # Onek SINIRI: sunucu adi kapsamdakine BENZIYOR ama AYNI DEGIL -> ALLOW
+    (526, "allow", "mcp__Claude_Browser_Extra__computer", "", None,
+     "onek SINIRI: 'Claude_Browser_Extra__' kapsamda DEGIL -> ALLOW"),
+    (527, "allow", "mcp__chrome__computer", "", None,
+     "onek SINIRI: kisa 'mcp__chrome__' kapsamda DEGIL -> ALLOW"),
+]
+
 # COMMIT KAPISI — kanca degil, dogrudan betik cagrisi.
 # (no, beklenen_exit, stdin, ek_env, gitdir_hazirlik, aciklama)
 COMMIT_VAKALARI = [
@@ -624,6 +668,12 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None):
         # spec alani 'prompt' (hedef = prompt metni).
         kanca = ICRA
         tool_input = {"prompt": hedef}
+    elif arac.startswith("mcp__"):
+        # 8 AGU MCP-TARAYICI KAPISI: MCP araclari da ICRA kapisina baglanir. Karar YALNIZ
+        # tool_name'den cikar (arac-ozel girdi semasi TAKLIT EDILMEZ) — hedef alani
+        # bilerek BOS birakilir, boylece vaka "adi tanidi mi" eksenini ISOLE olcer.
+        kanca = ICRA
+        tool_input = {}
     else:  # Write | Edit | MultiEdit
         kanca = KILIT
         tool_input = {"file_path": hedef, "content": "x"}
@@ -943,6 +993,7 @@ def main():
         ("CWD REPO DISINDA (F adiminin kalan isi) — MIMAR kimligi", DIS_CWD_VAKALARI, DIS_CWD),
         ("22 TEM SERTLESTIRME (olcum/curl/codex/python-allowlist/sh-nobetci)", MIMAR_22TEM_VAKALARI, REPO),
         ("28 TEM AGENT-KAPISI (Agent/Task beyan sarti) — MIMAR + ISCI ekseni", AGENT_VAKALARI, REPO),
+        ("8 AGU MCP-TARAYICI KAPISI — ANA RED / ISCI GECER + YANLIS-POZITIF nobeti", MCP_VAKALARI, REPO),
     ]
 
     toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 3
