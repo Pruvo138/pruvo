@@ -207,6 +207,7 @@ GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVK
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE"></script>
 <script>
   gtag('js', new Date());
+  gtag('config', 'AW-18330673570');
   gtag('config', 'G-5V53CQMSCE', { 'anonymize_ip': true });
 </script>"""
 

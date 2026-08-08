@@ -76,6 +76,13 @@ CEKIRDEK_BAS = "  window.dataLayer = window.dataLayer || [];"
 CEKIRDEK_SON_KALIP = re.compile(r"  gtag\('config', '(G-[A-Z0-9]+)', \{ 'anonymize_ip': true \}\);\n</script>")
 
 RIZA_ALANLARI = ("ad_storage", "ad_user_data", "ad_personalization", "analytics_storage")
+
+# Google Ads donusum etiketi. Kimlik GIZLI DEGIL (GA olcum kimligi gibi herkese acik).
+# Rizadan BAGIMSIZ durur: ad_storage 'denied' iken de yapilandirma sayfada bulunur,
+# istek ads_data_redaction ile tanimlayicisiz gider; riza gelince ayni yapilandirma
+# tam donusum olcumune doner. Bu yuzden eksen "riza varsa" degil KOSULSUZ olculur.
+AW_KIMLIGI = "AW-18330673570"
+AW_CONFIG = "gtag('config', '%s');" % AW_KIMLIGI
 TASIMA_AYARLARI = ("url_passthrough", "ads_data_redaction")
 
 # syncUrl'in KORUMAK ZORUNDA oldugu reklam parametreleri (Google Ads + kampanya etiketi).
@@ -273,6 +280,13 @@ def eksenler(metin, olcum_kimligi):
     eksik = []
     if olcum_kimligi not in metin or "googletagmanager.com/gtag/js" not in metin:
         eksik.append("(a) olcum etiketi")
+
+    # (f) GOOGLE ADS DONUSUM ETIKETI. Ayri eksen, cunku hatasi (a)'dan BAGIMSIZ ve
+    # SESSIZ: GA etiketi yerinde dururken Ads yapilandirmasi dusebilir; panelde
+    # "Sayfa goruntuleme = Hatali yapilandirilmis" olarak GORUNUR ama sitede hicbir
+    # sey bozulmaz, kimse fark etmez. Kimlik gizli DEGIL (GA olcum kimligi gibi).
+    if AW_CONFIG not in metin:
+        eksik.append("(f) Ads donusum etiketi yapilandirmasi YOK (%s)" % AW_KIMLIGI)
 
     # (b) VARSAYILAN denied — gevsetmeye karsi: dort alanin dordu de ACIKCA 'denied'.
     riza_var = "'consent', 'default'" in metin or '"consent", "default"' in metin
@@ -491,6 +505,7 @@ _F_SNIPPET = '''<!-- GA4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TESTFIX01"></script>
 <script>
   gtag('js', new Date());
+  gtag('config', 'AW-18330673570');
   gtag('config', 'G-TESTFIX01', { 'anonymize_ip': true });
 </script>'''
 
@@ -669,6 +684,12 @@ def _senaryolar():
         ("K15 bant metninden geri alma hakki dusurulur", KIRMIZI,
          dict(bant=_F_BANNER.replace(", onayınızı istediğiniz zaman geri alabilirsiniz",
                                      ""))),
+        # K16: Ads donusum etiketi (f) ekseni — GA etiketi yerinde dururken bu satirin
+        # dusmesi SESSIZDIR: sitede hicbir sey bozulmaz, yalniz Ads paneli "hatali
+        # yapilandirilmis" der ve reklam butcesi yanlis okunur.
+        ("K16 Ads donusum etiketi yapilandirmasi dusurulur", KIRMIZI,
+         dict(snippet=_F_SNIPPET.replace(
+             "  gtag('config', 'AW-18330673570');\n", ""))),
         ("Y0 saglam agac YESIL", YESIL, dict()),
         ("Y1-Y6 kapsam disi benzer dosyalar + docstring REDDEDILMEZ", YESIL,
          dict(ekler=_Y_EKLER)),

@@ -195,6 +195,14 @@ BILEREK_DEGISEN_TAM = (
      "YENI kapsam adi (tek kaynak)"),
     ("window.pruvoRizaUygula = function(d){ var g={},a=window.PRUVO_RIZA_ALANLARI,i; for(i=0;i<a.length;i++){ g[a[i]]=d; } gtag('consent','update',g); };",
      "YENI grant/revoke yolu; bandin dort varyanti kumeyi elle TEKRARLAMAZ"),
+    # 2026-08-08 — GOOGLE ADS DONUSUM ETIKETI yapilandirmasi eklendi (TEK satir).
+    # Kiyas commit'inde HIC yoktu: Ads panelinde "Sayfa goruntuleme = Hatali
+    # yapilandirilmis" bunun SONUCUYDU. Varliga-tasima kaybi DEGIL, eksik olcum
+    # kablolamasinin tamamlanmasi.
+    # 🔴 IDDIA TASINDI: satirin HER sayfa sinifinda fiilen durdugunu
+    # tools/reklam-etiket-kapisi.py (f) ekseni fail-closed olcer (K16 mutanti nobetler).
+    ("gtag('config', 'AW-18330673570');",
+     "Ads donusum etiketi yapilandirmasi — YENI satir (nobetci: reklam-etiket-kapisi.py (f))"),
 )
 
 # ---------------------------------------------------------------- GORUNUR METIN BEYANI

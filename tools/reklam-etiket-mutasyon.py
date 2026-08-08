@@ -130,6 +130,8 @@ MUTANTLAR = [
     # sessizce SERBEST GECISE doner.
     ("M13 bant metni reklam cerezini BEYAN ETMEYI birakir", True,
      [("index.html", "reklam çerezleri (Google Ads) ", "")]),
+    ("M14 Ads donusum etiketi yapilandirmasi sessizce kalkar", True,
+     [("index.html", "  gtag('config', 'AW-18330673570');\n", "")]),
     # KONTROL: davranisi DEGISTIRMEYEN duzenleme -> YESIL KALMALI.
     ("K1 KONTROL yorum metni degisir (davranis AYNI)", False,
      [("index.html", "/* filtre adıyla çakışırsa filtre kazanır */",
