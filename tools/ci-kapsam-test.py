@@ -1763,6 +1763,22 @@ IZIN_LISTESI = {
     "tools/mimar-commit-kapisi.py": (
         R_HOOK + " Ayrica git commit backstop'u olarak commit EDILMEYEN .git/hooks kablolamasina "
         "ve ana-checkout/worktree ayrimina bagli (R_YOL ile ayni sinif)."),
+    # 8 Agu 2026 — GIT pre-commit kancasi (tools/kancalar/pre-commit adim 5). R_HOOK'un
+    # ORTAK cekirdegi gecerlidir ("kanca, kosulabilir kabul testi DEGIL"); PreToolUse/stdin
+    # cumlesi bu giris icin GECERSIZDIR (kardesi mimar-commit-kapisi.py ile ayni sinif).
+    # 🔴 CI'DA DUZ KOSTURMAK COZUM DEGIL, ANLAMSIZ YESILDIR (olculdu): kapinin ekseni
+    # INDEX'tir ve fresh CI checkout'unda index == HEAD -> kapi "ATLANDI: urunler.json
+    # INDEX'te HEAD'e gore DEGISMEDI" deyip rc=0 verir. Yani adim her kosumda yesil yanar
+    # ve HICBIR SEY olcmez; bu depoda defalarca olculmus bir sinif
+    # ([[hukum-yanlis-birimde]] · [[olculdu-diyen-hukum-kaniti]]).
+    # OLCULEN KOL CI'DA ZATEN KOSUYOR: tools/katalog-alan-kapisi-test.py (deploy.yml
+    # serit-a2) sentetik depolarda GERCEK kapiyi + GERCEK arama.py'yi kosturur; kapinin
+    # kanca kolu ise kanca-nobeti.py/kanca-kablolama-nobeti.py eksenlerinde olculur.
+    "tools/katalog-alan-kapisi.py": (
+        R_HOOK + " ⚠️ Bu giriste PreToolUse cumlesi GECERSIZ: bu bir GIT pre-commit kancasidir. "
+        "CI checkout'unda index == HEAD oldugu icin kapi 'ATLANDI: DEGISMEDI' deyip rc=0 verir "
+        "-> CI'da duz kosum ANLAMSIZ YESILDIR. Olculen kol CI'da kosuyor: "
+        "tools/katalog-alan-kapisi-test.py (serit-a2)."),
     # "tools/denetim-kapisi.py" MUAFIYETI KALDIRILDI (31 Tem, madde 32) — R_GIZLI gerekcesi
     # (shop/test/kabul.js vakasinin AYNISI) YARI DOGRUYDU ve tam da bu yuzden tehlikeliydi:
     #  (a) "parti CI'da BOS kalir -> anlamsiz YESIL" kismi OLCULEREK DOGRULANDI (git archive

@@ -30,13 +30,28 @@ E  EKSEN    Calisma agaci BOZUK + index TEMIZ -> rc=0. Kapinin ekseni INDEX'tir.
 O1 OLCULEMEDI  index'teki JSON bozuksa rc=2 (0 DEGIL, 1 DEGIL).
 O2 OLCULEMEDI  tools/arama.py yoksa rc=2 — kanonik kaynak kayipken hukum VERILMEZ.
 O3 OLCULEMEDI  arguman verilirse rc=2 (ikinci bir eksen/kip ACILMAZ).
+            🔴 ILK SURUMDE BEYAN EDILMIS SURVIVOR'DI (mimar iadesi, 9 Agu): O3 `arama.py`
+            OLMAYAN depoda kosuyordu, yani rc=2 argumandan DEGIL kayip kanonik modulden
+            geliyordu — iddia katmanlarin VEYA'sini olcuyordu ([[beyan-edilmis-survivor]]).
+            ARTIK: `arama.py` OLAN, index'i TEMIZ bir depoda kosar ve AYIRT EDICI KONTROL
+            tasir (ayni depoda ARGUMANSIZ cagri rc=0 vermeli). Nobeti: MUT-ARG.
 KOK         GERCEK worktree + GERCEK kanca baglaminda kapinin BASTIGI kok, o
             worktree'nin kokudur ([[kanca-git-dir-kok-cozumu]]).
+KOK-ALT     🔴 AYIRT EDICI KOL (mimar iadesi, 9 Agu): yukaridaki KOK olcumu her iki kolu
+            da cwd = AGACIN TEPESI'nde kosturur; orada `__file__` turetimi ile
+            `rev-parse --show-toplevel` AYNI cevabi verir, yani KOK ekseni kok cozumunu
+            OLCMUYORDU ([[olculdu-diyen-hukum-kaniti]]). Bu vaka kapiyi GERCEK kanca
+            ortaminda ve cwd = `<agac>/tools` (tepe DEGIL) iken cagirir; orada iki
+            uygulama AYRISIR. Nobeti: MUT-KOK.
 INDEX       Miras alinan GIT_INDEX_FILE ONURLANIR (ortam TEMIZLENMEZ) + AYIRT
             EDICI KONTROL: ayni agacta degisken VERILMEDIGINDE hukum rc=0'dir.
             Bu ikisi kapinin docstring'indeki (1)/(2) tuzaklarinin AYRI olcumudur.
 MUT-ALT     `altkategori_sebebi` kolu KALDIRILAN kopyada A1 YESILE doner (mutant
 MUT-UYUM    olur) ve A2 KIRMIZI KALIR; `uyum_sebebi` kolu icin simetrigi.
+MUT-ARG     `main()`'deki arguman kolu (`if len(argv) > 1:`) SILINEN kopyada O3 dusmeli;
+            A1/A2 AYAKTA kalmali (yani O3 gercekten O KOLU olcuyor).
+MUT-KOK     `ROOT` turetimi `rev-parse --show-toplevel`e cevrilen kopyada KOK-ALT dusmeli;
+            A1/A2 AYAKTA kalmali (eski eksenler bu bozulmaya KORDU — kanit budur).
             🔴 [[mutasyon-diske-yazma-tuzagi]] + [[mutasyon-bytecode-onbellegi]]:
             mutant AYRI dizine yazilir, bytecode yazimi kapalidir ve mutasyonun
             FIILEN uygulandigi (metin degisti mi) AYRICA dogrulanir.
@@ -50,6 +65,7 @@ hukum KIRMIZI'dir.
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -66,7 +82,7 @@ GERCEK_KATALOG = os.path.join(GERCEK_KOK, "urunler.json")
 
 # Bir iddia silmek MESRU olabilir; sessizce kaybolmasi DEGIL. Iddia sayisi bunun
 # altina duserse hukum KIRMIZI olur ve taban AYNI commit'te gerekceyle dusurulur.
-IDDIA_TABANI = 33
+IDDIA_TABANI = 49
 
 # Git baglam scrub'inin TEK KAYNAGI tools/git_ortami.py'dir; burada IKINCI bir
 # kume TANIMLANMAZ ([[ikiz-tanim-sessiz-ayrisma]]). Surucunun kendi cocuk
@@ -83,6 +99,35 @@ MUTASYONLAR = (
      "None"),
     ("MUT-UYUM", "arama.uyum_sebebi(u)", "None"),
 )
+
+# ARGUMAN KOLU mutanti: `main()`in "ikinci eksen ACILMAZ" kolu tumuyle etkisizlesir.
+MUT_ARG_CAPA = "if len(argv) > 1:"
+MUT_ARG_YERINE = "if False:"
+
+# KOK TURETIMI mutanti: `__file__` yerine `rev-parse --show-toplevel` (CWD'ye bagli,
+# `-C` YOK — bu depodaki ESKI kanca govdelerinin birebir deyimi:
+# `root=$(git rev-parse --show-toplevel)`).
+# 🔴 MUTANT KASITLI OLARAK "ZOR" SECILDI: cwd = AGACIN TEPESI iken bu ifade DOGRU cevabi
+# verir, yani tepede kosan sondalara (git_ortami.worktree_kanca_kok_olcumu) GORUNMEZ.
+# Yalnizca cwd tepe DEGILKEN ve kanca ortami (MUTLAK GIT_DIR + BOS GIT_WORK_TREE)
+# git'in depo KESFINI atlattiginda ayrisir: git CARI DIZINI agacin tepesi sanar.
+# `subprocess` bu satirdan ONCE import edilmis durumda -> mutant SOZDIZIMSEL olarak gecerli.
+MUT_KOK_CAPA = "ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))"
+MUT_KOK_YERINE = ('ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], '
+                  'capture_output=True, text=True).stdout.strip()')
+
+_KOK_DESENI = re.compile(r"olculen agac = (.+?)\s*$", re.M)
+
+# cwd'yi AGACIN TEPESINDEN alt dizine kaydiran GERCEK pre-commit kancasi. git kancayi
+# tepede baslatir; `cd` olmadan iki kok turetimi AYNI cevabi verir ve eksen KOR kalir.
+_ALT_KANCA_GOVDESI = """#!/bin/sh
+# Sentetik pre-commit: kapiyi ALT DIZINDEN (cwd != agacin tepesi) ve kanca ortaminda
+# kosar, ciktisini kaydeder, commit'i BLOKLAMAZ (olculen sey BASILAN KOK).
+cd "%(altdizin)s" || exit 0
+"%(python)s" "%(kapi)s" > "%(kayit)s" 2>&1
+printf 'SONDA_RC=%%s\\n' "$?" >> "%(kayit)s"
+exit 0
+"""
 
 TEMIZ_KAYIT = {
     "id": "sentetik-temiz-1",
@@ -306,6 +351,23 @@ def vaka_eksen(s, kok):
 # ---------------------------------------------------------------------------
 # O — OLCULEMEDI kolu (rc=2 YESIL SAYILMAZ)
 # ---------------------------------------------------------------------------
+def _arguman_kolu_kos(kok, ad, kapi_kaynagi):
+    """(rc_argumanli, rc_argumansiz) — `arama.py` VAR ve index TEMIZ bir depoda.
+
+    🔴 IKI SART DA KASITLI ([[beyan-edilmis-survivor]]): `arama.py` VAR ki rc=2 kayip
+    modulden GELMESIN; index TEMIZ ki argumansiz kol rc=0 versin ve iddia AYIRT EDICI
+    olsun. Ilk surumde bu vaka `arama.py`si OLMAYAN depoda kosuyordu ve arguman kolunu
+    tumuyle silen mutant surucuyu YESIL birakiyordu.
+    """
+    d = depo_kur(os.path.join(kok, ad), kapi_kaynagi, [TEMIZ_KAYIT])
+    kapi = os.path.join(d, "tools", "katalog-alan-kapisi.py")
+    p = subprocess.run([sys.executable, kapi, "--calisma-agaci"], cwd=d,
+                       capture_output=True, text=True, errors="replace",
+                       env=go.git_ortami())
+    rc_argsiz, _ = kapiyi_kos(d)
+    return p.returncode, rc_argsiz
+
+
 def vaka_olculemedi(s, kok):
     d = depo_kur(os.path.join(kok, "o1"), GERCEK_KAPI, [TEMIZ_KAYIT])
     stage_et(d, None, ham='[{"id": "bozuk", ')
@@ -320,18 +382,68 @@ def vaka_olculemedi(s, kok):
     s.bekle("O2.arama-yok-rc2", rc == 2,
             "kanonik kaynak kayipken hukum VERILMEZ; rc=%d cikti=%s" % (rc, c[-300:]))
 
-    p = subprocess.run([sys.executable, os.path.join(d2, "tools",
-                                                     "katalog-alan-kapisi.py"),
-                        "--calisma-agaci"],
-                       cwd=d2, capture_output=True, text=True, errors="replace",
-                       env=go.git_ortami())
-    s.bekle("O3.ikinci-eksen-acilmiyor", p.returncode == 2,
-            "ikinci bir kip/eksen YOKTUR, arguman rc=2 vermeli; rc=%d" % p.returncode)
+    rc_arg, rc_argsiz = _arguman_kolu_kos(kok, "o3", GERCEK_KAPI)
+    s.bekle("O3.ikinci-eksen-acilmiyor", rc_arg == 2,
+            "ikinci bir kip/eksen YOKTUR, arguman rc=2 vermeli; rc=%d" % rc_arg)
+    s.bekle("O3.ayirt-edici-kontrol", rc_argsiz == 0,
+            "AYNI depoda ARGUMANSIZ cagri rc=0 olmali — yoksa rc=2 argumandan degil "
+            "deponun halinden geliyordur (survivor); rc=%d" % rc_argsiz)
 
 
 # ---------------------------------------------------------------------------
 # KOK — worktree + GERCEK kanca baglaminda basilan kok
 # ---------------------------------------------------------------------------
+def _altdizin_kanca_kok(kok, ad, kapi_kaynagi):
+    """(worktree_koku, basilan_kok, kanca_ciktisi) — GERCEK worktree + GERCEK kanca,
+    cwd = `<worktree>/tools` (agacin TEPESI DEGIL).
+
+    🔴 NEDEN ALT DIZIN: git kancayi agacin TEPESINDE baslatir; orada `__file__` turetimi
+    ile `rev-parse --show-toplevel` AYNI cevabi verir ve kok ekseni KOR kalir (mimar
+    iadesi, 9 Agu). Kanca `cd` ile alt dizine gecince kanca ortami (MUTLAK GIT_DIR +
+    BOS GIT_WORK_TREE) git'in depo KESFINI atlatir ve `-C <alt dizin>` cagrisi o ALT
+    DIZINI agacin tepesi sanar -> iki uygulama AYRISIR.
+    """
+    ana = os.path.join(kok, ad + "-ana")
+    os.makedirs(os.path.join(ana, "tools"))
+    _git(ana, "init", "-q", "-b", "main")
+    _git(ana, "config", "user.email", "t@t.local")
+    _git(ana, "config", "user.name", "t")
+    shutil.copyfile(GERCEK_ARAMA, os.path.join(ana, "tools", "arama.py"))
+    shutil.copyfile(kapi_kaynagi, os.path.join(ana, "tools", "katalog-alan-kapisi.py"))
+    _json_yaz(os.path.join(ana, "urunler.json"), [TEMIZ_KAYIT])
+    with open(os.path.join(ana, "veri.txt"), "w", encoding="utf-8") as f:
+        f.write("sentetik icerik\n")
+    _git(ana, "add", "-A")
+    _git(ana, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "taban")
+
+    wt = os.path.join(kok, ad + "-wt")
+    _git(ana, "worktree", "add", "-q", "-b", ad + "-dal", wt)
+    gercek_wt = os.path.realpath(wt)
+
+    kayit = os.path.join(kok, ad + "-kanca-cikti.txt")
+    kanca = os.path.join(ana, ".git", "hooks", "pre-commit")
+    os.makedirs(os.path.dirname(kanca), exist_ok=True)
+    with open(kanca, "w", encoding="utf-8") as f:
+        f.write(_ALT_KANCA_GOVDESI % {
+            "altdizin": os.path.join(gercek_wt, "tools"),
+            "python": sys.executable,
+            "kapi": os.path.join(gercek_wt, "tools", "katalog-alan-kapisi.py"),
+            "kayit": kayit})
+    os.chmod(kanca, 0o755)
+
+    with open(os.path.join(wt, "veri.txt"), "a", encoding="utf-8") as f:
+        f.write("worktree'de degisiklik\n")
+    _git(wt, "add", "-A")
+    _git(wt, "commit", "-q", "-m", "kok sondasi")
+
+    cikti = ""
+    if os.path.exists(kayit):
+        with open(kayit, encoding="utf-8", errors="replace") as f:
+            cikti = f.read()
+    m = _KOK_DESENI.search(cikti)
+    return gercek_wt, (m.group(1).strip() if m else None), cikti
+
+
 def vaka_kok(s, kok):
     olcum = go.worktree_kanca_kok_olcumu(GERCEK_KAPI, "katalog-alan-kapisi.py")
     s.bekle("KOK.kanca-kosti", olcum["kanca_kosti"],
@@ -342,6 +454,16 @@ def vaka_kok(s, kok):
     s.bekle("KOK.kancasiz-dogru-kok", olcum["kancasiz"][2],
             "kancasiz cagride de kok worktree koku olmali; olculen=%r"
             % (olcum["kancasiz"][1],))
+
+    # AYIRT EDICI KOL — cwd = <worktree>/tools (tepe DEGIL), gercek kanca ortami.
+    wt, basilan, cikti = _altdizin_kanca_kok(kok, "kokalt", GERCEK_KAPI)
+    s.bekle("KOK-ALT.kanca-kosti", bool(cikti) and basilan is not None,
+            "alt dizin sondasi kok satirini basmadi -> eksen olculemedi; cikti=%s"
+            % cikti[-300:])
+    s.bekle("KOK-ALT.altdizinde-dogru-kok",
+            basilan is not None and os.path.realpath(basilan) == wt,
+            "cwd=<agac>/tools iken bile kok AGACIN TEPESI olmali; olculen=%r beklenen=%s"
+            % (basilan, wt))
 
 
 # ---------------------------------------------------------------------------
@@ -420,6 +542,79 @@ def vaka_mutasyon(s, kok):
                 "mutant dizininde __pycache__ olusmus ([[mutasyon-bytecode-onbellegi]])")
 
 
+def _mutant_yaz(kok, etiket, kaynak, capa, yerine, s):
+    """(mutant_kapi_yolu|None) — capayi tekillik + FIILEN uygulanma ile dogrulayarak yazar."""
+    sayi = kaynak.count(capa)
+    s.bekle("%s.capa-tekil" % etiket, sayi == 1,
+            "mutasyon capasi kaynakta TAM 1 kez gecmeli; gecti=%d capa=%r" % (sayi, capa))
+    if sayi != 1:
+        return None
+    mut_dizin = os.path.join(kok, "mutant-" + etiket)
+    os.makedirs(mut_dizin)
+    mut_kapi = os.path.join(mut_dizin, "katalog-alan-kapisi.py")
+    govde = kaynak.replace(capa, yerine)
+    with open(mut_kapi, "w", encoding="utf-8") as f:
+        f.write(govde)
+    s.bekle("%s.mutasyon-fiilen-uygulandi" % etiket,
+            govde != kaynak and capa not in govde,
+            "mutant metni kaynakla AYNI kalmis -> mutasyon UYGULANMADI "
+            "([[mutasyon-diske-yazma-tuzagi]])")
+    return mut_kapi
+
+
+def vaka_mutasyon_arg_kok(s, kok):
+    """MUT-ARG ve MUT-KOK: SART 2 ve SART 3'un ayirt edici nobetleri.
+
+    Her mutant icin IKI iddia: (1) HEDEF eksen DUSUYOR mu, (2) OTEKI eksenler (A1/A2)
+    AYAKTA mi. Ikincisi olmadan "eski 33 iddia bu bozulmaya kordu" hukmu KANITSIZ kalir.
+    """
+    with open(GERCEK_KAPI, encoding="utf-8") as f:
+        kaynak = f.read()
+
+    # --- MUT-ARG: `main()`'in arguman kolu etkisizlestirilir --------------------
+    mut = _mutant_yaz(kok, "MUT-ARG", kaynak, MUT_ARG_CAPA, MUT_ARG_YERINE, s)
+    if mut:
+        rc_arg, rc_argsiz = _arguman_kolu_kos(kok, "mutarg", mut)
+        s.bekle("MUT-ARG.oldurdu", rc_arg != 2,
+                "arguman kolu SILININCE O3 dusmeli (rc 2 OLMAMALI); rc=%d" % rc_arg)
+        s.bekle("MUT-ARG.kontrol-argumansiz", rc_argsiz == 0,
+                "mutant argumansiz kolu bozmamali (harness saglam mi); rc=%d" % rc_argsiz)
+        rc_a1, _ = _tek_eksen_kos(kok, "mutarg-alt", mut, BOZUK_ALTKATEGORI)
+        rc_a2, _ = _tek_eksen_kos(kok, "mutarg-uyum", mut, BOZUK_UYUM)
+        s.bekle("MUT-ARG.eski-eksenler-diri", rc_a1 == 1 and rc_a2 == 1,
+                "A1/A2 bu mutanta KOR olmali (yoksa hangi eksenin olctugu ANLASILMAZ); "
+                "A1 rc=%d A2 rc=%d" % (rc_a1, rc_a2))
+        s.bekle("MUT-ARG.bytecode-bulasmadi",
+                not os.path.exists(os.path.join(os.path.dirname(mut), "__pycache__")),
+                "mutant dizininde __pycache__ olusmus")
+
+    # --- MUT-KOK: kok turetimi `rev-parse --show-toplevel`a cevrilir ------------
+    mut = _mutant_yaz(kok, "MUT-KOK", kaynak, MUT_KOK_CAPA, MUT_KOK_YERINE, s)
+    if mut:
+        wt, basilan, cikti = _altdizin_kanca_kok(kok, "mutkok", mut)
+        s.bekle("MUT-KOK.sonda-kosti", bool(cikti) and basilan is not None,
+                "mutant sonda kok satirini basmadi -> mutant OLCULEMEDI; cikti=%s"
+                % cikti[-300:])
+        s.bekle("MUT-KOK.oldurdu",
+                basilan is not None and os.path.realpath(basilan) != wt,
+                "kok turetimi `--show-toplevel`e cevrilince KOK-ALT dusmeli; "
+                "olculen=%r worktree=%s" % (basilan, wt))
+        # ESKI KOL AYIRT EDICI DEGIL: ayni mutant, cwd = agacin TEPESI olan sondada
+        # AYNI koku basar -> o kol bu bozulmayi GORMEZ. Kanit burada dursun.
+        eski = go.worktree_kanca_kok_olcumu(mut, "katalog-alan-kapisi.py")
+        s.bekle("MUT-KOK.eski-kok-kolu-kor", eski["kanca"][2] is True,
+                "tepede kosan eski KOK kolu bu mutanti YAKALAMAMALI (yakalasaydi "
+                "KOK-ALT gereksiz olurdu); olculen=%r" % (eski["kanca"],))
+        rc_a1, _ = _tek_eksen_kos(kok, "mutkok-alt", mut, BOZUK_ALTKATEGORI)
+        rc_a2, _ = _tek_eksen_kos(kok, "mutkok-uyum", mut, BOZUK_UYUM)
+        s.bekle("MUT-KOK.eski-eksenler-diri", rc_a1 == 1 and rc_a2 == 1,
+                "A1/A2 bu mutanta KOR olmali (cwd = agacin tepesi oldugu icin iki kok "
+                "turetimi ayni cevabi verir); A1 rc=%d A2 rc=%d" % (rc_a1, rc_a2))
+        s.bekle("MUT-KOK.bytecode-bulasmadi",
+                not os.path.exists(os.path.join(os.path.dirname(mut), "__pycache__")),
+                "mutant dizininde __pycache__ olusmus")
+
+
 # ---------------------------------------------------------------------------
 def main():
     print("KATALOG ALAN KAPISI — KABUL TESTI")
@@ -437,6 +632,8 @@ def main():
         vaka(s, "KOK — worktree + gercek kanca baglami", vaka_kok, kok)
         vaka(s, "INDEX — miras alinan GIT_INDEX_FILE", vaka_index_dosyasi, kok)
         vaka(s, "MUT — dogrulama kollarinin AYRI AYRI oldurulmesi", vaka_mutasyon, kok)
+        vaka(s, "MUT — arguman kolu (SART 2) + kok turetimi (SART 3)",
+             vaka_mutasyon_arg_kok, kok)
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
