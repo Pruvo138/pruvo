@@ -1057,8 +1057,90 @@ def alan_capa_iddialari(gercek, gercek_govde, gecici_kapi, iddia, not_yaz=None):
 KANCA_ADLARI = ("pre-commit", "commit-msg", "pre-push", "post-commit",
                 "post-checkout", "post-merge")
 KANCA_GERCEK_ARAC = ("kanca-kur.py", "diriltme-kapisi.py", "git_ortami.py")
-KANCA_STUB_ARAC = ("urunler-guard.py", "mukerrer-kontrol.py",
-                   "mimar-commit-kapisi.py", "commit-mesaji-kapisi.py")
+
+# 🔴 9 AGU 2026 ONARIMI — "FIKSTUR GERCEK REPO SEKLINI TAKLIT ETMIYOR" SINIFI.
+#   `bdddaee0` kancaya 5. adimi ekledi (tools/katalog-alan-kapisi.py, FAIL-CLOSED).
+#   Sentetik depo o dosyayi TASIMADIGI icin kanca HER sentetik commit'i "…YOK" ile
+#   durdurdu: K3/K4/K6/K8/M1/M2/W4/W-M2 = 8 iddia kirmizi, CI serit-b dustu.
+#   Kanca DOGRUYDU; arizali olan FIKSTURDU.
+#   Stub listesini ELDE tutmak TEKIL YAMADIR: kancaya eklenen HER yeni fail-closed
+#   adim ayni kirmiziyi geri getirir ([[tekil-yama-sinifi-kapatmaz]],
+#   [[ikiz-tanim-sessiz-ayrisma]]). Bu yuzden liste ELDE TUTULMAZ, KANONIK
+#   KAYNAKTAN — gercek kanca govdelerinden — TURETILIR ve fikstur onu OTOMATIK serer.
+# KAPSAM = commit'i BLOKLAYABILEN kancalar. `git commit` yolunda yalniz bu ikisi
+#   fail-closed hukum verir; `pre-push` bu fikstur tarafindan HIC kosturulmaz ve
+#   `post-commit` commit'i geri alamaz -> onlarin araclarini burada aramak olcum
+#   yapmayan bir gurultu olurdu ([[kapi-kapsam-eksen-secimi]]).
+KANCA_KAPI_KANCALARI = ("pre-commit", "commit-msg")
+# ATAMA EKSENI: `"$pruvo_kok/tools/<ad>.py"` · `"${root}/tools/<ad>.py"` — DEGISKEN
+# ADINDAN BAGIMSIZ (pruvo_kok, pruvo_cm_kok, root…). Duz prozadaki "tools/foo.py"
+# YAKALANMAZ: capa `$<degisken>/` on ekidir, yani gercek bir kabuk referansidir.
+_KANCA_ARAC_KALIBI = re.compile(
+    r"\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/tools/([A-Za-z0-9_.-]+\.py)")
+# TEST EKSENI (AYRI CAPA): `[ -f "$var" ]` / `[ ! -f "$var" ]` varlik testleri +
+# `var="$kok/tools/x.py"` atamalari. Turetme ATAMA ekseninden, capraz kontrol TEST
+# ekseninden okur; biri otekini kapsamazsa iddia kirmizi yanar — tek eksende
+# korlesme YOK ([[nobetci-kanonik-kaynagi-tek-eksende]]).
+_KANCA_VARLIK_TESTI = re.compile(r"\[\s*!?\s*-f\s+\"\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?\"")
+_KANCA_ATAMASI = re.compile(
+    r"^\s*([A-Za-z_][A-Za-z0-9_]*)=\"\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/tools/"
+    r"([A-Za-z0-9_.-]+\.py)\"", re.M)
+
+
+def _kanca_govdeleri():
+    """{kanca_adi: govde} — commit'i bloklayan GERCEK kanca kaynaklari.
+
+    FAIL-CLOSED: kaynak dosya yoksa istisna; "okuyamadim" sessizce "gerek yok"
+    demek DEGILDIR."""
+    out = {}
+    for ad in KANCA_KAPI_KANCALARI:
+        yol = os.path.join(TOOLS, "kancalar", ad)
+        if not os.path.isfile(yol):
+            raise RuntimeError(
+                "FIKSTUR FAIL-CLOSED: commit yolundaki kanca kaynagi YOK: %s -> "
+                "sentetik depo gercek repo seklini taklit edemez" % yol)
+        with open(yol, encoding="utf-8") as f:
+            out[ad] = f.read()
+    return out
+
+
+def _kancalarin_cagirdigi_araclar():
+    """Commit'i BLOKLAYAN kanca govdelerinin cagirdigi arac kumesi (ATAMA ekseni).
+
+    FAIL-CLOSED: kume BOS donerse (capa bayatladi, govde bosaldi…) sessizce
+    "0 dosya gerekiyormus" DENMEZ — istisna atilir, ayak KIRMIZI yanar. Sessiz bos
+    liste tam da onarilan arizayi geri getirirdi ([[olculdu-diyen-hukum-kaniti]])."""
+    bulunan = set()
+    for govde in _kanca_govdeleri().values():
+        bulunan.update(_KANCA_ARAC_KALIBI.findall(govde))
+    if not bulunan:
+        raise RuntimeError(
+            "FIKSTUR FAIL-CLOSED: commit'i bloklayan kancalarda HIC `$kok/tools/*.py` "
+            "referansi YOK -> gerekli arac listesi TURETILEMEDI. Sessizce '0 dosya "
+            "gerekiyor' SAYILMAZ; _KANCA_ARAC_KALIBI capasi bayatlamis olabilir.")
+    return bulunan
+
+
+def _kanca_stub_araclari():
+    """Sentetik depoya STUB serilecek tools/*.py adlari (sirali, GERCEK'ler haric).
+
+    ELLE TUTULAN LISTE YOK: kancaya yeni bir fail-closed adim eklendiginde bu kume
+    KENDILIGINDEN buyur ve fikstur dosyayi otomatik saglar. GERCEK kopyalananlar
+    (KANCA_GERCEK_ARAC) disarida kalir: bu ayagin olctugu eksen DIRILTME adimidir,
+    diger kapilarin yalnizca VARLIK kontrolunu gecmesi yeter."""
+    return tuple(sorted(a for a in _kancalarin_cagirdigi_araclar()
+                        if a not in KANCA_GERCEK_ARAC))
+
+
+def _kanca_varlik_testi_araclari():
+    """`[ -f "$var" ]` TEST ekseninden okunan arac adlari (capraz kontrol capasi)."""
+    bulunan = set()
+    for govde in _kanca_govdeleri().values():
+        atama = dict(_KANCA_ATAMASI.findall(govde))
+        for degisken in _KANCA_VARLIK_TESTI.findall(govde):
+            if degisken in atama:
+                bulunan.add(atama[degisken])
+    return bulunan
 
 # MUTASYON BATARYASI — SURUCU REPODA DURUR ([[mutasyon-kaniti-yeniden-uretilebilir]]).
 # Her giris: (ad, sinif, capa, yerine, gerekce). <capa> GERCEK `tools/kancalar/pre-commit`
@@ -1122,7 +1204,8 @@ def _kanca_deposu(kok, ad, mutasyon=None, arac_mutasyon=None):
                 f.write(arac_govde.replace(capa, yerine, 1))
             continue
         shutil.copyfile(kaynak, os.path.join(t, a))
-    for a in KANCA_STUB_ARAC:
+    # STUB'LAR KANONIK KAYNAKTAN TURETILIR (elle liste YOK) — bkz. yukarisi.
+    for a in _kanca_stub_araclari():
         with open(os.path.join(t, a), "w", encoding="utf-8") as f:
             f.write("import sys\nsys.exit(0)\n")   # kapsam disi kapi — bkz. yukarisi
     return d
@@ -1191,6 +1274,30 @@ def _kanca_kaynak_sha():
 def kanca_iddialari(kok, iddia):
     """PRE-COMMIT adiminin DAVRANIS ayagi + MUTASYON bataryasi (ag YOK)."""
     kaynak_once = _kanca_kaynak_sha()
+
+    # ---- K0a/K0b/K0c FIKSTUR SEKLI: sentetik depo GERCEK repo seklini taklit ediyor mu?
+    # Bu iddialar K1..K8'den ONCE gelir: fikstur drift'i varsa asagidaki kirmizilar
+    # DIRILTME ekseninden degil eksik dosyadan gelir; teshis burada adiyla basilir
+    # ([[nobetci-fikstur-sekli]]).
+    cagrilan = _kancalarin_cagirdigi_araclar()          # ATAMA ekseni (fail-closed)
+    iddia("K0a [FIKSTUR/KANONIK] gerekli tools/*.py kumesi KANCA KAYNAGINDAN turetildi: "
+          "BOS DEGIL ve stub'lanacak en az bir arac var (elle tutulan ikiz liste YOK; "
+          "bos turetme fail-closed istisna atar)",
+          bool(cagrilan) and bool(_kanca_stub_araclari()),
+          ("turetilen", sorted(cagrilan), "stub", list(_kanca_stub_araclari())))
+    test_ekseni = _kanca_varlik_testi_araclari()        # TEST ekseni (AYRI capa)
+    iddia("K0b [FIKSTUR/CAPRAZ EKSEN] kancadaki `[ -f \"$var\" ]` VARLIK TESTI "
+          "ekseninden okunan HER arac, ATAMA ekseninden turetilen kumede DE var "
+          "(iki capa sessizce ayrismiyor)",
+          bool(test_ekseni) and not (test_ekseni - cagrilan),
+          ("test ekseni", sorted(test_ekseni), "eksik", sorted(test_ekseni - cagrilan)))
+    d0 = _kanca_deposu(kok, "k-fikstur")
+    eksik0 = sorted(a for a in cagrilan
+                    if not os.path.isfile(os.path.join(d0, "tools", a)))
+    iddia("K0c [FIKSTUR/DAVRANIS] sentetik depoda kancanin ihtiyac duydugu HER "
+          "tools/*.py FIILEN VAR (beyan degil DISKTEN olculdu) -> kancaya eklenen yeni "
+          "fail-closed adim bu ayagi fikstur drift'iyle kirmiziya cevirmez",
+          not eksik0, ("eksik", eksik0, "gerekli", sorted(cagrilan)))
     # ---- K1/K2 POZITIF: diriltme commit'i GERCEKTEN durur ve repoya GIRMEZ
     rc, cikti, idler, sha_degisti = _kanca_pozitif_vaka(kok, "k-pozitif")
     iddia("K1 [POZITIF] diriltme iceren GERCEK commit REDDEDILIR (rc!=0)",
