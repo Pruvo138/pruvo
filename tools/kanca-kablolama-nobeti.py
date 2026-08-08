@@ -139,6 +139,12 @@ FAIL_CLOSED = {
         "commit'lendigi an bir sonraki koşumun TABANI id'yi icerir, id 'silinmis' "
         "olmaktan cikar ve alarm KENDILIGINDEN soner (olculdu 6 Agu 2026). Cikis "
         "kodu yutulursa cikarilmis urun repoya girer ve HICBIR yerde alarm calmaz.",
+    ("pre-commit", "tools/katalog-alan-kapisi.py"):
+        "yazim oncesi `altkategori` + `uyum`/`marka` kolu. Toplu ekleme yolu "
+        "urunler.json'a DOGRUDAN yazip duzelt.py'nin iki fail-closed kapisini birden "
+        "atliyordu (olculdu 8 Agu 2026: 5 bozuk kayit main'e girdi, ariza saatler "
+        "sonra CI'da gorundu, deploy ATLANDI). Cikis kodu yutulursa bozuk kayit "
+        "repoya girer ve yayin yine SAATLER sonra durur.",
     ("commit-msg", "tools/commit-mesaji-kapisi.py"):
         "commit MESAJI yazildiktan sonra degistirilemez (depo PUBLIC) -> tek "
         "onleyici yuzey budur; yutulursa tedarikci kimligi kalici olarak sizar.",

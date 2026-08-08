@@ -98,6 +98,15 @@ BEKLENEN = (
         ("tools/diriltme-kapisi.py",
          "yazim oncesi diriltme kolu: gecmiste CIKARILMIS urun id'si commit "
          "aninda BLOKLANIR (CI kolu tek atimliktir, kendiliginden soner)"),
+        # 8 Agu 2026 eklendi. GEREKCE: toplu ekleme yolu urunler.json'a DOGRUDAN
+        # yaziyor ve duzelt.py'nin IKI fail-closed kapisini birden atliyordu
+        # (_altkategori_ihlalleri / _uyum_ihlalleri). Bir partide 5 kayit bozuk
+        # main'e girdi, ariza SAATLER SONRA CI'da gorundu ve deploy ATLANDI.
+        # Yazim yolunda kol yoksa CI kolu yalnizca GORUNURLUKTUR (yayin durur).
+        ("tools/katalog-alan-kapisi.py",
+         "yazim oncesi alan kolu: INDEX'te DEGISEN kayitlarin `altkategori` ve "
+         "`uyum`/`marka` (K5 ikiz) alanlari arama.py'nin KANONIK fonksiyonlariyla "
+         "dogrulanir; ihlal commit aninda BLOKLANIR"),
     )),
     ("pre-push", (
         ("tools/yedekle.py",

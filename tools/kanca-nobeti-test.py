@@ -80,6 +80,11 @@ diriltme="$root/tools/diriltme-kapisi.py"
 if [ -f "$diriltme" ]; then
   python3 "$diriltme" --calisma-agaci || exit 1
 fi
+
+alan="$root/tools/katalog-alan-kapisi.py"
+if [ -f "$alan" ]; then
+  python3 "$alan" || exit 1
+fi
 exit 0
 """
 

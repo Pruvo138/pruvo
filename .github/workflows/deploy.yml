@@ -756,6 +756,33 @@ jobs:
       - name: "Uyum kapisi (kapali marka sozlugu + sema + ikiz tanim + enjeksiyon)"
         run: python3 tools/uyum-kapisi.py
 
+      # YAZIM YOLU KOLU — yukaridaki IKI kapi (altkategori + uyum) KATALOG GENELINI
+      # olcer ve YAYINDAN SONRA konusur; bu adim onlarin COMMIT ANINDAKI kardesini
+      # (tools/katalog-alan-kapisi.py + pre-commit adim 5) olcer.
+      # OLCULEN BASLANGIC (8 Agu 2026): toplu ekleme yolu urunler.json'a DOGRUDAN
+      # yaziyor ve duzelt.py'nin IKI fail-closed kapisini birden atliyordu
+      # (_altkategori_ihlalleri / _uyum_ihlalleri). Bir partide 5 kayit bozuk main'e
+      # girdi (1 izinsiz `altkategori`, 5 elle yazilmis `marka` ikizi); ariza SAATLER
+      # SONRA bu seritte gorundu ve deploy ATLANDI (3,5+ saat yayin kaybi). Yani
+      # CI kolu tek basina YAYIN GECIKMESIDIR, ONLEME DEGIL.
+      # Kilitlenen eksenler (surucu kendi sentetik depolarini kurar; gercek
+      # urunler.json yalniz OKUNUR, gercek .git'e HICBIR SEY yazilmaz):
+      #   A KIRMIZI  iki eksen AYRI vakalarda tek tek kirmizi yakar — tek bir "ikisi
+      #              birden bozuk" vaka katmanlarin VEYA'sini olcerdi.
+      #   B YESIL    bugunku 22.698 kaydin TAMAMI "yeni" sayildiginda yanlis-pozitif
+      #              YOK; mesru fiyat duzeltmesi ve saf siralama degisimi de yesil.
+      #   K KAPSAM   HEAD'de duran eski ihlal, ILGISIZ bir commit'i KILITLEMEZ
+      #              (paylasilan checkout'ta baska mimarin yarim partisi tuzagi).
+      #   E EKSEN    hukum INDEX'ten turer; stage EDILMEMIS bozukluk bloklamaz.
+      #   O rc=2     bozuk JSON / arama.py yok / arguman -> OLCULEMEDI, YESIL DEGIL.
+      #   KOK+INDEX  kok `__file__`dan turer (kanca GIT_DIR tuzagi) AMA git cagrilarinin
+      #              ortami TEMIZLENMEZ (GIT_INDEX_FILE commit'in GERCEK index'idir);
+      #              iki tuzak AYRI AYRI, ayirt edici kontrolle olculur.
+      #   MUT        iki dogrulama kolu AYRI AYRI oldurulur; her mutant kendi eksenini
+      #              dusururken OTEKINI ayakta birakmali.
+      - name: "Katalog alan kapisi kabul testi (commit ani altkategori + uyum kolu)"
+        run: python3 tools/katalog-alan-kapisi-test.py
+
       # ALT KATEGORI MUSTERI YUZEYI. Yukaridaki kapi alanin VERI/D1 yolunu korur; bu adim
       # o verinin MUSTERIYE GORUNEN yuzunu korur — ikisi AYRI eksendir, veri yolu yesilken
       # yuzey sessizce yok olabilir (1 Agu'a kadar OYLEYDI: 935 dolu kayit, gorunur yuzey 0).
