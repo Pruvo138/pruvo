@@ -1778,7 +1778,8 @@ TABLO_TABANLARI = (
     # 41->42 diye her yeni girise +1 bump yapilmis, pay 25'te SABIT kalmisti. 85 bugun
     # dogru; yarin 18 giris daha eklenip taban guncellenmezse yine kozmetiklesir.
     # Tam esitlikte bu YAPISAL OLARAK imkansiz. Taban bu satirda ELLE yazilmadi:
-    # rebase SONRASI agactan OLCULDU (bkz. RAPOR-MIMARA.md T4).
+    # tablo birlestirmesinden SONRA agactan OLCULDU (len(SERIT_B) ile dogrulanir; bu
+    # dosyanin oz-testi ve tools/nobetci-mutasyon-test.py BOLUM E o esitligi surer).
     ("SERIT_B", 85),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
