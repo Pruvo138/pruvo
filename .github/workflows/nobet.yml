@@ -491,6 +491,29 @@ jobs:
       - name: Marka paneli otomatik tazeleme davranış testi (arama/filtre korunuyor mu)
         run: node tools/panel-tazeleme-test.js
 
+      # BACKFILL VERI KAYBI KAPISI (8 Agu): marka-kapsama.py --backfill her hucreye
+      # `kayit["eklenen"] = cnt` ile SET ediyordu. Olculdu: o gunku defterde kosulsaydi
+      # 101 non-null hucreyi ezecek, bir kismini KUCULTECEKTI (190->183, 956->952,
+      # 198->173) ve exit 0 ile "guncellendi" diyecekti. Hasat muhasebesi geri gelmez.
+      # Artik yalniz BOS (None) hucre dolar; catisan hucre YAZILMAZ, eski->yeni tek tek
+      # basilir, cikis kodu sifir-disi olur; bilerek ezmek ACIK --ezmeye-izin-ver ister.
+      # NE OLCER: doldurma GERCEKTEN oluyor (koruma "hic yazmama"ya cokmemis), kucultme
+      # engelleniyor, None ile 0 ("arandi-bos" ⚪) ayri, karar birimi KANONIK HUCRE
+      # (ham anahtar "Toyota Corolla" katkisi hucreyi DOLU yapar), turetilen 0 iken sahte
+      # ⚪ uydurulmuyor, ikinci kosum sayilari buyutmuyor, --kuru-prova tek bayt yazmiyor.
+      # SENTETIK fikstur: canli .marka-kapsama.json / .urun-kaynaklari.json / urunler.json
+      # OKUNMAZ (yollar PRUVO_KAPSAMA_* ile gecici dizine cevrilir). OFFLINE, ~1 s.
+      - name: Backfill veri kaybi kapisi (bos hucre dolar, dolu hucre EZILMEZ)
+        run: python3 tools/backfill-koruma-test.py
+
+      # ... ve kabul testinin KENDISI olculur: 6 mutant (kucultme korumasi, None/0 ayrimi,
+      # bayrak kapisi, fail-loud cikis kodu, yazma yolu, marka dedup'i) TEK BASINA KIRMIZI
+      # yakmali; +1 KONTROL mutanti (davranis degismez) YESIL kalmali — yoksa batarya
+      # "her degisiklikte kirmizi"dir ve hicbir sey olcmuyordur. Mutasyon gecici SYMLINK
+      # aynasina uygulanir, canli tools/ dizinine YAZILMAZ. OFFLINE, ~5 s.
+      - name: Backfill kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
+        run: python3 tools/backfill-mutasyon-test.py
+
       # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
       # kalmali, 4 gercek drift mutanti KIRMIZI yanmali, CLI cikis kodlari (esit=0 / drift=1 /
       # dosya-yok=1) dogru olmali, bozuk konfigur semasi artefakt URETIMINI reddetmeli

@@ -2378,6 +2378,26 @@ SERIT_B = {
     ("nobet.yml", "serit-b", "tools/marka-panel-test.py"):
         "Marka DURUM PANOSU (parity-panel/CSV teshis ciktisi) testi; pruvo3d.com'a "
         "hicbir sey yayinlamaz.",
+    ("nobet.yml", "serit-b", "tools/panel-mutasyon-test.py"):
+        "Ustteki marka-panel-test.py'nin MUTASYON BATARYASI (7 mutant + 1 kontrol); "
+        "olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
+        "(nobetci-mutasyon-test.py ile ayni desen). Korudugu pano zaten serit B'de.",
+    ("nobet.yml", "serit-b", "tools/panel-tazeleme-test.js"):
+        "Panelin OTOMATIK TAZELEME davranis testi (node DOM saplamasi): tazeleme "
+        "kullanicinin aramasini/filtresini/siralamasini SIFIRLAMIYOR mu. Panel bir "
+        "TESHIS ciktisidir, Pages'e yayinlanmaz; kendi adimi olmasi kapsamin GORUNUR "
+        "olmasi icindir (dolayli cagri ci-kapsam-test.py'de kapsam SAYILMAZ).",
+    ("nobet.yml", "serit-b", "tools/backfill-koruma-test.py"):
+        "marka-kapsama.py --backfill'in VERI KAYBI kapisi: bos hucre dolar, dolu hucre "
+        "EZILMEZ/KUCULTULMEZ. Korudugu varlik gitignore'daki YEREL kapsama defteridir "
+        "(.marka-kapsama.json) — Pages ciktisina ya da katalog/odeme hattina hicbir sey "
+        "yazmaz; CI'da defter zaten YOKTUR, test SENTETIK fiksturle kosar. Bu yuzden "
+        "kirmizisi yayini durdurmamalidir; ama CI'da GORUNUR olmalidir cunku arizanin "
+        "kendisi (sessiz SET) tam da 'gorunmezlik' sinifindandi.",
+    ("nobet.yml", "serit-b", "tools/backfill-mutasyon-test.py"):
+        "Ustteki backfill-koruma-test.py'nin MUTASYON BATARYASI (6 mutant + 1 kontrol); "
+        "olctugu sey KABUL TESTININ KENDISI. Korudugu kapi serit B'de oldugu icin "
+        "batarya da serit B'dedir (panel-mutasyon-test.py ile ayni desen).",
     ("nobet.yml", "serit-b", "tools/durum-test.py"):
         "durum.py PANOSUNUN kabul testi; pano bir teshis ciktisidir, yayinlanmaz. "
         "IKI KOL DA bu job'da: bayraksiz (gercek pano ciktisi) + `--ic-nobetci` "
