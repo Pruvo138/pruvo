@@ -19,6 +19,18 @@ Vakalar (SPEC A-I):
   H uzantısız ad + 403-HTML gövde → REDDEDİLİR (R1 magic yok)
   I uzantısız ad + JPEG magic     → GEÇER, ContentType image/jpeg
 
+R1 AVIF WHITELIST'İ (9 Ağu 2026) — whitelist genişledi, YÖN fail-closed KALDI.
+`ftyp` genel bir ISO-BMFF kutu başlığıdır; mp4/mov/heic de taşır. Kabul MARKAYA bağlıdır
+(offset 8'de `avif`/`avis`) ve bu eksenin her iki yönü de burada ölçülür:
+  AA1 gerçek AVIF (ftypavif)      → GEÇER, ContentType image/avif
+  AA2 animasyonlu AVIF (ftypavis) → GEÇER (marka kümesinin İKİNCİ üyesi ölü değil)
+  AA3 mp4 (ftypmp42)              → REDDEDİLİR  ← `ftyp` yeterli SAYILMAZ (asıl kalem)
+  AA4 HEIF (ftypheic)             → REDDEDİLİR  ← komşu aile de whitelist DIŞI
+  AA5 kesik marka (ftypav\0\0)    → REDDEDİLİR  (prefix eşleşmesi KABUL DEĞİL)
+  AA6 offset 0'da `ftypavif`      → REDDEDİLİR  (marka doğru, KONUM yanlış)
+  AA7 .avif ad + JPEG gövde       → YÜKLENİR + LOUD uyarı + ContentType image/jpeg (R3)
+  AA8 çöp/HTML                    → HÂLÂ REDDEDİLİR (R1 fail-closed korundu)
+
 R5 SİLME KAPISI (sil_ve_dogrula) — SESSİZ SİLME sınıfı, 30 Tem 2026'da canlıda üretildi:
   J silme gerçekten uyguladı            → "silindi-dogrulandi", doğrulama silmeden SONRA koştu
   K silme SESSİZCE etkisiz (nesne durur)→ RAISE (KIRMIZI)  ← kalemin ta kendisi
@@ -77,6 +89,24 @@ ZERO = b""                                                     # 0-bayt
 HTML_403 = (b"<!DOCTYPE html><html><head><title>403 Forbidden</title></head>"
             b"<body>error 1010 cloudflare</body></html>" + b"x" * 2000)  # >1KB, magic YOK
 GARBAGE = bytes(range(256)) * 8                                # 2048B, magic YOK
+
+
+def _ftyp(marka, ofset_dolgu=b""):
+    """ISO-BMFF kutusu üret: [4B kutu boyutu][`ftyp`][4B marka][dolgu].
+
+    🔴 FIKSTUR ŞEKLİ: gerçek AVIF gövdesinin ilk 12 baytı BİREBİR budur — sihirli-bayt
+    offset 0'da DEĞİL 4'tedir. `ofset_dolgu` kutuyu kaydırıp KONUM eksenini ölçmek için.
+    Gövde MIN_BOYUT'u (1024B) rahatça aşar, yani R1 boyut kolu bu vakaları maskelemez."""
+    return ofset_dolgu + b"\x00\x00\x00\x20" + b"ftyp" + marka + b"\x00" * 3000
+
+
+AVIF_OK = _ftyp(b"avif")            # tek kare AVIF            → KABUL
+AVIS_OK = _ftyp(b"avis")            # AVIF görüntü dizisi      → KABUL
+MP4_FTYP = _ftyp(b"mp42")           # `ftyp` var, AVIF DEĞİL   → RED (asıl kalem)
+HEIC_FTYP = _ftyp(b"heic")          # HEIF kardeşi, whitelist dışı → RED
+AVIF_KESIK = _ftyp(b"av\x00\x00")   # marka PREFIX'i doğru, tam eşleşme YOK → RED
+# Marka DOĞRU ama KONUM yanlış: `ftypavif` offset 0'da (4B kutu boyutu YOK).
+AVIF_YANLIS_OFSET = b"ftypavif" + b"\x00" * 3000
 
 
 class Yok404(Exception):
@@ -253,6 +283,85 @@ def vaka_I():
     onayla(ct == "image/jpeg", "I: uzantısız anahtar + JPEG magic ContentType image/jpeg")
     onayla(len(s3.puts) == 1 and s3.puts[0]["ContentType"] == "image/jpeg",
            "I: put image/jpeg ile çağrıldı")
+
+
+# --- R1 AVIF WHITELIST'İ: AA1-AA8 ---------------------------------------------
+def vaka_AA1_avif_kabul():
+    s3 = FakeS3()
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/aa1-1.avif", AVIF_OK)
+    onayla(ct == "image/avif", "AA1: gerçek AVIF (ftypavif) ContentType image/avif")
+    onayla(len(s3.puts) == 1 and s3.puts[0]["ContentType"] == "image/avif",
+           "AA1: put image/avif ile çağrıldı (feed/og:image doğru tipi görür)")
+
+
+def vaka_AA2_avis_kabul():
+    """Marka kümesinin İKİNCİ üyesi ölü olmasın: `avis` (animasyonlu AVIF) de geçer."""
+    s3 = FakeS3()
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/aa2-1.avif", AVIS_OK)
+    onayla(ct == "image/avif", "AA2: animasyonlu AVIF (ftypavis) da KABUL edildi")
+
+
+def vaka_AA3_mp4_red():
+    """ASIL KALEM: `ftyp` TEK BAŞINA yeterli sayılırsa R1 mp4'e açılır (fail-open)."""
+    s3 = FakeS3()
+    hata = None
+    try:
+        mod.dogrula_ve_yukle(s3, BUCKET, "urunler/aa3-1.avif", MP4_FTYP)
+    except Exception as exc:
+        hata = exc
+    onayla(isinstance(hata, ValueError) and str(hata).startswith("R1 red:"),
+           "AA3: mp4 (ftypmp42) REDDEDİLDİ — `ftyp` tek başına KABUL DELİLİ DEĞİL")
+    onayla(len(s3.puts) == 0, "AA3: put ÇAĞRILMADI (fail-closed önce)")
+    onayla(mod.format_belirle(MP4_FTYP) is None,
+           "AA3: format_belirle mp4 gövdesine None döndü (kaynak eksende de ölçüldü)")
+
+
+def vaka_AA4_heic_red():
+    """Komşu aile: HEIF de `ftyp` taşır ve whitelist DIŞIDIR (küme genişlemesi bilinçli)."""
+    s3 = FakeS3()
+    onayla(reddedilir_mi(s3, "urunler/aa4-1.avif", HEIC_FTYP),
+           "AA4: HEIF (ftypheic) REDDEDİLDİ — whitelist marka kümesiyle sınırlı")
+    onayla(len(s3.puts) == 0, "AA4: put ÇAĞRILMADI")
+
+
+def vaka_AA5_kesik_marka_red():
+    """Prefix eşleşmesi KABUL DEĞİL: `av` ile başlayan marka AVIF sayılmaz."""
+    s3 = FakeS3()
+    onayla(reddedilir_mi(s3, "urunler/aa5-1.avif", AVIF_KESIK),
+           "AA5: kesik/eksik marka (ftypav\\0\\0) REDDEDİLDİ (tam eşleşme şart)")
+    onayla(len(s3.puts) == 0, "AA5: put ÇAĞRILMADI")
+
+
+def vaka_AA6_yanlis_ofset_red():
+    """KONUM ekseni: marka doğru olsa da `ftyp` offset 4'te DEĞİLSE gövde AVIF değildir."""
+    s3 = FakeS3()
+    onayla(reddedilir_mi(s3, "urunler/aa6-1.avif", AVIF_YANLIS_OFSET),
+           "AA6: offset 0'daki `ftypavif` REDDEDİLDİ (arama DEĞİL, sabit offset)")
+    onayla(len(s3.puts) == 0, "AA6: put ÇAĞRILMADI")
+
+
+def vaka_AA7_uzanti_uyusmazligi():
+    """R3 kolu AVIF ekseninde de yaşıyor mu: .avif ad + JPEG gövde → LOUD uyarı."""
+    onayla(mod.uzanti_format("urunler/x.avif") == "avif",
+           "AA7: uzanti_format .avif uzantısını TANIYOR (kol ölü değil)")
+    s3 = FakeS3()
+    with _StderrYakala() as cap:
+        ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/aa7-1.avif", JPEG_OK)
+    uyari = cap.buf.getvalue()
+    onayla(ct == "image/jpeg", "AA7: .avif ad + JPEG gövdede ContentType GERÇEK formata")
+    onayla("UYARI" in uyari and "avif" in uyari, "AA7: stderr LOUD uyarı basıldı")
+
+
+def vaka_AA8_fail_closed_korundu():
+    """Whitelist genişledi ama YÖN değişmedi: bilinmeyen gövde HÂLÂ reddedilir."""
+    s3 = FakeS3()
+    onayla(reddedilir_mi(s3, "urunler/aa8-1.avif", GARBAGE),
+           "AA8: çöp gövde .avif adıyla da REDDEDİLDİ (R1 fail-closed korundu)")
+    onayla(reddedilir_mi(s3, "urunler/aa8-2.avif", HTML_403),
+           "AA8: 403-HTML gövdesi .avif adıyla da REDDEDİLDİ")
+    onayla(len(s3.puts) == 0, "AA8: hiçbirinde put ÇAĞRILMADI")
+    onayla(mod.CONTENT_TYPE.get("avif") == "image/avif",
+           "AA8: CONTENT_TYPE eşlemesi image/avif (tip düzyazıdan değil TABLODAN ölçüldü)")
 
 
 # --- R6 EZME KAPISI: V-Z -------------------------------------------------------
@@ -621,6 +730,9 @@ def main():
     print("== r2-upload doğrulama kabul testi ==")
     for fn in (vaka_A, vaka_B, vaka_B2_webp, vaka_C, vaka_D, vaka_E, vaka_F, vaka_G,
                vaka_H, vaka_I,
+               vaka_AA1_avif_kabul, vaka_AA2_avis_kabul, vaka_AA3_mp4_red,
+               vaka_AA4_heic_red, vaka_AA5_kesik_marka_red, vaka_AA6_yanlis_ofset_red,
+               vaka_AA7_uzanti_uyusmazligi, vaka_AA8_fail_closed_korundu,
                vaka_V_mevcut_anahtar, vaka_W_acik_izin, vaka_X_kuru_prova,
                vaka_Y_kosullu_yazma, vaka_Z1_kosullu_desteksiz, vaka_Z2_onkosul_ihlali,
                vaka_Z3_sonda_sirasi, vaka_Z4_argparse_varsayilani, vaka_Z5_cikis_kodu,
