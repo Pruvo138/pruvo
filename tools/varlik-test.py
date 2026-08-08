@@ -465,16 +465,64 @@ def _kesif_ref():
     return None
 
 
+KAYIT_YOK = "__DOSYA_YOK__"   # dosya HIC yok: mesru tohum hali, RED DEGIL
+
+
+def _ref_cozulur(ref):
+    """SHA bu depoda bir commit'e cozulebiliyor mu (cozulmuyorsa kayit GECERSIZ)."""
+    p = subprocess.run(["git", "-C", ROOT, "cat-file", "-e", ref + "^{commit}"],
+                       capture_output=True)
+    return p.returncode == 0
+
+
+def kayit_hukmu(ham, ref_cozulur=None):
+    """🔴 KAYIT GECERLILIGININ TEK KANONIK HUKMU. Baska hicbir yerde ikinci bir
+    ayristirma/gecerlilik kurali YAZILMAZ — cagiran taraf bu fonksiyonun GEREKCESINI okur.
+
+    NEDEN TEK YER (olculdu, 8 Agu 2026): gecerlilik once IKI ayri yerde, IKI ayri kuralla
+    tanimliydi (burada dict+str+len>=7; main()'de kendi yeniden-ayristirmasi). Aradaki
+    bosluktan IKI sekil FAIL-OPEN geciyordu: (a) `"ref":"abc"` (kisa dize) -> kapi rc=0
+    veriyor ve ekrana `KAYITLI aa1146605f` YAZIYORDU (yanlis beyan), (b) kayit bir JSON
+    DIZISI -> rc=0 ve "kayit dosyasi YOK" diyordu (dosya VARDI).
+    [[ikiz-tanim-sessiz-ayrisma]] / [[kabul-araligi-karsilastirma-araligi]] sinifi.
+    Bugun gorunmuyordu cunku tohum ile kayit AYNI SHA; ilk gercek tazelemeden SONRA bozuk
+    bir `ref` kapiyi SESSIZCE tohuma geri sarardi — dalin var olus sebebinin tersi.
+
+    Doner: (kayit, gerekce).
+      · (kayit, None)          -> GECERLI
+      · (None, KAYIT_YOK)      -> dosya yok; tohum hali MESRU (red degil)
+      · (None, "…")            -> GECERSIZ; gerekce cagirana AYNEN gider (rc=2)
+    `ham` None ise dosya yok demektir. `ref_cozulur` yalniz test icin enjekte edilir."""
+    if ham is None:
+        return None, KAYIT_YOK
+    try:
+        k = json.loads(ham)
+    except Exception as e:
+        return None, "JSON ayristirilamadi (%s)" % str(e)[:70]
+    if not isinstance(k, dict):
+        return None, "kayit bir JSON NESNESI degil (%s)" % type(k).__name__
+    if "ref" not in k:
+        return None, "'ref' alani YOK"
+    if not isinstance(k["ref"], str):
+        return None, "'ref' bir dize DEGIL (%s)" % type(k["ref"]).__name__
+    if len(k["ref"]) < 7:
+        return None, "'ref' cok kisa (%d karakter, en az 7)" % len(k["ref"])
+    coz = ref_cozulur or _ref_cozulur
+    if not coz(k["ref"]):
+        return None, "'ref' bu depoda bir commit'e cozulemiyor (%s)" % k["ref"][:16]
+    return k, None
+
+
 def referans_kaydi():
-    """Kayitli kiyas referansi (tools/varlik-referans.json). Yoksa/bozuksa None."""
+    """Kayitli kiyas referansi. Hukum kayit_hukmu()'nden gelir; BURADA kural YOK."""
     try:
         with io.open(REFERANS_DOSYASI, encoding="utf-8") as f:
-            k = json.load(f)
-    except Exception:
-        return None
-    if not isinstance(k, dict) or not isinstance(k.get("ref"), str) or len(k["ref"]) < 7:
-        return None
-    return k
+            ham = f.read()
+    except IOError:
+        ham = None
+    except Exception as e:
+        return None, "kayit dosyasi OKUNAMADI (%s)" % str(e)[:70]
+    return kayit_hukmu(ham)
 
 
 def eski_ref():
@@ -494,12 +542,15 @@ def eski_ref():
       · Tazeleme ancak kapi O AN YESILKEN yapilabilir: yani referans yalnizca
         "kayipsizligi kanitlanmis" bir noktaya ilerler. Kirmizi durumu YUTMAZ.
       · Dosya yoksa TOHUM kesfine dusulur (geriye donuk uyum) ve bu GORUNUR bicimde
-        raporlanir; kayit bozuksa OLCULEMEDI (fail-closed, sessiz yesil YOK).
+        raporlanir. Kayit VAR ama GECERSIZ ise hukum OLCULEMEDI'dir (rc=2): olcum yine
+        tohuma karsi kosar (sayilar gorunsun diye) ama YESIL HUKMU VERILMEZ.
+      · Gecerlilik kurali TEK yerdedir: kayit_hukmu(). Cagiran taraf kendi ayristirmasini
+        YAPMAZ, o fonksiyonun GEREKCESINI okur.
       · Her kosum referansin YASINI ve birikmis beyan sayisini BASAR -> bayatlik
         gorunur kalir, sessizce buyumez.
     Kapinin GUCU DEGISMEZ: tazelemeden SONRA yapilan her beyansiz icerik degisikligi
     yine KIRMIZI yanar; tazeleme yalnizca ZATEN kanitlanmis gecmisi taban yapar."""
-    kayit = referans_kaydi()
+    kayit, _gerekce = referans_kaydi()
     if kayit:
         return kayit["ref"]
     return _kesif_ref()
@@ -793,6 +844,48 @@ def beyan_mekanizmasi_dogrula():
     return dusen
 
 
+def referans_hukmu_dogrula():
+    """KAYIT GECERLILIK HUKMUNUN KENDI NOBETCISI — HER kosumda calisir.
+
+    🔴 NEDEN VAR: 8 Agu'da bu kolda IKI sekil FAIL-OPEN olctu ve bataryada onlari
+    yakalayan HICBIR vaka yoktu; batarya bu yuzden yesil yandi. "Bozuk kayit" tek
+    sekille denenirse yalniz o sekil nobetlenir — sinif kapanmaz
+    ([[tekil-yama-sinifi-kapatmaz]]). Bes bozuk SEKIL de ayri vakadir.
+
+    Ayirt edici kontrol (R1/R8): gecerli kayit KABUL edilmeli — yoksa "her kaydi reddet"
+    hali de bu bataryayi yesil gecerdi ve kapi kullanilamaz olurdu.
+    Doner: basarisiz vaka adlari (bos = saglam)."""
+    coz = lambda r: r == "aa1146605f"                                    # noqa: E731
+    dusen = []
+
+    def vaka(ad, ham, beklenen):
+        kayit, gerekce = kayit_hukmu(ham, ref_cozulur=coz)
+        if beklenen == "KABUL":
+            gercek = "KABUL" if kayit is not None and gerekce is None else "RED"
+        elif beklenen == "YOK":
+            gercek = "YOK" if gerekce == KAYIT_YOK else "DIGER"
+        else:
+            gercek = "RED" if (kayit is None and gerekce not in (None, KAYIT_YOK)) else "KABUL"
+        if gercek != beklenen:
+            dusen.append("%s (beklenen=%s olculen=%s gerekce=%r)"
+                         % (ad, beklenen, gercek, gerekce))
+
+    gecerli = '{"ref": "aa1146605f", "tazelendi": "2026-08-02"}'
+    vaka("R1 gecerli kayit", gecerli, "KABUL")
+    # 🔴 8 Agu'da FAIL-OPEN olcuLEN iki sekil:
+    vaka("R2 'ref' cok kisa (\"abc\")", '{"ref": "abc"}', "RED")
+    vaka("R3 kayit bir JSON DIZISI", '[{"ref": "aa1146605f"}]', "RED")
+    # zaten kapali olan uc sekil (regresyon nobeti):
+    vaka("R4 'ref' sayi", '{"ref": 12345}', "RED")
+    vaka("R5 'ref' alani YOK", '{"tazelendi": "2026-08-02"}', "RED")
+    vaka("R6 bozuk JSON metni", "{ bozuk ][", "RED")
+    vaka("R7 dosya YOK (mesru tohum hali)", None, "YOK")
+    vaka("R8 KONTROL gecerli kayit + fazladan alan",
+         '{"ref": "aa1146605f", "not": "x", "onceki_ref": null}', "KABUL")
+    vaka("R9 'ref' depoda cozulemiyor", '{"ref": "0123456789abcdef"}', "RED")
+    return dusen
+
+
 def referans_tazele():
     """KIYAS REFERANSINI ILERLET — yalnizca kapi O AN YESILKEN, ve GORUNUR bicimde.
 
@@ -856,6 +949,8 @@ def main():
     # Muafiyet yuzeyinin nobeti HER kosumda, olcumden ONCE.
     for _d in beyan_mekanizmasi_dogrula():
         HATALAR.append("0 GORUNUR-METIN BEYAN YUZEYI BOZUK: %s" % _d)
+    for _d in referans_hukmu_dogrula():
+        HATALAR.append("0 KIYAS REFERANSI GECERLILIK HUKMU BOZUK: %s" % _d)
     hedef = 12
     if "--ornek" in sys.argv:
         hedef = int(sys.argv[sys.argv.index("--ornek") + 1])
@@ -978,32 +1073,33 @@ def main():
     # ---------------------------------------------------------------- 1 / 1b / 2 / 4 / 5
     # REFERANS GORUNURLUGU: kayit hali + yas + birikmis beyan sayisi HER kosumda basilir.
     # Bayatlik sessizce buyumesin diye sayi rapora girer ([[bayat-kabul-testi]]).
-    ham_kayit = None
-    try:
-        with io.open(REFERANS_DOSYASI, encoding="utf-8") as f:
-            ham_kayit = json.load(f)
-    except IOError:
-        ham_kayit = "YOK"
-    except Exception:
-        ham_kayit = "BOZUK"
-    if ham_kayit == "BOZUK" or (isinstance(ham_kayit, dict)
-                                and not isinstance(ham_kayit.get("ref"), str)):
-        # Fail-closed: kayit VAR ama okunamiyorsa "tohuma dus" DEMEK sessizce eski
-        # davranisa donmektir; hal OLCULEMEDI'dir.
-        OLCULEMEDI.append("kiyas referansi kaydi BOZUK (%s) — tohum kesfine DUSULMEDI"
-                          % REFERANS_DOSYASI)
+    # 🔴 IKINCI AYRISTIRMA YOK: hukum TEK kanonik yerden (kayit_hukmu) gelir, burasi
+    # yalnizca GEREKCEYI okur. Onceki halde burada ikinci bir kural vardi ve aradaki
+    # bosluktan iki sekil FAIL-OPEN geciyordu ([[ikiz-tanim-sessiz-ayrisma]]).
+    kayit, red = referans_kaydi()
     ref = eski_ref()
-    if isinstance(ham_kayit, dict) and ref:
+    beyan_ozeti = ("beyan: %d satir + %d gorunur-metin"
+                   % (len(BILEREK_DEGISEN_TAM) + len(BILEREK_DEGISEN),
+                      len(BILEREK_DEGISEN_METIN)))
+    if kayit and ref:
         yas = git("log", "-1", "--format=%cr", ref)
-        BILGI.append("kiyas referansi: KAYITLI %s (%s) · tazelendi %s · beyan: %d satir + "
-                     "%d gorunur-metin"
-                     % (ref[:10], (yas or "?").strip(), ham_kayit.get("tazelendi", "?"),
-                        len(BILEREK_DEGISEN_TAM) + len(BILEREK_DEGISEN),
-                        len(BILEREK_DEGISEN_METIN)))
-    elif ref:
+        BILGI.append("kiyas referansi: KAYITLI %s (%s) · tazelendi %s · %s"
+                     % (ref[:10], (yas or "?").strip(),
+                        kayit.get("tazelendi", "?"), beyan_ozeti))
+    elif red == KAYIT_YOK:
         BILGI.append("kiyas referansi: TOHUM KESFI %s (kayit dosyasi YOK -> "
-                     "`python3 tools/varlik-test.py --referans-tazele` ile kaydet)"
-                     % ref[:10])
+                     "`python3 tools/varlik-test.py --referans-tazele` ile kaydet) · %s"
+                     % ((ref or "?")[:10], beyan_ozeti))
+    else:
+        # TESHIS METNI OLCTUGU SEYI SOYLER: tohuma FIILEN dusuluyor (olcum oradan kosar),
+        # ama HUKUM yesil DEGIL. Onceki metin "tohum kesfine DUSULMEDI" diyordu; bu
+        # yanlisti ve teshisi yanlis yere baktiriyordu.
+        BILGI.append("kiyas referansi: KAYIT GECERSIZ -> olcum TOHUM %s uzerinden kosuldu"
+                     % ((ref or "?")[:10]))
+        OLCULEMEDI.append(
+            "kiyas referansi kaydi GECERSIZ (%s): %s — olcum TOHUM referansina (%s) karsi "
+            "kosuldu, HUKUM OLCULEMEDI (yesil DEGIL). Kaydi duzelt ya da sil."
+            % (REFERANS_DOSYASI, red, (ref or "?")[:10]))
     if ref is None:
         OLCULEMEDI.append("1/1b/2 ESKI uretici bulunamadi (SIG depo ya da yeniden yazilmis "
                           "gecmis) — esdegerlik ve ortalama-dusus eksenleri OLCULEMEDI")
