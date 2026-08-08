@@ -906,6 +906,314 @@ def agent_kapisi(uygula):
     sys.exit(0 if eksik == 0 else 1)
 
 
+# ===================== 8 AGU: MCP-TARAYICI KAPISI 6 EVE (Okan teftisi K17) =====================
+# OLCULEN DELIK: 6 evin settings.json PreToolUse matcher'lari yalnizca Bash / Write-Edit /
+# Agent|Task tutuyordu; uc MCP tarayici sunucusunun arac adlari HICBIR kapidan gecmiyordu.
+# Bu mod o kolu 6 EVE kurar. Desen CODEX/AGENT modlariyla AYNI: DAR + IDEMPOTENT + YEDEKLI +
+# FAIL-CLOSED (zorunlu sembol/ankraj eksikse O EVE DOKUNULMAZ; enjeksiyon sonrasi compile +
+# CANLI FIKSTUR, biri tutmazsa ev DERHAL YEDEKTEN geri alinir).
+#
+# 🔴 YOL FARKI OLCULUR, VARSAYILMAZ (Okan uyarisi): KraL evinde kapi '.claude/' altinda
+# DEGIL, 'tools/mimar-icra-kapisi.py'dedir; 5 kardes evde '.claude/mimar-icra-kapisi.py'.
+# Yanlis yola yazmak "kuruldu" der ama HICBIR SEYI kilitlemez. Bu yuzden kablonun komutu
+# _kapi_yolu_olc() ile IKI KAYNAKTAN olculur (evin settings.json'undaki mevcut kanca komutu
+# + diskteki aday yollar); ikisi de bos donerse ev FAIL-CLOSED atlanir.
+#
+# 🔴 KIMLIK TESPITI YENIDEN KULLANILIR: enjekte edilen blok kendi 'isci mi' testini
+# YAZMAZ, AGENT-KAPISI'nin _agent_isci_mi()'sini cagirir — bu yuzden AGENT_DAMGA bir
+# ZORUNLU SEMBOLDUR (yoksa eve dokunulmaz). Ikiz tanim sessizce ayrisir.
+MCP_DAMGA = 'MCP_KURAL_SURUMU = "8agu-1"'
+MCP_TANIM_BAS = "# === PRUVO MCP-TARAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
+MCP_TANIM_SON = "# === PRUVO MCP-TARAYICI KAPISI BITIS ==="
+MCP_CAGRI_BAS = "    # === PRUVO MCP-TARAYICI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
+MCP_CAGRI_SON = "    # === PRUVO MCP-TARAYICI CAGRI BITIS ==="
+MCP_ANKRAJ_TANIM = "\ndef main():\n"
+MCP_ANKRAJ_CAGRI = '    komut = (girdi.get("tool_input") or {}).get("command") or ""\n'
+# AGENT_DAMGA ZORUNLUDUR: blok _agent_isci_mi()'yi CAGIRIR (ikinci tespit yazilmaz).
+MCP_ZORUNLU_SEMBOL = (
+    "def reddet(", "import os", "def _agent_isci_mi(", AGENT_DAMGA,
+    MCP_ANKRAJ_TANIM, MCP_ANKRAJ_CAGRI,
+)
+
+# settings.json matcher'i: uc sunucu oneki. Hem 'search' hem 'fullmatch' anlambiliminde
+# calisir (onek + '.*'), boylece harness'in matcher semantigi TAKLIT EDILMEZ. Kapsam
+# disi adlar (mcp__visualize__*, mcp__Blender__*) bu desene UGRAMAZ; nihai karar zaten
+# kapi betigindedir (matcher genis olsa bile betik dar davranir).
+MCP_MATCHER = "mcp__(claude-in-chrome|Claude_Browser|Control_Chrome)__.*"
+
+MCP_TANIM_SABLON = '''
+
+''' + MCP_TANIM_BAS + '''
+# 8 AGU (Okan teftisi K17): mimar ANA oturumunda tarayici icrasi KAPALI; ISCI'de SERBEST.
+# Her tur ekran goruntusu tasir, goruntu en pahali token sinifidir (olculen vaka: 1 saatte
+# baglamin %58'i). KAPSAM DAR: yalniz asagidaki UC SUNUCU oneki — mcp__visualize__*,
+# mcp__Blender__*, mcp__ccd_session__* vb. DOKUNULMAZ (yanlis-pozitif = yayin durduran
+# sinif). PARSER TAKLIDI YOK: tek soru "ad bu uc onekten biriyle BASLIYOR mu".
+MCP_TARAYICI_ONEKLERI = (
+    "mcp__claude-in-chrome__",
+    "mcp__Claude_Browser__",
+    "mcp__Control_Chrome__",
+)
+''' + MCP_DAMGA + '''
+MCP_GEREKCE = (
+    "MCP-TARAYICI KAPISI (8 Agu): mimar ANA oturumu bir tarayici araci cagiriyor. Ana "
+    "dongude tarayici surmek KAPALI — her tur ekran goruntusu tasir ve goruntu EN PAHALI "
+    "token sinifidir (olculen vaka: 1 saatte baglamin %58'i). COZUM: TARAYICIYI "
+    "GORSEL-SINIF CLAUDE ISCISINE VER — Codex'e VERILMEZ (gorsel = codex-isci yasak "
+    "listesi). ISCI SABLONU (Agent araci: model sonnet + isolation worktree + background), "
+    "prompt'un ilk satiri: 'codex-muafiyet: tarayici ile <ne olculecek> — gorsel'; spec'e "
+    "CALISTIRILABILIR kabul yaz (hangi URL'de hangi sayi olculecek), isci olcsun, sen "
+    "SAYIYLA kapat. Isci cagrilarinda (agent_id dolu) bu kapi hicbir kural uygulamaz."
+)
+
+
+def _mcp_tarayici_mi(tool_name):
+    """Arac adi KAPSAMDAKI uc tarayici sunucusundan birine mi ait? Buyuk/kucuk DUYARSIZ
+    onek testi; kapsam disi hicbir 'mcp__...' araci etkilenmez."""
+    if not isinstance(tool_name, str) or not tool_name:
+        return False
+    _ad = tool_name.lower()
+    for _onek in MCP_TARAYICI_ONEKLERI:
+        if _ad.startswith(_onek.lower()):
+            return True
+    return False
+
+
+def _mcp_reddet(neden):
+    """Ev kapisinin reddet() fonksiyonunu kullanir. Iki imza var: KraL'da
+    reddet(neden, sonu=None), yol-bagimsiz sablonda reddet(neden). Arity OLCULUR."""
+    try:
+        arity = reddet.__code__.co_argcount
+    except Exception:
+        arity = 1
+    if arity >= 2:
+        reddet(neden, sonu="")
+    reddet(neden)
+''' + MCP_TANIM_SON + '''
+'''
+
+# 🔴 KIMLIK: _agent_isci_mi() — AGENT-KAPISI'nin TESPITI YENIDEN KULLANILIR.
+MCP_CAGRI_SABLON = (
+    MCP_CAGRI_BAS + "\n"
+    '    _mcp_tool = girdi.get("tool_name") or ""\n'
+    "    if _mcp_tarayici_mi(_mcp_tool) and not _agent_isci_mi(girdi):\n"
+    "        _mcp_reddet(MCP_GEREKCE)\n"
+    + MCP_CAGRI_SON + "\n"
+)
+
+# Kapi dosyasinin ev-goreli aday yollari (OLCULUR, varsayilmaz).
+MCP_KAPI_ADAYLARI = ("tools/mimar-icra-kapisi.py", ".claude/mimar-icra-kapisi.py")
+
+
+def _settingsten_kapi_komutu(kok):
+    """Evin settings.json'undaki HERHANGI bir PreToolUse kancasindan mimar-icra-kapisi.py
+    komutunu ayikla (yoksa None). BIRINCI KAYNAK: canli kablo ne diyorsa o."""
+    yol = os.path.join(kok, ".claude", "settings.json")
+    if not os.path.exists(yol):
+        return None
+    try:
+        veri = json.loads(_oku(yol))
+    except Exception:
+        return None
+    for blok in ((veri.get("hooks") or {}).get("PreToolUse") or []):
+        for k in (blok.get("hooks") or []):
+            komut = k.get("command") or ""
+            if "mimar-icra-kapisi.py" in komut:
+                return komut
+    return None
+
+
+def _kapi_yolu_olc(kok):
+    """Evdeki kapinin GERCEK ev-goreli yolunu OLCER (sabit varsayilmaz).
+
+    IKI KAYNAK, fail-closed birlesim:
+      (1) DISK — MCP_KAPI_ADAYLARI'ndan diskte VAR olan(lar).
+      (2) KABLO — settings.json'daki mevcut kanca komutunda gecen aday.
+    Karar diskte VAR olan adaydir; birden fazla varsa kablonun gosterdigi tercih edilir
+    (kablo da sessizse ilk aday). Hicbiri diskte yoksa (None, komut) doner ve cagiran
+    evi ATLAR — yanlis yola yazmak 'kuruldu' der ama hicbir seyi kilitlemez."""
+    komut = _settingsten_kapi_komutu(kok)
+    diskte = [a for a in MCP_KAPI_ADAYLARI if os.path.exists(os.path.join(kok, a))]
+    if not diskte:
+        return None, komut
+    if komut:
+        for aday in diskte:
+            if aday in komut:
+                return aday, komut
+    return diskte[0], komut
+
+
+def _mcp_ev_settings(kok, goreli, uygula):
+    """Evin .claude/settings.json'una MCP_MATCHER blogunu ekler. Komut, OLCULEN kapi
+    yolundan turetilir (evin mevcut kanca komutu varsa AYNEN o kullanilir — bicim/degisken
+    kullanimi evden eve farkli olabilir). Additive + idempotent + yedekli."""
+    yol = os.path.join(kok, ".claude", "settings.json")
+    if not os.path.exists(yol):
+        return "settings-yok"
+    try:
+        veri = json.loads(_oku(yol))
+    except Exception:
+        return "settings-bozuk"
+    mevcut_komut = _settingsten_kapi_komutu(kok)
+    if mevcut_komut and goreli in mevcut_komut:
+        komut = mevcut_komut
+    else:
+        komut = 'python3 "${CLAUDE_PROJECT_DIR:-.}/' + goreli + '"'
+    kancalar = veri.setdefault("hooks", {}).setdefault("PreToolUse", [])
+    if not isinstance(kancalar, list):
+        return "PreToolUse-bozuk"
+    mcp_blok = None
+    for blok in kancalar:
+        if blok.get("matcher") == MCP_MATCHER:
+            mcp_blok = blok
+            break
+    if mcp_blok is not None and any(
+            "mimar-icra-kapisi.py" in (k.get("command") or "")
+            for k in (mcp_blok.get("hooks") or [])):
+        return "zaten"
+    if not uygula:
+        return "EKLENECEK"
+    shutil.copyfile(yol, yol + ".yedek-" + time.strftime("%Y%m%d-%H%M%S"))
+    if mcp_blok is None:
+        mcp_blok = {"matcher": MCP_MATCHER, "hooks": []}
+        kancalar.append(mcp_blok)
+    mcp_blok.setdefault("hooks", []).append(
+        {"type": "command", "command": komut, "timeout": 30,
+         "statusMessage": "mimar mcp tarayici kapisi"})
+    _yaz(yol, json.dumps(veri, ensure_ascii=False, indent=2) + "\n")
+    try:
+        json.loads(_oku(yol))
+    except Exception:
+        return "yazim-bozuk"
+    return "kuruldu"
+
+
+# Enjeksiyon sonrasi CANLI FIKSTURLER: (tool_name, tool_input, agent_id, beklenen).
+# UC EKSEN BIRDEN: (a) ana-oturum RED, (b) ISCI GECER, (c) KAPSAM DISI yanlis-pozitif YOK,
+# + (d) REGRESYON (codex/agent/rutin kollari degismedi). Biri tutmazsa ev geri alinir.
+MCP_FIKSTURLERI = (
+    ("mcp__claude-in-chrome__computer", {}, None, "deny"),
+    ("mcp__Claude_Browser__computer", {}, None, "deny"),
+    ("mcp__Control_Chrome__open_url", {}, None, "deny"),
+    ("mcp__claude-in-chrome__computer", {}, AGENT_ISCI_ID, "allow"),
+    ("mcp__Claude_Browser__computer", {}, AGENT_ISCI_ID, "allow"),
+    ("mcp__Control_Chrome__open_url", {}, AGENT_ISCI_ID, "allow"),
+    ("mcp__visualize__show_widget", {}, None, "allow"),
+    ("mcp__Blender__get_objects_summary", {}, None, "allow"),
+    ("mcp__ccd_session__mark_chapter", {}, None, "allow"),
+    ("Bash", {"command": "ls"}, None, "allow"),
+    ("Bash", {"command": 'codex exec "x"'}, None, "deny"),
+    ("Bash", {"command": "codex exec -o /tmp/son-mesaj.txt \"x\""}, None, "allow"),
+    ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
+    ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
+)
+
+
+def _eve_mcp_enjekte(ad, kok, goreli, uygula, rapor):
+    """Tek eve MCP-TARAYICI kuralini enjekte eder (+ settings MCP matcher kablosu).
+    CODEX/AGENT enjeksiyonlariyla AYNI desen. Doner: (durum, yedek_yolu ya da None)."""
+    yol = os.path.join(kok, goreli)
+    if not os.path.exists(yol):
+        return "KAPI-DOSYASI-YOK", None
+    metin = _oku(yol)
+    if MCP_DAMGA in metin:
+        # Kural VAR; kablo eksik olabilir (ayri eksen) — kablo durumu raporlanir.
+        rapor.append("      settings MCP matcher: " + _mcp_ev_settings(kok, goreli, uygula))
+        return "ZATEN TAM", None
+
+    eksik = [s for s in MCP_ZORUNLU_SEMBOL if s not in metin]
+    if eksik:
+        rapor.append("      zorunlu sembol EKSIK: " + repr(eksik[0]))
+        return "UYUMSUZ-KAPI (dokunulmadi)", None
+
+    if not uygula:
+        return "ENJEKTE EDILECEK", None
+
+    yedek = yol + ".yedek-" + time.strftime("%Y%m%d-%H%M%S")
+    shutil.copyfile(yol, yedek)
+
+    temiz = _blogu_sok(metin, MCP_TANIM_BAS, MCP_TANIM_SON)
+    temiz = _blogu_sok(temiz, MCP_CAGRI_BAS, MCP_CAGRI_SON)
+    yeni = temiz.replace(MCP_ANKRAJ_TANIM, MCP_TANIM_SABLON + MCP_ANKRAJ_TANIM, 1)
+    yeni = yeni.replace(MCP_ANKRAJ_CAGRI, MCP_CAGRI_SABLON + MCP_ANKRAJ_CAGRI, 1)
+    _yaz(yol, yeni)
+
+    def geri_al(neden):
+        shutil.copyfile(yedek, yol)
+        rapor.append("      GERI ALINDI (" + neden + ") — yedek: " + yedek)
+
+    try:
+        compile(yeni, yol, "exec")
+    except SyntaxError as hata:
+        geri_al("SyntaxError: " + str(hata)[:60])
+        return "GERI ALINDI (derlenmedi)", yedek
+
+    for tn, ti, aid, beklenen in MCP_FIKSTURLERI:
+        olculen = _agent_fikstur(yol, kok, tn, ti, aid)
+        if olculen != beklenen:
+            geri_al("fikstur tn=" + tn + " beklenen=" + beklenen + " olculen=" + str(olculen))
+            return "GERI ALINDI (fikstur)", yedek
+
+    rapor.append("      yedek: " + yedek)
+    rapor.append("      info/exclude: " + _yedeklerimi_gizle(kok) +
+                 " | skip-worktree: " + _skip_worktree(kok, goreli) +
+                 " | settings MCP matcher: " + _mcp_ev_settings(kok, goreli, uygula))
+    return "KURULDU", yedek
+
+
+def mcp_kapisi(uygula):
+    """6 EVE MCP-TARAYICI kapisini kurar/dogrular. Cikis 0 = 6 evin hepsi TAM (kural + kablo).
+
+    KraL 'kaynak' modda: kural commit'li tools/mimar-icra-kapisi.py'de yasar, bu arac orayi
+    YAZMAZ — yalnizca DOGRULAR; ama KABLOSUNU (settings MCP matcher) burada kurar, cunku
+    .claude/ commit EDILMEZ ve baska hicbir akis onu kurmuyor."""
+    print("MCP-TARAYICI KAPISI DAMGASI: " + MCP_DAMGA)
+    print("MATCHER: " + MCP_MATCHER)
+    print("MOD: " + ("UYGULA" if uygula else "KURU KOSUM (degisiklik yok)"))
+    print("")
+    eksik = 0
+    for ad, kok, _varsayilan_goreli, mod in CODEX_EVLER:
+        rapor = []
+        if not os.path.isdir(kok):
+            print("{:<7} {:<34} {:<9} {}".format(ad, "-", mod, "EV YOK"))
+            eksik += 1
+            continue
+        # 🔴 YOL OLCUMU (sabit varsayilmaz): KraL tools/, kardesler .claude/ altinda.
+        goreli, _kablo = _kapi_yolu_olc(kok)
+        if goreli is None:
+            print("{:<7} {:<34} {:<9} {}".format(
+                ad, "?", mod, "KAPI YOLU OLCULEMEDI (diskte aday yok) — DOKUNULMADI"))
+            eksik += 1
+            continue
+        if mod == "kaynak":
+            try:
+                kural = MCP_DAMGA in _oku(os.path.join(kok, goreli))
+            except Exception:
+                kural = False
+            kablo = _mcp_ev_settings(kok, goreli, uygula)
+            rapor.append("      settings MCP matcher: " + kablo)
+            if not kural:
+                durum_metni = "EKSIK (kaynak dosya — dal ile guncellenir, arac YAZMAZ)"
+            elif kablo in ("zaten", "kuruldu"):
+                durum_metni = "ZATEN TAM"
+            else:
+                durum_metni = "KURAL VAR / KABLO EKSIK (" + kablo + ")"
+        else:
+            durum_metni, _ = _eve_mcp_enjekte(ad, kok, goreli, uygula, rapor)
+        if durum_metni != "ZATEN TAM" and not (uygula and durum_metni == "KURULDU"):
+            eksik += 1
+        print("{:<7} {:<34} {:<9} {}".format(ad, goreli, mod, durum_metni))
+        for satir in rapor:
+            print(satir)
+    print("")
+    print("TAM OLMAYAN EV: " + str(eksik))
+    print("KURULU_EV=" + str(len(CODEX_EVLER) - eksik) + "/" + str(len(CODEX_EVLER)))
+    if not uygula:
+        print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
+    print("Dogrula: python3 /Users/okan/dev/pruvo/tools/mimar-kapi-6ev-test.py")
+    sys.exit(0 if eksik == 0 else 1)
+
+
 def main():
     global AYAR, PRECOMMIT
     argv = sys.argv[1:]
@@ -926,6 +1234,9 @@ def main():
 
     if "--agent-kapisi" in argv:  # 28 Tem (BaBa hukmu): AGENT-KAPISI 6 EVE
         agent_kapisi(uygula)
+
+    if "--mcp-kapisi" in argv:  # 8 Agu (Okan teftisi K17): MCP-TARAYICI KAPISI 6 EVE
+        mcp_kapisi(uygula)
 
     if not os.path.exists(AYAR):
         print("BULUNAMADI: " + AYAR)

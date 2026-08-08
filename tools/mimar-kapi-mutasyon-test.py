@@ -377,6 +377,79 @@ MUTASYONLAR = [
     ("MA3", lambda d: yama(d, ICRA, KIMLIK_GOVDE, '    return "MIMAR"\n'),
      "28Tem AGENT: agent_id muafiyeti tersine (ICRA kimlik MIMAR) — isci Agent/Task RED",
      {404, 405}, False, 2),
+    # --- 8 AGU MCP-TARAYICI KAPISI NOBETCILERI (AGENT turundeki 3-mutant standardi + ---
+    # --- yanlis-pozitif ekseni icin TERS YONLU bir dorduncu) ---------------------------
+    # MC1 (a): KAPSAM DARALTMASI — onek kumesinden 'Claude_Browser' DUSURULUR. Okan'in
+    # ismen istedigi mutant. YALNIZ o sunucunun ana-oturum vakalari (501/504) kizarmali;
+    # diger iki sunucu (500/502/503) YESIL kalmali — bu AYIRT EDICILIGIN kanitidir
+    # (tek tek olculmeyen bir kume mutanti "hepsi birden dustu" ile karisir).
+    ("MC1", lambda d: yama(
+        d, ICRA,
+        '    "mcp__Claude_Browser__",\n', ""),
+     "8Agu MCP: onek kumesinden 'Claude_Browser' dusurulur (KAPSAM DELIGI)",
+     {501, 504}, True, 2),
+    # MC2 (b): KURAL KOMPLE KAPATILIR — main() MCP kolu hic tetiklemez. Uc sunucunun
+    # TUM ana-oturum vakalari acilir; ISCI (510-512) ve kapsam-disi (520+) YESIL kalir.
+    ("MC2", lambda d: yama(
+        d, ICRA,
+        "    if _mcp_tarayici_mi(tool_name):\n",
+        "    if False and _mcp_tarayici_mi(tool_name):\n"),
+     "8Agu MCP: main() MCP kolu komple kapatilir (ana dongude tarayici yeniden serbest)",
+     {500, 501, 502, 503, 504}, True, 5),
+    # MC3 (c): TERS YONLU — tanima daima True. Kapi "her MCP aracini" reddeder; ana-oturum
+    # vakalari YESIL kalir ama KAPSAM DISI araclar (520-527) kizarir. Bu, K4'un
+    # (yanlis-pozitif = bu depoda yayin durduran sinif) nobetcisidir: kapsami genisleten
+    # bir degisiklik sessizce gecemez.
+    # NOT (olculdu): mutant once '_mcp_tarayici_mi daima True' idi — o hali tool_name'i
+    # "Bash"/"Agent" olan TUM cagrilari da reddediyor ve 43 vaka birden dusuyordu. Toplu
+    # dusus AYIRT EDICI DEGILDIR (memory/envanter-drift-parti-basina.md: kontrol
+    # mutantlarinin toplu dususu "olduruc" kusur sanilir). Mutant bu yuzden MCP AD UZAYI
+    # ICINDE genisletilir: kume tek bir kaba onege ('mcp__') indirgenir.
+    ("MC3", lambda d: yama(
+        d, ICRA,
+        '    "mcp__claude-in-chrome__",\n'
+        '    "mcp__Claude_Browser__",\n'
+        '    "mcp__Control_Chrome__",\n',
+        '    "mcp__",\n'),
+     "8Agu MCP: onek kumesi 'mcp__' ile GENISLETILIR (kapsam tasar) -> kapsam-disi "
+     "araclar YANLIS-POZITIF RED alir",
+     {520, 521, 522, 523, 524, 525, 526, 527}, True, 8),
+    # MC4 (d): KIMLIK EKSENI — kural, main() basindaki TEK ana-oturum tespitinin ONUNE
+    # tasinir (yani "ikinci bir tespit uydurmak"in davranissal karsiligi). ISCI cagrilari
+    # (510-512) reddedilir; ana-oturum ve kapsam-disi vakalar YESIL kalir. Kural ile
+    # kimlik tespitinin AYRISMASI boylece kirmizi yakar.
+    ("MC4", lambda d: yama(
+        d, ICRA,
+        '    if kimlik(girdi) == "ISCI":\n',
+        '    if _mcp_tarayici_mi(girdi.get("tool_name") or ""):\n'
+        '        reddet(MCP_GEREKCE, sonu="")\n'
+        '    if kimlik(girdi) == "ISCI":\n'),
+     "8Agu MCP: kural ISCI muafiyetinin ONUNE tasinir (isci tarayicisi RED)",
+     {510, 511, 512}, True, 3),
+]
+
+# ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
+# memory/beyan-edilmis-survivor.md + fikstur-degeri-mutasyon-koru.md: "N mutant kirmizi
+# yakti" tek basina kanit DEGILDIR — takim her degisiklige kirmizi yaniyor da olabilir.
+# Buradaki mutantlar kaynagi GERCEKTEN degistirir ama DAVRANISI degistirmez; kabul testi
+# YESIL kalmali (exit 0, SIFIR kirmizi vaka). Biri kirmizi yanarsa takim ayirt edici
+# degildir ve MC1-MC4'un kirmizisi da kanit sayilmaz.
+# (ad, uygulayici, aciklama)
+KONTROL_MUTANTLARI = [
+    ("K1", lambda d: yama(
+        d, ICRA,
+        '    "mcp__claude-in-chrome__",\n'
+        '    "mcp__Claude_Browser__",\n'
+        '    "mcp__Control_Chrome__",\n',
+        '    "mcp__Control_Chrome__",\n'
+        '    "mcp__claude-in-chrome__",\n'
+        '    "mcp__Claude_Browser__",\n'),
+     "MCP onek kumesi YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
+    ("K2", lambda d: yama(
+        d, ICRA,
+        'MCP_KURAL_SURUMU = "8agu-1"\n',
+        'MCP_KURAL_SURUMU = "8agu-1"\n_MCP_KONTROL_MUTANTI = True\n'),
+     "MCP blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
 ]
 
 # CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine
@@ -458,6 +531,19 @@ def main():
             if not tamam:
                 basarisiz.append(ad)
 
+        # KONTROL MUTANTLARI: kriter TERSTIR — SIFIR kirmizi + exit 0 beklenir. Takimin
+        # "her degisiklige kirmizi yaniyor" olmadiginin, yani AYIRT EDICI oldugunun kaniti.
+        for ad, uygulayici, aciklama in KONTROL_MUTANTLARI:
+            kirmizi, cikis = mutasyonu_kostur(ad, uygulayici)
+            tamam = (not kirmizi) and cikis == 0
+            print("KONTROL {:<4} | kirmizi={:<3} | vakalar={} | exit={} (0 + SIFIR "
+                  "kirmizi BEKLENIR) | {}".format(
+                      ad, len(kirmizi), sorted(kirmizi), cikis,
+                      "GECTI" if tamam else "KALDI"))
+            print("          {}".format(aciklama))
+            if not tamam:
+                basarisiz.append("KONTROL-" + ad)
+
         # CEVRE-ARIZA ENJEKSIYONU (B6-yan): kriter cikis kodudur, kirmizi vaka degil.
         for ad, uygulayici, aciklama in sorted(KENDI_TESTINI_KOSAN):
             _, cikis = mutasyonu_kostur(ad, uygulayici, kendi_testi=True)
@@ -473,14 +559,16 @@ def main():
         subprocess.run(["git", "-C", KOK, "worktree", "prune"],
                        capture_output=True, text=True)
 
-    toplam = len(MUTASYONLAR) + len(KENDI_TESTINI_KOSAN)
+    toplam = len(MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) + len(KONTROL_MUTANTLARI)
     print("")
     if basarisiz:
         print("SONUC: KIRMIZI — esigi tutturamayan mutasyonlar: " + ", ".join(basarisiz))
         sys.exit(1)
-    print("SONUC: {}/{} mutasyonun HEPSI kabul testini kirmizi yakti "
-          "({} kural mutasyonu + {} cevre-ariza enjeksiyonu).".format(
-              toplam, toplam, len(MUTASYONLAR), len(KENDI_TESTINI_KOSAN)))
+    print("SONUC: {}/{} mutant beklenen isareti verdi "
+          "({} kural mutasyonu KIRMIZI + {} kontrol mutanti YESIL + {} cevre-ariza "
+          "enjeksiyonu).".format(
+              toplam, toplam, len(MUTASYONLAR), len(KONTROL_MUTANTLARI),
+              len(KENDI_TESTINI_KOSAN)))
     sys.exit(0)
 
 

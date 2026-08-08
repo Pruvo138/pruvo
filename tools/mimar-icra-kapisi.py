@@ -296,6 +296,71 @@ AGENT_GEREKCE = (
     "eder: görsel / sessiz-hata / muhakeme / ölçüm / güvenlik / şema — codex-isci yasak listesi)."
 )
 
+# ============ 8 AGU: MCP-TARAYICI ICRA KAPISI (Okan teftisi K17, 2. ihtar) ============
+# OLCULEN DELIK: 6 evin settings.json PreToolUse matcher'lari yalnizca 'Bash',
+# 'Edit|Write|MultiEdit' ve 'Agent|Task' tutuyordu. Uc MCP tarayici sunucusunun ARAC
+# ADLARI hicbir matcher'a ugramiyordu → mimar ANA oturumunda tarayici surmek SIFIR
+# surtunmeliydi. Olculmus vaka: bir mimar 1 saatte baglaminin %58'ini ana dongude
+# tarayici surerek yakti; her tur bir EKRAN GORUNTUSU tasir ve goruntu en pahali
+# token sinifidir.
+#
+# KURAL: mimar ANA oturumunda (agent_id BOS) bu uc onekle baslayan HER arac REDDEDILIR;
+# ISCI'de (agent_id DOLU) SERBEST.
+#
+# 🔴 KIMLIK TESPITI YENIDEN KULLANILIR, IKINCI MEKANIZMA YAZILMAZ: main() basindaki
+# kimlik(girdi) == "ISCI" erken cikisi AGENT-KAPISI'nin da dayandigi TEK mekanizmadir;
+# bu kural o cikisin ARDINDA durur, yani ayri bir 'isci mi' testi TASIMAZ. Ikiz tanim
+# sessizce ayrisir (memory/ikiz-tanim-sessiz-ayrisma.md) — tek kaynak korunur.
+#
+# KAPSAM DAR TUTULUR (yanlis-pozitif = bu depoda YAYIN DURDURAN sinif; memory/
+# kapi-kapsam-genisletme-tuzagi.md + tekil-yama-sinifi-kapatmaz.md): kural "mcp__ ile
+# baslayan her sey" DEGIL, YALNIZ bu uc SUNUCU onekidir. mcp__visualize__*,
+# mcp__Blender__*, mcp__ccd_session__*, mcp__scheduled-tasks__* vb. DOKUNULMAZ. Tek
+# yonlu nobetci (yalniz "yakaliyor mu") olu nobetcidir; iki yon de olculur.
+#
+# PARSER TAKLIDI YOK (memory/mimar-kapi-parser-taklidi.md): tek soru "arac adi bu uc
+# onekten biriyle BASLIYOR mu". Glob/joker genisletmesi, sunucu adi normalizasyonu,
+# arac adi ayristirmasi YAPILMAZ. Karsilastirma buyuk/kucuk harf DUYARSIZDIR ve bu
+# TEK KAYNAKTAN (asagidaki dongu) gelir — ayni sunucu adinin iki yazimi icin iki liste
+# tutmak tam da ayrisan ikiz tanim olurdu.
+MCP_TARAYICI_ONEKLERI = (
+    "mcp__claude-in-chrome__",
+    "mcp__Claude_Browser__",
+    "mcp__Control_Chrome__",
+)
+# SURUM DAMGASI — tools/mimar-kapi-kur.py --mcp-kapisi bu dizeyi arayarak "bu evde
+# MCP-TARAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
+# dogrulamasi). Kurali degistirirsen damgayi da yukselt.
+MCP_KURAL_SURUMU = "8agu-1"
+MCP_GEREKCE = (
+    "MCP-TARAYICI KAPISI (8 Ağu): mimar ANA oturumu bir tarayıcı aracı çağırıyor. Ana "
+    "döngüde tarayıcı sürmek KAPALI — her tur ekran görüntüsü taşır ve görüntü EN PAHALI "
+    "token sınıfıdır (ölçülen vaka: 1 saatte bağlamın %58'i). ÇÖZÜM: TARAYICIYI "
+    "GÖRSEL-SINIF CLAUDE İŞÇİSİNE VER — Codex'e VERİLMEZ (görsel = codex-isci yasak "
+    "listesi). İŞÇİ ŞABLONU (Agent aracı: model sonnet + isolation worktree + background), "
+    "prompt'un ilk satırı: 'codex-muafiyet: tarayıcı ile <ne ölçülecek> — görsel'; spec'e "
+    "ÇALIŞTIRILABİLİR kabul yaz (hangi URL'de hangi sayı ölçülecek), işçi ölçsün, sen "
+    "SAYIYLA kapat. İşçi çağrılarında (agent_id dolu) bu kapı hiçbir kural uygulamaz — "
+    "tarayıcı orada SERBESTTİR."
+)
+
+
+def _mcp_tarayici_mi(tool_name):
+    """Arac adi KAPSAMDAKI uc tarayici sunucusundan birine mi ait?
+
+    KABA + TEK SORU: ad, MCP_TARAYICI_ONEKLERI'nden biriyle BASLIYOR mu (buyuk/kucuk
+    DUYARSIZ). Onek DISI hicbir 'mcp__...' araci etkilenmez — kapsam disi benzer adli
+    araclar (mcp__visualize__*, mcp__Blender__*, mcp__ccd_session__*) ana oturumda
+    REDDEDILMEZ; bu YANLIS-POZITIF ekseni ayri vakalarla olculur."""
+    if not isinstance(tool_name, str) or not tool_name:
+        return False
+    ad = tool_name.lower()
+    for onek in MCP_TARAYICI_ONEKLERI:
+        if ad.startswith(onek.lower()):
+            return True
+    return False
+
+
 # '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). Neden: PY_NODE ALLOWLIST'i python'i
 # yalnizca iki tam komuta indirdi — '-m pip'/'-m timeit'/'-m http.server' vs. artik
 # allowlist tarafindan reddedilir (durum.py/d1-sync.py degil). Ayri bir -m ayristirmasi
@@ -694,6 +759,14 @@ def main():
             reddet(agent_karari, sonu="")
         iz_bas("MIMAR-agent-muafiyet")
         sys.exit(0)
+
+    # === 8 AGU MCP-TARAYICI KAPISI: mimar ANA oturumunda tarayici icrasi KAPALI.
+    # ISCI (agent_id dolu) YUKARIDA zaten muaf cikti — bu satirin kimlik testi TASIMAMASI
+    # kasitlidir: tespit TEK KAYNAKTAN (main() basi) gelir, ikinci mekanizma yazilmaz.
+    # Kapsam DISI hicbir arac bu koldan gecmez (_mcp_tarayici_mi onek kumesi); Bash/Agent/
+    # Write kollarinin davranisi DEGISMEZ (regresyon 0).
+    if _mcp_tarayici_mi(tool_name):
+        reddet(MCP_GEREKCE, sonu="")
 
     komut = (girdi.get("tool_input") or {}).get("command") or ""
     if not komut.strip():

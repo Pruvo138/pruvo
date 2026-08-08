@@ -93,11 +93,32 @@ VAKALAR = [
     ("RUTIN", 35, "echo x", None, "allow"),
     ("RUTIN", 36, "cat {EV}/.claude/settings.json", None, "allow"),
     ("RUTIN", 37, "<PY>", None, "<PY>"),
+    # === 8 AGU MCP-TARAYICI KAPISI (Okan teftisi K17) — 6 EVDE davranissal olcum ===
+    # 6-ELEMANLI tuple: sonuncu eleman tool_name (5-elemanli mevcut vakalar 'Bash' kalir).
+    # K1'in IKI AYAGI: ana-oturum RED + isci GECER. Kapi GERCEKTEN cagrilir, cikis kodu +
+    # permissionDecision iddia edilir — metin eslemesi ("dosyada gecim mi") OLCMEZ.
+    ("MCP", 40, "", None, "deny", "mcp__claude-in-chrome__computer"),
+    ("MCP", 41, "", None, "deny", "mcp__Claude_Browser__computer"),
+    ("MCP", 42, "", None, "deny", "mcp__Control_Chrome__open_url"),
+    ("MCP", 43, "", ISCI_ID, "allow", "mcp__claude-in-chrome__computer"),
+    ("MCP", 44, "", ISCI_ID, "allow", "mcp__Claude_Browser__computer"),
+    ("MCP", 45, "", ISCI_ID, "allow", "mcp__Control_Chrome__open_url"),
+    # YANLIS-POZITIF NOBETI (K4): kapsam DISI benzer adli araclar ana oturumda REDDEDILMEZ.
+    # Tek yonlu nobetci olu nobetcidir; bu eksen olculmezse kapi sessizce tasar.
+    ("MCP-FP", 46, "", None, "allow", "mcp__visualize__show_widget"),
+    ("MCP-FP", 47, "", None, "allow", "mcp__Blender__get_objects_summary"),
+    ("MCP-FP", 48, "", None, "allow", "mcp__ccd_session__mark_chapter"),
+    ("MCP-FP", 49, "", None, "allow", "mcp__scheduled-tasks__list_scheduled_tasks"),
+    ("MCP-FP", 50, "", None, "allow", "mcp__Claude_Browser_Extra__computer"),
 ]
 
 
-def kapiyi_kostur(kapi_yolu, kok, komut, agent_id):
-    """Doner: (karar, iz_var). karar: allow/deny/EKSIK-KAPI/COKTU/PARSE-HATASI."""
+def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash"):
+    """Doner: (karar, iz_var). karar: allow/deny/EKSIK-KAPI/COKTU/PARSE-HATASI.
+
+    tool_name VARSAYILAN 'Bash' (mevcut TUM vakalar aynen kosar — regresyon 0). MCP
+    araclarinda karar YALNIZ tool_name'den cikar; arac-ozel girdi semasi TAKLIT EDILMEZ,
+    tool_input BOS birakilir (8 Agu MCP-TARAYICI kapisi)."""
     if not os.path.exists(kapi_yolu):
         return "EKSIK-KAPI", False
     payload = {
@@ -105,8 +126,8 @@ def kapiyi_kostur(kapi_yolu, kok, komut, agent_id):
         "cwd": kok,
         "permission_mode": "bypassPermissions",
         "hook_event_name": "PreToolUse",
-        "tool_name": "Bash",
-        "tool_input": {"command": komut},
+        "tool_name": tool_name,
+        "tool_input": {} if tool_name.startswith("mcp__") else {"command": komut},
     }
     if agent_id is not None:
         payload["agent_id"] = agent_id
@@ -146,18 +167,21 @@ def ev_kostur(ad, kok, goreli):
         "Sinif", "No", "Beklenen", "Olculen", "Iz", "Sonuc", "Komut"))
     print("-" * 88)
     basarisiz = []
-    for sinif, no, komut, agent_id, beklenen in VAKALAR:
+    for vaka in VAKALAR:
+        # 5-elemanli = Bash vakasi (mevcut); 6-elemanli = tool_name tasiyan vaka (MCP).
+        sinif, no, komut, agent_id, beklenen = vaka[:5]
+        tool_name = vaka[5] if len(vaka) > 5 else "Bash"
         if komut == "<PY>":
             komut, beklenen = PY_CAGRI[ad]
         komut = komut.replace("{EV}", kok)
         bek = beklenen_coz(beklenen, ad)
-        olculen, iz = kapiyi_kostur(kapi, kok, komut, agent_id)
+        olculen, iz = kapiyi_kostur(kapi, kok, komut, agent_id, tool_name)
         gecti = (olculen == bek)
         if not gecti:
             basarisiz.append((ad, no, bek, olculen))
         print("{:<6} {:<4} {:<8} {:<8} {:<4} {:<6} {}".format(
             sinif, no, bek, olculen, "var" if iz else "yok",
-            "OK" if gecti else "KIRMIZI", komut[:34]))
+            "OK" if gecti else "KIRMIZI", (tool_name if len(vaka) > 5 else komut)[:34]))
     return basarisiz
 
 
