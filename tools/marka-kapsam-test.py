@@ -198,7 +198,12 @@ try:
 
     KART_RE = re.compile(r'<div class="card" data-kat="([^"]*)"><a class="card-main" '
                          r'href="([^"]+)"')
-    BTN_RE = re.compile(r'<a class="mm-model-btn" href="([^"]+)" data-katsay="([^"]*)">'
+    # data-katsay'den SONRA ek alan gelebilir (data-mm = model indeksi; sayfa-içi filtre
+    # onu okur). Çapa alanın VARLIĞINA bağlı, tag'in o alanla BİTMESİNE değil — yoksa
+    # markuba eklenen her yeni alan bu nöbetçiyi sessizce kör ederdi (ölçüldü: `data-mm`
+    # eklenince butonlar HİÇ ayrışmadı ve "model sayfası fikstürü çıkarıldı" kırmızısı,
+    # gerçek kusur olmadığı hâlde, yayını durduruyordu).
+    BTN_RE = re.compile(r'<a class="mm-model-btn" href="([^"]+)" data-katsay="([^"]*)"[^>]*>'
                         r'.*?<span class="adet">([^<]*)</span>')
     KART_HERHANGI_RE = re.compile(r'<div class="card(?: [^"]*)?"[^>]*>')
     ID_RE = re.compile(r"/urun/([^/]+)/")

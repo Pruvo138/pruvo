@@ -10,8 +10,33 @@
   2. `marka_only + ikincil + kucuk_urunler` birleşimi id bazında tekilleştirilmiyordu →
      31 marka sayfasında 282 fazla kart (aynı ürün iki kez).
 
-KAPI NEYİ ÖLÇER (üretilen HTML üzerinden, ÖRNEKLEME YOK — 1022 marka adresinin TAMAMI):
+🔴 KAPININ KENDİ KÖRLÜĞÜ KAPANDI (8 Ağu 2026, Okan hükmü). Eski `BIRIM_KALEM/cakisma`
+iddiası "kart kolu ile kova ÇAKIŞABİLİR, tekilleştirme yutar" diyordu — yani kusuru DOĞRU
+DAVRANIŞ diye kutsuyordu; bölüm kimliği hiç iddia EDİLMİYORDU. İddia TERSİNE ÇEVRİLDİ:
+çakışma İHLALDİR (`BIRIM_AYRIM/eleme` + `AYRIK/<sayfa>`). Ölçülen iki yönlü işaret:
+onarım ÖNCESİ jeneratörle bu kapı `AYRIK` ekseninde 32 sayfa, `AGIRLIK` ekseninde 11 sayfa
+kırmızı yakıyor; onarım SONRASI 0/0.
+
+KAPI NEYİ ÖLÇER (üretilen HTML üzerinden, ÖRNEKLEME YOK — 1043 marka adresinin TAMAMI):
   MUKERRER      : sayfadaki ham kart sayısı == tekil kart sayısı.
+  KIMLIK        : KART YÜZEYİ == başlıktaki toplam. Yüzey = SSR kartları ∪ düz bağ girdileri
+                  ∪ artım yükünün (`parcalar.json`) kalemleri. Okan hükmü: marka sayfası
+                  markanın TÜM parçalarını kart olarak listeler; ağırlık yüzünden bir kısmı
+                  AYNI SAYFADA artımlı çizilir, ama yüzey EKSİLMEZ. Yük yok/bozuksa KIRMIZI.
+  KIMLIK_MUKERRER: ne yükün içinde ne SSR ile yük arasında çift kalem olmaz.
+  AYRIK         : yerel bölüm ∩ model kovaları == ∅ (çakışma İHLAL). Yerel bölüm sayfanın
+                  KENDİ beyanından (yükte model indeksi boş olan kalemler) okunur; yük yoksa
+                  kartlardan çıkarılır -> eksen onarım ÖNCESİ şekilde de ölçülebilir.
+  BAG_YEREL     : düz bağ listesindeki her kalem yereldir (model sayfası olanı bağa koymak
+                  gereksiz bayt, yereli koymamak ÖKSÜZ ürün demek).
+  KART_N        : SSR'de basılan kart sayısı == min(MARKA_KART_N, toplam). N aşılırsa sayfa
+                  yeniden şişer, N'den az basılırsa ilk boya sessizce zayıflar.
+  AGIRLIK       : üretilen HTML baytı <= HTML_TAVAN (katalog her partide büyüyor; tavan
+                  kapıda değilse bir sonraki parti sayfayı sessizce yeniden şişirir).
+  ARTIM         : istemcinin çizeceği kart gövdesi (PRUVO_ARTIM.kartHtml, node'da GERÇEKTEN
+                  koşturulur) Python `_kart` ile BAYT-AYNI — yükteki HER kalem için.
+  ARTIM_SUZ     : sayfa-içi model/kapsam süzgeci kanonik kümeyi verir; tanınmayan yükte
+                  BOŞ küme döner (fail-closed) ve süzgeç GERÇEKTEN daraltır (kontrol).
   KAYIP         : marka sayfasından ULAŞILABİLEN tekil küme == katalogdaki üyelik kümesi
                   (bağımsız türetme: `marka_uyelikleri`, gruplandır/sayfa üreticisi DEĞİL).
   TOPLAM        : SSR'de basılan `.mm-sayim-toplam` == ulaşılabilen tekil küme büyüklüğü.
@@ -42,8 +67,23 @@ import tempfile
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, TOOLS)
 
-KART_RE = re.compile(r'<div class="card" data-kat="([^"]*)"><a class="card-main" href="([^"]+)"')
-BTN_RE = re.compile(r'<a class="mm-model-btn" href="([^"]+)" data-katsay="([^"]*)">')
+# Marka sayfası HTML tavanı = ana sayfanın (index.html) 7 Ağu'da ölçülen baytı.
+# Okan hükmü: en büyük marka sayfası ana sayfayı AŞMASIN. SABİT tutulur (index.html de
+# büyüyor; tavanı ona bağlamak tavanı kendiliğinden gevşetirdi → pencere-göreli alarm tuzağı
+# [[pencere-goreli-alarm-kendini-sonduruyor]]).
+HTML_TAVAN = 213155
+
+# 🔴 SCRIPT GÖVDESİ SAYFA İÇERİĞİ DEĞİLDİR. Artım modülü (PRUVO_ARTIM.kartHtml) kart
+# şablonunu JS içinde taşır; script'i soymadan tarayan bir ölçüm o ŞABLONU kart SAYAR
+# (ölçüldü: her marka sayfasında +1 hayalet kart, kimlik iddiası +1 sapardı).
+SCRIPT_RE = re.compile(r"<script\b[^>]*>.*?</script>", re.S | re.I)
+# data-kat'ten SONRA ek alan gelebilir (data-mm = model üyeliği; sayfa-içi filtre bundan süzer).
+KART_RE = re.compile(r'<div class="card" data-kat="([^"]*)"[^>]*><a class="card-main" '
+                     r'href="([^"]+)"')
+# Model sayfası OLMAYAN kalemlerin düz bağ girdileri (kart değil, ama sayfada GÖRÜNÜR öğe ve
+# sayfadan ULAŞILABİLİR kalem: ulaşılabilirlik kümesine kartlarla AYNI ağırlıkta girer).
+BAG_RE = re.compile(r'<li class="mm-kalan-oge" data-kat="([^"]*)"><a href="([^"]+)"')
+BTN_RE = re.compile(r'<a class="mm-model-btn" href="([^"]+)" data-katsay="([^"]*)"')
 TOPLAM_RE = re.compile(r'<p class="mm-toplam" data-katsay="([^"]*)">.*?'
                        r'<span class="mm-sayim-toplam">(\d+)</span>')
 SAYIM_KART_RE = re.compile(r'<span class="mm-sayim-kart">(\d+)</span>')
@@ -75,6 +115,11 @@ if(!K){ console.log(JSON.stringify({hata: "PRUVO_KAPSAM tanimlanmadi"})); proces
 function shim(sayfa){
   const kartlar = sayfa.kartlar.map((kat) => ({
     style: {display: ""}, getAttribute: (n) => (n === "data-kat" ? kat : null)}));
+  // DÜZ BAĞ ÖĞELERİ de şimlenir. 🔴 NEDEN ZORUNLU: `uygula()` bu öğeleri AYRI bir seçiciyle
+  // (.mm-kalan-oge[data-kat]) süzüyor; şim onları vermezse o dal HİÇ koşmaz ve "bağ öğeleri
+  // kapsam dışında da ekranda kalıyor" kusuru kapıdan sessizce geçerdi (fail-open).
+  const duzler = (sayfa.baglar || []).map((kat) => ({
+    style: {display: ""}, getAttribute: (n) => (n === "data-kat" ? kat : null)}));
   const butonlar = sayfa.butonlar.map((b) => {
     const adet = {textContent: ""};
     const attrs = {"data-katsay": b.katsay, href: b.href};
@@ -98,6 +143,7 @@ function shim(sayfa){
   };
   const harita = {
     ".card[data-kat]": kartlar,
+    ".mm-kalan-oge[data-kat]": duzler,
     ".mm-model-btn[data-katsay]": butonlar,
     ".mm-toplam[data-katsay]": toplamEl,
     "a[data-kapsam-tasi]": [],
@@ -107,7 +153,7 @@ function shim(sayfa){
   };
   return {dok: {querySelectorAll: (s) => (harita[s] || []),
                 getElementById: (id) => (kutu[id] || null)},
-          kartlar, kutu, sayimToplam};
+          kartlar, duzler, kutu, sayimToplam};
 }
 
 // SENTETİK FAIL-CLOSED FİKSTÜRLERİ: gerçek sayfalarda kırılım HEP sağlamdır, bu yüzden
@@ -120,7 +166,31 @@ for(const f of VERI.sentetik){
   sentetik[f.ad] = {serit: s.kutu.kapsamNotMetin.textContent, rozet: s.sayimToplam.textContent};
 }
 
-const cikti = {sentetik: sentetik};
+// ARTIM MODÜLÜ: istemcinin çizeceği kart gövdesi Python `_kart` ile BAYT-AYNI mı.
+// (Kart başlığı/fiyatı Python'da bağlam-duyarlı kurallarla üretilir; JS'e PORT edilmedi,
+// yalnız SAPMA override olarak taşınır. Bu eksen o sözleşmenin GERÇEKTEN tutduğunu ölçer —
+// tutmazsa "tümünü göster" sonrası kartlar sessizce ayrışırdı.)
+const artim = {kuruldu: false, kartlar: {}, suz: null};
+if(VERI.artimJs){
+  const actx = {window: {}, JSON: JSON, String: String, Object: Object, console: ctx.console};
+  vm.runInNewContext(VERI.artimJs, actx, {filename: "artim.js", timeout: 10000});
+  const A = actx.window.PRUVO_ARTIM;
+  if(A){
+    artim.kuruldu = true;
+    for(const kayit of VERI.kartDenekleri){
+      artim.kartlar[kayit.id] = A.kartHtml(kayit.urun, kayit.o, VERI.site, A.mmAttr(kayit.kalem));
+    }
+    // suz(): model + kapsam süzgeci (sayfa-içi filtrenin çekirdeği)
+    artim.suz = {
+      hepsi: A.suz(VERI.suzYuk, null, null).map((k) => k[0]),
+      model0: A.suz(VERI.suzYuk, 0, null).map((k) => k[0]),
+      kategori: A.suz(VERI.suzYuk, null, VERI.suzKategori).map((k) => k[0]),
+      bozuk: A.suz(null, null, null).length
+    };
+  }
+}
+
+const cikti = {sentetik: sentetik, artim: artim};
 for(const yol of Object.keys(VERI.sayfalar)){
   const sayfa = VERI.sayfalar[yol];
   const kayit = {filtresiz: null, kategoriler: {}};
@@ -132,7 +202,9 @@ for(const yol of Object.keys(VERI.sayfalar)){
     kayit.kategoriler[kat] = {
       serit: s.kutu.kapsamNotMetin.textContent,
       rozet: s.sayimToplam.textContent,
-      gorunenKart: s.kartlar.filter((k) => k.style.display !== "none").length
+      gorunenKart: s.kartlar.filter((k) => k.style.display !== "none").length,
+      gorunenDuz: s.duzler.filter((k) => k.style.display !== "none").length,
+      gizlenenDuz: s.duzler.filter((k) => k.style.display === "none").length
     };
   }
   cikti[yol] = kayit;
@@ -179,7 +251,7 @@ def sayfalari_uret(tmp):
     with open(os.path.join(build.ROOT, "index.html"), encoding="utf-8") as f:
         index_html = f.read()
     mm.uret(products, ctx)
-    return products, mm, index_html
+    return products, mm, index_html, ctx
 
 
 def tara(tmp):
@@ -191,13 +263,29 @@ def tara(tmp):
         rel = os.path.relpath(dirpath, tmp).replace(os.sep, "/")
         if rel == "marka":
             continue                          # /marka/ dizini: kart/kova yok
-        with open(os.path.join(dirpath, "index.html"), encoding="utf-8") as f:
-            page = f.read()
+        yol = os.path.join(dirpath, "index.html")
+        with open(yol, encoding="utf-8") as f:
+            ham = f.read()
+        page = SCRIPT_RE.sub("", ham)          # script gövdesi içerik değil (bkz. SCRIPT_RE)
         kartlar = [(kat, urun_id(href)) for kat, href in KART_RE.findall(page)]
+        baglar = [(kat, urun_id(href)) for kat, href in BAG_RE.findall(page)]
         butonlar = [(href, coz_katsay(ks)) for href, ks in BTN_RE.findall(page)]
+        # ARTIM YÜKÜ: sayfanın kart YÜZEYİNİN kanonik listesi (SSR'de basılı olmayan kalemler
+        # bu sayfada artımlı çizilir). Yük YOKSA None -> kimlik iddiası bunu KIRMIZI sayar.
+        yuk = None
+        yuk_yolu = os.path.join(dirpath, "parcalar.json")
+        if os.path.exists(yuk_yolu):
+            try:
+                with open(yuk_yolu, encoding="utf-8") as f:
+                    yuk = json.load(f)
+            except Exception:                                     # noqa: BLE001
+                yuk = "BOZUK"
         t = TOPLAM_RE.search(page)
         sayfalar[rel] = {
             "kartlar": kartlar,
+            "baglar": baglar,
+            "yuk": yuk,
+            "bayt": os.path.getsize(yol),
             "butonlar": butonlar,
             "toplam_katsay": coz_katsay(t.group(1)) if t else None,
             "toplam_katsay_ham": t.group(1).replace("&quot;", '"') if t else None,
@@ -244,9 +332,62 @@ def birim_iddialari(kapi):
     kapi.iddia("BIRIM_KALEM/kova",
                [p["id"] for p in mm.sayfa_kalemleri([a], [[b], [c]])] == ["a", "b", "c"],
                "kova kalemleri toplama girmedi")
-    kapi.iddia("BIRIM_KALEM/cakisma",
-               len(mm.sayfa_kalemleri([a, b], [[a2, c]])) == 3,
-               "kart ∩ kova çakışması iki kez sayıldı")
+
+    # 🔴 İDDİA TERSİNE ÇEVRİLDİ (8 Ağu 2026). ESKİ iddia şuydu:
+    #     BIRIM_KALEM/cakisma: len(sayfa_kalemleri([a, b], [[a2, c]])) == 3
+    # yani kart kolu ile kova ÇAKIŞABİLİR, tekilleştirme onu yutar — çakışma DOĞRU
+    # DAVRANIŞ sayılıyordu. Kapı bu yüzden Okan'ın İKİ KEZ bildirdiği kusuru
+    # GÖRMÜYORDU: "Diğer" bölümü kovalarla kesişiyordu ve bölüm kimliği hiç iddia
+    # edilmiyordu ([[kapi-beyanin-dogrulugunu-degil-varligini-olcer]]).
+    # YENİ hüküm: ÇAKIŞMA İHLALDİR — kovada görünen ürün kart kolundan ELENİR.
+    # FAIL-CLOSED, ÇÖKMEDEN: yüklem hiç YOKSA (onarım öncesi jeneratör / kaldıran mutant)
+    # kapı KIRMIZI yanar; AttributeError ile çökmez (çökme kırmızıyla karışır ve mutasyon
+    # bataryası "öldü mü, patladı mı" ayrımını yapamazdı → [[hukum-yanlis-birimde]]).
+    if not hasattr(mm, "bolum_ayrimi"):
+        kapi.iddia("BIRIM_AYRIM/yuklem_var", False,
+                   "bolum_ayrimi YOK: bölüm ayrımı yüklemi kurulmamış (çakışma hâlâ kutsanıyor)")
+        return
+    # 🔴 SystemExit YAKALANIR: `bolum_ayrimi`nin İÇ fail-closed'u bu fikstürde yükselirse
+    # (eleme bozulmuş demektir) kapı ETİKETLİ bir iddia düşürmeli. Yakalanmazsa SystemExit
+    # kapıyı sessizce sonlandırır: rc=1 olur ama HİÇBİR iddia basılmaz ve "kaç iddia
+    # ölçüldü" kaybolur — çıkış kodu kırmızı görünürken ölçüm YOKTUR
+    # ([[olculdu-diyen-hukum-kaniti]] · [[hukum-yanlis-birimde]]).
+    try:
+        kart, kalemler, sayilar = mm.bolum_ayrimi([[a, b]], [[a2, c]])
+    except SystemExit as e:
+        kapi.iddia("BIRIM_AYRIM/eleme", False,
+                   "bolum_ayrimi SAĞLAM fikstürde durdu (eleme bozuk): %s" % (str(e)[:120],))
+        kapi.iddia("BIRIM_AYRIM/toplam_korunur", False, "ölçülemedi: fonksiyon durdu")
+        kapi.iddia("BIRIM_AYRIM/kimlik", False, "ölçülemedi: fonksiyon durdu")
+        kapi.iddia("BIRIM_AYRIM/fail_closed_kurulu", False, "ölçülemedi: fonksiyon durdu")
+        return
+    kapi.iddia("BIRIM_AYRIM/eleme", [p["id"] for p in kart] == ["b"],
+               "kovada görünen ürün kart kolundan ELENMEDİ (çakışma hâlâ kutsanıyor): %r"
+               % ([p["id"] for p in kart],))
+    kapi.iddia("BIRIM_AYRIM/toplam_korunur",
+               sorted(p["id"] for p in kalemler) == ["a", "b", "c"],
+               "eleme ÜRÜN KAYBETTİRDİ (toplam değişmemeli): %r"
+               % (sorted(p["id"] for p in kalemler),))
+    kapi.iddia("BIRIM_AYRIM/kimlik",
+               sayilar["kart"] + sayilar["kova"] == sayilar["toplam"] == 3,
+               "kart %d + kova %d != toplam %d"
+               % (sayilar["kart"], sayilar["kova"], sayilar["toplam"]))
+    # FAIL-CLOSED: kimlik tutmuyorsa build DURMALI (sessiz yanlış sayı basmaktansa).
+    # Tekilleştirme bozulunca kimlik ayrışır; bu dalın GERÇEKTEN yükseldiğini ölç.
+    _durdu = False
+    try:
+        mm.bolum_ayrimi([[a, b], [b]], [[{"id": "b"}]])
+    except SystemExit:
+        _durdu = True
+    except Exception:                                             # noqa: BLE001
+        _durdu = False
+    try:
+        _saglam = mm.bolum_ayrimi([[a]], [[b]])[2]["toplam"] == 2
+    except SystemExit:
+        _saglam = False
+    kapi.iddia("BIRIM_AYRIM/fail_closed_kurulu", _saglam and not _durdu,
+               "sağlam girdide kimlik yükseldi ya da toplam bozuk (saglam=%s, durdu=%s)"
+               % (_saglam, _durdu))
 
 
 def marka_literal_iddialari(kapi, mm, index_html):
@@ -260,14 +401,16 @@ def marka_literal_iddialari(kapi, mm, index_html):
     desen = re.compile(r"(?<![0-9A-Za-zÇĞİÖŞÜçğıöşü])(" +
                        "|".join(re.escape(a) for a in adlar if a) +
                        r")(?![0-9A-Za-zÇĞİÖŞÜçğıöşü])")
-    hedefler = {
-        "mm._tekil": inspect.getsource(mm._tekil),
-        "mm.sayfa_kalemleri": inspect.getsource(mm.sayfa_kalemleri),
-        "mm._toplam_bloku": inspect.getsource(mm._toplam_bloku),
-        "mm._marka_sayfasi": inspect.getsource(mm._marka_sayfasi),
-        "mm._model_sayfasi": inspect.getsource(mm._model_sayfasi),
-        "mm.KAPSAM_JS": mm._KAPSAM_JS_GOVDE,
-    }
+    hedefler = {}
+    for ad in ("_tekil", "sayfa_kalemleri", "bolum_ayrimi", "_kart_yuk_kaydi",
+               "_toplam_bloku", "_marka_sayfasi", "_model_sayfasi"):
+        fn = getattr(mm, ad, None)
+        if fn is not None:                    # yüklem yoksa AYRI eksen kırmızı yakar
+            hedefler["mm." + ad] = inspect.getsource(fn)
+    for ad, oz in (("mm.KAPSAM_JS", "_KAPSAM_JS_GOVDE"), ("mm.ARTIM_JS", "_ARTIM_JS_GOVDE")):
+        govde = getattr(mm, oz, None)
+        if govde is not None:
+            hedefler[ad] = govde
     for ad in ("marka-sayac-kapisi.py", "marka-sayac-mutasyon.py"):
         with open(os.path.join(TOOLS, ad), encoding="utf-8") as f:
             hedefler["tools/" + ad] = f.read()
@@ -281,7 +424,7 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
     birim_iddialari(kapi)
     tmp = tempfile.mkdtemp(prefix="mm-sayac-kapi-")
     try:
-        products, mm, index_html = sayfalari_uret(tmp)
+        products, mm, index_html, mm_ctx = sayfalari_uret(tmp)
         sayfalar = tara(tmp)
     except SystemExit as e:
         # Jeneratörün FAIL-CLOSED ikiz kontrolü durdurdu: bu da bir ALARM kimliğidir
@@ -308,6 +451,8 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         kume = {}
         for kat, pid in s["kartlar"]:
             kume.setdefault(kat, set()).add(pid)
+        for kat, pid in s["baglar"]:          # düz bağ girdileri de ULAŞILABİLİR kalemdir
+            kume.setdefault(kat, set()).add(pid)
         for href, _tablo in s["butonlar"]:
             mp = model_sayfalari.get(href.strip("/"))
             if mp is None:
@@ -332,6 +477,76 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         ham, tekil = len(s["kartlar"]), len(set(i for _k, i in s["kartlar"]))
         mukerrer_toplam += ham - tekil
         kapi.iddia("MUKERRER/" + yol, ham == tekil, "ham %d, tekil %d" % (ham, tekil))
+
+    # ------------------------------------------------------------------- OKAN HÜKMÜ: KİMLİK
+    # 🔴 "Marka sayfası markanın TÜM parçalarını KART olarak listeler" (Okan, 8 Ağu).
+    # Ağırlık yüzünden kartların bir kısmı SSR'de basılmaz, AYNI SAYFADA artımlı çizilir;
+    # bu yüzden ölçülen birim KART YÜZEYİDİR = SSR kartları ∪ artım yükünün kalemleri.
+    # KİMLİK (fail-closed): kart yüzeyi == başlıktaki toplam VE mükerrer == 0, 93/93.
+    # Üçü de TEK kanonik kümeden (`sayfa_kalemleri`/`bolum_ayrimi`) türer.
+    for yol, s in marka_sayfalari.items():
+        yuk = s["yuk"]
+        if yuk is None or yuk == "BOZUK" or not isinstance(yuk.get("k"), list):
+            kapi.iddia("KIMLIK/" + yol, False,
+                       "artım yükü YOK/BOZUK (kart yüzeyi ölçülemez): %r"
+                       % (yuk if yuk == "BOZUK" else type(yuk).__name__,))
+            kapi.iddia("KIMLIK_MUKERRER/" + yol, False, "yük olmadan mükerrer ölçülemez")
+            continue
+        yuk_ids = [k[0] for k in yuk["k"] if k and k[0]]
+        html_ids = [i for _k, i in s["kartlar"]] + [i for _k, i in s["baglar"]]
+        yuzey = set(yuk_ids) | set(html_ids)
+        kapi.iddia("KIMLIK/" + yol, len(yuzey) == s["toplam"],
+                   "kart yüzeyi %d (SSR kart %d + bağ %d + yük %d), başlık toplamı %s"
+                   % (len(yuzey), len(s["kartlar"]), len(s["baglar"]),
+                      len(yuk_ids), s["toplam"]))
+        # Mükerrer: ne yükün kendi içinde, ne de SSR ile yük arasında ÇİFT kalem olmaz.
+        kapi.iddia("KIMLIK_MUKERRER/" + yol,
+                   len(yuk_ids) == len(set(yuk_ids))
+                   and len(html_ids) == len(set(html_ids)),
+                   "yük mükerrer %d, SSR mükerrer %d"
+                   % (len(yuk_ids) - len(set(yuk_ids)),
+                      len(html_ids) - len(set(html_ids))))
+
+    # ------------------------------------------------- BÖLÜM AYRIMI (çakışma artık İHLAL)
+    # Sayfanın YEREL bölümü (SSR kartları + düz bağlar) ile model kovaları AYRIK olmalı.
+    # Bu, `BIRIM_AYRIM/eleme`nin GERÇEK sayfalardaki karşılığıdır: onarımdan önce
+    # `marka_only`/`ikincil` kovadan elenmediği için 32 sayfada kesişim vardı.
+    # 🔴 YEREL BÖLÜM SAYFANIN KENDİ BEYANINDAN OKUNUR, N'DEN BAĞIMSIZ: artım yükündeki bir
+    # kalemin model indeksi BOŞSA o kalem hiçbir model kovasında değildir = yerel bölümdedir.
+    # (Kart olarak basılıp basılmaması ağırlık kararıdır; bölüm kimliğini DEĞİŞTİRMEZ.)
+    for yol, s in marka_sayfalari.items():
+        yuk = s["yuk"]
+        if isinstance(yuk, dict) and isinstance(yuk.get("k"), list):
+            yerel_beyan = set(k[0] for k in yuk["k"] if k and k[0] and not (k[2] or []))
+        else:
+            # YÜK YOKSA (onarım ÖNCESİ sayfa şekli): sayfa bölümlerini beyan etmiyordur ve
+            # kartların TAMAMI "Diğer …" bölümüdür. Eksen o şekilde de ÖLÇÜLEBİLİR kalır —
+            # yoksa kapı yalnız onarımdan SONRA anlam taşır ve iki yönlü işaret veremezdi
+            # ([[kapi-beyanin-dogrulugunu-degil-varligini-olcer]]).
+            yerel_beyan = set(i for _k, i in s["kartlar"])
+        kova = set()
+        for href, _tablo in s["butonlar"]:
+            mp = model_sayfalari.get(href.strip("/"))
+            if mp is None:
+                continue
+            kova |= set(i for _k, i in mp["kartlar"])
+        kesisim = yerel_beyan & kova
+        kapi.iddia("AYRIK/" + yol, not kesisim,
+                   "yerel bölüm ∩ model kovası = %d kalem (bölümler çakışıyor; ekrandaki "
+                   "sayılar toplamı vermez)" % (len(kesisim),))
+        # Düz bağ listesindeki kalemlerin HEPSİ yerel olmalı: model sayfası OLAN bir kalemi
+        # bağ listesine koymak gereksiz bayt, yerel bir kalemi koymamak ÖKSÜZ ürün demektir.
+        bag_ids = set(i for _k, i in s["baglar"])
+        kapi.iddia("BAG_YEREL/" + yol, bag_ids <= yerel_beyan,
+                   "bağ listesinde yerel OLMAYAN %d kalem" % (len(bag_ids - yerel_beyan),))
+
+    # ------------------------------------------------------------------------- AĞIRLIK
+    # 🔴 NEDEN KAPI (Okan hükmü + ölçülmüş drift sınıfı): "1,27 MB kabul edilemez".
+    # Ağırlık ONARILDI ama katalog HER PARTİDE büyüyor; tavanı kapıya yazmazsak bir sonraki
+    # parti sayfayı sessizce yeniden şişirir ([[envanter-drift-parti-basina]]).
+    for yol, s in marka_sayfalari.items():
+        kapi.iddia("AGIRLIK/" + yol, s["bayt"] <= HTML_TAVAN,
+                   "üretilen HTML %d bayt > tavan %d" % (s["bayt"], HTML_TAVAN))
 
     for yol, s in sayfalar.items():
         kume = tumu(erisim[yol])
@@ -389,15 +604,37 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                     continue
                 gor.add(pid)
                 kucuk.append(pid)
-        beklenen = yerel_tekil([kucuk,
-                                [p.get("id") for p in d["marka_only"]],
-                                [p.get("id") for p in d.get("ikincil", [])]])
-        gercek = [i for _k, i in s["kartlar"]]
-        kapi.iddia("SIRA/" + yol, gercek == beklenen,
-                   "kart dizilimi ayrıştı (sayfa %d, beklenen %d, ilk fark %s)"
-                   % (len(gercek), len(beklenen),
-                      next((n for n, (a, b) in enumerate(zip(gercek, beklenen)) if a != b),
-                           "uzunluk")))
+        # 🔴 BÖLÜM AYRIMI KAPININ KENDİ YÜKLEMİYLE KURULUR (mm.bolum_ayrimi ÇAĞRILMAZ):
+        # jeneratörün fonksiyonunu çağırsaydık "elemeyi kaldır" mutantı kapıyı da bozar,
+        # iddia tautolojiye düşer ve mutant YEŞİL geçerdi.
+        beklenen_yerel = [pid for pid in yerel_tekil(
+            [kucuk,
+             [p.get("id") for p in d["marka_only"]],
+             [p.get("id") for p in d.get("ikincil", [])]]) if pid not in yayimda]
+        # Yerel bölüm sayfada İKİ yerde durur: ilk N kalem KART, kalanı DÜZ BAĞ. İkisinin
+        # SIRALI birleşimi (kart yüzeyinin yerel kısmı + bağ listesi) kanonik yerel dizilime
+        # eşit olmalı — tekilleştirme/eleme sırayı YENİDEN DİZMEZ.
+        yerel_kume = set(beklenen_yerel)
+        gercek = ([i for _k, i in s["kartlar"] if i in yerel_kume]
+                  + [i for _k, i in s["baglar"]])
+        kapi.iddia("SIRA/" + yol, gercek == beklenen_yerel,
+                   "yerel bölüm dizilimi ayrıştı (sayfa %d = yerel kart %d + bağ %d, "
+                   "beklenen %d, ilk fark %s)"
+                   % (len(gercek), len([1 for _k, i in s["kartlar"] if i in yerel_kume]),
+                      len(s["baglar"]), len(beklenen_yerel),
+                      next((n for n, (a, b) in enumerate(zip(gercek, beklenen_yerel))
+                            if a != b), "uzunluk")))
+        # SSR'de basılan kart sayısı N tavanına UYMALI (ağırlık onarımının davranışsal ucu):
+        # N aşılırsa sayfa yeniden şişer, N'den az basılırsa ilk boya sessizce zayıflar.
+        kart_n = getattr(mm, "MARKA_KART_N", None)
+        if kart_n is None:
+            kapi.iddia("KART_N/" + yol, False,
+                       "MARKA_KART_N YOK: kart tavanı kurulmamış (sayfa sınırsız şişebilir)")
+        else:
+            bek_kart = min(kart_n, s["toplam"] or 0)
+            kapi.iddia("KART_N/" + yol, len(s["kartlar"]) == bek_kart,
+                       "SSR kart %d != beklenen %d (N=%d, toplam=%s)"
+                       % (len(s["kartlar"]), bek_kart, kart_n, s["toplam"]))
 
     # ------------------------------------------------------------------ istemci (node) ekseni
     kategoriler = mm.kategori_evreni(index_html)
@@ -431,13 +668,52 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
          "toplamKatsay": '{"%s":7,"Ofis":1}' % KAT,
          "serit": "Kapsam: yalnız %s kategorisi — 7 parça" % KAT, "rozet": "7"},
     ]
-    veri = {"kapsamJs": js, "kategoriler": kategoriler, "sentetik": sentetik, "sayfalar": {}}
+    # ---- ARTIM EKSENİ GİRDİSİ: her marka sayfasının yükündeki HER kalem için, istemcinin
+    # çizeceği kart ile Python `_kart`ın çıktısını KARŞILAŞTIRILABİLİR hâle getir.
+    # ÖRNEKLEME YOK: bütün kalemler ölçülür (kimlik gibi, kart gövdesi de 93/93 sayfada).
+    artim_js = getattr(mm, "_ARTIM_JS_GOVDE", None)
+    urun_ix = {p.get("id"): p for p in products if p.get("id")}
+    kart_denekleri, py_kartlar, gorulen_denek = [], {}, set()
+    for yol, s in marka_sayfalari.items():
+        yuk = s["yuk"]
+        if not isinstance(yuk, dict) or not isinstance(yuk.get("k"), list):
+            continue
+        for kalem in yuk["k"]:
+            pid = kalem[0] if kalem else None
+            p = urun_ix.get(pid)
+            if p is None:
+                continue
+            mm_attr = (' data-mm="%s"' % " ".join(str(x) for x in (kalem[2] or []))
+                       ) if (kalem[2] or []) else ""
+            anahtar = pid + "|" + mm_attr
+            if anahtar in gorulen_denek:
+                continue
+            gorulen_denek.add(anahtar)
+            kart_denekleri.append({
+                "id": anahtar, "kalem": kalem,
+                "o": (yuk.get("o") or {}).get(pid),
+                # istemcinin `urunler.json`'dan okuyacağı alanlar (kartHtml yalnız bunları okur)
+                "urun": {"id": p.get("id"), "kategori": p.get("kategori"),
+                         "baslik": p.get("baslik"), "gorseller": p.get("gorseller") or [],
+                         "fiyat": p.get("fiyat"), "parametrik": p.get("parametrik")},
+            })
+            py_kartlar[anahtar] = mm._kart(mm_ctx, p, mm_attr)
+    # suz() ekseni: gerçek bir sayfanın yükü üzerinde model + kapsam süzgeci
+    suz_yol = max(marka_sayfalari, key=lambda y: len(marka_sayfalari[y]["butonlar"]))
+    suz_yuk = marka_sayfalari[suz_yol]["yuk"]
+    suz_kategori = (suz_yuk.get("kat") or [None])[0] if isinstance(suz_yuk, dict) else None
+
+    veri = {"kapsamJs": js, "kategoriler": kategoriler, "sentetik": sentetik, "sayfalar": {},
+            "artimJs": artim_js, "site": mm_ctx["SITE"], "kartDenekleri": kart_denekleri,
+            "suzYuk": suz_yuk if isinstance(suz_yuk, dict) else None,
+            "suzKategori": suz_kategori}
     for yol, s in sayfalar.items():
         veri["sayfalar"][yol] = {
             "kartlar": [k for k, _i in s["kartlar"]],
             "butonlar": [{"href": h, "katsay": json.dumps(t, ensure_ascii=False,
                                                          separators=(",", ":"), sort_keys=True)}
                          for h, t in s["butonlar"]],
+            "baglar": [k for k, _i in s["baglar"]],
             "toplamKatsay": s["toplam_katsay_ham"],
             "olcumKategorileri": sorted(k for k in erisim[yol] if k),
         }
@@ -460,6 +736,41 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
     if "hata" in js_sonuc:
         print("OLCULEMEDI: %s" % js_sonuc["hata"])
         return 3, kapi, {}
+
+    # ------------------------------------------------- ARTIM: kart gövdesi TEK KAYNAK mı
+    artim = js_sonuc.get("artim") or {}
+    kapi.iddia("ARTIM/kuruldu", bool(artim.get("kuruldu")),
+               "PRUVO_ARTIM node'da kurulmadı (artımlı kart çizimi ölçülemez)")
+    js_kartlar = artim.get("kartlar") or {}
+    sapan_kart = [k for k, v in py_kartlar.items() if js_kartlar.get(k) != v]
+    kapi.iddia("ARTIM/kart_bayt_ayni", not sapan_kart,
+               "%d/%d kalemde istemci kartı Python `_kart` ile AYRIŞTI (ilk: %s | js=%r | py=%r)"
+               % (len(sapan_kart), len(py_kartlar), (sapan_kart or ["-"])[0],
+                  (js_kartlar.get(sapan_kart[0]) if sapan_kart else "")[:150],
+                  (py_kartlar.get(sapan_kart[0]) if sapan_kart else "")[:150]))
+    kapi.iddia("ARTIM/kart_denek_dolu", len(py_kartlar) > 1000,
+               "kart eşitliği DEJENERE ölçüldü (denek=%d): boş ölçüm yeşil sayılmaz"
+               % (len(py_kartlar),))
+    # suz(): sayfa-içi filtrenin çekirdeği. Model süzgeci DARALTMALI, kategori süzgeci
+    # DARALTMALI, tanınmayan yük BOŞ küme (fail-closed) vermeli.
+    sz = artim.get("suz") or {}
+    bek_hepsi = [k[0] for k in (suz_yuk.get("k") or [])] if isinstance(suz_yuk, dict) else []
+    bek_model0 = [k[0] for k in (suz_yuk.get("k") or []) if 0 in (k[2] or [])] \
+        if isinstance(suz_yuk, dict) else []
+    bek_kat = [k[0] for k in (suz_yuk.get("k") or [])
+               if (suz_yuk.get("kat") or [])[k[1]] == suz_kategori] \
+        if isinstance(suz_yuk, dict) else []
+    kapi.iddia("ARTIM_SUZ/hepsi", sz.get("hepsi") == bek_hepsi,
+               "süzgeçsiz küme %s != kanonik %d" % (len(sz.get("hepsi") or []), len(bek_hepsi)))
+    kapi.iddia("ARTIM_SUZ/model", sz.get("model0") == bek_model0 and 0 < len(bek_model0),
+               "model süzgeci %s != kanonik %d" % (len(sz.get("model0") or []), len(bek_model0)))
+    kapi.iddia("ARTIM_SUZ/kategori", sz.get("kategori") == bek_kat and 0 < len(bek_kat),
+               "kategori süzgeci %s != kanonik %d" % (len(sz.get("kategori") or []), len(bek_kat)))
+    kapi.iddia("ARTIM_SUZ/fail_closed", sz.get("bozuk") == 0,
+               "tanınmayan yükte kart basıldı (fail-open): %r" % (sz.get("bozuk"),))
+    kapi.iddia("ARTIM_SUZ/daraltiyor", len(bek_model0) < len(bek_hepsi),
+               "KONTROL: model süzgeci dejenere (daraltmıyor) — %d == %d"
+               % (len(bek_model0), len(bek_hepsi)))
 
     for f in sentetik:
         r = (js_sonuc.get("sentetik") or {}).get(f["ad"]) or {}
@@ -484,9 +795,28 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                        "rozet %r != %d" % (olcum["rozet"], bek))
             kapi.iddia("JS_ALTKUME/%s/%s" % (yol, kat), olcum["gorunenKart"] <= bek,
                        "görünen kart %d > toplam %d" % (olcum["gorunenKart"], bek))
+            # DÜZ BAĞ ÖĞELERİ de kapsamda süzülür: o kategoride OLAN bağ girdisi görünür
+            # kalır, olmayan GİZLENİR (kaçak yok). Bağı olmayan sayfada iki sayı da 0.
+            bag_kat = [k for k, _i in s["baglar"] if k == kat]
+            kapi.iddia("JS_DUZ/%s/%s" % (yol, kat),
+                       olcum.get("gorunenDuz") == len(bag_kat)
+                       and olcum.get("gizlenenDuz") == len(s["baglar"]) - len(bag_kat),
+                       "görünen bağ %r (beklenen %d), gizlenen %r (beklenen %d)"
+                       % (olcum.get("gorunenDuz"), len(bag_kat), olcum.get("gizlenenDuz"),
+                          len(s["baglar"]) - len(bag_kat)))
+
+    # KONTROL: JS_DUZ ekseni DEJENERE olmasın. Hiçbir sayfada bağ öğesi gizlenmiyorsa
+    # "0 == 0" karşılaştırması her mutantı yeşil geçirir ([[fikstur-degeri-mutasyonu-korlestirir]]).
+    duz_gizlenen = sum((olcum.get("gizlenenDuz") or 0)
+                       for yol in sayfalar
+                       for olcum in ((js_sonuc.get(yol) or {}).get("kategoriler") or {}).values())
+    duz_toplam = sum(len(s["baglar"]) for s in sayfalar.values())
+    kapi.iddia("JS_DUZ_KONTROL/dejenere_degil", duz_gizlenen > 0 and duz_toplam > 0,
+               "bağ öğesi hiç süzülmedi (gizlenen=%d, toplam bağ=%d): eksen ölçmüyor"
+               % (duz_gizlenen, duz_toplam))
 
     bilgi = {"mukerrer": mukerrer_toplam, "marka": len(marka_sayfalari),
-             "model": len(model_sayfalari), "tmp": tmp}
+             "model": len(model_sayfalari), "bag": duz_toplam, "tmp": tmp}
 
     # ---------------------------------------------------------------- BÜYÜKLÜK KATMANLARI
     # 🔴 TOPLAM TEKİL SAPMAYI GİZLER: onarım yalnız çok-ürünlü markalarda çalışıyorsa
