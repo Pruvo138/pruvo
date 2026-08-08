@@ -1692,9 +1692,30 @@ def bolum_kablosu_kontrol():
 # ---- TABLO SAYACI NOBETCISI (30 Tem, oz-koruma olcumunde KACAN 10 ve 11) ----
 # 🔴 OLCULEN KACIS: `B_ADIM_IDDIALARI = ()` ve `K26_SATIR_FIKSTURLERI = ()` yazmak
 # nobetcileri SESSIZCE oldururdu — dongu bos liste uzerinde doner, hicbir iddia
-# DUSMEZ, kapi YESIL yanar. Fikstur/iddia tablolari bu yuzden TABAN SAYIYLA korunur:
-# tablo BUYUYEBILIR, kucultulemez. (ci-kapsam-test.py muaf_sayaci_kontrol ile ayni desen.)
-# TABAN sayilari bu turda OLCULDU; bilerek kucultuluyorsa tabani da GUNCELLE.
+# DUSMEZ, kapi YESIL yanar. Fikstur/iddia tablolari bu yuzden SAYIYLA korunur.
+#
+# 🔴 8 Agu 2026 — KURAL DEGISTI: `len(tablo) < taban` YERINE **TAM ESITLIK**
+# (`len(tablo) != taban`). Neden (KraL karari, olculdu): `<` operatoru PAYIN
+# BIRIKMESINE izin veriyor ve payi GORUNMEZ kiliyordu. Olcum: SERIT_B len=67 · taban=42
+# -> pay 25, yani 25 beyan TEK commit'te silinse bile tablo sayaci YESIL kalirdi;
+# tabanin var olus sebebi tam olarak o hali GORUNUR kilmakti. Ayni sapma main'de de
+# vardi (66/41 = ayni 25) -> konvansiyon her yeni girise +1 bump yapip payi SABIT
+# tutmus: kozmetik. Tabani bugunun sayisina cekmek bu turu kapatir, SINIFI kapatmaz.
+# Tam esitlikte drift YAPISAL OLARAK imkansiz: her ekleme/silme AYNI commit'te bilincli
+# bir taban guncellemesi ister, kapi kirmizi yanarken GERCEK sayiyi da BASAR (bump
+# mekanik + kendi kendini belgeleyen olur).
+#
+# KOSUL (bu kural nereye UYGULANIR): korunan tablolarin HEPSI bu dosyanin icinde
+# `globals()`ten okunur -> tabloyu buyuten commit ZATEN bu dosyayi aciyordur, yani bakim
+# vergisi yerel ve sinirlidir. Baska bir DOSYADAN / PARTI BASINA buyuyen envanterlere
+# (or. `BASLIK_DOGAN_ALLOW` sinifi) tam esitlik UYGULANMAZ: orada her parti yayini
+# durdurur ([[envanter-drift-parti-basina]]). 8 Agu'da 18 girisin 18'i de olculdu, hepsi
+# BU dosyada tanimli.
+#
+# (ci-kapsam-test.py::muaf_sayaci_kontrol "ayni desen" diye anilirdi; 8 Agu'da OLCULDU:
+# orada sabit bir taban YOK, iddia `n != len(IZIN_LISTESI)` ile ZATEN tam esitliktir ve
+# canli listeden TURETILIR -> o yuzey bu turda degistirilmedi.)
+# TABAN sayilari bu turda OLCULDU; tablo degisiyorsa tabani AYNI commit'te guncelle.
 TABLO_TABANLARI = (
     ("B_IDDIALAR", 5), ("B_MUTANTLAR", 10), ("B_JETON_MUTANTLAR", 4),
     ("B_TETIK_MUTANTLAR", 2), ("B_ADIM_IDDIALARI", 1), ("BOZUK_ORNEKLER", 9),
@@ -1702,7 +1723,8 @@ TABLO_TABANLARI = (
     # E_MUTANTLAR 7 Agu: 25 -> 28 (konfigur-bundle bayraksiz kol mutantlari: 2 oldurucu
     # + 1 kanarya).
     ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 28), ("K26_SATIR_FIKSTURLERI", 26),
-    ("K26_BAGLAM_MUTANTLAR", 5), ("K29_MUTANTLAR", 13),
+    # 8 Agu: 5 -> 8 (taban tam-esitlige cevrildi; olculen pay 3 idi, olu koruma).
+    ("K26_BAGLAM_MUTANTLAR", 8), ("K29_MUTANTLAR", 13),
     # 1 Agu: 4 -> 6 (durum-test.py'nin IKI kolu KOL GRANULUNDE eklendi). Taban
     # yukseltildi cunku kolu tabloDAN silmek, adimi deploy.yml'den silmekle AYNI
     # kapiyi acar: iddia dusar, kimse kirmizi gormez.
@@ -1710,8 +1732,10 @@ TABLO_TABANLARI = (
     # serit ayrimi `--kendini-test` kolunu nobet.yml'e tasiyinca dosya granullu kapsam
     # kapisi bayraksiz kolun silinmesini GORMEZ olmustu — olculdu, rc=0).
     ("E_ZORUNLU_CAGRILAR", 7), ("E_ZORUNLU_VARLIKLAR", 1),
-    ("KABLO_TABLOSU", 5), ("B_MESRU_YAZIMLAR", 6),
-    # 🔴 SERIT_B (31 Tem): tablo BUYUYEBILIR ama TABANIN ALTINA DUSEMEZ. Kucultmek
+    # 8 Agu: 5 -> 7 (taban tam-esitlige cevrildi; olculen pay 2 idi, olu koruma).
+    ("KABLO_TABLOSU", 7), ("B_MESRU_YAZIMLAR", 6),
+    # 🔴 SERIT_B (31 Tem): tablo TABANLA TAM ESIT olmali (8 Agu; once yalniz "altina
+    # dusemez"di). Kucultmek
     # tek basina bir kacis DEGILDIR (S3 bayatlik kurali zaten kirmizi yakar), ama
     # tabani burada tutmak "35 beyan tek commit'te sessizce silindi + ayni commit'te
     # adimlar A'ya geri tasindi" halini GORUNUR kilar. Bilerek kucultuluyorsa NEDENIYLE
@@ -1737,6 +1761,15 @@ TABLO_TABANLARI = (
     # 42 iken tablo FIILEN 67 giristi, yani 25 girisi tek commit'te silmek bu
     # sayaci HIC kirmizi yakmiyordu. Taban = gercek sayi oldugunda her KUCULME
     # bilincli bir guncelleme ister (tablonun BEYAN EDILEN amaci budur).
+    # 🔴 8 Agu (dal, rebase): ENVANTER main'in — 85 giris ve yukaridaki gerekce AYNEN
+    # KALDI, tek bir beyan dusurulmedi. Bu daldan gelen sey OPERATORDUR: kontrol artik
+    # TAM ESITLIK (`len(tablo) != taban`). Gerekce: main tabani gercek sayiya cekerek
+    # SILME eksenini kapatti ama `<` operatorunu birakti; payin BIRIKMESINE izin veren
+    # sey tam olarak o operatordur ve bu tablonun kendi tarihi kaniti: 36->38->39->40->
+    # 41->42 diye her yeni girise +1 bump yapilmis, pay 25'te SABIT kalmisti. 85 bugun
+    # dogru; yarin 18 giris daha eklenip taban guncellenmezse yine kozmetiklesir.
+    # Tam esitlikte bu YAPISAL OLARAK imkansiz. Taban bu satirda ELLE yazilmadi:
+    # rebase SONRASI agactan OLCULDU (bkz. RAPOR-MIMARA.md T4).
     ("SERIT_B", 85),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
@@ -1745,16 +1778,26 @@ TABLO_TABANLARI = (
 )
 
 TABLO_TANI = (
-    "TABLO SAYACI KIRMIZI: %s tablosunda %d giris var, TABAN %d.\n"
-    "   🔴 Fikstur/iddia tablosunu KUCULTMEK nobetciyi SESSIZCE oldurur: dongu bos liste\n"
-    "   uzerinde doner, hicbir iddia DUSMEZ ve kapi YESIL yanar (bu turda olculdu:\n"
-    "   `B_ADIM_IDDIALARI = ()` ve `K26_SATIR_FIKSTURLERI = ()` mutantlari KACIYORDU).\n"
-    "   Kucultme BILINCLIYSE tools/is-akisi-kapisi.py::TABLO_TABANLARI tabanini da\n"
-    "   guncelle (ve NEDEN kucultuldugunu yaz).")
+    "TABLO SAYACI KIRMIZI: %s tablosunda %d giris var, TABAN %d (fark %+d).\n"
+    "   🔴 IKI YON DE KIRMIZIDIR (8 Agu, tam esitlik):\n"
+    "   (a) KUCULME — fikstur/iddia tablosunu kucultmek nobetciyi SESSIZCE oldurur:\n"
+    "       dongu bos liste uzerinde doner, hicbir iddia DUSMEZ ve kapi YESIL yanar\n"
+    "       (olculdu: `B_ADIM_IDDIALARI = ()` ve `K26_SATIR_FIKSTURLERI = ()`\n"
+    "       mutantlari KACIYORDU).\n"
+    "   (b) TABAN GUNCELLENMEDEN BUYUME — taban kozmetiklesir ve PAY BIRIKIR: pay\n"
+    "       kadar giris tek commit'te silinse bile sayac YESIL kalir. Olculdu (8 Agu):\n"
+    "       SERIT_B len=67 · taban=42 -> 25 beyan sessizce silinebilirdi.\n"
+    "   YAPILACAK: degisim BILINCLIYSE tools/is-akisi-kapisi.py::TABLO_TABANLARI'nda\n"
+    "   %s tabanini AYNI commit'te %d -> %d yap ve NEDENINI yaz.")
 
 
 def tablo_sayaci_kontrol():
-    """Fikstur/iddia tablolari TABAN sayinin ALTINA dusmus mu."""
+    """Fikstur/iddia tablolari TABANLA TAM ESIT mi (8 Agu; once yalniz 'altina dusmus mu').
+
+    Tam esitlik secildi cunku `<` payin BIRIKMESINE izin verir ve payi gorunmez kilar
+    (olculdu: SERIT_B 67/42 -> pay 25, main'de 66/41 -> ayni 25; her yeni girise +1 bump
+    payi SABIT tutmus, yani taban kozmetiklesmisti). Gerekce blogu TABLO_TABANLARI'nin
+    ustunde; tam esitligin UYGULANMA KOSULU da orada (tablolar BU dosyada buyur)."""
     hatalar = []
     kapsam = globals()
     for ad, taban in TABLO_TABANLARI:
@@ -1763,16 +1806,23 @@ def tablo_sayaci_kontrol():
             hatalar.append("TABLO SAYACI: %s tablosu ARTIK YOK -> yeniden adlandirildiysa "
                            "TABLO_TABANLARI'ni guncelle" % ad)
             continue
-        if len(tablo) < taban:
-            hatalar.append(TABLO_TANI % (ad, len(tablo), taban))
-    # K26 satir fiksturlerinde IKI SINIF da yasamali (yalniz kanarya birakip
-    # oldurucularin hepsini silmek sayiyi korur ama nobetciyi bosaltirdi).
+        if len(tablo) != taban:
+            hatalar.append(TABLO_TANI % (ad, len(tablo), taban, len(tablo) - taban,
+                                         ad, taban, len(tablo)))
+    # K26 satir fiksturlerinde IKI SINIF da TAM SAYIDA yasamali. Tablo TOPLAMI tam
+    # esitlige cekilse bile siniflar arasi YENIDEN DAGITIM (bir oldurucu sil + bir
+    # kanarya ekle) toplami KORUR -> bu kol o sapmayi olcer. Sayilar tablodan
+    # TURETILMEZ (tabloyu kendisiyle karsilastirmak totolojidir): 8 Agu'da OLCULUP
+    # sabit yazildi (oldurucu 10 · kanarya 16, ikisinde de pay 0).
     oldurucu = sum(1 for m in K26_SATIR_FIKSTURLERI if m[2])
     kanarya = sum(1 for m in K26_SATIR_FIKSTURLERI if not m[2])
-    if oldurucu < 10 or kanarya < 16:
+    if oldurucu != 10 or kanarya != 16:
         hatalar.append("TABLO SAYACI: K26_SATIR_FIKSTURLERI sinif dengesi bozuldu "
-                       "(oldurucu=%d taban 10 · kanarya=%d taban 16) -> tablo BOYU "
-                       "korunup bir SINIF bosaltilmis olabilir" % (oldurucu, kanarya))
+                       "(oldurucu=%d TABAN 10 · kanarya=%d TABAN 16) -> tablo BOYU "
+                       "korunup siniflar arasi YENIDEN DAGITIM yapilmis olabilir "
+                       "(oldurucu sil + kanarya ekle = toplam ayni kalir). Degisim "
+                       "bilincliyse bu iki SABITI ayni commit'te guncelle."
+                       % (oldurucu, kanarya))
     return hatalar
 
 
@@ -4626,7 +4676,11 @@ def kendini_test():
     # ve `bolum_kablosu_kontrol()` govdeleri `return []` yapilinca HICBIR sey konusmuyordu
     # — onlar DIGER nobetcileri koruyor ama KENDILERI korumasizdi. Asagidaki iddialar
     # o govdeleri SENTETIK tablolarla surer (kopya mantik yazilmaz).
-    iddia += 4
+    # 🔴 8 Agu EKSEN GENISLEMESI: eskiden yalniz "tabanin ALTINDA" (9999) olculuyordu,
+    # yani tam esitligin KAZANDIRDIGI eksen (taban guncellenmeden BUYUME) kapida HIC
+    # olculmuyordu -> operator sessizce `<`'ye geri dondurulebilirdi. Iki iddia eklendi:
+    # buyume ekseni + tam tabanin sahte-kirmizi YAKMADIGI kontrol iddiasi.
+    iddia += 6
     _t_yedek = globals()["TABLO_TABANLARI"]
     _k_yedek = globals()["KABLO_TABLOSU"]
     try:
@@ -4634,6 +4688,19 @@ def kendini_test():
         if not any("TABLO SAYACI KIRMIZI" in h for h in tablo_sayaci_kontrol()):
             hatalar.append("TABLO-NOBETCISI OLU: TABAN'in ALTINDA kalan bir tablo "
                            "KIRMIZI yakmadi -> fikstur tablolari sessizce bosaltilabilir")
+        # BUYUME EKSENI (tam esitligin tek kanidi): taban = len - 1.
+        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", len(B_IDDIALAR) - 1),)
+        if not any("TABLO SAYACI KIRMIZI" in h for h in tablo_sayaci_kontrol()):
+            hatalar.append("TABLO-NOBETCISI OLU (BUYUME EKSENI): taban guncellenmeden "
+                           "BUYUME gorunmez -> pay birikir, taban kozmetiklesir ve pay "
+                           "kadar giris tek commit'te SESSIZCE silinebilir (olculdu: "
+                           "SERIT_B 67/42, pay 25). Operator `!=` olmali, `<` DEGIL.")
+        # KONTROL IDDIASI (yanlis-pozitif kanaryasi): TAM taban KIRMIZI YAKMAMALI.
+        globals()["TABLO_TABANLARI"] = (("B_IDDIALAR", len(B_IDDIALAR)),)
+        if [h for h in tablo_sayaci_kontrol() if "B_IDDIALAR" in h]:
+            hatalar.append("TABLO-NOBETCISI SAHTE-KIRMIZI: TAM tabanda (len == taban) "
+                           "hata uretildi -> tam esitlik yanlis kuruldu ve TUM EKIBIN "
+                           "yayini durur")
         globals()["TABLO_TABANLARI"] = (("HIC_OLMAYAN_TABLO_XYZ", 1),)
         if not any("ARTIK YOK" in h for h in tablo_sayaci_kontrol()):
             hatalar.append("TABLO-NOBETCISI OLU: ARTIK OLMAYAN bir tablo adi KIRMIZI "
