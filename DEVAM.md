@@ -1,57 +1,7 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🧹 WORKTREE + ARTIK ENVANTERI KAPANDI — 8 Agu 15:00 turu
-
-**Worktree 8 → 3** (kalan 2'si BASKASININ CANLI isi, ucuncusu ana checkout).
-Kaldirilan 6 kayit ve isin nereye gittigi:
-- `agent-a3bff0d31c85f5714` → commit'siz 5 dosya (792 ekleme) **commit'lendi + itildi**
-  (`worktree-agent-a3bff0d31c85f5714`, yeni uzak dal); dal SILINMEDI. Merge hukmu YOK.
-- `muh-marka-tek-sayfa` → commit'siz 6 dosya (468 ekleme) **commit'lendi + itildi**
-  (`muh/marka-tek-sayfa` `c02edb79`→`73adb519`); dal SILINMEDI, uctaki is korundu.
-- `agent-ad8653d553f9bde31` (`muh/marka-bolum-kimligi`) → dal uzakla ESIT, **dal SILINMEDI**
-  (Okan'in hukmuyle celisiyor, MERGE EDILMEYECEK); izlenmeyen 8 olcum betigi silinmedi,
-  `.claude/olcum-arsiv/` altina TASINDI (32 KB).
-- `agent-aecb6db6145c47ad2` (`muh/yedekle-desen-kilidi`) → temizdi, ucu main'in ATASI
-  (`--is-ancestor` rc=0) → worktree + **yerel dal SILINDI** (uzak duruyor).
-- `blissful-mcnulty-e7162d` (detached `76ca1341`) → temizdi, commit main'in ATASI → kaldirildi.
-- `muh-yayin-iki-kirmizi` (`muh/yayin-acan-iki-kirmizi` `1cb3ee6c`) → temiz, uzakla ESIT,
-  main'de DEGIL (1 ileri) → kaldirildi, **dal SILINMEDI**.
-- 🔴 **DOKUNULMADI:** `agent-aa5db29d7f2d4d1ad` (`muh/erisim-5xx-tekrar`) — kirli ve sahibi
-  ~50 dk once yaziyordu; isi kaybolmasin diye commit'lendi + itildi (`39600935`, 304 ekleme)
-  ama worktree BIRAKILDI. Tur sirasinda ucuncu bir worktree (`muh-mcp-tarayici`) BASKA bir
-  oturum tarafindan acildi (3 dk once, kirli) — dokunulmadi.
-
-**Izlenmeyen artik 7 → 0** (`git status --short` = **1 satir**, o da bu turun kendi commit'i
-oncesiydi; simdi **0**). Hicbir sey kaybolmadi:
-- 4 adet `shop/src-fiyat-tmp-*` **silindi** (21,7 MB; uretilebilir mutasyon kopyasi,
-  `tools/` + `.github/` icinde referans **0**).
-- `.scratch-ci-nobeti/` **DURUYOR** — o an (3 dk once) yaziliyordu, canli oturum.
-- `.scratch-ozet/` + `urun-gorsel-koken/` **DURUYOR** — koken manifestlerinin kanonik evi
-  kardes depo, oradaki listede bu 2 kayit **YOK** (benzersiz).
-- `0e918189` — ucu birden `.gitignore`'a alindi (`.scratch-*/`, `urun-gorsel-koken/`,
-  `shop/src-fiyat-tmp-*/`): diskte durur, izlenmez, bir daha baska mimarin temizlik
-  olcumunu kirletmez.
-
-**Iki "bekleyen" kalem OLCULDU, ikisi de KAPALI (liste bayatmis):**
-- `tools/arama.py` **TEMIZ** (porcelain bos); son commit'i zaten `d81349b6` (main'de, rc=0).
-  `model-baslik-kolu-test.py` **rc=0 · 29/29 iddia GECTI** → calisma kopyasi = HEAD, catisma YOK.
-- 4 dosya (`deploy.yml` · `nobet.yml` · `cron-nabiz-kapisi.py` · `is-akisi-kapisi.py`)
-  ana checkout'ta **commit'siz DEGIL** — hepsi temiz.
-
-**Yayin ACIK (olculdu):** son basarili `Build & deploy` = **`31253585287`** (head `2dba2718`,
-bitis **11:55:14Z**). `c61bd9b7` o yesil kosumda **YOK** (`--is-ancestor` rc=1); kendi kosumu
-(`31256056859`) `serit-a3`'te kirmizi yandi → `deploy`+`yayin` **skipped**. Ama `c61bd9b7`
-main HEAD `39df8c98`'in ATASI (rc=0) ve onun kosumu (`31256999280`) **UCUSTA** → commit ucusta,
-yayin kapali DEGIL. "21:24:13Z'den beri kapali, 12 commit inmedi" hukmu **CURUTULDU**.
-
-**`d1-sync --durum` DORT EKSEN YESIL:** sayi 22476 == urunler.json benzersiz 22476 · sema
-3 goc indeksi KURULU · turetilmis kolon 5/5 GUNCEL · icerik 22476 urun_hash birebir
-(uyusmaz 0 · eksik 0 · fazla 0).
-
-⚠️ **YENI TUZAK (dokumu ARSIVDE):** worktree icinden atilan commit kanca kurulumunu
-tetikliyor; ilk commit denemesi hep "BAYATTI, tekrar dene" ile duser, ikincisi gecer.
-Tur sonunda ana checkout'ta `durum.py` §8 **13 eksen yesil** ile teyit edildi.
-
+## 🧹 WORKTREE + ARTIK ENVANTERI — 8 Agu 15:00 turu KAPANDI (dokum ARSIVDE)
+Worktree 8 -> 3, izlenmeyen artik 7 -> 0, uc kalem .gitignore'a alindi (0e918189). Kaldirilan 6 kaydin nereye gittigi, iki bayat "bekleyen" kalemin curutulmesi ve worktree-ici commit "BAYATTI" tuzagi: DEVAM-ARSIV.md.
 ## 🔚 OTURUM KAPANISI — 8 Agu (yayin blokaji + marka sayfasi turu)
 
 **CANLIYA GITTI (SHA'larla, hepsi `origin/main` ve canli olcumle teyitli):**
@@ -85,58 +35,38 @@ Tur sonunda ana checkout'ta `durum.py` §8 **13 eksen yesil** ile teyit edildi.
 
 **ACIK WORKTREE (2 + main):** `agent-aa5db29d7f2d4d1ad` ve `muh-mcp-tarayici` — IKISI DE BASKASININ CANLI isi, DOKUNULMADI. Benim actigim worktree KALMADI (8 Agu 15:00 turunda kapatildi).
 
-## ⏱ SAATLIK CI NOBETI — 8 Agu 13:37Z turu (ev DOGRU: ~/dev/pruvo)
+## ⏱ SAATLIK CI NOBETI — 8 Agu 20:37Z turu (ev DOGRU: ~/dev/pruvo)
 
-**Supurme (kosulsuz, §0.5):** eslesen "Run failed" **1** → Cop'e **1** · tur sonu kalan **0**.
-Pozitif tanima izi: ayni taramada `notifications@github.com` toplami da **1** (>0 → hukum
-OLCULDU, "olculemedi" degil). Inbox 7541 mesaj TOPLU tarandi (`contains` ile, ornekleme YOK);
-Cop BOSALTILMADI, alt kutulara girilmedi, baska maile dokunulmadi.
+**Supurme (kosulsuz, §0.5):** eslesen "Run failed" **2** → Cop'e **2** · tur sonu kalan **0**.
+Pozitif tanima izi: ayni taramada `notifications@github.com` toplami da **2** (>0 → hukum
+OLCULDU). Birlesik gelen kutusu `contains` ile toplu tarandi, ornekleme YOK; Cop BOSALTILMADI,
+alt kutulara girilmedi, baska maile dokunulmadi.
 
-**Tek kirmizi PENCERE-GORELI cikti — Codex CAGRILMADI, kod DEGISMEDI.**
-Kirmizi: kosum `31258673406` (13:03Z), tazelik alarmi workflow'unun nabiz kolu; kardes is yesil.
-Betigin BES ekseninden yalnizca BIRI asilmisti: "en eski bekleyen commit yasi" **69 dk**
-(esik 65 dk). Diger dordu TEMIZ: ardisik iptal 2/6 · ardisik hata 0/4 · ardisik yayinsiz 0/2 ·
-en uzun kosan kosum omru 44/75 dk. Ardisik kirmizi **1** (ayni kol onceki 5 kosumda success)
-→ DUR kosulu tetiklenmedi. Alarmi gevsetme / esik buyutme / susturma YAPILMADI.
+**Onceki turun ILK isi KAPANDI — kok neden 2 (izinsiz altkategori) MaCiT tarafindan onarildi.**
+`609f0e70` sha'sinda `serit-a2` **success** (20:09:32Z → 20:26:24Z). Sifirdan teshise girilmedi.
 
-**Sinif TAHMINLE degil OLCUMLE kapandi:** izlenen yayin kosumu `31256999280` **success**
-(kirik is YOK) → yayinlanan sha `2dba2718` → **`39df8c98`** ilerledi, yani alarmin yas tabani
-sifirlandi. Ardindan `31259572161` (head `70fe3e4c` = main HEAD) uctu.
-§4.5'in uc ekseni de olculdu: (a) kosan zincir VAR · (b) tavani yine **serit-a4** koyuyor:
-**60 dk** — onceki turlarda olculen 32-58 dk bandinin USTUNDE ve alarmin 75 dk omur tavanina
-15 dk kalmis (izlenecek kalem: esik degil SURE) · (c) son yesil yayin main'in atasi, kuyrukta
-bekleyen tek kosum guncel HEAD'i tasiyor.
+**Uctaki kosum `31274951249` (sha `609f0e70`) — YARIM:** `build` success (20:09:31→20:22:36Z) ·
+`serit-a2` success · `serit-a3` success (→20:24:28Z) · **`serit-a4` HALA UCUSTA** (20:09:32Z'den
+beri; 20:55Z'de gorulen adim "Model baslik kolu mutasyon bataryasi"). `deploy`/`yayin` job'lari
+HENUZ OLUSMADI — **yok ≠ basarisiz**. Tur ici bekleme tavani (~25 dk, §3.5) doldu.
 
-## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20 turu)
+**Kirmizi alarm kolu GERCEK ARIZAYI gosteriyor, yayini BLOKLAMIYOR:** "Paket tazeligi alarmi"
+15:04:47Z'den beri kesintisiz **9 kirmizi** (son yesil 14:38:59Z, sha `7af8b137`). Kok neden:
+`yayin-nabzi` job'unun `tools/yayin-gecikme-nobeti.py --alarm` adimi **rc=3** — log: "taranan 8
+kosumda YOK (pencere 40)", yani penceredeki hicbir kosum `deploy`'u basariyla bitirmemis.
+Bagimsiz teyit: son 15 `deploy.yml` kosumunun HICBIRI `deploy`'u yesil bitirmemis. Bloklamama
+kaniti: workflow `on:` yalniz `schedule`+`workflow_dispatch`, `deploy.yml`'de `needs:` bagi YOK,
+ayri `concurrency` grubu. → Alarm dogru calisiyor; zincir yesile donunce kendiliginden soner.
 
-**Merge `--ff-only`: `d9485a0d`** (merge-base `f6aaabf8` = main ucu; `is-ancestor` rc=0 ile
-kanitlandi). Push `f6aaabf8..d9485a0d`, yalniz bu dalin 5 commit'i. Kapsam **3 dosya
-+589/-61**, eklenen/silinen dosya YOK, sizinti taramasi **0 vurus**.
+**20:54:32Z'de yeni push geldi** (kosum `31278032695` kuyrukta). `concurrency: pages` +
+`cancel-in-progress: false` → KOSAN zincir korunur, yalniz kuyruktaki duser; icerik kaybolmaz
+(§4.5 — `cancelled` sayma, SUREDEN olc).
 
-Ilk denemede merge YAPILMADI: dal `origin/main`'e gore ff-able olmasina ragmen YEREL main
-2 commit ilerideydi (baska oturumun itilmemis isi) -> `--ff-only` reddedilecekti. Dal yerel
-main'e yeniden taban aldi, sonra ff temiz gecti. **Ders:** ff uygunlugu `origin/main` ile
-degil YEREL main ile olculur (`merge-base --is-ancestor main <uc>`).
+**Sonraki turun ILK isi:** `31274951249`'un `serit-a4` sonucunu ve `deploy`/`yayin` job'larini
+olc. Yesilse canli teyit (artefakt zaman damgasi + canli katalog sayisi + en yeni 3 urun 200) ve
+"Paket tazeligi alarmi"nin kendiliginden yesile donup donmedigini olc. Kirmiziysa `--log-failed`
+ile kok neden. **SIFIRDAN TESHISE BASLAMA.**
 
-**Kapatilan olu koruma 48 birim** (tam-esitlige cevrilen sayaclar): tablo payi 5 + G payi 1
-+ kendini-test taban payi 42. Tablo artik **18/18, pay 0**. Surucu bataryasi: **7 oldurucu +
-3 kanarya + 5 ayirt edici** mutant; iki checkout seklinde de yesil.
-
-**Merge SONRASI kapilar (ana checkout, her biri ayri rc):**
-- D1 durum **rc=0** — D1 == urunler.json benzersiz **22685**; sema, turetilmis kolon ve
-  icerik eksenleri temiz (hash uyusmaz 0 · eksik 0 · fazla 0)
-- CI kapsam **rc=0** — kesfedilen kabul testi 246, otomatikte kosan 191
-- Is akisi kapisi **rc=0** (olculen kapi cagrisi 248 · etkisizlestirilmis 0) ·
-  `--kendini-test` **rc=0** (204 iddia)
-- Nobetci mutasyon **rc=0** — `oldurulen=7/7 · kontrol=YESIL · 15 varyant · 349 sn`
-  (iki bagimsiz kosumda tekrarlandi: 351 sn ve 349 sn)
-
-**CI: merge SHA'sini BIREBIR tasiyan 6 kosum var** (`headSha` esit); 4'u success, yayin
-zinciri ile nobet seridi olcum aninda **hala kosuyordu -> o eksen OLCULEMEDI** (uydurulmadi).
-Yayin kilidi bu dalin DISINDA: onceki sha'da da deploy kirmiziydi, kok neden ustteki turda
-yazili ve baska bir mimarin duzleminde.
-
-**Temizlik YAPILMADI (bilerek):** hicbir worktree/dal silinmedi, bu dalin worktree'sinde
-aktif oturum var. Envanter: 4 aktif worktree, 16 dal (2'si ucu main'de).
-
+## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20, dokum ARSIVDE)
+Merge --ff-only d9485a0d, kapsam 3 dosya +589/-61, sizinti 0. Olu koruma 48 birim kapatildi (tablo 18/18, pay 0). Merge sonrasi kapilar: D1 dort eksen rc=0 (22685) · CI kapsam rc=0 (246 kesif) · is-akisi rc=0 + kendini-test rc=0 (204 iddia) · nobetci mutasyon 7/7 + kontrol YESIL. Ders: ff uygunlugu YEREL main ile olculur. Temizlik bilerek yapilmadi. Tam dokum: DEVAM-ARSIV.md.
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
