@@ -1,5 +1,57 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🧹 WORKTREE + ARTIK ENVANTERI KAPANDI — 8 Agu 15:00 turu
+
+**Worktree 8 → 3** (kalan 2'si BASKASININ CANLI isi, ucuncusu ana checkout).
+Kaldirilan 6 kayit ve isin nereye gittigi:
+- `agent-a3bff0d31c85f5714` → commit'siz 5 dosya (792 ekleme) **commit'lendi + itildi**
+  (`worktree-agent-a3bff0d31c85f5714`, yeni uzak dal); dal SILINMEDI. Merge hukmu YOK.
+- `muh-marka-tek-sayfa` → commit'siz 6 dosya (468 ekleme) **commit'lendi + itildi**
+  (`muh/marka-tek-sayfa` `c02edb79`→`73adb519`); dal SILINMEDI, uctaki is korundu.
+- `agent-ad8653d553f9bde31` (`muh/marka-bolum-kimligi`) → dal uzakla ESIT, **dal SILINMEDI**
+  (Okan'in hukmuyle celisiyor, MERGE EDILMEYECEK); izlenmeyen 8 olcum betigi silinmedi,
+  `.claude/olcum-arsiv/` altina TASINDI (32 KB).
+- `agent-aecb6db6145c47ad2` (`muh/yedekle-desen-kilidi`) → temizdi, ucu main'in ATASI
+  (`--is-ancestor` rc=0) → worktree + **yerel dal SILINDI** (uzak duruyor).
+- `blissful-mcnulty-e7162d` (detached `76ca1341`) → temizdi, commit main'in ATASI → kaldirildi.
+- `muh-yayin-iki-kirmizi` (`muh/yayin-acan-iki-kirmizi` `1cb3ee6c`) → temiz, uzakla ESIT,
+  main'de DEGIL (1 ileri) → kaldirildi, **dal SILINMEDI**.
+- 🔴 **DOKUNULMADI:** `agent-aa5db29d7f2d4d1ad` (`muh/erisim-5xx-tekrar`) — kirli ve sahibi
+  ~50 dk once yaziyordu; isi kaybolmasin diye commit'lendi + itildi (`39600935`, 304 ekleme)
+  ama worktree BIRAKILDI. Tur sirasinda ucuncu bir worktree (`muh-mcp-tarayici`) BASKA bir
+  oturum tarafindan acildi (3 dk once, kirli) — dokunulmadi.
+
+**Izlenmeyen artik 7 → 0** (`git status --short` = **1 satir**, o da bu turun kendi commit'i
+oncesiydi; simdi **0**). Hicbir sey kaybolmadi:
+- 4 adet `shop/src-fiyat-tmp-*` **silindi** (21,7 MB; uretilebilir mutasyon kopyasi,
+  `tools/` + `.github/` icinde referans **0**).
+- `.scratch-ci-nobeti/` **DURUYOR** — o an (3 dk once) yaziliyordu, canli oturum.
+- `.scratch-ozet/` + `urun-gorsel-koken/` **DURUYOR** — koken manifestlerinin kanonik evi
+  kardes depo, oradaki listede bu 2 kayit **YOK** (benzersiz).
+- `0e918189` — ucu birden `.gitignore`'a alindi (`.scratch-*/`, `urun-gorsel-koken/`,
+  `shop/src-fiyat-tmp-*/`): diskte durur, izlenmez, bir daha baska mimarin temizlik
+  olcumunu kirletmez.
+
+**Iki "bekleyen" kalem OLCULDU, ikisi de KAPALI (liste bayatmis):**
+- `tools/arama.py` **TEMIZ** (porcelain bos); son commit'i zaten `d81349b6` (main'de, rc=0).
+  `model-baslik-kolu-test.py` **rc=0 · 29/29 iddia GECTI** → calisma kopyasi = HEAD, catisma YOK.
+- 4 dosya (`deploy.yml` · `nobet.yml` · `cron-nabiz-kapisi.py` · `is-akisi-kapisi.py`)
+  ana checkout'ta **commit'siz DEGIL** — hepsi temiz.
+
+**Yayin ACIK (olculdu):** son basarili `Build & deploy` = **`31253585287`** (head `2dba2718`,
+bitis **11:55:14Z**). `c61bd9b7` o yesil kosumda **YOK** (`--is-ancestor` rc=1); kendi kosumu
+(`31256056859`) `serit-a3`'te kirmizi yandi → `deploy`+`yayin` **skipped**. Ama `c61bd9b7`
+main HEAD `39df8c98`'in ATASI (rc=0) ve onun kosumu (`31256999280`) **UCUSTA** → commit ucusta,
+yayin kapali DEGIL. "21:24:13Z'den beri kapali, 12 commit inmedi" hukmu **CURUTULDU**.
+
+**`d1-sync --durum` DORT EKSEN YESIL:** sayi 22476 == urunler.json benzersiz 22476 · sema
+3 goc indeksi KURULU · turetilmis kolon 5/5 GUNCEL · icerik 22476 urun_hash birebir
+(uyusmaz 0 · eksik 0 · fazla 0).
+
+⚠️ **YENI TUZAK (dokumu ARSIVDE):** worktree icinden atilan commit kanca kurulumunu
+tetikliyor; ilk commit denemesi hep "BAYATTI, tekrar dene" ile duser, ikincisi gecer.
+Tur sonunda ana checkout'ta `durum.py` §8 **13 eksen yesil** ile teyit edildi.
+
 ## 🔚 OTURUM KAPANISI — 8 Agu (yayin blokaji + marka sayfasi turu)
 
 **CANLIYA GITTI (SHA'larla, hepsi `origin/main` ve canli olcumle teyitli):**
@@ -31,7 +83,7 @@
 - `pages` job'larina `timeout-minutes` konmasi.
 - ℹ️ Nobet jetonu icin **`setup-token` GEREKMIYOR**: 18:37Z rc=1'in sebebi jeton bayatligi degil eski hesabin **haftalik kotasiydi**; 19:37Z ve sonrasi rc=0.
 
-**ACIK WORKTREE (5 + main):** `muh-marka-tek-sayfa` (KOSUYOR, benim) · `muh-yayin-iki-kirmizi` (bekliyor, benim) · `agent-a3bff0d31c85f5714` · `agent-ad8653d553f9bde31` (`muh/marka-bolum-kimligi` — Okan hukmuyle CELISIYOR, karti 200→174 dusuruyor, MERGE EDILMEYECEK) · `agent-aecb6db6145c47ad2` · `blissful-mcnulty-e7162d` (son dordu **baskasinin**, DOKUNULMADI).
+**ACIK WORKTREE (2 + main):** `agent-aa5db29d7f2d4d1ad` ve `muh-mcp-tarayici` — IKISI DE BASKASININ CANLI isi, DOKUNULMADI. Benim actigim worktree KALMADI (8 Agu 15:00 turunda kapatildi).
 
 ## ⏱ SAATLIK CI NOBETI — 8 Agu 10:37Z turu (ev DOGRU: ~/dev/pruvo)
 
@@ -55,24 +107,5 @@ bant 32-58 dk) → normal seyir, TIKANMA DEGIL.
 (c) Son basarili `Build & deploy` = **`31249072863`** (head `af02f7c1`, bitis 09:53:53Z) → onceki
 turun "af02f7c1 ucusta" hukmu KAPANDI, CANLIDA. Ucusta kalan tek commit `85e3e523` (onceki turun
 kendi defter commit'i); beklenen.
-
-## ⏱ SAATLIK CI NOBETI — 8 Agu 09:37Z turu (ev DOGRU: ~/dev/pruvo)
-
-**Mail supurmesi (kosulsuz emir):** birlesik `inbox` **7546** mesaj TOPLU tarandi (ornekleme YOK;
-sender + subject tek Apple Event ile cekildi, satir sayisi `count of messages of inbox` ile
-esitlendi). Eslesen `notifications@github.com` + "Run failed" **0** → tasinan **0** · tur sonu
-kalan **0**. Alt kutulara girilmedi, Cop BOSALTILMADI, baska maile dokunulmadi.
-
-**Gercek ariza YOK — Codex CAGRILMADI.** Son 20 kosumda `conclusion=failure` **0**, `cancelled` **0**.
-Onceki turun tek kirmizisi (`31245852100`, uzlastirici GORUNURLUK kolu — kasitli `exit 1`)
-pencereden dustu; YENI kirmizi YOK.
-
-**Yayin ILERLEDI (§4.5'in UC ekseni de olculdu, tek eksen tek basina yazilmadi):**
-(a) KOSAN zincir VAR: `31249072863` (head `af02f7c1` = main HEAD), push tetikli, 08:45:04Z.
-(b) Tavani yine **`serit-a4`** koyuyor: ayni kosumda `build` · `serit-a2` · `serit-a3` **success**,
-`serit-a4` hala `in_progress` (bu job tipik 32-58 dk surer) → normal seyir, TIKANMA DEGIL.
-(c) Son basarili `Build & deploy` = **`31246716497`** (head `82967d41`, bitis 09:08:46Z) → onceki
-turun "`9ab89786` + `82967d41` ucusta" hukmu KAPANDI, ikisi de CANLIDA. `merge-base --is-ancestor
-af02f7c1 82967d41` **rc=1** → yalnizca onceki turun defter commit'i (`af02f7c1`) ucusta; beklenen.
 
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
