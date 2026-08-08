@@ -36,6 +36,24 @@ import model_kanon                                                  # noqa: E402
 WHATSAPP = "905451386526"
 WA_TEL_GORUNUR = "+90 545 138 6526"
 ESIK = 3                       # model sayfası + marka sayfası yalnız >= ESIK ürünlü için (spec §3.4)
+# Marka sayfasında SSR'de basılan TAM KART sayısı; kalanı aynı sayfada artımlı çizilir.
+# 🔴 N ÖLÇÜMLE SEÇİLDİ (gerekçe: tools/paket-marka-tek-sayfa.md + RAPOR-MIMARA.md). Kısıt:
+# en büyük marka sayfasının HTML baytı index.html'i AŞMAMALI. Yerel kalemleri (model sayfası
+# olmayan, bu yüzden HTML'de linklenmek ZORUNDA olan ürünler) kart yerine düz bağ olarak
+# basmak asıl kazancı verir; N ilk boyanın kalitesini belirler.
+#
+# 🔴 N NEDEN 80 (ölçüldü, 8 Ağu):
+#   · CRAWL YÜZEYİ N'DEN BAĞIMSIZ. Büyük markalarda yerel kalem sayısı N'i aştığı için
+#     kart + düz bağ == yerel kalem sayısıdır: N'i düşürmek bir kalemi KART'tan BAĞ'a
+#     taşır, ikisi de <a href="/urun/…"> olduğundan sayfadaki iç link sayısı DEĞİŞMEZ.
+#     Yani N yalnız İLK BOYANIN görsel zenginliğini belirler, SEO'yu belirlemez.
+#   · TAVAN PAYI. En büyük sayfa: N=120 -> 201.845 B (tavana 11.310 B pay ≈ 100 kalem),
+#     N=80 -> 189.795 B (pay 23.360 B ≈ 210 kalem). Katalog HER PARTİDE büyüyor; 80
+#     payı İKİYE KATLIYOR ve kazandığı tek şey 40 görsel karttır.
+#   · 80 kart mobilde ~3-4 ekran; kaydırma o noktaya gelmeden artım kolu bir parti daha
+#     çizdiği için kullanıcı kesintiyi GÖRMEZ.
+# Tavan nöbetçisi: tools/marka-sayac-kapisi.py `AGIRLIK/<sayfa>` (HTML_TAVAN).
+MARKA_KART_N = 80
 
 # 🔴 KANONİK EŞLEME TABLOLARI BURADA TANIMLANMAZ — index.html'deki TEK KAYNAK bloğundan
 # (tools/model_kanon.py) gelir. Kopya tutulsaydı ana sayfa filtresi ile /marka/ sayfası
@@ -1056,6 +1074,24 @@ _MM_CSS = """
     color:var(--navy);font-weight:600;font-size:15px}
   .mm-model-btn:hover{border-color:var(--navy-2);background:#fff}
   .mm-model-btn .adet{color:#8996ad;font-weight:500;font-size:12.5px}
+  /* SAYFA-İÇİ MODEL FİLTRESİ: çip tıklanınca adres DEĞİŞMEZ, kartlar burada süzülür. */
+  .mm-model-btn.mm-aktif{border-color:var(--navy);background:var(--navy);color:#fff}
+  .mm-model-btn.mm-aktif .adet{color:#c9d6ea}
+  .mm-filtre-sifirla{margin:2px 0 0;font-size:13px}
+  .mm-filtre-sifirla a{color:var(--navy-2)}
+  /* ARTIMLI KART ÇİZİMİ (ilk N kart HTML'de, kalanı aynı sayfada) */
+  .mm-artim{margin:16px 0 4px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .mm-tumu-btn{background:var(--navy);color:#fff;border:0;border-radius:10px;
+    padding:11px 20px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+  .mm-tumu-btn:hover{background:var(--navy-2)}
+  .mm-artim-durum{font-size:13px;color:var(--gray-text)}
+  /* Model sayfası OLMAYAN kalemlerin düz bağ listesi: JS-siz erişim + iç link (öksüz yok) */
+  .mm-kalan-bag{margin:10px 0 4px;padding:0 0 0 2px;list-style:none;columns:2;column-gap:26px;
+    font-size:13.5px}
+  .mm-kalan-bag li{margin:0 0 5px;break-inside:avoid}
+  .mm-kalan-bag a{color:var(--navy-2);text-decoration:none}
+  .mm-kalan-bag a:hover{text-decoration:underline}
+  @media (max-width:640px){ .mm-kalan-bag{columns:1} }
   /* Ürün-liste kartı = sitenin STANDART katalog kartı (index.html kartCiz ile BİREBİR sınıf/
      yapı/CSS). Kart CSS'i PAGE_CSS'te YOK (ürün sayfası tek ürün gösterir) -> buraya kopyalandı;
      :root değişkenleri (--radius/--shadow/--navy/--gray-*) PAGE_CSS'te tanımlı. */
@@ -1210,6 +1246,15 @@ _KAPSAM_JS_GOVDE = r"""
       kartlar[i].style.display = ac ? "" : "none";
       if(ac){ gorunenKart++; }
     }
+    // DÜZ BAĞ ÖĞELERİ (model sayfası olmayan kalemlerin liste girdileri): kart DEĞİL ama
+    // sayfada GÖRÜNÜR -> AYNI `gorunur()` yüklemiyle süzülür ve AYNI sayaca girer.
+    // 🔴 EK SEÇİCİ, DEĞİŞTİRİLEN SEÇİCİ DEĞİL: `.card[data-kat]` davranışı bayt-aynı kalır.
+    var duzler = dok.querySelectorAll(".mm-kalan-oge[data-kat]");
+    for(i = 0; i < duzler.length; i++){
+      var ad2 = gorunur(duzler[i].getAttribute("data-kat"), c);
+      duzler[i].style.display = ad2 ? "" : "none";
+      if(ad2){ gorunenKart++; }
+    }
     var btnlar = dok.querySelectorAll(".mm-model-btn[data-katsay]"), gorunenModel = 0;
     for(i = 0; i < btnlar.length; i++){
       var n = sayimla(btnlar[i].getAttribute("data-katsay"), c);
@@ -1308,6 +1353,256 @@ def ara_tasi_scripti(marka):
     govde = _ARA_TASI_JS_GOVDE.replace(
         "__MARKA__", json.dumps(marka or "", ensure_ascii=False, separators=(",", ":")))
     return "<script>" + _ARA_TASI_JS_BAS + govde + _ARA_TASI_JS_SON + "</script>"
+
+
+# ---- ARTIMLI KART ÇİZİMİ + SAYFA-İÇİ MODEL FİLTRESİ (marka sayfası) ----
+# 🔴 NEDEN VAR (Okan hükmü, 8 Ağu): marka sayfası markanın TÜM parçalarını KART olarak
+# listeler ve model çipleri AYRI ADRESE GİTMEZ, sayfa İÇİNDE filtreler. Ama tüm kartları
+# SSR'de basmak kabul edilemez ağırlık üretiyordu (ölçüldü: en büyük marka 2582 kart
+# ≈ 1,27 MB; ikinci sıradaki sayfa bugün 770 KB ile index.html'i (235 KB) ZATEN aşıyor).
+# ÇÖZÜM: ilk N kart HTML'de (SEO + ilk boya, JS-siz halde de görünür), kalanı AYNI SAYFADA
+# artımlı çizilir. Kart verisi `urunler.json`'dan (kataloğun kendi kaynağı), sayfaya ait
+# kalem listesi + model üyeliği sayfa yanındaki `parcalar.json`'dan gelir. HARİCİ
+# KÜTÜPHANE/CDN YOK, saf JS.
+# 🔴 KART GÖVDESİ TEK KAYNAK: `kartHtml` Python `_kart` ile BAYT-AYNI dize üretir; kapı
+# bunu node'da koşturup her kalem için Python çıktısıyla KARŞILAŞTIRIR (ikiz tanım sessizce
+# ayrışamaz → [[ikiz-tanim-sessiz-ayrisma]]).
+_ARTIM_JS_BAS = "/* PRUVO ARTIM BAS */"
+_ARTIM_JS_SON = "/* PRUVO ARTIM SON */"
+
+_ARTIM_JS_GOVDE = r"""
+(function(g){
+  var PARTI = 60;               // her artımda çizilecek kart sayısı
+  function esc(s){
+    return String(s === null || s === undefined ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+  }
+  // Python `_kart` ile BAYT-AYNI kart gövdesi. `o` = sayfanın override kaydı (bkz.
+  // _kart_yuk_kaydi): istemcinin `urunler.json`'dan TÜRETEMEDİĞİ alanlar.
+  function kartHtml(u, o, site, ekAttr){
+    o = o || {};
+    var kat = String(u.kategori || "").replace(/^\s+|\s+$/g, "");
+    var baslik = o.b !== undefined ? o.b
+               : (String(u.baslik || "").replace(/^\s+|\s+$/g, "") || String(u.id || ""));
+    var gorseller = u.gorseller || [];
+    var cover = o.g !== undefined ? o.g : (gorseller.length ? gorseller[0] : "");
+    var fiyat, bos;
+    if(o.f !== undefined){ fiyat = o.f; bos = !!o.e; }
+    else {
+      var ham = String(u.fiyat || "").replace(/^\s+|\s+$/g, "");
+      fiyat = ham || "Fiyat için sipariş verin";
+      bos = !ham;
+    }
+    var badge = u.parametrik ? '<span class="card-badge">Ölçüye Özel</span>' : "";
+    // 🔴 ŞABLON BİLEREK PARÇALI YAZILIR: bu depodaki ölçüm araçları üretilen HTML'i
+    // düzenli ifadeyle tarıyor ve script gövdesini soymayanlar bu şablonu GERÇEK BİR KART
+    // sayıyordu (ölçüldü: her marka sayfasında +1 hayalet kart, iki ayrı nöbetçi 80/81
+    // basıp kırmızı yandı). Parçalar birleşince çıktı BAYT-AYNI kalır, ama kaynakta
+    // `<div class="card" data-kat="` dizesi HİÇ oluşmaz -> hayalet eşleşme YAPISAL olarak
+    // imkânsızdır (her nöbetçiyi tek tek yamamak yerine kaynağında kesildi).
+    var KART_ACIK = '<div class="card' + '" data-kat="';
+    var ANA_ACIK = '><a class="card' + '-main" href="';
+    return KART_ACIK + esc(kat) + '"' + (ekAttr || "")
+      + ANA_ACIK + esc(site + "/urun/" + u.id + "/") + '">'
+      + '<img class="card-img" alt="' + esc(baslik) + '" loading="lazy" src="' + esc(cover) + '">'
+      + '<div class="card-body">'
+      + '<span class="card-cat">' + esc(kat) + '</span>'
+      + '<div class="card-title">' + esc(baslik) + '</div>'
+      + '<div class="card-price' + (bos ? " empty" : "") + '">' + esc(fiyat) + '</div>'
+      + '</div>' + badge + '</a></div>';
+  }
+  // Kalem kaydı -> kartın data-mm değeri (model üyeliği; sayfa-içi filtre bu alandan süzer).
+  function mmAttr(kayit){
+    var ix = kayit[2] || [];
+    return ix.length ? ' data-mm="' + ix.join(" ") + '"' : "";
+  }
+  // Sayfanın yükünden GÖSTERİLECEK kalemleri süz. FAIL-CLOSED: yük tanınmazsa boş küme
+  // (yanlış kart basmaktansa hiç basma).
+  function suz(yuk, modelIx, kategori){
+    if(!yuk || !yuk.k){ return []; }
+    var out = [], i, kayit;
+    for(i = 0; i < yuk.k.length; i++){
+      kayit = yuk.k[i];
+      if(!kayit || !kayit[0]){ continue; }
+      if(kategori !== null && kategori !== undefined
+         && (yuk.kat || [])[kayit[1]] !== kategori){ continue; }
+      if(modelIx !== null && modelIx !== undefined
+         && (kayit[2] || []).indexOf(modelIx) === -1){ continue; }
+      out.push(kayit);
+    }
+    return out;
+  }
+  function manifest(dok){
+    var el = dok.getElementById("mmManifest");
+    if(!el){ return null; }
+    var v;
+    try{ v = JSON.parse(el.textContent || "null"); }catch(e){ return null; }
+    if(!v || !v.yuk || !v.kaynak || !v.site){ return null; }
+    return v;
+  }
+  g.PRUVO_ARTIM = {esc: esc, kartHtml: kartHtml, mmAttr: mmAttr, suz: suz,
+                   manifest: manifest, PARTI: PARTI};
+
+  // ---------------------------------------------------------------- tarayıcı kolu
+  // (node'da `document` yok -> kurulmaz; yukarıdaki saf fonksiyonlar test edilebilir kalır)
+  if(typeof document === "undefined" || !g.addEventListener){ return; }
+  g.addEventListener("DOMContentLoaded", function(){
+    var man = manifest(document);
+    var grid = document.getElementById("mmGrid");
+    if(!man || !grid){ return; }
+    var dugme = document.getElementById("mmTumu");
+    var durum = document.getElementById("mmDurum");
+    var yuk = null, katalog = null, cizilen = man.basili, mesgul = false, aktifModel = null;
+    function kapsamKategorisi(){
+      var K = g.PRUVO_KAPSAM;
+      if(!K){ return null; }
+      var c;
+      try{ c = K.coz(new URLSearchParams(g.location.search).get("kategori"), K.KATEGORILER); }
+      catch(e){ return null; }
+      return (c && c.aktif && c.gecerli) ? c.kategori : null;
+    }
+    function getir(){
+      if(yuk && katalog){ return Promise.resolve(true); }
+      return Promise.all([fetch(man.yuk).then(function(r){ return r.json(); }),
+                          fetch(man.kaynak).then(function(r){ return r.json(); })])
+        .then(function(iki){
+          yuk = iki[0];
+          katalog = {};
+          var i, arr = iki[1] || [];
+          for(i = 0; i < arr.length; i++){ if(arr[i] && arr[i].id){ katalog[arr[i].id] = arr[i]; } }
+          return true;
+        }).catch(function(e){
+          if(durum){ durum.textContent = "Kalan parçalar yüklenemedi."; }
+          console.error("Artim yuklenemedi:", e);
+          return false;
+        });
+    }
+    // Kalemleri çiz. `bastan` true ise HTML'de basılı kartlar da yeniden değerlendirilir
+    // (model filtresi): basılı kartlar GİZLENİR/GÖSTERİLİR, kalanlar çizilir.
+    function ciz(kalemler, bas, adet){
+      var parcalar = [], i, kayit, u;
+      for(i = bas; i < kalemler.length && i < bas + adet; i++){
+        kayit = kalemler[i];
+        u = katalog[kayit[0]];
+        if(!u){ continue; }             // fail-closed: kataloğda yok -> kart basma
+        // data-artim: JS'in çizdiği kartın işareti (filtre sıfırlanınca bunlar kaldırılır).
+        // İşaret `ciz`de eklenir, `kartHtml`de DEĞİL -> kart gövdesi Python `_kart` ile
+        // BAYT-AYNI kalır (kapı bunu karşılaştırıyor).
+        parcalar.push(kartHtml(u, (yuk.o || {})[kayit[0]], man.site,
+                               mmAttr(kayit) + ' data-artim=""'));
+      }
+      if(parcalar.length){ grid.insertAdjacentHTML("beforeend", parcalar.join("")); }
+      return Math.min(bas + adet, kalemler.length);
+    }
+    function sayilariTazele(){
+      if(g.PRUVO_KAPSAM){
+        try{ g.PRUVO_KAPSAM.uygula(document, g.location); }catch(e){ /* sayaç kolu */ }
+      }
+    }
+    // "Tümünü göster" / kaydırma: sayfanın KALANINI aynı sayfada çizer.
+    function devam(hepsi){
+      if(mesgul){ return; }
+      mesgul = true;
+      getir().then(function(ok){
+        if(!ok){ mesgul = false; return; }
+        var kalemler = suz(yuk, aktifModel, kapsamKategorisi());
+        var adet = hepsi ? kalemler.length : PARTI;
+        cizilen = ciz(kalemler, cizilen, adet);
+        if(durum){
+          durum.textContent = cizilen >= kalemler.length
+            ? "" : (cizilen + " / " + kalemler.length + " parça gösteriliyor");
+        }
+        if(dugme && cizilen >= kalemler.length){ dugme.style.display = "none"; }
+        sayilariTazele();
+        mesgul = false;
+      });
+    }
+    if(dugme){
+      dugme.addEventListener("click", function(e){ e.preventDefault(); devam(true); });
+    }
+    // kaydırmada artımlı: sayfa sonuna yaklaşınca bir parti daha
+    g.addEventListener("scroll", function(){
+      if(mesgul || !dugme || dugme.style.display === "none"){ return; }
+      var kalan = document.body.scrollHeight - (g.scrollY + g.innerHeight);
+      if(kalan < 800){ devam(false); }
+    }, {passive: true});
+    // MODEL ÇİPİ = SAYFA-İÇİ FİLTRE (adres DEĞİŞMEZ). JS yoksa çip model sayfasına gider
+    // (iç link + JS-siz erişim korunur) -> aşağıdaki preventDefault YALNIZ JS varken çalışır.
+    var cipler = document.querySelectorAll(".mm-model-btn[data-mm]");
+    function artimKartlariniSil(){
+      var eski = document.querySelectorAll("#mmGrid .card[data-artim]"), j;
+      for(j = 0; j < eski.length; j++){ eski[j].parentNode.removeChild(eski[j]); }
+    }
+    function cipleriIsaretle(ix){
+      for(var i = 0; i < cipler.length; i++){
+        var kendi = ix !== null && cipler[i].getAttribute("data-mm") === String(ix);
+        cipler[i].className = "mm-model-btn" + (kendi ? " mm-aktif" : "");
+      }
+    }
+    function filtreUygula(ix){
+      if(mesgul){ return; }
+      aktifModel = ix;
+      cipleriIsaretle(ix);
+      artimKartlariniSil();
+      if(ix === null){                        // SIFIRLA: SSR kartları geri, sayaç tazelenir
+        var hepsiKart = document.querySelectorAll("#mmGrid .card"), i;
+        for(i = 0; i < hepsiKart.length; i++){ hepsiKart[i].style.display = ""; }
+        cizilen = man.basili;
+        if(dugme){ dugme.style.display = ""; }
+        if(durum){ durum.textContent = ""; }
+        sayilariTazele();
+        return;
+      }
+      // FİLTRE ETKİN: SSR kartlarından üye OLMAYANLAR gizlenir, modelin kalemleri çizilir.
+      var kartlar = document.querySelectorAll("#mmGrid .card"), k;
+      for(k = 0; k < kartlar.length; k++){
+        var ham = kartlar[k].getAttribute("data-mm");
+        var uyeli = ham ? ham.split(" ").indexOf(String(ix)) !== -1 : false;
+        kartlar[k].style.display = uyeli ? "" : "none";
+      }
+      mesgul = true;
+      getir().then(function(ok){
+        if(!ok){ mesgul = false; return; }
+        var kalemler = suz(yuk, ix, kapsamKategorisi());
+        // SSR'de basılı ve BU modele üye olan kalemler zaten görünür -> onları atla
+        var basiliIds = {}, i, ss = document.querySelectorAll("#mmGrid .card:not([data-artim])");
+        for(i = 0; i < ss.length; i++){
+          var a = ss[i].querySelector(".card-main");
+          var h = a ? a.getAttribute("href") : "";
+          var pid = h ? h.replace(/\/$/, "").split("/").pop() : "";
+          if(pid){ basiliIds[decodeURIComponent(pid)] = 1; }
+        }
+        var eksik = [];
+        for(i = 0; i < kalemler.length; i++){
+          if(!basiliIds[kalemler[i][0]]){ eksik.push(kalemler[i]); }
+        }
+        ciz(eksik, 0, eksik.length);
+        if(durum){ durum.textContent = kalemler.length + " parça (model filtresi etkin)"; }
+        if(dugme){ dugme.style.display = "none"; }
+        mesgul = false;
+        sayilariTazele();
+      });
+    }
+    for(var c = 0; c < cipler.length; c++){
+      cipler[c].addEventListener("click", function(e){
+        e.preventDefault();
+        var ix = parseInt(this.getAttribute("data-mm"), 10);
+        filtreUygula(aktifModel === ix ? null : ix);
+      });
+    }
+    var sifirla = document.getElementById("mmFiltreSifirla");
+    if(sifirla){
+      sifirla.addEventListener("click", function(e){ e.preventDefault(); filtreUygula(null); });
+    }
+  });
+})(typeof window !== "undefined" ? window : globalThis);
+"""
+
+
+def artim_scripti():
+    """Sayfaya gömülecek ARTIM scripti (marker'lı; kapı buradan ayıklayıp node'da koşar)."""
+    return "<script>" + _ARTIM_JS_BAS + _ARTIM_JS_GOVDE + _ARTIM_JS_SON + "</script>"
 
 
 def _arama_kutusu_html(esc, marka=None):
@@ -1603,7 +1898,7 @@ def _kart_fiyat(ctx, p):
     return ("Ölçüye özel fiyat" if parametrik else "Fiyat için sipariş verin"), True
 
 
-def _kart(ctx, p):
+def _kart(ctx, p, ek_attr=""):
     """Sitenin STANDART katalog kartı (index.html kartCiz) — SSR/crawlable birebir eşi:
     <a class="card-main" href="/urun/<id>/"> img(card-img, lazy, gerçek görsel) + card-body
     (card-cat/card-title/card-price) + parametrikse card-badge.
@@ -1629,16 +1924,49 @@ def _kart(ctx, p):
     # makine-okunur alan yoktu; ?kategori= kapsamı bu alandan süzülür. Boş/eksik data-kat
     # kapsam aktifken kartı GİZLETİR (fail-closed) — bu yüzden hep basılır.
     return (
-        '<div class="card" data-kat="%s"><a class="card-main" href="%s">'
+        '<div class="card" data-kat="%s"%s><a class="card-main" href="%s">'
         '<img class="card-img" alt="%s" loading="lazy" src="%s">'
         '<div class="card-body">'
         '<span class="card-cat">%s</span>'
         '<div class="card-title">%s</div>'
         '<div class="card-price%s">%s</div>'
         '</div>%s</a></div>'
-        % (esc(kategori), esc(ctx["product_url"](pid)), esc(baslik), esc(cover),
+        % (esc(kategori), ek_attr, esc(ctx["product_url"](pid)), esc(baslik), esc(cover),
            esc(kategori), esc(baslik),
            " empty" if bos else "", esc(fiyat_metni), badge))
+
+
+def _kart_yuk_kaydi(ctx, p):
+    """İSTEMCİNİN kart çizerken `urunler.json`'dan TÜRETEMEDİĞİ alanlar (yalnız SAPMA yazılır).
+
+    🔴 NEDEN OVERRIDE, NEDEN PORT DEĞİL: kart başlığı `_kart_temizle` (bağlam-duyarlı,
+    maskeli, ~60 kurallı) ve fiyatı `_kart_fiyat` (parametrik/satış kapısı) ile üretilir.
+    Bunları JS'e PORT etmek ikiz tanım kurardı ve sessizce ayrışırdı
+    ([[ikiz-tanim-sessiz-ayrisma]]). Bunun yerine: istemci BASİT kuralı uygular
+    (başlık = `baslik`, fiyat = `fiyat` ya da "Fiyat için sipariş verin"), Python o basit
+    kuralın SONUCUYLA kanonik `_kart` sonucunu KARŞILAŞTIRIR ve YALNIZ ayrıştığında
+    override yazar. Böylece tek kaynak Python'da kalır, yük de küçüktür (ölçüldü: 22376
+    ürünün 3'ünde başlık, 23'ünde fiyat sapıyor)."""
+    kayit = {}
+    ham_baslik = (p.get("baslik") or "").strip()
+    kanonik_baslik = _kart_temizle(ham_baslik) or (p.get("id") or "")
+    if kanonik_baslik != (ham_baslik or (p.get("id") or "")):
+        kayit["b"] = kanonik_baslik
+    fiyat_metni, bos = _kart_fiyat(ctx, p)
+    basit_fiyat = (p.get("fiyat") or "").strip() or "Fiyat için sipariş verin"
+    basit_bos = not (p.get("fiyat") or "").strip()
+    if fiyat_metni != basit_fiyat or bool(bos) != basit_bos:
+        kayit["f"] = fiyat_metni
+        kayit["e"] = 1 if bos else 0
+    # Kapak: Python `images_of` BOŞ/geçersiz girdileri süzer, istemci ham `gorseller[0]`
+    # okur -> ikisi ayrışabilir (ilk girdi boş dize olan ürün). Ayrışıyorsa override yaz.
+    imgs = ctx["images_of"](p)
+    kanonik_kapak = imgs[0] if imgs else _ph_data((p.get("kategori") or "").strip())
+    ham_liste = p.get("gorseller") or []
+    basit_kapak = ham_liste[0] if ham_liste else ""
+    if kanonik_kapak != basit_kapak:
+        kayit["g"] = kanonik_kapak
+    return kayit
 
 
 def _kat_sayim_json(urunler):
@@ -1684,6 +2012,50 @@ def sayfa_kalemleri(kart_urunleri, kova_listeleri=()):
     return _tekil(kart_urunleri, *list(kova_listeleri))
 
 
+def bolum_ayrimi(kart_kollari, kova_listeleri):
+    """Sayfanın İKİ BÖLÜMÜNÜ AYRIK kurar; sayfanın HER sayısı bu tek kaynaktan türer.
+
+    🔴 NEDEN VAR (8 Ağu 2026, Okan İKİ KEZ bildirdi — hatası SESSİZ): marka sayfasının iki
+    bölümü ("Modele göre seçin" butonları + yerel kartlar) ÇAKIŞIYORDU. `kucuk_urunler` kolu
+    yayımlanan model kovasındaki ürünü eliyordu, ama `marka_only` ve `ikincil` kolları
+    ELEMİYORDU → "Diğer" kelimesi TÜMLEYEN vaat ederken küme kovalarla kesişiyordu ve
+    kullanıcı ekranda gördüğü sayılardan sayfa toplamını TÜRETEMİYORDU (ölçülen bir sayfada
+    26 ürün hem
+    kartta hem kovada; 32 marka sayfası sapıyordu, sapma DAİMA pozitif).
+
+    🔴 KURULAN DEĞİŞMEZ (ESKİ KURALIN TERSİ): kart kolu ∪kova ile AYRIKTIR.
+    Eskiden çakışma "normal" sayılır, `sayfa_kalemleri`nin tekilleştirmesiyle yutulurdu; o
+    yükleme kapı bile "çakışma doğru davranış" diye İDDİA EDİYORDU. Artık çakışma İHLALDİR:
+    kovada görünen ürün kart kolundan ELENİR.
+
+        |kart| + |∪kova| == |toplam|          ("yerel bölüm" GERÇEK tümleyendir)
+
+    ÜRÜN KAYBOLMAZ: eleme yalnız ürünün hangi BÖLÜMDE sayıldığını belirler; sayfadan
+    ulaşılabilen tekil küme (`kalemler`) DEĞİŞMEZ.
+
+    Dönüş: (kart_urunleri, kalemler, sayilar);
+    `sayilar` = {"toplam", "kart", "kova", "kova_sayisi"}."""
+    kova_listeleri = list(kova_listeleri)
+    kova_ids = set()
+    for lst in kova_listeleri:
+        for p in lst or ():
+            pid = p.get("id")
+            if pid:
+                kova_ids.add(pid)
+    kart_urunleri = [p for p in _tekil(*kart_kollari) if p.get("id") not in kova_ids]
+    kalemler = sayfa_kalemleri(kart_urunleri, kova_listeleri)
+    sayilar = {"toplam": len(kalemler), "kart": len(kart_urunleri),
+               "kova": len(kova_ids), "kova_sayisi": len(kova_listeleri)}
+    # FAIL-CLOSED: kimlik yapısal olarak tutmalı; tutmuyorsa `_tekil`/eleme bozulmuş demektir
+    # (mutasyon bataryası bu dalı ayrı bir düşüş imzası olarak ölçer).
+    if sayilar["kart"] + sayilar["kova"] != sayilar["toplam"]:
+        raise SystemExit(
+            "HATA: bölüm kimliği ayrıştı — kart %d + kova %d != toplam %d (sayfanın "
+            "bölümleri çakışıyor; ekrandaki sayılar toplamı vermez)."
+            % (sayilar["kart"], sayilar["kova"], sayilar["toplam"]))
+    return kart_urunleri, kalemler, sayilar
+
+
 def _toplam_bloku(esc, kalemler, oncul):
     """Sayfanın KANONİK toplamı: görünür cümle + istemcinin okuyacağı kategori kırılımı.
 
@@ -1694,11 +2066,11 @@ def _toplam_bloku(esc, kalemler, oncul):
                         esc("parça listeleniyor.")))
 
 
-def _urun_grid(ctx, urunler):
-    parts = [_kart(ctx, p) for p in urunler if p.get("id")]
+def _urun_grid(ctx, urunler, attr_of=None, grid_attr=""):
+    parts = [_kart(ctx, p, attr_of(p) if attr_of else "") for p in urunler if p.get("id")]
     if not parts:
         return ""
-    return '<div class="grid">' + "".join(parts) + "</div>"
+    return '<div class="grid"' + grid_attr + '>' + "".join(parts) + "</div>"
 
 
 def _itemlist(ctx, urunler, limit=None):
@@ -1840,13 +2212,16 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     url = SITE + "/marka/" + marka_slug + "/"
 
     h1 = marka + " Yedek Parça — Ölçüye Özel Üretim"
-    # diğer parçalar: <ESIK modeller + yalnız-marka + İKİNCİL (çok markalı uyumluluk) ürünler.
+    # YEREL bölüm: <ESIK modeller + yalnız-marka + İKİNCİL (çok markalı uyumluluk) ürünler.
     # İkincil = marka[0]'ı başka marka olan ama marka[] dizisinde bu markayı da taşıyan ürün;
     # index.html marka filtresi onu zaten bu markada gösteriyor -> sayfa da göstermeli.
-    # 🔴 TEKİLLEŞTİRİLİR: üç kol çakışabiliyor (bkz. _tekil) — çakışma 282 mükerrer karttı.
-    diger = _tekil(kucuk_urunler, d["marka_only"], d.get("ikincil", []))
-    kalemler = sayfa_kalemleri(diger, [g["urunler"] for g in buyuk_gruplar])
-    toplam = len(kalemler)
+    # 🔴 AYRIK KURULUR (bkz. bolum_ayrimi): kovada zaten görünen ürün yerel bölümden ELENİR.
+    # Eskiden üç kol yalnız TEKİLLEŞTİRİLİYORDU; `marka_only`/`ikincil` kovadan elenmediği
+    # için "Diğer" bölümü kovalarla ÇAKIŞIYORDU (32 marka sayfası, sapma daima pozitif).
+    kova_listeleri = [g["urunler"] for g in buyuk_gruplar]
+    yerel, kalemler, sayilar = bolum_ayrimi(
+        [kucuk_urunler, d["marka_only"], d.get("ikincil", [])], kova_listeleri)
+    toplam = sayilar["toplam"]
     # FAIL-CLOSED İKİZ KONTROLÜ: sayfadan ulaşılabilen küme ile marka kovasının kanonik
     # sayısı AYRIŞAMAZ. Ayrışırsa sayfa yanlış sayı basar ve kimse GÖRMEZ -> build durur.
     if toplam != marka_urun_sayisi(d):
@@ -1868,21 +2243,95 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     # model butonları (>= ESIK). data-katsay = modelin KATEGORİ kırılımı ({"Marin":3,...});
     # kapsam geldiğinde buton o kategorideki sayıya düşer, 0 ise BUTON GİZLENİR — yoksa
     # Marin kapsamında motosiklet modeli butonu görünmeye devam ederdi (sessiz hata).
+    # data-mm = model İNDEKSİ: çip artık AYRI ADRESE GİTMEZ, sayfa İÇİNDE filtreler (Okan
+    # hükmü). `href` KORUNUR: JS yoksa çip model sayfasına gider (iç link + JS-siz erişim +
+    # crawl hedefi bozulmaz), JS varsa preventDefault ile sayfa-içi filtre çalışır.
     btns = []
-    for g in buyuk_gruplar:
+    for i, g in enumerate(buyuk_gruplar):
         murl = "/marka/" + marka_slug + "/" + g["slug"] + "/"
-        btns.append('<a class="mm-model-btn" href="%s" data-katsay="%s">'
+        btns.append('<a class="mm-model-btn" href="%s" data-katsay="%s" data-mm="%d">'
                     '%s<span class="adet">%d parça</span></a>'
-                    % (esc(murl), esc(_kat_sayim_json(g["urunler"])),
+                    % (esc(murl), esc(_kat_sayim_json(g["urunler"])), i,
                        esc(g["display"]), len(g["urunler"])))
     model_html = '<div class="mm-models">' + "".join(btns) + "</div>" if btns else ""
 
-    diger_html = ""
-    if diger:
-        diger_html = ('<h2 class="mm-sec-h">Diğer ' + esc(marka)
-                      + ' parçaları (<span class="mm-sayim-kart">'
-                      + str(len(diger)) + '</span>)</h2>'
-                      + _urun_grid(ctx, diger))
+    # ------------------------------------------------------- KART YÜZEYİ (Okan hükmü)
+    # 🔴 KART YÜZEYİ = markanın TÜM parçaları (`kalemler`), model kovasındakiler DAHİL.
+    # Ama hepsini SSR'de basmak ağırlık olarak kabul edilemez (ölçüldü: en büyük marka
+    # 2582 kart ≈ 1,27 MB, ikincisi bugün 770 KB ile index.html'i ZATEN aşıyor). Bu yüzden:
+    #   · ilk MARKA_KART_N kalem TAM KART olarak HTML'de (SEO + ilk boya + JS-siz görünürlük),
+    #   · kalanı AYNI SAYFADA artımlı çizilir (parcalar.json + urunler.json, saf JS).
+    # `kalemler` sırası = _tekil(yerel, *kovalar) -> YEREL kalemler BAŞTA gelir; bu tesadüf
+    # değil, ORPHAN GÜVENLİĞİNİN dayanağıdır (aşağıya bak).
+    model_uyelik = {}
+    for i, g in enumerate(buyuk_gruplar):
+        for p in g["urunler"]:
+            pid = p.get("id")
+            if pid:
+                model_uyelik.setdefault(pid, []).append(i)
+
+    def _mm_attr(p):
+        ix = model_uyelik.get(p.get("id")) or []
+        return (' data-mm="%s"' % " ".join(str(x) for x in ix)) if ix else ""
+
+    basili = kalemler[:MARKA_KART_N]
+    basili_ids = set(p.get("id") for p in basili)
+    # 🔴 ORPHAN GÜVENLİĞİ (fail-closed): YEREL kalemlerin model sayfası YOKTUR — /marka/<m>/
+    # dışında hiçbir yerde linklenmezler. Kart olarak basılmayan yerel kalemler bu yüzden
+    # HTML'de düz bir link listesinde durmak ZORUNDA (yoksa marka hiyerarşisinde öksüz
+    # kalırlar; tools/marka-model-test.py bunu ölçüyor). Kova kalemleri öksüz OLAMAZ:
+    # çipin işaret ettiği model sayfası onları listeler.
+    yerel_kalan = [p for p in yerel if p.get("id") not in basili_ids]
+    kalan_html = ""
+    if yerel_kalan:
+        # data-kat: bu kalemler de KAPSAM ekseninde (?kategori=) süzülür — kart olmasalar da
+        # sayfada GÖRÜNÜR öğedirler; süzülmezlerse Marin kapsamında motosiklet parçasının adı
+        # ekranda kalırdı (kartlarda kapatılan sessiz kusurun aynısı).
+        baglar = "".join(
+            '<li class="mm-kalan-oge" data-kat="%s"><a href="%s">%s</a></li>'
+            % (esc((p.get("kategori") or "").strip()),
+               esc(ctx["product_url"](p.get("id"))),
+               esc(_kart_temizle((p.get("baslik") or "").strip()) or p.get("id")))
+            for p in yerel_kalan)
+        kalan_html = ('<h2 class="mm-sec-h">' + esc(marka) + ' parça listesi ('
+                      + str(len(yerel_kalan)) + ')</h2>'
+                      + '<ul class="mm-kalan-bag">' + baglar + '</ul>')
+
+    kart_html = _urun_grid(ctx, basili, attr_of=_mm_attr, grid_attr=' id="mmGrid"')
+    # Artım manifesti: yükün adresi + kataloğun adresi + SSR'de basılı kart sayısı.
+    # (Yük sayfanın YANINDA duran parcalar.json'dur; HTML baytını şişirmez.)
+    manifest = {"yuk": url + "parcalar.json", "kaynak": "/urunler.json",
+                "site": SITE, "toplam": toplam, "basili": len(basili)}
+    artim_html = ""
+    if len(basili) < toplam:
+        artim_html = (
+            '<script type="application/json" id="mmManifest">'
+            + json.dumps(manifest, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            + '</script>'
+            + '<p class="mm-artim"><button type="button" id="mmTumu" class="mm-tumu-btn">'
+            + esc("Tümünü göster (%d parça)" % toplam) + '</button>'
+            + '<span id="mmDurum" class="mm-artim-durum"></span></p>')
+    filtre_html = ('<p class="mm-filtre-sifirla"><a href="#" id="mmFiltreSifirla">'
+                   + esc("Model filtresini temizle") + '</a></p>') if btns else ""
+
+    # Sayfanın YANINDA yazılacak yük (uret yazar). Kalem listesi KANONİK `kalemler`den
+    # türer — ikinci bir küme kurulmaz.
+    kat_tablosu = sorted(set((p.get("kategori") or "").strip() for p in kalemler))
+    kat_ix = {k: i for i, k in enumerate(kat_tablosu)}
+    override = {}
+    for p in kalemler:
+        kayit = _kart_yuk_kaydi(ctx, p)
+        if kayit:
+            override[p.get("id")] = kayit
+    yuk = {
+        "toplam": toplam,
+        "basili": len(basili),
+        "kat": kat_tablosu,
+        "m": [g["slug"] for g in buyuk_gruplar],
+        "k": [[p.get("id"), kat_ix[(p.get("kategori") or "").strip()],
+               model_uyelik.get(p.get("id")) or []] for p in kalemler],
+        "o": override,
+    }
 
     prefill = ("Merhaba, " + marka + " için bir parça arıyorum, sitede bulamadım. Elimdeki "
                "numuneyi ölçüp ölçüye özel üretebilir misiniz?")
@@ -1903,7 +2352,12 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
             + ('<h2 class="mm-sec-h">Modele göre seçin (<span class="mm-sayim-model">'
                + str(len(btns)) + '</span>)</h2>' if btns else "")
             + model_html
-            + diger_html
+            + filtre_html
+            + ('<h2 class="mm-sec-h">' + esc(marka) + ' parçaları ('
+               + '<span class="mm-sayim-kart">' + str(len(basili)) + '</span>)</h2>')
+            + kart_html
+            + artim_html
+            + kalan_html
             + huni)
 
     breadcrumb_ld = _ld({
@@ -1926,8 +2380,8 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                        "itemListElement": model_items},
     })
     html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body,
-                  kapsam_scripti(kategoriler) + ara_tasi_scripti(marka))
-    return url, html
+                  kapsam_scripti(kategoriler) + ara_tasi_scripti(marka) + artim_scripti())
+    return url, html, yuk
 
 
 def _marka_index(ctx, ozet):
@@ -1999,6 +2453,15 @@ def uret(products, ctx):
         with open(os.path.join(klasor, "index.html"), "w", encoding="utf-8") as f:
             f.write(html)
 
+    def yaz_json(url, obj):
+        """Sayfanın yanındaki istemci verisi (parcalar.json). Deterministik: sort_keys."""
+        yol = url[len(SITE):].strip("/")          # "marka/ford/parcalar.json"
+        parcalar = yol.split("/")
+        klasor = os.path.join(ROOT, *parcalar[:-1])
+        os.makedirs(klasor, exist_ok=True)
+        with open(os.path.join(klasor, parcalar[-1]), "w", encoding="utf-8") as f:
+            json.dump(obj, f, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+
     # Marka sayfası eşiği: >= ESIK toplam ürünlü kanonik markalar (ince marka sayfası olmasın).
     # Marka toplamı = o markanın SAYFASINDA görünecek ürün sayısı (ikincil ürünler DAHİL) =
     # index.html çip sayımıyla aynı yüklem. Eşik + çip sıralaması bu sayıdan türer.
@@ -2056,8 +2519,11 @@ def uret(products, ctx):
                 _gorulen.add(pid)
                 kucuk_urunler.append(p)
 
-        murl, mhtml = _marka_sayfasi(ctx, marka, d, buyuk, kucuk_urunler, kategoriler)
+        murl, mhtml, myuk = _marka_sayfasi(ctx, marka, d, buyuk, kucuk_urunler, kategoriler)
         yaz(murl, mhtml)
+        # Artım yükü sayfanın YANINA yazılır (HTML baytını şişirmez, sitemap'e GİRMEZ:
+        # crawl hedefi değil, istemci verisidir). /marka/ gitignore'da -> repoya girmez.
+        yaz_json(murl + "parcalar.json", myuk)
         sitemap.append((murl, "0.7", "weekly"))
 
         marka_yolu = "/marka/" + marka_slug + "/"          # göreli (aynı köken; render_product /?marka= gibi göreli basar)
