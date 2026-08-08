@@ -66,7 +66,9 @@ def bir_urun_isle(s3, bucket, public_base, var_mi, cover_url):
 
     buf = io.BytesIO()
     im.save(buf, format="JPEG", quality=THUMB_KALITE, optimize=True)
-    r2_upload.dogrula_ve_yukle(s3, bucket, tkey, buf.getvalue())
+    # var_mi ENJEKTE edilir: R6 ezme kapısı (yükleyicinin içinde) bu betiğin zaten
+    # kullandığı BAĞIMSIZ sonda ile ölçsün — ikinci bir yoklama mantığı yazılmaz.
+    r2_upload.dogrula_ve_yukle(s3, bucket, tkey, buf.getvalue(), var_mi=var_mi)
     return "uretilen"
 
 

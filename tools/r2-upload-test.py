@@ -37,6 +37,22 @@ K1 ÜYELİK-KALDIRMA YOLU (tools/uyelik-cek.py) — Bucket Lock 409, 30 Tem 2026
   U hatasız yol                     → kuyruk BOŞ kalır, sahte "kuyruga alindi" yok
 Bu vakalar AĞSIZDIR: R2 silme fonksiyonu ve duzelt.py çağrısı ENJEKTE edilir; gerçek
 R2'ye ne silme ne yazma isteği gider, urunler.json'a DOKUNULMAZ.
+
+R6 EZME KAPISI (8 Ağu 2026) — "veri yazan araç mevcut değeri SESSİZCE ezemez":
+  V mevcut anahtara yükleme          → RAISE (EzmeReddi) + put HİÇ çağrılmadı + hata
+                                       metni `-v2` YOLUNU ve bayrağı GÖSTERİYOR
+  W --ezmeye-izin-ver ile aynı yük    → yüklenir (AÇIK istek); koşulsuz PUT
+  X --kuru-prova                      → hiçbir put/PUT YOK, ne olacağı basılır
+  Y yeni anahtar                      → PUT `IfNoneMatch="*"` İLE gider (yarış kapalı)
+  Z1 uç IfNoneMatch tanımıyor         → LOUD uyarı + koşulsuz PUT'a düşülür (sonda hâlâ
+                                       yürürlükte; yalnız yarış penceresi açık kalır)
+  Z2 412 PreconditionFailed           → "desteklenmiyor" SAYILMAZ → RAISE (anahtar sonda
+                                       ile PUT arasında doğdu = ezme olurdu)
+  Z3 sonda çağrı SIRASI               → varlık ölçümü PUT'tan ÖNCE koştu (sıra bozulursa
+                                       kapı sahte-yeşil yanardı; nöbetçinin nöbetçisi)
+  Z4 bayrak VARSAYILANI `argparse`    → parser_kur().parse_args([]) ile ÖLÇÜLÜR: ikisi de
+                                       False (düzyazı/doküman iddiası DEĞİL)
+  Z5 CLI çıkış kodu                   → ezme reddinde sıfır-dışı (KOD_EZME) sabiti
 """
 import sys, os, io, json, tempfile, importlib.util
 
@@ -63,25 +79,62 @@ HTML_403 = (b"<!DOCTYPE html><html><head><title>403 Forbidden</title></head>"
 GARBAGE = bytes(range(256)) * 8                                # 2048B, magic YOK
 
 
+class Yok404(Exception):
+    """head_object'in OLMAYAN anahtar icin attigi gercek-sekilli 404 (boto3 ClientError)."""
+    def __init__(self, key):
+        Exception.__init__(self, "Not Found: " + key)
+        self.response = {"Error": {"Code": "404"},
+                         "ResponseMetadata": {"HTTPStatusCode": 404}}
+
+
+class Onkosul412(Exception):
+    """IfNoneMatch='*' ile PUT edilen anahtar ZATEN VARSA ucun dondurdugu 412."""
+    def __init__(self, key):
+        Exception.__init__(self, "PreconditionFailed: " + key)
+        self.response = {"Error": {"Code": "PreconditionFailed"},
+                         "ResponseMetadata": {"HTTPStatusCode": 412}}
+
+
 class FakeS3:
-    """put_object'i yakalar; head_object sahte ContentLength döndürür. Ağ yok."""
-    def __init__(self, readback_len=None):
+    """put_object'i yakalar; head_object GERCEK sekilde davranir. Ağ yok.
+
+    🔴 FIKSTUR SEKLI (8 Agu 2026): head_object OLMAYAN anahtar icin 404 ATAR — eski
+    fikstur her anahtar icin {"ContentLength": None} donduruyordu, yani "yok" ile "var"
+    ayirt EDILEMIYORDU ve R6 varlik sondasi bu fikstur uzerinde HIC olculemezdi
+    ([[nobetci-fikstur-sekli]]). `mevcut` ile onceden VAR olan anahtarlar kurulur."""
+    def __init__(self, readback_len=None, mevcut=(), kosullu_destek=True,
+                 kosullu_hata=None):
         self.puts = []
         self._readback_len = readback_len  # None → son put gövdesinin boyutunu yansıt (dürüst readback)
+        self.nesneler = {k: None for k in mevcut}   # anahtar -> boyut (None: bilinmiyor)
+        self.kosullu_destek = kosullu_destek
+        self.kosullu_hata = kosullu_hata
+        self.izler = []
 
-    def put_object(self, Bucket, Key, Body, ContentType):
-        self.puts.append({"Bucket": Bucket, "Key": Key, "len": len(Body), "ContentType": ContentType})
+    def put_object(self, Bucket, Key, Body, ContentType, **ek):
+        kosullu = ek.get("IfNoneMatch")
+        self.izler.append(("put", Key, kosullu))
+        if kosullu is not None:
+            if self.kosullu_hata is not None:
+                raise self.kosullu_hata
+            if not self.kosullu_destek:
+                hata = Exception("NotImplemented")
+                hata.response = {"Error": {"Code": "NotImplemented"},
+                                 "ResponseMetadata": {"HTTPStatusCode": 501}}
+                raise hata
+            if Key in self.nesneler:
+                raise Onkosul412(Key)
+        self.puts.append({"Bucket": Bucket, "Key": Key, "len": len(Body),
+                          "ContentType": ContentType, "IfNoneMatch": kosullu})
+        self.nesneler[Key] = len(Body)
 
     def head_object(self, Bucket, Key):
+        self.izler.append(("head", Key, None))
+        if Key not in self.nesneler:
+            raise Yok404(Key)
         if self._readback_len is not None:
-            length = self._readback_len
-        else:
-            length = None
-            for p in reversed(self.puts):
-                if p["Key"] == Key:
-                    length = p["len"]
-                    break
-        return {"ContentLength": length}
+            return {"ContentLength": self._readback_len}
+        return {"ContentLength": self.nesneler[Key]}
 
 
 class _StderrYakala:
@@ -200,6 +253,102 @@ def vaka_I():
     onayla(ct == "image/jpeg", "I: uzantısız anahtar + JPEG magic ContentType image/jpeg")
     onayla(len(s3.puts) == 1 and s3.puts[0]["ContentType"] == "image/jpeg",
            "I: put image/jpeg ile çağrıldı")
+
+
+# --- R6 EZME KAPISI: V-Z -------------------------------------------------------
+def vaka_V_mevcut_anahtar():
+    """ASIL KALEM: mevcut anahtara yazma varsayılanda REDDEDİLİR ve put HİÇ çağrılmaz."""
+    s3 = FakeS3(mevcut=["urunler/v-1.jpg"])
+    hata = None
+    try:
+        mod.dogrula_ve_yukle(s3, BUCKET, "urunler/v-1.jpg", JPEG_OK)
+    except Exception as exc:
+        hata = exc
+    onayla(isinstance(hata, mod.EzmeReddi), "V: mevcut anahtar EzmeReddi ile REDDEDİLDİ")
+    onayla(len(s3.puts) == 0, "V: put HİÇ çağrılmadı (fail-closed önce)")
+    metin = str(hata)
+    onayla("urunler/v-1.jpg" in metin, "V: hangi anahtar olduğu basıldı")
+    onayla("-v2" in metin, "V: hata metni YENİ dosya adı (-v2) yolunu GÖSTERİYOR")
+    onayla("gorseller" in metin, "V: hata metni gorseller URL güncellemesini söylüyor")
+    onayla("--ezmeye-izin-ver" in metin, "V: bilerek ezmenin AÇIK bayrağı yazılı")
+
+
+def vaka_W_acik_izin():
+    s3 = FakeS3(mevcut=["urunler/w-1.jpg"])
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/w-1.jpg", JPEG_OK,
+                              ezmeye_izin_ver=True)
+    onayla(ct == "image/jpeg" and len(s3.puts) == 1,
+           "W: --ezmeye-izin-ver ile AÇIK istekte yüklendi")
+    onayla(s3.puts[0]["IfNoneMatch"] is None,
+           "W: bilerek ezmede koşul GÖNDERİLMEZ (yoksa 412 ile kendi kendini bloklardı)")
+
+
+def vaka_X_kuru_prova():
+    # (1) mevcut anahtar + kuru prova: yazma YOK
+    s3 = FakeS3(mevcut=["urunler/x-1.jpg"])
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/x-1.jpg", JPEG_OK,
+                              ezmeye_izin_ver=True, kuru_prova=True)
+    onayla(len(s3.puts) == 0 and ct == "image/jpeg",
+           "X: --kuru-prova mevcut anahtarda HİÇBİR ŞEY yazmadı")
+    # (2) YENİ anahtar + kuru prova: yine yazma YOK
+    s3b = FakeS3()
+    mod.dogrula_ve_yukle(s3b, BUCKET, "urunler/x-2.jpg", JPEG_OK, kuru_prova=True)
+    onayla(len(s3b.puts) == 0 and s3b.nesneler == {},
+           "X: --kuru-prova YENİ anahtarda da hiçbir bayt yazmadı")
+
+
+def vaka_Y_kosullu_yazma():
+    s3 = FakeS3()
+    mod.dogrula_ve_yukle(s3, BUCKET, "urunler/y-1.jpg", JPEG_OK)
+    onayla(s3.puts and s3.puts[0]["IfNoneMatch"] == "*",
+           "Y: yeni anahtar PUT'u IfNoneMatch='*' ile gitti (yarış penceresi kapalı)")
+
+
+def vaka_Z1_kosullu_desteksiz():
+    s3 = FakeS3(kosullu_destek=False)
+    with _StderrYakala() as cap:
+        ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/z1-1.jpg", JPEG_OK)
+    onayla(ct == "image/jpeg" and len(s3.puts) == 1,
+           "Z1: uç IfNoneMatch tanımayınca koşulsuz PUT'a düşüldü (parti kırılmadı)")
+    onayla("UYARI" in cap.buf.getvalue() and "IfNoneMatch" in cap.buf.getvalue(),
+           "Z1: stderr'e LOUD uyarı basıldı (sessiz düşüş YOK)")
+
+
+def vaka_Z2_onkosul_ihlali():
+    """412 'desteklenmiyor' SAYILMAZ: anahtar sonda ile PUT arasında doğmuştur."""
+    s3 = FakeS3(kosullu_hata=Onkosul412("urunler/z2-1.jpg"))
+    hata = None
+    try:
+        mod.dogrula_ve_yukle(s3, BUCKET, "urunler/z2-1.jpg", JPEG_OK)
+    except Exception as exc:
+        hata = exc
+    onayla(isinstance(hata, mod.EzmeReddi) and "YARIS" in str(hata),
+           "Z2: 412 ön-koşul ihlali KIRMIZI (koşulsuz PUT'a DÜŞÜLMEDİ)")
+    onayla(len(s3.puts) == 0, "Z2: hiçbir gövde yazılmadı")
+
+
+def vaka_Z3_sonda_sirasi():
+    """Nöbetçinin nöbetçisi: varlık sondası PUT'tan ÖNCE koşmazsa V vakası sahte-yeşil."""
+    s3 = FakeS3()
+    mod.dogrula_ve_yukle(s3, BUCKET, "urunler/z3-1.jpg", JPEG_OK)
+    turler = [iz[0] for iz in s3.izler]
+    onayla("put" in turler and turler.index("head") < turler.index("put"),
+           "Z3: varlık ölçümü PUT'tan ÖNCE koştu (sıra bozulursa bu KALIR)")
+
+
+def vaka_Z4_argparse_varsayilani():
+    """Bayrağın varsayılanı DÜZYAZIDAN değil `argparse` DEFAULT'undan okunur."""
+    a = mod.parser_kur().parse_args([])
+    onayla(a.ezmeye_izin_ver is False,
+           "Z4: --ezmeye-izin-ver varsayılanı argparse'ta False")
+    onayla(a.kuru_prova is False, "Z4: --kuru-prova varsayılanı argparse'ta False")
+    b = mod.parser_kur().parse_args(["--ezmeye-izin-ver"])
+    onayla(b.ezmeye_izin_ver is True, "Z4: bayrak verilince True (kol ölü değil)")
+
+
+def vaka_Z5_cikis_kodu():
+    onayla(isinstance(mod.KOD_EZME, int) and mod.KOD_EZME != 0,
+           "Z5: ezme reddinin CLI çıkış kodu SIFIR-DIŞI (sessiz başarı yok)")
 
 
 # --- R5 SİLME KAPISI: J-O ------------------------------------------------------
@@ -472,10 +621,21 @@ def main():
     print("== r2-upload doğrulama kabul testi ==")
     for fn in (vaka_A, vaka_B, vaka_B2_webp, vaka_C, vaka_D, vaka_E, vaka_F, vaka_G,
                vaka_H, vaka_I,
+               vaka_V_mevcut_anahtar, vaka_W_acik_izin, vaka_X_kuru_prova,
+               vaka_Y_kosullu_yazma, vaka_Z1_kosullu_desteksiz, vaka_Z2_onkosul_ihlali,
+               vaka_Z3_sonda_sirasi, vaka_Z4_argparse_varsayilani, vaka_Z5_cikis_kodu,
                vaka_J, vaka_K, vaka_L, vaka_M, vaka_N_curutme, vaka_O_yetki,
                vaka_P_409_urun_yine_kalkar, vaka_Q_hepsi_409, vaka_R_kuyruk_kalici,
                vaka_S_kuyruk_supurucu, vaka_T_denetim_artiklari, vaka_U_hatasiz_yol):
-        fn()
+        # 🔴 VAKA IZOLASYONU: bir vakanin YAKALANMAYAN istisnasi tum kosumu COKERTMEMELI.
+        # Cokme ile KIRMIZI ayni sey degildir ([[mutasyon-kaniti-yeniden-uretilebilir]]):
+        # mutasyon bataryasi "SONUC:" satirini arar, cokmeyi AYRI sinifa koyar. Beklenmedik
+        # istisna burada ACIKCA bir KALDI kontrolune cevrilir.
+        try:
+            fn()
+        except Exception as exc:
+            onayla(False, "%s: BEKLENMEDIK ISTISNA %s: %s"
+                          % (fn.__name__, type(exc).__name__, str(exc)[:200]))
     print("---")
     print("GECTI=%d  KALDI=%d" % (_gecti, _kaldi))
     if _kaldi:

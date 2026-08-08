@@ -13,6 +13,9 @@ Kullanım:
 Birden fazla dosya için çift çift ver:
     python3 tools/r2-upload.py a.jpg urunler/a.jpg b.jpg urunler/b.jpg
 
+    python3 tools/r2-upload.py a.jpg urunler/a.jpg --kuru-prova       # hiçbir şey YAZMA
+    python3 tools/r2-upload.py a.jpg urunler/a.jpg --ezmeye-izin-ver  # AÇIK istekle EZ (yıkıcı)
+
 DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLMEDİ, etrafına sarıldı):
   R1 Ön-doğrulama (fail-closed): gövde bilinen görsel sihirli-baytıyla başlamalı + asgari boyutu geçmeli
      → 0-bayt / MIN_BOYUT altında / görsel-magic-yok / Cloudflare-403 HTML gövdesi yükleme ÖNCESİ ölür
@@ -26,6 +29,27 @@ DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLM
 
   R5 SİLME sonrası BAĞIMSIZ varlık doğrulaması (`sil_ve_dogrula`, fail-closed) →
      aşağıdaki "SESSİZ SİLME" notuna bak. Silme aracının kendi "başarılı" beyanına ASLA güvenilmez.
+
+  R6 EZME KAPISI (8 Ağu 2026, fail-closed — Okan genel kuralı: "veri yazan hiçbir araç
+     varsayılan koşumunda mevcut bir değeri SESSİZCE üzerine yazamaz"):
+       · Yazmadan ÖNCE anahtar varlığı BAĞIMSIZ sonda ile sorulur (`s3_var_mi` —
+         silme yolundaki sondanın AYNISI; ikinci bir yoklama yazılmaz).
+       · Anahtar VARSA varsayılanda YAZILMAZ: anahtar adı basılır, `EzmeReddi` yükselir,
+         CLI `KOD_EZME`(=4) ile çıkar. Doğru yol hata metninde GÖSTERİLİR: YENİ dosya adı
+         (`-v2.jpg`) + `urunler.json` `gorseller` URL'sini güncelle (CLAUDE.md ÖNBELLEK
+         kuralı: aynı R2 anahtarının ÜZERİNE YAZMA — kenar önbelleği eski gövdeyi
+         saatlerce servis eder, ezme GERİ ALINAMAZ).
+       · Sonda ile PUT arasındaki YARIŞ penceresi koşullu yazmayla kapatılır:
+         `put_object(..., IfNoneMatch="*")`. Uç bunu desteklemiyorsa (NotImplemented /
+         InvalidArgument / botocore eski) stderr'e LOUD uyarı basılır ve koşulsuz PUT'a
+         DÜŞÜLÜR — sonda + bayrak kapısı yine yürürlüktedir (yalnız yarış penceresi açık
+         kalır). Ön-koşul ihlali (412 PreconditionFailed) "desteklenmiyor" SAYILMAZ:
+         anahtar sonda ile PUT arasında DOĞDU demektir → KIRMIZI.
+       · Bilerek ezmek AÇIK `--ezmeye-izin-ver` ister (varsayılan KAPALI). `--kuru-prova`
+         hiçbir bayt yazmaz, ne olacağını basar.
+     🔴 BU SINIF BU DEPODA GERÇEKLEŞTİ ([[gorsel-anahtar-cakismasi]] · [[r2-sessiz-uzerine-yazma]]):
+     anahtar BAŞLIKTAN türetildiği için iki farklı ürün aynı anahtara yazdı ve canlı ürün
+     görseli sessizce kayboldu. Hata TAMAMEN sessizdi: put başarılı, readback yeşil.
 
 🔴 SESSİZ SİLME SINIFI (30 Tem 2026'da ÖLÇÜLDÜ, tahmin değil — `pruvo-ozel` kovasında üretildi):
   R2 nesne okuma ucu Cloudflare kenar ÖNBELLEĞİ arkasındadır (ölçüm: aynı cevapta
@@ -43,9 +67,13 @@ DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLM
   önbellekten gelen bayat "hâlâ var" cevabı da KIRMIZI üretir — yön bilinçli fail-closed'dır
   (sahte YEŞİL "silindi" demektense sahte KIRMIZI ile durmak yeğlenir).
 """
+import argparse
 import sys, os, json, time, boto3
 
 CFG_PATH = os.path.join(os.path.dirname(__file__), "..", ".r2-credentials.json")
+
+# CLI çıkış kodu: mevcut anahtar EZİLECEKTİ, yazma YAPILMADI (fail-closed, sessiz başarı YOK).
+KOD_EZME = 4
 
 # R1 asgari boyut: 1024 bayt. Gerçek ürün görselleri (JPEG/PNG/WebP) daima kByte'larca olur;
 # 0-bayt, kesik yazma ve Cloudflare-403 HTML gövdeleri bu eşiğin altında ya da geçerli-magic'siz kalır.
@@ -171,18 +199,126 @@ def sil_ve_dogrula(key, var_mi, sil, dene=3, bekle=None, aralik=(2.0, 5.0)):
     )
 
 
-def dogrula_ve_yukle(s3, bucket, key, data):
-    """Tek dosyayı doğrula → yükle → readback ile teyit et. content_type döndürür."""
+class EzmeReddi(ValueError):
+    """R6: mevcut bir anahtarın ÜZERİNE yazılacaktı; yazma YAPILMADI (fail-closed)."""
+
+
+def _hata_imzasi(exc):
+    """(hata_kodu, http_durumu) — boto3/ClientError imzası; tanınmazsa ("", None)."""
+    yanit = getattr(exc, "response", None)
+    if not isinstance(yanit, dict):
+        return "", None
+    kod = (yanit.get("Error") or {}).get("Code", "")
+    durum = (yanit.get("ResponseMetadata") or {}).get("HTTPStatusCode")
+    return str(kod), durum
+
+
+# Koşullu yazmanın ÖN-KOŞULU ihlal edildi: anahtar sonda ile PUT arasında DOĞDU.
+# Bu "desteklenmiyor" DEĞİLDİR ve ASLA koşulsuz PUT'a düşülerek yutulmaz.
+_ONKOSUL_KODLARI = ("PreconditionFailed", "ConditionalRequestConflict")
+# Ucun kosullu yazmayi TANIMADIGI haller -> LOUD uyari + kosulsuz PUT (sonda hala gecerli).
+_DESTEKSIZ_KODLARI = ("NotImplemented", "InvalidArgument", "InvalidRequest",
+                      "MethodNotAllowed", "UnsupportedArgument")
+_DESTEKSIZ_ISTISNA_ADLARI = ("ParamValidationError", "TypeError")
+
+
+def _onkosul_ihlali(exc):
+    kod, durum = _hata_imzasi(exc)
+    return kod in _ONKOSUL_KODLARI or durum == 412
+
+
+def _kosullu_desteklenmiyor(exc):
+    kod, durum = _hata_imzasi(exc)
+    if kod in _DESTEKSIZ_KODLARI or durum == 501:
+        return True
+    return type(exc).__name__ in _DESTEKSIZ_ISTISNA_ADLARI
+
+
+def kosullu_put(s3, bucket, key, data, content_type, kosullu=True):
+    """PUT — yarış penceresini `IfNoneMatch: "*"` ile kapatmayı DENER.
+
+    Dönüş: "kosullu" (uç koşullu yazmayı uyguladı) | "kosulsuz" (uç tanımadı → düşüldü,
+    stderr'e LOUD uyarı basıldı; ya da ezme bilerek istendi).
+    RAISE: ön-koşul ihlali (412) → anahtar sonda ile PUT arasında doğdu, EZME OLURDU."""
+    if kosullu:
+        try:
+            s3.put_object(Bucket=bucket, Key=key, Body=data, ContentType=content_type,
+                          IfNoneMatch="*")
+            return "kosullu"
+        except Exception as exc:
+            if _onkosul_ihlali(exc):
+                raise EzmeReddi(
+                    "R6 YARIS red: %s anahtari sonda ile PUT arasinda OLUSTU (kosullu "
+                    "yazma on-kosulu ihlal edildi) — yazma YAPILMADI. YENI dosya adi "
+                    "kullan (or. -v2.jpg) + urunler.json 'gorseller' URL'sini guncelle."
+                    % key)
+            if not _kosullu_desteklenmiyor(exc):
+                raise
+            print("UYARI: %s icin kosullu yazma (IfNoneMatch) UC TARAFINDAN TANINMADI "
+                  "(%s) — kosulsuz PUT'a dusuluyor; varlik sondasi + ezme bayragi hala "
+                  "yururlukte, YALNIZ yaris penceresi acik kaliyor."
+                  % (key, type(exc).__name__), file=sys.stderr)
+    s3.put_object(Bucket=bucket, Key=key, Body=data, ContentType=content_type)
+    return "kosulsuz"
+
+
+def dogrula_ve_yukle(s3, bucket, key, data, var_mi=None, ezmeye_izin_ver=False,
+                     kuru_prova=False):
+    """Tek dosyayı doğrula → (R6 ezme kapısı) → yükle → readback ile teyit et.
+
+    content_type döndürür. `var_mi` ENJEKTE edilebilir (ağsız test); verilmezse
+    `s3_var_mi(s3, bucket)` sondası KULLANILIR — silme yolundakinin AYNISI."""
     content_type = on_dogrula(data, key)          # R1 + R2 + R3 (fail-closed önce)
-    s3.put_object(Bucket=bucket, Key=key, Body=data, ContentType=content_type)  # yazma yolu (refaktör YOK)
+    if var_mi is None:
+        var_mi = s3_var_mi(s3, bucket)
+    mevcut = var_mi(key)                          # R6 sonda (yazmadan ONCE)
+    if mevcut and not ezmeye_izin_ver:
+        raise EzmeReddi(
+            "R6 red: %s anahtari R2'de ZATEN VAR — yukleme YAPILMADI. Ayni anahtarin "
+            "uzerine yazma: Cloudflare kenar onbellegi eski govdeyi saatlerce servis "
+            "eder ve ezilen gorsel GERI GELMEZ. DOGRU YOL: YENI dosya adi kullan "
+            "(or. %s) + urunler.json 'gorseller' URL'sini guncelle. Bilerek ezmek "
+            "icin: --ezmeye-izin-ver" % (key, _v2_onerisi(key)))
+    if kuru_prova:
+        print("KURU PROVA: %s -> %s (%d B, %s) YAZILMADI"
+              % ("EZILECEKTI" if mevcut else "YENI", key, len(data), content_type))
+        return content_type
+    # Anahtar YOKKEN koşullu yaz (yarış penceresi); bilerek ezerken koşul ANLAMSIZ olur.
+    kosullu_put(s3, bucket, key, data, content_type, kosullu=not mevcut)
     readback_dogrula(s3, bucket, key, len(data))  # R4 (fail-closed sonra)
     return content_type
 
 
+def _v2_onerisi(key):
+    """Ezme yerine kullanılacak YENİ anahtar önerisi (CLAUDE.md `-v2.jpg` deseni)."""
+    kok, uzanti = os.path.splitext(key)
+    return kok + "-v2" + (uzanti or "")
+
+
+def parser_kur():
+    """CLI ayrıştırıcısı — TEK KAYNAK.
+
+    🔴 Bayrakların VARSAYILANI burada yaşar ve kabul testi onu `parse_args([])`
+    ile ÖLÇER (düzyazıdan/dokümandan değil): varsayılan `False`'tan `True`'ya
+    kayarsa test KIRMIZI yanar."""
+    ap = argparse.ArgumentParser(
+        prog="r2-upload.py",
+        description="Pruvo R2 gorsel yukleyici (fail-closed: mevcut anahtari EZMEZ)")
+    ap.add_argument("ciftler", nargs="*", metavar="<yerel> <anahtar>")
+    ap.add_argument("--ezmeye-izin-ver", dest="ezmeye_izin_ver", action="store_true",
+                    help="YIKICI: mevcut R2 anahtarinin UZERINE yaz (varsayilan KAPALI)")
+    ap.add_argument("--kuru-prova", dest="kuru_prova", action="store_true",
+                    help="hicbir sey yazma, ne olacagini bas")
+    return ap
+
+
 def main():
-    args = sys.argv[1:]
+    ap = parser_kur()
+    a = ap.parse_args()
+    args = a.ciftler
     if len(args) < 2 or len(args) % 2 != 0:
-        print("Kullanim: r2-upload.py <yerel_dosya> <r2_anahtari> [<yerel> <anahtar> ...]")
+        print("Kullanim: r2-upload.py <yerel_dosya> <r2_anahtari> [<yerel> <anahtar> ...] "
+              "[--ezmeye-izin-ver] [--kuru-prova]")
         sys.exit(1)
     cfg = json.load(open(CFG_PATH))
     s3 = boto3.client(
@@ -192,11 +328,17 @@ def main():
         aws_secret_access_key=cfg["secret"],
         region_name="auto",
     )
+    var_mi = s3_var_mi(s3, cfg["bucket"])
     for i in range(0, len(args), 2):
         local, key = args[i], args[i + 1]
         with open(local, "rb") as f:
             data = f.read()
-        dogrula_ve_yukle(s3, cfg["bucket"], key, data)
+        try:
+            dogrula_ve_yukle(s3, cfg["bucket"], key, data, var_mi=var_mi,
+                             ezmeye_izin_ver=a.ezmeye_izin_ver, kuru_prova=a.kuru_prova)
+        except EzmeReddi as exc:
+            print(str(exc), file=sys.stderr)
+            sys.exit(KOD_EZME)
         print(cfg["public_base"] + "/" + key)
 
 
