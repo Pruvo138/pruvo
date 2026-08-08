@@ -17,6 +17,17 @@ Ayni sinif `srcset` genislik tanimlayicisinda da var: `-v2-688.webp` dosyasi `11
 beyan edilirse tarayici YANLIS varyanti secer (ya bulanik ya gereksiz agir) ve yine hicbir
 kirmizi yanmaz.
 
+🔴 9 AGU 2026 — AVIF KOLU ve IKI YENI SESSIZ EKSEN. Banner'lar AVIF <source> ile
+zenginlestirildi (mobil kume 201,0 -> 170,9 KiB, olculdu). Bu iki yeni sessiz arizayi
+dogurdu, ikisi de "sayfa dogru gorunur ama kazanc SIFIR" sinifindan:
+  A8 SIRA — tarayici <picture> icinde ILK destekledigi <source>'u secer. AVIF WebP'den
+     SONRA yazilirsa AVIF'i destekleyen tarayici bile WebP'yi alir: dosyalar CDN'e
+     yuklenmis, kol yazilmis, kimse kirmizi gormez, kazanc yoktur.
+  A9 PRELOAD TIPI — <head> WebP on-yuklerken govde AVIF seciyorsa ON-YUKLENEN ile
+     INDIRILEN farkli olur: gorsel IKI KEZ iner, yani onarim TERSINE doner.
+Bu tur ayrica ayristiriciyi FORMAT-AGNOSTIK yapti: eski hali `type="image/webp"`
+literaline capaliydi ve AVIF <source>'larini HIC gormuyordu.
+
 BU KAPI YAYINI BLOKLAMAZ (nobet.yml::serit-b). Gerekce: olctugu sinif bir PERFORMANS
 gerilemesidir (cift indirme / yanlis varyant), dogruluk hatasi DEGIL — sayfa her halukarda
 dogru gorunur. Ilgisiz bir kapinin tum ekibin yayinini durdurmasi bu depoda saatlik canli
@@ -28,8 +39,8 @@ VERILMEZ; kapi kirmizi yanar. "Olculdu" diyen hukum pozitif tanima izinden turem
 
 IKI KOL, TEK KOMUT (bayrak YOK — bayrak eklemek ci-kapsam-test.py'ye ayri bir alt-kume
 kapsam borcu yazar):
-  A) GERCEK TARAMA  — depodaki index.html uzerinde 7 eksen.
-  B) MUTASYON BATARYASI — ayni metnin bellekte bozulmus 8 kopyasi; her biri KIRMIZI
+  A) GERCEK TARAMA  — depodaki index.html uzerinde 9 eksen (A1-A9).
+  B) MUTASYON BATARYASI — ayni metnin bellekte bozulmus 10 kopyasi; her biri KIRMIZI
      yakmali. Ayrica bir KONTROL mutanti (zararsiz degisiklik) YESIL kalmali, yoksa
      batarya "her sey kirmizi" diye kendini kandirir ([[fikstur-degeri-mutasyon-koru]]).
      Mutantlar sabit literallere DEGIL, metinden REGEX ile bulunan gercek parcalara
@@ -54,9 +65,17 @@ KOD_OLCULEMEDI = 2
 _HOST_RE = re.compile(r"https://([a-z0-9.-]+)/(?:banner|urunler)/")
 _PICTURE_AC = re.compile(r"<picture\b")
 _PICTURE_KAPA = re.compile(r"</picture>")
-_SOURCE_RE = re.compile(
-    r'<source\b[^>]*type="image/webp"[^>]*?sizes="([^"]*)"[^>]*?srcset="([^"]*)"[^>]*>',
-    re.S)
+_PICTURE_BLOK = re.compile(r"<picture\b.*?</picture>", re.S)
+# 🔴 SOURCE AYRISTIRICISI FORMAT-AGNOSTIK (9 Agu 2026). Onceki hali `type="image/webp"`
+# LITERALINE capaliydi; whitelist AVIF'e acilinca o capa iki sekilde yalan soylerdi:
+# (a) AVIF <source>'lari HIC gormezdi -> A7 genislik tutarliligi ve A5 sayimi AVIF kolunu
+#     olcmeden yesil yanardi, (b) A4 ikiz karsilastirmasini DAIMA WebP'ye yaptigi icin
+# head AVIF'e cevrildiginde "ayrisma" diye YANLIS kirmizi verirdi. Tip artik oznitelikten
+# OKUNUR ve iddia tipe GORE secilir ([[ikiz-tanim-sessiz-ayrisma]]).
+_SOURCE_TAG = re.compile(r"<source\b[^>]*>", re.S)
+# <picture> icinde tarayici ILK DESTEKLEDIGI <source>'u secer -> sira ANLAMLIDIR.
+# Tercih sirasi (kucuk indis = once gelmeli): AVIF, sonra WebP.
+MODERN_TIPLER = ("image/avif", "image/webp")
 _IMG_RE = re.compile(r"<img\b[^>]*>", re.S)
 _PRELOAD_RE = re.compile(r'<link\b[^>]*\brel="preload"[^>]*>', re.S)
 _PRECONNECT_RE = re.compile(r'<link\b[^>]*\brel="preconnect"[^>]*\bhref="https://([^"/]+)"',
@@ -74,6 +93,22 @@ def yorumsuz(metin):
     kendi aciklamasi olcume karismasin ([[nobetci-kendi-dosyasinda-sizinti]])."""
     metin = re.sub(r"<!--.*?-->", "", metin, flags=re.S)
     return re.sub(r"/\*.*?\*/", "", metin, flags=re.S)
+
+
+def _blok_kaynaklari(g):
+    """Her <picture> blogu icin SIRALI kaynak listesi:
+    [[(tip, sizes, srcset, ham_etiket), ...], ...]. Sira KORUNUR — A8 ona bakar."""
+    return [[(oznitelik(t, "type") or "", oznitelik(t, "sizes") or "",
+              oznitelik(t, "srcset") or "", t)
+             for t in _SOURCE_TAG.findall(blok)]
+            for blok in _PICTURE_BLOK.findall(g)]
+
+
+def _tum_kaynaklar(g):
+    """Duzlestirilmis hali. tara() ve mutantlar() AYNI ayristiriciyi kullanir; ikinci
+    bir ayristirici yazmak kabul araligi ile kiyas araligini ayristirirdi
+    ([[kabul-araligi-karsilastirma-araligi]])."""
+    return [k for liste in _blok_kaynaklari(g) for k in liste]
 
 
 def tara(ham):
@@ -94,12 +129,37 @@ def tara(ham):
         hata.append("A1: <picture> %d acilis / %d kapanis — iskelet bozuk" % (ac, kapa))
 
     imgler = _IMG_RE.findall(g)
-    kaynaklar = _SOURCE_RE.findall(g)          # [(sizes, srcset), ...]
-    sayim["webp_source"] = len(kaynaklar)
+    bloklar = _PICTURE_BLOK.findall(g)
+    if len(bloklar) != ac:
+        hata.append("A1: %d <picture> acilisi var ama %d tam blok ayristirilabildi — "
+                    "ic ice/kapanmamis etiket" % (ac, len(bloklar)))
+    blok_kaynaklari = _blok_kaynaklari(g)
+    kaynaklar = [k for liste in blok_kaynaklari for k in liste]
+    sayim["avif_source"] = sum(1 for k in kaynaklar if k[0] == "image/avif")
+    sayim["webp_source"] = sum(1 for k in kaynaklar if k[0] == "image/webp")
     sayim["img"] = len(imgler)
-    if len(kaynaklar) != ac:
-        hata.append("A5: %d <picture> var ama %d WebP <source> — her picture'da modern "
-                    "format kolu OLMALI" % (ac, len(kaynaklar)))
+
+    # --- A5 her <picture>'da EN AZ BIR modern format kolu -----------------------------
+    modernsiz = sum(1 for liste in blok_kaynaklari
+                    if not any(k[0] in MODERN_TIPLER for k in liste))
+    if modernsiz:
+        hata.append("A5: %d <picture>'da hicbir modern format <source>'u YOK (AVIF/WebP) "
+                    "— o banner tam boy JPEG olarak iner" % modernsiz)
+
+    # --- A8 SIRA EKSENI (9 Agu): AVIF, WebP'den ONCE gelmeli --------------------------
+    # Tarayici ILK destekledigi <source>'u secer. AVIF WebP'den SONRA yazilirsa AVIF'i
+    # destekleyen tarayici bile WebP'yi secer: dosyalar yuklenmis, kol yazilmis, kimse
+    # kirmizi gormez ve kazanc SIFIRDIR. Tam bu deponun "sessiz" sinifi.
+    ters = 0
+    for liste in blok_kaynaklari:
+        tipler = [k[0] for k in liste]
+        if "image/avif" in tipler and "image/webp" in tipler:
+            if tipler.index("image/avif") > tipler.index("image/webp"):
+                ters += 1
+    if ters:
+        hata.append("A8: %d <picture>'da AVIF <source> WebP'den SONRA geliyor — tarayici "
+                    "ILK destekledigi kolu secer, yani AVIF ASLA servis edilmez "
+                    "(dosyalar bosuna yuklenmis olur, hata sessizdir)" % ters)
 
     # --- A2 LCP isareti: fetchpriority=high TEK bir <img>'de ------------------------
     yuksek = [t for t in imgler if oznitelik(t, "fetchpriority") == "high"]
@@ -117,39 +177,65 @@ def tara(ham):
         hata.append("A3: as=\"image\" + imagesrcset tasiyan <link rel=preload> sayisi %d "
                     "(tam 1 olmali)" % len(on_yuklemeler))
 
-    # --- A4 IKIZ TANIM: preload <-> LCP <source> BIREBIR mi --------------------------
+    # --- A4 + A9 IKIZ TANIM: preload <-> LCP <source> BIREBIR mi ----------------------
     if len(on_yuklemeler) == 1 and len(yuksek) == 1:
         p_srcset = on_yuklemeler[0]
         pre_set = oznitelik(p_srcset, "imagesrcset") or ""
         pre_siz = oznitelik(p_srcset, "imagesizes") or ""
-        # LCP gorselinin adini <img src>'den turet, ONA ait <source>'u ONDAN bul.
+        pre_tip = oznitelik(p_srcset, "type") or ""
         lcp_src = oznitelik(yuksek[0], "src") or ""
-        kok_ad = re.sub(r"-v2-\d+\.[a-z0-9]+$", "", lcp_src.rsplit("/", 1)[-1])
-        eslesen = [(s, ss) for (s, ss) in kaynaklar if kok_ad and kok_ad in ss]
-        sayim["lcp_kok"] = kok_ad or "(bulunamadi)"
-        if len(eslesen) != 1:
-            hata.append("A4: LCP <img src>'inden turetilen kok %r ile eslesen WebP "
-                        "<source> sayisi %d (tam 1 olmali) — preload karsilastirmasi "
-                        "YAPILAMADI" % (kok_ad, len(eslesen)))
+        sayim["lcp_kok"] = re.sub(r"-v2-\d+\.[a-z0-9]+$", "",
+                                  lcp_src.rsplit("/", 1)[-1]) or "(bulunamadi)"
+        # LCP <picture>'i, fetchpriority=high <img>'i ICEREN bloktur (ad esleme DEGIL:
+        # ad heuristigi iki banner ayni koku paylasinca sessizce yanlis blogu secerdi).
+        lcp_liste = None
+        for i, blok in enumerate(bloklar):
+            if yuksek[0] in blok:
+                lcp_liste = blok_kaynaklari[i]
+                break
+        if lcp_liste is None:
+            hata.append("A4: fetchpriority=\"high\" <img> hicbir <picture> blogunun "
+                        "ICINDE degil — preload karsilastirmasi YAPILAMADI")
         else:
-            s_siz, s_set = eslesen[0]
-            if pre_set != s_set:
-                hata.append("A4: IKIZ AYRISMASI — <head> imagesrcset ile LCP <source> "
-                            "srcset FARKLI. Tarayici preload'u eslestiremez ve LCP "
-                            "gorselini IKI KEZ indirir.\n"
-                            "     head : %s\n     govde: %s" % (pre_set, s_set))
-            if pre_siz != s_siz:
-                hata.append("A4: IKIZ AYRISMASI — <head> imagesizes ile LCP <source> "
-                            "sizes FARKLI.\n     head : %s\n     govde: %s"
-                            % (pre_siz, s_siz))
+            modern = [k for k in lcp_liste if k[0] in MODERN_TIPLER]
+            sayim["lcp_ilk_modern"] = modern[0][0] if modern else "(yok)"
+            # A9: preload TIPI, tarayicinin gercekten sececegi kol olmali.
+            if not modern:
+                hata.append("A9: LCP <picture>'da modern format <source> YOK — preload "
+                            "tipi neyle eslesecegi OLCULEMEZ")
+            elif pre_tip != modern[0][0]:
+                hata.append("A9: PRELOAD TIPI GOVDEYLE UYUSMUYOR — <head> %r on-yukluyor "
+                            "ama tarayici govdede ILK olarak %r kolunu secer. Sonuc: bir "
+                            "gorsel ON-YUKLENIR, BASKA bir gorsel indirilir -> LCP "
+                            "gorseli IKI KEZ iner ve on-yukleme bosa gider."
+                            % (pre_tip, modern[0][0]))
+            # A4: karsilastirma preload'un KENDI tipindeki <source> ile yapilir.
+            eslesen = [k for k in lcp_liste if k[0] == pre_tip]
+            if len(eslesen) != 1:
+                hata.append("A4: LCP <picture>'da preload tipiyle (%r) eslesen <source> "
+                            "sayisi %d (tam 1 olmali) — ikiz karsilastirmasi YAPILAMADI"
+                            % (pre_tip, len(eslesen)))
+            else:
+                _t, s_siz, s_set, _ham = eslesen[0]
+                if pre_set != s_set:
+                    hata.append("A4: IKIZ AYRISMASI — <head> imagesrcset ile LCP <source> "
+                                "srcset FARKLI. Tarayici preload'u eslestiremez ve LCP "
+                                "gorselini IKI KEZ indirir.\n"
+                                "     head : %s\n     govde: %s" % (pre_set, s_set))
+                if pre_siz != s_siz:
+                    hata.append("A4: IKIZ AYRISMASI — <head> imagesizes ile LCP <source> "
+                                "sizes FARKLI.\n     head : %s\n     govde: %s"
+                                % (pre_siz, s_siz))
 
-    # --- A5 her picture'da modern-olmayan yedek <img src> ----------------------------
-    webp_yedek = [t for t in imgler
-                  if (oznitelik(t, "src") or "").endswith(".webp")]
-    sayim["webp_yedek"] = len(webp_yedek)
-    if webp_yedek:
-        hata.append("A5: %d <img> yedegi .webp — <picture> yedek kolu WebP DESTEKLEMEYEN "
-                    "tarayici icindir, WebP olamaz" % len(webp_yedek))
+    # --- A5b yedek <img src> modern format OLAMAZ -------------------------------------
+    # <picture> yedek kolu modern formati DESTEKLEMEYEN tarayici icindir; oraya .webp ya
+    # da .avif yazmak yedegi anlamsiz kilar (eski tarayici hicbir sey goremez).
+    modern_yedek = [t for t in imgler
+                    if (oznitelik(t, "src") or "").endswith((".webp", ".avif"))]
+    sayim["webp_yedek"] = len(modern_yedek)
+    if modern_yedek:
+        hata.append("A5b: %d <img> yedegi .webp/.avif — <picture> yedek kolu modern "
+                    "formati DESTEKLEMEYEN tarayici icindir" % len(modern_yedek))
 
     # --- A6 preconnect: gorsel alan adlarinin HEPSI isitilmis mi ---------------------
     gorsel_hostlar = set(_HOST_RE.findall(g))
@@ -161,9 +247,11 @@ def tara(ham):
                     "baslar; LCP'ye ~300 ms ekler)" % ", ".join(eksik))
 
     # --- A7 srcset genislik tanimlayicisi dosya adiyla tutarli mi --------------------
+    # TUM kaynaklar (AVIF + WebP) taranir: format basina ayri bir merdiven vardir ve
+    # yalniz birini olcmek digerinin sessizce kaymasina izin verirdi.
     tutarsiz = []
     oge_sayisi = 0
-    for _s, ss in kaynaklar:
+    for _tip, _s, ss, _ham in kaynaklar:
         for url, w in _SRCSET_OGE.findall(ss):
             oge_sayisi += 1
             m = re.search(r"-v2-(\d+)\.[a-z0-9]+$", url)
@@ -181,11 +269,6 @@ def tara(ham):
 
 
 # ----------------------------------------------------------------- MUTASYON BATARYASI
-def _ilk_source(metin):
-    m = _SOURCE_RE.search(yorumsuz(metin))
-    return m.group(0) if m else None
-
-
 def mutantlar(ham):
     """(ad, bozulmus_metin, beklenen) listesi. beklenen=True -> KIRMIZI yanmali.
     Her parca metinden REGEX ile BULUNUR (sabit literal capa YOK)."""
@@ -229,7 +312,7 @@ def mutantlar(ham):
     # M7: capa SABIT genislik degil — metinden bulunan ILK (url, genislik) ciftidir;
     # genislik dosya adindan farkli bir sayiya kaydirilir. Boylece varyant merdiveni
     # degistiginde capa bayatlamaz ([[kapi-anchor-coupling-ikilemi]]).
-    for _s, ss in _SOURCE_RE.findall(g):
+    for _tip, _s, ss, _t in _tum_kaynaklar(g):
         ogeler = _SRCSET_OGE.findall(ss)
         if not ogeler:
             continue
@@ -240,6 +323,32 @@ def mutantlar(ham):
             liste.append(("M7 srcset tanimlayicisi dosya adiyla celisiyor",
                           ham.replace(ss, yeni_ss, 1), True))
             break
+
+    # --- 9 Agu: AVIF kolunun IKI YENI EKSENI ------------------------------------------
+    # M9 SIRA: AVIF <source> WebP'den SONRAYA alinir. Sayfa DOGRU gorunur, dosyalar
+    # yerinde durur, tek degisen sey AVIF'in ASLA secilmemesidir — kazanc sessizce 0'lanir.
+    for blok in _PICTURE_BLOK.findall(g):
+        etiketler = _SOURCE_TAG.findall(blok)
+        avif_t = next((t for t in etiketler
+                       if oznitelik(t, "type") == "image/avif"), None)
+        webp_t = next((t for t in etiketler
+                       if oznitelik(t, "type") == "image/webp"), None)
+        if avif_t and webp_t and avif_t in ham and webp_t in ham:
+            yer = "\x00PRUVO-SIRA-MUTANTI\x00"
+            bozuk = (ham.replace(avif_t, yer, 1)
+                        .replace(webp_t, avif_t, 1)
+                        .replace(yer, webp_t, 1))
+            if bozuk != ham:
+                liste.append(("M9 AVIF <source> WebP'den SONRAYA alindi", bozuk, True))
+            break
+    # M10 TIP: preload tipi WebP'ye cevrilir; govde HALA AVIF'i secer -> on-yuklenen
+    # gorsel ile indirilen gorsel FARKLI olur (LCP gorseli iki kez iner).
+    if pre and 'type="image/avif"' in pre:
+        liste.append(("M10 preload type AVIF -> WebP (govde AVIF secmeye devam eder)",
+                      ham.replace(pre, pre.replace('type="image/avif"',
+                                                   'type="image/webp"', 1), 1),
+                      True))
+
     # KONTROL: olcum yuzeyine DOKUNMAYAN degisiklik YESIL kalmali.
     liste.append(("K1 KONTROL — alakasiz metin degisti (YESIL kalmali)",
                   ham.replace("Keşfet", "Kesfet"), False))
@@ -259,20 +368,22 @@ def main():
     hata, sayim = tara(ham)
     olculemedi = [h for h in hata if h.startswith("OLCULEMEDI")]
     print("A) GERCEK TARAMA")
-    for k in ("picture", "webp_source", "img", "fetchpriority_high", "preload_image",
-              "gorsel_host", "srcset_oge", "lcp_kok"):
+    for k in ("picture", "avif_source", "webp_source", "img", "fetchpriority_high",
+              "preload_image", "gorsel_host", "srcset_oge", "lcp_kok",
+              "lcp_ilk_modern"):
         if k in sayim:
             print("   %-20s %s" % (k, sayim[k]))
     if hata:
         for h in hata:
             print("   KIRMIZI %s" % h)
     else:
-        print("   YESIL — 7 eksenin hepsi gecti (ikiz tanim BIREBIR)")
+        print("   YESIL — 9 eksenin hepsi gecti (ikiz tanim BIREBIR · AVIF once · "
+              "preload tipi govdeyle ayni)")
 
     print("B) MUTASYON BATARYASI")
     mut = mutantlar(ham)
-    if len(mut) < 9:
-        print("   OLCULEMEDI: yalniz %d mutant uretilebildi (>=9 beklenir) — capalar "
+    if len(mut) < 11:
+        print("   OLCULEMEDI: yalniz %d mutant uretilebildi (>=11 beklenir) — capalar "
               "bayatlamis" % len(mut))
         return KOD_OLCULEMEDI
     kacan = []

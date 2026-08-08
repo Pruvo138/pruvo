@@ -13,12 +13,15 @@
        2) preload: LCP görseli gövdedeki <picture> içinde; ön-tarayıcı srcset'i görür ama
           sıraya en sonda koyar. imagesrcset/imagesizes AŞAĞIDAKI <source> ile BİREBİR aynı
           olmalı — ayrışırsa tarayıcı İKİ ayrı görsel indirir ([[ikiz-tanim-sessiz-ayrisma]]).
-       3) type="image/webp": WebP desteklemeyen tarayıcı bu preload'u ATLAR ve <picture>
-          JPEG yedeğine düşer — çift indirme olmaz. -->
+       3) type="image/avif": AVIF desteklemeyen tarayıcı bu preload'u ATLAR ve <picture>
+          WebP/JPEG koluna düşer — çift indirme olmaz.
+       🔴 type, gövdedeki LCP <picture>'ın İLK modern <source>'uyla AYNI olmak ZORUNDA:
+          tarayıcı gövdede AVIF'i seçip head'de WebP ön-yüklenmişse görsel İKİ KEZ iner ve
+          onarımın tamamı geri sarılır. tools/lcp-onculuk-kapisi.py::A9 bunu ölçer. -->
 <link rel="preconnect" href="https://media.pruvo3d.com">
 <link rel="dns-prefetch" href="https://media.pruvo3d.com">
-<link rel="preload" as="image" type="image/webp" fetchpriority="high"
-      imagesrcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.webp 1376w"
+<link rel="preload" as="image" type="image/avif" fetchpriority="high"
+      imagesrcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.avif 1376w"
       imagesizes="(max-width:1140px) calc(100vw - 40px), 1060px">
 <!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır.
      TEK KAYNAK: aynı blok sayfa üretecinde (GA_HEAD_SNIPPET) + statik sayfalarda birebir tekrar eder — değiştirirsen HEPSİNİ değiştir. -->
@@ -991,6 +994,8 @@
   <div id="bannerRow" class="banner-row">
   <a id="jenBanner" class="jen-banner" href="/?kategori=Jenerat%C3%B6r">
     <picture>
+      <source type="image/avif" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
+              srcset="https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-560.avif 560w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-840.avif 840w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-1120.avif 1120w">
       <source type="image/webp" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
               srcset="https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-560.webp 560w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-840.webp 840w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-1120.webp 1120w">
       <img class="jen-banner-img" alt="" width="840" height="420"
@@ -1023,6 +1028,8 @@
            KEZ indirir (LCP düzelmez, bayt iki katına çıkar). fetchpriority=high bu tek
            görseli kuyruğun başına alır. -->
       <picture>
+        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.avif 1376w">
         <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
                 srcset="https://media.pruvo3d.com/banner/marin-slide-1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-1-v2-1376.webp 1376w">
         <img class="jen-banner-img" alt="" width="1100" height="614"
@@ -1045,6 +1052,8 @@
            display:none KULLANILMAZ — slayt geçişi opacity animasyonudur, gizlemek dönüşü
            kırardı. -->
       <picture>
+        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.avif 1376w">
         <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
                 srcset="https://media.pruvo3d.com/banner/marin-slide-2-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-2-v2-1376.webp 1376w">
         <img class="jen-banner-img" alt="" width="1100" height="614"
@@ -1060,6 +1069,8 @@
     </a>
     <a class="jen-banner marin-slide" href="/?kategori=Marin">
       <picture>
+        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.avif 1376w">
         <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
                 srcset="https://media.pruvo3d.com/banner/marin-slide-3-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-slide-3-v2-1376.webp 1376w">
         <img class="jen-banner-img" alt="" width="1100" height="614"
@@ -1076,6 +1087,8 @@
     <a id="marinBanner" class="jen-banner marin-slide"
        href="https://wa.me/905451386526?text=Merhaba%2C%20teknemde%20k%C4%B1r%C4%B1lan%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCp%20taray%C4%B1p%20%C3%BCretebilir%20misiniz%3F">
       <picture>
+        <source type="image/avif" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
+                srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.avif 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.avif 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.avif 1376w">
         <source type="image/webp" sizes="(max-width:1140px) calc(100vw - 40px), 1060px"
                 srcset="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-688.webp 688w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1100.webp 1100w, https://media.pruvo3d.com/banner/marin-ozel-uretim-b1-v2-1376.webp 1376w">
         <img class="jen-banner-img" alt="" width="1100" height="614"
