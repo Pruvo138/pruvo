@@ -25,9 +25,31 @@
      Bu iki cagri hicbir alani 'granted' YAPMAZ; varsayilan denied AYNEN kalir. */
   gtag('set', 'url_passthrough', true);
   gtag('set', 'ads_data_redaction', true);
-  /* Ziyaretçi daha önce onay verdiyse geri yükle (banner tekrar çıkmaz). */
-  try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
-    gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}
+  /* 🔴 RIZA ALAN KUMESI — TEK KANONIK KAYNAK. Riza bandinin DORT ayri script varyanti
+     (uretec + dort kaynak sayfa) bu kumeyi ELLE TEKRARLAMAZ; yalniz pruvoRizaUygula()'yi
+     cagirir. VARSAYILAN yukarida HEPSI 'denied'; burasi yalnizca "onay gelirse ne acilir"
+     tanimidir — gevsetme YOKTUR. */
+  window.PRUVO_RIZA_ALANLARI = ['analytics_storage', 'ad_storage', 'ad_user_data',
+                                'ad_personalization'];
+  window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';
+  window.pruvoRizaUygula = function(durum){
+    var g = {}, a = window.PRUVO_RIZA_ALANLARI, i;
+    for(i = 0; i < a.length; i++){ g[a[i]] = durum; }
+    gtag('consent', 'update', g);
+  };
+  /* Ziyaretçi daha önce onay verdiyse geri yükle.
+     ⚠️ ESKİ (DAR) RIZA KAYDI: reklam çerezinden HİÇ söz etmeyen bir metinle alınmış onay,
+     reklam alanlarına SAYILMAZ — yalnız analitik açılır, ad_* 'denied' KALIR ve bant
+     genişletilmiş kapsam için bir kez daha sorar. Sessiz genişletme açık rıza değildir. */
+  try {
+    if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
+      if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) {
+        window.pruvoRizaUygula('granted');
+      } else {
+        gtag('consent', 'update', { 'analytics_storage': 'granted' });
+      }
+    }
+  } catch(e){}
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE"></script>
 <script>
@@ -554,28 +576,38 @@
   </div>
 
   <div class="card">
-    <h2>Çerezler ve analitik (Google Analytics)</h2>
+    <h2>Çerezler: analitik (Google Analytics) ve reklam (Google Ads)</h2>
     <p>Sitemizde, ziyaret trafiğini ve hangi ürünlerin ilgi gördüğünü anlamak için
     <strong>Google Analytics 4</strong> analiz aracını kullanıyoruz. Bu araç, onay vermeniz hâlinde
     tarayıcınıza <strong>_ga ve _gid</strong> adlı çerezleri yazarak ziyaretinizi anonim bir kimlikle
-    sayar.</p>
+    sayar. Ayrıca, reklamlarımızın işe yarayıp yaramadığını ölçebilmek ve size uygun reklamları
+    gösterebilmek için <strong>Google Ads</strong> reklam çerezlerini kullanıyoruz; bunlar da
+    yalnızca onay vermeniz hâlinde çalışır.</p>
     <ul>
-      <li><strong>Amaç:</strong> yalnızca trafik ve kullanım analizi (ziyaretçi sayısı, gezilen
-      sayfalar, cihaz türü). Sizi kişisel olarak tanımlamak veya reklam amacıyla kullanılmaz.</li>
+      <li><strong>Analiz çerezlerinin amacı:</strong> trafik ve kullanım analizi (ziyaretçi sayısı,
+      gezilen sayfalar, cihaz türü).</li>
+      <li><strong>Reklam çerezlerinin amacı:</strong> reklam performansının ölçülmesi (hangi
+      reklamın ziyarete ve siparişe dönüştüğü) ve reklamların kişiselleştirilmesi. Onay
+      verdiğinizde <em>ad_storage</em>, <em>ad_user_data</em> ve <em>ad_personalization</em>
+      izinleri açılır; reklam tıklama kimliğiniz (örneğin <em>gclid</em>) bu kapsamda saklanabilir
+      ve Google'a bildirilebilir.</li>
       <li><strong>Hukuki dayanak:</strong> <strong>açık rızanız</strong> (6698 sayılı KVKK m. 5/1).
-      Bu çerezler isteğe bağlıdır; sitede ilk açılışta beliren çerez bandındaki
+      Her iki çerez türü de isteğe bağlıdır; sitede ilk açılışta beliren çerez bandındaki
       <strong>"Kabul Et"</strong> düğmesine basmadıkça çalışmazlar.</li>
       <li><strong>Nasıl reddedilir / geri alınır:</strong> çerez bandındaki <strong>"Reddet"</strong>
-      düğmesiyle analiz çerezlerini hiç açmadan siteyi kullanabilirsiniz. Onay vermediğiniz sürece
-      analiz çerezi <em>yazılmaz</em> ve ölçüm <em>gönderilmez</em> (Google Consent Mode). Daha önce
-      onay verdiyseniz, tarayıcınızın ayarlarından _ga/_gid çerezlerini silerek ya da onayınızı
-      kaldırarak geri alabilirsiniz. Onayınızı dilediğiniz zaman, bu sayfadaki
-      <strong>"Çerez tercihimi değiştir"</strong> düğmesiyle de geri alabilirsiniz.</li>
-      <li><strong>Veri işleyen:</strong> Google (Google Analytics hizmeti). Ölçüm sırasında
-      <strong>IP adresiniz anonimleştirilir</strong> (anonymize_ip); tam IP adresiniz saklanmaz.
-      Veriler Google'ın sunucularında işlenebilir.</li>
-      <li><strong>Reklam çerezi yok:</strong> reklam ve pazarlama izinleri kapalıdır; onay verseniz
-      dahi yalnızca analiz depolaması açılır.</li>
+      düğmesiyle analiz ve reklam çerezlerini hiç açmadan siteyi kullanabilirsiniz. Onay
+      vermediğiniz sürece bu çerezler <em>yazılmaz</em>, ölçüm <em>gönderilmez</em> ve reklam
+      isteklerinden tanımlayıcılar <em>çıkarılır</em> (Google Consent Mode;
+      <em>ads_data_redaction</em>). Daha önce onay verdiyseniz, tarayıcınızın ayarlarından
+      _ga/_gid çerezlerini silerek ya da onayınızı kaldırarak geri alabilirsiniz. Onayınızı
+      dilediğiniz zaman, bu sayfadaki <strong>"Çerez tercihimi değiştir"</strong> düğmesiyle de
+      geri alabilirsiniz.</li>
+      <li><strong>Veri işleyen:</strong> Google (Google Analytics ve Google Ads hizmetleri). Ölçüm
+      sırasında <strong>IP adresiniz anonimleştirilir</strong> (anonymize_ip); tam IP adresiniz
+      saklanmaz. Veriler Google'ın sunucularında işlenebilir.</li>
+      <li><strong>Daha önce yalnızca analiz için onay verdiyseniz:</strong> o onay reklam
+      çerezlerini <em>kapsamaz</em> ve kendiliğinden genişletilmez. Çerez bandı, genişleyen kapsam
+      için size bir kez daha sorar; siz onaylamadıkça reklam izinleri kapalı kalır.</li>
     </ul>
     <p>Google'ın verileri nasıl işlediğine dair ayrıntı için
     <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Gizlilik
@@ -587,7 +619,8 @@
       <button type="button" id="pco-degistir">Çerez tercihimi değiştir</button>
       <span>Onayınızı geri almak veya değiştirmek için bu düğmeye basın: kayıtlı tercihiniz,
       analiz çerezleriniz ve reklam tıklama kimlikleriniz <strong>silinir</strong>, çerez bandı
-      yeniden görünür. Yeni bir seçim yapmadığınız sürece analiz çerezleri <em>kapalı</em> kalır.</span>
+      yeniden görünür. Yeni bir seçim yapmadığınız sürece analiz ve reklam çerezleri
+      <em>kapalı</em> kalır.</span>
     </p>
   </div>
 
@@ -674,8 +707,10 @@
 </style>
 <div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
   <div class="pco-inner">
-    <p>Trafiği anlamak için isteğe bağlı analiz çerezleri (Google Analytics) kullanmak istiyoruz.
-       Onayınız olmadan çalışmazlar. <a href="/gizlilik/">Gizlilik Politikası</a></p>
+    <p>Trafiği anlamak için analiz çerezleri (Google Analytics), reklamlarımızın ölçümü ve
+       kişiselleştirilmesi için reklam çerezleri (Google Ads) kullanmak istiyoruz. İkisi de
+       isteğe bağlıdır; onayınız olmadan çalışmazlar. Onayınızı istediğiniz zaman
+       <a href="/gizlilik/">Gizlilik Politikası</a> sayfasından geri alabilirsiniz.</p>
     <div class="pco-btns">
       <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
       <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
@@ -685,6 +720,11 @@
 <script>
 (function(){
   var ANAHTAR = "pruvo_onay_analitik";
+  var KAPSAM_ANAHTARI = "pruvo_onay_kapsam";
+  /* Kapsam adı TEK KANONİK KAYNAKTAN (GA head bloğu) gelir. Blok bir sebeple
+     çalışmadıysa "" döner → kapsam kaydı YAZILMAZ ve bant sormaya devam eder
+     (fail-closed; belirsizlik rıza değildir). İkinci bir sabit TANIMLANMAZ. */
+  function kapsamAdi(){ return window.PRUVO_RIZA_KAPSAMI || ""; }
   var el = document.getElementById("pruvo-cerez-onay");
   if(!el){ return; }
   var kabul = document.getElementById("pco-kabul");
@@ -692,11 +732,26 @@
   /* TEK KAYNAK: banner görünürlüğü YALNIZCA saklı rıza değerinden türetilir. Ayrı bir
      "gösterildi mi" bayrağı YOK → durum ile görünürlük birbirinden kayamaz. */
   function secim(){ try { return localStorage.getItem(ANAHTAR); } catch(e){ return null; } }
+  function kapsamSecimi(){ try { return localStorage.getItem(KAPSAM_ANAHTARI); } catch(e){ return null; } }
   function bannerTazele(){
     var s = secim();
-    el.hidden = (s === "kabul" || s === "ret");   /* seçim yapılmışsa banner çıkmaz */
+    /* 🔴 KAPSAM GENİŞLEDİ (reklam çerezi eklendi): DAR kapsamda verilmiş eski onay yeni
+       kapsama SAYILMAZ → bant bir kez daha sorar. "Reddet" diyene TEKRAR SORULMAZ. */
+    var k = kapsamSecimi();
+    el.hidden = (s === "ret") || (s === "kabul" && !!k && k === kapsamAdi());
   }
-  function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} bannerTazele(); }
+  function kaydet(deger){
+    try {
+      localStorage.setItem(ANAHTAR, deger);
+      if(deger === "kabul" && kapsamAdi()){ localStorage.setItem(KAPSAM_ANAHTARI, kapsamAdi()); }
+      else { localStorage.removeItem(KAPSAM_ANAHTARI); }
+    } catch(e){}
+    /* "Reddet" = daha önce verilmiş onay varsa GERİ ÇEKME: dört alan da denied. */
+    if(deger !== "kabul" && typeof window.pruvoRizaUygula === "function"){
+      window.pruvoRizaUygula('denied');
+    }
+    bannerTazele();
+  }
   /* Rıza değişiminin tüm tüketicilerini tek yerden uyar (rıza YAZILDIKTAN sonra çağrılır ki
      hepsi kapı kontrolünden geçsin). Yoklarsa (sayfada o katman yoksa) sessizce atlanır.
      Rıza yokken bu çağrı saklanmış tıklama kimliklerini VE ölçüm çerezlerini (_fbp/_fbc/_ga)
@@ -707,7 +762,7 @@
   }
   bannerTazele();
   kabul.addEventListener("click", function(){
-    if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
+    if(typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('granted'); }
     kaydet("kabul");
     if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
     rizaYayinla();
@@ -723,7 +778,7 @@
   var degistir = document.getElementById("pco-degistir");
   if(degistir){
     degistir.addEventListener("click", function(){
-      try { localStorage.removeItem(ANAHTAR); } catch(e){}
+      try { localStorage.removeItem(ANAHTAR); localStorage.removeItem(KAPSAM_ANAHTARI); } catch(e){}
       if(typeof gtag === "function"){
         gtag('consent','update',{'analytics_storage':'denied','ad_storage':'denied',
                                  'ad_user_data':'denied','ad_personalization':'denied'});

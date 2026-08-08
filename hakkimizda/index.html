@@ -25,9 +25,31 @@
      Bu iki cagri hicbir alani 'granted' YAPMAZ; varsayilan denied AYNEN kalir. */
   gtag('set', 'url_passthrough', true);
   gtag('set', 'ads_data_redaction', true);
-  /* Ziyaretçi daha önce onay verdiyse geri yükle (banner tekrar çıkmaz). */
-  try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
-    gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}
+  /* 🔴 RIZA ALAN KUMESI — TEK KANONIK KAYNAK. Riza bandinin DORT ayri script varyanti
+     (uretec + dort kaynak sayfa) bu kumeyi ELLE TEKRARLAMAZ; yalniz pruvoRizaUygula()'yi
+     cagirir. VARSAYILAN yukarida HEPSI 'denied'; burasi yalnizca "onay gelirse ne acilir"
+     tanimidir — gevsetme YOKTUR. */
+  window.PRUVO_RIZA_ALANLARI = ['analytics_storage', 'ad_storage', 'ad_user_data',
+                                'ad_personalization'];
+  window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';
+  window.pruvoRizaUygula = function(durum){
+    var g = {}, a = window.PRUVO_RIZA_ALANLARI, i;
+    for(i = 0; i < a.length; i++){ g[a[i]] = durum; }
+    gtag('consent', 'update', g);
+  };
+  /* Ziyaretçi daha önce onay verdiyse geri yükle.
+     ⚠️ ESKİ (DAR) RIZA KAYDI: reklam çerezinden HİÇ söz etmeyen bir metinle alınmış onay,
+     reklam alanlarına SAYILMAZ — yalnız analitik açılır, ad_* 'denied' KALIR ve bant
+     genişletilmiş kapsam için bir kez daha sorar. Sessiz genişletme açık rıza değildir. */
+  try {
+    if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
+      if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) {
+        window.pruvoRizaUygula('granted');
+      } else {
+        gtag('consent', 'update', { 'analytics_storage': 'granted' });
+      }
+    }
+  } catch(e){}
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE"></script>
 <script>
@@ -620,8 +642,10 @@
 </style>
 <div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
   <div class="pco-inner">
-    <p>Trafiği anlamak için isteğe bağlı analiz çerezleri (Google Analytics) kullanmak istiyoruz.
-       Onayınız olmadan çalışmazlar. <a href="/gizlilik/">Gizlilik Politikası</a></p>
+    <p>Trafiği anlamak için analiz çerezleri (Google Analytics), reklamlarımızın ölçümü ve
+       kişiselleştirilmesi için reklam çerezleri (Google Ads) kullanmak istiyoruz. İkisi de
+       isteğe bağlıdır; onayınız olmadan çalışmazlar. Onayınızı istediğiniz zaman
+       <a href="/gizlilik/">Gizlilik Politikası</a> sayfasından geri alabilirsiniz.</p>
     <div class="pco-btns">
       <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
       <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
@@ -631,13 +655,35 @@
 <script>
 (function(){
   var ANAHTAR = "pruvo_onay_analitik";
+  var KAPSAM_ANAHTARI = "pruvo_onay_kapsam";
+  /* Kapsam adı TEK KANONİK KAYNAKTAN (GA head bloğu) gelir. Blok bir sebeple
+     çalışmadıysa "" döner → kapsam kaydı YAZILMAZ ve bant sormaya devam eder
+     (fail-closed; belirsizlik rıza değildir). İkinci bir sabit TANIMLANMAZ. */
+  function kapsamAdi(){ return window.PRUVO_RIZA_KAPSAMI || ""; }
   var el = document.getElementById("pruvo-cerez-onay");
   if(!el){ return; }
-  var secim = null;
-  try { secim = localStorage.getItem(ANAHTAR); } catch(e){}
-  if(secim === "kabul" || secim === "ret"){ return; }   /* seçim yapılmış: banner çıkmaz */
+  var secim = null, kapsam = null;
+  try {
+    secim = localStorage.getItem(ANAHTAR);
+    kapsam = localStorage.getItem(KAPSAM_ANAHTARI);
+  } catch(e){}
+  /* 🔴 KAPSAM GENİŞLEDİ (reklam çerezi eklendi): DAR kapsamda verilmiş eski onay yeni
+     kapsama SAYILMAZ → bant bir kez daha sorar. "Reddet" diyene TEKRAR SORULMAZ. */
+  if(secim === "ret"){ return; }
+  if(secim === "kabul" && kapsam && kapsam === kapsamAdi()){ return; }
   el.hidden = false;
-  function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} el.hidden = true; }
+  function kaydet(deger){
+    try {
+      localStorage.setItem(ANAHTAR, deger);
+      if(deger === "kabul" && kapsamAdi()){ localStorage.setItem(KAPSAM_ANAHTARI, kapsamAdi()); }
+      else { localStorage.removeItem(KAPSAM_ANAHTARI); }
+    } catch(e){}
+    /* "Reddet" = daha önce verilmiş onay varsa GERİ ÇEKME: dört alan da denied. */
+    if(deger !== "kabul" && typeof window.pruvoRizaUygula === "function"){
+      window.pruvoRizaUygula('denied');
+    }
+    el.hidden = true;
+  }
   var kabul = document.getElementById("pco-kabul");
   var ret = document.getElementById("pco-ret");
   /* Rıza değişimini tüm katmanlara duyur (rıza YAZILDIKTAN sonra çağrılır ki hepsi kapı
@@ -648,7 +694,7 @@
     if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }
   }
   kabul.addEventListener("click", function(){
-    if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
+    if(typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('granted'); }
     kaydet("kabul");
     if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
     rizaYayinla();
