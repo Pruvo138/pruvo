@@ -44,6 +44,19 @@ NE OLCULUR:
           artik Kural A'nin fikstur fonksiyonundaki CAPRAZ prob yakalar.
      D6/D7: `git ls-files` rc=0 dondugu halde BOS liste vermesi (sparse/partial checkout,
      git shim) — canlilik capasi olmadan kapi "0 dosya tarandi" deyip YESIL yaniyordu.
+  E) TABLO SAYACI TAM ESITLIGI (is-akisi-kapisi.py :: TABLO_TABANLARI ·
+     tablo_sayaci_kontrol). 8 Agu 2026'da operator `<` -> `!=` yapildi ve tabanlar
+     olculen sayilara cekildi; bu bolum o degisikligin GERCEKTEN olctugunu KOSTURARAK
+     kanitlar (OZYINELEMELI ayna: dizinler GERCEK, dosyalar symlink — canli dosyaya
+     mutasyon UYGULANMAZ).
+       E0 kontrol : mutasyonsuz ayna -> YESIL (dususe bu bolumun TUM hukmu gecersiz)
+       E1 oldurucu: SERIT_B'den bir giris DUSURULDU        -> KIRMIZI + tablo jetonu
+       E2 oldurucu: SERIT_B'ye giris EKLENDI (taban ayni)  -> KIRMIZI + tablo jetonu
+       E3 oldurucu: tablo_sayaci_kontrol() govdesi `return []` -> `--kendini-test` KIRMIZI
+       🔴 AYIRT EDICILER (["eski kod bu girdide ne yapiyordu" ekseni]): E1b = E1 + ESKI
+          KOD (operator `<` + eski taban 42) -> jeton YOK (25 beyan sessizce silinebilirdi);
+          E2b = E2 + operator `<` -> jeton YOK (taban guncellenmeden buyume gorunmezdi).
+          Bu iki olcum olmadan E1/E2'nin kirmizisi degisiklige ATFEDILEMEZ.
 
 Ag'a cikmaz. urunler.json / .urun-kaynaklari.json OKUNMAZ ve YAZILMAZ (sentetik katalog).
 Cikis: 0 = yesil, 1 = kirmizi.   Calistir: python3 tools/nobetci-mutasyon-test.py
@@ -551,6 +564,149 @@ def bolum_d(tmp):
                  " ⚠️COKME: " + (r.stderr or "").strip().splitlines()[-1:][0][:80] if coldu else ""))
 
 
+# ------------------------------------------------ E) tablo sayaci TAM ESITLIGI (8 Agu 2026)
+# NEDEN UCUNCU AYNA: ayna_kur yalniz kok DOSYALARINI, genis_ayna_kur ise kok girdilerini
+# SYMLINK DIZIN olarak aynalar. `os.walk` bir SYMLINK dizine INMEZ -> is-akisi-kapisi.py'nin
+# kesif ekseni (ci-kapsam-test.py'den import edilir) alt dizinleri GOREMEZ ve mutasyonsuz
+# aynada bile iddia sayisi DUSER. OLCULDU (8 Agu): genis-symlink sekilli aynada Bolum C
+# 146 iddia kosturdu (TABAN 162) -> E0 kontrolu HAKSIZ yere KIRMIZI yandi; ozyinelemeli
+# aynada 204 iddia ile YESIL. Yani kontrol mutantinin dususu aracin sekliydi, kapinin
+# kusuru degil ([[fikstur-degeri-mutasyon-koru]]: kontrol mutanti olmadan bu gorulmezdi).
+# 🔴 ayna_kur / genis_ayna_kur'a DOKUNULMADI: A..D bolumleri onlarin bugunku sekline bagli.
+E_KAPI = "tools/is-akisi-kapisi.py"
+E_ATLA = {".git"}
+
+# --- MUTASYON CAPALARI (her biri TAM BIR KEZ eslesmeli; eslesmezse harness BAYAT) ---
+# Giris silme/ekleme METIN olarak degil, tablo TANIMINDAN SONRA calisan tek satirla
+# yapilir: sozluk govdesinin bicimine kilitlenmez, ama len(SERIT_B)'yi GERCEKTEN degistirir.
+E_SERIT_CAPA = 'SERIT_B_SEBEP = ("yayini BLOKLAMAYAN job'
+E_SIL = ("SERIT_B.pop(next(iter(SERIT_B)))  # MUTANT E1: bir beyan DUSURULDU\n"
+         + E_SERIT_CAPA)
+E_EKLE = ('SERIT_B[("nobet.yml", "mutant-e2-job", "tools/mutant-e2-kapisi.py")] = (\n'
+          '    "MUTANT E2: taban guncellenmeden EKLENEN sentetik beyan")\n'
+          + E_SERIT_CAPA)
+E_OP_CAPA = "        if len(tablo) != taban:"
+E_OP_ESKI = "        if len(tablo) < taban:"
+E_TABAN_CAPA = '    ("SERIT_B", 67),'
+E_TABAN_ESKI = '    ("SERIT_B", 42),'
+E_GOVDE_CAPA = ("    hatalar = []\n"
+                "    kapsam = globals()\n"
+                "    for ad, taban in TABLO_TABANLARI:")
+E_GOVDE_NOOP = "    return []\n" + E_GOVDE_CAPA
+E_JETON = "TABLO SAYACI KIRMIZI"
+E_OZTEST_JETON = "TABLO-NOBETCISI OLU"
+
+
+def akis_ayna_kur(hedef_kok, mutasyonlar=None):
+    """OZYINELEMELI ayna: DIZINLER gercek, DOSYALAR symlink. Doner: <hedef_kok>.
+
+    mutasyonlar: {depo-goreli-yol: [(eski, yeni), ...]} -> o dosya GERCEK KOPYA yazilir.
+    Canli calisma agacina HICBIR YAZMA yapilmaz. Mutasyon metni GERCEKTEN degistirmiyorsa
+    harness BAYATTIR -> SystemExit ile gurultulu olur."""
+    mutasyonlar = mutasyonlar or {}
+    uygulanan = set()
+    for dizin, altlar, dosyalar in os.walk(ROOT):
+        altlar[:] = [a for a in altlar if a not in E_ATLA]
+        rel = os.path.relpath(dizin, ROOT)
+        h = hedef_kok if rel == "." else os.path.join(hedef_kok, rel)
+        os.makedirs(h, exist_ok=True)
+        for ad in dosyalar:
+            kaynak = os.path.join(dizin, ad)
+            yol = ad if rel == "." else os.path.join(rel, ad)
+            hedef = os.path.join(h, ad)
+            if os.path.lexists(hedef):
+                continue
+            if yol in mutasyonlar:
+                with open(kaynak, encoding="utf-8") as f:
+                    metin = f.read()
+                for eski, yeni in mutasyonlar[yol]:
+                    if metin.count(eski) != 1:
+                        raise SystemExit(
+                            "HARNESS BAYAT (bolum E): %s icinde mutasyon dayanagi TAM BIR KEZ "
+                            "eslesmedi (bulunan=%d): %r\n(kod degismis olabilir — mutasyonu "
+                            "guncelle, YOKSA bu bolum hicbir sey olcmuyor demektir)"
+                            % (yol, metin.count(eski), eski[:90]))
+                    metin = metin.replace(eski, yeni)
+                with open(hedef, "w", encoding="utf-8") as f:
+                    f.write(metin)
+                uygulanan.add(yol)
+            else:
+                os.symlink(kaynak, hedef)
+    eksik = set(mutasyonlar) - uygulanan
+    if eksik:
+        raise SystemExit("HARNESS BAYAT (bolum E): mutasyon hedefi aynada bulunamadi: %s"
+                         % sorted(eksik))
+    return hedef_kok
+
+
+def _e_kos(kok, bayrak=None):
+    """Aynadaki kapiyi kostur. Doner: (rc, cikti, coldu)."""
+    cmd = [PY, os.path.join(kok, "tools", "is-akisi-kapisi.py")]
+    if bayrak:
+        cmd.append(bayrak)
+    # 🔴 Bytecode onbellegi devre disi: ayni uzunlukta/ayni saniyede yazilan mutant
+    # eskisiyle karisabilir ([[mutasyon-bytecode-onbellegi]]).
+    ortam = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+    r = subprocess.run(cmd, capture_output=True, text=True, env=ortam)
+    return r.returncode, (r.stdout or "") + (r.stderr or ""), "Traceback" in (r.stderr or "")
+
+
+def bolum_e(tmp):
+    print("E) TABLO SAYACI TAM ESITLIGI — mutant OZYINELEMELI AYNADA olculur "
+          "(canli dosyaya dokunulmaz)")
+    oldurulen = 0
+    toplam = 3
+
+    kok0 = akis_ayna_kur(os.path.join(tmp, "e0"))
+    rc, cikti, coldu = _e_kos(kok0)
+    kontrol_yesil = rc == 0 and not coldu
+    check("E0 KONTROL MUTANTI: mutasyonsuz ayna -> YESIL", kontrol_yesil,
+          "MUTANT=<yok> · beklenen=YESIL(rc 0) · gozlenen=rc %d%s · HUKUM=%s "
+          "(dususe E1..E3 hukmu GECERSIZ: arac olcmuyor)"
+          % (rc, " COKME" if coldu else "", "YESIL" if kontrol_yesil else "KIRMIZI"))
+
+    for etiket, mut, bayrak, jeton in (
+            ("E1 SERIT_B'den bir giris DUSURULDU", {E_KAPI: [(E_SERIT_CAPA, E_SIL)]},
+             None, E_JETON),
+            ("E2 SERIT_B'ye giris EKLENDI (taban ayni)", {E_KAPI: [(E_SERIT_CAPA, E_EKLE)]},
+             None, E_JETON),
+            ("E3 tablo_sayaci_kontrol() govdesi `return []`",
+             {E_KAPI: [(E_GOVDE_CAPA, E_GOVDE_NOOP)]}, "--kendini-test", E_OZTEST_JETON)):
+        kok = akis_ayna_kur(os.path.join(tmp, "e-" + etiket.split()[0]), mut)
+        rc, cikti, coldu = _e_kos(kok, bayrak)
+        # 🔴 KIRMIZI DAVRANISTAN gelmeli, COKMEDEN degil: cikis kodu degil BASILAN
+        # jeton yargilanir ([[hukum-yanlis-birimde]]).
+        olduruldu = rc == 1 and not coldu and jeton in cikti
+        oldurulen += 1 if olduruldu else 0
+        check(etiket + " -> KIRMIZI", olduruldu,
+              "MUTANT=%s · beklenen=KIRMIZI(rc 1 + %r) · gozlenen=rc %d jeton %s%s · "
+              "HUKUM=%s" % (etiket.split()[0], jeton, rc,
+                            "VAR" if jeton in cikti else "YOK",
+                            " ⚠️COKME" if coldu else "",
+                            "OLDU" if olduruldu else "KACTI"))
+
+    # --- AYIRT EDICILER: ayni girdide ESKI KOD ne yapiyordu ---
+    for etiket, mut, aciklama in (
+            ("E1b E1 + ESKI KOD (operator `<` + taban 42)",
+             {E_KAPI: [(E_SERIT_CAPA, E_SIL), (E_OP_CAPA, E_OP_ESKI),
+                       (E_TABAN_CAPA, E_TABAN_ESKI)]},
+             "eski taban 25 paylik OLU koruma idi: 25 beyan sessizce silinebilirdi"),
+            ("E2b E2 + operator `<` (taban 67)",
+             {E_KAPI: [(E_SERIT_CAPA, E_EKLE), (E_OP_CAPA, E_OP_ESKI)]},
+             "taban guncellenmeden BUYUME gorunmezdi -> pay yeniden birikirdi")):
+        kok = akis_ayna_kur(os.path.join(tmp, "e-" + etiket.split()[0]), mut)
+        rc, cikti, coldu = _e_kos(kok)
+        kor = E_JETON not in cikti and not coldu
+        check(etiket + " -> tablo jetonu YOK (eski kod KOR)", kor,
+              "MUTANT=%s · beklenen=jeton YOK · gozlenen=rc %d jeton %s%s · HUKUM=%s (%s)"
+              % (etiket.split()[0], rc, "VAR" if E_JETON in cikti else "YOK",
+                 " ⚠️COKME" if coldu else "", "AYIRT EDICI" if kor else "AYIRT ETMIYOR",
+                 aciklama))
+
+    print("  MUTASYON: oldurulen=%d/%d · kontrol=%s"
+          % (oldurulen, toplam, "YESIL" if kontrol_yesil else "KIRMIZI"))
+
+
 def main():
     tmp = tempfile.mkdtemp(prefix="pruvo-nobetci-mutasyon-")
     try:
@@ -558,6 +714,7 @@ def main():
         bolum_b(tmp)
         bolum_c(tmp)
         bolum_d(tmp)
+        bolum_e(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("-" * 74)
