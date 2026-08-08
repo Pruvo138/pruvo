@@ -490,10 +490,23 @@ scratchpad/
 tools/thing-meta.py
 worker-iyzico-webhook/
 
+# Oturum calisma dizinleri (.scratch-*) — olcum betikleri, spec taslaklari, kosum
+# ciktilari. Diskte DURUR (silinmez), yalnizca kaynak kontrolunden gizlenir: dal/ajan
+# kimligi ve ic olcum detayi tasirlar, depo PUBLIC. Ayrica calisan bir oturumun
+# dizini `git status`'u kirletip baska mimarlarin temizlik olcumunu bozuyordu.
+.scratch-*/
+
+# Urun gorsel KOKEN manifestleri — yerel mutlak yollar (/Users/okan/...) ve render
+# kaynagi tasir; kanonik ev KaaN'in deposudur (../pruvo-jenerator/urun-gorsel-koken).
+# Buradaki kopya tools/gorsel_koken.py'nin ilk arama sirasidir: diskte DURUR, itilmez.
+urun-gorsel-koken/
+
 # shop/ (pruvo-shop worker) — sirlar ve yerel durum ASLA repoya girmez (repo PUBLIC):
 shop/.dev.vars
 shop/.wrangler/
 shop/node_modules/
+# fiyat mutasyon kosumlarinin gecici src kopyalari (kosum sonunda atilir, uretilebilir)
+shop/src-fiyat-tmp-*/
 
 # onizleme/ (pruvo-onizleme worker) — GIZLI eslem (uyelik ureteci degisken adlari) ve
 # derleme paketi ASLA repoya girmez; kanonik kopya R2 pruvo-ozel bucket'inda
