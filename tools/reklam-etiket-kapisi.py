@@ -125,20 +125,89 @@ def kaynak_sayfalar(kok):
     return bulunan
 
 
+def _belge_dizeleri(agac):
+    """Modul/sinif/fonksiyon DOCSTRING'lerinin dugum kimlikleri.
+
+    🔴 NEDEN AYRI: docstring BELGEDIR, hicbir sayfaya basilmaz. Bu nobetcinin KENDI
+    docstring'i uc ayirt edici izi de ANLATTIGI ve `{ga_head}` capasini ornek olarak
+    gecirdigi icin SINIF B'ye SAHTE bir uye olarak giriyordu — olculdu (8 Agu): kume
+    4 -> 5. Sonucu iki yonlu bozuktu: sayim sisiyordu ve docstring'den `{ga_head}`
+    dusuren mesru bir bakim duzenlemesi kapiyi KIRMIZI yakabilirdi. Fikstur disiplini
+    metne de uygulanir ([[nobetci-kendi-dosyasinda-sizinti]])."""
+    kimlikler = set()
+    for dugum in ast.walk(agac):
+        govde = getattr(dugum, "body", None)
+        if not isinstance(dugum, (ast.Module, ast.ClassDef, ast.FunctionDef,
+                                  ast.AsyncFunctionDef)) or not govde:
+            continue
+        ilk = govde[0]
+        if isinstance(ilk, ast.Expr) and isinstance(ilk.value, ast.Constant) \
+                and isinstance(ilk.value.value, str):
+            kimlikler.add(id(ilk.value))
+    return kimlikler
+
+
+YAYIN_GIRISI = "tools/build.py"
+
+
+def yayin_zinciri(kok):
+    """Yayin GIRIS NOKTASINDAN (tools/build.py) ithal ile erisilen izlenen .py kumesi.
+
+    🔴 NEDEN BOYLE TURETILIYOR: "tum izlenen .py'leri tara" kolu SAHTE UYE uretiyor —
+    kapi FIKSTURLERI gercek sablonun seklini TAKLIT ETMEK ZORUNDADIR (fikstur disiplini),
+    dolayisiyla ayni ayirt edici izleri tasirlar. Cozum kapiya ozel muafiyet YAZMAK
+    DEGIL, evreni DOGRU eksende turetmektir: bir sablon ancak YAYIN ZINCIRINDE ise sayfa
+    uretir. Zincirde olmayan bir dize — fikstur olsun, teshis panosu olsun — hicbir
+    ziyaretciye gitmez.
+
+    Ithal cozumu depoya gore yapilir (site-packages'e CIKILMAZ); cozulemeyen ad sessizce
+    atlanir cunku o zaten bu depoda bir sayfa ureteci degildir."""
+    izlenen = set(_izlenen(kok, "*.py"))
+    if YAYIN_GIRISI not in izlenen:
+        raise Olculemedi("yayin giris noktasi izlenmiyor: %s" % YAYIN_GIRISI)
+    gorulen, kuyruk = {YAYIN_GIRISI}, [YAYIN_GIRISI]
+    while kuyruk:
+        rel = kuyruk.pop()
+        try:
+            agac = ast.parse(_oku(kok, rel))
+        except SyntaxError as hata:
+            raise Olculemedi("yayin zinciri ayristirilamadi: %s (%s)" % (rel, hata))
+        adlar = []
+        for dugum in ast.walk(agac):
+            if isinstance(dugum, ast.Import):
+                adlar.extend(a.name for a in dugum.names)
+            elif isinstance(dugum, ast.ImportFrom) and dugum.module:
+                adlar.append(dugum.module)
+        for ad in adlar:
+            taban = ad.split(".")[0]
+            adaylar = [os.path.join(os.path.dirname(rel), taban + ".py").replace(os.sep, "/"),
+                       "tools/" + taban + ".py", taban + ".py"]
+            for aday in adaylar:
+                if aday in izlenen and aday not in gorulen:
+                    gorulen.add(aday)
+                    kuyruk.append(aday)
+                    break
+    return sorted(gorulen)
+
+
 def sayfa_sablonlari(kok):
-    """SINIF B — izlenen .py dosyalarindaki yayin sayfasi SABLONLARI (AST, TURETILIR).
+    """SINIF B — YAYIN ZINCIRINDEKI .py dosyalarindaki sayfa SABLONLARI (AST, TURETILIR).
 
     Kaynak CALISTIRILMAZ; yalnizca dize sabitleri okunur. Ayristirilamayan bir .py
-    OLCULEMEDI'dir — sessizce atlanirsa o modulun sablonlari kapsamdan DUSER."""
+    OLCULEMEDI'dir — sessizce atlanirsa o modulun sablonlari kapsamdan DUSER.
+    Docstring'ler KAPSAM DISIDIR (bkz. _belge_dizeleri)."""
     bulunan = []
-    for rel in _izlenen(kok, "*.py"):
+    for rel in yayin_zinciri(kok):
         ham = _oku(kok, rel)
         try:
             agac = ast.parse(ham)
         except SyntaxError as hata:
             raise Olculemedi("python kaynagi ayristirilamadi: %s (%s)" % (rel, hata))
+        belge = _belge_dizeleri(agac)
         for dugum in ast.walk(agac):
             if isinstance(dugum, ast.Constant) and isinstance(dugum.value, str):
+                if id(dugum) in belge:
+                    continue
                 if _yayin_sayfasi_mi(dugum.value):
                     bulunan.append((rel, dugum.lineno, dugum.value))
     return bulunan
@@ -369,8 +438,11 @@ def _fikstur_yaz(dizin, ad, icerik):
 
 
 def _sentetik_agac(dizin, snippet=None, index_kuyruk=None, sablon_capa=True,
-                   ekler=None, yasal_snippet=None):
-    """Gercek agacin SEKLINI taklit eden mini depo (git ls-files calissin diye git init)."""
+                   ekler=None, yasal_snippet=None, kardes_capa=True, kardes_ithal=True):
+    """Gercek agacin SEKLINI taklit eden mini depo (git ls-files calissin diye git init).
+
+    `kardes_*`: yayin zinciri turetimini nobetler. AYNI kardes modul ITHAL EDILINCE
+    kapsam ICINE girer (capasiz ise KIRMIZI), ITHAL EDILMEYINCE kapsam DISINDA kalir."""
     snippet = _F_SNIPPET if snippet is None else snippet
     yasal = snippet if yasal_snippet is None else yasal_snippet
     kuyruk = _F_INDEX_KUYRUK if index_kuyruk is None else index_kuyruk
@@ -379,7 +451,14 @@ def _sentetik_agac(dizin, snippet=None, index_kuyruk=None, sablon_capa=True,
               + ("{ga_head}\n" if sablon_capa else "")
               + '<link rel="canonical" href="https://pruvo3d.com/urun/x/">\n'
               + "</head><body>{govde}</body></html>")
-    build_py = ('GA_HEAD_SNIPPET = """%s"""\n\nURUN_SABLON = """%s"""\n'
+    kardes_sablon = ('<!DOCTYPE html>\n<html lang="tr">\n<head>\n'
+                     + ("{ga_head}\n" if kardes_capa else "")
+                     + '<link rel="canonical" href="https://pruvo3d.com/marka/x/">\n'
+                     + "</head><body>{govde}</body></html>")
+    _fikstur_yaz(dizin, "tools/kardes_uret.py",
+                 'KARDES_SABLON = """%s"""\n' % kardes_sablon)
+    build_py = (("import kardes_uret\n" if kardes_ithal else "")
+                + 'GA_HEAD_SNIPPET = """%s"""\n\nURUN_SABLON = """%s"""\n'
                 % (snippet, sablon))
     _fikstur_yaz(dizin, "tools/build.py", build_py)
     _fikstur_yaz(dizin, "index.html",
@@ -411,6 +490,18 @@ _Y_EKLER = {
     "parca.html": "<div class=\"kart\">parca</div>\n",
     # Y4: kanonik adresli ama <head>siz parca sablon.
     "tools/parca_uret.py": ('PARCA = """<link rel="canonical" href="/x/">"""\n'),
+    # Y5: DOCSTRING — uc ayirt edici izi de ANLATAN belge metni. Bu nobetcinin KENDI
+    # docstring'i tam bu sekilde SINIF B'ye sahte uye olarak girmisti (olculdu 8 Agu).
+    # Docstring hicbir sayfaya basilmaz; kapsam disi olmali.
+    "tools/belge_ornegi.py": ('"""Sablon <!DOCTYPE html> ile baslar, <head> icinde\n'
+                              '`rel="canonical"` ve `{ga_head}` capasi bulunur."""\n'
+                              "DEGER = 1\n"),
+    # Y6: AYNI metin ama DEGISKENE atanmis (docstring DEGIL). Zincirde olmadigi icin
+    # yine kapsam disidir; bu kontrol olmadan "docstring muafiyeti" ile "zincir
+    # daraltmasi" birbirinden ayirt EDILEMEZDI.
+    "tools/sablon_ornegi.py": ('SABLON = """<!DOCTYPE html>\n<html lang="tr"><head>\n'
+                               '{ga_head}\n<link rel="canonical" href="/y/">\n'
+                               '</head><body></body></html>"""\n'),
 }
 
 
@@ -440,8 +531,16 @@ def _senaryolar():
          dict(index_kuyruk=_F_INDEX_KUYRUK.replace(
              '"fbc","fbclid","gclid","gbraid","wbraid","ttclid","msclkid"',
              '"fbc","fbclid","gclid"'))),
+        # K9/Y7 AYIRT EDICI CIFT: tek fark ITHAL SATIRI. Zincir turetimi olu olsaydi
+        # (her sey kapsam disi) K9 yesil kalirdi; turetim "her .py"ye cokseydi Y7 kirmizi
+        # yanardi. Ikisi birlikte evrenin DOGRU eksende turedigini nobetler.
+        ("K9 yayin zincirindeki KARDES modulun sablonunda {ga_head} yok", KIRMIZI,
+         dict(kardes_capa=False, kardes_ithal=True)),
+        ("Y7 AYNI capasiz kardes modul ITHAL EDILMIYORSA kapsam disi", YESIL,
+         dict(kardes_capa=False, kardes_ithal=False)),
         ("Y0 saglam agac YESIL", YESIL, dict()),
-        ("Y1-Y4 kapsam disi benzer dosyalar REDDEDILMEZ", YESIL, dict(ekler=_Y_EKLER)),
+        ("Y1-Y6 kapsam disi benzer dosyalar + docstring REDDEDILMEZ", YESIL,
+         dict(ekler=_Y_EKLER)),
     ]
 
 
