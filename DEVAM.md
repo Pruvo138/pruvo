@@ -1,5 +1,28 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## ⏱ SAATLIK CI NOBETI — 8 Agu 09:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Mail supurmesi (kosulsuz emir):** birlesik `inbox` **7546** mesaj TOPLU tarandi (ornekleme YOK;
+sender + subject tek Apple Event ile cekildi, satir sayisi `count of messages of inbox` ile
+esitlendi). Eslesen `notifications@github.com` + "Run failed" **0** → tasinan **0** · tur sonu
+kalan **0**. Alt kutulara girilmedi, Cop BOSALTILMADI, baska maile dokunulmadi.
+
+**Gercek ariza YOK — Codex CAGRILMADI.** Son 20 kosumda `conclusion=failure` **0**, `cancelled` **0**.
+Onceki turun tek kirmizisi (`31245852100`, uzlastirici GORUNURLUK kolu — kasitli `exit 1`)
+pencereden dustu; YENI kirmizi YOK.
+
+**Yayin ILERLEDI (§4.5'in UC ekseni de olculdu, tek eksen tek basina yazilmadi):**
+(a) KOSAN zincir VAR: `31249072863` (head `af02f7c1` = main HEAD), push tetikli, 08:45:04Z.
+(b) Tavani yine **`serit-a4`** koyuyor: ayni kosumda `build` · `serit-a2` · `serit-a3` **success**,
+`serit-a4` hala `in_progress` (bu job tipik 32-58 dk surer) → normal seyir, TIKANMA DEGIL.
+(c) Son basarili `Build & deploy` = **`31246716497`** (head `82967d41`, bitis 09:08:46Z) → onceki
+turun "`9ab89786` + `82967d41` ucusta" hukmu KAPANDI, ikisi de CANLIDA. `merge-base --is-ancestor
+af02f7c1 82967d41` **rc=1** → yalnizca onceki turun defter commit'i (`af02f7c1`) ucusta; beklenen.
+
+**SIRADAKI TEK IS** — degismedi: marka sayfasi 330 parcanin TAMAMINI tek sayfada kart olarak
+listelesin, model cipleri sayfa icinde filtrelesin; once sayfa agirligi + model sayfalarinin
+getirdigi arama trafigi OLCULSUN.
+
 ## ⏱ SAATLIK CI NOBETI — 8 Agu 08:37Z turu (ev DOGRU: ~/dev/pruvo)
 
 **Mail supurmesi (kosulsuz emir):** tasinan **0** · tur sonu birlesik `inbox`'ta "Run failed" **0**
