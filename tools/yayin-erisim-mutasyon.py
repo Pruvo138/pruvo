@@ -52,7 +52,7 @@ ALARM = ".github/workflows/yayin-erisim-alarmi.yml"
 HEDEFLER = (NOBETCI, TEST, IS_AKISI, DEPLOY, NOBET, ALARM)
 DOKUNULMAZ = [os.path.join(ROOT, y) for y in HEDEFLER]
 
-EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7")
+EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8")
 
 FAILS = []
 
@@ -78,13 +78,17 @@ M1 = ("M1", "🔴 YONTEM HEAD'e cevrildi (3 Agu'da olculen kusur GORUNMEZ olur)"
 
 M2 = ("M2", "404 'acik' sayiliyor (silinmis sayfa yesil yanar)",
       NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 404)\n")],
-      ["E3"], "ESIT")
+      # CAPRAZ (gerekce): E8'in V3 vakasi BILESIKTIR — "404 KAPALI **ve** tek denemede".
+      # 404'u acik saymak o bilesik iddianin ilk yarisini da dusurur. E3 ve E8 yine AYRI
+      # iddialardir: E8'i TEK BASINA yakan M17/M18/M19, E3'u tek basina yakan M20 vardir.
+      ["E3", "E8"], "ESIT")
 
 M3 = ("M3", "403 'acik' sayiliyor — hem metot ekseni hem hukum ekseni duser",
       NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 403)\n")],
-      # CAPRAZ (gerekce): ayirt edici vaka (E2) da 403 uretir; 403'u acik saymak IKI
-      # ekseni birden dusurur — ayrik degiller, ayni fiziksel olguyu olcerler.
-      ["E2", "E3"], "ESIT")
+      # CAPRAZ (gerekce): ayirt edici vaka (E2) da 403 uretir; 403'u acik saymak UC
+      # ekseni birden dusurur (E8'in V4 vakasi da "403 KAPALI ve tek denemede" der) —
+      # ayrik degiller, ayni fiziksel olguyu olcerler.
+      ["E2", "E3", "E8"], "ESIT")
 
 M4 = ("M4", "KUME TABANI kaldirildi (collapsed kaynak sessizce 'hepsi acik' olur)",
       NOBETCI, [("\nKUME_TABANI = 250\n", "\nKUME_TABANI = 0\n")], ["E1"], "ESIT")
@@ -101,7 +105,10 @@ M6 = ("M6", "🔴 AG ARIZASI 'ACIK' sayiliyor (fail-closed -> fail-open)",
       NOBETCI,
       [('            return {"yol": yol, "url": url, "sinif": "ARIZA", "kod": None,',
         '            return {"yol": yol, "url": url, "sinif": "ACIK", "kod": 200,')],
-      ["E5"], "ESIT")
+      # CAPRAZ (gerekce): E8'in V5 vakasi da BILESIKTIR — "3 deneme sonunda hala ag
+      # hatasi ise OLCULEMEDI". Arizayi ACIK saymak o iddianin hukum yarisini dusurur.
+      # E5'i TEK BASINA yakan M7, E8'i tek basina yakan M17/M18/M19 durur.
+      ["E5", "E8"], "ESIT")
 
 M7 = ("M7", "OLCUM ARIZASI, KAPALI KANITINI EZIYOR (kanit kayboluyor)",
       NOBETCI,
@@ -163,6 +170,30 @@ M16 = ("M16", "KUMEYE ELLE URL GOMULDU (kaynak disi liste sizdi)",
          '        sayfa.append("/")\n        sayfa.append("/elle-yazilmis-sayfa/")')],
        ["E1"], "ESIT")
 
+# ── E8: GECICI 5xx TEKRARI (8 Agu 2026 spec'inin uc zorunlu mutanti) ────────────────
+# Bu uc mutant "yanlis yamayi" hedefler: (M17) tekrar hic yok -> gecici gurultu yine
+# yayini kirmiziya boyar · (M18) 4xx de tekrarlanir -> 12 gun sessiz kalan olculmus
+# kusur sinifina TOLERANS sizar · (M19) tum denemeler 5xx iken ACIK -> alarm FAIL-OPEN
+# olur ve GERCEK kesinti sessizlesir. Ucu de YALNIZ E8 yakar (eksen ayrimi korunuyor).
+M17 = ("M17", "🔴 TEKRAR KALDIRILDI (TEKRAR_SAYISI=1) — gecici 5xx yine kalici sanilir",
+       NOBETCI, [("\nTEKRAR_SAYISI = 3 ", "\nTEKRAR_SAYISI = 1 ")], ["E8"], "ESIT")
+
+M18 = ("M18", "🔴 4xx DE TEKRARLANIYOR — 403/404'e tolerans sizar (12 gun sessiz kalan "
+       "olculmus sinif)",
+       NOBETCI, [("    return kod is not None and 500 <= kod < 600",
+                  "    return kod is not None and 400 <= kod < 600")], ["E8"], "ESIT")
+
+M19 = ("M19", "🔴 TUM DENEMELER 5xx IKEN 'ACIK' — alarm FAIL-OPEN olur, gercek kesinti "
+       "sessizlesir",
+       NOBETCI,
+       [('        return {"yol": yol, "url": url, "sinif": "KAPALI", "kod": kod,\n'
+         '                "zincir": zincir, "tani": tani, "govde": _govde_ozeti(govde),',
+         '        return {"yol": yol, "url": url,\n'
+         '                "sinif": "ACIK" if 500 <= (kod or 0) < 600 else "KAPALI",\n'
+         '                "kod": kod,\n'
+         '                "zincir": zincir, "tani": tani, "govde": _govde_ozeti(govde),')],
+       ["E8"], "ESIT")
+
 # ── KONTROL MUTANTLARI (YESIL kalmali) ──────────────────────────────────────────────
 # Surucu "her seye kirmizi yanan" gurultulu bir alarma donusmesin: anlam tasimayan
 # degisiklikler bataryayi KIRMIZI yakmamali, yoksa yukaridaki "OLDU" hukumlerinin hicbiri
@@ -185,6 +216,7 @@ K4 = ("K4", "ilgisiz: kabul testi baslik metni degisti",
               '    print("YAYIN ERISIM NOBETCISI - KABUL TESTI")')], [], "ESIT")
 
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, M16,
+             M17, M18, M19,
              K1, K2, K3, K4)
 OLCUTLER = ("ESIT",)
 

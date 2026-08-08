@@ -59,6 +59,12 @@ HUKUM
 Yonlendirme zinciri 200'de bitiyorsa SAPMA DEGILDIR (rapora AYRI satir olarak yazilir:
 sitemap kanonik URL vermeli, ama musteri kapiyi acabiliyor).
 
+🔴 GECICI 5xx AYRI SINIFTIR (8 Agu 2026'da olculdu, ayrinti `TEKRAR_SAYISI` yaninda):
+5xx ve ag hatasi 3 kez denenir (2 sn + 4 sn sabit backoff); 4xx ASLA denenmez. Tekrarlar
+200 dondururse URL ACIK sayilir ama ⚠️ GECICI satiriyla RAPORLANIR ve hukumde SAYILIR;
+tum denemeler 5xx ise KAPALI (rc 1), tum denemeler ag hatasi ise OLCULEMEDI (rc 2) —
+yani ESIK DUSMEDI, olcum DOGRULANDI.
+
 🔴 FAIL-CLOSED: olculemeyen sey ASLA yesil sayilmaz. Ag yoksa, DNS cozmuyorsa, zaman
 asimi olduysa ya da oran sinirina takildiysak rc 2'dir — "hepsi 200" VARSAYILMAZ.
 🔴 SAPMA KANITI OLCUM ARIZASINI EZER: elimizde zaten KAPALI bir kapi varken arac
@@ -121,6 +127,23 @@ ACIK_KODLAR = (200,)
 # sanip yanlis alarm verirdi. Tarayici UA'si ZORUNLUDUR.
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
+
+# 🔴 GECICI 5xx TEKRARI (8 Agu 2026, OLCULDU — bu sabitler bir yanlis alarmin faturasidir)
+# =========================================================================================
+# Kosum 31253843635 (10:55Z) TEK bir URL icin `HTTP 503 · server=cloudflare` gordu ve TUM
+# kosumu KAPALI yakti. Govde GitHub Pages'in KENDI 5xx sayfasiydi ("Hello future
+# GitHubber!"); 4 saat sonraki bagimsiz olcumde ayni URL 6/6 kez 200 dondu. Iki vakada da
+# alarm `Build & deploy` bitisinden <3 dk SONRA olcmustu (8 Agu 10:54:06Z -> 10:57:15Z;
+# 7 Agu 23:49:44Z -> 23:51:46Z), aradaki 8 kosum YESILDI: sinif "Pages yayin/rollout
+# penceresinde GECICI 5xx". Kok neden: ag katmani URL basina TEK KEZ cagriliyordu, yani
+# 503 ile 404 AYNI kefedeydi ve tek denemelik bir gurultu tum kosumu kirmizi yakiyordu.
+#
+# 🔴 ALARM GEVSETILMEDI: esik dusurulmedi, 5xx hala KAPALI'dir. Degisen tek sey OLCUMUN
+# DOGRULANMASIDIR — gercek bir kesintide 3 denemenin ucu de basarisiz olur ve kosum YINE
+# kirmizi yanar. 4xx'e tolerans YOKTUR: 12 gun sessiz kalan olculmus sinif (403/404) ILK
+# denemede KAPALI'dir ve yeniden DENENMEZ (bkz. `_tekrarlanir_mi`).
+TEKRAR_SAYISI = 3                      # ilk istek DAHIL
+TEKRAR_BEKLEMELERI = (2.0, 4.0)        # sabit backoff, JITTER YOK (deterministik test)
 
 ZAMAN_ASIMI_VARSAYILAN = 20.0
 # Istek hizi (istek/sn). Sayfa istekleri statik CDN'e gider (worker oran siniri DEGIL);
@@ -285,43 +308,89 @@ def _istek(url, yontem=None, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None):
         return None, {}, b"", "%s: %s" % (type(e).__name__, e)
 
 
+def _tekrarlanir_mi(kod, hata):
+    """GECICI sinif mi? YALNIZ 5xx yaniti VEYA ag/zaman asimi hatasi.
+
+    🔴 4xx BURAYA GIRMEZ: 403/404 ILK denemede KAPALI'dir (12 gun sessiz kalan olculmus
+    kusur sinifi budur). Bu fonksiyonu 4xx'i de kapsayacak sekilde genisleten mutant
+    kabul testini KIRMIZI yakar (istek SAYISI iddia edilir, yalnizca sinif degil)."""
+    if hata:
+        return True
+    return kod is not None and 500 <= kod < 600
+
+
+def _istek_tekrarli(url, yontem=None, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None,
+                    uyu=time.sleep, istek=None):
+    """`_istek`i GECICI sinifta en fazla `TEKRAR_SAYISI` kez dener.
+
+    Doner: (kod, basliklar, govde, hata, deneme, ilk_kod, ilk_hata) — `deneme` ATILAN
+    istek sayisidir (kabul testi bunu iddia eder). Saglikli URL'de deneme HER ZAMAN 1'dir:
+    ek maliyet YALNIZ arizali URL'lerde olusur."""
+    fn = istek or _istek
+    kod = basliklar = govde = hata = None
+    ilk_kod = ilk_hata = None
+    deneme = 0
+    for deneme in range(1, TEKRAR_SAYISI + 1):
+        kod, basliklar, govde, hata = fn(url, yontem=yontem, zaman_asimi=zaman_asimi,
+                                         acici=acici)
+        if deneme == 1:
+            ilk_kod, ilk_hata = kod, hata
+        if not _tekrarlanir_mi(kod, hata):
+            break
+        if deneme < TEKRAR_SAYISI and TEKRAR_BEKLEMELERI:
+            uyu(TEKRAR_BEKLEMELERI[min(deneme - 1, len(TEKRAR_BEKLEMELERI) - 1)])
+    return kod, basliklar, govde, hata, deneme, ilk_kod, ilk_hata
+
+
 def _govde_ozeti(ham):
     metin = (ham or b"")[:80].decode("utf-8", "replace")
     metin = re.sub(r"\s+", " ", metin).strip()
     return "".join(c for c in metin if c.isprintable())[:60]
 
 
-def olc_tek(taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=None):
+def olc_tek(taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=None,
+            uyu=time.sleep):
     """TEK URL'in canli hali. Doner: kayit sozlugu.
 
     sinif: ACIK | YONLENDI | KAPALI | DONGU | ARIZA
+    `gecici`: GECICI sinif (5xx/ag) yeniden denemede TOPARLANDIYSA teshis sozlugu, yoksa
+    None. Toparlanan URL ACIK sayilir ama raporda AYIRT EDICI satirla gorunur — sessizce
+    yesile boyanmaz.
     """
     url = taban.rstrip("/") + yol
     zincir = []
     gorulen = set()
     suanki = url
+    gecici = None
     for _adim in range(YONLENDIRME_TAVANI + 1):
         if suanki in gorulen:
             return {"yol": yol, "url": url, "sinif": "DONGU", "kod": None,
                     "zincir": zincir, "tani": "yonlendirme DONGUSU: %s tekrar ediyor"
-                                              % suanki, "govde": ""}
+                                              % suanki, "govde": "", "gecici": gecici}
         gorulen.add(suanki)
-        kod, basliklar, govde, hata = _istek(suanki, yontem=yontem,
-                                             zaman_asimi=zaman_asimi, acici=acici)
+        kod, basliklar, govde, hata, deneme, ilk_kod, ilk_hata = _istek_tekrarli(
+            suanki, yontem=yontem, zaman_asimi=zaman_asimi, acici=acici, uyu=uyu)
+        if deneme > 1 and gecici is None and not _tekrarlanir_mi(kod, hata):
+            gecici = {"ilk_kod": ilk_kod, "ilk_hata": ilk_hata, "deneme": deneme,
+                      "kod": kod}
         if hata:
             return {"yol": yol, "url": url, "sinif": "ARIZA", "kod": None,
-                    "zincir": zincir, "tani": hata[:160], "govde": ""}
+                    "zincir": zincir,
+                    "tani": "%s (deneme %d/%d, hepsi basarisiz)"
+                            % (hata[:140], deneme, TEKRAR_SAYISI),
+                    "govde": "", "gecici": gecici}
         if kod in ACIK_KODLAR:
             return {"yol": yol, "url": url,
                     "sinif": "ACIK" if not zincir else "YONLENDI",
-                    "kod": kod, "zincir": zincir, "tani": "", "govde": ""}
+                    "kod": kod, "zincir": zincir, "tani": "", "govde": "",
+                    "gecici": gecici}
         if 300 <= (kod or 0) < 400:
             hedef = basliklar.get("location")
             if not hedef:
                 return {"yol": yol, "url": url, "sinif": "KAPALI", "kod": kod,
                         "zincir": zincir,
                         "tani": "%d yonlendirmesi `location` basligi TASIMIYOR" % kod,
-                        "govde": ""}
+                        "govde": "", "gecici": gecici}
             suanki = urllib.parse.urljoin(suanki, hedef)
             zincir.append((kod, suanki))
             continue
@@ -329,11 +398,15 @@ def olc_tek(taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=N
         for b in ("server", "cf-mitigated", "cf-cache-status", "content-type", "age"):
             if basliklar.get(b):
                 tani += " · %s=%s" % (b, basliklar[b][:40])
+        if deneme > 1:
+            tani += " · deneme=%d/%d (hepsi basarisiz — GECICI DEGIL)" % (deneme,
+                                                                          TEKRAR_SAYISI)
         return {"yol": yol, "url": url, "sinif": "KAPALI", "kod": kod,
-                "zincir": zincir, "tani": tani, "govde": _govde_ozeti(govde)}
+                "zincir": zincir, "tani": tani, "govde": _govde_ozeti(govde),
+                "gecici": gecici}
     return {"yol": yol, "url": url, "sinif": "DONGU", "kod": None, "zincir": zincir,
             "tani": "yonlendirme zinciri %d adimi asti" % YONLENDIRME_TAVANI,
-            "govde": ""}
+            "govde": "", "gecici": gecici}
 
 
 def olc(yollar, taban=SITE_VARSAYILAN, hiz=HIZ_VARSAYILAN,
@@ -341,7 +414,9 @@ def olc(yollar, taban=SITE_VARSAYILAN, hiz=HIZ_VARSAYILAN,
     """Kumenin TAMAMINI olcer (ORNEKLEME YOK). Doner: (kayitlar, sure_sn).
 
     `hiz` istek/sn tavanidir: istekler arasi en az 1/hiz saniye beklenir. Sure OLCULUR
-    ve rapora basilir (butce karari sayiyla verilsin diye)."""
+    ve rapora basilir (butce karari sayiyla verilsin diye). `uyu` HEM hiz sinirinin HEM
+    gecici-5xx backoff'unun uyku fonksiyonudur (test enjekte edebilsin diye); SAGLIKLI
+    kosumda backoff HIC cagrilmaz — ek maliyet 0'dir."""
     bekleme = (1.0 / hiz) if hiz and hiz > 0 else 0.0
     kayitlar = []
     bas = time.monotonic()
@@ -349,7 +424,7 @@ def olc(yollar, taban=SITE_VARSAYILAN, hiz=HIZ_VARSAYILAN,
         if i and bekleme:
             uyu(bekleme)
         kayitlar.append(olc_tek(taban, yol, zaman_asimi=zaman_asimi, acici=acici,
-                                yontem=yontem))
+                                yontem=yontem, uyu=uyu))
     return kayitlar, time.monotonic() - bas
 
 
@@ -361,6 +436,7 @@ def degerlendir(kayitlar, kume_sayisi=None):
         sayim[k["sinif"]] = sayim.get(k["sinif"], 0) + 1
     kapali = [k for k in kayitlar if k["sinif"] in ("KAPALI", "DONGU")]
     ariza = [k for k in kayitlar if k["sinif"] == "ARIZA"]
+    gecici = [k for k in kayitlar if k.get("gecici")]
     olculen = len(kayitlar)
     beklenen = kume_sayisi if kume_sayisi is not None else olculen
 
@@ -369,6 +445,8 @@ def degerlendir(kayitlar, kume_sayisi=None):
             "kapali": [{"yol": k["yol"], "kod": k["kod"], "tani": k["tani"],
                         "govde": k["govde"]} for k in kapali],
             "ariza": [{"yol": k["yol"], "tani": k["tani"]} for k in ariza],
+            "gecici": [{"yol": k["yol"], "ilk_kod": k["gecici"].get("ilk_kod"),
+                        "deneme": k["gecici"].get("deneme")} for k in gecici],
             "yonlendirme": [{"yol": k["yol"], "zincir": k["zincir"]}
                             for k in kayitlar if k["sinif"] == "YONLENDI"]}
 
@@ -390,21 +468,32 @@ def degerlendir(kayitlar, kume_sayisi=None):
                             % (k["yol"], " -> ".join("%d %s" % z for z in k["zincir"])))
     for k in ariza:
         satirlar.append("⚪ OLCULEMEDI %s -> %s" % (k["yol"], k["tani"]))
+    # GECICI TOPARLANMA: URL ACIK sayilir (musteri kapiyi acabiliyor) ama SESSIZ DEGIL —
+    # yayin/rollout penceresi imzasi burada gorunur ve HUKUM satirinda SAYILIR.
+    for k in gecici:
+        g = k["gecici"]
+        satirlar.append("⚠️ GECICI %s -> ilk HTTP %s, %d. denemede %d (gecici %s)"
+                        % (k["yol"], g.get("ilk_kod") if g.get("ilk_kod") is not None
+                           else "yok/ag hatasi", g.get("deneme"), g.get("kod") or 0,
+                           "5xx" if g.get("ilk_kod") else "ag hatasi"))
 
     # SAPMA KANITI, OLCUM ARIZASINI EZER: elimizde kapali kapi varken "olculemedi"ye
     # dusmek kaniti kaybettirirdi. Iki hal de sayida AYRI AYRI gorunur.
     if kapali:
         satirlar.append("HUKUM: KAPALI — %d URL kapali/dongu, %d olcum arizasi, "
-                        "%d acik (%d yonlendirmeli)."
+                        "%d acik (%d yonlendirmeli), %d gecici toparlanma."
                         % (len(kapali), len(ariza), sayim["ACIK"] + sayim["YONLENDI"],
-                           sayim["YONLENDI"]))
+                           sayim["YONLENDI"], len(gecici)))
         return "KAPALI", SINIF_RC["KAPALI"], satirlar, ozet
     if ariza or olculen != beklenen:
-        satirlar.append("HUKUM: OLCULEMEDI — %d URL olculemedi (ag/DNS/zaman asimi). "
-                        "Saglik KANITLANMADI; 'hepsi 200' VARSAYILMAZ." % len(ariza))
+        satirlar.append("HUKUM: OLCULEMEDI — %d URL olculemedi (ag/DNS/zaman asimi), "
+                        "%d gecici toparlanma. Saglik KANITLANMADI; 'hepsi 200' "
+                        "VARSAYILMAZ." % (len(ariza), len(gecici)))
         return "OLCULEMEDI", SINIF_RC["OLCULEMEDI"], satirlar, ozet
-    satirlar.append("HUKUM: ACIK — %d/%d URL 200 (%d yonlendirme zinciriyle)."
-                    % (sayim["ACIK"] + sayim["YONLENDI"], beklenen, sayim["YONLENDI"]))
+    satirlar.append("HUKUM: ACIK — %d/%d URL 200 (%d yonlendirme zinciriyle), "
+                    "%d gecici toparlanma."
+                    % (sayim["ACIK"] + sayim["YONLENDI"], beklenen, sayim["YONLENDI"],
+                       len(gecici)))
     return "ACIK", SINIF_RC["ACIK"], satirlar, ozet
 
 

@@ -23,6 +23,9 @@ ayni yol HEAD'e 200).
                    kapsam SAYIYLA beyan edilir
   E7  KABLOLAMA  — canli kol AYRI cron alarm kolundadir (yayini durduramaz), bu kabul
                    testi deploy.yml serit B'de FIILEN kosar, canli kol deploy.yml'de KOSMAZ
+  E8  TEKRAR     — GECICI 5xx (Pages rollout penceresi) kalici kapalidan AYRILIR: 5xx/ag
+                   3 kez denenir, 4xx ASLA denenmez, toparlanan URL ⚠️ GECICI olarak
+                   RAPORLANIR, tum denemeler basarisizsa hukum AYNEN KAPALI/OLCULEMEDI
 
 Cikis: 0 = hepsi gecti, 1 = en az bir kusur. Dis ag YOK (yalniz 127.0.0.1 fiksturu).
 """
@@ -56,6 +59,13 @@ def kayit(kod, ad, gecti, detay=""):
     if not gecti:
         KIRMIZI.add(kod)
         HATALAR.append("%s %s%s" % (kod, ad, ("  — " + detay) if detay else ""))
+
+
+def _uykusuz(_sn):
+    """Gecici-5xx backoff'unu notrler (bkz. E5): DETERMINISTIK bekleyis, olcum DEGIL.
+    Backoff'un DEGERI E8'de AYRICA iddia edilir; burada notrlemek hicbir iddiayi
+    korletmez, yalnizca duvar saatini kisaltir."""
+    return None
 
 
 def _modul(ad, yol):
@@ -247,18 +257,27 @@ def e4_yonlendirme(ye, sunucu):
 
 # ------------------------------------------------------------- E5) FAIL-CLOSED
 def e5_fail_closed(ye, sunucu):
-    k, _ = ye.olc(["/acik-1/"], taban=ye.olu_taban(), hiz=0, zaman_asimi=3)
+    # 🔴 `uyu=_uykusuz`: ag arizasi artik TEKRARLANIR (E8) ve aradaki backoff DETERMINISTIK
+    # bir bekleyistir — GERCEK bir olcum degil. Backoff'un DEGERI E8'de AYRICA iddia edilir;
+    # burada notrlenmesi iddiayi degil yalnizca duvar saatini etkiler (sure siniri, ag
+    # zaman asiminin FIILEN uygulandigini olcmeye devam eder).
+    k, _ = ye.olc(["/acik-1/"], taban=ye.olu_taban(), hiz=0, zaman_asimi=3, uyu=_uykusuz)
     sinif, rc, _, ozet = ye.degerlendir(k)
     kayit("E5", "ag YOK (baglanti reddedildi) -> OLCULEMEDI rc 2, YESIL DEGIL",
           sinif == "OLCULEMEDI" and rc == 2 and len(ozet["ariza"]) == 1,
           "%s rc=%d" % (sinif, rc))
 
     bas = time.monotonic()
-    k, _ = ye.olc(["/yavas/"], taban=sunucu.taban, hiz=0, zaman_asimi=0.4)
+    k, _ = ye.olc(["/yavas/"], taban=sunucu.taban, hiz=0, zaman_asimi=0.4, uyu=_uykusuz)
     sinif, rc, _, _ = ye.degerlendir(k)
+    # SURE SINIRI DENEME BASINA TUREIR (ikiz sabit YOK): fikstur 2,0 sn bekler, zaman
+    # asimi 0,4 sn. Sinir = deneme x 0,4 + 1,1 sn pay (E8 oncesi TEK denemede 1,5 sn olan
+    # sinirin AYNISI, deneme basina). Zaman asimi UYGULANMAZSA her deneme 2,0 sn surer ve
+    # bu sinir yine ASILIR -> iddia korelmedi.
+    sure_siniri = ye.TEKRAR_SAYISI * 0.4 + 1.1
     kayit("E5", "ZAMAN ASIMI -> OLCULEMEDI rc 2 (gecikmeli uc yesil sayilmaz)",
-          sinif == "OLCULEMEDI" and rc == 2 and (time.monotonic() - bas) < 1.5,
-          "%s rc=%d (%.2f s)" % (sinif, rc, time.monotonic() - bas))
+          sinif == "OLCULEMEDI" and rc == 2 and (time.monotonic() - bas) < sure_siniri,
+          "%s rc=%d (%.2f s < %.1f s)" % (sinif, rc, time.monotonic() - bas, sure_siniri))
 
     kayit("E5", "BOS kume -> OLCULEMEDI (hicbir sey olcmeyen kosum yesil DEGIL)",
           ye.degerlendir([])[0] == "OLCULEMEDI", ye.degerlendir([])[0])
@@ -268,7 +287,8 @@ def e5_fail_closed(ye, sunucu):
     # 🔴 KANIT olarak DONGU secildi (durum KODU degil): 403/404'u "acik" sayan bir
     # mutant bu iddiayi da dusururdu ve E3/E5 ayrimi bulanirdi.
     kapali, _ = ye.olc(["/dongu-a/"], taban=sunucu.taban, hiz=0)
-    ariza, _ = ye.olc(["/acik-1/"], taban=ye.olu_taban(), hiz=0, zaman_asimi=3)
+    ariza, _ = ye.olc(["/acik-1/"], taban=ye.olu_taban(), hiz=0, zaman_asimi=3,
+                      uyu=_uykusuz)
     sinif, rc, _, ozet = ye.degerlendir(kapali + ariza)
     kayit("E5", "KANIT EZER: KAPALI + ARIZA birlikte -> KAPALI rc 1, ariza sayisi DURUYOR",
           sinif == "KAPALI" and rc == 1 and len(ozet["ariza"]) == 1
@@ -313,6 +333,137 @@ def e6_maliyet(ye, sunucu):
     kayit("E6", "fikstur envanteri tabanin ustunde (>= %d)" % FIKSTUR_TABANI,
           len(ye.FIKSTUR_YOLLARI) >= FIKSTUR_TABANI,
           "%d fikstur yolu" % len(ye.FIKSTUR_YOLLARI))
+
+
+# ------------------------------------------------------- E8) GECICI 5xx TEKRARI
+class SahteAg:
+    """`_istek` yerine gecen SCRIPTLI ag katmani — GERCEK ISTEK ATILMAZ.
+
+    yanitlar: [("kod", 503), ("hata", "URLError: ..."), ("kod", 200), ...]
+    Liste bitince SON yanit tekrarlanir; FAZLADAN cagri sessizce yutulmasin diye her
+    vaka ATILAN ISTEK SAYISINI (self.cagri) AYRICA iddia eder — yalnizca sinifi iddia
+    etmek "tekrar var mi yok mu" eksenini KOR birakirdi."""
+
+    def __init__(self, yanitlar):
+        self.yanitlar = list(yanitlar)
+        self.cagri = 0
+
+    def __call__(self, url, yontem=None, zaman_asimi=None, acici=None):
+        self.cagri += 1
+        tur, deger = self.yanitlar[min(self.cagri - 1, len(self.yanitlar) - 1)]
+        if tur == "hata":
+            return None, {}, b"", deger
+        # 5xx govdesi 8 Agu 2026'da CANLIDAN olculen sekli tasir (GitHub Pages 5xx sayfasi).
+        govde = (b"<!DOCTYPE html> <!-- Hello future GitHubber! I bet you're he"
+                 if deger >= 500 else b"<!doctype html><title>PRUVO</title>")
+        return deger, {"server": "cloudflare", "cf-cache-status": "DYNAMIC"}, govde, None
+
+
+def _sahte_kosum(ye, yanitlar, yol="/interkom-diafon-ve-kapi-zili-plastik-parca-uretimi/"):
+    """(sinif, rc, satirlar, ozet, atilan_istek, backoff_uykulari) — DIS AG YOK."""
+    sahte = SahteAg(yanitlar)
+    uykular = []
+    eski = ye._istek
+    ye._istek = sahte
+    try:
+        kayitlar, _ = ye.olc([yol], taban="http://olcum.fikstur.gecersiz", hiz=0,
+                             uyu=lambda s: uykular.append(s))
+    finally:
+        ye._istek = eski
+    sinif, rc, satirlar, ozet = ye.degerlendir(kayitlar)
+    return sinif, rc, satirlar, ozet, sahte.cagri, uykular
+
+
+def _gecici_satiri(satirlar):
+    return [s for s in satirlar if s.startswith("⚠️ GECICI")]
+
+
+def e8_gecici_5xx(ye, sunucu):
+    # TEK KAYNAK: tekrar butcesi + SABIT backoff (jitter YOK -> deterministik test).
+    kayit("E8", "TEK KAYNAK: TEKRAR_SAYISI == 3 · TEKRAR_BEKLEMELERI == (2.0, 4.0) "
+          "(sabit backoff, JITTER YOK)",
+          ye.TEKRAR_SAYISI == 3 and tuple(ye.TEKRAR_BEKLEMELERI) == (2.0, 4.0),
+          "sayi=%r beklemeler=%r" % (ye.TEKRAR_SAYISI, ye.TEKRAR_BEKLEMELERI))
+
+    # V1 — olculen ariza: Pages rollout penceresinde 503, sonra toparlanma.
+    s, rc, satirlar, ozet, cagri, uykular = _sahte_kosum(
+        ye, [("kod", 503), ("kod", 503), ("kod", 200)])
+    kayit("E8", "V1 503->503->200: ACIK rc 0, ATILAN ISTEK 3, backoff [2.0, 4.0]",
+          s == "ACIK" and rc == 0 and cagri == 3 and uykular == [2.0, 4.0],
+          "%s rc=%d istek=%d uyku=%s" % (s, rc, cagri, uykular))
+    kayit("E8", "V1 SESSIZ YESIL DEGIL: ozette ⚠️ GECICI satiri VAR ve ilk kodu tasiyor",
+          len(_gecici_satiri(satirlar)) == 1
+          and "ilk HTTP 503" in "".join(_gecici_satiri(satirlar))
+          and len(ozet.get("gecici") or []) == 1,
+          "; ".join(_gecici_satiri(satirlar))[:90] or "GECICI SATIRI YOK")
+    kayit("E8", "V1 HUKUM satiri gecici toparlanmayi SAYIYLA basiyor",
+          any(s2.startswith("HUKUM:") and "1 gecici toparlanma" in s2
+              for s2 in satirlar),
+          "; ".join(s2 for s2 in satirlar if s2.startswith("HUKUM:"))[:90])
+
+    # V2 — GERCEK kesinti: alarm GEVSEMEDI, ucu de 5xx ise hukum AYNEN KAPALI.
+    s, rc, satirlar, _, cagri, _ = _sahte_kosum(
+        ye, [("kod", 503), ("kod", 503), ("kod", 503)])
+    kayit("E8", "V2 503x3 (GERCEK kesinti): KAPALI rc 1, ATILAN ISTEK 3 — alarm "
+          "GEVSETILMEDI", s == "KAPALI" and rc == 1 and cagri == 3,
+          "%s rc=%d istek=%d" % (s, rc, cagri))
+    kayit("E8", "V2 'GECICI' etiketi YOK (toparlanmayan 5xx gecici SAYILMAZ)",
+          not _gecici_satiri(satirlar), "; ".join(_gecici_satiri(satirlar))[:80] or "-")
+
+    # V3/V4 — 12 gun sessiz kalan OLCULMUS sinif: 4xx ILK denemede KAPALI, tekrar YOK.
+    for kod, ad in ((404, "V3"), (403, "V4")):
+        s, rc, satirlar, _, cagri, uykular = _sahte_kosum(ye, [("kod", kod)])
+        kayit("E8", "%s %d tek deneme: KAPALI rc 1 ve ATILAN ISTEK 1 — 4xx'e tolerans "
+              "EKLENMEDI" % (ad, kod),
+              s == "KAPALI" and rc == 1 and cagri == 1 and uykular == [],
+              "%s rc=%d istek=%d uyku=%s" % (s, rc, cagri, uykular))
+
+    # V5/V6 — ag hatasi GECICI siniftadir: tekrarlanir, ama toparlanmazsa FAIL-CLOSED.
+    s, rc, satirlar, _, cagri, _ = _sahte_kosum(
+        ye, [("hata", "URLError: [Errno 61] Connection refused")])
+    kayit("E8", "V5 ag hatasi x3: OLCULEMEDI rc 2, ATILAN ISTEK 3 (fail-closed KORUNDU)",
+          s == "OLCULEMEDI" and rc == 2 and cagri == 3,
+          "%s rc=%d istek=%d" % (s, rc, cagri))
+    s, rc, satirlar, _, cagri, _ = _sahte_kosum(
+        ye, [("hata", "timeout: The read operation timed out"), ("kod", 200)])
+    kayit("E8", "V6 ag hatasi -> 200: ACIK rc 0, ATILAN ISTEK 2, GECICI satiri VAR",
+          s == "ACIK" and rc == 0 and cagri == 2 and len(_gecici_satiri(satirlar)) == 1,
+          "%s rc=%d istek=%d gecici=%s" % (s, rc, cagri, _gecici_satiri(satirlar)[:1]))
+
+    # V7 KONTROL MUTANTI — saglikli yol YANLISLIKLA "gecici" etiketlenmesin.
+    s, rc, satirlar, ozet, cagri, uykular = _sahte_kosum(ye, [("kod", 200)])
+    kayit("E8", "V7 KONTROL: ilk denemede 200 -> ACIK rc 0, ATILAN ISTEK 1, GECICI "
+          "satiri YOK, backoff YOK",
+          s == "ACIK" and rc == 0 and cagri == 1 and not _gecici_satiri(satirlar)
+          and uykular == [] and not (ozet.get("gecici") or []),
+          "%s rc=%d istek=%d uyku=%s" % (s, rc, cagri, uykular))
+    kayit("E8", "V7 HUKUM satiri '0 gecici toparlanma' diyor (sayi UYDURULMUYOR)",
+          any(s2.startswith("HUKUM:") and "0 gecici toparlanma" in s2
+              for s2 in satirlar),
+          "; ".join(s2 for s2 in satirlar if s2.startswith("HUKUM:"))[:90])
+
+    # 🔴 MALIYET: SAGLIKLI kosumda EK ISTEK 0 — GERCEK fikstur sunucusu uzerinde olculur
+    # (328 URL'lik canli kosumun suresi degismesin diye; ek maliyet YALNIZ arizali URL'de).
+    sayac = {"n": 0}
+    eski = ye._istek
+
+    def _sayan(url, yontem=None, zaman_asimi=ye.ZAMAN_ASIMI_VARSAYILAN, acici=None):
+        sayac["n"] += 1
+        return eski(url, yontem=yontem, zaman_asimi=zaman_asimi, acici=acici)
+
+    uykular = []
+    ye._istek = _sayan
+    try:
+        yollar = ["/acik-1/", "/acik-2/", "/hedef/"]
+        kayitlar, _ = ye.olc(yollar, taban=sunucu.taban, hiz=0,
+                             uyu=lambda s2: uykular.append(s2))
+    finally:
+        ye._istek = eski
+    s, rc, _, _ = ye.degerlendir(kayitlar)
+    kayit("E8", "SAGLIKLI KOSUMDA EK ISTEK 0: 3 URL -> 3 GET, 0 backoff uykusu "
+          "(canli kosum suresi DEGISMEDI)",
+          s == "ACIK" and rc == 0 and sayac["n"] == len(yollar) and uykular == [],
+          "istek=%d/%d uyku=%s" % (sayac["n"], len(yollar), uykular))
 
 
 # -------------------------------------------------------------- E7) KABLOLAMA
@@ -449,7 +600,8 @@ IDDIALAR = (("E1", "KUME — kaynaklardan turer, taban altinda OLCULEMEDI"),
             ("E4", "YONLENDIRME — zincir/dongu"),
             ("E5", "FAIL-CLOSED — ag/zaman asimi OLCULEMEDI"),
             ("E6", "MALIYET — hiz siniri, ornekleme yok, kapsam beyani"),
-            ("E7", "KABLOLAMA — cron alarm kolu + serit B"))
+            ("E7", "KABLOLAMA — cron alarm kolu + serit B"),
+            ("E8", "TEKRAR — gecici 5xx kalici kapalidan AYRILIR (4xx tekrarsiz)"))
 
 
 def main():
@@ -474,7 +626,8 @@ def main():
                     ("E4", lambda: e4_yonlendirme(ye, sunucu)),
                     ("E5", lambda: e5_fail_closed(ye, sunucu)),
                     ("E6", lambda: e6_maliyet(ye, sunucu)),
-                    ("E7", lambda: e7_kablolama(ye, iak, suzgec, cron)))
+                    ("E7", lambda: e7_kablolama(ye, iak, suzgec, cron)),
+                    ("E8", lambda: e8_gecici_5xx(ye, sunucu)))
         for kod, fn in kosumlar:
             try:
                 fn()
