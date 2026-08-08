@@ -1,7 +1,13 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🧹 WORKTREE + ARTIK ENVANTERI — 8 Agu 15:00 turu KAPANDI (dokum ARSIVDE)
-Worktree 8 -> 3, izlenmeyen artik 7 -> 0, uc kalem .gitignore'a alindi (0e918189). Kaldirilan 6 kaydin nereye gittigi, iki bayat "bekleyen" kalemin curutulmesi ve worktree-ici commit "BAYATTI" tuzagi: DEVAM-ARSIV.md.
+## ✅ KATALOG ALAN KAPISI main'e ALINDI — 8 Agu 22:35 (merge `bdddaee0`)
+Dal `claude/suspicious-ishizaka-414f35` (`7ea781f6`, taban `62c7049b`) **merge commit'iyle** alindi: ff IMKANSIZ (`--is-ancestor` rc=1), cakisma 0 (`merge-tree` yalniz agac OID'i), kapsam 9 dosya +1054/-1, `urunler.json` ve gizli kayit diff'te YOK. Icerik: commit anindaki DEGISEN kayitlarin `altkategori` + `uyum`/`marka` alanlarini `arama.py`'nin kanonik fonksiyonlariyla dogrulayan fail-closed yerel kapi + pre-commit **adim 5** + kabul surucusu + CI adimi. Push `e907eac7..bdddaee0`, force YOK.
+**Merge sonrasi kapilar (ana checkout, main):** kanca-kablolama-nobeti rc=0 (20/20) · kanca-nobeti rc=0 (14/14) · ci-kapsam rc=0 (209 .py olculdu, 40 js OLCULEMEDI) · kapi-envanteri **7/7** · katalog-alan-kapisi-test **49/49** rc=0 · altkategori-kapisi **42/0** · uyum-kapisi **39/0** (taban 39) · gitignore-kapisi TEMIZ · kisisel-veri-test rc=0. Merge ONCESI kablolama nobeti rc=1'di (kurulu kanca kopyasi dalin adim 5'ini tasiyordu, izlenen main surumunde yoktu) — merge kapatti, `kanca-kur.py` "BAYT-ESIT" dedi.
+**D1:** `d1-sync --durum` DORT eksen YESIL — sayi **22698 == urunler.json benzersiz**, hash uyusmazlik 0, D1'de eksik 0 / fazla 0, sema + 5 turetilmis kolon GUNCEL.
+🔴 **MERGE YAN ETKISI — iki tur curutmenin KACIRDIGI kirmizi (onarim YAZILDI+OLCULDU, COMMIT EDILMEDI):** yeni adim 5 fail-closed oldugu icin (`... YOK` -> exit 1), KARDES kabul testinin sentetik kanca deposunda dosya bulunmayinca `diriltme-kapisi.py --kendini-test` **86 iddiadan 8'i** kirmiziya dondu ve `nobet.yml` **serit-b** koşumu (`31282011513`) FAILURE oldu (yayini BLOKLAMAZ). Kok neden dalin kendi ekseni degil **FIKSTUR IKIZI**: fikstur arac listesi elle tutuluyordu ([[ikiz-tanim-sessiz-ayrisma]]). Curutme dalin KENDI testlerini kosuyordu, kardes fikstur ekseni kimsede yoktu. Onarim iki parca: (1) `katalog-alan-kapisi.py` kapsam-disi STUB listesine alindi, (2) yeni **K0 iddiasi** kanca govdesinden (`pre-commit` + `commit-msg`, yani commit'i BLOKLAYABILEN kancalar) cagrilan arac kumesini TURETIP listeyle karsilastiriyor -> bir sonraki kanca adimi ayni sinifi sessizce tekrar edemez. Sonuc **87/87 YESIL**; K0'in ayirt ediciligi olculdu (liste eksikken kendi adiyla kirmizi yandi, kapsam genisken 3 kapsam-disi araci bastigi icin eksen `pre-commit`+`commit-msg` ile daraltildi). ⛔ **Onarim ANA checkout'un calisma agacinda DURUYOR, commit EDILEMEDI:** kod kilidi (Layer 2) kaynak degisikligini ana checkout'ta reddediyor, isciye yeni worktree acmak da bu turda yasaklandi. **Devralacak icin: `tools/diriltme-kapisi.py` tek dosya, `git diff` ile gorunur; yama kopyasi oturum scratchpad'inde. Commit edilmeden `serit-b` kirmizi KALIR (yayini bloklamaz).**
+**CI (merge SHA icin, yazma aninda):** `bdddaee0` uzerinde D1 sapma alarmi · odeme nabzi · spec/tasarim alarmi · yayin erisim · D1 uzlastirici **success**; serit-b **failure** (yukaridaki fikstur ikizi; onarim ardil koşuma birakildi). **`Build & deploy` koşumu `31282011345` HALA `pending`** — onceki zincir (`2e024245`) ucustaydi, kuyruk tavani gene SURE'den geliyor ([[cancelled-yigini-yayin-tavani]]). `serit-a2`/`deploy` hukmu bu turda **OLCULEMEDI**; ardil koşum `bdddaee0`'i ata olarak tasir.
+**SONRAKI TURUN ILK ISI:** `bdddaee0` ve onu izleyen onarim commit'i zincirinde `serit-a2` (yeni 49-iddialik kabul testi orada) ve `serit-b` (87/87 beklenir) sonuclarini olc; `deploy` yesilse canli katalog **22698** teyidi. SIFIRDAN TESHISE BASLAMA.
+**Temizlik BILEREK YAPILMADI:** dalin worktree'si mimarin CANLI oturumu — worktree/dal SILINMEDI.
 ## 🔚 OTURUM KAPANISI — 8 Agu (yayin blokaji + marka sayfasi turu)
 
 **CANLIYA GITTI (SHA'larla, hepsi `origin/main` ve canli olcumle teyitli):**
@@ -75,10 +81,8 @@ kos, arka plan bayragi YOK, olcmeden donme" satiri ZORUNLU.
 
 **Kapilar (commit oncesi, lokal):** `devam-sinif-kapisi.py` **rc=0** (3 kok belgesi, 132 satir,
 0 sinif ihlali) · `kisisel-veri-test.py` **rc=0** (6 alt nobetcinin tumu yesil).
-ℹ️ Kayit: `kisisel-veri-test.py`'nin "gecmis ekseni" kolu "pre-push kancasi KURULU DEGIL" uyarisi
-basiyor, ama olculdu: `core.hooksPath` = `.git/pruvo-kancalar` ve **6 kancanin 6'si da kurulu**.
-Uyari muhtemelen `.git/hooks`'a (aktif OLMAYAN dizin) bakiyor → kolun kendi kor noktasi olabilir.
-Ayri is, bu turda kapsam disi; dogrulanmadan "kanca yok" hukmu verilmemeli.
+ℹ️ Kayit: `kisisel-veri-test.py`'nin "gecmis ekseni" kolunun bastigi uyari olculdu ve
+curutuldu (kolun kendi kor noktasi olabilir, ayri is). Tam metin: DEVAM-ARSIV.md.
 
 **Sonraki turun ILK isi:** `31278306571`'in `serit-a4` sonucunu ve `deploy`/`yayin` job'larini
 olc. Yesilse canli teyit: canli katalog **22698**'e ciktı mi (13 urunluk fark kapandi mi) +
