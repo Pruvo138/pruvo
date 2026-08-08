@@ -10,15 +10,37 @@
  * Deterministik: gercek tarayici/timer YOK. setInterval saplamasi callback'i YAKALAR,
  * test onu ELLE cagirir; fetch saplamasi sabit yeni veri dondurur.
  *
- * Kullanim: node tools/panel-tazeleme-test.js <panel.html yolu>
- * Cikis: 0 = gecti, 1 = kaldi
+ * Kullanim:
+ *   node tools/panel-tazeleme-test.js                 # HTML'i KENDI uretir (CI kolu)
+ *   node tools/panel-tazeleme-test.js <panel.html>    # hazir HTML dosyasini olcer
+ * Cikis: 0 = gecti, 1 = kaldi. Repo dosyasi DEGISMEZ (gecici dizine yazar).
  */
 'use strict';
 const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const vm = require('node:vm');
+const { spawnSync } = require('node:child_process');
 
-const yol = process.argv[2];
-if (!yol) { console.error('KULLANIM: node tools/panel-tazeleme-test.js <panel.html>'); process.exit(1); }
+const TOOLS = __dirname;
+
+function htmlUret() {
+  // Panelin GERCEK ciktisini olc: parity-panel.py'yi --html-yaz ile gecici dosyaya kostur.
+  // FAIL-LOUD: uretim basarisizsa test "gecti" DEMEZ, exit 1 verir (sessiz atlama YOK).
+  const dizin = fs.mkdtempSync(path.join(os.tmpdir(), 'panel-tazeleme-'));
+  const hedef = path.join(dizin, 'panel.html');
+  const r = spawnSync('python3', [path.join(TOOLS, 'parity-panel.py'), '--html-yaz', hedef],
+                      { encoding: 'utf8' });
+  if (r.error || r.status !== 0 || !fs.existsSync(hedef)) {
+    console.error('FAIL: panel HTML URETILEMEDI (parity-panel.py --html-yaz).');
+    console.error('  status=%s  error=%s', r.status, r.error && r.error.message);
+    console.error((r.stderr || '').slice(-2000));
+    process.exit(1);
+  }
+  return hedef;
+}
+
+const yol = process.argv[2] || htmlUret();
 const html = fs.readFileSync(yol, 'utf8');
 
 const FAILS = [];

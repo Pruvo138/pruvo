@@ -202,6 +202,16 @@ setInterval(tazele,TAZELEME_MS);
 
 if __name__ == "__main__":
     HTML = render_html()
+    # --html-yaz <yol>: HTML'i verilen yola yaz (Desktop'a DEGIL). Kabul testleri
+    # (panel-tazeleme-test.js) panelin GERCEK ciktisini gecici bir dosyada olcmek icin
+    # bunu kullanir; boylece test kullanicinin masaustundeki dosyaya DOKUNMAZ.
+    if len(sys.argv) >= 3 and sys.argv[1] == "--html-yaz":
+        hedef = sys.argv[2]
+        os.makedirs(os.path.dirname(os.path.abspath(hedef)), exist_ok=True)
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(HTML)
+        print("YAZILDI: %s" % hedef)
+        sys.exit(0)
     yazilan = OUT
     try:
         os.makedirs(os.path.dirname(OUT), exist_ok=True)

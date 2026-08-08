@@ -473,6 +473,24 @@ jobs:
       - name: Marka paneli mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
         run: python3 tools/panel-mutasyon-test.py
 
+      # PANEL OTOMATIK TAZELEME DAVRANIS TESTI — KENDI ADIMI olarak kosar (BILEREK).
+      # Ustteki marka-panel-test.py bu betigi DOLAYLI da cagirir, ama dolayli cagri
+      # tools/ci-kapsam-test.py icin KAPSAM SAYILMAZ: cagiran satir silinse .js hicbir
+      # push'ta kosmaz ve kapsam kapisi bunu goremezdi. Ayri adim = kapsamin GORUNUR olmasi.
+      # NE OLCER: panel <meta http-equiv="refresh"> KULLANMAZ (o, kullanicinin arama
+      # kutusunu / "sadece yapilacaklar" filtresini / siralamasini SIFIRLAR); bunun yerine
+      # /veri ucundan fetch edip tabloyu yeniden cizer ve tazeleme sonrasi arama+filtre+
+      # siralama KORUNUR, tablo GERCEKTEN yeni veriyi gosterir (no-op degil), sunucu
+      # yoksa sessiz no-op olur. Gercek tarayici/timer YOK: setInterval saplamasi
+      # callback'i yakalar, test elle cagirir -> deterministik.
+      # Argumansiz kosar: panelin GERCEK HTML'ini parity-panel.py --html-yaz ile gecici
+      # dizine uretir (repo dosyasi DEGISMEZ, masaustundeki panele DOKUNMAZ).
+      # node ISTER (yukaridaki setup-node BLOKLAYICI on-kosul); node yoksa adim 127 ile
+      # DUSER — sessiz "yesil" YOK, hal OLCULEMEDI olarak KIRMIZI yanar. HTML uretilemezse
+      # betik de fail-loud exit 1 verir (kendi kendine "gecti" DEMEZ). OFFLINE, ~1 s.
+      - name: Marka paneli otomatik tazeleme davranış testi (arama/filtre korunuyor mu)
+        run: node tools/panel-tazeleme-test.js
+
       # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
       # kalmali, 4 gercek drift mutanti KIRMIZI yanmali, CLI cikis kodlari (esit=0 / drift=1 /
       # dosya-yok=1) dogru olmali, bozuk konfigur semasi artefakt URETIMINI reddetmeli
