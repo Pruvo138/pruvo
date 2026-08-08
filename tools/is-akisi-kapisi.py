@@ -2409,6 +2409,14 @@ SERIT_B = {
         "durum.py EDGE_KATALOG sayaci (pano bolumu) testi; yayinlanan cikti uretmez.",
     ("nobet.yml", "serit-b", "tools/durum-yedek-test.py"):
         "durum.py '7) YEDEK TAZELIGI' pano bolumunun testi; yayinlanan cikti uretmez.",
+    ("nobet.yml", "serit-b", "tools/yedek-sir-eleme-test.py"):
+        "yedekle.py'nin SIR ELEMESI + yedek KOKU sir temizligi bataryasi (8 Agu 2026 "
+        "Okan karari: jetonlar ortak Drive yedegine girmez). Serit B, cunku olctugu "
+        "yuzey YEREL YEDEKLEME ARACIDIR: yayinlanan hicbir bayta dokunmaz (urunler.json/"
+        "D1/R2/Pages/odeme yuzeyleri disinda, tamamen hermetik kum havuzunda kosar). "
+        "Buradaki kirmizi 'yedek araci curudu' der, 'site bozuk' DEMEZ — yayini "
+        "durdurmak yanlis olurdu ([[kapi-birikimi-yayin-gecikmesi]]). Kardesi "
+        "durum-yedek-test.py ile AYNI serit ve AYNI gerekce.",
     ("nobet.yml", "serit-b", "tools/derin-cap-test.py"):
         "Hasat adaptorlerinin `--derin` pagination ayrimi (urun EKLEME araci) testi; "
         "yayin hattinda hicbir sey uretmez.",

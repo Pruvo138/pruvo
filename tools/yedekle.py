@@ -7,7 +7,14 @@ yazilmis agaclar: zamanlanmis gorev tanimlari / cron nobeti / planlar
 
 SIRLAR — UC AYRI REJIM, KARISTIRMA:
   1. REPO KOKUNDEKI SANCAKLI SIR LISTESI (.thingiverse-token, .r2-credentials.json, ...):
-     VARSAYILAN yedeklenmez; "--sirlar" ile ayni ozel Drive'a dahil edilir (klasoru PAYLASMA!).
+     🔴 8 AGU 2026 — YAZMA YOLU KAPANDI (Okan karari: "jetonlari yedekten cikar").
+     Bu dosyalar HICBIR BAYRAKLA yedege GIRMEZ; yalniz bu makinede dururlar.
+     Kaybolmalari hicbir seyi kirmaz: hepsi kaynagindan yeniden uretilebilir (SIR_KOKENI).
+     "--sirlar" EMEKLI oldu — kabul edilir (bilinmeyen-bayrak fail-closed'i tetiklemesin)
+     ama KAPSAMI DEGISTIRMEZ. Eleme kanonik kumeden turer (REPO_SIR + SIR_ADLARI),
+     ELLE IKINCI LISTE ACILMAZ; elenen her kalem ADIYLA sayilir (bkz. repo_kok_ayrimi).
+     Yedek KOKUNDE onceki surumlerden kalan kopyalar "--sir-temizle" ile FAIL-CLOSED
+     silinir (yereldeki asil VAR+okunabilir degilse SILINMEZ; bkz. yedek_kok_sir_temizle).
      🔴 DIKKAT (1 Agu 2026 hizalamasi): "PAYLASMA" yalniz --sirlar'a OZGU DEGILDIR.
      31 Tem EK KAPSAM genislemesinden beri VARSAYILAN kosum da ticari gizli icerik
      tasir (raporlar/ — IBAN/VKN gecen tasinma envanteri —, .tedarikci-fiyat/,
@@ -98,8 +105,9 @@ Kullanim:
     python3 tools/yedekle.py --kuru       # KURU KOSUM: ne kopyalanacagini listeler, YAZMAZ
     python3 tools/yedekle.py --gerekliyse # UCUZ MOD: son damgadan beri degisiklik yoksa CIKAR
     python3 tools/yedekle.py --dogrula    # OLCUM: plandaki her dosya hedefte VAR MI (yazmaz)
-    python3 tools/yedekle.py --sirlar     # + token + r2 creds (repo kokundeki sancakli liste)
-    python3 tools/yedekle.py --sir-temizle  # hedefteki bayat sir kopyalarini SIL
+    python3 tools/yedekle.py --sirlar     # EMEKLI — kapsami DEGISTIRMEZ (sir yedege girmez)
+    python3 tools/yedekle.py --sir-temizle  # hedefteki sir kopyalarini SIL (kok + skills)
+    python3 tools/yedekle.py --kuru-prova   # SILME PROVASI: ne silinecegini basar, SILMEZ
 """
 import fcntl
 import fnmatch
@@ -333,7 +341,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
 
 BAYRAKLAR = {"--kuru", "--dry-run", "--gerekliyse", "--sirlar", "--sir-temizle",
-             "--dogrula", "-h", "--help"}
+             "--kuru-prova", "--dogrula", "-h", "--help"}
 
 # Tazelik damgasi — backup/ kokunde. durum.py panosu BU dosyayi okur (tek kaynak).
 DAMGA_ADI = ".son-yedek.json"
@@ -437,6 +445,68 @@ def sir_sebebi(yol, ad):
     return None
 
 
+# ================= KOK SIR ELEMESI (8 Agu 2026, OKAN KARARI) =================
+# 🔴 KARAR: "Jetonlari yedekten cikar." Sir dosyalari ORTAK Drive yedegine ARTIK
+# KOPYALANMAZ; yalniz bu makinede dururlar. Kaybolmalari hicbir seyi kirmaz —
+# hepsi kaynagindan YENIDEN URETILEBILIR (recete: SIR_KOKENI tablosu).
+# ONCEKI HAL (olculdu): `--sirlar` bayragi REPO_SIR'i yedek KOKUNE kopyaliyordu ve
+# `--sir-temizle` o kokteki kopyalara HIC ULASMIYORDU (yalniz skills_yaz'a geciyordu)
+# -> "temizleme araci var" beyani bu kalemler icin GERCEK DEGILDI.
+#
+# 🔴 KUME ELLE YAZILMAZ: eleme KANONIK kumeden TURER (REPO_SIR + SIR_ADLARI).
+# Ucuncu bir elle liste acmak bu depoda OLCULMUS bir sinifitir ([[envanter-drift-parti-basina]],
+# [[tekil-yama-sinifi-kapatmaz]]): elle liste parti basina bayatlar ve yarin kanonik
+# kumeye eklenen ad ELENMEDEN yedege sizar. Buraya bir ad eklemek isteyen REPO_SIR
+# ya da SIR_ADLARI'na ekler; eleme, silme ve envanter UCU DE ayni anda ogrenir.
+
+def kok_sir_kumesi():
+    """Yedek/repo KOKUNDE sir sayilan ADLAR — KANONIK kumelerin birlesimi (TEK tanim).
+    Kucuk harfe indirgenmis frozenset doner (dosya sistemi buyuk/kucuk harf ayirmayabilir)."""
+    return frozenset(a.lower() for a in tuple(REPO_SIR) + tuple(SIR_ADLARI))
+
+
+def kok_sir_adi_mi(ad):
+    """Ad kanonik sir kumesinde mi? (ad karsilastirmasi — dosya ACILMAZ)"""
+    return ad.lower() in kok_sir_kumesi()
+
+
+def kok_sir_sebebi(yol, ad):
+    """Kokteki bir kalem sir mi? -> INSANA OKUNUR sebep ya da None (TEK tanim).
+
+    Ad kanonik kumedeyse dosyaya HIC BAKILMAZ (sancakli liste yeter); aksi halde
+    sir_sebebi'nin tam nobetine (ad deseni + ICERIK imzasi) duser. Sebep metni
+    ASLA sirrin kendisini tasimaz."""
+    if kok_sir_adi_mi(ad):
+        return "kanonik sir kumesi (REPO_SIR + SIR_ADLARI)"
+    return sir_sebebi(yol, ad)
+
+
+def repo_kok_ayrimi():
+    """Repo kokundeki yedek adaylarinin SIR ELEMESI. Doner: (dahil, elenen).
+
+    dahil  : [ad]            -> yedege GIRER
+    elenen : [(ad, sebep)]   -> yedege GIRMEZ; ADIYLA basilir (ad sir degil, ICERIK sir).
+
+    Aday kume = REPO_BEKLENEN + REPO_SIR (yani `--sirlar`in eskiden actigi kume de
+    ADAYDIR — ama elemeden GECEMEZ). Boylece "sessiz atlama" yok: her elenen kalem
+    sayilir ve adiyla raporlanir.
+
+    🔴 ELEME AD EKSENLIDIR, ICERIK TARAMASI DEGIL: REPO_BEKLENEN dosyalari (AGENTS.md,
+    DEVAM.md ...) yanlis-pozitif bir icerik imzasi yuzunden SESSIZCE yedek disi
+    kalmasin diye burada icerik nobeti KOSMAZ — o sinif 30 Tem'de bir kez yasandi
+    (CLAUDE.md symlink'i) ve repo_eksikleri() ancak VARLIGI olcer, elenmeyi olcmez."""
+    dahil, elenen = [], []
+    for ad in tuple(REPO_BEKLENEN) + tuple(REPO_SIR):
+        p = os.path.join(ROOT, ad)
+        if not os.path.exists(p) or os.path.islink(p):
+            continue
+        if kok_sir_adi_mi(ad):
+            elenen.append((ad, "kanonik sir kumesi (REPO_SIR + SIR_ADLARI)"))
+        else:
+            dahil.append(ad)
+    return dahil, elenen
+
+
 def skills_plani(kok=None):
     """~/.claude/skills agacini tarar.
 
@@ -499,6 +569,101 @@ def skills_yaz(kok, hedef, dahil, haric, sir_temizle=False):
             if sir_temizle:
                 os.remove(varis)
     return yazilan, bayat
+
+
+def yedek_kok_sir_plani(backup, adlar=None):
+    """Yedek KOKUNDE duran sir kopyalarini BULUR (hicbir sey silmez/acmaz).
+
+    Doner: [(ad, hedef_yol, yerel_yol, yerel_tamam, engel)]
+      yerel_tamam : yereldeki ASIL var VE okunabilir mi (fail-closed on kosul)
+      engel       : yerel_tamam False ise SEBEP metni, degilse ""
+
+    `adlar` verilirse YALNIZ o adlara bakilir (tekil, elle onaylanmis kaldirma icin);
+    varsayilan KANONIK KUMENIN TAMAMIDIR. Kisitlama kalici bir kural DEGILDIR.
+
+    🔴 DOSYA ICERIGI ACILMAZ: varlik/okunabilirlik os.stat + os.access ile olculur."""
+    kume = kok_sir_kumesi() if adlar is None else frozenset(a.lower() for a in adlar)
+    try:
+        girisler = sorted(os.listdir(backup))
+    except OSError:
+        return []
+    cikti = []
+    for giris in girisler:
+        if giris.lower() not in kume:
+            continue
+        hedef = os.path.join(backup, giris)
+        if not os.path.isfile(hedef):
+            continue                     # dizin/link: bu kapinin konusu degil
+        yerel = os.path.join(ROOT, giris)
+        if not os.path.isfile(yerel):
+            cikti.append((giris, hedef, yerel, False,
+                          "yereldeki ASIL YOK (silinirse tek kopya gider)"))
+        elif not os.access(yerel, os.R_OK):
+            cikti.append((giris, hedef, yerel, False, "yereldeki asil OKUNAMIYOR"))
+        else:
+            cikti.append((giris, hedef, yerel, True, ""))
+    return cikti
+
+
+def yedek_kok_sir_temizle(backup, kuru_prova=False, adlar=None):
+    """Yedek KOKUNDEKI sir kopyalarini KALDIRIR — FAIL-CLOSED.
+
+    Doner: (islenen[(ad, yol)], atlanan[(ad, sebep)], bulunan_sayisi)
+      islenen : fail-closed on kosulu GECEN kalemler — `kuru_prova=False` ise SILINDI,
+                `kuru_prova=True` ise SILINECEKTI (dosyaya DOKUNULMADI).
+
+    🔴 TEK KOD YOLU, BILEREK: prova ile gercek silme AYNI listeyi ayni suzgecten
+    uretir. Ayri bir "prova hesaplayicisi" yazsaydik ikiz tanim olurdu ve bu depoda
+    olculmus bicimde ayrisirdi ([[ikiz-tanim-sessiz-ayrisma]]) — prova "silinecek"
+    dedigi halde gercek kosum baskasini silerdi.
+
+    🔴 ONARILAN KUSUR (8 Agu 2026): `--sir-temizle` bayragi YALNIZ skills_yaz()'a
+    geciyordu; yedek KOKUNDEKI sirlara ULASAN HICBIR KOD YOLU YOKTU. Yani arac
+    "temizler" diyordu ama o kalemler icin bu GERCEK DEGILDI.
+
+    🔴 FAIL-CLOSED ON KOSUL: bir kalem ancak yereldeki ASLI VAR ve OKUNABILIR ise
+    silinir. Dogrulanamayan kalem SILINMEZ, KIRMIZI raporlanir — yanlis silme
+    KALICI kayiptir, birakilan kopya ise bir sonraki kosumda yine gorunur.
+    `kuru_prova=True` hicbir sey silmez, yalniz ne silinecegini dondurur."""
+    islenen, atlanan = [], []
+    plan = yedek_kok_sir_plani(backup, adlar=adlar)
+    for ad, hedef, yerel, tamam, engel in plan:
+        if not tamam:
+            atlanan.append((ad, engel + "  [yerel: %s]" % yerel))
+            continue
+        if kuru_prova:
+            islenen.append((ad, hedef))     # DOSYAYA DOKUNULMAZ — yalniz beyan
+            continue
+        try:
+            os.remove(hedef)
+            islenen.append((ad, hedef))
+        except OSError as e:
+            atlanan.append((ad, "silinemedi: %s" % type(e).__name__))
+    return islenen, atlanan, len(plan)
+
+
+def yedek_kok_sir_raporu(backup, sir_temizle, kuru_prova=False, adlar=None):
+    """Kok sir temizligini KOSAR ve GURULTULU raporlar. Doner: sayilar dict'i.
+
+    `sir_temizle` False ise (bayraksiz normal kosum) HICBIR SEY SILINMEZ ama bulunan
+    kalemler UYARIYLA listelenir: yedekten veri silmek DAIMA elle onaylanir.
+    Hesap TEK YOLDAN gecer — prova ile gercek silme ayni suzgeci kullanir."""
+    prova = kuru_prova or not sir_temizle
+    islenen, atlanan, bulunan = yedek_kok_sir_temizle(backup, kuru_prova=prova,
+                                                      adlar=adlar)
+    print("  KOK SIR TARAMASI: %d kalem yedek KOKUNDE (kanonik kume: %d ad) — %s"
+          % (bulunan, len(kok_sir_kumesi()),
+             "KURU PROVA (hicbir sey silinmedi)" if prova else "TEMIZLIK KOSTU"))
+    for ad, yol in islenen:
+        print("    %s %s   (%s)"
+              % ("KURU PROVA — SILINECEK:" if prova else "SIR KOPYASI SILINDI:", ad, yol))
+    for ad, sebep in atlanan:
+        print("    🔴 SILINMEDI (fail-closed): %s   -> %s" % (ad, sebep))
+    if prova and not kuru_prova and islenen:
+        print("      (silmek icin: python3 tools/yedekle.py --sir-temizle)")
+    return {"kok_sir_bulunan": bulunan,
+            "kok_sir_silinen": 0 if prova else len(islenen),
+            "kok_sir_atlanan": len(atlanan)}
 
 
 def _agac_izinli_mi(ad, izinli):
@@ -596,11 +761,15 @@ def _agac_dosyalari(kok):
     return sorted(cikti)
 
 
-def _repo_dosyalari(sirlar):
-    """Repo kokunden yedeklenecek dosya adlari — BULUNANLAR (varsayilan + --sirlar)."""
-    adlar = list(REPO_BEKLENEN) + (list(REPO_SIR) if sirlar else [])
-    return [a for a in adlar
-            if os.path.exists(os.path.join(ROOT, a)) and not os.path.islink(os.path.join(ROOT, a))]
+def _repo_dosyalari(sirlar=False):
+    """Repo kokunden yedeklenecek dosya adlari — SIR ELEMESINDEN GECMIS liste.
+
+    🔴 `sirlar` EMEKLI (8 Agu 2026, Okan karari): eskiden True olunca REPO_SIR'i
+    kopya planina EKLIYORDU. Artik KAPSAMI DEGISTIRMEZ — sir dosyalari hicbir
+    bayrakla yedege girmez (bkz. repo_kok_ayrimi). Parametre CAGRI UYUMU icin
+    duruyor (durum.py iki adayli imza olcumu, yedekle-test cagrilari)."""
+    _ = sirlar
+    return repo_kok_ayrimi()[0]
 
 
 def repo_eksikleri():
@@ -863,13 +1032,17 @@ def ek_ev_plani(ev, izlenenler=None):
             continue
         if giris in izlenenler or any(x.startswith(giris + "/") for x in izlenenler):
             continue                            # git'te var -> bosluk DEGIL
-        if ev == ROOT and (giris in REPO_BEKLENEN or giris in REPO_SIR):
+        # 🔴 8 Agu 2026: REPO_SIR ARTIK "ana yedek zaten aliyor" DEGIL (sir yazma yolu
+        # KAPANDI). Bu yuzden buradan DUSMEZ: alttaki kok sir nobetine iner ve
+        # SIR ENVANTERINE adiyla girer. Yoksa kalem sessizce hicbir listede gorunmezdi
+        # ve "yedekte de yok, envanterde de yok" = olculmemis bosluk olurdu.
+        if ev == ROOT and giris in REPO_BEKLENEN:
             continue                            # ana yedek zaten aliyor
         tam = os.path.join(ev, giris)
         if os.path.islink(tam):
             continue                            # symlink: hedefi zaten ayrica degerlendirilir
         # BILINEN SIR: bosluk degil, ENVANTER kalemi (deger ASLA kopyalanmaz/yazilmaz).
-        sebep = sir_sebebi(tam, giris) if os.path.isfile(tam) else None
+        sebep = kok_sir_sebebi(tam, giris) if os.path.isfile(tam) else None
         if sebep:
             haric.append((giris, sebep))
             continue
@@ -1636,6 +1809,34 @@ def main():
     gerekliyse = "--gerekliyse" in sys.argv
     sirlar = "--sirlar" in sys.argv
     sir_temizle = "--sir-temizle" in sys.argv
+    kuru_prova = "--kuru-prova" in sys.argv
+    if sirlar:
+        print("NOT: --sirlar EMEKLI (8 Agu 2026, Okan karari) — sir dosyalari yedege "
+              "ARTIK GIRMEZ; bayrak kapsami DEGISTIRMEZ.")
+
+    # ---- KURU PROVA: hicbir sey SILINMEZ/YAZILMAZ, ne silinecegini basar -----
+    if kuru_prova:
+        pruvo_drive = drive_yolu.pruvo_dizini(sessiz=True)
+        if not pruvo_drive:
+            print("KURU PROVA OLCULEMEDI — Drive yolu cozulemedi.", file=sys.stderr)
+            return 1
+        backup = os.path.join(pruvo_drive, "backup")
+        print("KURU PROVA — hicbir dosya SILINMEDI/YAZILMADI.")
+        print("Hedef: " + backup)
+        sayilar = yedek_kok_sir_raporu(backup, sir_temizle=True, kuru_prova=True)
+        # skills agacindaki BAYAT sir kopyalari (mevcut yol) — ayni provada gorunsun.
+        _s_dahil, s_haric, _g = skills_plani()
+        s_bayat = [os.path.join(backup, "skills", g) for g, _s in s_haric
+                   if os.path.exists(os.path.join(backup, "skills", g))]
+        print("  SKILLS BAYAT SIR KOPYASI: %d" % len(s_bayat))
+        for y in s_bayat:
+            print("    KURU PROVA — SILINECEK: " + y)
+        kok_silinecek = sayilar["kok_sir_bulunan"] - sayilar["kok_sir_atlanan"]
+        print("TOPLAM SILINECEK: %d (kok %d + skills %d) · SILINMEYECEK (fail-closed): %d"
+              % (kok_silinecek + len(s_bayat), kok_silinecek, len(s_bayat),
+                 sayilar["kok_sir_atlanan"]))
+        print("Gercek silme icin: python3 tools/yedekle.py --sir-temizle")
+        return 0
 
     # ---- DOGRULAMA KOSUMU: hicbir sey yazmaz, hedefi OLCER -----------------
     if "--dogrula" in sys.argv:
@@ -1697,11 +1898,14 @@ def main():
             for g, sebep in a_haric:
                 print("    %s/%s   -> DISLANDI: %s" % (hedef_klasor, g, sebep))
             print("[%s-gurultu (turetilmis)] %d giris" % (etiket, len(a_gurultu)))
-        repo = _repo_dosyalari(sirlar)
-        print("[repo] %d dosya  <- %s%s"
-              % (len(repo), ROOT, "  (--sirlar ACIK)" if sirlar else ""))
+        repo, kok_elenen = repo_kok_ayrimi()
+        print("[repo] %d dosya  <- %s" % (len(repo), ROOT))
         for a in repo:
             print("    " + a)
+        print("[repo-SIR ELEMESI (kanonik kume: REPO_SIR + SIR_ADLARI)] %d dosya"
+              % len(kok_elenen))
+        for a, sebep in kok_elenen:
+            print("    %s   -> ELENDI, YEDEGE GIRMEZ: %s" % (a, sebep))
         eksik = repo_eksikleri()
         print("[repo-EKSIK (beklenen ama yok)] %d" % len(eksik))
         for a in eksik:
@@ -1906,19 +2110,24 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # ticari gizli) -> git'te KOPYASI YOK, yani bu makine olurse tamamen kaybolurlardi.
     # (CLAUDE.md kopyalanmaz: AGENTS.md'ye SYMLINK, ayri dosya degil — yon 30 Tem'de
     #  duzeltildi; eskiden burada tam TERSI yaziyordu ve gercek dosya yedeksiz kalmisti.)
-    repo_adlari = _repo_dosyalari(sirlar=False)
+    repo_adlari, kok_elenen = repo_kok_ayrimi()
     for ad in repo_adlari:
         shutil.copy2(os.path.join(ROOT, ad), os.path.join(backup, ad))
         print("yedek:", ad)
 
-    if sirlar:
-        for name in (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
-                     ".onizleme-kapat-anahtar", ".mukerrer-istisna.json"):
-            p = os.path.join(ROOT, name)
-            if os.path.exists(p):
-                shutil.copy2(p, os.path.join(backup, name))
-                print("yedek (SIR):", name)
-        print("NOT: bu klasoru kimseyle PAYLASMA — sancakli SIR dosyalari da icinde.")
+    # 🔴 SIR YAZMA YOLU KAPALI (8 Agu 2026, Okan karari) — SESSIZ ATLAMA YOK.
+    # Elenen her kalem SAYIYLA ve ADIYLA basilir; ad sir DEGIL, icerik sirdir ve
+    # icerik hicbir zaman okunmaz/yazilmaz/basilmaz.
+    print("SIR ELEMESI: %d kalem yedege GIRMEDI (kanonik kume: REPO_SIR + SIR_ADLARI)"
+          % len(kok_elenen))
+    for ad, sebep in kok_elenen:
+        print("  ELENDI (yedege GIRMEDI): %s   -> %s" % (ad, sebep))
+    if kok_elenen:
+        print("  (geri kazanim receteleri: SIR_KOKENI tablosu / %s)" % SIR_ENVANTER_ADI)
+
+    # Yedek KOKUNDE onceki surumlerden kalmis sir kopyalari: --sir-temizle ile SILINIR,
+    # bayraksiz kosumda YALNIZ UYARILIR (yedekten veri silmek elle onaylanir).
+    kok_sir_sayilari = yedek_kok_sir_raporu(backup, sir_temizle=sir_temizle)
 
     # ---- EK KAPSAM: 5+1 evin izlenmeyen kalici bilgisi + diger hafiza uzaylari ----
     # Kum havuzunda (sahte ROOT) kardes ev YOKTUR -> faz kendini kapatir ve bunu BASAR.
@@ -1941,7 +2150,8 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
         print("   kok: %s   (damga 'tam: false' isaretlenecek, pano TAZE SAYMAYACAK)" % ROOT)
     sayilar = {"memory": len(_agac_dosyalari(MEMORY)),
                "skills": yazilan, "skills_haric": len(haric),
-               "repo": len(repo_adlari)}
+               "repo": len(repo_adlari), "kok_sir_elenen": len(kok_elenen)}
+    sayilar.update(kok_sir_sayilari)
     sayilar.update(agac_sayilari)
     sayilar.update(ek_sayilar)
     damga_yaz(backup, sayilar, eksik=eksik,

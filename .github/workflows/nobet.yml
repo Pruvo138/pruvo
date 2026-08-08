@@ -719,6 +719,29 @@ jobs:
       - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
         run: python3 tools/durum-yedek-test.py
 
+      # YEDEK SIR ELEMESI (8 Agu 2026, Okan karari: "jetonlari yedekten cikar").
+      # Iki AYRI sessiz-hata eksenini nobetler, ikisi de gecmiste ACIKTI:
+      #   (A) YAZMA YOLU — sir dosyalari ORTAK Drive yedegine kopyalanmamali. Bu kol
+      #       curuse jeton SESSIZCE paylasilabilir bir surucuye geri siziyor ve
+      #       hicbir sey kirmizi yanmiyor. Eleme KANONIK kumeden (REPO_SIR + SIR_ADLARI)
+      #       turer; ucuncu bir elle liste bu depoda parti basina bayatladi
+      #       ([[envanter-drift-parti-basina]]) -> kume kaynagi AYRI iddialarla olculur
+      #       (mutant M2 yalniz REPO_SIR'i dusurunce tek basina kirmizi yanar).
+      #   (B) TEMIZLIK YUZEYI — `--sir-temizle` bayragi ONCEDEN yalniz skills agacina
+      #       iniyordu; yedek KOKUNDEKI sirlara ULASAN HICBIR KOD YOLU YOKTU. Yani
+      #       "temizleme araci var" beyani o kalemler icin GERCEK DEGILDI
+      #       ([[beyan-edilmis-survivor]]). M3 tam bu eski kusuru geri koyar.
+      # Ayrica FAIL-CLOSED yon olculur: yereldeki ASLI yok/okunamaz olan kalem
+      # SILINMEZ (yanlis silme KALICI kayiptir) ve `--kuru-prova` hicbir sey silmez.
+      # KABUL CIKIS KODU DEGIL, OLCULEN IDDIA: batarya 5/5 oldurucu mutant + 1 KONTROL
+      # mutantinin YESIL kalmasini sart kosar (tek yonlu batarya "her duzenleme kirmizi"
+      # halini ayirt edemez) ve mutantlarin AYIRT EDICI olmasini arar.
+      # Tamamen hermetik: sahte HOME + sahte git deposu + drive_yolu STUB'u; GERCEK
+      # Drive'a/HOME'a DOKUNMAZ. Kum havuzu yedekle-test.py'den ITHAL edilir (ikiz
+      # kurulum yazilmaz). Offline, stdlib, ~15 sn.
+      - name: "Yedek sir elemesi + kok sir temizligi kabul testi (mutasyon kanitli)"
+        run: python3 tools/yedek-sir-eleme-test.py
+
       # JENERATOR NOBETCILERININ KENDI KABULU (madde 34b, 31 Tem). Bu iki nobetci 30 Tem'de
       # yazildi ama `jenerator/test/*` R_AYRI blanket muafiyeti yuzunden CI'da HIC kosmuyordu
       # -> nobetcinin kendisi curuse kimse gormezdi (olculmus sinif: "yesil yanan olu nobetci").
