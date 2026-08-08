@@ -148,6 +148,48 @@ BILEREK_DEGISEN_TAM = (
      "Consent Mode v2 tasima ayari eklendi — YENI satir (nobetci: reklam-etiket-kapisi.py)"),
 )
 
+# ---------------------------------------------------------------- GORUNUR METIN BEYANI
+# 🔴 NEDEN VAR (mimar karari, 8 Agu 2026): eksen 2'nin BILEREK_DEGISEN yuzeyi vardi,
+# eksen 1'in (gorunur METIN) YOKTU. Bu bir ASIMETRIYDI: kiyas nesnesi git gecmisindeki
+# DONMUS bir uretecidir, dolayisiyla o commit'ten bu yana yapilan BILEREK her metin
+# degisikligi "cikarim kaybi" gibi gorunup TUM YAYINI durduruyordu (8 Agu'da iki kez
+# yasandi). Eksen KALDIRILMADI; beyan yuzeyi acildi.
+#
+# 🔴 GIRIS KURALLARI — her biri kapinin gucunu KORUR:
+#   1. GRANUL: (ESKI metin, YENI metin, gerekce) ucLUSU. Joker/regex/toplu muafiyet YOK;
+#      "su cumle su cumleye dondu" denir, "bu bolgeye dokunma" DENMEZ.
+#   2. IDDIA KALDIRILMAZ, TASINIR: beyan edilen YENI metnin sayfalarda GERCEKTEN durdugunu
+#      olcen fail-closed bir eksen BASKA bir kapida bulunmak ZORUNDA (ornek: riza bandi
+#      metni -> tools/reklam-etiket-kapisi.py SINIF C). Gerekce satirinda o kapi YAZILIR.
+#   3. BEYAN EDILMEMIS her metin degisikligi HALA KIRMIZI yakar: beyanlar ESKI metne
+#      uygulandiktan SONRA TAM ESITLIK yine aranir -> beyan ikinci bir degisikligi
+#      MASKELEYEMEZ (B3 fiksturu bunu nobetler).
+#   4. BAYAT BEYAN FAIL-LOUD: hicbir sayfada eslesmeyen giris sessizce durmaz, kapi
+#      KIRMIZI yanar (S3 hijyeni) — yoksa tablo zamanla olu muafiyet deposuna doner.
+# Bosluk serbest yazilir; kiyas normalize edilmis (tek bosluk) metin uzerinden yapilir.
+BILEREK_DEGISEN_METIN = (
+)
+
+
+def _norm(s):
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _beyan_uygula(eski_metin, tablo=None):
+    """Beyan edilen ESKI->YENI metin donusumlerini ESKI metne uygular.
+
+    Doner: (donusmus_metin, eslesen_beyan_indeksleri). Eslesme kaydi BAYAT BEYAN
+    hijyeni icindir: hangi girisin hangi sayfada tuttugu suite duzeyinde toplanir."""
+    tablo = BILEREK_DEGISEN_METIN if tablo is None else tablo
+    eslesen = set()
+    for i, (eski, yeni, _gerekce) in enumerate(tablo):
+        e, y = _norm(eski), _norm(yeni)
+        if e and e in eski_metin:
+            eski_metin = eski_metin.replace(e, y)
+            eslesen.add(i)
+    return eski_metin, eslesen
+
+
 _BILEREK_TAM = frozenset(d for d, _g in BILEREK_DEGISEN_TAM)
 
 
@@ -238,7 +280,7 @@ def _baglantilar(s):
     return out
 
 
-def cikarim_kaybi(eski_html, yeni_html):
+def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None):
     """🔴 EKSEN 1'IN IDDIASI (3 Agu'da DARALTILDI, gevsetilmedi):
     "eski sayfadan CIKARILABILEN hicbir sey kaybolmayacak ya da DEGISMEYECEK".
 
@@ -252,7 +294,10 @@ def cikarim_kaybi(eski_html, yeni_html):
       * JSON-LD: eski agactaki HER (yol, deger) yapragi yenide de AYNEN bulunmali
         (fiyat, sku, brand, offers, breadcrumb, image). EKLEME serbest.
       * <title> · <meta name=...> · canonical: TAM esitlik (ekleme de degisim sayilir).
-      * gorunur METIN: TAM esitlik — "vaat" metni ne kaybolur ne degisir.
+      * gorunur METIN: TAM esitlik — "vaat" metni ne kaybolur ne degisir. TEK istisna
+        BILEREK_DEGISEN_METIN'de TEK TEK beyan edilen (ESKI -> YENI) donusumlerdir;
+        beyanlar ESKI metne uygulandiktan SONRA esitlik YINE aranir, yani bir beyan
+        ikinci bir (beyan edilmemis) degisikligi MASKELEYEMEZ.
       * <img src>: eski her gorsel yenide de olmali.
       * <a href>: eski her baglanti yenide de olmali; YOLU ayni olmali ve eski
         sorgu parametrelerinin HEPSI ayni DEGERLE durmali. YENI parametre EKLENEBILIR
@@ -276,7 +321,11 @@ def cikarim_kaybi(eski_html, yeni_html):
     if _CANON_RE.findall(eski_html) != _CANON_RE.findall(yeni_html):
         bulgu.append("canonical degisti")
 
-    if _duz_metin(eski_html) != _duz_metin(yeni_html):
+    # Beyanlar ESKI metne uygulanir, sonra TAM ESITLIK yine aranir (bkz. giris kurali 3).
+    e_metin, eslesen = _beyan_uygula(_duz_metin(eski_html), beyan_tablosu)
+    if eslesen_kovasi is not None:
+        eslesen_kovasi.update(eslesen)
+    if e_metin != _duz_metin(yeni_html):
         bulgu.append("GORUNUR METIN degisti")
 
     e_img, y_img = _IMGSRC_RE.findall(eski_html), set(_IMGSRC_RE.findall(yeni_html))
@@ -546,9 +595,62 @@ def kendini_test():
     return 0
 
 
+_B_ESKI = "<p>Analiz cerezleri kullaniyoruz.</p><p>Kargo ayni gun cikar.</p>"
+_B_YENI = "<p>Analiz ve reklam cerezleri kullaniyoruz.</p><p>Kargo ayni gun cikar.</p>"
+_B_TABLO = (("Analiz cerezleri kullaniyoruz.",
+             "Analiz ve reklam cerezleri kullaniyoruz.", "fikstur"),)
+
+
+def beyan_mekanizmasi_dogrula():
+    """GORUNUR-METIN BEYAN YUZEYININ KENDI NOBETCISI — HER kosumda calisir.
+
+    🔴 NEDEN VARSAYILAN KOLDA: bu yuzey bir MUAFIYET yuzeyidir; sessizce "her metin
+    degisikligini yut" haline donerse kapi olur ve kimse gormez. Fikstur bataryasi
+    `--kendini-test` kolunda dursaydi CI'da HIC kosmazdi (deploy.yml yalniz bayraksiz
+    cagirir) — nobetci nobetsiz kalirdi ([[nobetci-cagri-satiri-nobetsiz]]).
+
+    AYIRT EDICI CIFTLER (tek yonlu batarya bu yuzeyi kanitlayamaz):
+      B1/B2 : AYNI metin degisikligi — beyanliyken temiz, beyansizken KIRMIZI.
+      B3    : beyan + IKINCI (beyan edilmemis) degisiklik -> KIRMIZI. Maskeleme ekseni:
+              beyan bir degisikligi tolere eder, YANINDAKINI GIZLEMEZ.
+      B4    : beyan var ama yeni metin BEYAN EDILENDEN farkli -> KIRMIZI (beyan serbest
+              gecis kartina donmez).
+      B5    : KONTROL — degisiklik yok, tablo bos -> temiz.
+      B6    : beyan var ama karsiligi olan degisiklik SAYFADA YOK -> KIRMIZI (bayat beyan
+              sayfa duzeyinde de fail-loud; suite duzeyi hijyen 1c'de).
+    Doner: basarisiz vaka adlari (bos = saglam)."""
+    dusen = []
+
+    def vaka(ad, eski, yeni, tablo, beklenen):
+        gercek = "KIRMIZI" if cikarim_kaybi(eski, yeni, tablo) else "TEMIZ"
+        if gercek != beklenen:
+            dusen.append("%s (beklenen=%s olculen=%s)" % (ad, beklenen, gercek))
+
+    ikinci = _B_YENI.replace("Kargo ayni gun cikar.", "Kargo ertesi gun cikar.")
+    vaka("B1 beyanli metin degisikligi", _B_ESKI, _B_YENI, _B_TABLO, "TEMIZ")
+    vaka("B2 AYNI degisiklik BEYANSIZ", _B_ESKI, _B_YENI, (), "KIRMIZI")
+    vaka("B3 beyan + ikinci beyansiz degisiklik", _B_ESKI, ikinci, _B_TABLO, "KIRMIZI")
+    vaka("B4 yeni metin beyan edilenden farkli", _B_ESKI,
+         _B_YENI.replace("reklam", "reklam ve olcum"), _B_TABLO, "KIRMIZI")
+    vaka("B5 KONTROL degisiklik yok, tablo bos", _B_ESKI, _B_ESKI, (), "TEMIZ")
+    vaka("B6 beyanin karsiligi sayfada YOK (bayat)", _B_ESKI, _B_ESKI, _B_TABLO, "KIRMIZI")
+
+    # Eslesme kaydi 1c hijyeninin GIRDISIDIR: bozulursa bayat beyan gorunmez olur.
+    _, eslesen = _beyan_uygula(_duz_metin(_B_ESKI), _B_TABLO)
+    if eslesen != {0}:
+        dusen.append("B7 eslesme kaydi bozuk: %r (beklenen {0})" % (eslesen,))
+    _, bos = _beyan_uygula(_duz_metin("<p>ilgisiz</p>"), _B_TABLO)
+    if bos:
+        dusen.append("B8 eslesmeyen beyan eslesmis sayildi: %r" % (bos,))
+    return dusen
+
+
 def main():
     if "--kendini-test" in sys.argv:
         sys.exit(kendini_test())
+    # Muafiyet yuzeyinin nobeti HER kosumda, olcumden ONCE.
+    for _d in beyan_mekanizmasi_dogrula():
+        HATALAR.append("0 GORUNUR-METIN BEYAN YUZEYI BOZUK: %s" % _d)
     hedef = 12
     if "--ornek" in sys.argv:
         hedef = int(sys.argv[sys.argv.index("--ornek") + 1])
@@ -692,8 +794,10 @@ def main():
 
 def olc(eski, yeni, secim, urunler, ref):
     # ------------------------------------------------------------------ 1
+    eslesen_beyan = set()
     for pid in yeni:
-        kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]))
+        kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]),
+                              eslesen_kovasi=eslesen_beyan)
         bekle(not kayip,
               "1 %s: CIKARIM KAYBI (%d): %s" % (pid, len(kayip), kayip[:2]))
         bekle(urun_verisi(eski[pid]).get("URUN") == urun_verisi(yeni[pid]).get("URUN"),
@@ -701,6 +805,14 @@ def olc(eski, yeni, secim, urunler, ref):
         for ad in ("URUN_SEMA", "URUN_KONFIGUR"):
             bekle(urun_verisi(eski[pid]).get(ad) == urun_verisi(yeni[pid]).get(ad),
                   "1b %s: %s verisi ayristi" % (pid, ad))
+
+    # 1c BAYAT BEYAN HIJYENI (S3): hicbir ornek sayfada tutmayan bir gorunur-metin
+    # beyani sessizce durmaz. Yoksa tablo zamanla OLU MUAFIYET DEPOSUNA doner ve
+    # ilerideki gercek bir metin kaybini maskeleyebilecek girisler birikir.
+    for i, (eski_m, _yeni_m, gerekce) in enumerate(BILEREK_DEGISEN_METIN):
+        bekle(i in eslesen_beyan,
+              "1c BAYAT GORUNUR-METIN BEYANI (hicbir ornek sayfada eslesmedi): %r "
+              "-> gerekce: %s. Metin artik yoksa GIRISI SIL." % (_norm(eski_m)[:70], gerekce))
 
     # ------------------------------------------------------------------ 2 (CSS: BAYT-ESIT)
     pid0 = secim[0][1]["id"]
