@@ -1,15 +1,40 @@
-# DEVAM (KraL) — 7 Agu 2026
+# DEVAM (KraL) — 8 Agu 2026
 
-## 🔁 DEVIR — 7 Agu 2026, hesap rotasyonu: eski hesap → yeni hesap
-**✅ KAPANDI (20:37Z nobeti):** `serit-a3` onarimi CI'da DOGRULANDI — kosum `31215563000`
-(head `7e811e5e`) job `serit-a3` **success** (20:46:12Z), `build` **success**, `serit-a2` **success**.
-Devralinan tek is bitti; eski teshis kapandi.
+## ⏱ SAATLIK CI NOBETI — 8 Agu 07:37Z turu (ev DOGRU: ~/dev/pruvo)
 
-**SIRADAKI TEK IS:** ayni kosumda `serit-a4` **hala kosuyor** (20:30Z basladi, tarihsel 42-50 dk,
-tavani O koyuyor) → `deploy`/`yayin` job'lari HENUZ BASLAMADI. Sonraki tur ILK IS: `31215563000`
-ve ardili `31217961897` icin `deploy`+`yayin` `conclusion`'ini ol; sonra
-`git merge-base --is-ancestor d3fbc1e5 <son basarili deploy head>` ile onarimin canliya inip
-inmedigini olc. **"yayin temiz" YAZMA** — bu tur olculmedi.
+**Mail supurmesi (kosulsuz emir):** tasinan **1** · tur sonu birlesik `inbox`'ta "Run failed" **0**
+(alt kutulara girilmedi, Cop BOSALTILMADI, baska maile dokunulmadi).
+
+**✅ DEVRALINAN IS KAPANDI — onarim CANLIYA INDI (olculdu):** onceki turun "SIRADAKI TEK IS"i
+`deploy`+`yayin` olcumuydu. Son basarili `Build & deploy` = **`31243216866`** (head `d18d0a4c`,
+07:07:19Z **success**). `merge-base --is-ancestor d3fbc1e5 d18d0a4c` **rc=0** ve
+`94402074 d18d0a4c` **rc=0** → hem `serit-a3` sabit-mutlak-yol onarimi hem uzlastirici kosul
+onarimi yayinda. Onceki turun "yayin ACILMADI" hukmu artik BAYAT. (Blogun tam metni arsivde.)
+
+**🟡 TEK KIRMIZI = TASARIM GEREGI, ARIZA DEGIL:** `D1 uzlastirici` kosumu **`31245852100`**
+(07:18Z) `failure`. Logdan ALINTI: adim 13 `Sapma gorunurlugu (cron/elle kolu)` →
+"🔴 D1 SAPMASI OLDU — onarim kosturuldu ve teyit edildi; kosum GORUNURLUK icin KIRMIZI" + kasitli
+`exit 1`. Ayni kosumda olcum/onarim/atomik-yayin/**teyit**/damga adimlarinin HEPSI `success`;
+`ONARILAMADI` adimi **skipped**. Yani `94402074`+`d18d0a4c` ile daraltilan capa **URETIMDE DOGRU
+DAVRANDI** (teyit success iken yanlis "onarilamadi" beyani URETMEDI) — o acik kalem KAPANDI.
+- Bagimsiz teyit `d1-sync.py --durum`: D1 **22476** == urunler.json benzersiz **22476**;
+  hash UYUSMAZ **0** · EKSIK **0** · FAZLA **0**; sema + 5 turetilmis kolon ekseni GUNCEL. Sapma
+  kapandi, onarim GEREKMEDI, Codex CAGRILMADI.
+- Sinif tekrari (DUR kosulu DEGIL): son 12 uzlastirici kosumunda kirmizi **3** (07:18Z bugun;
+  7 Agu 22:07 + 21:24), aralarinda 9 ardisik yesil → ayni kok neden 3 ARDISIK kosumda degil.
+  Sapmanin KENDISI bir ust-yol kacagi (urun partisi push'u); kol her turda kendi onariyor.
+
+**Yayin durumu (§4.5'in UC ekseni de olculdu, tek eksen tek basina YAZILMADI):**
+(a) KOSAN zincir VAR: `31245410610` (head `1ede9543`) `in_progress`; `31246033829` (`9ab89786`)
+kuyrukta. (b) Tavani **`serit-a4`** koyuyor: ayni kosumda `build` · `serit-a2` · `serit-a3`
+**success**, `serit-a4` 07:07:21Z'den beri kosuyor → `deploy`/`yayin` HENUZ BASLAMADI (beklenen,
+tikanma DEGIL). (c) Son basarili deploy head `d18d0a4c` — bugunku urun partileri (`249b821f`,
+`1ede9543`, `9ab89786`) **henuz canlida DEGIL**, ucusta. "Yayin tikandi" da "yayin temiz" de
+yazilmiyor: zincir normal suresi icinde.
+
+⚠️ Ana checkout `origin/main`'in **1 ONUNDE**: `82967d41` (urun partisi, MaCiT duzlemi) **pushsuz**.
+Yabanci degisiklik → DOKUNULMADI, push EDILMEDI. Sahibi itmezse bir sonraki tur oksuz sayimini
+degerlendirsin (mtime + kac tur bekledigi olculerek).
 
 **SIRADAKI TEK IS (2. sira) — OKAN'IN KARARI:** marka sayfasi 330 parcanin TAMAMINI tek sayfada
 kart olarak listelesin, model cipleri ayri adrese gitmek yerine sayfa icinde filtrelesin; once
