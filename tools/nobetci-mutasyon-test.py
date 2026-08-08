@@ -607,8 +607,16 @@ E_EKLE = ('SERIT_B[("nobet.yml", "mutant-e2-job", "tools/mutant-e2-kapisi.py")] 
           + E_SERIT_CAPA)
 E_OP_CAPA = "        if len(tablo) != taban:"
 E_OP_ESKI = "        if len(tablo) < taban:"
-E_TABAN_CAPA = '    ("SERIT_B", 67),'
-E_TABAN_ESKI = '    ("SERIT_B", 42),'
+# 🔴 TABAN CAPASI ARTIK SAYISIZ (8 Agu, rebase dersi): once `("SERIT_B", 67),` metnine
+# capalanmisti; main tabani 85'e cekince capa BAYATLADI (`HARNESS BAYAT` gurultulu
+# durdu — dogru davranis, ama her taban bump'inda tekrarlanir). Yerine tablo
+# TANIMINDAN SONRA calisan ve tabani len()'den TURETEN bir satir enjekte edilir:
+# hedef "tabanin gercek sayidan DUSUK olmasi" halidir, belirli bir sayi DEGIL.
+E_TABAN_GEVSET = (
+    'TABLO_TABANLARI = tuple(\n'
+    '    (_a, (len(SERIT_B) - 2 if _a == "SERIT_B" else _t))\n'
+    '    for _a, _t in TABLO_TABANLARI)  # MUTANT: SERIT_B tabani GEVSEK (eski kod hali)\n'
+    + E_SERIT_CAPA)
 E_GOVDE_CAPA = ("    hatalar = []\n"
                 "    kapsam = globals()\n"
                 "    for ad, taban in TABLO_TABANLARI:")
@@ -672,13 +680,17 @@ E_K26_DAGITIM = (
     "    m for m in K26_SATIR_FIKSTURLERI if m is not _k26_kan\n"
     ") + ((\"MUTANT E7 KOPYA \" + _k26_old[0],) + tuple(_k26_old[1:]),)\n"
     + E_K26_CAPA)
+# E8 tabani da SAYISIZ: yeni giris eklenir ve K26 tabani len()'den YENIDEN TURETILIR
+# (mesru buyumede tabanin AYNI commit'te guncellenmesi zaten beklenen davranistir).
 E_K26_BUYUME = (
     "_k26_old = [m for m in K26_SATIR_FIKSTURLERI if m[2]][0]\n"
     "K26_SATIR_FIKSTURLERI = K26_SATIR_FIKSTURLERI + (\n"
     "    (\"MUTANT E8 KOPYA \" + _k26_old[0],) + tuple(_k26_old[1:]),)\n"
+    "TABLO_TABANLARI = tuple(\n"
+    "    (_a, (len(K26_SATIR_FIKSTURLERI)\n"
+    '          if _a == "K26_SATIR_FIKSTURLERI" else _t))\n'
+    "    for _a, _t in TABLO_TABANLARI)\n"
     + E_K26_CAPA)
-E_K26_TABAN_CAPA = '("K26_SATIR_FIKSTURLERI", 26)'
-E_K26_TABAN_27 = '("K26_SATIR_FIKSTURLERI", 27)'
 E_K26_JETON = "sinif dengesi bozuldu"
 
 
@@ -848,8 +860,7 @@ def bolum_e(tmp):
     # 🔴 Bu iddia `<`i KORUYOR: K26 sinif kolu `!=` yapilirsa burada rc=1 cikar ve
     # bolum KIRMIZI yanar. Yani "tutarlilik" gerekcesiyle geri donen biri aninda gorur.
     kok = akis_ayna_kur(os.path.join(tmp, "e-E8"),
-                        {E_KAPI: [(E_K26_CAPA, E_K26_BUYUME),
-                                  (E_K26_TABAN_CAPA, E_K26_TABAN_27)]})
+                        {E_KAPI: [(E_K26_CAPA, E_K26_BUYUME)]})
     rc, cikti, coldu, iddia8 = _e_kos(kok)
     e8_yesil = rc == 0 and not coldu
     check("E8 K26 MESRU BUYUME (gercek oldurucu eklendi, taban 26->27, siniflar 11/16) "
@@ -865,11 +876,12 @@ def bolum_e(tmp):
     # "jeton yok" diye PASS etmisti, ama sebep eski kodun korlugu DEGIL aynada olen
     # kesifti. Beklenen iddia sayisi CANLI olcumden gelir (sabit yazilmaz).
     for etiket, mut, jeton, bek_iddia, aciklama in (
-            ("E1b E1 + ESKI KOD (operator `<` + taban 42)",
-             {E_KAPI: [(E_SERIT_CAPA, E_SIL), (E_OP_CAPA, E_OP_ESKI),
-                       (E_TABAN_CAPA, E_TABAN_ESKI)]}, E_JETON, canli_iddia,
-             "eski taban 25 paylik OLU koruma idi: 25 beyan sessizce silinebilirdi"),
-            ("E2b E2 + operator `<` (taban 67)",
+            ("E1b E1 + ESKI KOD (operator `<` + taban len-2 GEVSEK)",
+             {E_KAPI: [(E_SERIT_CAPA, E_SIL), (E_SERIT_CAPA, E_TABAN_GEVSET),
+                       (E_OP_CAPA, E_OP_ESKI)]}, E_JETON, canli_iddia,
+             "gevsek taban OLU korumadir: pay kadar beyan sessizce silinebilir "
+             "(bu tablonun kendi tarihi: pay 25'te SABIT kalmisti)"),
+            ("E2b E2 + operator `<` (taban gercek sayida)",
              {E_KAPI: [(E_SERIT_CAPA, E_EKLE), (E_OP_CAPA, E_OP_ESKI)]}, E_JETON,
              canli_iddia,
              "taban guncellenmeden BUYUME gorunmezdi -> pay yeniden birikirdi"),
