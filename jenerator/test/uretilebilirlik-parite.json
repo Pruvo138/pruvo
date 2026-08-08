@@ -28,5 +28,14 @@
       "tehlikeliKova": 0
     }
   },
-  "surum": 1
+  "surum": 1,
+  "tavanlar": {
+    "rulman": {
+      "ilanEdilenIzgara": 12867300,
+      "kontrolMutantlari.M1": 470,
+      "kontrolMutantlari.M2": 187,
+      "kontrolMutantlari.M3": 12971,
+      "olculenNokta": 48000
+    }
+  }
 }

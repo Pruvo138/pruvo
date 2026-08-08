@@ -38,6 +38,22 @@ COK EKSENLIDIR ve her eksen TEK BASINA kirmizi yakabilir olmali
                             Kutu ozeti kayda girer ve canliyla ayrisirsa kayit BAYATTIR.
   6. kontrolMutantlari: M1/M2/M3 tehlikeli nokta URETMIS (>0), M4 uretmemis (==0)
                             (bataryasiz kayit = "0 gordum" iddiasinin korlugu olculmemis)
+  7. GERILEME EKSENI (8 Agu 2026): kanitin GUCUNU tasiyan sayisal alanlar KAYITLI
+                            TAVANIN (`tavanlar.<aile>`) ALTINA DUSMEMIS.
+                            🔴 OLCULEN KORLUK: okuyucu kapi yalnizca SABIT tabana
+                            bakiyordu (EN_AZ_PARITE_NOKTA=8000). Canli kayitta
+                            `olculenNokta` 48000; 8000'e cekmek (-%83,3) kapiyi YESIL
+                            birakiyordu. `ilanEdilenIzgara` icin hicbir alt sinir YOKTU,
+                            `M3` 12971 -> 1 kuculmesi de ">0" iddiasini geciyordu.
+                            Sabit taban "ne kadar GERILEDI" sorusunu SORMAZ; tavan sorar.
+
+YAZAR TARAFI FAIL-CLOSED (ayni tarih, Okan genel kurali — emsal tools/marka-kapsama.py):
+`kayit_yaz` eski surumde `d["aileler"][aile] = girdi` ile TUMUYLE SET ediyordu: birlestirme
+yok, kuculme kontrolu yok, bayrak yok, kuru prova yok. Artik sayisal alanlarda kuculme
+VARSAYILANDA REDDEDILIR (eski->yeni raporlanir, `KucultmeReddi` yukselir, CLI sifir-disi
+cikar); bilerek kucultmek ACIK `--ezmeye-izin-ver`, ne olacagini gormek `--kuru-prova`
+ister. `tavanlar` blogu MONOTONDUR (yalniz `--ezmeye-izin-ver` ile asagi cekilir), bu
+yuzden yazar tarafi kandirilsa bile OKUYUCU kapi gerilemeyi GORUR.
 
 HUKUM SINIFLARI — ucu de YESIL DEGILDIR, ama AYRI SEYLERDIR:
   YESIL       kayit var, alti eksen de tuttu.
@@ -60,6 +76,17 @@ KAYIT_YOLU = ("jenerator", "test", "uretilebilirlik-parite.json")
 PARMAKIZI_YOLU = ("onizleme", "derleyici", "paket-parmakizi.json")
 KISIT_ALANI = "kisitlar"
 KAYIT_SURUMU = 1
+
+# GERILEME EKSENI — kanitin GUCUNU tasiyan sayisal alanlar. Bunlarin DUSMESI kaniti
+# ZAYIFLATIR: az nokta olcmek, kucuk kutu ilan etmek, kor mutant beyan etmek.
+# (`tehlikeliKova`/`cozulmeyen` BURADA DEGIL: onlarin dogru yonu 0'dir, dusmeleri
+# zayiflatma degildir ve zaten "== 0" iddiasiyla civilenmislerdir.)
+GERILEME_ALANLARI = ("olculenNokta", "ilanEdilenIzgara")
+# Kayit dosyasindaki MONOTON tavan blogu: {aile: {alan: gorulmus EN YUKSEK deger}}.
+# Yalnizca `--ezmeye-izin-ver` asagi ceker; yazar tarafi kandirilsa bile okuyucu GORUR.
+TAVAN_ALANI = "tavanlar"
+# CLI cikis kodu: kuculme reddedildi, yazma YAPILMADI (sessiz basari YOK).
+KOD_KUCULTME = 4
 
 # Bir kaydin TASIMASI ZORUNLU alanlari (eksikse sozlesme disi -> OLCULEMEDI).
 ZORUNLU_ALANLAR = (
@@ -177,6 +204,65 @@ def parmakizi_oku(kok, motor_dosya):
     return ozet, ""
 
 
+class KucultmeReddi(ValueError):
+    """Kayit sayisal alanlari KUCULECEKTI; yazma YAPILMADI (fail-closed)."""
+
+
+def sayisal_alanlar(girdi):
+    """Kanitin GUCUNU tasiyan sayisal alanlar: {ad: deger}.
+
+    TEK KAYNAK: yazar (kuculme reddi), tavan (monoton guncelleme) ve okuyucu (gerileme
+    ekseni) AYNI fonksiyondan turer — ikiz tanim sessizce ayrisirdi
+    ([[ikiz-tanim-sessiz-ayrisma]]). int olmayan / bool deger ATLANIR (o eksen zaten
+    ayri iddialarla civilenmistir)."""
+    d = {}
+    if not isinstance(girdi, dict):
+        return d
+    for ad in GERILEME_ALANLARI:
+        v = girdi.get(ad)
+        if isinstance(v, int) and not isinstance(v, bool):
+            d[ad] = v
+    mut = girdi.get("kontrolMutantlari")
+    if isinstance(mut, dict):
+        for ad, isaret in KONTROL_MUTANT_BEKLENTISI.items():
+            # ">0" beklenen mutantlar: sayinin DUSMESI olcumun ayirt etme gucunu
+            # zayiflatir (12971 -> 1 hala ">0" iddiasini gecerdi). "==0" beklenen
+            # M4 icin dusus diye bir sey YOKTUR (zaten 0 olmali).
+            if isaret == ">0" and isinstance(mut.get(ad), int) \
+                    and not isinstance(mut.get(ad), bool):
+                d["kontrolMutantlari." + ad] = mut[ad]
+    return d
+
+
+def tavan_oku(kok):
+    """(tavanlar, hata) — {aile: {alan: gorulmus EN YUKSEK deger}}.
+
+    hata bos degilse tavanlar None (OLCULEMEDI): gerileme ekseni HESAPLANAMAZ, ve
+    "gerileme yok" VARSAYILMAZ ([[olculdu-diyen-hukum-kaniti]])."""
+    yol = os.path.join(kok, *KAYIT_YOLU)
+    if not os.path.exists(yol):
+        return None, "parite kaydi dosyasi YOK: %s" % "/".join(KAYIT_YOLU)
+    try:
+        d = _json_oku(yol)
+    except (ValueError, OSError) as e:
+        return None, "parite kaydi okunamadi/bozuk: %s" % e
+    if not isinstance(d, dict):
+        return None, "parite kaydi kok nesne degil (%s)" % type(d).__name__
+    t = d.get(TAVAN_ALANI)
+    if t is None:
+        return None, ("parite kaydinda `%s` blogu YOK — GERILEME EKSENI OLCULEMEZ "
+                      "(sabit taban 'ne kadar geriledi' sorusunu SORMAZ). Kayit "
+                      "`--kayit-yaz` ile yeniden uretilmeli." % TAVAN_ALANI)
+    if not isinstance(t, dict):
+        return None, "parite kaydi `%s` blogu TANINMADI (%s)" % (TAVAN_ALANI,
+                                                                 type(t).__name__)
+    for aile, blok in sorted(t.items()):
+        if not isinstance(blok, dict):
+            return None, "`%s.%s` nesne degil (%s)" % (TAVAN_ALANI, aile,
+                                                       type(blok).__name__)
+    return t, ""
+
+
 def kayit_oku(kok):
     """(kayitlar, hata) — {aile: girdi}. hata bos degilse kayitlar None (OLCULEMEDI)."""
     yol = os.path.join(kok, *KAYIT_YOLU)
@@ -205,7 +291,7 @@ def kayit_oku(kok):
     return kayitlar, ""
 
 
-def girdi_dogrula(kok, aile, sema, en_az_nokta, kayitlar=None):
+def girdi_dogrula(kok, aile, sema, en_az_nokta, kayitlar=None, tavanlar=None):
     """(hukum, sebep) — hukum: YESIL | KIRMIZI | OLCULEMEDI.
 
     `sema` CANLI sema sozlugu (kisit ozeti ONDAN turer, kayittan DEGIL)."""
@@ -213,6 +299,10 @@ def girdi_dogrula(kok, aile, sema, en_az_nokta, kayitlar=None):
         kayitlar, hata = kayit_oku(kok)
         if kayitlar is None:
             return OLCULEMEDI, hata
+    if tavanlar is None:
+        tavanlar, tavan_hatasi = tavan_oku(kok)
+        if tavanlar is None:
+            return OLCULEMEDI, "%s: %s" % (aile, tavan_hatasi)
     girdi = kayitlar.get(aile)
     if girdi is None:
         return KIRMIZI, ("`%s` ailesi icin parite kaydi YOK — sema kisitli bir aile "
@@ -265,6 +355,30 @@ def girdi_dogrula(kok, aile, sema, en_az_nokta, kayitlar=None):
     if not isinstance(nokta, int) or nokta < en_az_nokta:
         sorunlar.append("olculen nokta %r < esik %d — sifira yakin olcumle satis acilamaz"
                         % (nokta, en_az_nokta))
+    # --- 7. GERILEME EKSENI: kayitli TAVANA gore dusus (sabit taban bunu GORMEZ) ---
+    tavan = tavanlar.get(aile)
+    if not isinstance(tavan, dict) or not tavan:
+        return OLCULEMEDI, ("%s: GERILEME EKSENI OLCULEMEDI — kayitta `%s.%s` blogu YOK. "
+                            "Sabit taban (%d) yalnizca 'yeterince mi' der, 'ne kadar "
+                            "GERILEDI' demez; tavan olmadan 48000 -> 8000 dususu sessiz "
+                            "kalirdi. Kayit `--kayit-yaz` ile yeniden uretilmeli."
+                            % (aile, TAVAN_ALANI, aile, en_az_nokta))
+    guncel = sayisal_alanlar(girdi)
+    for ad in sorted(tavan):
+        ref = tavan[ad]
+        if not isinstance(ref, int) or isinstance(ref, bool):
+            continue
+        if ad not in guncel:
+            sorunlar.append("GERILEME OLCULEMEZ: `%s` alani kayittan DUSMUS/sayisal "
+                            "degil ama tavani var (%r) — alan silinerek gerileme "
+                            "gizlenemez" % (ad, ref))
+            continue
+        v = guncel[ad]
+        if v < ref:
+            sorunlar.append("GERILEME: `%s` %d -> %d (kayitli tavana gore %%%.1f dusus) "
+                            "— kanit ZAYIFLADI; bilerek kucultmek `--ezmeye-izin-ver` ister"
+                            % (ad, ref, v, (ref - v) * 100.0 / ref if ref else 0.0))
+
     mut = girdi.get("kontrolMutantlari") or {}
     for ad, isaret in sorted(KONTROL_MUTANT_BEKLENTISI.items()):
         v = mut.get(ad)
@@ -285,17 +399,77 @@ def girdi_dogrula(kok, aile, sema, en_az_nokta, kayitlar=None):
                       mut.get("M3"), mut.get("M4"), girdi.get("tarih")))
 
 
-def kayit_yaz(kok, aile, girdi, aciklama=None):
-    """Kaydi YERINDE gunceller (baska ailelerin girdisi KORUNUR)."""
+def kucultme_olc(kok, aile, girdi):
+    """(kucultmeler, tavan_yeni) — YAZMADAN ONCE olculur, hicbir sey degistirmez.
+
+    kucultmeler: [(alan, kaynak, eski, yeni)] — kaynak "kayit" (mevcut girdi) ya da
+    "tavan" (gorulmus en yuksek). Ikisi de olculur: kayit elle dusurulup tavan
+    bayatlatilamasin diye."""
     yol = os.path.join(kok, *KAYIT_YOLU)
+    d = _json_oku(yol) if os.path.exists(yol) else {}
+    if not isinstance(d, dict):
+        d = {}
+    eski = ((d.get("aileler") or {}).get(aile)) or {}
+    tavan = ((d.get(TAVAN_ALANI) or {}).get(aile)) or {}
+    yeni = sayisal_alanlar(girdi)
+    eski_s = sayisal_alanlar(eski)
+    kucultmeler = []
+    for ad in sorted(yeni):
+        v = yeni[ad]
+        for kaynak, ref in (("kayit", eski_s.get(ad)), ("tavan", tavan.get(ad))):
+            if isinstance(ref, int) and not isinstance(ref, bool) and v < ref:
+                kucultmeler.append((ad, kaynak, ref, v))
+    return kucultmeler, tavan
+
+
+def kayit_yaz(kok, aile, girdi, aciklama=None, ezmeye_izin_ver=False, kuru_prova=False):
+    """Kaydi YERINDE gunceller (baska ailelerin girdisi KORUNUR).
+
+    🔴 FAIL-CLOSED (8 Agu 2026, Okan genel kurali — emsal tools/marka-kapsama.py):
+    sayisal alanlarda KUCULME varsayilanda REDDEDILIR. Uc hal:
+      kuculme YOK            -> yaz, `tavanlar` MONOTON guncellenir (max)
+      kuculme VAR            -> YAZMA, eski->yeni TEK TEK basilir, `KucultmeReddi` RAISE
+      kuculme VAR + bayrak   -> BILEREK yazilir, tavan da o degere CEKILIR (yikici)
+    `kuru_prova=True` hicbir bayt yazmaz ama ayni hukmu verir (kuculmede yine RAISE).
+    Dönus: kayit dosyasinin yolu."""
+    yol = os.path.join(kok, *KAYIT_YOLU)
+    kucultmeler, tavan = kucultme_olc(kok, aile, girdi)
+    for ad, kaynak, ref, v in kucultmeler:
+        print("KUCULME (%s): %s.%s %d -> %d%s"
+              % (kaynak, aile, ad, ref, v,
+                 "  [BILEREK EZILDI]" if ezmeye_izin_ver else "  [YAZILMADI]"))
+    if kucultmeler and not ezmeye_izin_ver:
+        raise KucultmeReddi(
+            "parite kaydi KUCULECEKTI (%d alan) — yazma YAPILMADI. Kanitin gucu "
+            "sessizce dusurulemez: okuyucu kapi (tools/onizleme-vaat-kapisi.py A3) "
+            "sabit tabana bakar ve bu dususu GORMEZDI. Bilerek kucultmek icin: "
+            "--ezmeye-izin-ver" % len(kucultmeler))
+
     if os.path.exists(yol):
         d = _json_oku(yol)
+        if not isinstance(d, dict):
+            d = {}
     else:
         d = {"surum": KAYIT_SURUMU, "aciklama": aciklama or "", "aileler": {}}
     d["surum"] = KAYIT_SURUMU
     if aciklama:
         d["aciklama"] = aciklama
     d.setdefault("aileler", {})[aile] = girdi
+    # TAVAN: monoton (max). YALNIZ acik ezme bayragi tavani ASAGI ceker — yoksa
+    # "once kucult, sonra tavani da kucult" ile eksen kendi kendini sondururdu.
+    yeni_tavan = {}
+    for ad, v in sorted(sayisal_alanlar(girdi).items()):
+        onceki = tavan.get(ad)
+        if ezmeye_izin_ver or not isinstance(onceki, int) or isinstance(onceki, bool):
+            yeni_tavan[ad] = v
+        else:
+            yeni_tavan[ad] = max(onceki, v)
+    d.setdefault(TAVAN_ALANI, {})[aile] = yeni_tavan
+
+    if kuru_prova:
+        print("KURU PROVA: %s YAZILMADI (tavan olurdu: %s)"
+              % ("/".join(KAYIT_YOLU), json.dumps(yeni_tavan, sort_keys=True)))
+        return yol
     with io.open(yol, "w", encoding="utf-8") as f:
         f.write(json.dumps(d, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
     return yol

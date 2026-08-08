@@ -500,17 +500,30 @@ def parite(a):
             "semaKutuOzeti": pk.kutu_ozeti(sema),
             "tarih": datetime.date.today().isoformat(),
         }
-        yol = pk.kayit_yaz(
-            REPO, sema["hacimFormulu"], girdi,
-            aciklama=("Sema kapisi <-> uretim motoru dort-kova paritesi. Bir ailenin "
-                      "sema `kisitlar` blogu VARKEN satisa acilabilmesinin sarti: burada "
-                      "YESIL ve TAZE bir girdi. Okuyucu tools/onizleme-vaat-kapisi.py "
-                      "(A3), sozlesme tools/parite_kaydi.py. ELLE DUZENLENMEZ."))
-        print("PARITE KAYDI YAZILDI: %s" % os.path.relpath(yol, REPO))
+        try:
+            yol = pk.kayit_yaz(
+                REPO, sema["hacimFormulu"], girdi,
+                aciklama=("Sema kapisi <-> uretim motoru dort-kova paritesi. Bir ailenin "
+                          "sema `kisitlar` blogu VARKEN satisa acilabilmesinin sarti: burada "
+                          "YESIL ve TAZE bir girdi. Okuyucu tools/onizleme-vaat-kapisi.py "
+                          "(A3), sozlesme tools/parite_kaydi.py. ELLE DUZENLENMEZ."),
+                ezmeye_izin_ver=a.ezmeye_izin_ver, kuru_prova=a.kuru_prova)
+        except pk.KucultmeReddi as exc:
+            # FAIL-CLOSED: kanit ZAYIFLAYACAKTI -> sessiz basari YOK, sifir-disi cikis.
+            print("KIRMIZI: %s" % exc)
+            return pk.KOD_KUCULTME
+        print("PARITE KAYDI %s: %s"
+              % ("KURU PROVA (yazilmadi)" if a.kuru_prova else "YAZILDI",
+                 os.path.relpath(yol, REPO)))
     return 0
 
 
-def main():
+def parser_kur():
+    """CLI ayristiricisi — TEK KAYNAK.
+
+    🔴 `--ezmeye-izin-ver` / `--kuru-prova` VARSAYILANI burada yasar ve kabul testi
+    onu `parse_args([])` ile OLCER (duzyazidan/dokumandan DEGIL): varsayilan False'tan
+    True'ya kayarsa test KIRMIZI yanar."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--set", type=int, default=120)
     ap.add_argument("--tohum", type=int, default=4242)
@@ -527,7 +540,15 @@ def main():
     ap.add_argument("--isci", type=int, default=max(2, (os.cpu_count() or 4)))
     ap.add_argument("--kayit-yaz", action="store_true",
                     help="YESIL kosumda jenerator/test/uretilebilirlik-parite.json'u gunceller")
-    a = ap.parse_args()
+    ap.add_argument("--ezmeye-izin-ver", dest="ezmeye_izin_ver", action="store_true",
+                    help="YIKICI: parite kaydinin sayisal alanlarini KUCULT (varsayilan KAPALI)")
+    ap.add_argument("--kuru-prova", dest="kuru_prova", action="store_true",
+                    help="kayit dosyasina hicbir sey yazma, ne olacagini bas")
+    return ap
+
+
+def main():
+    a = parser_kur().parse_args()
 
     if a.parite:
         return parite(a)

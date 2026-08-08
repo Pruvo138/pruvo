@@ -419,6 +419,18 @@ def _bolum_a(kok, iddia, olculemedi):
             "ailelerin muafiyeti HESAPLANMADI): " + kayit_hatasi)
         return
 
+    # 🔴 GERILEME EKSENI (8 Agu 2026): bu kapi ONCE yalnizca SABIT tabana bakiyordu
+    # (EN_AZ_PARITE_NOKTA). Olculdu: canli kayitta olculenNokta 48000; 8000'e cekmek
+    # (-%83,3) kapiyi YESIL birakiyordu, `ilanEdilenIzgara` icin hicbir alt sinir YOKTU.
+    # Tavan blogu (kayitli ONCEKI en yuksek deger) okunamiyorsa "gerileme yok"
+    # VARSAYILMAZ -> A3 HIC BASILMAZ ([[olculdu-diyen-hukum-kaniti]]).
+    tavanlar, tavan_hatasi = PK.tavan_oku(kok)
+    if tavanlar is None:
+        olculemedi.append(
+            "BOLUM A parite TAVANI FAIL-CLOSED ('gerileme yok' VARSAYILMADI, kanitin "
+            "zayiflamasi OLCULEMEDI): " + tavan_hatasi)
+        return
+
     kaynaklar, eksik = kisitli_aile_kumesi(semalar, veri["kisitlar"])
     iddia("A1 ONIZLEME_KISITLAR urun id'lerinin HEPSI semaya+aileye cozuldu",
           not eksik, "; ".join(eksik))
@@ -483,7 +495,7 @@ def _bolum_a(kok, iddia, olculemedi):
                 "%s: %d adet kisitli sema — aile basina TEK parite kaydi bunu "
                 "kapatamaz (%s)" % (aile, len(kisitli_semalar), kisitli_semalar))
         return PK.girdi_dogrula(kok, aile, semalar[kisitli_semalar[0]]["sema"],
-                                EN_AZ_PARITE_NOKTA, kayitlar)
+                                EN_AZ_PARITE_NOKTA, kayitlar, tavanlar)
 
     kesisim = sorted(set(kisitli_aileler) & acik)
     kalanlar, muaflar, parite_olculemedi = [], [], []
@@ -751,6 +763,37 @@ def _m_kayit_nokta_esigi(ayna):
     return ["A3"]
 
 
+def _m_kayit_gerileme(ayna):
+    """🔴 MUAFIYETIN 8. EKSENI (8 Agu 2026, OLCULEN KORLUK): `olculenNokta` SABIT
+    TABANIN USTUNDE ama kayitli TAVANIN cok altina cekilir (48000 -> 20000, -%58).
+    Eski kapi bunu GOREMIYORDU: 20000 >= 8000 oldugu icin esik iddiasi geciyor, baska
+    hicbir eksen "ne kadar GERILEDI" diye sormuyordu. Tavan ekseni bunu KIRMIZI yakar.
+    (M13'ten AYRI eksendir: M13 esigin ALTINA duser, bu mutant esigin USTUNDE kalir.)"""
+    d, girdi = _kayit_gir(ayna)
+    tavan = (d.get(PK.TAVAN_ALANI) or {}).get("rulman") or {}
+    if int(tavan.get("olculenNokta", 0)) <= 20000:
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: tavan olculenNokta=%r "
+                             "(20000'den buyuk olmali)" % (tavan.get("olculenNokta"),))
+    girdi["olculenNokta"] = 20000
+    if girdi["olculenNokta"] < EN_AZ_PARITE_NOKTA:
+        raise AssertionError("MUTASYON CAPASI BOZUK: 20000 sabit tabanin (%d) ALTINDA — "
+                             "mutant M13 ile ayni sinifa duserdi" % EN_AZ_PARITE_NOKTA)
+    _kayit_yaz_ham(ayna, d)
+    return ["A3"]
+
+
+def _m_kayit_mutant_gerilemesi(ayna):
+    """GERILEME EKSENININ IKINCI KOLU: `M3` kontrol mutanti 12971 -> 1. ">0" iddiasi
+    HALA gecer (1 > 0) ama olcumun ayirt etme gucu yok olmustur. Tavan bunu gorur."""
+    d, girdi = _kayit_gir(ayna)
+    if int(girdi["kontrolMutantlari"]["M3"]) <= 1:
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: M3=%r (1'den buyuk olmali)"
+                             % (girdi["kontrolMutantlari"]["M3"],))
+    girdi["kontrolMutantlari"]["M3"] = 1
+    _kayit_yaz_ham(ayna, d)
+    return ["A3"]
+
+
 def _m_kayit_kor_mutant(ayna):
     """MUAFIYETIN 5. EKSENI: kaydin KENDI kontrol mutanti olu — M1 (genisleme) hicbir
     tehlikeli nokta uretmemis. Boyle bir olcumun "tehlikeli 0" hukmu her seye KABUL
@@ -867,6 +910,21 @@ def _k_kayit_ek_alan(ayna):
     return []
 
 
+def _k_kayit_gerileme_yonu(ayna):
+    """🔴 M17'NIN AYIRT EDICI KONTROLU: `olculenNokta` TAVANIN USTUNE cikarilir
+    (48000 -> 60000). Gerileme ekseni YONLUDUR: BUYUME kanidi guclendirir, kapi
+    YESIL kalmali. Bu kontrol olmasaydi eksen "kayitli sayi degisti mi" olurdu
+    (her yeniden olcum yayini durdururdu), "kanit ZAYIFLADI mi" DEGIL."""
+    d, girdi = _kayit_gir(ayna)
+    tavan = (d.get(PK.TAVAN_ALANI) or {}).get("rulman") or {}
+    if int(tavan.get("olculenNokta", 0)) >= 60000:
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: tavan olculenNokta=%r "
+                             "(60000'den kucuk olmali)" % (tavan.get("olculenNokta"),))
+    girdi["olculenNokta"] = 60000
+    _kayit_yaz_ham(ayna, d)
+    return []
+
+
 def _k_kayit_kapali_aile_girdisi(ayna):
     """🔴 MUAFIYETIN AYIRT EDICI KONTROLU: SATISTA OLMAYAN kisitli bir aile (vida)
     icin kayit eklenir. Kayit tek basina hicbir aileyi ACMAZ (acan sey satis
@@ -951,6 +1009,20 @@ def _f_kayit_bozuk_json(ayna):
     return []
 
 
+def _f_kayit_tavani_yok(ayna):
+    """TAVAN BLOGU SILINIR -> "gerileme yok" VARSAYILAMAZ. Kayit her yonden yesil
+    gorunur ama kanitin ZAYIFLAYIP zayiflamadigi OLCULEMEZ: A3 HIC BASILMAZ.
+    (Bu eksen olmasaydi tavani silmek gerileme kapisini sessizce sondururdu —
+    kapi kendi korlugunu YESIL raporlardi.)"""
+    d = _kayit_oku_ham(ayna)
+    if PK.TAVAN_ALANI not in d:
+        raise AssertionError("MUTASYON CAPASI BULUNAMADI: kayitta `%s` blogu YOK"
+                             % PK.TAVAN_ALANI)
+    del d[PK.TAVAN_ALANI]
+    _kayit_yaz_ham(ayna, d)
+    return []
+
+
 def _f_parmakizi_motoru_yok(ayna):
     """Motorun IZLENEN parmakizi girdisi paketten dusurulur -> kaydin bayat OLUP
     OLMADIGI olculemez. Sessizce "tazedir" VARSAYILMAZ."""
@@ -990,6 +1062,10 @@ MUTANTLAR = [
      _m_kayit_sema_kisit_ozeti, OLDURUCU),
     ("M16 parite kaydi BAYAT: YALNIZ `dis_cap` max buyudu (kisit+kayit AYNI)",
      _m_kayit_sema_kutu_ozeti, OLDURUCU),
+    ("M17 parite kaydi GERILEDI: olculenNokta tavanin altina cekildi (SABIT TABANIN "
+     "USTUNDE — eski kapi bunu goremiyordu)", _m_kayit_gerileme, OLDURUCU),
+    ("M18 parite kaydi GERILEDI: kontrol mutanti M3 12971 -> 1 ('>0' iddiasi HALA gecer)",
+     _m_kayit_mutant_gerilemesi, OLDURUCU),
     ("K1 KONTROL: anlamsiz yorum eklendi", _k_yorum, KONTROL),
     ("K2 KONTROL: acik ailenin sapma SAYISI degisti", _k_sapma_degeri, KONTROL),
     ("K3 KONTROL: satis listesi anahtar SIRASI degisti", _k_sira, KONTROL),
@@ -1002,6 +1078,8 @@ MUTANTLAR = [
      _k_kayit_kapali_aile_girdisi, KONTROL),
     ("K8 KONTROL: semada YALNIZ metin alani degisti (izgara AYNI)",
      _k_sema_metin_alani, KONTROL),
+    ("K9 KONTROL: olculenNokta tavanin USTUNE cikti (kanit GUCLENDI — M17'nin yonu)",
+     _k_kayit_gerileme_yonu, KONTROL),
     ("F1 FAIL-CLOSED: sema dosyasi BOZUK JSON", _f_sema_bozuk_json, FAIL_CLOSED),
     ("F2 FAIL-CLOSED: `kisitlar` liste degil (bicim taninmaz)",
      _f_kisit_bicimi_nesne, FAIL_CLOSED),
@@ -1011,6 +1089,8 @@ MUTANTLAR = [
     ("F5 FAIL-CLOSED: parite kaydi BOZUK JSON", _f_kayit_bozuk_json, FAIL_CLOSED),
     ("F6 FAIL-CLOSED: motorun parmakizi girdisi paketten dustu",
      _f_parmakizi_motoru_yok, FAIL_CLOSED),
+    ("F7 FAIL-CLOSED: parite kaydinin TAVAN blogu silindi (gerileme OLCULEMEZ)",
+     _f_kayit_tavani_yok, FAIL_CLOSED),
 ]
 
 

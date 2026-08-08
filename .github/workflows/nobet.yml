@@ -514,6 +514,34 @@ jobs:
       - name: Backfill kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
         run: python3 tools/backfill-mutasyon-test.py
 
+      # R2 EZME KAPISI (8 Agu) — ayni "sessizce uzerine yazma" sinifi, GORSEL duzleminde.
+      # NE OLCER: tools/r2-upload.py yazmadan ONCE varlik sondasi kosuyor mu, mevcut anahtar
+      # varsayilanda REDDEDILIYOR mu (put HIC cagrilmadan), hata metni DOGRU YOLU (-v2 dosya
+      # adi + gorseller URL guncellemesi) gosteriyor mu, --kuru-prova tek bayt yazmiyor mu,
+      # yeni anahtar PUT'u IfNoneMatch="*" ile gidiyor mu (yaris penceresi), 412 on-kosul
+      # ihlali "desteklenmiyor" sanilip yutuluyor mu, bayrak varsayilani argparse'ta False mi.
+      # 6 mutant TEK BASINA KIRMIZI + 1 KONTROL mutanti YESIL. MOCK S3: gercek R2'ye ne
+      # okuma ne yazma gider. OFFLINE, ~4 s. (Kabul testinin kendisi deploy.yml'de kosar.)
+      - name: R2 ezme kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
+        run: python3 tools/r2-ezme-mutasyon-test.py
+
+      # PARITE KAYDI KUCULME/GERILEME KAPISI (8 Agu) — SATIS kapisinin kanit defteri.
+      # NE OLCER: kayit_yaz sayisal alanlarda kuculmeyi varsayilanda REDDEDIYOR mu (dosya
+      # BAYT BAYT degismeden, eski->yeni basarak), olcu IKI kaynaktan mi aliniyor (mevcut
+      # kayit + MONOTON tavan), --kuru-prova tek bayt yazmiyor mu, --ezmeye-izin-ver tavani
+      # da cekiyor mu; ve OKUYUCU kolu: tavana gore dusmus kayit SABIT TABANIN USTUNDE olsa
+      # bile KIRMIZI, tavan yoksa OLCULEMEDI, tavanin USTUNDEKI kayit YESIL (yon kontrolu).
+      # SENTETIK gecici kok: canli jenerator/test/uretilebilirlik-parite.json ACILMAZ. ~1 s.
+      - name: Parite kaydi kuculme kapisi (kanit sessizce zayiflatilamaz)
+        run: python3 tools/parite-kayit-test.py
+
+      # ... ve kabul testinin KENDISI olculur: 8 mutant (kuculme reddi, bayrak kapisi,
+      # kuru prova, tavan kaynagi, okuyucu gerileme karsilastirmasi, tavan yoklugunun
+      # fail-closed'i, kontrol mutanti sayilari, CLI bayrak varsayilani) TEK BASINA KIRMIZI;
+      # +1 KONTROL mutanti YESIL. Mutasyon gecici SYMLINK aynasina uygulanir. OFFLINE, ~8 s.
+      - name: Parite kaydi kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
+        run: python3 tools/parite-kayit-mutasyon-test.py
+
       # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
       # kalmali, 4 gercek drift mutanti KIRMIZI yanmali, CLI cikis kodlari (esit=0 / drift=1 /
       # dosya-yok=1) dogru olmali, bozuk konfigur semasi artefakt URETIMINI reddetmeli
