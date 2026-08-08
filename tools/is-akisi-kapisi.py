@@ -1727,7 +1727,17 @@ TABLO_TABANLARI = (
     # 8 Agu: 41 -> 42 (varlik kapisinin `--kendini-test` kolu beyan edildi; bayraksiz
     # GERCEK olcum kolu serit A'da `deploy.yml` job `serit-a3`te BLOKLAYICI kalir.
     # O kol daha once HICBIR is akisinda cagrilmiyordu ve KIRMIZI kaldigi gorulmemisti).
-    ("SERIT_B", 42),
+    # 8 Agu: 42 -> 85 (KESIF GENISLEMESI: `tools/ci-kapsam-test.py` kesif predikati
+    # `*-mutasyon.py`yi gormuyordu; 43 surucunun 35'i hicbir OTOMATIK is akisinda
+    # kosmuyordu ve UCU ZATEN BAYATLAMISTI. Esigi gecen 17 surucu nobet.yml
+    # `serit-b`ye KENDI DUZ TEK KOMUT ADIMIYLA baglandi + kesif genislemesinin
+    # ORTAYA CIKARDIGI 1 eski beyansiz adim (`yayin-sinyali-mutasyon.py`) beyan
+    # edildi; her biri AYRI giris — toplu/joker beyan YOK.
+    # 🔴 TABAN ARTIK GERCEK SAYIYA ESITLENDI (67 -> 85 degil, 42 -> 85): eski taban
+    # 42 iken tablo FIILEN 67 giristi, yani 25 girisi tek commit'te silmek bu
+    # sayaci HIC kirmizi yakmiyordu. Taban = gercek sayi oldugunda her KUCULME
+    # bilincli bir guncelleme ister (tablonun BEYAN EDILEN amaci budur).
+    ("SERIT_B", 85),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2323,6 +2333,120 @@ SERIT_B = {
     ("nobet.yml", "serit-b", "tools/yayin-kapisi.py"):
         "YALNIZ `--kendini-test` (aday secimi + 200 sarti) kolu; GERCEK atomik yayin "
         "`yayin` job'unda, yayindan SONRA kosar.",
+    # ═══ MUTASYON SURUCULERI (8 Agu 2026) — KESIF GENISLEMESIYLE KABLOLANANLAR ═══
+    # 🔴 ORTAK SINIF GEREKCESI (her giris ASAGIDA AYRICA kendi olcumuyle durur):
+    # Bir mutasyon surucusu "kabul testi" DEGIL, bir kabul testinin/kapinin AYIRT
+    # EDICILIGINI kanitlayan META araçtir. Olctugu iddia ZATEN baska bir adimda
+    # (cogu serit A'da BLOKLAYICI) olculur; surucuyu bloklayici seride koymak
+    # CIFT SAYIM olur ve daha kotusu, mutantlar kaynak METNINE capalidir -> hedef
+    # kaynagin her MESRU refaktoru TUM EKIBIN yayinini durdururdu
+    # ([[kapi-anchor-coupling-ikilemi]]). Depo konvansiyonu bu: A_MUTASYON kumesi ve
+    # jenerator/test/kisit-mutasyon.js AYNI gerekceyle B'de/muaf.
+    # 🔴 O HALDE NEDEN CI'DA HIC OLMASIN DEGIL DE B'DE OLSUN: kosmayan surucu
+    # SESSIZCE CURUR. Olculdu (8 Agu, temiz klon): 43 surucunun 35'i hicbir OTOMATIK
+    # is akisinda kosmuyordu ve UCU ZATEN BAYATLAMISTI (rc=1, "capa bulunamadi").
+    # B seridi tam bu is icin var: kirmizi GORUNUR olur, yayin DURMAZ.
+    # 🔴 BU GIRIS "YENI KABLOLANAN" DEGIL — KESIF GENISLEMESININ ORTAYA CIKARDIGI
+    # ESKI BIR BEYANSIZ ADIM. `tools/yayin-sinyali-mutasyon.py` nobet.yml `serit-b`de
+    # ZATEN kosuyordu, ama kesif predikati `*-mutasyon.py`yi gormedigi icin bu kapi
+    # onu "kapi cagrisi" SAYMIYORDU -> beyan sorusu HIC SORULMAMISTI. Ayni korluk
+    # ters yonde de vardi: cagri satiri silinse ci-kapsam-test.py UYARMAZDI.
+    ("nobet.yml", "serit-b", "tools/yayin-sinyali-mutasyon.py"):
+        "SERIT AYRIMININ KENDI iki yonlu curutme bataryasi (YON A: bloklamayan kirmizi "
+        "yayin kosumunu boyamiyor · YON B: yayini DURDURAN kirmizi kosumu KIRMIZI "
+        "yapiyor + `deploy: needs` daraltmasi kapali). Bloklayici seride konsaydi "
+        "serit ayrimini olcen arac yayin seridini durdururdu — dairesel bagimlilik "
+        "(kardesi `tools/serit-bolme-mutasyon.py` ile AYNI gerekce). Olculdu (8 Agu "
+        "2026, temiz klon): rc=0, 1,1 s, canli dosyalarin sha256'si bas=son.",
+    ("nobet.yml", "serit-b", "tools/kesif-kapsam-mutasyon.py"):
+        "META-META surucu: ci-kapsam-test.py'nin KESIF ekseninin canli oldugunu "
+        "kanitlar (daraltma VE gevsetme yonu ayri ayri kirmizi; kablolanan surucunun "
+        "cagri satiri silinince KAPSAMSIZ kirmizisi yanar). Olctugu kapi "
+        "`tools/ci-kapsam-test.py` ZATEN ayni job'da kosuyor -> bloklayici seritte "
+        "cift sayim olurdu. Bellekte kosar, canli dosyaya YAZMAZ (sha256 bas=son).",
+    ("nobet.yml", "serit-b", "tools/ata-lisans-mutasyon.py"):
+        "Olctugu kapinin kendisi CI'da kosuyor; bu surucu onun AYIRT EDICILIGINI "
+        "olcer (oldurucu 20/20 KIRMIZI, kontrol 3/3 YESIL). Mutantlar kaynak metnine "
+        "capali -> bloklayici seritte mesru refaktor yayini durdururdu. Olculdu "
+        "(temiz klon + bos HOME): rc=0, 18,1 s, calisma agaci kirlenmiyor.",
+    ("nobet.yml", "serit-b", "tools/d1-sync-durum-mutasyon.py"):
+        "d1-sync `--durum` kolunun AYIRT EDICILIGI (18 mutant: her OLDURUCU kirmizi, "
+        "her KONTROL yesil). D1 duzlemi bu evin yayin yolunda DEGIL; kirmizisi yayini "
+        "durdurmamali. Olculdu (temiz klon + bos HOME): rc=0, 1,8 s, ag YOK.",
+    ("nobet.yml", "serit-b", "tools/duzelt-uyum-mutasyon.py"):
+        "duzelt.py uyum kapisinin AYIRT EDICILIGI (her eksenin TEK-KIRMIZI mutanti "
+        "var). Hedef kaynak urun VERISI duzlemindedir (MaCiT) -> kirmizisinin sahibi "
+        "bu ev degil, bloklayici seritte tum ekip baskasinin kuyrugunda beklerdi. "
+        "Olculdu (temiz klon + bos HOME): rc=0, 11,7 s.",
+    ("nobet.yml", "serit-b", "tools/ege-bilgi-tavan-mutasyon.py"):
+        "Ege-bilgi tavan kapisinin ic nobetcisinin AYIRT EDICILIGI (14/14 oldurucu "
+        "olduruldu, 3 kontrol yesil). Kapinin KENDI kabul testi "
+        "(`ege-bilgi-tavan-test.py --ic-nobetci`) ZATEN ayni job'da kosuyor -> "
+        "bloklayicida cift sayim. Olculdu (temiz klon + bos HOME): rc=0, 0,8 s.",
+    ("nobet.yml", "serit-b", "tools/gramer-kisaltma-mutasyon.py"):
+        "Gramer kisaltma kolunun AYIRT EDICILIGI (8/8 oldurucu, taban oz-test 96 "
+        "iddia). Olctugu kapi `gramer-artigi-kapisi.py` ZATEN ayni job'da "
+        "`--kendini-test` ile kosuyor. Olculdu (temiz klon + bos HOME): rc=0, 2,6 s.",
+    ("nobet.yml", "serit-b", "tools/konfigur-nobet-mutasyon.py"):
+        "Konfigur nobetcisinin AYIRT EDICILIGI + AYNANIN KAYNAGA YAZAMADIGI. Sentetik "
+        "depo aynasi kurar (urunler.json ve .urun-kaynaklari.json AYNA_HARIC); ag YOK, "
+        "URL'ler fikstur dizesi. Olctugu kapi `konfigur-bundle-kapisi.py "
+        "--kendini-test` ZATEN ayni job'da. Olculdu (temiz klon + bos HOME): rc=0, "
+        "34,9 s — 40 s kablolama esiginin ALTINDA.",
+    ("nobet.yml", "serit-b", "tools/mimar-commit-kapisi-mutasyon.py"):
+        "Mimar commit kapisinin AYIRT EDICILIGI; mutasyon YALNIZ tempdir kopyasina "
+        "uygulanir ('Gercek gate degismedi' satiri bunu basar). Kapinin kendisi "
+        "MIMAR DISIPLIN cihazidir ve CI'da bloklayici kosmasi ANLAMSIZDIR (commit "
+        "EDILMEYEN .claude kablolamasina bagli, R_YOL sinifi). Olculdu (temiz klon + "
+        "bos HOME): rc=0, 9,4 s.",
+    ("nobet.yml", "serit-b", "tools/parite-marka-mutasyon.js"):
+        "Parite MARKA ekseninin AYIRT EDICILIGI (oldurucilerin hepsi kirmizi, "
+        "kontrollerin hepsi yesil). Surucunun kendi beyani: AG/wrangler ISTEMEZ. "
+        "Kardesi `tools/parite-mutasyon-test.js` SURE ile muaf (217 s); bu kol 1,2 s. "
+        "Olculdu (temiz klon + bos HOME): rc=0, 1,2 s. node ISTER (setup-node "
+        "on-kosulu bu job'da zaten var).",
+    ("nobet.yml", "serit-b", "tools/reklam-etiket-mutasyon.py"):
+        "Reklam etiket kapisinin AYIRT EDICILIGI (oldurucu mutantlarin hepsi TEK "
+        "BASINA kirmizi, kontrol YESIL). Olctugu kapi `reklam-etiket-kapisi.py "
+        "--kendini-test` ZATEN ayni job'da kosuyor. Olculdu (temiz klon + bos HOME): "
+        "rc=0, 10,4 s.",
+    ("nobet.yml", "serit-b", "tools/serit-bolme-mutasyon.py"):
+        "SERIT AYRIMININ KENDI fail-open kolunun AYIRT EDICILIGI (6 iddia; fail-open "
+        "KIRMIZI yaniyor, kontrol YESIL). Bloklayici seride konsaydi serit ayrimini "
+        "olcen arac yayin seridini durdururdu — dairesel bagimlilik. Olculdu (temiz "
+        "klon + bos HOME): rc=0, 1,0 s.",
+    ("nobet.yml", "serit-b", "tools/shop-bayatlik-mutasyon.py"):
+        "Shop bayatlik kapisinin AYIRT EDICILIGI (19 mutant, sapma 0). "
+        "`shop/wrangler.toml` dosyasini OKUR — wrangler CLI/ag ISTEMEZ. Shop AYRI "
+        "dagitim hedefidir (Cloudflare Worker), Pages yayinini bloklamasi yanlis "
+        "serit olurdu. Olculdu (temiz klon + bos HOME): rc=0, 20,6 s.",
+    ("nobet.yml", "serit-b", "tools/varlik-referans-mutasyon.py"):
+        "8 AGU SOMUT VAKASI: kiyas referansi kaydinin ALTI bozuk sekli TEK BASINA "
+        "rc=2 mi veriyor (ikisi o gun FAIL-OPEN'di: rc=0 verip YANLIS BEYAN "
+        "basiyordu). Kapinin kendi ic nobetcisi `varlik-test.py --kendini-test` ZATEN "
+        "ayni job'da -> bloklayicida cift sayim. Canli kaydi yedekler ve sha256 ile "
+        "geri yukler. Olculdu (temiz klon + bos HOME): rc=0, 4,9 s.",
+    ("nobet.yml", "serit-b", "tools/vitrin-kabul-mutasyon.py"):
+        "Vitrin kabul kolunun AYIRT EDICILIGI (6 mutant: her OLDURUCU kirmizi, her "
+        "KONTROL yesil). Olctugu kabul testi `jenerator/test/vitrin-kabul.js` serit "
+        "A'da BLOKLAYICI kosuyor -> bu surucu bloklayicida CIFT SAYIM olurdu. "
+        "Olculdu (temiz klon + bos HOME): rc=0, 33,0 s.",
+    ("nobet.yml", "serit-b", "tools/wa-yetki-mutasyon.py"):
+        "WhatsApp yetki kapisinin AYIRT EDICILIGI (5/5 mutant tuttu). Numara "
+        "ayrimi (wa.me <-> tel:) MARKA kuralidir ve kapisi ayrica kosar; bu surucu "
+        "yalniz o kapinin kor olmadigini kanitlar. Olculdu (temiz klon + bos HOME): "
+        "rc=0, 0,9 s.",
+    ("nobet.yml", "serit-b", "tools/yayin-erisim-mutasyon.py"):
+        "Yayin erisim nobetcisinin AYIRT EDICILIGI (her eksenin TEK-KIRMIZI mutanti "
+        "var). Nobetcinin GERCEK olcum kolu CI'da HIC kosmaz (ayri cron alarm is "
+        "akisi, canli ag); kabul testi `yayin-erisim-test.py` ZATEN bu job'da. "
+        "Olculdu (temiz klon + bos HOME): rc=0, 21,4 s, ag YOK.",
+    ("nobet.yml", "serit-b", "tools/yedek-gorev-kapsam-mutasyon.py"):
+        "yedekle.py'nin ~/.claude AGAC KAPSAMI + jeton DISLAMASI ekseninin AYIRT "
+        "EDICILIGI. Surucunun kendi beyani: sahte HOME + sahte git deposu + drive "
+        "STUB'u ile izole tempdir'de kosar, GERCEK HOME'a/hedefe YAZMAZ — bos HOME "
+        "ile dogrulandi. Yedek duzlemi yayin yolunda DEGIL. Olculdu (temiz klon + "
+        "bos HOME): rc=0, 3,0 s.",
     ("nobet.yml", "serit-b", "jenerator/test/dogrula.py"):
         "YALNIZ `--kendini-test` kolu (OpenSCAD yasak nobetcisinin kendi 18 iddiasi); "
         "jenerator ayri dagitim hedefi, Pages ciktisini uretmez.",

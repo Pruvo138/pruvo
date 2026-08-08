@@ -242,9 +242,86 @@ def _yaml_oku_yukle():
 YAML_OKU = _yaml_oku_yukle()
 
 # ---- KESIF PREDIKATLARI ----------------------------------------------------
+# 🔴 UCUNCU META-DELIK ONARIMI (8 Agu 2026) — `*-mutasyon.py` / `*-mutasyon.js`
+# Kesif uzun sure yalniz "-test" / "test-" / "-kapisi" adlarina bakiyordu. Bu depoda
+# UCUNCU bir kabul-araci sinifi var ve TAMAMEN disarida kaliyordu: MUTASYON SURUCUSU
+# (bir kapinin/testin GERCEKTEN olcup olcmedigini kanitlayan batarya).
+# OLCULEN ENVANTER (8 Agu 2026, `git ls-files`):
+#     43 surucu · 8'i OTOMATIK bir is akisinda kosuyor · 35'i kosmuyor
+#     bunlarin 31'i kesif predikatinin HIC gormedigi dosyalardi
+# Sonuc IKI YONLU idi:
+#   (a) Kosmayan 31 surucu icin kapsam sorusu HIC SORULMUYORDU -> surucu curuse kimse
+#       duymazdi. Olculdu, CURUME ZATEN OLMUS: `tools/d1-sapma-mutasyon.py` (rc=1,
+#       capa bulunamiyor) ve `tools/gecmis-geri-donus-mutasyon.py` (rc=1, kendi
+#       raporunda "arac bayat") temiz checkout'ta KIRMIZI ve kimse gormemis.
+#   (b) Daha kotusu: KOSAN ikisi (`tools/varlik-mutasyon.py` deploy.yml'de,
+#       `tools/yayin-sinyali-mutasyon.py` nobet.yml'de) kesif disi oldugu icin
+#       RATCHET'SIZDI — cagri satirlari silinse bu kapi UYARMAZ, YESIL kalirdi.
+#       Tam olarak "-kapisi.py" meta-deliginin (21 Tem, yukarida) AYNISI
+#       ([[nobetci-cagri-satiri-nobetsiz]]).
+# NEDEN ACIK KESIF KAYDI (ACIK_KESIF) DEGIL, PREDIKAT: 6 Agu'daki karar "kabul kolu
+# tasiyan her tools/*.py" predikatina karsiydi cunku o predikat KAPSAM DISI 6 dosya
+# getiriyordu (sinyal/gurultu kotu). Burada durum TERS: `-mutasyon` adi bu depoda
+# TEK ANLAMLI bir konvansiyondur — 43 adayin 43'u de gercek mutasyon surucusudur
+# (yanlis-pozitif 0, olculdu). 31 kalemi ACIK_KESIF'e TEK TEK yazmak ayni sonucu
+# BAKIMI ELDE olan bir defterle verirdi ve defter her yeni surucude bayatlardi
+# ([[envanter-drift-parti-basina]]). Predikat ratchet'i BAKIMSIZ tasir.
+# YANLIS-POZITIF SINIRI (fikstur ile civili — KESIF_PREDIKAT_FIKSTURLERI): yalniz
+# `tools/` DOGRUDAN altindaki `.py`/`.js`. Fikstur/veri/dokuman (`.md`, `.json`,
+# `.txt`), `tools/arsiv/` ve alt dizinler YAKALANMAZ.
 TOOLS_PAT = re.compile(
-    r"^tools/([^/]*-test\.(?:py|js)|test-[^/]*\.(?:py|js)|[^/]*-kapisi\.py)$")
+    r"^tools/([^/]*-test\.(?:py|js)|test-[^/]*\.(?:py|js)|[^/]*-kapisi\.py"
+    r"|[^/]*-mutasyon\.(?:py|js))$")
 DIR_PAT = re.compile(r"^(?:shop/test|onizleme/test|jenerator/test)/[^/]+\.(?:py|js|mjs|cjs)$")
+
+# ---- KESIF PREDIKATI FIKSTURLERI (POZITIF + NEGATIF, iki yonlu) -------------
+# 🔴 TEK YONLU NOBETCI OLU NOBETCIDIR: predikat yalniz "yakaliyor mu" diye olculurse
+# `^tools/.*$` gibi bir gevsetme de YESIL gecerdi. O yuzden NEGATIF vakalar (kapsam
+# disi ad/uzanti/dizin) AYNI tabloda ve AYNI agirlikta durur.
+# (yol, yakalanmali_mi, NEDEN)
+KESIF_PREDIKAT_FIKSTURLERI = (
+    # --- POZITIF: mutasyon surucusu konvansiyonu ---
+    ("tools/varlik-referans-mutasyon.py", True, "surucu (.py) — 8 Agu somut vakasi"),
+    ("tools/parite-marka-mutasyon.js", True, "surucu (.js) — node ile kosar"),
+    ("tools/zzz-yeni-mutasyon.py", True, "YARIN eklenecek surucu de RATCHET'e girmeli"),
+    # --- POZITIF: onceden zaten kapsanan adlar DUSMEMELI (regresyon nobeti) ---
+    ("tools/ci-kapsam-test.py", True, "`-test.py` kolu AYNEN durmali"),
+    ("tools/test-ornek.py", True, "`test-` oneki kolu AYNEN durmali"),
+    ("tools/uyum-kapisi.py", True, "`-kapisi.py` kolu AYNEN durmali"),
+    ("shop/test/eposta.mjs", True, "DIR_PAT kolu AYNEN durmali"),
+    ("jenerator/test/kisit-mutasyon.js", True, "DIR_PAT zaten yakaliyordu"),
+    # --- NEGATIF: benzer ADLI ama kapsam DISI ---
+    ("tools/mutasyon-notlari.md", False, "DOKUMAN — kosulabilir suite degil"),
+    ("tools/varlik-referans-mutasyon.json", False, "VERI/fikstur — kosulabilir degil"),
+    ("tools/mutasyon-kayit.txt", False, "duz metin"),
+    ("tools/arsiv/eski-mutasyon.py", False, "tools/arsiv/ BILINCLI olarak kapsam disi"),
+    ("tools/alt/dizin/x-mutasyon.py", False, "tools/ DOGRUDAN alti degil"),
+    ("jenerator/test/aileler/x-mutasyon.js", False, "DIR_PAT alt dizini kapsamaz"),
+    ("belgeler/x-mutasyon.py", False, "tools/ disinda"),
+    ("tools/mutasyon.py", False, "`-mutasyon` EKI yok (ciplak ad) — konvansiyon disi"),
+    ("tools/x-mutasyonlu.py", False, "jeton siniri: `-mutasyonlu` EK DEGILDIR"),
+)
+
+
+def kesif_predikat_kontrol():
+    """KESIF_PREDIKAT_FIKSTURLERI iki yonlu tutuyor mu (pozitif VE negatif)."""
+    hatalar = []
+    for yol, beklenen, neden in KESIF_PREDIKAT_FIKSTURLERI:
+        # 🔴 `tools/arsiv/` icin AYRI bir maske KONULMAZ: kesfet()'te o eleme ayrica
+        # var ama fikstur PREDIKATIN kendisini olcmeli — maske konsaydi, predikati
+        # slash'a izin verecek sekilde gevseten bir mutant bu fiksturde GORUNMEZDI
+        # ([[beyan-edilmis-survivor]]).
+        goruldu = bool(TOOLS_PAT.match(yol) or DIR_PAT.match(yol))
+        if goruldu != beklenen:
+            hatalar.append("KESIF PREDIKATI FIKSTURU DUSTU: %s -> yakalandi=%s "
+                           "beklenen=%s (%s)" % (yol, goruldu, beklenen, neden))
+    poz = sum(1 for _y, b, _n in KESIF_PREDIKAT_FIKSTURLERI if b)
+    neg = len(KESIF_PREDIKAT_FIKSTURLERI) - poz
+    if poz < 8 or neg < 9:
+        hatalar.append("KESIF PREDIKATI FIKSTUR TABLOSU KUCULDU (pozitif %d, negatif %d; "
+                       "taban 8/9) — tabloyu kucultmek nobetciyi SESSIZCE oldurur "
+                       "([[fikstur-degeri-mutasyon-koru]])." % (poz, neg))
+    return (not hatalar), hatalar
 
 # ---- ACIK KESIF KAYDI (6 Agu 2026) -----------------------------------------
 # 🔴 OLCULEN KESIF KORLUGU: yukaridaki predikatlar AD tabanlidir. Kabul kolu
@@ -1816,6 +1893,108 @@ IZIN_LISTESI = {
         "--kendini-test, ayni klonda 105 iddia / rc=0) nobet.yml:552'de OTOMATIK "
         "kosuyor -> kapi kapsamsiz DEGIL; bu dosya onun uzerine 'eski davranis "
         "curutuldu mu' arkeoloji kolunu ekler."),
+
+    # ═══ MUTASYON SURUCULERI — KESIF GENISLEMESIYLE GELEN 33 DOSYA (8 Agu 2026) ═══
+    # 🔴 BU BLOK BIR "TOPLU MUAFIYET" DEGILDIR. Kesif genislemesi 33 dosya getirdi;
+    # 17'si nobet.yml `serit-b`de KENDI DUZ TEK KOMUT ADIMIYLA kosuyor (muafiyet YOK,
+    # ratchet VAR), 2'si zaten kosuyordu (varlik-mutasyon deploy.yml · yayin-sinyali
+    # nobet.yml — artik ratchet'li), 15'i asagida TEK TEK ve OLCUMLE muaf.
+    # OLCUM YORDAMI (hepsi icin AYNI, 8 Agu 2026): `git clone --local` ile kurulan
+    # TEMIZ checkout + BOS HOME (~/.claude YOK) -> `<yorumlayici> <yol>`; rc, duvar
+    # saati suresi ve son rapor satiri kaydedildi. 300 s'de kesildi.
+    # KABLOLAMA ESIGI (KraL olcutu): rc=0 VE sure <= 40 s VE calisma agacini
+    # KIRLETMIYOR. Esigin gerekcesi olculdu: kablolanan 17 adim `serit-b`ye toplam
+    # ~186 s katiyor; asagidaki 15 dosya kablolansaydi ek yuk ~2.400 s+ olurdu ve
+    # `serit-b` bugunku 752 s'lik suresinin dort katina cikardi.
+    # 🔴 UC DOSYA ZATEN CURUMUS HALDE BULUNDU (rc=1) — bu, kesif genislemesinin
+    # NEDENININ kanitidir: kosmayan surucu sessizce bayatlar. Onarim AYRI IS.
+    "tools/d1-sapma-mutasyon.py": (
+        "BAYAT SURUCU — CI'YA BAGLANAMAZ (rc=1). OLCULDU (8 Agu 2026, temiz klon + bos "
+        "HOME): rc=1, 19,9 s; rapor `Aranan: \"if: failure() && steps.olcum.outputs."
+        "sapma == 'var'\"` diyor -> mutasyon CAPASI is akisi metninde ARTIK YOK, yani "
+        "mutant UYGULANAMIYOR. Bu bir kapi kirmizisi DEGIL, aracin kendi bayatligidir; "
+        "bloklamayan seride baglanirsa `serit-b` KALICI kirmizi yanar ve gercek "
+        "alarmlari bogar ([[alarm-onarim-ucus-suresi]]). ONARIM AYRI IS: capa "
+        "d1-sapma-alarmi.yml'in cari metninden yeniden turetilmeli."),
+    "tools/gecmis-geri-donus-mutasyon.py": (
+        "BAYAT SURUCU + SURE. OLCULDU (8 Agu 2026, temiz klon + bos HOME): rc=1, "
+        "88,5 s; aracin KENDI raporu `M12 KANCA exit 1 -> exit 0 (fail-open) -> CAPA "
+        "BULUNAMADI (mutasyon uygulanamadi — arac bayat)` diyor. Iki gerekce birden: "
+        "(a) bugun kirmizi -> kablolanirsa `serit-b` KALICI kirmizi olur, (b) 88,5 s "
+        "ile 40 s esiginin ustunde. Olctugu eksenin CI kolu ZATEN var ve kosuyor: "
+        "`tools/gecmis-geri-donus-kapisi.py --kendini-test` nobet.yml `mesaj-nobeti` "
+        "job'unda. ONARIM AYRI IS."),
+    "tools/r2-onek-mutasyon.py": (
+        "BAYAT SURUCU — CI'YA BAGLANAMAZ (rc=1). OLCULDU (8 Agu 2026, temiz klon + bos "
+        "HOME): rc=1, 3,4 s, `AssertionError: MUTASYON UYGULANAMADI (M15) — kaynak "
+        "degisti mi?`. Capa kaynaktan kaymis; surucu kendi fail-loud koluyla duruyor "
+        "(dogru davranis) ama bu HAL kablolanamaz. Olctugu kapi CI'da ZATEN kosuyor: "
+        "`tools/r2-onek-gelenek-kapisi.py` nobet.yml `r2-onek-nobeti` job'unda. "
+        "ONARIM AYRI IS: M15 capasi r2_anahtar.py'nin cari metninden yeniden turetilmeli."),
+    # --- SURE ESIGI (>40 s) — hepsi rc=0, yani SAGLAM; yalniz PAHALI --------------
+    "tools/commit-mesaji-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 233,9 s, `oldurucu mutant 28/28 "
+        "OLDU · ilgisiz kontrol 3/3 YESIL`. Her mutant GERCEK bir git deposu kurup "
+        "commit ürettiği icin sure mutant sayisiyla dogrusal buyur. 40 s esiginin ~6 "
+        "kati; TEK BASINA `serit-b`yi %31 uzatirdi. Olctugu kapinin CI kolu ZATEN "
+        "kosuyor: `tools/commit-mesaji-kapisi.py --kendini-test` nobet.yml "
+        "`mesaj-nobeti` job'unda (SERIT_B'de beyanli)."),
+    "tools/cron-teslim-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 177,3 s, `CURUTME GECTI — her "
+        "oldurucu mutant KIRMIZI yandi, beyanli mutantlarin kirmizi eksen kumesi "
+        "beyana TAM ESIT`. 40 s esiginin ~4,4 kati. Olctugu eksenin CI kolu ZATEN "
+        "kosuyor: `tools/cron-nabiz-kapisi.py --kendini-test` nobet.yml `cron-nabzi` "
+        "job'unda."),
+    "tools/d1-kaynak-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 163,3 s, `7 mutant: her "
+        "OLDURUCU beyan ettigi kodlari yakti, her KONTROL tabani degistirmedi`. "
+        "40 s esiginin ~4 kati (mutant basina ~23 s: her mutant tam bir d1-sync "
+        "kaynak turetimi kosar). Olctugu kapinin CI kolu `serit-b`de "
+        "`tools/d1-sync-tani-test.py` ile duruyor."),
+    "tools/iletisim-baglam-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 80,1 s, `SONUC: GECTI`. "
+        "40 s esiginin 2 kati. Sinifi SAGLAM (rc=0) — muafiyet YALNIZ suredendir; "
+        "esik degisirse ya da surucu hizlandirilirsa BURADAN CIKARILIP nobet.yml "
+        "`serit-b`ye kendi adimiyla baglanmalidir."),
+    "tools/marka-arama-mutasyon.py": (
+        "SURE — OLCULEMEYECEK KADAR UZUN. OLCULDU (8 Agu 2026, temiz klon): 300 s "
+        "duvar saatinde KESILDI (TIMEOUT), o ana kadar rapor satiri URETMEDI. Ust "
+        "sinir bilinmiyor; 40 s esiginin en az 7,5 kati. Kablolanirsa `serit-b`nin "
+        "suresini TEK BASINA en az %40 uzatir ve tavani belirsizlestirir."),
+    "tools/marka-invaryant-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 283,8 s, `19 mutant: her "
+        "OLDURUCU kirmizi, her KONTROL yesil`. 40 s esiginin ~7 kati; mutant basina "
+        "~15 s (her mutant tum marka envanterini yeniden turetir)."),
+    "tools/marka-sayac-mutasyon.py": (
+        "SURE + CALISMA AGACINI KIRLETIYOR (iki bagimsiz gerekce). OLCULDU (8 Agu "
+        "2026, temiz klon): 300 s'de KESILDI (TIMEOUT) VE kosum sonunda "
+        "`git status --porcelain` -> ` M tools/marka_model_build.py`, yani surucu "
+        "IZLENEN bir kaynagi degistirip GERI YUKLEMEDI. Ikinci eksen tek basina "
+        "bloklayicidir: CI'da kosan bir adimin izlenen dosyayi kirletmesi sonraki "
+        "adimlarin girdisini sessizce degistirir. ONARIM (mutasyon KOPYAYA uygulansin "
+        "+ sha256 bas=son nobeti) AYRI IS."),
+    "tools/marka-uyelik-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 202,1 s, `BATARYA: GECTI "
+        "(6 mutant)`. 40 s esiginin ~5 kati; mutant basina ~34 s."),
+    "tools/model-kanon-mutasyon.py": (
+        "SURE — OLCULEMEYECEK KADAR UZUN. OLCULDU (8 Agu 2026, temiz klon): 300 s "
+        "duvar saatinde KESILDI (TIMEOUT), rapor satiri URETMEDI. marka-arama ile "
+        "AYNI sinif; ust sinir bilinmiyor."),
+    "tools/urunler-guard-provenans-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 78,0 s, `MUTANT=22 "
+        "TABAN_IDDIA=28 SAPMA=0`. 40 s esiginin ~2 kati. Her mutant gercek bir git "
+        "deposu + guard kancasi kurar. Olctugu eksenin sahibi urun VERISI duzlemidir "
+        "(MaCiT); bloklamayan seritte bile kirmizisinin sahibi bu ev degildir."),
+    "tools/yayin-gecikme-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 193,8 s, `TUM MUTANTLAR "
+        "BEYANINA UYDU, KONTROLLER YESIL, HER EKSENIN TEK-KIRMIZI MUTANTI VAR`. "
+        "40 s esiginin ~4,8 kati. Olctugu nobetcinin kabul testi ZATEN `serit-b`de "
+        "kosuyor: `tools/yayin-gecikme-test.py`."),
+    "tools/yonet-cerez-mutasyon.py": (
+        "SURE. OLCULDU (8 Agu 2026, temiz klon): rc=0, 54,8 s, `TUM MUTANTLAR "
+        "YAKALANDI, KONTROLLER YESIL`. 40 s esiginin ~1,4 kati — ESIGE EN YAKIN "
+        "GIRIS. Surucu ~10 s hizlandirilirsa esigi gecer; o zaman BURADAN CIKARILIP "
+        "nobet.yml `serit-b`ye kendi adimiyla baglanmalidir."),
 }
 
 
@@ -4105,6 +4284,12 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, acik_hata = acik_kesif_kontrol()
         for h in acik_hata:
             hatalar.append("ACIK-KESIF: " + h)
+        # KESIF PREDIKATI (8 Agu): pozitif VE negatif yon birlikte. Predikati
+        # gevsetmek (her seyi yakalamak) ya da daraltmak (mutasyon surucusunu
+        # dusurmek) TEK BASINA KIRMIZI yakar.
+        _, predikat_hata = kesif_predikat_kontrol()
+        for h in predikat_hata:
+            hatalar.append("KESIF-PREDIKATI: " + h)
         # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
         # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
         # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
@@ -4307,7 +4492,18 @@ def main():
         else:
             for h in hata7:
                 print("  ❌ " + h)
-        if ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7:
+        ok8, hata8 = kesif_predikat_kontrol()
+        print("KESIF PREDIKATI — IKI YONLU (%d fikstur: pozitif ad konvansiyonlari + "
+              "negatif kapsam disi ad/uzanti/dizin)"
+              % len(KESIF_PREDIKAT_FIKSTURLERI))
+        if ok8:
+            print("  ✅ `-test`/`test-`/`-kapisi`/`-mutasyon` YAKALANIYOR; dokuman/veri "
+                  "(`.md`/`.json`/`.txt`), `tools/arsiv/`, alt dizinler ve `-mutasyonlu` "
+                  "gibi jeton-disi adlar YAKALANMIYOR")
+        else:
+            for h in hata8:
+                print("  ❌ " + h)
+        if ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8:
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")

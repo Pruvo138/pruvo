@@ -1271,6 +1271,89 @@ jobs:
       - name: Reklam parametresi sayfalar arasi korunuyor mu (davranis testi)
         run: node tools/reklam-url-test.js
 
+      # ═══════════════════════════════════════════════════════════════════════
+      # MUTASYON SURUCULERI (8 Agu 2026) — KESIF GENISLEMESIYLE KABLOLANANLAR
+      # ═══════════════════════════════════════════════════════════════════════
+      # 🔴 NEDEN SIMDI: `tools/ci-kapsam-test.py` kesif predikati `*-mutasyon.py`yi
+      # GORMUYORDU. Envanter (8 Agu, `git ls-files`): 43 surucu · 8'i OTOMATIK bir is
+      # akisinda kosuyor · 35'i kosmuyor; kosmayanlarin 31'i kapiya TUMUYLE GORUNMEZDI.
+      # Kosmayan surucu SESSIZCE CURUR — ve zaten curumustu: uc surucu temiz klonda
+      # rc=1 bulundu (d1-sapma · gecmis-geri-donus · r2-onek; hepsi "capa bulunamadi").
+      # Sinif: [[nobetci-cagri-satiri-nobetsiz]].
+      #
+      # 🔴 HER SURUCU KENDI DUZ TEK KOMUT ADIMIYLA: zincirlenmis komut (`&&`, `;`,
+      # `for`) bu depoda KAPSAM SAYILMIYOR — kapinin icra suzgeci komut govdesinin
+      # BASINA capalanir, zincirin ikinci halkasi GORUNMEZ olur.
+      # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi nobetci ihlalidir).
+      #
+      # KABLOLAMA ESIGI (olculdu, temiz `git clone --local` + BOS HOME): rc=0 VE
+      # sure <= 40 s VE calisma agacini kirletmiyor. Esigi gecemeyen 15 surucu
+      # `tools/ci-kapsam-test.py::IZIN_LISTESI`nde TEK TEK ve OLCUMLE muaf.
+      # ASAGIDAKI 17 ADIMIN OLCULEN TOPLAM SURESI: 183 s (adim adim toplandi).
+      # SERIT-B TABANI: 752 s (kosum 31266293755, 8 Agu 16:10:22Z -> 16:22:54Z) ->
+      # beklenen ~935 s. `serit-a4` yayin tavani 32-58 dk oldugu icin bu ek yuk
+      # yayin penceresini UZATMAZ (serit-b `deploy`ye `needs:` ile bagli DEGIL).
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B (her biri AYRI giris).
+
+      # KESIF EKSENININ KENDI SURUCUSU — bu blogun VAR OLMA SEBEBINI olcer:
+      # kesif genislemesi HUKUMDE yasiyor mu (daraltma VE gevsetme yonu ayri ayri
+      # kirmizi mi), yeni yakalanan dosya sessizce atlanabiliyor mu, kablolanan bir
+      # surucunun cagri satiri silinince kapi kirmizi yaniyor mu (RATCHET). Bellekte
+      # kosar, canli dosyalara YAZMAZ (sha256 bas=son nobeti icinde).
+      - name: "CI kapsam kapisi KESIF ekseni mutasyon bataryasi (ratchet canli mi)"
+        run: python3 tools/kesif-kapsam-mutasyon.py
+
+      - name: "Ata lisans kapisi mutasyon bataryasi (kabul testi gercekten olcuyor mu)"
+        run: python3 tools/ata-lisans-mutasyon.py
+
+      - name: "D1-sync durum kolu mutasyon bataryasi"
+        run: python3 tools/d1-sync-durum-mutasyon.py
+
+      - name: "duzelt.py uyum kapisi mutasyon bataryasi"
+        run: python3 tools/duzelt-uyum-mutasyon.py
+
+      - name: "Ege-bilgi tavan kapisi mutasyon bataryasi"
+        run: python3 tools/ege-bilgi-tavan-mutasyon.py
+
+      - name: "Gramer kisaltma kapisi mutasyon bataryasi"
+        run: python3 tools/gramer-kisaltma-mutasyon.py
+
+      - name: "Konfigur nobetcisi mutasyon bataryasi (ayna kaynaga yazamiyor mu)"
+        run: python3 tools/konfigur-nobet-mutasyon.py
+
+      - name: "Mimar commit kapisi mutasyon bataryasi (gercek gate'e dokunmuyor mu)"
+        run: python3 tools/mimar-commit-kapisi-mutasyon.py
+
+      - name: "Parite marka ekseni mutasyon bataryasi (ag/wrangler YOK)"
+        run: node tools/parite-marka-mutasyon.js
+
+      - name: "Reklam etiket kapisi mutasyon bataryasi"
+        run: python3 tools/reklam-etiket-mutasyon.py
+
+      - name: "Serit bolme kapisi mutasyon bataryasi (fail-open kirmizi yaniyor mu)"
+        run: python3 tools/serit-bolme-mutasyon.py
+
+      - name: "Shop bayatlik kapisi mutasyon bataryasi (wrangler.toml OKUR, CLI degil)"
+        run: python3 tools/shop-bayatlik-mutasyon.py
+
+      # 8 AGU SOMUT VAKASI: kiyas referansi kaydinin bozuk sekilleri (kisa `ref`,
+      # JSON DIZISI, sayi, alan yok, bozuk metin, cozulemeyen sha) TEK BASINA rc=2
+      # veriyor mu. Ikisi 8 Agu'da FAIL-OPEN'di ve rc=0 verip YANLIS BEYAN basiyordu.
+      - name: "Varlik referans kaydi mutasyon bataryasi (bozuk sekil fail-closed mi)"
+        run: python3 tools/varlik-referans-mutasyon.py
+
+      - name: "Vitrin kabul kapisi mutasyon bataryasi"
+        run: python3 tools/vitrin-kabul-mutasyon.py
+
+      - name: "WhatsApp yetki kapisi mutasyon bataryasi"
+        run: python3 tools/wa-yetki-mutasyon.py
+
+      - name: "Yayin erisim nobetcisi mutasyon bataryasi"
+        run: python3 tools/yayin-erisim-mutasyon.py
+
+      - name: "Yedek gorev kapsami mutasyon bataryasi (sahte HOME, gercek HOME'a YAZMAZ)"
+        run: python3 tools/yedek-gorev-kapsam-mutasyon.py
+
 
 
   # ═════════════════════════════════════════════════════════════════════════════

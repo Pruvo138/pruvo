@@ -18,7 +18,10 @@ Ikisi de burada VAKA olarak durur: "bozuk kayit" tek sekille denenirse sinif kap
 ([[tekil-yama-sinifi-kapatmaz]]).
 
 KABUL (iki yonlu):
-  · BES bozuk sekil de TEK BASINA rc=2 (OLCULEMEDI) vermeli.
+  · VAKALAR'daki her bozuk sekil TEK BASINA rc=2 (OLCULEMEDI) vermeli.
+    🔴 SAYI METINDE SABIT YAZILMAZ: 8 Agu 2026'da bu satir ile son rapor satiri "bes bozuk
+    sekil" diyordu, oysa M1..M6 = ALTI vaka kosuyordu. Bayat sayi bu depoda yanlis guven
+    verir ([[hukum-yanlis-birimde]]); rapor satiri artik len(VAKALAR)'dan TURETILIR.
   · COKME KIRMIZI SAYILMAZ: rc=2 sart, ayrica raporda GECERSIZ teshisi aranir; traceback
     ya da baska bir rc "mutant dustu" DEMEK DEGILDIR.
   · KONTROL: gecerli kayit rc=0 KALMALI — yoksa batarya "her kaydi reddet" halinden
@@ -121,7 +124,8 @@ def main():
         for d in dusen:
             print("  · %s" % d)
         return 1
-    print("SONUC: YESIL ✅ — bes bozuk sekil de TEK BASINA rc=2, kontrol rc=0.")
+    print("SONUC: YESIL ✅ — %d bozuk sekil de TEK BASINA rc=2, kontrol rc=0."
+          % len(VAKALAR))
     return 0
 
 
