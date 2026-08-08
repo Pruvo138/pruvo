@@ -139,12 +139,18 @@ def tara(ham):
     sayim["webp_source"] = sum(1 for k in kaynaklar if k[0] == "image/webp")
     sayim["img"] = len(imgler)
 
-    # --- A5 her <picture>'da EN AZ BIR modern format kolu -----------------------------
-    modernsiz = sum(1 for liste in blok_kaynaklari
-                    if not any(k[0] in MODERN_TIPLER for k in liste))
-    if modernsiz:
-        hata.append("A5: %d <picture>'da hicbir modern format <source>'u YOK (AVIF/WebP) "
-                    "— o banner tam boy JPEG olarak iner" % modernsiz)
+    # --- A5 her <picture>'da WebP kolu ZORUNLU ----------------------------------------
+    # 🔴 BURADA IDDIA GEVSETILMEDI. AVIF eklenirken "en az bir modern kol olsun" demek
+    # KOLAY ve YANLIS olurdu: AVIF-ONLY bir <picture> bu gevsek iddiadan gecer, ama AVIF
+    # desteklemeyen (WebP destekleyen) tarayici DOGRUDAN tam boy JPEG'e duser — yani
+    # AVIF eklemek, eski tarayicilar icin bir GERILEME olurdu ve kapi bunu gormezdi.
+    # WebP taban koldur: her <picture>'da BULUNMAK ZORUNDA. AVIF ONUN USTUNE eklenir.
+    webp_sayisi = sayim["webp_source"]
+    if webp_sayisi != ac:
+        hata.append("A5: %d <picture> var ama %d WebP <source> — WebP TABAN koldur, her "
+                    "picture'da bulunmak ZORUNDA (AVIF onun yerine gecmez: AVIF'i "
+                    "desteklemeyen tarayici dogrudan tam boy JPEG'e duser)"
+                    % (ac, webp_sayisi))
 
     # --- A8 SIRA EKSENI (9 Agu): AVIF, WebP'den ONCE gelmeli --------------------------
     # Tarayici ILK destekledigi <source>'u secer. AVIF WebP'den SONRA yazilirsa AVIF'i
@@ -341,6 +347,20 @@ def mutantlar(ham):
             if bozuk != ham:
                 liste.append(("M9 AVIF <source> WebP'den SONRAYA alindi", bozuk, True))
             break
+    # M11 TABAN KOL: AVIF'i olan bir <picture>'dan WebP <source> silinir (AVIF-only).
+    # Sayfa AVIF destekleyen tarayicida DOGRU gorunur; yalniz AVIF'siz/WebP'li tarayici
+    # sessizce tam boy JPEG'e duser. A5'in gevsek ("en az bir modern kol") halinde bu
+    # mutant KACARDI — ayirt edici mutant budur.
+    for blok in _PICTURE_BLOK.findall(g):
+        etiketler = _SOURCE_TAG.findall(blok)
+        if not any(oznitelik(t, "type") == "image/avif" for t in etiketler):
+            continue
+        webp_t = next((t for t in etiketler
+                       if oznitelik(t, "type") == "image/webp"), None)
+        if webp_t and webp_t in ham:
+            liste.append(("M11 AVIF'li <picture>'dan WebP <source> SILINDI (AVIF-only)",
+                          ham.replace(webp_t, "", 1), True))
+            break
     # M10 TIP: preload tipi WebP'ye cevrilir; govde HALA AVIF'i secer -> on-yuklenen
     # gorsel ile indirilen gorsel FARKLI olur (LCP gorseli iki kez iner).
     if pre and 'type="image/avif"' in pre:
@@ -382,8 +402,8 @@ def main():
 
     print("B) MUTASYON BATARYASI")
     mut = mutantlar(ham)
-    if len(mut) < 11:
-        print("   OLCULEMEDI: yalniz %d mutant uretilebildi (>=11 beklenir) — capalar "
+    if len(mut) < 12:
+        print("   OLCULEMEDI: yalniz %d mutant uretilebildi (>=12 beklenir) — capalar "
               "bayatlamis" % len(mut))
         return KOD_OLCULEMEDI
     kacan = []
