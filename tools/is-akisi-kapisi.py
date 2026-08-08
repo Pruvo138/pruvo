@@ -5067,6 +5067,17 @@ G_SIMULASYON = (
 )
 
 
+# BOLUM G IDDIA SAYACI TABANI — `yayin_sinyali_kontrol()` kac EKSEN kosturuyor.
+# 🔴 8 Agu 2026: `< 7` YERINE TAM ESITLIK (`!= 8`). Olculdu: gercek deger 8, taban 7 ->
+# pay 1, yani bir eksenin sayaci sessizce dusebilirdi (tam da bu kolun engelledigi kacis).
+# Kural gerekcesi TABLO_TABANLARI'nin ustundeki blokta; KOSUL burada da tutuyor:
+# yayin_sinyali_kontrol() BU dosyada, muhendislik duzenlemesiyle buyur.
+# YANLIS-POZITIF RISKI OLCULDU: sayac FIKSTUR-BAGIMSIZ — 15 G mutantinin 15'i de, ayrica
+# GERCEK .github/workflows kosumu da 8 verdi. Yani tam esitlik fikstur degisiminden
+# sahte-kirmizi yakmaz; yalniz EKSEN sayisi degisince konusur (ve o zaman konusmalidir).
+G_IDDIA_TABANI = 8
+
+
 def _g_kendini_test():
     """(hatalar, iddia) — Bolum G ariza enjeksiyonu + kosum sonucu simulatoru."""
     hatalar = []
@@ -5091,9 +5102,19 @@ def _g_kendini_test():
         if temiz:
             hatalar.append("G-POZITIF BOZUK: temiz sentetik fikstur %d hata uretti -> %s"
                            % (len(temiz), " ; ".join(h.splitlines()[0] for h in temiz)))
-        if temiz_iddia < 7:
-            hatalar.append("G-IDDIA SAYACI BOZUK: %d iddia olculdu, en az 7 bekleniyordu "
-                           "-> govde eksen atlamis olabilir" % temiz_iddia)
+        if temiz_iddia != G_IDDIA_TABANI:
+            hatalar.append(
+                "G-IDDIA SAYACI BOZUK: %d iddia olculdu, TABAN %d (fark %+d).\n"
+                "   🔴 IKI YON DE KIRMIZIDIR (8 Agu, tam esitlik):\n"
+                "   (a) DUSUS — yayin_sinyali_kontrol() bir ekseni atlamis: o eksenin\n"
+                "       hatalari artik HIC uretilmiyor ama kapi YESIL yanabilir.\n"
+                "   (b) TABAN GUNCELLENMEDEN ARTIS — taban kozmetiklesir ve pay birikir;\n"
+                "       pay kadar eksen sonradan sessizce silinebilir hale gelir\n"
+                "       (olculdu 8 Agu: gercek 8 · taban 7 -> pay 1).\n"
+                "   YAPILACAK: eksen sayisi BILEREK degistiyse G_IDDIA_TABANI'ni AYNI\n"
+                "   commit'te %d -> %d yap ve NEDENINI yaz."
+                % (temiz_iddia, G_IDDIA_TABANI, temiz_iddia - G_IDDIA_TABANI,
+                   G_IDDIA_TABANI, temiz_iddia))
         # ARIZA ENJEKSIYONU
         for ad, y_don, n_don, kirmizi_olmali in G_MUTANTLAR:
             iddia += 1
