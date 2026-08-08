@@ -445,8 +445,14 @@ def git(*args):
     return p.stdout if p.returncode == 0 else None
 
 
-def eski_ref():
-    """`varlik_adres`i ICERMEYEN en son tools/build.py commit'i (tautoloji karsiti)."""
+REFERANS_DOSYASI = os.path.join(TOOLS, "varlik-referans.json")
+
+
+def _kesif_ref():
+    """`varlik_adres`i ICERMEYEN en son tools/build.py commit'i — TOHUM kesfi.
+
+    Bu, kapinin KURULUS referansidir. Artik TEK BASINA kullanilmaz (bkz. eski_ref):
+    o olay bir daha OLMAYACAGI icin sonuc SABIT bir SHA'ya donmustur."""
     log = git("log", "--format=%H", "-n", "500", "--", "tools/build.py")
     if not log:
         return None
@@ -457,6 +463,46 @@ def eski_ref():
         if "varlik_adres" not in icerik:
             return sha
     return None
+
+
+def referans_kaydi():
+    """Kayitli kiyas referansi (tools/varlik-referans.json). Yoksa/bozuksa None."""
+    try:
+        with io.open(REFERANS_DOSYASI, encoding="utf-8") as f:
+            k = json.load(f)
+    except Exception:
+        return None
+    if not isinstance(k, dict) or not isinstance(k.get("ref"), str) or len(k["ref"]) < 7:
+        return None
+    return k
+
+
+def eski_ref():
+    """KIYAS REFERANSI — kayitli, TAZELENEBILIR ve GORUNUR.
+
+    🔴 NEDEN DEGISTI (olculdu, 8 Agu 2026): referans "`varlik_adres` icermeyen en son
+    build.py" kesfiyle bulunuyordu. O olay 2 Agu'da BIR KEZ oldu ve bir daha olmayacak
+    -> kesif her kosumda AYNI SHA'yi (aa1146605f) donduruyor, yani referans FIILEN
+    DONMUS. Sonuc: kapi zamanla "varlik tasimasi kayipsiz mi?" sorusunu degil "sayfa
+    2 Agu'dan beri degisti mi?" sorusunu olcuyor ([[anahat-referans-tautolojisi]],
+    [[bayat-kabul-testi]]). Bugun bu, her mesru icerik degisikliginde beyan girisi
+    yazmayi zorunlu kiliyor ve iki kez TUM YAYINI durdurdu.
+
+    YENI YORDAM — referans DONMUS DEGIL, KAYITLI ve TAZELENEBILIR:
+      · Kaynak: tools/varlik-referans.json (IZLENEN dosya) — elle SHA gomulu DEGIL,
+        `--referans-tazele` yordami yazar ve her tazeleme bir COMMIT'tir (gorunur).
+      · Tazeleme ancak kapi O AN YESILKEN yapilabilir: yani referans yalnizca
+        "kayipsizligi kanitlanmis" bir noktaya ilerler. Kirmizi durumu YUTMAZ.
+      · Dosya yoksa TOHUM kesfine dusulur (geriye donuk uyum) ve bu GORUNUR bicimde
+        raporlanir; kayit bozuksa OLCULEMEDI (fail-closed, sessiz yesil YOK).
+      · Her kosum referansin YASINI ve birikmis beyan sayisini BASAR -> bayatlik
+        gorunur kalir, sessizce buyumez.
+    Kapinin GUCU DEGISMEZ: tazelemeden SONRA yapilan her beyansiz icerik degisikligi
+    yine KIRMIZI yanar; tazeleme yalnizca ZATEN kanitlanmis gecmisi taban yapar."""
+    kayit = referans_kaydi()
+    if kayit:
+        return kayit["ref"]
+    return _kesif_ref()
 
 
 def eski_kok_kur(tmp, ref):
@@ -719,9 +765,66 @@ def beyan_mekanizmasi_dogrula():
     return dusen
 
 
+def referans_tazele():
+    """KIYAS REFERANSINI ILERLET — yalnizca kapi O AN YESILKEN, ve GORUNUR bicimde.
+
+    YORDAM (elle degil, olculebilir):
+      1. Kapi bayraksiz kolla TAM olarak kosulur. KIRMIZI ya da OLCULEMEDI ise tazeleme
+         REDDEDILIR — aksi halde tazeleme, kanitlanmamis bir hali "taban" yapip
+         gercek bir icerik kaybini yutardi.
+      2. Yeni referans = tools/build.py'yi degistiren EN SON commit (HEAD tarafi).
+      3. Kayit tools/varlik-referans.json'a yazilir: ref + tarih + onceki ref + o anki
+         olcum. Dosya IZLENIR -> her tazeleme bir COMMIT'tir, sessiz olamaz.
+      4. Tazeleme SONRASI hangi beyan girislerinin ARTIK GEREKSIZ oldugu BASILIR
+         (yeni referansta o satirlar iki tarafta da vardir). Temizlik bilincli yapilir;
+         betik tabloya DOKUNMAZ.
+    Kapi ZAYIFLAMAZ: tazelemeden sonraki her beyansiz icerik degisikligi yine KIRMIZI."""
+    print("REFERANS TAZELEME — once kapi bayraksiz kolla kosuluyor...")
+    # AYRI SUREC: hukum bu betigin kendi ic durumundan degil, GERCEK cikis kodundan
+    # okunur (rapor() sys.exit ile biter; ic cagri hukmu yutardi).
+    kosum = subprocess.run([sys.executable, os.path.abspath(__file__)],
+                           capture_output=True, text=True)
+    print(kosum.stdout[-1200:])
+    if kosum.returncode != 0:
+        print("\nTAZELEME REDDEDILDI: kapi YESIL degil (rc=%d). Once kirmiziyi kapat; "
+              "kanitlanmamis hal taban YAPILMAZ." % kosum.returncode)
+        return 1
+    yeni_ref = (git("log", "-1", "--format=%H", "--", "tools/build.py") or "").strip()
+    if not yeni_ref:
+        print("TAZELEME REDDEDILDI: tools/build.py icin commit bulunamadi (SIG depo?)")
+        return 2
+    onceki = eski_ref()
+    if yeni_ref == onceki:
+        print("TAZELEME GEREKSIZ: referans zaten en guncel build.py commit'i (%s)"
+              % yeni_ref[:10])
+        return 0
+    kayit = {
+        "ref": yeni_ref,
+        "tazelendi": (git("log", "-1", "--format=%cs", yeni_ref) or "").strip(),
+        "onceki_ref": onceki,
+        "yordam": "python3 tools/varlik-test.py --referans-tazele (kapi YESILKEN)",
+        "not": ("Kiyas referansi. DONMUS SHA DEGIL: bu dosya yordamla yazilir ve her "
+                "tazeleme bir commit'tir. Referans yalnizca kayipsizligi KANITLANMIS "
+                "bir noktaya ilerler."),
+    }
+    with io.open(REFERANS_DOSYASI, "w", encoding="utf-8") as f:
+        f.write(json.dumps(kayit, ensure_ascii=False, indent=2) + "\n")
+    print("\nREFERANS TAZELENDI: %s -> %s" % ((onceki or "-")[:10], yeni_ref[:10]))
+    print("  kayit: %s (IZLENIR — commit et)" % REFERANS_DOSYASI)
+    print("  ⚠️ Bu tazelemeden sonra asagidaki beyan girisleri BUYUK IHTIMALLE gereksiz")
+    print("     (yeni referansta iki tarafta da varlar). GOZDEN GECIR ve SIL:")
+    for d, g in BILEREK_DEGISEN_TAM:
+        print("       · %-60s  %s" % (repr(d)[:60], g[:50]))
+    for e, _y, g in BILEREK_DEGISEN_METIN:
+        print("       · METIN %-54s  %s" % (repr(_norm(e))[:54], g[:50]))
+    return 0
+
+
 def main():
     if "--kendini-test" in sys.argv:
         sys.exit(kendini_test())
+    if "--referans-tazele" in sys.argv:
+        sys.exit(referans_tazele())
     # Muafiyet yuzeyinin nobeti HER kosumda, olcumden ONCE.
     for _d in beyan_mekanizmasi_dogrula():
         HATALAR.append("0 GORUNUR-METIN BEYAN YUZEYI BOZUK: %s" % _d)
@@ -845,7 +948,34 @@ def main():
         yeni[p["id"]] = build.render_product(p, urunler, None)
 
     # ---------------------------------------------------------------- 1 / 1b / 2 / 4 / 5
+    # REFERANS GORUNURLUGU: kayit hali + yas + birikmis beyan sayisi HER kosumda basilir.
+    # Bayatlik sessizce buyumesin diye sayi rapora girer ([[bayat-kabul-testi]]).
+    ham_kayit = None
+    try:
+        with io.open(REFERANS_DOSYASI, encoding="utf-8") as f:
+            ham_kayit = json.load(f)
+    except IOError:
+        ham_kayit = "YOK"
+    except Exception:
+        ham_kayit = "BOZUK"
+    if ham_kayit == "BOZUK" or (isinstance(ham_kayit, dict)
+                                and not isinstance(ham_kayit.get("ref"), str)):
+        # Fail-closed: kayit VAR ama okunamiyorsa "tohuma dus" DEMEK sessizce eski
+        # davranisa donmektir; hal OLCULEMEDI'dir.
+        OLCULEMEDI.append("kiyas referansi kaydi BOZUK (%s) — tohum kesfine DUSULMEDI"
+                          % REFERANS_DOSYASI)
     ref = eski_ref()
+    if isinstance(ham_kayit, dict) and ref:
+        yas = git("log", "-1", "--format=%cr", ref)
+        BILGI.append("kiyas referansi: KAYITLI %s (%s) · tazelendi %s · beyan: %d satir + "
+                     "%d gorunur-metin"
+                     % (ref[:10], (yas or "?").strip(), ham_kayit.get("tazelendi", "?"),
+                        len(BILEREK_DEGISEN_TAM) + len(BILEREK_DEGISEN),
+                        len(BILEREK_DEGISEN_METIN)))
+    elif ref:
+        BILGI.append("kiyas referansi: TOHUM KESFI %s (kayit dosyasi YOK -> "
+                     "`python3 tools/varlik-test.py --referans-tazele` ile kaydet)"
+                     % ref[:10])
     if ref is None:
         OLCULEMEDI.append("1/1b/2 ESKI uretici bulunamadi (SIG depo ya da yeniden yazilmis "
                           "gecmis) — esdegerlik ve ortalama-dusus eksenleri OLCULEMEDI")

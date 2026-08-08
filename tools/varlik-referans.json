@@ -1,0 +1,7 @@
+{
+  "ref": "aa1146605f",
+  "tazelendi": "2026-08-02",
+  "onceki_ref": null,
+  "yordam": "python3 tools/varlik-test.py --referans-tazele (kapi YESILKEN)",
+  "not": "Varlik kapisinin kiyas referansi. ELLE DONMUS SHA DEGIL: bu dosya yordamla yazilir ve her tazeleme bir commit'tir (gorunur). Referans yalnizca kayipsizligi KANITLANMIS bir noktaya ilerler; tazeleme kapi YESIL degilken REDDEDILIR. Ilk kayit, kapinin kurulus tohumu olan `varlik_adres` oncesi son build.py commit'idir — davranis BUGUNKUYLE BIREBIR aynidir."
+}
