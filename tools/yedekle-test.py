@@ -216,6 +216,277 @@ ALT_GLOB_DERIN = "olcum/alt/kumhavuzu-derin.md"
 ALT_GLOB_DIZIN = "olcum/kumhavuzu-dizin.py"
 
 
+# ============ HEDEF ARTIK-SIR NOBETI (17 / 17b, 7 Agu 2026) =================
+# 🔴 NEDEN HERMETIK SERITTE: nobetin kapattigi sinif GUVENLIK + GIZLILIKTIR (yedek
+# hedefi ORTAK Drive; uyeligi yerelden OLCULEMIYOR). Bolum sahte bir `backup/`
+# agacinda kosar: gercek Drive'a, gercek ~/.claude'a ve repo kokune DOKUNMAZ.
+#
+# ⚠️ FIKSTUR ADLARI TAMAMEN UYDURMA ve icerikleri sentetiktir; gercek jeton/sir
+# ADI da DEGERI de bu dosyaya YAZILMAZ ([[nobetci-kendi-dosyasinda-sizinti]]).
+# Bilinen sir ADLARI (`.r2-credentials.json` gibi) yedekle.SIR_ADLARI'nda ZATEN
+# yazili oldugu icin burada yeni bir sizinti yuzeyi acmazlar — DEGER yoktur.
+ARTIK_KOK_SIR = ".thingiverse-token"          # REPO_SIR uyesi, hedefin KOKUNDE
+ARTIK_AD_KARA = "skills/kumhavuzu-skill/.r2-credentials.json"     # SIR_ADLARI
+ARTIK_AD_DESEN = "skills/kumhavuzu-skill/notlar/kumhavuzu-token.txt"  # SIR_DESENLERI
+ARTIK_MUAF_YESIL = "memory/kumhavuzu-onizleme-token-dersi.md"    # MUAF -> YESIL
+ARTIK_MUAF_EKMEM = "ek/memory-evler/kumhavuzu-ev/kumhavuzu-secret-dersi.md"  # MUAF
+ARTIK_MUAF_KARA = "memory/.r2-credentials.json"   # MUAF AGACTA ama KARA LISTE -> KIRMIZI
+ARTIK_TEMIZ = "memory/kumhavuzu-zararsiz-not.md"  # hicbir kurala uymaz -> YESIL
+# 🔴 UCUNCU KURAL (REPO_SIR uyeligi) TEK BASINA OLCULSUN DIYE: hicbir ad kuralina
+# takilmayan UYDURMA bir ad. Bugun REPO_SIR'in dort uyesi de SIR_ADLARI'nda oldugu
+# icin kural 3 gercek veriyle ATESLEMEZ; olculmeden birakilirsa, `REPO_SIR`e ad
+# kurallarina uymayan yeni bir kalem eklendigi gun nobet onu SESSIZCE goremezdi
+# (tam olarak `.mukerrer-istisna.json` sinifi). Fikstur bu kurali SENTETIK uyeyle olcer.
+ARTIK_SENTETIK_REPO_SIR = "kumhavuzu-istisna-defteri.json"
+# EKSEN AYRISMASI: adi MASUM -> EKSEN 1 bunu GOREMEZ, YALNIZ EKSEN 2 gorur.
+ARTIK_EKSEN2_MASUM = "cron-nobet/kumhavuzu-nobet.log"
+ARTIK_EKSEN2_SEBEP = "allowlist disi: uzanti '.log' izinli degil"
+# Hukmun TEK TANIMI (yapisal kilit: tek tanim, en az iki cagiran).
+ARTIK_EKSEN2_FN = "haric_artiklari"
+# Mutant isaretinin enjekte edilecegi capa (mutasyon YUKLENEN MODULDE canli mi).
+ARTIK_ISARET_CAPA = "ARTIK_CIKIS_KODU = 3"
+
+
+def artik_yapisi(kaynak):
+    """(tanim, cagri) — EKSEN 2 hukmu TEK TANIM mi, birden cok fazdan mi cagriliyor?"""
+    tanim = kaynak.count("def %s(" % ARTIK_EKSEN2_FN)
+    cagri = kaynak.count("%s(" % ARTIK_EKSEN2_FN) - tanim
+    return tanim, cagri
+
+
+def _artik_yaz(kok, gor, icerik="kumhavuzu sentetik icerik\n"):
+    yol = os.path.join(kok, gor.replace("/", os.sep))
+    os.makedirs(os.path.dirname(yol), exist_ok=True)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(icerik)
+    return yol
+
+
+def artik_fiksturu(td, ad="backup"):
+    """Sahte `backup/` hedefi. GERCEK Drive'a DOKUNMAZ; adlar uydurma."""
+    backup = os.path.join(td, ad)
+    for gor in (ARTIK_KOK_SIR, ARTIK_AD_KARA, ARTIK_AD_DESEN, ARTIK_MUAF_YESIL,
+                ARTIK_MUAF_EKMEM, ARTIK_MUAF_KARA, ARTIK_TEMIZ,
+                ARTIK_SENTETIK_REPO_SIR, ARTIK_EKSEN2_MASUM):
+        _artik_yaz(backup, gor)
+    return backup
+
+
+def artik_iddialari(mod, td):
+    """Artik nobeti iddialari — TEK LISTE (saglam kod ve HER MUTANT ayni listeyi kosar).
+    Doner: [(etiket, ok, ayrinti)]"""
+    ci = []
+
+    def ek(etiket, ok, ayrinti=""):
+        ci.append((etiket, bool(ok), str(ayrinti)))
+
+    okuma = artik_fiksturu(td, "backup-okuma")
+
+    # ---- EKSEN 1: hedefin TAMAMINDA ad duzeyi supurme ----------------------
+    a1, bilerek = mod.artik_supur(okuma, sirlar=False)
+    y1 = {k["yol"]: k for k in a1}
+    ek("(a) EKSEN1/kara-liste: ad kara listeli artik YAKALANDI",
+       ARTIK_AD_KARA in y1 and y1[ARTIK_AD_KARA]["kural"] == "ad kara listede"
+       and y1[ARTIK_AD_KARA]["eksen"] == 1,
+       "kayit=%r" % y1.get(ARTIK_AD_KARA))
+    ek("(b) EKSEN1/ad-deseni: desen eslesen artik YAKALANDI",
+       ARTIK_AD_DESEN in y1 and y1[ARTIK_AD_DESEN]["kural"].startswith("ad deseni"),
+       "kayit=%r" % y1.get(ARTIK_AD_DESEN))
+    # ---- (c) UCUNCU KURAL: REPO_SIR uyeligi, TEK BASINA -------------------
+    eski_repo_sir = mod.REPO_SIR
+    try:
+        mod.REPO_SIR = tuple(eski_repo_sir) + (ARTIK_SENTETIK_REPO_SIR,)
+        a1c, _b = mod.artik_supur(okuma, sirlar=False)
+        y1c = {k["yol"]: k for k in a1c}
+    finally:
+        mod.REPO_SIR = eski_repo_sir
+    ek("(c) EKSEN1/REPO_SIR: hicbir AD kuralina takilmayan uye YAKALANDI",
+       ARTIK_SENTETIK_REPO_SIR in y1c
+       and y1c[ARTIK_SENTETIK_REPO_SIR]["kural"] == "REPO_SIR uyeligi",
+       "kayit=%r" % y1c.get(ARTIK_SENTETIK_REPO_SIR))
+    ek("(c2) FIKSTUR TAZE: sentetik ad, REPO_SIR'e girmeden HICBIR kurala takilmiyor",
+       ARTIK_SENTETIK_REPO_SIR not in y1,
+       "temiz kosumda kayit=%r" % y1.get(ARTIK_SENTETIK_REPO_SIR))
+    # ---- KONTROL MUTANTI: muafiyet calisiyor AMA korlestirmiyor -----------
+    ek("(d) KONTROL/YESIL: muaf agacta `*token*` adli MESRU not artik SAYILMADI",
+       ARTIK_MUAF_YESIL not in y1, "kayit=%r" % y1.get(ARTIK_MUAF_YESIL))
+    ek("(d2) KONTROL/YESIL: ek/memory-evler agacinda `*secret*` adli not de SAYILMADI",
+       ARTIK_MUAF_EKMEM not in y1, "kayit=%r" % y1.get(ARTIK_MUAF_EKMEM))
+    ek("(e) KONTROL/KIRMIZI: MUAF agacta bile KARA LISTE katmani KORLESMEDI",
+       ARTIK_MUAF_KARA in y1 and y1[ARTIK_MUAF_KARA]["kural"] == "ad kara listede",
+       "kayit=%r" % y1.get(ARTIK_MUAF_KARA))
+    ek("(f) zararsiz dosya artik SAYILMADI (yanlis-pozitif yok)",
+       ARTIK_TEMIZ not in y1, "kayit=%r" % y1.get(ARTIK_TEMIZ))
+    ek("(g) EKSEN AYRISMASI: masum adli eksen2 fiksturunu EKSEN 1 GOREMIYOR",
+       ARTIK_EKSEN2_MASUM not in y1, "kayit=%r" % y1.get(ARTIK_EKSEN2_MASUM))
+
+    # ---- EKSEN 2: plan `haric` artigi (TEK kanonik primitif) --------------
+    a2 = mod.haric_artiklari(okuma, os.path.join(okuma, "cron-nobet"),
+                             [(os.path.basename(ARTIK_EKSEN2_MASUM), ARTIK_EKSEN2_SEBEP)])
+    y2 = {k["yol"]: k for k in a2}
+    ek("(h) EKSEN2: elenmis dosyanin hedefteki ESKI kopyasi YAKALANDI",
+       ARTIK_EKSEN2_MASUM in y2 and y2[ARTIK_EKSEN2_MASUM]["eksen"] == 2
+       and ARTIK_EKSEN2_SEBEP in y2[ARTIK_EKSEN2_MASUM]["kural"],
+       "kayit=%r" % y2.get(ARTIK_EKSEN2_MASUM))
+    ek("(h2) EKSEN2: hedefte OLMAYAN eleme artik URETMEZ (yanlis-pozitif yok)",
+       not mod.haric_artiklari(okuma, os.path.join(okuma, "cron-nobet"),
+                               [("kumhavuzu-hic-yok.log", "sebep")]),
+       "bos olmali")
+    ek("(i) EKSEN2/ESLEME: .git/hooks ve (kirli) girisleri DOGRU hedefe esleniyor",
+       mod._ek_haric_hedefi(".git/hooks/pre-push")
+       == os.path.join(mod.GIT_HOOK_KLASOR, "pre-push")
+       and mod._ek_haric_hedefi("a/b.md (kirli)")
+       == os.path.join(mod.KIRLI_KLASOR, "a", "b.md"),
+       "%r / %r" % (mod._ek_haric_hedefi(".git/hooks/pre-push"),
+                    mod._ek_haric_hedefi("a/b.md (kirli)")))
+
+    # ---- `--sirlar` ISTISNASI ---------------------------------------------
+    _a1s, bilerek_s = mod.artik_supur(okuma, sirlar=True)
+    y1s = {k["yol"] for k in _a1s}
+    ek("(j) --sirlar KOSUMU: kokteki REPO_SIR dosyasi SAYILDI ama KIRMIZI DEGIL",
+       ARTIK_KOK_SIR in {k["yol"] for k in bilerek_s} and ARTIK_KOK_SIR not in y1s,
+       "bilerek=%s" % sorted(k["yol"] for k in bilerek_s))
+    ek("(k) BAYRAKSIZ KOSUM: AYNI dosya ARTIK'tir (kirmizi)",
+       ARTIK_KOK_SIR in y1 and not bilerek,
+       "bayraksiz bilerek=%d" % len(bilerek))
+
+    # ---- FAIL-CLOSED SOZLESMESI: damga + cikis kodu -----------------------
+    sonuc = mod.artik_denetimi(okuma, sirlar=False)
+    ek("(l) artik_denetimi IKI EKSENI AYRI SAYIYOR ve kirmizi veriyor",
+       sonuc["kirmizi"] and sonuc["eksen1"] and isinstance(sonuc["eksen2"], list)
+       and sonuc["sayi"] == len(sonuc["eksen1"]) + len(sonuc["eksen2"]),
+       "eksen1=%d eksen2=%d" % (len(sonuc["eksen1"]), len(sonuc["eksen2"])))
+    dmg_dizin = os.path.join(td, "damga-artikli")
+    os.makedirs(dmg_dizin, exist_ok=True)
+    mod.damga_yaz(dmg_dizin, {"memory": 1, "skills": 1, "repo": 1}, artik=sonuc)
+    dmg = mod.damga_oku(dmg_dizin) or {}
+    ek("(m) FAIL-CLOSED/damga: artik varken `tam` FALSE",
+       dmg.get("tam") is False, "tam=%r" % dmg.get("tam"))
+    ek("(n) FAIL-CLOSED/damga: SAYI + EKSEN + YOL + KURAL yazildi",
+       dmg.get("artik_sayisi") == sonuc["sayi"]
+       and dmg.get("artik_eksen1") == len(sonuc["eksen1"])
+       and isinstance(dmg.get("artik"), list) and dmg["artik"]
+       and set(dmg["artik"][0]) == {"yol", "kural", "eksen"},
+       "sayi=%r alanlar=%r" % (dmg.get("artik_sayisi"),
+                               sorted(dmg["artik"][0]) if dmg.get("artik") else None))
+    ham_damga = ""
+    try:
+        with open(os.path.join(dmg_dizin, mod.DAMGA_ADI), encoding="utf-8") as f:
+            ham_damga = f.read()
+    except OSError:
+        pass
+    ek("(o) GIZLILIK: damga DEGER/ICERIK TASIMIYOR (yalniz yol+kural)",
+       "kumhavuzu sentetik icerik" not in ham_damga and bool(ham_damga),
+       "damga %d B" % len(ham_damga))
+    temiz_dizin = os.path.join(td, "damga-temiz")
+    os.makedirs(temiz_dizin, exist_ok=True)
+    mod.damga_yaz(temiz_dizin, {"memory": 1},
+                  artik={"artik": [], "eksen1": [], "eksen2": [], "bilerek": []})
+    ek("(p) KONTROL: artik YOKKEN damga `tam` TRUE (nobet hep kirmizi degil)",
+       (mod.damga_oku(temiz_dizin) or {}).get("tam") is True,
+       "tam=%r" % (mod.damga_oku(temiz_dizin) or {}).get("tam"))
+    ek("(q) FAIL-CLOSED: ARTIK_CIKIS_KODU sifirdan FARKLI",
+       isinstance(mod.ARTIK_CIKIS_KODU, int) and mod.ARTIK_CIKIS_KODU != 0,
+       "kod=%r" % getattr(mod, "ARTIK_CIKIS_KODU", None))
+
+    # ---- SILME DAVRANISI: varsayilan SILMEZ, --sir-temizle SILER ----------
+    silme = artik_fiksturu(td, "backup-silme")
+    mod.artik_denetimi(silme, sirlar=False, sir_temizle=False)
+    ek("(r) VARSAYILAN SILMEZ (yedekten veri silmek elle onaylanir)",
+       os.path.exists(os.path.join(silme, ARTIK_AD_KARA.replace("/", os.sep))),
+       "eksen1 dosyasi duruyor olmali")
+    mod.artik_supur(silme, sirlar=False, sir_temizle=True)
+    ek("(s) --sir-temizle EKSEN1 artigini SILDI",
+       not os.path.exists(os.path.join(silme, ARTIK_AD_KARA.replace("/", os.sep))),
+       "silinmis olmali")
+    mod.haric_artiklari(silme, os.path.join(silme, "cron-nobet"),
+                        [(os.path.basename(ARTIK_EKSEN2_MASUM), ARTIK_EKSEN2_SEBEP)],
+                        sir_temizle=True)
+    ek("(t) --sir-temizle EKSEN2 artigini da SILDI (kapsam artik tek agac degil)",
+       not os.path.exists(os.path.join(silme, ARTIK_EKSEN2_MASUM.replace("/", os.sep))),
+       "silinmis olmali")
+    ek("(u) --sir-temizle MESRU dosyaya DOKUNMADI",
+       os.path.exists(os.path.join(silme, ARTIK_MUAF_YESIL.replace("/", os.sep)))
+       and os.path.exists(os.path.join(silme, ARTIK_TEMIZ.replace("/", os.sep))),
+       "muaf + zararsiz notlar duruyor olmali")
+    return ci
+
+
+def artik_mutant_tarifleri(kaynak):
+    """(kod, etiket, degisimler, dogrulayici) — her mutant AYRI eksen kapatir.
+    Capa BENZERSIZ olmali (sir_sebebi'nde AYNI satirlar var) -> uzun capa secildi."""
+    tarifler = []
+
+    def cap(metin):
+        if kaynak.count(metin) != 1:
+            raise RuntimeError("ARTIK MUTASYON CAPASI TEKIL DEGIL (%d): %r"
+                               % (kaynak.count(metin), metin[:70]))
+        return metin
+
+    kara = cap('    if dusuk in SIR_ADLARI:\n'
+               '        return "ad kara listede"\n'
+               '    if ad in REPO_SIR:\n'
+               '        return "REPO_SIR uyeligi"')
+    repo = cap('    if ad in REPO_SIR:\n        return "REPO_SIR uyeligi"')
+    muaf = cap('    if _muaf_agacta_mi(gor):\n'
+               '        return None                       # yalniz DESEN katmani muaf')
+    desen = cap('    if _muaf_agacta_mi(gor):\n'
+                '        return None                       # yalniz DESEN katmani muaf'
+                ' (1 ve 2 kostu)\n'
+                '    for desen in SIR_DESENLERI:\n'
+                '        if fnmatch.fnmatch(dusuk, desen):')
+    eksen2 = cap('        varis = os.path.join(hedef_kok, hedef_gor)\n'
+                 '        if not os.path.exists(varis):\n            continue')
+    bilerek = cap('            if sirlar and os.path.dirname(gor) == "" '
+                  'and ad in REPO_SIR:')
+    damga = cap('    return {"artik_sayisi": len(kayitlar),')
+
+    tarifler.append(("MA-KARA", "MA-KARA (ad kara-listesi katmani noop)",
+                     [(kara, '    if False:  # MUTANT: kara liste devre disi\n'
+                             '        return "ad kara listede"\n'
+                             '    if ad in REPO_SIR:\n'
+                             '        return "REPO_SIR uyeligi"')],
+                     lambda m: m.artik_kurali("x/.r2-credentials.json",
+                                              ".r2-credentials.json") != "ad kara listede"))
+    tarifler.append(("MA-REPO", "MA-REPO (REPO_SIR uyelik katmani noop)",
+                     [(repo, "    if False:  # MUTANT: REPO_SIR katmani devre disi\n"
+                             '        return "REPO_SIR uyeligi"')],
+                     lambda m: True))
+    tarifler.append(("MA-MUAF", "MA-MUAF (muafiyet TUM katmanlari korletiyor)",
+                     [(kara, '    if _muaf_agacta_mi(gor):\n'
+                             '        return None  # MUTANT: muafiyet en basa alindi\n'
+                             '    if dusuk in SIR_ADLARI:\n'
+                             '        return "ad kara listede"\n'
+                             '    if ad in REPO_SIR:\n'
+                             '        return "REPO_SIR uyeligi"')],
+                     lambda m: m.artik_kurali("memory/.r2-credentials.json",
+                                              ".r2-credentials.json") is None))
+    tarifler.append(("MA-DESEN", "MA-DESEN (ad deseni katmani noop)",
+                     [(desen, '    if _muaf_agacta_mi(gor):\n'
+                              '        return None                       '
+                              '# yalniz DESEN katmani muaf (1 ve 2 kostu)\n'
+                              '    for desen in SIR_DESENLERI:\n'
+                              '        if False:  # MUTANT: ad deseni katmani kapali')],
+                     lambda m: m.artik_kurali("skills/a-token.txt", "a-token.txt") is None))
+    tarifler.append(("MA-EKSEN2", "MA-EKSEN2 (plan-haric artik olcumu noop)",
+                     [(eksen2, "        varis = os.path.join(hedef_kok, hedef_gor)\n"
+                               "        if True:  # MUTANT: eksen 2 kor\n"
+                               "            continue")],
+                     lambda m: True))
+    tarifler.append(("MA-BILEREK", "MA-BILEREK (--sirlar etiketi kayboldu)",
+                     [(bilerek, "            if False:  # MUTANT: bilerek etiketi yok")],
+                     lambda m: True))
+    tarifler.append(("MA-DAMGA", "MA-DAMGA (damga artik sayisini 0 yaziyor)",
+                     [(damga, '    return {"artik_sayisi": 0,  # MUTANT')],
+                     lambda m: True))
+    # KONTROL MUTANTI — anlamsiz metin degisikligi; batarya YESIL KALMALI.
+    tarifler.append(("MA-KONTROL", "MA-KONTROL (yalniz yorum degisti — YESIL kalmali)",
+                     [(cap("    🔴 ICERIK OKUNMAZ (gerekce yukaridaki blokta)."),
+                       "    🔴 (kontrol mutanti) ICERIK OKUNMAZ — gerekce yukarida.")],
+                     lambda m: True))
+    return tarifler
+
+
 def kok_desen_yapisi(kaynak):
     """yedekle.py kaynagindan (tanim_sayisi, cagri_sayisi) — TWIN-DEFINITION kilidi.
 
@@ -710,8 +981,100 @@ def hermetik_main():
     return 1 if kirmizi else 0
 
 
+def artik_bolum(yedekle):
+    """17 + 17b — HEDEF ARTIK-SIR NOBETI (iki eksen + kontrol mutanti + fail-closed).
+
+    TAMAMEN HERMETIK: sahte `backup/` agaci gecici dizinde kurulur; gercek Drive,
+    gercek ~/.claude ve repo kokundeki gitignore'lu dosyalar OKUNMAZ."""
+    print("\n17) ARTIK SIR NOBETI — hedefte DURAN sir artigi (adlar UYDURMA)")
+    kaynak = open(YEDEKLE, encoding="utf-8").read()
+    tanim, cagri = artik_yapisi(kaynak)
+    kontrol("%s TEK TANIM (ikiz tanim yok)" % ARTIK_EKSEN2_FN, tanim == 1,
+            "tanim: %d" % tanim)
+    kontrol("%s BIRDEN COK fazdan cagriliyor (skills + agac + ek)" % ARTIK_EKSEN2_FN,
+            cagri >= 2, "cagri: %d" % cagri)
+    kontrol("skills_yaz ARTIK kendi bayat listesini URETMIYOR (ikiz olcum kaldirildi)",
+            "bayat" not in kaynak.split("def skills_yaz(")[1].split("\ndef ")[0],
+            "skills_yaz govdesinde 'bayat' gecmemeli")
+    # MUAFIYET KUMESI hedef-klasor SABITLERINDEN TUREMELI (elle ikinci kez yazilmaz).
+    beklenen_muaf = (yedekle.MEMORY_HEDEF + "/",
+                     yedekle.EK_KLASOR + "/" + yedekle.MEMORY_EVLER + "/")
+    kontrol("DESEN_MUAF_AGACLAR hedef-klasor sabitlerinden TURUYOR (ikiz dize yok)",
+            tuple(yedekle.DESEN_MUAF_AGACLAR) == beklenen_muaf,
+            "%r vs %r" % (tuple(yedekle.DESEN_MUAF_AGACLAR), beklenen_muaf))
+    saglam = []
+    with tempfile.TemporaryDirectory() as td:
+        saglam = artik_iddialari(yedekle, td)
+        for etiket, ok, ayrinti in saglam:
+            kontrol("SAGLAM " + etiket, ok, ayrinti)
+        gecen = len([1 for _e, ok, _a in saglam if ok])
+        kontrol("SAGLAM KOD YESIL: butun artik iddialari gecti",
+                gecen == len(saglam), "gecen %d / %d iddia" % (gecen, len(saglam)))
+
+    print("\n17b) ARTIK NOBETI KIRMIZI-MUTASYON — her eksen TEK BASINA duser mi?")
+    try:
+        tarifler = artik_mutant_tarifleri(kaynak)
+    except RuntimeError as e:
+        tarifler = []
+        kontrol("ARTIK MUTASYON CAPALARI TAZE (yedekle.py kaynagiyla hizali)",
+                False, str(e))
+    else:
+        kontrol("ARTIK MUTASYON CAPALARI TAZE (yedekle.py kaynagiyla hizali)",
+                True, "%d mutant tarifi" % len(tarifler))
+    dusenler = {}
+    for kod, etiket, degisimler, dogrula in tarifler:
+        with tempfile.TemporaryDirectory() as td:
+            isaretli = degisimler + [(ARTIK_ISARET_CAPA,
+                                      ARTIK_ISARET_CAPA + '\nMUTANT_ISARETI = %r' % kod)]
+            mut = mutant_yaz(td, isaretli, ad="mutant-artik-%s.py" % kod)
+            mmod = modul_yukle(mut, "yedekle_mutant_artik_%s" % kod)
+            try:
+                eksen_ok = bool(dogrula(mmod))
+                ayrinti = "isaret=%r" % getattr(mmod, "MUTANT_ISARETI", None)
+            except Exception as e:                      # noqa: BLE001
+                eksen_ok, ayrinti = False, "%s: %s" % (type(e).__name__, e)
+            canli = getattr(mmod, "MUTANT_ISARETI", None) == kod and eksen_ok
+            kontrol("%s MUTASYON YUKLENEN MODULDE CANLI (bayat bytecode degil)" % etiket,
+                    canli, ayrinti)
+            cokme = None
+            try:
+                mut_iddia = artik_iddialari(mmod, td)
+            except Exception as e:                      # noqa: BLE001
+                cokme, mut_iddia = "%s: %s" % (type(e).__name__, e), []
+            kontrol("%s COKMEDI (cokme KIRMIZI ile karismasin)" % etiket,
+                    cokme is None, cokme or "cokme yok")
+            dusen = set(e for e, ok, _a in mut_iddia if not ok)
+            if kod == "MA-KONTROL":
+                # 🔴 KONTROL MUTANTI: yesil KALMALI. Dusen varsa iddia listesi
+                # anlamsiz bir metin degisikligine duyarli demektir (kirilgan kapi).
+                kontrol("%s YESIL KALDI (kontrol mutanti)" % etiket,
+                        canli and cokme is None and not dusen,
+                        "dusen: %s" % (sorted(dusen) or "-"))
+                continue
+            dusenler[etiket] = dusen
+            kontrol("%s KIRMIZI: en az 1 iddia DUSTU" % etiket,
+                    canli and cokme is None and len(dusen) > 0,
+                    "dusen %d / %d: %s"
+                    % (len(dusen), len(mut_iddia),
+                       " · ".join(sorted(x.split(")")[0] + ")" for x in dusen)) or "-"))
+    kumeler = list(dusenler.items())
+    ayni = [(a, b) for i, (a, va) in enumerate(kumeler)
+            for b, vb in kumeler[i + 1:] if va == vb]
+    kontrol("%d oldurucu mutantin HEPSI AYIRT EDICI (ayni kumeyi dusuren cift YOK)"
+            % len(kumeler),
+            bool(kumeler) and not ayni,
+            "esit cift: %s | kumeler: %s"
+            % (ayni or "-", " || ".join("%s:%d" % (e.split(" ")[0], len(v))
+                                        for e, v in kumeler)))
+    with tempfile.TemporaryDirectory() as td:
+        geri = artik_iddialari(yedekle, td)
+        kontrol("KORELME YOK: mutasyondan SONRA saglam kod yine tam yesil",
+                all(ok for _e, ok, _a in geri) and len(geri) == len(saglam),
+                "%d/%d iddia" % (len([1 for _e, ok, _a in geri if ok]), len(geri)))
+
+
 def hermetik_bolum(yedekle):
-    """HERMETIK ALT KUME — 16 + 16b (kok + alt-dizin glob kod yolu).
+    """HERMETIK ALT KUME — 16 + 16b (kok + alt-dizin glob kod yolu) + 17/17b (artik nobeti).
 
     🔴 NEDEN AYRI FONKSIYON (A2): bu iki bolum TAMAMEN hermetiktir — fikstur
     gecici dizinde KENDI git deposunu kurar; ~/.claude, Drive mount'u, kardes

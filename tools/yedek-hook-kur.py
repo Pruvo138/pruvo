@@ -62,9 +62,16 @@ BLOK = BAS + """
 # FAIL-OPEN: yedek patlasa/Drive olmasa bile push ASLA durmaz (blokta 'exit' YOK).
 # UCUZ: --gerekliyse son damgadan beri degisiklik yoksa tek dosya bile kopyalamaz.
 # Gorunurluk: python3 tools/durum.py  -> "7) YEDEK TAZELIGI"
+# 🔴 CIKTI ARTIK /dev/null'A GITMIYOR (7 Agu 2026, olculdu): hedefteki SIR ARTIGI
+# uyarisi yutuluyordu -> nobet kossa bile kanca yolunda %100 SESSIZDI. Cikti degiskene
+# alinir, YALNIZ artik satirlari basilir (YOL basilir, DEGER ASLA). rc=3 "artik var"
+# demektir; yedek ALINMISTIR, o yuzden "alinamadi" uyarisi basilmaz. PUSH DURMAZ.
 pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
-  if ! python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse >/dev/null 2>&1; then
+  pruvo_yedek_cikti=$(python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse 2>&1)
+  pruvo_yedek_rc=$?
+  printf '%s\\n' "$pruvo_yedek_cikti" | grep -E '^(🔴 ARTIK SIR|   ARTIK\\[)' || true
+  if [ "$pruvo_yedek_rc" -ne 0 ] && [ "$pruvo_yedek_rc" -ne 3 ]; then
     echo "!! YEDEK alinamadi (push DEVAM ediyor) — kontrol: python3 tools/durum.py"
   fi
 fi

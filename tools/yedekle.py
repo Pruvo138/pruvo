@@ -26,9 +26,16 @@ SIRLAR — UC AYRI REJIM, KARISTIRMA:
      allowlist'ten ONCE kosar (bkz. agac_plani: her katman TEK BASINA olculsun) —
      bu sayede `.log` gibi allowlist disi dosyalarin ICERIGI de taranmis olur.
 
-BAYAT SIR NOBETI: bu filtre 26 Tem'de eklendi; ondan onceki surum skills agacini FILTRESIZ
-copytree ile kopyaliyordu. Hedefte elenmis bir dosyanin ESKI kopyasi duruyorsa gurultulu
-uyarilir; "--sir-temizle" ile silinir (varsayilan SILMEZ — yedekten veri silmek elle onaylanir).
+HEDEF ARTIK-SIR NOBETI (7 Agu 2026, ESKI "BAYAT SIR NOBETI"NIN YERINI ALDI): kaynak
+tarafindaki eleme, hedefte ONCEDEN birakilmis kopyayi kaldirmaz. Eski nobet bu olcumu
+`skills_yaz` icine gomulu yapiyordu -> 7 yazma fazindan YALNIZ 1'ini (skills) tariyor,
+`--sir-temizle` yalniz o agaci siliyor, artik bulunmasi cikis kodunu/damgayi/panoyu HIC
+etkilemiyordu (tam fail-open). Yeni nobet TEK KANONIK yerdedir ve IKI AYRI EKSEN olcer:
+  EKSEN 1 (artik_supur)    — hedefin TAMAMINDA AD DUZEYI supurme (icerik OKUNMAZ).
+  EKSEN 2 (plan_artiklari) — her fazin `haric` girisinin hedefte ESKI KOPYASI var mi.
+FAIL-CLOSED: artik varsa cikis kodu ARTIK_CIKIS_KODU, damga `tam: false` + artik alanlari,
+pano "7) YEDEK TAZELIGI" bunu GOSTERIR. Silme davranisi DEGISMEDI: varsayilan SILMEZ,
+yalniz "--sir-temizle" siler (yedekten veri silmek elle onaylanir).
 
 TAZELIK DAMGASI (26 Tem): kosum sonunda `backup/.son-yedek.json` yazilir (zaman + sayilar).
 NEDEN DAMGA, NEDEN MTIME DEGIL: shutil.copy2 KAYNAK mtime'ini korur -> yedekteki dosyanin
@@ -99,7 +106,10 @@ Kullanim:
     python3 tools/yedekle.py --gerekliyse # UCUZ MOD: son damgadan beri degisiklik yoksa CIKAR
     python3 tools/yedekle.py --dogrula    # OLCUM: plandaki her dosya hedefte VAR MI (yazmaz)
     python3 tools/yedekle.py --sirlar     # + token + r2 creds (repo kokundeki sancakli liste)
-    python3 tools/yedekle.py --sir-temizle  # hedefteki bayat sir kopyalarini SIL
+    python3 tools/yedekle.py --sir-temizle  # hedefteki SIR ARTIKLARINI SIL (iki eksen)
+
+Cikis kodlari: 0 = tamam · 1 = Drive cozulemedi/dogrulama kirmizi · 2 = bilinmeyen bayrak
+               3 = yedek ALINDI ama HEDEFTE SIR ARTIGI DURUYOR (ARTIK_CIKIS_KODU)
 """
 import fcntl
 import fnmatch
@@ -195,8 +205,28 @@ AGAC_KAPSAMI = (
 # Tekrari repo_eksikleri() engeller: BEKLENEN bir ad symlink'e donerse artik SESSIZCE
 # dusmez, "eksik" sayilir -> damga tam=False + pano uyarir.
 REPO_BEKLENEN = (".urun-kaynaklari.json", "AGENTS.md", "DEVAM.md", "DEVAM-ARSIV.md")
+# 🔴 7 AGU 2026 — `.mukerrer-istisna.json` BU LISTEDEN CIKARILDI (olculdu, iddia degil).
+# OLCUM: (a) betigin KENDI sir nobeti onu sir SAYMIYOR — `SIR_ADLARI`nda YOK ve hicbir
+# `SIR_DESENLERI` desenine takilmiyor; yani `REPO_SIR` ile sir nobeti IKIZ TANIM olarak
+# AYRISMISTI. (b) Tek okuyucusu `tools/mukerrer-kontrol.py` (satir 15 + 40-55): dosyayi
+# `[{"kaynak": "..."}]` bicimli bir ISTISNA DEFTERI olarak okur; `tools/kancalar/pre-commit`
+# "mesru cift ise buraya ekle" der. Kimlik bilgisi DEGIL, elle tutulan konfigurasyon.
+# NEDEN TASINDI (kayip sinifi): dosya git'te izlenmiyor (.gitignore), `SIR_KOKENI`nde
+# geri kazanim recetesi YOK, hicbir betik onu yeniden uretmiyor ve Drive+repo koku
+# disinda ucuncu kopyasi YOK. `REPO_SIR` + `--sirlar` onun TEK yedek yoluydu; Drive'daki
+# sir kopyalari silinince dosya TEK DISKTE TEK KOPYAYA duserdi — yani tam da bu betigin
+# onlemek icin var oldugu kayip.
+# NEDEN `EK_EVLER["pruvo"]`, NEDEN `REPO_BEKLENEN` DEGIL: `REPO_BEKLENEN` uyeligi
+# "yoksa yedek KISMIDIR -> damga tam=False -> pano ⚠⚠" demektir. Bu defter MESRU
+# olarak BOS/YOK olabilir (henuz istisna kaydedilmemis repo) -> pano kalici ve YANLIS
+# kirmizi yakardi (gurultulu pano = olu pano). `EK_EVLER["pruvo"]` ise tam bu sinifi
+# tasir: elle tutulan, gitignore'lu izin/istisna defterleri (.urunler-duzelt-izin.json,
+# .diriltme-izin.json, .urunler-sil-izin.json, .marka-kapsama.json) ZATEN oradadir.
+# 🔴 `.stl-backup-dir` BILEREK KALDI: sir degil ama YOL hesabin e-postasini tasir
+# (kisisel veri, bkz. drive_yolu.py basligi) ve drive_yolu.py onu KENDISI yeniden yazar
+# (kendini onarir) -> yedege sirsiz kapsamda tasimaya gerek YOK.
 REPO_SIR = (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
-            ".onizleme-kapat-anahtar", ".mukerrer-istisna.json")
+            ".onizleme-kapat-anahtar")
 
 # ============================ EK KAPSAM (31 Tem 2026) ========================
 # 🔴 NEDEN: hesap tasima denetiminde olculdu — bu betik 5 evin YALNIZ BIRINI
@@ -235,6 +265,12 @@ EK_EVLER = {
         ".marka-kapsama.json", ".stl-r2-manifest.json", ".stl-eslesmeyen-manifest.json",
         ".uyelik-kodlar", ".uyelik-parametreler.json", ".tedarikci-fiyat",
         ".urunler-duzelt-izin.json", ".diriltme-izin.json", ".urunler-sil-izin.json",
+        # 🔴 7 Agu 2026, SIR AYAGINDAN TASINDI (gerekce REPO_SIR'in ustunde, olculdu):
+        # mukerrer kaynak-link denetiminin ELLE tutulan istisna defteri. Kimlik bilgisi
+        # DEGIL (sir nobeti onu sir saymiyor), ama gitignore'lu + recetesiz + ucuncu
+        # kopyasi yok -> sirsiz kapsamda yedeklenir. Yukaridaki dort "-izin.json" ile
+        # AYNI SINIF; komsulariyla ayni satirda durmasi bilerektir.
+        ".mukerrer-istisna.json",
         "urun-kaynaklari.json", "_yayin-icerik-dizinleri.txt",
         "worker-iyzico-webhook/worker.js", "worker-iyzico-webhook/wrangler.toml",
         # Uyelik ureteci degisken adlari eslemi: TICARI VERI (sir degil, kimlik
@@ -322,12 +358,19 @@ SIR_KOKENI = {
     "auth.json": ("ChatGPT/Codex girisi (codex login)", "Codex isci cagrilari durur"),
 }
 
+EK_EV_KLASOR = "evler"               # backup/ek/evler/<ev>/... (TEK TANIM, bkz _ek_ev_hedefi)
 GIT_HOOK_KLASOR = "GIT-HOOKS"        # her evin .git/hooks'u (git'te ASLA yok)
 KIRLI_KLASOR = "KIRLI-IZLENEN"       # izlenen ama DEGISTIRILMIS dosyalarin kopyasi
 MEMORY_EVLER = "memory-evler"        # KraL disindaki hafiza uzaylari
 GENEL_AYAR_KLASOR = "claude-genel"   # ~/.claude/settings.json
 KAPSAM_DISI_ADI = "KAPSAM-DISI.txt"  # gorulen ama alinmayan girisler (gorunur bosluk)
 SIR_ENVANTER_ADI = "SIR-ENVANTERI.txt"  # sirlarin YOLU — DEGERI ASLA YAZILMAZ
+
+# ANA YEDEGIN backup/ altindaki hedef klasorleri — TEK TANIM.
+# (Eskiden "memory"/"skills" dizeleri yedek_plani + _yedekle + nobet kodunda AYRI AYRI
+#  yaziliydi; ikiz dize sessizce ayrisir — sabit tek yerde durur, herkes buradan turer.)
+MEMORY_HEDEF = "memory"
+SKILLS_HEDEF = "skills"
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
@@ -437,6 +480,252 @@ def sir_sebebi(yol, ad):
     return None
 
 
+# ===================== HEDEF ARTIK-SIR NOBETI (7 Agu 2026) ===================
+# 🔴 NEDEN VAR (OLCULDU, iddia degil): yedek hedefi bir ORTAK Drive'dir ve uyeligi
+# YERELDEN OLCULEMIYOR (xattr'da ACL yok; DriveFS metadata semasinda izin/uye/e-posta
+# kolonu YOK — programatik tarandi; rclone/gdrive kurulu degil). Yani "yalniz Okan
+# goruyor" VARSAYILAMAZ. O hedefin KOKUNDE `REPO_SIR` sancakli dosyalar duruyordu.
+#
+# ESKI NOBETIN GERCEK KAPSAMI (kaynak koddan olculdu): bayat tespiti TEK yerdeydi
+# (`skills_yaz` icine gomulu) ve 7 YAZMA FAZINDAN 1'ini (skills) tariyordu.
+# `--sir-temizle` ayni tek agaci siliyordu, `--dogrula` yalniz EKSIK olcup FAZLALIK
+# olcmuyordu, artik bulunmasi cikis kodunu / damgayi / panoyu HIC etkilemiyordu
+# (tam fail-open). Yani hedefte artik VARKEN her kanal YESIL diyordu.
+#
+# 🔴 IKI EKSEN, TEK BAYRAGIN ARKASINA GIZLENMEZ ([[beyan-edilmis-survivor]]): bu
+# depoda olculmus sinif, katmanlarin VEYA'sinin yesil yanip katmanin KENDISININ
+# olculmemis kalmasidir. Her eksen AYRI sayac basar ve testte AYRI mutantla duser:
+#   EKSEN 1 (artik_supur)    — hedefin TAMAMINDA AD DUZEYI supurme.
+#   EKSEN 2 (plan_artiklari) — her fazin `haric` listesindeki girisin hedefte ESKI
+#                              KOPYASI var mi. Icerik imzasiyla elenmis bir dosyanin
+#                              hedefteki kopyasini YALNIZ bu eksen gorebilir.
+#
+# 🔴 EKSEN 1'DE ICERIK OKUNMAZ — KARAR, ihmal degil. Gerekce:
+#   (a) MALIYET: hedefte ~9.500 dosya var ve bu betik HER push'ta kosuyor.
+#   (b) MUKERRERLIK: icerik ekseni zaten KAYNAK tarafinda, yazmadan ONCE uygulaniyor
+#       (sir_sebebi -> _icerik_imzasi); hedefe icerik-imzali dosya bu yoldan GIRMEZ.
+#   (c) KAPSAM: hedefte duran icerik-imzali ARTIGI EKSEN 2 plan uzerinden yakalar.
+#   ⚠️ ILAN EDILMIS KOR NOKTA: adi masum OLAN, hicbir fazin `haric` listesinde de
+#   BULUNMAYAN (or. kaynagi sonradan silinmis) icerik-imzali bir artik iki eksende de
+#   GORUNMEZ. Bu, durum.py KOR_NOKTALAR listesinde YUKSEK SESLE ilan edilir.
+#
+# 🔴 YANLIS-POZITIF MUAFIYETI KANONIK KUMEDEN TURER, TEKIL YAMA DEGIL
+# ([[tekil-yama-sinifi-kapatmaz]] + [[envanter-drift-parti-basina]]): `memory/` ve
+# `ek/memory-evler/` agaclari sir nobetinden HIC gecmez (filtresiz copytree) ve
+# iclerinde `*token*` / `*secret*` ADLI MESRU hafiza NOTLARI vardir (olculdu: 5 adet,
+# hepsi `.md` proza). Elle dosya listesi her partide bayatlar; bu yuzden muafiyet
+# AGAC kumesidir ve agac adlari yedegin KENDI hedef-klasor sabitlerinden TURETILIR
+# ([[ikiz-tanim-sessiz-ayrisma]]).
+# ⚠️ MUAFIYET YALNIZ `SIR_DESENLERI` KATMANINI KAPATIR: `SIR_ADLARI` tam-ad kara
+# listesi ve `REPO_SIR` uyeligi bu agaclarda da UYGULANIR (kontrol mutanti bunu olcer).
+DESEN_MUAF_AGACLAR = (
+    MEMORY_HEDEF + "/",
+    EK_KLASOR + "/" + MEMORY_EVLER + "/",
+)
+
+# Artik bulundugunda donulen cikis kodu. 🔴 0'DAN FARKLI OLMASI SOZLESMEDIR (fail-closed),
+# ama "yarim kalmis kosum" ile KARISTIRILMAZ: main() bu kodu BASARILI bitis sayar ve kilit
+# izine `bitti=` yazar (yoksa pano yanlislikla "⚠⚠ YARIM KALMIS YEDEK" derdi).
+ARTIK_CIKIS_KODU = 3
+# Damgaya yazilacak EN FAZLA artik kaydi (damga bir JSON; sinirsiz liste onu sisirir).
+# Kirpilma damgada `artik_kirpildi: true` ile ILAN EDILIR — sessiz daralma yok.
+ARTIK_DAMGA_TAVANI = 200
+
+
+def _muaf_agacta_mi(gor):
+    """backup/ kokune GORECE yol, desen-muaf agaclardan birinin ICINDE mi? (TEK TANIM)"""
+    duz = gor.replace(os.sep, "/")
+    return any(duz.startswith(a) for a in DESEN_MUAF_AGACLAR)
+
+
+def artik_kurali(gor, ad):
+    """EKSEN 1 HUKMU — TEK TANIM. Doner: kural metni ya da None (artik degil).
+
+    UC KURAL, SIRA ONEMLI:
+      1. `SIR_ADLARI` tam-ad kara listesi        -> her agacta gecerli
+      2. `REPO_SIR` uyeligi                      -> her agacta gecerli
+      3. `SIR_DESENLERI` ad deseni               -> DESEN_MUAF_AGACLAR'da UYGULANMAZ
+    🔴 3. KURAL SART: `REPO_SIR` uyeleri arasinda ad kurallarinin HICBIRINE takilmayan
+    kalem olabilir (olculdu: `.mukerrer-istisna.json` boyleydi); ad-tabanli bir nobet
+    onu HIC yakalayamaz, yalniz liste uyeligiyle bilinir.
+    🔴 ICERIK OKUNMAZ (gerekce yukaridaki blokta)."""
+    dusuk = ad.lower()
+    if dusuk in SIR_ADLARI:
+        return "ad kara listede"
+    if ad in REPO_SIR:
+        return "REPO_SIR uyeligi"
+    if _muaf_agacta_mi(gor):
+        return None                       # yalniz DESEN katmani muaf (1 ve 2 kostu)
+    for desen in SIR_DESENLERI:
+        if fnmatch.fnmatch(dusuk, desen):
+            return "ad deseni: %s" % desen
+    return None
+
+
+def _artik_sil(tam):
+    """`--sir-temizle` yolu. Varsayilan kosumda ASLA cagrilmaz (veri silmek elle onaylanir)."""
+    try:
+        os.remove(tam)
+        return True
+    except OSError as e:
+        print("  ⚠️ ARTIK silinemedi: %s (%s)" % (tam, type(e).__name__))
+        return False
+
+
+def artik_supur(backup, sirlar=False, sir_temizle=False):
+    """EKSEN 1 — hedefin TAMAMINDA ad-duzeyi supurme. Doner: (artiklar, bilerek).
+
+    Her oge: {"yol": backup'a gorece yol, "kural": ..., "eksen": 1}
+    🔴 `--sirlar` ISTISNASI: o kosumda `REPO_SIR` dosyalari hedefin KOKUNE BILEREK
+    yazilir. Bu kosumda onlar SAYILIR ve `bilerek` listesine girer (gorunur kalir) ama
+    cikisi KIRMIZIYA CEVIRMEZ. Bayraksiz kosumda AYNI dosyalar ARTIK'tir -> KIRMIZI.
+    🔴 DEGER OKUNMAZ/YAZILMAZ: yalniz ad, gorece yol ve kural adi."""
+    artiklar, bilerek = [], []
+    if not os.path.isdir(backup):
+        return artiklar, bilerek
+    for dizin, altlar, dosyalar in os.walk(backup):
+        altlar[:] = sorted(a for a in altlar if a not in GURULTU_DIZIN)
+        for ad in sorted(dosyalar):
+            tam = os.path.join(dizin, ad)
+            gor = os.path.relpath(tam, backup)
+            kural = artik_kurali(gor, ad)
+            if not kural:
+                continue
+            kayit = {"yol": gor, "kural": kural, "eksen": 1}
+            if sirlar and os.path.dirname(gor) == "" and ad in REPO_SIR:
+                kayit["kural"] += " (BU KOSUMDA BILEREK YAZILDI)"
+                bilerek.append(kayit)
+                continue
+            artiklar.append(kayit)
+            if sir_temizle:
+                _artik_sil(tam)
+    return artiklar, bilerek
+
+
+def haric_artiklari(backup, hedef_kok, haric, sir_temizle=False, esle=None):
+    """EKSEN 2 PRIMITIFI — TEK KANONIK TANIM (butun fazlar bunu cagirir).
+
+    Bir fazin `haric` listesindeki her giris icin hedefte ESKI KOPYA duruyor mu?
+    `hedef_kok` : fazin backup/ altindaki kok dizini (TAM yol)
+    `esle`      : gorece KAYNAK yolunu gorece HEDEF yoluna ceviren fonksiyon; None ise
+                  birebir (ek fazi .git/hooks -> GIT-HOOKS, kirli -> KIRLI-IZLENEN esler)
+    Doner: [{"yol", "kural", "eksen": 2}]
+
+    🔴 NEDEN AYRI EKSEN: burada yakalanan dosyanin ADI MASUM olabilir (icerik imzasiyla
+    ya da allowlist ile elenmistir) -> EKSEN 1 onu GOREMEZ. Iki eksen BILEREK farkli
+    seyi olcer; birinin varligi otekini gereksiz kilMAZ."""
+    cikti = []
+    for gor, sebep in haric:
+        hedef_gor = esle(gor) if esle else gor
+        if not hedef_gor:
+            continue
+        varis = os.path.join(hedef_kok, hedef_gor)
+        if not os.path.exists(varis):
+            continue
+        cikti.append({"yol": os.path.relpath(varis, backup),
+                      "kural": "plan-haric artigi (%s)" % sebep, "eksen": 2})
+        if sir_temizle:
+            _artik_sil(varis)
+    return cikti
+
+
+def _ek_haric_hedefi(gor):
+    """EK fazinda ELENMIS bir girisin ev hedefi altindaki gorece yolu (TEK TANIM).
+    `ek_ev_plani`nin `haric` etiketlemesiyle AYNI kaynaktan turer:
+      ".git/hooks/X"  -> GIT-HOOKS/X          (dahil dalindaki eslemenin AYNISI)
+      "<yol> (kirli)" -> KIRLI-IZLENEN/<yol>  (dahil dalindaki eslemenin AYNISI)
+      digerleri       -> <yol>"""
+    kirli_eki = " (kirli)"
+    if gor.endswith(kirli_eki):
+        return os.path.join(KIRLI_KLASOR, gor[:-len(kirli_eki)])
+    kanca_oneki = ".git/hooks/"
+    if gor.startswith(kanca_oneki):
+        return os.path.join(GIT_HOOK_KLASOR, gor[len(kanca_oneki):])
+    return gor
+
+
+def plan_artiklari(backup, sir_temizle=False):
+    """EKSEN 2 — TUM YAZMA FAZLARI (skills · agac x3 · ek_ev xN · genel ayar).
+
+    🔴 ESKIDEN BU OLCUM `skills_yaz` ICINE GOMULUYDU ve YALNIZ skills agacinda
+    kosuyordu (7 fazdan 1'i). Artik tek kanonik primitif (haric_artiklari) her fazdan
+    cagrilir; `skills_yaz` kendi bayat listesini URETMEZ -> ikiz tanim KALMADI."""
+    cikti = []
+    if os.path.isdir(SKILLS):
+        _d, haric, _g = skills_plani()
+        cikti += haric_artiklari(backup, os.path.join(backup, SKILLS_HEDEF), haric,
+                                 sir_temizle=sir_temizle)
+    for agac in AGAC_KAPSAMI:
+        _etiket, kok, hedef_klasor, _izinli = agac
+        if not os.path.isdir(kok):
+            continue
+        _d, haric, _g = agac_plani(agac)
+        cikti += haric_artiklari(backup, os.path.join(backup, hedef_klasor), haric,
+                                 sir_temizle=sir_temizle)
+    if ek_etkin_mi():
+        for ad, ev in ev_yollari():
+            _d, haric, _disi = ek_ev_plani(ev)
+            # Ev hedef koku _ek_ev_hedefi'nden TURER (ikinci kez elle yazilmaz).
+            cikti += haric_artiklari(backup, os.path.join(backup, _ek_ev_hedefi(ad, "")),
+                                     haric, sir_temizle=sir_temizle,
+                                     esle=_ek_haric_hedefi)
+        genel = _genel_ayar_girdisi()
+        if genel and genel[2]:            # sir nobeti eledi -> hedefte artigi var mi?
+            cikti += haric_artiklari(backup, os.path.join(backup, os.path.dirname(genel[1])),
+                                     [(os.path.basename(genel[1]), genel[2])],
+                                     sir_temizle=sir_temizle)
+    return cikti
+
+
+def artik_denetimi(backup, sirlar=False, sir_temizle=False):
+    """HEDEF ARTIK-SIR NOBETI — TEK GIRIS, IKI AYRI SAYAC.
+
+    Doner: {"eksen1": [...], "eksen2": [...], "bilerek": [...], "artik": [...],
+            "sayi": n, "kirmizi": bool}
+    🔴 `eksen1`/`eksen2` AYRI TUTULUR (tek "artik var mi" bayragi DEGIL): her eksen
+    testte tek basina kirmiziya cevrilebilsin diye."""
+    eksen1, bilerek = artik_supur(backup, sirlar=sirlar, sir_temizle=sir_temizle)
+    eksen2 = plan_artiklari(backup, sir_temizle=sir_temizle)
+    artik = eksen1 + eksen2
+    return {"eksen1": eksen1, "eksen2": eksen2, "bilerek": bilerek, "artik": artik,
+            "sayi": len(artik), "kirmizi": bool(artik)}
+
+
+def artik_bas(sonuc, sir_temizle=False):
+    """Artik raporunu stdout'a basar. 🔴 YALNIZ YOL + KURAL — DEGER/ICERIK ASLA.
+    Satir onekleri SABIT: pre-push kancasi bu satirlari grep'ler (gorunurluk sozlesmesi)."""
+    for k in sonuc["bilerek"]:
+        print("   ARTIK[bilerek]: %s  [%s]" % (k["yol"], k["kural"]))
+    if not sonuc["artik"]:
+        print("ARTIK SIR NOBETI: temiz (eksen1=0 eksen2=0, bilerek=%d)"
+              % len(sonuc["bilerek"]))
+        return
+    print("🔴 ARTIK SIR — yedek hedefinde SIR ARTIGI DURUYOR: %d "
+          "(eksen1=%d eksen2=%d)" % (sonuc["sayi"], len(sonuc["eksen1"]),
+                                     len(sonuc["eksen2"])))
+    for k in sonuc["artik"]:
+        print("   ARTIK[eksen%d]: %s  [%s]%s"
+              % (k["eksen"], k["yol"], k["kural"],
+                 "  -> SILINDI" if sir_temizle else ""))
+    if not sir_temizle:
+        print("   (silmek ELLE ONAYLANIR: python3 tools/yedekle.py --sir-temizle)")
+
+
+def _artik_damga_alanlari(artik):
+    """Damgaya yazilacak artik alanlari — TEK TANIM (damga_yaz VE damga_tazele kullanir).
+    🔴 SIRRIN DEGERI/ICERIGI ASLA GIRMEZ: yalniz YOL + KURAL ADI + EKSEN."""
+    if not isinstance(artik, dict):
+        return {}
+    kayitlar = artik.get("artik") or []
+    return {"artik_sayisi": len(kayitlar),
+            "artik_eksen1": len(artik.get("eksen1") or []),
+            "artik_eksen2": len(artik.get("eksen2") or []),
+            "artik_bilerek": len(artik.get("bilerek") or []),
+            "artik_kirpildi": len(kayitlar) > ARTIK_DAMGA_TAVANI,
+            "artik": [{"yol": k["yol"], "kural": k["kural"], "eksen": k["eksen"]}
+                      for k in kayitlar[:ARTIK_DAMGA_TAVANI]]}
+
+
 def skills_plani(kok=None):
     """~/.claude/skills agacini tarar.
 
@@ -478,12 +767,14 @@ def skills_plani(kok=None):
     return sorted(dahil), sorted(haric), sorted(gurultu)
 
 
-def skills_yaz(kok, hedef, dahil, haric, sir_temizle=False):
+def skills_yaz(kok, hedef, dahil):
     """Plani hedefe yazar (idempotent: ayni dosya uzerine yazilir, mukerrer yigilmaz).
+    Doner: yazilan_sayisi.
 
-    Doner: (yazilan_sayisi, bayat_sir_yollari)
-    bayat_sir: ELENMIS bir dosyanin hedefte duran ESKI kopyasi (filtresiz surumden kalma).
-    """
+    🔴 ARTIK KENDI "BAYAT SIR" LISTESINI URETMEZ (7 Agu 2026): o olcum buraya gomulu
+    oldugu icin 7 YAZMA FAZINDAN yalniz 1'inde (skills) kosuyordu ve `--sir-temizle`
+    de yalniz bu agaci siliyordu. Hukum tek kanonik yere tasindi -> haric_artiklari()
+    (primitif) + plan_artiklari() (butun fazlar). Ikiz tanim KALMADI."""
     yazilan = 0
     for gor in dahil:
         kaynak = os.path.join(kok, gor)
@@ -491,14 +782,7 @@ def skills_yaz(kok, hedef, dahil, haric, sir_temizle=False):
         os.makedirs(os.path.dirname(varis), exist_ok=True)
         shutil.copy2(kaynak, varis)
         yazilan += 1
-    bayat = []
-    for gor, _sebep in haric:
-        varis = os.path.join(hedef, gor)
-        if os.path.exists(varis):
-            bayat.append(varis)
-            if sir_temizle:
-                os.remove(varis)
-    return yazilan, bayat
+    return yazilan
 
 
 def _agac_izinli_mi(ad, izinli):
@@ -908,8 +1192,10 @@ def _genel_ayar_yolu():
 
 
 def _ek_ev_hedefi(ev_adi, hedef_gor):
-    """Bir kardes ev dosyasinin backup/ kokune gorece HEDEFI (TEK tanim)."""
-    return os.path.join(EK_KLASOR, "evler", ev_adi, hedef_gor)
+    """Bir kardes ev dosyasinin backup/ kokune gorece HEDEFI (TEK tanim).
+    `hedef_gor=""` verilirse evin HEDEF KOKUNU doner (plan_artiklari bunu kullanir —
+    'ek/evler' dizesi ikinci kez elle yazilmasin diye)."""
+    return os.path.join(EK_KLASOR, EK_EV_KLASOR, ev_adi, hedef_gor)
 
 
 def _ek_memory_girdileri():
@@ -965,10 +1251,10 @@ def yedek_plani(sirlar=False):
             altlar[:] = [a for a in altlar if a not in GURULTU_DIZIN]
             for dosya in sorted(dosyalar):
                 kaynak = os.path.join(dizin, dosya)
-                plan.append((kaynak, os.path.join("memory",
+                plan.append((kaynak, os.path.join(MEMORY_HEDEF,
                                                   os.path.relpath(kaynak, MEMORY))))
     for gor in skills_plani()[0]:              # sir nobetinden GECMIS liste
-        plan.append((os.path.join(SKILLS, gor), os.path.join("skills", gor)))
+        plan.append((os.path.join(SKILLS, gor), os.path.join(SKILLS_HEDEF, gor)))
     # ~/.claude altindaki elle yazilmis agaclar (gorev tanimlari / cron nobeti /
     # planlar) — sir nobeti + acik allowlist'ten GECMIS liste. Plana buradan girer;
     # imza/dogrulama/kopya ucu de bu TEK tanimdan turer.
@@ -1404,7 +1690,8 @@ def _damga_dosyasi_yaz(backup, veri):
     return _json_atomik_yaz(backup, DAMGA_ADI, veri)
 
 
-def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False, imza=None):
+def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False, imza=None,
+              artik=None):
     """Kosum sonunda tazelik damgasini yazar. Basarisiz olursa YEDEGI BOZMAZ
     (uyari basar, cikis kodunu degistirmez) — damga bir kolaylik, yedek asil is.
 
@@ -1419,10 +1706,15 @@ def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False, imza=
     bir kosumun izini siler ve pano o kaybi hic gormezdi."""
     eksik = list(eksik or [])
     onceki = damga_oku(backup) or {}
+    # ARTIK NOBETI (7 Agu 2026): hedefte sir artigi VARSA yedek TAM DEGILDIR — kopyalama
+    # eksiksiz olsa bile. `tam` panonun TEK yesil kapisidir; artik onu KAPATIR.
+    artik_alan = _artik_damga_alanlari(artik)
+    artik_kirmizi = bool(artik_alan.get("artik_sayisi"))
     veri = {"surum": 4, "zaman": time.time(),
             "iso": time.strftime("%Y-%m-%d %H:%M:%S"),
             "baslangic": baslangic if isinstance(baslangic, (int, float)) else time.time(),
-            "tam": not eksik, "eksik": eksik, "kok": ROOT}
+            "tam": (not eksik) and not artik_kirmizi, "eksik": eksik, "kok": ROOT}
+    veri.update(artik_alan)
     if kilitsiz:
         veri["kilitsiz"] = True
     # 🔴 KAYNAK IMZASI (K3): bu KOPYANIN ICINDEKI kaynak kumesinin parmak izi.
@@ -1442,7 +1734,7 @@ def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False, imza=
     return _damga_dosyasi_yaz(backup, veri)
 
 
-def damga_tazele(backup, baslangic, imza=None, kilitsiz=False):
+def damga_tazele(backup, baslangic, imza=None, kilitsiz=False, artik=None):
     """`--gerekliyse` OLCUMU: kopyalama YAPILMADI ama "hicbir kaynak son kosumdan beri
     degismemis" OLCULDU -> damganin `baslangic`i bu ana ilerletilir.
 
@@ -1494,7 +1786,16 @@ def damga_tazele(backup, baslangic, imza=None, kilitsiz=False):
         veri.pop("kilitsiz", None)
     eksik = repo_eksikleri()
     veri["eksik"] = eksik
-    veri["tam"] = (not eksik) and bool(onceki.get("tam", True))
+    # ARTIK NOBETI: `--gerekliyse` GUNCEL yolu HICBIR SEY kopyalamaz ama hedefte artik
+    # durup durmadigi BU KOSUMDA da olculur (pre-push'un baskin yolu budur). Olcum
+    # verilmediyse miras artik alanlari DUSURULUR — bayat bir sayiyla hukum verilmez.
+    artik_alan = _artik_damga_alanlari(artik)
+    for alan in ("artik", "artik_sayisi", "artik_eksen1", "artik_eksen2",
+                 "artik_bilerek", "artik_kirpildi"):
+        veri.pop(alan, None)
+    veri.update(artik_alan)
+    veri["tam"] = ((not eksik) and bool(onceki.get("tam", True))
+                   and not artik_alan.get("artik_sayisi"))
     return _damga_dosyasi_yaz(backup, veri)
 
 
@@ -1645,6 +1946,13 @@ def main():
             return 1
         backup = os.path.join(pruvo_drive, "backup")
         rapor, kirmizi = ek_dogrula(backup)
+        # 🔴 FAZLALIK EKSENI (7 Agu 2026): ek_dogrula YALNIZ "plandaki her dosya hedefte
+        # mi" sorusunu sorar (EKSIK ekseni). Hedefte PLANDA OLMAYAN dosya var mi diye
+        # HIC bakmiyordu -> hedefin kokunde sir artigi dururken bu kol "✅ YESIL" diyordu:
+        # temiz hukum, kor eksen. Artik nobeti bu koru kapatir ve SONUCA girer.
+        artik = artik_denetimi(backup, sirlar=sirlar)
+        artik_bas(artik)
+        kirmizi = kirmizi or artik["kirmizi"]
         print("DOGRULAMA — hedef: " + backup)
         print("  planda %d dosya; hedefte BOYUTU TUTAN %d dosya, %d bayt"
               % (rapor["plan"], rapor["tamam"], rapor["bayt"]))
@@ -1655,8 +1963,10 @@ def main():
             print("    FARK : " + y)
         for ad, sha, esit in rapor["sha"]:
             print("    sha256 %s %s  %s" % ("ESIT " if esit else "FARKLI", sha, ad))
-        print("SONUC: " + ("🔴 KIRMIZI — yedek EKSIK/BOZUK" if kirmizi
-                           else "✅ YESIL — plandaki her dosya hedefte, boyutlar tutuyor"))
+        print("SONUC: " + ("🔴 KIRMIZI — yedek EKSIK/BOZUK ya da hedefte SIR ARTIGI VAR"
+                           if kirmizi else
+                           "✅ YESIL — plandaki her dosya hedefte, boyutlar tutuyor, "
+                           "hedefte sir artigi YOK"))
         return 1 if kirmizi else 0
 
     dahil, haric, gurultu = skills_plani()
@@ -1747,6 +2057,12 @@ def main():
         print("🔴 BU YEDEK KLASORU KIMSEYLE PAYLASILMAZ (link/dosya/e-posta) — ticari gizli")
         print("   icerik tasir: raporlar/, .tedarikci-fiyat/, .uyelik-*. Sir nobeti ADA gore")
         print("   eler, ICERIGE gore degil.")
+        # ARTIK NOBETI kuru kosumda da OLCULUR (salt-okuma; hicbir sey silinmez/yazilmaz).
+        # Envanterin DOGRULAMA komutu budur -> beyan gercek kosumla AYNI olmali.
+        if hedef and os.path.isdir(hedef):
+            artik_bas(artik_denetimi(hedef, sirlar=sirlar))
+        else:
+            print("ARTIK SIR NOBETI: OLCULEMEDI (hedef cozulemedi/yok)")
         damga = damga_oku(hedef) if hedef else None
         print("TAZELIK DAMGASI: %s" % (damga.get("iso") if damga else "(yok)"))
         k_imza = kaynak_imzasi(sirlar)
@@ -1812,7 +2128,11 @@ def main():
         kod = _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric,
                        kilitsiz=(hal == "kurulamadi"),
                        baslangic=kilit_bilgi if hal == "alindi" else None)
-        basardi = (kod == 0)
+        # 🔴 ARTIK_CIKIS_KODU BASARILI BITIS SAYILIR: kosum SONUNA KADAR kostu, yedek
+        # ALINDI; sifirdan farkli kod "hedefte artik var" der, "yarida kaldi" DEMEZ.
+        # Aksi halde kilit izine `hata=` yazilir ve pano YANLISLIKLA "⚠⚠ YARIM KALMIS
+        # YEDEK" derdi — yeni nobetin kendisi bir sessiz-yanlis-hukum uretirdi.
+        basardi = kod in (0, ARTIK_CIKIS_KODU)
         return kod
     finally:
         kilit_birak(kilit_fd, baslangic=kilit_bilgi if hal == "alindi" else None,
@@ -1840,20 +2160,29 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
         damga = damga_oku(backup)
         if not gerekli_mi(damga, None if bas_imza is None else bas_imza["mtime"],
                           imza=bas_imza):
+            # 🔴 ARTIK NOBETI BU YOLDA DA KOSAR (7 Agu 2026): pre-push kancasi
+            # `--gerekliyse` ile cagirir ve DEGISIKLIK YOKSA akis TAM BURADAN doner.
+            # Nobet yalniz kopyalama dalinda olsaydi baskin gercek yolda HIC kosmaz,
+            # yani artik uyarisi pratikte hic basilmazdi (olculdu: eski "bayat sir"
+            # uyarisi tam bu sebeple gorunmuyordu). Maliyet: hedef agacinda stat'siz
+            # tek yuruyus + kaynak taraflarinin `haric` listeleri.
+            artik = artik_denetimi(backup, sirlar=sirlar, sir_temizle=sir_temizle)
+            artik_bas(artik, sir_temizle=sir_temizle)
             # OLCUMU KAYDET (bkz. damga_tazele): "degisiklik yok" bir olcumdur, damga
             # yazmaya hakki vardir; yoksa atlayan kardes kosumun uyarisi YAPISKAN kalir.
-            tazelendi = damga_tazele(backup, baslangic, imza=bas_imza, kilitsiz=kilitsiz)
+            tazelendi = damga_tazele(backup, baslangic, imza=bas_imza, kilitsiz=kilitsiz,
+                                     artik=artik)
             print("yedek GUNCEL (son damga: %s) — degisiklik yok, kopyalanmadi.%s"
                   % (damga.get("iso", "?"),
                      "  (damga dogrulandi)" if tazelendi else ""))
-            return 0
+            return ARTIK_CIKIS_KODU if artik["kirmizi"] else 0
 
-    os.makedirs(os.path.join(backup, "memory"), exist_ok=True)
+    os.makedirs(os.path.join(backup, MEMORY_HEDEF), exist_ok=True)
 
     # memory klasoru
     if os.path.isdir(MEMORY):
-        shutil.copytree(MEMORY, os.path.join(backup, "memory"), dirs_exist_ok=True)
-        print("yedek: memory/ ->", os.path.join(backup, "memory"))
+        shutil.copytree(MEMORY, os.path.join(backup, MEMORY_HEDEF), dirs_exist_ok=True)
+        print("yedek: memory/ ->", os.path.join(backup, MEMORY_HEDEF))
 
     # ~/.claude/skills/ — global skill'ler (merge-kapisi dahil) GIT DISINDA tutuluyor
     # (mimar karari 21 Tem: repoya tasinmayacak) -> TEK kopya bu makinede. Yedeklenmezse
@@ -1861,17 +2190,13 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # Artik copytree DEGIL dosya-dosya: her dosya sir nobetinden gecer (bkz. sir_sebebi).
     yazilan = 0
     if os.path.isdir(SKILLS):
-        hedef = os.path.join(backup, "skills")
-        yazilan, bayat = skills_yaz(SKILLS, hedef, dahil, haric, sir_temizle=sir_temizle)
+        hedef = os.path.join(backup, SKILLS_HEDEF)
+        yazilan = skills_yaz(SKILLS, hedef, dahil)
         print("yedek: skills/ -> %s  (%d dosya)" % (hedef, yazilan))
         for g, sebep in haric:
             print("  SIR NOBETI — paket DISI: skills/%s  (%s)" % (g, sebep))
-        for yol in bayat:
-            if sir_temizle:
-                print("  BAYAT SIR KOPYASI SILINDI: " + yol)
-            else:
-                print("  ⚠️ BAYAT SIR KOPYASI hedefte DURUYOR: " + yol
-                      + "   (silmek icin: python3 tools/yedekle.py --sir-temizle)")
+        # Hedefteki ESKI kopya olcumu artik BURADA DEGIL: tek kanonik nobet kosumun
+        # SONUNDA butun fazlar icin kosar (artik_denetimi) -> ikiz tanim yok.
     else:
         print("NOT: %s yok -> skill yedegi ATLANDI." % SKILLS)
 
@@ -1912,8 +2237,11 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
         print("yedek:", ad)
 
     if sirlar:
-        for name in (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
-                     ".onizleme-kapat-anahtar", ".mukerrer-istisna.json"):
+        # 🔴 LISTE `REPO_SIR`DEN TURER, ELLE YAZILMAZ (7 Agu 2026): burada eskiden
+        # ayni adlarin IKINCI bir kopyasi duruyordu. Artik nobeti "bu kosumda bilerek
+        # yazildi" hukmunu `REPO_SIR` uyeliginden verir; iki liste ayrisirsa nobet ya
+        # mesru dosyayi KIRMIZI yakar ya da gercek artigi BILEREK sayip susardi.
+        for name in REPO_SIR:
             p = os.path.join(ROOT, name)
             if os.path.exists(p):
                 shutil.copy2(p, os.path.join(backup, name))
@@ -1932,6 +2260,13 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     else:
         print("EK KAPSAM: KAPALI — bilinen kardes ev yok (kok: %s)" % ROOT)
 
+    # ---- HEDEF ARTIK-SIR NOBETI (fail-closed) ----
+    # 🔴 KOPYALAMADAN SONRA kosar: `--sirlar` dali sancakli dosyalari hedefin KOKUNE
+    # BU KOSUMDA yazar; once kossaydik o dosyalar "bilerek yazildi" etiketini alamaz,
+    # bir sonraki kosumda ise ARTIK olarak KIRMIZI yanardi (sahte kirmizi).
+    artik = artik_denetimi(backup, sirlar=sirlar, sir_temizle=sir_temizle)
+    artik_bas(artik, sir_temizle=sir_temizle)
+
     # TAZELIK DAMGASI — en sonda: yalniz kosum GERCEKTEN tamamlandiysa yazilir.
     # (Basta yazilsaydi yarida patlayan bir kosum "taze" gorunurdu = sahte guven.)
     eksik = repo_eksikleri()
@@ -1945,7 +2280,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     sayilar.update(agac_sayilari)
     sayilar.update(ek_sayilar)
     damga_yaz(backup, sayilar, eksik=eksik,
-              baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)
+              baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza, artik=artik)
 
     # BEYAN HIZALAMASI (1 Agu 2026) — "PAYLASMA" uyarisi eskiden YALNIZ --sirlar
     # dalinda basiliyordu; VARSAYILAN kosumun paylasilabilir oldugu izlenimi veriyordu.
@@ -1959,7 +2294,9 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     print("   icerik tasir: raporlar/, .tedarikci-fiyat/, .uyelik-*. Sir nobeti ADA gore")
     print("   eler, ICERIGE gore degil.")
     print("bitti ->", backup)
-    return 0
+    # 🔴 FAIL-CLOSED: yedek ALINDI ama hedefte sir artigi duruyorsa cikis kodu 0 DEGIL.
+    # (pre-push bu kodu BLOKLAYICI saymaz — fail-open sozlesmesi kancada korunur.)
+    return ARTIK_CIKIS_KODU if artik["kirmizi"] else 0
 
 
 if __name__ == "__main__":

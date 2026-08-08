@@ -792,6 +792,19 @@ def yedek_satirlari(d):
     # sonuca variyordu. Panonun tek isi bu; 5 gunluk bayatligin fark edilmeme sebebi de buydu.
     kismi = dmg.get("tam") is False
 
+    # ARTIK SIR NOBETI (7 Agu 2026) — hedefte DURAN sir artigi. Damgayi yedekle.py yazar
+    # (artik_denetimi); pano bu ekseni ESKIDEN HIC GOSTERMIYORDU: artik varken bolum 7
+    # "taze" diyordu. 🔴 PANOYA YALNIZ YOL + KURAL GIRER, DEGER ASLA (damgada da yok).
+    artik_sayisi = dmg.get("artik_sayisi") or 0
+    artik_kayitlar = dmg.get("artik") if isinstance(dmg.get("artik"), list) else []
+    artik_satiri = (
+        "  ⚠⚠ ARTIK SIR: yedek hedefinde %d sir artigi DURUYOR "
+        "(eksen1=%s eksen2=%s%s)"
+        % (artik_sayisi, dmg.get("artik_eksen1", "?"), dmg.get("artik_eksen2", "?"),
+           ", liste KIRPILDI" if dmg.get("artik_kirpildi") else ""))
+    artik_detay = ["     %s  [%s]" % (k.get("yol", "?"), k.get("kural", "?"))
+                   for k in artik_kayitlar[:5] if isinstance(k, dict)]
+
     # ATLANAN KOSUM (26 Tem, kilit): yedekle.py kilidi alamazsa hicbir sey kopyalamaz
     # ve damgaya YALNIZ `son_atlama*` yazar (guven alanlarina dokunmaz). Atlama ancak
     # UC kosul birden saglanirsa SESSIZ gecer; biri bile tutmazsa UYARILIR:
@@ -845,6 +858,14 @@ def yedek_satirlari(d):
         satirlar = ["  ⚠⚠ YEDEK BAYAT: son yedek %s (%s) — esik %.0f gun."
                     % (ne_zaman, dmg.get("iso", "?"), esik_gun),
                     kos + "     (damga iddiasi: %s)" % ozet]
+    elif artik_sayisi:
+        # 🔴 ARTIK SIR baslikta: hedef ORTAK Drive'dir ve uyeligi yerelden OLCULEMEZ.
+        # `kismi`den ONCE gelir cunku bu damgada tam=False'un SEBEBI budur; "beklenen
+        # repo dosyalari EKSIKTI (?)" satiri burada YANILTIR (eksik listesi bos).
+        satirlar = [artik_satiri,
+                    "  -> yedekten SILME ELLE ONAYLANIR: python3 tools/yedekle.py "
+                    "--sir-temizle   (son kosum %s)" % ne_zaman] + artik_detay
+        artik_sayisi = 0                              # baslikta anlatildi
     elif kismi:
         # F1: kismi yedek ASLA "taze" diye gecmez — eksik yedek, eksik oldugunu SOYLER.
         satirlar = ["  ⚠⚠ KISMI YEDEK: son kosum %s ama beklenen repo dosyalari EKSIKTI (%s)"
@@ -902,6 +923,9 @@ def yedek_satirlari(d):
                     "  damga iddiasi: %s" % ozet]
 
     # Baslikta yer bulamayan kalan sorunlar (baslik zaten uyariyor).
+    if artik_sayisi:                                  # baslik baska sorunu anlatiyor
+        satirlar.append(artik_satiri)
+        satirlar.extend(artik_detay)
     if kismi and hal == "bayat":
         satirlar.append("  ⚠⚠ KISMI YEDEK: beklenen repo dosyalari EKSIKTI (%s)"
                         % (", ".join(dmg.get("eksik") or []) or "?"))
@@ -937,6 +961,12 @@ KOR_NOKTALAR = (
      "yerinde ayni boyutta bayt takasi YAPILIR **VE** mtime eski degerine geri yazilir "
      "-> kaynak imzasi (adet/bayt/mtime) DEGISMEZ, pano 'GUNCEL' der. Hash alinmiyor "
      "(her oturum acilisinda ~6 MB okumanin bedeli olcuye deger bulunmadi)."),
+    ("ADI MASUM + hicbir plan `haric` listesinde OLMAYAN icerik-imzali ARTIK",
+     "artik nobetinin EKSEN 1'i hedefte ICERIK OKUMAZ (~9.500 dosya x her push) ve "
+     "EKSEN 2 yalniz bugunku planlarin ELENEN girislerine bakar; kaynagi SONRADAN "
+     "SILINMIS, adi hicbir sir kuralina uymayan ama icinde jeton TASIYAN eski bir "
+     "kopya iki eksende de GORUNMEZ. Kaynak tarafinda icerik imzasi taraniyor, yani "
+     "bu sinif ancak nobetten ONCEKI bir surumun biraktigi kopya olabilir."),
     ("`ps` binary'si PATH'te yokken surec KIMLIGI",
      "kilit sahibinin pid'i CANLI mi + KIMLIGI tutuyor mu sorusu `ps`e baglidir; `ps` "
      "YOKSA pano 'asili/yarim' ayrimini yapamaz ve ⚪ OLCULEMEDI der (kirmizi yanmaz: "
