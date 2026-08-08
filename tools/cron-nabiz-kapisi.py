@@ -2101,7 +2101,15 @@ def _sinyal_adimlari(adimlar):
             kadans_yaz = a
             continue
         if re.search(r"(?m)^\s*exit 1\s*$", komut) and "sapma" in kosul:
-            if "failure()" in kosul:
+            # ONARILAMADI adimini ayirt eden sey `failure()` DEGIL, TEYIDIN GERCEK
+            # SONUCUNU okumasidir ([[hukum-yanlis-birimde]]). Olculdu (kosum 31214568441,
+            # commit 94402074): cron kolunda (1) gorunurluk adimi sapmada KASITLI `exit 1`
+            # verince JOB durumu `failure` olur ve `failure()` kosullu (3) adimi, onarim +
+            # teyit IKISI DE success oldugu HALDE "onarilamadi" diye YANLIS beyan ederdi.
+            # `steps.teyit.outcome` capasi bu ayrimi kaynaktan olcer; `failure()`e geri
+            # donen mutant burada cron adimi olarak siniflanir -> onarilamadi KAYBOLUR ->
+            # "ONARILAMADI HUKMU YOK" KIRMIZI yanar (capanin ayirt ediciligi KORUNUR).
+            if "steps.teyit.outcome" in kosul:
                 onarilamadi = a
             else:
                 cron_adim = a
@@ -2133,7 +2141,8 @@ def sinyal_ayrimi():
       (2) KADANS kolunun damga adimi VAR, `%s` adiyla yazar, AYNI adla YUKLER, yukleme
           fail-open DEGIL (`if-no-files-found: error`, `continue-on-error` yok) ve
           `exit 1` TASIMAZ (cagiran YAYIN kosumunun conclusion'i kirlenmesin),
-      (3) ONARILAMADI adimi VAR, `failure()` kosullu ve `exit 1` tasir (bu hal
+      (3) ONARILAMADI adimi VAR, TEYIDIN GERCEK SONUCUNU (`steps.teyit.outcome`)
+          okuyan kosullu ve `exit 1` tasir (bu hal
           "onarildi" ile AYNI KUTUYA konamaz),
       (4) DOGRULUK TABLOSU: SINYAL_TABLOSU'ndaki her senaryoda GitHub kosul semantigi
           FIILEN calistirilir ve tam olarak beklenen adimlar kosar.
@@ -2183,7 +2192,8 @@ def sinyal_ayrimi():
                                 % (yazilan, ile.get("path")))
     if onarilamadi is None:
         sorunlar.append(
-            "ONARILAMADI HUKMU YOK: `failure()` kosullu, sapmada `exit 1` veren AYRI adim "
+            "ONARILAMADI HUKMU YOK: `steps.teyit.outcome` (teyidin GERCEK sonucu) okuyan, "
+            "sapmada `exit 1` veren AYRI adim "
             "bulunamadi -> 'sapma onarildi' ile 'sapma KAPANMADI' TEK HALE YIGILMIS olur. "
             "Ikincisinde katalog SU AN sapmali olabilir (Ege katalogun bir kismini "
             "goremez); bu bir gorunurluk notu degil ARIZADIR.")
@@ -3423,7 +3433,8 @@ def kendini_test():
           "(sapma susturulmaz, KANALI degisir)" % SAPMA_DAMGA_ADI,
           bool(s_bulgu.get("yaz")) and bool(s_bulgu.get("yuk")),
           s_ariza or "; ".join(s_sorun))
-    iddia("SINYAL: 'ONARILAMADI' AYRI bir hukumdur (`failure()` kosullu, `exit 1`) — "
+    iddia("SINYAL: 'ONARILAMADI' AYRI bir hukumdur (teyidin GERCEK sonucunu okuyan "
+          "`steps.teyit.outcome` kosullu, `exit 1`) — "
           "onarilan sapma ile kapanmayan sapma TEK KUTUYA konamaz",
           bool(s_bulgu.get("onarilamadi")), s_ariza or "; ".join(s_sorun))
     iddia("SINYAL: DOGRULUK TABLOSU — %d senaryonun hepsinde GitHub kosul semantigi "
