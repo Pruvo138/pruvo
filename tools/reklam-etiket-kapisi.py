@@ -84,6 +84,21 @@ ZORUNLU_REKLAM_PARAM = ("gclid", "gbraid", "wbraid", "utm_source", "utm_medium",
 
 SABLON_CAPASI = "{ga_head}"
 
+# Riza bandinin ESKI (DAR) grant cagrisi — yalniz analitigi aciyordu. Bandin metni
+# reklam cerezini beyan ederken cagri dar kalirsa ziyaretci izin verdigini SANIR.
+DAR_GRANT = "gtag('consent','update',{'analytics_storage':'granted'})"
+KAPSAM_ANAHTARI = "pruvo_onay_kapsam"
+
+# Riza bandinin GORUNUR metninde bulunmasi ZORUNLU beyan jetonlari. Metin degisikligi
+# tools/varlik-test.py::BILEREK_DEGISEN_METIN'de beyan edildi; o beyanin kosulu bu eksenin
+# YASAMASIDIR. Jetonlar DAR secildi: aydinlatmanin cekirdegi (reklam cerezi + saglayici +
+# geri alma hakki). Uslup serbest, BU UC BILGI zorunlu.
+BANT_BEYAN_JETONLARI = (
+    "reklam çerezleri (Google Ads)",
+    "onayınız olmadan çalışmazlar",
+    "geri alabilirsiniz",
+)
+
 
 class Olculemedi(Exception):
     """Evren turetilemedi / tek kaynak okunamadi -> YESIL HUKMU VERILMEZ."""
@@ -129,11 +144,11 @@ def _belge_dizeleri(agac):
     """Modul/sinif/fonksiyon DOCSTRING'lerinin dugum kimlikleri.
 
     🔴 NEDEN AYRI: docstring BELGEDIR, hicbir sayfaya basilmaz. Bu nobetcinin KENDI
-    docstring'i uc ayirt edici izi de ANLATTIGI ve `{ga_head}` capasini ornek olarak
-    gecirdigi icin SINIF B'ye SAHTE bir uye olarak giriyordu — olculdu (8 Agu): kume
-    4 -> 5. Sonucu iki yonlu bozuktu: sayim sisiyordu ve docstring'den `{ga_head}`
-    dusuren mesru bir bakim duzenlemesi kapiyi KIRMIZI yakabilirdi. Fikstur disiplini
-    metne de uygulanir ([[nobetci-kendi-dosyasinda-sizinti]])."""
+    docstring'i uc ayirt edici izi de ANLATTIGI icin (ve `{ga_head}` capasini ornek
+    olarak gecirdigi icin) SINIF B'ye sahte bir uye olarak giriyordu — olculdu, 8 Agu:
+    kume 4 -> 5. Sonucu iki yonlu bozuktu: sayim sisiyordu ve docstring'den `{ga_head}`
+    gecen bir bakim duzenlemesi kapiyi KIRMIZI yakabilirdi. Fikstur disiplini metne de
+    uygulanir ([[nobetci-kendi-dosyasinda-sizinti]])."""
     kimlikler = set()
     for dugum in ast.walk(agac):
         govde = getattr(dugum, "body", None)
@@ -155,7 +170,8 @@ def yayin_zinciri(kok):
 
     🔴 NEDEN BOYLE TURETILIYOR: "tum izlenen .py'leri tara" kolu SAHTE UYE uretiyor —
     kapi FIKSTURLERI gercek sablonun seklini TAKLIT ETMEK ZORUNDADIR (fikstur disiplini),
-    dolayisiyla ayni ayirt edici izleri tasirlar. Cozum kapiya ozel muafiyet YAZMAK
+    dolayisiyla ayni ayirt edici izleri tasirlar. Olculdu (8 Agu): bu nobetcinin KENDI
+    Y5/Y6 fiksturleri SINIF B'ye uye olarak girdi. Cozum kapiya ozel muafiyet YAZMAK
     DEGIL, evreni DOGRU eksende turetmektir: bir sablon ancak YAYIN ZINCIRINDE ise sayfa
     uretir. Zincirde olmayan bir dize — fikstur olsun, teshis panosu olsun — hicbir
     ziyaretciye gitmez.
@@ -243,17 +259,42 @@ def cekirdek_cikar(snippet):
 
 
 # ------------------------------------------------------- eksen degerlendirmesi
+def _js_dizi(metin, ad):
+    """`<ad> = [ ... ];` icindeki dize ogeleri (var/window fark etmez). Yoksa None."""
+    kalip = re.compile(re.escape(ad) + r"\s*=\s*\[([^\]]*)\]\s*;")
+    eslesme = kalip.search(metin)
+    if eslesme is None:
+        return None
+    return re.findall(r'["\']([^"\']+)["\']', eslesme.group(1))
+
+
 def eksenler(metin, olcum_kimligi):
-    """Bir sayfa/snippet metninde dort eksenin durumu -> eksik eksen adlari."""
+    """Bir sayfa/snippet metninde eksenlerin durumu -> eksik eksen adlari."""
     eksik = []
     if olcum_kimligi not in metin or "googletagmanager.com/gtag/js" not in metin:
         eksik.append("(a) olcum etiketi")
+
+    # (b) VARSAYILAN denied — gevsetmeye karsi: dort alanin dordu de ACIKCA 'denied'.
     riza_var = "'consent', 'default'" in metin or '"consent", "default"' in metin
-    if not riza_var or not all(alan in metin for alan in RIZA_ALANLARI):
-        eksik.append("(b) riza blogu")
+    gevsek = [alan for alan in RIZA_ALANLARI
+              if ("'%s': 'denied'" % alan) not in metin]
+    if not riza_var or gevsek:
+        eksik.append("(b) riza blogu varsayilani (denied olmayan: %s)"
+                     % (", ".join(gevsek) if gevsek else "blok YOK"))
+
     if not all(ayar in metin for ayar in TASIMA_AYARLARI):
         eksik.append("(c) tasima ayari (%s)"
                      % ", ".join(a for a in TASIMA_AYARLARI if a not in metin))
+
+    # (e) RIZA VERILINCE ACILACAK ALAN KUMESI — tek kanonik kaynak + dort alanin dordu.
+    kume = _js_dizi(metin, "window.PRUVO_RIZA_ALANLARI")
+    if kume is None or "window.pruvoRizaUygula" not in metin:
+        eksik.append("(e) kanonik riza grant yolu YOK "
+                     "(PRUVO_RIZA_ALANLARI / pruvoRizaUygula)")
+    else:
+        kayip = [alan for alan in RIZA_ALANLARI if alan not in kume]
+        if kayip:
+            eksik.append("(e) grant kumesi EKSIK: %s" % ", ".join(kayip))
     return eksik
 
 
@@ -343,6 +384,44 @@ def degerlendir(kok):
         else:
             satir.append("  ok  %s  (a,b,c + ikiz bayt-birebir)" % rel)
 
+    # --- SINIF C: riza bandi yuzeyleri (grant yolu FIILEN kabloli mi) --------
+    # (e) ekseni "kanonik kume TANIMLI mi" der; burasi "band o kumeyi CAGIRIYOR mu"
+    # der. Ikisi ayri iddiadir: tanim durup cagri dar kalirsa ziyaretci "Kabul Et"e
+    # basar, ekranda reklam izni verdigini gorur ama ad_* denied kalir (SESSIZ hata).
+    try:
+        bant_snippet = _sabit_dize(kok, "tools/build.py", "GA_BANNER_SNIPPET")
+    except Olculemedi as hata:
+        satir.append("OLCULEMEDI: %s" % hata)
+        return OLCULEMEDI, satir
+    bantlar = [("tools/build.py::GA_BANNER_SNIPPET", bant_snippet)]
+    bantlar.extend((rel, metin) for rel, metin in sayfalar
+                   if 'id="pco-kabul"' in metin)
+    if len(bantlar) < 2:
+        satir.append("OLCULEMEDI: riza bandi tasiyan kaynak sayfa BULUNAMADI")
+        return OLCULEMEDI, satir
+    satir.append("SINIF C     riza bandi yuzeyi (turetilen): %d" % len(bantlar))
+    for rel, metin in bantlar:
+        bant_eksik = []
+        if "window.pruvoRizaUygula('granted')" not in metin:
+            bant_eksik.append("kanonik grant cagrisi YOK")
+        if DAR_GRANT in metin:
+            bant_eksik.append("hala DAR grant yapiyor (yalniz analytics_storage)")
+        if KAPSAM_ANAHTARI not in metin:
+            bant_eksik.append("riza KAPSAM kaydi (%s) yazilmiyor" % KAPSAM_ANAHTARI)
+        # 🔴 TASINAN IDDIA: tools/varlik-test.py::BILEREK_DEGISEN_METIN bandin GORUNUR
+        # METIN degisimini beyan eder; o beyan bir iddiayi KALDIRMAZ, BURAYA TASIR.
+        # Burasi metnin her bant yuzeyinde FIILEN durdugunu fail-closed olcer. Ikisi
+        # birlikte: "metin degisti" serbest degil, "metin SU HALE geldi ve her yerde
+        # OYLE duruyor" olculur. Bu eksen olurse orada beyan serbest gecise doner.
+        for jeton in BANT_BEYAN_JETONLARI:
+            if jeton not in metin:
+                bant_eksik.append("riza metni reklam cerezini BEYAN ETMIYOR "
+                                  "(eksik: %r)" % jeton[:48])
+        if bant_eksik:
+            hata_satir.append("  ❌ %s -> %s" % (rel, "; ".join(bant_eksik)))
+        else:
+            satir.append("  ok  %s  (grant yolu dort alani aciyor)" % rel)
+
     # --- SINIF B: uretilen sayfa sablonlari ----------------------------------
     satir.append("SINIF B     yayin sayfa sablonu (turetilen): %d" % len(sablonlar))
     for rel, satir_no, sablon in sablonlar:
@@ -400,6 +479,14 @@ _F_SNIPPET = '''<!-- GA4 -->
   });
   gtag('set', 'url_passthrough', true);
   gtag('set', 'ads_data_redaction', true);
+  window.PRUVO_RIZA_ALANLARI = ['analytics_storage', 'ad_storage', 'ad_user_data',
+                                'ad_personalization'];
+  window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';
+  window.pruvoRizaUygula = function(durum){
+    var g = {}, a = window.PRUVO_RIZA_ALANLARI, i;
+    for(i = 0; i < a.length; i++){ g[a[i]] = durum; }
+    gtag('consent', 'update', g);
+  };
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TESTFIX01"></script>
 <script>
@@ -430,6 +517,26 @@ _F_INDEX_KUYRUK = '''
 '''
 
 
+_F_BANNER = '''<div id="pruvo-cerez-onay" hidden>
+  <p>Analiz çerezleri ve reklam çerezleri (Google Ads) kullanmak istiyoruz;
+     onayınız olmadan çalışmazlar, onayınızı istediğiniz zaman geri alabilirsiniz.</p>
+  <button type="button" id="pco-kabul">Kabul Et</button>
+  <button type="button" id="pco-ret">Reddet</button>
+</div>
+<script>
+(function(){
+  var ANAHTAR = "pruvo_onay_analitik";
+  var KAPSAM_ANAHTARI = "pruvo_onay_kapsam";
+  var kabul = document.getElementById("pco-kabul");
+  kabul.addEventListener("click", function(){
+    if(typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('granted'); }
+    try { localStorage.setItem(ANAHTAR, "kabul");
+          localStorage.setItem(KAPSAM_ANAHTARI, window.PRUVO_RIZA_KAPSAMI); } catch(e){}
+  });
+})();
+</script>'''
+
+
 def _fikstur_yaz(dizin, ad, icerik):
     tam = os.path.join(dizin, ad)
     os.makedirs(os.path.dirname(tam), exist_ok=True)
@@ -438,10 +545,11 @@ def _fikstur_yaz(dizin, ad, icerik):
 
 
 def _sentetik_agac(dizin, snippet=None, index_kuyruk=None, sablon_capa=True,
-                   ekler=None, yasal_snippet=None, kardes_capa=True, kardes_ithal=True):
+                   ekler=None, yasal_snippet=None, kardes_capa=True, kardes_ithal=True,
+                   bant=None):
     """Gercek agacin SEKLINI taklit eden mini depo (git ls-files calissin diye git init).
 
-    `kardes_*`: yayin zinciri turetimini nobetler. AYNI kardes modul ITHAL EDILINCE
+    `kardes_*`: yayin zinciri turetimini nobetler. Ayni kardes modul ITHAL EDILINCE
     kapsam ICINE girer (capasiz ise KIRMIZI), ITHAL EDILMEYINCE kapsam DISINDA kalir."""
     snippet = _F_SNIPPET if snippet is None else snippet
     yasal = snippet if yasal_snippet is None else yasal_snippet
@@ -457,18 +565,19 @@ def _sentetik_agac(dizin, snippet=None, index_kuyruk=None, sablon_capa=True,
                      + "</head><body>{govde}</body></html>")
     _fikstur_yaz(dizin, "tools/kardes_uret.py",
                  'KARDES_SABLON = """%s"""\n' % kardes_sablon)
+    bant = _F_BANNER if bant is None else bant
     build_py = (("import kardes_uret\n" if kardes_ithal else "")
-                + 'GA_HEAD_SNIPPET = """%s"""\n\nURUN_SABLON = """%s"""\n'
-                % (snippet, sablon))
+                + 'GA_HEAD_SNIPPET = """%s"""\n\nGA_BANNER_SNIPPET = """%s"""\n\n'
+                'URUN_SABLON = """%s"""\n' % (snippet, bant, sablon))
     _fikstur_yaz(dizin, "tools/build.py", build_py)
     _fikstur_yaz(dizin, "index.html",
                  '<!DOCTYPE html>\n<html lang="tr">\n<head>\n' + snippet
                  + '\n<link rel="canonical" href="https://pruvo3d.com/">\n</head><body>'
-                 + kuyruk)
+                 + bant + kuyruk)
     _fikstur_yaz(dizin, "sss/index.html",
                  '<!DOCTYPE html>\n<html lang="tr">\n<head>\n' + yasal
                  + '\n<link rel="canonical" href="https://pruvo3d.com/sss/">\n'
-                 + "</head><body></body></html>")
+                 + "</head><body>" + bant + "</body></html>")
     for ad, icerik in (ekler or {}).items():
         _fikstur_yaz(dizin, ad, icerik)
 
@@ -496,9 +605,9 @@ _Y_EKLER = {
     "tools/belge_ornegi.py": ('"""Sablon <!DOCTYPE html> ile baslar, <head> icinde\n'
                               '`rel="canonical"` ve `{ga_head}` capasi bulunur."""\n'
                               "DEGER = 1\n"),
-    # Y6: AYNI metin ama DEGISKENE atanmis (docstring DEGIL). Zincirde olmadigi icin
-    # yine kapsam disidir; bu kontrol olmadan "docstring muafiyeti" ile "zincir
-    # daraltmasi" birbirinden ayirt EDILEMEZDI.
+    # Y6: AYNI metin ama DEGISKENE atanmis (docstring DEGIL) -> KAPSAM ICI olmali;
+    # bu kontrol olmadan "docstring muafiyeti" tum dize sabitlerini korlestirebilirdi.
+    # `{ga_head}` tasidigi icin YESIL kalir — muafiyet dogru yerde daralmis demektir.
     "tools/sablon_ornegi.py": ('SABLON = """<!DOCTYPE html>\n<html lang="tr"><head>\n'
                                '{ga_head}\n<link rel="canonical" href="/y/">\n'
                                '</head><body></body></html>"""\n'),
@@ -538,6 +647,28 @@ def _senaryolar():
          dict(kardes_capa=False, kardes_ithal=True)),
         ("Y7 AYNI capasiz kardes modul ITHAL EDILMIYORSA kapsam disi", YESIL,
          dict(kardes_capa=False, kardes_ithal=False)),
+        # --- FAZ 2 ekseni: riza verilince ad_* GERCEKTEN aciliyor mu -------------
+        ("K10 grant kumesinden ad_storage dusurulur", KIRMIZI,
+         dict(snippet=_F_SNIPPET.replace("'analytics_storage', 'ad_storage',",
+                                         "'analytics_storage',"))),
+        ("K11 VARSAYILAN gevsetilir (ad_storage granted baslar)", KIRMIZI,
+         dict(snippet=_F_SNIPPET.replace("    'ad_storage': 'denied',",
+                                         "    'ad_storage': 'granted',"))),
+        ("K12 bant kanonik grant yerine DAR grant yapar", KIRMIZI,
+         dict(bant=_F_BANNER.replace(
+             "if(typeof window.pruvoRizaUygula === \"function\"){ window.pruvoRizaUygula('granted'); }",
+             "gtag('consent','update',{'analytics_storage':'granted'});"))),
+        ("K13 bant riza KAPSAM kaydini yazmayi birakir", KIRMIZI,
+         dict(bant=_F_BANNER.replace(
+             "\n          localStorage.setItem(KAPSAM_ANAHTARI, window.PRUVO_RIZA_KAPSAMI);", "")
+             .replace('  var KAPSAM_ANAHTARI = "pruvo_onay_kapsam";\n', ""))),
+        # K14: TASINAN IDDIA olur mu? varlik-test.py'deki gorunur-metin beyani ancak bu
+        # eksen yasadigi surece "iddiayi tasir"; olurse orada beyan SERBEST GECISE doner.
+        ("K14 bant metni reklam cerezini BEYAN ETMEYI birakir", KIRMIZI,
+         dict(bant=_F_BANNER.replace("ve reklam çerezleri (Google Ads) ", ""))),
+        ("K15 bant metninden geri alma hakki dusurulur", KIRMIZI,
+         dict(bant=_F_BANNER.replace(", onayınızı istediğiniz zaman geri alabilirsiniz",
+                                     ""))),
         ("Y0 saglam agac YESIL", YESIL, dict()),
         ("Y1-Y6 kapsam disi benzer dosyalar + docstring REDDEDILMEZ", YESIL,
          dict(ekler=_Y_EKLER)),

@@ -25,9 +25,14 @@
      Bu iki cagri hicbir alani 'granted' YAPMAZ; varsayilan denied AYNEN kalir. */
   gtag('set', 'url_passthrough', true);
   gtag('set', 'ads_data_redaction', true);
-  /* Ziyaretçi daha önce onay verdiyse geri yükle (banner tekrar çıkmaz). */
+  /* Riza verilince acilacak alan kumesi — TEK KANONIK KAYNAK; varsayilan denied KALIR. */
+  window.PRUVO_RIZA_ALANLARI = ['analytics_storage','ad_storage','ad_user_data','ad_personalization'];
+  window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';
+  window.pruvoRizaUygula = function(d){ var g={},a=window.PRUVO_RIZA_ALANLARI,i; for(i=0;i<a.length;i++){ g[a[i]]=d; } gtag('consent','update',g); };
+  /* Onayı geri yükle. ESKİ (DAR) kayıt reklam alanlarını KAPSAMAZ: yalnız analitik açılır. */
   try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
-    gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}
+    if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) { window.pruvoRizaUygula('granted'); }
+    else { gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } } catch(e){}
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE"></script>
 <script>
@@ -674,8 +679,10 @@
 </style>
 <div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
   <div class="pco-inner">
-    <p>Trafiği anlamak için isteğe bağlı analiz çerezleri (Google Analytics) kullanmak istiyoruz.
-       Onayınız olmadan çalışmazlar. <a href="/gizlilik/">Gizlilik Politikası</a></p>
+    <p>Trafiği anlamak için analiz çerezleri (Google Analytics), reklamlarımızın ölçümü ve
+       kişiselleştirilmesi için reklam çerezleri (Google Ads) kullanmak istiyoruz. İkisi de
+       isteğe bağlıdır; onayınız olmadan çalışmazlar. Onayınızı istediğiniz zaman
+       <a href="/gizlilik/">Gizlilik Politikası</a> sayfasından geri alabilirsiniz.</p>
     <div class="pco-btns">
       <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
       <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
@@ -685,6 +692,8 @@
 <script>
 (function(){
   var ANAHTAR = "pruvo_onay_analitik";
+  var KAPSAM_ANAHTARI = "pruvo_onay_kapsam";
+  function kapsamAdi(){ return window.PRUVO_RIZA_KAPSAMI || ""; }   /* kaynak koşmadıysa "" -> fail-closed */
   var el = document.getElementById("pruvo-cerez-onay");
   if(!el){ return; }
   var kabul = document.getElementById("pco-kabul");
@@ -692,11 +701,12 @@
   /* TEK KAYNAK: banner görünürlüğü YALNIZCA saklı rıza değerinden türetilir. Ayrı bir
      "gösterildi mi" bayrağı YOK → durum ile görünürlük birbirinden kayamaz. */
   function secim(){ try { return localStorage.getItem(ANAHTAR); } catch(e){ return null; } }
+  function kapsamSecimi(){ try { return localStorage.getItem(KAPSAM_ANAHTARI); } catch(e){ return null; } }
   function bannerTazele(){
-    var s = secim();
-    el.hidden = (s === "kabul" || s === "ret");   /* seçim yapılmışsa banner çıkmaz */
+    var s = secim(), k = kapsamSecimi();   /* DAR kapsamlı eski onay yeni kapsama SAYILMAZ */
+    el.hidden = (s === "ret") || (s === "kabul" && !!k && k === kapsamAdi());
   }
-  function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} bannerTazele(); }
+  function kaydet(deger){ var k = deger === "kabul" ? kapsamAdi() : ""; try { localStorage.setItem(ANAHTAR, deger); if(k){ localStorage.setItem(KAPSAM_ANAHTARI, k); } else { localStorage.removeItem(KAPSAM_ANAHTARI); } } catch(e){} if(deger !== "kabul" && typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('denied'); } bannerTazele(); }
   /* Rıza değişiminin tüm tüketicilerini tek yerden uyar (rıza YAZILDIKTAN sonra çağrılır ki
      hepsi kapı kontrolünden geçsin). Yoklarsa (sayfada o katman yoksa) sessizce atlanır.
      Rıza yokken bu çağrı saklanmış tıklama kimliklerini VE ölçüm çerezlerini (_fbp/_fbc/_ga)
@@ -707,7 +717,7 @@
   }
   bannerTazele();
   kabul.addEventListener("click", function(){
-    if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
+    if(typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula('granted'); }
     kaydet("kabul");
     if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
     rizaYayinla();
@@ -723,7 +733,7 @@
   var degistir = document.getElementById("pco-degistir");
   if(degistir){
     degistir.addEventListener("click", function(){
-      try { localStorage.removeItem(ANAHTAR); } catch(e){}
+      try { localStorage.removeItem(ANAHTAR); localStorage.removeItem(KAPSAM_ANAHTARI); } catch(e){}
       if(typeof gtag === "function"){
         gtag('consent','update',{'analytics_storage':'denied','ad_storage':'denied',
                                  'ad_user_data':'denied','ad_personalization':'denied'});

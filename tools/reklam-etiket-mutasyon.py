@@ -103,6 +103,33 @@ MUTANTLAR = [
        "        mevcutQ.forEach(function(v,n){ if(!params.has(n)){ params.set(n,v); } });")]),
     ("M7 bir yasal sayfanin GA cekirdegi tek kaynaktan ayrisir", True,
      [("sss/index.html", REDACTION, "")]),
+    # --- FAZ 2 (riza bandi reklam iznini de ister) ------------------------------
+    ("M8 grant kumesinden ad_storage dusurulur", True,
+     [("index.html", "['analytics_storage','ad_storage','ad_user_data','ad_personalization']",
+       "['analytics_storage','ad_user_data','ad_personalization']")]),
+    ("M9 VARSAYILAN gevsetilir (ad_storage granted baslar)", True,
+     [("index.html", "    'ad_storage': 'denied',", "    'ad_storage': 'granted',")]),
+    ("M10 bant kanonik grant yerine DAR grant yapar", True,
+     [("index.html",
+       "    if(typeof window.pruvoRizaUygula === \"function\"){ window.pruvoRizaUygula('granted'); }",
+       "    if(typeof gtag === \"function\"){ gtag('consent','update',{'analytics_storage':'granted'}); }")]),
+    ("M11 ESKI DAR riza kaydi sessizce reklam iznine genisletilir", True,
+     [("index.html",
+       "    if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI)"
+       " { window.pruvoRizaUygula('granted'); }\n"
+       "    else { gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } } catch(e){}",
+       "    window.pruvoRizaUygula('granted'); } } catch(e){}")]),
+    ("M12 bant riza KAPSAM kaydini yazmayi birakir", True,
+     [("index.html",
+       "if(k){ localStorage.setItem(KAPSAM_ANAHTARI, k); }"
+       " else { localStorage.removeItem(KAPSAM_ANAHTARI); }",
+       "")]),
+    # M13 TASINAN IDDIA: varlik-test.py::BILEREK_DEGISEN_METIN bandin GORUNUR METIN
+    # degisimini beyan eder; o beyanin kosulu bu eksenin YASAMASIDIR. Metin reklam
+    # cerezini beyan etmeyi birakirsa kapi KIRMIZI yanmali — yoksa oradaki beyan
+    # sessizce SERBEST GECISE doner.
+    ("M13 bant metni reklam cerezini BEYAN ETMEYI birakir", True,
+     [("index.html", "reklam çerezleri (Google Ads) ", "")]),
     # KONTROL: davranisi DEGISTIRMEYEN duzenleme -> YESIL KALMALI.
     ("K1 KONTROL yorum metni degisir (davranis AYNI)", False,
      [("index.html", "/* filtre adıyla çakışırsa filtre kazanır */",

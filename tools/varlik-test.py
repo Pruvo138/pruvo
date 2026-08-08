@@ -146,6 +146,55 @@ BILEREK_DEGISEN_TAM = (
      "Consent Mode v2 tasima ayari eklendi — YENI satir (nobetci: reklam-etiket-kapisi.py)"),
     ("gtag('set', 'ads_data_redaction', true);",
      "Consent Mode v2 tasima ayari eklendi — YENI satir (nobetci: reklam-etiket-kapisi.py)"),
+    # 2026-08-08 — RIZA BANDI REKLAM IZNINI DE ISTER OLDU (Okan karari). TEK OLAY, 19 satir:
+    # 6 ESKI (dar analytics-only yol) + 13 YENI (kanonik dort-alan yolu + kapsam kaydi).
+    # Varliga-tasima kaybi DEGIL; bant metni ayrica BILEREK_DEGISEN_METIN'de beyan edildi.
+    # 🔴 SATIRLAR AYIRT EDICI SECILDI: kod BILEREK tek satirlik ve konusan ifadelerle
+    # yazildi. Ilk (cok satirli) yazim `}` · `try {` · `} catch(e){}` gibi AYIRT EDICI
+    # OLMAYAN satirlar uretiyordu; onlari beyan etmek GERCEK bir icerik kaybini da
+    # maskelerdi. Bu tabloya boyle bir satir GIRMEZ.
+    # 🔴 IDDIA TASINDI: yeni yolun her bant yuzeyinde FIILEN kabloli oldugunu
+    # tools/reklam-etiket-kapisi.py SINIF C + (e) eksenleri fail-closed olcer.
+    # --- ESKI (kiyas commit'indeki dar yol) ---
+    ('function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} el.hidden = true; }',
+     "riza kaydi kapsam bilgisi tasimiyordu — ESKI kaydet()"),
+    ("gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}",
+     "geri yukleme yalniz analitigi aciyordu — ESKI kol"),
+    ('if(secim === "kabul" || secim === "ret"){ return; }',
+     "gorunurluk kapsami bilmiyordu — ESKI kosul"),
+    ('if(typeof gtag === "function"){ gtag(\'consent\',\'update\',{\'analytics_storage\':\'granted\'}); }',
+     "bant DAR grant yapiyordu (yalniz analytics_storage) — ESKI cagri"),
+    ('try { secim = localStorage.getItem(ANAHTAR); } catch(e){}',
+     "kapsam anahtari okunmuyordu — ESKI okuma"),
+    ('var secim = null;',
+     "kapsam degiskeni yoktu — ESKI bildirim"),
+    # --- YENI (kanonik dort-alan yolu) ---
+    ("else { gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } } catch(e){}",
+     "ESKI DAR kayit sessizce genisletilmez — YENI geri yukleme kolu"),
+    ('function kapsamAdi(){ return window.PRUVO_RIZA_KAPSAMI || ""; }',
+     "kapsam adi tek kaynaktan; kaynak kosmadiysa '' -> fail-closed"),
+    ('function kaydet(deger){ var k = deger === "kabul" ? kapsamAdi() : ""; try { localStorage.setItem(ANAHTAR, deger); if(k){ localStorage.setItem(KAPSAM_ANAHTARI, k); } else { localStorage.removeItem(KAPSAM_ANAHTARI); } } catch(e){} if(deger !== "kabul" && typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula(\'denied\'); } el.hidden = true; }',
+     "YENI kaydet(): kapsam kaydi + 'Reddet'te dort alanin geri cekilmesi"),
+    ("if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) { window.pruvoRizaUygula('granted'); }",
+     "YENI geri yukleme: yalniz GUNCEL kapsamli kayit dort alani acar"),
+    ('if(secim === "kabul" && kapsam && kapsam === kapsamAdi()){ return; }',
+     "YENI gorunurluk: guncel kapsamda onaylanmissa bant cikmaz"),
+    ('if(secim === "ret"){ return; }',
+     "YENI gorunurluk: reddedene TEKRAR SORULMAZ"),
+    ('if(typeof window.pruvoRizaUygula === "function"){ window.pruvoRizaUygula(\'granted\'); }',
+     "YENI bant cagrisi: kanonik dort-alan yolu"),
+    ('try { secim = localStorage.getItem(ANAHTAR); kapsam = localStorage.getItem(KAPSAM_ANAHTARI); } catch(e){}',
+     "YENI okuma: kapsam anahtari da okunur"),
+    ('var KAPSAM_ANAHTARI = "pruvo_onay_kapsam";',
+     "YENI kapsam anahtari (dar eski onayi yeni kapsamdan ayirir)"),
+    ('var secim = null, kapsam = null;',
+     "YENI bildirim: kapsam degiskeni"),
+    ("window.PRUVO_RIZA_ALANLARI = ['analytics_storage','ad_storage','ad_user_data','ad_personalization'];",
+     "YENI TEK KANONIK KAYNAK: riza verilince acilacak alan kumesi"),
+    ("window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';",
+     "YENI kapsam adi (tek kaynak)"),
+    ("window.pruvoRizaUygula = function(d){ var g={},a=window.PRUVO_RIZA_ALANLARI,i; for(i=0;i<a.length;i++){ g[a[i]]=d; } gtag('consent','update',g); };",
+     "YENI grant/revoke yolu; bandin dort varyanti kumeyi elle TEKRARLAMAZ"),
 )
 
 # ---------------------------------------------------------------- GORUNUR METIN BEYANI
@@ -168,6 +217,23 @@ BILEREK_DEGISEN_TAM = (
 #      KIRMIZI yanar (S3 hijyeni) — yoksa tablo zamanla olu muafiyet deposuna doner.
 # Bosluk serbest yazilir; kiyas normalize edilmis (tek bosluk) metin uzerinden yapilir.
 BILEREK_DEGISEN_METIN = (
+    # 2026-08-08 — RIZA BANDI METNI reklam cerezini de BEYAN EDER OLDU (Okan karari).
+    # NEDEN ZORUNLU: ayni turda "Kabul Et" ad_storage/ad_user_data/ad_personalization
+    # alanlarini da 'granted' yapar hale getirildi. Reklam cerezinden HIC soz etmeyen bir
+    # metinle alinan onay bu izinleri KAPSAMAZ; metni degistirmeden izni genisletmek acik
+    # riza olmazdi. Yani bu metin degisikligi bir CIKARIM KAYBI degil, hukuki ZORUNLULUK.
+    # 🔴 IDDIA TASINDI, KALDIRILMADI: yeni metnin BES kaynak sayfada ve uretecte GERCEKTEN
+    # durdugunu tools/reklam-etiket-kapisi.py SINIF C ekseni fail-closed olcer (bant yuzeyi
+    # basina; metin tek kaynaktan bayt-birebir turer). Orada kirmizi yanmadan bu beyan
+    # tek basina bir sey serbest birakmaz.
+    ("Trafiği anlamak için isteğe bağlı analiz çerezleri (Google Analytics) kullanmak "
+     "istiyoruz. Onayınız olmadan çalışmazlar. Gizlilik Politikası",
+     "Trafiği anlamak için analiz çerezleri (Google Analytics), reklamlarımızın ölçümü ve "
+     "kişiselleştirilmesi için reklam çerezleri (Google Ads) kullanmak istiyoruz. İkisi de "
+     "isteğe bağlıdır; onayınız olmadan çalışmazlar. Onayınızı istediğiniz zaman Gizlilik "
+     "Politikası sayfasından geri alabilirsiniz.",
+     "riza bandi reklam cerezini beyan eder oldu; yeni metnin varligini "
+     "tools/reklam-etiket-kapisi.py SINIF C ekseni fail-closed olcer"),
 )
 
 
