@@ -100,11 +100,31 @@ const dok = {
 };
 
 // ------------------------------------------------------------------ fetch + window şimi
-let fetchCagri = 0;
+// 🔴 fetch şimi TÜM KATALOG adresini BİLEREK tanımıyor: modül `/urunler.json` gibi bir
+// toplu adrese giderse istek REDDEDİLİR ve iddia düşer (ağırlık regresyonu sessiz kalmaz).
+let fetchCagri = 0, yukCagri = 0, edgeCagri = 0;
+const istenenIdler = [];          // edge'den istenen TÜM id'ler (mükerrer dahil)
+const partiBoylari = [];
+const bilinmeyenAdres = [];
+const EDGE_ONEK = V.manifest.uc + V.manifest.yol;
 function fetchSim(u){
   fetchCagri++;
-  if(u === V.manifest.yuk){ return Promise.resolve({json: () => Promise.resolve(V.yuk)}); }
-  if(u === V.manifest.kaynak){ return Promise.resolve({json: () => Promise.resolve(V.katalog)}); }
+  if(u === V.manifest.yuk){
+    yukCagri++;
+    return Promise.resolve({ok: true, json: () => Promise.resolve(V.yuk)});
+  }
+  if(u.indexOf(EDGE_ONEK) === 0){
+    edgeCagri++;
+    const ham = decodeURIComponent(u.slice(EDGE_ONEK.length));
+    const idler = ham ? ham.split(",") : [];
+    partiBoylari.push(idler.length);
+    idler.forEach((x) => istenenIdler.push(x));
+    // edge ucunun GERÇEK sekli: tekil `gorsel`, `gorseller` dizisi YOK (canli olculdu)
+    const urunler = idler.map((id) => V.edge[id]).filter((x) => !!x);
+    return Promise.resolve({ok: true, json: () => Promise.resolve({urunler: urunler,
+                                                                  toplam: urunler.length})});
+  }
+  bilinmeyenAdres.push(u);
   return Promise.reject(new Error("beklenmeyen adres: " + u));
 }
 const konum = {search: V.search || "", pathname: V.pathname || "/marka/x/",
@@ -133,6 +153,9 @@ cikti.cipHrefleri = cipler.map((c) => c.getAttribute("href"));
 
 // ---- modülü kur (DOMContentLoaded)
 dinleyiciler.DOMContentLoaded();
+// 🔴 İLK AÇILIŞ: modül kurulduktan sonra, kullanıcı hiçbir şey yapmadan HİÇ istek atılmamalı
+// (tüm katalog indirme regresyonunun davranışsal nöbeti).
+cikti.acilistaFetch = fetchCagri;
 
 let tik = Promise.resolve();
 function bekle(){ return new Promise((r) => setTimeout(r, 0)); }
@@ -162,7 +185,14 @@ tik = tik.then(bekle).then(() => {
   cikti.tumuDurum = durum.textContent;
   cikti.dugmeGizli = dugme.style.display === "none";
   cikti.fetchCagri = fetchCagri;
+  cikti.yukCagri = yukCagri;
+  cikti.edgeCagri = edgeCagri;
+  cikti.istenenIdSayisi = istenenIdler.length;
+  cikti.istenenTekil = Object.keys(istenenIdler.reduce((a, x) => (a[x] = 1, a), {})).length;
+  cikti.enBuyukParti = partiBoylari.length ? Math.max.apply(null, partiBoylari) : 0;
+  cikti.bilinmeyenAdres = bilinmeyenAdres;
   cikti.artimIsaretli = ((grid._html || "").match(/data-artim=""/g) || []).length;
+  cikti.durumKancasi = g.PRUVO_ARTIM_DURUM ? g.PRUVO_ARTIM_DURUM() : null;
   console.log(JSON.stringify(cikti));
 });
 """
@@ -248,10 +278,24 @@ def olc(dokum=False):
     kapsam_js = kapsam_js[kapsam_js.index(mm._KAPSAM_JS_BAS):
                           kapsam_js.index(mm._KAPSAM_JS_SON)]
 
+    # EDGE ŞEKLİ: `/katalog?ids=` tekil `gorsel` döner, `gorseller` dizisi YOK
+    # (canlı ölçüldü: 100/100 ürün, 0 sapan alan). Şim canlı şekli taklit eder.
+    urun_ix = {p.get("id"): p for p in products if p.get("id")}
+    edge = {}
+    for kalem in yuk["k"]:
+        p = urun_ix.get(kalem[0])
+        if p is None:
+            continue
+        imgs = ctx["images_of"](p)
+        edge[kalem[0]] = {"id": p.get("id"), "baslik": p.get("baslik"),
+                          "kategori": p.get("kategori"), "marka": p.get("marka") or [],
+                          "fiyat": p.get("fiyat"), "tabanFiyat": 0,
+                          "gorsel": imgs[0] if imgs else "",
+                          "parametrik": bool(p.get("parametrik")), "altkategori": ""}
     veri = {
         "artimJs": mm._ARTIM_JS_GOVDE, "kapsamJs": kapsam_js,
         "manifest": manifest, "manifestMetni": manifest_metni,
-        "yuk": yuk, "katalog": products,
+        "yuk": yuk, "edge": edge,
         "ssrKartlar": ssr_kartlar, "cipler": cipler,
         "search": "", "pathname": "/" + rel + "/",
     }
@@ -332,10 +376,34 @@ def olc(dokum=False):
                r.get("artimIsaretli") == r.get("tumuEklenen"),
                "işaretli %r != çizilen %r (filtre sıfırlanınca temizlenemez)"
                % (r.get("artimIsaretli"), r.get("tumuEklenen")))
-    kapi.iddia("A14 KAYNAKLAR BIR KEZ CEKILDI (yuk + katalog)",
-               r.get("fetchCagri") == 2,
-               "fetch çağrısı %r (2 olmalı: yük + katalog, sonra bellekten)"
-               % (r.get("fetchCagri"),))
+    # ---- KABUL: AĞIRLIK — ilk açılışta HİÇ istek yok, veri EDGE'den PARTİLİ geliyor
+    kapi.iddia("A14a ILK ACILISTA HIC ISTEK YOK", r.get("acilistaFetch") == 0,
+               "modül kurulur kurulmaz %r istek attı (tüm katalog indirme regresyonu)"
+               % (r.get("acilistaFetch"),))
+    kapi.iddia("A14b BILINMEYEN/TOPLU ADRESE ISTEK YOK", not (r.get("bilinmeyenAdres") or []),
+               "edge/yük dışı adrese istek atıldı: %r" % ((r.get("bilinmeyenAdres") or [])[:3],))
+    kapi.iddia("A14c YUK BIR KEZ CEKILDI", r.get("yukCagri") == 1,
+               "parcalar.json %r kez çekildi (1 olmalı; sonrası bellekten)"
+               % (r.get("yukCagri"),))
+    bek_parti = (bek_tumu + manifest["parti"] - 1) // manifest["parti"] if bek_tumu else 0
+    kapi.iddia("A14d EDGE ISTEGI PARTILI VE GEREKTIGI KADAR",
+               (r.get("edgeCagri") or 0) > 0
+               and (r.get("enBuyukParti") or 0) <= manifest["parti"],
+               "edge isteği %r, en büyük parti %r (tavan %r); beklenen parti sayısı ~%d"
+               % (r.get("edgeCagri"), r.get("enBuyukParti"), manifest["parti"], bek_parti))
+    kapi.iddia("A14e YALNIZ GEREKEN ID ISTENDI (tum katalog DEGIL)",
+               (r.get("istenenTekil") or 0) == bek_tumu,
+               "istenen tekil id %r != çizilecek kalem %d (fazlası tüm katalog çekmek olurdu)"
+               % (r.get("istenenTekil"), bek_tumu))
+    # ---- FETCH GERCEKTEN CAGRILDI VE KART CIZDI (yalniz "fonksiyon var" yeterli DEGIL)
+    dk = r.get("durumKancasi") or {}
+    kapi.iddia("A14f FETCH CAGRILDI + BELLEGE GIRDI + KART CIZDI",
+               (dk.get("istek") or 0) >= 2 and (dk.get("bellek") or 0) == bek_tumu
+               and (dk.get("cizilen") or 0) == manifest["toplam"]
+               and (r.get("tumuEklenen") or 0) == bek_tumu,
+               "istek=%r bellek=%r (beklenen %d) cizilen=%r (beklenen %d) eklenenKart=%r"
+               % (dk.get("istek"), dk.get("bellek"), bek_tumu, dk.get("cizilen"),
+                  manifest["toplam"], r.get("tumuEklenen")))
     # KONTROL: ölçüm dejenere değil — fikstür GERÇEKTEN kesirli (kalan > 0, basılı > 0)
     kapi.iddia("A15 KONTROL: FIKSTUR KESIRLI (olcum dejenere degil)",
                bek_tumu > 0 and manifest["basili"] > 0

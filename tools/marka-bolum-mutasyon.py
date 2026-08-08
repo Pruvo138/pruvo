@@ -24,17 +24,24 @@ KABUL (çıkış kodu DEĞİL, ölçülen iddia):
 
 Kullanım: python3 tools/marka-bolum-mutasyon.py [--dokum]
 """
+import atexit
 import io
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
 
-TOOLS = os.path.dirname(os.path.abspath(__file__))
-HEDEF = os.path.join(TOOLS, "marka_model_build.py")
+# 🔴 SYMLINK'I IZLE: bu betik gercek dosyaya yazar, bu yuzden yolu COZ (realpath). Symlink'li
+# bir yoldan gelip kopyaya yazmak "mutasyon uygulanmadi" tuzagini dogurur.
+TOOLS = os.path.dirname(os.path.realpath(__file__))
+HEDEF = os.path.realpath(os.path.join(TOOLS, "marka_model_build.py"))
 KAPI = os.path.join(TOOLS, "marka-sayac-kapisi.py")
+ARTIM_TEST = os.path.join(TOOLS, "marka-artim-test.py")
+# Diskteki yedek: `finally` KESILSE bile (SIGINT/SIGTERM/kill) dal bozuk kalmasin.
+YEDEK_DOSYA = HEDEF + ".mutasyon-yedek"
 
 # Jeneratörün İÇ fail-closed'u (katman A). Katman B'de bu SUSTURULUR ki kapı tek başına
 # ölçülebilsin.
@@ -71,6 +78,26 @@ MUTANTLAR = [
        '    var duzler = [];')],
      "düz bağ öğeleri kapsam süzgecinden ÇIKARILDI -> ?kategori= altında başka kategorinin "
      "parça adları ekranda KALIR (kartlarda kapatılan kaçağın aynısı, bağ listesinde)"),
+
+    # ---- bagimsiz curutmenin actigi kirmizilarin nobetcileri (X1/X3/X4) ----
+    ("X3_TESLIM_ADRESI_BOZ",
+     [('    manifest = {"yuk": "/marka/" + marka_slug + "/parcalar.json", "uc": ctx["EDGE_UC"],',
+       '    manifest = {"yuk": "/marka/" + marka_slug + "/parcalar.json", '
+       '"uc": "https://yok-boyle-uc.invalid",')],
+     "TESLIM YOLU bozuldu (edge ucu ölü adrese çevrildi): canlıda 32 büyük marka sayfası "
+     "tek ek kart çizmez. Testler adresi sayfanın KENDİ beyanından okusaydı bu mutant "
+     "YEŞİL geçerdi (bağımsız çürütmenin bulduğu tautoloji)"),
+
+    ("X4_TUMUNU_GOSTER_OLU",
+     [("    function devam(hepsi){\n      if(mesgul){ return; }",
+       "    function devam(hepsi){\n      if(true){ return; }")],
+     '"Tümünü göster" ve kaydırmada artım ÖLDÜRÜLDÜ: kullanıcı markanın tamamını '
+     "GÖREMEZ (SSR'de basılı N kart + düz bağ listesinde kalır)"),
+
+    ("X1_KART_N_DEGISTIR",
+     [("MARKA_KART_N = 80", "MARKA_KART_N = 40")],
+     "SSR'de basılan kart sayısı sessizce yarıya indi: kapı sabiti İTHAL etseydi bu "
+     "mutant YEŞİL kalırdı (davranışsal çapa `BEKLENEN_KART_N` ile ölçülür)"),
 ]
 
 KONTROL = ("KONTROL_YORUM",
@@ -82,6 +109,43 @@ KONTROL = ("KONTROL_YORUM",
 def oku():
     with io.open(HEDEF, encoding="utf-8") as f:
         return f.read()
+
+
+# --------------------------------------------------------------- kesintiye dayanikli geri alim
+_GERI_ALINDI = {"tamam": False}
+
+
+def yedegi_kur(taban):
+    """Mutasyona BASLAMADAN yedegi DISKE yaz + her cikis yolunda geri alimi bagla.
+
+    🔴 NEDEN DISKE: yalnizca `finally` ile geri alan bir surucu SIGINT/SIGTERM/kill
+    aldiginda dosyayi MUTANT halde birakir ve dal sessizce bozulur (bu depoda
+    mutasyonun "uygulandigini" izle dogrulamak da yanilticidir: iz DEGISMIS ama dogru
+    yonde degildir). Yedek diskte durur; atexit + sinyal kancalari geri alir; bir sonraki
+    kosum artik yedek bulursa FAIL-CLOSED durur."""
+    with io.open(YEDEK_DOSYA, "w", encoding="utf-8") as f:
+        f.write(taban)
+
+    def geri_al(*_a):
+        if _GERI_ALINDI["tamam"]:
+            return
+        try:
+            with io.open(YEDEK_DOSYA, encoding="utf-8") as f:
+                icerik = f.read()
+            with io.open(HEDEF, "w", encoding="utf-8") as f:
+                f.write(icerik)
+            _GERI_ALINDI["tamam"] = True
+            os.remove(YEDEK_DOSYA)
+        except Exception as e:                                    # noqa: BLE001
+            print("UYARI: geri alim BASARISIZ (%r) — yedek DURUYOR: %s" % (e, YEDEK_DOSYA))
+
+    atexit.register(geri_al)
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        try:
+            signal.signal(sig, lambda *_a: (geri_al(), sys.exit(130)))
+        except Exception:                                         # noqa: BLE001
+            pass
+    return geri_al
 
 
 def yaz(metin):
@@ -102,23 +166,41 @@ def iz():
     return m.group(1) if m else None
 
 
-def kapiyi_kostur():
-    cp = subprocess.run([sys.executable, KAPI], capture_output=True, text=True,
+def _tek_kostur(cmd, onek):
+    """Bir nöbetçiyi koştur; düşen iddia KİMLİKLERİNİ topla (önekli, iki araç karışmasın)."""
+    cp = subprocess.run(cmd, capture_output=True, text=True,
                         cwd=os.path.dirname(TOOLS), timeout=3600)
     cikti = (cp.stdout or "") + (cp.stderr or "")
     dusen = set()
     for satir in cikti.splitlines():
         s = satir.strip()
         if s.startswith("DUSEN "):
-            dusen.add(s[6:].split(" — ")[0].strip())
+            dusen.add(onek + ":" + s[6:].split(" — ")[0].strip())
+    m = re.search(r"IDDIA=(\d+)/(\d+)", cikti)
+    return {"rc": cp.returncode, "dusen": dusen,
+            "cokme": "Traceback (most recent call last)" in cikti,
+            "iddia": (int(m.group(1)), int(m.group(2))) if m else None}
+
+
+def kapiyi_kostur():
+    """İKİ nöbetçi birlikte: SSR kapısı + istemci davranış testi.
+
+    🔴 NEDEN İKİSİ: bazı kusurlar YALNIZ davranışta görünür ("tümünü göster" ölü) ve
+    yalnız kapıyı koşturan bir batarya onları HAYATTA bırakır — bağımsız çürütme X4'ü
+    tam böyle buldu. İkisinin düşen kümesi BİRLEŞTİRİLİR; kimlikler araç önekiyle
+    ayrılır ki hangi katmanın konuştuğu görünsün."""
+    a = _tek_kostur([sys.executable, KAPI], "KAPI")
+    b = _tek_kostur([sys.executable, ARTIM_TEST], "ARTIM")
+    dusen = a["dusen"] | b["dusen"]
     aileler = {}
     for d in dusen:
-        aileler[d.split("/")[0]] = aileler.get(d.split("/")[0], 0) + 1
-    m = re.search(r"IDDIA=(\d+)/(\d+)\s+DUSEN=(\d+)", cikti)
-    cokme = "Traceback (most recent call last)" in cikti
-    return {"rc": cp.returncode, "dusen": dusen, "aileler": aileler, "cokme": cokme,
-            "iddia": (int(m.group(1)), int(m.group(2))) if m else None,
-            "kirpik": cikti[-500:]}
+        arac, kimlik = d.split(":", 1)
+        aileler[arac + ":" + kimlik.split("/")[0].split(" ")[0]] = \
+            aileler.get(arac + ":" + kimlik.split("/")[0].split(" ")[0], 0) + 1
+    return {"rc": (1 if (a["rc"] or b["rc"]) else 0), "dusen": dusen, "aileler": aileler,
+            "cokme": a["cokme"] or b["cokme"],
+            "iddia": a["iddia"], "iddia_artim": b["iddia"],
+            "rc_kapi": a["rc"], "rc_artim": b["rc"], "kirpik": ""}
 
 
 def uygula(taban, ciftler, ic_kontrol_kapali):
@@ -136,9 +218,17 @@ def uygula(taban, ciftler, ic_kontrol_kapali):
 
 def main():
     dokum = "--dokum" in sys.argv[1:]
+    # FAIL-CLOSED: onceki kosum yarida kesilmis olabilir. Yedek DURUYORSA dosya mutant
+    # olabilir -> olcum yapMA, insana soyle.
+    if os.path.exists(YEDEK_DOSYA):
+        print("OLCULEMEDI: onceki kosumdan kalan yedek DURUYOR -> %s" % YEDEK_DOSYA)
+        print("  Dosya MUTANT olabilir. Once geri al:")
+        print("  cp %s %s && rm %s" % (YEDEK_DOSYA, HEDEF, YEDEK_DOSYA))
+        return 3
     taban = oku()
     taban_iz = iz()
     print("TABAN IZ =", taban_iz)
+    geri_al = yedegi_kur(taban)
     sonuc = {}
     try:
         # ---------------------------------------------------------- KATMAN A
@@ -183,10 +273,13 @@ def main():
                 print("      ornek=%s" % (sorted(r["dusen"])[:4],))
             print("      >> %s" % acik)
     finally:
-        yaz(taban)
+        geri_al()
         geri = iz()
         print()
         print("DOSYA GERI ALINDI, iz =", geri, "(taban ile ayni:", geri == taban_iz, ")")
+        print("YEDEK TEMIZ =", not os.path.exists(YEDEK_DOSYA))
+        if geri != taban_iz:
+            print("🔴 GERI ALIM BASARISIZ — dosya MUTANT halde olabilir, ELLE kontrol et.")
 
     # ---------------------------------------------------------------- HÜKÜM
     print()

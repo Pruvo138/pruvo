@@ -124,6 +124,31 @@ def _marka_norm(s):
     return re.sub(r"\s+", " ", n).strip()
 
 
+# Artım kolunun kart verisini çektiği EDGE yolu — ana sayfanın kullandığı MEVCUT yol.
+# 🔴 TEK KAYNAK index.html'in `EDGE_UC`'si; burada KOPYA TUTULMAZ (ayrışırsa marka sayfası
+# ölü bir uca istek atar ve tek kart çizmez — hatası SESSİZ). Kapı bu değeri BAĞIMSIZ
+# ayıklayıp sayfanın BEYAN ettiğiyle karşılaştırır → [[ikiz-tanim-sessiz-ayrisma]].
+EDGE_KATALOG_YOLU = "/katalog?ids="
+EDGE_PARTI = 100          # /katalog?ids= tek istekte en çok 100 id (ana sayfa da 100 kullanıyor)
+
+
+def edge_ucu(index_html):
+    """index.html'deki `EDGE_UC` — kart verisinin çekileceği edge kökü (TEK KAYNAK).
+
+    🔴 NEDEN AYIKLANIR, GÖMÜLMEZ: marka sayfası ilk açılışta hiçbir veri çekmez, kalan
+    kartları KULLANICI istediğinde (kaydırma / "tümünü göster" / model filtresi) çizer ve
+    o veriyi ana sayfanın kullandığı AYNI uçtan, YALNIZ gereken id'ler için alır
+    (`/katalog?ids=`). Tüm katalogu (`urunler.json`, ölçüldü: 21.330.991 B ham /
+    3.133.127 B gzip) indirmek KABUL EDİLEMEZ — ana sayfa o deseni `EDGE_KATALOG=true`
+    ile bilerek terk etti (gerekçe index.html'de: mobil ilk açılış + bellek).
+    Bulunamazsa HATA (fail-closed): sessizce boş uca düşerse hiç kart çizilmez."""
+    m = re.search(r'var\s+EDGE_UC\s*=\s*"([^"]+)"', index_html)
+    if not m:
+        raise SystemExit("HATA: index.html'de EDGE_UC bulunamadı "
+                         "(marka sayfası artım kolunun veri ucu tek kaynağı bozuk).")
+    return m.group(1).rstrip("/")
+
+
 def kategori_evreni(index_html):
     """KAPSAM doğrulaması için GEÇERLİ kategori listesi — index.html'den AYIKLANIR
     (CATEGORIES + GIZLI_KATEGORILER; build.py CATEGORIES+NAV_GIZLI ile birebir eş).
@@ -1361,9 +1386,17 @@ def ara_tasi_scripti(marka):
 # SSR'de basmak kabul edilemez ağırlık üretiyordu (ölçüldü: en büyük marka 2582 kart
 # ≈ 1,27 MB; ikinci sıradaki sayfa bugün 770 KB ile index.html'i (235 KB) ZATEN aşıyor).
 # ÇÖZÜM: ilk N kart HTML'de (SEO + ilk boya, JS-siz halde de görünür), kalanı AYNI SAYFADA
-# artımlı çizilir. Kart verisi `urunler.json`'dan (kataloğun kendi kaynağı), sayfaya ait
-# kalem listesi + model üyeliği sayfa yanındaki `parcalar.json`'dan gelir. HARİCİ
-# KÜTÜPHANE/CDN YOK, saf JS.
+# artımlı çizilir. HARİCİ KÜTÜPHANE/CDN YOK, saf JS.
+#
+# 🔴 KART VERİSİ EDGE'DEN, TÜM KATALOGDAN DEĞİL (ölçüldü, 8 Ağu): ilk yazımda artım kolu
+# `/urunler.json` çekiyordu = 21.330.991 B ham / 3.133.127 B gzip, 32 sayfada, kaydırmada
+# OTOMATİK. Ana sayfa bu deseni `EDGE_KATALOG=true` ile BİLEREK terk etti (gerekçe
+# index.html'de yazılı: mobil ilk açılış + bellek). Marka sayfası da AYNI mevcut yolu
+# kullanır: `EDGE_UC + /katalog?ids=` ile YALNIZ çizilecek id'ler, 100'lük partiler hâlinde.
+# İlk açılışta HİÇ veri isteği YOK (kartlar SSR'de); istek ancak kullanıcı kaydırınca /
+# "tümünü göster"e basınca / model filtresi seçince atılır.
+# Sayfaya ait kalem listesi + model üyeliği + override'lar sayfa yanındaki `parcalar.json`
+# (SSR türevi, LAZY çekilir).
 # 🔴 KART GÖVDESİ TEK KAYNAK: `kartHtml` Python `_kart` ile BAYT-AYNI dize üretir; kapı
 # bunu node'da koşturup her kalem için Python çıktısıyla KARŞILAŞTIRIR (ikiz tanım sessizce
 # ayrışamaz → [[ikiz-tanim-sessiz-ayrisma]]).
@@ -1379,14 +1412,18 @@ _ARTIM_JS_GOVDE = r"""
       .replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
   }
   // Python `_kart` ile BAYT-AYNI kart gövdesi. `o` = sayfanın override kaydı (bkz.
-  // _kart_yuk_kaydi): istemcinin `urunler.json`'dan TÜRETEMEDİĞİ alanlar.
+  // _kart_yuk_kaydi): istemcinin katalog kaydından TÜRETEMEDİĞİ alanlar.
   function kartHtml(u, o, site, ekAttr){
     o = o || {};
     var kat = String(u.kategori || "").replace(/^\s+|\s+$/g, "");
     var baslik = o.b !== undefined ? o.b
                : (String(u.baslik || "").replace(/^\s+|\s+$/g, "") || String(u.id || ""));
+    // KAPAK: edge ucu (`/katalog?ids=`) TEKİL `gorsel` alanı döner (ölçüldü: 100/100 ürün,
+    // `gorseller` dizisi EDGE'de YOK); `urunler.json` ise `gorseller` dizisi taşır. İki
+    // şekil de okunur -> veri yolu değişse bile kart kapağı sessizce boşalmaz.
     var gorseller = u.gorseller || [];
-    var cover = o.g !== undefined ? o.g : (gorseller.length ? gorseller[0] : "");
+    var hamKapak = u.gorsel || (gorseller.length ? gorseller[0] : "");
+    var cover = o.g !== undefined ? o.g : hamKapak;
     var fiyat, bos;
     if(o.f !== undefined){ fiyat = o.f; bos = !!o.e; }
     else {
@@ -1438,11 +1475,25 @@ _ARTIM_JS_GOVDE = r"""
     if(!el){ return null; }
     var v;
     try{ v = JSON.parse(el.textContent || "null"); }catch(e){ return null; }
-    if(!v || !v.yuk || !v.kaynak || !v.site){ return null; }
+    // FAIL-CLOSED: edge ucu / yol / parti beyanı EKSİKSE hiç istek atılmaz (yanlış uca
+    // istek atıp sessizce boş kalmaktansa kol hiç kurulmaz).
+    if(!v || !v.yuk || !v.uc || !v.yol || !v.parti || !v.site){ return null; }
     return v;
   }
+  // Çizilecek id'leri PARTİLERE böl (edge ucu tek istekte en çok `parti` id alır).
+  function partile(idler, parti){
+    var out = [], i;
+    for(i = 0; i < idler.length; i += parti){ out.push(idler.slice(i, i + parti)); }
+    return out;
+  }
+  // Bir partinin istek adresi. TEK YERDE kurulur; kapı bu fonksiyonun ürettiği adresi
+  // kanonik değerle karşılaştırır.
+  function istekAdresi(man, idler){
+    return man.uc + man.yol + encodeURIComponent(idler.join(","));
+  }
   g.PRUVO_ARTIM = {esc: esc, kartHtml: kartHtml, mmAttr: mmAttr, suz: suz,
-                   manifest: manifest, PARTI: PARTI};
+                   manifest: manifest, partile: partile, istekAdresi: istekAdresi,
+                   PARTI: PARTI};
 
   // ---------------------------------------------------------------- tarayıcı kolu
   // (node'da `document` yok -> kurulmaz; yukarıdaki saf fonksiyonlar test edilebilir kalır)
@@ -1453,7 +1504,9 @@ _ARTIM_JS_GOVDE = r"""
     if(!man || !grid){ return; }
     var dugme = document.getElementById("mmTumu");
     var durum = document.getElementById("mmDurum");
-    var yuk = null, katalog = null, cizilen = man.basili, mesgul = false, aktifModel = null;
+    var yuk = null, cizilen = man.basili, mesgul = false, aktifModel = null;
+    var katalog = {};        // id -> edge kaydı (yalnız ÇEKİLENLER; tüm katalog İNMEZ)
+    var istekSayisi = 0;     // ölçüm: kaç ağ isteği atıldı (kapı bunu iddia ediyor)
     function kapsamKategorisi(){
       var K = g.PRUVO_KAPSAM;
       if(!K){ return null; }
@@ -1462,17 +1515,37 @@ _ARTIM_JS_GOVDE = r"""
       catch(e){ return null; }
       return (c && c.aktif && c.gecerli) ? c.kategori : null;
     }
-    function getir(){
-      if(yuk && katalog){ return Promise.resolve(true); }
-      return Promise.all([fetch(man.yuk).then(function(r){ return r.json(); }),
-                          fetch(man.kaynak).then(function(r){ return r.json(); })])
-        .then(function(iki){
-          yuk = iki[0];
-          katalog = {};
-          var i, arr = iki[1] || [];
-          for(i = 0; i < arr.length; i++){ if(arr[i] && arr[i].id){ katalog[arr[i].id] = arr[i]; } }
-          return true;
-        }).catch(function(e){
+    // Sayfanın kalem listesi (SSR türevi, sayfanın YANINDA). Bir kez çekilir.
+    function yukuGetir(){
+      if(yuk){ return Promise.resolve(true); }
+      istekSayisi++;
+      return fetch(man.yuk).then(function(r){ return r.json(); })
+        .then(function(d){ yuk = d; return true; });
+    }
+    // Yalnız ÇİZİLECEK id'lerin kart verisini edge'den al (100'lük partiler).
+    // 🔴 TÜM KATALOG İNDİRİLMEZ: eksik olan id yoksa HİÇ istek atılmaz.
+    function kartlariGetir(idler){
+      var eksik = [], gorulen = {}, i;
+      for(i = 0; i < idler.length; i++){
+        if(!katalog[idler[i]] && !gorulen[idler[i]]){ gorulen[idler[i]] = true; eksik.push(idler[i]); }
+      }
+      if(!eksik.length){ return Promise.resolve(true); }
+      var partiler = partile(eksik, man.parti);
+      return Promise.all(partiler.map(function(p){
+        istekSayisi++;
+        return fetch(istekAdresi(man, p), {cache: "no-cache"})
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){
+            var arr = (d && d.urunler) || [], j;
+            for(j = 0; j < arr.length; j++){
+              if(arr[j] && arr[j].id){ katalog[arr[j].id] = arr[j]; }
+            }
+          });
+      })).then(function(){ return true; });
+    }
+    function getir(idler){
+      return yukuGetir().then(function(){ return kartlariGetir(idler || []); })
+        .catch(function(e){
           if(durum){ durum.textContent = "Kalan parçalar yüklenemedi."; }
           console.error("Artim yuklenemedi:", e);
           return false;
@@ -1504,19 +1577,25 @@ _ARTIM_JS_GOVDE = r"""
     function devam(hepsi){
       if(mesgul){ return; }
       mesgul = true;
-      getir().then(function(ok){
-        if(!ok){ mesgul = false; return; }
+      // Sıra ÖNEMLİ: önce kalem listesi (hangi id'ler), sonra YALNIZ çizilecek id'lerin
+      // kart verisi. Tersi tüm katalogu çekmek olurdu.
+      yukuGetir().then(function(){
         var kalemler = suz(yuk, aktifModel, kapsamKategorisi());
         var adet = hepsi ? kalemler.length : PARTI;
-        cizilen = ciz(kalemler, cizilen, adet);
-        if(durum){
-          durum.textContent = cizilen >= kalemler.length
-            ? "" : (cizilen + " / " + kalemler.length + " parça gösteriliyor");
-        }
-        if(dugme && cizilen >= kalemler.length){ dugme.style.display = "none"; }
-        sayilariTazele();
-        mesgul = false;
-      });
+        var dilim = kalemler.slice(cizilen, cizilen + adet);
+        return kartlariGetir(dilim.map(function(k){ return k[0]; })).then(function(){
+          cizilen = ciz(kalemler, cizilen, adet);
+          if(durum){
+            durum.textContent = cizilen >= kalemler.length
+              ? "" : (cizilen + " / " + kalemler.length + " parça gösteriliyor");
+          }
+          if(dugme && cizilen >= kalemler.length){ dugme.style.display = "none"; }
+          sayilariTazele();
+        });
+      }).catch(function(e){
+        if(durum){ durum.textContent = "Kalan parçalar yüklenemedi."; }
+        console.error("Artim yuklenemedi:", e);
+      }).then(function(){ mesgul = false; });
     }
     if(dugme){
       dugme.addEventListener("click", function(e){ e.preventDefault(); devam(true); });
@@ -1562,8 +1641,7 @@ _ARTIM_JS_GOVDE = r"""
         kartlar[k].style.display = uyeli ? "" : "none";
       }
       mesgul = true;
-      getir().then(function(ok){
-        if(!ok){ mesgul = false; return; }
+      yukuGetir().then(function(){
         var kalemler = suz(yuk, ix, kapsamKategorisi());
         // SSR'de basılı ve BU modele üye olan kalemler zaten görünür -> onları atla
         var basiliIds = {}, i, ss = document.querySelectorAll("#mmGrid .card:not([data-artim])");
@@ -1577,12 +1655,17 @@ _ARTIM_JS_GOVDE = r"""
         for(i = 0; i < kalemler.length; i++){
           if(!basiliIds[kalemler[i][0]]){ eksik.push(kalemler[i]); }
         }
-        ciz(eksik, 0, eksik.length);
-        if(durum){ durum.textContent = kalemler.length + " parça (model filtresi etkin)"; }
-        if(dugme){ dugme.style.display = "none"; }
-        mesgul = false;
-        sayilariTazele();
-      });
+        // YALNIZ bu modelin eksik kalemleri çekilir (tüm katalog DEĞİL)
+        return kartlariGetir(eksik.map(function(k){ return k[0]; })).then(function(){
+          ciz(eksik, 0, eksik.length);
+          if(durum){ durum.textContent = kalemler.length + " parça (model filtresi etkin)"; }
+          if(dugme){ dugme.style.display = "none"; }
+          sayilariTazele();
+        });
+      }).catch(function(e){
+        if(durum){ durum.textContent = "Kalan parçalar yüklenemedi."; }
+        console.error("Artim filtresi yuklenemedi:", e);
+      }).then(function(){ mesgul = false; });
     }
     for(var c = 0; c < cipler.length; c++){
       cipler[c].addEventListener("click", function(e){
@@ -1595,6 +1678,14 @@ _ARTIM_JS_GOVDE = r"""
     if(sifirla){
       sifirla.addEventListener("click", function(e){ e.preventDefault(); filtreUygula(null); });
     }
+    // ÖLÇÜM KANCASI: kaç ağ isteği atıldı, kaç kalem belleğe girdi, kaç kart çizildi.
+    // Kapı/nöbetçi bunu okuyup "fetch GERÇEKTEN çağrıldı ve kart ÇİZDİ" iddiasını kurar
+    // (yalnız "fonksiyon var" yeterli DEĞİL).
+    g.PRUVO_ARTIM_DURUM = function(){
+      var n = 0, k;
+      for(k in katalog){ if(Object.prototype.hasOwnProperty.call(katalog, k)){ n++; } }
+      return {istek: istekSayisi, bellek: n, cizilen: cizilen, aktifModel: aktifModel};
+    };
   });
 })(typeof window !== "undefined" ? window : globalThis);
 """
@@ -2113,6 +2204,7 @@ def _kusak_bolumleri_html(ctx, marka_slug, g):
 
 
 # --------------------------------------------------------------------- sayfa üreticileri
+# kontrol mutantı: yalnız yorum (davranış DEĞİŞMEZ)
 def _model_sayfasi(ctx, marka, g, kategoriler):
     esc = ctx["esc"]
     SITE = ctx["SITE"]
@@ -2298,9 +2390,12 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                       + '<ul class="mm-kalan-bag">' + baglar + '</ul>')
 
     kart_html = _urun_grid(ctx, basili, attr_of=_mm_attr, grid_attr=' id="mmGrid"')
-    # Artım manifesti: yükün adresi + kataloğun adresi + SSR'de basılı kart sayısı.
-    # (Yük sayfanın YANINDA duran parcalar.json'dur; HTML baytını şişirmez.)
-    manifest = {"yuk": url + "parcalar.json", "kaynak": "/urunler.json",
+    # Artım manifesti. `uc`/`yol`/`parti` = kart verisinin EDGE yolu; TEK KAYNAK
+    # index.html'in `EDGE_UC`'si (ctx'e `uret` koyar). Tüm katalog İNDİRİLMEZ.
+    # (Yük sayfanın YANINDA duran parcalar.json'dur; HTML baytını şişirmez ve ancak
+    # kullanıcı kalanı isteyince çekilir.)
+    manifest = {"yuk": "/marka/" + marka_slug + "/parcalar.json", "uc": ctx["EDGE_UC"],
+                "yol": EDGE_KATALOG_YOLU, "parti": EDGE_PARTI,
                 "site": SITE, "toplam": toplam, "basili": len(basili)}
     artim_html = ""
     if len(basili) < toplam:
@@ -2440,6 +2535,8 @@ def uret(products, ctx):
         _index_html = f.read()
     evren = MarkaEvreni(_index_html)
     kategoriler = kategori_evreni(_index_html)     # KAPSAM doğrulama evreni (fail-closed)
+    # Artım kolunun veri ucu — index.html TEK KAYNAĞINDAN (kopya tutulmaz, fail-closed)
+    ctx["EDGE_UC"] = edge_ucu(_index_html)
     # 🔴 SAYFA EVRENİ = ÇİP EVRENİ (tek kaynak). Küratörlük dışı çip markaları (Marin:
     # Teleflex/Sierra/NGK/Tecnoseal/Jabsco/International/3M...) buradan gelir; olmasaydı
     # çipte görünür, sayfası 404 dönerdi.

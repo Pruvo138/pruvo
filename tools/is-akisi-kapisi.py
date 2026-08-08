@@ -2512,6 +2512,21 @@ SERIT_B = {
         "bloklayici yola baglanmasi ayni yayin durdurma bedelini dogururdu. Kusuru "
         "yayini DURDURMAZ ama sessiz kalmaz (fail-closed on-kosul + CI'da gorunur "
         "adim). `--kendini-test` kolu serit A'da bloklayici kosuyor.",
+    # --- MARKA SAYFASI ARTIM/FILTRE DAVRANISI (8 Agu 2026) -----------------
+    ("nobet.yml", "serit-b", "tools/marka-artim-test.py"):
+        "ISTEMCI DAVRANISI olcer (artimli kart cizimi + sayfa-ici model filtresi), "
+        "yayin DOGRULUGUNU degil. Marka sayfasinin SSR yuzeyi — kart yuzeyi kimligi, "
+        "bolum ayrimi (cakisma IHLAL), agirlik tavani, teslim yolunun kanonikligi — "
+        "BLOKLAYICI seritte tools/marka-sayac-kapisi.py'de ZATEN olculuyor; bu adim o "
+        "yuzeyin ISTEMCI ucunu (fetch gercekten cagrildi mi, kart cizdi mi, adres "
+        "degismiyor mu, JS-siz hal saglam mi) node'da kosturur. Kirmizisi 'kalan kartlar "
+        "artimli cizilmiyor' der — SSR'de basili N kart + duz bag listesi JS-siz halde "
+        "ZATEN gorunur oldugu icin sayfa yine dogru ve eksiksiz linklidir, yayini "
+        "durdurmanin tamir degeri yoktur.",
+    # NOT: tools/marka-bolum-mutasyon.py de AYNI job'da (serit-b) kosuyor ama bu tabloya
+    # GIRMEZ — kapi cagrisi degil MUTASYON SURUCUSUDUR (kendi kapisinin ayirt ediciligini
+    # olcer). Tabloya konulunca is-akisi-kapisi "BAYAT giris" diye KIRMIZI yaniyor: beyan
+    # yalnizca gercek kapi cagrilari icin istenir.
     # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
     ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
         "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "

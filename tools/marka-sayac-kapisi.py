@@ -73,6 +73,12 @@ sys.path.insert(0, TOOLS)
 # [[pencere-goreli-alarm-kendini-sonduruyor]]).
 HTML_TAVAN = 213155
 
+# Marka sayfasında SSR'de basılması BEKLENEN tam kart sayısı. 🔴 BİLEREK KAPININ KENDİ
+# BEYANI (`mm.MARKA_KART_N` import EDİLMEZ): sabiti ithal eden iddia, sabiti değiştiren
+# mutantı yeşil geçirir — çapa ÜRETİLEN HTML'e bağlanır, jeneratörün sabitine değil.
+# Değer değişecekse burada da BİLEREK değişmeli (iki taraflı, görünür karar).
+BEKLENEN_KART_N = 80
+
 # 🔴 SCRIPT GÖVDESİ SAYFA İÇERİĞİ DEĞİLDİR. Artım modülü (PRUVO_ARTIM.kartHtml) kart
 # şablonunu JS içinde taşır; script'i soymadan tarayan bir ölçüm o ŞABLONU kart SAYAR
 # (ölçüldü: her marka sayfasında +1 hayalet kart, kimlik iddiası +1 sapardı).
@@ -88,6 +94,9 @@ TOPLAM_RE = re.compile(r'<p class="mm-toplam" data-katsay="([^"]*)">.*?'
                        r'<span class="mm-sayim-toplam">(\d+)</span>')
 SAYIM_KART_RE = re.compile(r'<span class="mm-sayim-kart">(\d+)</span>')
 SAYIM_MODEL_RE = re.compile(r'<span class="mm-sayim-model">(\d+)</span>')
+# Artım manifesti (istemcinin veri yolunu BEYAN ettiği yer). 🔴 Kapı bu beyanı KANONİK
+# değerle karşılaştırır; sayfanın kendi beyanını "doğru" kabul ETMEZ (bkz. TESLIM_YOLU).
+MANIFEST_RE = re.compile(r'<script type="application/json" id="mmManifest">(.*?)</script>', re.S)
 
 
 def coz_katsay(ham):
@@ -180,6 +189,15 @@ if(VERI.artimJs){
     for(const kayit of VERI.kartDenekleri){
       artim.kartlar[kayit.id] = A.kartHtml(kayit.urun, kayit.o, VERI.site, A.mmAttr(kayit.kalem));
     }
+    // TESLİM YOLU: modülün KENDİ kurduğu istek adresi + partileme (kanonikle karşılaştırılır)
+    artim.istek = {
+      adres: A.istekAdresi(VERI.manifestOrnek, ["a-1", "b-2"]),
+      parti_n: A.partile(VERI.partiDenek, VERI.manifestOrnek.parti).length,
+      parti_ilk: A.partile(VERI.partiDenek, VERI.manifestOrnek.parti)[0].length,
+      manifest_kabul: !!A.manifest({getElementById: () => ({textContent: VERI.manifestMetni})}),
+      // FAIL-CLOSED: uc/yol/parti eksik manifest REDDEDİLMELİ (null dönmeli)
+      manifest_red: !A.manifest({getElementById: () => ({textContent: VERI.manifestEksik})})
+    };
     // suz(): model + kapsam süzgeci (sayfa-içi filtrenin çekirdeği)
     artim.suz = {
       hepsi: A.suz(VERI.suzYuk, null, null).map((k) => k[0]),
@@ -280,10 +298,20 @@ def tara(tmp):
                     yuk = json.load(f)
             except Exception:                                     # noqa: BLE001
                 yuk = "BOZUK"
+        mm_man = MANIFEST_RE.search(ham)
+        manifest = None
+        if mm_man:
+            try:
+                manifest = json.loads(mm_man.group(1))
+            except Exception:                                     # noqa: BLE001
+                manifest = "BOZUK"
         t = TOPLAM_RE.search(page)
         sayfalar[rel] = {
             "kartlar": kartlar,
             "baglar": baglar,
+            "manifest": manifest,
+            "artim_js_var": "PRUVO ARTIM BAS" in ham,
+            "urunler_json_gecti": "/urunler.json" in ham,
             "yuk": yuk,
             "bayt": os.path.getsize(yol),
             "butonlar": butonlar,
@@ -540,6 +568,47 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         kapi.iddia("BAG_YEREL/" + yol, bag_ids <= yerel_beyan,
                    "bağ listesinde yerel OLMAYAN %d kalem" % (len(bag_ids - yerel_beyan),))
 
+    # ------------------------------------------------------- TESLİM YOLU (kanonik kaynaktan)
+    # 🔴 NEDEN BÖYLE (bağımsız çürütme, mutant X3): testler fetch adresini SAYFANIN KENDİ
+    # BEYANINDAN okuyorsa, adresi bozan mutant YEŞİL geçer — canlıda 32 büyük marka sayfası
+    # tek ek kart çizmez ve kimse görmez. Bu yüzden beyan, KANONİK kaynaktan BAĞIMSIZ
+    # ayıklanan değerle KARŞILAŞTIRILIR. Kanonik kaynak = index.html'in `EDGE_UC`'si;
+    # kapı onu KENDİ deseniyle çıkarır (jeneratörün fonksiyonunu çağırmaz -> tautoloji yok).
+    kanon_uc = None
+    _m_uc = re.search(r'var\s+EDGE_UC\s*=\s*"([^"]+)"', index_html)
+    if _m_uc:
+        kanon_uc = _m_uc.group(1).rstrip("/")
+    kapi.iddia("TESLIM_KANON/uc_ayiklandi", bool(kanon_uc),
+               "index.html'de EDGE_UC bulunamadı: teslim yolu kanonik kaynaktan "
+               "DOĞRULANAMAZ (fail-closed)")
+    KANON_YOL = "/katalog?ids="
+    for yol, s in marka_sayfalari.items():
+        man = s["manifest"]
+        if man is None:
+            # Manifest YOKSA: sayfanın SSR kartları toplamı KARŞILAMALI, yoksa kalan
+            # kalemlere ulaşan hiçbir yol yok demektir.
+            kapi.iddia("TESLIM/" + yol, len(s["kartlar"]) >= (s["toplam"] or 0),
+                       "manifest YOK ama SSR kart %d < toplam %s: kalan kalemlere ulaşan "
+                       "YOL YOK" % (len(s["kartlar"]), s["toplam"]))
+            continue
+        if man == "BOZUK":
+            kapi.iddia("TESLIM/" + yol, False, "manifest BOZUK JSON")
+            continue
+        kapi.iddia("TESLIM/" + yol,
+                   man.get("uc") == kanon_uc and man.get("yol") == KANON_YOL
+                   and man.get("parti") == 100 and man.get("site") == mm_ctx["SITE"]
+                   and man.get("yuk") == "/" + yol + "/parcalar.json",
+                   "beyan edilen teslim yolu KANONİKTEN ayrıştı: uc=%r (kanon %r) yol=%r "
+                   "(kanon %r) parti=%r yuk=%r site=%r"
+                   % (man.get("uc"), kanon_uc, man.get("yol"), KANON_YOL,
+                      man.get("parti"), man.get("yuk"), man.get("site")))
+        # 🔴 AĞIRLIK REGRESYON NÖBETİ: sayfa hiçbir yerde TÜM KATALOGU göstermemeli.
+        # (İlk yazımda artım kolu `/urunler.json` çekiyordu: 21.330.991 B ham /
+        # 3.133.127 B gzip, 32 sayfada, kaydırmada otomatik.)
+        kapi.iddia("TESLIM_AGIRLIK/" + yol, not s["urunler_json_gecti"],
+                   "sayfada `/urunler.json` geçiyor: tüm katalog indirme yolu geri gelmiş "
+                   "(ana sayfa bu deseni EDGE_KATALOG ile bilerek terk etti)")
+
     # ------------------------------------------------------------------------- AĞIRLIK
     # 🔴 NEDEN KAPI (Okan hükmü + ölçülmüş drift sınıfı): "1,27 MB kabul edilemez".
     # Ağırlık ONARILDI ama katalog HER PARTİDE büyüyor; tavanı kapıya yazmazsak bir sonraki
@@ -626,15 +695,28 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                             if a != b), "uzunluk")))
         # SSR'de basılan kart sayısı N tavanına UYMALI (ağırlık onarımının davranışsal ucu):
         # N aşılırsa sayfa yeniden şişer, N'den az basılırsa ilk boya sessizce zayıflar.
-        kart_n = getattr(mm, "MARKA_KART_N", None)
-        if kart_n is None:
-            kapi.iddia("KART_N/" + yol, False,
-                       "MARKA_KART_N YOK: kart tavanı kurulmamış (sayfa sınırsız şişebilir)")
+        # 🔴 DAVRANIŞSAL ÇAPA, SABİT İTHALİ DEĞİL (bağımsız çürütme, mutant X1): iddia
+        # `mm.MARKA_KART_N`'i import ederse N'i 80->40 yapan mutant YEŞİL kalır (tautoloji).
+        # Beklenen değer BURADA BEYAN EDİLİR (BEKLENEN_KART_N) ve ÜRETİLEN HTML'deki kart
+        # sayısıyla karşılaştırılır. Sınırın İKİ YANI ayrı iddiadır: N'i aşan sayfa TAM N
+        # basmalı, N'in altındaki sayfa TAMAMINI basmalı — tek iddia olsaydı "hep toplam bas"
+        # mutantı büyük sayfalarda yakalanır, küçük sayfalarda görünmezdi.
+        toplam_n = s["toplam"] or 0
+        if toplam_n > BEKLENEN_KART_N:
+            kapi.iddia("KART_N_TAVAN/" + yol, len(s["kartlar"]) == BEKLENEN_KART_N,
+                       "toplam %d > N: SSR kart %d, beyan edilen N %d"
+                       % (toplam_n, len(s["kartlar"]), BEKLENEN_KART_N))
         else:
-            bek_kart = min(kart_n, s["toplam"] or 0)
-            kapi.iddia("KART_N/" + yol, len(s["kartlar"]) == bek_kart,
-                       "SSR kart %d != beklenen %d (N=%d, toplam=%s)"
-                       % (len(s["kartlar"]), bek_kart, kart_n, s["toplam"]))
+            kapi.iddia("KART_N_ALTI/" + yol, len(s["kartlar"]) == toplam_n,
+                       "toplam %d <= N: SSR kart %d (tamamı basılmalı)"
+                       % (toplam_n, len(s["kartlar"])))
+        # Manifestin BEYAN ettiği `basili` sayısı GERÇEKTEN basılan kart sayısı olmalı
+        # (ayrışırsa istemci yanlış yerden devam eder: kalemleri atlar ya da tekrar çizer).
+        man_b = s["manifest"].get("basili") if isinstance(s["manifest"], dict) else None
+        if man_b is not None:
+            kapi.iddia("KART_N_BEYAN/" + yol, man_b == len(s["kartlar"]),
+                       "manifest basili=%r != sayfadaki SSR kart %d"
+                       % (man_b, len(s["kartlar"])))
 
     # ------------------------------------------------------------------ istemci (node) ekseni
     kategoriler = mm.kategori_evreni(index_html)
@@ -692,9 +774,13 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
             kart_denekleri.append({
                 "id": anahtar, "kalem": kalem,
                 "o": (yuk.get("o") or {}).get(pid),
-                # istemcinin `urunler.json`'dan okuyacağı alanlar (kartHtml yalnız bunları okur)
+                # 🔴 EDGE ŞEKLİ (kartHtml canlıda BU şekli okur): `/katalog?ids=` tekil
+                # `gorsel` alanı döner, `gorseller` dizisi YOKTUR (canlı ölçüldü: 100/100
+                # ürün, 0 sapan alan). Deneği yerel `gorseller` diziyle beslemek ekseni
+                # sahte yeşile çevirirdi — kart kapağı canlıda boş kalır, kapı görmezdi.
                 "urun": {"id": p.get("id"), "kategori": p.get("kategori"),
-                         "baslik": p.get("baslik"), "gorseller": p.get("gorseller") or [],
+                         "baslik": p.get("baslik"),
+                         "gorsel": (mm_ctx["images_of"](p) or [""])[0],
                          "fiyat": p.get("fiyat"), "parametrik": p.get("parametrik")},
             })
             py_kartlar[anahtar] = mm._kart(mm_ctx, p, mm_attr)
@@ -703,10 +789,21 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
     suz_yuk = marka_sayfalari[suz_yol]["yuk"]
     suz_kategori = (suz_yuk.get("kat") or [None])[0] if isinstance(suz_yuk, dict) else None
 
+    ornek_manifest = marka_sayfalari[suz_yol]["manifest"]
+    if not isinstance(ornek_manifest, dict):
+        ornek_manifest = {"uc": kanon_uc or "", "yol": KANON_YOL, "parti": 100,
+                          "yuk": "/x/parcalar.json", "site": mm_ctx["SITE"],
+                          "toplam": 0, "basili": 0}
     veri = {"kapsamJs": js, "kategoriler": kategoriler, "sentetik": sentetik, "sayfalar": {},
             "artimJs": artim_js, "site": mm_ctx["SITE"], "kartDenekleri": kart_denekleri,
             "suzYuk": suz_yuk if isinstance(suz_yuk, dict) else None,
-            "suzKategori": suz_kategori}
+            "suzKategori": suz_kategori,
+            "manifestOrnek": ornek_manifest,
+            "manifestMetni": json.dumps(ornek_manifest, ensure_ascii=False),
+            # uc/yol/parti YOK -> modül bu manifesti REDDETMELİ (fail-closed)
+            "manifestEksik": json.dumps({"yuk": "/x/parcalar.json",
+                                         "site": mm_ctx["SITE"]}, ensure_ascii=False),
+            "partiDenek": ["id-%d" % i for i in range(250)]}
     for yol, s in sayfalar.items():
         veri["sayfalar"][yol] = {
             "kartlar": [k for k, _i in s["kartlar"]],
@@ -771,6 +868,20 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
     kapi.iddia("ARTIM_SUZ/daraltiyor", len(bek_model0) < len(bek_hepsi),
                "KONTROL: model süzgeci dejenere (daraltmıyor) — %d == %d"
                % (len(bek_model0), len(bek_hepsi)))
+
+    # ---- TESLİM YOLU: modülün KURDUĞU adres kanonikle aynı mı (X3 mutantının kimliği)
+    ist = artim.get("istek") or {}
+    bek_adres = (kanon_uc or "") + KANON_YOL + "a-1%2Cb-2"
+    kapi.iddia("ARTIM_ADRES/kanonik", ist.get("adres") == bek_adres,
+               "modülün kurduğu istek adresi %r != kanonik %r" % (ist.get("adres"), bek_adres))
+    kapi.iddia("ARTIM_ADRES/partileme", ist.get("parti_n") == 3 and ist.get("parti_ilk") == 100,
+               "250 id, 100'lük parti -> 3 istek beklenir; ölçülen parti=%r ilk=%r "
+               "(tek istekte 100'den fazla id edge ucunu aşar)"
+               % (ist.get("parti_n"), ist.get("parti_ilk")))
+    kapi.iddia("ARTIM_ADRES/manifest_kabul", ist.get("manifest_kabul") is True,
+               "geçerli manifest reddedildi -> artım kolu hiç kurulmaz")
+    kapi.iddia("ARTIM_ADRES/manifest_fail_closed", ist.get("manifest_red") is True,
+               "uc/yol/parti EKSİK manifest KABUL edildi (fail-open): sayfa ölü uca istek atar")
 
     for f in sentetik:
         r = (js_sonuc.get("sentetik") or {}).get(f["ad"]) or {}

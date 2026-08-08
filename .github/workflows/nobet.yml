@@ -1103,6 +1103,18 @@ jobs:
       - name: "Kanca kablolama cift yonlu mutasyon turu"
         run: python3 tools/kanca-kablolama-test.py --mutasyon
 
+      # MARKA SAYFASI ARTIM/FILTRE DAVRANISI (8 Agu 2026) — SERIT B.
+      # Marka sayfasi markanin TUM parcalarini kart olarak listeler; ilk N kart SSR'de,
+      # kalani AYNI SAYFADA edge ucundan (`/katalog?ids=`) artimli cizilir ve model cipi
+      # sayfa ICINDE filtreler. Bu iki nobetci o davranisi node'da GERCEK JS ile kosturur.
+      # 🔴 NEDEN SERIT B: ikisi de agsiz/deterministik ama YAYIN DOGRULUGUNU degil
+      # ISTEMCI DAVRANISINI olcer; SSR yuzeyi (kart yuzeyi kimligi, bolum ayrimi, agirlik
+      # tavani) bloklayici seritteki marka-sayac-kapisi'nda ZATEN olculuyor.
+      - name: "Marka sayfasi artim + sayfa-ici model filtresi (davranis, node)"
+        run: python3 tools/marka-artim-test.py
+      - name: "Marka bolum kimligi mutasyon bataryasi (iki katman, 5 mutant + kontrol)"
+        run: python3 tools/marka-bolum-mutasyon.py
+
 
 
   # ═════════════════════════════════════════════════════════════════════════════
