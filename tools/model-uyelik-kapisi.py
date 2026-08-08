@@ -1903,15 +1903,21 @@ MUTANTLAR = [
      "kovanın adı TEK HARFE ('K') düşer; birleşme doğru, AD yanlış olurdu"),
     # --- ÇAPRAZ-MARKA `GS` HÜKMÜNÜN KANITI (SINIF 1 ön ölçümü) ---
     # ÖLÇÜLDÜ (4 Ağu, 17.962 ürün): BMW `GS` 13 ürünle YAYINDA, Citroën `GS` 1 ürün (ESIK=3
-    # ALTINDA) -> `gs` bugün ÇAPRAZ bir çift DEĞİL. Bu yüzden ROZET_CAPRAZ_IZINLI'ye bir
-    # `BMW|gs` girişi yazmak ÖLÜ giriştir ve envanteri BAYATLATIR. Mutant tam da bunu yapar:
-    # hüküm ("bugün allow yazma; K19 ileriye dönük bekçidir") böylece ÇALIŞTIRILABİLİR olur.
+    # ALTINDA) -> `gs` o gün ÇAPRAZ bir çift DEĞİLDİ; `BMW|gs` allow girişi ÖLÜ giriş olurdu.
+    # 🔴 ÇAPA + KOL 8 Ağu'da TAZELENDİ (ölçüldü: BMW `GS` 26 ürün, Lexus `GS` 7 ürün — `gs`
+    # ARTIK gerçekten çapraz; K19 bunu ileriye dönük bekçi olarak yakaladı ve iki kol da
+    # ROZET diye YARGILANDI). Eski mutant `BMW|gs`'i EKLİYORDU; artık o anahtar envanterde
+    # GERÇEKTEN var, dolayısıyla mutant MÜKERRER ANAHTAR yazıp küme/imzayı DEĞİŞTİRMEZ ve
+    # EŞDEĞERE düşerdi — eksen SESSİZCE ölçülmez olurdu ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+    # Mutant aynı SINIFIN bugün hâlâ ÖLÜ olan koluna taşındı: Citroën `GS` 2 ürünle ESIK'in
+    # ALTINDA, yani `Citroen|gs` allow girişi BUGÜN de yazılamaz. İddia birebir aynı kalır.
     ("tools/arama.py", '    "Volkswagen|golf": ("ROZET", "Golf VW\'nin kendi rozeti"),',
      '    "Volkswagen|golf": ("ROZET", "Golf VW\'nin kendi rozeti"),\n'
-     '    "BMW|gs": ("ROZET", "MUTANT — Citroen GS 1 urun, ESIK altinda: capraz cift DEGIL"),',
+     '    "Citroen|gs": ("ROZET", "MUTANT — Citroen GS 2 urun, ESIK altinda: sayfa adayi DEGIL"),',
      "KIRMIZI",
      "M31 `GS` İÇİN ÖLÜ ALLOW GİRİŞİ YAZ -> envanter bayat (küme birebir değil); K19 TEK "
-     "BAŞINA kırmızı yakar. Ön ölçümün hükmünün kanıtı: GS allow girişi BUGÜN yazılamaz"),
+     "BAŞINA kırmızı yakar. Ön ölçümün hükmünün kanıtı: eşik ALTINDAKİ kolun allow girişi "
+     "BUGÜN de yazılamaz"),
     # --- BAŞLIK KOLU / YARGI KAPISI EKSENİ — K21 + K4 (5 Ağu, mimar hükmü) ---
     # 🔴 KANIT: bu mutantlar EKLENMEDEN ÖNCE batarya bu sınıfı GÖRMÜYORDU — başlık kolu
     # 4.046 yeni üyelik ve 173 yeni sayfa açıyor; yargı kapısı ya da tehlike koruması

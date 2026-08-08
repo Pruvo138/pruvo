@@ -963,10 +963,22 @@ ROZET_CAPRAZ_IZINLI = {
     "Ford|mk1": ("BEKLER", "`Mk1` bir NESIL isaretidir, rozet DEGIL; iki markada da ayni "
                            "isaret. MODEL_OLMAYAN/ROZET_DISI mi olmali — mimar hukmu bekliyor"),
     "Volkswagen|mk1": ("BEKLER", "`Mk1` nesil isareti — `Ford|mk1` ile AYNI hukmu bekliyor"),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 8 Agu — Lexus veri partisiyle capraz olan cift (K19 KIRMIZI yakti). Emsal birebir
+    # `Ford|sierra`/`Suzuki|sierra` ve `Ford|raptor`/`Yamaha|raptor` satirlaridir: AYNI ADI
+    # tasiyan AYRI araclar, ikiz DEGIL, rozet muhendisligi DEGIL — sadece AD CAKISMASI.
+    # OLCULDU (8 Agu): BMW `GS` kovasi 26 urun, Lexus `GS` kovasi 7 urun (ikisi de ESIK=3
+    # ustunde ve BIRINCIL); Citroen `GS` 2 urunle ESIK ALTINDA, sayfa adayi DEGIL.
+    # 🔴 TARIHSEL NOT: 4 Agu'da `gs` capraz DEGILDI (BMW 13 / Citroen 1) ve o gun bu satiri
+    # yazmak OLU giristi — K19 ileriye donuk bekci olarak tam da bu dogumu yakaladi.
+    "BMW|gs": ("ROZET", "BMW GS BMW'nin kendi motosiklet serisi rozeti (R/F/G GS, GS "
+                        "Adventure); Lexus GS ile yalniz AD cakismasi var, ayri rozet"),
+    "Lexus|gs": ("ROZET", "Lexus GS Lexus'un kendi sedan rozeti (GS300/GS350/GS450h, JDM "
+                          "Toyota Aristo); BMW GS ile yalniz AD cakismasi var, ayri rozet"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 40
-ROZET_CAPRAZ_IZINLI_IMZA = "370bea8dcb76904f"
+ROZET_CAPRAZ_IZINLI_SAYISI = 42
+ROZET_CAPRAZ_IZINLI_IMZA = "b5e299963a8b7002"
 
 
 def rozet_capraz_imzasi():
