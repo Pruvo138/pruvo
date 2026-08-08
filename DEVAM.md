@@ -85,27 +85,26 @@ Tur sonunda ana checkout'ta `durum.py` §8 **13 eksen yesil** ile teyit edildi.
 
 **ACIK WORKTREE (2 + main):** `agent-aa5db29d7f2d4d1ad` ve `muh-mcp-tarayici` — IKISI DE BASKASININ CANLI isi, DOKUNULMADI. Benim actigim worktree KALMADI (8 Agu 15:00 turunda kapatildi).
 
-## ⏱ SAATLIK CI NOBETI — 8 Agu 10:37Z turu (ev DOGRU: ~/dev/pruvo)
+## ⏱ SAATLIK CI NOBETI — 8 Agu 13:37Z turu (ev DOGRU: ~/dev/pruvo)
 
-🔴 **ONCEKI UC TURUN "KUTU TEMIZ" HUKMU CURUTULDU — supurme SESSIZ SIFIR KAPSAMLA gecmis.**
-07:37 · 08:37 · 09:37 turlari "tasinan 0" yazdi; 09:37 bunu "inbox 7546 mesaj TOPLU tarandi,
-ornekleme YOK" diye gerekcelendirdi. Kapsam dogruydu, **ESLESTIRICI** tutmuyordu: Mail'de `sender`
-gorunen adi da tasir (`GitHub <notifications@github.com>`) → tam esitlik hicbir zaman tutmaz.
-Bu turda `contains` ile bakilinca kutuda 7 Agu'dan kalma **30** "Run failed" maili cikti.
-**Tasinan 30 · tur sonu kalan 0** (Cop BOSALTILMADI, alt kutulara girilmedi, baska maile
-dokunulmadi). Gorev dosyasina KALICI kural islendi: substring zorunlu + `TASINAN=0` yazacak tur
-daha genis pozitif kumeyi de bassin; o da 0 ise hukum "temiz" degil **OLCULEMEDI**.
+**Supurme (kosulsuz, §0.5):** eslesen "Run failed" **1** → Cop'e **1** · tur sonu kalan **0**.
+Pozitif tanima izi: ayni taramada `notifications@github.com` toplami da **1** (>0 → hukum
+OLCULDU, "olculemedi" degil). Inbox 7541 mesaj TOPLU tarandi (`contains` ile, ornekleme YOK);
+Cop BOSALTILMADI, alt kutulara girilmedi, baska maile dokunulmadi.
 
-**Gercek ariza YOK — Codex CAGRILMADI.** `--status failure` ile son 40 kosum tarandi: en yeni
-kirmizi `31245852100` (07:18Z, uzlastirici GORUNURLUK kolu). 07:18Z'den bu yana `failure` **0**.
+**Tek kirmizi PENCERE-GORELI cikti — Codex CAGRILMADI, kod DEGISMEDI.**
+Kirmizi: kosum `31258673406` (13:03Z), tazelik alarmi workflow'unun nabiz kolu; kardes is yesil.
+Betigin BES ekseninden yalnizca BIRI asilmisti: "en eski bekleyen commit yasi" **69 dk**
+(esik 65 dk). Diger dordu TEMIZ: ardisik iptal 2/6 · ardisik hata 0/4 · ardisik yayinsiz 0/2 ·
+en uzun kosan kosum omru 44/75 dk. Ardisik kirmizi **1** (ayni kol onceki 5 kosumda success)
+→ DUR kosulu tetiklenmedi. Alarmi gevsetme / esik buyutme / susturma YAPILMADI.
 
-**Yayin ILERLEDI (§4.5'in UC ekseni de olculdu):**
-(a) KOSAN zincir VAR: `31251166602` (head `85e3e523` = main HEAD), push 09:42:37Z.
-(b) Tavani yine **`serit-a4`** koyuyor: ayni kosumda `serit-a3` 10:05:28 · `build` 10:06:59 ·
-`serit-a2` 10:14:49 **success**; `serit-a4` 09:54:02'den beri `in_progress` (~44 dk; olculen tipik
-bant 32-58 dk) → normal seyir, TIKANMA DEGIL.
-(c) Son basarili `Build & deploy` = **`31249072863`** (head `af02f7c1`, bitis 09:53:53Z) → onceki
-turun "af02f7c1 ucusta" hukmu KAPANDI, CANLIDA. Ucusta kalan tek commit `85e3e523` (onceki turun
-kendi defter commit'i); beklenen.
+**Sinif TAHMINLE degil OLCUMLE kapandi:** izlenen yayin kosumu `31256999280` **success**
+(kirik is YOK) → yayinlanan sha `2dba2718` → **`39df8c98`** ilerledi, yani alarmin yas tabani
+sifirlandi. Ardindan `31259572161` (head `70fe3e4c` = main HEAD) uctu.
+§4.5'in uc ekseni de olculdu: (a) kosan zincir VAR · (b) tavani yine **serit-a4** koyuyor:
+**60 dk** — onceki turlarda olculen 32-58 dk bandinin USTUNDE ve alarmin 75 dk omur tavanina
+15 dk kalmis (izlenecek kalem: esik degil SURE) · (c) son yesil yayin main'in atasi, kuyrukta
+bekleyen tek kosum guncel HEAD'i tasiyor.
 
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
