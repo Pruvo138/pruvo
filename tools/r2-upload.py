@@ -20,6 +20,9 @@ DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLM
   R1 Ön-doğrulama (fail-closed): gövde bilinen görsel sihirli-baytıyla başlamalı + asgari boyutu geçmeli
      → 0-bayt / MIN_BOYUT altında / görsel-magic-yok / Cloudflare-403 HTML gövdesi yükleme ÖNCESİ ölür
        (yükleme YAPILMAZ, RAISE).
+     Whitelist: JPEG · PNG · WebP · AVIF (9 Ağu 2026). AVIF KATI doğrulanır — bkz. AVIF_MARKALARI:
+     `ftyp` TEK BAŞINA yeterli DEĞİLDİR (mp4/mov/heic aynı ISO-BMFF kutusunu taşır), marka
+     kümesi de whitelist'tir. Bilinmeyen gövde HÂLÂ reddedilir; yön fail-closed kalır.
   R2 ContentType gövdeden türetilir (sabit "image/jpeg" DEĞİL) → feed/og:image/sosyal kazıcı kırılmaz.
   R3 Uzantı↔gövde uyuşmazlığı (.jpg ad ama PNG gövde) → stderr LOUD uyarı + content-type GERÇEK formata göre.
      Varsayılan hard-reject ETMEZ (MaCiT/KaaN partisini ortada kırmasın).
@@ -75,28 +78,45 @@ CFG_PATH = os.path.join(os.path.dirname(__file__), "..", ".r2-credentials.json")
 # CLI çıkış kodu: mevcut anahtar EZİLECEKTİ, yazma YAPILMADI (fail-closed, sessiz başarı YOK).
 KOD_EZME = 4
 
-# R1 asgari boyut: 1024 bayt. Gerçek ürün görselleri (JPEG/PNG/WebP) daima kByte'larca olur;
+# R1 asgari boyut: 1024 bayt. Gerçek ürün görselleri (JPEG/PNG/WebP/AVIF) daima kByte'larca olur;
 # 0-bayt, kesik yazma ve Cloudflare-403 HTML gövdeleri bu eşiğin altında ya da geçerli-magic'siz kalır.
 # Meşru görsel bu eşikten kolayca geçer → false-reject yok.
 MIN_BOYUT = 1024
 
 # Format anahtarı → HTTP content-type
-CONTENT_TYPE = {"jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}
+CONTENT_TYPE = {"jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp",
+                "avif": "image/avif"}
+
+# 🔴 AVIF WHITELIST'İ MARKAYA BAĞLIDIR — `ftyp` TEK BAŞINA KABUL DELİLİ DEĞİLDİR (9 Ağu 2026).
+# AVIF bir ISO-BMFF (ISO/IEC 14496-12) kutusudur: offset 0-3 kutu boyutu, offset 4-7 `ftyp`,
+# offset 8-11 MAJÖR MARKA. Aynı `ftyp` kutusunu mp4 (`mp42`/`isom`), mov (`qt  `) ve HEIF
+# kardeşleri (`heic`/`heix`/`mif1`) de taşır → sadece `ftyp` aramak R1'i mp4/mov/heic'e
+# AÇARDI ve fail-closed yön sessizce fail-open'a dönerdi. Bu yüzden kabul, marka kümesinin
+# ÜYELİĞİNDEN türetilir; küme burada TEK KAYNAKTIR ve genişletmek BİLİNÇLİ bir karardır.
+#   avif = tek kare · avis = AVIF görüntü DİZİSİ (animasyonlu).
+# HEIF (`heic`/`mif1`) BİLEREK DIŞARIDA: tarayıcı desteği AVIF'ten dar ve bu depoda
+# üretilmiyor; ihtiyaç doğarsa kümeye AYNI commit'te fikstür+mutantla eklenir.
+AVIF_MARKALARI = (b"avif", b"avis")
 
 
 def format_belirle(data):
-    """Gövdenin sihirli baytından görsel formatını döndür ('jpeg'/'png'/'webp') ya da None (bilinmeyen/çöp)."""
+    """Gövdenin sihirli baytından görsel formatını döndür ('jpeg'/'png'/'webp'/'avif')
+    ya da None (bilinmeyen/çöp → R1 REDDEDER)."""
     if data[:3] == b"\xff\xd8\xff":                      # JPEG: FF D8 FF
         return "jpeg"
     if data[:8] == b"\x89PNG\r\n\x1a\n":                 # PNG: 89 50 4E 47 0D 0A 1A 0A
         return "png"
     if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":  # WebP: RIFF....WEBP
         return "webp"
+    # AVIF: [boyut][ftyp][MARKA] — offset 4'te `ftyp` VE offset 8'de whitelist'teki marka.
+    # İKİ koşul da şart: `ftyp` genel kutu başlığıdır (mp4/mov/heic de taşır), marka ayırt eder.
+    if len(data) >= 12 and data[4:8] == b"ftyp" and data[8:12] in AVIF_MARKALARI:
+        return "avif"
     return None
 
 
 def uzanti_format(key):
-    """R2 anahtar/ad uzantısından beklenen format ('jpeg'/'png'/'webp') ya da None."""
+    """R2 anahtar/ad uzantısından beklenen format ('jpeg'/'png'/'webp'/'avif') ya da None."""
     k = key.lower()
     if k.endswith(".jpg") or k.endswith(".jpeg"):
         return "jpeg"
@@ -104,6 +124,8 @@ def uzanti_format(key):
         return "png"
     if k.endswith(".webp"):
         return "webp"
+    if k.endswith(".avif"):
+        return "avif"
     return None
 
 
@@ -119,7 +141,9 @@ def on_dogrula(data, key):
     fmt = format_belirle(data)
     if fmt is None:
         raise ValueError(
-            "R1 red: %s bilinen gorsel sihirli-bayti yok (JPEG/PNG/WebP degil — muhtemelen HTML/coplu govde) — yukleme yapilmadi"
+            "R1 red: %s bilinen gorsel sihirli-bayti yok (JPEG/PNG/WebP/AVIF degil — "
+            "muhtemelen HTML/coplu govde; AVIF icin offset 4'te `ftyp` VE offset 8'de "
+            "avif/avis markasi SART, cunku mp4/mov/heic de `ftyp` tasir) — yukleme yapilmadi"
             % key
         )
     # R2 ContentType gövdeden

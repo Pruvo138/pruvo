@@ -1782,7 +1782,9 @@ TABLO_TABANLARI = (
     # dosyanin oz-testi ve tools/nobetci-mutasyon-test.py BOLUM E o esitligi surer).
     # 9 Agu: +1 -> 86. Yeni giris ("nobet.yml", "serit-b", "tools/lcp-onculuk-kapisi.py");
     # tam esitlik operatoru geregi taban BILINCLI olarak ayni commit'te guncellendi.
-    ("SERIT_B", 86),
+    # 9 Agu: +1 -> 87. Yeni giris ("nobet.yml", "serit-b", "tools/r2-avif-mutasyon-test.py");
+    # R1 sihirli-bayt whitelist'i AVIF'e acildi, bataryasi AYNI commit'te beyan edildi.
+    ("SERIT_B", 87),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2675,6 +2677,17 @@ SERIT_B = {
         "onleme kolu ise kaynagin kendisindedir (r2-upload.py varsayilanda fail-closed "
         "REDDEDER, ezmek ACIK --ezmeye-izin-ver ister). S3 mock'lanir: gercek R2'ye ne "
         "okuma ne yazma gider, adim ag GEREKTIRMEZ.",
+    # --- R1 SIHIRLI-BAYT WHITELIST'I / AVIF EKSENI (9 Agu 2026) --------------------
+    ("nobet.yml", "serit-b", "tools/r2-avif-mutasyon-test.py"):
+        "tools/r2-upload.py R1 WHITELIST'ININ mutasyon bataryasi (6 mutant + 1 kontrol): "
+        "AVIF kabulu marka kumesine BAGLI kaldi mi, yoksa `ftyp` tek basina yeterli "
+        "sayilip kapi her ISO-BMFF govdesine (mp4/mov/heic) acildi mi. Olctugu sey KABUL "
+        "TESTININ KENDISI, yayinlanan hicbir cikti DEGIL (r2-ezme-mutasyon-test.py / "
+        "backfill-mutasyon-test.py ile ayni desen). Korudugu KABUL TESTI "
+        "(tools/r2-upload-test.py) SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; onleme "
+        "kolu ise kaynagin kendisindedir (r2-upload.py bilinmeyen govdeyi yukleme "
+        "ONCESI fail-closed REDDEDER). S3 mock'lanir: gercek R2'ye ne okuma ne yazma "
+        "gider, adim ag GEREKTIRMEZ.",
     ("nobet.yml", "serit-b", "tools/parite-kayit-test.py"):
         "tools/parite_kaydi.py YAZICISININ kabul testi: sayisal alanda gerileme "
         "varsayilanda REDDEDILIYOR mu (dosya BAYT BAYT degismeden), olcu iki kaynaktan "

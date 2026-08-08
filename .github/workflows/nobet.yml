@@ -528,6 +528,19 @@ jobs:
       - name: R2 ezme kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
         run: python3 tools/r2-ezme-mutasyon-test.py
 
+      # R1 SIHIRLI-BAYT WHITELIST'I — AVIF ekseni (9 Agu). Whitelist GENISLETMEK, fail-closed
+      # bir kapiyi sessizce fail-open'a cevirmenin en ucuz yoludur: `ftyp` GENEL bir ISO-BMFF
+      # kutu basligidir, mp4/mov/heic de tasir. Kabul MARKAYA baglidir (offset 8: avif/avis).
+      # NE OLCER: kabul testinin AVIF vakalari (AA1-AA8) gercekten olcuyor mu — 6 mutant TEK
+      # BASINA KIRMIZI yakmali (marka kontrolu kalkti · kume HEIF'e genisledi · sabit offset
+      # ARAMA'ya dondu · esitlik PREFIX'e dondu · AVIF kolu dustu · .avif uzanti kolu dustu),
+      # +1 KONTROL mutanti (marka demetinin SIRASI degisti, davranis DEGISMEZ) YESIL kalmali.
+      # Mutasyon gecici SYMLINK aynasina uygulanir, canli tools/ dizinine YAZILMAZ. MOCK S3:
+      # gercek R2'ye ne okuma ne yazma gider. OFFLINE, ~4 s.
+      # (Kabul testinin KENDISI — tools/r2-upload-test.py — deploy.yml'de BLOKLAYICI kosar.)
+      - name: R2 AVIF whitelist mutasyon bataryası (whitelist sessizce gevşetilemez)
+        run: python3 tools/r2-avif-mutasyon-test.py
+
       # PARITE KAYDI KUCULME/GERILEME KAPISI (8 Agu) — SATIS kapisinin kanit defteri.
       # NE OLCER: kayit_yaz sayisal alanlarda kuculmeyi varsayilanda REDDEDIYOR mu (dosya
       # BAYT BAYT degismeden, eski->yeni basarak), olcu IKI kaynaktan mi aliniyor (mevcut
