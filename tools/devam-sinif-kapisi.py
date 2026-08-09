@@ -761,7 +761,8 @@ def _index_iddialari(ortam, ihlal_satiri, temiz_satiri):
         _sentetik_depo(t, ortam)
         _yaz_ekle(t, "README.md", "# depo\n", ortam)
         _yaz_ekle(t, "DEVAM.md", "# Defter\n" + temiz_satiri, ortam)
-        _git(["commit", "-q", "-m", "ilk"], t, ortam)
+        sentetik_git(t, "commit", "-q", "-m", "ilk", capture_output=True,
+                      ek_ortam=ortam)
 
     # I1 — INDEX'te ihlal COMMIT'I DURDURUR
     with tempfile.TemporaryDirectory() as t:

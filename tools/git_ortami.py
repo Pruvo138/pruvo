@@ -69,18 +69,25 @@ def git_ortami():
 
 def sentetik_git(calisma_dizini, *args, kimlik_ad="fikstur",
                  kimlik_eposta="fikstur@ornek.gecersiz", ek_ortam=None,
-                 ayarlar=(), **run_kw):
+                 korunan_baglam=(), ayarlar=(), **run_kw):
     """Sentetik/gecici depolardaki git'in TEK guvenli cagri yolu.
 
     Ortam daima kopyadir; depo kesfini etkileyen miras GIT_* adlari temizlenir.
+    Pozitif bir nobet belirli bir git baglamini OLCUYORSA o ad, cagri yerinde
+    ``korunan_baglam`` ile acikca korunur. Varsayilan bos kume = fail-safe scrub.
     Kimlik yalniz bu komuta ``-c`` ile verilir, hicbir config dosyasina yazilmaz.
     ``calisma_dizini`` zorunludur ve subprocess cwd'si acikca sabitlenir.
     """
+    korunan = frozenset(korunan_baglam)
+    bilinmeyen = korunan.difference(GIT_BAGLAM_DEGISKENLERI)
+    if bilinmeyen:
+        raise ValueError("korunan_baglam kanonik degil: %s" % sorted(bilinmeyen))
     ortam = git_ortami()
     if ek_ortam:
         ortam.update(ek_ortam)
     for ad in GIT_BAGLAM_DEGISKENLERI:
-        ortam.pop(ad, None)
+        if ad not in korunan:
+            ortam.pop(ad, None)
     komut = ["git", "-c", "user.name=" + kimlik_ad,
              "-c", "user.email=" + kimlik_eposta]
     komut.extend(ayarlar)
