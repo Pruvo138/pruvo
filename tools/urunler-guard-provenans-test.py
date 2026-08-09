@@ -209,6 +209,8 @@ def kur_depo(guard, kopru, katalog, env=None):
     os.makedirs(os.path.join(d, "tools"))
     shutil.copy(guard, os.path.join(d, "tools", "urunler-guard.py"))
     shutil.copy(kopru, os.path.join(d, "tools", "urunler-guard-hook.py"))
+    shutil.copy(os.path.join(TOOLS, "git_ortami.py"),
+                os.path.join(d, "tools", "git_ortami.py"))
     g(d, "init", "-q", "-b", "main", env=env)
     g(d, "config", "commit.gpgsign", "false", env=env)
     yaz_katalog(d, katalog)
@@ -479,8 +481,8 @@ def senaryo_ebeveyn_okunamiyor(guard, kopru):
     if rc0 != 0 or rc1 != 0:
         iddia("B4", False, "kurulum basarisiz rc0=%d rc1=%d" % (rc0, rc1))
         return
-    with open(os.path.join(gitdir.strip(), "MERGE_HEAD"), "w") as f:
-        f.write(bos_sha.strip() + "\n")
+    with open(os.path.join(gitdir.splitlines()[0], "MERGE_HEAD"), "w") as f:
+        f.write(bos_sha.splitlines()[0] + "\n")
     rc, _o, err = kos_guard(d)
     iddia("B4", rc != 0, "rc=%d stderr=%r" % (rc, err[:160]))
 

@@ -698,14 +698,11 @@
     display:flex;align-items:center;justify-content:space-between;
     font-size:13.5px;color:var(--navy);margin-bottom:2px;
   }
-  .cart-alt-row .bedava{color:#1a9e4b;font-weight:800}
   .cart-total-row{
     display:flex;align-items:center;justify-content:space-between;
     font-size:15px;color:var(--navy);margin-bottom:2px;
   }
   .cart-total-row strong{font-size:20px;font-weight:800}
-  .cart-kargo-tesvik{font-size:12px;font-weight:600;color:var(--red);margin:4px 0 2px}
-  .cart-kargo-tesvik.bedava{color:#1a9e4b}
   /* KDV dökümü (kalem 8): bilgi satırları — tahsilatı değiştirmez, yalnız gösterim */
   .cart-alt-row.kdv{font-size:12px;color:var(--gray-text)}
   /* Ödeme yöntemi seçimi (kart / havale-EFT) — form içinde */
@@ -1245,8 +1242,7 @@
   </div>
 
   <div class="cart-panel-foot">
-    <!-- KARGO (isletme karari, 16 Tem — KESIN): <2.500 TL -> 250,00 TL gonderim; >=2.500 (dahil) bedava.
-         Tek kaynak secenekler.js kargoKurus(); Worker ayni fonksiyonla tahsil eder —
+    <!-- KARGO: Tek kaynak secenekler.js kargoKurus(); Worker ayni fonksiyonla tahsil eder —
          burada gorunen genel toplam = iyzico'da odenen tutar (kurusuyla). -->
     <div id="cartAraRow" class="cart-alt-row" style="display:none">
       <span>Ara toplam</span>
@@ -1270,7 +1266,6 @@
       <span>Genel toplam <span style="font-size:12px;font-weight:600">(KDV dahil)</span></span>
       <strong id="cartTotal">0,00 TL</strong>
     </div>
-    <div id="cartKargoTesvik" class="cart-kargo-tesvik" style="display:none"></div>
     <div id="cartTotalNot" class="cart-total-not">KDV dahil</div>
     <!-- Katalogda bulunamayan sepet satırı uyarısı (bayat katalog kopyası / yayından
          kalkan ürün) — görünürlüğü cartToplamTazele yönetir. -->
@@ -1753,8 +1748,7 @@
       var kargo = PRUVO_SECENEK.kargoKurus(toplam);
       lines.push("");
       lines.push("Ara toplam: " + PRUVO_SECENEK.kurusMetni(toplam));
-      lines.push("Gönderim: " + (kargo > 0 ? PRUVO_SECENEK.kurusMetni(kargo)
-        : "Bedava (2.500 TL ve üzeri)"));
+      lines.push("Gönderim: " + PRUVO_SECENEK.kurusMetni(kargo));
       lines.push("Genel toplam: " + PRUVO_SECENEK.kurusMetni(toplam + kargo) +
         (fiyatsizVar ? " (fiyatı sorulacak ürünler hariç)" : ""));
     }
@@ -1916,7 +1910,6 @@
     var satir = document.getElementById("cartTotalRow");
     var araRow = document.getElementById("cartAraRow");
     var kargoRow = document.getElementById("cartKargoRow");
-    var tesvik = document.getElementById("cartKargoTesvik");
     var not = document.getElementById("cartTotalNot");
     var pay = document.getElementById("cartPay");
     var toplam = document.getElementById("cartTotal");
@@ -1946,7 +1939,6 @@
     satir.style.display = goster ? "flex" : "none";
     araRow.style.display = parasal ? "flex" : "none";
     kargoRow.style.display = parasal ? "flex" : "none";
-    tesvik.style.display = parasal ? "block" : "none";
     // KDV DOKUMU (kalem 8): kargo dahil genel toplam uzerinden tek ayristirma; tahsilat
     // degismez. Parasal durumda dokum satirlari gorunur, eski "KDV dahil" notu gizlenir
     // (ayni bilgi Genel toplam etiketinde).
@@ -1994,19 +1986,8 @@
     if(!goster){ return; }
     document.getElementById("cartAra").textContent = PRUVO_SECENEK.kurusMetni(ara);
     var kargoEl = document.getElementById("cartKargo");
-    if(kargo > 0){
-      kargoEl.textContent = PRUVO_SECENEK.kurusMetni(kargo);
-      kargoEl.className = "";
-      // Teşvik: kalan tutar KURUŞUYLA doğru (yuvarlama yok).
-      tesvik.textContent = "2.500,00 TL üzeri kargo bedava — bedava kargoya " +
-        PRUVO_SECENEK.kurusMetni(PRUVO_SECENEK.KARGO_BEDAVA_ESIK_KURUS - ara) + " kaldı";
-      tesvik.className = "cart-kargo-tesvik";
-    }else{
-      kargoEl.textContent = "Bedava";
-      kargoEl.className = "bedava";
-      tesvik.textContent = "Kargo bedava ✓";
-      tesvik.className = "cart-kargo-tesvik bedava";
-    }
+    kargoEl.textContent = PRUVO_SECENEK.kurusMetni(kargo);
+    kargoEl.className = "";
     toplam.textContent = PRUVO_SECENEK.kurusMetni(ara + kargo);
   }
 

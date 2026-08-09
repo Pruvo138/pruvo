@@ -1176,6 +1176,9 @@ jobs:
         run: |
           python3 tools/d1-sync-durum-test.py
           python3 tools/test-baski-senkron.py
+
+      - name: D1 seq tam sayi ve kanonik sira nobetcisi
+        run: python3 tools/d1-seq-test.py
       # Iki govde OLCUM MANTIGININ agsiz/openscad'siz kolu (MESH olcumu degil).
       - name: Iki govde olcum mantigi — kendini test (agsiz kol)
         run: python3 onizleme/test/iki-govde-olcum.py --kendini-test

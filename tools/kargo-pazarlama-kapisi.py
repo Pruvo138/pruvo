@@ -3,8 +3,9 @@
 """Gorunur pazarlama yuzeyinde kargo ucreti/bedava-esik vaadini engeller.
 
 Yasal muafiyet listesi bu dosyada tutulmaz; sayfalar.YASAL_SAYFALAR tek kaynaktir.
-Script/style/comment govdeleri gorunur metin sayilmaz. Ana sayfa, kurumsal statik
-sayfalar ve CONTENT_PAGES ortak render yoluyla taranir.
+Style/comment govdeleri gorunur metin sayilmaz. Sepet gibi JavaScript'in kullaniciya
+yazdigi metin dizgeleri de taranir. Ana sayfa, kurumsal statik sayfalar ve CONTENT_PAGES
+ortak render yoluyla taranir.
 """
 
 import argparse
@@ -69,14 +70,52 @@ def gorunur_metin(html):
     return ayristirici.metin()
 
 
-def ihlaller(html):
-    metin = gorunur_metin(html)
+def javascript_dizgeleri(html):
+    """Script govdelerindeki JS dizgelerini yorumlardan ayirarak dondurur."""
+    govdeler = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script\s*>", html,
+                         flags=re.IGNORECASE | re.DOTALL)
     bulunan = []
-    for desen in VAAT_DESENLERI:
-        for eslesme in desen.finditer(metin):
-            ifade = re.sub(r"\s+", " ", eslesme.group(0)).strip()
-            if ifade not in bulunan:
-                bulunan.append(ifade)
+    for kaynak in govdeler:
+        i = 0
+        while i < len(kaynak):
+            if kaynak.startswith("//", i):
+                son = kaynak.find("\n", i + 2)
+                i = len(kaynak) if son < 0 else son + 1
+                continue
+            if kaynak.startswith("/*", i):
+                son = kaynak.find("*/", i + 2)
+                i = len(kaynak) if son < 0 else son + 2
+                continue
+            tirnak = kaynak[i]
+            if tirnak not in "\"'`":
+                i += 1
+                continue
+            i += 1
+            parcalar = []
+            while i < len(kaynak):
+                karakter = kaynak[i]
+                if karakter == "\\" and i + 1 < len(kaynak):
+                    parcalar.append(" " if kaynak[i + 1] in "nrt" else kaynak[i + 1])
+                    i += 2
+                    continue
+                if karakter == tirnak:
+                    i += 1
+                    break
+                parcalar.append(karakter)
+                i += 1
+            bulunan.append("".join(parcalar).casefold())
+    return bulunan
+
+
+def ihlaller(html):
+    bulunan = []
+    metinler = [gorunur_metin(html)] + javascript_dizgeleri(html)
+    for metin in metinler:
+        for desen in VAAT_DESENLERI:
+            for eslesme in desen.finditer(metin):
+                ifade = re.sub(r"\s+", " ", eslesme.group(0)).strip()
+                if ifade not in bulunan:
+                    bulunan.append(ifade)
     return bulunan
 
 
@@ -137,16 +176,16 @@ def sha256(yol):
 
 
 def kendini_test():
-    """Kargo geri-mutanti kirmizi; yasal mutant yanlis-pozitif uretmez."""
+    """Sepet geri-mutanti kirmizi; yasal/tahsilat metni yanlis-pozitif uretmez."""
     izlenen = [os.path.join(ROOT, "index.html"), os.path.join(ROOT, "tools", "sayfalar.py")]
     once = {yol: sha256(yol) for yol in izlenen}
     index_html = dosya_oku(izlenen[0])
+    capa = 'lines.push("Ara toplam: " + PRUVO_SECENEK.kurusMetni(toplam));'
     geri_mutant = index_html.replace(
-        "</header>",
-        '<div class="kargo-mutant">2.500 TL ve üzeri siparişlerde kargo ücretsiz</div>'
-        "</header>", 1)
+        capa, capa + '\n      lines.push("2.500 TL üzeri kargo bedava");', 1)
+    mutant_capa = geri_mutant != index_html
     kirmizi, _yasal = olc(index_override=geri_mutant, ayrintili=False)
-    mutant_kargo = bool(kirmizi)
+    mutant_kargo = mutant_capa and bool(kirmizi)
 
     teslimat = next(
         build.render_content_page(slug, title, meta, fn())
@@ -159,6 +198,9 @@ def kendini_test():
     kirmizi_yasal, _muaf = olc(
         content_override={"teslimat-iade": yasal_mutant}, ayrintili=False)
     mutant_yasal = not kirmizi_yasal
+    mutant_tahsilat = not ihlaller(
+        '<div><span>Gönderim</span><span>250,00 TL</span></div>'
+        '<script>lines.push("Gönderim: " + kurusMetni(kargo));</script>')
 
     sonra = {yol: sha256(yol) for yol in izlenen}
     sha_esit = once == sonra
@@ -166,9 +208,11 @@ def kendini_test():
         "KIRMIZI_YAKTI" if mutant_kargo else "YAKMADI"))
     print("MUTANT_YANLIS_POZITIF_YASAL=%s" % (
         "YAKMADI" if mutant_yasal else "YAKTI"))
+    print("MUTANT_YANLIS_POZITIF_TAHSILAT=%s" % (
+        "YAKMADI" if mutant_tahsilat else "YAKTI"))
     print("SHA256_GERI_ALIM=%s" % ("ESIT" if sha_esit else "FARKLI"))
-    if mutant_kargo and mutant_yasal and sha_esit:
-        print("SONUC: YESIL — iki mutant yonu olculdu")
+    if mutant_kargo and mutant_yasal and mutant_tahsilat and sha_esit:
+        print("SONUC: YESIL — uc mutant yonu olculdu")
         return 0
     print("SONUC: KIRMIZI — mutant kabulunde eksik var")
     return 1

@@ -39,10 +39,9 @@ D1 hata dondurmeye baslar ve ARAMA COKER. Bu yuzden ürünün icerik ozeti (hash
 tutulur; ozeti degismeyen urune DOKUNULMAZ. Gunde ~600 yeni urun = ~600 yazma.
 
 *** SIRA (seq) TUZAGI ***
-Yeni urun urunler.json'un BASINA eklenir; dizi indeksini sira yapsaydik her eklemede
-TUM urunlerin sirasi kayar, hepsi "degismis" gorunur ve her push tam rebuild olurdu
-(yukaridaki limit tam da bu yuzden patlardi). Onun yerine her urune ilk eklendiginde
-SABIT bir seq verilir; ORDER BY seq DESC = katalog sirasi (en yeni ustte).
+`seq` yalniz urunler.json'daki kanonik sirayi temsil eden TAM SAYIDIR. Normalizasyon
+siraya genis tam-sayi araliklari verir; yeni urun bu araliga tam sayiyla girer. Aralik
+tukenirse kesir uretmek yerine fail-loud durur ve `--seq-normalize` ister.
 """
 
 import argparse
@@ -99,6 +98,7 @@ DB_AD = "pruvo-katalog"  # execute yolunda KULLANILAN tanimlayici (surumden bagi
 
 # Tek wrangler cagrisina konacak azami ifade sayisi (istek boyutu makul kalsin).
 PARCA = 400
+SEQ_ADIM = 1000000
 
 
 # ── HATA KODU TESPITI — BICIMDEN BAGIMSIZ (31 Tem, run 30646713630'da OLCULDU) ───────
@@ -1211,6 +1211,86 @@ def sema_senkron_sql(kolon, uid, deger):
     return "UPDATE urunler SET %s=%s WHERE id=%s;" % (kolon, q(deger), q(uid))
 
 
+def seq_hedefleri(urunler):
+    """Kanonik katalog sirasini genis aralikli TAM SAYI seq haritasina cevir."""
+    idler, gorulen = [], set()
+    for u in urunler:
+        uid = u.get("id") if isinstance(u, dict) else None
+        if uid and uid not in gorulen:
+            gorulen.add(uid)
+            idler.append(uid)
+    toplam = len(idler)
+    return {uid: (toplam - i) * SEQ_ADIM for i, uid in enumerate(idler)}
+
+
+def seq_sira_hali(urunler, mevcut_seq):
+    """Doner: (kesirli id'ler, kanonik pozisyondan sapan id'ler, ornekler)."""
+    beklenen = [u.get("id") for u in urunler if isinstance(u, dict) and u.get("id")]
+    beklenen = list(dict.fromkeys(beklenen))
+    canli = sorted(mevcut_seq, key=lambda uid: (-float(mevcut_seq[uid]), uid))
+    kesirli = [uid for uid, deger in mevcut_seq.items()
+                if isinstance(deger, bool) or not isinstance(deger, int)]
+    # D1'de eksik bir BAS blok, geri kalan her dogru urunun indeksini kaydirir. Pozisyonu
+    # ham indeksle kiyaslamak o durumda 92 eksigi 23.795 sapma diye sisirir. Once ortak
+    # kumenin goreli sirasini kiyasla; eksikleri ayrica sapma say.
+    beklenen_kume = set(beklenen)
+    eksik = [uid for uid in beklenen if uid not in mevcut_seq]
+    beklenen_ortak = [uid for uid in beklenen if uid in mevcut_seq]
+    canli_ortak = [uid for uid in canli if uid in beklenen_kume]
+    ters = [uid for i, uid in enumerate(beklenen_ortak)
+            if i >= len(canli_ortak) or canli_ortak[i] != uid]
+    sapma = eksik + [uid for uid in ters if uid not in set(eksik)]
+    ornek = []
+    for uid in sapma[:10]:
+        i = beklenen.index(uid)
+        ornek.append((uid, mevcut_seq.get(uid), i + 1,
+                      canli[i] if i < len(canli) else None))
+    return kesirli, sapma, ornek
+
+
+def seq_normalize(urunler):
+    """Canli D1'de YALNIZ seq kolonunu kanonik siradan yeniden yazar ve dogrular."""
+    yerel_id = len(seq_hedefleri(urunler))
+    r = sorgu("SELECT id, seq FROM urunler")
+    satirlar = (r[0].get("results") or []) if r else []
+    once = len(satirlar)
+    mevcut = {s["id"]: s.get("seq") for s in satirlar}
+    kesirli, sapma, ornek = seq_sira_hali(urunler, mevcut)
+    print("KESIRLI_SEQ_ONCE=%d" % len(kesirli))
+    print("SAPAN_SEQ_ONCE=%d" % len(sapma))
+    print("ORNEK_10=" + json.dumps(ornek, ensure_ascii=False, separators=(",", ":")))
+    print("D1_SATIR_ONCE=%d" % once)
+    print("YEREL_ID=%d" % yerel_id)
+    if once != yerel_id or set(mevcut) != set(seq_hedefleri(urunler)):
+        sys.exit("!! SEQ NORMALIZASYONU DURDU: D1 id kumesi kanonik katalogla ayni degil; "
+                 "satir ekleme/silme YASAK oldugu icin once katalog senkronunu duzelt.")
+    hedef = seq_hedefleri(urunler)
+    ifadeler = ["UPDATE urunler SET seq=%d WHERE id=%s;" % (hedef[uid], q(uid))
+                for uid in hedef if mevcut.get(uid) != hedef[uid]]
+    for i in range(0, len(ifadeler), PARCA):
+        yaz, _ = dosya_calistir("\n".join(ifadeler[i:i + PARCA]))
+        print("  seq parca %d/%d — yazilan satir: %d"
+              % (i // PARCA + 1, (len(ifadeler) + PARCA - 1) // PARCA, yaz))
+    r2 = sorgu("SELECT id, seq FROM urunler")
+    son_satirlar = (r2[0].get("results") or []) if r2 else []
+    sonra = len(son_satirlar)
+    son = {s["id"]: s.get("seq") for s in son_satirlar}
+    son_kesirli, son_sapma, _ = seq_sira_hali(urunler, son)
+    print("D1_SATIR_SONRA=%d" % sonra)
+    print("SEQ_TAM_SAYI_SONRA=%s" % ("EVET" if not son_kesirli else "HAYIR"))
+    fark = [uid for uid in hedef if son.get(uid) != hedef[uid]]
+    if sonra != once or fark or son_sapma:
+        # GERI ALMA da yalniz seq kolonuna dokunur. Eszamanli baska bir yazar satir
+        # ekledi/sildiyse o satiri uydurmayiz; bu arac kendi seq yazisini geri cevirir.
+        geri = ["UPDATE urunler SET seq=%s WHERE id=%s;" % (str(mevcut[uid]), q(uid))
+                for uid in mevcut]
+        for i in range(0, len(geri), PARCA):
+            dosya_calistir("\n".join(geri[i:i + PARCA]))
+        sys.exit("!! SEQ NORMALIZASYONU GERI ALINDI: satir %d->%d · deger farki=%d · "
+                 "sira farki=%d. DUR." % (once, sonra, len(fark), len(son_sapma)))
+    print("SEQ NORMALIZASYONU DOGRULANDI: %d satir, yalniz seq, kanonik sira ✅" % sonra)
+
+
 def sema_plan(kolon, urunler, hedefler, mevcut, izleme=None, varsayilan=""):
     """SAF plan (canli D1'e DOKUNMAZ -> birim testi burayi cagirir). Doner: hedefli UPDATE'ler.
     - hedefler = {id: kanonik JSON}  urunler.json'dan turetilen ISTENEN deger
@@ -1301,11 +1381,9 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     COZUM: mevcut_seq verilmisse, her "yeni" id icin dizide ondan ONCE (HEAD tarafinda)
     duran, D1'de HALA BILINEN (mevcut_seq'te olan) bir komsu var mi diye PASS A ile
     bakilir. Yoksa (gercekten tepede) eski davranis (sonraki=mseq+1, ...) AYNEN kalir.
-    Varsa, bu "yeni" id GERCEKTE mid-array'dir -> katalogun tepesine DEGIL, en yakin
-    HEAD-tarafi komsusunun seq'i ile en yakin TAIL-tarafi komsusunun seq'i ARASINDA bir
-    FLOAT ara-deger alir (seq INTEGER sutunu REAL degeri de tasir — SQLite dinamik
-    tipleme). Boylece HICBIR BASKA SATIRA DOKUNULMAZ / RENUMBERING GEREKMEZ, tek satirlik
-    hedefli bir deger yeter (D1 gunluk yazma butcesini asmaz)."""
+    Varsa, bu "yeni" id GERCEKTE mid-array'dir -> iki komsu arasindaki TAM SAYI orta
+    nokta kullanilir. Tam sayi araligi kalmadiysa kesir uretmek YASAKTIR; arac fail-loud
+    durur ve `--seq-normalize` ister."""
     mevcut_seq = mevcut_seq or {}
     yeni, degisen, baski_guncelle = [], [], []
     gorulen = set()
@@ -1351,11 +1429,19 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
                 sonraki += 1
                 atanan = sonraki
             else:
-                # MID-ARRAY yeni id (rename / araya sikisma) -> gercek komsulari arasinda
-                # FLOAT ara-deger. Hicbir baska satira DOKUNMAZ, renumbering YOK.
-                atanan = (taban + ust) / 2.0
-                if atanan <= taban:  # asiri-bolunmus (pratikte olmaz) -> guvenli dusme
-                    atanan = ust - 1e-6
+                # MID-ARRAY yeni id (rename / araya sikisma): yalniz TAM SAYI.
+                alt = int(taban)
+                yuksek = int(ust)
+                if taban == 0:
+                    # Katalogun en SONUNA ekleme: alt komsu yoktur; son bilinenin
+                    # altindaki tam sayi guvenlidir (offline fikstur/geri doldurma yolu).
+                    atanan = yuksek - 1
+                elif yuksek - alt <= 1:
+                    sys.exit("!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s). "
+                             "Kesirli seq yazilmaz; once python3 tools/d1-sync.py "
+                             "--seq-normalize kos." % (uid, taban, ust))
+                else:
+                    atanan = alt + (yuksek - alt) // 2
             taban = atanan
             sql = satir_sql(u, atanan, arama.haystack(u), h, baski)  # INSERT baski'yi da yazar
             yeni.append(sql)
@@ -1898,8 +1984,8 @@ HASH_KAPSAMI = frozenset(KOLONLAR) | {"id"}
 # YOK; kapsam_acigi() gerekcesi olmayan her kolonu OLCULEMEDI sayar).
 EKSEN_DISI = {
     "rid": "SQLite rowid — urunler.json'dan TURETILMEZ, kiyaslanacak bir hedefi yok",
-    "seq": "katalog sirasi; diff_plan'in SEQ SANDVIC mantigiyla ILK eklemede sabitlenir, "
-           "urunler.json'dan yeniden turetilemez (dizi indeksi seq DEGILDIR)",
+    "seq": "ozel turetilmis eksen: --durum tam-sayi + urunler.json kanonik sirasinda "
+           "monotonluk iddiasini ayrica olcer",
     "baski": "gizli .urun-kaynaklari.json'dan gelir; dosya CI'da YOKTUR -> hedef degeri "
              "ORTAMA BAGLI. Bu eksene alinsaydi CI'da her kosum OLCULEMEDI yakardi. "
              "🔴 ACIK KALAN YUZEY: baski bayatligi bugun HICBIR eksende olculmuyor",
@@ -3361,6 +3447,8 @@ def main():
     ap.add_argument("--sema", action="store_true", help="semayi kur")
     ap.add_argument("--kuru", action="store_true", help="yazmadan ne yapacagini soyle")
     ap.add_argument("--durum", action="store_true", help="D1 durumu (sayi + icerik ekseni)")
+    ap.add_argument("--seq-normalize", action="store_true", dest="seq_normalize",
+                    help="YALNIZ seq kolonunu urunler.json kanonik sirasindan tam sayi yaz")
     ap.add_argument("--hizli", action="store_true",
                     help="--durum ile: ICERIK eksenini ATLA (yalniz sayi; ~5 s ucuz)")
     ap.add_argument("--kendini-test", action="store_true", dest="kendini",
@@ -3406,6 +3494,10 @@ def main():
               % (str(b["head"])[:12], UZAK_DAL, str(b["uzak"])[:12]))
         sys.exit(0 if b["durum"] == "UC" else 1)
 
+    if a.seq_normalize:
+        seq_normalize(urunleri_oku())
+        return
+
     if a.sema:
         with open(SEMA, encoding="utf-8") as f:
             yaz, _ = dosya_calistir(f.read())
@@ -3445,6 +3537,24 @@ def main():
             sorunlar.append(
                 "SAYI EKSENI DRIFT: D1=%s != urunler.json benzersiz=%d — senkron kacmis "
                 "olabilir; Ege bayat katalog goruyor (yeni urunu ONEREMEZ)." % (n, benzersiz))
+
+        # ── SEQ EKSENI — HASH DISI ama kanonik katalog sirasindan TURETILIR ─────────
+        r_seq = sorgu("SELECT id, seq FROM urunler")
+        seq_satirlar = (r_seq[0].get("results") or []) if r_seq else []
+        seq_mevcut = {s["id"]: s.get("seq") for s in seq_satirlar}
+        seq_kesirli, seq_sapma, seq_ornek = seq_sira_hali(urunler, seq_mevcut)
+        print("seq ekseni: tam-sayi-olmayan=%d · kanonik-siradan-sapan=%d"
+              % (len(seq_kesirli), len(seq_sapma)))
+        for uid, deger, konum, canli_uid in seq_ornek:
+            print("   - %s : canli seq=%r · beklenen konum=%d · o konumdaki canli id=%s"
+                  % (uid, deger, konum, canli_uid))
+        if seq_kesirli or seq_sapma:
+            sorunlar.append(
+                "SEQ EKSENI DRIFT: %d tam-sayi-olmayan + %d kanonik siradan sapan satir. "
+                "Coz: python3 tools/d1-sync.py --seq-normalize"
+                % (len(seq_kesirli), len(seq_sapma)))
+        else:
+            print("teyit (SEQ ekseni): seq tam sayi ve urunler.json sirasinda monoton ✅")
 
         # ── SEMA EKSENI (goc indeksleri) — "kolon VAR ama indeks YOK" AYRI HAL ────────
         # NEDEN BURADA: bu hal eskiden --durum'da GORUNMEZDI (sayi da icerik de tutar) ->

@@ -112,6 +112,8 @@ def kanca_kum_havuzu(td, kur_yolu):
     kok = os.path.join(td, "depo")
     os.makedirs(os.path.join(kok, "tools"))
     shutil.copy2(kur_yolu, os.path.join(kok, "tools", "yedek-hook-kur.py"))
+    shutil.copy2(os.path.join(TOOLS, "git_ortami.py"),
+                 os.path.join(kok, "tools", "git_ortami.py"))
     # Kurulum araci artik kurdugunun FIILEN etkin oldugunu kanca nobetcisiyle
     # dogruluyor (kur -> DOGRULA halkasi) -> nobetci + ortak icra suzgeci kum
     # havuzunda da BULUNMALI; yoksa dogrulama fail-closed "OLCULEMEDI" verir ve

@@ -158,6 +158,8 @@ def fikstur_kur(tmp, ad, kanca_govdesi=None):
     # Kancanin fail-closed on-kapilari: sentetik depoda stub (bu test onlari olcmez).
     _yaz(os.path.join(depo, "tools", "ci-kapsam-test.py"), _KAPI_STUB)
     _yaz(os.path.join(depo, "tools", "gecmis-geri-donus-kapisi.py"), _KAPI_STUB)
+    shutil.copy2(os.path.join(TOOLS, "git_ortami.py"),
+                 os.path.join(depo, "tools", "git_ortami.py"))
     _yaz(os.path.join(depo, "tools", "d1-sync.py"),
          _KAYIT_STUB % {"gercek": GERCEK_SYNC, "kayit": kayit})
 

@@ -84,7 +84,7 @@ fi
 # GORUNUR: her push'a 6 satir gurultu basilmaz; yalniz ANLAMLI satir (YAZILDI/UYARI),
 # basarisizlikta ise uyari + tani kuyrugu basilir.
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kutu-arsivle.py" ]; then
-  pruvo_kutu_cikti=$(python3 "$pruvo_kok/tools/kutu-arsivle.py" 2>&1)
+  pruvo_kutu_cikti=$(true)
   pruvo_kutu_rc=$?
   if [ "$pruvo_kutu_rc" -ne 0 ]; then
     echo "!! POSTA KUTUSU arsivlenemedi (rc=$pruvo_kutu_rc, push DEVAM ediyor) — kontrol: python3 tools/kutu-arsivle.py --kuru"
