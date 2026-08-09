@@ -526,13 +526,13 @@ def main():
         lambda: _kablo_nobetcisi(
             ('                 "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",',
              '                 "suzgec_fikstur_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 16", "KOL_BIRLESIM_TABANI = 9")),
+            ("KOL_BIRLESIM_TABANI = 19", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
         lambda: _kablo_nobetcisi(
-            ("                and ok10 and ok11 and ok12):",
-             "                or ok10 or ok11 or ok12):")),
+            ("                and ok10 and ok11 and ok12 and ok13):",
+             "                or ok10 or ok11 or ok12 or ok13):")),
         True, "KENDINI-TEST HUKMU `and` DEGIL")
 
     # ---- UCUNCU TUR: ORTAM SADAKATI · SEAM · BAYRAK SIZINTISI ---------------
@@ -587,9 +587,9 @@ def main():
 
     olc("M-E5a defterden kayit SILINDI (taban da dusurulse gizlenemez)",
         lambda: _kablo_nobetcisi(
-            ('              "kanca_kablo_serit_kontrol", "kendini_test_adimi_kontrol",',
-             '              "kendini_test_adimi_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 16", "KOL_BIRLESIM_TABANI = 9")),
+            ('"izlenmeyen_fikstur_kontrol", "kanca_kablo_serit_kontrol",',
+             '"izlenmeyen_fikstur_kontrol",'),
+            ("KOL_BIRLESIM_TABANI = 19", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-SERIT agir ayak adimi BLOKLAMAYAN job'a tasindi",
@@ -642,9 +642,41 @@ def main():
                    "        ok4, hata4 = True, []")),
         True, "CAGRIDAN TUREMEYEN")
 
-    olc("M-D1 ucuncu kolun hukmu `if True:` (ok/ok_s kapsam disi mi)",
-        lambda: _kablo_nobetcisi(("        if ok and ok_s:", "        if True:")),
-        True, "KENDINI-TEST HUKMU SABITLENMIS")
+    # 8. tur: hukum ezme sinifinin ASIL hakimi DAVRANIS ayagidir; AST kurali
+    # yalniz SABIT-LITERAL ezmeyi gorur (`ok_s = True`). Ikisi de olculur.
+    olc("M-D1 ucuncu kolun hukmu sabit literalle eziliyor (AST ekseni)",
+        lambda: _kablo_nobetcisi(
+            ("        ok_s, hata_s = kanca_kablo_serit_kontrol()",
+             "        ok_s, hata_s = kanca_kablo_serit_kontrol()\n"
+             "        ok_s = True")),
+        True, "CAGRIDAN TUREMEYEN")
+
+    def _davranis(kaynak=None, capa=None, ikame=None):
+        with open(KAPI_YOLU, encoding="utf-8") as f:
+            k = f.read()
+        if capa is not None:
+            if k.count(capa) != 1:
+                raise RuntimeError("DAVRANIS MUTANTI OLCULEMEDI: capa %d kez gecti"
+                                   % k.count(capa))
+            k = k.replace(capa, ikame)
+        ok, hatalar = KAP.hukum_davranis_kontrol(kaynak=k)
+        return (0 if ok else 1), hatalar
+
+    olc("DAVRANIS-TABAN hukum davranis ayagi (mutasyonsuz)",
+        lambda: _davranis(), False)
+
+    olc("M-H1b (7. tur kacisi) hukum `if ok or True:` — DAVRANIS ekseni",
+        lambda: _davranis(
+            capa="        if ok and ok_s and ok_d:",
+            ikame="        if ok or True:"),
+        True, "HUKUM EZILIYOR")
+
+    olc("M-H3-1 (7. tur kacisi) `_ = nobetci()` + sabit atama",
+        lambda: _davranis(
+            capa="        ok_s, hata_s = kanca_kablo_serit_kontrol()",
+            ikame="        _ = kanca_kablo_serit_kontrol()\n"
+                  "        ok_s, hata_s = True, []"),
+        True, "HUKUM EZILIYOR")
 
     olc("M-B1 (F2) `--kanca-kablo` ADIMI deploy.yml'den SILINDI",
         lambda: _adim_mutant(
@@ -728,13 +760,13 @@ def main():
     # degistirmez (olculdu: `_kablo_nobetcisi` ile rc=0).
     olc("M-G6 KOL_BIRLESIM_TABANI dusuruldu (esitlik sarti)",
         lambda: _kablo_govdesi(_mutant_modul(
-            "g6", "KOL_BIRLESIM_TABANI = 16", "KOL_BIRLESIM_TABANI = 12")),
+            "g6", "KOL_BIRLESIM_TABANI = 19", "KOL_BIRLESIM_TABANI = 12")),
         True, "KOL BIRLESIMI TABANLA UYUSMUYOR")
 
     olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",
         lambda: _kablo_nobetcisi(
             ("        if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 "
-             "and ok9\n                and ok10 and ok11 and ok12):",
+             "and ok9\n                and ok10 and ok11 and ok12 and ok13):",
              "        if (ok11 and ok10 and ok9 and ok8 and ok7 and ok6 and ok5 and "
              "ok4 and ok3\n                and ok2 and ok1):")),
         False)

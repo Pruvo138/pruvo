@@ -97,6 +97,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import types
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -5034,30 +5035,33 @@ TANI_KABLOLARI = (
 NOBETCI_KABLOLARI = (
     ("denetle", ("acik_kesif_kontrol", "alt_kume_fikstur_kontrol",
                  "bayraksiz_adim_kontrol", "bulgu1_mutasyon_kontrol",
-                 "hukum_fuzz_kontrol",
+                 "hukum_davranis_kontrol", "hukum_fuzz_kontrol",
                  "izlenmeyen_fikstur_kontrol", "kanca_kablo_adimi_kontrol",
                  "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
                  "main_kablosu_kontrol", "muaf_sayaci_kontrol",
                  "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",
-                 "suzgec_kablosu_kontrol")),
+                 "suzgec_kablosu_kontrol", "tutarlilik_kontrolu")),
     ("main", ("alt_kume_fikstur_kontrol", "bayraksiz_adim_kontrol",
-              "bulgu1_mutasyon_kontrol", "hukum_fuzz_kontrol",
-              "izlenmeyen_fikstur_kontrol",
-              "kanca_kablo_serit_kontrol", "kendini_test_adimi_kontrol",
-              "kesif_predikat_kontrol", "main_kablosu_kontrol",
-              "muaf_sayaci_kontrol", "pre_push_kablo_kontrol",
-              "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol")),
+              "bulgu1_mutasyon_kontrol", "hukum_davranis_fikstur_kontrol",
+              "hukum_davranis_kontrol", "hukum_fuzz_kontrol",
+              "izlenmeyen_fikstur_kontrol", "kanca_kablo_serit_kontrol",
+              "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
+              "main_kablosu_kontrol", "muaf_sayaci_kontrol",
+              "pre_push_kablo_kontrol", "suzgec_fikstur_kontrol",
+              "suzgec_kablosu_kontrol")),
 )
 
 # 🔴 TOPLAM YUZEY RASETI ([[kapi-yan-etkisi-gizli-onkosul]]): bir adimi kolun
 # birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
 # NOT: bu SAYI artik TEK BASINA yuk tasimiyor (dusurulebilir olmasi E5-a deligiydi);
 # asil capa yukaridaki ESITLIK kontroludur. Sayi ikinci bir ratchet olarak kalir.
-KOL_BIRLESIM_TABANI = 16
+KOL_BIRLESIM_TABANI = 19
 # UCUNCU (BLOKLAYICI) KOL — `--kanca-kablo`. `NOBETCI_KABLOLARI`'nin anahtarlari
 # FONKSIYON adi oldugu icin bu kolun nobetcileri `main` kaydinda erir ve kol dokumu
 # onu RAPORLAMIYORDU (5. tur F6). Ayri kayit: dokum UC SERIDI de basar.
-KANCA_KABLO_KOL_NOBETCILERI = ("kanca_kablo_serit_kontrol", "pre_push_kablo_kontrol")
+KANCA_KABLO_KOL_NOBETCILERI = ("hukum_davranis_fikstur_kontrol",
+                               "kanca_kablo_serit_kontrol",
+                               "pre_push_kablo_kontrol")
 
 # 🔴 `--kendini-test` HUKMUNUN KENDISI (KB-E): butun `okN` degiskenleri hukme
 # `and` ile girmeli. Olculdu: `and ok10 and ok11` -> `or ok10 or ok11` yapildiginda
@@ -5223,9 +5227,12 @@ def _kol_kapsam_kontrol(agac, duz):
     if kayit is None:
         return ["KOL KAPSAMI OLCULEMEDI: NOBETCI_KABLOLARI atamasi kaynakta "
                 "BULUNAMADI -> defter yeniden adlandirilmis olabilir."]
-    # NOBETCI EVRENI: modul duzeyinde tanimli, `_` ile BASLAMAYAN `*_kontrol`ler.
+    # NOBETCI EVRENI — 🔴 TEK KAYNAK `_NOBETCI_CAGRI_RE` (8. tur, H4): "nobetci
+    # nedir" tanimi burada `endswith("_kontrol")` olarak IKINCI KEZ yaziliydi;
+    # `x_kontrolu` adli bir nobetci regex'e uyar ama `evren`e girmezdi -> sessiz
+    # ayrisma yuzeyi ([[ikiz-tanim-sessiz-ayrisma]]).
     evren = {d.name for d in agac.body
-             if isinstance(d, ast.FunctionDef) and d.name.endswith("_kontrol")
+             if isinstance(d, ast.FunctionDef) and _NOBETCI_CAGRI_RE.search(d.name)
              and not d.name.startswith("_")}
     for ad in ("denetle", "main"):
         if ad not in duz:
@@ -5426,6 +5433,249 @@ HUKUM_FUZZ_FIKSTURLERI = (
     ("G2-E SABOTAJ `if True:`", _HT_HUKUM, "    if True:\n        return 0\n",
      False, "hukum SABITTEN geliyor"),
 )
+
+
+# ---- HUKUM DAVRANIS AYAGI (8. tur — SOZDIZIMDEN DAVRANISA) -----------------
+# 🔴 NEDEN (7. tur, H1/H2/H3): yedi turdur her SOZDIZIMSEL daraltma ya sahte-kirmizi
+# ya sahte-yesil uretti. "Hangi ad yargidir, hangi `if` hukumdur" sorusu AST'te
+# KARAR VERILEBILIR DEGIL: `if ok or True:` · `if not False:` · `if 1 == 1:` ·
+# `if bool(1):` · `if len([])==0:` · kosulun TAMAMEN silinmesi · `while True:` ·
+# `_ = nobetci()` + sabit atama · yanlis tuple indisi · `all([])` ·
+# `any([..., True])` — ON BIR sabotaj UC gate kolunun UCUNDE de YESIL geciyordu.
+#
+# SORU DEGISTI: "bu kod hukmu eziyor mu" (karar verilemez) YERINE
+# "bir nobetci `False` DONERSE kol KIRMIZI yaniyor mu" (KARAR VERILEBILIR).
+# Desen 3. turdaki `pre_push_kablo_kontrol()` kabuk ayaginin AYNISI: taklit degil
+# DAVRANIS. Her nobetci TEK TEK `False` dondurulur, kollar UCTAN UCA kosulur ve
+# rc'nin SIFIR-DISI oldugu olculur ([[mimar-kapi-parser-taklidi]]).
+#
+# MALIYET: modul BIR KEZ yuklenir; her vakada nobetciler MONKEYPATCH'lenir, yani
+# GERCEK is (kesif, is akisi, 45 itme, fikstur bataryalari) HIC kosmaz. Olculen
+# sey yalnizca KARAR MANTIGIDIR.
+_STUB_JETONU = "SENTETIK-NOBETCI-KIRMIZISI"
+# 🔴 DAVRANIS AYAGINDAN MUAF (GEREKCELI, kapsam degil KOSUM meselesi):
+# `tutarlilik_kontrolu` YALNIZ `akislar is not None` yolunda cagrilir; davranis
+# fiksturu ise KASTEN `akislar=None` ile kosar (kapsam/izin/alt-kume eksenlerinin
+# kirmizisi karismasin, hukum TEK EKSENDEN gelsin). Kayit defterinde DURUR —
+# yani cagri satirinin silinmesi yine KIRMIZI yakar; yalniz STUB olcumu disidir.
+_DAVRANIS_MUAF = {
+    "tutarlilik_kontrolu":
+        "yalniz akislar is not None yolunda kosar; davranis fiksturu tek eksen "
+        "kalsin diye akislar=None ile kosuyor",
+}
+
+
+def _davranis_modulu(kaynak=None):
+    """Kendi kaynagini AYRI bir modul olarak yukler (canli modul KIRLENMEZ).
+
+    <kaynak> verilirse O METIN yuklenir — TEST SEAMI: davranis fiksturu sabotaj
+    varyantlarini boyle olcer. Uretimde daima None gelir ve KOSAN dosya okunur."""
+    kaynak_yol = os.path.abspath(__file__)
+    if kaynak is None:
+        with open(kaynak_yol, encoding="utf-8") as f:
+            kaynak = f.read()
+    mod = types.ModuleType("_ci_kapsam_davranis")
+    mod.__file__ = kaynak_yol
+    exec(compile(kaynak, kaynak_yol, "exec"), mod.__dict__)
+    return mod
+
+
+def _nobetci_evreni(mod):
+    """Modul duzeyinde tanimli NOBETCI adlari — TEK KAYNAK: `_NOBETCI_CAGRI_RE`."""
+    return sorted(ad for ad, deger in vars(mod).items()
+                  if callable(deger) and _NOBETCI_CAGRI_RE.search(ad)
+                  and getattr(deger, "__module__", None) == mod.__name__)
+
+
+def _kollari_kos(mod):
+    """(bayraksiz_rc, kanca_kablo_rc, kendini_test_rc) — UC KOLUN KARAR MANTIGI.
+
+    Nobetciler zaten STUB'landigi icin GERCEK is kosmaz; olculen sey yalnizca
+    "nobetci sonucu kolun cikis koduna giriyor mu"dur."""
+    eski_argv, eski_cikti = sys.argv, sys.stdout
+    sys.stdout = io.StringIO()
+    try:
+        # BAYRAKSIZ kol: denetle() KARAR govdesi (kontroller=True -> nobetciler kosar).
+        # Girdi KASTEN bos: kapsam/izin ekseninden KIRMIZI gelmesin, tek eksen kalsin.
+        kod_b, _s = mod.denetle("", [], {}, kontroller=True, akislar=None)
+        sys.argv = ["ci-kapsam-test.py", mod.KANCA_KABLO_BAYRAGI]
+        kod_k = mod.main()
+        sys.argv = ["ci-kapsam-test.py", mod.KENDINI_TEST_BAYRAGI]
+        kod_t = mod.main()
+    finally:
+        sys.argv, sys.stdout = eski_argv, eski_cikti
+    return kod_b, kod_k, kod_t
+
+
+def hukum_davranis_kontrol(kaynak=None):
+    """🔴 HUKUM EZME SINIFI — DAVRANISTAN olculur (sozdiziminden DEGIL).
+
+    Iddialar:
+      D0 TABAN — TUM nobetciler `True` donerken UC kol da rc=0 (yoksa kirmizi
+         'hep kirmizi'dan ayirt edilemez).
+      D1..Dn HER NOBETCI TEK TEK — nobetci `False` dondugunde onu CAGIRAN her kol
+         SIFIR-DISI donmeli. Bir nobetci kapsanmazsa onun hukmu ezilebilir kalir.
+    (ok, hatalar) dondurur; hicbir sey BASMAZ."""
+    hata = []
+    try:
+        mod = _davranis_modulu(kaynak)
+    except Exception as e:  # noqa: BLE001 — cokme KIRMIZI ile KARISTIRILMAZ
+        return False, ["HUKUM DAVRANISI OLCULEMEDI: modul kopyasi yuklenemedi "
+                       "(%s: %s)" % (type(e).__name__, e)]
+    evren = _nobetci_evreni(mod)
+    if len(evren) < 14:
+        hata.append("NOBETCI EVRENI KUCULDU: %d nobetci bulundu (taban 14) -> "
+                    "`_NOBETCI_CAGRI_RE` bozulmus ya da nobetciler yeniden "
+                    "adlandirilmis olabilir." % len(evren))
+    kayit = dict(NOBETCI_KABLOLARI)
+    # Hangi kol hangi nobetciyi cagiriyor (KAYIT DEFTERINDEN — `_kol_kapsam_kontrol`
+    # defterin GERCEK cagrilarla ESIT oldugunu ayrica olcer).
+    kol_kaydi = {"bayraksiz": set(kayit.get("denetle", ())),
+                 "kanca-kablo": set(KANCA_KABLO_KOL_NOBETCILERI),
+                 "kendini-test": set(kayit.get("main", ()))
+                 - set(KANCA_KABLO_KOL_NOBETCILERI)}
+    saklanan = {ad: getattr(mod, ad) for ad in evren}
+
+    def kur(yalan_donen=None):
+        for ad in evren:
+            if ad == yalan_donen:
+                setattr(mod, ad, lambda *a, **k: (False, [_STUB_JETONU]))
+            else:
+                setattr(mod, ad, lambda *a, **k: (True, []))
+
+    try:
+        kur(None)
+        taban = _kollari_kos(mod)
+        if taban != (0, 0, 0):
+            hata.append(
+                "D0 TABAN KIRMIZI: TUM nobetciler `True` donerken kollar %r (beklenen "
+                "(0,0,0)) -> asagidaki kirmizilar 'hep kirmizi'dan AYIRT EDILEMEZ."
+                % (taban,))
+            return False, hata
+        for ad in evren:
+            kur(ad)
+            kod_b, kod_k, kod_t = _kollari_kos(mod)
+            olculen = {"bayraksiz": kod_b, "kanca-kablo": kod_k, "kendini-test": kod_t}
+            for kol, kume in kol_kaydi.items():
+                if ad not in kume or ad in _DAVRANIS_MUAF:
+                    continue
+                if olculen[kol] == 0:
+                    hata.append(
+                        "HUKUM EZILIYOR (%s kolu): `%s()` `False` donduruyor ama kol "
+                        "rc=0 (YESIL) veriyor -> o nobetcinin sonucu kolun cikis koduna "
+                        "GIRMIYOR. Sinif: `if ok or True:` / kosulun silinmesi / "
+                        "`_ = nobetci()` / yanlis tuple indisi — sozdizimsel kural "
+                        "bunlari GOREMEZ, davranis GORUR ([[beyan-edilmis-survivor]])."
+                        % (kol, ad))
+    except Exception as e:  # noqa: BLE001
+        hata.append("HUKUM DAVRANISI OLCULEMEDI: %s: %s" % (type(e).__name__, e))
+    finally:
+        for ad, deger in saklanan.items():
+            setattr(mod, ad, deger)
+    return (not hata), hata
+
+
+# ---- 7. TURUN 11 KACISI + KONTROLLER — DAVRANIS AYAGINDA KALICI FIKSTUR ----
+# 🔴 Bu tablo, sozdizimsel kuralin GORMEDIGI on bir sabotajin DAVRANIS ayaginda
+# yakalandigini KALICI olarak civiler. Sabotajlar GERCEK kaynak metnine uygulanir
+# (bellekte), ucuncu kolun hukum blogu hedeflenir. Tablo kucultulurse kirmizi yanar.
+# (AYNI GEREKCE: parcali yazim, GERCEK hukum satirinin ikizini uretmemek icin.)
+_DK_HUKUM = ("        if ok and ok_s and %s:\n"
+             "            print(\"SONUC: YESIL ✅\")\n" % "ok_d")
+# 🔴 PARCALI YAZIM (bilincli): duz yazilsaydi bu sabit, GERCEK `main()` satiriyla
+# BIREBIR ayni metni ikinci kez uretir ve mutasyon capalari "2 kez gecti" diye
+# COKERDI ([[mutasyon-kaniti-yeniden-uretilebilir]]: cokme kirmiziyla karisir).
+_DK_OKS = "        ok_s, hata_s = %s()\n" % "kanca_kablo_serit_kontrol"
+
+# (etiket, capa, ikame, beklenen_YESIL, NEDEN)
+HUKUM_DAVRANIS_FIKSTURLERI = (
+    ("D00 taban (mutasyonsuz)", None, None, True, "kirmizilar ayirt edilebilsin"),
+    ("H1-a `if True:`", _DK_HUKUM,
+     "        if True:\n            print(\"SONUC: YESIL ✅\")\n", False, "literal"),
+    ("H1-b `if ok or True:`", _DK_HUKUM,
+     "        if ok or True:\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: sabit-degerli BoolOp"),
+    ("H1-c `if not False:`", _DK_HUKUM,
+     "        if not False:\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: UnaryOp"),
+    ("H1-d `if 1 == 1:`", _DK_HUKUM,
+     "        if 1 == 1:\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: Compare"),
+    ("H1-e `if bool(1):`", _DK_HUKUM,
+     "        if bool(1):\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: yerlesik cagri"),
+    ("H1-f `if len([]) == 0:`", _DK_HUKUM,
+     "        if len([]) == 0:\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: cagri + Compare"),
+    ("H1-g hukum kosulu TAMAMEN silindi", _DK_HUKUM,
+     "        if True:\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: kosulsuz yesil cikis"),
+    ("H1-h `while True:` + yesil cikis", _DK_HUKUM,
+     "        while True:\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: `if` DISI dongu"),
+    ("H3-1 `_ = nobetci()` + sabit atama", _DK_OKS,
+     "        _ = kanca_kablo_serit_kontrol()\n        ok_s, hata_s = True, []\n",
+     False, "🔴 7. tur kacisi: donus HIC kullanilmiyor"),
+    ("H3-5 tuple'dan YANLIS indis", _DK_OKS,
+     "        _r = kanca_kablo_serit_kontrol()\n        hata_s, ok_s = _r[0], _r[1]\n",
+     False, "🔴 7. tur kacisi: ok/hata yer degistirdi"),
+    ("H3-6 hukum `all([])`", _DK_HUKUM,
+     "        if all([]):\n            print(\"SONUC: YESIL ✅\")\n", False,
+     "🔴 7. tur kacisi: bos kume daima True"),
+    ("H3-7 hukum `any([ok, ok_s, True])`", _DK_HUKUM,
+     "        if any([ok, ok_s, True]):\n            print(\"SONUC: YESIL ✅\")\n",
+     False, "🔴 7. tur kacisi: sabit dal"),
+    ("H3-8 `ok` sonradan sabitle eziliyor", _DK_OKS,
+     _DK_OKS + "        ok_s = True\n", False, "ikinci atama sabit"),
+    # --- KONTROLLER: MESRU yazimlar YESIL kalmali (sahte-kirmizi yuzeyi) ---
+    ("K-1 `bool(...)` sarmali", _DK_HUKUM,
+     "        if bool(ok and ok_s and ok_d):\n"
+     "            print(\"SONUC: YESIL ✅\")\n", True,
+     "sabit DEGIL, hukum degiskenlerinden turer"),
+    ("K-2 ara degisken", _DK_HUKUM,
+     "        _karar = ok and ok_s and ok_d\n        if _karar:\n"
+     "            print(\"SONUC: YESIL ✅\")\n", True, "tasiyici ad"),
+    ("K-3 ters kosul", _DK_HUKUM,
+     "        if not (ok and ok_s and ok_d):\n            pass\n"
+     "        elif ok and ok_s and ok_d:\n"
+     "            print(\"SONUC: YESIL ✅\")\n", True, "negatif yazim"),
+    ("K-4 `all([...])` hukum degiskenleriyle", _DK_HUKUM,
+     "        if all([ok, ok_s, ok_d]):\n            print(\"SONUC: YESIL ✅\")\n",
+     True, "`all` MESRU olabilir — icerik sabit degil"),
+)
+
+
+def hukum_davranis_fikstur_kontrol():
+    """7. turun 11 kacisi + 4 kontrol — DAVRANIS ayaginda iki yonlu olcum."""
+    hata = []
+    kaynak_yol = os.path.abspath(__file__)
+    try:
+        with open(kaynak_yol, encoding="utf-8") as f:
+            taban = f.read()
+    except OSError as e:
+        return False, ["HUKUM DAVRANIS FIKSTURU OLCULEMEDI: kaynak okunamadi: %s" % e]
+    for etiket, capa, ikame, beklenen_yesil, neden in HUKUM_DAVRANIS_FIKSTURLERI:
+        kaynak = taban
+        if capa is not None:
+            if kaynak.count(capa) != 1:
+                hata.append("HUKUM DAVRANIS FIKSTURU OLCULEMEDI (%s): capa %d kez "
+                            "gecti (beklenen 1) — cokme KIRMIZI SAYILMAZ"
+                            % (etiket, kaynak.count(capa)))
+                continue
+            kaynak = kaynak.replace(capa, ikame)
+        ok, bulgular = hukum_davranis_kontrol(kaynak=kaynak)
+        if ok != beklenen_yesil:
+            hata.append(
+                "HUKUM DAVRANIS FIKSTURU DUSTU (%s): beklenen=%s gelen=%s · %s · %r"
+                % (etiket, "YESIL" if beklenen_yesil else "KIRMIZI",
+                   "YESIL" if ok else "KIRMIZI", neden, [b[:80] for b in bulgular[:2]]))
+    mesru = sum(1 for _e, _c, _i, y, _n in HUKUM_DAVRANIS_FIKSTURLERI if y)
+    sabotaj = len(HUKUM_DAVRANIS_FIKSTURLERI) - mesru
+    if mesru < 5 or sabotaj < 13:
+        hata.append("HUKUM DAVRANIS TABLOSU KUCULDU (mesru %d, sabotaj %d; taban 5/13) "
+                    "— tabloyu kucultmek nobetciyi SESSIZCE oldurur "
+                    "([[fikstur-degeri-mutasyon-koru]])." % (mesru, sabotaj))
+    return (not hata), hata
 
 
 def hukum_fuzz_kontrol():
@@ -5949,6 +6199,13 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, fuzz_hata = hukum_fuzz_kontrol()
         for h in fuzz_hata:
             hatalar.append("HUKUM-FUZZ: " + h)
+        # 🔴 HUKUM EZME SINIFININ ASIL HAKIMI (8. tur): sozdizimsel kural degil,
+        # DAVRANIS. Ucuz (0,14 sn — nobetciler stub'lanir, GERCEK is kosmaz), o
+        # yuzden BLOKLAYICI pre-push kolunda da yasar. 18 varyantlik SABOTAJ
+        # tablosu (2,3 sn) yalniz `--kanca-kablo` (CI) kolundadir.
+        _, dav_hata = hukum_davranis_kontrol()
+        for h in dav_hata:
+            hatalar.append("HUKUM-DAVRANISI: " + h)
         # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
         # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
         # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
@@ -6110,6 +6367,21 @@ def main():
     # ([[hukum-yanlis-birimde]]: bloklamayan alarm joblari yayin kosumunun rengini
     # boyamasin) -> AYRI BAYRAK acildi ve YALNIZ O ADIM bloklayici job'a baglandi.
     if getattr(args, KANCA_KABLO_BAYRAGI.lstrip("-").replace("-", "_")):
+        ok_d, hata_d = hukum_davranis_fikstur_kontrol()
+        print("HUKUM EZME SINIFI — DAVRANIS FIKSTURU (%d varyant: %d sabotaj KIRMIZI "
+              "yakmali + %d mesru yazim YESIL kalmali; her biri STUB'lanmis nobetciyle "
+              "UCTAN UCA kosulur)"
+              % (len(HUKUM_DAVRANIS_FIKSTURLERI),
+                 sum(1 for _e, _c, _i, y, _n in HUKUM_DAVRANIS_FIKSTURLERI if not y),
+                 sum(1 for _e, _c, _i, y, _n in HUKUM_DAVRANIS_FIKSTURLERI if y)))
+        if ok_d:
+            print("  ✅ `if ok or True:` · `if not False:` · `if 1==1:` · `if bool(1):` "
+                  "· `if len([])==0:` · kosulun SILINMESI · `while True:` · "
+                  "`_ = nobetci()` · yanlis tuple indisi · `all([])` · "
+                  "`any([...,True])` TEK BASINA kirmizi; mesru yazimlar YESIL")
+        else:
+            for h in hata_d:
+                print("  ❌ " + h)
         ok_s, hata_s = kanca_kablo_serit_kontrol()
         print("KANCA KABLOSU SERIDI — AGIR AYAK BLOKLAYICI JOB'DA MI (davranissal)")
         if ok_s:
@@ -6132,7 +6404,7 @@ def main():
         else:
             for h in hatalar:
                 print("  ❌ " + h)
-        if ok and ok_s:
+        if ok and ok_s and ok_d:
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")
@@ -6256,6 +6528,16 @@ def main():
         else:
             for h in hata10:
                 print("  ❌ " + h)
+        ok13, hata13 = hukum_davranis_kontrol()
+        print("HUKUM EZME SINIFI — DAVRANIS AYAGI (her nobetci TEK TEK `False` "
+              "dondurulur, kollar UCTAN UCA kosulur, rc SIFIR-DISI olmali)")
+        if ok13:
+            print("  ✅ nobetci `False` dondugunde onu CAGIRAN her kol KIRMIZI yaniyor "
+                  "(soru 'kod hukmu eziyor mu' DEGIL, 'nobetci False donerse kol "
+                  "kirmizi mi' — bu KARAR VERILEBILIR)")
+        else:
+            for h in hata13:
+                print("  ❌ " + h)
         ok12, hata12 = hukum_fuzz_kontrol()
         print("HUKUM KURALI FUZZ'I — IKI YONLU (%d varyant: %d mesru yazim YESIL "
               "kalmali + %d sabotaj KIRMIZI yakmali)"
@@ -6296,7 +6578,7 @@ def main():
                  ", ".join(KANCA_KABLO_KOL_NOBETCILERI), len(_birlesim),
                  KOL_BIRLESIM_TABANI))
         if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9
-                and ok10 and ok11 and ok12):
+                and ok10 and ok11 and ok12 and ok13):
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")
