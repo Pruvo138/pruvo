@@ -205,6 +205,7 @@ def vaka(s, ad, fn, *args):
 def _git(depo, *args, **kw):
     return go.sentetik_git(depo, *args, capture_output=True, text=True,
                             errors="replace", ek_ortam=kw.get("ortam"),
+                            korunan_baglam=("GIT_INDEX_FILE",),
                             kimlik_ad="t", kimlik_eposta="t@t.local")
 
 
