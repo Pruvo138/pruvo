@@ -39,14 +39,18 @@ import hashlib
 import importlib.util
 import os
 import re
+import shutil
 import sys
+import tempfile
+import types
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI_YOLU = os.path.join(TOOLS, "ci-kapsam-test.py")
 NOBET_YOLU = os.path.join(ROOT, ".github", "workflows", "nobet.yml")
 DEPLOY_YOLU = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
-DOKUNULMAZ = (KAPI_YOLU, NOBET_YOLU, DEPLOY_YOLU)
+KANCA_YOLU = os.path.join(TOOLS, "kancalar", "pre-push")
+DOKUNULMAZ = (KAPI_YOLU, NOBET_YOLU, DEPLOY_YOLU, KANCA_YOLU)
 
 # 8 Agu 2026 ONCESI kesif predikati (mutasyon kolu YOK) — M1'in tabani.
 ESKI_TOOLS_PAT = re.compile(
@@ -108,6 +112,79 @@ def _akis_satiri_sil(akislar, akis_adi, kapi_yolu):
         else:
             yeni.append((yol, metin, sinif))
     return yeni, silinen
+
+
+def _mutant_modul(ad, eski, yeni, beklenen_adet=1):
+    """KAYNAK METNI BELLEKTE mutasyona ugratip AYRI bir modul olarak yukler.
+
+    🔴 DISKE YAZILMAZ ([[mutasyon-diske-yazma-tuzagi]]): dosya okunur, string
+    uzerinde degistirilir, `compile`+`exec` ile taze bir modul nesnesine kosulur.
+    Kosum sonunda ana main() zaten KAPI_YOLU'nun sha256'sini karsilastirir.
+    🔴 BYTECODE ONBELLEGI DEVRE DISI: kaynak diskten degil string'den derlenir, bu
+    yuzden ayni saniyede/ayni uzunlukta mutasyon tuzagi ([[mutasyon-bytecode-
+    onbellegi]]) bu kolda OLUSAMAZ.
+    🔴 CAPA SAYISI DOGRULANIR: capa kaynakta beklenen adette gecmiyorsa mutasyon
+    UYGULANMAMIS demektir -> RuntimeError (olc() bunu COKME sayar, KIRMIZI DEGIL).
+    """
+    with open(KAPI_YOLU, encoding="utf-8") as f:
+        kaynak = f.read()
+    adet = kaynak.count(eski)
+    if adet != beklenen_adet:
+        raise RuntimeError(
+            "%s OLCULEMEDI: capa kaynakta %d kez gecti (beklenen %d) -> mutasyon "
+            "UYGULANMADI; kirmizi/yesil hukmu ANLAMSIZ olurdu" % (ad, adet, beklenen_adet))
+    mutant_kaynak = kaynak.replace(eski, yeni)
+    mod = types.ModuleType("_ci_kapsam_mutant_%s" % ad)
+    mod.__file__ = KAPI_YOLU
+    exec(compile(mutant_kaynak, "%s#%s" % (KAPI_YOLU, ad), "exec"), mod.__dict__)
+    return mod
+
+
+def _iz_fikstur(mod):
+    """<mod>.izlenmeyen_fikstur_kontrol() -> olc() sozlesmesine (kod, satirlar)."""
+    ok, hatalar = mod.izlenmeyen_fikstur_kontrol()
+    return (0 if ok else 1), hatalar
+
+
+def _kablo_fikstur(mod):
+    """<mod>.main_kablosu_kontrol() -> olc() sozlesmesine (kod, satirlar)."""
+    ok, hatalar = mod.main_kablosu_kontrol()
+    return (0 if ok else 1), hatalar
+
+
+PRE_PUSH_YOLU = os.path.join(TOOLS, "kancalar", "pre-push")
+
+
+def _pp_mutant(capa, ikame):
+    """pre-push govdesini GECICI bir kopyada mutasyona ugratip hukmu olcer.
+
+    🔴 IZLENEN KANCA KAYNAGINA DOKUNULMAZ: mutant `tempfile` dizinine yazilir ve
+    modulun `PRE_PUSH_YOLU` sabiti gecici olarak oraya cevrilir. Kosum sonunda
+    main() zaten kanca kaynaginin sha256'sini karsilastirir."""
+    with open(PRE_PUSH_YOLU, encoding="utf-8") as f:
+        govde = f.read()
+    if capa is not None:
+        adet = govde.count(capa)
+        if adet != 1:
+            raise RuntimeError("PRE-PUSH MUTANTI OLCULEMEDI: capa %d kez gecti "
+                               "(beklenen 1) -> mutasyon UYGULANMADI" % adet)
+        govde = govde.replace(capa, ikame)
+    else:
+        govde = govde + ikame
+    gecici = tempfile.mkdtemp(prefix="pruvo-pp-mutant-")
+    try:
+        yol = os.path.join(gecici, "pre-push")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(govde)
+        eski = KAP.PRE_PUSH_YOLU
+        KAP.PRE_PUSH_YOLU = yol
+        try:
+            ok, hatalar = KAP.pre_push_kablo_kontrol()
+        finally:
+            KAP.PRE_PUSH_YOLU = eski
+        return (0 if ok else 1), hatalar
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
 
 
 def _akisa_yorum_ekle(akislar, akis_adi):
@@ -238,6 +315,135 @@ def main():
         return (0 if ok else 1), hatalar
     olc("M6 kesif predikati FIKSTUR TABLOSU bosaltildi", m6, True,
         "FIKSTUR TABLOSU KUCULDU")
+
+    # ---- IZLENMEYEN KOVA EKSENI (9 Agu 2026) --------------------------------
+    # OLCULEN KORLUK: kesif YALNIZ `git ls-files` uzerinden yuruyordu -> `git add`
+    # EDILMEMIS yeni bir `tools/<x>-kapisi.py` ile kapi rc=0 YESIL veriyordu.
+    # Asagidaki uc mutant o ekseni AYRI AYRI kirar; her biri TEK BASINA kirmizi.
+    # TABAN (mutasyonsuz modul) once olculur: yesil olmayan bir taban uzerinde
+    # "mutant kirmizi yakti" iddiasi ANLAMSIZDIR.
+    olc("IZ-TABAN izlenmeyen fikstur (mutasyonsuz)",
+        lambda: _iz_fikstur(KAP), False)
+
+    # M-IZ1: `--others` dusunce kova IZLENEN dosyalarla dolar. AYIRT EDICILIK NOTU
+    # (9 Agu, curutucu bulgusu): eskiden bu mutant TABAN iddiasini da dusuruyordu
+    # ("kova bozuldu" ile "her sey bozuldu" ayrilmiyordu). Fikstur A1 iddiasi A1a
+    # (taban HUKMU) + A1b (taban KOVASI) olarak IKIYE bolundu; artik bu mutant
+    # A1b'yi dusurur, A1a YESIL kalir -> taban zehirlenmiyor.
+    olc("M-IZ1 kesiften `--others` bayragi DUSURULDU (kova IZLENEN dosyayla doluyor)",
+        lambda: _iz_fikstur(_mutant_modul(
+            "iz1",
+            'LS_FILES_IZLENMEYEN = ("ls-files", "--others", "--exclude-standard")',
+            'LS_FILES_IZLENMEYEN = ("ls-files", "--exclude-standard")')),
+        True, "A1b TABAN KOVASI BOS DEGIL")
+
+    olc("M-IZ1b kova BOSALTILDI (taban HUKMUNU bozmadan — ayirt edici)",
+        lambda: _iz_fikstur(_mutant_modul(
+            "iz1b",
+            "    return sorted(y for y in r.stdout.splitlines() "
+            "if _kesif_adayi_mi(y)), None",
+            "    return [], None")),
+        True, "IZLENMEYEN KOVA YANLIS")
+
+    olc("M-IZ4 (KISMI KAPSAM) kova yalniz `*-kapisi.py` goruyor",
+        lambda: _iz_fikstur(_mutant_modul(
+            "iz4",
+            "    return sorted(y for y in r.stdout.splitlines() "
+            "if _kesif_adayi_mi(y)), None",
+            '    return sorted(y for y in r.stdout.splitlines() '
+            'if _kesif_adayi_mi(y) and y.endswith("-kapisi.py")), None')),
+        True, "IZLENMEYEN KOVA YANLIS")
+
+    olc("M-IZ5 `--exclude-standard` DUSURULDU (.gitignore'lu artefakt siziyor)",
+        lambda: _iz_fikstur(_mutant_modul(
+            "iz5",
+            'LS_FILES_IZLENMEYEN = ("ls-files", "--others", "--exclude-standard")',
+            'LS_FILES_IZLENMEYEN = ("ls-files", "--others")')),
+        True, "IZLENMEYEN KOVA YANLIS")
+
+    olc("M-IZ6 (FAIL-CLOSED URETIM) git patlayinca sebep yerine None donuyor",
+        lambda: _iz_fikstur(_mutant_modul(
+            "iz6",
+            '        return [], ("git %s basarisiz (rc=%d): %s"\n'
+            '                    % (" ".join(LS_FILES_IZLENMEYEN), r.returncode,\n'
+            '                       r.stderr.strip() or "-"))',
+            "        return [], None")),
+        True, "A8 FAIL-OPEN (URETIM)")
+
+    # ---- KABLO EKSENI: main() olcumu denetle()'ye FIILEN geciriyor mu ---------
+    # Curutucu olcumu: bu iki mutantta kapi rc=0 TAM KOR kalirken DORT batarya da
+    # YESIL geciyordu ([[nobetci-cagri-satiri-nobetsiz]]).
+    olc("KABLO-TABAN main() kablo fiksturu (mutasyonsuz)",
+        lambda: _kablo_fikstur(KAP), False)
+
+    olc("M-KB1 (Y4) main() olcumu GECIRMIYOR (`izlenmeyen=None`)",
+        lambda: _kablo_fikstur(_mutant_modul(
+            "kb1",
+            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep)",
+            "        izlenmeyen=None, izlenmeyen_sebep=izlenmeyen_sebep)")),
+        True, "KABLO KOPUK")
+
+    olc("M-KB2 (Y8) main() kovayi BOSALTIYOR (`izlenmeyen = []`)",
+        lambda: _kablo_fikstur(_mutant_modul(
+            "kb2",
+            "    izlenmeyen, izlenmeyen_sebep = kesfet_izlenmeyen()",
+            "    izlenmeyen, izlenmeyen_sebep = [], None")),
+        True, "KABLO KOPUK")
+
+    olc("M-KB3 (Y9) main() uretim SEBEBINI yutuyor",
+        lambda: _kablo_fikstur(_mutant_modul(
+            "kb3",
+            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep)",
+            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=None)")),
+        True, "K3 SEBEP YUTULDU")
+
+    # ---- PUSH KABLOSU: pre-push blogunun DAVRANISI (varligi degil) -----------
+    olc("M-PP4 (P4) pre-push cagrisi `--kendini-test` koluna cevrildi",
+        lambda: _pp_mutant('ci-kapsam-test.py" 2>&1 </dev/null)',
+                           'ci-kapsam-test.py" --kendini-test 2>&1 </dev/null)'),
+        True, "PRE-PUSH FIKSTURU DUSTU (SAGLAM")
+
+    olc("M-PP5 (P5) pre-push kosulu ASLA ateslenmiyor (`-eq 12345`)",
+        lambda: _pp_mutant('if [ "$pruvo_kapsam_rc" -ne 0 ]; then',
+                           'if [ "$pruvo_kapsam_rc" -eq 12345 ]; then'),
+        True, "PRE-PUSH FIKSTURU DUSTU (SAGLAM")
+
+    olc("M-PP6 pre-push varlik kapisi POZITIFE cevrildi (arac yoksa sessiz atlar)",
+        lambda: _pp_mutant(
+            'if [ -z "$pruvo_kapsam_kok" ] || [ ! -f "$pruvo_kapsam_kok/tools/'
+            'ci-kapsam-test.py" ]; then',
+            'if [ -n "$pruvo_kapsam_kok" ] && [ -f "$pruvo_kapsam_kok/tools/'
+            'ci-kapsam-test.py" ]; then'),
+        True, "PRE-PUSH FIKSTURU DUSTU (SAGLAM")
+
+    olc("KONTROL-4 pre-push govdesine ILGISIZ yorum (hukum degismemeli)",
+        lambda: _pp_mutant(None, "\n# KONTROL MUTANTI — ilgisiz yorum satiri\n"),
+        False)
+
+    olc("M-IZ2 izlenmeyen kova UYARI'ya cevrildi (exit koduna dokunmuyor)",
+        lambda: _iz_fikstur(_mutant_modul(
+            "iz2",
+            "    for yol in izlenmeyen_kapsamsiz:\n        hatalar.append(",
+            "    for yol in izlenmeyen_kapsamsiz:\n        satirlar.append(")),
+        True, "SESSIZ YESIL")
+
+    olc("M-IZ3 (GEVSETME) kova predikati jokerlesti (`.md`/arsiv siziyor)",
+        lambda: _iz_fikstur(_mutant_modul(
+            "iz3",
+            "    return sorted(y for y in r.stdout.splitlines() "
+            "if _kesif_adayi_mi(y)), None",
+            '    return sorted(y for y in r.stdout.splitlines() '
+            'if y.startswith("tools/")), None')),
+        True, "IZLENMEYEN KOVA YANLIS")
+
+    # KONTROL-3: kaynaga ILGISIZ bir yorum satiri girer -> hukum DEGISMEZ.
+    # Bu, "mutant modul yukleme duzenegi kendiliginden kirmizi yakiyor" ihtimalini
+    # eler; olmasaydi yukaridaki uc kirmizi tautoloji olurdu.
+    olc("KONTROL-3 mutant yukleyiciye ILGISIZ yorum (hukum degismemeli)",
+        lambda: _iz_fikstur(_mutant_modul(
+            "k3", "import argparse",
+            "# KONTROL MUTANTI — ilgisiz yorum satiri\nimport argparse")),
+        False)
 
     # ---- KONTROL 1: ilgisiz YAML yorumu -> hukum DEGISMEZ -------------------
     olc("KONTROL-1 nobet.yml'e ilgisiz yorum satiri",

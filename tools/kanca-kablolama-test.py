@@ -162,17 +162,45 @@ def izole_ortam(ev):
     return ortam
 
 
-def _araclari_ser(kok):
-    # 6 Agu 2026: `diriltme-kapisi.py` eklendi — pre-commit adim 4 onu FAIL-CLOSED
-    # arar (dosya yoksa commit DURUR). Sentetik depoda urunler.json bulunmadigi icin
-    # stub fiilen KOSMAZ; varligi kancanin "arac YOK" kolunu tetiklememesi icindir.
-    # 8 Agu 2026: `katalog-alan-kapisi.py` eklendi — pre-commit adim 5 onu FAIL-CLOSED
-    # arar (dosya yoksa commit DURUR). Sentetik depoda urunler.json bulunmadigi icin
-    # stub fiilen KOSMAZ; varligi kancanin "arac YOK" kolunu tetiklememesi icindir.
-    for ad in ("urunler-guard.py", "mukerrer-kontrol.py", "mimar-commit-kapisi.py",
-               "commit-mesaji-kapisi.py", "gecmis-geri-donus-kapisi.py",
-               "yedekle.py", "kutu-arsivle.py", "d1-sync.py", "diriltme-kapisi.py",
-               "katalog-alan-kapisi.py"):
+# 🔴 ELLE TUTULAN STUB LISTESI YOK (9 Agu 2026): adlar IZLENEN kanca kaynaklarindan
+# TURETILIR. Elle liste her yeni fail-closed kanca adiminda bayatliyor ve fikstur
+# drift'i yayini durduruyordu ([[envanter-drift-parti-basina]] ·
+# [[tekil-yama-sinifi-kapatmaz]]); main'in `e56705a2`'de `diriltme-kapisi.py` icin
+# kaldirdigi sinif tam da budur. Capa: `"$degisken/tools/<ad>.py"` — degisken
+# ADINDAN bagimsiz, duz prozadaki "tools/foo.py" YAKALANMAZ.
+_KANCA_ARAC_KALIBI = re.compile(
+    r"\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/tools/([A-Za-z0-9_.-]+\.py)")
+# STUB SERILMEYENLER: `kanca-kur.py`yi VAKA 8 GERCEK dosya olarak kendisi serer
+# (kanca `--tazele` icin gercek mantik sart); stub onu golgelerdi.
+_STUB_DISI = ("kanca-kur.py",)
+
+
+def _kanca_arac_adlari(kanca_kaynagi):
+    """Kanca govdelerinin cagirdigi `tools/*.py` adlari (stub serilecek kume).
+
+    FAIL-CLOSED: kume BOS donerse sessizce "0 arac gerekiyormus" DENMEZ — istisna
+    atilir ([[olculdu-diyen-hukum-kaniti]])."""
+    bulunan = set()
+    for ad in sorted(os.listdir(kanca_kaynagi)):
+        yol = os.path.join(kanca_kaynagi, ad)
+        if not os.path.isfile(yol):
+            continue
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            bulunan.update(_KANCA_ARAC_KALIBI.findall(f.read()))
+    bulunan -= set(_STUB_DISI)
+    if not bulunan:
+        raise RuntimeError(
+            "FIKSTUR FAIL-CLOSED: izlenen kanca kaynaklarinda HIC `$kok/tools/*.py` "
+            "referansi YOK -> stub listesi TURETILEMEDI. Capa bayatlamis olabilir.")
+    return tuple(sorted(bulunan))
+
+
+def _araclari_ser(kok, kanca_kaynagi):
+    """Sentetik depoya stub `tools/*.py` serer (adlar KANONIK kaynaktan turetilir).
+
+    Stub'lar fiilen HICBIR IS YAPMAZ; varliklari kancalarin "arac YOK" kolunu
+    tetiklememesi icindir."""
+    for ad in _kanca_arac_adlari(kanca_kaynagi):
         yaz(os.path.join(kok, "tools", ad), GECER, True)
 
 
@@ -183,7 +211,7 @@ def depo_kur(kok, kanca_kaynagi, guard=GECER, ortam=None, kancalar=True):
     g(kok, "config", "user.email", "t@t", env=ortam)
     g(kok, "config", "user.name", "T", env=ortam)
     g(kok, "config", "extensions.worktreeConfig", "true", env=ortam)
-    _araclari_ser(kok)
+    _araclari_ser(kok, kanca_kaynagi)
     yaz(os.path.join(kok, "tools", "urunler-guard.py"), guard, True)
     if kancalar:
         hedef = os.path.join(kok, "tools", "kancalar")

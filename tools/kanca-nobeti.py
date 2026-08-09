@@ -125,6 +125,16 @@ BEKLENEN = (
         ("tools/gecmis-geri-donus-kapisi.py",
          "itmenin GETIRDIGI commit'lerde (mesaj + icerik ekseni) temizlenmis sizinti "
          "-> PUSH DURUR (fail-closed); geri-donusun TEK onleyici koludur"),
+        # 9 Agu 2026 eklendi. GEREKCE: kapsam kapisi CI'da (nobet.yml/deploy.yml)
+        # kosuyordu ama YEREL geri bildirim YOKTU — yeni bir kapi yazip `git add`
+        # etmeden kapiyi kosan mimar rc=0 YESIL aliyor, kirmizi ancak push'tan SONRA
+        # konusuyordu (katalog-alan-kapisi.py partisinde FIILEN yasandi). Cagri satiri
+        # BURAYA KAYITLI OLMAZSA silinmesi hicbir yerde kirmizi yakmaz
+        # ([[nobetci-cagri-satiri-nobetsiz]]). Medyan bedel 3,16 sn (olculdu).
+        ("tools/ci-kapsam-test.py",
+         "CI kapsam kapisi push ANINDA fail-closed: kapsamsiz VE henuz izlenmeyen "
+         "(`git add` edilmemis) kabul testi -> PUSH DURUR; kosmazsa kapsam korlugu "
+         "yalniz CI'da, yani push'tan SONRA konusur"),
     )),
     # 1 Agu 2026 eklendi (kurucu: tools/commit-mesaji-hook-kur.py).
     # GEREKCE: depo PUBLIC ve commit MESAJI yazildiktan sonra DEGISTIRILEMEZ —

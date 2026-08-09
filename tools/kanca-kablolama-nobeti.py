@@ -148,6 +148,12 @@ FAIL_CLOSED = {
     ("commit-msg", "tools/commit-mesaji-kapisi.py"):
         "commit MESAJI yazildiktan sonra degistirilemez (depo PUBLIC) -> tek "
         "onleyici yuzey budur; yutulursa tedarikci kimligi kalici olarak sizar.",
+    ("pre-push", "tools/ci-kapsam-test.py"):
+        "CI kapsam kapisi push ANINDA bloklar. 9 Agu 2026'da olculdu: kapinin kesfi "
+        "yalniz `git ls-files` uzerinden yuruyordu -> yeni bir `tools/<x>-kapisi.py` "
+        "yazip `git add` ETMEDEN kapiyi kosan mimar rc=0 YESIL aliyor, kirmizi ancak "
+        "push'tan SONRA CI'da konusuyordu. Cikis kodu yutulursa kapsamsiz kabul testi "
+        "main'e girer ve yayin SAATLER sonra durur.",
     ("pre-push", "tools/gecmis-geri-donus-kapisi.py"):
         "temizlenmis sizintiyi geri getiren itmeyi DURDURUR; yutulursa gecmis "
         "temizligi ucuncu kez geri doner ve hicbir yerde alarm calmaz.",

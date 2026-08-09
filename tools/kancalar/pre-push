@@ -21,6 +21,48 @@ if [ -n "$pruvo_pp_kok" ] && [ -f "$pruvo_pp_kok/tools/kanca-kur.py" ]; then
   fi
 fi
 
+# --- 0b) CI KAPSAM KAPISI (FAIL-CLOSED, 9 Agu 2026) -------------------------
+# OLCULEN KORLUK: yeni bir `tools/<x>-kapisi.py` yazip `git add` ETMEDEN kapiyi
+# kosan mimar rc=0 "SONUC: YESIL ✅" aliyordu; kirmizi ancak push'tan SONRA
+# nobet.yml'de konusuyordu (katalog-alan-kapisi.py partisinde FIILEN yasandi).
+# Kapinin kesfi artik izlenmeyen calisma-agaci dosyalarini da kapsiyor; BU BLOK
+# geri bildirimi CI'dan PUSH ANINA ceker. Ikisi AYRI eksendir: blok tek basina
+# korlugu KAPATMAZ (commit aninda dosya ZATEN `git ls-files`tadir — olculdu,
+# sentetik depoda ADIM 3 `--others`=[] verdi), kesif genislemesi olmadan bu blok
+# yalniz "CI'da gorecegini erken gor" der.
+# OLCULEN MALIYET: medyan 3,16 sn (3 kosum, 9 Agu 2026; taban 2,99 sn) -> 5 sn
+# esiginin ALTINDA, push'a eklenen bedel kabul edilebilir.
+# FAIL-CLOSED: rc != 0 -> PUSH DURUR. Bilincli atlama: `git push --no-verify`.
+# STDIN'E DOKUNMAZ (`</dev/null`): asagidaki sizinti kapisi ve D1 senkronu AYNI
+# stdin'i okur; tuketmek onlari SESSIZCE oldururdu.
+# SESSIZ CALISIR: kapi yesilse 193 satirlik envanter basilmaz, yalniz kirmizida
+# tam cikti dokulur.
+# 🔴 BAYRAKSIZ KOSAR (PAZARLIKSIZ): `--kendini-test` kolu GERCEK calisma agacini HIC
+# olcmez (olculdu 9 Agu: agacta 3 izlenmeyen+kapsamsiz dosya varken bayraksiz kol
+# rc=1, `--kendini-test` rc=0). Cagriyi o kola cevirmek push kapisini, eklendigi
+# korlugu gormeyen bir kola indirger. `pre_push_kablo_kontrol()` bunu olcer.
+# 🔴 ARAC YOKSA DA DURUR (kardes `gecmis-geri-donus` blogu ile SIMETRI): "kapiyi
+# kosamadim" sessizce "kapi yesil" DEMEK DEGILDIR.
+pruvo_kapsam_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_kapsam_kok" ] || [ ! -f "$pruvo_kapsam_kok/tools/ci-kapsam-test.py" ]; then
+  echo "!! PUSH DURDURULDU — CI KAPSAM KAPISI KOSULAMADI (tools/ci-kapsam-test.py yok)." >&2
+  echo "!! Kapsam kapisi fail-closed'dir. Kasten atlamak icin: git push --no-verify" >&2
+  exit 1
+fi
+pruvo_kapsam_cikti=$(python3 "$pruvo_kapsam_kok/tools/ci-kapsam-test.py" 2>&1 </dev/null)
+pruvo_kapsam_rc=$?
+if [ "$pruvo_kapsam_rc" -ne 0 ]; then
+  printf '%s
+' "$pruvo_kapsam_cikti"
+  echo "!! PUSH DURDURULDU — CI KAPSAM KAPISI KIRMIZI (rc=$pruvo_kapsam_rc)." >&2
+  echo "!! Yukarida 'KAPSAMSIZ' ve 'HENUZ IZLENMIYOR (kapsamsiz)' satirlarina bak." >&2
+  echo "!! COZUM: cagri satirini OTOMATIK bir is akisina ekle YA DA IZIN_LISTESI'ne" >&2
+  echo "!!        GEREKCELI muafiyet yaz. 'HENUZ IZLENMIYOR' ise dosya daha `git add`" >&2
+  echo "!!        edilmemis demektir — add etmek etiketi degistirir, sorunu KAPATMAZ." >&2
+  echo "!! Bilerek atlamak icin: git push --no-verify (gurultulu ve kayitli)." >&2
+  exit 1
+fi
+
 # >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir — ELLE DUZENLEME) >>>
 # FAIL-CLOSED: bu itme temizlenmis sizintiyi (mesaj YA DA icerik ekseni) GERI
 # GETIRIYORSA PUSH DURUR. Gerekce: tools/gecmis-geri-donus-hook-kur.py basligi.
