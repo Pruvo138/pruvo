@@ -212,13 +212,24 @@ function fiksturA() {
 }
 
 /** FIKSTUR B — YETERSIZ STOK: Marin blogu (80 slot) icin katalogda 20 urun var.
- *  Yuklu liste ON_TOPLAM'dan UZUN olmali ki "yanlis alarm" korumasi devreye girmesin. */
+ *  Yuklu liste ON_TOPLAM'dan UZUN olmali ki "yanlis alarm" korumasi devreye girmesin.
+ *
+ *  ⚠️ BOYUT DUGMELERINDEN BAGIMSIZ OLMALI (9 Agu 2026, olculdu): edge modunda yuklu liste
+ *  = ozet havuzlari + ozet.yeni, yani parametrik stogu + min(Marin stok, havuz) +
+ *  min(Otomobil stok, havuz) + OZET_YENI. Jeneratör 4 iken bu toplam havuz=100'de 172,
+ *  havuz=92'de TAM 164 (= ON_TOPLAM), havuz=90'da 162 oluyordu; yani fikstur havuz=100'e
+ *  8 kalemlik payla civilenmisti ve ozet.json'u kuculten HER ayar (havuz DUSURME ya da
+ *  OZET_YENI dusurme) bu testi "yetersiz=false" ile KIRMIZI yakiyordu — olculen sey
+ *  yetersiz-stok alarmi degil, fiksturun tesadufen esigi asmasiydi.
+ *  Parametrik stok TEK kapsiz kalemdir (havuz:0 = "tamami"), bu yuzden pay ORADAN verilir:
+ *  40 ile toplam havuz=48'e kadar ON_TOPLAM'in ustunde kalir. Blok adedi 4 oldugu icin
+ *  on bloga yine 4 Jeneratör girer (12a'nin ilk-4 iddiasi DEGISMEZ), kalani kuyruga gider. */
 function fiksturB() {
   const l = [];
   coklu(l, "Tamirat", 60);          // ham bas -> ozet.yeni bunlardan
   coklu(l, "Marin", 20);            // 80 slot icin YETERSIZ
   coklu(l, "Otomobil", 200);
-  coklu(l, "Jeneratör", 4, JEN);
+  coklu(l, "Jeneratör", 40, JEN);   // kapsiz havuz -> yuklu liste ON_TOPLAM'i AYARDAN BAGIMSIZ asar
   return l;
 }
 

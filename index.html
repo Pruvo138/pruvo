@@ -1420,13 +1420,28 @@
   //              sınırlı — ÖLÇÜLDÜ (31 Tem): Marin ~406 B/kart, Otomobil ~440 B/kart;
   //              100+100 havuz → ozet.json 130,1 KB (bütçenin %86,7'si). 120+120 denendi:
   //              146,4 KB (%97,6) — marka haritası katalogla büyüdüğü için PAY BIRAKILDI.
+  //              ⚠️ 9 Ağu 2026 — PAY TÜKENDİ, havuz 100+100 → 88+88 DÜŞÜRÜLDÜ. Katalog
+  //              23.105 üründe 100+100 havuz ozet.json'u 154.530 B'ye çıkarıyordu = 150 KB
+  //              bütçesinin %100,6'sı (bütçe TAVAN'dır, yükseltilmez).
+  //              TAZE ÖLÇÜM (9 Ağu, katalog 23.105, iki blok birlikte; ~900 B / havuz birimi):
+  //                havuz 100 → 154.530 B (%100,6 — bütçe AŞILIYOR) · 96 → 150.712 B (%98,1)
+  //                havuz  92 → 147.067 B (%95,7)                   · 90 → 145.191 B (%94,5)
+  //                havuz  88 → 143.232 B (%93,2, pay 10.368 B)  ← SEÇİLEN
+  //                havuz  84 → 139.526 B (%90,8)                   · 82 → 137.728 B (%89,7)
+  //              88 SEÇİLDİ: bütçenin altına ~10 KB pay bırakır ve havuz−adet farkını (8 kart)
+  //              KORUR. Havuz `adet`e (80) inerse her yenilemede aynı ürünler gelir, yani
+  //              çeşitlilik tamamen ölür — havuz ASLA 80'e indirilmez.
+  //              BÜYÜYEN KALEM HAVUZ DEĞİL: `markalar` haritası 30.136 B'ye çıktı ve kart
+  //              metinleri (açıklama 160 karakte kadar) günlük ±7 KB oynuyor; kalıcı çözüm bu
+  //              düğme değil, kart temsilinin kayıpsız sıkıştırılması (tekrar eden alan adları
+  //              bugün 20.186 B) ya da marka haritasının eşikle kırpılması — AYRI iş.
   //   kaynak   : havuzun ozet.json'daki yeri. "parametrik" = mevcut ozet.parametrik alanı
   //              (sarı seri havuzu; İKİNCİ KOPYA AÇILMADI, havuz:0 = "tamamı").
   //              "bloklar" = ozet.bloklar[<kategori>].
   var VITRIN_BLOKLAR = [
     {"kategori":"Jeneratör","adet":4,"havuz":0,"kaynak":"parametrik"},
-    {"kategori":"Marin","adet":80,"havuz":100,"kaynak":"bloklar"},
-    {"kategori":"Otomobil","adet":80,"havuz":100,"kaynak":"bloklar"}
+    {"kategori":"Marin","adet":80,"havuz":88,"kaynak":"bloklar"},
+    {"kategori":"Otomobil","adet":80,"havuz":88,"kaynak":"bloklar"}
   ];
 
   /* REKLAM ATIF YAKALAMA (reklam-roi-sistemi.md Faz 0): reklamdan gelen ziyaretin siparişe
