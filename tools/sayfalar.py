@@ -385,8 +385,12 @@ def _malzeme_rehberi():
 def _numuneye_gore_plastik_parca_uretimi():
     return (
         "<h1>Numuneye Göre Plastik Parça Üretimi — Getir, Ölçelim, Üretelim</h1>"
-        '<p class="lead">Kırılan ya da bulunamayan parçanızı getirin; ölçüsünü alıp ölçüye '
-        "özel, doğru malzemeyle üretelim. Tek adet olur.</p>"
+        '<p class="lead">Aradığınız parça muhtemelen hazır raflarda yok — bu sayfa hazır parça '
+        "satmıyor, elinizdeki kırık ya da eksik parçayı örnek alıp ölçüsüne göre özel "
+        "üretiyoruz. Makinenin küçük bir dişlisi, beyaz eşyanın klipsi, eski bir cihazın "
+        "kırılan tutamağı gibi tek bir küçük parça bulunamayınca koca bir ürün kullanılamaz "
+        "hale gelir. Siz numuneyi ya da ölçüyü gönderirsiniz, biz milimetrik ölçüp doğru "
+        "malzemeyle tek adet üretiriz.</p>"
         "<h2>Elinizdeki parça kırıldı ya da hiçbir yerde bulunamıyor mu?</h2>"
         "<p>Bazı parçalar artık üretilmez, yedeği kalmaz ya da hiçbir zaman ayrı satılmaz. "
         "Makinenin küçük bir dişlisi, beyaz eşyanın klipsi, teknedeki bir bağlantı aparatı, "
@@ -742,15 +746,13 @@ def _tekne_plastik_parca_ozel_uretim_gocek_fethiye():
 def _kisiye_ozel_logolu_kase_yaptirma():
     return (
         "<h1>Kişiye Özel Logolu Kaşe Yaptırma</h1>"
-        '<p class="lead">Yazı, logo ya da ikon işlenmiş kaşenizi ölçünüze göre üretiyoruz: '
-        "dikdörtgen/kare/yuvarlak, düz veya kesikli çerçeve, vidalı ayrı sap. Online sipariş.</p>"
-        "<p>İşletme adınız, logonuz ya da özel bir ikonla kaşe aradığınızda genelde iki "
-        "sorunla karşılaşırsınız: hazır kalıplar sizin ölçünüze ve tasarımınıza "
-        "uymaz, ya da eldeki kaşenin sapı kırılır, yazısı silinir, yenisini bulmak zorlaşır. "
-        "Piyasada tam istediğiniz biçimde bir karşılığı olmayan bu parçayı, siz nasıl "
-        "istiyorsanız öyle, ölçüye özel üretiyoruz. İstenen iş kaşe değil, üretilen parçanın "
-        'kendi yüzeyine logo, isim, yön oku veya parça kodu eklemekse <a href="/ozel-parcaya-logo-ve-yazi-isleme/">'
-        "özel parçaya logo ve yazı işleme</a> sayfası doğru adrestir.</p>"
+        '<p class="lead">Hazır kalıptan değil, sizin ölçünüze göre kaşe üretiyoruz: yazı, logo '
+        "ya da ikonunuzu dikdörtgen/kare/yuvarlak gövdeye işleriz, sap ayrı vidalı parça "
+        "olarak takılır.</p>"
+        "<p>Bir kaşe genelde iki nedenle aranır — hazır kalıplar sizin ölçünüze ve "
+        "tasarımınıza uymaz, ya da eldeki kaşenin sapı kırılır, yazısı silinir, aynısını "
+        "bulmak zorlaşır. Piyasada tam istediğiniz biçimde bir karşılığı olmayan bu parçayı, "
+        "siz nasıl istiyorsanız öyle, ölçüye özel üretiyoruz.</p>"
         "<h2>Nasıl çalışır: getir, ölç, üret</h2>"
         "<p>Yöntemimiz basit. Bize kaşede olmasını istediğiniz içeriği (yazı, logo, ikon) ve "
         "tercih ettiğiniz biçimi iletirsiniz; biz tasarımı ölçünüze göre kurar, ölçüye özel "
@@ -857,12 +859,14 @@ def _olcuye_ozel_conta_uretimi():
 def _olcuye_ozel_plastik_disli_uretimi():
     return (
         "<h1>Ölçüye Özel Plastik Dişli ve Kramayer Üretimi</h1>"
-        '<p class="lead">Kırılan ya da aşınan dişlinizi numuneden ölçüye özel üretiyoruz: '
-        "düz, helis, konik, <a href=\"/olcuye-ozel-sonsuz-disli-uretimi/\">sonsuz (helezon) dişli</a> ve kramayer.</p>"
-        "<p>Bir dişli aşındığında ya da kırıldığında iş çoğu zaman durur. Eski makinelerde, "
+        '<p class="lead">Kırılan ya da aşınan dişlinizi hazır parça olarak değil, elinizdeki '
+        "numuneden ölçüye özel üretiyoruz: düz, helis, konik, "
+        "<a href=\"/olcuye-ozel-sonsuz-disli-uretimi/\">sonsuz (helezon) dişli</a> ve kramayer.</p>"
+        "<p>Bir dişli aşındığında ya da kırıldığında iş çoğu zaman durur — eski makinelerde, "
         "ithal cihazlarda, mutfak robotundan bahçe ekipmanına kadar birçok üründe o dişlinin "
         "yedeği artık üretilmez, piyasada bulunmaz ya da yalnızca komple modül olarak satılır. "
-        "Elinizdeki parça küçük bir plastik çark olsa bile onsuz sistem çalışmaz. Otomat ve vending makinelerinde ürünü öne iten spiral ve tahrik dişlisi de bu gruba girer; kırılan parçayı <a href=\"/otomat-vending-makinesi-plastik-parca-uretimi/\">otomat ve vending makinesi plastik parça üretimi</a> sayfasındaki akışla çıkarıyoruz.</p>"
+        "Elinizdeki parça küçük bir plastik çark olsa bile onsuz sistem çalışmaz; biz onu tek "
+        "adet bile olsa yeniden üretiriz. Otomat ve vending makinelerinde ürünü öne iten spiral ve tahrik dişlisi de bu gruba girer; kırılan parçayı <a href=\"/otomat-vending-makinesi-plastik-parca-uretimi/\">otomat ve vending makinesi plastik parça üretimi</a> sayfasındaki akışla çıkarıyoruz.</p>"
         "<p><strong>Kırık ya da aşınan dişlinizi numuneden ölçüye özel üretiyoruz.</strong> "
         "Tek bir parça için bile çalışırız. Zincirle çalışan bir tahrik parçanız varsa diş yerine zincir adımı belirleyicidir; <a href=\"/olcuye-ozel-zincir-dislisi-uretimi/\">ölçüye özel zincir dişlisi üretimi</a> sayfası o hesabı ayrıca anlatır.</p>"
         "<h2>Nasıl çalışır: getir, ölç, üret</h2>"
@@ -2014,7 +2018,7 @@ def _akvaryum_terraryum_plastik_parca_uretimi():
 
 def _pvc_dograma_kapi_pencere_plastik_parca_uretimi():
     return (u"""<h1>PVC Doğrama Plastik Parçası: Ölçüye Özel Yeniden Üretim</h1>
-<p>PVC pencerenin kolu boşa dönüyorsa, sinekliğin mandalı elinizde kaldıysa ya da panjur kayışı makarasından çıkıyorsa sorun genelde koca doğramada değil, içindeki tek bir küçük plastikte olur. Kapağın tırnağı kırılır, mandalın yayı oturduğu yuva çatlar, makaranın kanalı aşınır — ve o parça yüzünden çalışmayan bütün bir kanat ortaya çıkar. Doğramanın kendisi sapasağlam durur, hareket eden minik plastik gider.</p>
+<p>PVC pencerenin kolu boşa dönüyorsa, sinekliğin mandalı elinizde kaldıysa ya da panjur kayışı makarası kanaldan çıkıyorsa, aradığınız hazır bir yedek parça değildir — bu parçalar genelde piyasada da bulunmaz. Biz bu küçük plastikleri örnek parçadan ölçüp size özel yeniden üretiyoruz: kapağın tırnağı, mandalın yuvası, makaranın kanalı milimetrik ölçüyle orijinaline sadık kalır. Doğramanın kendisi sapasağlam durur, sorun yalnızca o küçük hareketli parçadadır — biz de yalnızca o parçayı üretiriz.</p>
 <p>Bu parçalar için yedek bulmak çoğu zaman imkânsıza yakındır. Doğrama sistemleri markaya ve yıla göre değişir; on yıl önce takılan bir serinin ispanyolet kapağı bugün üretimden kalkmıştır, sineklik mandalı ithal edilmiyordur, panjur kayış makarası yalnızca komple mekanizmayla satılıyordur. Yapı marketinde "benzerini" bulursunuz, ama kanal genişliği tutmaz, mil çapı boşluk yapar, vida delikleri denk gelmez. Sonunda ustalar tek çıkış olarak komple kanat ya da komple mekanizma değişimini önerir; küçük bir plastik yüzünden büyük bir masraf çıkar. <strong>pvc pencere plastik yedek parça</strong> aramasının çoğu böyle biter.</p>
 <p>PRUVO tam bu noktada devreye girer. Elinizdeki kırık parçayı — parçaları — alır, ölçüsünü çıkarır ve aynı ölçüde yeniden üretiriz. İspanyolet kapağı yaptırma, sineklik mandalı yedek parça, pvc doğrama köşe takozu, balkon kapısı kilit dili, panjur kayış makarası gibi işler bizim için standart iştir; kataloğu olmayan, modeli kalmayan parça bizde numuneden yeniden doğar. <strong>Ölçü sizden, üretim bizden.</strong></p>
 <h2>Nasıl çalışır: getir, ölç, üret</h2>
