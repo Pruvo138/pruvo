@@ -12,22 +12,8 @@ Tam döküm → `DEVAM-ARSIV.md`. Özet: yayını bloklayan kırmızı YOK; öks
 ## ⏱ Nöbet defteri: 09 Ağu ~16:40Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
 Tam döküm → `DEVAM-ARSIV.md`. Özet: yayını bloklayan kırmızı yoktu, üç kırmızı kolun üçü de `deploy.needs` dışında; defter paylaşılan checkout kilidi yüzünden commit edilemedi.
 
-## ⏱ Nöbet defteri: 09 Ağu ~17:37Z turu (KraL) — 🔴 PUSH EDİLMEMİŞ COMMIT YAYINI KAPATACAK
-
-**Ev kontrolü:** `/Users/okan/dev/pruvo` (doğru ev).
-**Mail süpürmesi (koşulsuz, 0.5 adımı):** taşınan **3**, tur sonu "Run failed" **0**. Pozitif tanıma izi: `notifications@github.com` toplam **3**, gelen kutusu toplam **7544** (substring; tam eşitlik kullanılmadı) → hüküm ÖLÇÜLDÜ. Yalnız birleşik gelen kutusu, Çöp boşaltılmadı.
-**Bağımsız CI ölçümü (`gh`):** YAYIN_BLOKLAYAN_KIRMIZI=YOK. Koşum `31322770355` (uç `a872b84b`) **tamamen yeşil**: build · serit-a2 · serit-a3 · serit-a4 · deploy · yayin. Ardındaki `31325545507` (uç `eba8d99e`) uçuşta. Yayın tavanı yeniden ölçüldü: `serit-a4` 16:36:33→17:38:18 = **61m45s** (açık iş #2 doğrulandı).
-**Kırmızı kollar:** ödeme/paket tazelik alarmları (`31325853412`, `31325546964`) — bilinen tek sınıf, OKAN KAPISI, DUR koşulu, daha önce iki kez iletildi → tekrar yazılmadı.
-
-**🔴 YENİ SINIF — `serit-b` kırmızısı ve onun PUSH EDİLMEMİŞ onarımı.**
-Koşum `31325545636`, adım "Git baglam scrub'i — tek kaynak drift nobeti" (`python3 tools/git_ortami.py --kendini-test`): `[FAIL] IDDIA-TEK-KAYNAK` — `tools/worktree-tavan-nobeti.py` ikinci bir tanım kümesi taşıyordu. Onarımı yerelde **commit'li ama PUSH'suz** duruyor: `c09b5d37` (34 dosya, `tools/git_ortami.py` tek kaynak + `tools/fikstur-git-sizinti-kapisi.py`).
-**Öksüz onarım "hazır" sayılmadı, yeniden çürütüldü — ve KIRMIZI çıktı:**
-- ✅ Kapılar yeşil: `fikstur-git-sizinti-kapisi` rc=0 · `git_ortami --kendini-test` **11/11** (`IDDIA-TEK-KAYNAK` artık `[]`) · `is-akisi-kapisi` rc=0 (204 kendini-test iddiası) · `varlik-test` rc=0 · `kanca-kablolama-test` rc=0 (62 iddia) · `kanca-nobeti-test` rc=0 (16 vaka/47 iddia) · `ci-kapsam-test` rc=0 (257 kabul testi) · `worktree-tavan-nobeti --kendini-test` IDDIA=10.
-- 🔴 **Ama sentetik depo kuran ÜÇ KARDEŞ KAPIYI kırdı:** `urunler-guard-provenans-test.py` rc=1 (B4 ÖLÇÜLEMEDİ) · `prepush-d1-kaynak-test.py` rc=1 (A1 kayıt YOK → `FileNotFoundError`) · `yedek-hook-test.py` rc=1 (`ModuleNotFoundError: No module named 'git_ortami'`, 32 kontrolün 6'sı kırmızı).
-- **Bu bir alarm değil YAYIN KOLU:** `urunler-guard-provenans-test` → `deploy.yml:81` → **`build`**; `prepush-d1-kaynak-test` → `deploy.yml:514` → **`serit-a2`**. `deploy.needs = [build, serit-a2, serit-a3, serit-a4]` → **`c09b5d37` bugünkü haliyle push edilirse yayın hattı KAPANIR.** Önceki uç `a872b84b` bu üçünü CI'da yeşil geçmişti → regresyon `c09b5d37` ile geldi.
-- **PUSH EDİLMEDİ.** Onarım Codex'e devredildi (spec: sentetik depoya `git_ortami` bağımlılığını taşı; iddia sayısı DÜŞMEYECEK, üç kontrol mutantı kırmızı yakacak, tek commit, push YOK).
-**⚠️ CANLI TEHLİKE — sıradaki turun İLK işi:** `c09b5d37` paylaşılan checkout'ta `main`'de duruyor; bu ağaçtan push atan HERHANGİ bir oturum onu da götürür ve `build`+`serit-a2` kırmızı yakar. Onarım commit'i alınmadan `main` push'u YAPILMAMALI.
-**Sınıf:** kancaya/araca yeni bağımlılık eklemek, o yüzeyi tüketen kardeş kapıların elle tutulan fikstür kurulumunu bayatlatır — bu deponun bilinen ve TEKRARLAYAN sınıfı.
+## ⏱ Nöbet defteri: 09 Ağu ~17:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
+Tam döküm → `DEVAM-ARSIV.md`. Özet: push edilmemiş `c09b5d37` onarımı sentetik depo kuran üç kardeş kapıyı (`build` + `serit-a2` kolları) kırıyordu; canlı tehlike 22:40Z turunda KAPANDI (onarım başka oturumdan indi). Sınıf kaydı: kancaya/araca yeni bağımlılık eklemek, o yüzeyi tüketen kardeş kapıların elle tutulan fikstür kurulumunu bayatlatır.
 
 ## ⏱ Nöbet defteri: 09 Ağu ~22:40–23:10Z turu (KraL) — YAYIN ZİNCİRİ TAMAMEN YEŞİL İNDİ
 
@@ -40,6 +26,18 @@ Koşum `31325545636`, adım "Git baglam scrub'i — tek kaynak drift nobeti" (`p
 **🔴 YAYIN TAVANI, ALARM EŞİĞİNİN 2,4 DK ALTINDA (bu turun asıl bulgusu):** `serit-a4` = **3759 sn (62,65 dk)**; içindeki TEK adım (model üyeliği mutasyon bataryası, 34 öldürücü + 7 kontrol) **2834 sn** = job'un **%75'i**. Tıkanma alarmının eşiği **65 dk**. Yani kuyruksuz, tek ve tamamen yeşil bir zincir bile eşiğin yalnız **2,35 dk** altında bitiyor → en ufak kuyruk/yeniden koşum alarmı ateşler. Bu turda tıkanma alarmı 3 kez kırmızı yandı (`31339515483`, `31337892728`, `31337797711`); üçü de **TRUE-POSITIVE** (en eski bekleyen 227 dk, ölçüm anında canlı 14 commit geride) ve üçü de yayını **BLOKLAMAZ** (ayrı workflow, `deploy.needs` içinde değil).
 **Sıradaki turun işi (yeni değil, ölçümü tazelendi):** yayın tavanını **2834 sn'lik tek adımdan** düşür — eşiği yükseltmek yeşile boyamaktır, YAPILMAYACAK. Kaldıraç: bataryayı parçalama/paralelleştirme; **iddia sayısı DÜŞMEYECEK**, kontrol mutantları kırmızı yakmaya devam edecek (kabul: eski/yeni iddia sayısı eşit + süre ADIM biriminde ölçülü).
 **Defter COMMIT'lendi (`c9ef0781`), PUSH EDİLMEDİ — gerekçe bu turda ÖLÇÜLDÜ:** `5583a1af`'in zinciri uçuşta ve tavan 62,65 dk / eşik 65 dk. Salt-defter push'u yeni bir ~62 dk'lık zincir başlatır ve gerçek içerik taşıyan 3 commit'in yayınını geciktirip tıkanma alarmını garanti ateşler. Defter, bir sonraki İÇERİK push'una binecek.
+**Okan'a çıkılmadı:** insan kararı gerektiren tıkanma yok, DUR koşulu yok.
+
+## ⏱ Nöbet defteri: 09 Ağu ~23:37Z turu (KraL) — YAYIN ZİNCİRİ YEŞİL, ONARIM GEREKMEDİ
+
+**Ev kontrolü:** `/Users/okan/dev/pruvo` (ölçüldü, doğru ev).
+**Mail süpürmesi (koşulsuz, 0.5 adımı):** taşınan **0**, tur sonu "Run failed" **0**. Pozitif tanıma izi: gelen kutusu **7543** mesaj tarandı, `notifications@github.com` toplam **0** — bu sayı tek başına ÖLÇÜLEMEDİ demek olacağı için eşleştiricinin çalıştığı AYRI bir tanı taramasıyla kanıtlandı (büyük/küçük harf duyarsız "github" araması 7543 gönderen alanında **1** eşleşme buldu: `support@github.com`) → hüküm **TEMİZ**. Substring kullanıldı, tam eşitlik kullanılmadı; yalnız birleşik gelen kutusu, Çöp boşaltılmadı.
+**Bağımsız CI ölçümü (`gh`, 23:44Z):** YAYIN_BLOKLAYAN_KIRMIZI=YOK. `Build & deploy` son koşumu `31339015384` (uç `5583a1af`): **altı job da success** — build · serit-a2 · serit-a3 · serit-a4 · deploy · yayin. Canlı HTTP **200**.
+**Son 2 saatin kırmızıları — SINIF KAPALI, onarım YAPILMADI (gerekmedi):** `31339515483` · `31337892728` · `31337797711`; üçü de `paket-tazelik-alarmi.yml` / `yayin-nabzi` işi, ayrı workflow, `deploy.needs` DIŞINDA. Aynı uç (`5583a1af`) için **23:05Z**'de aynı workflow `31341012738` **success** döndü → alarm true-positive'di (ölçüm anında canlı geride), kuyruk boşalınca kendi kendine yeşile döndü. Kök neden yeni değil: 22:40Z turunda ölçülen **yayın tavanı 62,65 dk / alarm eşiği 65 dk** marjı — sıradaki işin gerekçesi bu.
+**Uçuşta:** `31339015481` (SERIT B, yayını BLOKLAMAZ) — 22:48Z'den beri güncellenmemiş, sonraki tur izlesin.
+**Yerel durum:** `origin/main` = `5583a1af`; lokal **2 commit önde** → `d1abf85d` (bu defter) + `0d728340` (başka mimarın 118 kayıtlık içerik partisi — **yabancı iş, DOKUNULMADI**). `tools/d1-sync.py` yabancı unstaged değişiklik taşıyor, dokunulmadı. `git worktree list` 1 satır.
+**Defter yine PUSH EDİLMEDİ, gerekçe TAZELENDİ:** 22:40Z turunun "defter bir sonraki İÇERİK push'una binecek" kararı aynen geçerli ve artık defterin önünde gerçek içerik commit'i duruyor. Salt-defter push'u boşuna ~62 dk'lık zincir başlatıp tıkanma alarmını ateşlerdi.
+**🔴 YENİ ÖLÇÜM — yarım yabancı parti varken commit atmak o partiyi DİSKTE bozabilir.** `pre-commit` zinciri: `kanca-kur --tazele` → `urunler-guard --tetik commit` → `mukerrer-kontrol` → `mimar-commit-kapisi` → `diriltme-kapisi --calisma-agaci` → `katalog-alan-kapisi` → `devam-sinif-kapisi --index`. Guard yazma kararını **INDEX'ten değil ÇALIŞMA AĞACINDAN** verir (`urunler.json`'u doğrudan diskten okur) ve manifestsiz alan değişikliğini `_atomic_write` ile **diske geri sarar** — commit sadece `DEVAM.md` içerse bile. Yani başka bir mimarın commit'lenmemiş parti EDİTİ varken bu ağaçtan commit atmak onun işini sessizce geri alabilir. Ayrım: sadece-YENİ-ürün eklemesi zararsız; mevcut ürünün ALAN değişikliği geri sarılır; diriltme/mükerrer ihlali ise commit'i bloklar (dosyayı bozmadan). **Bu turda risk YOKTU** — parti commit'lenmişti, `urunler.json` çalışma-ağacı diff'i boştu; defter commit'i ancak bu ölçümden sonra atıldı.
 **Okan'a çıkılmadı:** insan kararı gerektiren tıkanma yok, DUR koşulu yok.
 
 ## 🔁 KraL DEVIR (clear oncesi yazildi) — SIRADAKI TEK IS: `muh/marka-tek-sayfa` dalini KAPAT
