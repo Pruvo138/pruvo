@@ -162,17 +162,19 @@ def izole_ortam(ev):
     return ortam
 
 
-def _araclari_ser(kok):
-    # 6 Agu 2026: `diriltme-kapisi.py` eklendi — pre-commit adim 4 onu FAIL-CLOSED
-    # arar (dosya yoksa commit DURUR). Sentetik depoda urunler.json bulunmadigi icin
-    # stub fiilen KOSMAZ; varligi kancanin "arac YOK" kolunu tetiklememesi icindir.
-    # 8 Agu 2026: `katalog-alan-kapisi.py` eklendi — pre-commit adim 5 onu FAIL-CLOSED
-    # arar (dosya yoksa commit DURUR). Sentetik depoda urunler.json bulunmadigi icin
-    # stub fiilen KOSMAZ; varligi kancanin "arac YOK" kolunu tetiklememesi icindir.
-    for ad in ("urunler-guard.py", "mukerrer-kontrol.py", "mimar-commit-kapisi.py",
-               "commit-mesaji-kapisi.py", "gecmis-geri-donus-kapisi.py",
-               "yedekle.py", "kutu-arsivle.py", "d1-sync.py", "diriltme-kapisi.py",
-               "katalog-alan-kapisi.py"):
+def _araclari_ser(kok, kanca_kaynagi):
+    """Kancalarin andigi araclari KANONIK kanca govdelerinden turetip stub'la.
+
+    Elle tutulan liste her yeni fail-closed adimda bayatlayip saglikli kontrol
+    commit'ini sahte kirmizi yakiyordu. Sentetik depoda bu araclar fiilen is
+    yapmaz; varliklari kancanin "arac YOK" kolunu tetiklememek icindir.
+    """
+    araclar = set()
+    for kanca in sorted(os.listdir(kanca_kaynagi)):
+        yol = os.path.join(kanca_kaynagi, kanca)
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            araclar.update(re.findall(r"\btools/([A-Za-z0-9_-]+\.py)\b", f.read()))
+    for ad in sorted(araclar):
         yaz(os.path.join(kok, "tools", ad), GECER, True)
 
 
@@ -183,7 +185,7 @@ def depo_kur(kok, kanca_kaynagi, guard=GECER, ortam=None, kancalar=True):
     g(kok, "config", "user.email", "t@t", env=ortam)
     g(kok, "config", "user.name", "T", env=ortam)
     g(kok, "config", "extensions.worktreeConfig", "true", env=ortam)
-    _araclari_ser(kok)
+    _araclari_ser(kok, kanca_kaynagi)
     yaz(os.path.join(kok, "tools", "urunler-guard.py"), guard, True)
     if kancalar:
         hedef = os.path.join(kok, "tools", "kancalar")
