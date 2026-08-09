@@ -49,6 +49,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -188,13 +189,29 @@ try:
 
     # ---- SEO: sitemap kaydı parametreli/yeni URL ailesi AÇMAZ ----
     sitemap = sonuc["sitemap"]
+    sitemap_sayfalari = sonuc.get("sitemap_sayfalari", [])
     parametreli = [loc for loc, _pri, _cf in sitemap if "?" in loc]
     kontrol("sitemap'te parametreli (?) marka kaydı YOK (bulunan: %d)" % len(parametreli),
             not parametreli)
-    beklenen_kayit = (sonuc["marka_sayfasi_sayisi"] + sonuc["model_sayfasi_sayisi"] + 1)
-    kontrol("sitemap kayıt sayısı = marka(%d) + model(%d) + /marka/ dizini(1) = %d"
-            % (sonuc["marka_sayfasi_sayisi"], sonuc["model_sayfasi_sayisi"], beklenen_kayit),
-            len(sitemap) == beklenen_kayit)
+    sinif_sayilari = Counter(sinif for sinif, _url in sitemap_sayfalari)
+    kanonik_siniflar = set(mm.SITEMAP_SAYFA_SINIFLARI)
+    manifest_siniflari = set(sinif_sayilari)
+    kontrol("sitemap sayfa sınıfları kanonik evrenle birebir (%s)"
+            % ",".join(sorted(manifest_siniflari)),
+            manifest_siniflari == kanonik_siniflar)
+    kontrol("sitemap URL'leri kanonik sınıf manifestiyle birebir",
+            [loc for loc, _pri, _cf in sitemap] == [url for _sinif, url in sitemap_sayfalari]
+            and len(set(url for _sinif, url in sitemap_sayfalari)) == len(sitemap_sayfalari))
+    beklenen_kayit = len(sitemap_sayfalari)
+    beklenen_model = sinif_sayilari["model"] + sinif_sayilari["diger"]
+    kontrol("sitemap kayıt sayısı = marka(%d) + model-katmanı(%d; diğer=%d) + "
+            "/marka/ dizini(%d) = %d"
+            % (sinif_sayilari["marka"], beklenen_model, sinif_sayilari["diger"],
+               sinif_sayilari["dizin"], beklenen_kayit),
+            len(sitemap) == beklenen_kayit
+            and sonuc["marka_sayfasi_sayisi"] == sinif_sayilari["marka"]
+            and sonuc["model_sayfasi_sayisi"] == beklenen_model
+            and sinif_sayilari["dizin"] == 1)
 
     KART_RE = re.compile(r'<div class="card" data-kat="([^"]*)"><a class="card-main" '
                          r'href="([^"]+)"')
