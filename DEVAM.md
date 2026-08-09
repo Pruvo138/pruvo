@@ -29,10 +29,16 @@ verdi (artefakt `last-modified 00:45:42Z`, `cf-cache-status=HIT`, `age=0`).
 **0** · eski uc anahtarin toplam gecisi **0**. `fetchpriority="high"` **2** cikti; beklenti 1 idi ve
 **beklenti yanlisti**: head preload + govde LCP `<img>` ikisi birden tasimak ZORUNDA (ayrisirsa
 gorsel iki kez iner) — kaynakta 23. ve 1036. satir, yani 2 DOGRU sayidir.
-**PSI mobil (Lighthouse 13.4.1, emule Moto G Power), 9 Agu 00:56Z — ONCE (8 Agu) → SONRA:**
-performans **74 → 98** · LCP **10,7 → 2,1 sn** · SI **2,4 → 1,1 sn** · FCP **1,1 → 1,1 sn** ·
-TBT **100 → 110 ms** · CLS **0 → 0**. Regresyon kontrolu: erisilebilirlik **100** · en-iyi-
-uygulamalar **100** · SEO **100** (ucu de degismedi).
+**PSI mobil (Lighthouse 13.4.1, emule Moto G Power / yavas 4G) — ONCE (8 Agu, TEK kosum) → SONRA
+(9 Agu 00:56-01:02Z, UC kosum):** performans **74 → 88 · 92 · 98** · LCP **10,7 → 2,1-3,4 sn** ·
+SI **2,4 → 1,1 sn** · FCP **1,1 → 1,1 sn** · TBT **100 → 10-170 ms** · CLS **0 → 0**.
+Regresyon kontrolu: erisilebilirlik **100** · en-iyi-uygulamalar **100** · SEO **100** — ucu de
+UC kosumun UCUNDE de degismedi.
+🔴 **Tek kosum yaziLMADI, ARALIK yazildi:** ilk kosum 98/2,1 sn okundu, bagimsiz ikinci tur 92/3,4 sn
+ve onbellekten okunan ucuncu bir rapor 88 verdi. Performans ±5, TBT 10-170 ms salindi; yani tek
+PSI kosumunu "sonuc" diye civilemek bu sayfada **yaniltici**. Salinimin ALTINDA kalan hukum yine de
+tartisilmaz: LCP **10,7 sn → en kotu 3,4 sn**, yani en kotumser okumada bile ~3x iyilesme, ve TBT
+ekseni gurultunun icinde (100 ms tabani araligin ORTASINDA) — TBT'de regresyon IDDIA EDILEMEZ.
 🔴 **Atif siniri:** olculen sayfa `062f8cb2` ve bu commit `b7cdc015`'i ICERMEZ (`--is-ancestor`
 rc=1) → yukaridaki kazanc **WebP kolunun TEK BASINA** kazancidir; AVIF kolunun EK katkisi HENUZ
 olculmedi. Kardes turun bekledigi kosum `31286873618` (head `3e7f1b24`, `b7cdc015` ICERIR) ucusta.
