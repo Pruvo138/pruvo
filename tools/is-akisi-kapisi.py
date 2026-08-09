@@ -1784,7 +1784,10 @@ TABLO_TABANLARI = (
     # tam esitlik operatoru geregi taban BILINCLI olarak ayni commit'te guncellendi.
     # 9 Agu: +1 -> 87. Yeni giris ("nobet.yml", "serit-b", "tools/r2-avif-mutasyon-test.py");
     # R1 sihirli-bayt whitelist'i AVIF'e acildi, bataryasi AYNI commit'te beyan edildi.
-    ("SERIT_B", 87),
+    # 9 Agu: +3 -> 90. Marka tek-sayfa davranis nobetcisi ile iki ayirt edici mutasyon
+    # surucusu serit-b'ye AYRI duz komutlarla eklendi; ucu de AYNI commit'te tek tek
+    # beyan edildi.
+    ("SERIT_B", 90),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2856,10 +2859,16 @@ SERIT_B = {
         "artimli cizilmiyor' der — SSR'de basili N kart + duz bag listesi JS-siz halde "
         "ZATEN gorunur oldugu icin sayfa yine dogru ve eksiksiz linklidir, yayini "
         "durdurmanin tamir degeri yoktur.",
-    # NOT: tools/marka-bolum-mutasyon.py de AYNI job'da (serit-b) kosuyor ama bu tabloya
-    # GIRMEZ — kapi cagrisi degil MUTASYON SURUCUSUDUR (kendi kapisinin ayirt ediciligini
-    # olcer). Tabloya konulunca is-akisi-kapisi "BAYAT giris" diye KIRMIZI yaniyor: beyan
-    # yalnizca gercek kapi cagrilari icin istenir.
+    ("nobet.yml", "serit-b", "tools/marka-bolum-mutasyon.py"):
+        "Marka bolum kimligi kapisinin ayirt ediciligini iki katmanda mutasyonla olcer; "
+        "agsiz ve deterministiktir. Yayin dogrulugunu degil nobetcinin KENDI koruma "
+        "gucunu sinadigi icin serit B'de kosar; fail-closed kirmizisi gorunur kalir ama "
+        "yayin yolunu durdurmaz.",
+    ("nobet.yml", "serit-b", "tools/marka-sayfa-mutasyon.py"):
+        "Marka tek-sayfa hukmunun 13 oldurucu ve 5 kontrol mutantiyla ayirt "
+        "ediciligini olcer; agsiz ve deterministiktir. Yayin dogrulugunu degil "
+        "nobetcinin KENDI koruma gucunu sinadigi icin serit B'de kosar; fail-closed "
+        "kirmizisi gorunur kalir ama yayin yolunu durdurmaz.",
     # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
     ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
         "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "
