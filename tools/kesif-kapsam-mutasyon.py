@@ -526,7 +526,7 @@ def main():
         lambda: _kablo_nobetcisi(
             ('                 "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",',
              '                 "suzgec_fikstur_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 19", "KOL_BIRLESIM_TABANI = 9")),
+            ("KOL_BIRLESIM_TABANI = 18", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
@@ -589,7 +589,7 @@ def main():
         lambda: _kablo_nobetcisi(
             ('"izlenmeyen_fikstur_kontrol", "kanca_kablo_serit_kontrol",',
              '"izlenmeyen_fikstur_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 19", "KOL_BIRLESIM_TABANI = 9")),
+            ("KOL_BIRLESIM_TABANI = 18", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-SERIT agir ayak adimi BLOKLAMAYAN job'a tasindi",
@@ -677,24 +677,25 @@ def main():
     # ozyineleme uretiyor ve UC KOL DA >150 sn ASILIYORDU. Asilma, bloklayici bir
     # kapida kirmizi DEGILDIR — hukumsuzluktur.
     _EVREN_CAPA = (
-        "    return sorted(ad for ad, deger in vars(mod).items()\n"
-        "                  if callable(deger) and _NOBETCI_CAGRI_RE.search(ad)\n"
-        "                  and getattr(deger, \"__module__\", None) == mod.__name__)")
+        "    kaynak = getattr(mod, \"__pruvo_kaynak__\", None)\n"
+        "    if kaynak is None:")
 
-    # 🔴 MUTANT MODUL SART: `hukum_davranis_kontrol()` evreni CANLI
-    # `_nobetci_evreni()` ile hesaplar; yalniz KAYNAK gecirmek onu degistirmez
-    # (olculdu: `_davranis()` ile rc=0).
+    # 🔴 MUTANT MODUL SART: evren CANLI `_nobetci_evreni()`/`_sozlesme_evreni()`
+    # ile hesaplanir; yalniz KAYNAK gecirmek onlari degistirmez.
     def _davranis_govdesi(mod):
         ok, hatalar = mod.hukum_davranis_kontrol()
         return (0 if ok else 1), hatalar
 
     olc("M-I1d BOS EVREN (fail-fast: hukum VERILMELI, ASILMAMALI)",
-        lambda: _davranis_govdesi(_mutant_modul("i1d", _EVREN_CAPA, "    return []")),
+        lambda: _davranis_govdesi(_mutant_modul(
+            "i1d", _EVREN_CAPA,
+            "    kaynak = \"\"\n    if False:")),
         True, "NOBETCI EVRENI KUCULDU")
 
     olc("M-I3c EVREN [:15]e KIRPILDI (taban KAYIT DEFTERINDEN turer)",
-        lambda: _davranis_govdesi(_mutant_modul("i3c", _EVREN_CAPA,
-                                                _EVREN_CAPA + "[:15]")),
+        lambda: _davranis_govdesi(_mutant_modul(
+            "i3c", "    return sorted(_sozlesme_evreni(kaynak))",
+            "    return sorted(_sozlesme_evreni(kaynak))[:15]")),
         True, "NOBETCI EVRENI KUCULDU")
 
     olc("M-H3-1 (7. tur kacisi) `_ = nobetci()` + sabit atama",
@@ -786,7 +787,7 @@ def main():
     # degistirmez (olculdu: `_kablo_nobetcisi` ile rc=0).
     olc("M-G6 KOL_BIRLESIM_TABANI dusuruldu (esitlik sarti)",
         lambda: _kablo_govdesi(_mutant_modul(
-            "g6", "KOL_BIRLESIM_TABANI = 19", "KOL_BIRLESIM_TABANI = 12")),
+            "g6", "KOL_BIRLESIM_TABANI = 18", "KOL_BIRLESIM_TABANI = 12")),
         True, "KOL BIRLESIMI TABANLA UYUSMUYOR")
 
     olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",

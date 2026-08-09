@@ -5041,7 +5041,7 @@ NOBETCI_KABLOLARI = (
                  "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
                  "main_kablosu_kontrol", "muaf_sayaci_kontrol",
                  "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",
-                 "suzgec_kablosu_kontrol", "tutarlilik_kontrolu")),
+                 "suzgec_kablosu_kontrol")),
     ("main", ("alt_kume_fikstur_kontrol", "bayraksiz_adim_kontrol",
               "bulgu1_mutasyon_kontrol", "hukum_davranis_fikstur_kontrol",
               "hukum_davranis_kontrol", "hukum_fuzz_kontrol",
@@ -5051,12 +5051,19 @@ NOBETCI_KABLOLARI = (
               "pre_push_kablo_kontrol", "suzgec_fikstur_kontrol",
               "suzgec_kablosu_kontrol")),
 )
+# 🔴 `tutarlilik_kontrolu` BU DEFTERDE DEGIL (10. tur): (ok, hata) sozlesmesine
+# UYMAZ — LISTE dondurur ve `hatalar.extend(...)` ile akar, yani stub sozlesmesine
+# de girmez. Cagri raseti KAYBOLMADI: `ALT_KUME_KABLOLARI`'nda
+# ("denetle", ("tutarlilik_kontrolu",)) olarak duruyor; cagrisi silinince
+# `suzgec_kablosu_kontrol` KIRMIZI yakiyor (olculdu). Iki defter AYNI seyi degil,
+# AYRI sozlesmeleri yargilar — birlesim sayisinin 19'dan 18'e inmesi YUZEY KAYBI
+# DEGIL, OLCU BIRIMI degisimidir ([[hukum-yanlis-birimde]]).
 
 # 🔴 TOPLAM YUZEY RASETI ([[kapi-yan-etkisi-gizli-onkosul]]): bir adimi kolun
 # birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
 # NOT: bu SAYI artik TEK BASINA yuk tasimiyor (dusurulebilir olmasi E5-a deligiydi);
 # asil capa yukaridaki ESITLIK kontroludur. Sayi ikinci bir ratchet olarak kalir.
-KOL_BIRLESIM_TABANI = 19
+KOL_BIRLESIM_TABANI = 18
 # UCUNCU (BLOKLAYICI) KOL — `--kanca-kablo`. `NOBETCI_KABLOLARI`'nin anahtarlari
 # FONKSIYON adi oldugu icin bu kolun nobetcileri `main` kaydinda erir ve kol dokumu
 # onu RAPORLAMIYORDU (5. tur F6). Ayri kayit: dokum UC SERIDI de basar.
@@ -5073,7 +5080,17 @@ _OK_ADI_RE = re.compile(r"^ok\d+$")
 # kapsanmalari icin ADAY listesine alinir (tekil yama degil: asagidaki `turevli`
 # turetimi zaten "nobetci cagrisindan deger alan HER ad" kuralini uygular).
 _HUKUM_ADAY_ADLARI = ("ok", "ok_s")
-# 🔴 NOBETCI ADLANDIRMA KONVANSIYONU (YAZILI KURAL, 9. tur I3-a)
+# 🟡 NOBETCI ADLANDIRMA KONVANSIYONU — **KURALDIR, KAPI DEGILDIR** (10. tur J3)
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. turda bu konvansiyon `kapi-envanteri-test.py`de IDDIA olarak civilenmisti;
+# 10. turda o iddia KALDIRILDI. Sebep: evren artik ADDAN degil CAGRI GRAFI +
+# (ok, hata) SOZLESMESINDEN turuyor (`_sozlesme_evreni`), yani desen disi
+# adlandirilan bir nobetci ZATEN kendiliginden kapsaniyor. Ada dayali bir iddia
+# birakmak, kapsami ADIN saglIadigi izlenimi verirdi — YANLIS IDDIA, iddiasizliktan
+# kotudur ([[beyan-edilmis-survivor]]). Asagisi UYUM ONERISIDIR (okunabilirlik),
+# kapsam garantisi DEGIL.
+#
+# ESKI GEREKCE (tarihsel kayit, 9. tur I3-a):
 # ─────────────────────────────────────────────────────────────────────────────
 # Bu dosyadaki HER nobetci fonksiyonun adi `*_kontrol` ya da `*_kontrolu` ile
 # BITMEK ZORUNDADIR. Sebep: hem `_kol_kapsam_kontrol()` (defter/cagri esitligi)
@@ -5180,13 +5197,20 @@ _SEAM_YASAK_CAGRI = ("run", "check_output", "Popen", "check_call", "getoutput",
 # da seam YASAK LISTESINI bosaltmak hicbir gate kolunda kirmizi yakmiyordu — govde
 # dogru cevap veriyordu, KIMSE ONA BILEREK BOZUK GIRDI VERMIYORDU. Asagidaki iki
 # sentetik kaynak, her kolun BILINEN-BOZUK girdide ATESLENDIGINI olcer.
+# 🔴 SEKIL GERCEK KODU TAKLIT EDER (10. tur): evren artik CAGRI GRAFI + (ok, hata)
+# sozlesmesinden turedigi icin fikstur de o sekli tasimali — `x, y = f()` ve
+# `for h in y:` ([[nobetci-fikstur-sekli]]).
 _IC_FIKSTUR_DEFTER = (
     'NOBETCI_KABLOLARI = (("denetle", ("suzgec_kablosu_kontrol",)), ("main", ()))\n'
-    "def suzgec_kablosu_kontrol():\n    pass\n"
-    "def alt_kume_fikstur_kontrol():\n    pass\n"
+    "def suzgec_kablosu_kontrol():\n    return True, []\n"
+    "def alt_kume_fikstur_kontrol():\n    return True, []\n"
     "def denetle():\n"
-    "    suzgec_kablosu_kontrol()\n"
-    "    alt_kume_fikstur_kontrol()\n"
+    "    hatalar = []\n"
+    "    _, a_hata = suzgec_kablosu_kontrol()\n"
+    "    for h in a_hata:\n        hatalar.append(h)\n"
+    "    _, b_hata = alt_kume_fikstur_kontrol()\n"
+    "    for h in b_hata:\n        hatalar.append(h)\n"
+    "    return hatalar\n"
     "def main():\n    pass\n")
 _IC_FIKSTUR_SEAM = (
     "def suzgec_kablosu_kontrol(kaynak=None):\n"
@@ -5206,7 +5230,8 @@ def _kablo_ic_fikstur():
         agac = ast.parse(_IC_FIKSTUR_DEFTER)
         duz = {d.name: _duz_cagrilar(d) for d in ast.walk(agac)
                if isinstance(d, ast.FunctionDef)}
-        if not any("KAYIT DEFTERI EKSIK" in h for h in _kol_kapsam_kontrol(agac, duz)):
+        if not any("KAYIT DEFTERI EKSIK" in h
+                   for h in _kol_kapsam_kontrol(agac, duz, _IC_FIKSTUR_DEFTER)):
             hata.append("IC FIKSTUR (DEFTER) DUSTU: defterde OLMAYAN bir nobetci "
                         "cagrilirken `KAYIT DEFTERI EKSIK` ATESLENMEDI -> defter "
                         "esitliginin bir yonu no-op yapilmis olabilir.")
@@ -5220,7 +5245,7 @@ def _kablo_ic_fikstur():
     return hata
 
 
-def _kol_kapsam_kontrol(agac, duz):
+def _kol_kapsam_kontrol(agac, duz, kaynak):
     """KAYIT DEFTERI ile FIILEN CAGRILAN nobetciler BIREBIR ESIT mi (iki kol).
 
     🔴 NEDEN ESITLIK (4. tur, E5-a): defter ALT KUME olarak yorumlandiginda
@@ -5248,13 +5273,11 @@ def _kol_kapsam_kontrol(agac, duz):
     if kayit is None:
         return ["KOL KAPSAMI OLCULEMEDI: NOBETCI_KABLOLARI atamasi kaynakta "
                 "BULUNAMADI -> defter yeniden adlandirilmis olabilir."]
-    # NOBETCI EVRENI — 🔴 TEK KAYNAK `_NOBETCI_CAGRI_RE` (8. tur, H4): "nobetci
-    # nedir" tanimi burada `endswith("_kontrol")` olarak IKINCI KEZ yaziliydi;
-    # `x_kontrolu` adli bir nobetci regex'e uyar ama `evren`e girmezdi -> sessiz
-    # ayrisma yuzeyi ([[ikiz-tanim-sessiz-ayrisma]]).
-    evren = {d.name for d in agac.body
-             if isinstance(d, ast.FunctionDef) and _NOBETCI_CAGRI_RE.search(d.name)
-             and not d.name.startswith("_")}
+    # NOBETCI EVRENI — 🔴 TEK KAYNAK `_sozlesme_evreni()` (10. tur, J3): "nobetci
+    # nedir" tanimi ADDAN degil CAGRI GRAFI + (ok, hata) SOZLESMESINDEN turer.
+    # Ad desenine dayali eski tanim 6 yanlis-pozitif uretiyor ve desen disi bir
+    # nobetciyi (`*_denetimi`) SESSIZCE kapsam disi birakiyordu.
+    evren = set(_sozlesme_evreni(kaynak))
     for ad in ("denetle", "main"):
         if ad not in duz:
             hata.append("KOL KAPSAMI OLCULEMEDI: %s() bulunamadi." % ad)
@@ -5497,15 +5520,74 @@ def _davranis_modulu(kaynak=None):
             kaynak = f.read()
     mod = types.ModuleType("_ci_kapsam_davranis")
     mod.__file__ = kaynak_yol
+    mod.__pruvo_kaynak__ = kaynak      # evren BU metinden turer (bkz. _nobetci_evreni)
     exec(compile(kaynak, kaynak_yol, "exec"), mod.__dict__)
+    mod.__pruvo_kaynak__ = kaynak      # exec `__dict__`i ezebilir -> yeniden yaz
     return mod
 
 
+# 🔴 EVREN ARTIK CAGRI GRAFINDAN TURER, AD DESENINDEN DEGIL (10. tur, J3).
+# OLCULEN KOK NEDEN: ada dayali her tanim bu depoda bayatladi. `_NOBETCI_CAGRI_RE`
+# ile turetilen evren 24 ad veriyordu; bunun 6'si NOBETCI DEGILDI (ozel alt-kontrol
+# ya da liste donduren alt-rutin) ve desen disi adlandirilan yeni bir nobetci
+# (`*_denetimi`) SESSIZCE kapsam disi kaliyordu — butun kapilar 8/8 YESIL.
+#
+# YENI TANIM (ad TAMAMEN onemsiz): bir fonksiyon NOBETCIDIR ancak ve ancak
+#   (1) KOK fonksiyonlardan (`denetle` / `main`) FIILEN cagriliyorsa,
+#   (2) donusu `<hukum>, <hata>` biciminde IKILI demete aciliyorsa,
+#   (3) ve o `<hata>` adi AYNI kok fonksiyonda bir `for` dongusunun iterable'i
+#       oluyorsa (= bulgulari raporlanan/hukme katilan gercek (ok, hata) sozlesmesi).
+# Bu uc sart birlikte veri ureticilerini (`kosulan_coklu`, `dosya_metinleri_oku`,
+# `bayrak_envanteri`) DISARIDA birakir ve desen disi adli bir nobetciyi
+# KENDILIGINDEN kapsar ([[envanter-drift-parti-basina]] · [[ikiz-tanim-sessiz-ayrisma]]).
+NOBETCI_KOK_FONKSIYONLARI = ("denetle", "main")
+
+
+def _sozlesme_evreni(kaynak):
+    """{nobetci_adi: {kok_fonksiyon, ...}} — CAGRI GRAFI + (ok, hata) sozlesmesi."""
+    agac = ast.parse(kaynak)
+    modul_fn = {d.name for d in agac.body if isinstance(d, ast.FunctionDef)}
+    evren = {}
+    for d in agac.body:
+        if not (isinstance(d, ast.FunctionDef)
+                and d.name in NOBETCI_KOK_FONKSIYONLARI):
+            continue
+        # AYNI kok fonksiyonda `for <ad> in <Name>:` biciminde donulen adlar.
+        dongu_adlari = {n.iter.id for n in ast.walk(d)
+                        if isinstance(n, ast.For) and isinstance(n.iter, ast.Name)}
+        for alt in ast.walk(d):
+            if not isinstance(alt, ast.Assign) or not isinstance(alt.value, ast.Call):
+                continue
+            f = alt.value.func
+            if not (isinstance(f, ast.Name) and f.id in modul_fn):
+                continue
+            # KOK fonksiyonlar kendileri nobetci DEGILDIR (`kod, satirlar = denetle()`
+            # sekle uyar ama o, yargilanan GOVDEDIR — yargilayan degil).
+            if f.id in NOBETCI_KOK_FONKSIYONLARI:
+                continue
+            for hedef in alt.targets:
+                if not (isinstance(hedef, ast.Tuple) and len(hedef.elts) == 2):
+                    continue
+                ikinci = hedef.elts[1]
+                if isinstance(ikinci, ast.Name) and ikinci.id in dongu_adlari:
+                    evren.setdefault(f.id, set()).add(d.name)
+    return evren
+
+
 def _nobetci_evreni(mod):
-    """Modul duzeyinde tanimli NOBETCI adlari — TEK KAYNAK: `_NOBETCI_CAGRI_RE`."""
-    return sorted(ad for ad, deger in vars(mod).items()
-                  if callable(deger) and _NOBETCI_CAGRI_RE.search(ad)
-                  and getattr(deger, "__module__", None) == mod.__name__)
+    """NOBETCI adlari — CAGRI GRAFINDAN (modulun YUKLENDIGI kaynak ayristirilir).
+
+    🔴 KAYNAK MODULE ILISTIRILIR (`__pruvo_kaynak__`): mutasyon surucusu mutant
+    METNI yukluyor; `mod.__file__` okunsaydi evren DAIMA pristine dosyadan turer
+    ve evren mutantlari SESSIZCE gecerdi."""
+    kaynak = getattr(mod, "__pruvo_kaynak__", None)
+    if kaynak is None:
+        try:
+            with open(mod.__file__, encoding="utf-8") as f:
+                kaynak = f.read()
+        except OSError:
+            return []
+    return sorted(_sozlesme_evreni(kaynak))
 
 
 # 🔴 SURE TAVANI (9. tur, I1-d): stub kurulamazsa GERCEK is kosar ve ozyineleme
@@ -6044,7 +6126,7 @@ def suzgec_kablosu_kontrol(kaynak=None):
     # S1: bu nobetcinin KENDI uretim yolu (kaynak is None) CALISAN dosyayi okumali.
     hata.extend(_seam_kontrol(agac))
     # TOPLAM YUZEY + DEFTER/CAGRI ESITLIGI (twin-free capa).
-    hata.extend(_kol_kapsam_kontrol(agac, duz))
+    hata.extend(_kol_kapsam_kontrol(agac, duz, kaynak))
     # Bu iki kolun KENDI nobeti: bilinen-bozuk girdide atesliyorlar mi.
     hata.extend(_kablo_ic_fikstur())
     return (not hata), hata

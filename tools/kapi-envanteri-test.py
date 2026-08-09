@@ -17,10 +17,8 @@ Butun mutasyon scratchpad'deki izole kopyada yapilir.
 
 Cikis kodu 0 = hepsi gecti, 1 = en az bir kabul basarisiz.
 """
-import ast
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -95,75 +93,6 @@ def mutasyon_hook_kablo_sok(copy, dosya, gate_basename):
 # agacinda olculmeli — yoksa dalda eklenen konvansiyon disi bir nobetci ancak
 # MERGE'ten sonra gorunur ve sabit mutlak yol CI'da hic cozulmez
 # ([[sabit-mutlak-yol-yerelde-yesil]]).
-KAPSAM_KAPISI = os.path.join(ENV_KOK, "tools", "ci-kapsam-test.py")
-# Nobetci ADAYI: `denetle()` ya da `main()` govdesinde CAGRILAN, modul duzeyinde
-# tanimli, `_` ile baslamayan fonksiyon. Bunlarin adi konvansiyona UYMAK ZORUNDA.
-_KONVANSIYON_RE = re.compile(r"_kontrol$|_kontrolu$")
-
-
-def konvansiyon_denetle():
-    """(hatalar, taranan_aday_sayisi) — nobetci ADLANDIRMA konvansiyonu.
-
-    `denetle()`/`main()` icinden cagrilan modul-duzeyi fonksiyonlarin adi
-    `*_kontrol` ya da `*_kontrolu` olmali; degilse `ci-kapsam-test.py` icindeki
-    `NOBETCI_ADLANDIRMA_ISTISNALARI` defterinde GEREKCESIYLE kayitli olmali."""
-    try:
-        with open(KAPSAM_KAPISI, encoding="utf-8") as f:
-            agac = ast.parse(f.read())
-    except (OSError, SyntaxError) as e:
-        return ["KONVANSIYON OLCULEMEDI: %s ayristirilamadi (%s)"
-                % (KAPSAM_KAPISI, e)], 0
-    modul_fonksiyonlari = {d.name for d in agac.body
-                           if isinstance(d, ast.FunctionDef)}
-    istisnalar = {}
-    for d in agac.body:
-        if not isinstance(d, ast.Assign):
-            continue
-        if "NOBETCI_ADLANDIRMA_ISTISNALARI" not in [
-                t.id for t in d.targets if isinstance(t, ast.Name)]:
-            continue
-        try:
-            istisnalar = ast.literal_eval(d.value)
-        except (ValueError, SyntaxError):
-            return ["KONVANSIYON OLCULEMEDI: istisna defteri sabit ifade degil"], 0
-        break
-    # 🔴 NOBETCI ADAYI = NOBETCI SOZLESMESINE uyan cagri: `denetle()`/`main()`
-    # icinde `<hukum>, <...hata...> = f()` biciminde IKILI demete acilan, modul
-    # duzeyinde tanimli, `_` ile baslamayan fonksiyon. Bu sekil, iki eksenin
-    # (defter esitligi + stub evreni) yargiladigi (ok, hata) sozlesmesidir.
-    # Veri ureticileri (`kosulan_coklu`, `dosya_metinleri_oku`, `bayrak_envanteri`,
-    # `alt_kume_denetimi` …) bu sekle UYMAZ ve aday SAYILMAZ — konvansiyon onlari
-    # baglamaz.
-    adaylar = set()
-    for d in ast.walk(agac):
-        if not (isinstance(d, ast.FunctionDef) and d.name in ("denetle", "main")):
-            continue
-        for alt in ast.walk(d):
-            if not isinstance(alt, ast.Assign) or not isinstance(alt.value, ast.Call):
-                continue
-            f = alt.value.func
-            if not (isinstance(f, ast.Name) and f.id in modul_fonksiyonlari
-                    and not f.id.startswith("_")):
-                continue
-            for hedef in alt.targets:
-                if not (isinstance(hedef, ast.Tuple) and len(hedef.elts) == 2):
-                    continue
-                ikinci = hedef.elts[1]
-                if isinstance(ikinci, ast.Name) and "hata" in ikinci.id.lower():
-                    adaylar.add(f.id)
-    hatalar = []
-    for ad in sorted(adaylar):
-        if _KONVANSIYON_RE.search(ad):
-            continue
-        gerekce = istisnalar.get(ad)
-        if not (gerekce and gerekce.strip()):
-            hatalar.append(
-                "`%s` konvansiyon disi (`*_kontrol`/`*_kontrolu` degil) ve "
-                "NOBETCI_ADLANDIRMA_ISTISNALARI'nda GEREKCELI kaydi YOK -> defter "
-                "ve stub evreni onu SESSIZCE kapsam disi birakir" % ad)
-    return hatalar, len(adaylar)
-
-
 def main():
     kontroller = []  # (ad, gecti_bool, ayrinti)
 
@@ -238,21 +167,6 @@ def main():
         ))
     finally:
         shutil.rmtree(kok, ignore_errors=True)
-
-    # --- 5) NOBETCI ADLANDIRMA KONVANSIYONU (9 Agu 2026) ---
-    # 🔴 NEDEN BURADA: `tools/ci-kapsam-test.py` iki ayri ekseni (defter/cagri
-    # esitligi ve hukum-ezme stub evreni) NOBETCI ADININ DESENINDEN turetiyor
-    # (`*_kontrol` / `*_kontrolu`). Desen disi adlandirilan bir nobetci HER IKI
-    # eksende de SESSIZCE kapsam disi kalir ([[envanter-drift-parti-basina]]).
-    # Konvansiyon o dosyada YAZILI; burasi onu OLCEN yerdir.
-    ad_hatalari, taranan = konvansiyon_denetle()
-    kontroller.append((
-        "nobetci adlandirma konvansiyonu (*_kontrol / *_kontrolu)",
-        not ad_hatalari,
-        "taranan aday=%d · kayitsiz istisna=%d%s"
-        % (taranan, len(ad_hatalari),
-           (" -> " + "; ".join(ad_hatalari[:3])) if ad_hatalari else ""),
-    ))
 
     # --- Ozet ---
     print("=" * 74)
