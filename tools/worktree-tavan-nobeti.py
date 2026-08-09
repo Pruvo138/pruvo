@@ -13,12 +13,21 @@ import time
 
 TAVAN = 2
 BAYAT_DAKIKA = 90
+SENTETIK_AD = "Fikstur"
+SENTETIK_EPOSTA = "fikstur@ornek.gecersiz"
+KIMLIK_DEGISKENLERI = (
+    "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL",
+    "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL",
+)
+GIT_BAGLAM_DEGISKENLERI = (
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE",
+)
 
 
-def git(depo, *args):
+def git(depo, *args, env=None):
     try:
         p = subprocess.run(["git", "-C", depo] + list(args), capture_output=True,
-                           text=True, timeout=30)
+                           text=True, timeout=30, env=env)
         return p.returncode, p.stdout.strip(), p.stderr.strip()
     except (OSError, subprocess.TimeoutExpired) as exc:
         return 127, "", str(exc)
@@ -139,30 +148,48 @@ def yaz(yol, metin):
         dosya.write(metin)
 
 
-def g(depo, *args):
-    rc, cikti, hata = git(depo, *args)
+def g(depo, *args, env=None):
+    rc, cikti, hata = git(depo, *args, env=env)
     if rc != 0:
         raise RuntimeError("git %s: %s" % (" ".join(args), hata or cikti))
     return cikti
 
 
+def sentetik_git_ortami():
+    ortam = os.environ.copy()
+    for ad in GIT_BAGLAM_DEGISKENLERI:
+        ortam.pop(ad, None)
+    ortam.update({
+        "GIT_AUTHOR_NAME": SENTETIK_AD,
+        "GIT_AUTHOR_EMAIL": SENTETIK_EPOSTA,
+        "GIT_COMMITTER_NAME": SENTETIK_AD,
+        "GIT_COMMITTER_EMAIL": SENTETIK_EPOSTA,
+    })
+    return ortam
+
+
+def sentetik_g(depo, *args):
+    return g(depo, "-c", "user.name=" + SENTETIK_AD,
+             "-c", "user.email=" + SENTETIK_EPOSTA, *args,
+             env=sentetik_git_ortami())
+
+
 def depo_kur(kok):
     os.makedirs(kok, exist_ok=True)
-    g(kok, "init", "-q", "-b", "main")
-    g(kok, "config", "user.email", "test@example.invalid")
-    g(kok, "config", "user.name", "Test")
+    sentetik_g(kok, "init", "-q", "-b", "main")
     yaz(os.path.join(kok, "taban.txt"), "taban\n")
-    g(kok, "add", "taban.txt")
-    g(kok, "commit", "-q", "-m", "taban")
+    sentetik_g(kok, "add", "taban.txt")
+    sentetik_g(kok, "commit", "-q", "-m", "taban")
 
 
 def agac_ekle(kok, yol, dal):
-    g(kok, "worktree", "add", "-q", "-b", dal, yol, "main")
+    sentetik_g(kok, "worktree", "add", "-q", "-b", dal, yol, "main")
 
 
 def betik_kos(betik, depo):
     return subprocess.run([sys.executable, betik, "--depo", depo],
-                          capture_output=True, text=True, timeout=60)
+                          capture_output=True, text=True, timeout=60,
+                          env=sentetik_git_ortami())
 
 
 def kendini_test():
@@ -205,8 +232,8 @@ def kendini_test():
         commit_agac = os.path.join(gecici, "commit-agac")
         agac_ekle(commit_kok, commit_agac, "muh/commitli")
         yaz(os.path.join(commit_agac, "yeni.txt"), "yeni\n")
-        g(commit_agac, "add", "yeni.txt")
-        g(commit_agac, "commit", "-q", "-m", "yeni")
+        sentetik_g(commit_agac, "add", "yeni.txt")
+        sentetik_g(commit_agac, "commit", "-q", "-m", "yeni")
         p = betik_kos(betik, commit_kok)
         rc_listesi.append(p.returncode)
         if "MAIN_DISI_COMMIT=1" not in p.stdout or "BUNDLE GEREKIR" not in p.stdout:
@@ -242,14 +269,17 @@ def kendini_test():
             hatalar.append("i:tanimadigi worktree dali BILINMEYEN kalmadi")
         if any(rc != 0 for rc in rc_listesi):
             hatalar.append("g:rapor-only vakalarindan biri rc!=0")
+        for ad in KIMLIK_DEGISKENLERI:
+            if ad in os.environ:
+                hatalar.append("j:kimlik ana surece sizdi:" + ad)
     except Exception as exc:
         hatalar.append("fikstur:%s" % exc)
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
     if hatalar:
-        print("KENDINI_TEST=KIRMIZI IDDIA=9 YENI_VAKA=2 " + " | ".join(hatalar))
+        print("KENDINI_TEST=KIRMIZI IDDIA=10 YENI_VAKA=1 " + " | ".join(hatalar))
         return 1
-    print("KENDINI_TEST=YESIL IDDIA=9 YENI_VAKA=2 RAPOR_ONLY_VAKA=%d/%d" %
+    print("KENDINI_TEST=YESIL IDDIA=10 YENI_VAKA=1 RAPOR_ONLY_VAKA=%d/%d" %
           (sum(rc == 0 for rc in rc_listesi), len(rc_listesi)))
     return 0
 
@@ -269,6 +299,8 @@ def mutasyon():
          'dal = entry["dal"]'),
         ("rapor-only", "def rapor_cikis_kodu():\n" + "    return 0",
          "def rapor_cikis_kodu():\n" + "    return 9"),
+        ("env-sizinti", "ortam = os.environ." + "copy()",
+         "ortam = os.environ"),
     ]
     kontroller = [("yorum", kaynak_metin + "\n# kontrol mutanti\n"),
                   ("bosluk", kaynak_metin + "\n\n")]
