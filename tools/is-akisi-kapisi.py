@@ -1784,7 +1784,10 @@ TABLO_TABANLARI = (
     # tam esitlik operatoru geregi taban BILINCLI olarak ayni commit'te guncellendi.
     # 9 Agu: +1 -> 87. Yeni giris ("nobet.yml", "serit-b", "tools/r2-avif-mutasyon-test.py");
     # R1 sihirli-bayt whitelist'i AVIF'e acildi, bataryasi AYNI commit'te beyan edildi.
-    ("SERIT_B", 87),
+    # 9 Agu: +3 -> 90. Marka tek-sayfa davranis nobetcisi ile iki ayirt edici mutasyon
+    # surucusu serit-b'ye AYRI duz komutlarla eklendi; ucu de AYNI commit'te tek tek
+    # beyan edildi.
+    ("SERIT_B", 90),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2845,6 +2848,27 @@ SERIT_B = {
         "bloklayici yola baglanmasi ayni yayin durdurma bedelini dogururdu. Kusuru "
         "yayini DURDURMAZ ama sessiz kalmaz (fail-closed on-kosul + CI'da gorunur "
         "adim). `--kendini-test` kolu serit A'da bloklayici kosuyor.",
+    # --- MARKA SAYFASI ARTIM/FILTRE DAVRANISI (8 Agu 2026) -----------------
+    ("nobet.yml", "serit-b", "tools/marka-artim-test.py"):
+        "ISTEMCI DAVRANISI olcer (artimli kart cizimi + sayfa-ici model filtresi), "
+        "yayin DOGRULUGUNU degil. Marka sayfasinin SSR yuzeyi — kart yuzeyi kimligi, "
+        "bolum ayrimi (cakisma IHLAL), agirlik tavani, teslim yolunun kanonikligi — "
+        "BLOKLAYICI seritte tools/marka-sayac-kapisi.py'de ZATEN olculuyor; bu adim o "
+        "yuzeyin ISTEMCI ucunu (fetch gercekten cagrildi mi, kart cizdi mi, adres "
+        "degismiyor mu, JS-siz hal saglam mi) node'da kosturur. Kirmizisi 'kalan kartlar "
+        "artimli cizilmiyor' der — SSR'de basili N kart + duz bag listesi JS-siz halde "
+        "ZATEN gorunur oldugu icin sayfa yine dogru ve eksiksiz linklidir, yayini "
+        "durdurmanin tamir degeri yoktur.",
+    ("nobet.yml", "serit-b", "tools/marka-bolum-mutasyon.py"):
+        "Marka bolum kimligi kapisinin ayirt ediciligini iki katmanda mutasyonla olcer; "
+        "agsiz ve deterministiktir. Yayin dogrulugunu degil nobetcinin KENDI koruma "
+        "gucunu sinadigi icin serit B'de kosar; fail-closed kirmizisi gorunur kalir ama "
+        "yayin yolunu durdurmaz.",
+    ("nobet.yml", "serit-b", "tools/marka-sayfa-mutasyon.py"):
+        "Marka tek-sayfa hukmunun 13 oldurucu ve 5 kontrol mutantiyla ayirt "
+        "ediciligini olcer; agsiz ve deterministiktir. Yayin dogrulugunu degil "
+        "nobetcinin KENDI koruma gucunu sinadigi icin serit B'de kosar; fail-closed "
+        "kirmizisi gorunur kalir ama yayin yolunu durdurmaz.",
     # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
     ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
         "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "
