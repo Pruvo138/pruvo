@@ -162,8 +162,21 @@ fi
 #    diff bekledigi icin BIR SONRAKI push kendiliginden tekrar dener.
 #  - Bu dosya git'e GIRMEZ (.git/hooks commit'lenmez) — CLAUDE.md'de yazili.
 #
-# NOT: d1-sync.py calisma agacindaki urunler.json'u okur, push edilen commit'i degil.
-# Fark ancak commit'lenmemis degisiklik varken olusur; guard katmani zaten onu koruyor.
+# 🔴 KAYNAK = PUSH EDILEN COMMIT (9 Agu 2026 onarimi; ONCESI: bayraksiz cagri).
+# d1-sync BAYRAKSIZ kosarsa katalogu CALISMA AGACINDAKI urunler.json'dan okur. Bes
+# ev (KraL · MaCiT · KaaN · ArTisT · HocA) ayni checkout'u paylasiyor: baska bir
+# oturumun YARIM parti urun degisikligi agacta dururken BU push senkronu tetiklerse
+# o yarim parti CANLI D1'e (Ege'nin okudugu katalog) yazilir — ve hicbir sey kirmizi
+# yakmaz, push YESIL doner. Bayatlik kapisi COMMIT GRAFIGINI olcer, agacin o
+# commit'ten SAPMASINI olcmez. Artik senkron PUSH EDILEN AGACI okur:
+#   push edilen sha == HEAD  -> `--head`   (d1-sync `git show HEAD:urunler.json`)
+#   push edilen sha != HEAD  -> `--kaynak` (o commit'ten cikarilan gecici dosya;
+#                               or. `git push origin dal:main` — HEAD baska yerde;
+#                               `--head` orada YANLIS agaci okurdu, koprulendi)
+# FAIL-CLOSED (kol DURUR, calisma agacina DUSMEZ): katalog push edilen commit'ten
+# cikarilamazsa senkron HIC kosmaz — sessizce agaca dusmek, kapatilan hatanin ta
+# kendisi olurdu. Kolun DURMASI push'u bloklamaz (bu blok fail-open'dir).
+# Kabul testi: python3 tools/prepush-d1-kaynak-test.py (GERCEK push + kontrol mutanti).
 
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 sync="$root/tools/d1-sync.py"
@@ -171,11 +184,13 @@ sync="$root/tools/d1-sync.py"
 
 sifir="0000000000000000000000000000000000000000"
 degisti=0
+push_sha=""
 
 # pre-push stdin: <local_ref> <local_sha> <remote_ref> <remote_sha>
 while read -r local_ref local_sha remote_ref remote_sha; do
   [ "$remote_ref" = "refs/heads/main" ] || continue   # sadece main
   [ "$local_sha" = "$sifir" ] && continue             # dal siliniyor
+  push_sha="$local_sha"                               # main'e GIDEN commit
   if [ "$remote_sha" = "$sifir" ]; then
     degisti=1                                         # yeni dal: taban yok -> senkronla
   else
@@ -186,8 +201,26 @@ done
 
 [ "$degisti" = "0" ] && exit 0
 
+# KATALOG KAYNAGINI SEC (bkz. yukaridaki blok). "$@" = d1-sync bayraklari.
+head_sha=$(git rev-parse HEAD 2>/dev/null)
+kaynak_gecici=""
+if [ -n "$push_sha" ] && [ "$push_sha" = "$head_sha" ]; then
+  set -- --head
+else
+  kaynak_gecici=$(mktemp 2>/dev/null || echo /tmp/pruvo-d1-kaynak-$$.json)
+  if git show "$push_sha:urunler.json" > "$kaynak_gecici" 2>/dev/null; then
+    set -- --kaynak "$kaynak_gecici"
+  else
+    rm -f "$kaynak_gecici"
+    echo "!! D1 SENKRONU ATLANDI — push edilen commit'ten ($push_sha) urunler.json"
+    echo "!! cikarilamadi. Calisma agacina DUSULMEZ: commit'lenmemis urunler CANLI"
+    echo "!! katalogda gorunmemeli. Elle: python3 $sync --kaynak <dosya>"
+    exit 0
+  fi
+fi
+
 echo "→ urunler.json degisti: D1 senkronlaniyor (Ege urunleri D1'den okuyor)..."
-if python3 "$sync"; then
+if python3 "$sync" "$@"; then
   :
 else
   echo ""
@@ -196,6 +229,7 @@ else
   echo "!! (Kontrol: python3 $sync --durum  -> sayi urunler.json ile ayni olmali)"
   echo ""
 fi
+[ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"
 
 # --- KAPAK THUMBNAIL URETIMI (yeni urun eklendikce otomatik) ---
 # 🔴 KAYNAK: paralel `pagespeed-thumb-fix` oturumu (a7dd82ba, HENUZ main'de DEGIL).

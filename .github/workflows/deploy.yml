@@ -500,6 +500,19 @@ jobs:
       - name: D1 katalog kaynagi kabul testi (commit'lenmemis urun canliya yazilmasin)
         run: python3 tools/d1-kaynak-test.py
 
+      # KANCA KABLOLAMASI (9 Agu) — yukaridaki `--head` bayragi 5 Agu'dan beri VARDI ama
+      # pre-push kancasi d1-sync'i BAYRAKSIZ cagiriyordu: bayrak yazilmis, BAGLANMAMIS.
+      # Bes ev ayni checkout'u paylasiyor; bir oturumun YARIM parti urun degisikligi agacta
+      # dururken BASKA bir oturum push edince o yarim parti CANLI D1'e (Ege'nin katalogu)
+      # yaziliyordu ve push YESIL donuyordu. Bu test BEYAN degil DAVRANIS olcer: sentetik
+      # gercek depolarda (calisan uzak + kurulu kanca) GERCEK `git push` kosar ve senkronun
+      # FIILEN okudugu katalogu olcer — commit'siz urun GIRMEZ, commit'li urun GIRER (kontrol
+      # ayagi), bayrak sokulunce eksen KIRMIZI yanar (kontrol mutanti), `dal:main` kopru kolu
+      # push edilen commit'i okur, kaynak cozulemezse senkron KOSMAZ (agaca dusmez) ve push
+      # bloklanmaz, her push <= 30 sn. CANLI D1'e/wrangler'a/AGA DOKUNMAZ.
+      - name: pre-push D1 kaynagi kabul testi (senkron PUSH EDILEN commit'i mi okuyor)
+        run: python3 tools/prepush-d1-kaynak-test.py
+
       # D1 `marka_arama` KOLONU — Okan hukmunun UC ayagi (marka_kanon CIP, model_kanon MODEL
       # CIPI, bu kolon ARAMA). Site tarafi 8913db28 ile duzeltildi (marka adiyla yapilan sorgu
       # artik UYELIK ∪ BASLIKTA TAM KELIME; fark 74 marka/6.089 kalem -> 20/75) ama CANLI arama
