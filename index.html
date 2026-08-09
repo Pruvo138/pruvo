@@ -1428,9 +1428,10 @@
   //                havuz  92 → 147.067 B (%95,7)                   · 90 → 145.191 B (%94,5)
   //                havuz  88 → 143.232 B (%93,2, pay 10.368 B)  ← SEÇİLEN
   //                havuz  84 → 139.526 B (%90,8)                   · 82 → 137.728 B (%89,7)
-  //              88 SEÇİLDİ: bütçenin altına ~10 KB pay bırakır ve havuz−adet farkını (8 kart)
-  //              KORUR. Havuz `adet`e (80) inerse her yenilemede aynı ürünler gelir, yani
-  //              çeşitlilik tamamen ölür — havuz ASLA 80'e indirilmez.
+  //              88 ACİL YAYIN ONARIMIYDI: bütçenin altına ~10 KB pay bırakırken
+  //              havuz−adet farkını 8 karta indirdi. Aynı gün kayıpsız kart temsili
+  //              devreye alınınca 100+100 havuz 150 KB tavanına yeniden sığdı; geçici
+  //              çeşitlilik kaybı kalıcılaştırılmadı ve havuz 100'e GERİ ALINDI.
   //              BÜYÜYEN KALEM HAVUZ DEĞİL: `markalar` haritası 30.136 B'ye çıktı ve kart
   //              metinleri (açıklama 160 karakte kadar) günlük ±7 KB oynuyor; kalıcı çözüm bu
   //              düğme değil, kart temsilinin kayıpsız sıkıştırılması (tekrar eden alan adları
@@ -1440,8 +1441,8 @@
   //              "bloklar" = ozet.bloklar[<kategori>].
   var VITRIN_BLOKLAR = [
     {"kategori":"Jeneratör","adet":4,"havuz":0,"kaynak":"parametrik"},
-    {"kategori":"Marin","adet":80,"havuz":88,"kaynak":"bloklar"},
-    {"kategori":"Otomobil","adet":80,"havuz":88,"kaynak":"bloklar"}
+    {"kategori":"Marin","adet":80,"havuz":100,"kaynak":"bloklar"},
+    {"kategori":"Otomobil","adet":80,"havuz":100,"kaynak":"bloklar"}
   ];
 
   /* REKLAM ATIF YAKALAMA (reklam-roi-sistemi.md Faz 0): reklamdan gelen ziyaretin siparişe
@@ -3958,6 +3959,28 @@
   var edgeZamanlayici = null;
   var kartBellek = {};      // id → kart (sepet paneli PRODUCTS'a bakamaz, katalog inmiyor)
 
+  // ozet.json v2 kartları, uzun anahtarları her kayıtta tekrarlamayan sabit sıralı diziler
+  // taşır. Alan sözlüğü artefaktın içindedir; böylece arama/kart yüzeyinden hiçbir değer
+  // atılmadan yalnız temsil sıkışır. v1 sözlük kartları da önbellek geçişinde kabul edilir.
+  function ozetAc(d){
+    var alanlar = (d && d.kartAlanlari) || [];
+    if(!alanlar.length){ return d; }
+    function kartAc(k){
+      if(Object.prototype.toString.call(k) !== "[object Array]"){ return k; }
+      var out = {};
+      k.forEach(function(deger, i){
+        if(i < alanlar.length && (i < 8 || deger !== null)){ out[alanlar[i]] = deger; }
+      });
+      return out;
+    }
+    d.parametrik = (d.parametrik || []).map(kartAc);
+    Object.keys(d.bloklar || {}).forEach(function(kat){
+      d.bloklar[kat] = (d.bloklar[kat] || []).map(kartAc);
+    });
+    d.yeni = (d.yeni || []).map(kartAc);
+    return d;
+  }
+
   function kartBellegeAl(kartlar){
     kartlar.forEach(function(k){ if(k && k.id){ kartBellek[k.id] = k; } });
     return kartlar;
@@ -4437,7 +4460,7 @@
         return r.json();
       })
       .then(function(d){
-        OZET = d;
+        OZET = ozetAc(d);
         katalogYuklendi = true;           // fırsat tazelemesi artık ateşlenebilir (openCart kapısı)
         if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
         renderCats();
