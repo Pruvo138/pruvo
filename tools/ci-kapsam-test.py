@@ -5034,13 +5034,15 @@ TANI_KABLOLARI = (
 NOBETCI_KABLOLARI = (
     ("denetle", ("acik_kesif_kontrol", "alt_kume_fikstur_kontrol",
                  "bayraksiz_adim_kontrol", "bulgu1_mutasyon_kontrol",
+                 "hukum_fuzz_kontrol",
                  "izlenmeyen_fikstur_kontrol", "kanca_kablo_adimi_kontrol",
                  "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
                  "main_kablosu_kontrol", "muaf_sayaci_kontrol",
                  "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",
                  "suzgec_kablosu_kontrol")),
     ("main", ("alt_kume_fikstur_kontrol", "bayraksiz_adim_kontrol",
-              "bulgu1_mutasyon_kontrol", "izlenmeyen_fikstur_kontrol",
+              "bulgu1_mutasyon_kontrol", "hukum_fuzz_kontrol",
+              "izlenmeyen_fikstur_kontrol",
               "kanca_kablo_serit_kontrol", "kendini_test_adimi_kontrol",
               "kesif_predikat_kontrol", "main_kablosu_kontrol",
               "muaf_sayaci_kontrol", "pre_push_kablo_kontrol",
@@ -5051,7 +5053,7 @@ NOBETCI_KABLOLARI = (
 # birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
 # NOT: bu SAYI artik TEK BASINA yuk tasimiyor (dusurulebilir olmasi E5-a deligiydi);
 # asil capa yukaridaki ESITLIK kontroludur. Sayi ikinci bir ratchet olarak kalir.
-KOL_BIRLESIM_TABANI = 15
+KOL_BIRLESIM_TABANI = 16
 # UCUNCU (BLOKLAYICI) KOL — `--kanca-kablo`. `NOBETCI_KABLOLARI`'nin anahtarlari
 # FONKSIYON adi oldugu icin bu kolun nobetcileri `main` kaydinda erir ve kol dokumu
 # onu RAPORLAMIYORDU (5. tur F6). Ayri kayit: dokum UC SERIDI de basar.
@@ -5092,16 +5094,29 @@ def _nobetci_cagrisi_mi(deger):
 
 
 def _cagridan_mi(deger, turevli):
-    """<deger> bir CAGRIDAN turuyor mu (dogrudan / ara degisken / kosullu-try dal)."""
-    if any(isinstance(c, ast.Call) for c in ast.walk(deger)):
+    """<deger> bir NOBETCI cagrisindan turuyor mu.
+
+    🔴 "HERHANGI BIR CAGRI" YETMEZ (6. tur, G1): eski surum `any(isinstance(c,
+    ast.Call) ...)` diyordu; `ok4 = bool(1)`, `ok4 = len([]) == 0`, `ok4 = any([])`
+    sabotajlarinin UCU DE DORT KOLDA YESIL geciyordu — kural "cagridan turemis mi"
+    degil "icinde parantez var mi" olcuyordu. Artik TEK KAYNAK
+    `_nobetci_cagrisi_mi()`dir ([[ikiz-tanim-sessiz-ayrisma]])."""
+    if _nobetci_cagrisi_mi(deger):
         return True
     if isinstance(deger, ast.Name):
         return deger.id in turevli
     if isinstance(deger, ast.IfExp):
         return (_cagridan_mi(deger.body, turevli)
                 and _cagridan_mi(deger.orelse, turevli))
+    if isinstance(deger, ast.BoolOp):
+        return all(_cagridan_mi(v, turevli) for v in deger.values)
     if isinstance(deger, (ast.Tuple, ast.List)):
-        return all(_cagridan_mi(e, turevli) for e in deger.elts)
+        return bool(deger.elts) and all(_cagridan_mi(e, turevli)
+                                        for e in deger.elts)
+    if isinstance(deger, ast.Subscript):
+        return _cagridan_mi(deger.value, turevli)
+    if isinstance(deger, ast.Starred):
+        return _cagridan_mi(deger.value, turevli)
     return False
 
 
@@ -5227,11 +5242,18 @@ def _kol_kapsam_kontrol(agac, duz):
     birlesim = set()
     for _ad, gerekli in kayit.items():
         birlesim |= set(gerekli)
-    if len(birlesim) < KOL_BIRLESIM_TABANI:
+    # 🔴 TABAN **ESIT** OLMALI, ">=" DEGIL (6. tur G3-iv/G4): taban tek basina
+    # dusurulunce hicbir gate kolu konusmuyordu (yalniz surucu). Esitlik sarti,
+    # tabani dusurmeyi TEK BASINA kirmizi yapar; yuzeyi buyutmek ise tabani
+    # BILINCLI olarak guncellemeyi zorunlu kilar (raset).
+    if len(birlesim) != KOL_BIRLESIM_TABANI:
         hata.append(
-            "KOL BIRLESIMI KUCULDU: iki kolun TOPLAM nobetci kumesi %d (taban %d) -> "
-            "bir adim koldan kola tasinirken yuzey SESSIZCE kuculmus olabilir "
-            "([[kapi-yan-etkisi-gizli-onkosul]])." % (len(birlesim), KOL_BIRLESIM_TABANI))
+            "KOL BIRLESIMI TABANLA UYUSMUYOR: TOPLAM nobetci kumesi %d, taban %d -> "
+            "%s ([[kapi-yan-etkisi-gizli-onkosul]])."
+            % (len(birlesim), KOL_BIRLESIM_TABANI,
+               "yuzey KUCULMUS ya da taban DUSURULMUS olabilir"
+               if len(birlesim) < KOL_BIRLESIM_TABANI
+               else "yuzey buyudu; tabani BILINCLI olarak guncelle"))
     return hata
 
 
@@ -5297,6 +5319,150 @@ def _seam_kontrol(agac):
     return hata
 
 
+# ---- HUKUM KURALI FUZZ FIKSTURU (23 VARYANT, IKI YONLU) --------------------
+# 🔴 NEDEN REPODA (6. tur, mimar hukmu): bu kural artik BLOKLAYICI pre-push kolunda
+# HERKESIN itmesini yargiliyor. Bagimsiz curutucunun 23 varyantlik fuzz'i iki yonde
+# de sizinti buldu (4 sahte-YESIL + 6 sahte-KIRMIZI). Tablo kalici kabul testi
+# olarak baglandi; KUCULTULURSE kirmizi yanar ([[fikstur-degeri-mutasyon-koru]]).
+# Fikstur SENTETIK bir mini-`main()` uzerinde kosar: gercek 6000 satirlik kaynagi
+# 23 kez ayristirmak pre-push kolunu ~1 sn buyuturdu (olculdu), sekil ise birebir
+# taklit edilir ([[nobetci-fikstur-sekli]]).
+_HUKUM_TABAN_KAYNAK = (
+    "def bayraksiz_adim_kontrol():\n    return True, []\n"
+    "def kanca_kablo_serit_kontrol():\n    return True, []\n"
+    "def main():\n"
+    "    ok4, hata4 = bayraksiz_adim_kontrol()\n"
+    "    ok, hatalar = kanca_kablo_serit_kontrol()\n"
+    "    ok_s, hata_s = bayraksiz_adim_kontrol()\n"
+    "    if ok and ok_s:\n"
+    "        return 0\n"
+    "    if ok4 and ok:\n"
+    "        return 0\n"
+    "    return 1\n")
+_HT_OK4 = "    ok4, hata4 = bayraksiz_adim_kontrol()\n"
+_HT_HUKUM = "    if ok and ok_s:\n        return 0\n"
+_F = "bayraksiz_adim_kontrol()"
+
+# (etiket, capa, ikame, beklenen_YESIL, NEDEN)
+HUKUM_FUZZ_FIKSTURLERI = (
+    # --- MESRU YAZIMLAR: rc=0 (sahte-kirmizi yuzeyi) ---
+    ("M00 taban", None, None, True, "mutasyonsuz sekil"),
+    ("M01 ara degisken", _HT_OK4,
+     "    _s = %s\n    ok4, hata4 = _s\n" % _F, True, "tasiyici ad"),
+    ("M02 iki adimli zincir", _HT_OK4,
+     "    _a = %s\n    _b = _a\n    ok4, hata4 = _b\n" % _F, True, "sabit nokta 2 adim"),
+    ("M03 try/except", _HT_OK4,
+     "    try:\n        ok4, hata4 = %s\n    except Exception:\n"
+     "        ok4, hata4 = %s\n" % (_F, _F), True, "iki dal da cagridan"),
+    ("M04 kosullu atama", _HT_OK4,
+     "    if hata4:\n        ok4, hata4 = %s\n    else:\n        ok4, hata4 = %s\n"
+     % (_F, _F), True, "iki dal da cagridan"),
+    ("M05 ternary", _HT_OK4,
+     "    ok4, hata4 = %s if hata4 else %s\n" % (_F, _F), True, "IfExp iki kol"),
+    ("M06 `or` zinciri", _HT_OK4,
+     "    ok4, hata4 = %s or %s\n" % (_F, _F), True, "BoolOp tum degerler cagridan"),
+    ("M07 coklu hedef", _HT_OK4,
+     "    _t = ok4x = %s\n    ok4, hata4 = _t\n" % _F, True, "ikinci hedef TASIYICI"),
+    ("M08 `*` unpack", _HT_OK4,
+     "    ok4, *hata4 = %s\n" % _F, True, "Starred hedef"),
+    ("M09 try/finally", _HT_OK4,
+     "    try:\n        ok4, hata4 = %s\n    finally:\n        pass\n" % _F,
+     True, "finally hukmu degistirmez"),
+    ("M10 `with` blogu", _HT_OK4,
+     "    with open('x') as _fh:\n        ok4, hata4 = %s\n" % _F, True, "ic blok"),
+    ("M11 lambda araciligi", _HT_OK4,
+     "    _f = lambda: %s\n    ok4, hata4 = _f()\n" % _F, True, "cagri yoluyla tuketim"),
+    ("M12 dongude biriktirme (ILK atama SABIT)", _HT_OK4,
+     "    ok4 = True\n    for _i in [1]:\n        ok4, hata4 = %s\n" % _F,
+     False, "🔴 DOGRU KIRMIZI: ilk atama sabit literal"),
+    ("M13 tuple ara degisken", _HT_OK4,
+     "    _p = (%s,)\n    ok4, hata4 = _p[0]\n" % _F, True, "abone yoluyla tuketim"),
+    ("M14 ic ice fonksiyon", _HT_OK4,
+     "    def _ic():\n        return %s\n    ok4, hata4 = _ic()\n" % _F,
+     True, "ic fonksiyon donusu"),
+    ("M15 liste ara degisken", _HT_OK4,
+     "    _l = [%s]\n    ok4, hata4 = _l[0]\n" % _F, True, "abone yoluyla tuketim"),
+    # 🔴 SABIT-NOKTA DERINLIGI CIVISI (6. tur G3-v): `_cagri_turevli_adlar()`
+    # yinelemesini `range(1)`e indirmek hicbir kolda kirmizi yakmiyordu. Bes adimli
+    # tasiyici zinciri o zayiflatmayi TEK BASINA kirmizi yakar.
+    # Zincirin BASI ic blokta, tuketimi DIS blokta: `ast.walk` BFS'i dis satirlari
+    # ONCE gordugu icin TEK GECIS yetmez -> `range(8)` sabit-noktasi FIILEN olculur.
+    ("M16 gec-cozulen tasiyici zinciriyle YENIDEN atama (sabit-nokta derinligi)",
+     _HT_OK4,
+     _HT_OK4 + "    if hata4:\n        _g1 = %s\n    _g2 = _g1\n    _g3 = _g2\n"
+     "    ok4 = _g3\n" % _F, True,
+     "ok4 zaten hukum degiskeni; ikinci atama UC ADIMLIK gec zincirden turer -> "
+     "`range(8)` sabit-noktasi FIILEN olculur"),
+    # --- SABOTAJ: rc=1 (kacis yuzeyi) ---
+    ("S01 `ok4 = True`", _HT_OK4, _HT_OK4 + "    ok4 = True\n", False, "sabit literal"),
+    ("S02 `ok4, hata4 = True, []`", _HT_OK4, _HT_OK4 + "    ok4, hata4 = True, []\n",
+     False, "tuple sabit"),
+    ("S03 `ok4 = bool(1)`", _HT_OK4, _HT_OK4 + "    ok4 = bool(1)\n",
+     False, "🔴 6. tur deligi: NOBETCI OLMAYAN cagri"),
+    ("S04 `ok4 = len([]) == 0`", _HT_OK4, _HT_OK4 + "    ok4 = len([]) == 0\n",
+     False, "🔴 6. tur deligi: Compare + nobetci disi cagri"),
+    ("S05 `ok4 = ok4 or True`", _HT_OK4, _HT_OK4 + "    ok4 = ok4 or True\n",
+     False, "BoolOp'ta sabit dal"),
+    ("S06 `ok4 = any([])`", _HT_OK4, _HT_OK4 + "    ok4 = any([])\n",
+     False, "🔴 6. tur deligi: yerlesik cagri"),
+    ("S07 ara degiskene SABIT", _HT_OK4,
+     _HT_OK4 + "    _z = True\n    ok4 = _z\n", False,
+     "tasiyici cagridan TUREMIYOR -> hukum yine ezilir"),
+    ("S08 `globals()['ok4'] = True`", _HT_OK4,
+     _HT_OK4 + "    globals()['ok4'] = True\n", False,
+     "🔴 6. tur deligi: `Name` OLMAYAN hedef -> fail-closed"),
+    # --- YESIL CIKIS BICIMLERI (G2): hukum SABITLENMEDIKCE mesru ---
+    ("G2-A ternary `return`", _HT_HUKUM, "    return 0 if (ok and ok_s) else 1\n",
+     True, "🔴 6. tur sahte-kirmizisi: `return 0` daraltmasi"),
+    ("G2-B degiskene atayip `return`", _HT_HUKUM,
+     "    _kod = 0 if (ok and ok_s) else 1\n    return _kod\n", True,
+     "🔴 6. tur sahte-kirmizisi"),
+    ("G2-C `sys.exit(0)`", _HT_HUKUM,
+     "    if ok and ok_s:\n        sys.exit(0)\n", True,
+     "🔴 6. tur sahte-kirmizisi"),
+    ("G2-D erken `return 1` + dusme", _HT_HUKUM,
+     "    if not (ok and ok_s):\n        return 1\n", True,
+     "🔴 6. tur sahte-kirmizisi"),
+    ("G2-E SABOTAJ `if True:`", _HT_HUKUM, "    if True:\n        return 0\n",
+     False, "hukum SABITTEN geliyor"),
+)
+
+
+def hukum_fuzz_kontrol():
+    """23+ varyantlik IKI YONLU fuzz — kural ne sizdiriyor ne sahte-kirmizi yakiyor.
+
+    Mesru yazimlar YESIL, sabotajlar KIRMIZI olmali. Tablo KUCULURSE kirmizi yanar."""
+    hata = []
+    for etiket, capa, ikame, beklenen_yesil, neden in HUKUM_FUZZ_FIKSTURLERI:
+        kaynak = _HUKUM_TABAN_KAYNAK
+        if capa is not None:
+            if kaynak.count(capa) != 1:
+                hata.append("HUKUM FUZZ OLCULEMEDI (%s): capa %d kez gecti (beklenen 1)"
+                            % (etiket, kaynak.count(capa)))
+                continue
+            kaynak = kaynak.replace(capa, ikame)
+        try:
+            bulgular = _kendini_test_hukum_kontrol(ast.parse(kaynak))
+        except SyntaxError as e:
+            hata.append("HUKUM FUZZ OLCULEMEDI (%s): fikstur kaynagi ayristirilamadi "
+                        "(%s) — cokme KIRMIZI SAYILMAZ" % (etiket, e))
+            continue
+        yesil = not bulgular
+        if yesil != beklenen_yesil:
+            hata.append(
+                "HUKUM FUZZ DUSTU (%s): beklenen=%s gelen=%s · %s · bulgular=%r"
+                % (etiket, "YESIL" if beklenen_yesil else "KIRMIZI",
+                   "YESIL" if yesil else "KIRMIZI", neden,
+                   [b[:90] for b in bulgular]))
+    mesru = sum(1 for _e, _c, _i, y, _n in HUKUM_FUZZ_FIKSTURLERI if y)
+    sabotaj = len(HUKUM_FUZZ_FIKSTURLERI) - mesru
+    if mesru < 19 or sabotaj < 10:
+        hata.append("HUKUM FUZZ TABLOSU KUCULDU (mesru %d, sabotaj %d; taban 19/10) — "
+                    "tabloyu kucultmek nobetciyi SESSIZCE oldurur "
+                    "([[fikstur-degeri-mutasyon-koru]])." % (mesru, sabotaj))
+    return (not hata), hata
+
+
 def _kendini_test_hukum_kontrol(agac):
     """main()'in `--kendini-test` hukmu: TUM `okN`ler `and` ile hukme giriyor mu."""
     hata = []
@@ -5320,11 +5486,31 @@ def _kendini_test_hukum_kontrol(agac):
     # HUKUM DEGISKENI = bir NOBETCI cagrisinin BIRINCI (boolean) donusunu alan ad.
     # Ikinci donus (`hataN`) tani listesidir, hukum degildir — kapsam sorusu ona
     # sorulmaz (olculdu: sorulunca 13 sahte-kirmizi ureti).
-    # ARA DEGISKENLER: baska bir atamanin TUM DEGERI olarak kullanilan adlar
-    # (`_s4 = f()` -> `ok4, hata4 = _s4`). Bunlar HUKUM degiskeni degil TASIYICIDIR;
-    # kapsam sorusu onlara sorulursa mesru bir refactor sahte-kirmizi yakar (F3/N-3).
-    aracilar = {d.value.id for d in ast.walk(main_dugum)
-                if isinstance(d, ast.Assign) and isinstance(d.value, ast.Name)}
+    # 🔴 `Name` OLMAYAN ATAMA HEDEFI = FAIL-CLOSED (6. tur, S08): `globals()['ok4']`
+    # / `setattr(...)` / `obj.ok4` / `d['ok4']` bicimleri HIC INCELENMIYORDU ve
+    # `globals()['ok4'] = True` sabotaji DORT KOLDA da YESIL geciyordu. Bu bicimler
+    # main() icinde MESRU degildir; gorulurse hukum verilemez.
+    for d in ast.walk(main_dugum):
+        if not isinstance(d, ast.Assign):
+            continue
+        for hedef in d.targets:
+            for alt in ([hedef] if not isinstance(hedef, ast.Tuple) else hedef.elts):
+                if isinstance(alt, (ast.Subscript, ast.Attribute)):
+                    hata.append(
+                        "KENDINI-TEST HUKMU OLCULEMEZ (fail-closed): main()'de `Name` "
+                        "OLMAYAN atama hedefi var (satir %d, %s) -> `globals()['okN']"
+                        " = True` sinifi ezme AST ekseninde gorunmez olur."
+                        % (getattr(d, "lineno", -1), type(alt).__name__))
+    for d in ast.walk(main_dugum):
+        if isinstance(d, ast.Call) and isinstance(d.func, ast.Name) \
+                and d.func.id in ("setattr", "exec", "eval"):
+            hata.append("KENDINI-TEST HUKMU OLCULEMEZ (fail-closed): main()'de `%s(...)` "
+                        "cagrisi var (satir %d) -> hukum degiskeni AST disindan "
+                        "ezilebilir." % (d.func.id, getattr(d, "lineno", -1)))
+    # 🔴 TASIYICI SORUNU ARTIK YAPISAL OLARAK YOK (6. tur, M07/M11/M13/M15): "hangi
+    # ad yargidir" sorusu kaldirildi. Bir ad ancak KENDISINE bir NOBETCI cagrisi
+    # atanmissa hukum degiskenidir; tasiyicilar (`_s`, `_f`, `_p`, `_l`, ikinci
+    # hedef `ok4x`) zaten dogru dogru cevap verir ve KAPSAM sorusu HIC sorulmaz.
     okler = set()
     for d in ast.walk(main_dugum):
         if not isinstance(d, ast.Assign) or not _nobetci_cagrisi_mi(d.value):
@@ -5336,7 +5522,6 @@ def _kendini_test_hukum_kontrol(agac):
                     okler.add(ilk.id)
             elif isinstance(hedef, ast.Name):
                 okler.add(hedef.id)
-    okler -= aracilar
     for ad in sorted(okler):
         for d in ast.walk(main_dugum):
             if not isinstance(d, ast.Assign):
@@ -5351,25 +5536,24 @@ def _kendini_test_hukum_kontrol(agac):
                             "TUREMEYEN bir deger atanmis (satir %d) -> nobetcinin "
                             "sonucu hukme girmeden ezilmis olur; cagri durur, hukum "
                             "coper." % (ad, getattr(d, "lineno", -1)))
-    # HER hukum degiskeni EN AZ BIR **HUKUM** kosulunda gorunmeli. HUKUM kosulu =
-    # govdesinde `return 0` (YESIL cikis) bulunan `if`. 🔴 "herhangi bir `if`"
-    # YETMEZ: `if ok:` gibi YALNIZ BASAN dallar da vardir ve `if True:` mutanti
-    # onlara yaslanip gizleniyordu (olculdu: M-D1 rc=0).
-    kosul_adlari = set()
+    # 🔴 "KAPSAM DISI" EKSENI KALDIRILDI (6. tur karari, ALTI SAHTE-KIRMIZI):
+    # "her hukum degiskeni `return 0` iceren bir `if` kosulunda gorunmeli" varsayimi
+    # ALTI MESRU yazimi (M07/M11/M13/M15 tasiyicilar + G2-A/B/C/D yesil-cikis
+    # bicimleri: ternary `return`, degiskene atayip `return`, `sys.exit(0)`,
+    # erken-`return 1`+dusme) BLOKLAYICI pre-push kolunda kirmizi yakiyordu. "Hangi
+    # ad yargidir" ve "hangi `if` hukumdur" sorularinin ikisi de SOZDIZIMSEL olarak
+    # KARAR VERILEBILIR DEGIL; her daraltma yeni bir mesru bicimi disari atiyor
+    # ([[tekil-yama-sinifi-kapatmaz]] · [[kapi-anchor-coupling-ikilemi]]).
+    # YERINE: hukmu SABITLEYEN tek somut bicim dogrudan yasaklanir. Mesru kodda
+    # `if <sabit>:` YOKTUR; sahte-kirmizi yuzeyi sifirdir, `if True:` sabotaji ise
+    # TEK BASINA kirmizi yakar (olculdu: G2-E rc=1, G2-A..D rc=0).
     for d in ast.walk(main_dugum):
-        if not isinstance(d, ast.If):
-            continue
-        yesil_cikis = any(isinstance(r, ast.Return) and isinstance(r.value, ast.Constant)
-                          and r.value.value == 0 for r in ast.walk(d))
-        if yesil_cikis:
-            kosul_adlari |= {n.id for n in ast.walk(d.test) if isinstance(n, ast.Name)}
-    kayip = sorted(okler - kosul_adlari)
-    if kayip:
-        hata.append(
-            "KENDINI-TEST HUKMU KAPSAM DISI: %s nobetci sonucu ATANIYOR ama hicbir "
-            "`if` kosulunda GORUNMUYOR -> o kolun hukmu sabitlenmis olabilir "
-            "(or. `if True:`) ve olcum sessizce cope gider "
-            "([[beyan-edilmis-survivor]])." % ", ".join(kayip))
+        if isinstance(d, ast.If) and isinstance(d.test, ast.Constant):
+            hata.append(
+                "KENDINI-TEST HUKMU SABITLENMIS: main()'de `if %r:` var (satir %d) -> "
+                "kolun hukmu nobetci sonucundan degil SABITTEN geliyor; olcum sessizce "
+                "cope gider ([[beyan-edilmis-survivor]])."
+                % (d.test.value, getattr(d, "lineno", -1)))
     # HUKUM BIRLESTIRICISI `and` OLMALI — HER kol icin AYRI AYRI. (Eski surum tek
     # bir global BoolOp ariyor ve "payi olmayan" listesini TUM kollar uzerinden
     # cikariyordu; ucuncu kolun `ok`/`ok_s`u eklenince o liste SAHTE-KIRMIZI
@@ -5760,6 +5944,11 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, kk_adim_hata = kanca_kablo_adimi_kontrol()
         for h in kk_adim_hata:
             hatalar.append("KANCA-KABLO-ADIMI: " + h)
+        # HUKUM KURALI FUZZ'I (6. tur): kural BLOKLAYICI kolda herkesin itmesini
+        # yargiliyor -> iki yonu de (sizinti + sahte-kirmizi) BURADA kilitlenir.
+        _, fuzz_hata = hukum_fuzz_kontrol()
+        for h in fuzz_hata:
+            hatalar.append("HUKUM-FUZZ: " + h)
         # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
         # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
         # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
@@ -6067,6 +6256,20 @@ def main():
         else:
             for h in hata10:
                 print("  ❌ " + h)
+        ok12, hata12 = hukum_fuzz_kontrol()
+        print("HUKUM KURALI FUZZ'I — IKI YONLU (%d varyant: %d mesru yazim YESIL "
+              "kalmali + %d sabotaj KIRMIZI yakmali)"
+              % (len(HUKUM_FUZZ_FIKSTURLERI),
+                 sum(1 for _e, _c, _i, y, _n in HUKUM_FUZZ_FIKSTURLERI if y),
+                 sum(1 for _e, _c, _i, y, _n in HUKUM_FUZZ_FIKSTURLERI if not y)))
+        if ok12:
+            print("  ✅ tasiyici/ternary/`or`/lambda/abone/derin-zincir yazimlari "
+                  "SAHTE-KIRMIZI yakmiyor; `bool(1)`/`len()==0`/`any([])`/"
+                  "`globals()[...]`/sabit-literal/`if True:` ezmeleri TEK BASINA "
+                  "kirmizi")
+        else:
+            for h in hata12:
+                print("  ❌ " + h)
         ok11, hata11 = kanca_kablo_serit_kontrol()
         print("KANCA KABLOSU SERIDI — AGIR AYAK BLOKLAYICI JOB'DA MI (davranissal: "
               "adim GERCEK ayristiriciyla bulunur, job adi soylenir, `deploy: needs` "
@@ -6093,7 +6296,7 @@ def main():
                  ", ".join(KANCA_KABLO_KOL_NOBETCILERI), len(_birlesim),
                  KOL_BIRLESIM_TABANI))
         if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9
-                and ok10 and ok11):
+                and ok10 and ok11 and ok12):
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")

@@ -526,13 +526,13 @@ def main():
         lambda: _kablo_nobetcisi(
             ('                 "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",',
              '                 "suzgec_fikstur_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 15", "KOL_BIRLESIM_TABANI = 9")),
+            ("KOL_BIRLESIM_TABANI = 16", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
         lambda: _kablo_nobetcisi(
-            ("                and ok10 and ok11):",
-             "                or ok10 or ok11):")),
+            ("                and ok10 and ok11 and ok12):",
+             "                or ok10 or ok11 or ok12):")),
         True, "KENDINI-TEST HUKMU `and` DEGIL")
 
     # ---- UCUNCU TUR: ORTAM SADAKATI · SEAM · BAYRAK SIZINTISI ---------------
@@ -589,7 +589,7 @@ def main():
         lambda: _kablo_nobetcisi(
             ('              "kanca_kablo_serit_kontrol", "kendini_test_adimi_kontrol",',
              '              "kendini_test_adimi_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 15", "KOL_BIRLESIM_TABANI = 9")),
+            ("KOL_BIRLESIM_TABANI = 16", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-SERIT agir ayak adimi BLOKLAMAYAN job'a tasindi",
@@ -644,7 +644,7 @@ def main():
 
     olc("M-D1 ucuncu kolun hukmu `if True:` (ok/ok_s kapsam disi mi)",
         lambda: _kablo_nobetcisi(("        if ok and ok_s:", "        if True:")),
-        True, "KENDINI-TEST HUKMU KAPSAM DISI")
+        True, "KENDINI-TEST HUKMU SABITLENMIS")
 
     olc("M-B1 (F2) `--kanca-kablo` ADIMI deploy.yml'den SILINDI",
         lambda: _adim_mutant(
@@ -680,10 +680,61 @@ def main():
             "_SEAM_YASAK_CAGRI = ()")),
         True, "IC FIKSTUR (SEAM) DUSTU")
 
+    # ---- YEDINCI TUR: kural NOBETCI cagrisina bagli mi · fuzz tablosu civili mi --
+    def _fuzz(mod):
+        ok, hatalar = mod.hukum_fuzz_kontrol()
+        return (0 if ok else 1), hatalar
+
+    olc("FUZZ-TABAN 30 varyantlik iki yonlu tablo (mutasyonsuz)",
+        lambda: _fuzz(KAP), False)
+
+    olc("M-G1 `_cagridan_mi` NOBETCI yerine HERHANGI bir cagriyi kabul ediyor",
+        lambda: _fuzz(_mutant_modul(
+            "g1",
+            "    if _nobetci_cagrisi_mi(deger):\n        return True",
+            "    if any(isinstance(c, ast.Call) for c in ast.walk(deger)):\n"
+            "        return True")),
+        True, "HUKUM FUZZ DUSTU")
+
+    olc("M-G2 sabit-nokta derinligi `range(8)` -> `range(1)`",
+        lambda: _fuzz(_mutant_modul("g2", "    for _ in range(8):",
+                                    "    for _ in range(1):")),
+        True, "HUKUM FUZZ DUSTU")
+
+    olc("M-G3 `Name` OLMAYAN hedef fail-closed kolu dusuruldu",
+        lambda: _fuzz(_mutant_modul(
+            "g3",
+            "                if isinstance(alt, (ast.Subscript, ast.Attribute)):",
+            "                if False and isinstance(alt, (ast.Subscript, "
+            "ast.Attribute)):")),
+        True, "HUKUM FUZZ DUSTU"),
+
+    olc("M-G4 `if <sabit>:` yasagi dusuruldu",
+        lambda: _fuzz(_mutant_modul(
+            "g4",
+            "        if isinstance(d, ast.If) and isinstance(d.test, ast.Constant):",
+            "        if False and isinstance(d, ast.If):")),
+        True, "HUKUM FUZZ DUSTU")
+
+    olc("M-G5 FUZZ TABLOSU budandi (ilk 6 varyant)",
+        lambda: _fuzz(_mutant_modul(
+            "g5",
+            "def hukum_fuzz_kontrol():",
+            "HUKUM_FUZZ_FIKSTURLERI = HUKUM_FUZZ_FIKSTURLERI[:6]\n\n\n"
+            "def hukum_fuzz_kontrol():")),
+        True, "HUKUM FUZZ TABLOSU KUCULDU")
+
+    # 🔴 MUTANT MODUL SART: taban CANLI sabitten okunur; kaynak gecirmek onu
+    # degistirmez (olculdu: `_kablo_nobetcisi` ile rc=0).
+    olc("M-G6 KOL_BIRLESIM_TABANI dusuruldu (esitlik sarti)",
+        lambda: _kablo_govdesi(_mutant_modul(
+            "g6", "KOL_BIRLESIM_TABANI = 16", "KOL_BIRLESIM_TABANI = 12")),
+        True, "KOL BIRLESIMI TABANLA UYUSMUYOR")
+
     olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",
         lambda: _kablo_nobetcisi(
             ("        if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 "
-             "and ok9\n                and ok10 and ok11):",
+             "and ok9\n                and ok10 and ok11 and ok12):",
              "        if (ok11 and ok10 and ok9 and ok8 and ok7 and ok6 and ok5 and "
              "ok4 and ok3\n                and ok2 and ok1):")),
         False)
