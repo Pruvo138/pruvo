@@ -95,6 +95,50 @@ Dal `claude/suspicious-ishizaka-414f35` merge commit'iyle alindi (ff IMKANSIZ, c
 
 ## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20, dokum ARSIVDE)
 Merge --ff-only d9485a0d, kapsam 3 dosya +589/-61, sizinti 0. Olu koruma 48 birim kapatildi (tablo 18/18, pay 0). Merge sonrasi kapilar: D1 dort eksen rc=0 (22685) · CI kapsam rc=0 (246 kesif) · is-akisi rc=0 + kendini-test rc=0 (204 iddia) · nobetci mutasyon 7/7 + kontrol YESIL. Ders: ff uygunlugu YEREL main ile olculur. Temizlik bilerek yapilmadi. Tam dokum: DEVAM-ARSIV.md.
+## ⏱ SAATLIK CI NOBETI — 9 Agu 01:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Supurme (kosulsuz, §0.5):** kutu toplami **7538** · `notifications@github.com` toplami **1** ·
+"Run failed" eslesen **1** → Cop'e **1** · tur sonu kalan **0**. Pozitif tanima izi VAR
+(github toplami 0 degil) → hukum "kutu temiz", OLCULEMEDI degil. `contains` ile toplu tarama,
+ornekleme YOK, alt kutulara girilmedi, Cop BOSALTILMADI.
+
+**Kapanan iki kirmizi (bagimsiz olculdu, mimar `gh`):**
+1. `serit-b` — 23:56 / 00:29 / 00:44 kosumlari failure idi; `3e7f1b24` (00:45) ve `29e9355f`
+   (01:07) **success**. Sinif kapandi, mudahale gerekmedi (yoldan gecen yesil DEGIL: iki ayri
+   commit'te ust uste yesil).
+2. `D1 uzlastirici` — 00:34 kosumu `31286467555` failure. Logdan kok neden: onarimdan SONRA
+   SAYI ekseni 22772 == 22772 ✅ okurken ICERIK ekseni ayni adimda 22792 satir okuyup ayni 20
+   id'yi "D1'de FAZLA" saydi — yani **tek kosum icinde iki eksen birbiriyle celisti**
+   (silme sonrasi bayat okuma sinifi). Bagimsiz teyit (`d1-sync.py --durum`, mimar eliyle,
+   01:30Z): **23034 == 23034 · hash uyusmaz 0 · eksik 0 · fazla 0 · dort eksen ✅**. Sinif SU AN
+   temiz → yama YAPILMADI. ⚠️ SONRAKI TUR: bu is akisinin yeni kosumu YINE ayni celiskiyle
+   duserse tekrar eden sinif sayilir ve muhendislik isi acilir (tek olay icin acilmadi).
+
+**ACIK KIRMIZI — YAYIN ACLIGI (muhendise DEVREDILDI, dal ustunde).**
+`Paket tazeligi alarmi` / `yayin-nabzi` ARDISIK 2 kosumdur kirmizi (23:44 `31284655993`,
+01:38 `31288690972`). Alarmin kendi hukmu: **ACLIK (cikis 4)** — canli main'den **13 commit
+geride**, en eski bekleyen **53 dk** (esik 50), **6 ardisik iptal** (esik 6), ardisik hata 0.
+Ayirt edici olcum: kuyrukta iptal (zararsiz) 12 · CALISIRKEN iptal 1 · build yesil ama deploy
+kosmadi 4. Yani §4.5'teki "cancelled yigini zararsizdir" hukmu BURADA GECERSIZ — alarm
+zararsiz kuyruk iptalini zaten ayirmis, kalan sinif gercek.
+**Kok neden (dogrulanacak hipotez):** zincir ~48-53 dk (tavan `serit-a4`, bunun ~34 dk'si tek
+adim), itmeler ~13-20 dk arayla → kuyruktaki `deploy` her seferinde daha yeni itmeyle dusuyor.
+Son yayinlanan sha `062f8cb2` (00:46Z). **Esiklere DOKUNULMADI** (alarm dogru olcuyor).
+Muhendise verilen is: tavani DUSUR, iddia sayisini KUCULTMEDEN; gevsetme/adim silme/
+`continue-on-error`/`needs` daraltma/`cancel-in-progress` degistirme YASAK; main'e push YASAK,
+teslim dalda `RAPOR-MIMARA.md` + `TAVAN_ONCE_SN` / `TAVAN_SONRA_SN` / `IDDIA_ONCE` /
+`IDDIA_SONRA`. **SONRAKI TURUN ILK ISI:** o dalin raporunu oku, merge-kapisi ile tart —
+sifirdan teshise BASLAMA.
+
+**OLCULEMEDI (uydurulmadi):** guncel head `6b15062b` icin `deploy`/`yayin` — kosum
+`31288785522` tur sonunda hala `pending`.
+
+**Bu defter blogu commit EDILDI, PUSH EDILMEDI — bilerek.** Gerekce olculdu: `31288785522`
+su an kuyrukta ve YENI bir itme onu dusurur; yani "defteri hemen it" refleksi bu turda
+teshis edilen acligi BIR TUR daha uzatirdi. Commit main'de bekliyor, sonraki icerik
+itmesiyle birlikte gider. Sonraki tur: bu blok hala itilmemisse ve `deploy` bir kez
+yesillenmisse it.
+
 ## ⏱ SAATLIK CI NOBETI — 8 Agu 23:37Z turu (ev DOGRU: ~/dev/pruvo)
 
 **Supurme (kosulsuz, §0.5):** eslesen "Run failed" **0** → Cop'e **0**. Pozitif tanima izi
@@ -130,9 +174,8 @@ Bagimsiz teyit (mimar, `gh`): kosum `31284643156` (head `062f8cb2`) `serit-a2` *
 (`concurrency: pages` + `cancel-in-progress: false`, §4.5 — `cancelled` yigini ariza degil).
 Tur ici bekleme tavani (§3.5) doldu.
 
-**SONRAKI TURUN ILK ISI:** `31284643156` ve `31285092474` kosumlarinda `serit-a4` + `deploy` +
-`yayin` sonuclarini olc. Yesilse canli teyit: canli katalog sayisi yerel `urunler.json` ile
-esit mi + artefakt zaman damgasi + en yeni urunlerin kanonik adresi **200**.
-**SIFIRDAN TESHISE BASLAMA.**
+**BU DEVIR KAPANDI (01:37Z turunda olculdu):** `31284643156` alti isin ALTISI da `success`
+(`serit-a2` · `serit-a3` · `serit-a4` · `build` · `deploy` · `yayin`). `31285092474` `cancelled`
++ `jobs: []` = kuyruk davranisi (§4.5), icerigi kayip DEGIL.
 
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
