@@ -1176,6 +1176,77 @@ PRE_PUSH_MUTANTLARI = (
 )
 
 
+def kanca_kablo_serit_kontrol():
+    """🔴 AGIR AYAK GERCEKTEN BLOKLAYICI SERITTE MI (beyan degil, DAVRANIS).
+
+    OLCULEN HATA (4. tur): teslim "deploy.yml'de BLOKLAYICI" diye BEYAN etti; adim
+    aslinda `nobet.yml`deydi (SERIT B, yayini BLOKLAMAZ) ve N1/N3/X4 sinifi push'u
+    da deploy'u da geciyordu. Kanonik sinif:
+    [[kapi-beyanin-dogrulugunu-degil-varligini-olcer]] — beyanin VARLIGI degil
+    DOGRULUGU olculmeli.
+
+    UC IDDIA (hepsi GERCEK deploy.yml uzerinden, YAML AYRISTIRICISIYLA):
+      S1 ADIM VAR   — `%s` bayragini ANLAMLI olarak icra eden bir adim var.
+      S2 JOB KIMLIGI — o adim HANGI job'da, ADIYLA soylenir (tani).
+      S3 ZORLAMA    — o job `deploy: needs` zincirinde (dogrudan ya da dolayli).
+    """ % KANCA_KABLO_BAYRAGI
+    hata = []
+    try:
+        with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+            metin = f.read()
+    except OSError as e:
+        return False, ["KANCA KABLO SERIDI OLCULEMEDI: deploy.yml okunamadi: %s" % e]
+    belge, ayrist_hata = YAML_OKU.belge(metin)
+    if belge is None:
+        return False, ["KANCA KABLO SERIDI OLCULEMEDI (fail-closed): deploy.yml "
+                       "GERCEK ayristirici ile cozulemedi (%s) -> 'adim bloklayici "
+                       "job'da' hukmu TAHMIN EDILMEZ." % (ayrist_hata or "?")]
+    joblar = (belge or {}).get("jobs") or {}
+    tasiyan = []
+    for job_adi, job in joblar.items():
+        for adim in (job or {}).get("steps") or []:
+            komut = (adim or {}).get("run")
+            if not komut:
+                continue
+            for satir in _icra_komutlari(str(komut)):
+                if not _onek_re(_PP_KAPI).match(satir):
+                    continue
+                if KANCA_KABLO_BAYRAGI not in satir:
+                    continue
+                if SUZGEC.cagri_sayilir(satir, _PP_KAPI):
+                    tasiyan.append(job_adi)
+                    break
+    tasiyan = sorted(set(tasiyan))
+    if not tasiyan:
+        return False, ["S1 ADIM YOK: deploy.yml'de `%s` bayragini ANLAMLI olarak icra "
+                       "eden adim BULUNAMADI -> agir davranis ayagi hicbir bloklayici "
+                       "seritte kosmuyor." % KANCA_KABLO_BAYRAGI]
+    # S3: `deploy` job'unun needs zinciri (gecisli kapanis).
+    deploy_job = joblar.get("deploy") or {}
+    gerekli = deploy_job.get("needs") or []
+    if isinstance(gerekli, str):
+        gerekli = [gerekli]
+    zincir, kuyruk = set(), list(gerekli)
+    while kuyruk:
+        j = kuyruk.pop()
+        if j in zincir:
+            continue
+        zincir.add(j)
+        alt = (joblar.get(j) or {}).get("needs") or []
+        kuyruk.extend([alt] if isinstance(alt, str) else alt)
+    if not zincir:
+        hata.append("S3 OLCULEMEDI: `deploy` job'unun `needs` listesi BOS/YOK -> "
+                    "zorlama zinciri cozulemedi (fail-closed).")
+    bloklayan = [j for j in tasiyan if j in zincir]
+    if not bloklayan:
+        hata.append(
+            "S3 ZORLAMA YOK: `%s` adimi %s job(lar)inda ama `deploy: needs` zinciri "
+            "%s -> o job KIRMIZI yansa bile YAYIN GECER. Adim BLOKLAYICI bir job'a "
+            "(or. `serit-a3`) tasinmali; aksi halde N1/N3/X4 sinifi 'kapi' degil "
+            "yalniz 'alarm'dir." % (KANCA_KABLO_BAYRAGI, tasiyan, sorted(zincir)))
+    return (not hata), hata
+
+
 def pre_push_capa_kontrol():
     """🟢 UCUZ KOL — pre-push'ta (yerel push oncesi) kosan STATIK on-uyari.
 
@@ -3202,6 +3273,12 @@ def muaf_sayaci_kontrol():
 HEDEF_BETIK = "tools/ci-kapsam-test.py"
 
 KENDINI_TEST_BAYRAGI = "--kendini-test"
+# 🔴 AGIR DAVRANIS AYAGININ KENDI BAYRAGI (9 Agu 2026, 4. tur): `--kendini-test`
+# adimi `nobet.yml`de (SERIT B — yayini BLOKLAMAZ) yasiyor. Agir ayak oraya
+# alininca N1/N3/X4 sinifi push'u DA deploy'u DA gecer oldu. Ayri bayrak, ayri
+# adim: YALNIZ bu bayrak `deploy.yml`in BLOKLAYICI `serit-a3` job'una baglanir,
+# nobet.yml serit karari BOZULMAZ.
+KANCA_KABLO_BAYRAGI = "--kanca-kablo"
 KENDINI_TEST_TANI = (
     "nobet.yml'de (bu betigin adimlarinin yasadigi is akisi — bkz. KENDI_IS_AKISI) "
     "bu betigi `--kendini-test` ile ANLAMLI olarak kosan hicbir adim YOK "
@@ -4904,23 +4981,34 @@ TANI_KABLOLARI = (
 # ama BLOKLAYICI koldan CAGRI SATIRLARINI silmek (KB-C/KB-D) DORT bataryayi da
 # YESIL birakiyordu — birinci turda kapatilan sinifin bir kat yukarisi
 # ([[nobetci-cagri-satiri-nobetsiz]]). Ucu de asagiya EKLENDI.
+# 🔴 DEFTER **TAM** OLMAK ZORUNDA (9 Agu 2026, 4. tur): asagidaki kume ile
+# fonksiyonun FIILEN cagirdigi `*_kontrol` nobetcileri BIREBIR ESIT olmalidir.
+# Eskiden defter yalnizca ALT KUME idi; o zaman "defterden kaydi sil" mutanti
+# (E5-a) hicbir gate kolunda kirmizi yakmiyordu — sayisal taban (`KOL_BIRLESIM_
+# TABANI`) da ayni saboteur tarafindan dusurulebildigi icin IKIZ olusuyordu.
+# ESITLIK ikizi ortadan kaldirir: iki eksen (defter vs GERCEK cagri) birbirini
+# capalar, tek satirlik kacis kalmaz ([[ikiz-tanim-sessiz-ayrisma]]).
 NOBETCI_KABLOLARI = (
-    ("denetle", ("bulgu1_mutasyon_kontrol", "muaf_sayaci_kontrol",
-                 "kendini_test_adimi_kontrol", "bayraksiz_adim_kontrol",
-                 "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol",
-                 "alt_kume_fikstur_kontrol", "izlenmeyen_fikstur_kontrol",
-                 "main_kablosu_kontrol", "pre_push_capa_kontrol")),
-    ("main", ("bulgu1_mutasyon_kontrol", "muaf_sayaci_kontrol",
-              "kendini_test_adimi_kontrol", "bayraksiz_adim_kontrol",
-              "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol",
-              "alt_kume_fikstur_kontrol", "izlenmeyen_fikstur_kontrol",
-              "main_kablosu_kontrol", "pre_push_kablo_kontrol")),
+    ("denetle", ("acik_kesif_kontrol", "alt_kume_fikstur_kontrol",
+                 "bayraksiz_adim_kontrol", "bulgu1_mutasyon_kontrol",
+                 "izlenmeyen_fikstur_kontrol",
+                 "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
+                 "main_kablosu_kontrol", "muaf_sayaci_kontrol",
+                 "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",
+                 "suzgec_kablosu_kontrol")),
+    ("main", ("alt_kume_fikstur_kontrol", "bayraksiz_adim_kontrol",
+              "bulgu1_mutasyon_kontrol", "izlenmeyen_fikstur_kontrol",
+              "kanca_kablo_serit_kontrol", "kendini_test_adimi_kontrol",
+              "kesif_predikat_kontrol", "main_kablosu_kontrol",
+              "muaf_sayaci_kontrol", "pre_push_kablo_kontrol",
+              "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol")),
 )
 
 # 🔴 TOPLAM YUZEY RASETI ([[kapi-yan-etkisi-gizli-onkosul]]): bir adimi kolun
 # birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
-# Bu taban, IKI KOLUN BIRLESIMINDEKI ayri nobetci sayisidir; kucultmek KIRMIZI yakar.
-KOL_BIRLESIM_TABANI = 11
+# NOT: bu SAYI artik TEK BASINA yuk tasimiyor (dusurulebilir olmasi E5-a deligiydi);
+# asil capa yukaridaki ESITLIK kontroludur. Sayi ikinci bir ratchet olarak kalir.
+KOL_BIRLESIM_TABANI = 13
 
 # 🔴 `--kendini-test` HUKMUNUN KENDISI (KB-E): butun `okN` degiskenleri hukme
 # `and` ile girmeli. Olculdu: `and ok10 and ok11` -> `or ok10 or ok11` yapildiginda
@@ -4937,6 +5025,61 @@ _SEAM_YASAK_CAGRI = ("run", "check_output", "Popen", "check_call", "getoutput",
                      "urlopen", "loads")
 
 
+def _kol_kapsam_kontrol(agac, duz):
+    """KAYIT DEFTERI ile FIILEN CAGRILAN nobetciler BIREBIR ESIT mi (iki kol).
+
+    🔴 NEDEN ESITLIK (4. tur, E5-a): defter ALT KUME olarak yorumlandiginda
+    "defterden kaydi sil" mutanti hicbir gate kolunda kirmizi yakmiyordu; sayisal
+    taban da ayni dosyada oldugu icin saboteur ikisini birden dusurebiliyordu.
+    Simdi iki BAGIMSIZ eksen (kaynak defteri vs AST cagrilari) birbirini capaliyor:
+      * cagri var / defter yok -> DEFTER EKSIK (yeni; E5-a burada duser)
+      * defter var / cagri yok -> KABLO KOPMUS (eskiden beri)
+    Kalan bilinen sinir: HEM cagriyi HEM kaydi silen IKI ADIMLI mutasyon (mevcut
+    beyanla ayni; ust kat tools/nobetci-mutasyon-test.py)."""
+    hata = []
+    kayit = None
+    for dugum in ast.walk(agac):
+        if not isinstance(dugum, ast.Assign):
+            continue
+        if "NOBETCI_KABLOLARI" not in [t.id for t in dugum.targets
+                                       if isinstance(t, ast.Name)]:
+            continue
+        try:
+            kayit = dict(ast.literal_eval(dugum.value))
+        except (ValueError, SyntaxError):
+            return ["KOL KAPSAMI OLCULEMEDI: NOBETCI_KABLOLARI sabit ifade degil -> "
+                    "defter kaynaktan okunamiyor (fail-closed)."]
+        break
+    if kayit is None:
+        return ["KOL KAPSAMI OLCULEMEDI: NOBETCI_KABLOLARI atamasi kaynakta "
+                "BULUNAMADI -> defter yeniden adlandirilmis olabilir."]
+    # NOBETCI EVRENI: modul duzeyinde tanimli, `_` ile BASLAMAYAN `*_kontrol`ler.
+    evren = {d.name for d in agac.body
+             if isinstance(d, ast.FunctionDef) and d.name.endswith("_kontrol")
+             and not d.name.startswith("_")}
+    for ad in ("denetle", "main"):
+        if ad not in duz:
+            hata.append("KOL KAPSAMI OLCULEMEDI: %s() bulunamadi." % ad)
+            continue
+        cagrilan = duz[ad] & evren
+        kayitli = set(kayit.get(ad, ()))
+        defter_eksik = sorted(cagrilan - kayitli)
+        if defter_eksik:
+            hata.append(
+                "KAYIT DEFTERI EKSIK (%s): %s FIILEN cagriliyor ama "
+                "NOBETCI_KABLOLARI'nda YOK -> o cagrinin silinmesi bir daha KIRMIZI "
+                "YAKMAZ (raset sessizce dustu)." % (ad, ", ".join(defter_eksik)))
+    birlesim = set()
+    for _ad, gerekli in kayit.items():
+        birlesim |= set(gerekli)
+    if len(birlesim) < KOL_BIRLESIM_TABANI:
+        hata.append(
+            "KOL BIRLESIMI KUCULDU: iki kolun TOPLAM nobetci kumesi %d (taban %d) -> "
+            "bir adim koldan kola tasinirken yuzey SESSIZCE kuculmus olabilir "
+            "([[kapi-yan-etkisi-gizli-onkosul]])." % (len(birlesim), KOL_BIRLESIM_TABANI))
+    return hata
+
+
 def _seam_kontrol(agac):
     """`kaynak is None` dali GERCEKTEN `os.path.abspath(__file__)` okuyor mu."""
     hata = []
@@ -4944,20 +5087,22 @@ def _seam_kontrol(agac):
                and d.name == "suzgec_kablosu_kontrol"), None)
     if fn is None:
         return ["SEAM NOBETCISI BAYAT: suzgec_kablosu_kontrol() bulunamadi."]
+    # 🔴 KAPSAM = FONKSIYONUN TAMAMI (4. tur, E3-iv): eskiden yalniz `kaynak is None`
+    # If DUGUMUNUN ICI taraniyordu; seam If DISINDA ezilince (`kaynak = <baska>`) iki
+    # gate kolu da YESIL kaliyordu ([[tekil-yama-sinifi-kapatmaz]]). Artik `kaynak`a
+    # yapilan HER yeniden atama ve govdedeki HER yasak cagri olculur.
     dal = None
     for d in ast.walk(fn):
-        if not isinstance(d, ast.If):
-            continue
-        metin = {n.id for n in ast.walk(d.test) if isinstance(n, ast.Name)}
-        if "kaynak" in metin:
-            dal = d
-            break
+        if isinstance(d, ast.If):
+            metin = {n.id for n in ast.walk(d.test) if isinstance(n, ast.Name)}
+            if "kaynak" in metin:
+                dal = d
+                break
     if dal is None:
         hata.append("SEAM DALI BULUNAMADI: `kaynak is None` kosulu YOK -> seam "
                     "uretim yoluna sessizce sizmis olabilir (fail-closed).")
-        return hata
     adlar, oznitelikler, isimler = set(), set(), set()
-    for n in ast.walk(dal):
+    for n in ast.walk(fn):
         if isinstance(n, ast.Call):
             if isinstance(n.func, ast.Name):
                 adlar.add(n.func.id)
@@ -4967,19 +5112,33 @@ def _seam_kontrol(agac):
             isimler.add(n.id)
     if "abspath" not in oznitelikler or "__file__" not in isimler:
         hata.append(
-            "SEAM SIZINTISI: `kaynak is None` dali `os.path.abspath(__file__)` "
-            "OKUMUYOR (gorulen cagri=%r) -> nobetci KOSAN dosyayi degil BASKA bir "
-            "kaynagi (or. `git show HEAD:...`) yargiliyor olabilir; calisma "
-            "agacindaki sabotaj SESSIZ kalir."
+            "SEAM SIZINTISI: `suzgec_kablosu_kontrol()` govdesi "
+            "`os.path.abspath(__file__)` OKUMUYOR (gorulen cagri=%r) -> nobetci "
+            "KOSAN dosyayi degil BASKA bir kaynagi (or. `git show HEAD:...`) "
+            "yargiliyor olabilir; calisma agacindaki sabotaj SESSIZ kalir."
             % (sorted(oznitelikler | adlar)[:8],))
     if "open" not in adlar:
-        hata.append("SEAM SIZINTISI: `kaynak is None` dalinda `open(...)` cagrisi YOK "
-                    "-> kaynak metni diskten okunmuyor.")
+        hata.append("SEAM SIZINTISI: govdede `open(...)` cagrisi YOK -> kaynak metni "
+                    "diskten okunmuyor.")
     yasak = sorted((adlar | oznitelikler) & set(_SEAM_YASAK_CAGRI))
     if yasak:
-        hata.append("SEAM SIZINTISI: `kaynak is None` dalinda ALT SUREC/HARICI kaynak "
-                    "cagrisi var (%s) -> uretim yolu artik CALISAN dosyayi okumuyor."
-                    % ", ".join(yasak))
+        hata.append("SEAM SIZINTISI: govdede ALT SUREC/HARICI kaynak cagrisi var (%s) "
+                    "-> uretim yolu artik CALISAN dosyayi okumuyor." % ", ".join(yasak))
+    # `kaynak`a yapilan ATAMALAR: yalniz (a) parametre, (b) `open(...).read()`
+    # mesrudur. Baska her yeniden atama seam'i uretim yoluna sizdirir.
+    for n in ast.walk(fn):
+        if not isinstance(n, ast.Assign):
+            continue
+        if "kaynak" not in [t.id for t in n.targets if isinstance(t, ast.Name)]:
+            continue
+        kaynak_cagri = {c.func.attr for c in ast.walk(n.value)
+                        if isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)}
+        if "read" not in kaynak_cagri:
+            hata.append(
+                "SEAM SIZINTISI: `kaynak` degiskenine `f.read()` OLMAYAN bir atama "
+                "yapiliyor (satir %d) -> nobetciye YARGILAYACAGI metin disaridan "
+                "verilmis olur ve CALISAN dosya hic okunmaz."
+                % getattr(n, "lineno", -1))
     return hata
 
 
@@ -4991,17 +5150,36 @@ def _kendini_test_hukum_kontrol(agac):
     if main_dugum is None:
         return ["KENDINI-TEST HUKMU OLCULEMEDI: main() bulunamadi (dosya yeniden "
                 "duzenlendiyse nobetciyi guncelle)."]
+    # 🔴 ATAMA SAYISI + KAYNAGI (4. tur, E3-i): `ok11 = True` gibi IKINCI bir atama
+    # cagriyi de `and` zincirini de TATMIN ediyor ve 45 gercek itmenin sonucu
+    # sessizce cope gidiyordu (5/5 batarya yesil). Artik HER `okN` TAM BIR KEZ ve
+    # YALNIZ bir CAGRIDAN atanmali ([[beyan-edilmis-survivor]]).
     okler = set()
+    atama_sayisi = {}
     for d in ast.walk(main_dugum):
-        if isinstance(d, ast.Assign):
-            for hedef in d.targets:
-                for n in ast.walk(hedef):
-                    if isinstance(n, ast.Name) and _OK_ADI_RE.match(n.id):
-                        okler.add(n.id)
-    if len(okler) < 11:
-        hata.append("KENDINI-TEST HUKMU KUCULDU: main()'de yalniz %d adet `okN` "
-                    "atamasi var (taban 11) -> bir nobetci kolu sessizce dusmus "
-                    "olabilir." % len(okler))
+        if not isinstance(d, ast.Assign):
+            continue
+        for hedef in d.targets:
+            for n in ast.walk(hedef):
+                if not (isinstance(n, ast.Name) and _OK_ADI_RE.match(n.id)):
+                    continue
+                okler.add(n.id)
+                atama_sayisi[n.id] = atama_sayisi.get(n.id, 0) + 1
+                cagri_var = any(isinstance(c, ast.Call) for c in ast.walk(d.value))
+                if not cagri_var:
+                    hata.append(
+                        "KENDINI-TEST HUKMU ATLANIYOR: `%s` bir CAGRI'dan degil sabit "
+                        "ifadeden atanmis (satir %d) -> nobetcinin sonucu hukme "
+                        "girmeden ezilmis olur; cagri durur, hukum coper."
+                        % (n.id, getattr(d, "lineno", -1)))
+    coklu = sorted((a for a, s in atama_sayisi.items() if s > 1),
+                   key=lambda x: int(x[2:]))
+    if coklu:
+        hata.append(
+            "KENDINI-TEST HUKMU EZILIYOR: %s degisken(ler)ine BIRDEN COK atama var -> "
+            "cagri ile hukum ARASINA konan ikinci atama (or. `ok11 = True`) hem "
+            "kablo hem `and` zinciri kontrolunu tatmin eder ve olcumu sessizce "
+            "coper eder." % ", ".join(coklu))
     hukum = None
     for d in ast.walk(main_dugum):
         if isinstance(d, ast.If) and isinstance(d.test, ast.BoolOp):
@@ -5180,39 +5358,8 @@ def suzgec_kablosu_kontrol(kaynak=None):
     hata.extend(_kendini_test_hukum_kontrol(agac))
     # S1: bu nobetcinin KENDI uretim yolu (kaynak is None) CALISAN dosyayi okumali.
     hata.extend(_seam_kontrol(agac))
-    # TOPLAM YUZEY: kollar arasi TASIMA yuzeyi kucultmemeli.
-    # 🔴 KAYIT DEFTERI **KAYNAKTAN** OKUNUR (canli sabitten DEGIL): mutasyon
-    # surucusu kaynak metni geciriyor; canli sabite bakan bir kontrol defteri
-    # kucultmeyi GOREMEZDI (olculdu: M-KB8 rc=0). Karsilastirma tabani ise CANLI
-    # sabittir -> kaynakta tabani dusurmek kayit kaybini GIZLEYEMEZ.
-    birlesim = set()
-    kayit_bulundu = False
-    for dugum in ast.walk(agac):
-        if not isinstance(dugum, ast.Assign):
-            continue
-        adlar = [t.id for t in dugum.targets if isinstance(t, ast.Name)]
-        if "NOBETCI_KABLOLARI" not in adlar:
-            continue
-        try:
-            kayit = ast.literal_eval(dugum.value)
-        except (ValueError, SyntaxError):
-            hata.append("KOL BIRLESIMI OLCULEMEDI: NOBETCI_KABLOLARI sabit ifade "
-                        "degil -> defter kaynaktan okunamiyor (fail-closed).")
-            kayit_bulundu = True
-            break
-        kayit_bulundu = True
-        for _ad, gerekli in kayit:
-            birlesim |= set(gerekli)
-        break
-    if not kayit_bulundu:
-        hata.append("KOL BIRLESIMI OLCULEMEDI: NOBETCI_KABLOLARI atamasi kaynakta "
-                    "BULUNAMADI -> defter yeniden adlandirilmis olabilir.")
-    elif len(birlesim) < KOL_BIRLESIM_TABANI:
-        hata.append(
-            "KOL BIRLESIMI KUCULDU: iki kolun TOPLAM nobetci kumesi %d (taban %d) -> "
-            "bir adim koldan kola tasinirken yuzey SESSIZCE kuculmus olabilir; iki "
-            "kol da rc=0 verirken olculen sey azalir "
-            "([[kapi-yan-etkisi-gizli-onkosul]])." % (len(birlesim), KOL_BIRLESIM_TABANI))
+    # TOPLAM YUZEY + DEFTER/CAGRI ESITLIGI (twin-free capa).
+    hata.extend(_kol_kapsam_kontrol(agac, duz))
     return (not hata), hata
 
 
@@ -5411,6 +5558,11 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, pp_hata = pre_push_capa_kontrol()
         for h in pp_hata:
             hatalar.append("PRE-PUSH-CAPA: " + h)
+        # 🔴 SERIT NOBETCISI BU KOLDA DEGIL — MALIYET OLCUMU: `kanca_kablo_serit_
+        # kontrol()` deploy.yml'i GERCEK ayristiriciyla cozer; pyyaml yoksa psych
+        # (ruby SURECI) kosar ve bu kolun medyani 3,89 -> 9,89 sn'ye cikti (olculdu).
+        # Nobetci `--kanca-kablo` (deploy.yml BLOKLAYICI serit-a3) ve `--kendini-test`
+        # kollarinda kosar; iddia CI'da bloklayicidir, pre-push'a bindirilmez.
         # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
         # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
         # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
@@ -5551,11 +5703,51 @@ def main():
     ap.add_argument("--kendini-test", action="store_true",
                     help="YALNIZ kendi mutasyon nobetcilerini kosar: bulgu1 + muaf sayaci "
                          "(gercek deploy.yml uzerinden)")
+    ap.add_argument(KANCA_KABLO_BAYRAGI, action="store_true",
+                    help="YALNIZ pre-push kanca kablosunun DAVRANIS ayagini kosar "
+                         "(45 GERCEK `git push`). BLOKLAYICI seride (deploy.yml) "
+                         "AYRI adim olarak baglanir.")
     args = ap.parse_args()
 
     # 🔴 HANGI KOL KARAR VERIYOR (mimar hukmu madde 3) — HER kosumda basilir.
     print("  YAML ayristirici kolu  : %s" % (
         YAML_OKU.ayristirici_adi() or "YOK -> taklit-fallback (fail-closed)"))
+
+    # 🔴 AGIR DAVRANIS AYAGI — AYRI BAYRAK, BLOKLAYICI SERIT (9 Agu 2026, 4. tur).
+    # OLCULEN HATA: ayak `--kendini-test` koluna alinmisti; o adim `nobet.yml`de
+    # (SERIT B — yayini BLOKLAMAZ) yasiyor -> N1/N3/X4 sinifi sabotaj push'u DA
+    # deploy'u DA geciyordu; sinif KAPI olmaktan cikip ALARMA dusmustu.
+    # `--kendini-test`i deploy.yml'e geri koymak 5 Agu'daki serit kararini bozardi
+    # ([[hukum-yanlis-birimde]]: bloklamayan alarm joblari yayin kosumunun rengini
+    # boyamasin) -> AYRI BAYRAK acildi ve YALNIZ O ADIM bloklayici job'a baglandi.
+    if getattr(args, KANCA_KABLO_BAYRAGI.lstrip("-").replace("-", "_")):
+        ok_s, hata_s = kanca_kablo_serit_kontrol()
+        print("KANCA KABLOSU SERIDI — AGIR AYAK BLOKLAYICI JOB'DA MI (davranissal)")
+        if ok_s:
+            print("  ✅ `%s` adimi `deploy: needs` zincirindeki bir job'da kosuyor"
+                  % KANCA_KABLO_BAYRAGI)
+        else:
+            for h in hata_s:
+                print("  ❌ " + h)
+        ok, hatalar = pre_push_kablo_kontrol()
+        print("pre-push KABLOSU — GERCEK `git push` ILE DAVRANIS, GIT KANCA ORTAMINDA "
+              "(%d govde x %d vaka = %d kosum; %d oldurucu + %d kontrol)"
+              % (len(PRE_PUSH_MUTANTLARI), len(PRE_PUSH_DAVRANIS_VAKALARI),
+                 len(PRE_PUSH_MUTANTLARI) * len(PRE_PUSH_DAVRANIS_VAKALARI),
+                 sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if not b),
+                 sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if b)))
+        if ok:
+            print("  ✅ HUKMU KABUK VERIYOR: kapi KIRMIZI iken push DURUYOR, YESIL "
+                  "iken GECIYOR, arac YOKKEN DURUYOR; N1/N3/X4/N2/P4/P6 TEK BASINA "
+                  "kirmizi; `${...}` ve ilgisiz degisiklik YANLIS-KIRMIZI yakmiyor")
+        else:
+            for h in hatalar:
+                print("  ❌ " + h)
+        if ok and ok_s:
+            print("SONUC: YESIL ✅")
+            return 0
+        print("SONUC: KIRMIZI ❌")
+        return 1
 
     if args.kendini_test:
         ok1, hata1 = bulgu1_mutasyon_kontrol()
@@ -5675,19 +5867,14 @@ def main():
         else:
             for h in hata10:
                 print("  ❌ " + h)
-        ok11, hata11 = pre_push_kablo_kontrol()
-        print("pre-push KABLOSU — GERCEK `git push` ILE DAVRANIS, GIT KANCA ORTAMINDA "
-              "(%d govde x %d vaka = %d kosum; %d oldurucu + %d kontrol)"
-              % (len(PRE_PUSH_MUTANTLARI), len(PRE_PUSH_DAVRANIS_VAKALARI),
-                 len(PRE_PUSH_MUTANTLARI) * len(PRE_PUSH_DAVRANIS_VAKALARI),
-                 sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if not b),
-                 sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if b)))
+        ok11, hata11 = kanca_kablo_serit_kontrol()
+        print("KANCA KABLOSU SERIDI — AGIR AYAK BLOKLAYICI JOB'DA MI (davranissal: "
+              "adim GERCEK ayristiriciyla bulunur, job adi soylenir, `deploy: needs` "
+              "gecisli zinciri cozulur)")
         if ok11:
-            print("  ✅ HUKMU KABUK VERIYOR (regex yalniz TANI): kapi KIRMIZI iken push "
-                  "DURUYOR, kapi YESIL iken GECIYOR, arac YOKKEN DURUYOR; rc yeniden "
-                  "atama (N1), `if false` sarmali (N3), olu kosul (N2/P5), kol "
-                  "degistirme (P4) ve sessiz atlama (P6) TEK BASINA kirmizi; `${...}` "
-                  "yeniden yazimi ve ilgisiz degisiklik YANLIS-KIRMIZI yakmiyor")
+            print("  ✅ `%s` adimi `deploy: needs` zincirindeki bir job'da kosuyor -> "
+                  "N1/N3/X4 sinifi ALARM degil KAPI (yayin bloklanir)"
+                  % KANCA_KABLO_BAYRAGI)
         else:
             for h in hata11:
                 print("  ❌ " + h)
@@ -5695,12 +5882,13 @@ def main():
         _birlesim = set()
         for _a, _g in NOBETCI_KABLOLARI:
             _birlesim |= set(_g)
-        print("KOL KAPSAMI — bu kol (`%s`): %d oz-nobetci · BAYRAKSIZ (kapsam) kolu: "
-              "%d · BIRLESIM: %d (taban %d). AGIR davranis ayagi (45 gercek `git "
-              "push`) MALIYET HUKMU geregi BU KOLDA yasar; bayraksiz kolda ucuz "
-              "statik capa kalir — birlesim KUCULMEDI."
+        print("KOL KAPSAMI — bu kol (`%s`, nobet.yml SERIT B, yayini BLOKLAMAZ): %d "
+              "oz-nobetci · BAYRAKSIZ kapsam kolu (pre-push + CI): %d · BIRLESIM: %d "
+              "(taban %d). AGIR davranis ayagi (45 gercek `git push`) BU KOLDA DEGIL: "
+              "`%s` bayragiyla deploy.yml'in BLOKLAYICI `serit-a3` job'unda kosar."
               % (KENDINI_TEST_BAYRAGI, len(_kol.get("main", ())),
-                 len(_kol.get("denetle", ())), len(_birlesim), KOL_BIRLESIM_TABANI))
+                 len(_kol.get("denetle", ())), len(_birlesim), KOL_BIRLESIM_TABANI,
+                 KANCA_KABLO_BAYRAGI))
         if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9
                 and ok10 and ok11):
             print("SONUC: YESIL ✅")

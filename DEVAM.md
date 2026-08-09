@@ -141,7 +141,7 @@ esigi degil SEBEBI hedefledi.
 
 **Tavan isi (muhendis, DEVAM EDIYOR):** worktree `agent-a6d4a91f92189720c` `tools/
 model-uyelik-kapisi.py` + `tools/marka_model_build.py` uzerinde calisiyor (uc scratch olcum
-betigi). ⚠️ **Commit YOK, `RAPOR-MIMARA.md` YOK, son yazma 01:56Z → tur sonunda 47 dk sessiz.**
+betigi). ⚠️ **Commit YOK, muhendis raporu YOK, son yazma 01:56Z → tur sonunda 47 dk sessiz.**
 Tek tur olduğu icin oksuz SAYILMADI. **SONRAKI TUR ESIGI:** hala commit/rapor yoksa
 (~2 saat sessizlik) is DEVRALINIR — sifirdan teshise baslanmaz, dosyalar yerinde.
 

@@ -193,6 +193,34 @@ def _pp_mutant(capa, ikame, ek=None):
         shutil.rmtree(gecici, ignore_errors=True)
 
 
+def _serit_mutant(capa, ikame, ek=None):
+    """deploy.yml'i GECICI kopyada mutasyona ugratip SERIT hukmunu olcer.
+
+    🔴 IZLENEN deploy.yml'e DOKUNULMAZ: mutant tempfile'a yazilir ve modulun
+    `DEPLOY_VARSAYILAN` sabiti gecici olarak oraya cevrilir."""
+    with open(DEPLOY_YOLU, encoding="utf-8") as f:
+        metin = f.read()
+    for c, i in [(capa, ikame)] + ([ek] if ek else []):
+        if metin.count(c) != 1:
+            raise RuntimeError("SERIT MUTANTI OLCULEMEDI: capa %r %d kez gecti "
+                               "(beklenen 1)" % (c[:50], metin.count(c)))
+        metin = metin.replace(c, i)
+    gecici = tempfile.mkdtemp(prefix="pruvo-serit-mutant-")
+    try:
+        yol = os.path.join(gecici, "deploy.yml")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(metin)
+        eski = KAP.DEPLOY_VARSAYILAN
+        KAP.DEPLOY_VARSAYILAN = yol
+        try:
+            ok, hatalar = KAP.kanca_kablo_serit_kontrol()
+        finally:
+            KAP.DEPLOY_VARSAYILAN = eski
+        return (0 if ok else 1), hatalar
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
 def _akisa_yorum_ekle(akislar, akis_adi):
     """KONTROL: ilgisiz bir YAML yorum satiri ekler (hukum DEGISMEMELI)."""
     yeni = []
@@ -462,21 +490,20 @@ def main():
              "        pp_hata = []")),
         True, "NOBETCI KABLOSU KOPMUS")
 
-    olc("M-KB7 `--kendini-test` kolundan AGIR DAVRANIS ayagi SILINDI",
+    olc("M-KB7 `--kanca-kablo` kolundan AGIR DAVRANIS ayagi SILINDI",
         lambda: _kablo_nobetcisi(
-            ("        ok11, hata11 = pre_push_kablo_kontrol()",
-             "        ok11, hata11 = True, []")),
+            ("        ok, hatalar = pre_push_kablo_kontrol()",
+             "        ok, hatalar = True, []")),
         True, "NOBETCI KABLOSU KOPMUS")
 
     # 🔴 YUZEY KUCULMESI EKSENI: bir adimi koldan kola tasimak iki kolu da rc=0
     # birakip TOPLAM olculen yuzeyi kucultebilir ([[kapi-yan-etkisi-gizli-onkosul]]).
-    olc("M-KB8 KOL BIRLESIMI kucultuldu (iki koldan da push kablosu dusuruldu)",
+    olc("M-KB8 BLOKLAYICI kol defterinden kayit silindi + taban dusuruldu",
         lambda: _kablo_nobetcisi(
-            ('                 "main_kablosu_kontrol", "pre_push_capa_kontrol")),',
-             '                 "main_kablosu_kontrol")),'),
-            ('              "main_kablosu_kontrol", "pre_push_kablo_kontrol")),',
-             '              "main_kablosu_kontrol")),')),
-        True, "KOL BIRLESIMI KUCULDU")
+            ('                 "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",',
+             '                 "suzgec_fikstur_kontrol",'),
+            ("KOL_BIRLESIM_TABANI = 13", "KOL_BIRLESIM_TABANI = 9")),
+        True, "KAYIT DEFTERI EKSIK")
 
     olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
         lambda: _kablo_nobetcisi(
@@ -516,6 +543,40 @@ def main():
             "        shutil.rmtree(gecici, ignore_errors=True)",
             "        shutil.rmtree(gecici, ignore_errors=True)")),
         True, "SIZINTI")
+
+    # ---- BESINCI TUR: SERIT · ok11 EZME · SEAM KAPSAMI · DEFTER ESITLIGI ----
+    olc("M-E3i `ok11 = True` (cagri DURUYOR, hukum tek satirda ATILIYOR)",
+        lambda: _kablo_nobetcisi(
+            ("        ok11, hata11 = kanca_kablo_serit_kontrol()",
+             "        ok11, hata11 = kanca_kablo_serit_kontrol()\n"
+             "        ok11 = True")),
+        True, "KENDINI-TEST HUKMU EZILIYOR")
+
+    olc("M-E3iv seam `if` DISINDA eziliyor (kapsam ekseni)",
+        lambda: _kablo_nobetcisi(
+            ("    try:\n        agac = ast.parse(kaynak)",
+             "    kaynak = subprocess.run(\n"
+             "        [\"git\", \"-C\", ROOT, \"show\", \"HEAD:tools/ci-kapsam-test.py\"],\n"
+             "        capture_output=True, text=True).stdout\n"
+             "    try:\n        agac = ast.parse(kaynak)")),
+        True, "SEAM SIZINTISI")
+
+    olc("M-E5a defterden kayit SILINDI (taban da dusurulse gizlenemez)",
+        lambda: _kablo_nobetcisi(
+            ('              "kanca_kablo_serit_kontrol", "kendini_test_adimi_kontrol",',
+             '              "kendini_test_adimi_kontrol",'),
+            ("KOL_BIRLESIM_TABANI = 13", "KOL_BIRLESIM_TABANI = 9")),
+        True, "KAYIT DEFTERI EKSIK")
+
+    olc("M-SERIT agir ayak adimi BLOKLAMAYAN job'a tasindi",
+        lambda: _serit_mutant('  serit-a3:\n', '  serit-b-alarm:\n'),
+        True, "S3 ZORLAMA YOK")
+
+    olc("KONTROL-6 bloklayici job ADI degisti ama `deploy: needs` GUNCELLENDI",
+        lambda: _serit_mutant('  serit-a3:\n', '  serit-a3-yeni:\n',
+                              ek=("needs: [build, serit-a2, serit-a3, serit-a4]",
+                                  "needs: [build, serit-a2, serit-a3-yeni, serit-a4]")),
+        False)
 
     olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",
         lambda: _kablo_nobetcisi(

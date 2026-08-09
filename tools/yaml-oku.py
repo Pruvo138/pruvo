@@ -630,6 +630,51 @@ def iki_kol_run_sapmasi(metinler):
     return sapmalar, 2
 
 
+def belge(metin):
+    """(python_belgesi, hata) — is akisinin TAM govdesi (dict/list/skaler).
+
+    🔴 NEDEN VAR (9 Agu 2026): "bir adim HANGI job'da ve o job `deploy: needs`
+    zincirinde mi" sorusu JOB YAPISINI ister; `run_dugumleri()` yalniz `run:`
+    bloklarini verir. Metin taklidiyle job sinirini cikarmak
+    [[mimar-kapi-parser-taklidi]] sinifidir — bu yuzden hukum GERCEK ayristiricidan
+    gelir. Ayristirici YOKSA `(None, "AYRISTIRICI YOK")`; cagiran FAIL-CLOSED
+    davranmali, bu dosya TAHMIN URETMEZ."""
+    metin = _bom_sil(metin)
+    if _pyyaml_var():
+        try:
+            return _yaml.safe_load(metin), None
+        except Exception as e:  # noqa: BLE001 — ayristirma hatasi TANIYLA doner
+            return None, "AYRISTIRMA HATASI (pyyaml): %s" % e
+    if not _psych_surumu():
+        return None, "AYRISTIRICI YOK"
+    # `require 'date'`: Psych'in `permitted_classes: [Date]` cozumu Date sabitini
+    # ISTER; yuklenmezse "uninitialized constant Date" ile SESSIZ fail-closed'a
+    # duserdik (olculdu). `Time` cekirdekte, `Date` degil.
+    kaynak = ("require 'yaml'\nrequire 'json'\nrequire 'date'\n"
+              "begin\n"
+              "  d = YAML.safe_load(STDIN.read, aliases: true, "
+              "permitted_classes: [Date, Time])\n"
+              "  print JSON.dump({'ok' => true, 'belge' => d})\n"
+              "rescue => e\n"
+              "  print JSON.dump({'ok' => false, 'hata' => e.message})\n"
+              "end\n")
+    try:
+        r = subprocess.run(["ruby", "-e", kaynak], input=metin,
+                           capture_output=True, text=True, timeout=120)
+    except Exception as e:  # noqa: BLE001
+        return None, "AYRISTIRMA HATASI: ruby/psych cagrilamadi (%s)" % e
+    if r.returncode != 0:
+        return None, ("AYRISTIRMA HATASI: ruby/psych belge yardimcisi calismadi "
+                      "(rc=%d) %s" % (r.returncode, r.stderr.strip()[:200]))
+    try:
+        kayit = json.loads(r.stdout)
+    except Exception as e:  # noqa: BLE001
+        return None, "AYRISTIRMA HATASI: ruby/psych JSON ciktisi cozulemedi (%s)" % e
+    if not kayit.get("ok"):
+        return None, "AYRISTIRMA HATASI (psych): %s" % kayit.get("hata")
+    return kayit.get("belge"), None
+
+
 def tetik_onbellegi_isit(metinler):
     """psych kolunda TOPLU tetik ayristirmasi (tek ruby sureci) — fikstur kumeleri icin."""
     if _pyyaml_var() or not _psych_surumu():
