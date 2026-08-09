@@ -289,7 +289,17 @@ function ozetBuild(kaynak) {
   if (!fs.existsSync(ciktiYol)) {
     throw new Error("OLCULEMEDI: build.py ozet yazmadi -> " + ciktiYol);
   }
-  return { ozet: JSON.parse(fs.readFileSync(ciktiYol, "utf8")),
+  const ozet = JSON.parse(fs.readFileSync(ciktiYol, "utf8"));
+  const alanlar = ozet.kartAlanlari || [];
+  const ac = (k) => Array.isArray(k)
+    ? Object.fromEntries(k.map((v, i) => [alanlar[i], v, i])
+      .filter((x) => x[0] && (x[2] < 8 || x[1] !== null)).map((x) => [x[0], x[1]])) : k;
+  if (alanlar.length) {
+    ozet.parametrik = (ozet.parametrik || []).map(ac);
+    Object.keys(ozet.bloklar || {}).forEach((kat) => { ozet.bloklar[kat] = ozet.bloklar[kat].map(ac); });
+    ozet.yeni = (ozet.yeni || []).map(ac);
+  }
+  return { ozet,
     cikti: String(r.stdout || ""), bayt: fs.statSync(ciktiYol).size };
 }
 

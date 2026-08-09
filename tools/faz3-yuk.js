@@ -4,9 +4,16 @@
  *
  *   node tools/faz3-yuk.js        # once: python3 tools/build.py  (ozet.json'u uretir)
  *
- * BUTCE (is paketi):
- *   - ozet.json           < 150 KB
- *   - bayrak ACIK ilk yuk < 500 KB  (gorseller HARIC)
+ * BUTCE (is paketi) — 🔴 SABITLER BURADA TUTULMAZ, tools/build.py'den TURETILIR:
+ *   - ozet.json           < OZET_BUTCE     (build.py)
+ *   - bayrak ACIK ilk yuk < ILK_YUK_BUTCE  (build.py)
+ *
+ * NEDEN TURETILIR (9 Agu 2026): bu dosya eskiden `BUTCE_OZET = 150 * 1024` diye KENDI
+ * KOPYASINI tutuyordu; build.py'deki tavan degisirse (ya da render_ozet() deterministik
+ * sigdirma ekleyip TABAN tanimlarsa) bu kopya SESSIZCE ayrisirdi — ayni sayiyi iki yerde
+ * tutmak "yesil" hukmunun HANGI tavana gore verildigini belirsiz yapar
+ * ([[ikiz-tanim-sessiz-ayrisma]]). Capa bulunamazsa FAIL-CLOSED (rc=1) — sessizce
+ * varsayilana DUSMEZ.
  *
  * NEDEN: bu paketin butun varlik sebebi ilk yukun kucuk olmasi. 20k urunde urunler.json
  * ~14-15 MB olur (bugun 6,6 MB / 7.171 urun) = mobil ilk acilis + bellek riski
@@ -21,8 +28,22 @@ const path = require("path");
 const zlib = require("zlib");
 
 const KOK = path.dirname(__dirname);
-const BUTCE_OZET = 150 * 1024;
-const BUTCE_ILK_YUK = 500 * 1024;
+// TEK KAYNAK: tools/build.py. `<AD> = <n> * 1024` ya da `<AD> = <n>` bicimini okur.
+function butceOku(ad) {
+  const kaynak = fs.readFileSync(path.join(KOK, "tools", "build.py"), "utf8");
+  const m = new RegExp("^" + ad + "\\s*=\\s*(\\d+)(?:\\s*\\*\\s*(\\d+))?\\s*(?:#.*)?$", "m")
+    .exec(kaynak);
+  if (!m) {
+    console.log("tools/build.py'de %s sabiti bulunamadi -> butce TURETILEMEDI " +
+      "(fail-closed; sessizce varsayilana DUSMEZ).", ad);
+    process.exit(1);
+  }
+  return parseInt(m[1], 10) * (m[2] ? parseInt(m[2], 10) : 1);
+}
+const BUTCE_OZET = butceOku("OZET_BUTCE");
+const BUTCE_ILK_YUK = butceOku("ILK_YUK_BUTCE");
+console.log("butce kaynagi: tools/build.py (OZET_BUTCE=%d · ILK_YUK_BUTCE=%d)\n",
+  BUTCE_OZET, BUTCE_ILK_YUK);
 
 function boyut(dosya) {
   const tam = path.join(KOK, dosya);

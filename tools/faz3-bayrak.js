@@ -140,10 +140,11 @@ const bekle = (ms) => new Promise((r) => setTimeout(r, ms));
 function sayfaKos({ bayrak, fetchStub, arama }) {
   const html = fs.readFileSync(INDEX, "utf8");
   let kod = scriptCikar(html);
-  if (bayrak) {
-    const once = kod;
-    kod = kod.replace("var EDGE_KATALOG = false;", "var EDGE_KATALOG = true;");
-    if (kod === once) throw new Error("EDGE_KATALOG bayrak satiri bulunamadi — index.html degismis olabilir");
+  const once = kod;
+  kod = kod.replace(/var EDGE_KATALOG = (?:true|false);/,
+    "var EDGE_KATALOG = " + (bayrak ? "true" : "false") + ";");
+  if (kod === once && kod.indexOf("var EDGE_KATALOG = " + (bayrak ? "true" : "false") + ";") === -1) {
+    throw new Error("EDGE_KATALOG bayrak satiri bulunamadi — index.html degismis olabilir");
   }
   const { document, kayit } = domYap(gerekliIdler(html));
   const ag = [];                       // cagrilan TUM url'ler
@@ -187,7 +188,21 @@ if (!fs.existsSync(OZET)) {
   console.log("ozet.json YOK — once `python3 tools/build.py` calistir.");
   process.exit(1);
 }
-const ozetVeri = JSON.parse(fs.readFileSync(OZET, "utf8"));
+const ozetHam = JSON.parse(fs.readFileSync(OZET, "utf8"));
+function ozetAc(d) {
+  const alanlar = d.kartAlanlari || [];
+  const ac = (k) => Array.isArray(k)
+    ? Object.fromEntries(k.map((v, i) => [alanlar[i], v, i])
+      .filter((x) => x[0] && (x[2] < 8 || x[1] !== null)).map((x) => [x[0], x[1]])) : k;
+  if (alanlar.length) {
+    d.parametrik = (d.parametrik || []).map(ac);
+    Object.keys(d.bloklar || {}).forEach((kat) => { d.bloklar[kat] = d.bloklar[kat].map(ac); });
+    d.yeni = (d.yeni || []).map(ac);
+  }
+  return d;
+}
+const ozetVeri = ozetAc(JSON.parse(JSON.stringify(ozetHam)));
+const ozetYaniti = () => yanit(JSON.parse(JSON.stringify(ozetHam)));
 
 let gecti = 0, kaldi = 0;
 function kontrol(ad, sart, detay) {
@@ -298,7 +313,7 @@ function tabanKontrolu(etiket, kartlarListesi) {
       bayrak: true,
       arama: "?kategori=Jeneratör",
       fetchStub: (url) => {
-        if (url.indexOf("ozet.json") !== -1) return yanit(ozetVeri);
+        if (url.indexOf("ozet.json") !== -1) return ozetYaniti();
         if (url.indexOf("/katalog") !== -1) {
           return yanit({ toplam: ozetVeri.parametrik.length, sayfa: 1, sayfaBoyu: 24,
             sonSayfa: 1, urunler: ozetVeri.parametrik });
@@ -321,7 +336,7 @@ function tabanKontrolu(etiket, kartlarListesi) {
     const { ag, kayit, hatalar } = sayfaKos({
       bayrak: true,
       fetchStub: (url) => {
-        if (url.indexOf("ozet.json") !== -1) return yanit(ozetVeri);
+        if (url.indexOf("ozet.json") !== -1) return ozetYaniti();
         if (url.indexOf("/katalog") !== -1) return yanit({ toplam: ozetVeri.toplam, sayfa: 2, sayfaBoyu: 24, sonSayfa: 300, urunler: ozetVeri.yeni.slice(24, 48) });
         return yanit({ hata: "beklenmedik: " + url }, false);
       },
@@ -344,14 +359,14 @@ function tabanKontrolu(etiket, kartlarListesi) {
     kontrol("vitrin + ilk sayfa kart cizildi", k.length > 4, "kart sayisi: " + k.length);
     kontrol("edge kartinda da buton YOK (kart sade)", !k.find((c) => kartButonu(c)));
 
-    // "Daha fazla" -> /katalog?sayfa=2
+    // İlk "Daha fazla" özet havuzundaki hazır 48 karta kadar yerel genişler; ağ gerekmez.
     const dahaFazla = kayit.loadMoreWrap.children[0];
     kontrol('"Daha fazla goster" butonu var', !!dahaFazla);
     if (dahaFazla) {
       dahaFazla.tetikle("click");
       await bekle(40);
-      kontrol("'Daha fazla' /katalog?sayfa=2 cagirdi",
-        ag.some((u) => u.indexOf("/katalog") !== -1 && u.indexOf("sayfa=2") !== -1),
+      kontrol("ilk 'Daha fazla' ozet havuzunda YEREL genisledi (/katalog yok)",
+        !ag.some((u) => u.indexOf("/katalog") !== -1),
         JSON.stringify(ag.filter((u) => u.indexOf("/katalog") !== -1)));
     }
   }
@@ -362,7 +377,7 @@ function tabanKontrolu(etiket, kartlarListesi) {
     const { ag, kayit } = sayfaKos({
       bayrak: true,
       fetchStub: (url) => {
-        if (url.indexOf("ozet.json") !== -1) return yanit(ozetVeri);
+        if (url.indexOf("ozet.json") !== -1) return ozetYaniti();
         if (url.indexOf("/ara") !== -1) return yanit({ toplam: 3, urunler: ozetVeri.yeni.slice(0, 3) });
         return yanit({ hata: "beklenmedik" }, false);
       },
@@ -391,7 +406,7 @@ function tabanKontrolu(etiket, kartlarListesi) {
     const { kayit, hatalar } = sayfaKos({
       bayrak: true,
       fetchStub: (url) => {
-        if (url.indexOf("ozet.json") !== -1) return yanit(ozetVeri);
+        if (url.indexOf("ozet.json") !== -1) return ozetYaniti();
         return Promise.reject(new Error("baglanti yok"));   // Worker ULASILAMAZ
       },
     });
