@@ -1194,6 +1194,12 @@ jobs:
       - name: Landing/hukuk beyan kapisi
         run: python3 tools/landing-hukuk-kapisi.py
 
+      # LANDING WHATSAPP KAPISI: CONTENT_PAGES'ten uretilen tum uzun-kuyruk sayfalarda
+      # tiklanabilir, dogru numarali ve on-dolu WhatsApp CTA'si bulunur. Orneklem yapmaz;
+      # ortak render sablonunun gercek HTML ciktisini ayristirir. Offline ve fail-closed.
+      - name: Landing WhatsApp CTA kapisi
+        run: python3 tools/landing-wa-kapisi.py
+
       # MALZEME DAYANAGI: DORT yayin yuzeyinde gecen her malzeme adinin filament envanterinde
       # karsiligi var mi — (A) huni/landing sayfalari, (B) ege-bilgi.md (WhatsApp botu Ege'nin
       # bilgi dosyasi), (C) sss/gizlilik/hakkimizda/iletisim GORUNUR metni, (D) ayni 4 sayfanin

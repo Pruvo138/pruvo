@@ -150,6 +150,12 @@ CONTENT_CSS = """
     color:#fff;text-align:left;font-size:13.5px}
   .content .karsilastirma td:first-child{width:auto;white-space:nowrap}
   .content .upd{margin-top:30px;font-size:12.5px;color:var(--gray-text)}
+  .content .landing-wa-cta{margin:34px 0 0;padding:22px;border:1px solid var(--gray-line);
+    border-radius:12px;background:var(--gray-card);text-align:center}
+  .content .landing-wa-cta p{margin:0 0 14px}
+  .content .landing-wa-link{display:inline-block;padding:12px 18px;border-radius:8px;
+    background:#1f7a45;color:#fff;text-decoration:none;font-weight:700}
+  .content .landing-wa-link:hover{background:#176137}
   .pay-band{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:14px}
   .pay-label{font-size:12px;color:#8996ad;letter-spacing:.4px}
   .pay-logos{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
