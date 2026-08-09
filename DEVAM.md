@@ -1,5 +1,21 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🔁 KraL DEVIR (clear oncesi yazildi) — SIRADAKI TEK IS: `muh/marka-tek-sayfa` dalini KAPAT
+**Okan emri (bu gece):** dali baslat; MaCiT mesgul oldugu icin 215 urunluk VERI onarimi BEKLIYOR.
+Dal: `muh/marka-tek-sayfa` **`73adb519`** (push'lu, worktree bugun KALDIRILDI → yeniden `worktree add` gerek).
+Hukum (Okan): marka sayfasi markanin TUM parcalarini kart listeler, cipler **sayfa ici filtre**.
+Olculen: gorunur kart **11731 → 21628** (audi 200→331 · ford 488→2583 · bmw 1010→2347), azalan marka **0**,
+kimlik sapan sayfa **32 → 0**, tavani asan sayfa **11 → 0**. Iddia 10871, davranis testi 20/20.
+Onceki curutme 1. turda MERGE_EDILEMEZ demis, UC kirmizi kapatilmis (teslim yolu tautolojisi ·
+agirlik regresyonu → edge `/katalog?ids=` · ci-kapsam kablolama).
+⏭ **EKSIK OLAN:** mutasyon bataryasi + ilk-yuk bayt tablosu → **dar curutme (yeni yuzey)** → merge + canli dogrulama.
+⚠️ Merge oncesi ZORUNLU (bugun iki kez yayin durdu): `is-akisi-kapisi.py` rc=0 + yeni adim `serit-b`'ye
+DUZ TEK KOMUTLA kablolu + `SERIT_B` beyani AYNI commit'te; ayrica `varlik-test.py` rc=0.
+Bu dal ayrica sayfanin kendi ic sayac celiskisini kapatir (baslik 330 ↔ cip toplami+diger 370).
+🔴 **KAPANMADI, ayri is (VERI duzlemi/MaCiT):** basliginda marka gecen ama `marka[]` uyesi olmayan
+**215 urun** (Mini 42 · Grom 29 · K100 19 · Datsun 18…). `arama.py` gecis kolu **ONCE KAPATILMAYACAK**
+(arama daralir, satis yolu). Ayrica acik: H1/H3 kurali **16 model-olmayan** degeri model sayiyor.
+
 ## ✅ KATALOG ALAN KAPISI main'e ALINDI — 8 Agu 22:35 (merge `bdddaee0`)
 Dal `claude/suspicious-ishizaka-414f35` (`7ea781f6`, taban `62c7049b`) **merge commit'iyle** alindi: ff IMKANSIZ (`--is-ancestor` rc=1), cakisma 0 (`merge-tree` yalniz agac OID'i), kapsam 9 dosya +1054/-1, `urunler.json` ve gizli kayit diff'te YOK. Icerik: commit anindaki DEGISEN kayitlarin `altkategori` + `uyum`/`marka` alanlarini `arama.py`'nin kanonik fonksiyonlariyla dogrulayan fail-closed yerel kapi + pre-commit **adim 5** + kabul surucusu + CI adimi. Push `e907eac7..bdddaee0`, force YOK.
 **Merge sonrasi kapilar (ana checkout, main):** kanca-kablolama-nobeti rc=0 (20/20) · kanca-nobeti rc=0 (14/14) · ci-kapsam rc=0 (209 .py olculdu, 40 js OLCULEMEDI) · kapi-envanteri **7/7** · katalog-alan-kapisi-test **49/49** rc=0 · altkategori-kapisi **42/0** · uyum-kapisi **39/0** (taban 39) · gitignore-kapisi TEMIZ · kisisel-veri-test rc=0. Merge ONCESI kablolama nobeti rc=1'di (kurulu kanca kopyasi dalin adim 5'ini tasiyordu, izlenen main surumunde yoktu) — merge kapatti, `kanca-kur.py` "BAYT-ESIT" dedi.
@@ -7,7 +23,7 @@ Dal `claude/suspicious-ishizaka-414f35` (`7ea781f6`, taban `62c7049b`) **merge c
 🔴 **MERGE YAN ETKISI — iki tur curutmenin KACIRDIGI kirmizi (onarim YAZILDI+OLCULDU, COMMIT EDILMEDI):** yeni adim 5 fail-closed oldugu icin (`... YOK` -> exit 1), KARDES kabul testinin sentetik kanca deposunda dosya bulunmayinca `diriltme-kapisi.py --kendini-test` **86 iddiadan 8'i** kirmiziya dondu ve `nobet.yml` **serit-b** koşumu (`31282011513`) FAILURE oldu (yayini BLOKLAMAZ). Kok neden dalin kendi ekseni degil **FIKSTUR IKIZI**: fikstur arac listesi elle tutuluyordu ([[ikiz-tanim-sessiz-ayrisma]]). Curutme dalin KENDI testlerini kosuyordu, kardes fikstur ekseni kimsede yoktu. Onarim iki parca: (1) `katalog-alan-kapisi.py` kapsam-disi STUB listesine alindi, (2) yeni **K0 iddiasi** kanca govdesinden (`pre-commit` + `commit-msg`, yani commit'i BLOKLAYABILEN kancalar) cagrilan arac kumesini TURETIP listeyle karsilastiriyor -> bir sonraki kanca adimi ayni sinifi sessizce tekrar edemez. Sonuc **87/87 YESIL**; K0'in ayirt ediciligi olculdu (liste eksikken kendi adiyla kirmizi yandi, kapsam genisken 3 kapsam-disi araci bastigi icin eksen `pre-commit`+`commit-msg` ile daraltildi). ✅ **KAPANDI — kardes oturum `e56705a2` ile main'de:** elle liste TAMAMEN kaldirilmis, turetme fail-closed yapilmis, K0a/K0b/K0c ile capraz eksen eklenmis; kendini-test **89/89 rc=0** (yerelde teyit edildi) ve `serit-b` **success**. Merge iscisinin ana checkout'ta yazdigi ayni yondeki yama kod kilidine (Layer 2, kaynak ancak worktree'de commit'lenir) takilmisti; kardes surum ustun oldugu icin devralindi, mukerrer commit YAZILMADI.
 🔴 **AYRI VE DAHA ESKI BIR KIRMIZI — YAYINI BU DURDURUYOR, merge'in isi DEGIL:** `bdddaee0` koşumunda `serit-a2` **adim 6** ve `serit-a3` **adim 13** (her ikisi de `devam-sinif-kapisi`) FAILURE. Ayni iki adim, merge'den ONCEKI `2e024245` koşumunda (`31280548228`) da ayni numaralarla FAILURE — yani sinif ihlali **defterin kendisinden** geliyordu ve yayin merge'den once de kapaliydi ([[nobet-kendi-defteri-yayini-durdurur]]). Iki satir arsive tasindi, kapi `d299bb4f` ile rc=0'a dondu (`--kendini-test` 63 kontrol · gercek kapsam 143 satir · 0 ihlal).
 **CI hukmu:** `bdddaee0`'i ATA olarak tasiyan dort koşumun hepsinde `is-ancestor` rc=0 dogrulandi. Alarm seritleri (D1 sapma · odeme nabzi · spec/tasarim · yayin erisim · D1 uzlastirici · serit-b) **success**. **`deploy` hukmu OLCULEMEDI:** `pages` kuyrugu doymus durumda — ardisik her push bir onceki BEKLEYEN koşumu iptal ettiriyor (`31282941194`, `31283328693` ikisi de `cancelled`), tavani `serit-a4` SURESI koyuyor ([[cancelled-yigini-yayin-tavani]]).
-**SONRAKI TURUN ILK ISI:** kuyrukta ayakta kalan `Build & deploy` koşumunda `serit-a2`/`serit-a3`/`deploy` sonuclarini olc (sinif kapisi artik yesil olmali); `deploy` yesilse canli katalog sayisini yerel `urunler.json` ile karsilastir. SIFIRDAN TESHISE BASLAMA.
+**Bu blogun "sonraki tur" isi 23:37Z turunda KAPANDI** — sinif kapisi main'de yesil, olcum asagidaki 23:37Z blogunda.
 **Temizlik BILEREK YAPILMADI:** dalin worktree'si mimarin CANLI oturumu — worktree/dal SILINMEDI.
 ## 🔚 OTURUM KAPANISI — 8 Agu (yayin blokaji + marka sayfasi turu)
 
@@ -42,54 +58,46 @@ Dal `claude/suspicious-ishizaka-414f35` (`7ea781f6`, taban `62c7049b`) **merge c
 
 **ACIK WORKTREE (2 + main):** `agent-aa5db29d7f2d4d1ad` ve `muh-mcp-tarayici` — IKISI DE BASKASININ CANLI isi, DOKUNULMADI. Benim actigim worktree KALMADI (8 Agu 15:00 turunda kapatildi).
 
-## ⏱ SAATLIK CI NOBETI — 8 Agu 21:37Z turu (ev DOGRU: ~/dev/pruvo)
-
-**Supurme (kosulsuz, §0.5):** eslesen "Run failed" **1** → Cop'e **1** · tur sonu kalan **0**.
-Pozitif tanima izi: ayni taramada `notifications@github.com` toplami da **1** (>0 → hukum
-OLCULDU). Kutu toplami 7538 → 7537 (bagimsiz ikinci sorguyla teyit; betik-ici es zamanli olcum
-onbellek gecikmesiyle 1 basmisti). Yalniz birlesik `inbox`, `contains` ile toplu tarama,
-ornekleme YOK; Cop BOSALTILMADI, alt kutulara girilmedi, baska maile dokunulmadi.
-
-**Onceki turun YARIM isi KAPANDI — zincir `31274951249` (sha `609f0e70`) TAM YESIL.**
-`serit-a4` 21:07:57Z'de success (20:09:32Z'den beri kosuyordu, **58m25s** — tavani yine o koydu),
-`deploy` success 21:08:32Z, `yayin` success 21:09:22Z. Sifirdan teshise girilmedi.
-
-**Canli teyit (609f0e70 icin YESIL):** artefakt `last-modified` **21:08:13Z** (deploy yesiliyle
-uyumlu) · canli katalog **22685** = commit'in beyan ettigi sayi · `d1-sync --durum` **rc=0**
-(icerik/sema/turetilmis, hash uyusmazlik 0).
-⚠️ **Gecici 13 urunluk fark, arizasi YOK:** D1 ve yerel HEAD **22698**, canli **22685**. Fark
-tam `3f24dcda`'nin ekledigi 13 urun. Sebep: `3f24dcda` deploy'u kuyruktan **cancelled**
-(icerigi `62c7049b` ata olarak tasiyor, §4.5 — kayip YOK), `62c7049b` deploy'u ise HALA UCUSTA.
-Bu yuzden yerel ilk 3 urunun kanonik adresi su an 404 — bu bir yayin arizasi degil, zincirin
-henuz inmemis olmasi.
-
-**Alarm kolu KENDILIGINDEN SONDU — onarim yapilmadi, gerekmedi.** "Paket tazeligi alarmi"
-18:35Z'den beri 5 kosumdur kirmiziydi; kirmizi olan job `yayin-nabzi`, kok neden penceredeki
-hicbir kosumun `deploy`'u yesil bitirmemis olmasiydi (`tazelik` job'i hep yesildi). `deploy`
-21:08:32Z'de yesile donunce **ilk sonraki kosum `31280083379` (21:45:34Z) success**. Kol dogru
-calisiyor: gercek durumu izliyor, yayini BLOKLAMIYOR. → [[alarm-onarim-ucus-suresi]] teyit.
-**"D1 uzlastirici" kirmizisi da (20:50:58Z) sinif olarak kapandi:** ardil kosum `31278831298`
-(21:14:17Z) success.
-
-**Uctaki kosum `31278306571` (sha `62c7049b`) — YARIM:** `build` success (21:09:25→21:22:38Z) ·
-`serit-a3` success (→21:24:05Z) · `serit-a2` success (→21:31:20Z) · **`serit-a4` HALA UCUSTA**
-(21:09:25Z'den beri, ~46 dk). `deploy`/`yayin` job'lari HENUZ OLUSMADI — **yok ≠ basarisiz**.
-Tur ici bekleme tavani (§3.5) doldu.
-
-**Tur ici tuzak (kayda gecti):** bekleme isi verilen iki isci de poll betigini arka plana atip
-sonlandi → olcum ortada kaldi, bir tur bosa gitti. Bekleme delegasyonunda spec'e "ON PLANDA
-kos, arka plan bayragi YOK, olcmeden donme" satiri ZORUNLU.
-
-**Kapilar (commit oncesi, lokal):** `devam-sinif-kapisi.py` **rc=0** (3 kok belgesi, 132 satir,
-0 sinif ihlali) · `kisisel-veri-test.py` **rc=0** (6 alt nobetcinin tumu yesil).
-ℹ️ Kayit: `kisisel-veri-test.py`'nin "gecmis ekseni" kolunun bastigi uyari olculdu ve
-curutuldu (kolun kendi kor noktasi olabilir, ayri is). Tam metin: DEVAM-ARSIV.md.
-
-**Sonraki turun ILK isi:** `31278306571`'in `serit-a4` sonucunu ve `deploy`/`yayin` job'larini
-olc. Yesilse canli teyit: canli katalog **22698**'e ciktı mi (13 urunluk fark kapandi mi) +
-artefakt zaman damgasi + en yeni 3 urun **200**. Kirmiziysa `--log-failed` ile kok neden.
-**SIFIRDAN TESHISE BASLAMA.**
-
 ## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20, dokum ARSIVDE)
 Merge --ff-only d9485a0d, kapsam 3 dosya +589/-61, sizinti 0. Olu koruma 48 birim kapatildi (tablo 18/18, pay 0). Merge sonrasi kapilar: D1 dort eksen rc=0 (22685) · CI kapsam rc=0 (246 kesif) · is-akisi rc=0 + kendini-test rc=0 (204 iddia) · nobetci mutasyon 7/7 + kontrol YESIL. Ders: ff uygunlugu YEREL main ile olculur. Temizlik bilerek yapilmadi. Tam dokum: DEVAM-ARSIV.md.
+## ⏱ SAATLIK CI NOBETI — 8 Agu 23:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Supurme (kosulsuz, §0.5):** eslesen "Run failed" **0** → Cop'e **0**. Pozitif tanima izi
+ALINDI: ayni tarama `sender contains "github"` ile **1** mail buldu (GitHub destek bildirimi,
+"Run failed" DEGIL) → eslestirici CALISIYOR; buna karsin `notifications@github.com` toplami
+**0**. Kural geregi 0/0 kombinasyonu "kutu temiz" DEGIL → hukum **OLCULEMEDI** yazildi.
+Kutu toplami 7537. Yalniz birlesik `inbox`, `contains` ile toplu tarama, ornekleme YOK,
+Cop BOSALTILMADI, alt kutulara girilmedi.
+
+**IKI AYRI KIRMIZI ELE ALINDI (biri yayini durduruyordu).**
+
+**1) `serit-b` / diriltme kabul testi — KAPANDI.** Kosum `31282011513` (head `bdddaee0`)
+failure; kok neden fikstur ikizi (sentetik kanca ortami gercek repo seklini taklit etmiyordu),
+kapinin kendisi DOGRUYDU. Onarim kardes oturumun `e56705a2` surumuyle main'de: elle liste
+kaldirildi, arac kumesi kanonik kaynaktan TURETILIYOR, fail-closed. Iddia **86 → 89**, kucul-
+me yok. Bagimsiz teyit (mimar, `gh`): kosum `31283328805` (head `e56705a2`) `serit-b` **success**.
+
+**2) `serit-a2` + `serit-a3` (defter sinif kapisi) — YAYINI BU DURDURUYORDU, KAPANDI.**
+`deploy` + `yayin` **skipped** kaliyordu; son BASARILI deploy `62c7049b`, `22:10:13Z` → yayin
+~1 saat kapali. Kok neden defterin KENDI icerigiydi (tani satiri deftere yazilmis); satir
+silinmedi, arsive TASINDI. `serit-a3` ayri bir mantik kusuru DEGILDI — ayni ihlali olcuyordu.
+Asil sinif kusuru: kapinin tek zorlayici kolu CI'daydi, ihlal ancak PUSH SONRASI yakalaniyordu
+(5. tekrar). Onarim `bb2c6d9f`: commit aninda **INDEX ekseninde** olcen yeni kol eklendi
+(CI kollari AYNEN duruyor, `deploy: needs` degismedi, gevsetme/`continue-on-error` YOK; yeni
+kol CI'nin YERINE gecmiyor, ONUNDE duruyor). Kendini-test **62 → 70 kontrol**, mutasyon
+bataryasi **15 → 19 mutant** (kontrol mutantlari yesil kaldi), kanit KUCULMEDI. Uctan uca
+gercek commit denemesi: ihlal INDEX'te rc=1, ayirt edici notr kontrol rc=0.
+Bagimsiz teyit (mimar, `gh`): kosum `31284643156` (head `062f8cb2`) `serit-a2` **success** +
+`serit-a3` **success** + `build` success.
+
+**OLCULEMEDI (uydurulmadi):** `deploy` / `yayin`. Tavani yine `serit-a4` SURESI koyuyor —
+`31284643156`'da hala ucusta; `31285092474` (head `bb2c6d9f`) kuyrukta `pending`
+(`concurrency: pages` + `cancel-in-progress: false`, §4.5 — `cancelled` yigini ariza degil).
+Tur ici bekleme tavani (§3.5) doldu.
+
+**SONRAKI TURUN ILK ISI:** `31284643156` ve `31285092474` kosumlarinda `serit-a4` + `deploy` +
+`yayin` sonuclarini olc. Yesilse canli teyit: canli katalog sayisi yerel `urunler.json` ile
+esit mi + artefakt zaman damgasi + en yeni urunlerin kanonik adresi **200**.
+**SIFIRDAN TESHISE BASLAMA.**
+
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
