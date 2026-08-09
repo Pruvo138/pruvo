@@ -1176,6 +1176,41 @@ PRE_PUSH_MUTANTLARI = (
 )
 
 
+def kanca_kablo_adimi_kontrol():
+    """🔴 UCUNCU KOLUN CAGRI SATIRI NOBETI (5. tur, F2) — UCUZ, `denetle` kolunda.
+
+    OLCULEN DELIK: `--kanca-kablo` adimini deploy.yml'den SILMEK (B1) ya da
+    `echo`'ya SARMAK (B3) hem pre-push hem `is-akisi-kapisi` kolunda YESIL
+    geciyordu -> push da yayin da GECIYORDU; kirmizi yalniz bloklamayan
+    `nobet.yml`de kaliyordu. Bu, 21 Tem meta-deliginin UCUNCU tekrari
+    ([[nobetci-cagri-satiri-nobetsiz]]): iki kardes kol (`kendini_test_adimi_
+    kontrol` · `bayraksiz_adim_kontrol`) kendi adimlarini `denetle` kolunda
+    civiliyor, UCUNCU kol icin muadili YOKTU.
+
+    NEDEN BU DESEN (ikinci mantik YAZILMADI): kardeslerle AYNI `_hedef_cagrilari()`
+    tek kaynagi kullanilir -> `echo`/`--help` mensiyonlari ORTAK suzgecten elenir.
+    NEDEN `kanca_kablo_serit_kontrol()` YETMEZ: o nobetci `main` kaydinda yasar
+    (`--kanca-kablo` + `--kendini-test` kollari); adim silindiginde O KOL CI'da HIC
+    KOSMAZ ve kendi kirmizisi kimseye ulasmaz.
+    (ok, hata_satirlari) dondurur."""
+    if not os.path.exists(DEPLOY_VARSAYILAN):
+        return False, ["KANCA-KABLO ADIMI OLCULEMEDI: deploy.yml bulunamadi: %s"
+                       % DEPLOY_VARSAYILAN]
+    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+        gercek = f.read()
+    anlamli, reddedilen = _hedef_cagrilari(gercek, HEDEF_BETIK)
+    for argumanlar in anlamli:
+        # None = jetonlanamayan cagri (OLCULEMEDI) -> kardeslerle AYNI fail-OPEN.
+        if argumanlar is None or KANCA_KABLO_BAYRAGI in argumanlar:
+            return True, []
+    return False, [
+        "KANCA-KABLO ADIMI YOK: deploy.yml'de `%s` bayragini ANLAMLI olarak ICRA "
+        "EDEN adim BULUNAMADI (silinmis, `echo`'ya sarilmis ya da `--help`e "
+        "cevrilmis olabilir). O adim silinince agir davranis ayagi CI'da HIC "
+        "KOSMAZ ve N1/N3/X4 sinifi sabotaj push'u DA yayini DA gecer."
+        % KANCA_KABLO_BAYRAGI + _reddedilen_ozeti(reddedilen)]
+
+
 def kanca_kablo_serit_kontrol():
     """🔴 AGIR AYAK GERCEKTEN BLOKLAYICI SERITTE MI (beyan degil, DAVRANIS).
 
@@ -1189,6 +1224,14 @@ def kanca_kablo_serit_kontrol():
       S1 ADIM VAR   — `%s` bayragini ANLAMLI olarak icra eden bir adim var.
       S2 JOB KIMLIGI — o adim HANGI job'da, ADIYLA soylenir (tani).
       S3 ZORLAMA    — o job `deploy: needs` zincirinde (dogrudan ya da dolayli).
+
+    🔴 KAPSAM SINIRI (BEYAN OLCULENE ESITLENDI, 5. tur F1): buradaki "zorlama"
+    YALNIZ `needs` TOPOLOJISIDIR. Adim duzeyinde `if: false`, adimda
+    `continue-on-error: true` ve JOB duzeyinde `if: false` eksenleri BU NOBETCIDE
+    OLCULMEZ (olculdu: ucunde de bu kol 0 doner). O eksen `tools/is-akisi-kapisi.py`
+    dedir ve o kapi AYNI bloklayici `serit-a3` job'unda kosar (ucunde de rc=1
+    olculdu). Beyanin dogrulugu, varligi degil, olculen seye esittir
+    ([[kapi-beyanin-dogrulugunu-degil-varligini-olcer]]).
     """ % KANCA_KABLO_BAYRAGI
     hata = []
     try:
@@ -4991,7 +5034,7 @@ TANI_KABLOLARI = (
 NOBETCI_KABLOLARI = (
     ("denetle", ("acik_kesif_kontrol", "alt_kume_fikstur_kontrol",
                  "bayraksiz_adim_kontrol", "bulgu1_mutasyon_kontrol",
-                 "izlenmeyen_fikstur_kontrol",
+                 "izlenmeyen_fikstur_kontrol", "kanca_kablo_adimi_kontrol",
                  "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
                  "main_kablosu_kontrol", "muaf_sayaci_kontrol",
                  "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",
@@ -5008,13 +5051,81 @@ NOBETCI_KABLOLARI = (
 # birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
 # NOT: bu SAYI artik TEK BASINA yuk tasimiyor (dusurulebilir olmasi E5-a deligiydi);
 # asil capa yukaridaki ESITLIK kontroludur. Sayi ikinci bir ratchet olarak kalir.
-KOL_BIRLESIM_TABANI = 13
+KOL_BIRLESIM_TABANI = 15
+# UCUNCU (BLOKLAYICI) KOL — `--kanca-kablo`. `NOBETCI_KABLOLARI`'nin anahtarlari
+# FONKSIYON adi oldugu icin bu kolun nobetcileri `main` kaydinda erir ve kol dokumu
+# onu RAPORLAMIYORDU (5. tur F6). Ayri kayit: dokum UC SERIDI de basar.
+KANCA_KABLO_KOL_NOBETCILERI = ("kanca_kablo_serit_kontrol", "pre_push_kablo_kontrol")
 
 # 🔴 `--kendini-test` HUKMUNUN KENDISI (KB-E): butun `okN` degiskenleri hukme
 # `and` ile girmeli. Olculdu: `and ok10 and ok11` -> `or ok10 or ok11` yapildiginda
 # o iki nobetci ARTIK KIRMIZI YAKAMAZ ve dort batarya da YESIL kalir. Cagri satirini
 # civilemek yetmez; PAYIN hukumde durdugu da olculmelidir.
 _OK_ADI_RE = re.compile(r"^ok\d+$")
+# `--kanca-kablo` kolunun hukum degiskenleri `okN` desenine UYMUYOR; sinif olarak
+# kapsanmalari icin ADAY listesine alinir (tekil yama degil: asagidaki `turevli`
+# turetimi zaten "nobetci cagrisindan deger alan HER ad" kuralini uygular).
+_HUKUM_ADAY_ADLARI = ("ok", "ok_s")
+_NOBETCI_CAGRI_RE = re.compile(r"_kontrol$|_kontrolu$")
+
+
+def _hedef_deger_ciftleri(hedef, deger):
+    """(ad, o ada dusen DEGER ifadesi) — tuple hedefte KONUMSAL eslesme yapar."""
+    if isinstance(hedef, ast.Tuple):
+        parcalar = (deger.elts if isinstance(deger, ast.Tuple)
+                    and len(deger.elts) == len(hedef.elts) else None)
+        for i, alt in enumerate(hedef.elts):
+            yield from _hedef_deger_ciftleri(alt,
+                                             parcalar[i] if parcalar else deger)
+        return
+    if isinstance(hedef, ast.Name):
+        yield hedef.id, deger
+
+
+def _nobetci_cagrisi_mi(deger):
+    """<deger> icinde `*_kontrol(...)` bicimli bir NOBETCI cagrisi var mi."""
+    for c in ast.walk(deger):
+        if isinstance(c, ast.Call) and isinstance(c.func, ast.Name) \
+                and _NOBETCI_CAGRI_RE.search(c.func.id):
+            return True
+    return False
+
+
+def _cagridan_mi(deger, turevli):
+    """<deger> bir CAGRIDAN turuyor mu (dogrudan / ara degisken / kosullu-try dal)."""
+    if any(isinstance(c, ast.Call) for c in ast.walk(deger)):
+        return True
+    if isinstance(deger, ast.Name):
+        return deger.id in turevli
+    if isinstance(deger, ast.IfExp):
+        return (_cagridan_mi(deger.body, turevli)
+                and _cagridan_mi(deger.orelse, turevli))
+    if isinstance(deger, (ast.Tuple, ast.List)):
+        return all(_cagridan_mi(e, turevli) for e in deger.elts)
+    return False
+
+
+def _cagri_turevli_adlar(fn):
+    """<fn> govdesinde degeri (dolayli da olsa) bir CAGRIDAN gelen yerel adlar.
+
+    Sabit nokta: `_s = f()` -> `_s` turevli; `ok, hata = _s` -> `ok` da turevli.
+    Bu, `okN` kuralini SOZDIZIMSEL olmaktan cikarip ANLAMSAL yapan cekirdektir."""
+    turevli = set()
+    for _ in range(8):
+        eklendi = False
+        for d in ast.walk(fn):
+            if not isinstance(d, ast.Assign):
+                continue
+            for hedef in d.targets:
+                for ad, deger in _hedef_deger_ciftleri(hedef, d.value):
+                    if ad in turevli:
+                        continue
+                    if _cagridan_mi(deger, turevli):
+                        turevli.add(ad)
+                        eklendi = True
+        if not eklendi:
+            break
+    return turevli
 
 # 🔴 TEST SEAMI'NIN KENDISI (UCUNCU TUR, S1): `suzgec_kablosu_kontrol(kaynak=None)`
 # uretim yolunda KENDI CALISAN dosyasini okumali. Olculdu: o dali tek satirda
@@ -5023,6 +5134,50 @@ _OK_ADI_RE = re.compile(r"^ok\d+$")
 # ([[olculdu-diyen-hukum-kaniti]]). Asagidaki nobetci o beyani kaynak ekseninde olcer.
 _SEAM_YASAK_CAGRI = ("run", "check_output", "Popen", "check_call", "getoutput",
                      "urlopen", "loads")
+
+
+# 🔴 IKI KOLUN KENDI FIKSTURU (5. tur F4-D3/D4): `defter_eksik` kolunu bosaltmak ya
+# da seam YASAK LISTESINI bosaltmak hicbir gate kolunda kirmizi yakmiyordu — govde
+# dogru cevap veriyordu, KIMSE ONA BILEREK BOZUK GIRDI VERMIYORDU. Asagidaki iki
+# sentetik kaynak, her kolun BILINEN-BOZUK girdide ATESLENDIGINI olcer.
+_IC_FIKSTUR_DEFTER = (
+    'NOBETCI_KABLOLARI = (("denetle", ("suzgec_kablosu_kontrol",)), ("main", ()))\n'
+    "def suzgec_kablosu_kontrol():\n    pass\n"
+    "def alt_kume_fikstur_kontrol():\n    pass\n"
+    "def denetle():\n"
+    "    suzgec_kablosu_kontrol()\n"
+    "    alt_kume_fikstur_kontrol()\n"
+    "def main():\n    pass\n")
+_IC_FIKSTUR_SEAM = (
+    "def suzgec_kablosu_kontrol(kaynak=None):\n"
+    "    if kaynak is None:\n"
+    "        yol = os.path.abspath(__file__)\n"
+    "        with open(yol) as f:\n"
+    "            kaynak = f.read()\n"
+    "        kaynak = subprocess.run(['git', 'show'],\n"
+    "                                capture_output=True).stdout\n"
+    "    return kaynak\n")
+
+
+def _kablo_ic_fikstur():
+    """Iki kol BILINEN-BOZUK girdide ATESLENIYOR mu (kolun kendi nobeti)."""
+    hata = []
+    try:
+        agac = ast.parse(_IC_FIKSTUR_DEFTER)
+        duz = {d.name: _duz_cagrilar(d) for d in ast.walk(agac)
+               if isinstance(d, ast.FunctionDef)}
+        if not any("KAYIT DEFTERI EKSIK" in h for h in _kol_kapsam_kontrol(agac, duz)):
+            hata.append("IC FIKSTUR (DEFTER) DUSTU: defterde OLMAYAN bir nobetci "
+                        "cagrilirken `KAYIT DEFTERI EKSIK` ATESLENMEDI -> defter "
+                        "esitliginin bir yonu no-op yapilmis olabilir.")
+        if not any("SEAM SIZINTISI" in h and "ALT SUREC" in h
+                   for h in _seam_kontrol(ast.parse(_IC_FIKSTUR_SEAM))):
+            hata.append("IC FIKSTUR (SEAM) DUSTU: `kaynak`a alt-surec ciktisi "
+                        "atanirken `SEAM SIZINTISI ... ALT SUREC` ATESLENMEDI -> "
+                        "YASAK LISTESI bosaltilmis olabilir.")
+    except Exception as e:  # noqa: BLE001 — fikstur kapiyi patlatmaz, konusur
+        hata.append("IC FIKSTUR OLCULEMEDI: %s: %s" % (type(e).__name__, e))
+    return hata
 
 
 def _kol_kapsam_kontrol(agac, duz):
@@ -5150,58 +5305,92 @@ def _kendini_test_hukum_kontrol(agac):
     if main_dugum is None:
         return ["KENDINI-TEST HUKMU OLCULEMEDI: main() bulunamadi (dosya yeniden "
                 "duzenlendiyse nobetciyi guncelle)."]
-    # 🔴 ATAMA SAYISI + KAYNAGI (4. tur, E3-i): `ok11 = True` gibi IKINCI bir atama
-    # cagriyi de `and` zincirini de TATMIN ediyor ve 45 gercek itmenin sonucu
-    # sessizce cope gidiyordu (5/5 batarya yesil). Artik HER `okN` TAM BIR KEZ ve
-    # YALNIZ bir CAGRIDAN atanmali ([[beyan-edilmis-survivor]]).
+    # 🔴 KURAL ANLAMSAL, SOZDIZIMSEL DEGIL (5. tur, F3+D1). Iki ders birden:
+    #  (a) SAHTE-KIRMIZI: "TAM BIR KEZ ve DOGRUDAN `Call`" kurali UC MESRU yazimi
+    #      (try/except, kosullu atama, ara degisken) BLOKLAYICI kolda kirmizi
+    #      yakiyordu; mesru bir refactor tum ekibin itmesini durdururdu
+    #      ([[kapi-anchor-coupling-ikilemi]] · 3. turdaki `${rc}` dersi).
+    #  (b) KAPSAM: kural yalniz `ok\d+` adlarini goruyordu; ucuncu kolun `ok`/`ok_s`
+    #      degiskenleri desen disindaydi ve `if True:` mutanti 5/5 yesil geciyordu.
+    # YENI KURAL: HUKUM DEGISKENI = govdede bir NOBETCI CAGRISINDAN deger alan ad.
+    # Her boyle ada yapilan HER atamanin degeri CAGRIDAN TUREMELI (dogrudan, ara
+    # degisken uzerinden ya da her dali cagridan gelen kosullu/try yapisiyla), ve
+    # her hukum degiskeni EN AZ BIR `if` kosulunda GORUNMELI.
+    turevli = _cagri_turevli_adlar(main_dugum)
+    # HUKUM DEGISKENI = bir NOBETCI cagrisinin BIRINCI (boolean) donusunu alan ad.
+    # Ikinci donus (`hataN`) tani listesidir, hukum degildir — kapsam sorusu ona
+    # sorulmaz (olculdu: sorulunca 13 sahte-kirmizi ureti).
+    # ARA DEGISKENLER: baska bir atamanin TUM DEGERI olarak kullanilan adlar
+    # (`_s4 = f()` -> `ok4, hata4 = _s4`). Bunlar HUKUM degiskeni degil TASIYICIDIR;
+    # kapsam sorusu onlara sorulursa mesru bir refactor sahte-kirmizi yakar (F3/N-3).
+    aracilar = {d.value.id for d in ast.walk(main_dugum)
+                if isinstance(d, ast.Assign) and isinstance(d.value, ast.Name)}
     okler = set()
-    atama_sayisi = {}
     for d in ast.walk(main_dugum):
-        if not isinstance(d, ast.Assign):
+        if not isinstance(d, ast.Assign) or not _nobetci_cagrisi_mi(d.value):
             continue
         for hedef in d.targets:
-            for n in ast.walk(hedef):
-                if not (isinstance(n, ast.Name) and _OK_ADI_RE.match(n.id)):
-                    continue
-                okler.add(n.id)
-                atama_sayisi[n.id] = atama_sayisi.get(n.id, 0) + 1
-                cagri_var = any(isinstance(c, ast.Call) for c in ast.walk(d.value))
-                if not cagri_var:
-                    hata.append(
-                        "KENDINI-TEST HUKMU ATLANIYOR: `%s` bir CAGRI'dan degil sabit "
-                        "ifadeden atanmis (satir %d) -> nobetcinin sonucu hukme "
-                        "girmeden ezilmis olur; cagri durur, hukum coper."
-                        % (n.id, getattr(d, "lineno", -1)))
-    coklu = sorted((a for a, s in atama_sayisi.items() if s > 1),
-                   key=lambda x: int(x[2:]))
-    if coklu:
-        hata.append(
-            "KENDINI-TEST HUKMU EZILIYOR: %s degisken(ler)ine BIRDEN COK atama var -> "
-            "cagri ile hukum ARASINA konan ikinci atama (or. `ok11 = True`) hem "
-            "kablo hem `and` zinciri kontrolunu tatmin eder ve olcumu sessizce "
-            "coper eder." % ", ".join(coklu))
-    hukum = None
+            if isinstance(hedef, ast.Tuple) and hedef.elts:
+                ilk = hedef.elts[0]
+                if isinstance(ilk, ast.Name):
+                    okler.add(ilk.id)
+            elif isinstance(hedef, ast.Name):
+                okler.add(hedef.id)
+    okler -= aracilar
+    for ad in sorted(okler):
+        for d in ast.walk(main_dugum):
+            if not isinstance(d, ast.Assign):
+                continue
+            for hedef in d.targets:
+                for a2, deger in _hedef_deger_ciftleri(hedef, d.value):
+                    if a2 != ad:
+                        continue
+                    if not _cagridan_mi(deger, turevli):
+                        hata.append(
+                            "KENDINI-TEST HUKMU ATLANIYOR: `%s` degiskenine CAGRIDAN "
+                            "TUREMEYEN bir deger atanmis (satir %d) -> nobetcinin "
+                            "sonucu hukme girmeden ezilmis olur; cagri durur, hukum "
+                            "coper." % (ad, getattr(d, "lineno", -1)))
+    # HER hukum degiskeni EN AZ BIR **HUKUM** kosulunda gorunmeli. HUKUM kosulu =
+    # govdesinde `return 0` (YESIL cikis) bulunan `if`. 🔴 "herhangi bir `if`"
+    # YETMEZ: `if ok:` gibi YALNIZ BASAN dallar da vardir ve `if True:` mutanti
+    # onlara yaslanip gizleniyordu (olculdu: M-D1 rc=0).
+    kosul_adlari = set()
     for d in ast.walk(main_dugum):
-        if isinstance(d, ast.If) and isinstance(d.test, ast.BoolOp):
-            adlar = {n.id for n in ast.walk(d.test) if isinstance(n, ast.Name)}
-            if len(adlar & okler) >= 2:
-                hukum = d.test
-                break
-    if hukum is None:
-        hata.append("KENDINI-TEST HUKMU BULUNAMADI: main()'de `okN`leri birlestiren "
-                    "bir BoolOp kosulu YOK -> kol hukmu baska bir bicime tasinmis "
-                    "olabilir; nobetci OLU kalmasin diye fail-closed.")
-        return hata
-    if not isinstance(hukum.op, ast.And):
-        hata.append("KENDINI-TEST HUKMU `and` DEGIL (%s): tek bir nobetci yesilse kol "
-                    "YESIL dondurur -> ok10/ok11 gibi kollar ARTIK KIRMIZI YAKAMAZ "
-                    "(olculdu: dort batarya da yesil kaldi)." % type(hukum.op).__name__)
-    adlar = {n.id for n in ast.walk(hukum) if isinstance(n, ast.Name)}
-    eksik = sorted(okler - adlar, key=lambda s: int(s[2:]))
-    if eksik:
-        hata.append("KENDINI-TEST HUKMUNDE PAYI OLMAYAN NOBETCI: %s -> o nobetci "
-                    "basiliyor ama kolun cikis kodunu ETKILEMIYOR "
-                    "([[beyan-edilmis-survivor]])." % ", ".join(eksik))
+        if not isinstance(d, ast.If):
+            continue
+        yesil_cikis = any(isinstance(r, ast.Return) and isinstance(r.value, ast.Constant)
+                          and r.value.value == 0 for r in ast.walk(d))
+        if yesil_cikis:
+            kosul_adlari |= {n.id for n in ast.walk(d.test) if isinstance(n, ast.Name)}
+    kayip = sorted(okler - kosul_adlari)
+    if kayip:
+        hata.append(
+            "KENDINI-TEST HUKMU KAPSAM DISI: %s nobetci sonucu ATANIYOR ama hicbir "
+            "`if` kosulunda GORUNMUYOR -> o kolun hukmu sabitlenmis olabilir "
+            "(or. `if True:`) ve olcum sessizce cope gider "
+            "([[beyan-edilmis-survivor]])." % ", ".join(kayip))
+    # HUKUM BIRLESTIRICISI `and` OLMALI — HER kol icin AYRI AYRI. (Eski surum tek
+    # bir global BoolOp ariyor ve "payi olmayan" listesini TUM kollar uzerinden
+    # cikariyordu; ucuncu kolun `ok`/`ok_s`u eklenince o liste SAHTE-KIRMIZI
+    # uretiyordu — kapsam iddiasi zaten yukaridaki KAPSAM DISI kontrolunde.)
+    hukum_sayisi = 0
+    for d in ast.walk(main_dugum):
+        if not (isinstance(d, ast.If) and isinstance(d.test, ast.BoolOp)):
+            continue
+        adlar = {n.id for n in ast.walk(d.test) if isinstance(n, ast.Name)}
+        if len(adlar & okler) < 2:
+            continue
+        hukum_sayisi += 1
+        if not isinstance(d.test.op, ast.And):
+            hata.append(
+                "KENDINI-TEST HUKMU `and` DEGIL (satir %d, %s): tek bir nobetci "
+                "yesilse kol YESIL dondurur -> o kollar ARTIK KIRMIZI YAKAMAZ."
+                % (getattr(d, "lineno", -1), type(d.test.op).__name__))
+    if hukum_sayisi == 0 and okler:
+        hata.append("KENDINI-TEST HUKMU BULUNAMADI: main()'de nobetci sonuclarini "
+                    "birlestiren bir BoolOp kosulu YOK -> kol hukmu baska bir bicime "
+                    "tasinmis olabilir; nobetci OLU kalmasin diye fail-closed.")
     return hata
 
 
@@ -5360,6 +5549,8 @@ def suzgec_kablosu_kontrol(kaynak=None):
     hata.extend(_seam_kontrol(agac))
     # TOPLAM YUZEY + DEFTER/CAGRI ESITLIGI (twin-free capa).
     hata.extend(_kol_kapsam_kontrol(agac, duz))
+    # Bu iki kolun KENDI nobeti: bilinen-bozuk girdide atesliyorlar mi.
+    hata.extend(_kablo_ic_fikstur())
     return (not hata), hata
 
 
@@ -5563,6 +5754,12 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         # (ruby SURECI) kosar ve bu kolun medyani 3,89 -> 9,89 sn'ye cikti (olculdu).
         # Nobetci `--kanca-kablo` (deploy.yml BLOKLAYICI serit-a3) ve `--kendini-test`
         # kollarinda kosar; iddia CI'da bloklayicidir, pre-push'a bindirilmez.
+        # AMA UCUNCU KOLUN CAGRI SATIRI BURADA CIVILENIR (5. tur F2): adim silinir
+        # ya da `echo`'ya sarilirsa o kol CI'da HIC KOSMAZ; ucuz `_hedef_cagrilari`
+        # (kardeslerle AYNI onbellekli tek kaynak) bunu push aninda yakalar.
+        _, kk_adim_hata = kanca_kablo_adimi_kontrol()
+        for h in kk_adim_hata:
+            hatalar.append("KANCA-KABLO-ADIMI: " + h)
         # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
         # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
         # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
@@ -5626,9 +5823,12 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         for _a, _g in NOBETCI_KABLOLARI:
             _birlesim |= set(_g)
         satirlar.append(
-            "  Oz-nobetci (bu kol)    : %d  (`--kendini-test` kolu: %d · BIRLESIM: "
-            "%d, taban %d)" % (len(_kol.get("denetle", ())), len(_kol.get("main", ())),
-                               len(_birlesim), KOL_BIRLESIM_TABANI))
+            "  Oz-nobetci (UC SERIT)  : BAYRAKSIZ(bu kol, BLOKLAYICI: push+yayin) %d "
+            "· `%s`(BLOKLAYICI: deploy serit-a3) %d · `%s`(nobet.yml, BLOKLAMAZ) %d "
+            "· BIRLESIM %d (taban %d)"
+            % (len(_kol.get("denetle", ())), KANCA_KABLO_BAYRAGI,
+               len(KANCA_KABLO_KOL_NOBETCILERI), KENDINI_TEST_BAYRAGI,
+               len(_kol.get("main", ())), len(_birlesim), KOL_BIRLESIM_TABANI))
     # 🔴 KOVA GORUNUR OLMAK ZORUNDA: olculdu ama basilmadi = olculmedi. "0" satiri da
     # BASILIR — yoksa "satir yok" ile "kova bos" ayirt edilemez ([[hukum-yanlis-birimde]]).
     if izlenmeyen_sebep:
@@ -5882,13 +6082,16 @@ def main():
         _birlesim = set()
         for _a, _g in NOBETCI_KABLOLARI:
             _birlesim |= set(_g)
-        print("KOL KAPSAMI — bu kol (`%s`, nobet.yml SERIT B, yayini BLOKLAMAZ): %d "
-              "oz-nobetci · BAYRAKSIZ kapsam kolu (pre-push + CI): %d · BIRLESIM: %d "
-              "(taban %d). AGIR davranis ayagi (45 gercek `git push`) BU KOLDA DEGIL: "
-              "`%s` bayragiyla deploy.yml'in BLOKLAYICI `serit-a3` job'unda kosar."
+        print("KOL KAPSAMI — UC SERIT: bu kol (`%s`, nobet.yml SERIT B, yayini "
+              "BLOKLAMAZ) %d oz-nobetci · BAYRAKSIZ kapsam kolu (pre-push + CI, "
+              "BLOKLAYICI) %d · `%s` (deploy.yml serit-a3, BLOKLAYICI) %d [%s] · "
+              "BIRLESIM %d (taban %d). AGIR davranis ayagi (45 gercek `git push`) "
+              "BU KOLDA DEGIL, ucuncu seritte."
               % (KENDINI_TEST_BAYRAGI, len(_kol.get("main", ())),
-                 len(_kol.get("denetle", ())), len(_birlesim), KOL_BIRLESIM_TABANI,
-                 KANCA_KABLO_BAYRAGI))
+                 len(_kol.get("denetle", ())), KANCA_KABLO_BAYRAGI,
+                 len(KANCA_KABLO_KOL_NOBETCILERI),
+                 ", ".join(KANCA_KABLO_KOL_NOBETCILERI), len(_birlesim),
+                 KOL_BIRLESIM_TABANI))
         if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9
                 and ok10 and ok11):
             print("SONUC: YESIL ✅")

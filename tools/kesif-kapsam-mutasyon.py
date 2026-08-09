@@ -221,6 +221,30 @@ def _serit_mutant(capa, ikame, ek=None):
         shutil.rmtree(gecici, ignore_errors=True)
 
 
+def _adim_mutant(capa, ikame):
+    """deploy.yml GECICI kopyasinda `--kanca-kablo` ADIMI nobetini olcer."""
+    with open(DEPLOY_YOLU, encoding="utf-8") as f:
+        metin = f.read()
+    if metin.count(capa) != 1:
+        raise RuntimeError("ADIM MUTANTI OLCULEMEDI: capa %d kez gecti (beklenen 1)"
+                           % metin.count(capa))
+    metin = metin.replace(capa, ikame)
+    gecici = tempfile.mkdtemp(prefix="pruvo-adim-mutant-")
+    try:
+        yol = os.path.join(gecici, "deploy.yml")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(metin)
+        eski = KAP.DEPLOY_VARSAYILAN
+        KAP.DEPLOY_VARSAYILAN = yol
+        try:
+            ok, hatalar = KAP.kanca_kablo_adimi_kontrol()
+        finally:
+            KAP.DEPLOY_VARSAYILAN = eski
+        return (0 if ok else 1), hatalar
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
 def _akisa_yorum_ekle(akislar, akis_adi):
     """KONTROL: ilgisiz bir YAML yorum satiri ekler (hukum DEGISMEMELI)."""
     yeni = []
@@ -502,7 +526,7 @@ def main():
         lambda: _kablo_nobetcisi(
             ('                 "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",',
              '                 "suzgec_fikstur_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 13", "KOL_BIRLESIM_TABANI = 9")),
+            ("KOL_BIRLESIM_TABANI = 15", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
@@ -550,7 +574,7 @@ def main():
             ("        ok11, hata11 = kanca_kablo_serit_kontrol()",
              "        ok11, hata11 = kanca_kablo_serit_kontrol()\n"
              "        ok11 = True")),
-        True, "KENDINI-TEST HUKMU EZILIYOR")
+        True, "CAGRIDAN TUREMEYEN")
 
     olc("M-E3iv seam `if` DISINDA eziliyor (kapsam ekseni)",
         lambda: _kablo_nobetcisi(
@@ -565,7 +589,7 @@ def main():
         lambda: _kablo_nobetcisi(
             ('              "kanca_kablo_serit_kontrol", "kendini_test_adimi_kontrol",',
              '              "kendini_test_adimi_kontrol",'),
-            ("KOL_BIRLESIM_TABANI = 13", "KOL_BIRLESIM_TABANI = 9")),
+            ("KOL_BIRLESIM_TABANI = 15", "KOL_BIRLESIM_TABANI = 9")),
         True, "KAYIT DEFTERI EKSIK")
 
     olc("M-SERIT agir ayak adimi BLOKLAMAYAN job'a tasindi",
@@ -577,6 +601,84 @@ def main():
                               ek=("needs: [build, serit-a2, serit-a3, serit-a4]",
                                   "needs: [build, serit-a2, serit-a3-yeni, serit-a4]")),
         False)
+
+    # ---- ALTINCI TUR: SAHTE-KIRMIZI · UCUNCU KOLUN ADIMI · ok/ok_s KAPSAMI ----
+    # 🔴 UC MESRU YAZIM YESIL KALMALI (F3): kural SOZDIZIMSEL degil ANLAMSAL.
+    # Bunlar KONTROL mutantidir; kirmizi yakarlarsa nobetci mesru bir refactor'da
+    # TUM EKIBIN itmesini durdurur ([[kapi-anchor-coupling-ikilemi]]).
+    _OK4 = "        ok4, hata4 = bayraksiz_adim_kontrol()"
+    olc("KONTROL-N1 `try/except` — IKI dal da CAGRIDAN (yesil kalmali)",
+        lambda: _kablo_nobetcisi(
+            (_OK4,
+             "        try:\n"
+             "            ok4, hata4 = bayraksiz_adim_kontrol()\n"
+             "        except Exception:\n"
+             "            ok4, hata4 = bayraksiz_adim_kontrol()")),
+        False)
+
+    olc("KONTROL-N2 KOSULLU atama — iki dal da CAGRIDAN (yesil kalmali)",
+        lambda: _kablo_nobetcisi(
+            (_OK4,
+             "        if args.deploy:\n"
+             "            ok4, hata4 = bayraksiz_adim_kontrol()\n"
+             "        else:\n"
+             "            ok4, hata4 = bayraksiz_adim_kontrol()")),
+        False)
+
+    olc("KONTROL-N3 ARA DEGISKEN uzerinden atama (yesil kalmali)",
+        lambda: _kablo_nobetcisi(
+            (_OK4,
+             "        _s4 = bayraksiz_adim_kontrol()\n"
+             "        ok4, hata4 = _s4")),
+        False)
+
+    olc("M-P1 `ok4 = True` (hukum ezme — KIRMIZI olmali)",
+        lambda: _kablo_nobetcisi((_OK4, _OK4 + "\n        ok4 = True")),
+        True, "CAGRIDAN TUREMEYEN")
+
+    olc("M-P2 `ok4, hata4 = True, []` (cagri HIC yok — KIRMIZI olmali)",
+        lambda: _kablo_nobetcisi(
+            (_OK4, "        ok4, hata4 = bayraksiz_adim_kontrol()\n"
+                   "        ok4, hata4 = True, []")),
+        True, "CAGRIDAN TUREMEYEN")
+
+    olc("M-D1 ucuncu kolun hukmu `if True:` (ok/ok_s kapsam disi mi)",
+        lambda: _kablo_nobetcisi(("        if ok and ok_s:", "        if True:")),
+        True, "KENDINI-TEST HUKMU KAPSAM DISI")
+
+    olc("M-B1 (F2) `--kanca-kablo` ADIMI deploy.yml'den SILINDI",
+        lambda: _adim_mutant(
+            "        run: python3 tools/ci-kapsam-test.py --kanca-kablo",
+            "        run: echo atlandi"),
+        True, "KANCA-KABLO ADIMI YOK")
+
+    olc("M-B3 (F2) `--kanca-kablo` adimi ECHO'ya sarildi",
+        lambda: _adim_mutant(
+            "        run: python3 tools/ci-kapsam-test.py --kanca-kablo",
+            "        run: echo python3 tools/ci-kapsam-test.py --kanca-kablo"),
+        True, "KANCA-KABLO ADIMI YOK")
+
+    # 🔴 BU IKISI MUTANT MODUL ISTER (kaynak gecirmek YETMEZ): olculen sey nobetcinin
+    # KENDI GOVDESIDIR; `kaynak=` seami yalniz YARGILANAN metni degistirir, govdeyi
+    # degil. Ic fikstur mutant govdeyle kosunca sessizce oldurulen kolu gorur.
+    def _kablo_govdesi(mod):
+        ok, hatalar = mod.suzgec_kablosu_kontrol()
+        return (0 if ok else 1), hatalar
+
+    olc("M-D3 defter esitligi TEK YONLU yapildi (defter-eksik kolu dusuruldu)",
+        lambda: _kablo_govdesi(_mutant_modul(
+            "d3",
+            "        defter_eksik = sorted(cagrilan - kayitli)",
+            "        defter_eksik = []  # no-op")),
+        True, "IC FIKSTUR (DEFTER) DUSTU")
+
+    olc("M-D4 seam YASAK LISTESI bosaltildi",
+        lambda: _kablo_govdesi(_mutant_modul(
+            "d4",
+            '_SEAM_YASAK_CAGRI = ("run", "check_output", "Popen", "check_call", '
+            '"getoutput",\n                     "urlopen", "loads")',
+            "_SEAM_YASAK_CAGRI = ()")),
+        True, "IC FIKSTUR (SEAM) DUSTU")
 
     olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",
         lambda: _kablo_nobetcisi(
