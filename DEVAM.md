@@ -1,5 +1,29 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## ⏱ SAATLIK CI NOBETI — 9 Agu 08:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Supurme (kosulsuz, §0.5):** kutu 7537 · `notifications@github.com` toplam **0** · "Run failed" **0** → Cop'e **0** · tur sonu kalan **0**. Pozitif tanima izi ALINDI: `sender contains "github"` → **1** gercek isabet (baska bir GitHub adresi), liste uzunluk paritesi 7537=7537, buyuk/kucuk harf duyarli ve duyarsiz tarama tutarli → hukum **TEMIZ**, OLCULEMEDI degil.
+
+**🟢 KraL duzlemindeki BLOKAJLARIN HEPSI KAPANDI ve ADIYLA OLCULDU:**
+- `build` **success** (kosum `31303970771`) → onceki turun `ozet.json` butce onarimi (`55ae7851`, vitrin havuzu 100→88) **KANITLANDI**. Butce sabiti gevsetilmedi, adim silinmedi.
+- Olu kosum `31301608015` iptal edildi: `build`+`serit-a2`+`serit-a3` zaten kirmiziydi → `deploy` garanti `skipped`, ama `serit-a4` ucusta `pages` grubunu tutuyordu. Iptal sonrasi `31303970771` basladi. (Ayni kaldirac 00:46 turunda da dogru cikmisti.)
+- **YENI kirmizi sinif — konfigur artefakt sapmasi (ONARILDI, push `822a8591`):** `serit-a3` / "Konfigur bundle kapisi". Sebep: `a046296a` katalogdan 53 urun kaldirinca `shop/src/konfigurlar.js` aynasi bayatladi. Kaldirilanlarin konfigurlu olani **tek**ti. Olcum jeneratorun KENDI `_sayi_normalize`'iyla yapildi (elle diff sahte sapma uretir): **0 ekleme / 48 silme**, kalan **16** id'in hicbirinde konfigur/fiyat degeri DEGISMEDI → canli fiyat degismedi, Okan kapisi gerekmedi. Kapilar: bundle rc=0 · `--kendini-test` rc=0 · `konfigur-fail-closed` **5/5**. Yeni kosum `31304782641`.
+
+**🔴 TEK KALAN BLOKAJ — `serit-a2` / A4 model ikizi: SINIF = VERI (MaCiT duzlemi), kapi yanlis-pozitifi DEGIL.**
+Curutuldu: A4'un elle tutulan muafiyet/allow kumesi **YOK** (kardeslerinin aksine `marka-invaryant-taban.json` benzeri bir taban dosyasi yok), normalizasyon ciplak regex → "elle tutulan liste parti basina bayatliyor" sinifi burada **yapisal olarak gecersiz**.
+Nedensellik tekrar oynatildi: `3ab04a9d^` → **0** ikiz grubu · `3ab04a9d` → **2** · HEAD → **2**.
+`git log -S` ile yazim yaslari: bosluklu `"Town Ace"` YALNIZ `3ab04a9d`'de (9 Agu partisi) · bosluksuz `"TownAce"` `1dee7bea`'dan beri (15 Tem, 3 hafta yesil).
+→ **Yerlesik yazim BOSLUKSUZ.** Onceki IKI posta (04:2xZ ve 08:41Z) onarim yonunu **TERS** yazmisti (3 haftadir canli olan kaydi degistirtiyordu); 09:1xZ postasiyla **DUZELTILDI**: degisecek tek urun `toyota-town-ace-lite-ace-2008-geri-gorus-ayna-braketi`, uc alan (`uyum[0].model` · `uyum[1].model` · `marka`) — `marka` zorunlu, yoksa A4 yesillenirken A2/K5 kirmizi yanar. KraL urun verisine DOKUNMAZ.
+
+**⚠️ LATENT RISK (KraL isi, sonraki muhendislik karari):** A4 sifir esikli SERT blok; on iki satir asagidaki kardes eksen A5 ayni parti-basi sapma sinifini "tek bir kacak jeton BES EVIN yayinini birden durdururdu" gerekcesiyle **bilerek** bloklamayan seviyeye cekmis. A4'un ayni maruziyeti var, ratchet YOK. Olculen latent yuzey: ayni katlama `marka` dizilerine uygulaninca bugun **78** ikiz grubu (F-150/F150 198-3 · Citroen/Citroën 410-4 · Kia/KIA 353-1 …) — hicbiri bugun A4 yuzeyinde degil, ama o kayda `uyum` blogu geldigi gun **aninda deploy durdurucu**. Ratchet yapilirsa kabul sarti: sentetik YENI ikiz kirmizi yakmali, tabanda kayitli ikiz yesil kalmali — kontrol mutanti olmadan taban civilemek ekseni sessizce **no-op**'a cevirir.
+
+**OLCULEMEDI (uydurulmadi):** `serit-a4` hukmu — tur sonunda hala `in_progress`. `31304782641` tur sonunda kuyrukta. Yayin acligi olcum aninda ~8,5 saat / 24 commit; son basarili deploy hala `3e7f1b24` (00:45:56Z).
+
+**Ana checkout'taki commit'siz `tools/build.py` + `tools/faz3-yuk.js` (aday A) artik ISLEVSIZ:** build o dosyalar olmadan **yesil** olculdu (`55ae7851` ayri koldan kapatti). Sahibi dusursun; KraL dokunmadi, ezmedi.
+
+**SONRAKI TURUN ILK ISI:** (a) MaCiT A4'u kapatti mi (`uyum-kapisi.py` rc=0 mi); (b) `31304782641`'de `serit-a3` ADIYLA success mi — konfigur onariminin kaniti; (c) `serit-a4` hukmu ADIYLA; (d) A4 ratchet karari (yukaridaki kabul sartiyla) muhendise verilsin mi.
+
+
 ## ⏱ SAATLIK CI NOBETI — 9 Agu 06:37Z turu (ev DOGRU: ~/dev/pruvo)
 
 **Supurme (kosulsuz, §0.5):** kutu 7538 · GitHub toplam 1 · "Run failed" 1 → Cop'e **1** · tur sonu kalan **0**. Pozitif tanima izi ALINDI (kontrol eksenleri `google.com` **1801** · `pruvo3d.com` **12** — eslestirici calisiyor) → hukum SUPURULDU, OLCULEMEDI degil.
@@ -130,51 +154,7 @@ CANLIYA GITTI 5 SHA (`d3fbc1e5`/`b36c208b`/`36d57ce6`/`d81349b6`/`e94433f9`, sab
 
 ## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20, dokum ARSIVDE)
 Merge --ff-only d9485a0d, kapsam 3 dosya +589/-61, sizinti 0. Olu koruma 48 birim kapatildi (tablo 18/18, pay 0). Merge sonrasi kapilar: D1 dort eksen rc=0 (22685) · CI kapsam rc=0 (246 kesif) · is-akisi rc=0 + kendini-test rc=0 (204 iddia) · nobetci mutasyon 7/7 + kontrol YESIL. Ders: ff uygunlugu YEREL main ile olculur. Temizlik bilerek yapilmadi. Tam dokum: DEVAM-ARSIV.md.
-## ⏱ SAATLIK CI NOBETI — 9 Agu 02:37Z turu (ev DOGRU: ~/dev/pruvo)
-
-**Supurme (kosulsuz, §0.5):** "Run failed" eslesen **0** → Cop'e **0** · kalan **0**.
-Pozitif tanima izi ALINDI: ayni `contains` taramasi `google.com` **1801** ve `pruvo3d.com`
-**12** buldu (eslestirici CALISIYOR), genis `github.com` taramasi **1** verdi (destek
-bildirimi, "Run failed" DEGIL). Yani hukum **"kutu temiz"**, OLCULEMEDI degil.
-
-**Kapanan sinif:** `D1 uzlastirici` — onceki turun "tekrar ederse muhendislik isi acilir"
-kaydi. 02:36 kosumu (`31290695793`) **success** → tek olay kaldi, is ACILMADI. Bagimsiz
-teyit `d1-sync.py --durum` (mimar eliyle, 02:44Z): **23034 == 23034** · hash uyusmaz 0 ·
-eksik 0 · fazla 0 · sema KURULU · 5 turetilmis kolon GUNCEL → **dort eksen ✅**.
-
-**🔴 ASIL BULGU — aclik TEK BASINA kuyruk degildi, `deploy: needs` KIRMIZISIYDI.**
-Onceki tur "aclik" hukmunu kuyruk suresine baglamisti. Bu turda IS DUZEYINDE olculdu:
-kosum `31288785522` (head `6b15062b`) `serit-a2` **failure** + `serit-a3` **failure`.
-`deploy: needs: [build, serit-a2, serit-a3, serit-a4]` → o kosumun `deploy`'u **garanti
-skipped** idi; yani OLU bir kosum `concurrency: group: pages` grubunu 52+ dk tutuyor,
-arkasindaki kosum bekliyordu. Dusen adimlar (job API'sinden, log degil beyan degil):
-`serit-a2` → "Marka uyelik kabul testi (katlanmis uyelik + anlamsiz URL nobeti)" ·
-`serit-a3` → "Ic rapor adi kapisi".
-**Icerik kaybi YOK** (olculdu): `6b15062b` ve `d0cd0314`, `5d576510`'in **atasi**
-(`merge-base --is-ancestor` rc=0 x2). Bu yuzden olu kosum **iptal edildi** ve kuyruk acildi;
-bu 00:46Z'de ayni desende olculmus ve ise yaramis mudahalenin tekrari.
-
-**Iki kirmizi KAPANDI — onarim BENIM DEGIL, kardes oturumun** (`942d091a` + `5d576510`,
-"Marka sayfasi merge'inin actigi iki yayin kirmizisi onarildi"). Ben yalnizca OLCTUM:
-kosum `31290731298` (head `5d576510`) icinde **adim ADIYLA** dogrulandi —
-`Marka uyelik kabul testi …` = **success** · `Ic rapor adi kapisi` = **success**
-(+ `Ic rapor adi kapisi ic nobetci (fikstur + kontrol bataryasi)` = success).
-`serit-a3` 28 adim / `serit-a2` 16 adim tamamlandi, **kirmizi adim 0**.
-
-**OLCULEMEDI (uydurulmadi):** ayni kosumda `serit-a4` · `build` · `deploy` · `yayin` tur
-sonunda hala **in_progress**. Tavani `serit-a4` koyuyor (32-58 dk) — bu BEKLENEN, arizanin
-kendisi degil. **SONRAKI TURUN ILK ISI:** `31290731298`'in `deploy`/`yayin` hukmunu olc;
-`deploy` success ise aclik kolu (`Paket tazeligi alarmi`) kendiliginden yesillenmeli.
-
-**Acik kalan kirmizi:** `Paket tazeligi alarmi` / `yayin-nabzi` ardisik 2 kosum (23:44, 01:38)
-— hukum ACLIK (cikis 4). Esiklere DOKUNULMADI (alarm dogru olcuyor); bu turdaki mudahale
-esigi degil SEBEBI hedefledi.
-
-**Tavan isi (muhendis, DEVAM EDIYOR):** worktree `agent-a6d4a91f92189720c` `tools/
-model-uyelik-kapisi.py` + `tools/marka_model_build.py` uzerinde calisiyor (uc scratch olcum
-betigi). ⚠️ **Commit YOK, mühendis raporu YOK, son yazma 01:56Z → tur sonunda 47 dk sessiz.**
-Tek tur olduğu icin oksuz SAYILMADI. **SONRAKI TUR ESIGI:** hala commit/rapor yoksa
-(~2 saat sessizlik) is DEVRALINIR — sifirdan teshise baslanmaz, dosyalar yerinde.
+## ⏱ SAATLIK CI NOBETI — 9 Agu 02:37Z turu — dokum ARSIVDE (supurme 0 esleme → Cop 0, pozitif tanima izi alindi; D1 uzlastirici kapandi — dort eksen 23034==23034; ASIL BULGU: aclik kuyruk degil `deploy: needs` kirmizisiydi, olu kosum `31288785522` iptal edildi, icerik kaybi 0; serit-a2/a3 kardes oturumun `5d576510`'uyla ADIYLA success; serit-a4/build/deploy/yayin OLCULEMEDI; tavan isi worktree'si 47 dk sessiz)
 
 ## ⏱ SAATLIK CI NOBETI — 9 Agu 01:37Z turu — dokum ARSIVDE (supurme temiz 1->Cop; serit-b + D1 uzlastirici kapandi; yayin acligi (Paket tazeligi/yayin-nabzi ardisik 2 kirmizi) muhendise devredildi, tavan dusurme dalda; `6b15062b` deploy/yayin OLCULEMEDI)
 
