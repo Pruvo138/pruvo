@@ -46,12 +46,24 @@ KOK-ALT     🔴 AYIRT EDICI KOL (mimar iadesi, 9 Agu): yukaridaki KOK olcumu he
 INDEX       Miras alinan GIT_INDEX_FILE ONURLANIR (ortam TEMIZLENMEZ) + AYIRT
             EDICI KONTROL: ayni agacta degisken VERILMEDIGINDE hukum rc=0'dir.
             Bu ikisi kapinin docstring'indeki (1)/(2) tuzaklarinin AYRI olcumudur.
+            Nobeti: MUT-INDEX.
 MUT-ALT     `altkategori_sebebi` kolu KALDIRILAN kopyada A1 YESILE doner (mutant
 MUT-UYUM    olur) ve A2 KIRMIZI KALIR; `uyum_sebebi` kolu icin simetrigi.
 MUT-ARG     `main()`'deki arguman kolu (`if len(argv) > 1:`) SILINEN kopyada O3 dusmeli;
             A1/A2 AYAKTA kalmali (yani O3 gercekten O KOLU olcuyor).
 MUT-KOK     `ROOT` turetimi `rev-parse --show-toplevel`e cevrilen kopyada KOK-ALT dusmeli;
             A1/A2 AYAKTA kalmali (eski eksenler bu bozulmaya KORDU — kanit budur).
+MUT-INDEX   Kapinin git cagrilari ortami TEMIZLEYEN kopyada (tuzak (2) korlesir)
+            INDEX ekseni DUSMELI; AYIRT EDICI kontrol kolu ve A1/A2 AYAKTA kalmali.
+            🔴 NEDEN VAR (OLCULDU 9 AGU 2026 — yayin hattini kapatti): INDEX ekseninin
+            NOBETI YOKTU ve fikstur SESSIZCE ATIL kaldi. `tools/git_ortami.py::
+            sentetik_git` fiksturun ACIKCA verdigi `GIT_INDEX_FILE`i battaniye scrub
+            ile siliyordu -> fikstur alternatif index'e yazdigini SANARKEN VARSAYILAN
+            index'e yaziyordu; iki INDEX iddiasi birden kirmizi yandi, `serit-a2` dustu
+            ve `deploy`/`yayin` SKIPPED oldu. O halde iddia kapinin DAVRANISINI degil
+            fiksturun BOZUKLUGUNU olcuyordu ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]).
+            Bu mutant iddianin GERCEKTEN kapiya capali oldugunu HER KOSUMDA kanitlar:
+            fikstur yine atil kalirsa mutant bir sey DUSUREMEZ ve MUT-INDEX kirmizi yanar.
             🔴 [[mutasyon-diske-yazma-tuzagi]] + [[mutasyon-bytecode-onbellegi]]:
             mutant AYRI dizine yazilir, bytecode yazimi kapalidir ve mutasyonun
             FIILEN uygulandigi (metin degisti mi) AYRICA dogrulanir.
@@ -82,7 +94,7 @@ GERCEK_KATALOG = os.path.join(GERCEK_KOK, "urunler.json")
 
 # Bir iddia silmek MESRU olabilir; sessizce kaybolmasi DEGIL. Iddia sayisi bunun
 # altina duserse hukum KIRMIZI olur ve taban AYNI commit'te gerekceyle dusurulur.
-IDDIA_TABANI = 49
+IDDIA_TABANI = 55
 
 # Git baglam scrub'inin TEK KAYNAGI tools/git_ortami.py'dir; burada IKINCI bir
 # kume TANIMLANMAZ ([[ikiz-tanim-sessiz-ayrisma]]). Surucunun kendi cocuk
@@ -115,6 +127,20 @@ MUT_ARG_YERINE = "if False:"
 MUT_KOK_CAPA = "ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))"
 MUT_KOK_YERINE = ('ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], '
                   'capture_output=True, text=True).stdout.strip()')
+
+# INDEX EKSENI mutanti: kapinin metin donen git cagrisi ortami TEMIZLER, yani modul
+# docstring'indeki tuzak (2) ("ortam TEMIZLENMEZ") KORLESIR. O halde miras alinan
+# `GIT_INDEX_FILE` gorulmez, kapi DISKTEKI varsayilan index'i yargilar.
+# 🔴 YALNIZ `_git_metin` mutasyona ugrar (`_git_bayt` DEGIL): index'i BULAN cagri odur;
+# boylece mutant INDEX eksenine capalanir ve blob okuma yolu KORUNUR.
+MUT_INDEX_CAPA = ('        return subprocess.run(["git", "-C", ROOT, *args], '
+                  'capture_output=True,\n'
+                  '                              text=True, errors="replace")')
+MUT_INDEX_YERINE = ('        return subprocess.run(["git", "-C", ROOT, *args], '
+                    'capture_output=True,\n'
+                    '                              text=True, errors="replace",\n'
+                    '                              env={k: v for k, v in os.environ.items()\n'
+                    '                                   if not k.startswith("GIT_")})')
 
 _KOK_DESENI = re.compile(r"olculen agac = (.+?)\s*$", re.M)
 
@@ -466,9 +492,20 @@ def vaka_kok(s, kok):
 # ---------------------------------------------------------------------------
 # INDEX — miras alinan GIT_INDEX_FILE ONURLANIR (ortam TEMIZLENMEZ)
 # ---------------------------------------------------------------------------
-def vaka_index_dosyasi(s, kok):
-    d = depo_kur(os.path.join(kok, "indexfile"), GERCEK_KAPI, [TEMIZ_KAYIT])
-    alt_index = os.path.join(kok, "alt-index")
+def _index_fikstur(kok, ad, kapi_kaynagi):
+    """Alternatif GIT_INDEX_FILE fiksturu -> (rc_alt, c_alt, rc_var, c_var).
+
+    Fikstur GOVDESI TEK YERDE durur: hem canli kapi hem MUT-INDEX mutanti AYNI
+    kurulumdan gecer. Iki ayri kopya yazilsaydi mutant, iddianin FIILEN olctugu
+    kurulumdan sessizce ayrisirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    🔴 `GIT_INDEX_FILE` fiksturun ACIK niyetidir ve `sentetik_git`e
+    `korunan_baglam` ile bildirilir: battaniye scrub onu silerse fikstur
+    alternatif index'e yazdigini SANARKEN varsayilan index'e yazar (9 Agu 2026
+    olculdu, yayin durdu). Nobeti: MUT-INDEX.
+    """
+    d = depo_kur(os.path.join(kok, ad), kapi_kaynagi, [TEMIZ_KAYIT])
+    alt_index = os.path.join(kok, ad + "-alt-index")
 
     ortam = go.git_ortami()
     ortam["GIT_INDEX_FILE"] = alt_index
@@ -483,12 +520,17 @@ def vaka_index_dosyasi(s, kok):
     _json_yaz(os.path.join(d, "urunler.json"), [TEMIZ_KAYIT])
 
     rc_alt, c_alt = kapiyi_kos(d, ortam=ortam)
+    rc_var, c_var = kapiyi_kos(d)
+    return rc_alt, c_alt, rc_var, c_var
+
+
+def vaka_index_dosyasi(s, kok):
+    rc_alt, c_alt, rc_var, c_var = _index_fikstur(kok, "indexfile", GERCEK_KAPI)
     s.bekle("INDEX.miras-alinan-index-onurlaniyor", rc_alt == 1,
             "GIT_INDEX_FILE ile gosterilen index'teki ihlal YAKALANMALI (ortam "
             "temizlenseydi kapi BASKA bir index okurdu); rc=%d cikti=%s"
             % (rc_alt, c_alt[-400:]))
 
-    rc_var, c_var = kapiyi_kos(d)
     s.bekle("INDEX.ayirt-edici-kontrol", rc_var == 0,
             "AYNI agacta degisken VERILMEDIGINDE hukum rc=0 olmali — yoksa iddia "
             "ortami degil baska bir seyi olcuyordur; rc=%d cikti=%s"
@@ -612,6 +654,48 @@ def vaka_mutasyon_arg_kok(s, kok):
                 "mutant dizininde __pycache__ olusmus")
 
 
+def vaka_mutasyon_index(s, kok):
+    """MUT-INDEX — INDEX ekseni GERCEKTEN kapiya capali mi (fikstur ATIL degil mi)?
+
+    🔴 OLCULEN KUSUR (9 Agu 2026, yayin hatti kapandi): INDEX ekseninin NOBETI YOKTU.
+    `tools/git_ortami.py::sentetik_git` battaniye scrub'i fiksturun ACIKCA verdigi
+    `GIT_INDEX_FILE`i siliyordu; fikstur alternatif index'e yazdigini SANARKEN
+    VARSAYILAN index'e yazdi -> IKI INDEX iddiasi birden kirmizi yandi, `serit-a2`
+    dustu, `deploy`/`yayin` SKIPPED oldu. Yani iddia kapinin DAVRANISINI degil
+    fiksturun BOZUKLUGUNU olcer hale gelmisti ve bunu kimse GORMEDI
+    ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]] · [[beyan-edilmis-survivor]]).
+
+    Mutant, kapinin metin donen git cagrisini ortami TEMIZLEYEN bir kopyaya cevirir
+    (modul docstring'indeki tuzak (2) korlesir). IKI YONLU sart:
+      * MUT-INDEX.oldurdu     : miras alinan index GORULMEZ -> INDEX ekseni DUSER.
+      * MUT-INDEX.ayirt-edici : AYIRT EDICI kontrol kolu (degisken YOK) AYAKTA kalir
+                                — mutant "her seyi kirmizi yakan" kor bir mutant DEGIL.
+    Fikstur yeniden ATIL kalirsa (alternatif index'e hic yazilmazsa) mutant hicbir sey
+    dusuremez ve BU iddia kirmizi yanar — nobetin kendisi nobetsiz kalmaz.
+    """
+    with open(GERCEK_KAPI, encoding="utf-8") as f:
+        kaynak = f.read()
+    mut = _mutant_yaz(kok, "MUT-INDEX", kaynak, MUT_INDEX_CAPA, MUT_INDEX_YERINE, s)
+    if not mut:
+        return
+    rc_alt, c_alt, rc_var, c_var = _index_fikstur(kok, "mutindex", mut)
+    s.bekle("MUT-INDEX.oldurdu", rc_alt == 0,
+            "kapinin git cagrisi ortami TEMIZLEYINCE miras alinan GIT_INDEX_FILE "
+            "GORULMEMELI -> INDEX ekseni dusmeli (dusmuyorsa iddia ortami DEGIL "
+            "baska bir seyi olcuyor); rc=%d cikti=%s" % (rc_alt, c_alt[-300:]))
+    s.bekle("MUT-INDEX.ayirt-edici", rc_var == 0,
+            "ayni mutant AYIRT EDICI kontrol kolunu DUSURMEMELI — yoksa mutant kor, "
+            "iki iddia tek mutantla olculur; rc=%d cikti=%s" % (rc_var, c_var[-300:]))
+    rc_a1, _ = _tek_eksen_kos(kok, "mutindex-alt", mut, BOZUK_ALTKATEGORI)
+    rc_a2, _ = _tek_eksen_kos(kok, "mutindex-uyum", mut, BOZUK_UYUM)
+    s.bekle("MUT-INDEX.eski-eksenler-diri", rc_a1 == 1 and rc_a2 == 1,
+            "A1/A2 bu mutanta KOR olmali (temiz ortamda iki cagri AYNI index'i okur) "
+            "— kanit budur; A1 rc=%d A2 rc=%d" % (rc_a1, rc_a2))
+    s.bekle("MUT-INDEX.bytecode-bulasmadi",
+            not os.path.exists(os.path.join(os.path.dirname(mut), "__pycache__")),
+            "mutant dizininde __pycache__ olusmus ([[mutasyon-bytecode-onbellegi]])")
+
+
 # ---------------------------------------------------------------------------
 def main():
     print("KATALOG ALAN KAPISI — KABUL TESTI")
@@ -631,6 +715,8 @@ def main():
         vaka(s, "MUT — dogrulama kollarinin AYRI AYRI oldurulmesi", vaka_mutasyon, kok)
         vaka(s, "MUT — arguman kolu (SART 2) + kok turetimi (SART 3)",
              vaka_mutasyon_arg_kok, kok)
+        vaka(s, "MUT — INDEX ekseni (fikstur ATIL mi degil mi)",
+             vaka_mutasyon_index, kok)
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
