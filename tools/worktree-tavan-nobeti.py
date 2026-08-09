@@ -71,7 +71,7 @@ def en_yeni_mtime(yol):
 def kaynak(entry):
     if entry["detached"] or not entry["dal"]:
         return "detached"
-    dal = entry["dal"]
+    dal = entry["dal"].removeprefix("worktree-")
     if dal.startswith("agent-"):
         return "agent-*"
     for onek in ("muh/", "onarim/", "claude/"):
@@ -220,6 +220,26 @@ def kendini_test():
         rc_listesi.append(p.returncode)
         if "BILINMEYEN=1" not in p.stdout:
             hatalar.append("f:bilinmeyen dal dusuruldu")
+
+        worktree_agent_kok = os.path.join(gecici, "worktree-agent-depo")
+        depo_kur(worktree_agent_kok)
+        worktree_agent = os.path.join(gecici, "worktree-agent")
+        agac_ekle(worktree_agent_kok, worktree_agent,
+                  "worktree-agent-ac7f1acfbc8289984")
+        p = betik_kos(betik, worktree_agent_kok)
+        rc_listesi.append(p.returncode)
+        if "ACILIS=agent-*" not in p.stdout or "agent-*=1" not in p.stdout:
+            hatalar.append("h:worktree-agent dali agent sinifina dusmedi")
+
+        worktree_bilinmeyen_kok = os.path.join(gecici, "worktree-bilinmeyen-depo")
+        depo_kur(worktree_bilinmeyen_kok)
+        worktree_bilinmeyen = os.path.join(gecici, "worktree-bilinmeyen")
+        agac_ekle(worktree_bilinmeyen_kok, worktree_bilinmeyen,
+                  "worktree-yepyeni-desen")
+        p = betik_kos(betik, worktree_bilinmeyen_kok)
+        rc_listesi.append(p.returncode)
+        if "ACILIS=BILINMEYEN" not in p.stdout or "BILINMEYEN=1" not in p.stdout:
+            hatalar.append("i:tanimadigi worktree dali BILINMEYEN kalmadi")
         if any(rc != 0 for rc in rc_listesi):
             hatalar.append("g:rapor-only vakalarindan biri rc!=0")
     except Exception as exc:
@@ -227,9 +247,9 @@ def kendini_test():
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
     if hatalar:
-        print("KENDINI_TEST=KIRMIZI IDDIA=7 " + " | ".join(hatalar))
+        print("KENDINI_TEST=KIRMIZI IDDIA=9 YENI_VAKA=2 " + " | ".join(hatalar))
         return 1
-    print("KENDINI_TEST=YESIL IDDIA=7 RAPOR_ONLY_VAKA=%d/%d" %
+    print("KENDINI_TEST=YESIL IDDIA=9 YENI_VAKA=2 RAPOR_ONLY_VAKA=%d/%d" %
           (sum(rc == 0 for rc in rc_listesi), len(rc_listesi)))
     return 0
 
@@ -245,6 +265,8 @@ def mutasyon():
          'sinif = "CANLI" if ' + 'dirty else "OKSUZ"'),
         ("commit", '"main..' + 'HEAD"', '"HEAD..' + 'main"'),
         ("bilinmeyen", 'return "BILIN' + 'MEYEN"', 'return "det' + 'ached"'),
+        ("worktree-oneki", 'dal = entry["dal"].remove' + 'prefix("worktree-")',
+         'dal = entry["dal"]'),
         ("rapor-only", "def rapor_cikis_kodu():\n" + "    return 0",
          "def rapor_cikis_kodu():\n" + "    return 9"),
     ]
