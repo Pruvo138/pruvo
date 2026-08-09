@@ -27,7 +27,10 @@ Havuz 88 secimi OLCUMLE: yuk 1 Agu'dan beri **137676 → 154530 B** ve **gunluk 
 
 **Kapanan AYRI sinif:** `yayin-erisim-alarmi` 04:40Z'de 1/328 sayfa **503** diyordu; 06:03Z kosumu **328/328 = 200** (HUKUM ACIK) ve canli `curl` de **200** (kontrol ekseni anasayfa 200). Kendiliginden duzeldi, yayindan BAGIMSIZ dogrulandi — varsayilmadi.
 
-**SONRAKI TURUN ILK ISI:** (a) `31302602408`in `build` hukmunu ADIYLA olc — yesilse ozet onarimi kanitlanir; (b) MaCiT 4 kayitlik ikizi duzeltti mi (`serit-a2`); (c) ikisi de yesilse `deploy`/`yayin` indi mi — canli `last-modified` ile teyit; (d) B dalinin dizi-sikistirmasi + 3 tuketici cozucusu KALICI is olarak muhendise verilsin mi karari (havuz 88 yalnizca gecici pay satin aldi; egilim ±7 KB/gun).
+**TUR KAPANISINDA OLCULEN (08:45Z):** defter + ic-ad kapisi commit'i **`68852391`** push'landi (kapilar rc=0: ic rapor adi · defter sinif · kisisel veri; arsiv kayipsiz eklendi; yabanci diff STAGE EDILMEDI). `55ae7851`in kosumu `31302602408` **cancelled** (yeni push kuyruktakini dusurdu — beklenen, icerik KAYBOLMADI: `68852391` onun ardili). Yeni kosum **`31303970771`** (head `68852391`) UCUSTA: `build`/`serit-a2`/`serit-a3`/`serit-a4` dordu de **in_progress** → hukum tur sonunda **OLCULEMEDI**, yesil SAYILMADI. `Paket tazeligi alarmi` hala failure (aclik semptomu, ayri kol).
+**MaCiT postasi UCUNCU kez yazildi (08:41Z)** ve ikiz LOKALDE yeniden uretildi: `uyum-kapisi.py` rc=1 — `{'townace': ['Town Ace','TownAce'], 'liteace': ['Lite Ace','LiteAce']}`, gecen 38 · kalan 1. Olculmus maliyet 08:41Z: `3e7f1b24..HEAD` **23 commit / ~476 dk**.
+
+**SONRAKI TURUN ILK ISI:** (a) `31303970771`in `build` hukmunu ADIYLA olc — yesilse ozet onarimi kanitlanir; (b) MaCiT 4 kayitlik ikizi duzeltti mi (`serit-a2`); (c) ikisi de yesilse `deploy`/`yayin` indi mi — canli `last-modified` ile teyit; (d) B dalinin dizi-sikistirmasi + 3 tuketici cozucusu KALICI is olarak muhendise verilsin mi karari (havuz 88 yalnizca gecici pay satin aldi; egilim ±7 KB/gun).
 
 ## 2026-08-09 05:37Z — CI nöbeti (KraL)
 - Süpürme: GitHub toplam 1 · "Run failed" 1 → Çöp'e 1 · tur sonu kalan 0. Pozitif tanıma izi VAR (substring eşleşme, toplam > 0), hüküm TEMİZ.
