@@ -36,6 +36,16 @@ import model_kanon                                                  # noqa: E402
 WHATSAPP = "905451386526"
 WA_TEL_GORUNUR = "+90 545 138 6526"
 ESIK = 3                       # model sayfası + marka sayfası yalnız >= ESIK ürünlü için (spec §3.4)
+
+# Sitemap'e girebilen sayfa sınıflarının TEK kanonik kaynağı. Üretici her kaydı bu
+# tablodan geçirir; kabul testi de üretilen manifestin sınıf evrenini bu tablodan okur.
+# Böylece yeni bir koleksiyon sınıfı yalnız sitemap'e eklenip sayaçtan kaçamaz.
+SITEMAP_SAYFA_SINIFLARI = {
+    "marka": ("0.7", "weekly"),
+    "model": ("0.7", "weekly"),
+    "diger": ("0.6", "weekly"),
+    "dizin": ("0.6", "weekly"),
+}
 # Marka sayfasında SSR'de basılan TAM KART sayısı; kalanı aynı sayfada artımlı çizilir.
 # 🔴 N ÖLÇÜMLE SEÇİLDİ (gerekçe: tools/paket-marka-tek-sayfa.md). Kısıt:
 # en büyük marka sayfasının HTML baytı index.html'i AŞMAMALI. Yerel kalemleri (model sayfası
@@ -2567,6 +2577,15 @@ def uret(products, ctx):
                               key=lambda m: (-marka_toplam[m], m))
 
     sitemap = []
+    sitemap_sayfalari = []
+
+    def sitemap_ekle(sinif, url):
+        """Sitemap kaydı + sınıf manifesti; sınıf kanonik değilse fail-closed."""
+        if sinif not in SITEMAP_SAYFA_SINIFLARI:
+            raise SystemExit("HATA: tanımsız sitemap sayfa sınıfı: %r" % (sinif,))
+        priority, changefreq = SITEMAP_SAYFA_SINIFLARI[sinif]
+        sitemap.append((url, priority, changefreq))
+        sitemap_sayfalari.append((sinif, url))
     slug_gorulen = {}   # (marka_slug, model_slug) -> canon (model collision nöbeti)
     marka_slug_gorulen = {}   # marka_slug -> marka (marka slug collision nöbeti)
     slug_map = {}       # kanonik marka -> slug (JS çip linki için; yalnız sayfası olan markalar)
@@ -2622,7 +2641,7 @@ def uret(products, ctx):
         # Artım yükü sayfanın YANINA yazılır (HTML baytını şişirmez, sitemap'e GİRMEZ:
         # crawl hedefi değil, istemci verisidir). /marka/ gitignore'da -> repoya girmez.
         yaz_json(murl + "parcalar.json", myuk)
-        sitemap.append((murl, "0.7", "weekly"))
+        sitemap_ekle("marka", murl)
 
         # İlk 80 SSR kartın dışında kalan ve yayımlanmış bir model sayfası olmayan ürünler
         # düz bağ olarak marka kökünde kalır. Ayrıca JS'siz/kart-semantikli erişim için tek
@@ -2633,13 +2652,13 @@ def uret(products, ctx):
                      "urunler": yerel_kalan}
             durl, dhtml = _model_sayfasi(ctx, marka, diger, kategoriler)
             yaz(durl, dhtml)
-            sitemap.append((durl, "0.6", "weekly"))
+            sitemap_ekle("diger", durl)
 
         marka_yolu = "/marka/" + marka_slug + "/"          # göreli (aynı köken; render_product /?marka= gibi göreli basar)
         for g in buyuk:
             url, html = _model_sayfasi(ctx, marka, g, kategoriler)
             yaz(url, html)
-            sitemap.append((url, "0.7", "weekly"))
+            sitemap_ekle("model", url)
             model_yolu = marka_yolu + g["slug"] + "/"
             for p in g["urunler"]:                          # >=ESIK model -> ürünleri model sayfasına
                 pid = p.get("id")
@@ -2667,7 +2686,7 @@ def uret(products, ctx):
     # /marka/ index (tüm üretilen markalar)
     iurl, ihtml = _marka_index(ctx, index_ozet)
     yaz(iurl, ihtml)
-    sitemap.append((iurl, "0.6", "weekly"))
+    sitemap_ekle("dizin", iurl)
 
     # 🔴 ALIAS'LI ÇİP HEDEFİ: `MARKA_ALIAS` (Vauxhall -> Opel) bu üreteçte marka sayfalarını
     # BİRLEŞTİRİR ama anasayfa çip evreni (index.html markaKatla) alias TANIMAZ — "Vauxhall"
@@ -2689,8 +2708,12 @@ def uret(products, ctx):
     sayfasiz_cipler = [m for m in chip_markalar if m not in slug_map]
 
     ctx.setdefault("_mm_sayim", {}).update(sayim)
+    sinif_sayilari = {sinif: sum(1 for kayit_sinifi, _url in sitemap_sayfalari
+                                 if kayit_sinifi == sinif)
+                      for sinif in SITEMAP_SAYFA_SINIFLARI}
     return {
         "sitemap": sitemap,
+        "sitemap_sayfalari": sitemap_sayfalari,
         "dizinler": ["marka"],
         "chip_links": chip_links,
         "slug_map": slug_map,
@@ -2698,6 +2721,9 @@ def uret(products, ctx):
         "chip_markalar": chip_markalar,
         "sayfasiz_cipler": sayfasiz_cipler,
         "sayim": sayim,
-        "marka_sayfasi_sayisi": len(sayfali_markalar),
-        "model_sayfasi_sayisi": sum(s["model_sayfasi"] for s in sayim.values()),
+        "marka_sayfasi_sayisi": sinif_sayilari["marka"],
+        # "Diğer" de /marka/<marka>/<koleksiyon>/ biçiminde gerçek bir model-katmanı
+        # sayfasıdır; aynı kanonik manifestten sayılır, ayrı elde tutulan +N yoktur.
+        "model_sayfasi_sayisi": sinif_sayilari["model"] + sinif_sayilari["diger"],
+        "diger_sayfasi_sayisi": sinif_sayilari["diger"],
     }
