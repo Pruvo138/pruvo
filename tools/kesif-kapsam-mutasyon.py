@@ -671,6 +671,32 @@ def main():
             ikame="        if ok or True:"),
         True, "HUKUM EZILIYOR")
 
+    # ---- DOKUZUNCU TUR: FAIL-FAST + EVREN TABANI --------------------------
+    # 🔴 Eski surum bos evrende hata EKLIYOR ama RETURN ETMIYORDU: stub
+    # uygulanmadan gercek is kosuyor, `--kendini-test` kolu ayagi YENIDEN cagirip
+    # ozyineleme uretiyor ve UC KOL DA >150 sn ASILIYORDU. Asilma, bloklayici bir
+    # kapida kirmizi DEGILDIR — hukumsuzluktur.
+    _EVREN_CAPA = (
+        "    return sorted(ad for ad, deger in vars(mod).items()\n"
+        "                  if callable(deger) and _NOBETCI_CAGRI_RE.search(ad)\n"
+        "                  and getattr(deger, \"__module__\", None) == mod.__name__)")
+
+    # 🔴 MUTANT MODUL SART: `hukum_davranis_kontrol()` evreni CANLI
+    # `_nobetci_evreni()` ile hesaplar; yalniz KAYNAK gecirmek onu degistirmez
+    # (olculdu: `_davranis()` ile rc=0).
+    def _davranis_govdesi(mod):
+        ok, hatalar = mod.hukum_davranis_kontrol()
+        return (0 if ok else 1), hatalar
+
+    olc("M-I1d BOS EVREN (fail-fast: hukum VERILMELI, ASILMAMALI)",
+        lambda: _davranis_govdesi(_mutant_modul("i1d", _EVREN_CAPA, "    return []")),
+        True, "NOBETCI EVRENI KUCULDU")
+
+    olc("M-I3c EVREN [:15]e KIRPILDI (taban KAYIT DEFTERINDEN turer)",
+        lambda: _davranis_govdesi(_mutant_modul("i3c", _EVREN_CAPA,
+                                                _EVREN_CAPA + "[:15]")),
+        True, "NOBETCI EVRENI KUCULDU")
+
     olc("M-H3-1 (7. tur kacisi) `_ = nobetci()` + sabit atama",
         lambda: _davranis(
             capa="        ok_s, hata_s = kanca_kablo_serit_kontrol()",

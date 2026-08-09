@@ -97,6 +97,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import types
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
@@ -5072,6 +5073,26 @@ _OK_ADI_RE = re.compile(r"^ok\d+$")
 # kapsanmalari icin ADAY listesine alinir (tekil yama degil: asagidaki `turevli`
 # turetimi zaten "nobetci cagrisindan deger alan HER ad" kuralini uygular).
 _HUKUM_ADAY_ADLARI = ("ok", "ok_s")
+# 🔴 NOBETCI ADLANDIRMA KONVANSIYONU (YAZILI KURAL, 9. tur I3-a)
+# ─────────────────────────────────────────────────────────────────────────────
+# Bu dosyadaki HER nobetci fonksiyonun adi `*_kontrol` ya da `*_kontrolu` ile
+# BITMEK ZORUNDADIR. Sebep: hem `_kol_kapsam_kontrol()` (defter/cagri esitligi)
+# hem `hukum_davranis_kontrol()` (stub evreni) nobetci kumesini BU AD DESENINDEN
+# turetir. Desen disi adlandirilan bir nobetci HER IKI eksende de SESSIZCE kapsam
+# disi kalir: cagrisi silinse kimse gormez, hukmu ezilse kimse gormez
+# ([[envanter-drift-parti-basina]] · [[nobetci-cagri-satiri-nobetsiz]]).
+# Olculdu (9 Agu 2026): modul duzeyinde 113 fonksiyonun 24'u desene uyuyor.
+#
+# ISTISNALAR — GEREKCELI ve KAYITLI olmak zorunda (yenisi eklenmeden ONCE buraya
+# yazilir; kayitsiz istisna `kapi-envanteri-test.py`de KIRMIZI yakar):
+#   * `alt_kume_denetimi` — nobetci DEGIL, `denetle()`nin BOLUM B alt-rutinidir;
+#     kendi hukmunu vermez, bulgularini cagirana dondurur ve o hukmu `denetle()`
+#     verir. Stub'lanmasi anlamsizdir (donusu (hata, sayi, sayi, sayi, liste)).
+NOBETCI_ADLANDIRMA_ISTISNALARI = {
+    "alt_kume_denetimi":
+        "nobetci degil ALT-RUTIN: kendi hukmunu vermez, coklu deger dondurur ve "
+        "hukum denetle() BOLUM B'de verilir; stub sozlesmesine uymaz.",
+}
 _NOBETCI_CAGRI_RE = re.compile(r"_kontrol$|_kontrolu$")
 
 
@@ -5487,21 +5508,45 @@ def _nobetci_evreni(mod):
                   and getattr(deger, "__module__", None) == mod.__name__)
 
 
+# 🔴 SURE TAVANI (9. tur, I1-d): stub kurulamazsa GERCEK is kosar ve ozyineleme
+# yuzunden kollar ASILIR. Fail-fast guard'i bunu ONLER, bu tavan ise SON EMNIYETTIR:
+# bir kol bu sureyi asarsa hukum "asildi" degil ACIK BIR KIRMIZI olur. Saglam
+# kosumda uc kolun toplami ~0,14 sn; tavan iki kat buyuklukte tutuldu.
+_KOL_SURE_TAVANI_SN = 30.0
+
+
+def _sure_tavani_dene(baslangic, kol):
+    """Tavan asildiysa ASILMAYI acik bir hataya cevir (sessiz bekleme YOK)."""
+    gecen = time.monotonic() - baslangic
+    if gecen > _KOL_SURE_TAVANI_SN:
+        raise TimeoutError(
+            "DAVRANIS AYAGI SURE TAVANINI ASTI (%s kolu, %.1f sn > %.0f sn): stub "
+            "kurulamamis ve GERCEK is kosuyor olabilir (ozyineleme). Bloklayici bir "
+            "kapida ASILMA hukumsuzluktur; bu yuzden KIRMIZI'ya cevrildi."
+            % (kol, gecen, _KOL_SURE_TAVANI_SN))
+
+
 def _kollari_kos(mod):
     """(bayraksiz_rc, kanca_kablo_rc, kendini_test_rc) — UC KOLUN KARAR MANTIGI.
 
     Nobetciler zaten STUB'landigi icin GERCEK is kosmaz; olculen sey yalnizca
-    "nobetci sonucu kolun cikis koduna giriyor mu"dur."""
+    "nobetci sonucu kolun cikis koduna giriyor mu"dur.
+    🔴 SURE TAVANI asilirsa `TimeoutError` atilir — cagiran onu KIRMIZI'ya cevirir;
+    asilma sessizce "olcum" sayilmaz."""
+    baslangic = time.monotonic()
     eski_argv, eski_cikti = sys.argv, sys.stdout
     sys.stdout = io.StringIO()
     try:
         # BAYRAKSIZ kol: denetle() KARAR govdesi (kontroller=True -> nobetciler kosar).
         # Girdi KASTEN bos: kapsam/izin ekseninden KIRMIZI gelmesin, tek eksen kalsin.
         kod_b, _s = mod.denetle("", [], {}, kontroller=True, akislar=None)
+        _sure_tavani_dene(baslangic, "BAYRAKSIZ")
         sys.argv = ["ci-kapsam-test.py", mod.KANCA_KABLO_BAYRAGI]
         kod_k = mod.main()
+        _sure_tavani_dene(baslangic, mod.KANCA_KABLO_BAYRAGI)
         sys.argv = ["ci-kapsam-test.py", mod.KENDINI_TEST_BAYRAGI]
         kod_t = mod.main()
+        _sure_tavani_dene(baslangic, mod.KENDINI_TEST_BAYRAGI)
     finally:
         sys.argv, sys.stdout = eski_argv, eski_cikti
     return kod_b, kod_k, kod_t
@@ -5523,11 +5568,28 @@ def hukum_davranis_kontrol(kaynak=None):
         return False, ["HUKUM DAVRANISI OLCULEMEDI: modul kopyasi yuklenemedi "
                        "(%s: %s)" % (type(e).__name__, e)]
     evren = _nobetci_evreni(mod)
-    if len(evren) < 14:
-        hata.append("NOBETCI EVRENI KUCULDU: %d nobetci bulundu (taban 14) -> "
-                    "`_NOBETCI_CAGRI_RE` bozulmus ya da nobetciler yeniden "
-                    "adlandirilmis olabilir." % len(evren))
+    # 🔴 FAIL-FAST, FAIL-SLOW DEGIL (9. tur, I1-d): eski surum hata EKLIYOR ama
+    # RETURN ETMIYORDU. Akis devam edip HICBIR nobetciyi stub'lamadan
+    # `_kollari_kos()` cagiriyor, `--kendini-test` kolu bu ayagi YENIDEN cagiriyor
+    # (ozyineleme) ve 45 gercek itme her katmanda tekrarlaniyordu -> UC KOL DA
+    # >150 sn ASILDI (ilk olcumde 46+ dk). Bloklayici bir kapida ASILMA, kirmizi
+    # DEGILDIR: terminal doner, hukum YOKTUR — "olculemedi"nin de otesinde ucuncu
+    # bir hal ([[hukum-yanlis-birimde]]). Stub kurulamiyorsa HUKUM VERILMEZ.
+    # 🔴 TABAN GERCEGE BAGLI: eski taban 14 iken gercek evren 24'tu; 9 nobetci
+    # dusse tetiklenmiyordu. Taban artik KAYIT DEFTERINDEN turer (iki kolun
+    # birlesimi) -> defter buyuyunce taban da buyur, elle bakim YOK.
     kayit = dict(NOBETCI_KABLOLARI)
+    defter_birlesimi = set()
+    for _a, _g in NOBETCI_KABLOLARI:
+        defter_birlesimi |= set(_g)
+    if len(evren) < len(defter_birlesimi):
+        return False, ["NOBETCI EVRENI KUCULDU (fail-closed, HUKUM VERILMEDI): %d "
+                       "nobetci bulundu, KAYIT DEFTERI %d ad istiyor (eksik: %s) -> "
+                       "`_NOBETCI_CAGRI_RE` bozulmus ya da nobetciler yeniden "
+                       "adlandirilmis olabilir. Stub kurulamadigi icin olcum "
+                       "YAPILMADI."
+                       % (len(evren), len(defter_birlesimi),
+                          ", ".join(sorted(defter_birlesimi - set(evren))[:6]) or "-")]
     # Hangi kol hangi nobetciyi cagiriyor (KAYIT DEFTERINDEN — `_kol_kapsam_kontrol`
     # defterin GERCEK cagrilarla ESIT oldugunu ayrica olcer).
     kol_kaydi = {"bayraksiz": set(kayit.get("denetle", ())),
