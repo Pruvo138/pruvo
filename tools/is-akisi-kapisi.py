@@ -1789,7 +1789,9 @@ TABLO_TABANLARI = (
     # beyan edildi.
     # 9 Agu: +1 -> 91. Sentetik git fiksturu sizinti kapisi ve kendi testi ayni
     # arac yolundan serit-b'ye kablandi; tek yol beyani iki duz komutu kapsar.
-    ("SERIT_B", 91),
+    # 9 Agu: +1 -> 92. D1 seq tam-sayi/kanonik-sira araci icin agsiz kabul testi
+    # serit-b'ye eklendi; gercek D1 yazma/geri-okuma nobeti serit A'da kaldi.
+    ("SERIT_B", 92),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2739,6 +2741,9 @@ SERIT_B = {
         "(`d1-sync.py --kendini-test`) serit A'da bloklayici kaldi.",
     ("nobet.yml", "serit-b", "tools/d1-sync-durum-test.py"):
         "d1-sync DURUM TANISI aracinin testi; gercek yazma nobeti serit A'da.",
+    ("nobet.yml", "serit-b", "tools/d1-seq-test.py"):
+        "D1 seq tam-sayi ve kanonik-sira hesaplarinin agsiz kabul/mutasyon testi; "
+        "gercek D1 yazma/geri-okuma nobeti serit A'da bloklayici kaldi.",
     ("nobet.yml", "serit-b", "tools/test-baski-senkron.py"):
         "Baski senkron ARACININ kabul testi; yayinlanan Pages ciktisini uretmez.",
     ("nobet.yml", "serit-b", "tools/edge-flip-hazirlik-test.py"):
