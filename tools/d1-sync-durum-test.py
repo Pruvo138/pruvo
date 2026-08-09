@@ -59,7 +59,7 @@ def fikstur_kayit(hedef_fn, plan_fn=None, kolon=FIKSTUR_KOLON):
 _D1 = [None]     # modul referansi (fikstur_kayit icindeki plan govdesi icin)
 
 
-def fake_sorgu_uret(d1_sayisi, d1_hash, turetilmis=None, kolonlar=None):
+def fake_sorgu_uret(d1_sayisi, d1_hash, seq_haritasi, turetilmis=None, kolonlar=None):
     """sorgu() yerine gecen sahte: COUNT -> d1_sayisi · senkron -> tek satir ·
     ICERIK EKSENI (SELECT id, hash) -> d1_hash haritasi ·
     TURETILMIS EKSEN (PRAGMA table_info + SELECT id, <kolonlar>) -> turetilmis haritasi.
@@ -75,6 +75,8 @@ def fake_sorgu_uret(d1_sayisi, d1_hash, turetilmis=None, kolonlar=None):
         if "SELECT id, hash FROM urunler" in sql:
             return [{"results": [{"id": i, "hash": h} for i, h in sorted(d1_hash.items())],
                      "meta": {"rows_read": len(d1_hash)}}]
+        if sql == "SELECT id, seq FROM urunler":
+            return [{"results": [{"id": i, "seq": s} for i, s in seq_haritasi.items()]}]
         if sql.startswith("PRAGMA table_info(urunler)"):
             return [{"results": [{"name": k} for k in sorted(kolonlar)]}]
         if "sqlite_master" in sql:
@@ -114,7 +116,8 @@ def durum_cikis(d1, urunler_listesi, d1_sayisi, bayat=None, hizli=False,
     eski_sorgu, eski_urunler, eski_argv = d1.sorgu, d1.URUNLER, sys.argv
     eski_kayit = d1.TURETILMIS_KAYIT
     try:
-        d1.sorgu = fake_sorgu_uret(d1_sayisi, d1_hash, turetilmis, kolonlar)
+        d1.sorgu = fake_sorgu_uret(
+            d1_sayisi, d1_hash, d1.seq_hedefleri(urunler_listesi), turetilmis, kolonlar)
         d1.URUNLER = yol
         d1.TURETILMIS_KAYIT = kayit
         sys.argv = ["d1-sync.py", "--durum"] + (["--hizli"] if hizli else [])
