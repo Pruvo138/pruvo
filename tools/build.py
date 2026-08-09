@@ -3199,6 +3199,15 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
 def render_content_page(slug, title, meta, body_html):
     title_tag = esc(title) + " — PRUVO"
     url = SITE + "/" + slug + "/"
+    wa_mesaj = ("Merhaba, %s konusunda özel tasarım üretim için bilgi almak istiyorum."
+                % title)
+    wa_href = "https://wa.me/905451386526?text=" + _urlq(wa_mesaj, safe="")
+    wa_cta = (
+        '<aside class="landing-wa-cta" aria-label="WhatsApp ile iletişim">'
+        '<p>Parçanızın fotoğrafını ve ölçülerini gönderin; birlikte değerlendirelim.</p>'
+        '<a class="landing-wa-link" href="%s" target="_blank" rel="noopener">'
+        'WhatsApp üzerinden bilgi alın</a></aside>' % esc(wa_href)
+    )
     # surumle_scriptler: bugun icerik sayfalarinda site-ici <script src="/*.js"> YOK
     # (no-op), ama ileride eklenirse otomatik surumlensin diye tek yerden gecirilir.
     return surumle_scriptler(u"""<!DOCTYPE html>
@@ -3253,7 +3262,7 @@ def render_content_page(slug, title, meta, body_html):
         url=esc(url),
         favicon=FAVICON,
         stil=stil_bloklari(),
-        body=body_html,
+        body=body_html + wa_cta,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
         pv_js=PV_SCRIPT_HTML,
