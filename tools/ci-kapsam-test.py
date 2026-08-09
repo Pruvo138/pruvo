@@ -684,11 +684,24 @@ _MK_YENI = "tools/zzz-kablo-kapisi.py"
 _KABLO_FIKSTURU_ICINDE = False
 
 
+# 🔴 AYIRT EDICI JETONLAR (UCUNCU TUR, Z2): "yeniden giris reddedildi" mesaji ile
+# "zorlanan istisna olculdu" mesaji AYNI kelimeyi (`OLCULEMEDI`) tasiyordu. Bayrak
+# `finally`de sifirlanmayinca 2. ve 3. cagri ERKEN DONUYOR, K5'in `any("OLCULEMEDI")`
+# kontrolu REDDETME mesajiyla tatmin oluyor ve K5/K6 sessizce NO-OP'a donuyordu —
+# nobetci YESIL rapor ediyordu ([[damga-finally-tuzagi]] · [[beyan-edilmis-survivor]]).
+_KABLO_ISTISNA_JETONU = "ZORLANAN-ISTISNA-OLCUMU"
+_KABLO_REDDETME_JETONU = "YENIDEN-GIRIS-REDDEDILDI"
+
+
 def _kablo_global_anlik():
-    """Fiksturun ezdigi kuresel durumun PARMAK IZI (sizinti olcumu icin)."""
+    """Fiksturun ezdigi kuresel durumun PARMAK IZI (sizinti olcumu icin).
+
+    🔴 BAYRAK DA PARMAK IZINDE: `_KABLO_FIKSTURU_ICINDE` disarida birakilinca
+    "bayrak asili kaldi" hali sizinti sayilmiyordu (olculdu: Z2 mutanti 4/4 yesil)."""
     return (ROOT, DEPLOY_VARSAYILAN, id(IZIN_LISTESI), len(IZIN_LISTESI),
             id(ALT_KUME_IZIN_LISTESI), len(ALT_KUME_IZIN_LISTESI),
-            kesfet_izlenmeyen, tuple(sys.argv), sys.stdout)
+            kesfet_izlenmeyen, tuple(sys.argv), sys.stdout,
+            _KABLO_FIKSTURU_ICINDE)
 
 
 def main_kablosu_kontrol():
@@ -714,9 +727,17 @@ def main_kablosu_kontrol():
         hata.append("K5 KURESEL SIZINTI (ISTISNA yolu): govde ortasinda istisna "
                     "atilinca durum GERI YUKLENMEDI. once=%r sonra=%r"
                     % (once[:2], sonra2[:2]))
-    if not any("OLCULEMEDI" in h for h in istisna_hata):
-        hata.append("K5 SESSIZ YUTMA: zorlanan istisna raporlanmadi (%r) -> gercek "
-                    "bir ariza da sessizce 'yesil' gorunurdu." % (istisna_hata[:1],))
+    # 🔴 AYIRT EDICI JETON SART: "OLCULEMEDI" kelimesi REDDETME mesajinda da geciyordu
+    # ve K5 onunla tatmin oluyordu (Z2). Artik YALNIZ zorlanan istisnanin jetonu sayar.
+    if not any(_KABLO_ISTISNA_JETONU in h for h in istisna_hata):
+        hata.append("K5 SESSIZ YUTMA: ZORLANAN istisna raporlanmadi (jeton `%s` yok; "
+                    "gelen=%r) -> govde ya hic kosmadi (bayrak asili kalmis olabilir) "
+                    "ya da istisna sessizce yutuldu."
+                    % (_KABLO_ISTISNA_JETONU, [h[:80] for h in istisna_hata[:2]]))
+    if any(_KABLO_REDDETME_JETONU in h for h in istisna_hata):
+        hata.append("K5 ERKEN DONUS: govde `%s` ile ERKEN dondu -> istisna yolu HIC "
+                    "olculmedi (yeniden giris bayragi bir onceki cagridan ASILI "
+                    "kalmis; `finally` sifirlamiyor olabilir)." % _KABLO_REDDETME_JETONU)
     # K6 — YENIDEN GIRIS: kilit acikken cagri REDDEDILMELI, globaller KORUNMALI.
     global _KABLO_FIKSTURU_ICINDE
     _KABLO_FIKSTURU_ICINDE = True
@@ -725,7 +746,7 @@ def main_kablosu_kontrol():
     finally:
         _KABLO_FIKSTURU_ICINDE = False
     sonra3 = _kablo_global_anlik()
-    if not any("YENIDEN GIRIS" in h for h in yeniden):
+    if not any(_KABLO_REDDETME_JETONU in h for h in yeniden):
         hata.append("K6 YENIDEN GIRIS KILIDI YOK: ic ice cagri kabul edildi -> ikinci "
                     "`finally` SENTETIK ROOT/IZIN_LISTESI degerlerini KALICI yazabilir "
                     "(bu fikstur PUSH KANCASININ icinde kosuyor).")
@@ -763,9 +784,9 @@ def _main_kablosu_govdesi(_zorla_istisna=False):
     global kesfet_izlenmeyen, _KABLO_FIKSTURU_ICINDE
     hata = []
     if _KABLO_FIKSTURU_ICINDE:
-        return ["MAIN KABLO FIKSTURU OLCULEMEDI — YENIDEN GIRIS REDDEDILDI: fikstur "
-                "zaten kosuyor. Ic ice giris kabul edilseydi ikinci `finally` "
-                "SENTETIK ROOT/IZIN_LISTESI degerlerini KALICI yazardi (fail-closed)."]
+        return ["MAIN KABLO FIKSTURU %s: fikstur zaten kosuyor. Ic ice giris kabul "
+                "edilseydi ikinci `finally` SENTETIK ROOT/IZIN_LISTESI degerlerini "
+                "KALICI yazardi (fail-closed)." % _KABLO_REDDETME_JETONU]
     gecici = tempfile.mkdtemp(prefix="pruvo-main-kablo-fikstur-")
     saklanan = (ROOT, DEPLOY_VARSAYILAN, IZIN_LISTESI, ALT_KUME_IZIN_LISTESI,
                 kesfet_izlenmeyen, sys.argv)
@@ -801,8 +822,8 @@ def _main_kablosu_govdesi(_zorla_istisna=False):
         if _zorla_istisna:
             # K5 SEAM: globaller EZILDIKTEN sonra patlat -> `finally`nin gercekten
             # geri yukledigi OLCULUR ("bakildi iyi" degil, kosulan iddia).
-            raise RuntimeError("SENTETIK: `finally` geri-yukleme yolunu olcmek icin "
-                               "bilincli olarak atildi")
+            raise RuntimeError("%s — SENTETIK: `finally` geri-yukleme yolunu olcmek "
+                               "icin bilincli olarak atildi" % _KABLO_ISTISNA_JETONU)
 
         def kos():
             sys.argv = ["ci-kapsam-test.py", "--deploy", deploy_yolu]
@@ -1010,32 +1031,78 @@ def _pp_blok(govde):
     return "#!/bin/sh\n" + govde[bas:son] + "\nexit 0\n"
 
 
+# 🔴 ORTAM SADAKATI (9 Agu 2026, UCUNCU TUR curutme): blok CIPLAK `sh` ile
+# kosuluyordu. Olculdu (X4): blogu `if [ -z "$GIT_EXEC_PATH" ]` sarmalina almak
+# fiksturde YESIL geciyor ama GERCEK `git push`ta blogu TAMAMEN susturuyor ->
+# kanca rc=0, PUSH GECTI, alti nobetci de yesil. Bu, 2. turda kapatilan `if false`
+# sinifinin ORTAM eksenindeki ikizidir.
+# 🔴 NEDEN "eksik ENV degiskenini ekle" DEGIL: ortam kumesini elle saymak TEKIL
+# YAMADIR ([[tekil-yama-sinifi-kapatmaz]]) — yarin git baska bir degisken ihrac
+# eder ve ayni delik geri gelir. Sinifi kapatan TEK yol, kancanin GERCEKTEN git
+# tarafindan cagrilmasidir ([[nobetci-fikstur-sekli]]): sentetik depo + BARE uzak
+# + gercek `git push`. Ortam kumesi boylece git'in KENDISINDEN turer.
+_PP_GIT_AYAR = ("-c", "commit.gpgsign=false", "-c", "core.excludesFile=",
+                "-c", "gc.auto=0")
+
+
 class _PpKosucu(object):
-    """Sentetik git deposunu BIR KEZ kurar, her kosumda yalniz 2 dosya yazar."""
+    """Sentetik depo + BARE uzak; blok GERCEK `git push` ile (git ortaminda) kosar.
+
+    Depo BIR KEZ kurulur; her kosumda yalniz kanca dosyasi + sahte kapi yazilir ve
+    YENI bir uzak ref'e push edilir (ayni ref'e ikinci push 'up-to-date' olur ve
+    kanca HIC kosmaz — sessiz sahte-YESIL olurdu)."""
 
     def __init__(self, gecici):
         self.depo = os.path.join(gecici, "depo")
+        self.uzak = os.path.join(gecici, "uzak.git")
+        self.kanca_dizini = os.path.join(gecici, "kancalar")
         os.makedirs(os.path.join(self.depo, "tools"))
-        r = subprocess.run(["git", "-C", self.depo] + list(_FIKSTUR_GIT_AYAR)
-                           + ["init", "--quiet", "-b", "main"],
-                           capture_output=True, text=True)
+        os.makedirs(self.kanca_dizini)
+
+        def g(*a):
+            return subprocess.run(["git", "-C", self.depo] + list(_PP_GIT_AYAR)
+                                  + list(a), capture_output=True, text=True)
+
+        r = subprocess.run(["git", "init", "--quiet", "--bare", "-b", "main",
+                            self.uzak], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError("PP DAVRANIS FIKSTURU: bare init rc=%d %s"
+                               % (r.returncode, r.stderr.strip()[:200]))
+        r = g("init", "--quiet", "-b", "main")
         if r.returncode != 0:
             raise RuntimeError("PP DAVRANIS FIKSTURU: git init rc=%d %s"
                                % (r.returncode, r.stderr.strip()[:200]))
-        self.kanca = os.path.join(gecici, "pre-push-mutant")
+        g("config", "user.email", "fikstur@ornek.gecersiz")
+        g("config", "user.name", "fikstur")
+        # 🔴 hooksPART YALNIZ BIZIM DIZIN: bu makinede GLOBAL hooksPath PRUVO
+        # kancalarina bakiyor; ezilmezse sentetik push GERCEK kancalari kosardi.
+        g("config", "core.hooksPath", self.kanca_dizini)
+        with open(os.path.join(self.depo, "a.txt"), "w", encoding="utf-8") as f:
+            f.write("x\n")
+        g("add", "-A")
+        r = g("commit", "--quiet", "-m", "fikstur taban")
+        if r.returncode != 0:
+            raise RuntimeError("PP DAVRANIS FIKSTURU: git commit rc=%d %s"
+                               % (r.returncode, (r.stderr or r.stdout).strip()[:200]))
+        self.kanca = os.path.join(self.kanca_dizini, "pre-push")
         self.kapi = os.path.join(self.depo, "tools", "ci-kapsam-test.py")
+        self.sayac = 0
 
     def kos(self, blok, kapi_rc, arac_var=True):
-        """(kanca_rc, cikti) — blok GERCEK `sh` ile kosulur."""
+        """(push_rc, cikti) — blok GERCEK `git push` icinde, GIT ORTAMIYLA kosar."""
         with open(self.kanca, "w", encoding="utf-8") as f:
             f.write(blok)
+        os.chmod(self.kanca, 0o755)
         if arac_var:
             with open(self.kapi, "w", encoding="utf-8") as f:
                 f.write(_PP_SAHTE_KAPI % kapi_rc)
         elif os.path.exists(self.kapi):
             os.remove(self.kapi)
-        p = subprocess.run(["sh", self.kanca], cwd=self.depo, input="",
-                           capture_output=True, text=True, timeout=60)
+        self.sayac += 1
+        p = subprocess.run(
+            ["git", "-C", self.depo] + list(_PP_GIT_AYAR)
+            + ["push", "--quiet", self.uzak, "HEAD:refs/heads/d%d" % self.sayac],
+            capture_output=True, text=True, timeout=120)
         return p.returncode, p.stdout + p.stderr
 
 
@@ -1090,6 +1157,13 @@ PRE_PUSH_MUTANTLARI = (
        "if false; then\npruvo_kapsam_kok=$(git rev-parse --show-toplevel 2>/dev/null)", 1),
       (_PP_BLOK_SON, "fi\n" + _PP_BLOK_SON, 1)), False,
      "IKINCI TUR deligi: blogun KOSULLU BAGLAMI — satir-ici desen bunu GORMEZ"),
+    ("X4 blok `[ -z \"$GIT_EXEC_PATH\" ]` sarmalinda (ORTAM ekseni)",
+     (("pruvo_kapsam_kok=$(git rev-parse --show-toplevel 2>/dev/null)",
+       "if [ -z \"$GIT_EXEC_PATH\" ]; then\n"
+       "pruvo_kapsam_kok=$(git rev-parse --show-toplevel 2>/dev/null)", 1),
+      (_PP_BLOK_SON, "fi\n" + _PP_BLOK_SON, 1)), False,
+     "UCUNCU TUR deligi: ciplak `sh` fiksturunde YESIL, GERCEK `git push`ta blok "
+     "HIC kosmuyordu — ortam sadakati olmadan gorunmez"),
     ("KONTROL-A mesru alternatif kosul bicimi",
      (('"$pruvo_kapsam_rc" -ne 0', '"$pruvo_kapsam_rc" != 0', 1),), True,
      "YANLIS-POZITIF yuzeyi: bicim serbest, SEMANTIK sart"),
@@ -1100,6 +1174,31 @@ PRE_PUSH_MUTANTLARI = (
      (("$pruvo_kapsam_rc", "${pruvo_kapsam_rc}", 2),), True,
      "mesru refactor YAYINI DURDURMAMALI — regex hakimde sahte-KIRMIZI yakiyordu"),
 )
+
+
+def pre_push_capa_kontrol():
+    """🟢 UCUZ KOL — pre-push'ta (yerel push oncesi) kosan STATIK on-uyari.
+
+    🔴 MALIYET HUKMU (9 Agu 2026, olculdu): davranis ayagi 45 GERCEK `git push`
+    yapiyor ve TEK BASINA 2,40 sn suruyor; bayraksiz kol medyan 5,84 · P95 6,04 sn
+    olup 5 sn esigini ASTI. Mimar hukmu geregi AGIR ayak `--kendini-test` koluna
+    (deploy.yml'de BLOKLAYICI) tasindi; burada yalniz UCUZ statik capalar kalir.
+    🔴 BU KOL TEK BASINA HAKIM DEGILDIR ve oyle olmadigi ACIKCA yazilidir: statik
+    metin N1 (rc yeniden atama), N3 (`if false`) ve X4 (ortam sarmali) sinifini
+    GOREMEZ — onlarin hukmu `pre_push_kablo_kontrol()`'un kabuk ayagindadir.
+    Buradaki deger, cagri/`exit`/kosul KAYBINI push anindan ONCE bagirmaktir."""
+    try:
+        with open(PRE_PUSH_YOLU, encoding="utf-8") as f:
+            govde = f.read()
+    except OSError as e:
+        return False, ["PRE-PUSH CAPASI OLCULEMEDI: izlenen kanca kaynagi okunamadi "
+                       "(%s): %s" % (PRE_PUSH_YOLU, e)]
+    hata = ["PRE-PUSH CAPASI: " + h for h in _pre_push_tanisi(govde)]
+    try:
+        _pp_blok(govde)
+    except RuntimeError as e:
+        hata.append("PRE-PUSH CAPASI: %s" % e)
+    return (not hata), hata
 
 
 def pre_push_kablo_kontrol():
@@ -1170,9 +1269,9 @@ def pre_push_kablo_kontrol():
         shutil.rmtree(gecici, ignore_errors=True)
     oldurucu = sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if not b)
     kontrol = sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if b)
-    if oldurucu < 10 or kontrol < 4:
+    if oldurucu < 11 or kontrol < 4:
         hata.append("PRE-PUSH MUTANT TABLOSU KUCULDU (oldurucu %d, kontrol %d; taban "
-                    "10/4) — tabloyu kucultmek nobetciyi SESSIZCE oldurur "
+                    "11/4) — tabloyu kucultmek nobetciyi SESSIZCE oldurur "
                     "([[fikstur-degeri-mutasyon-koru]])." % (oldurucu, kontrol))
     return (not hata), hata
 
@@ -4810,7 +4909,7 @@ NOBETCI_KABLOLARI = (
                  "kendini_test_adimi_kontrol", "bayraksiz_adim_kontrol",
                  "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol",
                  "alt_kume_fikstur_kontrol", "izlenmeyen_fikstur_kontrol",
-                 "main_kablosu_kontrol", "pre_push_kablo_kontrol")),
+                 "main_kablosu_kontrol", "pre_push_capa_kontrol")),
     ("main", ("bulgu1_mutasyon_kontrol", "muaf_sayaci_kontrol",
               "kendini_test_adimi_kontrol", "bayraksiz_adim_kontrol",
               "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol",
@@ -4818,11 +4917,70 @@ NOBETCI_KABLOLARI = (
               "main_kablosu_kontrol", "pre_push_kablo_kontrol")),
 )
 
+# 🔴 TOPLAM YUZEY RASETI ([[kapi-yan-etkisi-gizli-onkosul]]): bir adimi kolun
+# birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
+# Bu taban, IKI KOLUN BIRLESIMINDEKI ayri nobetci sayisidir; kucultmek KIRMIZI yakar.
+KOL_BIRLESIM_TABANI = 11
+
 # 🔴 `--kendini-test` HUKMUNUN KENDISI (KB-E): butun `okN` degiskenleri hukme
 # `and` ile girmeli. Olculdu: `and ok10 and ok11` -> `or ok10 or ok11` yapildiginda
 # o iki nobetci ARTIK KIRMIZI YAKAMAZ ve dort batarya da YESIL kalir. Cagri satirini
 # civilemek yetmez; PAYIN hukumde durdugu da olculmelidir.
 _OK_ADI_RE = re.compile(r"^ok\d+$")
+
+# 🔴 TEST SEAMI'NIN KENDISI (UCUNCU TUR, S1): `suzgec_kablosu_kontrol(kaynak=None)`
+# uretim yolunda KENDI CALISAN dosyasini okumali. Olculdu: o dali tek satirda
+# `git show HEAD:...` okumaya cevirmek DORT bataryayi da YESIL biraktı — "uretimde
+# daima None gelir, dosya diskten okunur" beyani hicbir yerde IDDIA degildi
+# ([[olculdu-diyen-hukum-kaniti]]). Asagidaki nobetci o beyani kaynak ekseninde olcer.
+_SEAM_YASAK_CAGRI = ("run", "check_output", "Popen", "check_call", "getoutput",
+                     "urlopen", "loads")
+
+
+def _seam_kontrol(agac):
+    """`kaynak is None` dali GERCEKTEN `os.path.abspath(__file__)` okuyor mu."""
+    hata = []
+    fn = next((d for d in ast.walk(agac) if isinstance(d, ast.FunctionDef)
+               and d.name == "suzgec_kablosu_kontrol"), None)
+    if fn is None:
+        return ["SEAM NOBETCISI BAYAT: suzgec_kablosu_kontrol() bulunamadi."]
+    dal = None
+    for d in ast.walk(fn):
+        if not isinstance(d, ast.If):
+            continue
+        metin = {n.id for n in ast.walk(d.test) if isinstance(n, ast.Name)}
+        if "kaynak" in metin:
+            dal = d
+            break
+    if dal is None:
+        hata.append("SEAM DALI BULUNAMADI: `kaynak is None` kosulu YOK -> seam "
+                    "uretim yoluna sessizce sizmis olabilir (fail-closed).")
+        return hata
+    adlar, oznitelikler, isimler = set(), set(), set()
+    for n in ast.walk(dal):
+        if isinstance(n, ast.Call):
+            if isinstance(n.func, ast.Name):
+                adlar.add(n.func.id)
+            elif isinstance(n.func, ast.Attribute):
+                oznitelikler.add(n.func.attr)
+        if isinstance(n, ast.Name):
+            isimler.add(n.id)
+    if "abspath" not in oznitelikler or "__file__" not in isimler:
+        hata.append(
+            "SEAM SIZINTISI: `kaynak is None` dali `os.path.abspath(__file__)` "
+            "OKUMUYOR (gorulen cagri=%r) -> nobetci KOSAN dosyayi degil BASKA bir "
+            "kaynagi (or. `git show HEAD:...`) yargiliyor olabilir; calisma "
+            "agacindaki sabotaj SESSIZ kalir."
+            % (sorted(oznitelikler | adlar)[:8],))
+    if "open" not in adlar:
+        hata.append("SEAM SIZINTISI: `kaynak is None` dalinda `open(...)` cagrisi YOK "
+                    "-> kaynak metni diskten okunmuyor.")
+    yasak = sorted((adlar | oznitelikler) & set(_SEAM_YASAK_CAGRI))
+    if yasak:
+        hata.append("SEAM SIZINTISI: `kaynak is None` dalinda ALT SUREC/HARICI kaynak "
+                    "cagrisi var (%s) -> uretim yolu artik CALISAN dosyayi okumuyor."
+                    % ", ".join(yasak))
+    return hata
 
 
 def _kendini_test_hukum_kontrol(agac):
@@ -5020,6 +5178,41 @@ def suzgec_kablosu_kontrol(kaynak=None):
                         "SESSIZ olur. GERI KOY." % (ad, ", ".join(eksik)))
     # KB-E: cagri satiri durup HUKUMDEKI PAYI dusurulebiliyordu (`and` -> `or`).
     hata.extend(_kendini_test_hukum_kontrol(agac))
+    # S1: bu nobetcinin KENDI uretim yolu (kaynak is None) CALISAN dosyayi okumali.
+    hata.extend(_seam_kontrol(agac))
+    # TOPLAM YUZEY: kollar arasi TASIMA yuzeyi kucultmemeli.
+    # 🔴 KAYIT DEFTERI **KAYNAKTAN** OKUNUR (canli sabitten DEGIL): mutasyon
+    # surucusu kaynak metni geciriyor; canli sabite bakan bir kontrol defteri
+    # kucultmeyi GOREMEZDI (olculdu: M-KB8 rc=0). Karsilastirma tabani ise CANLI
+    # sabittir -> kaynakta tabani dusurmek kayit kaybini GIZLEYEMEZ.
+    birlesim = set()
+    kayit_bulundu = False
+    for dugum in ast.walk(agac):
+        if not isinstance(dugum, ast.Assign):
+            continue
+        adlar = [t.id for t in dugum.targets if isinstance(t, ast.Name)]
+        if "NOBETCI_KABLOLARI" not in adlar:
+            continue
+        try:
+            kayit = ast.literal_eval(dugum.value)
+        except (ValueError, SyntaxError):
+            hata.append("KOL BIRLESIMI OLCULEMEDI: NOBETCI_KABLOLARI sabit ifade "
+                        "degil -> defter kaynaktan okunamiyor (fail-closed).")
+            kayit_bulundu = True
+            break
+        kayit_bulundu = True
+        for _ad, gerekli in kayit:
+            birlesim |= set(gerekli)
+        break
+    if not kayit_bulundu:
+        hata.append("KOL BIRLESIMI OLCULEMEDI: NOBETCI_KABLOLARI atamasi kaynakta "
+                    "BULUNAMADI -> defter yeniden adlandirilmis olabilir.")
+    elif len(birlesim) < KOL_BIRLESIM_TABANI:
+        hata.append(
+            "KOL BIRLESIMI KUCULDU: iki kolun TOPLAM nobetci kumesi %d (taban %d) -> "
+            "bir adim koldan kola tasinirken yuzey SESSIZCE kuculmus olabilir; iki "
+            "kol da rc=0 verirken olculen sey azalir "
+            "([[kapi-yan-etkisi-gizli-onkosul]])." % (len(birlesim), KOL_BIRLESIM_TABANI))
     return (not hata), hata
 
 
@@ -5210,11 +5403,14 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, kablo_hata = main_kablosu_kontrol()
         for h in kablo_hata:
             hatalar.append("MAIN-KABLO: " + h)
-        # PUSH KABLOSU (9 Agu): pre-push blogunun DAVRANISI (bayrak + kosul +
-        # varlik ekseni). Kayit raseti yalniz blogun VARLIGINI olcuyordu.
-        _, pp_hata = pre_push_kablo_kontrol()
+        # PUSH KABLOSU — UCUZ KOL. AGIR davranis ayagi (45 gercek `git push`,
+        # 2,40 sn) MALIYET HUKMU geregi `--kendini-test` koluna tasindi; burada
+        # statik capa kalir. Iki kolun TOPLAM nobetci kumesi KUCULMEDI —
+        # `_kol_kapsam_kontrol()` bunu AST ekseninde olcer
+        # ([[kapi-yan-etkisi-gizli-onkosul]]).
+        _, pp_hata = pre_push_capa_kontrol()
         for h in pp_hata:
-            hatalar.append("PRE-PUSH-KABLO: " + h)
+            hatalar.append("PRE-PUSH-CAPA: " + h)
         # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
         # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
         # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
@@ -5269,6 +5465,18 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         satirlar.append("  YALNIZ ELLE'de kosulan : %d  (kapsam SAYILMAZ: %s)" % (
             len(yalniz_elle), ", ".join(yalniz_elle) or "-"))
     satirlar.append("  Muaf (izin listesi)    : %d" % len(muaf))
+    if kontroller:
+        # 🔴 KOL KOL SAYI ([[kapi-yan-etkisi-gizli-onkosul]]): agir davranis ayagi
+        # `--kendini-test` koluna tasindi; hangi kolun KAC nobetci kostugu GORUNUR
+        # olmali, yoksa tasima yuzeyi sessizce kucultur.
+        _kol = dict(NOBETCI_KABLOLARI)
+        _birlesim = set()
+        for _a, _g in NOBETCI_KABLOLARI:
+            _birlesim |= set(_g)
+        satirlar.append(
+            "  Oz-nobetci (bu kol)    : %d  (`--kendini-test` kolu: %d · BIRLESIM: "
+            "%d, taban %d)" % (len(_kol.get("denetle", ())), len(_kol.get("main", ())),
+                               len(_birlesim), KOL_BIRLESIM_TABANI))
     # 🔴 KOVA GORUNUR OLMAK ZORUNDA: olculdu ama basilmadi = olculmedi. "0" satiri da
     # BASILIR — yoksa "satir yok" ile "kova bos" ayirt edilemez ([[hukum-yanlis-birimde]]).
     if izlenmeyen_sebep:
@@ -5468,8 +5676,8 @@ def main():
             for h in hata10:
                 print("  ❌ " + h)
         ok11, hata11 = pre_push_kablo_kontrol()
-        print("pre-push KABLOSU — GERCEK `sh` ILE DAVRANIS (%d govde x %d vaka = %d "
-              "kosum; %d oldurucu + %d kontrol)"
+        print("pre-push KABLOSU — GERCEK `git push` ILE DAVRANIS, GIT KANCA ORTAMINDA "
+              "(%d govde x %d vaka = %d kosum; %d oldurucu + %d kontrol)"
               % (len(PRE_PUSH_MUTANTLARI), len(PRE_PUSH_DAVRANIS_VAKALARI),
                  len(PRE_PUSH_MUTANTLARI) * len(PRE_PUSH_DAVRANIS_VAKALARI),
                  sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if not b),
@@ -5483,6 +5691,16 @@ def main():
         else:
             for h in hata11:
                 print("  ❌ " + h)
+        _kol = dict(NOBETCI_KABLOLARI)
+        _birlesim = set()
+        for _a, _g in NOBETCI_KABLOLARI:
+            _birlesim |= set(_g)
+        print("KOL KAPSAMI — bu kol (`%s`): %d oz-nobetci · BAYRAKSIZ (kapsam) kolu: "
+              "%d · BIRLESIM: %d (taban %d). AGIR davranis ayagi (45 gercek `git "
+              "push`) MALIYET HUKMU geregi BU KOLDA yasar; bayraksiz kolda ucuz "
+              "statik capa kalir — birlesim KUCULMEDI."
+              % (KENDINI_TEST_BAYRAGI, len(_kol.get("main", ())),
+                 len(_kol.get("denetle", ())), len(_birlesim), KOL_BIRLESIM_TABANI))
         if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9
                 and ok10 and ok11):
             print("SONUC: YESIL ✅")

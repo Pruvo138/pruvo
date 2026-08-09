@@ -155,7 +155,7 @@ def _kablo_fikstur(mod):
 PRE_PUSH_YOLU = os.path.join(TOOLS, "kancalar", "pre-push")
 
 
-def _pp_mutant(capa, ikame):
+def _pp_mutant(capa, ikame, ek=None):
     """pre-push govdesini GECICI bir kopyada mutasyona ugratip hukmu olcer.
 
     🔴 IZLENEN KANCA KAYNAGINA DOKUNULMAZ: mutant `tempfile` dizinine yazilir ve
@@ -171,6 +171,12 @@ def _pp_mutant(capa, ikame):
         govde = govde.replace(capa, ikame)
     else:
         govde = govde + ikame
+    if ek is not None:
+        ek_capa, ek_ikame = ek
+        if govde.count(ek_capa) != 1:
+            raise RuntimeError("PRE-PUSH EK MUTANTI OLCULEMEDI: capa %d kez gecti "
+                               "(beklenen 1)" % govde.count(ek_capa))
+        govde = govde.replace(ek_capa, ek_ikame)
     gecici = tempfile.mkdtemp(prefix="pruvo-pp-mutant-")
     try:
         yol = os.path.join(gecici, "pre-push")
@@ -428,45 +434,95 @@ def main():
     # dosyasini okur; mutant modul yuklemek kabloyu OLCMEZDI (mutant modul yine
     # PRISTINE dosyayi okur — olculdu: uc mutant da rc=0 verdi). Nobetcinin
     # `kaynak=` test seami tam bu yuzden var.
-    def _kablo_nobetcisi(capa=None, ikame=None, adet=1):
+    def _kablo_nobetcisi(*degisiklikler):
+        """degisiklikler: (capa, ikame) ciftleri; her biri TAM 1 kez gecmeli."""
         with open(KAPI_YOLU, encoding="utf-8") as f:
             kaynak = f.read()
-        if capa is not None:
+        for capa, ikame in degisiklikler:
             gecen = kaynak.count(capa)
-            if gecen != adet:
-                raise RuntimeError("KABLO MUTANTI OLCULEMEDI: capa %d kez gecti "
-                                   "(beklenen %d)" % (gecen, adet))
+            if gecen != 1:
+                raise RuntimeError("KABLO MUTANTI OLCULEMEDI: capa %r %d kez gecti "
+                                   "(beklenen 1)" % (capa[:60], gecen))
             kaynak = kaynak.replace(capa, ikame)
         ok, hatalar = KAP.suzgec_kablosu_kontrol(kaynak=kaynak)
         return (0 if ok else 1), hatalar
 
     olc("KABLO-NOBETCI-TABAN suzgec_kablosu_kontrol (mutasyonsuz)",
-        lambda: _kablo_nobetcisi(), False)
+        _kablo_nobetcisi, False)
 
     olc("M-KB4 (KB-C) denetle()'den MAIN-KABLO cagrisi SILINDI",
         lambda: _kablo_nobetcisi(
-            "        _, kablo_hata = main_kablosu_kontrol()",
-            "        kablo_hata = []"),
+            ("        _, kablo_hata = main_kablosu_kontrol()",
+             "        kablo_hata = []")),
         True, "NOBETCI KABLOSU KOPMUS")
 
-    olc("M-KB5 (KB-D) denetle()'den PRE-PUSH-KABLO cagrisi SILINDI",
+    olc("M-KB5 (KB-D) BAYRAKSIZ koldan PRE-PUSH-CAPA cagrisi SILINDI",
         lambda: _kablo_nobetcisi(
-            "        _, pp_hata = pre_push_kablo_kontrol()",
-            "        pp_hata = []"),
+            ("        _, pp_hata = pre_push_capa_kontrol()",
+             "        pp_hata = []")),
         True, "NOBETCI KABLOSU KOPMUS")
+
+    olc("M-KB7 `--kendini-test` kolundan AGIR DAVRANIS ayagi SILINDI",
+        lambda: _kablo_nobetcisi(
+            ("        ok11, hata11 = pre_push_kablo_kontrol()",
+             "        ok11, hata11 = True, []")),
+        True, "NOBETCI KABLOSU KOPMUS")
+
+    # 🔴 YUZEY KUCULMESI EKSENI: bir adimi koldan kola tasimak iki kolu da rc=0
+    # birakip TOPLAM olculen yuzeyi kucultebilir ([[kapi-yan-etkisi-gizli-onkosul]]).
+    olc("M-KB8 KOL BIRLESIMI kucultuldu (iki koldan da push kablosu dusuruldu)",
+        lambda: _kablo_nobetcisi(
+            ('                 "main_kablosu_kontrol", "pre_push_capa_kontrol")),',
+             '                 "main_kablosu_kontrol")),'),
+            ('              "main_kablosu_kontrol", "pre_push_kablo_kontrol")),',
+             '              "main_kablosu_kontrol")),')),
+        True, "KOL BIRLESIMI KUCULDU")
 
     olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
         lambda: _kablo_nobetcisi(
-            "                and ok10 and ok11):",
-            "                or ok10 or ok11):"),
+            ("                and ok10 and ok11):",
+             "                or ok10 or ok11):")),
         True, "KENDINI-TEST HUKMU `and` DEGIL")
+
+    # ---- UCUNCU TUR: ORTAM SADAKATI · SEAM · BAYRAK SIZINTISI ---------------
+    olc("M-PP7 (X4) pre-push blogu `[ -z \"$GIT_EXEC_PATH\" ]` sarmalinda",
+        lambda: _pp_mutant(
+            "pruvo_kapsam_kok=$(git rev-parse --show-toplevel 2>/dev/null)",
+            "if [ -z \"$GIT_EXEC_PATH\" ]; then\n"
+            "pruvo_kapsam_kok=$(git rev-parse --show-toplevel 2>/dev/null)",
+            ek=("# >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU",
+                "fi\n# >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU")),
+        True, "PRE-PUSH FIKSTURU DUSTU (SAGLAM")
+
+    olc("M-S1 seam uretim yolu CALISAN dosya yerine `git show HEAD:` okuyor",
+        lambda: _kablo_nobetcisi(
+            ("        kaynak_yol = os.path.abspath(__file__)\n"
+             "        try:\n"
+             "            with open(kaynak_yol, encoding=\"utf-8\") as f:\n"
+             "                kaynak = f.read()\n"
+             "        except OSError as e:",
+             "        try:\n"
+             "            kaynak = subprocess.run(\n"
+             "                [\"git\", \"-C\", ROOT, \"show\", \"HEAD:tools/\"\n"
+             "                 \"ci-kapsam-test.py\"],\n"
+             "                capture_output=True, text=True).stdout\n"
+             "        except OSError as e:")),
+        True, "SEAM SIZINTISI")
+
+    olc("M-Z2 yeniden giris bayragi `finally`de SIFIRLANMIYOR",
+        lambda: _kablo_fikstur(_mutant_modul(
+            "z2",
+            "        _KABLO_FIKSTURU_ICINDE = False\n"
+            "        shutil.rmtree(gecici, ignore_errors=True)",
+            "        shutil.rmtree(gecici, ignore_errors=True)")),
+        True, "SIZINTI")
 
     olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",
         lambda: _kablo_nobetcisi(
-            "        if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 "
-            "and ok9\n                and ok10 and ok11):",
-            "        if (ok11 and ok10 and ok9 and ok8 and ok7 and ok6 and ok5 and ok4 "
-            "and ok3\n                and ok2 and ok1):"),
+            ("        if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 "
+             "and ok9\n                and ok10 and ok11):",
+             "        if (ok11 and ok10 and ok9 and ok8 and ok7 and ok6 and ok5 and "
+             "ok4 and ok3\n                and ok2 and ok1):")),
         False)
 
     olc("M-IZ2 izlenmeyen kova UYARI'ya cevrildi (exit koduna dokunmuyor)",
