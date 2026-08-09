@@ -162,19 +162,53 @@ def izole_ortam(ev):
     return ortam
 
 
-def _araclari_ser(kok, kanca_kaynagi):
-    """Kancalarin andigi araclari KANONIK kanca govdelerinden turetip stub'la.
+# 🔴 ELLE TUTULAN STUB LISTESI YOK (9 Agu 2026): adlar IZLENEN kanca kaynaklarindan
+# TURETILIR. Elle liste her yeni fail-closed kanca adiminda bayatliyor ve fikstur
+# drift'i yayini durduruyordu ([[envanter-drift-parti-basina]] ·
+# [[tekil-yama-sinifi-kapatmaz]]); main'in `e56705a2`'de `diriltme-kapisi.py` icin
+# kaldirdigi sinif tam da budur. Capa: `"$degisken/tools/<ad>.py"` — degisken
+# ADINDAN bagimsiz, duz prozadaki "tools/foo.py" YAKALANMAZ.
+_KANCA_ARAC_KALIBI = re.compile(
+    r"\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/tools/([A-Za-z0-9_.-]+\.py)")
+# STUB SERILMEYENLER: `kanca-kur.py`yi VAKA 8 GERCEK dosya olarak kendisi serer
+# (kanca `--tazele` icin gercek mantik sart); stub onu golgelerdi.
+_STUB_DISI = ("kanca-kur.py",)
 
-    Elle tutulan liste her yeni fail-closed adimda bayatlayip saglikli kontrol
-    commit'ini sahte kirmizi yakiyordu. Sentetik depoda bu araclar fiilen is
-    yapmaz; varliklari kancanin "arac YOK" kolunu tetiklememek icindir.
-    """
-    araclar = set()
-    for kanca in sorted(os.listdir(kanca_kaynagi)):
-        yol = os.path.join(kanca_kaynagi, kanca)
+
+def _kanca_arac_adlari(kanca_kaynagi):
+    """Kanca govdelerinin cagirdigi `tools/*.py` adlari (stub serilecek kume).
+
+    FAIL-CLOSED: kume BOS donerse sessizce "0 arac gerekiyormus" DENMEZ — istisna
+    atilir ([[olculdu-diyen-hukum-kaniti]])."""
+    bulunan = set()
+    for ad in sorted(os.listdir(kanca_kaynagi)):
+        yol = os.path.join(kanca_kaynagi, ad)
+        if not os.path.isfile(yol):
+            continue
         with open(yol, encoding="utf-8", errors="replace") as f:
-            araclar.update(re.findall(r"\btools/([A-Za-z0-9_-]+\.py)\b", f.read()))
-    for ad in sorted(araclar):
+            bulunan.update(_KANCA_ARAC_KALIBI.findall(f.read()))
+    bulunan -= set(_STUB_DISI)
+    if not bulunan:
+        raise RuntimeError(
+            "FIKSTUR FAIL-CLOSED: izlenen kanca kaynaklarinda HIC `$kok/tools/*.py` "
+            "referansi YOK -> stub listesi TURETILEMEDI. Capa bayatlamis olabilir.")
+    return tuple(sorted(bulunan))
+
+
+def _araclari_ser(kok, kanca_kaynagi):
+    """Sentetik depoya stub `tools/*.py` serer (adlar KANONIK kaynaktan turetilir).
+
+    🔴 CAKISMA COZUMU (9 Agu 2026): main `3e7f1b24` AYNI refactor'u bagimsiz yapti
+    (`\\btools/(...)\\b` prozadan da yakalar, bos kume kontrolu YOK, `kanca-kur.py`
+    da stub'lanir). DALIN SURUMU KORUNDU cunku: (a) capa `$degisken/tools/<ad>.py`
+    ATAMA eksenidir -> yorumdaki duz "tools/foo.py" prozasi stub uretmez, (b) bos
+    kume FAIL-CLOSED istisna atar (sessiz '0 arac gerekiyormus' YOK), (c)
+    `_STUB_DISI` `kanca-kur.py`yi disarida birakir — VAKA 8 onu GERCEK dosya olarak
+    kendisi serer, stub golgelerdi. Main'in daha genis regex'ine DONULMEDI.
+
+    Stub'lar fiilen HICBIR IS YAPMAZ; varliklari kancalarin "arac YOK" kolunu
+    tetiklememesi icindir."""
+    for ad in _kanca_arac_adlari(kanca_kaynagi):
         yaz(os.path.join(kok, "tools", ad), GECER, True)
 
 

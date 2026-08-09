@@ -1102,6 +1102,26 @@ jobs:
       - name: Ic rapor adi kapisi
         run: python3 tools/ic-rapor-adi-kapisi.py
 
+      # KANCA KABLOSU DAVRANIS AYAGI (9 Agu 2026) — pre-push kapsam blogunun
+      # HUKMU sentetik depo + BARE uzak uzerinde 45 GERCEK `git push` ile olculur
+      # (15 govde x 3 vaka). Regex/metin taklidi DEGIL: kabuk hukmu verir.
+      #
+      # 🔴 NEDEN BURADA (serit-a3) VE NEDEN AYRI BAYRAK: bu ayak once
+      # `--kendini-test` koluna alinmisti; o adim `nobet.yml`de yasiyor ve o dosya
+      # SERIT B'dir (yayini BLOKLAMAZ, `deploy: needs` listesinde YOK). Olculdu:
+      # rc yeniden atama (N1), `if false` sarmali (N3) ve `[ -z "$GIT_EXEC_PATH" ]`
+      # sarmali (X4) sinifi sabotaj push'u DA deploy'u DA geciyordu — sinif KAPI
+      # olmaktan cikip ALARMA dusmustu. `--kendini-test`i buraya geri tasimak 5 Agu'daki
+      # serit kararini bozardi (bloklamayan alarm joblari yayin kosumunun rengini
+      # boyamasin), o yuzden AGIR ayak KENDI bayragina ayrildi ve YALNIZ o adim
+      # bloklayici job'a baglandi. `serit-a3` `deploy: needs` listesindedir.
+      #
+      # NEDEN pre-push'ta DEGIL: olculdu — ayak tek basina 2,40 sn; bayraksiz kol
+      # P95'i 6,04 sn'ye cikip 5 sn esigini asiyordu. Push aninda ucuz statik capa
+      # (`pre_push_capa_kontrol`) kalir; cagri/`exit`/kosul KAYBINI o yakalar.
+      - name: "Kanca kablosu davranis ayagi (45 gercek git push)"
+        run: python3 tools/ci-kapsam-test.py --kanca-kablo
+
       # Kapinin KENDI hukmu: 22 kirmizi + 29 yesil fikstur, E1 ozet mekanizmasi
       # (uydurma adla GERCEK uretim yolu), fail-closed (desen kaynagi yok / dosya
       # UTF-8 cozulemiyor) ve CANLILIK (git rc=0 + bos/kismi liste) dallari.

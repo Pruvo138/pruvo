@@ -89,6 +89,23 @@ exit 0
 """
 
 PRE_PUSH = """#!/bin/sh
+# --- CI KAPSAM KAPISI (9 Agu 2026) — GERCEK kancadaki SEKLIN taklidi:
+# NEGATIF varlik kapisi (arac yoksa `exit 1`) + komut ikamesi ile cikti yakalama +
+# `</dev/null` (stdin'e dokunmama) + rc'ye bagli kosullu (girintili) `exit 1`.
+# Sekil taklit edilmezse nobetci gercekte olmayan bir bicimi olcer
+# ([[nobetci-fikstur-sekli]]).
+pruvo_kapsam_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_kapsam_kok" ] || [ ! -f "$pruvo_kapsam_kok/tools/ci-kapsam-test.py" ]; then
+  echo "!! PUSH DURDURULDU — CI KAPSAM KAPISI KOSULAMADI."
+  exit 1
+fi
+pruvo_kapsam_cikti=$(python3 "$pruvo_kapsam_kok/tools/ci-kapsam-test.py" 2>&1 </dev/null)
+pruvo_kapsam_rc=$?
+if [ "$pruvo_kapsam_rc" -ne 0 ]; then
+  printf '%s\\n' "$pruvo_kapsam_cikti"
+  echo "!! PUSH DURDURULDU — CI KAPSAM KAPISI KIRMIZI (rc=$pruvo_kapsam_rc)."
+  exit 1
+fi
 # >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir) >>>
 # Fikstur GERCEK kanca govdesinin SEKLINI taklit eder (stdin yakala -> kapiyi besle ->
 # `exec <` ile kalan kancaya geri ver); aksi halde nobetci gercekte olmayan bir bicimi

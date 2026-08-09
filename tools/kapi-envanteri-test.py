@@ -89,6 +89,10 @@ def mutasyon_hook_kablo_sok(copy, dosya, gate_basename):
         f.write(metin.replace(gate_basename, kopuk))
 
 
+# 🔴 `ENV_KOK` (bu worktree'nin koku), `MAIN` DEGIL: konvansiyon DALIN kendi
+# agacinda olculmeli — yoksa dalda eklenen konvansiyon disi bir nobetci ancak
+# MERGE'ten sonra gorunur ve sabit mutlak yol CI'da hic cozulmez
+# ([[sabit-mutlak-yol-yerelde-yesil]]).
 def main():
     kontroller = []  # (ad, gecti_bool, ayrinti)
 
