@@ -1,5 +1,28 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 2026-08-09 05:37Z — CI nöbeti (KraL)
+- Süpürme: GitHub toplam 1 · "Run failed" 1 → Çöp'e 1 · tur sonu kalan 0. Pozitif tanıma izi VAR (substring eşleşme, toplam > 0), hüküm TEMİZ.
+- CI HÜKÜM: KIRIK — bir önceki tura göre DEĞİŞMEDİ. Canlıdaki son başarılı deploy hâlâ `3e7f1b24` (00:45:56Z, koşum `31286873618`); main `bacb7e1e`, arada 20 commit yayınlanmamış, yayın açlığı ~5 saat.
+- İki blokaj AYNEN duruyor, ikisi de bu turda ELLENMEDİ:
+  1. `build`: ozet.json bayt bütçesi aşımı. Onarım İKİ AYRI biçimde uçuşta — (a) ana checkout'ta commit'siz `tools/build.py` + `tools/faz3-yuk.js` (mtime 05:09:50Z, ölçüm anında ~33 dk taze = CANLI iş, öksüz DEĞİL); (b) dal `onarim/ozet-butce` uç `854202d5`, main'in 1 commit önünde, main'den geride 0, uzağa push EDİLMEMİŞ, worktree ~43 dk hareketsiz, `RAPOR-MIMARA.md` YOK. Sıra posta kutusunda 05:1xZ'de kararlaştırılmış: (a) önce insin, (b) üstüne rebase olsun. HÜKÜM: bu turda MERGE YOK — (b)'yi almak (a)'nın commit'lenmemiş dosyalarını ezerdi.
+  2. `serit-a2`: A4 model ikizi (aynı normalize değere düşen iki ham yazım), tam 1 kayıt. MaCiT düzlemi; posta 04:2xZ'de yazıldı, ~80 dk sonra katalog commit'i DEĞİŞMEDİ (son dokunan `3ab04a9d`) ve ikiz lokalde hâlâ ölçülüyor. Posta TEKRAR yazılmadı (gürültü).
+- `yayin-erisim-alarmi` kırmızı — AYRI SINIF, açlığın semptomu DEĞİL: 1 yayınlanmış sayfa canlıda HTTP 503, 327 sayfa açık, 0 ölçüm arızası. Yayın inince kendiliğinden yeşile döneceği VARSAYILMAYACAK, ayrıca ölçülecek.
+- `paket-tazelik-alarmi` kırmızı = açlık semptomu (çıkış 4; taranan 8 koşumda `deploy` işini başarıyla koşan koşum yok). `serit-b` mutasyon kırmızısı (18 öldürücüden 5 hayatta) yayını BLOKLAMAZ — ayrı kuyruk.
+- BU TURUN İCRASI ve DERSİ: `pages` grubu BOŞ ölçüldü (uçuşta koşum yok) → `workflow_dispatch` ile `31297165688` tetiklendi. Sonra defterin son nöbet notu okununca AYNI head üzerinde `build` + `serit-a2`'nin ölçülmüş kırmızı olduğu görüldü → `deploy` bunlara `needs` ile bağlı olduğu için yeşil bitemezdi, buna karşılık `pages` grubunu ~48 dk tutup (tavan `serit-a4`) onarım push'unun deploy'unu kuyruğa itecekti → koşum İPTAL edildi. DERS: dispatch'ten ÖNCE defterin son nöbet notu okunur; "grup boş" ile "yayın yapılabilir" AYNI ŞEY DEĞİLDİR.
+- SONRAKI TURUN İLK İŞİ: (a) ana checkout'taki commit'siz `build.py`/`faz3-yuk.js` indi mi — inmediyse mtime ilerledi mi (~2 saat sessizlikte öksüz sayılıp devralınacak); (b) MaCiT ikizi düzeltti mi; (c) ikisi de indiyse yeni push'un `build`/`serit-a2`/`deploy`/`yayin` hükmünü ölç; (d) 503 veren sayfayı yayından BAĞIMSIZ ölç.
+
+## 2026-08-09 04:37Z — CI nöbeti (KraL)
+- Süpürme: kutu 7538 · GitHub toplam 1 · "Run failed" 1 → Çöp'e 1 · tur sonu kalan 0. Pozitif tanıma izi var (substring eşleşme), hüküm TEMİZ.
+- CI HÜKÜM: KIRIK. Canlıdaki son başarılı deploy `3e7f1b24` (00:45:56Z); main 5 commit ileride, yayın kapalı.
+- İki blokaj, ikisi de BAŞKA düzlemde — bu turda ELLENMEDİ:
+  1. `build`: ozet.json 154530 > 153600 bayt bütçesi (katalog 23105). Onarım UÇUŞTA — ana checkout'ta commit edilmemiş `tools/build.py` + `tools/faz3-yuk.js` (mtime 04:25Z, ~20 dk taze; bütçeyi yükseltmek yerine deterministik kırpma + ikiz sabit türetmesi). Öksüz DEĞİL, devralınmadı.
+  2. `serit-a2`: A4 model ikizi (`townace`/`liteace` — boşluklu vs boşluksuz ham yazım, dilim-3 partisinde tek kayıt). MaCiT düzlemi; posta kutusuna 04:2xZ'de zaten yazılmış, tekrar yazılmadı. Bu turda MaCiT aksiyonu ölçülmedi (katalog değişmemiş).
+- BU TURUN TEK İCRASI: koşum `31293979280` iptal edildi. Kanıt kapısı: `build`=failure VE `serit-a2`=failure → `deploy` (`needs`) matematiksel olarak yeşil bitemezdi, ama `cancel-in-progress: false` yüzünden `pages` grubunu ~48 dk daha tutacaktı (tavan `serit-a4`). Teyit: completed:cancelled · `pages` grubunda açık koşum YOK → onarım push'u geldiğinde deploy kuyrukta beklemeyecek.
+- `yayin-nabzi` ardışık 3 koşum açlık (çıkış 4; 16 commit geride, en eski bekleyen 93 dk) — bağımsız arıza DEĞİL, yukarıdaki iki blokajın SEMPTOMU. Blokajlar kapanınca yeşile dönmesi AYRICA ölçülecek (varsayılmayacak).
+- `serit-b` mutasyon kırmızısı (18 öldürücüden 5 hayatta, `marka_model_build.py`) yayını BLOKLAMAZ — ayrı kuyruk.
+- Defter bloğu COMMIT EDİLMEDİ (bilerek): MaCiT işçileri şu an aktif ürün ekliyor ve ölçülmüş bir tuzak var — DEVAM.md-only bir commit, `urunler-guard.py` pre-commit self-heal'ini tetikleyip uçuştaki meşru bir `duzelt.py` yazımını geri sarabiliyor. Blok bir sonraki meşru commit'e binecek.
+- SONRAKI TURUN İLK İŞİ: (a) build.py yerel diff'i hâlâ commit'siz mi + mtime ilerledi mi (ilerlemediyse ~2 saat sessizlikte öksüz sayılıp devralınacak), (b) MaCiT ikiz kaydı düzeltti mi, (c) ikisi de indiyse `build`/`deploy`/`yayin` hükmünü ölç.
+
 ## 🔁 KraL DEVIR (clear oncesi yazildi) — SIRADAKI TEK IS: `muh/marka-tek-sayfa` dalini KAPAT
 **Okan emri (bu gece):** dali baslat; MaCiT mesgul oldugu icin 215 urunluk VERI onarimi BEKLIYOR.
 Dal: `muh/marka-tek-sayfa` **`73adb519`** (push'lu, worktree bugun KALDIRILDI → yeniden `worktree add` gerek).
@@ -44,6 +67,22 @@ rc=1) → yukaridaki kazanc **WebP kolunun TEK BASINA** kazancidir; AVIF kolunun
 olculmedi. Kardes turun bekledigi kosum `31286873618` (head `3e7f1b24`, `b7cdc015` ICERIR) ucusta.
 ℹ️ Anahtarsiz PSI REST ucu **8 denemede de HTTP 429** verdi; sayilar PSI'nin web arayuzunden
 gorsel-sinif isciye okutuldu, uydurulmadi.
+**EK TUR — 9 Agu 06:42Z, AVIF kolu CANLI (`last-modified 01:47:30Z`):** taze PSI mobil kosumu
+performans **99** · LCP **2,0 sn** · FCP 1,1 · TBT 90 ms · CLS **0** · SI 1,1; erisilebilirlik/
+en-iyi-uygulamalar/SEO **100/100/100**. Canli HTML: `<picture>` 6 · preload 1 · preconnect 1 ·
+`fetchpriority=high` 2 · banner **webp 18 + avif 15** benzersiz · `type="image/avif"` **6** ·
+eski anahtar **0**; preload edilen gorsel **HTTP 200, `image/avif`, 40007 B** (servis ediliyor).
+Boylece kardes turun bekledigi AVIF canli teyidi KAPANDI — beklenen `type="image/avif"` 5 idi,
+olculen **6**; fark kusur degil, o beklenti preload satirini saymiyordu.
+🔴 **"Performans hala 74" bildirimi CANLI GERILEME DEGILDI (olculdu):** 74, 8 Agu tabaniyla
+BIREBIR ayni sayidir ve PSI web arayuzu ayni adres icin **onbellekten kayitli rapor** sunar
+(bu turda da bir kosumda 88'lik bayat rapor onbellekten geldi, zorla yeniden analizle 92'ye dondu).
+Ders: PSI hukmu **rapor zaman damgasi** teyit edilmeden alinmaz; skor degil, damga karsilastirilir.
+Alan (CrUX) verisi ayrica **YOK** ("yeterli gercek dunya hiz verisi yok") — yani saha egrisi bu
+sayfada henuz hicbir hukum tasimiyor.
+⏭ AYRI IS (banner disi, bu onarimin kapsaminda DEGIL): taze raporun en buyuk gorsel firsati
+**229 KiB** ve kaynagi urun **kart kucuk resimleri** (`/urunler/*-thumb.jpg` gorunenden buyuk
+sunuluyor); banner gorselleri o tabloda yalniz 4-13 KB'lik artiklarla goruluyor.
 
 ## ✅ R2 AVIF WHITELIST'I + BANNER AVIF KOLU main'e ALINDI — 9 Agu 00:47 (merge `b7cdc015`)
 Dal `claude/intelligent-nightingale-d5e9fb` (`6c584514`) **merge commit'iyle** alindi: ff IMKANSIZ (`--is-ancestor` rc=1), cakisma 0 (`merge-tree` yalniz agac OID'i), kapsam 8 dosya +757/-59, `urunler.json` ve gizli kayit diff'te YOK, sizinti taramasi temiz, force YOK. Dal + worktree TEMIZLENDI (`durum.py` "ucu main'de").
@@ -64,38 +103,8 @@ Dal `claude/intelligent-nightingale-d5e9fb` (`6c584514`) **merge commit'iyle** a
 
 ## ✅ KATALOG ALAN KAPISI main'e ALINDI — 8 Agu 22:35 (merge `bdddaee0`) — dokum ARSIVDE
 Dal `claude/suspicious-ishizaka-414f35` merge commit'iyle alindi (ff IMKANSIZ, cakisma 0, kapsam 9 dosya +1054/-1). Merge sonrasi kapilar rc=0, D1 dort eksen YESIL. Yan etkisi (kardes fikstur ikizi) ve daha eski defter-sinifi kirmizisi KAPANDI. Tam dokum: DEVAM-ARSIV.md.
-## 🔚 OTURUM KAPANISI — 8 Agu (yayin blokaji + marka sayfasi turu)
-
-**CANLIYA GITTI (SHA'larla, hepsi `origin/main` ve canli olcumle teyitli):**
-- `d3fbc1e5` — `tools/cgt-ekle.py`'deki modul-seviyesi **sabit `/Users/okan/dev/pruvo` koku** `__file__`'den turetildi. Bu kusur `serit-a3` **adim 60**'i kirmiziya cevirip `deploy`+`yayin`'i **skipped** yapiyordu. 🔴 Ders: bu sinif **yerelde ASLA kirmizi yanmaz** (temiz `git clone`'da bile yesil) → [[sabit-mutlak-yol-yerelde-yesil]].
-- `b36c208b` — sinifi kapatan **`tools/mutlak-yol-kapisi.py`** (report-only, kanonik kume **203** CI'da fiilen kosan dosya) + ayni kusurun bulundugu **8 dosya** onarildi (biri `thing-hazirla.py`, tam adim 60'in zincirinde). Kardes oturumun "128 kalem kasitli" beyani **22 dosyada curutuldu**.
-- `36d57ce6` — `tools/yayin-kapisi.py`'nin **kor yesili** kapandi: taslak yoksa hicbir sayfa olcmeden `success` veriyordu. Artik 4 kaynakli yuzey + uc jeton (YESIL=0 / KIRMIZI=1 / **OLCULEMEDI=2**) + kullanim hatasi 64 + yasa bagli rollout affi + soft-404 govde isareti; capa **`build.py::product_url` FONKSIYONUNDAN** cagriliyor. **223 iddia**, DORT tur bagimsiz curutme.
-- `d81349b6` — `BASLIK_DOGAN_ALLOW` **elle envanteri (185 kayit) TURETMEYE cevrildi** (kalinti 102, gerekceli). 6. kez tekrarlayan drift sinif olarak kapandi; `serit-a2` adim 30 + `serit-a4` adim 5 kirmizilari yesile dondu. Sayfa/arama **kimlik** kumesi bit bit ayni (kova 950/950 · baslik-dogan 327/327 · urun→model uyelik 14078), 56 sorguda bosalan 0.
-- `e94433f9` — **oksuz CI kablosu DEVRALINDI** (4 tur cagriya cevap gelmedi, mtime 4+ saat): `deploy.yml` serit-a3'e `d1-uzlastirici-kosul-test.py`, `nobet.yml` serit-b'ye `mutlak-yol-kapisi.py`. `serit-a3` **success** → yayin acildi.
-- **YAYIN ACIK (canli olcum):** artefakt `21:23:07Z` → **`05:48:50Z`**; canli katalog **22376 == yerel 22376** (mahsur **157** urun sifirlandi); ana sayfa + en yeni 3 urun + kontrol urunu **200**; `d1-sync --durum` **dort eksen YESIL**.
-- **Codex** (limitler yenilendi, devrede): 8 zombi dal silindi (yerel dal 20→12), uc kosullu kapiyla; worktree 7/7 ve calisma agaci dokunulmadan AYNI.
-
-**KOSUYOR:**
-- 🔧 `muh/marka-tek-sayfa` (worktree `.claude/worktrees/muh-marka-tek-sayfa`, commit `c02edb79`+) — **Okan'in hukmu:** marka sayfasi markanin TUM parcalarini kart listeler, cipler **sayfa ici filtre**. Olculen kusur: **9897 urun kartinin HICBIRI gorunmuyordu**; gorunur kart **11731 → 21628** (audi 200→331 · ford 488→2583 · bmw 1010→2347), **azalan marka 0**, kimlik sapan sayfa **32 → 0**, tavani asan sayfa **11 → 0**. Bagimsiz curutme 1. turda **MERGE_EDILEMEZ** verdi (C1 yuzey ekseni TEMIZ: mukerrer 0 · gecersiz id 0 · yanlis marka 0 · olu id 0), UC kirmizi kapatildi: (1) teslim yolu **tautolojisi** — test fetch URL'ini sayfanin kendi beyanindan okuyordu, artik `index.html`'den bagimsiz cikarilan `EDGE_UC` ile karsilastiriliyor; (2) **agirlik regresyonu** — artim kolu `/urunler.json` (3,3 MB gzip) cekiyordu, ana sayfanin kullandigi **edge `/katalog?ids=`** yoluna (100'luk parti) alindi, ilk acilista veri istegi 0; (3) `ci-kapsam-test.py` yesil→kirmizi — iki yeni nobetci `nobet.yml` **serit-b**'ye kablolandi (deploy:needs'te DEGIL), kapi YESIL. Iddia **10871**, davranis testi **20/20**.
-  ⏭ **SIRADAKI TEK IS:** mutasyon bataryasi + ilk-yuk bayt tablosu gelince → **dar curutme (yeni yuzey)** → **merge + canli dogrulama** (Okan yetki verdi).
-
-**BEKLIYOR (kim neyle bloke):**
-1. `muh/yayin-acan-iki-kirmizi` (`1cb3ee6c`, worktree acik) **MERGE EDILMEDI** — butce asimi main'de YOK (22337 katalogda 153112 ≤ 153600) ve kardes oturumun "butce YUKSELTILMEZ, ozet.json deterministik SIGDIRILACAK" karariyla celisiyor. Kurtarilacak kismi: `faz3-yuk.js` **ikiz sabit turetmesi** + `ozet_olcek_dokumu`/`ilk_yuk_dokumu` tani ciktisi. **Codex'e uygun.**
-2. `tools/mutlak-yol-kapisi.py` **5 sessiz kacirma** (f-string · `+` ile parcali kok · `os.path.join("/Users",…)` · `expanduser("~/…")`) + 4 yanlis-pozitif → **`--sifir-tolerans` BLOKLAYICI YAPILMAYACAK** (karar bende) ta ki kacirma sinifi kapanana kadar.
-3. `tools/yayin-kapisi.py`: `IZIN_LISTESI` muafiyeti **elle 29 kalem** (kanonik turetme yok) + surucuye `--yalniz-mutasyon` kolu → B kolu (12 mutant) su an CI DISINDA.
-4. H1/H3 kurali **16 model-olmayan** degeri model sayiyor (`M8x25` · `17mm` · `12V` · `Toyota Honda` …), 2'sinin sentetik olarak **sayfasi dogdu**. main'in mevcut kusuru, ayri is.
-5. Sayfa↔arama asimetrisi: basliginda marka gecen ama `marka[]` uyesi olmayan **215 urun** (Mini 42 · Grom 29 · K100 19 · Datsun 18 …). Onarim **VERI duzlemi (MaCiT)**; `arama.py`'deki gecis kolu **ONCE kapatilmayacak** (arama daralir, satis yolu).
-6. `serit-a4` **32-58 dk** — yayin tavanini bu job koyuyor (`model-uyelik-kapisi --kendini-test` + turetme alt bataryasi +155 sn). Kaldirac bende.
-7. `pages` grubundaki 6/6 job'da `timeout-minutes` YOK (varsayilan 360 dk) — **Okan kapisi**.
-
-**OKAN'DA BEKLEYEN KARARLAR:**
-- Kardes mimarin sordugu **satin-alma kalemi** — sorunun tam metni ve kuyruk buyuklugu `DEVAM-ARSIV.md`'de (git disi). Yanit gelmeden o kuyruk islenmez.
-- **GPL/LGPL/BSD satilabilir mi** (MaCiT'te bu yuzden RED edilen kayitlar var).
-- Ortak Drive yedeginin kokunde **3 bayat kalem** (Temmuz tarihli); hedef ORTAK surucu → erisim cevresi olculmeli, yenileme karari Okan'in.
-- `pages` job'larina `timeout-minutes` konmasi.
-- ℹ️ Nobet jetonu icin **`setup-token` GEREKMIYOR**: 18:37Z rc=1'in sebebi jeton bayatligi degil eski hesabin **haftalik kotasiydi**; 19:37Z ve sonrasi rc=0.
-
-**ACIK WORKTREE (2 + main):** `agent-aa5db29d7f2d4d1ad` ve `muh-mcp-tarayici` — IKISI DE BASKASININ CANLI isi, DOKUNULMADI. Benim actigim worktree KALMADI (8 Agu 15:00 turunda kapatildi).
+## 🔚 OTURUM KAPANISI — 8 Agu (yayin blokaji + marka sayfasi turu) — dokum ARSIVDE
+CANLIYA GITTI 5 SHA (`d3fbc1e5`/`b36c208b`/`36d57ce6`/`d81349b6`/`e94433f9`, sabit-yol-kapisi+yayin-kor-yesili+BASLIK_DOGAN turetme+oksuz CI kablosu onarimlari) + yayin acildi (22376==22376). KOSUYOR: `muh/marka-tek-sayfa` (Okan hukmu: marka sayfasi TUM parcalari listeler) — dal simdi `73adb519`'a ilerledi, guncel durum ustteki KraL DEVIR blogunda. BEKLIYOR 7 kalem + OKAN'DA BEKLEYEN 5 karar (timeout-minutes, GPL/LGPL/BSD, Drive yedek vb.) — tam dokum: DEVAM-ARSIV.md.
 
 ## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20, dokum ARSIVDE)
 Merge --ff-only d9485a0d, kapsam 3 dosya +589/-61, sizinti 0. Olu koruma 48 birim kapatildi (tablo 18/18, pay 0). Merge sonrasi kapilar: D1 dort eksen rc=0 (22685) · CI kapsam rc=0 (246 kesif) · is-akisi rc=0 + kendini-test rc=0 (204 iddia) · nobetci mutasyon 7/7 + kontrol YESIL. Ders: ff uygunlugu YEREL main ile olculur. Temizlik bilerek yapilmadi. Tam dokum: DEVAM-ARSIV.md.
@@ -145,49 +154,7 @@ betigi). ⚠️ **Commit YOK, mühendis raporu YOK, son yazma 01:56Z → tur son
 Tek tur olduğu icin oksuz SAYILMADI. **SONRAKI TUR ESIGI:** hala commit/rapor yoksa
 (~2 saat sessizlik) is DEVRALINIR — sifirdan teshise baslanmaz, dosyalar yerinde.
 
-## ⏱ SAATLIK CI NOBETI — 9 Agu 01:37Z turu (ev DOGRU: ~/dev/pruvo)
-
-**Supurme (kosulsuz, §0.5):** kutu toplami **7538** · `notifications@github.com` toplami **1** ·
-"Run failed" eslesen **1** → Cop'e **1** · tur sonu kalan **0**. Pozitif tanima izi VAR
-(github toplami 0 degil) → hukum "kutu temiz", OLCULEMEDI degil. `contains` ile toplu tarama,
-ornekleme YOK, alt kutulara girilmedi, Cop BOSALTILMADI.
-
-**Kapanan iki kirmizi (bagimsiz olculdu, mimar `gh`):**
-1. `serit-b` — 23:56 / 00:29 / 00:44 kosumlari failure idi; `3e7f1b24` (00:45) ve `29e9355f`
-   (01:07) **success**. Sinif kapandi, mudahale gerekmedi (yoldan gecen yesil DEGIL: iki ayri
-   commit'te ust uste yesil).
-2. `D1 uzlastirici` — 00:34 kosumu `31286467555` failure. Logdan kok neden: onarimdan SONRA
-   SAYI ekseni 22772 == 22772 ✅ okurken ICERIK ekseni ayni adimda 22792 satir okuyup ayni 20
-   id'yi "D1'de FAZLA" saydi — yani **tek kosum icinde iki eksen birbiriyle celisti**
-   (silme sonrasi bayat okuma sinifi). Bagimsiz teyit (`d1-sync.py --durum`, mimar eliyle,
-   01:30Z): **23034 == 23034 · hash uyusmaz 0 · eksik 0 · fazla 0 · dort eksen ✅**. Sinif SU AN
-   temiz → yama YAPILMADI. ⚠️ SONRAKI TUR: bu is akisinin yeni kosumu YINE ayni celiskiyle
-   duserse tekrar eden sinif sayilir ve muhendislik isi acilir (tek olay icin acilmadi).
-
-**ACIK KIRMIZI — YAYIN ACLIGI (muhendise DEVREDILDI, dal ustunde).**
-`Paket tazeligi alarmi` / `yayin-nabzi` ARDISIK 2 kosumdur kirmizi (23:44 `31284655993`,
-01:38 `31288690972`). Alarmin kendi hukmu: **ACLIK (cikis 4)** — canli main'den **13 commit
-geride**, en eski bekleyen **53 dk** (esik 50), **6 ardisik iptal** (esik 6), ardisik hata 0.
-Ayirt edici olcum: kuyrukta iptal (zararsiz) 12 · CALISIRKEN iptal 1 · build yesil ama deploy
-kosmadi 4. Yani §4.5'teki "cancelled yigini zararsizdir" hukmu BURADA GECERSIZ — alarm
-zararsiz kuyruk iptalini zaten ayirmis, kalan sinif gercek.
-**Kok neden (dogrulanacak hipotez):** zincir ~48-53 dk (tavan `serit-a4`, bunun ~34 dk'si tek
-adim), itmeler ~13-20 dk arayla → kuyruktaki `deploy` her seferinde daha yeni itmeyle dusuyor.
-Son yayinlanan sha `062f8cb2` (00:46Z). **Esiklere DOKUNULMADI** (alarm dogru olcuyor).
-Muhendise verilen is: tavani DUSUR, iddia sayisini KUCULTMEDEN; gevsetme/adim silme/
-`continue-on-error`/`needs` daraltma/`cancel-in-progress` degistirme YASAK; main'e push YASAK,
-teslim dalda mühendis raporu + `TAVAN_ONCE_SN` / `TAVAN_SONRA_SN` / `IDDIA_ONCE` /
-`IDDIA_SONRA`. **SONRAKI TURUN ILK ISI:** o dalin raporunu oku, merge-kapisi ile tart —
-sifirdan teshise BASLAMA.
-
-**OLCULEMEDI (uydurulmadi):** guncel head `6b15062b` icin `deploy`/`yayin` — kosum
-`31288785522` tur sonunda hala `pending`.
-
-**Bu defter blogu commit EDILDI, PUSH EDILMEDI — bilerek.** Gerekce olculdu: `31288785522`
-su an kuyrukta ve YENI bir itme onu dusurur; yani "defteri hemen it" refleksi bu turda
-teshis edilen acligi BIR TUR daha uzatirdi. Commit main'de bekliyor, sonraki icerik
-itmesiyle birlikte gider. Sonraki tur: bu blok hala itilmemisse ve `deploy` bir kez
-yesillenmisse it.
+## ⏱ SAATLIK CI NOBETI — 9 Agu 01:37Z turu — dokum ARSIVDE (supurme temiz 1->Cop; serit-b + D1 uzlastirici kapandi; yayin acligi (Paket tazeligi/yayin-nabzi ardisik 2 kirmizi) muhendise devredildi, tavan dusurme dalda; `6b15062b` deploy/yayin OLCULEMEDI)
 
 ## ⏱ SAATLIK CI NOBETI — 8 Agu 23:37Z turu — dokum ARSIVDE (supurme hukmu OLCULEMEDI; serit-b + serit-a2/a3 kapandi, `31284643156` 6/6 success)
 
