@@ -99,6 +99,52 @@ Dal `claude/suspicious-ishizaka-414f35` merge commit'iyle alindi (ff IMKANSIZ, c
 
 ## ✅ NOBET NOBETCILERI SERTLESTI — dal main'e ALINDI (8 Agu 22:20, dokum ARSIVDE)
 Merge --ff-only d9485a0d, kapsam 3 dosya +589/-61, sizinti 0. Olu koruma 48 birim kapatildi (tablo 18/18, pay 0). Merge sonrasi kapilar: D1 dort eksen rc=0 (22685) · CI kapsam rc=0 (246 kesif) · is-akisi rc=0 + kendini-test rc=0 (204 iddia) · nobetci mutasyon 7/7 + kontrol YESIL. Ders: ff uygunlugu YEREL main ile olculur. Temizlik bilerek yapilmadi. Tam dokum: DEVAM-ARSIV.md.
+## ⏱ SAATLIK CI NOBETI — 9 Agu 02:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Supurme (kosulsuz, §0.5):** "Run failed" eslesen **0** → Cop'e **0** · kalan **0**.
+Pozitif tanima izi ALINDI: ayni `contains` taramasi `google.com` **1801** ve `pruvo3d.com`
+**12** buldu (eslestirici CALISIYOR), genis `github.com` taramasi **1** verdi (destek
+bildirimi, "Run failed" DEGIL). Yani hukum **"kutu temiz"**, OLCULEMEDI degil.
+
+**Kapanan sinif:** `D1 uzlastirici` — onceki turun "tekrar ederse muhendislik isi acilir"
+kaydi. 02:36 kosumu (`31290695793`) **success** → tek olay kaldi, is ACILMADI. Bagimsiz
+teyit `d1-sync.py --durum` (mimar eliyle, 02:44Z): **23034 == 23034** · hash uyusmaz 0 ·
+eksik 0 · fazla 0 · sema KURULU · 5 turetilmis kolon GUNCEL → **dort eksen ✅**.
+
+**🔴 ASIL BULGU — aclik TEK BASINA kuyruk degildi, `deploy: needs` KIRMIZISIYDI.**
+Onceki tur "aclik" hukmunu kuyruk suresine baglamisti. Bu turda IS DUZEYINDE olculdu:
+kosum `31288785522` (head `6b15062b`) `serit-a2` **failure** + `serit-a3` **failure`.
+`deploy: needs: [build, serit-a2, serit-a3, serit-a4]` → o kosumun `deploy`'u **garanti
+skipped** idi; yani OLU bir kosum `concurrency: group: pages` grubunu 52+ dk tutuyor,
+arkasindaki kosum bekliyordu. Dusen adimlar (job API'sinden, log degil beyan degil):
+`serit-a2` → "Marka uyelik kabul testi (katlanmis uyelik + anlamsiz URL nobeti)" ·
+`serit-a3` → "Ic rapor adi kapisi".
+**Icerik kaybi YOK** (olculdu): `6b15062b` ve `d0cd0314`, `5d576510`'in **atasi**
+(`merge-base --is-ancestor` rc=0 x2). Bu yuzden olu kosum **iptal edildi** ve kuyruk acildi;
+bu 00:46Z'de ayni desende olculmus ve ise yaramis mudahalenin tekrari.
+
+**Iki kirmizi KAPANDI — onarim BENIM DEGIL, kardes oturumun** (`942d091a` + `5d576510`,
+"Marka sayfasi merge'inin actigi iki yayin kirmizisi onarildi"). Ben yalnizca OLCTUM:
+kosum `31290731298` (head `5d576510`) icinde **adim ADIYLA** dogrulandi —
+`Marka uyelik kabul testi …` = **success** · `Ic rapor adi kapisi` = **success**
+(+ `Ic rapor adi kapisi ic nobetci (fikstur + kontrol bataryasi)` = success).
+`serit-a3` 28 adim / `serit-a2` 16 adim tamamlandi, **kirmizi adim 0**.
+
+**OLCULEMEDI (uydurulmadi):** ayni kosumda `serit-a4` · `build` · `deploy` · `yayin` tur
+sonunda hala **in_progress**. Tavani `serit-a4` koyuyor (32-58 dk) — bu BEKLENEN, arizanin
+kendisi degil. **SONRAKI TURUN ILK ISI:** `31290731298`'in `deploy`/`yayin` hukmunu olc;
+`deploy` success ise aclik kolu (`Paket tazeligi alarmi`) kendiliginden yesillenmeli.
+
+**Acik kalan kirmizi:** `Paket tazeligi alarmi` / `yayin-nabzi` ardisik 2 kosum (23:44, 01:38)
+— hukum ACLIK (cikis 4). Esiklere DOKUNULMADI (alarm dogru olcuyor); bu turdaki mudahale
+esigi degil SEBEBI hedefledi.
+
+**Tavan isi (muhendis, DEVAM EDIYOR):** worktree `agent-a6d4a91f92189720c` `tools/
+model-uyelik-kapisi.py` + `tools/marka_model_build.py` uzerinde calisiyor (uc scratch olcum
+betigi). ⚠️ **Commit YOK, `RAPOR-MIMARA.md` YOK, son yazma 01:56Z → tur sonunda 47 dk sessiz.**
+Tek tur olduğu icin oksuz SAYILMADI. **SONRAKI TUR ESIGI:** hala commit/rapor yoksa
+(~2 saat sessizlik) is DEVRALINIR — sifirdan teshise baslanmaz, dosyalar yerinde.
+
 ## ⏱ SAATLIK CI NOBETI — 9 Agu 01:37Z turu (ev DOGRU: ~/dev/pruvo)
 
 **Supurme (kosulsuz, §0.5):** kutu toplami **7538** · `notifications@github.com` toplami **1** ·
@@ -130,7 +176,7 @@ adim), itmeler ~13-20 dk arayla → kuyruktaki `deploy` her seferinde daha yeni 
 Son yayinlanan sha `062f8cb2` (00:46Z). **Esiklere DOKUNULMADI** (alarm dogru olcuyor).
 Muhendise verilen is: tavani DUSUR, iddia sayisini KUCULTMEDEN; gevsetme/adim silme/
 `continue-on-error`/`needs` daraltma/`cancel-in-progress` degistirme YASAK; main'e push YASAK,
-teslim dalda `RAPOR-MIMARA.md` + `TAVAN_ONCE_SN` / `TAVAN_SONRA_SN` / `IDDIA_ONCE` /
+teslim dalda mühendis raporu + `TAVAN_ONCE_SN` / `TAVAN_SONRA_SN` / `IDDIA_ONCE` /
 `IDDIA_SONRA`. **SONRAKI TURUN ILK ISI:** o dalin raporunu oku, merge-kapisi ile tart —
 sifirdan teshise BASLAMA.
 
@@ -143,43 +189,6 @@ teshis edilen acligi BIR TUR daha uzatirdi. Commit main'de bekliyor, sonraki ice
 itmesiyle birlikte gider. Sonraki tur: bu blok hala itilmemisse ve `deploy` bir kez
 yesillenmisse it.
 
-## ⏱ SAATLIK CI NOBETI — 8 Agu 23:37Z turu (ev DOGRU: ~/dev/pruvo)
-
-**Supurme (kosulsuz, §0.5):** eslesen "Run failed" **0** → Cop'e **0**. Pozitif tanima izi
-ALINDI: ayni tarama `sender contains "github"` ile **1** mail buldu (GitHub destek bildirimi,
-"Run failed" DEGIL) → eslestirici CALISIYOR; buna karsin `notifications@github.com` toplami
-**0**. Kural geregi 0/0 kombinasyonu "kutu temiz" DEGIL → hukum **OLCULEMEDI** yazildi.
-Kutu toplami 7537. Yalniz birlesik `inbox`, `contains` ile toplu tarama, ornekleme YOK,
-Cop BOSALTILMADI, alt kutulara girilmedi.
-
-**IKI AYRI KIRMIZI ELE ALINDI (biri yayini durduruyordu).**
-
-**1) `serit-b` / diriltme kabul testi — KAPANDI.** Kosum `31282011513` (head `bdddaee0`)
-failure; kok neden fikstur ikizi (sentetik kanca ortami gercek repo seklini taklit etmiyordu),
-kapinin kendisi DOGRUYDU. Onarim kardes oturumun `e56705a2` surumuyle main'de: elle liste
-kaldirildi, arac kumesi kanonik kaynaktan TURETILIYOR, fail-closed. Iddia **86 → 89**, kucul-
-me yok. Bagimsiz teyit (mimar, `gh`): kosum `31283328805` (head `e56705a2`) `serit-b` **success**.
-
-**2) `serit-a2` + `serit-a3` (defter sinif kapisi) — YAYINI BU DURDURUYORDU, KAPANDI.**
-`deploy` + `yayin` **skipped** kaliyordu; son BASARILI deploy `62c7049b`, `22:10:13Z` → yayin
-~1 saat kapali. Kok neden defterin KENDI icerigiydi (tani satiri deftere yazilmis); satir
-silinmedi, arsive TASINDI. `serit-a3` ayri bir mantik kusuru DEGILDI — ayni ihlali olcuyordu.
-Asil sinif kusuru: kapinin tek zorlayici kolu CI'daydi, ihlal ancak PUSH SONRASI yakalaniyordu
-(5. tekrar). Onarim `bb2c6d9f`: commit aninda **INDEX ekseninde** olcen yeni kol eklendi
-(CI kollari AYNEN duruyor, `deploy: needs` degismedi, gevsetme/`continue-on-error` YOK; yeni
-kol CI'nin YERINE gecmiyor, ONUNDE duruyor). Kendini-test **62 → 70 kontrol**, mutasyon
-bataryasi **15 → 19 mutant** (kontrol mutantlari yesil kaldi), kanit KUCULMEDI. Uctan uca
-gercek commit denemesi: ihlal INDEX'te rc=1, ayirt edici notr kontrol rc=0.
-Bagimsiz teyit (mimar, `gh`): kosum `31284643156` (head `062f8cb2`) `serit-a2` **success** +
-`serit-a3` **success** + `build` success.
-
-**OLCULEMEDI (uydurulmadi):** `deploy` / `yayin`. Tavani yine `serit-a4` SURESI koyuyor —
-`31284643156`'da hala ucusta; `31285092474` (head `bb2c6d9f`) kuyrukta `pending`
-(`concurrency: pages` + `cancel-in-progress: false`, §4.5 — `cancelled` yigini ariza degil).
-Tur ici bekleme tavani (§3.5) doldu.
-
-**BU DEVIR KAPANDI (01:37Z turunda olculdu):** `31284643156` alti isin ALTISI da `success`
-(`serit-a2` · `serit-a3` · `serit-a4` · `build` · `deploy` · `yayin`). `31285092474` `cancelled`
-+ `jobs: []` = kuyruk davranisi (§4.5), icerigi kayip DEGIL.
+## ⏱ SAATLIK CI NOBETI — 8 Agu 23:37Z turu — dokum ARSIVDE (supurme hukmu OLCULEMEDI; serit-b + serit-a2/a3 kapandi, `31284643156` 6/6 success)
 
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
