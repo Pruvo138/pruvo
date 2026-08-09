@@ -9383,6 +9383,12 @@ CONTENT_PAGES = [
     ('elektrikli-arac-sarj-istasyonu-plastik-parca-uretimi', 'Şarj İstasyonu Plastik Parça Üretimi', 'Elektrikli araç şarj ünitesinin kırılan kablo askısını, soket park yuvasını, kapak menteşesini ve montaj ara plakasını ölçüye özel üretiyoruz. Akım taşımaz.', _elektrikli_arac_sarj_istasyonu_plastik_parca_uretimi),
 ]
 
+# Pazarlama-beyani kapilarinin muaf tuttugu baglayici yasal yuzeylerin TEK KAYNAGI.
+# Bir yasal sayfa eklenir/yeniden adlandirilirsa muafiyet burada guncellenir; tarayicilar
+# kendi slug listelerini tutmaz. Kurumsal sayfalar (hakkimizda/iletisim/sss) yasal muaf
+# degildir ve pazarlama yuzeyi olarak taranmaya devam eder.
+YASAL_SAYFALAR = ("gizlilik", "teslimat-iade", "mesafeli-satis")
+
 # Statik içerik/yasal sayfalar: elle yazılmış, build.py ÜRETMEZ (repo'da commit'li), korunur.
 STATIK_SAYFALAR = ["hakkimizda", "iletisim", "sss", "gizlilik"]
 

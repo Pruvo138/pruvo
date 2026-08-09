@@ -1200,6 +1200,16 @@ jobs:
       - name: Landing WhatsApp CTA kapisi
         run: python3 tools/landing-wa-kapisi.py
 
+      # KARGO PAZARLAMA KAPISI: anasayfa, kurumsal sayfalar ve CONTENT_PAGES'in gorunur
+      # metninde kargo ucreti/bedava-ucretsiz/esik vaadi bulunamaz. Baglayici yasal
+      # sayfalarin muafiyeti sayfalar.YASAL_SAYFALAR'dan turer; kapida ikiz slug listesi
+      # yoktur. Bloklayici serit-a3'tedir; iki kontrol mutanti kapinin duyarliligini ve
+      # yasal metne yanlis-pozitif yakmadigini her push'ta yeniden olcer.
+      - name: Kargo pazarlama beyani kapisi
+        run: python3 tools/kargo-pazarlama-kapisi.py
+      - name: Kargo pazarlama beyani kapisi mutant kabul testi
+        run: python3 tools/kargo-pazarlama-kapisi.py --kendini-test
+
       # MALZEME DAYANAGI: DORT yayin yuzeyinde gecen her malzeme adinin filament envanterinde
       # karsiligi var mi — (A) huni/landing sayfalari, (B) ege-bilgi.md (WhatsApp botu Ege'nin
       # bilgi dosyasi), (C) sss/gizlilik/hakkimizda/iletisim GORUNUR metni, (D) ayni 4 sayfanin
