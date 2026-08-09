@@ -1,45 +1,7 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## ✅ KAPANDI — CI kapsam kapısı keşif körlüğü (9 Ağu 2026, merge `22c5861a`)
-Dal `claude/nice-wu-1c2bc9` → main (`2d653f9f..22c5861a`), 10 dosya +3002/−35.
-**Kök kusur:** `tools/ci-kapsam-test.py` keşfi yalnız `git ls-files` üzerindeydi → yeni bir
-`*-kapisi.py` yazan mimar `git add`'den ÖNCE kapıyı koşarsa rc=0 "YEŞİL" alıyordu; kırmızı ancak
-push sonrası bloklamayan nöbet şeridinde konuşuyordu.
-**Kabul (ana checkout + dal worktree'sinde aynı kanıt):** `git add` edilmemiş yeni `*-kapisi.py` →
-kapı **rc=1** + `HENUZ IZLENMIYOR (kapsamsiz)` etiketi; dosya silinince **rc=0**.
-**Seçim ölçümle:** izlenmeyen keşif kovası ZORUNLUYDU — pre-push tek başına körlüğü kapatmıyor
-(commit anında dosya zaten `git ls-files`'ta, ölçüldü). İkisi de yapıldı: pre-push'a fail-closed
-kapsam kolu eklendi (P95 4,3 sn ≤ 5 sn eşiği).
-**10 tur çürütme, kapatılan sınıflar:** kablo iddiası (özellik duruyor, kablosu yok) · pre-push
-hükmü kabuk taklidinden **gerçek `sh` / gerçek `git push`**'a · ortam sadakati (git kanca ortamı) ·
-hüküm ezme sözdiziminden **davranışa** (nöbetçi zorla False → kolun rc'si) · fail-slow → fail-fast
-(guard `return` + 30 sn tavan) · evren ad deseninden **çağrı grafına** (yanlış-poz 6→0, yanlış-neg 6→0).
-**Sayılar:** mutasyon sürücüsü **9 → 63 iddia** · bloklayıcı yüzey bayraksız 15 + kanca-kablo kolu 3,
-birleşim 18 (taban 18, eşitlik) · kalıcı fuzz 48 varyant, sapma 0 · üç kanonik sayı **253 keşif ·
-56 muaf · 213 .py + 40** (dalın etkisi 0; artış merge'in getirdiği dosyalardan) · kapı envanteri 7/7 ·
-kanca kablolama 62 iddia.
-**Maliyet:** pre-push medyan 3,9 / P95 4,3 sn (eşik 5) · kanca-kablo kolu 12,5–13,4 sn (tavan 60, CI).
-**Merge sonrası doğrulama:** kanca kurulumu sonrası kanca nöbeti **rc=0 (15/15)** · ana checkout'ta
-5 kapı rc=0, `MUTANT=63/63` · D1 dört eksen yeşil (23275==23275, `urun_hash` uyuşmaz 0) · koşum
-`31311137432`: `build`/`serit-a2`/`serit-a3`/`serit-a4`/`deploy` **hepsi success** · 🔴 `serit-a3`
-adım #13 (45 gerçek `git push`) main'de **İLK KEZ KOŞTU**: success, 2 sn · canlı
-`https://pruvo3d.com/` **200, TAZE** (last-modified deploy sonrası).
-
-**AÇIK KALAN / AYRI İŞLER (dalın kusuru DEĞİL, ölçüldü):**
-1. `yayin` job'u kırmızı: `ADAY SAYISI TAVANI ASTI: 531 > 300` göç yığını (D1'de yerel karşılığı
-   olmayan taslak satır). Hükmün kendisi yeşil, çıkış kodu tavandan; `needs: deploy` olduğu için
-   **yayını bloklamadı** (site taze). Katalog/D1 düzlemi — MaCiT. Kapı çözümü kendi basıyor:
-   `tools/yayin-kapisi.py --geriye-doldur`.
-2. Parite `parite-test.js` / `parite-ege.js` **rc=3 = ÖLÇÜLEMEDİ** (KIRMIZI DEĞİL): ayrışım 0
-   (site 1199, Ege 850, açıklanamayan 0); sebep taslak yığını sayfa probu tavanı. Pristine main'de
-   birebir aynı ölçüldü → dalın etkisi 0. Yayın penceresi açılınca yeniden ölç.
-3. İki alarm şeridi kırmızı, ikisi de **yayını bloklamıyor** ve kökü aynı: canlı shop worker kodu
-   main'den geride (eşik aşımı). Düzeltme = worker deploy → **OKAN KAPISI**. Biri 8 Ağu'dan beri
-   kesintisiz kırmızı, diğeri saf saat aşımı (önceki 11 koşum success).
-4. Worktree `.claude/worktrees/nice-wu-1c2bc9` **KALDIRILMADI** — turu koşan oturum hâlâ içindeydi.
-   Dal main'de (içerik doğrulandı, 10 dosya). Sıradaki tur: `git worktree remove` + `git branch -D`.
-5. Ana checkout'ta başka oturumların izlenmeyenleri duruyor — DOKUNULMADI.
-6. Kanca-kablo kolu süresi dört turda 8,5 → 13,4 sn arttı (tavan 60); trend izlenmeli.
+## ✅ KAPANDI (ARŞİVE ALINDI) — CI kapsam kapısı keşif körlüğü, merge `22c5861a` (9 Ağu 2026)
+Tam döküm + açık kalan alt işler → `DEVAM-ARSIV.md` (defter kotası 1:1, bu turda taşındı).
 
 ## ⏱ Nöbet defteri: 09 Ağu ~10:40–12:00Z turu (KraL)
 
@@ -55,6 +17,24 @@ adım #13 (45 gerçek `git push`) main'de **İLK KEZ KOŞTU**: success, 2 sn · 
 3. **`pre-push` kancası `d1-sync.py`'yi `--head` bayrağı OLMADAN çağırıyor** (`pre-push:148`). Beş evin paylaştığı checkout'ta herhangi bir oturumun commit'siz ürünleri itme anında canlı D1'e yazılabiliyor; `--head` bayrağı bu amaçla mevcut ama çağrıya bağlanmamış. Tek satırlık kapatma, hattı daha fazla tıkamamak için ayrı tura ertelendi.
 4. **`serit-b` kırmızı** (yayını bloklamaz): `tools/marka-sayfa-mutasyon.py` bataryasında 18 öldürücüden 5'i hayatta (marka eşleme gevşek, geçersiz-id filtresi, sayfa sayacı, edge yerine tüm katalog, parti tavanı) → 13/18. Test kapsam boşluğu, ayrı mühendislik işi.
 5. `stash@{0}` başka bir oturumun kod-düzlemi değişikliklerini taşıyor, sahibine sorulmalı.
+
+## ⏱ Nöbet defteri: 09 Ağu ~14:40–15:20Z turu (KraL)
+
+**Mail süpürmesi:** taşınan 3, tur sonu gelen kutusunda "Run failed" 0. Pozitif tanıma izi: `notifications@github.com` toplam 3 (substring eşleştirme; tam eşitlik kullanılmadı). Taşınanların sınıfı: nöbet şeridi 1, paket/ödeme tazelik alarmı 2 — üçü de yayını bloklamayan alarm kolu.
+**CI ölçümü (bağımsız, `gh`):** YAYIN_BLOKLAYAN_KIRMIZI=YOK. Son başarılı deploy koşumu `31312688468` (head `598eb8e3`). Ölçüm anında uçuşta: `31314441507` (head `220cfd6c`, `serit-a4`'te) + `31317963164` kuyrukta. 24 saatlik failure grupları: paket tazelik alarmı 25 · nöbet şeridi (SERIT B) 14 · ana zincir 12 (hepsi eski uç `cef49456`'daki `yayin` job'u, sonraki commit'te yeşile döndü) · ödeme bayatlık nabzı 6 · yayın erişim alarmı 1 · D1 uzlaştırıcı 1.
+**✅ KAPANDI — öksüz `pre-push --head` onarımı devralındı ve kapatıldı.** Commit `2b0861f2`, 3 dosya (`tools/kancalar/pre-push` +40/−3 · `.github/workflows/deploy.yml` +13/−0 · yeni `tools/prepush-d1-kaynak-test.py` 331 satır). Kapatılan delik: beş evin paylaştığı checkout'ta herhangi bir oturumun commit'siz ürünleri push anında canlı D1'e yazılabiliyordu; `--head`/`--kaynak` köprüsü artık bağlı. Onarım ölmüş bir oturumun index'inde commit'siz duruyordu (mtime 16:55 / index 17:03; devralındı, "hazır" sayılmadı, yeniden çürütüldü).
+**7 eksenli çürütme detayı → DEVAM-ARSIV.md** (sınıf kapısı desenine takıldı, taşındı). Özet: 18 kapı rc=0, 2 kontrol mutantı kırmızı, kablo davranışsal doğrulandı, kabul testi 21/0.
+**Maliyet:** yeni adım medyan **8,1 sn**, yayını bloklayan `serit-a2` 22,7 → **~22,9 dk** (tavan 120 sn'nin çok altında). Tetiklenen koşum `31320335635`.
+**🔴 YENİ SINIF ÖLÇÜLDÜ — worktree'den push paylaşılan `.git/config`'i BOZUYOR.** Onarım commit'lenirken `mimar-commit-kapisi.py` ana checkout'ta `.py` commit'ini reddetti (kaynak düzlemi worktree ister); geçici worktree yalnız commit aracı olarak kullanıldı. Worktree'den `git push` denenince kanca `GIT_DIR` ihraç etti, bir kapının sentetik fikstürü onu miras aldı ve **ana deponun `.git/config`'ine `core.bare=true` yazdı** → ana checkout'ta `git status` dahil her komut `fatal: this operation must be run in a work tree` verdi, beş evin ortak checkout'u fiilen kilitlendi. `core.bare=false` ile onarıldı, kanca kablolaması + 6 kapı yeniden yeşil doğrulandı. Bilinen sınıfın (kanca kök çözümünü bozar) **daha ağır yüzü: kanca artık PAYLAŞILAN CONFIG'E YAZIYOR.** Commit ana checkout'a fast-forward ile alındı, push ana checkout'tan atıldı, worktree+dal silindi.
+
+**AÇIK KALAN İŞLER — sıradaki turun devralacağı (öncelik sırasıyla):**
+1. **(YENİ, EN ÖNCELİKLİ)** Worktree'den push → paylaşılan `.git/config`'e yazma sınıfını kapat. Bugün worktree'den atılan HER push bu riski taşıyor ve tüm evleri kilitleyebiliyor. Kabul: sentetik fikstür ana deponun config'ine yazamasın (fikstür `GIT_DIR`/`GIT_WORK_TREE` mirasını kırsın) + kontrol mutantı kırmızı yaksın.
+2. Yayın tavanı yapısal: zincir ~62 dk, `serit-a4` içindeki mutasyon bataryası tek başına ~2725 sn; push aralığı medyanı çok altında. Bataryayı bölme/paralelleştirme — iddia sayısı DÜŞMEDEN. Adım silme / `continue-on-error` YASAK.
+3. Model adları için boşluklu↔boşluksuz kanonik tablo YOK (`tools/arama.py`); A4 ikizi yalnız tespit ediliyor, yazma anında engellenmiyor → sıradaki varyant yayını yeniden durdurur. MaCiT ile ortak paket.
+4. `serit-b` kırmızı (yayını bloklamaz): `tools/marka-sayfa-mutasyon.py` bataryasında 18 öldürücüden 5'i hayatta (13/18).
+5. Canlı ödeme worker'ı bayat (main'den ~5,5 saat geride, eşik 120 dk) → iki alarm şeridi 8 Ağu'dan beri kırmızı. Düzeltme = shop dizininden worker deploy → **OKAN KAPISI**, bu turda Okan'a iletildi.
+6. `muh/marka-tek-sayfa` dalı (`73adb519`) hâlâ açık; eksik olan mutasyon bataryası + ilk-yük bayt tablosu → dar çürütme → merge.
+7. `stash@{0}` ve izlenmeyen `tools/paket-deploy-kritik-yol.md` başka oturumlara ait, DOKUNULMADI.
 
 ## 🔁 KraL DEVIR (clear oncesi yazildi) — SIRADAKI TEK IS: `muh/marka-tek-sayfa` dalini KAPAT
 **Okan emri (bu gece):** dali baslat; MaCiT mesgul oldugu icin 215 urunluk VERI onarimi BEKLIYOR.
