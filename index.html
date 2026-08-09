@@ -3767,13 +3767,17 @@
   //     tekrarlanabilir olur; "her yenilemede farklı" davranışı DEĞİŞTİRMEZ, yalnız
   //     ölçüm için sabitlenir)
   //   window.PRUVO_VITRIN.bloklar → yürürlükteki slot düzeni
+  //   window.PRUVO_VITRIN.ozetAl() → ozetAc'dan GEÇMİŞ, kartları sözlük
+  //     sözleşmesinde olan canlı özet. Kabul testi ham taşıma dizisini kendi
+  //     ikinci açıcısıyla yorumlamaz; üretimdeki gerçek tüketiciyi ölçer.
   // Ziyaretçi akışına HİÇBİR etkisi yok: yalnızca okuma + ölçüm kolu.
   if(typeof window !== "undefined"){
     window.PRUVO_VITRIN = {
       sirala: vitrinSirala,
       seedAl: function(){ return VITRIN_SEED; },
       seedKur: function(n){ VITRIN_SEED = n >>> 0; return VITRIN_SEED; },
-      bloklar: VITRIN_BLOKLAR
+      bloklar: VITRIN_BLOKLAR,
+      ozetAl: function(){ return OZET; }
     };
   }
 

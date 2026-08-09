@@ -5,7 +5,8 @@
  *   node shop/test/konfigur-golge.mjs
  *
  * FAZ 3 (golge) fiyati bundle'dan hesaplayip D1 ile YALNIZCA kiyasliyordu; canlida fark
- * 0 olculunce (17/17 'ayni', fark_kurus_toplam=0) FAZ 4'te kaynak CEVRILDI. Bu test yeni
+ * 0 olculunce (kanonik konfigurlu kume tumu 'ayni', fark_kurus_toplam=0) FAZ 4'te kaynak
+ * CEVRILDI. Bu test yeni
  * sozun IKI YARISINI da kanitlar:
  *   (1) tahsil edilen kurus D1 semasini IZLER ve bagimsiz orakille (/konfigur.js) birebir,
  *   (2) D1 kaydi YOK/BOS/BOZUK ise fiyat HESAPLANMAZ — 400, tahsilat YOK; bundle'a ya da
@@ -18,8 +19,9 @@
  *
  * KOSTUGU SETLER:
  *   1) MUSTERI DAVRANISI — 4 capa fiyat + konfigursuz urun; kolon VARKEN kurus orakille
- *      birebir, kolon YOKKEN 51/51 kalem FAIL-CLOSED 400.
- *   2) ARTEFAKT PARITESI — 17 urunun hepsinde bundle == D1 -> durum "ayni", fark 0, LOG YOK.
+ *      birebir, kolon YOKKEN kanonik kumedeki tum kalemler FAIL-CLOSED 400.
+ *   2) ARTEFAKT PARITESI — kanonik konfigurlu urunlerin hepsinde bundle == D1 -> durum
+ *      "ayni", fark 0, LOG YOK.
  *   3) KASTEN FARK — D1 semasi degistirilir: TAHSILAT D1'i IZLER (bundle capasini DEGIL),
  *      artefakt driftu ayrica GORUNUR (alan yolu) + rapor ucunda SAYILABILIR.
  *   4) PENCERE SINIFLARI — d1-eksik/d1-bozuk FAIL-CLOSED; bundle-eksik penceresi KAPANDI
@@ -278,6 +280,7 @@ const FRONT = require(path.join(KOK, "konfigur.js"));
 
 const URUNLER = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"));
 const KONFIGUR_URUNLER = URUNLER.filter((u) => u.konfigur);
+const KONFIGUR_SAYISI = KONFIGUR_URUNLER.length;
 const NORMAL_URUNLER = URUNLER.filter(
   (u) => !u.konfigur && !u.parametrik && u.fiyat && u.kategori !== "Skan Art").slice(0, 25);
 
@@ -384,7 +387,8 @@ iddia("KONFIGURSUZ urun (" + NORMAL.id + ") fiyati DEGISMEDI (" + nBeklenen + ")
 iddia("konfigursuz urun GOLGE LOGU URETMEZ (gurultu yok)", kn.a.loglar.length === 0,
       JSON.stringify(kn.a.loglar));
 
-// TUM 17 urun x 3 nokta: (a) kolon VARKEN kurus bagimsiz orakille (/konfigur.js) BIREBIR,
+// TUM kanonik konfigurlu urunler x 3 nokta: (a) kolon VARKEN kurus bagimsiz orakille
+// (/konfigur.js) BIREBIR,
 // (b) kolon YOKKEN kalem FAIL-CLOSED 400 ve tahsilat YOK.
 let orakilSayac = 0, kapaliSayac = 0, toplamDeneme = 0;
 for (const u of KONFIGUR_URUNLER) {
@@ -400,7 +404,8 @@ for (const u of KONFIGUR_URUNLER) {
     }
   }
 }
-iddia("17 urun x 3 nokta = " + toplamDeneme + " kalem: kolon VARKEN kurus orakille BIREBIR",
+iddia(KONFIGUR_SAYISI + " urun x 3 nokta = " + toplamDeneme +
+      " kalem: kolon VARKEN kurus orakille BIREBIR",
       orakilSayac === toplamDeneme, orakilSayac + "/" + toplamDeneme);
 iddia(toplamDeneme + " kalem: kolon YOKKEN hepsi FAIL-CLOSED 400 (tahsilat YOK)",
       kapaliSayac === toplamDeneme, kapaliSayac + "/" + toplamDeneme);
@@ -414,13 +419,15 @@ for (const u of KONFIGUR_URUNLER) {
                            parametreler: { boy_mm: 150 } });
   logSayaci += r.loglar.length;
 }
-iddia("17/17 urunde bundle == D1 -> HIC golge logu yok (fark 0)", logSayaci === 0,
+iddia(KONFIGUR_SAYISI + "/" + KONFIGUR_SAYISI +
+      " urunde bundle == D1 -> HIC golge logu yok (fark 0)", logSayaci === 0,
       "log=" + logSayaci);
 const rp = await rapor(MOD, KONFIGUR_URUNLER.map((u) => d1Satiri(u)), "test-yonet-anahtari");
 iddia("rapor: durum='parite'", rp.govde.durum === "parite", JSON.stringify(rp.govde.ozet));
 iddia("rapor: fark_kurus_toplam === 0", rp.govde.fark_kurus_toplam === 0,
       String(rp.govde.fark_kurus_toplam));
-iddia("rapor: ozet.ayni === 17", rp.govde.ozet && rp.govde.ozet.ayni === 17,
+iddia("rapor: ozet.ayni === kanonik konfigur sayisi (" + KONFIGUR_SAYISI + ")",
+      rp.govde.ozet && rp.govde.ozet.ayni === KONFIGUR_SAYISI,
       JSON.stringify(rp.govde.ozet));
 iddia("rapor: ayrisim kaydi YOK", (rp.govde.kayitlar || []).length === 0,
       JSON.stringify(rp.govde.kayitlar));
