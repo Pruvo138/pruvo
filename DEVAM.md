@@ -1,27 +1,46 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## ⏱ SAATLIK CI NOBETI — 9 Agu 06:37Z turu (ev DOGRU: ~/dev/pruvo)
+
+**Supurme (kosulsuz, §0.5):** kutu 7538 · GitHub toplam 1 · "Run failed" 1 → Cop'e **1** · tur sonu kalan **0**. Pozitif tanima izi ALINDI (kontrol eksenleri `google.com` **1801** · `pruvo3d.com` **12** — eslestirici calisiyor) → hukum SUPURULDU, OLCULEMEDI degil.
+
+**🔴 ASIL IS — yayin blokajinin TEK sebebi olculdu ve KAPATILDI.**
+Onceki iki tur "iki blokaj" demisti. Bu turda CI kuyruguna kosum EKLEMEDEN, PRISTINE worktree'de (`origin/main` = `bacb7e1e`) IS DUZEYINDE olculdu:
+- `build` **KIRMIZI** — `Statik sayfalari uret` (`tools/build.py`): ozet.json **154530 B > 153600 B** (`OZET_BUTCE = 150*1024`); `EDGE_KATALOG=true` oldugu icin uyari degil `sys.exit(1)`. Katalog 23105.
+- `serit-a2` **rc=0 YESIL** (22 iddia) · `serit-a3` **rc=0 YESIL**. Yani onceki turlarin "ikiz de blokaj" hukmu BU head'de gecerli DEGILDI — tek blokaj `build`.
+- ⚠️ `tools/faz3-yuk.js` HICBIR workflow adiminda CAGRILMIYOR (grep 0 isabet): oradaki butce kolu CI'da tetiklenmeyen OLU kapi. Kirmiziyi yalniz build.py'nin gomulu kapisi yakiyor.
+
+**Iki rakip onarim DEVRALINDI, olculdu, IKISI DE REDDEDILDI** (ikisi de ~2 saat sessiz: yerel diff mtime 05:09:50Z **iki turdur degismedi**, dal worktree son yazma 05:08:02Z, push YOK, muhendis raporu YOK):
+- **A** (ana checkout'ta commit'siz `tools/build.py` +140/-41 · `tools/faz3-yuk.js` +27/-5; bayt-geribeslemeli havuz kirpma): ozet **153593 B** — butceyi 7 B ile geciyor — ama `tools/eski-fiyat-test.py` **rc=1**: enjeksiyon ~22 B buyutunce dongu BIR KART FAZLA kirpiyor (Marin 100→98 vs 100→99), yani ozet ICERIGI katalogun degil BAYT BOYUTUNUN fonksiyonu oluyor. Bloklayici kapida kirmizi.
+- **B** (dal `onarim/ozet-butce` `854202d5`, push EDILMEMIS; kayipsiz dizi-sikistirma): ozet **134564 B**, en iyi ham sayi, butce GEVSETILMEMIS — ama `serit-a3`teki UC tuketiciyi guncellememis (`tools/edge-kart-kapisi.py` · `shop/test/sepet-panel.js` · `jenerator/test/vitrin-kabul.js`); `vitrin-kabul.js` **7/9**'a dusuyor (kart objesi bekleyen kod dizi aliyor, `kart.id` undefined). B'nin bayt fikri KALICI cozumdur; eksigi cozucunun yazilmamasi.
+- Ikisi de DOKUNULMADI/EZILMEDI: A hala ana checkout'ta commit'siz, B hala dalda.
+
+**INEN ONARIM (KENDI kolu, en kucuk patlama yaricapi) — `55ae7851`:** `index.html` `VITRIN_BLOKLAR` havuz **100 → 88** (Marin, Otomobil). **Butce SABIT 153600** — gevsetme YOK, adim silme YOK, `continue-on-error` YOK. Olculen: ozet **154530 → 143232 B**, `build.py` **rc=0**.
+Zorunlu yan onarim: `tools/vitrin-siralama-test.js` `fiksturB` havuz=100'e civiliydi ve yalniz 8 kalemlik payi vardi → HERHANGI bir yuk azaltmasi iddia 12a'yi `yetersiz=false` ile dusuruyordu; pay tek ustsuz terimden verildi (parametrik 4→40) ve **iki kontrol mutantiyla** 12a/12b'nin hala atesledigi dogrulandi.
+Havuz 88 secimi OLCUMLE: yuk 1 Agu'dan beri **137676 → 154530 B** ve **gunluk ±7 KB oynaklik** var (yeni urun aciklama metni + `markalar` haritasi 30136 B) → 6533 B paylik havuz=92 secenegi TEK GUNLUK gurultunun icinde kaldigi icin REDDEDILDI.
+
+**🔴 YAYIN HALA ACILMADI — sebep DEGISTI: iki YENI kirmizi tur ORTASINDA indi (`a046296a`, kardes oturum):**
+1. `serit-a2` → `tools/uyum-kapisi.py` A4: katalog model ikizi (bosluklu vs bosluksuz iki ham yazim, iki model) **4 kayit**. **MaCiT duzlemi — KraL urun verisine DOKUNMAZ.** Posta kutusuna yazildi.
+2. `serit-a3` → ic rapor adi kapisi: `DEVAM.md:7` ic rapor dosya adini tasiyordu. Kardes oturumun commit'siz kopyasinda ZATEN duzeltilmisti; bu turun defter commit'iyle iniyor. → [[nobet-kendi-defteri-yayini-durdurur]] (tekrar eden sinif, ikinci kez)
+
+**OLCULEMEDI (uydurulmadi):** `55ae7851`in kosumu **`31302602408` KUYRUKTA, hic BASLAMADI** — onceki commit'in kosumu (`31301608015`) hala in_progress ve `cancel-in-progress: false`. ~22 dk beklendi. `build`/`serit-a2`/`serit-a3`/`serit-a4`/`deploy`/`yayin` hukmu tur sonunda OLCULEMEDI. Yayin acligi olcum aninda **19 commit / ~340 dk**; son basarili deploy hala `3e7f1b24` (00:45:56Z, kosum `31286873618`).
+
+**Kapanan AYRI sinif:** `yayin-erisim-alarmi` 04:40Z'de 1/328 sayfa **503** diyordu; 06:03Z kosumu **328/328 = 200** (HUKUM ACIK) ve canli `curl` de **200** (kontrol ekseni anasayfa 200). Kendiliginden duzeldi, yayindan BAGIMSIZ dogrulandi — varsayilmadi.
+
+**SONRAKI TURUN ILK ISI:** (a) `31302602408`in `build` hukmunu ADIYLA olc — yesilse ozet onarimi kanitlanir; (b) MaCiT 4 kayitlik ikizi duzeltti mi (`serit-a2`); (c) ikisi de yesilse `deploy`/`yayin` indi mi — canli `last-modified` ile teyit; (d) B dalinin dizi-sikistirmasi + 3 tuketici cozucusu KALICI is olarak muhendise verilsin mi karari (havuz 88 yalnizca gecici pay satin aldi; egilim ±7 KB/gun).
+
 ## 2026-08-09 05:37Z — CI nöbeti (KraL)
 - Süpürme: GitHub toplam 1 · "Run failed" 1 → Çöp'e 1 · tur sonu kalan 0. Pozitif tanıma izi VAR (substring eşleşme, toplam > 0), hüküm TEMİZ.
 - CI HÜKÜM: KIRIK — bir önceki tura göre DEĞİŞMEDİ. Canlıdaki son başarılı deploy hâlâ `3e7f1b24` (00:45:56Z, koşum `31286873618`); main `bacb7e1e`, arada 20 commit yayınlanmamış, yayın açlığı ~5 saat.
 - İki blokaj AYNEN duruyor, ikisi de bu turda ELLENMEDİ:
-  1. `build`: ozet.json bayt bütçesi aşımı. Onarım İKİ AYRI biçimde uçuşta — (a) ana checkout'ta commit'siz `tools/build.py` + `tools/faz3-yuk.js` (mtime 05:09:50Z, ölçüm anında ~33 dk taze = CANLI iş, öksüz DEĞİL); (b) dal `onarim/ozet-butce` uç `854202d5`, main'in 1 commit önünde, main'den geride 0, uzağa push EDİLMEMİŞ, worktree ~43 dk hareketsiz, `RAPOR-MIMARA.md` YOK. Sıra posta kutusunda 05:1xZ'de kararlaştırılmış: (a) önce insin, (b) üstüne rebase olsun. HÜKÜM: bu turda MERGE YOK — (b)'yi almak (a)'nın commit'lenmemiş dosyalarını ezerdi.
+  1. `build`: ozet.json bayt bütçesi aşımı. Onarım İKİ AYRI biçimde uçuşta — (a) ana checkout'ta commit'siz `tools/build.py` + `tools/faz3-yuk.js` (mtime 05:09:50Z, ölçüm anında ~33 dk taze = CANLI iş, öksüz DEĞİL); (b) dal `onarim/ozet-butce` uç `854202d5`, main'in 1 commit önünde, main'den geride 0, uzağa push EDİLMEMİŞ, worktree ~43 dk hareketsiz, mühendis raporu YOK. Sıra posta kutusunda 05:1xZ'de kararlaştırılmış: (a) önce insin, (b) üstüne rebase olsun. HÜKÜM: bu turda MERGE YOK — (b)'yi almak (a)'nın commit'lenmemiş dosyalarını ezerdi.
   2. `serit-a2`: A4 model ikizi (aynı normalize değere düşen iki ham yazım), tam 1 kayıt. MaCiT düzlemi; posta 04:2xZ'de yazıldı, ~80 dk sonra katalog commit'i DEĞİŞMEDİ (son dokunan `3ab04a9d`) ve ikiz lokalde hâlâ ölçülüyor. Posta TEKRAR yazılmadı (gürültü).
 - `yayin-erisim-alarmi` kırmızı — AYRI SINIF, açlığın semptomu DEĞİL: 1 yayınlanmış sayfa canlıda HTTP 503, 327 sayfa açık, 0 ölçüm arızası. Yayın inince kendiliğinden yeşile döneceği VARSAYILMAYACAK, ayrıca ölçülecek.
 - `paket-tazelik-alarmi` kırmızı = açlık semptomu (çıkış 4; taranan 8 koşumda `deploy` işini başarıyla koşan koşum yok). `serit-b` mutasyon kırmızısı (18 öldürücüden 5 hayatta) yayını BLOKLAMAZ — ayrı kuyruk.
 - BU TURUN İCRASI ve DERSİ: `pages` grubu BOŞ ölçüldü (uçuşta koşum yok) → `workflow_dispatch` ile `31297165688` tetiklendi. Sonra defterin son nöbet notu okununca AYNI head üzerinde `build` + `serit-a2`'nin ölçülmüş kırmızı olduğu görüldü → `deploy` bunlara `needs` ile bağlı olduğu için yeşil bitemezdi, buna karşılık `pages` grubunu ~48 dk tutup (tavan `serit-a4`) onarım push'unun deploy'unu kuyruğa itecekti → koşum İPTAL edildi. DERS: dispatch'ten ÖNCE defterin son nöbet notu okunur; "grup boş" ile "yayın yapılabilir" AYNI ŞEY DEĞİLDİR.
 - SONRAKI TURUN İLK İŞİ: (a) ana checkout'taki commit'siz `build.py`/`faz3-yuk.js` indi mi — inmediyse mtime ilerledi mi (~2 saat sessizlikte öksüz sayılıp devralınacak); (b) MaCiT ikizi düzeltti mi; (c) ikisi de indiyse yeni push'un `build`/`serit-a2`/`deploy`/`yayin` hükmünü ölç; (d) 503 veren sayfayı yayından BAĞIMSIZ ölç.
 
-## 2026-08-09 04:37Z — CI nöbeti (KraL)
-- Süpürme: kutu 7538 · GitHub toplam 1 · "Run failed" 1 → Çöp'e 1 · tur sonu kalan 0. Pozitif tanıma izi var (substring eşleşme), hüküm TEMİZ.
-- CI HÜKÜM: KIRIK. Canlıdaki son başarılı deploy `3e7f1b24` (00:45:56Z); main 5 commit ileride, yayın kapalı.
-- İki blokaj, ikisi de BAŞKA düzlemde — bu turda ELLENMEDİ:
-  1. `build`: ozet.json 154530 > 153600 bayt bütçesi (katalog 23105). Onarım UÇUŞTA — ana checkout'ta commit edilmemiş `tools/build.py` + `tools/faz3-yuk.js` (mtime 04:25Z, ~20 dk taze; bütçeyi yükseltmek yerine deterministik kırpma + ikiz sabit türetmesi). Öksüz DEĞİL, devralınmadı.
-  2. `serit-a2`: A4 model ikizi (`townace`/`liteace` — boşluklu vs boşluksuz ham yazım, dilim-3 partisinde tek kayıt). MaCiT düzlemi; posta kutusuna 04:2xZ'de zaten yazılmış, tekrar yazılmadı. Bu turda MaCiT aksiyonu ölçülmedi (katalog değişmemiş).
-- BU TURUN TEK İCRASI: koşum `31293979280` iptal edildi. Kanıt kapısı: `build`=failure VE `serit-a2`=failure → `deploy` (`needs`) matematiksel olarak yeşil bitemezdi, ama `cancel-in-progress: false` yüzünden `pages` grubunu ~48 dk daha tutacaktı (tavan `serit-a4`). Teyit: completed:cancelled · `pages` grubunda açık koşum YOK → onarım push'u geldiğinde deploy kuyrukta beklemeyecek.
-- `yayin-nabzi` ardışık 3 koşum açlık (çıkış 4; 16 commit geride, en eski bekleyen 93 dk) — bağımsız arıza DEĞİL, yukarıdaki iki blokajın SEMPTOMU. Blokajlar kapanınca yeşile dönmesi AYRICA ölçülecek (varsayılmayacak).
-- `serit-b` mutasyon kırmızısı (18 öldürücüden 5 hayatta, `marka_model_build.py`) yayını BLOKLAMAZ — ayrı kuyruk.
-- Defter bloğu COMMIT EDİLMEDİ (bilerek): MaCiT işçileri şu an aktif ürün ekliyor ve ölçülmüş bir tuzak var — DEVAM.md-only bir commit, `urunler-guard.py` pre-commit self-heal'ini tetikleyip uçuştaki meşru bir `duzelt.py` yazımını geri sarabiliyor. Blok bir sonraki meşru commit'e binecek.
-- SONRAKI TURUN İLK İŞİ: (a) build.py yerel diff'i hâlâ commit'siz mi + mtime ilerledi mi (ilerlemediyse ~2 saat sessizlikte öksüz sayılıp devralınacak), (b) MaCiT ikiz kaydı düzeltti mi, (c) ikisi de indiyse `build`/`deploy`/`yayin` hükmünü ölç.
+## ⏱ SAATLIK CI NOBETI — 9 Agu 04:37Z turu — dokum ARSIVDE (supurme 1→Cop temiz; build ozet.json 154530>153600 + serit-a2 ikizi iki BASKA duzlemde, ellenmedi; olu kosum `31293979280` iptal edildi, `pages` grubu acildi; yayin-nabzi acligi ardisik 3 kosum)
 
 ## 🔁 KraL DEVIR (clear oncesi yazildi) — SIRADAKI TEK IS: `muh/marka-tek-sayfa` dalini KAPAT
 **Okan emri (bu gece):** dali baslat; MaCiT mesgul oldugu icin 215 urunluk VERI onarimi BEKLIYOR.
