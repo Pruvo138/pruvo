@@ -608,10 +608,19 @@ async function test6Vitrin() {
   const hatalar = [];
   const ilk = await sayfaKur({ tabanHarita: TABAN, seed: VITRIN_SEEDLER[0] });
   const vitrin = ilk.pencere().PRUVO_VITRIN;
+  const ilkKartlar = ilk.kartlar();
+  const undefinedId = ilkKartlar.filter((card) => {
+    const ana = sinifla(card, "card-main")[0];
+    return !ana || /\/undefined\/?$/.test(ana.href || "");
+  }).length;
+  if (undefinedId) {
+    hatalar.push("canli index tuketicisi " + undefinedId + " undefined id'li kart cizdi");
+  }
   if (!vitrin || !vitrin.bloklar || !vitrin.bloklar.length ||
-      typeof vitrin.seedAl !== "function") {
+      typeof vitrin.seedAl !== "function" || typeof vitrin.ozetAl !== "function") {
     rapor("6 vitrin: ilk slotlar on bloktan (deterministik tohum suprumu)",
-      ["window.PRUVO_VITRIN tani yuzeyi okunamadi (bloklar/seedAl yok) — OLCUM YAPILAMADI"]);
+      ["window.PRUVO_VITRIN tani yuzeyi okunamadi (bloklar/seedAl/ozetAl yok) " +
+       "— OLCUM YAPILAMADI"]);
     return;
   }
   const onBlok = vitrin.bloklar[0];
@@ -635,10 +644,13 @@ async function test6Vitrin() {
   }
 
   // (d) ON BLOK HAVUZU — ana sayfanin yukledigi liste ozet.json havuzlarindan gelir.
+  // Ham ozet.json v2 kartlari sıralı dizidir. Alan sözleşmesini burada ikinci kez
+  // yorumlamak yerine canli sayfanin ozetAc() tüketicisinden geçmiş kartlar okunur.
+  const canliOzet = vitrin.ozetAl();
   const gorulen = new Set();
   const onHavuz = [];
-  for (const anahtar of Object.keys(OZET)) {
-    const v = OZET[anahtar];
+  for (const anahtar of Object.keys(canliOzet || {})) {
+    const v = canliOzet[anahtar];
     const listeler = Array.isArray(v) ? [v]
       : (v && typeof v === "object" ? Object.keys(v).map((k) => v[k]) : []);
     for (const liste of listeler) {
@@ -685,7 +697,8 @@ async function test6Vitrin() {
     VITRIN_SEEDLER.length + " sabit tohum)", hatalar,
     VITRIN_SEEDLER.length + " tohum x " + adet + " slot; havuz " + onHavuz.length +
     " kart / " + kirli.length + " parametrik degil (tavan " + ON_BLOK_KIRLILIK_TAVANI +
-    "); en kotu tohumda (" + enKotuTohum + ") " + enAzSari + "/" + adet + " sari");
+    "); index cizilen " + ilkKartlar.length + " / undefined id " + undefinedId +
+    "; en kotu tohumda (" + enKotuTohum + ") " + enAzSari + "/" + adet + " sari");
 }
 
 /** 7 — URETIM: build.py --sadece-taban ciktisi semalarla birebir */
@@ -748,11 +761,22 @@ function test7Uretim() {
  *  ayrisirsa taklit, GERCEKTE olmayan bir kart sekliyle test yapmis olur (sahte nobetci).
  *  Burada uretilen ozet.json'un GERCEK kartlariyla karsilastirilarak baglaniyor: build.py
  *  kart_ozeti degisir de bu dosya degismezse test KIRMIZI yanar. */
-function test8KartSekli() {
+async function test8KartSekli() {
   const hatalar = [];
   const idye = {};
   for (const u of URUNLER) { idye[u.id] = u; }
-  const ornekler = (OZET.yeni || []).concat(OZET.parametrik || []);
+  // Kart alanlarını ham taşıma dizisinden bu test AÇMAZ. index.html'in üretimdeki
+  // ozetAc() tüketicisi tek kanonik `kartAlanlari` sözlüğünü okuyup sözleşme
+  // şeklini kurar; test o gerçek çıktıyı bağımsız edgeKart orakiliyle kıyaslar.
+  const sayfa = await sayfaKur({ tabanHarita: TABAN });
+  const vitrin = sayfa.pencere().PRUVO_VITRIN;
+  const canliOzet = vitrin && typeof vitrin.ozetAl === "function" ? vitrin.ozetAl() : null;
+  if (!canliOzet) {
+    rapor("8 edge kart sekli build.py kart_ozeti ile birebir",
+      ["index.html canli ozet tuketicisi okunamadi — OLCUM YAPILAMADI"]);
+    return;
+  }
+  const ornekler = (canliOzet.yeni || []).concat(canliOzet.parametrik || []);
   if (ornekler.length === 0) { hatalar.push("ozet.json'da karsilastirilacak kart YOK"); }
   let karsilastirilan = 0;
   for (const gercek of ornekler) {
@@ -821,7 +845,7 @@ async function main() {
   await test5Banner();
   await test6Vitrin();
   test7Uretim();
-  test8KartSekli();
+  await test8KartSekli();
   await test9EdgeSozlesmesi();
   if (TABANSIZ.length) {
     console.log("\n  ⚠️ YARGI LISTESI (fiyat karari Okan'in — FIYAT UYDURULMADI):");

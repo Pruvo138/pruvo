@@ -3363,7 +3363,21 @@ def render_merchant_feed(products):
 OZET_JSON = "ozet.json"
 OZET_YENI = 48            # ilk ekran 24 (PAGE_SIZE) + "daha fazla" için 1 sayfa pay
 OZET_ACIKLAMA_KES = 160   # Worker KART_ALANLARI substr(aciklama,1,160) ile AYNI olmalı
+# 🔴 OZET_BUTCE — TEK KAYNAK (tools/faz3-yuk.js bu satırı REGEX ile OKUR, kendi kopyasını
+# TUTMAZ; ikiz sabit sessizce ayrışırdı → [[ikiz-tanim-sessiz-ayrisma]]). BÜTÇE
+# YÜKSELTİLEREK "çözülmez" (mimar kararı, 9 Ağu 2026): bu bir edge ilk-boyama iş paketi
+# tavanıdır, katalog büyüdükçe elle yükseltmek aynı kırmızıyı bir sonraki partide geri
+# getirir ([[envanter-drift-parti-basina]]). Aşım, kart değerlerini koruyan kayıpsız
+# temsil sıkıştırmasıyla giderilir; kapı yine fail-closed HATA verir.
 OZET_BUTCE = 150 * 1024   # iş paketi hedefi (bkz. asagida: bayrak kapaliyken UYARI, acikken HATA)
+# İş paketi (paket-faz3-site-arama.md kabul 3): bayrak AÇIK ilk yük (index.html + ozet.json,
+# görseller hariç) < 500 KB. tools/faz3-yuk.js bunu da build.py'den REGEX ile okur.
+ILK_YUK_BUTCE = 500 * 1024
+# ozet.json kartları sabit sıralı diziler olarak taşır; uzun alan adlarını her kartta
+# tekrarlamaz. Alan adları artefaktın kendisinde TEK sözlük olarak bulunur ve istemci
+# dizileri bu sözlüğe göre açar. Değerlerin tamamı korunur; yalnız temsil sıkıştırılır.
+OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
+                      "parametrik", "aciklama", "eski_fiyat", "tur")
 
 
 def kart_ozeti(p):
@@ -3422,6 +3436,16 @@ def kart_ozeti(p):
     return kart
 
 
+def ozet_karti_sikistir(kart):
+    """Tam kart sözlüğünü kayıpsız, sabit sıralı dizi temsiline çevirir.
+
+    Sondaki koşullu alanlar yoksa taşınmaz; aradaki boş konumlar ``None`` kalır. Böylece
+    ``tur`` taşıyan kartta ``eski_fiyat`` konumu korunur ve istemci alanları kaydıramaz.
+    """
+    son = max((i for i, alan in enumerate(OZET_KART_ALANLARI) if alan in kart), default=-1)
+    return [kart.get(alan) for alan in OZET_KART_ALANLARI[:son + 1]]
+
+
 # ------------------------------------ ANA SAYFA VİTRİN HİYERARŞİSİ (Okan kuralı, 31 Tem)
 # KURAL: filtresiz ana vitrin SLOT DÜZENİYLE çizilir — 4 Jeneratör · 80 Marin · 80 Otomobil ·
 # gerisi karışık; her blok KENDİ İÇİNDE rastgele sıralanır.
@@ -3464,6 +3488,7 @@ def _index_vitrin_kurali():
 
 
 def render_ozet(products):
+    """ozet.json'u kayıpsız kart temsiliyle üretir; arama/vitrin havuzlarını kırpmaz."""
     kategoriler = {}
     markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
     for p in products:
@@ -3477,51 +3502,75 @@ def render_ozet(products):
     # kategorideki ilk `havuz` ürünü (en yeni önce) ozet'e konur; tarayıcı seed'iyle
     # karıştırıp ilk `adet` kadarını çizer. havuz > adet olduğu için her yenilemede
     # farklı ürünler öne gelir.
+    #
+    # Kartlar (kart_ozeti) burada TEK SEFER hesaplanır; içerik ve sıra korunur.
     vitrin_bloklar = _index_vitrin_kurali()
     parametrik_kartlar = [kart_ozeti(p) for p in products if p.get("parametrik")]
-    bloklar = {}
-    blok_sapma = []
-    yetersiz = False
+    tam_havuzlar = {}    # kategori -> tam kart listesi (havuz_n0 kadar, ya da stok kadar)
+    stoklar = {}
+    havuz_n0 = {}        # VITRIN_BLOKLAR'da TANIMLI başlangıç havuz adedi
     for kural in vitrin_bloklar:
-        kat = kural["kategori"]
-        adet = int(kural["adet"])
-        havuz_n = int(kural["havuz"] or 0)
         if kural["kaynak"] == "parametrik":
-            # İKİNCİ KOPYA AÇILMAZ: sarı seri havuzu ozet.parametrik alanının kendisi.
-            havuz_kartlar = parametrik_kartlar
-            stok = len(parametrik_kartlar)
-        else:
-            aday = [p for p in products if (p.get("kategori") or "") == kat]
-            stok = len(aday)
-            havuz_kartlar = [kart_ozeti(p) for p in (aday[:havuz_n] if havuz_n else aday)]
-            bloklar[kat] = havuz_kartlar
-        if len(havuz_kartlar) < adet:
-            yetersiz = True
-        blok_sapma.append({"kategori": kat, "adet": adet,
-                           "havuz": len(havuz_kartlar), "stok": stok})
+            continue
+        kat = kural["kategori"]
+        havuz_n = int(kural["havuz"] or 0)
+        aday = [p for p in products if (p.get("kategori") or "") == kat]
+        stoklar[kat] = len(aday)
+        tam_havuzlar[kat] = [kart_ozeti(p) for p in (aday[:havuz_n] if havuz_n else aday)]
+        havuz_n0[kat] = len(tam_havuzlar[kat])
+
+    yeni_kartlar = [kart_ozeti(p) for p in products[:OZET_YENI]]
+
+    def _uret(havuz_boyut):
+        """Verilen havuz adetleriyle ozet sözlüğünü (ve JSON metnini) kurar."""
+        bloklar = {}
+        blok_sapma = []
+        yetersiz = False
+        for kural in vitrin_bloklar:
+            kat = kural["kategori"]
+            adet = int(kural["adet"])
+            if kural["kaynak"] == "parametrik":
+                havuz_kartlar = parametrik_kartlar
+                stok = len(parametrik_kartlar)
+            else:
+                n = havuz_boyut.get(kat, havuz_n0.get(kat, 0))
+                havuz_kartlar = tam_havuzlar.get(kat, [])[:n]
+                bloklar[kat] = havuz_kartlar
+                stok = stoklar.get(kat, 0)
+            if len(havuz_kartlar) < adet:
+                yetersiz = True
+            blok_sapma.append({"kategori": kat, "adet": adet,
+                               "havuz": len(havuz_kartlar), "stok": stok})
+        ozet = {
+            "surum": 2,
+            "kartAlanlari": list(OZET_KART_ALANLARI),
+            "uretim": TODAY,
+            "toplam": len(products),
+            "kategoriler": kategoriler,
+            "markalar": markalar,
+            # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
+            "parametrik": [ozet_karti_sikistir(k) for k in parametrik_kartlar],
+            # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
+            "bloklar": {kat: [ozet_karti_sikistir(k) for k in kartlar]
+                         for kat, kartlar in bloklar.items()},
+            # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
+            # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
+            "yeni": [ozet_karti_sikistir(k) for k in yeni_kartlar],
+            # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
+            "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
+        }
+        return json.dumps(ozet, ensure_ascii=False, separators=(",", ":")), yetersiz, blok_sapma
+
+    havuz_boyut = dict(havuz_n0)
+    metin, yetersiz, blok_sapma = _uret(havuz_boyut)
+    bayt = len(metin.encode("utf-8"))
+
     if yetersiz:
         print("UYARI: vitrin-sapma — blok havuzu YETERSIZ (%s); ilgili blok kisalir, "
               "bosluk birakilmaz."
               % ", ".join("%s %d/%d" % (b["kategori"], b["havuz"], b["adet"])
                           for b in blok_sapma))
-
-    ozet = {
-        "surum": 1,
-        "uretim": TODAY,
-        "toplam": len(products),
-        "kategoriler": kategoriler,
-        "markalar": markalar,
-        # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
-        "parametrik": parametrik_kartlar,
-        # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
-        "bloklar": bloklar,
-        # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
-        # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
-        "yeni": [kart_ozeti(p) for p in products[:OZET_YENI]],
-        # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
-        "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
-    }
-    return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
+    return metin
 
 
 def _index_bayragi(ad):
@@ -3811,12 +3860,11 @@ def main():
     if ozet_bayt > OZET_BUTCE:
         if _index_bayragi("EDGE_KATALOG"):
             print("HATA: ozet.json butceyi asti (%d > %d bayt) ve EDGE_KATALOG ACIK. "
-                  "index.html VITRIN_BLOKLAR havuzlarini kucult, OZET_YENI'yi dusur ya da "
-                  "marka haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
+                  "Kart temsilini ya da VITRIN_BLOKLAR havuzlarini yeniden olc."
+                  % (ozet_bayt, OZET_BUTCE))
             sys.exit(1)
         print("UYARI: ozet.json butceyi asti (%d > %d bayt). EDGE_KATALOG kapali oldugu "
-              "icin yayin KIRILMADI; bayragi acmadan once VITRIN_BLOKLAR havuzlarini "
-              "kucult, OZET_YENI'yi dusur ya da marka haritasini esikle kirp."
+              "icin yayin KIRILMADI; bayragi acmadan once kart temsilini yeniden olc."
               % (ozet_bayt, OZET_BUTCE))
 
 

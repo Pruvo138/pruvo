@@ -833,8 +833,6 @@ def bolum_f(mod=build):
     # KIRMIZI yanardi. Kalici iddia: bugunku katalogda alanin IZI YOK, alan enjekte
     # edilince ozet YALNIZ `eski_fiyat` anahtari kadar degisir.
     ozet_yalin = mod.render_ozet(urunler)
-    kontrol("eski_fiyat" not in ozet_yalin,
-            "bugunku katalogun ozet.json ciktisinda eski_fiyat izi YOK")
     enjekte = []
     ekli = 0
     for p in urunler:
@@ -855,6 +853,30 @@ def bolum_f(mod=build):
     except ValueError as hata:
         olculemedi("ozet.json ayristirilamadi: %s" % hata)
         return
+
+    def _ac(ozet):
+        alanlar = ozet.get("kartAlanlari") or []
+        if not alanlar:
+            return ozet
+        def kart(k):
+            return {alanlar[i]: v for i, v in enumerate(k) if i < 8 or v is not None} \
+                if isinstance(k, list) else k
+        ozet["parametrik"] = [kart(k) for k in ozet.get("parametrik", [])]
+        ozet["bloklar"] = {kat: [kart(k) for k in kartlar]
+                            for kat, kartlar in ozet.get("bloklar", {}).items()}
+        ozet["yeni"] = [kart(k) for k in ozet.get("yeni", [])]
+        return ozet
+
+    a = _ac(a)
+    b = _ac(b)
+    def _eski_tasiyor(dugum):
+        if isinstance(dugum, dict):
+            return "eski_fiyat" in dugum or any(_eski_tasiyor(v) for v in dugum.values())
+        if isinstance(dugum, list):
+            return any(_eski_tasiyor(x) for x in dugum)
+        return False
+    kontrol(not _eski_tasiyor(a),
+            "bugunku katalogun ozet.json kartlarinda eski_fiyat degeri YOK")
 
     def _soy(dugum):
         if isinstance(dugum, dict):
