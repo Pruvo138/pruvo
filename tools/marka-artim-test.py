@@ -38,6 +38,12 @@ KART_RE = re.compile(r'<div class="card" data-kat="([^"]*)"([^>]*)><a class="car
 BTN_RE = re.compile(r'<a class="mm-model-btn" href="([^"]+)" data-katsay="([^"]*)" '
                     r'data-mm="(\d+)"')
 MANIFEST_RE = re.compile(r'<script type="application/json" id="mmManifest">(.*?)</script>', re.S)
+SAYIM_RE = re.compile(r'<span class="mm-sayim-kart">(\d+)</span>')
+EDGE_KANON_RE = re.compile(
+    r'fetch\(EDGE_UC \+ "([^"]+)" \+ encodeURIComponent\(eksik\.slice\(0,\s*(\d+)\)')
+
+FIKSTUR_YANLIS_MARKA_ID = "fikstur-yalniz-toyota"
+FIKSTUR_GECERSIZ_ID = ""
 
 # --------------------------------------------------------------------------- node harness
 _HARNESS = r"""
@@ -106,7 +112,7 @@ let fetchCagri = 0, yukCagri = 0, edgeCagri = 0;
 const istenenIdler = [];          // edge'den istenen TÜM id'ler (mükerrer dahil)
 const partiBoylari = [];
 const bilinmeyenAdres = [];
-const EDGE_ONEK = V.manifest.uc + V.manifest.yol;
+const EDGE_ONEK = V.manifest.uc + V.kanonikYol;
 function fetchSim(u){
   fetchCagri++;
   if(u === V.manifest.yuk){
@@ -225,6 +231,23 @@ def olc(dokum=False):
     try:
         with open(os.path.join(build.ROOT, "urunler.json"), encoding="utf-8") as f:
             products = json.load(f)
+        # Ayırt edici kayıtlar: yalnız-Toyota kaydı Honda'ya sızamaz; boş kimlikli kayıt
+        # hiçbir marka sayfasında karta dönüşemez. İki DAF desteği sayfayı eşikte tutar.
+        # Bu dört sentetik kayıt ürün kaynağına yazılmaz.
+        products = [
+            {"id": FIKSTUR_GECERSIZ_ID, "kategori": "Otomobil", "marka": ["DAF"],
+             "baslik": "Kimliksiz test parçası", "aciklama": "Test fikstürü",
+             "fiyat": "1 TL", "gorseller": []},
+            {"id": "fikstur-daf-destek-1", "kategori": "Otomobil", "marka": ["DAF"],
+             "baslik": "DAF test parçası bir", "aciklama": "Test fikstürü",
+             "fiyat": "1 TL", "gorseller": []},
+            {"id": "fikstur-daf-destek-2", "kategori": "Otomobil", "marka": ["DAF"],
+             "baslik": "DAF test parçası iki", "aciklama": "Test fikstürü",
+             "fiyat": "1 TL", "gorseller": []},
+            {"id": FIKSTUR_YANLIS_MARKA_ID, "kategori": "Otomobil", "marka": ["Toyota"],
+             "baslik": "Toyota test parçası", "aciklama": "Test fikstürü",
+             "fiyat": "1 TL", "gorseller": []},
+        ] + products
         ctx = build.marka_model_ctx()
         ctx["ROOT"] = tmp
         shutil.copy(os.path.join(build.ROOT, "index.html"), os.path.join(tmp, "index.html"))
@@ -238,6 +261,21 @@ def olc(dokum=False):
         print("OLCULEMEDI: sayfa üretilemedi: %r" % (e,))
         return 3, kapi
 
+    kanon_eslesmeleri = EDGE_KANON_RE.findall(index_html)
+    if len(kanon_eslesmeleri) != 1:
+        print("OLCULEMEDI: index.html edge kanonu tekil degil: %r" % (kanon_eslesmeleri,))
+        shutil.rmtree(tmp, ignore_errors=True)
+        return 3, kapi
+    kanonik_yol, kanonik_parti_ham = kanon_eslesmeleri[0]
+    kanonik_parti = int(kanonik_parti_ham)
+
+    # BAĞIMSIZ KART KÜMESİ: üretilen her marka kartı kaynak ürünün ham marka üyeliğine
+    # uymalı; boş/bilinmeyen kimlik hiçbir kartta görünmemeli.
+    urunler_id = {p.get("id"): p for p in products if p.get("id")}
+    evren = mm.MarkaEvreni(index_html)
+    yanlis_marka = []
+    gecersiz_kimlik = []
+
     # FİKSTÜR = en çok model butonu olan marka sayfası (filtre ekseni en zengin orada)
     aday = None
     for dirpath, _dn, fns in os.walk(os.path.join(tmp, "marka")):
@@ -248,6 +286,17 @@ def olc(dokum=False):
             continue
         with open(os.path.join(dirpath, "index.html"), encoding="utf-8") as f:
             ham = f.read()
+        marka_slug = rel.split("/")[-1]
+        for _kat, _ek, href in KART_RE.findall(SCRIPT_RE.sub("", ham)):
+            pid = href.strip("/").split("/")[-1] if href != "/urun//" else ""
+            p = urunler_id.get(pid)
+            if not pid or p is None:
+                gecersiz_kimlik.append((rel, href))
+                continue
+            uye_sluglari = {mm._slug(evren.katla((x or "").strip()))
+                            for x in (p.get("marka") or [])}
+            if marka_slug not in uye_sluglari:
+                yanlis_marka.append((rel, pid, sorted(uye_sluglari)))
         n_btn = len(BTN_RE.findall(ham))
         if aday is None or n_btn > aday[2]:
             aday = (rel, dirpath, n_btn, ham)
@@ -266,6 +315,8 @@ def olc(dokum=False):
         return 3, kapi
     manifest_metni = mm_manifest.group(1)
     manifest = json.loads(manifest_metni)
+    sayim_eslesmesi = SAYIM_RE.search(govde)
+    gorunur_sayac = int(sayim_eslesmesi.group(1)) if sayim_eslesmesi else None
 
     ssr_kartlar = [{"kat": kat, "mm": (ek.split('data-mm="')[1].split('"')[0]
                                       if 'data-mm="' in ek else None),
@@ -295,6 +346,7 @@ def olc(dokum=False):
     veri = {
         "artimJs": mm._ARTIM_JS_GOVDE, "kapsamJs": kapsam_js,
         "manifest": manifest, "manifestMetni": manifest_metni,
+        "kanonikYol": kanonik_yol, "kanonikParti": kanonik_parti,
         "yuk": yuk, "edge": edge,
         "ssrKartlar": ssr_kartlar, "cipler": cipler,
         "search": "", "pathname": "/" + rel + "/",
@@ -339,6 +391,15 @@ def olc(dokum=False):
                    for h in (r.get("cipHrefleri") or [])) and len(r.get("cipHrefleri") or []) > 0,
                "çip href'leri model sayfasına gitmiyor: %r"
                % ((r.get("cipHrefleri") or [])[:3],))
+    kapi.iddia("A3b HER KART SAYFASININ MARKASINA AIT",
+               not yanlis_marka,
+               "yanlis marka kartlari: %r" % (yanlis_marka[:3],))
+    kapi.iddia("A3c GECERSIZ KIMLIKLI KART YOK",
+               not gecersiz_kimlik,
+               "gecersiz kimlik kartlari: %r" % (gecersiz_kimlik[:3],))
+    kapi.iddia("A3d GORUNUR KART SAYACI SSR ILE TUTARLI",
+               gorunur_sayac == len(ssr_kartlar),
+               "sayac %r != fiilen basilan kart %d" % (gorunur_sayac, len(ssr_kartlar)))
 
     # ---- KABUL: ÇİP SAYFA İÇİNDE FİLTRELER, ADRES DEĞİŞMEZ
     kapi.iddia("A4 CIP TIKLAMASI ONLENDI (preventDefault)", bool(r.get("cipOnlendi")),
@@ -382,15 +443,19 @@ def olc(dokum=False):
                % (r.get("acilistaFetch"),))
     kapi.iddia("A14b BILINMEYEN/TOPLU ADRESE ISTEK YOK", not (r.get("bilinmeyenAdres") or []),
                "edge/yük dışı adrese istek atıldı: %r" % ((r.get("bilinmeyenAdres") or [])[:3],))
+    kapi.iddia("A14b2 MANIFEST EDGE YOLU KANONIK",
+               manifest.get("yol") == kanonik_yol,
+               "manifest yolu %r != index kanonu %r" % (manifest.get("yol"), kanonik_yol))
     kapi.iddia("A14c YUK BIR KEZ CEKILDI", r.get("yukCagri") == 1,
                "parcalar.json %r kez çekildi (1 olmalı; sonrası bellekten)"
                % (r.get("yukCagri"),))
-    bek_parti = (bek_tumu + manifest["parti"] - 1) // manifest["parti"] if bek_tumu else 0
+    bek_parti = (bek_tumu + kanonik_parti - 1) // kanonik_parti if bek_tumu else 0
     kapi.iddia("A14d EDGE ISTEGI PARTILI VE GEREKTIGI KADAR",
                (r.get("edgeCagri") or 0) > 0
-               and (r.get("enBuyukParti") or 0) <= manifest["parti"],
+               and (r.get("enBuyukParti") or 0) <= kanonik_parti
+               and manifest.get("parti") == kanonik_parti,
                "edge isteği %r, en büyük parti %r (tavan %r); beklenen parti sayısı ~%d"
-               % (r.get("edgeCagri"), r.get("enBuyukParti"), manifest["parti"], bek_parti))
+               % (r.get("edgeCagri"), r.get("enBuyukParti"), kanonik_parti, bek_parti))
     kapi.iddia("A14e YALNIZ GEREKEN ID ISTENDI (tum katalog DEGIL)",
                (r.get("istenenTekil") or 0) == bek_tumu,
                "istenen tekil id %r != çizilecek kalem %d (fazlası tüm katalog çekmek olurdu)"
