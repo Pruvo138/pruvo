@@ -420,6 +420,55 @@ def main():
         lambda: _pp_mutant(None, "\n# KONTROL MUTANTI — ilgisiz yorum satiri\n"),
         False)
 
+    # ---- KABLONUN KABLOSU (IKINCI TUR) --------------------------------------
+    # Curutucu olcumu: iki yeni nobetciyi GOVDESINDEN sokmak yakalaniyordu, ama
+    # BLOKLAYICI koldan CAGRI SATIRINI silmek (KB-C/KB-D) ya da `--kendini-test`
+    # hukmundeki PAYINI dusurmek (KB-E) DORT bataryayi da YESIL birakiyordu.
+    # 🔴 KAYNAK METNI GECIRILIR, MODUL DEGIL: `suzgec_kablosu_kontrol()` KENDI
+    # dosyasini okur; mutant modul yuklemek kabloyu OLCMEZDI (mutant modul yine
+    # PRISTINE dosyayi okur — olculdu: uc mutant da rc=0 verdi). Nobetcinin
+    # `kaynak=` test seami tam bu yuzden var.
+    def _kablo_nobetcisi(capa=None, ikame=None, adet=1):
+        with open(KAPI_YOLU, encoding="utf-8") as f:
+            kaynak = f.read()
+        if capa is not None:
+            gecen = kaynak.count(capa)
+            if gecen != adet:
+                raise RuntimeError("KABLO MUTANTI OLCULEMEDI: capa %d kez gecti "
+                                   "(beklenen %d)" % (gecen, adet))
+            kaynak = kaynak.replace(capa, ikame)
+        ok, hatalar = KAP.suzgec_kablosu_kontrol(kaynak=kaynak)
+        return (0 if ok else 1), hatalar
+
+    olc("KABLO-NOBETCI-TABAN suzgec_kablosu_kontrol (mutasyonsuz)",
+        lambda: _kablo_nobetcisi(), False)
+
+    olc("M-KB4 (KB-C) denetle()'den MAIN-KABLO cagrisi SILINDI",
+        lambda: _kablo_nobetcisi(
+            "        _, kablo_hata = main_kablosu_kontrol()",
+            "        kablo_hata = []"),
+        True, "NOBETCI KABLOSU KOPMUS")
+
+    olc("M-KB5 (KB-D) denetle()'den PRE-PUSH-KABLO cagrisi SILINDI",
+        lambda: _kablo_nobetcisi(
+            "        _, pp_hata = pre_push_kablo_kontrol()",
+            "        pp_hata = []"),
+        True, "NOBETCI KABLOSU KOPMUS")
+
+    olc("M-KB6 (KB-E) `--kendini-test` hukmu `and` yerine `or`",
+        lambda: _kablo_nobetcisi(
+            "                and ok10 and ok11):",
+            "                or ok10 or ok11):"),
+        True, "KENDINI-TEST HUKMU `and` DEGIL")
+
+    olc("KONTROL-5 hukumdeki `okN` sirasi degisti (SEMANTIK AYNI, yesil kalmali)",
+        lambda: _kablo_nobetcisi(
+            "        if (ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 "
+            "and ok9\n                and ok10 and ok11):",
+            "        if (ok11 and ok10 and ok9 and ok8 and ok7 and ok6 and ok5 and ok4 "
+            "and ok3\n                and ok2 and ok1):"),
+        False)
+
     olc("M-IZ2 izlenmeyen kova UYARI'ya cevrildi (exit koduna dokunmuyor)",
         lambda: _iz_fikstur(_mutant_modul(
             "iz2",
