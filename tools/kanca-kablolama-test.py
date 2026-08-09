@@ -198,6 +198,14 @@ def _kanca_arac_adlari(kanca_kaynagi):
 def _araclari_ser(kok, kanca_kaynagi):
     """Sentetik depoya stub `tools/*.py` serer (adlar KANONIK kaynaktan turetilir).
 
+    🔴 CAKISMA COZUMU (9 Agu 2026): main `3e7f1b24` AYNI refactor'u bagimsiz yapti
+    (`\\btools/(...)\\b` prozadan da yakalar, bos kume kontrolu YOK, `kanca-kur.py`
+    da stub'lanir). DALIN SURUMU KORUNDU cunku: (a) capa `$degisken/tools/<ad>.py`
+    ATAMA eksenidir -> yorumdaki duz "tools/foo.py" prozasi stub uretmez, (b) bos
+    kume FAIL-CLOSED istisna atar (sessiz '0 arac gerekiyormus' YOK), (c)
+    `_STUB_DISI` `kanca-kur.py`yi disarida birakir — VAKA 8 onu GERCEK dosya olarak
+    kendisi serer, stub golgelerdi. Main'in daha genis regex'ine DONULMEDI.
+
     Stub'lar fiilen HICBIR IS YAPMAZ; varliklari kancalarin "arac YOK" kolunu
     tetiklememesi icindir."""
     for ad in _kanca_arac_adlari(kanca_kaynagi):
