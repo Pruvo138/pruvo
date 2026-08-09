@@ -63,6 +63,17 @@ if [ "$pruvo_kapsam_rc" -ne 0 ]; then
   exit 1
 fi
 
+# --- WORKTREE TAVAN NOBETI (RAPOR-ONLY; ASLA BLOKLAMAZ) ---------------------
+# Yerel worktree envanteri CI'da anlamsizdir; yalniz bu makinede gorunurluk verir.
+# Nobetci hata verse bile bu adim push sonucunu ETKILEMEZ.
+if [ -n "$pruvo_kapsam_kok" ] && [ -f "$pruvo_kapsam_kok/tools/worktree-tavan-nobeti.py" ]; then
+  if python3 "$pruvo_kapsam_kok/tools/worktree-tavan-nobeti.py"; then
+    :
+  else
+    echo "!! WORKTREE TAVAN NOBETI hata verdi (push DEVAM ediyor)."
+  fi
+fi
+
 # >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir — ELLE DUZENLEME) >>>
 # FAIL-CLOSED: bu itme temizlenmis sizintiyi (mesaj YA DA icerik ekseni) GERI
 # GETIRIYORSA PUSH DURUR. Gerekce: tools/gecmis-geri-donus-hook-kur.py basligi.
