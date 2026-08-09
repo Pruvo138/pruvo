@@ -48,6 +48,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 VARSAYILAN_GUARD = os.path.join(TOOLS, "urunler-guard.py")
@@ -182,8 +183,9 @@ def _ham_env():
 
 
 def g(kok, *a, env=None):
-    p = subprocess.run(["git", "-C", kok, *a], capture_output=True,
-                       text=True, env=env or _env())
+    p = sentetik_git(kok, *a, capture_output=True, text=True,
+                      ek_ortam=env or _env(), kimlik_ad="Kabul",
+                      kimlik_eposta="kabul@pruvo.test")
     return p.returncode, p.stdout + p.stderr
 
 
@@ -208,8 +210,6 @@ def kur_depo(guard, kopru, katalog, env=None):
     shutil.copy(guard, os.path.join(d, "tools", "urunler-guard.py"))
     shutil.copy(kopru, os.path.join(d, "tools", "urunler-guard-hook.py"))
     g(d, "init", "-q", "-b", "main", env=env)
-    g(d, "config", "user.email", "kabul@pruvo.test", env=env)
-    g(d, "config", "user.name", "Kabul", env=env)
     g(d, "config", "commit.gpgsign", "false", env=env)
     yaz_katalog(d, katalog)
     g(d, "add", "-A", env=env)

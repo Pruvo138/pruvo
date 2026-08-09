@@ -53,6 +53,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 YEDEKLE = os.path.join(TOOLS, "yedekle.py")
@@ -198,7 +199,7 @@ def kum_havuzu(td, kaynak_betik):
          'def stl_dizini(sessiz=False):\n    return %r\n'
          'def pruvo_dizini(sessiz=False):\n    return %r\n'
          % (os.path.join(pruvo, "STL"), pruvo))
-    subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+    sentetik_git(kok, "init", "-q", capture_output=True)
 
     beklenen = ()
     with open(kaynak_betik, encoding="utf-8") as f:

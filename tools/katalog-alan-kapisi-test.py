@@ -203,9 +203,9 @@ def vaka(s, ad, fn, *args):
 
 # ---------------------------------------------------------------------------
 def _git(depo, *args, **kw):
-    ortam = kw.get("ortam") or go.git_ortami()
-    return subprocess.run(["git", "-C", depo, *args], capture_output=True,
-                          text=True, errors="replace", env=ortam)
+    return go.sentetik_git(depo, *args, capture_output=True, text=True,
+                            errors="replace", ek_ortam=kw.get("ortam"),
+                            kimlik_ad="t", kimlik_eposta="t@t.local")
 
 
 def _json_yaz(yol, veri):
@@ -220,8 +220,6 @@ def depo_kur(yol, kapi_kaynagi, head_kayitlari, arama_koy=True):
         shutil.copyfile(GERCEK_ARAMA, os.path.join(yol, "tools", "arama.py"))
     shutil.copyfile(kapi_kaynagi, os.path.join(yol, "tools", "katalog-alan-kapisi.py"))
     _git(yol, "init", "-q", "-b", "main")
-    _git(yol, "config", "user.email", "t@t.local")
-    _git(yol, "config", "user.name", "t")
     _json_yaz(os.path.join(yol, "urunler.json"), head_kayitlari)
     _git(yol, "add", "-A")
     # `core.hooksPath=/dev/null`: sentetik depo ASLA bu makinenin kancalarini kosmasin.
@@ -406,8 +404,6 @@ def _altdizin_kanca_kok(kok, ad, kapi_kaynagi):
     ana = os.path.join(kok, ad + "-ana")
     os.makedirs(os.path.join(ana, "tools"))
     _git(ana, "init", "-q", "-b", "main")
-    _git(ana, "config", "user.email", "t@t.local")
-    _git(ana, "config", "user.name", "t")
     shutil.copyfile(GERCEK_ARAMA, os.path.join(ana, "tools", "arama.py"))
     shutil.copyfile(kapi_kaynagi, os.path.join(ana, "tools", "katalog-alan-kapisi.py"))
     _json_yaz(os.path.join(ana, "urunler.json"), [TEMIZ_KAYIT])

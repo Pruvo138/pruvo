@@ -39,6 +39,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 import time
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -75,8 +76,9 @@ def _temiz_env():
 
 
 def _git(kok, *args, **kw):
-    return subprocess.run(["git"] + list(args), cwd=kok, capture_output=True,
-                          text=True, env=_temiz_env(), timeout=kw.get("zaman", 120))
+    return sentetik_git(kok, *args, capture_output=True, text=True,
+                         kimlik_ad="t", kimlik_eposta="t@t",
+                         timeout=kw.get("zaman", 120))
 
 
 def _urun(uid):
@@ -151,8 +153,6 @@ def fikstur_kur(tmp, ad, kanca_govdesi=None):
     _git(uzak, "symbolic-ref", "HEAD", "refs/heads/main")
     _git(depo, "init", "-q")
     _git(depo, "symbolic-ref", "HEAD", "refs/heads/main")
-    _git(depo, "config", "user.email", "t@t")
-    _git(depo, "config", "user.name", "t")
     _git(depo, "remote", "add", "origin", uzak)
 
     # Kancanin fail-closed on-kapilari: sentetik depoda stub (bu test onlari olcmez).

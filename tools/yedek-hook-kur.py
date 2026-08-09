@@ -55,6 +55,11 @@ import subprocess
 import sys
 import tempfile
 
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+if TOOLS not in sys.path:
+    sys.path.insert(0, TOOLS)
+from git_ortami import sentetik_git  # noqa: E402
+
 BAS = "# >>> PRUVO YEDEK BLOGU (tools/yedek-hook-kur.py uretir — ELLE DUZENLEME) >>>"
 SON = "# <<< PRUVO YEDEK BLOGU <<<"
 
@@ -260,9 +265,8 @@ def kendini_test():
 
         klon = os.path.join(td, "bos-klon")
         os.makedirs(os.path.join(klon, "tools"))
-        subprocess.run(["git", "-C", klon, "init", "-q", "-b", "main"], check=True)
-        subprocess.run(["git", "-C", klon, "config", "user.email", "t@t"], check=True)
-        subprocess.run(["git", "-C", klon, "config", "user.name", "t"], check=True)
+        sentetik_git(klon, "init", "-q", "-b", "main", check=True,
+                      kimlik_ad="t", kimlik_eposta="t@t")
         kontrol("taze klonda hook YOK (klonlama hook TASIMAZ — testin ONCULU)",
                 not os.path.isfile(os.path.join(klon, ".git", "hooks", "pre-commit")))
 
@@ -279,15 +283,19 @@ def kendini_test():
         for arac, iz, kod in (("mukerrer-kontrol.py", "IZ-MUKERRER", 1),
                               ("urunler-guard.py", "IZ-GUARD", 0),
                               ("d1-sync.py", "IZ-D1", 0),
-                              ("yedekle.py", "IZ-YEDEK", 0)):
+                              ("yedekle.py", "IZ-YEDEK", 0),
+                              ("ci-kapsam-test.py", "IZ-CI", 0),
+                              ("gecmis-geri-donus-kapisi.py", "IZ-GECMIS", 0)):
             with open(os.path.join(klon, "tools", arac), "w") as f:
                 f.write(_NOBETCI % (iz, kod))
 
         with open(os.path.join(klon, "urunler.json"), "w") as f:
             f.write("[]\n")
-        subprocess.run(["git", "-C", klon, "add", "-A"], check=True)
-        r = subprocess.run(["git", "-C", klon, "commit", "-m", "deneme"],
-                           capture_output=True, text=True)
+        sentetik_git(klon, "add", "-A", check=True,
+                      kimlik_ad="t", kimlik_eposta="t@t")
+        r = sentetik_git(klon, "commit", "-m", "deneme",
+                          capture_output=True, text=True,
+                          kimlik_ad="t", kimlik_eposta="t@t")
         kontrol("pre-commit ATESLEDI (guard nobetcisi iz birakti)",
                 os.path.exists(os.path.join(klon, "IZ-GUARD")))
         kontrol("pre-commit mukerrer kapisi commit'i BLOKLADI (exit 1 yolu)",
@@ -297,17 +305,19 @@ def kendini_test():
         # Kapi bloklamayi biraksin -> commit gecsin, sonra PUSH kapisini olcelim.
         with open(os.path.join(klon, "tools", "mukerrer-kontrol.py"), "w") as f:
             f.write(_NOBETCI % ("IZ-MUKERRER", 0))
-        subprocess.run(["git", "-C", klon, "add", "-A"], check=True)
-        r2 = subprocess.run(["git", "-C", klon, "commit", "-m", "deneme2"],
-                            capture_output=True, text=True)
+        sentetik_git(klon, "add", "-A", check=True,
+                      kimlik_ad="t", kimlik_eposta="t@t")
+        r2 = sentetik_git(klon, "commit", "-m", "deneme2",
+                           capture_output=True, text=True,
+                           kimlik_ad="t", kimlik_eposta="t@t")
         kontrol("kapi yesilken commit GECIYOR (fail-open degil, dogru kapi)",
                 r2.returncode == 0, "rc=%d" % r2.returncode)
 
         uzak = os.path.join(td, "uzak.git")
-        subprocess.run(["git", "init", "-q", "--bare", uzak], check=True)
-        subprocess.run(["git", "-C", klon, "remote", "add", "origin", uzak], check=True)
-        r3 = subprocess.run(["git", "-C", klon, "push", "-u", "origin", "main"],
-                            capture_output=True, text=True)
+        sentetik_git(td, "init", "-q", "--bare", uzak, check=True)
+        sentetik_git(klon, "remote", "add", "origin", uzak, check=True)
+        r3 = sentetik_git(klon, "push", "-u", "origin", "main",
+                           capture_output=True, text=True)
         kontrol("push GECTI (hook fail-open: yedek/D1 push'u DURDURMAZ)",
                 r3.returncode == 0, "rc=%d" % r3.returncode)
         kontrol("pre-push YEDEK blogu ATESLEDI (yedek nobetcisi iz birakti)",

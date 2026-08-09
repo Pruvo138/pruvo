@@ -40,7 +40,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # de bozar: "[YENI] ifade" satiri `diriltme-kapisi.py`nin FIILEN yaptigi temizligi
 # temsil ettigini iddia eder; farkli bir kumeyle olcerse o iddia YANLIS olur
 # ([[ikiz-tanim-sessiz-ayrisma]]). FALLBACK YOK: modul yoksa cagri COKSUN.
-from git_ortami import GIT_BAGLAM_DEGISKENLERI   # noqa: E402
+from git_ortami import GIT_BAGLAM_DEGISKENLERI, sentetik_git   # noqa: E402
 
 # Taranan kume: `tools/kancalar/pre-commit` + `pre-push`in FIILEN cagirdigi araclar.
 ARACLAR = ("diriltme-kapisi.py", "urunler-guard.py", "mukerrer-kontrol.py",
@@ -135,15 +135,15 @@ def main():
     with tempfile.TemporaryDirectory(prefix="pruvo-kok-tarama-") as kok:
         depo = os.path.join(kok, "depo")
         os.makedirs(os.path.join(depo, "tools"))
-        kos("git", "-C", depo, "init", "-q", "-b", "main")
+        sentetik_git(depo, "init", "-q", "-b", "main", capture_output=True)
         for a in ARACLAR:
             with open(os.path.join(depo, "tools", a), "w", encoding="utf-8") as f:
                 f.write("# yer tutucu — kok cozumu IFADE duzeyinde olculuyor\n")
         with open(os.path.join(depo, "veri.txt"), "w", encoding="utf-8") as f:
             f.write("1\n")
-        kos("git", "-C", depo, "add", "-A")
-        kos("git", "-C", depo, "-c", "user.email=t@t", "-c", "user.name=t",
-            "commit", "-q", "-m", "ilk")
+        sentetik_git(depo, "add", "-A", capture_output=True)
+        sentetik_git(depo, "commit", "-q", "-m", "ilk", capture_output=True,
+                      kimlik_ad="t", kimlik_eposta="t@t")
 
         hooks = os.path.join(depo, ".git", "pruvo-tarama-kancalari")
         os.makedirs(hooks)

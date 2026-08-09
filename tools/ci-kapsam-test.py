@@ -359,7 +359,8 @@ def acik_kesif_kontrol():
 
     Bir kayit yeniden adlandirilir/silinirse kesif listesinden SESSIZCE duser ve o
     dosya icin kapsam sorusu sorulmaz olur. Fail-closed: kayit izlenmiyorsa KIRMIZI."""
-    r = subprocess.run(["git", "-C", ROOT, "ls-files"], capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", ROOT, "ls-files"], capture_output=True, text=True,
+                       env=GIT_ORTAMI.git_ortami())
     if r.returncode != 0:
         return False, ["ACIK_KESIF dogrulanamadi: git ls-files basarisiz: "
                        + r.stderr.strip()]
@@ -404,7 +405,7 @@ def kesfet():
 
     AD predikatlarina ek olarak ACIK_KESIF kaydindaki (izlenen) yollar da girer."""
     r = subprocess.run(["git", "-C", ROOT] + list(LS_FILES_IZLENEN),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, env=GIT_ORTAMI.git_ortami())
     if r.returncode != 0:
         sys.exit("git ls-files basarisiz: " + r.stderr.strip())
     bulunan = []
@@ -434,7 +435,7 @@ def kesfet_izlenmeyen():
     uretilen artefaktlar bu kovaya GIRMEZ; temiz/CI checkout'unda kova BOSTUR
     (olculdu: 9 Agu 2026, temiz klonda `--others` = 0 satir)."""
     r = subprocess.run(["git", "-C", ROOT] + list(LS_FILES_IZLENMEYEN),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, env=GIT_ORTAMI.git_ortami())
     if r.returncode != 0:
         return [], ("git %s basarisiz (rc=%d): %s"
                     % (" ".join(LS_FILES_IZLENMEYEN), r.returncode,
@@ -516,15 +517,14 @@ def izlenmeyen_fikstur_kontrol():
         os.makedirs(depo)
 
         def g(*a):
-            return subprocess.run(["git", "-C", depo] + list(_FIKSTUR_GIT_AYAR)
-                                  + list(a), capture_output=True, text=True)
+            return GIT_ORTAMI.sentetik_git(
+                depo, *a, ayarlar=_FIKSTUR_GIT_AYAR,
+                capture_output=True, text=True)
 
         r = g("init", "--quiet", "-b", "main")
         if r.returncode != 0:
             return False, ["IZLENMEYEN FIKSTURU OLCULEMEDI: git init rc=%d %s"
                            % (r.returncode, r.stderr.strip()[:200])]
-        g("config", "user.email", "fikstur@ornek.gecersiz")
-        g("config", "user.name", "fikstur")
         _iz_yaz(depo, _IZ_TABAN, "# fikstur taban\n")
         # `.gitignore` IZLENEN olur: `--exclude-standard` iddiasi ancak GERCEK bir
         # eleme kurali varken olculebilir (kural yoksa mutant sessizce gecer).
@@ -798,15 +798,14 @@ def _main_kablosu_govdesi(_zorla_istisna=False):
         os.makedirs(depo)
 
         def g(*a):
-            return subprocess.run(["git", "-C", depo] + list(_FIKSTUR_GIT_AYAR)
-                                  + list(a), capture_output=True, text=True)
+            return GIT_ORTAMI.sentetik_git(
+                depo, *a, ayarlar=_FIKSTUR_GIT_AYAR,
+                capture_output=True, text=True)
 
         r = g("init", "--quiet", "-b", "main")
         if r.returncode != 0:
             return ["MAIN KABLO FIKSTURU OLCULEMEDI: git init rc=%d %s"
                     % (r.returncode, r.stderr.strip()[:200])]
-        g("config", "user.email", "fikstur@ornek.gecersiz")
-        g("config", "user.name", "fikstur")
         _iz_yaz(depo, _IZ_TABAN, "# fikstur taban\n")
         _iz_yaz(depo, ".github/workflows/deploy.yml", _MK_DEPLOY)
         g("add", "-A")
@@ -1062,11 +1061,13 @@ class _PpKosucu(object):
         os.makedirs(self.kanca_dizini)
 
         def g(*a):
-            return subprocess.run(["git", "-C", self.depo] + list(_PP_GIT_AYAR)
-                                  + list(a), capture_output=True, text=True)
+            ayarlar = _PP_GIT_AYAR + ("-c", "core.hooksPath=" + self.kanca_dizini)
+            return GIT_ORTAMI.sentetik_git(
+                self.depo, *a, ayarlar=ayarlar, capture_output=True, text=True)
 
-        r = subprocess.run(["git", "init", "--quiet", "--bare", "-b", "main",
-                            self.uzak], capture_output=True, text=True)
+        r = GIT_ORTAMI.sentetik_git(
+            gecici, "init", "--quiet", "--bare", "-b", "main", self.uzak,
+            capture_output=True, text=True)
         if r.returncode != 0:
             raise RuntimeError("PP DAVRANIS FIKSTURU: bare init rc=%d %s"
                                % (r.returncode, r.stderr.strip()[:200]))
@@ -1074,11 +1075,8 @@ class _PpKosucu(object):
         if r.returncode != 0:
             raise RuntimeError("PP DAVRANIS FIKSTURU: git init rc=%d %s"
                                % (r.returncode, r.stderr.strip()[:200]))
-        g("config", "user.email", "fikstur@ornek.gecersiz")
-        g("config", "user.name", "fikstur")
         # 🔴 hooksPART YALNIZ BIZIM DIZIN: bu makinede GLOBAL hooksPath PRUVO
         # kancalarina bakiyor; ezilmezse sentetik push GERCEK kancalari kosardi.
-        g("config", "core.hooksPath", self.kanca_dizini)
         with open(os.path.join(self.depo, "a.txt"), "w", encoding="utf-8") as f:
             f.write("x\n")
         g("add", "-A")
@@ -1101,9 +1099,10 @@ class _PpKosucu(object):
         elif os.path.exists(self.kapi):
             os.remove(self.kapi)
         self.sayac += 1
-        p = subprocess.run(
-            ["git", "-C", self.depo] + list(_PP_GIT_AYAR)
-            + ["push", "--quiet", self.uzak, "HEAD:refs/heads/d%d" % self.sayac],
+        p = GIT_ORTAMI.sentetik_git(
+            self.depo, "push", "--quiet", self.uzak,
+            "HEAD:refs/heads/d%d" % self.sayac,
+            ayarlar=_PP_GIT_AYAR + ("-c", "core.hooksPath=" + self.kanca_dizini),
             capture_output=True, text=True, timeout=120)
         return p.returncode, p.stdout + p.stderr
 
@@ -1904,7 +1903,8 @@ def is_akisi_yollari():
     `os.walk` DEGIL — kesfet() ile AYNI disiplin: gitignore'lu/uretilmis bir .yml
     yerelde gorunup CI checkout'unda gorunmez ve kapi makineye gore FARKLI hukum
     verirdi ([[ayna-kapi-kesif-ekseni]])."""
-    r = subprocess.run(["git", "-C", ROOT, "ls-files"], capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", ROOT, "ls-files"], capture_output=True, text=True,
+                       env=GIT_ORTAMI.git_ortami())
     if r.returncode != 0:
         sys.exit("git ls-files basarisiz: " + r.stderr.strip())
     return sorted(y for y in r.stdout.splitlines() if IS_AKISI_PAT.match(y))

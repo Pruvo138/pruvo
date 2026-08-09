@@ -69,6 +69,7 @@ import json
 import os
 import re
 import sys
+from git_ortami import sentetik_git
 
 KOD_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(KOD_KOK, "tools")
@@ -1086,8 +1087,8 @@ def klon_probe(kok):
     hedefler = probe_kumesi(kok, kume)
     gecici = tempfile.mkdtemp(prefix="myk-klon-")
     klon = os.path.join(gecici, "klon")
-    r = subprocess.run(["git", "clone", "--quiet", "--no-hardlinks", kok, klon],
-                       capture_output=True, text=True)
+    r = sentetik_git(gecici, "clone", "--quiet", "--no-hardlinks", kok, klon,
+                      capture_output=True, text=True)
     if r.returncode != 0:
         return None, "git clone OLCULEMEDI: %s" % (r.stderr or "").strip()[:200]
     # CALISMA AGACI hali probe edilir (commit edilmemis onarim da olculebilsin)

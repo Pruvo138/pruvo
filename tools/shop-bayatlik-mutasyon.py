@@ -45,6 +45,7 @@ import tempfile
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI = os.path.join(TOOLS, "shop-bayatlik-kapisi.py")
+from git_ortami import sentetik_git  # noqa: E402
 
 # (kod, aciklama, eski_DUZ_METIN, yeni_metin, beyan_edilen_kirmizi_eksenler)
 # 🔴 DESENLER DUZ METINDIR (regex DEGIL): kacis karakteri hatasi bir mutanti sessizce
@@ -175,11 +176,14 @@ def ayna_kur(hedef):
         os.makedirs(os.path.dirname(varis), exist_ok=True)
         shutil.copy2(kaynak, varis)
     os.makedirs(os.path.join(hedef, "tools"), exist_ok=True)
-    subprocess.run(["git", "-C", hedef, "init", "-q", "-b", "main"], check=True)
-    subprocess.run(["git", "-C", hedef, "config", "user.email", "m@m"], check=True)
-    subprocess.run(["git", "-C", hedef, "config", "user.name", "m"], check=True)
-    subprocess.run(["git", "-C", hedef, "add", "-A"], check=True)
-    subprocess.run(["git", "-C", hedef, "commit", "-q", "-m", "ayna"], check=True)
+    shutil.copy2(os.path.join(TOOLS, "git_ortami.py"),
+                 os.path.join(hedef, "tools", "git_ortami.py"))
+    sentetik_git(hedef, "init", "-q", "-b", "main", check=True,
+                  kimlik_ad="m", kimlik_eposta="m@m")
+    sentetik_git(hedef, "add", "-A", check=True,
+                  kimlik_ad="m", kimlik_eposta="m@m")
+    sentetik_git(hedef, "commit", "-q", "-m", "ayna", check=True,
+                  kimlik_ad="m", kimlik_eposta="m@m")
     return len(yollar)
 
 

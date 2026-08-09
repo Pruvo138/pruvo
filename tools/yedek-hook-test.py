@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
@@ -87,7 +88,7 @@ def sahte_repo(td, drive_erisilebilir):
                  % (os.path.join(hedef, "STL"), hedef))
     with open(os.path.join(kok, "tools", "drive_yolu.py"), "w") as f:
         f.write(govde)
-    subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+    sentetik_git(kok, "init", "-q", capture_output=True)
     return kok
 
 
@@ -121,13 +122,11 @@ def kanca_kum_havuzu(td, kur_yolu):
             shutil.copy2(_kaynak, os.path.join(kok, "tools", _ad))
     with open(os.path.join(kok, "tools", "kutu-arsivle.py"), "w") as f:
         f.write(KUTU_NOBETCI)
-    subprocess.run(["git", "-C", kok, "init", "-q", "-b", "main"], check=True,
-                   capture_output=True)
-    subprocess.run(["git", "-C", kok, "config", "user.email", "t@t"], check=True)
-    subprocess.run(["git", "-C", kok, "config", "user.name", "t"], check=True)
+    sentetik_git(kok, "init", "-q", "-b", "main", check=True,
+                  capture_output=True, kimlik_ad="t", kimlik_eposta="t@t")
     uzak = os.path.join(td, "uzak.git")
-    subprocess.run(["git", "init", "-q", "--bare", uzak], check=True, capture_output=True)
-    subprocess.run(["git", "-C", kok, "remote", "add", "origin", uzak], check=True)
+    sentetik_git(td, "init", "-q", "--bare", uzak, check=True, capture_output=True)
+    sentetik_git(kok, "remote", "add", "origin", uzak, check=True)
     return kok, uzak
 
 

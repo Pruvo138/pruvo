@@ -168,6 +168,7 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 SHOP = os.path.join(ROOT, "shop")
 WRANGLER_TOML = os.path.join(SHOP, "wrangler.toml")
+from git_ortami import git_ortami, sentetik_git  # noqa: E402
 
 # 🔴 ESIK — gerekcesi dosya basinda OLCUMLE beyan edildi (8/8 saglikli deploy < 120 dk;
 # olay penceresi 795 dk). Iki yonu de kabul testinde nobet altinda (D2/D3).
@@ -285,7 +286,8 @@ def bundle_dosyalari(kok, giris_mutlak, izlenen):
 
 
 def izlenen_kume(kok):
-    r = subprocess.run(["git", "-C", kok, "ls-files"], capture_output=True, text=True)
+    r = subprocess.run(["git", "-C", kok, "ls-files"], capture_output=True, text=True,
+                       env=git_ortami())
     if r.returncode != 0:
         raise Olculemedi("git ls-files basarisiz: %s" % r.stderr.strip())
     return set(r.stdout.splitlines())
@@ -359,7 +361,8 @@ def wrangler_json(alt_komut, cfg=WRANGLER_TOML):
 # ---------------------------------------------------------------- commit sayimi
 
 def _git(kok, *args):
-    return subprocess.run(["git", "-C", kok] + list(args), capture_output=True, text=True)
+    return sentetik_git(kok, *args, capture_output=True, text=True,
+                         kimlik_ad="t", kimlik_eposta="t@t")
 
 
 def _ref_coz(kok, ref):
@@ -788,15 +791,14 @@ def kendini_test():
         depo = os.path.join(t, "depo")
         os.makedirs(depo)
         _git(depo, "init", "-q", "-b", "main")
-        _git(depo, "config", "user.email", "t@t")
-        _git(depo, "config", "user.name", "t")
         def _islet(mesaj, iso):
             # commit ZAMANI hukmun girdisi -> deterministik olmali: hem author hem
             # COMMITTER damgasi sabitlenir (kapi %cI = committer tarihini okur).
-            env = dict(os.environ, GIT_AUTHOR_DATE=iso, GIT_COMMITTER_DATE=iso)
-            subprocess.run(["git", "-C", depo, "add", "-A"], capture_output=True)
-            subprocess.run(["git", "-C", depo, "commit", "-q", "-m", mesaj],
-                           env=env, capture_output=True, text=True)
+            env = {"GIT_AUTHOR_DATE": iso, "GIT_COMMITTER_DATE": iso}
+            sentetik_git(depo, "add", "-A", capture_output=True)
+            sentetik_git(depo, "commit", "-q", "-m", mesaj,
+                          ek_ortam=env, capture_output=True, text=True,
+                          kimlik_ad="t", kimlik_eposta="t@t")
             # commit MAIN'E INDI: fikstur uzak ucu de ilerletir. Bu satir sus payi DEGIL,
             # kapinin ON KOSULUDUR — `bundle_commitleri` artik HEAD'in uzak main ucu
             # oldugunu KANIT ister (G bolumu tam bu kanidin YOKLUGUNU olcer).
@@ -832,8 +834,8 @@ def kendini_test():
         # Yani hata YALNIZ sahte-taze degil, SAHTE-BAYAT da olabilir. Bu yuzden iddia
         # "kac tane" degil "HANGI SHA" uzerinedir: sig cevabi TAM depo cevabina esit olmali.
         sig = os.path.join(t, "sig")
-        k = subprocess.run(["git", "clone", "-q", "--depth=1", "file://" + depo, sig],
-                           capture_output=True, text=True)
+        k = sentetik_git(t, "clone", "-q", "--depth=1", "file://" + depo, sig,
+                          capture_output=True, text=True)
         if k.returncode == 0:
             _git(sig, "remote", "set-url", "origin", "file://" + depo)
             sig_mi = _git(sig, "rev-parse", "--is-shallow-repository").stdout.strip()
@@ -860,14 +862,13 @@ def kendini_test():
         depo = os.path.join(t, "depo")
         os.makedirs(depo)
         _git(depo, "init", "-q", "-b", ANA_DAL)
-        _git(depo, "config", "user.email", "t@t")
-        _git(depo, "config", "user.name", "t")
 
         def _g_islet(mesaj, iso, uc_ilerlesin=True):
-            env = dict(os.environ, GIT_AUTHOR_DATE=iso, GIT_COMMITTER_DATE=iso)
-            subprocess.run(["git", "-C", depo, "add", "-A"], capture_output=True)
-            subprocess.run(["git", "-C", depo, "commit", "-q", "-m", mesaj],
-                           env=env, capture_output=True, text=True)
+            env = {"GIT_AUTHOR_DATE": iso, "GIT_COMMITTER_DATE": iso}
+            sentetik_git(depo, "add", "-A", capture_output=True)
+            sentetik_git(depo, "commit", "-q", "-m", mesaj,
+                          ek_ortam=env, capture_output=True, text=True,
+                          kimlik_ad="t", kimlik_eposta="t@t")
             if uc_ilerlesin:
                 _git(depo, "update-ref", "refs/remotes/origin/" + ANA_DAL, "HEAD")
 
@@ -914,14 +915,13 @@ def kendini_test():
         ci = os.path.join(t, "ci")
         os.makedirs(ci)
         _git(ci, "init", "-q", "-b", ANA_DAL)
-        _git(ci, "config", "user.email", "t@t")
-        _git(ci, "config", "user.name", "t")
         _yaz(ci, "shop/src/index.js", "// ci\n")
-        subprocess.run(["git", "-C", ci, "add", "-A"], capture_output=True)
-        subprocess.run(["git", "-C", ci, "commit", "-q", "-m", "ci taban"],
-                       env=dict(os.environ, GIT_AUTHOR_DATE="2026-08-03T10:00:00+0000",
-                                GIT_COMMITTER_DATE="2026-08-03T10:00:00+0000"),
-                       capture_output=True)
+        sentetik_git(ci, "add", "-A", capture_output=True)
+        sentetik_git(
+            ci, "commit", "-q", "-m", "ci taban",
+            ek_ortam={"GIT_AUTHOR_DATE": "2026-08-03T10:00:00+0000",
+                       "GIT_COMMITTER_DATE": "2026-08-03T10:00:00+0000"},
+            capture_output=True, kimlik_ad="t", kimlik_eposta="t@t")
         ci_head = _git(ci, "rev-parse", "HEAD").stdout.strip()
         with open(os.path.join(ci, ".git", "FETCH_HEAD"), "w", encoding="utf-8") as f:
             f.write("%s\t\tbranch '%s' of file://uzak\n" % (ci_head, ANA_DAL))

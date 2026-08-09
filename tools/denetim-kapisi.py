@@ -63,6 +63,7 @@ import json
 import os
 import re
 import subprocess
+from git_ortami import sentetik_git
 import sys
 from collections import defaultdict
 
@@ -1324,7 +1325,8 @@ def _kt_onay_batarya(iddia):
     uy = os.path.join(depo, "urunler.json")
 
     def g(*a):
-        subprocess.run(["git", "-C", depo, *a], capture_output=True)
+        sentetik_git(depo, *a, capture_output=True,
+                      kimlik_ad="t", kimlik_eposta="t@t")
 
     def yaz(liste):
         with open(uy, "w", encoding="utf-8") as f:

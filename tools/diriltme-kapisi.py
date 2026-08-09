@@ -252,7 +252,7 @@ sys.path.insert(0, TOOLS)
 # 🔴 TEK KAYNAK: git baglam scrub'i tools/git_ortami.py'de tanimlidir (bkz. asagidaki
 # onarim notu). FALLBACK YOK — modul yoksa cagri COKSUN; sessiz bir yerel kopya ikizin
 # ta kendisi olur ve gevsek yonde ayrisir ([[ikiz-tanim-sessiz-ayrisma]]).
-from git_ortami import git_ortami   # noqa: E402
+from git_ortami import git_ortami, sentetik_git   # noqa: E402
 
 URUNLER_ADI = "urunler.json"
 IZIN_ADI = ".diriltme-izin.json"
@@ -329,9 +329,9 @@ class Olculemedi(Exception):
 
 
 def _git(depo, *args, **kw):
-    kw.setdefault("env", git_ortami())
-    p = subprocess.run(["git", "-C", depo, *args], capture_output=True, text=True,
-                       errors="replace", **kw)
+    ortam = kw.pop("env", None)
+    p = sentetik_git(depo, *args, capture_output=True, text=True,
+                      errors="replace", ek_ortam=ortam, **kw)
     return p.returncode, p.stdout, p.stderr
 
 
@@ -1408,7 +1408,10 @@ def kanca_iddialari(kok, iddia):
 # olcer; tek basina (c) bir `exit 1`i de yesil sayardi ([[hukum-yanlis-birimde]]).
 KOK_MUTASYONLARI = (
     ("W-M1 ortam scrub'i geri alinir", "OLDURUCU",
-     'kw.setdefault("env", git_ortami())', 'kw.pop("env", None)',
+     'p = sentetik_git(depo, *args, capture_output=True, text=True,\n'
+     '                      errors="replace", ek_ortam=ortam, **kw)',
+     'p = subprocess.run(["git", "-C", depo, *args], capture_output=True, text=True,\n'
+     '                       errors="replace", env=ortam, **kw)',
      "git cagrilari MIRAS ALINAN GIT_DIR ile kosar -> worktree kancasinda kok "
      "<agac>/tools sanilir, kapi rc=2 OLCULEMEDI verir"),
     ("W-M2 teshis metni", "KONTROL",

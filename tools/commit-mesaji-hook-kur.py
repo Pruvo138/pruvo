@@ -39,6 +39,7 @@ import shutil
 import stat
 import subprocess
 import sys
+from git_ortami import git_ortami
 
 BAS = ("# >>> PRUVO COMMIT MESAJI NOBETI BLOGU "
        "(tools/commit-mesaji-hook-kur.py uretir — ELLE DUZENLEME) >>>")
@@ -63,7 +64,8 @@ fi
 def hook_yolu(repo):
     """Ortak git dizinindeki hooks/commit-msg (worktree'de de ANA depoyu gosterir)."""
     p = subprocess.run(["git", "-C", repo, "rev-parse", "--path-format=absolute",
-                        "--git-common-dir"], capture_output=True, text=True)
+                        "--git-common-dir"], capture_output=True, text=True,
+                       env=git_ortami())
     if p.returncode != 0 or not p.stdout.strip():
         return None
     return os.path.join(p.stdout.strip(), "hooks", "commit-msg")

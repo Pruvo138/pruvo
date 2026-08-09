@@ -149,6 +149,7 @@ import time
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI_YOLU = os.path.join(TOOLS, "commit-mesaji-kapisi.py")
+from git_ortami import git_ortami, sentetik_git  # noqa: E402
 
 RC_TEMIZ = 0
 RC_SIZINTI = 1
@@ -196,8 +197,8 @@ def kapi_modulu():
 # GIT
 # ---------------------------------------------------------------------------
 def _git(args, kok=None):
-    return subprocess.run(["git", "-C", kok or ROOT] + args,
-                          capture_output=True, text=True, errors="replace")
+    return sentetik_git(kok or ROOT, *args, capture_output=True, text=True,
+                         errors="replace")
 
 
 def _nesne_var(sha, kok=None):
@@ -223,8 +224,8 @@ def _yetim_nesne_getir(sha, kok=None, uzak="origin",
     (yedek pencere) aynen surdurur.
     """
     try:
-        p = subprocess.run(
-            ["git", "-C", kok or ROOT, "fetch", "--no-tags", "--quiet", uzak, sha],
+        p = sentetik_git(
+            kok or ROOT, "fetch", "--no-tags", "--quiet", uzak, sha,
             capture_output=True, text=True, errors="replace", timeout=zaman_asimi)
     except subprocess.TimeoutExpired:
         return False, "fetch %d sn zaman asimina ugradi" % zaman_asimi
@@ -618,15 +619,17 @@ _UYDURMA = ("Zorbacix", "HayaliVitrin")
 
 
 def _kos(args, kok):
+    if args and args[0] == "git":
+        return sentetik_git(kok, *args[1:], capture_output=True, text=True,
+                             errors="replace", kimlik_ad="Test",
+                             kimlik_eposta="test@example.com",
+                             ayarlar=("-c", "commit.gpgsign=false"))
     return subprocess.run(args, cwd=kok, capture_output=True, text=True,
-                          errors="replace")
+                          errors="replace", env=git_ortami())
 
 
 def _depo_kur(kok):
     _kos(["git", "init", "-q", "-b", "main", "."], kok)
-    _kos(["git", "config", "user.email", "test@example.com"], kok)
-    _kos(["git", "config", "user.name", "Test"], kok)
-    _kos(["git", "config", "commit.gpgsign", "false"], kok)
 
 
 def _yaz(kok, ad, icerik):
@@ -975,15 +978,13 @@ def kendini_test():
             kontrol("11a kurucu betik MEVCUT", False)
         else:
             uzak = os.path.join(tmp, "uzak.git")
-            subprocess.run(["git", "init", "-q", "--bare", "-b", "main", uzak],
-                           capture_output=True)
+            sentetik_git(tmp, "init", "-q", "--bare", "-b", "main", uzak,
+                          capture_output=True)
             yerel = os.path.join(tmp, "yerel")
-            subprocess.run(["git", "clone", "-q", uzak, yerel], capture_output=True)
-            _kos(["git", "config", "user.email", "t@example.com"], yerel)
-            _kos(["git", "config", "user.name", "T"], yerel)
-            _kos(["git", "config", "commit.gpgsign", "false"], yerel)
+            sentetik_git(tmp, "clone", "-q", uzak, yerel, capture_output=True)
             os.makedirs(os.path.join(yerel, "tools"), exist_ok=True)
-            for _ad in ("gecmis-geri-donus-kapisi.py", "commit-mesaji-kapisi.py"):
+            for _ad in ("gecmis-geri-donus-kapisi.py", "commit-mesaji-kapisi.py",
+                        "git_ortami.py"):
                 _shutil.copy2(os.path.join(TOOLS, _ad),
                               os.path.join(yerel, "tools", _ad))
             _shutil.copy2(artefakt,
@@ -1048,21 +1049,18 @@ def kendini_test():
         # GERCEK git ile kurar ve onarimin ISE YARADIGINI olcer.
         print("\nVAKA 12 — yetim `before` nesnesi (force-push) / CI taban cozumu")
         uzakC = os.path.join(tmp, "uzakC.git")
-        subprocess.run(["git", "init", "-q", "--bare", "-b", "main", uzakC],
-                       capture_output=True)
+        sentetik_git(tmp, "init", "-q", "--bare", "-b", "main", uzakC,
+                      capture_output=True)
         # GitHub, ref'ten ERISILEMEYEN SHA'lar icin de `want` kabul eder (olculdu:
         # taze klonda `git fetch origin <yetim-sha>` rc 0). Sentetik uzak bunu ancak
         # bu ayarla taklit eder — olculen gercek davranis GitHub'da dogrulanmistir.
-        subprocess.run(["git", "-C", uzakC, "config",
-                        "uploadpack.allowAnySHA1InWant", "true"], capture_output=True)
+        sentetik_git(uzakC, "config", "uploadpack.allowAnySHA1InWant", "true",
+                      capture_output=True)
         yerelC = os.path.join(tmp, "yerelC")
         # 🔴 `--no-local` SART: yerel yol klonu VARSAYILAN olarak objects/ dizinini
         # OLDUGU GIBI kopyalar (erisilemez nesneler DAHIL) — o zaman senaryo kurulmaz.
-        subprocess.run(["git", "clone", "-q", "--no-local", uzakC, yerelC],
-                       capture_output=True)
-        _kos(["git", "config", "user.email", "t@example.com"], yerelC)
-        _kos(["git", "config", "user.name", "T"], yerelC)
-        _kos(["git", "config", "commit.gpgsign", "false"], yerelC)
+        sentetik_git(tmp, "clone", "-q", "--no-local", uzakC, yerelC,
+                      capture_output=True)
         _yaz(yerelC, "a.txt", "taban\n")
         kokC, _ = _commit(yerelC, "taban commit")
         _kos(["git", "push", "-q", "origin", "main"], yerelC)
@@ -1081,8 +1079,8 @@ def kendini_test():
 
         def _ci_klonu(ad):
             yol = os.path.join(tmp, ad)
-            subprocess.run(["git", "clone", "-q", "--no-local", uzakC, yol],
-                           capture_output=True)
+            sentetik_git(tmp, "clone", "-q", "--no-local", uzakC, yol,
+                          capture_output=True)
             return yol
 
         def _ci_kos(kok_, **kw):

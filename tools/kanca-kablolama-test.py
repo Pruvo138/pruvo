@@ -65,6 +65,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KUR = os.path.join(TOOLS, "kanca-kur.py")
@@ -140,8 +141,8 @@ def _gecici_kok(prefix):
 
 
 def g(cwd, *args, **kw):
-    p = subprocess.run(["git"] + list(args), cwd=cwd, capture_output=True,
-                       text=True, timeout=60, env=kw.get("env"))
+    p = sentetik_git(cwd, *args, capture_output=True, text=True, timeout=60,
+                      ek_ortam=kw.get("env"), kimlik_ad="T", kimlik_eposta="t@t")
     if kw.get("zorunlu") and p.returncode != 0:
         raise RuntimeError("git %s basarisiz: %s" % (" ".join(args), p.stderr.strip()))
     return p.returncode, p.stdout.strip(), p.stderr.strip()
@@ -216,8 +217,6 @@ def depo_kur(kok, kanca_kaynagi, guard=GECER, ortam=None, kancalar=True):
     """Izlenen tools/kancalar + sentetik nobetci araclari olan sentetik depo."""
     os.makedirs(kok, exist_ok=True)
     g(kok, "init", "-q", "-b", "main", env=ortam, zorunlu=True)
-    g(kok, "config", "user.email", "t@t", env=ortam)
-    g(kok, "config", "user.name", "T", env=ortam)
     g(kok, "config", "extensions.worktreeConfig", "true", env=ortam)
     _araclari_ser(kok, kanca_kaynagi)
     yaz(os.path.join(kok, "tools", "urunler-guard.py"), guard, True)
@@ -644,8 +643,6 @@ def kos_vakalar(tools_dizini, ayrintili=True):
 
         wt6 = os.path.join(kok, "v6-wt")
         g(ana6, "worktree", "add", "-q", "--detach", wt6, eski_sha, env=o6, zorunlu=True)
-        g(wt6, "config", "user.email", "t@t", env=o6)
-        g(wt6, "config", "user.name", "T", env=o6)
         s.bekle("V6.olu-agac-fikstur",
                 not os.path.isdir(os.path.join(wt6, "tools")),
                 "TUZAK KURULUMU: bu worktree'de `tools/` BULUNMAMALI (kancanin "

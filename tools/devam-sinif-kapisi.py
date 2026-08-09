@@ -102,6 +102,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -731,12 +732,12 @@ def _gecici_ozet(tmp, ozet, adlar=(_UYDURMA_AD,)):
 
 def _sentetik_depo(t, ortam):
     """Ic hukmu OLMAYAN bos bir git deposu (kanca YOK, imza YOK)."""
-    _git(["init", "-q", "-b", "main"], t, ortam)
-    for anahtar, deger in (("user.email", "kapi@ornek.gecersiz"),
-                           ("user.name", "Kapi Kabul Testi"),
-                           ("commit.gpgsign", "false"),
+    sentetik_git(t, "init", "-q", "-b", "main", capture_output=True,
+                  kimlik_ad="Kapi Kabul Testi",
+                  kimlik_eposta="kapi@ornek.gecersiz")
+    for anahtar, deger in (("commit.gpgsign", "false"),
                            ("core.hooksPath", os.path.join(t, "kanca-yok"))):
-        _git(["config", anahtar, deger], t, ortam)
+        sentetik_git(t, "config", anahtar, deger, capture_output=True)
 
 
 def _yaz_ekle(t, rel, icerik, ortam):

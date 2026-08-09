@@ -39,6 +39,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -918,13 +919,17 @@ def _gecmis_gercek_depo_fiksturu():
               "-c", "commit.gpgsign=false", "-c", "init.defaultBranch=main"]
 
     def g(kok, *a):
-        return subprocess.run(["git"] + kimlik + ["-C", kok] + list(a),
-                              capture_output=True, text=True, env=ortam)
+        return sentetik_git(kok, *a, ayarlar=tuple(kimlik[4:]),
+                             capture_output=True, text=True,
+                             kimlik_ad="pruvo-fikstur",
+                             kimlik_eposta="fikstur@example.invalid")
 
     try:
         with tempfile.TemporaryDirectory(prefix="pruvo-gecmis-fikstur-") as d:
-            r = subprocess.run(["git"] + kimlik + ["init", "-q", d],
-                               capture_output=True, text=True, env=ortam)
+            r = sentetik_git(d, "init", "-q", ayarlar=tuple(kimlik[4:]),
+                              capture_output=True, text=True,
+                              kimlik_ad="pruvo-fikstur",
+                              kimlik_eposta="fikstur@example.invalid")
             if r.returncode != 0:
                 return ["OLCULEMEDI (gecmis bicim capasi) — git init: %s"
                         % (r.stderr or "").strip()]

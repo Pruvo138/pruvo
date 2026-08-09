@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
@@ -516,7 +517,7 @@ def izole_ortam(td, yedekle, memory_adet=40, skills_adet=20):
                 'def stl_dizini(sessiz=False):\n    return %r\n'
                 'def pruvo_dizini(sessiz=False):\n    return %r\n'
                 % (os.path.join(pruvo, "STL"), pruvo))
-    subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+    sentetik_git(kok, "init", "-q", capture_output=True)
     for ad in yedekle.REPO_BEKLENEN:
         with open(os.path.join(kok, ad), "w") as f:
             f.write("izole test icerigi: %s\n" % ad)

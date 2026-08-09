@@ -46,6 +46,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ARAC = os.path.join(TOOLS, "kanca-nobeti.py")
@@ -193,8 +194,8 @@ def arac_yukle(yol):
 
 
 def g(cwd, *args, **kw):
-    p = subprocess.run(["git"] + list(args), cwd=cwd, capture_output=True,
-                       text=True, timeout=60)
+    p = sentetik_git(cwd, *args, capture_output=True, text=True, timeout=60,
+                      kimlik_ad="T", kimlik_eposta="t@t")
     if kw.get("zorunlu") and p.returncode != 0:
         raise RuntimeError("git %s basarisiz: %s" % (" ".join(args), p.stderr.strip()))
     return p.returncode, p.stdout.strip(), p.stderr.strip()
@@ -213,8 +214,6 @@ def depo_kur(kok, kancalar=True):
     ana = os.path.join(kok, "ana")
     os.makedirs(ana, exist_ok=True)
     g(ana, "init", "-q", "-b", "main", zorunlu=True)
-    g(ana, "config", "user.email", "t@t")
-    g(ana, "config", "user.name", "T")
     yaz(os.path.join(ana, "a.txt"), "x\n")
     g(ana, "add", "a.txt")
     g(ana, "commit", "-q", "-m", "ilk")

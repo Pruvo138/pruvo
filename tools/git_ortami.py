@@ -67,6 +67,27 @@ def git_ortami():
     return ort
 
 
+def sentetik_git(calisma_dizini, *args, kimlik_ad="fikstur",
+                 kimlik_eposta="fikstur@ornek.gecersiz", ek_ortam=None,
+                 ayarlar=(), **run_kw):
+    """Sentetik/gecici depolardaki git'in TEK guvenli cagri yolu.
+
+    Ortam daima kopyadir; depo kesfini etkileyen miras GIT_* adlari temizlenir.
+    Kimlik yalniz bu komuta ``-c`` ile verilir, hicbir config dosyasina yazilmaz.
+    ``calisma_dizini`` zorunludur ve subprocess cwd'si acikca sabitlenir.
+    """
+    ortam = git_ortami()
+    if ek_ortam:
+        ortam.update(ek_ortam)
+    for ad in GIT_BAGLAM_DEGISKENLERI:
+        ortam.pop(ad, None)
+    komut = ["git", "-c", "user.name=" + kimlik_ad,
+             "-c", "user.email=" + kimlik_eposta]
+    komut.extend(ayarlar)
+    komut.extend(args)
+    return subprocess.run(komut, cwd=calisma_dizini, env=ortam, **run_kw)
+
+
 def git_kok(dizin, ortam=None):
     """<dizin>'in AIT OLDUGU git agacinin kokunu doner; "" = git agaci DEGIL.
 

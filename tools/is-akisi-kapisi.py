@@ -1787,7 +1787,9 @@ TABLO_TABANLARI = (
     # 9 Agu: +3 -> 90. Marka tek-sayfa davranis nobetcisi ile iki ayirt edici mutasyon
     # surucusu serit-b'ye AYRI duz komutlarla eklendi; ucu de AYNI commit'te tek tek
     # beyan edildi.
-    ("SERIT_B", 90),
+    # 9 Agu: +1 -> 91. Sentetik git fiksturu sizinti kapisi ve kendi testi ayni
+    # arac yolundan serit-b'ye kablandi; tek yol beyani iki duz komutu kapsar.
+    ("SERIT_B", 91),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2330,6 +2332,10 @@ SERIT_B = {
         "gelmesini olcer. Ayni onarimin DAVRANISSAL ayagi serit A'da bloklayici "
         "kosuyor (ic-rapor-adi-kapisi.py --kendini-test :: IDDIA-6 ve "
         "spec-ifsa-alarmi.yml'deki spec-ifsa-kapisi.py --kendini-test :: IDDIA-KOK3).",
+    ("nobet.yml", "serit-b", "tools/fikstur-git-sizinti-kapisi.py"):
+        "Sentetik/gecici git depolarinin miras GIT_* baglamiyla ana depoya yonelmesini "
+        "sinif olarak olcen nobet ve davranissal kendi testi; ayni gun yeni bir yayin "
+        "bloklayicisi eklenmemesi karariyla serit-b'de, deploy needs zincirinde DEGIL.",
     ("nobet.yml", "serit-b", "tools/ege-bilgi-tavan-test.py"):
         "YALNIZ `--ic-nobetci` kolu (30 gecici fikstur); canli ege-bilgi.md tavan olcumu "
         "serit A'da bloklayici kosuyor.",

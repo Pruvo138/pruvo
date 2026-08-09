@@ -189,7 +189,7 @@ sys.dont_write_bytecode = True  # SALT-OKUNUR tarama: hedef repoya __pycache__ y
 # tanimi tools/git_ortami.py'dir (FALLBACK YOK). Kabul: IDDIA-KOK3 / MUT-KOK-ORTAM.
 BETIK_DIZINI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BETIK_DIZINI)
-from git_ortami import git_kok, git_ortami   # noqa: E402
+from git_ortami import git_kok, git_ortami, sentetik_git   # noqa: E402
 from git_ortami import worktree_kanca_kok_olcumu   # noqa: E402
 
 
@@ -804,10 +804,9 @@ def _kendini_test():
     ici_yuzey = len(list(yuzeyler("kapsam-ici.md", s_satir + "\n")))
     disi_yuzey = len(list(yuzeyler("kapsam-disi.json", s_satir + "\n")))
     with tempfile.TemporaryDirectory() as d:
-        g = lambda *a: subprocess.run(["git", "-C", d, *a], capture_output=True, text=True)
+        g = lambda *a: sentetik_git(d, *a, capture_output=True, text=True,
+                                    kimlik_ad="test", kimlik_eposta="test@test.local")
         g("init", "-q")
-        g("config", "user.email", "test@test.local")
-        g("config", "user.name", "test")
         for ad in ("kapsam-ici.md", "kapsam-disi.json"):
             with open(os.path.join(d, ad), "w", encoding="utf-8") as f:
                 f.write(s_satir + "\n")
@@ -831,10 +830,9 @@ def _kendini_test():
     #         TEK-KIRMIZI sozlesmesi bozulurdu.
     #     Gercek dosyaya YAZMA YOK (gecici depo). ---
     with tempfile.TemporaryDirectory() as d:
-        g = lambda *a: subprocess.run(["git", "-C", d, *a], capture_output=True, text=True)
+        g = lambda *a: sentetik_git(d, *a, capture_output=True, text=True,
+                                    kimlik_ad="test", kimlik_eposta="test@test.local")
         g("init", "-q")
-        g("config", "user.email", "test@test.local")
-        g("config", "user.name", "test")
         dosyalar = {
             "eko-tek-kaynak.md": 'bucket_name = "eko-yok-kova"\n',
             "eko-anlatim-ikizi.md": 'bucket_name = "eko-yok-kova"\n',
@@ -880,7 +878,7 @@ def _kendini_test():
         _a, _b = os.path.join(_kd, "a"), os.path.join(_kd, "b")
         for _y in (_a, _b):
             os.makedirs(os.path.join(_y, "tools"))
-            subprocess.run(["git", "-C", _y, "init", "-q"], capture_output=True)
+            sentetik_git(_y, "init", "-q", capture_output=True)
         _a_tools = os.path.join(_a, "tools")
 
         # IDDIA-KOK1: ACIKCA verilen kok USTUNDUR (cwd de betik dizini de etkisiz).

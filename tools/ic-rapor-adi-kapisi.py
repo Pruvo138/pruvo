@@ -96,7 +96,7 @@ sys.path.insert(0, BETIK_DIZINI)
 # 🔴 TEK KAYNAK ([[ikiz-tanim-sessiz-ayrisma]]): git baglam scrub'i ve onunla kok
 # turetimi tools/git_ortami.py'de TANIMLIDIR. Burada `try/except ImportError -> yerel
 # tanim` YAZILMAZ: o dusus yolu ikizin ta kendisidir ve gevsek yonde ayrisir.
-from git_ortami import git_kok, git_ortami   # noqa: E402
+from git_ortami import git_kok, git_ortami, sentetik_git   # noqa: E402
 from git_ortami import worktree_kanca_kok_olcumu   # noqa: E402
 
 DESEN = "rapor-mimara"  # kucuk harfe cevrilmis satirda aranir (harf-duyarsiz)
@@ -344,10 +344,9 @@ def _kendini_test():
     # GERCEK akiste de kirmizi yanar. E2E oldugu icin mutasyon eslemesine DAHIL
     # EDILMEZ (birden fazla ic fonksiyonu birden aynı anda sinar).
     with tempfile.TemporaryDirectory() as d:
-        g = lambda *a: subprocess.run(["git", "-C", d, *a], capture_output=True, text=True)
+        g = lambda *a: sentetik_git(d, *a, capture_output=True, text=True,
+                                    kimlik_ad="t", kimlik_eposta="t@t.local")
         g("init", "-q")
-        g("config", "user.email", "test@test.local")
-        g("config", "user.name", "test")
         os.makedirs(os.path.join(d, "tools"), exist_ok=True)
         with open(os.path.join(d, "tools", "durum.py"), "w", encoding="utf-8") as f:
             f.write(kayitli_satir + "\n")
@@ -369,11 +368,8 @@ def _kendini_test():
         depo_b = os.path.join(kok_d, "depo-b")   # "cwd'nin agaci" (BASKA agac)
         for yol in (depo_a, depo_b):
             os.makedirs(os.path.join(yol, "tools"))
-            subprocess.run(["git", "-C", yol, "init", "-q"], capture_output=True)
-            subprocess.run(["git", "-C", yol, "config", "user.email", "t@t.local"],
-                           capture_output=True)
-            subprocess.run(["git", "-C", yol, "config", "user.name", "t"],
-                           capture_output=True)
+            sentetik_git(yol, "init", "-q", capture_output=True,
+                          kimlik_ad="t", kimlik_eposta="t@t.local")
         a_tools = os.path.join(depo_a, "tools")
 
         # IDDIA-3 (--kok USTUNDUR): acikca verilen agac kazanir; cwd de betik dizini
@@ -411,7 +407,7 @@ def _kendini_test():
             # DEGIL. Buyuk harfle yazilsaydi harf-duyarsizlik mutanti (IDDIA-2'nin
             # oldurucusu) bu iddiayi da dusururdu ve "TEK KIRMIZI" sarti bozulurdu.
             f.write("bkz. rapor" + "-mimara.md (fikstur ihlali)\n")
-        subprocess.run(["git", "-C", depo_a, "add", "-A"], capture_output=True)
+        sentetik_git(depo_a, "add", "-A", capture_output=True)
         gitsiz = os.path.join(kok_d, "gitsiz")   # HICBIR git agacinda olmayan cwd
         os.makedirs(gitsiz)
         p5 = subprocess.run([sys.executable, kopya], cwd=gitsiz,
@@ -423,7 +419,7 @@ def _kendini_test():
 
         # KONTROL-D: ACIKCA verilen TEMIZ agac yesil kalir (yanlis-pozitif nobeti) —
         # "her sey kirmizi" mutantini yakalar, IDDIA kumesinin PARCASI DEGILDIR.
-        subprocess.run(["git", "-C", depo_b, "add", "-A"], capture_output=True)
+        sentetik_git(depo_b, "add", "-A", capture_output=True)
         p6 = subprocess.run([sys.executable, kopya, "--kok", depo_b], cwd=gitsiz,
                             capture_output=True, text=True)
         kontrol_d = p6.returncode == RC_TEMIZ

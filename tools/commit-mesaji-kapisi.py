@@ -122,6 +122,7 @@ import unicodedata
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
+from git_ortami import sentetik_git  # noqa: E402
 
 OZET_DOSYA = os.path.join(TOOLS, "sizinti-desen-ozetleri.json")
 DUZ_DESEN_DOSYA = os.path.join(ROOT, ".sizinti-desenleri.txt")
@@ -677,8 +678,7 @@ SIFIR_SHA = "0" * 40
 
 
 def _git(args, kok=None):
-    return subprocess.run(["git", "-C", kok or ROOT] + args,
-                          capture_output=True, text=True)
+    return sentetik_git(kok or ROOT, *args, capture_output=True, text=True)
 
 
 def menzil_mesajlari(menzil, kok=None):
@@ -1228,12 +1228,12 @@ def kendini_test():
         # ---- G) GERCEK GIT: SENTETIK DEPODA UCTAN UCA ----------------------
         depo = os.path.join(tmp, "depo")
         os.makedirs(os.path.join(depo, "tools"))
-        subprocess.run(["git", "init", "-q", "-b", "main", depo], check=True)
-        subprocess.run(["git", "-C", depo, "config", "user.email", "t@example.invalid"],
-                       check=True)
-        subprocess.run(["git", "-C", depo, "config", "user.name", "Test"], check=True)
+        sentetik_git(tmp, "init", "-q", "-b", "main", depo, check=True,
+                      kimlik_ad="Test", kimlik_eposta="t@example.invalid")
         _shutil.copy2(os.path.abspath(__file__),
                       os.path.join(depo, "tools", "commit-mesaji-kapisi.py"))
+        _shutil.copy2(os.path.join(TOOLS, "git_ortami.py"),
+                      os.path.join(depo, "tools", "git_ortami.py"))
         _shutil.copy2(ozet_yolu,
                       os.path.join(depo, "tools", "sizinti-desen-ozetleri.json"))
         _shutil.copy2(os.path.join(TOOLS, "commit-mesaji-hook-kur.py"),
@@ -1245,13 +1245,16 @@ def kendini_test():
 
         def commit(mesaj, ad):
             yaz(ad, "x\n")
-            subprocess.run(["git", "-C", depo, "add", "-A"], check=True)
-            return subprocess.run(["git", "-C", depo, "commit", "-m", mesaj],
-                                  capture_output=True, text=True)
+            sentetik_git(depo, "add", "-A", check=True,
+                          kimlik_ad="Test", kimlik_eposta="t@example.invalid")
+            return sentetik_git(depo, "commit", "-m", mesaj,
+                                 capture_output=True, text=True,
+                                 kimlik_ad="Test", kimlik_eposta="t@example.invalid",
+                                 ayarlar=("-c", "core.hooksPath=.git/hooks"))
 
         def sayi_commit():
-            p = subprocess.run(["git", "-C", depo, "rev-list", "--count", "HEAD"],
-                               capture_output=True, text=True)
+            p = sentetik_git(depo, "rev-list", "--count", "HEAD",
+                              capture_output=True, text=True)
             return int(p.stdout.strip()) if p.returncode == 0 else 0
 
         # G0 — NEGATIF KONTROL: kanca YOKKEN kapi hicbir sey uretmez.
@@ -1329,8 +1332,7 @@ def kendini_test():
                 (p.stdout + p.stderr)[:160])
 
         # ---- H) CI KOLU MENZIL COZUMU --------------------------------------
-        p = subprocess.run(["git", "-C", depo, "rev-list", "HEAD"],
-                           capture_output=True, text=True)
+        p = sentetik_git(depo, "rev-list", "HEAD", capture_output=True, text=True)
         shalar = p.stdout.split()
         m, kaynak, hata = ci_mesajlari(
             kok=depo, ortam={"GITHUB_SHA": shalar[0]},

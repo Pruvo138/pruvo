@@ -362,6 +362,12 @@ jobs:
       - name: Git baglam scrub'i — tek kaynak drift nobeti
         run: python3 tools/git_ortami.py --kendini-test
 
+      - name: Sentetik git fiksturu sizinti kapisi
+        run: python3 tools/fikstur-git-sizinti-kapisi.py
+
+      - name: Sentetik git fiksturu sizinti kapisi kabul testi
+        run: python3 tools/fikstur-git-sizinti-kapisi.py --kendini-test
+
       # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 30 gecici fiksturle olcer
       # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · kesilen kuyruk onizlemesi ·
       # dar/genis pay · dosya yok · dosya OKUNAMIYOR · UTF-8 degil · ilan sapmasi + ters yonu ·

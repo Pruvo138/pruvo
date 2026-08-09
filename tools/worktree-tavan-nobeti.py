@@ -10,6 +10,9 @@ import sys
 import tempfile
 import time
 
+from git_ortami import (GIT_BAGLAM_DEGISKENLERI, git_ortami,
+                        sentetik_git)
+
 
 TAVAN = 2
 BAYAT_DAKIKA = 90
@@ -18,9 +21,6 @@ SENTETIK_EPOSTA = "fikstur@ornek.gecersiz"
 KIMLIK_DEGISKENLERI = (
     "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL",
     "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL",
-)
-GIT_BAGLAM_DEGISKENLERI = (
-    "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE",
 )
 
 
@@ -155,23 +155,13 @@ def g(depo, *args, env=None):
     return cikti
 
 
-def sentetik_git_ortami():
-    ortam = os.environ.copy()
-    for ad in GIT_BAGLAM_DEGISKENLERI:
-        ortam.pop(ad, None)
-    ortam.update({
-        "GIT_AUTHOR_NAME": SENTETIK_AD,
-        "GIT_AUTHOR_EMAIL": SENTETIK_EPOSTA,
-        "GIT_COMMITTER_NAME": SENTETIK_AD,
-        "GIT_COMMITTER_EMAIL": SENTETIK_EPOSTA,
-    })
-    return ortam
-
-
 def sentetik_g(depo, *args):
-    return g(depo, "-c", "user.name=" + SENTETIK_AD,
-             "-c", "user.email=" + SENTETIK_EPOSTA, *args,
-             env=sentetik_git_ortami())
+    p = sentetik_git(depo, *args, kimlik_ad=SENTETIK_AD,
+                      kimlik_eposta=SENTETIK_EPOSTA,
+                      capture_output=True, text=True, timeout=30)
+    if p.returncode != 0:
+        raise RuntimeError("git %s: %s" % (" ".join(args), p.stderr or p.stdout))
+    return p.stdout.strip()
 
 
 def depo_kur(kok):
@@ -189,7 +179,7 @@ def agac_ekle(kok, yol, dal):
 def betik_kos(betik, depo):
     return subprocess.run([sys.executable, betik, "--depo", depo],
                           capture_output=True, text=True, timeout=60,
-                          env=sentetik_git_ortami())
+                          env=git_ortami())
 
 
 def kendini_test():

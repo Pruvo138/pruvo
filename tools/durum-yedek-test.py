@@ -45,6 +45,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
@@ -435,7 +436,7 @@ def _yedekle_izole_ortam(td, yb, memory_adet=8, skills_adet=4):
                 'def pruvo_dizini(sessiz=False):\n    return %r\n'
                 % (os.path.join(pruvo, "STL"), pruvo))
     try:                                    # git YOKSA fallback taban=kok yeter (env-bagimsiz)
-        subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+        sentetik_git(kok, "init", "-q", capture_output=True)
     except OSError:
         pass
     for ad in yb.REPO_BEKLENEN:
@@ -1841,7 +1842,7 @@ def main():
         # AYNISI). Artik ORTAM sorgulanir: git yoksa fikstur git DEPOSU OLMADAN kosar
         # (asagidaki uc kontrol BLOKLAYICI kalir) ve eksik olcum GORUNUR ⚪ [git] olur.
         if GIT_ORTAMI[0] == "var":
-            subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+            sentetik_git(kok, "init", "-q", capture_output=True)
             GIT_BAGIMLI[0] += 1
             kontrol("8) fikstur GIT DEPOSU olarak kuruldu (pano repo baglaminda olculdu)",
                     os.path.isdir(os.path.join(kok, ".git")))

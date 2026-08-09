@@ -56,6 +56,7 @@ import os
 import subprocess
 import sys
 import time
+from git_ortami import sentetik_git
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -214,42 +215,39 @@ def _gercek_git_fiksturu():
     tmp = tempfile.mkdtemp(prefix="pruvo-uzl-onarim-")
     try:
         uzak = os.path.join(tmp, "uzak.git")
-        subprocess.run(["git", "init", "--bare", "-b", DAL, uzak],
-                       capture_output=True, check=True)
+        sentetik_git(tmp, "init", "--bare", "-b", DAL, uzak,
+                      capture_output=True, check=True)
         tohum = os.path.join(tmp, "tohum")
-        subprocess.run(["git", "clone", uzak, tohum], capture_output=True, check=True)
-        for ad in ("git config user.email pruvo@example.invalid",
-                   "git config user.name pruvo"):
-            subprocess.run(ad.split(), cwd=tohum, capture_output=True, check=True)
+        sentetik_git(tmp, "clone", uzak, tohum, capture_output=True, check=True,
+                      kimlik_ad="pruvo", kimlik_eposta="pruvo@example.invalid")
         with open(os.path.join(tohum, "urunler.json"), "w", encoding="utf-8") as f:
             f.write("[]\n")
-        subprocess.run(["git", "add", "-A"], cwd=tohum, capture_output=True, check=True)
-        subprocess.run(["git", "commit", "-m", "ilk"], cwd=tohum,
-                       capture_output=True, check=True)
-        subprocess.run(["git", "push", UZAK, DAL], cwd=tohum,
-                       capture_output=True, check=True)
-        eski = subprocess.run(["git", "rev-parse", "HEAD"], cwd=tohum,
-                              capture_output=True, text=True).stdout.strip()
+        sentetik_git(tohum, "add", "-A", capture_output=True, check=True)
+        sentetik_git(tohum, "commit", "-m", "ilk", capture_output=True, check=True,
+                      kimlik_ad="pruvo", kimlik_eposta="pruvo@example.invalid")
+        sentetik_git(tohum, "push", UZAK, DAL, capture_output=True, check=True)
+        eski = sentetik_git(tohum, "rev-parse", "HEAD", capture_output=True,
+                             text=True).stdout.strip()
 
         # CI'nin donmus `github.sha` checkout'u = eski ucta duran agac
         agac = os.path.join(tmp, "ci")
-        subprocess.run(["git", "clone", uzak, agac], capture_output=True, check=True)
+        sentetik_git(tmp, "clone", uzak, agac, capture_output=True, check=True)
 
         # main ILERLER (baska bir push)
         with open(os.path.join(tohum, "urunler.json"), "w", encoding="utf-8") as f:
             f.write('[{"id":"yeni"}]\n')
-        subprocess.run(["git", "commit", "-am", "yeni parti"], cwd=tohum,
-                       capture_output=True, check=True)
-        subprocess.run(["git", "push", UZAK, DAL], cwd=tohum,
-                       capture_output=True, check=True)
-        yeni = subprocess.run(["git", "rev-parse", "HEAD"], cwd=tohum,
-                              capture_output=True, text=True).stdout.strip()
+        sentetik_git(tohum, "commit", "-am", "yeni parti", capture_output=True,
+                      check=True, kimlik_ad="pruvo",
+                      kimlik_eposta="pruvo@example.invalid")
+        sentetik_git(tohum, "push", UZAK, DAL, capture_output=True, check=True)
+        yeni = sentetik_git(tohum, "rev-parse", "HEAD", capture_output=True,
+                             text=True).stdout.strip()
 
-        once = subprocess.run(["git", "rev-parse", "HEAD"], cwd=agac,
-                              capture_output=True, text=True).stdout.strip()
+        once = sentetik_git(agac, "rev-parse", "HEAD", capture_output=True,
+                             text=True).stdout.strip()
         ok, bilgi = uca_tazele(agac)
-        sonra = subprocess.run(["git", "rev-parse", "HEAD"], cwd=agac,
-                               capture_output=True, text=True).stdout.strip()
+        sonra = sentetik_git(agac, "rev-parse", "HEAD", capture_output=True,
+                              text=True).stdout.strip()
         return {"eski": eski, "yeni": yeni, "once": once, "sonra": sonra,
                 "ok": ok, "bilgi": bilgi}
     finally:

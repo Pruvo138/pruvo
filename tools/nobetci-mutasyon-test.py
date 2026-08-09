@@ -71,6 +71,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -296,7 +297,9 @@ print("SONUC" + json.dumps({"tools": mod.TOOLS, "urunler": mod.URUNLER, "lock": 
 
 
 def git(*a):
-    return subprocess.run(["git"] + list(a), capture_output=True, text=True)
+    if len(a) >= 2 and a[0] == "-C":
+        return sentetik_git(a[1], *a[2:], capture_output=True, text=True)
+    return sentetik_git(os.getcwd(), *a, capture_output=True, text=True)
 
 
 def bolum_b(tmp):

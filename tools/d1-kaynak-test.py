@@ -33,6 +33,7 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(KOK, "tools")
 if TOOLS not in sys.path:
     sys.path.insert(0, TOOLS)
+from git_ortami import git_ortami, sentetik_git  # noqa: E402
 
 gecen = [0]
 kalan = [0]
@@ -66,7 +67,8 @@ def _urun(uid, baslik):
 
 
 def _git(kok, *args):
-    return subprocess.run(["git"] + list(args), cwd=kok, capture_output=True, text=True)
+    return sentetik_git(kok, *args, capture_output=True, text=True,
+                         kimlik_ad="t", kimlik_eposta="t@t")
 
 
 def fikstur_kur(tmp):
@@ -76,8 +78,6 @@ def fikstur_kur(tmp):
     kok = os.path.join(tmp, "depo")
     os.makedirs(kok)
     _git(kok, "init", "-q")
-    _git(kok, "config", "user.email", "t@t")
-    _git(kok, "config", "user.name", "t")
     yol = os.path.join(kok, "urunler.json")
     with open(yol, "w", encoding="utf-8") as f:
         json.dump([_urun("commitli-2", "B"), _urun("commitli-1", "A")], f,
@@ -184,9 +184,10 @@ dogrula("C4 atama YALNIZ o kosulun ICINDE (kosulsuz atama olsaydi varsayilan da 
 # UCTAN UCA: alt surecte bayraksiz kosum "KATALOG KAYNAGI" satirini BASMAZ, bayrakli
 # BASAR. Iki yon de olculur (tek yon olculseydi "hic basmiyor" da gecerdi).
 r0 = subprocess.run([sys.executable, os.path.join(TOOLS, "d1-sync.py"), "--kendini-test"],
-                    capture_output=True, text=True, cwd=KOK)
+                    capture_output=True, text=True, cwd=KOK, env=git_ortami())
 r1 = subprocess.run([sys.executable, os.path.join(TOOLS, "d1-sync.py"), "--kendini-test",
-                     "--head"], capture_output=True, text=True, cwd=KOK)
+                     "--head"], capture_output=True, text=True, cwd=KOK,
+                    env=git_ortami())
 dogrula("C5 bayraksiz `--kendini-test`: rc=0 ve ciktida 'KATALOG KAYNAGI' YOK",
         r0.returncode == 0 and "KATALOG KAYNAGI" not in r0.stdout,
         "rc=%d" % r0.returncode)

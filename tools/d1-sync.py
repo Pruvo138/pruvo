@@ -52,6 +52,7 @@ import os
 import re
 import subprocess
 import sys
+from git_ortami import git_ortami, sentetik_git
 import tempfile
 import time
 
@@ -392,7 +393,8 @@ def head_katalogu():
                  "onlemek icin var." % rc)
     try:
         p = subprocess.run(["git", "show", "HEAD:urunler.json"], cwd=KOK,
-                           capture_output=True, text=True, timeout=120)
+                           capture_output=True, text=True, timeout=120,
+                           env=git_ortami())
     except Exception as e:                                        # noqa: BLE001
         sys.exit("!! --head COZULEMEDI: git show calistirilamadi (%s)." % (e,))
     if p.returncode != 0:
@@ -489,7 +491,7 @@ def _git(args, zaman_asimi=60):
     """git calistir. Doner: (rc, stdout.strip()). Calistirilamazsa (None, "")."""
     try:
         p = subprocess.run(["git"] + list(args), cwd=KOK, capture_output=True,
-                           text=True, timeout=zaman_asimi)
+                           text=True, timeout=zaman_asimi, env=git_ortami())
     except Exception:                                             # noqa: BLE001
         return None, ""
     return p.returncode, (p.stdout or "").strip()
@@ -2267,10 +2269,10 @@ def _kt_deger(conn, uid, kolon):
 def _kt_git(yol, *args):
     """Sentetik depoda git kos (kimlik + imza ayarlari sabit; kullanicinin ayarina bagli
     KALMAZ -> CI'da da yerelde de ayni davranir)."""
-    komut = ["git", "-c", "user.email=kt@pruvo.test", "-c", "user.name=KT",
-             "-c", "commit.gpgsign=false", "-c", "protocol.file.allow=always",
-             "-C", yol] + list(args)
-    p = subprocess.run(komut, capture_output=True, text=True)
+    p = sentetik_git(yol, *args, kimlik_ad="KT", kimlik_eposta="kt@pruvo.test",
+                      ayarlar=("-c", "commit.gpgsign=false", "-c",
+                                "protocol.file.allow=always"),
+                      capture_output=True, text=True)
     return p.returncode, (p.stdout or "").strip()
 
 

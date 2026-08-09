@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from git_ortami import sentetik_git
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -39,8 +40,8 @@ def kayit(no, ad, gecti, detay=""):
 
 
 def kos(repo, *args):
-    p = subprocess.run(["git", "-C", repo] + list(args),
-                       capture_output=True, text=True)
+    p = sentetik_git(repo, *args, capture_output=True, text=True,
+                      kimlik_ad="durum-test", kimlik_eposta="test@example.invalid")
     if p.returncode != 0:
         raise RuntimeError("git %s -> %s" % (" ".join(args), p.stderr.strip()))
     return p.stdout.strip()
@@ -56,8 +57,6 @@ def sahne_kur(tmp):
     repo = os.path.join(tmp, "repo")
     os.makedirs(repo)
     kos(repo, "init", "-q", "-b", "main")
-    kos(repo, "config", "user.email", "test@example.invalid")
-    kos(repo, "config", "user.name", "durum-test")
     yaz(repo, "a.txt", "taban\n")
     kos(repo, "add", "-A")
     kos(repo, "commit", "-q", "-m", "taban")
