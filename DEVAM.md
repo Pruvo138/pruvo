@@ -16,6 +16,29 @@ Bu dal ayrica sayfanin kendi ic sayac celiskisini kapatir (baslik 330 ↔ cip to
 **215 urun** (Mini 42 · Grom 29 · K100 19 · Datsun 18…). `arama.py` gecis kolu **ONCE KAPATILMAYACAK**
 (arama daralir, satis yolu). Ayrica acik: H1/H3 kurali **16 model-olmayan** degeri model sayiyor.
 
+## ✅ BANNER LCP ONARIMI CANLIYA INDI + ONCE/SONRA OLCULDU — 9 Agu 00:46 (kosum `31284643156`, head `062f8cb2`)
+`e907eac7` 8 Agu 22:16'dan beri main'deydi ama **hicbir kosum onu yayinlamamisti**; kendi kosumu
+(`31281327794`) cancelled, ardil kosumlarda `serit-a2`+`serit-a3` defter sinif kapisindan kirmizi.
+Kalan tikanikligin sebebi bu kirmizilar DEGILDI (onarim `e56705a2`'de; iki kapi da main tepesinde
+rc=0 olculdu): kuyruk `bdddaee0` kosumunda (`31282011345`) kilitliydi — `serit-a4` ucusta, ama
+`serit-a2`/`serit-a3` ZATEN kirmizi oldugu icin o kosumun `deploy`'u garanti `skipped`'ti; `pages`
+grubunu tutan bu OLU kosum iptal edilince kuyruk acildi ve `31284643156` **deploy + yayin success**
+verdi (artefakt `last-modified 00:45:42Z`, `cf-cache-status=HIT`, `age=0`).
+**Canli kabul (canonical adres, cache-bust YOK) — 6 eksen:** `<picture>` **6** · `rel=preload`+
+`as=image` **1** · `preconnect` **1** · `-v2-*.webp` benzersiz anahtar **18** · v2'siz banner webp
+**0** · eski uc anahtarin toplam gecisi **0**. `fetchpriority="high"` **2** cikti; beklenti 1 idi ve
+**beklenti yanlisti**: head preload + govde LCP `<img>` ikisi birden tasimak ZORUNDA (ayrisirsa
+gorsel iki kez iner) — kaynakta 23. ve 1036. satir, yani 2 DOGRU sayidir.
+**PSI mobil (Lighthouse 13.4.1, emule Moto G Power), 9 Agu 00:56Z — ONCE (8 Agu) → SONRA:**
+performans **74 → 98** · LCP **10,7 → 2,1 sn** · SI **2,4 → 1,1 sn** · FCP **1,1 → 1,1 sn** ·
+TBT **100 → 110 ms** · CLS **0 → 0**. Regresyon kontrolu: erisilebilirlik **100** · en-iyi-
+uygulamalar **100** · SEO **100** (ucu de degismedi).
+🔴 **Atif siniri:** olculen sayfa `062f8cb2` ve bu commit `b7cdc015`'i ICERMEZ (`--is-ancestor`
+rc=1) → yukaridaki kazanc **WebP kolunun TEK BASINA** kazancidir; AVIF kolunun EK katkisi HENUZ
+olculmedi. Kardes turun bekledigi kosum `31286873618` (head `3e7f1b24`, `b7cdc015` ICERIR) ucusta.
+ℹ️ Anahtarsiz PSI REST ucu **8 denemede de HTTP 429** verdi; sayilar PSI'nin web arayuzunden
+gorsel-sinif isciye okutuldu, uydurulmadi.
+
 ## ✅ R2 AVIF WHITELIST'I + BANNER AVIF KOLU main'e ALINDI — 9 Agu 00:47 (merge `b7cdc015`)
 Dal `claude/intelligent-nightingale-d5e9fb` (`6c584514`) **merge commit'iyle** alindi: ff IMKANSIZ (`--is-ancestor` rc=1), cakisma 0 (`merge-tree` yalniz agac OID'i), kapsam 8 dosya +757/-59, `urunler.json` ve gizli kayit diff'te YOK, sizinti taramasi temiz, force YOK. Dal + worktree TEMIZLENDI (`durum.py` "ucu main'de").
 **1) R1 sihirli-bayt whitelist'i AVIF'e acildi** (`tools/r2-upload.py`): kabul MARKAYA bagli — `data[4:8]=="ftyp" AND data[8:12] in (avif,avis)`. `ftyp` TEK BASINA yeterli SAYILMAZ (mp4/mov/heic ayni ISO-BMFF kutusunu tasir); R2-R6 kollarina DOKUNULMADI, bilinmeyen govde HALA reddediliyor. Kabul testi AA1-AA8 (avif/avis KABUL · mp42/heic/kesik-marka/yanlis-ofset RED · cop/HTML RED): **GECTI=91 KALDI=0**. Yeni `tools/r2-avif-mutasyon-test.py`: **6/6 mutant TEK BASINA KIRMIZI** (marka kontrolu kalkti · kume HEIF'e genisledi · sabit offset ARAMA'ya dondu · esitlik PREFIX'e dondu · AVIF kolu dustu · `.avif` uzanti kolu dustu) + KONTROL mutanti (marka demetinin SIRASI) YESIL. `nobet.yml` serit-b adimi + `SERIT_B` beyani + `TABLO_TABANLARI` 86→87 AYNI commit'te; is-akisi kapisi rc=0 (olculen kapi cagrisi 250→251).
