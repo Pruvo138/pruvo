@@ -37,7 +37,7 @@ WHATSAPP = "905451386526"
 WA_TEL_GORUNUR = "+90 545 138 6526"
 ESIK = 3                       # model sayfası + marka sayfası yalnız >= ESIK ürünlü için (spec §3.4)
 # Marka sayfasında SSR'de basılan TAM KART sayısı; kalanı aynı sayfada artımlı çizilir.
-# 🔴 N ÖLÇÜMLE SEÇİLDİ (gerekçe: tools/paket-marka-tek-sayfa.md + RAPOR-MIMARA.md). Kısıt:
+# 🔴 N ÖLÇÜMLE SEÇİLDİ (gerekçe: tools/paket-marka-tek-sayfa.md). Kısıt:
 # en büyük marka sayfasının HTML baytı index.html'i AŞMAMALI. Yerel kalemleri (model sayfası
 # olmayan, bu yüzden HTML'de linklenmek ZORUNDA olan ürünler) kart yerine düz bağ olarak
 # basmak asıl kazancı verir; N ilk boyanın kalitesini belirler.
@@ -2476,7 +2476,7 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     })
     html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body,
                   kapsam_scripti(kategoriler) + ara_tasi_scripti(marka) + artim_scripti())
-    return url, html, yuk
+    return url, html, yuk, yerel_kalan
 
 
 def _marka_index(ctx, ozet):
@@ -2616,12 +2616,24 @@ def uret(products, ctx):
                 _gorulen.add(pid)
                 kucuk_urunler.append(p)
 
-        murl, mhtml, myuk = _marka_sayfasi(ctx, marka, d, buyuk, kucuk_urunler, kategoriler)
+        murl, mhtml, myuk, yerel_kalan = _marka_sayfasi(
+            ctx, marka, d, buyuk, kucuk_urunler, kategoriler)
         yaz(murl, mhtml)
         # Artım yükü sayfanın YANINA yazılır (HTML baytını şişirmez, sitemap'e GİRMEZ:
         # crawl hedefi değil, istemci verisidir). /marka/ gitignore'da -> repoya girmez.
         yaz_json(murl + "parcalar.json", myuk)
         sitemap.append((murl, "0.7", "weekly"))
+
+        # İlk 80 SSR kartın dışında kalan ve yayımlanmış bir model sayfası olmayan ürünler
+        # düz bağ olarak marka kökünde kalır. Ayrıca JS'siz/kart-semantikli erişim için tek
+        # bir "Diğer" koleksiyonunda tam kartla yayımlanır; böylece artımlı ana sayfanın
+        # 80 kart tavanı bozulmadan marka ağacı katalog üyeliğini eksiksiz taşır.
+        if yerel_kalan:
+            diger = {"display": "Diğer", "slug": "diger", "canon": "diger",
+                     "urunler": yerel_kalan}
+            durl, dhtml = _model_sayfasi(ctx, marka, diger, kategoriler)
+            yaz(durl, dhtml)
+            sitemap.append((durl, "0.6", "weekly"))
 
         marka_yolu = "/marka/" + marka_slug + "/"          # göreli (aynı köken; render_product /?marka= gibi göreli basar)
         for g in buyuk:
