@@ -33,6 +33,7 @@ const { spawn } = require("child_process");
 const TOOLS = __dirname;
 const REF = require("./parite-test.js");     // filtered() — GERCEK site referansi
 const EGE_MOD = require("./parite-ege.js");  // egeKodu()  — GERCEK bot kodu
+const SINIF = require("./parite-marka-sinifi.js"); // `marka=` yuklemi (index.html govdesi)
 const ORTAK = require("./parite-ortak.js");
 const PARITE_SITE = path.join(TOOLS, "parite-test.js");
 const PARITE_EGE = path.join(TOOLS, "parite-ege.js");
@@ -104,7 +105,14 @@ function sunucuKur({ yerel, gizli, EGE }) {
       const q = u.searchParams.get("q") || "";
       if (u.searchParams.get("mod") === "ege") {
         if (!q.trim()) return gonder({ hata: "q gerekli", toplam: 0, urunler: [] }, 400);
-        const hepsi = EGE.urunAra(idx, q, Infinity);
+        // `marka=` FILTRE EKSENI (10 Agu) — kardes fiksturle AYNI gerekce: uc bu
+        // parametreyi mod=ege'de de tasir; sahte uc yok saysaydi korpusa yeni giren
+        // eksen SAHTE KIRMIZI yakardi ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]).
+        const markaF = u.searchParams.get("marka") || "";
+        let hepsi = EGE.urunAra(idx, q, Infinity);
+        if (markaF) {
+          hepsi = hepsi.filter((p) => SINIF.markaSinifi(gorunur).uyeMi(p, markaF));
+        }
         return gonder({ toplam: hepsi.length, urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
       }
       const kat = u.searchParams.get("kategori") || "";

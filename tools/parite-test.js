@@ -56,6 +56,8 @@ const ESZAMANLI = 8;
 // Marka sorgusunun IKI GOVDESI (index.html ↔ tools/arama.py) arasindaki parite AYRICA
 // tools/marka-liste-test.py'de olculur (68 sorgu, gercek katalog).
 const REFERANS = require("./index-arama-referansi.js");
+// MARKA KATLAMA SINIFI — uyelik ELLE LISTE DEGIL, `markaKatla`dan TURER (tek govde).
+const SINIF = require("./parite-marka-sinifi.js");
 // TEMBEL: modul `require` edildiginde (fikstur/mutasyon harness'i) index.html okunmaz.
 function ref() { return REFERANS.referans(); }
 function norm(s) { return ref().norm(s); }
@@ -90,7 +92,12 @@ function urunleriYukle() {
 }
 
 /** Gercekci sorgu havuzu: katalogun kendi kelimeleri + markalar + kategoriler + kenar durumlar. */
-function sorgulariUret(hedef, urunler) {
+/**
+ * @param {boolean} [sinifsiz]  YALNIZ ariza yolu: marka katlama sinifi turetilemediginde
+ *   korpus ESKI EKSENLERLE kurulur. Normal kosumda VERILMEZ; verildigi hal cagiran
+ *   tarafindan ACIKCA OLCULEMEDI olarak raporlanir.
+ */
+function sorgulariUret(hedef, urunler, sinifsiz) {
   const PRODUCTS = urunler || urunleriYukle();
   const sorgular = [];
   const ekle = (q, kat, marka) => sorgular.push({ q, kat: kat || "Tümü", marka: marka || "Tümü" });
@@ -151,12 +158,27 @@ function sorgulariUret(hedef, urunler) {
   ];
   for (const q of kenar) ekle(q);
 
+  // ── 8) MARKA KATLAMA SINIFI — SIRADAN BAGIMSIZ, KIRPILMAYAN CEKIRDEK ──────────────
+  // 🔴 NEDEN AYRI (olculdu 10 Agu 2026): yukaridaki 2. ve 6. adimlar `marka=` eksenini
+  // `markalar.slice(0,150)` / `markalar[i % markalar.length]` (i < 100) ile ornekler,
+  // yani KATALOG SIRASINA baglidir. `markaKatla(V) !== V` olan 32 degerin indeksleri
+  // 27..2571 arasinda dagilmisti; ilk 100'de YALNIZ 1 tanesi vardi. Alarm bu yuzden
+  // YAPISAL OLARAK ISTIKRARSIZDI: bir urun partisi diziyi yeniden siralayinca hicbir sey
+  // duzelmeden yesile donebilirdi. Sinif uyeligi burada markaKatla'dan TURER (elle liste
+  // YOK, sabit sayi YOK) ve `hedef` argumaniyla KIRPILMAZ.
+  // Cekirdek KONTROL degerlerini de tasir (markaKatla(V) === V): "sinif kirmizi" ile
+  // "her marka degeri kirmizi" ayirt edilebilsin diye ([[beyan-edilmis-survivor]]).
+  const cekirdek = sinifsiz ? [] : SINIF.cekirdekSorgular(PRODUCTS, "site").sorgular;
+
   // Karistir (deterministik) ve hedefe kirp
   for (let i = sorgular.length - 1; i > 0; i--) {
     const j = (i * 2654435761) % (i + 1);
     [sorgular[i], sorgular[j]] = [sorgular[j], sorgular[i]];
   }
-  return hedef ? sorgular.slice(0, hedef) : sorgular;
+  // 🔴 KIRPMA CEKIRDEGE DOKUNMAZ: `hedef` verilse bile sinif sorgulari DUSMEZ; hedef
+  // cekirdekten kucukse sonuc cekirdek kadar olur (kapsam hizdan ONCE gelir).
+  const kalan = hedef ? Math.max(0, hedef - cekirdek.length) : sorgular.length;
+  return cekirdek.concat(sorgular.slice(0, kalan));
 }
 
 // Her calisma icin benzersiz — asagiya bak.
@@ -226,9 +248,23 @@ if (require.main === module) (async () => {
   const YEREL_IDLER = [...new Set(PRODUCTS.map((p) => p.id))];
   const YEREL_ID_KUME = new Set(YEREL_IDLER);
   const hedef = parseInt(process.argv[2] || "", 10);
-  const sorgular = sorgulariUret(Number.isFinite(hedef) ? hedef : 0, PRODUCTS);
+  // Sinif cekirdegi (marka katlama) turetilemezse kosum ESKI EKSENLERLE surer ve bu
+  // ACIKCA OLCULEMEDI olur — `return` YOK, cunku on-kosul KIRMIZISI ariza yuzunden
+  // silinmemeli (1 > 3 > 0). Korpusun sinifi tasidigi AYRI kapida (parite-kapsam-test.js)
+  // ag olmadan olculur.
+  let sorgular;
+  try {
+    sorgular = sorgulariUret(Number.isFinite(hedef) ? hedef : 0, PRODUCTS);
+  } catch (e) {
+    OLCULEMEDI.push("marka katlama sinifi TURETILEMEDI (" + (e && e.message) +
+      ") -> `marka=` sinif ekseni OLCULMEDI");
+    console.log("⚪ " + OLCULEMEDI[OLCULEMEDI.length - 1]);
+    sorgular = sorgulariUret(Number.isFinite(hedef) ? hedef : 0, PRODUCTS, true);
+  }
   console.log("Parite testi: %d sorgu | %d urun (%s) | uc: %s",
     sorgular.length, PRODUCTS.length, URUNLER_YOLU, UC);
+  console.log("MARKA KATLAMA SINIFI: `marka=` ekseninde %d sorgu (uyelik markaKatla'dan " +
+    "TURER, elle liste YOK)", sorgular.filter((s) => s.marka !== "Tümü").length);
   // TAVAN katalogdan TURER (sabit degil) -> tek kaynak: ortak.supurmeTavani.
   console.log("ISTEK BUTCESI: sorgu(%d) + on-kosul(1) [+ sayilar ayriysa supurme " +
     "min(ceil(%d/%d), tavan %d) = %d parti] | zaman asimi %d ms/istek, deneme %d\n",
