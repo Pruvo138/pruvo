@@ -36,6 +36,7 @@ from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
                       STATIK_SAYFALAR, PV_SCRIPT_HTML)
 import filament_ortak
 import marka_model_build
+import sitemap_damga
 # CIP INDEKSI — ana sayfa MARKA/GRUP/MODEL cip satirlarinin CAPRAZ DARALMA tablosu.
 # YALNIZ yayin kopyasina gomulur (bkz. yayin_index): indeks urunler.json'dan turer, kaynak
 # index.html'e yazilsaydi her urun partisi blogu bayatlatir ve baska bir mimarin akisini
@@ -3337,7 +3338,27 @@ def render_content_page(slug, title, meta, body_html):
 
 
 # ------------------------------------------------------------------ sitemap
-def render_sitemap(products, extra_urls=None):
+def sitemap_tarihleri(products):
+    """{url: 'YYYY-MM-DD'} — GERÇEK içerik-değişim tarihleri (tools/sitemap_damga.py).
+
+    🔴 11 Ağu 2026'ya kadar burada `TODAY` basılıyordu: canlı sitemap'teki 26.696
+    URL'in HEPSİ aynı `<lastmod>`'u taşıyordu, yani Google'a her gün "her şey
+    bugün değişti" deniyordu (ölçüldü: benzersiz lastmod = 1; tarama isteklerinin
+    %93'ü Refresh). Tarih artık git geçmişinden TÜRETİLİR; türetilemeyen URL'de
+    `<lastmod>` etiketi HİÇ BASILMAZ (eksik lastmod, yanlış lastmod'dan iyidir).
+    """
+    url_tarih, tani = sitemap_damga.sitemap_tarihleri(
+        products, product_url, sitemap_damga.defter_yolu(ROOT), ROOT,
+        ana_sayfa_url=SITE + "/")
+    print("sitemap lastmod: önbellekten %d · git'ten %d · çözülemedi %d "
+          "(yürünen commit %d · %.1f sn · tavan aşıldı: %s · süre aşıldı: %s)"
+          % (tani["defterden"], tani["gitten"], tani["cozulemedi"],
+             tani["yurunen_commit"], tani["sure_sn"], tani["tavan_asildi"],
+             tani["sure_asildi"]))
+    return url_tarih
+
+
+def render_sitemap(products, extra_urls=None, tarihler=None):
     urls = []
     urls.append((SITE + "/", "1.0", "daily"))
     for slug in SITEMAP_SLUGS:
@@ -3345,21 +3366,50 @@ def render_sitemap(products, extra_urls=None):
     for p in products:
         urls.append((product_url(p["id"]), "0.8", "weekly"))
     # marka->model pilot URL'leri (build.py main -> marka_model_build.uret döndürür): her
-    # marka + >=3-ürünlü model URL'i lastmod'lu girer (spec §5, keşif kök-çözümü).
+    # marka + >=3-ürünlü model URL'i girer (spec §5, keşif kök-çözümü). Bu sayfalar ürün
+    # KAYDINDAN türemediği için tarihleri de türetilemez -> lastmod'suz girerler.
     if extra_urls:
         urls.extend(extra_urls)
+    if tarihler is None:
+        tarihler = sitemap_tarihleri(products)
     items = []
     for loc, prio, freq in urls:
+        tarih = tarihler.get(loc)
+        # 🔴 Tarih BİLİNMİYORSA etiket hiç basılmaz — uydurma tarih YASAK.
+        lastmod = ("    <lastmod>%s</lastmod>\n" % esc(tarih)) if tarih else ""
         items.append(
             "  <url>\n"
             "    <loc>%s</loc>\n"
-            "    <lastmod>%s</lastmod>\n"
+            "%s"
             "    <changefreq>%s</changefreq>\n"
             "    <priority>%s</priority>\n"
-            "  </url>" % (esc(loc), TODAY, freq, prio))
+            "  </url>" % (esc(loc), lastmod, freq, prio))
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
             + "\n".join(items) + "\n</urlset>\n")
+
+
+# ------------------------------------------------------------------ robots.txt
+# Tarama bütçesi: parametreli URL'ler (`?kategori=`, `?marka=`, `?ara=`, `?sepet=`)
+# ana sayfanın İSTEMCİ TARAFI filtreleridir; hepsi aynı HTML'i döndürür ve canonical
+# ana sayfayı gösterir (ölçüldü 11 Ağu 2026: dördünde de `<link rel=canonical
+# href="https://pruvo3d.com/">`). Google onları tarayıp kanonik yüzünden atıyor.
+#
+# ⚠️ EN BÜYÜK RİSK FAZLADAN KAPATMAK. Desenler bu yüzden SORGU'ya çıpalıdır: her biri
+# `?` ya da `&` LİTERALİ ile başlar, dolayısıyla sorgusuz hiçbir yolu (kanonik ürün
+# adresi `/urun/<id>/`, `/marka/...`, ana sayfa, `/sitemap.xml`) eşleyemez.
+# `&` biçimi ÖLÇÜMLE eklendi: canlı iç linklerde parametre ikinci sırada da geçiyor
+# (`/?kategori=Otomobil&marka=MX-5`) — yalnız `/*?marka=` yazılsaydı o URL AÇIK kalırdı.
+ROBOTS_PARAMETRELERI = ("kategori", "marka", "ara", "sepet")
+
+
+def render_robots():
+    satirlar = ["User-agent: *", "Allow: /"]
+    for ad in ROBOTS_PARAMETRELERI:
+        satirlar.append("Disallow: /*?" + ad + "=")
+        satirlar.append("Disallow: /*&" + ad + "=")
+    satirlar += ["", "Sitemap: " + SITE + "/sitemap.xml", ""]
+    return "\n".join(satirlar)
 
 
 # ------------------------------------------------------------------ Google Merchant feed
@@ -3891,7 +3941,7 @@ def main():
 
     # robots.txt
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
-        f.write("User-agent: *\nAllow: /\n\nSitemap: " + SITE + "/sitemap.xml\n")
+        f.write(render_robots())
 
     # ozet.json  (FAZ 3 — ana sayfanin ilk boyamasi; bayrak kapaliyken URETILIR ama
     # site onu CEKMEZ. Uretmeye devam etmemizin sebebi: bayrak acildigi an dosya
