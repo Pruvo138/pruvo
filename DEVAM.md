@@ -1,5 +1,35 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 10 Agu 2026 23:37Z turu (KraL)
+
+**Supurme (0.4 askisi KALKMIS halde ilk tam tur; sabit kosucu isciye kosturuldu):** rc=0 ·
+`GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=1:2026-08-11T01:25:38 · HUKUM=TEMIZ`. Uc fail-closed
+alarmin ucu de sessiz. Inbox sayaci 0 iken hukum "OLCULEMEDI" degil **TEMIZ**, cunku pozitif
+tanima izi Cop'ten geliyor: aranan dizenin AYNISI Cop'te 1 kayit tutuyor.
+**Cop denetimi (salt okuma): 1 kayit, 1 MESRU / YANLIS=0** — ve o tek kayit, bu turun tek
+kirmizisinin (`b150d01`) maili. Gorev dosyasi 0.4'teki acik kalem ("sonraki turda YANLIS=1
+gorursen sor") boylece **KAPANDI**. Not: 21:37Z turunda 7 olan Cop kayit sayisi 1'e dusmus;
+nobet Cop'u BOSALTMAZ, bu dusus nobete atfedilmez.
+
+**CI (bagimsiz `gh` ile olculdu): acik kirmizi YOK, bu turda kod degisikligi YAPILMADI.**
+- Son 60 kosumda tek `failure`: `31433971660` (Nöbet şeridi SERIT B, job `serit-b`, headSha
+  `b150d013`, 21:27Z). Kok neden logdan alintiyla: `UZAK DAL KAPISI: OLCULEMEDI (fail-closed
+  KIRMIZI)` → `Process completed with exit code 2`. Ayni kosumun diger eksenleri (V/A/K/W
+  vakalari + mutasyon bataryalari) PASS'ti.
+- **Sinifi KAPALI olculdu:** ayni workflow'un sonraki tamamlanan kosumu `31435535409`
+  (`7cefc4a1`, 21:48Z) **10 job success** (`serit-b` dahil; `hacim-tam-takim` skipped), ve
+  `git merge-base --is-ancestor b150d013 7cefc4a1` rc=0 → kirmizi head, yesil kosumun ATASI.
+  Onarim baska oturumca zaten inmis (uzak dal kolu, `f5bb693a`). Gorev dosyasi 2. adim geregi
+  duzeltme YAPILMADI.
+- SERIT B **yayini BLOKLAMAZ**; yayin kolu ayrica `228f3661` head'inde `Build & deploy` success.
+- Ucusta (ariza DEGIL): `cbe7e646` Build & deploy in_progress · `d7aca80e` Build & deploy +
+  SERIT B pending. Aradaki `cancelled` SERIT B kayitlari 4.5 kurali geregi kuyruk davranisi.
+
+**Devralinan acik kalemler (21:37Z blogunda yasiyor, HALA ACIK):** worktree tavani
+(SAYI=3 TAVAN=2, iki oksuz agac) + `kurtarma/worktree-marka-katla-8c782ed1` capasinin yargisi ·
+kayip is capasi `kurtarma/stash-8agu-baska-oturum` (`891feaeb`).
+
 ## 🕐 CI NOBETI — 10 Agu 2026 21:37Z turu (KraL)
 
 **Supurme:** ASKIDA (indeks yarisi, Okan kapisi — gorev dosyasi 0.4). Bu turda hicbir mail
@@ -33,47 +63,7 @@ uygulanir, 4 dosya yama duzeyinde birlestirme ister, toplu `pop` YAPILMAZ. ⚠�
 oturumu ayni pencerede (`b7f7e5b4`) bu isin olcumunu deftere isledi → **mukerrer tur riski**;
 devralan TEK oturum olsun.
 
-## 🕐 CI NOBETI — 10 Agu 2026 20:37Z turu (KraL)
-
-**🔴🔴 SUPURME ASKIYA ALINDI — 10 Agu supurme onarimi SINIFI KAPATMAMIS, ayni tur yeniden olculdu.**
-Bu turun supurmesi kendi ciktisinda yanlis silmeyi itiraf etti: `GITHUB_BILDIRIM_INBOX=1 ·
-BULUNAN=1 · **TASINAN=2** · KALAN=0 · COP_IZI=7:2026-08-10T23:25:31 · HUKUM=SUPURULDU` —
-`KONULAR` listesinin 2. satiri bir **SIPARIS bildirimi**ydi (10 Agu'da bir kez kurtarilan AYNI
-kayit, ikinci kez coplendi). Cop denetimi: 9 kayit, **7 MESRU / 2 YANLIS** (siparis bildirimi +
-1 giris maili).
-- **Kok neden (yeni, olculdu):** `messages of inbox whose ...` yuklemi Mail uygulamasinda
-  **INDEKSLI referans** dondurur (`message N of inbox`); referans `delete` **aninda** cozulur ve silme
-  asenkron oldugu icin bir sonraki tur yuklemi hala eski indeksi verir → o indeks artik
-  **KOMSU** maili gosterir. `TASINAN > BULUNAN` bu yarisin makine izidir. 10 Agu onarimi
-  (her turda yuklemi yeniden kos + daima `item 1`) yarisin SEKLINI degistirdi, sinifini DEGIL.
-  Dogru cozum silmeyi **kararli kimlikten** (`message id`) yapmak — AppleScript degisikligi =
-  ajan yazamaz (Okan emri) = **OKAN KAPISI**.
-- **Alinan onlem (bu tur):** nobet gorev dosyasina `0.4 SUPURME ASKIDA` blogu eklendi (0.5'i ezer;
-  salt-okuma cop denetimi kosmaya devam eder) · crontab'taki **:17 IKINCI silme yolu** (BaBa evi
-  betigi, `repeat with m in hedefler` — ayni indeks sinifi, logda `BULUNAN=4 KALAN=1` desenleri)
-  **KAPATILDI**. Kurtarma (`kurtarma-cop-inbox.applescript`) spec geregi ELLE → Okan'a tek cumle.
-- **⚠️ Bu turda ben de ayni sinifa dustum, 1 dakikada geri alindi:** `crontab
-  /Users/okan/.claude/cron/ci-nobeti.crontab` kuruldu ama o dosya **2 satirlik BAYAT kopyaydi**;
-  canli crontab'ta **5** kayit vardi → 3 canli nobet (2 posta izleme + parti surucusu) sessizce
-  dustu. Ayni turda tam surum yazilip geri kuruldu: **AKTIF=4** (37 ci-nobeti · 3,23,43 macit
-  posta · 9,29,49 kaan posta · 13 */2 parti surucusu), aktif `17` **YOK**. Ders: `crontab <dosya>`
-  kurmadan ONCE `crontab -l` ile satir-satir karsilastir — defter kopyasi canli durumu temsil ETMEZ.
-
-**CI (bagimsiz `gh` ile olculdu):** son `failure` = `31425366313` (Build & deploy, headSha
-`f905e7f4`, 19:41Z) → job `serit-a3`, adim **`Ic rapor adi kapisi`**; kok neden logdan alintiyla:
-`DEVAM.md:7`'deki defter satiri bir ic protokol dosya adini tasiyordu (kapinin 10 Agu'da acilan
-uzak-dal/izlenen-agac ekseni bunu gorur oldu). **Onarim BASKA bir oturumca zaten push edilmis:**
-`dd3ce47c` ("Defter satirindaki protokol dosya adi notrlestirildi"). `build` · `serit-a2` ·
-`serit-a4` bu kosumda da **success**'ti; `deploy`+`yayin` **skipped** (serit-a3'e bagli).
-`main == origin/main == dd3ce47c`, ahead 0.
-- **Kabul (bagimsiz olculdu, Codex'in/baskasinin sayisina guvenilmedi):** kosum `31430172244`
-  (headSha `dd3ce47c`) **6 job da yesil** — `build` 13m06s · `serit-a2` 23m54s · `serit-a3`
-  **17m58s (kirmizi olan kapi artik success)** · `serit-a4` 10s · **`deploy` 42s** · **`yayin` 46s**.
-  Yayin tavanini bu kosumda `serit-a2` koydu (23m54s), toplam ~34 dk.
-- **🟢 Okan'da bekleyen 1. kalem KAPANDI:** `Odeme yolu bayatlik nabzi` DEVAM'da "6 kosumdur
-  kirmizi" yaziyordu; su an **son 6 kosum da success** (19:36Z `7c473b49`'dan beri kesintisiz).
-  Shop worker bayatligi alarmi sonmus — kalem listeden dusuruldu.
-- Su an inbox'ta "Run failed" maili birikecek (supurme askida); bu **beklenen** ve arizasiz.
+## 🕐 CI NOBETI — 10 Agu 2026 20:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; supurme aski karari + indeks sinifi kok nedeni + crontab bayat kopya dersi arsivde)
 
 ## 🕐 CI NOBETI — 10 Agu 2026 19:37Z turu (KraL, gec kapandi) — **ARŞİVE ALINDI** (defter kotası 1:1; acik kalem 21:37Z blogunda yasiyor)
 
