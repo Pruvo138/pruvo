@@ -3226,7 +3226,10 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         # DEGISTI: Okan'in karari geldi, hazir/stok kolu da "3-5 is gunu" tasiyor
         # (bkz. secenekler.js BEYAN blok yorumu + tools/sayfalar.py
         # STOK_TESLIM_CUMLESI — ucu de ayni sayiyi tasir, kapi C6 olcer).
-        # Nobet: tools/cayma-beyani-kapisi.py B4/B5/B6/B7/B8 + C6 + E5.
+        # Nobet: tools/cayma-beyani-kapisi.py B ekseni (urun sayfasi) + C ekseni
+        # (baglayici yasal govde) + E ekseni (tek kaynak). Tek tek iddia numarasi
+        # YAZILMAZ: numaralar buyuyor ve burada bayatlayan bir liste, yanindaki
+        # baglayici metne yalan soyleyen bir ikize donusuyor.
         ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
