@@ -1,5 +1,31 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 10 Agu 2026 21:37Z turu (KraL)
+
+**Supurme:** ASKIDA (indeks yarisi, Okan kapisi — gorev dosyasi 0.4). Bu turda hicbir mail
+tasinmadi/silinmedi. **Cop denetimi** (salt okuma, isciye kosturuldu): **7 kayit, 7 MESRU /
+YANLIS=0.** Onceki turun 2 YANLIS kaydi (siparis bildirimi + bir giris maili) artik Cop'te
+DEGIL → kurtarma yapilmis; yanlis silme alarmi bu turda SONMUS.
+
+**CI (bagimsiz `gh` ile olculdu): yayin zinciri YESIL, acik kirmizi YOK.**
+- Pencerede (son ~70 dk) tek `failure`: `31428696466` (Build & deploy, headSha `dfb172f5`,
+  20:22Z). **Sinifi KAPALI olculdu:** ayni workflow'un sonraki tamamlanan kosumu `31430172244`
+  (`dd3ce47c`) **success**, ve `git merge-base --is-ancestor dfb172f5 dd3ce47c` rc=0 → kirmizi
+  head yesil kosumun atasi. Onarim baska oturumca zaten inmis; bu turda kod degisikligi YOK.
+- **Tur ici kabul (beklendi, beyana guvenilmedi):** kosum `31431548413` (headSha `fc22a9ba`)
+  **6/6 job success** — `build` · `serit-a2` · `serit-a3` · `serit-a4` · **`deploy`** · **`yayin`**.
+- `31433972063` (`b150d013`) **cancelled** — 4.5 kurali: kuyruk davranisi, ariza DEGIL. Icerik
+  kaybi yok: `git merge-base --is-ancestor b150d013 b7f7e5b4` rc=0 → ucustaki `31434828201`
+  (`b7f7e5b4`) o commit'i ata olarak tasiyor.
+- Diger alarm kollari `b7f7e5b4` head'inde yesil (D1 sapma ×2, Odeme yolu bayatlik nabzi, spec
+  alarm kolu). Inbox'ta "Run failed" birikmesi supurme askida oldugu icin BEKLENEN.
+
+**Devralinan acik kalem (19:37Z blogu defter kotasi 1:1 geregi arsive alindi, kalem BURADA
+yasiyor):** kayip is capasi `kurtarma/stash-8agu-baska-oturum` (`891feaeb`) — 5 dosya temiz
+uygulanir, 4 dosya yama duzeyinde birlestirme ister, toplu `pop` YAPILMAZ. ⚠️ Baska bir KraL
+oturumu ayni pencerede (`b7f7e5b4`) bu isin olcumunu deftere isledi → **mukerrer tur riski**;
+devralan TEK oturum olsun.
+
 ## 🕐 CI NOBETI — 10 Agu 2026 20:37Z turu (KraL)
 
 **🔴🔴 SUPURME ASKIYA ALINDI — 10 Agu supurme onarimi SINIFI KAPATMAMIS, ayni tur yeniden olculdu.**
@@ -42,46 +68,7 @@ uzak-dal/izlenen-agac ekseni bunu gorur oldu). **Onarim BASKA bir oturumca zaten
   Shop worker bayatligi alarmi sonmus — kalem listeden dusuruldu.
 - Su an inbox'ta "Run failed" maili birikecek (supurme askida); bu **beklenen** ve arizasiz.
 
-## 🕐 CI NOBETI — 10 Agu 2026 19:37Z turu (KraL, gec kapandi)
-
-**Supurme (askiya alma blogu HENUZ YOKKEN kosuldu):** `GITHUB_BILDIRIM_INBOX=1 · BULUNAN=1 ·
-TASINAN=2 · KALAN=0 · COP_IZI=6:2026-08-10T22:27:40 · HUKUM=SUPURULDU`. Cop denetimi: 7 kayit,
-**6 MESRU / 1 YANLIS** (bir giris maili). `TASINAN > BULUNAN` — 20:37Z turunun tespit ettigi
-AYNI indeks sinifi; o turun askiya alma karariyla kapandi, bu turda ayrica islem yapilmadi.
-
-**CI kirmizisi:** kosum `31424004814` (`Yayin erisim alarmi`, job `erisim`, headSha `e77f6a10`,
-19:25Z). Kok neden logdan alintiyla: TEK URL 503 + ucun gecici bakim govdesi, 327/328 acik.
-Ayni gun 17:13'te FARKLI tek sayfayla ayni imza. Canli dogrulama (no-cache dahil) ikisi de
-**200** → **yanlis pozitif**, kalici erisim arizasi degil.
-
-**Onarim (Opus muhendis, commit `3f603b87`):** `tools/yayin-erisim-nobeti.py` gecici sinifta
-(5xx VEYA ag hatasi) KAPALI'ya dusen URL'i **BIR KEZ** yeniden yokluyor (~5 sn,
-`Cache-Control: no-cache`). Fail-closed korundu: 4xx ve dongu/yonlendirme yeniden YOKLANMAZ;
-ikinci yoklama da basarisizsa KAPALI/rc degismez; basarili olursa URL ACIK sayilir ama
-**sessizlesmez** — `GECICI` satiri + ozet `GECICI=<n>`.
-
-**Kabul (bagimsiz olculdu):** `tools/yayin-erisim-test.py` rc=0, **IDDIA 48 → 58** (+10, yeni
-E8 ekseni, aga cikmaz, uyku sahte). Kontrol mutanti `503→503` → KAPALI rc=1 **GECTI**; `404`
-icin toplam istek=1; ag hatasi→ag hatasi → OLCULEMEDI rc=2. Mutasyon bataryasi
-(`tools/yayin-erisim-mutasyon.py`): 21 kirmizi-beklentili + 5 kontrol, 8 eksen, hepsi
-beyanina uydu.
-
-**Bagimsiz teyit:** kosum `31430172244` (headSha `dd3ce47c`) **6/6 job success** (build ·
-deploy · yayin · serit-a2/a3/a4); `git merge-base --is-ancestor 3f603b87 origin/main` rc=0.
-Alarm kolunun 21:05Z kosumu (`31432239675`) **success**.
-
-**Sapma (islenmis):** ana agacta `git commit` commit kapisinca reddedildi → kisa omurlu
-worktree commit araci olarak kullanildi, main `--ff-only` ilerletildi (merge commit YOK),
-worktree ayni turda kaldirildi. Kalan worktree satirlari baska oturumlarin, dokunulmadi.
-
-**Takip isi (bloklayici DEGIL):** E5 zaman asimi iddiasi artik iki yoklama olcuyor, sure
-0,40 → 0,80 sn (esik 1,5 sn) — esik payi daraldi; CI yavaslarsa esik 1,8 sn'ye cekilebilir.
-
-- **🟠 KAYIP IS BULUNDU (bu turda olculdu, capa atildi):** `git stash list` icinde 8 Agu 09:50:15+03:00 tarihli, **baska bir oturuma ait** bir stash duruyordu (`891feaeb`, taban `04d40ad4`); reflog kesintisiz: stash → rebase → `reset: moving to HEAD`, hicbir `apply`/`pop`/`drop` izi YOK → **geri yuklenmemis.** Icerigi: 11 dosya; ikisinin (`deploy.yml`, `nobet.yml`) degisikligi sonradan `e94433f9` ile inmis, **9 dosya / 741 satir depo gecmisinde HIC yok** (`--all` ile tarandi).
-- Kayip govde tek bir is: yayin gecikme nobetcisinin taban yeniden olcumu (`KOSUM_OMUR_TAVANI_DK` 75 → **128**, iki fikstur gercek kosum govdeleriyle 49,1 → 85,0 dk ve 99 → 130,0 dk), `uyum-kapisi.py`'de dokum-kesmesi beyani (`IDDIA_TABANI` 39 → **42**), `cron-nabiz-kapisi.py` siniflandirma capalari, `build.py`'de bir ozet ayristirma fonksiyonu (adi repoda hicbir yerde yok), `is-akisi-kapisi.py` gerekce satiri.
-- **Alinan onlem:** stash kirilgan oldugu icin dal capasi atildi → `kurtarma/stash-8agu-baska-oturum` = `891feaeb`. Stash'e DOKUNULMADI (`drop`/`clear` yok), calisma agaci DEGISTIRILMEDI.
-- **Geri yukleme iki alt sinif:** temiz uygulanir (5 dosya: `uyum-kapisi.py`, `cron-nabiz-kapisi.py`, `yayin-gecikme-nobeti.py` + 2 fikstur — stash'ten beri o dosyalara commit degmemis) · yama duzeyinde birlestirme SART (4 dosya: `build.py`, `is-akisi-kapisi.py`, `DEVAM.md`, `arama.py` — HEAD'de yeni is var, korlemesine `pop` geri sarar).
-- **SIRADAKI IS (bu tur icin):** capadaki 5 temiz dosya once alinacak, her biri kendi kapisiyla ayri ayri kirmizi/yesil olculecek (esik degisiklikleri kontrol mutanti ISTER); 4 catisan dosya yama duzeyinde birlestirilecek. Baska oturumlarin aktif calismasi nedeniyle toplu `pop` YAPILMAZ.
+## 🕐 CI NOBETI — 10 Agu 2026 19:37Z turu (KraL, gec kapandi) — **ARŞİVE ALINDI** (defter kotası 1:1; acik kalem 21:37Z blogunda yasiyor)
 
 ## 🔁 DEVIR — 10 Agu 2026 ~19:0xZ, eski hesap → yeni hesap (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
 
