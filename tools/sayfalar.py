@@ -23,7 +23,12 @@ SELLER = {
     "tel": "+90 532 595 4005",
     "eposta": "info@pruvo3d.com",
     "kargo": "anlaşmalı kargo",
-    "teslim": "ölçü onayından sonra 3-5 iş günü",
+    # 🔴 "teslim" anahtarı KALDIRILDI (10 Ağu): değeri "ölçü onayından sonra 3-5 iş günü"
+    # idi ve özel üretim sınıfının %99,84'ünde (sabit tasarım katalog parçası) VAR OLMAYAN
+    # bir aşamayı sayacın başlangıcı sayıyordu. Teslim cümleleri artık KOL BAZINDA ve
+    # aşağıdaki üç sabittedir: OZEL_SABIT_TESLIM_CUMLESI · OZEL_OLCU_TESLIM_CUMLESI ·
+    # STOK_TESLIM_CUMLESI. Anahtarı geri EKLEME: kullanılmayan ama yanlış bir sabit,
+    # yanındaki bağlayıcı metne yalan söyleyen bir ikizdir.
     "site": "https://pruvo3d.com",
 }
 
@@ -195,12 +200,46 @@ def _seller_table():
 # ayrı ayrı yazılsaydı biri güncellenip diğeri bayatlardı (ikiz tanım sessiz ayrışması).
 # Nöbetçi: tools/cayma-beyani-kapisi.py C1/C2 — cümle iki gövdede de aranır.
 #
-# ⚠️ YENİ TAAHHÜT YOK: burada YENİ bir gün sayısı verilmez ("3-5 iş günü" özel üretim
-# kolunda kalır). İade/cayma halinde KARGO BEDELİNİN kime ait olduğu Okan'a soruldu,
-# cevap BEKLENİYOR -> o cümle bu metne YAZILMAZ (kapı C4 nöbet tutar).
+# 🔴 GÜN SAYISI EKLENDİ (10 Ağu, Okan kararı): hazır/stok kolu için teslim süresi
+# "3-5 iş günü" olarak KARARA BAĞLANDI (daha önce sayı YOKTU ve uydurulmuyordu).
+# NEDEN BURASI DA GÜNCELLENDİ: aynı turda ürün sayfası hazır/stok sınıfına
+# secenekler.js BEYAN["SAYFA_HAZIR"] üzerinden bu taahhüdü basmaya başladı. Ürün
+# sayfası taahhüt verirken BAĞLAYICI gövdenin (teslimat-iade + mesafeli satış m.4)
+# o sınıf için sessiz kalması, iki yüzeyin sessizce ayrışmasıydı. Sayı ürün
+# sayfasıyla AYNI; rakip aralık yok (kapı C5 + odeme-beyani-kapisi.py #6 nöbet tutar).
+# ⚠️ TETİKLEYİCİ AYRI KALIR: hazır kolda "ödemeniz onaylandıktan sonra", özel üretim
+# kolunda "ölçü onayından sonra" — hazır üründe ölçü onayı aşaması YOKTUR ve bu
+# cümlenin var olma sebebi tam olarak o ayrımdır.
+# ⚠️ İade/cayma halinde KARGO BEDELİNİN kime ait olduğu Okan'a soruldu, cevap
+# BEKLENİYOR -> o cümle bu metne YAZILMAZ (kapı C4 nöbet tutar).
 STOK_TESLIM_CUMLESI = (
     "Hazır/stok ürünlerde ölçü onayı aşaması yoktur; ürün ödemeniz onaylandıktan sonra "
-    "stoktan hazırlanıp kargoya verilir."
+    "3-5 iş günü içinde stoktan hazırlanıp kargoya verilir."
+)
+
+# ------------------------------------------------------------------ özel üretim: İKİ ALT DURUM
+# 🔴 NEDEN İKİYE AYRILDI (ölçüldü 10 Ağu, çürütücü bulgusu): özel üretim kolu tek
+# cümleydi ve sayacı "ölçü onayına" bağlıyordu. Ama o sınıfın 23.929/23.968'i (%99,84)
+# SABİT TASARIM katalog parçasıdır: alıcıdan ölçü girdisi ALINMAZ (parametrik/konfigürlü
+# yalnız 39 kayıt) ve ödeme akışında "ölçü onayı" diye bir aşama YOKTUR. Yani sözleşmeyi
+# okuyan tüketici, ürün sayfasındaki taahhüdün ("siparişiniz onaylandıktan sonra 3-5 iş
+# günü") karşılığını m.4'te BULAMIYORDU — 23.929 ürün ne bu kola ne stok koluna düşüyordu.
+#
+# YENİ HAK/YÜKÜMLÜLÜK YARATILMADI: süre ("3-5 iş günü") ve yasal azami süre (30 gün)
+# AYNEN duruyor; değişen tek şey SAYACIN BAŞLADIĞI OLAYIN doğru tarif edilmesi.
+#
+# TEK KAYNAK: /teslimat-iade ve /mesafeli-satis m.4 aynı cümleleri basar; ürün sayfası
+# beyanıyla (secenekler.js BEYAN["SAYFA_OZEL"]) tetikleyici sınıfı AYNI olmak zorundadır.
+# Nöbetçi: tools/cayma-beyani-kapisi.py C1/C2 (varlık) · C5/C6 (süre, KOL BAZINDA) ·
+# B7 (ürün sayfası ↔ bağlayıcı gövde tetikleyici çifti).
+OZEL_SABIT_TESLIM_CUMLESI = (
+    "Sipariş üzerine üretilen sabit tasarım ürünlerde süre siparişiniz onaylandıktan "
+    "sonra başlar; ürün genellikle 3-5 iş günü içinde üretilip kargoya verilir."
+)
+OZEL_OLCU_TESLIM_CUMLESI = (
+    "Kişiye/ölçüye özel üretilen ürünlerde süre ölçüleriniz netleştikten sonra başlar; "
+    "ürün genellikle 3-5 iş günü içinde üretilip kargoya verilir. Özel/karmaşık işlerde "
+    "süre sipariş sırasında bildirilir."
 )
 
 # ------------------------------------------------------------------ sayfa gövdeleri
@@ -214,13 +253,13 @@ def _teslimat_iade():
         '<p class="lead">Kargo, teslimat süresi ve iade/cayma hakkı.</p>'
         "<h2>Teslimat</h2>"
         "<ul>"
-        # SINIF AYRIMI: bu madde ÖZEL ÜRETİM ürünler içindir; hazır/stok ürün bir sonraki
-        # maddededir. Ayrım cayma hakkı bölümüyle (§ Cayma Hakkı / İstisnası) aynı yönde.
-        "<li><strong>Kişiye/ölçüye özel üretilen ürünler</strong> talep üzerine "
-        "üretildiğinden ürün genellikle <strong>%s</strong> "
-        "içinde kargoya verilir; kargo transit süresi adrese ve kargo firmasına göre "
-        "ayrıdır. Özel/karmaşık işlerde süre sipariş sırasında bildirilir.</li>"
+        # SINIF AYRIMI: ilk İKİ madde ÖZEL ÜRETİM ürünler içindir (sabit tasarım /
+        # ölçüye özel), üçüncüsü hazır/stok. Ayrım cayma hakkı bölümüyle (§ Cayma Hakkı /
+        # İstisnası) aynı yönde. Kargo transit süresi üç kolda da ayrıdır.
+        "<li>" + OZEL_SABIT_TESLIM_CUMLESI + "</li>"
+        "<li>" + OZEL_OLCU_TESLIM_CUMLESI + "</li>"
         "<li>" + STOK_TESLIM_CUMLESI + "</li>"
+        "<li>Kargo transit süresi adrese ve kargo firmasına göre ayrıdır.</li>"
         # Kargo metni ACIK KURAL olarak yazilir (mimar karari, 16 Tem; Okan kurali —
         # tutarlar secenekler.js kargoKurus ile birebir, degisirse burasi da guncellenir).
         "<li>Gönderiler <strong>%s</strong> ile yapılır. 2.500 TL altındaki siparişlerde "
@@ -245,7 +284,7 @@ def _teslimat_iade():
         "<p>Hatalı, hasarlı ya da siparişten farklı bir ürün ulaşırsa; fotoğrafla birlikte "
         "bize ulaşın, kargo masrafı bize ait olacak şekilde değişim/iade sağlarız.</p>"
         "<h2>İletişim</h2>" + _seller_table()
-    ) % (s["teslim"], s["kargo"], pv_html(s["eposta"]), pv_html(s["tel"]))
+    ) % (s["kargo"], pv_html(s["eposta"]), pv_html(s["tel"]))
 
 
 def _mesafeli_satis():
@@ -267,13 +306,13 @@ def _mesafeli_satis():
         "onayında belirtilir. Ödeme, Satıcı'nın sunduğu güvenli ödeme yöntemleriyle yapılır; "
         "kart bilgileri Satıcı tarafından saklanmaz.</p>"
         "<h2>4. Teslimat</h2>"
-        # SINIF AYRIMI (m.6 istisnasıyla aynı yönde): ilk paragraf ÖZEL ÜRETİM ürünler,
-        # ikincisi hazır/stok ürünler içindir. "Ölçü onayı" aşaması hazır üründe YOKTUR.
-        "<p><strong>Kişiye/ölçüye özel üretilen ürünlerde</strong> ürün, üretim "
-        "tamamlandıktan sonra <strong>%s</strong> ile ALICI'nın bildirdiği "
-        "adrese gönderilir. Ürün genellikle <strong>%s</strong> içinde kargoya verilir; kargo "
-        "transit süresi adrese ve kargo firmasına göre ayrıdır. Özel üretimlerde süre sipariş "
-        "sırasında bildirilir; yasal azami süre 30 gündür.</p>"
+        # SINIF AYRIMI (m.6 istisnasıyla aynı yönde): ilk İKİ paragraf ÖZEL ÜRETİM
+        # ürünler (sabit tasarım / ölçüye özel), üçüncüsü hazır/stok ürünler içindir.
+        # "Ölçü onayı" aşaması ne hazır üründe ne de sabit tasarım üründe VARDIR.
+        "<p>Ürün, üretim tamamlandıktan sonra <strong>%s</strong> ile ALICI'nın bildirdiği "
+        "adrese gönderilir; kargo transit süresi adrese ve kargo firmasına göre ayrıdır.</p>"
+        "<p>" + OZEL_SABIT_TESLIM_CUMLESI + " Yasal azami teslim süresi 30 gündür.</p>"
+        "<p>" + OZEL_OLCU_TESLIM_CUMLESI + " Yasal azami teslim süresi 30 gündür.</p>"
         "<p>" + STOK_TESLIM_CUMLESI + " Yasal azami teslim süresi 30 gündür.</p>"
         "<h2>5. Cayma Hakkı</h2>"
         "<p>ALICI, standart ürünlerde teslim tarihinden itibaren <strong>14 gün</strong> içinde "
@@ -293,7 +332,7 @@ def _mesafeli_satis():
         "değerlere kadar Tüketici Hakem Heyetleri, aşan uyuşmazlıklarda Tüketici Mahkemeleri "
         "yetkilidir.</p>"
         "<p class=\"upd\">Sipariş onayıyla işbu sözleşme kurulmuş sayılır.</p>"
-    ) % (s["kargo"], s["teslim"], pv_html(s["eposta"]), pv_html(s["tel"]))
+    ) % (s["kargo"], pv_html(s["eposta"]), pv_html(s["tel"]))
 
 
 def _malzeme_rehberi():
@@ -3009,7 +3048,7 @@ def _cim_bicme_bahce_makinesi_plastik_parca_yaptirma():
 def _ozel_parca_kac_gunde_hazir_olur():
     return (u"""<h1>Ölçü onayından sonra 3-5 iş günü içinde kargoya verilir</h1>
 <p>Özel üretimde fiyattan önce sorulan soru genelde şudur: özel parça kaç günde hazır olur? Soru yerinde, çünkü bu sayfaya çoğunlukla bir iş beklerken gelinir — makine durmuştur, araç kullanılamaz haldedir ya da tezgâhın bir gözü boş kalmıştır. Parça arayışında geçen günlerin üstüne bir de belirsiz bir üretim süresi eklenince takvim tümüyle kayar.</p>
-<p>Net cevap şu: özel üretim parça, ölçü onayından sonra 3-5 iş günü içinde kargoya verilir. Ölçünün bize ulaşması ve teyidi bu sürenin öncesindedir; ölçü netleşene kadar sayaç işlemez. Aşağıda her kademeyi ve süreyi etkileyen noktaları açık yazıyoruz; böylece ölçüye özel parça süresi konusunda tahmin yürütmek yerine takviminizi kurabilirsiniz.</p>
+<p>Net cevap şu: üretim süresi her iki durumda da 3-5 iş günüdür; değişen tek şey sayacın hangi anda başladığıdır. <strong>Sipariş üzerine üretilen sabit tasarım ürünlerde</strong> — yani sitedeki ürün sayfasından doğrudan sipariş verdiğiniz kalemlerde — ölçü onayı diye bir aşama yoktur, süre siparişiniz onaylandıktan sonra başlar. <strong>Kişiye/ölçüye özel işlerde</strong> ise süre ölçüleriniz netleştikten sonra başlar: ölçünün bize ulaşması ve teyidi bu sürenin öncesindedir, ölçü netleşene kadar sayaç işlemez. Bu sayfanın geri kalanı ikinci durumu, yani ölçü alınarak yürüyen işleri anlatır. Aşağıda her kademeyi ve süreyi etkileyen noktaları açık yazıyoruz; böylece ölçüye özel parça süresi konusunda tahmin yürütmek yerine takviminizi kurabilirsiniz.</p>
 <h2>Nasıl çalışır: getir, ölç, üret</h2>
 <p><strong>1. Ölçü ya da numunenin bize ulaşması.</strong> Parçayı fiziken bize ulaştırırsınız; kırık parçanın fotoğrafını ve kumpas ölçülerini WhatsApp'tan önden iletmeniz ön teyide yarar. Elinizde hiç ölçü yoksa, ölçü alma yöntemini anlatan sayfamızdaki sırayı izlemeniz yeterlidir; <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parça ölçüsünün nasıl alınıp gönderileceğini</a> burada anlatıyoruz.</p>
 <p><strong>2. Teyit.</strong> Ölçüleri okur, tutmayan veya eksik kalan yerleri size sorarız. Delik aralığı, cidar kalınlığı, diş ölçüsü gibi kritik değerlerden biri eksikse iş burada durur ve teyit yazışması tamamlanana kadar süre başlamaz.</p>

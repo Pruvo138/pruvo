@@ -25,7 +25,9 @@ BU KAPININ IDDIASI
 Sinif (`tur`) BEYANI SURUYOR ve ayrim HER YUZEYDE ayni yonde:
   A  SIPARIS ONAY E-POSTASI  — hazir sepette URETIM DILI YOK + 14 gun cayma yazili;
                                ozel sepette bugunku dil AYNEN; KARMA sepette KALEM BAZINDA.
-  B  URUN SAYFASI            — fiziksel urun sayfasinda sinif beyani VAR, `tur`suz urunde YOK.
+  B  URUN SAYFASI            — fiziksel urun sayfasinda HAZIR sinif beyani VAR; `tur`suz
+                               urunde o beyan YOK ama OZEL URETIM TESLIM BEYANI VAR
+                               (B4/B5/B6, 10 Agu — asagida).
   C  TESLIMAT / SOZLESME     — teslimat kolu IKI SINIFLI ("olcu onayi" hazir uruna dayatilmaz).
   D  ODEME EKRANI            — sepet sinifina gore metin; hepsi ozel iken BUGUNKU metin.
   E  TEK KAYNAK              — cumleler secenekler.js BEYAN'inda; build.py/eposta.js/index.html
@@ -39,8 +41,21 @@ KAPSAM DISI (C4 ile NOBET TUTULUR): iade kargo bedelinin kime ait oldugu Okan'a 
 cevap BEKLIYOR. Metne "kargo bedeli su tarafa aittir" cumlesi YAZILAMAZ; C4 bir baskasinin
 bu boslugu sessizce doldurmasini KIRMIZI yakar.
 
+TESLIM BEYANI EKSENI (B4/B5/B6/E5 — 10 Agu, Okan karari)
+--------------------------------------------------------
+Urun sayfasi teslim SURESINI hic soylemiyordu: 23.968 ozel uretim urununde beyan HIC
+yoktu, 943 hazir/stok urununde de gun sayisi YAZILI DEGILDI. Musteri "ne zaman elime
+gecer" bilmeden odeme karari veriyordu. Okan sureyi IKI SINIF icin de 3-5 is gunu
+olarak karara bagladi; TETIKLEYICI ayri kaldi (ozel: "olcu onayindan sonra" · hazir:
+"odemeniz onaylandiktan sonra" — hazir uruNde olcu onayi asamasi YOKTUR).
+
+🔴 BU YUZEY NEDEN NOBETSIZDI: odeme-beyani-kapisi.py #6 rakip-sure taramasi 84
+yasal/landing govdesini tarar; `urun/` sayfalari o kumede YOKTUR. Yani urun sayfasina
+yazilacak bir gun sayisini o gun hicbir kapi olcmuyordu. B4/B5/B6 o kor noktayi kapatir.
+
 ONCE-KIRMIZI: degisiklikten ONCEKI agacta A4/A5/A6/A7/A8 (kosulsuz e-posta), B1, C1/C2,
 D1-D6 ve E1-E3 KIRMIZI yanar; A1/A2/A3/A9/B2/B3/C3/C4/C5 (regresyon capalari) YESILDIR.
+B4/B5/E5 ise 10 Agu oncesi agacta KIRMIZI (beyan hic basilmiyordu).
 
 node ZORUNLU (deploy.yml setup-node kurar) — yoksa FAIL-CLOSED kirmizi: e-posta ve odeme
 iddialari olculmeden bu kapi YESIL VEREMEZ.
@@ -50,6 +65,12 @@ Offline (ag yok), GERCEK urunler.json OKUNMAZ (sentetik fiksturler), repoya DOSY
 Kullanim:
     python3 tools/cayma-beyani-kapisi.py
     python3 tools/cayma-beyani-kapisi.py --mutasyon
+
+--mutasyon UC AILE kosar:
+  1. eposta.js sinif karari no-op (3 mutant)                 -> A/E ekseni olmeli
+  2. build.py urun sayfasi teslim beyani (6 mutant, 12 iddia) -> B/E ekseni olmeli;
+     kabul KATI: beklenen iddialarin HEPSI dusecek, beklenen DISINDA hicbiri dusmeyecek
+  3. KONTROL mutanti (1) — masum bicim rotusunda kapi YESIL kalmali (iddia dar mi?)
 
 Cikis kodlari: 0 = YESIL (butun iddialar olculdu ve gecti) · 1 = KIRMIZI.
 """
@@ -79,8 +100,155 @@ URETIM_DILI = re.compile(
     r"üretil|üretim|üretime|üretiliyor|ölçü onay|ölçünüz|kişiye özel|ölçüye özel", re.I)
 HAZIR_ETIKET_RE = re.compile(r"Hazır ürün", re.I)
 OZEL_ETIKET_RE = re.compile(r"Özel üretim", re.I)
-CAYMA_RE = re.compile(r"cayma", re.I)
-ONDORT_GUN_RE = re.compile(r"14\s*gün", re.I)
+# --------------------------------------------------------------- CAYMA: KUMEDEN TURETIM
+# 🔴 IKI KEZ YANLIS YAPILDI, GEREKCESI BURADA DURSUN:
+#   TUR 1: desen r"cayma" idi. GERCEK katalogda 2 yanlis-pozitif uretiyordu
+#          ("Porsche Boxster & Cayman ..."), yani bir urun partisi yayini durdurabilirdi.
+#   TUR 2: desen r"\bcayma\b" yapildi. Yanlis-pozitif 0'a indi AMA CEKIMLI BICIMLER
+#          KOR KALDI: caymanız · caymadan · caymaya · caymayı · caymanın · cayması
+#          artik ESLESMIYORDU. Turkcede cekim istisna degil NORMALDIR; yani FAIL-LOUD
+#          bir nobetci FAIL-OPEN'a cevrilmisti (eski 9/9 -> yeni 3/9).
+#   TUR 3 (bu): muafiyet JETONU DARALTARAK degil, KANONIK YANLIS-POZITIF KUMESINDEN
+#          TURETILIYOR ([[tekil-yama-sinifi-kapatmaz]]). Desen asagida KUMEDEN URETILIR;
+#          elle yazilmis bir lookahead YOKTUR.
+#
+# KUME NEREDEN GELIYOR: gercek `urunler.json` taranarak olculdu (10 Agu). Gevsek desenin
+# TUM katalogdaki yanlis-pozitifi 2 kayitti ve ikisi de ayni kokten geliyordu.
+# Kume BUYURSE desen otomatik genisler; elle regex duzenlenmez.
+CAYMA_YANLIS_POZITIF = ("Cayman", "Caymanlar")     # Porsche Boxster & Cayman (981) ...
+
+
+def _kumeden_cayma_deseni(yanlis_pozitifler, kok="cayma"):
+    """'cayma' kokunden turer; YALNIZ kumedeki kelimeler haric tutulur.
+
+    Kume elemanlarinin kokten SONRAKI kuyruklari negatif lookahead'e cevrilir:
+    ("Cayman","Caymanlar") -> r"\\bcayma(?!(?:nlar|n)\\b)\\w*"
+    Boylece "Cayman/Caymanlar" ELENIR, "cayma · caymanız · caymadan · caymanın"
+    YAKALANIR. Kuyruklar UZUNDAN KISAYA siralanir (alternation ilk esleseni alir)."""
+    kuyruklar = sorted({k[len(kok):] for k in yanlis_pozitifler if k.lower().startswith(kok)},
+                       key=len, reverse=True)
+    if not kuyruklar:
+        return re.compile(r"\b%s\w*" % kok, re.I)
+    return re.compile(r"\b%s(?!(?:%s)\b)\w*"
+                      % (kok, "|".join(re.escape(k) for k in kuyruklar)), re.I)
+
+
+CAYMA_RE = _kumeden_cayma_deseni(CAYMA_YANLIS_POZITIF)
+# "14 gün": NEGATIF bir iddiada KULLANILMIYOR (A6/A8/B1/C3/D3 hepsi POZITIF sart), yani
+# buradan fail-open cikmaz. Kelime siniri `Nissan Rogue 2014 Güneşlik` yanlis-pozitifini
+# eler; kalan 2 isabet ("14 güne kadar dayanır") GERCEK ifadedir.
+ONDORT_GUN_RE = re.compile(r"\b14\s*gün", re.I)
+# RAKIP TESLIM ARALIGI — bilinen bayat araliklarin KARA LISTESI. 🔴 TEK BASINA KABUL
+# DEGILDIR: sayili kara liste bir sonraki varyanti (10-20, 15-30, 7-10 ...) sessizce
+# gecirir — olculdu, 5 icerik mutanti bu yuzden yesil gecmisti. Asil olcu KANONIK
+# SURE POZITIF sarti + "kanonik disinda hicbir sure YOK" negatifi (bkz. _sureler).
+RAKIP_SURE_RE = re.compile(r"\b(5-7|3-6|2-4)\s+iş\s+günü\b", re.I)
+# --------------------------------------------------------------- TESLIM SURESI JETONU
+# 🔴 BEYAN OLCUMDE TUTMALI ([[bayat-beyan-kapisi]] sinifi). Tur 2'de desen
+# r"(\d+-\d+|\d+)\s*iş\s+gün" idi ve B5 "kanonik disinda HICBIR sure YOK" diyordu; ama
+# "10-20 işgünü" (BITISIK), "20 gün içinde kargoya verilir", "72 saat içinde gönderilir"
+# JETON BILE SAYILMIYORDU -> iddia metni olculen seyden GENISTI.
+# ONARIM — IKI KOL:
+#   1. "is gunu" birimi: bitisik/ayri, cekimli ("iş gününde") hepsi.
+#   2. DIGER birimler (gün · saat · hafta) YALNIZ TESLIM BAGLAMINDA sayilir: sayidan
+#      sonraki kisa pencerede bir TESLIM FIILI gelmeli. Baglam sarti OLMASAYDI hazir
+#      sayfadaki "14 gün içinde ... cayma hakkınız vardır" bir TESLIM SURESI sanilir ve
+#      kapi HER hazir sayfada sahte kirmizi yakardi (yanlis-pozitif = yayin durur).
+SURE_ISGUNU_RE = re.compile(r"(\d+\s*[-–]\s*\d+|\d+)\s*(?:iş\s*gün\w*|işgün\w*)", re.I)
+TESLIM_FIILI = (r"kargoya\s+veril|kargoya\s+ver\w*|teslim\s+edil|gönderil|üretilip"
+                r"|hazırlanıp|sevk\s+edil|yola\s+çık")
+SURE_BAGLAMLI_RE = re.compile(
+    r"(\d+\s*[-–]\s*\d+|\d+)\s*(gün\w*|saat\w*|hafta\w*)"
+    r"(?=[^.;]{0,70}?(?:%s))" % TESLIM_FIILI, re.I)
+
+
+def _birim(ham):
+    """Birimi KANONIKLESTIRIR: 'iş günü' · 'işgünü' · 'iş gününde' -> 'is-gunu'."""
+    h = ham.lower()
+    if "gün" in h or "gun" in h:
+        return "gun"
+    if "saat" in h:
+        return "saat"
+    return "hafta"
+# Sinif beyani blogu (urun sayfasi). Icerik BAYT-BIREBIR karsilastirilir: `_etiketsiz`
+# normalizasyonu iki bosluk/kacis farkini yutar, bu desen YUTMAZ.
+BEYAN_DIV_RE = re.compile(r'<div class="sinif-beyan"[^>]*>(.*?)</div>', re.S)
+# HAZIR/STOK sinifinda BULUNMAMASI gereken ifade: hazir ticari malda "olcu onayi"
+# diye bir asama YOKTUR (C1/C2'nin var olma sebebi).
+OLCU_ONAY_RE = re.compile(r"ölçü\s*onay|ölçüye\s+özel|kişiye\s+özel", re.I)
+
+# --------------------------------------------------------------- TETIKLEYICI SINIFLARI
+# "Sayac hangi olayla baslar?" — teslim taahhudunun BAGLANDIGI olay. Ayni musteri iki
+# yuzeyde (urun sayfasi / siparis onay e-postasi) iki farkli baslangic GORMEMELI.
+# 🔴 "olcu onayi" ozel uretim sinifinin %99,84'unde VAR OLMAYAN bir asamadir
+# (parametrik/konfigurlu yalniz 39 kayit; odeme akisi iyzico hosted, boyle bir adim yok).
+TETIK_OLCU_RE = re.compile(r"ölçü\w*\s+(?:onay|teyid|netleş)", re.I)
+TETIK_SIPARIS_RE = re.compile(
+    r"sipariş\w*\s+(?:onaylandı|onaylandıktan|üzerine|alındıktan)"
+    r"|siparişiniz(?:den)?\s+sonra", re.I)
+TETIK_ODEME_RE = re.compile(r"ödemeniz\s+onaylandık", re.I)
+TETIKLEYICILER = (("ölçü onayı", TETIK_OLCU_RE),
+                  ("sipariş onayı", TETIK_SIPARIS_RE),
+                  ("ödeme onayı", TETIK_ODEME_RE))
+
+# HAK REDDI DILI — urun sayfasina ASLA basilmaz (iki sinifta da). Hakkin KAPSAMI
+# yasal govdede anlatilir; urun sayfasinda "hakkiniz yoktur" demek, m.15 istisnasini
+# urun bazinda dayatmaktir. B2'nin POZITIF ikizi (B8).
+HAK_REDDI_RE = re.compile(
+    r"(?:cayma|iade|değişim|geri\s+ödeme)\s*(?:hakk\w*)?\s*"
+    r"(?:yoktur|bulunmamaktadır|bulunmaz|kabul\s+edilmez|edilemez|mümkün\s+değildir)"
+    r"|(?:iade|değişim)\s+edilemez", re.I)
+
+
+def _sayi(ham):
+    """'3 - 5' · '3–5' · '3-5' -> '3-5'."""
+    return re.sub(r"\s+", "", ham).replace("–", "-")
+
+
+def _sureler(metin):
+    """Metindeki TESLIM SURESI jetonlarinin kumesi: {(sayi, birim)}.
+
+    Birim kanoniklestirilir ki "3-5 iş günü" ile "3-5 işgünü" AYNI jeton sayilsin;
+    kabul araligi ile karsilastirma araligi TEK fonksiyondan turer
+    ([[kabul-araligi-karsilastirma-araligi]])."""
+    metin = metin or ""
+    out = {(_sayi(m.group(1)), "is-gunu") for m in SURE_ISGUNU_RE.finditer(metin)}
+    kapsanan = {m.span() for m in SURE_ISGUNU_RE.finditer(metin)}
+    for m in SURE_BAGLAMLI_RE.finditer(metin):
+        # "3-5 iş günü" zaten 1. koldan sayildi; ikinci kez SAYI olarak eklenmesin.
+        if any(b <= m.start() < s for b, s in kapsanan):
+            continue
+        if re.search(r"iş\s*$|işgün", metin[max(0, m.start() - 4):m.start()], re.I):
+            continue
+        out.add((_sayi(m.group(1)), _birim(m.group(2))))
+    return out
+
+
+def _sure_metni(jetonlar):
+    return sorted("%s %s" % (s, b) for s, b in jetonlar)
+
+
+# OLUMSUZLAMA — bir tetikleyici IFADESI, hemen ardindan reddediliyorsa TETIKLEYICI
+# DEGILDIR. Olculdu: yasal stok cumlesi "Hazır/stok ürünlerde ÖLÇÜ ONAYI AŞAMASI
+# YOKTUR; ... ödemeniz onaylandıktan sonra ..." der — orada "ölçü onayı" sayacin
+# baslangici degil, TAM TERSI bir REDDIR. Olumsuzlamayi saymamak bu kapinin en
+# temel ayrimini (hazir malda olcu onayi asamasi yoktur) yanlis okurdu.
+OLUMSUZLAMA_RE = re.compile(
+    r"^[^.;]{0,40}?\b(?:yoktur|yok|bulunmaz|bulunmamaktadır|değildir|geçerli\s+değildir)\b",
+    re.I)
+
+
+def _tetikleyiciler(metin):
+    """Metindeki tetikleyici SINIFLARININ kumesi (OLUMSUZLANAN ifadeler sayilmaz)."""
+    metin = metin or ""
+    out = set()
+    for ad, desen in TETIKLEYICILER:
+        for m in desen.finditer(metin):
+            if OLUMSUZLAMA_RE.match(metin[m.end():]):
+                continue                     # "... asamasi YOKTUR" -> tetikleyici degil
+            out.add(ad)
+            break
+    return out
 
 # Bugunku (degisiklik ONCESI) e-posta cumleleri — REGRESYON CAPASI. Hepsi ozel uretim olan
 # sepette govde BU cumleleri AYNEN tasimali; degisirse 15.930 kayitlik sinifin metni
@@ -218,32 +386,126 @@ def probe_calistir(secenekler_yol=None, eposta_yol=None):
     })
 
 
-def build_modulu():
-    """tools/build.py'yi MODUL olarak yukler (main() kosmaz, diske yazmaz)."""
-    with open(BUILD_YOL, encoding="utf-8") as f:
-        src = f.read()
+def build_modulu(kaynak=None):
+    """tools/build.py'yi MODUL olarak yukler (main() kosmaz, diske yazmaz).
+
+    `kaynak` verilirse DISKTEKI dosya yerine o metin derlenir — build.py mutantlari
+    boylece DISKE HIC YAZILMAZ: ne agac kirlenir, ne de "ayni uzunlukta mutant ayni
+    saniyede yazilinca uygulanmaz" bytecode/mtime tuzagi devreye girer.
+    Yuklenen kaynak modulde saklanir; kaynak duzeyinde olcen iddialar (E1/E5)
+    diskteki dosyayi DEGIL, FIILEN DERLENEN metni yargilar."""
+    if kaynak is None:
+        with open(BUILD_YOL, encoding="utf-8") as f:
+            kaynak = f.read()
     mod = types.ModuleType("build_cayma")
     mod.__file__ = BUILD_YOL
     mod.__name__ = "build_cayma"
     if TOOLS not in sys.path:
         sys.path.insert(0, TOOLS)
-    exec(compile(src, BUILD_YOL, "exec"), mod.__dict__)
+    exec(compile(kaynak, BUILD_YOL, "exec"), mod.__dict__)
+    mod._KAPI_BUILD_KAYNAK = kaynak
     return mod
 
 
-def sayfalar_modulu():
+def sayfalar_modulu(kaynak=None):
+    """tools/sayfalar.py — `kaynak` verilirse o metin derlenir (mutant, diske yazmaz)."""
     if TOOLS not in sys.path:
         sys.path.insert(0, TOOLS)
-    import sayfalar
-    return sayfalar
+    if kaynak is None:
+        import sayfalar
+        return sayfalar
+    yol = os.path.join(TOOLS, "sayfalar.py")
+    mod = types.ModuleType("sayfalar_cayma")
+    mod.__file__ = yol
+    mod.__name__ = "sayfalar_cayma"
+    exec(compile(kaynak, yol, "exec"), mod.__dict__)
+    return mod
 
 
-def _urun(uid, tur=Ellipsis):
-    """Sentetik urun kaydi (fiziksel-urun-kapisi.py ile AYNI fikstur ekseni)."""
+def _yorumsuz(py_kaynak):
+    """Python kaynagindan `#` yorumlarini siler; DIZE icindekilere DOKUNMAZ.
+
+    🔴 NEDEN VAR (curutucu, 10 Agu): E5'in "BEYAN'i OKUYOR" ayagi bir YORUM SATIRIYLA
+    tatmin oluyordu — curutucu cagriyi kacis dizeli bir ikize cevirdi, geriye metin
+    yalnizca yorumda kaldi ve kapi rc=0 verdi. Kaynak duzeyinde olcen her iddia
+    artik YORUMSUZ metni yargilar."""
+    cikti = []
+    for satir in py_kaynak.splitlines():
+        tirnak = None
+        i = 0
+        n = len(satir)
+        while i < n:
+            c = satir[i]
+            if tirnak:
+                if c == "\\":
+                    i += 2
+                    continue
+                if c == tirnak:
+                    tirnak = None
+            elif c in "\"'":
+                tirnak = c
+            elif c == "#":
+                satir = satir[:i]
+                break
+            i += 1
+        cikti.append(satir)
+    return "\n".join(cikti)
+
+
+def _secenekler_beyanli(yeni_beyan):
+    """BEYAN sozlugu DEGISTIRILMIS bir GECICI AGAC kurar. Doner: (dizin, js, eposta).
+
+    🔴 NEDEN TAM AGAC: yalnizca secenekler.js kopyalansaydi node probe'u MUTANTI
+    GORMEZDI — `shop/src/eposta.js` kendi icinde `../../secenekler.js`'i import eder
+    ve ESM o URL'yi AYRI bir modul olarak yukleyip `globalThis.PRUVO_SECENEK`'i
+    GERCEK dosyayla ezer. Olculdu: probe orijinal cumleyi, build.py mutant cumleyi
+    doner -> mutant "capraz ayrisma" gibi gorunur, gercek iddia olculmez.
+    (Ayni tuzak eposta.js mutant ailesinde de gecici agacla cozulmustu.)
+
+    E5'in DAVRANISSAL ayagi icin de kullanilir: tek kaynak degisince build.py
+    ciktisi da degismeli; kacis dizileriyle yazilmis bir ikiz bunu GECEMEZ."""
+    with open(SECENEKLER_YOL, encoding="utf-8") as f:
+        js = f.read()
+    m = re.search(r"var\s+BEYAN\s*=\s*(\{.*?\});", js, re.S)
+    if not m:
+        return None, None, None
+    yeni_govde = json.dumps(yeni_beyan, ensure_ascii=False, indent=4)
+    ged = tempfile.mkdtemp(prefix="cayma-tekkaynak-")
+    yol = os.path.join(ged, "secenekler.js")
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(js[:m.start(1)] + yeni_govde + js[m.end(1):])
+    src_dizin = os.path.join(ged, "shop", "src")
+    os.makedirs(src_dizin)
+    eposta_yolu = os.path.join(src_dizin, "eposta.js")
+    shutil.copyfile(EPOSTA_YOL, eposta_yolu)
+    return ged, yol, eposta_yolu
+
+
+# SECENEKLER_JS atamasi — ZATEN yeniden baglanmis bir kaynak da kabul edilir
+# (mutant aileleri ust uste binebilir; capa "bir kez uygulanmis" halde de tutmali).
+_SEC_JS_ATAMA_RE = re.compile(r"^SECENEKLER_JS\s*=\s*.+$", re.M)
+
+
+def _build_baska_secenekle(build_kaynak, secenekler_yolu):
+    """build.py'yi, secenekler.js'i BASKA bir yoldan okuyacak sekilde yukler.
+
+    Yalnizca SECENEKLER_JS atamasi yeniden baglanir; olculen davranis (cumlenin
+    nereden geldigi) DEGISTIRILMEZ."""
+    if len(_SEC_JS_ATAMA_RE.findall(build_kaynak)) != 1:
+        return None
+    return build_modulu(_SEC_JS_ATAMA_RE.sub(
+        lambda _m: "SECENEKLER_JS = %r" % secenekler_yolu, build_kaynak, count=1))
+
+
+def _urun(uid, tur=Ellipsis, kategori="Marin", ek=None):
+    """Sentetik urun kaydi (fiziksel-urun-kapisi.py ile AYNI fikstur ekseni).
+
+    `kategori` + `ek` ile ayni sinifin FARKLI RENDER YOLLARI kurulur (opsiyon
+    zincirinin dallari): kart-secim · konfigur · semasiz-parametrik · panelsiz."""
     u = {
         "id": uid,
         "baslik": "Sinama Urunu",
-        "kategori": "Marin",
+        "kategori": kategori,
         "marka": ["Sinama"],
         "fiyat": "1000 TL",
         "aciklama": "Sinama aciklamasi.\nIkinci satir.",
@@ -251,7 +513,21 @@ def _urun(uid, tur=Ellipsis):
     }
     if tur is not Ellipsis:
         u["tur"] = tur
+    if ek:
+        u.update(ek)
     return u
+
+
+# KONFIGUR (dekor konfiguratoru) dalinin sentetik semasi — GERCEK urunler.json
+# OKUNMAZ. Alanlar render_product'in FIILEN okudugu asgari kume.
+SENTETIK_KONFIGUR = {
+    "renkler": ["Siyah", "Beyaz"],
+    "renkGorselIndeks": {"Siyah": 0, "Beyaz": 0},
+    "boyutMm": {"min": 60, "max": 300, "adim": 10, "varsayilan": 150,
+                "etiket": "Yükseklik"},
+    "hacim": {"refYukseklikMm": 150, "refHacimCm3": 300.0},
+    "fiyatCapalari": [[60, 500], [300, 2500]],
+}
 
 
 def _ana_govde(html):
@@ -400,26 +676,330 @@ def kosum(probe, mod, sayfalar):
     ol("B3", "FAIL-CLOSED: 15 taninmayan `tur` degeri `tur`suz sayfayla BAYT-ESIT",
        not b3_sapan, ("sapan: %s" % b3_sapan) if b3_sapan else "")
 
+    # ---------------------------------------------- B4/B5/B6 — TESLIM BEYANI (10 Agu)
+    # 🔴 NEDEN VAR: 23.968 ozel uretim urununun sayfasinda teslim suresi HIC yoktu ve
+    # 943 hazir/stok urununde de sayi YAZILI DEGILDI — ziyaretci "ne zaman elime gecer"
+    # bilmeden odeme karari veriyordu. Okan sureyi iki sinif icin de 3-5 is gunu olarak
+    # karara bagladi. Yuzey NOBETSIZDI: odeme-beyani-kapisi.py #6 rakip-sure taramasi
+    # 84 yasal/landing govdesini tarar, `urun/` sayfalari o kumede YOKTUR.
+    # Cumleler BURAYA KOPYALANMAZ; BEYAN sozlugunden okunur (ikiz tanim yasagi).
+    ozel_dallar = [
+        ("kart-secim", nrm_html),
+        # Konfigur dalinda liste fiyati capa-1 fiyatiyla AYNI olmak zorundadir
+        # (JSON-LD Offer.price = asgari fiyat beyani); fikstur o kurala uyar.
+        ("konfigur", mod.render_product(
+            _urun("sinama-konfigur", kategori="Dekorasyon",
+                  ek={"konfigur": SENTETIK_KONFIGUR, "fiyat": "500 TL"}), tum)),
+        ("semasiz-parametrik", mod.render_product(
+            _urun("sinama-parametrik-semasiz", ek={"parametrik": True}), tum)),
+        ("panelsiz", mod.render_product(
+            _urun("sinama-panelsiz", kategori="Jeneratör"), tum)),
+    ]
+    ozel_cumle = beyan.get("SAYFA_OZEL") if isinstance(beyan, dict) else None
+    hazir_cumle = beyan.get("SAYFA_HAZIR") if isinstance(beyan, dict) else None
+    ozel_duz = _etiketsiz(ozel_cumle) if isinstance(ozel_cumle, str) else ""
+
+    # B4 — POZITIF: cumle DORT render yolunda da VAR ve blok BAYT-BIREBIR tek kaynaktan.
+    b4_hata = []
+    if not ozel_duz:
+        b4_hata.append("BEYAN['SAYFA_OZEL'] yok/bos")
+    else:
+        for ad, h in ozel_dallar:
+            if ozel_duz not in _etiketsiz(_ana_govde(h)):
+                b4_hata.append("%s: metin YOK" % ad)
+            elif BEYAN_DIV_RE.findall(h) != [mod.esc(ozel_cumle)]:
+                b4_hata.append("%s: blok bayt-birebir DEGIL (%d adet)"
+                               % (ad, len(BEYAN_DIV_RE.findall(h))))
+    ol("B4", "OZEL URETIM sayfasinda teslim beyani VAR (4 render yolu, bayt-birebir)",
+       not b4_hata, ("%s" % b4_hata) if b4_hata else "%d dal" % len(ozel_dallar))
+
+    # B5 — SURE: POZITIF + KAPALI KUME (kara liste TEK BASINA kabul DEGIL).
+    # 🔴 NEDEN DEGISTI (curutucu, 10 Agu): B5 yalniz sayili kara liste (5-7|3-6|2-4)
+    # kullaniyordu; "10-20 is gunu", "15-30 is gunu", "7-10 is gunu" mutantlari ve
+    # taahhudun TAMAMEN SILINMESI kapidan SESSIZCE gecti. Muafiyet/yasak kume
+    # KANONIK KUMEDEN turemezse bir sonraki varyant sizar
+    # ([[tekil-yama-sinifi-kapatmaz]]). Artik her SINIFIN sayfasinda O SINIFIN
+    # kanonik sure jetonu VAR olacak ve sayfada kanonik disinda HICBIR sure jetonu
+    # bulunmayacak. Kanonik deger BEYAN'dan TURETILIR (kapiya yazilmaz).
+    b5_hata = []
+    ozel_kanonik = _sureler(ozel_cumle)
+    hazir_kanonik = _sureler(hazir_cumle)
+    if len(ozel_kanonik) != 1:
+        b5_hata.append("BEYAN['SAYFA_OZEL'] tek sure jetonu tasimiyor: %s"
+                       % sorted(ozel_kanonik))
+    if len(hazir_kanonik) != 1:
+        b5_hata.append("BEYAN['SAYFA_HAZIR'] tek sure jetonu tasimiyor: %s"
+                       % sorted(hazir_kanonik))
+    for ad, h, kanonik in ([(a, x, ozel_kanonik) for a, x in ozel_dallar]
+                           + [("hazir/stok", fiz_html, hazir_kanonik)]):
+        g = _etiketsiz(_ana_govde(h))
+        if not g:
+            b5_hata.append("%s: BOLGE BOS" % ad)
+            continue
+        sayfa = _sureler(g)
+        eksik = kanonik - sayfa
+        fazla = sayfa - kanonik
+        if eksik:
+            b5_hata.append("%s: kanonik sure YOK (%s)" % (ad, sorted(eksik)))
+        if fazla:
+            b5_hata.append("%s: kanonik DISI sure (%s)" % (ad, sorted(fazla)))
+        if RAKIP_SURE_RE.search(g):          # kara liste: ikinci savunma katmani
+            b5_hata.append("%s: bilinen bayat aralik" % ad)
+    for ad, h in ozel_dallar:                # sinif etiketi/cayma sozu sizmasi
+        g = _etiketsiz(_ana_govde(h))
+        if HAZIR_ETIKET_RE.search(g):
+            b5_hata.append("%s: hazir sinif etiketi SIZDI" % ad)
+        if CAYMA_RE.search(g):
+            b5_hata.append("%s: cayma sozu SIZDI" % ad)
+    ol("B5", "SURE: her sinif sayfasinda KANONIK jeton VAR, kanonik disinda sure YOK",
+       not b5_hata, ("%s" % b5_hata) if b5_hata
+       else "ozel=%s hazir=%s" % (sorted(ozel_kanonik), sorted(hazir_kanonik)))
+
+    # B6 — CAPRAZ SIZMA, IKI YONLU. Iki sinif AYNI SAYIYI tasir ama AYNI GEREKCEYI
+    # TASIMAZ: hazir uruNde "olcu onayi" asamasi YOKTUR. Yanlis yondeki sizma
+    # (hazir mala ozel uretim gerekcesi) musterinin 14 gunluk cayma hakkini
+    # reddetmeye yarayacak bir teyide donusur — 1 Agu'da olculen kusurun ta kendisi.
+    b6_hata = []
+    if not isinstance(beyan, dict) or not hazir_cumle or not ozel_cumle:
+        b6_hata.append("BEYAN yok/eksik")
+    else:
+        fiz_bloklar = BEYAN_DIV_RE.findall(fiz_html)
+        if fiz_bloklar != [mod.esc(hazir_cumle)]:
+            b6_hata.append("hazir sayfada SAYFA_HAZIR blogu bayt-birebir DEGIL (%d adet)"
+                           % len(fiz_bloklar))
+        if mod.esc(ozel_cumle) in fiz_html:
+            b6_hata.append("OZEL metni HAZIR sayfaya sizdi")
+        if OLCU_ONAY_RE.search(fiz_govde):
+            b6_hata.append("hazir sayfada OLCU ONAYI dili: %s"
+                           % sorted(set(OLCU_ONAY_RE.findall(fiz_govde))))
+        for ad, h in ozel_dallar:
+            if mod.esc(hazir_cumle) in h:
+                b6_hata.append("%s: HAZIR metni OZEL sayfaya sizdi" % ad)
+    ol("B6", "IKI SINIF CAPRAZ SIZMIYOR: hazir sayfa hazir metnini, ozel sayfa ozel "
+             "metnini tasir", not b6_hata, ("%s" % b6_hata) if b6_hata else "")
+
+    # B7 — TETIKLEYICI CELISKISI (sayacin basladigi olay).
+    # 🔴 NEDEN VAR (curutucu, 10 Agu): urun sayfasi "olcu onayindan sonra" derken
+    # siparis onay e-postasi "siparisinizden sonra uretilir" diyordu. Ayni musteri
+    # iki yuzeyde IKI FARKLI saat baslangici goruyordu ve HICBIR iddia bunu olcmuyordu.
+    # Ustelik "olcu onayi" ozel uretim sinifinin %99,84'unde VAR OLMAYAN bir asamadir
+    # (parametrik/konfigurlu yalniz 39 kayit) -> taahhudun saati HIC BASLAMAZ; ayrica
+    # "olcuye ozel" damgasi m.15 cayma istisnasinin anahtar ifadesidir.
+    # Iddia SINIF duzeyindedir: cumleler ayni olmak zorunda DEGIL, TETIKLEYICI SINIFI
+    # ayni olmak zorunda.
+    b7_hata = []
+    if not ozel_cumle or not hazir_cumle:
+        b7_hata.append("BEYAN yok/eksik")
+    else:
+        sayfa_ozel_t = _tetikleyiciler(ozel_cumle)
+        eposta_ozel_t = (_tetikleyiciler(beyan.get("SATIR_OZEL", ""))
+                         | _tetikleyiciler(beyan.get("EPOSTA_ODENDI_OZEL", "")))
+        if not sayfa_ozel_t:
+            b7_hata.append("ozel urun sayfasi beyaninda TETIKLEYICI YOK (sayac baslangici belirsiz)")
+        if not eposta_ozel_t:
+            b7_hata.append("ozel e-posta/satir beyaninda TETIKLEYICI YOK")
+        if sayfa_ozel_t and eposta_ozel_t and sayfa_ozel_t != eposta_ozel_t:
+            b7_hata.append("OZEL sinif CELISKI: urun sayfasi=%s · siparis e-postasi=%s"
+                           % (sorted(sayfa_ozel_t), sorted(eposta_ozel_t)))
+        # Hazir kol: urun sayfasi <-> baglayici yasal stok cumlesi.
+        sayfa_hazir_t = _tetikleyiciler(hazir_cumle)
+        stok_t = _tetikleyiciler(getattr(sayfalar, "STOK_TESLIM_CUMLESI", "") or "")
+        if not sayfa_hazir_t:
+            b7_hata.append("hazir urun sayfasi beyaninda TETIKLEYICI YOK")
+        if sayfa_hazir_t and stok_t and sayfa_hazir_t != stok_t:
+            b7_hata.append("HAZIR sinif CELISKI: urun sayfasi=%s · yasal stok cumlesi=%s"
+                           % (sorted(sayfa_hazir_t), sorted(stok_t)))
+        # Ozel uretim urun sayfasina "olcu onayi/olcuye ozel" damgasi BASILMAZ.
+        for ad, h in ozel_dallar:
+            g = _etiketsiz(_ana_govde(h))
+            blok = " ".join(BEYAN_DIV_RE.findall(h))
+            if TETIK_OLCU_RE.search(blok) or OLCU_ONAY_RE.search(blok):
+                b7_hata.append("%s: sinif beyaninda OLCU ONAYI/OLCUYE OZEL damgasi" % ad)
+            if not g:
+                b7_hata.append("%s: BOLGE BOS" % ad)
+    ol("B7", "TETIKLEYICI CELISMIYOR: urun sayfasi ile siparis e-postasi (ozel) ve "
+             "yasal stok cumlesi (hazir) AYNI olayi gosteriyor",
+       not b7_hata, ("%s" % b7_hata) if b7_hata
+       else "ozel=%s hazir=%s" % (sorted(_tetikleyiciler(ozel_cumle or "")),
+                                  sorted(_tetikleyiciler(hazir_cumle or ""))))
+
+    # B8 — HAK REDDI DILI (B2'nin POZITIF ikizi). Urun sayfasi hakkin KAPSAMINI
+    # daraltan bir cumle TASIMAZ: "iade hakkiniz yoktur" gibi bir ifade, m.15
+    # istisnasini urun bazinda dayatir ve hazir/stok sinifinda dogrudan yanlistir.
+    # Kapsam IKI SINIF birden — hazir sayfada "cayma hakkiniz VARDIR" duruyor,
+    # desen yalnizca REDDI yakalar.
+    b8_hata = []
+    for ad, h in ozel_dallar + [("hazir/stok", fiz_html)]:
+        g = _etiketsiz(_ana_govde(h))
+        if not g:
+            b8_hata.append("%s: BOLGE BOS" % ad)
+            continue
+        v = HAK_REDDI_RE.findall(g)
+        if v:
+            b8_hata.append("%s: hak REDDI dili %s" % (ad, sorted({str(x) for x in v})[:3]))
+    ol("B8", "urun sayfasinda HAK REDDI dili YOK ('iade/cayma hakkiniz yoktur' vb.)",
+       not b8_hata, ("%s" % b8_hata) if b8_hata else "%d sayfa" % (len(ozel_dallar) + 1))
+
+    # B9 — YANLIS-POZITIF KONTROL FIKSTURU (GERCEK katalogdan).
+    # 🔴 NEDEN VAR: sinif kelimeleri NEGATIF iddialarda kullaniliyor (A3/B2/B5); bir
+    # yanlis-pozitif TUM EKIBIN yayinini durdurur. Gercek katalogda olculdu:
+    #   "Porsche Boxster & Cayman ..."  -> gevsek r"cayma" 2 uruNde eslesiyordu
+    #   "Nissan Rogue 2014 Güneşlik ..." -> gevsek r"14\s*gün" eslesiyordu
+    # Iddia POZITIF TANIMA IZI tasir: desenler bu iki metinde eslesMEmeli AMA
+    # gercek beyan cumlelerinde eslesMELI (yoksa "hic eslesmeyen desen" de gecerdi
+    # -> [[olculdu-diyen-hukum-kaniti]]).
+    b9_hata = []
+    # 🔴 FIKSTUR KUMEDEN TURER, elle tutulan liste DEGIL: yeni bir partide yeni bir
+    # yanlis-pozitif sinifi dogarsa CAYMA_YANLIS_POZITIF'e eklenir ve hem desen hem
+    # fikstur birlikte guncellenir (envanter drift'i bu evde olculmus bir siniftir).
+    yp_baslik = "Porsche Boxster & %s (981) Güneşlik Sabitleme Klipsi" % (
+        " / ".join(CAYMA_YANLIS_POZITIF))
+    yp_urun = _urun("sinama-yanlis-pozitif", kategori="Otomobil", ek={
+        "baslik": yp_baslik,
+        "aciklama": "Nissan Rogue 2014 Güneşlik Tutucu Klipsi ile ayni yuvaya oturur.\n"
+                    "Ikinci satir."})
+    yp_html = mod.render_product(yp_urun, tum)
+    # KAPSAM: URUNUN KENDI METNI. Sinif beyani blogu bilerek CIKARILIR — iddia
+    # "beyan cumlesinde cayma geciyor mu" DEGIL, "urun basligi/aciklamasindaki
+    # 'Cayman' ve '2014 Güneşlik' sinif kelimelerine YANLIS eslesiyor mu"dur.
+    # Blok icerde birakilsaydi, beyani bozan bir mutant bu ekseni de dusurur ve
+    # yanlis-pozitif nobetinin kendi olcusu baska bir kusurla KARISIRDI.
+    yp_govde = _etiketsiz(BEYAN_DIV_RE.sub(" ", _ana_govde(yp_html)))
+    if not (CAYMA_YANLIS_POZITIF[0] in yp_govde and "2014 Güneşlik" in yp_govde):
+        b9_hata.append("KONTROL FIKSTURU SAYFAYA BASILMAMIS (olcum yapilamadi)")
+    if CAYMA_RE.search(yp_govde):
+        b9_hata.append("CAYMA_RE yanlis-pozitif: %s"
+                       % sorted(set(CAYMA_RE.findall(yp_govde)))[:3])
+    if ONDORT_GUN_RE.search(yp_govde):
+        b9_hata.append("ONDORT_GUN_RE '2014 Güneşlik'e eslesiyor (yanlis-pozitif)")
+    # 🔴 POZITIF TANIMA IZI — DESENIN KENDI SINAVI, ICERIKTEN BAGIMSIZ.
+    # Tur 2'de bu ayak `hazir_cumle`ye bakiyordu: SAYFA_HAZIR'dan cayma cumlesi cikinca
+    # B9 de dusuyordu, yani "B9 kirmizi = desen yanlis-pozitif" okumasi guvenilir DEGILDI.
+    # Artik KAPI SAHIPLI SENTETIK fikstur kullanilir; B9 yalniz DESENIN dogru ayrim
+    # yapip yapmadigini olcer. Cekim listesi Turkcede normal olan bicimlerdir — tur 2'nin
+    # `\bcayma\b` daraltmasi bunlarin 6'sini KOR birakmisti (fail-loud -> fail-open).
+    CEKIMLER = ("cayma hakkınız vardır", "caymanız halinde", "caymadan önce",
+                "caymaya karar verirseniz", "caymayı düşünüyorsanız",
+                "caymanın sonucu", "cayması durumunda")
+    kacan = [c for c in CEKIMLER if not CAYMA_RE.search(c)]
+    if kacan:
+        b9_hata.append("CAYMA_RE cekimli bicimleri KACIRIYOR (fail-open): %s" % kacan)
+    if not ONDORT_GUN_RE.search("teslimden itibaren 14 gün içinde"):
+        b9_hata.append("ONDORT_GUN_RE sentetik pozitifte ESLESMIYOR (desen olmus)")
+    ol("B9", "DESEN AYIRT EDIYOR: %d cekimli bicimin hepsi YAKALANIYOR, kanonik "
+             "yanlis-pozitif kumesi (%s) + '2014 Güneşlik' ELENIYOR"
+       % (len(CEKIMLER), "/".join(CAYMA_YANLIS_POZITIF)), not b9_hata,
+       ("%s" % b9_hata) if b9_hata else "%d cekim ✔ · %d yanlis-pozitif ✘"
+       % (len(CEKIMLER), len(CAYMA_YANLIS_POZITIF) + 1))
+
     # ================================================== C — TESLIMAT / SOZLESME
     rapor.append("C) TESLIMAT + MESAFELI SATIS (tools/sayfalar.py)")
     tes = _etiketsiz(sayfalar._teslimat_iade())
     mes = _etiketsiz(sayfalar._mesafeli_satis())
+    # 🔴 UC KOL, AYRI AYRI. Curutucu olctu: govdenin OZEL kolundaki sure TAMAMEN
+    # kaldirildiginda kapi rc=0 veriyordu — cunku C5'in "3-5 var mi" sarti STOK
+    # cumlesiyle karsilaniyor, C6'nin kume esitligi de {3-5}={3-5} kaliyordu. Deger
+    # KAYMASI yakalaniyor, kolun SILINMESI yakalanmiyordu. Kollar artik TEK TEK olcuLur.
+    KOLLAR = (("ozel/sabit", "OZEL_SABIT_TESLIM_CUMLESI"),
+              ("ozel/olcu", "OZEL_OLCU_TESLIM_CUMLESI"),
+              ("hazir/stok", "STOK_TESLIM_CUMLESI"))
+    kol_cumleleri = []
+    kol_eksik = []
+    for kol_ad, sabit_ad in KOLLAR:
+        c = getattr(sayfalar, sabit_ad, None)
+        if not isinstance(c, str) or not c.strip():
+            kol_eksik.append("%s: sayfalar.%s YOK/BOS" % (kol_ad, sabit_ad))
+            continue
+        kol_cumleleri.append((kol_ad, c, _etiketsiz(c)))
     stok_cumle = getattr(sayfalar, "STOK_TESLIM_CUMLESI", None)
-    stok_duz = _etiketsiz(stok_cumle) if isinstance(stok_cumle, str) else None
-    ol("C1", "teslimat-iade teslimat kolu IKI SINIFLI (stok kolunda 'olcu onayi' dayatilmiyor)",
-       bool(stok_duz) and stok_duz in tes,
-       "" if (stok_duz and stok_duz in tes) else "sayfalar.STOK_TESLIM_CUMLESI=%r" % stok_cumle)
-    ol("C2", "mesafeli-satis m.4 ayni ayrimi tasiyor",
-       bool(stok_duz) and stok_duz in mes)
+
+    c1_hata = list(kol_eksik)
+    c2_hata = list(kol_eksik)
+    for kol_ad, _ham, duz in kol_cumleleri:
+        if duz not in tes:
+            c1_hata.append("%s kolu teslimat-iade govdesinde YOK" % kol_ad)
+        if duz not in mes:
+            c2_hata.append("%s kolu mesafeli-satis m.4'te YOK" % kol_ad)
+    ol("C1", "teslimat-iade teslimat kolu UC SINIFLI (ozel/sabit · ozel/olcu · hazir/stok)",
+       not c1_hata, ("%s" % c1_hata) if c1_hata else "%d kol" % len(kol_cumleleri))
+    ol("C2", "mesafeli-satis m.4 AYNI uc kolu tasiyor", not c2_hata,
+       ("%s" % c2_hata) if c2_hata else "%d kol" % len(kol_cumleleri))
     ol("C3", "iki govdede de 14 gun cayma + m.15 istisnasi duruyor (regresyon)",
        all(ONDORT_GUN_RE.search(g) and CAYMA_RE.search(g) and "m.15" in g for g in (tes, mes)))
     c4 = [ad for ad, g in (("teslimat-iade", tes), ("mesafeli-satis", mes))
           if IADE_KARGO_DESENI.search(g)]
     ol("C4", "iade kargo bedeli cumlesi YAZILMAMIS (Okan cevabi BEKLENIYOR)", not c4,
        ("yazilmis: %s" % c4) if c4 else "")
-    rakip = re.compile(r"\b(5-7|3-6|2-4)\s+iş\s+günü\b", re.I)
-    ol("C5", "iki govdede de '3-5 is gunu' duruyor, rakip aralik yok (regresyon)",
-       all("3-5 iş günü" in g and not rakip.search(g) for g in (tes, mes)))
+
+    # C5 — SURE, KOL BAZINDA. Kanonik jeton BEYAN'dan turer; her kol AYRI AYRI tasimali.
+    c5_hata = list(kol_eksik)
+    kanonik_sayfa = _sureler(ozel_cumle or "") | _sureler(hazir_cumle or "")
+    for kol_ad, _ham, duz in kol_cumleleri:
+        kol_sure = _sureler(duz)
+        if not kol_sure:
+            c5_hata.append("%s kolunda TESLIM SURESI YOK (kol silinmis/suresiz)" % kol_ad)
+        elif not kol_sure <= kanonik_sayfa:
+            c5_hata.append("%s kolu urun sayfasi disinda sure tasiyor: %s"
+                           % (kol_ad, _sure_metni(kol_sure - kanonik_sayfa)))
+        if RAKIP_SURE_RE.search(duz):
+            c5_hata.append("%s kolunda bilinen bayat aralik" % kol_ad)
+    for ad, g in (("teslimat-iade", tes), ("mesafeli-satis", mes)):
+        if RAKIP_SURE_RE.search(g):
+            c5_hata.append("%s govdesinde bilinen bayat aralik" % ad)
+    ol("C5", "UC KOLUN HER BIRI kanonik teslim suresini AYRI AYRI tasiyor, rakip aralik yok",
+       not c5_hata, ("%s" % c5_hata) if c5_hata
+       else "kanonik=%s" % _sure_metni(kanonik_sayfa))
+
+    # C6 — BAGLAYICI YASAL GOVDE ile URUN SAYFASI SURESI AYNI (kume esitligi).
+    # 🔴 KAPSAM: yalniz TESLIM TAAHHUDU birimi ("is gunu"). Yasal azami 30 GUN AYRI bir
+    # (kanuni) beyandir ve urun sayfasinda karsiligi yoktur; kume esitligine sokulsaydi
+    # kapi her kosumda sahte kirmizi yakardi. Baglamsiz "14 gun cayma" zaten jeton
+    # sayilmiyor (teslim fiili yok) — bkz. _sureler.
+    _isg = lambda kume: {t for t in kume if t[1] == "is-gunu"}          # noqa: E731
+    sayfa_sureleri = _isg(kanonik_sayfa)
+    govde_sureleri = _isg(_sureler(tes) | _sureler(mes))
+    c6_hata = []
+    if not sayfa_sureleri:
+        c6_hata.append("urun sayfasi beyanlarinda teslim suresi jetonu YOK")
+    if not govde_sureleri:
+        c6_hata.append("yasal govdelerde teslim suresi jetonu YOK (bos kume)")
+    if sayfa_sureleri and govde_sureleri and sayfa_sureleri != govde_sureleri:
+        c6_hata.append("AYRISMA: urun sayfasi=%s · yasal govde=%s"
+                       % (_sure_metni(sayfa_sureleri), _sure_metni(govde_sureleri)))
+    ol("C6", "yasal baglayici govde ile urun sayfasi teslim SURESI ayni (kume esitligi)",
+       not c6_hata, ("%s" % c6_hata) if c6_hata
+       else "sayfa=%s govde=%s" % (_sure_metni(sayfa_sureleri), _sure_metni(govde_sureleri)))
+
+    # C7 — URUN SAYFASI <-> BAGLAYICI GOVDE: TETIKLEYICI CIFTI.
+    # 🔴 NEDEN VAR (curutucu tur 2): bu cift TAMAMEN OLCUSUZDU. Govdenin ozel kolu
+    # "olcu onayindan sonra" derken urun sayfasi "siparisiniz onaylandiktan sonra"
+    # diyordu; sozlesmeyi okuyan tuketici, urun sayfasindaki taahhudun karsiligini
+    # m.4'te BULAMIYORDU. Govdenin tetikleyicisini keyfi bir degere ceviren mutant da,
+    # hizalayan degisiklik de rc=0 veriyordu: ne sapma cezalandiriliyor ne hizalanma
+    # odullendiriliyordu. B7'den AYRI iddia -> tek basina oldurulebilir.
+    c7_hata = list(kol_eksik)
+    sayfa_ozel_tetik = _tetikleyiciler(ozel_cumle or "")
+    govde_sabit_t = _tetikleyiciler(getattr(sayfalar, "OZEL_SABIT_TESLIM_CUMLESI", "") or "")
+    govde_olcu_t = _tetikleyiciler(getattr(sayfalar, "OZEL_OLCU_TESLIM_CUMLESI", "") or "")
+    if not govde_sabit_t:
+        c7_hata.append("govde ozel/sabit kolunda TETIKLEYICI YOK")
+    elif sayfa_ozel_tetik and sayfa_ozel_tetik != govde_sabit_t:
+        c7_hata.append("CELISKI: urun sayfasi=%s · yasal govde sabit kolu=%s"
+                       % (sorted(sayfa_ozel_tetik), sorted(govde_sabit_t)))
+    # Iki alt durum GERCEKTEN ayrilmis mi: olcu kolu OLCU tetikleyicisi tasimali ve
+    # sabit koldan FARKLI olmali. Ayni olsalardi ayrim kagit uzerinde kalirdi.
+    if not govde_olcu_t:
+        c7_hata.append("govde ozel/olcu kolunda TETIKLEYICI YOK")
+    elif "ölçü onayı" not in govde_olcu_t:
+        c7_hata.append("govde ozel/olcu kolu OLCU tetikleyicisi tasimiyor: %s"
+                       % sorted(govde_olcu_t))
+    elif govde_olcu_t == govde_sabit_t:
+        c7_hata.append("govdenin iki ozel kolu AYNI tetikleyiciyi tasiyor (ayrim YOK)")
+    ol("C7", "urun sayfasi ile BAGLAYICI GOVDE ayni tetikleyiciyi gosteriyor; govdenin "
+             "iki ozel alt durumu GERCEKTEN ayri", not c7_hata,
+       ("%s" % c7_hata) if c7_hata
+       else "sayfa=%s sabit=%s olcu=%s" % (sorted(sayfa_ozel_tetik),
+                                           sorted(govde_sabit_t), sorted(govde_olcu_t)))
 
     # ================================================== D — ODEME EKRANI
     rapor.append("D) ODEME EKRANI (index.html + secenekler.js saf fonksiyonlari)")
@@ -468,9 +1048,15 @@ def kosum(probe, mod, sayfalar):
 
     # ================================================== E — TEK KAYNAK / IKIZ
     rapor.append("E) TEK KAYNAK (secenekler.js BEYAN · ikiz tanim sessizce ayrisamaz)")
+    # KAYNAK: FIILEN DERLENEN metin (build.py mutantinda diskteki dosya DEGIL o metin
+    # yargilanir; yoksa mutant kaynak duzeyindeki iddialari sessizce atlatirdi).
+    build_src = getattr(mod, "_KAPI_BUILD_KAYNAK", None)
+    if build_src is None:
+        with open(BUILD_YOL, encoding="utf-8") as f:
+            build_src = f.read()
     ol("E1", "secenekler.js BEYAN sozlugu var ve build.py onu _js_sabiti ile OKUYOR",
        isinstance(beyan, dict) and bool(beyan)
-       and '_js_sabiti(_SEC_JS, "BEYAN")' in open(BUILD_YOL, encoding="utf-8").read(),
+       and '_js_sabiti(_SEC_JS, "BEYAN")' in build_src,
        "" if isinstance(beyan, dict) else "BEYAN=%r" % (beyan,))
     if isinstance(beyan, dict):
         sayfa_cumle = _etiketsiz(beyan.get("SAYFA_HAZIR", ""))
@@ -482,25 +1068,90 @@ def kosum(probe, mod, sayfalar):
            bool(eposta_cumle) and eposta_cumle in hazir_kart_duz,
            "" if eposta_cumle else "EPOSTA_ODENDI_HAZIR bos")
         # Python tarafi AYNI sozlugu okuyabiliyor mu (build.py'nin _js_sabiti yolu)?
+        # 🔴 KAYNAK, OLCULEN MODULUN OKUDUGU DOSYADIR — sabit yol DEGIL. Sabit yola
+        # bakilirsa kapi, modulun fiilen tukettigi dosyayi degil kendi varsayimini
+        # olcer; olculdu: tek kaynagi degistiren mutant ailesinde E4 "ayrisma" diye
+        # SAHTE KIRMIZI verdi ve kontrol mutantini da dusurdu.
+        sec_yolu = getattr(mod, "SECENEKLER_JS", SECENEKLER_YOL)
         py_beyan = None
         try:
             m = re.search(r"var\s+BEYAN\s*=\s*(\{.*?\});",
-                          open(SECENEKLER_YOL, encoding="utf-8").read(), re.S)
+                          open(sec_yolu, encoding="utf-8").read(), re.S)
             py_beyan = json.loads(m.group(1)) if m else None
         except Exception as e:                                     # noqa: BLE001
             py_beyan = "AYRISTIRILAMADI: %s" % e
+        # Ayrica build.py'nin URETIMDE kullandigi sozlugun ta kendisi (mod.BEYAN)
+        # JS calisma zamani degeriyle ayni mi — bu, iki tarafin GERCEK karsilastirmasi.
+        uretim_beyan = getattr(mod, "BEYAN", None)
         ol("E4", "BEYAN Python (build.py) ve JS (worker/site) tarafinda AYNI degeri veriyor",
-           py_beyan == beyan, "" if py_beyan == beyan else "python=%r" % (py_beyan,))
+           py_beyan == beyan and uretim_beyan == beyan,
+           "" if (py_beyan == beyan and uretim_beyan == beyan)
+           else "python=%r uretim=%r" % (py_beyan, uretim_beyan))
+        # E5 — TESLIM BEYANI TEK KAYNAKTAN: **DAVRANISSAL** olcum.
+        # 🔴 NEDEN DEGISTI (curutucu, 10 Agu): E5 once yalniz KAYNAK TARIYORDU.
+        # Curutucu `esc(BEYAN["SAYFA_OZEL"])` cagrisini kacis dizeleriyle ("Ö...")
+        # yazilmis modul duzeyi bir ikize cevirdi; geriye metin YALNIZCA YORUM
+        # satirinda kaldi, kapi rc=0 verdi ve hicbir iddia dusmedi. Yani "BEYAN'i
+        # OKUYOR" ayagi bir YORUMLA, "sabit kopya YOK" ayagi kacis/birlestirmeyle
+        # atlatilabiliyordu ([[hukum-ezme-sozdiziminde-karar-verilemez]]).
+        # ASIL AYAK ARTIK DAVRANISSAL: tek kaynaktaki (secenekler.js BEYAN) deger
+        # calisma zamaninda degistirilir ve build.py'nin URETTIGI ciktinin da
+        # degistigi olculur. Sozdizimsel hicbir kacis bu olcumu gecemez.
+        e5_hata = []
+        if not ozel_cumle or not hazir_cumle:
+            e5_hata.append("SAYFA_OZEL/SAYFA_HAZIR bos")
+        else:
+            damga = "ZZ-TEK-KAYNAK-SINAMASI-ZZ"
+            sinama_beyan = dict(beyan)
+            sinama_beyan["SAYFA_OZEL"] = ozel_cumle + " " + damga
+            sinama_beyan["SAYFA_HAZIR"] = hazir_cumle + " " + damga
+            ged, sec_yol, _ = _secenekler_beyanli(sinama_beyan)
+            if sec_yol is None:
+                e5_hata.append("secenekler.js BEYAN blogu ayristirilamadi (olculemedi)")
+            else:
+                try:
+                    sinama_mod = _build_baska_secenekle(build_src, sec_yol)
+                    if sinama_mod is None:
+                        e5_hata.append("SECENEKLER_JS capasi bulunamadi (olculemedi)")
+                    else:
+                        o_html = sinama_mod.render_product(nrm, tum)
+                        h_html = sinama_mod.render_product(fiz, tum)
+                        if damga not in o_html:
+                            e5_hata.append("OZEL cikti tek kaynagi IZLEMIYOR "
+                                           "(sabit kopya/ikiz suruyor)")
+                        if damga not in h_html:
+                            e5_hata.append("HAZIR cikti tek kaynagi IZLEMIYOR "
+                                           "(sabit kopya/ikiz suruyor)")
+                except Exception as exc:                            # noqa: BLE001
+                    e5_hata.append("davranissal olcum COKTU: %s" % str(exc)[:90])
+                finally:
+                    if ged:
+                        shutil.rmtree(ged, ignore_errors=True)
+            # IKINCI KATMAN (tek basina kabul DEGIL): kaynakta sabit kopya izi.
+            # YORUMLAR SOYULUR — yorum bir iddiayi tatmin edemez.
+            src_yorumsuz = _yorumsuz(build_src)
+            if ozel_cumle in src_yorumsuz or hazir_cumle in src_yorumsuz:
+                e5_hata.append("cumle build.py'ye (yorum disi) SABIT KOPYA yazilmis")
+        ol("E5", "urun sayfasi teslim beyani TEK KAYNAGI IZLIYOR (davranissal: BEYAN "
+                 "degisince cikti degisiyor) + kaynakta sabit kopya YOK",
+           not e5_hata, ("%s" % e5_hata) if e5_hata else "damga iki sinifta da izlendi")
     else:
         ol("E2", "urun sayfasi beyani BEYAN['SAYFA_HAZIR'] ile BIREBIR ayni", False, "BEYAN yok")
         ol("E3", "hazir e-postasi BEYAN['EPOSTA_ODENDI_HAZIR'] ile BIREBIR ayni", False,
            "BEYAN yok")
         ol("E4", "BEYAN Python ve JS tarafinda AYNI degeri veriyor", False, "BEYAN yok")
+        ol("E5", "urun sayfasi teslim beyani BEYAN'dan OKUNUYOR", False, "BEYAN yok")
 
     return hatalar, rapor
 
 
 # --------------------------------------------------------------------------- mutasyon
+# BATARYA TABANI — `--mutasyon` bunlarin ALTINA duserse hukum "GECTI" DEGIL, OLCULEMEDI
+# (rc=1). Kabul cikis kodu degil, BASILAN IDDIA SAYISI + isaret sartidir.
+ASGARI_AILE = 4                 # eposta.js · build.py · sayfalar.py · secenekler.js BEYAN
+ASGARI_OLCULEN_IDDIA = 20       # olduructu mutantlarin BEYAN ETTIGI iddia sayisi
+ASGARI_KONTROL = 5              # masum degisiklikte YESIL kalmayi kanitlayan mutant
+
 # Her mutant DAR bir probe'dur: eposta.js'in SINIF KARARINI no-op eder ve hangi iddialarin
 # dusmesi gerektigi ONCEDEN yazilir. Baska bir eksen dusuyorsa probe genistir = hata.
 MUTANTLAR = [
@@ -516,6 +1167,239 @@ MUTANTLAR = [
      "kalem etiketi sinifi bilmiyor -> hazir kalem 'Özel üretim' diye isaretlenir",
      ("A4", "A5", "A7")),
 ]
+
+
+# --- build.py MUTANTLARI — URUN SAYFASI TESLIM BEYANI (B4/B5/B6/E5) icin.
+# Bicim: (capa, yeni_uretici(beyan) -> metin, aciklama, DUSMESI BEKLENEN iddialar).
+# 🔴 KABUL BURADA DAHA KATI: beklenen iddialarin HEPSI dusmeli VE beklenen disinda
+# hicbir iddia dusmemeli. "En az biri dustu" olcutu, iddialarin VEYA'sini olcer ve
+# tek tek olduruculugu kanitlamaz ([[beyan-edilmis-survivor]]).
+# 🔴 CUMLE BU DOSYAYA YAZILMAZ: sabit-kopya mutanti cumleyi CALISMA ZAMANINDA
+# BEYAN'dan uretir — yoksa nobetci kendi dosyasinda ikinci bir tanim tasirdi
+# ([[nobetci-kendi-dosyasinda-sizinti]]).
+BUILD_MUTANTLARI = [
+    # Taahhut TAMAMEN silinir. Uc bagimsiz eksen birden duser ve DUSMELIDIR:
+    # B4 (varlik), B5 (kanonik sure POZITIF sarti), E5 (cikti artik tek kaynagi
+    # izlemiyor — damga ciktida hic gorunmuyor).
+    ('ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),',
+     lambda b: 'ozel_beyan="",',
+     "ozel uretim sayfasina teslim beyani HIC basilmaz (23.968 sayfa beyansiz)",
+     ("B4", "B5", "E5")),
+    ('ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),',
+     lambda b: 'ozel_beyan=OZEL_TESLIM_BEYAN_HTML,',
+     "sinif kapisi kalkar -> ozel uretim gerekcesi HAZIR/STOK sayfasina da sizar",
+     ("B6",)),
+    ('\') % esc(BEYAN["SAYFA_OZEL"])',
+     lambda b: '\') % esc(BEYAN["SAYFA_OZEL"].replace("3-5", "2-4"))',
+     "teslim araligi BILINEN bayat degere kayar (3-5 -> 2-4 is gunu)",
+     ("B4", "B5")),
+    # 🔴 KARA LISTE DISI VARYANT — B5'in asil sinavi. Sayili kara liste (5-7|3-6|2-4)
+    # bunu GORMEZ; kabul KANONIK KUME uzerinden verilmek zorunda.
+    ('\') % esc(BEYAN["SAYFA_OZEL"])',
+     lambda b: '\') % esc(BEYAN["SAYFA_OZEL"].replace("3-5", "10-20"))',
+     "teslim araligi KARA LISTE DISI degere kayar (3-5 -> 10-20 is gunu)",
+     ("B4", "B5")),
+    # HAZIR kolun suresi kayar — sozlesme 3-5 derken sayfa 15-30 der.
+    ('beyan=esc(BEYAN["SAYFA_HAZIR"]))',
+     lambda b: 'beyan=esc(BEYAN["SAYFA_HAZIR"].replace("3-5", "15-30")))',
+     "HAZIR/STOK sayfasinin suresi kayar (3-5 -> 15-30 is gunu; sozlesme 3-5 diyor)",
+     ("B5", "B6", "E2")),
+    # HAK REDDI urun sayfasina sizar — m.15 istisnasini urun bazinda dayatan cumle.
+    ('ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),',
+     lambda b: ('ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML'
+                ' + "<p>Bu üründe iade hakkınız yoktur.</p>"),'),
+     "urun sayfasina HAK REDDI cumlesi eklenir ('iade hakkiniz yoktur')",
+     ("B8",)),
+    # 🔴 KACIS IKIZI — curutucunun 10 Agu'da kapiyi gectigi mutant. Cumle build.py'ye
+    # UNICODE KACIS DIZILERIYLE yazilir: kaynak taramasi HICBIR SEY gormez, cikti
+    # bayt-bayt AYNI kalir. Yalnizca E5'in DAVRANISSAL ayagi (tek kaynagi degistirip
+    # ciktinin izledigini olcmek) bunu yakalayabilir.
+    ('esc(BEYAN["SAYFA_OZEL"])',
+     lambda b: "esc('%s')" % (b["SAYFA_OZEL"].encode("unicode_escape").decode("ascii")
+                              .replace("'", "\\'")),
+     "cumle build.py'ye KACIS DIZELI IKIZ olarak yazilir (kaynak taramasi kor; cikti AYNI)",
+     ("E5",)),
+    # CAPRAZ SIZMA — TERS YON (hazir metni OZEL sayfaya). Ozel uretim urununde
+    # "14 gun cayma hakkiniz vardir" demek MUSTERIYE OLMAYAN BIR HAK BEYAN ETMEKTIR.
+    ('esc(BEYAN["SAYFA_OZEL"])',
+     lambda b: 'esc(BEYAN["SAYFA_HAZIR"])',
+     "hazir/stok metni OZEL URETIM sayfasina sizar (olmayan cayma hakki beyan edilir)",
+     # B2 de duser ve DUSMELIDIR: sizan cumle "Hazır ürün" + "cayma" kelimelerini
+     # tasir, yani 1 Agu'dan beri duran regresyon capasi da bu sizmayi goruyor.
+     ("B2", "B4", "B5", "B6")),
+    # HAZIR KOLUN BAYT CAPASI CANLI MI: fiziksel dal baska bir BEYAN anahtarini
+    # basarsa hazir sayfanin sinif beyani sessizce degisir.
+    ('beyan=esc(BEYAN["SAYFA_HAZIR"]))',
+     lambda b: 'beyan=esc(BEYAN["SATIR_HAZIR"]))',
+     "hazir/stok sayfasi baska bir BEYAN anahtarini basar (cayma + teslim taahhudu duser)",
+     ("B1", "B5", "B6", "E2", "E5")),
+]
+
+# KONTROL MUTANTLARI — masum degisiklik. Kapi bunlarda YESIL kalmali; kalmiyorsa
+# iddialar GENIS (bicime capalanmis) demektir ve her bicim rotusu yayini durdurur.
+BUILD_KONTROL_MUTANTLARI = [
+    ('\'<div class="sinif-beyan" id="sinifBeyan" style="margin-top:10px;font-size:13px;',
+     lambda b: '\'<div class="sinif-beyan" id="sinifBeyan" style="margin-top:12px;font-size:13px;',
+     "masum bicim rotusu (ozel blok margin-top 10px -> 12px)"),
+    ('OZEL_TESLIM_BEYAN_HTML = (',
+     lambda b: 'OZEL_TESLIM_BEYAN_HTML  = (',
+     "masum bicim rotusu (build.py sabit adi hizalamasi)"),
+]
+
+# --- tools/sayfalar.py MUTANTLARI — BAGLAYICI YASAL GOVDE (C5/C6/C7).
+SAYFALAR_MUTANTLARI = [
+    ('"3-5 iş günü içinde stoktan hazırlanıp kargoya verilir."',
+     lambda b: '"7-10 iş günü içinde stoktan hazırlanıp kargoya verilir."',
+     "yasal stok teslim cumlesinin suresi kayar (3-5 -> 7-10 is gunu)",
+     ("C5", "C6")),
+    # 🔴 KOLUN SILINMESI (curutucu tur 2): degeri degistirmek yerine SUREYI TAMAMEN
+    # kaldirmak, kume esitligini {3-5}={3-5} birakiyordu -> eski C5/C6 kor kaliyordu.
+    ('"sonra başlar; ürün genellikle 3-5 iş günü içinde üretilip kargoya verilir."',
+     lambda b: '"sonra başlar; ürün kısa sürede üretilip kargoya verilir."',
+     "govdenin OZEL/SABIT kolundan teslim suresi TAMAMEN kaldirilir",
+     ("C5",)),
+    # TETIKLEYICI SAPMASI: govde ozel kolu urun sayfasindan ayrisir.
+    ('"Sipariş üzerine üretilen sabit tasarım ürünlerde süre siparişiniz onaylandıktan "',
+     lambda b: '"Sipariş üzerine üretilen sabit tasarım ürünlerde süre ölçü onayından "',
+     "govdenin OZEL/SABIT kolu 'olcu onayina' kayar (urun sayfasiyla CELISKI)",
+     ("C7",)),
+]
+SAYFALAR_KONTROL_MUTANTLARI = [
+    ('STOK_TESLIM_CUMLESI = (',
+     lambda b: 'STOK_TESLIM_CUMLESI  = (',
+     "masum bicim rotusu (sayfalar.py bosluk)"),
+    ('OZEL_SABIT_TESLIM_CUMLESI = (',
+     lambda b: 'OZEL_SABIT_TESLIM_CUMLESI  = (',
+     "masum bicim rotusu (ozel/sabit sabit adi hizalamasi)"),
+]
+
+# --- secenekler.js BEYAN MUTANTLARI — TEK KAYNAGIN KENDISI degisince ne olur?
+# Bicim: (beyan -> yeni_beyan, aciklama, beklenen). Mutant JS DISKE yazilmaz, GECICI
+# dizine yazilir; hem node probe'u hem build.py o kopyadan okur.
+BEYAN_MUTANTLARI = [
+    (lambda b: dict(b, SAYFA_OZEL=TETIK_SIPARIS_RE.sub("ölçü onayından", b["SAYFA_OZEL"])),
+     "urun sayfasi tetikleyicisi 'olcu onayindan sonra'ya geri cevrilir "
+     "(var olmayan asama + siparis e-postasiyla CELISKI)",
+     ("B7", "C7")),
+    # 🔴 CEKIMLI CAYMA SIZMASI — tur 2'de `\bcayma\b` bunlari KACIRIYORDU (fail-open).
+    # Iki yuzey AYRI AYRI olculur: urun sayfasi (B2/B5) ve siparis onay e-postasi (A3).
+    (lambda b: dict(b, SAYFA_OZEL=b["SAYFA_OZEL"] + " Caymadan önce bize yazın."),
+     "OZEL URUN SAYFASINA cekimli cayma sizar ('caymadan')",
+     ("B2", "B5")),
+    (lambda b: dict(b, EPOSTA_ODENDI_OZEL=b["EPOSTA_ODENDI_OZEL"]
+                    + " Caymanız halinde bilgi verin."),
+     "OZEL SIPARIS ONAY E-POSTASINA cekimli cayma sizar ('caymanız')",
+     ("A3",)),
+]
+BEYAN_KONTROL_MUTANTLARI = [
+    (lambda b: dict(b, SAYFA_OZEL=b["SAYFA_OZEL"].replace(" — ", " - ")),
+     "masum noktalama rotusu (uzun tire -> kisa tire); tetikleyici + sure AYNI"),
+    (lambda b: dict(b, SAYFA_HAZIR=b["SAYFA_HAZIR"] + " "),
+     "masum bosluk rotusu (hazir cumlenin sonuna bosluk)"),
+]
+
+
+def _hukum_yaz(aciklama, etiketler, beklenen, kontrol):
+    """Tek mutantin hukmunu basar; True = mutant BEKLENDIGI GIBI davrandi."""
+    dusen = [e for e in etiketler if e in beklenen]
+    dusmeyen = [e for e in beklenen if e not in etiketler]
+    eksen_disi = [e for e in etiketler if e not in beklenen]
+    print("  mutant: %s" % aciklama)
+    if kontrol:
+        print("    beklenen: HICBIR iddia dusmemeli | dusen: %s -> %s"
+              % (etiketler or "-",
+                 "YESIL ✔" if not etiketler else "KIRMIZI ✘ (IDDIA GENIS)"))
+    else:
+        print("    beklenen=%s | dusen=%s | DUSMEYEN=%s | eksen disi=%s -> %s"
+              % (list(beklenen), dusen or "-", dusmeyen or "-", eksen_disi or "-",
+                 "OLDU ✔" if (not dusmeyen and not eksen_disi) else "KALDI ✘"))
+    return not (dusmeyen or eksen_disi)
+
+
+def _kaynak_mutant_turu(baslik, kaynak, mutantlar, kur, beyan, kontrol=False):
+    """KAYNAK METNI bozan mutant ailesi (build.py / sayfalar.py).
+
+    `kur(mutant_kaynak)` -> (probe, mod, sayfalar) uclusunu dondurur; mutant DISKE
+    YAZILMAZ, dogrudan derlenir ([[mutasyon-diske-yazma-tuzagi]] +
+    [[mutasyon-bytecode-onbellegi]] ikisi birden devre disi).
+    Doner: (tamam_mi, olculen_iddia_sayisi)."""
+    print("=== %s" % baslik)
+    tamam, olculen = True, 0
+    for giris in mutantlar:
+        if kontrol:
+            capa, uret, aciklama = giris
+            beklenen = ()
+        else:
+            capa, uret, aciklama, beklenen = giris
+        if kaynak.count(capa) != 1:
+            print("  MUTASYON CAPASI KAYIP/COKLU (%d adet): %r" % (kaynak.count(capa), capa))
+            tamam = False
+            continue
+        mut_kaynak = kaynak.replace(capa, uret(beyan), 1)
+        if mut_kaynak == kaynak:
+            print("  MUTANT UYGULANMADI (metin degismedi): %s" % aciklama)
+            tamam = False
+            continue
+        try:
+            probe, mod, sayfalar = kur(mut_kaynak)
+            hatalar, _ = kosum(probe, mod, sayfalar)
+        except Exception as e:                                          # noqa: BLE001
+            # COKME KIRMIZIYLA KARISIR: mutant patlarsa iddia OLCULMEMISTIR.
+            print("  mutant COKTU -> iddia OLCULEMEDI (%s): %s" % (aciklama, e))
+            tamam = False
+            continue
+        etiketler = sorted({h.split()[0] for h in hatalar})
+        olculen += len(beklenen) if not kontrol else 1
+        if not _hukum_yaz(aciklama, etiketler, beklenen, kontrol):
+            tamam = False
+    print()
+    return tamam, olculen
+
+
+def _beyan_mutant_turu(baslik, build_kaynak, mutantlar, sayfalar, beyan, kontrol=False):
+    """TEK KAYNAGIN KENDISINI (secenekler.js BEYAN) bozan aile.
+
+    Mutant sozluk gecici bir secenekler.js kopyasina yazilir; node probe'u DA build.py
+    DA o kopyadan okur -> iki yuzey ayni kaynagi gorur ve "cumleler ayristi mi" degil
+    "SINIF/TETIKLEYICI celisiyor mu" olculur."""
+    print("=== %s" % baslik)
+    tamam, olculen = True, 0
+    for giris in mutantlar:
+        if kontrol:
+            uret, aciklama = giris
+            beklenen = ()
+        else:
+            uret, aciklama, beklenen = giris
+        yeni_beyan = uret(beyan)
+        if yeni_beyan == beyan:
+            print("  MUTANT UYGULANMADI (BEYAN degismedi): %s" % aciklama)
+            tamam = False
+            continue
+        ged, sec_yol, ep_yol = _secenekler_beyanli(yeni_beyan)
+        if sec_yol is None:
+            print("  secenekler.js BEYAN blogu ayristirilamadi -> OLCULEMEDI")
+            tamam = False
+            continue
+        try:
+            probe = probe_calistir(secenekler_yol=sec_yol, eposta_yol=ep_yol)
+            mod = _build_baska_secenekle(build_kaynak, sec_yol)
+            if mod is None:
+                print("  SECENEKLER_JS capasi bulunamadi -> OLCULEMEDI")
+                tamam = False
+                continue
+            hatalar, _ = kosum(probe, mod, sayfalar)
+        except Exception as e:                                          # noqa: BLE001
+            print("  mutant COKTU -> iddia OLCULEMEDI (%s): %s" % (aciklama, e))
+            tamam = False
+            continue
+        finally:
+            shutil.rmtree(ged, ignore_errors=True)
+        etiketler = sorted({h.split()[0] for h in hatalar})
+        olculen += len(beklenen) if not kontrol else 1
+        if not _hukum_yaz(aciklama, etiketler, beklenen, kontrol):
+            tamam = False
+    print()
+    return tamam, olculen
 
 
 def mutasyon_kosumu():
@@ -556,8 +1440,81 @@ def mutasyon_kosumu():
         if not eksende or disarida:
             tamam = False
     print()
-    print("MUTASYON: %s" % ("GECTI — sinif karari kaldirilinca kapi KIRMIZI yaniyor."
-                            if tamam else "KALDI — iddia OLU ya da probe genis."))
+
+    # --- IKINCI AILE: urun sayfasi teslim beyani (build.py). Ayri aile cunku ayri
+    # dosyayi bozar ve ayri iddialari (B4/B5/B6/E5) hedefler.
+    with open(BUILD_YOL, encoding="utf-8") as f:
+        build_kaynak = f.read()
+    temiz_probe = probe_calistir()
+    beyan = temiz_probe.get("beyan") or {}
+    if not isinstance(beyan, dict) or "SAYFA_OZEL" not in beyan:
+        print("=== MUTASYON-2: BEYAN['SAYFA_OZEL'] YOK -> urun sayfasi beyan mutantlari "
+              "OLCULEMEDI (fail-closed KIRMIZI).")
+        return 1
+    with open(os.path.join(TOOLS, "sayfalar.py"), encoding="utf-8") as f:
+        sayfalar_kaynak = f.read()
+
+    def _kur_build(src):
+        return temiz_probe, build_modulu(src), sayfalar
+
+    def _kur_sayfalar(src):
+        return temiz_probe, mod, sayfalar_modulu(src)
+
+    b_tamam, b_olculen = _kaynak_mutant_turu(
+        "MUTASYON-2: urun sayfasi TESLIM BEYANI (tools/build.py) olduruculugu",
+        build_kaynak, BUILD_MUTANTLARI, _kur_build, beyan)
+    s_tamam, s_olculen = _kaynak_mutant_turu(
+        "MUTASYON-3: BAGLAYICI YASAL GOVDE (tools/sayfalar.py) olduruculugu",
+        sayfalar_kaynak, SAYFALAR_MUTANTLARI, _kur_sayfalar, beyan)
+    t_tamam, t_olculen = _beyan_mutant_turu(
+        "MUTASYON-4: TEK KAYNAK (secenekler.js BEYAN) olduruculugu",
+        build_kaynak, BEYAN_MUTANTLARI, sayfalar, beyan)
+
+    kb_tamam, kb_olculen = _kaynak_mutant_turu(
+        "MUTASYON-5a: KONTROL — build.py masum degisiklik (kapi YESIL kalmali)",
+        build_kaynak, BUILD_KONTROL_MUTANTLARI, _kur_build, beyan, kontrol=True)
+    ks_tamam, ks_olculen = _kaynak_mutant_turu(
+        "MUTASYON-5b: KONTROL — sayfalar.py masum degisiklik (kapi YESIL kalmali)",
+        sayfalar_kaynak, SAYFALAR_KONTROL_MUTANTLARI, _kur_sayfalar, beyan, kontrol=True)
+    kt_tamam, kt_olculen = _beyan_mutant_turu(
+        "MUTASYON-5c: KONTROL — BEYAN masum noktalama (kapi YESIL kalmali)",
+        build_kaynak, BEYAN_KONTROL_MUTANTLARI, sayfalar, beyan, kontrol=True)
+
+    kontrol_tamam = kb_tamam and ks_tamam and kt_tamam
+    kontrol_sayisi = kb_olculen + ks_olculen + kt_olculen
+    tamam = tamam and b_tamam and s_tamam and t_tamam and kontrol_tamam
+
+    # 🔴 KABUL CIKIS KODU DEGIL, BASILAN SAYIDIR ([[olculdu-diyen-hukum-kaniti]] +
+    # [[mutasyon-kaniti-yeniden-uretilebilir]]). Olculdu (curutucu, 10 Agu): TUM mutant
+    # aileleri bosaltildiginda bu surucu 0,1 sn'de rc=0 ve "MUTASYON: GECTI" basiyordu —
+    # olculen iddia 0. Bozuk bir kanit araci, yanlis guven verir. Taban sartlari:
+    olculen_iddia = b_olculen + s_olculen + t_olculen
+    dolu_aile = sum(1 for a in (MUTANTLAR, BUILD_MUTANTLARI, SAYFALAR_MUTANTLARI,
+                                BEYAN_MUTANTLARI) if a)
+    taban = []
+    if dolu_aile < ASGARI_AILE:
+        taban.append("dolu mutant ailesi %d < %d" % (dolu_aile, ASGARI_AILE))
+    if olculen_iddia < ASGARI_OLCULEN_IDDIA:
+        taban.append("olculen iddia %d < %d" % (olculen_iddia, ASGARI_OLCULEN_IDDIA))
+    if len(MUTANTLAR) < 1:
+        taban.append("eposta ailesi BOS")
+    if kontrol_sayisi < ASGARI_KONTROL:
+        taban.append("kontrol mutanti %d < %d" % (kontrol_sayisi, ASGARI_KONTROL))
+
+    print("OLCULEN: eposta %d mutant · build %d mutant (%d iddia) · sayfalar %d mutant "
+          "(%d iddia) · BEYAN %d mutant (%d iddia) · KONTROL %d mutant · TOPLAM iddia %d"
+          % (len(MUTANTLAR), len(BUILD_MUTANTLARI), b_olculen,
+             len(SAYFALAR_MUTANTLARI), s_olculen,
+             len(BEYAN_MUTANTLARI), t_olculen, kontrol_sayisi, olculen_iddia))
+    if taban:
+        print("TABAN IHLALI (batarya bos/yetersiz -> hukum OLCULEMEDI): %s"
+              % "; ".join(taban))
+        tamam = False
+    print("MUTASYON: %s" % ("GECTI — sinif karari, teslim beyani, yasal govde suresi ve "
+                            "tek kaynak bozulunca kapi KIRMIZI yaniyor; masum rotusta "
+                            "YESIL kaliyor."
+                            if tamam else "KALDI — iddia OLU, probe genis, batarya "
+                                          "yetersiz ya da kontrol mutanti kirmizi yakti."))
     return 0 if tamam else 1
 
 
