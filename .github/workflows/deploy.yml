@@ -2022,20 +2022,15 @@ jobs:
       # Kabul CAKILI CAPALARA karsi olcer (Vitara 27->66 · Transporter 145 · Golf 300 …),
       # kendi urettigi kumeye DEGIL (totoloji). Ayrica kademeli kurali (guvenli jeton /
       # tehlike sinifi) ve bitisikligin `markaKatla()`DAN BAGIMSIZ oldugunu civiler.
-      # Mutasyon bataryasi (4 oldurucu + 3 kontrol, 4 AYIRT EDICI kirmizi kume):
+      # Mutasyon bataryasi (18 oldurucu + 4 kontrol, 18 AYIRT EDICI kirmizi kume):
       #   python3 tools/model-baslik-kolu-test.py --kendini-test
       # Offline (yalniz urunler.json + index.html okunur), diske YAZMAZ.
       - name: "Model baslik kolu kabul (uc kol + tehlike sinifi + yargisiz sayfa dogmaz)"
         run: python3 tools/model-baslik-kolu-test.py
 
-      # 🔴 AYNI KAPININ MUTASYON BATARYASI ARTIK `serit-a4` JOB'UNDADIR (5 Agu 2026).
-      # NEDEN TASINDI: adim duzeyi olcum (son 6 basarili kosum, GitHub jobs API)
-      # `serit-a3`i 968 sn (16,1 dk) gosterdi ve tek basina bu adim 440 sn (%45) idi.
-      # `deploy: needs` zincirinin tabani = EN YAVAS serit oldugundan, bu tek adim
-      # yayin penceresinin en buyuk kalemiydi. Ayrintili gerekce + kapi sayisi
-      # esitligi: bkz. `serit-a4` job basligi.
-      # ⚠️ ADIM SILINMEDI, TASINDI: `serit-a4` da `deploy: needs` listesindedir ->
-      # kirmizisi yayini AYNEN durdurur (kapi sayisi ve semantigi DEGISMEDI).
+      # 🔴 AYNI KAPININ MUTASYON BATARYASI `nobet.yml` `serit-b` JOB'UNDADIR.
+      # Bayraksiz GERCEK katalog olcumu burada BLOKLAYICI kalir; yalniz aracin
+      # KENDINI sinayan pahali mutant kopyalari yayin kritik yolundan ayrilmistir.
       # KANCA KABLOLAMASI (tools/kanca-kablolama-nobeti.py --ci) — kancalar artik
       # `.git/hooks` altinda (commit EDILMEYEN, elle duzenlenen) dosyalar degil,
       # IZLENEN `tools/kancalar` kaynagidir; kablolamayi tools/kanca-kur.py kurar.
@@ -2072,41 +2067,17 @@ jobs:
         run: python3 tools/kanca-kablolama-nobeti.py --ci
 
   # ═════════════════════════════════════════════════════════════════════════════
-  # SERIT A4 — KRITIK YOLUN BOLUNMESI (5 Agu 2026, ADIM DUZEYINDE OLCULDU)
+  # SERIT A4 — HERMETIK YEDEK GLOB KOD YOLU
   # ═════════════════════════════════════════════════════════════════════════════
-  # OLCULEN OLGU (son 6 basarili kosum, GitHub `runs/<id>/jobs` adim sureleri; surucu
-  # scratchpad/yz/adim-sure.py):
-  #     build     586 sn (9,8 dk)   <- "Statik sayfalari uret" 328 sn + fiyat paritesi 138 sn
-  #     serit-a2  553 sn (9,2 dk)
-  #     serit-a3  968 sn (16,1 dk)  <- KRITIK YOL
-  #        icinden: "Model uyeligi mutasyon bataryasi"  440 sn (%45)
-  #                 "Piksel <-> katalog parite kapisi"  314 sn (%32)
-  #                 kalan 68 adim                       214 sn (%22)
-  # `deploy: needs` tabani = EN YAVAS serit + deploy (36 sn) + yayin (36 sn) = 1040 sn
-  # (17,3 dk). Mutasyon bataryasi AYRI bir job'a alininca:
-  #     serit-a3  528 sn (8,8 dk) · serit-a4 461 sn (7,7 dk; ~21 sn kurulum dahil)
-  #     yeni taban = max(586, 553, 528, 461) + 72 = 658 sn (11,0 dk)
-  # BEKLENEN KAZANC: 1040 -> 658 sn = 382 sn (6,4 dk, %36,7). Daha fazla bolmenin
-  # kazanci YOKTUR: kritik yol artik `build` (586 sn) ve o AYRI bir istir.
+  # OLCULEN OLGU (10 Agu 2026, son 3 basarili kosum ortalamasi): serit-a4 3736 sn;
+  # model uyeligi KENDINI-TEST 2815 sn, model baslik KENDINI-TEST 907 sn, kalan
+  # 9 adim yaklasik 13 sn. Iki arac kendi mutant fiksturunu olcer; canli katalog
+  # iddiasi bayraksiz kollarla serit-a3'te kalir. TASIMA SONRASI BEKLENTI:
+  # 3736 - 2815 - 907 = 14 sn (TAHMIN; sonraki CI kosumunda olculecek).
   #
-  # 🔴 KAPI SAYISI DEGISMEDI — SILME DEGIL TASIMA. Adim aynen, bayragiyla birlikte
-  # tasindi ve bu job `deploy: needs` listesindedir. Olculdu (tools/is-akisi-kapisi.py,
-  # bolme ONCESI ve SONRASI): "Olculen kapi cagrisi 203" · "SERIT B beyani 55" ·
-  # "BLOKLAYICI beyan (F) 56 iddia" — UCU DE AYNI. tools/ci-kapsam-test.py:
-  # "OTOMATIK'te kosulan 149" — AYNI.
-  # ⚠️ `deploy: needs` listesine EKLENMEZSE bu job SERIT B'ye duser ve kapi CI'da
-  # gorunur ama yayini BLOKLAMAZ (sessiz fail-open). O hal bir yorum degil, KOSULAN
-  # bir kapidir: is-akisi-kapisi Bolum D o cagriyi "beyansiz fail-open" sayar ve
-  # KIRMIZI yanar (mutasyonla olculdu, scratchpad/yz/m2-mutasyon.py).
-  #
-  # NEDEN BU ADIM SECILDI (baska bir kapi degil): tek basina en buyuk kalem ve
-  # ONCESINDEKI hicbir adima BAGIMLI DEGIL — `tools/model-uyelik-kapisi.py` yalniz
-  # urunler.json + index.html okur, mutantini GECICI KOPYAYA uygular, uretilmis agaca
-  # (urun/ · _yayin/ · varlik/) DOKUNMAZ. Yani `serit-a3`te URETIM ZINCIRI baglantisi
-  # yok; tools/deploy-aclik-kapisi.py::E2b bunu ayrica olcer.
-  # Kurulum: `node` ZORUNLU (kapi filtre tarafini index.html'in GERCEK koduyla node'da
-  # kosturur — Python portu yazmak kapiyi totolojiye cevirirdi, bkz. model-uyelik-kapisi
-  # :: filtre_kumeleri). `pip install` GEREKMEZ: arac saf stdlib'dir.
+  # Iki model KENDINI-TEST bataryasi 10 Agu 2026'da `nobet.yml` `serit-b`ye tasindi.
+  # Bayraksiz uretim kollari `serit-a3`te BLOKLAYICI kalir. Bu job yalniz hermetik
+  # yedek glob kod yolunu tasir ve `deploy: needs` zincirinde kalir.
   serit-a4:
     runs-on: ubuntu-latest
     steps:
@@ -2117,50 +2088,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      # MODEL UYELIGI KAPISININ MUTASYON BATARYASI — BLOKLAYICI ve AYRI ADIM (surenin
-      # ayri olcusun gorunmesi + kirmizinin hangi eksende yandiginin adimdan okunmasi
-      # icin). GERCEK olcum kolu (bayraksiz cagri) `serit-a3`te kalir; ikisi de SERIT A.
-      # 24 OLDURUCU + 4 KONTROL mutant; mutant DAIMA GECICI KOPYAYA uygulanir, gercek agac
-      # DEGISMEZ. Kabul olcutu cikis kodu DEGIL OLCULEN IDDIA + isarettir: rc 0/1 disi ya da
-      # "KIRMIZI ama hicbir iddia KALDI demedi" COKME sayilir ve kirmiziyla KARISTIRILMAZ.
-      # 🔴 NEDEN CI'DA (elle degil): bu paketin tum amaci sapmanin SESSIZCE geri gelmemesi.
-      # Olculdu — tabloyu tek kaynakta (index.html) degistiren mutant kapiyi kirmizi YAKMAZ
-      # (tek kaynak iki tarafi BIRDEN kaydirir); ayrismayi doguran sey BIR TARAFIN kaynagi
-      # okumayi birakmasidir, oldurucu mutantlar onu taklit eder ([[beyan-edilmis-survivor]]).
-      # Katlama eksenine 6 oldurucu eklendi (katlamayi kaldiran · farkli araca genisleten ·
-      # kelime sinirini kaldiran · istisnayi dusuren · tek tarafi tabloyu okumaz yapan ·
-      # alt bolum ayrimini tek listeye doken) + 1 kontrol (bolum SIRASI degisir, ayrim degil).
-      # Sizinti/deny/esleme ekseni 5 oldurucu daha ekledi (kusak sayfasini deny'e alan ·
-      # ST denial'ini kaldiran · deny tablosunu okumayi birakan · eslemeyi FARKLI ARACA
-      # kaydiran · esigi yukselterek 8 sayfayi sessizce olduren) + 1 kontrol (tabloyu
-      # yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
-      # 🔴 `ESIK` mutanti KONTROL'den OLDURUCU'ye TASINDI: donmus envanter ekseni eklenince
-      # esik degisimi ARTIK gorunur bir sapmadir (parite yesil kalirken 8 sayfa oluyor).
-      # Capraz-marka (rozet) ekseni 4 oldurucu daha ekledi (deny'den cifti dusuren ·
-      # envanterden cifti dusuren · envantere uretimde karsiligi olmayan cift ekleyen ·
-      # olcutu "sayfa DOGDU MU"ya cevirip tabloyu kendi kaniti yapan) + 1 kontrol
-      # (envanteri yeniden siralamak: kume ve kimlik AYNI -> daima-kirmizi kapi ayirt edilir).
-      # CIPLAK TEK HARF (kararsiz jeton SINIF 1) ekseni 2 oldurucu daha ekledi (birlesmeyi
-      # kaldiran · kuratorlu gosterim zorlamasini dusuren) + 1 kontrol (MODEL_ALIAS'i yeniden
-      # siralamak) ve `GS` hukmunu CALISTIRILABILIR kilan 1 oldurucu (olu allow girisi yazip
-      # K19'u tek basina kirmizi yakan) geldi. Ikisi de TEK BASINA kirmizi yakiyor (olculdu).
-      # Olculdu: yerelde 24+4 mutant 108 s iken 31+6 mutant 165 s; CI'da 440 sn.
-      # 5 Agu: BASLIK KOLU ekseni 3 oldurucu daha ekledi (yargi kapisini kaldiran ·
-      # allow envanterinden giris dusuren · tehlike korumasini dusuren) + 1 kontrol.
-      - name: "Model uyeligi mutasyon bataryasi (34 oldurucu + 7 kontrol)"
-        run: python3 tools/model-uyelik-kapisi.py --kendini-test
-
-      # BASLIK KOLU MUTASYON BATARYASI (5 Agu 2026) — 4 oldurucu + 3 kontrol.
-      # 🔴 AYIRT EDICILIK ICERDE OLCULUR: oldurucu mutantlarin KIRMIZI YAKTIGI iddia
-      # kumeleri birbirinden FARKLI olmali (ayni kume cikarsa "daima kirmizi" tek bir
-      # eksen hepsini gecmis olurdu — batarya bunu kendi raporlar).
-      #   M1 kanon/kusak kolu  -> Transporter DUSER · M2 baslik kolu -> Vitara DUSER
-      #   M3 tehlike korumasi  -> Renault|5 TAVANI ASAR + markasiz baslik fiksturu kirilir
-      #   M4 bitisikligi markaKatla() ile yaz -> KATLAMALI fikstur kirilir (M3'ten AYRI kume)
-      # Olculdu: yerelde 7 mutant ~6 dk (her mutant tam jenerator kosumu).
-      - name: "Model baslik kolu mutasyon bataryasi (4 oldurucu + 3 kontrol)"
-        run: python3 tools/model-baslik-kolu-test.py --kendini-test
 
       # YEDEK GLOB KOD YOLU — HERMETIK ALT KUME (7 Agu 2026). BLOKLAYICI, continue-on-error YOK.
       # 🔴 NEDEN ALT KUME, TAM BATARYA DEGIL: `tools/yedekle-test.py` bayraksiz kosumu
