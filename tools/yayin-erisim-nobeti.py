@@ -122,6 +122,29 @@ ACIK_KODLAR = (200,)
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 
+# ─────────────────────────────────────────── GECICI SINIF (BIR KEZ YENIDEN YOKLAMA)
+# 🔴 10 Agu 2026 OLCULDU (bu ek de bir olayin faturasidir): alarm AYNI GUN IKI KEZ
+# kirmizi yandi; her iki kosumda da 328 URL'den TEK biri kapali gorundu ve her seferinde
+# FARKLI bir sayfa: HTTP 503 + GitHub Pages'in gecici "Hello future GitHubber" govdesi.
+# Dakikalar sonra ayni adresler (no-cache dahil) 200 donuyordu -> KALICI erisim arizasi
+# YOKTU. Yani alarm anlik bir edge/origin blip'ini "KALICI KAPALI" sayiyordu.
+#
+# 🔴 DUZELTME SESSIZLESTIRME DEGILDIR:
+#   * gecici sinif YALNIZ BIR KEZ yeniden yoklanir (no-cache; uc onbellegi atlansin),
+#   * ikinci yoklama da basarisizsa hukum DEGISMEZ: URL KAPALI/ARIZA kalir (rc 1/2),
+#   * ikinci yoklama basariliysa URL ACIK sayilir AMA `GECICI` sayacina girer, satiri
+#     raporda 🟡 olarak GORUNUR ve hukum satirina `GECICI=<n>` yazilir. "Yesile boyama"
+#     ancak sayilan sey GORUNMEZ olursa olur ([[hukum-yanlis-birimde]]).
+#
+# 🔴 SINIF SINIRI (dar tutulmustur — genisletmek nobetciyi korlestirir):
+#   * 5xx  -> gecici (uc/origin anlik hatasi),
+#   * ag/DNS/TLS/zaman asimi (ARIZA) -> gecici,
+#   * 4xx (404/410/403) -> ASLA yeniden yoklanmaz; silinmis/yasakli sayfa YAPISALDIR ve
+#     ikinci istek de ATILMAZ (bos yere trafik yok, sinif affi hic yok),
+#   * DONGU / `location`siz yonlendirme -> ASLA; yapisal kusurdur.
+YENIDEN_YOKLAMA_BEKLEME = 5.0
+GECICI_KOD_ALT, GECICI_KOD_UST = 500, 600
+
 ZAMAN_ASIMI_VARSAYILAN = 20.0
 # Istek hizi (istek/sn). Sayfa istekleri statik CDN'e gider (worker oran siniri DEGIL);
 # yine de uc nazikce kullanilir: 6/sn -> ~296 URL ~50 sn.
@@ -263,13 +286,20 @@ class _YonlendirmeYok(urllib.request.HTTPRedirectHandler):
 _ACICI = urllib.request.build_opener(_YonlendirmeYok())
 
 
-def _istek(url, yontem=None, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None):
-    """(kod|None, basliklar, govde_ilk_baytlari, hata|None). ASLA istisna atmaz."""
+def _istek(url, yontem=None, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None,
+           no_cache=False):
+    """(kod|None, basliklar, govde_ilk_baytlari, hata|None). ASLA istisna atmaz.
+
+    `no_cache=True` YALNIZ yeniden yoklamada kullanilir: ilk yoklamayi 503'e dusuren
+    sey uc onbelleginde duruyorsa ikinci istek ayni bayat yaniti gorurdu."""
     yontem = yontem or YONTEM
-    istek = urllib.request.Request(url, method=yontem,
-                                   headers={"User-Agent": UA,
-                                            "Accept": "text/html,application/xhtml+xml,"
-                                                      "application/xml;q=0.9,*/*;q=0.8"})
+    basliklar = {"User-Agent": UA,
+                 "Accept": "text/html,application/xhtml+xml,"
+                           "application/xml;q=0.9,*/*;q=0.8"}
+    if no_cache:
+        basliklar["Cache-Control"] = "no-cache"
+        basliklar["Pragma"] = "no-cache"
+    istek = urllib.request.Request(url, method=yontem, headers=basliklar)
     acici = acici or _ACICI
     try:
         with acici.open(istek, timeout=zaman_asimi) as y:
@@ -291,11 +321,15 @@ def _govde_ozeti(ham):
     return "".join(c for c in metin if c.isprintable())[:60]
 
 
-def olc_tek(taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=None):
+def olc_tek(taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=None,
+            no_cache=False, istek_fn=None):
     """TEK URL'in canli hali. Doner: kayit sozlugu.
 
     sinif: ACIK | YONLENDI | KAPALI | DONGU | ARIZA
-    """
+
+    `istek_fn` YOKLAYICIDIR (enjekte edilebilir): kabul testi buraya AG'A CIKMAYAN sahte
+    bir yoklayici verir ve URL BASINA kac istek atildigini sayar."""
+    istek_fn = istek_fn or _istek
     url = taban.rstrip("/") + yol
     zincir = []
     gorulen = set()
@@ -306,8 +340,9 @@ def olc_tek(taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=N
                     "zincir": zincir, "tani": "yonlendirme DONGUSU: %s tekrar ediyor"
                                               % suanki, "govde": ""}
         gorulen.add(suanki)
-        kod, basliklar, govde, hata = _istek(suanki, yontem=yontem,
-                                             zaman_asimi=zaman_asimi, acici=acici)
+        kod, basliklar, govde, hata = istek_fn(suanki, yontem=yontem,
+                                               zaman_asimi=zaman_asimi, acici=acici,
+                                               no_cache=no_cache)
         if hata:
             return {"yol": yol, "url": url, "sinif": "ARIZA", "kod": None,
                     "zincir": zincir, "tani": hata[:160], "govde": ""}
@@ -336,20 +371,67 @@ def olc_tek(taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=N
             "govde": ""}
 
 
+def gecici_mi(kayit):
+    """Bu kayit GECICI sinifta mi (BIR KEZ yeniden yoklanmali mi)?
+
+    🔴 TEK KAYNAK. Yalniz 5xx ve ag/zaman asimi arizasi. 4xx ve DONGU/yonlendirme
+    kusuru YAPISALDIR: yeniden yoklanmaz, ikinci istek de ATILMAZ."""
+    sinif = kayit.get("sinif")
+    if sinif == "ARIZA":
+        return True
+    if sinif == "KAPALI":
+        kod = kayit.get("kod")
+        return isinstance(kod, int) and GECICI_KOD_ALT <= kod < GECICI_KOD_UST
+    return False
+
+
+def yeniden_yokla(kayit, taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None,
+                  yontem=None, uyu=time.sleep, bekleme=YENIDEN_YOKLAMA_BEKLEME,
+                  istek_fn=None):
+    """GECICI kaydi BIR KEZ (yalniz bir kez) yeniden yoklar. Doner: kayit sozlugu.
+
+    🔴 FAIL-CLOSED: ikinci yoklama da basarisizsa ILK KAYIT (KAPALI/ARIZA) OLDUGU GIBI
+    doner — hukum ve rc DEGISMEZ. Basariliysa ikinci kayit doner ama `gecici=True`
+    isaretiyle: ACIK sayilir, SESSIZLESMEZ."""
+    ilk = ("%s %s" % (kayit.get("sinif"), kayit.get("tani") or "")).strip()
+    if bekleme:
+        uyu(bekleme)
+    ikinci = olc_tek(taban, yol, zaman_asimi=zaman_asimi, acici=acici, yontem=yontem,
+                     no_cache=True, istek_fn=istek_fn)
+    if ikinci["sinif"] in ("ACIK", "YONLENDI"):
+        ikinci["gecici"] = True
+        ikinci["ilk"] = ilk
+        return ikinci
+    kalici = dict(kayit)
+    kalici["gecici"] = False
+    kalici["ikinci_yoklama"] = ikinci.get("tani") or ikinci["sinif"]
+    kalici["tani"] = ("%s · 2. yoklama (no-cache, %.0f sn sonra) DA basarisiz: %s"
+                      % (kayit.get("tani") or kayit.get("sinif"), bekleme or 0.0,
+                         kalici["ikinci_yoklama"]))
+    return kalici
+
+
 def olc(yollar, taban=SITE_VARSAYILAN, hiz=HIZ_VARSAYILAN,
-        zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=None, uyu=time.sleep):
+        zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=None, uyu=time.sleep,
+        istek_fn=None, yeniden_bekleme=YENIDEN_YOKLAMA_BEKLEME):
     """Kumenin TAMAMINI olcer (ORNEKLEME YOK). Doner: (kayitlar, sure_sn).
 
     `hiz` istek/sn tavanidir: istekler arasi en az 1/hiz saniye beklenir. Sure OLCULUR
-    ve rapora basilir (butce karari sayiyla verilsin diye)."""
+    ve rapora basilir (butce karari sayiyla verilsin diye). GECICI sinifa dusen URL
+    hukme yazilmadan ONCE bir kez yeniden yoklanir (bkz. `gecici_mi`)."""
     bekleme = (1.0 / hiz) if hiz and hiz > 0 else 0.0
     kayitlar = []
     bas = time.monotonic()
     for i, yol in enumerate(yollar):
         if i and bekleme:
             uyu(bekleme)
-        kayitlar.append(olc_tek(taban, yol, zaman_asimi=zaman_asimi, acici=acici,
-                                yontem=yontem))
+        kayit = olc_tek(taban, yol, zaman_asimi=zaman_asimi, acici=acici,
+                        yontem=yontem, istek_fn=istek_fn)
+        if gecici_mi(kayit):
+            kayit = yeniden_yokla(kayit, taban, yol, zaman_asimi=zaman_asimi,
+                                  acici=acici, yontem=yontem, uyu=uyu,
+                                  bekleme=yeniden_bekleme, istek_fn=istek_fn)
+        kayitlar.append(kayit)
     return kayitlar, time.monotonic() - bas
 
 
@@ -361,6 +443,9 @@ def degerlendir(kayitlar, kume_sayisi=None):
         sayim[k["sinif"]] = sayim.get(k["sinif"], 0) + 1
     kapali = [k for k in kayitlar if k["sinif"] in ("KAPALI", "DONGU")]
     ariza = [k for k in kayitlar if k["sinif"] == "ARIZA"]
+    # GECICI: ilk yoklamada 5xx/ag arizasiydi, ikinci yoklamada (no-cache) ACIK dondu.
+    # ACIK sayilir ama SAYILIR: kayboldugu an duzeltme sessizlestirmeye donusur.
+    gecici = [k for k in kayitlar if k.get("gecici")]
     olculen = len(kayitlar)
     beklenen = kume_sayisi if kume_sayisi is not None else olculen
 
@@ -369,6 +454,8 @@ def degerlendir(kayitlar, kume_sayisi=None):
             "kapali": [{"yol": k["yol"], "kod": k["kod"], "tani": k["tani"],
                         "govde": k["govde"]} for k in kapali],
             "ariza": [{"yol": k["yol"], "tani": k["tani"]} for k in ariza],
+            "gecici": [{"yol": k["yol"], "ilk": k.get("ilk", ""), "kod": k["kod"]}
+                       for k in gecici],
             "yonlendirme": [{"yol": k["yol"], "zincir": k["zincir"]}
                             for k in kayitlar if k["sinif"] == "YONLENDI"]}
 
@@ -390,21 +477,28 @@ def degerlendir(kayitlar, kume_sayisi=None):
                             % (k["yol"], " -> ".join("%d %s" % z for z in k["zincir"])))
     for k in ariza:
         satirlar.append("⚪ OLCULEMEDI %s -> %s" % (k["yol"], k["tani"]))
+    for k in gecici:
+        satirlar.append("🟡 GECICI %s -> ilk yoklama: %s · ikinci yoklama (no-cache) "
+                        "%s ACIK (uc blip'i; ACIK sayildi ama SESSIZLESTIRILMEDI)"
+                        % (k["yol"], k.get("ilk") or "-", k["kod"]))
 
     # SAPMA KANITI, OLCUM ARIZASINI EZER: elimizde kapali kapi varken "olculemedi"ye
     # dusmek kaniti kaybettirirdi. Iki hal de sayida AYRI AYRI gorunur.
     if kapali:
         satirlar.append("HUKUM: KAPALI — %d URL kapali/dongu, %d olcum arizasi, "
-                        "%d acik (%d yonlendirmeli)."
+                        "%d acik (%d yonlendirmeli) · GECICI=%d."
                         % (len(kapali), len(ariza), sayim["ACIK"] + sayim["YONLENDI"],
-                           sayim["YONLENDI"]))
+                           sayim["YONLENDI"], len(gecici)))
         return "KAPALI", SINIF_RC["KAPALI"], satirlar, ozet
     if ariza or olculen != beklenen:
-        satirlar.append("HUKUM: OLCULEMEDI — %d URL olculemedi (ag/DNS/zaman asimi). "
-                        "Saglik KANITLANMADI; 'hepsi 200' VARSAYILMAZ." % len(ariza))
+        satirlar.append("HUKUM: OLCULEMEDI — %d URL olculemedi (ag/DNS/zaman asimi) · "
+                        "GECICI=%d. Saglik KANITLANMADI; 'hepsi 200' VARSAYILMAZ."
+                        % (len(ariza), len(gecici)))
         return "OLCULEMEDI", SINIF_RC["OLCULEMEDI"], satirlar, ozet
-    satirlar.append("HUKUM: ACIK — %d/%d URL 200 (%d yonlendirme zinciriyle)."
-                    % (sayim["ACIK"] + sayim["YONLENDI"], beklenen, sayim["YONLENDI"]))
+    satirlar.append("HUKUM: ACIK — %d/%d URL 200 (%d yonlendirme zinciriyle) · "
+                    "GECICI=%d."
+                    % (sayim["ACIK"] + sayim["YONLENDI"], beklenen, sayim["YONLENDI"],
+                       len(gecici)))
     return "ACIK", SINIF_RC["ACIK"], satirlar, ozet
 
 
@@ -564,15 +658,18 @@ def gh_ozet_yaz(sinif, ozet, satirlar, sure):
             f.write("durum=%s\n" % DURUM_ETIKET.get(sinif, "olculemedi"))
             f.write("kapali=%d\n" % len(ozet.get("kapali") or []))
             f.write("olculen=%d\n" % ozet.get("olculen", 0))
+            f.write("gecici=%d\n" % len(ozet.get("gecici") or []))
     ozet_yol = os.environ.get("GITHUB_STEP_SUMMARY")
     if ozet_yol:
         with open(ozet_yol, "a", encoding="utf-8") as f:
             f.write("## Yayin erisim nobeti — %s\n\n" % sinif)
             f.write("* olculen URL: **%d** · sure: **%.1f s**\n"
                     % (ozet.get("olculen", 0), sure))
-            f.write("* kapali: **%d** · olcum arizasi: **%d** · yonlendirme: **%d**\n\n"
+            f.write("* kapali: **%d** · olcum arizasi: **%d** · yonlendirme: **%d** · "
+                    "GECICI (1 kez yeniden yoklandi, 200 dondu): **%d**\n\n"
                     % (len(ozet.get("kapali") or []), len(ozet.get("ariza") or []),
-                       len(ozet.get("yonlendirme") or [])))
+                       len(ozet.get("yonlendirme") or []),
+                       len(ozet.get("gecici") or [])))
             for s in satirlar:
                 f.write("%s\n" % s)
             f.write("\nNE YAPILMALI: kapali URL'ler ORIGIN'de degil EDGE'de kapanmis "
@@ -624,7 +721,8 @@ def main(argv=None):
         print(s)
     print("SURE: %.1f s (%d URL · %.1f istek/sn olculen)"
           % (sure, len(kayitlar), (len(kayitlar) / sure) if sure else 0.0))
-    print("SINIF: %s (rc %d)" % (sinif, rc))
+    print("SINIF: %s (rc %d) · GECICI=%d (5xx/ag arizasi bir kez yeniden yoklandi ve "
+          "ACIK dondu)" % (sinif, rc, len(ozet.get("gecici") or [])))
     if a.json:
         print(json.dumps({"sinif": sinif, "rc": rc, "sure_sn": round(sure, 2),
                           "kapsam": a.kapsam, "taban": a.taban, "ozet": ozet},
@@ -642,8 +740,10 @@ def kendini_test():
     elle kosulabilsin diye burada da durur. TAM takim (kablolama + mutasyon nobetleri)
     kabul testindedir."""
     fails = []
+    sayac = []
 
     def iddia(ad, kosul, detay=""):
+        sayac.append(ad)
         print(("  ✔ " if kosul else "  ✘ ") + ad + (("   [%s]" % detay) if detay else ""))
         if not kosul:
             fails.append(ad)
@@ -676,12 +776,34 @@ def kendini_test():
               sinif == "ACIK" and rc == 0 and len(ozet["yonlendirme"]) == 1,
               "%s yonlendirme=%d" % (sinif, len(ozet["yonlendirme"])))
 
-    kayitlar, _ = olc(["/acik-1/"], taban=olu_taban(), hiz=0, zaman_asimi=3)
+    # Bekleme SAHTE: gercek 5 sn beklenmez (kabul testi ayni yordami kullanir).
+    kayitlar, _ = olc(["/acik-1/"], taban=olu_taban(), hiz=0, zaman_asimi=3,
+                      uyu=lambda _s: None)
     sinif, rc, _, _ = degerlendir(kayitlar)
-    iddia("FAIL-CLOSED: ag yok (baglanti reddedildi) -> OLCULEMEDI rc 2, YESIL DEGIL",
-          sinif == "OLCULEMEDI" and rc == 2, "%s rc=%d" % (sinif, rc))
+    iddia("FAIL-CLOSED: ag yok (baglanti reddedildi, 2 kez) -> OLCULEMEDI rc 2, "
+          "YESIL DEGIL", sinif == "OLCULEMEDI" and rc == 2, "%s rc=%d" % (sinif, rc))
 
-    print("%d iddia, %d KIRMIZI." % (6, len(fails)))
+    # GECICI SINIF — AG'A CIKMAYAN sahte yoklayici (10 Agu 2026 yanlis-pozitifi).
+    for ad, ikinci_kod, bek_sinif, bek_rc, bek_gecici in (
+            ("503 -> 200: GECICI (ACIK ama sayilir)", 200, "ACIK", 0, 1),
+            ("KONTROL 503 -> 503: KAPALI KALIR (yeniden yoklama korlestirmez)",
+             503, "KAPALI", 1, 0)):
+        kodlar = iter([503, ikinci_kod])
+
+        def sahte(url, yontem=None, zaman_asimi=None, acici=None, no_cache=False,
+                  _k=kodlar):
+            return next(_k), {"server": "cloudflare"}, b"blip", None
+
+        kayitlar, _ = olc(["/blip/"], taban="http://ornek.invalid", hiz=0,
+                          istek_fn=sahte, uyu=lambda _s: None)
+        sinif, rc, satirlar, ozet = degerlendir(kayitlar)
+        iddia("GECICI: %s" % ad,
+              sinif == bek_sinif and rc == bek_rc
+              and len(ozet["gecici"]) == bek_gecici
+              and any("GECICI=%d" % bek_gecici in s for s in satirlar),
+              "%s rc=%d gecici=%d" % (sinif, rc, len(ozet["gecici"])))
+
+    print("%d iddia, %d KIRMIZI." % (len(sayac), len(fails)))
     return 1 if fails else 0
 
 

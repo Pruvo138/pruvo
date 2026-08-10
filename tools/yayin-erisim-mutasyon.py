@@ -52,7 +52,7 @@ ALARM = ".github/workflows/yayin-erisim-alarmi.yml"
 HEDEFLER = (NOBETCI, TEST, IS_AKISI, DEPLOY, NOBET, ALARM)
 DOKUNULMAZ = [os.path.join(ROOT, y) for y in HEDEFLER]
 
-EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7")
+EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8")
 
 FAILS = []
 
@@ -78,7 +78,10 @@ M1 = ("M1", "🔴 YONTEM HEAD'e cevrildi (3 Agu'da olculen kusur GORUNMEZ olur)"
 
 M2 = ("M2", "404 'acik' sayiliyor (silinmis sayfa yesil yanar)",
       NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 404)\n")],
-      ["E3"], "ESIT")
+      # CAPRAZ (gerekce): 404'u acik saymak yalniz hukmu (E3) degil GECICI eksenini de
+      # dusurur — E8 "404 KAPALI kalir ve YENIDEN YOKLANMAZ" der; 404 'acik' olunca o
+      # iddia da yanar. Ayrik degiller, ayni fiziksel olguyu (404 = kapali) olcerler.
+      ["E3", "E8"], "ESIT")
 
 M3 = ("M3", "403 'acik' sayiliyor — hem metot ekseni hem hukum ekseni duser",
       NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 403)\n")],
@@ -101,7 +104,10 @@ M6 = ("M6", "🔴 AG ARIZASI 'ACIK' sayiliyor (fail-closed -> fail-open)",
       NOBETCI,
       [('            return {"yol": yol, "url": url, "sinif": "ARIZA", "kod": None,',
         '            return {"yol": yol, "url": url, "sinif": "ACIK", "kod": 200,')],
-      ["E5"], "ESIT")
+      # CAPRAZ (gerekce): ag arizasi "ACIK" olunca hem fail-closed (E5) hem GECICI
+      # ekseni (E8: "ag arizasi BIR KEZ yeniden yoklanir") olcusuz kalir — ikisi de ayni
+      # kaydin sinifina bakar.
+      ["E5", "E8"], "ESIT")
 
 M7 = ("M7", "OLCUM ARIZASI, KAPALI KANITINI EZIYOR (kanit kayboluyor)",
       NOBETCI,
@@ -163,6 +169,37 @@ M16 = ("M16", "KUMEYE ELLE URL GOMULDU (kaynak disi liste sizdi)",
          '        sayfa.append("/")\n        sayfa.append("/elle-yazilmis-sayfa/")')],
        ["E1"], "ESIT")
 
+# ── GECICI SINIF (10 Agu 2026 yanlis-pozitifi) ──────────────────────────────────────
+M17 = ("M17", "🔴 YENIDEN YOKLAMA DEVRE DISI (anlik 503 blip'i yine KALICI KAPALI "
+       "sayilir — duzeltmenin geri alinmasi)",
+       NOBETCI, [("        if gecici_mi(kayit):", "        if False:")],
+       ["E8"], "ESIT")
+
+M18 = ("M18", "🔴 4xx DE YENIDEN YOKLANIYOR (silinmis sayfaya bos ikinci istek; "
+       "yapisal kusur 'gecici' muamelesi gorur)",
+       NOBETCI, [("GECICI_KOD_ALT, GECICI_KOD_UST = 500, 600",
+                  "GECICI_KOD_ALT, GECICI_KOD_UST = 400, 600")],
+       ["E8"], "ESIT")
+
+M19 = ("M19", "🔴 GECICI SAYACI RAPORDAN SILINDI (duzeltme SESSIZLESTIRMEYE doner: "
+       "blip yesil yanar ve HIC gorunmez)",
+       NOBETCI, [('    gecici = [k for k in kayitlar if k.get("gecici")]',
+                  "    gecici = []")],
+       ["E8"], "ESIT")
+
+M20 = ("M20", "🔴 IKINCI YOKLAMA DA BASARISIZKEN URL 'ACIK' sayiliyor "
+       "(fail-closed -> fail-open; kontrol mutantinin ta kendisi)",
+       NOBETCI, [('    kalici = dict(kayit)\n    kalici["gecici"] = False',
+                  '    kalici = dict(kayit)\n    kalici["sinif"] = "ACIK"\n'
+                  '    kalici["kod"] = 200\n    kalici["gecici"] = True')],
+       # CAPRAZ (gerekce): iki kez arizali ag da bu yoldan "ACIK" olur -> fail-closed
+       # ekseni (E5) de duser. E8'in TEK-KIRMIZI kaniti M17/M18/M19'dadir.
+       ["E5", "E8"], "ESIT")
+
+M21 = ("M21", "ACIK_KODLAR TEK KAYNAK beyani genisletildi (204 'acik' sayildi)",
+       NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 204)\n")],
+       ["E3"], "ESIT")
+
 # ── KONTROL MUTANTLARI (YESIL kalmali) ──────────────────────────────────────────────
 # Surucu "her seye kirmizi yanan" gurultulu bir alarma donusmesin: anlam tasimayan
 # degisiklikler bataryayi KIRMIZI yakmamali, yoksa yukaridaki "OLDU" hukumlerinin hicbiri
@@ -184,8 +221,13 @@ K4 = ("K4", "ilgisiz: kabul testi baslik metni degisti",
       TEST, [('    print("YAYIN ERISIM NOBETCISI — KABUL TESTI")',
               '    print("YAYIN ERISIM NOBETCISI - KABUL TESTI")')], [], "ESIT")
 
+K5 = ("K5", "ilgisiz: GECICI bekleme sabitine aciklama yorumu eklendi",
+      NOBETCI, [("\nYENIDEN_YOKLAMA_BEKLEME = 5.0\n",
+                 "\nYENIDEN_YOKLAMA_BEKLEME = 5.0   # sn (uc blip'i sonmesi icin)\n")],
+      [], "ESIT")
+
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, M16,
-             K1, K2, K3, K4)
+             M17, M18, M19, M20, M21, K1, K2, K3, K4, K5)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)
