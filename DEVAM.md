@@ -77,6 +77,12 @@ worktree ayni turda kaldirildi. Kalan worktree satirlari baska oturumlarin, doku
 **Takip isi (bloklayici DEGIL):** E5 zaman asimi iddiasi artik iki yoklama olcuyor, sure
 0,40 → 0,80 sn (esik 1,5 sn) — esik payi daraldi; CI yavaslarsa esik 1,8 sn'ye cekilebilir.
 
+- **🟠 KAYIP IS BULUNDU (bu turda olculdu, capa atildi):** `git stash list` icinde 8 Agu 09:50:15+03:00 tarihli, **baska bir oturuma ait** bir stash duruyordu (`891feaeb`, taban `04d40ad4`); reflog kesintisiz: stash → rebase → `reset: moving to HEAD`, hicbir `apply`/`pop`/`drop` izi YOK → **geri yuklenmemis.** Icerigi: 11 dosya; ikisinin (`deploy.yml`, `nobet.yml`) degisikligi sonradan `e94433f9` ile inmis, **9 dosya / 741 satir depo gecmisinde HIC yok** (`--all` ile tarandi).
+- Kayip govde tek bir is: yayin gecikme nobetcisinin taban yeniden olcumu (`KOSUM_OMUR_TAVANI_DK` 75 → **128**, iki fikstur gercek kosum govdeleriyle 49,1 → 85,0 dk ve 99 → 130,0 dk), `uyum-kapisi.py`'de dokum-kesmesi beyani (`IDDIA_TABANI` 39 → **42**), `cron-nabiz-kapisi.py` siniflandirma capalari, `build.py`'de bir ozet ayristirma fonksiyonu (adi repoda hicbir yerde yok), `is-akisi-kapisi.py` gerekce satiri.
+- **Alinan onlem:** stash kirilgan oldugu icin dal capasi atildi → `kurtarma/stash-8agu-baska-oturum` = `891feaeb`. Stash'e DOKUNULMADI (`drop`/`clear` yok), calisma agaci DEGISTIRILMEDI.
+- **Geri yukleme iki alt sinif:** temiz uygulanir (5 dosya: `uyum-kapisi.py`, `cron-nabiz-kapisi.py`, `yayin-gecikme-nobeti.py` + 2 fikstur — stash'ten beri o dosyalara commit degmemis) · yama duzeyinde birlestirme SART (4 dosya: `build.py`, `is-akisi-kapisi.py`, `DEVAM.md`, `arama.py` — HEAD'de yeni is var, korlemesine `pop` geri sarar).
+- **SIRADAKI IS (bu tur icin):** capadaki 5 temiz dosya once alinacak, her biri kendi kapisiyla ayri ayri kirmizi/yesil olculecek (esik degisiklikleri kontrol mutanti ISTER); 4 catisan dosya yama duzeyinde birlestirilecek. Baska oturumlarin aktif calismasi nedeniyle toplu `pop` YAPILMAZ.
+
 ## 🔁 DEVIR — 10 Agu 2026 ~19:0xZ, eski hesap → yeni hesap (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
 
 ## 🔴 UÇUŞTA — ÖTEKİ KraL OTURUMU BU İŞLERE GİRMESİN (10 Ağu ~14:2xZ) — **ARŞİVE ALINDI** (defter kotası 1:1)
