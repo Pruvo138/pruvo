@@ -975,10 +975,19 @@ ROZET_CAPRAZ_IZINLI = {
                         "Adventure); Lexus GS ile yalniz AD cakismasi var, ayri rozet"),
     "Lexus|gs": ("ROZET", "Lexus GS Lexus'un kendi sedan rozeti (GS300/GS350/GS450h, JDM "
                           "Toyota Aristo); BMW GS ile yalniz AD cakismasi var, ayri rozet"),
+    # 10 Agu — Mazda veri partisiyle capraz olan cift (K19 KIRMIZI yakti). `5` iki
+    # markanin da kendi model adidir: Mazda 5 kompakt MPV, Renault 5 hatchback. Ayni
+    # fiziksel arac, ikiz ya da rozet muhendisligi DEGIL; yalniz AD cakismasidir.
+    # OLCULDU: Mazda `5` kovasi 3 urun, Renault `5` kovasi 11 urun; ikisi de ESIK=3
+    # ustunde ve BIRINCIL. Emsal birebir BMW|gs / Lexus|gs ciftidir.
+    "Mazda|5": ("ROZET", "Mazda 5 Mazda'nin kendi kompakt MPV modelidir; Renault 5 ile "
+                         "yalniz AD cakismasi var, ayri model"),
+    "Renault|5": ("ROZET", "Renault 5 Renault'nun kendi hatchback modelidir; Mazda 5 ile "
+                           "yalniz AD cakismasi var, ayri model"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 42
-ROZET_CAPRAZ_IZINLI_IMZA = "b5e299963a8b7002"
+ROZET_CAPRAZ_IZINLI_SAYISI = 44
+ROZET_CAPRAZ_IZINLI_IMZA = "532fdb99c21a049e"
 
 
 def rozet_capraz_imzasi():
