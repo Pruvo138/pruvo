@@ -1,5 +1,28 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 10 Agu 2026 12:46Z turu (KraL)
+
+**Mail (0.5 adimi, kosulsuz supurme):** inbox toplam 7537; tam dizeyle eslesen bildirim maili
+**0**, "Run failed" **0**, tasinan **0**, tur sonu inbox **0**. Hukum **TEMIZ** — pozitif tanima
+izi Cop'ten AYNI TAM dizeyle olculdu: **67** kayit, en yenisi 10 Agu 04:29. Vekil dize
+kullanilmadi (support@github.com'dan alakasiz 1 mail vardi, dokunulmadi).
+
+**CI bagimsiz teyidi (25 + 60 kosumluk pencere):** `failure` **0**. 25/25 success; 60'lik
+pencerede 53 success + **7** `cancelled` (art arda push supersede'i — ariza SAYILMADI).
+Ucusta/kuyrukta is **yok**. Son yayin kosumu `31385270675` (0ea87971) **success** —
+build 13,9 dk · deploy 0,6 dk · yayin 0,6 dk. Alarm kolu (`cron-nabzi`, `nobet.yml`,
+`deploy:needs` zincirinin DISINDA) success.
+
+**⏱️ SURE EKSENI ACIK KALDI:** bu kosumda `serit-a2` 23,3 dk · `serit-a3` 18,2 dk olculdu;
+onceki turun **45,1 dk** tavani bu kosumda GORULMEDI. Tavan tek kosumdan okunmaz — ayni jobun
+ardisik kosumlari birikmeden sure hukmu YAZILMAZ ("olculemedi" gecerli cevaptir).
+
+**Bu turda duzeltme YOK** (kirmizi yok), kod commit'i yok.
+**Yeni gozlem:** calisma agacinda `M urunler.json` **yabanci degisiklik** var (13:45Z turunda
+YOKTU) — DOKUNULMADI, sahibi devam ettirmeli. `M tools/d1-sync.py` hala duruyor.
+**Sonraki turun ILK isi:** yarim is YOK — normal tarama; sure ekseni icin ayni jobun yeni
+kosumlarini biriktir.
+
 ## 🕐 CI NOBETI — 10 Agu 2026 13:45Z turu (KraL)
 
 **Mail (0.5 adimi, kosulsuz supurme):** inbox'ta tam dizeyle eslesen bildirim maili **0**,
@@ -78,52 +101,3 @@ yesil ama CANLIDA hic olculmedi — sonucu gelmeden "marka sayfasi tamam" YAZILM
 
 **OKAN'DA BEKLEYEN:** `pages` job'larina `timeout-minutes` konmasi.
 (Sepet kargo esigi karari VERILDI ve uygulandi; R2 yolu A olarak SECILDI.)
-
-## ✅ KAPANDI — SERIT B bölündü, merge `fc174b9f` (10 Ağu 2026, KraL)
-
-**Sorun (ölçüldü):** `serit-b` job'ı **142,3 dk**; içindeki 4 mutasyon bataryası tek başına
-**7370 s = %86,3**. `nobet.yml` tetiği `push` + `concurrency: nobet-serit-b`,
-`cancel-in-progress: false` → job süresi katalog push aralığını aştığı için kuyruktakiler
-birbirini düşürüyordu (son 12 koşumun 8'i `cancelled`, fiili teslim ~%17).
-**Yapılan:** 4 batarya `serit-b`'den 4 ayrı paralel job'a taşındı (`marka-bolum-bataryasi` ·
-`marka-sayfa-bataryasi` · `model-uyelik-bataryasi` · `model-baslik-bataryasi`), her biri
-`timeout-minutes: 90`. Dokunulan dosya **yalnız 2**: `.github/workflows/nobet.yml` +
-`tools/is-akisi-kapisi.py` (+119/−8). `deploy.yml`'e DOKUNULMADI.
-**`strategy.matrix` BİLEREK kullanılmadı:** matris ifadesiyle yazılan `run:` satırı araç yolunu
-`is-akisi-kapisi.py::kapi_cagrilari`'nın gözünden kaldırıyor → 4 SERIT_B beyanı bayatlar ve
-`ci-kapsam-test.py`'nin "CI'da koşan" kümesi 4 eksik ölçerdi. Tam da yasaklanan sessiz küçülme.
-**Beklenen kazanç:** koşum tavanı **142,3 → 47,0 dk (%67)**, `serit-b` job'ı **19,5 dk**.
-**İKİ BAĞIMSIZ ÇÜRÜTÜCÜ, ikisi de `CURUTULEMEDI`:**
-- *Kapsam ekseni:* `is-akisi-kapisi.py` · `ci-kapsam-test.py` · `kapi-envanteri.py` çıktıları
-  main ↔ dal **bayt bayt özdeş** (262 kapı çağrısı · 94 SERIT_B beyanı · 95 bloklayıcı iddia ·
-  218 ölçülen .py · 7/7 kapı bağlı). Beyan tablosuna **7 mutant**: kontrol yeşil kaldı, "tutarlı
-  küçültme" (4 adım + 4 beyan birlikte silinmiş) bile taban sayacıyla KIRMIZI yandı.
-- *Davranış ekseni:* 4 yeni job'da `if`/`needs`/`continue-on-error`/`|| true` **0**; kurulum
-  iskeleti `serit-b` ile birebir. **Fail-closed kanıtı:** her bataryanın yargıladığı gövdeye
-  kopyada mutasyon sokuldu → 4/4 batarya rc≠0 (biri fail-closed `rc=3 ÖLÇÜLEMEDİ` verdi, o da
-  yargıcı etkisizleştiren ikinci kolla rc=1'e çekilip tek başına kırmızı yakabildiği gösterildi).
-  Mutasyonların diske indiği geri okumayla, çapa çakışması olmadığı programatik doğrulandı.
-**Yan kazanç:** bu 4 adım eskiden `serit-b` içinde GitHub varsayılanı **360 dk** tavanındaydı
-(`nobet.yml`'deki diğer 7 job'un hiçbirinde `timeout-minutes` yok) → fail-slow yüzeyi daraldı.
-**⚠️ ÖLÇÜLMEDİ (yeşil YAZILMADI):** kazanç henüz CANLIDA doğrulanmadı. Merge koşumu
-`31371719559` **`pending`** — önündeki ESKİ yapılı koşum (`96fdfa0e`, 06:57Z) hâlâ `in_progress`.
-Kuyruk serileştirmesi (`cancel-in-progress: false`) DEĞİŞMEDİ; kazanç koşumun duvar saatinden
-gelir, kuyruğun kalkmasından değil.
-**Merge sonrası:** D1 `--durum` tüm eksenler ✅ (24911==24911, hash uyuşmazlığı 0) · site koduna
-dokunulmadığı için canlı doğrulama kapsam dışı · worktree envanteri **1 satır**, dal silindi.
-**Sonraki turun İLK işi:** `31371719559` bitince `serit-b` job süresini ve 4 yeni job'un
-`conclusion`'ını ÖLÇ; tavan gerçekten 47 dk'ya indi mi, iddia sayıları CI'da da korunuyor mu.
-
-## ✅ KAPANDI (ARŞİVE ALINDI) — CI kapsam kapısı keşif körlüğü, merge `22c5861a` (9 Ağu 2026)
-Tam döküm + açık kalan alt işler → `DEVAM-ARSIV.md` (defter kotası 1:1, bu turda taşındı).
-
-## ⏱ Nöbet defteri: 09 Ağu ~10:40–12:00Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
-Tam döküm → `DEVAM-ARSIV.md`. Özet: yayın hattı açıldı (A4 model-ikizi kırmızısı), açık kalan işler aşağıdaki turun listesinde taşınıyor.
-
-## ⏱ Nöbet defteri: 09 Ağu ~14:40–15:20Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
-Tam döküm → `DEVAM-ARSIV.md`. Özet: yayını bloklayan kırmızı YOK; öksüz `pre-push --head` onarımı devralınıp kapatıldı (`2b0861f2`); worktree'den push'un paylaşılan `.git/config`'i bozması sınıfı ölçüldü. Açık kalan işler listesi aşağıdaki turların notlarında taşınıyor.
-
-## ⏱ Nöbet defteri: 09 Ağu ~16:40Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
-Tam döküm → `DEVAM-ARSIV.md`. Özet: yayını bloklayan kırmızı yoktu, üç kırmızı kolun üçü de `deploy.needs` dışında; defter paylaşılan checkout kilidi yüzünden commit edilemedi.
-
-## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
