@@ -2,7 +2,9 @@
 
 ## 🔁 DEVIR — 10 Agu 2026 ~19:0xZ, eski hesap → yeni hesap (KraL)
 
-**SIRADAKI TEK IS:** Marka katlama sinifini olculebilir kil — `parite-test.js` orneklemesi sinif-bilincli olsun (`markaKatla(V) !== V` olan 32 degerin HEPSI korpusa girsin) ve `parite-ege.js`'e bugun hic olmayan `marka=` filtre ekseni eklensin.
+**SIRADAKI TEK IS (10 Agu ~20:0xZ guncellendi):** 🔴 **YAYINI AC** — kosum `31411839901`'de `serit-a2` VE `serit-a3` kirmizi, `deploy` **SKIPPED**; iki kirmizi Opus muhendise verildi (spec `.scratch/spec-yayin-acan-iki-kirmizi.md`, dal ucusta).
+
+**✅ Onceki "siradaki tek is" KAPANDI (marka katlama kapsami, dal `worktree-agent-aab8fd139bb4483cc` = `d28d684e`, uzakta, MERGE EDILMEDI):** sinif uyeligi `markaKatla` govdesinden TURETILIYOR (elle liste yok, sabit 32 koda yazilmadi) — `SINIF_UYE=32` · `KORPUS_SITE=32` · `KORPUS_EGE=32` · kapsam kapisi rc=0 (15 iddia) · mutant **11/11** oldurucu + **4/4** kontrol yesil · korpus site 1199→1325, ege 851→893 (`parite-ege.js`'te `marka=` ekseni HIC YOKTU, acildi). Parite rc=1 **BEKLENEN**: taban site 1/1199 → **63/1325**, ege 0/851 → **31/893**; yeni kirmizinin TAMAMI `marka=` ekseninden, serbest metinde **0/32**. Ayrisan **31** deger (32. uye `Black and Decker` tesaduf esitlik 1↔1) — bu artik HocA'nin onariminin CALISTIRILABILIR KABUL TESTI. **Merge HocA'nin worker onarimindan SONRA** (muhendis `CI_BLOKLAYICI=HAYIR` olctu; merge oncesi BAGIMSIZ teyit edilecek).
 
 **Nerede kaldim (sayiyla):**
 - Bu oturumda main'e iki is indi: **`fc174b9f`** SERIT B bolunmesi (kosum tavani **142,3 → 47,45 dk**, canlida dogrulandi, 11 job da success) ve **`c907c3e1`** urun sayfasi sinif-bazli teslim beyani (943 hazir ↔ 23.977 ozel, hukuki tutarlilik kapisi **29 → 38 iddia**, mutant **3 → 18 + 6 kontrol**, silinen iddia 0).
