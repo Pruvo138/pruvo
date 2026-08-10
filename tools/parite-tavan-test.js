@@ -144,11 +144,27 @@ function bugunkuBoy() {
   try {
     const j = JSON.parse(fs.readFileSync(path.join(path.dirname(__dirname), "urunler.json"),
       "utf8"));
-    const n = new Set(j.map((u) => u && u.id)).size;
-    return { n: Math.max(n, KABUL_TABANI), kaynak: "urunler.json (" + n + " benzersiz id)" };
+    const n = new Set(j.map((u) => u && u.id).filter(Boolean)).size;
+    return { n: Math.max(n, KABUL_TABANI), ham: n,
+             kaynak: "urunler.json (" + n + " benzersiz id)" };
   } catch (e) {
-    return { n: KABUL_TABANI, kaynak: "katalog OKUNAMADI -> kabul olcutu tabani" };
+    return { n: KABUL_TABANI, ham: null,
+             kaynak: "katalog OKUNAMADI -> kabul olcutu tabani" };
   }
+}
+
+/** MUTLAK ust sinirin KENDISI olculur (K5). Modul TAZE yuklenir. */
+function olcMutlak(ortakYolu) {
+  delete require.cache[require.resolve(ortakYolu)];
+  const o = require(ortakYolu);
+  const r = {
+    mutlak: o.SUPURME_MUTLAK_TAVAN === undefined ? null : o.SUPURME_MUTLAK_TAVAN,
+    n: typeof o.katalogIdAdedi === "function" ? o.katalogIdAdedi() : null,
+    kat: o.MUTLAK_KAT === undefined ? null : o.MUTLAK_KAT,
+    taban: o.MUTLAK_TABAN_PARTI === undefined ? null : o.MUTLAK_TABAN_PARTI,
+  };
+  delete require.cache[require.resolve(ortakYolu)];
+  return r;
 }
 
 async function kabulKos(ortakYolu, sessiz) {
@@ -211,6 +227,31 @@ async function kabulKos(ortakYolu, sessiz) {
     ONA(/SUPURME TAVANI/.test(String(ok.durdu)), "sebep ADIYLA yazili");
   }
 
+  // K5 — MUTLAK SINIRIN KENDISI de KATALOGDAN TURER (elle tutulan sabit DEGIL).
+  // 🔴 BU EKSEN 10 Agu'da YAYINI DURDURAN KUSURU DOGRUDAN OLCER: mutlak sinir `500` sabiti
+  // iken katalog 25.008'e cikinca K2'nin gerektirdigi 501 parti sinira carpti (0/501) ve
+  // `deploy` SKIPPED oldu. Sabiti buyutmek sinifi kapatmaz, sadece erteler — bu yuzden
+  // olculen sey sinirin DEGERI degil, KATALOGLA BIRLIKTE BUYUYOR OLMASIDIR.
+  const mt = olcMutlak(ortakYolu);
+  const gerekliBugun = Math.ceil(boy.n / 100);
+  const ustSinir = mt.kat === null || mt.taban === null
+    ? null : Math.max(mt.taban, mt.kat * gerekliBugun);
+  // 🔴 IMZAYA yalniz OLCULEN DAVRANIS girer (mutlak + okunan katalog). `kat`/`taban`
+  // girseydi davranis degistirmeyen KONTROL mutanti (K_C) sahte kirmizi yakardi.
+  imza.push("K5 mutlak=" + mt.mutlak + " n=" + mt.n);
+  yaz("\n▶ K5 MUTLAK SINIR KATALOGDAN TURUYOR (bugun gerekli " + gerekliBugun + " parti)");
+  if (!sessiz) {
+    ONA(mt.n !== null && mt.n > 0,
+      "FAIL-CLOSED: MUTLAK sinir GERCEK katalogu FIILEN okudu (n=" + mt.n + ")");
+    ONA(boy.ham === null || mt.n === boy.ham,
+      "okunan katalog testin BAGIMSIZ sayimiyla ayni (kapi=" + mt.n + " test=" + boy.ham + ")");
+    ONA(mt.mutlak !== null && mt.mutlak >= 2 * gerekliBugun,
+      "MUTLAK sinir kapinin EN GENIS eksenini (katalog x2 = " + (2 * gerekliBugun) +
+      " parti) KAPSIYOR — mutlak=" + mt.mutlak);
+    ONA(ustSinir !== null && mt.mutlak <= ustSinir,
+      "MUTLAK sinir SONLU: sinirsiz buyume YOK (mutlak=" + mt.mutlak + " <= " + ustSinir + ")");
+  }
+
   return imza.join(" | ");
 }
 
@@ -234,6 +275,25 @@ const MUTANTLAR = [
     ad: "ACIK OLCULEMEDI KALKTI: tavan asimi yine siniflandirma-KAPALI'ya duser",
     eski: "    if (e && e.tur === \"TAVAN\") {",
     yeni: "    if (false && e.tur === \"TAVAN\") {",
+  },
+  {
+    id: "M4", oldurucu: true,
+    ad: "MUTLAK SINIR YENIDEN ELLE SABITLENDI (500 parti — 10 Agu'da YAYINI DURDURAN kusurun TA KENDISI)",
+    eski: "const SUPURME_MUTLAK_TAVAN = sayiEnv(\"PARITE_SUPURME_MUTLAK\", mutlakTavan(), 1, 100000);",
+    yeni: "const SUPURME_MUTLAK_TAVAN = sayiEnv(\"PARITE_SUPURME_MUTLAK\", 500, 1, 100000);",
+  },
+  {
+    id: "M5", oldurucu: true,
+    ad: "MUTLAK SINIR ELLE BUYUTULDU (500 -> 1000: sinif kapanmaz, katalog 50.000'e gelince ayni kol duser)",
+    eski: "const SUPURME_MUTLAK_TAVAN = sayiEnv(\"PARITE_SUPURME_MUTLAK\", mutlakTavan(), 1, 100000);",
+    yeni: "const SUPURME_MUTLAK_TAVAN = sayiEnv(\"PARITE_SUPURME_MUTLAK\", 1000, 1, 100000);",
+  },
+  {
+    id: "K_C", oldurucu: false,
+    ad: "KONTROL: MUTLAK TABAN degistirildi (500 -> 400) — bugunku katalogda taban BAGLAMIYOR, " +
+      "yani yesil TURETIMDEN geliyor, tabandan DEGIL",
+    eski: "const MUTLAK_TABAN_PARTI = 500;",
+    yeni: "const MUTLAK_TABAN_PARTI = 400;",
   },
   {
     id: "K_A", oldurucu: false,

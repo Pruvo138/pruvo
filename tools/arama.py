@@ -984,10 +984,23 @@ ROZET_CAPRAZ_IZINLI = {
                          "yalniz AD cakismasi var, ayri model"),
     "Renault|5": ("ROZET", "Renault 5 Renault'nun kendi hatchback modelidir; Mazda 5 ile "
                            "yalniz AD cakismasi var, ayri model"),
+    # 10 Agu — Jaguar veri partisiyle capraz olan cift (K19 KIRMIZI yakti, serit-a2 FAILURE,
+    # `deploy` SKIPPED). Emsal BIREBIR `Ford|sierra`/`Suzuki|sierra`, `Ford|raptor`/
+    # `Yamaha|raptor`, `BMW|gs`/`Lexus|gs` ve `Mazda|5`/`Renault|5` satirlaridir: AYNI ADI
+    # tasiyan AYRI araclar — ikiz DEGIL, rozet muhendisligi DEGIL, ortak platform DEGIL;
+    # yalniz AD CAKISMASI. Jaguar XJ6 (1968-1997 XJ serisi sedan) ile Yamaha XJ6 (2009->
+    # XJ6/Diversion motosikleti) arasinda hicbir teknik iliski yoktur.
+    # OLCULDU (10 Agu): Jaguar `XJ6` kovasi 6 urun, Yamaha `XJ6` kovasi 4 urun; ikisi de
+    # ESIK=3 ustunde ve BIRINCIL, ikisi de BUGUN ZATEN YAYINDA (bu satirlar YENI SAYFA
+    # ACMAZ — envanteri YALNIZ kapi okur, uretim ROZET_DISI deny'ine bakar).
+    "Jaguar|xj6": ("ROZET", "Jaguar XJ6 Jaguar'in kendi sedan rozeti (XJ Series 1-3, X300/"
+                            "X308); Yamaha XJ6 motosikletiyle yalniz AD cakismasi var"),
+    "Yamaha|xj6": ("ROZET", "Yamaha XJ6 Yamaha'nin kendi motosiklet rozeti (XJ6 N/S "
+                            "Diversion); Jaguar XJ6 sedaniyla yalniz AD cakismasi var"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 44
-ROZET_CAPRAZ_IZINLI_IMZA = "532fdb99c21a049e"
+ROZET_CAPRAZ_IZINLI_SAYISI = 46
+ROZET_CAPRAZ_IZINLI_IMZA = "e07810435337b2c3"
 
 
 def rozet_capraz_imzasi():

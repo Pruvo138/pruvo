@@ -80,6 +80,7 @@
 
 const cp = require("child_process");
 const path = require("path");
+const fs = require("fs");
 
 // Cloudflare WAF varsayilan urllib/python-requests UA'sina 403 verir (media.pruvo3d.com'da
 // olculdu, 27 Tem'de CANLI /ara ucunda da dogrulandi: urllib UA -> 403, Chrome UA -> 200).
@@ -156,10 +157,77 @@ const BEKLEME_MS = sayiEnv("PARITE_BEKLEME_MS", 400, 1, 5000);
 //   · Ust sinir KALKMAZ: tavansiz birakmak istek/429 butcesini patlatir (500 parti =
 //     ~500 ek canli istek). Bu yuzden MUTLAK sinir korunur ve asilirsa kosum SESSIZ
 //     YANLIS-KIRMIZI degil ACIK OLCULEMEDI (cikis 3) uretir.
-// MUTLAK SINIR SECIMI (veri capasi DEGIL, butce siniri): 500 parti = 50.000 id. Ege'nin
-// bellek modeli ~20-25k'da 128 MB'i zaten asiyor ([[katalog-olcek-siniri]]); 50.000'i gecen
-// bir katalogda kirilan sey "kanit yontemi" degil, katalogun Ege'yi coktan asmis olmasidir.
-const SUPURME_MUTLAK_TAVAN = sayiEnv("PARITE_SUPURME_MUTLAK", 500, 1, 100000);
+// 🔴 MUTLAK SINIR DA SABIT DEGIL — GERCEK KATALOGDAN TURER (10 Agu 2026 onarimi).
+// OLCULEN KUSUR: mutlak sinir `500 parti = 50.000 id` diye ELLE yazilmisti. Katalog
+// 25.008'e cikinca parite-tavan-test.js'in K2 ekseniyle (katalog IKI KATINA cikarilsa da
+// supurme EKSIKSIZ olmali) carpisti: 2 x 25.008 = 50.016 id -> 501 parti > 500 -> kapi
+// KIRMIZI (0/501), serit-a3 FAILURE, `deploy` SKIPPED, YAYIN DURDU. Sabiti 500 -> 1000
+// yapmak ayni kolu katalog 50.000'e gelince YENIDEN dusururdu: elle tutulan defter her
+// urun partisinde bayatlar ([[envanter-drift-parti-basina]] · [[katalog-olcek-siniri]]).
+//
+// KURAL: MUTLAK sinir = GERCEK katalogun gerektirdigi parti sayisinin MUTLAK_KAT kati,
+// MUTLAK_TABAN_PARTI ile alttan sinirli.
+//   · Katalog buyudukce sinir da buyur -> sinif BAYATLAMAZ (elle dokunulacak sayi YOK).
+//   · Yine de MUTLAK'tir: supurme, GERCEK veri hacminin MUTLAK_KAT katini ASAMAZ. SINIRIN
+//     KORUDUGU SEY BUDUR: tavansiz birakilirsa bir kosum sinirsiz /katalog?ids= istegi
+//     atar (1 parti = 1 canli istek) ve istek/429 butcesi patlar; ayrica katalogun
+//     kat kat otesinde bir id listesi zaten VERI degil ARIZA isaretidir.
+//   · MUTLAK_KAT=4 secimi: kapinin kendi en genis ekseni katalogun IKI KATINI olcer;
+//     4 kat, o eksene iki kat pay birakir ve yine sabit bir tavan verir.
+//   · Katalog OKUNAMAZSA taban kullanilir (daha KUCUK sinir = daha erken ACIK OLCULEMEDI
+//     = fail-closed; okunamayan katalog sinirsiz butce ACMAZ).
+const MUTLAK_KAT = 4;
+const MUTLAK_TABAN_PARTI = 500;
+
+/** urunler.json'u __dirname'den VE cwd'den yukari yuruyerek bulur (mutant kopyasi /tmp'de
+ *  kosarken __dirname repo disina duser; sabit mutlak yol yerelde yesil yanardi). */
+function katalogYolunuBul() {
+  const adaylar = [];
+  const yukari = (baslangic) => {
+    let d = baslangic;
+    for (let i = 0; i < 8; i++) {
+      adaylar.push(path.join(d, "urunler.json"));
+      const ust = path.dirname(d);
+      if (ust === d) return;
+      d = ust;
+    }
+  };
+  yukari(__dirname);
+  yukari(process.cwd());
+  for (const y of adaylar) {
+    try { if (fs.statSync(y).isFile()) return y; } catch (e) { /* aday degil */ }
+  }
+  return null;
+}
+
+/** GERCEK katalogdaki benzersiz id adedi; okunamazsa null. mtime+boy anahtarli memo
+ *  (require onbellegi silinse de tek parse yeter). */
+function katalogIdAdedi() {
+  const yol = katalogYolunuBul();
+  if (!yol) return null;
+  try {
+    const st = fs.statSync(yol);
+    const anahtar = yol + "|" + st.mtimeMs + "|" + st.size;
+    const memo = globalThis.__PRUVO_PARITE_KATALOG_SAYIM;
+    if (memo && memo.anahtar === anahtar) return memo.n;
+    const j = JSON.parse(fs.readFileSync(yol, "utf8"));
+    if (!Array.isArray(j)) return null;
+    const n = new Set(j.map((u) => u && u.id).filter(Boolean)).size;
+    globalThis.__PRUVO_PARITE_KATALOG_SAYIM = { anahtar, n };
+    return n;
+  } catch (e) {
+    return null;
+  }
+}
+
+/** MUTLAK ust sinir (parti). Katalogdan TURER; elle tutulan sabit YOK. */
+function mutlakTavan() {
+  const n = katalogIdAdedi();
+  if (!n) return MUTLAK_TABAN_PARTI;
+  return Math.max(MUTLAK_TABAN_PARTI, Math.ceil(n / IDS_PARTI) * MUTLAK_KAT);
+}
+
+const SUPURME_MUTLAK_TAVAN = sayiEnv("PARITE_SUPURME_MUTLAK", mutlakTavan(), 1, 100000);
 
 /**
  * Bu katalog icin supurme tavani (parti). SAF fonksiyon — fikstur dogrudan olcer.
@@ -1016,6 +1084,7 @@ module.exports = {
   TARAYICI_UA, CIKIS_GECTI, CIKIS_KIRMIZI, CIKIS_KOSULAMADI, CIKIS_OLCULEMEDI,
   SINIF_GECTI, SINIF_ACIKLANAN, SINIF_ACIKLANAMAYAN,
   ZAMAN_ASIMI_MS, DENEME, BEKLEME_MS, SUPURME_MUTLAK_TAVAN, supurmeTavani, IDS_PARTI,
+  mutlakTavan, katalogIdAdedi, MUTLAK_KAT, MUTLAK_TABAN_PARTI,
   FIKSTUR_ENV,
   OlcumHatasi, WafHatasi, kardesUc, sayacYeni, canliGetir, nonceUret,
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
