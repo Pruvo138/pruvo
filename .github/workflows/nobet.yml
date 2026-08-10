@@ -373,11 +373,16 @@ jobs:
       # push'lar bu kollarin evrenine hic girmez). Temizlik sonrasi olcum: 52 dal, 0 isabet.
       #
       # 🔴 NEDEN SERIT B, NEDEN deploy.yml DEGIL (gerekce OLCULDU, beyan DEGIL):
-      #   (a) AG ister (`git ls-remote`), (b) deploy.yml `actions/checkout@v4`i
-      #   fetch-depth VERMEDEN kullanir -> SIG klonda uzak dal NESNELERI YOKTUR ve bu
-      #   kol orada fail-closed rc=2 verir. Bloklayici yazilsaydi yayin KALICI dururdu
-      #   ([[fail-slow-fail-opendir]], [[maliyet-tasimasi-serit-dusurur]]). Bu job
-      #   `fetch-depth: 0` ile checkout eder -> nesneler VARDIR.
+      #   (a) AG ister (`git ls-remote`) — tek gecici oran-siniri/DNS hatasi tum ekibin
+      #   yayinini durdururdu; (b) YARIS: checkout'tan SONRA push'lanan dalin NESNELERI
+      #   yerelde YOKTUR -> kol o kosumda fail-closed rc=2 verir, kirmizisi ARALIKLI ve
+      #   yayindan BAGIMSIZ bir sebeple gelir; (c) TAMIR DEGERI SIFIR: olculen sey
+      #   UZAKTA DURAN bir daldir, main'e girmez, siteye cikmaz
+      #   ([[fail-slow-fail-opendir]], [[maliyet-tasimasi-serit-dusurur]]).
+      #   ⚠️ DUZELTME (10 Agu, kaynaktan olculdu): "deploy.yml fetch-depth VERMEDEN
+      #   checkout eder" iddiasi YANLISTI — bloklayici kollari tasiyan `serit-a3`
+      #   (ayrica `build`/`serit-a2`) `fetch-depth: 0` kullanir; fetch-depth'siz olan
+      #   yalniz `serit-a4` ve `yayin`. Serit secimi klon DERINLIGINE dayanmaz.
       # Susturma YOK: `continue-on-error` yazilmadi, kirmizisi bu is akisinin kendi
       # `conclusion`'inda gorunur. Olculen sure: uzak kolu ~1,6 s (52 dal), mutasyon
       # bataryasi ~17 s. Kol ONLEME degil TESPIT'tir; onleme pre-push kancasindadir.

@@ -90,10 +90,16 @@ ne duruyor".
     kendisidir ve gevsek yonde ayrisir.
   * FAIL-CLOSED: taninmayan `ls-remote` satiri, okunamayan agac (SIG/shallow klon ->
     nesne yok), BOS dal listesi ve BOS agac "temiz" DEGIL, OLCULEMEDI'dir.
-  * 🔴 CI'DA BLOKLAYICI DEGIL — GEREKCE OLCULDU: (a) AG ister; (b) deploy.yml
-    `actions/checkout@v4`i fetch-depth VERMEDEN kullanir (SIG klon) -> uzak dallarin
-    NESNELERI yoktur ve bu kol orada HER ZAMAN rc=2 verir; bloklayici yazilsaydi yayin
-    KALICI olarak dururdu ([[fail-slow-fail-opendir]], [[maliyet-tasimasi-serit-dusurur]]).
+  * 🔴 CI'DA BLOKLAYICI DEGIL — GEREKCE OLCULDU: (a) AG ister (tek gecici oran-siniri/
+    DNS hatasi tum ekibin yayinini durdururdu); (b) YARIS: checkout'tan SONRA push'lanan
+    bir dalin NESNELERI yerelde YOKTUR -> kol o kosumda fail-closed rc=2 verir, yani
+    kirmizisi ARALIKLI ve yayindan BAGIMSIZ bir sebeple gelir; (c) TAMIR DEGERI SIFIR:
+    olculen sey UZAKTA DURAN bir daldir, main'e girmez, siteye cikmaz — tek onarim uzak
+    dali silmektir ([[fail-slow-fail-opendir]], [[maliyet-tasimasi-serit-dusurur]]).
+    ⚠️ DUZELTME (10 Agu, kaynaktan olculdu): "deploy.yml fetch-depth VERMEDEN checkout
+    eder" iddiasi YANLISTI — bu aracin bloklayici kollarini tasiyan `serit-a3` (ayrica
+    `build` ve `serit-a2`) `fetch-depth: 0` kullanir; fetch-depth'siz olan yalniz
+    `serit-a4` ve `yayin`'dir. Serit secimi (a)+(b)+(c)'ye dayanir, klon DERINLIGINE degil.
     Bagli oldugu yer: nobet.yml SERIT B (`fetch-depth: 0`, yayini BLOKLAMAZ).
   * ONLEME DEGIL TESPIT: onleme kolu pre-push kancasidir (tools/kisisel-veri-test.py
     --pre-push). Bu kol o kolun kacirdigi KALICI durumu gorunur kilar.

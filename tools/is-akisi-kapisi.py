@@ -2326,11 +2326,16 @@ SERIT_B = {
     # 🔴 ISTISNAI GIRIS: bu araç SERIT A'da ZATEN bloklayici kosuyor (deploy.yml:
     # bayraksiz calisma-agaci kolu + `--kendini-test`). B'ye TASINAN bir sey YOK;
     # B'ye EKLENEN, A'da KOSAMAYACAK yeni bir eksendir. GEREKCE (olculdu, beyan degil):
-    #   (a) TEKNIK OLARAK A'DA KOSAMAZ: kol `git ls-remote` + her dalin `ls-tree`
-    #       agacini okur; deploy.yml `actions/checkout@v4`i fetch-depth VERMEDEN
-    #       kullanir -> SIG (shallow) klonda uzak dal NESNELERI YOKTUR ve kol orada
-    #       HER kosumda fail-closed rc=2 verir. A'ya konsaydi yayin KALICI dururdu
+    #   (a) YARIS: kol `git ls-remote` + her dalin `ls-tree` agacini okur; checkout'tan
+    #       SONRA push'lanan bir dalin NESNELERI yerelde YOKTUR -> kol o kosumda
+    #       fail-closed rc=2 verir. Yani kirmizisi ARALIKLI ve yayindan BAGIMSIZ bir
+    #       sebeple gelir; A'ya konsaydi yayin rastgele dururdu
     #       ([[fail-slow-fail-opendir]]). Bu job `fetch-depth: 0` ile checkout eder.
+    #       ⚠️ DUZELTME (10 Agu, kaynaktan olculdu): "deploy.yml fetch-depth VERMEDEN
+    #       checkout eder" iddiasi YANLISTI — bu aracin bloklayici kollarini tasiyan
+    #       `serit-a3` (ayrica `build` ve `serit-a2`) `fetch-depth: 0` kullanir;
+    #       fetch-depth'siz olan yalniz `serit-a4` ve `yayin`'dir. Serit secimi
+    #       (a)+(b)+(c)'ye dayanir, klon DERINLIGINE degil.
     #   (b) AGA BAGLIDIR: tek gecici GitHub oran-siniri/DNS hatasi tum ekibin yayinini
     #       durdururdu — yayin-erisim kardesiyle AYNI sinif ([[kapi-kapsam-eksen-secimi]]).
     #   (c) YAYINI DURDURMANIN TAMIR DEGERI SIFIR: olculen sey UZAKTA ZATEN DURAN bir
@@ -2349,9 +2354,9 @@ SERIT_B = {
     ("nobet.yml", "serit-b", "tools/ic-rapor-adi-kapisi.py"):
         "Aracin SERIT A kollari (bayraksiz calisma-agaci taramasi + `--kendini-test`, "
         "17 iddia) deploy.yml'de BLOKLAYICI kosmaya devam ediyor; buraya TASINAN yok, "
-        "EKLENEN var. `--uzak` kolu A'da TEKNIK OLARAK kosamaz: deploy.yml SIG "
-        "(fetch-depth'siz) klon kullanir, uzak dal nesneleri YOKTUR ve kol orada her "
-        "kosumda fail-closed rc=2 verirdi -> yayin KALICI dururdu; ayrica aga baglidir "
+        "EKLENEN var. `--uzak` kolu A'ya KONULMAZ: checkout'tan SONRA push'lanan dalin "
+        "nesneleri yerelde YOKTUR ve kol o kosumda fail-closed rc=2 verir -> yayin "
+        "ARALIKLI ve yayindan BAGIMSIZ bir sebeple dururdu; ayrica aga baglidir "
         "(tek oran-siniri hatasi tum ekibin yayinini durdurur). Olctugu sey UZAKTA "
         "DURAN bir daldir: main'e girmez, siteye cikmaz -> yayini durdurmanin tamir "
         "degeri SIFIR, tek onarim uzak dali silmektir. `--mutasyon` kolu agsizdir ama "
