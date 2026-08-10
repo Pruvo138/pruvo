@@ -69,7 +69,7 @@
      karardir ve HENUZ VERILMEMISTIR. Buraya "kargo bedeli su tarafa aittir" cumlesi
      YAZILMAZ; yeri IADE_KARGO_YER'dir ve BOS kalir (cayma beyani kapisi C4 nobet tutar).
 
-     🔴 URUN SAYFASI TESLIM BEYANI (10 Agu, Okan karari) — IKI SINIF, AYNI SAYI,
+     🔴 URUN SAYFASI TESLIM BEYANI (10 Agu karari) — IKI SINIF, AYNI SAYI,
      AYRI TETIKLEYICI. Ziyaretci "ne zaman elime gecer" bilmeden odeme karari
      veriyordu; sure sitede 69 yerde yaziliydi ama urun sayfasinda HIC yoktu.
        · SURE her iki sinifta da "3-5 is gunu": site genelindeki teslim taahhudu
