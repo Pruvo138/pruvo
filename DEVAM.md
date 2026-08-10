@@ -1,5 +1,47 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 10 Agu 2026 20:37Z turu (KraL)
+
+**🔴🔴 SUPURME ASKIYA ALINDI — 10 Agu supurme onarimi SINIFI KAPATMAMIS, ayni tur yeniden olculdu.**
+Bu turun supurmesi kendi ciktisinda yanlis silmeyi itiraf etti: `GITHUB_BILDIRIM_INBOX=1 ·
+BULUNAN=1 · **TASINAN=2** · KALAN=0 · COP_IZI=7:2026-08-10T23:25:31 · HUKUM=SUPURULDU` —
+`KONULAR` listesinin 2. satiri bir **SIPARIS bildirimi**ydi (10 Agu'da bir kez kurtarilan AYNI
+kayit, ikinci kez coplendi). Cop denetimi: 9 kayit, **7 MESRU / 2 YANLIS** (siparis bildirimi +
+1 giris maili).
+- **Kok neden (yeni, olculdu):** `messages of inbox whose ...` yuklemi Mail uygulamasinda
+  **INDEKSLI referans** dondurur (`message N of inbox`); referans `delete` **aninda** cozulur ve silme
+  asenkron oldugu icin bir sonraki tur yuklemi hala eski indeksi verir → o indeks artik
+  **KOMSU** maili gosterir. `TASINAN > BULUNAN` bu yarisin makine izidir. 10 Agu onarimi
+  (her turda yuklemi yeniden kos + daima `item 1`) yarisin SEKLINI degistirdi, sinifini DEGIL.
+  Dogru cozum silmeyi **kararli kimlikten** (`message id`) yapmak — AppleScript degisikligi =
+  ajan yazamaz (Okan emri) = **OKAN KAPISI**.
+- **Alinan onlem (bu tur):** nobet gorev dosyasina `0.4 SUPURME ASKIDA` blogu eklendi (0.5'i ezer;
+  salt-okuma cop denetimi kosmaya devam eder) · crontab'taki **:17 IKINCI silme yolu** (BaBa evi
+  betigi, `repeat with m in hedefler` — ayni indeks sinifi, logda `BULUNAN=4 KALAN=1` desenleri)
+  **KAPATILDI**. Kurtarma (`kurtarma-cop-inbox.applescript`) spec geregi ELLE → Okan'a tek cumle.
+- **⚠️ Bu turda ben de ayni sinifa dustum, 1 dakikada geri alindi:** `crontab
+  /Users/okan/.claude/cron/ci-nobeti.crontab` kuruldu ama o dosya **2 satirlik BAYAT kopyaydi**;
+  canli crontab'ta **5** kayit vardi → 3 canli nobet (2 posta izleme + parti surucusu) sessizce
+  dustu. Ayni turda tam surum yazilip geri kuruldu: **AKTIF=4** (37 ci-nobeti · 3,23,43 macit
+  posta · 9,29,49 kaan posta · 13 */2 parti surucusu), aktif `17` **YOK**. Ders: `crontab <dosya>`
+  kurmadan ONCE `crontab -l` ile satir-satir karsilastir — defter kopyasi canli durumu temsil ETMEZ.
+
+**CI (bagimsiz `gh` ile olculdu):** son `failure` = `31425366313` (Build & deploy, headSha
+`f905e7f4`, 19:41Z) → job `serit-a3`, adim **`Ic rapor adi kapisi`**; kok neden logdan alintiyla:
+`DEVAM.md:7`'deki defter satiri bir ic protokol dosya adini tasiyordu (kapinin 10 Agu'da acilan
+uzak-dal/izlenen-agac ekseni bunu gorur oldu). **Onarim BASKA bir oturumca zaten push edilmis:**
+`dd3ce47c` ("Defter satirindaki protokol dosya adi notrlestirildi"). `build` · `serit-a2` ·
+`serit-a4` bu kosumda da **success**'ti; `deploy`+`yayin` **skipped** (serit-a3'e bagli).
+`main == origin/main == dd3ce47c`, ahead 0.
+- **Kabul (bagimsiz olculdu, Codex'in/baskasinin sayisina guvenilmedi):** kosum `31430172244`
+  (headSha `dd3ce47c`) **6 job da yesil** — `build` 13m06s · `serit-a2` 23m54s · `serit-a3`
+  **17m58s (kirmizi olan kapi artik success)** · `serit-a4` 10s · **`deploy` 42s** · **`yayin` 46s**.
+  Yayin tavanini bu kosumda `serit-a2` koydu (23m54s), toplam ~34 dk.
+- **🟢 Okan'da bekleyen 1. kalem KAPANDI:** `Odeme yolu bayatlik nabzi` DEVAM'da "6 kosumdur
+  kirmizi" yaziyordu; su an **son 6 kosum da success** (19:36Z `7c473b49`'dan beri kesintisiz).
+  Shop worker bayatligi alarmi sonmus — kalem listeden dusuruldu.
+- Su an inbox'ta "Run failed" maili birikecek (supurme askida); bu **beklenen** ve arizasiz.
+
 ## 🔁 DEVIR — 10 Agu 2026 ~19:0xZ, eski hesap → yeni hesap (KraL)
 
 **SIRADAKI TEK IS (10 Agu ~22:xxZ):** `ic-rapor-adi-kapisi.py` **kapsam evreni** genisletiliyor — bugun evren izlenen calisma agaci; uzak dal agaclari da evrene alinacak (ad deseni kanonik kaynaktan TURETILECEK, taninmayan bicimde fail-closed OLCULEMEDI, kontrol mutanti + yanlis-pozitif ekseni zorunlu, CI'a baglamadan once SURE olculecek). Opus muhendise verildi, dal ucusta. Gerekce ve kapsam detayi **DEVAM-ARSIV.md**'de (git disi).
@@ -45,4 +87,3 @@
 
 ## 🕐 CI NOBETI — 10 Agu 2026 14:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; sure ekseni hukmu: tavani 8 kosumun 7'sinde `serit-a2` koyuyor, 17,9/21,6/24,8 dk)
 
-## 🔚 OTURUM KAPANISI — 9/10 Agu (marka tek-sayfa turu + yayin tavani) — **ARŞİVE ALINDI** (defter kotası 1:1)
