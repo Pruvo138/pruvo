@@ -277,8 +277,33 @@ def _norm(s):
     return re.sub(r"\s+", " ", s).strip()
 
 
+def _benzersiz_isaret(metin, i):
+    """`metin`de GECMEYEN bir yer tutucu uret. Carpisma sessizce YANLIS kiyas uretirdi,
+    o yuzden carpisma varken isaret uzatilir (fail-loud degil, fail-safe)."""
+    isaret = "\x00BEYAN%d\x00" % i
+    while isaret in metin:
+        isaret = "\x00" + isaret
+    return isaret
+
+
 def _beyan_uygula(eski_metin, tablo=None):
     """Beyan edilen ESKI->YENI metin donusumlerini ESKI metne uygular.
+
+    🔴 DONUSUM IDEMPOTENT OLMAK ZORUNDA (olculdu, 10 Agu 2026): bir beyan girisinin ESKI
+    metni YENI metnin bir PARCASI olabilir — tipik hali "YENI = ESKI + eklenen cumle"
+    (teslim beyani girisi tam boyle: ESKI, YENI'nin ONEKI). Duz `str.replace` o durumda
+    ZATEN YENI halde olan bir metinde de ESKI oneki bulur ve eki IKINCI kez yapistirir.
+    Sonuc: donusum metni BUYUTUR (olculdu: 4849 -> 4958 -> 5067 bayt, her uygulamada
+    +109) ve IKI TARAFI DA AYNI olan bir kiyasta bile "GORUNUR METIN degisti" dogar.
+    Bu, `--kendini-test` bataryasindaki UC KONTROL mutantini birden yanlis-KIRMIZI
+    yakti (kapi kendi kirmizisini yakamaz hale geldi) ve olduruculerin bir kismi da
+    kendi eksenleri yerine bu sahte metin bulgusundan kirmizi aliyordu.
+
+    COZUM (kapiyi GEVSETMEZ): ESKI->YENI donusumunden ONCE metinde ZATEN VAR olan YENI
+    gecisler maskelenir, donusum yalniz CIPLAK ESKI gecislere uygulanir, sonra maske
+    geri alinir. Yani beyan "bu metin su hale geldi" der; "su metin durdukca sonsuza
+    kadar ekle" DEMEZ. Beyan edilmemis ikinci bir degisiklik yine KIRMIZI yakar
+    (B3/B11 fiksturleri nobetler) ve bayat beyan yine eslesmez (B6/B8 + 1c hijyeni).
 
     Doner: (donusmus_metin, eslesen_beyan_indeksleri). Eslesme kaydi BAYAT BEYAN
     hijyeni icindir: hangi girisin hangi sayfada tuttugu suite duzeyinde toplanir."""
@@ -286,9 +311,17 @@ def _beyan_uygula(eski_metin, tablo=None):
     eslesen = set()
     for i, (eski, yeni, _gerekce) in enumerate(tablo):
         e, y = _norm(eski), _norm(yeni)
-        if e and e in eski_metin:
+        if not e:
+            continue
+        isaret = None
+        if y and y in eski_metin:
+            isaret = _benzersiz_isaret(eski_metin, i)
+            eski_metin = eski_metin.replace(y, isaret)
+        if e in eski_metin:
             eski_metin = eski_metin.replace(e, y)
             eslesen.add(i)
+        if isaret is not None:
+            eski_metin = eski_metin.replace(isaret, y)
     return eski_metin, eslesen
 
 
@@ -827,6 +860,17 @@ _B_YENI = "<p>Analiz ve reklam cerezleri kullaniyoruz.</p><p>Kargo ayni gun cika
 _B_TABLO = (("Analiz cerezleri kullaniyoruz.",
              "Analiz ve reklam cerezleri kullaniyoruz.", "fikstur"),)
 
+# ONEK FIKSTURU (10 Agu 2026): ESKI metnin YENI metnin ONEKI oldugu beyan sekli —
+# "YENI = ESKI + eklenen cumle". Yukaridaki B fiksturunde ESKI ile YENI ORTADAN ayrisir,
+# yani o fikstur duz `str.replace`in idempotent OLMAMASINI GOREMEZ; bu sekil gormeden
+# kalinca uc KONTROL mutanti birden yanlis-KIRMIZI yandi. Metin UYDURMADIR (gercek
+# beyan cumlesi buraya KOPYALANMAZ; tek kaynak build.BEYAN).
+_BO_ESKI = "<p>Urun hazirlanir.</p>"
+_BO_YENI = "<p>Urun hazirlanir. Kargo ertesi gun cikar.</p>"
+_BO_IKI = "<p>Urun hazirlanir. Kargo ertesi gun cikar.</p><p>Kasa rengi mavi.</p>"
+_BO_TABLO = (("Urun hazirlanir.",
+              "Urun hazirlanir. Kargo ertesi gun cikar.", "onek fiksturu"),)
+
 
 def beyan_mekanizmasi_dogrula():
     """GORUNUR-METIN BEYAN YUZEYININ KENDI NOBETCISI — HER kosumda calisir.
@@ -861,6 +905,18 @@ def beyan_mekanizmasi_dogrula():
          _B_YENI.replace("reklam", "reklam ve olcum"), _B_TABLO, "KIRMIZI")
     vaka("B5 KONTROL degisiklik yok, tablo bos", _B_ESKI, _B_ESKI, (), "TEMIZ")
     vaka("B6 beyanin karsiligi sayfada YOK (bayat)", _B_ESKI, _B_ESKI, _B_TABLO, "KIRMIZI")
+    # B9-B11: ESKI'nin YENI'nin ONEKI oldugu sekil (bkz. _BO_* fikstur gerekcesi).
+    #   B9  : IDEMPOTENS — iki taraf da ZATEN YENI ise donusum HICBIR SEY degistirmemeli.
+    #   B10 : AYIRT EDICI KONTROL — ciplak ESKI hala YENI'ye donusmeli (duzeltme
+    #         "beyani hic uygulama"ya donmesin; o hal B9'u da gecerdi).
+    #   B11 : MASKELEME EKSENI — iki taraf da YENI iken YANINDAKI beyansiz degisiklik
+    #         yine KIRMIZI (idempotens duzeltmesi genel muafiyete donmesin).
+    vaka("B9 ONEK beyani: iki taraf da ZATEN YENI (idempotens)",
+         _BO_YENI, _BO_YENI, _BO_TABLO, "TEMIZ")
+    vaka("B10 KONTROL ONEK beyani: ciplak ESKI hala YENI'ye donusuyor",
+         _BO_ESKI, _BO_YENI, _BO_TABLO, "TEMIZ")
+    vaka("B11 ONEK beyani ikinci beyansiz degisikligi MASKELEMEZ",
+         _BO_IKI, _BO_IKI.replace("mavi", "kirmizi"), _BO_TABLO, "KIRMIZI")
 
     # Eslesme kaydi 1c hijyeninin GIRDISIDIR: bozulursa bayat beyan gorunmez olur.
     _, eslesen = _beyan_uygula(_duz_metin(_B_ESKI), _B_TABLO)
@@ -869,6 +925,17 @@ def beyan_mekanizmasi_dogrula():
     _, bos = _beyan_uygula(_duz_metin("<p>ilgisiz</p>"), _B_TABLO)
     if bos:
         dusen.append("B8 eslesmeyen beyan eslesmis sayildi: %r" % (bos,))
+    # B12: ONEK beyani ZATEN YENI metinde ESLESMIS SAYILMAZ. Sayilsaydi 1c bayat-beyan
+    # hijyeni kor kalirdi: gecmisi tazelendikten sonra gereksizlesmis bir giris, hicbir
+    # ciplak ESKI gecis kalmadigi halde "tutuyor" gorunup tabloda sessizce yaslanirdi.
+    _, onek_bos = _beyan_uygula(_duz_metin(_BO_YENI), _BO_TABLO)
+    if onek_bos:
+        dusen.append("B12 ONEK beyani ZATEN YENI metinde eslesmis sayildi: %r" % (onek_bos,))
+    # B13 KONTROL: ciplak ESKI gecis VARKEN eslesme kaydi DUSMEZ (B12 "hic eslesme
+    # kaydetme"ye donmesin).
+    _, onek_var = _beyan_uygula(_duz_metin(_BO_ESKI), _BO_TABLO)
+    if onek_var != {0}:
+        dusen.append("B13 ciplak ESKI'de eslesme kaydi bozuk: %r (beklenen {0})" % (onek_var,))
     return dusen
 
 
