@@ -15,7 +15,10 @@
 
 **Zamanlanmis nobetler:** bu oturumda YENI nobet kurulmadi. Envanter + cron sutunu **skill: devir** icindedir (15 gorev, 2 kayitli). Crontab'da 2 satir: `17 * * * *` mail supurme (hesaptan BAGIMSIZ) ve `37 * * * *` CI nobeti — **`~/.claude/cron/.ci-token` uzerinden hesaba BAGLI, yeni hesapta ILK IS o jetonun tazelenmesi (Okan kapisi).**
 
-**Okan'da bekleyen karar:** `pages` joblarina `timeout-minutes` konmasi (eski kalem, duruyor). — Hazir/stok teslim suresi karari GELDI ve uygulandi (her iki sinifta da 3-5 is gunu).
+**Okan'da bekleyen karar:**
+1. 🔴 **SHOP WORKER DEPLOY'U** — `shop/` dizininden `npx wrangler deploy`. **Bu turun teslim beyani isinin YAN ETKISI ve KIRMIZI birakildi:** `secenekler.js` shop worker'in ithalat grafiginde (42 dosya) ve `c0d0b316` ile degisti, ama canli worker hala `8bdb60c6` (deploy 09 Agu 21:46Z) neslinde. `Odeme yolu bayatlik nabzi` alarmi **6 kosumdur kirmizi**: en eski yayinlanmamis commit yasi **269 dk**, esik **120 dk** (2,24 kat asim, buyuyor). İlk kirmizi `31401165889` (14:59Z). **`deploy.needs` DISINDA — site yayinini BLOKLAMIYOR.** **ODEME CANLIDA CALISIYOR, satis DURMUYOR** (fiyat/odeme mantigina dokunulmadi; son `shop/src/*` commit'i `8125604e` deploy'dan ONCE). Senkron olmayan tek sey siparis onay e-postasindaki teslim suresi metninin urun sayfasindaki yeni beyanla ayni olmamasi. Deploy = OKAN kapisi, mimar kendi elinden yapmaz.
+2. `pages` joblarina `timeout-minutes` konmasi (eski kalem, duruyor).
+— Hazir/stok teslim suresi karari GELDI ve uygulandi (her iki sinifta da 3-5 is gunu).
 
 **Devralinacak acik kalemler (siradaki isin ardindan, oncelik sirasiyla):**
 1. **HocA'ya yazilan posta cevap bekliyor:** `marka=` filtresinde ikiz tanim — site `index.html:2611` sorgu degerini `markaKatla` ile katliyor, worker `pruvo-bot/worker/src/index.js:4575` HAM bagliyor. **31 marka degeri** ayrisiyor (canli `/ara` ile 32/32 dogrulandi; `Toyota 86` 1517↔1, `Mercedes-Benz` 1039↔4, `Volvo Penta` 729↔109, `KIA` 355↔1). Veri kusuru DEGIL, kanonlastirma kusuru; 23 Tem `a4e9e8c9`'dan beri latent. Onarim HocA'nin deposunda.
