@@ -1839,6 +1839,18 @@ def esc(s):
 # 🔴 CUMLE IKINCI KEZ YAZILMAZ: metin secenekler.js BEYAN["SAYFA_OZEL"]'den gelir
 # (ayni sozlugu siparis e-postasi ve odeme ekrani da okur). Ikiz tanim sessizce
 # ayrisir; _js_sabiti anahtari bulamazsa build FAIL-CLOSED duser.
+# Nobet DAVRANISSALDIR (kaynak taramasi degil): cayma-beyani-kapisi.py E5 BEYAN
+# degerini calisma zamaninda degistirip CIKTININ da degistigini olcer — kacis
+# dizileriyle ("Ö...") yazilmis bir ikiz de bu olcumu GECEMEZ.
+#
+# 🔴 TETIKLEYICI: cumle "siparisiniz onaylandiktan sonra" der, "olcu onayindan
+# sonra" DEMEZ. Ozel uretim sinifinin %99,84'u (23.929/23.968) sabit tasarim
+# katalog parcasidir; alicidan olcu girdisi ALINMAZ ve odeme akisinda "olcu
+# onayi" asamasi YOKTUR -> var olmayan bir olaya baglanan taahhudun saati hic
+# baslamaz. Ayrica "olcuye ozel" damgasi m.15 cayma istisnasinin anahtar
+# ifadesidir; sabit tasarim urune urun bazinda basilmaz. Tetikleyici, siparis
+# onay e-postasinin dili (SATIR_OZEL / EPOSTA_ODENDI_OZEL) ile AYNI SINIFTA
+# olmak zorundadir — kapi B7 celiskiyi KIRMIZI yakar.
 #
 # ⚠️ BICIM SATIR ICI: PAYLASILAN PAGE_CSS'e kural EKLENMEZ — ortak stil HER urun
 # sayfasina basildigi icin oraya tek satir eklemek 24.911 sayfanin BAYTINI
@@ -3209,10 +3221,12 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         # 🔴 SINIF BEYANI — OZEL URETIM KOLU (23.968 urun). Kosul `malzeme` ile AYNI:
         # "fiziksel ISE bos" (fail-closed yon — `tur` yoksa/taninmiyorsa urun OZEL
         # URETIMDIR). Hazir/stok kolunda BOS dizeye cozulur ve sablonda cevresinde
-        # bosluk olmadigi icin 943 hazir sayfanin bayti DEGISMEZ; o kolun beyani
-        # BEYAN["SAYFA_HAZIR"]'dir ve bu turda DEGISMEDI (hazir urune "kac gunde
-        # kargoya verilir" sayisi YAZILMAZ — Okan'in karari bekleniyor, uydurulmaz).
-        # Nobet: tools/cayma-beyani-kapisi.py B4/B5/B6 + E5.
+        # bosluk olmadigi icin `{ozel_beyan}` kaynakli bayt farki 943 hazir sayfada
+        # SIFIRDIR. Hazir kolun beyani BEYAN["SAYFA_HAZIR"]'dir ve AYNI TURDA O DA
+        # DEGISTI: Okan'in karari geldi, hazir/stok kolu da "3-5 is gunu" tasiyor
+        # (bkz. secenekler.js BEYAN blok yorumu + tools/sayfalar.py
+        # STOK_TESLIM_CUMLESI — ucu de ayni sayiyi tasir, kapi C6 olcer).
+        # Nobet: tools/cayma-beyani-kapisi.py B4/B5/B6/B7/B8 + C6 + E5.
         ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
