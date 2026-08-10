@@ -84,6 +84,148 @@ function baskiOnerisi(satir, d1Baski, sema) {
   return BASKI_FALLBACK[satir.malzeme] || "Malzemeye uygun genel baskı ayarlarıyla üretilir.";
 }
 
+// ---- URETIM DOSYASI KAYNAKLARI (Drive baglantisi) -----------------------------
+/**
+ * 🔴 OLCULEN GERCEK (11 Agu 2026 — kod yazmadan ONCE olculdu, spec 1. adim):
+ * Drive `fileId` degerleri YAPISAL BIR ALANDA DURMUYOR. Ne `siparisler` tablosunda
+ * ne `urunler` tablosunda bir `drive`/`fileId` kolonu var; siparis kaydinda da yok.
+ * Tek tasiyicilari, gizli `.urun-kaynaklari.json`'daki `baski` alaninin SERBEST
+ * METNIDIR (o metin d1-sync ile D1 `urunler.baski` kolonuna gecer ve panelde zaten
+ * "🖨️ baski onerisi" satiri olarak BASILIR — yani fileId bugun de EKRANDA, sadece
+ * TIKLANAMAZ halde). Olcum: 25.971 kayitlik gizli dosyada `Drive fileId` etiketi
+ * gecen kayit sayisi = 1, o kayitta cozulen fileId = 2. `drive.google` URL'i tum
+ * kayitlarda 0 kez geciyor.
+ *
+ * DAYANIKLILIK SONUCU: bu ayristirma METIN AYRISTIRMASIDIR, alan okuma DEGIL. Not
+ * bicimi degisirse baglanti SESSIZCE kaybolabilir — bu yuzden asagidaki sozlesme
+ * FAIL-LOUD: sinif isareti (kanonik/yedek/arsiv) bulunup da fileId bulunamazsa kayit
+ * `fileId:""` ile YINE DONER ve panel "baglanti uretilemedi" diye ACIKCA yazar.
+ * Bos dizi donmesi = "notta hicbir kaynak isareti yok" demektir ve panel onu da
+ * ACIKCA yazar. Bosluk birakmak, dosyanin OLMADIGINI degil OLCULEMEDIGINI gizlerdi.
+ *
+ * KALICI COZUM (KAPSAM DISI, mimara not): fileId'nin gizli kayitta YAPISAL bir alana
+ * (`uretim_dosyalari: [{dosya, sinif, drive_file_id}]`) tasinmasi. O gun bu fonksiyon
+ * yalnizca yedek yol olur; bugun TEK yoldur.
+ */
+
+/** Drive dosya adresi — TEK KAYNAK (ikizlenirse panel ile JSON sessizce ayrisir). */
+const DRIVE_TABAN = "https://drive.google.com/file/d/";
+
+/**
+ * fileId dilbilgisi. Google Drive id'si base64url alfabesindedir; uzunluk sinirini
+ * DAR tutuyoruz (>=16) ki not icindeki siradan kelimeler yanlislikla id sayilmasin.
+ * ⚠️ Bu regex ayni zamanda GUVENLIK KAPISIDIR: yakalanan deger href'e girer, yani
+ * tirnak/bosluk/`javascript:` tasiyan bir dizi buradan GECEMEZ.
+ */
+const DRIVE_ID_RX = /Drive\s*file[ _-]?Id\s*[:=]?\s*([A-Za-z0-9_-]{16,200})/gi;
+
+/** Uretim dosyasi adi (yalniz .stl/.3mf) — baglantinin NE oldugunu soyler. */
+const URETIM_DOSYA_RX = /([A-Za-z0-9][A-Za-z0-9._-]*\.(?:stl|3mf))/gi;
+
+/**
+ * SINIF ISARETLERI — sira ONEMLI: metinde bir fileId'den ONCE gelen EN YAKIN isaret
+ * o dosyanin sinifini belirler. `arsiv` EN TEHLIKELI sinif (yanlis dosyanin basilmasi
+ * = pahali uretim hatasi), o yuzden ayri bir `basilmaz` bayragi tasir.
+ */
+const SINIF_ISARET = [
+  { sinif: "arsiv", etiket: "ARŞİVDE — BASILMAZ", basilmaz: true,
+    rx: /AR[SŞ][Iİ]VDE|BAS[Iİ]LMAZ|ESK[Iİ]\s+S[UÜ]R[UÜ]M/gi },
+  { sinif: "yedek", etiket: "Yedek", basilmaz: false,
+    rx: /YEDEK/gi },
+  { sinif: "kanonik", etiket: "Kanonik — basılacak dosya", basilmaz: false,
+    rx: /KANON[Iİ]K/gi },
+];
+
+/** Sinifi bilinmeyen kayit — SESSIZ "kanonik" VARSAYIMI YOK (yanlis dosya basilir). */
+const SINIF_BELIRSIZ = { sinif: "belirsiz", etiket: "Sınıf belirsiz — nota bak", basilmaz: false };
+
+/**
+ * Uretim notundan (serbest metin) Drive kaynak listesi uretir.
+ *
+ * @param {string} metin — panelde basilan baski onerisinin AYNISI (ikiz kaynak YOK).
+ * @returns {Array<{sinif,etiket,basilmaz,dosya,file_id,url}>}
+ *   - `url` BOS ise: sinif isareti var ama fileId yok -> panel "baglanti uretilemedi" yazar.
+ *   - Dizi BOS ise: notta hicbir kaynak/sinif isareti yok -> panel "kaynak yok" yazar.
+ * Saf fonksiyon: istek/ortam gormez, yan etkisi yoktur (birim testi dogrudan cagirir).
+ */
+export function driveKaynaklari(metin) {
+  const t = typeof metin === "string" ? metin : "";
+  if (!t) { return []; }
+
+  // 1) Once fileId'ler: konumlari ve KAPLADIKLARI ARALIK. Aralik gerekli, cunku Drive
+  //    id'si rastgele base64url'dur ve icinde "yedek"/"kanonik" gibi bir dizi GECEBILIR;
+  //    o eslesme bir SINIF ISARETI degildir ve sayilirsa dosya YANLIS siniflanir.
+  const idler = [];
+  const rxId = new RegExp(DRIVE_ID_RX.source, DRIVE_ID_RX.flags);
+  let mi;
+  while ((mi = rxId.exec(t)) !== null) {
+    idler.push({ konum: mi.index, son: mi.index + mi[0].length, id: mi[1] });
+  }
+  const idIcinde = (k) => idler.some((x) => k >= x.konum && k < x.son);
+
+  // 2) Sinif isaretlerinin KONUMLARI (fileId govdesine dusenler ELENIR).
+  const isaretler = [];
+  for (const s of SINIF_ISARET) {
+    const rx = new RegExp(s.rx.source, s.rx.flags);
+    let m;
+    while ((m = rx.exec(t)) !== null) {
+      if (!idIcinde(m.index)) {
+        isaretler.push({ konum: m.index, sinif: s.sinif, etiket: s.etiket, basilmaz: s.basilmaz });
+      }
+      if (m.index === rx.lastIndex) { rx.lastIndex++; }   // sifir uzunluk kilidi
+    }
+  }
+  isaretler.sort((a, b) => a.konum - b.konum);
+
+  const dosyalar = [];
+  const rxD = new RegExp(URETIM_DOSYA_RX.source, URETIM_DOSYA_RX.flags);
+  let md;
+  while ((md = rxD.exec(t)) !== null) { dosyalar.push({ konum: md.index, ad: md[1] }); }
+
+  /** fileId'den ONCE gelen EN YAKIN isaret (yoksa BELIRSIZ — sessiz varsayim YOK). */
+  const sinifiBul = (konum) => {
+    let secili = null;
+    for (const i of isaretler) { if (i.konum <= konum) { secili = i; } else { break; } }
+    return secili || SINIF_BELIRSIZ;
+  };
+  /** fileId'den ONCE gelen EN YAKIN .stl/.3mf adi (yoksa ""). */
+  const dosyaBul = (konum) => {
+    let ad = "";
+    for (const d of dosyalar) { if (d.konum <= konum) { ad = d.ad; } else { break; } }
+    return ad;
+  };
+
+  // 3) Birlesim: her fileId, KENDINDEN ONCEKI en yakin isaretin sinifini alir.
+  const cikti = [];
+  const gorulen = new Set();
+  for (const x of idler) {
+    if (gorulen.has(x.id)) { continue; }            // ayni id iki kez yazilmissa tek satir
+    gorulen.add(x.id);
+    const s = sinifiBul(x.konum);
+    cikti.push({
+      sinif: s.sinif, etiket: s.etiket, basilmaz: s.basilmaz,
+      dosya: dosyaBul(x.konum), file_id: x.id, url: DRIVE_TABAN + x.id + "/view",
+    });
+  }
+
+  // 4) 🔴 FAIL-LOUD: fileId'i OLMAYAN sinif isaretleri de DONER. "ESKI SURUMLER ARSIVDE,
+  //    BASILMAZ" gibi bir uyari notta VARSA ama baglantisi yoksa, panelin o satiri HIC
+  //    gostermemesi Okan'a "arsiv surumu yok" der — oysa VAR ve BASILMAMALI. Bir isaretin
+  //    "bolgesi" = kendisinden sonraki ILK isarete kadar; o bolgede fileId yoksa kayit
+  //    baglantisiz doner.
+  for (let i = 0; i < isaretler.length; i++) {
+    const bas = isaretler[i].konum;
+    const son = i + 1 < isaretler.length ? isaretler[i + 1].konum : t.length;
+    if (idler.some((x) => x.konum >= bas && x.konum < son)) { continue; }
+    if (cikti.some((c) => c.sinif === isaretler[i].sinif && !c.url)) { continue; }
+    cikti.push({
+      sinif: isaretler[i].sinif, etiket: isaretler[i].etiket, basilmaz: isaretler[i].basilmaz,
+      dosya: "", file_id: "", url: "",
+    });
+  }
+  return cikti;
+}
+
 // ---- anahtar ------------------------------------------------------------------
 
 /**
@@ -315,6 +457,10 @@ async function liste(env, url) {
         parametrik: parametrik,
         parametre_detay: k.parametre_detay || "",
         baski_oneri: baskiOnerisi(k, ur.baski, sema),
+        // URETIM DOSYASI KAYNAKLARI (Drive). Ayristirma girdisi, panelde basilan
+        // metnin TA KENDISIDIR (asagida ayrica hesaplanmaz) — ikiz kaynak olsaydi
+        // not degistiginde ekran ile baglanti sessizce ayrisirdi.
+        uretim_kaynaklari: [],
         // Yonetim ekraninda kalem basligi buraya tiklanir (urun sayfasi, ana site).
         // WhatsApp kaleminde kalemin KENDI linki (k.url) varsa O kullanilir: o kalem
         // katalog id'siyle gelmeyebilir, /urun/<id>/ adresi 404 olurdu. Link YAZILIRKEN
@@ -323,6 +469,7 @@ async function liste(env, url) {
           ? k.url
           : siteUrl + "/urun/" + encodeURIComponent(k.id || "") + "/",
       };
+      kayit.uretim_kaynaklari = driveKaynaklari(kayit.baski_oneri);
       // Yerel yazdir.py + tarayici indirme uclari (anahtar sayfa URL'inden eklenir).
       if (parametrik) {
         // Sari: siparisteki parametrelerle derleyiciden uretim.
@@ -1302,6 +1449,18 @@ main{padding:12px;max-width:960px;margin:0 auto}
 a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;border-radius:6px;
  text-decoration:none;font-size:13px}
 .yok{font-size:12px;color:#92400e;background:#fef3c7;padding:4px 8px;border-radius:4px}
+/* URETIM DOSYASI KAYNAKLARI (Drive). Sinif GORSEL olarak da ayrilir: yanlis dosyanin
+   basilmasi en pahali uretim hatasidir, "ARSIVDE — BASILMAZ" satiri kirmizi/uzeri
+   cizili durur ve kanonik satirla KARISTIRILAMAZ. */
+.kaynak{font-size:13px;color:#374151;background:#f8fafc;border-left:3px solid var(--lacivert);
+ padding:6px 8px;margin:6px 0;border-radius:4px}
+.kdosya{margin:3px 0}
+.sinif{display:inline-block;min-width:170px;font-size:12px}
+.sinif.kanonik{color:#166534}
+.sinif.yedek{color:#1e40af}
+.sinif.arsiv{color:var(--kirmizi)}
+.sinif.belirsiz{color:#92400e}
+.kdosya.arsiv a.indir{background:var(--kirmizi);text-decoration:line-through}
 .gecmis{font-size:12px;color:#6b7280;margin-top:6px}
 </style></head><body>
 <header>
@@ -1334,6 +1493,27 @@ async function api(yol,secenek){
  return {kod:c.status,govde:v};
 }
 function durumRozet(d){return '<span class="rozet '+esc(d)+'">'+esc(d)+'</span>';}
+// URETIM DOSYASI KAYNAKLARI — her dosya AYRI satir, sinif etiketiyle, TIKLANABILIR
+// (yeni sekme). 🔴 SESSIZ BOSLUK YASAK: liste bossa "kaynak yok", baglantisi olmayan
+// sinif isareti varsa "baglanti uretilemedi" ACIKCA yazilir. Bos birakmak, dosyanin
+// OLMADIGINI degil OLCULEMEDIGINI gizlerdi.
+function kaynakHtml(k){
+ var d=(k&&k.uretim_kaynaklari)||[];
+ if(!d.length){
+  return '<span class="yok">kaynak yok — üretim notunda Drive bağlantısı (fileId) geçmiyor</span>';
+ }
+ return d.map(function(x){
+  var sinif=esc(x.sinif||"belirsiz");
+  var et='<span class="sinif '+sinif+'">'+esc(x.etiket||"Sınıf belirsiz")+'</span> ';
+  var ad=x.dosya?esc(x.dosya):"(dosya adı notta yok)";
+  if(!x.url){
+   return '<div class="kdosya '+sinif+'">'+et+ad+
+    ' <span class="yok">bağlantı üretilemedi — notta fileId yok</span></div>';
+  }
+  return '<div class="kdosya '+sinif+'">'+et+
+   '<a class="indir" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ad+'</a></div>';
+ }).join("");
+}
 function satirHtml(no,k){
  var indir;
  if(k.parametrik){
@@ -1360,6 +1540,7 @@ function satirHtml(no,k){
   '<div>'+baslikLink+(k.parametre_detay?' <span class="kucuk">['+esc(k.parametre_detay)+']</span>':'')+'</div>'+
   '<div class="kucuk">Ürün kodu: '+esc(k.id)+'</div>'+
   '<div class="baski">🖨️ '+esc(k.baski_oneri)+'</div>'+
+  '<div class="kaynak">📁 Üretim dosyası (Drive): '+kaynakHtml(k)+'</div>'+
   indir+
   '</div>';
 }
