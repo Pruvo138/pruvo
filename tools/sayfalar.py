@@ -195,12 +195,21 @@ def _seller_table():
 # ayrı ayrı yazılsaydı biri güncellenip diğeri bayatlardı (ikiz tanım sessiz ayrışması).
 # Nöbetçi: tools/cayma-beyani-kapisi.py C1/C2 — cümle iki gövdede de aranır.
 #
-# ⚠️ YENİ TAAHHÜT YOK: burada YENİ bir gün sayısı verilmez ("3-5 iş günü" özel üretim
-# kolunda kalır). İade/cayma halinde KARGO BEDELİNİN kime ait olduğu Okan'a soruldu,
-# cevap BEKLENİYOR -> o cümle bu metne YAZILMAZ (kapı C4 nöbet tutar).
+# 🔴 GÜN SAYISI EKLENDİ (10 Ağu, Okan kararı): hazır/stok kolu için teslim süresi
+# "3-5 iş günü" olarak KARARA BAĞLANDI (daha önce sayı YOKTU ve uydurulmuyordu).
+# NEDEN BURASI DA GÜNCELLENDİ: aynı turda ürün sayfası hazır/stok sınıfına
+# secenekler.js BEYAN["SAYFA_HAZIR"] üzerinden bu taahhüdü basmaya başladı. Ürün
+# sayfası taahhüt verirken BAĞLAYICI gövdenin (teslimat-iade + mesafeli satış m.4)
+# o sınıf için sessiz kalması, iki yüzeyin sessizce ayrışmasıydı. Sayı ürün
+# sayfasıyla AYNI; rakip aralık yok (kapı C5 + odeme-beyani-kapisi.py #6 nöbet tutar).
+# ⚠️ TETİKLEYİCİ AYRI KALIR: hazır kolda "ödemeniz onaylandıktan sonra", özel üretim
+# kolunda "ölçü onayından sonra" — hazır üründe ölçü onayı aşaması YOKTUR ve bu
+# cümlenin var olma sebebi tam olarak o ayrımdır.
+# ⚠️ İade/cayma halinde KARGO BEDELİNİN kime ait olduğu Okan'a soruldu, cevap
+# BEKLENİYOR -> o cümle bu metne YAZILMAZ (kapı C4 nöbet tutar).
 STOK_TESLIM_CUMLESI = (
     "Hazır/stok ürünlerde ölçü onayı aşaması yoktur; ürün ödemeniz onaylandıktan sonra "
-    "stoktan hazırlanıp kargoya verilir."
+    "3-5 iş günü içinde stoktan hazırlanıp kargoya verilir."
 )
 
 # ------------------------------------------------------------------ sayfa gövdeleri

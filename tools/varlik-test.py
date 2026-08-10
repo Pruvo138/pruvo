@@ -242,6 +242,34 @@ BILEREK_DEGISEN_METIN = (
      "Politikası sayfasından geri alabilirsiniz.",
      "riza bandi reklam cerezini beyan eder oldu; yeni metnin varligini "
      "tools/reklam-etiket-kapisi.py SINIF C ekseni fail-closed olcer"),
+    # 2026-08-10 — OZEL URETIM URUN SAYFASINA TESLIM BEYANI EKLENDI.
+    # NEDEN CIKARIM KAYBI DEGIL, EKLEME: 23.968 ozel uretim urununun sayfasinda
+    # teslim suresi HIC yaziliydi degildi; ziyaretci "ne zaman elime gecer" bilmeden
+    # odeme karari veriyordu. Sure sitede zaten 69 yerde (SSS · teslimat-iade ·
+    # mesafeli-satis m.4) BU aralikla yazili — sayfa o taahhudu TEKRARLAR, YENI bir
+    # taahhut ICAT ETMEZ. Eski metnin TEK BIR kelimesi bile kaybolmaz/degismez.
+    # CAPA NEDEN BU: `Malzeme Rehberi` baglantisi malzeme blogunun KUYRUGUDUR ve o
+    # blok "fiziksel ISE bos" kuralindadir -> capa BUTUN ozel uretim sayfalarinda
+    # (kart-secim · sema · konfigur · panelsiz) VAR, hazir/stok sayfasinda YOK.
+    # Yani beyan SINIF HIZALIDIR; urun katalogu degistikce bayatlamaz.
+    # 🔴 IDDIA TASINDI, KALDIRILMADI: yeni cumlenin sayfalarda GERCEKTEN durdugunu
+    # tools/cayma-beyani-kapisi.py B4 (varlik · tek kaynaktan turetilmis metin),
+    # B5 (rakip teslim araligi YOK) ve B6 (hazir/stok sayfasina SIZMADI) fail-closed
+    # olcer; E5 cumlenin build.py'de ikinci kez yazilmadigini nobetler.
+    # Cumle BURAYA KOPYALANMAZ: tek kaynak secenekler.js BEYAN'dir, build uzerinden
+    # okunur -> bu tablo cumle degisirse sessizce bayatlayamaz.
+    ("Hangi malzeme nerede kullanılır? Malzeme Rehberi &rarr;",
+     "Hangi malzeme nerede kullanılır? Malzeme Rehberi &rarr; "
+     + build.BEYAN["SAYFA_OZEL"],
+     "ozel uretim urun sayfasi teslim beyani (10 Agu); yeni metnin varligini "
+     "tools/cayma-beyani-kapisi.py B4/B5/B6 + E5 fail-closed olcer"),
+    # ⚠️ HAZIR/STOK metni (BEYAN["SAYFA_HAZIR"]) ayni turda DEGISTI (Okan karari:
+    # "3-5 is gunu" hazir kola da yazildi) ama BURAYA GIRIS YAZILMAZ ve YAZILMAMALI:
+    # `eski_kok_kur` eski ref'ten YALNIZ tools/build.py'yi alir, secenekler.js dahil
+    # butun icerik kaynaklarini GUNCEL agactan symlink'ler. Yani BEYAN sozlugunden
+    # gelen cumleler ESKI uretecin ciktisinda da yeni halleriyle gorunur -> gorunur
+    # metin ekseninde fark YOKTUR. Buraya giris eklemek "hicbir sayfada eslesmeyen
+    # BAYAT BEYAN" olurdu ve 1c hijyeni onu dogru sekilde KIRMIZI yakti (olculdu).
 )
 
 

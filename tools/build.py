@@ -1827,6 +1827,43 @@ def esc(s):
     return html.escape(s or "", quote=True)
 
 
+# ---------------------------------------------------------------------------
+# OZEL URETIM TESLIM BEYANI (10 Agu) — 23.968 `tur`suz urunun sayfasina basilan
+# tek satirlik beyan.
+#
+# 🔴 NEDEN VAR: ziyaretci "ne zaman elime gecer" bilmeden odeme karari veriyordu.
+# Sure sitede 69 yerde yazili (SSS · teslimat-iade · mesafeli-satis m.4) ama URUN
+# SAYFASINDA hic yoktu; hazir/stok dali (fiziksel) ise 1 Agu'dan beri kendi sinif
+# beyanini basiyor. Yani ozel uretim kolu BEYANSIZDI.
+#
+# 🔴 CUMLE IKINCI KEZ YAZILMAZ: metin secenekler.js BEYAN["SAYFA_OZEL"]'den gelir
+# (ayni sozlugu siparis e-postasi ve odeme ekrani da okur). Ikiz tanim sessizce
+# ayrisir; _js_sabiti anahtari bulamazsa build FAIL-CLOSED duser.
+#
+# ⚠️ BICIM SATIR ICI: PAYLASILAN PAGE_CSS'e kural EKLENMEZ — ortak stil HER urun
+# sayfasina basildigi icin oraya tek satir eklemek 24.911 sayfanin BAYTINI
+# degistirirdi (regresyon butcesi sha256 ile olculuyor). Kalip, fiziksel daldaki
+# `.sinif-beyan` blogunun BIREBIR esidir.
+#
+# 🔴 NEREYE BASILIR — TEK NOKTA, `{malzeme}` YUVASININ HEMEN ARDI (sablonda
+# `{malzeme}{ozel_beyan}`). Uc gerekce, ucu de olculdu:
+#   1. SINIF KAPISI AYNI: `malzeme` yuvasi da "fiziksel ise BOS" kuralinda
+#      (bkz. render_product `malzeme=("" if fiziksel else filament_html(...))`).
+#      Beyan ayni kosula baglaninca "ozel uretim sayfasi = beyan VAR" invaryanti
+#      TEK satirda yasar; opsiyon zincirinin BES dalina dagitilsaydi yarin acilan
+#      altinci dal SESSIZCE beyansiz dogardi.
+#   2. HAZIR/STOK SAYFASI BAYT-BIREBIR: fiziksel dalda yuva BOS dizeye cozulur,
+#      sablonda cevresinde bosluk YOKTUR -> 943 sayfanin bayti degismez.
+#   3. NOBET KABLOLANABILIR: tools/varlik-test.py gorunur-metin ekseni GRANUL
+#      (ESKI -> YENI) beyan ister; malzeme blogunun kuyrugu ("Malzeme Rehberi")
+#      BUTUN ozel uretim sayfalarinda AYNI ve fiziksel sayfada YOK — yani tek bir
+#      sinif-hizali capa yetiyor. Opsiyon panelinin icine basilsaydi capa sayfa
+#      sinifina gore degisir, beyan tablosu urun katalogu degistikce BAYATLARDI.
+OZEL_TESLIM_BEYAN_HTML = (
+    '<div class="sinif-beyan" id="sinifBeyan" style="margin-top:10px;font-size:13px;'
+    'line-height:1.5;color:var(--gray-text)">%s</div>') % esc(BEYAN["SAYFA_OZEL"])
+
+
 # Sorgu dizesinde HAM birakilamayacak karakterler (bosluk basta olmak uzere: ayirici ya da
 # yapilandirilmis veride GECERSIZ). BILEREK DAR: Turkce harfler (Bahçe, Jeneratör) ve
 # "Oyun/Hobi"deki egik cizgi HAM birakilir -> aylardir yayinda olan 13 kategorinin URL'leri
@@ -3090,7 +3127,7 @@ def render_product(p, all_products, chip_map=None):
       {brands}
       {price}
       {opsiyonlar}
-      {malzeme}
+      {malzeme}{ozel_beyan}
       <div class="desc">{aciklama}</div>
       {eylem_butonlar}
     </div>
@@ -3169,6 +3206,14 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         malzeme=("" if fiziksel else
                  filament_html(p, wa_not=not (parametrik and fonksiyonel and not sema),
                                kartlar_gizli=bool(konfigur and konfigur.get("malzemeler")))),
+        # 🔴 SINIF BEYANI — OZEL URETIM KOLU (23.968 urun). Kosul `malzeme` ile AYNI:
+        # "fiziksel ISE bos" (fail-closed yon — `tur` yoksa/taninmiyorsa urun OZEL
+        # URETIMDIR). Hazir/stok kolunda BOS dizeye cozulur ve sablonda cevresinde
+        # bosluk olmadigi icin 943 hazir sayfanin bayti DEGISMEZ; o kolun beyani
+        # BEYAN["SAYFA_HAZIR"]'dir ve bu turda DEGISMEDI (hazir urune "kac gunde
+        # kargoya verilir" sayisi YAZILMAZ — Okan'in karari bekleniyor, uydurulmaz).
+        # Nobet: tools/cayma-beyani-kapisi.py B4/B5/B6 + E5.
+        ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,

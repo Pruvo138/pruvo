@@ -69,6 +69,21 @@
      karardir ve HENUZ VERILMEMISTIR. Buraya "kargo bedeli su tarafa aittir" cumlesi
      YAZILMAZ; yeri IADE_KARGO_YER'dir ve BOS kalir (cayma beyani kapisi C4 nobet tutar).
 
+     🔴 URUN SAYFASI TESLIM BEYANI (10 Agu, Okan karari) — IKI SINIF, AYNI SAYI,
+     AYRI GEREKCE. Ziyaretci "ne zaman elime gecer" bilmeden odeme karari veriyordu;
+     sure sitede 69 yerde yaziliydi ama urun sayfasinda HIC yoktu.
+       · SURE her iki sinifta da "3-5 is gunu": site genelindeki teslim taahhudu
+         (SSS · teslimat-iade · mesafeli-satis m.4) BU araliktir; baska sayi yazmak
+         SINIF TUTARLILIGINI bozar (cayma-beyani-kapisi C5 + B5 nobet tutar).
+       · TETIKLEYICI AYRI: ozel uretimde "olcu onayindan sonra", hazir/stokta
+         "odemeniz onaylandiktan sonra". Hazir uruNde OLCU ONAYI ASAMASI YOKTUR;
+         C1/C2'nin var olma sebebi tam da bu ayrimdir. Iki cumle ayni SAYIYI
+         tasir, ayni GEREKCEYI TASIMAZ (kapi B6 caprazlamayi KIRMIZI yakar).
+       · CAYMA yalnizca HAZIR kolda gecer: ozel uretim Mesafeli Sozlesmeler
+         Yonetmeligi m.15 kapsamindadir, cayma hakki YOKTUR — ozel uretim urun
+         sayfasinda cayma kelimesini gecirmek musteride ters yonde bir beklenti
+         yaratir (kapi B2/B5 nobet tutar).
+
      ⚠️ BICIM: asagidaki nesne GECERLI JSON olmak zorundadir — sayfa ureteci onu ayni
      sozluk olarak okur (json ayristirici). Cift tirnak, sondaki virgul yok, icinde
      yorum yok. Ayrisirsa uretim PATLAR (fail-closed). */
@@ -79,7 +94,8 @@
     "SATIR_OZEL": "Özel üretim — siparişinizden sonra üretilir",
     "CAYMA_HAZIR": "Hazır/stok ürünlerde teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır.",
     "CAYMA_KARMA": "Hazır ürün olarak işaretli kalemlerde teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır; Özel üretim olarak işaretli kalemler kişiye/ölçüye özel hazırlandığından Mesafeli Sözleşmeler Yönetmeliği m.15 uyarınca bu hakkın kapsamı dışındadır.",
-    "SAYFA_HAZIR": "Hazır ürün — stoktan gönderilir. Teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır.",
+    "SAYFA_HAZIR": "Hazır ürün — stoktan gönderilir. Ödemeniz onaylandıktan sonra 3-5 iş günü içinde kargoya verilir. Teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır.",
+    "SAYFA_OZEL": "Ölçüye özel üretilir — ölçü onayından sonra 3-5 iş günü içinde üretilip kargoya verilir.",
     "EPOSTA_ODENDI_HAZIR": "Ödemeniz alındı, siparişiniz onaylandı. Siparişiniz stoktan hazırlanıp gönderilecektir.",
     "EPOSTA_ODENDI_OZEL": "Ödemeniz alındı, siparişiniz onaylandı. Ürünleriniz özel olarak üretilip gönderilecektir.",
     "EPOSTA_ODENDI_KARMA": "Ödemeniz alındı, siparişiniz onaylandı. Hazır ürün kalemleriniz stoktan hazırlanıp gönderilir; Özel üretim kalemleriniz özel olarak üretilip gönderilir.",
