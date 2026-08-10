@@ -1,5 +1,28 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 10 Agu 2026 13:43Z turu (KraL)
+
+**Mail (0.5 adimi, kosulsuz supurme):** inbox toplam 7537; tam dizeyle eslesen bildirim maili
+**0**, "Run failed" **0**, tasinan **0**, tur sonu inbox **0**. Hukum **TEMIZ** — pozitif tanima
+izi Cop'ten AYNI TAM dizeyle olculdu: **67** kayit, en yenisi 10 Agu 04:29. Vekil dize
+kullanilmadi.
+
+**CI bagimsiz teyidi (25 + 60 kosumluk pencere):** `failure` **0** (ikisinde de). 60'lik
+pencerede **5** `cancelled` (art arda push supersede'i — ariza SAYILMADI). Son tam yayin zinciri
+`31391158733` (fad765d9) **success**: build 14,1 dk · serit-a2 18,1 dk · serit-a3 17,4 dk ·
+serit-a4 0,2 dk · deploy 0,7 dk · yayin 0,7 dk. Alarm kolu (`cron-nabzi`) success.
+Ucusta 2 is (biri kuyrukta yeni, biri alarm seridi).
+
+**⏱️ SURE EKSENI — tavan YAYIN ZINCIRINDE DEGIL:** bu turda deploy:needs kolunun en uzunu
+serit-a2 (18,1 dk). Onceki turlarda 45,1 dk olculen batarya isi SERIT B **alarm** seridinde
+kosuyor (tur sirasinda ~38 dk'dir ucusta). Yani mevcut sure tavani yayini GECIKTIRMIYOR;
+sure hukmu ayni jobun ardisik kosumlari birikince yazilacak.
+
+**Bu turda duzeltme YOK** (kirmizi yok), kod commit'i yok.
+**Envanter:** onceki turun gordugu `M urunler.json` yabanci degisikligi ARTIK YOK (sahibi
+`9f022095` ile kapatmis). `M tools/d1-sync.py` hala duruyor — DOKUNULMADI.
+**Sonraki turun ILK isi:** yarim is YOK — normal tarama.
+
 ## 🕐 CI NOBETI — 10 Agu 2026 12:46Z turu (KraL)
 
 **Mail (0.5 adimi, kosulsuz supurme):** inbox toplam 7537; tam dizeyle eslesen bildirim maili
