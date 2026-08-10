@@ -1,35 +1,32 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🔴 UÇUŞTA — ÖTEKİ KraL OTURUMU BU İŞLERE GİRMESİN (10 Ağu ~14:2xZ)
+## 🔁 DEVIR — 10 Agu 2026 ~19:0xZ, eski hesap → yeni hesap (KraL)
 
-Paylaşılan defterde bugün iki KraL nöbet oturumu aynı pencereyi mükerrer koştu; tekrarlamayalım.
+**SIRADAKI TEK IS:** Marka katlama sinifini olculebilir kil — `parite-test.js` orneklemesi sinif-bilincli olsun (`markaKatla(V) !== V` olan 32 degerin HEPSI korpusa girsin) ve `parite-ege.js`'e bugun hic olmayan `marka=` filtre ekseni eklensin.
 
-1. **`muh/teslim-beyani` dalı — AÇIK, merge BEKLİYOR.** Ürün sayfasına sınıf-bazlı teslim beyanı
-   (943 hazır ↔ 23.977 özel). Üç onarım turu geçti (`4a41f4a0` → `6588b076`), **iki bağımsız
-   çürütücü iki kez `CURUTULDU` verdi**, ikisi de kapatıldı: (a) "ölçüye özel / ölçü onayından
-   sonra" ifadesi %99,84'ü sabit tasarım olan katalog ürününe yanlış hukuki sınıf basıyordu →
-   tetikleyici "siparişiniz onaylandıktan sonra"ya çekilip sipariş onay e-postasıyla hizalandı;
-   (b) `\bcayma\b` daraltması kapıyı o eksende KÖR bırakmıştı (Türkçe çekim varyantlarını
-   yakalama oranı 9/9 → 3/9'a düşmüştü) → desen artık yanlış-pozitif KÜMESİNDEN türüyor,
-   9/9 yakalıyor ve katalog yanlış-pozitifi 0. Ders: muafiyeti jetonun tamamını daraltarak
-   verme, kanonik yanlış-pozitif kümesinden TÜRET.
-   Kapı **29 → 38 iddia**, mutant **3 → 18 + 6 kontrol**, silinen iddia 0, gevşetme 0.
-   Üçüncü çürütme turu UÇUŞTA. **Bu dala dokunma, merge etme.**
-2. **Parite ayrışımı — main'e ait, SAHİPSİZ.** `parite-test.js` **1 açıklanamayan / 1199**:
-   `q="braketi" marka="Mazda 3"` → `/ara`=0, yerel=56. `origin/main`'in PRİSTİNE klonunda
-   birebir aynı → dalın regresyonu DEĞİL. `parite-ege.js` 851/851 temiz. Kök neden bu turda
-   ölçülmedi; "Mazda 3" bir MODEL, marka ekseninde sorgulanıyor. Yayını bloklamıyor (CI yeşil).
-3. **Yerel parite paneli (`localhost:8137`) — TEŞHİS EDİLDİ, iş sıraya alındı.** Panelin kendisi
-   taze (her GET'te modül yeniden yükleniyor, 15 sn'de bir `/veri` fetch) ama beslediği defter
-   `.marka-kapsama.json` **28,6 saat bayat ve tazeleyeni YOK** — tek yazıcısı ürün ekleme
-   partisinin yan etkisi. Ölçülen sapma: BMW 2359↔2347 (%0,5), Ford 2088↔2582 (%19),
-   **Mazda 89↔1361 (gerçeğin %6,5'i, beş hücrenin hepsi `son_tarih:"backfill"`)**. Asıl kusur:
-   başlıktaki "son güncelleme" damgası HESAPLAMA anını gösteriyor, VERİ yaşını değil → bayat
-   hücre taze hücreden ayırt edilemiyor. Yön: defteri tazelemek değil KALDIRMAK (ürün sayısı
-   `urunler.json`'dan, platform kırılımı gizli kayıttaki kaynak-id öneklerinden türetilebilir)
-   + panel kaynak yaşını ve hücre bazında son ölçüm tarihini göstersin. Türetmeye geçiş MaCiT'in
-   ekleme akışındaki `kaydet` adımını gereksizleştirir → posta yazılacak.
+**Nerede kaldim (sayiyla):**
+- Bu oturumda main'e iki is indi: **`fc174b9f`** SERIT B bolunmesi (kosum tavani **142,3 → 47,45 dk**, canlida dogrulandi, 11 job da success) ve **`c907c3e1`** urun sayfasi sinif-bazli teslim beyani (943 hazir ↔ 23.977 ozel, hukuki tutarlilik kapisi **29 → 38 iddia**, mutant **3 → 18 + 6 kontrol**, silinen iddia 0).
+- Teslim beyani dali **uc onarim turu** gordu; iki bagimsiz curutucu iki kez `CURUTULDU` verdi, ucuncu turda ikisi de `CURUTULEMEDI`. Kapatilan iki kusur: (a) "olcuye ozel / olcu onayindan sonra" ifadesi %99,84'u sabit tasarim olan katalog urunune yanlis hukuki sinif basiyordu → tetikleyici "siparisiniz onaylandiktan sonra"ya cekildi ve siparis onay e-postasiyla hizalandi; (b) `\bcayma\b` daraltmasi kapiyi cekim varyantlarinda kor birakmisti (9/9 → 3/9) → desen artik yanlis-pozitif KUMESINDEN turuyor, 9/9 yakaliyor, katalog yanlis-pozitifi 0.
+- `main` == `origin/main` == `fd49be0b`, **ahead 0**. `git worktree list` **1 satir**. D1 senkron (son kanca: 25010 urun, +63 yazildi, silinen 0).
 
+**Acik worktree/dal:** worktree YOK (tavan 1/2). Uzak takibi OLMAYAN ve main'de bulunmayan **3 dal** kayip adayi olarak duruyor, hicbiri silinmedi/push edilmedi — sahibi belirsiz, yeni oturum karar versin: `worktree-agent-aa5db29d7f2d4d1ad` (`d63336ab`) · `yedek/tur3-09704de8` · `yedek/tur4-a3336a43`.
+
+**Baskasinin calisma kopyasinda duran:** `tools/d1-sync.py` (M, mtime 09 Agu 22:44Z'den beri sahipsiz — DOKUNULMADI) · `.scratch/` (??) · `tools/paket-deploy-kritik-yol.md` (??).
+
+**Zamanlanmis nobetler:** bu oturumda YENI nobet kurulmadi. Envanter + cron sutunu **skill: devir** icindedir (15 gorev, 2 kayitli). Crontab'da 2 satir: `17 * * * *` mail supurme (hesaptan BAGIMSIZ) ve `37 * * * *` CI nobeti — **`~/.claude/cron/.ci-token` uzerinden hesaba BAGLI, yeni hesapta ILK IS o jetonun tazelenmesi (Okan kapisi).**
+
+**Okan'da bekleyen karar:** `pages` joblarina `timeout-minutes` konmasi (eski kalem, duruyor). — Hazir/stok teslim suresi karari GELDI ve uygulandi (her iki sinifta da 3-5 is gunu).
+
+**Devralinacak acik kalemler (siradaki isin ardindan, oncelik sirasiyla):**
+1. **HocA'ya yazilan posta cevap bekliyor:** `marka=` filtresinde ikiz tanim — site `index.html:2611` sorgu degerini `markaKatla` ile katliyor, worker `pruvo-bot/worker/src/index.js:4575` HAM bagliyor. **31 marka degeri** ayrisiyor (canli `/ara` ile 32/32 dogrulandi; `Toyota 86` 1517↔1, `Mercedes-Benz` 1039↔4, `Volvo Penta` 729↔109, `KIA` 355↔1). Veri kusuru DEGIL, kanonlastirma kusuru; 23 Tem `a4e9e8c9`'dan beri latent. Onarim HocA'nin deposunda.
+2. **Parite alarmi yapisal olarak istikrarsiz:** `parite-test.js:134` marka ekseninde ilk **100** degeri orneklüyor, sinifin 31 uyesinden 30'u 639+ indekste. Bugun alarmi yakan `Mazda 3`, 15:45 partisi onu one ittigi icin ornekléndi — sonraki parti geri iterse **hicbir sey duzelmeden yesile doner.** (SIRADAKI TEK IS bunu kapatiyor.)
+3. **Yerel parite paneli `localhost:8137` bayat besleniyor:** kaynak `.marka-kapsama.json` 28,6 saat bayat, **tazeleyeni YOK** (tek yazici: urun ekleme partisinin yan etkisi). Sapma: BMW 2359↔2347, Ford 2088↔2582, **Mazda 89↔1361**. Asil kusur: baslikta "son guncelleme" HESAPLAMA anini gosteriyor, VERI yasini degil. Yon: defteri tazelemek degil KALDIRMAK (urun sayisi `urunler.json`'dan, platform kirilimi gizli kayittaki kaynak-id oneklerinden turetilebilir) + panel kaynak yasini ve hucre bazinda son olcum tarihini gostersin. Turetmeye gecis MaCiT'in `kaydet` adimini gereksizlestirir → posta gerekir.
+4. **Teslim beyani kapisinda kalan 4 kalem (curutuculerin "miras" dedigi, dalin acmadigi):** yasal azami **30 gun** hicbir kapida olculmuyor (ve bu metin 1→3 yere cogaldi) · teslim fiili listesi bir defter ("elinizde", "ulasir" listede yok) · `CAYMA_YANLIS_POZITIF` kumesi bosalinca kapi iddia etiketi basmadan cokuyor (fail-closed ama cokme kirmiziyla karisiyor) · `ASGARI_AILE/OLCULEN_IDDIA/KONTROL` sabitleri elle tutulan defter, beyan edilen sayiyi sayiyor (ayni mutant 3 kez kopyalaninca taban gecti).
+5. **`serit-a2` sure kuyrugu:** yayin tavanini 8 kosumun 7'sinde `serit-a2` koyuyor (min/ort/maks **17,9 / 21,6 / 24,8 dk**); en uzun adim yasal-sayfa drift kapisi **398 sn** (%36), kalan ~11,6 dk cok sayida kisa adima dagilmis — bolme kazanci tek adimi tasimakla ALINMAZ.
+
+**⚠️ Bu oturumda olculen calisma kurali:** paylasilan defterde **iki KraL oturumu ayni pencereyi mukerrer kostu** (ayni canli/D1/serit-b olcumleri iki kez yandi). Tur basinda `DEVAM.md`'nin en ustteki nobet blogunun PENCERESINE bak; cakisiyorsa turu tekrarlama, o blogun "sonraki turun ilk isi" satirindan devam et.
+
+## 🔴 UÇUŞTA — ÖTEKİ KraL OTURUMU BU İŞLERE GİRMESİN (10 Ağu ~14:2xZ) — **ARŞİVE ALINDI** (defter kotası 1:1)
 
 ## 🕐 CI NOBETI — 10 Agu 2026 14:37Z turu (KraL)
 
@@ -67,55 +64,4 @@ blogundaki dala dokunulmadi.
 **Sonraki turun ILK isi:** yarim is YOK — normal tarama. Sure ekseninde siradaki soru:
 serit-a2'nin ~11,6 dk'lik "cok kisa adim" kuyrugu bolunebilir mi (adim envanteri olculecek).
 
-## 🔚 OTURUM KAPANISI — 9/10 Agu (marka tek-sayfa turu + yayin tavani)
-
-**CANLIYA GITTI (SHA'larla, hepsi `origin/main`; canli olcumle teyitli):**
-- `6b15062b` — **marka tek-sayfa merge**: marka sayfasi markanin TUM parcalarini listeliyor,
-  cipler sayfa ici filtre. Ilk yuk HAFIFLEDI (bmw 56916→34868 bayt), ilk acilista veri istegi 0.
-- `5d576510` — merge'in actigi iki kirmizi: yorumdaki ic surec dosyasi adi + marka uyelik
-  **gerilemesi** (taban 0 kalan ↔ merge sonrasi 5; ayirt edici olculdu). Kapi GEVSETILMEDI,
-  onarim uretim kodunda: 25 markada tek koleksiyon sayfasi.
-- `7428747c` — sitemap kapsam **ikiz tanimi** (sabit 1088 → kanonik turetme, 1122==1122).
-- `a046296a` — **53 siluet/duvar dekoru urunu katalogdan silindi** (23105→23052, Okan emri,
-  `duzelt.py --toplu`, gizli kayit da temizlendi, tam yedek alindi).
-- `cef49456` — SEO landing **WhatsApp CTA**: 322 sayfanin 303'unde link YOKTU → 0 eksik;
-  pazarlama yuzeyinden kargo rozeti kaldirildi (3→0), yasal kosul korundu.
-- `2d653f9f` — `ozet.json` ilk yuk **154530→134406 bayt** (butce YUKSELTILMEDI); 2,5 saat
-  bekleyen oksuz yama bayt-birebir dogrulanip devralindi, iki sigdirmadan olculen iyisi secildi.
-- `ee0047dd` — **sepet kargo esigi** (vaat 4→0, tahsilat satiri KALDI, 6 senaryoda kurus
-  BIREBIR ayni) + **D1 `seq` sira kusuru** (264 kesirli / 276 sapan → 0) + kok neden: kanca
-  artik kirli agaci degil COMMIT'i okuyor + sentetik fikstur git ortami **sinif** olarak
-  tek kanonik yardimciya baglandi (9 arac) + worktree acilis nobetcisi.
-- `a5ae0556` — kendi yamamin korlettigi **INDEX ekseni** (6 iddia) geri getirildi; temizlik
-  battaniye degil cagri yerinde.
-- `a855a720` — marka bataryasinda **5 hayatta kalan** kapatildi → **oldurucu 18/18**,
-  kontrol 3/3 yesil (iki tautoloji dahil).
-- `98758f0d` — **yayin tavani**: iki kendini-test kolu nobet seridine tasindi,
-  `serit-a4` **3736s → 11s**; `deploy`'da olculen iddia **58→58** (yuzey kucULMEDI).
-- `dd4f73ce` — K19 yargi kumesi: `Mazda|5` + `Renault|5` MODEL olarak yargilandi (veri kaynakli).
-
-**Canli teyit (son deploy, artefakt 3,7 dk):** parite site **1199/1199** · Ege **852/852**
-(ikisi de rc=0) · esik vaadi **0** · tahsilat satiri **VAR** · `/marka/*/diger/` **200** ·
-landing `wa.me` **1** · D1 24300 senkron. Sabahki **883/1199** sira kusuru KAPANDI.
-**Worktree envanteri 8 → 1** (arsivle-sonra-kaldir; hicbir sey silinmedi).
-
-**KOSUYOR:** tarayici iscisi — canli marka sayfasinda **artimli kart cizimi + cip filtresi**
-davranisi (ilk boya 80 kart → tetiklemeyle 2582'ye cikiyor mu). Izole worktree
-`agent-ae0d15fbb1976006c`. Spec: scratchpad `marka-davranis-spec.md`. Bu eksen test'te
-yesil ama CANLIDA hic olculmedi — sonucu gelmeden "marka sayfasi tamam" YAZILMASIN.
-
-**BEKLIYOR (kim neyle bloke):**
-1. **R2 158 gorsel** silinemedi — kova geneli 30 gun nesne kilidi. Okan A'yi secti (kilit
-   GEVSETILMEYECEK); tek seferlik gorev **24 Agu 2026 18:00 TRT** kuruldu, kuyruk + geri
-   donus yedegi depo disinda kalici.
-2. `yayin` **olcek tavani**: 531 aday > 300 sinir. `deploy`'u BLOKLAMIYOR, ayri is.
-3. **215 urun** basliginda marka geciyor ama `marka[]` uyesi degil — **VERI duzlemi**.
-   `arama.py` gecis kolu ONCE kapatilmayacak (arama daralir, satis yolu).
-4. H1/H3 kurali **16 model-olmayan** degeri model sayiyor — main'in mevcut kusuru.
-5. Sentetik fikstur git ortami: 9 arac kanonik yardimciya baglandi, kapi `serit-b`'de.
-   Yeni sentetik depo kuran her arac ayni yardimciyi kullanmali.
-6. `tools/d1-sync.py`'de **yabanci commit'siz degisiklik** (mtime 09 Agu 22:44Z) —
-   DOKUNULMADI, sahibi devam ettirmeli.
-
-**OKAN'DA BEKLEYEN:** `pages` job'larina `timeout-minutes` konmasi.
-(Sepet kargo esigi karari VERILDI ve uygulandi; R2 yolu A olarak SECILDI.)
+## 🔚 OTURUM KAPANISI — 9/10 Agu (marka tek-sayfa turu + yayin tavani) — **ARŞİVE ALINDI** (defter kotası 1:1)
