@@ -2,7 +2,14 @@
 
 ## 🔁 DEVIR — 10 Agu 2026 ~19:0xZ, eski hesap → yeni hesap (KraL)
 
-**SIRADAKI TEK IS (10 Agu ~20:0xZ guncellendi):** 🔴 **YAYINI AC** — kosum `31411839901`'de `serit-a2` VE `serit-a3` kirmizi, `deploy` **SKIPPED**; iki kirmizi Opus muhendise verildi (spec `.scratch/spec-yayin-acan-iki-kirmizi.md`, dal ucusta).
+**SIRADAKI TEK IS (10 Agu ~22:xxZ):** `ic-rapor-adi-kapisi.py` **kapsam evreni** genisletiliyor — bugun evren izlenen calisma agaci; uzak dal agaclari da evrene alinacak (ad deseni kanonik kaynaktan TURETILECEK, taninmayan bicimde fail-closed OLCULEMEDI, kontrol mutanti + yanlis-pozitif ekseni zorunlu, CI'a baglamadan once SURE olculecek). Opus muhendise verildi, dal ucusta. Gerekce ve kapsam detayi **DEVAM-ARSIV.md**'de (git disi).
+
+**✅ YAYIN ACILDI (10 Agu, iki merge, kanitli):** `c70e6c96` (SQUASH — dal ucu `e1cdc9a5`; squash SECILDI cunku dal `RAPOR-MIMARA.md`'yi izlenen commit'lemisti, blob main'e SOKULMADI: `git log main -- RAPOR-MIMARA.md` bos + `merge-base --is-ancestor 861d663a main` ata DEGIL, dal uzaktan silindi) ve `8403235d` (marka katlama korpusu; dal1'in USTUNE test edildi — ikisi de `parite-ortak.js` tuketiyor, ayri yesil hicbir sey kanitlamazdi).
+- **Kapanan iki kirmizi:** `serit-a2` = `arama.py` `ROZET_CAPRAZ_IZINLI` defterinde `Jaguar|xj6`+`Yamaha|xj6` YARGISIZ'di (44→46; Jaguar partisi kovayi ESIK ustune cikarinca defter bayatladi) · `serit-a3` = `SUPURME_MUTLAK_TAVAN` elle 500 sabiti → artik `max(500, ceil(katalog_id/100)*4)`, okunamazsa tabana duser. **Ortak sinif: katalog buyudukce elle tutulan sayi/defter bayatliyor.** K19 `model-uyelik-kapisi.py`'de de vardi — yalniz tavani onarmak serit-a3'u yesile GETIRMEZDI.
+- **Kabul (bagimsiz olculdu):** `deploy=success` — dal1 kosum `31418242164` headSha **birebir** `c70e6c96`; dal2'nin kendi kosumu `cancelled` oldugu icin ardil kosum `31420898686` ile kanitlandi (`merge-base --is-ancestor 8403235d e77f6a10` rc=0). D1 rc=0, **25070 = 25070**, hash uyusmaz/eksik/fazla **0**. Parite **BIREBIR**: site 1325/1325, Ege 893/893, aciklanamayan **0** (guncel main ana checkout'tan) — yani **HocA'nin `marka=` onarimi bagimsiz dogrulandi**. Canli cache-bust'SIZ: `/` · `/marka/jaguar/xj6/` · `/marka/yamaha/xj6/` · sitemap **200**, canli `urunler.json` 25070 — bayat edge YOK.
+- Merge sirasinda main **iki kez** ilerledi (60 urunluk yabanci parti), dal2'nin merge'i yeni main uzerine yeniden kuruldu ve katalog 25070'e karsi yeniden olculdu.
+
+**🔴 SIPARIS MAILI KUSURU KAPANDI — kayip YOK, kok neden INDEKS KAYMASI:** saatlik nobet mailleri ayri bir okumadan turettigi INDEKSLE siliyordu → olcum ile silme arasinda kutuya mail dusunce hedefin **KOMSUSU** gidiyordu (08-10 Agu arasi **14 tur**). `siparis@pruvo3d.com` bildirimi (PR-260809-131109-NBM) + 1 giris maili Cop'ten kurtarildi, Cop'te yanlis sinif **0**. Silme artik sabit betik + yuklemin KENDISIYLE (`~/.claude/cron/github-mail-cope.applescript`), mutant **9/9**, kabul testi **24 iddia** rc=0. **Siparis KAYBOLMADI:** D1 `siparisler` tablosunda id=11, odendi damgasi 09 Agu 10:11:55Z, `iyzico_odeme_id` dolu, durum `uretimde`; kayit e-postadan ONCE ve ondan BAGIMSIZ yaziliyor, worker'da `DELETE` yolu YOK, bildirim 3 kanaldan gidiyor. Defter: [[indeks-ile-silme-komsuyu-siler]]
 
 **✅ Onceki "siradaki tek is" KAPANDI (marka katlama kapsami, dal `worktree-agent-aab8fd139bb4483cc` = `d28d684e`, uzakta, MERGE EDILMEDI):** sinif uyeligi `markaKatla` govdesinden TURETILIYOR (elle liste yok, sabit 32 koda yazilmadi) — `SINIF_UYE=32` · `KORPUS_SITE=32` · `KORPUS_EGE=32` · kapsam kapisi rc=0 (15 iddia) · mutant **11/11** oldurucu + **4/4** kontrol yesil · korpus site 1199→1325, ege 851→893 (`parite-ege.js`'te `marka=` ekseni HIC YOKTU, acildi). Parite rc=1 **BEKLENEN**: taban site 1/1199 → **63/1325**, ege 0/851 → **31/893**; yeni kirmizinin TAMAMI `marka=` ekseninden, serbest metinde **0/32**. Ayrisan **31** deger (32. uye `Black and Decker` tesaduf esitlik 1↔1) — bu artik HocA'nin onariminin CALISTIRILABILIR KABUL TESTI. **Merge HocA'nin worker onarimindan SONRA** (muhendis `CI_BLOKLAYICI=HAYIR` olctu; merge oncesi BAGIMSIZ teyit edilecek).
 
@@ -24,6 +31,8 @@
 — Hazir/stok teslim suresi karari GELDI ve uygulandi (her iki sinifta da 3-5 is gunu).
 
 **Devralinacak acik kalemler (siradaki isin ardindan, oncelik sirasiyla):**
+0. 🔴 **`siparisler` tablosunun Cloudflare DISINDA yedegi YOK** (10 Agu olculdu). `d1-sync.py` bu tabloya dokunmuyor, duzenli disa aktarim yok → kurtarma bugun YALNIZ D1 Time Travel penceresine bagli. Gecelik salt-okunur dokum kurulacak (kisisel veri: dokum repoya GIRMEZ).
+0b. **Yeni kapi `parite-kapsam-test.js` CI'da KOSMUYOR** (muafiyet listesinde): Ege korpus ureteci `~/dev/pruvo-bot` istiyor, CI'da yok → fail-closed rc=3, bloklayici baglanirsa TUM yayin durur. Sinif bugun yalniz ELLE olculuyor. **Kapsam karari mimarin** — yon: kapiyi iki eksene BOL (site ekseni bagimsiz+bloklayici, Ege ekseni CI'da OLCULEMEDI ama bloklamaz).
 1. **HocA'ya yazilan posta cevap bekliyor:** `marka=` filtresinde ikiz tanim — site `index.html:2611` sorgu degerini `markaKatla` ile katliyor, worker `pruvo-bot/worker/src/index.js:4575` HAM bagliyor. **31 marka degeri** ayrisiyor (canli `/ara` ile 32/32 dogrulandi; `Toyota 86` 1517↔1, `Mercedes-Benz` 1039↔4, `Volvo Penta` 729↔109, `KIA` 355↔1). Veri kusuru DEGIL, kanonlastirma kusuru; 23 Tem `a4e9e8c9`'dan beri latent. Onarim HocA'nin deposunda.
 2. **Parite alarmi yapisal olarak istikrarsiz:** `parite-test.js:134` marka ekseninde ilk **100** degeri orneklüyor, sinifin 31 uyesinden 30'u 639+ indekste. Bugun alarmi yakan `Mazda 3`, 15:45 partisi onu one ittigi icin ornekléndi — sonraki parti geri iterse **hicbir sey duzelmeden yesile doner.** (SIRADAKI TEK IS bunu kapatiyor.)
 3. **Yerel parite paneli `localhost:8137` bayat besleniyor:** kaynak `.marka-kapsama.json` 28,6 saat bayat, **tazeleyeni YOK** (tek yazici: urun ekleme partisinin yan etkisi). Sapma: BMW 2359↔2347, Ford 2088↔2582, **Mazda 89↔1361**. Asil kusur: baslikta "son guncelleme" HESAPLAMA anini gosteriyor, VERI yasini degil. Yon: defteri tazelemek degil KALDIRMAK (urun sayisi `urunler.json`'dan, platform kirilimi gizli kayittaki kaynak-id oneklerinden turetilebilir) + panel kaynak yasini ve hucre bazinda son olcum tarihini gostersin. Turetmeye gecis MaCiT'in `kaydet` adimini gereksizlestirir → posta gerekir.
@@ -34,40 +43,6 @@
 
 ## 🔴 UÇUŞTA — ÖTEKİ KraL OTURUMU BU İŞLERE GİRMESİN (10 Ağu ~14:2xZ) — **ARŞİVE ALINDI** (defter kotası 1:1)
 
-## 🕐 CI NOBETI — 10 Agu 2026 14:37Z turu (KraL)
-
-**Mail (0.5 adimi, kosulsuz supurme):** tam dizeyle eslesen inbox bildirim maili **0**,
-"Run failed" **0**, tasinan **0**, tur sonu inbox **0**. Hukum **TEMIZ** — pozitif tanima izi
-Cop'ten AYNI TAM dizeyle olculdu: **67** kayit, en yenisi 10 Agu 04:29. Vekil dize kullanilmadi.
-
-**CI bagimsiz teyidi (60 kosumluk pencere):** `failure` **0** · success 53 · `cancelled` **4**
-(art arda push supersede'i — ariza SAYILMADI) · ucusta 3. En son `failure` kaydi 10 Agu 01:10Z
-(`feb98e81`, deploy) — pencerenin ~13,5 saat DISINDA; sonrasindaki tum deploy kosumlari yesil.
-
-**⏱️ SURE EKSENI — HUKUM NIHAYET YAZILDI (8 ardisik basarili deploy kosumu birikti):** yayin
-tavanini 8 kosumun **7'sinde** `serit-a2` koyuyor; min/ort/maks **17,9 / 21,6 / 24,8 dk**.
-Diger joblar (min/ort/maks dk): serit-a3 10,5/16,4/18,2 · build 11,9/13,8/14,9 ·
-serit-a4 0,2/0,2/0,3 · deploy 0,5/0,7/1,1 · yayin 0,6/0,6/0,7. Onceki iki turun "olculemedi"
-hukmu KAPANDI (tek kosumdan okunmuyor, 8 kosum birikti).
-**Adim birimi (kosum `31394761851`, job serit-a2):** en uzun adim yasal-sayfa drift kapisi
-**398 sn** (6,6 dk) = job'un ~%36'si; ikinci 169 sn, ucuncu 78 sn. Tavan TEK adimdan
-GELMIYOR — kalan ~11,6 dk cok sayida kisa adima dagilmis, yani bolme kazanci tek adimi
-tasimakla ALINMAZ. (Adimin kendi yorumundaki sure beyanina guvenilmedi, ADIM birimiyle olculdu.)
-
-**Yayin bayat DEGIL — uc ayak birlikte olculdu:** (a) guncel head `0cf568ac` icin zincir
-UCUSTA (`31398615918`; serit-a4 success, build/serit-a2/serit-a3 kosuyor), (b) tavani serit-a2
-koyuyor, (c) son yesil deploy head'i `4dead34a` ve `merge-base --is-ancestor 4dead34a 0cf568ac`
-= EVET. Ucusu `cancelled` sayarak degil bu uc ayakla yargilandi.
-
-**Alarm seridi:** deploy:needs DISINDAKI alarm kolu kosumu `31394762072` olcum aninda
-**52,8 dk**dir ucustaydi (onceki turda ~38 dk). Yayini BLOKLAMIYOR, ariza SAYILMADI — ama
-ayni jobun ardisik kosumlari birikince sure hukmu bu seride de yazilacak.
-
-**Bu turda duzeltme YOK** (kirmizi yok), kod commit'i yok.
-**Envanter:** `M tools/d1-sync.py` yabanci degisiklik hala duruyor — DOKUNULMADI.
-`git worktree list` **2 satir** (ana agac + `muh/teslim-beyani`) — tavan icinde; UCUSTA
-blogundaki dala dokunulmadi.
-**Sonraki turun ILK isi:** yarim is YOK — normal tarama. Sure ekseninde siradaki soru:
-serit-a2'nin ~11,6 dk'lik "cok kisa adim" kuyrugu bolunebilir mi (adim envanteri olculecek).
+## 🕐 CI NOBETI — 10 Agu 2026 14:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; sure ekseni hukmu: tavani 8 kosumun 7'sinde `serit-a2` koyuyor, 17,9/21,6/24,8 dk)
 
 ## 🔚 OTURUM KAPANISI — 9/10 Agu (marka tek-sayfa turu + yayin tavani) — **ARŞİVE ALINDI** (defter kotası 1:1)
