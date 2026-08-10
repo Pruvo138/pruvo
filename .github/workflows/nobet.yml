@@ -1409,6 +1409,13 @@ jobs:
       - name: "Marka tek-sayfa hukmu mutasyon bataryasi (13 oldurucu + 5 kontrol)"
         run: python3 tools/marka-sayfa-mutasyon.py
 
+      # Model kapilarinin GERCEK katalog olcumleri deploy.yml serit-a3'te bloklayici
+      # kalir. Buradaki kollar yalniz araclarin KENDINI mutant kopyalariyla sinar.
+      - name: "Model uyeligi mutasyon bataryasi (35 oldurucu + 7 kontrol)"
+        run: python3 tools/model-uyelik-kapisi.py --kendini-test
+      - name: "Model baslik kolu mutasyon bataryasi (18 oldurucu + 4 kontrol)"
+        run: python3 tools/model-baslik-kolu-test.py --kendini-test
+
 
 
   # ═════════════════════════════════════════════════════════════════════════════

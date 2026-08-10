@@ -1791,7 +1791,10 @@ TABLO_TABANLARI = (
     # arac yolundan serit-b'ye kablandi; tek yol beyani iki duz komutu kapsar.
     # 9 Agu: +1 -> 92. D1 seq tam-sayi/kanonik-sira araci icin agsiz kabul testi
     # serit-b'ye eklendi; gercek D1 yazma/geri-okuma nobeti serit A'da kaldi.
-    ("SERIT_B", 92),
+    # 10 Agu: +2 -> 94. Model uyeligi ve model baslik kollarinin KENDINI-TEST
+    # bataryalari serit-b'ye tasindi; iki bayraksiz GERCEK katalog olcumu deploy.yml
+    # serit-a3'te BLOKLAYICI kaldi.
+    ("SERIT_B", 94),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2880,6 +2883,16 @@ SERIT_B = {
         "ediciligini olcer; agsiz ve deterministiktir. Yayin dogrulugunu degil "
         "nobetcinin KENDI koruma gucunu sinadigi icin serit B'de kosar; fail-closed "
         "kirmizisi gorunur kalir ama yayin yolunu durdurmaz.",
+    ("nobet.yml", "serit-b", "tools/model-uyelik-kapisi.py"):
+        "Aracin KENDINI sinayan 35 oldurucu + 7 kontrol mutasyon bataryasidir; "
+        "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "
+        "Mutantlar gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi "
+        "kapinin ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
+    ("nobet.yml", "serit-b", "tools/model-baslik-kolu-test.py"):
+        "Aracin KENDINI sinayan 18 oldurucu + 4 kontrol mutasyon bataryasidir; "
+        "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "
+        "Mutantlar gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi "
+        "kapinin ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
     # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
     ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
         "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "

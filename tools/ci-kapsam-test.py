@@ -3557,6 +3557,28 @@ KENDINI_TEST_SABIT_TANI = (
     "(`--kendini-test`).")
 
 
+MODEL_URETIM_KOLLARI = (
+    "tools/model-uyelik-kapisi.py",
+    "tools/model-baslik-kolu-test.py",
+)
+
+
+def model_uretim_kollari_dogrula(deploy_metin):
+    """Iki model kapisinin BAYRAKSIZ uretim kolu deploy'da kalmis mi."""
+    hatalar = []
+    for hedef in MODEL_URETIM_KOLLARI:
+        anlamli, reddedilen = _hedef_cagrilari(deploy_metin, hedef)
+        if any(argumanlar == [] for argumanlar in anlamli):
+            continue
+        hatalar.append(
+            "MODEL URETIM KOLU YOK: deploy.yml `%s` yolunu BAYRAKSIZ kosmuyor; "
+            "yalniz `--kendini-test` kolunun baska is akisinda kosmasi canli katalog "
+            "iddiasinin yerini tutmaz.%s%s"
+            % (hedef, _teshis_ozeti(deploy_metin, hedef),
+               _reddedilen_ozeti(reddedilen)))
+    return hatalar
+
+
 def kendini_test_adimi_kontrol():
     """OZ-NOBETCI ADIMI KALICI NOBETCISI (3. tur curutucu olcumu, 27 Tem).
 
@@ -6139,7 +6161,7 @@ def suzgec_kablosu_kontrol(kaynak=None):
 # Boylece muaf_sayaci_kontrol() TA KENDISINI olcer (kopya mantik yazmaz).
 def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
             dosya_metinleri=None, alt_kume_izin=None, ayristirici_yok=None,
-            izlenmeyen=None, izlenmeyen_sebep=None):
+            izlenmeyen=None, izlenmeyen_sebep=None, model_uretim=False):
     """(exit_kodu, rapor_satirlari) dondurur. Hicbir sey BASMAZ.
 
     kontroller=True iken kendi mutasyon nobetcilerini (bulgu1 + muaf sayaci) BLOKLAYICI
@@ -6182,6 +6204,13 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
                                 % akis_yol)
 
     hatalar = []
+
+    # Iki model araci artik iki seride kosar: pahali KENDINI-TEST nobet.yml'de,
+    # canli katalogu olcen BAYRAKSIZ kollar deploy.yml'de. Dosya-granullu kapsam
+    # ikinci kolu ilkinden ayiramaz; bu pozitif kablo iddiasi sessiz daralmayi kapatir.
+    if model_uretim:
+        for h in model_uretim_kollari_dogrula(deploy_metin):
+            hatalar.append("MODEL-URETIM-KOLU: " + h)
 
     # 🔴 O5 — "HICBIR GERCEK AYRISTIRICI YOK" AYRI VE ACIK BIR HALDIR.
     # Olculen sahte-KIRMIZI: ayristirici yokken 4 is akisinin 4'u de BELIRSIZ olur,
@@ -6741,7 +6770,8 @@ def main():
     kod, satirlar = denetle(
         deploy_metin, kesfet(), IZIN_LISTESI, kontroller=gercek_deploy,
         akislar=is_akislari(None if gercek_deploy else deploy_metin),
-        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep)
+        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep,
+        model_uretim=gercek_deploy)
     for satir in satirlar:
         print(satir)
     return kod
