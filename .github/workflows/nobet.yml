@@ -362,6 +362,33 @@ jobs:
       - name: Git baglam scrub'i — tek kaynak drift nobeti
         run: python3 tools/git_ortami.py --kendini-test
 
+      # IC RAPOR — UZAK DAL GECMISI EKSENI (10 Agu 2026 OLCULEN KUSUR)
+      # ═══════════════════════════════════════════════════════════════════════════
+      # OLCULEN BOSLUK: `tools/ic-rapor-adi-kapisi.py`nin bayraksiz kolu (deploy.yml,
+      # BLOKLAYICI) YALNIZ IZLENEN CALISMA AGACINI tarar; `tools/kisisel-veri-test.py`
+      # gecmis kolu ise PRE-PUSH kancasidir ve YALNIZ o itmenin GETIRDIGI araligi olcer.
+      # Ikisi de "su anda uzakta NE DURUYOR" sorusunu SORMAZ. Olculdu: 55 uzak dal
+      # `ls-tree` ile tarandiginda UC dalda ic curutme raporu PUBLIC duruyordu ve
+      # HER IKI KAPI DA YESILDI (kanca kurulu olmayan makine / kanca yazilmadan onceki
+      # push'lar bu kollarin evrenine hic girmez). Temizlik sonrasi olcum: 52 dal, 0 isabet.
+      #
+      # 🔴 NEDEN SERIT B, NEDEN deploy.yml DEGIL (gerekce OLCULDU, beyan DEGIL):
+      #   (a) AG ister (`git ls-remote`), (b) deploy.yml `actions/checkout@v4`i
+      #   fetch-depth VERMEDEN kullanir -> SIG klonda uzak dal NESNELERI YOKTUR ve bu
+      #   kol orada fail-closed rc=2 verir. Bloklayici yazilsaydi yayin KALICI dururdu
+      #   ([[fail-slow-fail-opendir]], [[maliyet-tasimasi-serit-dusurur]]). Bu job
+      #   `fetch-depth: 0` ile checkout eder -> nesneler VARDIR.
+      # Susturma YOK: `continue-on-error` yazilmadi, kirmizisi bu is akisinin kendi
+      # `conclusion`'inda gorunur. Olculen sure: uzak kolu ~1,6 s (52 dal), mutasyon
+      # bataryasi ~17 s. Kol ONLEME degil TESPIT'tir; onleme pre-push kancasindadir.
+      - name: "Ic rapor UZAK DAL kolu (uzakta duran ic rapor — SERIT B, ag ister)"
+        run: python3 tools/ic-rapor-adi-kapisi.py --uzak
+      # Kolun KENDI hukmu: 10 oldurucu mutant TEK KIRMIZI + 2 KONTROL mutanti YESIL
+      # (biri UZAK kolunun no-op'u). Ustteki adim yesilken bu adim kirmizi ise nobetci
+      # OLMUS demektir ([[mutasyon-kaniti-yeniden-uretilebilir]]). Ag ISTEMEZ.
+      - name: "Ic rapor adi kapisi mutasyon bataryasi (uzak eksen dahil)"
+        run: python3 tools/ic-rapor-adi-kapisi.py --mutasyon
+
       - name: Sentetik git fiksturu sizinti kapisi
         run: python3 tools/fikstur-git-sizinti-kapisi.py
 
