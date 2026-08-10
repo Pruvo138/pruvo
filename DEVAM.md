@@ -1,5 +1,36 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🔴 UÇUŞTA — ÖTEKİ KraL OTURUMU BU İŞLERE GİRMESİN (10 Ağu ~14:2xZ)
+
+Paylaşılan defterde bugün iki KraL nöbet oturumu aynı pencereyi mükerrer koştu; tekrarlamayalım.
+
+1. **`muh/teslim-beyani` dalı — AÇIK, merge BEKLİYOR.** Ürün sayfasına sınıf-bazlı teslim beyanı
+   (943 hazır ↔ 23.977 özel). Üç onarım turu geçti (`4a41f4a0` → `6588b076`), **iki bağımsız
+   çürütücü iki kez `CURUTULDU` verdi**, ikisi de kapatıldı: (a) "ölçüye özel / ölçü onayından
+   sonra" ifadesi %99,84'ü sabit tasarım olan katalog ürününe yanlış hukuki sınıf basıyordu →
+   tetikleyici "siparişiniz onaylandıktan sonra"ya çekilip sipariş onay e-postasıyla hizalandı;
+   (b) `\bcayma\b` daraltması kapıyı o eksende KÖR bırakmıştı (Türkçe çekim varyantlarını
+   yakalama oranı 9/9 → 3/9'a düşmüştü) → desen artık yanlış-pozitif KÜMESİNDEN türüyor,
+   9/9 yakalıyor ve katalog yanlış-pozitifi 0. Ders: muafiyeti jetonun tamamını daraltarak
+   verme, kanonik yanlış-pozitif kümesinden TÜRET.
+   Kapı **29 → 38 iddia**, mutant **3 → 18 + 6 kontrol**, silinen iddia 0, gevşetme 0.
+   Üçüncü çürütme turu UÇUŞTA. **Bu dala dokunma, merge etme.**
+2. **Parite ayrışımı — main'e ait, SAHİPSİZ.** `parite-test.js` **1 açıklanamayan / 1199**:
+   `q="braketi" marka="Mazda 3"` → `/ara`=0, yerel=56. `origin/main`'in PRİSTİNE klonunda
+   birebir aynı → dalın regresyonu DEĞİL. `parite-ege.js` 851/851 temiz. Kök neden bu turda
+   ölçülmedi; "Mazda 3" bir MODEL, marka ekseninde sorgulanıyor. Yayını bloklamıyor (CI yeşil).
+3. **Yerel parite paneli (`localhost:8137`) — TEŞHİS EDİLDİ, iş sıraya alındı.** Panelin kendisi
+   taze (her GET'te modül yeniden yükleniyor, 15 sn'de bir `/veri` fetch) ama beslediği defter
+   `.marka-kapsama.json` **28,6 saat bayat ve tazeleyeni YOK** — tek yazıcısı ürün ekleme
+   partisinin yan etkisi. Ölçülen sapma: BMW 2359↔2347 (%0,5), Ford 2088↔2582 (%19),
+   **Mazda 89↔1361 (gerçeğin %6,5'i, beş hücrenin hepsi `son_tarih:"backfill"`)**. Asıl kusur:
+   başlıktaki "son güncelleme" damgası HESAPLAMA anını gösteriyor, VERİ yaşını değil → bayat
+   hücre taze hücreden ayırt edilemiyor. Yön: defteri tazelemek değil KALDIRMAK (ürün sayısı
+   `urunler.json`'dan, platform kırılımı gizli kayıttaki kaynak-id öneklerinden türetilebilir)
+   + panel kaynak yaşını ve hücre bazında son ölçüm tarihini göstersin. Türetmeye geçiş MaCiT'in
+   ekleme akışındaki `kaydet` adımını gereksizleştirir → posta yazılacak.
+
+
 ## 🕐 CI NOBETI — 10 Agu 2026 13:43Z turu (KraL)
 
 **Mail (0.5 adimi, kosulsuz supurme):** inbox toplam 7537; tam dizeyle eslesen bildirim maili
