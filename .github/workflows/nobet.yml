@@ -1404,19 +1404,124 @@ jobs:
       # tavani) bloklayici seritteki marka-sayac-kapisi'nda ZATEN olculuyor.
       - name: "Marka sayfasi artim + sayfa-ici model filtresi (davranis, node)"
         run: python3 tools/marka-artim-test.py
+
+      # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
+      # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
+      # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,
+      # SUSTURULMADILAR, DARALTILMADILAR: ayni adim adi, ayni komut, ayni ortam,
+      # ayni fail-closed cikis kodu — yalnizca AYRI JOB'DA ve PARALEL kosuyorlar.
+      # Serit degismedi (nobet.yml'in TUM joblari serit B'dir) ve dordunun de
+      # SERIT_B beyani tools/is-akisi-kapisi.py'de yeni job id'siyle DURUYOR.
+
+
+
+  # ═════════════════════════════════════════════════════════════════════════════
+  # AGIR MUTASYON BATARYALARI — SERIT B, `serit-b` JOB'UNDAN AYRILDI (10 Agu 2026)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN PROBLEM (gh api, son YESIL SERIT B kosumu 31349739698): `serit-b` job'u
+  # 142 dakika surdu ve bu dort adim TEK BASINA 7370 sn = 123 dk (job'un %86'si) idi:
+  #   model-uyelik   2788 s · marka-bolum 2406 s · marka-sayfa 1277 s · model-baslik 899 s
+  # Is akisi `push` tetikli ve `concurrency: nobet-serit-b` + `cancel-in-progress: false`
+  # -> saatte birkac katalog partisi inerken son 12 SERIT B kosumunun 8'i kuyrukta
+  # `cancelled` oldu. Zarar YAYIN DEGIL (bu joblarin hicbiri `deploy: needs`te degil),
+  # GERI BILDIRIM GECIKMESI: bir kapi kirildiginda ~2,5 saat sonra goruluyordu.
+  #
+  # 🔴 BU BIR TASIMA ISIDIR, OPTIMIZASYON DEGIL: mutant sayisi, mutant listesi, komut,
+  # bayrak ve adim adi BIREBIR korundu. Bu evde olculdu — bir adimi baska job'a/seride
+  # tasimak, rc=0 kalirken OLCULEN IDDIA SAYISINI sessizce kucultebilir
+  # ([[kapi-yan-etkisi-gizli-onkosul]] · [[maliyet-tasimasi-serit-dusurur]]);
+  # kabul cikis kodu DEGIL, BASILAN IDDIA SAYISIDIR.
+  #
+  # 🔴 NEDEN `strategy.matrix` DEGIL, DORT AYRI JOB (olculmus gerekce): matrix kolu
+  # `run: ${{ matrix.komut }}` yazmayi gerektirir. tools/is-akisi-kapisi.py ::
+  # kapi_cagrilari kapi cagrilarini `run:` SATIRLARINDAN kesfeder; arac yolu bir
+  # matrix degiskeninin arkasina girdigi anda dort cagri kapinin gozunden KAYBOLUR ->
+  # SERIT_B beyanlari bayatlar (S3) ve ci-kapsam-test.py'nin "CI'da kosan kapi" kumesi
+  # dort eksik olcer. Yani matrix, tam da bu spec'in yasakladigi SESSIZ YUZEY
+  # KUCULMESINI uretirdi. Dort duz `run:` satiri kapinin gozunde AYNEN durur.
+  #
+  # 🔴 YAYINI BLOKLAMIYORLAR: `needs:` YOK, hicbir is bunlara bagli DEGIL ve
+  # deploy.yml'deki `deploy: needs` listesi DEGISMEDI (deploy.yml'e DOKUNULMADI).
+  # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi bu depoda nobetci ihlalidir).
+  # ⚠️ `timeout-minutes: 90` — olculen en uzun bataryanin (2788 s = 46,5 dk) ~2 kati.
+  # Bu evde olculdu: FAIL-SLOW = FAIL-OPEN — asilan bir kol kapiyi 46+ dk sahte-yesil
+  # tutar ve kosum sonunda iptal edilir ([[fail-slow-fail-opendir]]).
+  # Kurulum adimlari `serit-b` ile BIREBIR AYNIDIR (checkout fetch-depth: 0 · python
+  # 3.12 · boto3+pyyaml · node 20) — ortam farki sessiz bir davranis farki uretirdi.
+
+  marka-bolum-bataryasi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: "Marka bolum kimligi mutasyon bataryasi (iki katman, 5 mutant + kontrol)"
         run: python3 tools/marka-bolum-mutasyon.py
+
+  marka-sayfa-bataryasi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: "Marka tek-sayfa hukmu mutasyon bataryasi (13 oldurucu + 5 kontrol)"
         run: python3 tools/marka-sayfa-mutasyon.py
 
-      # Model kapilarinin GERCEK katalog olcumleri deploy.yml serit-a3'te bloklayici
-      # kalir. Buradaki kollar yalniz araclarin KENDINI mutant kopyalariyla sinar.
+  # Model kapilarinin GERCEK katalog olcumleri deploy.yml serit-a3'te bloklayici
+  # kalir. Buradaki kollar yalniz araclarin KENDINI mutant kopyalariyla sinar.
+  model-uyelik-bataryasi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: "Model uyeligi mutasyon bataryasi (35 oldurucu + 7 kontrol)"
         run: python3 tools/model-uyelik-kapisi.py --kendini-test
+
+  model-baslik-bataryasi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: "Model baslik kolu mutasyon bataryasi (18 oldurucu + 4 kontrol)"
         run: python3 tools/model-baslik-kolu-test.py --kendini-test
-
-
 
   # ═════════════════════════════════════════════════════════════════════════════
   # R2 ONEK GELENEGI NOBETI (7 Agu 2026) — ONCEDEN VAR OLAN CANLI GERCEGI RAPORLAR

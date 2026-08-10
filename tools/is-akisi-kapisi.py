@@ -2873,22 +2873,28 @@ SERIT_B = {
         "artimli cizilmiyor' der — SSR'de basili N kart + duz bag listesi JS-siz halde "
         "ZATEN gorunur oldugu icin sayfa yine dogru ve eksiksiz linklidir, yayini "
         "durdurmanin tamir degeri yoktur.",
-    ("nobet.yml", "serit-b", "tools/marka-bolum-mutasyon.py"):
+    # 🔴 10 Agu 2026 — JOB ID DEGISTI (`serit-b` -> `marka-bolum-bataryasi`). Bu dort
+    # agir batarya `serit-b`den AYRI joblara alindi (olculdu: dordu birlikte o job'un
+    # 142 dakikasinin 123'unu yiyordu ve kuyrukta 12 kosumun 8'i `cancelled` dusuyordu).
+    # SERIT DEGISMEDI — nobet.yml'in TUM joblari serit B'dir; degisen YALNIZ anahtarin
+    # job alanidir. Bu satiri guncellemeseydik S3 (bayat beyan) KIRMIZI yanardi ve S4
+    # ayni anda "BEYANSIZ kapi cagrisi" derdi: tasima, beyan rejiminden CIKIS DEGILDIR.
+    ("nobet.yml", "marka-bolum-bataryasi", "tools/marka-bolum-mutasyon.py"):
         "Marka bolum kimligi kapisinin ayirt ediciligini iki katmanda mutasyonla olcer; "
         "agsiz ve deterministiktir. Yayin dogrulugunu degil nobetcinin KENDI koruma "
         "gucunu sinadigi icin serit B'de kosar; fail-closed kirmizisi gorunur kalir ama "
         "yayin yolunu durdurmaz.",
-    ("nobet.yml", "serit-b", "tools/marka-sayfa-mutasyon.py"):
+    ("nobet.yml", "marka-sayfa-bataryasi", "tools/marka-sayfa-mutasyon.py"):
         "Marka tek-sayfa hukmunun 13 oldurucu ve 5 kontrol mutantiyla ayirt "
         "ediciligini olcer; agsiz ve deterministiktir. Yayin dogrulugunu degil "
         "nobetcinin KENDI koruma gucunu sinadigi icin serit B'de kosar; fail-closed "
         "kirmizisi gorunur kalir ama yayin yolunu durdurmaz.",
-    ("nobet.yml", "serit-b", "tools/model-uyelik-kapisi.py"):
+    ("nobet.yml", "model-uyelik-bataryasi", "tools/model-uyelik-kapisi.py"):
         "Aracin KENDINI sinayan 35 oldurucu + 7 kontrol mutasyon bataryasidir; "
         "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "
         "Mutantlar gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi "
         "kapinin ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
-    ("nobet.yml", "serit-b", "tools/model-baslik-kolu-test.py"):
+    ("nobet.yml", "model-baslik-bataryasi", "tools/model-baslik-kolu-test.py"):
         "Aracin KENDINI sinayan 18 oldurucu + 4 kontrol mutasyon bataryasidir; "
         "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "
         "Mutantlar gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi "
