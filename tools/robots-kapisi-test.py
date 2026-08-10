@@ -14,7 +14,7 @@ tarafi filtreleri. Hepsi ayni HTML'i dondurur, canonical ANA SAYFAYI gosterir
 ⚠️ robots ile kapatilan sayfa indeksten DUSMEZ; Google tarayamadigi icin canonical
 sinyalini de GOREMEZ. Bu dort bicim bugun kanonik yuzunden zaten indekse girmiyor
 (canonical -> ana sayfa; sitemap'te 0 parametreli URL olculdu), bu yuzden degisim
-guvenli kabul edildi — gerekce RAPOR-MIMARA.md'de.
+guvenli kabul edildi — gerekce muhendis raporunda.
 
 IDDIALAR:
   1 ESLESTIRICI  — RFC 9309 (Google robots.txt) ornek tablosuyla dogrulanir
