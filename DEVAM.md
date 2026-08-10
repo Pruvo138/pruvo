@@ -31,77 +31,41 @@ Paylaşılan defterde bugün iki KraL nöbet oturumu aynı pencereyi mükerrer k
    ekleme akışındaki `kaydet` adımını gereksizleştirir → posta yazılacak.
 
 
-## 🕐 CI NOBETI — 10 Agu 2026 13:43Z turu (KraL)
+## 🕐 CI NOBETI — 10 Agu 2026 14:37Z turu (KraL)
 
-**Mail (0.5 adimi, kosulsuz supurme):** inbox toplam 7537; tam dizeyle eslesen bildirim maili
-**0**, "Run failed" **0**, tasinan **0**, tur sonu inbox **0**. Hukum **TEMIZ** — pozitif tanima
-izi Cop'ten AYNI TAM dizeyle olculdu: **67** kayit, en yenisi 10 Agu 04:29. Vekil dize
-kullanilmadi.
-
-**CI bagimsiz teyidi (25 + 60 kosumluk pencere):** `failure` **0** (ikisinde de). 60'lik
-pencerede **5** `cancelled` (art arda push supersede'i — ariza SAYILMADI). Son tam yayin zinciri
-`31391158733` (fad765d9) **success**: build 14,1 dk · serit-a2 18,1 dk · serit-a3 17,4 dk ·
-serit-a4 0,2 dk · deploy 0,7 dk · yayin 0,7 dk. Alarm kolu (`cron-nabzi`) success.
-Ucusta 2 is (biri kuyrukta yeni, biri alarm seridi).
-
-**⏱️ SURE EKSENI — tavan YAYIN ZINCIRINDE DEGIL:** bu turda deploy:needs kolunun en uzunu
-serit-a2 (18,1 dk). Onceki turlarda 45,1 dk olculen batarya isi SERIT B **alarm** seridinde
-kosuyor (tur sirasinda ~38 dk'dir ucusta). Yani mevcut sure tavani yayini GECIKTIRMIYOR;
-sure hukmu ayni jobun ardisik kosumlari birikince yazilacak.
-
-**Bu turda duzeltme YOK** (kirmizi yok), kod commit'i yok.
-**Envanter:** onceki turun gordugu `M urunler.json` yabanci degisikligi ARTIK YOK (sahibi
-`9f022095` ile kapatmis). `M tools/d1-sync.py` hala duruyor — DOKUNULMADI.
-**Sonraki turun ILK isi:** yarim is YOK — normal tarama.
-
-## 🕐 CI NOBETI — 10 Agu 2026 12:46Z turu (KraL)
-
-**Mail (0.5 adimi, kosulsuz supurme):** inbox toplam 7537; tam dizeyle eslesen bildirim maili
-**0**, "Run failed" **0**, tasinan **0**, tur sonu inbox **0**. Hukum **TEMIZ** — pozitif tanima
-izi Cop'ten AYNI TAM dizeyle olculdu: **67** kayit, en yenisi 10 Agu 04:29. Vekil dize
-kullanilmadi (support@github.com'dan alakasiz 1 mail vardi, dokunulmadi).
-
-**CI bagimsiz teyidi (25 + 60 kosumluk pencere):** `failure` **0**. 25/25 success; 60'lik
-pencerede 53 success + **7** `cancelled` (art arda push supersede'i — ariza SAYILMADI).
-Ucusta/kuyrukta is **yok**. Son yayin kosumu `31385270675` (0ea87971) **success** —
-build 13,9 dk · deploy 0,6 dk · yayin 0,6 dk. Alarm kolu (`cron-nabzi`, `nobet.yml`,
-`deploy:needs` zincirinin DISINDA) success.
-
-**⏱️ SURE EKSENI ACIK KALDI:** bu kosumda `serit-a2` 23,3 dk · `serit-a3` 18,2 dk olculdu;
-onceki turun **45,1 dk** tavani bu kosumda GORULMEDI. Tavan tek kosumdan okunmaz — ayni jobun
-ardisik kosumlari birikmeden sure hukmu YAZILMAZ ("olculemedi" gecerli cevaptir).
-
-**Bu turda duzeltme YOK** (kirmizi yok), kod commit'i yok.
-**Yeni gozlem:** calisma agacinda `M urunler.json` **yabanci degisiklik** var (13:45Z turunda
-YOKTU) — DOKUNULMADI, sahibi devam ettirmeli. `M tools/d1-sync.py` hala duruyor.
-**Sonraki turun ILK isi:** yarim is YOK — normal tarama; sure ekseni icin ayni jobun yeni
-kosumlarini biriktir.
-
-## 🕐 CI NOBETI — 10 Agu 2026 13:45Z turu (KraL)
-
-**Mail (0.5 adimi, kosulsuz supurme):** inbox'ta tam dizeyle eslesen bildirim maili **0**,
+**Mail (0.5 adimi, kosulsuz supurme):** tam dizeyle eslesen inbox bildirim maili **0**,
 "Run failed" **0**, tasinan **0**, tur sonu inbox **0**. Hukum **TEMIZ** — pozitif tanima izi
-Cop'ten olculdu: AYNI TAM dizeyle **67** kayit, en yenisi 10 Agu 04:29. Vekil dize kullanilmadi.
+Cop'ten AYNI TAM dizeyle olculdu: **67** kayit, en yenisi 10 Agu 04:29. Vekil dize kullanilmadi.
 
-**CI bagimsiz teyidi (25 + 60 kosumluk pencere):** `failure` **0**. Son yayin kosumu
-`31376707635` (f60c0c1c) **success** — yapim 13,9 dk · yayma 0,6 dk · dogrulama 0,6 dk ·
-duvar saati ≈25,9 dk. Alarm kolu iki kosumda da success. Ucusta/kuyrukta is **yok**.
-**5** `cancelled` art arda push supersede'i — ariza SAYILMADI.
+**CI bagimsiz teyidi (60 kosumluk pencere):** `failure` **0** · success 53 · `cancelled` **4**
+(art arda push supersede'i — ariza SAYILMADI) · ucusta 3. En son `failure` kaydi 10 Agu 01:10Z
+(`feb98e81`, deploy) — pencerenin ~13,5 saat DISINDA; sonrasindaki tum deploy kosumlari yesil.
 
-**✅ DEVRALINAN ACIK OLCUM KAPANDI (serit bolunmesinin kazanci CANLIDA dogrulandi).**
-Onceki turun bekledigi kosum `31371719559` **jobs=[] ile supersede** olmus → o kimlikten sure
-hukmu CIKMAZ (kayit duzeltildi). Hukum merge SONRASI fiilen tamamlanan iki kosumdan verildi:
-`31372379636` (8015d9ab) ve `31376707718` (f60c0c1c).
-- Bolunen job **142,3 → 18,7 / 17,2 dk** (iddia 19,5 dk — TUTTU).
-- Kosum tavani iddiasi 47 dk → **olculen tavan 45,1 dk** (TUTTU).
-- 4 yeni paralel job **4/4 success**; iddia sayilari CI'da korundu, alarm kolu sessiz.
+**⏱️ SURE EKSENI — HUKUM NIHAYET YAZILDI (8 ardisik basarili deploy kosumu birikti):** yayin
+tavanini 8 kosumun **7'sinde** `serit-a2` koyuyor; min/ort/maks **17,9 / 21,6 / 24,8 dk**.
+Diger joblar (min/ort/maks dk): serit-a3 10,5/16,4/18,2 · build 11,9/13,8/14,9 ·
+serit-a4 0,2/0,2/0,3 · deploy 0,5/0,7/1,1 · yayin 0,6/0,6/0,7. Onceki iki turun "olculemedi"
+hukmu KAPANDI (tek kosumdan okunmuyor, 8 kosum birikti).
+**Adim birimi (kosum `31394761851`, job serit-a2):** en uzun adim yasal-sayfa drift kapisi
+**398 sn** (6,6 dk) = job'un ~%36'si; ikinci 169 sn, ucuncu 78 sn. Tavan TEK adimdan
+GELMIYOR — kalan ~11,6 dk cok sayida kisa adima dagilmis, yani bolme kazanci tek adimi
+tasimakla ALINMAZ. (Adimin kendi yorumundaki sure beyanina guvenilmedi, ADIM birimiyle olculdu.)
 
-**⚠️ Yeni tavan TEK bir bataryada ve DALGALI:** ayni is iki kosumda **28,8 → 45,1 dk (+%57)**.
-90 dk zaman asimina mesafe var; sonraki sure isi bu jobdan devam etmeli (sure iddiasi ADIM
-biriminde olculecek, beyandan degil).
+**Yayin bayat DEGIL — uc ayak birlikte olculdu:** (a) guncel head `0cf568ac` icin zincir
+UCUSTA (`31398615918`; serit-a4 success, build/serit-a2/serit-a3 kosuyor), (b) tavani serit-a2
+koyuyor, (c) son yesil deploy head'i `4dead34a` ve `merge-base --is-ancestor 4dead34a 0cf568ac`
+= EVET. Ucusu `cancelled` sayarak degil bu uc ayakla yargilandi.
+
+**Alarm seridi:** deploy:needs DISINDAKI alarm kolu kosumu `31394762072` olcum aninda
+**52,8 dk**dir ucustaydi (onceki turda ~38 dk). Yayini BLOKLAMIYOR, ariza SAYILMADI — ama
+ayni jobun ardisik kosumlari birikince sure hukmu bu seride de yazilacak.
 
 **Bu turda duzeltme YOK** (kirmizi yok), kod commit'i yok.
-**Sonraki turun ILK isi:** yarim is YOK — normal tarama.
+**Envanter:** `M tools/d1-sync.py` yabanci degisiklik hala duruyor — DOKUNULMADI.
+`git worktree list` **2 satir** (ana agac + `muh/teslim-beyani`) — tavan icinde; UCUSTA
+blogundaki dala dokunulmadi.
+**Sonraki turun ILK isi:** yarim is YOK — normal tarama. Sure ekseninde siradaki soru:
+serit-a2'nin ~11,6 dk'lik "cok kisa adim" kuyrugu bolunebilir mi (adim envanteri olculecek).
 
 ## 🔚 OTURUM KAPANISI — 9/10 Agu (marka tek-sayfa turu + yayin tavani)
 
