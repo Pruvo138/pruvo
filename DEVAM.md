@@ -77,6 +77,37 @@ Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~02:40Z turunda taşındı; kayıpsız
 Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~04:37Z turunda taşındı; kayıpsız kanıt: arşiv 1.093.904 → 1.098.626 bayt, artış 4.722 ≥ blok 4.641). Özet: `feb98e81` uçlu koşumda `serit-a2`+`serit-a3` kırmızısı `deploy`+`yayin`'ı skipped bırakmıştı (K19 `ROZET_CAPRAZ_IZINLI` envanter drift'i); onarım BAŞKA oturumda uçuştaydı, mükerrer olmasın diye başlatılmadı ve sonraki turda kapandığı ölçüldü. Kalıcı ders: öksüzlük hükmü dosya mtime'ından değil canlı süreç + yan artefakt yazımından kurulur.
 
 
+## ⏱ Nöbet defteri: 10 Ağu ~06:35–06:55Z turu (KraL) — YAYIN ZİNCİRİ YEŞİL, 112 ÜRÜNLÜK PARTİ CANLIDA, ONARIM GEREKMEDİ
+
+**Ev kontrolü:** `/Users/okan/dev/pruvo` (`worktree list` **1 satır**, tavan altında).
+**Önceki turun İLK işi kapatıldı (ÖLÇÜLDÜ, iddia değil):** `31357314751` koşumunun `serit-b` job'ı
+bu turda da **`in_progress`** — 05:14:17Z'den beri **~85 dk**. Takılma DEĞİL, adım adım ölçüldü:
+96/101 adım bitti, uçuşta olan adım 97 (`Model uyeligi mutasyon bataryasi, 35 öldürücü + 7 kontrol`)
+06:14:48Z'de başladı (~24 dk), önceki iki batarya adımı da benzer hızda kapandı (adım 95: **29,4 dk**,
+adım 96: **15,6 dk**). Yani iş ilerliyor, `conclusion` hâlâ **ÖLÇÜLEMEDİ** (yeşil YAZILMADI).
+**🟡 Bu turun yeni bulgusu — SERIT B kadansı fiilen düştü:** batarya süresi job'ı ~90+ dk'ya
+çıkardığı için sonraki iki SERIT B koşumu (`31359855584` 05:50Z, `31361317446` 06:15Z) **`cancelled`**
+kapandı. `cancel-in-progress: false` gereği içerik kaybolmuyor ama şerit 15 dk'lık tetiğe rağmen
+~90 dk'da bir koşuyor. `deploy.needs` DIŞINDA → yayını BLOKLAMIYOR, ayrı iş olarak sıraya alındı.
+**YAYIN_BLOKLAYAN_KIRMIZI=YOK.** Son 15 koşumda `failure` **0**; `cancelled` olanların hepsi SERIT B.
+06:15Z koşumu `31361317244` (Build & deploy) **success**, 06:36Z koşumu `31362634843` uçuşta.
+**Canlı doğrulama (bayt birimiyle, işçi ölçtü):** HTTP **200**; canlı `urunler.json` **22.900.102**
+bayt / **24.659** ürün = yerel **22.900.102** bayt / **24.659** ürün → **birebir eşit**. Önceki tura
+göre 22.817.244 → 22.900.102: `0532f3d0` Mazda×Thingiverse dilim-6 (**112 ürün**, 24547→24659)
+canlıya **İNDİ**. Kanonik adres örneği `/urun/mazda-miata-vites-topuzu/` **200**, kök **200**.
+**D1 kanalı senkron:** D1 **24.659** == `urunler.json` **24.659**; `urun_hash` 24659/24659 birebir
+(uyuşmaz 0 · eksik 0 · fazla 0), seq monoton, 3 göç indeksi kurulu, türetilmiş 5 kolon GÜNCEL.
+**Parite (TAZE, ana checkout):** `parite-test.js` rc=**0** → `BIREBIR PARITE ✅` **1199/1199**
+(açıklanamayan 0, 71,4 sn) · `parite-ege.js` rc=**0** → `BIREBIR PARITE ✅` **851/851** (89,2 sn).
+**Mükerrer kapısı kilidi ÇÖZÜLDÜ:** önceki turda commit'i kilitleyen yabancı yarım parti
+(`mazda-miata-vites-topuzu-th3803193`) `0532f3d0` ile inmiş; `urunler.json` çalışma-ağacı diff'i
+**BOŞ**. Kutudaki 04:58Z postam (çift GERÇEKTEN farklı, istisna/başlık-ayrıştırma kararı MaCiT'te)
+hâlâ geçerli — parti indiği için kapı bu turda kimseyi kilitlemiyor.
+**Yabancı `tools/d1-sync.py` commit'siz değişikliği DURUYOR** (mtime 09 Ağu 22:44Z) — dokunulmadı.
+**DUR koşulu YOK, onarım YAPILMADI (gerekmedi). Okan'a çıkılmadı** (insan kararı gerektiren tıkanma yok).
+**Sonraki turun İLK işi:** `31357314751`/`serit-b` `conclusion`'ını ÖLÇ (iki turdur ölçülemedi) ve
+kırmızıysa sahiplen; ayrıca SERIT B kadans düşüşünü (90+ dk job ↔ 15 dk tetik) ayrı iş olarak tart.
+
 ## ⏱ Nöbet defteri: 10 Ağu ~05:37–06:00Z turu (KraL) — YAYIN ZİNCİRİ YEŞİL, PARTİ CANLIYA İNDİ, ONARIM GEREKMEDİ
 
 **Ev kontrolü:** `/Users/okan/dev/pruvo` (ölçüldü; `pwd` + `rev-parse --show-toplevel` birebir).
@@ -93,26 +124,8 @@ Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~04:37Z turunda taşındı; kayıpsız
 **Okan'a çıkılmadı:** insan kararı gerektiren tıkanma yok, DUR koşulu yok, yanlış ev yok.
 **Sonraki turun İLK işi:** `31357314751` koşumunun `serit-b` job'ının `conclusion`'ını ÖLÇ (bu turda ölçülemedi; kırmızıysa sınıfı `deploy.needs` dışıdır, yayını durdurmaz ama sahiplenilmeli). Devralınacak başka yarım iş YOK. Açık kalan gerçek iş aşağıdaki DEVIR bloğunda: `muh/marka-tek-sayfa` dalı + 215 ürünlük VERİ onarımı (MaCiT düzlemi).
 
-## ⏱ Nöbet defteri: 10 Ağu ~04:37–05:00Z turu (KraL) — YAYIN ZİNCİRİ YEŞİL, ONARIM GEREKMEDİ
-
-**Ev kontrolü:** `/Users/okan/dev/pruvo` (ölçüldü, doğru ev; `rev-parse --show-toplevel` ile teyit).
-**Mail süpürmesi (koşulsuz, 0.5 adımı):** taşınan **0**, tur sonu "Run failed" **0**. Pozitif tanıma izi: birleşik `inbox` **7543** mesaj tarandı, `notifications@github.com` toplam **0** — bu sayı TEK BAŞINA "ÖLÇÜLEMEDİ" demek olacağı için eşleştirici AYRI kanıtlandı: aynı `contains` operatörüyle `google.com` **1801**, `pruvo3d.com` **13**, geniş `github.com` **1** eşleşme bulundu (o tek eşleşme `notifications@github.com` DEĞİL, başka bir GitHub adresi) → eşleştirici tutuyor, hüküm **TEMİZ**. Tam eşitlik kullanılmadı; yalnız birleşik `inbox`, alt kutulara girilmedi, Çöp boşaltılmadı, başka maile dokunulmadı. Önceki turun uyarısı uygulandı: mesaj başına döngü değil TOPLU özellik çekimi kullanıldı.
-**YAYIN_BLOKLAYAN_KIRMIZI=YOK — son 70 dk penceresinde HİÇ başarısız koşum yok.** `--status failure` ile ayrıca ölçüldü: en yeni kırmızı `31346381973` (10 Ağu **01:10Z**, K19 envanter drift'i) ve o zaten önceki turda kapandığı ölçülen arıza; 03:27–04:37Z arasında sıfır failure.
-**Son push `edd91c63` (126 ürün, 23929→24426 kümülatif seri), koşum `31353186871`: ALTI JOB DA success** — build 831s · serit-a2 1415s · serit-a3 1040s · serit-a4 14s · deploy 31s · yayin 43s. Zincir uçtan uca **25m08s** (03:39:12Z→04:04:20Z).
-**Süre tavanı (JOB birimiyle, beyandan değil):** tavanı yine `serit-a2` koyuyor (**1415s ≈ 23,6 dk**); zincirin geri kalanı bunun gölgesinde. 65 dk tıkanma eşiğinin belirgin altında, bu turda tıkanma YOK.
-**Uçuşta olan tek koşum `31353186957` (SERIT B — başlığında "yayını BLOKLAMAZ"), `deploy.needs` DIŞINDA** → arıza sayılmadı, beklenmedi.
-**Canlı doğrulama (bayt birimiyle, beyanla değil):** HTTP **200**; canlı `urunler.json` **22.733.281** bayt / **24.426** ürün = yerel **22.733.281** bayt / **24.426** ürün → birebir eşit. Önceki tura göre **22.647.246 → 22.733.281**: 126 ürünlük parti canlıya **İNDİ**, bayat sürüm yok.
-**D1 kanalı:** sapma alarmı `31354374392` (04:04Z) **success** — Ege'nin okuduğu tarafta açık alarm yok.
-**DUR koşulu YOK, onarım YAPILMADI (gerekmedi), hiçbir mail silinmedi (silinecek mail yoktu).**
-**🔴 DEFTER COMMIT EDİLMEDİ — gerekçe bu turda ÖLÇÜLDÜ (yabancı yarım parti indi):** tur başında (≈04:40Z) commit güvenliği YEŞİLDİ — canlı `codex exec`/`run_ci_jobs` süreci YOK, `.git/index.lock` YOK, `urunler.json` diff'i **BOŞ**, `git worktree list` **1 satır**. Commit denemesinde (≈04:55Z) pre-commit **mükerrer kapısı rc=1** ile kilitledi ve yeniden ölçüm yabancı bir partinin diske indiğini gösterdi: `urunler.json` **+2332 satır** (tur başında 0). Yani ölçüm ile commit arasındaki ~15 dk içinde başka bir oturum (VERİ düzlemi/MaCiT) yazmaya başladı.
-**Kapının kilitlediği çift ÖLÇÜLDÜ — ürünler GERÇEKTEN FARKLI, mükerrer değil:** `mazda-miata-vites-topuzu-th3803193` (yalnız çalışma ağacında, HEAD'de YOK → yabancı partinin kaydı) ↔ `mazda-miata-vites-topuzu` (HEAD'de VAR). Ayırt edici ölçüm: görsel kesişimi **0** (ayrı kaynak id'leri), açıklamalar farklı, ölçüler **70×42×42 mm** ↔ **60×60×60 mm** (dişli ↔ küresel varyant), lisans/tasarımcı farklı. Yalnız BAŞLIK metni örtüşüyor. `.mukerrer-istisna.json` VAR (2 kayıt) ama bu çift için kaydı YOK.
-**Sınıf: kanca STAGE'i değil ÇALIŞMA AĞACINI yargılıyor** — `tools/mukerrer-kontrol.py` `urunler.json`'u diskten okuyor (`git show :urunler.json` değil), bu yüzden bir mimarın yarım partisi paylaşılan checkout'ta HERKESİN commit'ini kilitliyor → [[kanca-stage-disi-agaci-tarar]] · [[guard-yabanci-yarim-partiyi-bozar]].
-**Alınan karar (tam metin → `DEVAM-ARSIV.md`, git dışı):** kapı atlatılmadı, VERİ düzlemi dosyalarına dokunulmadı (KraL'ın alanı değil), staged defter index yarışına girmesin diye unstage edildi; yabancı çalışma-ağacı değişikliklerine dokunulmadı.
-**⚠️ Bu tur bir sınıf DAHA gösterdi:** commit güvenliği ölçümü **bayatlar** — paylaşılan checkout'ta ölçüm ile commit arasında yabancı parti inebilir. Ölçüm commit'in HEMEN öncesinde tekrarlanmalı, "tur başında temizdi" bir commit izni DEĞİLDİR.
-**Defter kotası 1:1:** 10 Ağu 04:37–05:05Z bloğu arşive alındı (arşiv **1.093.904 → 1.098.626** bayt, artış **4.722** ≥ blok **4.641** → kayıpsız).
-**Okan'a çıkılmadı:** insan kararı gerektiren tıkanma yok, DUR koşulu yok, yanlış ev yok.
-**Sonraki turun İLK işi:** rutin ölçüm (devralınacak yarım iş YOK). Açık kalan gerçek iş aşağıdaki DEVIR bloğunda: `muh/marka-tek-sayfa` dalı + 215 ürünlük VERİ onarımı (MaCiT düzlemi).
-
+## ⏱ Nöbet defteri: 10 Ağu ~04:37–05:00Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
+Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~06:5xZ turunda taşındı). Özet: yayın zinciri altı job da yeşildi, 126 ürünlük parti canlıya indi, onarım gerekmedi; defter yabancı yarım partinin tetiklediği mükerrer kapısı yüzünden commit edilemedi (sınıf: kanca stage'i değil çalışma ağacını yargılıyor).
 ## ⏱ Nöbet defteri: 10 Ağu ~02:38–03:10Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
 Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~05:40Z turunda taşındı; kayıpsız kanıt: arşiv 1.098.626 → 1.102.649 bayt, artış 4.023 ≥ blok 4.023). Özet: önceki turun deploy blokajı başka oturumdan inen onarımla kapandı; iki dilim canlıya indi, kırmızıların hiçbiri `deploy.needs` içinde değildi.
 
