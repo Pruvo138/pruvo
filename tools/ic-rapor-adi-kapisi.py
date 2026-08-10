@@ -103,6 +103,18 @@ ne duruyor".
     Bagli oldugu yer: nobet.yml SERIT B (`fetch-depth: 0`, yayini BLOKLAMAZ).
   * ONLEME DEGIL TESPIT: onleme kolu pre-push kancasidir (tools/kisisel-veri-test.py
     --pre-push). Bu kol o kolun kacirdigi KALICI durumu gorunur kilar.
+  * 🔴 EKSIK NESNE YARISI (11 Agu 2026 OLCULDU, kosum 31433971660 / serit-b): `ls-remote`
+    CANLI uzagi okur, yerel klon ise CHECKOUT anindaki nesneleri tasir. Kosum arasinda
+    ilerleyen bir dalin SHA'si yerelde YOKTUR -> `ls-tree` "not a tree object" ile duser
+    -> rc=2 OLCULEMEDI. O turda GERCEK ihlal YOKTU (bir sonraki kosum 31435535409 yesil,
+    52 dal / 0 isabet); yani bu, her ESZAMANLI push'ta tekrarlayan bir YARISTIR.
+    ONARIM: `ls-tree` duserse KOSUM BASINA BIR KEZ dar bir `git fetch` denenir ve
+    `ls-tree` BIR kez tekrarlanir (52 dal icin 52 fetch YASAK: sonuc hatirlanir).
+    🔴 FAIL-CLOSED KORUNUR: tekrar da duserse hukum yine OLCULEMEDI'dir — AYNI hata
+    ailesi + fetch'in rc'si EKLENIR; "temiz"e DONULMEZ. 🔴 AGA CIKMA KAPISI: fetch
+    yalniz GERCEK `_git_ls_tree` kullanilirken ya da kosucu TESTTEN enjekte edilmisken
+    denenir; kanned `ls_tree` ile kosan kendini-test/mutasyon cagrilari ASLA aga cikmaz.
+    Kabul: IDDIA-11..IDDIA-14 + KONTROL-I.
 
 Kullanim:
     python3 tools/ic-rapor-adi-kapisi.py                 # BETIGIN agacini tarar, exit 0/1
@@ -436,13 +448,75 @@ def _git_ls_tree(kok, sha):
     return r.returncode, r.stdout, r.stderr
 
 
-def uzak_agac_yollari(kok, sha, ls_tree=None):
-    """(yollar, hata). OZYINELI olmali: alt dizindeki rapor da EVRENE girer."""
-    rc, cikti, hata = (ls_tree or _git_ls_tree)(kok, sha)
+# EKSIK NESNE YARISI icin TAZELEME (bkz. dosya basligi): dar + deterministik.
+# Etiket CEKILMEZ, cikti YUTULUR, SURE SINIRLIDIR — ag arizasinda kol asilamaz.
+FETCH_ZAMAN_ASIMI = 120  # saniye
+# 🔴 REFSPEC ACIKCA VERILIR, YAPILANDIRMAYA GUVENILMEZ: CI checkout'u (ve
+# `clone --depth`) `remote.origin.fetch`'i TEK DALA daraltir; yapilandirilmis
+# refspec'e birakilan bir fetch, olculen evrenin (TUM uzak dallar) nesnelerini
+# GETIRMEZ ve tazeleme sessizce ETKISIZ kalirdi. Hedef, origin'in izleme
+# dallarini EZMEYEN AYRI bir ad alanidir; `--prune` ile kendi kendini toplar
+# ve `uzak` bir AD yerine URL oldugunda da gecerli bir ref adi uretir.
+FETCH_REFSPEC = "+refs/heads/*:refs/pruvo-uzak-kapi/*"
+
+
+def _git_fetch(kok, uzak):
+    """(rc, stdout, stderr). AG GEREKTIRIR — YALNIZ eksik nesne yarisinda, KOSUM
+    BASINA BIR KEZ cagrilir. Ortam ayni sebeple temiz (kanca baglami)."""
+    try:
+        r = subprocess.run(["git", "-C", kok, "fetch", "--no-tags", "--prune",
+                            "--quiet", uzak, FETCH_REFSPEC],
+                           capture_output=True, text=True, env=git_ortami(),
+                           timeout=FETCH_ZAMAN_ASIMI)
+    except OSError as e:
+        return 127, "", "git calistirilamadi: %s" % e
+    except subprocess.TimeoutExpired:
+        return 124, "", "fetch ZAMAN ASIMI (%s sn)" % FETCH_ZAMAN_ASIMI
+    return r.returncode, r.stdout, r.stderr
+
+
+def yeni_fetch_durumu():
+    """KOSUM BASINA TEK fetch muhasebesi. 52 dalin her biri icin fetch kosmak
+    kolu kullanilamaz hale getirirdi; ilk eksik nesnede BIR kez kosulur, sonuc
+    HATIRLANIR, kalan dallar ayni tazelenmis klondan okunur.
+    {'sayac': kac kez kosuldu, 'rc': o kosumun rc'si, 'hata': stderr ozeti}."""
+    return {"sayac": 0, "rc": None, "hata": ""}
+
+
+def uzak_agac_yollari(kok, sha, ls_tree=None, fetch=None, fetch_durumu=None,
+                      uzak="origin"):
+    """(yollar, hata). OZYINELI olmali: alt dizindeki rapor da EVRENE girer.
+
+    `ls-tree` duserse (olculen sebep: checkout'tan SONRA push'lanan dalin NESNESI
+    yerelde YOK) KOSUM BASINA BIR KEZ `fetch` denenir ve `ls-tree` BIR kez
+    tekrarlanir. Fail-closed KORUNUR: ikinci deneme de duserse hata AYNI ailedendir
+    ve fetch'in rc'sini TASIR — hicbir kolda "temiz" hukmune DUSULMEZ.
+
+    🔴 AGA CIKMA KAPISI: fetch yalniz `fetch` kosucusu ENJEKTE edilmisken ya da
+    GERCEK `_git_ls_tree` kullanilirken (ls_tree is None) denenir. Kanned `ls_tree`
+    ile kosan cagrilar (kendini-test/mutasyon) aga CIKMAZ.
+    🔴 TETIK rc'dir, git'in HATA METNI DEGIL: mesaj metni bir DEFTERDIR ve bayatlar
+    ("not a tree object" / "bad object" / "Not a valid object name"); tek fetch
+    tavani zaten ucuz tuttugu icin her rc!=0 tazeleme denemesini hak eder."""
+    kosucu = ls_tree or _git_ls_tree
+    rc, cikti, hata = kosucu(kok, sha)
+    fetch_notu = ""
+    if rc != 0 and (fetch is not None or ls_tree is None):
+        durum = fetch_durumu if fetch_durumu is not None else yeni_fetch_durumu()
+        if durum["sayac"] == 0:
+            durum["sayac"] += 1
+            f_rc, _f_cikti, f_hata = (fetch or _git_fetch)(kok, uzak)
+            durum["rc"] = f_rc
+            durum["hata"] = (f_hata or "").strip()[:120]
+        fetch_notu = ("\nTAZELEME: `git fetch` bu kosumda 1 kez kosuldu (rc=%s) %s"
+                      % (durum["rc"], durum["hata"]))
+        if durum["rc"] == 0:
+            rc, cikti, hata = kosucu(kok, sha)
     if rc != 0:
         return None, ("UZAK DAL AGACI OKUNAMADI (fail-closed, sha=%s): %s\nSIG "
                       "(shallow) klonda uzak dal NESNELERI yoktur. Cozum: "
-                      "git fetch --prune origin" % (sha[:12], (hata or "").strip()[:120]))
+                      "git fetch --prune origin%s"
+                      % (sha[:12], (hata or "").strip()[:120], fetch_notu))
     yollar = [y for y in cikti.split("\0") if y]
     if not yollar:
         return None, ("BOS AGAC (fail-closed, sha=%s): 0 dosya listelendi — 'temiz' "
@@ -450,11 +524,13 @@ def uzak_agac_yollari(kok, sha, ls_tree=None):
     return yollar, None
 
 
-def uzak_tarama(kok, uzak="origin", predikat=None, ls_remote=None, ls_tree=None):
+def uzak_tarama(kok, uzak="origin", predikat=None, ls_remote=None, ls_tree=None,
+                fetch=None):
     """(isabetler, dal_sayisi, hata). isabet = (dal, sha, yol).
 
     Hukum SIRASI fail-closed'dir: kanonik aile -> evren -> her dalin agaci. Herhangi
-    biri olculemezse "0 isabet" BASILMAZ."""
+    biri olculemezse "0 isabet" BASILMAZ. Tazeleme muhasebesi TUM dallar icin ORTAK
+    tutulur -> fetch KOSUM BASINA en fazla 1 kez kosar."""
     if predikat is None:
         predikat, kanon_hata = kanonik_aile()
         if kanon_hata:
@@ -470,8 +546,10 @@ def uzak_tarama(kok, uzak="origin", predikat=None, ls_remote=None, ls_tree=None)
         return None, 0, ("BOS KAPSAM (fail-closed): `%s` uzaginda 0 dal listelendi — "
                          "rc=0 + bos cikti 'temiz' DEGIL" % uzak)
     isabetler = []
+    fetch_durumu = yeni_fetch_durumu()
     for sha, dal in dallar:
-        yollar, agac_hatasi = uzak_agac_yollari(kok, sha, ls_tree=ls_tree)
+        yollar, agac_hatasi = uzak_agac_yollari(kok, sha, ls_tree=ls_tree, fetch=fetch,
+                                                fetch_durumu=fetch_durumu, uzak=uzak)
         if agac_hatasi:
             return None, len(dallar), ("dal %s: %s" % (dal, agac_hatasi))
         for yol in yollar:
@@ -511,14 +589,18 @@ def _uzak_kolu(kok, uzak, kanon_dizin):
 
 # ===========================================================================
 # KENDINI-TEST — izole gecici git deposunda offline kabul testi.
-# IDDIA-1..IDDIA-10: mutasyon testinin "TEK KIRMIZI" hedefledigi, SABIT SAYIDA
-# (10) DECLARE EDILMIS ana iddia — surucusu REPODA durur: `--mutasyon` kolu.
+# IDDIA-1..IDDIA-14: mutasyon testinin "TEK KIRMIZI" hedefledigi, SABIT SAYIDA
+# (14) DECLARE EDILMIS ana iddia — surucusu REPODA durur: `--mutasyon` kolu.
 #   1-2 = desen/muafiyet ekseni · 3-5 = KOK ekseni (5 Agu 2026 olculen "yanlis agacta
 #   yesil" kusuru) · 6 = WORKTREE+KANCA baglami (6 Agu 2026 olculen "kok ortamdan
 #   turuyor" kusuru; DAVRANISSAL: gercek worktree + gercek commit + gercek kanca)
 #   · 7-10 = UZAK DAL GECMISI ekseni (10 Agu 2026 olculen "kapi yesilken 3 uzak dalda
 #   ic rapor PUBLIC" kusuru): 7 isabet, 8 taninmayan evren fail-closed, 9 GERCEK git
-#   ozyineli agac, 10 kanonik aile kaynagi fail-closed (ikiz tanim yasagi).
+#   ozyineli agac, 10 kanonik aile kaynagi fail-closed (ikiz tanim yasagi)
+#   · 11-14 = EKSIK NESNE YARISI ekseni (11 Agu 2026 olculen "yayin YARISTA rc=2"
+#   kusuru): 11 tazeleme+tekrar sonrasi hukum VERILIR, 12 tazelemeye RAGMEN okunamayan
+#   agac hala OLCULEMEDI (fail-closed), 13 kanned kosuculu kollar AGA CIKMAZ, 14 fetch
+#   KOSUM BASINA en fazla 1 kez.
 #   KONTROL-*: ek saglamlik/yanlis-pozitif kontrolleri; IDDIA kumesinin
 # PARCASI DEGILDIR. KONTROL-C E2E oldugu icin IDDIA-2 ile AYNI alt fonksiyonu
 # (_desenler_bul) paylasir — "desen kontrolunu no-op yap" mutantinda YAN ETKI
@@ -769,6 +851,102 @@ def _kendini_test(kanon_dizin=BETIK_DIZINI):
         sonuclar.append(("IDDIA-10 kanonik-aile-fail-closed", iddia10,
                           "kanonik kaynak yokken yedek desene DUSULMEMELI (p=%r)" % (_p10,)))
 
+    # ------------------------------------------------- EKSIK NESNE YARISI EKSENI
+    # 11 Agu 2026 OLCULEN kusur (kosum 31433971660 / serit-b): checkout'tan SONRA
+    # ilerleyen dalin nesnesi yerelde YOK -> `ls-tree` duser -> rc=2, GERCEK ihlal YOK.
+    # AG YOK: hem `ls_tree` hem `fetch` kosuculari ENJEKTE edilir; fetch SAYACI
+    # "kosum basina 1" sozlesmesini OLCER.
+    def _sayacli_fetch(rc=0, hata=""):
+        kayit = {"n": 0}
+
+        def _kosucu(_kok, _uzak):
+            kayit["n"] += 1
+            return rc, "", hata
+        return kayit, _kosucu
+
+    def _yarisan_ls_tree(gecince=None):
+        """Her sha icin ILK cagriyi "not a tree object" ile dusurur (yarisin ta
+        kendisi). `gecince` verilirse SONRAKI cagrilar rc=0 + o agaci doner
+        (tazelenmis klon); verilmezse HER cagri duser."""
+        gorulen = set()
+
+        def _kosucu(_kok, sha):
+            if sha in gorulen and gecince is not None:
+                return 0, gecince, ""
+            gorulen.add(sha)
+            return 128, "", "fatal: not a tree object"
+        return _kosucu
+
+    def _tek_dal_ls_remote(_kok, _uzak):
+        return 0, "%s\trefs/heads/main\n" % _sha_b, ""
+
+    # IDDIA-11 (YARIS ONARILDI): ilk `ls-tree` duser, fetch rc=0, ikinci `ls-tree`
+    # gecer -> HUKUM VERILIR (OLCULEMEDI DEGIL) ve fetch TAM 1 kez kosar.
+    _kayit11, _fetch11 = _sayacli_fetch(rc=0)
+    i11, _d11, h11 = uzak_tarama("/yok", "origin", predikat=_p,
+                                 ls_remote=_tek_dal_ls_remote,
+                                 ls_tree=_yarisan_ls_tree(_temiz), fetch=_fetch11)
+    iddia11 = h11 is None and i11 is not None and _kayit11["n"] == 1
+    sonuclar.append(("IDDIA-11 eksik-nesne-yarisi-onarildi", iddia11,
+                      "fetch+tekrar sonrasi hukum VERILMELI (fetch=%d isabet=%r hata=%r)"
+                      % (_kayit11["n"], i11, h11)))
+
+    # IDDIA-12 (FAIL-CLOSED KORUNDU): tazelemeden SONRA da okunamayan agac
+    # OLCULEMEDI'dir; sessizce "temiz"e DONULMEZ.
+    _kayit12, _fetch12 = _sayacli_fetch(rc=0)
+    i12, _d12, h12 = uzak_tarama("/yok", "origin", predikat=_p,
+                                 ls_remote=_tek_dal_ls_remote,
+                                 ls_tree=_yarisan_ls_tree(), fetch=_fetch12)
+    iddia12 = i12 is None and h12 is not None and "UZAK DAL AGACI OKUNAMADI" in h12
+    sonuclar.append(("IDDIA-12 tazeleme-sonrasi-fail-closed", iddia12,
+                      "iki deneme de duserse OLCULEMEDI kalmali (isabet=%r hata=%r)"
+                      % (i12, (h12 or "")[:90])))
+
+    # KONTROL-I (FETCH BASARISIZLIGI YUTULMAZ): fetch duserse hukum yine OLCULEMEDI
+    # ve fetch'in rc'si hata metninde GORUNUR (sessiz yesile DONMEZ).
+    _kayit_i, _fetch_i = _sayacli_fetch(rc=5, hata="fatal: could not read from remote")
+    iI, _dI, hI = uzak_tarama("/yok", "origin", predikat=_p,
+                              ls_remote=_tek_dal_ls_remote,
+                              ls_tree=_yarisan_ls_tree(), fetch=_fetch_i)
+    kontrol_i = iI is None and hI is not None and "rc=5" in hI
+    sonuclar.append(("KONTROL-I fetch-basarisiz-yine-olculemedi", kontrol_i,
+                      "fetch rc'si hata metnine yazilmali (isabet=%r hata=%r)"
+                      % (iI, (hI or "")[:90])))
+
+    # IDDIA-13 (AGA CIKMA YOK): (a) kanned kosucu rc=0 verirken fetch HIC cagrilmaz;
+    # (b) kanned kosucu DUSSE bile fetch kosucusu ENJEKTE EDILMEMISSE gercek fetch
+    # denenmez -> kendini-test/mutasyon kollari AGA CIKMAZ.
+    _kayit13, _fetch13 = _sayacli_fetch(rc=0)
+    _i13, _d13, h13 = uzak_tarama("/yok", "origin", predikat=_p,
+                                  ls_remote=_sahte_ls_remote,
+                                  ls_tree=_sahte_ls_tree_kirli, fetch=_fetch13)
+    _durum13 = yeni_fetch_durumu()
+    _y13, _h13b = uzak_agac_yollari("/yok", _sha_a, ls_tree=_yarisan_ls_tree(),
+                                    fetch_durumu=_durum13)
+    iddia13 = (h13 is None and _kayit13["n"] == 0
+               and _h13b is not None and _durum13["sayac"] == 0)
+    sonuclar.append(("IDDIA-13 enjekte-kosucu-aga-cikmaz", iddia13,
+                      "kanned kolda fetch sayaci 0 olmali (rc0-kol=%d, dusen-kol=%d)"
+                      % (_kayit13["n"], _durum13["sayac"])))
+
+    # IDDIA-14 (KOSUM BASINA TEK FETCH): 3 dalin HEPSI ilk denemede duse bile fetch
+    # sayaci 1'i GECMEZ (52 dal icin 52 fetch YASAK); kalan dallar tazelenmis
+    # klondan okunur.
+    _uc_dal = ("%s\trefs/heads/a\n%s\trefs/heads/b\n%s\trefs/heads/c\n"
+               % (_sha_a, _sha_b, "c1d2e3f405162738495a6b7c8d9e0f1234567890"))
+
+    def _uc_dal_ls_remote(_kok, _uzak):
+        return 0, _uc_dal, ""
+
+    _kayit14, _fetch14 = _sayacli_fetch(rc=0)
+    _i14, d14, h14 = uzak_tarama("/yok", "origin", predikat=_p,
+                                 ls_remote=_uc_dal_ls_remote,
+                                 ls_tree=_yarisan_ls_tree(_temiz), fetch=_fetch14)
+    iddia14 = _kayit14["n"] == 1
+    sonuclar.append(("IDDIA-14 fetch-kosum-basina-tek", iddia14,
+                      "3 dal / 1 fetch olmali (fetch=%d dal=%d hata=%r)"
+                      % (_kayit14["n"], d14, h14)))
+
     basarisiz = [s for s in sonuclar if not s[1]]
     for etiket, gecti, detay in sonuclar:
         print("  [%s] %s — %s" % ("PASS" if gecti else "FAIL", etiket, detay))
@@ -827,6 +1005,26 @@ MUTANTLAR = (
      '        return None, ("KANONIK AILE KAYNAGI YOK: %s',
      '        return (lambda y: y.rsplit("/", 1)[-1].lower().startswith("rapor")), ("%s',
      "IDDIA-10"),
+    # --- EKSIK NESNE YARISI EKSENI: 11 Agu 2026 onarimini geri alan mutantlar ---
+    # Tekrari oldurur: fetch kosar ama `ls-tree` BIR DAHA denenmez -> yaris yine rc=2.
+    # 12/KONTROL-I zaten OLCULEMEDI bekler, 14 yalniz SAYACA bakar -> TEK KIRMIZI.
+    ("MUT-UZAK-YARIS-YOK", '        if durum["rc"] == 0:', "        if False:",
+     "IDDIA-11"),
+    # Fail-closed'i fail-OPEN yapar: tazelemeden sonraki okuma SAHTE bir temiz agac
+    # dondurur. IDDIA-11 (tekrar zaten geciyordu) ve 13/14 (fetch muhasebesi) BUNDAN
+    # ETKILENMEZ -> yalniz "tazelemeye ragmen okunamadi" iddiasi duser.
+    ("MUT-UZAK-TAZELEME-SAHTE", "            rc, cikti, hata = kosucu(kok, sha)",
+     '            rc, cikti, hata = 0, "index.html\\0", ""', "IDDIA-12"),
+    # AGA CIKMA KAPISINI oldurur: kanned kosucu dustugunde de GERCEK fetch denenir
+    # (kendini-test/mutasyon kollari aga cikar). Fetch ENJEKTE edilen iddialar bu
+    # kapiyi zaten aciyor -> yalniz "aga cikma yok" iddiasi duser.
+    ("MUT-UZAK-FETCH-KAPI",
+     "    if rc != 0 and (fetch is not None or ls_tree is None):", "    if rc != 0:",
+     "IDDIA-13"),
+    # Tek-fetch tavanini oldurur: her dusen dal icin YENIDEN fetch (52 dal -> 52 fetch).
+    # Tek dalli iddialar (11/12/KONTROL-I) sayiyi degistirmez -> yalniz tavan iddiasi duser.
+    ("MUT-UZAK-FETCH-HER-DAL", '        if durum["sayac"] == 0:', "        if True:",
+     "IDDIA-14"),
     # --- KONTROL: davranisi DEGISTIRMEYEN degisiklik -> batarya YESIL kalmali.
     #     Bu mutant kirmizi yakarsa batarya ayirt edici degil, sadece hassastir.
     ("KONTROL-METIN", 'print("COZUM: yorum/docstring METNINDEN dosya adini kaldir, anlamini koruyarak")',
