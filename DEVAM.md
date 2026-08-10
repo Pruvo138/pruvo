@@ -20,6 +20,13 @@ DEGIL → kurtarma yapilmis; yanlis silme alarmi bu turda SONMUS.
 - Diger alarm kollari `b7f7e5b4` head'inde yesil (D1 sapma ×2, Odeme yolu bayatlik nabzi, spec
   alarm kolu). Inbox'ta "Run failed" birikmesi supurme askida oldugu icin BEKLENEN.
 
+**🟠 WORKTREE TAVANI ASILDI — push kapisi olctu: SAYI=3 TAVAN=2, ikisi OKSUZ (178,9 dk ve
+188,3 dk, ikisi de KIRLI=HAYIR).** `great-feynman-335110` main'de OLMAYAN **1 commit**
+tasiyordu (`8c782ed1`, marka katlama ikiz-tanim ayrismasi + drift kapisi + 4 mutant kanit) →
+**bu turda capa atildi:** `kurtarma/worktree-marka-katla-8c782ed1`. Worktree'ler SILINMEDI,
+dokunulmadi. **SIRADAKI IS:** capadaki isi yargila (main'e mi, cop mu) ve iki oksuz agaci
+arsivle-sonra-kaldir yordamiyla dusur — tavan yeniden 2 olsun.
+
 **Devralinan acik kalem (19:37Z blogu defter kotasi 1:1 geregi arsive alindi, kalem BURADA
 yasiyor):** kayip is capasi `kurtarma/stash-8agu-baska-oturum` (`891feaeb`) — 5 dosya temiz
 uygulanir, 4 dosya yama duzeyinde birlestirme ister, toplu `pop` YAPILMAZ. ⚠️ Baska bir KraL
