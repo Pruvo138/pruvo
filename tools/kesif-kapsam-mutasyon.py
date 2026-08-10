@@ -437,8 +437,10 @@ def main():
     olc("M-KB1 (Y4) main() olcumu GECIRMIYOR (`izlenmeyen=None`)",
         lambda: _kablo_fikstur(_mutant_modul(
             "kb1",
-            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep)",
-            "        izlenmeyen=None, izlenmeyen_sebep=izlenmeyen_sebep)")),
+            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep,\n"
+            "        model_uretim=gercek_deploy)",
+            "        izlenmeyen=None, izlenmeyen_sebep=izlenmeyen_sebep,\n"
+            "        model_uretim=gercek_deploy)")),
         True, "KABLO KOPUK")
 
     olc("M-KB2 (Y8) main() kovayi BOSALTIYOR (`izlenmeyen = []`)",
@@ -451,8 +453,10 @@ def main():
     olc("M-KB3 (Y9) main() uretim SEBEBINI yutuyor",
         lambda: _kablo_fikstur(_mutant_modul(
             "kb3",
-            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep)",
-            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=None)")),
+            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep,\n"
+            "        model_uretim=gercek_deploy)",
+            "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=None,\n"
+            "        model_uretim=gercek_deploy)")),
         True, "K3 SEBEP YUTULDU")
 
     # ---- PUSH KABLOSU: pre-push blogunun DAVRANISI (varligi degil) -----------
