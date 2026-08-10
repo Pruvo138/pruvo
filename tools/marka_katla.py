@@ -8,12 +8,21 @@ Panel/CSV/kapsama raporu satır evrenini ham defter anahtarları yerine bu kanon
 listeden alır; ham defterdeki tüm anahtarların sayımları markaKatla ile kanonik
 markaya katlanır (tanınmayan çöp anahtar hiç görünmez).
 
-Site (index.html) ile senkron TUTULMASI gereken tek yer markaNorm gövdesi ve
-markaKatla önek kuralıdır — ikisi de aşağıda birebir yansıtıldı. marka-panel-test.py
-sabit vaka tablosuyla bu tutarlılığı MUTASYON-KANITLI kilitler.
+🔴 "BİREBİR" PROSE DEĞİL, ÇALIŞTIRILABİLİR KAPIYLA KANITLANIR. Bu dosya 10 Ağu 2026'ya
+kadar docstring'inde "birebir" yazıyordu ve DEĞİLDİ (aksan kolu elle listeydi, site
+6 Ağu'da NFD genel kuralına geçmişti; MARKA_ALIAS hiç yoktu) — kimse fark etmedi çünkü
+sessizdi ([[ikiz-tanim-sessiz-ayrisma]]). İddianın nöbetçisi artık:
+    python3 tools/marka-katla-ikiz-kapisi.py     (site gövdesini KOŞUM ANINDA node ile
+                                                 çalıştırıp DAVRANIŞ karşılaştırır)
+    python3 tools/marka-katla-ikiz-mutasyon-test.py  (o kapının gerçekten ölçtüğünün kanıtı)
+Senkron tutulan iki eksen: markaNorm gövdesi (aksan GENEL KURALI + ayıraç kanonu) ve
+markaKatla (kanonik/önek eşleşmesi + SONRASINDA marka-düzeyi ALIAS). İkisi de elle
+KOPYALANMAZ: TANINMIS_MARKALAR ve MARKA_ALIAS index.html'den PARSE edilir, aksan kolu
+ise iki dilde AYNI genel algoritmadır (NFD + birleşen-işaret silme).
 """
 import os
 import re
+import unicodedata
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -31,11 +40,26 @@ def _norm(s):
     return s
 
 
+# 🔴 AKSAN GENEL KURALLA ÇÖZÜLÜR — index.html markaNorm (6 Ağu, mimar hükmü H4) ile AYNI
+# ALGORİTMA, elle liste DEĞİL: `norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "")`.
+# Eskiden burada elle bir liste vardı (`é/è/ë/ä`) ve caron ("Škoda"), tilde ("Señor"),
+# halka ("Åkerman"), akut, macron, breve taşıyan HİÇBİR yazımı görmüyordu — yani site ile
+# AYRI bir aksan tanımıydı ([[ikiz-tanim-sessiz-ayrisma]]). Genel kural yazıldığı için
+# ileride SİTEYE yeni bir aksan gelse de port kendiliğinden doğru davranır (elle port
+# olsaydı yine bayatlardı). Yan kazanç: Python `.lower()` "İ"yi `i + U+0307` üretir; o
+# birleşen nokta da burada düşer, yani site `toLocaleLowerCase("tr")` ile hizalanır.
+_BIRLESEN_ISARET = re.compile("[\\u0300-\\u036f]")
+
+
+def _aksan_sil(n):
+    return _BIRLESEN_ISARET.sub("", unicodedata.normalize("NFD", n))
+
+
 def markaNorm(s):
     """norm() + Latin aksan ("Citroën"->"citroen") + marka ayıraç birleştirme.
     "+", "&", " and " tek biçime indirgenir -> "Black+Decker" == "Black and Decker"."""
     n = _norm(s)
-    n = n.replace("é", "e").replace("è", "e").replace("ë", "e").replace("ä", "a")
+    n = _aksan_sil(n)
     # marka ayıraç kanonikleştirme (site markaNorm ile birebir tutulur):
     n = n.replace(" and ", " ").replace("&", " ").replace("+", " ")
     n = re.sub(r"\s+", " ", n).strip()
@@ -54,16 +78,32 @@ def _parse_taninmis(index_path=INDEX):
     return re.findall(r'"([^"]+)"', body)
 
 
+def _parse_alias(index_path=INDEX):
+    """index.html'den MARKA_ALIAS sözlüğünü PARSE et (tek kaynak — ELLE YAZILMAZ).
+    Aynı markanın iki adı ("Vauxhall" = Opel'in İngiltere adı) TEK kaleme iner.
+    Elle bir kopya tutulsaydı site tablosu büyüdüğünde port SESSİZCE bayatlardı —
+    bu dosyanın 10 Ağu'da kapatılan kusuru tam olarak buydu."""
+    src = open(index_path, encoding="utf-8").read()
+    m = re.search(r"var MARKA_ALIAS = \{(.*?)\};", src, re.S)
+    if not m:
+        raise RuntimeError("MARKA_ALIAS index.html'de bulunamadı")
+    body = re.sub(r"//[^\n]*", "", m.group(1))
+    return dict(re.findall(r'"([^"]+)"\s*:\s*"([^"]+)"', body))
+
+
 TANINMIS_MARKALAR = _parse_taninmis()
+MARKA_ALIAS = _parse_alias()
 MARKA_KANONIK = {}
 for _m in TANINMIS_MARKALAR:
     MARKA_KANONIK[markaNorm(_m)] = _m
 MARKA_NORMLU = [markaNorm(m) for m in TANINMIS_MARKALAR]
 
 
-def markaKatla(m):
+def _katla_alias_oncesi(m):
     """Değer tanınmış markanın kendisiyse ya da boşluk/tire ile önekliyse o markanın
-    kanonik adına katlanır; değilse OLDUĞU GİBİ döner (site markaKatla birebir)."""
+    kanonik adına katlanır; değilse OLDUĞU GİBİ döner. ALIAS BURADA UYGULANMAZ —
+    site markaKatla'da da alias kanonik/önek eşleşmesinden SONRA gelir, sıra
+    ANLAMLIDIR ("Vauxhall Astra" önce Vauxhall'a katlanır, sonra Opel'e iner)."""
     n = markaNorm(m)
     if n in MARKA_KANONIK:
         return MARKA_KANONIK[n]
@@ -71,6 +111,14 @@ def markaKatla(m):
         if n.startswith(nm + " ") or n.startswith(nm + "-"):
             return TANINMIS_MARKALAR[i]
     return m
+
+
+def markaKatla(m):
+    """site markaKatla birebir: kanonik/önek katlaması + SONRASINDA marka-düzeyi ALIAS."""
+    sonuc = _katla_alias_oncesi(m)
+    if sonuc in MARKA_ALIAS:
+        sonuc = MARKA_ALIAS[sonuc]
+    return sonuc
 
 
 def taninmisMarkaMi(m):

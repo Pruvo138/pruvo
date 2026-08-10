@@ -1794,7 +1794,11 @@ TABLO_TABANLARI = (
     # 10 Agu: +2 -> 94. Model uyeligi ve model baslik kollarinin KENDINI-TEST
     # bataryalari serit-b'ye tasindi; iki bayraksiz GERCEK katalog olcumu deploy.yml
     # serit-a3'te BLOKLAYICI kaldi.
-    ("SERIT_B", 94),
+    # 10 Agu: +2 -> 96. MARKA KATLAMA IKIZ-TANIM drift kapisi + mutasyon bataryasi
+    # serit-b'ye eklendi (korudugu marka-panel-test.py zaten orada; olculen yuzey
+    # ziyaretciye giden icerik degil ARAC/TESHIS katmani, yayini durdurmanin tamir
+    # degeri sifir).
+    ("SERIT_B", 96),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2630,6 +2634,25 @@ SERIT_B = {
         "Ustteki marka-panel-test.py'nin MUTASYON BATARYASI (7 mutant + 1 kontrol); "
         "olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
         "(nobetci-mutasyon-test.py ile ayni desen). Korudugu pano zaten serit B'de.",
+    # --- MARKA KATLAMA IKIZ-TANIM DRIFT KAPISI (10 Agu 2026) --------------------
+    # SINIF SECIMI: olculen sey `tools/marka_katla.py` PORTUNUN index.html ile ayni
+    # davranip davranmadigi. Ayrisma canliya YANLIS/SIZINTILI ICERIK CIKARMAZ — site
+    # kendi markaNorm/markaKatla'siyla dogru calismaya devam eder; ayrisan taraf
+    # ARAC/TESHIS katmanidir (panel, kapsama defteri, backfill hazirligi). Yayini
+    # durdurmanin TAMIR DEGERI SIFIR: kirmizi an canlida degisen bir sey yok, deploy'u
+    # bloklamak yalnizca ONARIMIN yayina inmesini geciktirir ([[kapi-birikimi-yayin-
+    # gecikmesi]]; bu depoda ilgisiz kapi 6 SAATLIK 404 penceresi acti). Ayni gerekce
+    # zinciri korudugu kabul testiyle (marka-panel-test.py) BIREBIR ayni seride tutar.
+    ("nobet.yml", "serit-b", "tools/marka-katla-ikiz-kapisi.py"):
+        "index.html MARKA KURATORLUGU blogu ile tools/marka_katla.py PORTUNUN DAVRANIS "
+        "ikizligi (aksan genel kurali + MARKA_ALIAS + onek kurali). Olculen yuzey "
+        "ZIYARETCIYE GIDEN icerik DEGIL, ARAC/TESHIS katmanidir (panel · kapsama "
+        "defteri · backfill hazirligi); site kendi govdesiyle dogru calismaya devam "
+        "eder. Korudugu kabul testi (marka-panel-test.py) zaten serit B'de.",
+    ("nobet.yml", "serit-b", "tools/marka-katla-ikiz-mutasyon-test.py"):
+        "Ustteki drift kapisinin MUTASYON BATARYASI (4 mutant + M00 kontrol); olctugu "
+        "sey KABUL KAPISININ KENDISI, yayinlanan hicbir cikti DEGIL (panel-mutasyon-"
+        "test.py / nobetci-mutasyon-test.py ile ayni desen). Korudugu kapi serit B'de.",
     ("nobet.yml", "serit-b", "tools/panel-tazeleme-test.js"):
         "Panelin OTOMATIK TAZELEME davranis testi (node DOM saplamasi): tazeleme "
         "kullanicinin aramasini/filtresini/siralamasini SIFIRLAMIYOR mu. Panel bir "
