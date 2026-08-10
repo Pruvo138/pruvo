@@ -22,14 +22,17 @@
  * ([[katalog-olcek-siniri]] · [[bayat-kabul-testi]]). (Bu tarihli bir OLCUMDUR, capa
  * DEGIL: bugunku katalog boyu asagida KOSUM ANINDA okunur.)
  *
- * 🔴 TAVAN YUKSELTILMEDI (mimar karari). Mutlak sinir bir BUTCE sinirdir: 1 parti = 1
- * canli /katalog?ids= istegi, 500 parti = ~500 ek canli istek (429 butcesi). "Katalog
- * buyumesinin onunde kal" diye siniri buyutmek KOSU BANDIDIR: bugun 2x = 501 parti,
- * katalog iki katina cikinca 2x = 1001 parti -> ayni bomba bir katlama sonra yeniden
- * patlar. Ayrica parite-ortak.js'in kendi OLCULMUS gerekcesi duruyor: Ege'nin bellek
- * modeli ~20-25k'da 128 MB'i zaten asiyor; 50.000'i gecen bir katalogda kirilan sey
- * "kanit yontemi" degil, katalogun Ege'yi COKTAN ASMIS olmasidir. Olculmus gerekce
- * olmadan esik buyutmek bu depoda yasak olan "tahminle esik degistirme"dir.
+ * 🔴 MUTLAK PARTI BANDI ([50..1000]) DENENDI ve GERI CEKILDI (mimar karari, 10 Agu 2026).
+ * Once "mutlak sinir sabit bir parti bandinda kalmali" diye olculuyordu. YANLIS
+ * INVARYANTTI: "yerel ⊆ D1" kaniti DOGASI GEREGI ceil(n/IDS_PARTI) istek ISTER; katalogun
+ * ALTINDA bir tavan, buyuk katalogda pariteyi ASLA kanitlayamamak demektir — 526 sahte
+ * kirmiziyi ureten bomba tam olarak buydu. Tavan artik KATALOG-GORELIDIR (parite-ortak.js:
+ * `mutlakTavan()`), ve bu sinifi KOKTEN kapatir.
+ * KAYBEDILMEMESI GEREKEN UC SEY ise burada olculmeye DEVAM eder:
+ *   (1) tavan FIILEN UYGULANIYOR (K3'un "bir parti otesi" ekseni),
+ *   (2) tavan DOYUYOR — kaldirilirsa yakalanir (K2 DOYMA; kat orani bunu YAKALAYAMAZ,
+ *       cunku sinir kalkinca oran 1,0'a duser ve banttan GECER),
+ *   (3) butce katalogla ORANTILI kaliyor, kat kat PATLAMIYOR (K3 kat orani, ust KAT_UST).
  *
  * 🔴 IDDIA BOLUNDU (celiski boyle kalkti — [[hukum-yanlis-birimde]]): "tavan sabit degil"
  * ile "supurme eksiksiz" AYRI onermelerdir ve AYRI birimlerde olculur.
@@ -41,32 +44,32 @@
  *     sinav noktasi "2x bugun" degil TAM SINIR (mutlak x IDS_PARTI id) ve sinirin BIR
  *     PARTI otesidir. Bu, eski K2'den DAHA GUCLU: "2x bugun" rastgele bir noktaydi, tam
  *     sinir butce SOZLESMESININ KENDISIDIR.
- *   · Katalog buyumesi ise AYRI ve DURUST bir eksende olculur: bugunku katalog butceye
- *     SIGIYOR mu (K1) ve butcenin yuzde kacini yiyor (K5 erken uyarisi).
- *
- * 🔴 BUTCE BANDI (K3'un ILK iddiasi): SUPURME_MUTLAK_TAVAN 50..1000 parti bandinda
- * olmalidir. 1 parti = 1 canli istek; 1000 parti TICARI UST SINIRDIR (429 butcesi),
- * 50'nin ALTI ise kaniti anlamsiz kilacak kadar dardir. Bu iddia "siniri sessizce buyut"
- * kacisini kapatir. SIRA ONEMLI: bant asilmissa supurme eksenleri KOSULMAZ (tavani
- * 100.000'e ceken bir mutant testi milyonlarca istege suruklerdi), imzaya "K3 bant=ASILDI"
- * yazilir ve ilgili iddialar KIRMIZI sayilir — SESSIZCE ATLAMA YOK.
+ *   · Katalog buyumesi ise AYRI ve DURUST bir eksende olculur: tavan katalogun ALTINA
+ *     dusmus mu (K3), katalogun kac katina cikmis (K3 kat orani), tek kanit kosumunun
+ *     CANLI MALIYETI ne (K7 erken uyarisi).
  *
  * BU KAPININ IDDIALARI:
- *   K1  BUGUNKU katalog boyunda supurme EKSIKSIZ (tavan carpMAZ, tum partiler kosar) VE
- *       bugunku katalog canli istek BUTCESINE SIGIYOR. Bu son iddia asilirsa bu bir TEST
- *       ARIZASI DEGIL, mimar/Okan kararidir (butceyi olculmus gerekceyle buyut ya da
- *       katalogun Ege olcek sinirini astigini KABUL ET),
+ *   K1  BUGUNKU katalog boyunda supurme EKSIKSIZ (tavan carpMAZ, tum partiler kosar),
  *   K1b POZITIF TANIMA: uc birkac id'yi BILEREK gizlerse supurme onlari YAKALAR. "Eksik
  *       0" tek basina FAIL-OPEN'dir (hic istek atilmasa da 0 gelir); ayrica "TUM partiler
  *       kosuldu" da bolme aritmetigidir — bu yuzden her supurme ekseninde FIILEN atilan
  *       /katalog?ids= istegi (idsIstek) AYRICA olculur ([[beyan-edilmis-survivor]]),
- *   K2  TAVAN SABIT DEGIL: supurmeTavani butce penceresi icinde BIREBIR ceil(n/IDS_PARTI)
- *       ve n buyudukce BUYUYOR; turev bugunku katalogda da gecerli (SAF, 0 istek),
- *   K3  BUTCE SINIRI: mutlak sinir savunulabilir BANTTA; TAM SINIRDA supurme EKSIKSIZ,
- *       sinirin BIR PARTI OTESINDE ust sinir DURUYOR ve butce PATLAMIYOR (0 istek),
+ *   K2  TAVAN SABIT DEGIL + DOYUYOR: supurmeTavani pencere icinde BIREBIR ceil(n/IDS_PARTI)
+ *       ve n buyudukce BUYUYOR, ama MUTLAK sinirda DOYAR (iki noktada olculur; SAF, 0 istek),
+ *   K3  BUTCE ORANI: tavan katalogun ALTINA dusMEZ (yoksa parite ASLA kanitlanamaz) ve
+ *       katalogun KAT_UST katini ASMAZ (yoksa sinir degil sinirsiz butcedir); TAM SINIRDA
+ *       supurme EKSIKSIZ, BIR PARTI OTESINDE ust sinir DURUYOR ve butce PATLAMIYOR,
  *   K4  tavan asildiginda hukum ACIK OLCULEMEDI'dir, sessiz yanlis-kirmizi DEGIL,
- *   K5  (IDDIA DEGIL, ERKEN UYARI) bugunku katalogun butce PAYI basilir; %80'i gecerse
- *       yuksek sesle uyarir ama deploy'u DURDURMAZ ([[kapi-birikimi-yayin-gecikmesi]]).
+ *   K5  MUTLAK SINIRIN KENDISI de katalogdan TURER: gercek katalogu FIILEN okur, testin
+ *       BAGIMSIZ sayimiyla ayni sayiyi gorur ve turetimin SONUCUNA BIREBIR esittir,
+ *   K6  FAIL-CLOSED TABAN: katalog OKUNAMAZSA sinir TABANA duser (sinirsiz butce ACILMAZ)
+ *       ve taban KULLANILABILIR kalir (kabul tabani boyundaki katalog yine kanitlanabilir),
+ *   K7  (IDDIA DEGIL, ERKEN UYARI) tek kanit kosumunun CANLI MALIYETI basilir; esigi
+ *       gecerse uyarir ama deploy'u DURDURMAZ ([[kapi-birikimi-yayin-gecikmesi]]).
+ *
+ * 🔴 SIRA ONEMLI (K3): oran asilmissa supurme eksenleri KOSULMAZ — tavani katalogun 400
+ * katina ceken bir mutant testi milyonlarca istege suruklerdi. Atlama SESSIZ DEGIL:
+ * imzaya "K3 oran=ASILDI" yazilir ve ilgili iddialar KIRMIZI sayilir.
  *
  * 🔴 VERI CAPASI YOK: hicbir gercek urun id'si yok; id'ler kosum aninda uretilir. Bugunku
  * katalog boyu KOSUM ANINDA katalogdan okunur, butce penceresi ise OLCULEN YOLUN kendi
@@ -203,10 +206,12 @@ function bugunkuBoy() {
   try {
     const j = JSON.parse(fs.readFileSync(path.join(path.dirname(__dirname), "urunler.json"),
       "utf8"));
-    const n = new Set(j.map((u) => u && u.id)).size;
-    return { n: Math.max(n, KABUL_TABANI), kaynak: "urunler.json (" + n + " benzersiz id)" };
+    const n = new Set(j.map((u) => u && u.id).filter(Boolean)).size;
+    return { n: Math.max(n, KABUL_TABANI), ham: n,
+             kaynak: "urunler.json (" + n + " benzersiz id)" };
   } catch (e) {
-    return { n: KABUL_TABANI, kaynak: "katalog OKUNAMADI -> kabul olcutu tabani" };
+    return { n: KABUL_TABANI, ham: null,
+             kaynak: "katalog OKUNAMADI -> kabul olcutu tabani" };
   }
 }
 
@@ -242,15 +247,63 @@ function sabitler(ortakYolu) {
       IDS_PARTI: o.IDS_PARTI,
       SUPURME_MUTLAK_TAVAN: o.SUPURME_MUTLAK_TAVAN,
       supurmeTavani: (n) => temizEnvde(() => o.supurmeTavani(n)),
+      // MUTLAK sinirin KENDI turetimi (main'in yeni yuzeyi). Yoksa null -> iddia kirmizi.
+      katalogIdAdedi: typeof o.katalogIdAdedi === "function" ? o.katalogIdAdedi : null,
+      MUTLAK_KAT: o.MUTLAK_KAT === undefined ? null : o.MUTLAK_KAT,
+      MUTLAK_TABAN_PARTI: o.MUTLAK_TABAN_PARTI === undefined ? null : o.MUTLAK_TABAN_PARTI,
     };
     delete require.cache[require.resolve(ortakYolu)];
     return s;
   });
 }
 
-// ── BUTCE BANDI — K3'un ilk kapisi (gerekce dosya basinda) ────────────────────────────
-const BUTCE_ALT = 50;      // parti (altinda kanit anlamsiz kadar dar)
-const BUTCE_UST = 1000;    // parti (ustunde 429/istek butcesi ticari olarak savunulamaz)
+/**
+ * FAIL-CLOSED AYAGI (K6): modulu KATALOGUN BULUNAMAYACAGI bir kokte yukler.
+ * `katalogYolunuBul()` hem `__dirname`den hem `process.cwd()`den yukari yurudugu icin
+ * IKISINI BIRDEN repo disina almak gerekir: kopya /tmp'ye yazilir VE cwd oraya cekilir.
+ * Doner: { mutlak, n, taban, cokme }. Kosum bittiginde cwd ve memo GERI ALINIR.
+ */
+function olcKataloksuz(ortakYolu) {
+  const kok = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-tavan-koksuz-"));
+  const kopya = path.join(kok, "parite-ortak.js");
+  fs.writeFileSync(kopya, fs.readFileSync(ortakYolu, "utf8"));
+  const eskiCwd = process.cwd();
+  const eskiMemo = globalThis.__PRUVO_PARITE_KATALOG_SAYIM;
+  const cikti = { mutlak: null, n: null, taban: null, cokme: null };
+  try {
+    delete globalThis.__PRUVO_PARITE_KATALOG_SAYIM;   // bayat memo sizdirmasin
+    process.chdir(kok);
+    temizEnvde(() => {
+      delete require.cache[require.resolve(kopya)];
+      const o = require(kopya);
+      cikti.mutlak = o.SUPURME_MUTLAK_TAVAN === undefined ? null : o.SUPURME_MUTLAK_TAVAN;
+      cikti.n = typeof o.katalogIdAdedi === "function" ? o.katalogIdAdedi() : null;
+      cikti.taban = o.MUTLAK_TABAN_PARTI === undefined ? null : o.MUTLAK_TABAN_PARTI;
+      delete require.cache[require.resolve(kopya)];
+    });
+  } catch (e) {
+    cikti.cokme = String((e && e.message) || e).slice(0, 200);
+  } finally {
+    process.chdir(eskiCwd);
+    if (eskiMemo === undefined) delete globalThis.__PRUVO_PARITE_KATALOG_SAYIM;
+    else globalThis.__PRUVO_PARITE_KATALOG_SAYIM = eskiMemo;
+    fs.rmSync(kok, { recursive: true, force: true });
+  }
+  return cikti;
+}
+
+// ── BUTCE ORANI — K3'un ilk kapisi (gerekce dosya basinda) ────────────────────────────
+// 🔴 MUTLAK PARTI BANDI ([50..1000]) KALDIRILDI (mimar karari, 10 Agu 2026). Yanlis
+// invaryantti: "yerel ⊆ D1" kaniti dogasi geregi ceil(n/IDS_PARTI) istek ISTER; katalogun
+// ALTINDA bir tavan, buyuk katalogda pariteyi ASLA kanitlayamamak demektir — 526 sahte
+// kirmiziyi ureten bomba tam olarak buydu. Katalog-goreli tavan bu sinifi KOKTEN kapatir.
+// Korunan sey artik sinirin DEGERI degil, ORANI: tavan katalogun KAT_UST katini asiyorsa
+// o artik "ariza isareti yakalayan sinir" degil SINIRSIZ BUTCEDIR (1 parti = 1 canli
+// istek). Alt ucta ise tavan katalogun ALTINA dusemez, yoksa kanit uretilemez.
+const KAT_UST = 10;
+
+// K7 CANLI MALIYET esigi: tek kanit kosumunun atacagi canli istek sayisi. Iddia DEGIL.
+const CANLI_MALIYET_UYARI = 1000;
 
 // POZITIF TANIMA kosumunda ucun BILEREK gizledigi id sayisi (bkz. K1b).
 const GIZLI_ADET = 3;
@@ -264,7 +317,8 @@ async function kabulKos(ortakYolu, sessiz) {
   const gerekliBugun = Math.ceil(boy.n / IDS);
   const imza = [];
 
-  // K1 — BUGUNKU katalog: supurme EKSIKSIZ + canli istek BUTCESINE SIGIYOR.
+  // K1 — BUGUNKU katalog: supurme EKSIKSIZ. ("Katalog butceye SIGIYOR" iddiasi K3'e
+  // TASINDI: orada `MUTLAK >= gerekliBugun` olarak, kat orani ile AYNI eksende olculur.)
   const bugun = await olc(ortakYolu, boy.n, {});
   imza.push("K1 tavan=" + bugun.tavan + " parti=" + bugun.parti + " idsIstek=" + bugun.idsIstek +
     " eksik=" + bugun.eksik +
@@ -282,12 +336,6 @@ async function kabulKos(ortakYolu, sessiz) {
     ONA(bugun.idsIstek === gerekliBugun, "supurme FIILEN KOSTU: " + bugun.idsIstek + "/" +
       gerekliBugun + " /katalog?ids= istegi ATILDI (parti sayaci TEK BASINA kanit degil)");
     ONA(bugun.eksik === 0, "'yerel ⊆ D1' kaniti URETILDI (eksik 0)");
-    ONA(gerekliBugun <= MUTLAK, "bugunku katalog canli istek BUTCESINE SIGIYOR (" +
-      gerekliBugun + " <= " + MUTLAK + " parti)",
-      "BUGUNKU KATALOG BUTCEYI ASTI: " + boy.n + " id -> " + gerekliBugun + " parti > " +
-      MUTLAK + " parti mutlak sinir. BU BIR TEST ARIZASI DEGIL, MIMAR/OKAN KARARIDIR: ya " +
-      "butce OLCULMUS gerekceyle buyutulur, ya da katalogun Ege olcek sinirini astigi " +
-      "KABUL EDILIR. Kapiyi gevseterek yesile boyamak YASAK.");
   }
 
   // K1b — POZITIF TANIMA (kontrol kosumu): uc GIZLI_ADET id'yi BILEREK gizler, supurme
@@ -319,14 +367,19 @@ async function kabulKos(ortakYolu, sessiz) {
   const t2 = sbt.supurmeTavani(n2);
   const tBugun = sbt.supurmeTavani(boy.n);
   const tBugunBeklenen = Math.min(gerekliBugun, MUTLAK);
-  // 🔴 DOYMA: ust sinirin DURDUGU iddiasinin SAF yarisi. K3'un supurme ekseni bant
-  // kapisina TABIDIR (bant asilinca ATLANIR) — off-by-one bir mutant o an KOR kalirdi
-  // ([[kapi-yan-etkisi-gizli-onkosul]]). Bu iddia bant kapisindan BAGIMSIZ, 0 istekle
-  // ayni onermeyi olcer.
-  const nDoygun = (MUTLAK + 1) * IDS;
-  const tDoygun = sbt.supurmeTavani(nDoygun);
+  // 🔴 DOYMA — GUARD'IN BIRINCI SAVUNMASI. Katalog-goreli tavanda "kat orani" bandi
+  // "sinir tamamen kaldirildi"yi YAKALAYAMAZ: kaldirilinca oran 1,0'a duser ve banttan
+  // GECER. Ust sinirin FIILEN DURDUGUNU yalniz bu SAF iddia gosterir. Ayrica K3'un
+  // supurme ekseni oran kapisina TABIDIR (asilinca ATLANIR) — off-by-one bir mutant o an
+  // KOR kalirdi ([[kapi-yan-etkisi-gizli-onkosul]]). IKI NOKTADA olculur (sinirin hemen
+  // otesi + cok otesi), ikisi de 0 istek.
+  const nDoygun1 = (MUTLAK + 1) * IDS;
+  const nDoygun2 = MUTLAK * IDS * 3;
+  const tDoygun1 = sbt.supurmeTavani(nDoygun1);
+  const tDoygun2 = sbt.supurmeTavani(nDoygun2);
   imza.push("K2 p1=" + p1 + " t1=" + t1 + " p2=" + p2 + " t2=" + t2 +
-    " tBugun=" + tBugun + " beklenen=" + tBugunBeklenen + " tDoygun=" + tDoygun);
+    " tBugun=" + tBugun + " beklenen=" + tBugunBeklenen +
+    " tDoygun1=" + tDoygun1 + " tDoygun2=" + tDoygun2);
   yaz("\n▶ K2 TAVAN SABIT DEGIL (saf turev · butce penceresi " + n1 + " -> " + n2 +
     " id · canliya ve sahte uca 0 istek)");
   if (!sessiz) {
@@ -337,37 +390,47 @@ async function kabulKos(ortakYolu, sessiz) {
     ONA(t2 > t1, "tavan SABIT DEGIL: " + t1 + " -> " + t2 + " (katalogla BIRLIKTE buyuyor)");
     ONA(tBugun === tBugunBeklenen, "turev BUGUNKU katalogda da gecerli: t(" + boy.n + ")=" +
       tBugun + " (beklenen " + tBugunBeklenen + ")");
-    ONA(tDoygun === MUTLAK, "turev MUTLAK sinirda DOYUYOR: t(" + nDoygun + ")=" + tDoygun +
-      " (beklenen " + MUTLAK + ") -> ust sinir SAF TUREVDE de duruyor, K3 bant kapisindan " +
-      "BAGIMSIZ");
+    ONA(tDoygun1 === MUTLAK, "DOYMA (sinirin hemen otesi): t(" + nDoygun1 + ")=" + tDoygun1 +
+      " (beklenen " + MUTLAK + ")");
+    ONA(tDoygun2 === MUTLAK, "DOYMA (sinirin 3 KATI otesi): t(" + nDoygun2 + ")=" + tDoygun2 +
+      " (beklenen " + MUTLAK + ") -> ust sinir FIILEN DURUYOR; oran bandi bunu YAKALAYAMAZ " +
+      "(sinir kalkinca oran 1,0'a duser ve banttan GECER)");
   }
 
   // K3 — BUTCE SINIRI (kanonik; fikstur env'i YOK). ONCE BANT, SONRA SUPURME: bant
   // asilmissa supurme KOSULMAZ, aksi halde tavani 100.000'e ceken bir mutant testi
   // milyonlarca istege suruklerdi. Atlama SESSIZ DEGIL — imzaya yazilir, iddia KIRMIZI.
-  const bantTamam = MUTLAK >= BUTCE_ALT && MUTLAK <= BUTCE_UST;
-  yaz("\n▶ K3 BUTCE SINIRI (mutlak=" + MUTLAK + " parti · bant " + BUTCE_ALT + ".." +
-    BUTCE_UST + " parti)");
+  const kanitlanabilir = MUTLAK >= gerekliBugun;
+  const kat = MUTLAK / gerekliBugun;
+  const katYazi = kat.toFixed(1).replace(".", ",");
+  const oranTamam = kanitlanabilir && kat <= KAT_UST;
+  yaz("\n▶ K3 BUTCE ORANI (mutlak=" + MUTLAK + " parti · gerekli=" + gerekliBugun +
+    " parti · kat=" + katYazi + " · ust " + KAT_UST + ")");
   if (!sessiz) {
-    ONA(bantTamam, "mutlak sinir SAVUNULABILIR BANTTA (" + MUTLAK + " parti)",
-      "MUTLAK SINIR BANT DISI: " + MUTLAK + " parti (bant " + BUTCE_ALT + ".." + BUTCE_UST +
-      "). 1 parti = 1 canli istek; " + BUTCE_UST + " parti TICARI UST SINIRDIR (429 " +
-      "butcesi), " + BUTCE_ALT + " altinda ise kanit anlamsizdir. Sinir sessizce " +
-      "buyutulmus/kucultulmus olabilir.");
+    ONA(kanitlanabilir, "BUGUNKU KATALOG KANITLANABILIR: tavan katalogun ALTINA dusmedi (" +
+      MUTLAK + " >= " + gerekliBugun + " parti)",
+      "TAVAN KATALOGUN ALTINDA: " + MUTLAK + " < " + gerekliBugun + " parti. 'Yerel ⊆ D1' " +
+      "kaniti dogasi geregi ceil(n/" + IDS + ") istek ISTER; bu haliyle parite bu katalogda " +
+      "ASLA kanitlanamaz — 526 sahte kirmiziyi ureten sinif budur.");
+    ONA(kat <= KAT_UST, "butce katalogla ORANTILI: kat=" + katYazi + " <= " + KAT_UST,
+      "BUTCE KAT KAT PATLADI: tavan katalogun " + katYazi + " kati (ust " + KAT_UST + "). " +
+      "1 parti = 1 canli istek; tavan katalogun " + KAT_UST + " katini asiyorsa artik " +
+      "'ariza isareti yakalayan sinir' degil SINIRSIZ BUTCEDIR.");
   }
-  if (!bantTamam) {
-    imza.push("K3 bant=ASILDI mutlak=" + MUTLAK);
-    yaz("   ⛔ BANT ASILDI -> supurme eksenleri KOSULMADI (butce korumasi), iddialar KIRMIZI");
+  if (!oranTamam) {
+    imza.push("K3 oran=ASILDI mutlak=" + MUTLAK + " gerekli=" + gerekliBugun);
+    yaz("   ⛔ ORAN ASILDI -> supurme eksenleri KOSULMADI (butce korumasi), iddialar KIRMIZI");
     if (!sessiz) {
-      ONA(false, "TAM SINIRDA supurme OLCULEMEDI (bant asildi -> kosum ATLANDI)");
-      ONA(false, "SINIRIN BIR PARTI OTESI OLCULEMEDI (bant asildi -> kosum ATLANDI)");
+      ONA(false, "TAM SINIRDA supurme OLCULEMEDI (oran asildi -> kosum ATLANDI)");
+      ONA(false, "SINIRIN BIR PARTI OTESI OLCULEMEDI (oran asildi -> kosum ATLANDI)");
     }
   } else {
     // Butcenin izin verdigi EN BUYUK katalog: supurme EKSIKSIZ olmali.
     const tam = await olc(ortakYolu, MUTLAK * IDS, {});
     // Sinirin BIR PARTI otesi: ust sinir DURMALI ve butce PATLAMAMALI (0 istek).
     const otesi = await olc(ortakYolu, MUTLAK * IDS + IDS, {});
-    imza.push("K3 bant=" + MUTLAK + " tam(tavan=" + tam.tavan + " parti=" + tam.parti +
+    imza.push("K3 oran=" + MUTLAK + "/" + gerekliBugun + " tam(tavan=" + tam.tavan +
+      " parti=" + tam.parti +
       " idsIstek=" + tam.idsIstek + " eksik=" + tam.eksik + " hata=" + tam.hataTur +
       " cokme=" + (tam.cokme ? "VAR" : "yok") + ")" +
       " otesi(hata=" + otesi.hataTur + " tavan=" + otesi.tavan + " parti=" + otesi.parti +
@@ -409,17 +472,71 @@ async function kabulKos(ortakYolu, sessiz) {
     ONA(/SUPURME TAVANI/.test(String(ok.durdu)), "sebep ADIYLA yazili");
   }
 
-  // K5 — BUTCE PAYI: ERKEN UYARI, IDDIA DEGIL. 🔴 ONA CAGRILMAZ: bu eksen deploy'u
-  // DURDURMAZ ([[kapi-birikimi-yayin-gecikmesi]]) — yayin ancak K1 FIILEN asilinca kesilir.
-  const pay = gerekliBugun / MUTLAK;
-  const payYazi = "%" + (pay * 100).toFixed(1).replace(".", ",");
-  imza.push("K5 pay=" + payYazi);
-  yaz("\n▶ K5 BUTCE PAYI (erken uyari — iddia DEGIL, deploy'u DURDURMAZ)");
-  yaz("   bugun=" + boy.n + " id · gerekli=" + gerekliBugun + " parti / mutlak=" + MUTLAK +
-    " parti (pay=" + payYazi + ")");
-  if (pay > 0.80) {
-    yaz("   ⚠️ BUTCE PAYI %80'I GECTI: ya butce OLCULMUS gerekceyle buyutulur ya da " +
-      "katalogun Ege olcek sinirini astigi KABUL EDILIR — KARAR YAKLASIYOR.");
+  // K5 — MUTLAK SINIRIN KENDISI de KATALOGDAN TURER (elle tutulan sabit DEGIL).
+  // 🔴 BU EKSEN 10 Agu'da YAYINI DURDURAN KUSURU DOGRUDAN OLCER: mutlak sinir `500` sabiti
+  // iken katalog 25.010'a cikinca gereken parti sayisi sinira carpti ve `deploy` SKIPPED
+  // oldu. Sabiti buyutmek sinifi kapatmaz, sadece erteler — bu yuzden olculen sey sinirin
+  // DEGERI degil, KATALOGLA BIRLIKTE BUYUYOR OLMASIDIR.
+  // 🔴 IMZAYA yalniz OLCULEN DAVRANIS girer (mutlak + okunan katalog); `kat`/`taban`
+  // dogrudan girseydi davranis degistirmeyen bir KONTROL mutanti sahte kirmizi yakardi.
+  const n5 = sbt.katalogIdAdedi ? sbt.katalogIdAdedi() : null;
+  const ustSinirOlculen = (sbt.MUTLAK_KAT === null || sbt.MUTLAK_TABAN_PARTI === null ||
+    n5 === null) ? null
+    : Math.max(sbt.MUTLAK_TABAN_PARTI, sbt.MUTLAK_KAT * Math.ceil(n5 / IDS));
+  imza.push("K5 mutlak=" + MUTLAK + " n=" + n5);
+  yaz("\n▶ K5 MUTLAK SINIR KATALOGDAN TURUYOR (bugun gerekli " + gerekliBugun + " parti)");
+  if (!sessiz) {
+    ONA(n5 !== null && n5 > 0,
+      "FAIL-CLOSED: MUTLAK sinir GERCEK katalogu FIILEN okudu (n=" + n5 + ")");
+    ONA(boy.ham === null || n5 === boy.ham,
+      "okunan katalog testin BAGIMSIZ sayimiyla ayni (kapi=" + n5 + " test=" + boy.ham + ")");
+    ONA(MUTLAK !== null && MUTLAK >= 2 * gerekliBugun,
+      "MUTLAK sinir kapinin EN GENIS eksenini (katalog x2 = " + (2 * gerekliBugun) +
+      " parti) KAPSIYOR — mutlak=" + MUTLAK);
+    ONA(ustSinirOlculen !== null && MUTLAK === ustSinirOlculen,
+      "MUTLAK sinir SONLU ve TURETIMDEN geliyor: mutlak=" + MUTLAK + " = max(taban=" +
+      sbt.MUTLAK_TABAN_PARTI + ", kat=" + sbt.MUTLAK_KAT + " x " +
+      (n5 === null ? "?" : Math.ceil(n5 / IDS)) + ") = " + ustSinirOlculen);
+  }
+
+  // K6 — FAIL-CLOSED TABAN: katalog OKUNAMAZSA sinir TABANA duser, sinirsiz butce ACILMAZ.
+  // 🔴 MAIN'IN YENI YUZEYI: mutlakTavan() artik gercek katalogu okuyor; okuyamadigi kolu
+  // hicbir eksen olcmuyordu. Bu eksen modulu KATALOGUN BULUNAMADIGI bir kokte yukler
+  // (kopya /tmp'de + cwd oraya cekili) ve tabanin FIILEN kullanildigini olcer.
+  // Taban SADECE "esit mi" diye olculmez — KULLANILABILIR de olmali: taban 1'e cekilirse
+  // esitlik yine tutar ama kabul tabani boyundaki bir katalog ASLA kanitlanamaz.
+  const k6 = olcKataloksuz(ortakYolu);
+  const tabanAlt = Math.ceil(KABUL_TABANI / IDS);
+  imza.push("K6 mutlak=" + k6.mutlak + " n=" + k6.n + " taban=" + k6.taban +
+    " cokme=" + (k6.cokme ? "VAR" : "yok"));
+  yaz("\n▶ K6 FAIL-CLOSED TABAN (katalog OKUNAMAZ kokte yuklendi)");
+  if (!sessiz) {
+    ONA(k6.cokme === null, "surec COKMEDI", k6.cokme);
+    ONA(k6.n === null, "katalog FIILEN OKUNAMAZ hale geldi (n=" + k6.n + ") -> fail-closed " +
+      "ayagi GERCEKTEN kosuldu (pozitif tanima izi)");
+    ONA(k6.taban !== null && k6.mutlak === k6.taban,
+      "katalog okunamayinca sinir TABANA dustu (mutlak=" + k6.mutlak + " = taban=" +
+      k6.taban + ") -> okunamayan katalog SINIRSIZ BUTCE ACMAZ");
+    ONA(k6.mutlak !== null && k6.mutlak >= tabanAlt,
+      "taban KULLANILABILIR: kabul tabani boyundaki katalog (" + KABUL_TABANI + " id = " +
+      tabanAlt + " parti) yine de KANITLANABILIR (taban=" + k6.mutlak + ")",
+      "TABAN COK KUCUK: " + k6.mutlak + " < " + tabanAlt + " parti. Katalog okunamadiginda " +
+      "kapi hicbir gercek katalog icin kanit URETEMEZ; 'fail-closed' bu degil, OLU KAPIDIR.");
+  }
+
+  // K7 — CANLI MALIYET: ERKEN UYARI, IDDIA DEGIL. 🔴 ONA CAGRILMAZ, deploy'u DURDURMAZ
+  // ([[kapi-birikimi-yayin-gecikmesi]]).
+  // 🔴 NEDEN "BUTCE PAYI" DEGIL: tavan katalog-goreli olunca pay MUTLAK_KAT'in tersine
+  // (%25) CAKILIR ve hicbir zaman yanmaz — OLU UYARI olurdu. Uyarilmasi gereken sey oran
+  // degil MUTLAK MALIYET: tek kanit kosumu `gerekliBugun` canli istek atar.
+  imza.push("K7 canliMaliyet=" + gerekliBugun);
+  yaz("\n▶ K7 CANLI MALIYET (erken uyari — iddia DEGIL, deploy'u DURDURMAZ)");
+  yaz("   bugun=" + boy.n + " id -> tek kanit kosumu " + gerekliBugun +
+    " canli /katalog?ids= istegi atar (uyari esigi " + CANLI_MALIYET_UYARI + ")");
+  if (gerekliBugun > CANLI_MALIYET_UYARI) {
+    yaz("   ⚠️ TEK KOSUMUN CANLI MALIYETI " + CANLI_MALIYET_UYARI + " ISTEGI GECTI: 429 " +
+      "butcesi ve kosum suresi artik ciddi kalemler — kanit yontemi (tam supurme) " +
+      "ORNEKLEMEYE cevrilmeli mi, mimar karari.");
   }
 
   return imza.join(" | ");
@@ -433,8 +550,8 @@ async function kabulKos(ortakYolu, sessiz) {
  * `capa-yok=1`, `oldurucu=4/5`: "sinir sessizce yukseltildi" kacisini kapatan mutant, tam
  * da sinir yukseltildigi an KORELIYORDU. Envanter, defterden degil OLCULEN DEGERDEN
  * turemeli ([[mutasyon-kaniti-yeniden-uretilebilir]] · [[envanter-drift-parti-basina]]).
- * M4'un yeni degeri BUTCE_UST x 10'dur: bant DISI (mutlaka kirmizi) ama sayiEnv'in kendi
- * ust sinirinin (100000) ALTINDA (yoksa sayiEnv varsayilana duser ve mutant SUSARDI).
+ * Bu yuzden SABIT DEGERE bakan her capa YAPISALDIR: sabitin ADI + env ADI'na dayanir,
+ * varsayilan ifadeye (literal mi, turetim cagrisi mi) DAYANMAZ.
  */
 function mutantlar(mutlak) {
   return [
@@ -459,15 +576,17 @@ function mutantlar(mutlak) {
   },
   {
     id: "M4", oldurucu: true,
-    ad: "MUTLAK SINIR SESSIZCE BUYUTULDU (" + mutlak + " -> " + (BUTCE_UST * 10) +
-      " parti; capa VARSAYILAN IFADESINDEN BAGIMSIZ)",
+    ad: "MUTLAK SINIR YENIDEN ELLE SABITLENDI (turetim yerine " +
+      Math.max(1, Math.floor(mutlak / 2)) + " literali — 10 Agu'da YAYINI DURDURAN SINIF)",
     // 🔴 CAPA YAPISALDIR, DEGERE BAGLI DEGIL: yalniz SABITIN ADI + ENV ADI'na dayanir.
     // Varsayilan ifade LITERAL (500) de olabilir, TURETEN BIR CAGRI (mutlakTavan()) de —
     // ikisinde de tutar. Deger capasi (".., 500,") olculdu ve KORELDI: kardes oturum
     // varsayilani `mutlakTavan()`e cevirince desen 0 kez gecti -> capa-yok=1.
     // Kalan sinir ifadesi ikinci (kullanilmayan) bagta durur; okunan sabit MUTANTTIR.
+    // Deger OLCULEN mutlagin yarisidir: turetimden DAIMA farkli (mutlak >= 2 oldukca),
+    // ama kat orani bandindan GECER -> hukmu K5 (turetim) verir, oran kapisi DEGIL.
     eski: "const SUPURME_MUTLAK_TAVAN = sayiEnv(\"PARITE_SUPURME_MUTLAK\", ",
-    yeni: "const SUPURME_MUTLAK_TAVAN = " + (BUTCE_UST * 10) +
+    yeni: "const SUPURME_MUTLAK_TAVAN = " + Math.max(1, Math.floor(mutlak / 2)) +
       ";\nconst SUPURME_MUTLAK_TAVAN_KULLANILMAYAN = sayiEnv(\"PARITE_SUPURME_MUTLAK\", ",
   },
   {
@@ -489,6 +608,29 @@ function mutantlar(mutlak) {
       "kaniti SAHTE)",
     eski: "      for (const id of parti) if (!bulunan.has(id)) eksik.push(id);",
     yeni: "      for (const id of parti) if (false && !bulunan.has(id)) eksik.push(id);",
+  },
+  {
+    id: "M8", oldurucu: true,
+    ad: "FAIL-CLOSED TABAN ISE YARAMAZ HALE GETIRILDI (taban 1 partiye cekildi: katalog " +
+      "okunamayinca hicbir gercek katalog KANITLANAMAZ — 'fail-closed' degil OLU KAPI)",
+    // Bugunku katalogda turetim (kat x gerekli) tabani ZATEN baskilar, yani bu mutant
+    // ANCAK K6'nin katalogsuz kokunde gorunur: tek eksende ayirt edici.
+    eski: "const MUTLAK_TABAN_PARTI = 500;",
+    yeni: "const MUTLAK_TABAN_PARTI = 1;",
+  },
+  {
+    id: "M9", oldurucu: true,
+    ad: "BUTCE KAT KAT PATLADI (MUTLAK_KAT 4 -> 400: tavan katalogun 400 kati, 1 parti = " +
+      "1 canli istek oldugu icin bu ARTIK SINIR DEGIL)",
+    eski: "const MUTLAK_KAT = 4;",
+    yeni: "const MUTLAK_KAT = 400;",
+  },
+  {
+    id: "M10", oldurucu: true,
+    ad: "FAIL-CLOSED IHLALI: katalog OKUNAMAYINCA tabana dusulmuyor, DEV bir sinir " +
+      "aciliyor (okunamayan katalog SINIRSIZ BUTCE aciyor)",
+    eski: "  const n = katalogIdAdedi();\n  if (!n) return MUTLAK_TABAN_PARTI;",
+    yeni: "  const n = katalogIdAdedi();\n  if (!n) return 100000;",
   },
   {
     id: "K_A", oldurucu: false,
@@ -594,7 +736,7 @@ async function kendiniTest() {
     console.log("SONUC: KIRMIZI ❌");
     process.exit(1);
   }
-  console.log("SONUC: YESIL ✅ — tavan katalogdan TURUYOR (sabit degil), bugunku katalog " +
-    "butceye SIGIYOR, mutlak sinir BANTTA ve tam sinirda supurme EKSIKSIZ; sinir asilirsa " +
-    "ACIK OLCULEMEDI");
+  console.log("SONUC: YESIL ✅ — tavan katalogdan TURUYOR ve DOYUYOR, butce katalogla " +
+    "ORANTILI, tam sinirda supurme EKSIKSIZ (istek izi capali), katalog okunamazsa TABANA " +
+    "duser; sinir asilirsa ACIK OLCULEMEDI");
 })().catch((e) => { console.error("COKME:", e); process.exit(1); });
