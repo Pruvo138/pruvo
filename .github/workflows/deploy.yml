@@ -1906,12 +1906,16 @@ jobs:
       # kirmizi uretir (olculdu: katalog 20.212 > sabit 20.000 -> 526 sahte kirmizi).
       # Bu kol tavanin KATALOGDAN turedigini, ust sinirin DURDUGUNU ve asilirsa hukmun
       # ACIK OLCULEMEDI oldugunu olcer; sahte yerel HTTP ucu kullanir, canliya 0 istek.
+      # Tavan kolu `--kendini-test` ile kosar: MUTASYON BATARYASI da BURADA kosar, cunku
+      # batarya CI disinda kalirsa mutasyon kaniti SESSIZCE bayatlar (olculdu 10 Agu 2026:
+      # mutlak sinir degisince M4 capasi koreldi, kabul kolu YESIL kalirken kanit dusmustu).
+      # Batarya da tamamen AGSIZDIR ve ~2 sn surer, bu kolun sozlesmesini bozmaz.
       - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi + tavan, AGSIZ)
         run: |
           python3 tools/parite-sozlesme-test.py
           node tools/parite-fikstur-test.js
           node tools/parite-yayin-fikstur-test.js
-          node tools/parite-tavan-test.js
+          node tools/parite-tavan-test.js --kendini-test
       # shop birim testleri: wrangler/ag/D1 ISTEMEZ (modulu dogrudan import ederler).
       # OLU NOBETCI DEGIL: `wa-siparis.mjs`in YETKI YUZEYI iddialari (panel koku "Ege
       # anahtari anonimden fazlasini almiyor" + ozellik-kapali "YONET_ANAHTAR yoksa yazma
