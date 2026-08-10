@@ -1794,7 +1794,13 @@ TABLO_TABANLARI = (
     # 10 Agu: +2 -> 94. Model uyeligi ve model baslik kollarinin KENDINI-TEST
     # bataryalari serit-b'ye tasindi; iki bayraksiz GERCEK katalog olcumu deploy.yml
     # serit-a3'te BLOKLAYICI kaldi.
-    ("SERIT_B", 94),
+    # 10 Agu: +1 -> 95. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/ic-rapor-adi-kapisi.py"): UZAK DAL kolu + mutasyon bataryasi. Aracin
+    # SERIT A kollari (bayraksiz + `--kendini-test`) deploy.yml'de BLOKLAYICI KALDI —
+    # bu giris bir TASIMA degil, A'da teknik olarak kosamayan (SIG klonda uzak dal
+    # nesnesi YOK) yeni bir eksenin EKLENMESIDIR; tam esitlik geregi taban AYNI
+    # commit'te guncellendi.
+    ("SERIT_B", 95),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2316,6 +2322,45 @@ SERIT_B = {
         "(aga bagimli yanlis-pozitif tum ekibin yayinini durdurur); canli kol "
         "yayin-erisim-alarmi.yml cron'unda kosar. 'Canliya sizintili icerik cikmasin' "
         "sinifi DEGILDIR.",
+    # --- IC RAPOR ADI KAPISI, UZAK DAL KOLU (10 Agu 2026) — GERCEK OLCUM KOLU B'DE --
+    # 🔴 ISTISNAI GIRIS: bu araç SERIT A'da ZATEN bloklayici kosuyor (deploy.yml:
+    # bayraksiz calisma-agaci kolu + `--kendini-test`). B'ye TASINAN bir sey YOK;
+    # B'ye EKLENEN, A'da KOSAMAYACAK yeni bir eksendir. GEREKCE (olculdu, beyan degil):
+    #   (a) YARIS: kol `git ls-remote` + her dalin `ls-tree` agacini okur; checkout'tan
+    #       SONRA push'lanan bir dalin NESNELERI yerelde YOKTUR -> kol o kosumda
+    #       fail-closed rc=2 verir. Yani kirmizisi ARALIKLI ve yayindan BAGIMSIZ bir
+    #       sebeple gelir; A'ya konsaydi yayin rastgele dururdu
+    #       ([[fail-slow-fail-opendir]]). Bu job `fetch-depth: 0` ile checkout eder.
+    #       ⚠️ DUZELTME (10 Agu, kaynaktan olculdu): "deploy.yml fetch-depth VERMEDEN
+    #       checkout eder" iddiasi YANLISTI — bu aracin bloklayici kollarini tasiyan
+    #       `serit-a3` (ayrica `build` ve `serit-a2`) `fetch-depth: 0` kullanir;
+    #       fetch-depth'siz olan yalniz `serit-a4` ve `yayin`'dir. Serit secimi
+    #       (a)+(b)+(c)'ye dayanir, klon DERINLIGINE degil.
+    #   (b) AGA BAGLIDIR: tek gecici GitHub oran-siniri/DNS hatasi tum ekibin yayinini
+    #       durdururdu — yayin-erisim kardesiyle AYNI sinif ([[kapi-kapsam-eksen-secimi]]).
+    #   (c) YAYINI DURDURMANIN TAMIR DEGERI SIFIR: olculen sey UZAKTA ZATEN DURAN bir
+    #       daldir; o dal main'e girmez, siteye cikmaz. Tek onarim uzak dali silmektir,
+    #       main'in yayinini alikoymak degil. "Canliya sizintili icerik cikmasin"
+    #       sinifi DEGILDIR — "public repoda ne DURUYOR" sinifidir.
+    #   (d) ONLEME kolu CI'da degil: yeni sizintiyi `pre-push` kancasi (kisisel-veri-
+    #       test.py --pre-push, fail-closed) ve SERIT A'daki bayraksiz calisma-agaci
+    #       kolu durdurur; bu kol onlarin GORMEDIGI KALICI DURUMU gorunur kilar
+    #       (kanca kurulu olmayan makine / kanca yazilmadan onceki push'lar).
+    # Kolun KENDI hukmu (`--mutasyon`, 10 oldurucu + 2 KONTROL mutanti) AGSIZ'dir ve
+    # ayni girise dusar: mutasyon bataryasi ~17 s surer, A'daki ~1,2 s'lik
+    # `--kendini-test` adimini bu maliyetle sismelemek yayin seridini uzatirdi
+    # ([[maliyet-tasimasi-serit-dusurur]]); A'daki `--kendini-test` 17 iddianin
+    # TAMAMINI (uzak eksen dahil) zaten bloklayici olarak kosar.
+    ("nobet.yml", "serit-b", "tools/ic-rapor-adi-kapisi.py"):
+        "Aracin SERIT A kollari (bayraksiz calisma-agaci taramasi + `--kendini-test`, "
+        "17 iddia) deploy.yml'de BLOKLAYICI kosmaya devam ediyor; buraya TASINAN yok, "
+        "EKLENEN var. `--uzak` kolu A'ya KONULMAZ: checkout'tan SONRA push'lanan dalin "
+        "nesneleri yerelde YOKTUR ve kol o kosumda fail-closed rc=2 verir -> yayin "
+        "ARALIKLI ve yayindan BAGIMSIZ bir sebeple dururdu; ayrica aga baglidir "
+        "(tek oran-siniri hatasi tum ekibin yayinini durdurur). Olctugu sey UZAKTA "
+        "DURAN bir daldir: main'e girmez, siteye cikmaz -> yayini durdurmanin tamir "
+        "degeri SIFIR, tek onarim uzak dali silmektir. `--mutasyon` kolu agsizdir ama "
+        "~17 s surer; yayin seridine bu maliyet eklenmez.",
     # --- oz-nobetci / kendini-test kollari (gercek olcum kolu SERIT A'da BLOKLAYICI) ---
     ("nobet.yml", "serit-b", "tools/diriltme-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; silinmis urun diriltme OLCUMU (bayraksiz kol) "

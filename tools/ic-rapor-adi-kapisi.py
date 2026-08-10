@@ -70,17 +70,55 @@ CARE: git cagrilari miras alinan git baglami SILINMIS ortamda kosar; scrub'in TE
 tanimi tools/git_ortami.py'dir (FALLBACK YOK — modul yoksa cagri coker).
 Kabul: IDDIA-6, mutant MUT-KOK-ORTAM.
 
+🔴 UZAK DAL GECMISI EKSENI — 10 Agu 2026 OLCULEN KUSUR ("kapi yesilken sizinti PUBLIC"):
+Yukaridaki kol YALNIZ `git ls-files` ile IZLENEN CALISMA AGACINI tarar. Bir dal
+push'landiktan sonra o dalin AGACI uzakta (PUBLIC) durur ve bu kapinin gorus alanina
+HIC girmez. Olculdu (55 uzak dal, `ls-tree` ile fiilen tarandi): UC yabancı uzak dalda
+ic curutme raporu duruyordu ve HER iki kapi da (bu kol + tools/kisisel-veri-test.py'nin
+calisma-agaci kolu) YESIL yaniyordu. tools/kisisel-veri-test.py'nin GECMIS kolu da bu
+sinifi kapatMAZ: o kol PRE-PUSH kancasidir ve YALNIZ o itmenin GETIRDIGI araligi olcer
+-> kanca kurulu OLMAYAN makineden, `--no-verify` ile ya da kanca yazilmadan ONCE
+push'lanmis dallar hicbir zaman olculmez. Bu kol o KALICI DURUMU olcer: "su anda uzakta
+ne duruyor".
+
+  * EVREN: `git ls-remote --heads <uzak>` -> her dalin `git ls-tree -r` AGACI.
+  * DESEN ELLE TUTULMAZ: ic rapor ADLANDIRMA ailesinin TEK KAYNAGI
+    tools/kisisel-veri-test.py'dir (`ic_rapor_mu`); buradan IMPORT edilir, KOPYALANMAZ
+    ([[ikiz-tanim-sessiz-ayrisma]], [[kapsam-evrenini-cagri-grafindan-turet]]). Kanonik
+    kaynak yoksa / API'si taninmiyorsa / KENDI kirmizi-yesil fiksturlerini karsilamiyorsa
+    hukum VERILMEZ -> rc 2. Yerel bir "yedek desen" YAZILMAZ: o dusus yolu ikizin ta
+    kendisidir ve gevsek yonde ayrisir.
+  * FAIL-CLOSED: taninmayan `ls-remote` satiri, okunamayan agac (SIG/shallow klon ->
+    nesne yok), BOS dal listesi ve BOS agac "temiz" DEGIL, OLCULEMEDI'dir.
+  * 🔴 CI'DA BLOKLAYICI DEGIL — GEREKCE OLCULDU: (a) AG ister (tek gecici oran-siniri/
+    DNS hatasi tum ekibin yayinini durdururdu); (b) YARIS: checkout'tan SONRA push'lanan
+    bir dalin NESNELERI yerelde YOKTUR -> kol o kosumda fail-closed rc=2 verir, yani
+    kirmizisi ARALIKLI ve yayindan BAGIMSIZ bir sebeple gelir; (c) TAMIR DEGERI SIFIR:
+    olculen sey UZAKTA DURAN bir daldir, main'e girmez, siteye cikmaz — tek onarim uzak
+    dali silmektir ([[fail-slow-fail-opendir]], [[maliyet-tasimasi-serit-dusurur]]).
+    ⚠️ DUZELTME (10 Agu, kaynaktan olculdu): "deploy.yml fetch-depth VERMEDEN checkout
+    eder" iddiasi YANLISTI — bu aracin bloklayici kollarini tasiyan `serit-a3` (ayrica
+    `build` ve `serit-a2`) `fetch-depth: 0` kullanir; fetch-depth'siz olan yalniz
+    `serit-a4` ve `yayin`'dir. Serit secimi (a)+(b)+(c)'ye dayanir, klon DERINLIGINE degil.
+    Bagli oldugu yer: nobet.yml SERIT B (`fetch-depth: 0`, yayini BLOKLAMAZ).
+  * ONLEME DEGIL TESPIT: onleme kolu pre-push kancasidir (tools/kisisel-veri-test.py
+    --pre-push). Bu kol o kolun kacirdigi KALICI durumu gorunur kilar.
+
 Kullanim:
     python3 tools/ic-rapor-adi-kapisi.py                 # BETIGIN agacini tarar, exit 0/1
     python3 tools/ic-rapor-adi-kapisi.py --kok /yol/dal  # ACIKCA verilen agaci tarar
+    python3 tools/ic-rapor-adi-kapisi.py --uzak          # UZAK DAL AGACLARINI tarar (ag)
     python3 tools/ic-rapor-adi-kapisi.py --kendini-test   # offline kabul testi (izole git)
 
 Cikis kodu: 0 = temiz (ihlal yok), 1 = en az bir IZLENEN dosyada muafiyet-disi
-yeni bir "RAPOR-MIMARA" gecisi bulundu (harf-duyarsiz), 2 = OLCULEMEDI
-(fail-closed: agac belirsiz / verilen yol git agaci degil).
+yeni bir "RAPOR-MIMARA" gecisi bulundu (harf-duyarsiz) ya da bir UZAK DALIN agacinda
+ic rapor ADLANDIRMA ailesine uyan dosya duruyor, 2 = OLCULEMEDI (fail-closed: agac
+belirsiz / verilen yol git agaci degil / kanonik aile kaynagi okunamadi / uzak evren
+taninmadi).
 """
 import argparse
 import hashlib
+import importlib.util
 import os
 import re
 import shutil
@@ -296,19 +334,198 @@ def ana_tarama(kok):
 
 
 # ===========================================================================
+# UZAK DAL GECMISI KOLU (`--uzak`) — bkz. dosya basligindaki gerekce.
+# ===========================================================================
+# Ic rapor ADLANDIRMA ailesinin KANONIK kaynagi. Bu dosyada aile YENIDEN TANIMLANMAZ:
+# desen bir DEFTER degildir, bayatlar; kanonik kaynak ne diyorsa o olculur.
+KANON_DOSYA = "kisisel-veri-test.py"
+# Kanonik kaynaktan BEKLENEN API. Biri yoksa BICIM TANINMIYOR demektir -> OLCULEMEDI.
+# (Predikat + kaynagin KENDI kirmizi/yesil fiksturleri; sozlesme onlarla dogrulanir.)
+_KANON_API = ("ic_rapor_mu", "_IC_RAPOR_KIRMIZI", "_IC_RAPOR_YESIL")
+UZAK_REF_ONEKI = "refs/heads/"
+
+
+def kanonik_aile(kanon_dizin=BETIK_DIZINI):
+    """(predikat, hata). Ic rapor ADLANDIRMA ailesini KANONIK kaynaktan TURETIR.
+
+    🔴 FALLBACK YOK: kaynak yoksa/yuklenemiyorsa/API'si taninmiyorsa hukum VERILMEZ.
+    Burada yerel bir "yedek desen" yazmak IKIZ TANIM uretir ve sessizce ayrisir.
+    SOZLESME AYAGI: kanonik kaynak KENDI kirmizi/yesil fiksturlerini karsilamiyorsa
+    (olu/bozuk predikat) yine OLCULEMEDI — "yesil" o hale atfedilemez."""
+    yol = os.path.join(kanon_dizin, KANON_DOSYA)
+    if not os.path.isfile(yol):
+        return None, ("KANONIK AILE KAYNAGI YOK: %s — desen bu dosyada YENIDEN "
+                      "YAZILMAZ (ikiz tanim). Cozum: --kanon-dizin ile kaynagi ver."
+                      % yol)
+    try:
+        spec = importlib.util.spec_from_file_location("_pruvo_ic_rapor_kanon", yol)
+        modul = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = modul
+        eski_yol = list(sys.path)
+        sys.path.insert(0, kanon_dizin)
+        try:
+            spec.loader.exec_module(modul)
+        finally:
+            sys.path[:] = eski_yol
+    except BaseException as e:                                # noqa: BLE001
+        return None, ("KANONIK AILE KAYNAGI YUKLENEMEDI (%s): %r" % (yol, e))
+    eksik = [a for a in _KANON_API if not hasattr(modul, a)]
+    if eksik:
+        return None, ("KANONIK AILE API'si TANINMIYOR (%s): eksik %s — bicim degismis "
+                      "olabilir; hukum VERILMEZ" % (yol, eksik))
+    predikat = getattr(modul, "ic_rapor_mu")
+    kirmizi = list(getattr(modul, "_IC_RAPOR_KIRMIZI"))
+    yesil = list(getattr(modul, "_IC_RAPOR_YESIL"))
+    if not callable(predikat) or not kirmizi or not yesil:
+        return None, ("KANONIK AILE SOZLESMESI BOS/TANINMIYOR (%s): predikat=%r "
+                      "kirmizi=%d yesil=%d" % (yol, predikat, len(kirmizi), len(yesil)))
+    for kayit in kirmizi:
+        if not predikat(kayit[0]):
+            return None, ("KANONIK AILE OLU/BOZUK (%s): kendi KIRMIZI fiksturu "
+                          "yakalanmiyor (%r)" % (yol, kayit[0]))
+    for kayit in yesil:
+        if predikat(kayit[0]):
+            return None, ("KANONIK AILE ASIRI GENIS (%s): kendi YESIL fiksturu "
+                          "yaniyor (%r)" % (yol, kayit[0]))
+    return predikat, None
+
+
+def uzak_dallari_ayristir(ham):
+    """`git ls-remote --heads <uzak>` ciktisi -> ([(sha, dal), ...], hata).
+
+    GERCEK BICIM: '<sha>\\t refs/heads/<ad>' satirlari. TANINMAYAN satir ATLANMAZ:
+    atlamak evreni SESSIZCE kucultur ve "0 isabet" hukmunu yanlis atfeder."""
+    dallar = []
+    hatali = []
+    for satir in (ham or "").splitlines():
+        if not satir.strip():
+            continue
+        parca = satir.split("\t")
+        if (len(parca) != 2 or len(parca[0].strip()) < 7
+                or not parca[1].strip().startswith(UZAK_REF_ONEKI)):
+            hatali.append(satir[:70])
+            continue
+        ad = parca[1].strip()[len(UZAK_REF_ONEKI):]
+        if not ad:
+            hatali.append(satir[:70])
+            continue
+        dallar.append((parca[0].strip(), ad))
+    if hatali:
+        return None, ("TANINMAYAN `ls-remote` SATIR BICIMI (fail-closed): %d satir "
+                      "cozulemedi, ornek %r" % (len(hatali), hatali[:3]))
+    return dallar, None
+
+
+def _git_ls_remote(kok, uzak):
+    """(rc, stdout, stderr). AG GEREKTIRIR. Ortam ayni sebeple temiz (kanca baglami)."""
+    try:
+        r = subprocess.run(["git", "-C", kok, "ls-remote", "--heads", uzak],
+                           capture_output=True, text=True, env=git_ortami())
+    except OSError as e:
+        return 127, "", "git calistirilamadi: %s" % e
+    return r.returncode, r.stdout, r.stderr
+
+
+def _git_ls_tree(kok, sha):
+    """(rc, stdout, stderr). NUL-ayrilmis, OZYINELI dosya yolu listesi."""
+    try:
+        r = subprocess.run(["git", "-C", kok, "ls-tree", "-r", "--name-only", "-z", sha],
+                           capture_output=True, text=True, env=git_ortami())
+    except OSError as e:
+        return 127, "", "git calistirilamadi: %s" % e
+    return r.returncode, r.stdout, r.stderr
+
+
+def uzak_agac_yollari(kok, sha, ls_tree=None):
+    """(yollar, hata). OZYINELI olmali: alt dizindeki rapor da EVRENE girer."""
+    rc, cikti, hata = (ls_tree or _git_ls_tree)(kok, sha)
+    if rc != 0:
+        return None, ("UZAK DAL AGACI OKUNAMADI (fail-closed, sha=%s): %s\nSIG "
+                      "(shallow) klonda uzak dal NESNELERI yoktur. Cozum: "
+                      "git fetch --prune origin" % (sha[:12], (hata or "").strip()[:120]))
+    yollar = [y for y in cikti.split("\0") if y]
+    if not yollar:
+        return None, ("BOS AGAC (fail-closed, sha=%s): 0 dosya listelendi — 'temiz' "
+                      "DEGIL, OLCULEMEDI" % sha[:12])
+    return yollar, None
+
+
+def uzak_tarama(kok, uzak="origin", predikat=None, ls_remote=None, ls_tree=None):
+    """(isabetler, dal_sayisi, hata). isabet = (dal, sha, yol).
+
+    Hukum SIRASI fail-closed'dir: kanonik aile -> evren -> her dalin agaci. Herhangi
+    biri olculemezse "0 isabet" BASILMAZ."""
+    if predikat is None:
+        predikat, kanon_hata = kanonik_aile()
+        if kanon_hata:
+            return None, 0, kanon_hata
+    rc, cikti, hata = (ls_remote or _git_ls_remote)(kok, uzak)
+    if rc != 0:
+        return None, 0, ("`git ls-remote --heads %s` BASARISIZ (rc=%s): %s"
+                         % (uzak, rc, (hata or "").strip()[:200]))
+    dallar, ayristirma_hatasi = uzak_dallari_ayristir(cikti)
+    if ayristirma_hatasi:
+        return None, 0, ayristirma_hatasi
+    if not dallar:
+        return None, 0, ("BOS KAPSAM (fail-closed): `%s` uzaginda 0 dal listelendi — "
+                         "rc=0 + bos cikti 'temiz' DEGIL" % uzak)
+    isabetler = []
+    for sha, dal in dallar:
+        yollar, agac_hatasi = uzak_agac_yollari(kok, sha, ls_tree=ls_tree)
+        if agac_hatasi:
+            return None, len(dallar), ("dal %s: %s" % (dal, agac_hatasi))
+        for yol in yollar:
+            if predikat(yol):
+                isabetler.append((dal, sha, yol))
+    return sorted(isabetler), len(dallar), None
+
+
+def _uzak_kolu(kok, uzak, kanon_dizin):
+    """`--uzak` kolunun cikis kodu. Olculen evren HER kosumda (yesilde de) BASILIR."""
+    predikat, kanon_hata = kanonik_aile(kanon_dizin)
+    if kanon_hata:
+        print("UZAK DAL KAPISI: OLCULEMEDI (fail-closed KIRMIZI)", file=sys.stderr)
+        print(kanon_hata, file=sys.stderr)
+        return RC_OLCULEMEDI
+    isabetler, dal_sayisi, hata = uzak_tarama(kok, uzak, predikat=predikat)
+    if hata:
+        print("UZAK DAL KAPISI: OLCULEMEDI (fail-closed KIRMIZI)", file=sys.stderr)
+        print(hata, file=sys.stderr)
+        return RC_OLCULEMEDI
+    print("UZAK DAL KAPISI: olculen uzak = %s (%d dal agaci tarandi), yerel agac = %s"
+          % (uzak, dal_sayisi, kok))
+    if not isabetler:
+        print("UZAK DAL KAPISI: temiz (0 ic rapor dosyasi).")
+        return RC_TEMIZ
+    print("UZAK DAL KAPISI: %d UZAK DAL ISABETI (PUBLIC repoda DURUYOR):"
+          % len(isabetler))
+    for dal, sha, yol in isabetler:
+        print("  dal=%s sha=%s dosya=%s" % (dal, sha[:12], yol))
+    print()
+    print("COZUM: dalin main'de OLMAYAN isini once YEREL bir yedek dalda emniyete al")
+    print("(varligini `git rev-parse` ile KANITLA), sonra uzak dali sil. Dal artik/")
+    print("zombi ise dogrudan sil. Kapanis olcumu 'sildim' degil, bu kolun TEKRAR")
+    print("kosulmus 0 isabetidir.")
+    return RC_IHLAL
+
+
+# ===========================================================================
 # KENDINI-TEST — izole gecici git deposunda offline kabul testi.
-# IDDIA-1..IDDIA-6: mutasyon testinin "TEK KIRMIZI" hedefledigi, SABIT SAYIDA
-# (6) DECLARE EDILMIS ana iddia — surucusu REPODA durur: `--mutasyon` kolu.
+# IDDIA-1..IDDIA-10: mutasyon testinin "TEK KIRMIZI" hedefledigi, SABIT SAYIDA
+# (10) DECLARE EDILMIS ana iddia — surucusu REPODA durur: `--mutasyon` kolu.
 #   1-2 = desen/muafiyet ekseni · 3-5 = KOK ekseni (5 Agu 2026 olculen "yanlis agacta
 #   yesil" kusuru) · 6 = WORKTREE+KANCA baglami (6 Agu 2026 olculen "kok ortamdan
-#   turuyor" kusuru; DAVRANISSAL: gercek worktree + gercek commit + gercek kanca).
+#   turuyor" kusuru; DAVRANISSAL: gercek worktree + gercek commit + gercek kanca)
+#   · 7-10 = UZAK DAL GECMISI ekseni (10 Agu 2026 olculen "kapi yesilken 3 uzak dalda
+#   ic rapor PUBLIC" kusuru): 7 isabet, 8 taninmayan evren fail-closed, 9 GERCEK git
+#   ozyineli agac, 10 kanonik aile kaynagi fail-closed (ikiz tanim yasagi).
 #   KONTROL-*: ek saglamlik/yanlis-pozitif kontrolleri; IDDIA kumesinin
 # PARCASI DEGILDIR. KONTROL-C E2E oldugu icin IDDIA-2 ile AYNI alt fonksiyonu
 # (_desenler_bul) paylasir — "desen kontrolunu no-op yap" mutantinda YAN ETKI
 # olarak o da kirmizi yanabilir; bu, IDDIA kumesindeki TEK-KIRMIZI sartini
 # BOZMAZ (mutasyon eslemesi yalniz IDDIA-* etiketlerine bakar).
 # ===========================================================================
-def _kendini_test():
+def _kendini_test(kanon_dizin=BETIK_DIZINI):
     sonuclar = []  # [(etiket, gecti_mi, detay)]
 
     # --- Birim-seviyeli iddialar (tara() alt-fonksiyonlarini DOGRUDAN cagirir;
@@ -443,6 +660,115 @@ def _kendini_test():
         iddia6, detay6 = False, "sonda kurulamadi: %r" % (e,)
     sonuclar.append(("IDDIA-6 worktree-kanca-kok-ortamdan-bagimsiz", iddia6, detay6))
 
+    # ----------------------------------------------------------------- UZAK DAL EKSENI
+    # AG YOK: `ls-remote`/`ls-tree` kosuculari ENJEKTE edilir (kanned) + BIR ayak GERCEK
+    # git ile capalanir (kanned bicim gercek git ciktisindan kayarsa yakalanir).
+    kanon_predikat, kanon_hata = kanonik_aile(kanon_dizin)
+
+    # KONTROL-G: kanonik aile kaynagi GERCEKTEN yuklenebiliyor mu (aksi halde asagidaki
+    # uzak iddialar "hep OLCULEMEDI" olur ve hicbir sey ayirt etmez).
+    sonuclar.append(("KONTROL-G kanonik-aile-yuklenir", kanon_hata is None,
+                      "kanon_dizin=%s hata=%s" % (kanon_dizin, kanon_hata)))
+    _p = kanon_predikat if kanon_predikat else (lambda _y: False)
+
+    _sha_a = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678"
+    _sha_b = "b1c2d3e4f5061728394a5b6c7d8e9f0123456789"
+    _ham_dal = ("%s\trefs/heads/worktree-agent-ornek\n%s\trefs/heads/main\n"
+                % (_sha_a, _sha_b))
+
+    def _sahte_ls_remote(_kok, _uzak):
+        return 0, _ham_dal, ""
+
+    def _agac(*yollar):
+        return "\0".join(yollar) + "\0"
+
+    # IDDIA-7 (UZAK ISABET YAKALANIR): uzak bir dalin agacindaki ic rapor dosyasi
+    # bulunmali. Calisma agaci kolu bu senaryoda SESSIZDIR (dosya yerelde YOK).
+    _kirli = _agac("index.html", "tools/build.py", "CURUTME" + "-RAPORU.md")
+    _temiz = _agac("index.html", "tools/build.py", "README.md")
+
+    def _sahte_ls_tree_kirli(_kok, sha):
+        return (0, _kirli if sha == _sha_a else _temiz, "")
+
+    i7, d7, h7 = uzak_tarama("/yok", "origin", predikat=_p,
+                             ls_remote=_sahte_ls_remote, ls_tree=_sahte_ls_tree_kirli)
+    iddia7 = (h7 is None and d7 == 2 and i7 is not None and len(i7) == 1
+              and i7[0][0] == "worktree-agent-ornek")
+    sonuclar.append(("IDDIA-7 uzak-dal-isabeti-yakalanir", iddia7,
+                      "uzak dal agacindaki ic rapor bulunmali (dal=%d isabet=%r hata=%r)"
+                      % (d7, i7, h7)))
+
+    # IDDIA-8 (TANINMAYAN EVREN FAIL-CLOSED): `ls-remote` ciktisi cozulemiyorsa hukum
+    # VERILMEZ. Satiri ATLAMAK evreni sessizce kucultur -> "0 isabet" yanlis atfedilir.
+    def _bozuk_ls_remote(_kok, _uzak):
+        return 0, "BU BIR REF SATIRI DEGIL\n%s\trefs/heads/main\n" % _sha_b, ""
+
+    i8, _d8, h8 = uzak_tarama("/yok", "origin", predikat=_p,
+                              ls_remote=_bozuk_ls_remote, ls_tree=_sahte_ls_tree_kirli)
+    iddia8 = h8 is not None and i8 is None
+    sonuclar.append(("IDDIA-8 taninmayan-evren-fail-closed", iddia8,
+                      "cozulemeyen ls-remote satiri OLCULEMEDI olmali (isabet=%r)" % (i8,)))
+
+    # KONTROL-E (YANLIS-POZITIF NOBETI): AILEYE BENZEYEN ama KAPSAM DISI adlar
+    # (raporlama/onarimlar/... ve mesru belgeler) uzak dalda YANMAMALI. Bu kol
+    # bloklayici bir alarm uretir; genis yanlis-pozitif TUM dallari supheli yapar.
+    _fp = _agac("index.html", "RAPORLAMA-NOTU.md", "raporlama.md", "onarimlar.md",
+                "README.md", "tools/paket-shop-odeme.md", "urunler.json")
+
+    def _sahte_ls_tree_fp(_kok, _sha):
+        return 0, _fp, ""
+
+    iE, _dE, hE = uzak_tarama("/yok", "origin", predikat=_p,
+                              ls_remote=_sahte_ls_remote, ls_tree=_sahte_ls_tree_fp)
+    kontrol_e = hE is None and iE == []
+    sonuclar.append(("KONTROL-E uzak-yanlis-pozitif-yesil", kontrol_e,
+                      "kapsam disi benzer adlar YANMAMALI (isabet=%r hata=%r)" % (iE, hE)))
+
+    # IDDIA-9 (GERCEK GIT + OZYINELI AGAC): kanned kosucu bicim kaymasini goremez ve
+    # OZYINESIZ bir `ls-tree` ALT DIZINDEKI raporu kacirir. Bu ayak GERCEK depo kurar.
+    # 🔴 IDDIA predikattan BAGIMSIZ: ham yol listesi olculur -> IDDIA-7'nin oldurucusu
+    # bunu DUSURMEZ (ayirt edici mutant sarti).
+    with tempfile.TemporaryDirectory(prefix="pruvo-uzak-") as ud:
+        sentetik_git(ud, "init", "-q", capture_output=True, text=True,
+                      kimlik_ad="t", kimlik_eposta="t@t.local")
+        os.makedirs(os.path.join(ud, "alt", "dizin"))
+        with open(os.path.join(ud, "alt", "dizin", "CURUTME" + "-RAPORU.md"),
+                  "w", encoding="utf-8") as f:
+            f.write("ic rapor govdesi (fikstur)\n")
+        with open(os.path.join(ud, "index.html"), "w", encoding="utf-8") as f:
+            f.write("<p>taban</p>\n")
+        sentetik_git(ud, "add", "-A", capture_output=True, text=True,
+                      kimlik_ad="t", kimlik_eposta="t@t.local")
+        sentetik_git(ud, "commit", "-q", "-m", "fikstur", capture_output=True, text=True,
+                      kimlik_ad="t", kimlik_eposta="t@t.local")
+        _r = sentetik_git(ud, "rev-parse", "HEAD", capture_output=True, text=True,
+                           kimlik_ad="t", kimlik_eposta="t@t.local")
+        _hedef = (_r.stdout or "").strip()
+        _yollar, _yh = uzak_agac_yollari(ud, _hedef)
+        iddia9 = (_yh is None and _yollar is not None
+                  and "alt/dizin/CURUTME" + "-RAPORU.md" in _yollar)
+        sonuclar.append(("IDDIA-9 gercek-git-ozyineli-agac", iddia9,
+                          "alt dizindeki dosya ham agac listesinde olmali (hata=%r, "
+                          "yollar=%r)" % (_yh, _yollar)))
+
+        # KONTROL-H (GERCEK `ls-remote` BICIM CAPASI): ayristirici kanned metne DEGIL
+        # gercek git ciktisina capalanir. Yerel depo bir "uzak" olarak kullanilir (ag YOK).
+        _rc, _ham, _hata = _git_ls_remote(ud, ud)
+        _gercek_dallar, _gh = uzak_dallari_ayristir(_ham)
+        kontrol_h = (_rc == 0 and _gh is None and _gercek_dallar
+                     and all(s == _hedef for s, _a in _gercek_dallar))
+        sonuclar.append(("KONTROL-H gercek-ls-remote-bicimi", bool(kontrol_h),
+                          "gercek ls-remote ciktisi cozulmeli (rc=%s dallar=%r hata=%r)"
+                          % (_rc, _gercek_dallar, _gh or _hata)))
+
+    # IDDIA-10 (KANONIK AILE FAIL-CLOSED / IKIZ TANIM YASAGI): aile kaynagi YOKSA
+    # yerel bir yedek desene DUSULMEZ, hukum VERILMEZ. Dususun kendisi ikizdir.
+    with tempfile.TemporaryDirectory(prefix="pruvo-kanonsuz-") as kd:
+        _p10, _h10 = kanonik_aile(kd)
+        iddia10 = _p10 is None and _h10 is not None
+        sonuclar.append(("IDDIA-10 kanonik-aile-fail-closed", iddia10,
+                          "kanonik kaynak yokken yedek desene DUSULMEMELI (p=%r)" % (_p10,)))
+
     basarisiz = [s for s in sonuclar if not s[1]]
     for etiket, gecti, detay in sonuclar:
         print("  [%s] %s — %s" % ("PASS" if gecti else "FAIL", etiket, detay))
@@ -481,10 +807,33 @@ MUTANTLAR = (
     # fiksturu KUCUK harflidir -> ondan BAGIMSIZ duser (ayirt edici mutant).
     ("MUT-DESEN-HARF", "        if DESEN in satir.lower():",
      "        if DESEN in satir:", "IDDIA-2"),
+    # --- UZAK DAL EKSENI: 10 Agu 2026 onarimini geri alan mutantlar ---
+    # Isabet suzgecini oldurur: uzak dal agaci taranir ama HICBIR SEY isaretlenmez
+    # (kolun "hep yesil" hali). IDDIA-9 ham yol listesini olcer -> ondan BAGIMSIZ duser.
+    ("MUT-UZAK-SUZGEC", "            if predikat(yol):",
+     "            if False:", "IDDIA-7"),
+    # Fail-closed'i fail-OPEN yapar: cozulemeyen ls-remote satiri sessizce ATLANIR,
+    # evren kucultur ve "0 isabet" hukmu yanlis atfedilir.
+    ("MUT-UZAK-FAIL-OPEN", "    if hatali:\n        return None, (\"TANINMAYAN",
+     "    if False:\n        return None, (\"TANINMAYAN", "IDDIA-8"),
+    # Ozyinelemeyi oldurur: ALT DIZINDEKI rapor evrene GIRMEZ. Kanned kosuculu
+    # iddialar (7/8) bu bayragi hic kullanmaz -> yalniz GERCEK git ayagi duser.
+    ("MUT-UZAK-LSTREE-DUZ",
+     '["git", "-C", kok, "ls-tree", "-r", "--name-only", "-z", sha]',
+     '["git", "-C", kok, "ls-tree", "--name-only", "-z", sha]', "IDDIA-9"),
+    # 🔴 IKIZ TANIM MUTANTI: kanonik aile kaynagi yokken YEREL bir yedek desene duser.
+    # Bu, [[ikiz-tanim-sessiz-ayrisma]] dersinin ta kendisidir; kapi bunu gormeli.
+    ("MUT-KANON-IKIZ",
+     '        return None, ("KANONIK AILE KAYNAGI YOK: %s',
+     '        return (lambda y: y.rsplit("/", 1)[-1].lower().startswith("rapor")), ("%s',
+     "IDDIA-10"),
     # --- KONTROL: davranisi DEGISTIRMEYEN degisiklik -> batarya YESIL kalmali.
     #     Bu mutant kirmizi yakarsa batarya ayirt edici degil, sadece hassastir.
     ("KONTROL-METIN", 'print("COZUM: yorum/docstring METNINDEN dosya adini kaldir, anlamini koruyarak")',
      'print("COZUM: yorum/docstring metninden dosya adini kaldir; anlami koru.")', None),
+    # UZAK kolunun KENDI no-op kontrolu: yeni eksen "hep kirmizi" degil, AYIRT EDICI mi.
+    ("KONTROL-UZAK-METIN", 'print("UZAK DAL KAPISI: temiz (0 ic rapor dosyasi).")',
+     'print("UZAK DAL KAPISI: temiz — 0 ic rapor dosyasi.")', None),
 )
 
 
@@ -519,7 +868,13 @@ def _mutasyon_bataryasi():
     _on, _tablo, _arka = _tablo_disi(govde)
 
     def kos(yol):
-        r = subprocess.run([sys.executable, yol, "--kendini-test"],
+        # 🔴 `--kanon-dizin`: mutant KOPYA gecici dizinde yasar; ic rapor AILE tanimini
+        # tasiyan kanonik kaynak (tools/kisisel-veri-test.py) oraya KOPYALANMAZ —
+        # kopyalanirsa kendi bagimliliklariyla birlikte IKINCI bir kaynak dogar.
+        # Mutasyon YALNIZ kapiya uygulanir; aile tanimi HER kosumda AYNI tek kaynaktan
+        # gelir (bu yolun kendisi de MUT-KANON-IKIZ ile nobetlidir).
+        r = subprocess.run([sys.executable, yol, "--kendini-test",
+                            "--kanon-dizin", BETIK_DIZINI],
                             capture_output=True, text=True)
         cikti = r.stdout + r.stderr
         dusen = set(re.findall(r"^\s*\[FAIL\]\s+(\S+?)\s", cikti, re.M))
@@ -612,10 +967,18 @@ def main():
                      help="OLCULECEK agac (varsayilan: BETIGIN kendi agaci; CWD ASLA)")
     ap.add_argument("--mutasyon", action="store_true",
                      help="kabul bataryasinin mutasyon kanitini kostur (kopyaya uygular)")
+    ap.add_argument("--uzak", action="store_true",
+                     help="UZAK DAL AGACLARINI tara (ag ister; SIG klonda rc=2)")
+    ap.add_argument("--uzak-adi", metavar="AD", default="origin",
+                     help="taranacak uzagin adi/URL'si (varsayilan: origin)")
+    ap.add_argument("--kanon-dizin", metavar="YOL", default=None,
+                     help="ic rapor AILE tanimini tasiyan kanonik kaynagin dizini "
+                          "(varsayilan: BETIGIN dizini). Aile burada YENIDEN YAZILMAZ.")
     args = ap.parse_args()
 
+    kanon_dizin = args.kanon_dizin or BETIK_DIZINI
     if args.kendini_test:
-        return _kendini_test()
+        return _kendini_test(kanon_dizin)
     if args.mutasyon:
         return _mutasyon_bataryasi()
 
@@ -624,6 +987,8 @@ def main():
         print("IC RAPOR ADI KAPISI: OLCULEMEDI (fail-closed KIRMIZI)", file=sys.stderr)
         print(hata, file=sys.stderr)
         return RC_OLCULEMEDI
+    if args.uzak:
+        return _uzak_kolu(kok, args.uzak_adi, kanon_dizin)
     ihlaller, dosya_sayisi = ana_tarama(kok)
     # 🔴 OLCULEN AGAC HER ZAMAN BASILIR (yesilde de): bir "temiz" ciktisi artik
     # sessizce BASKA bir agaca atfedilemez.
