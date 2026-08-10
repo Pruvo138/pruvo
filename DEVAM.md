@@ -1,5 +1,58 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🔚 OTURUM KAPANISI — 9/10 Agu (marka tek-sayfa turu + yayin tavani)
+
+**CANLIYA GITTI (SHA'larla, hepsi `origin/main`; canli olcumle teyitli):**
+- `6b15062b` — **marka tek-sayfa merge**: marka sayfasi markanin TUM parcalarini listeliyor,
+  cipler sayfa ici filtre. Ilk yuk HAFIFLEDI (bmw 56916→34868 bayt), ilk acilista veri istegi 0.
+- `5d576510` — merge'in actigi iki kirmizi: yorumdaki ic surec dosyasi adi + marka uyelik
+  **gerilemesi** (taban 0 kalan ↔ merge sonrasi 5; ayirt edici olculdu). Kapi GEVSETILMEDI,
+  onarim uretim kodunda: 25 markada tek koleksiyon sayfasi.
+- `7428747c` — sitemap kapsam **ikiz tanimi** (sabit 1088 → kanonik turetme, 1122==1122).
+- `a046296a` — **53 siluet/duvar dekoru urunu katalogdan silindi** (23105→23052, Okan emri,
+  `duzelt.py --toplu`, gizli kayit da temizlendi, tam yedek alindi).
+- `cef49456` — SEO landing **WhatsApp CTA**: 322 sayfanin 303'unde link YOKTU → 0 eksik;
+  pazarlama yuzeyinden kargo rozeti kaldirildi (3→0), yasal kosul korundu.
+- `2d653f9f` — `ozet.json` ilk yuk **154530→134406 bayt** (butce YUKSELTILMEDI); 2,5 saat
+  bekleyen oksuz yama bayt-birebir dogrulanip devralindi, iki sigdirmadan olculen iyisi secildi.
+- `ee0047dd` — **sepet kargo esigi** (vaat 4→0, tahsilat satiri KALDI, 6 senaryoda kurus
+  BIREBIR ayni) + **D1 `seq` sira kusuru** (264 kesirli / 276 sapan → 0) + kok neden: kanca
+  artik kirli agaci degil COMMIT'i okuyor + sentetik fikstur git ortami **sinif** olarak
+  tek kanonik yardimciya baglandi (9 arac) + worktree acilis nobetcisi.
+- `a5ae0556` — kendi yamamin korlettigi **INDEX ekseni** (6 iddia) geri getirildi; temizlik
+  battaniye degil cagri yerinde.
+- `a855a720` — marka bataryasinda **5 hayatta kalan** kapatildi → **oldurucu 18/18**,
+  kontrol 3/3 yesil (iki tautoloji dahil).
+- `98758f0d` — **yayin tavani**: iki kendini-test kolu nobet seridine tasindi,
+  `serit-a4` **3736s → 11s**; `deploy`'da olculen iddia **58→58** (yuzey kucULMEDI).
+- `dd4f73ce` — K19 yargi kumesi: `Mazda|5` + `Renault|5` MODEL olarak yargilandi (veri kaynakli).
+
+**Canli teyit (son deploy, artefakt 3,7 dk):** parite site **1199/1199** · Ege **852/852**
+(ikisi de rc=0) · esik vaadi **0** · tahsilat satiri **VAR** · `/marka/*/diger/` **200** ·
+landing `wa.me` **1** · D1 24300 senkron. Sabahki **883/1199** sira kusuru KAPANDI.
+**Worktree envanteri 8 → 1** (arsivle-sonra-kaldir; hicbir sey silinmedi).
+
+**KOSUYOR:** tarayici iscisi — canli marka sayfasinda **artimli kart cizimi + cip filtresi**
+davranisi (ilk boya 80 kart → tetiklemeyle 2582'ye cikiyor mu). Izole worktree
+`agent-ae0d15fbb1976006c`. Spec: scratchpad `marka-davranis-spec.md`. Bu eksen test'te
+yesil ama CANLIDA hic olculmedi — sonucu gelmeden "marka sayfasi tamam" YAZILMASIN.
+
+**BEKLIYOR (kim neyle bloke):**
+1. **R2 158 gorsel** silinemedi — kova geneli 30 gun nesne kilidi. Okan A'yi secti (kilit
+   GEVSETILMEYECEK); tek seferlik gorev **24 Agu 2026 18:00 TRT** kuruldu, kuyruk + geri
+   donus yedegi depo disinda kalici.
+2. `yayin` **olcek tavani**: 531 aday > 300 sinir. `deploy`'u BLOKLAMIYOR, ayri is.
+3. **215 urun** basliginda marka geciyor ama `marka[]` uyesi degil — **VERI duzlemi**.
+   `arama.py` gecis kolu ONCE kapatilmayacak (arama daralir, satis yolu).
+4. H1/H3 kurali **16 model-olmayan** degeri model sayiyor — main'in mevcut kusuru.
+5. Sentetik fikstur git ortami: 9 arac kanonik yardimciya baglandi, kapi `serit-b`'de.
+   Yeni sentetik depo kuran her arac ayni yardimciyi kullanmali.
+6. `tools/d1-sync.py`'de **yabanci commit'siz degisiklik** (mtime 09 Agu 22:44Z) —
+   DOKUNULMADI, sahibi devam ettirmeli.
+
+**OKAN'DA BEKLEYEN:** `pages` job'larina `timeout-minutes` konmasi.
+(Sepet kargo esigi karari VERILDI ve uygulandi; R2 yolu A olarak SECILDI.)
+
 ## ✅ KAPANDI (ARŞİVE ALINDI) — CI kapsam kapısı keşif körlüğü, merge `22c5861a` (9 Ağu 2026)
 Tam döküm + açık kalan alt işler → `DEVAM-ARSIV.md` (defter kotası 1:1, bu turda taşındı).
 
@@ -63,20 +116,9 @@ Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~04:37Z turunda taşındı; kayıpsız
 ## ⏱ Nöbet defteri: 10 Ağu ~02:38–03:10Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1)
 Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~05:40Z turunda taşındı; kayıpsız kanıt: arşiv 1.098.626 → 1.102.649 bayt, artış 4.023 ≥ blok 4.023). Özet: önceki turun deploy blokajı başka oturumdan inen onarımla kapandı; iki dilim canlıya indi, kırmızıların hiçbiri `deploy.needs` içinde değildi.
 
-## 🔁 KraL DEVIR (clear oncesi yazildi) — SIRADAKI TEK IS: `muh/marka-tek-sayfa` dalini KAPAT
-**Okan emri (bu gece):** dali baslat; MaCiT mesgul oldugu icin 215 urunluk VERI onarimi BEKLIYOR.
-Dal: `muh/marka-tek-sayfa` **`73adb519`** (push'lu, worktree bugun KALDIRILDI → yeniden `worktree add` gerek).
-Hukum (Okan): marka sayfasi markanin TUM parcalarini kart listeler, cipler **sayfa ici filtre**.
-Olculen: gorunur kart **11731 → 21628** (audi 200→331 · ford 488→2583 · bmw 1010→2347), azalan marka **0**,
-kimlik sapan sayfa **32 → 0**, tavani asan sayfa **11 → 0**. Iddia 10871, davranis testi 20/20.
-Onceki curutme 1. turda MERGE_EDILEMEZ demis, UC kirmizi kapatilmis (teslim yolu tautolojisi ·
-agirlik regresyonu → edge `/katalog?ids=` · ci-kapsam kablolama).
-⏭ **EKSIK OLAN:** mutasyon bataryasi + ilk-yuk bayt tablosu → **dar curutme (yeni yuzey)** → merge + canli dogrulama.
-⚠️ Merge oncesi ZORUNLU (bugun iki kez yayin durdu): `is-akisi-kapisi.py` rc=0 + yeni adim `serit-b`'ye
-DUZ TEK KOMUTLA kablolu + `SERIT_B` beyani AYNI commit'te; ayrica `varlik-test.py` rc=0.
-Bu dal ayrica sayfanin kendi ic sayac celiskisini kapatir (baslik 330 ↔ cip toplami+diger 370).
-🔴 **KAPANMADI, ayri is (VERI duzlemi/MaCiT):** basliginda marka gecen ama `marka[]` uyesi olmayan
-**215 urun** (Mini 42 · Grom 29 · K100 19 · Datsun 18…). `arama.py` gecis kolu **ONCE KAPATILMAYACAK**
-(arama daralir, satis yolu). Ayrica acik: H1/H3 kurali **16 model-olmayan** degeri model sayiyor.
+## ✅ KAPANDI — `muh/marka-tek-sayfa` dali (bu oturumda merge edildi, yukaridaki kapanis blogu)
+Dal `73adb519` mutasyon bataryasi + ilk-yuk bayt tablosu + dar curutmeden gecirilip `6b15062b`
+ile alindi; actigi bes kirmizi ayri ayri kapatildi, bes hayatta kalan mutant `a855a720` ile
+tuketildi. Dal ve worktree'si temizlendi. Kalan acik isler yukaridaki BEKLIYOR listesinde.
 
 ## Onceki turlarin VE 7 Agu oturumunun TAM dokumu — ARSIVDE (DEVAM-ARSIV.md, git disi).
