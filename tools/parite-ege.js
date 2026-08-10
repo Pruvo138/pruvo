@@ -43,6 +43,10 @@ const path = require("path");
 const { pathToFileURL } = require("url");
 const ortak = require("./parite-ortak.js");
 const markaRef = require("./ege-marka-referansi.js");
+// MARKA KATLAMA SINIFI + `marka=` FILTRE ekseninin yerel yuklemi. Uyelik ELLE LISTE
+// DEGIL, index.html `markaKatla`sindan TURER; yuklem de index.html'in KENDI `markaUyeMi`
+// govdesidir (ikinci kopya YOK).
+const SINIF = require("./parite-marka-sinifi.js");
 
 const UC = process.env.ARA_UC || "https://pruvo-whatsapp-bot.gmlmz.workers.dev/ara";
 // 🔴 KATALOG YOLU = BU CHECKOUT (mutlak yol DEGIL). Eskiden /Users/okan/dev/pruvo/urunler.json
@@ -85,7 +89,20 @@ async function egeKodu() {
   }
 }
 
-function sorgulariUret(EGE, PRODUCTS, hedef) {
+/**
+ * Korpus ogesi: DUZ METIN (eski eksenler) ya da {q, marka} (yeni `marka=` filtre ekseni).
+ * Tek yerde cozulur ki iki temsil sessizce ayrismasin.
+ */
+function ogeCoz(x) {
+  return typeof x === "string" ? { q: x, marka: "" } : { q: x.q, marka: x.marka || "" };
+}
+
+/**
+ * @param {boolean} [sinifsiz]  YALNIZ ariza yolu: sinif cekirdegi turetilemediginde
+ *   kosum ESKI EKSENLERLE surer (karar sonucYaz'da, 1 > 3 > 0). Normal kosumda VERILMEZ;
+ *   verildigi hal cagiran tarafindan ACIKCA OLCULEMEDI olarak raporlanir.
+ */
+function sorgulariUret(EGE, PRODUCTS, hedef, sinifsiz) {
   const sorgular = [];
   const ekle = (q) => sorgular.push(q);
   const nrm = EGE.nrm;
@@ -152,22 +169,34 @@ function sorgulariUret(EGE, PRODUCTS, hedef) {
   ];
   for (const q of kenar) ekle(q);
 
+  // ── 7) `marka=` FILTRE EKSENI — bu korpusta HIC YOKTU (olculdu 10 Agu 2026) ────────
+  // Markalar buraya yalnizca SERBEST METIN `q` olarak giriyordu; `?marka=` ekseni
+  // (uc bu parametreyi mod=ege'de de tasir — egeMarkaSarti) OLCULMUYORDU. Sinif
+  // uyeligi markaKatla'dan TURER, katalog sirasindan BAGIMSIZDIR ve `hedef` ile
+  // KIRPILMAZ. `q` DAIMA doludur: /ara?mod=ege bos q'yu 400 ile reddeder.
+  const cekirdek = sinifsiz ? [] : SINIF.cekirdekSorgular(PRODUCTS, "ege").sorgular;
+
   for (let i = sorgular.length - 1; i > 0; i--) {
     const j = (i * 2654435761) % (i + 1);
     [sorgular[i], sorgular[j]] = [sorgular[j], sorgular[i]];
   }
-  return hedef ? sorgular.slice(0, hedef) : sorgular;
+  // Kirpma CEKIRDEGE dokunmaz (parite-test.js ile AYNI kural).
+  const kalan = hedef ? Math.max(0, hedef - cekirdek.length) : sorgular.length;
+  return cekirdek.concat(sorgular.slice(0, kalan));
 }
 
 // Her calisma icin benzersiz — asagiya bak.
 const NONCE = ortak.nonceUret();
 const SAYAC = ortak.sayacYeni();
 
-async function araSor(q) {
+async function araSor(q, marka) {
   const u = new URL(UC);
   u.searchParams.set("q", q);
   u.searchParams.set("mod", "ege");
   u.searchParams.set("limit", String(LIMIT));
+  // `marka=` YALNIZ istendiginde gonderilir: parametresiz uretilen SQL BAYT-AYNI kalir
+  // (ucun `mod=ege` blogundaki opt-in sozlesmesi), yani eski eksenler DEGISMEZ.
+  if (marka) u.searchParams.set("marka", marka);
   // ONBELLEK KIRICI — SART. /ara yanitlari "cache-control: public, max-age=60" ile doner ve
   // Cloudflare edge'i ISTEK'teki "cache-control: no-cache"i YOK SAYAR. Bu olmadan test
   // Worker'i degil CDN'i olcer: bir kez hatali surum deploy edilirse onun cevabi 60 sn
@@ -202,10 +231,41 @@ async function main() {
   const YEREL_ID_KUME = new Set(YEREL_IDLER);
 
   const hedef = parseInt(process.argv[2], 10);
-  const sorgular = sorgulariUret(EGE, PRODUCTS, Number.isFinite(hedef) ? hedef : 0);
   const OLCULEMEDI = [];
+  // ── MARKA KATLAMA SINIFI: `marka=` ekseninin cekirdegi ───────────────────────────
+  // 🔴 ERKEN CIKIS YOK — SIRA HUKUMDUR (1 > 3 > 0). Sinif turetmesi index.html'e
+  // baglidir; burada `return` etseydik, ON-KOSUL KIRMIZISI (yerelde var / D1'de yok)
+  // bir referans arizasi yuzunden OLCULEMEDI'ye (3) DONUSURDU — yani ariza BULUNACAK
+  // kirmiziyi silerdi ([[hukum-yanlis-birimde]]). Onun yerine ariza NOT olur, kosum
+  // ESKI EKSENLERLE devam eder ve karar TEK noktada (sonucYaz) verilir.
+  // 🔴 SESSIZ KUCULME DEGIL: sinif ekseni olculemediyse bu ACIKCA yazilir ve cikis
+  // 0 URETILEMEZ; ayrica korpusun sinifi tasidigi AYRI bir kapida (tools/parite-kapsam-
+  // test.js) ag olmadan olculur.
+  let SNF = null;
+  let cekirdekHatasi = null;
+  try { SNF = SINIF.markaSinifi(PRODUCTS); } catch (e) { cekirdekHatasi = e; }
+  let sorgular;
+  try {
+    sorgular = sorgulariUret(EGE, PRODUCTS, Number.isFinite(hedef) ? hedef : 0);
+  } catch (e) {
+    cekirdekHatasi = cekirdekHatasi || e;
+    sorgular = sorgulariUret(EGE, PRODUCTS, Number.isFinite(hedef) ? hedef : 0, true);
+  }
+  if (cekirdekHatasi) {
+    OLCULEMEDI.push("marka katlama sinifi TURETILEMEDI (" +
+      (cekirdekHatasi && cekirdekHatasi.message) + ") -> `marka=` ekseni OLCULMEDI");
+  }
+  const URUN_HARITA = new Map(PRODUCTS.map((p) => [p.id, p]));
   console.log("Ege parite testi: %d sorgu | %d urun (%s) | uc: %s",
     sorgular.length, PRODUCTS.length, URUNLER, UC);
+  if (SNF) {
+    console.log("MARKA KATLAMA SINIFI (markaKatla'dan TURETILDI): %d uye / %d marka degeri" +
+      " | kontrol degeri: %d | `marka=` ekseni: %d sorgu",
+      SNF.uyeler.length, SNF.evren, SNF.kontrolDegerleri.length,
+      sorgular.filter((x) => ogeCoz(x).marka).length);
+  } else {
+    console.log("⚪ " + OLCULEMEDI[OLCULEMEDI.length - 1]);
+  }
   console.log("ISTEK BUTCESI: sorgu(%d) + on-kosul(1) [+ sayilar ayriysa supurme " +
     "min(ceil(%d/%d), tavan %d) = %d parti] | zaman asimi %d ms/istek, deneme %d\n",
     sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI,
@@ -295,7 +355,9 @@ async function main() {
 
   async function isci() {
     while (sirada < sorgular.length && !olcumArizasi) {
-      const q = sorgular[sirada++];
+      const oge = ogeCoz(sorgular[sirada++]);
+      const q = oge.q;
+      const markaF = oge.marka;
 
       // BEKLENEN = UCUN GECTIGI DALIN yerel karsiligi, TUM eslesmeler (sirali).
       //  · marka adi sorgusu -> `marka_arama` uyeligi, katalog sirasi (uc: seq DESC,
@@ -309,15 +371,30 @@ async function main() {
         bekIds = markaDeger
           ? MARKA.kume(markaDeger).slice()
           : EGE.urunAra(idx, q, Infinity).map((u) => u.id);
+        // `marka=` FILTRE ekseni: yerel yuklem index.html'in KENDI `markaUyeMi`si
+        // (deger `markaKatla`dan gecer — cip ile arama ayni govdeyi kullanir).
+        // Ucun `mod=ege` marka kisiti /katalog'un IKIZIDIR; iki yuzeyin AYNI eksende
+        // ayni kumeyi vermesi iddiasi TAM DA burada olculur.
+        if (markaF) {
+          bekIds = bekIds.filter((id) => {
+            const p = URUN_HARITA.get(id);
+            return p ? SNF.uyeMi(p, markaF) : false;
+          });
+        }
       } catch (e) {
         olcumArizasi = olcumArizasi || Object.assign(e, { olcum: true });
         return;
       }
 
+      // Hata satirinda filtre GORUNSUN: ayni `q` iki farkli `marka=` ile gecebilir;
+      // yazilmazsa cikti "ayni sorgu iki farkli sonuc verdi" gibi YANILTICI olur.
+      const etiketle = (o) => (markaF ? Object.assign({ kat: "(ege)", marka: markaF }, o) : o);
+
       let g;
-      try { g = await araSor(q); } catch (e) {
+      try { g = await araSor(q, markaF); } catch (e) {
         if (e && e.olcum) { olcumArizasi = olcumArizasi || e; return; }
-        hatalar.push({ q, sinif: ortak.SINIF_ACIKLANAMAYAN, sebep: "istek hatasi: " + e.message });
+        hatalar.push(etiketle({ q, sinif: ortak.SINIF_ACIKLANAMAYAN,
+          sebep: "istek hatasi: " + e.message }));
         continue;
       }
 
@@ -336,7 +413,7 @@ async function main() {
       for (const id of k.fazla) fazlaKume.add(id);
       if (!k.kesin) olculemeyenPencere++;
       if (k.sinif === ortak.SINIF_GECTI) { gecti++; continue; }
-      hatalar.push({ q, sinif: k.sinif, sebep: k.sebep });
+      hatalar.push(etiketle({ q, sinif: k.sinif, sebep: k.sebep }));
     }
   }
 
@@ -370,6 +447,6 @@ async function main() {
 
 // Fikstur (tools/parite-fikstur.js) sahte Ege ucunu GERCEK bot koduyla kurar diye
 // egeKodu() disa veriliyor. require.main kapisi: import etmek testi KOSTURMAZ.
-module.exports = { egeKodu, sorgulariUret, BOT, URUNLER, LIMIT };
+module.exports = { egeKodu, sorgulariUret, ogeCoz, BOT, URUNLER, LIMIT };
 
 if (require.main === module) main();

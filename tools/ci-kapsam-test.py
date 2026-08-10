@@ -2724,6 +2724,26 @@ IZIN_LISTESI = {
     # Gerekceleri "deploy.yml'e 0-hunk sarti" idi — SURECSEL, o tur bitince curudu; 27 Tem
     # notunun kendisi zaten "sonraki turda eklenmeli, onerilen sira ..." diyordu ve o sira
     # bu turda uygulandi. Ucuncusu (mutasyon harness'i) SURE ile duruyor:
+    # --- marka katlama sinifi kapsam kapisi (10 Agu 2026) ---
+    # 🔴 GEREKCE SURECSEL DEGIL, OLCULDU: kapi iki korpusu da URETIR; ege korpus ureteci
+    # bot'un `nrm` fonksiyonunu ister ve bot AYRI bir checkout'tur
+    # (/Users/okan/dev/pruvo-bot/worker/src/index.js). CI fresh checkout'unda o depo
+    # YOKTUR -> kapi fail-closed olarak rc=3 (OLCULEMEDI) verir; bloklayici adim olarak
+    # baglanirsa serit-a3 YAPISAL olarak kirmizi yanar ve TUM yayini durdurur
+    # (mimar-kapi-6ev-test.py / kaynak-referans-uret.js ile AYNI sinif).
+    # NOT (mimara): site ekseni bot ISTEMEZ. Kapi ege eksenini ayirip yalniz site
+    # ekseniyle CI'ya baglanabilir; bu KAPSAM DARALTMA karari MIMARINDIR, burada
+    # tek tarafli alinmadi.
+    "tools/parite-kapsam-test.js": (
+        R_YOL + " Somut: kapi tools/parite-ege.js korpusunu uretir, o da bot deposunun "
+        "(~/dev/pruvo-bot, AYRI checkout) `nrm` fonksiyonunu ister; CI'da o dizin YOK -> "
+        "fail-closed rc=3 (OLCULEMEDI). Site ekseni bot istemez; ayrilirsa CI'ya "
+        "baglanabilir (mimar karari)."),
+    "tools/parite-kapsam-mutasyon.js": (
+        R_YAVAS + " Somut: 15 mutant x kapi kosumu; her mutant icin AYRI gecici agac "
+        "kurulur. Ayrica kapinin KENDISI CI'da rc=3 verdigi icin (bkz. "
+        "tools/parite-kapsam-test.js girisi) nobet CI'da AYIRT EDICI olcum yapamaz: "
+        "oldurucu ile kontrol mutanti ayni isareti verirdi."),
     "tools/parite-mutasyon-test.js": (
         R_YAVAS + " OLCULDU (31 Tem, temiz checkout): 14 mutant x fikstur kosumu = "
         "217,1 s — tek build job'unu blokar (M14 asilma nobeti tek basina ~120 s). "

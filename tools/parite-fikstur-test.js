@@ -36,6 +36,7 @@ const { spawn } = require("child_process");
 const TOOLS = __dirname;
 const REF = require("./parite-test.js");          // norm/haystack/filtered — GERCEK referans
 const EGE_MOD = require("./parite-ege.js");       // egeKodu() — GERCEK bot kodu
+const SINIF = require("./parite-marka-sinifi.js"); // `marka=` yuklemi (index.html govdesi)
 const PARITE_SITE = path.join(TOOLS, "parite-test.js");
 const PARITE_EGE = path.join(TOOLS, "parite-ege.js");
 
@@ -253,8 +254,16 @@ function sunucuKur(secenek) {
       const sap = (n) => n + (araToplamSapma || 0);
       if (mod === "ege") {
         if (!q.trim()) return gonder({ hata: "q gerekli", toplam: 0, urunler: [] }, 400);
+        // `marka=` FILTRE EKSENI (10 Agu): /ara?mod=ege bu parametreyi TASIR (egeMarkaSarti,
+        // /katalog marka dalinin ikizi). Sahte uc onu YOK SAYSAYDI, korpusa yeni giren
+        // marka ekseni fiksturde SAHTE KIRMIZI yakardi ve harness'in kendi hukmu
+        // gurultuye gomulurdu ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]).
+        // Yuklem index.html'in KENDI `markaUyeMi`si — ikinci kopya YOK.
+        const markaF = u.searchParams.get("marka") || "";
+        const markaSuz = (liste) => (markaF
+          ? liste.filter((p) => SINIF.markaSinifi(canli).uyeMi(p, markaF)) : liste);
         const serbest = () => {
-          const hepsi = suz(EGE.urunAra(idx, q, Infinity));
+          const hepsi = markaSuz(suz(EGE.urunAra(idx, q, Infinity)));
           return gonder({ toplam: sap(hepsi.length),
             urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
         };
@@ -263,7 +272,7 @@ function sunucuKur(secenek) {
         if (!markaGercek) return serbest();
         return markaGercek.kanon(q).then((deger) => {
           if (!deger) return serbest();
-          const hepsi = suz(canli.filter((p) => markaGercek.uyeMi(p.id, deger)));
+          const hepsi = markaSuz(suz(canli.filter((p) => markaGercek.uyeMi(p.id, deger))));
           return gonder({ toplam: sap(hepsi.length),
             urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
         }).catch((e) => gonder({ hata: "marka dali: " + String(e) }, 500));

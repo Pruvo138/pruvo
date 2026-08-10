@@ -31,8 +31,13 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const TOOLS = __dirname;
+// 🔴 BU LISTE BAYATLAR ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]): kopya GECICI bir
+// dizinde kosar, `require("./x.js")` orada cozulur. Parite dosyalarina YENI bir yerel
+// bagimlilik eklendiginde bu listeye de eklenmezse butun mutantlar "MODULE_NOT_FOUND" ile
+// coker ve nobet ariza sanilan bir kirmiziya doner.
 const DOSYALAR = ["parite-ortak.js", "parite-test.js", "parite-ege.js", "parite-fikstur-test.js",
-  "parite-yayin-fikstur-test.js", "index-arama-referansi.js", "ege-marka-referansi.js"];
+  "parite-yayin-fikstur-test.js", "index-arama-referansi.js", "ege-marka-referansi.js",
+  "parite-marka-sinifi.js"];
 const VARSAYILAN_FIKSTUR = "parite-fikstur-test.js";
 
 /**
