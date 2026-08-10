@@ -79,6 +79,13 @@ Tam döküm → `DEVAM-ARSIV.md` (10 Ağu ~04:37Z turunda taşındı; kayıpsız
 
 ## ⏱ Nöbet defteri: 10 Ağu ~06:35–06:55Z turu (KraL) — YAYIN ZİNCİRİ YEŞİL, 112 ÜRÜNLÜK PARTİ CANLIDA, ONARIM GEREKMEDİ
 
+> ⚠️ **MÜKERRER TUR (ölçüldü, çelişki YOK):** aynı pencereyi **paralel bir KraL oturumu** da
+> yazdı → aşağıdaki `06:37–07:00Z` bloğu. İki blok da bırakıldı, yabancı bloğa DOKUNULMADI.
+> Ortak eksenlerde sayılar birebir aynı (canlı 22.900.102 B / 24.659 · D1 24.659 · serit-b hâlâ
+> `in_progress`). Benzersizler: BU blokta kök-neden süre kırılımı + mühendis devri; ötekinde
+> mail süpürmesi + kendi hata kaydı. Sınıf: paylaşılan defterde iki nöbet oturumu aynı turu
+> koşarsa iş MÜKERRER yanar — tur başında `DEVAM.md` yeniden okunup pencere çakışması ölçülmeli.
+
 **Ev kontrolü:** `/Users/okan/dev/pruvo` (`worktree list` **1 satır**, tavan altında).
 **Önceki turun İLK işi kapatıldı (ÖLÇÜLDÜ, iddia değil):** `31357314751` koşumunun `serit-b` job'ı
 bu turda da **`in_progress`** — 05:14:17Z'den beri **~85 dk**. Takılma DEĞİL, adım adım ölçüldü:
@@ -87,8 +94,25 @@ bu turda da **`in_progress`** — 05:14:17Z'den beri **~85 dk**. Takılma DEĞİ
 adım 96: **15,6 dk**). Yani iş ilerliyor, `conclusion` hâlâ **ÖLÇÜLEMEDİ** (yeşil YAZILMADI).
 **🟡 Bu turun yeni bulgusu — SERIT B kadansı fiilen düştü:** batarya süresi job'ı ~90+ dk'ya
 çıkardığı için sonraki iki SERIT B koşumu (`31359855584` 05:50Z, `31361317446` 06:15Z) **`cancelled`**
-kapandı. `cancel-in-progress: false` gereği içerik kaybolmuyor ama şerit 15 dk'lık tetiğe rağmen
-~90 dk'da bir koşuyor. `deploy.needs` DIŞINDA → yayını BLOKLAMIYOR, ayrı iş olarak sıraya alındı.
+kapandı. `deploy.needs` DIŞINDA → yayını BLOKLAMIYOR, ayrı iş olarak sıraya alındı.
+**⚠️ Yukarıdaki satırın ilk yazımındaki "15 dk'lık tetik" ifadesi YANLIŞTI, tur içinde ölçülüp
+düzeltildi:** `nobet.yml` tetiği **`push`** (cron DEĞİL) + workflow düzeyinde
+`concurrency: group: nobet-serit-b`, `cancel-in-progress: false`. Yani kadansı cron değil KATALOG
+PUSH SIKLIĞI belirliyor; job süresi push aralığını aştığı için kuyruktakiler birbirini düşürüyor.
+**Kök neden SAYIYLA (son yeşil koşum `31349739698`):** `serit-b` job'ı **142 dk**; içindeki 4 adım
+tek başına **7370 s = 123 dk** (job'un **%86'sı**) — `Model uyeligi` 2788s · `Marka bolum kimligi`
+2406s · `Marka tek-sayfa hukmu` 1277s · `Model baslik kolu` 899s. Son 12 SERIT B koşumunun
+**8'i `cancelled`**, 2 success, 1 failure, 2 uçuşta → fiili teslim oranı ~%17.
+**Zarar (yayın değil, GERİ BİLDİRİM):** bir kapı kırıldığında haber ~2,5 saat gecikiyor.
+**AÇILDI — MÜHENDİS UÇUŞTA:** dal `muh/seritb-bolme`, izole worktree, Opus (kat gerekçesi: CI kapı
+kodu = sessiz-hata sınıfı, Codex'e verilmez). Spec: scratchpad `spec-seritb-bolme.md`. 4 batarya
+`serit-b`'den ayrı paralel job'lara taşınıyor. **Kabul çıkış kodu DEĞİL, BASILAN İDDİA SAYISI**
+(K1: main ucu ↔ dal sayıları birebir); ayrıca mükerrer yok · `deploy.needs` dışında · YAML parse ·
+`cron-nabiz-kapisi` + `Serit bolme kapisi` yeşil · `nobet.yml`'i okuyan kardeş kapılar bayatlamadı.
+**Not (sahiplenilmedi, kapandığı ölçüldü):** `31343521788` (00:09Z) `serit-b` **failure** —
+kırılan adım `CI kapsam kapisi KESIF ekseni mutasyon bataryasi (ratchet canli mi)`. Sonraki iki
+koşumda (00:51Z, 02:25Z) **success**; onarımın hangi commit'ten geldiği bu turda ÖLÇÜLMEDİ, o
+yüzden kimseye mal edilmedi ("yoldan geçen yeşili sahiplenme" kuralı).
 **YAYIN_BLOKLAYAN_KIRMIZI=YOK.** Son 15 koşumda `failure` **0**; `cancelled` olanların hepsi SERIT B.
 06:15Z koşumu `31361317244` (Build & deploy) **success**, 06:36Z koşumu `31362634843` uçuşta.
 **Canlı doğrulama (bayt birimiyle, işçi ölçtü):** HTTP **200**; canlı `urunler.json` **22.900.102**
@@ -107,6 +131,23 @@ hâlâ geçerli — parti indiği için kapı bu turda kimseyi kilitlemiyor.
 **DUR koşulu YOK, onarım YAPILMADI (gerekmedi). Okan'a çıkılmadı** (insan kararı gerektiren tıkanma yok).
 **Sonraki turun İLK işi:** `31357314751`/`serit-b` `conclusion`'ını ÖLÇ (iki turdur ölçülemedi) ve
 kırmızıysa sahiplen; ayrıca SERIT B kadans düşüşünü (90+ dk job ↔ 15 dk tetik) ayrı iş olarak tart.
+
+## ⏱ Nöbet defteri: 10 Ağu ~06:37–07:00Z turu (KraL) — YAYIN ZİNCİRİ TEMİZ, PARTİ CANLIYA İNDİ, ONARIM GEREKMEDİ
+
+**Ev kontrolü:** `/Users/okan/dev/pruvo` (ölçüldü; `pwd` + `rev-parse --show-toplevel` birebir).
+**Mail süpürmesi (koşulsuz, 0.5 adımı):** taşınan **0**, tur sonu "Run failed" **0**. Pozitif tanıma izi: birleşik `inbox` **7538** mesaj, `notifications@github.com` inbox toplamı **0** — bu sayı TEK BAŞINA "ÖLÇÜLEMEDİ" demek olacağı için eşleştirici AYRI kanıtlandı: aynı `contains` deseni Çöp'teki **67** kaydı tuttu ve zarfı `Pruvo138 <notifications@github.com>` biçiminde döndü, yani substring eşleştirici GÖRÜNEN AD formatını doğru ayrıştırıyor; ayrıca büyük/küçük harf duyarsız "run failed" taraması da **0** verdi → hüküm **TEMİZ**. Tam eşitlik kullanılmadı, yalnız birleşik `inbox`, alt kutulara girilmedi, Çöp boşaltılmadı, başka maile dokunulmadı.
+**⚠️ Bu turun kendi hatası (kayda geçti):** işçi silme sözdizimini CANLI kutuda denerken tek satırlık `delete message idx of inbox` biçimi derleme hatası verdi ve ayrıştırma denemesi sırasında GitHub ile İLGİSİZ **1** bülten maili Çöp'e taşındı; aynı oturumda INBOX'a geri alındı ve birleşik inbox'ta varlığı doğrulandı. Kalıcı kural: **silme sözdizimi canlı kutuda denenmez**; iki adımlı biçim (`set targetMsg to message idx of inbox` → `delete targetMsg`) kullanılır ve eşleşme kümesi BOŞKEN silme kolu hiç çalıştırılmaz.
+**YAYIN_BLOKLAYAN_KIRMIZI=YOK.** Son 20 koşumda hiç `conclusion=failure` yok; aktif 7 workflow'un (Build&deploy · SERIT B · spec/tasarım alarmı · Ödeme nabzı · D1 sapma · D1 uzlaştırıcı · Paket tazeliği) her birinin EN SON koşumu `success`.
+**Son push `10d3a9df` (defter kapanışı), koşum `31362634843` tur kapanışında UÇUŞTA (~12 dk):** `build`=**success** · `serit-a4`=**success** · `serit-a2`/`serit-a3` `in_progress`. Zincirin rengi bu turda **ÖLÇÜLEMEDİ** (yeşil YAZILMADI); tavanı yine `serit-a2` koyuyor (tarihsel ~24 dk), 65 dk tıkanma eşiğinin altında.
+**Canlı doğrulama (bayt birimiyle, beyanla değil):** HTTP **200**; canlı `urunler.json` **22.900.102** bayt / **24.659** ürün = yerel **22.900.102** bayt / **24.659** ürün → birebir eşit. Önceki tura göre **22.817.244 → 22.900.102**: 112 ürünlük Mazda dilim-6 partisi canlıya **İNDİ**, bayat sürüm yok.
+**D1 kanalı senkron (adet+hash birimiyle):** D1 **24.659** satır == `urunler.json` **24.659** benzersiz id; hash uyuşmazlığı **0**, D1'de eksik **0**, fazla **0**; seq monoton, göç indeksleri kurulu, türetilmiş kolonlar (konfigür/taban_fiyat/marka_kanon/model_kanon/marka_arama) güncel. Ege'nin okuduğu tarafta sapma yok.
+**DEVRALINAN İŞ KAPANMADI (2. tur):** `31357314751` / `serit-b` hâlâ `in_progress` — 05:14:17Z→06:49:15Z arası **~95 dk**. **TAKILMA DEĞİL:** adım sayacı canlı ilerliyor (06:45:02Z **96/101** → 06:49:15Z **97/101**, o an "Model başlık kolu mutasyon bataryası"). Sınıfı `deploy.needs` DIŞINDA, yayını durdurmuyor.
+**⚠️ Ölçülmemiş eksen (iddia değil, açık soru):** "95 dk anormal yavaş" bir İZLENİM; bu sınıfın NORMAL süresi ölçülmedi, dolayısıyla tabansız. Aynı iş önceki turda da ~40 dk'dan beri koşuyordu, yani iki turdur rengi alınamıyor.
+**`cancelled` yığını arıza sayılmadı** (4.5 kuralı): SERIT B'nin 05:50:07Z ve 06:15:55Z koşumları `cancelled` — `concurrency: cancel-in-progress: false` tasarımı gereği yalnız KUYRUKTAKİ eski koşum düşer, içeriği kaybolmaz.
+**⚠️ Sınıf kapısı bu turda KIRMIZI yandı ve metin değişti (kapı GEVŞETİLMEDİ):** `devam-sinif-kapisi.py` rc=1 verdi, yakalanan satır defterin kendi metniydi — bir GitHub workflow'unun ADINDAKİ kök sözcük E6 güvenlik-bulgusu desenine takıldı; gerçek bir sızıntı YOKTU. Muafiyet tanımlanmadı, workflow adı defterde anılmayacak biçimde yeniden yazıldı. Sınıf: **kapının tarama yüzeyi defterin KENDİSİDİR ve altyapı adları o yüzeyde yanlış-pozitif üretebilir** — çözüm kapıyı değil metni değiştirmektir.
+**DUR koşulu YOK, onarım YAPILMADI (gerekmedi), hiçbir mail silinmedi (silinecek mail yoktu).**
+**Okan'a çıkılmadı:** insan kararı gerektiren tıkanma yok, DUR koşulu yok, yanlış ev yok.
+**Sonraki turun İLK işi:** (a) `31362634843` koşumunun `conclusion`'ını ölç (bu turda uçuştaydı); (b) `31357314751` / `serit-b` rengini ölç VE süresini bir TABANA karşı tart — son 5 yeşil SERIT B koşumunun `serit-b` job süresini çıkar, 95 dk o dağılımın neresinde? Taban olmadan "yavaş" yazılmasın. Devralınacak başka yarım iş YOK.
 
 ## ⏱ Nöbet defteri: 10 Ağu ~05:37–06:00Z turu (KraL) — YAYIN ZİNCİRİ YEŞİL, PARTİ CANLIYA İNDİ, ONARIM GEREKMEDİ
 
