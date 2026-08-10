@@ -1937,7 +1937,13 @@ async function test24UrunKoduLinki() {
     return (b >= 0 && s > b) ? sayfa.metin.slice(b, s) : null;
   };
   const escKaynak = dilimAl("function esc(s){", "function tl(k){");
-  const satirKaynak = dilimAl("function satirHtml(no,k){", "function boyutMetni(b){");
+  // 🔴 CAPA `kaynakHtml`TEN BASLAR, `satirHtml`ten DEGIL: satirHtml artik uretim dosyasi
+  // kaynak blogunu kaynakHtml() ile basiyor ve o fonksiyon satirHtml'in ONUNDE duruyor.
+  // Dar capa (yalniz satirHtml) vm'de `kaynakHtml is not defined` ile PATLIYORDU — yani
+  // kardes bir dosyaya eklenen yeni bir yardimci, bu testin ELLE TUTULAN dilim sinirini
+  // bayatlatti ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]). Alt sinir asagi cekildi;
+  // olculen yuzey KUCULMEDI, BUYUDU (satirHtml aynen iceride).
+  const satirKaynak = dilimAl("function kaynakHtml(k){", "function boyutMetni(b){");
   if (!escKaynak || !satirKaynak) {
     hatalar.push("sayfa kaynaginda esc/satirHtml bulunamadi (sayfa yapisi degisti mi?)");
   } else {

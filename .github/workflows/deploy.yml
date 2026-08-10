@@ -659,6 +659,30 @@ jobs:
       - name: Yonet anahtar/cerez kabul testi (admin giris kapisi — deterministik alt kume)
         run: node shop/test/kabul.js --yonet-cerez
 
+      # URETIM DOSYASI DRIVE BAGLANTISI — panelin OKUMA/SUNUM tarafi (yeni uc YOK).
+      # OLCULEN GERCEK: Drive `fileId` yapisal bir alanda DEGIL, gizli kaynak kaydinin
+      # `baski` serbest metnindedir (oradan D1 `urunler.baski` kolonuna, oradan panele
+      # gelir). Yani baglanti METIN AYRISTIRMASINDAN turer ve not bicimi degisirse
+      # SESSIZCE kaybolabilir — kapinin varlik sebebi tam olarak budur:
+      #   * kanonik / yedek / ARSIVDE-BASILMAZ ayrimi ekranda GORUNUR kalir (yanlis
+      #     dosyanin basilmasi en pahali uretim hatasidir),
+      #   * baglantilar TIKLANABILIR ve target=_blank + rel=noopener tasir,
+      #   * SESSIZ BOSLUK YASAK: kaynak yoksa "kaynak yok", sinif isareti var ama fileId
+      #     yoksa "baglanti uretilemedi" ACIKCA basilir (bos hucre, "dosya yok" ile
+      #     "olculemedi"yi ayni yere dusururdu),
+      #   * YETKI YUZEYI SABIT: yonlendirici kolu 10, Content-Disposition 2 (yeni indirme
+      #     ucu / proxy / zip acilmadi) — sayilar bu isten ONCEKI HEAD'de olculdu.
+      # Iddialar deploy edilen GERCEK kaynaktan (shop/src/yonet.js) cekilir, KOPYA yazilmaz.
+      # OLU NOBETCI DEGIL: mutasyon surucusu de REPODA durur VE burada KOSAR (0,7 s; 40 s
+      # esiginin cok altinda, o yuzden ci-kapsam muafiyetine girmedi). Kontrol mutanti M1
+      # "bos listeyi sessiz gec" -> K28 KIRMIZI; M9/M10 notr mutantlari YESIL kalir.
+      # Ikisi de wrangler/ag ISTEMEZ ve calisma agacini KIRLETMEZ. continue-on-error YOK.
+      - name: Uretim dosyasi Drive baglantisi (panel sunum kapisi)
+        run: node shop/test/uretim-kaynak.mjs
+
+      - name: Uretim dosyasi Drive baglantisi — mutasyon bataryasi (nobetci canli mi)
+        run: python3 tools/uretim-kaynak-mutasyon.py
+
       # ALT KATEGORI (`altkategori`) veri yolu — kategori ICINDEKI daraltma etiketi.
       # OLCULEN BASLANGIC DURUMU (1 Agu): alan urunler.json'da 134 kayitta DOLUYDU ama
       # hicbir yerde ISLENMIYORDU (index.html/build.py/d1-sync/arama/d1-sema/duzelt YOK)
