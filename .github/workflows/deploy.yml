@@ -80,6 +80,23 @@ jobs:
       - name: "urunler-guard provenans + fail-loud kabulu"
         run: python3 tools/urunler-guard-provenans-test.py
 
+      # SITEMAP DAMGA ONBELLEGI — <lastmod> tarihlerinin HIZLANDIRICISI, KAYNAGI DEGIL.
+      # Tarihler git gecmisinden turer (tools/sitemap_damga.py); bu dosya yalnizca ayni
+      # yurumeyi her kosumda tekrarlamamak icindir. ONBELLEK DUSERSE HICBIR TARIH
+      # YANLIS OLMAZ: build soguk baslar (tavansiz yurume + 240 sn sure butcesi) ve
+      # tarihleri yeniden turetir; butce dolarsa cozulemeyen URL lastmod'suz cikar.
+      # Bu yuzden `continue-on-error` GEREKMEZ ve adim yayini BLOKLAMAZ.
+      # IZLENEN dosya OLARAK TUTULAMAZ (olculdu 11 Agu 2026): 25 bin satirlik defteri
+      # tasiyan commit pre-push sizinti nobetcisinde 296.511 aday uretip tavani (150.000)
+      # asiyor ve her itmeyi durduruyordu.
+      - name: "Sitemap damga onbellegi (lastmod hizlandiricisi — dogruluk buna bagli DEGIL)"
+        uses: actions/cache@v4
+        with:
+          path: sitemap-damgalari.json
+          key: sitemap-damga-${{ github.sha }}
+          restore-keys: |
+            sitemap-damga-
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
@@ -916,6 +933,26 @@ jobs:
       # linkli). build.py'nin urun/ ciktisina MUHTAC DEGIL (modulu dogrudan cagirir), ~1 s. Offline.
       - name: Marka->model pilot kabul testi (Ford + BMW)
         run: python3 tools/marka-model-test.py
+
+      # SITEMAP LASTMOD KAPISI: 11 Agu 2026'ya kadar canli sitemap'teki 26.696 URL'in
+      # HEPSI ayni <lastmod>'u (build tarihi) tasiyordu -> Google'a her gun "her sey
+      # bugun degisti" deniyordu (olculdu: benzersiz lastmod = 1; tarama isteklerinin
+      # %93'u Refresh). Tarih artik git gecmisinden TURETILIR (tools/sitemap_damga.py);
+      # turetilemeyen URL'de etiket HIC BASILMAZ. Kapi kararliligi (iki uretim birebir
+      # ayni), tekil degisimi (yalniz degisen URL'in tarihi oynar), uydurma-tarih
+      # yasagini ve 5 mutanti (4 KIRMIZI + 1 KONTROL YESIL) olcer. Sentetik git
+      # deposu kurar, gercek depoya YAZMAZ; offline, stdlib, ~25 s.
+      - name: "Sitemap lastmod kapisi (gercek icerik-degisim tarihi + mutasyon)"
+        run: python3 tools/sitemap-damga-test.py
+
+      # ROBOTS KAPISI: parametreli URL'ler (?kategori= ?marka= ?ara= ?sepet=) tarama
+      # butcesi yiyor. EN BUYUK RISK FAZLADAN KAPATMAK: canli sitemap'te yolunda "ara"
+      # gecen 2.169, "marka" gecen 1.147 kanonik URL var — sorguya capalanmamis tek bir
+      # desen hepsini kapatir. Kapi, kanonik urun/marka/ana sayfa/sitemap.xml'in ACIK
+      # kaldigini ve dort bicimin (hem ?<ad>= hem &<ad>=) KAPALI oldugunu RFC 9309
+      # ornek tablosuyla dogrulanmis eslestiriciyle olcer + 5 mutant. Offline, ~10 s.
+      - name: "Robots parametreli URL kapisi (yanlis-pozitif + genisletme mutanti)"
+        run: python3 tools/robots-kapisi-test.py
 
       # YASAL SAYFA DRIFT KAPISI: build.py IZLENEN 4 elle yazilmis sayfayi (gizlilik /
       # hakkimizda / iletisim / sss) YERINDE yeniden yazar. Fault injection ile olculdu

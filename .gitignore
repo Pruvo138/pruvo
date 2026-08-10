@@ -44,6 +44,11 @@ gorseller/
 /taban-fiyatlar.js
 /index.built.html
 /sitemap.xml
+# sitemap <lastmod> damga ONBELLEGI (tools/sitemap_damga.py) — git'e GIRMEZ, Actions
+# onbelleginde tasinir. IZLENSEYDI: 25 bin satirlik tek commit pre-push sizinti
+# nobetcisinde 296.511 aday uretip (tavan 150.000) HER itmeyi durduruyordu (olculdu
+# 11 Agu 2026). Dogruluk buna bagli DEGIL: dosya yoksa tarihler git'ten turer.
+/sitemap-damgalari.json
 /merchant-feed.xml
 /robots.txt
 /_yayin-icerik-dizinleri.txt
