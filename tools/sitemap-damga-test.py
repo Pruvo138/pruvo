@@ -36,6 +36,7 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARAC = os.path.join(KOK, "tools")
 sys.path.insert(0, ARAC)
 import sitemap_damga as sd                                    # noqa: E402
+from git_ortami import sentetik_git                           # noqa: E402
 
 IDDIA = [0]
 HATA = []
@@ -59,10 +60,8 @@ URUN_C = {"id": "c-urun", "kategori": "Ev", "baslik": "C", "aciklama": "c",
 
 
 def _git(kok, *argv, **kw):
-    cev = dict(os.environ)
-    cev.update(kw.get("cev") or {})
-    r = subprocess.run(("git",) + argv, cwd=kok, capture_output=True,
-                       text=True, env=cev)
+    r = sentetik_git(kok, *argv, kimlik_ad="T", kimlik_eposta="t@t",
+                     ek_ortam=kw.get("cev"), capture_output=True, text=True)
     if r.returncode != 0 and not kw.get("hatayi_yut"):
         raise RuntimeError("git %s -> %s" % (" ".join(argv), r.stderr[:200]))
     return r
