@@ -67,6 +67,21 @@ Aday kollar (biri, ötekisi ya da ikisi — tabloya göre):
   SESSİZCE düşürebilir — edge modunda `index.html` sayımları ozet.json'dan okuyor. Kırpılan
   markanın çipi kaybolmamalı ya da kaybı ölçülüp BEYAN edilmeli.
 
+### FAZ 2b — TEMSİL BAYRAĞINI AÇMA YORDAMI (okuyucu önce, yazıcı sonra)
+
+Kol (a) uygulandı ama **iki aşamalı** yayınlanır: `tools/build.py` içindeki TEK KAYNAK
+`OZET_TEMSIL_SURUM` varsayılan **2**'dir (artefakt v2, bayrağın öncesiyle BAYT BAYT aynı).
+**Yayın N** yalnız v3'ü *açabilen* `index.html`'i çıkarır — yeni istemci eski artefaktı
+zaten sorunsuz açtığı için kimse etkilenmez. `index.html`'in tarayıcı önbelleği döndükten
+**≥4 saat sonra** ([[tarayici-onbellek-4saat]]) **Yayın N+1**'de sabit `3` yapılır; kazanç
+(21.766 B, %17,4) o an devreye girer. Neden bölündü: ölçüldü ki bayat önbellekli ESKİ
+`index.html` v3 artefaktı alırsa boş kart çizmez ve fiyat/beyan bozulmaz, ama **223 kartın
+kapağı** yer tutucuya düşer; iki aşamalı yayın bu pencereyi bayt kazancından vazgeçmeden
+sıfırlar. Doğrulama tek komut — **`node tools/ozet-temsil-test.js`** (iddia 8 bayrağın
+KAPALI varsayılanını, iddia 9 gerçek katalogda iki hâli ve bayat istemci penceresini
+sayıyla ölçer; `--mutasyon` bayrağı yok sayan mutantı KIRMIZI yakar). Bayrak açıldıktan
+sonra `node tools/faz3-yuk.js` + `python3 tools/edge-kart-kapisi.py` yeniden koşulur.
+
 ### FAZ 3 — PAY NÖBETÇİSİ (kalıcı kol)
 Bugünkü kapı yalnız **tavan aşıldığında** konuşuyor; aşım anında iş zaten geç. Pay eksenini
 ölçen bir kol ekle: pay eşiğin altına düştüğünde **bayrak KAPALI iken de** görünür uyarı,

@@ -34,6 +34,14 @@
  *   5  TAM ORTUSME — hepsi referans, geri acilis yine BIREBIR
  *   6  IKI SURUM — AYNI canli cozucu v2 (dizi) ve v1 (sozluk) artefakti da dogru acar
  *   7  BAYAT ISTEMCI — 11 Agu cozucusu v3'u alirsa BOS KART cizmez (olcum + sinir beyani)
+ *   8  TEMSIL BAYRAGI — BEYAN edilen bayrak ne ise artefakt ONU basiyor mu
+ *   9  GERCEK KATALOG — iki bayrak hali + bayat istemci penceresi SAYIYLA
+ *
+ * 🔴 TEMSIL BAYRAGI (build.py `OZET_TEMSIL_SURUM`, mimar karari 12 Agu 2026): v3'u ACABILEN
+ * istemci once yayinlanir (bayrak KAPALI, artefakt v2 -> kimse etkilenmez), tarayici
+ * onbellegi dondukten SONRA (>=4 saat) bayrak acilir. Boylece bayat istemci penceresi
+ * (223 kartin kapaginin yer tutucuya dusmesi) HIC olusmaz ve bayt kazanci da kaybolmaz.
+ * Bu test bayragin IKI halini de olcer; `--ozet-surum` YALNIZ olcum koludur.
  *
  * NE IDDIA EDILMEZ: vitrin SIRASI/blok kurali (tools/vitrin-siralama-test.js), bayt
  * BUTCESI (tools/faz3-yuk.js), kart ALAN SOZLESMESI (tools/edge-kart-kapisi.py),
@@ -175,13 +183,21 @@ function fiksturTamOrtusme() {
 }
 
 // --------------------------------------------------------- GERCEK build.py ile uretim
-function ozetUret(urunler) {
+/**
+ * @param urunler fikstur katalogu (dizi) ya da hazir katalog dosyasi YOLU (dize)
+ * @param surum   2|3 -> `--ozet-surum` ile ACIK olcum kolu · null -> BAYRAGIN VARSAYILANI
+ */
+function ozetUret(urunler, surum) {
   const no = ++_no;
-  const katalogYol = path.join(GECICI, "katalog-" + no + ".json");
+  let katalogYol = urunler;
   const ciktiYol = path.join(GECICI, "ozet-" + no + ".json");
-  fs.writeFileSync(katalogYol, JSON.stringify(urunler), "utf8");
-  const r = spawnSync("python3", [BUILD_YOL, "--sadece-ozet", "--katalog", katalogYol,
-    "--cikti", ciktiYol], { encoding: "utf8" });
+  if (Array.isArray(urunler)) {
+    katalogYol = path.join(GECICI, "katalog-" + no + ".json");
+    fs.writeFileSync(katalogYol, JSON.stringify(urunler), "utf8");
+  }
+  const argv = [BUILD_YOL, "--sadece-ozet", "--katalog", katalogYol, "--cikti", ciktiYol];
+  if (surum != null) { argv.push("--ozet-surum", String(surum)); }
+  const r = spawnSync("python3", argv, { encoding: "utf8" });
   if (r.error) { return { hata: "build.py calistirilamadi: " + r.error.message }; }
   if (r.status !== 0) {
     return { hata: "build.py exit " + r.status + " -> " + String(r.stderr || r.stdout || "").trim().slice(-300) };
@@ -258,9 +274,9 @@ function kosum() {
   console.log("    index: %s", path.relative(KOK, INDEX_YOL) || INDEX_YOL);
   console.log("    build: %s", path.relative(KOK, BUILD_YOL) || BUILD_YOL);
 
-  // ---- 1/2/3: KARISIK fikstur
+  // ---- 1/2/3: KARISIK fikstur (v3 kolu ACIKCA istenir — bayrak varsayilani iddia 8'de)
   const karisikUrun = fiksturKarisik();
-  const karisik = ozetUret(karisikUrun);
+  const karisik = ozetUret(karisikUrun, 3);
   const k1 = kayipsizMi(karisik, karisikUrun, "karisik fikstur");
   rapor("1 KAYIPSIZ (karisik fikstur): geri acilan kart == kaynak kart",
     k1.sapmalar.length === 0 && k1.kartSayisi >= 60,
@@ -283,7 +299,7 @@ function kosum() {
 
   // ---- 4: SIFIR ORTUSME (yarin ortusme 0 olursa da dogru cizilmeli)
   const sifirUrun = fiksturSifirOrtusme();
-  const sifir = ozetUret(sifirUrun);
+  const sifir = ozetUret(sifirUrun, 3);
   const k4 = kayipsizMi(sifir, sifirUrun, "sifir ortusme fiksturu");
   const sifirRef = (sifir.ozet.yeniRef || []).filter((x) => typeof x === "string").length;
   const sifirTam = (sifir.ozet.yeniRef || []).filter((x) => Array.isArray(x)).length;
@@ -294,7 +310,7 @@ function kosum() {
 
   // ---- 5: TAM ORTUSME
   const tamUrun = fiksturTamOrtusme();
-  const tam = ozetUret(tamUrun);
+  const tam = ozetUret(tamUrun, 3);
   const k5 = kayipsizMi(tam, tamUrun, "tam ortusme fiksturu");
   const tamRef = (tam.ozet.yeniRef || []).filter((x) => typeof x === "string").length;
   rapor("5 TAM ORTUSME: hepsi referans, geri acilis yine BIREBIR",
@@ -352,6 +368,66 @@ function kosum() {
     + degerBozulan + " | kapagi kisalan (yer tutucuya duser) " + bozukKapak
     + " | `yeni` kuyrugu " + (bayat.yeni || []).length + " kart");
 
+  // ---- 8: TEMSIL BAYRAGI — BEYAN ile URETILEN artefakt TUTUYOR mu?
+  // Mimar karari (12 Agu): okuyucu once, yazici sonra. Yayin N'de `index.html` v3'u
+  // ACABILIR ama `build.py` HALA v2 basar; yayin N+1'de bayrak 3 yapilir. Iddia bu yuzden
+  // "surum 2 olmali" DEGIL, "BEYAN EDILEN bayrak ne ise artefakt ONU basmali"dir —
+  // boylece kural yayin N+1'den sonra da CANLI kalir (bayat kabul testi olmaz).
+  // Bayrak yok sayilip kosulsuz v3 basilirsa (mutant M-G) beyan ile uretim ayrisir -> KIRMIZI.
+  const BEYAN = (function () {
+    const src = fs.readFileSync(path.join(KOK, "tools", "build.py"), "utf8");
+    const m = src.match(/^OZET_TEMSIL_SURUM\s*=\s*(\d+)/m);
+    if (!m) { olculemedi("build.py'de OZET_TEMSIL_SURUM (temsil bayragi) bulunamadi."); }
+    return Number(m[1]);
+  })();
+  const varsayilan = ozetUret(karisikUrun, null);
+  if (varsayilan.hata) { olculemedi("varsayilan bayrak kolu: " + varsayilan.hata); }
+  const vOzet = varsayilan.ozet;
+  const vAcik = ozetAc(JSON.parse(varsayilan.ham));
+  const v3Alan = ("gorselOnek" in vOzet) && ("yeniRef" in vOzet);
+  const v3AlanHic = !("gorselOnek" in vOzet) && !("yeniRef" in vOzet);
+  const vKapakTam = (vOzet.bloklar.Marin || []).every((k) => typeof k[5] !== "string"
+    || k[5].indexOf("://") !== -1);
+  const sekilTamam = BEYAN >= 3
+    ? (v3Alan && Array.isArray(vOzet.yeniRef))
+    : (v3AlanHic && Array.isArray(vOzet.yeni) && vKapakTam);
+  const vKayipsiz = esit(vAcik.yeni || [], bek.yeni) && esit(vAcik.parametrik || [], bek.parametrik);
+  rapor("8 TEMSIL BAYRAGI: BEYAN (" + BEYAN + ") ile URETILEN artefakt tutuyor ve yeni "
+    + "istemci onu BIREBIR aciyor",
+    vOzet.surum === BEYAN && sekilTamam && vKayipsiz,
+    "beyan=" + BEYAN + " uretilen surum=" + JSON.stringify(vOzet.surum)
+    + " | v3 alani " + (v3Alan ? "VAR" : (v3AlanHic ? "yok" : "YARIM ✘"))
+    + " | kesit " + ((vOzet.yeniRef || vOzet.yeni || []).length) + " kart | "
+    + varsayilan.bayt + " B | kayipsiz " + (vKayipsiz ? "OK" : "SAPTI")
+    + (BEYAN >= 3 ? " | ⚠ YAZICI ACIK (yayin N+1 hali)" : " | yazici KAPALI (yayin N hali)"));
+
+  // ---- 9: GERCEK KATALOG — iki bayrak hali + BAYAT ISTEMCI PENCERESI SAYIYLA
+  const katalogYol = path.join(KOK, "urunler.json");
+  if (!fs.existsSync(katalogYol)) {
+    console.log("  ⚠ 9 GERCEK KATALOG: urunler.json YOK -> OLCULEMEDI (iddia degil, olcum)");
+  } else {
+    const gKapali = ozetUret(katalogYol, 2);
+    const gAcik = ozetUret(katalogYol, 3);
+    if (gKapali.hata || gAcik.hata) {
+      olculemedi("gercek katalog kolu: " + (gKapali.hata || gAcik.hata));
+    }
+    // Bayat istemci (11 Agu cozucusu) v3'u alirsa KAC kartin kapagi kisa kalir?
+    const gBayat = bayatIstemciOzetAc(JSON.parse(gAcik.ham));
+    const gKartlar = []
+      .concat(gBayat.parametrik || [])
+      .concat(Object.keys(gBayat.bloklar || {}).reduce((t, k) => t.concat(gBayat.bloklar[k]), []))
+      .concat(gBayat.yeni || []);
+    const gKapakKayip = gKartlar.filter((k) => k && typeof k.gorsel === "string" && k.gorsel
+      && k.gorsel.indexOf("://") === -1).length;
+    const gBosKart = gKartlar.filter((k) => !k || typeof k !== "object" || !k.id).length;
+    rapor("9 GERCEK KATALOG: bayrak iki halde de saglam + bayat istemci penceresi OLCULU",
+      gKapali.ozet.surum === 2 && gAcik.ozet.surum === 3 && gAcik.bayt < gKapali.bayt
+      && gBosKart === 0,
+      "KAPALI " + gKapali.bayt + " B (v2) | ACIK " + gAcik.bayt + " B (v3) | kazanc "
+      + (gKapali.bayt - gAcik.bayt) + " B | BAYAT ISTEMCI: bos kart " + gBosKart
+      + ", kapagi kaybolan kart " + gKapakKayip + " (yayin N->N+1 penceresi kapatir)");
+  }
+
   console.log("");
   console.log("OLCUM: karisik fikstur ozet.json %d B | sifir-ortusme %d B | tam-ortusme %d B",
     karisik.bayt, sifir.bayt, tam.bayt);
@@ -378,15 +454,23 @@ const MUTANTLAR = [
     "        var kart = (typeof oge === \"string\") ? havuz[oge] : null;",
     "sifir-ortusme halinde (yarin) `yeni` bosalir — bugunku %100 ortusmede gorunmez"],
   ["M-D derleme: SURUM BUMP dusuruldu (v3 alani basiliyor, surum 2)", "build",
-    "            \"surum\": OZET_SURUM,", "            \"surum\": 2,",
+    "        ozet = {\"surum\": surum, \"kartAlanlari\": list(OZET_KART_ALANLARI)}",
+    "        ozet = {\"surum\": 2, \"kartAlanlari\": list(OZET_KART_ALANLARI)}",
     "bayat istemciye yeni temsil 'eski surum' etiketiyle verilirse kimse fark etmez"],
   ["M-E derleme: onek dusuruldu ama `gorselOnek` basligi BASILMADI", "build",
-    "            \"gorselOnek\": OZET_GORSEL_ONEK,", "",
-    "kendini tanimlamayan artefakt: istemci onegi geri EKLEYEMEZ"],
+    "            ozet[\"gorselOnek\"] = OZET_GORSEL_ONEK",
+    "            pass",
+    "kendini tanimlamayan artefakt: istemci onegi geri EKLEYEMEZ (surum nobetcisi de yakalar)"],
+  ["M-G derleme: TEMSIL BAYRAGI yok sayilir, kosulsuz v3 basilir", "build",
+    "    surum = OZET_TEMSIL_SURUM if temsil_surum is None else int(temsil_surum)",
+    "    surum = 3",
+    "okuyucu-once/yazici-sonra yayin kolu olur: yayin N'de bayat istemcilere v3 gider"],
   ["M-F derleme: referans havuz uyelugu DOGRULANMADAN verilir", "build",
-    "            s_yeni.append(kimlik if (kimlik is not None\n"
-    + "                                     and havuz_dizin.get(kimlik) == dizi) else dizi)",
-    "            s_yeni.append(kimlik if kimlik is not None else dizi)",
+    "            s_yeni = [(dizi[0] if (dizi and dizi[0] is not None\n"
+    + "                                   and havuz_dizin.get(dizi[0]) == dizi) else dizi)\n"
+    + "                      for dizi in s_yeni]",
+    "            s_yeni = [(dizi[0] if (dizi and dizi[0] is not None) else dizi)\n"
+    + "                      for dizi in s_yeni]",
     "havuzda OLMAYAN karta referans = istemcide DUSEN kart (sessiz kayip)"],
 ];
 
