@@ -3821,7 +3821,8 @@ ILK_YUK_BUTCE = 500 * 1024
 # tekrarlamaz. Alan adları artefaktın kendisinde TEK sözlük olarak bulunur ve istemci
 # dizileri bu sözlüğe göre açar. Değerlerin tamamı korunur; yalnız temsil sıkıştırılır.
 OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
-                      "parametrik", "aciklama", "eski_fiyat", "tur")
+                      "parametrik", "aciklama", "eski_fiyat", "tur",
+                      "tavsiyeFilament", "konfigur")
 
 
 def kart_ozeti(p):
@@ -3877,6 +3878,19 @@ def kart_ozeti(p):
     # sözleşme: alan yok = özel üretim). Bu satır düşerse tools/edge-kart-kapisi.py KIRMIZI.
     if p.get("tur") == "fiziksel":
         kart["tur"] = "fiziksel"
+    # ÖN-SEÇİLİ MALZEME + ÖLÇÜYE ÖZEL KOL (11 Ağu) — ikisi de sepet FİYATINI/BEYANINI sürer:
+    # secenekler.js `onSecimMalzeme` ürünün kendi malzeme önerisini (`urun.tavsiyeFilament`)
+    # ön-seçer ve `urun.konfigur` taşıyan üründe ön-seçimi HİÇ uygulamaz (tutar tabandan canlı
+    # hesaplanır); index.html `konfigurSatirMi` ise `urun.konfigur`u bayraksız ESKİ sepet
+    # satırının yedek ekseni olarak okur. Kartta yoklarsa edge modunda panel başka malzeme
+    # ön-seçip sunucudan FARKLI tutar gösterir ve konfigür satırı ödeme kapısını atlar.
+    # Değer BİREBİR kopyalanır (normalize/kırpma/sıralama YOK) ve değer taşımayan üründe alan
+    # HİÇ yazılmaz (`tur`/`eski_fiyat` emsali: ozet.json bir bütçe dosyasıdır). Bu iki satır
+    # düşerse ya da değeri dönüştürürse tools/edge-kart-kapisi.py KIRMIZI yanar.
+    if p.get("tavsiyeFilament"):
+        kart["tavsiyeFilament"] = p.get("tavsiyeFilament")
+    if p.get("konfigur"):
+        kart["konfigur"] = p.get("konfigur")
     return kart
 
 

@@ -243,6 +243,12 @@ function edgeKart(p) {
   // ALAN YOK = ozel uretim (3D). Kapsam nobetcisi AYRI bir kapida ve ALAN LISTESI
   // ekseninde: tools/edge-kart-kapisi.py (buradaki izdusum yalniz "taklit == gercek" der).
   if (p.tur === "fiziksel") { kart.tur = "fiziksel"; }
+  // ON-SECILI MALZEME + OLCUYE OZEL KOL (11 Agu): secenekler.js onSecimMalzeme()
+  // `urun.tavsiyeFilament`i on-secer, `urun.konfigur` tasiyan urunde on-secimi HIC
+  // uygulamaz; ikisi de sepet tutarini surer. build.py kart_ozeti ile AYNI kural:
+  // deger tasimayan urunde alan HIC yazilmaz, tasiyanda BIREBIR kopyalanir.
+  if (p.tavsiyeFilament) { kart.tavsiyeFilament = p.tavsiyeFilament; }
+  if (p.konfigur) { kart.konfigur = p.konfigur; }
   return kart;
 }
 
