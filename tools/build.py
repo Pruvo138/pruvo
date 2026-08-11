@@ -1864,6 +1864,11 @@ PAGE_CSS = """
     white-space:nowrap;box-shadow:0 3px 10px rgba(37,211,102,.35);transition:.15s}
   .help-cta-btn:hover{background:#1ebe5a}
   .help-cta-btn svg{width:19px;height:19px;fill:#fff}
+  /* 🔴 DENGE TABANI KALKTI (Okan karari, 11 Agu): hap etiketi ARTIK HER genislikte
+     kisadir ("Iletisime Gecin"); uzun on-ek GLOBAL gizlenir, mobil-only DEGIL. Masaustu
+     CTA dengesini bu kisa etiket tutuyor — `.ikon-sepet` min-width tabani DEGIL (o
+     kaldirildi). Olcen: cta-denge-kapisi.py CTA-A1-ORAN · mutant: cta-denge-mutasyon.py M12. */
+  .wa-uzun{display:none}
 
   main{max-width:1100px;margin:0 auto;padding:28px 20px 50px}
   .crumbs{font-size:13px;color:var(--gray-text);margin-bottom:18px}
@@ -1921,15 +1926,15 @@ PAGE_CSS = """
   .adet-kutu input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
   /* Eylem butonları (madde 7 + CTA dengesi 11 Ağu): ETİKETLİ "Sepete Ekle" (birincil)
-     + yazısız WhatsApp ikonu (ikincil; kanal KALIR). Buton METNE göre büzüşür; alttaki
-     `min-width` tasarım değil, cta-denge-kapisi.py'nin bastığı DENGE TABANIDIR. */
+     + yazısız WhatsApp ikonu (ikincil; kanal KALIR). Buton HER genişlikte METNE göre
+     büzüşür: denge tabanı KALKTI, dengeyi kısa hap etiketi tutar (cta-denge-kapisi.py). */
   .eylem-ikonlar{display:inline-flex;gap:8px;margin-left:auto;flex-wrap:wrap;
     justify-content:flex-end}
   .ikon-btn{width:44px;height:44px;border:none;border-radius:9px;display:inline-flex;
     align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex:none;
     text-decoration:none;padding:0}
   .ikon-btn svg{width:22px;height:22px;fill:#fff}
-  .ikon-sepet{background:var(--navy);width:fit-content;min-width:210px;height:56px;
+  .ikon-sepet{background:var(--navy);width:fit-content;height:56px;
     padding:0 14px;gap:9px;color:#fff;font-size:16px;font-weight:700;font-family:inherit}
   .ikon-sepet:hover{background:var(--navy-2)}
   .ikon-sepet.added{background:#178a44}
@@ -2087,10 +2092,12 @@ PAGE_CSS = """
     .help-cta-text{font-size:11px;line-height:1.3;display:-webkit-box;
       -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
     .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;flex:none}
-    .wa-uzun{display:none}
     .eylem-ikonlar{flex-wrap:nowrap;width:100%}
-    /* `flex:1 1 auto` butonu 249 px'e şişiriyordu; mobilde denge tabanı da GEREKMEZ. */
-    .ikon-sepet{flex:none;min-width:0}
+    /* `flex:1 1 auto` butonu 249 px'e şişiriyordu; `flex:none` (=0 0 auto) onu durdurur.
+       Mobil min-width sıfırlaması KALKTI: sıfırlayacağı masaüstü denge tabanı artık YOK
+       ve flex:none zaten küçültmediği için ölçüye etkisi kalmamıştı — duran bir
+       sıfırlama "hâlâ bir taban var" izlenimi verip ikiz tanım riski doğuruyordu. */
+    .ikon-sepet{flex:none}
   }
 """
 PAGE_CSS += CONTENT_CSS

@@ -472,8 +472,16 @@ SPAN = re.compile(r'<span class="([^"]+)">(.*?)</span>', re.S)
 
 def gorunur_metin(kurallar, ic_html, viewport):
     """Bir butonun O VIEWPORT'ta GORUNEN metni: display:none olan span'lar DUSER.
-    (Mobilde `.wa-uzun` gizlenir -> WhatsApp butonu daralir; kapi bunu gormezse
-    WhatsApp'i oldugundan genis olcer ve oran iddiasi kayar.)"""
+
+    Gizleme kurali VIEWPORT'a gore cozulur: `stil()` bir @media max-width blogunu
+    yalnizca viewport tavanin ALTINDAysa tuketir, media DISI (global) kuralı ise HER
+    viewport'ta tuketir. Bu ayrim olcumun tasiyicisidir.
+
+    🔴 GUNCEL (11 Agu, Okan karari): `.wa-uzun{display:none}` artik GLOBAL — mobil bloktan
+    cikarilip temel CSS'e tasindi. Yani hem 375 hem 1100 px'te hap etiketi KISA
+    ("Iletisime Gecin") sayilir. Masaustu CTA dengesini tutan sey budur; `.ikon-sepet`in
+    eski `min-width:210px` denge tabani bu yuzden KALDIRILDI. Kural yeniden mobil-only'ye
+    daralirsa masaustu hapi buyur ve CTA-A1 KIRMIZI yanmalidir — mutant: M12."""
     def _ele(m):
         for sinif in m.group(1).split():
             d = stil(kurallar, {"." + sinif}, viewport)

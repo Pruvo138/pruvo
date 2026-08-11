@@ -19,10 +19,18 @@ sonunda canli agacin sha256 ozetleri bas=son karsilastirilir.
 
 🔴 DARALTMA VAKASI (11 Agu 2026): Okan "buton metne gore daralsin" dedi. Daraltma iki
 YENI sessiz bozulma sinifi acar ve batarya ikisini de kovalar — (a) buton WhatsApp
-hapinin ALTINA duser (M12: masaustu tabani delinir), (b) etiket kutuya SIGMAZ ve
+hapinin ALTINA duser (M12), (b) etiket kutuya SIGMAZ ve
 `white-space:nowrap` yuzunden SARMADAN KIRPILIR, yani yukseklik ayni kalir ve oran
 saglikli gorunur (M13). M13'un oldurucu oldugu tek kol CTA-A7'dir: A1 o mutantta
 YESIL kalir, cunku buton kaba yayilip ALANCA buyur.
+
+🔴 IKINCI TUR (11 Agu, ayni gun — Okan karari): hap ETIKETI kisaltildi. Uzun on-ek artik
+GLOBAL gizlenir (mobil-only DEGIL), masaustu hapi 11.131 -> 8.340 px²'ye dustu ve
+`.ikon-sepet`in min-width DENGE TABANI GEREKSIZLESIP kaldirildi: masaustunde de GERCEK
+fit-content. Sonuc: M12 yeniden tasarlandi — artik TABANI degil, dengeyi TUTAN gizleme
+kuralini deler. M1/M8/M14 capalari da kuralin YENI metnine tasindi; eski min-width
+capalari kaynakta artik YOK ve birebir birakilsalardi sessizce no-op olur, batarya
+korelirdi (dosyanin kendi `_capa_tekil` nobeti bunu ARIZA sayar).
 
 🔴 CANLI VAKA FIKSTURU (11 Agu 2026): M10 + M11, canlida OLCULEN iki bozulmayi geri
 getirir — (a) sepet CTA'larinin `transition`i `all`a doner, yani sinif takasinin ilk
@@ -58,7 +66,7 @@ KOPYALANAN = ("tools/build.py", "index.html", KAPI_REL)
 MUTANTLAR = [
     ("M1 oran TERS cevrilir (Sepete Ekle yeniden 44x44 ikon olur)",
      [("tools/build.py",
-       ".ikon-sepet{background:var(--navy);width:fit-content;min-width:210px;height:56px;",
+       ".ikon-sepet{background:var(--navy);width:fit-content;height:56px;",
        ".ikon-sepet{background:var(--navy);width:44px;min-width:44px;height:44px;")],
      True),
 
@@ -106,9 +114,9 @@ MUTANTLAR = [
        "YESIL, KIRMIZI, OLCULEMEDI_RC = 0, 1, 0")],
      True),
 
-    ("M8 pozitif kanit kaynagi silinir (.ikon-sepet taban kurali)",
+    ("M8 pozitif kanit kaynagi silinir (.ikon-sepet olcu kurali)",
      [("tools/build.py",
-       "  .ikon-sepet{background:var(--navy);width:fit-content;min-width:210px;height:56px;\n"
+       "  .ikon-sepet{background:var(--navy);width:fit-content;height:56px;\n"
        "    padding:0 14px;gap:9px;color:#fff;font-size:16px;font-weight:700;"
        "font-family:inherit}\n",
        "")],
@@ -134,18 +142,34 @@ MUTANTLAR = [
        "      WhatsApp ile Hemen Sipariş Ver ve Bilgi Al\n")],
      True),
 
-    # 🔴 M12 — DARALTMA VAKASI (a): masaustu CTA denge TABANI delinir. `min-width:210px`
-    # bir tasarim genisligi degil, sticky bandin WhatsApp hapina (11.131 px² model)
-    # karsi turetilmis tabandir; 120'ye cekilince buton gercek fit-content'ine (155,8 px)
-    # duser ve masaustu orani 1,06 -> 0,78 olur. Kapi tabani OLCMEZSE mutant SAG KALIR.
-    # ⚠️ CAPA CSS'E KILITLI: yalin `min-width:210px` capasi tabani ANLATAN yorum
-    # satirina da uyuyor ve `replace(..., 1)` ONCE yorumu deldigi icin mutant SAG
-    # KALIYORDU (olculdu). Capa artik kuralin kendi baglamini tasiyor; ayrica
-    # asagidaki `_capa_tekil` nobeti coklu eslesmeyi TOPTAN reddeder.
-    ("M12 masaustu denge tabani delinir (buton WhatsApp hapinin ALTINA duser)",
+    # 🔴 M12 — DARALTMA VAKASI (a): masaustu dengeyi TUTAN sey delinir.
+    #
+    # TARIHCE (capa neden degisti): 11 Agu'nun ILK turunda masaustu dengeyi
+    # `.ikon-sepet`in min-width TABANI (210 px) tutuyordu ve M12 o tabani deliyordu.
+    # Okan ayni gun "hap etiketini kisalt" dedi: uzun on-ek GLOBAL gizlendi, masaustu
+    # hapi 11.131 -> 8.340 px² dustu ve taban GEREKSIZLESIP KALDIRILDI. Yani eski capa
+    # (`min-width:210px`) artik kaynakta YOK; birebir birakilsaydi mutant no-op olur ve
+    # batarya SESSIZCE korelirdi ([[beyan-edilmis-survivor]]).
+    #
+    # YENI VAKA: dengeyi artik KISA ETIKET tutuyor. Mutant global gizleme kuralini
+    # yeniden MOBIL-ONLY'ye daraltir (11 Agu oncesi hal). Mobil AYNI kalir — bozulan
+    # eksen yalnizca MASAUSTUDUR: hap "Bizimle Iletisime Gecin"e geri buyur
+    # (254,4 x 43,75 = 11.131 px²), buton gercek fit-content'inde kalir
+    # (155,8 x 56 = 8.725 px²) ve masaustu orani 1,05 -> 0,78'e duser.
+    # Kapi gizleme kuralini VIEWPORT'a gore cozmezse (yani global kurali masaustunde de
+    # tuketmezse) mutant SAG KALIR — `gorunur_metin`/`stil` cifti tam bunun icin var.
+    # ⚠️ CAPA CSS'E KILITLI: iki adim da kuralin kendi satir baglamini tasir; capa
+    # metnini ANLATAN yorumlar bilerek bu dizeleri BIREBIR icermez ve `_capa_tekil`
+    # nobeti coklu/sifir eslesmeyi TOPTAN reddeder.
+    ("M12 masaustu denge kaynagi delinir (gizleme yeniden MOBIL-ONLY'ye daraltilir)",
      [("tools/build.py",
-       "width:fit-content;min-width:210px;height:56px;",
-       "width:fit-content;min-width:120px;height:56px;")],
+       "\n  .wa-uzun{display:none}\n",
+       "\n"),
+      ("tools/build.py",
+       "    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;"
+       "flex:none}\n",
+       "    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;"
+       "flex:none}\n    .wa-uzun{display:none}\n")],
      True),
 
     # 🔴 M13 — DARALTMA VAKASI (b): etiket kutuya SIGMAZ. `.cart-label{white-space:nowrap}`
@@ -158,8 +182,11 @@ MUTANTLAR = [
        "'<span class=\"cart-label\">Sepete Ekle ve Siparisi Hemen Tamamla</span></button>'")],
      True),
 
+    # M14 — yukseklik ekseni. Capa, denge tabani kalkinca `.ikon-sepet`in YENI olcu
+    # metnine tasindi (`width:fit-content;height:56px;`); vaka DEGISMEDI.
     ("M14 Sepete Ekle dokunma yuksekligi 44 px'in ALTINA duser",
-     [("tools/build.py", "min-width:210px;height:56px;", "min-width:210px;height:40px;")],
+     [("tools/build.py", "width:fit-content;height:56px;",
+       "width:fit-content;height:40px;")],
      True),
 
     # 🔴 M15 — YENI TURETMENIN FAIL-CLOSED KANITI: eylem satirinin genisligi artik

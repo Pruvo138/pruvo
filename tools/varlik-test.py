@@ -370,13 +370,21 @@ BILEREK_DEGISEN_CSS = (
     # CTA-A4-DOKUNMA-44. Mutasyon kaniti: tools/cta-denge-mutasyon.py (9 oldurucu).
     ("", ";flex-wrap:wrap;\n    justify-content:flex-end",
      "eylem blogu sarabilir + saga yaslanir (nobetci: cta-denge-kapisi.py)"),
-    # 2026-08-11 (ikinci tur, Okan): buton artik METNE gore buzusur. `min-width` bir
-    # tasarim genisligi DEGIL, masaustu denge tabanidir — sticky bandin WhatsApp hapi
-    # 235,5x43,75 = 10.304 px² olctugu icin 56 px yukseklikte 184 px'lik taban dogar.
-    # Kol: CTA-A1-ORAN + YENI CTA-A7-ETIKET-SIGDI (etiket kutuya sigiyor mu).
-    ("", ";width:fit-content;min-width:210px;height:56px;\n    padding:0 14px;gap:9px;"
+    # 2026-08-11 (UCUNCU tur, Okan karari "etiketi kisalt"): hap etiketi artik HER
+    # genislikte kisa oldugu icin uzun on-ekin gizlenmesi MOBIL BLOKTAN cikip TEMEL
+    # CSS'e tasindi. Masaustu CTA dengesini tutan sey budur; kural mobil-only'ye geri
+    # daralirsa hap buyur ve CTA-A1-ORAN KIRMIZI yanar (mutant: cta-denge-mutasyon M12).
+    ("", "  \n\n\n\n  .wa-uzun{display:none}\n",
+     "hap etiketi HER genislikte kisa — masaustu denge kaynagi "
+     "(nobetci: cta-denge-kapisi.py CTA-A1-ORAN · mutant: cta-denge-mutasyon.py M12)"),
+    # 2026-08-11 (ikinci tur, Okan): buton artik METNE gore buzusur. UCUNCU turda eski
+    # `min-width` DENGE TABANI KALKTI: hap kisa etikete dusunce (masaustu 11.131 ->
+    # 8.340 px² model) taban gereksizlesti ve buton masaustunde de GERCEK fit-content
+    # oldu (155,8x56 = 8.725 px², oran 1,05).
+    # Kol: CTA-A1-ORAN + CTA-A7-ETIKET-SIGDI (etiket kutuya sigiyor mu).
+    ("", ";width:fit-content;height:56px;\n    padding:0 14px;gap:9px;"
          "color:#fff;font-size:16px;font-weight:700;font-family:inherit",
-     "Sepete Ekle ETIKETLI + metne gore dar, denge tabaninin ustunde "
+     "Sepete Ekle ETIKETLI + metne gore dar, tabansiz gercek fit-content "
      "(nobetci: cta-denge-kapisi.py CTA-A1-ORAN + CTA-A7-ETIKET-SIGDI)"),
     ("", "}\n  .cart-label{white-space:nowrap",
      "buton etiketi tek satirda kalir (nobetci: cta-denge-kapisi.py)"),
@@ -385,11 +393,12 @@ BILEREK_DEGISEN_CSS = (
          "    .help-cta-text{font-size:11px;line-height:1.3;display:-webkit-box;\n"
          "      -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}\n"
          "    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;"
-         "flex:none}\n    .wa-uzun{display:none}\n"
-         "    .eylem-ikonlar{flex-wrap:nowrap;width:100%}\n     \n"
-         "    .ikon-sepet{flex:none;min-width:0}\n  ",
+         "flex:none}\n"
+         "    .eylem-ikonlar{flex-wrap:nowrap;width:100%}\n    \n\n\n\n"
+         "    .ikon-sepet{flex:none}\n  ",
      "mobil sticky bant %16,6 -> %7,5 + Sepete Ekle mobilde TAM fit-content "
-     "(`flex:none` buyumeyi, `min-width:0` masaustu denge tabanini kaldirir; "
+     "(`flex:none` buyumeyi durdurur; uzun on-ek gizlemesi UCUNCU turda temel CSS'e "
+     "TASINDI ve sifirlanacak taban kalmadigi icin mobil min-width sifirlamasi SILINDI; "
      "nobetci: cta-denge-kapisi.py CTA-A2-BANT-PAYI + CTA-A1-ORAN)"),
     # 2026-08-11 — ONERILEN MALZEME ON-SECIMI (Okan karari). Iki YENI gorsel kural:
     # (1) cip tutari etiketi, (2) onerilenden sapinca cikan bilgi notu kutusu.
