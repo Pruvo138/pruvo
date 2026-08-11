@@ -4,7 +4,9 @@
 
   python3 tools/uretim-kaynak-mutasyon.py
 
-NE ISE YARAR: `node shop/test/uretim-kaynak.mjs` 42 iddiayla YESIL yaniyor. "Yesil"
+NE ISE YARAR: `node shop/test/uretim-kaynak.mjs` 69 iddiayla YESIL yaniyor (42 iddia
+Drive baglantisi ekseni; +27 iddia 11 Agu 2026'da baski notu KATLAMASI ve ureticinin
+KAYNAK LINKI eksenleriyle geldi). "Yesil"
 tek basina hicbir sey kanitlamaz — kanit, davranisi BOZUNCA iddianin KIRMIZI yanmasi
 (mutant) VE ilgisiz bir degisiklikte YESIL kalmasidir (kontrol mutanti). Bu surucu
 olmasa, ileride iddialarin icini bosaltan bir degisiklik nobetciyi SESSIZCE oldururdu
@@ -84,6 +86,74 @@ MUTANTLAR = [
      "rastgele id icinde gecen 'yedek'/'kanonik' dizisi sinif isareti sayilir -> "
      "dosya kendi id'sinin harflerine gore siniflanir",
      [("""      if (!idIcinde(m.index)) {""", """      if (true) {""")]),
+
+    # ---- IS A: BASKI NOTU KATLAMASI (11 Agu 2026, Okan: "bu bölüm açılır kapanır olsun")
+    ("M11 DRIVE BLOGU KATLAMANIN ICINE ALINDI (SPEC KONTROL MUTANTI)", KIRMIZI,
+     "baglantilar ve 'ARSIVDE — BASILMAZ' etiketi tiklama arkasina saklanir -> uretimde "
+     "ILK bakilacak sey gorunmez olur; yanlis dosya basilir",
+     [("""   '<div class="baskitam">'+esc(k.baski_oneri)+'</div></details>'+
+  '<div class="kaynak">📁 Üretim dosyası (Drive): '+kaynakHtml(k)+'</div>'+""",
+       """   '<div class="baskitam">'+esc(k.baski_oneri)+'</div>'+
+  '<div class="kaynak">📁 Üretim dosyası (Drive): '+kaynakHtml(k)+'</div></details>'+""")]),
+
+    ("M12 KATLAMA VARSAYILAN ACIK (open)", KIRMIZI,
+     "blok acik gelir -> Okan'in sikayeti (sayfayi dolduruyor) aynen surer; 'katlandi' "
+     "iddiasi kagit uzerinde kalir",
+     [("""  '<details class="baski"><summary>""",
+       """  '<details open class="baski"><summary>""")]),
+
+    # ---- IS B: URETICININ KAYNAK LINKI
+    ("M13 KAYNAK LINKI YOKKEN SESSIZ GECILDI (SPEC KONTROL MUTANTI)", KIRMIZI,
+     "link yoksa panel HIC bir sey yazmaz -> 'kaynak kayitli degil' ile 'alan D1'de yok' "
+     "ayni bos hucreye duser",
+     [(""" return '<span class="yok">'+esc(neden)+'</span>';""", """ return '';""")]),
+
+    ("M14 'OLCULEMEDI' ILE 'YOK' AYNI CUMLEYE DUSURULDU", KIRMIZI,
+     "kolon HIC yokken panel 'kaynak linki yok' der -> OLCULMEMIS bir sey OLCULMUS gibi "
+     "beyan edilir ([[olculdu-diyen-hukum-kaniti]])",
+     [("""    :"kaynak linki ÖLÇÜLEMEDİ — alan D1'e henüz senkronlanmıyor");""",
+       """    :"kaynak linki yok — bu ürün için kayıtlı bağlantı boş");""")]),
+
+    # 🔴 BU MUTANT BIR KOR NOKTA BULDU (11 Agu 2026): ilk halde sema iki AYRI ifadede
+    # kontrol ediliyordu ve M15 YESIL kaliyordu — biri gevserken digeri http'yi yine
+    # eliyordu, yani "iki kat savunma" degil OLCULEMEYEN bir kaldi. Kural TEK govdeye
+    # (KAYNAK_URL_RX) indirildi; mutant artik K59'u kirmizi yakiyor.
+    ("M15 https KAPISI GEVSEDI (http de kabul)", KIRMIZI,
+     "sema kapisi gevserse duz http (ve onunla gelen karisik-icerik ekseni) yetkili "
+     "panelde href'e girer",
+     [("""  /^https:\\/\\/([A-Za-z0-9]""", """  /^https?:\\/\\/([A-Za-z0-9]""")]),
+
+    ("M21 KONTROL KARAKTERI KAPISI KALKTI", KIRMIZI,
+     "URL regex'i kontrol baytlarini ELEMEZ (yol kisminda yalniz bosluk/tirnak/aci "
+     "parantez yasak); tek bekci bu `if`ti — kalkinca NUL/DEL tasiyan deger href'e girer",
+     [("""  if (/[\\u0000-\\u001F\\u007F]/.test(t)) { return { url: "", host: "", sebep: "gecersiz" }; }""",
+       """  if (false) { return { url: "", host: "", sebep: "gecersiz" }; }""")]),
+
+    ("M16 KAYNAK LINKINDE target=_blank / rel=noopener DUSTU", KIRMIZI,
+     "panel oturumu kaynak sayfasina gider (Okan'in acik istegi: yeni sekme)",
+     [("""  return '<a class="indir" href="'+esc(s.url)+'" target="_blank" rel="noopener">'+""",
+       """  return '<a class="indir" href="'+esc(s.url)+'">'+""")]),
+
+    ("M17 ALAN-VARLIK KAPISI KALKTI (pozitif tanima yok)", KIRMIZI,
+     "kolon yokken de 'deger bos' koluna duser -> panel 'kaynak yok' der; olculemeyen "
+     "sey olculmus sayilir",
+     [("""  if (alanVar !== true) { return { url: "", host: "", sebep: "olculemedi" }; }""",
+       """  if (false) { return { url: "", host: "", sebep: "olculemedi" }; }""")]),
+
+    ("M18 EKRANDA TAM ADRES BASILDI (host yerine url)", KIRMIZI,
+     "kaynak adresi tasarimci adi tasiyabilir; panel goruntusu/ekran paylasimi onu YAYAR "
+     "(CLAUDE.md: tasarimci adi hicbir public yerde)",
+     [("""   esc(s.host||"kaynak")+' — kaynak sayfası</a>';""",
+       """   esc(s.url)+' — kaynak sayfası</a>';""")]),
+
+    ("M19 NOTR: katli govde CSS boslugu degisti (KONTROL)", YESIL,
+     "gorsel detay; hicbir iddia margin olcmuyor",
+     [(""".baskitam{margin-top:6px;""", """.baskitam{margin-top:8px;""")]),
+
+    ("M20 NOTR: ozet sinir sabiti 90 -> 88 (KONTROL)", YESIL,
+     "ozet hala KISA ve tam metin hala katlamanin icinde; iddialar tek bir sayiya "
+     "civilenmis DEGIL (sinir araligini olcuyorlar)",
+     [("""var BASKI_OZET_SINIR=90;""", """var BASKI_OZET_SINIR=88;""")]),
 
     ("M9 NOTR: yalnizca yorum eklendi (KONTROL)", YESIL,
      "davranis degismiyor; batarya 'her degisiklige kirmizi' DEGIL",

@@ -226,6 +226,83 @@ export function driveKaynaklari(metin) {
   return cikti;
 }
 
+// ---- URETICININ KAYNAK LINKI (panel gosterimi) --------------------------------
+/**
+ * 🔴 OLCULEN GERCEK (11 Agu 2026 — kod yazmadan ONCE olculdu, spec "ONCE OLC" adimi):
+ *
+ *   Kaynak URL'i BUGUN nerede duruyor?
+ *     · gizli `.urun-kaynaklari.json` (gitignore) — `link` alani: 26.112 kaydin
+ *       25.130'unda VAR, 25.127'si `http` ile basliyor. Anahtar = urun id'si;
+ *       PUBLIC `urunler.json`'un 25.354 id'sinin 25.166'si bu kayitla eslesiyor.
+ *     · PUBLIC `urunler.json` — yalniz CC BY atfi icin: `lisans.link` 411 urunde,
+ *       `lisans.url` 20 urunde (katalogun %1,7'si).
+ *     · D1 `urunler` tablosu — HICBIR kaynak/link kolonu YOK (d1-sema.sql + d1-sync.py
+ *       GOC_KOLON tarandi: id, hash, seq, baslik, kategori, altkategori, marka,
+ *       marka_kanon, model_kanon, marka_arama, uyum, fiyat, gorsel, parametrik,
+ *       taban_fiyat, konfigur, hs*, baski, aciklama, ege, yayinda, release_id,
+ *       tur, stokta — kaynak/link/url YOK).
+ *     · `siparisler` tablosu — kalem JSON'unda kaynak URL'i yok (`atif` kolonu
+ *       REKLAM atfidir, uretici kaynagi DEGIL).
+ *
+ *   SONUC: panel D1'DEN okuyor; alan D1'e SENKRONLANMIYOR -> bugun HICBIR urun
+ *   icin kaynak linki cozulemez (0 / 25.354). Spec'in 2. maddesi geregi VERI
+ *   YAZILMADI, SEMA DEGISTIRILMEDI: burada yalnizca MEKANIZMA kuruldu — kolon
+ *   (`urunler.kaynak_url`) senkronlanmaya baslarsa panel tek satir kod degismeden
+ *   linki basar; o gune kadar ekran "OLCULEMEDI" der (asagiya bak).
+ *
+ * 🔴 UC DEGERLI SEBEP — "yok" ile "olculemedi" AYRI ([[olculdu-diyen-hukum-kaniti]]):
+ *   `yok`        : kolon VAR, bu urunde deger BOS -> "bu urunun bagi kayitli degil".
+ *   `olculemedi` : kolon YOK (kolon merdiveni yedek kola dustu) -> hicbir sey
+ *                  BILINMIYOR. Ikisini ayni kefeye koymak, olculmemis bir seyi
+ *                  "kaynak yok" diye BEYAN etmek olurdu.
+ *   `gecersiz`   : deger VAR ama https:// degil / bosluk-tirnak-kontrol karakteri
+ *                  tasiyor -> href'e GECMEZ, ekran sebebini yazar (sessizce dusmez).
+ *
+ * 🔴 GIZLILIK: kaynak URL'i tasarimci adi tasiyabilir. Panel YETKI ARKASINDA oldugu
+ * icin baglanti oraya basilir; ama ekranda GORUNEN metin yalnizca HOST'tur (ornegin
+ * "ornek-platform.example.invalid") — tam adres href'te kalir. Boylece panel ekran
+ * goruntusu bir tasarimci adini yaymaz. `uyelik` alani bu fonksiyona HIC girmez (panelde de
+ * gosterilmez; CLAUDE.md "para el degistirdi mi" kurali).
+ *
+ * Saf fonksiyon: istek/ortam/D1 gormez (birim testi dogrudan cagirir).
+ *
+ * @param {string} ham       — D1 satirindaki deger (kolon yoksa undefined gelir).
+ * @param {boolean} alanVar  — kolonlu sorgu FIILEN calisti mi (POZITIF TANIMA;
+ *                             `ham` bos diye "kolon var" varsayilmaz).
+ * @returns {{url:string, host:string, sebep:"var"|"yok"|"gecersiz"|"olculemedi"}}
+ */
+/**
+ * 🔴 TEK KANONIK KAPI — sema + host + izinli karakter kumesi BURADA, TEK YERDE tanimlanir.
+ * Onceki hal iki ayri kontrol tasiyordu (once "^https:// + yasak karakter", sonra host
+ * ayiklayan ikinci bir "^https://..."): sema jetonunu BIRINDEN gevsetmek digerinin
+ * arkasinda GORUNMEZ kaliyordu — yani "iki kat savunma" degil, KOR NOKTA idi. Mutasyon
+ * bataryasi bunu olctu: `https` -> `https?` mutanti (M15) ONCEKI halde YESIL kaliyordu,
+ * cunku ikinci ifade duz http'yi yine eliyordu. Iddianin kirmizi yakabilmesi icin kural
+ * TEK govdeden turemek zorunda ([[ikiz-tanim-sessiz-ayrisma]], [[beyan-edilmis-survivor]]).
+ *
+ * Kapsam: yalniz `https://`; host en az bir noktali ve harfle biten alan adi; istege
+ * bagli port; yol/sorgu/parca kismi bosluk, tirnak, aci parantez ve ters bolu ICEREMEZ
+ * (deger dogrudan href'e girer -> `javascript:`/`data:`/oznitelikten kacis GECEMEZ).
+ */
+const KAYNAK_URL_RX =
+  /^https:\/\/([A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,})(?::\d{2,5})?(?:[/?#][^\s"'<>\\]*)?$/;
+
+export function kaynakBaglantisi(ham, alanVar) {
+  if (alanVar !== true) { return { url: "", host: "", sebep: "olculemedi" }; }
+  if (typeof ham !== "string" || ham.trim() === "") {
+    return { url: "", host: "", sebep: "yok" };
+  }
+  const t = ham.trim();
+  // Uzunluk kapisi (href'e girecek deger; anlamli bir kaynak adresi 2 KB'i gecmez).
+  if (t.length > 2000) { return { url: "", host: "", sebep: "gecersiz" }; }
+  // Kontrol karakterleri KACISLA yazilir (ham bayt kaynaga girerse dosya "binary" olur
+  // ve grep tabanli nobetciler onu SESSIZCE atlar). AYRI EKSEN, ayri mutantla olculur.
+  if (/[\u0000-\u001F\u007F]/.test(t)) { return { url: "", host: "", sebep: "gecersiz" }; }
+  const m = KAYNAK_URL_RX.exec(t);
+  if (!m) { return { url: "", host: "", sebep: "gecersiz" }; }
+  return { url: t, host: m[1].toLowerCase().replace(/^www\./, ""), sebep: "var" };
+}
+
 // ---- anahtar ------------------------------------------------------------------
 
 /**
@@ -430,12 +507,25 @@ async function liste(env, url) {
     return { satir: s, urunler };
   });
   const baskiMap = new Map();
+  // 🔴 KAYNAK KOLONU POZITIF TANIMA: bayrak yalnizca KOLONLU sorgu FIILEN calistiginda
+  // true olur. "deger bos geldi -> demek ki urunun kaynagi yok" cikarimi, kolon HIC
+  // yokken de ayni bosluga duserdi; yani olculmemis bir seyi "yok" diye BEYAN ederdi
+  // ([[olculdu-diyen-hukum-kaniti]]). Bugun kolon YOK (olculdu: d1-sema.sql + GOC_KOLON)
+  // -> merdiven yedek kola duser, bayrak false kalir, panel "OLCULEMEDI" yazar.
+  let kaynakAlaniVar = false;
   if (idKume.size) {
     const idler = [...idKume];
     const yertut = idler.map(() => "?").join(",");
-    const ur = await env.KATALOG.prepare(
-      "SELECT id, baski, parametrik FROM urunler WHERE id IN (" + yertut + ")"
+    const urunSec = (alanlar) => env.KATALOG.prepare(
+      "SELECT " + alanlar + " FROM urunler WHERE id IN (" + yertut + ")"
     ).bind(...idler).all();
+    const ur = await kolonMerdiveni(
+      async () => {
+        const r = await urunSec("id, baski, parametrik, kaynak_url");
+        kaynakAlaniVar = true;
+        return r;
+      },
+      () => urunSec("id, baski, parametrik"));
     for (const u of (ur.results || [])) { baskiMap.set(u.id, u); }
   }
 
@@ -461,6 +551,10 @@ async function liste(env, url) {
         // metnin TA KENDISIDIR (asagida ayrica hesaplanmaz) — ikiz kaynak olsaydi
         // not degistiginde ekran ile baglanti sessizce ayrisirdi.
         uretim_kaynaklari: [],
+        // URETICININ KAYNAK SAYFASI (urunun geldigi kaynak platformun urun sayfasi).
+        // Bugun D1'de kolon YOK -> sebep "olculemedi" doner ve panel bunu ACIKCA yazar.
+        // `uyelik` gibi ticari alanlar buraya HIC girmez (panelde de gosterilmez).
+        kaynak: kaynakBaglantisi(ur.kaynak_url, kaynakAlaniVar),
         // Yonetim ekraninda kalem basligi buraya tiklanir (urun sayfasi, ana site).
         // WhatsApp kaleminde kalemin KENDI linki (k.url) varsa O kullanilir: o kalem
         // katalog id'siyle gelmeyebilir, /urun/<id>/ adresi 404 olurdu. Link YAZILIRKEN
@@ -1440,7 +1534,18 @@ main{padding:12px;max-width:960px;margin:0 auto}
 .satir{border:1px solid var(--kenar);border-radius:8px;padding:10px;margin:8px 0;background:#fafafa}
 .filrenk{font-size:17px;font-weight:bold;color:var(--lacivert)}
 .filrenk .renk{color:#b45309}
+/* BASKI NOTU — KATLANIR (details/summary; harici kutuphane YOK, klavye + ekran okuyucu
+   erisimi native olarak gelir). Varsayilan KAPALI: tek kalemde ~20 satirlik not sipariş
+   listesini okunamaz hale getiriyordu. 🔴 Katlanan YALNIZ uzun aciklama metnidir; Drive
+   baglantilari (.kaynak) ve sinif etiketleri katlamanin DISINDA durur — "ARSIVDE —
+   BASILMAZ" uyarisi tiklama arkasina saklanamaz (yanlis dosya = pahali uretim hatasi). */
 .baski{font-size:13px;color:#374151;background:#fff7ed;border-left:3px solid var(--sari);
+ padding:6px 8px;margin:6px 0;border-radius:4px}
+.baski>summary{cursor:pointer;list-style:revert;font-weight:bold}
+.baski>summary::marker{color:var(--sari)}
+.baskitam{margin-top:6px;white-space:pre-wrap;font-weight:normal}
+/* URETICININ KAYNAK SAYFASI — katlamanin DISINDA, ayri satir. */
+.kaynaklink{font-size:13px;color:#374151;background:#f8fafc;border-left:3px solid #6b7280;
  padding:6px 8px;margin:6px 0;border-radius:4px}
 .eylemler{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .kargoform{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -1514,6 +1619,36 @@ function kaynakHtml(k){
    '<a class="indir" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ad+'</a></div>';
  }).join("");
 }
+// BASKI NOTU OZETI — katli blogun BASLIGI. Tam metin katlamanin icinde DURUR (kaybolmaz);
+// ozet yalnizca "bu not neyle ilgili" sorusunu kapali haldeyken cevaplar. Bos notta bile
+// ACIK bir sey yazar (bos summary tiklanacak yer birakmazdi).
+var BASKI_OZET_SINIR=90;
+function baskiOzet(t){
+ t=(t==null?"":""+t).replace(/\\s+/g," ").trim();
+ if(!t){return "baskı notu yok";}
+ var n=t.indexOf(". ");
+ var ilk=(n>20&&n<BASKI_OZET_SINIR)?t.slice(0,n+1):t;
+ if(ilk.length>BASKI_OZET_SINIR){ilk=ilk.slice(0,BASKI_OZET_SINIR-1).replace(/\\s+$/,"")+"…";}
+ return ilk;
+}
+// URETICININ KAYNAK SAYFASI — TIKLANABILIR (yeni sekme). 🔴 EKRANDA yalnizca HOST yazar;
+// tam adres href'te kalir (adres tasarimci adi tasiyabilir, panel goruntusu onu yaymasin).
+// 🔴 SESSIZ BOSLUK YASAK: link yoksa SEBEBI yazilir ve "yok" ile "ÖLÇÜLEMEDİ" AYRI
+// cumlelerdir — kolonun hic olmadigi durumu "kaynak yok" diye beyan etmek, olculmemis
+// bir seyi olculmus gibi gostermek olurdu.
+function kaynakLinkHtml(k){
+ var s=(k&&k.kaynak)||{};
+ if(s.url){
+  return '<a class="indir" href="'+esc(s.url)+'" target="_blank" rel="noopener">'+
+   esc(s.host||"kaynak")+' — kaynak sayfası</a>';
+ }
+ var neden=s.sebep==="yok"
+  ?"kaynak linki yok — bu ürün için kayıtlı bağlantı boş"
+  :(s.sebep==="gecersiz"
+    ?"kaynak linki geçersiz (https:// değil) — gösterilmedi"
+    :"kaynak linki ÖLÇÜLEMEDİ — alan D1'e henüz senkronlanmıyor");
+ return '<span class="yok">'+esc(neden)+'</span>';
+}
 function satirHtml(no,k){
  var indir;
  if(k.parametrik){
@@ -1539,8 +1674,13 @@ function satirHtml(no,k){
   '<div class="filrenk">'+filrenk+' × '+esc(k.adet)+'</div>'+
   '<div>'+baslikLink+(k.parametre_detay?' <span class="kucuk">['+esc(k.parametre_detay)+']</span>':'')+'</div>'+
   '<div class="kucuk">Ürün kodu: '+esc(k.id)+'</div>'+
-  '<div class="baski">🖨️ '+esc(k.baski_oneri)+'</div>'+
+  // 🔴 SIRA VE KAPSAM SOZLESMESI: yalnizca baski notunun TAM METNI <details> icindedir.
+  // Drive baglantilari ve sinif etiketleri (.kaynak) ile kaynak sayfasi (.kaynaklink)
+  // </details>'ten SONRA, DAIMA GORUNUR basilir.
+  '<details class="baski"><summary>🖨️ '+esc(baskiOzet(k.baski_oneri))+'</summary>'+
+   '<div class="baskitam">'+esc(k.baski_oneri)+'</div></details>'+
   '<div class="kaynak">📁 Üretim dosyası (Drive): '+kaynakHtml(k)+'</div>'+
+  '<div class="kaynaklink">🔗 Üreticinin kaynak sayfası: '+kaynakLinkHtml(k)+'</div>'+
   indir+
   '</div>';
 }

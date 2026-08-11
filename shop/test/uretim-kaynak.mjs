@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /**
- * PRUVO shop — SIPARIS PANELINDE URETIM DOSYASI DRIVE BAGLANTISI (birim testleri).
+ * PRUVO shop — SIPARIS PANELI SUNUM KAPISI (birim testleri):
+ *   A/B/C  uretim dosyasi DRIVE BAGLANTISI (ayristirma + render + regresyon),
+ *   D      baski notunun KATLANMASI (details/summary; 11 Agu 2026, Okan istegi),
+ *   E      URETICININ KAYNAK LINKI (mekanizma; alan bugun D1'de YOK — bkz. yonet.js).
  *
  *   node shop/test/uretim-kaynak.mjs
  *
@@ -17,8 +20,13 @@
  * taklit eder (bkz. [[nobetci-fikstur-sekli]]).
  *
  * ONCE-KIRMIZI KANITI: mutasyon surucusu `tools/uretim-kaynak-mutasyon.py`
- * (gecici AYNAYA uygular; calisma agacina yazmaz). Kontrol mutanti M3 = "bos listeyi
- * SESSIZ gec" — bu testin K17 iddiasini KIRMIZI yakmak ZORUNDA.
+ * (gecici AYNAYA uygular; calisma agacina yazmaz). Spec'in istedigi kontrol mutantlari:
+ *   M1  bos kaynak listesini SESSIZ gec            -> K28 kirmizi,
+ *   M11 Drive blogunu KATLAMANIN ICINE al          -> K48/K49 kirmizi,
+ *   M12 katlamayi varsayilan ACIK yap              -> K44 kirmizi,
+ *   M13 kaynak linki yokken SESSIZ gec             -> K64/K65/K66 kirmizi,
+ *   M14 "olculemedi"yi "yok" diye beyan et         -> K65 kirmizi.
+ * M9/M10/M19/M20 NOTR mutantlaridir ve YESIL kalmak zorundadir.
  */
 
 import fs from "node:fs";
@@ -51,7 +59,10 @@ if (!ayristiriciKaynak) {
 }
 const ayristirici = {};
 vm.createContext(ayristirici);
-vm.runInContext(ayristiriciKaynak.replace(/^export /m, ""), ayristirici,
+// `g` BAYRAGI ZORUNLU: blokta ARTIK BIRDEN COK `export` var (driveKaynaklari +
+// kaynakBaglantisi). Bayraksiz hali yalnizca ILKINI soker ve vm "Unexpected token
+// 'export'" ile PATLAR — yani sessiz degil, gurultulu bir hata (ilk kosumda oldu).
+vm.runInContext(ayristiriciKaynak.replace(/^export /gm, ""), ayristirici,
   { filename: "yonet-ayristirici.js" });
 const driveKaynaklari = ayristirici.driveKaynaklari;
 
@@ -236,6 +247,169 @@ ol("K40 YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc 
 const cdSayisi = (KAYNAK.match(/Content-Disposition/g) || []).length;
 ol("K41 yeni indirme/proxy/zip akisi yok (Content-Disposition " + CD_TABANI + ")",
   cdSayisi === CD_TABANI, "cd=" + cdSayisi);
+
+// ------------------------------------------------- D) BASKI NOTU KATLAMASI (IS A)
+// Okan'in istegi: "bu bölüm açılır kapanır olmalı, çok uzun olunca sayfayı dolduruyor."
+// 🔴 KAPSAM SOZLESMESI: katlanan YALNIZ uzun aciklama metnidir. Drive baglantilari ve
+// sinif etiketleri (ozellikle "ARSIVDE — BASILMAZ") katlamanin DISINDA kalir — uretimde
+// ILK bakilacak sey onlardir ve tiklama arkasina saklanamazlar.
+console.log("D) baski notu katlamasi — details/summary (IS A)");
+
+/** `<details ...>` ile eslesen ILK blogun ICI (kapali etikete kadar). */
+function detaysIci(html) {
+  const b = html.indexOf("<details");
+  const s = b >= 0 ? html.indexOf("</details>", b) : -1;
+  return (b >= 0 && s > b) ? html.slice(b, s) : "";
+}
+const katliIc = detaysIci(dolu);
+
+ol("K43 baski notu <details>/<summary> ile KATLANDI",
+  /<details class="baski"><summary>/.test(dolu), dolu.slice(0, 200));
+ol("K44 VARSAYILAN KAPALI: <details> etiketinde `open` YOK",
+  katliIc !== "" && !/^<details[^>]*\bopen\b/.test(katliIc),
+  katliIc.slice(0, 120));
+ol("K45 tam not katlamanin ICINDE (metin kaybolmadi)",
+  katliIc.indexOf("ESKI SURUMLER ARSIVDE") > 0 &&
+  katliIc.indexOf("Iki parca tek plakada") > 0, katliIc.length + " karakter");
+
+const ozetIci = (dolu.match(/<summary>([\s\S]*?)<\/summary>/) || [])[1] || "";
+ol("K46 ozet KISA (<=95 karakter) ve tam nottan kisa — kapaliyken satiri doldurmuyor",
+  ozetIci.length > 0 && ozetIci.length <= 95 && ozetIci.length < NOT_TAM.length,
+  "ozet=" + ozetIci.length + " tam=" + NOT_TAM.length);
+ol("K47 ozet BOS DEGIL (tiklanacak baslik var)", ozetIci.trim().length > 3, ozetIci);
+
+// 🔴 KONTROL MUTANTININ HEDEFI (M11/M12): baglantilari/etiketleri katlamanin ICINE alan
+// surum bu iddiayi KIRMIZI yakmali.
+ol("K48 KATLAMANIN DISINDA: Drive baglanti blogu (.kaynak/.kdosya) <details> icinde DEGIL",
+  katliIc.indexOf('class="kaynak"') < 0 && katliIc.indexOf('class="kdosya') < 0 &&
+  katliIc.indexOf('class="sinif') < 0 && katliIc.indexOf("drive.google.com") < 0,
+  katliIc.slice(0, 200));
+ol("K49 KATLAMANIN DISINDA: sinif etiketleri (Kanonik/Yedek/BASILMAZ rozetleri) gorunur",
+  dolu.indexOf("</details>") > 0 &&
+  dolu.indexOf('class="kaynak"') > dolu.indexOf("</details>") &&
+  dolu.indexOf('class="sinif arsiv"') > dolu.indexOf("</details>"),
+  "details_son=" + dolu.indexOf("</details>") + " kaynak=" + dolu.indexOf('class="kaynak"'));
+ol("K50 HARICI KUTUPHANE/CDN YOK: sayfada <script src=/<link rel=stylesheet/cdn yok",
+  !/<script[^>]+src=/i.test(KAYNAK) && !/<link[^>]+stylesheet/i.test(KAYNAK) &&
+  !/cdn\./i.test(KAYNAK));
+const bosNot = satirHtml
+  ? satirHtml("PR-TEST-4", { ...kalemTaban, baski_oneri: "", uretim_kaynaklari: [] })
+  : "";
+ol("K51 not BOSKEN de ozet ACIK bir sey yaziyor (bos summary yok)",
+  bosNot.indexOf("baskı notu yok") > 0, bosNot.slice(0, 200));
+const zararliNot = satirHtml
+  ? satirHtml("PR-TEST-5", { ...kalemTaban, uretim_kaynaklari: [],
+      baski_oneri: "<script>alert(1)</script> uzun not " + "x".repeat(200) })
+  : "";
+ol("K52 katlanan metin ve ozet KACISLANIYOR (details icine ham HTML sizmiyor)",
+  !/<script>/i.test(zararliNot) && /&lt;script&gt;/.test(zararliNot),
+  zararliNot.slice(0, 200));
+
+// --------------------------------------------- E) URETICININ KAYNAK LINKI (IS B)
+// 🔴 FIKSTURLER UYDURMADIR: gercek kaynak adresi tasarimci adi tasir ve bu dosyaya
+// (repoya, commit'e, log'a) YAZILAMAZ. `example.invalid` IANA'nin rezerve ettigi,
+// asla cozulmeyen alan adidir.
+console.log("E) ureticinin kaynak linki — kaynakBaglantisi() + panel (IS B)");
+const kaynakBaglantisi = ayristirici.kaynakBaglantisi;
+const ORNEK_URL = "https://ornek-platform.example.invalid/model/12345-ornek-parca";
+
+ol("K53 kaynakBaglantisi() disa acildi", typeof kaynakBaglantisi === "function");
+const kbVar = kaynakBaglantisi ? kaynakBaglantisi(ORNEK_URL, true) : {};
+ol("K54 gecerli https adresi -> sebep='var', url AYNEN korunur",
+  kbVar.sebep === "var" && kbVar.url === ORNEK_URL, JSON.stringify(kbVar));
+ol("K55 host ayiklanir (ekranda YALNIZ host yazacak — tam adres href'te kalir)",
+  kbVar.host === "ornek-platform.example.invalid", kbVar.host);
+ol("K56 'www.' onegi duser",
+  kaynakBaglantisi("https://www.ornek.example.invalid/x", true).host === "ornek.example.invalid");
+
+// 🔴 UC DEGERLI SEBEP: "yok" (kolon var, deger bos) ile "olculemedi" (kolon YOK) AYRI.
+ol("K57 kolon YOKKEN (alanVar!==true) sebep='olculemedi' — 'yok' DEGIL",
+  kaynakBaglantisi(undefined, false).sebep === "olculemedi" &&
+  kaynakBaglantisi(ORNEK_URL, false).sebep === "olculemedi" &&
+  kaynakBaglantisi(ORNEK_URL).sebep === "olculemedi",
+  JSON.stringify(kaynakBaglantisi(ORNEK_URL, false)));
+ol("K58 kolon VARKEN bos deger -> sebep='yok' (olculemedi ile karismaz)",
+  kaynakBaglantisi("", true).sebep === "yok" &&
+  kaynakBaglantisi("   ", true).sebep === "yok" &&
+  kaynakBaglantisi(null, true).sebep === "yok");
+
+const kotuler = [
+  "javascript:alert(1)", "http://ornek.example.invalid/x", "//ornek.example.invalid/x",
+  'https://ornek.example.invalid/x" onmouseover="y', "https://ornek.example.invalid/a b",
+  "https://ornek.example.invalid/<script>", "data:text/html,x", "https://",
+  // 🔴 KONTROL KARAKTERI AYRI EKSEN: kanonik URL regex'i bunlari ELEMEZ (yol kisminda
+  // yalniz bosluk/tirnak/aci parantez/ters bolu yasak) — tek bekci ayri `if`tir.
+  // Kacis dizisiyle yazilir: HAM bayt dosyaya girerse dosya "binary" olur ve grep
+  // tabanli nobetciler onu SESSIZCE atlar.
+  "https://ornek.example.invalid/\u0000x",
+  "https://ornek.example.invalid/\u001Fx",
+  "https://ornek.example.invalid/\u007Fx",
+];
+const kotuSonuc = kaynakBaglantisi ? kotuler.map((x) => kaynakBaglantisi(x, true)) : [];
+ol("K59 GUVENLIK: javascript:/http:/tirnak/bosluk/kontrol karakteri -> 'gecersiz', url BOS",
+  kotuSonuc.length === kotuler.length &&
+  kotuSonuc.every((x) => x.sebep === "gecersiz" && x.url === ""),
+  JSON.stringify(kotuSonuc.map((x) => x.sebep)));
+/**
+ * KOD SATIRLARI (tam satirlik yorum/JSDoc govdesi ATILIR). Blok ici `//` ile kesmek
+ * yasak: kaynakta "https://..." dizeleri var, naif yorum sokme onlari BUDAR ve iddia
+ * sessizce zayiflar. Kural bu yuzden DAR: yalnizca satirin TAMAMI yorumsa atilir —
+ * kod satirindaki her `uyelik` gecisi YAKALANIR.
+ */
+function kodSatirlari(metin) {
+  return metin.split("\n")
+    .filter((s) => !/^\s*(\/\/|\/\*|\*)/.test(s))
+    .join("\n");
+}
+const KOD = kodSatirlari(KAYNAK);
+ol("K60 GIZLILIK: KOD'da 'uyelik' HIC gecmiyor (uyelik panelde de GOSTERILMEZ)",
+  !/uyelik/i.test(KOD),
+  "gecen satir: " + (KOD.split("\n").filter((s) => /uyelik/i.test(s))[0] || ""));
+ol("K69 GIZLILIK: kodda gercek platform alan adi GOMULU degil (fikstur/uydurma disinda)",
+  !/thingiverse|printables|makerworld|cgtrader|cults3d|myminifactory/i.test(KOD),
+  "gecen satir: " + (KOD.split("\n")
+    .filter((s) => /thingiverse|printables|makerworld|cgtrader|cults3d/i.test(s))[0] || ""));
+
+const kaynakli = satirHtml ? satirHtml("PR-TEST-6", {
+  ...kalemTaban, uretim_kaynaklari: [], kaynak: kbVar }) : "";
+ol("K61 panel: kaynak linki TIKLANABILIR (target=_blank rel=noopener)",
+  new RegExp('<a class="indir" href="' + ORNEK_URL + '" target="_blank" rel="noopener">')
+    .test(kaynakli), kaynakli.slice(0, 400));
+ol("K62 panel: gorunur METIN yalniz HOST — adres yolu (tasarimci izi) ekrana YAZILMAZ",
+  kaynakli.indexOf(">ornek-platform.example.invalid — kaynak sayfası</a>") > 0 &&
+  kaynakli.split("12345-ornek-parca").length === 2,
+  kaynakli.slice(0, 400));
+ol("K63 kaynak satiri KATLAMANIN DISINDA (</details>'ten SONRA)",
+  kaynakli.indexOf('class="kaynaklink"') > kaynakli.indexOf("</details>") &&
+  detaysIci(kaynakli).indexOf("kaynaklink") < 0);
+
+// 🔴 SESSIZ BOSLUK YASAK — kontrol mutantlarinin hedefi (M13/M14).
+const kaynakYok = satirHtml ? satirHtml("PR-TEST-7", {
+  ...kalemTaban, uretim_kaynaklari: [], kaynak: { url: "", host: "", sebep: "yok" } }) : "";
+const kaynakOlculemedi = satirHtml ? satirHtml("PR-TEST-8", {
+  ...kalemTaban, uretim_kaynaklari: [],
+  kaynak: { url: "", host: "", sebep: "olculemedi" } }) : "";
+const kaynakGecersiz = satirHtml ? satirHtml("PR-TEST-9", {
+  ...kalemTaban, uretim_kaynaklari: [],
+  kaynak: { url: "", host: "", sebep: "gecersiz" } }) : "";
+ol("K64 link YOKKEN panel 'kaynak linki yok' YAZIYOR (bos hucre YOK)",
+  kaynakYok.indexOf("kaynak linki yok") > 0, kaynakYok.slice(0, 300));
+ol("K65 OLCULEMEDI ayri cumle — 'kaynak linki yok' demiyor",
+  kaynakOlculemedi.indexOf("ÖLÇÜLEMEDİ") > 0 &&
+  kaynakOlculemedi.indexOf("kaynak linki yok") < 0, kaynakOlculemedi.slice(0, 300));
+ol("K66 gecersiz deger: sebep yaziliyor ve HREF URETILMIYOR",
+  kaynakGecersiz.indexOf("geçersiz") > 0 &&
+  kaynakGecersiz.split('class="kaynaklink"')[1].indexOf("<a ") < 0,
+  kaynakGecersiz.slice(0, 300));
+ol("K67 `kaynak` alani HIC YOKKEN (eski kayit) patlamiyor + ÖLÇÜLEMEDİ yaziyor",
+  dolu.indexOf("ÖLÇÜLEMEDİ") > 0);
+const kaynakZararli = satirHtml ? satirHtml("PR-TEST-10", {
+  ...kalemTaban, uretim_kaynaklari: [],
+  kaynak: { url: 'https://x/"><script>alert(1)</script>',
+            host: "<img src=x onerror=alert(2)>", sebep: "var" } }) : "";
+ol("K68 XSS: kaynak url/host HAM HTML olarak SIZMIYOR",
+  !/<script>|<img /i.test(kaynakZararli) && /&lt;script&gt;/.test(kaynakZararli),
+  kaynakZararli.slice(0, 300));
 
 console.log("");
 console.log("TOPLAM: " + (gecen + kalan) + " iddia | GECEN " + gecen + " | KALAN " + kalan);
