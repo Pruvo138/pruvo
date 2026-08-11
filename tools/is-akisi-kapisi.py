@@ -1852,7 +1852,12 @@ TABLO_TABANLARI = (
     # KALICI bir kapiya baglandi (tools/konfigur-siyah-kapak-kapisi.py, deploy.yml job
     # `build`te BLOKLAYICI) ve kapinin IKI KOLUNUN da canli oldugunu olcen batarya AYNI
     # commit'te eklendi. Tam esitlik geregi taban AYNI commit'te guncellendi.
-    ("SERIT_B", 102),
+    # 11 Agu: 102 -> 103 (deploy-aclik-gh-mutasyon.py beyan edildi). Bir TASIMA DEGIL,
+    # EKLEME: deploy-aclik-kapisi.py'nin gecici GitHub/TLS ag arizasinda sinirli yeniden
+    # deneme eksenini olcen 5 oldurucu + 1 kontrol bataryasi nobet.yml `serit-b`ye
+    # eklendi; korudugu kapinin bayraksiz gercek kolu deploy.yml'de BLOKLAYICI KALDI.
+    # Tam esitlik geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 103),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2581,6 +2586,15 @@ SERIT_B = {
         "d1-sync `--durum` kolunun AYIRT EDICILIGI (18 mutant: her OLDURUCU kirmizi, "
         "her KONTROL yesil). D1 duzlemi bu evin yayin yolunda DEGIL; kirmizisi yayini "
         "durdurmamali. Olculdu (temiz klon + bos HOME): rc=0, 1,8 s, ag YOK.",
+    ("nobet.yml", "serit-b", "tools/deploy-aclik-gh-mutasyon.py"):
+        "tools/deploy-aclik-kapisi.py GECICI AG SINIFININ mutasyon bataryasi (5 "
+        "oldurucu + 1 kontrol): gecici hata siniflamasi, sinirli yeniden deneme, "
+        "tukenince fail-closed davranis ve denemeler arasi bekleme tek tek olculur. "
+        "Korudugu kapinin bayraksiz GERCEK olcum kolu deploy.yml'de BLOKLAYICI kosar; "
+        "bu giris bir TASIMA DEGIL, kapinin AYIRT EDICILIK bataryasinin EKLENMESIDIR. "
+        "Canli GitHub API'sine cikmaz; yalniz kapinin `--kendini-test` kolunu kosar. "
+        "Mutasyon hedef dosyaya uygulanir ve her turda finally ile ozgun baytlar geri "
+        "yuklenir.",
     ("nobet.yml", "serit-b", "tools/duzelt-uyum-mutasyon.py"):
         "duzelt.py uyum kapisinin AYIRT EDICILIGI (her eksenin TEK-KIRMIZI mutanti "
         "var). Hedef kaynak urun VERISI duzlemindedir (MaCiT) -> kirmizisinin sahibi "

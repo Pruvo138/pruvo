@@ -1386,6 +1386,13 @@ jobs:
       - name: "D1-sync durum kolu mutasyon bataryasi"
         run: python3 tools/d1-sync-durum-mutasyon.py
 
+      # DEPLOY ACLIK KAPISININ GECICI AG SINIFI (11 Agu 2026). Batarya 5 oldurucu
+      # + 1 kontrol mutantla yeniden-deneme sinirlarini olcer; canli GitHub agina
+      # cikmaz, kapinin `--kendini-test` kolunu kosar. Mutasyon hedef dosyaya uygulanir
+      # ve her turda finally ile bayt-bayt geri yuklenir.
+      - name: "Deploy aclik kapisi gecici ag sinifi mutasyon bataryasi"
+        run: python3 tools/deploy-aclik-gh-mutasyon.py
+
       - name: "duzelt.py uyum kapisi mutasyon bataryasi"
         run: python3 tools/duzelt-uyum-mutasyon.py
 
