@@ -1819,7 +1819,12 @@ TABLO_TABANLARI = (
     # BIRLESIMDIR: ikisi de SERIT_B sozlugunde DURUYOR (2757 + 2771), dolayisiyla
     # taban 96 -> 98'dir. Dallardan birinin 97'sini almak, DIGER dalin beyanini
     # sessizce "pay" haline getirir ve o kadar giris sonradan sessizce silinebilirdi.
-    ("SERIT_B", 98),
+    # 11 Agu: +1 -> 99. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/urun-vitrin-kapsam-mutasyon.py"): urun sayfasi / kart kapsam ayriminin
+    # mutasyon bataryasi. Korudugu kapi (tools/d1-fiyat-parite-kapisi.py) deploy.yml
+    # job `build`te BLOKLAYICI kosar — bu giris bir TASIMA degil, bataryanin
+    # EKLENMESIDIR; tam esitlik geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 99),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2769,6 +2774,27 @@ SERIT_B = {
         "Ag GEREKTIRMEZ. ⚠️ DURUST BEYAN: mutasyon canli dosyalara HIC uygulanmaz — "
         "her mutant icin sembolik bagli gecici bir kok kurulur ve yalnizca o kokteki "
         "kopya bozulur; batarya kendi ciktisinda canli agacin sha256 esitligini olcer.",
+    # --- URUN SAYFASI / KART KAPSAM AYRIMININ BATARYASI (11 Agu 2026) --------------
+    ("nobet.yml", "serit-b", "tools/urun-vitrin-kapsam-mutasyon.py"):
+        "tools/d1-fiyat-parite-kapisi.py KAPSAM AYRIMI KAPISININ mutasyon bataryasi "
+        "(10 oldurucu + 2 kontrol): urun sayfasi kolunun tabana sabitlenmesi · ilan "
+        "tutarinin onden secili cipten AYRI turemesi · KART kolunun da yukselmesi "
+        "(Okan'in acikca REDDETTIGI davranis) · kart yuzeyinin urun sayfasi turetmesini "
+        "cagirmasi · markup/besleme dallarinin urun koluna baglanmasi · taninmayan "
+        "malzemenin sessizce 'varsayilan'a cokmesi · kenar veritabani kolonunun ham "
+        "alani birakmasi · taban secenegin tutarinin sayfadan kalkmasi · bilincli-secim "
+        "notunun sokulmesi ya da HER secimde gosterilmesi tek tek KIRMIZI yaniyor mu. "
+        "IKI KONTROL: davranis-notr yeniden adlandirma YESIL kalir; ZEHIRLI girdi + "
+        "fail-open'a cevrilmis hukum fonksiyonu YESIL olur (o hukum satirlarinin YUK "
+        "TASIDIGININ kaniti — ayni zehir bozulmamis kapida KIRMIZI yanar, ikisi CIFTTIR). "
+        "Olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
+        "(cta-denge-mutasyon.py / edge-kart-tirnak-mutasyon.py ile ayni desen). Korudugu "
+        "KAPI (tools/d1-fiyat-parite-kapisi.py) SERIT A'da, deploy.yml job `build`te "
+        "BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Ag "
+        "GEREKTIRMEZ. ⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak metinleri "
+        "bellekte degistirilip exec/compile ile kosar (JS kaynagi kapinin STDIN'li "
+        "kosucusuna METIN olarak gecer); kosum sonunda alti hedef dosyanin sha256'si "
+        "bas=son karsilastirilir ve ciktida raporlanir.",
     # --- R1 SIHIRLI-BAYT WHITELIST'I / AVIF EKSENI (9 Agu 2026) --------------------
     ("nobet.yml", "serit-b", "tools/edge-kart-tirnak-mutasyon.py"):
         "tools/edge-kart-kapisi.py'nin KARDES-DEPO AYRISTIRMASININ mutasyon bataryasi "

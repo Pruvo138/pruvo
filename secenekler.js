@@ -598,11 +598,20 @@
      malzemesi, farkı %0) düşer ve BUGÜNKÜ davranış birebir korunur. Bayrağı açmak
      katalogda ilan edilen tutarları yukarı taşır — ticari karardır, kod kararı değil.
 
+     🔴 İKİ YÜZEY, İKİ AYRI ANAHTAR (işletme kararı, 11 Ağu): müşteri ürünün İÇİNE
+     girdiğinde önerilen malzeme seçili gelsin; LİSTE yüzeyi (ana sayfa/kategori/arama
+     kartı) ise başlangıç tabanında KALSIN. Aynı ürün iki tutar gösterir ve bu bilinçli:
+     kart "başlangıç", ürün sayfası "önerilen". Tek anahtar olsaydı kartı da yukarı
+     taşırdı; kart yüzeyi ise geniş ve dış listeleme/arama sonucuyla kıyaslanan yüzeydir.
+     İki anahtar da AYNI çekirdeği çağırır -> kural ikiye ÇATALLANMAZ, yalnız yüzey
+     başına açık/kapalıdır.
+
      FAIL-CLOSED: referans yoksa/bozuksa, kategori haritada yoksa, öneri sitede
      satılmayan ya da katsayı tablosunda bulunmayan bir ad ise -> güvenli varsayılan.
      Hazır ticari malda (tur "fiziksel") üretim malzemesi karşılıksızdır -> güvenli
      varsayılan (çarpan zaten 1,00). */
-  var ONERI_ONSECIM_ACIK = false;
+  var ONERI_ONSECIM_ACIK = true;      /* ÜRÜN SAYFASI kolu */
+  var ONERI_VITRIN_ACIK = false;      /* LİSTE/KART kolu — başlangıç tabanında KALIR */
   var KATEGORI_ESADI = { "Bahce": "Bahçe" };
 
   function _guvenliMalzeme() { return bosSatir("").malzeme; }
@@ -620,25 +629,41 @@
      kategori haritası). Sıra ve eleme kuralı öneri rozetiyle AYNIDIR: ürün kendi
      önerisini taşıyorsa harita yerine o geçer, sitede satılmayan ad sessizce atılır,
      kalan İLK ad öneridir. */
-  function onSecimMalzeme(urun, ref) {
+  /* TANI JETONLARI — kuralın hangi koldan çıktığı. Fiyatı DEĞİŞTİRMEZ; sessiz düşüşü
+     GÖRÜNÜR kılar. "taninmayan" = ürün bir malzeme önerisi TAŞIYOR ama içindeki adların
+     hiçbiri satılan malzeme değil (ya da alanın biçimi bozuk). O ürün güvenli varsayılanda
+     KALIR — ama artık sessizce değil, sayılabilir bir jetonla. */
+  var TANI_KAPALI = "kapali";
+  var TANI_KAPSAM_DISI = "kapsam-disi";
+  var TANI_ONERI = "oneri";
+  var TANI_VARSAYILAN = "varsayilan";
+  var TANI_TANINMAYAN = "taninmayan";
+
+  /* Çekirdek: {tani: <jeton>, malzeme: <ad>}. İki yüzey de BURAYI çağırır. */
+  function _onSecimCekirdek(urun, ref, acik) {
     var guvenli = _guvenliMalzeme();
-    if (!ONERI_ONSECIM_ACIK || !urun || !ref) { return guvenli; }
+    if (!acik || !urun || !ref) { return { tani: TANI_KAPALI, malzeme: guvenli }; }
     /* KAPSAM — BEYAN EDİLEN SINIR: kural yalnız SABİT fiyatlı katalog kolundadır.
        Ölçüye özel / yapılandırıcılı üründe tutar tabandan CANLI hesaplanır ve kart
        yüzeyi tabanı ayrı bir haritadan okur; oralarda ön-seçimi değiştirmek ilan
        edilen tabanı bu değişiklikle ÖLÇÜLMEYEN bir yoldan kaydırırdı.
        Hazır ticari malda üretim malzemesi karşılıksızdır (çarpan zaten 1,00). */
-    if (fizikselMi(urun.tur) || urun.parametrik || urun.konfigur) { return guvenli; }
+    if (fizikselMi(urun.tur) || urun.parametrik || urun.konfigur) {
+      return { tani: TANI_KAPSAM_DISI, malzeme: guvenli };
+    }
     var siteAd = _siteAdlari(ref);
     var adaylar = [];
     var i;
     var ovr = urun.tavsiyeFilament;
+    var oneriliUrun = false;
     if (ovr) {
-      /* 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed; ureteç tarafi
-         filament_ortak.tavsiyeler ile AYNI kural). Alan DIZI olmak zorundadir.
-         Kategori haritasina DUSULMEZ: dusulseydi alani bozuk urun sessizce
-         %30-60 zamlanirdi. */
-      if (!Array.isArray(ovr)) { return guvenli; }
+      oneriliUrun = true;
+      /* 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed; üreteç tarafıyla
+         AYNI kural). Alan DIZI olmak zorundadır. Kategori haritasına DUSULMEZ:
+         düşülseydi alanı bozuk ürün sessizce %30-60 zamlanırdı. */
+      if (!Array.isArray(ovr)) {
+        return { tani: TANI_TANINMAYAN, malzeme: guvenli };
+      }
       for (i = 0; i < ovr.length; i++) {
         if (siteAd[ovr[i]]) { adaylar.push(ovr[i]); }
       }
@@ -650,19 +675,47 @@
       }
     }
     for (i = 0; i < adaylar.length; i++) {
-      if (FILAMENT_FARK.hasOwnProperty(adaylar[i])) { return adaylar[i]; }
+      if (FILAMENT_FARK.hasOwnProperty(adaylar[i])) {
+        return { tani: TANI_ONERI, malzeme: adaylar[i] };
+      }
     }
-    return guvenli;
+    /* Öneri TAŞIYAN ama hiçbir adayı ayakta kalmayan ürün: veri kusuru, sessiz kalmasın. */
+    return { tani: oneriliUrun ? TANI_TANINMAYAN : TANI_VARSAYILAN, malzeme: guvenli };
   }
 
-  /* İLAN EDİLEN BİRİM TUTAR (kuruş) — kart yüzeyi, ürün sayfası ve yapılandırılmış veri
-     AYNI sayıyı buradan alır. Ön-seçimle aynı fonksiyondan türer: müşteri hiçbir şey
-     seçmeden sepete eklerse satır tutarı BU sayının ta kendisidir. */
-  function ilanBirimKurus(urun, ref) {
+  /* ÜRÜN SAYFASI ön-seçimi. */
+  function onSecimMalzeme(urun, ref) {
+    return _onSecimCekirdek(urun, ref, ONERI_ONSECIM_ACIK).malzeme;
+  }
+
+  /* ÜRÜN SAYFASI ön-seçiminin TANISI (sayılabilir jeton; fiyata girmez). */
+  function onSecimTani(urun, ref) {
+    return _onSecimCekirdek(urun, ref, ONERI_ONSECIM_ACIK).tani;
+  }
+
+  /* LİSTE/KART yüzeyinin malzemesi — kendi anahtarına bağlıdır. */
+  function vitrinMalzeme(urun, ref) {
+    return _onSecimCekirdek(urun, ref, ONERI_VITRIN_ACIK).malzeme;
+  }
+
+  function _birimKurus(urun, malzeme) {
     var temel = fiyatSayisi(urun && urun.fiyat);
     if (temel == null) { return null; }
-    return hesaplaFiyatKurus(temel, onSecimMalzeme(urun, ref), bosSatir("").renk, 0,
-                             urun && urun.tur);
+    return hesaplaFiyatKurus(temel, malzeme, bosSatir("").renk, 0, urun && urun.tur);
+  }
+
+  /* İLAN EDİLEN BİRİM TUTAR (kuruş) — ÜRÜN SAYFASI ve onun yapılandırılmış verisi AYNI
+     sayıyı buradan alır. Ön-seçimle aynı fonksiyondan türer: müşteri hiçbir şey seçmeden
+     sepete eklerse satır tutarı BU sayının ta kendisidir. */
+  function ilanBirimKurus(urun, ref) {
+    return _birimKurus(urun, onSecimMalzeme(urun, ref));
+  }
+
+  /* LİSTE/KART TUTARI — kartın yazdığı sayı. Kendi anahtarı kapalıyken başlangıç
+     tabanıdır (bugünkü liste tutarı) ve ürün sayfasının tutarından DÜŞÜK olabilir;
+     bu bilinçli bir "başlangıç fiyatı" beyanıdır, ürün sayfası kesin tutarı yazar. */
+  function vitrinBirimKurus(urun, ref) {
+    return _birimKurus(urun, vitrinMalzeme(urun, ref));
   }
   /* ===================== END ONSECIM ===================== */
 
@@ -1251,8 +1304,13 @@
     IKI_RENK_EK_KURUS: IKI_RENK_EK_KURUS,
     ikiRenkDetayEki: ikiRenkDetayEki,
     ONERI_ONSECIM_ACIK: ONERI_ONSECIM_ACIK,
+    ONERI_VITRIN_ACIK: ONERI_VITRIN_ACIK,
     onSecimMalzeme: onSecimMalzeme,
+    onSecimTani: onSecimTani,
+    TANI_TANINMAYAN: TANI_TANINMAYAN,
+    vitrinMalzeme: vitrinMalzeme,
     ilanBirimKurus: ilanBirimKurus,
+    vitrinBirimKurus: vitrinBirimKurus,
     adetDuzelt: adetDuzelt,
     kurusMetni: kurusMetni,
     tlMetni: tlMetni,

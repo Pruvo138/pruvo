@@ -1399,6 +1399,18 @@ jobs:
       - name: "Edge kart kapisi kardes-depo ayristirma mutasyon bataryasi"
         run: python3 tools/edge-kart-tirnak-mutasyon.py
 
+      # URUN SAYFASI / KART AYRIMI (11 Agu, Okan karari). Kartin da yukselmesi ACIKCA
+      # REDDEDILEN davranistir; batarya o sizintiyi ve kardeslerini (cip PLA'ya sabitlenmesi,
+      # ilan tutarinin cipten ayri turemesi, markup/beslemenin urun koluna baglanmasi,
+      # taninmayan malzemenin sessizce cokmesi, kenar kolonunun kaymasi, bilincli-secim
+      # notunun sokulmesi/her secimde gosterilmesi) 10 oldurucu mutantla olcer.
+      # IKI KONTROL: M0 davranis-notr yeniden adlandirma YESIL kalmali · M9 zehirli girdi +
+      # fail-open cevrilmis hukum fonksiyonu YESIL olmali (o satirlarin YUK TASIDIGI kaniti;
+      # M3 ayni zehirle KIRMIZI yanar — ikisi bir CIFTTIR).
+      # Mutasyon BELLEKTE uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
+      - name: "Urun sayfasi / kart kapsam ayrimi mutasyon bataryasi"
+        run: python3 tools/urun-vitrin-kapsam-mutasyon.py
+
       - name: "Ege-bilgi tavan kapisi mutasyon bataryasi"
         run: python3 tools/ege-bilgi-tavan-mutasyon.py
 

@@ -1267,6 +1267,19 @@ jobs:
       - name: On-secili malzeme <-> ilan edilen tutar parite kapisi
         run: python3 tools/onsecim-parite-kapisi.py
 
+      # 🔴 IKI AGIZ, IKI FIYAT. Isletme karari (11 Agu, Okan): URUN SAYFASI onerilen
+      # malzemeyi on-secer ve tutar ondan turer; KART / BESLEME / MARKUP ise BASLANGIC
+      # tabaninda KALIR. Kenar veritabanindaki fiyat kolonu da o tabani tasir ve mesaj
+      # kanali ORADAN okur. Kapsam sizarsa (kart da yukselirse) site 455 TL derken mesaj
+      # kanali 350 TL der: iki agiz, iki fiyat, SIFIR alarm. Kapi TUM KATALOGDA kart
+      # tutari == kenar kolonu tutari olcer (sapan 0), kart yuzeyinin urun sayfasi
+      # turetmesini CAGIRMADIGINI capayla dogrular, pozitif taniyiciyla kendi canliligini
+      # kanitlar ve malzeme onerisi TASIYIP adi taninmayan urunleri (sessizce tabana
+      # dusen veri kusuru) SAYIP basar. Bloklayici: hata sinifi sessiz ve parali.
+      # Mutasyon bataryasi (10 oldurucu + 2 kontrol): tools/urun-vitrin-kapsam-mutasyon.py
+      - name: Vitrin <-> D1 fiyat paritesi + kapsam sizintisi kapisi
+        run: python3 tools/d1-fiyat-parite-kapisi.py
+
       # 🔴 REKLAM OLCUMU — HUNI AYAGI. 11 Agu'ya kadar GA4 tarafina yalniz sayfa
       # goruntuleme gidiyordu: urun goruntuleme / sepete ekleme / odemeye baslama
       # olaylarinin HICBIRI yoktu, oysa Meta huni yuzeyi TAM kuruluydu. Hata SESSIZ

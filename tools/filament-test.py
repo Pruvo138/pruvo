@@ -480,27 +480,40 @@ def main():
     kayit(9, "(a) malzeme dropdown YOK + kartlar data-malzeme + tiklama secim JS'i",
           not h9, "; ".join(h9[:4]) or "temiz")
 
-    # ---- 10 (b) 🔴 IDDIA 11 Agu'da TERSINE CEVRILDI — acilista malzeme ONDEN SECILI
-    # Eski iddia ("acilista secili kart yok") sessiz sepet arizasinin ta kendisiydi:
-    # zorunlu secim butonun 168 px ALTINDA + secimsiz -> tiklama sessizce dusuyordu.
-    # Onden secilen malzeme secenekler.js bosSatir()'dan turer; farki %0 oldugu icin
-    # sayfada ILAN EDILEN liste fiyati DEGISMEZ (tools/sepet-secim-kapisi.py bolum b).
+    # ---- 10 (b) 🔴 IDDIA IKI KEZ DEGISTI, SON HALI: acilista URUNUN ONERILEN malzemesi
+    # ONDEN SECILI ve sayfadaki tutar ONDAN turer.
+    #   1. donem: "acilista secili kart YOK" -> sessiz sepet arizasinin ta kendisiydi.
+    #   2. donem: "acilista secili kart = bosSatir varsayilani (PLA)" + fiyat "…den baslayan".
+    #   3. donem (11 Agu, isletme karari): urun sayfasi ONERILEN malzemeyi on-secer;
+    #      malzeme+renk zaten seciliyken "…den baslayan" YANLIS olur, sayfa KESIN tutari
+    #      yazar. LISTE tutari kart/besleme/markup yuzeyinde KALIR (ayri kapi olcer).
+    # 🔴 BEKLENTI CIVILENMEZ, KURALDAN TURER ([[bayat-kabul-testi]]): iddia "PLA yaziyor mu"
+    # degil, "sayfa KURALIN sectigi malzemeyi ve ONUN tutarini basiyor mu"dur.
     h10 = []
-    # bosSatir() varsayilanlari TEK KAYNAK secenekler.js — ikinci liste yazilmaz.
-    with open(os.path.join(ROOT, "secenekler.js"), encoding="utf-8") as _f:
-        sec_js_erken = _f.read()
-    _bos_govde = re.search(r"function\s+bosSatir\s*\([^)]*\)\s*\{\s*return\s*\{(.*?)\}\s*;",
-                           sec_js_erken, re.S).group(1)
-    _bos_malzeme = re.search(r'malzeme\s*:\s*"([^"]*)"', _bos_govde).group(1)
+    _bt = __import__("build")
+    _bek_malzeme = _bt.on_secim_malzeme(fonk_urun)
+    _bek_kurus = _bt.ilan_kurus(fonk_urun)
     sec_kart = re.findall(r'class="fil-cip[^"]*\bsecili\b[^"]*" data-malzeme="([^"]+)"', fs)
-    if sec_kart != [_bos_malzeme]:
-        h10.append("acilista secili malzeme %r degil: %r" % (_bos_malzeme, sec_kart))
+    if sec_kart != [_bek_malzeme]:
+        h10.append("acilista secili malzeme %r degil: %r" % (_bek_malzeme, sec_kart))
     if 'var seciliMalzeme = _ilkSecim(cipler, ".fil-cip.secili", "data-malzeme");' not in fs:
         h10.append("seciliMalzeme baslangici sayfadaki .secili karttan okunmuyor")
     m10 = re.search(r'id="opsiyonFiyat">([^<]*)<', fs)
-    if not (m10 and "başlayan" in m10.group(1)):
-        h10.append("opsiyonFiyat 'baslayan' halinde degil: %r" % (m10.group(1) if m10 else None))
-    kayit(10, "(b) acilista malzeme ONDEN SECILI (bosSatir varsayilani) + fiyat '…den baslayan'",
+    _gorunen = m10.group(1).strip() if m10 else None
+    _beklenen_metin = (None if _bek_kurus is None
+                       else _bt.taban_fiyat_metni(_bek_kurus / 100.0))
+    if _beklenen_metin is not None and _gorunen != _beklenen_metin:
+        h10.append("opsiyonFiyat on-secimli tutar degil: %r (beklenen %r)"
+                   % (_gorunen, _beklenen_metin))
+    if _gorunen and "başlayan" in _gorunen:
+        h10.append("malzeme+renk SECILIYKEN hala '…den baslayan' yaziyor (kesin tutar olmali)")
+    # TABAN SECENEK GORUNURLUGU (azaltici, Okan karari): kart/besleme tutari sayfadan
+    # okunabilir kalmali -> taban malzemenin cipi KENDI tutarini tasir.
+    _taban = _bt.VARSAYILAN_MALZEME
+    if ('data-malzeme="%s" data-kurus="%d"'
+            % (html.escape(_taban, quote=True), _bt.cip_kurus(fonk_urun, _taban))) not in fs:
+        h10.append("taban malzeme cipi kendi tutarini (data-kurus) tasimiyor")
+    kayit(10, "(b) acilista ONERILEN malzeme secili + tutar ONDAN turer + taban tutar gorunur",
           not h10, "; ".join(h10) or "temiz")
 
     # ---- 11 (c) secimsiz Sepete Ekle -> eklenmez + titreme/kirmizi
@@ -653,13 +666,15 @@ def main():
         if yasak in ih:
             h20.append("index.html'de hala var: %s" % yasak)
     # 🔴 KAPSAM DARALTMASI (11 Agu, on-secili malzeme): malzeme veri dosyasinin ANA SAYFAYA
-    # INMESI artik YASAK DEGIL — kart, urun sayfasinda ONDEN SECILI gelen malzemeye gore
-    # hesaplanan tutari yazar ve o kural referansi okur (iki yuzey ayni sayiyi gosterir).
+    # INMESI artik YASAK DEGIL — kart tutari o referansi okuyan kuraldan turer.
     # Dosya adini topyekun yasaklamak bu mesru kullanimi da keserdi. YASAK OLAN SEY,
-    # referansin KART UI'ina (tavsiye cipi) geri sizmasidir -> KULLANIM YERI olculur:
-    # PRUVO_FILAMENT yalnizca ilan tutari hesabina (ilanBirimKurus) girebilir.
+    # referansin KART UI'ina (tavsiye cipi) geri sizmasidir -> KULLANIM YERI olculur.
+    # 🔴 MESRU CAGRI ADI DEGISTI (11 Agu aksami, isletme karari): kart yuzeyi KENDI
+    # turetmesini cagirir (vitrinBirimKurus). Urun sayfasi turetmesinin (ilanBirimKurus)
+    # burada gorunmesi KAPSAM SIZINTISIDIR ve ayrica tools/d1-fiyat-parite-kapisi.py
+    # eksen E2'de fail-closed olculur.
     _kullanim = re.findall(r"[^\s(,]*PRUVO_FILAMENT[^\s);,]*", ih)
-    _mesru = len(re.findall(r"ilanBirimKurus\(\s*p\s*,\s*window\.PRUVO_FILAMENT\s*\)", ih))
+    _mesru = len(re.findall(r"vitrinBirimKurus\(\s*p\s*,\s*window\.PRUVO_FILAMENT\s*\)", ih))
     if _kullanim and _mesru != len(_kullanim):
         h20.append("PRUVO_FILAMENT ilan tutari disinda okunuyor (%d kullanim / %d mesru)"
                    % (len(_kullanim), _mesru))

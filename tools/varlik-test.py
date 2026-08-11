@@ -109,6 +109,23 @@ BILEREK_DEGISEN = (
     # ayni oldugu tools/ga4-olay-kapisi.py (c) bolumunde node:vm ile olculur.
     ('window.pruvoGA4Track("view_item", ',
      "YENI: urun sayfasi GA4 view_item cagrisi (govde urun basina degisir)"),
+    # 2026-08-11 — ONERILEN MALZEME ON-SECIMI + BILINCLI SECIM NOTU (Okan karari).
+    # Sunucu yalniz VERIYI attribute olarak basar (data-oneri / data-kurus); METNI sayfa
+    # JS'i yazar. Neden: metinler URUN BASINA degisir ve urun-basi gorunur metni sabit
+    # dizeyle beyan etmek imkansizdir — sabit JS satiri beyan edilebilir, degisken metin
+    # DEGIL. Dort satir da AYIRT EDICIDIR (sayfada baska hicbir satir bu onekleri tasimaz).
+    # 🔴 IDDIA TASINDI: notun kosula bagli gorunurlugu + cip tutarlarinin tek turetme
+    # noktasindan gelmesi tools/d1-fiyat-parite-kapisi.py E7/E9'da fail-closed olculur;
+    # mutasyon kaniti tools/urun-vitrin-kapsam-mutasyon.py :: M8/M10/M11.
+    ('var oneriNot = document.getElementById("oneriNot");',
+     "YENI: bilincli-secim notu referansi"),
+    ('oneriNot.textContent = "Seçtiğiniz malzeme,',
+     "YENI: not METNI istemcide yazilir (sunucu yalniz data-oneri basar)"),
+    ('oneriNot.hidden = !(_o && seciliMalzeme && seciliMalzeme !== _o);',
+     "YENI: not YALNIZ onerilenden sapinca gorunur (yanlis-pozitif gurultu yok)"),
+    ('cipler.querySelectorAll(".fil-cip[data-kurus]")',
+     "YENI: her malzeme cipinin KENDI tutari gorunur etiketle yazilir "
+     "(taban secenegin tutari sayfada okunur kalir)"),
 )
 
 # TAM SATIR eslesmeli girisler. NEDEN AYRI: yukaridaki liste ALT DIZE arar; ayirt edici
@@ -368,6 +385,21 @@ BILEREK_DEGISEN_CSS = (
          "    .ikon-sepet{flex:1 1 auto;min-width:200px}\n  ",
      "mobil sticky bant %16,6 -> %7,5 + eylem blogu tam genislik "
      "(nobetci: cta-denge-kapisi.py CTA-A2-BANT-PAYI)"),
+    # 2026-08-11 — ONERILEN MALZEME ON-SECIMI (Okan karari). Iki YENI gorsel kural:
+    # (1) cip tutari etiketi, (2) onerilenden sapinca cikan bilgi notu kutusu.
+    # 🔴 IDDIA TASINDI: ogelerin GERCEKTEN basildigi/kosula bagli oldugu
+    # tools/d1-fiyat-parite-kapisi.py E7/E9'da fail-closed olculur; mutasyon kaniti
+    # tools/urun-vitrin-kapsam-mutasyon.py :: M8/M10/M11.
+    ("", "\n   \n  .fil-tutar{font-size:11.5px;font-weight:700;color:var(--navy);"
+         "margin-top:1px}",
+     "malzeme cipi kendi tutarini gosterir (nobetci: d1-fiyat-parite-kapisi.py E7)"),
+    ("", "\n  .fil-cip.secili .fil-tutar{color:#fff}",
+     "secili cipte tutar okunur kalir (lacivert dolgu uzerinde beyaz)"),
+    ("", "\n   \n  .oneri-not{margin:8px 0 0;padding:8px 11px;border-radius:8px;"
+         "background:#fff7e6;\n"
+         "    border:1px solid #f0d9a8;color:#6b4e11;font-size:12.5px;line-height:1.5}\n"
+         "  .oneri-not[hidden]{display:none}",
+     "bilincli-secim notu kutusu (nobetci: d1-fiyat-parite-kapisi.py E9)"),
 )
 
 
@@ -687,6 +719,47 @@ def _malzeme_tasima_beyani(p):
          "malzeme kartlari bilgi bolumunden KALKTI — ESKI konum "
          "(nobetci: tools/sepet-secim-kapisi.py)"),
     )
+
+
+def _onsecim_tutar_beyani(p):
+    """🔴 11 Agu 2026 — URUN SAYFASININ VURGULADIGI TUTAR ONERILEN MALZEMEDEN TURER.
+
+    Isletme karari (Okan): musteri urunun ICINE girdiginde onerilen malzeme onden secili
+    gelir ve gorunen tutar ONUN tutaridir. Malzeme+renk zaten seciliyken "…'den baslayan"
+    demek YANLIS olurdu (sayfa KESIN tutari yazar), bu yuzden JS oncesi statik metin de
+    liste tutarindan on-secimli tutara gecti. LISTE tutari KAYBOLMADI: kart · besleme ·
+    yapilandirilmis veri hala onu beyan eder ve her malzeme cipi KENDI tutarini tasir.
+
+    🔴 CIFT ELLE YAZILMAZ: (eski metin -> yeni metin) urunun KENDI verisinden ve build'in
+    KENDI bicimleyicisinden turetilir -> fiyat/kural degisince beyan kendiliginden
+    tazelenir, BAYATLAMAZ ve urun-basi tutar varyantlari icin elle defter tutulmaz.
+    Urun bu kolun DISINDAysa (olcuye ozel / yapilandiricili / fiyatsiz) giris URETILMEZ.
+    Tutar AYNI kalan uründe (onerisi PLA) bile giris uretilir: degisen sey yalniz sayi
+    degil, CUMLE KALIBIDIR — giris uretilmezse o sayfa yanlis-KIRMIZI yanardi.
+
+    🔴 IDDIA TASINDI, KALDIRILMADI: gorunen tutarin sepet/sunucu tutariyla KURUS KURUS
+    ayni oldugunu tools/onsecim-parite-kapisi.py, kart/besleme/markup yuzeyinin
+    KAYMADIGINI tools/d1-fiyat-parite-kapisi.py fail-closed olcer."""
+    try:
+        if not build.ONERI_ONSECIM_ACIK or p.get("parametrik") or p.get("konfigur"):
+            return ()
+        ilan = build.ilan_kurus(p)
+        ham = (p.get("fiyat") or "").strip()
+        if ilan is None or not ham:
+            return ()
+        # 🔴 TUTAR ESIT OLSA BILE BEYAN URETILIR: degisen sey yalniz SAYI degil, CUMLE
+        # KALIBIDIR ("… TL'den baslayan" -> kesin tutar). Onerisi PLA olan uründe sayi ayni
+        # kalir ama metin yine degisir; giris uretilmezse o sayfa yanlis-KIRMIZI yanardi.
+        eski = _norm(_duz_metin(build.esc(ham) + "&#39;den başlayan"))
+        yeni = _norm(_duz_metin(build.taban_fiyat_metni(ilan / 100.0)))
+    except Exception:
+        return ()
+    if not eski or not yeni:
+        return ()
+    return ((eski, yeni,
+             "urun sayfasinin vurguladigi tutar ONERILEN malzemeden turer (11 Agu); "
+             "kurus esitligini tools/onsecim-parite-kapisi.py, kart/besleme/markup "
+             "yuzeyinin kaymadigini tools/d1-fiyat-parite-kapisi.py fail-closed olcer"),)
 
 
 def _seri_etiket_beyani(p):
@@ -1559,7 +1632,8 @@ def olc(eski, yeni, secim, urunler, ref):
     for pid in yeni:
         p_urun = urun_ix.get(pid, {"id": pid})
         seri_metin, seri_deger = _seri_etiket_beyani(p_urun)
-        tablo = (BILEREK_DEGISEN_METIN + _malzeme_tasima_beyani(p_urun) + seri_metin)
+        tablo = (BILEREK_DEGISEN_METIN + _malzeme_tasima_beyani(p_urun) + seri_metin
+                 + _onsecim_tutar_beyani(p_urun))
         kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]),
                               beyan_tablosu=tablo, deger_beyani=seri_deger,
                               eslesen_kovasi=eslesen_beyan)

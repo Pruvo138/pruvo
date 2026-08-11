@@ -2557,11 +2557,12 @@
     var mg = FIYAT_ARA_RE.exec(p.fiyat.trim());
     if(!mg){ return null; }
     if(!(paraKurus(me[1]) > paraKurus(mg[1]))){ return null; }
-    /* İLAN EDİLEN tutarla da kıyas: ön-seçili malzeme tutarı eski fiyatı geçtiyse üstü
-       çizili rakam YANILTICI İNDİRİM olur (1.200 çizili, 1.275 ilan). Ürün sayfası aynı
-       kıyası aynı sayıyla yapar — iki yüzey çelişemez. */
-    if(PRUVO_SECENEK.ONERI_ONSECIM_ACIK && PRUVO_SECENEK.ilanBirimKurus){
-      var ik = PRUVO_SECENEK.ilanBirimKurus(p, window.PRUVO_FILAMENT);
+    /* KARTIN YAZDIĞI tutarla da kıyas: kartta gösterilen tutar eski fiyatı geçtiyse üstü
+       çizili rakam YANILTICI İNDİRİM olur (1.200 çizili, 1.275 yazılı). Kıyas KARTIN KENDİ
+       sayısıyla yapılır — kart hangi tutarı basıyorsa üstü çizili rakam onunla tutarlıdır.
+       Ürün sayfası kendi tutarıyla AYNI kıyası kendi içinde yapar. */
+    if(PRUVO_SECENEK.ONERI_VITRIN_ACIK && PRUVO_SECENEK.vitrinBirimKurus){
+      var ik = PRUVO_SECENEK.vitrinBirimKurus(p, window.PRUVO_FILAMENT);
       if(ik != null && !(paraKurus(me[1]) > ik)){ return null; }
     }
     return ham;
@@ -3569,15 +3570,17 @@
      (PRUVO_FIYATSIZ_METIN — tek kaynak secenekler.js `kurus == null` dalı; elle ikinci
      kopya yazılmaz). İşaret inmemişse (eski/404 artefakt) davranış BUGÜNKÜ gibi kalır,
      ama sayı da inmediği için kartta tutar yine görünmez. */
-  /* İLAN EDİLEN KART TUTARI — sabit fiyatlı üründe kartın yazdığı sayı, ürün sayfasının
-     ve sepet satırının yazdığı sayıyla AYNI olmalıdır. Ön-seçili malzeme liste tabanından
-     farklıysa ham `fiyat` alanını basmak kartı ürün sayfasıyla çeliştirir (müşteri kartta
-     bir tutar görüp sayfada başka tutarla karşılaşır). Sayı tek türetme noktasından gelir:
-     secenekler.js ilanBirimKurus -> onSecimMalzeme. Malzeme referansı inmemişse (eski/404
-     artefakt) kural güvenli varsayılana düşer ve BUGÜNKÜ metin basılır. */
+  /* KART TUTARI — LİSTE yüzeyinin (ana sayfa · kategori · arama sonucu) yazdığı sayı.
+     🔴 KAPSAM: bu yüzey kendi anahtarına bağlıdır (ONERI_VITRIN_ACIK) ve BUGÜN KAPALIDIR,
+     yani kart BAŞLANGIÇ tabanını yazar. Ürün sayfası önerilen malzemeyi önden seçtiği için
+     orada daha yüksek bir tutar görünebilir; bu bilinçli bir işletme kararıdır (kart
+     "başlangıç", ürün sayfası "önerilen"), kod kazası değil. Kartı da yukarı taşımak bu
+     yüzeyin kendi anahtarını açmayı gerektirir — ürün sayfası kolu tek başına kartı
+     KAYDIRAMAZ. Malzeme referansı inmemişse (eski/404 artefakt) kural güvenli varsayılana
+     düşer ve BUGÜNKÜ metin basılır. */
   function ilanFiyatMetni(p){
-    if(!PRUVO_SECENEK.ONERI_ONSECIM_ACIK || !PRUVO_SECENEK.ilanBirimKurus){ return p.fiyat; }
-    var k = PRUVO_SECENEK.ilanBirimKurus(p, window.PRUVO_FILAMENT);
+    if(!PRUVO_SECENEK.ONERI_VITRIN_ACIK || !PRUVO_SECENEK.vitrinBirimKurus){ return p.fiyat; }
+    var k = PRUVO_SECENEK.vitrinBirimKurus(p, window.PRUVO_FILAMENT);
     return (k == null) ? p.fiyat : PRUVO_SECENEK.kurusMetni(k);
   }
 
