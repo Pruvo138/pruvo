@@ -72,11 +72,22 @@
      🔴 URUN SAYFASI TESLIM BEYANI (10 Agu karari) — IKI SINIF, AYNI SAYI,
      AYRI TETIKLEYICI. Ziyaretci "ne zaman elime gecer" bilmeden odeme karari
      veriyordu; sure sitede 69 yerde yaziliydi ama urun sayfasinda HIC yoktu.
-       · SURE her iki sinifta da "3-5 is gunu": site genelindeki teslim taahhudu
-         (SSS · teslimat-iade · mesafeli-satis m.4) BU araliktir; baska sayi yazmak
-         SINIF TUTARLILIGINI bozar (cayma-beyani-kapisi C5/C6 + B5 nobet tutar).
+       · SURE **YALNIZ OZEL URETIM KOLUNDA** "3-5 is gunu": site genelindeki teslim
+         taahhudu (SSS · teslimat-iade · mesafeli-satis m.4) BU araliktir; baska sayi
+         yazmak SINIF TUTARLILIGINI bozar (cayma-beyani-kapisi C5/C6 + B5 nobet tutar).
+         🔴 HAZIR/STOK KOLU 11 Agu'da DARALTILDI (ticari karar): urun panelinde YALNIZ
+         "Hazır ürün — stoktan gönderilir." kalir. Kalkan iki cumle (3-5 is gunu kargo
+         + 14 gunluk cayma) SILINMEDI, YERINDE KALDI: baglayici yasal govde
+         (mesafeli-satis m.4/m.5-m.6 · teslimat-iade) ikisini de tasir ve orada
+         standart/ozel AYRIMIYLA yazilidir. Gerekce: urun panelinde KOSULSUZ "14 gun
+         cayma hakkiniz vardir" demek, m.15 kapsamindaki olcuye ozel islerimiz icin de
+         o vaadi dogururdu. Nobet: cayma-beyani-kapisi B1 (kalan cumle VAR) + B10
+         (kalkan iki bilgi YOK) AYRI AYRI olcer; tek yonlu test olu nobetcidir.
        · TETIKLEYICI = SAYACIN BASLADIGI OLAY. Ozel uretimde "siparisiniz
-         onaylandiktan sonra", hazir/stokta "odemeniz onaylandiktan sonra".
+         onaylandiktan sonra"; HAZIR/STOK kolunda urun panelinde artik SURE TAAHHUDU
+         YOK, dolayisiyla TETIKLEYICI DE YAZILMAZ (taahhutsuz cumleye saat baslangici
+         yazmak, olmayan bir vaadi ima eder). Hazir kolun suresi + tetikleyicisi
+         baglayici govdededir (sayfalar.STOK_TESLIM_CUMLESI, kapi C1/C2/C5 nobet tutar).
          🔴 "OLCU ONAYINDAN SONRA" YAZILMAZ (olculdu 10 Agu, curutucu bulgusu):
          ozel uretim sinifinin 23.929/23.968'i (%99,84) SABIT TASARIM katalog
          parcasidir; alicidan olcu girdisi ALINMAZ (parametrik/konfigurlu yalniz
@@ -89,10 +100,11 @@
          SATIR_OZEL ("siparisinizden sonra uretilir") ve EPOSTA_ODENDI_OZEL
          ("siparisiniz onaylandi") ile AYNI SINIFTADIR. Ayni musteri iki yuzeyde
          iki farkli saat baslangici GORMEZ (kapi B7 nobet tutar).
-       · CAYMA yalnizca HAZIR kolda gecer: ozel uretim Mesafeli Sozlesmeler
-         Yonetmeligi m.15 kapsamindadir — ama urun sayfasinda hak REDDI de
-         YAZILMAZ ("iade hakkiniz yoktur" vb.); hakkin kapsami yasal govdede
-         anlatilir (kapi B2/B5/B8 nobet tutar).
+       · CAYMA URUN SAYFASINDA HIC GECMEZ (11 Agu, iki sinifta da): ozel uretim
+         Mesafeli Sozlesmeler Yonetmeligi m.15 kapsamindadir, hazir kolda ise hak
+         VARDIR ama panelde KOSULSUZ soylenmez. Hak REDDI de YAZILMAZ ("iade
+         hakkiniz yoktur" vb.); hakkin KAPSAMI — hem var olusu hem istisnasi —
+         yasal govdede anlatilir (kapi B2/B5/B8/B10 nobet tutar).
        · 39 OLCUYE OZEL (parametrik/konfigurlu) urun icin AYRI METIN ACILMADI:
          yasal govde zaten "Ozel/karmasik islerde sure siparis sirasinda
          bildirilir" kaydini tasiyor; kapsam buyutulmedi (mimar karari).
@@ -107,7 +119,7 @@
     "SATIR_OZEL": "Özel üretim — siparişinizden sonra üretilir",
     "CAYMA_HAZIR": "Hazır/stok ürünlerde teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır.",
     "CAYMA_KARMA": "Hazır ürün olarak işaretli kalemlerde teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır; Özel üretim olarak işaretli kalemler kişiye/ölçüye özel hazırlandığından Mesafeli Sözleşmeler Yönetmeliği m.15 uyarınca bu hakkın kapsamı dışındadır.",
-    "SAYFA_HAZIR": "Hazır ürün — stoktan gönderilir. Ödemeniz onaylandıktan sonra 3-5 iş günü içinde kargoya verilir. Teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır.",
+    "SAYFA_HAZIR": "Hazır ürün — stoktan gönderilir.",
     "SAYFA_OZEL": "Sipariş üzerine özel üretilir — siparişiniz onaylandıktan sonra 3-5 iş günü içinde üretilip kargoya verilir.",
     "EPOSTA_ODENDI_HAZIR": "Ödemeniz alındı, siparişiniz onaylandı. Siparişiniz stoktan hazırlanıp gönderilecektir.",
     "EPOSTA_ODENDI_OZEL": "Ödemeniz alındı, siparişiniz onaylandı. Ürünleriniz özel olarak üretilip gönderilecektir.",

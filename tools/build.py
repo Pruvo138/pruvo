@@ -3711,10 +3711,11 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         # "fiziksel ISE bos" (fail-closed yon — `tur` yoksa/taninmiyorsa urun OZEL
         # URETIMDIR). Hazir/stok kolunda BOS dizeye cozulur ve sablonda cevresinde
         # bosluk olmadigi icin `{ozel_beyan}` kaynakli bayt farki 943 hazir sayfada
-        # SIFIRDIR. Hazir kolun beyani BEYAN["SAYFA_HAZIR"]'dir ve AYNI TURDA O DA
-        # DEGISTI: Okan'in karari geldi, hazir/stok kolu da "3-5 is gunu" tasiyor
-        # (bkz. secenekler.js BEYAN blok yorumu + tools/sayfalar.py
-        # STOK_TESLIM_CUMLESI — ucu de ayni sayiyi tasir, kapi C6 olcer).
+        # SIFIRDIR. Hazir kolun beyani BEYAN["SAYFA_HAZIR"]'dir ve 11 Agu'da Okan'in
+        # karariyla TEK CUMLEYE indirildi: panelde artik teslim suresi de 14 gunluk
+        # cayma da YAZMAZ. Iki bilgi SILINMEDI — baglayici yasal govdede yerinde duruyor
+        # (tools/sayfalar.py STOK_TESLIM_CUMLESI + mesafeli-satis m.5/teslimat-iade).
+        # Kanonik "3-5 is gunu" artik YALNIZ OZEL kolun panel beyanindadir (kapi C6).
         # Nobet: tools/cayma-beyani-kapisi.py B ekseni (urun sayfasi) + C ekseni
         # (baglayici yasal govde) + E ekseni (tek kaynak). Tek tek iddia numarasi
         # YAZILMAZ: numaralar buyuyor ve burada bayatlayan bir liste, yanindaki
