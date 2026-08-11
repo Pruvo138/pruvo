@@ -29,6 +29,18 @@
   window.PRUVO_RIZA_ALANLARI = ['analytics_storage','ad_storage','ad_user_data','ad_personalization'];
   window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';
   window.pruvoRizaUygula = function(d){ var g={},a=window.PRUVO_RIZA_ALANLARI,i; for(i=0;i<a.length;i++){ g[a[i]]=d; } gtag('consent','update',g); };
+  /* GA4 e-ticaret olay gondericisi — reklam olcumunun HUNI ayagi (sayfa goruntuleme tek
+     basina kampanya karari verdirmez). Meta yuzeyiyle AYNI riza anahtarina baglidir
+     (pruvo_onay_analitik === "kabul"): riza yoksa olay GONDERILMEZ.
+     Yalniz beyaz listedeki olay adlari gecer; bilinmeyen ad sessizce DUSER. Satin alma
+     olayi SUNUCUDAN gider — buradan da gonderilse ayni islem IKI KEZ sayilirdi.
+     Olay parametresine YALNIZ katalog alanlari girer (item_id/item_name/item_category/
+     price/quantity/currency/value); kisisel veri (ad/telefon/e-posta/adres) GIRMEZ. */
+  window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout'];
+  window.pruvoGA4Track = function(olay, veri){
+    try { if(localStorage.getItem('pruvo_onay_analitik') !== 'kabul'){ return; } } catch(e){ return; }
+    var a = window.PRUVO_GA4_OLAYLARI, i;
+    for(i=0;i<a.length;i++){ if(a[i] === olay){ gtag('event', olay, veri); return; } } };
   /* Onayı geri yükle. ESKİ (DAR) kayıt reklam alanlarını KAPSAMAZ: yalnız analitik açılır. */
   try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
     if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) { window.pruvoRizaUygula('granted'); }

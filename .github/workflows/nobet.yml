@@ -1389,6 +1389,9 @@ jobs:
       - name: "Ege-bilgi tavan kapisi mutasyon bataryasi"
         run: python3 tools/ege-bilgi-tavan-mutasyon.py
 
+      - name: "GA4 olay kapisi mutasyon bataryasi (huni olayi sokulunca kirmizi mi)"
+        run: python3 tools/ga4-olay-mutasyon.py
+
       - name: "Gramer kisaltma kapisi mutasyon bataryasi"
         run: python3 tools/gramer-kisaltma-mutasyon.py
 

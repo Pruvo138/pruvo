@@ -101,6 +101,14 @@ BILEREK_DEGISEN = (
      "uretilemez secenek metni duzeltildi — ESKI cumle (kiyas commit'inde)"),
     ("Bu seçenek üretim hattımızda henüz karşılanmıyor",
      "uretilemez secenek metni duzeltildi — YENI cumle"),
+    # 2026-08-11: GA4 urun goruntuleme olayi. Bu satirin KUYRUGU her urunde FARKLIDIR
+    # (govde o urunun kimligi/basligi/kategorisi/fiyatiyla basilir), bu yuzden TAM SATIR
+    # olarak beyan EDILEMEZ; desen cagri ONEKIDIR ve AYIRT EDICIDIR (sayfada baska hicbir
+    # satir bu oneki tasimaz). Ayni olayin 13 sabit satiri BILEREK_DEGISEN_TAM'dadir.
+    # 🔴 IDDIA TASINDI: olayin FIILEN atesledigi + kalem kimliginin katalog kimligiyle
+    # ayni oldugu tools/ga4-olay-kapisi.py (c) bolumunde node:vm ile olculur.
+    ('window.pruvoGA4Track("view_item", ',
+     "YENI: urun sayfasi GA4 view_item cagrisi (govde urun basina degisir)"),
 )
 
 # TAM SATIR eslesmeli girisler. NEDEN AYRI: yukaridaki liste ALT DIZE arar; ayirt edici
@@ -271,6 +279,45 @@ BILEREK_DEGISEN_TAM = (
     ('if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && !PRUVO_KONFIGUR.gecerliMi()){ '
      'PRUVO_KONFIGUR.eksikVurgula(); hataGoster("Sepete eklemek için renk seçin."); return; }',
      "YENI: konfigur kolu da GORUNUR uyari basar"),
+    # 2026-08-11 — GA4 E-TICARET HUNI OLAYLARI eklendi (14 satir, HEPSI YENI; kiyas
+    # commit'inde HICBIRI yoktu). Kiyas commit'ine kadar GA4'e yalniz sayfa goruntuleme
+    # gidiyordu: urun goruntuleme / sepete ekleme / odemeye baslama olaylarinin hicbiri
+    # YOKTU, oysa Meta huni yuzeyi TAM kuruluydu. Varliga-tasima KAYBI DEGIL; eksik
+    # olcum kablolamasinin tamamlanmasidir (AW donusum etiketi girisiyle AYNI sinif).
+    # 🔴 SATIRLAR AYIRT EDICI: her giris YENI bir tanimlayici tasir (PRUVO_GA4_OLAYLARI /
+    # pruvoGA4Track / gAtcAdet / gAtcKalem / gAtcVeri). Ciplak `}` / `};` satiri BILEREK
+    # URETILMEDI — kapanislar bir onceki satira bitisik yazildi (jenerik satiri beyan
+    # etmek GERCEK bir icerik kaybini da maskelerdi).
+    # 🔴 IDDIA KALDIRILMADI, TASINDI: bu satirlarin DAVRANISI tools/ga4-olay-kapisi.py'de
+    # olculur — uretilen sayfanin KENDI JS'i node:vm'de kosturulup olay kuyruguna DUSEN
+    # cagri okunur; riza YOKKEN sifir olay beklenir. 10 mutant + 1 KONTROL nobetler
+    # (tools/ga4-olay-mutasyon.py).
+    ("window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout'];",
+     "YENI: GA4 olay beyaz listesi — tek kanonik kaynak (satin alma BILEREK yok)"),
+    ("window.pruvoGA4Track = function(olay, veri){",
+     "YENI: riza-kapili GA4 olay gondericisi"),
+    ("try { if(localStorage.getItem('pruvo_onay_analitik') !== 'kabul'){ return; } } catch(e){ return; }",
+     "YENI: gondericinin riza kapisi (Meta ile AYNI anahtar)"),
+    ("var a = window.PRUVO_GA4_OLAYLARI, i;",
+     "YENI: beyaz liste yerel referansi"),
+    ("for(i=0;i<a.length;i++){ if(a[i] === olay){ gtag('event', olay, veri); return; } } };",
+     "YENI: yalniz beyaz listedeki ad gonderilir (kapanis bitisik yazildi)"),
+    # (view_item cagrisi TAM SATIR beyan EDILEMEZ — govdesi urun basina degisir;
+    #  onek deseni yukarida BILEREK_DEGISEN'dedir.)
+    ("var gAtcAdet = PRUVO_SECENEK.adetDuzelt(satir.adet);",
+     "YENI: sepete ekleme adedi (tek kaynak: secenekler.js)"),
+    ("var gAtcKalem = { item_id: URUN.fid, item_name: URUN.baslik,",
+     "YENI: add_to_cart kalemi — item_id DAIMA katalog kimligi"),
+    ("item_category: URUN.kategori, quantity: gAtcAdet };",
+     "YENI: add_to_cart kalem alanlari (kisisel veri YOK)"),
+    ('var gAtcVeri = { currency: "TRY", items: [gAtcKalem] };',
+     "YENI: add_to_cart govdesi"),
+    ("if(mAtcVeri.value != null){ gAtcVeri.value = mAtcVeri.value;",
+     "YENI: tutar Meta govdesiyle AYNI degerden turer"),
+    ("if(gAtcAdet > 0){ gAtcKalem.price = mAtcVeri.value / gAtcAdet; } }",
+     "YENI: birim fiyat (kapanis bitisik yazildi)"),
+    ('if(typeof window.pruvoGA4Track === "function"){ window.pruvoGA4Track("add_to_cart", gAtcVeri); }',
+     "YENI: sepete ekleme olayi (Meta AddToCart ile AYNI noktadan)"),
 )
 
 # ---------------------------------------------------------------- GORUNUR METIN BEYANI

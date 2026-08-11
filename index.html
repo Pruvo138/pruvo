@@ -49,6 +49,18 @@
   window.PRUVO_RIZA_ALANLARI = ['analytics_storage','ad_storage','ad_user_data','ad_personalization'];
   window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';
   window.pruvoRizaUygula = function(d){ var g={},a=window.PRUVO_RIZA_ALANLARI,i; for(i=0;i<a.length;i++){ g[a[i]]=d; } gtag('consent','update',g); };
+  /* GA4 e-ticaret olay gondericisi — reklam olcumunun HUNI ayagi (sayfa goruntuleme tek
+     basina kampanya karari verdirmez). Meta yuzeyiyle AYNI riza anahtarina baglidir
+     (pruvo_onay_analitik === "kabul"): riza yoksa olay GONDERILMEZ.
+     Yalniz beyaz listedeki olay adlari gecer; bilinmeyen ad sessizce DUSER. Satin alma
+     olayi SUNUCUDAN gider — buradan da gonderilse ayni islem IKI KEZ sayilirdi.
+     Olay parametresine YALNIZ katalog alanlari girer (item_id/item_name/item_category/
+     price/quantity/currency/value); kisisel veri (ad/telefon/e-posta/adres) GIRMEZ. */
+  window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout'];
+  window.pruvoGA4Track = function(olay, veri){
+    try { if(localStorage.getItem('pruvo_onay_analitik') !== 'kabul'){ return; } } catch(e){ return; }
+    var a = window.PRUVO_GA4_OLAYLARI, i;
+    for(i=0;i<a.length;i++){ if(a[i] === olay){ gtag('event', olay, veri); return; } } };
   /* Onayı geri yükle. ESKİ (DAR) kayıt reklam alanlarını KAPSAMAZ: yalnız analitik açılır. */
   try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
     if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) { window.pruvoRizaUygula('granted'); }
@@ -2333,6 +2345,20 @@
       var icVeri = { content_ids: icIds, content_type: "product", currency: "TRY" };
       if(icVal > 0){ icVeri.value = icVal; }
       if(typeof window.pruvoMetaTrack === "function"){ window.pruvoMetaTrack("InitiateCheckout", icVeri); }
+      /* GA4 ikizi (begin_checkout) — AYNI noktadan, AYNI `lines` dizisinden türer; ikinci bir
+         huni/ikinci bir tetikleme noktası YOK. item_id Meta'nın content_ids'iyle AYNI kaynaktan
+         (pruvoFeedId). item_name katalog başlığıdır; kayıp satırda alan HİÇ basılmaz.
+         Müşteri alanları (ad/telefon/e-posta/adres) buraya GİRMEZ. */
+      var gIcKalemler = lines.map(function(L){
+        var kalem = { item_id: pruvoFeedId(L.satir.id),
+                      quantity: PRUVO_SECENEK.adetDuzelt(L.satir.adet) };
+        if(L.urun && L.urun.baslik){ kalem.item_name = L.urun.baslik; }
+        if(L.urun && L.urun.kategori){ kalem.item_category = L.urun.kategori; }
+        return kalem;
+      });
+      var gIcVeri = { currency: "TRY", items: gIcKalemler };
+      if(icVal > 0){ gIcVeri.value = icVal; }
+      if(typeof window.pruvoGA4Track === "function"){ window.pruvoGA4Track("begin_checkout", gIcVeri); }
     } catch(e){}
     btn.disabled = true;
     btn.textContent = havale ? "Sipariş kaydediliyor…" : "Ödeme sayfası hazırlanıyor…";
@@ -2408,6 +2434,11 @@
         if(no && typeof window.pruvoMetaTrack === "function"){
           window.pruvoMetaTrack("Purchase", pVeri, { eventID: no });
         }
+        /* 🔴 GA4 `purchase` BURADAN GÖNDERİLMEZ — bilerek. Satın alma olayı SUNUCUDAN
+           (ölçüm protokolü) sipariş numarası transaction_id'siyle atılır; aynı işlemi bir de
+           buradan göndermek cironun İKİ KEZ sayılmasına ve reklam tarafında yanlış kampanya
+           kararına yol açardı. Meta'da durum farklı: orada aynı olay eventID ile tekilleşiyor.
+           pruvoGA4Track'in beyaz listesi bu kararı ayrıca zorlar ('purchase' listede yoktur). */
       } catch(e){}
       cart = []; saveCart(); updateCartFab();
       // KDV dokumu (kalem 8): worker yonlendirmesindeki t (tahsilat) + kdv paramlarindan.
