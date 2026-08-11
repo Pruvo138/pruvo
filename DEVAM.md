@@ -1,59 +1,5 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🔀 MERGE — 11 Agu 2026 19:2xZ (CTA masaustu fit-content dali, isci turu)
-
-**MAIN'E ALINDI: `f4caf59f`** (merge commit) · dal ucu `547bff87` · merge-base `5d218a2e`.
-Kapsam merge-base'den olculdu: **4 dosya, +85/-34** — `tools/build.py`, `tools/cta-denge-kapisi.py`,
-`tools/cta-denge-mutasyon.py`, `tools/varlik-test.py`. `index.html`/urun verisi/rapor dosyasi diff'te
-YOK; dal urun verisine **0 ekleme / 0 silme** yapti (25770 = 25770). Cakisma on-testi tek agac OID
-(cakisma YOK); **FF-ONLY IMKANSIZ** olctu (is-ancestor rc=1) → merge commit'i ile alindi.
-
-**Kapilar DALIN worktree'sinde kosuldu, exit kodlari gorulerek:** cta-denge-kapisi **rc=0**
-(ORAN=1.05 · BANT_URUN=0.075 · BANT_ANA=0.075) · cta-denge-mutasyon **rc=0** (MUTANT=15/15, iki
-kontrol yesil, canli agac bayt-birebir) · varlik-test **rc=0** (10 eksen) · kategori-parite **rc=0** ·
-ci-kapsam-test **rc=0** · kapi-envanteri **rc=0** (7/7) · yasal-sayfa-drift **rc=0** (0/4 sapma).
-
-**Iki kirmizi olculdu; ikisi de bu dalin DISINDA — tarihle ayrildi, "baseline" DENMEDI:**
-- `parite-test.js` **rc=1** (yerel 25827 · uc 25712 · 115 fark). Sapan ornek **10 id'nin 10'u da**
-  dalin tabaninda YOK, hepsi tabandan SONRA giren urun partisiyle geldi; dal arama duzlemine
-  dokunmuyor → **KAPSAM DISI**. D1'in KENDISI sayi ekseninde 25827 = 25827 dogruladi, yani satir
-  D1'de VAR, gormeyen **uc**. 🔴 **ACIK KALEM, bu turun isi degil (urun/uc duzlemi).**
-- `ci-kapsam-test` ANA checkout'ta **rc=1** — tek sorun hic commit'lenmemis YABANCI bir calisma
-  dosyasi; ayni kapi dalin agacinda rc=0. Dosyaya DOKUNULMADI.
-
-**Push:** pre-push kancasi ayni yabanci dosya yuzunden durdurdu (kanca push icerigini degil
-CALISMA AGACINI tariyor; gonderilen icerik 4 dosyaydi). Yabanci dosyaya dokunmak yasak oldugu icin
-kancanin kendi belgeledigi istisna yolu kullanildi — **ayrinti + gerekce DEVAM-ARSIV.md'de**
-(onceki tur ayni kapida push'u bekletmeyi secmisti; sinif AYNI, karar farkli). `--force` YOK · `pull --rebase`
-YOK · ana agacta `add`+`commit` YOK · yabanci ` M`/untracked dosyalara DOKUNULMADI.
-
-**Merge sonrasi:** `d1-sync --durum` SAYI (25827=25827) · SEQ · SEMA · TURETILMIS KOLON yesil;
-**ICERIK (urun_hash) ekseni OLCULEMEDI** (wrangler npm ETARGET — arac arizasi, "basari sayilmaz"
-dedi) — merge ONCESI kosumda ayni eksen birebirdi (eksik 0 · uyusmaz 0) ve merge urun verisine
-dokunmadi.
-
-**🔴 MERGE CI'DA KIRMIZI YAKTI — SEBEP BU DALDI, KACIRILAN KARDES BATARYA.** `f4caf59f` kosumu
-(`31527715768`) FAILURE: `serit-a3` / **"Varlik ... kabul testi + mutasyon nobeti"**. O CI adimi
-IKI komut kosuyor; ikincisi **`tools/varlik-mutasyon.py`** idi ve ne muhendisin raporunda ne de
-merge kapisi §4 listemde vardi — `varlik-test.py` kosuldu, KARDESI kosulmadi. Hata tam olarak
-dalin `cta-denge-mutasyon.py`'de duzelttigi sinifin AYNISI, kardes dosyada: N1 mutantinin capasi
-eski `min-width:210px` dizesine kilitliydi, dal o dizeyi kaldirinca capa **0 kez** esletti (1
-bekleniyordu) → mutant NO-OP → batarya fail-closed KIRMIZI. `build` job'i basariliydi (14m53s),
-kirmizi yalnizca bu adimdaydi.
-**DERS (kapi kusuru, mimara):** kabul testi degisince KARDES mutasyon bataryasi otomatik
-onerilmiyor — ne `dal-olc.py` ne gorev listesi `varlik-mutasyon.py`'yi andi; **tek CI adimini iki
-komut temsil ediyor** ve birini kosmak "yesil" izlenimi veriyor. **ONARIM BENDE DEGIL:** capayi
-baska oturum `c8b0451e` ile kapatti, yesili SAHIPLENMIYORUM; sonrasinda iki komut da yerelde rc=0
-(10 eksen · MUTANT=8/8). origin/main = `c8b0451e`, benim `f4caf59f`'im onun ATASI.
-**CANLI: HENUZ BAYAT — olculdu, iddia degil.** Kanonik adresten cache-bust'SIZ olculdu
-(`/urun/suzuki-jimny-jb43-torpido-saklama-gozu/` → varlik `/varlik/sayfa-57bf51299c.css`,
-last-modified 19:35Z): 4 eksenin **4'u de merge ONCESI** hali (min-width:210px DURUYOR ·
-`.wa-uzun` hala mobil-only). Sebep zincirde: `f4caf59f` kosumu FAILURE (yayin adimi atlandi) ·
-`d82c8874` FAILURE · onarim `c8b0451e`'nin kosumu CANCELLED · onu tasiyan `9569da50` kosumu
-(`31532757154`) ~50 dk UCUSTA, arkasinda `078e814a` bekliyor. **Ucustaki kosum YESIL DEGILDIR** —
-"en son kosum" yesili kanit sayilmadi. 🔴 **SONRAKI TURUN ILK ISI:** `f4caf59f`'i ATA olarak
-tasiyan bir kosum SUCCESS olunca ayni olcumu tekrarla; hala bayatsa `rerun`.
-
 ## 🕐 CI NOBETI — 11 Agu 2026 22:38 yerel / 19:38Z turu (KraL)
 
 **Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
