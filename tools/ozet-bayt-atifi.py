@@ -322,11 +322,48 @@ def marka_global(markalar):
 
 # ------------------------------------------------------------------------------ akış
 def sessiz_render(build, urunler):
-    """render_ozet'in UYARI çıktısı ölçüm tablosunu kirletmesin (sayısı raporlanır)."""
+    """render_ozet'in UYARI çıktısı ölçüm tablosunu kirletmesin (sayısı raporlanır).
+
+    🔴 TABAN NORMALİZASYONU (12 Ağu 2026): FAZ 2'de A1 (görsel öneki) + A5 (`yeni`
+    referansı) CANLI artefakta girdi. Bu aracın A merdiveni "sıkıştırılmamış temsile göre
+    ne kazanılır" sorusunu ölçer; canlı v3 artefaktı doğrudan beslemek merdiveni KENDİ
+    çıktısı üzerinde koştururdu (A1 satırı 0 kazanç gösterir, tablo anlamını kaybederdi).
+    Bu yüzden ölçüm TABANI daima açılmış (v2 eşdeğeri) temsildir; canlı v3 baytı ayrıca
+    ve AYRI BİR SATIR olarak raporlanır ([[hukum-yanlis-birimde]])."""
     tampon = io.StringIO()
     with contextlib.redirect_stdout(tampon):
         metin = build.render_ozet(urunler)
     return metin, tampon.getvalue().strip()
+
+
+def v2_tabani(build, metin):
+    """v3 artefakt metnini FAZ 1 tabanına (v2: tam URL + `yeni` tam kart) geri açar.
+
+    v2/v1 metin OLDUĞU GİBİ döner. Çözülemeyen referans SESSİZ geçmez — hata."""
+    ozet = json.loads(metin)
+    if "yeniRef" not in ozet and "gorselOnek" not in ozet:
+        return metin, ozet
+    kesitler = build.ozet_temsil_ac(ozet)
+    if kesitler["cozulemeyen"]:
+        raise SystemExit("ozet 'yeniRef' referansi cozulemedi: %s"
+                         % ", ".join(map(str, kesitler["cozulemeyen"][:3])))
+    sik = build.ozet_karti_sikistir          # önek VERİLMEZ -> tam URL geri yazılır
+    taban = {}
+    for k, v in ozet.items():
+        if k == "gorselOnek":
+            continue
+        if k == "surum":
+            taban[k] = 2
+        elif k == "parametrik":
+            taban[k] = [sik(c) for c in kesitler["parametrik"]]
+        elif k == "bloklar":
+            taban[k] = {kat: [sik(c) for c in liste]
+                        for kat, liste in kesitler["bloklar"].items()}
+        elif k == "yeniRef":
+            taban["yeni"] = [sik(c) for c in kesitler["yeni"]]
+        else:
+            taban[k] = v
+    return json.dumps(taban, ensure_ascii=False, separators=(",", ":")), taban
 
 
 def yuzde(pay, toplam):
@@ -339,13 +376,22 @@ def main():
         urunler = json.load(f)
     n_tam = len(urunler)
 
-    tam_metin, tam_uyari = sessiz_render(build, urunler)
+    canli_metin, tam_uyari = sessiz_render(build, urunler)
+    canli_bayt = bayt(canli_metin)
+    canli_surum = json.loads(canli_metin).get("surum")
+    tam_metin, _ = v2_tabani(build, canli_metin)
     ozet, paylar, cerceve, toplam, fark = anahtar_paylari(tam_metin)
 
     print("=" * 78)
     print("FAZ 1 — ozet.json BAYT ATIFI  (katalog %d urun, uretim %s)"
           % (n_tam, ozet.get("uretim")))
     print("=" * 78)
+    print("CANLI artefakt (surum %s): %d bayt (%.1f KB) | zlib -9 %d bayt"
+          % (canli_surum, canli_bayt, canli_bayt / 1024.0,
+             len(zlib.compress(canli_metin.encode("utf-8"), 9))))
+    if canli_bayt != toplam:
+        print("  (A merdiveni TABANI = acilmis v2 temsili; canli artefakt A1+A5 UYGULANMIS "
+              "halde ve %d bayt DAHA KUCUK)" % (toplam - canli_bayt))
     print("artefakt (build.render_ozet, tam katalog): %d bayt (%.1f KB)"
           % (toplam, toplam / 1024.0))
     print("OZET_BUTCE: %d bayt | doluluk %%%.1f | kalan pay %d bayt"
@@ -364,6 +410,7 @@ def main():
             n = n_tam // bolen
             alt = urunler[:n] if mod == "bas" else urunler[n_tam - n:]
             metin, _ = sessiz_render(build, alt)
+            metin, _ = v2_tabani(build, metin)      # eğim TABAN temsilinde ölçülür
             o, p, _, t, f = anahtar_paylari(metin)
             noktalar[(mod, n)] = (p, t, f, len(tum_kartlar(o)))
 
