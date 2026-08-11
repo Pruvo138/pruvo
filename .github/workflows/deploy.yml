@@ -1603,6 +1603,22 @@ jobs:
       - name: Edge kart alan kapsami (sepet fiyatini etkileyen alan kartta var mi)
         run: python3 tools/edge-kart-kapisi.py
 
+      # OZET.JSON KART TEMSILI (v3: gorsel oneki + `yeni` referansi) — KAYIPSIZLIK KAPISI.
+      # HATA SINIFI SESSIZ: temsil kuculdu, bir deger yanlis geri acilirsa ekranda hata
+      # CIKMAZ — kart cizilir, edge modunda sepet paneli o karttan fiyat/beyan uretir.
+      # Bu adim GERCEK build.py ile fikstur artefakti uretir ve CANLI index.html `ozetAc`
+      # fonksiyonuyla geri acar (cozucu kopyasi tutulmaz): geri acilan kart kaynak kartla
+      # BIREBIR esit olmali. Ayrica v2/v1 artefaktlarin da acildigini (bayat onbellek),
+      # ortusme 0 oldugunda (yarin havuzsuz kategoriye dusen yeni urun) kartin TAM
+      # tasindigini ve TEMSIL BAYRAGININ (build.py OZET_TEMSIL_SURUM) beyani ile uretilen
+      # artefaktin TUTTUGUNU ayri iddialarla olcer — bayrak yayin N+1'de acilinca da
+      # gecerli kalir. Iddia 9 gercek katalogda iki bayrak halini ve bayat istemci
+      # penceresini (kapagi kaybolan kart sayisi) LOGA SAYIYLA basar.
+      # Offline, depoya dosya YAZMAZ (gecici dizin), ~1 s.
+      # Mutasyon turu (7/7 kirmizi) elle: node tools/ozet-temsil-test.js --mutasyon
+      - name: Ozet kart temsili kabul testi (kayipsizlik + iki surum + temsil bayragi)
+        run: node tools/ozet-temsil-test.js
+
       # KONFIGUR BUNDLE KAPISI (drift): shop/src/konfigurlar.js artik ELLE BAKIMLI AYNA DEGIL,
       # urunler.json'daki "konfigur" alanlarindan URETILEN bir artefakt. Bu adim artefakti
       # yeniden turetip BIREBIR karsilastirir; yeni konfigurlu urun eklenip artefakt

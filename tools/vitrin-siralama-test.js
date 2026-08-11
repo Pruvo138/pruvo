@@ -73,6 +73,8 @@ const INDEX = fs.readFileSync(INDEX_YOL, "utf8");
 const SECENEK_SRC = fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8");
 
 const { inlineScriptBul } = require(path.join(KOK, "tools", "html-blok-ayikla.js"));
+// ozet.json kart temsilini acan CANLI fonksiyon (--index ile verilen dosyadan).
+const ozetAcCanli = require(path.join(KOK, "tools", "ozet-ac-ayikla.js")).ozetAcAl(INDEX_YOL);
 const SCRIPT = inlineScriptBul(INDEX, "renderGrid");
 if (!SCRIPT) {
   console.error("OLCULEMEDI: index.html inline scripti (imza 'renderGrid') bulunamadi — " +
@@ -305,16 +307,11 @@ function ozetBuild(kaynak) {
   if (!fs.existsSync(ciktiYol)) {
     throw new Error("OLCULEMEDI: build.py ozet yazmadi -> " + ciktiYol);
   }
-  const ozet = JSON.parse(fs.readFileSync(ciktiYol, "utf8"));
-  const alanlar = ozet.kartAlanlari || [];
-  const ac = (k) => Array.isArray(k)
-    ? Object.fromEntries(k.map((v, i) => [alanlar[i], v, i])
-      .filter((x) => x[0] && (x[2] < 8 || x[1] !== null)).map((x) => [x[0], x[1]])) : k;
-  if (alanlar.length) {
-    ozet.parametrik = (ozet.parametrik || []).map(ac);
-    Object.keys(ozet.bloklar || {}).forEach((kat) => { ozet.bloklar[kat] = ozet.bloklar[kat].map(ac); });
-    ozet.yeni = (ozet.yeni || []).map(ac);
-  }
+  // 🔴 COZUCU KOPYALANMAZ (11 Agu 2026, olculdu): burada `kartAlanlari`yi elle acan bir
+  // KOPYA duruyordu. ozet.json v3'te `yeni` kesiti `yeniRef` oldugu gun o kopya sessizce
+  // BOS liste uretti ve 13b iddiasi "0 kayit" ile YESIL yandi (vakum). Cozucu artik CANLI
+  // index.html'den ayiklanir ([[ikiz-tanim-sessiz-ayrisma]]).
+  const ozet = ozetAcCanli(JSON.parse(fs.readFileSync(ciktiYol, "utf8")));
   return { ozet,
     cikti: String(r.stdout || ""), bayt: fs.statSync(ciktiYol).size };
 }
@@ -947,9 +944,14 @@ async function main() {
 
     // (c) build.py SIRALAMIYOR: ozet.yeni katalogun HAM basi (derlemede sira sabitlenirse
     //     "her yenilemede random" olur — bu iddia onu yakalar)
+    // 🔴 VAKUM NOBETI: kesit BOS gelirse iddia hicbir sey olcmez (11 Agu'da tam bu oldu —
+    // temsil degisince kopya cozucu bos liste uretti ve iddia "0 kayit" ile yesil yandi).
+    const yeniKesit = b.ozet.yeni || [];
     rapor("13b build.py SIRALAMIYOR: ozet.yeni ham katalog basi",
-      denetD(b.ozet.yeni || [], A.slice(0, (b.ozet.yeni || []).length).map((u) => u.id)),
-      (b.ozet.yeni || []).length + " kayit");
+      yeniKesit.length === 0
+        ? ["ozet.yeni BOS geldi — iddia vakumda (temsil/cozucu ayrismis olabilir)"]
+        : denetD(yeniKesit, A.slice(0, yeniKesit.length).map((u) => u.id)),
+      yeniKesit.length + " kayit");
 
     // (d) ETKISIZ-TEKRARLI: ayni katalog -> BAYT BAYT ayni ozet
     const b2 = ozetBuild(A);

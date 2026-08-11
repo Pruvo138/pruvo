@@ -497,6 +497,9 @@ tools/URUN-EKLEME-REHBERI.md
 # parity-backfill.py'nin Codex yargi adimi icin gecici I/O dosyalari (tools/ altina yazilir)
 tools/_yargi-out.json
 tools/_yargi-sema.json
+# ozet-temsil-test.js --mutasyon: build.py ROOT'u KENDI konumundan turetir, bu yuzden
+# mutant kopya tools/ icine yazilir ve kosum bitince silinir (cokme halinde artik kalabilir).
+tools/_mutant-ozet-build.py
 
 # Kaynak-kontrol panelinden gizlenen yerel öğeler (silinmedi, diskte duruyor):
 # .wrangler = Cloudflare yerel önbelleği; scratchpad = geçici çalışma dosyaları;

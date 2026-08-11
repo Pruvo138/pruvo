@@ -3882,6 +3882,31 @@ ILK_YUK_BUTCE = 500 * 1024
 OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
                       "parametrik", "aciklama", "eski_fiyat", "tur",
                       "tavsiyeFilament", "konfigur")
+# 🔴 ARTEFAKT SÜRÜMÜ — istemci sözleşmesi. v1 = sözlük kartları · v2 = sabit sıralı dizi ·
+# v3 = dizi + görsel ortak öneki başlıkta (`gorselOnek`) + `yeni` kesiti havuz kartlarını
+# ID ile REFERANSLAR (`yeniRef`). index.html ozetAc ÜÇÜNÜ DE açar (bayat tarayıcı
+# önbelleği gerçektir). `_ozet_surum_dogrula` fail-closed kontrol eder: sürüm ile basılan
+# alanlar ayrışırsa build KIRMIZI.
+#
+# 🔴 TEK KAYNAK TEMSİL BAYRAĞI — OKUYUCU ÖNCE, YAZICI SONRA (mimar kararı, 12 Ağu 2026).
+# ÖLÇÜLDÜ: bayat tarayıcı önbelleğindeki ESKİ index.html yeni (v3) artefaktı alırsa boş
+# kart çizmez ve fiyat/beyan bozulmaz, ama 223 kartın kapak URL'si kısa kalır ve yer
+# tutucuya düşer. Bu pencere İKİ AŞAMALI YAYINLA tamamen kapanır — ikinci artefakta ve
+# bayt kazancından vazgeçmeye GEREK YOK:
+#   Yayın N   : v3'ü AÇABİLEN index.html çıkar, bu bayrak KAPALI kalır -> artefakt v2.
+#               (Yeni istemci eski artefaktı zaten sorunsuz açıyor; kimse etkilenmez.)
+#   Yayın N+1 : index.html tarayıcı önbelleği döndükten SONRA (≥4 saat,
+#               [[tarayici-onbellek-4saat]]) bu sabit 3 yapılır -> artefakt v3, kazanç
+#               (21.766 B) devreye girer, bayat istemci KALMADIĞI için kapak kaybı 0.
+# Yordam + doğrulama komutu: tools/paket-ozet-butce.md "FAZ 2b".
+# ⚠️ VARSAYILAN KAPALI (2) — açmak AYRI ve BİLİNÇLİ bir yayındır. `--sadece-ozet` için
+# `--ozet-surum <2|3>` YALNIZCA ölçüm/kabul testi kolu; yayın yolunu ETKİLEMEZ.
+OZET_TEMSIL_SURUM = 2
+# Kart kapak URL'lerinin ortak öneki. Kartta yalnız kalan parça taşınır; istemci öneki
+# geri ekler. ÖNEKİ TAŞIMAYAN değer (başka konak) OLDUĞU GİBİ kalır — istemcinin ayrımı
+# "://" içeriyor mu (mutlak = dokunma). Ölçüldü (11 Ağu, 271 kart): 34 B × 271 = 9.164 B.
+OZET_GORSEL_ONEK = "https://media.pruvo3d.com/urunler/"
+_OZET_I_GORSEL = OZET_KART_ALANLARI.index("gorsel")
 
 
 def kart_ozeti(p):
@@ -3953,14 +3978,108 @@ def kart_ozeti(p):
     return kart
 
 
-def ozet_karti_sikistir(kart):
+def ozet_karti_sikistir(kart, gorsel_onek=None):
     """Tam kart sözlüğünü kayıpsız, sabit sıralı dizi temsiline çevirir.
 
     Sondaki koşullu alanlar yoksa taşınmaz; aradaki boş konumlar ``None`` kalır. Böylece
     ``tur`` taşıyan kartta ``eski_fiyat`` konumu korunur ve istemci alanları kaydıramaz.
+
+    ``gorsel_onek`` verilirse (v3) kapak URL'sinin ortak öneki DÜŞÜLÜR. Düşme YALNIZ
+    değer önekle başlıyorsa ve KALAN BOŞ DEĞİLSE olur; kalan "://" taşırsa temsil
+    çift-anlamlı olurdu → fail-closed (build KIRMIZI). Öneki taşımayan mutlak URL
+    olduğu gibi kalır ve istemci ona dokunmaz.
     """
     son = max((i for i, alan in enumerate(OZET_KART_ALANLARI) if alan in kart), default=-1)
-    return [kart.get(alan) for alan in OZET_KART_ALANLARI[:son + 1]]
+    dizi = [kart.get(alan) for alan in OZET_KART_ALANLARI[:son + 1]]
+    if gorsel_onek and len(dizi) > _OZET_I_GORSEL:
+        deger = dizi[_OZET_I_GORSEL]
+        if isinstance(deger, str) and deger.startswith(gorsel_onek):
+            kalan = deger[len(gorsel_onek):]
+            if kalan and "://" not in kalan:
+                dizi[_OZET_I_GORSEL] = kalan
+            elif kalan and "://" in kalan:
+                raise SystemExit("ozet.json gorsel oneki cift-anlamli deger uretti "
+                                 "(kalan parca '://' tasiyor): %r" % (deger,))
+    return dizi
+
+
+def ozet_karti_ac(dizi, alanlar=None, gorsel_onek=""):
+    """``ozet_karti_sikistir``ın TERSİ — dizi temsilini tam kart sözlüğüne çevirir.
+
+    index.html ``ozetAc`` ile AYNI yüklem: 8'inci konumdan sonraki ``None`` değerler
+    "alan yok" demektir (koşullu alanlar), önündekiler korunur; öneki geri ekleme
+    yalnız BOŞ OLMAYAN ve "://" taşımayan dizede yapılır.
+    """
+    alanlar = list(alanlar or OZET_KART_ALANLARI)
+    if not isinstance(dizi, list):
+        return dizi
+    kart = {}
+    for i, deger in enumerate(dizi):
+        if i < len(alanlar) and (i < 8 or deger is not None):
+            kart[alanlar[i]] = deger
+    g = kart.get("gorsel")
+    if gorsel_onek and isinstance(g, str) and g and "://" not in g:
+        kart["gorsel"] = gorsel_onek + g
+    return kart
+
+
+def ozet_temsil_ac(ozet):
+    """Artefaktın TAMAMINI (v1/v2/v3) kart sözlüklerine geri açar — kayıpsızlık kanıtı
+    ve Python tarafındaki tüketiciler (kabul testleri) için TEK kaynak.
+
+    Dönen sözlük: {"parametrik": [...], "bloklar": {kat: [...]}, "yeni": [...]}.
+    Çözülemeyen bir ``yeniRef`` referansı SESSİZCE atlanmaz — hata olarak döner
+    (istemci tarafı onu BOŞ KART çizmemek için düşürür, build ise KIRMIZI yanar).
+    """
+    alanlar = ozet.get("kartAlanlari") or []
+    onek = ozet.get("gorselOnek") or ""
+    if not alanlar:                      # v1: kartlar zaten sözlük
+        return {"parametrik": list(ozet.get("parametrik") or []),
+                "bloklar": {k: list(v) for k, v in (ozet.get("bloklar") or {}).items()},
+                "yeni": list(ozet.get("yeni") or []), "cozulemeyen": []}
+    ac = lambda k: ozet_karti_ac(k, alanlar, onek)
+    parametrik = [ac(k) for k in (ozet.get("parametrik") or [])]
+    bloklar = {kat: [ac(k) for k in kartlar]
+               for kat, kartlar in (ozet.get("bloklar") or {}).items()}
+    havuz = {}
+    for kart in parametrik + [k for liste in bloklar.values() for k in liste]:
+        if isinstance(kart, dict) and kart.get("id") is not None:
+            havuz.setdefault(kart["id"], kart)
+    cozulemeyen = []
+    if "yeniRef" in ozet:
+        yeni = []
+        for oge in (ozet.get("yeniRef") or []):
+            if isinstance(oge, str):
+                if oge in havuz:
+                    yeni.append(havuz[oge])
+                else:
+                    cozulemeyen.append(oge)
+            else:
+                yeni.append(ac(oge))
+    else:
+        yeni = [ac(k) for k in (ozet.get("yeni") or [])]
+    return {"parametrik": parametrik, "bloklar": bloklar, "yeni": yeni,
+            "cozulemeyen": cozulemeyen}
+
+
+def _ozet_surum_dogrula(ozet):
+    """FAIL-CLOSED sürüm nöbetçisi — ``surum`` ile BASILAN ALANLAR birbirini tutmalı.
+
+    İKİ YÖN de ölçülür:
+      * v3 alanı var + ``surum`` < 3  -> bump DÜŞMÜŞ; bayat istemci yeni temsili sessizce
+        yanlış çizerdi (mutasyon M-D bu satırı ölçer).
+      * ``surum`` >= 3 ama v3 alanı yok -> etiket ile içerik ayrışmış; temsil bayrağı
+        yarım uygulanmış demektir (yeni istemci alan varlığına bakar, sürüm etiketine
+        DEĞİL; sessiz ayrışma burada durur)."""
+    v3_alan = [a for a in ("gorselOnek", "yeniRef") if a in ozet]
+    surum = ozet.get("surum", 0)
+    if v3_alan and surum < 3:
+        raise SystemExit("ozet.json v3 alani basildi (%s) ama surum=%r — SURUM BUMP "
+                         "DUSMUS. Bayat istemci yeni temsili yanlis cizer."
+                         % (", ".join(v3_alan), surum))
+    if surum >= 3 and len(v3_alan) < 2:
+        raise SystemExit("ozet.json surum=%r ama v3 alanlari EKSIK (%s) — temsil bayragi "
+                         "yarim uygulanmis." % (surum, ", ".join(v3_alan) or "hicbiri"))
 
 
 # ------------------------------------ ANA SAYFA VİTRİN HİYERARŞİSİ (Okan kuralı, 31 Tem)
@@ -4004,8 +4123,15 @@ def _index_vitrin_kurali():
     return bloklar
 
 
-def render_ozet(products):
-    """ozet.json'u kayıpsız kart temsiliyle üretir; arama/vitrin havuzlarını kırpmaz."""
+def render_ozet(products, temsil_surum=None):
+    """ozet.json'u kayıpsız kart temsiliyle üretir; arama/vitrin havuzlarını kırpmaz.
+
+    ``temsil_surum`` verilmezse TEK KAYNAK bayrağı (``OZET_TEMSIL_SURUM``) kullanılır.
+    Parametre YALNIZCA ölçüm/kabul testi koludur (iki hâli de aynı koşumda ölçmek için);
+    yayın yolu daima sabiti okur."""
+    surum = OZET_TEMSIL_SURUM if temsil_surum is None else int(temsil_surum)
+    if surum not in (2, 3):
+        raise SystemExit("ozet temsil surumu gecersiz: %r (2 ya da 3 olmali)" % (surum,))
     kategoriler = {}
     markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
     for p in products:
@@ -4058,24 +4184,63 @@ def render_ozet(products):
                 yetersiz = True
             blok_sapma.append({"kategori": kat, "adet": adet,
                                "havuz": len(havuz_kartlar), "stok": stok})
-        ozet = {
-            "surum": 2,
-            "kartAlanlari": list(OZET_KART_ALANLARI),
-            "uretim": TODAY,
-            "toplam": len(products),
-            "kategoriler": kategoriler,
-            "markalar": markalar,
-            # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
-            "parametrik": [ozet_karti_sikistir(k) for k in parametrik_kartlar],
-            # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
-            "bloklar": {kat: [ozet_karti_sikistir(k) for k in kartlar]
-                         for kat, kartlar in bloklar.items()},
-            # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
-            # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
-            "yeni": [ozet_karti_sikistir(k) for k in yeni_kartlar],
-            # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
-            "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
-        }
+        # --- TEMSİL (kayıpsız, bayrağa göre):
+        #   v2 = sabit sıralı dizi, tam kapak URL'si, `yeni` kesiti TAM kartlar.
+        #   v3 = + kapak öneki başlıkta (`gorselOnek`) + `yeni` kesiti havuz kartlarını
+        #        ID ile referanslar (`yeniRef`). Referans YALNIZ kart BASILAN havuzlarda
+        #        BİREBİR aynı temsille varsa verilir; yoksa TAM kart taşınır. Örtüşme bugün
+        #        %100 ama yarın 0 olabilir (yeni ürün havuzsuz kategoriye düşerse) — iki hâl
+        #        de aynı akışta çizilir.
+        onek = OZET_GORSEL_ONEK if surum >= 3 else None
+        sik = lambda k: ozet_karti_sikistir(k, onek)
+        s_parametrik = [sik(k) for k in parametrik_kartlar]
+        s_bloklar = {kat: [sik(k) for k in kartlar] for kat, kartlar in bloklar.items()}
+        s_yeni = [sik(k) for k in yeni_kartlar]
+        if surum >= 3:
+            havuz_dizin = {}
+            for dizi in s_parametrik + [d for liste in s_bloklar.values() for d in liste]:
+                if dizi and dizi[0] is not None:
+                    havuz_dizin.setdefault(dizi[0], dizi)
+            s_yeni = [(dizi[0] if (dizi and dizi[0] is not None
+                                   and havuz_dizin.get(dizi[0]) == dizi) else dizi)
+                      for dizi in s_yeni]
+        # ANAHTAR SIRASI KORUNUR (bayrak KAPALI iken artefakt, bayraktan önceki v2 ile
+        # BAYT BAYT aynı olmalı — "yayın N kimseyi etkilemez" iddiası buna dayanır).
+        ozet = {"surum": surum, "kartAlanlari": list(OZET_KART_ALANLARI)}
+        if surum >= 3:
+            ozet["gorselOnek"] = OZET_GORSEL_ONEK
+        ozet["uretim"] = TODAY
+        ozet["toplam"] = len(products)
+        ozet["kategoriler"] = kategoriler
+        ozet["markalar"] = markalar
+        # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
+        ozet["parametrik"] = s_parametrik
+        # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
+        ozet["bloklar"] = s_bloklar
+        # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
+        # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
+        # v3'te ANAHTAR ADI DEĞİŞİR (`yeni` -> `yeniRef`): bayat istemci tanımadığı anahtarı
+        # BOŞ görür ve kuyruğu çizmez; referans dizelerini karta çevirip BOŞ KART üretmez.
+        ozet["yeniRef" if surum >= 3 else "yeni"] = s_yeni
+        # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
+        ozet["vitrin"] = {"yetersiz": yetersiz, "bloklar": blok_sapma,
+                          "liste": len(products)}
+        _ozet_surum_dogrula(ozet)
+        # 🔴 KAYIPSIZLIK HER BUILD'DE ÖLÇÜLÜR (fail-closed): temsili GERİ AÇIP kartların
+        # KAYNAĞIYLA (kart_ozeti çıktısı) birebir karşılaştırırız. Karşılaştırma hedefi
+        # sıkıştırmanın kendi tersi DEĞİL, ÜRETİLEN KARTLARDIR — böylece sıkıştırma ile
+        # açmanın aynı hatayı paylaşması yeşil vermez.
+        geri = ozet_temsil_ac(ozet)
+        beklenen = {"parametrik": parametrik_kartlar,
+                    "bloklar": bloklar, "yeni": yeni_kartlar}
+        if geri["cozulemeyen"]:
+            raise SystemExit("ozet.json 'yeniRef' referansi havuzda COZULEMEDI: %s"
+                             % ", ".join(map(str, geri["cozulemeyen"][:3])))
+        if (geri["parametrik"] != beklenen["parametrik"]
+                or geri["bloklar"] != beklenen["bloklar"]
+                or geri["yeni"] != beklenen["yeni"]):
+            raise SystemExit("ozet.json temsili KAYIPLI — geri acilan kartlar kart_ozeti "
+                             "ciktisiyla ayrisiyor (v3 sikistirma bozuk).")
         return json.dumps(ozet, ensure_ascii=False, separators=(",", ":")), yetersiz, blok_sapma
 
     havuz_boyut = dict(havuz_n0)
@@ -4200,13 +4365,19 @@ def main():
             return sys.argv[i + 1] if 0 <= i < len(sys.argv) - 1 else varsayilan
         _katalog = _arg("--katalog", JSON_PATH)
         _cikti = _arg("--cikti", os.path.join(ROOT, OZET_JSON))
+        # --ozet-surum: TEMSİL bayrağının ÖLÇÜM kolu (2 = v2, 3 = v3). Yayın yolu (aşağıdaki
+        # tam build) bu bayrağı OKUMAZ, daima OZET_TEMSIL_SURUM sabitini kullanır — yani
+        # bu lever bir "gizli açma düğmesi" DEĞİL, kabul testinin iki hâli de aynı koşumda
+        # ölçebilmesi içindir.
+        _surum = _arg("--ozet-surum", None)
         with open(_katalog, encoding="utf-8") as f:
             _urunler = json.load(f)
-        _ozet = render_ozet(_urunler)
+        _ozet = render_ozet(_urunler, temsil_surum=_surum)
         with open(_cikti, "w", encoding="utf-8") as f:
             f.write(_ozet)
-        print("OK: ozet.json uretildi (%d urun, %d bayt)."
-              % (len(_urunler), len(_ozet.encode("utf-8"))))
+        print("OK: ozet.json uretildi (%d urun, %d bayt, temsil surum %s)."
+              % (len(_urunler), len(_ozet.encode("utf-8")),
+                 _surum if _surum is not None else OZET_TEMSIL_SURUM))
         return
 
     with open(JSON_PATH, encoding="utf-8") as f:
