@@ -70,24 +70,34 @@ YAPMADI, kod DEGISTIRMEDI, hicbir adim silinmedi/`continue-on-error` eklenmedi.
 kapali; nobet `urunler.json`'a bu turda da DOKUNMADI. Ayni kosumda `build` · `serit-a3` ·
 `serit-a4` = **success**.
 
-**⏳ AMA YAYIN HALA INMEDI — hukum "yesil" DEGIL, `UCUSTA`.** Tur kapanirken:
-`31485618181` → `serit-a2` **hala `in_progress`** (11:53Z'de adim 41/43: `Kalibrasyon senkron
-kapisi`), dolayisiyla `deploy` + `yayin` **henuz BASLAMADI**. Tepe head `6ba5a6e6`'nin yayin
-kosumu `31487441907` ise **18 dakika boyunca `pending` ve `jobs: []`** — kuyruk doygunlugu,
-ariza DEGIL ([[cancelled-yigini-yayin-tavani]]). Tavani yine SURE koyuyor: `serit-a2` tek basina
-**27+ dk** kostu. "Yayin kapandi" da "yayin tikandi" da YAZILMIYOR
+**⏳→✅ YAYIN: tur ORTASINDA `UCUSTA`, tur KAPANIRKEN INDI.** 11:53Z'de `31485618181` →
+`serit-a2` hala `in_progress` (adim 41/43: `Kalibrasyon senkron kapisi`), `deploy`+`yayin`
+BASLAMAMISTI; tepe head `6ba5a6e6`'nin kosumu `31487441907` ise **18 dk boyunca `pending` ve
+`jobs: []`** kaldi — kuyruk doygunlugu, ariza DEGIL ([[cancelled-yigini-yayin-tavani]]).
+Tavani yine SURE koydu: `serit-a2` tek basina **27+ dk**. Tur kapanisinda **bagimsiz** yeniden
+olculdu: `31485618181` (head `746ececb`) → `build · serit-a3 · serit-a4 · serit-a2 · deploy ·
+yayin` = **6/6 success**, yani `deploy` ve `yayin` **fiilen KOSTU, `skipped` DEGIL.**
+→ **10:15Z'den beri suren yayin durmasi KAPANDI.** Ara hukum yerinde birakildi: "ucusta" o an
+dogru olcumdu, sonradan yesillenmesi onu gecmise donuk dogru yapmaz
 ([[ucustaki-kosum-yesil-degildir]]).
 
-**Bu turda:** kod DEGISTIRILMEDI · push YAPILMADI · deploy YAPILMADI · `urunler.json`'a
-dokunulmadi · worktree ACILMADI/silinmedi · Okan'a cikilmadi. Codex isciye 3 cagri
-(supurme+denetim+CI olcumu · teshis · ucus bekleme), hepsi `-o <dosya>` receteli.
+**⚠️ MUKERRER TUR OLCULDU — zarar YOK, sinif kayda geciyor.** Ayni saatlik nobeti **paralel bir
+KraL oturumu** da kostu ve bu blogu (calisma agacindan alip) KENDI commit'ine kattı:
+`16e8e85a` "11:37Z nobet turu kapanisi — yayin kolu 6/6 success" + `e350a85f` "saat etiketi
+duzeltildi (10:37Z; damga yerel UTC+3)". Bu turun kendi commit'i bu yuzden BOS dondu
+("no changes added to commit") — defter kaybi YOK, yalnizca yazari baska. Ayni yesili iki tur
+bagimsiz olctu; hukumler CELISMIYOR ([[paylasilan-defterde-mukerrer-tur]] · [[isci-yesili-sahiplenir]]).
 
-**Sonraki turun ILK ISI:** (a) `31485618181` ve `31487441907` icin `deploy`+`yayin` job'larinin
-GERCEKTEN kostugunu ve `success` oldugunu olc — yayin dort turdur inmedi; (b) `bayatlik` yas
-serisini surdur (128,9 dk → ?) ve `canli KOD surumu`nun `fdd158cb`'den degisip degismedigini
-olc — degistiyse sinif kendiliginden kapanmistir, nobet yesili SAHIPLENMEZ
-([[isci-yesili-sahiplenir]]); (c) kutuda `KALAN=1` maili tekrar tara, sinifi kapanmissa Cop'e
-gitmelidir.
+**Bu turda:** kod DEGISTIRILMEDI · deploy YAPILMADI · `urunler.json`'a dokunulmadi · worktree
+ACILMADI/silinmedi · Okan'a cikilmadi. Codex isciye 4 cagri (supurme+denetim+CI olcumu · teshis ·
+ucus bekleme · defter arsivi), hepsi `-o <dosya>` receteli.
+
+**Sonraki turun ILK ISI:** (a) `bayatlik` yas serisini surdur (128,9 dk → ?) ve `canli KOD
+surumu`nun `fdd158cb`'den degisip degismedigini olc — degistiyse sinif kendiliginden
+kapanmistir, nobet yesili SAHIPLENMEZ ([[isci-yesili-sahiplenir]]); (b) kutuda `KALAN=1` maili
+tekrar tara, sinifi kapanmissa Cop'e gitmelidir; (c) tepe head'in (`e350a85f` ve sonrasi) yayin
+kosumunda `deploy`+`yayin` job'larini yine JOB birimiyle olc — kosum `success` olsa da job
+`skipped` olabilir ([[hukum-yanlis-birimde]]).
 
 ## 🕐 CI NOBETI — 11 Agu 2026 13:37 yerel / 10:37Z turu (KraL)
 
