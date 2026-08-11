@@ -658,9 +658,10 @@
     var oneriliUrun = false;
     if (ovr) {
       oneriliUrun = true;
-      /* 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed; üreteç tarafıyla
-         AYNI kural). Alan DIZI olmak zorundadır. Kategori haritasına DUSULMEZ:
-         düşülseydi alanı bozuk ürün sessizce %30-60 zamlanırdı. */
+      /* 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed; ureteç tarafindaki
+         turetme kuraliyla AYNI). Alan DIZI olmak zorundadir.
+         Kategori haritasina DUSULMEZ: dusulseydi alani bozuk urun sessizce
+         %30-60 zamlanirdi. */
       if (!Array.isArray(ovr)) {
         return { tani: TANI_TANINMAYAN, malzeme: guvenli };
       }

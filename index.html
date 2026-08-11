@@ -4018,25 +4018,54 @@
   var edgeZamanlayici = null;
   var kartBellek = {};      // id → kart (sepet paneli PRODUCTS'a bakamaz, katalog inmiyor)
 
-  // ozet.json v2 kartları, uzun anahtarları her kayıtta tekrarlamayan sabit sıralı diziler
+  // ozet.json kartları, uzun anahtarları her kayıtta tekrarlamayan sabit sıralı diziler
   // taşır. Alan sözlüğü artefaktın içindedir; böylece arama/kart yüzeyinden hiçbir değer
-  // atılmadan yalnız temsil sıkışır. v1 sözlük kartları da önbellek geçişinde kabul edilir.
+  // atılmadan yalnız temsil sıkışır.
+  //
+  // 🔴 ÜÇ SÜRÜM DE AÇILIR — bayat tarayıcı/CDN önbelleği GERÇEK: taze index.html eski
+  // (önbellekten gelen) bir ozet.json ile karşılaşabilir. Sürüm ayrımı ALAN VARLIĞIYLA
+  // yapılır (kendini tanımlayan artefakt), `surum` sayısıyla değil: yanlış etiketlenmiş
+  // bir artefakt bile DOĞRU çizilir. `surum` bump'ı sayfa üreteci tarafında
+  // fail-closed ölçülür (sürüm doğrulama kolu).
+  //   v1  kartlar sözlük            -> olduğu gibi
+  //   v2  sabit sıralı dizi         -> alan sözlüğüyle açılır
+  //   v3  + `gorselOnek` başlıkta   -> kapak URL'sinin ortak öneki geri eklenir
+  //       + `yeniRef` kesiti        -> dize = havuz kartına ID referansı, dizi = tam kart
+  // Çözülemeyen referans SESSİZCE BOŞ KART çizdirmez, DÜŞÜRÜLÜR (fail-closed yön).
   function ozetAc(d){
     var alanlar = (d && d.kartAlanlari) || [];
     if(!alanlar.length){ return d; }
+    var onek = (d && d.gorselOnek) || "";
     function kartAc(k){
       if(Object.prototype.toString.call(k) !== "[object Array]"){ return k; }
       var out = {};
       k.forEach(function(deger, i){
         if(i < alanlar.length && (i < 8 || deger !== null)){ out[alanlar[i]] = deger; }
       });
+      // Öneki geri ekle: yalnız BOŞ OLMAYAN ve mutlak OLMAYAN ("://" yok) değere.
+      if(onek && typeof out.gorsel === "string" && out.gorsel &&
+         out.gorsel.indexOf("://") === -1){
+        out.gorsel = onek + out.gorsel;
+      }
       return out;
     }
     d.parametrik = (d.parametrik || []).map(kartAc);
     Object.keys(d.bloklar || {}).forEach(function(kat){
       d.bloklar[kat] = (d.bloklar[kat] || []).map(kartAc);
     });
-    d.yeni = (d.yeni || []).map(kartAc);
+    if(d.yeniRef){
+      var havuz = {};
+      var kaydet = function(k){ if(k && k.id && !havuz[k.id]){ havuz[k.id] = k; } };
+      d.parametrik.forEach(kaydet);
+      Object.keys(d.bloklar || {}).forEach(function(kat){ d.bloklar[kat].forEach(kaydet); });
+      d.yeni = [];
+      d.yeniRef.forEach(function(oge){
+        var kart = (typeof oge === "string") ? havuz[oge] : kartAc(oge);
+        if(kart){ d.yeni.push(kart); }
+      });
+    }else{
+      d.yeni = (d.yeni || []).map(kartAc);
+    }
     return d;
   }
 
