@@ -1,5 +1,141 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🔚 IS OTURUMU KAPANISI — 12 Agu 2026 ~02:xxZ (KraL; nobet turlari ayri)
+
+**CANLIYA GITTI** — hepsi `deploy`+`yayin` **success**, karar kosumu `31542119298` (`9c56de08`),
+canli main'den **0 commit geride**; her kalem cache-bust'SIZ olculdu:
+- `35de6880` **urun sayfasinda ONERILEN malzeme on-secili**, ilan tutari AYNI turetme noktasindan;
+  vitrin+feed LISTE tabaninda kaldi (Okan karari). Canli: bayrak `true`, renk **Siyah**,
+  PETG **39.000** kr / TPU **31.000** kr, kart 30.000/20.000. `tur:fiziksel` uründe kapsam disi (kural geregi).
+- `6c8b464b`+`56e5d691` **konfigur kapak siyaha**: 16/16 siyah kapak, 16/16 on-secili Siyah;
+  gorsel URL **cok-kumesi degismedi** (73.860 benzersiz URL sabit) — sadece sira. Mutant 11/11.
+- `84929d9a` **sepet CTA**: gecis `all`→renk (gizli sekmede ters hal sinifi kapandi), canli oran **1,39**;
+  sticky bant %16,7 → **%8,76**. `5d218a2e` Sepete Ekle mobilde **150,1×56**, kenar 14/14, sarma yok.
+- `9f50b771` hazir urun blogu **tek cumleye** indi (943 urun); ozel uretim kolu (24.827) bozulmadi.
+- `e62436c7` GA4 huni olaylari (rizasiz **0** · `view_item` 1 · `add_to_cart` 1 @300 TRY;
+  `begin_checkout` OLCULEMEDI — canlida gercek odeme baslatmamak icin).
+- `5bd2fb1d` D1 **`tavsiye_filament`** kolonu (canli PRAGMA cid 29; dolu 293 / bos 25.312, ayrisan 0;
+  `--durum` rc=0). `d72c90bf` oksuz `seq_sira_hali` onarimi kayipsiz korundu.
+- `2672b179` edge kart **cok-parcali sabit korlugu** kapandi (mutant 5/5, mutasyon diske yazilmiyor).
+- `2ebbd479` **gorsel koken dizinleri birlestirildi** — Skan Art eklenemiyordu: **0/16 → 5/16**
+  (kalan 10 gercekten manifestsiz, 1'inin kaynak STL'i silinmis) + `URUN-EKLEME-REHBERI` bolum 9
+  (6 madde + 9 adimlik "ekledikten sonra kos"), Drive'da bayt-birebir.
+- **shop Worker yeniden yayinlandi**: surum `5c2089ee` → `751b14e9`, bayatlik `BEKLIYOR` → `TAZE`.
+
+**KOSUYOR:** YOK. Delege edilen tum muhendis/Codex isleri raporlandi ve merge edildi;
+kendi worktree/dalim KALMADI (`kral/*` = 0). Ana agacta yalniz yabanci izlenmeyen dosyalar.
+
+**BEKLIYOR (kim neyle bloke):** HocA — edge Worker `KART_ALANLARI`'na `tavsiyeFilament`
+(D1 kolonu indi, **bloke DEGIL**, sirada) · Tamirci kuyrugu: defterde **🔧 7 satir**
+(`memory/acik-kalemler.md`, git DISI); en kritigi **`d1-sync.py` yazici yolunda KILIT YOK** —
+bugun iki escalar tam-katalog yazicisi vardi, bizi kural degil tesaduf korudu · K61 `serit-b`
+mutasyon kirmizisi (nobetin devrettigi, yayini BLOKLAMAZ).
+
+**OKAN'DA BEKLEYEN KARARLAR:** (1) masaustunde Sepete Ekle'nin tam fit-content olmasi icin
+banttaki WhatsApp hapinin kucultulmesi (pazarlama yuzeyi, mimar tek basina dokunmadi);
+(2) **yayin kuyrugu**: `cancel-in-progress:false` + 3-5 dk'da bir push + ~30 dk kosum → ara
+commitler kendi kosumunu alamiyor, bugun **5 kosum kuyrukta iptal**; tasarim geregi ama tek
+kirmizi tum gunu durdurabiliyor; (3) Ads panelinde GA4-import `add_to_cart`/`begin_checkout`
+listede belirince ikincil eklenecek (bekleme, is degil).
+
+**🔴 BUGUN BEN YANLIS SOYLEDIM, DUZELTILDI:** (a) "konfigur Worker bayat = kart odemesi kapali"
+**YANLIS** — olcum kart yolunun deploy ONCESI de acik oldugunu gosterdi (16/16 HTTP 200, tutar
+oncesi=sonrasi birebir); iddia bir **commit mesajindan** gelmisti, ders
+`memory/commit-mesaji-iddiasi-olcum-degildir.md`. (b) `vape` "tek kayit" degil **4 AYRI KAYIT** —
+ama `baslik` 0 · `aciklama` 0 ve kapi **YESIL**; olcut Okan karariyla grep sayisi degil
+**kapinin hukmu** (id degisirse kanonik adres + R2 anahtarlari kirilir).
+
+## 🕐 CI NOBETI — 12 Agu 2026 01:37 yerel / 22:37Z turu (KraL / Tamirci)
+
+**Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**🟢 SUPURME rc=0 — HUKUM=SUPURULDU.** Sabit kosucu isciye kosturuldu; betik
+YAZILMADI/DUZENLENMEDI. Betigin bastigi satirlar:
+`GITHUB_BILDIRIM_INBOX=3 · BULUNAN=3 · TASINAN=3 · ATLANAN=0 · CIKAN=3 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=53:2026-08-12T01:24:44 · HUKUM=SUPURULDU`. Uc fail-closed
+alarmin ucu de sessiz. Silinen 3 kimlik: `Build & deploy (2ebbd47)` · `Nobet seridi (0c4b279)` ·
+`Build & deploy (389ffdd)` — ucu de `…/check-suites/…@github.com` bicimindeydi.
+
+**🟠 Cop denetimi (salt okuma): 57 kayit — MESRU=53, YANLIS=4.** Bilinen 3 kaleme (16:54
+reklam-platformu bildirimi, id `68047/68048/68049`) **DORDUNCUSU eklendi**: id `68158`, 15:55,
+bir DMARC toplu raporu. Bu turun supurmesine **ATFEDILMEZ** — uc bagimsiz iz: (a) `68158` bu turun
+kayitlarindan (`68162/68163/68164`) KUCUK, (b) turun muhasebesi `CIKAN = TASINAN = 3`, (c)
+`KOMSU_KAYIP=0` (hedef kumesi disinda kimlik dusmedi). **Siparis/odeme ekseninde Cop'te kayit YOK**
+→ para kaybi sinifi DEGIL. Soru zaten sorulmus, cevap gelmedi → tekrar SORULMADI, kendiliginden
+geri alma YAPILMADI (§0.4).
+
+**✅ DEVREDILEN (a) KAPANDI — YAYIN BLOKU ACILDI, JOB BIRIMIYLE YESIL.** Onceki turun devrettigi
+iki kosum (`31540904335` + `31540904515`, `06c69180`) **`cancelled`** cikti = kuyruk davranisi,
+ariza DEGIL (§4.5) → SHA'yi ata olarak tasiyan ardillari beklendi. Karar kosumu
+**`31542119298`** (`9c56de08`) **TAM YESIL**: `build` · `serit-a2` · `serit-a3` · `serit-a4` ·
+**`deploy`** · **`yayin`** ALTISI DA `success`; dusen adim YOK, `skipped` YOK.
+**Yayin tabani artik main tepesinin kendisi** — inmemis commit kalmadi, aclik KAPANDI.
+
+**✅ DEVREDILEN (c) KAPANDI — CANLI DOGRULAMA, CACHE-BUST'SIZ.** Ata ekseni: son basarili
+deploy head'i `9c56de08` → `merge-base --is-ancestor <sha> origin/main` **rc=0**, **negatif
+kontrol rc=1** (tautoloji degil). Katalog ekseni: **canli 25935 = yerel 25935 → ESIT** (MaCiT'in
+Fiat×MakerWorld partisi canlida). ⚠️ Varlik ekseni **OLCULEMEDI** — spec ana sayfayi isaret etti,
+oysa `/varlik/sayfa-<hash>.css` taşıyıcısı URUN sayfasi; yesil YAZILMADI, sonraki tura kaldi.
+
+**🔴 YENI KIRMIZI — SERIT B `serit-b` job FAILURE (`31542119603`, `9c56de08`); yayini BLOKLAMAZ.**
+Dusen adim bir mutasyon bataryasi; batarya **iki mutant sapmasi** raporladi. Teshis ve kabul
+olcutu **acik kalem K61**'de durur (defter: `memory/acik-kalemler.md`, git DISI) — ayrinti
+izlenen deftere YAZILMAZ. Codex'in hukmu **bagimsiz dogrulandi** (kendi `gh run view` olcumu:
+`serit-b` = failure). Kok neden ONCEKI turun kapattigi oksuz-commit sinifi DEGIL → DUR kosulu
+(3 kosum ayni kok neden) **tetiklenMEDI**. Onarim MUHENDIS'e (Opus, izole worktree) dagitildi;
+gevsetme / mutant cikarma / beklenti degistirme YASAK olarak spec'e yazildi.
+
+**🔧 TAMIRCI TURU (§4.7).** Defterde **8 acik 🔧** (K49·K53·K54·K55·K56·K58·K59 + bu turda acilan
+**K61**); en eskisi K49 (11 Agu). Bu turda:
+- **K51 DAGITILDI** (iki turdur devrediliyordu, sinif ikinci kez geldi → kalici kapi zorunlu):
+  `tools/paket-d1-uzlastirici-karantina.md` spec'i MUHENDIS'e (Opus) verildi. Durum `UCUSTA`.
+- **K56 TESHIS KAPANDI, onarim acik.** Kirmizi **bayat referans DEGIL, TAUTOLOJI**: c4 referansi
+  `merge-base HEAD..origin/main` blobundan turuyor; ana agac main ucundayken referans == calisan
+  dosya (ikisi de `9c56de08`, blob `d034eff4…`, **267.672 bayt ozdes**) → ayrisan bayt YOK → iddia
+  olculemiyor → fail-closed rc=2. Sinif [[anahat-referans-tautolojisi]] (IKINCI vaka).
+  🟢 **Kanama CI'da YOK:** `deploy.yml:1555` yalnizca `--anahat` kolunu kosuyor (rc=0), kancalarda
+  cagri 0 → yayin riski YOK, oncelik dustu.
+- **K61 ACILDI** (yukaridaki SERIT B deligi), onarimi ayni turda dagitildi.
+
+**🧾 Defter kotasi 1:1 uygulandi.** `DEVAM.md` **171 → 64 satir / 4.502 bayt** (hedef 130/12.288'in
+ALTINDA). Iki en eski blok (`00:37 turu` + `CTA DENGE KAPANISI`) `DEVAM-ARSIV.md`'ye **BAYT
+BIREBIR** tasindi — kanit SHA-256 esitligi: `CI_BAYT=4473/1394eee7…`, `CTA_BAYT=3048/33f7fd44…`
+kaynakta ve arsivde AYNI. Ozet YOK. `devam-sinif-kapisi.py` **rc=0** (113 satir tarandi).
+
+**⏸️ PUSH BILEREK YAPILMADI — K49 sinifi CANLI olcuyle onlendi (commit `8d256c96` main'de bekliyor).**
+Tur ortasinda `git status`'ta **`M urunler.json` BELIRDI** (90 satir / 5 urun) → kardes mimarin
+partisi CANLI ([[canli-oturum-kaniti-git-status-farki]]). `d1-sync.py --durum` bunu dogruladi:
+icerik ekseni **25940/25940 birebir** (hash uyusmaz 0 · eksik 0 · fazla 0) ama sayi ekseni
+**D1=25935 degil 25940** ve **uc turetilmis kolon BAYAT** (`marka_kanon` 5 · `model_kanon` 2 ·
+`marka_arama` 5) → parti **yazmanin ORTASINDA**. Push, pre-push kancasi araciligiyla **ikinci bir
+D1 yazicisi** baslatirdi; K49 hala acik (yazici kilidi YOK). Bu turda bizi tesaduf degil **olcum**
+korudu. Commit kaybolmaz; push sonraki turun ILK isidir (once `--durum` yeniden olculur).
+
+**⚠️ BU TURUN KENDI KUSURU — INDEX YARISI OLCULEREK YAKALANDI VE GERI ALINDI.** Defter commit'i
+`--amend` ile tazelenirken, kardes mimarin **ayni saniyede stage ettigi** `urunler.json` (90 satir /
+5 urun) amend'e KATILDI: `c6403ca4` iki dosya tasiyordu (`DEVAM.md` + `urunler.json`).
+`git add DEVAM.md` yalnizca kendi dosyasini ekler ama `--amend` **o an INDEX'te ne varsa** alir →
+[[git-index-yaris-durumu]]. **PUSH EDILMEMISTI**, zarar depoda kalmadan kapatildi:
+`reset --soft 9c56de08` + `restore --staged urunler.json` → kardes icerik **calisma agacinda
+BOZULMADAN** durdu (`git status`: ` M urunler.json`), commit yalnizca `DEVAM.md` tasiyacak sekilde
+yeniden kuruldu. **Ders:** paylasilan ana agacta yabanci `M` varken `--amend` kullanma — amend'in
+kapsami "benim add'ledigim" degil "INDEX'in o anki hali"dir; tazeleme gerekiyorsa yeni commit at
+ya da once `restore --staged` ile kapsami daralt.
+
+**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
+mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · merge YAPILMADI · yabanci
+`.scratch/` ve `tools/paket-deploy-kritik-yol.md` dosyalarina DOKUNULMADI · baskasinin
+worktree'sine DOKUNULMADI. Codex'e 4 cagri (K56 teshisi · kosum bekleme · canli dogrulama · defter
+kotasi), MUHENDIS'e 2 dal (K51 · K61). Okan'a CIKILMADI (rutin onarim + zaten sorulmus soru; §5).
+
+**Sonraki turun ILK ISI:** (a) **`8d256c96`'yi PUSH ET** — once `d1-sync.py --durum` yeniden
+olculur, kardes parti inmis/tamamlanmis olmali (sayi ekseni ve turetilmis kolonlar tazelenmis);
+(b) iki MUHENDIS dalini **skill: merge-kapisi** ile tart (K51 karantina · K61 kapsam ayrimi) —
+merge KraL'da, isci yalnizca dal push etti; (c) `31542119603`'un ardil kosumunda `serit-b`
+yesillendi mi; (d) varlik eksenini URUN sayfasindan cache-bust'SIZ olc (bu turda OLCULEMEDI
+kaldi); (e) K52 worktree tavani — `git worktree list` **4 satir**, ucu bu oturumun DEGIL,
+ARSIVLE-sonra-kaldir.
+
 ## 🕐 CI NOBETI — 12 Agu 2026 01:0x yerel / 11 Agu 21:37Z turu — IKINCI OTURUM (KraL)
 
 ⚠️ **MUKERRER TUR:** asagidaki blok da "21:37Z turu" basligini tasiyor; ayni pencereyi iki
@@ -59,112 +195,6 @@ Okan'a CIKILMADI (rutin onarim + zaten sorulmus soru; §5).
 **Sonraki turun ILK ISI:** (a) yukaridaki iki ucustaki kosumun `conclusion`'ini olc — `deploy`+`yayin`
 `success` mi; degilse kok nedeni logdan alintila; (b) `tools/paket-d1-uzlastirici-karantina.md`
 spec'i hala MUHENDIS'e (Opus) verilmedi, dalda kapatilmali; (c) canliyi cache-bust'SIZ dogrula.
-
-## 🕐 CI NOBETI — 12 Agu 2026 00:37 yerel / 11 Agu 21:37Z turu (KraL)
-
-**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🟢 SUPURME rc=0 — HUKUM=SUPURULDU (askidan sonraki 3. temiz tur).** Sabit kosucu isciye
-kosturuldu; betik YAZILMADI/DUZENLENMEDI. Betigin bastigi satirlar oldugu gibi:
-`GITHUB_BILDIRIM_INBOX=5 · BULUNAN=5 · TASINAN=5 · ATLANAN=0 · CIKAN=5 · KOMSU_KAYIP=0 ·
-KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=48:2026-08-11T23:34:00 · HUKUM=SUPURULDU`. Uc fail-closed
-alarmin ucu de sessiz; tur sonu kutuda `Run failed` **0**. Silinen 5 kimligin 5'i de
-`Pruvo138/pruvo/check-suites/…@github.com` bicimindeydi.
-
-**🟠 Cop denetimi (salt okuma, rc=0): 51 kayit — MESRU=48, YANLIS=3.** Ucu de onceki DORT turdan
-bilinen AYNI kalem (16:54, reklam-platformu bildirimi; id `68047/68048/68049`), sayi ARTMADI ve
-bu turun kayitlarindan (`68147…68151`) KUCUK → bu turun supurmesine ATFEDILMEZ.
-**Siparis/odeme ekseninde Cop'te kayit YOK.** Sinif karari Okan'da, cevap gelmedi → tekrar
-SORULMADI, kendiliginden geri alma YAPILMADI.
-
-**✅ DEVREDILEN (a) KAPANDI — serit-a3 sinifi JOB BIRIMIYLE YESIL.** Onceki tur `31531089183`'u
-devretmisti; o kosum `cancelled` cikti (kuyruk davranisi, `cancel-in-progress: false` — ariza
-DEGIL, §4.5). Karar kosumu **`31532757154`** (`9569da50`, c8b0451e'nin torunu) TAM YESIL:
-`build` · `serit-a2` · `serit-a3` · `serit-a4` · **`deploy`** · **`yayin`** altisi da `success`;
-dusen adim YOK. Yani N1 mutasyon capasi onarimi (`c8b0451e`) fiilen dogrulandi.
-
-**🔴 YAYIN ACLIGI OLCULDU VE KAPANDI — alarm SAHTE DEGIL, DOGRUYDU.** `Paket tazeligi alarmi`
-`31534175609` (`078e814a`) FAILURE; dusen job `yayin-nabzi`, adim "Olcum — yayin gecikmesi /
-tikanma / aclik". Kok neden logdan: **en eski bekleyen commit 66 dk (esik 65 dk)**. Bagimsiz
-teyit: son yesil deploy `31525687626` (`c8460b17`, 19:36:15Z) idi ve o gunden beri **9 commit**
-yayina inmemisti. Aclik zincirin serit-a3'te durmasindan doguyordu; zincir 21:03:56Z'de
-`31532757154` ile inince **kalan inmeyen commit 9 → 3**. Alarmin kendi olcumu bayat DEGILDI.
-`tazelik` job'i ayni kosumda success — kirmizi yalniz nabiz kolundaydi.
-⚠️ `paket-tazelik-alarmi.yml` + `deploy-aclik-kapisi.py` calisma agacinda BASKA bir oturumun
-yarim isi; DOKUNULMADI, kapsam DEVRALINMADI.
-
-**🔴 YENI SINIF — D1 UZLASTIRICI MESRU SATIR SILDI (onarim BU TURDA YAPILMADI, spec yazildi).**
-`31532464176` (`c8b0451e`) FAILURE; dusen adimlar "Teyit — onarimdan sonra sapma SIFIR mi" +
-"ONARILAMADI". Logdan alinti: `hash UYUSMAZ: 0 | D1'de EKSIK: 0 | D1'de FAZLA: 37` · `silinen: 37`
-· `GERI-OKUMA DOGRULANDI` · `D1 urun sayisi: 25827` · `icerik ekseni (urun_hash): 25864 D1 satiri`.
-Uzlastirici agaci uzak main ucuna tazeledi (25827) ama **D1 git'ten ILERIDEYDI** (25864) —
-esZAMANLI bir urun partisinin D1'e yazip git push'u henuz inmemis 37 satirini "FAZLA" sayip
-SILDI. `--bayatlik` kapisi dogru calisti ama YANLIS SORUYU sorar: agacin GIT'e gore bayatligini
-olcer, D1'in agactan ILERI olmasini olcmez. Yeni desen degil (`31502177931`: `FAZLA: 41`, uc
-tazelenince 0). Sapma su an KAPALI (salt-okuma 25864 = 25864) ve `D1 sapma alarmi` yesil.
-📄 **Spec: `tools/paket-d1-uzlastirici-karantina.md`** — silme kolu KARANTINAYA alinir (ilk
-gozlemde SILME YOK, ikinci gozlem FARKLI `origin/main` SHA'sinda ise silinir, damga okunamazsa
-fail-closed `OLCULEMEDI`); `EKSIK`/`hash` kollari DEGISMEZ. **KAT: MUHENDIS (Opus)** — olcum +
-veri silme = sessiz-hata sinifi, Codex'e VERILMEZ. Kabul: `uzlastirici-karantina-test.py` (K1-K7,
-K7 = 11 Agu vakasinin birebir oynatimi, beklenen `silinen: 0`) + mutasyon bataryasi + kontrol
-mutantlari + `cron-nabiz-kapisi.py --kendini-test`.
-
-**Bu turda:** urun verisine dokunulmadi · deploy elle YAPILMADI · worktree ACILMADI · kod
-degistirilmedi (yalniz `.md` spec'i) · yabanci degisikliklere DOKUNULMADI · kosum rerun/cancel
-EDILMEDI · mail betigi YAZILMADI/DUZENLENMEDI. Codex'e 4 cagri (supurme+Cop · D1 teshisi ·
-yayin nabzi teshisi · deploy zinciri bekleme). Okan'a cikilmadi (rutin sonuc + zaten sorulmus soru).
-
-**Sonraki turun ILK ISI:** (a) `tools/paket-d1-uzlastirici-karantina.md` spec'ini MUHENDIS'e
-(Opus) ver, dalda kapat; (b) `Paket tazeligi alarmi`nin bir sonraki kosumu yesil mi — aclik
-gercekten kapandi mi (esik 65 dk, taban yayin ani); (c) canliyi cache-bust'siz dogrula
-(`9569da50` icerigi indi mi); (d) DEVREDILEN 1 (E10 kardes-depo kolu) serit karari KraL'da.
-
-## 🧾 CTA DENGE TURU KAPANISI — 12 Agu 2026 / 11 Agu 21:xxZ (KraL merge turu, §6+§8)
-
-**Kapsam:** yalnizca kapanis kapilari. Merge/push/temizlik ONCEKI turda inmisti; bu turda kod
-DEGISTIRILMEDI, worktree ACILMADI, merge/push YAPILMADI, urun verisine DOKUNULMADI.
-
-**Degisiklik (Okan'in 11 Agu karari):** yardim bandindaki WhatsApp hapinin etiketi artik HER
-genislikte kisa — `.wa-uzun{display:none}` kurali `tools/build.py`'de mobil media blogundan
-TEMEL CSS'e tasindi. Karsiliginda `.ikon-sepet`'teki `min-width:210px` CTA denge tabani
-KALDIRILDI → "Sepete Ekle" masaustunde de gercek `width:fit-content`. Kanal, numaralar ve punto
-karari DEGISMEDI; `index.html` DEGISMEDI.
-
-**Muhendis commit'i `547bff87`, main tepesi `389ffdd5`.**
-
-**Olculen sayilar:** masaustu CTA **155,8 × 56 = 8.725 px²** · hap **8.340 px²** · **oran 1,05**.
-Mobil oran **1,24** — DEGISMEDI. Kapi rc'leri **6/6 yesil**. D1 **25905** = `urunler.json`
-(hash uyusmaz 0 · eksik 0 · fazla 0).
-
-**🟢 CANLI DOGRULAMA (§6) — TAZE.** Kanit kosumu **`31535741568`** (`8a31b85e`,
-"Build & deploy to GitHub Pages") **success**; ata ekseni `merge-base --is-ancestor 547bff87
-8a31b85e` → **rc=0**. "En son kosum yesildi" DENMEDI: main tepesi `389ffdd5`'in kendi deploy
-kosumu (`31538073387`) tur sirasinda **UCUSTA** (queued/in_progress) — yesil YAZILMAZ, ve zaten
-karar kosumu o degil. Olcum kanonik adresten, **cache-bust'SIZ**
-(`/urun/audi-a6-c4-telefon-tutucu-iphone-13-14-15-pro-max/` → varlik
-`/varlik/sayfa-f8805d4f24.css`, 16.367 bayt). Iki eksen AYRI AYRI:
-- **EKSEN-1** `min-width:210px` → canli CSS'te **0 vurus** (sayfa ici `<style>` bloklarinda da 0).
-  Canli kural artik `.ikon-sepet{flex:none}` — denge tabani YOK.
-- **EKSEN-2** `.wa-uzun{display:none}` → **media sorgusu DISINDA**, temel CSS'te (yuvalanma
-  olculdu: aktif `@media` YOK).
-Katalogun EN YENI urunu (`389ffdd5` partisi) canlida henuz **404** — bu bekleniyor, o partinin
-deploy'u ucusta; CTA ekseni acisindan anlamsiz.
-
-**⚠️ GENISLIK TOLERANSI NOTU — bu turun tasinabilir dersi.** Masaustunde elde kalan pay
-**~%5 (~7 px)**. (Bu bir YERLESIM toleransidir, ticari bir buyuklukle ilgisi YOKTUR.) Hap etiketi bir
-kelime uzarsa **CTA-A1 kirmizi yanar**. Yani etiket METNI artik dengeyi tasiyan bir DEGISKENDIR:
-denge sabit bir taban (`min-width`) tarafindan degil, iki kutunun gercek metin genisligi
-tarafindan kuruluyor. Bandi daraltan her metin degisikligi (pazarlama dahil) kapi ekseniyle
-birlikte dusunulmeli.
-
-**Bu turda:** kod degistirilmedi · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI · yabanci
-degisiklikler (`paket-tazelik-alarmi.yml`, `deploy-aclik-kapisi.py`, `.scratch/`,
-`paket-deploy-kritik-yol.md`) BASKA OTURUMUN isi, DOKUNULMADI/commit'lenMEDI.
-
-**Sonraki turun ILK ISI:** (a) `31538073387` ucustaki kosumu JOB birimiyle kapat (`deploy`+`yayin`
-success mi) ve `389ffdd5` partisinin urun sayfalari canliya indi mi — 404 kapandi mi;
-(b) CTA genislik toleransi notunu kapi tarafina bagla (etiket uzunlugu degisince CTA-A1'i
-uyaran eksen).
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
