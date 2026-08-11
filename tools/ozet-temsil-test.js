@@ -68,7 +68,6 @@ function olculemedi(mesaj) {
 // --------------------------------------------------------------- canli istemci cozucusu
 let ozetAc;
 try {
-  ({ ozetAcAl: undefined });
   ozetAc = require(path.join(KOK, "tools", "ozet-ac-ayikla.js")).ozetAcAl(INDEX_YOL);
 } catch (e) {
   olculemedi("index.html ozetAc ayiklanamadi: " + e.message);
