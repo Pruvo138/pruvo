@@ -663,9 +663,38 @@ def kosum(probe, mod, sayfalar):
     nrm_html = mod.render_product(nrm, tum)
     fiz_govde = _etiketsiz(_ana_govde(fiz_html))
     nrm_govde = _etiketsiz(_ana_govde(nrm_html))
-    ol("B1", "fiziksel urun sayfasinda hazir-urun + cayma beyani VAR",
-       bool(HAZIR_ETIKET_RE.search(fiz_govde)) and bool(CAYMA_RE.search(fiz_govde))
-       and bool(ONDORT_GUN_RE.search(fiz_govde)))
+    ozel_cumle = beyan.get("SAYFA_OZEL") if isinstance(beyan, dict) else None
+    hazir_cumle = beyan.get("SAYFA_HAZIR") if isinstance(beyan, dict) else None
+    ozel_duz = _etiketsiz(ozel_cumle) if isinstance(ozel_cumle, str) else ""
+    hazir_duz = _etiketsiz(hazir_cumle) if isinstance(hazir_cumle, str) else ""
+
+    # ------------------------------------------- B1 + B10 — HAZIR PANELIN IKI YONLU NOBETI
+    # 🔴 11 Agu (Okan karari): hazir/fiziksel urun panelinde YALNIZ sinif cumlesi kalir.
+    # Panelden cikan iki bilgi — "3-5 is gunu icinde kargoya verilir" ve "14 gun icinde
+    # cayma hakkiniz vardir" — SILINMEDI, BAGLAYICI YASAL GOVDEDE yerinde duruyor
+    # (mesafeli-satis m.4/m.5-m.6 · teslimat-iade; C1/C2/C3/C5 nobet tutar). Gerekce:
+    # panelde KOSULSUZ "14 gun cayma hakkiniz vardir" demek, m.15 kapsamindaki olcuye
+    # ozel isler icin de o vaadi dogururdu.
+    # NOBET IKI AYAKLIDIR ve ayaklar TEK TEK oldurulebilir olmali:
+    #   B1  POZITIF — kalan cumle panelde VAR (bosaltan/baska anahtara kaydiran KIRMIZI).
+    #   B10 NEGATIF — kalkan iki bilgi panele GERI DONMEDI (sisiren mutant KIRMIZI).
+    # TEK YONLU OLSAYDI OLU NOBETCI OLURDU: yalniz B1 varken cumleyi geri sisiren
+    # mutant sessizce gecerdi; yalniz B10 varken blogu TAMAMEN silen mutant gecerdi
+    # (bos kume uzerinde her negatif iddia bedavaya gecer).
+    b1_hata = []
+    if not hazir_duz:
+        b1_hata.append("BEYAN['SAYFA_HAZIR'] yok/bos")
+    else:
+        if hazir_duz not in fiz_govde:
+            b1_hata.append("kalan cumle hazir/stok sayfasinda YOK")
+        if not HAZIR_ETIKET_RE.search(fiz_govde):
+            b1_hata.append("sinif etiketi ('Hazır ürün') YOK")
+        # BLOK SAYISI/BAYT capasi BILEREK BURADA DEGIL: B6 zaten `fiz_bloklar ==
+        # [esc(hazir_cumle)]` esitligini olcer. Iki yere koymak B1'i genisletir ve
+        # bloga dokunan HER mutant bu ayagi da dusurur -> "B1 kirmizi = kalan cumle
+        # gitti" okumasi guvenilir olmaktan cikar (B9'un ayni tuzagi, 10 Agu).
+    ol("B1", "hazir/stok urun sayfasinda KALAN TEK CUMLE var (etiket + birebir metin)",
+       not b1_hata, ("%s" % b1_hata) if b1_hata else "%r" % hazir_duz[:52])
     ol("B2", "`tur`suz urun sayfasina beyan SIZMADI (regresyon)",
        not HAZIR_ETIKET_RE.search(nrm_govde) and not CAYMA_RE.search(nrm_govde))
     b3_sapan = []
@@ -695,10 +724,6 @@ def kosum(probe, mod, sayfalar):
         ("panelsiz", mod.render_product(
             _urun("sinama-panelsiz", kategori="Jeneratör"), tum)),
     ]
-    ozel_cumle = beyan.get("SAYFA_OZEL") if isinstance(beyan, dict) else None
-    hazir_cumle = beyan.get("SAYFA_HAZIR") if isinstance(beyan, dict) else None
-    ozel_duz = _etiketsiz(ozel_cumle) if isinstance(ozel_cumle, str) else ""
-
     # B4 — POZITIF: cumle DORT render yolunda da VAR ve blok BAYT-BIREBIR tek kaynaktan.
     b4_hata = []
     if not ozel_duz:
@@ -727,9 +752,12 @@ def kosum(probe, mod, sayfalar):
     if len(ozel_kanonik) != 1:
         b5_hata.append("BEYAN['SAYFA_OZEL'] tek sure jetonu tasimiyor: %s"
                        % sorted(ozel_kanonik))
-    if len(hazir_kanonik) != 1:
-        b5_hata.append("BEYAN['SAYFA_HAZIR'] tek sure jetonu tasimiyor: %s"
-                       % sorted(hazir_kanonik))
+    # 🔴 HAZIR KOLUN KANONIK KUMESI BOSTUR (11 Agu): panelde teslim taahhudu YOK ->
+    # kanonik kume bos, dolayisiyla asagidaki dongude sayfadaki HER sure jetonu
+    # "kanonik DISI" sayilir ve KIRMIZI yanar. Iddia kaldirilmadi, YON DEGISTIRDI.
+    if hazir_kanonik:
+        b5_hata.append("BEYAN['SAYFA_HAZIR'] artik TESLIM SURESI TASIMAMALI: %s"
+                       % _sure_metni(hazir_kanonik))
     for ad, h, kanonik in ([(a, x, ozel_kanonik) for a, x in ozel_dallar]
                            + [("hazir/stok", fiz_html, hazir_kanonik)]):
         g = _etiketsiz(_ana_govde(h))
@@ -801,14 +829,15 @@ def kosum(probe, mod, sayfalar):
         if sayfa_ozel_t and eposta_ozel_t and sayfa_ozel_t != eposta_ozel_t:
             b7_hata.append("OZEL sinif CELISKI: urun sayfasi=%s · siparis e-postasi=%s"
                            % (sorted(sayfa_ozel_t), sorted(eposta_ozel_t)))
-        # Hazir kol: urun sayfasi <-> baglayici yasal stok cumlesi.
+        # Hazir kol: 11 Agu'dan beri panelde SURE TAAHHUDU YOK -> TETIKLEYICI DE
+        # OLMAMALI. Sayac baslangici yazip sureyi yazmamak, olmayan bir vaadi ima eder;
+        # hazir kolun suresi+tetikleyicisi BAGLAYICI GOVDEDEDIR (STOK_TESLIM_CUMLESI,
+        # C1/C2/C5 nobet tutar). Iddia KALDIRILMADI, YON DEGISTIRDI: geri gelen bir
+        # tetikleyici burada KIRMIZI yanar.
         sayfa_hazir_t = _tetikleyiciler(hazir_cumle)
-        stok_t = _tetikleyiciler(getattr(sayfalar, "STOK_TESLIM_CUMLESI", "") or "")
-        if not sayfa_hazir_t:
-            b7_hata.append("hazir urun sayfasi beyaninda TETIKLEYICI YOK")
-        if sayfa_hazir_t and stok_t and sayfa_hazir_t != stok_t:
-            b7_hata.append("HAZIR sinif CELISKI: urun sayfasi=%s · yasal stok cumlesi=%s"
-                           % (sorted(sayfa_hazir_t), sorted(stok_t)))
+        if sayfa_hazir_t:
+            b7_hata.append("HAZIR urun sayfasi beyani TETIKLEYICI tasiyor ama SURE YOK: %s"
+                           % sorted(sayfa_hazir_t))
         # Ozel uretim urun sayfasina "olcu onayi/olcuye ozel" damgasi BASILMAZ.
         for ad, h in ozel_dallar:
             g = _etiketsiz(_ana_govde(h))
@@ -817,8 +846,8 @@ def kosum(probe, mod, sayfalar):
                 b7_hata.append("%s: sinif beyaninda OLCU ONAYI/OLCUYE OZEL damgasi" % ad)
             if not g:
                 b7_hata.append("%s: BOLGE BOS" % ad)
-    ol("B7", "TETIKLEYICI CELISMIYOR: urun sayfasi ile siparis e-postasi (ozel) ve "
-             "yasal stok cumlesi (hazir) AYNI olayi gosteriyor",
+    ol("B7", "TETIKLEYICI: ozel kolda urun sayfasi = siparis e-postasi; hazir kolda "
+             "panelde tetikleyici YOK (sure taahhudu de yok)",
        not b7_hata, ("%s" % b7_hata) if b7_hata
        else "ozel=%s hazir=%s" % (sorted(_tetikleyiciler(ozel_cumle or "")),
                                   sorted(_tetikleyiciler(hazir_cumle or ""))))
@@ -891,6 +920,33 @@ def kosum(probe, mod, sayfalar):
        % (len(CEKIMLER), "/".join(CAYMA_YANLIS_POZITIF)), not b9_hata,
        ("%s" % b9_hata) if b9_hata else "%d cekim ✔ · %d yanlis-pozitif ✘"
        % (len(CEKIMLER), len(CAYMA_YANLIS_POZITIF) + 1))
+
+    # B10 — NOBETCININ NEGATIF AYAGI (B1'in ikizi): 11 Agu'da panelden kalkan iki bilgi
+    # GERI DONMEDI. Olculen sey KELIME degil SINIF: teslim suresi JETONU (_sureler),
+    # sayac baslangici (_tetikleyiciler), cayma koku (CAYMA_RE) ve "14 gun" (ONDORT_GUN_RE).
+    # 🔴 FAIL-CLOSED: bolge bossa ya da sinif cumlesi hic basilmamissa "bulunamadi"
+    # KANIT DEGILDIR (bos kume uzerinde her negatif iddia bedavaya gecer) -> pozitif
+    # tanima izi ONCE sart kosulur ([[olculdu-diyen-hukum-kaniti]] · [[beyan-edilmis-survivor]]).
+    b10_hata = []
+    if not fiz_govde:
+        b10_hata.append("BOLGE BOS (olcum yapilamadi)")
+    elif not hazir_duz or hazir_duz not in fiz_govde:
+        b10_hata.append("sinif cumlesi sayfaya BASILMAMIS (negatif iddia olculemez)")
+    else:
+        if CAYMA_RE.search(fiz_govde):
+            b10_hata.append("CAYMA sozu GERI DONDU: %s"
+                            % sorted(set(CAYMA_RE.findall(fiz_govde)))[:3])
+        if ONDORT_GUN_RE.search(fiz_govde):
+            b10_hata.append("'14 gun' GERI DONDU")
+        geri_sure = _sureler(fiz_govde)
+        if geri_sure:
+            b10_hata.append("TESLIM SURESI taahhudu GERI DONDU: %s" % _sure_metni(geri_sure))
+        geri_tetik = _tetikleyiciler(fiz_govde)
+        if geri_tetik:
+            b10_hata.append("SAYAC BASLANGICI (tetikleyici) GERI DONDU: %s" % sorted(geri_tetik))
+    ol("B10", "hazir/stok panelinde teslim suresi · tetikleyici · cayma/14 gun YOK "
+              "(11 Agu Okan karari; bilgi baglayici govdede duruyor)",
+       not b10_hata, ("%s" % b10_hata) if b10_hata else "cumle basili, dort eksen temiz")
 
     # ================================================== C — TESLIMAT / SOZLESME
     rapor.append("C) TESLIMAT + MESAFELI SATIS (tools/sayfalar.py)")
@@ -1185,10 +1241,14 @@ BUILD_MUTANTLARI = [
      lambda b: 'ozel_beyan="",',
      "ozel uretim sayfasina teslim beyani HIC basilmaz (23.968 sayfa beyansiz)",
      ("B4", "B5", "E5")),
+    # 🔴 11 Agu'dan beri bu sizmanin BEDELI BUYUDU: ozel blok "3-5 is gunu" + "siparis
+    # onayi" tasir, yani hazir panele SIZDIGINDA panelden bilerek kaldirilan teslim
+    # taahhudu geri gelmis olur. B6 (bayt capasi) + B5 (kanonik disi sure) + B10
+    # (negatif nobet) UCU BIRDEN dusmeli.
     ('ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),',
      lambda b: 'ozel_beyan=OZEL_TESLIM_BEYAN_HTML,',
      "sinif kapisi kalkar -> ozel uretim gerekcesi HAZIR/STOK sayfasina da sizar",
-     ("B6",)),
+     ("B5", "B6", "B10")),
     ('\') % esc(BEYAN["SAYFA_OZEL"])',
      lambda b: '\') % esc(BEYAN["SAYFA_OZEL"].replace("3-5", "2-4"))',
      "teslim araligi BILINEN bayat degere kayar (3-5 -> 2-4 is gunu)",
@@ -1199,11 +1259,15 @@ BUILD_MUTANTLARI = [
      lambda b: '\') % esc(BEYAN["SAYFA_OZEL"].replace("3-5", "10-20"))',
      "teslim araligi KARA LISTE DISI degere kayar (3-5 -> 10-20 is gunu)",
      ("B4", "B5")),
-    # HAZIR kolun suresi kayar — sozlesme 3-5 derken sayfa 15-30 der.
+    # 🔴 11 Agu — SABLON SIZMASI: kalkan teslim taahhudu URETECTE geri eklenir. Tek
+    # kaynak (BEYAN) TEMIZ kalir, yani "sozluge bakip yesil demek" bu mutanti GORMEZ;
+    # yalnizca CIKTIYI olcen ayaklar (B5 kanonik-disi sure · B6 bayt capasi · B10
+    # negatif nobet) yakalar.
     ('beyan=esc(BEYAN["SAYFA_HAZIR"]))',
-     lambda b: 'beyan=esc(BEYAN["SAYFA_HAZIR"].replace("3-5", "15-30")))',
-     "HAZIR/STOK sayfasinin suresi kayar (3-5 -> 15-30 is gunu; sozlesme 3-5 diyor)",
-     ("B5", "B6", "E2")),
+     lambda b: ('beyan=esc(BEYAN["SAYFA_HAZIR"])'
+                ' + " Ödemeniz onaylandıktan sonra 3-5 iş günü içinde kargoya verilir.")'),
+     "HAZIR panele teslim taahhudu build.py sablonunda GERI EKLENIR (tek kaynak temiz)",
+     ("B5", "B6", "B10")),
     # HAK REDDI urun sayfasina sizar — m.15 istisnasini urun bazinda dayatan cumle.
     ('ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),',
      lambda b: ('ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML'
@@ -1231,8 +1295,8 @@ BUILD_MUTANTLARI = [
     # basarsa hazir sayfanin sinif beyani sessizce degisir.
     ('beyan=esc(BEYAN["SAYFA_HAZIR"]))',
      lambda b: 'beyan=esc(BEYAN["SATIR_HAZIR"]))',
-     "hazir/stok sayfasi baska bir BEYAN anahtarini basar (cayma + teslim taahhudu duser)",
-     ("B1", "B5", "B6", "E2", "E5")),
+     "hazir/stok sayfasi baska bir BEYAN anahtarini basar (kalan cumle sessizce kayar)",
+     ("B1", "B6", "B10", "E2", "E5")),
 ]
 
 # KONTROL MUTANTLARI — masum degisiklik. Kapi bunlarda YESIL kalmali; kalmiyorsa
@@ -1290,12 +1354,36 @@ BEYAN_MUTANTLARI = [
                     + " Caymanız halinde bilgi verin."),
      "OZEL SIPARIS ONAY E-POSTASINA cekimli cayma sizar ('caymanız')",
      ("A3",)),
+    # 🔴 11 Agu KARARININ KILIDI — UC MUTANT, IKI YON. Kalkan cumleler BURADA
+    # SENTETIKTIR: canli kaynakta artik HICBIR yerde durmuyorlar, yani bu satirlar
+    # ikinci bir tanim degil MUTANT YUKUDUR (ayni desen: "iade hakkiniz yoktur" ve
+    # "Caymadan once bize yazin" mutantlari da boyle yazilir).
+    (lambda b: dict(b, SAYFA_HAZIR=b["SAYFA_HAZIR"]
+                    + " Ödemeniz onaylandıktan sonra 3-5 iş günü içinde kargoya verilir."),
+     "HAZIR panele TESLIM SURESI taahhudu geri eklenir (tek kaynaktan)",
+     ("B5", "B7", "B10")),
+    (lambda b: dict(b, SAYFA_HAZIR=b["SAYFA_HAZIR"]
+                    + " Teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden"
+                      " cayma hakkınız vardır."),
+     "HAZIR panele 14 GUNLUK CAYMA cumlesi geri eklenir (tek kaynaktan)",
+     ("B10",)),
+    # TERS YON — nobetcinin POZITIF ayagi TEK BASINA oldurulebilir mi: kalan cumle
+    # sinif etiketini kaybeder, musteri hangi sinifta alisveris yaptigini GORMEZ.
+    # 🔴 NEDEN "SAYFA_HAZIR=''" DEGIL: bos dize yalanci bir sonuc verir — `"" in h`
+    # HER SAYFADA dogrudur, yani B6'nin sizma ayagi dort ozel dalda birden yanar ve
+    # B7/E5'in "BEYAN eksik" korumasi da atesler. Mutant o zaman GENIS bir probe olur;
+    # B1'in tek basina olduruldugunu KANITLAMAZ. Bu varyant TEK EKSEN duser.
+    (lambda b: dict(b, SAYFA_HAZIR="Bu ürün hakkında bilgi için bize ulaşın."),
+     "HAZIR panelin kalan cumlesi SINIF ETIKETINI kaybeder (943 sayfa sinifsiz)",
+     ("B1",)),
 ]
 BEYAN_KONTROL_MUTANTLARI = [
     (lambda b: dict(b, SAYFA_OZEL=b["SAYFA_OZEL"].replace(" — ", " - ")),
      "masum noktalama rotusu (uzun tire -> kisa tire); tetikleyici + sure AYNI"),
     (lambda b: dict(b, SAYFA_HAZIR=b["SAYFA_HAZIR"] + " "),
      "masum bosluk rotusu (hazir cumlenin sonuna bosluk)"),
+    (lambda b: dict(b, SAYFA_HAZIR=b["SAYFA_HAZIR"].replace(" — ", " - ")),
+     "masum noktalama rotusu (hazir cumlede uzun tire -> kisa tire)"),
 ]
 
 
