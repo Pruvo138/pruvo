@@ -155,7 +155,16 @@ etkilenMEDI. Muafiyet AST ile YALNIZ `fazla` koluna civilendi; alarm kanali sust
 dayanak metni HEAD'de **BAYAT** → batarya S4'te "HARNESS BAYAT" ile duruyor, **S4..S12 + K1..K3
 mutantlari HIC KOSMUYOR**. Sessiz kapsam kaybi ([[beyan-edilmis-survivor]] · [[bayat-kabul-testi]]).
 
-**Sonraki turun ILK ISI:** (a) iki MUHENDIS dalini **skill: merge-kapisi** ile tart (K51 karantina · K61 kapsam ayrimi) —
+**⏳ K61 MUHENDISI TUR SONUNDA HALA UCUSTA — dal HAZIR DEGIL, yesil YAZILMADI.** Worktree
+`agent-afd4f8cae61d33774` SINIF=CANLI/KIRLI (kendi olcumu). §3.5 azami suresi doldugu icin
+DEVREDILDI; sonraki tur sifirdan teshise baslaMASIN, bu blogu okusun.
+**⚠️ WORKTREE TAVANI ASILDI: SAYI=5 TAVAN=2** (kancanin kendi olcumu). Ikisi OKSUZ-bayat
+(`jolly-lederberg-e2a0ee` 68 dk · `wonderful-nightingale-bf9893` 194 dk, ikisinin de
+MAIN_DISI_COMMIT=0), biri K51'in agaci (**MAIN_DISI_COMMIT=1 → BUNDLE GEREKIR**), biri K61'in
+CANLI agaci. SILME YOK → ARSIVLE-sonra-kaldir (K52).
+
+**Sonraki turun ILK ISI:** (a) **K61 muhendisinin raporunu devral** (bitti mi, dal push edildi mi);
+sonra hazir dallari **skill: merge-kapisi** ile tart (K51 karantina · K61 kapsam ayrimi) —
 merge KraL'da, isci yalnizca dal push etti; (c) `31542119603`'un ardil kosumunda `serit-b`
 yesillendi mi; (d) varlik eksenini URUN sayfasindan cache-bust'SIZ olc (bu turda OLCULEMEDI
 kaldi); (e) K52 worktree tavani — `git worktree list` **4 satir**, ucu bu oturumun DEGIL,
