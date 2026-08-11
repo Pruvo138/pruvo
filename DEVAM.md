@@ -1,5 +1,60 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 11 Agu 2026 08:37Z turu (KraL)
+
+**Ev kontrolu:** `pwd` = `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**Supurme (sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI):** rc=0 ·
+`GITHUB_BILDIRIM_INBOX=2 · BULUNAN=2 · TASINAN=2 · ATLANAN=0 · CIKAN=2 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=22:2026-08-11T10:55:56 · HUKUM=SUPURULDU`. Uc fail-closed
+alarmin ucu de sessiz. Tasinan iki kayit: `Paket tazeligi alarmi` + `Odeme yolu bayatlik nabzi`
+(ikisi de `deb9b05` head'i).
+
+**🟠 Cop denetimi (salt okuma): 27 kayit — 22 MESRU, YANLIS=5 (onceki tur 1'di).**
+Bes kayit da github-DISI ve konu/gonderen sinifi supurme yukleminin ALANINDA DEGIL: 2 banka
+bilgilendirme bildirimi, 2 bulten, 1 mesleki grup bildirimi (Cop id `67975`, `67992`-`67995`).
+**Supurmeye ATFEDILMEZ — uc bagimsiz ayak:**
+(a) **defter ekseni (en guclusu):** `mail-supurme.log`'un TAMAMI (375 satir) isciye taratildi →
+bes gonderenin/konu dizesinin HICBIRI logda gecmiyor (hepsi 0) ve loga dusen **22 `SILINENLER`
+kaydinin 22'si** de `Run failed` konusu tasiyor → `RUNFAILED_DISI_SILINEN=0`;
+(b) bu turun muhasebesi `CIKAN = TASINAN = 2` (gelen kutusundan yalniz 2 kayit ayrildi);
+(c) `KOMSU_KAYIP=0` + `KUME_DIFF=OLCULDU`.
+10 Agu giris-linki ve 11 Agu bulten kalemleriyle AYNI desen (elle silinen posta) →
+**kendiliginden geri alma YAPILMADI**, Okan'a alarm CIKILMADI. Siparis ekseni temiz: Cop'teki
+27 kaydin hicbiri `siparis@` degil. ⚠️ IZLENECEK: sayi 1→5 yukseldi; ARTMAYA DEVAM EDERSE ve
+kayitlar arasinda siparis/odeme sinifindan biri cikarsa Okan'a TEK cumleyle cikilir.
+
+**Devralinan (a) kalemi KAPANDI:** `31466535303` (SERIT B, `72a9952c`) → **success**.
+
+**Yayin kolu tepe head `deb9b051`'de TAM YESIL:** `31470506954` → `build · serit-a2 · serit-a3 ·
+serit-a4 · deploy · yayin` = **6/6 success**. Ayni head'de `31470506996` (spec alarm kolu),
+`D1 sapma alarmi` (`31472098080`) ve `D1 uzlastirici` (`31473290590`) da yesil.
+
+**🔴 `Odeme yolu bayatlik nabzi` (`31470506948`) + `Paket tazeligi alarmi` (`31470941245`) —
+AYNI kok neden, 8. ve 9. ardisik kirmizi; OKAN KAPISI (nobet PUSH ETMEDI, DEPLOY ETMEDI).**
+Logdan alinti (isciye alintilatildi): `bundle dosyasi: 42 (ithalat grafinden turetildi)` ·
+`canli KOD surumu 04100fdf… (2026-08-10T22:58:14Z)` · `bundle commit'i: 2 adet, canli koddan
+YENI` · `esik 120 dk` · **yas `375,3 dk` → `381,6 dk`** → `DURUM: BAYAT (rc=1)`.
+Capa TEYIDI (onceki turun kapattigi kalem hala tutuyor): `07:49Z − 375,3 dk = 01:33,7` ve
+`07:55Z − 381,6 dk = 01:33,7` → ikisi de `df599176` (01:33:59Z) capasi; birim/salinim hatasi YOK
+([[sabit-salinimi-birim-hatasi]] ekseni temiz). Yas serisi: 149,9 → 158,5 → 213,2 → 241,7 →
+316,2 → **381,6 dk**, monoton BUYUYOR. Cozum kapinin kendi cikti satirinda: shop dizininden
+`npx wrangler deploy` = **deploy/odeme kapisi**. Okan'a bu turda TEKRAR YAZILMADI (07:37Z turu
+karari: yas buyumesi Okan kapisini TEKRARLAMAZ, deftere yazilir; kalem 04:37/06:37/07:37'de
+uc kez iletildi).
+
+**D1 (`--durum`): 4 eksen de yesil** — SAYI 25354 == 25354 · SEQ · SEMA (3 goc indeksi KURULU) ·
+TURETILMIS KOLON (5 kolon GUNCEL) · ICERIK (hash uyusmaz 0, eksik 0, fazla 0).
+
+**Worktree: SAYI=1 TAVAN=2** — yalniz ana agac. Bu turda kod DEGISTIRILMEDI, deploy YAPILMADI;
+calisma agacindaki yabanci degisikliklere (`M tools/d1-sync.py`, `.scratch/`,
+`tools/paket-deploy-kritik-yol.md`) DOKUNULMADI.
+
+**Sonraki turun ILK ISI:** `31470507189` (SERIT B, `deb9b051`) tur kapanirken **hala
+`in_progress`** — `serit-b` job'i success, bekleyen ikisi uzun mutasyon bataryalari
+(`marka-bolum-bataryasi`, `model-uyelik-bataryasi`, ~65+ dk). Kosumun `conclusion`'ini olc
+([[ucustaki-kosum-yesil-degildir]]); yayin kolunu BLOKLAMAZ.
+
 ## 🕐 CI NOBETI — 11 Agu 2026 07:37Z turu (KraL)
 
 **Ev kontrolu:** calisma dizini = `/Users/okan/dev/pruvo` → DOGRU EV.
@@ -119,59 +174,7 @@ TURETILMIS KOLON (5 kolon GUNCEL) · ICERIK (hash uyusmaz 0, eksik 0, fazla 0).
 (`M tools/d1-sync.py`, `M tools/reklam-etiket-mutasyon.py`, `.scratch/`,
 `tools/paket-deploy-kritik-yol.md`) DOKUNULMADI. Bu turda kod DEGISTIRILMEDI, commit/push YOK.
 
-## 🕐 CI NOBETI — 11 Agu 2026 04:37Z turu (KraL)
-
-**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**Supurme (sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI):** rc=0 ·
-`GITHUB_BILDIRIM_INBOX=7 · BULUNAN=7 · TASINAN=7 · ATLANAN=0 · CIKAN=7 · KOMSU_KAYIP=0 ·
-KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=11:2026-08-11T07:30:23 · HUKUM=SUPURULDU`. Uc fail-closed
-alarmin ucu de sessiz. **Cop denetimi (salt okuma): 11 kayit, 11 MESRU / YANLIS=0.**
-10 Agu'dan devralinan "9. kayit (giris-linki maili, YANLIS sinif)" kalemi bu turda Cop'te YOK →
-kalem KAPANDI, kendiliginden geri alma yapilmadi.
-
-**CI — iki AYRI kirmizi sinifi olculdu; biri kapandi, biri OKAN KAPISI.**
-
-1. **`Build & deploy` (yayin kolu) — KAPANDI, taze kosumla dogrulandi.** `47daff37`
-   uzerindeki kirmizi (vitrin/Jeneratör gorunen etiket ile veri adi ayrismasi, 3 iddia dustu)
-   `0a5c49b5` ile onarilmis. **Bagimsiz teyit (Codex'in sayisina guvenilmedi):** kosum
-   `31457727331` → `build · serit-a2 · serit-a3 · serit-a4 · deploy · yayin` = **6/6 success**.
-
-2. **`SERIT B` / `serit-b` — kirmizi, ama onarimi BASKA OTURUM yapti (bu nobet SAHIPLENMIYOR).**
-   Kok neden (logdan alinti, kosum `31457727564`, adim `Iki govde kabul kapisi`):
-   `[KIRMIZI] S0b build.py renk markup capalari okundu -> ["renkButonlar",null,"secili"]`
-   → ortak `renkMarkupCapalari()` `btnSinif`i cozemiyordu (markup `class="%s"` hesaplanan
-   bicime donunce duz-literal regex tutmuyor). Onceki turun `A4a2` kirmizisiyla AYNI capa,
-   FARKLI kapi → ikiz tanim ayrismasi sinifi ([[ikiz-tanim-sessiz-ayrisma]]).
-   ⚠️ **Onarim commit'i `7ecb6396` (11 Agu 05:06:20Z) bu nobetin isi DEGIL** — tur ortasinda
-   baska bir oturum capayi ortak cekirdege tasidi. Nobetin isciye yazdirdigi olcum bunu
-   dogruladi ve is MUKERRER YAPILMADI ([[isci-yesili-sahiplenir]]).
-   Yerel taban (iddia korelmedi): `iki-govde` **45** iddia + oz-test **5/5**;
-   `renk-yazi` **20** iddia + oz-test YESIL (bozuk halde 34 ve 17'ye dusuyordu).
-
-3. **🔴 `Odeme yolu bayatlik nabzi` + `Paket tazeligi alarmi` — DUR KOSULU TETIKLENDI, OKAN KAPISI.**
-   Ayni kok neden **4 ardisik kosumda** (`13f9cb5c` → `47daff37` → `0a5c49b5` → `7ecb6396`):
-   canli odeme worker'i main'in gerisinde, `2 bundle commit'i` yayinlanmamis, yas **149,9 →
-   158,5 → 213,2 dk** (esik 120 dk) — yani BUYUYOR. Kapinin kendi cikti satiri cozumu de
-   soyluyor: shop dizininden `npx wrangler deploy`. Bu **deploy/odeme kapisi** →
-   nobet PUSH ETMEDI, DEPLOY ETMEDI, Okan'a tek cumleyle cikildi.
-   Sinifin gecmisi bu depoda ucuncu kez ayni: `tools/shop-bayatlik-kapisi.py` basligi.
-
-**⚠️ UCUSTA — YESIL DEGIL, SONRAKI TURUN ILK ISI** ([[ucustaki-kosum-yesil-degildir]]):
-`7ecb6396` uzerindeki `31460586143` (SERIT B) ve `31460585908` (Build & deploy) tur kapanirken
-hala `in_progress`. **"Onarildi" hukmu bu iki kosum `conclusion` alana kadar YAZILMAZ**;
-sonraki tur once bunlarin `serit-b` ve `deploy`/`yayin` job'larini olcsun.
-
-**D1 (`--durum`): 4 eksen de yesil** — SAYI 25354 == 25354 · SEQ · SEMA (3 goc indeksi KURULU) ·
-TURETILMIS KOLON (5 kolon GUNCEL) · ICERIK (hash uyusmaz 0, eksik 0, fazla 0).
-
-**Worktree: SAYI=1 TAVAN=2** — yalniz ana agac. Calisma agacindaki yabanci degisiklikler
-(`M tools/d1-sync.py`, `.scratch/`, `tools/paket-deploy-kritik-yol.md`) DURUYOR, dokunulmadi.
-
-**Olculen ek kalem (iddia DEGIL, sonraki tur dogrulasin):** bayatlik kapisinin bastigi
-"en eski yayinlanmamis commit yasi" (213,2 dk → ~01:34Z) shop yolundaki commit damgalariyla
-(`f037a59e`, 10 Agu 22:41Z) ORTUSMUYOR. Kapi bundle'i 42 dosyalik ithalat grafinden turetiyor,
-yani yas baska bir capadan geliyor olabilir; sayinin hangi capadan ciktigi OLCULMEDI.
+## 🕐 CI NOBETI — 11 Agu 2026 04:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; iki kirmizi sinifin ayrimi + `renkMarkupCapalari` kok nedeni + bayatlik capa suphesi arsivde)
 
 ## 🕐 CI NOBETI — 11 Agu 2026 01:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; `serit-b` sentetik-git fikstur kapisi kirmizisinin kok nedeni + `f4c5921f` onarimi + iddia-korelmedi olcumu arsivde)
 
