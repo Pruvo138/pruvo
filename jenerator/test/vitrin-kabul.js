@@ -374,6 +374,36 @@ async function sayfaKur(ayar) {
 // Karttan (baslik, kategori, fiyat metni, parametrik-rozet) cikar. `kategori` ZIYARETCININ
 // GORDUGU degerdir (kartCiz `card-cat`e p.kategori'yi basar) — katalogdan ikinci kez
 // turetmeye gerek yok, kart-baslik esleme tablosu da ACILMAZ.
+/* 🔴 GORUNEN ETIKET <-> IC AD (11 Agu). Gizli serinin ic adi artik musteriye gorunen
+   yuzeylerde (kart rozeti, bolum basligi, banner linki) GECMIYOR; yerine gorunur etiket
+   basiliyor. VERI ic adi tasimaya devam ediyor (urunler.json, ozet.json havuzlari,
+   PRUVO_VITRIN.bloklar). Bu kapinin karsilastirdigi iki taraf bu yuzden AYRI DILDE:
+   sol taraf GORUNEN metin, sag taraf VERI. Ceviri tablosu index.html'den AYIKLANIR —
+   ikinci kopya TUTULMAZ ([[ikiz-tanim-sessiz-ayrisma]]); tablo cozulemezse ceviri KIMLIKTIR
+   (eski davranis) ve bu hal asagida ACIKCA olculur, sessiz yastik DEGILDIR. */
+/* Capalar BOSLUGA TOLERANSLI: bicimlendirme degil YAPI olculur. Dar `= ` beklentisi,
+   davranisi degistirmeyen bir bosluk duzenlemesinde tabloyu "cozulemedi" sayip kapiyi
+   KIRMIZI yakiyordu (kontrol mutanti E5 ile olculdu) — yanlis-pozitif, bu depoda
+   TUM EKIBIN yayinini durduran sinif. */
+function _indexTablosu(ad) {
+  const re = new RegExp("var\\s+" + ad + "\\s*=\\s*(\\{[^;]*\\})\\s*;");
+  const m = INDEX.match(re);
+  if (!m) { return null; }
+  try { return JSON.parse(m[1]); } catch (e) { return null; }
+}
+const KATEGORI_ALIAS = _indexTablosu("KATEGORI_ALIAS");
+const KATEGORI_GORUNUR = _indexTablosu("KATEGORI_GORUNUR");
+/** GORUNEN etiket -> IC ad (kart rozeti/baslik gibi gorunen metni VERI diline cevirir). */
+function icKategori(etiket) {
+  const t = KATEGORI_ALIAS || {};
+  return Object.prototype.hasOwnProperty.call(t, etiket) ? t[etiket] : etiket;
+}
+/** IC ad -> MUSTERIYE GORUNEN etiket (beklenen gorunen metni VERIDEN turetir). */
+function gorunurKategori(ic) {
+  const t = KATEGORI_GORUNUR || {};
+  return Object.prototype.hasOwnProperty.call(t, ic) ? t[ic] : ic;
+}
+
 function kartBilgi(card) {
   const baslik = sinifla(card, "card-title")[0];
   const kategori = sinifla(card, "card-cat")[0];
@@ -437,8 +467,19 @@ async function test2Nav() {
 async function test3JeneratorGorunumu() {
   const hatalar = [];
   const s = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN });
-  if (s.el("sectionTitle").textContent !== "Jeneratör Ürünleri") {
-    hatalar.push("baslik '" + s.el("sectionTitle").textContent + "' (beklenen 'Jeneratör Ürünleri')");
+  /* CEVIRI TABLOSU OKUNDU MU — sessiz yastik nobeti. Tablo cozulemezse yukaridaki iki
+     yardimci KIMLIGE duser ve bu testin (3/5/6) tamami "ic ad = gorunen ad" varsayimina
+     geri doner; o hal SESSIZCE yesil yanardi. Tablonun VARLIGI ayri iddiadir; ICERIGI
+     (hangi seri cevriliyor) bilerek iddia EDILMEZ — seri adi publike acilirsa esleme
+     mesru olarak bosalir ve burasi yalanci kirmizi vermemeli. */
+  if (KATEGORI_ALIAS === null) { hatalar.push("index.html'de KATEGORI_ALIAS cozulemedi"); }
+  if (KATEGORI_GORUNUR === null) { hatalar.push("index.html'de KATEGORI_GORUNUR cozulemedi"); }
+  /* Derin link IC adla gelmeye devam eder (eski linkler yasar) ama BASLIK musteriye
+     gorunen etiketi tasir — beklenti bu yuzden VERIDEN turetilir, elle yazilmaz. */
+  const beklenenBaslik = gorunurKategori("Jeneratör") + " Ürünleri";
+  if (s.el("sectionTitle").textContent !== beklenenBaslik) {
+    hatalar.push("baslik '" + s.el("sectionTitle").textContent +
+      "' (beklenen '" + beklenenBaslik + "')");
   }
   const kartlar = s.kartlar();
   // Ilk sayfa IKI modda da PAGE_SIZE ile sinirli (edge: /katalog boy=PAGE_SIZE; yerel:
@@ -524,8 +565,14 @@ async function test5Banner() {
   // o yuzden markup'i kaynaktan dogruluyoruz).
   if (!/id="jenBanner"/.test(INDEX)) { hatalar.push("index.html'de jenBanner markup'i yok"); }
   const href = INDEX.match(/id="jenBanner"[^>]*href="([^"]*)"/);
-  if (!href || decodeURIComponent(href[1]).indexOf("kategori=Jeneratör") === -1) {
-    hatalar.push("banner linki ?kategori=Jeneratör'e gitmiyor: " + (href ? href[1] : "yok"));
+  /* YAZMA YONU (11 Agu): derin linke IC ad degil GORUNEN etiket yazilir — ic seri adi
+     adres cubuguna da dusmesin. Beklenti bu yuzden ceviri tablosundan TURETILIR; boylece
+     etiket degisirse kapi kendiliginden yeni etikete bakar, ama link BASKA bir kategoriye
+     kayarsa (ya da hic yoksa) KIRMIZI yanar. */
+  const beklenenKat = gorunurKategori("Jeneratör");
+  if (!href || decodeURIComponent(href[1]).indexOf("kategori=" + beklenenKat) === -1) {
+    hatalar.push("banner linki ?kategori=" + beklenenKat + "'e gitmiyor: " +
+      (href ? href[1] : "yok"));
   }
   // OVERLAY METNI: iddia YAPISAL, pazarlama CUMLESI DEGIL.
   // 30 Tem olcumu: eskiden buraya sabit cumle ("PRUVO Jeneratör ile sana özel parça
@@ -685,7 +732,10 @@ async function test6Vitrin() {
     let sari = 0;
     for (let i = 0; i < adet; i++) {
       const k = kartBilgi(kartlar[i]);
-      if (k.kategori !== onBlok.kategori) {
+      /* Kart rozeti GORUNEN etiketi tasir, blok tanimi (PRUVO_VITRIN.bloklar) VERI adini —
+         kiyas TEK dile indirilir. Ceviri yalnizca ADI degistirir: baska bir kategoriden
+         gelen kart hala ON BLOK DISI sayilir. */
+      if (icKategori(k.kategori) !== onBlok.kategori) {
         hatalar.push("tohum " + s + ": " + (i + 1) + ". slot ON BLOK DISI ('" + k.kategori +
           "' != '" + onBlok.kategori + "'): " + k.baslik);
       }
