@@ -1,5 +1,51 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 11 Agu 2026 00:37Z turu (KraL)
+
+**Ev kontrolu:** `pwd` = `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**Supurme (sabit kosucu isciye kosturuldu, betik YAZILMADI/DUZENLENMEDI):** rc=0 ·
+`GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=1:2026-08-11T01:25:38 · HUKUM=TEMIZ`. Uc fail-closed
+alarmin (TASINAN>BULUNAN · CIKAN>TASINAN · KOMSU_KAYIP>0) ucu de sessiz. Inbox sayaci 0 iken
+hukum "OLCULEMEDI" degil **TEMIZ**: pozitif tanima izi Cop'ten geliyor (aranan dizenin AYNISI
+Cop'te 1 kayit tutuyor, 2026-08-11T01:25 yerel).
+**Cop denetimi (salt okuma): 1 kayit, 1 MESRU / YANLIS=0.** O tek kayit hala `b150d01` SERIT B
+maili — onceki turla AYNI kayit (yeni yanlis siniflandirma yok, Cop BOSALTILMADI).
+
+**CI (bagimsiz `gh` ile olculdu): ACIK KIRMIZI YOK, bu turda kod degisikligi YAPILMADI.**
+- Son 100 kosum: `success=78 · cancelled=17 · failure=2 · acik=3`. Iki `failure` de bu turdan
+  ONCEKI turlarda teshis edilip KAPATILAN **TEK sinif** (`Ic rapor adi kapisi` uzak dal yarisi):
+  `31433971660` (`b150d013`, SERIT B) ve `31428696466` (`dfb172f5`, Build & deploy — kirmizi job
+  `serit-a3`, adim `Ic rapor adi kapisi`; `deploy`+`yayin` skipped).
+- **Sinif KAPALI — uc bagimsiz ayak:** (a) `merge-base --is-ancestor dfb172f5 0b95dde7` rc=0 →
+  kirmizi head, YESIL `Build & deploy`'un atasi; (b) `merge-base --is-ancestor f5bb693a 0b95dde7`
+  rc=0 → onarim yayina inmis; (c) **taze kosum kaniti:** tepe commit `b3433910` uzerinde
+  `31445109114` **6/6 job success** — `serit-a3` (onarilan kapi) dahil, `deploy`+`yayin` success.
+  Yani onarim yeni bir kosumda fiilen dogrulandi, yalnizca ata iliskisiyle degil.
+- Ucusta (ariza DEGIL, §4.5 kuyruk davranisi): `31445109293` SERIT B `pending` (`b3433910`).
+  SERIT B yayini BLOKLAMAZ; ayni SHA'nin yayin kolu zaten yesil kapandi.
+- Duzeltme gerekmedi → gorev dosyasi 2. adim geregi Codex/muhendis ONARIM turu ACILMADI.
+
+**D1 (`--durum`): 4 eksen de yesil** — SAYI 25354 == 25354 · SEQ · SEMA · TURETILMIS KOLON
+(5 kolon GUNCEL) · ICERIK (hash uyusmaz 0, eksik 0, fazla 0).
+
+**Worktree: SAYI=1 TAVAN=2 → devralinan "SAYI=3" tavan asimi KAPANDI.** Tek satir ana agac
+(`b3433910 [main]`). Calisma agacinda yabanci degisiklikler var (`M tools/d1-sync.py`, `.scratch/`,
+`tools/paket-deploy-kritik-yol.md`) — baska oturumun isi, DOKUNULMADI.
+
+**Devralinan kurtarma capalari OLCULDU (Codex, salt okuma) — hala ACIK, INSAN YARGISI ister:**
+`kurtarma/worktree-marka-katla-8c782ed1` → `ATA=HAYIR · main'de olmayan commit=1 · main'den
+farkli dosya=5`; `kurtarma/stash-8agu-baska-oturum` → `ATA=HAYIR · commit=4 · farkli dosya=12`.
+Ikisi de main'e girmemis gercek is tasiyor → "cop" denemez. Yargi + birlestirme **skill:
+merge-kapisi** ile ayri bir turda, TEK oturum tarafindan yapilmali (mukerrer tur riski).
+Ayrica `kurtarma/nobetci-tur3` dali ve 2 stash (`stash@{0}` rakip yama, `stash@{1}` baska
+oturumun kod-duzlemi) duruyor — dokunulmadi.
+
+**Kapi dersi (bu turda olculdu):** `Agent` cagrisinda `codex-muafiyet:` sinif jetonu
+**Turkce aksanli** yazilmak zorunda — `guvenlik` REDDEDILDI, `güvenlik` GECTI
+(`mimar-icra-kapisi.py` `AGENT_SINIFLARI` demeti aksanli token tutuyor).
+
 ## 🕐 CI NOBETI — 10 Agu 2026 23:37Z turu (KraL)
 
 **Supurme (0.4 askisi KALKMIS halde ilk tam tur; sabit kosucu isciye kosturuldu):** rc=0 ·
@@ -30,56 +76,7 @@ nobet Cop'u BOSALTMAZ, bu dusus nobete atfedilmez.
 (SAYI=3 TAVAN=2, iki oksuz agac) + `kurtarma/worktree-marka-katla-8c782ed1` capasinin yargisi ·
 kayip is capasi `kurtarma/stash-8agu-baska-oturum` (`891feaeb`).
 
-## 🕐 CI NOBETI — 10 Agu 2026 22:37Z turu (KraL, gec kapandi ~00:2xZ) — ONARIMI BU TUR YAPTI
-
-⚠️ **MUKERRER TUR UYARISI:** ustteki 23:37Z blogu BASKA bir KraL oturumunun turudur ve ayni
-kirmiziyi gozlemleyip "onarim baska oturumca inmis" diye kaydetmis. O onarimi **bu tur** yapti;
-iki blok ayni olayin iki ucudur, ayri ariza degil.
-
-**Supurme (sabit kosucu isciye kosturuldu):** rc=0 · `GITHUB_BILDIRIM_INBOX=1 · BULUNAN=1 ·
-TASINAN=1 · ATLANAN=0 · CIKAN=1 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 ·
-COP_IZI=1:2026-08-11T01:25:38 · HUKUM=SUPURULDU`. Uc fail-closed alarmin ucu de sessiz; tasinan
-tek kayit bu turun tek kirmizisinin (`b150d01`, SERIT B) mailiydi. **Cop denetimi: 1 kayit,
-1 MESRU / YANLIS=0.**
-
-**CI: tek kirmizi TESHIS EDILDI ve ONARILDI (`31433971660`, job `serit-b`).**
-- **Kok neden (gercek ihlal DEGIL, YARIS):** `tools/ic-rapor-adi-kapisi.py --uzak` evreni
-  `git ls-remote` ile CANLI uzaktan kuruyor; CI checkout'u `b150d013`'te dururken `main`
-  `b7f7e5b4`'e ilerlemis, o nesne yerel klonda YOK → `ls-tree` "fatal: not a tree object" →
-  kapi fail-closed rc=2. Logdan alinti: `UZAK DAL AGACI OKUNAMADI (fail-closed,
-  sha=b7f7e5b4d261)`. Guncel taramada **52 dal / 0 isabet** — ic rapor ihlali YOK.
-  Her esizamanli push'ta tekrarlayan bir sinif; teshis Codex'e (salt okuma), onarim
-  **sessiz-hata sinifi** oldugu icin Opus muhendise verildi.
-- **Onarim (`f5bb693a`, tek dosya `tools/ic-rapor-adi-kapisi.py`):** `ls-tree` eksik nesneyle
-  dusunce **kosum basina TEK** dar `git fetch` + **TEK** tekrar; hala dusuyorsa AYNEN eski
-  fail-closed hata (rc=2). Enjekte kosuculu (kanned) kollar aga CIKMAZ.
-  ⚠️ Muhendisin olctugu tuzak: `git fetch <uzak>` yapilandirilmis refspec'e birakilamiyor —
-  hem `--depth` hem actions/checkout `remote.origin.fetch`'i **tek dala** daraltiyor
-  (`+refs/heads/main:refs/remotes/origin/main`), tazeleme sessizce ETKISIZ kalirdi. Bu yuzden
-  refspec acikca veriliyor: `+refs/heads/*:refs/pruvo-uzak-kapi/*`.
-- **Kabul (beyana guvenilmedi, kosuldu):** `--kendini-test` rc=0 `22/22`, iddia sayisi
-  **17 → 22** (DUSMEDI, 5 yeni vaka: yaris onarildi · fail-closed korundu · fetch basarisiz ·
-  aga cikma yok · tek fetch). `--mutasyon`: **14 oldurucu mutant TEK KIRMIZI + 2 KONTROL yesil**,
-  Traceback 0. E2E: gercek sig/tek-dal klonda eski surum rc=2, onarilmis surum rc=0.
-- **Bagimsiz teyit (mimar eliyle):** `gh run view 31440647419 --json jobs` → `serit-b` dahil
-  **10 job success**, kirmizi adim 0. `git rev-list --count cbe7e646..f5bb693a` = **0** →
-  onarim son BASARILI `Build & deploy` head'inin ATASI, yani yayina inmis.
-- **Beyan tazeligi:** `nobet.yml:391` yorumu hala "10 oldurucu mutant" diyordu, olculen 14 →
-  mimar elinden tek satir tazelendi (`55f370f6`, sadece yorum).
-- Tur sonu: **acik `failure` YOK.** Ucusta olanlar ariza degil (`f894042a` Build & deploy +
-  SERIT B, `0b95dde7` Build & deploy) — baska oturumlarin taze push'lari.
-- **D1 (`--durum`): 4 eksen de yesil** — SAYI 25354 == 25354 · SEQ · SEMA · TURETILMIS KOLON ·
-  ICERIK (hash uyusmaz 0, eksik 0, fazla 0).
-
-**Worktree: SAYI=2 TAVAN=2 (asilmadi).** Tek canli agac `agent-a243d7b7d2cf411b8`; HEAD'i
-`8c038748`, `origin/main`'e gore **0 ileri**, KIRLI=HAYIR — ama sahibi BEN DEGILIM (baska KraL
-oturumunun taze isci agaci, 02:45 yerel commit'i main'de). **Dokunulmadi**, yabanci is kurali.
-
-**Devralinan acik kalemler (21:37Z blogu defter kotasi 1:1 geregi arsive alindi, kalemler BURADA
-yasiyor):** (a) `kurtarma/worktree-marka-katla-8c782ed1` capasindaki isi yargila (main'e mi,
-cop mu); (b) kayip is capasi `kurtarma/stash-8agu-baska-oturum` (`891feaeb`) — 5 dosya temiz
-uygulanir, 4 dosya yama duzeyinde birlestirme ister, toplu `pop` YAPILMAZ; devralan TEK oturum
-olsun (mukerrer tur riski olculdu).
+## 🕐 CI NOBETI — 10 Agu 2026 22:37Z turu (KraL, gec kapandi ~00:2xZ) — **ARŞİVE ALINDI** (defter kotası 1:1; uzak dal yarisi kok nedeni + onarim kabul olcumleri + refspec tuzagi arsivde; capa kalemleri 00:37Z blogunda OLCULEREK yasiyor)
 
 ## 🕐 CI NOBETI — 10 Agu 2026 21:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; supurme askisi + kapali kirmizi sinifi + worktree tavani capasi arsivde)
 
