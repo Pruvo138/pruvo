@@ -45,6 +45,20 @@ Onarim "agac yoksa KAPSAM DISI" oldu. Uc mutant onarimin iki ucunu birden kilitl
   M14 agac GORUNMEZ, ihlal VAR   -> KIRMIZI (kapsam-disi kolu gercek sizintiyi YUTMUYOR)
   M3  agac GORUNUR,  ihlal VAR   -> KIRMIZI **ve** hukum jetonu HATALAR'da (onarim
       fazla genisletilip agac VARKEN de hukum verilmez olursa jeton kaybolur -> SAPTI)
+
+🔴 12 AGU 2026 — HUKUM MAKINEYE BAGLI OLAMAZ (kosum 31542119603, job `serit-b`, SAPMA 2).
+Bataryanin uc mutanti kardes agacin DISKTE OLUP OLMAMASINI cevreye birakmisti; ayni
+kaynak, gelistirici makinesinde (~/dev/pruvo-bot VAR) ve CI'da (YOK) FARKLI renk veriyordu:
+  * M3  : agac YOKKEN E10 hukmu HIC basilmiyordu -> "rc dogru ama IZ YOK" SAPMASI.
+          ONARIM: M3 artik kardes agaci SENTETIK FIKSTUR ile GORUNUR kilar (asagida
+          KARDES_FIKSTUR_JS). Iz sarti KORUNDU, gevsetilmedi; cevre bagimliligi kesildi.
+  * M12 : kapinin ALAN NOTRLUGU kaniti (E10b) yanlislikla kardes-agac kolunun ICINDE
+          duruyordu -> agac YOKKEN blok hic kosmuyor, mutant HAYATTA kaliyordu (rc=0).
+          Bu bir FAIL-OPEN DELIKTI: kapi bugun CI'da o kusuru gercekten GORMUYORDU.
+          ONARIM kapida yapildi (kanit `if tasiyor is not None:` govdesinden CIKARILDI);
+          batarya ayrica M12'ye JETON_KART_ALAN_NOTR iz sarti koyar, boylece kirmizinin
+          DOGRU eksenden geldigi kanitlanir.
+Kabul olcutu artik HER iz-sartli mutantta "rc + dogru jeton izi" IKILISIDIR.
 """
 import contextlib
 import hashlib
@@ -114,8 +128,22 @@ MUTANTLAR = [
        "    return _birim_kurus(p, VARSAYILAN_MALZEME)")],
      1),
 
+    # 🔴 M3 KARDES AGACI SENTETIK FIKSTURLE GORUNUR KILAR (12 Agu onarimi).
+    # ESKI HALI: mutasyon YOKTU, yalniz zehir vardi — kardes agacin diskte olup olmamasi
+    # MAKINEYE kaliyordu. Gelistirici makinesinde ~/dev/pruvo-bot VAR -> E10 hukum verir,
+    # JETON_KARDES_HUKUM HATALAR'a duser, IZ tutar. CI fresh checkout'unda YOK -> kol
+    # KAPSAM DISI, jeton HIC basilmaz -> "rc dogru ama IZ YOK" SAPMASI (kosum 31542119603).
+    # Yani mutantin hukmu makinenin HOME'una bagliydi. Fikstur o bagi keser: kapinin
+    # KARDES_WORKER yolu bataryanin yazdigi sentetik worker kaynagina cevrilir (gercek
+    # kardes dosyanin BICIMINI taklit eder, `tavsiyeFilament` TASIMAZ -> tasiyor=False).
     ("M3", "KART DA YUKSELDI — kapsam sizintisi (Okan'in REDDETTIGI davranis)",
-     "vitrin", [], 1),
+     "vitrin",
+     [("kapi",
+       "    if _edge is not None:\n        if not os.path.exists(",
+       "    if _edge is not None:\n"
+       '        _edge.KARDES_WORKER = "@@KARDES_FIKSTUR@@"\n'
+       "        if not os.path.exists(")],
+     1),
 
     ("M4", "kart yuzeyi URUN SAYFASI turetmesini cagiriyor", None,
      [("index",
@@ -219,9 +247,28 @@ MUTANTLAR = [
 # Jetonlar kapinin kendi sabitlerinden gelir; elle kopya tutulmaz ([[ikiz-tanim-sessiz-ayrisma]]).
 IZLER = {
     "M3": ("hatalar", "JETON_KARDES_HUKUM"),
+    # M12'nin kirmizisi E10b (alan notrlugu) ekseninden GELMEK ZORUNDA. Iz sarti olmasa,
+    # ileride baska bir eksen mutanti tesadufen kirmizi yaktiginda batarya "oldurdum" der
+    # ve E10b sessizce fail-open'a dususe kimse gormezdi (12 Agu'da tam bu oldu).
+    "M12": ("hatalar", "JETON_KART_ALAN_NOTR"),
     "M13": ("cikti", "JETON_KARDES_KAPSAM_DISI"),
     "M14": ("cikti", "JETON_KARDES_KAPSAM_DISI"),
 }
+
+# ═══════════════════════════════════════════════════════════ SENTETIK KARDES FIKSTUR
+# 🔴 GERCEK CIKTININ SEKLINI TAKLIT EDER ([[nobetci-fikstur-sekli]]): kardes depodaki
+# sabit COK PARCALI bir dize (`"..." + "..."`) ve USTUNDE ayni adi tasiyan bir YORUM
+# blogu vardir — kapinin satir-basi capasi ve parca birlestirme kollarinin IKISI de
+# bu fiksturde egzersiz edilir. Alan listesi kasitla `tavsiyeFilament` TASIMAZ:
+# olculen gercek dunya hali budur ve E10 hukmunun dogdugu kosuldur.
+KARDES_FIKSTUR_JS = """// KART_ALANLARI: yeni kolon alt satira degil BU satira yazilir.
+const KART_ALANLARI =
+  "u.id, u.baslik, u.kategori, u.marka, u.fiyat, u.gorsel, u.parametrik, u.tur," +
+  " substr(u.aciklama, 1, 160) AS aciklama";
+
+const sql = "SELECT " + KART_ALANLARI + " FROM urunler u WHERE u.yayinda = 1";
+"""
+FIKSTUR_YER_TUTUCU = "@@KARDES_FIKSTUR@@"
 
 
 # ═══════════════════════════════════════════════════════════ kosum altyapisi
@@ -302,6 +349,11 @@ def main():
         kapi_temiz = _modul("_kapi_temiz", temiz["kapi"], KAPI_YOL)
         with open(fikstur["kosucu"], "w", encoding="utf-8") as f:
             f.write(kapi_temiz.JS_KOSUCU)
+        # Sentetik kardes worker kaynagi: M3'un kardes agaci GORUNUR kilmasi icin.
+        # Gecici dizindedir, kosum sonunda silinir; kardes depoya DOKUNULMAZ.
+        kardes_fikstur = os.path.join(gecici, "kardes-worker.js")
+        with open(kardes_fikstur, "w", encoding="utf-8") as f:
+            f.write(KARDES_FIKSTUR_JS)
 
         print("MUTASYON BATARYASI — urun sayfasi / kart ayrimi kapisi")
         print("hedefler: " + " · ".join(sorted(HEDEF_DOSYALAR)))
@@ -327,6 +379,14 @@ def main():
             for hedef, eski, yeni in mutasyonlar:
                 if capa_hata:
                     break
+                # Fikstur yolu KOSUM ANINDA cozulur (gecici dizin her kosumda farkli).
+                # Cozulmezse mutant SESSIZCE atlanmaz: fail-closed CAPA YOK sayilir.
+                if FIKSTUR_YER_TUTUCU in yeni:
+                    yeni = yeni.replace(FIKSTUR_YER_TUTUCU, kardes_fikstur)
+                    if not os.path.exists(kardes_fikstur):
+                        capa_hata = "%s: kardes fikstur yazilamadi (%s)" % (
+                            hedef, kardes_fikstur)
+                        break
                 ok, mesaj = _uygula(kaynaklar, hedef, eski, yeni)
                 if not ok:
                     capa_hata = "%s: %s" % (hedef, mesaj)
