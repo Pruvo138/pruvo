@@ -115,7 +115,8 @@ Ek kapi: `python3 tools/cron-nabiz-kapisi.py --kendini-test` rc=0 (kadans kablos
 
 ## 7. RAPOR
 
-Dalda `RAPOR-MIMARA.md`; son satirlar:
+Dalda, mimar iletisim protokolundeki kanonik muhendis raporu adiyla (bkz. CLAUDE.md
+"ILETISIM PROTOKOLU") bir rapor birakilir; son satirlar:
 
 ```
 KARANTINA_TESTI=<rc>:<vaka sayisi>
