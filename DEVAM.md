@@ -1,60 +1,5 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🕐 CI NOBETI — 11 Agu 2026 22:38 yerel / 19:38Z turu (KraL)
-
-**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🟢 SUPURME rc=0 — HUKUM=SUPURULDU (askidan sonraki 2. temiz tur).** Sabit kosucu isciye
-kosturuldu; betik YAZILMADI/DUZENLENMEDI. Betigin bastigi satirlar oldugu gibi:
-`GITHUB_BILDIRIM_INBOX=5 · BULUNAN=5 · TASINAN=5 · ATLANAN=0 · CIKAN=5 · KOMSU_KAYIP=0 ·
-KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=43:2026-08-11T22:31:53 · HUKUM=SUPURULDU`. Uc fail-closed
-alarmin ucu de sessiz; tur sonu kutuda `Run failed` **0**.
-
-**🟠 Cop denetimi (salt okuma, rc=0): 45 kayit — MESRU=42, YANLIS=3.** Ucu de onceki UC turdan
-bilinen AYNI kalem (16:54, reklam-platformu bildirimi; id `68047/68048/68049`), sayi ARTMADI ve
-bu turun kayitlarindan (`68134…68137`) KUCUK. **Siparis/odeme ekseninde Cop'te kayit YOK.**
-Sinif karari Okan'da, cevap gelmedi → tekrar SORULMADI, kendiliginden geri alma YAPILMADI.
-
-**✅ SUPURME DEFTERI TAMAMI TARANDI — "yanlis silme" iddiasi makineyle CURUTULDU.**
-`mail-supurme.log` (6 Agu 18:17 → 11 Agu 19:38Z, **22 kosum**): `SILINEN_GITHUB_DISI=0` ·
-`META_IZI=0` → betigin sildigi HICBIR kayit github+`Run failed` disinda degil, ve Cop'teki 3
-yabanci kaydin defterde **hic izi yok**. `KOMSU_KAYIP` alarmi bugun 2 kez tuttu (16:39Z, 18:38Z);
-her ikisinde de "hedef disi" kimlik **yine bir github check-suite kimligi** — yani alarm mesru
-sinif icinde tuttu, yanlis sinif zarari **0**.
-
-**🔴 CI: `deploy` KIRMIZI OLCULDU → ONARIM DELEGE EDILDI → ONARIM MAIN'DE.** `31527715768`
-(`f4caf59f`) **FAILURE**, dusen adim `serit-a3 / Varlik ... kabul testi + mutasyon nobeti`
-(`build` ve `serit-a4` success). Kok neden: N1 mutantinin capasi `min-width:210px` dizesine
-kilitliydi, ayni commit o dizeyi kaldirinca capa 0 kez eslesti → mutant NO-OP → fail-closed
-kirmizi. Onarim `c8b0451e` (**2 satir**, `tools/varlik-mutasyon.py`): capa yeni CSS'e tasindi,
-mutasyon SINIFI korundu (`height:56px→57px`) — kapi gevsetilmedi, esik degismedi, adim silinmedi.
-Yerelde varlik testi 10 eksen + mutasyon **8/8** rc=0. Karar kosumu **`31531089183`** (`c8b0451e`)
-tur sonunda hala **UCUSTA** — yesil YAZILMAZ.
-
-**✅ "Paket tazeligi alarmi" sinifi KENDILIGINDEN KAPANDI:** `31529488161` (19:45Z) **success**;
-onceki kirmizisi (`31523722642`) "taranan 8 kosumda basarili `deploy` YOK" diyordu.
-
-**✅ "Yayin erisim alarmi" kirmizisi (`31528157635`) GECICI CIKTI — canli KAYIP YOK.** Alarm 11
-URL'i 404 olctu, ama uc bagimsiz ayak tersini gosterdi: (a) 404 gorulen sluglar `363a7e36`
-(SEO wave-34) ile geldi ve o commit, **TAM YESIL** biten `31525687626`'nin (`c8460b17`) atasidir;
-(b) uretim yolu ayrisMIYOR — `build.py` `CONTENT_PAGES` dongusu `/<slug>/index.html` uretiyor,
-`deploy.yml` ayni dizini `_site`'a kopyaliyor, wave-33 karsi ornegi ayni yoldan 200; (c) **canli
-yeniden yoklandi: `/slug/` 200 · `/slug.html` 404 · sitemap eslesmesi 1.** Alarm 19:30:01Z'de
-kosmus, ilgili deploy 19:34:53–19:35:24Z'de tamamlanmis → alarm **yayin inmeden ~4 dk once eski
-surumu** olctu. → `[[alarm-onarim-ucus-suresi]]` sinifinin yeni ornegi.
-🔧 **ONERI (uygulanmadi, KraL kuyrugunda):** erisim alarmi, uygulanabilir deploy tamamlanmadan
-hukum vermesin — o pencerede `KAPALI` degil **OLCULEMEDI** bassin.
-
-**Bu turda:** urun verisine dokunulmadi · worktree ACILMADI · deploy elle YAPILMADI · yabanci
-degisikliklere DOKUNULMADI (`d82c8874` sahibi tarafindan CI'a baglandi, kapsam kapisi blokaji
-boylece kalkti). Codex'e 5 cagri (supurme+Cop · defter olcumu · alarm kimlik olcumu · 404 teshisi
-· serit-a3 onarimi). Okan'a cikilmadi (rutin sonuc + zaten sorulmus soru).
-
-**Sonraki turun ILK ISI:** (a) **`31531089183`'u JOB birimiyle kapat** (`build` VE `deploy`/`yayin`
-success mi) — ucustaki kosum yesil DEGILDIR; (b) canliyi cache-bust'siz dogrula (11 SEO sayfasi +
-katalog sayisi); (c) erisim-alarmi OLCULEMEDI onerisini spec'e cevir; (d) DEVREDILEN 1 (E10
-kardes-depo kolu) serit karari KraL'da.
-
 ## 🕐 CI NOBETI — 12 Agu 2026 00:37 yerel / 11 Agu 21:37Z turu (KraL)
 
 **Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
@@ -113,6 +58,53 @@ yayin nabzi teshisi · deploy zinciri bekleme). Okan'a cikilmadi (rutin sonuc + 
 (Opus) ver, dalda kapat; (b) `Paket tazeligi alarmi`nin bir sonraki kosumu yesil mi — aclik
 gercekten kapandi mi (esik 65 dk, taban yayin ani); (c) canliyi cache-bust'siz dogrula
 (`9569da50` icerigi indi mi); (d) DEVREDILEN 1 (E10 kardes-depo kolu) serit karari KraL'da.
+
+## 🧾 CTA DENGE TURU KAPANISI — 12 Agu 2026 / 11 Agu 21:xxZ (KraL merge turu, §6+§8)
+
+**Kapsam:** yalnizca kapanis kapilari. Merge/push/temizlik ONCEKI turda inmisti; bu turda kod
+DEGISTIRILMEDI, worktree ACILMADI, merge/push YAPILMADI, urun verisine DOKUNULMADI.
+
+**Degisiklik (Okan'in 11 Agu karari):** yardim bandindaki WhatsApp hapinin etiketi artik HER
+genislikte kisa — `.wa-uzun{display:none}` kurali `tools/build.py`'de mobil media blogundan
+TEMEL CSS'e tasindi. Karsiliginda `.ikon-sepet`'teki `min-width:210px` CTA denge tabani
+KALDIRILDI → "Sepete Ekle" masaustunde de gercek `width:fit-content`. Kanal, numaralar ve punto
+karari DEGISMEDI; `index.html` DEGISMEDI.
+
+**Muhendis commit'i `547bff87`, main tepesi `389ffdd5`.**
+
+**Olculen sayilar:** masaustu CTA **155,8 × 56 = 8.725 px²** · hap **8.340 px²** · **oran 1,05**.
+Mobil oran **1,24** — DEGISMEDI. Kapi rc'leri **6/6 yesil**. D1 **25905** = `urunler.json`
+(hash uyusmaz 0 · eksik 0 · fazla 0).
+
+**🟢 CANLI DOGRULAMA (§6) — TAZE.** Kanit kosumu **`31535741568`** (`8a31b85e`,
+"Build & deploy to GitHub Pages") **success**; ata ekseni `merge-base --is-ancestor 547bff87
+8a31b85e` → **rc=0**. "En son kosum yesildi" DENMEDI: main tepesi `389ffdd5`'in kendi deploy
+kosumu (`31538073387`) tur sirasinda **UCUSTA** (queued/in_progress) — yesil YAZILMAZ, ve zaten
+karar kosumu o degil. Olcum kanonik adresten, **cache-bust'SIZ**
+(`/urun/audi-a6-c4-telefon-tutucu-iphone-13-14-15-pro-max/` → varlik
+`/varlik/sayfa-f8805d4f24.css`, 16.367 bayt). Iki eksen AYRI AYRI:
+- **EKSEN-1** `min-width:210px` → canli CSS'te **0 vurus** (sayfa ici `<style>` bloklarinda da 0).
+  Canli kural artik `.ikon-sepet{flex:none}` — denge tabani YOK.
+- **EKSEN-2** `.wa-uzun{display:none}` → **media sorgusu DISINDA**, temel CSS'te (yuvalanma
+  olculdu: aktif `@media` YOK).
+Katalogun EN YENI urunu (`389ffdd5` partisi) canlida henuz **404** — bu bekleniyor, o partinin
+deploy'u ucusta; CTA ekseni acisindan anlamsiz.
+
+**⚠️ GENISLIK TOLERANSI NOTU — bu turun tasinabilir dersi.** Masaustunde elde kalan pay
+**~%5 (~7 px)**. (Bu bir YERLESIM toleransidir, ticari bir buyuklukle ilgisi YOKTUR.) Hap etiketi bir
+kelime uzarsa **CTA-A1 kirmizi yanar**. Yani etiket METNI artik dengeyi tasiyan bir DEGISKENDIR:
+denge sabit bir taban (`min-width`) tarafindan degil, iki kutunun gercek metin genisligi
+tarafindan kuruluyor. Bandi daraltan her metin degisikligi (pazarlama dahil) kapi ekseniyle
+birlikte dusunulmeli.
+
+**Bu turda:** kod degistirilmedi · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI · yabanci
+degisiklikler (`paket-tazelik-alarmi.yml`, `deploy-aclik-kapisi.py`, `.scratch/`,
+`paket-deploy-kritik-yol.md`) BASKA OTURUMUN isi, DOKUNULMADI/commit'lenMEDI.
+
+**Sonraki turun ILK ISI:** (a) `31538073387` ucustaki kosumu JOB birimiyle kapat (`deploy`+`yayin`
+success mi) ve `389ffdd5` partisinin urun sayfalari canliya indi mi — 404 kapandi mi;
+(b) CTA genislik toleransi notunu kapi tarafina bagla (etiket uzunlugu degisince CTA-A1'i
+uyaran eksen).
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
