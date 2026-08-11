@@ -634,6 +634,11 @@
     var i;
     var ovr = urun.tavsiyeFilament;
     if (ovr) {
+      /* 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed; ureteç tarafi
+         filament_ortak.tavsiyeler ile AYNI kural). Alan DIZI olmak zorundadir.
+         Kategori haritasina DUSULMEZ: dusulseydi alani bozuk urun sessizce
+         %30-60 zamlanirdi. */
+      if (!Array.isArray(ovr)) { return guvenli; }
       for (i = 0; i < ovr.length; i++) {
         if (siteAd[ovr[i]]) { adaylar.push(ovr[i]); }
       }
