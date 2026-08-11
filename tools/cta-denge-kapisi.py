@@ -298,15 +298,42 @@ def _kenarlik(d):
     return v if v is not None else 0.0
 
 
+def flex_buyume(d):
+    """Ogenin `flex-grow` degeri. `flex` kisayolundan da okunur (`flex:1 1 auto` -> 1,0).
+
+    🔴 `flex:none` = `0 0 auto` ve `flex:auto` = `1 1 auto` (CSS kisayol semantigi).
+    Bu ayrim OLCULMUS bir tuzaktir: `.ikon-sepet{flex:1 1 auto}` butonu satirin
+    bosluguna kadar buyutuyordu ve kapi bunu GORMUYORDU."""
+    ayri = d.get("flex-grow")
+    if ayri is not None:
+        return _px(ayri, 0.0) or 0.0
+    ham = (d.get("flex") or "").strip().lower()
+    if not ham:
+        return 0.0
+    if ham == "none":
+        return 0.0
+    if ham in ("auto", "initial"):
+        return 1.0 if ham == "auto" else 0.0
+    ilk = ham.split()[0]
+    return _px(ilk, 0.0) or 0.0
+
+
 def olc_kutu(d, metin, ikon_px, varsayilan_lh=VARSAYILAN_SATIR_YUKSEKLIGI,
-             kullanilabilir_en=None):
-    """Bir buton/link kutusunun (genislik, yukseklik) olcusu. Cozulemezse None.
+             kullanilabilir_en=None, buyume_eni=None, sarmaz=False):
+    """Bir buton/link kutusunun (genislik, yukseklik, satir_sayisi) olcusu.
+
+    Cozulemezse None doner. Donen uclunun ilk iki ogesi (w, h) eski cagri bicimiyle
+    BIREBIR uyumludur; ucuncusu SARMA nobetinin (CTA-A7) okudugu satir sayisidir.
 
     varsayilan_lh    : `line-height` BILDIRILMEMISSE kullanilacak carpan. <button> icin
                        BUTON_SATIR_YUKSEKLIGI (UA `normal`), miras alan ogeler icin 1,5.
     kullanilabilir_en: kabin ic genisligi. Verilirse (a) blok seviyesindeki kutu onu
                        DOLDURUR, (b) metin sigmiyorsa SARAR ve buton UZAR. Verilmezse
-                       sarma modellenmez — cagiran taraf bunu bilerek yapmali."""
+                       sarma modellenmez — cagiran taraf bunu bilerek yapmali.
+    buyume_eni       : ogenin `flex-grow`u pozitifse BUYUYECEGI hedef genislik. Flex
+                       satirinda kalan bosluk cagiran tarafca hesaplanip verilir.
+    sarmaz           : etiket `white-space:nowrap` tasiyorsa True. O zaman metin
+                       sigmasa bile kutu UZAMAZ (tasar) — yukseklik sabit kalir."""
     dolgu = _dortlu(d.get("padding"))
     if dolgu is None:
         return None
@@ -339,12 +366,40 @@ def olc_kutu(d, metin, ikon_px, varsayilan_lh=VARSAYILAN_SATIR_YUKSEKLIGI,
         else:
             w = min(w, kullanilabilir_en)
 
-    # --- SARMA: metin, kutunun ic genisligine sigmiyorsa satirlara boluner.
-    satir = 1
+    # --- FLEX BUYUMESI: pozitif `flex-grow` tasiyan oge satirin bosluguna YAYILIR.
+    # `fit-content` bunu ENGELLEMEZ (flex-basis/grow, width'ten sonra uygulanir), bu
+    # yuzden buyume kontrolu daraltan-genislik kontrolunden SONRA gelir.
+    if buyume_eni is not None and flex_buyume(d) > 0:
+        w = max(w, buyume_eni)
+
+    # 🔴 SIRA ONEMLI: `width`/`min-width` SARMADAN ONCE uygulanir. Eskiden sarma once
+    # hesaplaniyordu, yani bir `min-width` kutuyu genisletip sarmayi cozse bile kapi
+    # metni hala SARMIS sayiyordu (sahte-yuksek buton). CSS'te kutu genisligi once
+    # yerlesir, satir kirilmasi O genislige gore olur.
+    sabit_w = _px(d.get("width"))
+    if sabit_w is not None:
+        w = sabit_w
+    en_az_w = _px(d.get("min-width"))
+    if en_az_w is not None:
+        w = max(w, en_az_w)
+
+    # --- SIGMA / SARMA. Iki AYRI soru, birbirine karistirilmaz:
+    #   sigdi : metin kutunun ic genisligine SIGIYOR mu?  (CTA-A7'nin okudugu)
+    #   satir : kutu kac satir YUKSELIYOR?                (yukseklik modelinin okudugu)
+    # `white-space:nowrap` tasiyan etiket sigmasa bile SARMAZ; kutu uzamaz, metin TASAR.
+    # Ikisini tek sayiya indirgemek sessiz bir yesil dogurur: nowrap'li bir etiket
+    # kirpilirken "satir=1" diye SAGLIKLI gorunurdu.
+    satir, sigdi = 1, True
     if kullanilabilir_en is not None and metin_w > 0:
         ic_en = w - yatay_sabit
-        if ic_en > 0 and metin_w > ic_en:
-            satir = int(metin_w / ic_en) + (0 if abs(metin_w % ic_en) < 1e-9 else 1)
+        # epsilon: `w = yatay_sabit + metin_w` kayan nokta ile birebir geri gelmeyebilir;
+        # tolerans olmadan tam sigan metin SARMIS gorunup butonu sahte uzatiyordu.
+        if ic_en > 0 and metin_w > ic_en + 1e-6:
+            sigdi = False
+            if not sarmaz:
+                satir = int(metin_w / ic_en) + (0 if abs(metin_w % ic_en) < 1e-9 else 1)
+        elif ic_en <= 0:
+            sigdi = False
 
     icerik_h = max(fs * lh * satir, ikon_px or 0.0)
     h = dolgu[0] + dolgu[2] + 2 * kb + icerik_h
@@ -354,13 +409,7 @@ def olc_kutu(d, metin, ikon_px, varsayilan_lh=VARSAYILAN_SATIR_YUKSEKLIGI,
     en_az_h = _px(d.get("min-height"))
     if en_az_h is not None:
         h = max(h, en_az_h)
-    sabit_w = _px(d.get("width"))
-    if sabit_w is not None:
-        w = sabit_w
-    en_az_w = _px(d.get("min-width"))
-    if en_az_w is not None:
-        w = max(w, en_az_w)
-    return (w, h)
+    return (w, h, satir, sigdi)
 
 
 # ---------------------------------------------------------------- gecis penceresi
@@ -540,17 +589,38 @@ def bolum_urun(kurallar, sayfa, wa_no):
         return None
     bant_btn_ham = m.group(1)
 
-    oranlar, bant_payi, dokunmalar = {}, {}, []
+    oranlar, bant_payi, dokunmalar, sarmalar = {}, {}, [], []
     for ad, vw in (("mobil", MOBIL_EN), ("masaustu", MASAUSTU_EN)):
         bant_btn_metni = gorunur_metin(kurallar, bant_btn_ham, vw)
         d_sepet = stil(kurallar, sepet_jeton, vw)
         d_wa = stil(kurallar, wa_ikon_jeton, vw)
-        k_sepet = olc_kutu(d_sepet, sepet_metni,
-                           ikon_olcusu(kurallar, [".ikon-btn"], vw))
-        k_wa = olc_kutu(d_wa, "", ikon_olcusu(kurallar, [".ikon-btn"], vw))
-        if k_sepet is None or k_wa is None:
-            olculemedi("urun sayfasi eylem butonlari olculemedi (%s)" % ad)
+        d_satir = stil(kurallar, {".eylem-ikonlar"}, vw)
+        # 🔴 KULLANILABILIR GENISLIK — elle sabit YOK, sayfa kabindan turer. Turetilemezse
+        # SARMA da FLEX BUYUMESI de modellenemez; "gecti" SAYILMAZ.
+        panel_en = eylem_satir_genisligi(kurallar, vw)
+        if panel_en is None:
+            olculemedi("urun sayfasi eylem satirinin genisligi turetilemedi "
+                       "(main max-width/padding · .detail grid-template-columns/gap · "
+                       ".opsiyonlar padding capasi yok) — %s" % ad)
             return None
+        k_wa = olc_kutu(d_wa, "", ikon_olcusu(kurallar, [".ikon-btn"], vw))
+        if k_wa is None:
+            olculemedi("urun sayfasi WhatsApp ikonu olculemedi (%s)" % ad)
+            return None
+        # `.eylem-ikonlar` satiri: `width:100%` ise paneli doldurur, degilse icerige gore
+        # buzusur. Sepete Ekle `flex-grow` tasiyorsa satirda KALAN boslugu yutar.
+        satir_en = panel_en if (d_satir.get("width") or "").strip() == "100%" else None
+        satir_bosluk = _px(d_satir.get("gap"), 0.0) or 0.0
+        buyume_eni = None if satir_en is None else (satir_en - satir_bosluk - k_wa[0])
+        etiket_sarmaz = (stil(kurallar, {".cart-label"}, vw).get("white-space") or
+                         "").strip() == "nowrap"
+        k_sepet = olc_kutu(d_sepet, sepet_metni,
+                           ikon_olcusu(kurallar, [".ikon-btn"], vw),
+                           BUTON_SATIR_YUKSEKLIGI, panel_en, buyume_eni, etiket_sarmaz)
+        if k_sepet is None:
+            olculemedi("urun sayfasi Sepete Ekle butonu olculemedi (%s)" % ad)
+            return None
+        sarmalar.append(("%s Sepete Ekle" % ad, k_sepet[2], k_sepet[3]))
         sebep, sonuc = bant_yuksekligi(kurallar, "", bant_btn_metni, vw)
         if vw == MOBIL_EN:
             if sonuc is None:
@@ -581,12 +651,30 @@ def bolum_urun(kurallar, sayfa, wa_no):
               % (ad, k_sepet[0], k_sepet[1], alan_sepet, wa_en_buyuk, oranlar[ad]))
         dokunmalar.append(("%s Sepete Ekle" % ad, k_sepet[1]))
         dokunmalar.append(("%s WhatsApp ikonu" % ad, k_wa[1]))
+        # 🔴 TABANI KAPI YAZAR, INSAN DEGIL: CSS'teki `min-width` bir tasarim degeri
+        # degil, bu satirin TURETTIGI dengeleme tabanidir. Sayiyi burada basmak, taban
+        # bandin hapi degistiginde kaydiginda gerekcenin izlenebilir kalmasini saglar.
+        print("     %-9s -> Sepete Ekle bu eksende en az %.1f px genis olmali "
+              "(%.0f px² / %.0f px yukseklik)"
+              % (ad, wa_en_buyuk / k_sepet[1], wa_en_buyuk, k_sepet[1]))
 
     en_dusuk = min(oranlar.values())
     kontrol("CTA-A1-ORAN", en_dusuk >= ORAN_TABANI,
             "Sepete Ekle / WhatsApp alan orani en dusuk %.2f (taban %.2f) "
             "[mobil %.2f · masaustu %.2f]"
             % (en_dusuk, ORAN_TABANI, oranlar["mobil"], oranlar["masaustu"]))
+    # 🔴 CTA-A7 (11 Agu, Okan'in daraltma talebiyle eklendi): buton METNE gore
+    # daraltildiginda yeni bir sessiz bozulma sinifi acilir — etiket kutuya SIGMAZ.
+    # `.cart-label{white-space:nowrap}` oldugu icin bu SARMA olarak degil KIRPILMA
+    # olarak goruntlenir: buton yuksekligi ayni kalir, oran saglikli gorunur, metin
+    # kesilir. A1/A4 bu vakada YESIL yanar; olcen tek eksen budur.
+    tasan = [a for a, _, sigdi in sarmalar if not sigdi]
+    cok_satir = [(a, s) for a, s, _ in sarmalar if s != 1]
+    kontrol("CTA-A7-ETIKET-SIGDI", not tasan and not cok_satir,
+            "Sepete Ekle etiketi TEK satirda ve kutuya sigiyor (%s)"
+            % ("hepsi" if not (tasan or cok_satir)
+               else "sigmayan: " + ", ".join(tasan) + "; sarmis: " + ", ".join(
+                   "%s=%d satir" % (a, s) for a, s in cok_satir)))
     kucuk = [(a, h) for a, h in dokunmalar if h < DOKUNMA_TABANI]
     kontrol("CTA-A4-DOKUNMA-44", not kucuk,
             "urun sayfasi dokunma hedefleri >= %d px (%s)"
@@ -599,6 +687,52 @@ def bolum_urun(kurallar, sayfa, wa_no):
             "urun sayfasinda WhatsApp kanali + numara YERINDE ve sepet butonu "
             "etiketli (etiket=%r)" % sepet_metni)
     return oranlar, bant_payi
+
+
+def eylem_satir_genisligi(kurallar, viewport):
+    """Urun sayfasinda `.eylem-ikonlar` satirinin KULLANILABILIR ic genisligi (px).
+
+    🔴 NEDEN VAR (olculdu, 11 Agu 2026 — modelin tam-genislik varsayimi yanlisti):
+    Kapi eskiden urun sayfasi butonlarini `kullanilabilir_en=None` ile olcuyordu, yani
+    (a) kabin genisligini hic turetmiyor, (b) SARMAYI modelleyemiyor, (c) `flex-grow`
+    ile BUYUYEN bir butonu goremiyordu. Mobilde `.eylem-ikonlar{width:100%}` +
+    `.ikon-sepet{flex:1 1 auto}` butonu satirin bosluguna kadar sisiriyordu: kapi
+    min-width'ten 200 px sanıyordu, tarayicida olculen 249 px idi (%25 sapma).
+
+    Zincir CSS'ten turer, elle sabit YOK:
+        main{max-width; padding}  ->  .detail{grid-template-columns; gap}
+        ->  .opsiyonlar{padding + border}
+    Capa eksikse None doner ve cagiran taraf OLCULEMEDI basar."""
+    ana = stil(kurallar, {"main"}, viewport)
+    detay = stil(kurallar, {".detail"}, viewport)
+    panel = stil(kurallar, {".opsiyonlar"}, viewport)
+    if not ana or not detay or not panel:
+        return None
+    mx = _px(ana.get("max-width"))
+    if mx is None:
+        return None
+    w = min(mx, float(viewport))
+    dolgu = _dortlu(ana.get("padding"))
+    if dolgu is None:
+        return None
+    w -= dolgu[1] + dolgu[3]
+
+    # --- grid kolon sayisi: `1fr 1fr` -> 2, `1fr` -> 1. Baska bir yazim cozulmez.
+    kolonlar = (detay.get("grid-template-columns") or "").split()
+    if not kolonlar or any(k != "1fr" for k in kolonlar):
+        return None
+    n = len(kolonlar)
+    if n > 1:
+        bosluk = _px(detay.get("gap"))
+        if bosluk is None:
+            return None
+        w = (w - (n - 1) * bosluk) / n
+
+    p_dolgu = _dortlu(panel.get("padding"))
+    if p_dolgu is None:
+        return None
+    w -= p_dolgu[1] + p_dolgu[3] + 2 * _kenarlik(panel)
+    return w if w > 0 else None
 
 
 def sepet_ic_genisligi(kurallar, viewport=MOBIL_EN):

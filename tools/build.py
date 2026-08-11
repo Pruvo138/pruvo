@@ -1920,17 +1920,17 @@ PAGE_CSS = """
   .adet-kutu input::-webkit-outer-spin-button,
   .adet-kutu input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
-  /* Eylem butonları (madde 7 + CTA dengesi 11 Ağu): ETİKETLİ "Sepete Ekle" (birincil,
-     44×44 tabanının ÜSTÜNE çıkar) + yazısız WhatsApp ikonu (ikincil; kanal KALIR).
-     margin-left:auto sağa yaslar, dar ekranda blok panel İÇİNDE alt satıra kırılır. */
+  /* Eylem butonları (madde 7 + CTA dengesi 11 Ağu): ETİKETLİ "Sepete Ekle" (birincil)
+     + yazısız WhatsApp ikonu (ikincil; kanal KALIR). Buton METNE göre büzüşür; alttaki
+     `min-width` tasarım değil, cta-denge-kapisi.py'nin bastığı DENGE TABANIDIR. */
   .eylem-ikonlar{display:inline-flex;gap:8px;margin-left:auto;flex-wrap:wrap;
     justify-content:flex-end}
   .ikon-btn{width:44px;height:44px;border:none;border-radius:9px;display:inline-flex;
     align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex:none;
     text-decoration:none;padding:0}
   .ikon-btn svg{width:22px;height:22px;fill:#fff}
-  .ikon-sepet{background:var(--navy);width:auto;min-width:260px;height:56px;
-    padding:0 20px;gap:9px;color:#fff;font-size:16px;font-weight:700;font-family:inherit}
+  .ikon-sepet{background:var(--navy);width:fit-content;min-width:210px;height:56px;
+    padding:0 14px;gap:9px;color:#fff;font-size:16px;font-weight:700;font-family:inherit}
   .ikon-sepet:hover{background:var(--navy-2)}
   .ikon-sepet.added{background:#178a44}
   .cart-label{white-space:nowrap}
@@ -2089,8 +2089,8 @@ PAGE_CSS = """
     .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;flex:none}
     .wa-uzun{display:none}
     .eylem-ikonlar{flex-wrap:nowrap;width:100%}
-    /* 260 tabanı dar ekranda panelin min-content'ini 375'in üstüne çıkarır (yatay kayma). */
-    .ikon-sepet{flex:1 1 auto;min-width:200px}
+    /* `flex:1 1 auto` butonu 249 px'e şişiriyordu; mobilde denge tabanı da GEREKMEZ. */
+    .ikon-sepet{flex:none;min-width:0}
   }
 """
 PAGE_CSS += CONTENT_CSS
