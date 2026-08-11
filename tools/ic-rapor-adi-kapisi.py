@@ -233,6 +233,8 @@ _MUAFIYET_GOVDESI = [
      "mimar->muhendis delegasyon speci: rapor adi ZORUNLU talimati (protokolun kendisi)"),
     ('tools/paket-uyum-yazma-yolu.md', 'Dalda `RAPOR-MIMARA.md` (başka ad YASAK, izlenen bırakılma): her iddianın ölçülen sayısı, mutant',
      "mimar->muhendis delegasyon speci: rapor adi ZORUNLU talimati (protokolun kendisi)"),
+    ('tools/paket-ozet-butce.md', '- Dal: `muh/ozet-butce-payi`. Rapor: dalda `RAPOR-MIMARA.md` (başka ad YASAK, izlenen bırakılmaz).',
+     "mimar->muhendis delegasyon speci: rapor adi ZORUNLU talimati (protokolun kendisi)"),
 ]
 
 
