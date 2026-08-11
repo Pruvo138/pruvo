@@ -57,17 +57,28 @@ ALTINDA). Iki en eski blok (`00:37 turu` + `CTA DENGE KAPANISI`) `DEVAM-ARSIV.md
 BIREBIR** tasindi — kanit SHA-256 esitligi: `CI_BAYT=4473/1394eee7…`, `CTA_BAYT=3048/33f7fd44…`
 kaynakta ve arsivde AYNI. Ozet YOK. `devam-sinif-kapisi.py` **rc=0** (113 satir tarandi).
 
+**⏸️ PUSH BILEREK YAPILMADI — K49 sinifi CANLI olcuyle onlendi (commit `8d256c96` main'de bekliyor).**
+Tur ortasinda `git status`'ta **`M urunler.json` BELIRDI** (90 satir / 5 urun) → kardes mimarin
+partisi CANLI ([[canli-oturum-kaniti-git-status-farki]]). `d1-sync.py --durum` bunu dogruladi:
+icerik ekseni **25940/25940 birebir** (hash uyusmaz 0 · eksik 0 · fazla 0) ama sayi ekseni
+**D1=25935 degil 25940** ve **uc turetilmis kolon BAYAT** (`marka_kanon` 5 · `model_kanon` 2 ·
+`marka_arama` 5) → parti **yazmanin ORTASINDA**. Push, pre-push kancasi araciligiyla **ikinci bir
+D1 yazicisi** baslatirdi; K49 hala acik (yazici kilidi YOK). Bu turda bizi tesaduf degil **olcum**
+korudu. Commit kaybolmaz; push sonraki turun ILK isidir (once `--durum` yeniden olculur).
+
 **Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
 mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · merge YAPILMADI · yabanci
 `.scratch/` ve `tools/paket-deploy-kritik-yol.md` dosyalarina DOKUNULMADI · baskasinin
 worktree'sine DOKUNULMADI. Codex'e 4 cagri (K56 teshisi · kosum bekleme · canli dogrulama · defter
 kotasi), MUHENDIS'e 2 dal (K51 · K61). Okan'a CIKILMADI (rutin onarim + zaten sorulmus soru; §5).
 
-**Sonraki turun ILK ISI:** (a) iki MUHENDIS dalini **skill: merge-kapisi** ile tart (K51 karantina ·
-K61 kapsam ayrimi) — merge KraL'da, isci dal push etti; (b) `31542119603`'un ardil kosumunda
-`serit-b` yesillendi mi; (c) varlik eksenini URUN sayfasindan cache-bust'SIZ olc (bu turda
-OLCULEMEDI kaldi); (d) K52 worktree tavani — `git worktree list` **4 satir**, ucu bu oturumun
-DEGIL, ARSIVLE-sonra-kaldir.
+**Sonraki turun ILK ISI:** (a) **`8d256c96`'yi PUSH ET** — once `d1-sync.py --durum` yeniden
+olculur, kardes parti inmis/tamamlanmis olmali (sayi ekseni ve turetilmis kolonlar tazelenmis);
+(b) iki MUHENDIS dalini **skill: merge-kapisi** ile tart (K51 karantina · K61 kapsam ayrimi) —
+merge KraL'da, isci yalnizca dal push etti; (c) `31542119603`'un ardil kosumunda `serit-b`
+yesillendi mi; (d) varlik eksenini URUN sayfasindan cache-bust'SIZ olc (bu turda OLCULEMEDI
+kaldi); (e) K52 worktree tavani — `git worktree list` **4 satir**, ucu bu oturumun DEGIL,
+ARSIVLE-sonra-kaldir.
 
 ## 🕐 CI NOBETI — 12 Agu 2026 01:0x yerel / 11 Agu 21:37Z turu — IKINCI OTURUM (KraL)
 
