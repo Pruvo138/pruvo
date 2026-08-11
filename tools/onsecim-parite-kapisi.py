@@ -21,10 +21,15 @@ KAPININ IDDIASI (dort ayak, hepsi KOSULARAK olculur):
   (2) BAYRAK KAPALI — kural kapaliyken on-secim guvenli varsayilandir ve ilan edilen
                     tutar liste tutaridir (bugunku davranis, regresyon 0).
   (3) BAYRAK ACIK / PARITE — onerilen malzemesi PLA OLMAYAN ve PLA OLAN urunlerde:
-                    sayfadaki gorunur tutar = yapilandirilmis veri `price` = uretilen
-                    sayfanin KENDI JS'inin (node:vm) hic secim yapmadan sepete yazdigi
-                    satir = SUNUCU fiyat kolunun (paylasilan satirOzeti) hesabi —
-                    KURUS KURUS. Onerisi OLMAYAN urunde davranis bozulmuyor.
+                    onden secili cip = sayfadaki gorunur tutar = uretilen sayfanin KENDI
+                    JS'inin (node:vm) hic secim yapmadan sepete yazdigi satir = SUNUCU
+                    fiyat kolunun (paylasilan satirOzeti) hesabi — KURUS KURUS.
+                    Onerisi OLMAYAN urunde davranis bozulmuyor.
+                    🔴 YAPILANDIRILMIS VERI ve BESLEME BU DORTLUNUN DISINDADIR (isletme
+                    karari, 11 Agu — Okan'in kendi secimi, GMC reddi riski kendisine
+                    YAZILI bildirildikten sonra): ikisi de BASLANGIC tabanini beyan eder.
+                    Kapi bunu da olcer ve ikisinin urun sayfasi tutarina KAYMASINI
+                    kirmizi yakar (kaymak, acikca reddedilen davranistir).
   (4) TEK TURETME — ilan tutari on-secimi CAGIRARAK turer; ikisini ayiran mutasyon
                     (ornek: cip PETG, tutar PLA) KIRMIZI yakmali (--mutasyon).
 
@@ -71,10 +76,66 @@ FIKSTURLER = [
      "bekle": "ASA"},
     {"id": "mitsubishi-klima-kumanda-standi", "ad": "PLA onerisi (fark %0)",
      "bekle": "PLA"},
-    # Onerisi TURETILEMEYEN urun (alan bicimi bozuk): guvenli varsayilana dusmeli.
-    {"id": "mitsubishi-4g63-eksantrik-mili-kilit-aparati", "ad": "onerisi YOK (guvenli)",
-     "bekle": None},
 ]
+
+# ---------------------------------------- onerisi TURETILEMEYEN urun (guvenli varsayilan)
+# 🔴 NEDEN ID'YE CIVILENMEZ (olculdu 11 Agu — YAYIN DURDU): bu eksen once
+# `mitsubishi-4g63-eksantrik-mili-kilit-aparati` ID'sine civilenmisti. O kayitta
+# `tavsiyeFilament` DIZE ("PETG") idi, yani oneri TURETILEMIYORDU. Katalog tarafi
+# 177469421 ("Filament önerisi alan türlerini düzelt") ile 293 kayitta alani DIZIYE
+# cevirdi (["PETG"]) -> denek oneri TASIR hale geldi, SINIF DISI kaldi ve kapi
+# `serit-a3`te kirmizi yandi. IDDIA dogruydu, DENEK bayatlamisti
+# ([[envanter-drift-parti-basina]]: elle tutulan denek listesi her katalog partisinde
+# bayatlar). Denek bu yuzden her kosumda VERININ OZELLIGINDEN turetilir:
+#   KRITER (BAGIMSIZ, fonksiyonun ciktisi DEGIL — o tautoloji olurdu):
+#   `tavsiyeFilament` alani DOLU ama icindeki adlarin HICBIRI sitede satilan
+#   malzeme listesinde YOK -> oneri turetilemez.
+# Boyle bir kayit katalogda kalmazsa eksen ATLANMAZ (atlanmasi sessiz yesil olurdu):
+# gercek bir sabit-fiyatli kayittan SENTETIK denek turetilir (alan sitede satilmayan
+# bir ada ayarlanir) ve eksen aynen olculur.
+_SENTETIK_ONERI = "ABS"          # gercek muhendislik malzemesi, sitede SATILMIYOR
+
+
+def _turetilemeyen_fikstur(urunler):
+    site_adlar = {f["ad"] for f in filament_ortak.referans()["filamentler"]
+                  if f.get("site")}
+
+    def sabit_kol(p):
+        """Kuralin uygulandigi kol: sabit fiyatli, fiyati ayristirilabilen,
+           malzeme secicisi BASILAN (fonksiyonel kategori) katalog kaydi."""
+        return (not build.fiziksel_mi(p) and not p.get("parametrik")
+                and not p.get("konfigur")
+                and p.get("kategori") in build.FONKSIYONEL_KATEGORILER
+                and build.feed_price((p.get("fiyat") or "").strip()))
+
+    def turetilemez(p):
+        ovr = p.get("tavsiyeFilament")
+        if not ovr or not isinstance(ovr, list):
+            return bool(ovr)          # bos olmayan NON-LIST de turetilemez sinifidir
+        return not [a for a in ovr if a in site_adlar]
+
+    adaylar = sorted([p for p in urunler if sabit_kol(p) and turetilemez(p)],
+                     key=lambda x: x["id"])
+    if adaylar:
+        p = adaylar[0]
+        print("     onerisi TURETILEMEYEN denek KATALOGDAN: %s (tavsiyeFilament=%s, "
+              "sinifta %d kayit)"
+              % (p["id"], json.dumps(p.get("tavsiyeFilament"), ensure_ascii=False),
+                 len(adaylar)))
+        return {"id": p["id"], "urun": p, "ad": "onerisi YOK (guvenli)", "bekle": None}
+
+    taban = next((p for p in urunler if sabit_kol(p)), None)
+    if taban is None:
+        return None
+    if _SENTETIK_ONERI in site_adlar:
+        kontrol(False, "sentetik denek adi %r artik SITEDE SATILIYOR — denek sinif "
+                       "disi kaldi, ad degistirilmeli" % _SENTETIK_ONERI)
+        return None
+    p = dict(taban)
+    p["tavsiyeFilament"] = [_SENTETIK_ONERI]
+    print("     onerisi TURETILEMEYEN denek SENTETIK (katalogda sinif kalmadi): "
+          "%s + tavsiyeFilament=[%r]" % (p["id"], _SENTETIK_ONERI))
+    return {"id": p["id"], "urun": p, "ad": "onerisi YOK (guvenli)", "bekle": None}
 
 HATALAR = []
 OLCULEMEDI = []
@@ -102,13 +163,18 @@ def _node():
 
 
 def _acik_secenekler(gecici):
-    """secenekler.js'in BAYRAGI ACIK kopyasi (kaynak dosyaya DOKUNULMAZ)."""
+    """secenekler.js'in URUN SAYFASI BAYRAGI ACIK kopyasi (kaynak dosyaya DOKUNULMAZ).
+
+    IDEMPOTENT: bayrak depoda zaten ACIK olabilir (11 Agu'dan beri oyle). "false -> true"
+    ikamesinin TAM 1 kez tutmasini sart kosmak, bayrak acildigi anda kapiyi KIRMIZI
+    yakardi — iddia ile ilgisi olmayan bir kirmizi. Sart olan sey, kopyanin bayragi
+    ACIK olmasidir; asagidaki bolum_1 bunu ayrica KOSARAK dogrular (veri["acik"])."""
     with open(os.path.join(ROOT, "secenekler.js"), encoding="utf-8") as f:
         s = f.read()
-    yeni, n = re.subn(r"var\s+ONERI_ONSECIM_ACIK\s*=\s*false;",
-                      "var ONERI_ONSECIM_ACIK = true;", s, count=1)
-    if n != 1:
+    m = re.search(r"var\s+ONERI_ONSECIM_ACIK\s*=\s*(true|false);", s)
+    if not m:
         return None
+    yeni = s[:m.start()] + "var ONERI_ONSECIM_ACIK = true;" + s[m.end():]
     yol = os.path.join(gecici, "secenekler-acik.js")
     with open(yol, "w", encoding="utf-8") as f:
         f.write(yeni)
@@ -167,7 +233,7 @@ const urunler = JSON.parse(fs.readFileSync(URUNLER, "utf8"));
 const ref = JSON.parse(fs.readFileSync(REF, "utf8"));
 const out = {};
 for (const p of urunler) {
-  out[p.id] = [S.onSecimMalzeme(p, ref), S.ilanBirimKurus(p, ref)];
+  out[p.id] = [S.onSecimMalzeme(p, ref), S.ilanBirimKurus(p, ref), S.onSecimTani(p, ref)];
 }
 process.stdout.write(JSON.stringify({ acik: S.ONERI_ONSECIM_ACIK, sonuc: out }));
 """
@@ -204,20 +270,24 @@ def bolum_1(gecici, urunler):
 
     build.ONERI_ONSECIM_ACIK = True
     try:
-        sapan_m, sapan_k, olculen, pla_disi = [], [], 0, 0
+        sapan_m, sapan_k, sapan_t, olculen, pla_disi = [], [], [], 0, 0
+        tani_sayac = {}
         for p in urunler:
             pid = p["id"]
             if pid not in js:
                 continue
             olculen += 1
-            py_m = build.on_secim_malzeme(p)
+            py_t, py_m = build.on_secim_tani(p)
             py_k = build.ilan_kurus(p)
+            tani_sayac[py_t] = tani_sayac.get(py_t, 0) + 1
             if build.FILAMENT_FARK.get(py_m, 0):
                 pla_disi += 1
             if js[pid][0] != py_m and len(sapan_m) < 5:
                 sapan_m.append("%s: ureteç=%s istemci=%s" % (pid, py_m, js[pid][0]))
             if js[pid][1] != py_k and len(sapan_k) < 5:
                 sapan_k.append("%s: ureteç=%s istemci=%s" % (pid, py_k, js[pid][1]))
+            if js[pid][2] != py_t and len(sapan_t) < 5:
+                sapan_t.append("%s: ureteç=%s istemci=%s" % (pid, py_t, js[pid][2]))
     finally:
         build.ONERI_ONSECIM_ACIK = False
     kontrol(olculen == len(urunler),
@@ -227,6 +297,17 @@ def bolum_1(gecici, urunler):
             "iki taraf da guvenli varsayilani dondurup sahte yesil verirdi)" % pla_disi)
     kontrol(not sapan_m, "ON-SECIM esitligi: sapma YOK (%s)" % (sapan_m or "-"))
     kontrol(not sapan_k, "ILAN KURUSU esitligi: sapma YOK (%s)" % (sapan_k or "-"))
+    # TANI JETONU da IKIZ TANIMDIR: iki dil ayni urun icin ayni kolu adlandirmali.
+    # Ayrisirsa "taninmayan malzeme" sayimi (fail-loud kol) DILE GORE degisirdi.
+    print("     tani dagilimi (ureteç): " + " · ".join(
+        "%s=%d" % (k, v) for k, v in sorted(tani_sayac.items(), key=lambda x: -x[1])))
+    kontrol(not sapan_t, "TANI JETONU esitligi: sapma YOK (%s)" % (sapan_t or "-"))
+    kontrol(tani_sayac.get(filament_ortak.TANI_ONERI, 0) > 0
+            and tani_sayac.get(filament_ortak.TANI_KAPSAM_DISI, 0) > 0,
+            "tani ekseni AYIRT EDICI — en az iki farkli kol gercek katalogda olculdu "
+            "(oneri=%d · kapsam-disi=%d)"
+            % (tani_sayac.get(filament_ortak.TANI_ONERI, 0),
+               tani_sayac.get(filament_ortak.TANI_KAPSAM_DISI, 0)))
 
 
 # ------------------------------------------------------- (2)/(3) sayfa + parite
@@ -274,10 +355,18 @@ def bolum_2_3(gecici, urunler):
     build.VARLIK_DIR = os.path.join(gecici, "varlik")
     build._VARLIK_ONBELLEK = {}
 
+    fiksturler = list(FIKSTURLER)
+    guvenli_fx = _turetilemeyen_fikstur(urunler)
+    if guvenli_fx is None:
+        kontrol(False, "onerisi TURETILEMEYEN denek uretilemedi — guvenli varsayilan "
+                       "ekseni HIC olculmedi (sessiz yesil yasak)")
+    else:
+        fiksturler.append(guvenli_fx)
+
     print("\n(2) BAYRAK KAPALI — bugunku davranis (on-secim guvenli, tutar liste tutari)")
     build.ONERI_ONSECIM_ACIK = False
-    for fx in FIKSTURLER:
-        p = ix.get(fx["id"])
+    for fx in fiksturler:
+        p = fx.get("urun") or ix.get(fx["id"])
         if not p:
             olculemedi("fikstur katalogda YOK: %s" % fx["id"])
             continue
@@ -291,8 +380,8 @@ def bolum_2_3(gecici, urunler):
     print("\n(3) BAYRAK ACIK — sayfa · yapilandirilmis veri · sepet · sunucu KURUS KURUS")
     build.ONERI_ONSECIM_ACIK = True
     try:
-        for fx in FIKSTURLER:
-            p = ix.get(fx["id"])
+        for fx in fiksturler:
+            p = fx.get("urun") or ix.get(fx["id"])
             if not p:
                 continue
             ad = fx["ad"]
@@ -319,11 +408,26 @@ def bolum_2_3(gecici, urunler):
             gk = _metin_kurus(_gorunur_tutar(h))
             kontrol(gk == ilan,
                     "%s: SAYFADAKI gorunur tutar = ilan tutari (%s vs %s)" % (ad, gk, ilan))
+            # 🔴 KAPSAM DEGISTI (isletme karari 11 Agu, Okan'in kendi secimi): markup ve
+            # besleme BASLANGIC tabanini beyan eder; urun sayfasi ONERILEN malzemenin
+            # tutarini vurgular. Yani yapilandirilmis veri artik LISTE tutarindadir ve
+            # ilan tutarindan BILEREK ayrisir. Iddia bu yuzden "= ilan" degil "= liste":
+            # markup'in sessizce urun sayfasi tutarina kaymasi da KIRMIZI yanmali
+            # (Okan'in acikca reddettigi davranisin AYNASI).
             ld = _ld_price(h)
             ldk = None if ld is None else int(round(float(ld) * 100))
-            kontrol(ldk == ilan,
-                    "%s: yapilandirilmis veri `price` = ilan tutari (%s vs %s)"
-                    % (ad, ldk, ilan))
+            kontrol(ldk == liste,
+                    "%s: yapilandirilmis veri `price` = LISTE tutari (%s vs %s; ilan %s)"
+                    % (ad, ldk, liste, ilan))
+            fx_xml, _fx_adet = build.render_merchant_feed([p])
+            fm = re.search(r"<g:price>([0-9.]+)\s*TRY</g:price>", fx_xml)
+            fk = None if not fm else int(round(float(fm.group(1)) * 100))
+            if fk is None:
+                olculemedi("%s: besleme satiri uretilmedi (gorselsiz/fiyatsiz olabilir)" % ad)
+            else:
+                kontrol(fk == liste,
+                        "%s: besleme `g:price` = LISTE tutari (%s vs %s; ilan %s)"
+                        % (ad, fk, liste, ilan))
 
             if not node:
                 olculemedi("%s: node yok — sepet/sunucu ayagi olculemedi" % ad)
@@ -377,15 +481,25 @@ def _sunucu_kurus(gecici, urun, satir):
 MUTANTLAR = [
     ("N1", "SESSIZ ZAM: ilan tutari on-secimi degil sabit varsayilani okuyor",
      "tools/build.py",
-     "    yuzde = 0 if fiziksel_mi(p) else FILAMENT_FARK.get(on_secim_malzeme(p), 0)",
-     "    yuzde = 0 if fiziksel_mi(p) else FILAMENT_FARK.get(VARSAYILAN_MALZEME, 0)", 1),
+     "    return _birim_kurus(p, on_secim_malzeme(p))",
+     "    return _birim_kurus(p, VARSAYILAN_MALZEME)", 1),
     ("N2", "cip sabit varsayilanda kaldi (tutar ilerledi, secim geride)",
      "tools/build.py",
-     '"".join(_fil_cipleri(p, on_secim_malzeme(p)))',
-     '"".join(_fil_cipleri(p, VARSAYILAN_MALZEME))', 1),
-    ("N3", "yapilandirilmis veri liste tutarinda birakildi", "tools/build.py",
-     "        ld_fiyat = ilan_tl_metni(ilan_kurus(p)) or pnum",
-     "        ld_fiyat = pnum", 1),
+     '    secili = on_secim_malzeme(p)',
+     '    secili = VARSAYILAN_MALZEME', 1),
+    # N3 YON DEGISTIRDI: markup artik BASLANGIC tabanini beyan ediyor (isletme karari).
+    # Tehlikeli yon bu yuzden TERSINE dondu — markup'in urun sayfasi tutarina KAYMASI
+    # Okan'in acikca reddettigi davranistir; mutant onu yapar, kapi KIRMIZI yakmali.
+    ("N3", "markup urun sayfasi tutarina kaydi (baslangic tabani beyani bozuldu)",
+     "tools/build.py",
+     "    if ONERI_VITRIN_ACIK and pnum:\n        ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum",
+     "    if ONERI_ONSECIM_ACIK and pnum:\n        ld_fiyat = ilan_tl_metni(ilan_kurus(p)) or pnum",
+     1),
+    ("N11", "besleme urun sayfasi tutarina kaydi (dis listeleme sessizce zamlandi)",
+     "tools/build.py",
+     "        if ONERI_VITRIN_ACIK:\n            price = ilan_tl_metni(vitrin_kurus(p)) or price",
+     "        if ONERI_ONSECIM_ACIK:\n            price = ilan_tl_metni(ilan_kurus(p)) or price",
+     1),
     ("N4", "istemci kurali ureteç kuralindan ayristi (sira tersine dondu)",
      "secenekler.js",
      "      for (i = 0; i < harita.length; i++) {",
@@ -395,12 +509,32 @@ MUTANTLAR = [
      '            baslangic_fiyat = esc(fiyat) + "&#39;den başlayan"', 1),
     ("N6", "on-secim guvenli varsayilana DUSMUYOR (katsayisiz ad gecebilir)",
      "tools/filament_ortak.py",
-     "        if ad in katsayi_adlari:\n            return ad\n    return guvenli",
-     "        return ad\n    return guvenli", 1),
+     "        if ad in katsayi_adlari:\n            return (TANI_ONERI, ad)",
+     "        if True:\n            return (TANI_ONERI, ad)", 1),
+    # N10 = TANINMAYAN kolunun bekcisi. `tavsiyeFilament` DOLU ama adlari sitede
+    # satilmayan urun, "onerisi hic olmayan urun" ile AYNI jetona cokerse sessiz
+    # dususu sayan kol (tools/d1-fiyat-parite-kapisi.py eksen E6) korlesir. Mutant yalniz
+    # URETEC tarafini cokertir -> ikiz tani ekseni ayrismayi KIRMIZI yakar.
+    ("N10", "TANINMAYAN kolu sessizce 'varsayilan'a cokuyor (veri kusuru gorunmez)",
+     "tools/filament_ortak.py",
+     "    return ((TANI_TANINMAYAN if onerili else TANI_VARSAYILAN), guvenli)",
+     "    return (TANI_VARSAYILAN, guvenli)", 1),
+    # N9 = onerisi TURETILEMEYEN denegin BEKCISI. Denek her kosumda katalogdan
+    # turetilir; bu mutant o turetmenin TAUTOLOJI OLMADIGINI kanitlar: alani dolu
+    # ama adlari sitede satilmayan urun, elenen override'dan sonra kategori
+    # haritasina DUSERSE sessizce %30 zamlanir. Denek gercekten sinifta ise bu
+    # mutant KIRMIZI yakar; denek bayatlar/sinif disi kalirsa N9 YESILE doner ve
+    # bayatlama bir sonraki kosumda GORULUR (sessiz kalamaz).
+    ("N9", "elenen oneri kategori haritasina DUSUYOR (bozuk alanda sessiz zam)",
+     "tools/filament_ortak.py",
+     '        return [{"ad": a, "rozet": "Tavsiyemiz"} for a in override '
+     'if a in site_adlar]',
+     '        _o = [{"ad": a, "rozet": "Tavsiyemiz"} for a in override '
+     'if a in site_adlar]\n        if _o:\n            return _o', 1),
     ("N8", "bayrak kapaliyken kural yine de uygulaniyor (habersiz zam)",
      "tools/filament_ortak.py",
-     "    if not acik:\n        return guvenli",
-     "    if False:\n        return guvenli", 1),
+     "    if not acik:\n        return (TANI_KAPALI, guvenli)",
+     "    if False:\n        return (TANI_KAPALI, guvenli)", 1),
     ("N7", "KONTROL: davranisi degistirmeyen yeniden adlandirma", "tools/build.py",
      "def fiziksel_mi(p):\n    return bool(p) and p.get(\"tur\") == TUR_FIZIKSEL",
      "def fiziksel_mi(kayit):\n    return bool(kayit) and kayit.get(\"tur\") == TUR_FIZIKSEL",
@@ -435,7 +569,8 @@ def _uygula(yol, eski, yeni):
 
 def mutasyon():
     print("\n" + "=" * 72)
-    print("MUTASYON NOBETI — kapi OLU mu? (yedi kirmizi + bir KONTROL yesil)")
+    print("MUTASYON NOBETI — kapi OLU mu? (%d kirmizi + bir KONTROL yesil)"
+          % (len(MUTANTLAR) - 1))
     kendi = os.path.basename(os.path.abspath(__file__))
     sapan = []
     print("\n%-4s %-58s %-9s %-9s %s" % ("KOD", "MUTANT", "BEKLENEN", "OLCULEN", "SONUC"))

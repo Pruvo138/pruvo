@@ -46,6 +46,16 @@ def tavsiyeler(kategori, override=None):
     ref = referans()
     site_adlar = {f["ad"] for f in ref["filamentler"] if f.get("site")}
     if override:
+        # 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed, ikiz tanim).
+        # Alan LISTE olmak zorundadir. Katalogda alan bir donem DIZE ("PETG") tasidi;
+        # o durumda hem burasi hem istemci (secenekler.js onSecimMalzeme) KARAKTER
+        # KARAKTER geziyor ve tesadufen bos liste uretiyordu — dogru sonuc, YANLIS
+        # sebep. Sozluk gibi baska bir tur gelseydi Python ANAHTARLARI gezip "PETG"
+        # bulur, JS ise `length` goremeyip guvenli varsayilana duserdi: iki dil
+        # sessizce ayrisirdi. Bos liste donmek kategori haritasina DUSMEK DEGILDIR
+        # (dusulseydi alani bozuk urun sessizce %30 zamlanirdi).
+        if not isinstance(override, list):
+            return []
         return [{"ad": a, "rozet": "Tavsiyemiz"} for a in override if a in site_adlar]
     kategori = _KATEGORI_ALIAS.get(kategori, kategori)
     out = []
@@ -55,6 +65,43 @@ def tavsiyeler(kategori, override=None):
         out.append({"ad": t["ad"],
                     "rozet": "Tavsiyemiz" if not out else (t.get("not") or "Tavsiyemiz")})
     return out
+
+
+# ---------------------------------------------------------------- TANI JETONLARI
+# Kuralin hangi koldan ciktigini adlandirir. Fiyati DEGISTIRMEZ; SESSIZ DUSUSU gorunur
+# kilar. Ikiz tanim: secenekler.js icindeki ayni adli jetonlarla BIREBIR ayni dizeler
+# (ayrisma tools/onsecim-parite-kapisi.py eksen 1'de fail-closed kirmizi yakar).
+#
+# 🔴 NEDEN VAR (olculdu 11 Agu): `tavsiyeFilament` alani DOLU ama icindeki adlarin
+# hicbiri sitede satilan malzeme degilse (ornek: "TPU (esnek)", "ABS") kural guvenli
+# varsayilana duser ve urun rozetsiz + tabanda kalir. Bu bir VERI KUSURUDUR ve bugune
+# kadar "onerisi olmayan urun" ile AYNI cikti verdigi icin sayilamiyordu. Iki hal artik
+# AYRI jetondur -> kac urunun bu duruma dustugu kapida BASILIR.
+TANI_KAPALI = "kapali"
+TANI_KAPSAM_DISI = "kapsam-disi"      # olcuye ozel / yapilandiricili / hazir ticari mal
+TANI_ONERI = "oneri"
+TANI_VARSAYILAN = "varsayilan"
+TANI_TANINMAYAN = "taninmayan"
+
+
+def on_secim_tani(kategori, override, katsayi_adlari, guvenli, acik=True):
+    """(tani, malzeme) — on-secimin SONUCU ve hangi koldan geldigi.
+
+    tani:
+      kapali      kural bu yuzeyde kapali
+      oneri       gecerli bir oneri bulundu, o ad on-secildi
+      varsayilan  urun oneri TASIMIYOR (ve kategori haritasi da aday vermedi) -> guvenli
+      taninmayan  urun oneri TASIYOR ama hicbir adi ayakta kalmadi (bicim bozuk ya da
+                  adlar sitede satilmiyor) -> guvenli, AMA sessiz degil: sayilabilir.
+    """
+    if not acik:
+        return (TANI_KAPALI, guvenli)
+    onerili = bool(override)
+    adaylar = [t["ad"] for t in tavsiyeler(kategori, override)]
+    for ad in adaylar:
+        if ad in katsayi_adlari:
+            return (TANI_ONERI, ad)
+    return ((TANI_TANINMAYAN if onerili else TANI_VARSAYILAN), guvenli)
 
 
 def on_secim(kategori, override, katsayi_adlari, guvenli, acik=True):
@@ -71,13 +118,7 @@ def on_secim(kategori, override, katsayi_adlari, guvenli, acik=True):
     onSecimMalzeme). Iki taraf tam katalog uzerinde karsilastirilir; ayrisma
     fail-closed kirmizi yakar (tools/onsecim-parite-kapisi.py eksen 1).
     """
-    if not acik:
-        return guvenli
-    adaylar = [t["ad"] for t in tavsiyeler(kategori, override)]
-    for ad in adaylar:
-        if ad in katsayi_adlari:
-            return ad
-    return guvenli
+    return on_secim_tani(kategori, override, katsayi_adlari, guvenli, acik=acik)[1]
 
 
 # ------------------------------------------------------------- baski -> override sanitize

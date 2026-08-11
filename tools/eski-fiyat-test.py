@@ -855,16 +855,20 @@ def bolum_f(mod=build):
         return
 
     def _ac(ozet):
-        alanlar = ozet.get("kartAlanlari") or []
-        if not alanlar:
-            return ozet
-        def kart(k):
-            return {alanlar[i]: v for i, v in enumerate(k) if i < 8 or v is not None} \
-                if isinstance(k, list) else k
-        ozet["parametrik"] = [kart(k) for k in ozet.get("parametrik", [])]
-        ozet["bloklar"] = {kat: [kart(k) for k in kartlar]
-                            for kat, kartlar in ozet.get("bloklar", {}).items()}
-        ozet["yeni"] = [kart(k) for k in ozet.get("yeni", [])]
+        """Kart kesitlerini SOZLUK haline geri acar (karsilastirma anahtar bazinda yapilir).
+
+        🔴 COZUCU KOPYALANMAZ: build.py `ozet_temsil_ac` TEK kaynaktir. Buradaki eski
+        kopya yalniz v2 dizi temsilini biliyordu; v3'te `yeni` kesiti `yeniRef`e tasindigi
+        gun kopya o kesiti HIC acmiyordu ve (ortusme dustugu ilk gun) A/B iddiasi
+        referanssiz KIRMIZI yanacakti ([[ikiz-tanim-sessiz-ayrisma]])."""
+        kesitler = mod.ozet_temsil_ac(ozet)
+        if kesitler.get("cozulemeyen"):
+            olculemedi("ozet 'yeniRef' referansi cozulemedi: %s"
+                       % ", ".join(map(str, kesitler["cozulemeyen"][:3])))
+        ozet.pop("yeniRef", None)
+        ozet["parametrik"] = kesitler["parametrik"]
+        ozet["bloklar"] = kesitler["bloklar"]
+        ozet["yeni"] = kesitler["yeni"]
         return ozet
 
     a = _ac(a)

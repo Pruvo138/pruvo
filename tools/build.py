@@ -789,7 +789,14 @@ def _js_bayragi(kaynak, ad):
 #
 # Bayrak KAPALIYKEN on-secim guvenli varsayilana (bosSatir malzemesi, farki %0)
 # duser -> uretilen sayfa bugunkuyle BAYT-ESIT kalir.
+#
+# 🔴 IKI YUZEY IKI ANAHTAR (isletme karari 11 Agu): URUN SAYFASI kolu ONERI_ONSECIM_ACIK,
+# LISTE/KART kolu ONERI_VITRIN_ACIK. Kart yuzeyi istemcide cizilir (index.html
+# ilanFiyatMetni -> vitrinBirimKurus); burada okunmasinin sebebi, kart tutari ile D1'e
+# yazilan liste tutarinin AYRISMADIGINI olcen kapinin (tools/d1-fiyat-parite-kapisi.py)
+# bayragi TEK KAYNAKTAN almasidir. Ikinci kopya tutulmaz.
 ONERI_ONSECIM_ACIK = _js_bayragi(_SEC_JS, "ONERI_ONSECIM_ACIK")
+ONERI_VITRIN_ACIK = _js_bayragi(_SEC_JS, "ONERI_VITRIN_ACIK")
 
 # Hazir ticari mal isareti — TEK KAYNAK secenekler.js (istemci/sunucu ayni dizeyi kullanir;
 # karsilastirma TAM dize esitligidir, kirpma/kucultme YOK).
@@ -804,33 +811,83 @@ def fiziksel_mi(p):
     return bool(p) and p.get("tur") == TUR_FIZIKSEL
 
 
-def on_secim_malzeme(p):
-    """Urun sayfasinda ONDEN SECILI gelecek malzeme (istemci karsiligi: onSecimMalzeme).
+def on_secim_tani(p, acik=None):
+    """(tani, malzeme) — ON-SECIMIN sonucu ve hangi koldan geldigi.
 
     KAPSAM — BEYAN EDILEN SINIR (sessiz yesil yasak): kural YALNIZ sabit fiyatli katalog
     kolunda uygulanir. Olcuye-ozel (parametrik) ve yapilandiricili urunlerde gorunen tutar
     tabandan CANLI hesaplanir ve kart yuzeyi "X TL'den baslayan" tabani ayri bir haritadan
     okur; oralarda on-secimi degistirmek ilan edilen tabani BU degisiklikle olculmeyen bir
     yoldan kaydirirdi -> guvenli varsayilan korunur. Hazir ticari malda uretim malzemesi
-    karsiliksizdir (carpan zaten 1,00) -> guvenli varsayilan."""
+    karsiliksizdir (carpan zaten 1,00) -> guvenli varsayilan.
+
+    🔴 TANINMAYAN KOLU (fail-loud): `tavsiyeFilament` DOLU ama adlarinin hicbiri sitede
+    satilan malzeme degilse sonuc yine guvenli varsayilandir — ama jeton TANINMAYAN'dir,
+    yani "onerisi olmayan urun"den AYIRT EDILEBILIR. Sessizce PLA'ya dusen veri kusuru
+    boylece SAYILABILIR (tools/d1-fiyat-parite-kapisi.py eksen E6)."""
+    if acik is None:
+        acik = ONERI_ONSECIM_ACIK
+    # SIRA ISTEMCIYLE BIREBIR (secenekler.js _onSecimCekirdek): once ANAHTAR, sonra KAPSAM.
+    # Ters sirada, kural kapaliyken ayni urun icin iki dil FARKLI jeton uretirdi.
+    if not acik:
+        return (filament_ortak.TANI_KAPALI, VARSAYILAN_MALZEME)
     if fiziksel_mi(p) or p.get("parametrik") or p.get("konfigur"):
-        return VARSAYILAN_MALZEME
-    return filament_ortak.on_secim(p.get("kategori"), p.get("tavsiyeFilament"),
-                                   FILAMENT_FARK, VARSAYILAN_MALZEME,
-                                   acik=ONERI_ONSECIM_ACIK)
+        return (filament_ortak.TANI_KAPSAM_DISI, VARSAYILAN_MALZEME)
+    return filament_ortak.on_secim_tani(p.get("kategori"), p.get("tavsiyeFilament"),
+                                        FILAMENT_FARK, VARSAYILAN_MALZEME, acik=acik)
 
 
-def ilan_kurus(p):
-    """ILAN EDILEN birim tutar (tamsayi kurus) — on-secimli malzemeye gore.
+def on_secim_malzeme(p):
+    """Urun sayfasinda ONDEN SECILI gelecek malzeme (istemci karsiligi: onSecimMalzeme)."""
+    return on_secim_tani(p)[1]
+
+
+def vitrin_malzeme(p):
+    """LISTE/KART yuzeyinin malzemesi (istemci karsiligi: vitrinMalzeme). KENDI anahtarina
+    baglidir: urun sayfasi kolu acilinca kart KAYMAZ."""
+    return on_secim_tani(p, acik=ONERI_VITRIN_ACIK)[1]
+
+
+def _birim_kurus(p, malzeme):
+    """🔴 TEK TURETME NOKTASI (uretec tarafi): bir malzeme secildiginde olusan BIRIM tutar.
 
     Kural istemcideki hesaplaFiyatKurus ile BIREBIR: taban x (100+yuzde) x renkCarpan
     / 10000. Onden secili renk "Diğer" DEGIL (yukaridaki fail-closed kontrol) ve boy
-    farki 0 -> renkCarpan 100. Fiyat sayisi cikarilamiyorsa None (fiyatsiz urun)."""
+    farki 0 -> renkCarpan 100. Fiyat sayisi cikarilamiyorsa None (fiyatsiz urun).
+
+    Urun sayfasi tutari, kart tutari ve cipte GORUNEN tutar UCU DE buradan cikar; ikinci
+    bir formul yazilmaz (yazilsaydi bir yuzey digerlerinden sessizce ayrisirdi)."""
     temel = feed_price((p.get("fiyat") or "").strip())
     if not temel:
         return None
-    yuzde = 0 if fiziksel_mi(p) else FILAMENT_FARK.get(on_secim_malzeme(p), 0)
+    yuzde = 0 if fiziksel_mi(p) else FILAMENT_FARK.get(malzeme, 0)
     return int(temel) * (100 + yuzde)
+
+
+def vitrin_kurus(p):
+    """LISTE/KART yuzeyinin BIRIM tutari (tamsayi kurus) — istemci vitrinBirimKurus ikizi."""
+    return _birim_kurus(p, vitrin_malzeme(p))
+
+
+def ilan_kurus(p):
+    """ILAN EDILEN birim tutar (tamsayi kurus) — on-secimli malzemeye gore."""
+    return _birim_kurus(p, on_secim_malzeme(p))
+
+
+def cip_kurus(p, malzeme):
+    """CIPTE GORUNEN tutar (tamsayi kurus) ya da None.
+
+    🔴 NEDEN VAR (azaltici, 11 Agu — Okan'in karari): besleme ve yapilandirilmis veri
+    BASLANGIC tabanini beyan ederken urun sayfasi ONERILEN malzemenin tutarini vurgular.
+    Iki sayi arasindaki bagi kullanicinin ve dis yuzeyin GOREBILMESI icin, her malzeme
+    cipi KENDI tutarini tasir: taban secenegin (PLA) tutari sayfada hem GORUNUR hem
+    makineyle okunabilir (data-kurus) kalir.
+
+    None: olcuye ozel / yapilandiricili urun (tutar tabandan CANLI hesaplanir, sabit sayi
+    basmak YANILTICI olurdu) ya da sayisal fiyati olmayan urun."""
+    if p.get("parametrik") or p.get("konfigur"):
+        return None
+    return _birim_kurus(p, malzeme)
 
 
 def ilan_tl_metni(kurus):
@@ -1743,12 +1800,18 @@ CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-
              '0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 '
              '16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>')
 
-# Eylem İKON çifti (kart-seçim sayfası, Adet satırının sağı) — %s sırası: pid, wa href.
-# Yazı yok -> aria-label + title ZORUNLU (erişilebilirlik); id'ler script'le birebir.
+# Eylem butonlari (kart-secim sayfasi, Adet satirinin sagi) — %s sirasi: pid, wa href.
+# 🔴 CTA DENGESI (Okan, 11 Agu): birincil eylem SEPETE EKLE'dir. Once ikisi de yazisiz
+# 44x44 ikondu; yanlarindaki sticky WhatsApp bandi butonu ise 231x44 idi -> WhatsApp
+# dokunma alaninda 5,22 KAT buyuk gorunuyordu. Artik sepet butonu ETIKETLI ve genis
+# (tools/cta-denge-kapisi.py olcer), WhatsApp KALIR ama ikincil ikon boyunda durur.
+# `.cart-label` sinifi ZORUNLU: sayfa scripti sepetteki/sepette-degil durumunu O spanin
+# metninden bildirir (buyuk buton kalibiyla AYNI kanca — ikinci kopya yok).
 IKON_BUTONLAR_HTML = (
     '<div class="eylem-ikonlar">'
     '<button class="ikon-btn ikon-sepet" id="cartBtn" data-id="%s" '
-    'aria-label="Sepete Ekle" title="Sepete Ekle">' + CART_ICON + '</button>'
+    'aria-label="Sepete Ekle" title="Sepete Ekle">' + CART_ICON +
+    '<span class="cart-label">Sepete Ekle</span></button>'
     '<a class="ikon-btn ikon-wa" id="orderAlt" href="%s" target="_blank" rel="noopener" '
     'aria-label="WhatsApp\'tan Sor" title="WhatsApp\'tan Sor">' + WA_ICON + '</a>'
     '</div>')
@@ -1857,17 +1920,20 @@ PAGE_CSS = """
   .adet-kutu input::-webkit-outer-spin-button,
   .adet-kutu input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
-  /* Eylem ikonları (madde 7): Adet satırının sağında yazısız sepet + WhatsApp ikonu.
-     44×44 = mobil dokunma alanı; margin-left:auto sağa yaslar, dar ekranda .opsiyon-row
-     flex-wrap ile ikonlar panel İÇİNDE alt satıra kırılır. */
-  .eylem-ikonlar{display:inline-flex;gap:8px;margin-left:auto}
+  /* Eylem butonları (madde 7 + CTA dengesi 11 Ağu): ETİKETLİ "Sepete Ekle" (birincil,
+     44×44 tabanının ÜSTÜNE çıkar) + yazısız WhatsApp ikonu (ikincil; kanal KALIR).
+     margin-left:auto sağa yaslar, dar ekranda blok panel İÇİNDE alt satıra kırılır. */
+  .eylem-ikonlar{display:inline-flex;gap:8px;margin-left:auto;flex-wrap:wrap;
+    justify-content:flex-end}
   .ikon-btn{width:44px;height:44px;border:none;border-radius:9px;display:inline-flex;
     align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex:none;
     text-decoration:none;padding:0}
   .ikon-btn svg{width:22px;height:22px;fill:#fff}
-  .ikon-sepet{background:var(--navy)}
+  .ikon-sepet{background:var(--navy);width:auto;min-width:260px;height:56px;
+    padding:0 20px;gap:9px;color:#fff;font-size:16px;font-weight:700;font-family:inherit}
   .ikon-sepet:hover{background:var(--navy-2)}
   .ikon-sepet.added{background:#178a44}
+  .cart-label{white-space:nowrap}
   .ikon-wa{background:#25D366}
   .ikon-wa:hover{background:#1ebe5a}
   .konf-baslik{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:12px}
@@ -1905,6 +1971,10 @@ PAGE_CSS = """
     gap:9px;transition:.15s;max-width:320px;width:100%;margin-top:11px}
   .order-wa:hover{background:#1ebe5a}
   .order-wa svg{width:19px;height:19px;fill:#fff}
+  /* Onerilenden farkli malzeme seciliyken cikan BILGI notu (engel degil). */
+  .oneri-not{margin:8px 0 0;padding:8px 11px;border-radius:8px;background:#fff7e6;
+    border:1px solid #f0d9a8;color:#6b4e11;font-size:12.5px;line-height:1.5}
+  .oneri-not[hidden]{display:none}
   .malzeme-not{font-size:12.5px;color:var(--gray-text);line-height:1.5;margin:2px 0 2px}
   .malzeme-not a{color:#178a44;font-weight:600;text-decoration:underline}
   .cart-fab{position:fixed;right:18px;bottom:18px;z-index:60;background:#25a35a;color:#fff;
@@ -1940,6 +2010,8 @@ PAGE_CSS = """
   .fil-isi{font-size:10.5px;color:var(--gray-text);font-weight:600;letter-spacing:.2px}
   .fil-ad{font-size:13.5px;font-weight:800;color:var(--navy)}
   .fil-etiket{font-size:10.5px;color:var(--gray-text)}
+  /* Cipin KENDI tutari: taban secenegin (PLA) tutari sayfada GORUNUR kalsin. */
+  .fil-tutar{font-size:11.5px;font-weight:700;color:var(--navy);margin-top:1px}
   .fil-rozet{background:var(--navy);color:#fff;font-size:9.5px;font-weight:800;
     letter-spacing:.4px;text-transform:uppercase;border-radius:8px;padding:2px 7px;margin-top:4px}
   .fil-rozet-not{background:#f7b500;color:#12294d;text-transform:none;letter-spacing:.1px}
@@ -1958,6 +2030,7 @@ PAGE_CSS = """
     box-shadow:0 2px 10px rgba(18,41,77,.28)}
   .fil-cip.secili .fil-ad{color:#fff}
   .fil-cip.secili .fil-isi,.fil-cip.secili .fil-etiket{color:#cdd8ea}
+  .fil-cip.secili .fil-tutar{color:#fff}
   .fil-cip.secili .fil-rozet{background:#fff;color:var(--navy)}
 
   /* Renk BUTONLARI (dropdown yerine) — kucuk renk yuvarlagi + ad; Diger = gokkusagi gradyan. */
@@ -2008,6 +2081,16 @@ PAGE_CSS = """
     .gallery{position:static}
     h1{font-size:22px}.price{font-size:22px}
     .order-btn,.cart-btn{max-width:none}
+    /* 🔴 STICKY BANT PAYI (11 Ağu): 135px=%16,6 -> 61px=%7,5; kanal KALIR, dokunma 44px. */
+    .help-cta-inner{padding:8px 14px;gap:10px;flex-wrap:nowrap;
+      justify-content:space-between;text-align:left}
+    .help-cta-text{font-size:11px;line-height:1.3;display:-webkit-box;
+      -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;flex:none}
+    .wa-uzun{display:none}
+    .eylem-ikonlar{flex-wrap:nowrap;width:100%}
+    /* 260 tabanı dar ekranda panelin min-content'ini 375'in üstüne çıkarır (yatay kayma). */
+    .ikon-sepet{flex:1 1 auto;min-width:200px}
   }
 """
 PAGE_CSS += CONTENT_CSS
@@ -2383,15 +2466,25 @@ def _fil_cipleri(p, secili=None):
         if secili is not None and f["ad"] == secili:
             cls += " secili"
             ek = ' aria-pressed="true"'
+        # 🔴 CIP TUTARI (azaltici — Okan karari, 11 Agu): besleme/markup BASLANGIC tabanini,
+        # sayfa ise ONERILEN malzemenin tutarini beyan ediyor. Bag kopmasin diye her cip
+        # KENDI tutarini `data-kurus` ile tasir (makine okur); GORUNUR etiketi sayfa JS'i
+        # bu attribute'tan yazar -> taban secenegin tutari sayfadan hem cikarilabilir hem
+        # okunabilir kalir. Sayi TEK turetme noktasindan gelir (cip_kurus -> _birim_kurus);
+        # ikinci formul YOK.
+        # Olcuye ozel/yapilandiricili urunde None -> alan ve metin HIC basilmaz (sabit sayi
+        # basmak orada yaniltici olurdu) ve cikti bugunkuyle bayt-esit kalir.
+        birim = cip_kurus(p, f["ad"])
+        tutar_attr = "" if birim is None else ' data-kurus="%d"' % birim
         cips.append(
-            '<button type="button" class="fil-cip%s" data-malzeme="%s" aria-expanded="false"%s>'
+            '<button type="button" class="fil-cip%s" data-malzeme="%s"%s aria-expanded="false"%s>'
             '<span class="fil-isi">%s</span>'
             '<span class="fil-ad">%s</span>'
             '<span class="fil-etiket">%s</span>'
             '%s'
             '<span class="fil-balon" role="tooltip"><strong>%s — %s</strong><br>%s</span>'
             '</button>'
-            % (cls, esc(f["ad"]), ek, esc(f["isiDayanimi"]), esc(f["ad"]),
+            % (cls, esc(f["ad"]), tutar_attr, ek, esc(f["isiDayanimi"]), esc(f["ad"]),
                esc(f["kisaEtiket"]), rozet_html,
                esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
     return cips
@@ -2418,11 +2511,30 @@ def panel_malzeme_html(p):
     # kalkip YENI yere gitmesi iki DAR giriste ifade edilebilir; ayni etiket kullanilsaydi
     # beyan iki konumu birbirinden ayirt edemezdi). Etiketi "Malzeme"ye geri cevirmeden
     # once o beyanlara bak.
+    # 🔴 ONERI NOTU (spec kabul ekseni 4): onerilenden BASKA malzeme seciliyken GORUNUR,
+    # onerilen seciliyken GORUNMEZ. ENGEL DEGIL, BILGILENDIRME — musteri bilerek taban
+    # malzemeye ihtiyac duyabilir (Okan). Kutu YALNIZ onerisi TURETILEBILEN uründe
+    # basilir; turetilemeyende (bkz. taninmayan kolu) HIC basilmaz -> o sayfalar
+    # bugunkuyle bayt-esit kalir ve "oneri var" diye YALAN soylenmez.
+    #
+    # 🔴 GOVDE NEDEN BOS: kutunun metni de, ciplerin tutar etiketi de URUNE GORE DEGISEN
+    # metinlerdir. Uretilen HTML'e urun basina degisen GORUNUR METIN koymak, sayfa
+    # icerigini bayt duzeyinde nobetleyen kapinin (tools/varlik-test.py eksen 1) beyan
+    # yuzeyiyle ifade EDILEMEZ: o yuzey SABIT dizeler alir, sayfa basina degisen sayilari
+    # ancak "her sayfa icin ayri beyan" ile karsilardi ve o da nobetcinin susturma kolunu
+    # gevsetirdi. Cozum: SUNUCU veriyi ATTRIBUTE olarak basar (makine okur: data-kurus /
+    # data-oneri), METNI sayfa JS'i yazar (satirlar SABIT -> beyan edilebilir).
+    secili = on_secim_malzeme(p)
+    tani, _ = on_secim_tani(p)
+    not_html = ""
+    if tani == filament_ortak.TANI_ONERI:
+        not_html = ('\n        <div class="oneri-not" id="oneriNot" data-oneri="%s" '
+                    'hidden></div>' % esc(secili))
     return ("""
       <div class="opsiyon-row opsiyon-renk">
         <label>Malzeme seçimi</label>
-        <div class="fil-cipler" id="filCipler">""" + "".join(_fil_cipleri(p, on_secim_malzeme(p)))
-            + """</div>
+        <div class="fil-cipler" id="filCipler">""" + "".join(_fil_cipleri(p, secili))
+            + """</div>""" + not_html + """
       </div>""")
 
 
@@ -2525,6 +2637,13 @@ function pv(el,src){{
      Kutu sayfada yoksa (kirpilmis/eski sablon) BURADA URETILIR — "kutu yok" hali
      sessizlige DUSMEK degildir (fail-loud). */
   var hataEl = document.getElementById("secimHata");
+  /* Onerilenden BASKA malzeme secildiginde gorunen bilgi notu (varsa). Metni BURADA
+     yazilir: sunucu yalniz hangi malzemenin onerildigini `data-oneri` ile bildirir. */
+  var oneriNot = document.getElementById("oneriNot");
+  if(oneriNot){{ oneriNot.textContent = "Seçtiğiniz malzeme, bu ürün için önerdiğimiz malzeme (" + (oneriNot.getAttribute("data-oneri") || "") + ") değil. Dilerseniz devam edebilirsiniz."; }}
+  /* Her malzeme cipi KENDI tutarini `data-kurus` ile tasir; GORUNUR etiketi burada
+     yazilir. Boylece taban secenegin tutari sayfada hem okunur hem gorunur kalir. */
+  if(cipler){{ var _ct = cipler.querySelectorAll(".fil-cip[data-kurus]"); for(var t=0;t<_ct.length;t++){{ var _bl=_ct[t].querySelector(".fil-balon"); var _sp=document.createElement("span"); _sp.className="fil-tutar"; _sp.textContent=PRUVO_SECENEK.kurusMetni(parseInt(_ct[t].getAttribute("data-kurus"),10)); if(_bl){{ _ct[t].insertBefore(_sp,_bl); }} else {{ _ct[t].appendChild(_sp); }} }} }}
   function hataKutusu(){{
     if(hataEl || !document.createElement){{ return hataEl; }}
     var kutu = document.createElement("div");
@@ -2584,11 +2703,21 @@ function pv(el,src){{
   function render(){{
     /* Eksik secim tamamlanir tamamlanmaz kirmizi uyari kendiliginden kalkar. */
     if(!KART_SECIM || (seciliMalzeme && seciliRenk && !(seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim()))){{ hataGizle(); }}
+    /* 🔴 BILGILENDIRME (ENGEL DEGIL): onerdigimizden BASKA malzeme secildiginde musteri
+       bunu ANLAMALI. Secim serbesttir — musterinin bilerek taban malzemeye ihtiyaci
+       olabilir. Not YALNIZ ayrik durumda gorunur; onerilen seciliyken GORUNMEZ (gurultu
+       yapmaz). Onerisi TURETILEMEYEN urunde kutu HIC basilmaz -> `data-oneri` bos kalir
+       ve kosul dogal olarak hicbir zaman saglanmaz (fail-closed). */
+    if(oneriNot){{ var _o = oneriNot.getAttribute("data-oneri") || ""; oneriNot.hidden = !(_o && seciliMalzeme && seciliMalzeme !== _o); }}
     var c = PRUVO_SECENEK.sepetYukle();
     var satir = currentSatir();
     var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
     var has = c.some(function(s){{ return PRUVO_SECENEK.satirAnahtari(s) === anahtar; }});
     btn.classList.toggle("added", has);
+    /* 🔴 ETIKETLI KALIPTA DA ARIA SENKRON (11 Agu): sepet butonu artik yazili; gorunur
+       metin "Sepette ✓" olurken aria-label "Sepete Ekle"de kalsaydi ekran okuyucu
+       kullanicisi butonun ne yaptigini YANLIS duyardi. Tek satir, ayirt edici. */
+    if(label){{ var eD = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle"; btn.setAttribute("aria-label", eD); btn.setAttribute("title", eD); }}
     if(label){{ label.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }}
     else {{
       /* İkon buton (yazısız, madde 7): durum bildirimi title + aria-label ile. */
@@ -2871,13 +3000,18 @@ def render_product(p, all_products, chip_map=None):
     # ALINABILIR bir stok bildiriliyordu. Ayni fail-closed dala sokulur: sayisal
     # fiyat YOK -> offers HIC basilmaz (InStock da offers'in icinde oldugu icin
     # birlikte duser). Yeni paralel dal ACILMAZ.
-    # 🔴 ON-SECIMLE HIZALI: bayrak aciksa beyan edilen tutar ONDEN SECILI malzemeye gore
-    # hesaplanir (ilan_kurus -> on_secim_malzeme). Aksi halde sayfa/kart/yapilandirilmis
-    # veri liste tutarini, sepet ise %30-60 fazlasini tasirdi (sessiz zam). Bayrak
-    # KAPALIYKEN on-secim %0 farkli malzemedir -> deger pnum ile AYNI (bayt-esit cikti).
+    # 🔴 YAPILANDIRILMIS VERI = LISTE/KART YUZEYI (isletme karari, 11 Agu — Okan'in kendi
+    # secimi, riski kendisine YAZILI bildirildikten sonra): markup TEK fiyat basar ve o
+    # fiyat BASLANGIC tabanidir; coklu-teklif bicimine GECILMEZ. Yani bu satir urun
+    # sayfasi koluna DEGIL, KART koluna baglidir (ONERI_VITRIN_ACIK) — urun sayfasinda
+    # onden secili malzeme yukselse bile markup KAYMAZ.
+    # ⚠️ BEYAN EDILEN RISK: markup/besleme tutari ile acilan sayfanin VURGULANAN tutari
+    # ayrisir. Karar Okan'indir; azaltici olarak urun sayfasi taban tutari GORUNUR birakildi
+    # (fiyat blogundaki taban satiri + her malzeme cipinin kendi data-kurus'u).
+    # Kart kolu KAPALIYKEN deger pnum ile AYNI -> bugunku cikti bayt-esit.
     ld_fiyat = pnum
-    if ONERI_ONSECIM_ACIK and pnum:
-        ld_fiyat = ilan_tl_metni(ilan_kurus(p)) or pnum
+    if ONERI_VITRIN_ACIK and pnum:
+        ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum
     if aile_satis_kapali:
         ld_fiyat = None
     elif ld_fiyat is None and sema is not None:
@@ -3459,7 +3593,7 @@ def render_product(p, all_products, chip_map=None):
 <section class="help-cta">
   <div class="help-cta-inner">
     <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
-    <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener">{icon} Bizimle İletişime Geçin</a>
+    <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener">{icon} <span class="wa-uzun">Bizimle </span>İletişime Geçin</a>
   </div>
 </section>
 
@@ -3778,11 +3912,14 @@ def render_merchant_feed(products):
         price = feed_price((p.get("fiyat") or "").strip())
         if not price:
             continue                                   # net sayisal fiyati yok -> feed disi
-        # 🔴 ON-SECIMLE HIZALI (sessiz zam): besleme, sayfa ve yapilandirilmis veri AYNI
-        # sayiyi beyan eder — tutar on-secimli malzemeden turer (ilan_kurus). Bayrak
-        # kapaliyken on-secim %0 farkli malzemedir -> deger degismez (besleme bayt-esit).
-        if ONERI_ONSECIM_ACIK:
-            price = ilan_tl_metni(ilan_kurus(p)) or price
+        # 🔴 BESLEME = LISTE/KART YUZEYI (isletme karari, 11 Agu): besleme BASLANGIC
+        # tabanini beyan eder ve KART kolunun anahtarina baglidir (ONERI_VITRIN_ACIK).
+        # Urun sayfasinda onden secili malzeme yukselse bile besleme KAYMAZ.
+        # ⚠️ BEYAN EDILEN RISK: besleme tutari ile acilan sayfanin vurgulanan tutari
+        # ayrisabilir; karar Okan'in (yazili bildirilen risk). Azaltici: urun sayfasinda
+        # taban tutar GORUNUR ve her malzeme cipi kendi tutarini data-kurus ile tasir.
+        if ONERI_VITRIN_ACIK:
+            price = ilan_tl_metni(vitrin_kurus(p)) or price
         imgs = images_of(p)
         if not imgs:
             continue                                   # gorselsiz urun feed'e girmez
@@ -3859,6 +3996,31 @@ ILK_YUK_BUTCE = 500 * 1024
 OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
                       "parametrik", "aciklama", "eski_fiyat", "tur",
                       "tavsiyeFilament", "konfigur")
+# 🔴 ARTEFAKT SÜRÜMÜ — istemci sözleşmesi. v1 = sözlük kartları · v2 = sabit sıralı dizi ·
+# v3 = dizi + görsel ortak öneki başlıkta (`gorselOnek`) + `yeni` kesiti havuz kartlarını
+# ID ile REFERANSLAR (`yeniRef`). index.html ozetAc ÜÇÜNÜ DE açar (bayat tarayıcı
+# önbelleği gerçektir). `_ozet_surum_dogrula` fail-closed kontrol eder: sürüm ile basılan
+# alanlar ayrışırsa build KIRMIZI.
+#
+# 🔴 TEK KAYNAK TEMSİL BAYRAĞI — OKUYUCU ÖNCE, YAZICI SONRA (mimar kararı, 12 Ağu 2026).
+# ÖLÇÜLDÜ: bayat tarayıcı önbelleğindeki ESKİ index.html yeni (v3) artefaktı alırsa boş
+# kart çizmez ve fiyat/beyan bozulmaz, ama 223 kartın kapak URL'si kısa kalır ve yer
+# tutucuya düşer. Bu pencere İKİ AŞAMALI YAYINLA tamamen kapanır — ikinci artefakta ve
+# bayt kazancından vazgeçmeye GEREK YOK:
+#   Yayın N   : v3'ü AÇABİLEN index.html çıkar, bu bayrak KAPALI kalır -> artefakt v2.
+#               (Yeni istemci eski artefaktı zaten sorunsuz açıyor; kimse etkilenmez.)
+#   Yayın N+1 : index.html tarayıcı önbelleği döndükten SONRA (≥4 saat,
+#               [[tarayici-onbellek-4saat]]) bu sabit 3 yapılır -> artefakt v3, kazanç
+#               (21.766 B) devreye girer, bayat istemci KALMADIĞI için kapak kaybı 0.
+# Yordam + doğrulama komutu: tools/paket-ozet-butce.md "FAZ 2b".
+# ⚠️ VARSAYILAN KAPALI (2) — açmak AYRI ve BİLİNÇLİ bir yayındır. `--sadece-ozet` için
+# `--ozet-surum <2|3>` YALNIZCA ölçüm/kabul testi kolu; yayın yolunu ETKİLEMEZ.
+OZET_TEMSIL_SURUM = 2
+# Kart kapak URL'lerinin ortak öneki. Kartta yalnız kalan parça taşınır; istemci öneki
+# geri ekler. ÖNEKİ TAŞIMAYAN değer (başka konak) OLDUĞU GİBİ kalır — istemcinin ayrımı
+# "://" içeriyor mu (mutlak = dokunma). Ölçüldü (11 Ağu, 271 kart): 34 B × 271 = 9.164 B.
+OZET_GORSEL_ONEK = "https://media.pruvo3d.com/urunler/"
+_OZET_I_GORSEL = OZET_KART_ALANLARI.index("gorsel")
 
 
 def kart_ozeti(p):
@@ -3930,14 +4092,108 @@ def kart_ozeti(p):
     return kart
 
 
-def ozet_karti_sikistir(kart):
+def ozet_karti_sikistir(kart, gorsel_onek=None):
     """Tam kart sözlüğünü kayıpsız, sabit sıralı dizi temsiline çevirir.
 
     Sondaki koşullu alanlar yoksa taşınmaz; aradaki boş konumlar ``None`` kalır. Böylece
     ``tur`` taşıyan kartta ``eski_fiyat`` konumu korunur ve istemci alanları kaydıramaz.
+
+    ``gorsel_onek`` verilirse (v3) kapak URL'sinin ortak öneki DÜŞÜLÜR. Düşme YALNIZ
+    değer önekle başlıyorsa ve KALAN BOŞ DEĞİLSE olur; kalan "://" taşırsa temsil
+    çift-anlamlı olurdu → fail-closed (build KIRMIZI). Öneki taşımayan mutlak URL
+    olduğu gibi kalır ve istemci ona dokunmaz.
     """
     son = max((i for i, alan in enumerate(OZET_KART_ALANLARI) if alan in kart), default=-1)
-    return [kart.get(alan) for alan in OZET_KART_ALANLARI[:son + 1]]
+    dizi = [kart.get(alan) for alan in OZET_KART_ALANLARI[:son + 1]]
+    if gorsel_onek and len(dizi) > _OZET_I_GORSEL:
+        deger = dizi[_OZET_I_GORSEL]
+        if isinstance(deger, str) and deger.startswith(gorsel_onek):
+            kalan = deger[len(gorsel_onek):]
+            if kalan and "://" not in kalan:
+                dizi[_OZET_I_GORSEL] = kalan
+            elif kalan and "://" in kalan:
+                raise SystemExit("ozet.json gorsel oneki cift-anlamli deger uretti "
+                                 "(kalan parca '://' tasiyor): %r" % (deger,))
+    return dizi
+
+
+def ozet_karti_ac(dizi, alanlar=None, gorsel_onek=""):
+    """``ozet_karti_sikistir``ın TERSİ — dizi temsilini tam kart sözlüğüne çevirir.
+
+    index.html ``ozetAc`` ile AYNI yüklem: 8'inci konumdan sonraki ``None`` değerler
+    "alan yok" demektir (koşullu alanlar), önündekiler korunur; öneki geri ekleme
+    yalnız BOŞ OLMAYAN ve "://" taşımayan dizede yapılır.
+    """
+    alanlar = list(alanlar or OZET_KART_ALANLARI)
+    if not isinstance(dizi, list):
+        return dizi
+    kart = {}
+    for i, deger in enumerate(dizi):
+        if i < len(alanlar) and (i < 8 or deger is not None):
+            kart[alanlar[i]] = deger
+    g = kart.get("gorsel")
+    if gorsel_onek and isinstance(g, str) and g and "://" not in g:
+        kart["gorsel"] = gorsel_onek + g
+    return kart
+
+
+def ozet_temsil_ac(ozet):
+    """Artefaktın TAMAMINI (v1/v2/v3) kart sözlüklerine geri açar — kayıpsızlık kanıtı
+    ve Python tarafındaki tüketiciler (kabul testleri) için TEK kaynak.
+
+    Dönen sözlük: {"parametrik": [...], "bloklar": {kat: [...]}, "yeni": [...]}.
+    Çözülemeyen bir ``yeniRef`` referansı SESSİZCE atlanmaz — hata olarak döner
+    (istemci tarafı onu BOŞ KART çizmemek için düşürür, build ise KIRMIZI yanar).
+    """
+    alanlar = ozet.get("kartAlanlari") or []
+    onek = ozet.get("gorselOnek") or ""
+    if not alanlar:                      # v1: kartlar zaten sözlük
+        return {"parametrik": list(ozet.get("parametrik") or []),
+                "bloklar": {k: list(v) for k, v in (ozet.get("bloklar") or {}).items()},
+                "yeni": list(ozet.get("yeni") or []), "cozulemeyen": []}
+    ac = lambda k: ozet_karti_ac(k, alanlar, onek)
+    parametrik = [ac(k) for k in (ozet.get("parametrik") or [])]
+    bloklar = {kat: [ac(k) for k in kartlar]
+               for kat, kartlar in (ozet.get("bloklar") or {}).items()}
+    havuz = {}
+    for kart in parametrik + [k for liste in bloklar.values() for k in liste]:
+        if isinstance(kart, dict) and kart.get("id") is not None:
+            havuz.setdefault(kart["id"], kart)
+    cozulemeyen = []
+    if "yeniRef" in ozet:
+        yeni = []
+        for oge in (ozet.get("yeniRef") or []):
+            if isinstance(oge, str):
+                if oge in havuz:
+                    yeni.append(havuz[oge])
+                else:
+                    cozulemeyen.append(oge)
+            else:
+                yeni.append(ac(oge))
+    else:
+        yeni = [ac(k) for k in (ozet.get("yeni") or [])]
+    return {"parametrik": parametrik, "bloklar": bloklar, "yeni": yeni,
+            "cozulemeyen": cozulemeyen}
+
+
+def _ozet_surum_dogrula(ozet):
+    """FAIL-CLOSED sürüm nöbetçisi — ``surum`` ile BASILAN ALANLAR birbirini tutmalı.
+
+    İKİ YÖN de ölçülür:
+      * v3 alanı var + ``surum`` < 3  -> bump DÜŞMÜŞ; bayat istemci yeni temsili sessizce
+        yanlış çizerdi (mutasyon M-D bu satırı ölçer).
+      * ``surum`` >= 3 ama v3 alanı yok -> etiket ile içerik ayrışmış; temsil bayrağı
+        yarım uygulanmış demektir (yeni istemci alan varlığına bakar, sürüm etiketine
+        DEĞİL; sessiz ayrışma burada durur)."""
+    v3_alan = [a for a in ("gorselOnek", "yeniRef") if a in ozet]
+    surum = ozet.get("surum", 0)
+    if v3_alan and surum < 3:
+        raise SystemExit("ozet.json v3 alani basildi (%s) ama surum=%r — SURUM BUMP "
+                         "DUSMUS. Bayat istemci yeni temsili yanlis cizer."
+                         % (", ".join(v3_alan), surum))
+    if surum >= 3 and len(v3_alan) < 2:
+        raise SystemExit("ozet.json surum=%r ama v3 alanlari EKSIK (%s) — temsil bayragi "
+                         "yarim uygulanmis." % (surum, ", ".join(v3_alan) or "hicbiri"))
 
 
 # ------------------------------------ ANA SAYFA VİTRİN HİYERARŞİSİ (Okan kuralı, 31 Tem)
@@ -3981,8 +4237,15 @@ def _index_vitrin_kurali():
     return bloklar
 
 
-def render_ozet(products):
-    """ozet.json'u kayıpsız kart temsiliyle üretir; arama/vitrin havuzlarını kırpmaz."""
+def render_ozet(products, temsil_surum=None):
+    """ozet.json'u kayıpsız kart temsiliyle üretir; arama/vitrin havuzlarını kırpmaz.
+
+    ``temsil_surum`` verilmezse TEK KAYNAK bayrağı (``OZET_TEMSIL_SURUM``) kullanılır.
+    Parametre YALNIZCA ölçüm/kabul testi koludur (iki hâli de aynı koşumda ölçmek için);
+    yayın yolu daima sabiti okur."""
+    surum = OZET_TEMSIL_SURUM if temsil_surum is None else int(temsil_surum)
+    if surum not in (2, 3):
+        raise SystemExit("ozet temsil surumu gecersiz: %r (2 ya da 3 olmali)" % (surum,))
     kategoriler = {}
     markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
     for p in products:
@@ -4035,24 +4298,63 @@ def render_ozet(products):
                 yetersiz = True
             blok_sapma.append({"kategori": kat, "adet": adet,
                                "havuz": len(havuz_kartlar), "stok": stok})
-        ozet = {
-            "surum": 2,
-            "kartAlanlari": list(OZET_KART_ALANLARI),
-            "uretim": TODAY,
-            "toplam": len(products),
-            "kategoriler": kategoriler,
-            "markalar": markalar,
-            # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
-            "parametrik": [ozet_karti_sikistir(k) for k in parametrik_kartlar],
-            # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
-            "bloklar": {kat: [ozet_karti_sikistir(k) for k in kartlar]
-                         for kat, kartlar in bloklar.items()},
-            # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
-            # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
-            "yeni": [ozet_karti_sikistir(k) for k in yeni_kartlar],
-            # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
-            "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
-        }
+        # --- TEMSİL (kayıpsız, bayrağa göre):
+        #   v2 = sabit sıralı dizi, tam kapak URL'si, `yeni` kesiti TAM kartlar.
+        #   v3 = + kapak öneki başlıkta (`gorselOnek`) + `yeni` kesiti havuz kartlarını
+        #        ID ile referanslar (`yeniRef`). Referans YALNIZ kart BASILAN havuzlarda
+        #        BİREBİR aynı temsille varsa verilir; yoksa TAM kart taşınır. Örtüşme bugün
+        #        %100 ama yarın 0 olabilir (yeni ürün havuzsuz kategoriye düşerse) — iki hâl
+        #        de aynı akışta çizilir.
+        onek = OZET_GORSEL_ONEK if surum >= 3 else None
+        sik = lambda k: ozet_karti_sikistir(k, onek)
+        s_parametrik = [sik(k) for k in parametrik_kartlar]
+        s_bloklar = {kat: [sik(k) for k in kartlar] for kat, kartlar in bloklar.items()}
+        s_yeni = [sik(k) for k in yeni_kartlar]
+        if surum >= 3:
+            havuz_dizin = {}
+            for dizi in s_parametrik + [d for liste in s_bloklar.values() for d in liste]:
+                if dizi and dizi[0] is not None:
+                    havuz_dizin.setdefault(dizi[0], dizi)
+            s_yeni = [(dizi[0] if (dizi and dizi[0] is not None
+                                   and havuz_dizin.get(dizi[0]) == dizi) else dizi)
+                      for dizi in s_yeni]
+        # ANAHTAR SIRASI KORUNUR (bayrak KAPALI iken artefakt, bayraktan önceki v2 ile
+        # BAYT BAYT aynı olmalı — "yayın N kimseyi etkilemez" iddiası buna dayanır).
+        ozet = {"surum": surum, "kartAlanlari": list(OZET_KART_ALANLARI)}
+        if surum >= 3:
+            ozet["gorselOnek"] = OZET_GORSEL_ONEK
+        ozet["uretim"] = TODAY
+        ozet["toplam"] = len(products)
+        ozet["kategoriler"] = kategoriler
+        ozet["markalar"] = markalar
+        # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
+        ozet["parametrik"] = s_parametrik
+        # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
+        ozet["bloklar"] = s_bloklar
+        # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
+        # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
+        # v3'te ANAHTAR ADI DEĞİŞİR (`yeni` -> `yeniRef`): bayat istemci tanımadığı anahtarı
+        # BOŞ görür ve kuyruğu çizmez; referans dizelerini karta çevirip BOŞ KART üretmez.
+        ozet["yeniRef" if surum >= 3 else "yeni"] = s_yeni
+        # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
+        ozet["vitrin"] = {"yetersiz": yetersiz, "bloklar": blok_sapma,
+                          "liste": len(products)}
+        _ozet_surum_dogrula(ozet)
+        # 🔴 KAYIPSIZLIK HER BUILD'DE ÖLÇÜLÜR (fail-closed): temsili GERİ AÇIP kartların
+        # KAYNAĞIYLA (kart_ozeti çıktısı) birebir karşılaştırırız. Karşılaştırma hedefi
+        # sıkıştırmanın kendi tersi DEĞİL, ÜRETİLEN KARTLARDIR — böylece sıkıştırma ile
+        # açmanın aynı hatayı paylaşması yeşil vermez.
+        geri = ozet_temsil_ac(ozet)
+        beklenen = {"parametrik": parametrik_kartlar,
+                    "bloklar": bloklar, "yeni": yeni_kartlar}
+        if geri["cozulemeyen"]:
+            raise SystemExit("ozet.json 'yeniRef' referansi havuzda COZULEMEDI: %s"
+                             % ", ".join(map(str, geri["cozulemeyen"][:3])))
+        if (geri["parametrik"] != beklenen["parametrik"]
+                or geri["bloklar"] != beklenen["bloklar"]
+                or geri["yeni"] != beklenen["yeni"]):
+            raise SystemExit("ozet.json temsili KAYIPLI — geri acilan kartlar kart_ozeti "
+                             "ciktisiyla ayrisiyor (v3 sikistirma bozuk).")
         return json.dumps(ozet, ensure_ascii=False, separators=(",", ":")), yetersiz, blok_sapma
 
     havuz_boyut = dict(havuz_n0)
@@ -4177,13 +4479,19 @@ def main():
             return sys.argv[i + 1] if 0 <= i < len(sys.argv) - 1 else varsayilan
         _katalog = _arg("--katalog", JSON_PATH)
         _cikti = _arg("--cikti", os.path.join(ROOT, OZET_JSON))
+        # --ozet-surum: TEMSİL bayrağının ÖLÇÜM kolu (2 = v2, 3 = v3). Yayın yolu (aşağıdaki
+        # tam build) bu bayrağı OKUMAZ, daima OZET_TEMSIL_SURUM sabitini kullanır — yani
+        # bu lever bir "gizli açma düğmesi" DEĞİL, kabul testinin iki hâli de aynı koşumda
+        # ölçebilmesi içindir.
+        _surum = _arg("--ozet-surum", None)
         with open(_katalog, encoding="utf-8") as f:
             _urunler = json.load(f)
-        _ozet = render_ozet(_urunler)
+        _ozet = render_ozet(_urunler, temsil_surum=_surum)
         with open(_cikti, "w", encoding="utf-8") as f:
             f.write(_ozet)
-        print("OK: ozet.json uretildi (%d urun, %d bayt)."
-              % (len(_urunler), len(_ozet.encode("utf-8"))))
+        print("OK: ozet.json uretildi (%d urun, %d bayt, temsil surum %s)."
+              % (len(_urunler), len(_ozet.encode("utf-8")),
+                 _surum if _surum is not None else OZET_TEMSIL_SURUM))
         return
 
     with open(JSON_PATH, encoding="utf-8") as f:

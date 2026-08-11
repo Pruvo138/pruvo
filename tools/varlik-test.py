@@ -109,6 +109,23 @@ BILEREK_DEGISEN = (
     # ayni oldugu tools/ga4-olay-kapisi.py (c) bolumunde node:vm ile olculur.
     ('window.pruvoGA4Track("view_item", ',
      "YENI: urun sayfasi GA4 view_item cagrisi (govde urun basina degisir)"),
+    # 2026-08-11 — ONERILEN MALZEME ON-SECIMI + BILINCLI SECIM NOTU (Okan karari).
+    # Sunucu yalniz VERIYI attribute olarak basar (data-oneri / data-kurus); METNI sayfa
+    # JS'i yazar. Neden: metinler URUN BASINA degisir ve urun-basi gorunur metni sabit
+    # dizeyle beyan etmek imkansizdir — sabit JS satiri beyan edilebilir, degisken metin
+    # DEGIL. Dort satir da AYIRT EDICIDIR (sayfada baska hicbir satir bu onekleri tasimaz).
+    # 🔴 IDDIA TASINDI: notun kosula bagli gorunurlugu + cip tutarlarinin tek turetme
+    # noktasindan gelmesi tools/d1-fiyat-parite-kapisi.py E7/E9'da fail-closed olculur;
+    # mutasyon kaniti tools/urun-vitrin-kapsam-mutasyon.py :: M8/M10/M11.
+    ('var oneriNot = document.getElementById("oneriNot");',
+     "YENI: bilincli-secim notu referansi"),
+    ('oneriNot.textContent = "Seçtiğiniz malzeme,',
+     "YENI: not METNI istemcide yazilir (sunucu yalniz data-oneri basar)"),
+    ('oneriNot.hidden = !(_o && seciliMalzeme && seciliMalzeme !== _o);',
+     "YENI: not YALNIZ onerilenden sapinca gorunur (yanlis-pozitif gurultu yok)"),
+    ('cipler.querySelectorAll(".fil-cip[data-kurus]")',
+     "YENI: her malzeme cipinin KENDI tutari gorunur etiketle yazilir "
+     "(taban secenegin tutari sayfada okunur kalir)"),
 )
 
 # TAM SATIR eslesmeli girisler. NEDEN AYRI: yukaridaki liste ALT DIZE arar; ayirt edici
@@ -318,7 +335,133 @@ BILEREK_DEGISEN_TAM = (
      "YENI: birim fiyat (kapanis bitisik yazildi)"),
     ('if(typeof window.pruvoGA4Track === "function"){ window.pruvoGA4Track("add_to_cart", gAtcVeri); }',
      "YENI: sepete ekleme olayi (Meta AddToCart ile AYNI noktadan)"),
+    # 2026-08-11 — CTA DENGESI: sepet butonu artik ETIKETLI. Gorunur metin "Sepette ✓"
+    # olurken aria-label "Sepete Ekle"de kalsaydi ekran okuyucu kullanicisi butonun ne
+    # yaptigini YANLIS duyardi; bu TEK ve AYIRT EDICI satir durumu aria/title'a da yazar.
+    # Eski `else` kolu (yazisiz ikon) YERINDE DURUYOR — satir SILINMEDI, EKLENDI.
+    ('if(label){ var eD = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle"; '
+     'btn.setAttribute("aria-label", eD); btn.setAttribute("title", eD); }',
+     "YENI: etiketli sepet butonunda aria/title durum senkronu (nobetci: cta-denge-kapisi.py)"),
 )
+
+# ---------------------------------------------------------------- CSS BEYANI
+# 🔴 NEDEN VAR (11 Agu 2026, OLCULEN KILITLENME): eksen 2'nin JS kolunda
+# (BILEREK_DEGISEN / BILEREK_DEGISEN_TAM) ve eksen 1'de (BILEREK_DEGISEN_METIN) beyan
+# yuzeyi vardi, eksen 2'nin CSS kolunda YOKTU. CSS kiyasi BAYT ESITLIGIDIR ve kiyas
+# nesnesi git gecmisindeki DONMUS uretecidir -> paylasilan urun sayfasi CSS'i FIILEN
+# DEGISTIRILEMEZ hale gelmisti: her degisiklik "2 CSS KAYIP/EKLENTI" ile kirmizi yanar,
+# `--referans-tazele` ise kapi YESILKEN calisir. Yani cikis yolu olmayan bir kilit.
+# Olculdu (11 Agu): Okan'in "Sepete Ekle WhatsApp'tan buyuk olsun" talebi bu kilide
+# carpti; talep CSS'siz karsilanamaz (medya sorgusu satir-ici `style` ile yazilamaz).
+#
+# 🔴 KAPI ZAYIFLAMAZ — giris kurallari BILEREK_DEGISEN_METIN ile AYNI:
+#   1. GRANUL: (ESKI parca, YENI parca, gerekce) ucLUSU; joker/regex/bolge muafiyeti YOK.
+#      Saf eklenti icin ESKI "" birakilir.
+#   2. YENI parca AYIRT EDICI olmali (>=12 gorunur karakter + `{` ya da `:` icermeli);
+#      bosluk/parantez yigini beyan EDILEMEZ — oyle bir giris gercek bir kaybi maskelerdi.
+#   3. Beyanlar YENI->ESKI yonunde BIRER KEZ uygulanir, sonra TAM BAYT ESITLIGI yine
+#      aranir: beyan ikinci bir degisikligi MASKELEYEMEZ.
+#   4. BAYAT BEYAN FAIL-LOUD: `yeni` parcasi uretilen CSS'te bulunamazsa kapi KIRMIZI.
+#   5. IDDIA TASINIR: beyan edilen gorsel kural bir BASKA kapida fail-closed olculmelidir;
+#      gerekce satirinda o kapi YAZILIR.
+BILEREK_DEGISEN_CSS = (
+    # 2026-08-11 — CTA DENGESI (Okan talebi). Iddia tools/cta-denge-kapisi.py'de fail-closed
+    # olculur: CTA-A1-ORAN (Sepete Ekle alani >= WhatsApp), CTA-A2-BANT-PAYI (<%10),
+    # CTA-A4-DOKUNMA-44. Mutasyon kaniti: tools/cta-denge-mutasyon.py (9 oldurucu).
+    ("", ";flex-wrap:wrap;\n    justify-content:flex-end",
+     "eylem blogu sarabilir + saga yaslanir (nobetci: cta-denge-kapisi.py)"),
+    ("", ";width:auto;min-width:260px;height:56px;\n    padding:0 20px;gap:9px;"
+         "color:#fff;font-size:16px;font-weight:700;font-family:inherit",
+     "Sepete Ekle ETIKETLI/genis oldu — 44x44 ikon degil (nobetci: cta-denge-kapisi.py)"),
+    ("", "}\n  .cart-label{white-space:nowrap",
+     "buton etiketi tek satirda kalir (nobetci: cta-denge-kapisi.py)"),
+    ("", "   \n    .help-cta-inner{padding:8px 14px;gap:10px;flex-wrap:nowrap;\n"
+         "      justify-content:space-between;text-align:left}\n"
+         "    .help-cta-text{font-size:11px;line-height:1.3;display:-webkit-box;\n"
+         "      -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}\n"
+         "    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;"
+         "flex:none}\n    .wa-uzun{display:none}\n"
+         "    .eylem-ikonlar{flex-wrap:nowrap;width:100%}\n     \n"
+         "    .ikon-sepet{flex:1 1 auto;min-width:200px}\n  ",
+     "mobil sticky bant %16,6 -> %7,5 + eylem blogu tam genislik "
+     "(nobetci: cta-denge-kapisi.py CTA-A2-BANT-PAYI)"),
+    # 2026-08-11 — ONERILEN MALZEME ON-SECIMI (Okan karari). Iki YENI gorsel kural:
+    # (1) cip tutari etiketi, (2) onerilenden sapinca cikan bilgi notu kutusu.
+    # 🔴 IDDIA TASINDI: ogelerin GERCEKTEN basildigi/kosula bagli oldugu
+    # tools/d1-fiyat-parite-kapisi.py E7/E9'da fail-closed olculur; mutasyon kaniti
+    # tools/urun-vitrin-kapsam-mutasyon.py :: M8/M10/M11.
+    ("", "\n   \n  .fil-tutar{font-size:11.5px;font-weight:700;color:var(--navy);"
+         "margin-top:1px}",
+     "malzeme cipi kendi tutarini gosterir (nobetci: d1-fiyat-parite-kapisi.py E7)"),
+    ("", "\n  .fil-cip.secili .fil-tutar{color:#fff}",
+     "secili cipte tutar okunur kalir (lacivert dolgu uzerinde beyaz)"),
+    ("", "\n   \n  .oneri-not{margin:8px 0 0;padding:8px 11px;border-radius:8px;"
+         "background:#fff7e6;\n"
+         "    border:1px solid #f0d9a8;color:#6b4e11;font-size:12.5px;line-height:1.5}\n"
+         "  .oneri-not[hidden]{display:none}",
+     "bilincli-secim notu kutusu (nobetci: d1-fiyat-parite-kapisi.py E9)"),
+)
+
+
+def css_beyani_uygula(yeni_css, tablo=None):
+    """Beyan edilen CSS parcalarini YENI->ESKI yonunde BIRER KEZ geri cevirir.
+
+    Doner: (donusmus_css, hatalar). Bulunmayan `yeni` parcasi BAYAT BEYANDIR ve
+    hata olarak doner (sessiz muafiyet yok). `tablo` yalniz OZ-NOBETCININ sentetik
+    fiksturleri icindir; uretimde daima BILEREK_DEGISEN_CSS kullanilir."""
+    hatalar = []
+    for i, (eski_p, yeni_p, gerekce) in enumerate(
+            BILEREK_DEGISEN_CSS if tablo is None else tablo):
+        gorunur = "".join(yeni_p.split())
+        if len(gorunur) < 12 or not ("{" in yeni_p or ":" in yeni_p):
+            hatalar.append("2b CSS BEYANI AYIRT EDICI DEGIL (#%d): %r -> gerekce: %s"
+                           % (i, yeni_p[:40], gerekce))
+            continue
+        if yeni_p not in yeni_css:
+            hatalar.append("2b BAYAT CSS BEYANI (uretilen CSS'te bulunamadi, #%d): %r "
+                           "-> gerekce: %s. Kural artik yoksa GIRISI SIL."
+                           % (i, yeni_p[:60], gerekce))
+            continue
+        yeni_css = yeni_css.replace(yeni_p, eski_p, 1)
+    return yeni_css, hatalar
+
+
+# --- CSS BEYAN YUZEYININ KENDI NOBETCISI (HER kosumda, olcumden ONCE) -----------
+# 🔴 NEDEN: beyan yuzeyi kapiyi SUSTURMA kolusudur; susturma kolu nobetsiz kalamaz.
+# Bu deponun olculmus sinifi: kapi kapsami genisletilince pozitif nobetci SESSIZCE
+# olur ve kimse fark etmez ([[kapi-kapsam-genisletme-tuzagi]] · [[tekil-yama-sinifi-kapatmaz]]).
+# Fiksturler SENTETIKTIR: gercek CSS'e, gercek tabloya ve diske DOKUNMAZ.
+#   C1 AYIRT EDICILIK : ayirt edici olmayan (bosluk/parantez yigini) beyan REDDEDILIR.
+#   C2 BAYAT BEYAN    : isaret ettigi CSS artik yoksa FAIL-LOUD (sessizce yutulmaz).
+#   C3 MASKELEME YOK  : beyan kapsami DISINDAKI ikinci bir degisiklik HALA gorunur.
+#   C4 KONTROL        : gecerli beyan uygulanir, hata URETMEZ ve eski hale DONER.
+_CSS_OZ_ESKI = "  .zzfik-a{color:red}\n  .zzfik-b{color:blue}\n"
+_CSS_OZ_YENI = "  .zzfik-a{color:red;font-weight:700}\n  .zzfik-b{color:blue}\n"
+_CSS_OZ_GECERLI = ("", ";font-weight:700", "oz-nobetci fiksturu")
+
+
+def css_beyan_mekanizmasi_dogrula():
+    """Bos liste = yuzey saglam. Her giris bir BOZUKLUK teshisidir."""
+    d = []
+    _, h1 = css_beyani_uygula(_CSS_OZ_YENI, (("", "  }  ", "ayirt edici olmayan"),))
+    if not any("AYIRT EDICI DEGIL" in x for x in h1):
+        d.append("C1 ayirt edicilik sarti OLU: bosluk/parantez yigini beyan KABUL edildi "
+                 "-> tek girisle butun CSS ekseni yutulabilirdi")
+    _, h2 = css_beyani_uygula(_CSS_OZ_YENI, (("", ".zzfik-yok{color:#000}", "bayat"),))
+    if not any("BAYAT CSS BEYANI" in x for x in h2):
+        d.append("C2 bayat beyan nobeti OLU: uretilen CSS'te BULUNMAYAN beyan sessizce "
+                 "yutuldu -> tablo olu muafiyet deposuna doner")
+    ikinci = _CSS_OZ_YENI.replace(".zzfik-b{color:blue}", ".zzfik-b{color:green}")
+    c3, h3 = css_beyani_uygula(ikinci, (_CSS_OZ_GECERLI,))
+    if h3 or c3 == _CSS_OZ_ESKI:
+        d.append("C3 MASKELEME: beyan kapsami DISINDAKI ikinci degisiklik beyan "
+                 "uygulandiktan sonra KAYBOLDU -> beyan gercek bir kaybi gizleyebilir")
+    c4, h4 = css_beyani_uygula(_CSS_OZ_YENI, (_CSS_OZ_GECERLI,))
+    if h4 or c4 != _CSS_OZ_ESKI:
+        d.append("C4 KONTROL: gecerli beyan ya hata uretti ya eski hale DONDURMEDI "
+                 "(hata=%r) -> mekanizma her seye kirmizi yakan bir alarm" % (h4[:1],))
+    return d
+
 
 # ---------------------------------------------------------------- GORUNUR METIN BEYANI
 # 🔴 NEDEN VAR (mimar karari, 8 Agu 2026): eksen 2'nin BILEREK_DEGISEN yuzeyi vardi,
@@ -385,6 +528,18 @@ BILEREK_DEGISEN_METIN = (
     # gelen cumleler ESKI uretecin ciktisinda da yeni halleriyle gorunur -> gorunur
     # metin ekseninde fark YOKTUR. Buraya giris eklemek "hicbir sayfada eslesmeyen
     # BAYAT BEYAN" olurdu ve 1c hijyeni onu dogru sekilde KIRMIZI yakti (olculdu).
+    # 2026-08-11 — CTA DENGESI: sepet butonu YAZISIZ ikondan ETIKETLI butona dondu.
+    # Bu bir metin KAYBI degil EKLENTISIDIR: adet satirinin sagindaki buton artik
+    # "Sepete Ekle" yazisini GORUNUR tasiyor (once yalniz aria-label/title'daydi).
+    # CAPA NEDEN BU: adet secici ("Adet − +") kart-secim · sema · konfigur · fiziksel
+    # panellerin HEPSINDE vardir ve butonun HEMEN SOLUNDADIR -> sinif hizali, katalog
+    # degistikce bayatlamaz.
+    # 🔴 IDDIA TASINDI, KALDIRILMADI: etiketin GERCEKTEN basildigini ve butonun
+    # WhatsApp'i gectigini tools/cta-denge-kapisi.py CTA-A5-KANAL-WA + CTA-A1-ORAN
+    # fail-closed olcer; mutasyon kaniti tools/cta-denge-mutasyon.py :: M3.
+    ("Adet − +", "Adet − + Sepete Ekle",
+     "sepet butonu etiketlendi (11 Agu); etiketin varligini "
+     "tools/cta-denge-kapisi.py CTA-A5-KANAL-WA fail-closed olcer"),
 )
 
 
@@ -564,6 +719,47 @@ def _malzeme_tasima_beyani(p):
          "malzeme kartlari bilgi bolumunden KALKTI — ESKI konum "
          "(nobetci: tools/sepet-secim-kapisi.py)"),
     )
+
+
+def _onsecim_tutar_beyani(p):
+    """🔴 11 Agu 2026 — URUN SAYFASININ VURGULADIGI TUTAR ONERILEN MALZEMEDEN TURER.
+
+    Isletme karari (Okan): musteri urunun ICINE girdiginde onerilen malzeme onden secili
+    gelir ve gorunen tutar ONUN tutaridir. Malzeme+renk zaten seciliyken "…'den baslayan"
+    demek YANLIS olurdu (sayfa KESIN tutari yazar), bu yuzden JS oncesi statik metin de
+    liste tutarindan on-secimli tutara gecti. LISTE tutari KAYBOLMADI: kart · besleme ·
+    yapilandirilmis veri hala onu beyan eder ve her malzeme cipi KENDI tutarini tasir.
+
+    🔴 CIFT ELLE YAZILMAZ: (eski metin -> yeni metin) urunun KENDI verisinden ve build'in
+    KENDI bicimleyicisinden turetilir -> fiyat/kural degisince beyan kendiliginden
+    tazelenir, BAYATLAMAZ ve urun-basi tutar varyantlari icin elle defter tutulmaz.
+    Urun bu kolun DISINDAysa (olcuye ozel / yapilandiricili / fiyatsiz) giris URETILMEZ.
+    Tutar AYNI kalan uründe (onerisi PLA) bile giris uretilir: degisen sey yalniz sayi
+    degil, CUMLE KALIBIDIR — giris uretilmezse o sayfa yanlis-KIRMIZI yanardi.
+
+    🔴 IDDIA TASINDI, KALDIRILMADI: gorunen tutarin sepet/sunucu tutariyla KURUS KURUS
+    ayni oldugunu tools/onsecim-parite-kapisi.py, kart/besleme/markup yuzeyinin
+    KAYMADIGINI tools/d1-fiyat-parite-kapisi.py fail-closed olcer."""
+    try:
+        if not build.ONERI_ONSECIM_ACIK or p.get("parametrik") or p.get("konfigur"):
+            return ()
+        ilan = build.ilan_kurus(p)
+        ham = (p.get("fiyat") or "").strip()
+        if ilan is None or not ham:
+            return ()
+        # 🔴 TUTAR ESIT OLSA BILE BEYAN URETILIR: degisen sey yalniz SAYI degil, CUMLE
+        # KALIBIDIR ("… TL'den baslayan" -> kesin tutar). Onerisi PLA olan uründe sayi ayni
+        # kalir ama metin yine degisir; giris uretilmezse o sayfa yanlis-KIRMIZI yanardi.
+        eski = _norm(_duz_metin(build.esc(ham) + "&#39;den başlayan"))
+        yeni = _norm(_duz_metin(build.taban_fiyat_metni(ilan / 100.0)))
+    except Exception:
+        return ()
+    if not eski or not yeni:
+        return ()
+    return ((eski, yeni,
+             "urun sayfasinin vurguladigi tutar ONERILEN malzemeden turer (11 Agu); "
+             "kurus esitligini tools/onsecim-parite-kapisi.py, kart/besleme/markup "
+             "yuzeyinin kaymadigini tools/d1-fiyat-parite-kapisi.py fail-closed olcer"),)
 
 
 def _seri_etiket_beyani(p):
@@ -1253,6 +1449,8 @@ def main():
     # Muafiyet yuzeyinin nobeti HER kosumda, olcumden ONCE.
     for _d in beyan_mekanizmasi_dogrula():
         HATALAR.append("0 GORUNUR-METIN BEYAN YUZEYI BOZUK: %s" % _d)
+    for _d in css_beyan_mekanizmasi_dogrula():
+        HATALAR.append("0 CSS BEYAN YUZEYI BOZUK: %s" % _d)
     for _d in referans_hukmu_dogrula():
         HATALAR.append("0 KIYAS REFERANSI GECERLILIK HUKMU BOZUK: %s" % _d)
     hedef = 12
@@ -1382,9 +1580,9 @@ def main():
     # bosluktan iki sekil FAIL-OPEN geciyordu ([[ikiz-tanim-sessiz-ayrisma]]).
     kayit, red = referans_kaydi()
     ref = eski_ref()
-    beyan_ozeti = ("beyan: %d satir + %d gorunur-metin"
+    beyan_ozeti = ("beyan: %d satir + %d gorunur-metin + %d css"
                    % (len(BILEREK_DEGISEN_TAM) + len(BILEREK_DEGISEN),
-                      len(BILEREK_DEGISEN_METIN)))
+                      len(BILEREK_DEGISEN_METIN), len(BILEREK_DEGISEN_CSS)))
     if kayit and ref:
         yas = git("log", "-1", "--format=%cr", ref)
         BILGI.append("kiyas referansi: KAYITLI %s (%s) · tazelendi %s · %s"
@@ -1434,7 +1632,8 @@ def olc(eski, yeni, secim, urunler, ref):
     for pid in yeni:
         p_urun = urun_ix.get(pid, {"id": pid})
         seri_metin, seri_deger = _seri_etiket_beyani(p_urun)
-        tablo = (BILEREK_DEGISEN_METIN + _malzeme_tasima_beyani(p_urun) + seri_metin)
+        tablo = (BILEREK_DEGISEN_METIN + _malzeme_tasima_beyani(p_urun) + seri_metin
+                 + _onsecim_tutar_beyani(p_urun))
         kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]),
                               beyan_tablosu=tablo, deger_beyani=seri_deger,
                               eslesen_kovasi=eslesen_beyan)
@@ -1466,10 +1665,14 @@ def olc(eski, yeni, secim, urunler, ref):
             harici += f.read()
     bekle(e_css and y_css, "2 CSS govdesi bulunamadi (olcum bosa dustu)")
     if e_css and y_css:
-        bekle(y_css[0] + harici == e_css[0],
+        # BEYAN EDILEN kurallar ESKI hallerine cevrilir; ARTAKALAN her fark hala KIRMIZI.
+        y_tam, css_beyan_hatalari = css_beyani_uygula(y_css[0] + harici)
+        for _h in css_beyan_hatalari:
+            HATALAR.append(_h)
+        bekle(y_tam == e_css[0],
               "2 CSS KAYIP/EKLENTI: satir-ici cekirdek + harici dosya, eski gomulu CSS'e "
-              "BAYT-ESIT degil (%d + %d != %d)"
-              % (len(y_css[0]), len(harici), len(e_css[0])))
+              "BAYT-ESIT degil (%d + %d, beyan sonrasi %d != %d)"
+              % (len(y_css[0]), len(harici), len(y_tam), len(e_css[0])))
         # sayfaya ozel ek <style> bloklari da aynen durmali
         bekle(e_css[1:] == y_css[1:], "2 sayfaya ozel satir-ici <style> bloklari ayristi")
 

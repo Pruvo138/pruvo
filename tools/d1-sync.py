@@ -1322,7 +1322,12 @@ def seq_sira_hali(urunler, mevcut_seq):
     """Doner: (kesirli id'ler, kanonik pozisyondan sapan id'ler, ornekler)."""
     beklenen = [u.get("id") for u in urunler if isinstance(u, dict) and u.get("id")]
     beklenen = list(dict.fromkeys(beklenen))
-    canli = sorted(mevcut_seq, key=lambda uid: (-float(mevcut_seq[uid]), uid))
+    def sira_anahtari(uid):
+        try:
+            return (0, -float(mevcut_seq[uid]), uid)
+        except (TypeError, ValueError):
+            return (1, 0, uid)
+    canli = sorted(mevcut_seq, key=sira_anahtari)
     kesirli = [uid for uid, deger in mevcut_seq.items()
                 if isinstance(deger, bool) or not isinstance(deger, int)]
     # D1'de eksik bir BAS blok, geri kalan her dogru urunun indeksini kaydirir. Pozisyonu

@@ -1812,6 +1812,19 @@ TABLO_TABANLARI = (
     # (tools/edge-kart-kapisi.py) deploy.yml'de BLOKLAYICI KALDI — bu bir TASIMA
     # degil, EKLEME; tam esitlik geregi taban AYNI commit'te guncellendi.
     # 11 Agu: +1 -> 98. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/cta-denge-mutasyon.py"): CTA denge kapisinin mutasyon bataryasi. Kapinin
+    # KENDISI deploy.yml `serit-a3`te BLOKLAYICI kosar — bu giris bir TASIMA degil,
+    # bataryanin EKLENMESIDIR; tam esitlik geregi taban AYNI commit'te guncellendi.
+    # ⚠️ BU IKI GIRIS AYNI GUN IKI AYRI DALDA eklendi ve merge'de CAKISTI. Cozum
+    # BIRLESIMDIR: ikisi de SERIT_B sozlugunde DURUYOR (2757 + 2771), dolayisiyla
+    # taban 96 -> 98'dir. Dallardan birinin 97'sini almak, DIGER dalin beyanini
+    # sessizce "pay" haline getirir ve o kadar giris sonradan sessizce silinebilirdi.
+    # 11 Agu: +1 -> 99. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/urun-vitrin-kapsam-mutasyon.py"): urun sayfasi / kart kapsam ayriminin
+    # mutasyon bataryasi. Korudugu kapi (tools/d1-fiyat-parite-kapisi.py) deploy.yml
+    # job `build`te BLOKLAYICI kosar — bu giris bir TASIMA degil, bataryanin
+    # EKLENMESIDIR; tam esitlik geregi taban AYNI commit'te guncellendi.
+    # 11 Agu: +1 -> 100. Yeni giris ("nobet.yml", "serit-b",
     # "tools/tavsiye-filament-mutasyon.py"): `tavsiye_filament` D1 kolonu canliya
     # eklendi ve HASH KAPSAMINA alindi (mimar karari); o kararin ve onunla gelen
     # FAIL-CLOSED tip kapisinin canli oldugunu olcen batarya AYNI commit'te eklendi.
@@ -1819,7 +1832,13 @@ TABLO_TABANLARI = (
     # kilidi + KOLONLAR/INSERT invaryanti) deploy.yml'de BLOKLAYICI KALDI ve yeni
     # kolonu da kapsar — bu bir TASIMA degil, EKLEME; tam esitlik geregi taban AYNI
     # commit'te guncellendi.
-    ("SERIT_B", 98),
+    # ⚠️ MERGE CAKISMASI (11 Agu, IKINCI kez): main'in IKI girisi (cta-denge +
+    # urun-vitrin-kapsam) ile kral/d1-tavsiye-kolon dalinin BIR girisi (tavsiye-
+    # filament) ayni satirda cakisti. Cozum yine BIRLESIM: UCU DE SERIT_B sozlugunde
+    # DURUYOR, dolayisiyla taban 97 -> 100. Taraflardan birinin sayisini (98 ya da
+    # 99) oldugu gibi almak, DIGER tarafin beyan(lar)ini sessizce "pay" haline
+    # getirir ve o kadar giris sonradan sessizce silinebilirdi.
+    ("SERIT_B", 100),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2755,6 +2774,41 @@ SERIT_B = {
         "onleme kolu ise kaynagin kendisindedir (r2-upload.py varsayilanda fail-closed "
         "REDDEDER, ezmek ACIK --ezmeye-izin-ver ister). S3 mock'lanir: gercek R2'ye ne "
         "okuma ne yazma gider, adim ag GEREKTIRMEZ.",
+    # --- CTA DENGE KAPISININ BATARYASI (11 Agu 2026) ------------------------------
+    ("nobet.yml", "serit-b", "tools/cta-denge-mutasyon.py"):
+        "tools/cta-denge-kapisi.py CTA DENGE KAPISININ mutasyon bataryasi (8 oldurucu "
+        "+ 2 kontrol): orani ters cevirmek · sticky bandi eski %16,6 payina sismek · "
+        "Sepete Ekle etiketini sokmek · sepette WhatsApp'i odemenin onune gecirmek · "
+        "dokunma hedefini 44 px'in altina dusurmek · olcum capasini kirmak · kapinin "
+        "OLCULEMEDI kolunu sessiz yesile cevirmek · pozitif kanit kaynagini silmek "
+        "tek tek KIRMIZI yaniyor mu. Olctugu sey KABUL TESTININ KENDISI, yayinlanan "
+        "hicbir cikti DEGIL (ga4-olay-mutasyon.py ile ayni desen). Korudugu KAPI "
+        "(tools/cta-denge-kapisi.py) SERIT A'da, deploy.yml job `serit-a3`te "
+        "BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. "
+        "Ag GEREKTIRMEZ. ⚠️ DURUST BEYAN: mutasyon canli dosyalara HIC uygulanmaz — "
+        "her mutant icin sembolik bagli gecici bir kok kurulur ve yalnizca o kokteki "
+        "kopya bozulur; batarya kendi ciktisinda canli agacin sha256 esitligini olcer.",
+    # --- URUN SAYFASI / KART KAPSAM AYRIMININ BATARYASI (11 Agu 2026) --------------
+    ("nobet.yml", "serit-b", "tools/urun-vitrin-kapsam-mutasyon.py"):
+        "tools/d1-fiyat-parite-kapisi.py KAPSAM AYRIMI KAPISININ mutasyon bataryasi "
+        "(10 oldurucu + 2 kontrol): urun sayfasi kolunun tabana sabitlenmesi · ilan "
+        "tutarinin onden secili cipten AYRI turemesi · KART kolunun da yukselmesi "
+        "(Okan'in acikca REDDETTIGI davranis) · kart yuzeyinin urun sayfasi turetmesini "
+        "cagirmasi · markup/besleme dallarinin urun koluna baglanmasi · taninmayan "
+        "malzemenin sessizce 'varsayilan'a cokmesi · kenar veritabani kolonunun ham "
+        "alani birakmasi · taban secenegin tutarinin sayfadan kalkmasi · bilincli-secim "
+        "notunun sokulmesi ya da HER secimde gosterilmesi tek tek KIRMIZI yaniyor mu. "
+        "IKI KONTROL: davranis-notr yeniden adlandirma YESIL kalir; ZEHIRLI girdi + "
+        "fail-open'a cevrilmis hukum fonksiyonu YESIL olur (o hukum satirlarinin YUK "
+        "TASIDIGININ kaniti — ayni zehir bozulmamis kapida KIRMIZI yanar, ikisi CIFTTIR). "
+        "Olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
+        "(cta-denge-mutasyon.py / edge-kart-tirnak-mutasyon.py ile ayni desen). Korudugu "
+        "KAPI (tools/d1-fiyat-parite-kapisi.py) SERIT A'da, deploy.yml job `build`te "
+        "BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Ag "
+        "GEREKTIRMEZ. ⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak metinleri "
+        "bellekte degistirilip exec/compile ile kosar (JS kaynagi kapinin STDIN'li "
+        "kosucusuna METIN olarak gecer); kosum sonunda alti hedef dosyanin sha256'si "
+        "bas=son karsilastirilir ve ciktida raporlanir.",
     # --- R1 SIHIRLI-BAYT WHITELIST'I / AVIF EKSENI (9 Agu 2026) --------------------
     ("nobet.yml", "serit-b", "tools/edge-kart-tirnak-mutasyon.py"):
         "tools/edge-kart-kapisi.py'nin KARDES-DEPO AYRISTIRMASININ mutasyon bataryasi "

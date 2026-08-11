@@ -134,8 +134,13 @@ def bolum_a(sayfalar):
                               % sinif, h)
         secili_r = re.findall(r'class="renk-btn secili" data-renk="([^"]+)"', h)
         p = urun_ix[pid]
+        # 🔴 BEKLENTI SABIT DEGIL, TURETILIR (11 Agu, isletme karari): duz katalog kolunda
+        # onden secili malzeme artik URUNUN ONERILEN malzemesidir. "PLA" diye civilenmis
+        # bir beklenti bugun BAYAT olurdu ([[bayat-kabul-testi]]). Iddia zayiflamaz: hala
+        # "sayfadaki secili cip = kuralin sectigi malzeme" denir, yalnizca kural TEK
+        # KAYNAKTAN okunur.
         bek_m = ((p.get("konfigur") or {}).get("varsayilanMalzeme")
-                 if fx["kol"] == "konfigur" else build.VARSAYILAN_MALZEME)
+                 if fx["kol"] == "konfigur" else build.on_secim_malzeme(p))
         bek_r = (build._konfigur_varsayilan_renk(p["konfigur"])
                  if fx["kol"] == "konfigur" else build.VARSAYILAN_RENK)
         kontrol(secili_m == [bek_m],
@@ -501,8 +506,8 @@ def bolum_c(gecici, sayfalar):
                 % (ad, veri.get("cartDinleyici")))
         b = veri.get("baslangic", {})
         if fx["kol"] == "kart":
-            kontrol(b.get("seciliMalzeme") == [build.VARSAYILAN_MALZEME],
-                    "%s: sayfa yuklenince malzeme durumu DOLU (%r)"
+            kontrol(b.get("seciliMalzeme") == [build.on_secim_malzeme(urun_ix[pid])],
+                    "%s: sayfa yuklenince malzeme durumu DOLU ve KURALIN sectigi ad (%r)"
                     % (ad, b.get("seciliMalzeme")))
         c1 = veri["adimlar"]["c1"]
         s1 = c1.get("sepet") or []
@@ -510,9 +515,9 @@ def bolum_c(gecici, sayfalar):
                 "%s: c1 — hic secim yapmadan tiklama SEPETI DOLDURDU (satir: %d)"
                 % (ad, len(s1)))
         if s1 and fx["kol"] == "kart":
-            kontrol(s1[0].get("malzeme") == build.VARSAYILAN_MALZEME
+            kontrol(s1[0].get("malzeme") == build.on_secim_malzeme(urun_ix[pid])
                     and s1[0].get("renk") == build.VARSAYILAN_RENK,
-                    "%s: c1 satiri bosSatir varsayilanlarini tasiyor (%s/%s)"
+                    "%s: c1 satiri ONDEN SECILI malzemeyi + varsayilan rengi tasiyor (%s/%s)"
                     % (ad, s1[0].get("malzeme"), s1[0].get("renk")))
         if s1 and fx["kol"] == "konfigur":
             bek_r = build._konfigur_varsayilan_renk(urun_ix[pid]["konfigur"])
@@ -616,15 +621,24 @@ def bolum_d(gecici, olcumler):
             "KURUS ESITLIGI — istemci %s / sunucu %s (birim %s / %s)"
             % (veri.get("istemciKurus"), s["sunucuKurus"],
                veri.get("istemciBirim"), s["sunucuBirim"]))
-    # Liste fiyati ile de esit olmali: on-secim tutari YUKARI CEKMEDI.
+    # 🔴 IDDIA YON DEGISTIRDI (11 Agu, isletme karari): urun sayfasi artik ONERILEN
+    # malzemenin tutarini vurgular, yani sunucu birimi LISTE tutari OLMAYABILIR. Eski
+    # iddia ("liste fiyati DEGISMEDI") bugun bayattir. Yerine IKI iddia konur ve
+    # boylece kapsam SIZINTISI da olculur (iddia sayisi DUSMEZ, ARTAR):
+    #   1. sunucu birimi = URUN SAYFASININ ilan ettigi tutar  (sessiz zam/indirim YOK)
+    #   2. KART/BESLEME tutari LISTE'de KALDI                 (kapsam sizmadi)
     liste = build.price_number(urun.get("fiyat"))
     try:
-        beklenen = None if liste in (None, "") else int(round(float(liste) * 100))
+        liste_kurus = None if liste in (None, "") else int(round(float(liste) * 100))
     except (TypeError, ValueError):
-        beklenen = None
-    kontrol(beklenen is not None and s["sunucuBirim"] == beklenen,
-            "on-secim liste fiyatini DEGISTIRMEDI (liste %s kurus = sunucu birim %s)"
-            % (beklenen, s["sunucuBirim"]))
+        liste_kurus = None
+    ilan = build.ilan_kurus(urun)
+    kontrol(ilan is not None and s["sunucuBirim"] == ilan,
+            "SUNUCU birimi = urun sayfasinin ILAN ettigi tutar (%s kurus = %s)"
+            % (ilan, s["sunucuBirim"]))
+    kontrol(liste_kurus is not None and build.vitrin_kurus(urun) == liste_kurus,
+            "KART/BESLEME tutari LISTE'de KALDI — kapsam sizmasi YOK (liste %s = kart %s)"
+            % (liste_kurus, build.vitrin_kurus(urun)))
 
 
 # ------------------------------------------------------------------ mutasyon

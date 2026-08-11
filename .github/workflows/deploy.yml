@@ -1267,6 +1267,19 @@ jobs:
       - name: On-secili malzeme <-> ilan edilen tutar parite kapisi
         run: python3 tools/onsecim-parite-kapisi.py
 
+      # 🔴 IKI AGIZ, IKI FIYAT. Isletme karari (11 Agu, Okan): URUN SAYFASI onerilen
+      # malzemeyi on-secer ve tutar ondan turer; KART / BESLEME / MARKUP ise BASLANGIC
+      # tabaninda KALIR. Kenar veritabanindaki fiyat kolonu da o tabani tasir ve mesaj
+      # kanali ORADAN okur. Kapsam sizarsa (kart da yukselirse) site 455 TL derken mesaj
+      # kanali 350 TL der: iki agiz, iki fiyat, SIFIR alarm. Kapi TUM KATALOGDA kart
+      # tutari == kenar kolonu tutari olcer (sapan 0), kart yuzeyinin urun sayfasi
+      # turetmesini CAGIRMADIGINI capayla dogrular, pozitif taniyiciyla kendi canliligini
+      # kanitlar ve malzeme onerisi TASIYIP adi taninmayan urunleri (sessizce tabana
+      # dusen veri kusuru) SAYIP basar. Bloklayici: hata sinifi sessiz ve parali.
+      # Mutasyon bataryasi (10 oldurucu + 2 kontrol): tools/urun-vitrin-kapsam-mutasyon.py
+      - name: Vitrin <-> D1 fiyat paritesi + kapsam sizintisi kapisi
+        run: python3 tools/d1-fiyat-parite-kapisi.py
+
       # 🔴 REKLAM OLCUMU — HUNI AYAGI. 11 Agu'ya kadar GA4 tarafina yalniz sayfa
       # goruntuleme gidiyordu: urun goruntuleme / sepete ekleme / odemeye baslama
       # olaylarinin HICBIRI yoktu, oysa Meta huni yuzeyi TAM kuruluydu. Hata SESSIZ
@@ -1280,6 +1293,19 @@ jobs:
 
       - name: GA4 olay kapisi ic nobetcisi
         run: python3 tools/ga4-olay-kapisi.py --kendini-test
+
+      # 🔴 CTA DENGESI — GELIR KAPISI. 11 Agu'ya kadar canlida birincil eylem
+      # (Sepete Ekle) 44x44 ETIKETSIZ ikondu; yanindaki sticky WhatsApp bandinin
+      # butonu 231x44 idi -> WhatsApp dokunma alaninda 5,22 KAT buyuktu ve bant mobil
+      # ekranin %16,6'sini yiyerek urunu ilk ekrandan tumuyle disari itiyordu. Hata
+      # SESSIZ: hicbir test yanmaz, bir sonraki CSS dokunusunda sessizce geri gelir.
+      # Kapi geometriyi build.PAGE_CSS + GERCEKTEN uretilen sayfa + index.html'den
+      # TURETIR (elle defter yok), bes ekseni fail-closed olcer ve olcemedigi durumda
+      # "gecti" DEMEZ (rc=3). WhatsApp kanalinin VARLIGI da olculur — denge kanali
+      # silerek saglanamaz. Bloklayici. Mutasyon bataryasi (8 oldurucu + 2 kontrol):
+      #   python3 tools/cta-denge-mutasyon.py   (nobet.yml serit-b'de kosar)
+      - name: CTA denge kapisi (Sepete Ekle vs WhatsApp gorsel agirligi)
+        run: python3 tools/cta-denge-kapisi.py
 
       # 🔴 IC SERI IZI. CLAUDE.md: parametrik seri semasi/ureteci IC bilgidir; seri adi
       # musteriye gorunen yuzeyde GECMEZ. 11 Agu'ya kadar parametrik urun sayfasinin
@@ -1589,6 +1615,22 @@ jobs:
       # Mutasyon turu (3/3 kirmizi) elle: python3 tools/edge-kart-kapisi.py --mutasyon
       - name: Edge kart alan kapsami (sepet fiyatini etkileyen alan kartta var mi)
         run: python3 tools/edge-kart-kapisi.py
+
+      # OZET.JSON KART TEMSILI (v3: gorsel oneki + `yeni` referansi) — KAYIPSIZLIK KAPISI.
+      # HATA SINIFI SESSIZ: temsil kuculdu, bir deger yanlis geri acilirsa ekranda hata
+      # CIKMAZ — kart cizilir, edge modunda sepet paneli o karttan fiyat/beyan uretir.
+      # Bu adim GERCEK build.py ile fikstur artefakti uretir ve CANLI index.html `ozetAc`
+      # fonksiyonuyla geri acar (cozucu kopyasi tutulmaz): geri acilan kart kaynak kartla
+      # BIREBIR esit olmali. Ayrica v2/v1 artefaktlarin da acildigini (bayat onbellek),
+      # ortusme 0 oldugunda (yarin havuzsuz kategoriye dusen yeni urun) kartin TAM
+      # tasindigini ve TEMSIL BAYRAGININ (build.py OZET_TEMSIL_SURUM) beyani ile uretilen
+      # artefaktin TUTTUGUNU ayri iddialarla olcer — bayrak yayin N+1'de acilinca da
+      # gecerli kalir. Iddia 9 gercek katalogda iki bayrak halini ve bayat istemci
+      # penceresini (kapagi kaybolan kart sayisi) LOGA SAYIYLA basar.
+      # Offline, depoya dosya YAZMAZ (gecici dizin), ~1 s.
+      # Mutasyon turu (7/7 kirmizi) elle: node tools/ozet-temsil-test.js --mutasyon
+      - name: Ozet kart temsili kabul testi (kayipsizlik + iki surum + temsil bayragi)
+        run: node tools/ozet-temsil-test.js
 
       # KONFIGUR BUNDLE KAPISI (drift): shop/src/konfigurlar.js artik ELLE BAKIMLI AYNA DEGIL,
       # urunler.json'daki "konfigur" alanlarindan URETILEN bir artefakt. Bu adim artefakti
