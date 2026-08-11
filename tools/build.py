@@ -242,6 +242,18 @@ GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVK
   window.PRUVO_RIZA_ALANLARI = ['analytics_storage','ad_storage','ad_user_data','ad_personalization'];
   window.PRUVO_RIZA_KAPSAMI = 'analitik+reklam';
   window.pruvoRizaUygula = function(d){ var g={},a=window.PRUVO_RIZA_ALANLARI,i; for(i=0;i<a.length;i++){ g[a[i]]=d; } gtag('consent','update',g); };
+  /* GA4 e-ticaret olay gondericisi — reklam olcumunun HUNI ayagi (sayfa goruntuleme tek
+     basina kampanya karari verdirmez). Meta yuzeyiyle AYNI riza anahtarina baglidir
+     (pruvo_onay_analitik === "kabul"): riza yoksa olay GONDERILMEZ.
+     Yalniz beyaz listedeki olay adlari gecer; bilinmeyen ad sessizce DUSER. Satin alma
+     olayi SUNUCUDAN gider — buradan da gonderilse ayni islem IKI KEZ sayilirdi.
+     Olay parametresine YALNIZ katalog alanlari girer (item_id/item_name/item_category/
+     price/quantity/currency/value); kisisel veri (ad/telefon/e-posta/adres) GIRMEZ. */
+  window.PRUVO_GA4_OLAYLARI = ['view_item','add_to_cart','begin_checkout'];
+  window.pruvoGA4Track = function(olay, veri){
+    try { if(localStorage.getItem('pruvo_onay_analitik') !== 'kabul'){ return; } } catch(e){ return; }
+    var a = window.PRUVO_GA4_OLAYLARI, i;
+    for(i=0;i<a.length;i++){ if(a[i] === olay){ gtag('event', olay, veri); return; } } };
   /* Onayı geri yükle. ESKİ (DAR) kayıt reklam alanlarını KAPSAMAZ: yalnız analitik açılır. */
   try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
     if (localStorage.getItem('pruvo_onay_kapsam') === window.PRUVO_RIZA_KAPSAMI) { window.pruvoRizaUygula('granted'); }
@@ -2592,6 +2604,16 @@ function pv(el,src){{
         var mAtcVeri = {{ content_ids:[URUN.fid], content_type:"product", currency:"TRY" }};
         if(mAtc && mAtc.kurus != null){{ mAtcVeri.value = mAtc.kurus/100; }}
         if(typeof window.pruvoMetaTrack === "function"){{ window.pruvoMetaTrack("AddToCart", mAtcVeri); }}
+        /* GA4 ikizi (add_to_cart): AYNI noktadan, AYNI degerlerden (URUN.fid + mAtc) turer;
+           ikinci bir huni/tetikleme noktasi YOK. value satir toplamidir, price birim fiyat
+           (value/adet) — adet 0 olamaz (adetDuzelt en az 1 doner) ama yine de korunur. */
+        var gAtcAdet = PRUVO_SECENEK.adetDuzelt(satir.adet);
+        var gAtcKalem = {{ item_id: URUN.fid, item_name: URUN.baslik,
+                           item_category: URUN.kategori, quantity: gAtcAdet }};
+        var gAtcVeri = {{ currency: "TRY", items: [gAtcKalem] }};
+        if(mAtcVeri.value != null){{ gAtcVeri.value = mAtcVeri.value;
+          if(gAtcAdet > 0){{ gAtcKalem.price = mAtcVeri.value / gAtcAdet; }} }}
+        if(typeof window.pruvoGA4Track === "function"){{ window.pruvoGA4Track("add_to_cart", gAtcVeri); }}
       }} catch(e) {{}}
     }} else {{ c.splice(i,1); }}
     /* Uyari ayrica sokulmez: asagidaki render() secim tamamlandiginda kutuyu kapatir. */
@@ -3227,10 +3249,24 @@ def render_product(p, all_products, chip_map=None):
         mvc["value"] = int(_vc_fiyat)
     mvc_json = json.dumps(mvc, ensure_ascii=False, separators=(",", ":")
                           ).replace("</script>", "<\\/script>")
+    # --- GA4 view_item (rıza-kapılı) — Meta ViewContent ile AYNI noktadan, AYNI kaynak
+    # degerlerden (feed_id(pid) / baslik / kategori / price_number(fiyat)) turer. Ikinci bir
+    # huni tanimlanmaz ([[ikiz-tanim-sessiz-ayrisma]]): item_id DAIMA feed_id, yani Meta
+    # content_ids ile birebir ayni kimlik. Kisisel veri YOK (yalniz katalog alanlari).
+    gvi_kalem = {"item_id": feed_id(pid), "item_name": baslik,
+                 "item_category": kategori, "quantity": 1}
+    gvi = {"currency": "TRY", "items": [gvi_kalem]}
+    if _vc_fiyat:
+        gvi["value"] = int(_vc_fiyat)
+        gvi_kalem["price"] = int(_vc_fiyat)
+    gvi_json = json.dumps(gvi, ensure_ascii=False, separators=(",", ":")
+                          ).replace("</script>", "<\\/script>")
     meta_view_content = (
         '<script>\n'
         'if(typeof window.pruvoMetaTrack==="function"){ window.pruvoMetaTrack("ViewContent", '
-        + mvc_json + '); }\n</script>')
+        + mvc_json + '); }\n'
+        'if(typeof window.pruvoGA4Track==="function"){ window.pruvoGA4Track("view_item", '
+        + gvi_json + '); }\n</script>')
 
     # Konfigüratör şeması sayfaya inline gömülür (tek kaynak jenerator/urunler/<id>.json,
     # build her push'ta yeniden gömer); hacim fonksiyonları ise /jenerator/hacim.js'ten

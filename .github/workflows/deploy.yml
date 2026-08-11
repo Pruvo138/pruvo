@@ -1257,6 +1257,20 @@ jobs:
       - name: Sepete Ekle sessiz basarisizlik kapisi
         run: python3 tools/sepet-secim-kapisi.py
 
+      # 🔴 REKLAM OLCUMU — HUNI AYAGI. 11 Agu'ya kadar GA4 tarafina yalniz sayfa
+      # goruntuleme gidiyordu: urun goruntuleme / sepete ekleme / odemeye baslama
+      # olaylarinin HICBIRI yoktu, oysa Meta huni yuzeyi TAM kuruluydu. Hata SESSIZ
+      # (sitede hicbir sey bozulmaz, konsolda iz kalmaz) ama duraklatilan kampanyanin
+      # yeniden acilip acilmayacagi OLCUMSUZ kalir. Kapi uretilen GERCEK sayfanin KENDI
+      # JS'ini node:vm'de kosturup olay kuyruguna DUSEN cagriyi olcer ("kod eklendi"
+      # kabul degil), riza YOKKEN sifir olay bekler ve olay parametrelerini kanonik
+      # e-ticaret alan kumesine karsi tarar (kisisel veri 0). Bloklayici.
+      - name: GA4 e-ticaret olay kapisi (huni fiilen atesleniyor mu)
+        run: python3 tools/ga4-olay-kapisi.py
+
+      - name: GA4 olay kapisi ic nobetcisi
+        run: python3 tools/ga4-olay-kapisi.py --kendini-test
+
       # 🔴 IC SERI IZI. CLAUDE.md: parametrik seri semasi/ureteci IC bilgidir; seri adi
       # musteriye gorunen yuzeyde GECMEZ. 11 Agu'ya kadar parametrik urun sayfasinin
       # kategori rozetinde/breadcrumb'inda/JSON-LD'sinde ve ana sayfa kartinda "Jeneratör"
