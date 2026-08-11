@@ -57,6 +57,10 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import arama
+# SILME KARANTINASI (11 Agu 2026 vakasi). BAYRAKSIZ DAVRANIS DEGISMEZ: modul yalniz
+# `--karantina-damgasi` verildiginde devreye girer (uzlastirici kolu). Pre-push kancasi
+# ve CI senkron adimi bayraksiz kosar -> bugunku davranis BAYT AYNI.
+import uzlastirici_karantina
 
 # KONFIGUR dogrulama + sayi normalizasyonu TEK KAYNAK: konfigur-bundle-kapisi.py. Ayni
 # fonksiyonlar hem Worker bundle artefaktini (shop/src/konfigurlar.js) hem D1 kolonunu
@@ -3589,6 +3593,16 @@ def main():
     ap.add_argument("--head", action="store_true",
                     help="katalogu COMMIT'LI HEAD'den oku (git show HEAD:urunler.json) — "
                          "agactaki commit'lenmemis urunler senkrona GIRMEZ")
+    # SILME KARANTINASI — bkz. tools/uzlastirici_karantina.py bas blogu.
+    # BAYRAKSIZ DAVRANIS DEGISMEZ (pre-push kancasi / CI senkron adimi bayraksiz kosar).
+    # Senkron kolunda: FAZLA id'ler ILK gozlemde SILINMEZ, damgaya yazilir; FARKLI bir
+    # origin/main SHA'sindaki IKINCI gozlemde silinir; damga okunamazsa FAIL-CLOSED.
+    # --durum kolunda: KARANTINADAKI id'ler drift HUKMUNDEN muaf tutulur (yalniz TEYIT
+    # adimi icin — onarim ONCESI olcum bayraksiz kosar ve sapmayi TAM basar).
+    ap.add_argument("--karantina-damgasi", dest="karantina_damgasi", default=None,
+                    metavar="YOL",
+                    help="D1'de FAZLA satirlarin silinmesini IKI GOZLEME yay (karantina "
+                         "damgasi dosyasi). Damga okunamazsa SILME YAPILMAZ.")
     a = ap.parse_args()
 
     # 🔴 SIRA: kaynak, katalogu okuyan HER daldan (senkron / --durum / --kuru) ONCE
@@ -3758,14 +3772,32 @@ def main():
             uyusmaz, eksik, fazla = icerik_ekseni(urunler, d1_hash)
             print("icerik ekseni (urun_hash): %d D1 satiri | okunan satir: %d | %.2f s"
                   % (len(d1_hash), okunan, sure))
-            print("  hash UYUSMAZ: %d | D1'de EKSIK: %d | D1'de FAZLA: %d"
-                  % (len(uyusmaz), len(eksik), len(fazla)))
+            # ── KARANTINA MUAFIYETI (YALNIZ --karantina-damgasi ile) ────────────────
+            # NEDEN: karantina, ILK gozlemde silmeyi BILEREK ertelemektir. Teyit adimi
+            # bu erteledigimiz satirlari "onarilamadi" sayarsa kosum HER karantina
+            # aciliminda kirmizi yanar ve karantina fiilen geri alinir. Muafiyet YALNIZ
+            # TEYIT adiminda (bayrakli cagride) uygulanir: onarim ONCESI olcum adimi
+            # bayraksiz kosar, sapmayi TAM basar ve `d1-sapma-damgasi` alarm kanali
+            # AYNEN kirmizi yakar -> sapma SUSTURULMUS OLMAZ.
+            # FAIL-CLOSED: damga yoksa/bozuksa muaf kume BOStur (muafiyet KANIT ister).
+            karantinali = []
+            if a.karantina_damgasi:
+                muaf = uzlastirici_karantina.karantinadaki(a.karantina_damgasi)
+                karantinali = [u for u in fazla if u in muaf]
+                fazla = [u for u in fazla if u not in muaf]
+            print("  hash UYUSMAZ: %d | D1'de EKSIK: %d | D1'de FAZLA: %d%s"
+                  % (len(uyusmaz), len(eksik), len(fazla),
+                     (" (KARANTINADA, hukumden MUAF: %d)" % len(karantinali))
+                     if karantinali else ""))
             for uid, b, v in uyusmaz[:10]:
                 print("   - %s : urunler.json %s · D1 %s (D1 BAYAT)" % (uid, b, v))
             for uid in eksik[:10]:
                 print("   - %s : D1'de YOK (Ege bu urunu ONEREMEZ)" % uid)
             for uid in fazla[:10]:
                 print("   - %s : D1'de FAZLA (urunler.json'da yok)" % uid)
+            for uid in karantinali[:10]:
+                print("   - %s : D1'de FAZLA ama KARANTINADA (ilk gozlem — bu kosumda "
+                      "SILINMEZ, ikinci gozlemde farkli origin/main SHA'si aranir)" % uid)
             if uyusmaz or eksik or fazla:
                 sorunlar.append(
                     "ICERIK EKSENI DRIFT: %d bayat hash + %d eksik + %d fazla — SAYI tutsa "
@@ -3949,6 +3981,24 @@ def main():
             "model_kanon": len(model_kanon_guncelle),
             "marka_arama": len(marka_arama_guncelle)}, silinen)))
 
+    # ══ SILME KARANTINASI — "D1'in ILERISI" ile "gercek oksuz" AYRI SORULARDIR ═════
+    # OLCULDU 11 Agu 2026 (kosum 31532464176): bayatlik kapisi UC dedi (agac uzak main
+    # ucundaydi) ve buna ragmen 37 MESRU satir silindi — cunku D1 git'ten ILERIDEYDI
+    # (eszamanli partinin push'u henuz inmemisti). O yon bayatlik kapisinin ekseninde
+    # YOK. Karantina o ekseni ZAMANLA ikame eder: bir id ancak FARKLI bir origin/main
+    # SHA'sinda IKINCI kez FAZLA gorulurse silinir. Ayrinti + gerekce:
+    # tools/uzlastirici_karantina.py bas blogu.
+    karantina_olculemedi = False
+    if a.karantina_damgasi:
+        _fazla = list(silinen)
+        _kk = uzlastirici_karantina.uygula(_fazla, a.karantina_damgasi, b["uzak"])
+        silinen = list(_kk["silinecek"])
+        # OLCULEMEDI hukmu YALNIZ silinecek aday VARKEN kosumu kirmiziya cevirir:
+        # silme kolu bos bir kosumda okunamayan damga hicbir seyi engellememistir
+        # (ve `uygula` o kosumda TAZE bir damga yazarak kendini onarir). Bayatlik
+        # kapisinin "yalnizca SILINECEK id varken olcülür" ilkesiyle ayni yon.
+        karantina_olculemedi = bool(_fazla) and _kk["hukum"] == "OLCULEMEDI"
+
     ifadeler = []
     for parca in [silinen[i:i + PARCA] for i in range(0, len(silinen), PARCA)]:
         ifadeler.append("DELETE FROM urunler WHERE id IN (%s);" % ",".join(q(i) for i in parca))
@@ -4002,6 +4052,20 @@ def main():
                         "ikinci bir senkron (CI adimi / baska oturumun pre-push hook'u) BAYAT "
                         "bir urunler.json ile ustune yaziyor olabilir.")
         sys.exit("\n".join(satirlar))
+
+    # ── KARANTINA OLCULEMEDI -> SIFIR-DISI CIKIS (fail-closed, EN SONDA) ────────────
+    # EKSIK/degisen kollari (ekleme + guncelleme) YAPILDI ve geri-okumayla dogrulandi;
+    # bu satira gelmis olmak onun kanitidir. YALNIZ silme kolu olculemedi. "Olcemedim"
+    # bu depoda YESIL DEGILDIR: sifir-disi cikilir, uzlastirici-onarim.py bunu imzadan
+    # tanir (rc 4) ve YENIDEN DENEMEZ — tekrar okumak damgayi var etmez.
+    if karantina_olculemedi:
+        sys.exit(
+            "%s hukum bu kosumda verilemedi.\n"
+            "   Upsert kolu (EKSIK + bayat hash) UYGULANDI ve dogrulandi; SILME kolu "
+            "fail-closed KAPALI kaldi.\n"
+            "   Coz: karantina damgasi artifact'inin (`%s`) indirilmesini onar "
+            "(actions: read izni / saklama suresi)."
+            % (uzlastirici_karantina.OKUNAMADI_IMZASI, uzlastirici_karantina.DAMGA_ADI))
 
 
 if __name__ == "__main__":

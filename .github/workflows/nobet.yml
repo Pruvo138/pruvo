@@ -138,6 +138,16 @@ jobs:
       # olebilirdi (yaris zaten nadir: olculen %1,47).
       - name: "Uzlastirici onarim surucusu: kendini test (yaris + fail-closed)"
         run: python3 tools/uzlastirici-onarim.py --kendini-test
+      # SILME KARANTINASI (11 Agu 2026, kosum 31532464176: 37 MESRU katalog satiri
+      # silindi). K1..K7 vakalari + is akisi kablo capalari; K7 o kosumun BIREBIR
+      # yeniden oynatimidir ve `silinen: 0` bekler.
+      - name: "Uzlastirici silme karantinasi: kabul testi (K1..K7)"
+        run: python3 tools/uzlastirici-karantina-test.py
+      # Bataryanin KENDISI kanittir: karantina mantiginin her kolu icin bir mutant
+      # KIRMIZI yanmali, kontrol mutantlari YESIL kalmali (tautoloji degil ->
+      # [[mutasyon-kaniti-yeniden-uretilebilir]]).
+      - name: "Uzlastirici silme karantinasi: mutasyon bataryasi"
+        run: python3 tools/uzlastirici-karantina-mutasyon.py
       - name: "Uzlastirma nabzi: denetim ne kadar suredir yapilmadi (ALARM — yayini DURDURMAZ)"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -199,6 +209,11 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      # 🔴 Cagrilan is akisinin jetonu CAGIRAN JOB'un izinleriyle TAVANLANIR. Silme
+      # karantinasi damgasi bir artifact'tir ve indirilmesi `actions: read` ister; bu
+      # satir olmadan kadans kolu damgayi HIC indiremez, her kosumda fail-closed
+      # `OLCULEMEDI` verir ve silme kolu KALICI olarak olu kalirdi.
+      actions: read
   # ═════════════════════════════════════════════════════════════════════════════
   # COMMIT MESAJI SIZINTI NOBETI — IKINCI KOL (1 Agu 2026)
   # ═════════════════════════════════════════════════════════════════════════════

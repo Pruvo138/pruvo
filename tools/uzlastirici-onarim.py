@@ -40,12 +40,22 @@ Geri cekilme 15 sn ve 45 sn: yazma penceresinin 1,5x ve 4,5x'i — ardisik bir i
 kumesinin gecmesine yeter, kosum suresini kabul edilemez sekilde uzatmaz (en kotu hal
 15+45+3x10,1 = 90,3 sn).
 
+SILME KARANTINASI (11 Agu 2026 — kosum 31532464176, 37 MESRU satir silindi)
+===========================================================================
+Bu surucu d1-sync'i ARTIK HER ZAMAN `--karantina-damgasi` ile cagirir: FAZLA gorulen
+bir id ILK gozlemde SILINMEZ, damgaya yazilir; ancak FARKLI bir `origin/main` SHA'sinda
+IKINCI kez FAZLA gorulurse silinir. Damga okunamazsa silme YAPILMAZ ve d1-sync
+`KARANTINA DAMGASI OKUNAMADI` imzasiyla sifir-disi cikar -> burada rc 4. Bu sinif
+YENIDEN DENENMEZ: damgayi ikinci kez okumak onu var etmez.
+Gerekce + kural: tools/uzlastirici_karantina.py bas blogu.
+
 CIKIS KODLARI
 =============
   0 = ONARILDI (D1'e yazildi ya da yazacak is yoktu)
   1 = GERCEK HATA (wrangler/D1/sema/kod) — YENIDEN DENENMEZ, gorunur kalir
   2 = OLCULEMEDI (agac uca TAZELENEMEDI: git/ag) — fail-closed
   3 = YARIS SURDU (tavan tukendi, agac hala bayat) — fail-closed
+  4 = KARANTINA OLCULEMEDI (silme damgasi okunamadi) — fail-closed, YENIDEN DENENMEZ
 
 Kullanim:
     python3 tools/uzlastirici-onarim.py                 # GERCEK onarim (CI)
@@ -58,6 +68,9 @@ import sys
 import time
 from git_ortami import sentetik_git
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import uzlastirici_karantina
+
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 
@@ -68,6 +81,12 @@ DAL = "main"
 # d1-sync.py bayatlik kapisi reddinin IMZASI (TEK KAYNAK: bayatlik_engel_metni()).
 # Bu metin degisirse asagidaki `imza_capasi()` KIRMIZI yanar -> imza sessizce bayatlayamaz.
 BAYATLIK_IMZASI = "!! BAYATLIK KAPISI:"
+# Karantina fail-closed reddinin IMZASI — TEK KAYNAK modulun kendisi (ikiz tanim YOK).
+KARANTINA_IMZASI = uzlastirici_karantina.OKUNAMADI_IMZASI
+# Silme karantinasi damgasinin kosum-ici yolu. Is akisi ayni dosyayi indirir/yukler
+# (ad TEK KAYNAK: uzlastirici_karantina.DAMGA_DOSYA).
+KARANTINA_DAMGASI = os.environ.get("PRUVO_KARANTINA_DAMGASI") or os.path.join(
+    ROOT, uzlastirici_karantina.DAMGA_DOSYA)
 
 DENEME_TAVANI = 3
 GERI_CEKILME_SN = (15, 45)      # 1. ve 2. basarisiz denemeden SONRA beklenen sure
@@ -115,11 +134,17 @@ def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
         yaz("deneme %d/%d — agac uzak %s/%s ucunda: %s"
             % (deneme, DENEME_TAVANI, UZAK, DAL, bilgi[:12]))
 
-        rc, cikti = kos(["python3", D1_SYNC], kok)
+        rc, cikti = kos(["python3", D1_SYNC, "--karantina-damgasi", KARANTINA_DAMGASI],
+                        kok)
         yaz(cikti.rstrip())
         if rc == 0:
             yaz("✅ ONARILDI (deneme %d/%d)" % (deneme, DENEME_TAVANI))
             return 0, deneme
+        if KARANTINA_IMZASI in cikti:
+            yaz("🔴 KARANTINA OLCULEMEDI (rc=%s) — silme damgasi okunamadi. Upsert kolu "
+                "uygulandi, SILME kolu fail-closed KAPALI kaldi. YENIDEN DENENMEZ: "
+                "damgayi ikinci kez okumak onu VAR ETMEZ." % rc)
+            return 4, deneme
         if BAYATLIK_IMZASI not in cikti:
             yaz("🔴 GERCEK HATA (rc=%s) — bayatlik kapisi DEGIL. YENIDEN DENENMEZ: bu "
                 "sinif (wrangler/D1/sema/kod) yeniden denemeyle gecmez ve GORUNUR "
@@ -145,6 +170,19 @@ def imza_capasi():
     deneme OLU kalir (sessiz zayiflama). Bu capa o hali KIRMIZI yakar."""
     with open(D1_SYNC, encoding="utf-8") as f:
         return BAYATLIK_IMZASI in f.read()
+
+
+def karantina_capasi():
+    """Silme karantinasi KABLOLU mu — (bayrak_tanimli, imza_uretiliyor).
+
+    IKI YONLU: (a) d1-sync.py `--karantina-damgasi` bayragini TANIYOR mu (tanimazsa bu
+    surucunun gecirdigi bayrak argparse hatasina duser), (b) fail-closed imzayi TEK
+    KAYNAKTAN (uzlastirici_karantina.OKUNAMADI_IMZASI) uretiyor mu. Ikisinden biri
+    dusarse karantina SESSIZCE devre disi kalirdi ([[ikiz-tanim-sessiz-ayrisma]])."""
+    with open(D1_SYNC, encoding="utf-8") as f:
+        govde = f.read()
+    return ("--karantina-damgasi" in govde,
+            "uzlastirici_karantina.OKUNAMADI_IMZASI" in govde)
 
 
 def _sahte_kos(sirali, kayit):
@@ -202,6 +240,20 @@ _GERCEK_HATA_CIKTI = """\
 urunler.json: 15955 urun | D1: 15955 urun
 wrangler SIFIR-DISI cikti (rc=1) — cikti BASARI sayilmaz:
 {"error": {"code": 7429, "message": "D1 CPU limit exceeded"}}
+"""
+# KARANTINA FAIL-CLOSED govdesi — d1-sync'in `--karantina-damgasi` kolunun damga
+# okunamadiginda bastigi sekil (imza TEK KAYNAKTAN gelir, elle kopyalanmaz).
+_GERCEK_KARANTINA_CIKTI = """\
+urunler.json: 25864 urun | D1: 25864 urun | gizli baski kaydi: 0 | baski yetki: HAYIR \
+(baski atlanir) | taban fiyat semasi: 23 | konfigur semasi: 17
+yeni: 0 | degisen: 0 | silinen: 37 | dokunulmayan: 25827
+bayatlik kapisi: UC — HEAD == uzak main ucu (HEAD=c8b0451e1234 · uzak uc=c8b0451e1234)
+""" + uzlastirici_karantina.OKUNAMADI_IMZASI + """ damga dosyasi YOK
+KARANTINA_HUKUM=OLCULEMEDI
+KARANTINA_ACILDI=37
+KARANTINA_SILINDI=0
+GERI-OKUMA DOGRULANDI: 0 satirin ... teyit edildi ✅
+""" + uzlastirici_karantina.OKUNAMADI_IMZASI + """ hukum bu kosumda verilemedi.
 """
 
 
@@ -279,10 +331,20 @@ def kendini_test():
           "(imza bayatlarsa yeniden deneme OLU kalirdi)", imza_capasi(),
           "aranan %r" % BAYATLIK_IMZASI)
 
+    # --- KARANTINA KABLO CAPASI ---
+    _bayrak, _imza = karantina_capasi()
+    iddia("KARANTINA CAPASI (a): d1-sync.py `--karantina-damgasi` bayragini TANIYOR "
+          "(tanimazsa surucunun her cagrisi argparse hatasina duserdi)", _bayrak)
+    iddia("KARANTINA CAPASI (b): d1-sync.py fail-closed imzayi TEK KAYNAKTAN "
+          "(uzlastirici_karantina.OKUNAMADI_IMZASI) uretiyor", _imza)
+
     # --- YESIL YOL ---
     rc, deneme, d1, uyku, kayit = kos_senaryo([(0, _GERCEK_BASARI_CIKTI)])
     iddia("V1 ilk denemede BASARI -> rc 0 · 1 deneme · 0 bekleme",
           (rc, deneme, d1, uyku) == (0, 1, 1, []), (rc, deneme, d1, uyku))
+    iddia("V1 d1-sync HER cagride `--karantina-damgasi` ile cagrilir (bayrak dusurse "
+          "silme karantinasi SESSIZCE devre disi kalirdi)",
+          any(a[0] != "git" and "--karantina-damgasi" in a for a in kayit), kayit)
     iddia("V1 yazmadan ONCE agac UCA tazelenir (fetch + reset --hard)",
           ["git", "fetch", "--depth=1", UZAK, DAL] in kayit
           and ["git", "reset", "--hard", "FETCH_HEAD"] in kayit, kayit)
@@ -301,6 +363,12 @@ def kendini_test():
     iddia("V3 GERCEK hata (D1 7429 CPU tavani) -> rc 1 · TEK deneme · 0 bekleme "
           "(kod/altyapi hatasi yeniden denemeyle ORTULMEZ)",
           (rc, deneme, d1, uyku) == (1, 1, 1, []), (rc, deneme, d1, uyku))
+
+    # --- FAIL-CLOSED: KARANTINA DAMGASI OKUNAMADI ---
+    rc, deneme, d1, uyku, _ = kos_senaryo([(1, _GERCEK_KARANTINA_CIKTI)])
+    iddia("V3b KARANTINA damgasi okunamadi -> rc 4 · TEK deneme · 0 bekleme "
+          "(damgayi ikinci kez okumak onu VAR ETMEZ; silme fail-closed KAPALI kaldi)",
+          (rc, deneme, d1, uyku) == (4, 1, 1, []), (rc, deneme, d1, uyku))
 
     # --- FAIL-CLOSED: TAVAN TUKENDI ---
     rc, deneme, d1, uyku, _ = kos_senaryo([(1, _GERCEK_BAYAT_CIKTI)] * DENEME_TAVANI)
