@@ -66,7 +66,12 @@ OLCULEN EKSENLER (her biri ayri bir sinif; hepsi FAIL-CLOSED):
                         YAZILMAZ: tools/commit-mesaji-kapisi.py'nin PBKDF2 OZET
                         mekanizmasi (tools/sizinti-desen-ozetleri.json) MODUL
                         olarak kullanilir. Duz ad bu dosyada GECMEZ.
-  E2 oran-marj        — iskonto / marj / komisyon / alis-maliyet fiyati + SAYI.
+  E2 oran-marj        — TICARI oran/iskonto/komisyon/alis-maliyet fiyati + MIKTAR.
+                        AYIRT EDICI KELIME DEGIL SAYININ BOYUTUDUR: "marj" gibi
+                        BELIRSIZ konu ancak miktar bir MUHENDISLIK birimi
+                        (px/mm/ms/bayt/karakter...) tasirsa YESIL; para birimi
+                        HER ZAMAN ticaridir; boyutsuz miktar (ciplak sayi, %)
+                        KIRMIZI kalir (fail-closed).
   E3 gizli-dosya      — sir tasiyan gitignore'lu artefakt ADLARI (dar literal
                         liste). DEVAM-ARSIV.md BILEREK LISTEDE DEGIL: adi
                         CLAUDE.md'de zaten yazar ve defterin ilk satiri ona
@@ -182,13 +187,73 @@ def ozet_modulu(yol=None):
 # SATIRDA es-olusumudur. Tek basina genis kelime ("acik", "kapi", "guvenlik",
 # "risk") DESEN DEGILDIR — olculdu: bunlar mesru is akisi metnini yakar.
 
-# --- E2: oran / marj -------------------------------------------------------
-# ⚠️ "guvenlik marji" BILEREK DISARIDA (olculdu: bir MUHENDISLIK sabiti —
-# GUVENLIK_MARJI=400 — ticari marj DEGILDIR ve mesru is akisi metninde gecer).
-E2_KONU = re.compile(
-    r"\b(iskonto|(?<!guvenlik )marj|kar payi|karpayi|komisyon|alis fiyati|"
-    r"alim fiyati|maliyet fiyati|tedarik fiyati|kur farki|doviz kuru)\b")
-E2_SAYI = re.compile(r"\d")
+# --- E2: ticari oran / marj — BIRIM (BOYUT) EKSENLI ------------------------
+# 🔴 NEDEN BOYUT (olculdu 11 Agu 2026, DEVAM.md CTA blogu): kural "oran konusu +
+# HERHANGI BIR RAKAM" idi. Bir MUHENDISLIK notu (CTA butonu ile WhatsApp hapi
+# arasindaki YERLESIM payi) iki satirda KIRMIZI yandi; yazar kapiyi gecmek icin
+# notu yeniden ADLANDIRDI. Kapi sizintiyi degil KELIMEYI kovaladi. Ayni sinifin
+# onceki ornegi de tekil kelime yamasiyla ("guvenlik marji") kapatilmisti ->
+# [[tekil-yama-sinifi-kapatmaz]] · [[envanter-drift-parti-basina]].
+#
+# AYIRT EDICI = SAYININ BOYUTU:
+#   * TICARI KONU tek basina KIRMIZIDIR; boyut muafiyeti ONA ULASMAZ (bir ticari
+#     oran, yaninda px yazarak aklanamaz).
+#   * BELIRSIZ KONU ("marj") ancak MUHENDISLIK BOYUTU KANITLANIRSA yesildir.
+#   * PARA BOYUTU satirda gorunurse muhendislik kaniti GECERSIZDIR (ustunluk).
+#   * Boyutsuz miktar KIRMIZI kalir — "olcemedim" YESIL DEGILDIR.
+# ⚠️ `%` KANIT DEGILDIR, BOYUTSUZDUR: bu isi baslatan gercek satirin kendisi
+#    "~%5 (~7 px)" yaziyordu; `%` ticari sayilsaydi o satir YINE yanardi.
+# ⚠️ MIKTAR = BAGIMSIZ SAYI JETONU, "herhangi bir rakam" DEGIL. Olculdu:
+#    `CTA-A1` / `serit-a2` / `364095f6` icindeki rakam miktar degildir.
+
+# 🧊 DONMUS KELIME MUAFIYETI — BUYUTULEMEZ (kabul testi A2 olcer). Boyut
+# ekseninden onceki donemin TEK kalintisi: "guvenlik marji" bir KARAKTER butcesi
+# sabitidir (tools/ege-bilgi-tavan-test.py GUVENLIK_MARJI=400) ve gercek defter
+# metninde CIPLAK sayiyla gecer. YENI ornek buraya EKLENMEZ; birim yazilir.
+E2_DONMUS_ONEKLER = ("guvenlik",)
+E2_DONMUS = re.compile(r"\b(?:%s) marj\w*\b" % "|".join(E2_DONMUS_ONEKLER))
+
+# TICARI KONU: tek basina yeterli (belirsizlik YOK).
+E2_TICARI_KONU = re.compile(
+    r"\b(iskonto|kar payi|karpayi|komisyon|alis fiyati|alim fiyati|"
+    r"maliyet fiyati|tedarik fiyati|kur farki|doviz kuru)\b")
+# BELIRSIZ KONU: ticari de olabilir muhendislik de — boyut karar verir.
+E2_BELIRSIZ_KONU = re.compile(r"\bmarj\w*\b")
+
+# MIKTAR / BOYUT olcumleri HAM metinde yapilir: normalize() `1,35`i `1 35`e boler,
+# `%` ve `₺` gibi isaretleri SILER ve birim bitisikligini (`7 px`) korur ama para
+# sembolunu kaybederdi -> [[olcum-birimi-bayt-utf16]] sinifi bir birim hatasi.
+E2_SAYI = re.compile(r"(?<![0-9A-Za-z])\d[\d.,]*(?![0-9A-Za-z])")
+E2_PARA = re.compile(
+    r"(?:(?<![0-9A-Za-z])\d[\d.,]*\s*(?:tl|try|usd|eur|gbp|lira|kurus|"
+    r"dolar|euro|sterlin)\b)|(?:[₺$€£]\s*\d)|(?:\d\s*[₺$€£])", re.I)
+# KANONIK BIRIM KUMESI (uzunluk · sure · veri · frekans · kutle · metin/sayim).
+# Uyelik olcutu BOYUTTUR, cumle kalibi DEGIL.
+E2_BIRIM = re.compile(
+    r"(?<![0-9A-Za-z])\d[\d.,]*\s*"
+    r"(?:px|piksel|pt|rem|em|ch|vw|vh|dp|"
+    r"mm|cm|km|um|inc|mikron|m|"
+    r"ms|sn|saniye|dakika|dk|saat|hz|khz|mhz|fps|dpi|"
+    r"bayt|byte|bit|kb|mb|gb|tb|"
+    r"karakter|hane|satir|adet|derece|"
+    r"gr|gram|kg|ml)\b", re.I)
+
+
+def e2_bulgusu(ham, norm):
+    """E2 hukmu -> desen etiketi ya da None (bkz. ustteki blok).
+
+    FAIL-CLOSED: belirsiz konuda MUHENDISLIK BOYUTU KANITLANMADIKCA KIRMIZI."""
+    if not E2_SAYI.search(ham):
+        return None
+    if E2_TICARI_KONU.search(norm):
+        return "ticari-konu+miktar"
+    if not E2_BELIRSIZ_KONU.search(E2_DONMUS.sub(" ", norm)):
+        return None
+    if E2_PARA.search(ham):
+        return "belirsiz-konu+para-boyutu"
+    if E2_BIRIM.search(ham):
+        return None
+    return "belirsiz-konu+boyutsuz-miktar"
 
 # --- E3: sir tasiyan gitignore'lu artefaktlar (HAM metin, dar literal) ------
 # DEVAM-ARSIV.md BILEREK YOK (bkz. baslik). .gitignore/.driveignore de YOK:
@@ -311,9 +376,10 @@ def satir_eksenleri(ham, norm, kayit=None, ozet=None, markalar=None,
         except Exception:                                   # noqa: BLE001
             bulgular.append(("E1 satici-kimligi", "alan-adi-ekseni-OLCULEMEDI"))
 
-    # E2 — oran / marj
-    if E2_KONU.search(norm) and E2_SAYI.search(norm):
-        bulgular.append(("E2 oran-marj", "oran-konusu+sayi"))
+    # E2 — ticari oran / marj (BOYUT ekseni)
+    _e2 = e2_bulgusu(ham, norm)
+    if _e2:
+        bulgular.append(("E2 oran-marj", _e2))
 
     # E3 — gizli dosya adi
     for etiket, rx in E3_DESENLER:
@@ -655,6 +721,12 @@ _UYDURMA_AD = "Zorbacix"
 _KIRMIZI = [
     ("- Iskonto orani yuzde 22 olarak anlasildi.", "E2 oran-marj"),
     ("- Marj hesabi 1,35 katsayisiyla yapildi.", "E2 oran-marj"),
+    ("- Aracilik marji islem basina 4500 TL; 12 adet uzerinden hesaplandi.",
+     "E2 oran-marj"),                      # para boyutu > muhendislik kaniti
+    ("- Anlasilan marj %18 seviyesinde tutuldu.", "E2 oran-marj"),   # % BOYUTSUZ
+    ("- MARJ_ORANI=0.22 sabiti panelden okunuyor.", "E2 oran-marj"), # kod adi aklamaz
+    ("- Iskonto 7 px kadar kucuk gorunse de uygulandi.", "E2 oran-marj"),
+    # ^ TICARI konu, yanindaki muhendislik birimiyle AKLANAMAZ.
     ("- Kaynak kaydi .urun-kaynaklari.json dosyasinda tutuluyor.", "E3 gizli-dosya"),
     ("- Anahtarlar .r2-credentials.json icinde duruyor.", "E3 gizli-dosya"),
     ("- CLOUDFLARE_API_TOKEN degeri panelden alindi.", "E4 sir-jeton"),
@@ -717,6 +789,11 @@ _YESIL = [
     "- Sizinti taramasi 0 vurus; sizinti riski sifir.",
     "- GUVENLIK_MARJI=400 sabitiyle hizalandi; guvenlik marji 400 kaldi.",
     "- Canli panel http://localhost:8137 uzerinde kosuyor (launchd).",
+    # --- 11 Agu: E2 BOYUT ekseni. Bu satirlar ESKI kuralda KIRMIZI yaniyordu.
+    "- Masaustunde elde kalan marj ~%5 (~7 px); yerlesim toleransi.",
+    "- CTA marji 12 px daraldi; esik 250 ms.",
+    "- Ege tavan payi 400 karakter marjinda kaldi.",
+    "- Genislik marji CTA-A1 ekseninde izlenecek.",   # rakam VAR, MIKTAR YOK
 ]
 
 
@@ -864,6 +941,26 @@ def kendini_test():
             hatalar.append("B YANLIS-POZITIF (desen DARALTILMALI) -> %s: %r"
                            % (sorted(bulunan), satir))
 
+    # ---- A2) DONMUS KELIME MUAFIYETI BUYUYEMEZ ([[envanter-drift-parti-basina]])
+    kontrol += 1
+    if E2_DONMUS_ONEKLER != ("guvenlik",):
+        hatalar.append("A2 DONMUS MUAFIYET DEGISTI -> %r. Yeni muhendislik marji "
+                       "BOYUT eksenine (E2_BIRIM) girer, kelime listesine DEGIL."
+                       % (E2_DONMUS_ONEKLER,))
+
+    # ---- A3) IKIZ VAKA: iki satir arasindaki TEK fark BIRIMDIR. Hukum kelimeden
+    #      degil BOYUTTAN geliyorsa bu uclu ayrisir ([[kabul-araligi-karsilastirma-araligi]]).
+    for satir, kirmizi_beklenen in (
+            ("- Elde kalan marj 7 px olarak olculdu.", False),
+            ("- Elde kalan marj 7 TL olarak olculdu.", True),
+            ("- Elde kalan marj 7 olarak olculdu.", True)):
+        kontrol += 1
+        kirmizi = "E2 oran-marj" in _eksenler(satir)
+        if kirmizi != kirmizi_beklenen:
+            hatalar.append("A3 IKIZ VAKA: %r -> %s (beklenen %s)"
+                           % (satir, "KIRMIZI" if kirmizi else "YESIL",
+                              "KIRMIZI" if kirmizi_beklenen else "YESIL"))
+
     # ---- C) E1: OZET MEKANIZMASI CANLI MI (uydurma ad + gercek uretim yolu)
     with tempfile.TemporaryDirectory() as tmp:
         sahte_yol = _gecici_ozet(tmp, ozet)
@@ -983,8 +1080,8 @@ def kendini_test():
 # MUTASYON BATARYASI — KOPYA UZERINDE (canli dosyada mutant BIRAKILMAZ)
 # ===========================================================================
 _MUTANTLAR = [
-    ("M1 E2 oldur", 'E2_KONU = re.compile(', 'E2_KONU = re.compile(r"(?!x)x")  #',
-     True),
+    ("M1 E2 ticari konuyu oldur", "E2_TICARI_KONU = re.compile(",
+     'E2_TICARI_KONU = re.compile(r"(?!x)x")  #', True),
     ("M2 E3 oldur", "E3_DESENLER = (", "E3_DESENLER = ()  # ", True),
     ("M3 E4 hex esigi gevset",
      r'r"(?<![0-9A-Za-z])[0-9a-fA-F]{32,}(?![0-9A-Za-z])"',
@@ -1024,6 +1121,19 @@ _MUTANTLAR = [
     ("M16 INDEX blob fail-closed'unu sessiz yesile cevir",
      "            return RC_OLCULEMEDI, [], satir_sayisi, yollar",
      "            return RC_TEMIZ, [], satir_sayisi, yollar", True),
+    ("M17 E2 boyut ekseni OLDUR", "E2_BIRIM = re.compile(",
+     'E2_BIRIM = re.compile(r"(?!x)x")  #', True),
+    ("M18 E2 boyut ekseni SINIRSIZ GENISLET", "E2_BIRIM = re.compile(",
+     'E2_BIRIM = re.compile(r"")  #', True),
+    ("M19 E2 para ustunlugunu OLDUR", "E2_PARA = re.compile(",
+     'E2_PARA = re.compile(r"(?!x)x")  #', True),
+    ("M20 E2 miktarini `herhangi bir rakam`a geri al", "E2_SAYI = re.compile(",
+     'E2_SAYI = re.compile(r"\\d")  #', True),
+    ("M21 belirsiz konuyu TICARI say",
+     '    if not E2_BELIRSIZ_KONU.search(E2_DONMUS.sub(" ", norm)):\n        return None',
+     '    if E2_BELIRSIZ_KONU.search(norm):\n        return "ticari-konu+miktar"', True),
+    ("M22 DONMUS muafiyeti BUYUT", 'E2_DONMUS_ONEKLER = ("guvenlik",)',
+     'E2_DONMUS_ONEKLER = ("guvenlik", "yerlesim", "genislik")', True),
     ("M11 ILGISIZ: yorum satiri eklendi", "import argparse",
      "import argparse  # ilgisiz yorum (davranis degismez)", False),
     ("M12 ILGISIZ: cikti metni degistirildi", '"temiz: 0 sinif ihlali."',
@@ -1044,32 +1154,69 @@ def mutasyon():
     with open(kaynak, encoding="utf-8") as f:
         govde = f.read()
 
+    # 🔴 KOSUM ORTAMI (olculdu, [[anahat-referans-tautolojisi]]): mutant kopyasi
+    # GECICI bir dizinde YAZILIR ve subprocess cwd=tmp'de calisir; kopyanin
+    # KENDI dizini Python'un sys.path[0]'u olur. Dosyanin en ustundeki
+    # `from git_ortami import sentetik_git` (plain import) bu yuzden GERCEK
+    # tools/git_ortami.py'yi bulamaz -> ModuleNotFoundError. Bu cokme
+    # MUTASYONDAN BAGIMSIZDIR (HER kopyayi ayni sekilde cokertir) ve "olcemedim"i
+    # "oldurdum" ile KARISTIRIR — [[mutasyon-kaniti-yeniden-uretilebilir]].
+    # Cozum: subprocess'e GERCEK tools/ dizinini iceren bir PYTHONPATH ver
+    # (--kok GERCEK depoyu gosterdigi gibi PYTHONPATH da GERCEK tools/'u
+    # gostersin).
+    ortam = dict(os.environ)
+    ortam["PYTHONPATH"] = os.pathsep.join(
+        [TOOLS] + ([ortam["PYTHONPATH"]] if ortam.get("PYTHONPATH") else []))
+
+    def _kendini_test_kostur(icerik, dizin):
+        mutant_yol = os.path.join(dizin, "mutant-devam-sinif-kapisi.py")
+        with open(mutant_yol, "w", encoding="utf-8") as f:
+            f.write(icerik)
+        return subprocess.run([sys.executable, mutant_yol, "--kendini-test",
+                               "--kok", ROOT],
+                              capture_output=True, text=True, cwd=dizin,
+                              env=ortam)
+
     hatalar = []
-    with tempfile.TemporaryDirectory() as tmp:
-        # Mutant AYRI bir dizinde kosar (canli dosyaya DOKUNULMAZ) ama --kok ile
-        # GERCEK depoyu olcer; boylece kirmizi/yesil hukmu MUTASYONDAN gelir,
-        # "yanlis dizinde kostum"dan degil.
-        for ad, eski, yeni, oldurucu in _MUTANTLAR:
-            if eski not in govde:
-                hatalar.append("%s: BAYAT MUTANT — capa metni bulunamadi: %r"
-                               % (ad, eski[:48]))
-                continue
-            mutant_yol = os.path.join(tmp, "mutant-devam-sinif-kapisi.py")
-            with open(mutant_yol, "w", encoding="utf-8") as f:
-                f.write(govde.replace(eski, yeni, 1))
-            r = subprocess.run([sys.executable, mutant_yol, "--kendini-test",
-                                "--kok", ROOT],
-                               capture_output=True, text=True, cwd=tmp)
-            kirmizi = (r.returncode != 0)
-            if oldurucu and not kirmizi:
-                hatalar.append("%s: OLDURUCU MUTANT HAYATTA KALDI (rc=0) — o eksen "
-                               "NOBETSIZ" % ad)
-            if (not oldurucu) and kirmizi:
-                hatalar.append("%s: ILGISIZ DEGISIKLIK KIRMIZI YANDI (rc=%d) — kapi "
-                               "asiri hassas\n%s" % (ad, r.returncode,
-                                                     r.stderr[-400:]))
-            print("  %-40s -> %s (%s)" % (ad, "KIRMIZI" if kirmizi else "YESIL",
-                                          "oldurucu" if oldurucu else "ilgisiz"))
+    # 🔴 CANLILIK CAPASI: mutasyon uygulamadan ONCE MUTASYONSUZ kopyayi (govde
+    # AYNEN, hicbir replace YOK) TAM AYNI kosum yolundan gecir. Bu kirmizi
+    # cikarsa "yanlis dizindeyim / import cozulmedi" ile "oldurdum" AYIRT
+    # EDILEMEZ -> batarya TAUTOLOJIKTIR ve asagidaki TUM mutant sonuclari
+    # GUVENILMEZ sayilir (kosulmaz, tek hata olarak raporlanir).
+    with tempfile.TemporaryDirectory() as tmp0:
+        r0 = _kendini_test_kostur(govde, tmp0)
+    canlilik_tamam = (r0.returncode == 0)
+    print("MUTASYONSUZ KOPYA CANLILIK KONTROLU: %s (rc=%d)"
+          % ("YESIL" if canlilik_tamam else "KIRMIZI", r0.returncode))
+    if not canlilik_tamam:
+        hatalar.append(
+            "KOSUM ORTAMI BOZUK — mutasyonsuz kopya bile kirmizi (batarya "
+            "TAUTOLOJIK): rc=%d\n%s" % (r0.returncode, r0.stderr[-400:]))
+        print("ATLANDI: kosum ortami bozukken mutant sonuclari GUVENILMEZ "
+              "sayilir (yukaridaki canlilik kontrolune bak).", file=sys.stderr)
+    else:
+        with tempfile.TemporaryDirectory() as tmp:
+            # Mutant AYRI bir dizinde kosar (canli dosyaya DOKUNULMAZ) ama --kok
+            # ile GERCEK depoyu olcer; boylece kirmizi/yesil hukmu MUTASYONDAN
+            # gelir, "yanlis dizinde kostum"dan degil (yukaridaki canlilik
+            # kontrolu + PYTHONPATH bunu GARANTI eder).
+            for ad, eski, yeni, oldurucu in _MUTANTLAR:
+                if eski not in govde:
+                    hatalar.append("%s: BAYAT MUTANT — capa metni bulunamadi: %r"
+                                   % (ad, eski[:48]))
+                    continue
+                r = _kendini_test_kostur(govde.replace(eski, yeni, 1), tmp)
+                kirmizi = (r.returncode != 0)
+                if oldurucu and not kirmizi:
+                    hatalar.append("%s: OLDURUCU MUTANT HAYATTA KALDI (rc=0) — o "
+                                   "eksen NOBETSIZ" % ad)
+                if (not oldurucu) and kirmizi:
+                    hatalar.append("%s: ILGISIZ DEGISIKLIK KIRMIZI YANDI (rc=%d) — "
+                                   "kapi asiri hassas\n%s"
+                                   % (ad, r.returncode, r.stderr[-400:]))
+                print("  %-40s -> %s (%s)"
+                      % (ad, "KIRMIZI" if kirmizi else "YESIL",
+                         "oldurucu" if oldurucu else "ilgisiz"))
     sonra = _sha256(kaynak)
     if once != sonra:
         hatalar.append("CANLI DOSYA DEGISTI! sha256 %s -> %s (mutant sizdi)"
