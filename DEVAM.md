@@ -25,79 +25,52 @@
 
 **MaCiT'te:** feed politika kalemi (`a327d799` ile kapandi) + `tavsiyeFilament` 9 kayitta dizi yerine DIZE. **Ana agacta yabanci** (DOKUNULMADI): `M tools/build.py` · `M jenerator/test/vitrin-kabul.js` · `M tools/d1-sync.py` · `.scratch/` · 2 stash.
 
-## 🕐 CI NOBETI — 11 Agu 2026 14:37 yerel / 11:37Z turu (KraL)
-
-⚠️ **Baslik ayrimi:** bir asagidaki blok kendini "11:37Z" diye yazmis ama kendi
-`COP_IZI` damgasi **13:33 yerel** (= 10:37Z turu) — Z etiketi bir saat ileri. Bu blok
-GERCEKTEN 11:37Z turudur; ikisi karistirilmasin.
+## 🕐 CI NOBETI — 11 Agu 2026 15:37 yerel / 12:37Z turu (KraL)
 
 **Ev kontrolu:** `pwd` = `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
 
 **Supurme (sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI):** rc=0 ·
-`GITHUB_BILDIRIM_INBOX=3 · BULUNAN=3 · TASINAN=3 · ATLANAN=0 · CIKAN=2 · KOMSU_KAYIP=0 ·
-KUME_DIFF=OLCULDU · KALAN=1 · COP_IZI=5:2026-08-11T14:27:12 · HUKUM=OLCULEMEDI`. Uc fail-closed
-alarmin ucu de sessiz (`TASINAN > BULUNAN` degil, `CIKAN > TASINAN` degil, `KOMSU_KAYIP=0`).
-Tasinan uc kayit KIMLIK bazinda `SILENENLER` bloguyla basildi; ucu de `Run failed` konulu
-(`Build & deploy` ×2 + `Paket tazeligi alarmi`, head'ler `a327d79` · `3298f1b` · `0b27be8`).
-**`HUKUM=OLCULEMEDI`'nin sebebi `KALAN=1`** — koşum SIRASINDA kutuya yeni bir `Run failed` maili
-dustu (`CIKAN=2 < TASINAN=3` de ayni yarisin izi). Bu bir alarm DEGIL: kalan kaydin sinifi asagida
-**hala kirmizi olan `bayatlik`** kolu, yani §3.5 geregi zaten bekletilmesi gereken sinif.
+`GITHUB_BILDIRIM_INBOX=8 · BULUNAN=8 · TASINAN=8 · ATLANAN=0 · CIKAN=8 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=13:2026-08-11T15:36:07 · HUKUM=SUPURULDU`. Uc fail-closed
+alarmin ucu de sessiz. `SILENENLER` blogu 8/8 kimlik bazinda basildi ve **8'inin de konusu
+`Run failed`** (6× `Odeme yolu bayatlik nabzi`, 1× `Paket tazeligi alarmi`, head'ler
+`45f0275` · `6f6cb97` · `fac2b8f` · `e350a85` · `16e8e85` · `3965d24` · `6ba5a6e` ×2).
+Onceki turun devrettigi **`KALAN=1` kalemi bu turda kapandi** (KALAN=0).
 
-**🟠 Cop denetimi (salt okuma): 6 kayit — 5 MESRU, YANLIS=1.** Tek YANLIS kayit yine **10 Agu
-19:48 tarihli giris-linki maili** (Cop id `68000`) — onceki iki turun defterinde duran AYNI kalem,
-YENI DEGIL, sayi ARTMADI. Supurmeye ATFEDILEMEZ: bu turun muhasebesi `KOMSU_KAYIP=0` ve
-`SILENENLER` listesinin 3/3'u `Run failed`; kayit koşumdan bir gun ONCE Cop'teydi. Siparis/odeme
-ekseninde Cop'te kayit **YOK** → gorev tarifinin cikis esigi SAGLANMADI; Okan'a cikilmadi,
-kendiliginden geri alma YAPILMADI.
+**🟠 Cop denetimi (salt okuma): 14 kayit — MESRU=13, YANLIS=1.** Tek YANLIS kayit hala **10 Agu
+19:48 tarihli giris-linki maili** (Cop id `68000`) — ucuncu turdur defterde duran AYNI kalem;
+YENI DEGIL, sayi ARTMADI, bu turun supurmesinden bir gun ONCE Cop'teydi ve bu turun muhasebesi
+`KOMSU_KAYIP=0`. Siparis/odeme ekseninde Cop'te kayit **YOK** → kendiliginden geri alma
+YAPILMADI.
 
-**🔴 TEK KIRMIZI = `bayatlik` ALARM KOLU — ve 09:37Z turunda "kapandi" yazilan sinif YENIDEN
-ACILDI.** `31487441867` (head `6ba5a6e6`) tek job: `bayatlik`, dusen adim
-`Olcum — canli shop worker nesli (odeme yolu bayatligi; yayini DURDURMAZ)`. Logdan birebir:
-`esik: 120 dk (beyan: dosya basi)` · **`en eski yayinlanmamis commit yasi: 128.9 dk`** ·
-`DURUM: BAYAT (rc=1)` · `bundle commit'i: 1 adet, canli koddan YENI` (`51ccbe75`, 09:28Z) ·
-**`canli KOD surumu fdd158cb-… (2026-08-11T08:10:28Z)` — 09:37Z turundan beri DEGISMEDI.**
-Yani sinif "geri gelmedi", **yeni bir commit ustune bindi ve worker o gunden beri deploy
-edilmedi.** Adim adinin kendisi `yayini DURDURMAZ` diyor ve job listesinde `deploy`/`yayin` YOK →
-gorev tarifi §2 geregi `cron-nabzi` gibi degerlendirildi, **"CI kirik" hukmu YAZILMADI.**
-**Onarim yolu nobetin YETKISI DISINDA:** kapanisi `shop` dizininden `npx wrangler deploy` —
-bu **OKAN KAPISI** ve defterde zaten **"OKAN'DA BEKLEYEN KARARLAR" #2** olarak duruyor. §5 esisi
-(YENI bir insan karari) saglanmadigi icin Okan'a **YAZILMADI**; nobet DEPLOY ETMEDI, push
-YAPMADI, kod DEGISTIRMEDI, hicbir adim silinmedi/`continue-on-error` eklenmedi.
+**✅ YAYIN INDI — JOB birimiyle dogrulandi.** `31489438185` (head `fac2b8f9`) tur icinde ucustan
+cikti: `serit-a4 · serit-a3 · build · serit-a2 · deploy · yayin` = **6/6 success**, yani
+`deploy`+`yayin` fiilen KOSTU, `skipped` DEGIL ([[hukum-yanlis-birimde]]). Ayrica
+`git merge-base --is-ancestor fac2b8f9 45f02754` → **rc=0**: son basarili yayin, tepe head'in
+ATASI. Tepe head `45f02754`'un kendi kosumu (`31491933641`) tur kapanisinda hala **UCUSTA**
+(`serit-a4=success`, digerleri devam) — yesil YAZILMADI ([[ucustaki-kosum-yesil-degildir]]).
 
-**✅ ONCEKI TURUN DEVRETTIGI (a) KALEMI — feed politika kapisi GERCEKTEN yesil.** `31485618181`
-(head `746ececb`) `serit-a2` icinde adim `Feed politika jetonu kapisi (bloklayici + rapor)` =
-**success** (11:27:47→11:27:57). Yani yayini 10:15Z'den beri durduran urun-duzlemi kalemi
-kapali; nobet `urunler.json`'a bu turda da DOKUNMADI. Ayni kosumda `build` · `serit-a3` ·
-`serit-a4` = **success**.
+**🔴 TEK KIRMIZI = `bayatlik` ALARM KOLU — sinif 3. turdur ACIK ve YAS BUYUYOR.**
+`31491933670` (head `45f02754`) tek job `bayatlik`, dusen adim `Olcum — canli shop worker nesli
+(odeme yolu bayatligi; yayini DURDURMAZ)`. Logdan birebir: `esik: 120 dk (beyan: dosya basi)` ·
+**`en eski yayinlanmamis commit yasi: 186.8 dk`** (09:37Z turu 128,9 dk → bu tur **186,8 dk**) ·
+`bundle commit'i: 1 adet, canli koddan YENI` · **`canli KOD surumu fdd158cb-…
+(2026-08-11T08:10:28Z)` — ucuncu turdur DEGISMEDI** · `DURUM: BAYAT (rc=1)`.
+Adim adi `yayini DURDURMAZ` diyor, job listesinde `deploy`/`yayin` YOK → gorev tarifi §2 geregi
+`cron-nabzi` gibi degerlendirildi, **"CI kirik" hukmu YAZILMADI.** Onarim yolu nobetin YETKISI
+DISINDA (`shop` dizininden `npx wrangler deploy` = OKAN KAPISI). §3 DUR KOSULU saglandi
+(ayni kok neden 3+ kosumdur duzelmiyor ve cozum YASAK/yetki listesine dokunuyor) → bu turda
+Okan'a **TEK CUMLE** cikildi; nobet deploy ETMEDI, push/kod degisikligi YAPMADI, hicbir adim
+silinmedi, `continue-on-error` eklenmedi.
 
-**⏳→✅ YAYIN: tur ORTASINDA `UCUSTA`, tur KAPANIRKEN INDI.** 11:53Z'de `31485618181` →
-`serit-a2` hala `in_progress` (adim 41/43: `Kalibrasyon senkron kapisi`), `deploy`+`yayin`
-BASLAMAMISTI; tepe head `6ba5a6e6`'nin kosumu `31487441907` ise **18 dk boyunca `pending` ve
-`jobs: []`** kaldi — kuyruk doygunlugu, ariza DEGIL ([[cancelled-yigini-yayin-tavani]]).
-Tavani yine SURE koydu: `serit-a2` tek basina **27+ dk**. Tur kapanisinda **bagimsiz** yeniden
-olculdu: `31485618181` (head `746ececb`) → `build · serit-a3 · serit-a4 · serit-a2 · deploy ·
-yayin` = **6/6 success**, yani `deploy` ve `yayin` **fiilen KOSTU, `skipped` DEGIL.**
-→ **10:15Z'den beri suren yayin durmasi KAPANDI.** Ara hukum yerinde birakildi: "ucusta" o an
-dogru olcumdu, sonradan yesillenmesi onu gecmise donuk dogru yapmaz
-([[ucustaki-kosum-yesil-degildir]]).
+**Bu turda:** kod DEGISTIRILMEDI · deploy YAPILMADI · urun verisine dokunulmadi · worktree
+ACILMADI/silinmedi. Isciye 2 cagri (supurme+denetim+CI olcumu · bayatlik logu+yayin job olcumu),
+ikisi de receteli ve salt-olcum.
 
-**⚠️ MUKERRER TUR OLCULDU — zarar YOK, sinif kayda geciyor.** Ayni saatlik nobeti **paralel bir
-KraL oturumu** da kostu ve bu blogu (calisma agacindan alip) KENDI commit'ine kattı:
-`16e8e85a` "11:37Z nobet turu kapanisi — yayin kolu 6/6 success" + `e350a85f` "saat etiketi
-duzeltildi (10:37Z; damga yerel UTC+3)". Bu turun kendi commit'i bu yuzden BOS dondu
-("no changes added to commit") — defter kaybi YOK, yalnizca yazari baska. Ayni yesili iki tur
-bagimsiz olctu; hukumler CELISMIYOR ([[paylasilan-defterde-mukerrer-tur]] · [[isci-yesili-sahiplenir]]).
-
-**Bu turda:** kod DEGISTIRILMEDI · deploy YAPILMADI · `urunler.json`'a dokunulmadi · worktree
-ACILMADI/silinmedi · Okan'a cikilmadi. Codex isciye 4 cagri (supurme+denetim+CI olcumu · teshis ·
-ucus bekleme · defter arsivi), hepsi `-o <dosya>` receteli.
-
-**Sonraki turun ILK ISI:** (a) `bayatlik` yas serisini surdur (128,9 dk → ?) ve `canli KOD
-surumu`nun `fdd158cb`'den degisip degismedigini olc — degistiyse sinif kendiliginden
-kapanmistir, nobet yesili SAHIPLENMEZ ([[isci-yesili-sahiplenir]]); (b) kutuda `KALAN=1` maili
-tekrar tara, sinifi kapanmissa Cop'e gitmelidir; (c) tepe head'in (`e350a85f` ve sonrasi) yayin
-kosumunda `deploy`+`yayin` job'larini yine JOB birimiyle olc — kosum `success` olsa da job
-`skipped` olabilir ([[hukum-yanlis-birimde]]).
-
+**Sonraki turun ILK ISI:** (a) `bayatlik` yas serisini surdur (186,8 dk → ?) ve `canli KOD
+surumu`nun `fdd158cb`'den degisip degismedigini olc — degistiyse sinif kendiliginden kapanmistir,
+nobet yesili SAHIPLENMEZ ([[isci-yesili-sahiplenir]]); (b) `31491933641`'i (tepe head `45f02754`)
+JOB birimiyle kapat — `deploy`+`yayin` fiilen kostu mu; (c) Cop'teki `YANLIS=1` kalemi hala tek
+ve artmiyor mu diye olc, artiyorsa supurme ekseninden tekrar sorgula.
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
