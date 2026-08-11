@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Bu surucu 11 Agu 2026 curutme turunun FOTOGRAFIDIR; onarimdan sonra sabit M-D/M-E/M-F metni bayatladi, canli olcum kabul testindedir.
 /**
  * CURUTME 05 — EKSEN 2/3: `ozet-ac-ayikla.js` ayiklamasi bozulursa test ne yapar?
  *

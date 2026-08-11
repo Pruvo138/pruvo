@@ -4021,9 +4021,9 @@ OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
 #               [[tarayici-onbellek-4saat]]) bu sabit 3 yapılır -> artefakt v3, kazanç
 #               (21.766 B) devreye girer, bayat istemci KALMADIĞI için kapak kaybı 0.
 # Yordam + doğrulama komutu: tools/paket-ozet-butce.md "FAZ 2b".
-# ⚠️ VARSAYILAN KAPALI (2) — açmak AYRI ve BİLİNÇLİ bir yayındır. `--sadece-ozet` için
+# ⚠️ VARSAYILAN AÇIK (3) — bu AYRI ve BİLİNÇLİ bir yayındır. `--sadece-ozet` için
 # `--ozet-surum <2|3>` YALNIZCA ölçüm/kabul testi kolu; yayın yolunu ETKİLEMEZ.
-OZET_TEMSIL_SURUM = 2
+OZET_TEMSIL_SURUM = 3
 # Kart kapak URL'lerinin ortak öneki. Kartta yalnız kalan parça taşınır; istemci öneki
 # geri ekler. ÖNEKİ TAŞIMAYAN değer (başka konak) OLDUĞU GİBİ kalır — istemcinin ayrımı
 # "://" içeriyor mu (mutlak = dokunma). Ölçüldü (11 Ağu, 271 kart): 34 B × 271 = 9.164 B.
