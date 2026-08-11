@@ -1847,7 +1847,12 @@ TABLO_TABANLARI = (
     # (duzelt.py/urun-ekle.py, flock altinda _atomic_write'tan hemen once) kosar ve
     # modul yuklenemezse cagiran betik acilista COKER. Tam esitlik geregi taban AYNI
     # commit'te guncellendi.
-    ("SERIT_B", 101),
+    # 11 Agu: 101 -> 102 (konfigur-siyah-kapak-mutasyon.py beyan edildi). Bir TASIMA
+    # DEGIL, EKLEME: Okan'in "konfigur kapak siyaha, onden secili renk Siyah" emri
+    # KALICI bir kapiya baglandi (tools/konfigur-siyah-kapak-kapisi.py, deploy.yml job
+    # `build`te BLOKLAYICI) ve kapinin IKI KOLUNUN da canli oldugunu olcen batarya AYNI
+    # commit'te eklendi. Tam esitlik geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 102),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2830,6 +2835,29 @@ SERIT_B = {
         "SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, "
         "bataryanin EKLENMESIDIR. Fiksturler SENTETIK: kardes depo (~/dev/pruvo-bot) "
         "diskte OLMASA da kosar, urunler.json OKUNMAZ, ag GEREKTIRMEZ (~0,1 s). "
+        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
+        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
+        "karsilastirilir ve ciktida raporlanir.",
+    ("nobet.yml", "serit-b", "tools/konfigur-siyah-kapak-mutasyon.py"):
+        "tools/konfigur-siyah-kapak-kapisi.py'nin mutasyon bataryasi (5 oldurucu + 1 "
+        "kontrol). Korudugu invaryant Okan emridir: konfigur/dekor urununde kapak "
+        "gorseli siyah + onden secili renk Siyah. IKISI AYNI SEYDIR — on-secim AYRI bir "
+        "alanda durmaz, build.py::_konfigur_varsayilan_renk onu KAPAK GORSELINDEN "
+        "turetir; yani kapagi griye geri almak on-secimi de geri alir, SESSIZCE. Kapi "
+        "IKI KOLLUDUR ve bir kolu oldurmek digerinden GORUNMEZ, bu yuzden fiksturler "
+        "BILEREK birbirinin aynasi DEGIL: C2'yi (capa 0'da ama renk sirasi yuzunden "
+        "on-secim 'Gri') YALNIZ eksen A yakalar, C3'u (on-secim 'Siyah' ama "
+        "renkGorselIndeks BOSALTILMIS -> uretim fonksiyonu 'listenin ilki' koluna duser "
+        "ve kapak gri olsa bile 'Siyah' dondurur) YALNIZ eksen B yakalar. Olculen kollar: "
+        "turetimin URETIM KODUNDAN koparilip sabit renge baglanmasi · kapak capasinin "
+        "sokulmesi · OLCULEMEDI kolunun sessiz yesile cevrilmesi · pozitif kolun "
+        "oldurulmesi (gecerli siyah kapakli urunun reddi) · ihlal listesinin fail-open "
+        "bosaltilmasi. Olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
+        "(edge-kart-tirnak-mutasyon.py / cta-denge-mutasyon.py ile ayni desen). Korudugu "
+        "KAPI (tools/konfigur-siyah-kapak-kapisi.py) SERIT A'da, deploy.yml job `build`te "
+        "BLOKLAYICI kosar; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. "
+        "Fiksturler SENTETIK: urunler.json OKUNMAZ, ag GEREKTIRMEZ (~0,2 s; tools/build.py "
+        "OKUNUR cunku olculen sey tam da URETIM KODUNA capali olmaktir). "
         "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
         "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
         "karsilastirilir ve ciktida raporlanir.",

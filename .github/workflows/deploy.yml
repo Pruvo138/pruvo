@@ -1549,6 +1549,21 @@ jobs:
       - name: Konfigur (dekor konfigurator) kabul testi
         run: python3 tools/konfigur-test.py --anahat
 
+      # KONFIGUR SIYAH KAPAK KAPISI (Okan emri, 11 Agu 2026). Konfigur/dekor urununde
+      # kapak gorseli siyah + onden secili renk Siyah olacak. Bu IKISI AYNI SEYDIR:
+      # on-secim AYRI bir alanda durmaz, build.py::_konfigur_varsayilan_renk onu KAPAK
+      # GORSELINDEN turetir (renkGorselIndeks'i 0 olan renk). Yani kapagi griye geri
+      # almak on-secimi de geri alir — SESSIZCE, tek bir alan adi bile degismeden;
+      # bir sonraki katalog partisinde kimse fark etmez.
+      # Kapi kurali VERIDEN degil URETIM KODUNDAN turetir: on-secimi yeniden yazmaz,
+      # sayfayi basan fonksiyonun TA KENDISINI cagirir (ikiz tanim ayrismasi olamaz).
+      # IKI KOL: (A) turetim sonucu "Siyah" mi · (B) turetim GERCEKTEN kapak gorselinden
+      # mi geliyor (rgi["Siyah"]==0). (B) sart: renkGorselIndeks bosaltilirsa uretim
+      # fonksiyonu "listenin ilki" koluna duser ve kapak gri olsa bile "Siyah" dondurur.
+      # Cozulemeyen kayitta "gecti" DEMEZ -> OLCULEMEDI + KIRMIZI. continue-on-error YOK.
+      - name: "Konfigur siyah kapak kapisi (onden secili renk kapak gorseline capali mi)"
+        run: python3 tools/konfigur-siyah-kapak-kapisi.py
+
       # FIZIKSEL URUN KAPISI (PARA — karsiligi olmayan +%15 tahsilati). `tur: "fiziksel"`
       # kayitlari hazir ticari maldir (tekne boyasi/vernik/tiner); 3D baskiyla URETILMEZ,
       # malzeme/renk SECIMI YOKTUR, fiyati SABITTIR. Kategorileri "Marin" oldugu icin sayfalari
