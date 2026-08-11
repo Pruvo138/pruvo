@@ -1,5 +1,66 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 11 Agu 2026 01:37Z turu (KraL)
+
+**Ev kontrolu:** `pwd` = `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**Supurme (sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI):** rc=0 ·
+`GITHUB_BILDIRIM_INBOX=2 · BULUNAN=2 · TASINAN=2 · ATLANAN=0 · CIKAN=2 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=3:2026-08-11T04:22:26 · HUKUM=SUPURULDU`. Uc fail-closed
+alarmin (TASINAN>BULUNAN · CIKAN>TASINAN · KOMSU_KAYIP>0) ucu de sessiz. Tasinan iki kayit da
+SERIT B "Run failed" maili (`b343391` ve `f894042` head'leri) — kimlikleri kosum ciktisinda
+basili. **Cop denetimi (salt okuma): 3 kayit, 3 MESRU / YANLIS=0.**
+⚠️ Kosucunun rc'si DOLAYLI olculdu: koşum satırına rc yazdirmak icin eklenen `; echo "RC=$?"`
+komut-stili kapisina takildi (kabuk genisletmesi yasak) → betik ciplak kosturuldu, Bash hata
+bildirmedi ve betik `HUKUM=SUPURULDU` bastı (alarm kollari rc≠0 ile cikardi). Sonraki tur
+gorev dosyasindaki kosum satirini OLDUGU GIBI kullansin, `$?` EKLEMESIN.
+
+**CI: bir ACIK KIRMIZI vardi, teshis edilip ONARILDI ve TAZE KOSUMLA kapatildi.**
+- Kirmizi: `Nöbet şeridi (SERIT B)` job `serit-b`, iki kosum arka arkaya — `31445109293`
+  (`b3433910`) ve `31447247243` (`7d701494`). Onceki tur bunlari "ucusta" gorup kapatmisti;
+  ikisi de SONRADAN `failure` ile bitti. → **Ucustaki kosumu "acik kirmizi yok" saymak erken
+  hukumdur; sonraki tur onceki turun ucus kalemini ILK IS olarak kapatmali.**
+- Kok neden (logdan alintiyla, kosum `31447247243`): adim `Sentetik git fiksturu sizinti kapisi`
+  → `KIRMIZI OLCULEMEDI: sitemap-damga-test.py — dolayli git kurucusunun ortami kanitlanamadi:
+  satir 93` → `SONUC: KIRMIZI — 1 dosya` → exit 1. Kapi `tools/fikstur-git-sizinti-kapisi.py`
+  (satir 60-61) DOGRU olcuyordu: `tools/sitemap-damga-test.py`'nin yerel `_git()` sarmalayicisi
+  `dict(os.environ)` ile kosuyor, yani miras alinan git baglami (`GIT_DIR`/`GIT_WORK_TREE` …)
+  SCRUB EDILMIYOR ve dosya kanonik `sentetik_git`e hic atif yapmiyordu.
+- **AYNI SINIF DEGIL (DUR kosulu TETIKLENMEDI):** 10 Agu'nun `b150d01` kirmizisi uzak dal /
+  shallow-clone sinifiydi ve `f5bb693a` ile kapandi (o adim bu kosumlarda YESIL). Bu kirmizi
+  YENI ve DETERMINISTIK bir sinif — `f894042a` ile gelen yeni test dosyasinin kod hijyeni.
+  Yani "ayni kok neden 3 kosumdur duzelmiyor" hukmu YANLIS olurdu; kirmizi ADIM DEGISMISTI.
+- Onarim (Codex'e spec ile devredildi, KraL kod YAZMADI): `f4c5921f` — tek dosya
+  `tools/sitemap-damga-test.py`, `_git()` kanonik `git_ortami.sentetik_git`'e baglandi
+  (`ek_ortam=` ile `GIT_AUTHOR_DATE`/`GIT_COMMITTER_DATE` damgalari KORUNDU). Kapi
+  GEVSETILMEDI, muafiyet EKLENMEDI, adim SILINMEDI.
+- Lokal kabul (uc kapi, degisiklikten ONCE ve SONRA olculdu): `fikstur-git-sizinti-kapisi.py`
+  → `SONUC: YESIL — sentetik git fiksturleri kanonik`; ayni kapinin `--kendini-test`i
+  → `YESIL — iddia 6`; `sitemap-damga-test.py` → `IDDIA: 34 · HATA: 0` + `mutant: 6/6`.
+  **`IDDIA` sayisi 34 → 34 (DEGISMEDI)** → iddia korelmedi ([[test-hatali-davranisi-kutsar]]).
+- **TAZE KOSUM KANITI (ata iliskisi DEGIL):** `31450398624` (`f4c5921f`) job `serit-b`
+  = **success**, ve daha once kirmizi olan `Sentetik git fiksturu sizinti kapisi` ADIMI
+  = **success**. Yayin kolu ayni head'de tam yesil: `31450398517` → `build` · `serit-a2` ·
+  `serit-a3` · `serit-a4` · `deploy` · `yayin` = 6/6 success. Iki olcum de `gh` ile
+  BAGIMSIZ dogrulandi (Codex'in sayisina guvenilmedi).
+- ⚠️ Kuyruk: yeni kosum ~23 dk `pending` bekledi (onceki SERIT B kosumunun
+  `model-uyelik-bataryasi` job'i 01:22'de baslayip surdugu icin concurrency kilidi). §4.5
+  geregi bu ARIZA DEGIL; tavani SURE koyuyor.
+
+**D1 (`--durum`): 4 eksen de yesil** — SAYI 25354 == 25354 · SEQ · SEMA (3 goc indeksi KURULU) ·
+TURETILMIS KOLON (5 kolon GUNCEL) · ICERIK (hash uyusmaz 0, eksik 0, fazla 0).
+
+**Worktree: SAYI=2 TAVAN=2** — ana agac + `.claude/worktrees/agent-a79cd3c0a771581f2` (locked,
+KraL'in ACTIGI agac DEGIL, baska oturumun isi → DOKUNULMADI). Calisma agacindaki yabanci
+degisiklikler (`M tools/d1-sync.py`, `.scratch/`, `tools/paket-deploy-kritik-yol.md`) duruyor;
+onarim commit'i YALNIZ `tools/sitemap-damga-test.py`'yi aldi (`git add -A` KULLANILMADI).
+
+**Devralinan acik kalemler (HALA ACIK, insan yargisi ister):**
+`kurtarma/worktree-marka-katla-8c782ed1` (`ATA=HAYIR · main'de olmayan commit=1 · farkli
+dosya=5`) ve `kurtarma/stash-8agu-baska-oturum` (`ATA=HAYIR · commit=4 · farkli dosya=12`);
+ayrica `kurtarma/nobetci-tur3` dali + 2 stash. Yargi + birlestirme **skill: merge-kapisi** ile
+AYRI bir turda, TEK oturum tarafindan yapilmali.
+
 ## 🕐 CI NOBETI — 11 Agu 2026 00:37Z turu (KraL)
 
 **Ev kontrolu:** `pwd` = `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
@@ -46,35 +107,7 @@ oturumun kod-duzlemi) duruyor — dokunulmadi.
 **Turkce aksanli** yazilmak zorunda — `guvenlik` REDDEDILDI, `güvenlik` GECTI
 (`mimar-icra-kapisi.py` `AGENT_SINIFLARI` demeti aksanli token tutuyor).
 
-## 🕐 CI NOBETI — 10 Agu 2026 23:37Z turu (KraL)
-
-**Supurme (0.4 askisi KALKMIS halde ilk tam tur; sabit kosucu isciye kosturuldu):** rc=0 ·
-`GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 · KOMSU_KAYIP=0 ·
-KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=1:2026-08-11T01:25:38 · HUKUM=TEMIZ`. Uc fail-closed
-alarmin ucu de sessiz. Inbox sayaci 0 iken hukum "OLCULEMEDI" degil **TEMIZ**, cunku pozitif
-tanima izi Cop'ten geliyor: aranan dizenin AYNISI Cop'te 1 kayit tutuyor.
-**Cop denetimi (salt okuma): 1 kayit, 1 MESRU / YANLIS=0** — ve o tek kayit, bu turun tek
-kirmizisinin (`b150d01`) maili. Gorev dosyasi 0.4'teki acik kalem ("sonraki turda YANLIS=1
-gorursen sor") boylece **KAPANDI**. Not: 21:37Z turunda 7 olan Cop kayit sayisi 1'e dusmus;
-nobet Cop'u BOSALTMAZ, bu dusus nobete atfedilmez.
-
-**CI (bagimsiz `gh` ile olculdu): acik kirmizi YOK, bu turda kod degisikligi YAPILMADI.**
-- Son 60 kosumda tek `failure`: `31433971660` (Nöbet şeridi SERIT B, job `serit-b`, headSha
-  `b150d013`, 21:27Z). Kok neden logdan alintiyla: `UZAK DAL KAPISI: OLCULEMEDI (fail-closed
-  KIRMIZI)` → `Process completed with exit code 2`. Ayni kosumun diger eksenleri (V/A/K/W
-  vakalari + mutasyon bataryalari) PASS'ti.
-- **Sinifi KAPALI olculdu:** ayni workflow'un sonraki tamamlanan kosumu `31435535409`
-  (`7cefc4a1`, 21:48Z) **10 job success** (`serit-b` dahil; `hacim-tam-takim` skipped), ve
-  `git merge-base --is-ancestor b150d013 7cefc4a1` rc=0 → kirmizi head, yesil kosumun ATASI.
-  Onarim baska oturumca zaten inmis (uzak dal kolu, `f5bb693a`). Gorev dosyasi 2. adim geregi
-  duzeltme YAPILMADI.
-- SERIT B **yayini BLOKLAMAZ**; yayin kolu ayrica `228f3661` head'inde `Build & deploy` success.
-- Ucusta (ariza DEGIL): `cbe7e646` Build & deploy in_progress · `d7aca80e` Build & deploy +
-  SERIT B pending. Aradaki `cancelled` SERIT B kayitlari 4.5 kurali geregi kuyruk davranisi.
-
-**Devralinan acik kalemler (21:37Z blogunda yasiyor, HALA ACIK):** worktree tavani
-(SAYI=3 TAVAN=2, iki oksuz agac) + `kurtarma/worktree-marka-katla-8c782ed1` capasinin yargisi ·
-kayip is capasi `kurtarma/stash-8agu-baska-oturum` (`891feaeb`).
+## 🕐 CI NOBETI — 10 Agu 2026 23:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; supurme TEMIZ hukmu + uzak dal sinifinin ata-ekseniyle kapanisi arsivde)
 
 ## 🕐 CI NOBETI — 10 Agu 2026 22:37Z turu (KraL, gec kapandi ~00:2xZ) — **ARŞİVE ALINDI** (defter kotası 1:1; uzak dal yarisi kok nedeni + onarim kabul olcumleri + refspec tuzagi arsivde; capa kalemleri 00:37Z blogunda OLCULEREK yasiyor)
 
