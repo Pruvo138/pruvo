@@ -1281,6 +1281,19 @@ jobs:
       - name: GA4 olay kapisi ic nobetcisi
         run: python3 tools/ga4-olay-kapisi.py --kendini-test
 
+      # 🔴 CTA DENGESI — GELIR KAPISI. 11 Agu'ya kadar canlida birincil eylem
+      # (Sepete Ekle) 44x44 ETIKETSIZ ikondu; yanindaki sticky WhatsApp bandinin
+      # butonu 231x44 idi -> WhatsApp dokunma alaninda 5,22 KAT buyuktu ve bant mobil
+      # ekranin %16,6'sini yiyerek urunu ilk ekrandan tumuyle disari itiyordu. Hata
+      # SESSIZ: hicbir test yanmaz, bir sonraki CSS dokunusunda sessizce geri gelir.
+      # Kapi geometriyi build.PAGE_CSS + GERCEKTEN uretilen sayfa + index.html'den
+      # TURETIR (elle defter yok), bes ekseni fail-closed olcer ve olcemedigi durumda
+      # "gecti" DEMEZ (rc=3). WhatsApp kanalinin VARLIGI da olculur — denge kanali
+      # silerek saglanamaz. Bloklayici. Mutasyon bataryasi (8 oldurucu + 2 kontrol):
+      #   python3 tools/cta-denge-mutasyon.py   (nobet.yml serit-b'de kosar)
+      - name: CTA denge kapisi (Sepete Ekle vs WhatsApp gorsel agirligi)
+        run: python3 tools/cta-denge-kapisi.py
+
       # 🔴 IC SERI IZI. CLAUDE.md: parametrik seri semasi/ureteci IC bilgidir; seri adi
       # musteriye gorunen yuzeyde GECMEZ. 11 Agu'ya kadar parametrik urun sayfasinin
       # kategori rozetinde/breadcrumb'inda/JSON-LD'sinde ve ana sayfa kartinda "Jeneratör"

@@ -1380,6 +1380,9 @@ jobs:
       - name: "Ata lisans kapisi mutasyon bataryasi (kabul testi gercekten olcuyor mu)"
         run: python3 tools/ata-lisans-mutasyon.py
 
+      - name: "CTA denge kapisi mutasyon bataryasi (duzen sessizce geri gelirse kirmizi mi)"
+        run: python3 tools/cta-denge-mutasyon.py
+
       - name: "D1-sync durum kolu mutasyon bataryasi"
         run: python3 tools/d1-sync-durum-mutasyon.py
 

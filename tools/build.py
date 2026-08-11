@@ -1743,12 +1743,18 @@ CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-
              '0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 '
              '16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>')
 
-# Eylem İKON çifti (kart-seçim sayfası, Adet satırının sağı) — %s sırası: pid, wa href.
-# Yazı yok -> aria-label + title ZORUNLU (erişilebilirlik); id'ler script'le birebir.
+# Eylem butonlari (kart-secim sayfasi, Adet satirinin sagi) — %s sirasi: pid, wa href.
+# 🔴 CTA DENGESI (Okan, 11 Agu): birincil eylem SEPETE EKLE'dir. Once ikisi de yazisiz
+# 44x44 ikondu; yanlarindaki sticky WhatsApp bandi butonu ise 231x44 idi -> WhatsApp
+# dokunma alaninda 5,22 KAT buyuk gorunuyordu. Artik sepet butonu ETIKETLI ve genis
+# (tools/cta-denge-kapisi.py olcer), WhatsApp KALIR ama ikincil ikon boyunda durur.
+# `.cart-label` sinifi ZORUNLU: sayfa scripti sepetteki/sepette-degil durumunu O spanin
+# metninden bildirir (buyuk buton kalibiyla AYNI kanca — ikinci kopya yok).
 IKON_BUTONLAR_HTML = (
     '<div class="eylem-ikonlar">'
     '<button class="ikon-btn ikon-sepet" id="cartBtn" data-id="%s" '
-    'aria-label="Sepete Ekle" title="Sepete Ekle">' + CART_ICON + '</button>'
+    'aria-label="Sepete Ekle" title="Sepete Ekle">' + CART_ICON +
+    '<span class="cart-label">Sepete Ekle</span></button>'
     '<a class="ikon-btn ikon-wa" id="orderAlt" href="%s" target="_blank" rel="noopener" '
     'aria-label="WhatsApp\'tan Sor" title="WhatsApp\'tan Sor">' + WA_ICON + '</a>'
     '</div>')
@@ -1857,17 +1863,20 @@ PAGE_CSS = """
   .adet-kutu input::-webkit-outer-spin-button,
   .adet-kutu input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
-  /* Eylem ikonları (madde 7): Adet satırının sağında yazısız sepet + WhatsApp ikonu.
-     44×44 = mobil dokunma alanı; margin-left:auto sağa yaslar, dar ekranda .opsiyon-row
-     flex-wrap ile ikonlar panel İÇİNDE alt satıra kırılır. */
-  .eylem-ikonlar{display:inline-flex;gap:8px;margin-left:auto}
+  /* Eylem butonları (madde 7 + CTA dengesi 11 Ağu): ETİKETLİ "Sepete Ekle" (birincil,
+     44×44 tabanının ÜSTÜNE çıkar) + yazısız WhatsApp ikonu (ikincil; kanal KALIR).
+     margin-left:auto sağa yaslar, dar ekranda blok panel İÇİNDE alt satıra kırılır. */
+  .eylem-ikonlar{display:inline-flex;gap:8px;margin-left:auto;flex-wrap:wrap;
+    justify-content:flex-end}
   .ikon-btn{width:44px;height:44px;border:none;border-radius:9px;display:inline-flex;
     align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex:none;
     text-decoration:none;padding:0}
   .ikon-btn svg{width:22px;height:22px;fill:#fff}
-  .ikon-sepet{background:var(--navy)}
+  .ikon-sepet{background:var(--navy);width:auto;min-width:260px;height:56px;
+    padding:0 20px;gap:9px;color:#fff;font-size:16px;font-weight:700;font-family:inherit}
   .ikon-sepet:hover{background:var(--navy-2)}
   .ikon-sepet.added{background:#178a44}
+  .cart-label{white-space:nowrap}
   .ikon-wa{background:#25D366}
   .ikon-wa:hover{background:#1ebe5a}
   .konf-baslik{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:12px}
@@ -2008,6 +2017,16 @@ PAGE_CSS = """
     .gallery{position:static}
     h1{font-size:22px}.price{font-size:22px}
     .order-btn,.cart-btn{max-width:none}
+    /* 🔴 STICKY BANT PAYI (11 Ağu): 135px=%16,6 -> 61px=%7,5; kanal KALIR, dokunma 44px. */
+    .help-cta-inner{padding:8px 14px;gap:10px;flex-wrap:nowrap;
+      justify-content:space-between;text-align:left}
+    .help-cta-text{font-size:11px;line-height:1.3;display:-webkit-box;
+      -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;flex:none}
+    .wa-uzun{display:none}
+    .eylem-ikonlar{flex-wrap:nowrap;width:100%}
+    /* 260 tabanı dar ekranda panelin min-content'ini 375'in üstüne çıkarır (yatay kayma). */
+    .ikon-sepet{flex:1 1 auto;min-width:200px}
   }
 """
 PAGE_CSS += CONTENT_CSS
@@ -2589,6 +2608,10 @@ function pv(el,src){{
     var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
     var has = c.some(function(s){{ return PRUVO_SECENEK.satirAnahtari(s) === anahtar; }});
     btn.classList.toggle("added", has);
+    /* 🔴 ETIKETLI KALIPTA DA ARIA SENKRON (11 Agu): sepet butonu artik yazili; gorunur
+       metin "Sepette ✓" olurken aria-label "Sepete Ekle"de kalsaydi ekran okuyucu
+       kullanicisi butonun ne yaptigini YANLIS duyardi. Tek satir, ayirt edici. */
+    if(label){{ var eD = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle"; btn.setAttribute("aria-label", eD); btn.setAttribute("title", eD); }}
     if(label){{ label.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }}
     else {{
       /* İkon buton (yazısız, madde 7): durum bildirimi title + aria-label ile. */
@@ -3459,7 +3482,7 @@ def render_product(p, all_products, chip_map=None):
 <section class="help-cta">
   <div class="help-cta-inner">
     <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
-    <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener">{icon} Bizimle İletişime Geçin</a>
+    <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener">{icon} <span class="wa-uzun">Bizimle </span>İletişime Geçin</a>
   </div>
 </section>
 

@@ -1805,7 +1805,11 @@ TABLO_TABANLARI = (
     # KENDISI (bayraksiz + `--kendini-test`) deploy.yml `serit-a3`te BLOKLAYICI
     # kosar — bu giris bir TASIMA degil, bataryanin EKLENMESIDIR; tam esitlik geregi
     # taban AYNI commit'te guncellendi.
-    ("SERIT_B", 96),
+    # 11 Agu: +1 -> 97. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/cta-denge-mutasyon.py"): CTA denge kapisinin mutasyon bataryasi. Kapinin
+    # KENDISI deploy.yml `serit-a3`te BLOKLAYICI kosar — bu giris bir TASIMA degil,
+    # bataryanin EKLENMESIDIR; tam esitlik geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 97),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2741,6 +2745,20 @@ SERIT_B = {
         "onleme kolu ise kaynagin kendisindedir (r2-upload.py varsayilanda fail-closed "
         "REDDEDER, ezmek ACIK --ezmeye-izin-ver ister). S3 mock'lanir: gercek R2'ye ne "
         "okuma ne yazma gider, adim ag GEREKTIRMEZ.",
+    # --- CTA DENGE KAPISININ BATARYASI (11 Agu 2026) ------------------------------
+    ("nobet.yml", "serit-b", "tools/cta-denge-mutasyon.py"):
+        "tools/cta-denge-kapisi.py CTA DENGE KAPISININ mutasyon bataryasi (8 oldurucu "
+        "+ 2 kontrol): orani ters cevirmek · sticky bandi eski %16,6 payina sismek · "
+        "Sepete Ekle etiketini sokmek · sepette WhatsApp'i odemenin onune gecirmek · "
+        "dokunma hedefini 44 px'in altina dusurmek · olcum capasini kirmak · kapinin "
+        "OLCULEMEDI kolunu sessiz yesile cevirmek · pozitif kanit kaynagini silmek "
+        "tek tek KIRMIZI yaniyor mu. Olctugu sey KABUL TESTININ KENDISI, yayinlanan "
+        "hicbir cikti DEGIL (ga4-olay-mutasyon.py ile ayni desen). Korudugu KAPI "
+        "(tools/cta-denge-kapisi.py) SERIT A'da, deploy.yml job `serit-a3`te "
+        "BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. "
+        "Ag GEREKTIRMEZ. ⚠️ DURUST BEYAN: mutasyon canli dosyalara HIC uygulanmaz — "
+        "her mutant icin sembolik bagli gecici bir kok kurulur ve yalnizca o kokteki "
+        "kopya bozulur; batarya kendi ciktisinda canli agacin sha256 esitligini olcer.",
     # --- R1 SIHIRLI-BAYT WHITELIST'I / AVIF EKSENI (9 Agu 2026) --------------------
     ("nobet.yml", "serit-b", "tools/ga4-olay-mutasyon.py"):
         "tools/ga4-olay-kapisi.py HUNI KAPISININ mutasyon bataryasi (10 oldurucu + 1 "

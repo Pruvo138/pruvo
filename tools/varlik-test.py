@@ -318,7 +318,79 @@ BILEREK_DEGISEN_TAM = (
      "YENI: birim fiyat (kapanis bitisik yazildi)"),
     ('if(typeof window.pruvoGA4Track === "function"){ window.pruvoGA4Track("add_to_cart", gAtcVeri); }',
      "YENI: sepete ekleme olayi (Meta AddToCart ile AYNI noktadan)"),
+    # 2026-08-11 — CTA DENGESI: sepet butonu artik ETIKETLI. Gorunur metin "Sepette ✓"
+    # olurken aria-label "Sepete Ekle"de kalsaydi ekran okuyucu kullanicisi butonun ne
+    # yaptigini YANLIS duyardi; bu TEK ve AYIRT EDICI satir durumu aria/title'a da yazar.
+    # Eski `else` kolu (yazisiz ikon) YERINDE DURUYOR — satir SILINMEDI, EKLENDI.
+    ('if(label){ var eD = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle"; '
+     'btn.setAttribute("aria-label", eD); btn.setAttribute("title", eD); }',
+     "YENI: etiketli sepet butonunda aria/title durum senkronu (nobetci: cta-denge-kapisi.py)"),
 )
+
+# ---------------------------------------------------------------- CSS BEYANI
+# 🔴 NEDEN VAR (11 Agu 2026, OLCULEN KILITLENME): eksen 2'nin JS kolunda
+# (BILEREK_DEGISEN / BILEREK_DEGISEN_TAM) ve eksen 1'de (BILEREK_DEGISEN_METIN) beyan
+# yuzeyi vardi, eksen 2'nin CSS kolunda YOKTU. CSS kiyasi BAYT ESITLIGIDIR ve kiyas
+# nesnesi git gecmisindeki DONMUS uretecidir -> paylasilan urun sayfasi CSS'i FIILEN
+# DEGISTIRILEMEZ hale gelmisti: her degisiklik "2 CSS KAYIP/EKLENTI" ile kirmizi yanar,
+# `--referans-tazele` ise kapi YESILKEN calisir. Yani cikis yolu olmayan bir kilit.
+# Olculdu (11 Agu): Okan'in "Sepete Ekle WhatsApp'tan buyuk olsun" talebi bu kilide
+# carpti; talep CSS'siz karsilanamaz (medya sorgusu satir-ici `style` ile yazilamaz).
+#
+# 🔴 KAPI ZAYIFLAMAZ — giris kurallari BILEREK_DEGISEN_METIN ile AYNI:
+#   1. GRANUL: (ESKI parca, YENI parca, gerekce) ucLUSU; joker/regex/bolge muafiyeti YOK.
+#      Saf eklenti icin ESKI "" birakilir.
+#   2. YENI parca AYIRT EDICI olmali (>=12 gorunur karakter + `{` ya da `:` icermeli);
+#      bosluk/parantez yigini beyan EDILEMEZ — oyle bir giris gercek bir kaybi maskelerdi.
+#   3. Beyanlar YENI->ESKI yonunde BIRER KEZ uygulanir, sonra TAM BAYT ESITLIGI yine
+#      aranir: beyan ikinci bir degisikligi MASKELEYEMEZ.
+#   4. BAYAT BEYAN FAIL-LOUD: `yeni` parcasi uretilen CSS'te bulunamazsa kapi KIRMIZI.
+#   5. IDDIA TASINIR: beyan edilen gorsel kural bir BASKA kapida fail-closed olculmelidir;
+#      gerekce satirinda o kapi YAZILIR.
+BILEREK_DEGISEN_CSS = (
+    # 2026-08-11 — CTA DENGESI (Okan talebi). Iddia tools/cta-denge-kapisi.py'de fail-closed
+    # olculur: CTA-A1-ORAN (Sepete Ekle alani >= WhatsApp), CTA-A2-BANT-PAYI (<%10),
+    # CTA-A4-DOKUNMA-44. Mutasyon kaniti: tools/cta-denge-mutasyon.py (9 oldurucu).
+    ("", ";flex-wrap:wrap;\n    justify-content:flex-end",
+     "eylem blogu sarabilir + saga yaslanir (nobetci: cta-denge-kapisi.py)"),
+    ("", ";width:auto;min-width:260px;height:56px;\n    padding:0 20px;gap:9px;"
+         "color:#fff;font-size:16px;font-weight:700;font-family:inherit",
+     "Sepete Ekle ETIKETLI/genis oldu — 44x44 ikon degil (nobetci: cta-denge-kapisi.py)"),
+    ("", "}\n  .cart-label{white-space:nowrap",
+     "buton etiketi tek satirda kalir (nobetci: cta-denge-kapisi.py)"),
+    ("", "   \n    .help-cta-inner{padding:8px 14px;gap:10px;flex-wrap:nowrap;\n"
+         "      justify-content:space-between;text-align:left}\n"
+         "    .help-cta-text{font-size:11px;line-height:1.3;display:-webkit-box;\n"
+         "      -webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}\n"
+         "    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;"
+         "flex:none}\n    .wa-uzun{display:none}\n"
+         "    .eylem-ikonlar{flex-wrap:nowrap;width:100%}\n     \n"
+         "    .ikon-sepet{flex:1 1 auto;min-width:200px}\n  ",
+     "mobil sticky bant %16,6 -> %7,5 + eylem blogu tam genislik "
+     "(nobetci: cta-denge-kapisi.py CTA-A2-BANT-PAYI)"),
+)
+
+
+def css_beyani_uygula(yeni_css):
+    """Beyan edilen CSS parcalarini YENI->ESKI yonunde BIRER KEZ geri cevirir.
+
+    Doner: (donusmus_css, hatalar). Bulunmayan `yeni` parcasi BAYAT BEYANDIR ve
+    hata olarak doner (sessiz muafiyet yok)."""
+    hatalar = []
+    for i, (eski_p, yeni_p, gerekce) in enumerate(BILEREK_DEGISEN_CSS):
+        gorunur = "".join(yeni_p.split())
+        if len(gorunur) < 12 or not ("{" in yeni_p or ":" in yeni_p):
+            hatalar.append("2b CSS BEYANI AYIRT EDICI DEGIL (#%d): %r -> gerekce: %s"
+                           % (i, yeni_p[:40], gerekce))
+            continue
+        if yeni_p not in yeni_css:
+            hatalar.append("2b BAYAT CSS BEYANI (uretilen CSS'te bulunamadi, #%d): %r "
+                           "-> gerekce: %s. Kural artik yoksa GIRISI SIL."
+                           % (i, yeni_p[:60], gerekce))
+            continue
+        yeni_css = yeni_css.replace(yeni_p, eski_p, 1)
+    return yeni_css, hatalar
+
 
 # ---------------------------------------------------------------- GORUNUR METIN BEYANI
 # 🔴 NEDEN VAR (mimar karari, 8 Agu 2026): eksen 2'nin BILEREK_DEGISEN yuzeyi vardi,
@@ -385,6 +457,18 @@ BILEREK_DEGISEN_METIN = (
     # gelen cumleler ESKI uretecin ciktisinda da yeni halleriyle gorunur -> gorunur
     # metin ekseninde fark YOKTUR. Buraya giris eklemek "hicbir sayfada eslesmeyen
     # BAYAT BEYAN" olurdu ve 1c hijyeni onu dogru sekilde KIRMIZI yakti (olculdu).
+    # 2026-08-11 — CTA DENGESI: sepet butonu YAZISIZ ikondan ETIKETLI butona dondu.
+    # Bu bir metin KAYBI degil EKLENTISIDIR: adet satirinin sagindaki buton artik
+    # "Sepete Ekle" yazisini GORUNUR tasiyor (once yalniz aria-label/title'daydi).
+    # CAPA NEDEN BU: adet secici ("Adet − +") kart-secim · sema · konfigur · fiziksel
+    # panellerin HEPSINDE vardir ve butonun HEMEN SOLUNDADIR -> sinif hizali, katalog
+    # degistikce bayatlamaz.
+    # 🔴 IDDIA TASINDI, KALDIRILMADI: etiketin GERCEKTEN basildigini ve butonun
+    # WhatsApp'i gectigini tools/cta-denge-kapisi.py CTA-A5-KANAL-WA + CTA-A1-ORAN
+    # fail-closed olcer; mutasyon kaniti tools/cta-denge-mutasyon.py :: M3.
+    ("Adet − +", "Adet − + Sepete Ekle",
+     "sepet butonu etiketlendi (11 Agu); etiketin varligini "
+     "tools/cta-denge-kapisi.py CTA-A5-KANAL-WA fail-closed olcer"),
 )
 
 
@@ -1382,9 +1466,9 @@ def main():
     # bosluktan iki sekil FAIL-OPEN geciyordu ([[ikiz-tanim-sessiz-ayrisma]]).
     kayit, red = referans_kaydi()
     ref = eski_ref()
-    beyan_ozeti = ("beyan: %d satir + %d gorunur-metin"
+    beyan_ozeti = ("beyan: %d satir + %d gorunur-metin + %d css"
                    % (len(BILEREK_DEGISEN_TAM) + len(BILEREK_DEGISEN),
-                      len(BILEREK_DEGISEN_METIN)))
+                      len(BILEREK_DEGISEN_METIN), len(BILEREK_DEGISEN_CSS)))
     if kayit and ref:
         yas = git("log", "-1", "--format=%cr", ref)
         BILGI.append("kiyas referansi: KAYITLI %s (%s) · tazelendi %s · %s"
@@ -1466,10 +1550,14 @@ def olc(eski, yeni, secim, urunler, ref):
             harici += f.read()
     bekle(e_css and y_css, "2 CSS govdesi bulunamadi (olcum bosa dustu)")
     if e_css and y_css:
-        bekle(y_css[0] + harici == e_css[0],
+        # BEYAN EDILEN kurallar ESKI hallerine cevrilir; ARTAKALAN her fark hala KIRMIZI.
+        y_tam, css_beyan_hatalari = css_beyani_uygula(y_css[0] + harici)
+        for _h in css_beyan_hatalari:
+            HATALAR.append(_h)
+        bekle(y_tam == e_css[0],
               "2 CSS KAYIP/EKLENTI: satir-ici cekirdek + harici dosya, eski gomulu CSS'e "
-              "BAYT-ESIT degil (%d + %d != %d)"
-              % (len(y_css[0]), len(harici), len(e_css[0])))
+              "BAYT-ESIT degil (%d + %d, beyan sonrasi %d != %d)"
+              % (len(y_css[0]), len(harici), len(y_tam), len(e_css[0])))
         # sayfaya ozel ek <style> bloklari da aynen durmali
         bekle(e_css[1:] == y_css[1:], "2 sayfaya ozel satir-ici <style> bloklari ayristi")
 
