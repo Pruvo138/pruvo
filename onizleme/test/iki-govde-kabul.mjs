@@ -71,7 +71,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { kutu, ucgenNormali, modelKutusu, stlYaz, cizCok, fark, mat4Vek }
   from "./ortak/raster.mjs";
-import { sahteGl, sorgu, ogeFabrikasi } from "./ortak/sahte-dom.mjs";
+import { sahteGl, sorgu, ogeFabrikasi, renkMarkupCapalari } from "./ortak/sahte-dom.mjs";
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ONIZLEME = path.dirname(TEST_DIR);
@@ -538,13 +538,20 @@ async function sayfaOlcumleri(RGB) {
   const buildPy = fs.readFileSync(YOL.build, "utf8");
   const m = buildPy.match(/\nONIZLEME_JS = """\n([\s\S]*?)\n"""\n/);
   iddia("S0a build.py ONIZLEME_JS blogu okundu", !!m);
-  const mKap = buildPy.match(/<div class="renk-butonlar" id="([A-Za-z0-9_-]+)">/);
-  const mBtn = buildPy.match(/<button type="button" class="([A-Za-z0-9_-]+)" data-renk=/);
-  const mSec = buildPy.match(/rbtnlar\[n\]\.classList\.toggle\("([A-Za-z0-9_-]+)"/);
-  iddia("S0b build.py renk markup capalari okundu", !!(mKap && mBtn && mSec),
-        JSON.stringify([mKap && mKap[1], mBtn && mBtn[1], mSec && mSec[1]]));
-  if (!(m && mKap && mBtn && mSec)) { return; }
-  const markup = { kapId: mKap[1], btnSinif: mBtn[1], seciliSinif: mSec[1] };
+  /* Capa ORTAK cekirdekten gelir — burada KOPYA YOK. Kopya oldugu surece kardes kapiyla
+     birlikte kiriliyordu: buton sinifi sabit literalden hesaplanan sinifa donunce S0b
+     kirmizi yandi ve capaya bagli S1..S* iddialari SESSIZCE atlandi (45 -> 34). */
+  const CAPA = renkMarkupCapalari(buildPy);
+  iddia("S0b build.py renk markup capalari okundu",
+        !!(CAPA.kapId && CAPA.btnSinif && CAPA.seciliSinif),
+        JSON.stringify([CAPA.kapId, CAPA.btnSinif, CAPA.seciliSinif]));
+  iddia("S0c onden secili buton sinifi = taban + JS'in toggle ettigi sinif (ikiz ayrismaz)",
+        CAPA.onSecimTutarli !== false,
+        CAPA.onSecimTutarli === null
+          ? "_cls YOK (markup duz literal) -> ayrisma yuzeyi kapali"
+          : "tutarli=" + CAPA.onSecimTutarli);
+  if (!(m && CAPA.kapId && CAPA.btnSinif && CAPA.seciliSinif)) { return; }
+  const markup = CAPA;
 
   // S1: 2-renk (govde Siyah, yazi Beyaz)
   const s1 = await sayfaKos(m[1], markup, { yazi_renk: "Beyaz" }, "Siyah");

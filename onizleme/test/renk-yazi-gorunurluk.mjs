@@ -46,7 +46,7 @@ import { ZEMIN, kutu, ucgenNormali, modelKutusu, stlOku, ciz, ortalama, fark, ma
   from "./ortak/raster.mjs";
 /* Sahte sayfa cekirdegi (WebGL kaydedicisi + GERCEK secici ayristirici) de ORTAK —
    iki kapi ayni taklidi kullanir, ikinci kopya YOK. */
-import { sahteGl, sorgu, ogeFabrikasi } from "./ortak/sahte-dom.mjs";
+import { sahteGl, sorgu, ogeFabrikasi, renkMarkupCapalari } from "./ortak/sahte-dom.mjs";
 
 const BURASI = path.dirname(fileURLToPath(import.meta.url));
 const KOK = path.join(BURASI, "..", "..");
@@ -304,41 +304,26 @@ iddia("A4a build.py ONIZLEME_JS blogu okundu", !!m);
    "secili" sinif adi buradan okunur. Markup ile secici ayrisirsa (or. kap adi
    degisir, secici eski adda kalir) A4b/A4c kirmizi yanar — taklit artik
    "her seciciyi kabul eden" bir yastik DEGILDIR. */
-const mKap = buildPy.match(/<div class="renk-butonlar" id="([A-Za-z0-9_-]+)">/);
 /* 🔴 BUTON SINIFI ARTIK SABIT DEGIL, HESAPLANIYOR (11 Agu): onden secili renk geldiginden
-   markup `class="%s"` basiyor ve degeri `_cls(r)` uretiyor. Eski capa markup'taki DUZ
-   literale bakiyordu -> hicbir sey eslesmedi ve A4a2 kirmizi yandi (merge oncesi yesildi).
-   Capa `_cls`'in KENDISINE tasindi: TABAN sinif else-dalindan, ONDEN SECILI varyant
-   if-dalindan okunur. FAIL-CLOSED korunur — `_cls` sekil degistirirse eslesme yok, A4a2
-   yine kirmizi. Duz literal kolu geride birakildi: markup sabite DONERSE de capa tutar. */
-const mBtnDuz = buildPy.match(/<button type="button" class="([A-Za-z0-9_-]+)" data-renk=/);
-/* BOSLUGA TOLERANSLI: capa BICIMLENDIRMEYE degil YAPIYA baksin. Ilk surumde `return`/`else`
-   sonrasi TEK bosluk bekleniyordu; davranisi degistirmeyen cift bosluk kapiyi KIRMIZI
-   yakiyordu (kontrol mutanti D5 ile olculdu) — yanlis-pozitif, bu depoda yayin durduran sinif. */
-const mCls = buildPy.match(
-  /def\s+_cls\s*\(\s*r\s*\)\s*:\s*\n\s*return\s+"([A-Za-z0-9_-]+(?:\s+[A-Za-z0-9_-]+)*)"\s+if\s[^\n]*?\selse\s+"([A-Za-z0-9_-]+)"/);
-const mBtn = mBtnDuz || (mCls && { 1: mCls[2] });
-const mSec = buildPy.match(/rbtnlar\[n\]\.classList\.toggle\("([A-Za-z0-9_-]+)"/);
+   markup `class="%s"` basiyor ve degeri `_cls(r)` uretiyor. Eski capa DUZ literale
+   bakiyordu -> hicbir sey eslesmedi: A4a2 kirmizi yandi VE A4b/A4c SESSIZCE atlandi
+   (iddia 19 -> 17). AYNI capa kardes kapida (iki-govde-kabul.mjs) da KOPYALIYDI ve ayni
+   anda kirildi -> capa ORTAK cekirdege tasindi, burada KOPYA YOK. */
+const CAPA = renkMarkupCapalari(buildPy);
 iddia("A4a2 build.py renk markup capalari okundu (kap id / buton sinifi / secili sinifi)",
-      !!(mKap && mBtn && mSec),
-      JSON.stringify([mKap && mKap[1], mBtn && mBtn[1], mSec && mSec[1]]));
+      !!(CAPA.kapId && CAPA.btnSinif && CAPA.seciliSinif),
+      JSON.stringify([CAPA.kapId, CAPA.btnSinif, CAPA.seciliSinif]));
 /* YENI EKSEN (11 Agu): onden secili sinif ile JS'in TOGGLE ettigi sinif ayrisirsa, buton
    SECILI GORUNUR ama script onu secili SAYMAZ (ya da tersi) -> kullanicinin gordugu ile
-   durumun celistigi sessiz ariza. Ikisi tek kaynaktan turemeli: `_cls` if-dali TAM olarak
-   "<taban> <secili>" olmali. `_cls` yoksa (markup sabite dondu) eksen ATLANMAZ, ölçülemez
-   sayilmaz: taban+secili zaten ayrisamaz, iddia tautoloji olmadan gecer. */
-/* Kiyas TEK kanonik normallestirmeden gecer (kabul araligi = kiyas araligi): sinif listesi
-   bosluga gore bolunur, bos parcalar atilir. Boylece "renk-btn  secili" ile
-   "renk-btn secili" AYNI sayilir; ayrisan tek sey SINIF ADLARIDIR. */
-const sinifKume = (s) => String(s || "").trim().split(/\s+/).filter(Boolean).join(" ");
+   durumun celistigi sessiz ariza. `_cls` yoksa ayrisma yuzeyi KAPALIDIR: capa null doner
+   ve iddia tautoloji uretmeden gecer. */
 iddia("A4a3 onden secili buton sinifi = taban + JS'in toggle ettigi sinif (ikiz ayrismaz)",
-      !!(mSec && (!mCls || sinifKume(mCls[1]) === sinifKume(mCls[2] + " " + mSec[1]))),
-      mCls ? ("_cls secili-dali: " + JSON.stringify(sinifKume(mCls[1])) + " · beklenen: " +
-              JSON.stringify(sinifKume((mCls[2] || "") + " " + (mSec ? mSec[1] : "?"))))
-           : "_cls YOK (markup duz literal) -> ayrisma yuzeyi kapali");
-if (m && mKap && mBtn && mSec) {
-  const s = await sayfaKos(m[1],
-    { kapId: mKap[1], btnSinif: mBtn[1], seciliSinif: mSec[1] });
+      CAPA.onSecimTutarli !== false,
+      CAPA.onSecimTutarli === null
+        ? "_cls YOK (markup duz literal) -> ayrisma yuzeyi kapali"
+        : "onden secili sinif ile toggle sinifi tutarli=" + CAPA.onSecimTutarli);
+if (m && CAPA.kapId && CAPA.btnSinif && CAPA.seciliSinif) {
+  const s = await sayfaKos(m[1], CAPA);
   iddia("A4b sayfa scripti onizlemeyi SECILEN renkle boyar",
         s.ilkRenk && JSON.stringify(s.ilkRenk) === JSON.stringify(rgb.Beyaz),
         "viewer'a giden: " + JSON.stringify(s.ilkRenk) +

@@ -86,6 +86,39 @@ export function sorgu(kok, secici, hepsi) {
   return hepsi ? bulunan : (bulunan[0] || null);
 }
 
+/* 🔴 RENK MARKUP CAPALARI — TEK KAYNAK (11 Agu). Sahte DOM'un secicileri build.py'nin
+   KENDI markup'indan turemeli; ayrisirsa taklit "her seciciyi kabul eden" bir yastiga doner.
+   Bu ayiklama ONCEDEN IKI kapida (renk-yazi-gorunurluk.mjs + iki-govde-kabul.mjs) AYNEN
+   kopyaliydi; buton sinifi sabit literalden HESAPLANAN bir sinifa donunce IKISI BIRDEN
+   kirildi ve yalnizca kirmizi yakmadilar — capaya bagli iddialari SESSIZCE atladilar
+   (19 -> 17 ve 45 -> 34). Ikiz capa bu yuzden tek kaynaga tasindi ([[ikiz-tanim-sessiz-ayrisma]]).
+   FAIL-CLOSED: cozulemeyen capa null doner, cagiran kapi KIRMIZI yakar.
+   BOSLUGA TOLERANSLI: bicimlendirme degil YAPI olculur — davranissiz bir bosluk
+   duzenlemesi yalanci kirmizi uretiyordu (kontrol mutantiyla olculdu). */
+export function renkMarkupCapalari(buildPy) {
+  const mKap = buildPy.match(/<div class="renk-butonlar" id="([A-Za-z0-9_-]+)">/);
+  const mSec = buildPy.match(/rbtnlar\[n\]\.classList\.toggle\("([A-Za-z0-9_-]+)"/);
+  // Buton sinifi: once DUZ literal (markup sabite donerse de tutar), sonra sinifi URETEN
+  // yardimcinin else-dali (bugunku hal: onden secili renk icin hesaplaniyor).
+  const mDuz = buildPy.match(/<button type="button" class="([A-Za-z0-9_-]+)" data-renk=/);
+  const mCls = buildPy.match(
+    /def\s+_cls\s*\(\s*r\s*\)\s*:\s*\n\s*return\s+"([A-Za-z0-9_-]+(?:\s+[A-Za-z0-9_-]+)*)"\s+if\s[^\n]*?\selse\s+"([A-Za-z0-9_-]+)"/);
+  const sinifKume = function (x) {
+    return String(x || "").trim().split(/\s+/).filter(Boolean).join(" ");
+  };
+  return {
+    kapId: mKap ? mKap[1] : null,
+    btnSinif: mDuz ? mDuz[1] : (mCls ? mCls[2] : null),
+    seciliSinif: mSec ? mSec[1] : null,
+    /* Onden secili varyant ile JS'in TOGGLE ettigi sinif AYRISIRSA buton secili GORUNUR ama
+       script onu secili SAYMAZ (kullanicinin gorduguyle celisen sessiz ariza). _cls yoksa
+       ayrisma yuzeyi kapalidir -> null (iddia EDILMEZ, tautoloji uretilmez). */
+    onSecimTutarli: (mCls && mSec)
+      ? sinifKume(mCls[1]) === sinifKume(mCls[2] + " " + mSec[1])
+      : null
+  };
+}
+
 /** Oge fabrikasi + olay defteri. oge(ek) -> sahte DOM dugumu; .atesle(tur) tetikler. */
 export function ogeFabrikasi() {
   const dinleyici = new Map();
