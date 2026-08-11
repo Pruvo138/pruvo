@@ -145,6 +145,26 @@ MUTANTLAR = [
        "oneriNot.hidden = false;")],
      1),
 
+    # M12 = E10'un (mesaj kanali ayrismasi) KENDI bekcisi. Kenar karti oneri alanini
+    # TASIMIYOR; bugun zararsiz olmasinin TEK sebebi kart kolunun anahtari kapaliyken
+    # kuralin alani HIC OKUMAMASIDIR. O erken donus kalkarsa kart kolu, alani TASIYAN
+    # kartta baska, TASIMAYAN kartta baska tutar uretir -> ayni yuzeyin iki ureticisi
+    # sessizce ayrisir. E10 kaniti bunu yakalamali.
+    # ⚠️ OLCULDU: anahtar kisa-devresi IKI KATMANDA yazili (uretec sarmalayicisi +
+    # ortak cekirdek). Yalniz BIRINI kaldirmak davranisi DEGISTIRMIYOR — digeri
+    # yakaliyor (tek-katman mutant YESIL kaldi). Bu bir DELIK degil, savunma derinligi;
+    # ama mutant SINIFI dogru ifade etmek icin IKISI birden kaldirilir: "kart kolu
+    # kapali oldugu halde kural oneri alanini okuyor" hali ancak boyle olusur.
+    ("M12", "kart kolu anahtari kapaliyken kural oneri alanini YINE DE okuyor "
+            "(iki katmanli kisa-devre birden kaldirildi)", None,
+     [("build",
+       "    if not acik:\n        return (filament_ortak.TANI_KAPALI, VARSAYILAN_MALZEME)",
+       "    if False:\n        return (filament_ortak.TANI_KAPALI, VARSAYILAN_MALZEME)"),
+      ("filament",
+       "    if not acik:\n        return (TANI_KAPALI, guvenli)",
+       "    if False:\n        return (TANI_KAPALI, guvenli)")],
+     1),
+
     ("M9", "FAIL-OPEN ISPATI: zehirli girdi + hukum fonksiyonu yutucu (CIFT: M3)",
      "vitrin",
      [("kapi",

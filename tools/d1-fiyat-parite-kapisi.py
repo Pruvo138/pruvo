@@ -496,6 +496,84 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
                     "onerisi TURETILEMEYEN uründe (%s) not kutusu BASILMIYOR"
                     % onerisiz["id"])
 
+    # ---------------------------------------------------------------- E10
+    print("\n(E10) MESAJ KANALI AYRISMASI — kenar karti `tavsiyeFilament` tasimiyor")
+    # 🔴 NEDEN AYRI EKSEN: kart yuzeyinin IKI ureticisi var — site (istemci) ve kenar
+    # Worker'i (kardes depo). Kenar karti onerilen malzeme alanini TASIMIYOR. Bugun bu
+    # ZARARSIZDIR cunku kart kolu KAPALI: kural anahtari kapaliyken daha ILK satirda
+    # guvenli varsayilana doner ve alani HIC okumaz. Kart kolu ACILIRSA ayni yuzeyin iki
+    # ureticisi AYNI urun icin FARKLI tutar yazar ve hicbir sey alarm calmaz.
+    # KURAL: alan YOKken kart kolu ACIKSA -> KIRMIZI. Kardes depo diskte yoksa -> YESIL
+    # DEGIL, OLCULEMEDI.
+    try:
+        import importlib.util as _iu
+        _s = _iu.spec_from_file_location("_edge_kapi",
+                                         os.path.join(TOOLS, "edge-kart-kapisi.py"))
+        _edge = _iu.module_from_spec(_s)
+        _s.loader.exec_module(_edge)
+    except Exception as e:                                   # noqa: BLE001
+        _edge = None
+        olculemedi("kenar kart cozucusu yuklenemedi: %s" % e)
+    tasiyor = None
+    if _edge is not None:
+        if not os.path.exists(_edge.KARDES_WORKER):
+            olculemedi("kardes depo diskte YOK (%s) — kenar kartinin alan kapsami "
+                       "OLCULEMEDI (sessiz yesil YASAK)" % _edge.KARDES_WORKER)
+        else:
+            with open(_edge.KARDES_WORKER, encoding="utf-8") as f:
+                _w = f.read()
+            satir, eksikler = _edge.worker_kapsam_satiri(_w, ["tavsiyeFilament"])
+            print("     " + satir)
+            if eksikler is None:
+                olculemedi("kenar kart alan listesi COZULEMEDI — hukum verilmedi")
+            else:
+                tasiyor = not eksikler
+    ozet["edge_tasiyor"] = tasiyor
+    if tasiyor is not None:
+        kontrol(tasiyor or not veri or not veri.get("acikVitrin"),
+                "kenar karti oneri alanini %s; kart kolu %s -> ayni yuzeyin iki ureticisi "
+                "AYRISAMAZ" % ("TASIYOR" if tasiyor else "TASIMIYOR",
+                               "ACIK" if (veri and veri.get("acikVitrin")) else "KAPALI"))
+        # Alan okunmuyor mu GERCEKTEN? Kural anahtari kapaliyken alani TASIMAYAN bir kart
+        # ile TASIYAN kart AYNI tutari vermeli — yoksa "kapali oldugu icin zararsiz"
+        # iddiasi beyandan ibaret kalirdi ([[beyan-edilmis-survivor]]).
+        # 🔴 DENEK AYIRT EDICI SECILIR: alani KALDIRINCA kural BASKA bir malzeme secen bir
+        # kayit gerekir. Aksi halde iddia TAUTOLOJI olurdu (alan zaten kategori haritasiyla
+        # ayni sonucu veriyorsa, silmek hicbir sey degistirmez ve kanit hicbir sey kanitlamaz).
+        ayirt = None
+        for q_ in urunler:
+            if not q_.get("tavsiyeFilament") or q_.get("parametrik") or q_.get("konfigur"):
+                continue
+            if not build_mod.feed_price((q_.get("fiyat") or "").strip()):
+                continue
+            q_yok = dict(q_)
+            q_yok.pop("tavsiyeFilament", None)
+            if (build_mod.on_secim_tani(q_, acik=True)[1]
+                    != build_mod.on_secim_tani(q_yok, acik=True)[1]):
+                ayirt = (q_, q_yok)
+                break
+        if ayirt is None:
+            olculemedi("alani silince BASKA malzeme secen kayit bulunamadi — E10 kaniti "
+                       "AYIRT EDICI kurulamadi")
+        else:
+            q_, q_yok = ayirt
+            a_var, a_yok = build_mod.vitrin_kurus(q_), build_mod.vitrin_kurus(q_yok)
+            print("     ayirt edici denek: %s (alan VAR -> %s · alan YOK -> %s, kural ACIK)"
+                  % (q_["id"], build_mod.on_secim_tani(q_, acik=True)[1],
+                     build_mod.on_secim_tani(q_yok, acik=True)[1]))
+            kontrol(a_var == a_yok,
+                    "KANIT: alani TASIMAYAN kart ile TASIYAN kart AYNI kart tutarini "
+                    "veriyor (%s = %s) -> kart kolu kapaliyken eksik alan tutari "
+                    "KAYDIRMIYOR" % (a_yok, a_var))
+    # MARUZIYET (olcum, hukum DEGIL): mesaj kanali kenar kolonunu okur, urun sayfasi
+    # onerilen malzemenin tutarini vurgular. Ayrisan urun sayisi ve ortalama fark.
+    if ozet.get("vitrin_farki"):
+        _ad, _ort, _orta, _enb = ozet["vitrin_farki"]
+        print("     ── MESAJ KANALI MARUZIYETI (olcum) ──")
+        print("        mesaj kanali != urun sayfasi : %d urun · ortalama +%%%.2f"
+              % (_ad, _ort))
+        print("        (mesaj kanali kenar `fiyat` kolonunu okur = kart tutari = taban)")
+
     # ---------------------------------------------------------------- hukum
     print("\n" + "-" * 72)
     if OLCULEMEDI:
