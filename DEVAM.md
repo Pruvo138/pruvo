@@ -1,5 +1,45 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 12 Agu 2026 — E2 sinif kapisi: hukmu kelime degil SAYININ BIRIMI versin (KraL)
+
+**Merge `9c56de08`** (dal `claude/jolly-lederberg-e2a0ee`, iki commit `1e5bf1fb` + `5b8e6daf`).
+
+**Olculen ariza (SINIF, tekil vaka degil).** `tools/devam-sinif-kapisi.py` E2 ekseni "konu
+kelimesi + herhangi bir rakam" ile hukum veriyordu. 11 Agu'da deftere yazilan bir YERLESIM notu
+(CTA butonu ile hap etiketi arasindaki pay) ticari oran sanilip iki satirda KIRMIZI yandi;
+yazar notu yeniden ADLANDIRARAK gecti — kural anlami degil kelimeyi olcuyordu. Ayni sinifin
+onceki ornegi de tekil kelime yamasiyla ("guvenlik marji") kapatilmisti.
+
+**Turetilen kural — ayirt edici SAYININ BOYUTU (fail-closed korundu).**
+- ticari konu (iskonto/komisyon/kar payi/alis-maliyet-tedarik fiyati/kur) -> KIRMIZI, muafiyet YOK;
+- belirsiz konu + para birimi -> KIRMIZI (para, muhendislik kanitini gecersiz kilar);
+- belirsiz konu + muhendislik birimi (px/mm/ms/bayt/karakter) -> YESIL;
+- belirsiz konu + boyutsuz miktar -> KIRMIZI ("olcemedim" YESIL degildir).
+`%` KANIT DEGILDIR, boyutsuzdur: arizayi doguran gercek satirin kendisi `~%5 (~7 px)` yaziyordu.
+Miktar = BAGIMSIZ sayi jetonu; `CTA-A1` icindeki rakam miktar sayilmaz.
+Elle yazilan tek kelime muafiyeti `E2_DONMUS_ONEKLER` olarak DONDURULDU ve BUYUMESI kabul
+testiyle kirmiziya baglandi (A2 iddiasi); yeni ornekler birim ekseninden gecer.
+
+**Olcum.** `--kendini-test` 82 kontrol / 0 hata · `--mutasyon` 25 mutant / 0 hata (23 oldurucu
+KIRMIZI, 2 ilgisiz YESIL, canli dosya sha256 TAM) · yeni `tools/e2-birim-ikiz-kanit.py` rc 0,
+9 vaka, UC SUTUN (ESKI / birim-ekseni-ablasyonlu / YENI) · `ci-kapsam-test.py` yesil.
+
+**Yan bulgu — mutasyon bataryasi TAUTOLOJIKTI.** Mutant kopya gecici dizinde `git_ortami`
+modulunu cozemedigi icin her mutant AYNI sebeple kirmizi yaniyordu; hicbir eksen olculmuyordu.
+`PYTHONPATH` + "mutasyonsuz kopya da kossun" canlilik capasi eklendi (once KIRMIZI -> sonra YESIL).
+
+**Merge sonrasi.** Bloklayici serit `Build & deploy` (kosum `31542119298`) success. D1 bes eksen
+yesil: 25940 == 25940 · seq sapma 0 · sema indeksleri kurulu · 5 turetilmis kolon guncel ·
+urun_hash uyusmaz 0 / eksik 0 / fazla 0.
+
+**ACIK KALEM (devralinmadi, bu turda dogmadi).** `Nobet seridi (SERIT B — yayini BLOKLAMAZ)`
+kosum `31542119603` failure: dusen is "urun sayfasi / kart kapsam ayrimi mutasyon bataryasi"
+(M3 ve M12 SAPTI). Ayni serit merge'ten 21 dk ONCE `2ebbd479`'da da failure — fiyat/kart
+duzlemine ait AYRI kalem.
+
+**Sonraki turun ILK ISI:** SERIT B'nin kart kapsam bataryasini sahibine bagla (M3 = kart yuzeyi
+urun sayfasi davranisini almis; M12 = kapali anahtarla kural alani okunuyor).
+
 ## 🔚 IS OTURUMU KAPANISI — 12 Agu 2026 ~02:xxZ (KraL; nobet turlari ayri)
 
 **CANLIYA GITTI** — hepsi `deploy`+`yayin` **success**, karar kosumu `31542119298` (`9c56de08`),
@@ -177,66 +217,6 @@ merge KraL'da, isci yalnizca dal push etti; (c) `31542119603`'un ardil kosumunda
 yesillendi mi; (d) varlik eksenini URUN sayfasindan cache-bust'SIZ olc (bu turda OLCULEMEDI
 kaldi); (e) K52 worktree tavani — `git worktree list` **4 satir**, ucu bu oturumun DEGIL,
 ARSIVLE-sonra-kaldir.
-
-## 🕐 CI NOBETI — 12 Agu 2026 01:0x yerel / 11 Agu 21:37Z turu — IKINCI OTURUM (KraL)
-
-⚠️ **MUKERRER TUR:** asagidaki blok da "21:37Z turu" basligini tasiyor; ayni pencereyi iki
-oturum bagimsiz kosmus. Bu blok GEC kosan oturumundur, olcumleri FARKLIDIR (o tur
-`COP_IZI=48:23:34`, bu tur `COP_IZI=50:00:15`), ustune yazilmadi.
-
-**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🟢 SUPURME rc=0 — HUKUM=SUPURULDU.** Sabit kosucu isciye kosturuldu; betik
-YAZILMADI/DUZENLENMEDI. Betigin bastigi satirlar:
-`GITHUB_BILDIRIM_INBOX=2 · BULUNAN=2 · TASINAN=2 · ATLANAN=0 · CIKAN=2 · KOMSU_KAYIP=0 ·
-KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=50:2026-08-12T00:15:20 · HUKUM=SUPURULDU`. Uc fail-closed
-alarmin ucu de sessiz. Silinen 2 kimlik: `Nöbet şeridi (9569da5)` + `Paket tazeligi (078e814)`.
-
-**🟠 Cop denetimi (salt okuma, rc=0): 51 kayit — MESRU=48, YANLIS=3.** Ucu de bilinen AYNI kalem
-(16:54, reklam-platformu bildirimi; id `68047/68048/68049`); sayi ARTMADI, bu turun kayitlarindan
-(`68156/68157`) KUCUK → bu turun supurmesine ATFEDILMEZ. Siparis/odeme ekseninde Cop'te kayit YOK.
-Soru zaten sorulmus, cevap gelmedi → tekrar SORULMADI, kendiliginden geri alma YAPILMADI.
-
-**✅ ONARIM 1 — SERIT B'nin KOK NEDENI KAPANDI (oksuz commit sinifi).** `d82c8874` mutasyon
-bataryasini CI'a bagladi (`nobet.yml` serit-b: `python3 tools/deploy-aclik-gh-mutasyon.py`) ama
-bataryanin OLCTUGU uygulama (`GH_DENEME_TAVANI` / `_gecici_ag_hatasi` / `_gh_yeniden_deneme_testi`)
-commit EDILMEMISTI — calisma agacinda oksuz duruyordu. Oldurulecek mutant olmayinca SERIT B
-20:01Z'den beri kirmizi kaldi (son tamamlanan hukum `31532757456` failure). Onceki tur bu dosyalari
-"baska oturumun yarim isi" diye BIRAKMISTI; oturum defterini kapatip gitmisti → [[oksuz-commitsiz-onarim-curur]].
-Olcum ONCE yapildi: batarya **5 mutant + 1 kontrol, dusen=0, rc=0**; `--kendini-test` **42 iddia,
-rc=0** (CI'da 20:05'te 30 iddia idi, +12). Dal `kral/serit-b-aclik-tamamla` (`0f4b5fdc`), ff-only
-merge, push. Ana agactaki oksuz icerik dalin commit'iyle **BAYT-BAYT AYNI** oldugu dogrulandi
-(59265 / 19450 bayt) → hicbir yabanci bayt degistirilmedi, stash/checkout/reset KULLANILMADI.
-Esik GEVSETILMEDI: tukenince hukum hala fail-closed rc=2. **D1 teyidi: 25905, bes eksen de ✅.**
-Worktree + dal ayni turda kapatildi.
-
-**✅ ONARIM 2 — YAYIN BLOKU ACILDI (`Ic rapor adi kapisi`).** `31538073387` (`389ffdd5`) serit-a3
-FAILURE, dusen adim "Ic rapor adi kapisi" → **`deploy` + `yayin` SKIPPED = yayin BLOKLU.** Kok neden
-logdan alinti: `tools/paket-d1-uzlastirici-karantina.md:118` ic rapor dosya adini METINDE tasiyordu.
-O spec'i onceki nobet turu yazmisti (`5c65142d`) → nobetcinin kendi belgesi yayini durdurdu
-(ders hafizada kayitli). Onarim EN KUCUK olani: spec satiri anlamini koruyarak yeniden
-yazildi (`06c69180`). **Kapi GEVSETILMEDI** — muafiyet listesine ekleme YOK, kapi betigine dokunulmadi,
-adim silinmedi, `continue-on-error` eklenmedi.
-
-**⏳ ACIK — IKI HUKUM UCUSTA, YESIL YAZILMADI ([[ucustaki-kosum-yesil-degildir]]).** Tur suresi
-doldu; kosumlar bitmeden hukum verilmedi:
-- `deploy.yml` **`31540904335`** (`06c69180`) — kabul: `build` + **`deploy`** + **`yayin`** ucu de
-  `success`; `skipped` YESIL DEGILDIR.
-- SERIT B **`31540904515`** (`06c69180`) — kabul: `serit-b` job `success`.
-`cancelled` cikarsa ariza DEGIL (kuyruk davranisi, §4.5) → SHA'yi ata olarak tasiyan SONRAKI kosum
-beklenir.
-
-**Yayin tabani:** son YESIL deploy `31535741568` (`8a31b85e`, 20:59:56Z; build+deploy+yayin altisi
-success). Ondan sonraki commit'ler yayina INMEDI — `06c69180` yesillenmezse aclik buyur.
-
-**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
-mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci `.scratch/` ve
-`tools/paket-deploy-kritik-yol.md` dosyalarina DOKUNULMADI · baskasinin worktree'sine DOKUNULMADI.
-Okan'a CIKILMADI (rutin onarim + zaten sorulmus soru; §5).
-
-**Sonraki turun ILK ISI:** (a) yukaridaki iki ucustaki kosumun `conclusion`'ini olc — `deploy`+`yayin`
-`success` mi; degilse kok nedeni logdan alintila; (b) `tools/paket-d1-uzlastirici-karantina.md`
-spec'i hala MUHENDIS'e (Opus) verilmedi, dalda kapatilmali; (c) canliyi cache-bust'SIZ dogrula.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
