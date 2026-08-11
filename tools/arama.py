@@ -2097,6 +2097,102 @@ def uyum_kanonik(u):
     return copy.deepcopy(u.get("uyum") or [])
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# TAVSIYE FILAMENT (`tavsiyeFilament`) — urunun KENDI malzeme onerisi (override).
+#
+# NE ISE YARAR: filament_ortak.tavsiyeler()/on_secim() bu alani gorurse KATEGORI
+# haritasini EZER ve urunun ON-SECILI malzemesi buradan gelir. On-secilen malzeme
+# sepet CARPANINI ve ilan edilen TUTARI surer (secenekler.js onSecimMalzeme) — yani
+# bu alan bir FIYAT girdisidir, kozmetik bir etiket degil.
+#
+# NEDEN BURADA (tur/stokta/altkategori/uyum ile AYNI gerekce): alan hem urun_hash'e
+# hem D1 kolonuna girer. Iki yerde AYRI turetilseydi hash "degismedi" derken kolon
+# degisir (ya da tersi) ve D1 SESSIZCE eski oneriyi servis ederdi. Tek fonksiyon = tek
+# kaynak.
+#
+# 🔴 SIRA YUK TASIR — LISTE SIRALANMAZ: on_secim() KALAN ILK adi secer. Kanoniklestirme
+# adina siralamak, "PETG, ASA" yazan bir urunu sessizce ASA'ya cevirirdi (baska carpan,
+# baska tutar). Bu yuzden deger AYNEN (derin kopya) tasinir; yalnizca TIP dogrulanir.
+#
+# 🔴 FAIL-CLOSED YONU BU ALANDA "BOSALT" DEGIL "DUR" — tur/altkategori/uyum'un AKSINE,
+# ve bu BILEREK boyle (mimar karari): oradaki alanlarda bozuk deger yalnizca bir KESIF
+# yuzeyini dusururdu; burada bozuk deger bir TIP KUSURUDUR ve iki yonu de zararlidir:
+#   * sessizce [] yapmak  -> urunun kendi onerisi DUSER, kategori haritasi devreye girer,
+#                            baska malzeme on-secilir = ilan edilen tutar sessizce kayar;
+#   * sessizce ["PETG"]'e -> yani dizeyi tek elemanli diziye cevirmek, VERI KUSURUNU
+#     NORMALIZE etmek         GIZLER ve kusur katalogda kalicilasir.
+# Dogru davranis: ISTISNA. Cagiran (d1-sync) bunu KAC KAYITTA HANGI TIP sayisiyla
+# raporlayip DURUR; boylece sira kendini dayatir — veri sahibi kaydi duzeltmeden dolum
+# tamamlanmaz. Katalog verisinin tek yazari bu ev DEGILDIR; bu yuzden burasi kusuru
+# ONARMAZ, GORUNUR KILAR.
+class TavsiyeFilamentTipHatasi(ValueError):
+    """`tavsiyeFilament` BEKLENEN tipte degil (sessiz normalizasyon YERINE atilir)."""
+
+
+TAVSIYE_FILAMENT_ALAN = "tavsiyeFilament"
+# Tip dokumunde kullanilan ETIKETLER (sayim anahtarlari). "YOK" = alan hic yazilmamis
+# (katalogun buyuk cogunlugu; override YOK demektir, kusur DEGIL).
+TAVSIYE_FILAMENT_YOK = "YOK"
+TAVSIYE_FILAMENT_DIZI = "dizi"
+
+
+def tavsiye_filament_tip_etiketi(u):
+    """Kaydin `tavsiyeFilament` TIP etiketi — dokum/sayim icin.
+
+    "YOK"  alan hic yazilmamis · "dizi" BEKLENEN tip · aksi halde Python tip adi
+    ("str", "dict", "NoneType"...). Bu fonksiyon YARGI VERMEZ, yalnizca SINIFLAR;
+    yargi tavsiye_filament_tip_sebebi()'nde.
+    """
+    if TAVSIYE_FILAMENT_ALAN not in u:
+        return TAVSIYE_FILAMENT_YOK
+    deger = u[TAVSIYE_FILAMENT_ALAN]
+    return TAVSIYE_FILAMENT_DIZI if isinstance(deger, list) else type(deger).__name__
+
+
+def tavsiye_filament_tip_sebebi(u):
+    """Kaydin `tavsiyeFilament` alani BEKLENEN tipte mi? Sebep metni ya da None.
+
+    GECERLI: alan YOK · [] (override yok) · bos olmayan METIN ogelerinden olusan dizi.
+    GECERSIZ: dize ("PETG") · None (acikca yazilmis bos deger) · sozluk · sayi ·
+              dizi icinde metin OLMAYAN ya da bos/bosluk oge.
+    🔴 `None` BILEREK GECERSIZ: "alan yok" ile "alan var ama bos yazilmis" AYNI SEY
+    DEGILDIR; ikincisini sessizce birinciye indirmek tam da yasakladigimiz normalizasyon
+    olurdu. Olculdu (11 Agu 2026, 25.605 kayit): None yazan kayit 0 -> regresyon riski yok.
+    """
+    if TAVSIYE_FILAMENT_ALAN not in u:
+        return None
+    deger = u[TAVSIYE_FILAMENT_ALAN]
+    if not isinstance(deger, list):
+        return ("%s dizi olmali, %s degil (deger: %r) — tek elemanli diziye SESSIZCE "
+                "CEVRILMEZ: kusur katalogda kalicilasirdi"
+                % (TAVSIYE_FILAMENT_ALAN, type(deger).__name__, deger))
+    for i, oge in enumerate(deger):
+        if not isinstance(oge, str):
+            return ("%s[%d] metin olmali, %s degil (deger: %r)"
+                    % (TAVSIYE_FILAMENT_ALAN, i, type(oge).__name__, oge))
+        if not oge.strip():
+            return "%s[%d] BOS metin — malzeme adi tasimayan oge yazilmaz" % (
+                TAVSIYE_FILAMENT_ALAN, i)
+    return None
+
+
+def tavsiye_filament_kanonik(u):
+    """D1'e/hash'e giden `tavsiyeFilament` degeri: dizinin DERIN KOPYASI.
+
+    🔴 FAIL-CLOSED = ISTISNA (yukaridaki blok): tip beklenenden farkliysa
+    TavsiyeFilamentTipHatasi atilir. NE bosaltilir NE normalize edilir — cagiran
+    (d1-sync.tavsiye_filament_tip_kapisi) sayiyla raporlayip DURUR.
+
+    Derin kopya sart: cagiran donen listeyi degistirirse katalog bozulmamali.
+    SIRA KORUNUR (siralanmaz) — ilk oge ON-SECILEN malzemedir, yani bir FIYAT girdisi.
+    """
+    sebep = tavsiye_filament_tip_sebebi(u)
+    if sebep is not None:
+        raise TavsiyeFilamentTipHatasi(
+            "%s (id=%r)" % (sebep, u.get("id")))
+    return copy.deepcopy(u.get(TAVSIYE_FILAMENT_ALAN) or [])
+
+
 # D1'e yazilan alanlar — biri degisirse satir yeniden yazilir, degismezse yazilmaz.
 # (D1 gunluk 100.000 yazma limiti: tam rebuild yerine sadece degiseni yazmak sart.)
 def urun_hash(u):
@@ -2142,5 +2238,19 @@ def urun_hash(u):
         # hash'in gordugu deger ile D1 kolonuna giden deger (d1-sync.uyum_metin) AYNI
         # fonksiyondan besleniyor, ayrisma INSAATAN imkansiz.
         uyum_kanonik(u),
+        # TAVSIYE FILAMENT: HASH'E GIRMESI SART (MIMAR KARARI, 11 Agu 2026). Alan bir
+        # ICERIK alanidir — urunun KENDI malzeme onerisi — ve TURETILMIS DEGILDIR: degeri
+        # baska hicbir kurataryadan degil, kaydin kendisinden gelir. Hash disinda
+        # birakilsaydi "alan degisti ama urun_hash AYNI" hali dogar, diff_plan satiri
+        # "degismemis" sayar ve kolon HICBIR ZAMAN senkronlanmazdi (bu deponun olculmus
+        # sessiz-ayrisma sinifi). Bedeli tek seferlik tam-katalog yeniden yazimidir ve o
+        # bedel KABUL EDILMISTIR; hedefli-UPDATE (taban_fiyat/konfigur) deseni bu alanda
+        # BILEREK KURULMADI. tur/stokta/altkategori/uyum ile AYNI sinif: alan PUBLIC
+        # urunler.json'da yasar, CI de yerel de AYNI degeri gorur. KANONIK deger yazilir ->
+        # hash'in gordugu deger ile D1 kolonuna giden deger (d1-sync.tavsiye_filament_metin)
+        # AYNI fonksiyondan besleniyor, ayrisma INSAATAN imkansiz.
+        # 🔴 BU CAGRI TIP KUSURUNDA ISTISNA ATAR (fail-closed): bozuk kayitli bir katalogda
+        # hash URETILMEZ, yani bozuk veri D1'e sessizce akamaz.
+        tavsiye_filament_kanonik(u),
     ], ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(ozet.encode("utf-8")).hexdigest()[:16]

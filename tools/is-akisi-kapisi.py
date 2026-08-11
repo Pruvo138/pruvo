@@ -1811,7 +1811,15 @@ TABLO_TABANLARI = (
     # kaymadigini olcen batarya AYNI commit'te eklendi. Korudugu kapi
     # (tools/edge-kart-kapisi.py) deploy.yml'de BLOKLAYICI KALDI — bu bir TASIMA
     # degil, EKLEME; tam esitlik geregi taban AYNI commit'te guncellendi.
-    ("SERIT_B", 97),
+    # 11 Agu: +1 -> 98. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/tavsiye-filament-mutasyon.py"): `tavsiye_filament` D1 kolonu canliya
+    # eklendi ve HASH KAPSAMINA alindi (mimar karari); o kararin ve onunla gelen
+    # FAIL-CLOSED tip kapisinin canli oldugunu olcen batarya AYNI commit'te eklendi.
+    # Korudugu invaryantin SERIT A ayagi (tools/stok-d1-kapisi.py C ekseni — bes-tanim
+    # kilidi + KOLONLAR/INSERT invaryanti) deploy.yml'de BLOKLAYICI KALDI ve yeni
+    # kolonu da kapsar — bu bir TASIMA degil, EKLEME; tam esitlik geregi taban AYNI
+    # commit'te guncellendi.
+    ("SERIT_B", 98),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2762,6 +2770,24 @@ SERIT_B = {
         "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
         "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
         "karsilastirilir ve ciktida raporlanir.",
+    ("nobet.yml", "serit-b", "tools/tavsiye-filament-mutasyon.py"):
+        "`tavsiye_filament` D1 HATTININ mutasyon bataryasi (6 oldurucu + 1 kontrol): "
+        "kolon urun_hash KAPSAMINDAN cikarilinca kirmizi yaniyor mu (SESSIZ AYRISMA — "
+        "'alan degisti ama hash ayni' hali kolonu HICBIR ZAMAN senkronlatmaz), tip kapisi "
+        "fail-open'a cevrilince (istisna yerine []) yakaliyor mu, dize SESSIZCE tek "
+        "elemanli diziye normalize edilince goruyor mu (veri kusurunu gizler), GECERLI "
+        "bir dizi kaydi reddedilince (yanlis-pozitif) kirmizi yaniyor mu, bozuk katalogta "
+        "KAC KAYITTA HANGI TIP oldugu SAYIYLA raporlaniyor mu, kolon bes tanimin "
+        "(d1-sema.sql · GOC_KOLON · _KT_SEMA · satir_sql INSERT · KOLONLAR) birinden "
+        "dusunce goruluyor mu. Olctugu sey KAYNAGIN KENDI YUKLEMLERI, yayinlanan hicbir "
+        "cikti DEGIL (edge-kart-tirnak-mutasyon.py / ga4-olay-mutasyon.py ile ayni desen). "
+        "Korudugu invaryantin SERIT A ayagi tools/stok-d1-kapisi.py C EKSENIDIR (bes-tanim "
+        "kilidi + `INSERT − KOLONLAR == KASITLI_DISARIDA`) ve deploy.yml'de BLOKLAYICI "
+        "kosar, yeni kolonu da kapsar; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. "
+        "Fiksturler SENTETIK: urunler.json OKUNMAZ, canli D1/wrangler/AG GEREKMEZ (~0,3 s). "
+        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — arama.py ve d1-sync.py kaynaklari "
+        "bellekte degistirilip exec/compile ile kosar; kosum sonunda IKI canli dosyanin da "
+        "sha256'si bas=son karsilastirilir ve ciktida raporlanir.",
     ("nobet.yml", "serit-b", "tools/ga4-olay-mutasyon.py"):
         "tools/ga4-olay-kapisi.py HUNI KAPISININ mutasyon bataryasi (10 oldurucu + 1 "
         "kontrol): urun goruntuleme / sepete ekleme / odemeye baslama olaylari tek tek "

@@ -1423,6 +1423,17 @@ jobs:
       - name: "Shop bayatlik kapisi mutasyon bataryasi (wrangler.toml OKUR, CLI degil)"
         run: python3 tools/shop-bayatlik-mutasyon.py
 
+      # TAVSIYE FILAMENT D1 HATTI (11 Agu 2026) — `tavsiyeFilament` bir FIYAT girdisidir:
+      # on-secilen malzeme sepet carpanini ve ilan edilen tutari surer. Kolon canliya
+      # eklendi ve HASH KAPSAMINA alindi (mimar karari). Batarya 6 oldurucu + 1 kontrol
+      # mutantla ALTI kolu AYRI olcer: hash kapsami (sessiz ayrisma) · fail-closed tip
+      # kapisi (fail-open) · sessiz normalizasyon YASAGI (dize -> tek elemanli dizi) ·
+      # pozitif kol (yanlis-pozitif) · sayim dokumu · bes-tanim kilidi. Fiksturler
+      # SENTETIK: urunler.json OKUNMAZ, canli D1/wrangler/AG GEREKMEZ. Mutasyon BELLEKTE
+      # uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son nobeti icinde).
+      - name: "Tavsiye filament D1 hatti mutasyon bataryasi (hash kapsami + tip kapisi)"
+        run: python3 tools/tavsiye-filament-mutasyon.py
+
       # 8 AGU SOMUT VAKASI: kiyas referansi kaydinin bozuk sekilleri (kisa `ref`,
       # JSON DIZISI, sayi, alan yok, bozuk metin, cozulemeyen sha) TEK BASINA rc=2
       # veriyor mu. Ikisi 8 Agu'da FAIL-OPEN'di ve rc=0 verip YANLIS BEYAN basiyordu.

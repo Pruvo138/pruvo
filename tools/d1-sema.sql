@@ -170,6 +170,29 @@ CREATE TABLE IF NOT EXISTS urunler (
   -- KANONIK deger yazilir (ham degil): hash'in gordugu deger ile kolona giden deger AYNI
   -- fonksiyondan (uyum_kanonik) gelir -> "hash degisti ama kolon degismedi" ayrismasi imkansiz.
   uyum      TEXT NOT NULL DEFAULT '[]',
+  -- TAVSIYE FILAMENT (11 Agu 2026) — urunun KENDI malzeme onerisi (JSON dizi, ogeler
+  -- kanonik malzeme adlari: ["PETG"], ["TPU (esnek)"]...). '[]' = override YOK, kategori
+  -- haritasi gecerli (katalogun ~%98,9'u; olculdu 25.605 kayittan 293'unde DOLU).
+  -- NEDEN VAR: alan bir FIYAT girdisidir. filament_ortak.on_secim / secenekler.js
+  -- `onSecimMalzeme` bu alani gorurse kategori haritasini EZER ve urunun ON-SECILI
+  -- malzemesini buradan alir; on-secilen malzeme sepet CARPANINI ve ILAN EDILEN TUTARI
+  -- surer. Alan bugune dek D1'de HIC YOKTU -> edge Worker kartina konamiyordu; bayrak
+  -- (ONERI_ONSECIM_ACIK) acildigi gun edge modunda 293 uruncle panel BASKA malzeme
+  -- on-secip sunucudan FARKLI tutar gosterirdi (`tur` vakasinin birebir sinifi).
+  -- KAYNAK: arama.tavsiye_filament_kanonik(u) — urun_hash'i besleyen AYNI fonksiyon.
+  -- BICIM: json.dumps(..., ensure_ascii=False, sort_keys=True, kompakt ayirac) —
+  -- d1-sync.tavsiye_filament_metin(); `marka`/`uyum` kolonlarinin JSON-dizi deseni.
+  -- 🔴 LISTE SIRALANMAZ: on_secim() KALAN ILK adi secer, yani SIRA YUK TASIR. Kanoniklestirme
+  -- adina siralamak ["PETG","ASA"] yazan urunu sessizce ASA'ya cevirirdi (baska carpan).
+  -- 🔴 HASH'E GIRER (tur/stokta/altkategori/uyum deseni; taban_fiyat/konfigur'un TERSI) —
+  -- MIMAR KARARI: bu bir ICERIK alanidir, TURETILMIS degil. Hash disinda birakilsaydi
+  -- "alan degisti ama urun_hash AYNI" hali dogar ve kolon HICBIR ZAMAN senkronlanmazdi.
+  -- Bedeli tek seferlik tam-katalog yeniden yazimidir; o bedel KABUL EDILMISTIR.
+  -- 🔴 FAIL-CLOSED YONU "DUR", "BOSALT" DEGIL (uyum/altkategori'nin AKSINE, bilerek):
+  -- beklenen tipte olmayan kayit gorulurse d1-sync KAC KAYITTA HANGI TIP oldugunu SAYIYLA
+  -- basip DURUR (tavsiye_filament_tip_kapisi). Sessizce [] yazmak urunun kendi onerisini
+  -- dusurur (tutar kayar); dizeyi tek elemanli diziye cevirmek veri kusurunu GIZLER.
+  tavsiye_filament TEXT NOT NULL DEFAULT '[]',
   fiyat     TEXT NOT NULL DEFAULT '',
   gorsel    TEXT,                         -- gorseller[0] (kart kapagi)
   parametrik INTEGER NOT NULL DEFAULT 0,

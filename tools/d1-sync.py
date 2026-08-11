@@ -355,11 +355,89 @@ def q(s):
     return "'" + str(s).replace("'", "''") + "'"
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# TAVSIYE FILAMENT TIP KAPISI — dolumdan ONCE, FAIL-CLOSED, SAYIYLA
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR: `tavsiyeFilament` bir FIYAT girdisidir (on-secilen malzeme sepet carpanini
+# surer) ve urun_hash'e girer. Beklenen tipte olmayan bir kayit gorulurse iki "kolay"
+# yolun IKISI DE zararlidir:
+#   * sessizce [] yapmak       -> urunun kendi onerisi duser, baska malzeme on-secilir,
+#                                 ilan edilen tutar SESSIZCE kayar;
+#   * dizeyi ["PETG"]'e cevirmek -> veri kusurunu GIZLER ve katalogda kalicilastirir.
+# Dogru davranis DURMAK ve SAYIYI basmaktir: boylece sira kendini dayatir — katalog
+# verisinin sahibi kaydi duzeltmeden dolum tamamlanmaz. Bu ev katalog verisinin yazari
+# DEGILDIR; burasi kusuru ONARMAZ, GORUNUR KILAR.
+#
+# 🔴 KAPI `urunleri_oku()` ICINDE: senkron · --durum · --seq-normalize · --geriye-doldur
+# yollarinin UCU DE katalogu BURADAN okur. Cagri yerlerine tek tek serpistirilseydi bir
+# sonraki yol sessizce kapisiz kalirdi ([[nobetci-cagri-satiri-nobetsiz]]).
+#
+# 🔴 JETONLAR AYRIK (biri otekinin ALT DIZESI DEGIL): kirmizi kolun capasi
+# TAVSIYE_FILAMENT_TIP_BOZUK, temiz kolunki TAVSIYE_FILAMENT_TIP_GECERLI.
+JETON_TF_BOZUK = "TAVSIYE_FILAMENT_TIP_BOZUK"
+JETON_TF_GECERLI = "TAVSIYE_FILAMENT_TIP_GECERLI"
+
+
+def tavsiye_filament_tip_dokumu(urunler):
+    """SAF — (dokum, bozuklar). Dosyaya/aga/D1'e DOKUNMAZ, birim testi burayi cagirir.
+
+    dokum   {tip_etiketi: sayi} — or. {"YOK": 25312, "dizi": 293, "str": 10}
+    bozuklar [(id, tip_etiketi, sebep), ...] — BEKLENEN tipte OLMAYAN her kayit.
+    """
+    dokum = {}
+    bozuklar = []
+    for u in urunler:
+        if not isinstance(u, dict):
+            dokum["kayit-sozluk-degil"] = dokum.get("kayit-sozluk-degil", 0) + 1
+            bozuklar.append((None, type(u).__name__, "katalog ogesi sozluk degil"))
+            continue
+        etiket = arama.tavsiye_filament_tip_etiketi(u)
+        dokum[etiket] = dokum.get(etiket, 0) + 1
+        sebep = arama.tavsiye_filament_tip_sebebi(u)
+        if sebep is not None:
+            bozuklar.append((u.get("id"), etiket, sebep))
+    return dokum, bozuklar
+
+
+def tavsiye_filament_tip_raporu(dokum):
+    """Dokumun tek satirlik insan-okur hali (sayi SIRALI, kararli)."""
+    return " · ".join("%s=%d" % (k, dokum[k]) for k in sorted(dokum))
+
+
+def tavsiye_filament_tip_kapisi(urunler):
+    """FAIL-CLOSED: BEKLENEN tipte olmayan kayit varsa SAYIYLA basip sys.exit eder.
+
+    Temiz katalogta tek satirlik GURULTULU teyit basar (sessiz yesil YOK: kapinin
+    kostugu, ciktidan okunabilir olmali)."""
+    dokum, bozuklar = tavsiye_filament_tip_dokumu(urunler)
+    if not bozuklar:
+        print("%s: %s (%d kayit)" % (JETON_TF_GECERLI, tavsiye_filament_tip_raporu(dokum),
+                                     len(urunler)))
+        return
+    satirlar = ["!! %s — `tavsiyeFilament` alani BEKLENEN tipte olmayan %d kayit VAR."
+                % (JETON_TF_BOZUK, len(bozuklar)),
+                "   TIP DOKUMU: %s" % tavsiye_filament_tip_raporu(dokum),
+                "   Bu kayitlar SESSIZCE NORMALIZE EDILMEZ (dizeyi tek elemanli diziye",
+                "   cevirmek kusuru gizler; [] yapmak urunun kendi onerisini dusurup ilan",
+                "   edilen tutari kaydirir). Senkron/dolum DURDU — kolon YARIM DOLMAZ."]
+    for uid, etiket, sebep in bozuklar[:10]:
+        satirlar.append("   - %s (tip: %s) : %s" % (uid, etiket, sebep))
+    if len(bozuklar) > 10:
+        satirlar.append("   ... +%d kayit daha" % (len(bozuklar) - 10))
+    satirlar.append("   Coz: urunler.json'daki bu kayitlarda `tavsiyeFilament` DIZI olmali "
+                    "(or. \"PETG\" -> [\"PETG\"]).")
+    satirlar.append("   🔴 urunler.json'un tek yazari KATALOG EVIDIR; duzeltme oradan gelir.")
+    sys.exit("\n".join(satirlar))
+
+
 def urunleri_oku():
     with open(URUNLER, encoding="utf-8") as f:
         d = json.load(f)
     if not isinstance(d, list):
         sys.exit("urunler.json dizi degil")
+    # TIP KAPISI HER YOLDA: senkron da --durum da katalogu buradan okur. Bozuk kayitta
+    # SAYIYLA durur; temizde tek satirlik teyit basar.
+    tavsiye_filament_tip_kapisi(d)
     return d
 
 
@@ -711,6 +789,16 @@ GOC_KOLON = [
     # bozulurdu. Gerekce + olculen sessiz hata (canli `?q=MAN` = 3539) ve "uc bunu ham
     # `marka` ile BIRLESIM DEGIL TEK BASINA okur" olcumu: d1-sema.sql marka_arama yorumu.
     ("marka_arama", "TEXT NOT NULL DEFAULT '[]'"),
+    # TAVSIYE FILAMENT (11 Agu) — urunun KENDI malzeme onerisi (JSON dizi). tur/stokta/
+    # altkategori/uyum ile AYNI SINIF: PUBLIC urunler.json alani, icerik upsert'i ile
+    # yazilir, HASH'E GIRER (KOLONLAR'da da VAR). Gerekce + "liste SIRALANMAZ" kurali +
+    # fail-closed yonu ("DUR", "BOSALT" degil): d1-sema.sql tavsiye_filament yorumu ve
+    # arama.tavsiye_filament_kanonik.
+    # ALTER DEFAULT'u '[]' ('' DEGIL): kolon JSON DIZI tasir, okuma ucu JSON.parse'i
+    # kosulsuz uygulayabilir (marka/uyum/marka_kanon deseni). Goc anindan senkron bitene
+    # kadarki pencerede mevcut satirlar "override YOK" der -> okuyan uc bugunku davranisi
+    # (kategori haritasi) uygular; YANLIS bir malzeme ON-SECILMEZ.
+    ("tavsiye_filament", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -772,6 +860,13 @@ KOLONLAR = [
     # yeni degerle yazilir ama uyum ESKI kalirdi (hash "senkron" der, Ege bayat uyum
     # servis eder = musteriye yanlis uyum vaadi, sessiz).
     "uyum",
+    # TAVSIYE FILAMENT — hash'e girdigi icin ON CONFLICT yolunda da GUNCELLENMELIDIR:
+    # mevcut bir urunun malzeme onerisi degistiginde upsert calisir ve kolonu yazar.
+    # KOLONLAR'da olmasaydi satir ILK yazimda dogru, sonraki her guncellemede ESKI oneri
+    # ile kalirdi — ve oneri bir FIYAT girdisi oldugu icin (on-secilen malzeme sepet
+    # carpanini surer) edge modunda panel sunucudan FARKLI tutar gosterirdi: hash
+    # "senkron" der, tutar ayrisir = sessiz fiyat sapmasi.
+    "tavsiye_filament",
 ]
 
 # satir_sql INSERT'inde YAZILAN ama ON CONFLICT/UPDATE yolunda BILEREK guncellenmeyen
@@ -1713,6 +1808,25 @@ def uyum_metin(u):
                       separators=(",", ":"))
 
 
+def tavsiye_filament_metin(u):
+    """`tavsiyeFilament` alaninin D1'de SAKLANAN bicimi: kanonik JSON DIZI metni.
+
+    KAYNAK arama.tavsiye_filament_kanonik(u) — urun_hash'i besleyen AYNI fonksiyon
+    (uyum_metin deseni). Ikinci bir turetme yolu ACILMAZ: acilsaydi hash bir degeri,
+    kolon baskasini gorurdu ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    🔴 LISTE SIRALANMAZ: `sort_keys` yalniz SOZLUK anahtarlarini etkiler; dizi SIRASI
+    girdideki gibi kalir ve kalmalidir — filament_ortak.on_secim() KALAN ILK adi
+    on-secer, yani sira bir FIYAT girdisidir.
+    🔴 TIP KUSURUNDA ISTISNA ATAR (fail-closed): bozuk kayit sessizce '[]' ya da
+    tek elemanli diziye CEVRILMEZ; cagiran urunleri_oku()'daki tip kapisi zaten
+    SAYIYLA durdurmus olur.
+    BOS hal '[]' (kolon DEFAULT'u ile ayni) -> okuma ucu JSON.parse'i kosulsuz uygular.
+    """
+    return json.dumps(arama.tavsiye_filament_kanonik(u), ensure_ascii=False,
+                      sort_keys=True, separators=(",", ":"))
+
+
 def satir_sql(u, seq, hs, h, baski=""):
     """Tek urun icin upsert. ON CONFLICT -> rid/seq korunur (FTS rowid'i sabit kalir)."""
     g = (u.get("gorseller") or [None])[0]
@@ -1735,6 +1849,10 @@ def satir_sql(u, seq, hs, h, baski=""):
         # UYUM — KANONIK JSON dizi metni (uyum_metin; arama.uyum_kanonik tek kaynak, hash de
         # AYNI fonksiyondan besleniyor -> "hash degisti ama kolon degismedi" ayrismasi imkansiz).
         q(uyum_metin(u)),
+        # TAVSIYE FILAMENT — KANONIK JSON dizi metni (tavsiye_filament_metin;
+        # arama.tavsiye_filament_kanonik tek kaynak, hash de AYNI fonksiyondan besleniyor
+        # -> "hash degisti ama kolon degismedi" ayrismasi imkansiz).
+        q(tavsiye_filament_metin(u)),
     ]
     # ATOMIK YAYIN: YENI satir DAIMA taslak (yayinda=0) girer. Kolon SQL'de ACIKCA
     # yazilir (DEFAULT'a guvenilmez): DEFAULT sonradan degistirilirse ya da tablo baska
@@ -1744,7 +1862,7 @@ def satir_sql(u, seq, hs, h, baski=""):
     return (
         "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
         "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski,tur,stokta,"
-        "altkategori,uyum,yayinda) VALUES ("
+        "altkategori,uyum,tavsiye_filament,yayinda) VALUES ("
         + ",".join(degerler) + ",0"
         + ") ON CONFLICT(id) DO UPDATE SET "
         + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
@@ -1776,7 +1894,7 @@ GERI_OKUMA_KOLONLARI = ["hash", "baslik", "kategori", "baski", "taban_fiyat",
 # konfigur'un aksine bunlar atlanabilir DEGIL: satir_sql'in INSERT listesindedirler,
 # yoksa HER upsert "no such column" ile duser. Bu yuzden main() basinda GURULTULU
 # olculur — kriptik yarim yazma yerine tek satirlik "kos: --sema" tanisi.
-ZORUNLU_KOLONLAR = ["tur", "stokta", "uyum"]
+ZORUNLU_KOLONLAR = ["tur", "stokta", "uyum", "tavsiye_filament"]
 
 # NEDEN `uyum` GERI_OKUMA_KOLONLARI'nda DEGIL (bilincli, gerekceli): uyum icerik upsert'i ile
 # hash ile AYNI ifadede yazilir -> hash D1'de dogruysa o upsert FIILEN uygulanmistir (baslik/
@@ -1784,6 +1902,9 @@ ZORUNLU_KOLONLAR = ["tur", "stokta", "uyum"]
 # okunmasinin sebebi TIP ekseniydi ('0' METNI JS'te true okunur); uyum TEXT kolonudur, o sinif
 # hata YOK. Ustelik tam-tablo geri-okuma yolunda (>800 id) uyum'u SELECT'e koymak her senkronda
 # 16.874 satirlik JSON govdesini bosuna cekerdi.
+# `tavsiye_filament` de AYNI GEREKCEYLE GERI_OKUMA_KOLONLARI'nda DEGIL: TEXT kolonudur (tip
+# ekseni yok), icerik upsert'i ile hash ile AYNI ifadede yazilir ve tip kusuru zaten
+# urunleri_oku()'daki FAIL-CLOSED kapida — yani D1'e ULASMADAN — durdurulur.
 
 # BEYAN EDILEN OLCEK SINIRI: yazilan id sayisi bu esigi asarsa hedefli `IN (...)` parcalari
 # yerine TEK tam-tablo SELECT'i kullanilir. 🔴 ORNEKLEME DEGIL — iki yol da yazilan id'lerin
@@ -2193,7 +2314,8 @@ CREATE TABLE urunler (
   uyum TEXT NOT NULL DEFAULT '[]',
   marka_kanon TEXT NOT NULL DEFAULT '[]',
   model_kanon TEXT NOT NULL DEFAULT '[]',
-  marka_arama TEXT NOT NULL DEFAULT '[]'
+  marka_arama TEXT NOT NULL DEFAULT '[]',
+  tavsiye_filament TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
 """
