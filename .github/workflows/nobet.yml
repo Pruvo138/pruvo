@@ -1389,6 +1389,16 @@ jobs:
       - name: "duzelt.py uyum kapisi mutasyon bataryasi"
         run: python3 tools/duzelt-uyum-mutasyon.py
 
+      # EDGE KART KAPISININ KARDES-DEPO AYRISTIRMASI (11 Agu 2026 onarimi). Eski regex
+      # `KART_ALANLARI` sabitinin YALNIZ ILK tirnak ciftini okuyordu; `+` ile eklenen
+      # parcalara dusen kolon SELECT'te VARKEN "eksik" raporlaniyordu (kotumser yalan).
+      # Batarya 5 oldurucu + 1 kontrol mutantla dort kolu AYRI olcer: cok-parca pozitif,
+      # gercek-eksik (fail-open), OLCULEMEDI (sessiz yesil), yanlis-pozitif. Fiksturler
+      # SENTETIK — kardes depo diskte olmasa da kosar; katalog OKUNMAZ, ag GEREKTIRMEZ.
+      # Mutasyon BELLEKTE uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
+      - name: "Edge kart kapisi kardes-depo ayristirma mutasyon bataryasi"
+        run: python3 tools/edge-kart-tirnak-mutasyon.py
+
       - name: "Ege-bilgi tavan kapisi mutasyon bataryasi"
         run: python3 tools/ege-bilgi-tavan-mutasyon.py
 
