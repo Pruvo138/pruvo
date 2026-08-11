@@ -36,6 +36,13 @@ KAPSAM SINIRI: kartin IKINCI uretici tarafi (edge Worker `KART_ALANLARI`, ~/dev/
 KARDES DEPODUR — bu kapi ona DOKUNMAZ. Yerelde varsa yalniz OLCER ve raporlar; CI fresh
 checkout'unda o agac olmadigi icin ASLA kirmizi yakmaz (R_YOL sinifi yapisal kirmizisi yok).
 
+🔴 11 AGU 2026 — O OLCUMUN AYRISTIRMASI KORDU (onarildi, bkz js_sabit_dize): eski regex
+`KART_ALANLARI` sabitinin YALNIZ ILK tirnak ciftini okuyordu; `+` ile eklenen ikinci ve
+sonraki dize parcalari GORUNMUYORDU. O parcalara dusen bir kolon SELECT'te GERCEKTEN
+varken "eksik" raporlaniyordu (KOTUMSER yalan). Onarim ifadeyi ';'ye kadar ayristirip
+tum dize literallerini birlestirir; dize-disi (dinamik) tanimda "alan yok" DEMEZ,
+OLCULEMEDI basar. Onarimin canliligini olcen batarya: tools/edge-kart-tirnak-mutasyon.py.
+
 MUTASYON (--mutasyon) — hepsi BELLEKTE, diske YAZILMAZ:
     M-A  kart_ozeti'den `tur` satiri silinir            -> KIRMIZI (curutucunun bulgusu)
     M-B  kart_ozeti'den `fiyat` alani silinir           -> KIRMIZI (eksen `tur`a capali DEGIL)
@@ -78,6 +85,138 @@ def alanlari_cikar(kaynak):
     return set(re.findall(r"\burun\s*\.\s*([A-Za-z_$][A-Za-z0-9_$]*)", kaynak))
 
 
+# --------------------------------------------------------------- kardes JS sabiti
+# 🔴 11 AGU 2026 — AYRISTIRMA KORLUGU ONARIMI (kardes mimar bulgusu).
+#   ESKI DESEN:  re.search(r"KART_ALANLARI\s*=\s*([`\"'])([\s\S]*?)\1", w)
+#   ILK tirnaktan ILK kapanan tirnaga kadarini okur. JS tarafinda sabit
+#       const KART_ALANLARI =
+#         "u.id, ... u.parametrik," +
+#         " substr(u.aciklama, 1, 160) AS aciklama";
+#   seklinde COK PARCALI yazildiginda IKINCI ve sonraki parcalar GORUNMEZ. Bir kolon
+#   o parcalara dustugunde kapi, kolon SELECT'te GERCEKTEN varken "eksik alan(lar)"
+#   basar — sessiz, KOTUMSER bir yalan. Olculdu: kardes depo bu korlugu bir YORUMLA
+#   idare ediyordu ("yeni kolon alt satira degil BU satira yazilir") — yani bizim
+#   ayristirma hatamiz kardes depoda LOAD-BEARING bir yazim kisitina donusmustu.
+#
+# 🔴 ONARIM GEVSETME DEGIL. Ifade YALNIZ dize literali + `+` + yorumdan olusabilir.
+#   Degisken, fonksiyon cagrisi, `${...}` interpolasyonu, kapanmamis dize -> DINAMIK
+#   sayilir ve OLCULEMEDI basilir. "Cozemedim = alan yok" sessiz gecisi YASAKTIR;
+#   alan GERCEKTEN eksikken kapi eskisi gibi eksik demeye devam eder.
+#
+# 🔴 SATIR BASI CAPASI: atama `^[ \t]*(const|let|var)? AD =` ile aranir. Kardes
+#   dosyada sabitin USTUNDE, ayni adi tasiyan bir YORUM blogu var; capa satir basina
+#   bagli olmasa o yorum kazanir ve kapi yorumdan alan okurdu.
+
+# Ayrik jetonlar — hicbiri digerinin ALT DIZESI DEGIL. ([[maskeleme-kismi-kapatma]]:
+# "eksik alan(lar): YOK" gibi ortak govdeli iki kol, bir kolu olduren mutantin
+# digerinin capasindan gecmesine izin veriyordu.)
+JETON_TAM = "WORKER_KART_TAM"
+JETON_EKSIK = "WORKER_KART_EKSIK"
+JETON_OLCULEMEDI = "OLCULEMEDI"
+JETON_AGAC_YOK = "WORKER_AGAC_YOK"
+
+_KACIS = {"n": "\n", "t": "\t", "r": "\r", "b": "\b", "f": "\f", "v": "\v", "0": "\0"}
+
+
+def _js_dize_oku(kaynak, i):
+    """kaynak[i] bir tirnak. (deger, sonraki_index, sebep) doner; sebep varsa deger None."""
+    q = kaynak[i]
+    i += 1
+    out = []
+    n = len(kaynak)
+    while i < n:
+        c = kaynak[i]
+        if c == "\\":
+            if i + 1 >= n:
+                return None, i, "kacis dizisi dosya sonunda yarim kaldi"
+            e = kaynak[i + 1]
+            out.append(_KACIS.get(e, e))
+            i += 2
+            continue
+        if c == q:
+            return "".join(out), i + 1, None
+        if q == "`" and kaynak.startswith("${", i):
+            return None, i, "template literal icinde ${...} interpolasyonu (DINAMIK tanim)"
+        if q != "`" and c == "\n":
+            return None, i, "kapanmamis dize literali (satir sonu)"
+        out.append(c)
+        i += 1
+    return None, i, "kapanmamis dize literali (dosya sonu)"
+
+
+def js_sabit_dize(kaynak, ad):
+    """JS kaynagindaki `<ad> = "..." + '...' + `...`;` sabitini BIRLESTIREREK dondurur.
+
+    Donus: (deger, parca_sayisi, sebep). deger None ise sebep OLCULEMEDI gerekcesidir
+    (fail-closed: cozulemeyen tanim "alan yok" SAYILMAZ)."""
+    m = re.search(r"^[ \t]*(?:const[ \t]+|let[ \t]+|var[ \t]+)?%s[ \t]*=(?!=)"
+                  % re.escape(ad), kaynak, re.M)
+    if not m:
+        return None, 0, "`%s` atamasi bulunamadi (satir basi capasi tutmadi)" % ad
+    i, n = m.end(), len(kaynak)
+    parcalar = []
+    bekle_operand = True
+    while i < n:
+        c = kaynak[i]
+        if c in " \t\r\n":
+            i += 1
+            continue
+        if kaynak.startswith("//", i):
+            j = kaynak.find("\n", i)
+            i = n if j < 0 else j + 1
+            continue
+        if kaynak.startswith("/*", i):
+            j = kaynak.find("*/", i + 2)
+            if j < 0:
+                return None, 0, "kapanmamis blok yorum"
+            i = j + 2
+            continue
+        if c == ";":
+            if not parcalar:
+                return None, 0, "`%s` ifadesinde hic dize literali yok" % ad
+            if bekle_operand:
+                return None, 0, "ifade '+' ile bitip ';' geldi (yarim ifade)"
+            return "".join(parcalar), len(parcalar), None
+        if bekle_operand:
+            if c in "\"'`":
+                deger, i, sebep = _js_dize_oku(kaynak, i)
+                if sebep:
+                    return None, 0, sebep
+                parcalar.append(deger)
+                bekle_operand = False
+                continue
+            return None, 0, ("`%s` dize literali ile tanimlanmamis; beklenmeyen jeton %r "
+                             "(DINAMIK tanim ayristirilamaz)" % (ad, kaynak[i:i + 40]))
+        if c == "+":
+            i += 1
+            bekle_operand = True
+            continue
+        return None, 0, "'+' ya da ';' bekleniyordu, gelen %r" % kaynak[i:i + 40]
+    return None, 0, "ifade ';' ile kapanmadi (dosya sonu)"
+
+
+def worker_kapsam_satiri(worker_kaynak, kontrol_alanlari):
+    """Kardes depo Worker kaynagindan KART_ALANLARI'ni cozer, eksik alanlari bulur.
+
+    Donus: (satir, eksikler). eksikler None => OLCULEMEDI.
+    KAPSAM DISI: kardes depo bu kapinin duzlemi DEGIL — bu satir kapiyi ASLA kirmizi
+    yakmaz, yalniz OLCER."""
+    deger, parca, sebep = js_sabit_dize(worker_kaynak, "KART_ALANLARI")
+    if deger is None:
+        return ("edge Worker KART_ALANLARI %s: %s (kardes depo, KAPSAM DISI — hukum "
+                "VERILMEDI; 'cozemedim = alan yok' sessiz gecisi YASAK)"
+                % (JETON_OLCULEMEDI, sebep), None)
+    eksikler = [a for a in kontrol_alanlari
+                if not re.search(r"\b%s\b" % re.escape(a), deger)]
+    if eksikler:
+        return ("edge Worker KART_ALANLARI %s (kardes depo, KAPSAM DISI — yalniz olcum; "
+                "%d dize parcasi birlestirildi): eksik alan(lar): %s"
+                % (JETON_EKSIK, parca, ", ".join(eksikler)), eksikler)
+    return ("edge Worker KART_ALANLARI %s (kardes depo, KAPSAM DISI — yalniz olcum; "
+            "%d dize parcasi birlestirildi): kontrol edilen %d alanin hepsi SELECT'te"
+            % (JETON_TAM, parca, len(kontrol_alanlari)), [])
+
+
 def _dolu(deger):
     """Alan "deger tasiyor" mu? Bos dize / None / bos liste / False TASIMAZ sayilir —
     kartta gorunmemesi o urun icin fiyat/beyan farki yaratmaz."""
@@ -113,6 +252,7 @@ def build_modulu(mutasyon=None):
 def kosum(secenek_kaynak, mod, urunler, ornek_en_cok=200):
     """(hatalar, satirlar) dondurur. hatalar bos = YESIL."""
     hatalar, satirlar = [], []
+    deger_tasiyan = []          # kardes depo olcumunde kontrol edilecek alanlar
 
     alanlar = alanlari_cikar(secenek_kaynak)
     satirlar.append("secenekler.js'ten cikarilan fiyat/beyan alanlari (%d): %s"
@@ -130,6 +270,7 @@ def kosum(secenek_kaynak, mod, urunler, ornek_en_cok=200):
                             "bu alani tasiyan ilk urun eklendigi gun kart da guncellenmeli)"
                             % alan)
             continue
+        deger_tasiyan.append(alan)
         eksik, sapan = [], []
         for p in tasiyanlar[:ornek_en_cok]:
             kart = mod.kart_ozeti(p)
@@ -152,19 +293,12 @@ def kosum(secenek_kaynak, mod, urunler, ornek_en_cok=200):
     if os.path.exists(KARDES_WORKER):
         with open(KARDES_WORKER, encoding="utf-8") as f:
             w = f.read()
-        m = re.search(r"KART_ALANLARI\s*=\s*([`\"'])([\s\S]*?)\1", w)
-        if m:
-            kapsam = [a for a in sorted(alanlar)
-                      if [p for p in urunler if _dolu(p.get(a))] and
-                      not re.search(r"\b%s\b" % re.escape(a), m.group(2))]
-            satirlar.append("edge Worker KART_ALANLARI (kardes depo, KAPSAM DISI — yalniz "
-                            "olcum): eksik alan(lar): %s" % (", ".join(kapsam) or "YOK"))
-        else:
-            satirlar.append("edge Worker KART_ALANLARI capasi cozulemedi (kardes depo) — "
-                            "ÖLÇÜLEMEDİ")
+        satir, _ = worker_kapsam_satiri(w, deger_tasiyan)
+        satirlar.append(satir)
     else:
-        satirlar.append("edge Worker (kardes depo ~/dev/pruvo-bot) YOK -> ÖLÇÜLEMEDİ "
-                        "(CI fresh checkout'unda normal; bu kapi ona ASLA kirmizi yakmaz)")
+        satirlar.append("edge Worker (kardes depo ~/dev/pruvo-bot) diskte YOK -> %s "
+                        "(CI fresh checkout'unda normal; bu kapi ona ASLA kirmizi yakmaz)"
+                        % JETON_AGAC_YOK)
     return hatalar, satirlar
 
 
