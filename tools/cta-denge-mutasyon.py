@@ -12,9 +12,17 @@ icin gecici bir kok kurulur; kok, gercek agacin SEMBOLIK BAGLI aynasidir ve yaln
 mutasyona ugrayan dosyalar GERCEK KOPYADIR (861 MB'lik agac kopyalanmaz). Batarya
 sonunda canli agacin sha256 ozetleri bas=son karsilastirilir.
 
-🔴 CAPA JETONLARI AYRIK: kapinin alti kolu `CTA-A1-ORAN`, `CTA-A2-BANT-PAYI`,
-`CTA-A3-SEPET-ALAN`, `CTA-A4-DOKUNMA-44`, `CTA-A5-KANAL-WA`, `CTA-A6-GECIS-ORAN`
-jetonlariyla konusur; hicbiri digerinin alt dizesi DEGILDIR (bu depoda olculmus tuzak).
+🔴 CAPA JETONLARI AYRIK: kapinin yedi kolu `CTA-A1-ORAN`, `CTA-A2-BANT-PAYI`,
+`CTA-A3-SEPET-ALAN`, `CTA-A4-DOKUNMA-44`, `CTA-A5-KANAL-WA`, `CTA-A6-GECIS-ORAN`,
+`CTA-A7-ETIKET-SIGDI` jetonlariyla konusur; hicbiri digerinin alt dizesi DEGILDIR
+(bu depoda olculmus tuzak).
+
+🔴 DARALTMA VAKASI (11 Agu 2026): Okan "buton metne gore daralsin" dedi. Daraltma iki
+YENI sessiz bozulma sinifi acar ve batarya ikisini de kovalar — (a) buton WhatsApp
+hapinin ALTINA duser (M12: masaustu tabani delinir), (b) etiket kutuya SIGMAZ ve
+`white-space:nowrap` yuzunden SARMADAN KIRPILIR, yani yukseklik ayni kalir ve oran
+saglikli gorunur (M13). M13'un oldurucu oldugu tek kol CTA-A7'dir: A1 o mutantta
+YESIL kalir, cunku buton kaba yayilip ALANCA buyur.
 
 🔴 CANLI VAKA FIKSTURU (11 Agu 2026): M10 + M11, canlida OLCULEN iki bozulmayi geri
 getirir — (a) sepet CTA'larinin `transition`i `all`a doner, yani sinif takasinin ilk
@@ -50,7 +58,7 @@ KOPYALANAN = ("tools/build.py", "index.html", KAPI_REL)
 MUTANTLAR = [
     ("M1 oran TERS cevrilir (Sepete Ekle yeniden 44x44 ikon olur)",
      [("tools/build.py",
-       ".ikon-sepet{background:var(--navy);width:auto;min-width:260px;height:56px;",
+       ".ikon-sepet{background:var(--navy);width:fit-content;min-width:210px;height:56px;",
        ".ikon-sepet{background:var(--navy);width:44px;min-width:44px;height:44px;")],
      True),
 
@@ -100,8 +108,8 @@ MUTANTLAR = [
 
     ("M8 pozitif kanit kaynagi silinir (.ikon-sepet taban kurali)",
      [("tools/build.py",
-       "  .ikon-sepet{background:var(--navy);width:auto;min-width:260px;height:56px;\n"
-       "    padding:0 20px;gap:9px;color:#fff;font-size:16px;font-weight:700;"
+       "  .ikon-sepet{background:var(--navy);width:fit-content;min-width:210px;height:56px;\n"
+       "    padding:0 14px;gap:9px;color:#fff;font-size:16px;font-weight:700;"
        "font-family:inherit}\n",
        "")],
      True),
@@ -124,6 +132,44 @@ MUTANTLAR = [
      [("index.html",
        "      WhatsApp ile Sipariş Ver\n",
        "      WhatsApp ile Hemen Sipariş Ver ve Bilgi Al\n")],
+     True),
+
+    # 🔴 M12 — DARALTMA VAKASI (a): masaustu CTA denge TABANI delinir. `min-width:210px`
+    # bir tasarim genisligi degil, sticky bandin WhatsApp hapina (11.131 px² model)
+    # karsi turetilmis tabandir; 120'ye cekilince buton gercek fit-content'ine (155,8 px)
+    # duser ve masaustu orani 1,06 -> 0,78 olur. Kapi tabani OLCMEZSE mutant SAG KALIR.
+    # ⚠️ CAPA CSS'E KILITLI: yalin `min-width:210px` capasi tabani ANLATAN yorum
+    # satirina da uyuyor ve `replace(..., 1)` ONCE yorumu deldigi icin mutant SAG
+    # KALIYORDU (olculdu). Capa artik kuralin kendi baglamini tasiyor; ayrica
+    # asagidaki `_capa_tekil` nobeti coklu eslesmeyi TOPTAN reddeder.
+    ("M12 masaustu denge tabani delinir (buton WhatsApp hapinin ALTINA duser)",
+     [("tools/build.py",
+       "width:fit-content;min-width:210px;height:56px;",
+       "width:fit-content;min-width:120px;height:56px;")],
+     True),
+
+    # 🔴 M13 — DARALTMA VAKASI (b): etiket kutuya SIGMAZ. `.cart-label{white-space:nowrap}`
+    # oldugu icin metin SARMAZ, KIRPILIR: buton yuksekligi 56'da kalir, kap genisligine
+    # yayildigi icin ALAN da BUYUR ve CTA-A1 YESIL yanar. Bu mutanti yalniz
+    # CTA-A7-ETIKET-SIGDI oldurur — "satir sayisi 1" diye bakan bir kol da kanardi.
+    ("M13 Sepete Ekle etiketi kutuya SIGMAZ (nowrap yuzunden sarmadan KIRPILIR)",
+     [("tools/build.py",
+       "'<span class=\"cart-label\">Sepete Ekle</span></button>'",
+       "'<span class=\"cart-label\">Sepete Ekle ve Siparisi Hemen Tamamla</span></button>'")],
+     True),
+
+    ("M14 Sepete Ekle dokunma yuksekligi 44 px'in ALTINA duser",
+     [("tools/build.py", "min-width:210px;height:56px;", "min-width:210px;height:40px;")],
+     True),
+
+    # 🔴 M15 — YENI TURETMENIN FAIL-CLOSED KANITI: eylem satirinin genisligi artik
+    # `main` + `.detail` + `.opsiyonlar` zincirinden turer. Grid kolonlari cozulemeyen
+    # bir yazima (`repeat(2,1fr)`) donunce kapi SARMAYI ve FLEX BUYUMESINI modelleyemez
+    # ve "gecti" DEMEZ -> OLCULEMEDI. Sessiz yesil bu yolda da kapali.
+    ("M15 eylem satiri genislik capasi kirilir -> OLCULEMEDI (sessiz yesil OLMAMALI)",
+     [("tools/build.py",
+       "  .detail{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start}",
+       "  .detail{display:grid;grid-template-columns:repeat(2,1fr);gap:34px;align-items:start}")],
      True),
 
     ("K1 KONTROL — yalniz yorum metni degisir (davranis AYNI)",
@@ -210,14 +256,19 @@ def main():
                 yol = os.path.join(kok, rel)
                 with open(yol, encoding="utf-8") as f:
                     metin = f.read()
-                if metin.count(eski) < 1:
-                    capa_yok = "%s (%s)" % (ad, rel)
+                # 🔴 CAPA TEKIL OLMALI (_capa_tekil): `replace(..., 1)` ILK eslesmeyi
+                # degistirir. Capa hem kurala hem onu ANLATAN yoruma uyuyorsa mutasyon
+                # yoruma iner, davranis DEGISMEZ ve mutant sessizce SAG KALIR — bu
+                # bataryada olculdu (M12). Coklu eslesme artik ARIZA sayilir.
+                sayi = metin.count(eski)
+                if sayi != 1:
+                    capa_yok = "%s (%s) — %d eslesme (tam 1 bekleniyor)" % (ad, rel, sayi)
                     break
                 with open(yol, "w", encoding="utf-8") as f:
                     f.write(metin.replace(eski, yeni, 1))
             if capa_yok:
-                hatali.append("%s — capa bulunamadi" % capa_yok)
-                print("  ⚠️  %s -> CAPA YOK" % ad)
+                hatali.append("%s — capa gecersiz" % capa_yok)
+                print("  ⚠️  %s -> CAPA GECERSIZ" % capa_yok)
                 continue
             rc, _ = kapi_kos(kok)
         if kirmizi_bekle:

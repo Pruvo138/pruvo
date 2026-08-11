@@ -370,9 +370,14 @@ BILEREK_DEGISEN_CSS = (
     # CTA-A4-DOKUNMA-44. Mutasyon kaniti: tools/cta-denge-mutasyon.py (9 oldurucu).
     ("", ";flex-wrap:wrap;\n    justify-content:flex-end",
      "eylem blogu sarabilir + saga yaslanir (nobetci: cta-denge-kapisi.py)"),
-    ("", ";width:auto;min-width:260px;height:56px;\n    padding:0 20px;gap:9px;"
+    # 2026-08-11 (ikinci tur, Okan): buton artik METNE gore buzusur. `min-width` bir
+    # tasarim genisligi DEGIL, masaustu denge tabanidir — sticky bandin WhatsApp hapi
+    # 235,5x43,75 = 10.304 px² olctugu icin 56 px yukseklikte 184 px'lik taban dogar.
+    # Kol: CTA-A1-ORAN + YENI CTA-A7-ETIKET-SIGDI (etiket kutuya sigiyor mu).
+    ("", ";width:fit-content;min-width:210px;height:56px;\n    padding:0 14px;gap:9px;"
          "color:#fff;font-size:16px;font-weight:700;font-family:inherit",
-     "Sepete Ekle ETIKETLI/genis oldu — 44x44 ikon degil (nobetci: cta-denge-kapisi.py)"),
+     "Sepete Ekle ETIKETLI + metne gore dar, denge tabaninin ustunde "
+     "(nobetci: cta-denge-kapisi.py CTA-A1-ORAN + CTA-A7-ETIKET-SIGDI)"),
     ("", "}\n  .cart-label{white-space:nowrap",
      "buton etiketi tek satirda kalir (nobetci: cta-denge-kapisi.py)"),
     ("", "   \n    .help-cta-inner{padding:8px 14px;gap:10px;flex-wrap:nowrap;\n"
@@ -382,9 +387,10 @@ BILEREK_DEGISEN_CSS = (
          "    .help-cta-btn{padding:11px 14px;font-size:13px;gap:6px;min-height:44px;"
          "flex:none}\n    .wa-uzun{display:none}\n"
          "    .eylem-ikonlar{flex-wrap:nowrap;width:100%}\n     \n"
-         "    .ikon-sepet{flex:1 1 auto;min-width:200px}\n  ",
-     "mobil sticky bant %16,6 -> %7,5 + eylem blogu tam genislik "
-     "(nobetci: cta-denge-kapisi.py CTA-A2-BANT-PAYI)"),
+         "    .ikon-sepet{flex:none;min-width:0}\n  ",
+     "mobil sticky bant %16,6 -> %7,5 + Sepete Ekle mobilde TAM fit-content "
+     "(`flex:none` buyumeyi, `min-width:0` masaustu denge tabanini kaldirir; "
+     "nobetci: cta-denge-kapisi.py CTA-A2-BANT-PAYI + CTA-A1-ORAN)"),
     # 2026-08-11 — ONERILEN MALZEME ON-SECIMI (Okan karari). Iki YENI gorsel kural:
     # (1) cip tutari etiketi, (2) onerilenden sapinca cikan bilgi notu kutusu.
     # 🔴 IDDIA TASINDI: ogelerin GERCEKTEN basildigi/kosula bagli oldugu
