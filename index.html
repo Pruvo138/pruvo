@@ -1354,19 +1354,19 @@
   // GİZLEME MEKANİZMASI = bu listede olmak + CATEGORIES'te OLMAMAK (renderCats yalnız
   // CATEGORIES'i çizer). Sayfa üretecindeki NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
-  // 🔴 İÇ SERİ ADI → MÜŞTERİYE GÖRÜNEN ETİKET (11 Ağu). Ürün sayfası üreteci (tools/build.py
-  // GIZLI_SERI_KARARI) parametrik ürünün rozetine/breadcrumb'ına/linklerine ARTIK görünen
-  // etiketi basıyor; bu tablo o etiketi geri iç ada çevirir ki ?kategori=<görünen> derin
-  // linki bugünkü görünümü AYNEN versin. Değerler build.py ile BİREBİR aynı olmalıdır —
-  // ayrışma tools/ic-seri-izi-kapisi.py'de fail-closed KIRMIZI yanar (ikiz tanım nöbeti).
+  // 🔴 İÇ SERİ ADI → MÜŞTERİYE GÖRÜNEN ETİKET (11 Ağu). Ürün sayfası üreteci, parametrik
+  // ürünün rozetine/breadcrumb'ına/linklerine ARTIK görünen etiketi basıyor; bu tablo o
+  // etiketi geri iç ada çevirir ki ?kategori=<görünen> derin linki bugünkü görünümü AYNEN
+  // versin. Değerler üretecin kararıyla BİREBİR aynı olmalıdır — ayrışma yayın öncesi
+  // denetimde fail-closed KIRMIZI yanar (ikiz tanım nöbeti).
   var KATEGORI_ALIAS = {"Ölçüye Özel Üretim":"Jeneratör"};
   // Yazma yönü: URL'ye/derin linke İÇ ad değil GÖRÜNEN etiket yazılır.
   var KATEGORI_GORUNUR = {"Jeneratör":"Ölçüye Özel Üretim"};
   function gorunurKategori(c){
     return Object.prototype.hasOwnProperty.call(KATEGORI_GORUNUR, c) ? KATEGORI_GORUNUR[c] : c;
   }
-  // ÜRÜN düzleminde çeviri YALNIZ parametrik (sarı seri) üründe uygulanır — tools/build.py
-  // gorunur_kategori() ile AYNI kural. ⚠️ YANLIŞ-POZİTİF EKSENİ: "Jeneratör" aynı zamanda
+  // ÜRÜN düzleminde çeviri YALNIZ parametrik (sarı seri) üründe uygulanır — ürün sayfası
+  // üretecinin görünen-etiket kuralıyla AYNI. ⚠️ YANLIŞ-POZİTİF EKSENİ: "Jeneratör" aynı zamanda
   // 17 GERÇEK jeneratör yedek parçasının kategorisidir; orada kelime müşterinin ARADIĞI
   // kelimedir ve DEĞİŞMEZ. İç sızıntı, kelimenin kendisi değil, parametrik serinin etiketi
   // olarak görünmesidir.

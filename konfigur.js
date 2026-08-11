@@ -169,7 +169,7 @@
         // durum.seciliRenk boş kalır; gecerliMi() false döner ve "Sepete Ekle" seçili bir
         // renge rağmen çalışmaz — kullanıcının gördüğüyle çelişen SESSİZ arıza.
         // gorselSec BİLEREK çağrılmaz: üreteç varsayılan olarak ana görselin rengini
-        // işaretler (bkz. build.py _konfigur_varsayilan_renk), görüntü zaten doğrudur.
+        // işaretler (varsayılan renk kuralı üreteç tarafında), görüntü zaten doğrudur.
         var ilkR = durum.renkKok.querySelector(".renk-btn.secili");
         if (ilkR) { durum.seciliRenk = ilkR.getAttribute("data-renk") || ""; }
       }
