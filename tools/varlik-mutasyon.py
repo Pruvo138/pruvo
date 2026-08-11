@@ -71,8 +71,8 @@ M6_EK = [
 CSS_BEYAN_MUTANTLARI = [
     ("N1", "BAYAT BEYAN: beyanin isaret ettigi CSS artik o degil",
      "build.py",
-     [(";width:fit-content;min-width:210px;height:56px;",
-       ";width:fit-content;min-width:215px;height:56px;")],
+     [(";width:fit-content;height:56px;",
+       ";width:fit-content;height:57px;")],
      1, "2b BAYAT CSS BEYANI"),
 
     ("N2", "POZITIF KOL: beyan KAPSAMI DISINDA CSS degisikligi",
