@@ -29,10 +29,27 @@ TETIK (dar tutulur; yanlis-pozitif MaCiT'in gunluk parti zincirini durdurur)
 Yeni durumda kategori == "Skan Art" VE gorseller BOS DEGIL olan bir urun icin,
 su UC durumdan biri varsa tetiklenir:
   1. urun katalogda YOK (yeni ekleme),
-  2. `gorseller` listesi eskisinden FARKLI (gorsel degisimi),
+  2. `gorseller` COK-KUMESI (multiset) eskisinden FARKLI (gorsel GIRDI/CIKTI),
   3. urun eskiden Skan Art DEGILDI (kategori bu yazimda Skan Art'a cevrildi).
 (3) hook'ta YOKTU: kategoriyi Skan Art'a cevirmek, gorsellere hic dokunmadan
 figur sayfa gorseli yayinlamanin sessiz yoluydu.
+
+(2) NEDEN COK-KUME, LISTE DEGIL (11 Agu 2026 — Okan emri: konfigur kapak siyaha)
+--------------------------------------------------------------------------------
+Bu modulun korudugu olay bir gorselin yayina GIRMESIDIR ("...KOKEN KAYDI olmadan
+urunler.json'a GIREMEZ"). Liste esitligi ile karsilastirmak SIRA degisimini de
+"giris" sayiyordu: ayni URL kumesinin PERMUTASYONU (or. galeride ZATEN yayinda olan
+siyah gorseli kapaga almak) hicbir yeni bayt yayinlamadigi halde koken kaniti
+istiyordu. Bu, kapinin sozlesmesinden GENIS bir yanlis-pozitiftir.
+Artik olcut COK-KUME esitligidir:
+  * EKLEME / SILME / DEGISTIRME  -> cok-kume degisir -> TETIKLER (fail-closed korunur)
+  * saf PERMUTASYON (ayni URL'ler, farkli sira) -> tetiklemez
+Tekrarli URL'ler korunur: [A,A,B] ile [A,B,B] AYRI cok-kumedir. Delik ACILMAZ, cunku
+permutasyonun gosterebildigi her gorsel ZATEN yayindadir (galeri tumunu basar);
+kapaga tasimak yeni bir bayt yayinlamaz. Kanonik anahtar uretilemezse (beklenmedik
+tur) DEGISTI sayilir — "cozemedim" sessiz gecise DONMEZ.
+(2) permutasyon muafiyeti (3)'u ELE GECIRMEZ: `elif` zinciri kategori kolunu ayrica
+olcer, yani permutasyon + kategori-cevirme yine TETIKLER.
 DEGISMEYEN kayitlar HIC degerlendirilmez -> bugun canli olan 14993 kaydin hicbiri
 kirmizi yanmaz (olculdu; `--denetim` ile tekrar uretilebilir).
 
@@ -230,6 +247,34 @@ def _kapsayan(url, manifest_gorseller):
 
 
 # ------------------------------------------------------------------- tetik
+def cok_kume(gorseller):
+    """Gorsel listesinin SIRADAN BAGIMSIZ kimligi (multiset) — cozulemezse None.
+
+    Her oge JSON'a cevrilir (str olmayan oge de patlatmaz) ve SIRALI demet dondurulur.
+    Tekrar SAYISI korunur: [A,A,B] ile [A,B,B] AYRI cok-kumedir.
+    """
+    if not isinstance(gorseller, (list, tuple)):
+        return None
+    try:
+        return tuple(sorted(json.dumps(x, sort_keys=True, ensure_ascii=False)
+                            for x in gorseller))
+    except (TypeError, ValueError):
+        return None
+
+
+def gorsel_kumesi_degisti(eski_g, yeni_g):
+    """Gorsel KUMESI (sira DEGIL) degisti mi?
+
+    FAIL-CLOSED: iki taraftan birinin kanonik anahtari uretilemezse DEGISTI sayilir —
+    "cozemedim" ASLA "degismemis" (yani kapi acik) anlamina gelmez.
+    """
+    a = cok_kume(eski_g)
+    b = cok_kume(yeni_g)
+    if a is None or b is None:
+        return True
+    return a != b
+
+
 def tetikleyenler(eski, yeni):
     """{id:urun} eski/yeni -> koken kaniti GEREKEN urun id'leri (sirali)."""
     tetik = []
@@ -242,8 +287,8 @@ def tetikleyenler(eski, yeni):
         e = (eski or {}).get(pid)
         if not isinstance(e, dict):
             tetik.append(pid)                     # 1. yeni urun
-        elif e.get("gorseller") != g:
-            tetik.append(pid)                     # 2. gorseller degisti
+        elif gorsel_kumesi_degisti(e.get("gorseller"), g):
+            tetik.append(pid)                     # 2. gorsel COK-KUMESI degisti
         elif e.get("kategori") != KATEGORI:
             tetik.append(pid)                     # 3. kategori Skan Art'a cevrildi
     return sorted(tetik)

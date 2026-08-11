@@ -1399,6 +1399,19 @@ jobs:
       - name: "Edge kart kapisi kardes-depo ayristirma mutasyon bataryasi"
         run: python3 tools/edge-kart-tirnak-mutasyon.py
 
+      # GORSEL-KOKEN TETIK (2) COK-KUME OLCUTU (11 Agu 2026 onarimi). Tetik eskiden
+      # LISTE esitligiyle olculuyordu; ayni URL kumesinin saf PERMUTASYONU da "gorsel
+      # degisimi" sayilip koken kaniti istiyordu — oysa modulun korudugu olay bir
+      # gorselin yayina GIRMESIDIR. Onarim tetigi COK-KUME esitligine daraltir.
+      # 🔴 Daraltma, fail-closed bir kapiyi fail-open'a cevirmenin ucuz yoludur: batarya
+      # 6 oldurucu + 1 kontrol mutantla ekleme · silme · degistirme (ayni uzunluk) ·
+      # tekrar sayisi ([A,A,B] vs [A,B,B]) · yeni urun kolu · kategori-cevirme kolu ve
+      # cozulemedi (fail-closed) eksenlerini AYRI AYRI olcer. Fiksturler SENTETIK —
+      # katalog OKUNMAZ, koken manifest dizini OKUNMAZ, ag GEREKTIRMEZ.
+      # Mutasyon BELLEKTE uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
+      - name: "Gorsel-koken permutasyon (cok-kume) mutasyon bataryasi"
+        run: python3 tools/gorsel-koken-permutasyon-mutasyon.py
+
       # URUN SAYFASI / KART AYRIMI (11 Agu, Okan karari). Kartin da yukselmesi ACIKCA
       # REDDEDILEN davranistir; batarya o sizintiyi ve kardeslerini (cip PLA'ya sabitlenmesi,
       # ilan tutarinin cipten ayri turemesi, markup/beslemenin urun koluna baglanmasi,

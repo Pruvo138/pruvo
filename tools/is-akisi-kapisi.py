@@ -1838,7 +1838,16 @@ TABLO_TABANLARI = (
     # DURUYOR, dolayisiyla taban 97 -> 100. Taraflardan birinin sayisini (98 ya da
     # 99) oldugu gibi almak, DIGER tarafin beyan(lar)ini sessizce "pay" haline
     # getirir ve o kadar giris sonradan sessizce silinebilirdi.
-    ("SERIT_B", 100),
+    # 11 Agu: 100 -> 101 (gorsel-koken-permutasyon-mutasyon.py beyan edildi). Bir
+    # TASIMA DEGIL, EKLEME: tools/gorsel_koken.py TETIK (2) olcutu LISTE esitliginden
+    # COK-KUME esitligine daraltildi (saf permutasyon artik koken kaniti istemiyor —
+    # korunan olay gorselin yayina GIRMESIDIR, sirasi DEGIL) ve daraltmanin fail-open'a
+    # kaymadigini olcen batarya AYNI commit'te eklendi. Korudugu kapinin SERIT A ayagi
+    # YOKTUR ve olmasi da gerekmez: gorsel_koken.py yayim yolunda degil YAZIM yolunda
+    # (duzelt.py/urun-ekle.py, flock altinda _atomic_write'tan hemen once) kosar ve
+    # modul yuklenemezse cagiran betik acilista COKER. Tam esitlik geregi taban AYNI
+    # commit'te guncellendi.
+    ("SERIT_B", 101),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2821,6 +2830,28 @@ SERIT_B = {
         "SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, "
         "bataryanin EKLENMESIDIR. Fiksturler SENTETIK: kardes depo (~/dev/pruvo-bot) "
         "diskte OLMASA da kosar, urunler.json OKUNMAZ, ag GEREKTIRMEZ (~0,1 s). "
+        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
+        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
+        "karsilastirilir ve ciktida raporlanir.",
+    ("nobet.yml", "serit-b", "tools/gorsel-koken-permutasyon-mutasyon.py"):
+        "tools/gorsel_koken.py TETIK (2) COK-KUME OLCUTUNUN mutasyon bataryasi "
+        "(6 oldurucu + 1 kontrol): tetik eskiden LISTE esitligiyle olculuyor, ayni URL "
+        "kumesinin saf PERMUTASYONU da 'gorsel degisimi' sayilip koken kaniti istiyordu — "
+        "oysa modulun korudugu olay bir gorselin yayina GIRMESIDIR (Okan'in 'konfigur "
+        "kapak siyaha' emri tam olarak bir permutasyondur ve 15/15 urunde kapiyi kirmizi "
+        "yakiyordu). 🔴 Daraltma fail-closed kapiyi fail-open'a cevirmenin ucuz yolu "
+        "oldugu icin batarya TEK YONLU DEGIL: permutasyonun muaf oldugu (pozitif) kolun "
+        "YANINDA ekleme · silme · DEGISTIRME (ayni uzunluk, farkli URL) · TEKRAR SAYISI "
+        "([A,A,B] vs [A,B,B] — set() ile yazilmis bir implementasyonun tam olarak "
+        "kacacagi delik) · yeni-urun kolu (1) · kategori-cevirme kolu (3) ele gecirildi "
+        "mi · kanonik anahtar cozulemeyince 'degismemis' deniyor mu (fail-closed) "
+        "eksenlerini AYRI AYRI olcer. Olctugu sey KAPININ KENDI TETIK YUKLEMI, yayinlanan "
+        "hicbir cikti DEGIL (edge-kart-tirnak-mutasyon.py / ga4-olay-mutasyon.py ile ayni "
+        "desen). Korudugu KAPI (tools/gorsel_koken.py) SERIT A DEGILDIR: yayim yolunda "
+        "DEGIL, YAZIM yolunda (duzelt.py / urun-ekle.py, flock altinda _atomic_write'tan "
+        "hemen once) kosar ve modul yuklenemezse cagiran betik acilista COKER; bu giris "
+        "bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Fiksturler SENTETIK: urunler.json "
+        "OKUNMAZ, koken manifest DIZINI okunmaz, disk gezilmez, ag GEREKTIRMEZ (~0,1 s). "
         "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
         "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
         "karsilastirilir ve ciktida raporlanir.",
