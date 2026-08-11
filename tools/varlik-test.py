@@ -371,13 +371,15 @@ BILEREK_DEGISEN_CSS = (
 )
 
 
-def css_beyani_uygula(yeni_css):
+def css_beyani_uygula(yeni_css, tablo=None):
     """Beyan edilen CSS parcalarini YENI->ESKI yonunde BIRER KEZ geri cevirir.
 
     Doner: (donusmus_css, hatalar). Bulunmayan `yeni` parcasi BAYAT BEYANDIR ve
-    hata olarak doner (sessiz muafiyet yok)."""
+    hata olarak doner (sessiz muafiyet yok). `tablo` yalniz OZ-NOBETCININ sentetik
+    fiksturleri icindir; uretimde daima BILEREK_DEGISEN_CSS kullanilir."""
     hatalar = []
-    for i, (eski_p, yeni_p, gerekce) in enumerate(BILEREK_DEGISEN_CSS):
+    for i, (eski_p, yeni_p, gerekce) in enumerate(
+            BILEREK_DEGISEN_CSS if tablo is None else tablo):
         gorunur = "".join(yeni_p.split())
         if len(gorunur) < 12 or not ("{" in yeni_p or ":" in yeni_p):
             hatalar.append("2b CSS BEYANI AYIRT EDICI DEGIL (#%d): %r -> gerekce: %s"
@@ -390,6 +392,43 @@ def css_beyani_uygula(yeni_css):
             continue
         yeni_css = yeni_css.replace(yeni_p, eski_p, 1)
     return yeni_css, hatalar
+
+
+# --- CSS BEYAN YUZEYININ KENDI NOBETCISI (HER kosumda, olcumden ONCE) -----------
+# 🔴 NEDEN: beyan yuzeyi kapiyi SUSTURMA kolusudur; susturma kolu nobetsiz kalamaz.
+# Bu deponun olculmus sinifi: kapi kapsami genisletilince pozitif nobetci SESSIZCE
+# olur ve kimse fark etmez ([[kapi-kapsam-genisletme-tuzagi]] · [[tekil-yama-sinifi-kapatmaz]]).
+# Fiksturler SENTETIKTIR: gercek CSS'e, gercek tabloya ve diske DOKUNMAZ.
+#   C1 AYIRT EDICILIK : ayirt edici olmayan (bosluk/parantez yigini) beyan REDDEDILIR.
+#   C2 BAYAT BEYAN    : isaret ettigi CSS artik yoksa FAIL-LOUD (sessizce yutulmaz).
+#   C3 MASKELEME YOK  : beyan kapsami DISINDAKI ikinci bir degisiklik HALA gorunur.
+#   C4 KONTROL        : gecerli beyan uygulanir, hata URETMEZ ve eski hale DONER.
+_CSS_OZ_ESKI = "  .zzfik-a{color:red}\n  .zzfik-b{color:blue}\n"
+_CSS_OZ_YENI = "  .zzfik-a{color:red;font-weight:700}\n  .zzfik-b{color:blue}\n"
+_CSS_OZ_GECERLI = ("", ";font-weight:700", "oz-nobetci fiksturu")
+
+
+def css_beyan_mekanizmasi_dogrula():
+    """Bos liste = yuzey saglam. Her giris bir BOZUKLUK teshisidir."""
+    d = []
+    _, h1 = css_beyani_uygula(_CSS_OZ_YENI, (("", "  }  ", "ayirt edici olmayan"),))
+    if not any("AYIRT EDICI DEGIL" in x for x in h1):
+        d.append("C1 ayirt edicilik sarti OLU: bosluk/parantez yigini beyan KABUL edildi "
+                 "-> tek girisle butun CSS ekseni yutulabilirdi")
+    _, h2 = css_beyani_uygula(_CSS_OZ_YENI, (("", ".zzfik-yok{color:#000}", "bayat"),))
+    if not any("BAYAT CSS BEYANI" in x for x in h2):
+        d.append("C2 bayat beyan nobeti OLU: uretilen CSS'te BULUNMAYAN beyan sessizce "
+                 "yutuldu -> tablo olu muafiyet deposuna doner")
+    ikinci = _CSS_OZ_YENI.replace(".zzfik-b{color:blue}", ".zzfik-b{color:green}")
+    c3, h3 = css_beyani_uygula(ikinci, (_CSS_OZ_GECERLI,))
+    if h3 or c3 == _CSS_OZ_ESKI:
+        d.append("C3 MASKELEME: beyan kapsami DISINDAKI ikinci degisiklik beyan "
+                 "uygulandiktan sonra KAYBOLDU -> beyan gercek bir kaybi gizleyebilir")
+    c4, h4 = css_beyani_uygula(_CSS_OZ_YENI, (_CSS_OZ_GECERLI,))
+    if h4 or c4 != _CSS_OZ_ESKI:
+        d.append("C4 KONTROL: gecerli beyan ya hata uretti ya eski hale DONDURMEDI "
+                 "(hata=%r) -> mekanizma her seye kirmizi yakan bir alarm" % (h4[:1],))
+    return d
 
 
 # ---------------------------------------------------------------- GORUNUR METIN BEYANI
@@ -1337,6 +1376,8 @@ def main():
     # Muafiyet yuzeyinin nobeti HER kosumda, olcumden ONCE.
     for _d in beyan_mekanizmasi_dogrula():
         HATALAR.append("0 GORUNUR-METIN BEYAN YUZEYI BOZUK: %s" % _d)
+    for _d in css_beyan_mekanizmasi_dogrula():
+        HATALAR.append("0 CSS BEYAN YUZEYI BOZUK: %s" % _d)
     for _d in referans_hukmu_dogrula():
         HATALAR.append("0 KIYAS REFERANSI GECERLILIK HUKMU BOZUK: %s" % _d)
     hedef = 12
