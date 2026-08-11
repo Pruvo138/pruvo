@@ -129,6 +129,7 @@ on:
 
 permissions:
   contents: read
+  actions: read          # silme karantinasi damgasinin (artifact) listelenip INDIRILMESI icin
 
 jobs:
   uzlastir:
@@ -191,6 +192,33 @@ jobs:
             echo "BAYAT AGAC — tazelemeden SONRA da uc degil (kosum sirasinda yeni push). Bu kosum olcum/onarim YAPMAZ." >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # ═══════════════════════════════════════════════════════════════════════
+      # SILME KARANTINASI — DAMGAYI INDIR (11 Agu 2026 vakasi, kosum 31532464176)
+      # ═══════════════════════════════════════════════════════════════════════
+      # OLCULEN ZARAR: agac uzak main ucundaydi (bayatlik kapisi "UC" dedi) ve buna
+      # RAGMEN 37 MESRU katalog satiri silindi — cunku D1 git'ten ILERIDEYDI
+      # (eszamanli bir urun partisi D1'e yazmis, push'u henuz inmemisti). Bayatlik
+      # kapisi agacin git'e gore bayatligini olcer; "D1 agactan ILERI" yonu onun
+      # ekseninde YOKTUR -> kapi DOGRU calisti, YANLIS SORUYU sordu.
+      #
+      # KARANTINA: bir id ILK kez FAZLA gorulunce SILINMEZ, damgaya yazilir; ancak
+      # FARKLI bir `origin/main` SHA'sinda IKINCI kez FAZLA gorulurse silinir
+      # (o zaman "ucustaki parti" aciklamasi CURUR). Kural + gerekce:
+      # tools/uzlastirici_karantina.py bas blogu.
+      #
+      # NEDEN ARTIFACT (depoda IZLENEN dosya DEGIL): uzlastirici damgayi main'e
+      # push etseydi main'in ucu her kosumda oynardi — 17:12Z kosumunu DUSUREN sey
+      # tam olarak buydu. Damga mekanizmasi, olcmesi gereken hastaligi URETEMEZ.
+      #
+      # FAIL-CLOSED: damga inmezse bu adim kosumu DUSURMEZ; bir sonraki adim
+      # `OLCULEMEDI` verir ve HICBIR SATIR SILINMEZ (yon zaten en guvenli tarafta,
+      # ustelik gorunur). "Indiremedim -> sil" yolu HICBIR YERDE ACIK DEGIL.
+      - name: Karantina damgasi — onceki kosumun silme gozlemlerini indir
+        if: steps.bayatlik.outputs.uc == 'evet'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/uzlastirici_karantina.py --indir karantina-damgasi.json
+
       # OLCUM: sayi ekseni + ICERIK ekseni (urun_hash) — tam kapsam, salt-okuma.
       # Sapma varsa d1-sync --durum SIFIR-DISI doner; burada onu YUTMUYORUZ, bir
       # sonraki adima "sapma var mi" bilgisi olarak tasiyoruz (adim kirmizi olsa
@@ -251,6 +279,14 @@ jobs:
 
       # TEYIT: onarim IDDIA degil, KANIT olsun. Hala sapma varsa is KIRMIZI kalir
       # (GitHub bildirimi) — sessizce yesil donmek bu kacagi dogurmus olan hataydi.
+      #
+      # 🔴 `--karantina-damgasi` YALNIZ BURADA (onarim SONRASI) verilir: karantinaya
+      # alinan id'ler bu hukumden MUAF tutulur. Gerekce — karantina ILK gozlemde
+      # silmeyi BILEREK erteler; teyit o erteledigimiz satirlari "onarilamadi" sayarsa
+      # kosum HER karantina aciliminda kirmizi yanar ve karantina fiilen GERI ALINIR.
+      # SAPMA SUSTURULMUYOR: onarim ONCESI "Olcum" adimi bayraksiz kosar, FAZLA'yi TAM
+      # basar, `sapma=var` uretir ve `d1-sapma-damgasi` alarm kanali AYNEN kirmizi yakar.
+      # Damga yoksa/bozuksa muaf kume BOStur (muafiyet KANIT ister — fail-closed).
       - name: Teyit — onarimdan sonra sapma SIFIR mi
         if: steps.olcum.outputs.sapma == 'var'
         id: teyit
@@ -258,8 +294,25 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          python3 tools/d1-sync.py --durum
+          python3 tools/d1-sync.py --durum --karantina-damgasi karantina-damgasi.json
           echo "✅ Onarim DOGRULANDI (D1 == urunler.json)" >> "$GITHUB_STEP_SUMMARY"
+
+      # SAPMA YOK KOLU: hicbir id FAZLA degil -> karantinada bekleyecek id de YOKTUR
+      # (hepsi ya agacta belirdi ya silindi). Damga BOSALTILIR ki bayat bir kayit,
+      # ilerideki bir kosumda "ikinci gozlem" gibi gorunup MESRU bir satiri silmesin.
+      - name: Karantina damgasi — sapma yok kolunda BOSALT
+        if: steps.olcum.outputs.sapma == 'yok'
+        run: python3 tools/uzlastirici_karantina.py --temizle karantina-damgasi.json
+
+      # SAPMA VAR KOLU: d1-sync damgayi normalde KENDISI yazar, ama silinecek aday
+      # YOKKEN erken donebilir ("degisiklik yok") ve ILK kosumda indirilecek artifact
+      # de olmadigi icin dosya HIC dogmayabilir -> `if-no-files-found: error` tasiyan
+      # yukleme adimi kosumu KIRMIZI yakardi. Bu adim SADECE dosya yoksa bos damga
+      # tescil eder; VAR OLAN damgaya DOKUNMAZ (ezseydi ikinci gozlem hafizasi her
+      # kosumda sifirlanir ve silme kolu SESSIZCE olurdu).
+      - name: Karantina damgasi — dosya yoksa bos damga tescil et (VARSA DOKUNMA)
+        if: steps.olcum.outputs.sapma == 'var'
+        run: python3 tools/uzlastirici_karantina.py --temizle-yoksa karantina-damgasi.json
 
       # ═══════════════════════════════════════════════════════════════════════
       # DAMGA — "denetim FIILEN yapildi" kaydi (tools/cron-nabiz-kapisi.py A0 ekseni)
@@ -291,6 +344,23 @@ jobs:
         with:
           name: uzlastirma-damgasi
           path: uzlastirma-damgasi.json
+          if-no-files-found: error
+
+      # KARANTINA DAMGASINI YUKLE — BIR SONRAKI kosumun "ikinci gozlem" hafizasi.
+      # A0 damgasindan AYRI bir artifact: o "denetim yapildi mi"yi, bu "hangi id kac kez
+      # ve HANGI origin/main SHA'sinda FAZLA gorundu"yu tasir. AYNI kutuya konsalardi
+      # birinin saklama/kosul degisimi otekini SESSIZCE bozardi.
+      # `if-no-files-found: error`: damga dosyasi dogmadiysa bu adim KIRMIZI yanar —
+      # aksi halde karantina hafizasi sessizce KAYBOLUR ve her kosum "ilk gozlem"
+      # sanilir; o zaman silme kolu bir daha ASLA calismaz (gercek oksuz satirlar
+      # birikir). Ortuk `success()`: onceki adimlar dustuyse bayat/yarim damga
+      # YUKLENMEZ, bir sonraki kosum bir onceki gecerli damgayi indirir.
+      - name: Karantina damgasini yukle (artifact — SONRAKI kosumun ikinci gozlemi)
+        if: steps.olcum.outputs.sapma == 'yok' || steps.olcum.outputs.sapma == 'var'
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-karantina-damgasi
+          path: karantina-damgasi.json
           if-no-files-found: error
 
       # ═══════════════════════════════════════════════════════════════════════
