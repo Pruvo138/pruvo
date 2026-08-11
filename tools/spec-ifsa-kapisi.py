@@ -95,6 +95,10 @@ HASH'LI (duz metin tasimaz).
              ikinci bulgusu) · tools/paket-uyum-ekseni.md:107-111 (tarihli hukuki acik)
              · tools/paket-ara-cpu-onarimi.md:4-5 · tools/paket-shop-kargo.md:105-111
              [bulgu D1+C4+C5+C8, YUKSEK]
+      🔴 11 Agu 2026 DARALTMASI: zayiflik jetonlarina SOL kelime siniri kondu — desen
+      "-sizdir" ile biten masum Turkce sifatlarin (imkansizdir, etkisizdir) ICINDE
+      esliyor ve acigin TERSINI soyleyen cumleleri kirmizi yakiyordu. Gerekce, sinir
+      secimi ve BEYAN EDILMIS SINIR: EKSEN F blogu (asagida).
 
 MUAFIYET — YOL DEGIL ICERIK BAGLI, HASH'LI
 ───────────────────────────────────────────
@@ -536,11 +540,56 @@ def _eksen_e(satir, _yuzey):
 # En pahali tek satir sinifi: bir uyusmazlikta ya da denetimde "biliyorduk ve
 # kapatmadik" cumlesi HAZIR BELGEDIR; saldirgan icin de bir REÇETEDIR. Iki isaret de
 # ZORUNLU: (1) zayiflik sozu, (2) KAPANMAMIS oldugunu soyleyen soz.
+#
+# 🔴 TURKCE EK TUZAGI (11 Agu 2026, GERCEK bir yayini durdurdu — run 31492769983):
+# _F_ZAYIFLIK secenekleri KELIME SINIRSIZDI. `sizdir` bu yuzden "-sizdir" ile biten
+# HER Turkce sifatin ICINDE esliyordu: imkansizdir · etkisizdir · hatasizdir ·
+# gereksizdir · sinirsizdir. Vurulan cumle acigin TERSINI soyluyordu ("bu tuzak
+# YAPISAL OLARAK imkansizdir") ve ayni satirda tesadufen gecen bir KAPANMAMIS jetonu
+# ikinci isareti tamamladi -> kapi "bilinen ama kapatilmamis acik beyani" deyip
+# kirmizi yakti. O gun satir ELLE yeniden yazilarak gecildi; desen DEGISMEDIGI icin
+# sinif ACIK kaldi ([[tekil-yama-sinifi-kapatmaz]]) — bu daraltma sinifi kapatir.
+#
+# 🔴 SOL SINIR ZORUNLU, SAG SINIR YASAK. Turkce SONDAN eklemelidir: sag sinir
+# "sizdiriyor", "sizdirdi", "sizdirma", "sizintisi" gibi MESRU vuruslari oldururdu
+# (fail-open, ve kapinin en pahali ekseninde). Capa: IDDIA-F1 ZAYIFLIK jetonunu
+# YALNIZ ek almis bir bicimde tasir — sag sinir konsa F1 KIRMIZI yanar.
+#
+# 🔴 SINIR `\b` DEGIL. `_` bir KELIME karakteridir; `\b` bu depoda cok gecen
+# `_sizdirma` / `bilgi_sizdirma_testi` gibi TANIMLAYICI anlatimlarini KOR ederdi —
+# yani daraltma, hedefledigi sinifin disinda ikinci bir fail-open delik acardi.
+# `(?<![^\W_])` = "onceki karakter ALFANUMERIK DEGIL": harf/rakam onekini ELER,
+# `_` · tire · bosluk · satir basini KABUL eder. Capa: IDDIA-F1 (alt cizgili bicim).
+#
+# 🔴 BU BIR DARALTMADIR (FAIL-OPEN YON) ve TEK KAYNAKTAN uygulanir; iki desen ayri
+# ayri yazilsaydi sessizce ayrisirlardi ([[ikiz-tanim-sessiz-ayrisma]]).
+# Kabul: IDDIA-F3 (masum kelime kumesi YESIL) + MUT-F-BAS-SINIR-KOR (daraltmayi geri
+# alan mutant TEK KIRMIZI) + KONTROL-METIN (hicbir sey degistirmeyen mutant YESIL).
+#
+# ⚠️ BEYAN EDILMIS SINIR (OLCULDU, bilincli): sol sinir YALNIZ _F_ZAYIFLIK'a konuldu.
+# _F_KAPANMAMIS'in `alinmayan` secenegi de kelime sinirsizdir ("calinmayan",
+# "kalinmayan" icinde esler). Bedeli 11 Agu 2026'da olculdu: o bicimler izlenen
+# ANLATIM yuzeyinde 0 (SIFIR) satirda geciyor, ve F IKI isaret istedigi icin tek
+# basina zaten yayin durduramaz. Kapatilmasi AYRI bir daraltmadir: TEK-KIRMIZI
+# sozlesmesi geregi kendi iddiasini ve kendi ayirt edici mutantini ister; bedeli 0
+# olculdugu icin bu turda ALINMADI.
+#
+# 📏 DARALTMANIN OLCUSU (11 Agu 2026, izlenen ANLATIM yuzeyi): ZAYIFLIK ayagi 762 ->
+# 622 satir; YALNIZ eski desenin vurdugu 140 satirin tamami "-sizdir/-sizinti" ek
+# tuzagi sinifindandir. IKI isaretli TAM hukum eski de yeni de 0 ISABET: yani bu
+# daraltma bugun HICBIR gercek bulguyu dusurmedi, 140 satirlik bir MAYIN TARLASINI
+# kaldirdi (her biri ayni satira bir KAPANMAMIS jetonu dusen gun yayini durdururdu —
+# 11 Agu'da tam bunun icin duruldu).
 # ===========================================================================
+# 🔴 TEK KAYNAK: iki F deseni de bu sabiti kullanmalidir (bugun yalniz ZAYIFLIK
+# kullaniyor — yukaridaki BEYAN EDILMIS SINIR). Mutasyon capasi: MUT-F-BAS-SINIR-KOR
+# bu SATIRI bosaltir ve YALNIZ IDDIA-F3'u dusurmelidir.
+_BAS_SINIR = r"(?<![^\W_])"
 _F_ZAYIFLIK = re.compile(
+    _BAS_SINIR + r"(?:"
     r"sızdır|sizdir|sızıntı|sizinti|zayıflık|zayiflik|zafiyet|fail-open|"
     r"savunmasız|savunmasiz|istismar|korumasız|korumasiz|güvenlik açı|guvenlik aci|"
-    r"hukuki açık|hukuki acik|açığı\b|acigi\b|doğrulama YOK|dogrulama YOK", re.I)
+    r"hukuki açık|hukuki acik|açığı\b|acigi\b|doğrulama YOK|dogrulama YOK)", re.I)
 _F_KAPANMAMIS = re.compile(
     r"\bbilinen\b|henüz|henuz|uygulanmadı|uygulanmadi|çözülmedi|cozulmedi|"
     r"karar bekliyor|düşük öncelik|dusuk oncelik|zorunlu değil|zorunlu degil|"
@@ -714,10 +763,11 @@ def ana_tarama(kok):
 
 
 # ===========================================================================
-# KENDINI-TEST — 27 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
+# KENDINI-TEST — 28 BEYAN EDILMIS IDDIA (SABIT SAYI). Her eksen icin OLDURUCU
 # (desen VAR -> KIRMIZI) + TEK DEGISKENLI KONTROL (benzer ama kapsam disi -> YESIL);
 # ustune YUZEY ayrimi (4), BEYAN yuzeyi (2), KAPSAM (1), EKO ELEMESI (2), MUAFIYET (2),
-# MASKE (1), KOK ekseni (3: acik kok · belirsizlik · worktree+kanca baglami).
+# MASKE (1), KOK ekseni (3: acik kok · belirsizlik · worktree+kanca baglami),
+# F ek tuzagi (1: Turkce "-sizdir" kelime siniri).
 # Mutant<->iddia eslemesi TEK KAYNAK: tools/spec-ifsa-mutasyon-test.py :: MUTANTLAR.
 # 🔴 TUM FIKSTURLER UYDURMADIR: hicbiri bu depodaki gercek bir kova/uc/sir/cerez/
 # kimlik degildir (nobetci kendi dosyasinda sizdirmaz). Tek istisna IDDIA-C2'nin
@@ -746,7 +796,12 @@ _FIKSTURLER = (
      ANLATIM, "E", True),
     ("IDDIA-E2", "Havale secenegi odeme adiminda musteriye gosterilir.",
      ANLATIM, "E", False),
-    ("IDDIA-F1", "Uzunluk farkini sizdirir; bilinen ve bu tura ALINMAYAN kalem.",
+    # 🔴 IDDIA-F1 ZAYIFLIK jetonunu IKI ZOR bicimde tasir (11 Agu 2026 daraltmasinin
+    # capasi): (a) alt cizgi ONEKLI tanimlayici icinde — sinir `\b` yapilsaydi bu
+    # bicim KOR olurdu; (b) EK ALMIS govde ("sizdirma") — sag sinir konsaydi vurus
+    # olurdu. Cumlede BASKA hicbir zayiflik jetonu YOKTUR: bu yuzden iki regresyon da
+    # F1'i DOGRUDAN kirmizi yakar.
+    ("IDDIA-F1", "`_sizdirma` yolu bilinen bir kalemdir, bu tura ALINMAYAN is.",
      ANLATIM, "F", True),
     ("IDDIA-F2", "Uzunluk farkini sizdirir; bu turda kapatildi ve testi eklendi.",
      ANLATIM, "F", False),
@@ -755,6 +810,26 @@ _FIKSTURLER = (
     # yuzeyine BAKMAZ — kurulum/konfig o adi tasimak zorundadir).
     ("IDDIA-BEYAN1", 'bucket_name = "deneme-ornek-kova"', BEYAN, "A", True),
     ("IDDIA-BEYAN2", "  npx wrangler secret put DENEME_ORNEK_ANAHTAR", BEYAN, "C", False),
+)
+
+# F EKSENI — TURKCE EK TUZAGI KUMESI (11 Agu 2026 daraltmasinin kabul verisi).
+# HER SATIR: (1) "-sizdir" ile biten MASUM bir sifat tasir, (2) GERCEK bir
+# _F_KAPANMAMIS jetonu tasir. Yani daraltma OLMASAYDI hepsi KIRMIZI yanardi; bugun
+# hepsi YESIL beklenir. Cumleler acigin TERSINI ya da alakasiz bir seyi soyler.
+# 🔴 NEDEN TEK IDDIADA TOPLANDI: her satir _FIKSTURLER'e ayri girseydi AYRI birer
+# iddia olurlardi ve F ekseninin TEK-KIRMIZI sozlesmesi bozulurdu — ayni yonde
+# bozan tek bir mutant (or. MUT-F-GENIS) birden cok iddiayi birden dusururdu ve
+# batarya artik "hangi eksen olctu" sorusunu CEVAPLAYAMAZDI.
+# 🔴 HICBIRI TRUE BEKLEMEZ (bilincli): F'in TRUE bekleyen tek iddiasi F1'dir. Ikinci
+# bir TRUE satiri, F'i koreltebilen HER mutantin (MUT-F-KOR) iki iddiayi birden
+# dusurmesi demekti. "Ek almis mesru vurus KIRMIZI kalir" sarti bu yuzden F1'in
+# govdesine capalandi, buraya DEGIL.
+_F_EK_MASUM = (
+    "Bu tuzak YAPISAL OLARAK imkansizdir; eski surumde uygulanmadi.",
+    "Kalan pay etkisizdir; karar bekliyor.",
+    "Girdi hatasizdir; henuz ikinci bir kol eklenmedi.",
+    "Bu ikinci kontrol gereksizdir; ertelendi.",
+    "Ust tavan sinirsizdir; bu tura alinmadi.",
 )
 
 # YUZEY fiksturleri: ISLEVI GEREGI TASINAN AD ile ANLATILAN TOPOLOJI ayrimi.
@@ -780,6 +855,16 @@ def _kendini_test():
         sonuclar.append((etiket, bulundu == beklenen,
                          "eksen %s / yuzey %s beklenen=%s olculen=%s"
                          % (kod, yuzey, beklenen, bulundu)))
+
+    # --- IDDIA-F3 (11 Agu 2026): TURKCE EK TUZAGI. "-sizdir" ile biten masum sifatlar
+    #     ZAYIFLIK SAYILMAZ. Kumenin her satirinda GERCEK bir _F_KAPANMAMIS jetonu
+    #     VARDIR — daraltma olmasaydi HEPSI kirmizi yanardi (kapinin kendi vakasi: bir
+    #     mutasyon aracinin "... YAPISAL OLARAK imkansizdir" cumlesi yayini durdurdu).
+    #     Sapan satirlarin METNI BASILMAZ, SAYISI basilir (maske disiplini).
+    ek_sapan = [m for m in _F_EK_MASUM if "F" in _eksen_isabetleri(m, ANLATIM)]
+    sonuclar.append(("IDDIA-F3 turkce-ek-masum-kelime-yesil", not ek_sapan,
+                     "'-sizdir' ile biten masum kelime ZAYIFLIK sayilmamali "
+                     "(sapan=%d/%d)" % (len(ek_sapan), len(_F_EK_MASUM))))
 
     # --- YUZEY ayrimi (4 iddia): AYNI cumle yorumda ANLATIM, calisan ifadede ICRA ---
     js = _yuzey_haritasi("uydurma/ornek.js", _JS_FIKSTUR)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """tools/spec-ifsa-mutasyon-test.py — tools/spec-ifsa-kapisi.py KABUL BATARYASININ
-MUTASYON SURUCUSU. Kapinin 22 beyan edilmis iddiasinin her birinin AYIRT EDICI bir
-mutantla OLDURULEBILDIGINI olcer.
+MUTASYON SURUCUSU. Kapinin BEYAN EDILMIS iddialarinin (bugun 28) her birinin AYIRT
+EDICI bir mutantla OLDURULEBILDIGINI olcer.
 
 NEDEN VAR ([[mutasyon-kaniti-yeniden-uretilebilir]]): "batarya kostu" iddiasi KANIT
 DEGILDIR; surucu depoda DURMALI ve yeniden kosulabilmelidir. Kabul, cikis kodu degil
@@ -32,7 +32,9 @@ sys.dont_write_bytecode = True
 
 KAPI = "tools/spec-ifsa-kapisi.py"
 MODUL = "tools/git_ortami.py"   # kapinin import ettigi TEK KAYNAK (kopyayla tasinir)
-BEKLENEN_IDDIA_SAYISI = 27  # 22 taban + KOK ekseni 3 ("yanlis agacta yesil" 2 + kanca/worktree 1) + EKO 2
+# 22 taban + KOK ekseni 3 ("yanlis agacta yesil" 2 + kanca/worktree 1) + EKO 2
+# + F ek tuzagi 1 (11 Agu 2026: Turkce "-sizdir" sol kelime siniri)
+BEKLENEN_IDDIA_SAYISI = 28
 
 
 # (mutant_adi, eski_metin, yeni_metin, dusmesi_beklenen_TEK_iddia)
@@ -88,10 +90,22 @@ MUTANTLAR = (
      "    return _iddia(bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir)\n"
      "                       and False))",
      "IDDIA-F1"),
+    # 🔴 MUT-F-GENIS TEK TARAFLIDIR (11 Agu 2026'da `or`dan degistirildi): iki isaret
+    # sartini KALDIRIR ama yalniz ZAYIFLIK ayagini birakir. `or` varyanti IDDIA-F2 ile
+    # BIRLIKTE IDDIA-F3'u de dusuruyordu (F3 satirlarinin hepsi GERCEK bir KAPANMAMIS
+    # jetonu tasir — tasimasalardi daraltmayi OLCEMEZLERDI), yani TEK-KIRMIZI
+    # sozlesmesini bozuyordu. Olculen sey ayni: "iki isaret de ZORUNLU" iddiasi.
     ("MUT-F-GENIS",
      "    return _iddia(bool(_F_ZAYIFLIK.search(satir) and _F_KAPANMAMIS.search(satir)))",
-     "    return _iddia(bool(_F_ZAYIFLIK.search(satir) or _F_KAPANMAMIS.search(satir)))",
+     "    return _iddia(bool(_F_ZAYIFLIK.search(satir)))",
      "IDDIA-F2"),
+    # MUT-F-BAS-SINIR-KOR: 11 Agu 2026 DARALTMASINI geri alir (sol kelime siniri
+    # bosaltilir) -> "-sizdir" ile biten masum Turkce sifatlar yeniden ZAYIFLIK sayilir.
+    # Daraltma FAIL-OPEN yondedir; kabul bu yuzden mutasyonla verilir. IDDIA-F1 sol
+    # sinirdan BAGIMSIZDIR (sinir kalkinca da vurur), IDDIA-F2 zaten KAPANMAMIS jetonu
+    # tasimaz -> TEK KIRMIZI: IDDIA-F3.
+    ("MUT-F-BAS-SINIR-KOR", '_BAS_SINIR = r"(?<![^\\W_])"', '_BAS_SINIR = r""',
+     "IDDIA-F3"),
     # --- BEYAN yuzeyi (konfigurasyon) ---
     ("MUT-BEYAN-KOR", '    ("A", "depolama-kovasi", _eksen_a, (ANLATIM, BEYAN)),',
      '    ("A", "depolama-kovasi", _eksen_a, (ANLATIM,)),', "IDDIA-BEYAN1"),
