@@ -634,8 +634,8 @@
     var i;
     var ovr = urun.tavsiyeFilament;
     if (ovr) {
-      /* 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed; ureteç tarafi
-         filament_ortak.tavsiyeler ile AYNI kural). Alan DIZI olmak zorundadir.
+      /* 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed; ureteç tarafindaki
+         turetme kuraliyla AYNI). Alan DIZI olmak zorundadir.
          Kategori haritasina DUSULMEZ: dusulseydi alani bozuk urun sessizce
          %30-60 zamlanirdi. */
       if (!Array.isArray(ovr)) { return guvenli; }
