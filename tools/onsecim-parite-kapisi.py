@@ -71,10 +71,66 @@ FIKSTURLER = [
      "bekle": "ASA"},
     {"id": "mitsubishi-klima-kumanda-standi", "ad": "PLA onerisi (fark %0)",
      "bekle": "PLA"},
-    # Onerisi TURETILEMEYEN urun (alan bicimi bozuk): guvenli varsayilana dusmeli.
-    {"id": "mitsubishi-4g63-eksantrik-mili-kilit-aparati", "ad": "onerisi YOK (guvenli)",
-     "bekle": None},
 ]
+
+# ---------------------------------------- onerisi TURETILEMEYEN urun (guvenli varsayilan)
+# 🔴 NEDEN ID'YE CIVILENMEZ (olculdu 11 Agu — YAYIN DURDU): bu eksen once
+# `mitsubishi-4g63-eksantrik-mili-kilit-aparati` ID'sine civilenmisti. O kayitta
+# `tavsiyeFilament` DIZE ("PETG") idi, yani oneri TURETILEMIYORDU. Katalog tarafi
+# 177469421 ("Filament önerisi alan türlerini düzelt") ile 293 kayitta alani DIZIYE
+# cevirdi (["PETG"]) -> denek oneri TASIR hale geldi, SINIF DISI kaldi ve kapi
+# `serit-a3`te kirmizi yandi. IDDIA dogruydu, DENEK bayatlamisti
+# ([[envanter-drift-parti-basina]]: elle tutulan denek listesi her katalog partisinde
+# bayatlar). Denek bu yuzden her kosumda VERININ OZELLIGINDEN turetilir:
+#   KRITER (BAGIMSIZ, fonksiyonun ciktisi DEGIL — o tautoloji olurdu):
+#   `tavsiyeFilament` alani DOLU ama icindeki adlarin HICBIRI sitede satilan
+#   malzeme listesinde YOK -> oneri turetilemez.
+# Boyle bir kayit katalogda kalmazsa eksen ATLANMAZ (atlanmasi sessiz yesil olurdu):
+# gercek bir sabit-fiyatli kayittan SENTETIK denek turetilir (alan sitede satilmayan
+# bir ada ayarlanir) ve eksen aynen olculur.
+_SENTETIK_ONERI = "ABS"          # gercek muhendislik malzemesi, sitede SATILMIYOR
+
+
+def _turetilemeyen_fikstur(urunler):
+    site_adlar = {f["ad"] for f in filament_ortak.referans()["filamentler"]
+                  if f.get("site")}
+
+    def sabit_kol(p):
+        """Kuralin uygulandigi kol: sabit fiyatli, fiyati ayristirilabilen,
+           malzeme secicisi BASILAN (fonksiyonel kategori) katalog kaydi."""
+        return (not build.fiziksel_mi(p) and not p.get("parametrik")
+                and not p.get("konfigur")
+                and p.get("kategori") in build.FONKSIYONEL_KATEGORILER
+                and build.feed_price((p.get("fiyat") or "").strip()))
+
+    def turetilemez(p):
+        ovr = p.get("tavsiyeFilament")
+        if not ovr or not isinstance(ovr, list):
+            return bool(ovr)          # bos olmayan NON-LIST de turetilemez sinifidir
+        return not [a for a in ovr if a in site_adlar]
+
+    adaylar = sorted([p for p in urunler if sabit_kol(p) and turetilemez(p)],
+                     key=lambda x: x["id"])
+    if adaylar:
+        p = adaylar[0]
+        print("     onerisi TURETILEMEYEN denek KATALOGDAN: %s (tavsiyeFilament=%s, "
+              "sinifta %d kayit)"
+              % (p["id"], json.dumps(p.get("tavsiyeFilament"), ensure_ascii=False),
+                 len(adaylar)))
+        return {"id": p["id"], "urun": p, "ad": "onerisi YOK (guvenli)", "bekle": None}
+
+    taban = next((p for p in urunler if sabit_kol(p)), None)
+    if taban is None:
+        return None
+    if _SENTETIK_ONERI in site_adlar:
+        kontrol(False, "sentetik denek adi %r artik SITEDE SATILIYOR — denek sinif "
+                       "disi kaldi, ad degistirilmeli" % _SENTETIK_ONERI)
+        return None
+    p = dict(taban)
+    p["tavsiyeFilament"] = [_SENTETIK_ONERI]
+    print("     onerisi TURETILEMEYEN denek SENTETIK (katalogda sinif kalmadi): "
+          "%s + tavsiyeFilament=[%r]" % (p["id"], _SENTETIK_ONERI))
+    return {"id": p["id"], "urun": p, "ad": "onerisi YOK (guvenli)", "bekle": None}
 
 HATALAR = []
 OLCULEMEDI = []
@@ -274,10 +330,18 @@ def bolum_2_3(gecici, urunler):
     build.VARLIK_DIR = os.path.join(gecici, "varlik")
     build._VARLIK_ONBELLEK = {}
 
+    fiksturler = list(FIKSTURLER)
+    guvenli_fx = _turetilemeyen_fikstur(urunler)
+    if guvenli_fx is None:
+        kontrol(False, "onerisi TURETILEMEYEN denek uretilemedi — guvenli varsayilan "
+                       "ekseni HIC olculmedi (sessiz yesil yasak)")
+    else:
+        fiksturler.append(guvenli_fx)
+
     print("\n(2) BAYRAK KAPALI — bugunku davranis (on-secim guvenli, tutar liste tutari)")
     build.ONERI_ONSECIM_ACIK = False
-    for fx in FIKSTURLER:
-        p = ix.get(fx["id"])
+    for fx in fiksturler:
+        p = fx.get("urun") or ix.get(fx["id"])
         if not p:
             olculemedi("fikstur katalogda YOK: %s" % fx["id"])
             continue
@@ -291,8 +355,8 @@ def bolum_2_3(gecici, urunler):
     print("\n(3) BAYRAK ACIK — sayfa · yapilandirilmis veri · sepet · sunucu KURUS KURUS")
     build.ONERI_ONSECIM_ACIK = True
     try:
-        for fx in FIKSTURLER:
-            p = ix.get(fx["id"])
+        for fx in fiksturler:
+            p = fx.get("urun") or ix.get(fx["id"])
             if not p:
                 continue
             ad = fx["ad"]
@@ -397,6 +461,18 @@ MUTANTLAR = [
      "tools/filament_ortak.py",
      "        if ad in katsayi_adlari:\n            return ad\n    return guvenli",
      "        return ad\n    return guvenli", 1),
+    # N9 = onerisi TURETILEMEYEN denegin BEKCISI. Denek her kosumda katalogdan
+    # turetilir; bu mutant o turetmenin TAUTOLOJI OLMADIGINI kanitlar: alani dolu
+    # ama adlari sitede satilmayan urun, elenen override'dan sonra kategori
+    # haritasina DUSERSE sessizce %30 zamlanir. Denek gercekten sinifta ise bu
+    # mutant KIRMIZI yakar; denek bayatlar/sinif disi kalirsa N9 YESILE doner ve
+    # bayatlama bir sonraki kosumda GORULUR (sessiz kalamaz).
+    ("N9", "elenen oneri kategori haritasina DUSUYOR (bozuk alanda sessiz zam)",
+     "tools/filament_ortak.py",
+     '        return [{"ad": a, "rozet": "Tavsiyemiz"} for a in override '
+     'if a in site_adlar]',
+     '        _o = [{"ad": a, "rozet": "Tavsiyemiz"} for a in override '
+     'if a in site_adlar]\n        if _o:\n            return _o', 1),
     ("N8", "bayrak kapaliyken kural yine de uygulaniyor (habersiz zam)",
      "tools/filament_ortak.py",
      "    if not acik:\n        return guvenli",

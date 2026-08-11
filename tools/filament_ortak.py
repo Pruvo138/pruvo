@@ -46,6 +46,16 @@ def tavsiyeler(kategori, override=None):
     ref = referans()
     site_adlar = {f["ad"] for f in ref["filamentler"] if f.get("site")}
     if override:
+        # 🔴 BICIMI TANINMAYAN ALAN -> ONERI TURETILEMEZ (fail-closed, ikiz tanim).
+        # Alan LISTE olmak zorundadir. Katalogda alan bir donem DIZE ("PETG") tasidi;
+        # o durumda hem burasi hem istemci (secenekler.js onSecimMalzeme) KARAKTER
+        # KARAKTER geziyor ve tesadufen bos liste uretiyordu — dogru sonuc, YANLIS
+        # sebep. Sozluk gibi baska bir tur gelseydi Python ANAHTARLARI gezip "PETG"
+        # bulur, JS ise `length` goremeyip guvenli varsayilana duserdi: iki dil
+        # sessizce ayrisirdi. Bos liste donmek kategori haritasina DUSMEK DEGILDIR
+        # (dusulseydi alani bozuk urun sessizce %30 zamlanirdi).
+        if not isinstance(override, list):
+            return []
         return [{"ad": a, "rozet": "Tavsiyemiz"} for a in override if a in site_adlar]
     kategori = _KATEGORI_ALIAS.get(kategori, kategori)
     out = []
