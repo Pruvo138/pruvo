@@ -155,6 +155,82 @@ def mod_yuzey():
     return 0
 
 
+# --------------------------------------------------------------------------- katki
+# Bu daldaki kapi ile GUNCEL origin/main'in kapisi AYNI kod tabaninda (main'in build.py'si)
+# yan yana kosturulur; degisen tek sey KAPIDIR. "Dal dogru mu" degil "dal main'e BUGUN ne
+# KATIYOR" sorusunun olcumu. Her satir bir EKSEN; ikisi de kirmizi = katki YOK.
+KATKI_EKSENLERI = [
+    ("build.py", 'fiziksel = (p.get("tur") == "fiziksel")', "fiziksel = False",
+     "M1 kosul daima yanlis"),
+    ("build.py", 'fiziksel = (p.get("tur") == "fiziksel")', "fiziksel = True",
+     "M2 kosul daima dogru"),
+    ("build.py",
+     """                fiyat_blok=fiyat_satiri(
+                    eski_html,
+                    '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % baslangic_fiyat))""",
+     '                fiyat_blok="")',
+     "(a) fiyat YUZEYI tumden dusuruldu"),
+    ("build.py", "            baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0))",
+     "            baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0 + 1))",
+     "(b) tutar 1 TL kaydi — BICIM AYNI"),
+    ("build.py", "            baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0))",
+     '            baslangic_fiyat = esc(fiyat) + "&#39;den başlayan"',
+     "(c) statik tutar liste tutarinda (kardes N5)"),
+    # Asagidaki IKI eksen MESRU degisikliktir: davranis BOZULMAZ. Dogru kapi YESIL kalmali;
+    # kirmizi yanan kapi bicime/deftere bagli demektir (YANLIS POZITIF).
+    ("build.py", '    return tam + "," + kusur + " TL"', '    return tam + "." + kusur + " TL"',
+     "(d) MESRU: bicimlendirici ondalik ayraci degisti"),
+    ("secenekler.js", "  var ONERI_ONSECIM_ACIK = true;", "  var ONERI_ONSECIM_ACIK = false;",
+     "(e) MESRU: on-secim bayragi geri kapandi"),
+]
+
+
+def mod_katki():
+    """Dal kapisi vs main kapisi — mutant oldurme paritesi + yanlis pozitif ekseni."""
+    dal_kapi = os.path.join(TOOLS, "fiziksel-urun-kapisi.py")
+    print("=== KATKI OLCUMU (kod tabani: origin/main; degisen YALNIZ kapi)")
+    print("%-46s %-9s %-9s %s" % ("eksen", "MAIN", "DAL", "HUKUM"))
+    fark = []
+    for dosya, eski, yeni, ad in [(None, None, None, None)] + KATKI_EKSENLERI:
+        kok = _agac("origin/main")
+        try:
+            if ad is not None:
+                hedef = os.path.join(kok, dosya if dosya != "build.py" else "tools/build.py")
+                with open(hedef, encoding="utf-8") as f:
+                    src = f.read()
+                if src.count(eski) != 1:
+                    print("%-46s CAPA YOK/COKLU (%d)" % (ad, src.count(eski)))
+                    continue
+                with open(hedef, "w", encoding="utf-8") as f:
+                    f.write(src.replace(eski, yeni, 1))
+            m_rc, _ = _kapi(kok, "fiziksel-urun-kapisi.py")
+            shutil.copyfile(dal_kapi, os.path.join(kok, "tools", "dal-kapisi.py"))
+            d_rc, _ = _kapi(kok, "dal-kapisi.py")
+            etiket = ad or "TABAN (mutantsiz)"
+            mesru = etiket.startswith(("(d)", "(e)")) or ad is None
+            if mesru:
+                hkm = ("ikisi de dogru sessiz ✔" if not m_rc and not d_rc else
+                       "DAL YANLIS KIRMIZI ✘" if d_rc and not m_rc else
+                       "MAIN YANLIS KIRMIZI ✘" if m_rc and not d_rc else
+                       "ikisi de yanlis kirmizi ✘")
+            else:
+                hkm = ("ikisi de yakaliyor" if m_rc and d_rc else
+                       "MAIN KACIRIYOR ← katki" if d_rc and not m_rc else
+                       "DAL KACIRIYOR" if m_rc and not d_rc else "IKISI DE KACIRIYOR")
+            if ("katki" in hkm) or ("✘" in hkm):
+                fark.append("%s: %s" % (etiket, hkm))
+            print("%-46s rc=%-6d rc=%-6d %s" % (etiket, m_rc, d_rc, hkm))
+        finally:
+            shutil.rmtree(kok, ignore_errors=True)
+    print("\n=== FARK OZETI")
+    if not fark:
+        print("  FARK YOK — dal main'e olculebilir bir sey KATMIYOR.")
+    else:
+        for f in fark:
+            print("  - " + f)
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="N1 ilan fiyati teshis surucusu")
     ap.add_argument("--suclu", nargs="+", metavar="SHA",
@@ -163,6 +239,8 @@ def main():
                     help="'onarim'i deneyip iki kapinin celiskisini olcer")
     ap.add_argument("--yuzey", action="store_true",
                     help="bugunku ilan fiyati bicimini doker")
+    ap.add_argument("--katki", action="store_true",
+                    help="dal kapisi vs origin/main kapisi — mutant oldurme paritesi")
     a = ap.parse_args()
     if a.suclu:
         return mod_suclu(a.suclu)
@@ -170,6 +248,8 @@ def main():
         return mod_celiski()
     if a.yuzey:
         return mod_yuzey()
+    if a.katki:
+        return mod_katki()
     ap.print_help()
     return 0
 
