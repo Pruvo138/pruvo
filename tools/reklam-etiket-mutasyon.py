@@ -23,6 +23,7 @@ KABUL (iki yonlu):
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -40,9 +41,42 @@ def _izlenen(desen):
     return [s for s in sonuc.stdout.splitlines() if s.strip()]
 
 
+DAVRANIS_TESTI = "tools/reklam-url-test.js"
+
+
+def _js_bagimliliklari(giris):
+    """`giris`ten baslayarak YEREL `require("./...")` grafini KAPANANA KADAR izle.
+
+    🔴 NEDEN TURETILIYOR (11 Agu, olculdu): burada eskiden ELLE yazilmis bir liste vardi
+    (`["tools/reklam-url-test.js"]`). Davranis testi yeni bir yerel modul ithal edince
+    (tools/ortak-index-esleme.js) o modul aynaya KOPYALANMADI; test sentetik agacta
+    `Cannot find module` ile coktu ve batarya "TABAN KIRMIZI" diyerek rc=1 verdi —
+    kapinin kendisi YESIL'ken. Ayni sinif bu depoda daha once de vurdu (kancaya adim
+    eklenince kardes kapilarin elle tutulan arac listesi bayatladi).
+    Evren artik AD DESENINDEN degil, ithalat grafindan turer: liste bayatlayamaz."""
+    kalan, gorulen = [giris], []
+    while kalan:
+        rel = kalan.pop()
+        if rel in gorulen:
+            continue
+        gorulen.append(rel)
+        yol = os.path.join(KOK, rel)
+        if not os.path.isfile(yol):
+            continue
+        with open(yol, encoding="utf-8") as f:
+            metin = f.read()
+        for hedef_rel in re.findall(r"""require\(\s*["'](\./[^"']+)["']\s*\)""", metin):
+            aday = os.path.normpath(os.path.join(os.path.dirname(rel), hedef_rel))
+            if not os.path.splitext(aday)[1]:
+                aday += ".js"
+            if aday not in gorulen:
+                kalan.append(aday)
+    return gorulen
+
+
 def ayna_kur(hedef):
-    """Izlenen .py + .html + davranis testini gecici agaca kopyala, git deposu yap."""
-    for rel in _izlenen("*.py") + _izlenen("*.html") + ["tools/reklam-url-test.js"]:
+    """Izlenen .py + .html + davranis testi ve YEREL ithalatlarini gecici agaca kopyala."""
+    for rel in _izlenen("*.py") + _izlenen("*.html") + _js_bagimliliklari(DAVRANIS_TESTI):
         kaynak = os.path.join(KOK, rel)
         if not os.path.isfile(kaynak):
             continue
