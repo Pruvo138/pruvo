@@ -96,7 +96,7 @@ runway bırakıyor), bu belgeden değil.
 
 ## 6. TESLİM
 
-- Dal: `muh/ozet-butce-payi`. Rapor: dalda `RAPOR-MIMARA.md` (başka ad YASAK, izlenen bırakılmaz).
+- Dal: `muh/ozet-butce-payi`. Rapor: dalda, kanonik rapor adıyla (ad CLAUDE.md İLETİŞİM PROTOKOLÜ'nde tanımlı; başka ad YASAK, izlenen bırakılmaz).
 - Rapor FAZ 1 tablosunu, seçilen kolu ve GEREKÇESİNİ, kabul maddelerinin çıkış kodlarını
   sayıyla taşır. Ölçülemeyen madde "yeşil" değil **ÖLÇÜLEMEDİ + sebep** yazılır.
 - Merge KraL'da, `skill: merge-kapisi` ile.
