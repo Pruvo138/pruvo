@@ -1,73 +1,5 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🔚 OTURUM KAPANISI — 11 Agu 2026 ~16:3xZ (KraL, mimar oturumu; nobet turlari ayri)
-
-**CANLIYA GITTI:**
-- `198db566` anlatim-yuzeyi nobetcisinin **EKSEN-F yanlis-pozitif SINIFI kapandi**: desen
-  secenekleri kelime SINIRSIZDI, `-sizdir` ile biten masum Turkce sifatlar desenin ICINDE
-  esliyordu. SOL sinir tek kaynaktan kondu; SAG sinir BILEREK YOK (Turkce sondan eklemelidir),
-  sinir `\b` DEGIL (alt cizgi kelime karakteri). Olculdu: eksenin ilk ayagi 762 → 622 satir,
-  yalniz eski desenin vurdugu **140 satirin tamami** ek tuzagi; IKI isaretli TAM hukum eski de
-  yeni de **0 isabet** → gercek bulgu DUSMEDI. Kabul mutasyonla: IDDIA-F3 + daraltmayi geri
-  alan MUT-F-BAS-SINIR-KOR; genisleme mutanti tek tarafliya cevrildi. Iddia 27 → 28, batarya
-  28/28 tek kirmizi + kontrol yesil.
-- `10e63a5f` yayin ic-dil kapisi KAYNAK kolu: musteriye giden dosyanin yorumundan ic modul adi
-  cikarildi (KOD DEGISMEDI; kapi rc=0 · `node --check` rc=0 · parite 1328 sorgu birebir).
-
-**✅ ODEME WORKER'I YAYINLANDI** (Okan'in acik talimati: "once kontrol, sonra deploy").
-`pruvo-shop` = `5c2089ee-…`, deploy edilen agac tepe `35de6880`. Kontrol deploy'u IKI kez
-durdurdu: bir bundle girdisi baska oturumun yarim isini tasiyordu (kapi rc=2 OLCULEMEDI) ve
-bloklayici seritler kirmiziydi. Yesil kosul `d27a8e06`'da **6/6 job success** (deploy+yayin
-fiilen KOSTU) olculunce deploy edildi. SONRASI: bayatlik **TAZE rc=0**, yayinlanmamis bundle
-commit **0**, yas 284,3 → **0,0 dk** → Okan'da 4 turdur bekleyen `bayatlik` kalemi KAPANDI.
-
-**Bu turda:** zincirde 4 kirmizi kapandi, yalnizca 1'i bende (`secenekler.js` ic modul adi);
-digerleri sahiplerince — ucu de tek satirlik metin sinifiydi ve yayini TOPLU durduruyordu.
-Urun verisine DOKUNULMADI · yabanci commit'lenmemis degisikliklere dokunulmadi (guard tuzagi:
-yarim katalog partisi inene kadar beklendi) · acilan worktree ayni turda kapatildi · push bir
-kez reddedildi, fetch+merge ile alindi, `--force` YOK.
-
-**Sonraki turun ILK ISI:** (a) DEVREDILEN 1 (kardes-depo on kosuluna bagli kol) — serit karari
-KraL'da, sinif kapatilmadan yayin inmez; (b) canli surum `5c2089ee` degisti mi — degistiyse
-yesili SAHIPLENME; (c) Okan'daki kararlardan **#2 KAPANDI**, 1/3/4 ACIK + merge bekleyen 2 uzak
-dal ACIK.
-
-## 🕐 CI NOBETI — 11 Agu 2026 19:37 yerel / 16:37Z turu (KraL)
-
-**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🔴 SUPURME=ALARM rc=1 → TUR KIRMIZI (0.4 kurali).** Sabit kosucu isciye kosturuldu; betik
-YAZILMADI/DUZENLENMEDI, alarm gorulunce supurme TEKRAR KOSULMADI, teshis/onarima GECILMEDI.
-Betigin bastigi satirlar oldugu gibi: `GITHUB_BILDIRIM_INBOX=8 · BULUNAN=8 · TASINAN=8 ·
-ATLANAN=0 · CIKAN=7 · KOMSU_KAYIP=1 · KUME_DIFF=OLCULDU · KALAN=1 ·
-COP_IZI=29:2026-08-11T19:37:32 · HUKUM=OLCULEMEDI`. Alarm metni: `ALARM KOMSU_KAYIP=1 — Cop'e
-hedef disi kimlik dustu`; kimlik bir github **check-suite** kimligi
-(`…/check-suites/CS_kwDOTQTiEc8AAAAT5xgKKg/1786466230`, kuyruk kirpildi). Bu, uc fail-closed
-alarmdan **KOMSU_KAYIP kolunun ilk kez tutmasidir** (onceki iki turda sessizdi; 14:37Z turunun
-rc=1'i `KALAN=4` kaynakliydi). Kosucunun rc'si yutulmadi, olcum aynen yukarida.
-⚠️ **Isci oz-raporu GUVENILMEZ cikti:** son mesajinda ADIM 1 icin `OLCULEMEDI`/`YOK` yazdi,
-oysa ayni koşumun ham ciktisi rc=1 ve yukaridaki sayilarin tamamini basmisti — hukum ham
-ciktidan alindi, oz-rapordan DEGIL.
-
-**🟠 Cop denetimi (salt okuma): 32 kayit — MESRU=29, YANLIS=3.** Ucu de **onceki turdan bilinen
-AYNI kalem** (16:54, reklam-platformu bildirimi; Cop id `68047/68048/68049`), sayi ARTMADI ve
-id'leri bu turun kayitlarindan (`68076…68106`) KUCUK → bu turun supurmesine ATFEDILMEZ.
-**Siparis/odeme ekseninde Cop'te kayit YOK.** Kendiliginden geri alma YAPILMADI (kurtarma yolu
-ELLE ve Okan karari).
-
-**CI (salt olcum; onarim YAPILMADI — tur alarm nedeniyle kirmizi):** tepe head `5bd2fb1d`,
-`Build & deploy` `31513339498` **pending** (yesil YAZILMAZ). Kirmizilar: `Paket tazeligi alarmi`
-`31513300170` · `D1 uzlastirici` `31512483806` — ikisi de `deploy`/`yayin` zincirinin DISINDA,
-yayini BLOKLAMAZ. DEVREDILEN 1-4 kalemleri hala ACIK.
-
-**Bu turda:** urun verisine dokunulmadi · deploy YAPILMADI · worktree ACILMADI · kod commit'i
-YAPILMADI · yabanci degisikliklere DOKUNULMADI. Isciye 2 cagri (1 supurme + 1 defter tasima).
-
-**Sonraki turun ILK ISI:** (a) KOMSU_KAYIP kimliginin sinifini **salt okuma** ile belirle
-(github `Run failed` mi degil mi) — kurtarma ELLE, Okan karari; supurme yeniden kosulabilir;
-(b) `31513339498`'i JOB birimiyle kapat; (c) DEVREDILEN 1 (E10 kardes-depo kolu) serit karari
-KraL'da; (d) `bayatlik` yas serisi + `canli KOD surumu` degisti mi.
-
 ## 🕐 CI NOBETI — 11 Agu 2026 21:38 yerel / 18:38Z turu (KraL)
 
 **Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
@@ -111,6 +43,108 @@ izlenmeyen yarim isi, DOKUNULMADI. Kanca atlama denenmedi, kapi gevsetilmedi. De
 kapat; (b) KOMSU_KAYIP alarmi 3 turdur ayni desende tutuyor — sinif karari Okan'a soruldu,
 cevap gelene dek supurme betigine DOKUNMA; (c) DEVREDILEN 1 (E10 kardes-depo kolu) serit karari
 KraL'da; (d) `bayatlik` yas serisi + canli KOD surumu degisti mi.
+
+## 🔀 MERGE — 11 Agu 2026 19:2xZ (CTA masaustu fit-content dali, isci turu)
+
+**MAIN'E ALINDI: `f4caf59f`** (merge commit) · dal ucu `547bff87` · merge-base `5d218a2e`.
+Kapsam merge-base'den olculdu: **4 dosya, +85/-34** — `tools/build.py`, `tools/cta-denge-kapisi.py`,
+`tools/cta-denge-mutasyon.py`, `tools/varlik-test.py`. `index.html`/urun verisi/rapor dosyasi diff'te
+YOK; dal urun verisine **0 ekleme / 0 silme** yapti (25770 = 25770). Cakisma on-testi tek agac OID
+(cakisma YOK); **FF-ONLY IMKANSIZ** olctu (is-ancestor rc=1) → merge commit'i ile alindi.
+
+**Kapilar DALIN worktree'sinde kosuldu, exit kodlari gorulerek:** cta-denge-kapisi **rc=0**
+(ORAN=1.05 · BANT_URUN=0.075 · BANT_ANA=0.075) · cta-denge-mutasyon **rc=0** (MUTANT=15/15, iki
+kontrol yesil, canli agac bayt-birebir) · varlik-test **rc=0** (10 eksen) · kategori-parite **rc=0** ·
+ci-kapsam-test **rc=0** · kapi-envanteri **rc=0** (7/7) · yasal-sayfa-drift **rc=0** (0/4 sapma).
+
+**Iki kirmizi olculdu; ikisi de bu dalin DISINDA — tarihle ayrildi, "baseline" DENMEDI:**
+- `parite-test.js` **rc=1** (yerel 25827 · uc 25712 · 115 fark). Sapan ornek **10 id'nin 10'u da**
+  dalin tabaninda YOK, hepsi tabandan SONRA giren urun partisiyle geldi; dal arama duzlemine
+  dokunmuyor → **KAPSAM DISI**. D1'in KENDISI sayi ekseninde 25827 = 25827 dogruladi, yani satir
+  D1'de VAR, gormeyen **uc**. 🔴 **ACIK KALEM, bu turun isi degil (urun/uc duzlemi).**
+- `ci-kapsam-test` ANA checkout'ta **rc=1** — tek sorun hic commit'lenmemis YABANCI bir calisma
+  dosyasi; ayni kapi dalin agacinda rc=0. Dosyaya DOKUNULMADI.
+
+**Push:** pre-push kancasi ayni yabanci dosya yuzunden durdurdu (kanca push icerigini degil
+CALISMA AGACINI tariyor; gonderilen icerik 4 dosyaydi). Yabanci dosyaya dokunmak yasak oldugu icin
+kancanin kendi belgeledigi istisna yolu kullanildi — **ayrinti + gerekce DEVAM-ARSIV.md'de**
+(onceki tur ayni kapida push'u bekletmeyi secmisti; sinif AYNI, karar farkli). `--force` YOK · `pull --rebase`
+YOK · ana agacta `add`+`commit` YOK · yabanci ` M`/untracked dosyalara DOKUNULMADI.
+
+**Merge sonrasi:** `d1-sync --durum` SAYI (25827=25827) · SEQ · SEMA · TURETILMIS KOLON yesil;
+**ICERIK (urun_hash) ekseni OLCULEMEDI** (wrangler npm ETARGET — arac arizasi, "basari sayilmaz"
+dedi) — merge ONCESI kosumda ayni eksen birebirdi (eksik 0 · uyusmaz 0) ve merge urun verisine
+dokunmadi.
+
+**🔴 MERGE CI'DA KIRMIZI YAKTI — SEBEP BU DALDI, KACIRILAN KARDES BATARYA.** `f4caf59f` kosumu
+(`31527715768`) FAILURE: `serit-a3` / **"Varlik ... kabul testi + mutasyon nobeti"**. O CI adimi
+IKI komut kosuyor; ikincisi **`tools/varlik-mutasyon.py`** idi ve ne muhendisin raporunda ne de
+merge kapisi §4 listemde vardi — `varlik-test.py` kosuldu, KARDESI kosulmadi. Hata tam olarak
+dalin `cta-denge-mutasyon.py`'de duzelttigi sinifin AYNISI, kardes dosyada: N1 mutantinin capasi
+eski `min-width:210px` dizesine kilitliydi, dal o dizeyi kaldirinca capa **0 kez** esletti (1
+bekleniyordu) → mutant NO-OP → batarya fail-closed KIRMIZI. `build` job'i basariliydi (14m53s),
+kirmizi yalnizca bu adimdaydi.
+**DERS (kapi kusuru, mimara):** kabul testi degisince KARDES mutasyon bataryasi otomatik
+onerilmiyor — ne `dal-olc.py` ne gorev listesi `varlik-mutasyon.py`'yi andi; **tek CI adimini iki
+komut temsil ediyor** ve birini kosmak "yesil" izlenimi veriyor. **ONARIM BENDE DEGIL:** capayi
+baska oturum `c8b0451e` ile kapatti, yesili SAHIPLENMIYORUM; sonrasinda iki komut da yerelde rc=0
+(10 eksen · MUTANT=8/8). origin/main = `c8b0451e`, benim `f4caf59f`'im onun ATASI.
+Canli: CANLI_SATIRI.
+
+## 🕐 CI NOBETI — 11 Agu 2026 22:38 yerel / 19:38Z turu (KraL)
+
+**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**🟢 SUPURME rc=0 — HUKUM=SUPURULDU (askidan sonraki 2. temiz tur).** Sabit kosucu isciye
+kosturuldu; betik YAZILMADI/DUZENLENMEDI. Betigin bastigi satirlar oldugu gibi:
+`GITHUB_BILDIRIM_INBOX=5 · BULUNAN=5 · TASINAN=5 · ATLANAN=0 · CIKAN=5 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=43:2026-08-11T22:31:53 · HUKUM=SUPURULDU`. Uc fail-closed
+alarmin ucu de sessiz; tur sonu kutuda `Run failed` **0**.
+
+**🟠 Cop denetimi (salt okuma, rc=0): 45 kayit — MESRU=42, YANLIS=3.** Ucu de onceki UC turdan
+bilinen AYNI kalem (16:54, reklam-platformu bildirimi; id `68047/68048/68049`), sayi ARTMADI ve
+bu turun kayitlarindan (`68134…68137`) KUCUK. **Siparis/odeme ekseninde Cop'te kayit YOK.**
+Sinif karari Okan'da, cevap gelmedi → tekrar SORULMADI, kendiliginden geri alma YAPILMADI.
+
+**✅ SUPURME DEFTERI TAMAMI TARANDI — "yanlis silme" iddiasi makineyle CURUTULDU.**
+`mail-supurme.log` (6 Agu 18:17 → 11 Agu 19:38Z, **22 kosum**): `SILINEN_GITHUB_DISI=0` ·
+`META_IZI=0` → betigin sildigi HICBIR kayit github+`Run failed` disinda degil, ve Cop'teki 3
+yabanci kaydin defterde **hic izi yok**. `KOMSU_KAYIP` alarmi bugun 2 kez tuttu (16:39Z, 18:38Z);
+her ikisinde de "hedef disi" kimlik **yine bir github check-suite kimligi** — yani alarm mesru
+sinif icinde tuttu, yanlis sinif zarari **0**.
+
+**🔴 CI: `deploy` KIRMIZI OLCULDU → ONARIM DELEGE EDILDI → ONARIM MAIN'DE.** `31527715768`
+(`f4caf59f`) **FAILURE**, dusen adim `serit-a3 / Varlik ... kabul testi + mutasyon nobeti`
+(`build` ve `serit-a4` success). Kok neden: N1 mutantinin capasi `min-width:210px` dizesine
+kilitliydi, ayni commit o dizeyi kaldirinca capa 0 kez eslesti → mutant NO-OP → fail-closed
+kirmizi. Onarim `c8b0451e` (**2 satir**, `tools/varlik-mutasyon.py`): capa yeni CSS'e tasindi,
+mutasyon SINIFI korundu (`height:56px→57px`) — kapi gevsetilmedi, esik degismedi, adim silinmedi.
+Yerelde varlik testi 10 eksen + mutasyon **8/8** rc=0. Karar kosumu **`31531089183`** (`c8b0451e`)
+tur sonunda hala **UCUSTA** — yesil YAZILMAZ.
+
+**✅ "Paket tazeligi alarmi" sinifi KENDILIGINDEN KAPANDI:** `31529488161` (19:45Z) **success**;
+onceki kirmizisi (`31523722642`) "taranan 8 kosumda basarili `deploy` YOK" diyordu.
+
+**✅ "Yayin erisim alarmi" kirmizisi (`31528157635`) GECICI CIKTI — canli KAYIP YOK.** Alarm 11
+URL'i 404 olctu, ama uc bagimsiz ayak tersini gosterdi: (a) 404 gorulen sluglar `363a7e36`
+(SEO wave-34) ile geldi ve o commit, **TAM YESIL** biten `31525687626`'nin (`c8460b17`) atasidir;
+(b) uretim yolu ayrisMIYOR — `build.py` `CONTENT_PAGES` dongusu `/<slug>/index.html` uretiyor,
+`deploy.yml` ayni dizini `_site`'a kopyaliyor, wave-33 karsi ornegi ayni yoldan 200; (c) **canli
+yeniden yoklandi: `/slug/` 200 · `/slug.html` 404 · sitemap eslesmesi 1.** Alarm 19:30:01Z'de
+kosmus, ilgili deploy 19:34:53–19:35:24Z'de tamamlanmis → alarm **yayin inmeden ~4 dk once eski
+surumu** olctu. → `[[alarm-onarim-ucus-suresi]]` sinifinin yeni ornegi.
+🔧 **ONERI (uygulanmadi, KraL kuyrugunda):** erisim alarmi, uygulanabilir deploy tamamlanmadan
+hukum vermesin — o pencerede `KAPALI` degil **OLCULEMEDI** bassin.
+
+**Bu turda:** urun verisine dokunulmadi · worktree ACILMADI · deploy elle YAPILMADI · yabanci
+degisikliklere DOKUNULMADI (`d82c8874` sahibi tarafindan CI'a baglandi, kapsam kapisi blokaji
+boylece kalkti). Codex'e 5 cagri (supurme+Cop · defter olcumu · alarm kimlik olcumu · 404 teshisi
+· serit-a3 onarimi). Okan'a cikilmadi (rutin sonuc + zaten sorulmus soru).
+
+**Sonraki turun ILK ISI:** (a) **`31531089183`'u JOB birimiyle kapat** (`build` VE `deploy`/`yayin`
+success mi) — ucustaki kosum yesil DEGILDIR; (b) canliyi cache-bust'siz dogrula (11 SEO sayfasi +
+katalog sayisi); (c) erisim-alarmi OLCULEMEDI onerisini spec'e cevir; (d) DEVREDILEN 1 (E10
+kardes-depo kolu) serit karari KraL'da.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
