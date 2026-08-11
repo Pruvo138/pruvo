@@ -1154,32 +1154,69 @@ def mutasyon():
     with open(kaynak, encoding="utf-8") as f:
         govde = f.read()
 
+    # 🔴 KOSUM ORTAMI (olculdu, [[anahat-referans-tautolojisi]]): mutant kopyasi
+    # GECICI bir dizinde YAZILIR ve subprocess cwd=tmp'de calisir; kopyanin
+    # KENDI dizini Python'un sys.path[0]'u olur. Dosyanin en ustundeki
+    # `from git_ortami import sentetik_git` (plain import) bu yuzden GERCEK
+    # tools/git_ortami.py'yi bulamaz -> ModuleNotFoundError. Bu cokme
+    # MUTASYONDAN BAGIMSIZDIR (HER kopyayi ayni sekilde cokertir) ve "olcemedim"i
+    # "oldurdum" ile KARISTIRIR — [[mutasyon-kaniti-yeniden-uretilebilir]].
+    # Cozum: subprocess'e GERCEK tools/ dizinini iceren bir PYTHONPATH ver
+    # (--kok GERCEK depoyu gosterdigi gibi PYTHONPATH da GERCEK tools/'u
+    # gostersin).
+    ortam = dict(os.environ)
+    ortam["PYTHONPATH"] = os.pathsep.join(
+        [TOOLS] + ([ortam["PYTHONPATH"]] if ortam.get("PYTHONPATH") else []))
+
+    def _kendini_test_kostur(icerik, dizin):
+        mutant_yol = os.path.join(dizin, "mutant-devam-sinif-kapisi.py")
+        with open(mutant_yol, "w", encoding="utf-8") as f:
+            f.write(icerik)
+        return subprocess.run([sys.executable, mutant_yol, "--kendini-test",
+                               "--kok", ROOT],
+                              capture_output=True, text=True, cwd=dizin,
+                              env=ortam)
+
     hatalar = []
-    with tempfile.TemporaryDirectory() as tmp:
-        # Mutant AYRI bir dizinde kosar (canli dosyaya DOKUNULMAZ) ama --kok ile
-        # GERCEK depoyu olcer; boylece kirmizi/yesil hukmu MUTASYONDAN gelir,
-        # "yanlis dizinde kostum"dan degil.
-        for ad, eski, yeni, oldurucu in _MUTANTLAR:
-            if eski not in govde:
-                hatalar.append("%s: BAYAT MUTANT — capa metni bulunamadi: %r"
-                               % (ad, eski[:48]))
-                continue
-            mutant_yol = os.path.join(tmp, "mutant-devam-sinif-kapisi.py")
-            with open(mutant_yol, "w", encoding="utf-8") as f:
-                f.write(govde.replace(eski, yeni, 1))
-            r = subprocess.run([sys.executable, mutant_yol, "--kendini-test",
-                                "--kok", ROOT],
-                               capture_output=True, text=True, cwd=tmp)
-            kirmizi = (r.returncode != 0)
-            if oldurucu and not kirmizi:
-                hatalar.append("%s: OLDURUCU MUTANT HAYATTA KALDI (rc=0) — o eksen "
-                               "NOBETSIZ" % ad)
-            if (not oldurucu) and kirmizi:
-                hatalar.append("%s: ILGISIZ DEGISIKLIK KIRMIZI YANDI (rc=%d) — kapi "
-                               "asiri hassas\n%s" % (ad, r.returncode,
-                                                     r.stderr[-400:]))
-            print("  %-40s -> %s (%s)" % (ad, "KIRMIZI" if kirmizi else "YESIL",
-                                          "oldurucu" if oldurucu else "ilgisiz"))
+    # 🔴 CANLILIK CAPASI: mutasyon uygulamadan ONCE MUTASYONSUZ kopyayi (govde
+    # AYNEN, hicbir replace YOK) TAM AYNI kosum yolundan gecir. Bu kirmizi
+    # cikarsa "yanlis dizindeyim / import cozulmedi" ile "oldurdum" AYIRT
+    # EDILEMEZ -> batarya TAUTOLOJIKTIR ve asagidaki TUM mutant sonuclari
+    # GUVENILMEZ sayilir (kosulmaz, tek hata olarak raporlanir).
+    with tempfile.TemporaryDirectory() as tmp0:
+        r0 = _kendini_test_kostur(govde, tmp0)
+    canlilik_tamam = (r0.returncode == 0)
+    print("MUTASYONSUZ KOPYA CANLILIK KONTROLU: %s (rc=%d)"
+          % ("YESIL" if canlilik_tamam else "KIRMIZI", r0.returncode))
+    if not canlilik_tamam:
+        hatalar.append(
+            "KOSUM ORTAMI BOZUK — mutasyonsuz kopya bile kirmizi (batarya "
+            "TAUTOLOJIK): rc=%d\n%s" % (r0.returncode, r0.stderr[-400:]))
+        print("ATLANDI: kosum ortami bozukken mutant sonuclari GUVENILMEZ "
+              "sayilir (yukaridaki canlilik kontrolune bak).", file=sys.stderr)
+    else:
+        with tempfile.TemporaryDirectory() as tmp:
+            # Mutant AYRI bir dizinde kosar (canli dosyaya DOKUNULMAZ) ama --kok
+            # ile GERCEK depoyu olcer; boylece kirmizi/yesil hukmu MUTASYONDAN
+            # gelir, "yanlis dizinde kostum"dan degil (yukaridaki canlilik
+            # kontrolu + PYTHONPATH bunu GARANTI eder).
+            for ad, eski, yeni, oldurucu in _MUTANTLAR:
+                if eski not in govde:
+                    hatalar.append("%s: BAYAT MUTANT — capa metni bulunamadi: %r"
+                                   % (ad, eski[:48]))
+                    continue
+                r = _kendini_test_kostur(govde.replace(eski, yeni, 1), tmp)
+                kirmizi = (r.returncode != 0)
+                if oldurucu and not kirmizi:
+                    hatalar.append("%s: OLDURUCU MUTANT HAYATTA KALDI (rc=0) — o "
+                                   "eksen NOBETSIZ" % ad)
+                if (not oldurucu) and kirmizi:
+                    hatalar.append("%s: ILGISIZ DEGISIKLIK KIRMIZI YANDI (rc=%d) — "
+                                   "kapi asiri hassas\n%s"
+                                   % (ad, r.returncode, r.stderr[-400:]))
+                print("  %-40s -> %s (%s)"
+                      % (ad, "KIRMIZI" if kirmizi else "YESIL",
+                         "oldurucu" if oldurucu else "ilgisiz"))
     sonra = _sha256(kaynak)
     if once != sonra:
         hatalar.append("CANLI DOSYA DEGISTI! sha256 %s -> %s (mutant sizdi)"
