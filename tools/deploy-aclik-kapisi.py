@@ -103,6 +103,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -121,6 +122,38 @@ ZINCIR = (("deploy", "build"), ("yayin", "deploy"))
 # E4 butcesi: her iptal/hata kosumu icin AYRI bir `jobs` sorgusu gerekir.
 CANLI_PENCERE = 30
 CANLI_IS_SORGU_TAVANI = 20
+
+# 🔴 GECICI AG ARIZASI ≠ OLCUM BOSLUGU (11 Agu 2026, kosum 31513300170).
+#   E4 ekseni tek kosumda 21'e kadar `gh api` cagirir. Bunlardan BIRI gecici bir TLS/ag
+#   arizasina denk gelirse eski kod ilk hatada rc=2 (OLCULEMEDI) donuyordu ve saatlik
+#   alarmin TUM turu kirmizi yaniyordu. Olculen ham satir:
+#     `gh api repos/Pruvo138/pruvo/actions/runs/31507501450/jobs?per_page=100` rc=1:
+#     tls: failed to verify certificate: x509: certificate is not valid for any names,
+#     but wanted to match api.github.com
+#   Ayni betik ayni girdiyle sonraki turlarda rc=0 verdi -> kosul GECICIYDI, olcum
+#   konusu DEGILDI. Onarim ESIK GEVSETMESI DEGILDIR: sinirli sayida yeniden deneme
+#   sonrasi hukum HALA fail-closed rc=2'dir; yalniz GECICI sinif tekrar sorulur.
+#   Sekil/kimlik/404 hatalari GECICI SAYILMAZ — tekrar sormak ayni cevabi getirir.
+GH_DENEME_TAVANI = 3
+GH_BEKLEME_SN = (2.0, 5.0)
+
+# Yalniz AG/TLS/gecici sunucu izleri. Liste DAR tutulur: genis tutulursa gercek bir
+# arizayi "gecici" sanip 3 kez sorar ve yine de dogru hukmu verir, ama tanisi bulanir.
+GECICI_AG_IZLERI = (
+    "tls:",
+    "x509:",
+    "dial tcp",
+    "connection reset",
+    "connection refused",
+    "i/o timeout",
+    "unexpected eof",
+    "no such host",
+    "502 bad gateway",
+    "503 service unavailable",
+    "504 gateway",
+    "server error",
+    "temporary failure in name resolution",
+)
 
 
 class OlcumHatasi(Exception):
@@ -656,20 +689,50 @@ def degerlendir(akislar=None):
 # ---------------------------------------------------------------------------
 # E4 — CANLI TARIH (ag ister; AYRI EV, yayini bloklamaz)
 # ---------------------------------------------------------------------------
-def _gh_json(yol):
-    try:
-        p = subprocess.run(["gh", "api", yol], capture_output=True, text=True, timeout=90)
-    except FileNotFoundError:
-        raise OlcumHatasi("`gh` YOK -> canli eksen olculemedi (rc 2, yesil DEGIL)")
-    except subprocess.TimeoutExpired:
-        raise OlcumHatasi("`gh api %s` zaman asimi" % yol)
-    if p.returncode != 0:
-        raise OlcumHatasi("`gh api %s` rc=%d: %s"
-                          % (yol, p.returncode, (p.stderr or "").strip()[:300]))
-    try:
-        return json.loads(p.stdout)
-    except ValueError as e:
-        raise OlcumHatasi("`gh api %s` ciktisi JSON degil: %s" % (yol, e))
+def _gecici_ag_hatasi(metin):
+    """`gh` hata metni GECICI bir ag/TLS/sunucu arizasi mi?
+
+    BOS metin GECICI SAYILMAZ: sinif bilinmiyorsa tekrar sormak degil fail-closed
+    hukum dogrudur (bos kume ile 'her sey gecici' arasindaki fark budur)."""
+    d = (metin or "").lower()
+    return any(iz in d for iz in GECICI_AG_IZLERI)
+
+
+def _gh_json(yol, _kosucu=None, _uyu=None):
+    """`gh api` govdesini JSON olarak dondurur.
+
+    GECICI ag sinifinda en fazla GH_DENEME_TAVANI kez sorar; tukendiginde hukum
+    DEGISMEZ -> OlcumHatasi (rc 2). `_kosucu`/`_uyu` YALNIZ kendini-test icindir."""
+    kosucu = _kosucu or subprocess.run
+    uyu = _uyu or time.sleep
+    son = None
+    deneme = 0
+    while deneme < GH_DENEME_TAVANI:
+        deneme += 1
+        gecici = False
+        try:
+            p = kosucu(["gh", "api", yol], capture_output=True, text=True, timeout=90)
+        except FileNotFoundError:
+            raise OlcumHatasi("`gh` YOK -> canli eksen olculemedi (rc 2, yesil DEGIL)")
+        except subprocess.TimeoutExpired:
+            son = "`gh api %s` zaman asimi" % yol
+            gecici = True
+        else:
+            if p.returncode == 0:
+                try:
+                    return json.loads(p.stdout)
+                except ValueError as e:
+                    # Sekil/ayristirma hatasi GECICI DEGILDIR: ayni soru ayni cevabi
+                    # verir. Yeniden deneme yok, hukum dogrudan verilir.
+                    raise OlcumHatasi("`gh api %s` ciktisi JSON degil: %s" % (yol, e))
+            hata = (p.stderr or "").strip()
+            son = "`gh api %s` rc=%d: %s" % (yol, p.returncode, hata[:300])
+            gecici = _gecici_ag_hatasi(hata)
+        if not gecici:
+            break
+        if deneme < GH_DENEME_TAVANI:
+            uyu(GH_BEKLEME_SN[min(deneme - 1, len(GH_BEKLEME_SN) - 1)])
+    raise OlcumHatasi("%s [%d/%d deneme]" % (son, deneme, GH_DENEME_TAVANI))
 
 
 def canli_olc(depo=None, pencere=CANLI_PENCERE, akis="deploy.yml"):
@@ -899,11 +962,127 @@ def _eksenler(sorunlar):
     return bulunan
 
 
+# 🔴 GERCEK CIKTI SEKLI ([[nobetci-fikstur-sekli]]): asagidaki TLS metni kosum
+# 31513300170'in ham log satirindan alinmistir; fikstur uydurma bir metin degil
+# olculen metindir. Kimlik/404 satirlari da `gh`nin gercek biciminde tutulur.
+GH_TLS_HATASI = ('Get "https://api.github.com/repos/Pruvo138/pruvo/actions/runs/'
+                 '31507501450/jobs?per_page=100": tls: failed to verify certificate: '
+                 'x509: certificate is not valid for any names, but wanted to match '
+                 'api.github.com')
+GH_KIMLIK_HATASI = "gh: Bad credentials (HTTP 401)"
+GH_YOK_HATASI = "gh: Not Found (HTTP 404)"
+
+
+class _SahteKosucu(object):
+    """`subprocess.run` yerine gecen deterministik kosucu — cagri SAYISINI sayar."""
+
+    def __init__(self, cevaplar):
+        self.cevaplar = list(cevaplar)
+        self.cagri = 0
+
+    def __call__(self, *a, **kw):
+        self.cagri += 1
+        rc, out, err = self.cevaplar[min(self.cagri - 1, len(self.cevaplar) - 1)]
+        return subprocess.CompletedProcess(a[0] if a else [], rc, out, err)
+
+
+def _gh_yeniden_deneme_testi():
+    """GECICI ag sinifi TEKRAR SORULUR, digerleri SORULMAZ, hukum GEVSEMEZ."""
+    hatalar = []
+    iddia = 0
+    uyku = []
+
+    def uyu(sn):
+        uyku.append(sn)
+
+    # 1) Gecici TLS -> ikinci denemede yanit. Sonuc DONER (tur kirmizi YANMAZ).
+    k = _SahteKosucu([(1, "", GH_TLS_HATASI), (0, '{"ok": 1}', "")])
+    iddia += 2
+    try:
+        govde = _gh_json("repos/x/y", _kosucu=k, _uyu=uyu)
+        if govde != {"ok": 1}:
+            hatalar.append("GH-RETRY 1: govde beklenen {'ok': 1}, olculen %r" % (govde,))
+    except OlcumHatasi as e:
+        hatalar.append("GH-RETRY 1: gecici TLS hatasi yeniden DENENMEDI (%s)" % e)
+    if k.cagri != 2:
+        hatalar.append("GH-RETRY 1: beklenen 2 cagri, olculen %d" % k.cagri)
+
+    # 2) Gecici sinif SURUYORSA hukum HALA fail-closed (rc 2 yolu) — GEVSETME YOK.
+    k = _SahteKosucu([(1, "", GH_TLS_HATASI)])
+    iddia += 2
+    try:
+        _gh_json("repos/x/y", _kosucu=k, _uyu=uyu)
+        hatalar.append("GH-RETRY 2: SUREKLI TLS arizasi YESILE dondu — fail-closed "
+                       "hukum kayboldu (yeniden deneme esigi GEVSETTI)")
+    except OlcumHatasi as e:
+        if "3/3 deneme" not in str(e):
+            hatalar.append("GH-RETRY 2: hata metni deneme sayisini tasimiyor (%s)" % e)
+    if k.cagri != GH_DENEME_TAVANI:
+        hatalar.append("GH-RETRY 2: beklenen %d cagri, olculen %d"
+                       % (GH_DENEME_TAVANI, k.cagri))
+
+    # 3) KONTROL: kimlik hatasi GECICI DEGILDIR -> TEK cagri, aninda hukum.
+    k = _SahteKosucu([(1, "", GH_KIMLIK_HATASI)])
+    iddia += 2
+    try:
+        _gh_json("repos/x/y", _kosucu=k, _uyu=uyu)
+        hatalar.append("GH-RETRY 3: kimlik hatasi YUTULDU")
+    except OlcumHatasi:
+        pass
+    if k.cagri != 1:
+        hatalar.append("GH-RETRY 3: kimlik hatasi %d kez soruldu — gecici SINIF cok "
+                       "genis, gercek ariza 'gecici' saniliyor" % k.cagri)
+
+    # 4) KONTROL: 404 de gecici degildir (sekil/hedef hatasi).
+    k = _SahteKosucu([(1, "", GH_YOK_HATASI)])
+    iddia += 1
+    try:
+        _gh_json("repos/x/y", _kosucu=k, _uyu=uyu)
+        hatalar.append("GH-RETRY 4: 404 YUTULDU")
+    except OlcumHatasi:
+        pass
+    if k.cagri != 1:
+        hatalar.append("GH-RETRY 4: 404 %d kez soruldu" % k.cagri)
+
+    # 5) KONTROL: rc=0 ama govde JSON degil -> GECICI DEGIL, TEK cagri.
+    k = _SahteKosucu([(0, "<html>502</html>", "")])
+    iddia += 2
+    try:
+        _gh_json("repos/x/y", _kosucu=k, _uyu=uyu)
+        hatalar.append("GH-RETRY 5: JSON olmayan govde YESIL sayildi")
+    except OlcumHatasi as e:
+        if "JSON degil" not in str(e):
+            hatalar.append("GH-RETRY 5: sekil hatasi yanlis sinifta raporlandi (%s)" % e)
+    if k.cagri != 1:
+        hatalar.append("GH-RETRY 5: sekil hatasi %d kez soruldu — govde ayristirma "
+                       "hatasi ag arizasi gibi ele aliniyor" % k.cagri)
+
+    # 6) KONTROL: BOS hata metni GECICI SAYILMAZ (bos kume ile 'her sey gecici' farki).
+    iddia += 2
+    if _gecici_ag_hatasi(""):
+        hatalar.append("GH-RETRY 6: BOS hata metni GECICI sayildi — sinif tanimi bos "
+                       "kumede acik kaliyor")
+    if not _gecici_ag_hatasi(GH_TLS_HATASI):
+        hatalar.append("GH-RETRY 6: POZITIF TANIYICI DUSTU — olculen gercek TLS satiri "
+                       "gecici sinifa girmiyor, onarim hicbir seyi kapatmiyor")
+
+    # 7) Bekleme GERCEKTEN uygulaniyor mu (yoksa 3 deneme ayni saniyede tukenir).
+    iddia += 1
+    if not uyku or min(uyku) <= 0:
+        hatalar.append("GH-RETRY 7: denemeler arasi bekleme UYGULANMADI (%r)" % (uyku,))
+    return hatalar, iddia
+
+
 def kendini_test():
     """Doner: (hata_satirlari, iddia_sayisi). Iddia SAYISI kabulun olcusudur —
     cikis kodu tek basina 'batarya kostu' demez ([[mutasyon-kaniti-yeniden-uretilebilir]])."""
     hatalar = []
     iddia = 0
+
+    # ---- BOLUM 0: `gh api` GECICI AG SINIFI (agsiz, sahte kosucu ile)
+    hatalar_0, iddia_0 = _gh_yeniden_deneme_testi()
+    hatalar += hatalar_0
+    iddia += iddia_0
 
     # ---- BOLUM 1: simulasyon fiksturleri
     for ad, bayrak, kosum_dk, anlar, bek_iptal, bek_deploy in SIM_FIKSTURLERI:

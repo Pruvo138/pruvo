@@ -254,6 +254,13 @@ jobs:
       # ZARARSIZ — main dogrusaldir) ile CALISIRKEN iptal (aclik) raporda ikisi de
       # `cancelled` gorunur. `cancel-in-progress: false` altinda CALISIRKEN iptal
       # OLMAMALIDIR; olursa ayar geri alinmis ya da kosumlar elle iptal ediliyordur.
+      # 🔴 GECICI AG SINIFI (11 Agu 2026, kosum 31513300170): bu adim tek turda 21'e
+      # kadar `gh api` cagirir; biri gecici TLS/ag arizasina denk gelince eski kod ilk
+      # hatada rc=2 (OLCULEMEDI) donup TUM turu kirmizi yakiyordu. Artik GECICI sinif
+      # sinirli kez yeniden sorulur; tukendiginde hukum HALA fail-closed rc=2'dir
+      # (kimlik/404/sekil hatasi GECICI SAYILMAZ, tek seferde hukum verilir).
+      # Mutasyon bataryasi: python3 tools/deploy-aclik-gh-mutasyon.py (5 mutant + 1
+      # kontrol); iddialar `--kendini-test` icinde kosar (deploy.yml'de bloklayici).
       - name: "Olcum — iptal siniflari (kuyrukta mi CALISIRKEN mi; E4 canli eksen)"
         if: always()
         env:
