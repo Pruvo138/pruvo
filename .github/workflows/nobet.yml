@@ -388,7 +388,7 @@ jobs:
       # bataryasi ~17 s. Kol ONLEME degil TESPIT'tir; onleme pre-push kancasindadir.
       - name: "Ic rapor UZAK DAL kolu (uzakta duran ic rapor — SERIT B, ag ister)"
         run: python3 tools/ic-rapor-adi-kapisi.py --uzak
-      # Kolun KENDI hukmu: 10 oldurucu mutant TEK KIRMIZI + 2 KONTROL mutanti YESIL
+      # Kolun KENDI hukmu: 14 oldurucu mutant TEK KIRMIZI + 2 KONTROL mutanti YESIL
       # (biri UZAK kolunun no-op'u). Ustteki adim yesilken bu adim kirmizi ise nobetci
       # OLMUS demektir ([[mutasyon-kaniti-yeniden-uretilebilir]]). Ag ISTEMEZ.
       - name: "Ic rapor adi kapisi mutasyon bataryasi (uzak eksen dahil)"
