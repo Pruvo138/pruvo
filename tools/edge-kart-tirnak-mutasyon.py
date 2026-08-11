@@ -41,7 +41,7 @@ gecebilirdi. Simdi: WORKER_KART_TAM · WORKER_KART_EKSIK · OLCULEMEDI · WORKER
 mutasyonu DISKE YAZMAZ. Kaynak metin okunur, BELLEKTE degistirilir ve
 `exec(compile(src, ...), types.ModuleType(...).__dict__)` ile calistirilir. Diskte .py
 dosyasi olusmadigi icin CPython ne `__pycache__` yazar ne okur — "ayni saniyede ayni
-uzunlukta yazilan mutasyon uygulanmadi" tuzagi YAPISAL OLARAK imkansizdir. Ayrica her
+uzunlukta yazilan mutasyon diske islenmez" tuzagi YAPISAL OLARAK GERCEKLESEMEZ. Ayrica her
 mutant icin (a) capa TAM 1 kez geciyor mu, (b) eski metin gitti mi, (c) yeni metin geldi
 mi UCU DE olculur; ve kosum sonunda canli dosyanin sha256'si bas=son karsilastirilir.
 
