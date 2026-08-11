@@ -112,14 +112,18 @@ ALTINDA). Iki en eski blok (`00:37 turu` + `CTA DENGE KAPANISI`) `DEVAM-ARSIV.md
 BIREBIR** tasindi — kanit SHA-256 esitligi: `CI_BAYT=4473/1394eee7…`, `CTA_BAYT=3048/33f7fd44…`
 kaynakta ve arsivde AYNI. Ozet YOK. `devam-sinif-kapisi.py` **rc=0** (113 satir tarandi).
 
-**⏸️ PUSH BILEREK YAPILMADI — K49 sinifi CANLI olcuyle onlendi (commit `8d256c96` main'de bekliyor).**
+**⏸️ PUSH KENDI ELIMLE YAPILMADI (K49) — SONRA KARDES OTURUM ITTI, D1 TAM YESIL OLCULDU.**
 Tur ortasinda `git status`'ta **`M urunler.json` BELIRDI** (90 satir / 5 urun) → kardes mimarin
-partisi CANLI ([[canli-oturum-kaniti-git-status-farki]]). `d1-sync.py --durum` bunu dogruladi:
-icerik ekseni **25940/25940 birebir** (hash uyusmaz 0 · eksik 0 · fazla 0) ama sayi ekseni
-**D1=25935 degil 25940** ve **uc turetilmis kolon BAYAT** (`marka_kanon` 5 · `model_kanon` 2 ·
-`marka_arama` 5) → parti **yazmanin ORTASINDA**. Push, pre-push kancasi araciligiyla **ikinci bir
-D1 yazicisi** baslatirdi; K49 hala acik (yazici kilidi YOK). Bu turda bizi tesaduf degil **olcum**
-korudu. Commit kaybolmaz; push sonraki turun ILK isidir (once `--durum` yeniden olculur).
+partisi CANLI ([[canli-oturum-kaniti-git-status-farki]]). `--durum` bunu dogruladi: icerik ekseni
+**25940/25940 birebir** ama sayi ekseni **D1=25935, urunler.json=25940** ve **uc turetilmis kolon
+BAYAT** (`marka_kanon` 5 · `model_kanon` 2 · `marka_arama` 5) → parti **yazmanin ORTASINDA**.
+Push, pre-push kancasi araciligiyla **ikinci bir D1 yazicisi** baslatirdi (K49: yazici kilidi YOK)
+→ kendi elimle ITMEDIM. **Sonrasinda kardes oturum kendi kapanis commit'ini (`6359d24b`) itti ve
+bu turun defter blogu O COMMIT'LE yayina girdi** (`origin/main` = `6359d24b`, ahead/behind 0).
+**Push SONRASI bagimsiz olcum — zarar YOK, bes eksen de yesil:** SAYI `25940 = 25940` ✅ · SEQ
+sapan **0** ✅ · SEMA temiz ✅ · TURETILMIS KOLON **5/5 GUNCEL** ✅ · ICERIK `25940/25940`
+(uyusmaz 0 · eksik 0 · fazla 0) ✅. Yani parti tamamlanmis, K49 riski bu turda **gerceklesMEDI** —
+ama kural hala YOK, kilit kalemi acik duruyor.
 
 **⚠️ BU TURUN KENDI KUSURU — INDEX YARISI OLCULEREK YAKALANDI VE GERI ALINDI.** Defter commit'i
 `--amend` ile tazelenirken, kardes mimarin **ayni saniyede stage ettigi** `urunler.json` (90 satir /
@@ -138,9 +142,20 @@ mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · merge YAPILMA
 worktree'sine DOKUNULMADI. Codex'e 4 cagri (K56 teshisi · kosum bekleme · canli dogrulama · defter
 kotasi), MUHENDIS'e 2 dal (K51 · K61). Okan'a CIKILMADI (rutin onarim + zaten sorulmus soru; §5).
 
-**Sonraki turun ILK ISI:** (a) **`8d256c96`'yi PUSH ET** — once `d1-sync.py --durum` yeniden
-olculur, kardes parti inmis/tamamlanmis olmali (sayi ekseni ve turetilmis kolonlar tazelenmis);
-(b) iki MUHENDIS dalini **skill: merge-kapisi** ile tart (K51 karantina · K61 kapsam ayrimi) —
+**✅ K51 MUHENDIS DALI HAZIR (merge EDILMEDI — KraL kapisi, ayri tur).** Dal
+`kral/uzlastirici-karantina` (`5f787cc6`, origin'de). Olculen kabul: `K_TEST=0:51/51`
+(**K7 = 11 Agu vakasinin birebir oynatimi GECTI, `silinen=0`**) · `MUTASYON=16/16 KONTROL=YESIL` ·
+`NABIZ_KAPISI=0`. `d1-sync.py` bayraksiz davranisi **BAYT AYNI** (`--kendini-test` 131/131);
+karantina yalniz `--karantina-damgasi` ile devrede → pre-push kancasi ve CI senkron adimi
+etkilenMEDI. Muafiyet AST ile YALNIZ `fazla` koluna civilendi; alarm kanali susturulMADI.
+⚠️ Merge sonrasi ILK kosumda artifact yokken hukum `OLCULEMEDI` + silme 0 + adim KIRMIZI olur —
+**bilincli fail-closed**, ariza sayilmayacak.
+
+**🔧 K62 ACILDI (K51 muhendisinin yan bulgusu, bu isin DISI):** `tools/d1-sapma-mutasyon.py`
+dayanak metni HEAD'de **BAYAT** → batarya S4'te "HARNESS BAYAT" ile duruyor, **S4..S12 + K1..K3
+mutantlari HIC KOSMUYOR**. Sessiz kapsam kaybi ([[beyan-edilmis-survivor]] · [[bayat-kabul-testi]]).
+
+**Sonraki turun ILK ISI:** (a) iki MUHENDIS dalini **skill: merge-kapisi** ile tart (K51 karantina · K61 kapsam ayrimi) —
 merge KraL'da, isci yalnizca dal push etti; (c) `31542119603`'un ardil kosumunda `serit-b`
 yesillendi mi; (d) varlik eksenini URUN sayfasindan cache-bust'SIZ olc (bu turda OLCULEMEDI
 kaldi); (e) K52 worktree tavani — `git worktree list` **4 satir**, ucu bu oturumun DEGIL,
