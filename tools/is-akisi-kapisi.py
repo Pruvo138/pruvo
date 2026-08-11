@@ -1805,7 +1805,13 @@ TABLO_TABANLARI = (
     # KENDISI (bayraksiz + `--kendini-test`) deploy.yml `serit-a3`te BLOKLAYICI
     # kosar — bu giris bir TASIMA degil, bataryanin EKLENMESIDIR; tam esitlik geregi
     # taban AYNI commit'te guncellendi.
-    ("SERIT_B", 96),
+    # 11 Agu: +1 -> 97. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/edge-kart-tirnak-mutasyon.py"): edge kart kapisinin KARDES-DEPO
+    # ayristirmasi (`KART_ALANLARI` cok-parcali dize) onarildi; onarimin fail-open'a
+    # kaymadigini olcen batarya AYNI commit'te eklendi. Korudugu kapi
+    # (tools/edge-kart-kapisi.py) deploy.yml'de BLOKLAYICI KALDI — bu bir TASIMA
+    # degil, EKLEME; tam esitlik geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 97),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2742,6 +2748,20 @@ SERIT_B = {
         "REDDEDER, ezmek ACIK --ezmeye-izin-ver ister). S3 mock'lanir: gercek R2'ye ne "
         "okuma ne yazma gider, adim ag GEREKTIRMEZ.",
     # --- R1 SIHIRLI-BAYT WHITELIST'I / AVIF EKSENI (9 Agu 2026) --------------------
+    ("nobet.yml", "serit-b", "tools/edge-kart-tirnak-mutasyon.py"):
+        "tools/edge-kart-kapisi.py'nin KARDES-DEPO AYRISTIRMASININ mutasyon bataryasi "
+        "(5 oldurucu + 1 kontrol): edge Worker `KART_ALANLARI` sabiti `+` ile COK PARCALI "
+        "yazildiginda ikinci parcadaki kolon goruluyor mu, gercekten eksik alan HALA eksik "
+        "deniyor mu (fail-open), cozulemeyen tanim 'alan yok' sayilip sessiz yesile "
+        "kaciyor mu, var olan alan yanlislikla eksik sayiliyor mu. Olctugu sey KAPININ "
+        "KENDI AYRISTIRMASI, yayinlanan hicbir cikti DEGIL (r2-avif-mutasyon-test.py / "
+        "ga4-olay-mutasyon.py ile ayni desen). Korudugu KAPI (tools/edge-kart-kapisi.py) "
+        "SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, "
+        "bataryanin EKLENMESIDIR. Fiksturler SENTETIK: kardes depo (~/dev/pruvo-bot) "
+        "diskte OLMASA da kosar, urunler.json OKUNMAZ, ag GEREKTIRMEZ (~0,1 s). "
+        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
+        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
+        "karsilastirilir ve ciktida raporlanir.",
     ("nobet.yml", "serit-b", "tools/ga4-olay-mutasyon.py"):
         "tools/ga4-olay-kapisi.py HUNI KAPISININ mutasyon bataryasi (10 oldurucu + 1 "
         "kontrol): urun goruntuleme / sepete ekleme / odemeye baslama olaylari tek tek "
