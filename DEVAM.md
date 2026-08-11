@@ -25,6 +25,60 @@
 
 **MaCiT'te:** feed politika kalemi (`a327d799` ile kapandi) + `tavsiyeFilament` 9 kayitta dizi yerine DIZE. **Ana agacta yabanci** (DOKUNULMADI): `M tools/build.py` · `M jenerator/test/vitrin-kabul.js` · `M tools/d1-sync.py` · `.scratch/` · 2 stash.
 
+## 🕐 CI NOBETI — 11 Agu 2026 17:37 yerel / 14:37Z turu (KraL)
+
+**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**🔴 YAYIN ZINCIRI KIRIKTI — kok neden BULUNDU ve ONARILDI.** `deploy.yml` **12:35Z'den beri**
+(son basarili kosum `31491933641`, head `45f02754`) yayin indiremiyordu; arada 3 `failure`:
+`31499055155` (bc1cce28) · `31496557282` (198db566) · `31494275429` (e137969).
+Dusen job **`serit-a3`**, dusen adim **`Ic rapor adi kapisi`**
+(`python3 tools/ic-rapor-adi-kapisi.py`, exit 1). Kapinin logdan birebir hukmu:
+`1 muafiyet-disi isabet` → `tools/paket-ozet-butce.md:99`. Yani kapi, KENDI kuralini ANLATAN bir
+delegasyon spec'inin prose satirinda kanonik rapor dosya adinin duz metin gectigini yakalamis —
+kapinin kendi COZUM metninde tarif ettigi vaka. Onceki 3 tur bunu GORMEDI: `bayatlik` alarm kolu
+kirmizi yandigi icin hukum orada kaldi, `deploy` zincirinin KENDI job'i job birimiyle acilmadi
+([[hukum-yanlis-birimde]]).
+
+**Onarim (spec yazildi, icra Codex'e devredildi; mimar eli surmedi):** TEK SATIR prose duzeltmesi,
+`tools/paket-ozet-butce.md:99` genel ifadeye cevrildi. Commit `98c5e38a`, main'e push'landi.
+Kapi kodu, is akisi ve muafiyet listesi **DEGISTIRILMEDI** (adim silme / `continue-on-error` /
+yesile boyama YOK). Yerel kanit tam agac uzerinde: `IC RAPOR ADI KAPISI: olculen agac = 588
+izlenen dosya tarandi` → **`temiz (0 muafiyet-disi isabet)`**, rc=0.
+
+**⏳ CI teyidi UCUSTA — yesil YAZILMADI.** `98c5e38a`'nin kosumu `31504432734` tur kapanisinda
+hala `pending`: `pages` es-zamanlilik grubunda onunde `31502987498` KOSUYOR
+(`cancel-in-progress: false` → kuyruk davranisi beklenen, icerik kaybolmaz [[cancelled-yigini-yayin-tavani]]).
+Kosum bitmeden "duzeldi" hukmu verilmez ([[ucustaki-kosum-yesil-degildir]]).
+
+**Supurme (sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI): rc=1 → HUKUM=OLCULEMEDI.**
+`GITHUB_BILDIRIM_INBOX=7 · BULUNAN=7 · TASINAN=7 · ATLANAN=0 · CIKAN=3 · KOMSU_KAYIP=0 ·
+KUME_DIFF=OLCULDU · KALAN=4 · COP_IZI=7:2026-08-11T17:19:01`. **Uc fail-closed alarmin ucu de
+SESSIZ** (`TASINAN>BULUNAN` yok · `CIKAN>TASINAN` yok · `KOMSU_KAYIP=0`). rc=1'in sebebi
+`KALAN=4`: 7 hedefin 7'si de Cop'te ölçüldü (denetim ciktisinda kimlik kimlik goruldu), yani
+KALAN kosum SIRASINDA kutuya YENI dusen `Run failed` mailleridir — CI kirik oldugu icin akis
+surekli. Kosucunun rc yolu ayrica sentetik nobetcisiyle olculdu: `--kendini-test` → alarm kolu
+rc=1 disari veriliyor + log'a dusuyor, basarili kol rc=0 → `KENDINI_TEST=YESIL`.
+
+**🟠 Cop denetimi (salt okuma): YANLIS=3.** Ucu de ayni sinif: 16:54'te `gmlmz` (2) ve `dio` (1)
+hesaplarina dusen bir reklam-platformu bildirimi. **Supurmeye ATFEDILMEZ**, uc bagimsiz iz:
+(a) Cop kayit id'leri `68047/68048/68049` < supurmenin kayitlari `68055…68065` → supurmeden ONCE
+Cop'teydiler, (b) bu turun muhasebesi `KOMSU_KAYIP=0` ve `CIKAN(3) < TASINAN(7)`, (c) supurmenin
+`SILINENLER` blogundaki 7 kimligin 7'si de github + `Run failed`. Siparis/odeme ekseninde Cop'te
+kayit **YOK**. Kendiliginden geri alma YAPILMADI — Okan'a tek cumleyle soruldu.
+
+**Bu turda:** urun verisine dokunulmadi · deploy YAPILMADI · worktree ACILMADI · yabanci
+degisikliklere (`M tools/d1-sync.py` · `M secenekler.js` · `?? tools/paket-deploy-kritik-yol.md`)
+DOKUNULMADI, commit'e alinmadi (commit'te TEK dosya).
+
+**Sonraki turun ILK ISI:** (a) `31504432734`'u JOB birimiyle kapat — `serit-a3` + `build` +
+`deploy`/`yayin` fiilen `success` mi; degilse kok neden ayni mi; (b) **SINIF KALEMI:** ayni kapi
+`?? tools/paket-deploy-kritik-yol.md` commit'lendigi anda yeniden kirmizi yanabilir — muafiyetin
+kanonik KUMEDEN turemesi gereken bir tasarim sorusu var, tekil yama sinifi kapatmaz
+([[tekil-yama-sinifi-kapatmaz]]); mimar oturumunda karara baglanacak, nobet turunda DEGIL;
+(c) `bayatlik` yas serisini surdur (306,9 dk → ?) ve `canli KOD surumu`nun `fdd158cb`'den
+degisip degismedigini olc.
+
 ## 🕐 CI NOBETI — 11 Agu 2026 15:37 yerel / 12:37Z turu (KraL)
 
 **Ev kontrolu:** `pwd` = `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
