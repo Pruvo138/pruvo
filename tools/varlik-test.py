@@ -203,6 +203,74 @@ BILEREK_DEGISEN_TAM = (
     # tools/reklam-etiket-kapisi.py (f) ekseni fail-closed olcer (K16 mutanti nobetler).
     ("gtag('config', 'AW-18330673570');",
      "Ads donusum etiketi yapilandirmasi — YENI satir (nobetci: reklam-etiket-kapisi.py (f))"),
+    # 2026-08-11 — SEPETE EKLE SESSIZ BASARISIZLIGININ ONARIMI. TEK OLAY, 27 satir
+    # (3 ESKI + 24 YENI). Zorunlu malzeme secimi butonun 168 px ALTINDAYDI ve onden
+    # secili DEGILDI: secimsiz tiklamada yalniz 500 ms titreme oluyor, hicbir hata METNI
+    # cikmiyor, sepet BOS kaliyordu (dogrudan satis kaybi, canlida olculdu). Varliga-tasima
+    # KAYBI DEGIL; sayfa JS'ine bilerek eklenen davranistir.
+    # 🔴 SATIRLAR AYIRT EDICI: her giris YENI bir tanimlayici tasir (hataEl / hataKutusu /
+    # hataGoster / hataGizle / kutu / kap / eksikAd / _ilkSecim / secimHata). Jenerik
+    # satir (`return null;` · `}` · `hataGizle();`) BILEREK URETILMEDI — oyle bir satiri
+    # beyan etmek GERCEK bir icerik kaybini da maskelerdi.
+    # 🔴 IDDIA TASINDI: bu satirlarin DAVRANISI tools/sepet-secim-kapisi.py'de (uretilen
+    # sayfanin KENDI JS'i node:vm'de tiklanarak) fail-closed olculur; 8 mutant nobetler.
+    # --- ESKI (kiyas commit'inde) ---
+    ('var seciliMalzeme = "";',
+     "secim durumu bos basliyordu — ESKI malzeme bildirimi"),
+    ('var seciliRenk = "";',
+     "secim durumu bos basliyordu — ESKI renk bildirimi"),
+    ('if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && !PRUVO_KONFIGUR.gecerliMi()){ '
+     'PRUVO_KONFIGUR.eksikVurgula(); return; }',
+     "konfigur kolu SESSIZ donuyordu (yalniz titreme) — ESKI guard"),
+    # --- YENI (on-secim + gorunur hata) ---
+    ('function _ilkSecim(kok, secici, alan){ var ilk = (kok && kok.querySelector) ? '
+     'kok.querySelector(secici) : null; return ilk ? (ilk.getAttribute(alan) || "") : ""; }',
+     "baslangic secimi SAYFADAN okunur (JS'te ikinci varsayilan listesi tutulmaz)"),
+    ('var seciliMalzeme = _ilkSecim(cipler, ".fil-cip.secili", "data-malzeme");',
+     "YENI: malzeme durumu onden secili cipten baslar"),
+    ('var seciliRenk = _ilkSecim(renkBtnlar, ".renk-btn.secili", "data-renk");',
+     "YENI: renk durumu onden secili butondan baslar"),
+    ('var hataEl = document.getElementById("secimHata");',
+     "YENI: gorunur hata kutusu referansi"),
+    ("function hataKutusu(){", "YENI: hata kutusu uretici (kutu sayfada yoksa fail-loud)"),
+    ("if(hataEl || !document.createElement){ return hataEl; }",
+     "YENI: kutu varsa yeniden uretilmez"),
+    ('var kutu = document.createElement("div");', "YENI: yedek hata kutusu dugumu"),
+    ('kutu.id = "secimHata"; kutu.className = "secim-hata";', "YENI: yedek kutu kimligi"),
+    ('kutu.setAttribute("role", "alert"); kutu.setAttribute("aria-live", "assertive");',
+     "YENI: ekran okuyucu duyurusu"),
+    ('kutu.style.cssText = "margin:2px 0 12px;padding:9px 12px;border-radius:8px;'
+     'background:#fdecea;border:1px solid #f0b3ae;color:#8f1d19;font-size:13.5px;'
+     'font-weight:600;line-height:1.45";',
+     "YENI: yedek kutu bicimi (paylasilan CSS'e kural EKLENMEDI)"),
+    ("var kap = (btn.parentNode && btn.parentNode.parentNode) || btn.parentNode;",
+     "YENI: yedek kutunun baglanacagi kapsayici"),
+    ("if(kap && kap.appendChild){ kap.appendChild(kutu); hataEl = kutu; }",
+     "YENI: yedek kutu DOM'a baglanir"),
+    # ⚠️ Kapanis `}` bu iki satira BITISIK yazildi (build.py'de gerekcesi yazili):
+    # yalniz `}` iceren bir satir AYIRT EDICI DEGILDIR, beyan edilemez.
+    ("return hataEl; }", "YENI: hataKutusu() donusu"),
+    ("function hataGoster(metin){", "YENI: gorunur uyari basici"),
+    ("var kutu = hataKutusu();", "YENI: uyari basilacak kutu"),
+    ('if(!kutu){ if(typeof alert === "function"){ alert(metin); } return; }',
+     "YENI: SON CARE — kutu kurulamazsa bile sessiz donulmez"),
+    ('kutu.textContent = metin; kutu.hidden = false; kutu.removeAttribute("hidden"); }',
+     "YENI: uyari metni gorunur olur"),
+    ('function hataGizle(){ if(hataEl){ hataEl.hidden = true; '
+     'hataEl.setAttribute("hidden", "hidden"); hataEl.textContent = ""; } }',
+     "YENI: eksik giderilince uyari kapanir"),
+    ('if(!KART_SECIM || (seciliMalzeme && seciliRenk && !(seciliRenk === "Diğer" '
+     '&& renkOzel && !renkOzel.value.trim()))){ hataGizle(); }',
+     "YENI: render() secim tamamlaninca uyariyi kaldirir"),
+    ("var eksikAd = [];", "YENI: eksik secim grubu adlari"),
+    ('if(eksikM){ eksikAd.push("malzeme"); }', "YENI: eksik malzeme adi"),
+    ('if(eksikR){ eksikAd.push("renk"); }', "YENI: eksik renk adi"),
+    ('hataGoster(eksikAd.length ? ("Sepete eklemek için " + eksikAd.join(" ve ") + '
+     '" seçin.") : "Sepete eklemek için istediğiniz rengi yazın.");',
+     "YENI: METINLI uyari — titreme tek basina yetmez"),
+    ('if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && !PRUVO_KONFIGUR.gecerliMi()){ '
+     'PRUVO_KONFIGUR.eksikVurgula(); hataGoster("Sepete eklemek için renk seçin."); return; }',
+     "YENI: konfigur kolu da GORUNUR uyari basar"),
 )
 
 # ---------------------------------------------------------------- GORUNUR METIN BEYANI
@@ -415,7 +483,85 @@ def _baglantilar(s):
     return out
 
 
-def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None):
+def _malzeme_tasima_beyani(p):
+    """🔴 11 Agu 2026 — MALZEME KARTLARI YER DEGISTIRDI (kayip DEGIL, TASIMA).
+
+    Zorunlu malzeme secimi "Sepete Ekle" butonunun 168 px ALTINDAYDI: secimsiz tiklama
+    hicbir hata METNI basmadan dusuyor, sepet bos kaliyordu (canlida olculdu). Kartlar
+    opsiyon panelinin ICINE, butonun USTUNE alindi; asagidaki bilgi bolumunde
+    muhendislik-malzeme notu + Malzeme Rehberi linki KALDI. Hicbir kelime kaybolmadi.
+
+    🔴 METIN ELLE YAZILMAZ: kart govdesi urunun KENDI tavsiye kumesinden
+    (build._fil_cipleri) ve renk satiri build._renk_butonlari_html()'den TURETILIR ->
+    filamentler.json / renk listesi degisince beyan kendiliginden tazelenir, BAYATLAMAZ
+    ve urun-basi tavsiye varyantlari icin elle defter tutulmaz.
+
+    IKI GIRIS AYIRT EDILEBILIR: yeni konumun etiketi "Malzeme seçimi", eski bolumun
+    basligi "Malzeme"ydi -> 2. giris (ESKI konumu SILEN) 1. girisin YENI konumuna
+    yanlislikla uygulanamaz. build.panel_malzeme_html etiketini degistirmeden once buraya bak.
+
+    🔴 IDDIA TASINDI, KALDIRILMADI: kartlarin butondan ONCE basildigini ve secimin
+    GERCEKTEN calistigini tools/sepet-secim-kapisi.py fail-closed olcer (8 mutant)."""
+    try:
+        kartlar = _norm(_duz_metin("".join(build._fil_cipleri(p))))
+        renk = _norm(_duz_metin(build._renk_butonlari_html()))
+    except Exception:
+        return ()
+    if not kartlar or not renk:
+        return ()
+    return (
+        (renk, "Malzeme seçimi " + kartlar + " " + renk,
+         "malzeme kartlari SECICI olarak butonun USTUNE tasindi — YENI konum "
+         "(nobetci: tools/sepet-secim-kapisi.py)"),
+        ("Malzeme " + kartlar, "",
+         "malzeme kartlari bilgi bolumunden KALKTI — ESKI konum "
+         "(nobetci: tools/sepet-secim-kapisi.py)"),
+    )
+
+
+def _seri_etiket_beyani(p):
+    """🔴 11 Agu 2026 — GIZLI SERI ADI MUSTERIYE GORUNEN YUZEYDEN KALKTI.
+
+    CLAUDE.md kurali: parametrik serinin ic adi ("Jeneratör") musteriye gorunen yuzeyde
+    GECMEZ. Kategori VERISI (urunler.json / D1 / sayfadaki URUN blogu) DEGISMEDI; yalniz
+    GORUNEN etiket (rozet, breadcrumb, JSON-LD, ilgili-urun basligi, kategori linki)
+    build.gorunur_kategori()'den gecer oldu.
+
+    🔴 CIFT ELLE YAZILMAZ: (ic ad -> gorunur etiket) cifti build.gorunur_kategori()'nin
+    KENDISINDEN turetilir -> esleme degisirse beyan kendiliginden tazelenir.
+    Donusum YALNIZ parametrik urunde uygulanir (gorunur_kategori boyle karar verir);
+    ayni kelimeyi TASIYAN gercek jenerator yedek parcalarinin sayfasinda hicbir sey
+    degismez ve bu beyan orada HIC eslesmez.
+
+    🔴 IDDIA TASINDI, KALDIRILMADI: gorunen yuzeyde ic ad izinin 0 oldugunu ve gercek
+    urunde kelimenin KALDIGINI tools/ic-seri-izi-kapisi.py fail-closed olcer (7 mutant).
+
+    Doner: (metin_beyanlari, deger_ciftleri) — deger ciftleri JSON-LD yapraklari ve
+    baglanti sorgu degerleri icin ESDEGERLIK tanimlar."""
+    ic = (p.get("kategori") or "")
+    gor = build.gorunur_kategori(p)
+    if not ic or gor == ic:
+        return (), ()
+    ger = ("ic seri adi musteriye gorunen yuzeyden kalkti (CLAUDE.md); nobetci: "
+           "tools/ic-seri-izi-kapisi.py")
+    metin = (
+        ("&rsaquo; %s &rsaquo;" % ic, "&rsaquo; %s &rsaquo;" % gor, ger + " — breadcrumb"),
+        (" %s Ölçüye Özel " % ic, " %s Ölçüye Özel " % gor, ger + " — kategori rozeti"),
+        ("Diğer %s ürünleri" % ic, "Diğer %s ürünleri" % gor, ger + " — ilgili urun basligi"),
+        ('"category":"%s"' % ic, '"category":"%s"' % gor, ger + " — JSON-LD metin kopyasi"),
+        ('"name":"%s","item":"%s%s"' % (ic, build.SITE, build.kategori_url(ic)),
+         '"name":"%s","item":"%s%s"' % (gor, build.SITE, build.kategori_url(gor)),
+         ger + " — JSON-LD breadcrumb metin kopyasi"),
+    )
+    # Baglanti sorgu degeri HAM (kacisli) halde okunur -> hem duz hem kategori_url()
+    # kacisli bicim beyan edilir; ikisi de AYNI kanonik fonksiyondan turer.
+    ic_q = build.kategori_url(ic).split("=", 1)[1]
+    gor_q = build.kategori_url(gor).split("=", 1)[1]
+    return metin, ((ic, gor, ger), (ic_q, gor_q, ger + " — kategori linki"))
+
+
+def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
+                  deger_beyani=()):
     """🔴 EKSEN 1'IN IDDIASI (3 Agu'da DARALTILDI, gevsetilmedi):
     "eski sayfadan CIKARILABILEN hicbir sey kaybolmayacak ya da DEGISMEYECEK".
 
@@ -440,13 +586,22 @@ def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None)
         DEGERINI degistiren mutant (marka=Volvo Penta -> marka=Volvo) KIRMIZI yanar.
     Doner: bulgu listesi (bos = temiz)."""
     bulgu = []
+    # DEGER ESDEGERLIGI (11 Agu): TEK TEK beyan edilen (ESKI deger -> YENI deger) ciftleri.
+    # 🔴 DAR: yalniz TAM ESIT degerler eslenir (alt dize / joker YOK) -> beyan edilen cift
+    # disindaki her degisiklik yine KIRMIZI yanar. Ciftler build fonksiyonundan TURETILIR.
+    _esd = set()
+    for _e, _y, _g in deger_beyani:
+        _esd.add((_e, _y))
+
+    def _esdeger(eski_deger, yeni_deger):
+        return (eski_deger, yeni_deger) in _esd
 
     e_yap = dict(_yapraklar(_ldjson(eski_html)))
     y_yap = dict(_yapraklar(_ldjson(yeni_html)))
     for yol, deger in e_yap.items():
         if yol not in y_yap:
             bulgu.append("JSON-LD yapragi KAYIP: %s=%r" % (yol, deger))
-        elif y_yap[yol] != deger:
+        elif y_yap[yol] != deger and not _esdeger(deger, y_yap[yol]):
             bulgu.append("JSON-LD yapragi DEGISTI: %s: %r -> %r" % (yol, deger, y_yap[yol]))
 
     if _TITLE_RE.findall(eski_html) != _TITLE_RE.findall(yeni_html):
@@ -460,7 +615,13 @@ def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None)
     e_metin, eslesen = _beyan_uygula(_duz_metin(eski_html), beyan_tablosu)
     if eslesen_kovasi is not None:
         eslesen_kovasi.update(eslesen)
-    if e_metin != _duz_metin(yeni_html):
+    # 🔴 KIYAS BOSLUK-NORMALIZE METIN UZERINDEN (tablo sozlesmesinin zaten SOYLEDIGI sey:
+    # "Bosluk serbest yazilir; kiyas normalize edilmis (tek bosluk) metin uzerinden
+    # yapilir"). Uygulama bunu beyan CERRAHISINDEN SONRA yapmiyordu: bir blogu SILEN beyan
+    # arkasinda cift bosluk birakiyor ve iki taraf KELIMESI KELIMESINE ayni olsa bile
+    # "GORUNUR METIN degisti" doguyordu. Normalize etmek hicbir KELIME degisikligini
+    # gizlemez (yalniz bosluk sayisini esitler); kapinin gucu DEGISMEZ.
+    if _norm(e_metin) != _norm(_duz_metin(yeni_html)):
         bulgu.append("GORUNUR METIN degisti")
 
     e_img, y_img = _IMGSRC_RE.findall(eski_html), set(_IMGSRC_RE.findall(yeni_html))
@@ -474,7 +635,8 @@ def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None)
         if not eslesen:
             bulgu.append("<a href> YOLU KAYIP: %s" % yol[:80])
             continue
-        if not any(all(p.get(ad) == deger for ad, deger in par.items()) for p in eslesen):
+        if not any(all(p.get(ad) == deger or _esdeger(deger, p.get(ad))
+                       for ad, deger in par.items()) for p in eslesen):
             bulgu.append("<a href=%s> sorgu parametresi KAYIP/DEGISTI: eski=%r yeni=%r"
                          % (yol[:50], par, eslesen[:2]))
     return bulgu
@@ -1218,8 +1380,16 @@ def main():
 def olc(eski, yeni, secim, urunler, ref):
     # ------------------------------------------------------------------ 1
     eslesen_beyan = set()
+    # URUN-BASI BEYANLAR (11 Agu): metin/deger beyanlari elle yazilmaz, urunun KENDI
+    # verisinden turetilir (bkz. _malzeme_tasima_beyani / _seri_etiket_beyani). Statik
+    # tablonun SONUNA eklenir -> 1c bayat-beyan hijyeninin indeksleri KAYMAZ.
+    urun_ix = {u["id"]: u for (_e, u) in secim}
     for pid in yeni:
+        p_urun = urun_ix.get(pid, {"id": pid})
+        seri_metin, seri_deger = _seri_etiket_beyani(p_urun)
+        tablo = (BILEREK_DEGISEN_METIN + _malzeme_tasima_beyani(p_urun) + seri_metin)
         kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]),
+                              beyan_tablosu=tablo, deger_beyani=seri_deger,
                               eslesen_kovasi=eslesen_beyan)
         bekle(not kayip,
               "1 %s: CIKARIM KAYBI (%d): %s" % (pid, len(kayip), kayip[:2]))

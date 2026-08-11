@@ -324,7 +324,14 @@ def main():
     hatalar = []
     for p in ornek:
         s = sayfa(p["id"])
-        cip_n = len(re.findall(r'class="fil-cip( tavsiyeli)?"', s))
+        # 🔴 11 Agu: bir cip ONDEN SECILI gelir (`class="fil-cip ... secili"`), sessiz
+        # sepet arizasinin onarimi. Sayim kalibi `( tavsiyeli)?` ile SABITLENMISTI ->
+        # secili cipi SAYMIYORDU ve "3 != 4" diye SAHTE kirmizi yakiyordu. Kalip artik
+        # sinif listesini bir BUTUN olarak okur (fil-cip ile BASLAYAN sinif dizesi).
+        # ⚠️ Kapsayicinin sinifi `fil-cipler` -> `fil-cip[^"]*` onu da SAYAR (ilk yazimda
+        # sayardi, 5 != 4 sahte kirmizisi). Sinif adi TAM eslesmeli: "fil-cip" ya da
+        # "fil-cip <bir seyler>".
+        cip_n = len(re.findall(r'class="fil-cip(?:\s[^"]*)?"', s))
         if cip_n != len(site_fil):
             hatalar.append("%s: cip sayisi %d != %d" % (p["id"], cip_n, len(site_fil)))
             continue
@@ -415,8 +422,17 @@ def main():
 
     # ---- 7) mobil tooltip: DOM/CSS duzeyinde dogrulama
     s = ornek_sayfa
-    blok = s.split('class="malzeme-blok"', 1)[1].split("</a></div>", 1)[0] \
-        if 'class="malzeme-blok"' in s else ""
+    # 🔴 11 Agu: kart-secim sayfasinda filament CIPLERI `.malzeme-blok`tan CIKIP opsiyon
+    # panelinin icine (butonun USTUNE) tasindi; asagidaki blokta yalniz muhendislik-malzeme
+    # notu + rehber linki kaldi. Bu bolum CIPLERIN kendisini olcuyor -> olculen yuzey
+    # `#filCipler` KAPSAYICISIDIR (nerede basiliyorsa orada). Kapsayici yoksa blok BOS
+    # kalir ve asagidaki "title= kullanilmamis" iddiasi fail-closed kirmizi yakar.
+    if 'id="filCipler">' in s:
+        blok = s.split('id="filCipler">', 1)[1].split("</div>", 1)[0]
+    elif 'class="malzeme-blok"' in s:
+        blok = s.split('class="malzeme-blok"', 1)[1].split("</a></div>", 1)[0]
+    else:
+        blok = ""
     kosullar7 = {
         "balon her cipte": s.count('class="fil-balon"') == len(site_fil),
         "CSS: .acik ile balon acilir": ".fil-cip.acik .fil-balon{display:block}" in s,
@@ -464,15 +480,28 @@ def main():
     kayit(9, "(a) malzeme dropdown YOK + kartlar data-malzeme + tiklama secim JS'i",
           not h9, "; ".join(h9[:4]) or "temiz")
 
-    # ---- 10 (b) acilista secili kart YOK + fiyat "baslayan"
+    # ---- 10 (b) 🔴 IDDIA 11 Agu'da TERSINE CEVRILDI — acilista malzeme ONDEN SECILI
+    # Eski iddia ("acilista secili kart yok") sessiz sepet arizasinin ta kendisiydi:
+    # zorunlu secim butonun 168 px ALTINDA + secimsiz -> tiklama sessizce dusuyordu.
+    # Onden secilen malzeme secenekler.js bosSatir()'dan turer; farki %0 oldugu icin
+    # sayfada ILAN EDILEN liste fiyati DEGISMEZ (tools/sepet-secim-kapisi.py bolum b).
     h10 = []
-    if 'class="fil-cip secili' in fs or 'class="fil-cip tavsiyeli secili' in fs:
-        h10.append("acilista bir kart 'secili' isaretli (onden secim olmamali)")
+    # bosSatir() varsayilanlari TEK KAYNAK secenekler.js — ikinci liste yazilmaz.
+    with open(os.path.join(ROOT, "secenekler.js"), encoding="utf-8") as _f:
+        sec_js_erken = _f.read()
+    _bos_govde = re.search(r"function\s+bosSatir\s*\([^)]*\)\s*\{\s*return\s*\{(.*?)\}\s*;",
+                           sec_js_erken, re.S).group(1)
+    _bos_malzeme = re.search(r'malzeme\s*:\s*"([^"]*)"', _bos_govde).group(1)
+    sec_kart = re.findall(r'class="fil-cip[^"]*\bsecili\b[^"]*" data-malzeme="([^"]+)"', fs)
+    if sec_kart != [_bos_malzeme]:
+        h10.append("acilista secili malzeme %r degil: %r" % (_bos_malzeme, sec_kart))
+    if 'var seciliMalzeme = _ilkSecim(cipler, ".fil-cip.secili", "data-malzeme");' not in fs:
+        h10.append("seciliMalzeme baslangici sayfadaki .secili karttan okunmuyor")
     m10 = re.search(r'id="opsiyonFiyat">([^<]*)<', fs)
     if not (m10 and "başlayan" in m10.group(1)):
         h10.append("opsiyonFiyat 'baslayan' halinde degil: %r" % (m10.group(1) if m10 else None))
-    kayit(10, "(b) acilista secili kart yok + fiyat '…den baslayan'", not h10,
-          "; ".join(h10) or "temiz")
+    kayit(10, "(b) acilista malzeme ONDEN SECILI (bosSatir varsayilani) + fiyat '…den baslayan'",
+          not h10, "; ".join(h10) or "temiz")
 
     # ---- 11 (c) secimsiz Sepete Ekle -> eklenmez + titreme/kirmizi
     h11 = []
@@ -534,8 +563,11 @@ def main():
     h15 = []
     if 'id="renkSec"' in fs:
         h15.append("renk dropdown hala var")
-    if fs.count('class="renk-btn"') != len(RENK_SECENEKLERI):
-        h15.append("renk-btn sayisi %d != %d" % (fs.count('class="renk-btn"'), len(RENK_SECENEKLERI)))
+    # 11 Agu: bir buton ONDEN SECILI (`class="renk-btn secili"`) -> sayim sinif dizesini
+    # BUTUN olarak okur; sabit `class="renk-btn"` kalibi secili butonu SAYMIYORDU.
+    renk_btn_n = len(re.findall(r'class="renk-btn[^"]*"', fs))
+    if renk_btn_n != len(RENK_SECENEKLERI):
+        h15.append("renk-btn sayisi %d != %d" % (renk_btn_n, len(RENK_SECENEKLERI)))
     for r in RENK_SECENEKLERI:
         if ('data-renk="%s"' % html.escape(r, quote=True)) not in fs:
             h15.append("data-renk=%s butonu yok" % r)
@@ -544,17 +576,27 @@ def main():
     kayit(15, "(g) renk dropdown yok + %d buton + Diger gradyan" % len(RENK_SECENEKLERI),
           not h15, "; ".join(h15[:4]) or "temiz")
 
-    # ---- 16 (h) acilista renk seçimsiz
+    # ---- 16 (h) 🔴 IDDIA 11 Agu'da TERSINE CEVRILDI — acilista renk ONDEN SECILI
+    # Eski iddia ("acilista renk secimsiz") SESSIZ SEPET ARIZASINI KUTSUYORDU: secim
+    # yapilmadan tiklanan "Sepete Ekle" hicbir hata METNI basmadan dusuyordu ve sepet
+    # bos kaliyordu ([[test-hatali-davranisi-kutsar]]). Artik varsayilan renk onden
+    # secilidir ve DEGERI secenekler.js bosSatir()'dan turer (fiyat carpani 1,00).
     h16 = []
-    if 'class="renk-btn secili' in fs:
-        h16.append("acilista bir renk butonu 'secili' (onden secim olmamali)")
-    if "var seciliRenk = \"\";" not in fs:
-        h16.append("seciliRenk bos baslamiyor")
+    sec_renk = re.findall(r'class="renk-btn secili" data-renk="([^"]+)"', fs)
+    m_bos = re.search(r'renk\s*:\s*"([^"]*)"',
+                      re.search(r"function\s+bosSatir\s*\([^)]*\)\s*\{\s*return\s*\{(.*?)\}\s*;",
+                                sec_js, re.S).group(1))
+    if sec_renk != [m_bos.group(1)]:
+        h16.append("acilista secili renk %r degil: %r" % (m_bos.group(1), sec_renk))
+    # Baslangic durumu SAYFADAN okunur (JS'te ikinci varsayilan listesi TUTULMAZ)
+    if 'var seciliRenk = _ilkSecim(renkBtnlar, ".renk-btn.secili", "data-renk");' not in fs:
+        h16.append("seciliRenk baslangici sayfadaki .secili butondan okunmuyor")
     # renkOzel kutusu acilista gizli
     m16 = re.search(r'id="renkOzel"[^>]*style="display:none"', fs)
     if not m16:
         h16.append("renkOzel kutusu acilista gizli degil")
-    kayit(16, "(h) acilista renk secimsiz + renkOzel gizli", not h16, "; ".join(h16) or "temiz")
+    kayit(16, "(h) acilista renk ONDEN SECILI (bosSatir varsayilani) + renkOzel gizli",
+          not h16, "; ".join(h16) or "temiz")
 
     # ---- 17 (i) Diger seçince metin kutusu görünür + boşken sepete eklenmez
     h17 = []

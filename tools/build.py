@@ -2328,9 +2328,15 @@ def panel_malzeme_html(p):
     Govdenin ALTINDAKI "Malzeme" bolumu bu sayfalarda kartlar_gizli=True ile basilir:
     muhendislik-malzeme WhatsApp notu + Malzeme Rehberi linki kalir, KART ikinci kez
     basilmaz (cift-UI olurdu)."""
+    # ETIKET "Malzeme seçimi" (asagidaki bilgi bolumunun basligi "Malzeme"ydi): bu satir
+    # bir SECICIDIR, asagisi bilgi bolumuydu — iki ayri sey, iki ayri etiket. Fark ayrica
+    # tools/varlik-test.py'nin gorunur-metin beyanini GRANUL tutar (kartlarin ESKI yerden
+    # kalkip YENI yere gitmesi iki DAR giriste ifade edilebilir; ayni etiket kullanilsaydi
+    # beyan iki konumu birbirinden ayirt edemezdi). Etiketi "Malzeme"ye geri cevirmeden
+    # once o beyanlara bak.
     return ("""
       <div class="opsiyon-row opsiyon-renk">
-        <label>Malzeme</label>
+        <label>Malzeme seçimi</label>
         <div class="fil-cipler" id="filCipler">""" + "".join(_fil_cipleri(p, VARSAYILAN_MALZEME))
             + """</div>
       </div>""")
@@ -2426,10 +2432,7 @@ function pv(el,src){{
      listesi YAZILMAZ. Uretec hangi cipe/butona `secili` bastiysa durum odur; uretecin
      varsayilani da secenekler.js bosSatir()'dan turer -> gorunen secim, hicbir secim
      yapilmadan olusan sepet satiriyla AYNI degerdir (kurus farki yapisal olarak 0). */
-  function _ilkSecim(kok, secici, alan){{
-    var el = (kok && kok.querySelector) ? kok.querySelector(secici) : null;
-    return el ? (el.getAttribute(alan) || "") : "";
-  }}
+  function _ilkSecim(kok, secici, alan){{ var ilk = (kok && kok.querySelector) ? kok.querySelector(secici) : null; return ilk ? (ilk.getAttribute(alan) || "") : ""; }}
   var seciliMalzeme = _ilkSecim(cipler, ".fil-cip.secili", "data-malzeme");
   var seciliRenk = _ilkSecim(renkBtnlar, ".renk-btn.secili", "data-renk");
   /* 🔴 GORUNUR SECIM HATASI — "sessiz basarisizlik" sinifinin kapatildigi yer.
@@ -2439,28 +2442,24 @@ function pv(el,src){{
      sessizlige DUSMEK degildir (fail-loud). */
   var hataEl = document.getElementById("secimHata");
   function hataKutusu(){{
-    if(hataEl){{ return hataEl; }}
-    if(!document.createElement){{ return null; }}
-    var d = document.createElement("div");
-    d.id = "secimHata"; d.className = "secim-hata";
-    d.setAttribute("role", "alert"); d.setAttribute("aria-live", "assertive");
-    d.style.cssText = "margin:2px 0 12px;padding:9px 12px;border-radius:8px;"
-      + "background:#fdecea;border:1px solid #f0b3ae;color:#8f1d19;font-size:13.5px;"
-      + "font-weight:600;line-height:1.45";
-    var ana = (btn.parentNode && btn.parentNode.parentNode) || btn.parentNode;
-    if(ana && ana.appendChild){{ ana.appendChild(d); hataEl = d; return d; }}
-    return null;
-  }}
+    if(hataEl || !document.createElement){{ return hataEl; }}
+    var kutu = document.createElement("div");
+    kutu.id = "secimHata"; kutu.className = "secim-hata";
+    kutu.setAttribute("role", "alert"); kutu.setAttribute("aria-live", "assertive");
+    kutu.style.cssText = "margin:2px 0 12px;padding:9px 12px;border-radius:8px;background:#fdecea;border:1px solid #f0b3ae;color:#8f1d19;font-size:13.5px;font-weight:600;line-height:1.45";
+    var kap = (btn.parentNode && btn.parentNode.parentNode) || btn.parentNode;
+    if(kap && kap.appendChild){{ kap.appendChild(kutu); hataEl = kutu; }}
+    /* ⚠️ KAPANIS SUSLU PARANTEZI SON SATIRA BITISIK: tools/varlik-test.py eksen 2 sayfa
+       JS'ini SATIR COKKUMESI olarak olcer ve yalniz `}}` iceren bir satir AYIRT EDICI
+       DEGILDIR — beyan edilemez (beyan edilseydi gercek bir icerik kaybini maskelerdi).
+       Bicimi "duzeltip" `}}`yi kendi satirina almadan once o kapiya bak. */
+    return hataEl; }}
   function hataGoster(metin){{
-    var k = hataKutusu();
+    var kutu = hataKutusu();
     /* SON CARE: DOM'a kutu koyulamadiysa bile kullanici UYARILIR — sessiz donus YOK. */
-    if(!k){{ if(typeof alert === "function"){{ alert(metin); }} return; }}
-    k.textContent = metin; k.hidden = false; k.removeAttribute("hidden");
-  }}
-  function hataGizle(){{
-    if(hataEl){{ hataEl.hidden = true; hataEl.setAttribute("hidden", "hidden");
-                 hataEl.textContent = ""; }}
-  }}
+    if(!kutu){{ if(typeof alert === "function"){{ alert(metin); }} return; }}
+    kutu.textContent = metin; kutu.hidden = false; kutu.removeAttribute("hidden"); }}
+  function hataGizle(){{ if(hataEl){{ hataEl.hidden = true; hataEl.setAttribute("hidden", "hidden"); hataEl.textContent = ""; }} }}
 
   function currentSatir(){{
     var s = PRUVO_SECENEK.bosSatir(id);
@@ -2500,8 +2499,7 @@ function pv(el,src){{
   }}
   function render(){{
     /* Eksik secim tamamlanir tamamlanmaz kirmizi uyari kendiliginden kalkar. */
-    if(!KART_SECIM || (seciliMalzeme && seciliRenk
-        && !(seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim()))){{ hataGizle(); }}
+    if(!KART_SECIM || (seciliMalzeme && seciliRenk && !(seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim()))){{ hataGizle(); }}
     var c = PRUVO_SECENEK.sepetYukle();
     var satir = currentSatir();
     var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
@@ -2568,9 +2566,7 @@ function pv(el,src){{
         var eksikAd = [];
         if(eksikM){{ eksikAd.push("malzeme"); }}
         if(eksikR){{ eksikAd.push("renk"); }}
-        hataGoster(eksikAd.length
-          ? ("Sepete eklemek için " + eksikAd.join(" ve ") + " seçin.")
-          : "Sepete eklemek için istediğiniz rengi yazın.");
+        hataGoster(eksikAd.length ? ("Sepete eklemek için " + eksikAd.join(" ve ") + " seçin.") : "Sepete eklemek için istediğiniz rengi yazın.");
         var hedef = eksikM ? cipler : (eksikR ? renkBtnlar : renkOzel);
         if(hedef){{
           try {{ hedef.scrollIntoView({{ behavior:"smooth", block:"center" }}); }} catch(e) {{}}
@@ -2598,7 +2594,7 @@ function pv(el,src){{
         if(typeof window.pruvoMetaTrack === "function"){{ window.pruvoMetaTrack("AddToCart", mAtcVeri); }}
       }} catch(e) {{}}
     }} else {{ c.splice(i,1); }}
-    hataGizle();
+    /* Uyari ayrica sokulmez: asagidaki render() secim tamamlandiginda kutuyu kapatir. */
     PRUVO_SECENEK.sepetKaydet(c); render();
   }});
   /* Malzeme kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
@@ -2610,7 +2606,6 @@ function pv(el,src){{
       kartlar[k].addEventListener("click", function(){{
         seciliMalzeme = this.getAttribute("data-malzeme") || "";
         for(var n=0;n<kartlar.length;n++){{ kartlar[n].classList.toggle("secili", kartlar[n]===this); }}
-        hataGizle();
         render();
       }});
     }}
@@ -2624,7 +2619,6 @@ function pv(el,src){{
         seciliRenk = this.getAttribute("data-renk") || "";
         for(var n=0;n<rbtnlar.length;n++){{ rbtnlar[n].classList.toggle("secili", rbtnlar[n]===this); }}
         if(renkOzel){{ renkOzel.style.display = (seciliRenk === "Diğer") ? "block" : "none"; }}
-        hataGizle();
         render();
       }});
     }}
@@ -2636,7 +2630,7 @@ function pv(el,src){{
       render();
     }});
   }});
-  if(renkOzel){{ renkOzel.addEventListener("input", function(){{ hataGizle(); render(); }}); }}
+  if(renkOzel){{ renkOzel.addEventListener("input", render); }}
   if(URUN_SEMA && window.PRUVO_KONF && window.PRUVO_HACIM){{
     /* F kalemi: sari sayfa da kart-secim — konfiguratorun fiyat gostergesi
        secili kart/cipten beslenir (dropdown yok; tek kaynak secenekler.js kurali). */
