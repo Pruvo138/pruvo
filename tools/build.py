@@ -4022,6 +4022,41 @@ OZET_TEMSIL_SURUM = 2
 OZET_GORSEL_ONEK = "https://media.pruvo3d.com/urunler/"
 _OZET_I_GORSEL = OZET_KART_ALANLARI.index("gorsel")
 
+# 🔴 `yeniRef` REFERANS YÜKLEMİ — index.html ile ORTAK JETON (12 Ağu 2026, çürütücü bulgusu).
+# ÖLÇÜLDÜ: derleme "id None değil mi" (Python), istemci "k.id truthy mi" (JS) diye soruyordu.
+# İki yüklem 8 senaryonun 5'inde ayrıştı ve ayrışma SESSİZDİ — build YEŞİL kalırken canlı
+# `ozetAc` ya kartı düşürüyor (boş dize id) ya da Object.prototype'tan miras bir değeri karta
+# koyuyordu (constructor/__proto__/toString/hasOwnProperty). Bugün katalogda böyle id 0/25.712
+# ama id'ler DIŞ KAYNAKLI başlıklardan türüyor; "bugün 0" kalıcı garanti DEĞİLDİR.
+#
+# YÜKLEM: referans anahtarı = BOŞ OLMAYAN DİZE. Başka her şey referans DEĞİLDİR — o kart
+# tele TAM olarak yazılır (kayıp yok), referans kısaltması UYGULANMAZ.
+# TEK KAYNAK BAĞI: jeton index.html'de `var OZET_REF_YUKLEM = "...";` satırında YAŞAR;
+# aşağıdaki `_index_ref_yuklemi_dogrula` her render_ozet çağrısında iki tarafın AYNI jetonu
+# beyan ettiğini fail-closed ölçer. İstemci yüklemi değişip burası güncellenmezse build
+# KIRMIZI yanar ([[ikiz-tanim-sessiz-ayrisma]]).
+OZET_REF_YUKLEM = "bos-olmayan-dize"
+
+
+def _ref_gecerli(v):
+    """index.html `refGecerli` ile BİREBİR aynı yüklem (jeton: bos-olmayan-dize)."""
+    return isinstance(v, str) and v != ""
+
+
+def _index_ref_yuklemi_dogrula():
+    """İstemcinin BEYAN ettiği referans yüklemi jetonu ile buradaki eşleşmeli."""
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        kaynak = f.read()
+    m = re.search(r"var\s+OZET_REF_YUKLEM\s*=\s*\"([^\"]*)\"\s*;", kaynak)
+    if not m:
+        raise SystemExit("index.html'de OZET_REF_YUKLEM jetonu YOK — `yeniRef` referans "
+                         "yuklemi tek kaynagi bozulmus (istemci ile derleme sessizce "
+                         "ayrisabilir).")
+    if m.group(1) != OZET_REF_YUKLEM:
+        raise SystemExit("`yeniRef` REFERANS YUKLEMI AYRISTI: index.html %r diyor, build.py "
+                         "%r uyguluyor. Iki taraf ayni soruya ayni cevabi VERMEK ZORUNDA."
+                         % (m.group(1), OZET_REF_YUKLEM))
+
 
 def kart_ozeti(p):
     """Worker /katalog + /ara yanıtındaki kartla AYNI şekil — site TEK kart çizici
@@ -4157,23 +4192,72 @@ def ozet_temsil_ac(ozet):
                for kat, kartlar in (ozet.get("bloklar") or {}).items()}
     havuz = {}
     for kart in parametrik + [k for liste in bloklar.values() for k in liste]:
-        if isinstance(kart, dict) and kart.get("id") is not None:
+        if isinstance(kart, dict) and _ref_gecerli(kart.get("id")):
             havuz.setdefault(kart["id"], kart)
     cozulemeyen = []
     if "yeniRef" in ozet:
         yeni = []
         for oge in (ozet.get("yeniRef") or []):
+            # İSTEMCİ İLE AYNI ÜÇ KOL: dize = referans · dizi = tam kart · başka her şey
+            # ne referans ne karttır. İstemci onu güvenle DÜŞÜRÜR (ve sayar); derleme
+            # tarafında sessizce atlamak yerine ÇÖZÜLEMEYEN sayılır -> build KIRMIZI.
             if isinstance(oge, str):
-                if oge in havuz:
+                if _ref_gecerli(oge) and oge in havuz:
                     yeni.append(havuz[oge])
                 else:
                     cozulemeyen.append(oge)
-            else:
+            elif isinstance(oge, list):
                 yeni.append(ac(oge))
+            else:
+                cozulemeyen.append(oge)
     else:
         yeni = [ac(k) for k in (ozet.get("yeni") or [])]
     return {"parametrik": parametrik, "bloklar": bloklar, "yeni": yeni,
             "cozulemeyen": cozulemeyen}
+
+
+def _temsil_konum_capasi(tel_dizileri, kartlar, alanlar, onek, etiket):
+    """🔴 BAĞIMSIZ ÇAPA — telin her KONUMUNU kaynak kartın alan sözlüğüyle DOĞRUDAN kıyaslar.
+
+    NEDEN AYRI BİR ÇAPA ([[anahat-referans-tautolojisi]], 12 Ağu 2026 çürütücü bulgusu):
+    ``ozet_temsil_ac`` sıkıştırıcının İKİZİDİR. Sıkıştırıcı ile Python çözücüsü AYNI hatayı
+    yaparsa (ölçüldü: kart dizisinde 2. ve 3. konumun — `kategori` ile `marka` — iki tarafta
+    birden takas edilmesi) o karşılaştırma YEŞİL kalıyor, hatayı yalnız CANLI istemci kabul
+    testi görüyordu. Bu çapa çözücüyü HİÇ ÇAĞIRMAZ: `dizi[i]` ile `kart[alanlar[i]]`i
+    karşılaştırır, yani simetrik takas burada KIRMIZI yanar.
+
+    Uyguladığı üç kural (istemcinin YAZILI sözleşmesi, çözücüden türetilmeden):
+      * konum i alan sözlüğündeki i'nci alanın değerini taşır;
+      * telin SONUNDAN kırpılan konumların alanı kartta BULUNMAMALIDIR (kayıp yok);
+      * `gorsel` konumunda önek düşülmüşse ("://" taşımayan boş olmayan dize) geri
+        eklendiğinde kaynak değeri vermelidir.
+    """
+    if len(tel_dizileri) != len(kartlar):
+        raise SystemExit("ozet.json TEMSIL CAPASI (%s): tel %d kayit, kaynak %d kart — "
+                         "kesit uzunlugu ayrisiyor." % (etiket, len(tel_dizileri), len(kartlar)))
+    for sira, (dizi, kart) in enumerate(zip(tel_dizileri, kartlar)):
+        if not isinstance(dizi, list):
+            raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): tel kaydi dizi degil: %r"
+                             % (etiket, sira, dizi))
+        if len(dizi) > len(alanlar):
+            raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): tel %d konum tasiyor, alan "
+                             "sozlugu %d — fazla konumun karsiligi YOK."
+                             % (etiket, sira, len(dizi), len(alanlar)))
+        for i, alan in enumerate(alanlar):
+            if i >= len(dizi):
+                if alan in kart:
+                    raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): `%s` alani kartta VAR "
+                                     "ama tel %d konumda bitmis — DEGER TELDE KAYBOLDU."
+                                     % (etiket, sira, alan, len(dizi)))
+                continue
+            tel = dizi[i]
+            if (alan == "gorsel" and onek and isinstance(tel, str) and tel
+                    and "://" not in tel):
+                tel = onek + tel
+            if tel != kart.get(alan):
+                raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): konum %d `%s` — telde %r, "
+                                 "kaynak kartta %r (KONUM/DEGER AYRISMASI)."
+                                 % (etiket, sira, i, alan, dizi[i], kart.get(alan)))
 
 
 def _ozet_surum_dogrula(ozet):
@@ -4246,6 +4330,9 @@ def render_ozet(products, temsil_surum=None):
     surum = OZET_TEMSIL_SURUM if temsil_surum is None else int(temsil_surum)
     if surum not in (2, 3):
         raise SystemExit("ozet temsil surumu gecersiz: %r (2 ya da 3 olmali)" % (surum,))
+    # İki taraf "bu referans geçerli mi" sorusuna AYNI cevabı veriyor mu — bayrak KAPALI
+    # iken de ölçülür: ayrışma, bayrak açıldığı gün değil BUGÜN kırmızı yanmalı.
+    _index_ref_yuklemi_dogrula()
     kategoriler = {}
     markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
     for p in products:
@@ -4311,11 +4398,14 @@ def render_ozet(products, temsil_surum=None):
         s_bloklar = {kat: [sik(k) for k in kartlar] for kat, kartlar in bloklar.items()}
         s_yeni = [sik(k) for k in yeni_kartlar]
         if surum >= 3:
+            # REFERANS YALNIZ GEÇERLİ ANAHTARDA (`_ref_gecerli`: boş olmayan dize; istemci
+            # ile ORTAK yüklem). Geçersiz/patolojik id taşıyan kart KISALTILMAZ, tele TAM
+            # yazılır: kayıp yok ve istemci onu dizi olarak açar.
             havuz_dizin = {}
             for dizi in s_parametrik + [d for liste in s_bloklar.values() for d in liste]:
-                if dizi and dizi[0] is not None:
+                if dizi and _ref_gecerli(dizi[0]):
                     havuz_dizin.setdefault(dizi[0], dizi)
-            s_yeni = [(dizi[0] if (dizi and dizi[0] is not None
+            s_yeni = [(dizi[0] if (dizi and _ref_gecerli(dizi[0])
                                    and havuz_dizin.get(dizi[0]) == dizi) else dizi)
                       for dizi in s_yeni]
         # ANAHTAR SIRASI KORUNUR (bayrak KAPALI iken artefakt, bayraktan önceki v2 ile
@@ -4340,10 +4430,41 @@ def render_ozet(products, temsil_surum=None):
         ozet["vitrin"] = {"yetersiz": yetersiz, "bloklar": blok_sapma,
                           "liste": len(products)}
         _ozet_surum_dogrula(ozet)
-        # 🔴 KAYIPSIZLIK HER BUILD'DE ÖLÇÜLÜR (fail-closed): temsili GERİ AÇIP kartların
-        # KAYNAĞIYLA (kart_ozeti çıktısı) birebir karşılaştırırız. Karşılaştırma hedefi
-        # sıkıştırmanın kendi tersi DEĞİL, ÜRETİLEN KARTLARDIR — böylece sıkıştırma ile
-        # açmanın aynı hatayı paylaşması yeşil vermez.
+        # 🔴 KAYIPSIZLIK HER BUILD'DE İKİ AYRI ÇAPAYLA ÖLÇÜLÜR (fail-closed):
+        #
+        #  (1) KONUM ÇAPASI (`_temsil_konum_capasi`) — ÇÖZÜCÜYÜ ÇAĞIRMAZ; telin i'nci
+        #      konumunu kaynak kartın i'nci ALANIYLA doğrudan kıyaslar. Sıkıştırıcı ile
+        #      Python çözücüsünün AYNI hatayı paylaşması (simetrik takas) burada yakalanır.
+        #  (2) GERİ AÇMA (`ozet_temsil_ac`) — çözücünün kendisini kartlarla kıyaslar;
+        #      çözücüye ÖZGÜ hataları (yalnız açma tarafında olan kayma) yakalar.
+        #
+        # ⚠️ DÜRÜST SINIR: (2) sıkıştırıcının İKİZİDİR, tek başına simetrik hataya KÖRDÜR
+        # (ölçüldü, 12 Ağu). "Her build'de fail-closed kayıpsızlık ölçülür" iddiası (1)
+        # sayesinde ayakta durur. İstemci tarafının (index.html `ozetAc`) kendi doğruluğu
+        # BURADA ölçülemez — onun bağımsız çapası tools/ozet-temsil-test.js'tir (CANLI
+        # çözücüyü koşturur); ozet.json'un kart ALAN SÖZLEŞMESİ ise
+        # tools/edge-kart-kapisi.py'dir (kartı bu telden geçirip canlı çözücüyle geri açar).
+        _temsil_konum_capasi(s_parametrik, parametrik_kartlar,
+                             OZET_KART_ALANLARI, onek, "parametrik")
+        for _kat, _tel in s_bloklar.items():
+            _temsil_konum_capasi(_tel, bloklar.get(_kat, []),
+                                 OZET_KART_ALANLARI, onek, "bloklar/%s" % _kat)
+        # `yeni` kesiti referans TAŞIYABİLİR: konum çapası için referansı telin KENDİ
+        # havuzundan (artefaktın basılmış kartlarından) çözeriz — çözücü yine devrede DEĞİL.
+        _tel_havuz = {}
+        for _dizi in s_parametrik + [d for liste in s_bloklar.values() for d in liste]:
+            if _dizi and _ref_gecerli(_dizi[0]):
+                _tel_havuz.setdefault(_dizi[0], _dizi)
+        _yeni_tel = []
+        for _oge in s_yeni:
+            if isinstance(_oge, list):
+                _yeni_tel.append(_oge)
+            elif _ref_gecerli(_oge) and _oge in _tel_havuz:
+                _yeni_tel.append(_tel_havuz[_oge])
+            else:
+                raise SystemExit("ozet.json 'yeniRef' kaydi ne TAM KART ne de COZULEBILIR "
+                                 "REFERANS: %r" % (_oge,))
+        _temsil_konum_capasi(_yeni_tel, yeni_kartlar, OZET_KART_ALANLARI, onek, "yeni")
         geri = ozet_temsil_ac(ozet)
         beklenen = {"parametrik": parametrik_kartlar,
                     "bloklar": bloklar, "yeni": yeni_kartlar}

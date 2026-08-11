@@ -4031,11 +4031,26 @@
   //   v2  sabit sıralı dizi         -> alan sözlüğüyle açılır
   //   v3  + `gorselOnek` başlıkta   -> kapak URL'sinin ortak öneki geri eklenir
   //       + `yeniRef` kesiti        -> dize = havuz kartına ID referansı, dizi = tam kart
-  // Çözülemeyen referans SESSİZCE BOŞ KART çizdirmez, DÜŞÜRÜLÜR (fail-closed yön).
+  // Çözülemeyen referans SESSİZCE BOŞ KART çizdirmez, DÜŞÜRÜLÜR (fail-closed yön) ve
+  // düşen sayısı `yeniCozulemeyen` alanında ÖLÇÜLEBİLİR iz olarak durur.
+  //
+  // 🔴 REFERANS YÜKLEMİ — TEK KAYNAK JETONU (12 Ağu 2026, çürütücü bulgusu). Derleme
+  // (build.py) ile istemci "bu referans geçerli mi" sorusuna AYNI cevabı vermek ZORUNDA:
+  // ayrıştıkları gün build YEŞİL kalırken canlı sayfa kart düşürüyordu (ölçüldü: 8
+  // senaryonun 5'i — boş dize id kart DÜŞÜRÜYOR; constructor/__proto__/toString/
+  // hasOwnProperty id'leri karta NATIVE FONKSİYON sızdırıyordu). Yüklem BURADA adlandırılır,
+  // build.py bu satırı REGEX ile okur ve kendi Python karşılığını (`_ref_gecerli`) bu jetona
+  // BAĞLAR; jeton değişip Python tarafı güncellenmezse build FAIL-CLOSED kırmızı yanar
+  // ([[ikiz-tanim-sessiz-ayrisma]]). Jetonu değiştiriyorsan build.py'deki eşini de değiştir.
+  var OZET_REF_YUKLEM = "bos-olmayan-dize";
   function ozetAc(d){
     var alanlar = (d && d.kartAlanlari) || [];
     if(!alanlar.length){ return d; }
     var onek = (d && d.gorselOnek) || "";
+    // TEK YÜKLEM (OZET_REF_YUKLEM = "bos-olmayan-dize"): bir `yeniRef` öğesinin havuz
+    // ANAHTARI sayılması için BOŞ OLMAYAN DİZE olması gerekir. Sayı (0), boş dize, null,
+    // obje referans DEĞİLDİR. build.py `_ref_gecerli` BİREBİR aynı yüklemi uygular.
+    function refGecerli(v){ return typeof v === "string" && v !== ""; }
     function kartAc(k){
       if(Object.prototype.toString.call(k) !== "[object Array]"){ return k; }
       var out = {};
@@ -4054,17 +4069,41 @@
       d.bloklar[kat] = (d.bloklar[kat] || []).map(kartAc);
     });
     if(d.yeniRef){
-      var havuz = {};
-      var kaydet = function(k){ if(k && k.id && !havuz[k.id]){ havuz[k.id] = k; } };
+      // 🔴 PROTOTİPSİZ HAVUZ. Düz `{}` sözlükte arama yapmak, id'si "constructor" /
+      // "__proto__" / "toString" / "hasOwnProperty" olan bir referansta Object.prototype'tan
+      // MİRAS bir değer buluyordu ve kart yerine native fonksiyon (ya da boş obje) vitrine
+      // giriyordu. Object.create(null) mirası KÖKTEN keser; `Map` yerine seçildi çünkü bu
+      // dosyada harici bağımlılık yok ve null-prototipli obje ES5 yüzeyinde `in`/atama ile
+      // aynı işi yapıyor (kalan kod aynı kalıyor, Map olsa iki ayrı erişim biçimi doğardı).
+      var havuz = Object.create(null);
+      var kaydet = function(k){
+        if(k && refGecerli(k.id) && !(k.id in havuz)){ havuz[k.id] = k; }
+      };
       d.parametrik.forEach(kaydet);
       Object.keys(d.bloklar || {}).forEach(function(kat){ d.bloklar[kat].forEach(kaydet); });
       d.yeni = [];
+      var dusen = 0;
       d.yeniRef.forEach(function(oge){
-        var kart = (typeof oge === "string") ? havuz[oge] : kartAc(oge);
-        if(kart){ d.yeni.push(kart); }
+        // Dize = havuz referansı (YÜKLEM tek: boş olmayan dize). Dizi = tam kart.
+        // Bunun DIŞINDAKİ her şey (sayı, null, obje) ne referans ne karttır -> DÜŞER.
+        var kart = null;
+        if(typeof oge === "string"){
+          if(refGecerli(oge) && (oge in havuz)){ kart = havuz[oge]; }
+        }else if(Object.prototype.toString.call(oge) === "[object Array]"){
+          kart = kartAc(oge);
+        }
+        if(kart && typeof kart === "object"){ d.yeni.push(kart); }else{ dusen++; }
       });
+      // ÖLÇÜLEBİLİR İZ — sessiz düşüş YASAK. Kabul testi bunu okur; canlı sayfada da
+      // konsola tek satır düşer (kart çizilmediği için ekranda başka işaret olmazdı).
+      d.yeniCozulemeyen = dusen;
+      if(dusen && typeof console !== "undefined" && console.warn){
+        console.warn("PRUVO: ozet.json `yeniRef` " + dusen + " referansi COZULEMEDI, "
+          + "o kartlar cizilmedi.");
+      }
     }else{
       d.yeni = (d.yeni || []).map(kartAc);
+      d.yeniCozulemeyen = 0;
     }
     return d;
   }

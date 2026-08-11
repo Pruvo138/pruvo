@@ -36,6 +36,8 @@
  *   7  BAYAT ISTEMCI — 11 Agu cozucusu v3'u alirsa BOS KART cizmez (olcum + sinir beyani)
  *   8  TEMSIL BAYRAGI — BEYAN edilen bayrak ne ise artefakt ONU basiyor mu
  *   9  GERCEK KATALOG — iki bayrak hali + bayat istemci penceresi SAYIYLA
+ *  10  PATOLOJIK ID — derleme ile istemcinin REFERANS YUKLEMI ayni mi (kalici fikstur:
+ *      bos dize · constructor · __proto__ · toString · hasOwnProperty · 0)
  *
  * 🔴 TEMSIL BAYRAGI (build.py `OZET_TEMSIL_SURUM`, mimar karari 12 Agu 2026): v3'u ACABILEN
  * istemci once yayinlanir (bayrak KAPALI, artefakt v2 -> kimse etkilenmez), tarayici
@@ -428,6 +430,42 @@ function kosum() {
       + ", kapagi kaybolan kart " + gKapakKayip + " (yayin N->N+1 penceresi kapatir)");
   }
 
+  // ---- 10: PATOLOJIK ID — derleme ile istemcinin REFERANS YUKLEMI ayni mi?
+  // 🔴 NEDEN (12 Agu, bagimsiz curutucu): derleme "id None degil mi" (Python), istemci
+  // "k.id truthy mi" (JS duz sozluk) diye soruyordu. 8 senaryonun 5'inde BUILD YESIL
+  // kalirken canli `ozetAc` ya karti dusuruyor (bos dize id) ya da Object.prototype'tan
+  // MIRAS bir degeri (constructor/__proto__/toString/hasOwnProperty) karta koyuyordu.
+  // Fikstur KALICIDIR (tools/fikstur-ozet-patolojik-id.json) — id'ler DIS KAYNAKLI
+  // basliklardan turer, "bugun katalogda 0 tane" kalici garanti DEGILDIR.
+  const PATOLOJIK_YOL = path.join(KOK, "tools", "fikstur-ozet-patolojik-id.json");
+  if (!fs.existsSync(PATOLOJIK_YOL)) {
+    olculemedi("patolojik id fiksturu YOK: tools/fikstur-ozet-patolojik-id.json");
+  }
+  const patUrun = JSON.parse(fs.readFileSync(PATOLOJIK_YOL, "utf8"));
+  const pat = ozetUret(PATOLOJIK_YOL, 3);
+  const k10 = kayipsizMi(pat, patUrun, "patolojik id fiksturu");
+  const patAcik = k10.acik;
+  const patRef = (pat.ozet.yeniRef || []).filter((x) => typeof x === "string");
+  // Derleme YUKLEMI: basilan her referans BOS OLMAYAN DIZE olmali (sayi/bos dize referans
+  // DEGILDIR -> o kart tele TAM yazilmali).
+  const gecersizRef = patRef.filter((x) => x === "").length
+    + (pat.ozet.yeniRef || []).filter((x) => typeof x !== "string" && !Array.isArray(x)).length;
+  // Prototip anahtarlari GERCEKTEN referans olarak basildi mi (yoksa iddia bos yere yesil
+  // yanar: hic referans basilmazsa null-prototipli havuz hic sinanmamis olurdu).
+  const protoRef = patRef.filter((x) => ["constructor", "__proto__", "valueOf",
+    "propertyIsEnumerable"].indexOf(x) !== -1).length;
+  // Istemci IZI: cozulemeyen referans SESSIZCE atlanmaz, SAYILIR.
+  const patDusen = patAcik.yeniCozulemeyen;
+  const patKart = (patAcik.yeni || []).length;
+  rapor("10 PATOLOJIK ID: bos dize / constructor / __proto__ / toString / hasOwnProperty / 0 "
+    + "-> derleme ile istemci AYNI yuklem, kart DUSMEZ, prototip SIZMAZ",
+  k10.sapmalar.length === 0 && gecersizRef === 0 && protoRef >= 3
+    && patDusen === 0 && patKart === Math.min(OZET_YENI, patUrun.length),
+  "referans " + patRef.length + " (prototip anahtarli " + protoRef + ") | gecersiz referans "
+    + gecersizRef + " | istemci `yeni` " + patKart + "/" + Math.min(OZET_YENI, patUrun.length)
+    + " kart | cozulemeyen iz " + JSON.stringify(patDusen)
+    + (k10.sapmalar.length ? " | SAPAN: " + k10.sapmalar.join(", ") : ""));
+
   console.log("");
   console.log("OLCUM: karisik fikstur ozet.json %d B | sifir-ortusme %d B | tam-ortusme %d B",
     karisik.bayt, sifir.bayt, tam.bayt);
@@ -442,44 +480,63 @@ function kosum() {
 // --------------------------------------------------------------------------- mutasyon
 // Her mutant DAR: yalnizca bu testin olctugu eksenin yakalayabilecegi bir bozulma.
 // Mutant DAIMA KOPYAYA uygulanir; gercek agac degismez.
+//
+// 🔴 KREDI KURALI DARALTILDI (12 Agu 2026, bagimsiz curutucu bulgusu). Eski kural
+// `rc === 1 || rc === 2` idi: rc=2 "test KOSAMADI" demektir (build.py KENDI fail-closed
+// kolunda patladi), rc=1 ise "TESTIN KENDI IDDIASI dustu". Ikisini ayni saymak 7 mutantin
+// 3'unu (M-D/M-E/M-F) bu testin marifeti gibi gosteriyordu — sisirilmis 7/7. Artik her
+// mutant BEKLENEN YAKALAYICISIYLA birlikte yazilir ve GOZLENEN yakalayici onunla
+// TUTMALIDIR; boylece "iddianin yakaladigi mutant sessizce build koluna kaymasi" da
+// kirmizi yakar. Sayilar ciktida AYRI AYRI basilir.
+//   "iddia" -> rc=1: bu testin kendi iddiasi dustu (GERCEK KREDI)
+//   "kol"   -> rc=2: test kosamadi; mutanti build.py'nin fail-closed kolu yakaladi
 const MUTANTLAR = [
-  ["M-A istemci: gorsel onegini GERI EKLEMEZ", "index",
+  ["M-A istemci: gorsel onegini GERI EKLEMEZ", "index", "iddia",
     "        out.gorsel = onek + out.gorsel;", "        out.gorsel = out.gorsel;",
     "onek dusuruldu ama geri eklenmezse kapak URL'si KISA kalir (kart yer tutucuya duser)"],
-  ["M-B istemci: `yeniRef` kolu HIC calismaz", "index",
+  ["M-B istemci: `yeniRef` kolu HIC calismaz", "index", "iddia",
     "    if(d.yeniRef){", "    if(false){",
     "referansli kesit acilmazsa `yeni` kuyrugu BOSALIR (ilk boyama kart kaybeder)"],
-  ["M-C istemci: referans cozer ama TAM karti dusurur", "index",
-    "        var kart = (typeof oge === \"string\") ? havuz[oge] : kartAc(oge);",
-    "        var kart = (typeof oge === \"string\") ? havuz[oge] : null;",
+  ["M-C istemci: referans cozer ama TAM karti dusurur", "index", "iddia",
+    "          kart = kartAc(oge);", "          kart = null;",
     "sifir-ortusme halinde (yarin) `yeni` bosalir — bugunku %100 ortusmede gorunmez"],
-  ["M-D derleme: SURUM BUMP dusuruldu (v3 alani basiliyor, surum 2)", "build",
+  ["M-H istemci: referans havuzu DUZ {} sozluge doner (prototip kirlenmesi)", "index", "iddia",
+    "      var havuz = Object.create(null);", "      var havuz = {};",
+    "id'si constructor/__proto__/toString olan kart yerine Object.prototype'tan MIRAS "
+    + "deger (native fonksiyon) vitrine girer — iddia 10 bunu olcer"],
+  ["M-D derleme: SURUM BUMP dusuruldu (v3 alani basiliyor, surum 2)", "build", "kol",
     "        ozet = {\"surum\": surum, \"kartAlanlari\": list(OZET_KART_ALANLARI)}",
     "        ozet = {\"surum\": 2, \"kartAlanlari\": list(OZET_KART_ALANLARI)}",
     "bayat istemciye yeni temsil 'eski surum' etiketiyle verilirse kimse fark etmez"],
-  ["M-E derleme: onek dusuruldu ama `gorselOnek` basligi BASILMADI", "build",
+  ["M-E derleme: onek dusuruldu ama `gorselOnek` basligi BASILMADI", "build", "kol",
     "            ozet[\"gorselOnek\"] = OZET_GORSEL_ONEK",
     "            pass",
     "kendini tanimlamayan artefakt: istemci onegi geri EKLEYEMEZ (surum nobetcisi de yakalar)"],
-  ["M-G derleme: TEMSIL BAYRAGI yok sayilir, kosulsuz v3 basilir", "build",
+  ["M-G derleme: TEMSIL BAYRAGI yok sayilir, kosulsuz v3 basilir", "build", "iddia",
     "    surum = OZET_TEMSIL_SURUM if temsil_surum is None else int(temsil_surum)",
     "    surum = 3",
     "okuyucu-once/yazici-sonra yayin kolu olur: yayin N'de bayat istemcilere v3 gider"],
-  ["M-F derleme: referans havuz uyelugu DOGRULANMADAN verilir", "build",
-    "            s_yeni = [(dizi[0] if (dizi and dizi[0] is not None\n"
+  ["M-F derleme: referans havuz uyelugu DOGRULANMADAN verilir", "build", "kol",
+    "            s_yeni = [(dizi[0] if (dizi and _ref_gecerli(dizi[0])\n"
     + "                                   and havuz_dizin.get(dizi[0]) == dizi) else dizi)\n"
     + "                      for dizi in s_yeni]",
-    "            s_yeni = [(dizi[0] if (dizi and dizi[0] is not None) else dizi)\n"
+    "            s_yeni = [(dizi[0] if (dizi and _ref_gecerli(dizi[0])) else dizi)\n"
     + "                      for dizi in s_yeni]",
     "havuzda OLMAYAN karta referans = istemcide DUSEN kart (sessiz kayip)"],
+  ["M-I derleme: REFERANS YUKLEMI jetonu istemciden AYRISIR", "build", "kol",
+    "OZET_REF_YUKLEM = \"bos-olmayan-dize\"", "OZET_REF_YUKLEM = \"her-deger\"",
+    "iki tarafin 'bu referans gecerli mi' cevabi sessizce ayrisirsa v3 kart dusurur; "
+    + "jeton bagi bunu BUGUN kirmizi yakmali"],
 ];
 
 function mutasyonKosumu() {
-  console.log("=== MUTASYON: test GERCEKTEN yuk tasiyor mu? (hepsi KIRMIZI yanmali)\n");
+  console.log("=== MUTASYON: test GERCEKTEN yuk tasiyor mu? (her mutant BEKLENEN "
+    + "yakalayicisiyla TUTMALI)\n");
   const indexKaynak = fs.readFileSync(path.join(KOK, "index.html"), "utf8");
   const buildKaynak = fs.readFileSync(path.join(KOK, "tools", "build.py"), "utf8");
+  const sayac = { iddia: 0, kol: 0, yesil: 0 };
   let tut = 0;
-  for (const [ad, hedef, eski, yeni, gerekce] of MUTANTLAR) {
+  for (const [ad, hedef, beklenenKol, eski, yeni, gerekce] of MUTANTLAR) {
     const kaynak = hedef === "index" ? indexKaynak : buildKaynak;
     if (kaynak.split(eski).length - 1 !== 1) {
       olculemedi("MUTASYON CAPASI KAYIP/COKLU (" + ad + "): " + JSON.stringify(eski.slice(0, 60)));
@@ -500,21 +557,38 @@ function mutasyonKosumu() {
     }
     const r = spawnSync(process.execPath, [__filename].concat(argv), { encoding: "utf8" });
     if (temizle) { try { fs.unlinkSync(temizle); } catch (e) { /* yok */ } }
-    const kirmiziMi = r.status === 1 || r.status === 2;
-    tut += kirmiziMi ? 1 : 0;
-    console.log("  %s %s", kirmiziMi ? "✔ KIRMIZI (rc=" + r.status + ")" : "✘ YESIL KALDI", ad);
+    // 🔴 DAR KREDI: rc=1 (testin KENDI iddiasi dustu) ile rc=2 (test kosamadi; baska bir
+    // kol yakaladi) AYNI SAYILMAZ. Eski kural `r.status === 1 || r.status === 2` idi.
+    const kirmiziMi = r.status === 1;
+    const gozlenen = r.status === 1 ? "iddia" : (r.status === 2 ? "kol" : "yesil");
+    sayac[gozlenen] += 1;
+    const tamamMi = gozlenen === beklenenKol;
+    tut += tamamMi ? 1 : 0;
+    const etiket = gozlenen === "iddia" ? "✔ IDDIA DUSTU (rc=1)"
+      : (gozlenen === "kol" ? "◐ BASKA KOL (rc=2, test kosamadi)" : "✘ YESIL KALDI (rc=0)");
+    console.log("  %s %s%s", etiket, ad,
+      tamamMi ? "" : "   ← ✘ BEKLENEN: " + beklenenKol.toUpperCase());
     console.log("      gerekce: %s", gerekce);
     const dusen = String(r.stdout || "").split("\n").filter((s) => s.indexOf("✘") !== -1);
     if (dusen.length) { console.log("      yakalandi:%s", dusen[0].slice(0, 140)); }
-    else if (kirmiziMi) { console.log("      yakalandi: %s", String(r.stderr || r.stdout || "").trim().split("\n").pop().slice(0, 140)); }
+    else if (kirmiziMi || gozlenen === "kol") { console.log("      yakalandi: %s", String(r.stderr || r.stdout || "").trim().split("\n").pop().slice(0, 140)); }
   }
+  const beklenenIddia = MUTANTLAR.filter((m) => m[2] === "iddia").length;
   console.log("");
+  console.log("KREDI: IDDIA %d/%d (testin KENDI iddiasi dustu — GERCEK KREDI) · "
+    + "BASKA KOL %d/%d (build.py fail-closed kolu; bu test icin kredi DEGIL) · "
+    + "YESIL KALAN %d/%d", sayac.iddia, MUTANTLAR.length, sayac.kol, MUTANTLAR.length,
+  sayac.yesil, MUTANTLAR.length);
+  console.log("       (beyan edilen dagilim: iddia %d · kol %d)",
+    beklenenIddia, MUTANTLAR.length - beklenenIddia);
   if (tut !== MUTANTLAR.length) {
-    console.log("MUTASYON: KALDI — %d/%d mutant kirmizi yandi, test OLU IDDIA tasiyor",
-      tut, MUTANTLAR.length);
+    console.log("\nMUTASYON: KALDI — %d/%d mutant BEYAN EDILEN yakalayiciyla tutmadi; "
+      + "test OLU IDDIA tasiyor ya da iddia sessizce build koluna kaydi",
+    MUTANTLAR.length - tut, MUTANTLAR.length);
     return 1;
   }
-  console.log("MUTASYON: GECTI — %d/%d mutant KIRMIZI (iddia CANLI).", tut, MUTANTLAR.length);
+  console.log("\nMUTASYON: GECTI — %d/%d mutant beyan edilen yakalayiciyla TUTTU "
+    + "(iddia kredisi %d).", tut, MUTANTLAR.length, sayac.iddia);
   return 0;
 }
 
