@@ -139,6 +139,14 @@ rc=0. `ozet.json` 127.324 → **127.401 bayt (+77)**, butce 153.600.
 **Bagimsiz teyit (iscinin sayisina guvenilmedi):** `31485618181` (head `746ececb`, `3298f1be`
 ata) → `serit-a3` = **success** (`build` + `serit-a4` de success).
 
+**✅ TUR ICINDE KAPANDI — YAYIN FIILEN INDI (hukum "yesil job" degil, KOSAN deploy uzerinden).**
+`31485618181` tur kapanirken **conclusion = success** oldu ve job kirilimi
+`build · serit-a2 · serit-a3 · serit-a4 · deploy · yayin` = **6/6 success** — `deploy` ve `yayin`
+`skipped` DEGIL, gercekten KOSTU. Ata ekseni de olculdu: `git merge-base --is-ancestor 3298f1be
+746ececb` rc=0 → yayina inen agac onarim commit'ini TASIYOR ([[hukum-yanlis-birimde]] ekseni
+kapali; "job yesil" ile "yayin indi" ayri ayri olculdu). Ust ust binen iki kok neden 10:15Z'den
+11:12Z'ye, yaklasik **57 dakikada** kapandi.
+
 **⚠️ MUKERRER CALISMA OLCULDU — zarar YOK, ama sinif kayda geciyor.** Ayni kirmiziya baska bir
 KraL oturumu paralel calisiyordu (defterin kapanis blogu: dal `kral/edge-bayrak-duyarli`, worktree
 `.claude/worktrees/edge-bayrak`, yaklasim "kapiyi bayrak-duyarli yap"). Nobetin yaklasimi farkli
@@ -159,10 +167,12 @@ ayni sinifin alarm kolu (`31482745527`) yesil. `cron-nabzi` gibi degerlendirildi
 `focused-swartz-990d51 (a327d799)` + `ga4-merge (d41ab7f7)` — baska oturumlarin agaci
 ([[worktree-tavani-kapsami]]: tavan mimarin KENDI agaclarini sayar).
 
-**Sonraki turun ILK ISI:** (a) `31485618181`'de `serit-a2`, ve `31487441907` (head `6ba5a6e6`,
-11:37Z) tur kapanirken hala uctaydi — `deploy`+`yayin` job'larinin GERCEKTEN kostugunu ve
-`success` oldugunu olc ([[ucustaki-kosum-yesil-degildir]]); yayin uc turdur inmedi, "yayin
-kapandi" hukmu ancak deploy KOSUNCA yazilir. (b) ArTisT kutuya iki iddiayi CURUTEN olcum birakti:
+**Sonraki turun ILK ISI:** (a) `31487441907` (head `6ba5a6e6`) ve `31488916526` (head `3965d242`,
+bu turun defter commit'i) tur kapanirken hala uctaydi — `conclusion`'larini olc
+([[ucustaki-kosum-yesil-degildir]]). Yayin kolunun kendisi `746ececb`'de zaten indi, bu ikisi
+SONRAKI head'ler. Ayrica push kancasi iki kalem basti: **`ga4-merge` worktree'sinde main'de
+OLMAYAN 3 commit var (BUNDLE GEREKIR)** — silme YOK, sahibi belli olunca **skill: merge-kapisi**
+ile ayri tur; ve `YEDEK alinamadi` uyarisi (kontrol: `python3 tools/durum.py`). (b) ArTisT kutuya iki iddiayi CURUTEN olcum birakti:
 `f8c8f5a9` (GA4 huni olaylari) main'de **0 kez geciyor** (yalniz bir dalda) ve WhatsApp/Sepete-Ekle
 boyut istegi canlida **hic degismemis** (bant 134→135px) — ikisi de KraL duzlemi, ayri tur.
 (c) Kardes depo kalemi HocA'ya yazildi: edge Worker `KART_ALANLARI` hala `konfigur,
