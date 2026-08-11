@@ -34,6 +34,16 @@ console.log("1) syncUrl davranışı (ayıklanmış fonksiyon, sahte history/loc
 const m = INDEX.match(/function syncUrl\(\)\{[\s\S]*?\n  \}/);
 kontrol("index.html'de syncUrl() tanımlı", !!m);
 
+/* 🔴 syncUrl 11 Ağu'da GÖRÜNEN kategori etiketine uzandı (iç seri adı adres çubuğunda
+   görünmesin diye): `?kategori=` artık gorunurKategori(activeCat) yazıyor. Bağımlılık
+   STUB'LANMAZ — index.html'deki GERÇEK tablo + fonksiyon ayıklanıp sandbox gövdesinin
+   başına konur; böylece bu test eşlemenin kendisini de ölçer (stub olsaydı eşleme
+   bozulunca yeşil kalırdı). Ayıklanamazsa FAIL-CLOSED kırmızı. */
+const mGor = INDEX.match(
+  /var KATEGORI_GORUNUR = \{[^;]*\};[\s\S]{0,600}?function gorunurKategori\(c\)\{[\s\S]*?\n  \}/);
+kontrol("index.html'den KATEGORI_GORUNUR + gorunurKategori ayıklandı", !!mGor);
+const ONEK = mGor ? mGor[0] + ";\n" : "";
+
 if (m) {
   // activeCat/activeAlt/activeBrand/query + history/location kapalı değişkenlerini sararak
   // çalıştır. 🔴 Sandbox'ın sağladığı değişken kümesi index.html'deki syncUrl gövdesiyle
@@ -46,7 +56,7 @@ if (m) {
     const sandbox = new Function(
       "activeCat", "activeAlt", "activeBrand", "activeModel", "query", "history", "location",
       "URLSearchParams",
-      m[0] + "; syncUrl();"
+      ONEK + m[0] + "; syncUrl();"
     );
     try {
       sandbox(kat, alt === undefined ? "Tümü" : alt, marka,

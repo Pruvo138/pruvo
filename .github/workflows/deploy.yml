@@ -1248,6 +1248,25 @@ jobs:
       - name: Kategori/WHATSAPP parite testi (drift guard)
         run: python3 tools/kategori-parite-test.py
 
+      # 🔴 SEPETE EKLE — SESSIZ BASARISIZLIK. 11 Agu'ya kadar zorunlu malzeme secimi
+      # butonun ~168 px ALTINDAYDI ve onden secili DEGILDI: secimsiz tiklamada hicbir hata
+      # METNI cikmiyordu, sepet bos kaliyordu (kullanici ekledigini saniyor) = DOGRUDAN
+      # SATIS KAYBI. Kapi uretilen GERCEK sayfanin KENDI JS'ini node:vm'de tiklayarak
+      # surer: (1) secim yapmadan ekleme BASARILI, (2) secim eksiltilince GORUNUR hata,
+      # (3) istemci<->sunucu KURUS esitligi. Bloklayici: hata sinifi sessiz ve parali.
+      - name: Sepete Ekle sessiz basarisizlik kapisi
+        run: python3 tools/sepet-secim-kapisi.py
+
+      # 🔴 IC SERI IZI. CLAUDE.md: parametrik seri semasi/ureteci IC bilgidir; seri adi
+      # musteriye gorunen yuzeyde GECMEZ. 11 Agu'ya kadar parametrik urun sayfasinin
+      # kategori rozetinde/breadcrumb'inda/JSON-LD'sinde ve ana sayfa kartinda "Jeneratör"
+      # yaziyordu = aktif kural ihlali. Kapi yasak kumeyi build.py GIZLI_SERI_KARARI'ndan
+      # TURETIR (elle defter yok), gorunen yuzeyleri tanimli olarak tarar ve YANLIS-POZITIF
+      # eksenini de olcer (ayni kelime 17 GERCEK jenerator yedek parcasinin kategorisidir
+      # ve orada KALIR). Bloklayici: ihlal sessizdir, yayina cikar.
+      - name: Ic seri izi kapisi (gizli seri adi gorunen yuzeyde YOK)
+        run: python3 tools/ic-seri-izi-kapisi.py
+
       # SKAN ART: gizli dekor alt-serisi kategorisi + ana sayfa banner'i. Bloklayici
       # (kategori-parite deseni): bu kararin kablolamasi 6 dosyaya yayiliyor (index.html
       # gizli liste + banner + toggle, build.py NAV_GIZLI/FONKSIYONEL/feed taksonomisi,

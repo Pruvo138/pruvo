@@ -80,6 +80,22 @@ if (!SCRIPT) {
   process.exit(2);
 }
 
+/* 🔴 KART ROZETI ARTIK GORUNEN ETIKETI TASIR (11 Agu): parametrik urunde ic seri adi
+   ("Jeneratör") musteriye gorunmez, yerine gorunur etiket basilir. BLOK UYELIGI ise
+   DATA kategorisine gore olculur -> okunan rozet ic ada GERI CEVRILIR. Tablo index.html'den
+   AYIKLANIR (ikinci kopya tutulmaz): esleme bozulursa cevrim yapilamaz ve olcum kirmizi
+   yanar. Tablo hic bulunamazsa cevrim KIMLIKTIR (eski davranis) — o hal ayrica
+   tools/ic-seri-izi-kapisi.py'de fail-closed olculur. */
+const KATEGORI_ALIAS = (function () {
+  const m = INDEX.match(/var KATEGORI_ALIAS = (\{[^;]*\});/);
+  if (!m) { return {}; }
+  try { return JSON.parse(m[1]); } catch (e) { return {}; }
+})();
+function icKategori(etiket) {
+  return Object.prototype.hasOwnProperty.call(KATEGORI_ALIAS, etiket)
+    ? KATEGORI_ALIAS[etiket] : etiket;
+}
+
 // 🔴 BAGIMSIZ CAPA — index.html'den okunmaz (yukaridaki gerekce).
 const SLOT_DUZEN = [
   { kategori: "Jeneratör", adet: 4 },
@@ -442,7 +458,7 @@ async function sayfaKur(ayar) {
     hatalariDenetle();
     const grid = belge.getElementById("grid");
     const kartlar = grid.children.map((c) => ({
-      kategori: (sinifla(c, "card-cat")[0] || {}).textContent || "",
+      kategori: icKategori((sinifla(c, "card-cat")[0] || {}).textContent || ""),
       id: (hrefBul(c)[0] || "").replace(/^\/urun\/|\/$/g, ""),
     }));
     if (!kartlar.length) {
