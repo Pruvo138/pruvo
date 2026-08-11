@@ -647,11 +647,22 @@ def main():
     # ---- 20 liste kartlari sade: "Sepete Ekle" butonu + "Tavsiye:" cipi YOK; urun sayfasi regresyonsuz
     ih = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
     h20 = []
-    # Hizli-ekleme yolunun TUM parcalari kalkti (buton, toggle, sync, cip, veri script'i).
+    # Hizli-ekleme yolunun TUM parcalari kalkti (buton, toggle, sync, cip).
     for yasak in ["setCartBtn", "syncCardButtons", "toggleCart(",
-                  '"Tavsiye: "', "card-fil", 'src="/filament-veri.js"']:
+                  '"Tavsiye: "', "card-fil"]:
         if yasak in ih:
             h20.append("index.html'de hala var: %s" % yasak)
+    # 🔴 KAPSAM DARALTMASI (11 Agu, on-secili malzeme): malzeme veri dosyasinin ANA SAYFAYA
+    # INMESI artik YASAK DEGIL — kart, urun sayfasinda ONDEN SECILI gelen malzemeye gore
+    # hesaplanan tutari yazar ve o kural referansi okur (iki yuzey ayni sayiyi gosterir).
+    # Dosya adini topyekun yasaklamak bu mesru kullanimi da keserdi. YASAK OLAN SEY,
+    # referansin KART UI'ina (tavsiye cipi) geri sizmasidir -> KULLANIM YERI olculur:
+    # PRUVO_FILAMENT yalnizca ilan tutari hesabina (ilanBirimKurus) girebilir.
+    _kullanim = re.findall(r"[^\s(,]*PRUVO_FILAMENT[^\s);,]*", ih)
+    _mesru = len(re.findall(r"ilanBirimKurus\(\s*p\s*,\s*window\.PRUVO_FILAMENT\s*\)", ih))
+    if _kullanim and _mesru != len(_kullanim):
+        h20.append("PRUVO_FILAMENT ilan tutari disinda okunuyor (%d kullanim / %d mesru)"
+                   % (len(_kullanim), _mesru))
     # bosSatir SADECE goc icin secenekler.js'te kalir; index.html'de dogrudan cagri kalmadi.
     if "bosSatir(" in ih:
         h20.append("index.html hala bosSatir cagiriyor (varsayilan-PLA ekleme yolu)")

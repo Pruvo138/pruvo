@@ -766,6 +766,69 @@ def _js_bayragi(kaynak, ad):
 
 
 # ---------------------------------------------------------------------------
+# ON-SECILI MALZEME + ILAN EDILEN TUTAR — TEK TURETME NOKTASI
+#
+# 🔴 SESSIZ ZAM SINIFI: PETG +%30, ASA +%60. Onden secili malzeme ile sayfada ILAN
+# EDILEN tutar ayri ayri hesaplanirsa, hic secim yapmayan musteri gordugu tutarin
+# %30-60 ustunu sepete yazar ve fark HICBIR YERDE gorunmez (yapilandirilmis veri,
+# kart yuzeyi ve alisveris akisi ayni sayiyi beyan etmeye devam eder). Bu yuzden
+# ilan_kurus(), on_secim_malzeme()'yi CAGIRIR: cip hangi malzemeyi isaretliyorsa
+# tutar da ondan turer, ikisi ayrisamaz.
+#
+# Bayrak KAPALIYKEN on-secim guvenli varsayilana (bosSatir malzemesi, farki %0)
+# duser -> uretilen sayfa bugunkuyle BAYT-ESIT kalir.
+ONERI_ONSECIM_ACIK = _js_bayragi(_SEC_JS, "ONERI_ONSECIM_ACIK")
+
+# Hazir ticari mal isareti — TEK KAYNAK secenekler.js (istemci/sunucu ayni dizeyi kullanir;
+# karsilastirma TAM dize esitligidir, kirpma/kucultme YOK).
+_TUR_FIZIKSEL_M = re.search(r'var\s+TUR_FIZIKSEL\s*=\s*"([^"]+)";', _SEC_JS)
+if not _TUR_FIZIKSEL_M:
+    raise SystemExit("secenekler.js'te TUR_FIZIKSEL bulunamadi — hazir ticari mal ayrimi "
+                     "turetilemez (tek kaynak bozulmus).")
+TUR_FIZIKSEL = _TUR_FIZIKSEL_M.group(1)
+
+
+def fiziksel_mi(p):
+    return bool(p) and p.get("tur") == TUR_FIZIKSEL
+
+
+def on_secim_malzeme(p):
+    """Urun sayfasinda ONDEN SECILI gelecek malzeme (istemci karsiligi: onSecimMalzeme).
+
+    KAPSAM — BEYAN EDILEN SINIR (sessiz yesil yasak): kural YALNIZ sabit fiyatli katalog
+    kolunda uygulanir. Olcuye-ozel (parametrik) ve yapilandiricili urunlerde gorunen tutar
+    tabandan CANLI hesaplanir ve kart yuzeyi "X TL'den baslayan" tabani ayri bir haritadan
+    okur; oralarda on-secimi degistirmek ilan edilen tabani BU degisiklikle olculmeyen bir
+    yoldan kaydirirdi -> guvenli varsayilan korunur. Hazir ticari malda uretim malzemesi
+    karsiliksizdir (carpan zaten 1,00) -> guvenli varsayilan."""
+    if fiziksel_mi(p) or p.get("parametrik") or p.get("konfigur"):
+        return VARSAYILAN_MALZEME
+    return filament_ortak.on_secim(p.get("kategori"), p.get("tavsiyeFilament"),
+                                   FILAMENT_FARK, VARSAYILAN_MALZEME,
+                                   acik=ONERI_ONSECIM_ACIK)
+
+
+def ilan_kurus(p):
+    """ILAN EDILEN birim tutar (tamsayi kurus) — on-secimli malzemeye gore.
+
+    Kural istemcideki hesaplaFiyatKurus ile BIREBIR: taban x (100+yuzde) x renkCarpan
+    / 10000. Onden secili renk "Diğer" DEGIL (yukaridaki fail-closed kontrol) ve boy
+    farki 0 -> renkCarpan 100. Fiyat sayisi cikarilamiyorsa None (fiyatsiz urun)."""
+    temel = feed_price((p.get("fiyat") or "").strip())
+    if not temel:
+        return None
+    yuzde = 0 if fiziksel_mi(p) else FILAMENT_FARK.get(on_secim_malzeme(p), 0)
+    return int(temel) * (100 + yuzde)
+
+
+def ilan_tl_metni(kurus):
+    """Kurusu yapilandirilmis veri/besleme icin sayisal TL dizesine cevirir."""
+    if kurus is None:
+        return None
+    return ("%.2f" % (kurus / 100.0)).rstrip("0").rstrip(".")
+
+
+# ---------------------------------------------------------------------------
 # SATIS KAPISI OKUYUCUSU — "bu aile satisa ACIK mi?" sorusunun TEK KAYNAGI
 # secenekler.js'teki HACIM_DOGRULANMIS_AILELER'dir (ayni sozlugu istemci fiyat
 # hesabi ve Worker kolu da okur). BURAYA IKINCI LISTE YAZILMAZ: ikiz tanim
@@ -2129,6 +2192,15 @@ def eski_fiyat_html(p):
     metin, kurus = eski_fiyat_gosterim(p)
     if not metin:
         return ""
+    # 🔴 ON-SECIM ILAN TUTARINI YUKARI TASIYORSA CIZILI FIYAT BASILMAZ: 1.200 TL cizili
+    # dururken 1.275 TL ilan etmek YANILTICI INDIRIMDIR. Istemci ayni kiyasi render'da
+    # yapip kutuyu gizler; burada JS ONCESI de gorunmemesi icin sunucuda elenir (ayni
+    # kiyas, ayni sayi: ilan_kurus). Bayrak kapaliyken ilan tutari liste tutaridir ->
+    # kosul bugunku davranisla ayni (bayt-esit).
+    if ONERI_ONSECIM_ACIK:
+        _ilan = ilan_kurus(p)
+        if _ilan is not None and kurus <= _ilan:
+            return ""
     return ('<s class="eski-fiyat" id="eskiFiyat" data-kurus="%d">%s</s>'
             % (kurus, esc(metin)))
 
@@ -2337,7 +2409,7 @@ def panel_malzeme_html(p):
     return ("""
       <div class="opsiyon-row opsiyon-renk">
         <label>Malzeme seçimi</label>
-        <div class="fil-cipler" id="filCipler">""" + "".join(_fil_cipleri(p, VARSAYILAN_MALZEME))
+        <div class="fil-cipler" id="filCipler">""" + "".join(_fil_cipleri(p, on_secim_malzeme(p)))
             + """</div>
       </div>""")
 
@@ -2777,7 +2849,13 @@ def render_product(p, all_products, chip_map=None):
     # ALINABILIR bir stok bildiriliyordu. Ayni fail-closed dala sokulur: sayisal
     # fiyat YOK -> offers HIC basilmaz (InStock da offers'in icinde oldugu icin
     # birlikte duser). Yeni paralel dal ACILMAZ.
+    # 🔴 ON-SECIMLE HIZALI: bayrak aciksa beyan edilen tutar ONDEN SECILI malzemeye gore
+    # hesaplanir (ilan_kurus -> on_secim_malzeme). Aksi halde sayfa/kart/yapilandirilmis
+    # veri liste tutarini, sepet ise %30-60 fazlasini tasirdi (sessiz zam). Bayrak
+    # KAPALIYKEN on-secim %0 farkli malzemedir -> deger pnum ile AYNI (bayt-esit cikti).
     ld_fiyat = pnum
+    if ONERI_ONSECIM_ACIK and pnum:
+        ld_fiyat = ilan_tl_metni(ilan_kurus(p)) or pnum
     if aile_satis_kapali:
         ld_fiyat = None
     elif ld_fiyat is None and sema is not None:
@@ -3089,7 +3167,16 @@ def render_product(p, all_products, chip_map=None):
             boy_html = ('<div class="opsiyon-row"><label for="boySec">Boy</label>'
                         '<select id="boySec">%s</select></div>' % boy_opts)
         # JS öncesi/JS'siz görünüm: fiyatlı üründe taban "…'den başlayan" (JS kuruşlu tazeler).
-        baslangic_fiyat = (esc(fiyat) + "&#39;den başlayan") if fiyat else esc(price_text)
+        # 🔴 ÖN-SEÇİM AÇIKKEN "başlayan" YOK: malzeme+renk zaten seçilidir, JS ilk render'da
+        # KESİN tutarı yazar. Statik metin liste fiyatında bırakılsaydı sayfa açılışta düşük
+        # tutar gösterip saniyesinde yükseltirdi (JS'siz istemcide ise hiç düzelmezdi) —
+        # ilan edilen tutar ile sepete yazılan tutar ayrışırdı. İki metin de TEK sayıdan
+        # (ilan_kurus -> on_secim_malzeme) türer.
+        _ilan_k = ilan_kurus(p)
+        if ONERI_ONSECIM_ACIK and _ilan_k is not None:
+            baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0))
+        else:
+            baslangic_fiyat = (esc(fiyat) + "&#39;den başlayan") if fiyat else esc(price_text)
         opsiyonlar_html = ("""
     <div class="opsiyonlar" id="opsiyonlar">
       {malzeme}
@@ -3655,6 +3742,11 @@ def render_merchant_feed(products):
         price = feed_price((p.get("fiyat") or "").strip())
         if not price:
             continue                                   # net sayisal fiyati yok -> feed disi
+        # 🔴 ON-SECIMLE HIZALI (sessiz zam): besleme, sayfa ve yapilandirilmis veri AYNI
+        # sayiyi beyan eder — tutar on-secimli malzemeden turer (ilan_kurus). Bayrak
+        # kapaliyken on-secim %0 farkli malzemedir -> deger degismez (besleme bayt-esit).
+        if ONERI_ONSECIM_ACIK:
+            price = ilan_tl_metni(ilan_kurus(p)) or price
         imgs = images_of(p)
         if not imgs:
             continue                                   # gorselsiz urun feed'e girmez

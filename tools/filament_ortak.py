@@ -57,6 +57,29 @@ def tavsiyeler(kategori, override=None):
     return out
 
 
+def on_secim(kategori, override, katsayi_adlari, guvenli, acik=True):
+    """Urunun ON-SECILI malzemesi (sayfa ureteci tarafi).
+
+    KURAL tavsiye rozetiyle AYNI SIRADAN turer (tavsiyeler): override varsa harita
+    yerine o gecer, sitede satilmayan ad elenir, kalan ILK ad tavsiyedir. Burada
+    ek olarak ad KATSAYI TABLOSUNDA da bulunmalidir — bulunmayan bir ad on-secilseydi
+    ilan edilen tutar ile sepete yazilan tutar sessizce ayrisirdi.
+
+    acik=False -> guvenli (bugunku davranis birebir). FAIL-CLOSED: aday yoksa guvenli.
+
+    🔴 IKIZ TANIM UYARISI: ayni kural istemci tarafinda da vardir (secenekler.js
+    onSecimMalzeme). Iki taraf tam katalog uzerinde karsilastirilir; ayrisma
+    fail-closed kirmizi yakar (tools/onsecim-parite-kapisi.py eksen 1).
+    """
+    if not acik:
+        return guvenli
+    adaylar = [t["ad"] for t in tavsiyeler(kategori, override)]
+    for ad in adaylar:
+        if ad in katsayi_adlari:
+            return ad
+    return guvenli
+
+
 # ------------------------------------------------------------- baski -> override sanitize
 # Kaynak aciklamasindan gelen `baski` ipucundan SADECE kanonik malzeme adi cikarilir;
 # serbest metin, tasarimci adi ya da kaynak izi URUNE TASINMAZ (gizlilik kurali).

@@ -1315,9 +1315,12 @@
      gösterilecek cümleyi (PRUVO_FIYATSIZ_METIN) da taşır: kapalı ailenin id'si fiyat
      haritasında HİÇ yoktur, kart o üründe tutar yerine ürün sayfasıyla aynı cümleyi basar. -->
 <script src="/taban-fiyatlar.js"></script>
-<!-- NOT: malzeme veri dosyası artık ana sayfada YÜKLENMEZ (kart tavsiye çipi kaldırıldı,
-     16 Tem). Dosyayı sayfa üreteci hâlâ üretir; tek tüketicisi kalmadıysa da deploy
-     beyaz listesinde kalması zararsız (ileride tekrar kullanılabilir). -->
+<!-- Malzeme veri dosyası (kategori tavsiye haritası) — kart tavsiye çipi 16 Tem'de kalktığı
+     için bir süre yüklenmiyordu; ÖN-SEÇİLİ malzeme kuralıyla birlikte geri geldi: kartın
+     yazdığı tutar, ürün sayfasında önden seçili gelen malzemeye göre hesaplanır ve iki
+     yüzey aynı sayıyı gösterir. Dosya inmezse (build'siz/404) kural güvenli varsayılana
+     düşer ve kart bugünkü metni basar — fail-closed, sessiz sapma yok. -->
+<script src="/filament-veri.js"></script>
 
 <script>
 (function(){
@@ -2508,6 +2511,13 @@
     var mg = FIYAT_ARA_RE.exec(p.fiyat.trim());
     if(!mg){ return null; }
     if(!(paraKurus(me[1]) > paraKurus(mg[1]))){ return null; }
+    /* İLAN EDİLEN tutarla da kıyas: ön-seçili malzeme tutarı eski fiyatı geçtiyse üstü
+       çizili rakam YANILTICI İNDİRİM olur (1.200 çizili, 1.275 ilan). Ürün sayfası aynı
+       kıyası aynı sayıyla yapar — iki yüzey çelişemez. */
+    if(PRUVO_SECENEK.ONERI_ONSECIM_ACIK && PRUVO_SECENEK.ilanBirimKurus){
+      var ik = PRUVO_SECENEK.ilanBirimKurus(p, window.PRUVO_FILAMENT);
+      if(ik != null && !(paraKurus(me[1]) > ik)){ return null; }
+    }
     return ham;
   }
 
@@ -3513,6 +3523,18 @@
      (PRUVO_FIYATSIZ_METIN — tek kaynak secenekler.js `kurus == null` dalı; elle ikinci
      kopya yazılmaz). İşaret inmemişse (eski/404 artefakt) davranış BUGÜNKÜ gibi kalır,
      ama sayı da inmediği için kartta tutar yine görünmez. */
+  /* İLAN EDİLEN KART TUTARI — sabit fiyatlı üründe kartın yazdığı sayı, ürün sayfasının
+     ve sepet satırının yazdığı sayıyla AYNI olmalıdır. Ön-seçili malzeme liste tabanından
+     farklıysa ham `fiyat` alanını basmak kartı ürün sayfasıyla çeliştirir (müşteri kartta
+     bir tutar görüp sayfada başka tutarla karşılaşır). Sayı tek türetme noktasından gelir:
+     secenekler.js ilanBirimKurus -> onSecimMalzeme. Malzeme referansı inmemişse (eski/404
+     artefakt) kural güvenli varsayılana düşer ve BUGÜNKÜ metin basılır. */
+  function ilanFiyatMetni(p){
+    if(!PRUVO_SECENEK.ONERI_ONSECIM_ACIK || !PRUVO_SECENEK.ilanBirimKurus){ return p.fiyat; }
+    var k = PRUVO_SECENEK.ilanBirimKurus(p, window.PRUVO_FILAMENT);
+    return (k == null) ? p.fiyat : PRUVO_SECENEK.kurusMetni(k);
+  }
+
   function kartFiyatMetni(p){
     var kapali = !!(p.parametrik && window.PRUVO_SATIS_KAPALI && window.PRUVO_SATIS_KAPALI[p.id]);
     var taban = (p.parametrik && !kapali && window.PRUVO_TABAN_FIYATLAR) ? window.PRUVO_TABAN_FIYATLAR[p.id] : null;
@@ -3578,11 +3600,11 @@
         eskiEl.textContent = eskiMetin;
         var yeniEl = document.createElement("span");
         yeniEl.className = "yeni-fiyat";
-        yeniEl.textContent = p.fiyat;
+        yeniEl.textContent = ilanFiyatMetni(p);
         pr.appendChild(eskiEl);
         pr.appendChild(yeniEl);
       }else{
-        pr.textContent = p.fiyat;
+        pr.textContent = ilanFiyatMetni(p);
       }
     }else{
       var kf = kartFiyatMetni(p);

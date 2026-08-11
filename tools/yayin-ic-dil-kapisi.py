@@ -32,9 +32,12 @@ NEDEN "YORUM YUZEYI" (eksen secimi — olculmus gerekce):
     (shop Worker'inin import ettigi PUBLIC API adi), stlCoz, "stl-binary-degil" gibi
     tanimlayicilar ve hata dizgeleri KOD'dur, prose degil; yeniden adlandirmak odeme
     yolundaki Worker'i da degistirmeyi gerektirir (ayri deploy). Bu kapi onlari GORMEZ.
-    Kalan ifsa: /filament-veri.js yayin dosyasinin ADI + yuku (bugun HICBIR sayfa onu
-    yuklemiyor — olculdu 31 Tem). Bu ayri bir is; kapinin kapsaminda OLMADIGI burada
-    ACIKCA yazilidir ki "kapi yesil = her sey temiz" sanilmasin.
+    Kalan ifsa: /filament-veri.js yayin dosyasinin ADI + yuku. 🔴 GUNCELLEME (11 Agu
+    2026): "bugun HICBIR sayfa onu yuklemiyor" beyani ARTIK GECERSIZ — ana sayfa dosyayi
+    YENIDEN yukluyor (onden secili malzemeye gore ilan edilen kart tutari o referanstan
+    turer). Yani ifsa yuzeyi buyudu, bu kapinin kapsami DEGISMEDI. Bu ayri bir is;
+    kapinin kapsaminda OLMADIGI burada ACIKCA yazilidir ki "kapi yesil = her sey
+    temiz" sanilmasin.
 
 SOZLUK TEK KAYNAK: uretim-sureci kovalari tools/denetim-kapisi.py `_IFSA_SERT_RE`'den
   IMPORT edilir — ikinci kopya YOK. Katalogda yasak olan dil burada da yasaktir; kural
