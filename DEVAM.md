@@ -22,6 +22,16 @@ canli main'den **0 commit geride**; her kalem cache-bust'SIZ olculdu:
   (6 madde + 9 adimlik "ekledikten sonra kos"), Drive'da bayt-birebir.
 - **shop Worker yeniden yayinlandi**: surum `5c2089ee` → `751b14e9`, bayatlik `BEKLIYOR` → `TAZE`.
 
+**🔴 KAPANISTA YAKALANDI — BASKA BIR OTURUMUN `git reset`'i MAIN'DEN 2 COMMIT DUSURDU.**
+Reflog: `9c56de08 main@{1}: reset: moving to 9c56de08`. Dusenler main'de YOK
+(`is-ancestor` rc=1): **`19f0157f` = Alfa Romeo x MakerWorld 5 URUN** (katalog 25.935→25.940,
+MaCiT'in duzlemi) ve `c6403ca4` (22:37Z nobet defteri). **Canliya yansimadi** — origin zaten
+`9c56de08`'deydi, iki commit hic itilmemisti; tutarsizlik YOK, kayip yalniz yereldeydi.
+Etiketle korundu: `kurtarma/alfa-mw-19f0157f` · `kurtarma/nobet-22-37-c6403ca4`. **Geri alma
+MaCiT'te** (urun verisi tek-yazarli; KraL `urunler.json`'a dokunmadi), kutuya yazildi.
+Ders: paylasilan main'de `reset` komsunun commit'lenmis isini SESSIZCE dusuruyor →
+oncesinde `git log origin/main..main` ile kimin ne kaybedecegi olculmeli, ya da `revert`.
+
 **KOSUYOR:** YOK. Delege edilen tum muhendis/Codex isleri raporlandi ve merge edildi;
 kendi worktree/dalim KALMADI (`kral/*` = 0). Ana agacta yalniz yabanci izlenmeyen dosyalar.
 
