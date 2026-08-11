@@ -89,7 +89,13 @@ olc — degistiyse sinif kendiliginden kapanmistir, nobet yesili SAHIPLENMEZ
 ([[isci-yesili-sahiplenir]]); (c) kutuda `KALAN=1` maili tekrar tara, sinifi kapanmissa Cop'e
 gitmelidir.
 
-## 🕐 CI NOBETI — 11 Agu 2026 11:37Z turu (KraL)
+## 🕐 CI NOBETI — 11 Agu 2026 13:37 yerel / 10:37Z turu (KraL)
+
+✅ **Ustteki blogun uyarisi HAKLI, duzeltildi (bu blogun sahibi tarafindan):** bu blok once
+"11:37Z" diye yazilmisti; kendi `COP_IZI` damgasi **13:33 yerel** ve yerel saat **UTC+3**
+oldugu icin tur gercekte **10:37Z**'dir. Ustteki blok (damgasi 14:27 yerel) 11:37Z turudur.
+Iki nobet oturumu ayni pencerede paralel kostu ([[paylasilan-defterde-mukerrer-tur]]); ikisinin
+supurmesi de kendi muhasebesiyle temiz ve ikisi de birbirinin isini geri sarmadi.
 
 **Ev kontrolu:** `pwd` = `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
 
@@ -179,77 +185,7 @@ boyut istegi canlida **hic degismemis** (bant 134→135px) — ikisi de KraL duz
 tavsiyeFilament, tur` tasimiyor ve CI bunu ASLA kirmizi yakmaz (kardes agac fresh checkout'ta
 yok) → `ONERI_ONSECIM_ACIK` bayragi o kapanmadan ACILMAZ.
 
-## 🕐 CI NOBETI — 11 Agu 2026 09:37Z turu (KraL)
-
-**Ev kontrolu:** `rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**Supurme (sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI):** rc=0 ·
-`GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 · KOMSU_KAYIP=0 ·
-KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=22:2026-08-11T10:55:56 · HUKUM=TEMIZ`. Uc fail-closed
-alarmin ucu de sessiz. `TASINAN=0` hukmu **pozitif tanima izine** dayaniyor: inbox sayaci 0 iken
-Cop'te AYNI dize (`notifications@github.com`) **22 kayit** tutuyor, en yenisi 10:55 yerel →
-"olculemedi" degil, gercekten TEMIZ ([[nobetci-kanonik-kaynagi-tek-eksende]] ekseni kapali).
-
-**🟠 Cop denetimi (salt okuma): 27 kayit — 22 MESRU, YANLIS=5 — onceki turla AYNI BES KAYIT,
-ARTIS YOK.** Cop id'leri `67975 · 67992 · 67993 · 67994 · 67995` (2 banka bilgilendirme, 2
-bulten, 1 mesleki grup bildirimi); hepsi github-DISI ve supurme yukleminin ALANI DISINDA.
-**Bu tur supurmeye ATFEDILEMEZ — muhasebe ekseni tek basina kapatiyor:** bu turda
-`BULUNAN = TASINAN = CIKAN = 0`, yani supurme gelen kutusundan HICBIR kayit ayirmadi; bes kayit
-zaten koşumdan ONCE Cop'teydi. Siparis/odeme ekseni temiz: 27 kaydin hicbiri `siparis@` degil.
-⚠️ IZLENECEK esik degismedi: sayi 5'ten YUKARI cikar VE arasinda siparis/odeme sinifi bir kayit
-olursa Okan'a TEK cumleyle cikilir. Bu turda cikilmadi, kendiliginden geri alma YAPILMADI.
-
-**✅ EN ONEMLI OLCUM — 9 TURDUR KIRMIZI OLAN BAYATLIK SINIFI KAPANDI (Okan kapisi DUSTU).**
-Ayni kok neden 04:37Z'den beri `Odeme yolu bayatlik nabzi` + `Paket tazeligi alarmi` kollarini
-kirmizi yakiyordu (yas serisi 149,9 → 158,5 → 213,2 → 241,7 → 316,2 → 381,6 dk, monoton). Tepe
-head `46d82ae3`'te iki kol da **yesil** ve kapinin kendi cikti satirlari sinifin GERCEKTEN
-kapandigini gosteriyor (isciye logdan alintilatildi):
-`31474771952` (job `bayatlik`, 08:47Z) ve `31475942310` (job `tazelik`, 09:03Z) — ikisinde de
-`bundle dosyasi: 42 (ithalat grafinden turetildi)` · **`canli KOD surumu fdd158cb-…
-(2026-08-11T08:10:28Z)`** · **`bundle commit'i: 0 adet, canli koddan YENI`** · `esik 120 dk` ·
-**`en eski yayinlanmamis commit yasi: 0.0 dk`** → **`DURUM: TAZE (rc=0)`**.
-**Yesile boyama DEGIL, gercek kapanis — uc ayak:** (a) `shop-bayatlik-kapisi.py` adimi fiilen
-KOSTU (log'da `##[group]Run python3 tools/shop-bayatlik-kapisi.py --gh-ozet`), atlanmadi;
-(b) job listesinde `skipped` YOK (`tazelik`+`yayin-nabzi` ve `bayatlik` hepsi `success`);
-(c) canli KOD surum kimligi DEGISTI (`04100fdf` 10 Agu 22:58Z → `fdd158cb` 11 Agu 08:10Z) =
-shop worker'i fiilen yeniden deploy edilmis. **Deploy nobetin isi DEGILDI ve nobet DEPLOY
-ETMEDI** — baska bir el (Okan/kardes oturum) `npx wrangler deploy`'u kosmus; nobet yoldan gecen
-yesili SAHIPLENMIYOR ([[isci-yesili-sahiplenir]]). Okan'a bu turda YAZILMADI (§5: kapanan kalem
-Okan'dan karar istemez).
-
-**Yayin kolu tepe head `46d82ae3`'te TAM YESIL:** `31474772002` → `build · serit-a2 · serit-a3 ·
-serit-a4 · deploy · yayin` = **6/6 success**. Ayni head'de spec alarm kolu (`31474771961`),
-`D1 sapma alarmi` (`31476896092`), `Yayin erisim alarmi` (`31477054605`) ve `D1 uzlastirici`
-(`31478237777`) de yesil. `--status failure` taramasinda **`46d82ae3` head'inde TEK BIR kirmizi
-kosum YOK**; son kirmizilar bir onceki head `deb9b051`'de kaldi (07:48Z + 07:55Z, ikisi de
-yukarida kapanan bayatlik sinifi). Bu turda kod DEGISTIRILMEDI, Codex ACILMADI, push YAPILMADI.
-
-**🟠 D1 (`--durum`) DRIFT — ama SAHIBI NOBET DEGIL, kaynak OLCULEREK ayristirildi.**
-`SAYI EKSENI DRIFT: D1=25354 != urunler.json benzersiz=25448` (94 fark) · `SEQ` 94 sapan ·
-`TURETILMIS KOLON` 3 kolon BAYAT (`marka_kanon` 94, `model_kanon` 41, `marka_arama` 94) ·
-`ICERIK` 94 eksik (hash uyusmaz 0, fazla 0). `SEMA` ekseni yesil.
-**Kok neden — commit'siz calisma agaci DEGIL, HENUZ PUSH EDILMEMIS YEREL COMMIT:** isciye
-olcturuldu → calisma agaci id sayisi = HEAD id sayisi = **25448**, `git diff urunler.json` BOS
-(simetrik fark 0). Yerel HEAD tur ortasinda **`6e636f9e` "Audi x MakerWorld dilim-2: 94 urun
-eklendi (katalog 25354'ten 25448'e cikti)"** oldu; `origin/main` ise hala `46d82ae3`.
-→ D1'i senkronlayan pre-push kancasi **daha kosmadi**, cunku push HENUZ YAPILMADI. Drift bu
-partinin dogal ara hali. **Nobet `d1-sync.py`'yi KOSMADI, `urunler.json`'a DOKUNMADI** — urun
-verisinin tek yazari MaCiT ve oturum CANLI (`urunler.json` mtime 12:42 yerel = tur ici).
-Sonuc: Ege su an 94 Audi urununu goremiyor, ama bu **yayin arizasi degil**, sahibinin push'unu
-bekleyen bir ara durum ([[ege-d1-bagimliligi]]).
-
-**Worktree: SAYI=3, TAVAN ASILDI — ama ucu de NOBETIN DEGIL, SILINMEDI.** `ana agac (46d82ae3)`
-+ `agent-a9306261f47df111b (46d82ae3, locked)` + `agent-a9ee26158cc3ce30c (51ccbe75)`. Ikisi de
-baska oturumlarin isci agaclari; `51ccbe75` main'de OLMAYAN bir commit tasiyor (alinmamis is
-olabilir → [[artik-dizin-tmp-obje-kaybi]]). Kural geregi SILME YOK; temizlik **skill:
-merge-kapisi** ile AYRI bir turda, sahibi belli olunca ([[worktree-tavani-kapsami]]).
-Calisma agacindaki yabanci degisikliklere (`M tools/d1-sync.py`, `.scratch/`,
-`tools/paket-deploy-kritik-yol.md`) DOKUNULMADI.
-
-**Sonraki turun ILK ISI:** (a) `31474772184` (SERIT B, `46d82ae3`) tur icinde beklendi —
-sonucu asagida; (b) `6e636f9e` push edildikten sonra D1 dort ekseninin yesile dondugunu
-DOGRULA (donmediyse sahibine birak, nobet senkron KOSMAZ); (c) iki yabanci worktree'nin
-sahibi/olu olup olmadigini olc, `51ccbe75` alinmamis is tasiyorsa merge-kapisi turu ac.
+## 🕐 CI NOBETI — 11 Agu 2026 09:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; bayatlik sinifinin "kapandi" olcumu + D1 drift kok nedeni + worktree tavani arsivde)
 
 ## 🕐 CI NOBETI — 11 Agu 2026 08:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; supurme muhasebesi + Cop denetimi YANLIS=5 ayrimi + bayatlik 8./9. ardisik kirmizi arsivde)
 
@@ -285,4 +221,3 @@ sinif jetonu **Turkce aksanli** olmali (`guvenlik` RED, `güvenlik` GECER).
 ## 🔴 UÇUŞTA — ÖTEKİ KraL OTURUMU BU İŞLERE GİRMESİN (10 Ağu ~14:2xZ) — **ARŞİVE ALINDI** (defter kotası 1:1)
 
 ## 🕐 CI NOBETI — 10 Agu 2026 14:37Z turu (KraL) — **ARŞİVE ALINDI** (defter kotası 1:1; sure ekseni hukmu: tavani 8 kosumun 7'sinde `serit-a2` koyuyor, 17,9/21,6/24,8 dk)
-
