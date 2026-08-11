@@ -1800,7 +1800,12 @@ TABLO_TABANLARI = (
     # bu giris bir TASIMA degil, A'da teknik olarak kosamayan (SIG klonda uzak dal
     # nesnesi YOK) yeni bir eksenin EKLENMESIDIR; tam esitlik geregi taban AYNI
     # commit'te guncellendi.
-    ("SERIT_B", 95),
+    # 11 Agu: +1 -> 96. Yeni giris ("nobet.yml", "serit-b",
+    # "tools/ga4-olay-mutasyon.py"): GA4 huni kapisinin mutasyon bataryasi. Kapinin
+    # KENDISI (bayraksiz + `--kendini-test`) deploy.yml `serit-a3`te BLOKLAYICI
+    # kosar — bu giris bir TASIMA degil, bataryanin EKLENMESIDIR; tam esitlik geregi
+    # taban AYNI commit'te guncellendi.
+    ("SERIT_B", 96),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2737,6 +2742,20 @@ SERIT_B = {
         "REDDEDER, ezmek ACIK --ezmeye-izin-ver ister). S3 mock'lanir: gercek R2'ye ne "
         "okuma ne yazma gider, adim ag GEREKTIRMEZ.",
     # --- R1 SIHIRLI-BAYT WHITELIST'I / AVIF EKSENI (9 Agu 2026) --------------------
+    ("nobet.yml", "serit-b", "tools/ga4-olay-mutasyon.py"):
+        "tools/ga4-olay-kapisi.py HUNI KAPISININ mutasyon bataryasi (10 oldurucu + 1 "
+        "kontrol): urun goruntuleme / sepete ekleme / odemeye baslama olaylari tek tek "
+        "sokulunca kapi GERCEKTEN kirmizi yaniyor mu, riza kapisi gondericiden alininca "
+        "yakaliyor mu, olay parametresine musteri alani sizarsa goruyor mu. Olctugu sey "
+        "KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL (r2-avif-mutasyon-test.py / "
+        "parite-kayit-mutasyon-test.py ile ayni desen). Korudugu KAPI "
+        "(tools/ga4-olay-kapisi.py — hem bayraksiz GERCEK olcum hem `--kendini-test` "
+        "ic nobetcisi) SERIT A'da, deploy.yml job `serit-a3`te BLOKLAYICI kosuyor; bu "
+        "giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Ag GEREKTIRMEZ (GA4'e tek "
+        "istek gitmez, olay kuyrugu node:vm icinde sahte). ⚠️ DURUST BEYAN: batarya "
+        "mutasyonu gercek dosyalara uygular ve kosum sonunda BAYT BIREBIR geri alir "
+        "(kendi ciktisinda `geri alma: 3 dosya` satiriyla olcer); yayin yoluna dusen "
+        "kalici bir degisiklik birakmaz.",
     ("nobet.yml", "serit-b", "tools/r2-avif-mutasyon-test.py"):
         "tools/r2-upload.py R1 WHITELIST'ININ mutasyon bataryasi (6 mutant + 1 kontrol): "
         "AVIF kabulu marka kumesine BAGLI kaldi mi, yoksa `ftyp` tek basina yeterli "
