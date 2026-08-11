@@ -787,10 +787,20 @@
   }
   .cart-item-uyari a{color:#7a5a12;font-weight:700;text-decoration:underline}
   .cart-item-uyari.bekliyor{background:var(--gray-bg);border-color:var(--gray-line);color:var(--gray-text)}
+  /* 🔴 GEÇİŞ YALNIZ RENK — GEOMETRİ ANİME EDİLMEZ (11 Ağu, canlı ölçüm).
+     `transition:.15s` kısayolu `transition-property`yi belirtmediği için `all` demektir:
+     panel açılırken JS `.disabled`i kaldırınca font-size/padding de ANİME oluyor ve buton
+     ~150 ms boyunca ESKİ (küçük) geometrisiyle render ediliyordu. Aynı karede WhatsApp
+     butonu `.ikincil` ÖNCESİ (büyük) geometrisinde kalıyor ve ikincil kanal birincil
+     ödemeyi GEÇİYORDU (ölçüldü, 375 px: ödeme 13.790 px² · WhatsApp 13.516–14.294 px²,
+     oran 1,02–0,978). ⚠️ Pencere 150 ms DEĞİL: belge görünmezken (arka plan sekmesi)
+     geçiş hiç ilerlemez — ters hal KALICI olur. Renkle sınırlamak hover hissini aynen
+     korur, geometriyi ilk kareden itibaren doğru yerine oturtur.
+     Nöbetçi: tools/cta-denge-kapisi.py :: CTA-A6-GECIS-ORAN. */
   .cart-pay-btn{
     display:block;width:100%;background:var(--navy);color:#fff;border:none;
     border-radius:12px;padding:14px;font-size:15.5px;font-weight:800;cursor:pointer;
-    margin-bottom:8px;transition:.15s;
+    margin-bottom:8px;transition:background-color .15s,color .15s;
   }
   .cart-pay-btn:hover{background:var(--navy-2)}
   .cart-pay-btn.disabled{background:#aab4c4;cursor:default;font-size:13.5px}
@@ -828,7 +838,11 @@
   .cart-order-btn{
     background:#0E7A3D;color:#fff;text-decoration:none;
     border-radius:12px;padding:14px;font-size:15.5px;font-weight:800;
-    display:flex;align-items:center;justify-content:center;gap:9px;transition:.15s;
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    /* GEÇİŞ YALNIZ RENK — gerekçe .cart-pay-btn üstünde. `all` olsaydı `.ikincil`e
+       geçiş karesinde bu buton hâlâ 14 px dolgu + 15,5 px yazıyla, yani ödemeden
+       BÜYÜK render edilirdi. */
+    transition:background-color .15s,color .15s,border-color .15s;
   }
   .cart-order-btn svg{width:20px;height:20px;fill:#fff}
   .cart-order-btn:hover{background:#0B6E36}

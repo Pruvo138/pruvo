@@ -1276,7 +1276,12 @@ jobs:
       # turetmesini CAGIRMADIGINI capayla dogrular, pozitif taniyiciyla kendi canliligini
       # kanitlar ve malzeme onerisi TASIYIP adi taninmayan urunleri (sessizce tabana
       # dusen veri kusuru) SAYIP basar. Bloklayici: hata sinifi sessiz ve parali.
-      # Mutasyon bataryasi (10 oldurucu + 2 kontrol): tools/urun-vitrin-kapsam-mutasyon.py
+      # ⚠️ KARDES DEPO KAPSAM DISIDIR: E10 ekseni edge Worker kaynagini (~/dev/pruvo-bot)
+      # yalniz DISKTE VARSA okur. CI fresh checkout'unda o agac YOKTUR ve bu bir olcum
+      # boslugu DEGIL kapsam disiligidir — kapi `KARDES_AGAC_KAPSAM_DISI` basar, hukum
+      # VERMEZ ve cikis kodunu ETKILEMEZ. (Eskiden OLCULEMEDI/rc=2 donuyordu; bu adim
+      # CI'da YAPISAL olarak kirmizi yaniyor ve deploy+yayin job'larini dusuruyordu.)
+      # Mutasyon bataryasi (12 oldurucu + 3 kontrol): tools/urun-vitrin-kapsam-mutasyon.py
       - name: Vitrin <-> D1 fiyat paritesi + kapsam sizintisi kapisi
         run: python3 tools/d1-fiyat-parite-kapisi.py
 
@@ -1302,7 +1307,7 @@ jobs:
       # Kapi geometriyi build.PAGE_CSS + GERCEKTEN uretilen sayfa + index.html'den
       # TURETIR (elle defter yok), bes ekseni fail-closed olcer ve olcemedigi durumda
       # "gecti" DEMEZ (rc=3). WhatsApp kanalinin VARLIGI da olculur — denge kanali
-      # silerek saglanamaz. Bloklayici. Mutasyon bataryasi (8 oldurucu + 2 kontrol):
+      # silerek saglanamaz. Bloklayici. Mutasyon bataryasi (11 oldurucu + 2 kontrol):
       #   python3 tools/cta-denge-mutasyon.py   (nobet.yml serit-b'de kosar)
       - name: CTA denge kapisi (Sepete Ekle vs WhatsApp gorsel agirligi)
         run: python3 tools/cta-denge-kapisi.py

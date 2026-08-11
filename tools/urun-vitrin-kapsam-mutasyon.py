@@ -31,6 +31,20 @@ geldi mi. Capa tutmazsa mutant "CAPA YOK" ile SAPMA sayilir (sessizce atlanmaz).
   M9  FAIL-OPEN ISPATI: girdi ZEHIRLI iken kapinin hukum fonksiyonu yutucuya cevrilir ->
       YESIL bekleniyor. Bu bir "kapi saglam" iddiasi DEGIL, o hukum satirlarinin YUK
       TASIDIGININ kanitidir (M3 ayni zehirle KIRMIZI yaniyor; ikisi bir CIFTTIR).
+
+🔴 RC YETMEZ — IZ DE ARANIR ([[hukum-yanlis-birimde]]): toplu rc, TEKIL ekseni gizler.
+Bir mutant "KIRMIZI" derken kirmiziyi BASKA bir eksen uretiyor olabilir. Bu yuzden
+IZLER sozlugu bazi mutantlara bir JETON sartI koyar: hukum GERCEKTEN o eksenden mi
+cikti? Jeton `hatalar` alaninda aranirsa "o eksen KIRMIZI yakti" demektir; `cikti`
+alaninda aranirsa "o kol GERCEKTEN kosuldu" demektir.
+
+🔴 KARDES DEPO EKSENI (M13/M14 + M3'un izi, 11 Agu 2026): E10'un kardes-depo kolu CI'da
+YAPISAL KIRMIZIYDI (agac hicbir zaman checkout edilmiyor -> rc=2 -> deploy skipped).
+Onarim "agac yoksa KAPSAM DISI" oldu. Uc mutant onarimin iki ucunu birden kilitler:
+  M13 agac GORUNMEZ, ihlal YOK   -> YESIL + KAPSAM DISI jetonu (CI kosumunun ta kendisi)
+  M14 agac GORUNMEZ, ihlal VAR   -> KIRMIZI (kapsam-disi kolu gercek sizintiyi YUTMUYOR)
+  M3  agac GORUNUR,  ihlal VAR   -> KIRMIZI **ve** hukum jetonu HATALAR'da (onarim
+      fazla genisletilip agac VARKEN de hukum verilmez olursa jeton kaybolur -> SAPTI)
 """
 import contextlib
 import hashlib
@@ -165,6 +179,28 @@ MUTANTLAR = [
        "    if False:\n        return (TANI_KAPALI, guvenli)")],
      1),
 
+    # ── KARDES DEPO KOLU (E10) ────────────────────────────────────────────────────
+    # 🔴 M13 CI KOSUMUNUN BENZESIMI. `os.path.exists(...)` kolu `True`ya sabitlenerek
+    # kardes agac GORUNMEZ kilinir — CI runner'da `~` /home/runner'dir ve o agac hic
+    # klonlanmaz. Bu mutant ONARIMDAN ONCE rc=2 (OLCULEMEDI) verirdi; yani `serit-a3`
+    # her kosumda dusuyordu. Beklenen YESIL + kolun GERCEKTEN kosuldugunu gosteren
+    # KAPSAM DISI jetonu (yalniz rc'ye bakmak "baska bir sebeple yesil"i gizlerdi).
+    ("M13", "CI BENZESIMI: kardes agac GORUNMEZ, kapsam sizintisi YOK", None,
+     [("kapi",
+       "        if not os.path.exists(_edge.KARDES_WORKER):",
+       "        if True:")],
+     0),
+
+    # 🔴 M14 KAPSAM DISI KOLU GERCEK IHLALI YUTUYOR MU? Ayni gorunmezlik + kart kolunu
+    # ACAN zehir. Kapi KIRMIZI kalmali: kardes agacin yoklugu yalnizca O EKSENDE hukum
+    # verdirmez, kapinin geri kalanini SUSTURMAZ. Yutsaydi onarim bir gevsetme olurdu.
+    ("M14", "CI BENZESIMI + GERCEK SIZINTI: kapsam-disi kolu kapiyi SUSTURMUYOR",
+     "vitrin",
+     [("kapi",
+       "        if not os.path.exists(_edge.KARDES_WORKER):",
+       "        if True:")],
+     1),
+
     ("M9", "FAIL-OPEN ISPATI: zehirli girdi + hukum fonksiyonu yutucu (CIFT: M3)",
      "vitrin",
      [("kapi",
@@ -174,6 +210,18 @@ MUTANTLAR = [
        "    return bool(kosul)")],
      0),
 ]
+
+
+# ═══════════════════════════════════════════════════════════ IZ SARTLARI
+# kod -> (alan, jeton). alan: "hatalar" (kapinin KIRMIZI yaktigi iddialar) ·
+# "olculemedi" · "cikti" (kapinin tam ciktisi). rc DOGRU ama iz YOKSA mutant SAPTI
+# sayilir: rengin DOGRU EKSENDEN geldigi boyle kanitlanir ([[hukum-yanlis-birimde]]).
+# Jetonlar kapinin kendi sabitlerinden gelir; elle kopya tutulmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+IZLER = {
+    "M3": ("hatalar", "JETON_KARDES_HUKUM"),
+    "M13": ("cikti", "JETON_KARDES_KAPSAM_DISI"),
+    "M14": ("cikti", "JETON_KARDES_KAPSAM_DISI"),
+}
 
 
 # ═══════════════════════════════════════════════════════════ kosum altyapisi
@@ -201,7 +249,10 @@ def _modul(ad, src, yol):
 
 
 def _kos(kaynaklar, fikstur):
-    """Kapiyi verilen KAYNAK METINLERIYLE kosar; rc doner. Diske yazmaz."""
+    """Kapiyi verilen KAYNAK METINLERIYLE kosar; (rc, hata, izler) doner. Diske yazmaz.
+
+    `izler` = {"hatalar", "olculemedi", "cikti"} — rc'nin DOGRU EKSENDEN geldigini
+    olcmek icin (bkz. IZLER)."""
     onceki = {ad: sys.modules.get(ad)
               for ad in ("filament_ortak", "build", "_kapi_mut")}
     try:
@@ -214,9 +265,13 @@ def _kos(kaynaklar, fikstur):
                                  kaynaklar["d1sync"], kaynaklar["build"],
                                  fikstur["urunler"], fikstur["ref"], fikstur["urun"],
                                  fikstur["kosucu"], build_mod)
-        return (rc, None)
+        izler = {"hatalar": "\n".join(getattr(kapi, "HATALAR", [])),
+                 "olculemedi": "\n".join(getattr(kapi, "OLCULEMEDI", [])),
+                 "cikti": yut.getvalue(),
+                 "_modul": kapi}
+        return (rc, None, izler)
     except Exception as e:                              # noqa: BLE001
-        return (None, "%s: %s" % (type(e).__name__, e))
+        return (None, "%s: %s" % (type(e).__name__, e), None)
     finally:
         for ad, mod in onceki.items():
             if mod is None:
@@ -252,7 +307,7 @@ def main():
         print("hedefler: " + " · ".join(sorted(HEDEF_DOSYALAR)))
 
         # ---- TABAN: bozulmamis kaynakla kapi YESIL mi? (yoksa hicbir olcum anlamli degil)
-        rc0, hata0 = _kos(dict(temiz), fikstur)
+        rc0, hata0, _iz0 = _kos(dict(temiz), fikstur)
         print("\nTABAN KOSUM (bozulmamis kaynak): rc=%s %s"
               % (rc0, "" if rc0 == 0 else ("HATA: %s" % hata0)))
         if rc0 != 0:
@@ -280,7 +335,7 @@ def main():
                 print("%-4s %-62s %-9s %-9s CAPA YOK"
                       % (kod, aciklama[:62], beklenen, "-"))
                 continue
-            rc, hata = _kos(kaynaklar, fikstur)
+            rc, hata, izler = _kos(kaynaklar, fikstur)
             if rc is None:
                 sapan.append("%s: kosum dustu — %s" % (kod, hata))
                 renk = "DUSTU"
@@ -289,6 +344,19 @@ def main():
             tamam = (rc == beklenen)
             if not tamam and rc is not None:
                 sapan.append("%s: beklenen rc=%d, olculen rc=%s" % (kod, beklenen, rc))
+            # IZ SARTI: rc dogru olsa bile renk DOGRU EKSENDEN gelmis mi?
+            if tamam and kod in IZLER:
+                alan, jeton_adi = IZLER[kod]
+                jeton = getattr(izler["_modul"], jeton_adi, None)
+                if jeton is None:
+                    tamam = False
+                    sapan.append("%s: IZ jetonu kapida YOK — %s sabiti kalkmis "
+                                 "(ikiz tanim ayrismasi)" % (kod, jeton_adi))
+                elif jeton not in izler[alan]:
+                    tamam = False
+                    sapan.append("%s: rc dogru (%d) ama IZ YOK — %r jetonu kapinin "
+                                 "'%s' izinde bulunamadi; renk BASKA eksenden geliyor"
+                                 % (kod, rc, jeton, alan))
             print("%-4s %-62s %-9s %-9s %s"
                   % (kod, aciklama[:62], {0: "YESIL", 1: "KIRMIZI"}.get(beklenen, beklenen),
                      renk, "OK" if tamam else "SAPTI"))
@@ -310,8 +378,9 @@ def main():
             print("  - " + s)
         return 1
     print("\nOK: %d mutantin hepsi beklenen rengi verdi "
-          "(%d KIRMIZI + M0 kontrol YESIL + M9 fail-open ispati YESIL)."
-          % (len(MUTANTLAR), kirmizi_beklenen))
+          "(%d KIRMIZI + M0 kontrol YESIL + M9 fail-open ispati YESIL + M13 CI "
+          "benzesimi YESIL); %d mutantta ayrica IZ jetonu dogrulandi."
+          % (len(MUTANTLAR), kirmizi_beklenen, len(IZLER)))
     return 0
 
 

@@ -12,9 +12,16 @@ icin gecici bir kok kurulur; kok, gercek agacin SEMBOLIK BAGLI aynasidir ve yaln
 mutasyona ugrayan dosyalar GERCEK KOPYADIR (861 MB'lik agac kopyalanmaz). Batarya
 sonunda canli agacin sha256 ozetleri bas=son karsilastirilir.
 
-🔴 CAPA JETONLARI AYRIK: kapinin bes kolu `CTA-A1-ORAN`, `CTA-A2-BANT-PAYI`,
-`CTA-A3-SEPET-SIRA`, `CTA-A4-DOKUNMA-44`, `CTA-A5-KANAL-WA` jetonlariyla konusur;
-hicbiri digerinin alt dizesi DEGILDIR (bu depoda olculmus tuzak).
+🔴 CAPA JETONLARI AYRIK: kapinin alti kolu `CTA-A1-ORAN`, `CTA-A2-BANT-PAYI`,
+`CTA-A3-SEPET-ALAN`, `CTA-A4-DOKUNMA-44`, `CTA-A5-KANAL-WA`, `CTA-A6-GECIS-ORAN`
+jetonlariyla konusur; hicbiri digerinin alt dizesi DEGILDIR (bu depoda olculmus tuzak).
+
+🔴 CANLI VAKA FIKSTURU (11 Agu 2026): M10 + M11, canlida OLCULEN iki bozulmayi geri
+getirir — (a) sepet CTA'larinin `transition`i `all`a doner, yani sinif takasinin ilk
+karesinde ikincil WhatsApp birincil odemeden BUYUK render edilir (gorunmeyen sekmede
+KALICI); (b) WhatsApp etiketi 375 px'te SARAR ve buton 44 -> 63,5 px'e uzar. Kapi bu
+onarimlardan ONCE ikisini de GOREMIYORDU: yalniz yerlesmis hal ve yalniz YUKSEKLIK
+olculdugu icin CTA-A3 YESIL yaniyordu.
 
 🔴 BYTECODE ONBELLEGI: alt surec `-B` ile ve `PYTHONDONTWRITEBYTECODE=1` ile kosar,
 her kosumda `__pycache__` silinir — ayni saniyede ayni uzunlukta yazilan mutasyonun
@@ -97,6 +104,26 @@ MUTANTLAR = [
        "    padding:0 20px;gap:9px;color:#fff;font-size:16px;font-weight:700;"
        "font-family:inherit}\n",
        "")],
+     True),
+
+    # 🔴 M10 — CANLI VAKA (a): gecis penceresi geri acilir. `transition:.15s` kisayolu
+    # `transition-property` tasimadigi icin `all` demektir; sinif takasinin ilk karesinde
+    # odeme hala `.disabled` font-size'inde, WhatsApp hala `.ikincil` ONCESI dolgusunda
+    # render edilir ve ikincil kanal birincili GECER. Kapi bu kareyi gormezse mutant
+    # SAG KALIR — CTA-A6'nin var olma sebebi tam olarak budur.
+    ("M10 sepet CTA'larinda gecis yeniden `all` olur (ters render karesi geri gelir)",
+     [("index.html",
+       "transition:background-color .15s,color .15s,border-color .15s;",
+       "transition:.15s;")],
+     True),
+
+    # 🔴 M11 — CANLI VAKA (b): WhatsApp etiketi 375 px'te SARACAK kadar uzar. `fit-content`
+    # kullanilabilir genislige kilitlenir, metin iki satira boluner ve buton 44 -> 63,5 px'e
+    # cikar. Kapi sarmayi modellemezse buton yine 44 px sanilir ve mutant SAG KALIR.
+    ("M11 WhatsApp etiketi 375 px'te SARAR (buton uzar, oran duser)",
+     [("index.html",
+       "      WhatsApp ile Sipariş Ver\n",
+       "      WhatsApp ile Hemen Sipariş Ver ve Bilgi Al\n")],
      True),
 
     ("K1 KONTROL — yalniz yorum metni degisir (davranis AYNI)",

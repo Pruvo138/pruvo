@@ -46,6 +46,12 @@ NE IDDIA EDILMEZ (beyan edilen kor noktalar — sessiz yesil yasak)
     coklu-teklif bicimi: MIMAR KARARI bekliyor, bu kapi bicime karismaz.
   * Olcuye ozel / yapilandiricili / hazir ticari mal kolu: kural orada zaten
     uygulanmaz (kapsam-disi jetonu).
+  * KARDES DEPO (edge Worker kaynagi, ~/dev/pruvo-bot) — BASKA BIR MIMARIN EVI.
+    Diskte VARSA E10 onu okur ve kart kolu ACIKKEN eksik alani KIRMIZI yakar
+    (hukum bizim BAYRAGIMIZ hakkindadir, onlarin kodu hakkinda degil). Diskte
+    YOKSA (CI fresh checkout) bu bir olcum boslugu DEGIL kapsam disiligidir:
+    `KARDES_AGAC_KAPSAM_DISI` satiri basilir, cikis kodu ETKILENMEZ. Ayni
+    doktrin: tools/edge-kart-kapisi.py.
 
 CIKIS: 0 yesil · 1 kirmizi · 2 olculemedi. Depoya YAZMAZ, aga CIKMAZ.
 """
@@ -69,6 +75,14 @@ JETON_D1_TURETILMIS = "KENAR_KOLON_TURETILMIS"
 JETON_YUZEY_AYRI = "KART_YUZEYI_AYRIK"
 JETON_YUZEY_SIZDI = "KART_YUZEYI_SIZDI"
 JETON_OLCULEMEDI = "COZULEMEDI"
+# E10'un kardes-depo kolu: agac YOKKEN verilen KAPSAM DISI hukmunun kendi ayrik jetonu.
+# Digerlerinin alt dizesi DEGILDIR; mutasyon bataryasi (M13) tam bu jetonu arar, boylece
+# "kapi sustu" ile "kapi kapsam disi dedi" ayni satirdan okunamaz.
+JETON_KARDES_KAPSAM_DISI = "KARDES_AGAC_KAPSAM_DISI"
+# E10'un kardes agac VARKEN verdigi hukmun jetonu. M15 tam bunu arar: onarim "kardes
+# agac yoksa kapsam disi" kolunu agac VARKEN de yutacak sekilde genisletilirse, bu
+# jeton HATALAR'dan kaybolur ve batarya SAPTI der.
+JETON_KARDES_HUKUM = "KENAR_KART_HUKMU"
 
 # ------------------------------------------------- TANINMAYAN MALZEME KUTUGU (veri kusuru)
 # 🔴 NEDEN KUTUK VAR ve NEDEN SADECE EKLEMEYE KIRMIZI YANAR ([[envanter-drift-parti-basina]]):
@@ -503,8 +517,28 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
     # ZARARSIZDIR cunku kart kolu KAPALI: kural anahtari kapaliyken daha ILK satirda
     # guvenli varsayilana doner ve alani HIC okumaz. Kart kolu ACILIRSA ayni yuzeyin iki
     # ureticisi AYNI urun icin FARKLI tutar yazar ve hicbir sey alarm calmaz.
-    # KURAL: alan YOKken kart kolu ACIKSA -> KIRMIZI. Kardes depo diskte yoksa -> YESIL
-    # DEGIL, OLCULEMEDI.
+    # KURAL: alan YOKken kart kolu ACIKSA -> KIRMIZI.
+    #
+    # 🔴 11 AGU 2026 — KARDES AGAC YOKKEN "OLCULEMEDI" YAPISAL BIR KIRMIZIYDI (onarildi).
+    #   Eski kol kardes depo diskte yoksa OLCULEMEDI basiyordu ve kapi rc=2 donuyordu.
+    #   Kardes depo (edge Worker, ~/dev/pruvo-bot) BASKA BIR MIMARIN EVIDIR ve CI fresh
+    #   checkout'unda HICBIR ZAMAN bulunmaz: `~` orada /home/runner'dir, o agac hic
+    #   klonlanmaz. Yani eksen CI'da HER KOSUMDA rc=2 veriyordu -> `serit-a3` failure ->
+    #   `deploy` + `yayin` skipped. Olculdu (kosum 31511073366, headSha 35de6880 ve
+    #   31513339498/5bd2fb1d): tum ekibin yayini bu tek satirdan duruyordu.
+    #
+    #   ONARIM GEVSETME DEGIL, KAPSAMIN DOGRU TANIMIDIR. Kardes agacin YOKLUGU bir
+    #   OLCUM BOSLUGU degil KAPSAM DISILIKTIR: bu kapinin duzleminde o dosya hic yoktur,
+    #   dolayisiyla hakkinda verilecek bir hukum de yoktur. Kardes kapi
+    #   (tools/edge-kart-kapisi.py) ayni doktrini zaten uygular — alani OLCER, ASLA
+    #   kirmizi yakmaz. Ayrim keskin tutulur:
+    #     * kardes agac VARSA  -> bugunku fail-closed hukum AYNEN gecerli (kart kolu ACIK
+    #                             + alan eksik => KIRMIZI). M15 bunu kanitlar.
+    #     * kardes agac YOKSA  -> KAPSAM DISI satiri BASILIR, hukum VERILMEZ, cikis kodu
+    #                             ETKILENMEZ. M13 bunu kanitlar; M14 o kolun GERCEK bir
+    #                             kapsam sizintisini YUTMADIGINI kanitlar.
+    #   "Cozemedim = alan yok" sessiz gecisi HALA YASAK: kardes agac VARDIR ama sabiti
+    #   ayristirilamiyorsa eksen yine OLCULEMEDI'dir (asagida).
     try:
         import importlib.util as _iu
         _s = _iu.spec_from_file_location("_edge_kapi",
@@ -517,8 +551,10 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
     tasiyor = None
     if _edge is not None:
         if not os.path.exists(_edge.KARDES_WORKER):
-            olculemedi("kardes depo diskte YOK (%s) — kenar kartinin alan kapsami "
-                       "OLCULEMEDI (sessiz yesil YASAK)" % _edge.KARDES_WORKER)
+            print("     kenar Worker kaynagi diskte YOK (%s) -> %s: baska bir mimarin "
+                  "evi, bu kapinin duzlemi DEGIL — hukum VERILMEZ, cikis kodu "
+                  "ETKILENMEZ (CI fresh checkout'unda normal hal)"
+                  % (_edge.KARDES_WORKER, JETON_KARDES_KAPSAM_DISI))
         else:
             with open(_edge.KARDES_WORKER, encoding="utf-8") as f:
                 _w = f.read()
@@ -531,9 +567,10 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
     ozet["edge_tasiyor"] = tasiyor
     if tasiyor is not None:
         kontrol(tasiyor or not veri or not veri.get("acikVitrin"),
-                "kenar karti oneri alanini %s; kart kolu %s -> ayni yuzeyin iki ureticisi "
-                "AYRISAMAZ" % ("TASIYOR" if tasiyor else "TASIMIYOR",
-                               "ACIK" if (veri and veri.get("acikVitrin")) else "KAPALI"))
+                "%s kenar karti oneri alanini %s; kart kolu %s -> ayni yuzeyin iki "
+                "ureticisi AYRISAMAZ"
+                % (JETON_KARDES_HUKUM, "TASIYOR" if tasiyor else "TASIMIYOR",
+                   "ACIK" if (veri and veri.get("acikVitrin")) else "KAPALI"))
         # Alan okunmuyor mu GERCEKTEN? Kural anahtari kapaliyken alani TASIMAYAN bir kart
         # ile TASIYAN kart AYNI tutari vermeli — yoksa "kapali oldugu icin zararsiz"
         # iddiasi beyandan ibaret kalirdi ([[beyan-edilmis-survivor]]).

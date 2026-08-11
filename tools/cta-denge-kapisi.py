@@ -19,17 +19,45 @@ bir KAPIYLA kilitlenir, "bakildi iyi gorunuyor" ile DEGIL.
 🔴 KANAL KALDIRILMAZ: bu kapi WhatsApp'in VARLIGINI da olcer (A5). Dengeyi "WhatsApp'i
 silerek" saglamak bu kapida KIRMIZI yanar.
 
-NE OLCER (dort bagimsiz eksen + kanal nobeti)
+NE OLCER (bes bagimsiz eksen + kanal nobeti)
 ---------------------------------------------
   CTA-A1-ORAN        : alan(Sepete Ekle) / alan(en buyuk WhatsApp CTA'si) >= 1,0
                        MOBIL (375) ve MASAUSTU (1100) genisliklerinde AYRI AYRI.
   CTA-A2-BANT-PAYI   : sticky WhatsApp bandinin 812 px'lik mobil ekrandaki payi < %10.
                        Hem urun sayfasi (tools/build.py::PAGE_CSS) hem ana/sepet
                        sayfasi (index.html) icin ayri olculur.
-  CTA-A3-SEPET-SIRA  : sepet panelinde birincil odeme CTA'si WhatsApp CTA'sindan
-                       BELGE SIRASINDA once ve alan olarak BUYUK.
+  CTA-A3-SEPET-ALAN  : sepet panelinde birincil odeme CTA'si WhatsApp CTA'sindan
+                       BELGE SIRASINDA once ve ALAN olarak buyuk (>= ORAN_TABANI).
   CTA-A4-DOKUNMA-44  : olculen her CTA'nin yuksekligi >= 44 px (WhatsApp kuculurken de).
   CTA-A5-KANAL-WA    : `wa.me` baglantilari + numara YERINDE, sepet butonu ETIKETLI.
+  CTA-A6-GECIS-ORAN  : A3 orani GECIS PENCERESINDE de saglaniyor mu? (asagi)
+
+🔴 CTA-A6 NEDEN VAR — "SETTLED YESIL" YANLIS YESILDI (olculdu, 11 Agu 2026, canli)
+--------------------------------------------------------------------------------
+Sepet paneli acilirken JS iki sinifi ayni anda takar: odeme butonu `.disabled`den
+CIKAR, WhatsApp butonu `.ikincil`e GIRER. Iki kuralda da `transition:.15s` yaziyordu —
+kisayolun `transition-property` degeri belirtilmedigi icin bu `all` demektir. Yani
+font-size ve padding de ANIME olur ve panel, ~150 ms boyunca ESKI geometriyle
+RENDER EDILIR. O pencerede canlida olculen (375x812, gercek `clientWidth=375`):
+
+    odeme    317 x 43,5 = 13.790 px²      (hala `.disabled` font-size'i: 13,5 px)
+    WhatsApp 249 x 54,25 = 13.516 px²     (hala `.ikincil` ONCESI: padding 14, 15,5 px)
+    oran 1,02 — bagimsiz olcumde 0,978 (daha genis fontta WhatsApp ETIKETI SARIYOR,
+    buton 44 -> 56,8 px'e uzuyor ve ikincil kanal birincil odemeyi GECIYOR)
+
+Yerlesmis (settled) hal ise saglikli: odeme 317x46 = 14.582 · WhatsApp 232x44 = 10.197
+· oran 1,43. Kapi YALNIZ settled hali modelledigi icin CTA-A3 "51,2 > 44,0" deyip
+YESIL yaniyordu: Okan'in acikca istedigi seyin ihlalini GOREMIYORDU.
+
+⚠️ PENCERE 150 ms DEGIL: gecis, belge GORUNMEZ (arka plan sekmesi / kisilmis pane)
+iken hic ILERLEMEZ. Olculdu — `document.hidden=true` iken `getAnimations()` on iki
+gecisi de `playState=running, currentTime=0` gosterdi; buton o halde KILITLI KALDI.
+Yani ters oran gecici bir goz kirpmasi degil, gorunmeyen sekmede KALICI bir haldir.
+
+A6 bunu SART olarak degil OLCUM olarak kurar: kapi `transition` bildiriminden
+ETKILENEN ozellik kumesini cikarir; kume GEOMETRIYE dokunuyorsa gecis hali GERCEK bir
+render halidir ve oran ORADA da saglanmalidir. Geometri hic anime edilmiyorsa gecis
+penceresi YOKTUR ve A6, A3 ile ayni sayiyi verir (kapi bunu ACIKCA basar).
 
 GEOMETRI NEREDEN TURER (elle defter YOK)
 ----------------------------------------
@@ -41,6 +69,20 @@ GERCEKTEN uretilir; sepet paneli index.html'den okunur. Ikinci kopya tutulmaz.
 Metin genisligi bir MODELDIR: `karakter * font-size * 0,55`. Model iki tarafa da AYNI
 uygulanir, yani A1 bir ORAN iddiasidir ve modelin sabitine karsi dayaniklidir. A2/A4
 ise yapisal (padding + min-height + kenarlik) olculerdir, metin modeline BAGLI DEGIL.
+
+🔴 MODELIN UC DUZELTMESI (11 Agu, canli olcumle capalandi):
+  1. SATIR YUKSEKLIGI KAYNAGA BAGLI. `<button>` UA sayfasinda `line-height:normal`
+     tasir ve body'nin 1,5'ini MIRAS ALMAZ; `<a>` alir. Kapi eskiden ikisine de 1,5
+     uyguluyordu ve odeme butonunu 51,2 px sanıyordu — canlida 46,0 px. Ayni yanlis,
+     A3'u tam da ters dondugu yerde optimist yapiyordu.
+  2. SARMA MODELLENIR. Butonun icerik genisligi KULLANILABILIR genisligi asarsa metin
+     satirlara boluner ve buton UZAR. Kullanilabilir genislik elle yazilmaz: sepet
+     panelinin kendi CSS'inden (`.cart-panel` width/max-width + `.cart-panel-foot`
+     padding) turetilir; capa yoksa OLCULEMEDI.
+  3. GENISLIK DE OLCULUR. `width:fit-content|max|min-content` daraltir; blok seviyesi
+     (`display:block|flex|grid` ya da `width:100%`) kabi DOLDURUR. A3 artik yalniz
+     YUKSEKLIK degil ALAN kiyaslar — canlida WhatsApp butonu daha KISA ama daha
+     GENISKEN oran 1,02'ye dusmustu; yukseklik tek basina bunu gizliyordu.
 
 OLCULEMEZSE "GECTI" DEMEZ
 -------------------------
@@ -71,8 +113,31 @@ DOKUNMA_TABANI = 44.0           # A4: mobil dokunma hedefi alt siniri (px)
 
 # Metin genisligi modeli — ORAN iddiasinda iki tarafa da ayni uygulanir.
 KARAKTER_ORANI = 0.55
-VARSAYILAN_SATIR_YUKSEKLIGI = 1.5   # body{line-height:1.5}
+VARSAYILAN_SATIR_YUKSEKLIGI = 1.5   # body{line-height:1.5} — MIRAS ALAN ogeler (<a> vb.)
+# 🔴 <button> UA sayfasinda `line-height:normal` tasir ve body'nin 1,5'ini MIRAS ALMAZ.
+# Canli olcum (Chrome/mac, 375 px): 15,5 px yazi + 14 px dolgu -> 46,0 px buton, yani
+# icerik 18,6 px = 1,20 x font. 1,5 varsayimi butonu 51,2 px sanıyordu (+%11 optimist).
+BUTON_SATIR_YUKSEKLIGI = 1.20
 VARSAYILAN_FONT = 16.0
+
+# `width` degeri icerige gore BUZUSEN kume; digerleri blok kabi DOLDURUR sayilir.
+DARALTAN_GENISLIK = {"fit-content", "max-content", "min-content"}
+BLOK_DISPLAY = {"block", "flex", "grid"}
+
+# 🔴 A6: `transition` bu ozelliklerden BIRINE dokunuyorsa gecis hali GERCEK bir render
+# halidir (eski geometri ekranda kalir) ve oran ORADA da olculmelidir. `all` = hepsi.
+GEOMETRI_OZELLIKLERI = {
+    "all", "width", "min-width", "max-width", "height", "min-height", "max-height",
+    "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+    "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+    "font-size", "line-height", "gap", "row-gap", "column-gap",
+    "border", "border-width", "border-top-width", "border-right-width",
+    "border-bottom-width", "border-left-width",
+}
+# Sure / gecikme / yumusatma jetonlari — kisayolda OZELLIK ADI sayilmazlar.
+_SURE = re.compile(r"^-?\d*\.?\d+m?s$", re.I)
+_YUMUSATMA = {"ease", "linear", "ease-in", "ease-out", "ease-in-out",
+              "step-start", "step-end", "normal", "none"}
 
 HATALAR = []
 OLCULEMEDI = []
@@ -233,8 +298,15 @@ def _kenarlik(d):
     return v if v is not None else 0.0
 
 
-def olc_kutu(d, metin, ikon_px):
-    """Bir buton/link kutusunun (genislik, yukseklik) olcusu. Cozulemezse None."""
+def olc_kutu(d, metin, ikon_px, varsayilan_lh=VARSAYILAN_SATIR_YUKSEKLIGI,
+             kullanilabilir_en=None):
+    """Bir buton/link kutusunun (genislik, yukseklik) olcusu. Cozulemezse None.
+
+    varsayilan_lh    : `line-height` BILDIRILMEMISSE kullanilacak carpan. <button> icin
+                       BUTON_SATIR_YUKSEKLIGI (UA `normal`), miras alan ogeler icin 1,5.
+    kullanilabilir_en: kabin ic genisligi. Verilirse (a) blok seviyesindeki kutu onu
+                       DOLDURUR, (b) metin sigmiyorsa SARAR ve buton UZAR. Verilmezse
+                       sarma modellenmez — cagiran taraf bunu bilerek yapmali."""
     dolgu = _dortlu(d.get("padding"))
     if dolgu is None:
         return None
@@ -248,10 +320,33 @@ def olc_kutu(d, metin, ikon_px):
             v = _px(lh_ham)
             lh = (v / fs) if (v and fs) else None
     if lh is None:
-        lh = VARSAYILAN_SATIR_YUKSEKLIGI
+        lh = varsayilan_lh
     kb = _kenarlik(d)
     bosluk = _px(d.get("gap"), 0.0) or 0.0
-    icerik_h = max(fs * lh, ikon_px or 0.0)
+    metin_w = len(metin) * fs * KARAKTER_ORANI
+    yatay_sabit = dolgu[1] + dolgu[3] + 2 * kb + ((ikon_px + bosluk) if ikon_px else 0.0)
+    w = yatay_sabit + metin_w
+
+    # --- genislik: daraltan deger mi, kabi dolduran blok mu?
+    daraltan = (d.get("width") or "").strip() in DARALTAN_GENISLIK
+    blok = ((d.get("display") or "").strip() in BLOK_DISPLAY
+            or (d.get("width") or "").strip() == "100%")
+    if kullanilabilir_en is not None:
+        if daraltan:
+            w = min(w, kullanilabilir_en)
+        elif blok:
+            w = kullanilabilir_en
+        else:
+            w = min(w, kullanilabilir_en)
+
+    # --- SARMA: metin, kutunun ic genisligine sigmiyorsa satirlara boluner.
+    satir = 1
+    if kullanilabilir_en is not None and metin_w > 0:
+        ic_en = w - yatay_sabit
+        if ic_en > 0 and metin_w > ic_en:
+            satir = int(metin_w / ic_en) + (0 if abs(metin_w % ic_en) < 1e-9 else 1)
+
+    icerik_h = max(fs * lh * satir, ikon_px or 0.0)
     h = dolgu[0] + dolgu[2] + 2 * kb + icerik_h
     sabit_h = _px(d.get("height"))
     if sabit_h is not None:
@@ -259,9 +354,6 @@ def olc_kutu(d, metin, ikon_px):
     en_az_h = _px(d.get("min-height"))
     if en_az_h is not None:
         h = max(h, en_az_h)
-    w = dolgu[1] + dolgu[3] + 2 * kb + len(metin) * fs * KARAKTER_ORANI
-    if ikon_px:
-        w += ikon_px + bosluk
     sabit_w = _px(d.get("width"))
     if sabit_w is not None:
         w = sabit_w
@@ -269,6 +361,61 @@ def olc_kutu(d, metin, ikon_px):
     if en_az_w is not None:
         w = max(w, en_az_w)
     return (w, h)
+
+
+# ---------------------------------------------------------------- gecis penceresi
+def gecis_ozellikleri(d):
+    """`transition` kisayolundan ETKILENEN ozellik adlari kumesi.
+
+    `transition:.15s` gibi ozellik adi TASIMAYAN bir kisayol `all` demektir — bu depoda
+    tam olarak bu yazim, sepet CTA'larinin geometrisini anime edip ters bir render hali
+    dogurmustu. `transition-property` ayri bildirilmisse O kazanir."""
+    ayri = d.get("transition-property")
+    if ayri is not None:
+        return {p.strip().lower() for p in ayri.split(",") if p.strip()}
+    ham = d.get("transition")
+    if ham is None:
+        return set()
+    ham = ham.replace("!important", "")
+    kume = set()
+    for parca in ham.split(","):
+        jetonlar = [t for t in re.split(r"\s+", parca.strip()) if t]
+        # cubic-bezier(...) / steps(...) tek jeton olarak gelir; ozellik adi degildir.
+        ad = None
+        for t in jetonlar:
+            tl = t.lower()
+            if _SURE.match(tl) or tl in _YUMUSATMA or "(" in tl:
+                continue
+            ad = tl
+            break
+        kume.add(ad if ad else "all")
+    return kume
+
+
+def gecis_stili(oncesi, sonrasi, gecisli):
+    """Sinif takasinin ILK karesindeki (henuz yerlesmemis) bildirim sozlugu.
+
+    CSS semantigi birebir: GECIS LISTESINDEKI ozellikler ESKI degerden baslar; listede
+    OLMAYANLAR aninda YENI degere atlar. Yeni halde VAR olup eski halde OLMAYAN ve
+    gecise dahil bir geometri ozelligi (or. `.ikincil`in `width:fit-content`i) eski
+    halde YOKTUR -> sozlukten DUSURULUR, yani kutu o karede eski (dolduran) genisligiyle
+    olculur. Bu IHTIYATLI yondur: `auto` <-> `fit-content` interpolasyonu tarayiciya
+    gore degisir, kapi EN KOTU hali alir ve fail-closed kalir."""
+    if not (gecisli & GEOMETRI_OZELLIKLERI):
+        return dict(sonrasi)                      # gecis penceresi YOK
+    hepsi = "all" in gecisli
+    d = dict(sonrasi)
+    for ad in list(d):
+        if not (hepsi or ad in gecisli or ad.split("-")[0] in gecisli):
+            continue
+        if ad in oncesi:
+            d[ad] = oncesi[ad]
+        elif ad in GEOMETRI_OZELLIKLERI:
+            del d[ad]
+    for ad, deger in oncesi.items():
+        if ad not in d and (hepsi or ad in gecisli or ad.split("-")[0] in gecisli):
+            d[ad] = deger
+    return d
 
 
 SPAN = re.compile(r'<span class="([^"]+)">(.*?)</span>', re.S)
@@ -454,6 +601,37 @@ def bolum_urun(kurallar, sayfa, wa_no):
     return oranlar, bant_payi
 
 
+def sepet_ic_genisligi(kurallar, viewport=MOBIL_EN):
+    """Sepet panelinin BUTONLARA kalan ic genisligi (px). Turetilemezse None.
+
+    Elle sabit yazilmaz: `.cart-panel{width; max-width}` + `.cart-panel-foot{padding}`
+    okunur. `max-width:92vw` gibi vw degerleri viewport'a gore cozulur. Canli teyit
+    (375 px ekran): min(380, 0,92x375) - 2x14 = 317 px — tarayicida olculen deger de
+    tam 317 px."""
+    panel = stil(kurallar, {".cart-panel"}, viewport)
+    foot = stil(kurallar, {".cart-panel-foot"}, viewport)
+    if not panel or not foot:
+        return None
+    w = _px(panel.get("width"))
+    if w is None:
+        return None
+    mx = (panel.get("max-width") or "").strip()
+    if mx:
+        m = re.fullmatch(r"(\d+(?:\.\d+)?)vw", mx, re.I)
+        if m:
+            w = min(w, float(m.group(1)) / 100.0 * viewport)
+        else:
+            v = _px(mx)
+            if v is None:
+                return None                      # cozulemeyen kisit -> OLCULEMEDI
+            w = min(w, v)
+    dolgu = _dortlu(foot.get("padding"))
+    if dolgu is None:
+        return None
+    ic = w - dolgu[1] - dolgu[3]
+    return ic if ic > 0 else None
+
+
 def bolum_sepet(kok, wa_no):
     """A2 (ana/sepet sayfasi bandi) + A3 — sepet panelinde sira ve boyut."""
     print("\n(2) ANA/SEPET SAYFASI — bant payi + odeme/WhatsApp sirasi")
@@ -495,16 +673,34 @@ def bolum_sepet(kok, wa_no):
     if i_pay == -1 or i_wa == -1:
         olculemedi("sepet panelinde cartPay/cartOrder capasi yok")
         return None
+    # KULLANILABILIR GENISLIK — elle sabit YOK, sepet panelinin KENDI CSS'inden turer.
+    ic_en = sepet_ic_genisligi(kurallar)
+    if ic_en is None:
+        olculemedi("sepet panelinin ic genisligi turetilemedi (.cart-panel width/"
+                   "max-width ya da .cart-panel-foot padding capasi yok) — SARMA "
+                   "modellenemez, 'gecti' SAYILMAZ")
+        return None
+    print("     sepet paneli ic genisligi: %.1f px (375 px ekranda)" % ic_en)
+
+    # Sinif kumeleri: (yerlesmis hal, takas ONCESI hal). JS panelde ikisini AYNI ANDA
+    # takar — odeme `.disabled`den cikar, WhatsApp `.ikincil`e girer.
     d_pay = stil(kurallar, {".cart-pay-btn"}, MOBIL_EN)
+    d_pay0 = stil(kurallar, {".cart-pay-btn", ".cart-pay-btn.disabled"}, MOBIL_EN)
     d_wa = stil(kurallar, {".cart-order-btn", ".cart-order-btn.ikincil"}, MOBIL_EN)
+    d_wa0 = stil(kurallar, {".cart-order-btn"}, MOBIL_EN)
     m = re.search(r'id="cartPay"[^>]*>\s*([^<]*)', metin)
     pay_metni = " ".join((m.group(1) if m else "").split())
     m = re.search(r'id="cartOrder"[^>]*>(.*?)</a>', metin, re.S)
     wa_metni = gorunur_metin(kurallar, m.group(1) if m else "", MOBIL_EN)
-    # Panel genisligi sabit degil; tam genislik butonlari ayni kaba oturur ->
-    # ORAN icin genislik ortak carpandir, farki YUKSEKLIK ve genislik KISITI yapar.
-    k_pay = olc_kutu(d_pay, pay_metni, 0.0)
-    k_wa = olc_kutu(d_wa, wa_metni, ikon_olcusu(kurallar, [".cart-order-btn"], MOBIL_EN))
+    wa_ikon = ikon_olcusu(kurallar, [".cart-order-btn"], MOBIL_EN)
+
+    def _olc(d_p, d_w):
+        # odeme = <button> (UA line-height:normal) · WhatsApp = <a> (body'den 1,5 miras)
+        kp = olc_kutu(d_p, pay_metni, 0.0, BUTON_SATIR_YUKSEKLIGI, ic_en)
+        kw = olc_kutu(d_w, wa_metni, wa_ikon, VARSAYILAN_SATIR_YUKSEKLIGI, ic_en)
+        return kp, kw
+
+    k_pay, k_wa = _olc(d_pay, d_wa)
     if k_pay is None or k_wa is None:
         olculemedi("sepet paneli butonlari olculemedi")
         return None
@@ -513,17 +709,55 @@ def bolum_sepet(kok, wa_no):
     # 🔴 `auto` DARALTMAZ: blok seviyesindeki bir flex kabi `width:auto` ile satiri
     # DOLDURUR (tarayicida olculdu — ikincil WhatsApp yine tam genislikteydi). Kapinin
     # kabul ettigi tek daraltici deger kumesi icerige gore buzusen degerlerdir.
-    wa_dar = (d_wa.get("width") or "").strip() in ("fit-content", "max-content",
-                                                   "min-content")
-    print("     odeme %.0f px yuksek (%r) · WhatsApp %.0f px yuksek (%r) · "
-          "WhatsApp dar mi: %s" % (k_pay[1], pay_metni, k_wa[1], wa_metni, wa_dar))
-    kontrol("CTA-A3-SEPET-SIRA",
-            i_pay < i_wa and k_pay[1] > k_wa[1] and tam_genislik_pay and wa_dar,
-            "birincil odeme CTA'si WhatsApp'tan ONCE (%d < %d), DAHA YUKSEK "
-            "(%.1f > %.1f) ve tam genislikte; WhatsApp ikincil/dar"
-            % (i_pay, i_wa, k_pay[1], k_wa[1]))
+    wa_dar = (d_wa.get("width") or "").strip() in DARALTAN_GENISLIK
+    alan_pay, alan_wa = k_pay[0] * k_pay[1], k_wa[0] * k_wa[1]
+    oran_sepet = (alan_pay / alan_wa) if alan_wa else 0.0
+    print("     yerlesmis: odeme %.0fx%.0f = %.0f px² (%r) · WhatsApp %.0fx%.0f = "
+          "%.0f px² (%r) · oran %.2f · WhatsApp dar mi: %s"
+          % (k_pay[0], k_pay[1], alan_pay, pay_metni,
+             k_wa[0], k_wa[1], alan_wa, wa_metni, oran_sepet, wa_dar))
+    # 🔴 A3 artik ALAN kiyasliyor. Yukseklik tek basina yaniltir: canlida WhatsApp
+    # butonu odemeden KISA ama gecis penceresinde cok daha GENISTI ve oran 1,02'ye
+    # dusuyordu — "daha yuksek" iddiasi o vakada YESIL kaliyordu.
+    kontrol("CTA-A3-SEPET-ALAN",
+            i_pay < i_wa and oran_sepet >= ORAN_TABANI and tam_genislik_pay and wa_dar,
+            "birincil odeme CTA'si WhatsApp'tan ONCE (%d < %d) ve ALAN orani %.2f "
+            ">= %.2f; odeme tam genislikte, WhatsApp ikincil/dar"
+            % (i_pay, i_wa, oran_sepet, ORAN_TABANI))
+
+    # ---- A6: GECIS PENCERESI (sinif takasinin ilk karesi GERCEK bir render halidir)
+    gecisli = gecis_ozellikleri(d_pay) | gecis_ozellikleri(d_wa)
+    geometrik = sorted(gecisli & GEOMETRI_OZELLIKLERI)
+    if not geometrik:
+        print("     gecis penceresi YOK — sepet CTA'larinin `transition` bildirimi "
+              "geometriye dokunmuyor (anime edilen: %s)"
+              % (", ".join(sorted(gecisli)) or "hicbir sey"))
+        oran_gecis = oran_sepet
+        k_pay_g, k_wa_g = k_pay, k_wa
+    else:
+        g_pay = gecis_stili(d_pay0, d_pay, gecis_ozellikleri(d_pay))
+        g_wa = gecis_stili(d_wa0, d_wa, gecis_ozellikleri(d_wa))
+        k_pay_g, k_wa_g = _olc(g_pay, g_wa)
+        if k_pay_g is None or k_wa_g is None:
+            olculemedi("gecis penceresi butonlari olculemedi")
+            return None
+        a_p, a_w = k_pay_g[0] * k_pay_g[1], k_wa_g[0] * k_wa_g[1]
+        oran_gecis = (a_p / a_w) if a_w else 0.0
+        print("     GECIS: odeme %.0fx%.0f = %.0f px² · WhatsApp %.0fx%.0f = %.0f px² "
+              "· oran %.2f  (anime edilen geometri: %s)"
+              % (k_pay_g[0], k_pay_g[1], a_p, k_wa_g[0], k_wa_g[1], a_w, oran_gecis,
+                 ", ".join(geometrik)))
+    kontrol("CTA-A6-GECIS-ORAN", oran_gecis >= ORAN_TABANI,
+            "sinif takasinin ILK karesinde de odeme/WhatsApp alan orani %.2f >= %.2f "
+            "(%s) — gorunmeyen sekmede bu kare KALICIDIR"
+            % (oran_gecis, ORAN_TABANI,
+               "gecis penceresi yok" if not geometrik
+               else "anime edilen geometri: " + ", ".join(geometrik)))
+
     kucuk = [(a, h) for a, h in (("sepet odeme", k_pay[1]),
                                  ("sepet WhatsApp", k_wa[1]),
+                                 ("sepet odeme (gecis)", k_pay_g[1]),
+                                 ("sepet WhatsApp (gecis)", k_wa_g[1]),
                                  ("ana sayfa bant WhatsApp", k_bant[1]))
              if h < DOKUNMA_TABANI]
     kontrol("CTA-A4-DOKUNMA-44", not kucuk,
