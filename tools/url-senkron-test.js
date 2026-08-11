@@ -18,6 +18,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { gorunurKategoriOneki } = require("./ortak-index-esleme.js");
 
 const INDEX = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 
@@ -38,11 +39,13 @@ kontrol("index.html'de syncUrl() tanımlı", !!m);
    görünmesin diye): `?kategori=` artık gorunurKategori(activeCat) yazıyor. Bağımlılık
    STUB'LANMAZ — index.html'deki GERÇEK tablo + fonksiyon ayıklanıp sandbox gövdesinin
    başına konur; böylece bu test eşlemenin kendisini de ölçer (stub olsaydı eşleme
-   bozulunca yeşil kalırdı). Ayıklanamazsa FAIL-CLOSED kırmızı. */
-const mGor = INDEX.match(
-  /var KATEGORI_GORUNUR = \{[^;]*\};[\s\S]{0,600}?function gorunurKategori\(c\)\{[\s\S]*?\n  \}/);
-kontrol("index.html'den KATEGORI_GORUNUR + gorunurKategori ayıklandı", !!mGor);
-const ONEK = mGor ? mGor[0] + ";\n" : "";
+   bozulunca yeşil kalırdı). Ayıklanamazsa FAIL-CLOSED kırmızı.
+   Çapa ORTAK kaynaktan gelir (tools/ortak-index-esleme.js): AYNI ayıklama kardeş test
+   tools/reklam-url-test.js'te de gerekiyor ve aynı gün orada da ReferenceError'la
+   çöktü — ikinci kopya tutulmaz. */
+const ONEK_HAM = gorunurKategoriOneki(INDEX);
+kontrol("index.html'den KATEGORI_GORUNUR + gorunurKategori ayıklandı", ONEK_HAM !== null);
+const ONEK = ONEK_HAM === null ? "" : ONEK_HAM;
 
 if (m) {
   // activeCat/activeAlt/activeBrand/query + history/location kapalı değişkenlerini sararak

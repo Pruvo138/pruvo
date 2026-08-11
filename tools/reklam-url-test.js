@@ -31,6 +31,7 @@
 const fs = require("fs");
 const vm = require("vm");
 const path = require("path");
+const { gorunurKategoriOneki } = require("./ortak-index-esleme.js");
 
 const KOK = path.dirname(__dirname);
 const INDEX = fs.readFileSync(path.join(KOK, "index.html"), "utf8");
@@ -71,6 +72,18 @@ const SYNC_SRC = dilim(INDEX, "  function syncUrl(){",
                        "\n  // seçili kategori + aramaya uyan", "syncUrl");
 assert(SYNC_SRC.indexOf("history.replaceState") !== -1,
        "syncUrl dilimi yanlis blogu aldi (replaceState yok)");
+
+/* 🔴 syncUrl 11 Agu'da GORUNEN kategori etiketine uzandi (ic seri adi adres cubuginda
+   gorunmesin diye): `?kategori=` artik gorunurKategori(activeCat) yaziyor. Bagimlilik
+   STUB'LANMAZ — index.html'deki GERCEK tablo + fonksiyon ayiklanip sandbox govdesinin
+   basina konur; boylece bu test eslemenin kendisini de olcer. Ayiklama ORTAK kaynaktan
+   gelir (tools/ortak-index-esleme.js) — kardes test url-senkron-test.js ile AYNI capa,
+   ikinci kopya YOK. Ayiklanamazsa FAIL-CLOSED kirmizi (sessizce bos onek eklemek,
+   esleme kaybolunca bu testi yesil birakirdi). */
+const GOR_ONEK = gorunurKategoriOneki(INDEX);
+assert(GOR_ONEK !== null,
+       "index.html'den KATEGORI_GORUNUR + gorunurKategori AYIKLANAMADI -> syncUrl sandbox'ta " +
+       "ReferenceError ile coker; capa bozulmus");
 
 // ─── mini ortam: localStorage + location + history ───────────────────────────
 function Depo() { this.data = {}; }
@@ -113,7 +126,7 @@ function kosum(baslangicUrl, durum) {
     "var activeBrand = " + JSON.stringify(durum.marka || "Tümü") + ";" +
     "var activeModel = " + JSON.stringify(durum.model || "Tümü") + ";" +
     "var query = " + JSON.stringify(durum.ara || "") + ";\n" +
-    ATIF_SRC + "\n" + SYNC_SRC + "\nsyncUrl();", kutu);
+    GOR_ONEK + ATIF_SRC + "\n" + SYNC_SRC + "\nsyncUrl();", kutu);
   assert(basilan !== null, "syncUrl replaceState CAGIRMADI");
   return basilan;
 }
