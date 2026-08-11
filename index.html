@@ -796,7 +796,7 @@
      oran 1,02–0,978). ⚠️ Pencere 150 ms DEĞİL: belge görünmezken (arka plan sekmesi)
      geçiş hiç ilerlemez — ters hal KALICI olur. Renkle sınırlamak hover hissini aynen
      korur, geometriyi ilk kareden itibaren doğru yerine oturtur.
-     Nöbetçi: tools/cta-denge-kapisi.py :: CTA-A6-GECIS-ORAN. */
+     Nöbetçi: CTA denge kapisi, CTA-A6-GECIS-ORAN ekseni. */
   .cart-pay-btn{
     display:block;width:100%;background:var(--navy);color:#fff;border:none;
     border-radius:12px;padding:14px;font-size:15.5px;font-weight:800;cursor:pointer;
@@ -4049,13 +4049,13 @@
   // düşen sayısı `yeniCozulemeyen` alanında ÖLÇÜLEBİLİR iz olarak durur.
   //
   // 🔴 REFERANS YÜKLEMİ — TEK KAYNAK JETONU (12 Ağu 2026, çürütücü bulgusu). Derleme
-  // (build.py) ile istemci "bu referans geçerli mi" sorusuna AYNI cevabı vermek ZORUNDA:
+  // (sayfa ureticisi) ile istemci "bu referans geçerli mi" sorusuna AYNI cevabı vermek ZORUNDA:
   // ayrıştıkları gün build YEŞİL kalırken canlı sayfa kart düşürüyordu (ölçüldü: 8
   // senaryonun 5'i — boş dize id kart DÜŞÜRÜYOR; constructor/__proto__/toString/
   // hasOwnProperty id'leri karta NATIVE FONKSİYON sızdırıyordu). Yüklem BURADA adlandırılır,
-  // build.py bu satırı REGEX ile okur ve kendi Python karşılığını (`_ref_gecerli`) bu jetona
+  // sayfa ureticisi bu satırı REGEX ile okur ve kendi Python karşılığını (`_ref_gecerli`) bu jetona
   // BAĞLAR; jeton değişip Python tarafı güncellenmezse build FAIL-CLOSED kırmızı yanar
-  // ([[ikiz-tanim-sessiz-ayrisma]]). Jetonu değiştiriyorsan build.py'deki eşini de değiştir.
+  // ([[ikiz-tanim-sessiz-ayrisma]]). Jetonu değiştiriyorsan sayfa ureticisindeki eşini de değiştir.
   var OZET_REF_YUKLEM = "bos-olmayan-dize";
   function ozetAc(d){
     var alanlar = (d && d.kartAlanlari) || [];
@@ -4063,7 +4063,7 @@
     var onek = (d && d.gorselOnek) || "";
     // TEK YÜKLEM (OZET_REF_YUKLEM = "bos-olmayan-dize"): bir `yeniRef` öğesinin havuz
     // ANAHTARI sayılması için BOŞ OLMAYAN DİZE olması gerekir. Sayı (0), boş dize, null,
-    // obje referans DEĞİLDİR. build.py `_ref_gecerli` BİREBİR aynı yüklemi uygular.
+    // obje referans DEĞİLDİR. sayfa ureticisi `_ref_gecerli` BİREBİR aynı yüklemi uygular.
     function refGecerli(v){ return typeof v === "string" && v !== ""; }
     function kartAc(k){
       if(Object.prototype.toString.call(k) !== "[object Array]"){ return k; }
