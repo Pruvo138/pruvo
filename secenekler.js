@@ -582,6 +582,85 @@
     return kurus + Math.round((boyFarkTL || 0) * 100);
   }
 
+  /* ===================== ÖN-SEÇİLİ MALZEME (ürüne göre) ===================== BEGIN ONSECIM
+     İSTENEN (işletme, 11 Ağu): "PLA ön-seçili DEĞİL — her ürün için hangi malzeme
+     öneriliyorsa O ön-seçili gelsin." Öneri zaten VAR: kategori haritası + ürünün
+     opsiyonel malzeme önerisi alanı (aynı harita malzeme rehberini ve öneri rozetini
+     de sürer). Burada İKİNCİ bir harita TUTULMAZ — kural haritayı DIŞARIDAN alır.
+
+     🔴 NEDEN FİYATLA BİRLİKTE (sessiz zam sınıfı): PETG +%30, ASA +%60. Ön-seçim
+     ilan edilen fiyattan BAĞIMSIZ yapılırsa, hiç seçim yapmayan müşteri sayfada
+     gördüğü tutarın %30-60 üstünü sepete yazar ve fark hiçbir yerde GÖRÜNMEZ. Bu
+     yüzden ön-seçim ve ilan fiyatı TEK türetme noktasından çıkar: ilanBirimKurus,
+     onSecimMalzeme'yi ÇAĞIRIR — ikisi ayrı ayrı hesaplanamaz.
+
+     🔴 AÇMA/KAPAMA ANAHTARI: bayrak KAPALIYKEN kural güvenli varsayılana (bosSatir
+     malzemesi, farkı %0) düşer ve BUGÜNKÜ davranış birebir korunur. Bayrağı açmak
+     katalogda ilan edilen tutarları yukarı taşır — ticari karardır, kod kararı değil.
+
+     FAIL-CLOSED: referans yoksa/bozuksa, kategori haritada yoksa, öneri sitede
+     satılmayan ya da katsayı tablosunda bulunmayan bir ad ise -> güvenli varsayılan.
+     Hazır ticari malda (tur "fiziksel") üretim malzemesi karşılıksızdır -> güvenli
+     varsayılan (çarpan zaten 1,00). */
+  var ONERI_ONSECIM_ACIK = false;
+  var KATEGORI_ESADI = { "Bahce": "Bahçe" };
+
+  function _guvenliMalzeme() { return bosSatir("").malzeme; }
+
+  function _siteAdlari(ref) {
+    var out = {};
+    var liste = (ref && ref.filamentler) || [];
+    for (var i = 0; i < liste.length; i++) {
+      if (liste[i] && liste[i].site) { out[liste[i].ad] = true; }
+    }
+    return out;
+  }
+
+  /* Ürünün ÖN-SEÇİLİ malzemesi. `ref` = malzeme referansı (satılan malzeme listesi +
+     kategori haritası). Sıra ve eleme kuralı öneri rozetiyle AYNIDIR: ürün kendi
+     önerisini taşıyorsa harita yerine o geçer, sitede satılmayan ad sessizce atılır,
+     kalan İLK ad öneridir. */
+  function onSecimMalzeme(urun, ref) {
+    var guvenli = _guvenliMalzeme();
+    if (!ONERI_ONSECIM_ACIK || !urun || !ref) { return guvenli; }
+    /* KAPSAM — BEYAN EDİLEN SINIR: kural yalnız SABİT fiyatlı katalog kolundadır.
+       Ölçüye özel / yapılandırıcılı üründe tutar tabandan CANLI hesaplanır ve kart
+       yüzeyi tabanı ayrı bir haritadan okur; oralarda ön-seçimi değiştirmek ilan
+       edilen tabanı bu değişiklikle ÖLÇÜLMEYEN bir yoldan kaydırırdı.
+       Hazır ticari malda üretim malzemesi karşılıksızdır (çarpan zaten 1,00). */
+    if (fizikselMi(urun.tur) || urun.parametrik || urun.konfigur) { return guvenli; }
+    var siteAd = _siteAdlari(ref);
+    var adaylar = [];
+    var i;
+    var ovr = urun.tavsiyeFilament;
+    if (ovr) {
+      for (i = 0; i < ovr.length; i++) {
+        if (siteAd[ovr[i]]) { adaylar.push(ovr[i]); }
+      }
+    } else {
+      var kat = KATEGORI_ESADI[urun.kategori] || urun.kategori;
+      var harita = (ref.kategoriTavsiye || {})[kat] || [];
+      for (i = 0; i < harita.length; i++) {
+        if (harita[i] && siteAd[harita[i].ad]) { adaylar.push(harita[i].ad); }
+      }
+    }
+    for (i = 0; i < adaylar.length; i++) {
+      if (FILAMENT_FARK.hasOwnProperty(adaylar[i])) { return adaylar[i]; }
+    }
+    return guvenli;
+  }
+
+  /* İLAN EDİLEN BİRİM TUTAR (kuruş) — kart yüzeyi, ürün sayfası ve yapılandırılmış veri
+     AYNI sayıyı buradan alır. Ön-seçimle aynı fonksiyondan türer: müşteri hiçbir şey
+     seçmeden sepete eklerse satır tutarı BU sayının ta kendisidir. */
+  function ilanBirimKurus(urun, ref) {
+    var temel = fiyatSayisi(urun && urun.fiyat);
+    if (temel == null) { return null; }
+    return hesaplaFiyatKurus(temel, onSecimMalzeme(urun, ref), bosSatir("").renk, 0,
+                             urun && urun.tur);
+  }
+  /* ===================== END ONSECIM ===================== */
+
   function adetDuzelt(a) {
     var n = parseInt(a, 10);
     if (!(n >= ADET_EN_AZ)) { return ADET_EN_AZ; }
@@ -1166,6 +1245,9 @@
     hacimDogrulanmisMi: hacimDogrulanmisMi,
     IKI_RENK_EK_KURUS: IKI_RENK_EK_KURUS,
     ikiRenkDetayEki: ikiRenkDetayEki,
+    ONERI_ONSECIM_ACIK: ONERI_ONSECIM_ACIK,
+    onSecimMalzeme: onSecimMalzeme,
+    ilanBirimKurus: ilanBirimKurus,
     adetDuzelt: adetDuzelt,
     kurusMetni: kurusMetni,
     tlMetni: tlMetni,

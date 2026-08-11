@@ -1257,6 +1257,16 @@ jobs:
       - name: Sepete Ekle sessiz basarisizlik kapisi
         run: python3 tools/sepet-secim-kapisi.py
 
+      # 🔴 SESSIZ ZAM. Onden secili malzeme ile ILAN EDILEN tutar ayri ayri hesaplanirsa
+      # hicbir sey alarm calmaz: PETG +%30 / ASA +%60 onden secili gelir, sayfa · kart ·
+      # yapilandirilmis veri · besleme hala liste tutarini beyan eder, sepete fazlasi
+      # yazilir. Katalogda onerilen malzemesi PLA OLMAYAN urun orani %96,6 -> maruziyet
+      # tum katalog. Kapi (1) kuralin iki dildeki yazimini TUM KATALOGDA karsilastirir,
+      # (2) bayrak kapaliyken bugunku davranisi, (3) bayrak acikken sayfa/yapilandirilmis
+      # veri/sepet/sunucu KURUS esitligini olcer. Bloklayici: hata sinifi sessiz ve parali.
+      - name: On-secili malzeme <-> ilan edilen tutar parite kapisi
+        run: python3 tools/onsecim-parite-kapisi.py
+
       # 🔴 IC SERI IZI. CLAUDE.md: parametrik seri semasi/ureteci IC bilgidir; seri adi
       # musteriye gorunen yuzeyde GECMEZ. 11 Agu'ya kadar parametrik urun sayfasinin
       # kategori rozetinde/breadcrumb'inda/JSON-LD'sinde ve ana sayfa kartinda "Jeneratör"
