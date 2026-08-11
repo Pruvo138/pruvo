@@ -1,49 +1,5 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🕐 CI NOBETI — 11 Agu 2026 21:38 yerel / 18:38Z turu (KraL)
-
-**Ev kontrolu:** `pwd` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🔴 SUPURME=ALARM rc=1 → TUR KIRMIZI (0.4 kurali), ARKA ARKAYA 3. TUR.** Sabit kosucu isciye
-kosturuldu; betik YAZILMADI/DUZENLENMEDI, supurme TEKRAR KOSULMADI, teshis/onarima GECILMEDI.
-Betigin bastigi satirlar oldugu gibi: `GITHUB_BILDIRIM_INBOX=6 · BULUNAN=6 · TASINAN=6 ·
-ATLANAN=0 · CIKAN=5 · KOMSU_KAYIP=1 · KUME_DIFF=OLCULDU · KALAN=1 ·
-COP_IZI=38:2026-08-11T21:38:20 · HUKUM=OLCULEMEDI`. Alarm: `KOMSU_KAYIP=1`, kimlik
-`…/check-suites/CS_kwDOTQTiEc8AAAAT6EaEdw/1786473479` — onceki turunkinden FARKLI bir kimlik.
-
-**✅ DEVREDILEN (a) KAPANDI — KOMSU_KAYIP kimliginin SINIFI olculdu (salt okuma).** Kimlik
-`Pruvo138/pruvo/check-suites/…@github.com` bicimindedir = github bildirim kimligi; Cop denetimi
-41 kaydin **38'ini MESRU** (github + `Run failed`) etiketledi ve Cop'te github disi YENI kayit
-YOK. Cop'e o an dusen `21:38 Build & deploy … (816340b)` kaydi SILINENLER listesinde YOKTU →
-kimlik, olcum ile silme arasinda kutuya DUSEN yeni bir `Run failed` maili. Yani alarm
-**mesru sinif icinde** tuttu; **yanlis sinif zarari 0**. Onarim YAPILMADI (tur kirmizi, kural
-geregi teshise gecilmedi) — sinifin kendisi hala ACIK kalem.
-
-**🟠 Cop denetimi (salt okuma, rc=0): 41 kayit — MESRU=38, YANLIS=3.** Ucu de onceki iki turdan
-bilinen AYNI kalem (16:54, reklam-platformu bildirimi; id `68047/68048/68049`), sayi ARTMADI ve
-bu turun kayitlarindan (`68122…68128`) KUCUK → bu turun supurmesine ATFEDILMEZ.
-**Siparis/odeme ekseninde Cop'te kayit YOK.** Kendiliginden geri alma YAPILMADI.
-
-**CI (salt olcum; onarim YAPILMADI):** tepe head `5d218a2e` (tur icinde yabanci oturum 2 commit
-push etti: `e7bc283d` → `5d218a2e`). `Build & deploy` son kosum `31523984366` **pending**
-(yesil YAZILMAZ), bir onceki `31523698502` in_progress. Basarisiz deploy kosumlari
-`31520130290` (816340b) · `31518458896` (d4a5648) — ikisi de ESKI head, guncel tepe ile
-degistirildi. Zincir disi kirmizi: `Paket tazeligi alarmi` `31523722642`.
-
-**Bu turda:** urun verisine dokunulmadi · deploy YAPILMADI · worktree ACILMADI · kod commit'i
-YAPILMADI · yabanci degisikliklere DOKUNULMADI. Isciye 4 cagri (supurme + Cop denetimi + CI +
-defter). Sinif kapisi rc=0, defter 110 satir/7562 bayt (kota ≤130/≤12288 → tasima GEREKMEDI).
-
-**⚠️ DEFTER COMMIT'I YEREL KALDI — PUSH EDILMEDI.** pre-push CI kapsam kapisi KIRMIZI (rc=1):
-`HENUZ IZLENMIYOR (kapsamsiz): tools/deploy-aclik-gh-mutasyon.py` — dosya BASKA bir oturumun
-izlenmeyen yarim isi, DOKUNULMADI. Kanca atlama denenmedi, kapi gevsetilmedi. Defter commit'i
-`main` uzerinde yerelde bekliyor; o dosya sahibince izlenir hale gelince push kendiliginden acilir.
-
-**Sonraki turun ILK ISI:** (a) `5d218a2e` icin `Build & deploy` `31523984366`'yi JOB birimiyle
-kapat; (b) KOMSU_KAYIP alarmi 3 turdur ayni desende tutuyor — sinif karari Okan'a soruldu,
-cevap gelene dek supurme betigine DOKUNMA; (c) DEVREDILEN 1 (E10 kardes-depo kolu) serit karari
-KraL'da; (d) `bayatlik` yas serisi + canli KOD surumu degisti mi.
-
 ## 🔀 MERGE — 11 Agu 2026 19:2xZ (CTA masaustu fit-content dali, isci turu)
 
 **MAIN'E ALINDI: `f4caf59f`** (merge commit) · dal ucu `547bff87` · merge-base `5d218a2e`.
@@ -89,7 +45,14 @@ onerilmiyor — ne `dal-olc.py` ne gorev listesi `varlik-mutasyon.py`'yi andi; *
 komut temsil ediyor** ve birini kosmak "yesil" izlenimi veriyor. **ONARIM BENDE DEGIL:** capayi
 baska oturum `c8b0451e` ile kapatti, yesili SAHIPLENMIYORUM; sonrasinda iki komut da yerelde rc=0
 (10 eksen · MUTANT=8/8). origin/main = `c8b0451e`, benim `f4caf59f`'im onun ATASI.
-Canli: CANLI_SATIRI.
+**CANLI: HENUZ BAYAT — olculdu, iddia degil.** Kanonik adresten cache-bust'SIZ olculdu
+(`/urun/suzuki-jimny-jb43-torpido-saklama-gozu/` → varlik `/varlik/sayfa-57bf51299c.css`,
+last-modified 19:35Z): 4 eksenin **4'u de merge ONCESI** hali (min-width:210px DURUYOR ·
+`.wa-uzun` hala mobil-only). Sebep zincirde: `f4caf59f` kosumu FAILURE (yayin adimi atlandi) ·
+`d82c8874` FAILURE · onarim `c8b0451e`'nin kosumu CANCELLED · onu tasiyan `9569da50` kosumu
+(`31532757154`) ~50 dk UCUSTA, arkasinda `078e814a` bekliyor. **Ucustaki kosum YESIL DEGILDIR** —
+"en son kosum" yesili kanit sayilmadi. 🔴 **SONRAKI TURUN ILK ISI:** `f4caf59f`'i ATA olarak
+tasiyan bir kosum SUCCESS olunca ayni olcumu tekrarla; hala bayatsa `rerun`.
 
 ## 🕐 CI NOBETI — 11 Agu 2026 22:38 yerel / 19:38Z turu (KraL)
 
