@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Bu surucu 11 Agu 2026 curutme turunun FOTOGRAFIDIR; onarimdan sonra M-C capasi bayatladi, canli olcum kabul testindedir.
 # -*- coding: utf-8 -*-
 """CURUTME 06 — EKSEN 3: 7 mutantlik batarya GERCEK mi?
 
