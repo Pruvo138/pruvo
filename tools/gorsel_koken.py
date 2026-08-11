@@ -65,8 +65,30 @@ MANIFEST (tek kaynak; semantigi KaaN'in duzlemi)
     "gorseller": [ { "dosya": "<yayinlanan R2 anahtari / dosya adi / tam URL>",
                      "taban_render": "/…/render-p1.png",
                      "sha256": "<istege bagli; verilirse taban_render icin DOGRULANIR>" } ] }
-Koken dizini arama sirasi: $GORSEL_KOKEN_DIR -> <kok>/urun-gorsel-koken ->
+Koken dizinleri: $GORSEL_KOKEN_DIR · <kok>/urun-gorsel-koken ·
 <kok>/../pruvo-jenerator/urun-gorsel-koken (manifestler KaaN'in deposunda yasar).
+
+DIZIN GOLGELEMESI — ONARILDI (12 Agu 2026, OLCULDU)
+---------------------------------------------------
+Eskiden `manifest_dizini()` VAR OLAN ILK dizini secip DIGERLERINE HIC BAKMIYORDU.
+`pruvo/urun-gorsel-koken` (2 manifest) var oldugu icin KaaN'in asil deposu
+`pruvo-jenerator/urun-gorsel-koken` (12 manifest) OKUNMUYORDU; sonuc: koken kaniti
+GERCEKTEN OLAN urun bile eklenemiyordu. Olcum (16 Skan Art kaydi, `--denetim` kolu 2):
+    bugunku hal              -> YESIL  0 / KIRMIZI 16
+    GORSEL_KOKEN_DIR=jenerator -> YESIL  5 / KIRMIZI 11
+Yani kapi, korudugu olayi degil DIZIN SIRASINI olcuyordu. Artik dizinler
+BIRLESTIRILIR: `<pid>.json` TUM var olan dizinlerde aranir.
+  * hicbir dizinde yoksa            -> BLOCK (kapi GEVSEMEDI)
+  * tek dizinde varsa               -> o kullanilir
+  * birden cok dizinde AYNI icerik  -> oncelik sirasindaki ILKI kazanir (asagida)
+  * birden cok dizinde FARKLI icerik-> BLOCK (fail-closed; sessiz cozum YOK)
+KAZANAN NEDEN ONCELIK SIRASI: yalniz KANONIK OLARAK AYNI manifestler bu noktaya
+ulasir, yani secim DAVRANISI degistirmez; sira sadece hangi YOLUN raporlanacagini
+belirler ve deterministik olmasi icin sabittir ($GORSEL_KOKEN_DIR > yerel depo >
+KaaN deposu — acik niyet beyani olan env once gelir).
+CELISKIDE NEDEN BLOCK: iki farkli manifestten hangisinin urunun GERCEK kokeni
+oldugu bu aracin bilebilecegi bir sey degildir; birini secmek, yanlis STL'e cipali
+bir gorseli sessizce yayina sokmak demektir — kapinin korudugu olayin ta kendisi.
 
 BEYAN — BU KAPININ KAPATMADIGI YOLLAR (ölçüldü, bilerek acik birakildi)
 -----------------------------------------------------------------------
@@ -134,7 +156,11 @@ def harita(urunler):
 
 
 def manifest_dizinleri(kok):
-    """Koken manifestlerinin ARANDIGI dizinler, oncelik sirasiyla."""
+    """Koken manifestlerinin ARANDIGI dizinler, oncelik sirasiyla.
+
+    Bu liste bir "ilkini sec" listesi DEGILDIR: hepsi TARANIR (bkz manifest_yukle).
+    Sira yalniz celiskisiz durumda hangi YOLUN raporlanacagini belirler.
+    """
     adaylar = []
     env = os.environ.get("GORSEL_KOKEN_DIR")
     if isinstance(env, str) and env.strip():
@@ -151,11 +177,78 @@ def manifest_dizinleri(kok):
     return teklesmis
 
 
-def manifest_dizini(kok):
-    for d in manifest_dizinleri(kok):
-        if os.path.isdir(d):
-            return d
-    return None
+def var_olan_dizinler(kok):
+    """Diskte GERCEKTEN var olan koken dizinleri (oncelik sirasiyla, HEPSI)."""
+    return [d for d in manifest_dizinleri(kok) if os.path.isdir(d)]
+
+
+def manifest_yollari(pid, kok):
+    """<pid>.json'un BULUNDUGU TUM yollar (oncelik sirasiyla) — golgeleme YOK.
+
+    🔴 Burada `break`/`return` YOKTUR: ilk bulunanla yetinmek, tam olarak onarilan
+    hatadir (KaaN'in 12 manifestlik deposu, 2 manifestlik yerel dizin yuzunden hic
+    okunmuyordu).
+    """
+    bulunan = []
+    for d in var_olan_dizinler(kok):
+        yol = os.path.join(d, pid + ".json")
+        if os.path.isfile(yol):
+            bulunan.append(yol)
+    return bulunan
+
+
+def _kanonik_manifest(man):
+    """Icerik KIMLIGI (anahtar sirasi/girinti farki celiski SAYILMAZ) — yoksa None."""
+    try:
+        return json.dumps(man, sort_keys=True, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return None
+
+
+def manifest_yukle(pid, kok):
+    """(yol, manifest, sebep) — sebep None ise manifest KULLANILABILIR.
+
+    Fail-closed noktalari: dizin yok · dosya hicbir dizinde yok · herhangi bir
+    kopya okunamiyor/parse edilemiyor/nesne degil · kopyalar CELISIYOR.
+    """
+    dizinler = var_olan_dizinler(kok)
+    if not dizinler:
+        return None, None, ("'%s': koken manifest DIZINI bulunamadi (aranan: %s)"
+                            % (pid, " | ".join(manifest_dizinleri(kok))))
+    yollar = manifest_yollari(pid, kok)
+    if not yollar:
+        return None, None, ("'%s' urunu icin koken manifesti YOK (taranan dizinler: %s)"
+                            % (pid, " | ".join(dizinler)))
+
+    okunan = []
+    for yol in yollar:
+        try:
+            with open(yol, encoding="utf-8") as f:
+                man = json.load(f)
+        except (OSError, ValueError) as e:
+            return None, None, ("'%s' manifesti okunamadi/parse edilemiyor (%s): %s"
+                                % (pid, yol, str(e)[:80]))
+        if not isinstance(man, dict):
+            return None, None, ("'%s' manifesti gecersiz (ust seviye JSON nesnesi degil): %s"
+                                % (pid, yol))
+        okunan.append((yol, man))
+
+    if len(okunan) > 1:
+        anahtarlar = {}
+        for yol, man in okunan:
+            k = _kanonik_manifest(man)
+            if k is None:
+                return None, None, ("'%s' manifestinin kanonik anahtari uretilemedi (%s) — "
+                                    "kopyalarin ayni olup olmadigi KANITLANAMIYOR" % (pid, yol))
+            anahtarlar.setdefault(k, []).append(yol)
+        if len(anahtarlar) > 1:
+            return None, None, ("'%s' icin BIRDEN COK ve CELISEN koken manifesti var (%s) — "
+                                "hangisinin urunun gercek kokeni oldugu bu aracin karari "
+                                "DEGILDIR; fazlaligi silin ya da icerikleri esitleyin"
+                                % (pid, " | ".join(y for y, _ in okunan)))
+    # Celiski yok: kopyalar KANONIK OLARAK AYNI, dolayisiyla secim davranisi
+    # degistirmez; oncelik sirasindaki ilki deterministik olsun diye kazanir.
+    return okunan[0][0], okunan[0][1], None
 
 
 def _coz(yol, kok):
@@ -297,22 +390,11 @@ def tetikleyenler(eski, yeni):
 # -------------------------------------------------------------- dogrulama
 def manifest_dogrula(pid, gorseller, kok):
     """(sebep, kanit) — sebep None ise GECER; degilse BLOCK gerekcesi."""
-    dizin = manifest_dizini(kok)
-    if dizin is None:
-        return ("'%s': koken manifest DIZINI bulunamadi (aranan: %s)"
-                % (pid, " | ".join(manifest_dizinleri(kok)))), []
-    yol = os.path.join(dizin, pid + ".json")
-    if not os.path.isfile(yol):
-        return "'%s' urunu icin koken manifesti YOK (%s)" % (pid, yol), []
-    try:
-        with open(yol, encoding="utf-8") as f:
-            man = json.load(f)
-    except (OSError, ValueError) as e:
-        return "'%s' manifesti okunamadi/parse edilemiyor (%s): %s" % (pid, yol, str(e)[:80]), []
-    if not isinstance(man, dict):
-        return "'%s' manifesti gecersiz (ust seviye JSON nesnesi degil)" % pid, []
+    yol, man, sebep = manifest_yukle(pid, kok)
+    if sebep is not None:
+        return sebep, []
 
-    kanit = []
+    kanit = ["manifest %s" % yol]
     stl = _coz(man.get("kaynak_stl"), kok)
     if stl is None:
         return "'%s' manifestinde 'kaynak_stl' alani yok/gecersiz" % pid, kanit
@@ -377,6 +459,33 @@ def denetle(eski, yeni, kok):
     return ihlaller
 
 
+#: Ihlal SINIFLARI — "manifest hic yok" ile "manifest var ama isaret ettigi dosya
+#: diskte yok" AYRI kalemlerdir: birincisi KaaN'in uretmedigi koken kaydidir,
+#: ikincisi uretilmis ama kaynagi (or. ~/Downloads'tan silinmis STL) kaybolmus bir
+#: kayittir. Tek sayida toplanirsa hangisinin ne kadar oldugu GORUNMEZ.
+SINIFLAR = (
+    ("dizin-yok", ("koken manifest DIZINI bulunamadi",)),
+    ("celisen-manifest", ("BIRDEN COK ve CELISEN",)),
+    ("manifest-bozuk", ("okunamadi/parse edilemiyor", "ust seviye JSON nesnesi degil",
+                        "kanonik anahtari uretilemedi")),
+    ("manifest-yok", ("koken manifesti YOK",)),
+    ("kaynak-dosya-yok", ("kaynak_stl diskte YOK", "taban_render (STL render) diskte YOK")),
+    ("kaynak-bicim/hash", ("gecerli bir STL DEGIL", "gecerli bir gorsel DEGIL",
+                           "SHA256", "manifestte KAPSANMIYOR",
+                           "'gorseller' listesi yok/bos", "'kaynak_stl' alani yok/gecersiz",
+                           "'taban_render' alani yok/gecersiz")),
+)
+
+
+def ihlal_sinifi(sebep):
+    """Ihlal gerekcesini SINIFA cevirir (raporda sayilar ayrik olsun diye)."""
+    for ad, desenler in SINIFLAR:
+        for d in desenler:
+            if d in sebep:
+                return ad
+    return "diger"
+
+
 def rapor_metni(ihlaller, kaynak=""):
     satirlar = ["🔴 GORSEL-KOKEN KAPISI — YAZIM YAPILMADI%s."
                 % (" (%s)" % kaynak if kaynak else "")]
@@ -413,9 +522,13 @@ def _denetim(kok):
     h = harita(urunler)
     print("katalog: %s" % urunler_yol)
     print("kayit  : %d" % len(urunler))
-    print("koken dizini aranan sirasiyla:")
+    print("koken dizinleri (HEPSI taranir — golgeleme YOK):")
     for d in manifest_dizinleri(kok):
-        print("   %-4s %s" % ("VAR" if os.path.isdir(d) else "yok", d))
+        if os.path.isdir(d):
+            n = len([x for x in os.listdir(d) if x.endswith(".json")])
+            print("   VAR  %-4d manifest  %s" % (n, d))
+        else:
+            print("   yok            %s" % d)
 
     print("\n(1) DEGISIKLIK YOK kosumu (eski == yeni; gercek yayim yolunun taban durumu)")
     tetik = tetikleyenler(h, h)
@@ -436,7 +549,16 @@ def _denetim(kok):
             kirmizi.append((pid, sebep))
             print("    KIRMIZI %s" % pid)
             print("             %s" % sebep)
-    print("\n    latent KIRMIZI: %d / %d" % (len(kirmizi), len(tetik2)))
+    print("\n    YESIL: %d / %d | latent KIRMIZI: %d / %d"
+          % (len(tetik2) - len(kirmizi), len(tetik2), len(kirmizi), len(tetik2)))
+    if kirmizi:
+        sayac = {}
+        for pid, sebep in kirmizi:
+            sayac.setdefault(ihlal_sinifi(sebep), []).append(pid)
+        print("    KIRMIZI SINIFLARI (ayrik sayilar):")
+        for ad, _ in SINIFLAR + (("diger", ()),):
+            if ad in sayac:
+                print("      %-18s %2d  %s" % (ad, len(sayac[ad]), ", ".join(sayac[ad])))
     kats = {}
     for p in urunler:
         kats[p.get("kategori")] = kats.get(p.get("kategori"), 0) + 1

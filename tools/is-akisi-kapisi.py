@@ -1857,7 +1857,17 @@ TABLO_TABANLARI = (
     # deneme eksenini olcen 5 oldurucu + 1 kontrol bataryasi nobet.yml `serit-b`ye
     # eklendi; korudugu kapinin bayraksiz gercek kolu deploy.yml'de BLOKLAYICI KALDI.
     # Tam esitlik geregi taban AYNI commit'te guncellendi.
-    ("SERIT_B", 103),
+    # 12 Agu: 103 -> 104 (gorsel-koken-dizin-mutasyon.py beyan edildi). Bir TASIMA
+    # DEGIL, EKLEME: tools/gorsel_koken.py'nin manifest dizini secimi (VAR OLAN ILK
+    # dizin) dizinleri BIRLESTIREN hale getirildi — golgeleme yuzunden koken kaniti
+    # OLAN urun bile eklenemiyordu (olculdu: YESIL 0/16 -> 5/16) — ve gevsemenin
+    # olcusu (manifestsiz/celisen/bozuk/dizinsiz kollar hala BLOCK mu) AYNI commit'te
+    # eklendi. Korudugu kapinin SERIT A ayagi YOKTUR ve olmasi da gerekmez: kardesi
+    # gorsel-koken-permutasyon-mutasyon.py ile AYNI gerekce — gorsel_koken.py yayim
+    # yolunda degil YAZIM yolunda (urun-ekle.py/duzelt.py, flock altinda) kosar ve
+    # modul yuklenemezse cagiran betik acilista COKER. Tam esitlik geregi taban AYNI
+    # commit'te guncellendi.
+    ("SERIT_B", 104),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2901,6 +2911,32 @@ SERIT_B = {
         "hemen once) kosar ve modul yuklenemezse cagiran betik acilista COKER; bu giris "
         "bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Fiksturler SENTETIK: urunler.json "
         "OKUNMAZ, koken manifest DIZINI okunmaz, disk gezilmez, ag GEREKTIRMEZ (~0,1 s). "
+        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
+        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
+        "karsilastirilir ve ciktida raporlanir.",
+    ("nobet.yml", "serit-b", "tools/gorsel-koken-dizin-mutasyon.py"):
+        "tools/gorsel_koken.py MANIFEST DIZINI BIRLESTIRMESININ mutasyon bataryasi "
+        "(6 oldurucu + 1 kontrol): kapi eskiden `manifest_dizini()` ile VAR OLAN ILK "
+        "dizini secip digerlerine HIC BAKMIYORDU. pruvo/urun-gorsel-koken (2 manifest) "
+        "var oldugu icin KaaN'in asil deposu pruvo-jenerator/urun-gorsel-koken (12 "
+        "manifest) okunmuyor; kapi korudugu olayi (koken kaniti VAR MI) degil DIZIN "
+        "SIRASINI olcuyordu ve kaniti GERCEKTEN OLAN urun bile eklenemiyordu — olculdu: "
+        "16 Skan Art kaydinda YESIL 0/16, GORSEL_KOKEN_DIR=jenerator kolunda 5/16. "
+        "🔴 'Daha cok yerde ara' bir kapiyi fail-open'a cevirmenin ucuz yolu oldugu icin "
+        "batarya TEK YONLU DEGIL: golgelemenin kalktigi (pozitif) kolun YANINDA "
+        "manifestsiz · CELISEN (ayni id iki dizinde FARKLI icerikle — sessiz cozum YOK) · "
+        "BOZUK (parse edilemeyen kopya) · DIZINSIZ kollarinin BLOCK kaldigini, kanonik "
+        "olarak AYNI iki kopyanin oncelik sirasindaki ilkiyle gectigini ve rapor SINIF "
+        "AYRIMININ ('manifest hic yok' != 'manifest var ama kaynak_stl diskte yok' — "
+        "11 kirmizinin 10'u ilki, 1'i ikincisi) canli oldugunu AYRI AYRI olcer. Olctugu "
+        "sey KAPININ KENDI YUKLEMI, yayinlanan hicbir cikti DEGIL (kardesi gorsel-koken-"
+        "permutasyon-mutasyon.py ile ayni desen). Korudugu KAPI (tools/gorsel_koken.py) "
+        "SERIT A DEGILDIR: yayim yolunda DEGIL, YAZIM yolunda (urun-ekle.py merge_safe / "
+        "duzelt.py, flock altinda _atomic_write'tan hemen once) kosar ve modul "
+        "yuklenemezse cagiran betik acilista COKER; bu giris bir TASIMA DEGIL, bataryanin "
+        "EKLENMESIDIR. Fikstur SENTETIK ve DEPO DISINDA (tempfile) kurulur: urunler.json "
+        "OKUNMAZ, gercek koken dizinleri OKUNMAZ, ag GEREKTIRMEZ (~0,1 s); "
+        "$GORSEL_KOKEN_DIR kosum boyunca temizlenir (cevre sizmasi hukmu bozar). "
         "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
         "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
         "karsilastirilir ve ciktida raporlanir.",
