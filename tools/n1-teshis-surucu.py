@@ -68,7 +68,20 @@ def mod_suclu(shalar):
 
 
 def mod_celiski():
-    """(A) KAZA varsayimini fiilen dener: oge geri konunca hangi kapi yaniyor?"""
+    """CELISKI NOBETI — iki kapi AYNI YONDE mi hukum kuruyor?
+
+    `fiziksel-urun-kapisi.py` ile `onsecim-parite-kapisi.py` ayni yuzeyi (urun sayfasinin
+    ilan ettigi tutar) olcer. 11 Agu'da TERS hukum kuruyorlardi: `"…'den başlayan"`
+    dizesini geri koymak birini yesile, otekini kirmiziya cekiyordu — hangi kapinin
+    susturulacagi bir tercih meselesine donusmustu.
+
+    IDDIA (bu mod rc!=0 ile DUSER):
+      (1) degistirilmemis agacta IKISI DE YESIL
+      (2) N5 mutantinda (statik tutar liste tutarinda birakilir) IKISI DE KIRMIZI
+    Yani "N1'in istedigini yapmak N5'i kirmaz" ve tersi. Bir kapi yesil digeri kirmiziysa
+    CELISKI GERI GELMISTIR ve bu mod kirmizi yakar."""
+    ADLAR = ["fiziksel-urun-kapisi.py", "onsecim-parite-kapisi.py"]
+    olculen = {}
     kok = _agac("HEAD")
     try:
         for etiket in ["asil", "onar"]:
@@ -81,18 +94,41 @@ def mod_celiski():
                                      "guncellenmeli." % src.count(YENI_SATIR))
                 with open(bpy, "w", encoding="utf-8") as f:
                     f.write(src.replace(YENI_SATIR, ESKI_SATIR, 1))
-                print("\n=== (2) 'ONARIM': baslangic_fiyat 1e1f9d9b ONCESI bicime donduruldu")
+                print("\n=== (2) N5 MUTANTI: statik tutar liste tutarinda birakildi")
             else:
                 print("=== (1) DEGISTIRILMEMIS agac")
-            for ad in ["fiziksel-urun-kapisi.py", "onsecim-parite-kapisi.py"]:
+            for ad in ADLAR:
                 rc, cikti = _kapi(kok, ad)
+                olculen[(etiket, ad)] = rc
                 print("  %-28s rc=%d" % (ad, rc))
                 for l in cikti.splitlines():
                     s = l.strip()
-                    if s.startswith(("N1 ", "SONUC:")) or "❌" in s:
+                    if s.startswith(("N1F ", "SONUC:")) or "❌" in s:
                         print("      " + s[:150])
     finally:
         shutil.rmtree(kok, ignore_errors=True)
+
+    print("\n=== CELISKI NOBETI")
+    hatalar = []
+    for ad in ADLAR:
+        if olculen[("asil", ad)] != 0:
+            hatalar.append("degistirilmemis agacta %s KIRMIZI (rc=%d)"
+                           % (ad, olculen[("asil", ad)]))
+        if olculen[("onar", ad)] == 0:
+            hatalar.append("N5 mutantinda %s YESIL (rc=0) — mutant bu kapida OLU"
+                           % ad)
+    ayni = len({olculen[("onar", ad)] != 0 for ad in ADLAR}) == 1
+    print("  taban  : %s" % {ad: olculen[("asil", ad)] for ad in ADLAR})
+    print("  N5 mut.: %s" % {ad: olculen[("onar", ad)] for ad in ADLAR})
+    if not ayni:
+        hatalar.append("IKI KAPI TERS HUKUM KURUYOR — celiski geri geldi")
+    if hatalar:
+        print("  KIRMIZI ✘")
+        for h in hatalar:
+            print("    - " + h)
+        return 1
+    print("  YESIL ✔ — iki kapi AYNI YONDE: taban ikisi de yesil, N5 mutantinda ikisi de "
+          "kirmizi. Celiski YOK.")
     return 0
 
 

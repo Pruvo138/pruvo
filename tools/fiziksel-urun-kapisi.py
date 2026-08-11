@@ -38,7 +38,9 @@ YOKSA ya da taninmayan bir deger tasiyorsa sayfa BUGUNKU gibi uretilir. Ters yaz
 IDDIALAR
 --------
   P1 POZITIF   fiziksel fikstur sayfasinda renk butonu / data-renk / renkOzel / fil-cip /
-               #filCipler / malzeme-link / "Tavsiyemiz" / "başlayan" / "+%15" YOK.
+               #filCipler / malzeme-link / "Tavsiyemiz" / "+%15" YOK (8 kanca).
+               + P1-EMEKLI defteri: listeden CIKARILAN madde hala OLU MU diye olculur
+               (bkz. P1_EMEKLI) — sessiz emeklilik yasak, madde dirilirse KIRMIZI.
   P2 POZITIF   AYNI sayfada adet secici + sepet butonu + WhatsApp butonu VAR
                (kaldirmayi FAZLA yapmadik — sayfa satilabilir kaldi).
   P3 ODEME     fiziksel sayfada "Diğer" rengi URETEBILECEK hicbir kanca yok
@@ -46,14 +48,27 @@ IDDIALAR
                bosSatir varsayilanina duser. Iddia node ile PARAYA baglanir: gercek
                secenekler.js'te bosSatir varsayilani liste fiyatini AYNEN verir, "Diğer"
                ise +%15 uretir (yani susturulan sey GERCEKTEN para yoluydu).
-  N1 NEGATIF   `tur` alani OLMAYAN normal 3D urun sayfasinda O DOKUZ OGENIN HEPSI durur
+  N1 NEGATIF   `tur` alani OLMAYAN normal 3D urun sayfasinda O ON BIR OGENIN HEPSI durur
                (regresyon nobetcisi).
+  N1F ILAN FIYATI  AYNI sayfa (a) `#opsiyonFiyat` yuzeyi TASIR, (b) yuzey BOS DEGIL,
+               (c) bastigi tutar KANONIK kaynakla (`build.ilan_kurus`) AYNI. BICIME
+               BAGLANMAZ — asagidaki dersin karsiligi.
   N2 FAIL-CLOSED  `tur` alani TANINMAYAN deger tasiyan urun ("fiziksel-degil", "3d", "",
                null, 0, dizi...) `tur`suz urunle BAYT-BAYT AYNI sayfayi uretir.
 
-MUTASYON (--mutasyon): `tur == "fiziksel"` kosulu no-op edilir (iki yonde de) ve bu
-kapinin KIRMIZI yandigi KANITLANIR. Probe DAR: her mutant, yalnizca o kosulun
-yakalayabilecegi bir iddiayi dusurur (P/P3 ya da N1/N2), ikisi ayni anda degil.
+🔴 DERS (11 Agu, olculdu): N1'in fiyat capasi once `"…'den başlayan"` DIZESINE bagliydi.
+Commit 1e1f9d9b `ONERI_ONSECIM_ACIK`i acti; urun sayfasi baslangic tabani yerine ON-SECILI
+malzemenin KESIN tutarini basmaya basladi — ticari degismez BOZULMADI, DUZELDI (ilan edilen
+tutar artik sepete yazilanla ayni). Ama bicime bagli capa yayini durdurdu ve ayni dize
+`onsecim-parite-kapisi.py` N5 mutantinda REGRESYON sayildigi icin iki kapi birbirine TERS
+hukum kurdu: dizeyi geri koymak bu kapiyi yesile, kardes kapiyi kirmiziya cekiyordu
+(olculdu: rc 0/1 <-> 1/0). Cozum capayi DEGISMEZE baglamak oldu, iddiayi kaldirmak DEGIL.
+
+MUTASYON (--mutasyon): iki eksende probe. (1) `tur == "fiziksel"` kosulu no-op edilir (iki
+yonde de). (2) ILAN FIYATI degismezi iki yonde zorlanir: yuzey tumden dusurulur · tutar
+bicim BOZULMADAN saptirilir · statik tutar liste tutarinda birakilir (kardes kapinin N5
+mutantinin AYNISI — iki kapi artik AYNI YONDE kirmizi yakiyor). Probe DAR: her mutant
+yalnizca kendi eksenini dusurur; baska eksen dusuyorsa probe GENIS sayilir ve hata olur.
 
 Offline (ag yok), GERCEK urunler.json OKUNMAZ (sentetik fiksturler), repoya DOSYA YAZMAZ.
 node ZORUNLU (deploy.yml setup-node kurar) — yoksa FAIL-CLOSED kirmizi: para iddiasi
@@ -84,6 +99,11 @@ SECENEKLER_YOL = os.path.join(ROOT, "secenekler.js")
 # linki basar, TUM sayfada arasaydik "Malzeme Rehberi kalkti" iddiasi footer'in KENDISIYLE
 # karsilanir ve govdedeki link silinse bile OLU/YESIL kalirdi (ayni tuzak konfigur-test.py
 # (e) bolumunde olculdu ve orada da bolgeyle kapatildi).
+#
+# 🔴 BU LISTE IKI IDDIAYA BIRDEN HIZMET EDER (P1 "fizikselde YOK" + N1 "3D'de VAR"). Bu
+# yuzden buraya BICIME bagli bir madde konmaz: ayni dize hem "olmamali" hem "olmali" diye
+# olculdugunde, urun sayfasinin BICIMI degistigi an biri kendiliginden olur, digeri yayini
+# durdurur. 11 Agu'da tam bu oldu — asagidaki P1_EMEKLI defterine bak.
 BASKI_KANCALARI = [
     ("renk butonlari konteyneri", 'id="renkButonlar"'),
     ("renk butonu data-renk", "data-renk="),
@@ -93,8 +113,26 @@ BASKI_KANCALARI = [
     ("malzeme cipleri konteyneri", 'id="filCipler"'),
     ('"Tavsiyemiz" rozeti', "Tavsiyemiz"),
     ("Malzeme Rehberi linki", 'class="malzeme-link"'),
-    ('"…\'den başlayan" fiyat', "den başlayan"),
 ]
+
+# ------------------------------------------------------------------ P1 EMEKLI DEFTERI
+# Listeden CIKARILAN madde + gerekcesi. SESSIZ SILME YASAK: madde her kosumda hala
+# OLU MU diye olculur ve sayi (9 -> 8) ciktida GORUNUR yazilir.
+#
+# `"…'den başlayan"` (11 Agu, commit 1e1f9d9b — `ONERI_ONSECIM_ACIK` false -> true):
+#   Urun sayfasi artik ON-SECILI malzemenin KESIN tutarini basiyor, "baslangic tabani"
+#   ifadesini DEGIL. Dize HICBIR sayfada uretilmedigi icin "fizikselde yok" iddiasi
+#   kendiliginden saglaniyordu = OLU (sizinti listesi 9 yerine 8 sayiyordu). Ustelik
+#   ayni dizeyi `onsecim-parite-kapisi.py` N5 mutanti REGRESYON sayar; iki kapi
+#   birbiriyle CELISIYORDU. Iddia KALDIRILMADI, DEGISMEZE baglandi: N1 artik dizeyi
+#   degil "sayfa bir tutar ilan eder ve o tutar tahsil edilenle AYNIDIR"i olcer
+#   (asagida ilan_fiyat_ihlali).
+P1_EMEKLI = [
+    ('"…\'den başlayan" fiyat', "den başlayan",
+     "on-secim acildi (1e1f9d9b): dize hicbir sayfada uretilmiyor -> iddia OLU. "
+     "Yerini N1'in BICIMDEN BAGIMSIZ ilan-tutari degismezi aldi."),
+]
+P1_KANCA_ESKI_SAYI = len(BASKI_KANCALARI) + len(P1_EMEKLI)   # 9 — emeklilik oncesi taban
 
 # Kalmasi ZORUNLU ogeler — "kaldirmayi fazla yapma" nobetcisi.
 KALAN_OGELER = [
@@ -129,6 +167,73 @@ def _govde(html):
     g = m.group(0) if m else html
     g = re.sub(r"<script\b.*?</script>", "", g, flags=re.S)
     return re.sub(r"<style\b.*?</style>", "", g, flags=re.S)
+
+
+# ------------------------------------------------------- ILAN EDILEN FIYAT (degismez)
+def _ilan_yuzeyi(govde):
+    """`#opsiyonFiyat` blogunun GOVDESI. None = fiyat yuzeyi HIC YOK."""
+    m = re.search(r'id="opsiyonFiyat"[^>]*>(.*?)</div>', govde, re.S)
+    if not m:
+        return None
+    return re.sub(r"<[^>]+>", "", m.group(1)).strip()
+
+
+def _metin_kurus(metin):
+    """Gorunur tutar metnini tamsayi kurusa cevirir — BICIMDEN BAGIMSIZ.
+        "1.600,00 TL"                -> 160000
+        "1000 TL&#39;den başlayan"   ->  100000
+    None = ayristirilamadi (fail-closed: kapi bunu YESIL saymaz, KIRMIZI yakar).
+    Cevrilen sey SUSLEME degil SAYIDIR; metnin etrafindaki ifade serbesttir."""
+    if not metin:
+        return None
+    m = re.search(r"([0-9][0-9.]*)(?:,([0-9]{2}))?\s*TL", metin)
+    if not m:
+        return None
+    return int(m.group(1).replace(".", "")) * 100 + int(m.group(2) or 0)
+
+
+def _ayristirici_capasi(mod):
+    """🔴 IKIZ TANIM NOBETI: yukaridaki ayristirici, tutari basan KANONIK bicimlendirici
+    (`build.taban_fiyat_metni`) ile TERS yonde ayni sayiyi vermeli. Bicimlendirici
+    degisirse (binlik ayraci, kurus basamagi...) ayristirici SESSIZCE bayatlar ve
+    "tutar tuttu" diyen iddia OLU kalir. Gidis-donus burada olculur."""
+    hatalar = []
+    for k in [100000, 160000, 45500, 999, 100, 123456789]:
+        metin = mod.taban_fiyat_metni(k / 100.0)
+        if _metin_kurus(metin) != k:
+            hatalar.append("%d krs -> %r -> %r" % (k, metin, _metin_kurus(metin)))
+    return hatalar
+
+
+def ilan_fiyat_ihlali(mod, urun, govde):
+    """N1'in DEGISMEZI: sayfa (a) bir fiyat yuzeyi TASIR, (b) yuzey BOS DEGILDIR,
+    (c) bastigi tutar KANONIK kaynakla (`build.ilan_kurus`) AYNIDIR.
+
+    Bicime (hangi ifade, hangi ek) BAGLANMAZ: 11 Agu'da "…'den başlayan" ifadesi
+    kesin tutara donusunce bicime bagli eski capa yayini durdurdu, oysa ticari
+    degismez bozulmamisti — hatta duzelmisti (ilan edilen tutar artik sepete
+    yazilanla ayni). Olculen sey: SAYFA BIR TUTAR ILAN EDER VE O TUTAR TAHSIL
+    EDILENLE AYNIDIR. Dondurur: (hata_listesi, gorunur_metin, olculen_kurus)."""
+    beklenen = mod.ilan_kurus(urun)
+    metin = _ilan_yuzeyi(govde)
+    if metin is None:
+        return (["ilan edilen fiyat YUZEYI YOK (`#opsiyonFiyat` blogu basilmamis)"],
+                None, None)
+    if not metin:
+        return (["ilan edilen fiyat yuzeyi BOS (`#opsiyonFiyat` var ama tutar yok)"],
+                metin, None)
+    olculen = _metin_kurus(metin)
+    if olculen is None:
+        return (["ilan edilen tutar AYRISTIRILAMADI (%r) — yuzeyde sayi yok ya da bicim "
+                 "kanonik bicimlendiriciden koptu" % metin], metin, None)
+    if beklenen is None:
+        return (["kanonik kaynak `ilan_kurus` None dondu — tutar OLCULEMEDI, kapi bu "
+                 "durumda YESIL VEREMEZ"], metin, olculen)
+    if olculen != beklenen:
+        return (["ILAN EDILEN TUTAR KANONIK KAYNAKTAN SAPTI: sayfa %d krs (%r), "
+                 "`ilan_kurus` %d krs — musteriye gosterilen tutar ile tahsil edilen "
+                 "AYRISTI" % (olculen, metin, beklenen)], metin, olculen)
+    return ([], metin, olculen)
 
 
 # --------------------------------------------------------------------------- build modulu
@@ -206,8 +311,26 @@ def kosum(mod, para):
     p1_eksik = [ad for ad, ip in BASKI_KANCALARI if ip in fiz_g]
     if p1_eksik:
         hatalar.append("P1 fiziksel sayfada hala baski secim kancasi var: " + ", ".join(p1_eksik))
-    satirlar.append("P1 baski secim kancalari (9) fiziksel sayfada: %s"
-                    % ("HEPSI YOK ✔" if not p1_eksik else "SIZAN: %s ✘" % p1_eksik))
+    satirlar.append("P1 baski secim kancalari (%d; emeklilik oncesi %d) fiziksel sayfada: %s"
+                    % (len(BASKI_KANCALARI), P1_KANCA_ESKI_SAYI,
+                       "HEPSI YOK ✔" if not p1_eksik else "SIZAN: %s ✘" % p1_eksik))
+
+    # --- P1-EMEKLI defteri: cikarilan madde HALA OLU MU? (sessiz emeklilik yasak)
+    # Iki yonlu: (a) fiziksel sayfada belirirse GERCEK P1 ihlalidir; (b) 3D sayfasinda
+    # belirirse madde artik OLU DEGILDIR -> defter bayat, P1'e geri alinmali. Ikisi de
+    # KIRMIZI: emekli madde sessizce dirilemez.
+    for ad, ip, gerekce in P1_EMEKLI:
+        if ip in fiz_g:
+            hatalar.append("P1-EMEKLI %s fiziksel sayfada BELIRDI — emekli madde geri "
+                           "geldi ve sizdi, listeye ALINMALI" % ad)
+        if ip in nrm_g:
+            hatalar.append("P1-EMEKLI %s `tur`suz 3D sayfada YENIDEN URETILIYOR — madde "
+                           "artik OLU DEGIL, emeklilik defteri BAYAT: P1 listesine geri "
+                           "alinmali (gerekce: %s)" % (ad, gerekce))
+        satirlar.append("P1-EMEKLI %s: fizikselde %s · 3D'de %s (%s)"
+                        % (ad, "VAR ✘" if ip in fiz_g else "yok",
+                           "VAR ✘ (DIRILDI)" if ip in nrm_g else "yok (hala OLU) ✔",
+                           gerekce))
 
     # --- P2: satilabilirlik korundu
     p2_eksik = [ad for ad, ip in KALAN_OGELER if ip not in fiz_g]
@@ -254,8 +377,23 @@ def kosum(mod, para):
     if n1_eksik:
         hatalar.append("N1 REGRESYON — `tur`suz 3D urun sayfasi oge kaybetti: "
                        + ", ".join(n1_eksik))
-    satirlar.append("N1 `tur`suz 3D urun sayfasi (12 oge + bayrak): %s"
-                    % ("HEPSI YERINDE ✔" if not n1_eksik else "KAYIP: %s ✘" % n1_eksik))
+    satirlar.append("N1 `tur`suz 3D urun sayfasi (%d oge + bayrak): %s"
+                    % (len(BASKI_KANCALARI) + len(KALAN_OGELER),
+                       "HEPSI YERINDE ✔" if not n1_eksik else "KAYIP: %s ✘" % n1_eksik))
+
+    # --- N1F: ILAN EDILEN FIYAT DEGISMEZI (bicimden bagimsiz — eski dize capasinin yerine)
+    capa = _ayristirici_capasi(mod)
+    if capa:
+        hatalar.append("N1F ayristirici KANONIK bicimlendiriciden koptu (gidis-donus "
+                       "tutmadi): " + " · ".join(capa))
+    n1f, gorunur, olculen = ilan_fiyat_ihlali(mod, nrm, nrm_g)
+    for h in n1f:
+        hatalar.append("N1F ILAN EDILEN FIYAT — `tur`suz 3D urun sayfasi: " + h)
+    satirlar.append("N1F ilan edilen fiyat (yuzey VAR · DOLU · kanonik `ilan_kurus` ile "
+                    "AYNI): %s | sayfa=%r -> %s krs · ilan_kurus=%s krs%s"
+                    % ("TUTTU ✔" if not n1f else "IHLAL ✘", gorunur, olculen,
+                       mod.ilan_kurus(nrm),
+                       "" if not capa else " | ayristirici capasi KOPUK ✘"))
 
     # --- N2: FAIL-CLOSED — taninmayan `tur` degeri `tur`suzle BAYT-BAYT AYNI
     n2_sapan = []
@@ -281,10 +419,40 @@ MUTANTLAR = [
      'fiziksel = False',
      "kosul DAIMA yanlis -> fiziksel urun eski (baski secimli) sayfayi alir",
      ("P1", "P3")),
+    # N2 BILEREK beyan edilmiyor: bu mutantta TUM urunler ayni dala dustugu icin
+    # `tur`suz ile taninmayan-`tur` sayfalari hala BAYT-BAYT AYNI kalir, yani N2
+    # DUSMEZ. Beyana yazsaydik hic dusmeyen bir ekseni "kapsandi" gibi gosterirdik.
     ('fiziksel = (p.get("tur") == "fiziksel")',
      'fiziksel = True',
      "kosul DAIMA dogru -> `tur`suz 3D urun secicilerini kaybeder",
-     ("N1", "N2")),
+     ("N1", "N1F")),
+    # ---- N1F probe'lari: ilan edilen fiyat degismezi IKI YONDE de canli mi?
+    # (a) YUZEY DUSERSE: sayfa hicbir tutar ilan etmez.
+    ("""                fiyat_blok=fiyat_satiri(
+                    eski_html,
+                    '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % baslangic_fiyat))""",
+     "                fiyat_blok=\"\")",
+     "ilan fiyat YUZEYI tumden dusuruldu -> sayfa hicbir tutar ilan etmiyor",
+     ("N1F",)),
+    # (b) TUTAR SAPARSA (bicim AYNI kalir): musteriye gosterilen sayi tahsil edilenden
+    #     ayrisir. Bicim degismedigi icin bu mutanti YALNIZCA sayiyi olcen bir iddia
+    #     yakalayabilir — eski dize capasi bunu SESSIZ gecirirdi.
+    ("            baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0))",
+     "            baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0 + 1))",
+     "ilan edilen tutar kanonik kaynaktan 1 TL saptirildi (BICIM ayni)",
+     ("N1F",)),
+    # (c) KARDES KAPIYLA CELISKI NOBETI: `onsecim-parite-kapisi.py` N5 mutanti tam olarak
+    #     bu satiri geri koyar ve KIRMIZI yanmasini bekler. Eski capa bu mutantta YESIL
+    #     veriyordu -> iki kapi birbirine ters hukum kuruyordu. Artik bu kapi da KIRMIZI
+    #     yakiyor: iki kapi AYNI YONDE. Celiski geri gelirse burasi YESIL'e doner ve
+    #     mutasyon kosumu "OLU IDDIA" der.
+    #     Bu mutant IKI ekseni birden dusurur ve ikisi de DOGRUDUR: tutar sapar (N1F) VE
+    #     emekli dize yeniden uretilir (P1-EMEKLI defteri bayatlar). Ikisini de beyan
+    #     ediyoruz — "dusen ama beyan edilmeyen eksen" probe'u genis gosterirdi.
+    ("            baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0))",
+     '            baslangic_fiyat = esc(fiyat) + "&#39;den başlayan"',
+     "statik tutar LISTE tutarinda birakildi (kardes kapi N5 mutantinin AYNISI)",
+     ("N1F", "P1-EMEKLI")),
 ]
 
 
