@@ -51,7 +51,9 @@ NE IDDIA EDILMEZ (beyan edilen kor noktalar — sessiz yesil yasak)
     (hukum bizim BAYRAGIMIZ hakkindadir, onlarin kodu hakkinda degil). Diskte
     YOKSA (CI fresh checkout) bu bir olcum boslugu DEGIL kapsam disiligidir:
     `KARDES_AGAC_KAPSAM_DISI` satiri basilir, cikis kodu ETKILENMEZ. Ayni
-    doktrin: tools/edge-kart-kapisi.py.
+    doktrin: tools/edge-kart-kapisi.py. KAPSAM DISILIK YALNIZ BU HUKMU KAPSAR:
+    kart kolu KAPALIYKEN oneri alaninin kart tutarini kaydirmadigi kaniti (E10b)
+    BIZIM duzlemimizdir, kardes agac olmasa da HER KOSUMDA verilir.
 
 CIKIS: 0 yesil · 1 kirmizi · 2 olculemedi. Depoya YAZMAZ, aga CIKMAZ.
 """
@@ -79,10 +81,17 @@ JETON_OLCULEMEDI = "COZULEMEDI"
 # Digerlerinin alt dizesi DEGILDIR; mutasyon bataryasi (M13) tam bu jetonu arar, boylece
 # "kapi sustu" ile "kapi kapsam disi dedi" ayni satirdan okunamaz.
 JETON_KARDES_KAPSAM_DISI = "KARDES_AGAC_KAPSAM_DISI"
-# E10'un kardes agac VARKEN verdigi hukmun jetonu. M15 tam bunu arar: onarim "kardes
-# agac yoksa kapsam disi" kolunu agac VARKEN de yutacak sekilde genisletilirse, bu
-# jeton HATALAR'dan kaybolur ve batarya SAPTI der.
+# E10'un kardes agac VARKEN verdigi hukmun jetonu. M3 tam bunu arar (kardes agaci
+# SENTETIK fikstur ile GORUNUR kilar): onarim "kardes agac yoksa kapsam disi" kolunu
+# agac VARKEN de yutacak sekilde genisletilirse, bu jeton HATALAR'dan kaybolur ve
+# batarya SAPTI der.
 JETON_KARDES_HUKUM = "KENAR_KART_HUKMU"
+# 🔴 12 AGU 2026 — ALAN NOTRLUGU KENDI DUZLEMIMIZDIR, KARDES AGACA BAGLI DEGILDIR.
+# "Kart kolu KAPALIYKEN `tavsiyeFilament` alani kart tutarini KAYDIRMAZ" hukmu yalnizca
+# build.py + filament_ortak.py hakkindadir; kardes deponun diskte olup olmamasiyla
+# hicbir ilgisi YOKTUR. Bu jeton o hukmun AYRIK izidir (M12 tam bunu arar) ve
+# digerlerinin ALT DIZESI DEGILDIR ([[maskeleme-kismi-kapatma]]).
+JETON_KART_ALAN_NOTR = "KART_ALAN_NOTRLUGU"
 
 # ------------------------------------------------- TANINMAYAN MALZEME KUTUGU (veri kusuru)
 # 🔴 NEDEN KUTUK VAR ve NEDEN SADECE EKLEMEYE KIRMIZI YANAR ([[envanter-drift-parti-basina]]):
@@ -533,12 +542,16 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
     #   (tools/edge-kart-kapisi.py) ayni doktrini zaten uygular — alani OLCER, ASLA
     #   kirmizi yakmaz. Ayrim keskin tutulur:
     #     * kardes agac VARSA  -> bugunku fail-closed hukum AYNEN gecerli (kart kolu ACIK
-    #                             + alan eksik => KIRMIZI). M15 bunu kanitlar.
+    #                             + alan eksik => KIRMIZI). M3 bunu kanitlar (kardes agaci
+    #                             SENTETIK fikstur ile GORUNUR kilar; makinenin HOME'una
+    #                             BAGLI DEGILDIR) ve izini JETON_KARDES_HUKUM ile arar.
     #     * kardes agac YOKSA  -> KAPSAM DISI satiri BASILIR, hukum VERILMEZ, cikis kodu
     #                             ETKILENMEZ. M13 bunu kanitlar; M14 o kolun GERCEK bir
     #                             kapsam sizintisini YUTMADIGINI kanitlar.
     #   "Cozemedim = alan yok" sessiz gecisi HALA YASAK: kardes agac VARDIR ama sabiti
     #   ayristirilamiyorsa eksen yine OLCULEMEDI'dir (asagida).
+    #   🔴 KAPSAM DISILIK YALNIZ BU HUKMU KAPSAR: alan notrlugu kaniti (E10b) kardes
+    #   agactan BAGIMSIZDIR ve asagida HER KOSUMDA verilir — 12 Agu fail-open onarimi.
     try:
         import importlib.util as _iu
         _s = _iu.spec_from_file_location("_edge_kapi",
@@ -571,37 +584,47 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
                 "ureticisi AYRISAMAZ"
                 % (JETON_KARDES_HUKUM, "TASIYOR" if tasiyor else "TASIMIYOR",
                    "ACIK" if (veri and veri.get("acikVitrin")) else "KAPALI"))
-        # Alan okunmuyor mu GERCEKTEN? Kural anahtari kapaliyken alani TASIMAYAN bir kart
-        # ile TASIYAN kart AYNI tutari vermeli — yoksa "kapali oldugu icin zararsiz"
-        # iddiasi beyandan ibaret kalirdi ([[beyan-edilmis-survivor]]).
-        # 🔴 DENEK AYIRT EDICI SECILIR: alani KALDIRINCA kural BASKA bir malzeme secen bir
-        # kayit gerekir. Aksi halde iddia TAUTOLOJI olurdu (alan zaten kategori haritasiyla
-        # ayni sonucu veriyorsa, silmek hicbir sey degistirmez ve kanit hicbir sey kanitlamaz).
-        ayirt = None
-        for q_ in urunler:
-            if not q_.get("tavsiyeFilament") or q_.get("parametrik") or q_.get("konfigur"):
-                continue
-            if not build_mod.feed_price((q_.get("fiyat") or "").strip()):
-                continue
-            q_yok = dict(q_)
-            q_yok.pop("tavsiyeFilament", None)
-            if (build_mod.on_secim_tani(q_, acik=True)[1]
-                    != build_mod.on_secim_tani(q_yok, acik=True)[1]):
-                ayirt = (q_, q_yok)
-                break
-        if ayirt is None:
-            olculemedi("alani silince BASKA malzeme secen kayit bulunamadi — E10 kaniti "
-                       "AYIRT EDICI kurulamadi")
-        else:
-            q_, q_yok = ayirt
-            a_var, a_yok = build_mod.vitrin_kurus(q_), build_mod.vitrin_kurus(q_yok)
-            print("     ayirt edici denek: %s (alan VAR -> %s · alan YOK -> %s, kural ACIK)"
-                  % (q_["id"], build_mod.on_secim_tani(q_, acik=True)[1],
-                     build_mod.on_secim_tani(q_yok, acik=True)[1]))
-            kontrol(a_var == a_yok,
-                    "KANIT: alani TASIMAYAN kart ile TASIYAN kart AYNI kart tutarini "
-                    "veriyor (%s = %s) -> kart kolu kapaliyken eksik alan tutari "
-                    "KAYDIRMIYOR" % (a_yok, a_var))
+
+    # ── E10b ALAN NOTRLUGU — KARDES AGACTAN BAGIMSIZ, HER KOSUMDA VERILIR ─────────
+    # 🔴 12 AGU 2026 FAIL-OPEN ONARIMI ([[kapi-kapsam-genisletme-tuzagi]]). Bu blok
+    #   11 Agu'da `if tasiyor is not None:` govdesinin ICINDEYDI. Kardes agac (baska
+    #   mimarin evi) CI fresh checkout'unda HICBIR ZAMAN bulunmaz -> `tasiyor is None`
+    #   -> blok HIC KOSMUYORDU. Yani "kapsam disi" onarimi, kardes depoyla ILGISI
+    #   OLMAYAN bir hukmu de beraberinde susturmustu.
+    #   OLCULDU: kart kolunun iki katmanli kisa-devresini kaldiran mutant (batarya M12)
+    #   kardes agac YOKKEN kapiyi YESIL birakiyordu (rc=0), VARKEN kirmizi yakiyordu.
+    #   Ayni kaynak, ayni kusur, iki farkli renk -> hukum makinenin HOME'una bagliydi.
+    # NE OLCER: kural anahtari kapaliyken alani TASIMAYAN kart ile TASIYAN kart AYNI
+    #   tutari vermeli — yoksa "kapali oldugu icin zararsiz" iddiasi beyandan ibaret
+    #   kalirdi ([[beyan-edilmis-survivor]]). Girdisi YALNIZ build.py + urunler.json'dur.
+    # 🔴 DENEK AYIRT EDICI SECILIR: alani KALDIRINCA kural BASKA bir malzeme secen bir
+    #   kayit gerekir. Aksi halde iddia TAUTOLOJI olurdu (alan zaten kategori haritasiyla
+    #   ayni sonucu veriyorsa, silmek hicbir sey degistirmez ve kanit hicbir sey kanitlamaz).
+    ayirt = None
+    for q_ in urunler:
+        if not q_.get("tavsiyeFilament") or q_.get("parametrik") or q_.get("konfigur"):
+            continue
+        if not build_mod.feed_price((q_.get("fiyat") or "").strip()):
+            continue
+        q_yok = dict(q_)
+        q_yok.pop("tavsiyeFilament", None)
+        if (build_mod.on_secim_tani(q_, acik=True)[1]
+                != build_mod.on_secim_tani(q_yok, acik=True)[1]):
+            ayirt = (q_, q_yok)
+            break
+    if ayirt is None:
+        olculemedi("alani silince BASKA malzeme secen kayit bulunamadi — E10b kaniti "
+                   "AYIRT EDICI kurulamadi")
+    else:
+        q_, q_yok = ayirt
+        a_var, a_yok = build_mod.vitrin_kurus(q_), build_mod.vitrin_kurus(q_yok)
+        print("     ayirt edici denek: %s (alan VAR -> %s · alan YOK -> %s, kural ACIK)"
+              % (q_["id"], build_mod.on_secim_tani(q_, acik=True)[1],
+                 build_mod.on_secim_tani(q_yok, acik=True)[1]))
+        kontrol(a_var == a_yok,
+                "%s KANIT: alani TASIMAYAN kart ile TASIYAN kart AYNI kart tutarini "
+                "veriyor (%s = %s) -> kart kolu kapaliyken eksik alan tutari "
+                "KAYDIRMIYOR" % (JETON_KART_ALAN_NOTR, a_yok, a_var))
     # MARUZIYET (olcum, hukum DEGIL): mesaj kanali kenar kolonunu okur, urun sayfasi
     # onerilen malzemenin tutarini vurgular. Ayrisan urun sayisi ve ortalama fark.
     if ozet.get("vitrin_farki"):
