@@ -164,6 +164,14 @@
         for (var i = 0; i < btnlar.length; i++) {
           btnlar[i].addEventListener("click", sec);
         }
+        // 🔴 BASLANGIC SECIMI (11 Agu) — malzeme ekseniyle AYNI kural: üreteç hangi butona
+        // `secili` bastıysa durum odur. Bu satır olmadan buton SEÇİLİ GÖRÜNÜR ama
+        // durum.seciliRenk boş kalır; gecerliMi() false döner ve "Sepete Ekle" seçili bir
+        // renge rağmen çalışmaz — kullanıcının gördüğüyle çelişen SESSİZ arıza.
+        // gorselSec BİLEREK çağrılmaz: üreteç varsayılan olarak ana görselin rengini
+        // işaretler (bkz. build.py _konfigur_varsayilan_renk), görüntü zaten doğrudur.
+        var ilkR = durum.renkKok.querySelector(".renk-btn.secili");
+        if (ilkR) { durum.seciliRenk = ilkR.getAttribute("data-renk") || ""; }
       }
 
       // Boy: sayı kutusu (cm) + kaydırıcı (cm) birbirine bağlı; iç durum mm.

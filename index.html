@@ -966,7 +966,9 @@
        Yarı-boy 2'li grid (yan yana; mobilde tek kolon). Metin HTML overlay'dir, görsele
        yazı BASILMAZ (CLAUDE.md kuralı); arka plan görselleri R2'de (logosuz). -->
   <div id="bannerRow" class="banner-row">
-  <a id="jenBanner" class="jen-banner" href="/?kategori=Jenerat%C3%B6r">
+  <!-- Banner hedefi MÜŞTERİYE GÖRÜNEN etiketi taşır (iç seri adı "Jeneratör" adres
+       çubuğunda GÖRÜNMEZ); applyUrlParams KATEGORI_ALIAS ile iç ada çevirir. -->
+  <a id="jenBanner" class="jen-banner" href="/?kategori=%C3%96l%C3%A7%C3%BCye%20%C3%96zel%20%C3%9Cretim">
     <picture>
       <source type="image/avif" sizes="(max-width:560px) calc(100vw - 40px), (max-width:1140px) calc((100vw - 56px)/2), 522px"
               srcset="https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-560.avif 560w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-840.avif 840w, https://media.pruvo3d.com/banner/jenerator-banner-cx1-v2-1120.avif 1120w">
@@ -1352,6 +1354,26 @@
   // GİZLEME MEKANİZMASI = bu listede olmak + CATEGORIES'te OLMAMAK (renderCats yalnız
   // CATEGORIES'i çizer). Sayfa üretecindeki NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
+  // 🔴 İÇ SERİ ADI → MÜŞTERİYE GÖRÜNEN ETİKET (11 Ağu). Ürün sayfası üreteci (tools/build.py
+  // GIZLI_SERI_KARARI) parametrik ürünün rozetine/breadcrumb'ına/linklerine ARTIK görünen
+  // etiketi basıyor; bu tablo o etiketi geri iç ada çevirir ki ?kategori=<görünen> derin
+  // linki bugünkü görünümü AYNEN versin. Değerler build.py ile BİREBİR aynı olmalıdır —
+  // ayrışma tools/ic-seri-izi-kapisi.py'de fail-closed KIRMIZI yanar (ikiz tanım nöbeti).
+  var KATEGORI_ALIAS = {"Ölçüye Özel Üretim":"Jeneratör"};
+  // Yazma yönü: URL'ye/derin linke İÇ ad değil GÖRÜNEN etiket yazılır.
+  var KATEGORI_GORUNUR = {"Jeneratör":"Ölçüye Özel Üretim"};
+  function gorunurKategori(c){
+    return Object.prototype.hasOwnProperty.call(KATEGORI_GORUNUR, c) ? KATEGORI_GORUNUR[c] : c;
+  }
+  // ÜRÜN düzleminde çeviri YALNIZ parametrik (sarı seri) üründe uygulanır — tools/build.py
+  // gorunur_kategori() ile AYNI kural. ⚠️ YANLIŞ-POZİTİF EKSENİ: "Jeneratör" aynı zamanda
+  // 17 GERÇEK jeneratör yedek parçasının kategorisidir; orada kelime müşterinin ARADIĞI
+  // kelimedir ve DEĞİŞMEZ. İç sızıntı, kelimenin kendisi değil, parametrik serinin etiketi
+  // olarak görünmesidir.
+  function gorunurUrunKategorisi(p){
+    var k = (p && p.kategori) || "";
+    return (p && p.parametrik) ? gorunurKategori(k) : k;
+  }
 
   // >>> ALTKATEGORI VERISI (URETILEN BLOK)
   // Alt kategori cip evreni kanonik arama kurallarindan uretilir.
@@ -2955,7 +2977,9 @@
   // replaceState = geçmiş şişmez (her filtre tıkı geri-tuşu adımı olmasın).
   function syncUrl(){
     var params = new URLSearchParams();
-    if(activeCat !== "Tümü"){ params.set("kategori", activeCat); }
+    // Adres çubuğu MÜŞTERİYE GÖRÜNÜR → iç seri adı değil görünen etiket yazılır
+    // (applyUrlParams KATEGORI_ALIAS ile geri çevirir; görünüm birebir aynı kalır).
+    if(activeCat !== "Tümü"){ params.set("kategori", gorunurKategori(activeCat)); }
     if(activeAlt !== "Tümü"){ params.set("altkategori", activeAlt); }
     if(activeBrand !== "Tümü"){ params.set("marka", activeBrand); }
     if(activeModel !== "Tümü"){ params.set("model", activeModel); }
@@ -3522,7 +3546,7 @@
     img.onerror = function(){
       if(this.src !== kapak){ this.src = kapak; return; }
       this.onerror = function(){};
-      this.src = phData(p.kategori);
+      this.src = phData(gorunurUrunKategorisi(p));
     };
 
     var body = document.createElement("div");
@@ -3530,7 +3554,8 @@
 
     var cat = document.createElement("span");
     cat.className = "card-cat";
-    cat.textContent = p.kategori;
+    // 🔴 Kart rozeti MÜŞTERİYE GÖRÜNÜR → iç seri adı basılmaz (bkz. gorunurUrunKategorisi).
+    cat.textContent = gorunurUrunKategorisi(p);
 
     var h = document.createElement("div");
     h.className = "card-title";
@@ -3822,7 +3847,8 @@
     if(query.trim() !== ""){
       title.textContent = '"' + query.trim() + '" araması';
     }else{
-      title.textContent = (activeCat === "Tümü") ? "Tüm Ürünler" : activeCat + " Ürünleri";
+      title.textContent = (activeCat === "Tümü")
+        ? "Tüm Ürünler" : gorunurKategori(activeCat) + " Ürünleri";
     }
     count.textContent = toplam + " ürün";
     renderEdgeDurum();
@@ -4355,6 +4381,9 @@
 
     var params = new URLSearchParams(location.search);
     var kat = params.get("kategori");
+    // Görünen etiket → iç ad (ör. "Ölçüye Özel Üretim" → "Jeneratör"). Alias ÇEVİRİSİDİR,
+    // izinli-küme kontrolü ÇEVİRİDEN SONRA aynen koşar (bilinmeyen değer yine düşer).
+    if(kat && Object.prototype.hasOwnProperty.call(KATEGORI_ALIAS, kat)){ kat = KATEGORI_ALIAS[kat]; }
     if(kat && (["Tümü"].concat(CATEGORIES).concat(GIZLI_KATEGORILER)).indexOf(kat) !== -1){ activeCat = kat; }
     // ALT KATEGORİ — kategori gibi izinli-küme SÜZGECİNDEN GEÇİRİLMEZ, AYNEN alınır.
     // 🔴 GEREKÇE (sessiz-hata sınıfı): bilinmeyen değeri düşürmek fail-OPEN olurdu —

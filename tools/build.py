@@ -76,6 +76,48 @@ CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "O
 # "Skan Art" (Okan, 23 Tem) = İskandinav tasarım dilli dekor/heykel alt-serisi; aynı sınıf.
 # index.html'deki GIZLI_KATEGORILER ile BİRLİKTE güncelle (CATEGORIES kuralının aynısı).
 NAV_GIZLI = ["Jeneratör", "Skan Art"]
+
+# ---------------------------------------------------------------------------
+# 🔴 GIZLI SERI ADI -> MUSTERIYE GORUNEN ETIKET (11 Agu, canli kural ihlali onarimi)
+#
+# CLAUDE.md: parametrik/"jeneratör" semasi ve arkasindaki uretec IC bilgidir; ic seri adi
+# musteriye gorunen yuzeyde GECMEZ. Bugune kadar parametrik urun sayfasi kategori ROZETINDE,
+# BREADCRUMB'da, JSON-LD `category`/`BreadcrumbList`inde ve "Diğer ... ürünleri" basliginda
+# "Jeneratör" yaziyordu -> AKTIF IHLAL.
+#
+# KARAR DEFTERI DEGIL, KANONIK ESLEME: NAV_GIZLI'daki HER gizli seri icin burada acik bir
+# karar olmak ZORUNDADIR (asagidaki fail-closed kontrol). Karar ya bir GORUNUR ETIKET'tir
+# (ad ic bilgidir, degistirilir) ya da None'dir (ad publikte zaten kullaniliyor). Yeni bir
+# gizli seri NAV_GIZLI'ya eklenip burada karara baglanmazsa build DUSER -> "elle tutulan
+# defter bayatlar" sinifi yapisal olarak kapali ([[envanter-drift-parti-basina]]).
+#
+# ⚠️ DONUSUM YALNIZ `parametrik: true` URUNDE UYGULANIR — YANLIS-POZITIF EKSENI:
+# "Jeneratör" ayni zamanda 17 GERCEK jenerator yedek parcasinin (Honda EU20i, Yamaha EF3000
+# ...) kategorisidir; orada kelime musterinin ARADIGI kelimedir ve KALIR. Ic sizinti,
+# kelimenin kendisi degil, kelimenin PARAMETRIK SERININ etiketi olarak gorunmesidir.
+GIZLI_SERI_KARARI = {
+    # ic ad -> musteriye gorunen etiket (None = ad publikte guvenli, oldugu gibi kalir)
+    "Jeneratör": "Ölçüye Özel Üretim",   # sari/parametrik seri; banner dili "Ölçüne özel"
+    "Skan Art": None,                    # seri adi ana sayfa banner'inda ZATEN yaziyor
+}
+_karar_eksik = [k for k in NAV_GIZLI if k not in GIZLI_SERI_KARARI]
+if _karar_eksik:
+    raise SystemExit("GIZLI_SERI_KARARI eksik: %s — gizli seri adinin musteriye gorunup "
+                     "gorunmeyecegi KARARA baglanmadan sayfa uretilemez." % ", ".join(_karar_eksik))
+# Ic (musteriye gosterilmeyecek) seri adlari + gorunur karsiliklari. Kapi bu sozlukten turer.
+IC_SERI_ETIKET = {k: v for k, v in GIZLI_SERI_KARARI.items() if v}
+
+
+def gorunur_kategori(p):
+    """Urunun MUSTERIYE GORUNEN kategori etiketi.
+
+    VERI DEGISMEZ: `p["kategori"]`, `urunler.json`, D1 ve sayfadaki `URUN` JSON blogu ic
+    adi tasimaya devam eder (arama/filtre/fiyat kollari ona bakar). Degisen tek sey
+    GORUNEN metindir."""
+    kat = p.get("kategori") or ""
+    if p.get("parametrik") and kat in IC_SERI_ETIKET:
+        return IC_SERI_ETIKET[kat]
+    return kat
 # Malzeme/renk seçicisi + kompakt ikon düzeni (Adet + sepet/WhatsApp ikonu üstte) bu
 # kategorilerde gösterilir. Okan 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını
 # (Marin/Otomobil ile birebir) alır — eski geniş sayfa-altı buton düzeni kalktı.
@@ -677,6 +719,45 @@ ADET_EN_COK = _js_sayisi(_SEC_JS, "ADET_EN_COK")
 BEYAN = _js_sabiti(_SEC_JS, "BEYAN")
 
 
+def _js_bos_satir_varsayilani(kaynak, alan):
+    """secenekler.js `bosSatir()` icindeki VARSAYILAN secim degeri (malzeme/renk).
+
+    🔴 NEDEN BURADAN OKUNUR (ikinci liste YAZILMAZ): sayfada ONDEN SECILI gelen malzeme/renk,
+    sunucunun (shop worker -> SECENEK.satirOzeti) ve sepetin varsayilan satiriyla AYNI deger
+    OLMAK ZORUNDADIR. Elle yazilan bir "PLA" sabiti ikiz tanimdir: bosSatir degisince sayfa
+    sessizce baska bir malzemeyi onden secer ve tahsil edilen tutar musterinin gordugunden
+    AYRISIR ([[ikiz-tanim-sessiz-ayrisma]]). Buradan turetilince on-secim bir ARAYUZ
+    varsayilanidir, fiyat mantigina DOKUNMAZ: satira yazilan deger zaten bosSatir'in yazdigi
+    degerin ta kendisidir -> kurus farki YAPISAL OLARAK 0.
+    FAIL-CLOSED: fonksiyon ya da alan bulunamazsa build DUSER (sessizce secimsiz sayfa
+    uretmek, bugunku sessiz sepet arizasini geri getirirdi)."""
+    m = re.search(r"function\s+bosSatir\s*\([^)]*\)\s*\{\s*return\s*\{(.*?)\}\s*;", kaynak, re.S)
+    if not m:
+        raise SystemExit("secenekler.js'te bosSatir() bulunamadi — on-secim varsayilani "
+                         "turetilemez (tek kaynak bozulmus).")
+    g = re.search(re.escape(alan) + r'\s*:\s*"([^"]*)"', m.group(1))
+    if not g or not g.group(1):
+        raise SystemExit("secenekler.js bosSatir() icinde %r alani bulunamadi/bos." % alan)
+    return g.group(1)
+
+
+# Sayfada ONDEN SECILI gelen malzeme/renk — TEK KAYNAK secenekler.js bosSatir().
+VARSAYILAN_MALZEME = _js_bos_satir_varsayilani(_SEC_JS, "malzeme")
+VARSAYILAN_RENK = _js_bos_satir_varsayilani(_SEC_JS, "renk")
+if VARSAYILAN_MALZEME not in FILAMENT_SIRA:
+    raise SystemExit("bosSatir varsayilan malzemesi (%r) sitede satilan FILAMENT_SIRA "
+                     "listesinde YOK — onden secili cip basilamaz." % VARSAYILAN_MALZEME)
+if VARSAYILAN_RENK not in RENK_SECENEKLERI or VARSAYILAN_RENK == "Diğer":
+    raise SystemExit("bosSatir varsayilan rengi (%r) standart renk listesinde YOK ya da "
+                     "serbest-metin gerektiren 'Diğer' — onden secilemez." % VARSAYILAN_RENK)
+# On-secimin FIYATA DOKUNMADIGININ yapisal kaniti: varsayilan malzemenin farki %0 ve
+# varsayilan renk "Diğer" degil -> hesaplaFiyatKurus carpanlari 1,00. Bozulursa build DUSER.
+if FILAMENT_FARK.get(VARSAYILAN_MALZEME, 0) != 0:
+    raise SystemExit("bosSatir varsayilan malzemesi (%r) fiyat farki tasiyor (+%%%s) — onden "
+                     "secilseydi sayfada ilan edilen liste fiyatinin USTUNDE bir tutar sepete "
+                     "yazilirdi." % (VARSAYILAN_MALZEME, FILAMENT_FARK.get(VARSAYILAN_MALZEME)))
+
+
 def _js_bayragi(kaynak, ad):
     m = re.search(r"var\s+" + re.escape(ad) + r"\s*=\s*(true|false);", kaynak)
     if not m:
@@ -1148,7 +1229,22 @@ def _renk_html():
       </div>""")
 
 
-def _renk_butonlari_html(renkler=None, renk_gorselleri=None):
+def _konfigur_varsayilan_renk(konfigur):
+    """KONFIGUR (dekor) sayfasinda ONDEN SECILI renk. Secim, sayfanin ANA GORSELI ile
+    celismeyecek renktir: renkGorselIndeks'i 0 olan (yani mainImg'de zaten gorunen) renk;
+    yoksa listenin ilki. Boylece on-secim goruntuyu DEGISTIRMEZ, yalnizca durumu doldurur
+    -> "secili gorunuyor ama sepete eklenmiyor" yalani dogmaz."""
+    renkler = konfigur.get("renkler") or []
+    if not renkler:
+        return None
+    ix = konfigur.get("renkGorselIndeks") or {}
+    for r in renkler:
+        if ix.get(r) == 0:
+            return r
+    return renkler[0]
+
+
+def _renk_butonlari_html(renkler=None, renk_gorselleri=None, secili=None):
     """Renk BUTONLARI (Okan, 16 Tem) — fonksiyonel/kart-seçim ürününde dropdown yerine 4 buton:
     Siyah/Beyaz/Gri düz renk yuvarlağı, Diğer = gökkuşağı gradyan. Önden seçili YOK; 'Diğer'
     seçilince altında serbest metin kutusu (renkOzel) belirir. Parametrik ürün DROPDOWN kalır.
@@ -1163,11 +1259,19 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None):
         "Gri": '<span class="renk-yuvar" style="background:#8a929e"></span>',
         "Diğer": '<span class="renk-yuvar renk-yuvar-gokkusagi"></span>',
     }
+    # Onden secili renk (11 Agu): secili=None cagrisi eski ciktiyla BAYT-ESIT kalir.
+    def _cls(r):
+        return "renk-btn secili" if (secili is not None and r == secili) else "renk-btn"
+
+    def _ek(r):
+        return ' aria-pressed="true"' if (secili is not None and r == secili) else ""
+
     if renkler is not None:
         btns = "".join(
-            '<button type="button" class="renk-btn" data-renk="%s" data-gorsel="%s">%s'
+            '<button type="button" class="%s" data-renk="%s" data-gorsel="%s"%s>%s'
             '<span class="renk-ad">%s</span></button>' % (
-                esc(r), esc((renk_gorselleri or {}).get(r, "")), ornek.get(r, ""), esc(r))
+                _cls(r), esc(r), esc((renk_gorselleri or {}).get(r, "")), _ek(r),
+                ornek.get(r, ""), esc(r))
             for r in renkler)
         return ("""
       <div class="opsiyon-row opsiyon-renk">
@@ -1175,9 +1279,9 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None):
         <div class="renk-butonlar" id="renkButonlar">""" + btns + """</div>
       </div>""")
     btns = "".join(
-        '<button type="button" class="renk-btn" data-renk="%s">%s'
+        '<button type="button" class="%s" data-renk="%s"%s>%s'
         '<span class="renk-ad">%s</span></button>' % (
-            esc(r), ornek.get(r, ""),
+            _cls(r), esc(r), _ek(r), ornek.get(r, ""),
             esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
         for r in RENK_SECENEKLERI)
     return ("""
@@ -1547,6 +1651,17 @@ def _konfigur_malzeme_html(malzemeler, varsayilan, p):
         <div class="fil-cipler" id="malzemeButonlar">""" + "".join(kartlar) + """</div>
       </div>""")
 
+
+# 🔴 GORUNUR SECIM HATASI (11 Agu) — sessiz basarisizligin panzehiri.
+# Butonun HEMEN ALTINDA durur; role="alert" + aria-live ile ekran okuyucuya da gider.
+# Kural: "Sepete Ekle"ye basildiginda ya ekleme OLUR ya BU KUTU DOLAR — sessiz titreme
+# tek basina YETMEZ (kullanici tikladigini sanip sepeti bos birakiyordu).
+# Bicim SATIR ICI yazilir, paylasilan PAGE_CSS'e kural EKLENMEZ: oraya tek satir eklemek
+# secici tasimayan (fiziksel/panelsiz) sayfalarin da BAYTINI degistirirdi.
+SECIM_HATA_HTML = ('<div class="secim-hata" id="secimHata" role="alert" aria-live="assertive" '
+                   'hidden style="margin:2px 0 12px;padding:9px 12px;border-radius:8px;'
+                   'background:#fdecea;border:1px solid #f0b3ae;color:#8f1d19;font-size:13.5px;'
+                   'font-weight:600;line-height:1.45"></div>')
 
 CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 '
              '7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 '
@@ -2159,6 +2274,68 @@ def attribution_html(p):
 
 
 # ------------------------------------------------------------------ malzeme (filament) bölümü
+def _fil_cipleri(p, secili=None):
+    """Sitede satilan filament CIPLERI (buton listesi). TEK GOVDE: hem sayfa govdesindeki
+    "Malzeme" bolumu (filament_html) hem panel icindeki SECICI (panel_malzeme_html) bu
+    fonksiyondan uretilir -> iki yerde iki farkli cip kalibi DOGMAZ.
+
+    secili=None cagrisi 11 Agu oncesi ciktiyla BAYT-BAYT aynidir (geri uyumluluk)."""
+    ref = filament_ortak.referans()
+    tavs = {
+        t["ad"]: t["rozet"]
+        for t in filament_ortak.tavsiyeler(p.get("kategori"), p.get("tavsiyeFilament"))}
+    cips = []
+    for f in ref["filamentler"]:
+        if not f.get("site"):
+            continue
+        rozet = tavs.get(f["ad"], "")
+        rozet_html = ""
+        if rozet:
+            rcls = "fil-rozet" if rozet == "Tavsiyemiz" else "fil-rozet fil-rozet-not"
+            rozet_html = '<span class="%s">%s</span>' % (rcls, esc(rozet))
+        cls = " tavsiyeli" if rozet else ""
+        # Onden secili cip: gorsel DOLGU (.secili) + ekran okuyucu icin aria-pressed.
+        ek = ""
+        if secili is not None and f["ad"] == secili:
+            cls += " secili"
+            ek = ' aria-pressed="true"'
+        cips.append(
+            '<button type="button" class="fil-cip%s" data-malzeme="%s" aria-expanded="false"%s>'
+            '<span class="fil-isi">%s</span>'
+            '<span class="fil-ad">%s</span>'
+            '<span class="fil-etiket">%s</span>'
+            '%s'
+            '<span class="fil-balon" role="tooltip"><strong>%s — %s</strong><br>%s</span>'
+            '</button>'
+            % (cls, esc(f["ad"]), ek, esc(f["isiDayanimi"]), esc(f["ad"]),
+               esc(f["kisaEtiket"]), rozet_html,
+               esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
+    return cips
+
+
+def panel_malzeme_html(p):
+    """🔴 SEPETE EKLE'NIN USTUNDEKI malzeme secicisi (11 Agu, sessiz sepet arizasi).
+
+    ONCE: zorunlu malzeme secimi butonun ~168 px ALTINDAYDI ve onden secili DEGILDI ->
+    kullanici "Sepete Ekle"ye basiyor, secim eksik oldugu icin ekleme SESSIZCE dusuyordu
+    (yalniz 500 ms titreme; sepet bos kaliyordu). Secici artik butondan ONCE, opsiyon
+    panelinin ICINDE basilir ve VARSAYILAN_MALZEME onden secilidir.
+
+    Fiyat mantigina DOKUNULMAZ: varsayilan secenekler.js bosSatir()'dan turer ve farki
+    %0'dir (yukaridaki fail-closed kontrole bak) -> satira yazilan tutar, hicbir secim
+    yapilmadan eklenen bugunku bosSatir tutarinin ta kendisidir.
+
+    Govdenin ALTINDAKI "Malzeme" bolumu bu sayfalarda kartlar_gizli=True ile basilir:
+    muhendislik-malzeme WhatsApp notu + Malzeme Rehberi linki kalir, KART ikinci kez
+    basilmaz (cift-UI olurdu)."""
+    return ("""
+      <div class="opsiyon-row opsiyon-renk">
+        <label>Malzeme</label>
+        <div class="fil-cipler" id="filCipler">""" + "".join(_fil_cipleri(p, VARSAYILAN_MALZEME))
+            + """</div>
+      </div>""")
+
+
 def filament_html(p, wa_not=False, kartlar_gizli=False):
     """Fiyat bloğunun altındaki "Malzeme" bölümü: sitede satılan filament çipleri + tavsiye
     rozeti + balon. ABS ve Karbon Katkılı SİTEDE SATILMAZ (Okan, 16 Tem) — mühendislik
@@ -2180,30 +2357,7 @@ def filament_html(p, wa_not=False, kartlar_gizli=False):
     normal sayfayla BİREBİR — tavsiye rozeti dahil; eski "rozet basılmaz + konuşarak
     belirlenir notu" istisnası kaldırıldı.
     """
-    ref = filament_ortak.referans()
-    tavs = {
-        t["ad"]: t["rozet"]
-        for t in filament_ortak.tavsiyeler(p.get("kategori"), p.get("tavsiyeFilament"))}
-    cips = []
-    for f in ref["filamentler"]:
-        if not f.get("site"):
-            continue
-        rozet = tavs.get(f["ad"], "")
-        rozet_html = ""
-        if rozet:
-            rcls = "fil-rozet" if rozet == "Tavsiyemiz" else "fil-rozet fil-rozet-not"
-            rozet_html = '<span class="%s">%s</span>' % (rcls, esc(rozet))
-        cips.append(
-            '<button type="button" class="fil-cip%s" data-malzeme="%s" aria-expanded="false">'
-            '<span class="fil-isi">%s</span>'
-            '<span class="fil-ad">%s</span>'
-            '<span class="fil-etiket">%s</span>'
-            '%s'
-            '<span class="fil-balon" role="tooltip"><strong>%s — %s</strong><br>%s</span>'
-            '</button>'
-            % (" tavsiyeli" if rozet else "", esc(f["ad"]), esc(f["isiDayanimi"]), esc(f["ad"]),
-               esc(f["kisaEtiket"]), rozet_html,
-               esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
+    cips = _fil_cipleri(p)
     wa_html = muhendislik_wa_not(p, product_url(p.get("id") or "")) if wa_not else ""
     if kartlar_gizli:
         # Konfigur-malzemeli sayfa: malzeme seçimi #malzemeButonlar fancy kartlarında -> burada
@@ -2264,12 +2418,49 @@ function pv(el,src){{
   /* Ustu cizili eski fiyat (opsiyonel `eski_fiyat`). Sayfada YOKSA null -> hicbir sey olmaz. */
   var eskiEl=document.getElementById("eskiFiyat");
   /* Kart-secim modu (işletme kararı, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK,
-     malzeme KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
+     malzeme KARTLARINDAN seçilir. */
   var KART_SECIM = URUN_KART_SECIM;
   var cipler = document.getElementById("filCipler");
   var renkBtnlar = document.getElementById("renkButonlar");
-  var seciliMalzeme = "";
-  var seciliRenk = "";
+  /* 🔴 ONDEN SECILI (11 Agu) — baslangic durumu SAYFADAN okunur, JS'e IKINCI bir varsayilan
+     listesi YAZILMAZ. Uretec hangi cipe/butona `secili` bastiysa durum odur; uretecin
+     varsayilani da secenekler.js bosSatir()'dan turer -> gorunen secim, hicbir secim
+     yapilmadan olusan sepet satiriyla AYNI degerdir (kurus farki yapisal olarak 0). */
+  function _ilkSecim(kok, secici, alan){{
+    var el = (kok && kok.querySelector) ? kok.querySelector(secici) : null;
+    return el ? (el.getAttribute(alan) || "") : "";
+  }}
+  var seciliMalzeme = _ilkSecim(cipler, ".fil-cip.secili", "data-malzeme");
+  var seciliRenk = _ilkSecim(renkBtnlar, ".renk-btn.secili", "data-renk");
+  /* 🔴 GORUNUR SECIM HATASI — "sessiz basarisizlik" sinifinin kapatildigi yer.
+     ONCE: eksik secimde yalniz 500 ms titreme vardi; kullanici tikladigini saniyor,
+     sepet bos kaliyordu (canlida olculdu). ARTIK: ya ekleme OLUR ya BU KUTU DOLAR.
+     Kutu sayfada yoksa (kirpilmis/eski sablon) BURADA URETILIR — "kutu yok" hali
+     sessizlige DUSMEK degildir (fail-loud). */
+  var hataEl = document.getElementById("secimHata");
+  function hataKutusu(){{
+    if(hataEl){{ return hataEl; }}
+    if(!document.createElement){{ return null; }}
+    var d = document.createElement("div");
+    d.id = "secimHata"; d.className = "secim-hata";
+    d.setAttribute("role", "alert"); d.setAttribute("aria-live", "assertive");
+    d.style.cssText = "margin:2px 0 12px;padding:9px 12px;border-radius:8px;"
+      + "background:#fdecea;border:1px solid #f0b3ae;color:#8f1d19;font-size:13.5px;"
+      + "font-weight:600;line-height:1.45";
+    var ana = (btn.parentNode && btn.parentNode.parentNode) || btn.parentNode;
+    if(ana && ana.appendChild){{ ana.appendChild(d); hataEl = d; return d; }}
+    return null;
+  }}
+  function hataGoster(metin){{
+    var k = hataKutusu();
+    /* SON CARE: DOM'a kutu koyulamadiysa bile kullanici UYARILIR — sessiz donus YOK. */
+    if(!k){{ if(typeof alert === "function"){{ alert(metin); }} return; }}
+    k.textContent = metin; k.hidden = false; k.removeAttribute("hidden");
+  }}
+  function hataGizle(){{
+    if(hataEl){{ hataEl.hidden = true; hataEl.setAttribute("hidden", "hidden");
+                 hataEl.textContent = ""; }}
+  }}
 
   function currentSatir(){{
     var s = PRUVO_SECENEK.bosSatir(id);
@@ -2308,6 +2499,9 @@ function pv(el,src){{
     setTimeout(function(){{ el.classList.remove("titre", "hata-vurgu", "hata"); }}, 500);
   }}
   function render(){{
+    /* Eksik secim tamamlanir tamamlanmaz kirmizi uyari kendiliginden kalkar. */
+    if(!KART_SECIM || (seciliMalzeme && seciliRenk
+        && !(seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim()))){{ hataGizle(); }}
     var c = PRUVO_SECENEK.sepetYukle();
     var satir = currentSatir();
     var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
@@ -2370,6 +2564,13 @@ function pv(el,src){{
         if(eksikM){{ titret(cipler); }}
         if(eksikR){{ titret(renkBtnlar); }}
         if(eksikO){{ titret(renkOzel); }}
+        /* 🔴 METINLI UYARI ZORUNLU — titreme tek basina "sessiz basarisizlik"tir. */
+        var eksikAd = [];
+        if(eksikM){{ eksikAd.push("malzeme"); }}
+        if(eksikR){{ eksikAd.push("renk"); }}
+        hataGoster(eksikAd.length
+          ? ("Sepete eklemek için " + eksikAd.join(" ve ") + " seçin.")
+          : "Sepete eklemek için istediğiniz rengi yazın.");
         var hedef = eksikM ? cipler : (eksikR ? renkBtnlar : renkOzel);
         if(hedef){{
           try {{ hedef.scrollIntoView({{ behavior:"smooth", block:"center" }}); }} catch(e) {{}}
@@ -2397,6 +2598,7 @@ function pv(el,src){{
         if(typeof window.pruvoMetaTrack === "function"){{ window.pruvoMetaTrack("AddToCart", mAtcVeri); }}
       }} catch(e) {{}}
     }} else {{ c.splice(i,1); }}
+    hataGizle();
     PRUVO_SECENEK.sepetKaydet(c); render();
   }});
   /* Malzeme kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
@@ -2408,6 +2610,7 @@ function pv(el,src){{
       kartlar[k].addEventListener("click", function(){{
         seciliMalzeme = this.getAttribute("data-malzeme") || "";
         for(var n=0;n<kartlar.length;n++){{ kartlar[n].classList.toggle("secili", kartlar[n]===this); }}
+        hataGizle();
         render();
       }});
     }}
@@ -2421,6 +2624,7 @@ function pv(el,src){{
         seciliRenk = this.getAttribute("data-renk") || "";
         for(var n=0;n<rbtnlar.length;n++){{ rbtnlar[n].classList.toggle("secili", rbtnlar[n]===this); }}
         if(renkOzel){{ renkOzel.style.display = (seciliRenk === "Diğer") ? "block" : "none"; }}
+        hataGizle();
         render();
       }});
     }}
@@ -2432,7 +2636,7 @@ function pv(el,src){{
       render();
     }});
   }});
-  if(renkOzel){{ renkOzel.addEventListener("input", render); }}
+  if(renkOzel){{ renkOzel.addEventListener("input", function(){{ hataGizle(); render(); }}); }}
   if(URUN_SEMA && window.PRUVO_KONF && window.PRUVO_HACIM){{
     /* F kalemi: sari sayfa da kart-secim — konfiguratorun fiyat gostergesi
        secili kart/cipten beslenir (dropdown yok; tek kaynak secenekler.js kurali). */
@@ -2491,7 +2695,12 @@ def render_product(p, all_products, chip_map=None):
     pid = p["id"]
     url = product_url(pid)
     baslik = p.get("baslik") or ""
+    # `kategori` = VERI (arama/filtre/ilgili-urun/fonksiyonel kollari BUNA bakar).
+    # `gorunur_kat` = MUSTERIYE GORUNEN etiket (rozet, breadcrumb, JSON-LD, "Diğer ...
+    # ürünleri" basligi, kategori linkleri). Ikisi parametrik seride BILEREK farklidir —
+    # bkz. GIZLI_SERI_KARARI. Asagida "gorunen" her yerde gorunur_kat kullanilir.
     kategori = p.get("kategori") or ""
+    gorunur_kat = gorunur_kategori(p)
     fiyat = (p.get("fiyat") or "").strip()
     # ALT KATEGORI — kategori icindeki daraltma etiketi (935/16.874 kayitta dolu, hepsi
     # Marin). Bugune kadar YALNIZ veriydi: musteri hicbir yuzeyde gormuyordu.
@@ -2509,7 +2718,8 @@ def render_product(p, all_products, chip_map=None):
     # yoksa BOS kalir ve o alanlar HIC basilmaz (bkz. placeholder_data_uri yorumu).
     # Gorselli urunde ikisi de imgs[0] -> cikti BAYT-ESIT.
     paylasim_gorseli = imgs[0] if imgs else ""
-    cover = paylasim_gorseli or placeholder_data_uri(kategori)
+    # Gorselsiz urunun yer tutucusuna kategori ADI CIZILIR -> gorunur etiket kullanilir.
+    cover = paylasim_gorseli or placeholder_data_uri(gorunur_kat)
     desc160 = meta_desc(p)
     pnum = price_number(fiyat)
     parametrik = bool(p.get("parametrik"))
@@ -2631,7 +2841,9 @@ def render_product(p, all_products, chip_map=None):
         # BreadcrumbList'e KONMAZ: ara dugumun `item` URL'i olmak zorunda, altkategori
         # filtresinin URL'i ise HENUZ YOK (ana sayfa ucu kardes depoda) -> kirik/uydurma
         # adres basmak yerine dugum HIC acilmaz.
-        "category": (kategori + " > " + altkategori) if altkategori else kategori,
+        # 🔴 GORUNUR ETIKET (11 Agu): yapilandirilmis veri arama sonucunda MUSTERIYE gosterilir
+        # -> ic seri adi buraya da GIRMEZ (bkz. GIZLI_SERI_KARARI).
+        "category": (gorunur_kat + " > " + altkategori) if altkategori else gorunur_kat,
     })
     if ld_fiyat:
         product_ld["offers"] = offer
@@ -2647,8 +2859,8 @@ def render_product(p, all_products, chip_map=None):
         "@type": "BreadcrumbList",
         "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": SITE + "/"},
-            {"@type": "ListItem", "position": 2, "name": kategori,
-             "item": SITE + kategori_url(kategori)},
+            {"@type": "ListItem", "position": 2, "name": gorunur_kat,
+             "item": SITE + kategori_url(gorunur_kat)},
             {"@type": "ListItem", "position": 3, "name": baslik, "item": url},
         ],
     }
@@ -2687,7 +2899,9 @@ def render_product(p, all_products, chip_map=None):
     # ONARIM: link URUNUN KATEGORISINI tasir; istemci o kategorinin cip indeksinden uc
     # etiketini cozer (index.html :: ucMarkaEtiketi) ve uca `marka=Volvo Penta` gider.
     # Kategori bossa parametre BASILMAZ -> o sayfalarda cikti BAYT-AYNI kalir.
-    kapsam = ("kategori=" + _urlq(kategori, safe="") + "&") if kategori else ""
+    # Marka cipi HREF'i de musteriye gorunen bir adrestir -> gorunur etiket basilir
+    # (index.html applyUrlParams gorunur etiketi ic ada CEVIRIR: KATEGORI_ALIAS).
+    kapsam = ("kategori=" + _urlq(gorunur_kat, safe="") + "&") if gorunur_kat else ""
     brand_html = ""
     if markalar:
         mm_hedef = (chip_map or {}).get(pid)
@@ -2800,14 +3014,18 @@ def render_product(p, all_products, chip_map=None):
       <div class="konf-baslik">Ölçülerinizi girin</div>
       <div id="konfAlanlar"></div>
       {onizleme}
+      {malzeme}
       {renk}
       {adet}
+      {hata}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
       <div class="konf-hacim" id="konfHacim"></div>
     </div>
     """).format(fiyat_metni=konf_fiyat_metni,
                 onizleme=onizleme_html,
-                renk=_renk_butonlari_html(),
+                malzeme=panel_malzeme_html(p),
+                renk=_renk_butonlari_html(secili=VARSAYILAN_RENK),
+                hata=SECIM_HATA_HTML,
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))))
@@ -2847,12 +3065,15 @@ def render_product(p, all_products, chip_map=None):
       {renk}
       {boy}
       {adet}
+      {hata}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
       <div class="konf-hacim">{boy_not}</div>
     </div>
     """).format(konf_baslik=esc(_konf_baslik),
                 malzeme=_malzeme_html,
-                renk=_renk_butonlari_html(konfigur["renkler"], _renk_gorselleri),
+                hata=SECIM_HATA_HTML,
+                renk=_renk_butonlari_html(konfigur["renkler"], _renk_gorselleri,
+                                          secili=_konfigur_varsayilan_renk(konfigur)),
                 boy=_konfigur_boy_html(konfigur),
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
@@ -2877,12 +3098,16 @@ def render_product(p, all_products, chip_map=None):
         baslangic_fiyat = (esc(fiyat) + "&#39;den başlayan") if fiyat else esc(price_text)
         opsiyonlar_html = ("""
     <div class="opsiyonlar" id="opsiyonlar">
+      {malzeme}
       {renk}
       {boy}
       {adet}
+      {hata}
       {fiyat_blok}
     </div>
-    """).format(renk=_renk_butonlari_html(), boy=boy_html,
+    """).format(malzeme=panel_malzeme_html(p),
+                renk=_renk_butonlari_html(secili=VARSAYILAN_RENK), boy=boy_html,
+                hata=SECIM_HATA_HTML,
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
@@ -2943,7 +3168,8 @@ def render_product(p, all_products, chip_map=None):
     # --- ilgili ürünler (aynı kategori, kendisi hariç, en fazla 8)
     rel = [x for x in all_products
            if x.get("kategori") == kategori and x["id"] != pid][:8]
-    rel_baslik = kategori
+    # Bolum basligi ("Diğer <X> ürünleri") MUSTERIYE GORUNUR -> gorunur etiket.
+    rel_baslik = gorunur_kat
     # YEDEK HAVUZ: ince alt-seride (Skan Art) aynı kategoriden REL_EN_AZ adet aday
     # çıkmıyorsa akraba ana kategoriden doldur — yoksa bölüm hiç basılmaz ve sayfa
     # TÜM iç linklerini kaybeder (ölçüldü: 8 -> 0). Eşlemesi olmayan kategori etkilenmez.
@@ -3053,9 +3279,13 @@ def render_product(p, all_products, chip_map=None):
         konf_fiyat_kosul = " && !URUN_KONFIGUR"
         konf_render_hook = ("\n    if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && "
                             "PRUVO_KONFIGUR.hazir()){ PRUVO_KONFIGUR.tazele(); }")
-        konf_klik_guard = ("\n    /* Konfigur: renk seçilmeden sepete eklenemez (titret + odakla). */"
+        # 🔴 Konfigur kolu da SESSIZ degildir (11 Agu): titreme + odak YETMEZ, gorunur
+        # metin de basilir. Ayni sinif, ayni panzehir (kart-secim koluyla TEK kutu).
+        konf_klik_guard = ("\n    /* Konfigur: renk seçilmeden sepete eklenemez "
+                           "(titret + odakla + GÖRÜNÜR uyarı). */"
                            "\n    if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && "
-                           "!PRUVO_KONFIGUR.gecerliMi()){ PRUVO_KONFIGUR.eksikVurgula(); return; }")
+                           "!PRUVO_KONFIGUR.gecerliMi()){ PRUVO_KONFIGUR.eksikVurgula(); "
+                           "hataGoster(\"Sepete eklemek için renk seçin.\"); return; }")
         konf_kur_hook = ("\n  if(URUN_KONFIGUR && window.PRUVO_KONFIGUR){ "
                          "PRUVO_KONFIGUR.kur(URUN_KONFIGUR, URUN, render); }")
 
@@ -3193,8 +3423,9 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         product_ld=ld(product_ld),
         breadcrumb_ld=ld(breadcrumb_ld),
         stil=stil_bloklari(),
-        katq=esc(kategori_url(kategori)),
-        kategori=esc(kategori),
+        # GORUNEN yuzey (breadcrumb metni+linki, `.cat` rozeti) IC seri adini tasimaz.
+        katq=esc(kategori_url(gorunur_kat)),
+        kategori=esc(gorunur_kat),
         altkat=altkat_html,
         baslik=esc(baslik),
         main_img=main_img,
@@ -3216,9 +3447,15 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         # FIZIKSEL urun (hazir ticari mal): malzeme bolumu HIC basilmaz — filament cipleri,
         # "TAVSIYEMIZ" rozeti, muhendislik-malzeme (Karbon/ABS) WhatsApp notu ve govdedeki
         # "Malzeme Rehberi" linki bir boya kutusunu 3D baskiyla uretiyormus gibi gosteriyordu.
+        # 🔴 KART_SECIM sayfasinda kartlar YUKARI TASINDI (panel_malzeme_html, 11 Agu):
+        # asagida IKINCI kopya basilsaydi iki ayri #filCipler dogar, sayfa scripti
+        # getElementById ile BIRINCISINE baglanirdi ve kullanicinin gordugu/tikladigi
+        # kart secimi hicbir seye yazmazdi (sessiz arizanin ta kendisi). Burada yalniz
+        # muhendislik-malzeme WA notu + "Malzeme Rehberi" linki kalir.
         malzeme=("" if fiziksel else
                  filament_html(p, wa_not=not (parametrik and fonksiyonel and not sema),
-                               kartlar_gizli=bool(konfigur and konfigur.get("malzemeler")))),
+                               kartlar_gizli=bool(kart_secim
+                                                  or (konfigur and konfigur.get("malzemeler"))))),
         # 🔴 SINIF BEYANI — OZEL URETIM KOLU (23.968 urun). Kosul `malzeme` ile AYNI:
         # "fiziksel ISE bos" (fail-closed yon — `tur` yoksa/taninmiyorsa urun OZEL
         # URETIMDIR). Hazir/stok kolunda BOS dizeye cozulur ve sablonda cevresinde
