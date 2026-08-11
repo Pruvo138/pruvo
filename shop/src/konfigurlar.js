@@ -55,8 +55,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -103,8 +103,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -151,8 +151,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -199,8 +199,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -247,8 +247,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -295,8 +295,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -343,8 +343,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -439,8 +439,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -487,8 +487,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -535,8 +535,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -583,8 +583,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -631,8 +631,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -679,8 +679,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -727,8 +727,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
@@ -775,8 +775,8 @@ const VERI = {
     ],
     "renkGorselIndeks": {
       "Beyaz": 2,
-      "Gri": 0,
-      "Siyah": 1
+      "Gri": 1,
+      "Siyah": 0
     },
     "renkler": [
       "Siyah",
