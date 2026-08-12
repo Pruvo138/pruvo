@@ -649,7 +649,7 @@ def codex_kurali(uygula):
 # enjekte + settings Agent|Task kablosu, commit YOK). Desen: DAR + IDEMPOTENT + YEDEKLI +
 # FAIL-CLOSED (zorunlu sembol/anksraj eksikse O EVE DOKUNULMAZ; enjeksiyon sonrasi compile +
 # CANLI FIKSTUR, biri tutmazsa ev DERHAL YEDEKTEN geri alinir — tek-ev FP tum evi durdurmaz).
-AGENT_DAMGA = 'AGENT_KURAL_SURUMU = "28tem-1"'
+AGENT_DAMGA = 'AGENT_KURAL_SURUMU = "13agu-1"'
 AGENT_TANIM_BAS = "# === PRUVO AGENT-KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 AGENT_TANIM_SON = "# === PRUVO AGENT-KAPISI BITIS ==="
 AGENT_CAGRI_BAS = "    # === PRUVO AGENT-KAPISI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
@@ -672,20 +672,46 @@ AGENT_TANIM_SABLON = '''
 # ISCI (agent_id dolu) TAM muaf. Agent/Task DISINDA hicbir arac etkilenmez. PARSER TAKLIDI
 # YASAK: tek makine-aranabilir regex (AGENT_MUAFIYET_RE); supheli form = RED (fail-closed).
 AGENT_ARACLARI = {"Agent", "Task"}
-AGENT_SINIFLARI = ("görsel", "sessiz-hata", "muhakeme", "ölçüm", "güvenlik", "şema")
+AGENT_SINIFLARI = (
+    "görsel", "gorsel",
+    "sessiz-hata",
+    "muhakeme",
+    "ölçüm", "olcum",
+    "güvenlik", "guvenlik",
+    "şema", "sema",
+)
 AGENT_MUAFIYET_RE = re.compile(
     r"codex-muafiyet:[^\\S\\n]*\\S[^\\n]*?[—–-][^\\S\\n]*(?:" +
-    "|".join(re.escape(_s) for _s in AGENT_SINIFLARI) + r")",
+    "|".join(re.escape(_s) for _s in AGENT_SINIFLARI) + r")(?![\\w-])",
     re.IGNORECASE,
 )
 ''' + AGENT_DAMGA + '''
+AGENT_SINIF_LISTESI = " / ".join(AGENT_SINIFLARI)
+AGENT_ORNEK_SINIF = AGENT_SINIFLARI[0]
 AGENT_GEREKCE = (
     "AGENT-KAPISI (28 Tem): mimar ANA oturumu bir Claude iscisi (Agent/Task) aciyor ama "
     "prompt/spec icinde 'codex-muafiyet:' BEYAN SATIRI YOK. IKI CIKIS: (a) ISI CODEX'E VER "
     "-> codex-isci sablonu (codex exec -C <ev> -s workspace-write -o <scratchpad>/son-mesaj.txt "
-    "\\"<spec>\\"); VEYA (b) prompt'a su satiri EKLE: 'codex-muafiyet: <is tanimi> — <sinif>' "
-    "(<sinif> = gorsel / sessiz-hata / muhakeme / olcum / guvenlik / sema — codex-isci yasak listesi)."
-)
+    "\\"<spec>\\"); VEYA (b) prompt'a su satiri EKLE: "
+    "'codex-muafiyet: <is tanimi> — {ornek}' (gecerli sinif jetonlari: {liste} — "
+    "codex-isci yasak listesi)."
+).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
+
+
+def _agent_gorulen_sinif(prompt):
+    """Beyan satirindaki ayrac-sonrasi ilk jetonu yalniz red tanisi icin ayiklar."""
+    etiket = "codex-muafiyet:"
+    for satir in prompt.splitlines():
+        konum = satir.lower().find(etiket)
+        if konum < 0:
+            continue
+        kalan = satir[konum + len(etiket):]
+        ayrac = max(kalan.rfind("—"), kalan.rfind("–"), kalan.rfind("-"))
+        if ayrac < 0:
+            return "<ayrac-yok>"
+        parcalar = kalan[ayrac + 1:].strip().split()
+        return parcalar[0] if parcalar else "<bos>"
+    return "<bulunamadi>"
 
 
 def _agent_isci_mi(girdi):
@@ -713,7 +739,12 @@ def _agent_karari(girdi):
         prompt = ""
     if AGENT_MUAFIYET_RE.search(prompt):
         return "gecer"
-    return AGENT_GEREKCE
+    if "codex-muafiyet:" not in prompt.lower():
+        return AGENT_GEREKCE
+    return (
+        "AGENT-KAPISI (28 Tem): BEYAN VAR, SINIF JETONU ESLESMEDI: gorulen "
+        "'{gorulen}' · gecerli jetonlar: {liste}"
+    ).format(gorulen=_agent_gorulen_sinif(prompt), liste=AGENT_SINIF_LISTESI)
 ''' + AGENT_TANIM_SON + '''
 '''
 
@@ -853,6 +884,9 @@ def _eve_agent_enjekte(ad, kok, goreli, uygula, rapor):
     # CANLI FIKSTURLER — AGENT gate + regresyon (rutin/codex) birlikte; biri tutmazsa geri al.
     olcumler = [
         ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
+        ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — olcum"}, None, "allow"),
+        ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — ölçüm"}, None, "allow"),
+        ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — gizlilik"}, None, "deny"),
         ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
         ("Task", {"prompt": "beyansiz"}, None, "deny"),
         ("Agent", {"prompt": "beyansiz"}, AGENT_ISCI_ID, "allow"),
