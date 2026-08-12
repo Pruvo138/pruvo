@@ -1894,7 +1894,11 @@ TABLO_TABANLARI = (
     # 🔴 IKINCI KEZ AYNI SATIRDA IKI BAGIMSIZ BEYAN CAKISTI (dal main'in gerisindeydi;
     # K64 108'e cikardi, bu dal da 107'den 108'e cikariyordu). Cozum yine SECIM DEGIL
     # BIRLESIM: iki beyan da DURUYOR, taban ikisinin TOPLAMI.
-    ("SERIT_B", 109),
+    # 12 Agu: 109 -> 110 (faz3-bayrak-mutasyon.py beyan edildi). Bir TASIMA DEGIL,
+    # EKLEME: korudugu FAZ3 bayrak kapisi deploy.yml serit-a3'te BLOKLAYICI kaldi;
+    # buraya yalnizca onun CANLILIGINI olcen 3 mutantlik batarya girdi. Tam esitlik
+    # geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 110),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2634,6 +2638,12 @@ SERIT_B = {
         "d1-sync `--durum` kolunun AYIRT EDICILIGI (18 mutant: her OLDURUCU kirmizi, "
         "her KONTROL yesil). D1 duzlemi bu evin yayin yolunda DEGIL; kirmizisi yayini "
         "durdurmamali. Olculdu (temiz klon + bos HOME): rc=0, 1,8 s, ag YOK.",
+    ("nobet.yml", "serit-b", "tools/faz3-bayrak-mutasyon.py"):
+        "FAZ3 bayrak kapisinin AYIRT EDICILIGINI 3 mutantla olcer. Korudugu kapinin "
+        "GERCEK olcum kolu deploy.yml serit-a3'te BLOKLAYICI kalir; bu giris bir "
+        "TASIMA DEGIL, kapinin AYIRT EDICILIK bataryasinin EKLENMESIDIR. Mutantlar "
+        "gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi kapinin "
+        "ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
     ("nobet.yml", "serit-b", "tools/deploy-aclik-gh-mutasyon.py"):
         "tools/deploy-aclik-kapisi.py GECICI AG SINIFININ mutasyon bataryasi (5 "
         "oldurucu + 1 kontrol): gecici hata siniflamasi, sinirli yeniden deneme, "

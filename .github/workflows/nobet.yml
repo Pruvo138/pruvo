@@ -1431,6 +1431,9 @@ jobs:
       - name: "D1-sync durum kolu mutasyon bataryasi"
         run: python3 tools/d1-sync-durum-mutasyon.py
 
+      - name: "FAZ3 bayrak mutasyon bataryasi (3 mutant)"
+        run: python3 tools/faz3-bayrak-mutasyon.py
+
       # DEPLOY ACLIK KAPISININ GECICI AG SINIFI (11 Agu 2026). Batarya 5 oldurucu
       # + 1 kontrol mutantla yeniden-deneme sinirlarini olcer; canli GitHub agina
       # cikmaz, kapinin `--kendini-test` kolunu kosar. Mutasyon hedef dosyaya uygulanir
