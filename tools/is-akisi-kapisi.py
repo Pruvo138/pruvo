@@ -1885,7 +1885,17 @@ TABLO_TABANLARI = (
     # 🔴 IKI GIRIS AYNI TURDA BIRLESTI (dal main'in GERISINDEYDI): dalin tabani 105,
     # main'inki 106 idi ve ikisi de ayni satiri degistirdigi icin merge CAKISTI.
     # Cozum SEÇIM DEGIL BIRLESIM — iki beyan da DURUYOR, taban ikisinin TOPLAMI.
-    ("SERIT_B", 107),
+    # 12 Agu: 107 -> 109 (D1 YAZICI KILIDI K49'un iki kolu beyan edildi:
+    # d1-yazici-kilidi-test.py + d1-yazici-kilidi-mutasyon.py). Bir TASIMA DEGIL,
+    # EKLEME: iki adim `nobet.yml` job `serit-b`ye YENI eklendi ve beyan AYNI turda
+    # yazilmadigi icin kapi fail-closed KIRMIZI yandi (dal rc=1, main rc=0 -> dal
+    # main'den daha kirmizi = iade). SERIT SECIMI KraL KARARIDIR ve BILINCLIDIR:
+    # korumanin KENDISI d1-sync.py icindeki flock'tur ve her yazici kolunda KOSULSUZ
+    # kosar; bu iki adim o korumanin TESTIDIR. Yayin seridine tasimak her push'a
+    # 137 sn (8,0 + 129,0 olculdu) ekler ve tamir degeri SIFIRDIR
+    # ([[maliyet-tasimasi-serit-dusurur]]). Ikisi de TEK TEK yazildi — joker/toplu
+    # beyan YOK; tam esitlik geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 109),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -3172,6 +3182,44 @@ SERIT_B = {
         "oldugunu DEGIL — kardesiyle ayni gerekceyle serit B'dedir: uzlastirici `push` "
         "seridinde kosmaz ve yayin yolu katalog senkronuna bagli degildir. BILINCLI "
         "serit secimidir, A-kapisini ucuza etkisizlestirme DEGIL.",
+    # --- D1 YAZICI KILIDI (K49, 12 Agu 2026) — job `serit-b` ------------------
+    # 🔴 BILINCLI SERIT SECIMI (KraL karari), ucuz etkisizlestirme DEGIL. Bu iki adim
+    # `tools/d1-sync.py`nin YAZICI kilidini (fcntl.flock, fail-closed rc=9) olcer.
+    # AYIRIM: KORUMANIN KENDISI BU ADIMLAR DEGILDIR. Koruma d1-sync.py'nin ICINDEKI
+    # flock'tur ve HER yazici kolunda (bayraksiz senkron · `--head` · `--kaynak` ·
+    # `--sema` · `--seq-normalize`) KOSULSUZ calisir; CI yesil ya da kirmizi olsun,
+    # kilit alinmadan tek ifade bile gonderilmez. Bu iki adim o korumanin TESTIDIR.
+    #   (a) Yayini durdurmanin TAMIR DEGERI SIFIR: kirmizisi "kilidin koruma gucu
+    #       curudu" der, "yayinlanacak icerik bozuk" DEMEZ. Kilit yine yerinde durur.
+    #   (b) Yayin yolu KATALOG SENKRONUNA bagli degildir (senkron aksasa da site
+    #       yayinlanir; bedeli Ege'nin katalogu gorememesidir, yayin DEGIL) -> bu
+    #       kirmizi bir YAYIN kusuru sinifi degildir.
+    #   (c) Bedel OLCULDU: kabul testi 8,0 sn + mutasyon bataryasi 129,0 sn = 137 sn.
+    #       Yayin seridine tasimak her push'a 137 sn ekler ve olculen tamir degeri
+    #       sifirdir ([[maliyet-tasimasi-serit-dusurur]] · [[kapi-birikimi-yayin-gecikmesi]]).
+    #   (d) Bu iki adimin SERIT A karsiligi ZATEN VAR: `tools/d1-sync.py --durum` ve
+    #       `--kendini-test` kollari canli katalog sapmasini bloklayici seritte olcer.
+    ("nobet.yml", "serit-b", "tools/d1-yazici-kilidi-test.py"):
+        "D1 YAZICI kilidinin (fcntl.flock, fail-closed rc=9) kabul testi: gercek "
+        "isletim sistemi surecleriyle yaris · bayat kilit devralma · okuyucu muafiyeti "
+        "· worktree kapsami (G ekseni: sentetik depo + gercek `git worktree add`). "
+        "KORUMANIN KENDISI BU ADIM DEGIL, d1-sync.py icindeki flock'tur ve her yazici "
+        "kolunda KOSULSUZ kosar; bu adim o korumanin TESTIDIR. Kirmizisi 'kilidin "
+        "koruma gucu curudu' der, 'yayinlanacak icerik bozuk' DEMEZ -> yayini "
+        "durdurmanin tamir degeri SIFIRDIR ve yayin yolu katalog senkronuna bagli "
+        "degildir. Offline sqlite harness'i kosar, CANLI D1'e DOKUNMAZ. BILINCLI serit "
+        "secimidir, A-kapisini ucuza etkisizlestirme DEGIL.",
+    ("nobet.yml", "serit-b", "tools/d1-yazici-kilidi-mutasyon.py"):
+        "Yukaridaki kabul testinin AYIRT EDICILIGINI olcen mutasyon bataryasi "
+        "(8 OLDURUCU + 4 KONTROL): kilit hic alinmaz · rc yutulur · CANLI pid OLU "
+        "sayilir · bloklayan flock = fail-slow · ikinci kat sokulur · sahip kaydi "
+        "temizlenmez · kilit KOK'e capalanir · capa geri cekilmesi SESSIZLESTIRILIR "
+        "-> hepsi KIRMIZI; 4 kontrol mutanti YESIL (tautoloji degil -> "
+        "[[mutasyon-kaniti-yeniden-uretilebilir]]). Aracin KENDINI sinamasidir; "
+        "mutantlar gecici KOPYAYA uygulanir ve yayinlanan icerigi URETMEZ. Kardesiyle "
+        "AYNI gerekceyle serit B'de: kirmizisi koruma gucunun curumesini gosterir, "
+        "yayinlanacak icerigin bozuklugunu DEGIL; olculen sure 129,0 sn (kardesiyle "
+        "137 sn) ve tamir degeri sifir olan bir yayin gecikmesi uretirdi.",
     # --- JENERATOR HACIM TAM TAKIMI (2 Agu 2026) — DIS BAGIMLILIKLI, ELLE TETIK ----
     # Job `hacim-tam-takim` yalniz `workflow_dispatch` ile kosar ve `deploy` ona
     # `needs:` ile BAGLI DEGILDIR -> serit B. BILEREK boyle: bu iki kolun TAM kosumu

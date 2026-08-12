@@ -90,6 +90,32 @@ KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
 # (CLAUDE.md "ORTAK CALISMA"); 0 bayt degil, JSON bir SAHIP KAYDI tasir.
 KILIT_ADI = "pruvo-d1-sync.lock"        # ORTAK git dizininde (tum worktree'ler paylasir)
 KILIT_YEDEK_ADI = ".d1-sync.lock"       # git YOKSA geri cekilme: KOK'te (gitignore'da)
+# 🔴 GERI CEKILME SESSIZ OLAMAZ (K49 2. tur iadesi, madde 4). Capa olculemedigi icin
+# KOK'e cekilmek KAPSAM DARALTIR (bkz. `_kilit_yolu`) ve daralma SESSIZ olursa bu dosyanin
+# kendi ilkesiyle ("OLCULEMEDI bu depoda YESIL DEGILDIR") celisir: tek bir gecici git
+# arizasi butun kosumu dar kapsamli kilide dusurur ve KIMSE GORMEZ. Onek SABITTIR cunku
+# kabul testi (F7) ve B4'un "mutlu yol sessiz" iddiasi bu satiri ONEKTEN ayirt eder —
+# ikiz tanim yerine TEK kaynak ([[ikiz-tanim-sessiz-ayrisma]]).
+KILIT_CAPA_GERI_ONEK = "d1-sync: YAZICI KILIDI CAPASI OLCULEMEDI"
+
+
+def _kilit_capa_geri(kok, neden):
+    """Capa olculemedi -> KOK'e cekil ve GEREKCEYI stderr'e BAS (fail-loud).
+
+    Sessiz geri cekilme bir fail-open'dir: kilit yine ALINIR ama yalnizca BU agactaki
+    yazicilari dislar; ayni deponun diger calisma agaclarindaki yazicilar AYRI bir kilit
+    dosyasi kullanir ve TEK canli D1'e ayni anda yazabilir. Ses stderr'e cikar (stdout
+    JSON/rapor kollarini kirletmemek icin) ve yalnizca ANORMAL halde uretilir.
+    """
+    yedek = os.path.join(kok, KILIT_YEDEK_ADI)
+    sys.stderr.write(
+        "%s (%s)\n"
+        "   -> kilit KOK'e cekildi: %s\n"
+        "   KAPSAM DARALDI: bu kosum yalnizca BU calisma agacindaki yazicilari dislar; "
+        "ayni deponun diger agaclari AYRI kilit dosyasi kullanir.\n"
+        % (KILIT_CAPA_GERI_ONEK, neden, yedek))
+    sys.stderr.flush()
+    return yedek
 
 
 def _kilit_yolu(kok=None):
@@ -113,6 +139,11 @@ def _kilit_yolu(kok=None):
     GERI CEKILME: git yoksa/depo degilse KOK'teki `.d1-sync.lock`. Bu bir GEVSEME
     DEGIL, olcunun MUMKUN OLMADIGI haldir (or. mutasyon aynasi, tarball checkout);
     o halde de kilit ALINIR, yalnizca kapsami tek agaca daralir.
+    🔴 ...ama SESSIZ olamaz: geri cekilmenin GEREKCESI stderr'e basilir
+    (`_kilit_capa_geri`, onek `KILIT_CAPA_GERI_ONEK`). Sessiz daralma bir fail-open'dir
+    ve bu modulun kendi "OLCULEMEDI YESIL DEGILDIR" ilkesine aykiridir; olculdu (K49
+    2. tur): git'siz dizinde stderr BOSTU. Kabul testi F7 sesi, M8 mutanti da sesin
+    SILINMESINI olcer.
     """
     kok = KOK if kok is None else kok
     try:
@@ -120,15 +151,22 @@ def _kilit_yolu(kok=None):
                            capture_output=True, text=True, timeout=10,
                            env=git_ortami())
         ortak = r.stdout.strip()
-        if r.returncode == 0 and ortak:
-            if not os.path.isabs(ortak):
-                ortak = os.path.join(kok, ortak)
-            ortak = os.path.realpath(ortak)
-            if os.path.isdir(ortak):
-                return os.path.join(ortak, KILIT_ADI)
-    except (OSError, ValueError, subprocess.SubprocessError):
-        pass
-    return os.path.join(kok, KILIT_YEDEK_ADI)
+        if r.returncode != 0:
+            return _kilit_capa_geri(kok, "git rev-parse --git-common-dir rc=%d: %s"
+                                    % (r.returncode, (r.stderr or "").strip()[:160]
+                                       or "stderr bos"))
+        if not ortak:
+            return _kilit_capa_geri(kok, "git rev-parse --git-common-dir ciktisi BOS")
+        if not os.path.isabs(ortak):
+            ortak = os.path.join(kok, ortak)
+        ortak = os.path.realpath(ortak)
+        if not os.path.isdir(ortak):
+            return _kilit_capa_geri(kok, "olculen ortak git dizini bir DIZIN degil: %s"
+                                    % ortak)
+        return os.path.join(ortak, KILIT_ADI)
+    except (OSError, ValueError, subprocess.SubprocessError) as e:   # noqa: BLE001
+        return _kilit_capa_geri(kok, "git olcumu HATA verdi (%s): %s"
+                                % (type(e).__name__, str(e)[:160]))
 
 
 KILIT = _kilit_yolu()
@@ -442,11 +480,36 @@ def q(s):
 #  5. MUTLU YOLDA CIKTI BASILMAZ — bayraksiz davranis BAYT AYNI kalsin diye. Ses yalnizca
 #     ANORMAL hallerde cikar: beklendi · devralindi · reddedildi.
 #
-# 🔴 BILINEN SINIR (kacamaksiz, [[kapi-disiplin-ilkesi]]): flock TEK MAKINE kapsamlidir.
-# GitHub Actions kosucusu ile yerel bir oturum arasindaki yarisi BU kilit KAPATMAZ; onu
-# bayatlik kapisi + silme karantinasi kapatir. Bu blok, olculen vakanin ta kendisi olan
-# AYNI MAKINEDEKI iki yaziciyi (pre-push kancasi × elle senkron × uzlastirici surucusu)
-# kapatir.
+# 🔴 BILINEN SINIR (kacamaksiz, [[kapi-disiplin-ilkesi]] · [[hukum-yanlis-birimde]]):
+# `fcntl.flock` TEK MAKINE kapsamlidir. Hangi yarisi kapattigi ile KAPATMADIGI asagida
+# TEK TEK yazilidir — "D1 yazici kilidi" adi kapsadigindan GENIS gorunur, degildir.
+#
+#   KAPSANAN BIRIM (bu kilit kapatir): AYNI MAKINEDEKI iki yazici —
+#     pre-push kancasi × elle senkron × yerel uzlastirici surucusu × MERGE turundaki
+#     worktree'ler. Kilit bu yuzden KOK'e DEGIL ORTAK git dizinine capalidir (bkz.
+#     `_kilit_yolu`): ana agac ile `.claude/worktrees/*` AYRI KOK'lerdir ama TEK canli
+#     D1'e yazarlar. Olculen vaka: K48 merge turu, ucustaki yerel PID 86177 (~350 sn).
+#
+#   KAPSANMAYAN BIRIM (bu kilit KAPATMAZ): kosucu × kosucu ve kosucu × yerel oturum.
+#     Yukarida sayilan kosum kimlikleri (31532464176 · 31502177931 · 31546544881)
+#     GitHub KOSUCUSUNDA kosan `schedule` olaylaridir (`d1-uzlastirici.yml` /
+#     `deploy.yml:331`) — yani UC ZARAR OLAYININ OLCULEN TARAFI bu kilidin DISINDADIR.
+#     O eksende koruma hala bayatlik kapisi + K51 silme karantinasidir. Makineler-arasi
+#     tam dislama D1'in KENDISINDE bir kiralama satiri ister; bu CANLI D1'e YAZMA
+#     demektir ve K49'un bu turunun kapsami DISIDIR (ayri karar).
+#     -> Bu yuzden K49 defter satiri BU DALLA KAPANMAZ.
+#
+#   KAPSAM DISI (ayni ada ragmen): D1'e yazan diger araclar — `tools/yayin-kapisi.py
+#     --yayinla`, `tools/siparisler.py`, `tools/olculmemis-siparis.py` — bu kilidi
+#     ALMAZ. Farkli tablo/kolon yuzeyleridir, K49 sinifi (katalog diff-upsert'un
+#     OKU->PLANLA->YAZ penceresi) degildir.
+#
+# 🔴 CI SERIDI (K49 2. tur, madde 2 — beyan GERCEGE uyduruldu): kabul testi ve mutasyon
+# bataryasi `nobet.yml` job `serit-b`dedir. `serit-b`nin `needs:`i YOKTUR ve `deploy`
+# YALNIZ `build`e baglidir -> bu iki adim SERIT B'dir, YAYINI BLOKLAMAZ; CI'da GORUNUR
+# ama kirmizisi deploy'u durdurmaz. Beyanlari `tools/is-akisi-kapisi.py::SERIT_B`
+# tablosunda TEK TEK yazilidir. Korumanin KENDISI bu adimlar degil, asagidaki flock'tur
+# ve o her yazici kolunda KOSULSUZ calisir.
 KILIT_BEKLEME_SN = 20.0     # SINIRLI bekleme (asilma YOK); asilirsa fail-closed dur
 KILIT_YOKLAMA_SN = 0.25
 KILIT_MESGUL_RC = 9         # "baska yazici ucusta" — 1'den AYRI ki cagiran ayirt edebilsin

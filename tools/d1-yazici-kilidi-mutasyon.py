@@ -18,6 +18,8 @@ yazicisi) GERI GETIRIR:
   * OLDURUCU M6  — kilit birakilirken SAHIP KAYDI temizlenmez (bayat kayit birikir)
   * OLDURUCU M7  — kilit KOK'e capalanir (her worktree AYRI kilit = kapsam hatasi;
                    D1 TEK global kaynak, `urunler.json` gibi agac-basina DEGIL)
+  * OLDURUCU M8  — capa geri cekilmesi SESSIZLESTIRILIR (kapsam tek agaca daralir ve
+                   kimse gormez = fail-open; "OLCULEMEDI YESIL DEGILDIR")
 KONTROL mutantlari iddia edilmeyen eksende YESIL kalmali; kalmazsa batarya bir tautoloji
 ya da "her degisiklige kirmizi yanan" gurultu kaynagidir, nobetci degil.
 
@@ -97,6 +99,18 @@ MUTANTLAR = [
      "d1-sync.py",
      "KILIT = _kilit_yolu()",
      "KILIT = os.path.join(KOK, KILIT_YEDEK_ADI)", "KIRMIZI"),
+
+    # 🔴 M8 (K49 2. tur, iade maddesi 4): geri cekilme SESSIZLESTIRILIR. Kapsamin tek
+    # agaca daralmasi hala OLUR, yalniz KIMSE GORMEZ — bu tam olarak curutucunun
+    # olctugu fail-open haldir (stderr BOSTU). F7 (ve turetilmis B4) bunu yakalamali;
+    # yakalamazsa fail-loud iddiasi KOZMETIKTIR.
+    ("OLDURUCU M8 CAPA GERI CEKILMESI SESSIZLESTIRILIR (daralma gorunmez olur)",
+     "d1-sync.py",
+     "    yedek = os.path.join(kok, KILIT_YEDEK_ADI)\n"
+     "    sys.stderr.write(",
+     "    yedek = os.path.join(kok, KILIT_YEDEK_ADI)\n"
+     "    return yedek\n"
+     "    sys.stderr.write(", "KIRMIZI"),
 
     # ── KONTROL: iddia EDILMEYEN eksen — batarya tautoloji olmasin ──────────────
     ("KONTROL K1 YOKLAMA ARALIGI (0,25 -> 0,20 sn; hukum degismez)",

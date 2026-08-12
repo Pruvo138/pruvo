@@ -1235,6 +1235,12 @@ jobs:
       # G ekseni AYRICA sentetik bir depoda GERCEK `git worktree add` kurup iki agac
       # arasinda yaris kosar: canli D1 TEK global kaynak oldugu icin kilit KOK'e DEGIL
       # ORTAK git dizinine capalidir; KOK capasi her worktree'ye AYRI kilit verirdi.
+      # 🔴 SERIT B — YAYINI BLOKLAMAZ (olculdu, K49 2. tur): bu job'un `needs:`i YOK ve
+      # `deploy` YALNIZ `build`e bagli -> adim CI'da GORUNUR, kirmizisi deploy'u
+      # DURDURMAZ. Beyani is-akisi-kapisi.py::SERIT_B tablosunda. Korumanin KENDISI bu
+      # adim degil d1-sync.py'deki flock'tur ve her yazici kolunda KOSULSUZ calisir;
+      # bu adim o korumanin TESTIDIR. Yayin seridine tasimak 137 sn yayin gecikmesi
+      # ekler ([[maliyet-tasimasi-serit-dusurur]]) — serit secimi BILINCLIDIR.
       - name: D1 yazici kilidi kabul testi (yaris + bayat kilit + okuyucu muafiyeti)
         run: python3 tools/d1-yazici-kilidi-test.py
 
@@ -1415,12 +1421,16 @@ jobs:
       - name: "D1-sync durum kolu mutasyon bataryasi"
         run: python3 tools/d1-sync-durum-mutasyon.py
 
-      # D1 YAZICI KILIDI (K49) — kapinin KENDISI olcuyor mu. 7 OLDURUCU (kilit hic
+      # D1 YAZICI KILIDI (K49) — kapinin KENDISI olcuyor mu. 8 OLDURUCU (kilit hic
       # alinmaz · rc yutulur · CANLI pid OLU sayilir · bloklayan flock = fail-slow ·
       # ikinci kat sokulur · sahip kaydi temizlenmez · kilit KOK'e capalanir =
-      # worktree basina AYRI kilit) KIRMIZI yanmali; 4 KONTROL mutanti YESIL kalmali
-      # (batarya tautoloji olmasin). Mutant DAIMA KOPYAYA uygulanir (ROOT aynasi),
-      # calisma agacina artik dosya birakilmaz. ~4 dk.
+      # worktree basina AYRI kilit · capa geri cekilmesi SESSIZLESTIRILIR) KIRMIZI
+      # yanmali; 4 KONTROL mutanti YESIL kalmali (batarya tautoloji olmasin). Mutant
+      # DAIMA KOPYAYA uygulanir (ROOT aynasi), calisma agacina artik dosya birakilmaz.
+      # SURE OLCULDU (bu Mac, K49 2. tur): kabul testi + batarya = ~137 sn (~2,3 dk);
+      # onceki "~4 dk" beyani OLCUMLE degistirildi. Kosucu daha yavas olabilir.
+      # 🔴 SERIT B — YAYINI BLOKLAMAZ: kardes adimla AYNI gerekce (job `serit-b`nin
+      # `needs:`i YOK, `deploy` yalniz `build`e bagli). Beyani SERIT_B tablosunda.
       - name: "D1 yazici kilidi mutasyon bataryasi"
         run: python3 tools/d1-yazici-kilidi-mutasyon.py
 

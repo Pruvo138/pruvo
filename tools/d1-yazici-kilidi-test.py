@@ -28,7 +28,9 @@ OLCULEN EKSENLER
   C BAYAT KILIT / OLU  : kayittaki PID OLU -> kilit DEVRALINIR (rc=0) ve gurultuyle basar.
   D BAYAT KILIT / CANLI: kayittaki PID YASIYOR -> DEVRALINMAZ (rc != 0).
   E OKUYUCU MUAF       : kilit BASKASINDA iken `--durum`/`--kuru` kollari kilide TAKILMAZ.
-  F SAF BIRIM          : PID/kayit cozumu + kilit CAPASININ geri cekilme hali.
+  F SAF BIRIM          : PID/kayit cozumu + kilit CAPASININ geri cekilme hali; geri
+                         cekilme SESSIZ OLAMAZ (F7: gerekce stderr'e basilir — sessiz
+                         daralma bir fail-open'dir, "OLCULEMEDI YESIL DEGILDIR").
   G WORKTREE KAPSAMI   : AYNI deponun IKI agaci (ana + gercek `git worktree add`) TEK
                          canli D1'e yazar -> kilit AGAC SINIRINI asmali. Kilit KOK'e
                          capalanirsa her agac AYRI kilit alir ve ariza GERI DONER.
@@ -42,7 +44,9 @@ IC KOLLAR (surucu kendini alt surec olarak cagirir — sentetik yazici sureci):
   --modul <yol>                            d1-sync modulunu BU dosyadan yukle (mutasyon
                                            surucusu mutant KOPYAYI boyle isaret eder)
 """
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -190,6 +194,24 @@ def _ortak_git_dizini(mod, kok):
         yol = os.path.join(kok, yol)
     yol = os.path.realpath(yol)
     return yol if os.path.isdir(yol) else ""
+
+
+def _capa_uyarisini_ayikla(metin, onek):
+    """Kilit CAPASI geri cekilme uyarisinin satirlarini stderr'den ayikla.
+
+    Uyari cok satirlidir (onek satiri + `->` gerekce satiri + `KAPSAM DARALDI` satiri);
+    hepsi ONEKTEN baslayan blogun parcasidir. Ayiklama ONEKLE yapilir, metin
+    KOPYALANMAZ ([[ikiz-tanim-sessiz-ayrisma]]: onek d1-sync.py'de TEK tanimlidir)."""
+    kalan, blokta = [], False
+    for satir in (metin or "").splitlines():
+        if onek in satir:
+            blokta = True
+            continue
+        if blokta and (satir.startswith("   ") or not satir.strip()):
+            continue
+        blokta = False
+        kalan.append(satir)
+    return "\n".join(kalan)
 
 
 def _agac_kur(hedef, modul):
@@ -345,9 +367,23 @@ def main(modul):
         dogrula("B3 KONTROL: kilit SONDA BIRAKILDI (dosya bos, artik kilit yok)",
                 os.path.exists(kilit_b) and open(kilit_b).read().strip() == "",
                 repr(open(kilit_b).read()[:200]) if os.path.exists(kilit_b) else "dosya yok")
-        dogrula("B4 KONTROL: mutlu yolda kilit gurultusu BASILMAZ (bayraksiz davranis ayni)",
-                "KILIT" not in rb.stderr and "DEVRALINDI" not in rb.stdout,
-                (rb.stdout[-200:], rb.stderr[-200:]))
+        # 🔴 BEKLENTI OLCULEN AGACTAN TURETILIR, SABIT DEGIL ([[nobetci-fikstur-sekli]]):
+        # bu kapi hem gercek depoda hem de mutasyon AYNASINDA (git deposu OLMAYAN gecici
+        # dizin) kosar. Aynada capa OLCULEMEZ ve fail-loud geri cekilme uyarisi
+        # (`KILIT_CAPA_GERI_ONEK`) import aninda stderr'e DUSER — bu ANORMAL halin sesidir,
+        # "mutlu yol gurultusu" DEGIL. Sabit bir "stderr bos olmali" iddiasi aynada
+        # YANLIS-KIRMIZI yanip 4 KONTROL mutantini kirmiziya boyardi (F6'nin ayni tuzagi).
+        # Bu yuzden: (1) uyari satirlari ONEKTEN ayiklanir, (2) uyarinin VARLIGI olculen
+        # agacin haline ESIT olmali — yani sessizlik de fazladan ses de KIRMIZIDIR.
+        b4_ortak = _ortak_git_dizini(mod, mod.KOK)
+        b4_kalan = _capa_uyarisini_ayikla(rb.stderr, mod.KILIT_CAPA_GERI_ONEK)
+        b4_uyari_var = mod.KILIT_CAPA_GERI_ONEK in rb.stderr
+        dogrula("B4 KONTROL: mutlu yolda kilit gurultusu BASILMAZ (bayraksiz davranis "
+                "ayni) VE capa uyarisinin varligi olculen agaca UYUYOR (%s)"
+                % ("depo -> uyari BEKLENMEZ" if b4_ortak else "depo DEGIL -> uyari SART"),
+                "KILIT" not in b4_kalan and "DEVRALINDI" not in rb.stdout
+                and b4_uyari_var == (not b4_ortak),
+                (rb.stdout[-200:], rb.stderr[-300:], b4_ortak, b4_uyari_var))
 
         # ── C. BAYAT KILIT / SAHIP OLU -> DEVRALINIR ─────────────────────────────
         kilit_c = os.path.join(tmp, "c.lock")
@@ -452,6 +488,23 @@ def main(modul):
                 mod._kilit_yolu(depo_yok)
                 == os.path.join(depo_yok, mod.KILIT_YEDEK_ADI),
                 mod._kilit_yolu(depo_yok))
+        # 🔴 F7 (K49 2. tur, iade maddesi 4): F5 geri cekilmenin OLDUGUNU olcuyordu,
+        # SESSIZ OLMADIGINI degil. Olculmustu: stderr BOSTU -> kapsamin tek agaca
+        # daralmasi kimseye gorunmeden oluyordu; bu, modulun kendi "OLCULEMEDI YESIL
+        # DEGILDIR" ilkesine aykiri bir fail-open'dir. Ses SATIR OLARAK olculur
+        # (`KILIT_CAPA_GERI_ONEK`), ayrica GEREKCE ve DARALMA UYARISI da aranir ki
+        # mutant onegi birakip govdeyi bosaltarak kacamasin.
+        _f7 = io.StringIO()
+        with contextlib.redirect_stderr(_f7):
+            _f7_yol = mod._kilit_yolu(depo_yok)
+        _f7_ses = _f7.getvalue()
+        dogrula("F7 SAF: geri cekilme SESSIZ DEGIL — gerekce + KAPSAM DARALDI uyarisi "
+                "stderr'e basilir (fail-loud)",
+                mod.KILIT_CAPA_GERI_ONEK in _f7_ses
+                and "KAPSAM DARALDI" in _f7_ses
+                and _f7_yol in _f7_ses
+                and len(_f7_ses.strip()) > len(mod.KILIT_CAPA_GERI_ONEK) + 40,
+                repr(_f7_ses[:400]))
         # 🔴 BEKLENTI OLCULEN AGACTAN TURETILIR, SABIT DEGIL: bu kapi hem gercek depoda
         # hem de mutasyon AYNASINDA (git deposu OLMAYAN gecici dizin) kosar. Sabit
         # "ortak git dizininde olmali" iddiasi aynada YANLIS-KIRMIZI yanar ve KONTROL
