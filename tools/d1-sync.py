@@ -45,10 +45,14 @@ tukenirse kesir uretmek yerine fail-loud durur ve `--seq-normalize` ister.
 """
 
 import argparse
+import atexit
+import errno
+import fcntl
 import importlib.util
 import json
 import os
 import re
+import socket
 import subprocess
 import sys
 from git_ortami import git_ortami, sentetik_git
@@ -82,6 +86,9 @@ JEN_URUN_DIR = os.path.join(KOK, "jenerator", "urunler")
 # GIZLI kaynak kaydi (gitignore). "baski" alani (uretim ayar onerisi) buradan D1'e
 # tasinir — PUBLIC urunler.json'a YAZILMAZ. Dosya yoksa (baska makine/CI) baski bos kalir.
 KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
+# YAZICI KILIDI (surecler-arasi). Ayni aile: .urunler.lock / .devam.lock / .yedek.lock
+# (CLAUDE.md "ORTAK CALISMA"). gitignore'da; 0 bayt degil, JSON bir SAHIP KAYDI tasir.
+KILIT = os.path.join(KOK, ".d1-sync.lock")
 
 # DB'yi ADIYLA cagiriyoruz (UUID DEGIL). NEDEN (olculdu 2026-07-22, T5): `npx wrangler@4`
 # YUZER pin -> CI o an 4.86.0'a cozuyordu; 4.86.0'da `d1 execute <arg>` argumani AD olarak
@@ -357,6 +364,241 @@ def q(s):
     if s is None:
         return "NULL"
     return "'" + str(s).replace("'", "''") + "'"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# YAZICI KILIDI — IKI ESZAMANLI YAZICI MESRU SATIR SILDIRIR
+# ══════════════════════════════════════════════════════════════════════════════
+# OLCULEN ARIZA (K48/K49): bu aracin YAZICI yolunda HICBIR kilit yoktu. Iki tam-katalog
+# yazicisi ayni anda kosabiliyordu ve sinif UC KEZ atesledi:
+#   kosum 31532464176 -> "D1'de FAZLA: 37" = 37 MESRU satir silindi
+#   kosum 31502177931 -> "FAZLA: 41"
+#   kosum 31546544881 -> "FAZLA: 5"  (5 mesru satir silindi, kardes oturum geri yazdi)
+# K48 merge turunda ikinci yazici kosulmak uzereyken UCUSTAKI yazici (PID 86177, ~350 sn)
+# TESADUFEN olculup durduruldu. BIZI KURAL DEGIL TESADUF KORUDU. Bu blok o tesadufu
+# kurala cevirir.
+#
+# NEDEN SILME OLUYOR: yazici once D1'i OKUR, sonra urunler.json ile diff'ler, sonra YAZAR.
+# Iki yazici bu OKU->PLANLA->YAZ penceresini ic ice gecirirse, digerinin HENUZ yazdigi
+# satirlar birinin `fazla` kumesine duser ve DELETE edilir. Kilit bu yuzden tek bir
+# ifadeyi degil, PENCERENIN TAMAMINI (okuma + plan + yazma + geri-okuma) kapsar.
+#
+# TASARIM KISITLARI (spec K49):
+#  1. SURECLER-ARASI: `fcntl.flock` — cekirdek duzeyinde. Dosyanin ICERIGI (PID kaydi)
+#     KARSILIKLI DISLAMA DEGILDIR, yalnizca TANIDIR; sahte bir kayit flock'u DELMEZ
+#     ([[kutu-arsivle]] dersi: "kilit calinamaz").
+#  2. FAIL-CLOSED, FAIL-SLOW DEGIL ([[fail-slow-fail-opendir]]): kilit SINIRLI sure
+#     beklenir; alinamazsa yazici DURUR (rc=KILIT_MESGUL_RC) — sonsuz bloklama YOK,
+#     sessizce devam etme YOK.
+#  3. BAYAT KILIT OLDURMEZ: coken bir surecten kalan kayit sonsuza dek kilitlemez.
+#     ⚠️ Devralma KENDISI bir fail-open kapisidir: yalnizca sahip PID'in gercekten OLU
+#     oldugu OLCULDUGUNDE devralinir ("muhtemelen olmustur" ile DEGIL). Olculemeyen her
+#     hal (izin hatasi / baska OSError) YASIYOR sayilir.
+#  4. OKUYUCU YOLU ETKILENMEZ: `--durum` / `--kuru` / `--bayatlik` / `--kendini-test`
+#     kilide DOKUNMAZ (aksi halde nobet/teyit yollari yaziciya bloklu olurdu).
+#  5. MUTLU YOLDA CIKTI BASILMAZ — bayraksiz davranis BAYT AYNI kalsin diye. Ses yalnizca
+#     ANORMAL hallerde cikar: beklendi · devralindi · reddedildi.
+#
+# 🔴 BILINEN SINIR (kacamaksiz, [[kapi-disiplin-ilkesi]]): flock TEK MAKINE kapsamlidir.
+# GitHub Actions kosucusu ile yerel bir oturum arasindaki yarisi BU kilit KAPATMAZ; onu
+# bayatlik kapisi + silme karantinasi kapatir. Bu blok, olculen vakanin ta kendisi olan
+# AYNI MAKINEDEKI iki yaziciyi (pre-push kancasi × elle senkron × uzlastirici surucusu)
+# kapatir.
+KILIT_BEKLEME_SN = 20.0     # SINIRLI bekleme (asilma YOK); asilirsa fail-closed dur
+KILIT_YOKLAMA_SN = 0.25
+KILIT_MESGUL_RC = 9         # "baska yazici ucusta" — 1'den AYRI ki cagiran ayirt edebilsin
+# Kilidi tutan acik dosya tanimlayicisi. flock OPEN FILE DESCRIPTION'a baglidir: ayni
+# surecte IKINCI bir open() + flock ayni dosyada CAKISIR -> tutucu tek yerde tutulur.
+_KILIT_TUTUCU = [None]
+
+
+def pid_yasiyor(pid):
+    """PID bu makinede YASIYOR mu?
+
+    🔴 FAIL-CLOSED YON: "olu" hukmu KANIT ister. Yalnizca `ProcessLookupError` (cekirdek
+    'boyle bir surec yok' dedi) OLU sayilir. Izin hatasi (baska kullanicinin sureci),
+    olcumsuz OSError ve gecersiz kayit YASIYOR sayilir — cunku bu fonksiyonun 'False'
+    dedigi yerde KILIT DEVRALINIR ve iki yazici ayni anda kosar.
+    """
+    try:
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return True
+    if pid <= 0:
+        return True
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True          # surec VAR, sinyal yollama iznimiz yok
+    except OSError:
+        return True          # OLCULEMEDI -> olu SAYILMAZ
+    return True
+
+
+def kilit_kaydi_oku(yol):
+    """Kilit dosyasindaki SAHIP KAYDI (dict) veya None (kayit yok/okunamadi/bozuk).
+
+    Bozuk/eksik kayit "sahip YOK" demektir, "sahip OLU" demek DEGIL: gercek karsilikli
+    dislama flock'tadir ve bu fonksiyon ancak flock BOSKEN danisilir. Bozuk bayta kalici
+    kilitlenmek guvenlik kazandirmaz, yalnizca insan mudahalesi gerektiren bir DoS uretir.
+    """
+    try:
+        with open(yol, encoding="utf-8") as f:
+            ham = f.read().strip()
+    except OSError:
+        return None
+    if not ham:
+        return None
+    try:
+        kayit = json.loads(ham)
+    except ValueError:
+        return {"pid": None, "bozuk": ham[:200]}
+    if not isinstance(kayit, dict):
+        return {"pid": None, "bozuk": ham[:200]}
+    return kayit
+
+
+def kilit_kaydi_pid(kayit):
+    """Kayittaki PID (int) veya None — kayit yok / alan yok / sayiya cevrilemiyor."""
+    if not kayit:
+        return None
+    try:
+        return int(kayit.get("pid"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _kilit_dur(mesaj):
+    """FAIL-CLOSED cikis: yazici DURUR. rc 1'den AYRI (KILIT_MESGUL_RC)."""
+    sys.stderr.write(mesaj.rstrip() + "\n")
+    sys.stderr.flush()
+    sys.exit(KILIT_MESGUL_RC)
+
+
+def _kilit_yas(kayit):
+    try:
+        return "%.0f sn" % max(0.0, time.time() - float(kayit.get("baslangic")))
+    except (TypeError, ValueError):
+        return "bilinmiyor"
+
+
+def yazici_kilidi_al(yol=None, bekleme=None, kol="yazici"):
+    """YAZICI kilidini al. Alinamazsa SIFIR-DISI cikar (fail-closed). Doner: fd."""
+    yol = KILIT if yol is None else yol
+    bekleme = KILIT_BEKLEME_SN if bekleme is None else float(bekleme)
+    try:
+        fd = os.open(yol, os.O_RDWR | os.O_CREAT, 0o644)
+    except OSError as e:
+        _kilit_dur("!! D1 YAZICI KILIDI ACILAMADI (%s): %s\n"
+                   "   Kilit kurulamadan YAZILMAZ: iki eszamanli yazici MESRU satir "
+                   "sildirir.\n   Yol: %s" % (type(e).__name__, e, yol))
+
+    son = time.time() + max(0.0, bekleme)
+    alindi = False
+    beklendi = False
+    while True:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            alindi = True
+            break
+        except OSError as e:
+            if e.errno not in (errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK):
+                os.close(fd)
+                _kilit_dur("!! D1 YAZICI KILIDI OLCULEMEDI (flock %s): %s\n"
+                           "   OLCULEMEDI bu depoda YESIL DEGILDIR -> yazma YAPILMADI.\n"
+                           "   Yol: %s" % (type(e).__name__, e, yol))
+            if time.time() >= son:
+                break
+            beklendi = True
+            time.sleep(KILIT_YOKLAMA_SN)
+
+    if not alindi:
+        kayit = kilit_kaydi_oku(yol) or {}
+        os.close(fd)
+        _kilit_dur(
+            "!! BASKA BIR D1 YAZICISI UCUSTA — bu kosum YAZMADAN durdu (fail-closed).\n"
+            "   Kilidi tutan: PID %s · kol %s · yas %s · makine %s\n"
+            "   %.1f sn beklendi, kilit birakilmadi. Iki eszamanli tam-katalog yazicisi\n"
+            "   birbirinin YENI satirlarini 'fazla' sayip SILER (olculdu: 37 · 41 · 5\n"
+            "   mesru satir). Bu yuzden beklemek yerine DURULUR.\n"
+            "   Coz: ucustaki yazici bitince tekrar kos -> python3 tools/d1-sync.py\n"
+            "   Kilit dosyasi: %s"
+            % (kayit.get("pid"), kayit.get("kol"), _kilit_yas(kayit),
+               kayit.get("makine"), bekleme, yol))
+
+    # ── flock ALINDI. IKINCI KAT: dosyadaki kayit CANLI baska bir sureci mi gosteriyor? ──
+    # Normalde imkansizdir (flock bos = sahip yok). Gerceklesirse flock'a guvenilemiyor
+    # demektir (or. kilit dosyasi bir ag dosya sisteminde, ya da kayit elle kopyalandi) ->
+    # FAIL-CLOSED dur. Bu kat, flock'un ACIK biraktigi bir kapiyi KAPATIR; hicbir zaman
+    # flock'un KAPATTIGI bir kapiyi ACMAZ.
+    kayit = kilit_kaydi_oku(yol)
+    sahip = kilit_kaydi_pid(kayit)
+    if sahip is not None and sahip != os.getpid() and pid_yasiyor(sahip):
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        except OSError:
+            pass
+        os.close(fd)
+        _kilit_dur(
+            "!! KILIT KAYDI CANLI BIR SURECE AIT (PID %s, yas %s) ama flock BOS.\n"
+            "   Karsilikli dislama olculemiyor -> YAZILMADI (fail-closed).\n"
+            "   Kilit dosyasi yerel bir dosya sisteminde mi? (flock ag FS'lerinde\n"
+            "   guvenilmez.) Surec gercekten olduyse kilit dosyasini silin: %s"
+            % (sahip, _kilit_yas(kayit), yol))
+
+    if kayit is not None and sahip != os.getpid():
+        # BAYAT KAYIT DEVRALINDI. Ses SART: fail-open yonunde tek adimimiz budur.
+        print("d1-sync: BAYAT YAZICI KILIDI DEVRALINDI — kayittaki PID %s OLU "
+              "(kayit yasi %s)." % (sahip if sahip is not None else "OKUNAMADI",
+                                    _kilit_yas(kayit or {})))
+    if beklendi:
+        print("d1-sync: yazici kilidi beklendi, alindi.")
+
+    os.ftruncate(fd, 0)
+    os.lseek(fd, 0, os.SEEK_SET)
+    os.write(fd, json.dumps({
+        "pid": os.getpid(),
+        "baslangic": time.time(),
+        "kol": kol,
+        "makine": socket.gethostname(),
+        "argv": sys.argv[1:][:12],
+    }, ensure_ascii=False).encode("utf-8"))
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    _KILIT_TUTUCU[0] = (fd, yol)
+    return fd
+
+
+def yazici_kilidi_birak():
+    """Kilidi birak ve SAHIP KAYDINI TEMIZLE (bayat kayit birakma). Doner: birakildi mi."""
+    tutucu = _KILIT_TUTUCU[0]
+    if tutucu is None:
+        return False
+    fd, _yol = tutucu
+    _KILIT_TUTUCU[0] = None
+    try:
+        os.ftruncate(fd, 0)
+    except OSError:
+        pass
+    try:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+    except OSError:
+        pass
+    try:
+        os.close(fd)
+    except OSError:
+        pass
+    return True
+
+
+# Surec NASIL biterse bitsin (sys.exit / istisna / normal donus) kayit temizlenir.
+# Cekirdek flock'u zaten surec olunce birakir; atexit'in ekledigi sey BAYAT KAYDIN
+# silinmesidir — yoksa her cikis bir sonraki kosuma "devralindi" gurultusu birakirdi.
+atexit.register(yazici_kilidi_birak)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2344,7 +2586,7 @@ def _kt_urun(uid, kategori="Oyun/Hobi", baslik=None):
 
 
 def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
-            bayatlik="UC", kok=None, turetilmis=None):
+            bayatlik="UC", kok=None, turetilmis=None, kilit=None):
     """d1-sync'i OFFLINE kosar. Doner: (cikis_kodu, cikti_metni, sayac).
     dusur(sql, sayac) -> True ise o yazma UYGULANMAZ ama BASARI raporlanir (sessiz ariza).
     oku_patlat -> geri-okuma sorgusu istisna atar (OLCULEMEDI yolu).
@@ -2352,6 +2594,10 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
        sayac["bayatlik"] kac kez olculdugunu tutar (maliyet ekseni: yazma yoksa 0 olmali).
     kok -> verilirse GERCEK bayatlik_olc() o git agacinda kosar (stub YOK) ve KOK oraya
        ayarlanir; uctan uca (git soyagaci + senkron) olcum icin.
+    kilit -> YAZICI KILIDI dosya yolu. VERILMEZSE her kosum icin AYRI bir gecici yol
+       kullanilir: kabul testi GERCEK depo kilidine (.d1-sync.lock) DOKUNMAZ ve ardisik
+       vakalar birbirini kilitlemez. VERILIRSE gercek bir yaris olculebilir
+       (tools/d1-yazici-kilidi-test.py bu ucu kullanir).
     turetilmis -> TURETILMIS_KAYIT yerine gecen FIKSTUR defteri.
        🔴 NEDEN GEREKLI: gercek kayit defteri KATALOG OLCEGINDE calisir — 3 urunluk
        fiksturde `model_kanon` "kova evreni BOS" der ve `taban_fiyat` semasi bu harness'ta
@@ -2401,15 +2647,24 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
                                      encoding="utf-8") as f:
         json.dump(urunler, f)
         yol = f.name
+    # YAZICI KILIDI: verilmediyse VAKAYA OZEL gecici yol -> gercek `.d1-sync.lock`
+    # dosyasina DOKUNULMAZ ve ardisik vakalar birbirini kilitlemez. `kilit` verilirse
+    # GERCEK yaris olculebilir (iki surec ayni yolu paylasir).
+    kilit_gecici = None
+    if kilit is None:
+        kilit_gecici = tempfile.mkdtemp(prefix="pruvo-kt-kilit-")
+        kilit = os.path.join(kilit_gecici, "d1-sync.lock")
+
     g = globals()
     eski = {k: g[k] for k in ("sorgu", "dosya_calistir", "URUNLER", "KAYNAKLAR",
                               "JEN_URUN_DIR", "taban_fiyat_haritasi", "bayatlik_olc",
-                              "KOK", "TURETILMIS_KAYIT")}
+                              "KOK", "TURETILMIS_KAYIT", "KILIT")}
     eski_argv = sys.argv
     tampon = io.StringIO()
     try:
         g["sorgu"] = _sorgu
         g["dosya_calistir"] = _dosya_calistir
+        g["KILIT"] = kilit
         if kok is None:
             g["bayatlik_olc"] = _bayatlik  # AG YOK: kapi kararini fikstur verir
         else:
@@ -2436,10 +2691,17 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
                     kod = 1
                     print(c)      # sys.exit(mesaj) -> mesaj ciktiya girsin (stderr yerine)
     finally:
+        # 🔴 KILIDI ELLE BIRAK: main() bu harness'ta AYNI SURECTE kosuyor, atexit HENUZ
+        # atesleymez. Birakilmazsa bir sonraki vaka kendi kilidine takilirdi (flock ayni
+        # surecte, AYRI open() ile de CAKISIR) — kabul testi kendi kendini bloklardi.
+        yazici_kilidi_birak()
         for k, v in eski.items():
             g[k] = v
         sys.argv = eski_argv
         os.unlink(yol)
+        if kilit_gecici:
+            import shutil
+            shutil.rmtree(kilit_gecici, ignore_errors=True)
     return kod, tampon.getvalue(), sayac
 
 
@@ -2587,11 +2849,16 @@ def _kt_goc_kos(conn, fn):
         return yaz, 0
 
     g = globals()
-    eski = {k: g[k] for k in ("sorgu", "dosya_calistir")}
+    eski = {k: g[k] for k in ("sorgu", "dosya_calistir", "KILIT")}
     tampon = io.StringIO()
     kod, sonuc = 0, None
+    # `fn` GERCEK main()'in --sema kolu olabilir -> yazici kilidini alir. Kilit VAKAYA
+    # OZEL gecici yola bakar: gercek `.d1-sync.lock` dosyasina DOKUNULMAZ ve ardisik
+    # vakalar birbirini bloklamaz (flock ayni surecte, AYRI open() ile de cakisir).
+    kilit_gecici = tempfile.mkdtemp(prefix="pruvo-kt-goc-kilit-")
     try:
         g["sorgu"], g["dosya_calistir"] = _sorgu, _dosya_calistir
+        g["KILIT"] = os.path.join(kilit_gecici, "d1-sync.lock")
         with contextlib.redirect_stdout(tampon):
             try:
                 sonuc = fn()
@@ -2601,8 +2868,11 @@ def _kt_goc_kos(conn, fn):
                 if not isinstance(c, int) and c is not None:
                     print(c)
     finally:
+        yazici_kilidi_birak()
         for k, v in eski.items():
             g[k] = v
+        import shutil
+        shutil.rmtree(kilit_gecici, ignore_errors=True)
     return kod, tampon.getvalue(), sonuc
 
 
@@ -3634,6 +3904,22 @@ def main():
         print("  HEAD=%s · uzak %s ucu=%s"
               % (str(b["head"])[:12], UZAK_DAL, str(b["uzak"])[:12]))
         sys.exit(0 if b["durum"] == "UC" else 1)
+
+    # ══ YAZICI KILIDI — kapsam CAGRI GRAFINDAN turetildi, ad deseninden DEGIL ══════
+    # ([[kapsam-evrenini-cagri-grafindan-turet]]) `dosya_calistir()` = CANLI D1'e YAZAN
+    # tek uc. main()'den ona giden TUM yollar:
+    #   --sema           -> dosya_calistir(SEMA dosyasi) + kolon_goc() [ALTER/CREATE INDEX]
+    #   --seq-normalize  -> seq_normalize() [UPDATE + geri alma UPDATE'leri]
+    #   BAYRAKSIZ        -> diff-upsert (DELETE/INSERT/UPDATE) + senkron damgasi
+    #                       + geri_okuma_dogrula() onarim yazmasi
+    # OKUYUCU kollari (kilit ALINMAZ, cunku yaziciya bloklu olmamalilar):
+    #   --durum · --kuru · --bayatlik · --kendini-test (ikisi zaten yukarida cikti)
+    # 🔴 KILIT PENCERENIN TAMAMINI KAPSAR (D1 okumasi + diff plani + yazma + geri-okuma):
+    # zarari veren sey tek bir DELETE degil, iki yazicinin OKU->PLANLA->YAZ penceresinin
+    # IC ICE GECMESIDIR. Kilidi yazmanin hemen onune koymak arizayi KAPATMAZDI.
+    if a.sema or a.seq_normalize or not (a.durum or a.kuru):
+        yazici_kilidi_al(kol=("sema" if a.sema else
+                              "seq-normalize" if a.seq_normalize else "senkron"))
 
     if a.seq_normalize:
         seq_normalize(urunleri_oku())

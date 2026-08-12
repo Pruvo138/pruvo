@@ -1223,6 +1223,17 @@ jobs:
         run: |
           python3 tools/d1-sync-durum-test.py
           python3 tools/test-baski-senkron.py
+      # D1 YAZICI KILIDI (K49). Olculen sinif: `d1-sync.py`nin YAZICI yolunda kilit YOKTU
+      # ve iki eszamanli tam-katalog yazicisi birbirinin YENI satirlarini `fazla` sayip
+      # SILIYORDU (kosum 31532464176 -> 37 mesru satir · 31502177931 -> 41 ·
+      # 31546544881 -> 5). K48 turunda ucustaki yazici (PID 86177, ~350 sn) TESADUFEN
+      # olculup durduruldu — bizi kural degil tesaduf korumustu.
+      # Kabul testi GERCEK isletim sistemi surecleriyle yaris kurar ama her surec
+      # d1-sync'in OFFLINE harness'ini kosar: AG YOK, wrangler YOK, CANLI D1'e
+      # DOKUNULMAZ. ~8 sn. Mutasyon kaniti (6 olduruculu / 4 kontrollu batarya):
+      # python3 tools/d1-yazici-kilidi-mutasyon.py (asagida, ayri adim).
+      - name: D1 yazici kilidi kabul testi (yaris + bayat kilit + okuyucu muafiyeti)
+        run: python3 tools/d1-yazici-kilidi-test.py
 
       - name: D1 seq tam sayi ve kanonik sira nobetcisi
         run: python3 tools/d1-seq-test.py
@@ -1400,6 +1411,14 @@ jobs:
 
       - name: "D1-sync durum kolu mutasyon bataryasi"
         run: python3 tools/d1-sync-durum-mutasyon.py
+
+      # D1 YAZICI KILIDI (K49) — kapinin KENDISI olcuyor mu. 6 OLDURUCU (kilit hic
+      # alinmaz · rc yutulur · CANLI pid OLU sayilir · bloklayan flock = fail-slow ·
+      # ikinci kat sokulur · sahip kaydi temizlenmez) KIRMIZI yanmali; 4 KONTROL
+      # mutanti YESIL kalmali (batarya tautoloji olmasin). Mutant DAIMA KOPYAYA
+      # uygulanir (ROOT aynasi), calisma agacina artik dosya birakilmaz. ~1 dk.
+      - name: "D1 yazici kilidi mutasyon bataryasi"
+        run: python3 tools/d1-yazici-kilidi-mutasyon.py
 
       # DEPLOY ACLIK KAPISININ GECICI AG SINIFI (11 Agu 2026). Batarya 5 oldurucu
       # + 1 kontrol mutantla yeniden-deneme sinirlarini olcer; canli GitHub agina

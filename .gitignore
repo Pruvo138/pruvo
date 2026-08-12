@@ -508,6 +508,10 @@ stl/
 tools/URUN-EKLEME-REHBERI.md
 .urunler.lock
 .devam.lock
+# d1-sync.py YAZICI kilidi (K49): iki eszamanli tam-katalog yazicisi birbirinin YENI
+# satirlarini 'fazla' sayip SILIYORDU (olculdu: 37 · 41 · 5 mesru satir). Dosya bir
+# JSON SAHIP KAYDI tasir (pid/baslangic/kol/makine) — yerel durum, commit'lenmez.
+.d1-sync.lock
 # parity-sequential-flock.py parti mutex'i (yerel kilit dosyasi; kardesleri yukarida)
 .parity-batch.lock
 # yedekle.py eszamanlilik kilidi (her push'ta pre-push hook cagirir; yerel, 0 bayt)
