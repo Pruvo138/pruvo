@@ -1,19 +1,9 @@
 {
-  "_not": "MARKA INVARYANT TABANI — bugunku BORC buraya civilendi; kapi yalnizca sayi ARTARSA kirmizi yanar. Dusus de kirmizidir (circir): borc kapandiktan sonra sessizce geri gelmesin. Guncelleme: python3 tools/marka-invaryant-kapisi.py --taban-yaz",
-  "_olcum": "5 Agu 2026 · katalog 19126 urun · marka sayfasi ve `?marka=` kollari canli uc ile 128/128 birebir; `?q=` kolu ARTIK CANLIYI MODELLEMEZ — marka sorgusu bu depoda uyelik yuklemine baglandi (uc henuz benimsemedi).",
-  "arama_fazla_toplam_BLOKLAMAZ": 70,
+  "_not": "MARKA INVARYANT TABANI — 12 Agu 2026: FILTRE_KAYIP borcu kapandi, taban 0'a sikilastirildi. Kapi yeni kaybi marka marka kirmizi yakar; guncelleme: python3 tools/marka-invaryant-kapisi.py --taban-yaz",
+  "_olcum": "12 Agu 2026 · katalog 26116 urun · FILTRE D1 marka_kanon uyeliginden, SAYFA ve ARAMA ayni kanonik marka uyeligi kaynagindan turer.",
+  "arama_fazla_toplam_BLOKLAMAZ": 281,
   "arama_kayip": {},
   "filtre_fazla": {},
-  "filtre_kayip": {
-    "Black+Decker": 1,
-    "Citroen": 4,
-    "Datsun": 1,
-    "IKEA": 2,
-    "Kia": 1,
-    "Mini": 1,
-    "Opel": 3,
-    "Smart": 1,
-    "Volvo": 109
-  },
-  "marka_sayisi": 129
+  "filtre_kayip": {},
+  "marka_sayisi": 142
 }

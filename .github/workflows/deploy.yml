@@ -463,10 +463,10 @@ jobs:
 
       # MARKA INVARYANTI (Okan hukmu): "TUM markalarda sayfa ve arama urun adetlerinin
       # AYNI olmasi." Tek tek yama degil, INVARYANT. OLCULEN SESSIZ HATA (4 Agu): uctaki
-      # `?marka=` kolu HAM STRING ESITLIGI yapiyor, site ise markayi KATLIYOR -> 128
-      # markanin 9'unda cip ile sayfa AYRISIYOR ve 120 urun-kalemi MUSTERI CIPE BASINCA
-      # KAYBOLUYOR (Volvo sayfa 726 · cip 620). Site dogru gosterir, cip kaybeder, hicbir
-      # sey kirmizi yanmaz. Kapi her kanonik marka icin UC KUME kurar (sayfa · ?marka= ·
+      # `?marka=` kolunun HAM STRING ESITLIGI site katlamasindan ayrisiyordu -> 128
+      # markanin 9'unda 120 urun-kalemi MUSTERI CIPE BASINCA KAYBOLUYORDU. 12 Agu'da uc
+      # D1 `marka_kanon` uyeligine gecirildi ve borc tabani 0'a sikilastirildi. Kapi her
+      # kanonik marka icin UC KUME kurar (sayfa · ?marka= ·
       # ?q=) ve farklari MARKA MARKA tabana (tools/marka-invaryant-taban.json) karsi olcer:
       # MEVCUT BORC BLOKLAMAZ, REGRESYON BLOKLAR (circir: dusus de kirmizidir, taban
       # bayatlamasin). AG CAGRISI YOK (CI'da deterministik); uc davranisi yerel portla

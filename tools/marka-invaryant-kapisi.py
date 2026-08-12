@@ -11,8 +11,9 @@ Her kanonik marka `b` icin UC kume kurulur ve ikili farklari sayilir:
   SAYFA  (b)  /marka/<slug>/ sayfasinin gosterdigi urunler.
               KAYNAK: marka_model_build.gruplandir + marka_urun_sayisi (TEK KAYNAK —
               ikinci bir toplama formulu YAZILMAZ; S ekseni bunu kilitler).
-  FILTRE (b)  Uctaki (Worker) `?marka=b` kolunun DONDURDUGU kume — HAM STRING ESITLIGI:
-              `b in (urun.marka or [])`. Katlama YOK (uc `markaKatla` CAGIRMIYOR).
+  FILTRE (b)  Uctaki (Worker) `?marka=b` kolunun DONDURDUGU kume — D1 `marka_kanon`
+              uyeligi. Deger senkron aninda marka_model_build.marka_uyelikleri ile
+              turetilir; uc katlamayi KOPYALAMAZ, hazir kanonik uyeligi okur.
   ARAMA  (b)  `?q=b` kolunun donduru kume. Marka ADIYLA yapilan sorgu artik SERBEST METIN
               DEGIL, GECIS KURALIDIR (arama.marka_sorgusu_esler): UYELIK ∪ BASLIKTA TAM
               KELIME. Marka OLMAYAN sorgu (jant kapagi, mentese) eskisi gibi serbest
@@ -44,10 +45,8 @@ ACIKCA ILAN EDILIR.
 
 ═══ NEDEN TABAN CIVILI (mevcut borc bloklamaz, REGRESYON bloklar) ═════════════════
 Olculen borc (5 Agu): FILTRE_KAYIP 9 marka / 120 kalem · ARAMA_KAYIP 0 (marka sorgusu
-uyelige baglandiktan sonra; oncesinde 2 marka / 4 kalem idi).
-Bu borcu bugun kirmizi yakan bir kapi TUM ekibin yayinini durdururdu ve borcu KAPATMAZDI
-([[kapi-birikimi-yayin-gecikmesi]]). Bu yuzden bugunku degerler `marka-invaryant-taban.json`
-dosyasina MARKA MARKA civilenir; kapi yalnizca sayi TABANIN USTUNE CIKARSA kirmizi yanar.
+uyelige baglandiktan sonra; oncesinde 2 marka / 4 kalem idi). Filtre borcu 12 Agu'da
+D1 `marka_kanon` yuklemine gecilerek kapandi ve taban 0'a sikilastirildi.
 
 🔴 CIRCIR (ratchet) — DUSUS DE KIRMIZIDIR: olculen deger tabanin ALTINA inerse kapi
 DURUR ve tabanin guncellenmesini ister. Gerekcesi [[beyan-edilmis-survivor]]: taban
@@ -64,11 +63,13 @@ birbirini kismen kacirdigini gizler (Opel'de olculdu: adet farki −4, ama sayfa
 aramada OLMAYAN 3 + aramada olup sayfada olmayan 7). Kume farki iki YONU AYRI olcer.
 
 ═══ TOTOLOJI TUZAGI VE CAPALAR ════════════════════════════════════════════════════
-Iki ucu da AYNI fonksiyondan turetirsek kapi HER ZAMAN yesil yanar. Bes savunma:
-  1. FILTRE modeli BILEREK baska bir yuklem kullanir (ham esitlik) — katlama CAGIRMAZ.
+Iki ucu da AYNI fonksiyondan turetirsek kapi HER ZAMAN yesil yanabilir. Bes savunma:
+  1. FILTRE uyeligi TEK kanonik kaynaktan turer; eski HAM STRING ESITLIGI geri gelirse
+     aksan/onek/ayirac capalari FILTRE kumesinden duser -> kapi kirmizi. Mutasyon surucusu
+     bu eski yuklemi gecici olarak geri getirir.
   2. POZITIF CAPA: adi civili, katlama OLMADAN uye OLAMAYACAK 5 gercek urun, kendi
-     markasinin HEM sayfasinda HEM aramasinda BULUNMALI ve katalogda TAM BIR KEZ gecmeli.
-     Katlama kapatilirsa capalar SAYFA kumesinden duser -> kapi kirmizi.
+     markasinin SAYFA, FILTRE ve ARAMA kumelerinde BULUNMALI ve katalogda TAM BIR KEZ
+     gecmeli. Katlama kapatilirsa capalar SAYFA kumesinden duser -> kapi kirmizi.
   3. S EKSENI: kurulan SAYFA kumesinin buyuklugu, deponun kanonik sayma fonksiyonu
      (marka_urun_sayisi) ile BIREBIR esit olmali — ikinci bir toplama formulu dogamaz.
   4. 🔴 UYUM CAPASI (marka sorgusu gecis kuralina OZEL). Marka sorgusu uyelige baglaninca
@@ -186,8 +187,10 @@ def ne_olculmedi():
     """BEYAN — bu kapinin GORMEDIGI eksenler. Sessiz kalmasin diye HER kosumda basilir."""
     print("\nNE OLCULMEDI (beyan):")
     print("  1. CANLI UC KODU. Worker (`?marka=` / `?q=` kollari) BU DEPODA DEGIL. Kapi")
-    print("     onun davranisini YEREL PORTLA modeller. Model 4 Agu'da canliyla 128/128")
-    print("     eslesti; uc kodu degisirse model SESSIZCE ayrisabilir. O ekseni ancak")
+    print("     onun davranisini YEREL PORTLA modeller. HAM filtre modeli 4 Agu'da canliyla")
+    print("     128/128 eslesti; 12 Agu'daki marka_kanon gecisinden sonra canli D1 degeri")
+    print("     dogrulandi, fakat uc kodu bu kapida okunmaz. Uc kodu degisirse model SESSIZCE")
+    print("     ayrisabilir. O ekseni ancak")
     print("     canli olcum kapatir (ag cagrisi CI'da deterministik degildir).")
     print("  2. ARAMA_FAZLA (aramada SAYFADAN FAZLA cikan urun) BLOKLAMAZ, yalnizca BASILIR.")
     print("     Marka sorgusu uyelige baglandiktan sonra bu sayi artik GURULTU degil, GECIS")
@@ -261,10 +264,11 @@ def olc(mmb, arama, urunler, index_html):
             for p in kaynak:
                 if p.get("id"):
                     sayfa.add(p["id"])
-        # UCTAKI `?marka=` KOLU — HAM STRING ESITLIGI (katlama YOK). Bu yuklem BILEREK
-        # sayfa yukleminden BAGIMSIZ yazildi (totoloji tuzagi).
-        filtre = {p["id"] for p in urunler
-                  if p.get("id") and marka in (p.get("marka") or [])}
+        # UCTAKI `?marka=` KOLU — D1 `marka_kanon` uyeligi. Kolonun degeri senkron
+        # aninda AYNI `marka_uyelikleri` kaynagindan turer; burada ikinci bir katlama ya
+        # da ham-esitlik yuklemi YAZILMAZ. Eski ham yuklem regresyonu mutasyon surucusunde
+        # ve asagidaki FILTRE capalarinda kirmiziya civilidir.
+        filtre = {pid for pid, markalar in uyelik.items() if marka in markalar}
         # `?q=<marka>` KOLU — MARKA SORGUSU ise gecis kurali, degilse serbest metin.
         kanon_marka = arama.marka_sorgu_kanonu(marka, kanon)
         if kanon_marka:
@@ -408,8 +412,9 @@ def main():
         if uc is None:
             kontrol("CAPA %s: '%s' markasi evrende YOK" % (pid, marka), False)
             continue
-        sayfa, _filtre, srch = uc
+        sayfa, filtre, srch = uc
         kontrol("CAPA %s -> /marka/%s/ SAYFASINDA (%s)" % (pid, marka, tur), pid in sayfa)
+        kontrol("CAPA %s -> '%s' FILTRESINDE" % (pid, marka), pid in filtre)
         kontrol("CAPA %s -> '%s' ARAMASINDA" % (pid, marka), pid in srch)
 
     # ── Q) MARKA SORGUSU KABLOLU MU ──────────────────────────────────────────────
