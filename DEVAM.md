@@ -2,13 +2,28 @@
 
 ## 🔁 DEVIR — 12 Agu 2026 ~15:xxZ, eski hesap → yeni hesap (KraL)
 
-**SIRADAKI TEK IS:** `kral/deploy-model-evreni` dalini bitirip main'e al — model evrenini TEK
-kanonik kaynaktan turet, `serit-a2` "Model-kanon-D1-kolonu" ve `serit-a3` "FAZ3-bayrak"
-kapilarini yesillendir; **yayin bu iki kapi yuzunden KAPALI.**
+**SIRADAKI TEK IS:** `tools/model-kanon-d1-test.py:252`'deki `_yayin_bagimsiz` govdesini sil ve
+yerine `tools/model-uyelik-kapisi.py`'den cikarilacak yeni `tools/bagimsiz_yayin_yargisi.py`
+modulunu (icine `yabanci_marka` bagimsiz kolu eklenmis haliyle) import et.
 
-**Nerede kaldim:** Kosum `31595345905` **failure**; suclu `47b6734d` (marka model cipleri merge'u
-— cip 1022→1060, kapsama %67,33→%68,56). Yerelde de kirmizi (`YERELDE=1`), yani CI'ya ozgu degil.
-Kok neden: model evreni + aksan-normalize arama **iki yerde ayri tanimli** (ikiz tanim sinifi).
+**Nerede kaldim (teshis TAM, onarim YAZILMADI — bilincli):** dal `kral/deploy-model-evreni`
+(`8ee8d737`, origin'de). Kosum `31595345905` failure; **iki kapi, IKI AYRI KOK** — spec'in
+sordugu "ayni kumeden mi" sorusunun cevabi **HAYIR**:
+- **KAPI1 `model-kanon-d1-test.py` (B7):** sapma 39/39 siniflandi, `DIGER=0`. **38'i** merge'un
+  ekledigi `jeton_sahibi` kolundan (`Hyundai|Accent`, `Hyundai|Elantra`, `Alfa Romeo|GTV`…) —
+  cip artisiyla (1022→1060) **birebir**; **1'i** `yabanci_marka` kolundan (`Hyundai|Genesis`);
+  **0 aksan, 0 aciklanamayan**. 🔴 **URETIM DOGRU, kirmizi yanan sey BAYAT AYNA:** yayimlama
+  yargisi UC yerde tanimli — `marka_model_build.py:1202` (uretim) · `model-uyelik-kapisi.py:139`
+  (ayna #1) · `model-kanon-d1-test.py:252` (ayna #2); `47b6734d` aynalardan **birini guncelledi,
+  otekini unuttu**.
+- **KAPI2 `faz3-bayrak.js` (TEST 7):** 🔴 **`47b6734d` ile ILGISIZ.** `faz3-bayrak.js:455`
+  sayfanin kabul araligi (`aramaPlani`→`markaNorm`, NFD) yerine **ham `indexOf`** ile kiyasliyor
+  ve iddia **VERI-BAGIMLI** (`hedef` = katalogun en yeni urununun ilk kelimesi) → urun partisi
+  yuzunden dustu, **rastgele dusmeye devam eder**.
+🔴 **REVERT KAPI2'YI COZMEZ** — `47b6734d` geri alinsa bile FAZ3 kirmizisi kalir. Kapsama
+gerilemedi: cip kapisi `CIP_TOPLAM=1061`, `ENVANTER_DRIFT=0`, `HUKUM=YESIL`; sayac · ilan ·
+cip · is-akisi · ci-kapsam **5/5 rc=0**.
+⚠️ Dalda `RAPOR-MIMARA.md` **zorla eklendi** (gitignore'lu) — merge ONCESI dusurulmeli.
 Bugun main'e inen ve **canliya INEMEYEN** isler: `47b6734d` cipler · `9e9635fb` ilan tutari
 (kart ↔ yapisal veri 100 kat sapmasi duzeltildi: 30030 → 300) · `e5ecb4fb` vape 4 kayit cikarma.
 🔴 **Kapsama GERI ALINARAK kapi susturulMAYACAK** — cip 1060 / %68,56 korunacak.
