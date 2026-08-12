@@ -23,6 +23,15 @@
  * Referans = gercek dosyalar: index.html + secenekler.js degisince test onlari okur,
  * kopyayi degil. Gereken element id'leri de index.html'den REGEX ile cikarilir → sayfaya
  * yeni bir id eklenince test kendiliginden ogrenir (bayat id listesi tuzagi yok).
+ *
+ * OZET COZUCUSU DE KOPYA DEGIL ([[ikiz-tanim-sessiz-ayrisma]]): testin fetch taslaklarini
+ * beslemek icin ozet.json'u ACAN fonksiyon, index.html'in KENDI `ozetAc`'idir ve
+ * tools/ozet-ac-ayikla.js ile CANLI dosyadan ayiklanir. Onceden burada elle kopyalanmis
+ * bir `ozetAc` duruyordu; temsil v3'e (`yeniRef` + `gorselOnek`) gecince kopya sessizce
+ * ayristi, `ozetVeri.yeni` BOSALDI ve test TEST 7'ye varmadan TypeError ile coktu.
+ * Ayiklama basarisiz olursa test FAIL-CLOSED durur (rc=2, OLCULEMEDI) — eski koda
+ * sessizce dusmez. Kosum oncesi kapi da `yeni` havuzunun DOLU oldugunu dogrular, boylece
+ * sema kaymasi TypeError yerine acik mesajla yakalanir.
  */
 
 const fs = require("fs");
@@ -189,19 +198,39 @@ if (!fs.existsSync(OZET)) {
   process.exit(1);
 }
 const ozetHam = JSON.parse(fs.readFileSync(OZET, "utf8"));
-function ozetAc(d) {
-  const alanlar = d.kartAlanlari || [];
-  const ac = (k) => Array.isArray(k)
-    ? Object.fromEntries(k.map((v, i) => [alanlar[i], v, i])
-      .filter((x) => x[0] && (x[2] < 8 || x[1] !== null)).map((x) => [x[0], x[1]])) : k;
-  if (alanlar.length) {
-    d.parametrik = (d.parametrik || []).map(ac);
-    Object.keys(d.bloklar || {}).forEach((kat) => { d.bloklar[kat] = d.bloklar[kat].map(ac); });
-    d.yeni = (d.yeni || []).map(ac);
-  }
-  return d;
+
+/**
+ * CANLI istemci cozucusu — index.html'in kendi `ozetAc`'i (kopya TUTULMAZ).
+ * FAIL-CLOSED: ayiklanamazsa rc=2 (OLCULEMEDI) ile durur; eski/elle yazilmis cozucuye
+ * SESSIZCE dusmek yasak — o hal, degismis temsili hic olcmeden yesil verirdi.
+ */
+let ozetAc;
+try {
+  ozetAc = require(path.join(KOK, "tools", "ozet-ac-ayikla.js")).ozetAcAl(INDEX);
+} catch (e) {
+  console.log("OLCULEMEDI: index.html ozetAc ayiklanamadi: " + (e && e.message ? e.message : String(e)));
+  process.exit(2);
 }
 const ozetVeri = ozetAc(JSON.parse(JSON.stringify(ozetHam)));
+
+/**
+ * 🔴 KOSUM ONCESI KAPI (12 Agu 2026): asagidaki testler `ozetVeri.yeni` havuzunu
+ * DOGRUDAN indeksliyor (ornegin TEST 7'de `ozetVeri.yeni[0].baslik`). Havuz sema
+ * kaymasi yuzunden bosalirsa test TypeError ile coker ve GERIYE KALAN testler HIC
+ * kosmaz — kapsama kaybi "kirmizi" gibi gorunur ama nedeni gorunmez. Bu kapi o hali
+ * acik mesajla, testler baslamadan durdurur.
+ */
+if (!Array.isArray(ozetVeri.yeni) || ozetVeri.yeni.length === 0) {
+  console.log("OLCULEMEDI: ozet.json 'yeni' havuzu BOS — sema kaymis olabilir "
+    + "(yeni/yeniRef), test kosamaz. (surum=" + JSON.stringify(ozetHam.surum)
+    + ", ham anahtarlar: " + Object.keys(ozetHam).join(",") + ")");
+  process.exit(2);
+}
+if (ozetVeri.yeniCozulemeyen !== 0) {
+  console.log("OLCULEMEDI: ozet.json 'yeniRef' referanslarinin "
+    + ozetVeri.yeniCozulemeyen + " tanesi COZULEMEDI — kart havuzu eksik, test kosamaz.");
+  process.exit(2);
+}
 const ozetYaniti = () => yanit(JSON.parse(JSON.stringify(ozetHam)));
 
 let gecti = 0, kaldi = 0;
