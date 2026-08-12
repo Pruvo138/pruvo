@@ -495,8 +495,16 @@ def indeks_uret(urunler, index_metni):
     # ETKILENMEZ: elenen kovanin urunleri kusak katlamasiyla ANA modelin cipinde durur.
     # 🔴 ELEME ESIKLERDEN ONCE: "marka basina en az 2 model" sarti NIHAI kumeyi gormeli,
     # yoksa iki cipten biri elenince satir tek cip kalir ve HIC cizilmezdi.
+    # AYRI MARKA SINIFI (12 Agu, Okan hukmu) — cip etiketi bu markanin MODELI degil,
+    # katalogda KENDI urunleri olan BASKA BIR MARKA. Yuklem TEK GOVDE (_mmb.yabanci_marka_mi)
+    # ve tablo KOVA UYELIGINDEN BAGIMSIZ turer; boylece sayfa ureteci ile bu indeks AYNI
+    # yargiyi verir (ayrisirsa sayfasi kapali kova anasayfada cip olarak kalirdi).
+    _sahiplik_tablosu = _mmb.marka_sahiplik_tablosu(urunler, mevren)
+
     def _elendi(k):
         if (k[1], k[2]) in _mmb.ROZET_DISI or _mmb.model_olmayan_cift_mi(k[1], mm_ad[k]):
+            return True
+        if _mmb.yabanci_marka_mi(k[1], mm_ad[k], k[2], _sahiplik_tablosu):
             return True
         # H3 DENY KOLU (6 Agu, mimar hukmu): taban modele YAPISIK donanim soneki tasiyan
         # kova sayfa ACMAZ -> cip de ACMAZ (`yayimlanir_mi` ile ayni govde, ayni sira).
@@ -516,7 +524,10 @@ def indeks_uret(urunler, index_metni):
         # 🔴 YARGI GOVDESI TEK KAYNAK: envanter + H1 sasi/motor kodu + H3 ayri arac adi
         # (`_mmb.baslik_yargisi_var_mi`). Buraya yalnizca envanter yazilsaydi H1/H3 ile
         # DOGAN sayfalar cipsiz kalirdi — sessiz ayrisma.
-        return _bd and not _mmb.baslik_yargisi_var_mi(k[1], k[2], mm_ad[k])
+        # (d) JETON SAHIBI kolu da AYNI tablodan gecirilir; gecirilmezse TypeError ile
+        # DURUR (fail-closed) — sessizce dar yargi verip sayfasi OLAN kovayi cipsiz birakmaz.
+        return _bd and not _mmb.baslik_yargisi_var_mi(
+            k[1], k[2], mm_ad[k], _mmb.jeton_sahibi(mm_ad[k], _sahiplik_tablosu))
 
     # KOVA ANCAK KENDI YAZIMIYLA DOGAR (mm_tam): yalnizca kusak katlamasiyla ulasilan bir
     # canon icin cip UYDURULMAZ — sayfa ureteci de tabana ancak taban kovasi VARSA katlar.

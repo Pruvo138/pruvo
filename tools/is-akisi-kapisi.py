@@ -1887,7 +1887,14 @@ TABLO_TABANLARI = (
     # Cozum SEÇIM DEGIL BIRLESIM — iki beyan da DURUYOR, taban ikisinin TOPLAMI.
     # 12 Agu (K64): `tools/ayip-beyani-kapisi.py` serit B'ye eklendi (6502 m.11 dort
     # secenek beyani). Tam esitlik geregi taban AYNI commit'te 107 -> 108.
-    ("SERIT_B", 108),
+    # 12 Agu (cip kapisi): 108 -> 109 (marka-cip-mutasyon.py beyan edildi). Yine bir TASIMA
+    # DEGIL, EKLEME: KAPININ KENDISI (tools/marka-cip-kapisi.py) serit A'da BLOKLAYICI
+    # kosar; buraya yalnizca onun CANLILIGINI olcen mutasyon surucusu girdi (kapiyi 7 kez
+    # kosturur, ~10 dk). Tam esitlik geregi taban AYNI commit'te guncellendi.
+    # 🔴 IKINCI KEZ AYNI SATIRDA IKI BAGIMSIZ BEYAN CAKISTI (dal main'in gerisindeydi;
+    # K64 108'e cikardi, bu dal da 107'den 108'e cikariyordu). Cozum yine SECIM DEGIL
+    # BIRLESIM: iki beyan da DURUYOR, taban ikisinin TOPLAMI.
+    ("SERIT_B", 109),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2760,6 +2767,13 @@ SERIT_B = {
         "deploy'u atlatti (kosum 30654284096); kok neden onarildi ama hangi kolun "
         "girildigi SQLite SURUMUNE bagli -> CI davranisi yerelde tam dogrulanamiyor ve "
         "korudugu kaynak (araD1) bu depoda degil. Serit A'ya tasima karari MIMARIN.",
+    ("nobet.yml", "serit-b", "tools/marka-cip-mutasyon.py"):
+        "SAF MUTASYON SURUCUSU: olctugu sey `tools/marka-cip-kapisi.py`nin CANLILIGIDIR, "
+        "yayinlanan icerik DEGIL — KAPININ KENDISI SERIT A'DA (deploy.yml, bloklayici) "
+        "kosuyor, yani cip hedefi/sayisi/gurultusu/tiklama davranisi yayini ZATEN durdurur. "
+        "Surucu kapiyi 7 kez kosturur (~10 dk); serit A'ya konsaydi HER yayini 10 dk "
+        "geciktirirdi ([[kapi-birikimi-yayin-gecikmesi]]). Mutant envanteri o dosyanin "
+        "MUTANTLAR tablosundadir; buraya SAYI yazilmaz (prozadaki sayi sessizce bayatlar).",
     ("nobet.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
         "SAF MUTASYON BATARYASI (bolumler A..E): kapilarin kendi kirmizi-yolunu olcer, "
         "yayinlanan hicbir ciktiya bakmaz. Mutant envanteri o dosyanin bolum "
