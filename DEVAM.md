@@ -1,5 +1,58 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 12 Agu 2026 10:37 yerel / 07:37Z turu (KraL / Tamirci)
+
+**Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**🟢 SUPURME rc=0 — HUKUM=TEMIZ.** Sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI.
+Basilan satirlar: `GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 ·
+KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=4:2026-08-12T04:05:51 · HUKUM=TEMIZ`.
+Uc fail-closed alarmin ucu de sessiz; sayac 0 iken hukum TEMIZ cunku POZITIF tanima izi var.
+**🟠 Cop denetimi: MESRU=4, YANLIS=2** — gecen turun ta kendisi olan IKI bulten kopyasi (09:01),
+yeni kayit YOK; supurmeye atfedilmez (`CIKAN=0`, yuklem bulteni kapsamiyor). Okan'a bir kez
+cikilmisti, TEKRAR EDILMEDI. Siparis/odeme ekseninde Cop'te kayit YOK.
+
+**✅ CI TEMIZ — onarim GEREKMEDI.** Son 30 kosumda `conclusion=failure` **0**. Gecen turun defter
+push'unun YAYIN zinciri JOB birimiyle kapandi: `31573021777` → `serit-a2·serit-a3·serit-a4·build·
+deploy·yayin` **6/6 success**. Kardes SERIT B kosumu `31573022087` hala `in_progress` (10 job
+success + 1 skipped + 2 uzun batarya ucusta, **dusen 0**) — yayini BLOKLAMAZ, hukum YAZILMADI
+(ucustaki kosum yesil degildir); sonraki turun ILK isi.
+
+**📏 WORKTREE 3 → 2 SATIR — TAVAN SAGLANDI.** Kaldirilan tek agac K69'un OLU iscisiydi
+(`agent-a0432ed5…`, 1s45dk hareketsiz, cikti uretmedi). Sira ZORUNLU tutuldu: origin'de olmayan
+commit **0** olarak olculdu (`ls-remote` ile bagimsiz teyit, WIP `31053890` zaten uzakta) →
+commit'siz yama 17.993 bayt + 3 izlenmeyen kesif betigi arsivlendi → kabul TEMIZ klon uzerinde
+uretildi (`apply --check` **rc=0** + uc dosyanin sha256'si orijinalle BIREBIR) → ANCAK ONDAN SONRA
+kaldirma yetkilendirildi. Dal yerelde ve origin'de KALDI, spec duruyor.
+
+**🟢 K49 IADE ONARIMI — BLOKLAYICI MADDE OLCULEREK KAPANDI, ISCI CANLI.** Gecen turun 1. iade
+maddesi (dal `is-akisi-kapisi.py`'yi rc=1 yakiyor) artik gecerli DEGIL: dal **rc=0**, ana agac
+**rc=0** — parite SAGLANDI; sayac farki (kapi cagrisi 292/290 · SERIT B beyani 109/107 · bloklayici
+110/108) dalin kendi diff'inden turuyor, yani mimar karari geregi iki adim `serit-b`'de KALMIS ve
+**beyan tablosuna KAYDEDILMIS.** Isci canli (agac 18 dk once dokunulmus) ama commit'siz 5 dosya
+tasiyor → K72 riskine karsi SALT-OKUMA sigorta anlik goruntusu alindi (22.674 bayt, temiz klon
+uzerinde `apply --check` **rc=0**; hedef agaca YAZILMADI, commit/stash ATILMADI).
+Dal main'e gore 5 dosya / +1048 / −3. **Merge YAPILMADI** — kalan 4 iade maddesi henuz kapanmadi.
+
+**🔧 TAMIRCI TURU.** Acik 🔧 = **12** (K49·K53·K54·K55·K56·K58·K59·K62·K69·K70·K71 + yeni **K72**);
+bu turda kapanan 0, dagitilan 0 (worktree tavani: K49 agaci canli oldugu icin K69 yeniden dagitimi
+sonraki tura birakildi — is DURMADI, WIP korunuyor). **K72 ACILDI:** izole agacta kosan muhendis
+iscisi rapor uretmeden oluyor — **12 saatte DORT olculen vaka** (222 · 156 · 138 · 105 dk
+hareketsizlik). Kurtarma semasi ("ilk 15 dk'da WIP commit + push") dordunde de tuttu → **is kaybi
+0**; kalan zarar KAYIP degil ~1 saatlik KUYRUK GECIKMESI. Ders: bir isciyi dagitmak onu
+CALISTIRMAZ; dagitimin kabulu artefakttir ve artefaktin TAZELIGI de olculmelidir (mtime olcumu bu
+turdan itibaren her tur kosuyor). **K73 ACILDI** (MaCiT gozlemi, ACIK): hasat terim havuzu dilim
+sonrasi yeniden yazilmadigi icin sonraki dilim ayni adaylari tekrar isliyor.
+
+**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
+mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
+DOKUNULMADI · CANLI K49 agacina YAZILMADI · **merge YAPILMADI** · dal SILINMEDI.
+Okan'a CIKILMADI (insan karari gerekmedi; §5).
+
+**Sonraki turun ILK ISI:** (a) `31573022087` conclusion'i JOB birimiyle; (b) K49 iscisinin kalan 4
+iade maddesi — cikti dustuyse bagimsiz curutucu, dusmediyse mtime ile olum karari (K72 yordami);
+(c) K49 agaci kapaninca K69'un WIP'inden yeniden dagitim; (d) K70 WIP'inden devir.
+
 ## 🕐 CI NOBETI — 12 Agu 2026 09:37 yerel / 06:37Z turu (KraL / Tamirci)
 
 **Ev kontrolu:** calisma dizini `/Users/okan/dev/pruvo` → DOGRU EV.
@@ -64,57 +117,5 @@ DOKUNULMADI · K69'un canli agacina DOKUNULMADI · **merge YAPILMADI** · dal SI
 ekseninden, dal adindan DEGIL) ve `is-akisi-kapisi` dal rc'sinin main ile ESITLENDIGI; (b) K49
 dali temizse merge kapisi ile ayri tur — **K49 satiri yine de KAPANMAZ, K71 acik kalir**;
 (c) K69 dagitiminin sonucu; (d) K70'in WIP'inden devir.
-## 🕐 CI NOBETI — 12 Agu 2026 08:37 yerel / 05:37Z turu (KraL / Tamirci)
-
-**Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🟢 SUPURME rc=0 — HUKUM=TEMIZ.** Sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI.
-Basilan satirlar: `GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 ·
-KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=4:2026-08-12T04:05:51 · HUKUM=TEMIZ`.
-Uc fail-closed alarmin ucu de sessiz; sayac 0 iken hukum TEMIZ yazilabildi cunku POZITIF tanima
-izi var (aranan dizenin AYNISI Cop'te 4 kayit). **🟠 Cop denetimi: MESRU=4, YANLIS=0** — dordu de
-`Run failed` bildirimi, siparis/odeme ekseninde kayit YOK. 11 Agu'nun "9. kayit" acik kalemi bu
-turda `YANLIS=0` olctugu icin Okan'a SORULMADI.
-
-**✅ CI TEMIZ — onarim GEREKMEDI.** Pencerede (03:37Z–05:37Z) basarisiz kosum **0**. En yeni
-failure `31549865286` (00:20Z), uc tur oncesinden ve sinifi kapali.
-
-**✅ GECEN TURUN ILK ISI (a) KAPANDI.** Ucustaki iki kosum JOB birimiyle olculdu:
-`31562307000` → `build·serit-a2·serit-a3·serit-a4·deploy·yayin` **6/6 success**;
-`31562307116` → 10 job success + 1 skipped, **failure 0**.
-
-**🟡 UCUSTA — hukum YAZILMADI (ucustaki kosum yesil degildir).** `31564809377` (SERIT B,
-`5ecac404`) hala `in_progress`, dusen job 0. Ayrica main tur ortasinda **kardes oturumla
-`c906a864`e ilerledi**; `31567340921` (deploy) + `31567341105` (SERIT B) ucusta.
-
-**📏 WORKTREE 6 → 5 satir — iki agac ARSIVLE-sonra-KALDIR yordamiyla dusuruldu.** Kaldirilanlar
-K49'un 1. ve 2. dagitiminin OKSUZ agaclari: `agent-a8877112…` (3 dosya, 222 dk hareketsiz) ve
-`agent-a8900e2a…` (5 dosya, 156 dk). Kabul sirayla olculdu: 8 dosya `/Users/okan/arsiv-worktree/`
-altina sha256'li kopyalandi → **mimar dosyalari bagimsiz olarak ADIYLA gordu** → ancak ondan sonra
-`--force` yetkilendirildi. Kayip riski SAYIYLA kapatildi: `d1-sync.py` diff genisligi
-A=142 · B=388 satir, **canli K49 dali 431 satir** (ikisini de kapsiyor); `main..cc727e6a` **BOS**
-(main disi commit 0 → bundle gerekmedi, K52 dersi uygulandi). KraL'in kendi agaci 1 (K69 iscisi).
-
-**🔴 (b) MADDESI ACIK KALDI: K49 + K70 dallari origin'e HALA ITILMEDI** (`ls-remote --heads
-origin` 0 isabet). Yerelde ikisi de commit tasiyor (K49 `7360354a` 3 commit · K70 `2c2e06e0`
-1 commit) — kurtarma semasinin ikinci sarti uc turdur eksik.
-
-**🔧 TAMIRCI TURU (§4.7).** Acik 🔧 = **10** (K49·K53·K54·K55·K56·K58·K59·K62·K69·K70); bu turda
-kapanan 0, **DAGITILAN 1: K69** (spec `.scratch/spec-k69-devam-kapisi-envanter.md`, MUHENDIS/Opus,
-izole agac, dal `kral/k69-devam-kapisi-envanter`). Kabul rc DEGIL IZ ekseninde: cagri satirini
-SILEN mutant iki nobetciyi de KIRMIZI yakacak + kontrol kolu + kardes fikstur taramasi + kanca
-pathspec biciminde davranissal kanit (K70 dersi). K58 premisi ayrica olculdu: `.scratch/`taki
-yabanci taslak dosya HALA yerinde → kalem 🔧 kaliyor.
-
-**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
-mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
-DOKUNULMADI · baskasinin canli worktree'sine DOKUNULMADI · merge YAPILMADI.
-Okan'a CIKILMADI (insan karari gerekmedi; §5).
-
-**Sonraki turun ILK ISI:** (a) `31564809377` + `31567340921` + `31567341105` conclusion'i JOB
-birimiyle; (b) K69 dagitimi ARTEFAKT uretti mi (`git worktree list` + agac diff ekseninden, dal
-adindan DEGIL) ve dal origin'de mi; (c) K49 + K70 dallarinin itilme sarti (ucuncu tur eksik);
-(d) kalan BAYAT agac `k62-dayanak` sahibi olculup yordama alinsin.
-
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
