@@ -1,198 +1,119 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🔁 DEVIR — 12 Agu 2026 ~15:xxZ, eski hesap → yeni hesap (KraL)
+## 13 Agu 2026 — YAYIN ZINCIRI KAPANDI (KraL)
 
-**SIRADAKI TEK IS:** `tools/model-kanon-d1-test.py:252`'deki `_yayin_bagimsiz` govdesini sil ve
-yerine `tools/model-uyelik-kapisi.py`'den cikarilacak yeni `tools/bagimsiz_yayin_yargisi.py`
-modulunu (icine `yabanci_marka` bagimsiz kolu eklenmis haliyle) import et.
+**Deploy YESIL:** kosum `31632478625` success, headSha `07e01284` (SHA eslesmesiyle
+dogrulandi, "son kosum yesildi" degil). Yayin gun boyu kapaliydi; alti kirmizi sirayla
+olculup kapandi:
+- **Model kanon D1** — uretim DOGRU, kirmizi yanan BAYAT AYNA. (d) jeton sahipligi +
+  gurultu sinifi kollari aynaya tasindi; B7 sapmasi **39 -> 0**, mutasyon **12/12**.
+- **FAZ3 bayrak** — iddia veri-bagimliydi ve uyelik ekseni KORDU (mutant yakalanmiyordu).
+  Iddia sayfanin kanonik `aramaPlaniEsler` yuklemine baglandi, batarya **3/3**.
+- **Ic rapor adi** — dalda `RAPOR-MIMARA.md` izleniyordu, izlemeden cikarildi.
+- **build cokmesi** — 30 kayitta `fiyat` SAYI (`AttributeError: 'int' ... strip`).
+  String'e cevrildi (deger degismedi) + `katalog-alan-kapisi.py`'ye TIP ekseni kuruldu
+  (bos fiyat parametrik seri icin gecerli kalir, 23 kayit olculdu).
+- **Marka invaryant** — IKIZ TANIM: filtre ham marka esitligi, sayfa+arama kanonik
+  uyelik. Yuklem kanonik kaynaktan turetildi; kayip **7 -> 0**, taban **4 -> 0**
+  (Volvo 109 dahil borc kapandi).
+- **Cip indeks** — ayni sinifin AYNASI bayat kaldi (uretim kanonige gecmisti).
+  Ayna uretim kaynagindan turetildi, **123/123**, mutant kirmizi.
 
-**Nerede kaldim (teshis TAM, onarim YAZILMADI — bilincli):** dal `kral/deploy-model-evreni`
-(`8ee8d737`, origin'de). Kosum `31595345905` failure; **iki kapi, IKI AYRI KOK** — spec'in
-sordugu "ayni kumeden mi" sorusunun cevabi **HAYIR**:
-- **KAPI1 `model-kanon-d1-test.py` (B7):** sapma 39/39 siniflandi, `DIGER=0`. **38'i** merge'un
-  ekledigi `jeton_sahibi` kolundan (`Hyundai|Accent`, `Hyundai|Elantra`, `Alfa Romeo|GTV`…) —
-  cip artisiyla (1022→1060) **birebir**; **1'i** `yabanci_marka` kolundan (`Hyundai|Genesis`);
-  **0 aksan, 0 aciklanamayan**. 🔴 **URETIM DOGRU, kirmizi yanan sey BAYAT AYNA:** yayimlama
-  yargisi UC yerde tanimli — `marka_model_build.py:1202` (uretim) · `model-uyelik-kapisi.py:139`
-  (ayna #1) · `model-kanon-d1-test.py:252` (ayna #2); `47b6734d` aynalardan **birini guncelledi,
-  otekini unuttu**.
-- **KAPI2 `faz3-bayrak.js` (TEST 7):** 🔴 **`47b6734d` ile ILGISIZ.** `faz3-bayrak.js:455`
-  sayfanin kabul araligi (`aramaPlani`→`markaNorm`, NFD) yerine **ham `indexOf`** ile kiyasliyor
-  ve iddia **VERI-BAGIMLI** (`hedef` = katalogun en yeni urununun ilk kelimesi) → urun partisi
-  yuzunden dustu, **rastgele dusmeye devam eder**.
-🔴 **REVERT KAPI2'YI COZMEZ** — `47b6734d` geri alinsa bile FAZ3 kirmizisi kalir. Kapsama
-gerilemedi: cip kapisi `CIP_TOPLAM=1061`, `ENVANTER_DRIFT=0`, `HUKUM=YESIL`; sayac · ilan ·
-cip · is-akisi · ci-kapsam **5/5 rc=0**.
-⚠️ Dalda ic rapor dosyasi **zorla eklendi** (gitignore'lu) — merge ONCESI dusurulmeli.
-Bugun main'e inen ve **canliya INEMEYEN** isler: `47b6734d` cipler · `9e9635fb` ilan tutari
-(kart ↔ yapisal veri 100 kat sapmasi duzeltildi: 30030 → 300) · `e5ecb4fb` vape 4 kayit cikarma.
-🔴 **Kapsama GERI ALINARAK kapi susturulMAYACAK** — cip 1060 / %68,56 korunacak.
+**🔴 CI KAPSAM KAPISI YANLIS-POZITIFI KAPANDI (gunun en pahali sinifi).** Kapi push'un
+ICERIGINI degil CALISMA AGACINI yarguluyordu: `git add` edilmemis YABANCI bir dosya
+BASKASININ push'unu blokluyordu. Bugun **4 kez** oldu, ucu MaCiT'in urun partilerini +
+KaaN'in commit'ini durdurdu. Kapsam artik pre-push'un verdigi ref/SHA araligindan
+turuyor; aralik olculemezse ESKI KATI davranis (fail-closed). Kati kol mutasyonla
+korundu, muafiyet listesine satir EKLENMEDI.
 
-**Acik worktree/dal:**
-- `kral/deploy-model-evreni` (worktree `agent-a3251270b98f7b14b`, **locked**) → yayin onarimi,
-  UCUSTA; isciye "yarim da olsa commit'le ve PUSH et" denildi.
-- `kral/k35-k36-site-kusurlari` (`f343b398`, origin'de, 8 commit ileri) → malzeme cipi + jenerator
-  breadcrumb; **veri on-kosulu MaCiT tarafindan kapatildi** (`28ef3b43`), merge KraL kapisi, HAZIR.
-- `kral/k49-d1-yazici-kilidi` · `kral/k78-yayin-erisim-evren-hizalama` → **baska oturumlarin CANLI
-  isi**, worktree'leri kirli, DOKUNMA.
-- `worktree-agent-a9306261f47df111b` (`c09c4c1c`) = K27, **MERGE EDILMEYECEK**: `shop/` odeme
-  duzlemine dokunuyor + urun kaynak linki gizli kayittan turuyor (26.683 dolu kayit) → yalniz
-  atif ZORUNLU (CC BY) kayitlarda cozulmeli, ucretli/uyelikli kaynakta ASLA.
+**Ayrica:** `duzelt.py` `tavsiyeFilament` alanini kabul ediyor (tip dogrulamali, 185
+iddia) -> KaaN'in ASA tavsiyesi canliya indi (`a3d5cae1`). Kusurlu `--yeni-id` calismasi
+(hal kapisi eski id ile cagriliyor + gizli kayitta hedef id kontrolu eksik) main'e
+ALINMADI, yamasi arsivde. Worktree **4 -> 1** (bundle verify rc=0, 103+102 ref; dallar
+SILINMEDI). K20 `son-zorunlu` kanit sha `cb35de6f` ile KAPALI.
 
-**Baskasinin calisma kopyasinda duran:** `tools/d1-sapma-mutasyon.py` + `tools/d1-sapma-mutasyon-dayanak-kaniti.py`
-(K62 isi) · `tools/paket-deploy-kritik-yol.md` · `.scratch/` · `urunler.json` + `tools/duzelt.py`
-(vape cikarma iscisi UCUSTA, commit `e5ecb4fb` atildi ama is bitmedi).
+**K82 M3 PILOTU KURULDU:** 4 cron nobeti MiniMax M3'e gecti (`MOTOR=minimax-m3`,
+tur testi rc=0/18sn, sizinti 0). Kok neden Claude Code'un OAuth/keychain kimliginin
+MiniMax anahtarini EZMESIYDI; cozum izole `CLAUDE_CONFIG_DIR` profili (kalici dizin,
+700) + o cagrida OAuth jetonunun temizlenmesi. `--bare` SECILMEDI (nobetlerin arac
+kabiliyetini kaybettirirdi). Geri donus kolu var: anahtar yok/bossa nobet Claude'a duser.
 
-**Zamanlanmis nobetler (yeni hesapta YENIDEN KURULACAK):** `gunluk-mimar-ihtar` (`0 15 * * *`) ·
-`teftis-takip` (`0 17,23 * * *`) · `macit-parti-surucusu` (`0 */2 * * *`) ·
-`pazar-mimar-optimizasyon` (`0 12 * * 0`) + crontab `37 * * * *` CI nobeti
-(**`~/.claude/cron/.ci-token` OKAN KAPISI — tazelenmezse nobet sessizce olur**).
+**SIRADAKI TEK IS:** BaBa'nin sirasindan ③ — K81 yayin kabulu (Codex iscisinden gelince
+olc), sonra kalici-duzen kanit cevabi (3-serit -> korumali main -> merge kuyrugu).
+## 🕐 CI NOBETI — 12 Agu 2026 23:37 yerel / 20:37Z turu (KraL / Tamirci)
 
-**Dal emniyeti (devir turu):** **9 dal itildi**, kurtarma etiketi uzakta **6**. Uzaksiz kalan
-TEK dal `kurtarma/stash-8agu-baska-oturum` — **bilerek itilmedi**: pre-push sizinti kapisi
-fail-closed `OLCULEMEDI` verdi (aday butcesi 1.657.912 > 150.000; itmenin menzili patolojik
-genis). Kanca atlama bayragi KULLANILMADI. **Kayip YOK** — K33 yargisinda bu dalin icerigi davranis
-ekseninde main'de dogrulanmisti (19/19 urun main'de, 128 girdi scratch artefakti).
-⚠️ `main` uzaktan **1 commit ileride**: `d6a148af` (Alfa Romeo × Printables dilim-1, katalog
-26065→26068) — MaCiT'in isi, sahibi itecek; diskte duruyor, kayip degil.
-⚠️ Worktree tavani asik (**4**): ucunde main'de olmayan commit var (`agent-a3251270b98f7b14b` 1 ·
-`agent-a3c810bd32146b6b5` 5 · `agent-a3dd92d91c2416ab6` 2) → **kaldirmadan once BUNDLE gerekir**;
-ikisi baska oturumlarin CANLI isi.
+**EV KONTROLU:** `/Users/okan/dev/pruvo` — dogru ev, tur olculdu.
 
-**Okan'da bekleyen karar:** Yayin kapali iken beklenecek mi yoksa `47b6734d` revert edilip yayin
-hemen acilacak mi — soruldu, cevap "sonra yap, once devir".
+**🟢 SUPURME TEMIZ (rc=0).** `GITHUB_BILDIRIM_INBOX=6 BULUNAN=6 TASINAN=6 ATLANAN=0 CIKAN=6
+KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=6:2026-08-12T23:17:38 HUKUM=SUPURULDU`.
+Uc fail-closed alarm da sessiz. Tasinan alti kayit da `notifications@github.com` + "Run failed".
+Pozitif tanima izi VAR (`GITHUB_BILDIRIM_INBOX=6` = `BULUNAN`), yani hukum TEMIZ, OLCULEMEDI degil.
+🟠 **COP DENETIMI: MESRU=6, YANLIS=1 — supurmeye ATFEDILEMEZ (besinci ardisik tur).** Tek YANLIS
+kayit `dio` hesabinda bir reklam maili (GitHub-disi gonderen, supurme kapsaminin disinda);
+muhasebe `CIKAN = TASINAN = 6` ile kapali ve `COP_IZI` (6) ile `MESRU` (6) birebir ortusuyor.
+Kalem **K77** + **K84** zaten defterde acik; §5 olcutune gore Okan'a CIKILMADI.
 
-**⚠️ D1 SENKRONU DEVIR ANINDA KIRMIZI (`--durum` rc=1, 1/5 eksen).** Sebep bilinen ve BEKLENEN
-ara hal: vape 4 kaydi katalogdan cikti (26069 → 26065) → o satirlar D1'de "fazla" gorundu ve
-uzlastiricinin silme kolu **KARANTINADA** (ilk gozlemde SILMEZ, `0eb8612b`); ustune esmanli urun
-partisi (`d6a148af`) geldi. **Yeni oturumun ISI: bir sonraki turda `d1-sync.py --durum` ile
-yeniden olc** — hala 5/5 degilse gercek sapma vardir. YAZAN bayragi kor korune kosma (K49:
-yazici kilidi hala YOK).
+**🟢 YAYIN ACILDI — gecen turun 8,5 saatlik tikanmasi COZULDU.** `Build & deploy` `31635409838`
+(`a3d5cae1`): `build` · `serit-a2` · `serit-a3` · `serit-a4` · `deploy` · `yayin` **6/6 success**
+(JOB birimiyle olculdu, kosum rengiyle degil). `serit-a2` onarimi `21f53a17` ile indi.
 
-**Devir aninda hala kosan (yeni oturum bunlari OLU bulacak):** yayin onarimi
-(`kral/deploy-model-evreni`, locked worktree) ve vape cikarma iscisi (`urunler.json` +
-`tools/duzelt.py` calisma kopyasinda acik). Ikisi de diskte iz birakti; yeni oturum once
-`git -C /Users/okan/dev/pruvo status --short` ile bunlari sahiplenmeli.
+**🟢 D1 SENKRONU 5/5 YESIL** (`d1-sync.py --durum`): SAYI 26130=26130 · SEQ · SEMA · TURETILMIS
+KOLON (5/5 GUNCEL) · ICERIK `hash UYUSMAZ=0 · EKSIK=0 · FAZLA=0`. Devir aninda kirmizi olan
+(1/5 eksen) hal kapandi. `D1 uzlastirici` kosumu `31635926478` kirmizi yandi ama **tasarim
+geregi gorunurluk alarmi**: `hash UYUSMAZ: 1` (mercedes-r129 tavsiyeFilament duzenlemesi) ->
+onarim -> teyit `0` -> `b2087583`'te `31640204600` **success**. Sinif kalemi K85 acik kalir.
 
-## 🕐 CI NOBETI — 12 Agu 2026 13:37 yerel / 10:37Z turu (KraL / Tamirci)
+**🔴 KALAN TEK GERCEK KIRMIZI: SERIT B (yayini BLOKLAMAZ) — 3 batarya, 3 ayri kok.**
+`31635410102` / `31632479053` ile olculdu: (a) `marka-sayfa-bataryasi` `K6_KAPSAMA_jeton_sahibi_
+kolu_kapatildi -> KACTI`, `MUTANT=8/9 KONTROL=YESIL`, `IZ_AYRIMI=YANLIS`; (b) `marka-bolum-
+bataryasi` `X4_TUMUNU_GOSTER_OLU HAYATTA KALDI (rc=1)`; (c) `model-baslik-bataryasi`
+`ayirt-edilemeyen [[5, 7]]`. Yeni kalem **K86** acildi ve AYNI TURDA Codex'e DAGITILDI
+(spec `.scratch/spec-serit-b-onarim-12agu2337.md`, ana agac, worktree YOK).
+⏳ **TUR SONUNDA UCUSTA:** Codex ~30 dk'dir calisiyor ve uc kapiyi duzenledi
+(`marka-cip-kapisi.py` · `marka-artim-test.py` · `model-baslik-kolu-test.py`), **henuz commit
+YOK**. Sure siniri (§3.5 ~25 dk) doldugu icin surec OLDURULMEDI — oldurmek tam da
+[[oksuz-commitsiz-onarim-curur]] sinifini uretirdi.
+🔴 **SONRAKI TURUN ILK ISI:** (1) `git status` ile bu uc dosyanin commit'lenip commit'lenmedigini
+ol; (2) commit'siz ve Codex olu ise onarimi SAHIPLEN (ortak altyapi = Tamirci'nin kalici onarim
+yetkisi, §4.7); (3) yeni SERIT B kosumunda uc batarya job'unu **JOB birimiyle** dogrula ve
+**mutant sayisinin DUSMEDIGINI** teyit et (gevsetme ile yesile boyama kontrolu).
 
-**🟠 COP DENETIMI: MESRU=3, YANLIS=8 — SUPURMEYE ATFEDILEMEZ (ucuncu ardisik tur).** Yeni
-dusen dort kayit (68194-68197) da GitHub-disi (3× Meta reklam bildirimi 13:11, 1× Cloudflare
-tanitim) ve kayit id'leri **bitisik blok** = tek elle-silme hareketinin imzasi. Uc bagimsiz iz:
-(a) supurmenin `SILINENLER` listesi iki kaydi ADIYLA basiyor, ikisi de `notifications@github.com`
-+ "Run failed"; (b) supurmenin Cop'e dusurdugu kayitlar **68199-68200**, yani dort YANLIS kayit
-supurmeden ONCE Cop'teydi; (c) `CIKAN = TASINAN = 2`. Bu turun yeni kayitlarinda **siparis/odeme
-maili YOK** → Okan'a **CIKILMADI** (§5 olcutu: yeni insan karari istemiyor; kalem **K77** zaten
-defterde acik). Kendiliginden geri ALINMADI.
+**🟡 ODEME/PAKET BAYATLIK KIRMIZISI = ACIK KALEM K30, YENI ARIZA DEGIL.** `Odeme yolu bayatlik
+nabzi` (`31635409818`) ve `Paket tazeligi alarmi` (`31634402709`) **ayni betigi** (`tools/
+shop-bayatlik-kapisi.py`) cagiriyor ve **ayni tek kok nedeni** olcuyor: canli shop worker surumu
+`751b14e9-…` (11 Agu 20:00Z), shop dizinine dokunan 2 commit yayinlanmamis, en eski **615,3 dk**
+(esik 120 dk) -> `DURUM: BAYAT (rc=1)`. Tek kapanis yolu `wrangler deploy` = **OKAN KAPISI**;
+Okan karari 11 Agu ~12:40 "BEKLETILIYOR" olarak zaten alinmis -> §5 geregi Okan'a TEKRAR
+YAZILMADI. Ikisi de `deploy.yml` `needs:` zincirinde DEGIL, yayini durdurmuyor.
 
-**✅ D1 SAPMASI KENDI KENDINE KAPANDI — onarim gerekmedi.** `D1 uzlastirici` kosumu
-`31584719407` (09:50Z) gercekten kirmiziydi (`ONARILAMADI: sapma KAPANMADI`; ayrica ayni
-kosumda `KARANTINA DAMGASI INDIRILEMEDI` → HTTP 401, `KARANTINA_HUKUM=OLCULEMEDI`, fail-closed
-dogru davranis). Bagimsiz olcum (`d1-sync.py --durum`) **bes eksende de temiz**: SAYI 25968 ==
-25968 · SEQ tam-sayi 0 sapma · SEMA 3 goc indeksi KURULU · TURETILMIS KOLON 5/5 GUNCEL ·
-ICERIK `urun_hash` UYUSMAZ=0 EKSIK=0 FAZLA=0. Teyit ikinci eksenden: `D1 sapma alarmi`
-kosumu `31588187458` (10:36Z) **success**. → sinif KAPALI, mail hakli olarak supuruldu.
+**🔧 TAMIRCI TURU:** defterde acik 🔧 **17** satir; bu turda **kapanan 1** (K81), **acilan 1**
+(K86), **dagitilan 1** (K86 -> Codex). K81 kapanisi: gecen turdan kalan tek olculmemis olcut (2)
+olculdu — taban kanonik kaynaktan turuyor (`mmb.marka_uyelikleri`/`kanon()`, D1 `marka_kanon` ile
+ayni katlama) **ve asil kapanis tabani ICERIKSIZLESTIRMEK oldu**: `marka-invaryant-taban.json`
+sayisal alanlari artik `{}` (sifir-tolerans iddiasi), yani parti basina bayatlayacak marka-basi
+sayac envanteri KALMADI. Aksan ekseni sentetik fikstürle civilendi (`fx-citroen-aksan`) ve
+katlamayi soken mutant (`M1 KATLAMAYI KAPAT`) kirmizi yakiyor. **Sinif dersi kalici yazildi:**
+elle tutulan bir taban parti basina bayatliyorsa dogru onarim tabani otomatik TURETMEK degil,
+tabani sayac envanterinden SIFIR-TOLERANS iddiasina cevirmektir -> [[envanter-drift-parti-basina]].
 
-**🔴 GERCEK KIRMIZI BULUNDU VE ONARILDI — `ayip-beyani-kapisi.py` KENDI INDIGI COMMIT'TE
-KIRMIZI INMIS.** Sinif izi uc kosumla olculdu: `9cf40ae3` (31579986690) serit-b **success**
-(kapi henuz yoktu) → `c4a1931a` (31583064590) serit-b **failure** → `ac683147` (31585947019)
-serit-b **failure**. Yani kapi, olctugu yuzey YESILLENMEDEN CI'ya baglanmis ve iki commit
-boyunca yayin seridini kirmizi tutmus. Kapinin hukmu: `taranan yuzey 370 · kapsam 67 ·
-kanonik beyani tasiyan 57 · SAPAN=10`; on yuzeyin **onunda da DORT secenegin DORDU birden**
-eksikti (`ücretsiz onarım, yenisiyle değişim, bedel indirimi, bedel iadesi`).
-Onarim MUHENDIS'e (Codex, ana agac) delege edildi; spec `.scratch/spec-ayip-beyani-onarim.md`.
-Sonuc: commit **`94708af9`** — yalniz `tools/sayfalar.py` (13+/12−), main'e **PUSH EDILDI**.
+**⚠️ WORKTREE TAVANI ARTIK TEMIZ:** `git worktree list` **2 satir** (ana agac + `claude/
+vigilant-mclean-f48729`), tavan 2 — gecen turun 4 satirlik asimi baska bir oturumca kapatilmis.
 
-**🔴 CODEX KIMLIK CATISMASI TEKRARLADI (ilk cagri BOSA GITTI).** Birinci `codex exec`
-`YENI_KOSUM=YOK:ONARILAMADI` dondu ve gerekcesi soydu: *"proje kurali mimarin icra/test/commit
-yapmasini yasakliyor"* — yani Codex `CLAUDE.md`'deki **MIMAR ELI SURMEZ** kuralini KENDINE
-uyguladi. Bilinen sinif ([[codex-ana-agac-commit-kapisi-catismasi]]) ama bu sefer yeni bir
-tezahur: kapiyi asmaya calismak degil, isi TAMAMEN birakmak. Cozum olculdu ve calisti: spec'in
-BASINA "SEN MIMAR DEGILSIN, SEN MUHENDISSIN; o kural mimari baglar, seni baglamaz;
-icra/commit/push SENIN isin" bloku konunca ikinci cagri isi eksiksiz yapti.
-→ **spec sablonuna kalici KIMLIK BLOKU gerekiyor.** Ikinci is sirasinda ayni catismanin oteki
-yonu de tekrarladi; tam olcum ve zarar degerlendirmesi **DEVAM-ARSIV.md'nin 10:37Z arsiv ekinde**
-(sinif kapisi geregi izlenen deftere yazilmaz). Ozet: kapsam iki arac dosyasi, urun verisi
-DOKUNULMAMIS, atlanan sekiz kanca kolu bagimsiz curutucuyla YENIDEN kosturuldu, hepsi rc=0.
-
-**🔴 BAGIMSIZ CURUTUCU KAPININ GOREMEDIGI KUSURU YAKALADI — kabul Codex'in sayisina
-VERILMEDI.** Curutucu bes kapiyi bagimsiz kosturdu (`ayip-beyani` rc=0 `SAPAN=0` · `--kendini-test`
-rc=0 `18 iddia` · `cayma-beyani` rc=0 · `kisisel-veri-test` rc=0 · `parite-test.js` rc=0
-`1328 sorgu BIREBIR`) ve uc curutme ekseni olctu: **EKSEN A GECTI** (kapi dosyasina
-DOKUNULMAMIS, kanonik sabitlerin DEGERI degismemis → kapi gevsetilerek yesillenmemis),
-**EKSEN B SABITTEN** (on govdenin onunda da `AYIP_HAKLARI_CUMLESI` sabitinden turetilmis,
-elle string kopyasi YOK), **EKSEN C CELISKI-VAR**: `_iki_parca_tek_parcada_birlestirilir_mi()`
-govdesinde onarim "ekle, silme" seklinde yapilmis — kanonik dort-secenekli cumle EKLENMIS ama
-hakki iki secenege daraltan eski kalip (*"ayipli bir urun ucretsiz onarilir ya da degistirilir"*)
-yedi satir yukarida **HALA DURUYOR**. Ayni sayfa simdi kendisiyle celisiyor. Kapi bunu goremiyor
-cunku yalniz "kanonik cumle VAR MI" diye bakiyor, celiskili kalibin YOKLUGUNU olcmuyor.
-Curutucu ayrica kapinin TETIK kor noktasini buldu:
-`_yuksek_tork_ve_burulma_tasiyan_plastik_parca_uretimi()` ayni dar kalibin varyantini tasiyor
-ama "ayip"/"cayma hakki islemez" gecmedigi icin kapsama HIC girmiyor.
-→ **SINIF DERSI: "kapi yesil" ile "metin dogru" ayri hukumlerdir.** Bir kapi VARLIK olcuyorsa
-(X sayfada var mi), YOKLUK eksenini (X ile CELISEN Y sayfada duruyor mu) ayrica olcmelidir;
-aksi halde "ekle, silmeyi unut" onariminin tamami yesil gecer. → [[kapi-beyanin-dogrulugunu-degil-varligini-olcer]] ailesi.
-
-**✅ CELISKI ONARIMI AYNI TURDA DAGITILDI VE KAPANDI — commit `b01819b2`, PUSH EDILDI.** Spec
-`.scratch/spec-ayip-celiski-onarimi.md` (MUHENDIS/Codex, ana agac) iki parca istedi ve ikisi de
-indi: (1) dar/sartli kaliplar kaldirildi — `_iki_parca_tek_parcada_birlestirilir_mi()` govdesinden
-dar cumle SILINDI, `_yuksek_tork_ve_burulma_tasiyan_plastik_parca_uretimi()` (kapinin KOR
-NOKTASI) kanonik cumleye tasindi; (2) kapiya **CELISKI ekseni** eklendi.
-Kapsam `tools/ayip-beyani-kapisi.py` (+34/−2) + `tools/sayfalar.py` (+2/−2), baska dosya YOK.
-**Kabul isci raporundan DEGIL bagimsiz curutucudan alindi:** `KAPI_rc=0` · `KENDINI_TEST_rc=0`
-**IDDIA=21** (taban 18 → +3, yeni fiksturun POZITIF izi) · `MUTASYON=KIRMIZI-YANDI` (eksen
-sokulunce `OZ-TEST KIRMIZI: 2/21`, sonra geri alindi → tautoloji DEGIL) · `YENI_EKSEN=GERCEK`
-(hem pozitif hem negatif fikstur kolu var) · `GEVSETME=YOK` (esik/kapsam/tetik degismedi, cikis
-kodu semantigi 0/1/2 ve fail-closed korundu) · `KALAN_DAR_KALIP=0` · `DILBILGISI=SAGLAM`.
-
-**⚠️ ACIK KALEM — KAPSAM DISI ICERIK KAYBI (curutucu yan bulgusu, sonraki tur yargilasin).**
-`_iki_parca_tek_parcada_birlestirilir_mi()` govdesinde dar kalibin BITISIGINDEKI *"Bu kural boyut
-uyumundan ayridir — ... duzeltmesi bize aittir."* cumlesi de kaldirilmis. O cumle spec'in hedefi
-DEGILDI ve bir taahhut ifadesi tasiyordu → geri konmali mi, yoksa kanonik cumle onu zaten
-kapsiyor mu, KraL duzleminde karara baglanacak. Yasal taban risk altinda DEGIL (6502 m.11'in dort
-secenegi artik sayfada tam ve sartsiz duruyor).
-
-**⏳ UCUSTA — hukum YAZILMADI.** `94708af9`'in SERIT B kosumu (`31590014957`) daha yeni push
-gelince **cancelled** oldu (§4.5: beklenen kuyruk davranisi, icerik kaybolmaz). Tur sonunda
-`b01819b2` uzerinde `31591212884` (SERIT B, `serit-b` job'i olculecek) **in_progress**,
-`31591212631` (Build & deploy) `pending`. Ucustaki kosum yesil degildir. Kapinin YERELDE yesil
-oldugu iki bagimsiz curutucuyla olculdu; **CI teyidi sonraki tura devrediliyor.**
-
-**📏 WORKTREE.** `git worktree list` **7 satir** (ana agac + 6). KraL'in kendi agaclari: K78
-(`agent-a3dd92d91c2416ab6`, `b3345e8c`), K49 (`agent-a3c810bd32146b6b5`), K35/K36
-(`agent-a5a03b3247066386e`, `f343b398`) → tavan asildi ama hicbirine DOKUNULMADI: bu turun isi
-ana agacta gecti ve agac dusurme icin arsivle-sonra-kaldir yordami (K72) tur icinde
-kosturulamadi. Sonraki turun kalemi.
-
-**🔧 TAMIRCI TURU.** Acik 🔧 = **14** (K80 yeni acildi); bu turda **KAPANAN 1** (ayip-beyani
-kirmizisi: `SAPAN=10` → `SAPAN=0`, iki commit), **DAGITILAN 2** (ana kol + celiski/kor-nokta
-kolu, ikisi de ayni turda indi), yeni acilan 2 (**K79** celiski ekseni — UCUSTA, **K80** kapinin
-kendi commit'inde kirmizi inmesi — 🔧, onleyici kapi gerekiyor), triyaj edilen 3.
-Olculen durumlar:
-- **K78 — KANAMA DURDU ama YAPISAL ONARIM INMEDI.** `Yayin erisim alarmi` son kosumu
-  `31587748288` (10:30Z) **success** → alarm kendi kendine yesillendi cunku deploy HEAD'i
-  yakaladi; dal `kral/k78-yayin-erisim-evren-hizalama` (`b3345e8c`) origin'de duruyor ama
-  main'e gore **2 onde / 3 geride**, merge EDILMEDI. Evren-hizalama kusuru duruyor → kalem ACIK.
-- **K62 — HALA UCUSTA, KAPANMADI.** Kalemin iddiasi "HEAD'de bayat"; `tools/d1-sapma-mutasyon.py`
-  bu turda da ` M` (commit'siz, kardes oturumun elinde) → HEAD henuz o degisikligi ALMADI.
-- **K35/K36 — MERGE YAPILMADI.** Dal agaci `f343b398`, origin'deki dal `ba86fd84` ile ayrisik;
-  kapi yesili tur icinde olculemedi (agac baska oturumun elinde, dokunulmadi).
-- **K56 · K58 · K77** durumu degismedi; bu turda ayrica olculmedi (tur ayip-beyani kirmizisina
-  harcandi — CI kirmizisi 🔧 triyajinin ONUNDEDIR).
-
-**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
-mail betigi YAZILMADI/DUZENLENMEDI · Cop BOSALTILMADI, hicbir mail geri ALINMADI · kapi/nobetci
-GEVSETILMEDI (kapi yalnizca GENISLETILMEK uzere dagitildi) · yabanci ` M`/`??` dosyalara
-DOKUNULMADI · CANLI agaclara YAZILMADI · **merge YAPILMADI** · dal SILINMEDI.
-Okan'a **CIKILMADI** (insan karari gerekmedi; §5).
-
-**Sonraki turun ILK ISI:** (a) `31591212884` `serit-b` job'inin `conclusion`'i + `31591212631`
-Build & deploy — kapinin CI teyidi (yerelde yesil, uzakta olculmedi);
-(b) yukaridaki kapsam-disi icerik kaybi kalemi: cumle geri konsun mu;
-(c) K78 dalinin merge kapisi (alarm yesil ama yapisal kusur duruyor);
-(d) worktree tavani: KraL'in 3 agaci icin arsivle-sonra-kaldir;
-(e) K80 (yeni acilan onleyici kalem: CI'ya YENI bloklayici adim ekleyen commit, o adimi kendi
-agacinda kosup rc=0 almali) — dagitilacak.
+**Baskasinin calisma kopyasinda duran (DOKUNULMADI):** `tools/d1-sapma-mutasyon.py` +
+`tools/d1-sapma-mutasyon-dayanak-kaniti.py` (K62) · `tools/fiyat-tipi-test.py` ·
+`tools/paket-deploy-kritik-yol.md` · `.scratch/`. MaCiT tur icinde iki urun partisi indirdi
+(`a3d5cae1`, `b2087583`), katalog 26130.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
+
+## 12 Agu 2026 22:37Z — saatlik CI nobeti (Tamirci turu)
+- EV=/Users/okan/dev/pruvo (dogru ev). SUPURME=ALARM rc=1: BULUNAN=5 TASINAN=4 ATLANAN=1 CIKAN=5 KOMSU_KAYIP=1 KUME_DIFF=OLCULDU KALAN=2 COP_IZI=52 HUKUM=OLCULEMEDI. Alarm goruldu, supurme TEKRAR KOSULMADI.
+- Adli iz: yanlis silme ATFEDILEMEZ. Betik tam 4 delete komutu yayinladi (TASINAN=4), 5. hedef silme koluna hic girmedi (ATLANAN=1, kimlik cozulemedi); CIKAN=5 ile arasindaki 1 fazlalik KOMSU_KAYIP=1 ile birebir ortusuyor -> kutuyu kosum ortasinda BASKA bir el degistirdi. Silme yuklemi kimlik tabanli + 4 katli yeniden dogrulamali; ilgili kayit uc icerik yukleminin ucunde de duser.
+- Cop denetimi OLCULEMEDI: supurme COP_IZI=52 olcmusken denetim betigi 35 dk sonra toplam 1 kayit bastigi icin sayim guvenilmez (yeni kalem K84).
+- CI: yayin 11:01:38Z'den beri ~8,5 saat kapaliydi, bu turda ACILDI. Kosum 31632478625 (07e01284) ve 31633570309 (a4da15c6) ikisinde de serit-a2+serit-a3+serit-a4+build+deploy+yayin 6/6 success. serit-a3 GECTI=91 KALDI=0. Yayin ciktisi: YAYIN GECIKMESI 0, DEGISMEZ IHLALI 0, D1 26129 = canli 26129, katalog pozitif dogrulanan sayfa 10.
+- Son main ucu a3d5cae1: DEPLOY=success (kosum 31635409838; build+serit-a2+serit-a3+serit-a4+deploy+yayin 6/6 success) SERIT_B=UCUSTA (kosum 31635410102; 12 dk tavaninda bitmedi, ara halde model-baslik-bataryasi + marka-sayfa-bataryasi failure, yayini BLOKLAMAZ).
+- D1 uzlastirici 31635926478 (a3d5cae1) kirmizi ama TASARIM GEREGI gorunurluk kirmizisi: hash uyusmaz 1 -> onarildi -> teyit 26129/26129 birebir. Ayni urun ayni gun 2. kez sapti (yeni kalem K85).
+- Yayin erisim alarmi kirmizisi BAYAT: kosum deploy bitmeden olctu; 3 ornek URL su an 200 donuyor (bilinen sinif K78).
+- Odeme yolu bayatlik + paket tazeligi alarmlari ayni kok: canli odeme worker'i 11 Agu 20:00'den beri yayinlanmadi, en eski yayinlanmamis commit 615 dk (esik 120 dk), 2 commit bekliyor. Yayin karari OKAN/mimar kapisi -> Okan'a cikildi.
+- Tamirci turu: acik kalem sayisi bu turdan once 12; bu turda ACILAN 3, KAPANAN 0. K81 durumu degismedi; ayrinti ARSIVDE.
