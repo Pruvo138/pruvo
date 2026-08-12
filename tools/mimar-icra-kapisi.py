@@ -265,7 +265,14 @@ CODEX_KURAL_SURUMU = "27tem-2"
 #   3. Mevcut '-o' codex kurali + tum kilit/icra kurallari AYNEN korunur (regresyon 0).
 AGENT_ARACLARI = {"Agent", "Task"}
 # Yasak-sinif token'lari (codex-isci yasak listesi). Bunlardan BIRI ayractan HEMEN sonra gelmeli.
-AGENT_SINIFLARI = ("görsel", "sessiz-hata", "muhakeme", "ölçüm", "güvenlik", "şema")
+AGENT_SINIFLARI = (
+    "görsel", "gorsel",
+    "sessiz-hata",
+    "muhakeme",
+    "ölçüm", "olcum",
+    "güvenlik", "guvenlik",
+    "şema", "sema",
+)
 # TEK makine-aranabilir regex (parser taklidi YOK — tek kaba tarama, fail-closed):
 #   'codex-muafiyet:'  (etikette buyuk/kucuk DUYARSIZ — re.IGNORECASE)
 #   + [^\S\n]*         (bosluk/tab esnek; NEWLINE degil -> kural TEK SATIRDA)
@@ -277,24 +284,42 @@ AGENT_SINIFLARI = ("görsel", "sessiz-hata", "muhakeme", "ölçüm", "güvenlik"
 # re.IGNORECASE: hem etiket hem sinif buyuk/kucuk duyarsiz. DOTALL YOK -> beyan tek satir.
 AGENT_MUAFIYET_RE = re.compile(
     r"codex-muafiyet:[^\S\n]*\S[^\n]*?[—–-][^\S\n]*(?:" +
-    "|".join(re.escape(s) for s in AGENT_SINIFLARI) + r")",
+    "|".join(re.escape(s) for s in AGENT_SINIFLARI) + r")(?![\w-])",
     re.IGNORECASE,
 )
 # SURUM DAMGASI — tools/mimar-kapi-kur.py --agent-kapisi bu dizeyi arayarak "bu evde
 # AGENT-KAPISI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev). Kurali
 # degistirirsen damgayi da yukselt.
-AGENT_KURAL_SURUMU = "28tem-1"
+AGENT_KURAL_SURUMU = "13agu-1"
 # Codex reddindeki gibi: AGENT reddinde GEREKCE_SONU KULLANILMAZ ("bu isi isciye delege et"
 # der — oysa AGENT cagrisi ZATEN isci acma girisimi). Yerine IKI CIKISI net soyleyen kuyruk.
+AGENT_SINIF_LISTESI = " / ".join(AGENT_SINIFLARI)
+AGENT_ORNEK_SINIF = AGENT_SINIFLARI[0]
 AGENT_GEREKCE = (
     "AGENT-KAPISI (28 Tem): mimar ANA oturumu bir Claude iscisi (Agent/Task) açıyor ama "
     "prompt/spec içinde 'codex-muafiyet:' BEYAN SATIRI YOK. Doktrin: Claude işçisi açmak da "
     "doğrudan 'codex exec' kadar TEK SATIR sürtünme taşır (asimetri kapatıldı). İKİ ÇIKIŞ: "
     "(a) İŞİ CODEX'E VER → codex-isci şablonu (codex exec -C <ev> -s workspace-write "
     "-o <scratchpad>/son-mesaj.txt \"<spec>\"); VEYA (b) prompt'a şu satırı EKLE: "
-    "'codex-muafiyet: <iş tanımı> — <sınıf>' (<sınıf> = neden Codex'e VERİLEMEDİĞİNİ beyan "
-    "eder: görsel / sessiz-hata / muhakeme / ölçüm / güvenlik / şema — codex-isci yasak listesi)."
-)
+    "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
+    "codex-isci yasak listesi)."
+).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
+
+
+def _agent_gorulen_sinif(prompt):
+    """Beyan satirindaki ayraç-sonrasi ilk jetonu yalniz red tanisi icin ayiklar."""
+    etiket = "codex-muafiyet:"
+    for satir in prompt.splitlines():
+        konum = satir.lower().find(etiket)
+        if konum < 0:
+            continue
+        kalan = satir[konum + len(etiket):]
+        ayrac = max(kalan.rfind("—"), kalan.rfind("–"), kalan.rfind("-"))
+        if ayrac < 0:
+            return "<ayrac-yok>"
+        parcalar = kalan[ayrac + 1:].strip().split()
+        return parcalar[0] if parcalar else "<bos>"
+    return "<bulunamadi>"
 
 # ============ 8 AGU: MCP-TARAYICI ICRA KAPISI (Okan teftisi K17, 2. ihtar) ============
 # OLCULEN DELIK: 6 evin settings.json PreToolUse matcher'lari yalnizca 'Bash',
@@ -359,6 +384,117 @@ def _mcp_tarayici_mi(tool_name):
         if ad.startswith(onek.lower()):
             return True
     return False
+
+
+# ============ 13 AGU: ISCI-SARMALAYICI KAPISI (goc karari) ============
+# OLCULEN DELIK: 13 Agu gocu isci katini '~/.claude/cron/isci.sh <motor> <ev> <spec>
+# [etiket]' sarmalayicisina tasidi (ucuz motorlar: minimax-m3 / deepseek-pro /
+# deepseek-flash). Ama 20 Tem'in "repo DISINDAKI betigi kosturma" kurali (main() A adimi)
+# sarmalayiciyi da REDDEDIYORDU. Sonuc TERSINE TESVIK: mimarin UCUZ motora is verme yolu
+# MAKINE tarafindan kapali, geriye yalniz PAHALI yol (Claude iscisi = Agent araci) kaliyor.
+# KANIT: '~/.claude/cron/isci.log' — sarmalayicinin tum kosumlari ev=pruvo-hasat; KraL
+# evinde sarmalayici BIR KEZ BILE kosmadi.
+#
+# DOKTRIN (26 Tem BaBa hukmu ile AYNI SINIF): sarmalayiciyi cagirmak KENDI ELIYLE IS
+# YAPMAK DEGIL, ISCI DAGITMAKTIR — tipki 'codex exec' gibi. Bu yuzden KOSULSUZ MUAFIYET
+# DEGIL, ayni KALITE KAPISI kurulur.
+#
+# 🔴 YOL TAM ESITLIKLE ARANIR (basename/goreli yol KABUL EDILMEZ): aksi halde 'isci.sh'
+# adli HER betik repo-disi muafiyet anahtari olurdu. '/tmp/isci.sh' bu yuzden RED alir.
+ISCI_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/isci.sh"
+# m3-isci.sh YONLENDIRMEDIR: govdesi 'exec .../isci.sh minimax-m3 "$@"', yani imzasi
+# MOTORSUZDUR (<ev> <spec> [etiket]) ve motoru minimax-m3'e CIVILIDIR. Karar verirken
+# basina bu motor konmus gibi degerlendirilir — ayri bir kural govdesi YAZILMAZ.
+ISCI_M3_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/m3-isci.sh"
+ISCI_M3_CIVILI_MOTOR = "minimax-m3"
+# KAPALI KUME (fail-closed): yarin eklenecek bir motor kapiyi KENDILIGINDEN ACMAZ.
+ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")
+# Argument sayisi (motor DAHIL): 3 (<motor> <ev> <spec>) ya da 4 (+ <etiket>).
+ISCI_ARGUMAN_SAYILARI = (3, 4)
+# SURUM DAMGASI — tools/mimar-kapi-kur.py --isci-kapisi bu dizeyi arayarak "bu evde
+# ISCI-SARMALAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
+# dogrulamasi; --codex-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
+# degistirirsen damgayi da yukselt.
+ISCI_KURAL_SURUMU = "13agu-1"
+ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
+ISCI_GEREKCE_SONU = (
+    " DOGRUSU: " + ISCI_SARMALAYICI_YOLU + " <MOTOR> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
+    "(m3 kisayolu: " + ISCI_M3_SARMALAYICI_YOLU + " <EV_KOKU> <SPEC_DOSYASI> [ETIKET]). "
+    "Gecerli motor: " + ISCI_MOTOR_LISTESI + "."
+)
+# motor=claude reddinde IKI CIKISI net soyleyen kuyruk (AGENT-KAPISI ile AYNI doktrin).
+ISCI_CLAUDE_GEREKCESI = (
+    "ISCI-SARMALAYICI KAPISI (13 Ağu): sarmalayıcı 'claude' MOTORUYLA çağrılıyor ama SPEC "
+    "DOSYASINDA 'codex-muafiyet:' BEYAN SATIRI YOK. Bu şart olmasaydı sarmalayıcı "
+    "AGENT-KAPISI'nı atlatan bir ANAHTAR olurdu (mimar -> isci.sh claude -> sürtünmesiz "
+    "Claude işçisi). İKİ ÇIKIŞ: (a) İŞİ UCUZ MOTORA VER (minimax-m3 / deepseek-pro / "
+    "deepseek-flash); VEYA (b) spec dosyasına şu satırı EKLE: "
+    "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
+    "codex-isci yasak listesi)."
+)
+
+
+def _isci_karari(tokenlar):
+    """13 AGU — isci sarmalayicisi cagrisinin KARARI. _codex_karari ile AYNI bicim:
+        None    → segmentin CALISTIRILAN programi sarmalayici DEGIL (kural uygulanmaz)
+        "gecer" → izinli (isci dagitmak mimarliktir) — cagiran SEGMENTI KAPATIR
+        str     → red gerekcesi
+
+    KABA + FAIL-CLOSED (parser taklidi YASAK). Sira:
+      1. YOL: tokenlar[0] TAM ESITLIKLE iki sarmalayici yolundan biri olacak
+         (basename esitligi / goreli yol KABUL EDILMEZ).
+      2. m3-isci.sh YONLENDIRME: imza motorsuz, motor minimax-m3'e CIVILI — basina o
+         motor konmus gibi degerlendirilir (ikiz kural govdesi yazilmaz).
+      3. ARGUMAN SAYISI (motor dahil) 3 ya da 4; disi RED.
+      4. MOTOR kapali kumeden olacak; bilinmeyen motor VARSAYILAN RED.
+      5. motor == 'claude' ise AGENT-KAPISI'nin BEYAN SARTI AYNEN gecerli: SPEC DOSYASI
+         okunur ve MEVCUT AGENT_MUAFIYET_RE ile eslesmeli (IKIZ TANIM YOK — ayni regex).
+      6. Spec dosyasi okunamiyorsa RED: "beyani olcemedim" YESIL DEGILDIR (fail-closed).
+
+    KIMLIK EKSENI TASINMAZ (spec md. 9): ISCI (agent_id DOLU) main() basinda zaten muaf;
+    burada ikinci bir 'isci mi' testi YOKTUR (memory/ikiz-tanim-sessiz-ayrisma.md)."""
+    if not tokenlar:
+        return None
+    argv0 = tokenlar[0]
+    if argv0 == ISCI_M3_SARMALAYICI_YOLU:
+        argumanlar = [ISCI_M3_CIVILI_MOTOR] + list(tokenlar[1:])
+    elif argv0 == ISCI_SARMALAYICI_YOLU:
+        argumanlar = list(tokenlar[1:])
+    else:
+        return None
+
+    if len(argumanlar) not in ISCI_ARGUMAN_SAYILARI:
+        return (
+            "isçi sarmalayıcısı YANLIŞ ARGÜMAN SAYISIYLA çağrılıyor (motor dahil " +
+            str(len(argumanlar)) + "; beklenen 3 ya da 4). Eksik/fazla argüman = kurulmamış "
+            "delegasyon: hangi ev, hangi spec koşacağı belirsiz kalır."
+        )
+
+    motor = argumanlar[0]
+    if motor not in ISCI_MOTORLARI:
+        return (
+            "isçi sarmalayıcısının MOTORU kapalı kümede DEĞİL (" + motor[:24] + "). "
+            "Bilinmeyen motor VARSAYILAN RED (fail-closed): yarın eklenecek bir motor bu "
+            "kapıyı kendiliğinden AÇMAZ."
+        )
+
+    if motor == "claude":
+        spec_yolu = argumanlar[2]
+        try:
+            with open(spec_yolu, encoding="utf-8") as f:
+                spec_metni = f.read()
+        except Exception:
+            return (
+                "isçi sarmalayıcısı 'claude' MOTORUYLA çağrılıyor ama SPEC DOSYASI "
+                "OKUNAMADI (" + spec_yolu[:70] + "): beyanı ÖLÇEMEDİM. Ölçülemeyen beyan "
+                "YEŞİL DEĞİLDİR (fail-closed)." + ISCI_CLAUDE_GEREKCESI.format(
+                    ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
+            )
+        if not AGENT_MUAFIYET_RE.search(spec_metni):
+            return ISCI_CLAUDE_GEREKCESI.format(
+                ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
+
+    return "gecer"
 
 
 # '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). Neden: PY_NODE ALLOWLIST'i python'i
@@ -685,7 +821,12 @@ def _agent_karari(girdi):
         prompt = ""
     if AGENT_MUAFIYET_RE.search(prompt):
         return "gecer"
-    return AGENT_GEREKCE
+    if "codex-muafiyet:" not in prompt.lower():
+        return AGENT_GEREKCE
+    return (
+        "AGENT-KAPISI (28 Tem): BEYAN VAR, SINIF JETONU ESLESMEDI: gorulen "
+        "'{gorulen}' · gecerli jetonlar: {liste}"
+    ).format(gorulen=_agent_gorulen_sinif(prompt), liste=AGENT_SINIF_LISTESI)
 
 
 def _py_izinli(ad, argumanlar, cwd):
@@ -813,6 +954,17 @@ def main():
         codex_karari = _codex_segment_karari(segment, tokenlar)
         if codex_karari is not None and codex_karari != "gecer":
             reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)
+
+        # === 13 AGU ISCI-SARMALAYICI KAPISI ===
+        # A ADIMINDAN ONCE degerlendirilir: sarmalayicinin argumanlari BILEREK repo
+        # DISIDIR (baska ev koku + scratchpad spec'i bu isin TANIMIDIR), yani A adimi ve
+        # yol taramasi (dis_yol) bu cagriyi yapisal olarak reddederdi. 'gecer' halinde
+        # segment KAPATILIR (continue) — codex kolundan FARKI budur ve bilerekdir.
+        isci_karari = _isci_karari(tokenlar)
+        if isci_karari is not None:
+            if isci_karari != "gecer":
+                reddet(isci_karari, sonu=ISCI_GEREKCE_SONU)
+            continue
 
         # A) Repo disi calistirilabilir dosyayi dogrudan cagirma (./x.sh, /tmp/.../x.py)
         if ("/" in argv0 or argv0.startswith(".")) and argv0.lower().endswith(ICRA_UZANTILARI):

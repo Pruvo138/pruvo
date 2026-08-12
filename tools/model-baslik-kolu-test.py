@@ -455,17 +455,25 @@ def kabul(kok):
     # 🔴 NEDEN FİKSTÜR DE VAR: bugünkü katalogda donanım kuyruklu her kova ya deny
     # tablosunda ya eşik altında (ölçüldü: 16 kova, 14'ü eşik altı) — yani B8b canlı
     # veriyle TEK BAŞINA kırmızı yakılamaz. Fikstür ekseni mutantı yine de öldürür.
-    _sekil_sapan = []
+    _sasi_sapan, _ayri_sapan, _donanim_sapan = [], [], []
     for ad, b_sasi, b_ayri, b_donanim in SEKIL_FIKSTURU:
-        for etiket, gercek, beklenen in (("sasi", mm.sasi_motor_kodu_mu(ad), b_sasi),
-                                         ("ayri", mm.ayri_arac_adi_mi(ad), b_ayri),
-                                         ("donanim", mm.donanim_kuyruklu_mu(ad), b_donanim)):
+        for etiket, gercek, beklenen, sapan in (
+                ("sasi", mm.sasi_motor_kodu_mu(ad), b_sasi, _sasi_sapan),
+                ("ayri", mm.ayri_arac_adi_mi(ad), b_ayri, _ayri_sapan),
+                ("donanim", mm.donanim_kuyruklu_mu(ad), b_donanim, _donanim_sapan)):
             if gercek != beklenen:
-                _sekil_sapan.append("%r %s -> %s (beklenen %s)"
-                                    % (ad, etiket, gercek, beklenen))
-    dogrula("B10 H1/H3 ŞEKİL KURALI FİKSTÜRE UYUYOR (%d ad × 3 eksen; ÇIPLAK SAYI ve "
-            "DONANIM kuyruğu ayrı ayrı çivili)" % len(SEKIL_FIKSTURU),
-            not _sekil_sapan, "sapan=%s" % (_sekil_sapan[:4] or "-"))
+                sapan.append("%r %s -> %s (beklenen %s)"
+                             % (ad, etiket, gercek, beklenen))
+    # Üç yüklemi tek B10 kimliğinde toplamak M5 (H1'i kapat) ile M7'yi (donanım
+    # kuyruğunu kapat) aynı kırmızı izde eritiyordu. Her davranış artık ayrı kimliktir.
+    dogrula("B10a H1 ŞASİ/MOTOR KODU FİKSTÜRE UYUYOR (%d ad; ÇIPLAK SAYI dışarıda)"
+            % len(SEKIL_FIKSTURU), not _sasi_sapan,
+            "sapan=%s" % (_sasi_sapan[:4] or "-"))
+    dogrula("B10b H3 AYRI ARAÇ ADI FİKSTÜRE UYUYOR (%d ad)" % len(SEKIL_FIKSTURU),
+            not _ayri_sapan, "sapan=%s" % (_ayri_sapan[:4] or "-"))
+    dogrula("B10c DONANIM KUYRUĞU FİKSTÜRE UYUYOR (%d ad; `Focus ST` yapışık)"
+            % len(SEKIL_FIKSTURU), not _donanim_sapan,
+            "sapan=%s" % (_donanim_sapan[:4] or "-"))
     # --- H2: DENY'in SON-KELİME kolu YALNIZ DEĞİŞTİRİCİLERE işler ------------------
     _h2_sapan = []
     for marka, ad, beklenen in DENY_BILESIK_FIKSTURU:

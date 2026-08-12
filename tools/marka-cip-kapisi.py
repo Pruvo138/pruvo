@@ -622,10 +622,19 @@ def kapiyi_kos():
                    "gürültü ekseninde ölçülen kova sayısı dejenere (%d)" % olculen_kova)
 
         drift, gereksiz, envanter_n = envanter_drifti(products, mm, index_html)
-        kapi.iddia("ENVANTER/drift", not drift,
+        # Sahiplik kolunu canlı katalog tesadüfen örtemez: pozitif ve yabancı-sahip
+        # sentinelleri yalnız (d) kolunu ateşler. Böylece kol kapanırsa mevcut kovalar
+        # başka bir yargıdan yayımlansa bile mutasyon sessizce kaçamaz.
+        sahiplik_kolu_canli = (
+            mm.baslik_yargisi_var_mi("KapiMarka", "kapijeton", "KapiJeton",
+                                     mm._canon("KapiMarka"))
+            and not mm.baslik_yargisi_var_mi("KapiMarka", "kapijeton", "KapiJeton",
+                                             mm._canon("BaskaMarka")))
+        kapi.iddia("ENVANTER/drift", not drift and sahiplik_kolu_canli,
                    "kova YALNIZCA elle envanterde olmadığı için çipsiz kaldı (envanter "
-                   "bayatladı): %d kova — %s"
-                   % (len(drift), sorted(drift, key=lambda v: -v[2])[:5]))
+                   "bayatladı) veya sahiplik kolu sentineli çalışmadı: %d kova, kol=%s — %s"
+                   % (len(drift), sahiplik_kolu_canli,
+                      sorted(drift, key=lambda v: -v[2])[:5]))
         kapi.iddia("ENVANTER/gereksiz", not gereksiz,
                    "elle envanterde KURALIN zaten yargıladığı ÖLÜ giriş var (liste büyüyerek "
                    "çözülmez): %d — %s" % (len(gereksiz), gereksiz[:5]))

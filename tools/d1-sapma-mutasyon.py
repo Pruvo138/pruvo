@@ -36,10 +36,16 @@ cevapliyordu ("yayin calisti mi" + "D1 sapmasi var mi"). Bu depoda olculmus sini
    KANIT aracidir — repoda durmasinin sebebi kanitin YENIDEN URETILEBILIR olmasidir.
 
 Kullanim: python3 tools/d1-sapma-mutasyon.py
-Cikis 0 = her oldurucu mutant KIRMIZI + kontrol mutantlari YESIL + iddia sayilari
-korundu + canli kaynaklar sha256 olarak DEGISMEDI.
+Cikis 0 = TABLODAKI HER MUTANT FIILEN KOSTU + her oldurucu mutant KIRMIZI + kontrol
+mutantlari YESIL + iddia sayilari korundu + canli kaynaklar sha256 olarak DEGISMEDI.
+
+🔴 KAPSAM DA BIR IDDIADIR ([[bayat-kabul-testi]], 12 Agu 2026): bir dayanak metin
+bayatlarsa o mutant KIRMIZI raporlanir ama batarya DURMAZ — bayat tek capa bir daha
+arkasindaki mutantlari KOR EDEMEZ. Kosul dayanaklari zaten canli is akisindan
+TURETILIR (asagidaki 'TURETILEN DAYANAK' blogu).
 """
 import hashlib
+import importlib.util
 import os
 import re
 import shutil
@@ -77,7 +83,87 @@ def sha(yol):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# DAYANAK METINLER (tek yerde — harness bayatlarsa GURULTULU duser)
+# TURETILEN DAYANAK — IKIZ TANIM TEK KAYNAKTAN ([[ikiz-tanim-sessiz-ayrisma]])
+# ─────────────────────────────────────────────────────────────────────────────
+# 🔴 NEDEN (OLCULDU, 12 Agu 2026 — K62): burada eskiden ONARILAMADI adiminin kosulu
+# ELLE ikinci kez yazilmisti (`failure() && steps.olcum.outputs.sapma == 'var'`).
+# 7 Agu'da canli is akisi `always() && ... && steps.teyit.outcome != 'success'` bicimine
+# gecti (kosum 31214568441 duzeltmesi) ve bu batarya BAYATLADI: S4'te "HARNESS BAYAT"
+# deyip DURDU -> S4..S12 + K1..K3 = 12 mutant HIC KOSMADI, o bolge hakkinda batarya
+# YESIL de yansa KIRMIZI da yansa HICBIR SEY SOYLEMIYORDU ([[bayat-kabul-testi]]).
+#
+# COZUM: kosul metni artik CANLI is akisindan TURETILIR, ikinci kez elle YAZILMAZ.
+# Turetme, nobetcinin KENDI siniflandirmasini (tools/cron-nabiz-kapisi.py
+# `_sinyal_adimlari`) kullanir — yani adimi ADINDAN degil ICRA ETTIGI SEYDEN tanir
+# (ad bir mensiyondur, olcum degil). Bataryanin olctugu iddia ile bataryanin dayanagi
+# BOYLECE AYNI KAYNAKTAN gelir; ayrisma yapisal olarak imkansizdir.
+#
+# FAIL-CLOSED: turetme tutmazsa (nobetci siniflandiramaz / kosul satiri kaynakta tek
+# kez eslesmez) hukum KIRMIZI'dir — "atlandi"/yesil'e DONMEZ. Ama artik KALICI DUVAR
+# da degildir: yalniz o mutant kirmizi raporlanir, kalan mutantlar OLCULMEYE DEVAM EDER.
+
+
+def _kapi_modulu():
+    """tools/cron-nabiz-kapisi.py'yi modul olarak yukle (tire iceren ad -> importlib)."""
+    yol = os.path.join(ROOT, KAPI)
+    spec = importlib.util.spec_from_file_location("cron_nabiz_kapisi", yol)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def dayanak_kosul_satiri(sinif):
+    """CANLI d1-uzlastirici.yml'den `sinif` adiminin `if:` SATIRINI aynen turet.
+
+    `sinif`: "cron" | "kadans-yaz" | "kadans-yuk" | "onarilamadi" — nobetcinin
+    `_sinyal_adimlari` siniflandirmasinin dondugu dort adim.
+
+    Doner: (satir_metni, None) | (None, ayrisma_aciklamasi). Ikinci halde HUKUM KIRMIZI.
+    """
+    try:
+        kapi = _kapi_modulu()
+        adimlar = kapi._uzl_adimlari()  # noqa: SLF001 — dayanak TEK KAYNAKTAN gelsin
+        cron_adim, kadans_yaz, kadans_yuk, onarilamadi = kapi._sinyal_adimlari(adimlar)  # noqa: SLF001,E501
+    except Exception as e:  # noqa: BLE001 — her turetme arizasi KIRMIZI'dir
+        return None, ("nobetci siniflandirmasi CALISMADI (%s: %s)"
+                      % (type(e).__name__, e))
+    adim = {"cron": cron_adim, "kadans-yaz": kadans_yaz,
+            "kadans-yuk": kadans_yuk, "onarilamadi": onarilamadi}.get(sinif, "YOK")
+    if adim == "YOK":
+        return None, "bilinmeyen adim sinifi: %r" % sinif
+    if adim is None:
+        return None, ("'%s' adimi CANLI %s icinde SINIFLANAMADI -> batarya ile hedef "
+                      "dosya AYRISMIS" % (sinif, UZLASTIRICI))
+    kosul = str(adim.get("if") or "").strip()
+    if not kosul:
+        return None, "'%s' adiminin `if` kosulu YOK (dayanak turetilemez)" % sinif
+    with open(os.path.join(ROOT, UZLASTIRICI), encoding="utf-8") as f:
+        satirlar = f.read().splitlines(keepends=True)
+    esler = [s for s in satirlar
+             if s.strip().startswith("if:") and s.strip()[3:].strip() == kosul]
+    if len(esler) != 1:
+        return None, ("'%s' kosulu kaynak metinde %d kez esletti (1 olmali) — kosul: %r"
+                      % (sinif, len(esler), kosul[:140]))
+    return esler[0], None
+
+
+DAYANAK_HATALARI = {}  # mutant kodu -> dayanak ayrismasi aciklamasi
+
+
+def kosul_mutasyonu(kod, dayanak, hata, yeni_kosul):
+    """Turetilen `if:` satirini `yeni_kosul` ile degistiren degisim listesi.
+
+    Dayanak TURETILEMEDIYSE None doner -> main() o mutanti "DAYANAK AYRISTI" hukmuyle
+    KIRMIZI yazar ve SONRAKI mutanta gecer (duvar YOK)."""
+    if dayanak is None:
+        DAYANAK_HATALARI[kod] = hata
+        return None
+    girinti = dayanak[:len(dayanak) - len(dayanak.lstrip())]
+    return [(dayanak, "%sif: %s\n" % (girinti, yeni_kosul))]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DAYANAK METINLER (tek yerde — harness bayatlarsa o mutant GURULTULU KIRMIZI duser)
 # ─────────────────────────────────────────────────────────────────────────────
 CRON_ADIM_BASI = ('      - name: "Sapma gorunurlugu (cron/elle kolu): '
                   'sapma olduysa kosum KIRMIZI"\n'
@@ -96,7 +182,8 @@ YUKLE_ADIMI = ('      - name: "Sapma damgasini yukle '
                "          name: d1-sapma-damgasi\n"
                "          path: d1-sapma-damgasi.json\n"
                "          if-no-files-found: error\n")
-ONARILAMADI_KOSUL = "        if: failure() && steps.olcum.outputs.sapma == 'var'\n"
+# 🔴 ELLE YAZILMAZ — canli is akisindan turetilir (bkz. ustteki blok).
+ONARILAMADI_KOSUL, ONARILAMADI_HATA = dayanak_kosul_satiri("onarilamadi")
 DAMGA_YAZ_SATIRI = ("          python3 tools/cron-nabiz-kapisi.py --damga-yaz "
                     "d1-sapma-damgasi.json --damga-adi d1-sapma-damgasi\n")
 
@@ -137,15 +224,15 @@ S3 = ("S3", "🔴 CRON KOLUNDAKI `exit 1` KALDIRILDI: kosumun TEK isi bu denetim
         "      # (2) KADANS KOLU")], True)
 
 # ── (d) "ONARILDI" ILE "ONARILAMADI"YI TEK HALE YIGAN MUTANTLAR ─────────────
-S4 = ("S4", "🔴 IKI HAL TEK KUTUDA: `onarilamadi` adiminin `failure()` sarti dusuruldu -> "
+S4 = ("S4", "🔴 IKI HAL TEK KUTUDA: `onarilamadi` adiminin TEYIT SARTI dusuruldu -> "
             "hal 'sapma olustu' ile ayni kosula iner; kapanmayan sapma (Ege katalogun bir "
             "kismini goremez) ile onarilan sapma AYIRT EDILEMEZ", UZLASTIRICI,
-      [(ONARILAMADI_KOSUL,
-        "        if: steps.olcum.outputs.sapma == 'var'\n")], True)
+      kosul_mutasyonu("S4", ONARILAMADI_KOSUL, ONARILAMADI_HATA,
+                      "steps.olcum.outputs.sapma == 'var'"), True)
 
-S5 = ("S5", "🔴 ONARILAMADI HUKMU SILINDI: `failure()` kollu ayri adim kaldirildi -> "
+S5 = ("S5", "🔴 ONARILAMADI HUKMU SILINDI: ayri hukum adimi daima-yanlis yapildi -> "
             "emniyet agi tutmadiginda ortada ADIYLA konmus bir hukum kalmaz", UZLASTIRICI,
-      [(ONARILAMADI_KOSUL, "        if: false\n")], True)
+      kosul_mutasyonu("S5", ONARILAMADI_KOSUL, ONARILAMADI_HATA, "false"), True)
 
 # ── (b) KADANS KOLUNU YAYIN YOLUNA SIZDIRAN MUTANT ─────────────────────────
 S6 = ("S6", "🔴 KADANS KOLU YAYIN YOLUNA SIZDIRILDI: `d1-kadans` `deploy: needs` "
@@ -230,18 +317,23 @@ def symlinkleri_bul(kok):
     return bulunan
 
 
-def mutasyonla(pristine, degisimler, kod):
-    """Mutasyonu METNE uygular. Dayanak yoksa/coklu ise HARNESS BAYATTIR -> gurultulu
-    duser; 'olctum' deyip hicbir sey olcmemek en kotu haldir."""
+def mutasyonla(pristine, degisimler):
+    """Mutasyonu METNE uygular -> (metin, hata).
+
+    Dayanak yoksa/coklu ise HARNESS BAYATTIR: (None, aciklama) doner. 'Olctum' deyip
+    hicbir sey olcmemek en kotu haldir — cagiran bunu KIRMIZI iddiaya cevirir.
+
+    🔴 12 Agu 2026 (K62): burasi eskiden `raise SystemExit` ile TUM bataryayi
+    durduruyordu; bayat TEK dayanak S4..K3 arasindaki 12 mutanti KOR ETTI. Artik hukum
+    yine KIRMIZI ama mutant BASINA — kalan mutantlar olculmeye devam eder."""
     metin = pristine
     for bul, yerine in degisimler:
         n = metin.count(bul)
         if n != 1:
-            raise SystemExit(
-                "🔴 HARNESS BAYAT (%s): dayanak metin %d kez bulundu (1 olmali).\n"
-                "   Aranan: %r" % (kod, n, bul[:160]))
+            return None, ("dayanak metin %d kez bulundu (1 olmali). Aranan: %r"
+                          % (n, bul[:160]))
         metin = metin.replace(bul, yerine, 1)
-    return metin
+    return metin, None
 
 
 def kos(ayna, metinler):
@@ -295,11 +387,22 @@ def main():
         print("   taban iddia sayisi: %s" % t_iddia)
 
         print("\n2) MUTANTLAR")
+        kosan = 0
         for kod, aciklama, hedef, degisimler, kirmizi_bekleniyor in MUTANTLAR:
-            metinler = dict(pristine)
-            metinler[hedef] = mutasyonla(pristine[hedef], degisimler, kod)
-            rc, iddia, kirmizi, kuyruk = kos(ayna, metinler)
             print("\n  %s [%s] %s" % (kod, os.path.basename(hedef), aciklama))
+            if degisimler is None:
+                check("%s: DAYANAK TURETILDI (batarya ↔ hedef dosya AYRISMAMIS)" % kod,
+                      False, DAYANAK_HATALARI.get(kod, "dayanak turetilemedi"))
+                continue
+            metinler = dict(pristine)
+            mutant_metin, dayanak_hatasi = mutasyonla(pristine[hedef], degisimler)
+            if mutant_metin is None:
+                check("%s: DAYANAK METIN TAZE (HARNESS BAYAT DEGIL)" % kod,
+                      False, dayanak_hatasi)
+                continue
+            metinler[hedef] = mutant_metin
+            rc, iddia, kirmizi, kuyruk = kos(ayna, metinler)
+            kosan += 1
             ok_sayi = check("%s: iddia sayisi KORUNDU (cokme kirmizisi DEGIL)" % kod,
                             iddia == t_iddia, "taban=%s mutant=%s" % (t_iddia, iddia))
             if kirmizi_bekleniyor:
@@ -319,10 +422,16 @@ def main():
     for y in DOKUNULMAZ:
         check("sha256 ayni: %s" % os.path.relpath(y, ROOT), sha(y) == once[y])
 
+    # 🔴 KAPSAM IDDIASI (K62): "batarya yesil" demek "batarya KOSTU" demek DEGILDIR.
+    # Fiilen kosan mutant sayisi tablonun tamamina esit degilse hukum KIRMIZI'dir —
+    # yoksa bayat bir dayanak, olculmeyen bir bolgeyi sessizce yesil gosterir.
+    check("KAPSAM: her mutant FIILEN kostu (olculmeyen bolge YOK)",
+          kosan == len(MUTANTLAR), "kosan=%d / toplam=%d" % (kosan, len(MUTANTLAR)))
+
     oldurucu = sum(1 for m in MUTANTLAR if m[4])
     kontrol = len(MUTANTLAR) - oldurucu
-    print("\nOZET: %d oldurucu + %d kontrol mutanti · %d kusur"
-          % (oldurucu, kontrol, len(FAILS)))
+    print("\nOZET: %d oldurucu + %d kontrol mutanti · %d/%d FIILEN KOSTU · %d kusur"
+          % (oldurucu, kontrol, kosan, len(MUTANTLAR), len(FAILS)))
     if FAILS:
         print("🔴 CURUTME KIRMIZI:")
         for f in FAILS:

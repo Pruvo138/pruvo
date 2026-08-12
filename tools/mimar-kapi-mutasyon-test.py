@@ -426,6 +426,67 @@ MUTASYONLAR = [
         '    if kimlik(girdi) == "ISCI":\n'),
      "8Agu MCP: kural ISCI muafiyetinin ONUNE tasinir (isci tarayicisi RED)",
      {510, 511, 512}, True, 3),
+    # --- 13 AGU ISCI-SARMALAYICI KAPISI NOBETCILERI (AGENT/MCP turundeki desen) ---
+    # Her mutant KURALIN BIR AYAGINI dusurur ve AYIRT EDICI bir kirmizi iz birakir:
+    # I1 yol ekseni · I2 motor ekseni · I3 beyan ekseni · I4 fail-closed ekseni.
+    # I1: YOL TAM ESITLIGI, os.path.basename esitligine cevrilir. Muafiyet anahtari
+    # artik 'isci.sh' ADINA baglanir -> '/tmp/isci.sh' (vaka 620) ALLOW alir. Ayni ADDA
+    # BASKA betik repo-disi icra anahtarina donusur; kuralin en pahali deligi budur.
+    # 621/622 (benzer/yedek AD) etkilenmez: basename'leri 'isci.sh' DEGIL — mutantin
+    # ayirt ediciligi bu kadar dardir.
+    ("I1", lambda d: yama(
+        d, ICRA,
+        "    if argv0 == ISCI_M3_SARMALAYICI_YOLU:\n"
+        "        argumanlar = [ISCI_M3_CIVILI_MOTOR] + list(tokenlar[1:])\n"
+        "    elif argv0 == ISCI_SARMALAYICI_YOLU:\n",
+        "    if os.path.basename(argv0) == os.path.basename(ISCI_M3_SARMALAYICI_YOLU):\n"
+        "        argumanlar = [ISCI_M3_CIVILI_MOTOR] + list(tokenlar[1:])\n"
+        "    elif os.path.basename(argv0) == os.path.basename(ISCI_SARMALAYICI_YOLU):\n"),
+     "13Agu ISCI: yol TAM ESITLIGI basename esitligine cevrilir (YOL SINIRI delinir)",
+     {620}, True, 1),
+    # I2: MOTOR kapali kumesi kontrolu kaldirilir -> bilinmeyen motor ('gpt-9', vaka 610)
+    # gecer. Fail-closed'in tersi: yarin eklenecek her motor kapiyi kendiliginden ACAR.
+    ("I2", lambda d: yama(
+        d, ICRA,
+        "    if motor not in ISCI_MOTORLARI:\n",
+        "    if False and motor not in ISCI_MOTORLARI:\n"),
+     "13Agu ISCI: MOTOR kapali kume kontrolu kaldirilir (bilinmeyen motor gecer)",
+     {610}, True, 1),
+    # I3: motor=='claude' BEYAN SARTI kaldirilir -> sarmalayici AGENT-KAPISI'ni atlatan
+    # bir ANAHTAR olur (mimar -> 'isci.sh claude' -> surtunmesiz Claude iscisi).
+    # IKI vaka birden kizarir: 613 (beyan yok) ve 615 (spec dosyasi hic okunmaz).
+    ("I3", lambda d: yama(
+        d, ICRA,
+        '    if motor == "claude":\n',
+        '    if False and motor == "claude":\n'),
+     "13Agu ISCI: motor=claude BEYAN SARTI kaldirilir (AGENT-KAPISI atlatilir)",
+     {613, 615}, True, 2),
+    # I4: spec OKUNAMADIGINDA red yerine 'gecer' (FAIL-OPEN). "Beyani olcemedim" yesile
+    # doner. I3'ten AYRISIR: 613 (spec OKUNUYOR, beyan yok) YESIL kalir — mutantin
+    # kirmizisi yalniz 615'tir, yani iki eksen tek ize erimemistir.
+    ("I4", lambda d: yama(
+        d, ICRA,
+        "        except Exception:\n"
+        "            return (\n"
+        "                \"isçi sarmalayıcısı 'claude' MOTORUYLA çağrılıyor ama SPEC DOSYASI \"\n",
+        "        except Exception:\n"
+        '            return "gecer"\n'
+        "            return (\n"
+        "                \"isçi sarmalayıcısı 'claude' MOTORUYLA çağrılıyor ama SPEC DOSYASI \"\n"),
+     "13Agu ISCI: spec okunamadiginda RED yerine 'gecer' (FAIL-OPEN)",
+     {615}, True, 1),
+    # I5 (TERS YONLU): kural KOMPLE kapatilir -> 13 Agu ONCESI hale donus. Mesru
+    # delegasyon cagrilarinin HEPSI yeniden RED alir (olculen delik geri gelir). Tek
+    # yonlu nobetci olu nobetcidir: "kural yakaliyor mu" kadar "kural ACIYOR mu" da olculur.
+    ("I5", lambda d: yama(
+        d, ICRA,
+        "        isci_karari = _isci_karari(tokenlar)\n"
+        "        if isci_karari is not None:\n",
+        "        isci_karari = _isci_karari(tokenlar)\n"
+        "        if False and isci_karari is not None:\n"),
+     "13Agu ISCI: kural komple kapatilir (13 Agu ONCESI delik geri doner) — mesru "
+     "delegasyon cagrilari yeniden RED",
+     {600, 601, 602, 603, 604, 614, 631}, True, 7),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
@@ -450,6 +511,13 @@ KONTROL_MUTANTLARI = [
         'MCP_KURAL_SURUMU = "8agu-1"\n',
         'MCP_KURAL_SURUMU = "8agu-1"\n_MCP_KONTROL_MUTANTI = True\n'),
      "MCP blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
+    # K3: 13 Agu ISCI blogunun AYIRT EDICILIK kontrolu. I1-I5'in kirmizisi ancak yeni
+    # vakalar "her degisiklige" kizarmiyorsa kanittir (memory/beyan-edilmis-survivor.md).
+    ("K3", lambda d: yama(
+        d, ICRA,
+        'ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")\n',
+        'ISCI_MOTORLARI = ("claude", "deepseek-flash", "deepseek-pro", "minimax-m3")\n'),
+     "ISCI motor kumesi YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
 ]
 
 # CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine

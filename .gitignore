@@ -558,6 +558,10 @@ worker-iyzico-webhook/
 # kimligi ve ic olcum detayi tasirlar, depo PUBLIC. Ayrica calisan bir oturumun
 # dizini `git status`'u kirletip baska mimarlarin temizlik olcumunu bozuyordu.
 .scratch-*/
+# 13 Agu 2026 (KraL, devir acilisi): soneksiz `.scratch/` deseni KACIYORDU — ayni sinif
+# dizin `git status`'ta untracked duruyor ve CI KAPSAM KAPISI'nin calisma-agaci ekseninde
+# BASKA mimarlarin push'unu blokluyor (12 Agu'da olculdu: 4 kez, 3'u urun partisi).
+.scratch/
 
 # Urun gorsel KOKEN manifestleri — yerel mutlak yollar (/Users/okan/...) ve render
 # kaynagi tasir; kanonik ev KaaN'in deposudur (../pruvo-jenerator/urun-gorsel-koken).

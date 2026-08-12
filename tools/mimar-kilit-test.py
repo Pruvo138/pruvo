@@ -39,6 +39,7 @@ Kullanim:
 
 Cikis kodu 0 = hepsi gecti, 1 = en az bir vaka basarisiz ya da atlandi.
 """
+import atexit
 import json
 import os
 import shutil
@@ -611,6 +612,106 @@ MCP_VAKALARI = [
      "onek SINIRI: kisa 'mcp__chrome__' kapsamda DEGIL -> ALLOW"),
 ]
 
+# === 13 AGU ISCI-SARMALAYICI KAPISI VAKALARI ===
+# Mimar ANA oturumu (agent_id YOK) isci sarmalayicisini ('~/.claude/cron/isci.sh' ve
+# yonlendirme 'm3-isci.sh') cagirdiginda kural KALITE KAPISI olarak kosar: yol TAM
+# ESITLIK · argüman sayisi 3-4 · motor KAPALI KUME · motor=claude ise AGENT-KAPISI'nin
+# BEYAN SARTI (ayni AGENT_MUAFIYET_RE) · spec okunamiyorsa RED (fail-closed).
+# I1-I4 mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
+#
+# 🔴 HERMETIK: spec dosyasi gereken vakalar DISARIDAKI gercek dosyalara BAGLI DEGILDIR —
+# test kendi gecici dosyalarini yazar ve cikista siler (memory/bayat-kabul-testi.md).
+_ISCI_FIKSTUR_DIZINI = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-isci-spec-"))
+atexit.register(shutil.rmtree, _ISCI_FIKSTUR_DIZINI, ignore_errors=True)
+
+
+def _isci_spec_yaz(ad, icerik):
+    yol = os.path.join(_ISCI_FIKSTUR_DIZINI, ad)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(icerik)
+    return yol
+
+
+# BEYANSIZ spec: 'codex-muafiyet:' satiri YOK. Ucuz motorlarda bu SART DEGILDIR (kural
+# yalniz motor=claude'da beyan arar) — ayni dosya iki ekseni birden olcer.
+ISCI_SPEC_BEYANSIZ = _isci_spec_yaz(
+    "beyansiz.md", "Kosum sayilarini olc ve rapor et. Beyan satiri YOK.\n")
+ISCI_SPEC_BEYANLI = _isci_spec_yaz(
+    "beyanli.md", "Is: kapi kodu.\ncodex-muafiyet: kapi kodu insasi — sessiz-hata\nDevam.\n")
+# HIC YAZILMAYAN dosya: 'okunamadi -> fail-closed' ekseni (varligi degil YOKLUGU olculur).
+ISCI_SPEC_YOK = os.path.join(_ISCI_FIKSTUR_DIZINI, "hic-yazilmadi.md")
+
+ISCI_W = "/Users/okan/.claude/cron/isci.sh"
+ISCI_M3 = "/Users/okan/.claude/cron/m3-isci.sh"
+
+ISCI_SARMALAYICI_VAKALARI = [
+    # --- ALLOW: delegasyon yolu ACIK (olculen delik: bunlarin HEPSI 13 Agu oncesi DENY idi) ---
+    (600, "allow", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
+     "ucuz motor + 4 argüman (etiketli) -> GECER"),
+    (601, "allow", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "ayni cagri ETIKETSIZ (3 argüman) -> GECER"),
+    (602, "allow", "Bash",
+     ISCI_M3 + " /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "m3-isci.sh YONLENDIRME (motorsuz imza, motor minimax-m3'e CIVILI) -> GECER"),
+    (603, "allow", "Bash",
+     ISCI_M3 + " /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
+     "yonlendirme + ETIKET (motor dahil 4 argüman) -> GECER"),
+    (604, "allow", "Bash",
+     ISCI_W + " minimax-m3 /Users/okan/dev/pruvo-hasat " + ISCI_SPEC_BEYANSIZ, None,
+     "CAPRAZ EV delegasyonu (baska ev koku) -> GECER"),
+    # --- DENY: kalite kapisinin cekirdegi ---
+    (610, "deny", "Bash",
+     ISCI_W + " gpt-9 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "BILINMEYEN MOTOR -> VARSAYILAN RED (fail-closed) [I2 sentinel]"),
+    (611, "deny", "Bash", ISCI_W + " deepseek-flash /Users/okan/dev/pruvo", None,
+     "EKSIK argüman (yalniz motor + ev) -> RED"),
+    (612, "deny", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket fazla",
+     None, "FAZLA argüman (5 token) -> RED"),
+    (613, "deny", "Bash",
+     ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "motor=claude + spec'te BEYAN YOK -> RED (AGENT-KAPISI atlatilamaz) [I3 sentinel]"),
+    (614, "allow", "Bash",
+     ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
+     "motor=claude + spec'te 'codex-muafiyet: ... — sessiz-hata' VAR -> GECER"),
+    (615, "deny", "Bash",
+     ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, None,
+     "motor=claude + spec dosyasi YOK (okunamadi) -> RED [I4 sentinel, fail-closed]"),
+    # --- DENY: YOL SINIRI (muafiyet anahtari TAM YOLA civilidir) ---
+    (620, "deny", "Bash",
+     "/tmp/isci.sh deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "AYNI ADDA baska betik (/tmp/isci.sh) -> RED [I1 sentinel: basename esitligi delerdi]"),
+    (621, "deny", "Bash",
+     "/Users/okan/.claude/cron/eski-isci.sh deepseek-flash /Users/okan/dev/pruvo " +
+     ISCI_SPEC_BEYANSIZ, None,
+     "AYNI DIZINDE benzer ad (eski-isci.sh) -> RED (onek/alt-dize gevsemesi nobetcisi)"),
+    (622, "deny", "Bash",
+     "/Users/okan/.claude/cron/isci.sh.eski.sh deepseek-flash /Users/okan/dev/pruvo " +
+     ISCI_SPEC_BEYANSIZ, None,
+     "YEDEK adi (isci.sh.eski.sh) -> RED (ONEK gevsemesi nobetcisi)"),
+    (623, "deny", "Bash",
+     "bash " + ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "sarmalayici YORUMLAYICI uzerinden cagriliyor (argv0=bash) -> muafiyet YOK, RED"),
+    # --- SEGMENT AYRIMI: 'gecer' YALNIZ O SEGMENTI kapatir (iki yon de olculur) ---
+    (630, "deny", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
+     " | python3 tools/build.py", None,
+     "sarmalayicinin YANINA baska ICRA eklenmis -> ikinci segment RED (yanlis-NEGATIF nobeti)"),
+    (631, "allow", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
+     " && git -C /Users/okan/dev/pruvo status", None,
+     "MESRU zincir (sarmalayici && git status) -> GECER (yanlis-POZITIF nobeti)"),
+    # --- REGRESYON: ISCI kimligi (agent_id DOLU) kuraldan TAM muaf (main() basi) ---
+    (640, "allow", "Bash",
+     ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, ISCI_ID,
+     "ISCI + beyansiz 'isci.sh claude' -> GECER (kural yalniz mimar ANA oturumunda)"),
+    (641, "allow", "Bash",
+     "/tmp/isci.sh gpt-9 /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, ISCI_ID,
+     "ISCI + kuralin TUM sartlarini ihlal eden cagri -> GECER (kimlik ekseni muafiyeti)"),
+]
+
 # COMMIT KAPISI — kanca degil, dogrudan betik cagrisi.
 # (no, beklenen_exit, stdin, ek_env, gitdir_hazirlik, aciklama)
 COMMIT_VAKALARI = [
@@ -994,6 +1095,8 @@ def main():
         ("22 TEM SERTLESTIRME (olcum/curl/codex/python-allowlist/sh-nobetci)", MIMAR_22TEM_VAKALARI, REPO),
         ("28 TEM AGENT-KAPISI (Agent/Task beyan sarti) — MIMAR + ISCI ekseni", AGENT_VAKALARI, REPO),
         ("8 AGU MCP-TARAYICI KAPISI — ANA RED / ISCI GECER + YANLIS-POZITIF nobeti", MCP_VAKALARI, REPO),
+        ("13 AGU ISCI-SARMALAYICI KAPISI — yol/argüman/motor/beyan + segment ayrimi",
+         ISCI_SARMALAYICI_VAKALARI, REPO),
     ]
 
     toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 3
