@@ -107,6 +107,19 @@ BEKLENEN = (
          "yazim oncesi alan kolu: INDEX'te DEGISEN kayitlarin `altkategori` ve "
          "`uyum`/`marka` (K5 ikiz) alanlari arama.py'nin KANONIK fonksiyonlariyla "
          "dogrulanir; ihlal commit aninda BLOKLANIR"),
+        # 12 Agu 2026 eklendi (kanca adimi 9 Agu'dan beri KOSUYORDU, KAYITSIZDI).
+        # GEREKCE: `bdddaee0` izlenen kok deftere bir kapi-bypass satiri soktu;
+        # tools/devam-sinif-kapisi.py DOGRU calisti ama YALNIZ CI'da yasiyordu:
+        # `serit-a2` + `serit-a3` KIRMIZI yandi, `deploy` + `yayin` SKIPPED kaldi
+        # ve yayin ~1 SAAT durdu. Kapi kancaya baglanarak kapatildi AMA bu
+        # envantere HIC yazilmadi -> adim 6'nin cagri satiri silinse ya da `|| true`
+        # ile yutulsa HICBIR nobetci kirmizi yakmazdi: koruma NOBETSIZDI
+        # ([[nobetci-cagri-satiri-nobetsiz]]). Ayni sinifin IKINCI vakasi
+        # (ic-rapor-index-kolu.py, 12 Agu) tam da bu kayitsizlik yuzunden geldi.
+        ("tools/devam-sinif-kapisi.py",
+         "yazim oncesi defter icerik-sinifi kolu: INDEX'e giren izlenen kok "
+         "defterlerinde tedarikci/oran/sir/bypass sinifi taranir; ihlal commit "
+         "aninda BLOKLANIR (CI kolu yayini SAATLERCE durdurarak konusur)"),
         # 12 Agu 2026 eklendi. GEREKCE: ic isci-raporu protokol adi kapisi YALNIZ
         # CI'da yasiyordu (`grep -rn ic-rapor-adi-kapisi tools/kancalar/` -> 0
         # isabet). Bir nobet turu o adi izlenen kok defter DEVAM.md'ye yazdi;

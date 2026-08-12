@@ -145,6 +145,13 @@ FAIL_CLOSED = {
         "atliyordu (olculdu 8 Agu 2026: 5 bozuk kayit main'e girdi, ariza saatler "
         "sonra CI'da gorundu, deploy ATLANDI). Cikis kodu yutulursa bozuk kayit "
         "repoya girer ve yayin yine SAATLER sonra durur.",
+    ("pre-commit", "tools/devam-sinif-kapisi.py"):
+        "yazim oncesi defter icerik-sinifi kolu (INDEX ekseni). 9 Agu 2026'da "
+        "olculdu: `bdddaee0` izlenen kok deftere bir kapi-bypass satiri soktu, kapi "
+        "YALNIZ CI'da yasadigi icin `serit-a2` + `serit-a3` KIRMIZI yandi, `deploy` + "
+        "`yayin` SKIPPED kaldi ve yayin ~1 SAAT durdu. Cikis kodu yutulursa ihlal "
+        "repoya girer ve yayin yine SAATLER sonra, ihlali yazan kisiden UZAKTA durur "
+        "(ayni sinifin IKINCI vakasi ic-rapor-index-kolu.py ekseninde olculdu).",
     ("pre-commit", "tools/ic-rapor-index-kolu.py"):
         "yazim oncesi ic rapor adi kolu (INDEX ekseni). Kanonik kapi "
         "(tools/ic-rapor-adi-kapisi.py) YALNIZ CI'da yasiyordu: 12 Agu 2026 kosumu "
