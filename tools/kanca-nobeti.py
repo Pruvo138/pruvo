@@ -107,6 +107,19 @@ BEKLENEN = (
          "yazim oncesi alan kolu: INDEX'te DEGISEN kayitlarin `altkategori` ve "
          "`uyum`/`marka` (K5 ikiz) alanlari arama.py'nin KANONIK fonksiyonlariyla "
          "dogrulanir; ihlal commit aninda BLOKLANIR"),
+        # 12 Agu 2026 eklendi. GEREKCE: ic isci-raporu protokol adi kapisi YALNIZ
+        # CI'da yasiyordu (`grep -rn ic-rapor-adi-kapisi tools/kancalar/` -> 0
+        # isabet). Bir nobet turu o adi izlenen kok defter DEVAM.md'ye yazdi;
+        # kosum 31549865286'da `serit-a3` KIRMIZI yandi, `deploy` + `yayin`
+        # SKIPPED kaldi, YAYIN DURDU (kanama 3383aa90). Ayni sinifin BIRINCI
+        # vakasi devam-sinif-kapisi.py ekseninde yasanmis ve kancaya baglanarak
+        # kapatilmisti; bu kapi baglanmadigi icin IKINCI vaka geldi. Cagri satiri
+        # BURAYA KAYITLI OLMAZSA silinmesi hicbir yerde kirmizi yakmaz
+        # ([[nobetci-cagri-satiri-nobetsiz]]).
+        ("tools/ic-rapor-index-kolu.py",
+         "yazim oncesi ic rapor adi kolu: INDEX'e giren dosyalarin STAGE'LENMIS "
+         "icerigi kanonik tools/ic-rapor-adi-kapisi.py hukmuyle taranir (hukum "
+         "IMPORT edilir, kopyalanmaz); ihlal commit aninda BLOKLANIR"),
     )),
     ("pre-push", (
         ("tools/yedekle.py",

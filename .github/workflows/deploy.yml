@@ -1176,6 +1176,18 @@ jobs:
       - name: Ic rapor adi kapisi
         run: python3 tools/ic-rapor-adi-kapisi.py
 
+      # IC RAPOR ADI KAPISININ PRE-COMMIT KOLU (12 Agu 2026) — yukaridaki adimin
+      # KIRMIZI yanmasinin MALIYETINI olcen kol. OLCULEN OLAY (kosum 31549865286):
+      # izlenen kok deftere sizan protokol adi bu job'i kirmizi yakti, `deploy` +
+      # `yayin` SKIPPED kaldi ve YAYIN DURDU — yani maliyet ihlalin buyuklugunden
+      # degil YAKALANDIGI YERDEN geliyordu. Onarim commit anina bir CAGRI NOKTASI
+      # ekledi (tools/ic-rapor-index-kolu.py, pre-commit adim 7). Bu batarya o
+      # cagri noktasinin hukmunu GERCEK gecici depolarda + GERCEK `git commit`
+      # ile yeniden uretir (kanca blogu VERBATIM cikarilir, yeniden yazilmaz).
+      # BLOKLAYICI, agsiz, deterministik ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+      - name: "Ic rapor adi kapisi pre-commit kolu (19 vaka: arac + gercek kanca)"
+        run: python3 tools/ic-rapor-kanca-test.py
+
       # KANCA KABLOSU DAVRANIS AYAGI (9 Agu 2026) — pre-push kapsam blogunun
       # HUKMU sentetik depo + BARE uzak uzerinde 45 GERCEK `git push` ile olculur
       # (15 govde x 3 vaka). Regex/metin taklidi DEGIL: kabuk hukmu verir.
