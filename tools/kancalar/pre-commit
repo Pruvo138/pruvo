@@ -153,7 +153,7 @@ else
   fi
 fi
 
-# --- 5) KATALOG ALAN KAPISI — `altkategori` + `uyum`/`marka` (FAIL-CLOSED) ---
+# --- 5) KATALOG ALAN KAPISI — `fiyat` tipi + `altkategori` + `uyum`/`marka` ---
 # 🔴 8 AGU 2026 ONARIMI — "YAZIM YOLU KAPIYI ATLIYOR" SINIFI KAPATILDI (olculdu):
 #   Toplu ekleme yolu urunler.json'a DOGRUDAN yaziyor ve tools/duzelt.py'nin IKI
 #   fail-closed kapisini birden atliyordu (_altkategori_ihlalleri -> altkategori_sebebi,
@@ -161,8 +161,9 @@ fi
 #   girdi; ariza SAATLER SONRA CI serit-a2'de gorundu, deploy ATLANDI (3,5+ saat).
 #   Kapilar YALNIZ duzelt.py'nin ICINDE ve YALNIZ CI'da yasiyordu -> yazim yolunda
 #   hicbir kol yoktu. Bu adim ihlali COMMIT ANINDA durdurur: repoya HIC girmez.
-# TEK KAYNAK: kapi kurali kopyalamaz, arama.altkategori_sebebi / arama.uyum_sebebi
-#   fonksiyonlarini cagirir.
+# TEK KAYNAK: altkategori/uyum kurali kopyalanmaz; arama.altkategori_sebebi /
+#   arama.uyum_sebebi cagrilir. `fiyat` semasi katalog genelinde STRING ister;
+#   bos string sari/parametrik seri icin bilerek gecerlidir.
 # ON-ELEME KABUKTA YAPILMAZ: kapinin ekseni INDEX'tir; burada `git diff --quiet HEAD`
 #   ile eleseydik CALISMA AGACI ekseni acilir ve iki eksen sessizce ayrisirdi (adim 4'un
 #   ekseni bilerek AYRIDIR). On-eleme kapinin KENDI icinde, AYNI index ekseninde kosar
@@ -171,7 +172,7 @@ fi
 pruvo_alan="$pruvo_kok/tools/katalog-alan-kapisi.py"
 if [ ! -f "$pruvo_alan" ]; then
   echo "!! COMMIT DURDURULDU — tools/katalog-alan-kapisi.py YOK." >&2
-  echo "!! altkategori/uyum korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  echo "!! fiyat tipi/altkategori/uyum korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
   exit 1
 fi
 python3 "$pruvo_alan"

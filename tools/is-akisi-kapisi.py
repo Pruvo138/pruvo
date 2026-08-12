@@ -1727,8 +1727,8 @@ TABLO_TABANLARI = (
     ("B_TETIK_MUTANTLAR", 2), ("B_ADIM_IDDIALARI", 1), ("BOZUK_ORNEKLER", 9),
     # E_MUTANTLAR 1 Agu: 22 -> 25 (durum-test.py KOL GRANULU mutantlari eklendi).
     # E_MUTANTLAR 7 Agu: 25 -> 28 (konfigur-bundle bayraksiz kol mutantlari: 2 oldurucu
-    # + 1 kanarya).
-    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 28), ("K26_SATIR_FIKSTURLERI", 26),
+    # + 1 kanarya). 12 Agu: 28 -> 29 (katalog alan gercek olcum adimi silme mutanti).
+    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 29), ("K26_SATIR_FIKSTURLERI", 26),
     # 8 Agu: 5 -> 8 (taban tam-esitlige cevrildi; olculen pay 3 idi, olu koruma).
     ("K26_BAGLAM_MUTANTLAR", 8), ("K29_MUTANTLAR", 13),
     # 1 Agu: 4 -> 6 (durum-test.py'nin IKI kolu KOL GRANULUNDE eklendi). Taban
@@ -1737,7 +1737,9 @@ TABLO_TABANLARI = (
     # 7 Agu: 6 -> 7 (konfigur-bundle-kapisi.py'nin deploy.yml'deki BAYRAKSIZ kolu;
     # serit ayrimi `--kendini-test` kolunu nobet.yml'e tasiyinca dosya granullu kapsam
     # kapisi bayraksiz kolun silinmesini GORMEZ olmustu — olculdu, rc=0).
-    ("E_ZORUNLU_CAGRILAR", 7), ("E_ZORUNLU_VARLIKLAR", 1),
+    # 12 Agu: 7 -> 8 (`katalog-alan-kapisi.py` bayraksiz gercek katalog olcumu
+    # deploy.yml serit-a2'ye BLOKLAYICI eklendi; fiyat tipi build'den once durur).
+    ("E_ZORUNLU_CAGRILAR", 8), ("E_ZORUNLU_VARLIKLAR", 1),
     # 8 Agu: 5 -> 7 (taban tam-esitlige cevrildi; olculen pay 2 idi, olu koruma).
     # 8 Agu (3. tur): 7 -> 8 (kendini_test -> _tablo_mekanizma_kontrol kablosu eklendi;
     # M6 sinifi: inline blok + elle yazili `iddia += 6` ikizi eksenin SESSIZCE
@@ -3971,6 +3973,12 @@ E_ZORUNLU_CAGRILAR = (
      "D1 YAZMA GERI-OKUMA nobeti (write-verify + icerik ekseni). Adim fail-open olursa "
      "senkron sessizce bozulur: site urunu gosterir, Ege D1'den GOREMEZ (sessiz satis "
      "kaybi, [[ege-d1-bagimliligi]]). d1-sync.py kesif predikatina girmez -> Bolum D kor."),
+    (E_DOSYA, "tools/katalog-alan-kapisi.py", None,
+     "KATALOG GENELI FIYAT TIPI + COMMIT ANI ALAN KAPISI — BAYRAKSIZ gercek olcum "
+     "kolu. Sayi fiyat build.py `.strip()` yolunu cokertip build/feed/sepet adimlarini "
+     "birlikte dusurur; bu cagri deploy.yml serit-a2'de BLOKLAYICI kosarak bozuk tipi "
+     "yayin uretiminden once durdurur. Kabul testi bu gercek katalog olcumunun yerini "
+     "tutmaz; yalniz sentetik fiksturla kapinin kendisini sinar."),
     # 🔴 1 AGU — KOL GRANULU (olculen delik, [[nobetci-cagri-satiri-nobetsiz]]).
     # durum-test.py'nin IKI kolu var ve IKISI DE ayni job'da (`serit-b`) kosuyor:
     # bayraksiz kol "bugunku pano ciktisi temiz mi" der, `--ic-nobetci` kolu 6c
@@ -4726,6 +4734,8 @@ jobs:
         run: python3 tools/build.py
       - name: "D1 yazma geri-okuma"
         run: python3 tools/d1-sync.py --kendini-test
+      - name: "Katalog alan kapisi"
+        run: python3 tools/katalog-alan-kapisi.py
       - name: "Durum panosu kabul testi"
         run: python3 tools/durum-test.py
       - name: "6c sizinti muafiyeti ic nobetcisi"
@@ -4764,6 +4774,9 @@ E_MUTANTLAR = (
      E_FIKSTUR_TEMIZ.replace('      - name: "CI kapsam kapisi oz-nobetcileri"\n',
                              '      - name: "CI kapsam kapisi oz-nobetcileri"\n'
                              "        continue-on-error: true\n"), True),
+    ("katalog alan kapisi gercek olcum adimi silindi",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Katalog alan kapisi"\n'
+                             "        run: python3 tools/katalog-alan-kapisi.py\n", ""), True),
     # --- YANLIS-POZITIF KANARYALARI: MESRU yazim KIRMIZI YANMAMALI ---
     ("`on: [push, workflow_dispatch]` liste yazimi (MESRU)",
      E_FIKSTUR_TEMIZ.replace("on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n",
@@ -4948,7 +4961,8 @@ def _main_ast_return1_var():
 #       Olculdu (8 Agu, bagimsiz curutucu): git'siz bir agacta `git ls-files` bos doner,
 #       D ekseni ~45 iddia atlar ve sayi 204 -> 148 duser; bu kol o hali KIRMIZI yakar.
 #       Tam esitlik bu gorevi de yapardi ama (a) yuzunden bedeli agir.
-KENDINI_TEST_TABAN = 204
+# 12 Agu: 204 -> 205 (katalog alan gercek olcum adimi silme mutanti).
+KENDINI_TEST_TABAN = 205
 
 KENDINI_TEST_TABAN_TANI = (
     "BOLUM C IDDIA SAYACI KIRMIZI: ariza-enjeksiyon %d iddia kosturdu, TABAN %d.\n"

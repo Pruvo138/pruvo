@@ -17,7 +17,12 @@ A2 KIRMIZI  `uyum` dolu + `marka` ELLE yazilmis (K5 ikizi) TEK BASINA rc=1 yakar
             🔴 [[beyan-edilmis-survivor]]: tek bir "ikisi birden bozuk" vaka iki
             ekseni birden OLCMEZ, katmanlarin VEYA'sini olcer. Iki eksen AYRI
             vakalarda ve AYRI mutantlarla olculur.
-B1 YESIL    BUGUNKU gercek katalogun TAMAMI (22.698 kayit) "yeni" olarak
+F1 KIRMIZI  Bugunku gercek vaka bicimi `{"id":"x","fiyat":430}` rc=1 yakar;
+            rapor id + gorulen tip + gorulen deger + beklenen ornegi birlikte verir.
+F2 YESIL    `{"id":"y","fiyat":"430 TL"}` ve `{"id":"z","fiyat":""}` rc=0;
+            bos string parametrik/sari seri sozlesmesi geregi bilerek gecerlidir.
+F3 KIRMIZI  float/null/liste/sozluk tiplerinin her biri rc=1 ve eylemli tani uretir.
+B1 YESIL    BUGUNKU gercek katalogun TAMAMI "yeni" olarak
             stage'lendiginde yanlis-pozitif URETMEZ.
 B2 YESIL    Gercek katalogda TEK bir MESRU degisiklik (bir kaydin `fiyat`i) rc=0.
 B3 YESIL    urunler.json HIC degismediginde rc=0 VE atlama NEDENI BASILIR
@@ -94,7 +99,8 @@ GERCEK_KATALOG = os.path.join(GERCEK_KOK, "urunler.json")
 
 # Bir iddia silmek MESRU olabilir; sessizce kaybolmasi DEGIL. Iddia sayisi bunun
 # altina duserse hukum KIRMIZI olur ve taban AYNI commit'te gerekceyle dusurulur.
-IDDIA_TABANI = 55
+# 12 Agu: 55 -> 62 (fiyat tipi gercek regresyonu + bos string + dort bozuk tip).
+IDDIA_TABANI = 62
 
 # Git baglam scrub'inin TEK KAYNAGI tools/git_ortami.py'dir; burada IKINCI bir
 # kume TANIMLANMAZ ([[ikiz-tanim-sessiz-ayrisma]]). Surucunun kendi cocuk
@@ -186,6 +192,35 @@ BOZUK_UYUM = {
     "marka": ["Ford", "Fiesta"],
     "uyum": [{"marka": "Ford", "model": "Focus"}],
     "gorseller": ["https://ornek.invalid/3.jpg"],
+}
+
+# 12 Agu 2026 yayin arizasinin GERCEK cikti sekli: id + sayisal fiyat.
+BOZUK_FIYAT = {
+    "id": "x",
+    "kategori": "Otomobil",
+    "baslik": "Gercek fiyat tipi regresyon fiksturu",
+    "aciklama": "Sentetik.",
+    "fiyat": 430,
+    "gorseller": ["https://ornek.invalid/x.jpg"],
+}
+
+TEMIZ_FIYAT = {
+    "id": "y",
+    "kategori": "Otomobil",
+    "baslik": "String fiyat kontrolu",
+    "aciklama": "Sentetik.",
+    "fiyat": "430 TL",
+    "gorseller": ["https://ornek.invalid/y.jpg"],
+}
+
+BOS_FIYAT = {
+    "id": "z",
+    "kategori": "Jeneratör",
+    "baslik": "Bos fiyat kontrolu",
+    "aciklama": "Sentetik.",
+    "fiyat": "",
+    "parametrik": True,
+    "gorseller": ["https://ornek.invalid/z.jpg"],
 }
 
 
@@ -302,6 +337,47 @@ def vaka_a(s, kok):
 
 
 # ---------------------------------------------------------------------------
+# F — FIYAT TIPI: bugunku gercek regresyon + bos-string istisnasi
+# ---------------------------------------------------------------------------
+def vaka_fiyat(s, kok):
+    rc, c = _tek_eksen_kos(kok, "f1", GERCEK_KAPI, BOZUK_FIYAT)
+    s.bekle("F1.sayi-kirmizi", rc == 1,
+            "sayisal fiyat rc=1 yakmali; rc=%d cikti=%s" % (rc, c[-500:]))
+    s.bekle("F1.sapan-id", "id=x [fiyat]" in c,
+            "rapor sapan id'yi vermeli; cikti=%s" % c[-500:])
+    s.bekle("F1.tip-ve-deger", "gorulen tip=int" in c and "gorulen deger=430" in c,
+            "rapor gorulen tip + degeri vermeli; cikti=%s" % c[-500:])
+    s.bekle("F1.eylemli-ornek", "beklenen ornek='430 TL'" in c,
+            "rapor beklenen bicim ornegi vermeli; cikti=%s" % c[-500:])
+
+    d = depo_kur(os.path.join(kok, "f2"), GERCEK_KAPI, [])
+    stage_et(d, [TEMIZ_FIYAT, BOS_FIYAT])
+    rc, c = kapiyi_kos(d)
+    s.bekle("F2.string-ve-bos-string-yesil", rc == 0,
+            "'430 TL' ve '' birlikte YESIL olmali; rc=%d cikti=%s" % (rc, c[-500:]))
+
+    bozuk_tipler = []
+    for uid, deger in (("x-float", 430.5), ("x-null", None),
+                       ("x-liste", [430]), ("x-sozluk", {"tutar": 430})):
+        u = dict(BOZUK_FIYAT)
+        u["id"] = uid
+        u["fiyat"] = deger
+        bozuk_tipler.append(u)
+    d2 = depo_kur(os.path.join(kok, "f3"), GERCEK_KAPI, [])
+    stage_et(d2, bozuk_tipler)
+    rc, c = kapiyi_kos(d2)
+    s.bekle("F3.diger-string-disi-tipler-kirmizi", rc == 1,
+            "float/null/liste/sozluk birlikte rc=1 olmali; rc=%d cikti=%s"
+            % (rc, c[-900:]))
+    s.bekle("F3.tum-tipler-eylemli-tani", all(jeton in c for jeton in (
+                "id=x-float [fiyat]", "gorulen tip=float", "gorulen deger=430.5",
+                "id=x-null [fiyat]", "gorulen tip=NoneType", "gorulen deger=None",
+                "id=x-liste [fiyat]", "gorulen tip=list", "gorulen deger=[430]",
+                "id=x-sozluk [fiyat]", "gorulen tip=dict", "gorulen deger={'tutar': 430}")),
+            "her string-disi tip id + tip + degerle raporlanmali; cikti=%s" % c[-1400:])
+
+
+# ---------------------------------------------------------------------------
 # B — YESIL eksenleri (yanlis-pozitif butcesi)
 # ---------------------------------------------------------------------------
 def vaka_b(s, kok):
@@ -309,6 +385,22 @@ def vaka_b(s, kok):
         katalog = json.load(f)
     s.bekle("B0.gercek-katalog-okundu", isinstance(katalog, list) and len(katalog) > 1000,
             "gercek katalog dizi olmali; tip=%s" % type(katalog).__name__)
+
+    # Gercek katalogdaki bugunku sapma AYRICA olculur; B ekseni altkategori/uyum icin
+    # yanlis-pozitif butcesidir, bilinen fiyat arizasi bu bagimsiz ekseni golgelemesin.
+    fiyat_sapma = [u for u in katalog if isinstance(u, dict) and "fiyat" in u
+                   and not isinstance(u["fiyat"], str)]
+    bos_fiyat = [u for u in katalog if isinstance(u, dict) and u.get("fiyat") == ""]
+    print("  OLCUM  gercek katalog fiyat tipi sapmasi=%d bos-string=%d"
+          % (len(fiyat_sapma), len(bos_fiyat)))
+    katalog_tipi_temiz = []
+    for u in katalog:
+        kopya = dict(u) if isinstance(u, dict) else u
+        if isinstance(kopya, dict) and "fiyat" in kopya \
+                and not isinstance(kopya["fiyat"], str):
+            kopya["fiyat"] = "%s TL" % kopya["fiyat"]
+        katalog_tipi_temiz.append(kopya)
+    katalog = katalog_tipi_temiz
 
     # HEAD BOS: gercek katalogun TAMAMI "yeni kayit" sayilir -> en genis yanlis-pozitif olcumu.
     d = depo_kur(os.path.join(kok, "b"), GERCEK_KAPI, [])
@@ -706,6 +798,7 @@ def main():
     kok = os.path.realpath(kok)
     try:
         vaka(s, "A — KIRMIZI eksenleri (iki eksen AYRI vakalarda)", vaka_a, kok)
+        vaka(s, "F — fiyat tipi (gercek regresyon + bos string)", vaka_fiyat, kok)
         vaka(s, "B — YESIL / yanlis-pozitif butcesi (GERCEK katalog)", vaka_b, kok)
         vaka(s, "K — kapsam (HEAD'deki eski ihlal kilitlemez)", vaka_kapsam, kok)
         vaka(s, "E — eksen INDEX'tir (calisma agaci degil)", vaka_eksen, kok)
