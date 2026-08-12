@@ -87,6 +87,50 @@ BOS_AGAC = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 # icerigi YOKTUR ve zaten ihlali GOTURUR. U (unmerged) fail-closed ele alinir.
 DIFF_SUZGECI = "--diff-filter=ACMR"
 
+# ---------------------------------------------------------------------------
+# 🔴 KANCANIN VERDIGI INDEX KORUNUR — 12 AGU 2026 OLCULEN FAIL-OPEN (K70).
+# `git commit -- <yol>` (pathspec / `--only`) ve `git commit -a` bicimleri GECICI
+# bir index kurar ve pre-commit kancasina ONU `GIT_INDEX_FILE` ile verir. Olculen
+# degerler: pathspec -> `<kok>/.git/next-index-<pid>.lock`, `-a` -> `<kok>/.git/
+# index.lock`, duz `git add` + `git commit` -> `.git/index`.
+# `git_ortami()`nin scrub kumesi GIT_INDEX_FILE'i DE dusurur; dusunce bu kol
+# GERCEK `.git/index`i okur, o da HEAD ile AYNIDIR -> "stage'de 0 metin dosyasi
+# tarandi" basip BOSTA YESIL verirdi. Yeniden uretildi: AYNI ihlal `git add`
+# biciminde rc=1 (commit BLOKLANDI), pathspec biciminde rc=0 (commit ATILDI).
+# NEDEN CIDDI: proje kurali `git add`i YASAKLAR ve tam da `git commit -F ... --
+# <yollar>` bicimini ZORUNLU kilar -> kapi, MANDAT EDILEN commit yolunda KORDU.
+# Kardes kol tools/devam-sinif-kapisi.py::_git AYNI commit'te 1 kok belgesi
+# okuyordu; sebebi olculdu: o kol GERCEK yolda ortami BILEREK TEMIZLEMEZ
+# (tools/katalog-alan-kapisi.py ile AYNI karar, orada da yazili).
+# SCRUB YINE DE KALIR: miras alinan GIT_DIR/GIT_WORK_TREE acik `-C kok` hedefini
+# SESSIZCE ezer (tools/git_ortami.py'de olculen kusur). ORTAK MODULUN DAVRANISI
+# DEGISMEZ — geri verilen TEK ad burada, CAGRI YERINDE secilir.
+# GIT_PREFIX BILEREK GERI VERILMEZ (olculdu): kanca cwd'si dort commit biciminin
+# DORDUNDE de calisma agacinin TEPESIDIR, yani prefix'e ihtiyac YOKTUR; buna
+# karsilik GIT_PREFIX set edildiginde `git -C kok diff --cached` cikti kumesi o
+# prefix'e gore DARALIR -> kapsam SESSIZCE kuculurdu. Tasimak delik acardi.
+# ---------------------------------------------------------------------------
+INDEX_DEGISKENI = "GIT_INDEX_FILE"
+
+
+def kanca_ortami(kaynak=None, cwd=None):
+    """Scrub'li ortam + kancanin verdigi GIT_INDEX_FILE (MUTLAKLASTIRILMIS).
+
+    Git, GIT_INDEX_FILE'i BASLADIGI dizine gore cozer; bu kol git'i `-C kok` ile
+    cagirir, yani GORECELI bir deger (olculen: `.git/index`) `-C` hedefine gore
+    cozulurdu. Deger burada surecin KENDI cwd'sine — kanca baglaminda calisma
+    agacinin tepesine — gore MUTLAKLASTIRILIR, boylece `-C` ile arasinda fark
+    kalmaz. Degisken YOKSA (kancasiz dogrudan kosum) hicbir sey EKLENMEZ: o
+    halde GERCEK index zaten dogru evrendir."""
+    kaynak = os.environ if kaynak is None else kaynak
+    ort = git_ortami()
+    ort.pop(INDEX_DEGISKENI, None)   # niyet ACIK: scrub dusurur, sonra biz veririz
+    ham = kaynak.get(INDEX_DEGISKENI)
+    if ham:
+        ort[INDEX_DEGISKENI] = os.path.abspath(
+            ham if cwd is None else os.path.join(cwd, ham))
+    return ort
+
 
 def kapi_modulu(dizin=BETIK_DIZINI):
     """(modul, hata) — kanonik kapiyi YUKLE ve SOZLESMESINI dogrula.
@@ -140,10 +184,12 @@ def kapi_modulu(dizin=BETIK_DIZINI):
 
 def _git(kok, *args):
     """(rc, stdout_bytes, stderr_metin). Ortam SCRUB'LI: kanca baglaminda miras
-    alinan GIT_DIR acik `-C kok` hedefini SESSIZCE ezerdi."""
+    alinan GIT_DIR acik `-C kok` hedefini SESSIZCE ezerdi. TEK ISTISNA
+    GIT_INDEX_FILE'dir — bkz. `kanca_ortami` ve yukaridaki K70 gerekcesi:
+    pathspec/`-a` commit'lerinde OLCULECEK index O DEGISKENDEDIR."""
     try:
         p = subprocess.run(["git", "-C", kok] + list(args), capture_output=True,
-                           env=git_ortami(), timeout=120)
+                           env=kanca_ortami(), timeout=120)
     except OSError as e:
         return 127, b"", "git calistirilamadi: %s" % e
     except subprocess.TimeoutExpired:
