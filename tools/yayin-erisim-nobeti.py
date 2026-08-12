@@ -27,6 +27,32 @@ dalinin HEAD'i kapsamamasiydi. HEAD'e bakan bir nobetci bu kusuru **HIC GORMEZDI
 testi bunu FIKSTURLE (HEAD 200 / GET 403 uretn gercek bir HTTP sunucusu) nobetler;
 `YONTEM`i "HEAD"e ceviren mutant kabul testini KIRMIZI yakar.
 
+🔴 EVREN HIZALAMA — KUME "SON BASARILI DEPLOY"UN SHA'SINDAN TURER (12 Agu 2026)
+==============================================================================
+Kosum `31579567151` (12 Agu 08:42Z) KAPALI yakti: 11 URL 404. Bagimsiz teyit dakikalar
+sonra ayni 11 URL'yi 200 buldu. Kapanma GERCEKTI ama GECICIYDI: alarm, "yayinlanmis
+olmasi beklenen" kumeyi TAZE checkout'tan (main ucu) turetiyordu; olctugu canli yuzey
+ise SON BASARILI DEPLOY'un SHA'sindaydi. O turda olculen fark: deploy `9cf40ae3`,
+`origin/main` `c4a1931a` -> agac deploy'dan **4 commit ONDE**. Yeni sayfa tasiyan bir
+parti indiginde alarm, HENUZ DEPLOY EDILMEMIS sayfalari canlida arayip 404 aliyordu.
+`GECICI` ayrimi 5xx/ag arizasini yeniden yokluyor ama 404'u FINAL sayar — oysa rollout
+penceresinde tam da 404 gecici olandir. Sinif: [[canli-evren-bayat-agac-yarisi]].
+
+  * EVREN: `kume_turet` artik `deploy_agaci()` ile cikarilan **deploy SHA'sinin**
+    `tools/` agacindan okur; calisma agacinin HEAD'inden DEGIL.
+  * KANIT: `hizalama_kanitla()` `git merge-base --is-ancestor <deploy_sha> <ref>`
+    kosar ve kaniti CIKTIYA BASAR. Beyan degil, kosulan komuttur.
+  * KANIT YOKSA -> **OLCULEMEDI (rc 2)**, `KAPALI` DEGIL. Ne yesile boyama ne de
+    sahte kirmizi: "olculemedi ≠ yesil, olculemedi ≠ ariza".
+  * 🔴 HEAD'E YEDEK YOL YOKTUR. deploy SHA'si okunamayinca HEAD'e dusmek, tam da
+    kapatilan ariza sinifini geri getirirdi -> `deploy_sha_bul` OlcumHatasi atar.
+  * 🔴 KORLUK KORUMASI: hizalamadan SONRA da 404 donen URL — yani deploy'a DAHIL
+    OLDUGU HALDE canlida kapali sayfa — HALA KAPALI ve rc 1'dir. Onarim alarmi
+    sagirlastirmaz; kabul testi bunu ayri bir kolda (E9) nobetler.
+  * K4/K5 (yerel build artefaktlari) ancak calisma agaci deploy SHA'sina TAM ESITSE
+    kullanilir; esit degilse deploy agacindan okunur (orada yoktur -> kume K1-K3).
+    Sebep: yerel `sitemap.xml` HEAD'in build'idir, deploy edilmis kumenin DEGIL.
+
 KUME NEREDEN TURER (elle liste YOK — elle liste CURUR)
 ======================================================
   K1  tools/sayfalar.py :: SITEMAP_SLUGS   (STATIK_SAYFALAR + CONTENT_PAGES slug'lari)
@@ -160,9 +186,123 @@ DURUM_ETIKET = {"ACIK": "acik", "KAPALI": "kapali", "OLCULEMEDI": "olculemedi"}
 
 KAPSAMLAR = ("sayfa", "marka", "tam")
 
+# ───────────────────────────────────────────────── EVREN HIZALAMA (deploy SHA'si)
+# Son basarili deploy'un SHA'sini is akisi cozer (`gh api` -> `deploy.yml` son
+# `success` kosumunun `head_sha`'si) ve BU ORTAM DEGISKENINE yazar. Elle kosumda
+# `--deploy-sha` verilir. 🔴 UCUNCU BIR YOL (HEAD'e dusme) YOKTUR.
+DEPLOY_SHA_ORTAM = "PRUVO_DEPLOY_SHA"
+# Evreni turetmek icin deploy agacindan cikarilan yollar. `tools/` yeter: K1
+# (sayfalar.py) + K2 (landing_hub_build.py) oradadir; K4/K5 zaten izlenmez.
+ARSIV_YOLLARI = ("tools",)
+SHA_DESENI = re.compile(r"^[0-9a-f]{7,40}$")
+
 
 class OlcumHatasi(Exception):
     """Olculemedi -> YESIL degil, rc 2."""
+
+
+def _git(args, kok=ROOT, zaman_asimi=90.0):
+    """(rc, stdout, stderr) — ASLA istisna atmaz (git yoksa bile rc!=0 doner).
+
+    Kabul testleri bu yordami ENJEKTE eder (`git_fn`), ama E9 ekseni GERCEK bir git
+    deposu kurar: git'in ata semantigini taklit eden bir sahte, tam da olculmek
+    istenen seyi (ata mi degil mi) kendi varsayimimizla aynalardi."""
+    import subprocess
+    try:
+        p = subprocess.run(["git", "-C", kok] + list(args), capture_output=True,
+                           text=True, timeout=zaman_asimi)
+    except Exception as e:                                  # noqa: BLE001
+        return 127, "", "%s: %s" % (type(e).__name__, e)
+    return p.returncode, (p.stdout or "").strip(), (p.stderr or "").strip()
+
+
+def deploy_sha_bul(ortam=None, acik=None):
+    """SON BASARILI DEPLOY'un SHA'si. Doner: (sha, kaynak).
+
+    🔴 FAIL-CLOSED VE YEDEK YOLSUZ: deger yoksa/bozuksa OlcumHatasi -> OLCULEMEDI.
+    "Bulamazsan HEAD'i kullan" bir kolaylik gibi gorunur ama tam da 12 Agu'da
+    olculen ariza sinifidir: HEAD deploy'dan ONDEyse henuz yayinlanmamis sayfalar
+    canlida aranir, 404 gelir ve alarm KALICI KAPANMA sanip kirmizi yanar."""
+    ortam = os.environ if ortam is None else ortam
+    if acik:
+        ham, kaynak = acik, "--deploy-sha"
+    else:
+        ham, kaynak = ortam.get(DEPLOY_SHA_ORTAM) or "", DEPLOY_SHA_ORTAM
+    ham = (ham or "").strip().lower()
+    if not ham:
+        raise OlcumHatasi(
+            "son basarili deploy SHA'si YOK (%s bos ve --deploy-sha verilmedi). Evren "
+            "HEAD'den TURETILMEZ: HEAD deploy'dan ONDEyse henuz yayinlanmamis sayfalar "
+            "canlida aranir ve 404 'KAPALI' sanilir." % DEPLOY_SHA_ORTAM)
+    if not SHA_DESENI.match(ham):
+        raise OlcumHatasi("deploy SHA'si SHA'ya benzemiyor: %r (kaynak: %s)"
+                          % (ham[:64], kaynak))
+    return ham, kaynak
+
+
+def hizalama_kanitla(deploy_sha, kok=ROOT, ref="HEAD", git_fn=None):
+    """Evren ile olculen agacin AYNI TARIHTE oldugunun KANITI (kosulan komut).
+
+    Doner: {"deploy_sha","ref","ref_sha","ileri","satir"}. Kanit kurulamazsa
+    OlcumHatasi (-> OLCULEMEDI, KAPALI DEGIL).
+
+    Kanit `git merge-base --is-ancestor <deploy_sha> <ref_sha>` rc'sidir:
+      * rc 0  -> deploy SHA'si bizim gecmisimizde; evren o SHA'nin agacindan
+                 GUVENLE turetilebilir (agac ondeyse fark SAYIYLA basilir),
+      * rc!=0 -> deploy baska bir gecmisten (zorla itilmis / sig klon / baska dal);
+                 hangi kumeyi olcecegimizi BILMIYORUZ -> OLCULEMEDI."""
+    git_fn = git_fn or _git
+    rc, ref_sha, err = git_fn(["rev-parse", "--verify", "%s^{commit}" % ref], kok=kok)
+    if rc != 0 or not ref_sha:
+        raise OlcumHatasi("olculen ref (%s) cozulemedi: rc=%d %s" % (ref, rc, err[:120]))
+    rc, tam, err = git_fn(["rev-parse", "--verify", "%s^{commit}" % deploy_sha], kok=kok)
+    if rc != 0 or not tam:
+        raise OlcumHatasi(
+            "deploy SHA %s bu agacta YOK (sig klon / zorla itilmis gecmis?): rc=%d %s"
+            % (deploy_sha[:12], rc, err[:120]))
+    rc, _o, err = git_fn(["merge-base", "--is-ancestor", tam, ref_sha], kok=kok)
+    if rc != 0:
+        raise OlcumHatasi(
+            "HIZALANAMADI: deploy SHA %s, olculen ref %s (%s) ATASI DEGIL "
+            "(`git merge-base --is-ancestor` rc=%d). Canli yuzeyin hangi kumeden "
+            "dogdugu BILINMIYOR -> hukum OLCULEMEDI, KAPALI DEGIL. %s"
+            % (tam[:12], ref, ref_sha[:12], rc, err[:120]))
+    rc, sayi, _e = git_fn(["rev-list", "--count", "%s..%s" % (tam, ref_sha)], kok=kok)
+    ileri = int(sayi) if rc == 0 and sayi.isdigit() else -1
+    satir = ("HIZALAMA KANITI: `git merge-base --is-ancestor %s %s` -> rc 0 (ATA) · "
+             "olculen ref %s=%s · agac deploy'dan %s commit ONDE -> EVREN DEPLOY "
+             "SHA'SINDAN turer, HEAD'den DEGIL."
+             % (tam[:12], ref_sha[:12], ref, ref_sha[:12],
+                ("%d" % ileri) if ileri >= 0 else "?"))
+    return {"deploy_sha": tam, "ref": ref, "ref_sha": ref_sha, "ileri": ileri,
+            "satir": satir}
+
+
+def deploy_agaci(deploy_sha, kok=ROOT, git_fn=None, hedef=None):
+    """deploy SHA'sindaki `tools/` agacini GECICI dizine cikarir; o kokU doner.
+
+    Checkout/worktree DEGIL `git archive`: calisma agacini KIRLETMEZ, HEAD'i
+    oynatmaz, baska oturumun isine dokunmaz."""
+    import tarfile
+    import tempfile
+    git_fn = git_fn or _git
+    hedef = hedef or tempfile.mkdtemp(prefix="yayin-erisim-deploy-")
+    tar_yol = os.path.join(hedef, "_deploy.tar")
+    rc, _o, err = git_fn(["archive", "--format=tar", "--output=%s" % tar_yol,
+                          deploy_sha] + list(ARSIV_YOLLARI), kok=kok)
+    if rc != 0 or not os.path.exists(tar_yol):
+        raise OlcumHatasi("deploy SHA %s agaci cikarilamadi (git archive rc=%d): %s"
+                          % (deploy_sha[:12], rc, err[:160]))
+    with tarfile.open(tar_yol) as t:
+        try:
+            t.extractall(hedef, filter="data")
+        except TypeError:                                   # py<3.12
+            t.extractall(hedef)
+    os.remove(tar_yol)
+    if not os.path.exists(os.path.join(hedef, "tools", "sayfalar.py")):
+        raise OlcumHatasi("deploy agacinda tools/sayfalar.py YOK -> evren turetilemez "
+                          "(deploy SHA %s)" % deploy_sha[:12])
+    return hedef
 
 
 # =========================================================== KUME (KAYNAK KATMANI)
@@ -186,14 +326,22 @@ def _yol(slug):
     return "/" if not s else "/%s/" % s
 
 
-def kume_turet(kok=ROOT, kapsam="sayfa"):
+def kume_turet(kok=ROOT, kapsam="sayfa", zengin_kok=None, zengin_not=""):
     """(yollar, kaynaklar) — yollar sirali '/...' listesi; kaynaklar beyan tablosu.
 
     Elle yazilmis URL listesi YOKTUR: her yol bir KAYNAKTAN turer ve hangi kaynagin kac
-    yol verdigi rapora basilir. K1/K2 ZORUNLU (yuklenemezse OlcumHatasi = rc 2)."""
+    yol verdigi rapora basilir. K1/K2 ZORUNLU (yuklenemezse OlcumHatasi = rc 2).
+
+    `kok` = EVREN KOKU. Canli kosumda bu, calisma agaci DEGIL `deploy_agaci()` ile
+    cikarilmis SON BASARILI DEPLOY agacidir (bkz. modul basligi: evren hizalama).
+    `zengin_kok` = K4/K5/K6 kaynaklarinin (yerel build artefaktlari) kokU; verilmezse
+    `kok` kullanilir. Calisma agaci deploy SHA'sina TAM ESIT degilse buraya calisma
+    agaci VERILMEZ: yerel `sitemap.xml` HEAD'in build'idir, deploy edilenin degil."""
     if kapsam not in KAPSAMLAR:
         raise OlcumHatasi("bilinmeyen kapsam %r (izinli: %s)" % (kapsam,
                                                                  ", ".join(KAPSAMLAR)))
+    zk = kok if zengin_kok is None else zengin_kok
+    zn = ("  [%s]" % zengin_not) if zengin_not else ""
     kaynaklar = []
     sayfa = []
 
@@ -219,7 +367,7 @@ def kume_turet(kok=ROOT, kapsam="sayfa"):
         kaynaklar.append(("K3 site koku (ana sayfa)", 1, True, "/"))
         sayfa.append("/")
 
-        man = os.path.join(kok, "_yayin-icerik-dizinleri.txt")
+        man = os.path.join(zk, "_yayin-icerik-dizinleri.txt")
         if os.path.exists(man):
             with open(man, encoding="utf-8") as f:
                 satirlar = [s.strip() for s in f if s.strip()]
@@ -230,9 +378,10 @@ def kume_turet(kok=ROOT, kapsam="sayfa"):
             sayfa += k4
         else:
             kaynaklar.append(("K4 _yayin-icerik-dizinleri.txt (build manifesti)",
-                              0, False, "dosya YOK (build kosmamis) — kume K1-K3'ten"))
+                              0, False,
+                              "dosya YOK (build kosmamis) — kume K1-K3'ten" + zn))
 
-    sitemap_yol = os.path.join(kok, "sitemap.xml")
+    sitemap_yol = os.path.join(zk, "sitemap.xml")
     sitemap_var = os.path.exists(sitemap_yol)
     ust, marka = [], []
     if sitemap_var:
@@ -255,14 +404,14 @@ def kume_turet(kok=ROOT, kapsam="sayfa"):
             sayfa += ust
         else:
             kaynaklar.append(("K5 sitemap.xml (yerel, ust duzey)", 0, False,
-                              "dosya YOK (build kosmamis)"))
+                              "dosya YOK (build kosmamis)" + zn))
 
     yollar = list(sayfa)
     if kapsam in ("marka", "tam"):
         if not sitemap_var:
             raise OlcumHatasi("--kapsam %s YEREL sitemap.xml ISTER (marka sayfalarinin "
                               "tek kaynagi odur) ama dosya YOK -> kume sessizce "
-                              "daraltilmaz, OLCULEMEDI" % kapsam)
+                              "daraltilmaz, OLCULEMEDI%s" % (kapsam, zn))
         kaynaklar.append(("K6 sitemap.xml (yerel, /marka/)", len(marka), True, ""))
         yollar += marka
 
@@ -678,6 +827,33 @@ def gh_ozet_yaz(sinif, ozet, satirlar, sure):
                     "isaretidir.\n")
 
 
+def evren_hazirla(kapsam="sayfa", kok=ROOT, ortam=None, acik_sha=None, git_fn=None,
+                  ref="HEAD"):
+    """HIZALANMIS evren. Doner: (yollar, kaynaklar, hizalama_sozlugu).
+
+    🔴 TEK GIRIS KAPISI. Sira BAGLAYICIDIR ve her adim fail-closed'dur:
+      1. `deploy_sha_bul`      — son basarili deploy'un SHA'si (yedek yol YOK),
+      2. `hizalama_kanitla`    — `merge-base --is-ancestor` KANITI (beyan degil),
+      3. `deploy_agaci`        — evren o SHA'nin agacindan cikarilir,
+      4. `kume_turet(kok=...)` — kume O AGACTAN turer, calisma agacindan DEGIL.
+    Herhangi bir adim OlcumHatasi atarsa hukum OLCULEMEDI'dir (rc 2), KAPALI DEGIL."""
+    deploy_sha, sha_kaynak = deploy_sha_bul(ortam=ortam, acik=acik_sha)
+    hz = hizalama_kanitla(deploy_sha, kok=kok, ref=ref, git_fn=git_fn)
+    hz["kaynak"] = sha_kaynak
+    evren_kok = deploy_agaci(hz["deploy_sha"], kok=kok, git_fn=git_fn)
+    hz["evren_kok"] = evren_kok
+    # K4/K5 (yerel build artefaktlari) ANCAK calisma agaci deploy SHA'sina TAM ESITSE
+    # gecerlidir; aksi halde HEAD'in build'idir ve tam da kapatilan drift'i geri getirir.
+    esit = (hz["ref_sha"] == hz["deploy_sha"])
+    zengin_kok = kok if esit else evren_kok
+    zengin_not = ("" if esit else
+                  "yerel build artefaktlari KULLANILMADI: agac deploy SHA'sina esit "
+                  "degil (%d commit onde)" % max(hz["ileri"], 0))
+    yollar, kaynaklar = kume_turet(kok=evren_kok, kapsam=kapsam, zengin_kok=zengin_kok,
+                                   zengin_not=zengin_not)
+    return yollar, kaynaklar, hz
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Yayin erisim nobetcisi (canli sayfa acik mi)")
     ap.add_argument("--taban", default=SITE_VARSAYILAN, help="olculecek origin")
@@ -689,21 +865,32 @@ def main(argv=None):
     ap.add_argument("--gh-ozet", action="store_true")
     ap.add_argument("--kendini-test", action="store_true",
                     help="YEREL fikstur sunucusuyla kabul (dis ag YOK)")
+    ap.add_argument("--deploy-sha", default=None,
+                    help="son basarili deploy SHA'si (yoksa %s ortam degiskeni; "
+                         "ikisi de yoksa OLCULEMEDI)" % DEPLOY_SHA_ORTAM)
+    ap.add_argument("--ref", default="HEAD",
+                    help="hizalamanin olculecegi ref (varsayilan HEAD)")
     a = ap.parse_args(argv)
 
     if a.kendini_test:
         return kendini_test()
 
     try:
-        yollar, kaynaklar = kume_turet(kapsam=a.kapsam)
+        yollar, kaynaklar, hz = evren_hazirla(kapsam=a.kapsam, acik_sha=a.deploy_sha,
+                                              ref=a.ref)
     except OlcumHatasi as e:
-        print("⚪ OLCULEMEDI (kume turetilemedi): %s" % e)
+        # 🔴 EKSEN: hizalanamayan olcum KAPALI DEGIL OLCULEMEDI'dir (rc 2).
+        print("⚪ OLCULEMEDI (evren hizalanamadi): %s" % e)
         if a.gh_ozet:
-            gh_ozet_yaz("OLCULEMEDI", {"olculen": 0}, ["kume turetilemedi: %s" % e], 0.0)
+            gh_ozet_yaz("OLCULEMEDI", {"olculen": 0},
+                        ["evren hizalanamadi: %s" % e], 0.0)
         return SINIF_RC["OLCULEMEDI"]
 
     print("YAYIN ERISIM NOBETCISI — %s (%s)" % (a.taban, a.kapsam))
     print("-" * 78)
+    print(hz["satir"])
+    print("EVREN KOKU: deploy %s agaci (%s) — calisma agaci HEAD'i DEGIL"
+          % (hz["deploy_sha"][:12], hz["kaynak"]))
     for s in kaynak_satirlari(kaynaklar, yollar, a.kapsam):
         print(s)
     if a.liste:
@@ -716,6 +903,11 @@ def main(argv=None):
     print("HIZ: %.1f istek/sn · zaman asimi %.0f s" % (a.hiz, a.zaman_asimi))
     kayitlar, sure = olc(yollar, taban=a.taban, hiz=a.hiz, zaman_asimi=a.zaman_asimi)
     sinif, rc, satirlar, ozet = degerlendir(kayitlar, kume_sayisi=len(yollar))
+    # Kanit satiri HUKMU BESLEYEN kumeye girer ([[kapi-ozeti-hukumden-ayrisir]]): kosum
+    # ozetinde "hangi SHA'nin kumesi olculdu" sorusu cevapsiz kalmaz.
+    satirlar = [hz["satir"]] + satirlar
+    ozet["hizalama"] = {"deploy_sha": hz["deploy_sha"], "ref_sha": hz["ref_sha"],
+                        "ileri": hz["ileri"], "kaynak": hz["kaynak"]}
     print("-" * 78)
     for s in satirlar:
         print(s)
