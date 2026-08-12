@@ -1,5 +1,57 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🕐 CI NOBETI — 12 Agu 2026 07:37 yerel / 04:37Z turu (KraL / Tamirci)
+
+**Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**🟢 SUPURME rc=0 — HUKUM=TEMIZ.** Sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI.
+Betigin bastigi satirlar: `GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 ·
+KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=4:2026-08-12T04:05:51 · HUKUM=TEMIZ`.
+Uc fail-closed alarmin ucu de sessiz. Sayac 0 iken hukum TEMIZ yazilabildi cunku POZITIF tanima
+izi var: aranan dizenin AYNISI Cop'te 4 kayit tutuyor. **🟠 Cop denetimi rc=0: MESRU=4, YANLIS=0** —
+dordu de `Run failed` bildirimi, siparis/odeme ekseninde kayit YOK.
+
+**✅ CI TEMIZ — onarim GEREKMEDI.** Pencerede (02:37Z–04:37Z) basarisiz kosum **0**. En yeni
+failure `31549865286` (00:20Z, `81b2592f`), iki tur oncesinden ve sinifi kapali.
+
+**✅ GECEN TURUN (a) MADDESI KAPANDI.** Merge `d111c286`in deploy zinciri JOB birimiyle olculdu:
+kosum `31561694598` → `build · serit-a2 · serit-a3 · serit-a4 · deploy · yayin` **6/6 success**.
+
+**🟡 UCUSTA — hukum YAZILMADI (ucustaki kosum yesil degildir).** `9ccd3ca4` basindaki iki kosum
+hala `in_progress`: `31562307000` (deploy zinciri; `serit-a4` success, build/serit-a2/serit-a3
+acik) ve `31562307116` (SERIT B; 5 job success, **hicbiri failure**). Sonraki turun ILK isi.
+
+**✅ GECEN TURUN (b) MADDESI KAPANDI — K49 3. dagitimi ARTEFAKT URETTI.** Hukum bu kez DAL ADI
+ekseninden degil `git worktree list` + agac diff'inden verildi: `agent-ac103e30a7f695dd5` @
+`7360354a` [`kral/k49-d1-yazici-kilidi`], main'e gore **3 commit** (WIP 07:04, son 07:17 yerel),
+` M tools/d1-sync.py`. ⚠️ Kurtarma semasinin IKINCI sarti EKSIK: dal origin'e **ITILMEDI**
+(`ls-remote` 0 isabet) — is canli ve ilerliyor, sonraki tur bu sarti tekrar olcsun.
+
+**📏 DORT CANLI ISCI, hepsi ARTEFAKTLI, dort AYRI kritik dosyada (cakisma YOK, olculdu).**
+K49 `7360354a` (3 commit, itilmedi) · K70 `2c2e06e0` (1 WIP commit 07:18, itilmedi,
+` M tools/ic-rapor-kanca-test.py`) · K65 `5832204d` **origin'de** (3. tur; agaci 07:01'de
+hareketliydi = canli) · K62 `9fdd100a` (0 commit ilerde; isi ana agacta yabanci ` M` olarak
+surüyor, DOKUNULMADI).
+
+**🔧 TAMIRCI TURU (§4.7).** Acik 🔧 = **10** (K49·K53·K54·K55·K56·K58·K59·K62·K69·K70); bu turda
+kapanan 0, yeni acilan 0. **Yeni dagitim BILEREK YAPILMADI:** kapasite dolu (4 canli isci) ve
+CLAUDE.md "isci isine worktree ACTIRMA" kurali geregi 5. agac acilmadi → §4.7'nin "birim buyumez,
+KUYRUK buyur" hukmu uygulandi. Sirada K69 (cakisma yuzeyi bos: `kanca-nobeti.py` +
+`kanca-kablolama-nobeti.py` hicbir canli iscinin diff'inde YOK — olculdu).
+
+**📏 WORKTREE: SAYI=8, KraL'in KENDI agaci 0.** K66'nin artefakt agaci (`agent-abee400e…`)
+**temiz** (`?? .scratch/` disinda bos) ve main'e gore **0 commit ilerde** → icerik kaybi riski YOK;
+yine de canliligi olculmedigi icin **KALDIRILMADI** (K52 dersi). Sonraki turun ucuz kalemi.
+
+**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
+mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
+DOKUNULMADI · baskasinin worktree'sine DOKUNULMADI (yalniz okundu) · merge YAPILMADI.
+Okan'a CIKILMADI (insan karari gerekmedi; §5).
+
+**Sonraki turun ILK ISI:** (a) `31562307000` + `31562307116` conclusion'i JOB birimiyle;
+(b) K49 + K70 dallari origin'e itildi mi; (c) K65 3. turunun ozet-hukum ayrismasi kapandi mi;
+(d) `agent-abee400e…` agacinin kaldirilmasi.
+
 ## 🕐 CI NOBETI — 12 Agu 2026 06:37 yerel / 03:37Z turu (KraL / Tamirci)
 
 **Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
