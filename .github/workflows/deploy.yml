@@ -2305,6 +2305,16 @@ jobs:
       - name: "Model baslik kolu kabul (uc kol + tehlike sinifi + yargisiz sayfa dogmaz)"
         run: python3 tools/model-baslik-kolu-test.py
 
+      # FIYAT TIPI NORMALIZASYONU — `build.load_products()` fiyat alanini tipe gore
+      # normalize eder. BLOKLAYICI olmasinin gerekcesi CLAUDE.md'de yazili: odeme-fiyat
+      # SESSIZ-HATA sinifidir (int fiyat feed'i cokertirse ya da string fiyat sessizce
+      # degisirse ekranda "850 TL" gorunmeye devam eder). Test SENTETIK fikstur uretir:
+      # urunler.json'a DOKUNMAZ, diske YAZMAZ, agi KULLANMAZ. Olculdu: 0,1 sn — serit-a3
+      # suresine katkisi olcum gurultusu icinde (memory/maliyet-tasimasi-serit-dusurur.md
+      # ekseni: adim yayin kritik yolunda BILEREK birakildi, cunku kirmizisi para eksenidir).
+      - name: "Fiyat tipi normalizasyonu kabul (int/string/desteklenmeyen tip fail-closed)"
+        run: python3 tools/fiyat-tipi-test.py
+
       # 🔴 AYNI KAPININ MUTASYON BATARYASI `nobet.yml` `serit-b` JOB'UNDADIR.
       # Bayraksiz GERCEK katalog olcumu burada BLOKLAYICI kalir; yalniz aracin
       # KENDINI sinayan pahali mutant kopyalari yayin kritik yolundan ayrilmistir.
