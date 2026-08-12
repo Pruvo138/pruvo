@@ -111,16 +111,16 @@ MUTANTLAR = [
     ("M8", KAPI_MODEL, "marka_model_build.py",
      '    if g.get("yabanci_marka"):\n        return False\n',
      '    if False:\n        return False\n',
-     ["B7"],
+     ["B7", "B8"],
      "GURULTU SINIFI KAPATILIR: `Hyundai|Genesis` gibi AYRI MARKA etiketleri yeniden "
      "sayfa/kolon evrenine girer — uc `?model=Genesis` mimarin KAPATTIGI sayfayi geri acar"),
     ("M9", KAPI_MODEL, "marka_model_build.py",
      "            or (sahip is not None and sahip == _canon(marka)))",
      "            or (sahip is None and sahip == _canon(marka)))",
-     ["B7"],
+     ["B8"],
      "(d) JETON SAHIPLIGI KOLU OLDURULUR: envanterde olmayan ama katalogda sahibi belli "
-     "38 kova (`Hyundai|Accent`, `Kia|Picanto`...) yeniden sayfasiz/kolonsuz kalir — "
-     "[[envanter-drift-parti-basina]] sinifi geri doner"),
+     "sabit Alfa Romeo|Giulietta tanigi yeniden sayfasiz/kolonsuz kalir — canli katalog "
+     "partileri tanigi sonduremez ([[envanter-drift-parti-basina]])"),
     ("K1", KAPI_MODEL, "d1-sync.py",
      "    toplam = {}\n", "    toplam = dict()\n", [],
      "KONTROL: davranisi degistirmeyen yazim — kapi gurultu kaynagi olmamali"),
@@ -134,7 +134,7 @@ MUTANTLAR = [
 
 # Yalniz iki uretim-hukmu mutanti icin kod adi yetmez: B7'nin beklenen fark YONU da
 # gorunmeli. Boylece ilgisiz bir B7 kirilmasi mutanti oldurulmus gibi gosteremez.
-BEKLENEN_IZ = {"M8": "fazla=", "M9": "eksik="}
+BEKLENEN_IZ = {"M8": "fazla=", "M9": "fikstur_d=0/1"}
 
 
 def ayna_kur(tmp):

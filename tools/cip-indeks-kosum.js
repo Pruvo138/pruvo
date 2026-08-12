@@ -20,8 +20,10 @@
  *   edge  (EDGE_KATALOG=true, CANLI hal): istemci parametreleri Worker'a GONDERIR.
  *   yerel (bayrak false, geri donus yolu): filtre istemcide kosar.
  *
- * SAHTE SUNUCU CANLI UCU TAKLIT EDER (olculdu 2 Agu): kategori/altkategori/marka/model
- * TAM ESITLIKLE suzulur. AYRICA `--yoksay <eksen>` senaryolarinda uc BILEREK bozulur
+ * SAHTE SUNUCU CANLI UCU TAKLIT EDER: marka D1 `marka_kanon` uyeliginden, diger eksenler
+ * kendi ham alanlarindan suzulur. `marka_kanon` burada yeniden hesaplanmaz; Python yargici
+ * onu uretimin tek kaynagi d1-sync.marka_kanon_haritasi()ndan turetip `--marka-kanon` ile
+ * verir. AYRICA `--yoksay <eksen>` senaryolarinda uc BILEREK bozulur
  * (parametreyi yok sayar / karttan alani duserir) — cunku ayni gun daha ONCE olculdugunde
  * `model` SESSIZCE YOK SAYILIYORDU (marka+model -> marka toplaminin aynisi). Fail-open
  * yasagi bu REGRESYON senaryosuyla olculur, "bugun calisiyor"a guvenilmez.
@@ -39,6 +41,11 @@ function arg(ad, varsayilan) {
 const KOK = path.resolve(arg("kok", path.dirname(__dirname)));
 const KATALOG = JSON.parse(fs.readFileSync(arg("katalog"), "utf8"));
 const INDEKS = JSON.parse(fs.readFileSync(arg("indeks"), "utf8"));
+const MARKA_KANON_HAM = JSON.parse(fs.readFileSync(arg("marka-kanon"), "utf8"));
+const MARKA_KANON = {};
+Object.keys(MARKA_KANON_HAM).forEach((id) => {
+  MARKA_KANON[id] = JSON.parse(MARKA_KANON_HAM[id]);
+});
 
 const INDEX_METIN = fs.readFileSync(path.join(KOK, "index.html"), "utf8");
 const SECENEK_SRC = fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8");
@@ -62,6 +69,11 @@ const sayKM = (kat, altk, marka, model) => say((p) =>
   (kat === null || p.kategori === kat) &&
   (altk === null || (p.altkategori || "") === altk) &&
   (marka === null || HAM(p).indexOf(marka) !== -1) &&
+  (model === null || HAM(p).indexOf(model) !== -1));
+const sayKanonKM = (kat, altk, marka, model) => say((p) =>
+  (kat === null || p.kategori === kat) &&
+  (altk === null || (p.altkategori || "") === altk) &&
+  (marka === null || (MARKA_KANON[p.id] || []).indexOf(marka) !== -1) &&
   (model === null || HAM(p).indexOf(model) !== -1));
 
 // ---------------------------------------------------------------- DOM taklidi
@@ -118,8 +130,8 @@ function belgeKur() {
 }
 
 // ---------------------------------------------------------------- sahte sunucu
-// Worker'in katMarkaAltKosulu'yla AYNI kural: kategori/altkategori/marka/model TAM
-// ESITLIK (`marka` JSON dizisinde uyelik), q baslikta alt-dize.
+// Worker'in katMarkaAltKosulu'yla AYNI kural: marka D1 `marka_kanon` JSON dizisinde
+// uyelik; kategori/altkategori/model kendi alanlarinda TAM ESITLIK; q baslikta alt-dize.
 // yoksay: bir ekseni BILEREK yok saydirir — "uc suzmeyi birakirsa" REGRESYON provasi.
 function sunucuSuz(u, yoksay) {
   const q = u.searchParams;
@@ -131,7 +143,8 @@ function sunucuSuz(u, yoksay) {
   return KATALOG.filter((p) => {
     if (kategori && p.kategori !== kategori) { return false; }
     if (alt && yoksay !== "altkategori" && (p.altkategori || "") !== alt) { return false; }
-    if (marka && yoksay !== "marka" && HAM(p).indexOf(marka) === -1) { return false; }
+    if (marka && yoksay !== "marka" &&
+        (MARKA_KANON[p.id] || []).indexOf(marka) === -1) { return false; }
     if (model && yoksay !== "model" && HAM(p).indexOf(model) === -1) { return false; }
     if (ara && p.baslik.toLocaleLowerCase("tr").indexOf(ara) === -1) { return false; }
     return true;
@@ -532,21 +545,21 @@ async function modKos(mod) {
 
 // ---------------------------------------------------------------- moda ozgu
 async function edgeOzel() {
-  // --- E0) UC MARKA ETIKETI: cip KATLANMIS, uc HAM ister -----------------
-  // Olculen CANLI hata (3 Agu): /katalog?kategori=Marin&marka=Volvo -> 0 (51 urun kayip);
-  // marka=Volvo Penta -> 51. Uc TAM eslesir, KATLAMAZ. Bu iddia istemcinin uca HANGI
-  // etiketi gonderdigini fetch izinden okur — DOM'da cip aramak bu sinifi gormez.
+  // --- E0) UC MARKA ETIKETI: cip ve D1 ucu AYNI KANONIK uyeligi kullanir --------
+  // Uretim D1 `marka_kanon` uyeligine tasindi: /katalog?...&marka=Volvo artik ham
+  // "Volvo Penta" kaydini da dondurur. Bu iddia istemcinin uca HANGI etiketi
+  // gonderdigini fetch izinden okur — DOM'da cip aramak bu sinifi gormez.
   // KONTROL EKSENI hemen altinda: kanonik = ham olan markada etiket DEGISMEMELI
   // (yoksa "her marka icin `e` uret" mutanti da yesil gecerdi).
   {
     const s = await sayfaKur("edge", "?kategori=Marin&marka=Volvo");
     const son = s.fetchIzi[s.fetchIzi.length - 1] || "";
-    iddia("EDGE UCA HAM MARKA ETIKETI GIDER (cip 'Volvo' -> uc 'Volvo Penta')",
-      son.indexOf("marka=Volvo+Penta") !== -1 || son.indexOf("marka=Volvo%20Penta") !== -1,
+    iddia("EDGE UCA KANONIK MARKA ETIKETI GIDER (cip 'Volvo' -> uc 'Volvo')",
+      son.indexOf("marka=Volvo") !== -1 && son.indexOf("Penta") === -1,
       "istek=" + son);
     iddia("EDGE KATLANMIS CIP >0 URUN DONDURUR (olu uc yok)",
-      s.sayi() === sayKM("Marin", null, "Volvo Penta", null) && s.sayi() > 0,
-      "sayi=" + s.sayi() + " beklenen=" + sayKM("Marin", null, "Volvo Penta", null));
+      s.sayi() === sayKanonKM("Marin", null, "Volvo", null) && s.sayi() > 0,
+      "sayi=" + s.sayi() + " beklenen=" + sayKanonKM("Marin", null, "Volvo", null));
     iddia("EDGE SECILI CIP ETIKETI KATLANMIS KALIR (musteri 'Volvo' gorur)",
       s.aktif("brandChips") === "Volvo", "aktif=" + s.aktif("brandChips"));
 

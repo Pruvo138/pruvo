@@ -324,7 +324,7 @@ def _bagimsiz_yabanci_marka(marka, g):
             and say.get(_bagimsiz_kanon(marka), 0) * 2 <= n)
 
 
-def _yayin_bagimsiz(marka, g, sahip=None):
+def _yayin_bagimsiz(marka, g, sahip=None, yabanci_hukmu=None, envanter_hukmu=None):
     """yayimlanir_mi()'nin BAGIMSIZ yeniden kurulusu — yargi tablolari arama.py'den.
     `sahip`: (d) kolunun girdisi (jetonun katalogdaki sahibi) ya da None = (d) KAPALI."""
     ad = g.get("display") or g.get("canon")
@@ -333,7 +333,9 @@ def _yayin_bagimsiz(marka, g, sahip=None):
         return False
     # AYRI MARKA (12 Agu, Okan — canliya bakarak): etiket bu markanin MODELI degil,
     # KENDI urunleri olan BASKA BIR MARKA -> sayfa ACILMAZ.
-    if _bagimsiz_yabanci_marka(marka, g):
+    yabanci = (_bagimsiz_yabanci_marka(marka, g)
+               if yabanci_hukmu is None else bool(yabanci_hukmu))
+    if yabanci:
         return False
     if (marka, n) in _olmayan:
         return False
@@ -352,8 +354,11 @@ def _yayin_bagimsiz(marka, g, sahip=None):
     # ENVANTERDE (BASLIK_DOGAN_ALLOW), H1/H3 KURALINDA ya da (d) JETON SAHIPLIGINDE
     # yargilanmissa yayimlanir -> etiketi de UC evrenine girer. Kural kollari BAGIMSIZ
     # yazilir (uretim cagrilmaz).
-    if g.get("baslik_dogan") and (marka, n) not in _baslik_izin \
-            and (marka, arama.model_normalize(g.get("canon") or "")) not in _baslik_izin \
+    envanter = ((marka, n) in _baslik_izin
+                or (marka, arama.model_normalize(g.get("canon") or "")) in _baslik_izin)
+    if envanter_hukmu is not None:
+        envanter = bool(envanter_hukmu)
+    if g.get("baslik_dogan") and not envanter \
             and not _bagimsiz_sasi_kodu(ad) and not _bagimsiz_ayri_arac(ad) \
             and not (sahip is not None and sahip == _bagimsiz_kanon(marka)):
         return False
@@ -392,11 +397,51 @@ dogrula("B7 deger evreni = YAYIMLANAN kova etiketleri (bagimsiz yargi ile %d eti
         % len(_beklenen_evren), degerler == _beklenen_evren,
         "fazla=%s eksik=%s" % (sorted(degerler - _beklenen_evren)[:6],
                                sorted(_beklenen_evren - degerler)[:6]))
-dogrula("B8 bagimsiz aynanin IKI 12-Agu kolu da CANLI: (d) jeton sahipligi %d kova ACIYOR, "
-        "gurultu sinifi %d kova KAPATIYOR (kollar etkisizlesirse B7 sahte yesil yanardi)"
-        % (len(_d_kolu_acti), len(_gurultu_kapatti)),
-        len(_d_kolu_acti) > 0 and len(_gurultu_kapatti) > 0,
-        "d=%d gurultu=%d" % (len(_d_kolu_acti), len(_gurultu_kapatti)))
+print("  BILGI canli katalog etkisi: d=%d gurultu=%d (HUKUM DEGIL)"
+      % (len(_d_kolu_acti), len(_gurultu_kapatti)))
+
+
+def _b8_grup(marka, canon, display, adet, baslik_dogan, yabanci, sahip):
+    """`gruplandir`in 12 Agu gercek cikti sekli; urun govdeleri B8'de yalniz sayilir.
+
+    (d) tanigi 27155b41 kosumundaki Alfa Romeo/Giulietta kovasindan (10 urun,
+    baslik_dogan=True, jeton_sahibi=alfaromeo); gurultu tanigi ayni kosumdaki
+    Hyundai/Genesis kovasindan (8 urun, yabanci_marka=True) sabitlenmistir.
+    """
+    urunler = [{"id": "b8-%s-%02d" % (canon, i)} for i in range(1, adet + 1)]
+    return {
+        "canon": canon, "urunler": urunler, "birincil": True, "marka": marka,
+        "kusak": {}, "ana": list(urunler), "display": display, "slug": canon,
+        "baslik_dogan": baslik_dogan, "baslik_ekli": set(), "kusak_bolum": [],
+        "yabanci_marka": yabanci, "jeton_sahibi": sahip,
+    }
+
+
+_b8_d = _b8_grup("Alfa Romeo", "giulietta", "Giulietta", 10, True, False, "alfaromeo")
+_b8_d_kapali = dict(_b8_d, jeton_sahibi=None)
+_b8_g = _b8_grup("Hyundai", "genesis", "Genesis", 8, False, True, "genesis")
+_b8_g_acik = dict(_b8_g, yabanci_marka=False)
+# 27155b41'de bu GERCEK kova yalniz (d) ile aciliyordu; sonraki envanter kaydi ayni
+# sonucu (a) kolundan da dogurdu. Fikstur (d)'yi ayirt etmek icin o SONRAKI kaydi
+# kosum boyunca maskeler, ardindan modulu mutlaka eski haline getirir.
+_b8_envanter = mmb.BASLIK_DOGAN_ALLOW
+try:
+    mmb.BASLIK_DOGAN_ALLOW = frozenset(
+        x for x in _b8_envanter if x != ("Alfa Romeo", "giulietta"))
+    _b8_d_uretim = int(mmb.yayimlanir_mi(_b8_d) and not mmb.yayimlanir_mi(_b8_d_kapali))
+finally:
+    mmb.BASLIK_DOGAN_ALLOW = _b8_envanter
+_b8_d_ayna = int(_yayin_bagimsiz("Alfa Romeo", _b8_d, "alfaromeo", False, False)
+                   and not _yayin_bagimsiz("Alfa Romeo", _b8_d, None, False, False))
+_b8_g_uretim = int(not mmb.yayimlanir_mi(_b8_g) and mmb.yayimlanir_mi(_b8_g_acik))
+_b8_g_ayna = int(not _yayin_bagimsiz("Hyundai", _b8_g, "genesis", True)
+                   and _yayin_bagimsiz("Hyundai", _b8_g, "genesis", False))
+dogrula("B8 SABIT FIKSTUR: (d) jeton sahipligi 1 kova ACIYOR, gurultu sinifi 1 kova "
+        "KAPATIYOR (uretim + bagimsiz ayna)",
+        _b8_d_uretim == _b8_d_ayna == 1 and _b8_g_uretim == _b8_g_ayna == 1,
+        "fikstur_d=%d/%d fikstur_gurultu=%d/%d canli_bilgi=d%d/g%d"
+        % (_b8_d_uretim, _b8_d_ayna, _b8_g_uretim, _b8_g_ayna,
+           len(_d_kolu_acti), len(_gurultu_kapatti)))
 
 kimlik_sayaci = {}
 for p in URUNLER:

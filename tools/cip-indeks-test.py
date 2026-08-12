@@ -189,6 +189,7 @@ def kabul(kok):
             print("  KALDI %s%s" % (ad, (" — " + detay) if detay else ""))
 
     ci = _modul(os.path.join(kok, "tools", "cip-indeks.py"), "cip_indeks_kabul")
+    d1 = _modul(os.path.join(kok, "tools", "d1-sync.py"), "d1_sync_cip_kabul")
     with open(os.path.join(kok, "index.html"), encoding="utf-8") as f:
         index_metni = f.read()
 
@@ -229,21 +230,24 @@ def kabul(kok):
             "marka=%d model=%d alt=%d" % (toplam_marka, toplam_model, len(ix["alt"])))
 
     # --- A6/A7) UC MARKA ETIKETI: gorunen cip UCTA da >0 olmali -------------
-    # 🔴 UC SIMULATORU YAZILMAZ (bu depoda olculdu: fikstur ucu taklit ederse test
-    # uretimi degil KENDI varsayimini aynalar). Iddia dogrudan KATALOG uzerinde
-    # kurulur: ucun sozlesmesi CANLI olculdu — HAM etiketle TAM eslesir, katlamaz
-    # (tools/cip-indeks.py :: modul docstring'i). O halde istemcinin gonderecegi etiketin
-    # o kategoride HAM olarak >0 urunde gecmesi GEREK VE YETER.
-    ham_sayim = {}   # (kat, HAM etiket) -> n   (URUN bazli, cip sayimiyla ayni birim)
+    # 🔴 UC YUKLEMI ELLE YAZILMAZ. Worker artik D1 `marka_kanon` uyeligini okur;
+    # ayna da AYNI hedefi ureten d1-sync.marka_kanon_haritasi()ndan turer. Ham `marka[]`
+    # esitligini burada yeniden yazmak, uretim kanonige tasindigi halde aynayi bayat
+    # birakirdi ([[ikiz-tanim-sessiz-ayrisma]]; 12 Agu'da olculen regresyon).
+    marka_kanon, marka_kanon_sebep = d1.marka_kanon_haritasi(gercek)
+    if marka_kanon_sebep:
+        print("  KALDI A6 UC MARKA KANONU TURETILEMEDI — %s" % marka_kanon_sebep)
+        return 1
+    kanon_sayim = {}   # (kat, KANONIK etiket) -> n (D1 marka_kanon hedefinin aynisi)
     for u in gercek:
         k = (u.get("kategori") or "").strip()
-        for ham in set((x or "").strip() for x in (u.get("marka") or []) if (x or "").strip()):
-            ham_sayim[(k, ham)] = ham_sayim.get((k, ham), 0) + 1
+        for kan in set(json.loads(marka_kanon.get(u.get("id"), "[]"))):
+            kanon_sayim[(k, kan)] = kanon_sayim.get((k, kan), 0) + 1
     olu, sapan = [], []
     for kat, kd in ix["kat"].items():
         for mk, d in kd.items():
-            etiket = d.get("e", mk)          # istemcinin gonderecegi etiket
-            n = ham_sayim.get((kat, etiket), 0)
+            etiket = mk                       # istemcinin gonderecegi kanonik etiket
+            n = kanon_sayim.get((kat, etiket), 0)
             if n <= 0:
                 olu.append("%s/%s->'%s'=0" % (kat, mk, etiket))
             if "e" in d and d["e"] == mk:
@@ -540,19 +544,31 @@ def kabul(kok):
             % (sorted(oto), len([u for u in kat if u["kategori"] == "Otomobil"
                                  and "Denso" in u["marka"]])))
 
+    # Davranis kosumunun sahte Worker'i de ayni D1 hedefini okur. Harita Python'da
+    # URETIM KAYNAGINDAN turetilir; JS tarafinda ikinci bir marka katlama govdesi yoktur.
+    fix_marka_kanon, fix_marka_kanon_sebep = d1.marka_kanon_haritasi(kat)
+    if fix_marka_kanon_sebep:
+        print("  KALDI FIKSTUR UC MARKA KANONU TURETILEMEDI — %s" % fix_marka_kanon_sebep)
+        return 1
+
     fd1, kat_yol = tempfile.mkstemp(prefix="pruvo-cip-katalog-", suffix=".json")
     with os.fdopen(fd1, "w", encoding="utf-8") as f:
         json.dump(kat, f, ensure_ascii=False)
     fd2, ix_yol = tempfile.mkstemp(prefix="pruvo-cip-indeks-", suffix=".json")
     with os.fdopen(fd2, "w", encoding="utf-8") as f:
         json.dump(fix, f, ensure_ascii=False)
+    fd3, marka_kanon_yol = tempfile.mkstemp(prefix="pruvo-cip-marka-kanon-", suffix=".json")
+    with os.fdopen(fd3, "w", encoding="utf-8") as f:
+        json.dump(fix_marka_kanon, f, ensure_ascii=False)
     try:
         p = subprocess.run(["node", os.path.join(kok, "tools", "cip-indeks-kosum.js"),
-                            "--kok", kok, "--katalog", kat_yol, "--indeks", ix_yol],
+                            "--kok", kok, "--katalog", kat_yol, "--indeks", ix_yol,
+                            "--marka-kanon", marka_kanon_yol],
                            capture_output=True, text=True)
     finally:
         os.unlink(kat_yol)
         os.unlink(ix_yol)
+        os.unlink(marka_kanon_yol)
 
     if p.returncode != 0 or not p.stdout.strip():
         print("  KALDI KOSUM CALISTIRILAMADI — rc=%d" % p.returncode)
@@ -645,11 +661,13 @@ MUTANTLAR = [
      '        if(Object.prototype.toString.call(mk) !== "[object Array]"){\n          return "olculemedi";           // kart marka taşımıyor → doğrulanamaz\n        }',
      '        mk = mk || [];   // olculemedi dali kaldirildi', "KIRMIZI",
      "'OLCEMEDIM'I YESIL SAY: kart marka tasimazsa dogrulama atlanir, fail-open acilir"),
-    # --- UC MARKA ETIKETI EKSENI (cip KATLANMIS <-> uc HAM) -----------------
-    ("index.html",
-     '    if(activeBrand !== "Tümü"){ p.set("marka", ucMarkaEtiketi(activeCat, activeBrand)); }',
-     '    if(activeBrand !== "Tümü"){ p.set("marka", activeBrand); }', "KIRMIZI",
-     "ISTEMCI KANONIGI GONDERSIN: uc katlamaz -> gorunen cip 0 urun (olculen canli hata)"),
+    # --- UC MARKA UYELIGI EKSENI (D1 kanonu; ham ayna BAYAT) -----------------
+    ("cip-indeks-kosum.js",
+     '    if (marka && yoksay !== "marka" &&\n'
+     '        (MARKA_KANON[p.id] || []).indexOf(marka) === -1) { return false; }',
+     '    if (marka && yoksay !== "marka" && HAM(p).indexOf(marka) === -1) { return false; }',
+     "KIRMIZI",
+     "EDGE AYNASINI ESKI HAM ESITLIGE DONDUR: kanonik Volvo cipi yine olu uc olur"),
     ("cip-indeks.py",
      "    if not hamlar or kanonik in hamlar:\n        return None",
      "    return None", "KIRMIZI",
@@ -776,8 +794,8 @@ def _sha(yol):
 
 
 def _hedef(tmp, dosya):
-    return os.path.join(tmp, "tools", dosya) if dosya.endswith(".py") \
-        else os.path.join(tmp, dosya)
+    return os.path.join(tmp, dosya) if dosya == "index.html" \
+        else os.path.join(tmp, "tools", dosya)
 
 
 def _kopya_kur():
