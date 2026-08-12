@@ -31,7 +31,10 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(TOOLS)
 _TEMIZLENECEK = []
 
-# (ad, beklenen_aile|None(=YESIL kalmali), dosya, eski, yeni)
+# (ad, beklenen_aile|None(=YESIL kalmali), dosya, eski, yeni[, kapi])
+# `kapi` verilmezse `tools/marka-cip-kapisi.py` koşulur ve kabul `DUSEN_AILELER` izinden
+# verilir. Verilirse o kapı koşulur ve kabul, düşen çıktıda `beklenen_aile` dizesinin
+# GEÇMESİ ile verilir (yine rc DEĞİL — iz).
 MUTANTLAR = [
     ("K1_HEDEF_cipin_hedefi_yok", "HEDEF/cozuldu", "tools/marka_model_build.py",
      'murl = "/marka/" + marka_slug + "/" + g["slug"] + "/"',
@@ -49,6 +52,24 @@ MUTANTLAR = [
      '      cipler[oy].addEventListener("pointerenter", onYukle);\n'
      '      cipler[oy].addEventListener("pointerdown", onYukle);',
      '      cipler[oy].addEventListener("mm-hicbir-zaman", onYukle);'),
+    ("K6_KAPSAMA_jeton_sahibi_kolu_kapatildi", "ENVANTER/drift", "tools/marka_model_build.py",
+     '            or (sahip is not None and sahip == _canon(marka)))',
+     '            or (sahip is not None and sahip == _canon(marka) and False))'),
+    ("K7_TIKLAMA_iskelet_cizilmiyor", "TIKLAMA/ekran_dolu", "tools/marka_model_build.py",
+     '      if(ix !== null){ iskeletCiz(beyan); }',
+     '      if(false){ iskeletCiz(beyan); }'),
+    ("K8_BEYAN_baslik_tazelenmiyor", "BEYAN/aninda", "tools/marka_model_build.py",
+     '      beyaniYaz(beyan);\n      if(ix !== null)',
+     '      if(false){ beyaniYaz(beyan); }\n      if(ix !== null)'),
+    # 🔴 KARDEŞ KAPININ SENTETİK FİKSTÜRÜ HÂLÂ KENDİ SINIFINI YAKALIYOR MU (KraL şartı 3b):
+    # fikstür 12 Ağu'da değişti (negatif vaka `Zumbaq`ın jeton sahibi başka markaya çekildi).
+    # Bu mutant `yayimlanir_mi`den BAŞLIK YARGISI kolunu tamamen siler — yani "yargısız kova
+    # sessizce sayfa açar" hâlini geri getirir. Fikstür bunu HÂLÂ yakalamalı ve düşen satırda
+    # `Zumbaq` GEÇMELİ; geçmiyorsa fikstür ölmüştür ve kapsama oradan açılamaz.
+    ("K9_FIKSTUR_yargisiz_kova_sayfa_aciyor", "Zumbaq", "tools/marka_model_build.py",
+     '    if g.get("baslik_dogan") and not baslik_yargisi_var_mi(',
+     '    if False and g.get("baslik_dogan") and not baslik_yargisi_var_mi(',
+     "tools/model-uyelik-kapisi.py"),
     # KONTROL: GERÇEK bir sayfa metnini değiştirir (üretilen HTML BAYT olarak değişir) ama
     # kapının ölçtüğü dört eksenin HİÇBİRİNE dokunmaz -> kapı YEŞİL kalmalı. Kontrol
     # olmasaydı "her düzenlemede kırmızı yanan" bir kapı da 5/5 mutant öldürmüş görünürdü.
@@ -102,8 +123,8 @@ def agac_kur(dosyalar):
     return tmp
 
 
-def kapiyi_kos(agac):
-    cp = subprocess.run([sys.executable, os.path.join(agac, "tools", "marka-cip-kapisi.py")],
+def kapiyi_kos(agac, kapi_yolu="tools/marka-cip-kapisi.py"):
+    cp = subprocess.run([sys.executable, os.path.join(agac, *kapi_yolu.split("/"))],
                         cwd=agac, capture_output=True, text=True, timeout=3600)
     ciktı = cp.stdout + "\n" + cp.stderr
     iz = IZ_RE.search(ciktı)
@@ -131,7 +152,9 @@ def main():
             return 3
 
         olduren, bekleyen, kontrol_sonuc = 0, 0, None
-        for ad, beklenen, rel, eski, yeni in MUTANTLAR:
+        for kayit in MUTANTLAR:
+            ad, beklenen, rel, eski, yeni = kayit[:5]
+            kapi_yolu = kayit[5] if len(kayit) > 5 else "tools/marka-cip-kapisi.py"
             agac = agac_kur(dosyalar)
             yol = os.path.join(agac, rel)
             with open(yol, encoding="utf-8") as f:
@@ -143,9 +166,27 @@ def main():
                 return 3
             with open(yol, "w", encoding="utf-8") as f:
                 f.write(metin.replace(eski, yeni))
-            s = kapiyi_kos(agac)
+            s = kapiyi_kos(agac, kapi_yolu)
+            if kapi_yolu != "tools/marka-cip-kapisi.py":
+                # Yabancı kapının kendi `IZ=` satırı yok -> mutasyonun UYGULANDIĞINI dosya
+                # içeriğinden kanıtla (aynı disiplin: iz DEĞİŞMEDİYSE tur SAYILMAZ).
+                with open(yol, encoding="utf-8") as f:
+                    s["iz"] = "yabanci:%s" % (yeni in f.read())
             shutil.rmtree(agac, ignore_errors=True)
             _TEMIZLENECEK.remove(agac)
+            if kapi_yolu != "tools/marka-cip-kapisi.py":
+                if s["iz"] != "yabanci:True":
+                    print("OLCULEMEDI: %s mutasyonu dosyaya YAZILMADI — tur SAYILMAZ" % ad)
+                    return 3
+                bekleyen += 1
+                oldu = (s["rc"] != 0 and beklenen in s["ham"])
+                olduren += 1 if oldu else 0
+                print("  %-42s rc=%-3s iz=%-16s -> %s"
+                      % (ad, s["rc"], beklenen, "OLDU" if oldu else "KACTI"), flush=True)
+                if not oldu:
+                    print("      (kapi=%s rc=%s; beklenen iz '%s' ciktida YOK)"
+                          % (kapi_yolu, s["rc"], beklenen))
+                continue
             if s["iz"] is None or s["iz"] == taban["iz"]:
                 print("OLCULEMEDI: %s izi DEĞİŞMEDİ (mutasyon uygulanmadı) — tur SAYILMAZ" % ad)
                 return 3

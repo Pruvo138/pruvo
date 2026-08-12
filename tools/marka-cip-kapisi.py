@@ -197,6 +197,88 @@ def yabanci_marka_sinifi(products, mm, index_html):
     return ihlal, olculen, ham0_sayaci
 
 
+def envanter_drifti(products, mm, index_html):
+    """ELLE TUTULAN ENVANTERİN (`arama.BASLIK_DOGAN_ALLOW`) BAYATLADIĞINI ÖLÇER.
+
+    🔴 NEDEN VAR (12 Ağu, KraL şartı): envanter kolu (a) DURUYOR. Duran her elle liste bu
+    depoda bayatlar — ölçüldü: 80 kova / 588 ürün YALNIZCA "envanterde yok" diye çipsiz ve
+    sayfasızdı. Kural kolu (d) o boşluğu kapattı; bu nöbetçi KAPALI KALDIĞINI ölçer.
+
+    İKİ EKSEN, ikisi de katalogdan türer (elle sayı/liste YOK):
+      drift    : eşiği+birinciliği geçen, gürültü sınıfında OLMAYAN, jetonunun SAHİBİ bu
+                 marka olan bir kova YALNIZCA envanterde yok diye çipsiz kalamaz.
+      gereksiz : envanterdeki bir giriş KURAL tarafından zaten yargılanıyorsa ÖLÜ AĞIRLIKTIR
+                 ve listeden çıkmalıdır (liste büyüyerek çözülmez — anti-büyüme kilidi).
+
+    Yargı gövdesi KAPININ KENDİSİNİNDİR: `mm.baslik_yargisi_var_mi` ÇAĞRILMAZ (çağrılsaydı
+    iddia totoloji olurdu)."""
+    import arama                                                   # noqa: PLC0415
+    evren = mm.MarkaEvreni(index_html)
+    ek = mm.cip_evreni_markalari(products, index_html)
+    veri = mm.gruplandir(products, evren, ek)
+    # --- kapının KENDİ sahiplik tablosu (üretimin tablosu çağrılmaz) ---
+    jeton = {}
+    for p in products:
+        m = p.get("marka") or []
+        if not m:
+            continue
+        h = mm._canon(m[0])
+        adaylar = list(m) + [u.get("model") for u in (p.get("uyum") or [])
+                             if isinstance(u, dict) and u.get("model")]
+        for t in adaylar:
+            k = mm._canon(t or "")
+            if not k:
+                continue
+            d = jeton.setdefault(k, {})
+            d[h] = d.get(h, 0) + 1
+
+    def sahip(display):
+        j = "".join(ch for ch in mm._canon(display or "") if ch.isalnum())
+        if j.isdigit():
+            return None                       # çıplak sayı kural koluyla doğmaz
+        say = jeton.get(mm._canon(display or ""))
+        if not say:
+            return None
+        toplam = sum(say.values())
+        tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
+        return tepe if n * 2 >= toplam else None
+
+    izin = set((mk, mm.model_kanon.kanon(jt)) for mk, jt in arama.BASLIK_DOGAN_ALLOW)
+    # (d) kolu çapraz-marka çarpışmasında SUSAR -> aynayı kapı da kurar
+    taban_canon = set()
+    for marka, d in veri.items():
+        for g in d["gruplar"].values():
+            if not (g.get("birincil") and len(g["urunler"]) >= mm.ESIK):
+                continue
+            if g.get("baslik_dogan") and (marka, g["canon"]) not in izin \
+                    and not mm.sekil_kurali_yargisi(marka, g["canon"],
+                                                    g.get("display") or g["canon"]):
+                continue
+            taban_canon.add(g["canon"])
+
+    drift, gereksiz = [], []
+    for marka, d in veri.items():
+        if mm.marka_urun_sayisi(d) < mm.ESIK:
+            continue
+        for g in d["gruplar"].values():
+            canon, dsp = g["canon"], (g.get("display") or g["canon"])
+            kural_yargilar = (sahip(dsp) == mm._canon(marka)
+                              and canon not in taban_canon)
+            if (marka, canon) in izin and (
+                    kural_yargilar or mm.sekil_kurali_yargisi(marka, canon, dsp)):
+                gereksiz.append((marka, dsp))
+            if not g.get("baslik_dogan") or mm.yayimlanir_mi(g):
+                continue
+            if not (g.get("birincil") and len(g["urunler"]) >= mm.ESIK):
+                continue
+            if g.get("yabanci_marka") or mm.model_olmayan_cift_mi(marka, dsp) \
+                    or mm.donanim_kuyruklu_mu(dsp) or (marka, canon) in mm.ROZET_DISI:
+                continue
+            if kural_yargilar:
+                drift.append((marka, dsp, len(g["urunler"])))
+    return drift, gereksiz, len(izin)
+
+
 def sinif_kontrol_mutanti(mm, ham0_sayaci):
     """KONTROL: gürültü sınıfı SENTETİK bir pozitifte GERÇEKTEN ateşliyor mu? Ateşlemiyorsa
     'ihlal 0' hükmü dejenere ölçümdür (kural ölü)."""
@@ -269,6 +351,17 @@ const grid = new El("div", {id: "mmGrid"});
 grid.cocuk = girdi.ssrKartlar.map(function(k){ return kart(k[0], k[1]); });
 const durum = new El("span", {id: "mmDurum"});
 const dugme = new El("button", {id: "mmTumu"});
+// BEYAN DUGUMLERI (bolum basliklari + toplam cumlesi) ve DUZ BAG bolumu.
+const beyanErisim = new El("span", {"class": "mm-sayim-kart", "data-bolum": "erisim",
+                                    _metin: String(girdi.beyanErisim)});
+beyanErisim.className = "mm-sayim-kart";
+const beyanAlt = new El("span", {"class": "mm-sayim-kart", "data-bolum": "alt",
+                                 _metin: String(girdi.beyanAlt)});
+beyanAlt.className = "mm-sayim-kart";
+const beyanToplam = new El("span", {"class": "mm-sayim-toplam",
+                                    _metin: String(girdi.beyanErisim)});
+beyanToplam.className = "mm-sayim-toplam";
+const kalanBolum = new El("div", {id: "mmKalan"});
 const cipler = girdi.cipler.map(function(c){
   const adet = new El("span", {"class": "adet", _metin: c.n + " parça"});
   adet.className = "adet";
@@ -285,16 +378,29 @@ const document = {
     if (id === "mmDurum") { return durum; }
     if (id === "mmTumu") { return dugme; }
     if (id === "mmFiltreSifirla") { return null; }
+    if (id === "mmKalan") { return kalanBolum; }
     throw new Error("HARNESS: taninmayan getElementById " + id);
+  },
+  querySelector: function(s){
+    if (s === ".mm-sayim-toplam") { return beyanToplam; }
+    throw new Error("HARNESS: taninmayan querySelector " + s);
   },
   querySelectorAll: function(s){
     if (s === ".mm-model-btn[data-mm]") { return cipler; }
-    if (s === "#mmGrid .card") { return grid.cocuk.slice(); }
+    if (s === ".mm-sayim-kart") { return [beyanErisim, beyanAlt]; }
+    if (s === "#mmGrid .mm-iskelet") {
+      return grid.cocuk.filter(function(k){ return k.className === "mm-iskelet"; });
+    }
+    if (s === "#mmGrid .card") {
+      return grid.cocuk.filter(function(k){ return k.className === "card"; });
+    }
     if (s === "#mmGrid .card[data-artim]") {
-      return grid.cocuk.filter(function(k){ return k.attrs["data-artim"] !== undefined; });
+      return grid.cocuk.filter(function(k){ return k.className === "card"
+                                                   && k.attrs["data-artim"] !== undefined; });
     }
     if (s === "#mmGrid .card:not([data-artim])") {
-      return grid.cocuk.filter(function(k){ return k.attrs["data-artim"] === undefined; });
+      return grid.cocuk.filter(function(k){ return k.className === "card"
+                                                   && k.attrs["data-artim"] === undefined; });
     }
     throw new Error("HARNESS: taninmayan querySelectorAll " + s);
   }
@@ -312,6 +418,14 @@ grid.insertAdjacentHTML = function(_yer, html){
     k.attrs["data-artim"] = "";
     k.parentNode = grid;
     grid.cocuk.push(k);
+  }
+  // ISKELET (yer tutucu) dugumleri: sinifi `card` DEGIL, ayri sayilir.
+  const isk = (html.match(/class="mm-iskelet"/g) || []).length;
+  for (let i = 0; i < isk; i++) {
+    const e = new El("div", {"class": "mm-iskelet"});
+    e.className = "mm-iskelet";
+    e.parentNode = grid;
+    grid.cocuk.push(e);
   }
 };
 
@@ -344,18 +458,28 @@ catch (e) { console.log(JSON.stringify({hata: "modul kurulamadi: " + e.message})
 g._tetikle("DOMContentLoaded");
 
 function gorunen(){
+  return grid.cocuk.filter(function(k){
+    return k.className === "card" && k.style.display !== "none";
+  }).length;
+}
+function gorunenTumDugum(){         // kart + iskelet: EKRANDA bir sey var mi
   return grid.cocuk.filter(function(k){ return k.style.display !== "none"; }).length;
 }
-const sonuc = {kuruldu: typeof g.PRUVO_ARTIM_DURUM === "function", istek0: istek};
+const sonuc = {kuruldu: typeof g.PRUVO_ARTIM_DURUM === "function", istek0: istek,
+               beyanIlk: [beyanErisim.textContent, beyanAlt.textContent,
+                          beyanToplam.textContent]};
 
 // (1) ON YUKLEME: isaretci cipe dokununca, TIKLAMADAN ONCE yuk istenmeli
 cipler[0].dispatch("pointerdown");
 sonuc.onyukIstek = istek;
 
-// (2) ANINDA BEYAN: tiklamadan hemen sonra, yuk GELMEDEN durum metni
+// (2) ANINDA BEYAN: tiklamadan hemen sonra, yuk GELMEDEN durum metni + EKRAN DOLU MU
 cipler[0].dispatch("click");
 sonuc.aninda = durum.textContent;
 sonuc.anindaGorunen = gorunen();
+sonuc.anindaDugum = gorunenTumDugum();            // 0 ise EKRAN BOS -> kabul degil
+sonuc.anindaBeyan = [beyanErisim.textContent, beyanAlt.textContent, beyanToplam.textContent];
+sonuc.anindaKalan = kalanBolum.style.display;
 
 // (3) yuk gelsin -> kesin sayi + cizilen kart. Zincir cok asamali (yuk -> suz -> edge ->
 // ciz): TEK tik YETMEZ; bekleyen cozulur ve mikro-gorev kuyrugu bosalana kadar donulur.
@@ -366,10 +490,24 @@ sonuc.anindaGorunen = gorunen();
   }
   sonuc.sonDurum = durum.textContent;
   sonuc.sonGorunen = gorunen();
+  sonuc.sonIskelet = grid.cocuk.filter(function(k){
+    return k.className === "mm-iskelet"; }).length;   // gercek kart gelince 0 olmali
+  sonuc.sonBeyan = [beyanErisim.textContent, beyanAlt.textContent, beyanToplam.textContent];
   // (4) BAYAT YOK: ikinci cipe basilinca onceki sayi ANINDA gitmeli
   cipler[1].dispatch("click");
   sonuc.ikinciAninda = durum.textContent;
+  sonuc.ikinciBeyan = [beyanErisim.textContent, beyanAlt.textContent, beyanToplam.textContent];
   sonuc.istekSon = istek;
+  // (5) SIFIRLAMA: beyan SSR degerlerine DONER, duz bag bolumu geri gelir.
+  // Once ikinci cipin yuku COZULUR: modul mesgulken gelen tiklamayi BILEREK yutar
+  // (`if(mesgul){ return; }`), sifirlama iddiasi o yutmayi olcmemeli.
+  for (let i = 0; i < 40; i++) {
+    coz();
+    await new Promise(function(r){ setTimeout(r, 0); });
+  }
+  cipler[1].dispatch("click");                        // ayni cipe tekrar -> filtre kalkar
+  sonuc.sifirBeyan = [beyanErisim.textContent, beyanAlt.textContent, beyanToplam.textContent];
+  sonuc.sifirKalan = kalanBolum.style.display;
   console.log(JSON.stringify(sonuc));
 })();
 """
@@ -400,6 +538,8 @@ def tiklama_olcumu(tmp, mm, sayfalar):
         "cipler": [{"ix": 0, "n": 5, "href": "/marka/x/a/"},
                    {"ix": 1, "n": 3, "href": "/marka/x/b/"}],
         "aktifIxIcinUye": 0,
+        "beyanErisim": 12,        # SSR bolum sayisi (kart yuzeyi)
+        "beyanAlt": 4,            # SSR duz bag bolumu (YEREL kalemler)
         "edgeKayitlari": [{"id": "a%d" % i, "baslik": "A%d" % i, "kategori": "Otomobil",
                            "fiyat": "10 TL", "gorsel": "x.jpg"} for i in range(1, 6)],
     }
@@ -481,6 +621,17 @@ def kapiyi_kos():
         kapi.iddia("GURULTU/evren", olculen_kova >= 100,
                    "gürültü ekseninde ölçülen kova sayısı dejenere (%d)" % olculen_kova)
 
+        drift, gereksiz, envanter_n = envanter_drifti(products, mm, index_html)
+        kapi.iddia("ENVANTER/drift", not drift,
+                   "kova YALNIZCA elle envanterde olmadığı için çipsiz kaldı (envanter "
+                   "bayatladı): %d kova — %s"
+                   % (len(drift), sorted(drift, key=lambda v: -v[2])[:5]))
+        kapi.iddia("ENVANTER/gereksiz", not gereksiz,
+                   "elle envanterde KURALIN zaten yargıladığı ÖLÜ giriş var (liste büyüyerek "
+                   "çözülmez): %d — %s" % (len(gereksiz), gereksiz[:5]))
+        kapi.iddia("ENVANTER/evren", envanter_n > 0,
+                   "envanter BOŞ okundu — bayatlık ekseni dejenere")
+
         t = tiklama_olcumu(tmp, mm, sayfalar)
         kapi.iddia("TIKLAMA/kuruldu", bool(t.get("kuruldu")),
                    "filtre modülü node'da kurulmadı — tıklama davranışı ölçülemez")
@@ -503,11 +654,37 @@ def kapiyi_kos():
                    % (t.get("ikinciAninda"),))
         kapi.iddia("TIKLAMA/kontrol", t.get("anindaGorunen") != t.get("sonGorunen"),
                    "filtre koşumu dejenere: tıklamadan önceki ve sonraki görünen kart sayısı AYNI")
+        # 🔴 EKRAN BOŞ KALMAZ: tıklamadan sonra, yük GELMEDEN grid'de görünür düğüm olmalı
+        # (yer tutucu). Ölçülen kusur tam buydu: 1,0-6,5 sn boyunca ekranda HİÇBİR ŞEY yoktu.
+        kapi.iddia("TIKLAMA/ekran_dolu", (t.get("anindaDugum") or 0) > 0,
+                   "tıklamadan sonra yük gelmeden ekranda GÖRÜNÜR DÜĞÜM YOK (boş ekran): %s"
+                   % (t.get("anindaDugum"),))
+        kapi.iddia("TIKLAMA/iskelet_temiz", t.get("sonIskelet") == 0,
+                   "gerçek kartlar geldiği hâlde yer tutucular ASILI KALDI: %s"
+                   % (t.get("sonIskelet"),))
+        # 🔴 BEYAN == O AN ERİŞİLEBİLEN KÜME (Okan hükmünün MODEL ekseni)
+        kapi.iddia("BEYAN/aninda", t.get("anindaBeyan") == ["5", "0", "5"],
+                   "model filtresi etkinken bölüm başlıkları/beyan cümlesi filtreli kümeyi "
+                   "GÖSTERMİYOR: %s (beklenen ['5','0','5'])" % (t.get("anindaBeyan"),))
+        kapi.iddia("BEYAN/son", t.get("sonBeyan") == ["5", "0", "5"],
+                   "yük geldikten sonra beyan kanonik kümeden AYRIŞTI: %s"
+                   % (t.get("sonBeyan"),))
+        kapi.iddia("BEYAN/bayat", t.get("ikinciBeyan") == ["3", "0", "3"],
+                   "ikinci çipe basılınca beyan ÖNCEKİ çipin sayısında KALDI: %s"
+                   % (t.get("ikinciBeyan"),))
+        kapi.iddia("BEYAN/kalan_kapandi", t.get("anindaKalan") == "none",
+                   "model filtresi etkinken düz bağ bölümü (yerel kalemler) EKRANDA KALDI")
+        kapi.iddia("BEYAN/sifirlama", t.get("sifirBeyan") == t.get("beyanIlk")
+                   and t.get("sifirKalan") != "none",
+                   "filtre kaldırılınca beyan/düz bağ bölümü SSR hâline DÖNMEDİ: %s / %s"
+                   % (t.get("sifirBeyan"), t.get("sifirKalan")))
 
         ozet = {"CIP_TOPLAM": cip_toplam, "MARKA_SAYFASI": len(marka_sayfalari),
                 "KIRIK_LINK": len(kirik), "BOS_LISTE": len(bos),
                 "SAYI_SAPAN_FILTRE": len(sayi_filtre), "SAYI_SAPAN_SAYFA": len(sayi_sayfa),
-                "GURULTU": len(ihlal), "OLCULEN_KOVA": olculen_kova}
+                "GURULTU": len(ihlal), "OLCULEN_KOVA": olculen_kova,
+                "ENVANTER_GIRIS": envanter_n, "ENVANTER_DRIFT": len(drift),
+                "ENVANTER_GEREKSIZ": len(gereksiz)}
         return kapi, ozet
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

@@ -100,11 +100,55 @@ def _bagimsiz_ciplak_sayi(display):
     return bool(j) and j.isdigit()
 
 
-def _bagimsiz_baslik_yargisi(marka, canon, display, izin_anahtar):
+def _bagimsiz_sahiplik(urunler):
+    """Jeton -> ham `marka[0]` dağılımı. KAPININ KENDİ GÖVDESİ: `mm.marka_sahiplik_tablosu`
+    ÇAĞRILMAZ (çağrılsaydı iddia totoloji olurdu, [[beyan-edilmis-survivor]]). Jeton kümesi
+    de burada bağımsız kurulur: `marka[]` ∪ ham `uyum[].model`."""
+    jeton = {}
+    for p in urunler:
+        m = p.get("marka") or []
+        if not m:
+            continue
+        h = _bagimsiz_kanon(m[0])
+        jetonlar = list(m)
+        for u in (p.get("uyum") or []):
+            if isinstance(u, dict) and u.get("model"):
+                jetonlar.append(u["model"])
+        for t in jetonlar:
+            k = _bagimsiz_kanon(t)
+            if not k:
+                continue
+            d = jeton.setdefault(k, {})
+            d[h] = d.get(h, 0) + 1
+    return jeton
+
+
+def _bagimsiz_sahip(display, jeton):
+    """Jetonun SAHİBİ (pay >= 1/2) ya da SAHİPSİZ (None) — kapının KENDİ gövdesi.
+    ÇIPLAK SAYI bu kolun DIŞINDADIR (H1 ile aynı sınır; üretim de aynı sınırı çizer)."""
+    if _bagimsiz_ciplak_sayi(display or ""):
+        return None
+    say = jeton.get(_bagimsiz_kanon(display or ""))
+    if not say:
+        return None
+    toplam = sum(say.values())
+    tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
+    return tepe if n * 2 >= toplam else None
+
+
+def _bagimsiz_baslik_yargisi(marka, canon, display, izin_anahtar, jeton_sahiplik=None):
     """Başlık-doğan kova YARGILANMIŞ mı — kapının KENDİ gövdesi (üretim ÇAĞRILMAZ).
-    Üç kaynak: envanter · H1 şasi/motor kodu · H3 ayrı araç adı."""
-    return ("%s|%s" % (marka, canon) in izin_anahtar
-            or _bagimsiz_sasi_kodu(display) or _bagimsiz_ayri_arac(display))
+    DÖRT kaynak: envanter · H1 şasi/motor kodu · H3 ayrı araç adı ·
+    (12 Ağu, KraL hükmü) jetonun KATALOGDAKİ SAHİBİ bu marka.
+
+    🔴 `jeton_sahiplik=None` = tablo VERİLMEDİ demektir ve (d) kolu SUSAR; bu, tabloyu
+    kuramayan çağıranın DAR (daha kapalı) yargı vermesi içindir — gevşek değil."""
+    if ("%s|%s" % (marka, canon) in izin_anahtar
+            or _bagimsiz_sasi_kodu(display) or _bagimsiz_ayri_arac(display)):
+        return True
+    if jeton_sahiplik is None:
+        return False
+    return _bagimsiz_sahip(display, jeton_sahiplik) == _bagimsiz_kanon(marka)
 
 
 # ───────────────────────────────────────────────────────────────────────────────────────
@@ -776,11 +820,31 @@ def olc(kok, modul_yolu=None):
     except Exception as e:                                          # noqa: BLE001
         raise Olculemedi("tools/arama.py BASLIK_DOGAN_ALLOW okunamadı: %r" % (e,))
     _b_izin_anahtar = set("%s|%s" % (mk, _mk_kanon(jt)) for mk, jt in _b_izin)
+    # (d) JETON SAHİPLİĞİ — kapının KENDİ bağımsız tablosu (üretimin tablosu ÇAĞRILMAZ).
+    _b_sahiplik = _bagimsiz_sahiplik(urunler)
+    # (d) ÇAPRAZ-MARKA SUSTURMASI — üretimdeki kuralın kapıdaki AYNASI, ama kapının KENDİ
+    # dilbilgisiyle kurulur: kanon (d) KAPALIYKEN zaten yayımlanıyorsa (d) o kanonda SUSAR.
+    # Ayna olmasaydı kapı üretimden GEVŞEK yargı verir ve K19'a hayalet çift üretirdi.
+    _b_taban_canon = set()
+    for _mk, _d in veri.items():
+        for _canon, _g in _d["gruplar"].items():
+            if not (_g.get("birincil") and len(_g["urunler"]) >= mm.ESIK):
+                continue
+            if _g.get("baslik_dogan") and not _bagimsiz_baslik_yargisi(
+                    _mk, _canon, _g.get("display") or _canon, _b_izin_anahtar):
+                continue
+            _b_taban_canon.add(_canon)
+
+    def _b_yargi(mk, canon, dsp):
+        """(d) dâhil bağımsız yargı — çapraz susturması UYGULANMIŞ hâli."""
+        return _bagimsiz_baslik_yargisi(
+            mk, canon, dsp, _b_izin_anahtar,
+            None if canon in _b_taban_canon else _b_sahiplik)
     capraz_aday = {}
     for _mk, _d in veri.items():
         for _canon, _g in _d["gruplar"].items():
-            if _g.get("baslik_dogan") and not _bagimsiz_baslik_yargisi(
-                    _mk, _canon, _g.get("display") or _canon, _b_izin_anahtar):
+            if _g.get("baslik_dogan") and not _b_yargi(
+                    _mk, _canon, _g.get("display") or _canon):
                 continue
             if _g.get("birincil") and len(_g["urunler"]) >= mm.ESIK:
                 capraz_aday.setdefault(_canon, []).append((_mk, _g.get("display") or _canon,
@@ -973,7 +1037,7 @@ def olc(kok, modul_yolu=None):
             _dsp = _g.get("display") or _canon
             if mm.yayimlanir_mi(_g):
                 baslik_yayin.add("%s|%s" % (_mk, _canon))
-                if not _bagimsiz_baslik_yargisi(_mk, _canon, _dsp, _b_izin_anahtar):
+                if not _b_yargi(_mk, _canon, _dsp):
                     baslik_sizinti.append("%s|%s" % (_mk, _canon))
                 elif "%s|%s" % (_mk, _canon) not in _b_izin_anahtar:
                     baslik_kural_dogan += 1
@@ -1053,6 +1117,23 @@ def olc(kok, modul_yolu=None):
     # DOKUNULMADAN doğru hüküm verilmeli — anahtarı kural şeklindeyse SAYFA DOĞAR, şekli
     # kural GÖRMÜYORSA sayfa DOĞMAZ ve kova "yargı BEKLİYOR" olarak sınıflanır (SIZINTI
     # DEĞİL). Bu eksen olmadan "türetme çalışıyor" iddiası bugünün verisine bağlı kalırdı.
+    # 🔴 FİKSTÜR 12 Ağu'da DEĞİŞTİ — NE, NEDEN, VE SINIFIN HÂLÂ YAKALANDIĞININ KANITI:
+    #
+    # NE DEĞİŞTİ (birebir): `Zumbaq` jetonunu ham `marka[0]`'ı BAŞKA BİR MARKA olan ÜÇ
+    #   sentetik ürün EKLENDİ (`_sent_yabanci`). Beklenti tablosu (`("Zumbaq", False)`)
+    #   DEĞİŞMEDİ; iddia satırlarının HİÇBİRİ gevşetilmedi.
+    # NEDEN: yargıya 12 Ağu'da DÖRDÜNCÜ kol eklendi (KraL hükmü) — "jetonun KATALOGDAKİ
+    #   SAHİBİ bu marka ise kova yargılanmıştır". Eski fikstürde `Zumbaq`ı taşıyan TEK
+    #   marka Toyota'ydı, yani yeni kural ONU DA sahipli sayıp sayfa açardı. Fikstür
+    #   "geçsin diye" değil, NEGATİF VAKAYI NEGATİF TUTMAK için kuruldu: `Zumbaq` artık
+    #   çoğunluğu BAŞKA markaya ait bir jeton, dolayısıyla Toyota için hâlâ YARGISIZDIR.
+    #   (Fikstürü "geçsin diye" değiştirmek bu depoda ölçülmüş bir hata sınıfıdır; bu
+    #   yüzden değişiklik negatif vakayı KORUYACAK yönde yapıldı, kaldıracak yönde değil.)
+    # SINIF HÂLÂ YAKALANIYOR MU — MUTANTLA KANITLI: `tools/marka-cip-mutasyon.py`
+    #   `K6_FIKSTUR_yargisiz_kova_sayfa_aciyor` mutantı `yayimlanir_mi`den başlık-yargısı
+    #   kolunu SİLER; bu kapı o mutantta KIRMIZI yanar ve düşen satırda `Zumbaq` geçer.
+    #   Yani fikstürün ORİJİNAL olarak yakaladığı sınıf ("yargısız kova sessizce sayfa
+    #   açıyor") bugün de yakalanıyor.
     buyume_sapan = []
     try:
         _sent = []
@@ -1065,7 +1146,15 @@ def olc(kok, modul_yolu=None):
                 _sent.append({"id": "sent-baslik-%s-%d" % (_jt, _i), "kategori": "Otomobil",
                               "marka": ["Toyota"],
                               "baslik": "Toyota %s konsol klipsi %d" % (_jt, _i)})
+        # `Zumbaq` jetonunun SAHİBİ Toyota OLMASIN: çoğunluğu başka markanın olsun.
+        # Başlıklarda "Toyota" GEÇMEZ -> bu ürünler Toyota kovasına başlık kolundan da
+        # GİRMEZ (Toyota|Zumbaq kovası 4 üründe kalır, aşağıdaki iddia bunu ölçer).
+        for _i in range(3):
+            _sent.append({"id": "sent-yabanci-Zumbaq-%d" % _i, "kategori": "Otomobil",
+                          "marka": ["Volvo", "Zumbaq"],
+                          "baslik": "Volvo yedek parca Zumbaq-%d" % _i})
         _sveri = mm.gruplandir(_sent, evren, ek)
+        _s_sahiplik = _bagimsiz_sahiplik(_sent)
         for _jt, _sayfa_bekleniyor in (("XYZ9", True), ("Zumbaq", False)):
             _c = evren.model_anahtari("Toyota", _jt)
             _sg = (_sveri.get("Toyota") or {}).get("gruplar", {}).get(_c)
@@ -1084,7 +1173,7 @@ def olc(kok, modul_yolu=None):
                                     % (_jt, mm.yayimlanir_mi(_sg), _sayfa_bekleniyor))
             # SIZINTI mı BEKLEYEN mi: kapının BAĞIMSIZ dilbilgisi de aynı hükmü vermeli
             _byargi = _bagimsiz_baslik_yargisi("Toyota", _c, _sg.get("display") or _c,
-                                               _b_izin_anahtar)
+                                               _b_izin_anahtar, _s_sahiplik)
             if _byargi != _sayfa_bekleniyor:
                 buyume_sapan.append("%s kapı BAĞIMSIZ yargısı=%s beklenen=%s"
                                     % (_jt, _byargi, _sayfa_bekleniyor))

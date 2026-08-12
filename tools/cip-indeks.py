@@ -524,7 +524,10 @@ def indeks_uret(urunler, index_metni):
         # 🔴 YARGI GOVDESI TEK KAYNAK: envanter + H1 sasi/motor kodu + H3 ayri arac adi
         # (`_mmb.baslik_yargisi_var_mi`). Buraya yalnizca envanter yazilsaydi H1/H3 ile
         # DOGAN sayfalar cipsiz kalirdi — sessiz ayrisma.
-        return _bd and not _mmb.baslik_yargisi_var_mi(k[1], k[2], mm_ad[k])
+        # (d) JETON SAHIBI kolu da AYNI tablodan gecirilir; gecirilmezse TypeError ile
+        # DURUR (fail-closed) — sessizce dar yargi verip sayfasi OLAN kovayi cipsiz birakmaz.
+        return _bd and not _mmb.baslik_yargisi_var_mi(
+            k[1], k[2], mm_ad[k], _mmb.jeton_sahibi(mm_ad[k], _sahiplik_tablosu))
 
     # KOVA ANCAK KENDI YAZIMIYLA DOGAR (mm_tam): yalnizca kusak katlamasiyla ulasilan bir
     # canon icin cip UYDURULMAZ — sayfa ureteci de tabana ancak taban kovasi VARSA katlar.

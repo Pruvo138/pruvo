@@ -571,24 +571,33 @@ def marka_mi(deger, evren):
 
 
 def marka_sahiplik_tablosu(products, evren, ek_markalar=()):
-    """(marka, model_canon) -> o jetonu taşıyan ürünlerin HAM `marka[0]` dağılımı, + katalog
-    genelinde her ham `marka[0]` değerinin ürün sayısı.
+    """Üç tablo (TEK GEÇİŞ, TEK GÖVDE):
+      kova        : (marka, model_canon) -> o jetonu taşıyan ürünlerin HAM `marka[0]` dağılımı
+      ham0_sayaci : katalog genelinde her ham `marka[0]` değerinin ürün sayısı
+      jeton       : jeton canon -> o jetonu taşıyan TÜM ürünlerin ham `marka[0]` dağılımı
+                    (marka üyeliğinden BAĞIMSIZ — `jeton_sahibi` bunun üstünde çalışır)
 
     🔴 KOVA ÜYELİĞİNDEN BAĞIMSIZ (bilerek): tabloyu hem sayfa üreteci (`gruplandir`) hem
     anasayfa çip indeksi (`tools/cip-indeks.py`) türetir. Kova üyeliğine dayansaydı iki
     yüzey iki farklı yargı verir, biri çipi basar diğeri sayfayı kapatırdı — bu depoda
     ölçülmüş sessiz sınıf ([[ikiz-tanim-sessiz-ayrisma]])."""
-    kova, ham0_sayaci = {}, {}
+    kova, ham0_sayaci, jeton = {}, {}, {}
     for p in products:
         m = p.get("marka") or []
         if not m:
             continue
         h = _canon(m[0])
         ham0_sayaci[h] = ham0_sayaci.get(h, 0) + 1
+        jetonlar = uyelik_jetonlari(p)
+        for t in jetonlar:
+            jc = _canon(t)
+            if not jc:
+                continue
+            jd = jeton.setdefault(jc, {})
+            jd[h] = jd.get(h, 0) + 1
         uyeler = marka_uyelikleri(m, evren, ek_markalar)
         if not uyeler:
             continue
-        jetonlar = uyelik_jetonlari(p)
         for marka in uyeler:
             for t in jetonlar:
                 c = evren.model_anahtari(marka, t)
@@ -596,7 +605,43 @@ def marka_sahiplik_tablosu(products, evren, ek_markalar=()):
                     continue
                 d = kova.setdefault((marka, c), {})
                 d[h] = d.get(h, 0) + 1
-    return kova, ham0_sayaci
+    return kova, ham0_sayaci, jeton
+
+
+def ciplak_sayi_mi(display):
+    """Jeton tümüyle SAYISAL mı (`916`, `86`, `660`)? H1 bu sınıfı BİLEREK dışarıda tutar
+    (harf şartı); (d) kolu da tutar — yoksa çıplak sayı KURAL koluyla doğmuş olurdu.
+    ÖLÇÜLDÜ 12 Ağu: (d) ilk yazımında `Alfa Romeo|916` doğuyordu ve kardeş kapı
+    (`model-uyelik-kapisi.py::K21 ÇIPLAK SAYI`) KIRMIZI yandı."""
+    j = "".join(_kelimeler(display or ""))
+    return bool(j) and j.isdigit()
+
+
+def jeton_sahibi(display, tablo):
+    """Jetonun KATALOGDAKİ SAHİBİ markası — ya da SAHİPSİZ (None).
+
+    Sahip = jetonu taşıyan ürünlerin ham `marka[0]` dağılımında payı **>= 1/2** olan marka.
+    Çoğunluk yoksa jeton SAHİPSİZDİR ve hiçbir markanın modeli sayılmaz (fail-closed).
+
+    🔴 12 Ağu 2026, KraL hükmü (kapsama lehine gevşetme, ŞARTLI): `BASLIK_DOGAN_ALLOW` elle
+    tutulan bir envanterdi ve her katalog partisinde bayatlıyordu — ölçüldü: eşiği ve
+    birincilliği FAZLASIYLA geçen 80 kova / 588 ürün yalnızca "envanterde yok" diye çipsiz
+    ve sayfasız kalıyordu (`Hyundai|Accent` 39 ürün, `Hyundai|Elantra` 49...). Bu, bu
+    depoda adı konmuş bir sınıftır ([[envanter-drift-parti-basina]]).
+
+    KANIT ZAYIFSA ÇİP DOĞMAZ: kural yalnız katalogda SAHİBİ BELLİ jetonları doğurur.
+    Ölçülen ayırt edicilik (jeton -> sahip): `golf -> volkswagen` (Audi|Golf KAPALI kalır),
+    `trafic -> renault`, `primastar -> opel`, `fiorino -> fiat`, `ranger -> ford`,
+    `stellantis -> psa`, `iphone -> SAHİPSİZ` (Toyota|iPhone KAPALI kalır)."""
+    _kova, _ham0, jeton = tablo
+    if ciplak_sayi_mi(display):
+        return None                       # çıplak sayı KURAL koluyla doğmaz (H1 sınırı)
+    say = jeton.get(_canon(display or ""))
+    if not say:
+        return None
+    toplam = sum(say.values())
+    tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
+    return tepe if n * 2 >= toplam else None
 
 
 def yabanci_marka_mi(marka, display, canon, tablo):
@@ -615,7 +660,7 @@ def yabanci_marka_mi(marka, display, canon, tablo):
     (2) olmasaydı `Ford|Sierra` (Ford Sierra GERÇEK bir Ford modelidir; 5 ürünün 5'i Ford
     birincilli) de düşerdi — ölçüldü, tek şartlı sürüm 4 çip kesiyordu, ikisi YANLIŞ.
     Ürün KAYBOLMAZ: kovanın ürünleri marka sayfasının kart yüzeyinde durmaya devam eder."""
-    kova, ham0_sayaci = tablo
+    kova, ham0_sayaci, _jeton = tablo
     etiket = _canon(display or canon)
     if not etiket or etiket == _canon(marka):
         return False
@@ -784,8 +829,12 @@ def sekil_kurali_yargisi(marka, canon, ad):
     return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)
 
 
-def baslik_yargisi_var_mi(marka, canon, ad):
+def baslik_yargisi_var_mi(marka, canon, ad, sahip):
     """BAŞLIK KOLUYLA doğan (marka, canon) kovası YARGILANMIŞ mı — TEK KAYNAK.
+
+    🔴 `sahip` PARAMETRESİ ZORUNLUDUR (varsayılanı YOK, bilerek): varsayılan `None` yazsaydık
+    parametreyi geçirmeyi UNUTAN bir çağıran (d) kolunu SESSİZCE kaybeder ve iki yüzey
+    ayrışırdı. Eksik çağrı artık TypeError ile build'i DURDURUR (fail-closed).
 
     🔴 İKİNCİ TANIM YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]): aynı yargıyı hem sayfa
     üreteci (`yayimlanir_mi`) hem çip elemesi (`tools/cip-indeks.py::_elendi`) sorar.
@@ -796,9 +845,16 @@ def baslik_yargisi_var_mi(marka, canon, ad):
       (c) H3 `ayri_arac_adi_mi` — `<taban> <değiştirici>` AYRI araç adı (kural).
     (b)+(c) `sekil_kurali_yargisi` gövdesinde toplanır ve ARAÇ DIŞI muafiyetine tabidir:
     muaf çift ancak (a) ile doğar — kural araç dışı jetonlara açık kalmaz (hüküm E).
-    """
+      (d) `jeton_sahibi` — jetonun KATALOGDAKİ SAHİBİ bu marka (kural, 12 Ağu; KraL hükmü).
+
+    🔴 (d) NEDEN EKLENDİ — (a)'nın YERİNE GEÇMEK İÇİN DEĞİL, (a)'yı BÜYÜTMEMEK için:
+    envanter elle tutuluyordu ve her partide bayatlıyordu; 80 kova / 588 ürün yalnız
+    "envanterde yok" diye çipsiz kalıyordu. (d) katalogdan türer, marka-BAĞIMSIZDIR ve
+    kanıt zayıfsa (jeton SAHİPSİZSE) SUSAR. Envanterin BAYATLADIĞINI ölçen fail-closed
+    nöbetçi: `tools/marka-cip-kapisi.py::ENVANTER/*`."""
     return ((marka, canon) in BASLIK_DOGAN_ALLOW
-            or sekil_kurali_yargisi(marka, canon, ad))
+            or sekil_kurali_yargisi(marka, canon, ad)
+            or (sahip is not None and sahip == _canon(marka)))
 
 
 def _dizi_iceriyor(hepsi, parca):
@@ -1119,6 +1175,27 @@ def gruplandir(products, evren, ek_markalar=()):
         for g in d["gruplar"].values():
             g["yabanci_marka"] = yabanci_marka_mi(marka, g.get("display"), g["canon"],
                                                   _sahiplik)
+            # (d) kolunun girdisi de KOVAYA damgalanır: `yayimlanir_mi` tabloyu yeniden
+            # kurmaz, OKUR. İkinci kurulum = ikinci gövde = sessiz ayrışma riski.
+            g["jeton_sahibi"] = None
+
+    # ---- (d) KOLU: ÇAPRAZ-MARKA ÇARPIŞMASINDA SUSAR (fail-closed) --------------------
+    # 🔴 ÖLÇÜLDÜ 12 Ağu: (d) ilk yazımında `Mazda|B-Serisi` doğdu; aynı kanon Honda'da
+    # ZATEN yayımdaydı (H3 kolu) ve ortaya YARGISIZ bir ÇAPRAZ-MARKA çifti çıktı — kardeş
+    # kapı (`model-uyelik-kapisi.py::K19`) KIRMIZI yandı. Çapraz çift bu depoda küratörlü
+    # bir yargıdır (`arama.ROZET_CAPRAZ_IZINLI`) ve KraL'in 12 Ağu gevşetmesi YALNIZ
+    # başlık-doğan eksenini kapsar. Çözüm elle liste büyütmek DEĞİL: (d) kolu, kanonu
+    # BAŞKA bir markada zaten yayımda olan kovalarda SUSAR. Kanıt zayıfsa çip DOĞMAZ.
+    _taban_canon = set()                 # (d) KAPALIYKEN yayımlanan kanonlar
+    for marka, d in veri.items():
+        for g in d["gruplar"].values():
+            if yayimlanir_mi(g):         # g["jeton_sahibi"] halen None -> (d) kapalı
+                _taban_canon.add(g["canon"])
+    for marka, d in veri.items():
+        for g in d["gruplar"].values():
+            if g["canon"] in _taban_canon:
+                continue                 # çapraz çarpışma riski -> (d) susar
+            g["jeton_sahibi"] = jeton_sahibi(g.get("display") or g["canon"], _sahiplik)
     return veri
 
 
@@ -1164,7 +1241,8 @@ def yayimlanir_mi(g):
     # (b) ve (c) KURAL olduğu için katalog büyüdükçe bayatlamaz; envanter yalnız kuralın
     # kapsamadığı tekil yargıları taşır ve böylece sessizce ŞİŞMEZ.
     if g.get("baslik_dogan") and not baslik_yargisi_var_mi(
-            g.get("marka"), g.get("canon"), g.get("display") or g.get("canon")):
+            g.get("marka"), g.get("canon"), g.get("display") or g.get("canon"),
+            g.get("jeton_sahibi")):
         return False
     return True
 
@@ -1184,6 +1262,12 @@ _MM_CSS = """
   /* SAYFA-İÇİ MODEL FİLTRESİ: çip tıklanınca adres DEĞİŞMEZ, kartlar burada süzülür. */
   .mm-model-btn.mm-aktif{border-color:var(--navy);background:var(--navy);color:#fff}
   .mm-model-btn.mm-aktif .adet{color:#c9d6ea}
+  /* İSKELET: çip tıklanınca kart verisi gelene kadar ekranı BOŞ bırakmayan yer tutucu.
+     Sınıfı BİLEREK `card` DEĞİL — kart sayan nöbetçiler bunu kart sanmasın. */
+  .mm-iskelet{border:1px solid #e2e7f0;border-radius:12px;background:#eef1f6;min-height:270px;
+    animation:mmNabiz 1.1s ease-in-out infinite}
+  @keyframes mmNabiz{0%,100%{opacity:.5}50%{opacity:.85}}
+  @media (prefers-reduced-motion:reduce){.mm-iskelet{animation:none}}
   .mm-filtre-sifirla{margin:2px 0 0;font-size:13px}
   .mm-filtre-sifirla a{color:var(--navy-2)}
   /* ARTIMLI KART ÇİZİMİ (ilk N kart HTML'de, kalanı aynı sayfada) */
@@ -1744,11 +1828,49 @@ _ARTIM_JS_GOVDE = r"""
       }
       return null;
     }
+    // ---- BEYAN EDİLEN SAYI == O AN ERİŞİLEBİLEN KÜME (12 Ağu, Okan hükmünün MODEL ekseni)
+    // Ölçüldü (canlı): model filtresi "4 parça" gösterirken bölüm başlığı hâlâ "… (355)"
+    // diyordu. Bu, `?kategori=` ekseninde kapatılan sınıfın AYNISI: kullanıcıya gösterilen
+    // sayı, gösterilen kümeden türemiyordu. Sayılar TEK yerden yazılır.
+    var kalanBolum = document.getElementById("mmKalan");
+    var beyanDugumleri = [];
+    (function(){
+      var i, ds = document.querySelectorAll(".mm-sayim-kart"), t;
+      for(i = 0; i < ds.length; i++){
+        beyanDugumleri.push({el: ds[i], bolum: ds[i].getAttribute("data-bolum"),
+                             ilk: ds[i].textContent});
+      }
+      t = document.querySelector(".mm-sayim-toplam");
+      if(t){ beyanDugumleri.push({el: t, bolum: "erisim", ilk: t.textContent}); }
+    })();
+    function beyaniYaz(n){
+      // n === null -> SSR/kapsam koluna geri dön (kapsam modülü kendi sayısını yazar)
+      for(var i = 0; i < beyanDugumleri.length; i++){
+        var b = beyanDugumleri[i];
+        b.el.textContent = (n === null) ? b.ilk : String(b.bolum === "alt" ? 0 : n);
+      }
+      if(kalanBolum){ kalanBolum.style.display = (n === null) ? "" : "none"; }
+    }
+    // ---- İSKELET: ekran BOŞ KALMAZ ------------------------------------------------
+    // Kart verisi ağdan gelene kadar (ölçüldü: 1,0-6,5 sn) grid tamamen boşalıyordu.
+    // Tıklamayla AYNI KAREDE yer tutucu çizilir; gerçek kartlar gelince kaldırılır.
+    var ISKELET_TAVAN = 12;             // görünür alanı doldurmaya yeter; 2000 düğüm basmaz
+    function iskeletSil(){
+      var e = document.querySelectorAll("#mmGrid .mm-iskelet");
+      for(var i = 0; i < e.length; i++){ e[i].parentNode.removeChild(e[i]); }
+    }
+    function iskeletCiz(n){
+      iskeletSil();
+      var adet = Math.max(1, Math.min(n || 1, ISKELET_TAVAN)), p = [], i;
+      for(i = 0; i < adet; i++){ p.push('<div class="mm-iskelet" aria-hidden="true"></div>'); }
+      grid.insertAdjacentHTML("beforeend", p.join(""));
+    }
     function filtreUygula(ix){
       if(mesgul){ return; }
       aktifModel = ix;
       cipleriIsaretle(ix);
       artimKartlariniSil();
+      iskeletSil();
       // 🔴 BOŞ EKRAN + BAYAT SAYI YASAK (ölçüldü 12 Ağu, CANLI TARAYICI, cache-bust'sız):
       // çipe basılınca SSR kartlarının TAMAMI gizleniyordu — basılı kartlar sayfanın YEREL
       // kalemleridir ve model üyeliği TAŞIMAZLAR — ve yük gelene kadar ekranda 0 kart
@@ -1756,14 +1878,16 @@ _ARTIM_JS_GOVDE = r"""
       // pencerede ya BOŞTU ya da BİR ÖNCEKİ çipin sayısını gösteriyordu (seçili çip
       // "7 parça" iken ekranda "54 parça" yazıyordu). Kullanıcının gördüğü şey tam olarak
       // "çipe tıklanınca hedef açılmıyor"dur. Metin tıklama ANINDA tazelenir.
+      var beyan = (ix === null) ? null : cipBeyani(ix);
       if(durum){
         if(ix === null){ durum.textContent = ""; }
         else {
-          var beyan = cipBeyani(ix);
           durum.textContent = (beyan === null ? "Parçalar yükleniyor…"
                                               : beyan + " parça yükleniyor…");
         }
       }
+      beyaniYaz(beyan);
+      if(ix !== null){ iskeletCiz(beyan); }
       if(ix === null){                        // SIFIRLA: SSR kartları geri, sayaç tazelenir
         var hepsiKart = document.querySelectorAll("#mmGrid .card"), i;
         for(i = 0; i < hepsiKart.length; i++){ hepsiKart[i].style.display = ""; }
@@ -1797,12 +1921,18 @@ _ARTIM_JS_GOVDE = r"""
         }
         // YALNIZ bu modelin eksik kalemleri çekilir (tüm katalog DEĞİL)
         return kartlariGetir(eksik.map(function(k){ return k[0]; })).then(function(){
+          iskeletSil();                       // yer tutucular gerçek kartlara BIRAKIR
           ciz(eksik, 0, eksik.length);
           if(durum){ durum.textContent = kalemler.length + " parça (model filtresi etkin)"; }
           if(dugme){ dugme.style.display = "none"; }
+          // 🔴 KESİN SAYI HÜKMÜ BESLEYEN KÜMEDEN: `kalemler.length`. Çipin bastığı sayı
+          // yalnız YÜKLENİRKEN gösterilen geçici yankıydı; ikisi ayrışırsa kapı
+          // (SAYI/filtre) KIRMIZI yanar — burada sessizce uzlaştırılmaz.
+          beyaniYaz(kalemler.length);
           sayilariTazele();
         });
       }).catch(function(e){
+        iskeletSil();                         // hata hâlinde yer tutucu ASILI KALMAZ
         if(durum){ durum.textContent = "Kalan parçalar yüklenemedi."; }
         console.error("Artim filtresi yuklenemedi:", e);
       }).then(function(){ mesgul = false; });
@@ -2565,9 +2695,13 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
         # Başlık sayısı KENDİ kümesinin kırılımını taşır: kapsam gelince düz bağ listesi
         # süzülüyor ama başlıktaki sayı SSR'de donuyordu (kapsam dışı kalemleri sayan
         # yalan sayı). Artık istemci onu da AYNI `sayimla()` ile düşürür.
-        kalan_html = ('<h2 class="mm-sec-h">' + esc(marka) + ' parça listesi ('
+        # 🔴 BÖLÜM SARMALANIR (`#mmKalan`): model filtresi etkinken bu bölümün TAMAMI
+        # kapanır — düz bağ girdileri sayfanın YEREL kalemleridir, hiçbir modelin üyesi
+        # DEĞİLDİR. Sarmalayıcı olmasaydı başlık "… parça listesi (0)" diye ekranda kalırdı.
+        kalan_html = ('<div id="mmKalan"><h2 class="mm-sec-h">' + esc(marka)
+                      + ' parça listesi ('
                       + _bolum_sayaci(esc, yerel_kalan, "alt") + ')</h2>'
-                      + '<ul class="mm-kalan-bag">' + baglar + '</ul>')
+                      + '<ul class="mm-kalan-bag">' + baglar + '</ul></div>')
 
     kart_html = _urun_grid(ctx, basili, attr_of=_mm_attr, grid_attr=' id="mmGrid"')
     # Artım manifesti. `uc`/`yol`/`parti` = kart verisinin EDGE yolu; TEK KAYNAK
