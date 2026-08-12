@@ -1885,7 +1885,9 @@ TABLO_TABANLARI = (
     # 🔴 IKI GIRIS AYNI TURDA BIRLESTI (dal main'in GERISINDEYDI): dalin tabani 105,
     # main'inki 106 idi ve ikisi de ayni satiri degistirdigi icin merge CAKISTI.
     # Cozum SEÇIM DEGIL BIRLESIM — iki beyan da DURUYOR, taban ikisinin TOPLAMI.
-    ("SERIT_B", 107),
+    # 12 Agu (K64): `tools/ayip-beyani-kapisi.py` serit B'ye eklendi (6502 m.11 dort
+    # secenek beyani). Tam esitlik geregi taban AYNI commit'te 107 -> 108.
+    ("SERIT_B", 108),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2517,6 +2519,17 @@ SERIT_B = {
         "musteriye render edilen icerik degil, kaynak yorumdur; yanlis-pozitifi TUM "
         "ekibin yayinini durdurmasi orantisiz olurdu. Offline, ag YOK, deterministik, "
         "mutasyon DAIMA KOPYAYA (kaynak sha256 bas=son).",
+    ("nobet.yml", "serit-b", "tools/ayip-beyani-kapisi.py"):
+        "HER IKI kol da (bayraksiz gercek tarama + `--kendini-test`) serit B'de kosar. "
+        "Gerekce (12 Agu 2026): kapi BUGUN KIRMIZI — 366 uretilen govde + 4 statik "
+        "sayfa tarandi, kapsamdaki 67 yuzeyin 10'u 6502 m.11 beyanini DAR ya da SARTA "
+        "BAGLI tasiyor. Kirmizinin sahibi KraL DEGIL: sekiz kalem pazarlama duzlemindeki "
+        "landing METNIDIR (ArTisT), iki kalem (/teslimat-iade · /mesafeli-satis) "
+        "BAGLAYICI yasal metindir ve ifade karari Okan kapisindadir. Bloklayici seritte "
+        "TUM EKIBIN yayini baskasinin kuyrugunda beklerdi "
+        "([[kapi-birikimi-yayin-gecikmesi]]). ONLEME kolu SUSTURULMADI: kapi fail-closed, "
+        "sapan sayisi her kosumda GORUNUR ve rc=1 doner. Sapan 0'a inince adim serit A'ya "
+        "(deploy.yml) TASINIR ve bu giris DUSER.",
     ("nobet.yml", "serit-b", "tools/denetim-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; urun denetimi `--commit-farki` serit A'da bloklayici.",
     ("nobet.yml", "serit-b", "tools/gramer-artigi-kapisi.py"):
