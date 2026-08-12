@@ -62,6 +62,17 @@ import filament_ortak   # noqa: E402
 HATALAR = []
 OLCULEMEDI = []
 
+# 🔴 TEK SAYIM NOKTASI (12 Agu, bagimsiz curutucunun bulgusu). Kapi ONCE her bolumde
+# KENDI `olculen` sayacini tutuyordu; hukum ve insana basilan ozet YALNIZ ikinci bolumun
+# sayacindan turuyordu, yani birinci bolum sessizce daralabilir ve kapi yine "tum katalog"
+# diyebilirdi. Bu, tam olarak bu kapinin KAPATTIGI sinifin kendisidir (iki taban, tek
+# gorunum) ve bu depoda daha once olculdu ([[kapi-ozeti-hukumden-ayrisir]]).
+# COZUM: her bolum olctugu KIMLIKLERI buraya yazar; kapsam hukmu de ozet de YALNIZ bu
+# sozlukten turer ve iki kumenin AYRISMASI fail-closed KIRMIZI yakar.
+OLCUM = {"ikiz": set(), "sayfa": set()}
+KOSTU = {"ikiz": False, "sayfa": False}   # bolum HIC kosabildi mi (node yoksa: hayir)
+EVREN = set()          # kanonik olcum evreni — katalogdaki TUM urun kimlikleri
+
 
 def kontrol(kosul, mesaj):
     print(("  ✅ " if kosul else "  ❌ ") + mesaj)
@@ -126,21 +137,23 @@ def bolum_1(gecici, urunler):
         olculemedi("ikiz kosucusu dustu: %s" % (r.stderr or "")[-600:])
         return
     veri = json.loads(r.stdout)
+    KOSTU["ikiz"] = True
     kontrol(veri.get("sonek") == build.BASLAYAN_SONEK,
             "\"…'den baslayan\" eki TEK KAYNAK (istemci %r == ureteç %r)"
             % (veri.get("sonek"), build.BASLAYAN_SONEK))
     js = veri["sonuc"]
 
-    sapan_k, sapan_m, sapan_t, olculen, aralikli = [], [], [], 0, 0
+    sapan_k, sapan_m, sapan_t, sapan_v, aralikli = [], [], [], [], 0
     for p in urunler:
         pid = p["id"]
         if pid not in js:
             continue
-        olculen += 1
+        OLCUM["ikiz"].add(pid)
         ham = (p.get("fiyat") or "").strip()
         py_a = 1 if build.malzeme_aralikli_mi(p) else 0
         py_m = build.kart_tutar_metni(p, ham)
         py_t = build.en_yuksek_kurus(p)
+        py_v = build.vitrin_kurus(p)
         aralikli += py_a
         if js[pid][0] != py_a and len(sapan_k) < 5:
             sapan_k.append("%s: ureteç=%s istemci=%s" % (pid, py_a, js[pid][0]))
@@ -148,17 +161,32 @@ def bolum_1(gecici, urunler):
             sapan_m.append("%s: ureteç=%r istemci=%r" % (pid, py_m, js[pid][1]))
         if js[pid][2] != py_t and len(sapan_t) < 5:
             sapan_t.append("%s: ureteç=%s istemci=%s" % (pid, py_t, js[pid][2]))
-    kontrol(olculen == len(urunler),
-            "tum katalog karsilastirildi (%d/%d kayit)" % (olculen, len(urunler)))
+        if js[pid][3] != py_v and len(sapan_v) < 5:
+            sapan_v.append("%s: ureteç=%s istemci=%s" % (pid, py_v, js[pid][3]))
     # POZITIF TANIYICI: iki taraf da "hayir" deseydi karsilastirma hicbir sey olcmezdi.
     kontrol(aralikli > 0,
             "karsilastirma AYIRT EDICI — %d kayitta tutar malzemeyle YUKSELEBILIYOR "
             "(hicbiri olmasaydi kart metni ekseni sahte yesil verirdi)" % aralikli)
-    kontrol(not sapan_k, "KAPSAM (malzemeAralikliMi) esitligi: sapma YOK (%s)"
-            % (sapan_k or "-"))
-    kontrol(not sapan_m, "KART METNI esitligi: sapma YOK (%s)" % (sapan_m or "-"))
-    kontrol(not sapan_t, "TAVAN (en pahali malzeme) esitligi: sapma YOK (%s)"
-            % (sapan_t or "-"))
+    # 🔴 MESAJ HUKMU ANLATIR: "sapma YOK" SABIT metni, iddia DUSSE BILE ayni satirda
+    # yaziliyordu -> insana basilan cumle ile hukum ayrisiyordu ([[kapi-ozeti-hukumden-
+    # ayrisir]]). Sayi mesajin ICINDE: yesilde "SAPAN 0", kirmizida gercek sayi.
+    kontrol(not sapan_k, "KAPSAM (malzemeAralikliMi) esitligi: SAPAN %d (%s)"
+            % (len(sapan_k), sapan_k or "-"))
+    kontrol(not sapan_m, "KART METNI esitligi: SAPAN %d (%s)"
+            % (len(sapan_m), sapan_m or "-"))
+    kontrol(not sapan_t, "TAVAN (en pahali malzeme) esitligi: SAPAN %d (%s)"
+            % (len(sapan_t), sapan_t or "-"))
+    # 🔴 EN KRITIK EKSEN (12 Agu, bagimsiz curutucunun bulgusu): MUSTERININ GORDUGU kart
+    # tutarini ISTEMCI uretir (secenekler.js vitrinBirimKurus), yapilandirilmis verinin
+    # tabanini ise URETEÇ (build.vitrin_kurus). Bu kapinin (2) bolumu yapisal veriyi
+    # UREtEÇ tabanina karsi olcer; istemci tarafi o karsilastirmaya HIC girmezse, kart
+    # tabanini `vitrinMalzeme` yerine `onSecimMalzeme`den ureten bir degisiklik sayfayi
+    # 559 TL gosterirken markup'a 430 yazdirir ve kapi YESIL kalir — kapatilan sinifin
+    # ta kendisi geri gelir. Curutucu bunu KOSARAK gosterdi (kapi rc=0 veriyordu).
+    # Mutant: tools/ilan-tutari-mutasyon.py M-E.
+    kontrol(not sapan_v,
+            "KART TUTARI (istemci vitrinBirimKurus == ureteç vitrin_kurus) esitligi: "
+            "SAPAN %d (%s)" % (len(sapan_v), sapan_v or "-"))
 
 
 # ═══════════════════════════════════════════════ (2) TAM KAPSAM — uretilen HER sayfa
@@ -313,9 +341,11 @@ def bolum_2(gecici, urunler, ozet_modu):
     os.makedirs(build.VARLIK_DIR, exist_ok=True)
     havuz = urunler[:12]                     # yalniz "ilgili urun" bolumu icin
 
-    # 🔴 HUKMU BESLEYEN TEK KUME: asagidaki uc liste + sinif sayaci. Ozet de bunlardan
-    # turer; ikinci sayim noktasi ACILMAZ.
+    # 🔴 HUKMU BESLEYEN TEK KUME: ihlal listesi + sinif sayaci; olculen KIMLIKLER ise
+    # ortak `OLCUM` sozlugune yazilir (bkz. dosya basi). Bu bolum KENDI kapsam sayacini
+    # TUTMAZ ve KENDI kapsam hukmunu VERMEZ — o hukum tek yerde, `kapsam_hukmu()`ndedir.
     ihlaller, olcum_yok, sinif_sayaci = [], [], {}
+    KOSTU["sayfa"] = True
     t0 = time.time()
     for i, p in enumerate(urunler):
         try:
@@ -327,27 +357,52 @@ def bolum_2(gecici, urunler, ozet_modu):
         ihlaller.extend(i_)
         olcum_yok.extend(o_)
         sinif_sayaci[sinif] = sinif_sayaci.get(sinif, 0) + 1
+        OLCUM["sayfa"].add(p["id"])
         if not ozet_modu and (i + 1) % 5000 == 0:
             print("     … %d/%d sayfa (%.0f sn)" % (i + 1, len(urunler), time.time() - t0))
-    olculen = sum(sinif_sayaci.values())
-    print("     olculen sayfa: %d / %d  (%.0f sn)"
-          % (olculen, len(urunler), time.time() - t0))
+    print("     sure: %.0f sn" % (time.time() - t0))
     print("     sinif dagilimi: " + " · ".join(
         "%s=%d" % (k, v) for k, v in sorted(sinif_sayaci.items(), key=lambda x: -x[1])))
 
-    kontrol(olculen == len(urunler),
-            "TUM katalog sayfasi uretildi ve olculdu (%d/%d)" % (olculen, len(urunler)))
     kontrol(sinif_sayaci.get("aralikli", 0) > 0,
             "olcum AYIRT EDICI — %d sayfada aralik iddiasi GERCEKTEN kosuldu"
             % sinif_sayaci.get("aralikli", 0))
     kontrol(not ihlaller,
             "kart tutari <-> lowPrice <-> urun sayfasi tutari: SAPAN %d"
             % len(ihlaller))
+    # Ihlal DETAYLARI da ❌ ile isaretlenir: bu satirlar YALNIZ hukum dustugunde basilir
+    # ve mutasyon surucusu izi TAM OLARAK bu kumede arar (yesil satirda eslesme YOK).
     for m in ihlaller[:10]:
-        print("       - " + m)
+        print("       ❌ " + m)
     for m in olcum_yok:
         olculemedi(m)
     return ihlaller, olcum_yok
+
+
+def kapsam_hukmu():
+    """🔴 KAPSAMIN TEK HUKUM NOKTASI — insana basilan sayi da buradan cikar.
+
+    Iki bolum de olctugu KIMLIKLERI `OLCUM`a yazar. Burada (a) her bolumun kanonik
+    evreni TAM kapsadigi, (b) IKI BOLUMUN BIRBIRIYLE ayni kumeyi olctugu olculur.
+    (b) olmasaydi bolumlerden biri sessizce daralir ve digerinin sayisi 'tum katalog'
+    diye raporlanirdi — bu kapinin kapattigi sinifin (iki taban, tek gorunum) aynisi."""
+    print("\n(3) KAPSAM HUKMU — tek sayim noktasi (%d urun evreni)" % len(EVREN))
+    for ad, etiket in (("ikiz", "ikiz tanim"), ("sayfa", "uretilen sayfa")):
+        print("     %-14s olculen=%d / evren=%d" % (ad, len(OLCUM[ad]), len(EVREN)))
+        if not KOSTU[ad]:
+            # Bolum HIC kosamadi (node yok / kosucu dustu): sebebi zaten OLCULEMEDI'de
+            # yazili. Burada IKINCI kez ve YANLIS SINIFTA (kirmizi) rapor edilmez.
+            olculemedi("%s ekseni HIC kosmadi — kapsam hukmu verilemedi" % etiket)
+            continue
+        eksik = EVREN - OLCUM[ad]
+        kontrol(not eksik,
+                "%s ekseni TUM evreni olctu (eksik %d: %s)"
+                % (etiket, len(eksik), sorted(eksik)[:3] or "-"))
+    if KOSTU["ikiz"] and KOSTU["sayfa"]:
+        fark = OLCUM["ikiz"] ^ OLCUM["sayfa"]
+        kontrol(not fark,
+                "iki eksenin olctugu kume AYNI (ayrisan %d: %s) — biri sessizce daralamaz"
+                % (len(fark), sorted(fark)[:3] or "-"))
 
 
 def main():
@@ -361,12 +416,14 @@ def main():
           % (build.ONERI_ONSECIM_ACIK, build.ONERI_VITRIN_ACIK))
     print("en pahali malzeme farki: +%%%d" % build.en_pahali_malzeme_farki())
     urunler = _urunler()
+    EVREN.update(p["id"] for p in urunler)
     gecici = tempfile.mkdtemp(prefix="ilan-tutari-")
     try:
         bolum_1(gecici, urunler)
         bolum_2(gecici, urunler, a.ozet)
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
+    kapsam_hukmu()
 
     print("\n" + "-" * 72)
     if OLCULEMEDI:

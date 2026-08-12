@@ -596,6 +596,33 @@ def varlik_hash(icerik):
     return hashlib.sha256(icerik.encode("utf-8")).hexdigest()[:VARLIK_HASH_UZUNLUK]
 
 
+# 🔴 SOYMA ANIMSAMASI (12 Agu 2026, OLCULDU). `varlik_adres` her cagrida yorum soyuyordu;
+# oysa girdi SAYFADAN BAGIMSIZ modul sabitleridir (PAGE_CSS kalani, ek CSS, JS bloklari) ve
+# her urun sayfasinda AYNI metin yeniden soyuluyordu. cProfile (800 sayfa): toplam 9,98 s'nin
+# 8,09 s'si (%81) `varlik_adres` -> `yorum_soy` lexer'inda; 21,8 milyon regex `match`.
+# 26.000 sayfalik katalogda bu, her build'e ve bu yuzeyi olcen her kapiya ~2 dakikadir.
+# Animsama, SAF bir fonksiyonun (metin -> soyulmus metin) sonucunu ICERIGE gore tutar:
+# cikti bayt-bayt AYNIDIR (soyma girdiden baska hicbir seye bakmaz), yalniz ikinci kez
+# hesaplanmaz. Ad ve dosya yine soyulmus GOVDEDEN turer -> tek kaynak bozulmaz.
+_SOYMA_ONBELLEK = {}
+
+
+def _varlik_govdesi(uzanti, icerik):
+    """Yorumu soyulmus govde — ayni (uzanti, icerik) icin lexer BIR KEZ kosar."""
+    anahtar = (uzanti, icerik)
+    govde = _SOYMA_ONBELLEK.get(anahtar)
+    if govde is not None:
+        return govde
+    if uzanti == "css":
+        govde = yorum_soy.css_soy(icerik)
+    elif uzanti == "js":
+        govde = yorum_soy.js_soy(icerik)
+    else:
+        raise RuntimeError("varlik_adres: bilinmeyen uzanti %r" % uzanti)
+    _SOYMA_ONBELLEK[anahtar] = govde
+    return govde
+
+
 def varlik_adres(onek, uzanti, icerik):
     """<icerik>'i /varlik/<onek>-<hash>.<uzanti> dosyasina yazar ve URL'ini doner.
 
@@ -603,12 +630,7 @@ def varlik_adres(onek, uzanti, icerik):
     lexer'dan) -> dosyanin bayti = tarayiciya inen bayt = kapinin olctugu bayt.
     FAIL-CLOSED: bos icerik, yazilamayan dizin ya da geri-okumada bayt farki => build DURUR.
     Sessizce ciplak (stil/JS'siz) sayfa URETILMEZ."""
-    if uzanti == "css":
-        govde = yorum_soy.css_soy(icerik)
-    elif uzanti == "js":
-        govde = yorum_soy.js_soy(icerik)
-    else:
-        raise RuntimeError("varlik_adres: bilinmeyen uzanti %r" % uzanti)
+    govde = _varlik_govdesi(uzanti, icerik)
     if not govde.strip():
         raise RuntimeError("varlik_adres: BOS varlik govdesi (%s.%s) — sayfa ciplak kalirdi"
                            % (onek, uzanti))
