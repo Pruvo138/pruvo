@@ -39,18 +39,33 @@ CLAUDE.md "isci isine worktree ACTIRMA" kurali geregi 5. agac acilmadi → §4.7
 KUYRUK buyur" hukmu uygulandi. Sirada K69 (cakisma yuzeyi bos: `kanca-nobeti.py` +
 `kanca-kablolama-nobeti.py` hicbir canli iscinin diff'inde YOK — olculdu).
 
-**📏 WORKTREE: SAYI=8, KraL'in KENDI agaci 0.** K66'nin artefakt agaci (`agent-abee400e…`)
-**temiz** (`?? .scratch/` disinda bos) ve main'e gore **0 commit ilerde** → icerik kaybi riski YOK;
-yine de canliligi olculmedigi icin **KALDIRILMADI** (K52 dersi). Sonraki turun ucuz kalemi.
+**📏 WORKTREE: 8 → 7 (bir agac ARSIVLE-sonra-KALDIR yordamiyla dusuruldu).** Kaldirilan:
+K66'nin artefakt agaci `agent-abee400e…` — canliligi bu kez OLCULDU (pre-push kapisi:
+`SINIF=OKSUZ · MAIN_DISI_COMMIT=0 · BAYAT 161,3dk`), `main..kral/k66-ic-rapor-kanca` **BOS**,
+izlenen dosyada degisiklik YOK. Yordam sirayla: 4 izlenmeyen dosya `/Users/okan/arsiv-worktree/
+abee400e-scratch/` altina kopyalandi → **mimar bagimsiz olarak 4 dosyayi ADIYLA gordu** → ancak
+ondan sonra `--force` yetkilendirildi (ilk kosum `--force`suz reddedildi ve fail-closed DURDU,
+dogru davranis) → agac + YEREL dal kaldirildi. Bagimsiz teyit: `worktree list` **7 satir**, diger
+alti agac yerinde, ana agacin yabanci ` M`/`??` dosyalari degismedi. KraL'in KENDI agaci 0.
+Kalan alti agacin dordu BAYAT (`a8877112` 164,7dk · `a8900e2a` 90,1dk · `k62-dayanak` 263,7dk ·
+`a3114d12` taze) — hicbiri SILINMEDI, main disi commit tasiyanlar once bundle ister (K52 dersi).
 
 **Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
 mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
 DOKUNULMADI · baskasinin worktree'sine DOKUNULMADI (yalniz okundu) · merge YAPILMADI.
 Okan'a CIKILMADI (insan karari gerekmedi; §5).
 
+**🔴 K70 CANLI OLARAK YENIDEN URETILDI — bu turun KENDI commit'inde.** Defter commit'i
+CLAUDE.md'nin mandat ettigi pathspec biciminde (`git commit -- DEVAM.md`) atildi ve kancanin
+ciktisi ayirt edici oldu: kardes `devam-sinif-kapisi.py` INDEX kolu **108 satiri dogru okudu**,
+ayni commit'te `ic-rapor-index-kolu.py` **"stage'de 0 metin dosyasi tarandi"** deyip bosta yesil
+verdi. Yani K70 teshisi (GIT_INDEX_FILE scrub'i) BEYAN degil, gunluk yolda OLCULEN davranis;
+`agent-af494aed…` iscisinin kabul bataryasi bu vakayi birebir oynatmali.
+
 **Sonraki turun ILK ISI:** (a) `31562307000` + `31562307116` conclusion'i JOB birimiyle;
 (b) K49 + K70 dallari origin'e itildi mi; (c) K65 3. turunun ozet-hukum ayrismasi kapandi mi;
-(d) `agent-abee400e…` agacinin kaldirilmasi.
+(d) BAYAT dort agacin (`a8877112` · `a8900e2a` · `k62-dayanak` · gerekirse `a3114d12`) sahipleri
+olculup arsivle-sonra-kaldir yordamina alinmasi (tavan 2, bugun 7).
 
 ## 🕐 CI NOBETI — 12 Agu 2026 06:37 yerel / 03:37Z turu (KraL / Tamirci)
 
