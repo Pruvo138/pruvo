@@ -76,9 +76,15 @@ MUTANTLAR = [
      "    toplam = len(kalemler)\n"
      "    marka_urun_sayisi = (lambda _d, _t=toplam: _t)"),
     # 10) SINIF DEĞİL VAKA onarımı (istemci): küçük sayfalarda yine kart sayısına düş.
+    # 🔴 ÇAPA TAZELENDİ (12 Ağu 2026): tutarlılık kapısı artık kartları ve düz bağları
+    # AYRI AYRI toplamın alt kümesi olarak ölçüyor (ikisini TOPLAMAK, artım kalanı
+    # çizildikten sonra aynı ürünü iki kez sayıp sayıyı yanlış sebeple "—"ye düşürüyordu).
+    # Mutantın niyeti aynı: küçük sayfalarda yine kart sayısına düş.
     ("ESIK_MARKA_JS", True,
-     "    if(toplam !== null && toplam < gorunenKart){ toplam = null; }",
-     "    if(toplam !== null && toplam < gorunenKart){ toplam = null; }\n"
+     "    if(toplam !== null && (toplam < gorunenKart || toplam < gorunenBag))"
+     "{ toplam = null; }",
+     "    if(toplam !== null && (toplam < gorunenKart || toplam < gorunenBag))"
+     "{ toplam = null; }\n"
      "    if(gorunenKart < 120){ toplam = gorunenKart; }"),
     # --- KONTROL (yeşil kalmalı) ---
     ("KONTROL_JS_YORUM", False,

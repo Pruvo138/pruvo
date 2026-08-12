@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""SAYFA SAYACI İNVARYANT ÇÜRÜTME BATARYASI — kapı gerçekten yük taşıyor mu?
+
+Ölçülen hüküm (12 Ağu 2026, Okan canlı ekrandan bildirdi — SESSİZ kusur):
+    sayfada BEYAN EDİLEN parça sayısı == o yüzeyde ERİŞİLEBİLEN kart sayısı.
+Aynı marka için ekranda DÖRT ayrı sayı vardı: beyan 593 · başlık 80 · kapsam beyanı 575 ·
+kapsam başlığı 304. Bu batarya, `tools/marka-sayac-kapisi.py`nin o hükmü GERÇEKTEN
+ölçtüğünü mutasyonla kanıtlar.
+
+🔴 MUTASYON KOPYAYA UYGULANIR, CANLI DOSYAYA ASLA. Kardeş sürücü
+(`marka-sayac-mutasyon.py`) izlenen kaynağı yerinde değiştirdiği için CI'da bloklanmıştı
+(ci-kapsam-test.py muafiyet kaydı). Burada her koşum, `tools/` klasörü KOPYALANMIŞ, geri
+kalanı sembolik bağlanmış geçici bir depo kökünde yapılır; canlı ağaç HİÇ dokunulmaz ve
+bas/son sha256 karşılaştırmasıyla bu KANITLANIR.
+
+Kabul:
+  · ÖLDÜRÜCÜ mutantların HEPSİ kırmızı yakmalı (rc != 0),
+  · KONTROL mutantları YEŞİL kalmalı (kapı gürültüye alarm vermiyor),
+  · düşen İDDİA AİLE İMZALARI ayrışmalı — iki mutant aynı imzayı düşürüyorsa o eksen için
+    ayırt edici kanıt YOKTUR ([[beyan-edilmis-survivor]]),
+  · her mutantın KAYNAK İZİ (kapının bastığı sha1) tabandan farklı olmalı — aynı uzunlukta
+    mutasyon + bytecode önbelleği tuzağı ([[mutasyon-bytecode-onbellegi]]) burada kapanır,
+  · canlı `tools/marka_model_build.py`nin sha256'sı başta ve sonda AYNI olmalı.
+
+Kullanım: python3 tools/marka-invaryant-sayac-mutasyon.py
+"""
+import hashlib
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
+CANLI_HEDEF = os.path.join(TOOLS, "marka_model_build.py")
+
+
+def _bir_marka_adi():
+    """Marka-özel dal mutantı için GERÇEK bir marka adı. Bu dosyada SABİT marka adı
+    TUTULMAZ: kapının MARKA_LITERAL iddiası bu dosyayı da tarıyor."""
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        m = re.search(r"var TANINMIS_MARKALAR = \[(.*?)\];", f.read(), re.S)
+    return re.findall(r'"([^"]+)"', m.group(1))[0]
+
+
+def _sha256(yol):
+    h = hashlib.sha256()
+    with open(yol, "rb") as f:
+        h.update(f.read())
+    return h.hexdigest()
+
+
+# (kimlik, öldürücü mü, eski_metin, yeni_metin)
+def mutantlar():
+    ad = _bir_marka_adi()
+    return [
+        # 1) KUSURUN TA KENDİSİ (SSR): başlık yine O AN BASILANI yazsın.
+        ("BASLIK_YINE_BASILI", True,
+         '+ _bolum_sayaci(esc, kalemler, "erisim") + \')</h2>\')',
+         '+ _bolum_sayaci(esc, basili, "erisim") + \')</h2>\')'),
+        # 2) BEYAN kolunu boz: beyan cümlesi erişilebilir kümeden değil basılandan doğsun.
+        ("BEYAN_BASILIDAN", True,
+         '            + _toplam_bloku(esc, kalemler, "Bu markada")',
+         '            + _toplam_bloku(esc, basili, "Bu markada")'),
+        # 3) KAPSAM KOLU (istemci): başlığa yine GÖRÜNEN DOM DÜĞÜMÜ sayısı yazılsın —
+        #    canlıda 575 yerine 304 basan dal tam buydu.
+        ("KAPSAM_BASLIGA_DOM", True,
+         "    bolumSayaclari(dok, c);",
+         '    yazSayim(dok, ".mm-sayim-kart[data-katsay]", gorunenKart);'),
+        # 4) FAIL-CLOSED -> FAIL-OPEN: kırılım okunamazsa "—" yerine sayı bas.
+        ("BOLUM_FAIL_OPEN", True,
+         '      el[i].textContent = saglam ? String(sayimla(ham, c)) : "—";',
+         "      el[i].textContent = String(sayimla(ham, c));"),
+        # 5) SEMANTİK KAYMASI: alt küme rozetini erişim rozeti ilan et (yalan sayı, aynı
+        #    biçimde). Sınıf jetonu ölçülmüyorsa bu mutant hayatta kalır.
+        ("ALT_ROZET_ERISIM", True,
+         '+ _bolum_sayaci(esc, yerel_kalan, "alt") + \')</h2>\'',
+         '+ _bolum_sayaci(esc, yerel_kalan, "erisim") + \')</h2>\''),
+        # 6) MODEL SAYFASI: ana bölüm rozeti kuşak bölümünü de saysın (bölümler çakışır,
+        #    ekrandaki sayılar sayfa toplamını vermez).
+        ("MODEL_BOLUM_CAKISIR", True,
+         '            + _bolum_sayaci(esc, ana, "parca") + \')</h2>\'',
+         '            + _bolum_sayaci(esc, g["urunler"], "parca") + \')</h2>\''),
+        # 7) SINIF DEĞİL VAKA onarımı: başlık YALNIZ tek bir markada doğru sayıyı yazsın.
+        #    Marka adı çalışma anında evrenden alınır (bu dosyada sabit yok).
+        ("MARKA_OZEL_DAL", True,
+         '+ _bolum_sayaci(esc, kalemler, "erisim") + \')</h2>\')',
+         '+ _bolum_sayaci(esc, kalemler if marka == "%s" else basili, "erisim")\n'
+         "               + ')</h2>')" % ad),
+        # --- KONTROL (yeşil kalmalı) ---
+        ("KONTROL_YORUM", False,
+         "def _bolum_sayaci(esc, urunler, bolum):",
+         "# kontrol mutanti: davranissiz yorum\ndef _bolum_sayaci(esc, urunler, bolum):"),
+        ("KONTROL_ESDEGER_JS", False,
+         '      el[i].textContent = saglam ? String(sayimla(ham, c)) : "—";',
+         '      el[i].textContent = saglam ? ("" + sayimla(ham, c)) : "—";'),
+    ]
+
+
+def depo_kopyala(tmp):
+    """tools/ KOPYALANIR, geri kalan her şey SEMBOLİK bağlanır -> mutasyon canlı ağaca
+    hiçbir koşulda sızamaz; kapı yine gerçek katalog ve gerçek index.html ile koşar."""
+    kok = os.path.join(tmp, "repo")
+    os.makedirs(kok)
+    for ad in sorted(os.listdir(ROOT)):
+        kaynak = os.path.join(ROOT, ad)
+        if ad == "tools":
+            shutil.copytree(kaynak, os.path.join(kok, "tools"),
+                            ignore=shutil.ignore_patterns("__pycache__"))
+        else:
+            os.symlink(kaynak, os.path.join(kok, ad))
+    return kok
+
+
+def kapi_kos(kok):
+    ortam = dict(os.environ)
+    ortam["PYTHONDONTWRITEBYTECODE"] = "1"
+    shutil.rmtree(os.path.join(kok, "tools", "__pycache__"), ignore_errors=True)
+    cp = subprocess.run([sys.executable, "-B",
+                         os.path.join(kok, "tools", "marka-sayac-kapisi.py")],
+                        capture_output=True, text=True, env=ortam, timeout=3600)
+    cikti = cp.stdout + cp.stderr
+    iz = (re.search(r"^IZ=(\S+)", cikti, re.M) or [None, "?"])[1]
+    aile = (re.search(r"^AILELER=(.*)$", cikti, re.M) or [None, "?"])[1]
+    iddia = (re.search(r"^IDDIA=(\S+)", cikti, re.M) or [None, "?"])[1]
+    return cp.returncode, iz, aile, iddia
+
+
+def main():
+    canli_bas = _sha256(CANLI_HEDEF)
+    tmp = tempfile.mkdtemp(prefix="mm-invaryant-mutasyon-")
+    try:
+        kok = depo_kopyala(tmp)
+        hedef = os.path.join(kok, "tools", "marka_model_build.py")
+        with open(hedef, encoding="utf-8") as f:
+            metin = f.read()
+        muts = mutantlar()
+        eksik = [k for k, _o, eski, _y in muts if metin.count(eski) != 1]
+        if eksik:
+            print("OLCULEMEDI: çapası bulunamayan/çoklu mutant: %s" % ", ".join(eksik))
+            return 3
+
+        print("== TABAN (mutasyonsuz KOPYA) ==")
+        t_rc, t_iz, t_aile, t_iddia = kapi_kos(kok)
+        print("taban rc=%d IZ=%s IDDIA=%s AILELER=%s" % (t_rc, t_iz, t_iddia, t_aile))
+        if t_rc != 0:
+            print("OLCULEMEDI: taban YEŞİL değil, mutasyon ölçülemez.")
+            return 3
+
+        old_t = old_g = kon_t = kon_g = 0
+        imzalar = {}
+        for kimlik, oldurucu, eski, yeni in muts:
+            with open(hedef, "w", encoding="utf-8") as f:
+                f.write(metin.replace(eski, yeni))
+            rc, iz, aile, iddia = kapi_kos(kok)
+            uygulandi = iz != t_iz and iz != "?"
+            if oldurucu:
+                old_t += 1
+                oldu = (rc != 0) and uygulandi
+                old_g += 1 if oldu else 0
+                imzalar.setdefault(aile, []).append(kimlik)
+            else:
+                kon_t += 1
+                kon_g += 1 if (rc == 0 and uygulandi) else 0
+            print("  %-24s %-9s rc=%d uygulandi=%s IDDIA=%s AILELER=%s"
+                  % (kimlik, "OLDURUCU" if oldurucu else "KONTROL", rc,
+                     "EVET" if uygulandi else "HAYIR", iddia, aile[:100]))
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(metin)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    canli_son = _sha256(CANLI_HEDEF)
+    ayrismayan = sum(len(v) for v in imzalar.values() if len(v) > 1)
+    print("\n== HUKUM ==")
+    for imza, ks in sorted(imzalar.items()):
+        if len(ks) > 1:
+            print("  AYRISMAYAN: %s -> %s" % (", ".join(ks), imza[:120]))
+    print("CANLI_DOSYA_SHA256 bas=%s son=%s ayni=%s"
+          % (canli_bas[:16], canli_son[:16], canli_bas == canli_son))
+    print("OLDURUCU=%d/%d  KONTROL=%d/%d  AYRISMAYAN=%d  TABAN_IDDIA=%s"
+          % (old_g, old_t, kon_g, kon_t, ayrismayan, t_iddia))
+    tamam = (old_g == old_t and kon_g == kon_t and ayrismayan == 0
+             and canli_bas == canli_son)
+    print("HUKUM=" + ("YESIL" if tamam else "KIRMIZI"))
+    return 0 if tamam else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

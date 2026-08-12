@@ -1867,7 +1867,14 @@ TABLO_TABANLARI = (
     # yolunda degil YAZIM yolunda (urun-ekle.py/duzelt.py, flock altinda) kosar ve
     # modul yuklenemezse cagiran betik acilista COKER. Tam esitlik geregi taban AYNI
     # commit'te guncellendi.
-    ("SERIT_B", 104),
+    # 12 Agu: 104 -> 105 (marka-invaryant-sayac-mutasyon.py beyan edildi). Bir TASIMA
+    # DEGIL, EKLEME: Okan canli ekranda ayni marka icin DORT ayri sayi gordu (beyan
+    # 593 · baslik 80 · kapsam beyani 575 · kapsam basligi 304). Baslik O AN BASILAN
+    # karti sayiyordu, sayfadan ERISILEBILENI degil; istemcide ise GORUNEN DOM
+    # dugumunu. Onarim + invaryant ekseni marka-sayac-kapisi.py'de BLOKLAYICI kaldi;
+    # bu batarya o eksenin ayirt ediciligini olcer. Tam esitlik geregi taban AYNI
+    # commit'te guncellendi.
+    ("SERIT_B", 105),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -3174,6 +3181,15 @@ SERIT_B = {
         "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "
         "Mutantlar gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi "
         "kapinin ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
+    ("nobet.yml", "marka-invaryant-sayac-bataryasi",
+     "tools/marka-invaryant-sayac-mutasyon.py"):
+        "Sayfa sayaci INVARYANTININ (beyan edilen parca sayisi == erisilebilen kart "
+        "sayisi) ayirt ediciligini 7 oldurucu + 2 kontrol mutantiyla olcer; agsiz ve "
+        "deterministiktir. Mutantlar tools/ klasorunun KOPYASINA uygulanir (canli "
+        "dosyanin bas/son sha256'si karsilastirilir), yayinlanan icerigi uretmez. "
+        "Invaryantin GERCEK katalog uzerindeki bayraksiz olcumu deploy.yml serit-a3'te "
+        "tools/marka-sayac-kapisi.py'de BLOKLAYICI kalir; buradaki kirmizi 'kapinin "
+        "ayirt ediciligi curudu' der, katalogun bozuk oldugunu DEGIL.",
     ("nobet.yml", "model-baslik-bataryasi", "tools/model-baslik-kolu-test.py"):
         "Aracin KENDINI sinayan 18 oldurucu + 4 kontrol mutasyon bataryasidir; "
         "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "

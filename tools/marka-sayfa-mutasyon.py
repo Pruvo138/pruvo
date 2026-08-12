@@ -80,10 +80,16 @@ MUTANTLAR = [
           '    parts = [_kart(ctx, p, attr_of(p) if attr_of else "") for p in urunler]')]),
     oldurucu(
         "M06_SAYFA_SAYACI_AYRISTI",
-        "Marka kart başlığındaki görünür sayı gerçek SSR kart sayısından bir artırıldı.",
+        # 🔴 ÇAPA TAZELENDİ (12 Ağu 2026): başlık artık O AN BASILAN kartı (`basili`)
+        # değil ERİŞİLEBİLİR kart yüzeyini (`kalemler`) beyan ediyor ve sayıyı kendi
+        # kategori kırılımından türetiyor. MUTANTIN NİYETİ AYNI KALDI: başlık sayısı
+        # gerçek kümeden BİR fazla olsun (kırılımıyla birlikte, yani "sayı ile kırılım
+        # ayrı kaynaktan" mutantından ayırt edilebilir bir off-by-one).
+        "Marka kart başlığındaki sayı erişilebilir kart yüzeyinden bir artırıldı.",
         "başlık sayısı = çip/toplam tutarlılığı",
-        [("               + '<span class=\"mm-sayim-kart\">' + str(len(basili)) + '</span>)</h2>')",
-          "               + '<span class=\"mm-sayim-kart\">' + str(len(basili) + 1) + '</span>)</h2>')")]),
+        [("               + _bolum_sayaci(esc, kalemler, \"erisim\") + ')</h2>')",
+          "               + _bolum_sayaci(esc, kalemler + kalemler[:1], \"erisim\") "
+          "+ ')</h2>')")]),
     oldurucu(
         "M07_EDGE_YERINE_TUM_KATALOG",
         "Kart teslim yolu /katalog?ids= yerine /urunler.json olarak değiştirildi.",
