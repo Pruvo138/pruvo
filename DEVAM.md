@@ -1,61 +1,69 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🔚 KraL — 12 Agu 2026 ~06:xxZ: MARKA SAYAC ESITLEMESI CANLIDA + K51/K52 kapandi
+## 🕐 CI NOBETI — 12 Agu 2026 09:37 yerel / 06:37Z turu (KraL / Tamirci)
 
-**CANLIYA GITTI — `5ecac404`** (dal `5832204d`). Kosum `31564809178`: `build`+`deploy`+`yayin`
-**ucu de success**; ata kaniti `merge-base --is-ancestor` **rc=0**, negatif kontrol **rc=1**.
+**Ev kontrolu:** calisma dizini `/Users/okan/dev/pruvo` → DOGRU EV.
 
-**Sorun (Okan ekrandan yakaladi, Hyundai yalnizca ORNEKTI):** marka sayfasi beyan ile baslikta
-FARKLI sayi gosteriyordu — beyan `toplam`dan, baslik `basili = kalemler[:MARKA_KART_N]`
-kapagindan turuyordu. Olculdu: **93 marka sayfasinin 35'i** yanlis rakam basiyordu, en buyuk
-sapma **Ford 2582 ↔ 80**. Onarim marka-BAGIMSIZ tek noktada; Okan'in 8 Agu hukmu KORUNDU
-(vaat 80'e cekilmedi, `MARKA_KART_N=80` duruyor, kalanina artimli erisim var).
+**🟢 SUPURME rc=0 — HUKUM=TEMIZ.** Sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI.
+Basilan satirlar: `GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 ·
+KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=4:2026-08-12T04:05:51 · HUKUM=TEMIZ`.
+Uc fail-closed alarmin ucu de sessiz; sayac 0 iken hukum TEMIZ yazilabildi cunku POZITIF tanima
+izi var (aranan dizenin AYNISI Cop'te 4 kayit, en yenisi 04:05).
 
-**CANLI OLCUM, cache-bust'SIZ** — kapsamsiz: Hyundai **593/593** · Ford **2582/2582** ·
-BMW **2349/2349** · Fiat **475/475** · Renault **831/831** → sapan **0/5**.
-`?kategori=` kolu (istemci JS, tarayiciyla): Hyundai **575/575** · Ford **2579/2579** ·
-BMW **628/628** · Fiat **475/475** → sapan **0/4**.
+**🟠 COP DENETIMI: MESRU=4, YANLIS=2 — SUPURMEYE ATFEDILMEZ (uc bagimsiz iz).** Iki kayit ayni
+bulten mailinin kopyasi (09:01 yerel, siparis/odeme mailleri DEGIL; siparis ekseninde Cop'te kayit
+YOK). (a) Bu turun supurmesi `CIKAN=0` — gelen kutusundan hicbir kayit ayrilmadi; (b) tek silme
+yolunun yuklemi `notifications@github.com` + `Run failed`; bulten ikisini de saglamiyor, dolayisiyla
+o yolun uretebilecegi bir kayit degil; (c) kayit id'leri en yeni mesru kayittan BUYUK ve zamani
+onceki turun `YANLIS=0` olcumunden SONRA. Kendiliginden geri ALINMADI — Okan'a TEK cumle cikildi.
 
-**Kapilar:** `marka-sayac-kapisi` rc=0 **21578/21578** · mutasyon **13/13 + kontrol 3/3,
-ayrismayan 0** · `is-akisi-kapisi` merge oncesi ve sonrasi **rc=0** · `ci-kapsam` rc=0 ·
-`marka-kapsam` 1437/1437 · `marka-model` 29/29 · `marka-artim` 26/26 · `kapi-envanteri` 7/7 ·
-agac artigi **0** (SIGTERM'le yarida kesilse bile dosya sha256 birebir) ·
-`d1-sync --durum` **5 eksen yesil, katalog 25.964** · kapsam ihlali YOK, sizinti 0.
+**✅ CI TEMIZ — onarim GEREKMEDI.** Son ~25 kosumda `conclusion=failure` **0**. Gecen turdan
+devreden uc kosum JOB birimiyle kapandi: `31564809377` 12 job (11 success + 1 skipped) ·
+`31567340921` `build·serit-a2·serit-a3·serit-a4·deploy·yayin` **6/6 success** · `31567341105`
+**cancelled, jobs:[]** — 4.5 maddesindeki kuyruk davranisi, ARIZA DEGIL: ayni head `c906a864`
+kardes kosumda tam yesil ve main tepesinin atasi, icerik kaybolmadi.
 
-**UC TUR CURUTME GEREKTI (birinci ve ikinci tur MERGE'U BLOKLADI):**
-1. Dal, yayini durduran `is-akisi-kapisi`'ni **rc=1** yakiyordu (main rc=0 olculdu) ve
-   `MUTANT=7/7` iddiasi repodaki surucuyle **yeniden uretilemiyordu** (rc=3, uc bayat capa).
-2. 🔴 **Kapinin KENDI ozeti yalan soyluyordu:** ayni agacta ayni kosumda hukum
-   `rc=1 · DUSEN=2379 · KIRMIZI` iken insana basilan ozet **"sapan marka 0"** diyordu —
-   hukum `kapi.dusen`den, ozet AYRI bir kiyastan turuyordu.
-3. Kapandi: ozet artik hukmu besleyen kumeden turuyor; merge-base jeneratoruyle
-   `SAPAN_MARKA=93` ve `--dokum` marka satirlari **57+16+20 = 93** birebir esit.
+**📏 WORKTREE 5 → 2 SATIR — TAVAN SAGLANDI.** Dort agac arsivle-sonra-kaldir yordamiyla dusuruldu,
+hicbiri once silinmedi. Sira ZORUNLU tutuldu: (1) origin'de olmayan commit sayisi 0 olarak olculdu,
+(2) calisma agaci yamasi + izlenmeyen dosyalar `/Users/okan/arsiv-worktree/` altina kopyalandi,
+(3) her yama temiz HEAD blobu uzerinde yeniden uretilip **sha256 birebir** gosterildi, ANCAK
+ONDAN SONRA kaldirma yetkilendirildi. Toplam arsiv: 4 yama (1714 + 25.379 + 12.085 bayt + bos) +
+1 izlenmeyen dosya. Ana agactaki YABANCI degisiklikler tur basi ve tur sonu BIREBIR ayni.
+⚠️ Isci ilk denemede `apply --check`i KIRLI agaca kosup sahte kirmizi aldi (agac zaten yamanin
+SONRA-goruntusunu tasiyor); yontemi temiz HEAD blobuna cevirip kaniti oyle uretti.
 
-**🔴 IKI TASINABILIR DERS:**
-- **Beyan ile gosterilen ayri fonksiyondan turerse sessizce ayrisir** — ve bu tur olctu ki ayni
-  hata kapinin KENDI icinde de vardi. Bir kapi insana sayi basiyorsa o sayi hukmu besleyen
-  kumeden dogmali; yoksa kapi kirmiziyken "sapan 0" yazip isi kapattirir.
-- **Mutanti `rc` ile degil, beklenen iddia ailesinin IZIYLE kabul et.** Tautoloji kirici mutant
-  da rc=1 verir ama hedeflenen aile jetonunu TASIMAZ.
+**🔴 GECEN TURUN (b) MADDESI KAPANDI: K49 + K70 dallari origin'e ITILDI** (uc turdur eksikti).
+Kanca ikisinde de `temiz: 0 bulgu` verdi, kanca ATLANMADI. Teyit `ls-remote --heads` ile bagimsiz:
+`7360354a` ve `2c2e06e0` — yereldeki HEAD'lerle ayni.
 
-**K51 KAPANDI — merge `0eb8612b`.** D1 uzlastiricisinin SILME kolu karantinada. Ayirt edici
-kanit: ayni fikstur **eski kodla `silinen=37`, yeni kodla `silinen=0`**; bayraksiz yol davranisi
-BAYT AYNI, `eksik`/`hash` kollari dokunulmadi, alarm susturulmadi. Ders: silme kolu olan bir
-emniyet aginda kabul testinin yesili YETMEZ — ayni fikstur ESKI kodla da kosulmali.
+**🔧 TAMIRCI TURU.** Acik 🔧 = **11** (K49·K53·K54·K55·K56·K58·K59·K62·K69·K70 + yeni **K71**);
+bu turda kapanan 0, **DAGITILAN 1** (K49 iade onarimi). Olculen durumlar:
+- **K49 — isci BITIRDI, bagimsiz CURUTUCU kostu, hukum `CURUTME=KALDI`.** Beyan edilen 8 sayinin
+  8'i de yeniden uretildi (sapma yok) **ama raporun kabul bolumu BOS birakilmisti** — sayilar
+  dogruydu, kaniti yoktu. Kapsam deligi kapandi=EVET, GERCEK kanca biciminde olculdu. **5 iade
+  maddesi, 2'si bloklayici:** dal `is-akisi-kapisi.py`'yi **rc=1** yakiyor (main rc=0) ve raporun
+  "iki BLOKLAYICI adim" iddiasi olcumle curudu (`serit-b`'nin `needs:`'i yok → yayini durdurmaz;
+  olculen sure 137 sn, beyan "≈4 dk"). Onarim AYNI TURDA dagitildi; mimar karari: adimlar
+  `serit-b`'de KALIR ve beyan tablosuna kaydedilir — koruma kilidin KENDISI, bu adimlar onun TESTI.
+- **K71 ACILDI (yeni).** Curutucu `gh run view` ile olctu: kayitli zarar olaylarinin ikisi
+  GitHub KOSUCUSUNDA `event=schedule` ile kostu; kilit TEK MAKINE kapsamli → kosucu×kosucu ve
+  kosucu×yerel yarisi ACIK. **K49 bu dal alinsa bile KAPANMAZ.** Ders: bir emniyet aginin kapsam
+  BIRIMI, zararin olculdugu birimle ayni mi diye sorulmali; "kapi yesil" ile "olculen zarar
+  kapandi" AYRI iddialardir.
+- **K70 — isci OLDU (138 dk hareketsiz, rapor uretmedi).** Tek WIP commit'i itildi, commit'siz
+  yamasi arsivlendi; sonraki tur sifirdan degil bu WIP'ten devralacak.
+- **K62 — bayat agac kapandi:** main disi commit **0** ve kirli iki dosyanin ANA AGACTA sha256
+  BIREBIR AYNISI var → is ana agacta suruyor, agac mukerrerdi. Arsivlendi ve kaldirildi.
+- **K69 — CANLI** (agac 45 dk once dokunulmus, dal origin'de); dokunulmadi.
 
-**K52 KAPANDI.** Zombi agac kaldirildi. Arsivleme adimi OLCUMLE gereksiz cikti
-(`origin/main..c8b0451e` **0 satir**) — "arsivle-sonra-kaldir" bir ritüel degil KOSULDUR.
+**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
+mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
+DOKUNULMADI · K69'un canli agacina DOKUNULMADI · **merge YAPILMADI** · dal SILINMEDI.
 
-**KOSUYOR:** YOK (kendi dalim/worktree'm kalmadi). **Bu turda:** urun verisine DOKUNULMADI ·
-deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI · kapi/nobetci GEVSETILMEDI · yabanci
-degisikliklere DOKUNULMADI · baskasinin worktree'sine DOKUNULMADI.
-
-**Sonraki turun ISI:** (a) `git worktree list` **6 satir** (tavan 2) — ikisi main'de OLMAYAN
-commit tasiyor (`kral/k49-d1-yazici-kilidi` · `kral/k70-index-kolu-pathspec`), ikisi de baska
-oturumun CANLI isi, SILINMEZ; (b) K67/K68 karari (ikiz kapisinin 5. ekseni ortak araca tasinsin
-mi + ortak isaret listesinin marka-notrlugu); (c) K61 SERIT B hala son tamamlanmis kosumda
-`failure`.
-
+**Sonraki turun ILK ISI:** (a) K49 iade onariminin artefakti (`git worktree list` + agac diff
+ekseninden, dal adindan DEGIL) ve `is-akisi-kapisi` dal rc'sinin main ile ESITLENDIGI; (b) K49
+dali temizse merge kapisi ile ayri tur — **K49 satiri yine de KAPANMAZ, K71 acik kalir**;
+(c) K69 dagitiminin sonucu; (d) K70'in WIP'inden devir.
 ## 🕐 CI NOBETI — 12 Agu 2026 08:37 yerel / 05:37Z turu (KraL / Tamirci)
 
 **Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
