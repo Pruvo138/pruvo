@@ -1546,6 +1546,32 @@ jobs:
       - name: Marka sayac kapisi (sayac birimi + mukerrer kart)
         run: python3 tools/marka-sayac-kapisi.py
 
+      # MARKA SAYFASI MODEL CIPI (12 Agu, Okan canlidan): "modeller eksik, cipler dagimik,
+      # cipteki sayi urunle tutmuyor, cipe tiklaninca hedef acilmiyor". Dordu de SESSIZ.
+      # OLCULDU (canli, GERCEK TARAYICI, cache-bust'siz): 1024 cipin 1024'u HTTP 200 —
+      # yani HTTP ekseni TEMIZDI ve hicbir kapi kirmizi yanmiyordu — ama cipe basilinca
+      # ekranda 0 KART kaliyordu (uc ayri sayfada 1,9 sn · ~1-3 sn · >6,5 sn) ve o
+      # pencerede durum metni ya BOS ya da BIR ONCEKI cipin sayisiydi. Kullanici bunu
+      # "cip calismiyor" olarak gorur; `curl` bu ekseni OLCEMEZ (cip AYRI ADRESE GITMEZ,
+      # sayfa ICINDE filtreler).
+      # NE OLCER (ORNEKLEME YOK, uretilen TUM marka sayfalari · TUM cipler): cip hedefinin
+      # COZULMESI + hedefin DOLU olmasi · cipin BASTIGI sayi == sayfa-ici filtre kumesi ==
+      # hedef sayfanin beyani · GURULTU sinifi (cip etiketi aslinda AYRI BIR MARKA) ·
+      # TIKLAMA DAVRANISI (sayfanin KENDI filtre modulu node'da sahte DOM ile kosturulur:
+      # tiklamadan sonra durum metni BOS/BAYAT kalmaz, on-yukleme atilir, yuk gelince
+      # gorunen kart sayisi cipin sayisina esitlenir).
+      # 🔴 NEDEN SERIT A (BLOKLAYICI): TAMAMEN YEREL ve DETERMINISTIK — girdi yalniz bu
+      # depodaki urunler.json + index.html; sayfalar GECICI dizine uretilir; node'da
+      # KOSAR (setup-node bu seritte bloklayici on-kosul, yoksa FAIL-CLOSED rc=3).
+      # Elle tutulan envanter/allow listesi YOK: gurultu sinifi katalogdan OLCULUR, koda
+      # marka adi YAZILMAZ -> urun partileri kapiyi BAYATLATMAZ ([[envanter-drift-parti-basina]]).
+      # FAIL-CLOSED: olcum kurulamazsa rc=3 (OLCULEMEDI), sessiz yesil YOK.
+      # MUTASYON KANITI ELLE KOSULUR (CI'da 6 kapi turu ~10 dk tutardi; surucu repoda
+      # DURUR, anlatilan batarya kanit degildir -> [[mutasyon-kaniti-yeniden-uretilebilir]]):
+      #   python3 tools/marka-cip-mutasyon.py     # MUTANT=5/5 KONTROL=YESIL IZ_AYRIMI=DOGRU
+      - name: Marka model cipi kapisi (hedef + sayi + gurultu + tiklama)
+        run: python3 tools/marka-cip-kapisi.py
+
       # MARKA CIP TAVANI (index.html MARKA_LIMIT) — R_NODE muafiyet sinifindan cikarildi
       # (30 Tem): gerekce "CI build job'u Python-only (setup-node yok)" diyordu, oysa
       # setup-node BLOKLAYICI on-kosul olarak VAR. NE KORUR: ana sayfadaki marka cipi

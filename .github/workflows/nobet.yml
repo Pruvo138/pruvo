@@ -1196,6 +1196,20 @@ jobs:
       - name: "Ara maliyet kapisi ic nobetcisi (kirmizi-mutasyon: CROSS JOIN -> JOIN)"
         run: python3 tools/ara-maliyet-kapisi.py --kendini-test
 
+      # MARKA MODEL CIPI KAPISININ MUTASYON KANITI (12 Agu). Kapinin KENDISI serit A'da
+      # (deploy.yml, bloklayici) kosar; bu surucu onun OLCTUGU seyin gercekten
+      # kirilabildigini kanitlar: her eksen icin bir OLDURUCU mutant (kapi KIRMIZI yanmali)
+      # + bir KONTROL mutant (YESIL kalmali). Kabul `rc` ile DEGIL, kapinin bastigi
+      # `DUSEN_AILELER` iziyle verilir (baska eksenden kirmizi yanan mutant OLDURULMUS
+      # SAYILMAZ) ve mutantin uygulandigi `IZ=` farkiyla kanitlanir.
+      # 🔴 NEDEN SERIT B: surucu kapiyi 7 kez kosturur (~10 dk). Serit A'ya konsaydi HER
+      # yayini 10 dk geciktirirdi ([[kapi-birikimi-yayin-gecikmesi]]); kapi zaten serit
+      # A'da, burada olcusu ALINAN sey kapinin CANLILIGI. Tamamen yerel + deterministik;
+      # mutasyon KOPYAYA uygulanir (calisma agaci KIRLENMEZ, SIGTERM dahil).
+      # node ISTER (yukaridaki setup-node bloklayici on-kosul; yoksa kapi rc=3 -> KIRMIZI).
+      - name: Marka model cipi kapisi mutasyon bataryasi (5 oldurucu + 1 kontrol)
+        run: python3 tools/marka-cip-mutasyon.py
+
       # ================= MUAFIYET DENETIMI (31 Tem) — 28 OLU-NOBETCI ADAYI BAGLANDI ====
       # NEDEN: tools/ci-kapsam-test.py IZIN_LISTESI'ndeki 65 muafiyetin BUYUK bir kismi
       # "offline-YESIL ama bu turda deploy.yml'e 0-hunk sarti var / sonraki turda alinir"

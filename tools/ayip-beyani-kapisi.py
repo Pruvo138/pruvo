@@ -54,8 +54,9 @@ KOK = os.path.dirname(BURASI)
 #   KANON-SEMA  : kanonik kaynagin kendisi (demet + turetilen cumle) tutarli mi
 #   KAPSAM      : hangi govde taramaya GIRIYOR (tetik) + kapsam bos/okunamaz mi
 #   SAPMA       : kapsamdaki govde kanonik beyani tasiyor mu
+#   CELISKI     : kanonik cumlenin yaninda dar/sartli eski kalip da yasiyor mu
 #   TEMIZ-SAYIM : insana basilan ozet, hukmu besleyen KUMEDEN mi turuyor
-AILELER = ("KANON-SEMA", "KAPSAM", "SAPMA", "TEMIZ-SAYIM")
+AILELER = ("KANON-SEMA", "KAPSAM", "SAPMA", "CELISKI", "TEMIZ-SAYIM")
 
 
 class Olculemedi(RuntimeError):
@@ -73,6 +74,16 @@ TETIK_CAYMA = re.compile(
     r"cayma hakk[ıi][^.;]{0,90}?"
     r"(bulunmaz|yoktur|kullanılamaz|kullanılmaz|işlemez|kapsamı dışında)")
 TETIK_AYIP = re.compile(r"(?<![" + _ONEK + r"])ayıp")
+
+# Kanonik dort secenegin yaninda yasadiginda hakki iki secenege daraltan veya hakka
+# kosul ekleyen eski kaliplar. Tek sabit: hukum ve sentetik fiksturler ayni ekseni olcer.
+CELISKILI_DAR_KALIPLAR = re.compile(
+    r"(?:ücretsiz\s+onar(?:ılır|ır)\s+(?:ya\s+da|veya)\s+"
+    r"(?:yenisiyle\s+)?değiştir(?:ilir|iriz)|"
+    r"onarım\s+(?:ya\s+da|veya)\s+değişim|"
+    r"kusur\s+bizdense|"
+    r"sapma\s+bizim(?:\s+aldığımız)?\s+ölçümüzden\s+kaynaklanıyorsa)"
+)
 
 
 def kucult(s):
@@ -156,6 +167,8 @@ def hukum(yuzeyler, cumle, secenekler, kanun_no):
         kapsam.append((ad, g))
         if kanonik not in g:
             sapan.append((ad, _sapma_sebebi(g, cumle, secenekler, kanun_no)))
+        elif CELISKILI_DAR_KALIPLAR.search(g):
+            sapan.append((ad, "kanonik cumle VAR ama celiskili dar kalip DA var"))
     return kapsam, sapan
 
 
@@ -202,6 +215,9 @@ _F_SARTLI = ("<p>Cayma hakkı bulunmaz; sapma bizim ölçümüzden kaynaklanıyo
              "sayılı Kanun uyarınca ücretsiz onarım, yenisiyle değişim, bedel indirimi "
              "ya da bedel iadesi uygularız.</p>")
 _F_ILGISIZ = "<p>Kayıp bir tırnak yerine yenisini üretiriz; kayıp parça sorun değildir.</p>"
+_F_CELISKI_DAR = ("<p>%s Buna karşılık ayıplı bir ürün ücretsiz onarılır ya da "
+                   "değiştirilir.</p>")
+_F_CELISKI_SARTLI = ("<p>%s Ancak kusur bizdense bu haklar uygulanır.</p>")
 
 
 def kendini_test():
@@ -274,7 +290,10 @@ def kendini_test():
         pass
 
     # --- SAPMA
-    fikstur = (("temiz", temiz), ("dar", _F_DAR), ("uc-secenek", _F_UC),
+    fikstur = (("temiz", temiz), ("yalniz-kanonik", _F_TEMIZ % cumle),
+               ("kanonik-arti-dar", _F_CELISKI_DAR % cumle),
+               ("kanonik-arti-sartli", _F_CELISKI_SARTLI % cumle),
+               ("dar", _F_DAR), ("uc-secenek", _F_UC),
                ("sartli", _F_SARTLI), ("ilgisiz", _F_ILGISIZ))
     kapsam, sapan = hukum(fikstur, cumle, secenekler, kanun_no)
     sapan_adlar = [a for a, _ in sapan]
@@ -283,6 +302,17 @@ def kendini_test():
     if "temiz" in sapan_adlar:
         kirmizi += 1
         _bas_iz("SAPMA", "kanonik beyani tasiyan govde SAPAN sayildi (yanlis-pozitif)")
+
+    iddia += 1
+    if "yalniz-kanonik" in sapan_adlar:
+        kirmizi += 1
+        _bas_iz("CELISKI", "yalniz kanonik cumle SAPAN sayildi (yanlis-pozitif)")
+
+    for ad in ("kanonik-arti-dar", "kanonik-arti-sartli"):
+        iddia += 1
+        if ad not in sapan_adlar:
+            kirmizi += 1
+            _bas_iz("CELISKI", "%s govdesindeki celiski SAPAN sayilmadi" % ad)
 
     for ad in ("dar", "uc-secenek", "sartli"):
         iddia += 1
