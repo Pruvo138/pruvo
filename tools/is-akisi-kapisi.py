@@ -1885,7 +1885,11 @@ TABLO_TABANLARI = (
     # 🔴 IKI GIRIS AYNI TURDA BIRLESTI (dal main'in GERISINDEYDI): dalin tabani 105,
     # main'inki 106 idi ve ikisi de ayni satiri degistirdigi icin merge CAKISTI.
     # Cozum SEÇIM DEGIL BIRLESIM — iki beyan da DURUYOR, taban ikisinin TOPLAMI.
-    ("SERIT_B", 107),
+    # 12 Agu (ikinci): 107 -> 108 (marka-cip-mutasyon.py beyan edildi). Yine bir TASIMA
+    # DEGIL, EKLEME: KAPININ KENDISI (tools/marka-cip-kapisi.py) serit A'da BLOKLAYICI
+    # kosar; buraya yalnizca onun CANLILIGINI olcen mutasyon surucusu girdi (kapiyi 7 kez
+    # kosturur, ~10 dk). Tam esitlik geregi taban AYNI commit'te guncellendi.
+    ("SERIT_B", 108),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2747,6 +2751,13 @@ SERIT_B = {
         "deploy'u atlatti (kosum 30654284096); kok neden onarildi ama hangi kolun "
         "girildigi SQLite SURUMUNE bagli -> CI davranisi yerelde tam dogrulanamiyor ve "
         "korudugu kaynak (araD1) bu depoda degil. Serit A'ya tasima karari MIMARIN.",
+    ("nobet.yml", "serit-b", "tools/marka-cip-mutasyon.py"):
+        "SAF MUTASYON SURUCUSU: olctugu sey `tools/marka-cip-kapisi.py`nin CANLILIGIDIR, "
+        "yayinlanan icerik DEGIL — KAPININ KENDISI SERIT A'DA (deploy.yml, bloklayici) "
+        "kosuyor, yani cip hedefi/sayisi/gurultusu/tiklama davranisi yayini ZATEN durdurur. "
+        "Surucu kapiyi 7 kez kosturur (~10 dk); serit A'ya konsaydi HER yayini 10 dk "
+        "geciktirirdi ([[kapi-birikimi-yayin-gecikmesi]]). Mutant envanteri o dosyanin "
+        "MUTANTLAR tablosundadir; buraya SAYI yazilmaz (prozadaki sayi sessizce bayatlar).",
     ("nobet.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
         "SAF MUTASYON BATARYASI (bolumler A..E): kapilarin kendi kirmizi-yolunu olcer, "
         "yayinlanan hicbir ciktiya bakmaz. Mutant envanteri o dosyanin bolum "

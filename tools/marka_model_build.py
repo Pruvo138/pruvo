@@ -570,6 +570,64 @@ def marka_mi(deger, evren):
     return bool((deger or "").strip()) and evren.taninmis_mi(deger.strip())
 
 
+def marka_sahiplik_tablosu(products, evren, ek_markalar=()):
+    """(marka, model_canon) -> o jetonu taşıyan ürünlerin HAM `marka[0]` dağılımı, + katalog
+    genelinde her ham `marka[0]` değerinin ürün sayısı.
+
+    🔴 KOVA ÜYELİĞİNDEN BAĞIMSIZ (bilerek): tabloyu hem sayfa üreteci (`gruplandir`) hem
+    anasayfa çip indeksi (`tools/cip-indeks.py`) türetir. Kova üyeliğine dayansaydı iki
+    yüzey iki farklı yargı verir, biri çipi basar diğeri sayfayı kapatırdı — bu depoda
+    ölçülmüş sessiz sınıf ([[ikiz-tanim-sessiz-ayrisma]])."""
+    kova, ham0_sayaci = {}, {}
+    for p in products:
+        m = p.get("marka") or []
+        if not m:
+            continue
+        h = _canon(m[0])
+        ham0_sayaci[h] = ham0_sayaci.get(h, 0) + 1
+        uyeler = marka_uyelikleri(m, evren, ek_markalar)
+        if not uyeler:
+            continue
+        jetonlar = uyelik_jetonlari(p)
+        for marka in uyeler:
+            for t in jetonlar:
+                c = evren.model_anahtari(marka, t)
+                if not c:
+                    continue
+                d = kova.setdefault((marka, c), {})
+                d[h] = d.get(h, 0) + 1
+    return kova, ham0_sayaci
+
+
+def yabanci_marka_mi(marka, display, canon, tablo):
+    """GÜRÜLTÜ SINIFI — çip etiketi bu markanın MODELİ değil, AYRI BİR MARKA mı?
+
+    🔴 12 Ağu 2026, Okan (canlı): `/marka/hyundai/` çipleri arasında `Genesis` duruyordu;
+    Genesis bir MODEL değil AYRI BİR MARKADIR ve o kovadaki 8 ürünün 7'sinin ham `marka[0]`
+    alanı zaten `Genesis`. Aynı sınıf `/marka/suzuki/` içinde `Sierra` ile tekrar ediyor
+    (16 ürünün 12'si deniz donanımı markası `Sierra`'nın).
+
+    🔴 KURAL, KARA LİSTE DEĞİL (spec): hiçbir marka adı koda yazılmaz. İKİ ŞART BİRDEN,
+    ikisi de KATALOGDAN ölçülür:
+      (1) etiket katalogda ham `marka[0]` olarak >= ESIK üründe geçiyor -> BİR MARKADIR,
+      (2) o jetonu taşıyan ürünlerin ÇOĞUNLUĞUNUN ham `marka[0]`'ı ETİKET, ve sayfanın
+          markası ÇOĞUNLUK DEĞİL.
+    (2) olmasaydı `Ford|Sierra` (Ford Sierra GERÇEK bir Ford modelidir; 5 ürünün 5'i Ford
+    birincilli) de düşerdi — ölçüldü, tek şartlı sürüm 4 çip kesiyordu, ikisi YANLIŞ.
+    Ürün KAYBOLMAZ: kovanın ürünleri marka sayfasının kart yüzeyinde durmaya devam eder."""
+    kova, ham0_sayaci = tablo
+    etiket = _canon(display or canon)
+    if not etiket or etiket == _canon(marka):
+        return False
+    if ham0_sayaci.get(etiket, 0) < ESIK:
+        return False
+    say = kova.get((marka, canon))
+    if not say:
+        return False
+    n = sum(say.values())
+    return say.get(etiket, 0) * 2 > n and say.get(_canon(marka), 0) * 2 <= n
+
+
 def marka_urun_sayisi(d):
     """Bir marka kovasının SAYFASINDA görünecek TEKİL ürün sayısı — TEK KAYNAK.
     Eşik (ESIK), çip sıralaması, sayfa metni ve kabul testleri AYNI bu fonksiyonu çağırır;
@@ -1052,6 +1110,15 @@ def gruplandir(products, evren, ek_markalar=()):
                 })
             g["kusak_bolum"] = sorted(bolumler,
                                       key=lambda b: (-len(b["urunler"]), b["display"]))
+
+    # ---- GÜRÜLTÜ SINIFI DAMGASI (12 Ağu, Okan hükmü) --------------------------------
+    # Yargı KOVAYA damgalanır; `yayimlanir_mi` onu OKUR. Yüklemi yayımlama anında yeniden
+    # hesaplasaydık tabloyu iki kez kurar ve iki gövde sessizce ayrışabilirdi.
+    _sahiplik = marka_sahiplik_tablosu(products, evren, ek_markalar)
+    for marka, d in veri.items():
+        for g in d["gruplar"].values():
+            g["yabanci_marka"] = yabanci_marka_mi(marka, g.get("display"), g["canon"],
+                                                  _sahiplik)
     return veri
 
 
@@ -1064,6 +1131,11 @@ def yayimlanir_mi(g):
     donmuş: `arama.ROZET_DISI_CIFT`. Ürün KAYBOLMAZ: sayfası açılmayan kovanın ürünleri
     marka sayfasında ve kendi gerçek model sayfasında listelenmeye devam eder."""
     if (g.get("marka"), g.get("canon")) in ROZET_DISI:
+        return False
+    # AYRI MARKA (12 Ağu, Okan — canlıdan): çip etiketi bu markanın MODELİ değil, katalogda
+    # KENDİ ürünleri olan BAŞKA BİR MARKA (`Hyundai|Genesis`, `Suzuki|Sierra`). Yargı
+    # `gruplandir`da damgalanır (bkz. yabanci_marka_mi); kural marka-BAĞIMSIZDIR.
+    if g.get("yabanci_marka"):
         return False
     # MODEL OLMAYAN ÇİFT (4 Ağu, mimar hükmü): donanım paketi / motor ailesi SAYFA OLMAZ
     # (`Focus ST`, `Fiesta ST`, `EcoBoost`). Ürün KAYBOLMAZ: kuşak katlamasıyla ana modelin
@@ -1659,11 +1731,39 @@ _ARTIM_JS_GOVDE = r"""
         cipler[i].className = "mm-model-btn" + (kendi ? " mm-aktif" : "");
       }
     }
+    // ÇİPİN KENDİ BASTIĞI SAYI — ikinci bir sayım noktası DEĞİL, sayfanın o çipte zaten
+    // yazdığı beyanın OKUNMASI. Yükleniyor metni bunu yankılar; KESİN sayı yük gelince
+    // hükmü besleyen kümeden (`kalemler.length`) tazelenir ve kapı ikisinin EŞİTLİĞİNİ ölçer.
+    function cipBeyani(ix){
+      for(var i = 0; i < cipler.length; i++){
+        if(cipler[i].getAttribute("data-mm") === String(ix)){
+          var s = cipler[i].querySelector(".adet");
+          var n = s ? parseInt(String(s.textContent).replace(/[^0-9]/g, ""), 10) : NaN;
+          return isNaN(n) ? null : n;
+        }
+      }
+      return null;
+    }
     function filtreUygula(ix){
       if(mesgul){ return; }
       aktifModel = ix;
       cipleriIsaretle(ix);
       artimKartlariniSil();
+      // 🔴 BOŞ EKRAN + BAYAT SAYI YASAK (ölçüldü 12 Ağu, CANLI TARAYICI, cache-bust'sız):
+      // çipe basılınca SSR kartlarının TAMAMI gizleniyordu — basılı kartlar sayfanın YEREL
+      // kalemleridir ve model üyeliği TAŞIMAZLAR — ve yük gelene kadar ekranda 0 kart
+      // kalıyordu (üç ayrı sayfada 1,9 sn · ~1-3 sn · >6,5 sn ölçüldü). Durum metni bu
+      // pencerede ya BOŞTU ya da BİR ÖNCEKİ çipin sayısını gösteriyordu (seçili çip
+      // "7 parça" iken ekranda "54 parça" yazıyordu). Kullanıcının gördüğü şey tam olarak
+      // "çipe tıklanınca hedef açılmıyor"dur. Metin tıklama ANINDA tazelenir.
+      if(durum){
+        if(ix === null){ durum.textContent = ""; }
+        else {
+          var beyan = cipBeyani(ix);
+          durum.textContent = (beyan === null ? "Parçalar yükleniyor…"
+                                              : beyan + " parça yükleniyor…");
+        }
+      }
       if(ix === null){                        // SIFIRLA: SSR kartları geri, sayaç tazelenir
         var hepsiKart = document.querySelectorAll("#mmGrid .card"), i;
         for(i = 0; i < hepsiKart.length; i++){ hepsiKart[i].style.display = ""; }
@@ -1713,6 +1813,20 @@ _ARTIM_JS_GOVDE = r"""
         var ix = parseInt(this.getAttribute("data-mm"), 10);
         filtreUygula(aktifModel === ix ? null : ix);
       });
+    }
+    // BOŞ PENCERENİN KAYNAĞI AĞ TURUDUR: yük ancak TIKLAMADAN SONRA istenirdi. Kullanıcı
+    // çip şeridine DOKUNUR DOKUNMAZ (işaretçi çipin üstüne gelince / basılınca) yükü
+    // çekmeye başla — tıklama geldiğinde tur çoktan ilerlemiştir. Sayfa AÇILIŞINDA hâlâ
+    // HİÇ istek YOK (ilk boya kararı bozulmaz); istek ancak NİYET belirince atılır.
+    var onYuklendi = false;
+    function onYukle(){
+      if(onYuklendi){ return; }
+      onYuklendi = true;
+      yukuGetir().catch(function(){ onYuklendi = false; });
+    }
+    for(var oy = 0; oy < cipler.length; oy++){
+      cipler[oy].addEventListener("pointerenter", onYukle);
+      cipler[oy].addEventListener("pointerdown", onYukle);
     }
     var sifirla = document.getElementById("mmFiltreSifirla");
     if(sifirla){
