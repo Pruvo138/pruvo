@@ -50,19 +50,120 @@ _pr = importlib.util.module_from_spec(_pr_spec)
 _pr_spec.loader.exec_module(_pr)
 
 
+# 🔴 COK KELIMELI MARKA KORLUGU (K63, olculdu 12 Agu 2026)
+# Marka terimi ONCE tek parca olarak derleniyordu (`re.escape(m)`), yani "alfa romeo"
+# YALNIZ tek bosluklu yazimla eslesiyordu. Marka adi iki kelimeliyse platformdaki
+# YAYGIN yazimlar (AlfaRomeo · Alfa-Romeo · alfa_romeo · Mercedes Benz <-> Mercedes-Benz)
+# TAM KELIME sayilmayip `elenen_marka` kovasina dusuyordu. Etkilenen markalar:
+# Land Rover · Aston Martin · Mercedes-Benz · Alfa Romeo.
+# COZUM MARKA-BAGIMSIZDIR (marka basina istisna listesi YASAK — elle tutulan liste her
+# partide bayatlar): marka adi AYRAC'lardan bolunur, parcalar arasinda ayrac SERBEST
+# birakilir. Tek kelimeli markada desen BIREBIR eskisidir (davranis degismez).
+#
+# ⚠️ NE KADAR GENISLETILDIGI OLCULDU (canli MakerWorld, 4 marka, 584 kayit):
+#     terim          donen  ESKI gecen  YENI gecen  KURTARILAN
+#     alfa romeo      143       23          26          +3   (ör. `AFGiuliaFull`)
+#     land rover      155       33          40          +7   (ör. `Landrover D90`)
+#     aston martin    151       24          25          +1
+#     mercedes benz   135       47          55          +8
+#     ford (tek kel.) 308      294         294           0   <- tek kelime SABIT
+# 🔴 DAHA GENISI OLCULDU ve REDDEDILDI: "cok kelimeli terimde marka filtresini hic
+#    uygulama, API alakasina guven" dendiginde alfa romeo sorgusunun 143 sonucunun
+#    118'i (%82,5) HICBIR marka kelimesi tasimiyordu (Citroën Berlingo, Skoda Octavia,
+#    Bugatti, JEEP...). Yani MakerWorld sorgusu bulanik; genisleme oraya kadar acilamaz.
+#    ⚠️ KALAN SINIR (kapanmadi, kapanamaz): yalniz MODEL adi tasiyan baslik
+#    ("Giulia grill keychain") hicbir metin kuralinin yakalayamayacagi sinifta kalir —
+#    marka dizesi metinde YOKTUR. O sinifin telafisi MODEL TERIMLI yeniden taramadir;
+#    bu yuzden `elenen_marka` kovasi "gorulen" SAYILMAZ (asagidaki kova taksonomisi).
+_MARKA_AYRAC = r"[\s\-_.·]"
+
+
+def _marka_deseni(m):
+    """Katlanmis marka adi -> derlenmis kelime-sinirli desen (ayraclara duyarsiz)."""
+    parcalar = [re.escape(p) for p in re.split(_MARKA_AYRAC + "+", m) if p]
+    if not parcalar:
+        return None
+    govde = (_MARKA_AYRAC + "*").join(parcalar)
+    return re.compile(r"(?<![%s])%s(?![%s])" % (_KELIME, govde, _KELIME))
+
+
 def marka_geciyor(marka, *metinler):
     """marka, verilen metinlerden en az birinde TAM KELIME olarak geciyor mu?
     'ford' -> 'Ford Mustang' EVET; 'Oxford'/'afford' HAYIR (alt-dize).
-    'nissan' -> 'NISSAN GTR' EVET (latin katlama; bkz. printables-api.marka_katlamalari)."""
+    'nissan' -> 'NISSAN GTR' EVET (latin katlama; bkz. printables-api.marka_katlamalari).
+    'alfa romeo' -> 'AlfaRomeo Giulia' / 'Alfa-Romeo 156' EVET (ayrac serbest),
+                    'Romeo and Juliet' / 'Alfa Laval' HAYIR (kelimeler bitisik degil)."""
     if not (marka or "").strip():
         return False
     for m, katla in _pr.marka_katlamalari(marka):
         if not m:
             continue
-        pat = re.compile(r"(?<![%s])%s(?![%s])" % (_KELIME, re.escape(m), _KELIME))
+        pat = _marka_deseni(m)
+        if pat is None:
+            continue
         if any(pat.search(katla(t or "")) for t in metinler):
             return True
     return False
+
+
+# --- KESIF KOVA TAKSONOMISI: hangi kova "GORULDU, HUKUM VERILDI" sayilir? ------------
+# 🔴 K63 IKINCI KUSUR (olculdu): ek-terim/model-terim taramalari kanonik "gorulen" ID
+# kumesine `elenen_marka` kovasini da katiyordu. Ama o kova "bu ID kotu" demez, yalnizca
+# "BU TERIM metinde gecmiyor" der — BASKA bir terim (model adi) icin hukum DEGILDIR.
+# Gorulen sayilinca model-terimli telafi taramasi tam da kurtarmasi gereken kayitlari
+# atliyordu, yani birinci kusurun telafisi CALISMIYORDU.
+# Bu taksonomi TEK KAYNAKTIR: tarama havuzunu okuyan her arac gorulen_idler()'i cagirir,
+# kendi kova listesini TUTMAZ (ikiz tanim sessizce ayrisir).
+HUKUMLU_KOVALAR = ("adaylar", "elenen_cop", "elenen_nc", "zaten_ekli")
+KARARSIZ_KOVALAR = ("elenen_marka",)
+TUM_KOVALAR = HUKUMLU_KOVALAR + KARARSIZ_KOVALAR
+
+
+class BilinmeyenKova(RuntimeError):
+    pass
+
+
+def _kova_idleri(deger):
+    ids = set()
+    for x in (deger or []):
+        if isinstance(x, (list, tuple)):
+            ids.add(str(x[0]))
+        elif isinstance(x, dict):
+            ids.add(str(x.get("id")))
+        else:
+            ids.add(str(x))
+    return ids
+
+
+def gorulen_idler(havuz):
+    """Havuzdaki HUKUM VERILMIS ID'ler — yeniden taranmasa bilgi kaybi OLMAZ.
+
+    `elenen_marka` BILEREK DISARIDADIR (bkz. taksonomi notu). Havuzda taniinmayan bir
+    kova varsa FAIL-CLOSED: yeni bir kova sessizce 'gorulen' ya da 'kararsiz' sayilamaz."""
+    if not isinstance(havuz, dict):
+        raise BilinmeyenKova("havuz sozluk olmali, %r geldi" % type(havuz))
+    bilinmeyen = [k for k in havuz if k not in TUM_KOVALAR]
+    if bilinmeyen:
+        raise BilinmeyenKova(
+            "taniinmayan kova(lar): %s -> HUKUMLU_KOVALAR/KARARSIZ_KOVALAR'da sinifla"
+            % ", ".join(sorted(bilinmeyen)))
+    ids = set()
+    for kova in HUKUMLU_KOVALAR:
+        ids |= _kova_idleri(havuz.get(kova))
+    return ids
+
+
+def kararsiz_idler(havuz):
+    """Hukum VERILMEMIS ID'ler — MODEL/ek terimle YENIDEN taranmali."""
+    if not isinstance(havuz, dict):
+        raise BilinmeyenKova("havuz sozluk olmali, %r geldi" % type(havuz))
+    bilinmeyen = [k for k in havuz if k not in TUM_KOVALAR]
+    if bilinmeyen:
+        raise BilinmeyenKova("taniinmayan kova(lar): %s" % ", ".join(sorted(bilinmeyen)))
+    ids = set()
+    for kova in KARARSIZ_KOVALAR:
+        ids |= _kova_idleri(havuz.get(kova))
+    return ids
 
 
 def mevcut_idler():
@@ -173,6 +274,13 @@ def main(term, maxn, derin=False, cikis_limiti=None):
           "marka-alakasiz %d, cop %d elendi; populer-cop ISTISNA %d)%s ==="
           % (term, len(bulunan), toplam_eslesme, len(mevcut & seen), len(elenen_nc),
              len(elenen_marka), len(elenen_cop), pop_cop, kirpma))
+    # KESIF MUHASEBESI — sayilar hukmu besleyen AYNI kovalardan turer (ikinci sayim yok).
+    havuz = {"adaylar": [b[0] for b in bulunan], "elenen_cop": elenen_cop,
+             "elenen_nc": elenen_nc, "elenen_marka": elenen_marka,
+             "zaten_ekli": sorted(mevcut & seen)}
+    print("GORULEN (hukum verilmis) %d · KARARSIZ (marka metinde yok; MODEL terimiyle "
+          "YENIDEN taranmali, 'gorulen' SAYILMAZ) %d"
+          % (len(gorulen_idler(havuz)), len(kararsiz_idler(havuz))))
     for pid, lic, name, dl, likes, iscop in bulunan:
         yildiz = " ★POPULER-COP" if iscop else ""
         print("  %-9s %-14s ♥%-5d ⭳%-6d %s%s" % (pid, str(lic)[:14], likes, dl, name[:50], yildiz))

@@ -1,121 +1,138 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 🕐 CI NOBETI — 12 Agu 2026 10:37 yerel / 07:37Z turu (KraL / Tamirci)
+## 🕐 CI NOBETI — 12 Agu 2026 12:37 yerel / 09:37Z turu (KraL / Tamirci)
 
 **Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
 
-**🟢 SUPURME rc=0 — HUKUM=TEMIZ.** Sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI.
-Basilan satirlar: `GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 ·
-KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=4:2026-08-12T04:05:51 · HUKUM=TEMIZ`.
-Uc fail-closed alarmin ucu de sessiz; sayac 0 iken hukum TEMIZ cunku POZITIF tanima izi var.
-**🟠 Cop denetimi: MESRU=4, YANLIS=2** — gecen turun ta kendisi olan IKI bulten kopyasi (09:01),
-yeni kayit YOK; supurmeye atfedilmez (`CIKAN=0`, yuklem bulteni kapsamiyor). Okan'a bir kez
-cikilmisti, TEKRAR EDILMEDI. Siparis/odeme ekseninde Cop'te kayit YOK.
+**🟢 SUPURME rc=0 — HUKUM=SUPURULDU (bu tur GERCEK kosum, no-op degil).** Sabit kosucu isciye
+kosturuldu; betik YAZILMADI/DUZENLENMEDI. Basilan satirlar: `GITHUB_BILDIRIM_INBOX=1 · BULUNAN=1 ·
+TASINAN=1 · ATLANAN=0 · CIKAN=1 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 ·
+COP_IZI=1:2026-08-12T11:45:04 · HUKUM=SUPURULDU`. Uc fail-closed alarmin ucu de sessiz; muhasebe
+kapali (`CIKAN = TASINAN = 1`). Tasinan tek kayit kimlikle secildi ve **bir CI arizasini haber
+veriyordu** — asagidaki alarm oradan cikti.
 
-**✅ CI TEMIZ — onarim GEREKMEDI.** Son 30 kosumda `conclusion=failure` **0**. Gecen turun defter
-push'unun YAYIN zinciri JOB birimiyle kapandi: `31573021777` → `serit-a2·serit-a3·serit-a4·build·
-deploy·yayin` **6/6 success**. Kardes SERIT B kosumu `31573022087` hala `in_progress` (10 job
-success + 1 skipped + 2 uzun batarya ucusta, **dusen 0**) — yayini BLOKLAMAZ, hukum YAZILMADI
-(ucustaki kosum yesil degildir); sonraki turun ILK isi.
+**🟠 COP DENETIMI: MESRU=1, YANLIS=4 — SUPURMEYE ATFEDILEMEZ (ikinci ardisik tur).** Dort kayit da
+GitHub-disi (iyzico toplu odeme · Info Yatirim · Claude Team · Skool), kayit id'leri **bitisik
+blok** (68184-68187) = tek elle-silme hareketinin imzasi; bu turun supurmesi yalnizca 1 kayit
+tasidi ve o kaydin kimligi dordunden hicbiriyle eslesmiyor. Okan'a **TEKRAR CIKILMADI**: ayni sinif
+ayni gun bir kez bildirildi, Okan'dan yeni bir karar istemiyor (§5 olcutu) ve kalem zaten **K77**
+olarak defterde acik. Kendiliginden geri ALINMADI.
 
-**📏 WORKTREE 3 → 2 SATIR — TAVAN SAGLANDI.** Kaldirilan tek agac K69'un OLU iscisiydi
-(`agent-a0432ed5…`, 1s45dk hareketsiz, cikti uretmedi). Sira ZORUNLU tutuldu: origin'de olmayan
-commit **0** olarak olculdu (`ls-remote` ile bagimsiz teyit, WIP `31053890` zaten uzakta) →
-commit'siz yama 17.993 bayt + 3 izlenmeyen kesif betigi arsivlendi → kabul TEMIZ klon uzerinde
-uretildi (`apply --check` **rc=0** + uc dosyanin sha256'si orijinalle BIREBIR) → ANCAK ONDAN SONRA
-kaldirma yetkilendirildi. Dal yerelde ve origin'de KALDI, spec duruyor.
+**🔴 CI KIRMIZISI GERCEKTI — `Yayin erisim alarmi`, 11 URL canlida 404.** Kosum `31579567151`
+(08:42Z) dusen adim *"Olcum — yayinlanmis sayfalar canlida ACIK mi"*: `HUKUM: KAPALI — 11 URL
+kapali/dongu, 0 olcum arizasi, 361 acik · GECICI=0`. Bagimsiz canli teyit (09:41Z, cache-bust'SIZ):
+**11/11 URL 200**, anasayfa/sitemap/urunler.json 200 → kapanma GERCEKTI ama GECICIYDI. Kok eksen
+olculdu: alarm evreni HEAD'den turuyor, olctugu canli yuzey son basarili deploy'un SHA'sinda —
+bu turda **4 commit geride** (`31579986390` @ `9cf40ae3` ↔ o anki `origin/main` `c4a1931a`).
+Is `deploy.yml` `needs:` zincirinde DEGIL (ayri concurrency, yalniz `cron "26 * * * *"`) → **yayini
+DURDURMAZ.** Diger eksende CI temiz: son 30 kosumda baska `failure` **0**, `cron-nabzi` success.
+**K78 ACILDI ve AYNI TURDA DAGITILDI** (MUHENDIS/Opus, izole agac, dal `kral/k78-yayin-erisim-evren-
+hizalama`); dagitim ARTEFAKTLI ve CANLI — **K72 kurtarma semasinin IKI sarti da TUTTU**: WIP commit
+alindi (`e7ecec0e`) ve dal tur icinde origin'e **ITILDI** (`b3345e8c`, `ls-remote` ile bagimsiz
+teyit) → objeler tek nushada DEGIL, is kaybi riski **0**. Isci tur sonunda hala CALISIYOR; tur ici
+bekleme suresi (~25 dk) doldugu icin hukum YAZILMADI (§3.5) — devralma sonraki turun ILK isi.
 
-**🟢 K49 IADE ONARIMI — BLOKLAYICI MADDE OLCULEREK KAPANDI, ISCI CANLI.** Gecen turun 1. iade
-maddesi (dal `is-akisi-kapisi.py`'yi rc=1 yakiyor) artik gecerli DEGIL: dal **rc=0**, ana agac
-**rc=0** — parite SAGLANDI; sayac farki (kapi cagrisi 292/290 · SERIT B beyani 109/107 · bloklayici
-110/108) dalin kendi diff'inden turuyor, yani mimar karari geregi iki adim `serit-b`'de KALMIS ve
-**beyan tablosuna KAYDEDILMIS.** Isci canli (agac 18 dk once dokunulmus) ama commit'siz 5 dosya
-tasiyor → K72 riskine karsi SALT-OKUMA sigorta anlik goruntusu alindi (22.674 bayt, temiz klon
-uzerinde `apply --check` **rc=0**; hedef agaca YAZILMADI, commit/stash ATILMADI).
-Dal main'e gore 5 dosya / +1048 / −3. **Merge YAPILMADI** — kalan 4 iade maddesi henuz kapanmadi.
+**📏 WORKTREE — K63/K64 AGACI ARSIVLEME GEREKTIRMEDEN DUSURULDU.** Uc eksen once olculdu:
+`merge-base --is-ancestor d5141b20 origin/main` **rc=0** · `origin/main..dal` **0 commit** ·
+agacta `status --porcelain` **0 satir** · `ls-remote` ile dalin uzakta durdugu bagimsiz teyitli →
+arsivlenecek commit'siz is YOKTU, kaldirma yetkilendirildi. **Dal SILINMEDI** (yerelde+origin'de).
 
-**🔧 TAMIRCI TURU.** Acik 🔧 = **12** (K49·K53·K54·K55·K56·K58·K59·K62·K69·K70·K71 + yeni **K72**);
-bu turda kapanan 0, dagitilan 0 (worktree tavani: K49 agaci canli oldugu icin K69 yeniden dagitimi
-sonraki tura birakildi — is DURMADI, WIP korunuyor). **K72 ACILDI:** izole agacta kosan muhendis
-iscisi rapor uretmeden oluyor — **12 saatte DORT olculen vaka** (222 · 156 · 138 · 105 dk
-hareketsizlik). Kurtarma semasi ("ilk 15 dk'da WIP commit + push") dordunde de tuttu → **is kaybi
-0**; kalan zarar KAYIP degil ~1 saatlik KUYRUK GECIKMESI. Ders: bir isciyi dagitmak onu
-CALISTIRMAZ; dagitimin kabulu artefakttir ve artefaktin TAZELIGI de olculmelidir (mtime olcumu bu
-turdan itibaren her tur kosuyor). **K73 ACILDI** (MaCiT gozlemi, ACIK): hasat terim havuzu dilim
-sonrasi yeniden yazilmadigi icin sonraki dilim ayni adaylari tekrar isliyor.
+**🟡 K35/K36 MERGE ON-KOSULU ACILDI AMA KAPANMADI — MERGE YAPILMADI.** MaCiT'in veri onarimi indi
+(`28ef3b43`, 3 Volvo Penta kaydindan `tur` kalkti) — sana yazdigim "once veri, sonra merge" sirasinin
+ilk adimi kapandi. Dal agacinda `git merge origin/main` **TEMIZ** (cakisma YOK, `f343b398`); dal
+main'e gore 6 dosya / +830 / −40 ve `urunler.json`/`worker/`/`shop/` diff'te **YOK** (kapsam KraL
+duzlemi). ANCAK `malzeme-yuzey-kapisi.py` **rc=3 = OLCULEMEDI** ("1 urunun sayfasi yok") cunku
+dal agacindaki `build.py` kosumu tur icinde bitmedi; kardes kapilar da OLCULEMEDI. **Kapi yesil
+olculmeden merge YOK** — bu ayni zamanda dogru fail-closed davranis, arıza degil. Dal itilmedi.
 
-**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
-mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
-DOKUNULMADI · CANLI K49 agacina YAZILMADI · **merge YAPILMADI** · dal SILINMEDI.
-Okan'a CIKILMADI (insan karari gerekmedi; §5).
-
-**Sonraki turun ILK ISI:** (a) `31573022087` conclusion'i JOB birimiyle; (b) K49 iscisinin kalan 4
-iade maddesi — cikti dustuyse bagimsiz curutucu, dusmediyse mtime ile olum karari (K72 yordami);
-(c) K49 agaci kapaninca K69'un WIP'inden yeniden dagitim; (d) K70 WIP'inden devir.
-
-## 🕐 CI NOBETI — 12 Agu 2026 09:37 yerel / 06:37Z turu (KraL / Tamirci)
-
-**Ev kontrolu:** calisma dizini `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🟢 SUPURME rc=0 — HUKUM=TEMIZ.** Sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI.
-Basilan satirlar: `GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 ·
-KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=4:2026-08-12T04:05:51 · HUKUM=TEMIZ`.
-Uc fail-closed alarmin ucu de sessiz; sayac 0 iken hukum TEMIZ yazilabildi cunku POZITIF tanima
-izi var (aranan dizenin AYNISI Cop'te 4 kayit, en yenisi 04:05).
-
-**🟠 COP DENETIMI: MESRU=4, YANLIS=2 — SUPURMEYE ATFEDILMEZ (uc bagimsiz iz).** Iki kayit ayni
-bulten mailinin kopyasi (09:01 yerel, siparis/odeme mailleri DEGIL; siparis ekseninde Cop'te kayit
-YOK). (a) Bu turun supurmesi `CIKAN=0` — gelen kutusundan hicbir kayit ayrilmadi; (b) tek silme
-yolunun yuklemi `notifications@github.com` + `Run failed`; bulten ikisini de saglamiyor, dolayisiyla
-o yolun uretebilecegi bir kayit degil; (c) kayit id'leri en yeni mesru kayittan BUYUK ve zamani
-onceki turun `YANLIS=0` olcumunden SONRA. Kendiliginden geri ALINMADI — Okan'a TEK cumle cikildi.
-
-**✅ CI TEMIZ — onarim GEREKMEDI.** Son ~25 kosumda `conclusion=failure` **0**. Gecen turdan
-devreden uc kosum JOB birimiyle kapandi: `31564809377` 12 job (11 success + 1 skipped) ·
-`31567340921` `build·serit-a2·serit-a3·serit-a4·deploy·yayin` **6/6 success** · `31567341105`
-**cancelled, jobs:[]** — 4.5 maddesindeki kuyruk davranisi, ARIZA DEGIL: ayni head `c906a864`
-kardes kosumda tam yesil ve main tepesinin atasi, icerik kaybolmadi.
-
-**📏 WORKTREE 5 → 2 SATIR — TAVAN SAGLANDI.** Dort agac arsivle-sonra-kaldir yordamiyla dusuruldu,
-hicbiri once silinmedi. Sira ZORUNLU tutuldu: (1) origin'de olmayan commit sayisi 0 olarak olculdu,
-(2) calisma agaci yamasi + izlenmeyen dosyalar `/Users/okan/arsiv-worktree/` altina kopyalandi,
-(3) her yama temiz HEAD blobu uzerinde yeniden uretilip **sha256 birebir** gosterildi, ANCAK
-ONDAN SONRA kaldirma yetkilendirildi. Toplam arsiv: 4 yama (1714 + 25.379 + 12.085 bayt + bos) +
-1 izlenmeyen dosya. Ana agactaki YABANCI degisiklikler tur basi ve tur sonu BIREBIR ayni.
-⚠️ Isci ilk denemede `apply --check`i KIRLI agaca kosup sahte kirmizi aldi (agac zaten yamanin
-SONRA-goruntusunu tasiyor); yontemi temiz HEAD blobuna cevirip kaniti oyle uretti.
-
-**🔴 GECEN TURUN (b) MADDESI KAPANDI: K49 + K70 dallari origin'e ITILDI** (uc turdur eksikti).
-Kanca ikisinde de `temiz: 0 bulgu` verdi, kanca ATLANMADI. Teyit `ls-remote --heads` ile bagimsiz:
-`7360354a` ve `2c2e06e0` — yereldeki HEAD'lerle ayni.
-
-**🔧 TAMIRCI TURU.** Acik 🔧 = **11** (K49·K53·K54·K55·K56·K58·K59·K62·K69·K70 + yeni **K71**);
-bu turda kapanan 0, **DAGITILAN 1** (K49 iade onarimi). Olculen durumlar:
-- **K49 — isci BITIRDI, bagimsiz CURUTUCU kostu, hukum `CURUTME=KALDI`.** Beyan edilen 8 sayinin
-  8'i de yeniden uretildi (sapma yok) **ama raporun kabul bolumu BOS birakilmisti** — sayilar
-  dogruydu, kaniti yoktu. Kapsam deligi kapandi=EVET, GERCEK kanca biciminde olculdu. **5 iade
-  maddesi, 2'si bloklayici:** dal `is-akisi-kapisi.py`'yi **rc=1** yakiyor (main rc=0) ve raporun
-  "iki BLOKLAYICI adim" iddiasi olcumle curudu (`serit-b`'nin `needs:`'i yok → yayini durdurmaz;
-  olculen sure 137 sn, beyan "≈4 dk"). Onarim AYNI TURDA dagitildi; mimar karari: adimlar
-  `serit-b`'de KALIR ve beyan tablosuna kaydedilir — koruma kilidin KENDISI, bu adimlar onun TESTI.
-- **K71 ACILDI (yeni).** Curutucu `gh run view` ile olctu: kayitli zarar olaylarinin ikisi
-  GitHub KOSUCUSUNDA `event=schedule` ile kostu; kilit TEK MAKINE kapsamli → kosucu×kosucu ve
-  kosucu×yerel yarisi ACIK. **K49 bu dal alinsa bile KAPANMAZ.** Ders: bir emniyet aginin kapsam
-  BIRIMI, zararin olculdugu birimle ayni mi diye sorulmali; "kapi yesil" ile "olculen zarar
-  kapandi" AYRI iddialardir.
-- **K70 — isci OLDU (138 dk hareketsiz, rapor uretmedi).** Tek WIP commit'i itildi, commit'siz
-  yamasi arsivlendi; sonraki tur sifirdan degil bu WIP'ten devralacak.
-- **K62 — bayat agac kapandi:** main disi commit **0** ve kirli iki dosyanin ANA AGACTA sha256
-  BIREBIR AYNISI var → is ana agacta suruyor, agac mukerrerdi. Arsivlendi ve kaldirildi.
-- **K69 — CANLI** (agac 45 dk once dokunulmus, dal origin'de); dokunulmadi.
+**🔧 TAMIRCI TURU.** Acik 🔧 = **13**; kapanan 0, **DAGITILAN 1 (K78, yeni)**, triyaj edilen 3.
+Defter kusuru da onarildi: mail kalemi **K75 id'siyle acilmisti ve Okan'in marka-model-cipleri
+kalemiyle CAKISIYORDU** → icerik degismeden **K77**'ye tasindi ("id yeniden kullanilmaz" kurali).
+Olculen durumlar: **K56** HALA ACIK (bayraksiz kol rc=2, `--anahat` rc=0, ayni tautoloji iddiasi;
+kanama CI'da YOK) · **K58** HALA ACIK (rc=1, `IDDIA=115 KIRMIZI=1`, ayni envanter drift ekseni) ·
+**K62** UCUSTA ve KAPANMADI — kardes oturumun `tools/d1-sapma-mutasyon.py` degisikligi HALA
+commit'siz (129 ekleme / 20 silme), kalemin iddiasi "HEAD'de bayat" ve HEAD henuz o dosyayi almadi ·
+**K49** CANLI (agac 31 dk, 5 commit onde, `serit-b-beyan-mutasyon.py` uretiliyor) — dokunulmadi.
 
 **Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
-mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
-DOKUNULMADI · K69'un canli agacina DOKUNULMADI · **merge YAPILMADI** · dal SILINMEDI.
+mail betigi YAZILMADI/DUZENLENMEDI · Cop BOSALTILMADI, hicbir mail geri ALINMADI · kapi/nobetci
+GEVSETILMEDI · yabanci ` M`/`??` dosyalara DOKUNULMADI · CANLI agaclara YAZILMADI · **merge
+YAPILMADI** · dal SILINMEDI. Okan'a CIKILMADI (insan karari gerekmedi; §5).
 
-**Sonraki turun ILK ISI:** (a) K49 iade onariminin artefakti (`git worktree list` + agac diff
-ekseninden, dal adindan DEGIL) ve `is-akisi-kapisi` dal rc'sinin main ile ESITLENDIGI; (b) K49
-dali temizse merge kapisi ile ayri tur — **K49 satiri yine de KAPANMAZ, K71 acik kalir**;
-(c) K69 dagitiminin sonucu; (d) K70'in WIP'inden devir.
+**Sonraki turun ILK ISI:** (a) K78 muhendisinin ciktisi — dustuyse bagimsiz curutucu, dusmediyse
+mtime ile olum karari (K72 yordami); (b) K35/K36 dal agacinda `build.py` bitti mi, kapi rc=0 mi —
+yesilse **merge-kapisi ile ayri tur**; (c) ucustaki dort kosumun conclusion'i JOB birimiyle;
+(d) K62'nin commit'i indi mi (indiyse kalem KAPANIR).
+
+## 🕐 CI NOBETI — 12 Agu 2026 11:37 yerel / 08:37Z turu (KraL / Tamirci)
+
+**Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
+
+**🟠 SUPURME rc=0 ama HUKUM=OLCULEMEDI (betigin KENDI hukmu, dogru fail-closed).** Sabit kosucu
+isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI. Basilan satirlar: `GITHUB_BILDIRIM_INBOX=0 ·
+BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 ·
+COP_IZI=0:YOK · HUKUM=OLCULEMEDI`. Uc fail-closed alarmin ucu de sessiz. Sayac 0 iken hukum
+TEMIZ **yazilamadi** cunku POZITIF tanima izi kayboldu: onceki iki tur `COP_IZI=4` olcerken bu tur
+Cop'te aranan dizeden **0** kayit var.
+
+**🔴 COP DENETIMI: MESRU=0, YANLIS=4 — SUPURMEYE ATFEDILEMEZ (dort bagimsiz iz).** Dort kayit da
+GitHub-disi (biri bir odeme bildirimi). (a) Bu turun supurmesi `TASINAN=0 · CIKAN=0` — gelen
+kutusundan hicbir kayit ayrilmadi; (b) log ekseninde olculdu: 12 Agu'da TASINAN>0 olan **tek** blok
+01:39Z (`TASINAN=2 CIKAN=2 KOMSU_KAYIP=0`), sonraki 7 turun hepsi `TASINAN=0` — oysa dort kaydin
+biri 08:10Z'de, yani son sifir-olmayan supurmeden ~6,5 saat SONRA alindi; (c) tek silme yolunun
+yuklemi iki kosulu birden ister ve dordu de saglamiyor; silme artik konumdan degil kararli
+KIMLIKTEN yapiliyor (aktif betikte indeks deseni **0**, silme tek satirda `whose message id is`);
+(d) kayit id'leri BITISIK (dortlu blok) — tek bir elle-silme hareketinin imzasi. 48 saat log
+ekseninde iki `KOMSU_KAYIP=1` izi var (11 Agu 16:39Z · 18:38Z) ama ikisinin kimligi de bir GitHub
+check-suite kaydi, bu dort kayitla ESLESMIYOR. Kendiliginden geri ALINMADI (yordam geregi) —
+Okan'a TEK cumle cikildi.
+
+**✅ CI TEMIZ — onarim GEREKMEDI.** Son 25 kosumda `conclusion=failure` **0**. Alti kosum ucusta
+(iki `Build & deploy` dahil); ucustaki kosum yesil degildir → hukum YAZILMADI, sonraki turun ILK
+isi. Gecen turun devrettigi `31573022087` **success** ile kapandi. Yayin zinciri HEAD'i henuz
+yakalamadi ama arizali degil: en son basarili deploy `31575954625`, aradaki iki commit'in kosumu
+kuyrukta/ucusta.
+
+**📏 WORKTREE — K72 ESIGI TUR ORTASINDA ASILDI, KARAR AYNI TURDA ALINDI.** Kabul olcutu (b) ilk kez
+fiilen hukum verdi: tur basi mtime **85,0 dk** (CANLI, sinirda) → push kancasi **95,7 dk** → yeniden
+olcum **97,4 dk** = **OLU**. Arsivle-sonra-kaldir sirasi zorunlu tutuldu ve 2. adim kritik cikti:
+dal origin'de `7360354a` iken yerel `5a9f9353`'tu → **4 commit TEK NUSHADAYDI**; itilmeseydi
+kaldirma kalici kayip olurdu (kanca temiz, `--force` KULLANILMADI, `ls-remote` ile bagimsiz teyit).
+Commit'siz 22.674 baytlik yama arsivlendi, kabul **TEMIZ klon** uzerinde uretildi (`apply --check`
+**rc=0**, sha256 birebir), ANCAK ONDAN SONRA agac kaldirildi. Dal SILINMEDI. KraL'in kendi agaci
+artik **0**; listedeki dort agac baska oturumlarin CANLI iscisi (locked) → DOKUNULMADI.
+
+**🔴 K70 DORDUNCU kez CANLI URETILDI — artik deterministik.** Bu turun defter commit'i `3c13caf1`
+(mandat edilen pathspec bicimi) ayni ciktida: kardes kapi **"satir: 118"** okurken hedef kapi
+**"stage'de 0 metin dosyasi tarandi"** dedi. Dort ardisik turun dordunde de ayni ikili → kenar
+durum DEGIL, her pathspec commit'inde tekrarliyor; kabul bataryasi bunu fikstur almali.
+
+**🔧 TAMIRCI TURU.** Acik 🔧 = **12**; kapanan 0, **DAGITILAN 1 (K49, 2. tur)**, triyaj edilen 3,
+yeni acilan 1 (**K75**). K49 iade onarimi ayni turda yeniden dagitildi (spec
+`.scratch/spec-k49-iade-onarimi-tur2.md`, MUHENDIS/Opus, izole agac; uc madde spec'te — ozet
+GEREKCESI arsivdedir). "Ilk 15 dk'da WIP commit +
+push" kurali spec'e BAGLAYICI yazildi — onceki **bes** iscinin hepsi tam bu adimi atlayip oldu.
+Olculen durumlar:
+- **K56 — HALA ACIK, iddia bugun birebir dogrulandi.** Bayraksiz kol **rc=2**, `--anahat` kolu
+  **rc=0**; tek sebep ayni `c4 bayt-esitlik: referans build` ÖLÇÜLEMEDİ iddiasi. Kanama CI'da YOK.
+- **K58 — HALA ACIK ve buyudu.** `onizleme-kisit-kosul-test.py` **rc=1**, `IDDIA=115 KIRMIZI=1`;
+  envanter beyani ile gercek **iki** dosyada ayrisiyor (11 Agu'da bir taneydi). Kok eksen: tuketici
+  envanteri ELLE tutuluyor, `.scratch/` icerigi her turda degisiyor → her yeni gecici dosya kapiyi
+  kirmizi yakiyor. Bugun `.scratch/` altinda **432** oge var.
+- **K62 — KAPANMADI, UCUSTA.** Batarya bugun **rc=0**, `HARNESS BAYAT` satiri **yok**, `kosan=15 /
+  toplam=15` (12 oldurucu + 3 kontrol). AMA bu yesil, kardes bir oturumun ana agacta COMMIT
+  ETMEDIGI degisiklikten geliyor (`diff --stat` = 129 ekleme / 20 silme). Kalemin iddiasi
+  "HEAD'de bayat" idi ve HEAD henuz degismedi → durum 🔧 degil **UCUSTA**; commit inince kapanir.
+- **K75 ACILDI (yeni 🔧).** Cop denetimi ile supurmenin pozitif tanima izi AYNI paylasilan yuzeye
+  (Cop kutusu) bagli ve o yuzeyi nobet KONTROL ETMIYOR: Okan elle mail silince denetim `YANLIS>0`
+  yaniyor, Okan Cop'u temizleyince `COP_IZI` kayboluyor ve hukum kalici `OLCULEMEDI`ye dusuyor.
+  Iki kol da bu turda AYNI ANDA ateslendi. Sinif: pencere-goreli alarm kendini sonduruyor.
+  (12 Agu 09:37Z defter onarimi: bu kalem **K77**'ye tasindi, id cakismasi giderildi.)
+
+**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
+mail betigi YAZILMADI/DUZENLENMEDI · Cop BOSALTILMADI, hicbir mail geri ALINMADI · kapi/nobetci
+GEVSETILMEDI · yabanci ` M`/`??` dosyalara DOKUNULMADI · dort CANLI agacin hicbirine YAZILMADI ·
+**merge YAPILMADI** · dal SILINMEDI. Okan'a **CIKILDI** (tek cumle, odeme ekseni — §0.5 geregi).
+
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_

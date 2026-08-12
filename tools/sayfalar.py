@@ -242,6 +242,28 @@ OZEL_OLCU_TESLIM_CUMLESI = (
     "süre sipariş sırasında bildirilir."
 )
 
+# ------------------------------------------------------------------ 6502 m.11 AYIP BEYANI
+# 🔴 TEK KANONİK KAYNAK (12 Ağu 2026). Cayma hakkının kullanılamadığı her yüzeyde
+# (ölçüye özel üretim istisnası) tüketiciye 6502 m.11'in DÖRT seçimlik hakkı ŞARTSIZ
+# söylenir; seçim tüketicinindir, "kusur bizdense" gibi bir koşula BAĞLANAMAZ.
+#
+# NEDEN SABİTLENDİ: dar bir kalıp ("ayıplı bir ürün ücretsiz onarılır ya da değiştirilir")
+# yalnız iki seçeneği anıyor ve hakkı şarta bağlıyordu; PR #66/#67 bunu 35 sayfa gövdesinde
+# genişletti ama beyanın KENDİSİNİ ölçen hiçbir kapı yoktu — yeni bir sayfa dar kalıpla
+# gelse hiçbir yerde kırmızı yanmazdı (ölçüm: `--include='*kapi*.py'` -> 0 kapı).
+# Nöbetçi: tools/ayip-beyani-kapisi.py — metni BURADAN okur, kendi kopyasını TUTMAZ.
+# Cümle seçenek DEMETİNDEN TÜRETİLİR: ikiz tanım olmasın, ayrışma fail-closed kırmızı yaksın.
+AYIP_KANUN_NO = "6502"
+AYIP_HAKLARI_SECENEKLERI = (
+    "ücretsiz onarım", "yenisiyle değişim", "bedel indirimi", "bedel iadesi",
+)
+AYIP_HAKLARI_CUMLESI = (
+    "ayıplı üründe " + AYIP_KANUN_NO + " sayılı Kanun'dan doğan haklarınız aynen durur — "
+    + AYIP_HAKLARI_SECENEKLERI[0] + ", " + AYIP_HAKLARI_SECENEKLERI[1] + ", "
+    + AYIP_HAKLARI_SECENEKLERI[2] + " ya da " + AYIP_HAKLARI_SECENEKLERI[3]
+    + " seçenekleri saklıdır."
+)
+
 # ------------------------------------------------------------------ sayfa gövdeleri
 # hakkimizda/iletisim/sss/gizlilik elle yazılmış statik sayfalardır; gövde düzeni <slug>/index.html üzerinden yapılır.
 
