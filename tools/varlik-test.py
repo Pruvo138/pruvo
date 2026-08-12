@@ -818,6 +818,64 @@ def _seri_etiket_beyani(p):
     return metin, ((ic, gor, ger), (ic_q, gor_q, ger + " — kategori linki"))
 
 
+def _ilan_araligi_beyani(p):
+    """🔴 12 Agu 2026 — YAPILANDIRILMIS VERI TEK FIYAT YERINE ARALIK BEYAN EDIYOR.
+
+    Isletme karari (Okan): kart BASLANGIC tabanini, urun sayfasi ONERILEN malzemenin
+    tutarini yazar. Iki sayi bilerek farkli oldugu surece markup'ta TEK fiyat basmak dis
+    yuzeye eksik bilgi verir -> `Offer` yerine `AggregateOffer` + lowPrice/highPrice.
+    lowPrice KARTIN yazdigi tutardir (degeri DEGISMEZ, yalniz anahtar cogalir); yeni
+    yapraklar (lowPrice/highPrice/offerCount) EKLENTIDIR ve eksen 1 eklenti aramaz.
+    DEGISEN tek yaprak `offers/@type`dir.
+
+    🔴 IKINCI DEGISIKLIK — TABAN ARTIK TEK TURETME NOKTASINDAN: markup tabani onceden
+    `price_number` (tum rakamlari birlestiren AYRI kural) ile hesaplaniyordu; kart ise
+    `feed_price` ile. Olculdu: "300 TL (30 cm)" biciminde 1 kayitta kart 300 TL derken
+    markup 30.030 TL beyan ediyordu. Iki yuzey artik AYNI sayidan turer. Cift ELLE
+    YAZILMAZ: urunun KENDI verisinden ve build'in KENDI iki kuralindan turetilir, yani
+    yalniz GERCEKTEN sapan kayitta uretilir ve katalog degisince bayatlamaz.
+
+    🔴 IDDIA TASINDI, KALDIRILMADI: lowPrice == kart tutari, urun sayfasi tutari ==
+    onerilen malzeme tutari ve lowPrice <= highPrice iliskisini tum uretilen sayfalarda
+    tools/ilan-tutari-kapisi.py fail-closed olcer.
+
+    Doner: (metin_beyanlari, deger_ciftleri) — JSON-LD script'i sayfada KALDIGI icin
+    (bkz. iskelet: yapisal veri bu eksende olculur) hem GORUNUR METIN hem YAPRAK ekseni
+    beyan ister; ikisi de AYNI iki degerden (taban + tavan) turer."""
+    ger = ("markup tek fiyat yerine baslangic/tavan araligi beyan ediyor ve tabani "
+           "kartla AYNI turetme noktasindan aliyor (12 Agu, Okan karari); nobetci: "
+           "tools/ilan-tutari-kapisi.py")
+    try:
+        ham = (p.get("fiyat") or "").strip()
+        eski_taban = build.price_number(ham)                 # ESKI ureteç kurali
+        yeni_taban = build.ilan_tl_metni(build.vitrin_kurus(p))   # kartla AYNI nokta
+        aralikli = build.malzeme_aralikli_mi(p)
+        tavan = build.ilan_tl_metni(build.en_yuksek_kurus(p)) if aralikli else None
+        if tavan == yeni_taban:
+            tavan = None                                     # aralik acilmadi
+    except Exception:
+        return (), ()
+    metin, deger = [], []
+    if aralikli and tavan:
+        metin.append(('"offers":{"@type":"Offer",', '"offers":{"@type":"AggregateOffer",',
+                      ger + " — JSON-LD metin kopyasi (@type)"))
+        deger.append(("Offer", "AggregateOffer", ger + " — JSON-LD @type yapragi"))
+    if eski_taban and yeni_taban:
+        if aralikli and tavan:
+            metin.append(
+                ('"price":"%s","priceValidUntil"' % eski_taban,
+                 '"price":"%s","lowPrice":"%s","highPrice":"%s","offerCount":%d,'
+                 '"priceValidUntil"' % (yeni_taban, yeni_taban, tavan,
+                                        len(build.FILAMENT_SIRA)),
+                 ger + " — JSON-LD metin kopyasi (aralik)"))
+        elif eski_taban != yeni_taban:
+            metin.append(('"price":"%s"' % eski_taban, '"price":"%s"' % yeni_taban,
+                          ger + " — JSON-LD metin kopyasi (taban)"))
+        if eski_taban != yeni_taban:
+            deger.append((eski_taban, yeni_taban, ger + " — JSON-LD price yapragi"))
+    return tuple(metin), tuple(deger)
+
+
 def cikarim_kaybi(eski_html, yeni_html, beyan_tablosu=None, eslesen_kovasi=None,
                   deger_beyani=()):
     """🔴 EKSEN 1'IN IDDIASI (3 Agu'da DARALTILDI, gevsetilmedi):
@@ -1647,10 +1705,12 @@ def olc(eski, yeni, secim, urunler, ref):
     for pid in yeni:
         p_urun = urun_ix.get(pid, {"id": pid})
         seri_metin, seri_deger = _seri_etiket_beyani(p_urun)
+        aralik_metin, aralik_deger = _ilan_araligi_beyani(p_urun)
         tablo = (BILEREK_DEGISEN_METIN + _malzeme_tasima_beyani(p_urun) + seri_metin
-                 + _onsecim_tutar_beyani(p_urun))
+                 + _onsecim_tutar_beyani(p_urun) + aralik_metin)
         kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]),
-                              beyan_tablosu=tablo, deger_beyani=seri_deger,
+                              beyan_tablosu=tablo,
+                              deger_beyani=seri_deger + aralik_deger,
                               eslesen_kovasi=eslesen_beyan)
         bekle(not kayip,
               "1 %s: CIKARIM KAYBI (%d): %s" % (pid, len(kayip), kayip[:2]))

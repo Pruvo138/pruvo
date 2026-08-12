@@ -188,9 +188,13 @@ def kart_yuzey_capasi(index_src):
 # (isletme karari, 11 Agu). Ureteç tarafinda o iki dal KART anahtarina bagli olmali;
 # urun sayfasi anahtarina baglanirlarsa dis listeleme sessizce zamlanir.
 _DIS_YUZEY_DALLARI = (
+    # 🔴 CAPA TAZELENDI (12 Agu): markup tabani artik BAYRAKLA KOSULLU DEGIL — kart
+    # yuzeyinin KENDI turetmesinden (vitrin_kurus; anahtari ICINDE) KOSULSUZ cikar ve
+    # ayni deger JSON-LD araliginin ALT ucudur (lowPrice). Iddia AYNI, hatta daha dar:
+    # dal `ilan_kurus`a ya da urun sayfasi anahtarina baglanirsa capa TUTMAZ -> KIRMIZI.
     ("yapilandirilmis veri",
-     "if ONERI_VITRIN_ACIK and pnum:",
-     "ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum"),
+     "ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum",
+     'offer["lowPrice"] = ld_fiyat'),
     ("urun beslemesi",
      "if ONERI_VITRIN_ACIK:",
      "price = ilan_tl_metni(vitrin_kurus(p)) or price"),

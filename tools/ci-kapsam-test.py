@@ -2990,6 +2990,15 @@ IZIN_LISTESI = {
         "40 s esiginin 2 kati. Sinifi SAGLAM (rc=0) — muafiyet YALNIZ suredendir; "
         "esik degisirse ya da surucu hizlandirilirsa BURADAN CIKARILIP nobet.yml "
         "`serit-b`ye kendi adimiyla baglanmalidir."),
+    "tools/ilan-tutari-mutasyon.py": (
+        "SURE. OLCULDU (12 Agu 2026, dal calisma agaci): rc=0, 1.149,8 s, `OK: "
+        "mutantlarin hepsi beklenen rengi VE izini verdi; canli agac EL DEGMEMIS` "
+        "(6 OLDURUCU + 1 KONTROL). 40 s esiginin ~29 kati: her mutant, olctugu kapinin "
+        "TAM KAPSAM eksenini kosar ve 25.964 urun sayfasinin HEPSINI yeniden uretir "
+        "(~165 s/mutant) — spec 'ORNEKLEME YOK' dedigi icin kapsam DARALTILAMAZ. "
+        "Sinifi SAGLAM (rc=0) ve calisma agacini KIRLETMEZ (mutasyon KOPYAYA uygulanir, "
+        "sha256 bas=son + artik yedek=0 KOSARAK dogrulanir). Olctugu kapinin CI kolu "
+        "ZATEN BLOKLAYICI kosuyor: deploy.yml `Ilan edilen tutar kapisi`."),
     "tools/marka-arama-mutasyon.py": (
         "SURE — OLCULEMEYECEK KADAR UZUN. OLCULDU (8 Agu 2026, temiz klon): 300 s "
         "duvar saatinde KESILDI (TIMEOUT), o ana kadar rapor satiri URETMEDI. Ust "
