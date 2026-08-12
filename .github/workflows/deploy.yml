@@ -1299,6 +1299,22 @@ jobs:
       - name: Vitrin <-> D1 fiyat paritesi + kapsam sizintisi kapisi
         run: python3 tools/d1-fiyat-parite-kapisi.py
 
+      # 🔴 UC YUZEY, UC TUTAR. Okan'in karari (12 Agu): kart BASLANGIC tabanini
+      # ("X TL'den baslayan"), urun sayfasi ONERILEN malzemenin tutarini yazar; markup
+      # ikisini AggregateOffer lowPrice/highPrice araligiyla beyan eder. Ayni urun BILEREK
+      # iki tutar gosterdigi icin ucu de AYNI turetme noktasindan cikmak ZORUNDADIR: biri
+      # bagimsiz hesaplanirsa musteri kartta 430 TL gorup sepete 559 TL yazar, arama
+      # motoruna 430 beyan edilir ve HICBIR YERDE alarm calmaz. Bu sinif bu depoda IKI KEZ
+      # olculdu (11 Agu sessiz zam · 12 Agu markup tabani ile kart tabani ayri ayristirma
+      # kuralindaydi: 1 kayitta 300 TL <-> 30.030 TL). Kapi (1) kuralin iki dildeki yazimini
+      # TUM KATALOGDA karsilastirir, (2) URETILEN HER URUN SAYFASINI acip lowPrice == kart
+      # tutari · lowPrice <= highPrice · gorunur tutar == onerilen malzeme tutari · kart
+      # metnindeki ekin ne eksik ne fazla oldugunu olcer (ORNEKLEME YOK; olculemeyen sayfa
+      # sifir-disi cikis). Bloklayici: hata sinifi sessiz ve parali.
+      # Mutasyon bataryasi (6 oldurucu + 1 kontrol): tools/ilan-tutari-mutasyon.py
+      - name: Ilan edilen tutar kapisi (kart <-> markup araligi <-> urun sayfasi)
+        run: python3 tools/ilan-tutari-kapisi.py --ozet
+
       # 🔴 REKLAM OLCUMU — HUNI AYAGI. 11 Agu'ya kadar GA4 tarafina yalniz sayfa
       # goruntuleme gidiyordu: urun goruntuleme / sepete ekleme / odemeye baslama
       # olaylarinin HICBIRI yoktu, oysa Meta huni yuzeyi TAM kuruluydu. Hata SESSIZ

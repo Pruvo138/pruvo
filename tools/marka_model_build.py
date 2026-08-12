@@ -2251,11 +2251,17 @@ def _ph_data(kat):
 
 def _kart_fiyat(ctx, p):
     """index.html kartCiz fiyat mantığı BİREBİR: fiyat -> taban ('X TL'den başlayan') ->
-    'Ölçüye özel fiyat'/'Fiyat için sipariş verin'. (metin, empty_mi) döner."""
+    'Ölçüye özel fiyat'/'Fiyat için sipariş verin'. (metin, empty_mi) döner.
+
+    🔴 "…'den başlayan" KARARI DA EKİ DE BURADA YAZILMAZ: ctx üzerinden build'in
+    kanonik noktasından (kart_tutar_metni / BASLAYAN_SONEK — kaynak secenekler.js)
+    gelir. Kart yüzeyi üç yerde çizilir (ana sayfa kartı · SSR marka/model kartı ·
+    istemci kartı); üçü ayrı dize taşısaydı biri değiştiğinde diğerleri sessizce
+    ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]])."""
     fiyat = (p.get("fiyat") or "").strip()
     parametrik = bool(p.get("parametrik"))
     if fiyat:
-        return fiyat, False
+        return ctx["kart_tutar_metni"](p, fiyat), False
     taban = None
     if parametrik:
         sema = ctx["konf_sema"](p.get("id"))
@@ -2269,7 +2275,7 @@ def _kart_fiyat(ctx, p):
         if sema:
             taban = sema.get("tabanFiyatTL")
     if taban is not None:
-        return ctx["taban_fiyat_metni"](taban) + "'den başlayan", False
+        return ctx["taban_fiyat_metni"](taban) + ctx["BASLAYAN_SONEK"], False
     return ("Ölçüye özel fiyat" if parametrik else "Fiyat için sipariş verin"), True
 
 

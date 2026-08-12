@@ -3602,7 +3602,8 @@
     var kapali = !!(p.parametrik && window.PRUVO_SATIS_KAPALI && window.PRUVO_SATIS_KAPALI[p.id]);
     var taban = (p.parametrik && !kapali && window.PRUVO_TABAN_FIYATLAR) ? window.PRUVO_TABAN_FIYATLAR[p.id] : null;
     if(taban != null){
-      return { metin: PRUVO_SECENEK.kurusMetni(Math.round(taban * 100)) + "'den başlayan", bos: false };
+      return { metin: PRUVO_SECENEK.kurusMetni(Math.round(taban * 100))
+                      + PRUVO_SECENEK.BASLAYAN_SONEK, bos: false };
     }
     if(kapali){
       return { metin: window.PRUVO_FIYATSIZ_METIN || "Ölçüye özel fiyat", bos: true };
@@ -3656,6 +3657,12 @@
       /* Üstü çizili eski fiyat GEÇERLİYSE (eskiFiyatMetni) fiyatın SOLUNA konur; aksi
          halde kart bugünkü gibi yalnız güncel fiyatı yazar. textContent -> HTML
          yorumlanmaz (ham veri DOM'a enjekte edilemez). */
+      /* 🔴 "X TL'den başlayan" (işletme kararı, 12 Ağu — Okan): kart BAŞLANGIÇ tabanını
+         yazar, ürün sayfası ÖNERİLEN malzemenin tutarını. Müşteri ürünün içinde daha
+         yüksek bir tutar görebileceği için kart bunu KENDİ metninde söyler. Karar da ek
+         de TEK KAYNAKTAN (PRUVO_SECENEK.kartTutarMetni) gelir; bu dosyada ikinci bir
+         dize/koşul TUTULMAZ. Malzeme seçimi tutarı yükseltemeyen üründe (ölçüye özel /
+         yapılandırıcılı / hazır ticari mal) ek BASILMAZ. */
       var eskiMetin = eskiFiyatMetni(p);
       if(eskiMetin){
         var eskiEl = document.createElement("s");
@@ -3663,11 +3670,11 @@
         eskiEl.textContent = eskiMetin;
         var yeniEl = document.createElement("span");
         yeniEl.className = "yeni-fiyat";
-        yeniEl.textContent = ilanFiyatMetni(p);
+        yeniEl.textContent = PRUVO_SECENEK.kartTutarMetni(p, ilanFiyatMetni(p));
         pr.appendChild(eskiEl);
         pr.appendChild(yeniEl);
       }else{
-        pr.textContent = ilanFiyatMetni(p);
+        pr.textContent = PRUVO_SECENEK.kartTutarMetni(p, ilanFiyatMetni(p));
       }
     }else{
       var kf = kartFiyatMetni(p);

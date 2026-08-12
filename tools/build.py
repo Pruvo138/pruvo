@@ -596,6 +596,33 @@ def varlik_hash(icerik):
     return hashlib.sha256(icerik.encode("utf-8")).hexdigest()[:VARLIK_HASH_UZUNLUK]
 
 
+# 🔴 SOYMA ANIMSAMASI (12 Agu 2026, OLCULDU). `varlik_adres` her cagrida yorum soyuyordu;
+# oysa girdi SAYFADAN BAGIMSIZ modul sabitleridir (PAGE_CSS kalani, ek CSS, JS bloklari) ve
+# her urun sayfasinda AYNI metin yeniden soyuluyordu. cProfile (800 sayfa): toplam 9,98 s'nin
+# 8,09 s'si (%81) `varlik_adres` -> `yorum_soy` lexer'inda; 21,8 milyon regex `match`.
+# 26.000 sayfalik katalogda bu, her build'e ve bu yuzeyi olcen her kapiya ~2 dakikadir.
+# Animsama, SAF bir fonksiyonun (metin -> soyulmus metin) sonucunu ICERIGE gore tutar:
+# cikti bayt-bayt AYNIDIR (soyma girdiden baska hicbir seye bakmaz), yalniz ikinci kez
+# hesaplanmaz. Ad ve dosya yine soyulmus GOVDEDEN turer -> tek kaynak bozulmaz.
+_SOYMA_ONBELLEK = {}
+
+
+def _varlik_govdesi(uzanti, icerik):
+    """Yorumu soyulmus govde — ayni (uzanti, icerik) icin lexer BIR KEZ kosar."""
+    anahtar = (uzanti, icerik)
+    govde = _SOYMA_ONBELLEK.get(anahtar)
+    if govde is not None:
+        return govde
+    if uzanti == "css":
+        govde = yorum_soy.css_soy(icerik)
+    elif uzanti == "js":
+        govde = yorum_soy.js_soy(icerik)
+    else:
+        raise RuntimeError("varlik_adres: bilinmeyen uzanti %r" % uzanti)
+    _SOYMA_ONBELLEK[anahtar] = govde
+    return govde
+
+
 def varlik_adres(onek, uzanti, icerik):
     """<icerik>'i /varlik/<onek>-<hash>.<uzanti> dosyasina yazar ve URL'ini doner.
 
@@ -603,12 +630,7 @@ def varlik_adres(onek, uzanti, icerik):
     lexer'dan) -> dosyanin bayti = tarayiciya inen bayt = kapinin olctugu bayt.
     FAIL-CLOSED: bos icerik, yazilamayan dizin ya da geri-okumada bayt farki => build DURUR.
     Sessizce ciplak (stil/JS'siz) sayfa URETILMEZ."""
-    if uzanti == "css":
-        govde = yorum_soy.css_soy(icerik)
-    elif uzanti == "js":
-        govde = yorum_soy.js_soy(icerik)
-    else:
-        raise RuntimeError("varlik_adres: bilinmeyen uzanti %r" % uzanti)
+    govde = _varlik_govdesi(uzanti, icerik)
     if not govde.strip():
         raise RuntimeError("varlik_adres: BOS varlik govdesi (%s.%s) — sayfa ciplak kalirdi"
                            % (onek, uzanti))
@@ -895,6 +917,74 @@ def ilan_tl_metni(kurus):
     if kurus is None:
         return None
     return ("%.2f" % (kurus / 100.0)).rstrip("0").rstrip(".")
+
+
+# ---------------------------------------------------------------------------
+# ILAN TUTARI ARALIGI — KART METNI + YAPILANDIRILMIS VERI (isletme karari 12 Agu, Okan)
+#
+# 🔴 KARAR: kart BASLANGIC tabanini yazar, urun sayfasi ONERILEN malzemenin tutarini.
+# Iki sayi BILEREK farkli. Musteri kartta gordugu tutarin bir TABAN oldugunu KARTTAN
+# anlamali -> kart metni duz "X TL" degil "X TL'den baslayan"dir; yapilandirilmis veri
+# de tek fiyat yerine AggregateOffer low/high ARALIGI beyan eder.
+#
+# 🔴 EK IKINCI KEZ YAZILMAZ: dize TEK KAYNAK secenekler.js BASLAYAN_SONEK'ten okunur
+# (istemci kart yuzeyi ve marka/model karti da ayni ekten turer). Ayrisma sessizdir
+# ([[ikiz-tanim-sessiz-ayrisma]]); anahtar bulunamazsa build FAIL-CLOSED duser.
+_BASLAYAN_M = re.search(r'var\s+BASLAYAN_SONEK\s*=\s*"([^"]+)";', _SEC_JS)
+if not _BASLAYAN_M:
+    raise SystemExit("secenekler.js'te BASLAYAN_SONEK bulunamadi — kart metninin eki "
+                     "turetilemez (tek kaynak bozulmus).")
+BASLAYAN_SONEK = _BASLAYAN_M.group(1)
+# HTML gomulusu: `esc()` kesme isaretini `&#x27;` yazar, sayfadaki tarihsel gosterim ise
+# `&#39;`dur. Ikisi ayni karakteri kodlar ama BAYT farki uretirdi (varlik kapisi bayt
+# olcer) -> ek, sayfanin bugunku kodlamasiyla yazilir. Ikinci DIZE degil, ayni tek
+# kaynagin kodlanmis hali.
+BASLAYAN_SONEK_HTML = html.escape(BASLAYAN_SONEK, quote=False).replace("'", "&#39;")
+
+
+def en_pahali_malzeme_farki():
+    """Sitede satilan malzemelerin EN YUKSEK farki (yuzde). Istemci ikizi:
+    secenekler.js enPahaliMalzemeFarki."""
+    return max([FILAMENT_FARK.get(m, 0) for m in FILAMENT_SIRA] or [0])
+
+
+def malzeme_aralikli_mi(p):
+    """Urunun ILAN TUTARI malzeme secimiyle YUKSELEBILIR mi?
+
+    KAPSAM = MALZEME SECICISI BASILAN KOL (render_product'taki `fonksiyonel and not
+    parametrik` dali): olcuye ozel (parametrik) ve yapilandiricili urunde tutar tabandan
+    CANLI hesaplanir, hazir ticari malda uretim malzemesi karsiliksizdir (carpan 1,00).
+    Oralarda "baslayan" demek ve aralik beyan etmek YANILTICI olurdu.
+
+    🔴 IKIZ TANIM: istemci tarafi secenekler.js malzemeAralikliMi. Iki dilin TUM KATALOG
+    uzerinde ayni cevabi verdigini tools/ilan-tutari-kapisi.py eksen 1 fail-closed olcer."""
+    if fiziksel_mi(p) or p.get("parametrik") or p.get("konfigur"):
+        return False
+    if p.get("kategori") not in FONKSIYONEL_KATEGORILER:
+        return False
+    if feed_price((p.get("fiyat") or "").strip()) is None:
+        return False
+    return en_pahali_malzeme_farki() > 0
+
+
+def en_yuksek_kurus(p):
+    """Urunun EN PAHALI malzemeyle olusan BIRIM tutari (kurus) ya da None.
+
+    Kart tutari (vitrin_kurus), urun sayfasi tutari (ilan_kurus) ve bu TAVAN ayni
+    turetme noktasindan (_birim_kurus) cikar; ikinci formul yazilmaz."""
+    if not malzeme_aralikli_mi(p):
+        return vitrin_kurus(p)
+    adaylar = [k for k in (_birim_kurus(p, m) for m in FILAMENT_SIRA) if k is not None]
+    return max(adaylar) if adaylar else None
+
+
+def kart_tutar_metni(p, tutar_metni):
+    """🔴 KARTIN YAZDIGI TUTAR METNI — TEK KANONIK NOKTA (istemci ikizi
+    secenekler.js kartTutarMetni). `tutar_metni` kartin kendi tutar turetmesinden gelir;
+    burada YALNIZ "baslangic mi" karari ve ek tutulur."""
+    if not tutar_metni:
+        return tutar_metni
+    return (tutar_metni + BASLAYAN_SONEK) if malzeme_aralikli_mi(p) else tutar_metni
 
 
 # ---------------------------------------------------------------------------
@@ -3007,26 +3097,39 @@ def render_product(p, all_products, chip_map=None):
     # ALINABILIR bir stok bildiriliyordu. Ayni fail-closed dala sokulur: sayisal
     # fiyat YOK -> offers HIC basilmaz (InStock da offers'in icinde oldugu icin
     # birlikte duser). Yeni paralel dal ACILMAZ.
-    # 🔴 YAPILANDIRILMIS VERI = LISTE/KART YUZEYI (isletme karari, 11 Agu — Okan'in kendi
-    # secimi, riski kendisine YAZILI bildirildikten sonra): markup TEK fiyat basar ve o
-    # fiyat BASLANGIC tabanidir; coklu-teklif bicimine GECILMEZ. Yani bu satir urun
-    # sayfasi koluna DEGIL, KART koluna baglidir (ONERI_VITRIN_ACIK) — urun sayfasinda
-    # onden secili malzeme yukselse bile markup KAYMAZ.
-    # ⚠️ BEYAN EDILEN RISK: markup/besleme tutari ile acilan sayfanin VURGULANAN tutari
-    # ayrisir. Karar Okan'indir; azaltici olarak urun sayfasi taban tutari GORUNUR birakildi
-    # (fiyat blogundaki taban satiri + her malzeme cipinin kendi data-kurus'u).
-    # Kart kolu KAPALIYKEN deger pnum ile AYNI -> bugunku cikti bayt-esit.
-    ld_fiyat = pnum
-    if ONERI_VITRIN_ACIK and pnum:
-        ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum
+    # 🔴 YAPILANDIRILMIS VERI TABANI = LISTE/KART YUZEYI (isletme karari, 11 Agu — Okan'in
+    # kendi secimi, riski kendisine YAZILI bildirildikten sonra): beyan edilen TABAN
+    # BASLANGIC tutaridir. Yani bu satir urun sayfasi koluna DEGIL, KART koluna baglidir
+    # (ONERI_VITRIN_ACIK) — urun sayfasinda onden secili malzeme yukselse bile TABAN KAYMAZ.
+    # 🔴 TEK TURETME NOKTASI (12 Agu): taban artik BAYRAKLA KOSULLU DEGIL, kart yuzeyinin
+    # KENDI turetmesinden (vitrin_kurus — anahtari ICINDE) KOSULSUZ cikar. Onceki hal
+    # bayrak kapaliyken `price_number`a dusuyordu ve o AYRI bir ayristirma kuralidir:
+    # olculdu (12 Agu), "300 TL (30 cm)" biçimli 1 kayitta kart 300 TL derken markup
+    # 30.030 TL beyan ediyordu — 100 kat sapma, SIFIR alarm. Iki yuzey artik ayni sayidan
+    # turer. `pnum` yalnizca tutar CIKARILAMAYAN kolda (parametrik) geri dusustur.
+    ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum
     if aile_satis_kapali:
         ld_fiyat = None
     elif ld_fiyat is None and sema is not None:
         taban = sema.get("tabanFiyatTL")
         if isinstance(taban, (int, float)) and not isinstance(taban, bool) and taban > 0:
             ld_fiyat = ("%.2f" % taban).rstrip("0").rstrip(".")
+    # 🔴 ARALIK (12 Agu, Okan'in karari — 11 Agu'daki "tek fiyat" tercihinin YERINE GECER):
+    # kart BASLANGIC tabanini, urun sayfasi ONERILEN malzemenin tutarini yazdigi surece TEK
+    # fiyat basmak dis yuzeye eksik bilgi verir. Markup artik AggregateOffer'dir:
+    #   lowPrice  = kartin yazdigi tutar (BASLANGIC tabani; kart yuzeyiyle BIREBIR)
+    #   highPrice = EN PAHALI malzemenin tutari (musterinin sayfada secebilecegi tavan)
+    # Ikisi de TEK turetme noktasindan (_birim_kurus) cikar; ikinci formul yazilmaz.
+    # `price` KALIR ve lowPrice ile AYNIDIR: GSC "«price» alani eksik" hatasi bu depoda
+    # ZATEN OLCULDU (22 Tem, 21 sayfa) — alani dusurmek o kusuru geri getirme riski tasir.
+    # Aralik YALNIZ malzeme secicisi basilan kolda acilir; olcuye ozel / yapilandiricili /
+    # hazir ticari malda tutar malzemeyle yukselmez -> tekil Offer AYNEN kalir (bayt-esit).
+    ld_yuksek = ilan_tl_metni(en_yuksek_kurus(p)) if (ld_fiyat and
+                                                      malzeme_aralikli_mi(p)) else None
+    if ld_yuksek is not None and ld_yuksek == ld_fiyat:
+        ld_yuksek = None            # aralik acilmadi -> tekil teklif (yaniltici tavan yok)
     offer = {
-        "@type": "Offer",
+        "@type": "AggregateOffer" if ld_yuksek else "Offer",
         "url": url,
         "availability": "https://schema.org/InStock",
         "itemCondition": "https://schema.org/NewCondition",
@@ -3035,6 +3138,10 @@ def render_product(p, all_products, chip_map=None):
     }
     if ld_fiyat:
         offer["price"] = ld_fiyat
+        if ld_yuksek:
+            offer["lowPrice"] = ld_fiyat
+            offer["highPrice"] = ld_yuksek
+            offer["offerCount"] = len(FILAMENT_SIRA)
         offer["priceValidUntil"] = PRICE_VALID
 
     # `image` KOSULLU basilir; bu yuzden sozluk IKI parcada kurulur. Anahtar SIRASI
@@ -3242,7 +3349,7 @@ def render_product(p, all_products, chip_map=None):
         if aile_satis_kapali:
             konf_fiyat_metni = esc(FIYATSIZ_METIN)
         else:
-            konf_fiyat_metni = ((taban_fiyat_metni(taban_tl) + "&#39;den başlayan")
+            konf_fiyat_metni = ((taban_fiyat_metni(taban_tl) + BASLAYAN_SONEK_HTML)
                                 if taban_tl is not None else "Ölçüye özel fiyat")
         opsiyonlar_html = ("""
     <div class="opsiyonlar konf" id="opsiyonlar">
@@ -3339,7 +3446,7 @@ def render_product(p, all_products, chip_map=None):
         if ONERI_ONSECIM_ACIK and _ilan_k is not None:
             baslangic_fiyat = esc(taban_fiyat_metni(_ilan_k / 100.0))
         else:
-            baslangic_fiyat = (esc(fiyat) + "&#39;den başlayan") if fiyat else esc(price_text)
+            baslangic_fiyat = (esc(fiyat) + BASLAYAN_SONEK_HTML) if fiyat else esc(price_text)
         opsiyonlar_html = ("""
     <div class="opsiyonlar" id="opsiyonlar">
       {malzeme}
@@ -4576,6 +4683,9 @@ def marka_model_ctx():
         # Standart katalog kartı (kartCiz) için: görsel + parametrik taban fiyatı
         "images_of": images_of, "konf_sema": konf_sema,
         "taban_fiyat_metni": taban_fiyat_metni,
+        # "X TL'den başlayan" kararı + eki TEK KANONİK NOKTA (secenekler.js kaynaklı).
+        # Kardeş modül ikinci bir dize/koşul TUTMAZ; ayrışma sessiz olurdu.
+        "kart_tutar_metni": kart_tutar_metni, "BASLAYAN_SONEK": BASLAYAN_SONEK,
         # SATIŞ KAPISI — SSR kart da ana sayfa kartıyla AYNI kararı kullanır
         # (ikiz tanım sessizce ayrışmasın): kapalı ailede sayısal tutar basılmaz,
         # yerine ürün sayfasıyla aynı cümle (FIYATSIZ_METIN) gösterilir.

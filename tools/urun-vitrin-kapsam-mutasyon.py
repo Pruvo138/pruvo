@@ -153,10 +153,13 @@ MUTANTLAR = [
        "{ return p.fiyat; }")],
      1),
 
+    # 🔴 CAPA TAZELENDI (12 Agu): markup tabani artik bayrakla KOSULLU degil, kart
+    # yuzeyinin KENDI turetmesinden (vitrin_kurus) KOSULSUZ cikiyor. Mutant ayni seyi
+    # yapar — tabani URUN SAYFASI koluna baglar.
     ("M5", "markup URUN SAYFASI koluna baglandi (dis listeleme sessizce zamlandi)", None,
      [("build",
-       "    if ONERI_VITRIN_ACIK and pnum:",
-       "    if ONERI_ONSECIM_ACIK and pnum:")],
+       "    ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum",
+       "    ld_fiyat = ilan_tl_metni(ilan_kurus(p)) or pnum")],
      1),
 
     ("M6", "TANINMAYAN malzeme sessizce 'varsayilan'a cokuyor", None,

@@ -730,6 +730,64 @@
   function vitrinBirimKurus(urun, ref) {
     return _birimKurus(urun, vitrinMalzeme(urun, ref));
   }
+
+  /* ---------------- İLAN TUTARI ARALIĞI (kart metni + yapılandırılmış veri) ----------
+     🔴 NEDEN VAR (işletme kararı, 12 Ağu — Okan): kart BAŞLANGIÇ tabanını, ürün sayfası
+     ÖNERİLEN malzemenin tutarını yazar. İki sayı BİLEREK farklı; müşteri kartta gördüğü
+     tutarın bir TABAN olduğunu KARTTAN anlamalı -> kart metni düz "X TL" değil
+     "X TL'den başlayan"dır ve yapılandırılmış veri tek fiyat değil ARALIK beyan eder.
+
+     🔴 EK TEK KAYNAKTAN: dize BURADA bir kez yazılır. Sayfa üreteci (tools/build.py)
+     onu bu dosyadan OKUR, index.html ve marka/model kartı da buradan türer — üç yüzey
+     ayrı ayrı dize taşısaydı biri değiştiğinde diğerleri sessizce ayrışırdı
+     ([[ikiz-tanim-sessiz-ayrisma]]).
+
+     🔴 KAPSAM = MALZEME SEÇİCİSİ BASILAN KOL: ölçüye özel (parametrik), yapılandırıcılı
+     ve hazır ticari malda tutar malzeme seçimiyle YÜKSELMEZ (ilk ikisinde tabandan CANLI
+     hesaplanır, sonuncusunda çarpan 1,00) -> orada ek de aralık da BASILMAZ; "başlangıç"
+     demek yanıltıcı olurdu. Sayısal fiyatı olmayan üründe zaten tutar yoktur. */
+  var BASLAYAN_SONEK = "'den başlayan";
+
+  /* Ürünün ilan tutarı MALZEME seçimiyle yükselebilir mi? (kapsam kuralı — üreteç
+     tarafındaki ikizi tools/build.py malzeme_aralikli_mi; ayrışma tam katalog üzerinde
+     tools/ilan-tutari-kapisi.py eksen 1'de fail-closed kırmızı yakar.) */
+  function malzemeAralikliMi(urun) {
+    if (!urun || urun.parametrik || urun.konfigur || fizikselMi(urun.tur)) { return false; }
+    if (!fonksiyonelMi(urun.kategori)) { return false; }
+    if (fiyatSayisi(urun.fiyat) == null) { return false; }
+    return enPahaliMalzemeFarki() > 0;
+  }
+
+  /* Sitede satılan malzemelerin EN YÜKSEK farkı (yüzde). Tablo tek malzemeye inerse
+     aralık kapanır ve ek de kendiliğinden basılmaz — elle bakım gerektirmez. */
+  function enPahaliMalzemeFarki() {
+    var enCok = 0;
+    for (var i = 0; i < FILAMENT_SIRA.length; i++) {
+      var f = FILAMENT_FARK[FILAMENT_SIRA[i]] || 0;
+      if (f > enCok) { enCok = f; }
+    }
+    return enCok;
+  }
+
+  /* Ürünün EN PAHALI malzemeyle oluşan birim tutarı (kuruş) ya da null. Kart tutarı,
+     ürün sayfası tutarı ve bu tavan AYNI türetme noktasından (_birimKurus) çıkar. */
+  function enYuksekBirimKurus(urun) {
+    if (!malzemeAralikliMi(urun)) { return _birimKurus(urun, vitrinMalzeme(urun, null)); }
+    var enCok = null;
+    for (var i = 0; i < FILAMENT_SIRA.length; i++) {
+      var k = _birimKurus(urun, FILAMENT_SIRA[i]);
+      if (k != null && (enCok == null || k > enCok)) { enCok = k; }
+    }
+    return enCok;
+  }
+
+  /* 🔴 KARTIN YAZDIĞI TUTAR METNİ — TEK KANONİK NOKTA. `tutarMetni` kartın kendi
+     tutar türetmesinden gelir (index.html ilanFiyatMetni / üreteçte kart fiyatı);
+     bu fonksiyon YALNIZ "başlangıç mı" kararını ve eki tek yerde tutar. */
+  function kartTutarMetni(urun, tutarMetni) {
+    if (tutarMetni == null || tutarMetni === "") { return tutarMetni; }
+    return malzemeAralikliMi(urun) ? (tutarMetni + BASLAYAN_SONEK) : tutarMetni;
+  }
   /* ===================== END ONSECIM ===================== */
 
   function adetDuzelt(a) {
@@ -1324,6 +1382,11 @@
     vitrinMalzeme: vitrinMalzeme,
     ilanBirimKurus: ilanBirimKurus,
     vitrinBirimKurus: vitrinBirimKurus,
+    BASLAYAN_SONEK: BASLAYAN_SONEK,
+    malzemeAralikliMi: malzemeAralikliMi,
+    enPahaliMalzemeFarki: enPahaliMalzemeFarki,
+    enYuksekBirimKurus: enYuksekBirimKurus,
+    kartTutarMetni: kartTutarMetni,
     adetDuzelt: adetDuzelt,
     kurusMetni: kurusMetni,
     tlMetni: tlMetni,

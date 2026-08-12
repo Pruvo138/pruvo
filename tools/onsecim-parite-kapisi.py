@@ -492,8 +492,8 @@ MUTANTLAR = [
     # Okan'in acikca reddettigi davranistir; mutant onu yapar, kapi KIRMIZI yakmali.
     ("N3", "markup urun sayfasi tutarina kaydi (baslangic tabani beyani bozuldu)",
      "tools/build.py",
-     "    if ONERI_VITRIN_ACIK and pnum:\n        ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum",
-     "    if ONERI_ONSECIM_ACIK and pnum:\n        ld_fiyat = ilan_tl_metni(ilan_kurus(p)) or pnum",
+     "    ld_fiyat = ilan_tl_metni(vitrin_kurus(p)) or pnum",
+     "    ld_fiyat = ilan_tl_metni(ilan_kurus(p)) or pnum",
      1),
     ("N11", "besleme urun sayfasi tutarina kaydi (dis listeleme sessizce zamlandi)",
      "tools/build.py",
