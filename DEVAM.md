@@ -203,7 +203,7 @@ GOVDESINDEYDI; kardes agac **CI fresh checkout'unda hicbir zaman bulunmaz** → 
 kosmadi (gelistirici makinesinde KIRMIZI, CI'da YESIL). Onceki bir "agac yoksa KAPSAM DISI"
 onarimi, kardes depoyla ILGISIZ bir hukmu de beraberinde susturmustu.
 ⚠️ **Merge riski:** bu kapi **SERIT A**'dadir (`deploy.yml` job `build`) → yayin seridini etkiler,
-**skill: merge-kapisi** zorunlu. ⚠️ Dalin `RAPOR-MIMARA.md`'si izlenMIYOR (gitignore) —
+**skill: merge-kapisi** zorunlu. ⚠️ Dalin ic isci raporu izlenMIYOR (gitignore) —
 **worktree temizlenirse KAYBOLUR, merge'den ONCE okunmali.**
 **⚠️ WORKTREE TAVANI ASILDI: SAYI=5 TAVAN=2** (kancanin kendi olcumu). Ikisi OKSUZ-bayat
 (`jolly-lederberg-e2a0ee` 68 dk · `wonderful-nightingale-bf9893` 194 dk, ikisinin de
@@ -211,7 +211,7 @@ MAIN_DISI_COMMIT=0), biri K51'in agaci (**MAIN_DISI_COMMIT=1 → BUNDLE GEREKIR*
 CANLI agaci. SILME YOK → ARSIVLE-sonra-kaldir (K52).
 
 **Sonraki turun ILK ISI:** (a) **IKI HAZIR DALI `skill: merge-kapisi` ile tart** — `kral/uzlastirici-karantina`
-(`5f787cc6`) ve `serit-b-kapsam-ayrimi-m3-m12` (`20cd51c3`); ikisinin de `RAPOR-MIMARA.md`'si
+(`5f787cc6`) ve `serit-b-kapsam-ayrimi-m3-m12` (`20cd51c3`); ikisinin de ic isci raporu
 worktree'de IZLENMEZ, merge'den ONCE oku (temizlik onlari siler) —
 merge KraL'da, isci yalnizca dal push etti; (c) `31542119603`'un ardil kosumunda `serit-b`
 yesillendi mi; (d) varlik eksenini URUN sayfasindan cache-bust'SIZ olc (bu turda OLCULEMEDI
