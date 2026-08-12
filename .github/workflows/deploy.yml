@@ -1002,6 +1002,8 @@ jobs:
       - name: Kaynak/lisans kabul testleri (makerworld + printables + havuz + entegrasyon + ata zinciri)
         run: |
           python3 tools/makerworld-ara-test.py
+          python3 tools/marka-cok-kelime-test.py
+          python3 tools/k63-k64-mutasyon.py
           python3 tools/makerworld-lisans-test.py
           python3 tools/printables-lisans-test.py
           python3 tools/lisans-havuz-test.py

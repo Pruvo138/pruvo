@@ -1043,6 +1043,22 @@ jobs:
       - name: Bayat beyan kapisi (depo beyani == olculen davranis)
         run: python3 tools/bayat-beyan-kapisi.py
 
+      # AYIP BEYANI KAPISI (K64, 12 Agu 2026): cayma hakkinin kullanilamadigini soyleyen
+      # ya da ayiptan soz eden HER sayfa govdesi 6502 m.11'in DORT secimlik hakkini
+      # SARTSIZ tasimali. Kanonik metin tools/sayfalar.py::AYIP_HAKLARI_CUMLESI'nden
+      # okunur (kapida ikinci kopya YOK). Baglayici yasal sayfalar (/teslimat-iade,
+      # /mesafeli-satis) kapsam ICINDEDIR, muaf degildir. Offline, ag YOK, ~6 s.
+      # SERIT B GEREKCESI (beyani is-akisi-kapisi.py::SERIT_B tablosunda): kapi BUGUN
+      # KIRMIZI — 10 yuzey dar/sartli beyan tasiyor. Metin duzeltmesi PAZARLAMA
+      # duzlemidir (ArTisT) ve iki kalemi hukuki metin karari ister; bloklayici seritte
+      # TUM EKIBIN yayini o kuyrukta beklerdi ([[kapi-birikimi-yayin-gecikmesi]]).
+      # 🔴 GEVSETME YOK: kapi fail-closed, sapan sayisi her kosumda GORUNUR ve rc=1
+      # doner; sapan 0'a inince A seridine (deploy.yml) TASINACAK — karar KraL'in.
+      - name: Ayip beyani kapisi ic nobetci (oz-test — iddia aileleri ayakta mi)
+        run: python3 tools/ayip-beyani-kapisi.py --kendini-test
+      - name: Ayip beyani kapisi (6502 m.11 dort secenek, sartsiz)
+        run: python3 tools/ayip-beyani-kapisi.py
+
       # ═════════════════════════════════════════════════════════════════════
       # YAYIN SINYALI AYRIMI — IKI YONLU CURUTME (5 Agu 2026)
       # ═════════════════════════════════════════════════════════════════════
