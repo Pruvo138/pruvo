@@ -29,14 +29,26 @@ isi. Gecen turun devrettigi `31573022087` **success** ile kapandi. Yayin zinciri
 yakalamadi ama arizali degil: en son basarili deploy `31575954625`, aradaki iki commit'in kosumu
 kuyrukta/ucusta.
 
-**📏 WORKTREE 5 SATIR — TAVAN ASIK AMA OLU AGAC YOK.** K72'nin kabul olcutu (b) bu turdan itibaren
-kosuyor: dort agacin da mtime'i olculdu → **4 CANLI, 0 OLU, 0 BITMIS.** Uc agac baska oturumlarin
-canli iscisi (0,3 · 0,7 · 2,2 dk once dokunulmus, `locked`) — tavan sahiplik bazlidir, KraL'in
-kendi agaci degil, DOKUNULMADI. K49 agaci 85 dk hareketsiz (esik 90) → **CANLI ama sinirda**,
-dal origin'de, main'e gore 4 commit → tek-nusha riski YOK. Sonraki tur yeniden olculecek.
+**📏 WORKTREE — K72 ESIGI TUR ORTASINDA ASILDI, KARAR AYNI TURDA ALINDI.** Kabul olcutu (b) ilk kez
+fiilen hukum verdi: tur basi mtime **85,0 dk** (CANLI, sinirda) → push kancasi **95,7 dk** → yeniden
+olcum **97,4 dk** = **OLU**. Arsivle-sonra-kaldir sirasi zorunlu tutuldu ve 2. adim kritik cikti:
+dal origin'de `7360354a` iken yerel `5a9f9353`'tu → **4 commit TEK NUSHADAYDI**; itilmeseydi
+kaldirma kalici kayip olurdu (kanca temiz, `--force` KULLANILMADI, `ls-remote` ile bagimsiz teyit).
+Commit'siz 22.674 baytlik yama arsivlendi, kabul **TEMIZ klon** uzerinde uretildi (`apply --check`
+**rc=0**, sha256 birebir), ANCAK ONDAN SONRA agac kaldirildi. Dal SILINMEDI. KraL'in kendi agaci
+artik **0**; listedeki dort agac baska oturumlarin CANLI iscisi (locked) → DOKUNULMADI.
 
-**🔧 TAMIRCI TURU.** Acik 🔧 = **12**; bu turda kapanan 0, dagitilan 0, **triyaj edilen 3**,
-**yeni acilan 1 (K75)**. Olculen durumlar:
+**🔴 K70 DORDUNCU kez CANLI URETILDI — artik deterministik.** Bu turun defter commit'i `3c13caf1`
+(mandat edilen pathspec bicimi) ayni ciktida: kardes kapi **"satir: 118"** okurken hedef kapi
+**"stage'de 0 metin dosyasi tarandi"** dedi. Dort ardisik turun dordunde de ayni ikili → kenar
+durum DEGIL, her pathspec commit'inde tekrarliyor; kabul bataryasi bunu fikstur almali.
+
+**🔧 TAMIRCI TURU.** Acik 🔧 = **12**; kapanan 0, **DAGITILAN 1 (K49, 2. tur)**, triyaj edilen 3,
+yeni acilan 1 (**K75**). K49 iade onarimi ayni turda yeniden dagitildi (spec
+`.scratch/spec-k49-iade-onarimi-tur2.md`, MUHENDIS/Opus, izole agac; uc madde spec'te — ozet
+GEREKCESI arsivdedir). "Ilk 15 dk'da WIP commit +
+push" kurali spec'e BAGLAYICI yazildi — onceki **bes** iscinin hepsi tam bu adimi atlayip oldu.
+Olculen durumlar:
 - **K56 — HALA ACIK, iddia bugun birebir dogrulandi.** Bayraksiz kol **rc=2**, `--anahat` kolu
   **rc=0**; tek sebep ayni `c4 bayt-esitlik: referans build` ÖLÇÜLEMEDİ iddiasi. Kanama CI'da YOK.
 - **K58 — HALA ACIK ve buyudu.** `onizleme-kisit-kosul-test.py` **rc=1**, `IDDIA=115 KIRMIZI=1`;
