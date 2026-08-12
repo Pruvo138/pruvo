@@ -1664,6 +1664,35 @@ jobs:
       - name: Ozet kart temsili kabul testi (kayipsizlik + iki surum + temsil bayragi)
         run: node tools/ozet-temsil-test.js
 
+      # FAZ3 EDGE_KATALOG BAYRAK KABULU (tools/faz3-bayrak.js) — kabul testleri 2, 6, 7.
+      # NE KANITLAR: (2) bayrak KAPALI iken sayfa bugunku gibi davranir — urunler.json cekilir,
+      # /katalog, /ara ve ozet.json HIC istenmez (geri donus yolu saglam) + kartta "Sepete Ekle"
+      # butonu YOKTUR (Okan'in 16 Tem karari); (6) bayrak ACIK iken ilk boyama YALNIZ ozet.json
+      # ile yapilir (/katalog cagrilmaz, tek istek) ve parametrik sari vitrin 4 kartla en ustte
+      # cizilir; (7) Worker 500/ulasilamaz, hatta ozet.json bile inmez iken sayfa COKMEZ,
+      # kullaniciya mesaj cikar ve baslik aramasi calismaya devam eder. 50 kontrol.
+      # HATA SINIFI SESSIZ: bayrak kapaliyken kazara eklenen bir ag istegi ya da acikken
+      # bozulan zarif-bozulma yolu ekranda HATA gostermez — sadece "site yavasladi"/"bos kaldi".
+      # OFFLINE: ag/wrangler/D1/npm YOK. index.html, secenekler.js, urunler.json ve ozet.json
+      # DISKTEN okunur; sayfanin kendi inline scripti elde yazilmis mini-DOM'da kosar ve TUM
+      # fetch cagrilari taslaktir (olculdu: net.connect/dns.lookup/http(s).request/global fetch
+      # on-yuklemeyle patlatildiginda test yine 50/0 ve rc=0 verir).
+      # ON KOSUL KENDI KURULUR (build job'una BAGLI DEGIL): ozet.json'u ayni satirda
+      # `build.py --sadece-ozet` uretir. NEDEN TAM BUILD DEGIL: tam `python3 tools/build.py`
+      # bu katalogda (25 965 urun) 232,6 s surer ve 25 965 sayfa + sitemap + yasal sayfa damgasi
+      # yazar; `--sadece-ozet` kolu 0,23 s surer ve YALNIZ ozet.json'u yazar.
+      # YAN ETKISIZ: `--sadece-ozet` bayraksiz cagrildiginda temsil surumu build.py'nin TEK
+      # KAYNAK sabitinden (OZET_TEMSIL_SURUM = 3) gelir, yani deploy'un yayina koydugu
+      # artefaktin AYNISI kalir — bu adim ozet.json'u v2'ye DUSURMEZ ve sonraki adimlara
+      # bayat/yanlis surum birakmaz (kardes vitrin-kabul.js zaten kendi kopyasini yeniden uretir).
+      # BLOKLAYICI: continue-on-error YOK. rc=1 iddia dustu, rc=2 OLCULEMEDI (index.html'den
+      # ozetAc ayiklanamadi / sema kaydi) — ikisi de yayini durdurur, sessizce yesile donmez.
+      # Node 20, olculen sure: build.py --sadece-ozet 0,23 s + faz3-bayrak.js 2,94 s.
+      - name: "FAZ3 bayrak kabulu (EDGE_KATALOG kapali/acik + parametrik vitrin + zarif bozulma)"
+        run: |
+          python3 tools/build.py --sadece-ozet
+          node tools/faz3-bayrak.js
+
       # KONFIGUR BUNDLE KAPISI (drift): shop/src/konfigurlar.js artik ELLE BAKIMLI AYNA DEGIL,
       # urunler.json'daki "konfigur" alanlarindan URETILEN bir artefakt. Bu adim artefakti
       # yeniden turetip BIREBIR karsilastirir; yeni konfigurlu urun eklenip artefakt

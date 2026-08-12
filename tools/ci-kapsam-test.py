@@ -351,6 +351,17 @@ ACIK_KESIF = {
         "`--kendini-test` hem scrub DAVRANISINI hem `GIT_BAGLAM_DEGISKENLERI` "
         "listesinin IKINCI bir tanimini (drift) fail-closed olcer. Uc kapi kok "
         "turetimini bu modulden alir; nobet kosmazsa ikiz sessizce geri gelir.",
+    "tools/faz3-bayrak.js":
+        "index.html EDGE_KATALOG bayraginin kabul testi (2/6/7 — 50 kontrol) ama adi "
+        "`-test.js`/`test-`/`-kapisi.py`/`-mutasyon.js` konvansiyonlarinin HICBIRINE "
+        "uymaz (kardesleri faz3-gecikme/faz3-sayfalama nobetcilerini `-test.py` "
+        "surucusuyle tasir, bu dosya kendisi surucudur). OLCULEN BEDEL (12 Agu 2026): "
+        "kesif disi oldugu icin kapsam sorusu HIC sorulmuyordu -> test aylarca hicbir "
+        "is akisinda kosmadi ve icindeki `ozetAc` kopyasi temsil v3'e gecince sessizce "
+        "ayristi; TEST 7'ye varmadan TypeError ile coken bir OLU NOBETCIYE dondu ve "
+        "kimse duymadi ([[nobetci-cagri-satiri-nobetsiz]]). Onarildi ve deploy.yml "
+        "serit-a3'te BLOKLAYICI adima baglandi; bu kayit RATCHET'tir — cagri satiri "
+        "silinirse kapi KIRMIZI yanar. MUAFIYET DEGIL, kapsam ZORLAMASIDIR.",
 }
 
 
