@@ -454,6 +454,74 @@ def kesfet_izlenmeyen():
     return sorted(y for y in r.stdout.splitlines() if _kesif_adayi_mi(y)), None
 
 
+# ---- PRE-PUSH KAPSAMI (git'in kancaya verdigi ref/SHA satirlari) -----------
+# Kapsam yalnız pre-push stdin'indeki
+#   <local ref> <local sha> <remote ref> <remote sha>
+# satirlarindan turetilir. Bu bilgi yoksa/tutarsizsa tahmin uretilmez: izlenmeyen
+# kova eski kati hukumle KIRMIZI kalir (fail-closed).
+_SHA_RE = re.compile(r"^[0-9a-fA-F]{40}(?:[0-9a-fA-F]{24})?$")
+
+
+def _sifir_sha(sha):
+    return bool(sha) and set(sha) == {"0"}
+
+
+def push_kapsamini_turet(girdi):
+    """(repo-goreli_yollar|None, sebep|None) — pre-push ref/SHA girdisinden.
+
+    Uzak SHA sifirsa yeni ref itiliyordur; bu durumda yerel SHA'dan hicbir uzak
+    refte bulunmayan commitler alınır. Silinen ref dosya tasimaz. Her baska halde
+    uzak..yerel araligindaki commitlerin dokundugu yollar birlestirilir.
+    """
+    satirlar = [s.strip() for s in (girdi or "").splitlines() if s.strip()]
+    if not satirlar:
+        return None, "pre-push stdin'inde ref/SHA satiri YOK"
+    kapsam = set()
+    for no, satir in enumerate(satirlar, 1):
+        alanlar = satir.split()
+        if len(alanlar) != 4:
+            return None, ("pre-push satiri %d dort alanli degil: %r"
+                          % (no, satir[:160]))
+        _yerel_ref, yerel_sha, _uzak_ref, uzak_sha = alanlar
+        if not _SHA_RE.match(yerel_sha) or not _SHA_RE.match(uzak_sha):
+            return None, ("pre-push satiri %d SHA bicimi gecersiz (local=%r remote=%r)"
+                          % (no, yerel_sha[:20], uzak_sha[:20]))
+        if _sifir_sha(yerel_sha):
+            continue
+        dogrula = subprocess.run(
+            ["git", "-C", ROOT, "cat-file", "-e", yerel_sha + "^{commit}"],
+            capture_output=True, text=True, env=GIT_ORTAMI.git_ortami())
+        if dogrula.returncode != 0:
+            return None, ("pre-push local SHA commit olarak cozulmedi: %s"
+                          % yerel_sha)
+        if _sifir_sha(uzak_sha):
+            komut = ["git", "-C", ROOT, "rev-list", yerel_sha, "--not", "--remotes"]
+        else:
+            dogrula = subprocess.run(
+                ["git", "-C", ROOT, "cat-file", "-e", uzak_sha + "^{commit}"],
+                capture_output=True, text=True, env=GIT_ORTAMI.git_ortami())
+            if dogrula.returncode != 0:
+                return None, ("pre-push remote SHA commit olarak cozulmedi: %s"
+                              % uzak_sha)
+            komut = ["git", "-C", ROOT, "rev-list", uzak_sha + ".." + yerel_sha]
+        revler = subprocess.run(komut, capture_output=True, text=True,
+                                env=GIT_ORTAMI.git_ortami())
+        if revler.returncode != 0:
+            return None, ("push commit araligi cozulmedi (rc=%d): %s"
+                          % (revler.returncode, revler.stderr.strip() or "-"))
+        for commit in revler.stdout.splitlines():
+            yollar = subprocess.run(
+                ["git", "-C", ROOT, "diff-tree", "--root", "--no-commit-id",
+                 "--name-only", "-r", commit], capture_output=True, text=True,
+                env=GIT_ORTAMI.git_ortami())
+            if yollar.returncode != 0:
+                return None, ("push commit dosyalari cozulmedi (%s, rc=%d): %s"
+                              % (commit, yollar.returncode,
+                                 yollar.stderr.strip() or "-"))
+            kapsam.update(y for y in yollar.stdout.splitlines() if y)
+    return kapsam, None
+
+
 # ---- IZLENMEYEN KOVA FIKSTURU (SENTETIK GIT DEPOSU) -------------------------
 # 🔴 GERCEK DEPOYA MUTASYON UYGULANMAZ: fikstur `tempfile` icinde AYRI bir git
 # deposu kurar ve `ROOT`u gecici olarak oraya cevirir (okuma_dayanikliligi_kontrol_
@@ -474,6 +542,8 @@ _IZ_YENI_TEST = "tools/zzz-yeni-test.py"
 _IZ_YENI_MUT = "tools/zzz-yeni-mutasyon.py"
 _IZ_YENI_DIR = "shop/test/zzz-yeni.mjs"          # DIR_PAT kolu
 _IZ_POZITIF = (_IZ_YENI, _IZ_YENI_TEST, _IZ_YENI_MUT, _IZ_YENI_DIR)
+_IZ_PUSH_YENI = "tools/zzz-push-kapisi.py"
+_IZ_PUSH_DISI = "tools/zzz-wip-kapisi.py"
 # NEGATIF kova: predikat gevserse (M-IZ3) BUNLAR sizar ve fikstur TEK BASINA kirmizi yakar.
 # `zzz-uretilen-*`: `.gitignore` ile ELENIR -> `--exclude-standard` iddiasini FIILEN
 # olcer (curutucu: fikstur `.gitignore`suz oldugu icin o iddia hic olculmuyordu).
@@ -513,6 +583,10 @@ def izlenmeyen_fikstur_kontrol():
       A8 OLCULEMEDI (URETIM)  — `kesfet_izlenmeyen()` git patlayinca SEBEP URETIR
          (git deposu OLMAYAN bir kokte olculur). A7 sebebi parametreyle aliyordu;
          uretim tarafi olculmeyince `return [], None` mutanti sessizce geciyordu.
+      V1 IZLENEN-KORUNDU       — push disi olsa da izlenen kapsamsiz dosya KIRMIZI.
+      V2 PUSH-YENI-KORUNDU     — ref/SHA araliginda gelen yeni dosya KIRMIZI.
+      V3 PUSH-DISI-IZLENMEYEN  — ref/SHA araligi disindaki WIP UYARI + YESIL.
+      F1 KAPSAM BILINMIYOR     — ref/SHA yoksa eski kati hukum KIRMIZI.
 
     (ok, hatalar) dondurur; hicbir sey BASMAZ."""
     global ROOT
@@ -666,6 +740,78 @@ def izlenmeyen_fikstur_kontrol():
         elif iz_yok:
             hata.append("A8 CELISKI: sebep VAR ama kova DOLU (%r) -> olculemeyen "
                         "eksenden veri uretiliyor." % (iz_yok,))
+
+        # --- V1/V2/V3: GERCEK ref/SHA araligindan push kapsami -----------------
+        # ADIM 2'de staged olan dort aday artik "onceki/izlenen" tabana commitlenir.
+        r = g("commit", "--quiet", "-m", "fikstur izlenen taban")
+        if r.returncode != 0:
+            hata.append("PUSH KAPSAM FIKSTURU OLCULEMEDI: taban commit rc=%d %s"
+                        % (r.returncode, (r.stderr or r.stdout).strip()[:200]))
+        taban = g("rev-parse", "HEAD").stdout.strip()
+        _iz_yaz(depo, _IZ_PUSH_YENI, "# bu push ile gelen yeni kapi\n")
+        g("add", _IZ_PUSH_YENI)
+        r = g("commit", "--quiet", "-m", "fikstur push yeni")
+        if r.returncode != 0:
+            hata.append("PUSH KAPSAM FIKSTURU OLCULEMEDI: yeni commit rc=%d %s"
+                        % (r.returncode, (r.stderr or r.stdout).strip()[:200]))
+        yerel = g("rev-parse", "HEAD").stdout.strip()
+        _iz_yaz(depo, _IZ_PUSH_DISI, "# baska oturumun commitlenmemis WIP dosyasi\n")
+        ref_girdisi = "refs/heads/main %s refs/heads/main %s\n" % (yerel, taban)
+        kapsam, kapsam_sebep = push_kapsamini_turet(ref_girdisi)
+
+        # 1) Kapsam GERCEK git araligindan ve hatasiz turemeli.
+        if kapsam is None or kapsam_sebep:
+            hata.append("V-KAPSAM OLCULEMEDI: kapsam=%r sebep=%r"
+                        % (kapsam, kapsam_sebep))
+        else:
+            # 2/3/4) Araligin pozitif ve iki negatif uyeligi.
+            if _IZ_PUSH_YENI not in kapsam:
+                hata.append("V2 PUSH KAPSAMI KOR: yeni commit dosyasi kapsamda YOK: %r"
+                            % sorted(kapsam))
+            if _IZ_YENI in kapsam:
+                hata.append("V1 PUSH KAPSAMI SIZINTI: onceki izlenen dosya kapsamda")
+            if _IZ_PUSH_DISI in kapsam:
+                hata.append("V3 PUSH KAPSAMI SIZINTI: commitlenmemis WIP kapsamda")
+
+            # 5) V1: IZLENEN ve kosmayan dosya push disi olsa da KIRMIZI.
+            kod, satir = denetle("", [_IZ_YENI], {}, kontroller=False,
+                                 izlenmeyen=[], push_kapsami=kapsam)
+            rapor = "\n".join(satir)
+            if kod != 1 or "KAPSAMSIZ (ne kosuluyor ne izin listesinde): %s" % _IZ_YENI not in rapor:
+                hata.append("V1 POZITIF KAYIP: izlenen+kapsamsiz dosya rc=%d, tani=%s"
+                            % (kod, "VAR" if "KAPSAMSIZ" in rapor else "YOK"))
+
+            # 6) V2: bu push ile gelen yeni/izlenen dosya KIRMIZI.
+            kod, satir = denetle("", [_IZ_PUSH_YENI], {}, kontroller=False,
+                                 izlenmeyen=[], push_kapsami=kapsam)
+            rapor = "\n".join(satir)
+            if kod != 1 or "KAPSAMSIZ (ne kosuluyor ne izin listesinde): %s" % _IZ_PUSH_YENI not in rapor:
+                hata.append("V2 POZITIF KAYIP: push-yeni+kapsamsiz dosya rc=%d, tani=%s"
+                            % (kod, "VAR" if "KAPSAMSIZ" in rapor else "YOK"))
+
+            # 7) V3: izlenmeyen + push disi WIP yalniz UYARI, hukum YESIL.
+            kod, satir = denetle("", [], {}, kontroller=False,
+                                 izlenmeyen=[_IZ_PUSH_DISI], push_kapsami=kapsam)
+            rapor = "\n".join(satir)
+            if (kod != 0
+                    or "UYARI: HENUZ IZLENMIYOR ve PUSH KAPSAMI DISI: %s" % _IZ_PUSH_DISI not in rapor
+                    or "HENUZ IZLENMIYOR (kapsamsiz): %s" % _IZ_PUSH_DISI in rapor):
+                hata.append("V3 YANLIS HUKUM: push-disi WIP rc=%d; uyari=%s; kirmizi=%s"
+                            % (kod, "VAR" if "PUSH KAPSAMI DISI" in rapor else "YOK",
+                               "VAR" if "HENUZ IZLENMIYOR (kapsamsiz)" in rapor else "YOK"))
+
+        # 8) Ref/SHA bilgisi yoksa eski kati davranis: fail-closed KIRMIZI.
+        kod, satir = denetle("", [], {}, kontroller=False,
+                             izlenmeyen=[_IZ_PUSH_DISI], push_kapsami=None,
+                             push_kapsami_sebep="SENTETIK: ref bilgisi yok")
+        if kod != 1 or not any("push kapsami BILINMIYOR" in s for s in satir):
+            hata.append("F1 FAIL-CLOSED KAYIP: kapsam bilinmiyorken rc=%d" % kod)
+
+        # 9) Bozuk pre-push satiri kapsam UYDURMAMALI.
+        bozuk_kapsam, bozuk_sebep = push_kapsamini_turet("bozuk satir\n")
+        if bozuk_kapsam is not None or not bozuk_sebep:
+            hata.append("F2 BOZUK REF GIRDISI FAIL-OPEN: kapsam=%r sebep=%r"
+                        % (bozuk_kapsam, bozuk_sebep))
     except Exception as e:  # noqa: BLE001 — fikstur kapiyi patlatmaz, konusur
         hata.append("IZLENMEYEN FIKSTURU OLCULEMEDI: %s: %s" % (type(e).__name__, e))
         # (A8 ROOT'u gecici olarak degistirir; asagidaki finally onu geri alir.)
@@ -961,6 +1107,15 @@ def _pre_push_tanisi(govde):
                 "bayraksiz kol rc=1, `%s` rc=0). Push kapisi, eklendigi korlugu "
                 "gormeyen kola indirgenmis olur."
                 % (KENDINI_TEST_BAYRAGI, i + 1, KENDINI_TEST_BAYRAGI))
+        if "--pre-push" not in arg:
+            hata.append(
+                "PRE-PUSH KAPSAM BAYRAGI YOK (satir %d): git'in ref/SHA stdin'i "
+                "kapsam kapisina aktarilmiyor; izlenmeyen WIP icin push kapsami "
+                "TURETILEMEZ ve kapi eski kati hukumde kalir." % (i + 1))
+        if "</dev/null" in s:
+            hata.append(
+                "PRE-PUSH STDIN KESILMIS (satir %d): ref/SHA girdisi /dev/null'a "
+                "yonlenmis; push kapsami turetilemez." % (i + 1))
         if "|| true" in s or "|| :" in s:
             hata.append("RC YUTULMUS (satir %d): `|| true` / `|| :` -> kapi KIRMIZI "
                         "olsa bile kanca 0 gorur." % (i + 1))
@@ -1024,7 +1179,12 @@ _PP_BLOK_SON = "# >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU"
 _PP_SAHTE_KAPI = (
     "import sys\n"
     "print('SAHTE KAPI CIKTISI')\n"
-    "sys.exit(0 if '--kendini-test' in sys.argv[1:] else %d)\n")
+    "girdi = sys.stdin.read().split()\n"
+    "if '--kendini-test' in sys.argv[1:]:\n"
+    "    sys.exit(0)\n"
+    "if '--pre-push' not in sys.argv[1:] or not girdi or len(girdi) %% 4:\n"
+    "    sys.exit(2)\n"
+    "sys.exit(%d)\n")
 
 
 def _pp_blok(govde):
@@ -1147,11 +1307,15 @@ PRE_PUSH_MUTANTLARI = (
      (('kayitli)." >&2\n  exit 1', 'kayitli)." >&2\n  :', 1),), False,
      "kirmizi gorulur ama push DURMAZ"),
     ("P3 rc `|| true` ile yutuldu",
-     (('</dev/null)', '</dev/null) || true', 1),), False,
+     (('< "$pruvo_kapsam_girdi")', '</dev/null) || true', 1),), False,
      "cikis kodu yutma ekseni"),
     ("P4 cagri `--kendini-test` koluna cevrildi",
-     (('ci-kapsam-test.py" 2>&1', 'ci-kapsam-test.py" --kendini-test 2>&1', 1),), False,
+     (('ci-kapsam-test.py" --pre-push 2>&1',
+       'ci-kapsam-test.py" --kendini-test 2>&1', 1),), False,
      "gercek agac HIC olculmez (kol asimetrisi olculdu)"),
+    ("P7 `--pre-push` bayragi dusuruldu",
+     (('ci-kapsam-test.py" --pre-push 2>&1', 'ci-kapsam-test.py" 2>&1', 1),), False,
+     "git ref/SHA girdisi olsa da kapsam kolu etkinlesmez; fail-closed durmali"),
     ("P5 kosul asla ateslenmiyor",
      (('"$pruvo_kapsam_rc" -ne 0', '"$pruvo_kapsam_rc" -eq 12345', 1),), False,
      "kapi rc=1 iken PUSH GECIYOR (birinci tur deligi)"),
@@ -1395,9 +1559,9 @@ def pre_push_kablo_kontrol():
         shutil.rmtree(gecici, ignore_errors=True)
     oldurucu = sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if not b)
     kontrol = sum(1 for _e, _d, b, _n in PRE_PUSH_MUTANTLARI if b)
-    if oldurucu < 11 or kontrol < 4:
+    if oldurucu < 12 or kontrol < 4:
         hata.append("PRE-PUSH MUTANT TABLOSU KUCULDU (oldurucu %d, kontrol %d; taban "
-                    "11/4) — tabloyu kucultmek nobetciyi SESSIZCE oldurur "
+                    "12/4) — tabloyu kucultmek nobetciyi SESSIZCE oldurur "
                     "([[fikstur-degeri-mutasyon-koru]])." % (oldurucu, kontrol))
     return (not hata), hata
 
@@ -6185,7 +6349,8 @@ def suzgec_kablosu_kontrol(kaynak=None):
 # Boylece muaf_sayaci_kontrol() TA KENDISINI olcer (kopya mantik yazmaz).
 def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
             dosya_metinleri=None, alt_kume_izin=None, ayristirici_yok=None,
-            izlenmeyen=None, izlenmeyen_sebep=None, model_uretim=False):
+            izlenmeyen=None, izlenmeyen_sebep=None, model_uretim=False,
+            push_kapsami=None, push_kapsami_sebep=None):
     """(exit_kodu, rapor_satirlari) dondurur. Hicbir sey BASMAZ.
 
     kontroller=True iken kendi mutasyon nobetcilerini (bulgu1 + muaf sayaci) BLOKLAYICI
@@ -6203,7 +6368,12 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
     HENUZ IZLENMIYOR kovasi HIC olculmez ve rapora HIC satir eklenmez -> ozyinelemeli
     nobetciler ve mevcut mutasyon bataryalari BIREBIR eskisi gibi kosar. main()
     GERCEK olcumu (kesfet_izlenmeyen()) gecirir. <izlenmeyen_sebep> doluysa kova
-    OKUNAMADI demektir ve hukum FAIL-CLOSED'dir (rc=1) — "bos kova" DEGIL."""
+    OKUNAMADI demektir ve hukum FAIL-CLOSED'dir (rc=1) — "bos kova" DEGIL.
+
+    <push_kapsami> yalnız pre-push kancasinin stdin ref/SHA araligindan turetilmis
+    repo-goreli yol kumesidir. None ise kapsam bilinmiyor demektir ve izlenmeyen
+    kapsamsiz adaylar ESKI kati hukumle KIRMIZI kalir. Bilinen kapsamda bulunmayan
+    izlenmeyen adaylar gorunur UYARI olur, cikis koduna dokunmaz."""
     satirlar = []
     if akislar is None:
         kos = kosulan(deploy_metin, kesif)
@@ -6314,6 +6484,7 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
     # -> bugun hicbir mesru WIP dosyasi bu kovaya DUSMUYOR, fail-closed bedelsiz.
     izlenmeyen_kapsamsiz = []
     izlenmeyen_kapsanan = []
+    izlenmeyen_push_disi = []
     if izlenmeyen_sebep:
         hatalar.append(
             "OLCULEMEDI — HENUZ IZLENMIYOR kovasi OKUNAMADI: %s. Bu 'izlenmeyen "
@@ -6334,11 +6505,23 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
             else:
                 izlenmeyen_kapsamsiz.append(yol)
     for yol in izlenmeyen_kapsamsiz:
+        if push_kapsami is not None and yol not in push_kapsami:
+            izlenmeyen_push_disi.append(yol)
+            satirlar.append(
+                "UYARI: HENUZ IZLENMIYOR ve PUSH KAPSAMI DISI: %s — calisma "
+                "agacinda gorunur ama bu itmenin ref/SHA araliginda yok; push'u "
+                "BLOKLAMIYOR." % yol)
+            continue
+        kapsam_tani = (
+            "push kapsaminda" if push_kapsami is not None
+            else "push kapsami BILINMIYOR (fail-closed: %s)"
+                 % (push_kapsami_sebep or "pre-push ref/SHA bilgisi verilmedi"))
         hatalar.append(
             "HENUZ IZLENMIYOR (kapsamsiz): %s — calisma agacinda duruyor ama `git "
             "add` EDILMEMIS ve hicbir OTOMATIK is akisinda kosmuyor / izin "
-            "listesinde degil. `git add` etmek bu satiri KAPSAMSIZ'a cevirir, "
-            "kapatmaz: once cagri satirini ekle ya da GEREKCELI muafiyet yaz." % yol)
+            "listesinde degil; %s. `git add` etmek bu satiri KAPSAMSIZ'a cevirir, "
+            "kapatmaz: once cagri satirini ekle ya da GEREKCELI muafiyet yaz."
+            % (yol, kapsam_tani))
 
     # 5) kendi mutasyon nobetcileri — yalniz GERCEK deploy.yml'e karsi (mutant --deploy
     #    verildiginde pozitif kontrol anlamsiz olur, o yuzden atlanir) ve nobetcinin
@@ -6478,9 +6661,12 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         satirlar.append("  Henuz izlenmiyor (aday): OLCULEMEDI (fail-closed) · %s"
                         % izlenmeyen_sebep)
     elif izlenmeyen is not None:
-        satirlar.append("  Henuz izlenmiyor (aday): %d  (kapsamsiz %d · kosuyor/muaf %d)"
-                        % (len(izlenmeyen), len(izlenmeyen_kapsamsiz),
-                           len(izlenmeyen_kapsanan)))
+        bloklayan_izlenmeyen = len(izlenmeyen_kapsamsiz) - len(izlenmeyen_push_disi)
+        satirlar.append(
+            "  Henuz izlenmiyor (aday): %d  (bloklayan %d · push-disi uyari %d · "
+            "kosuyor/muaf %d)"
+            % (len(izlenmeyen), bloklayan_izlenmeyen,
+               len(izlenmeyen_push_disi), len(izlenmeyen_kapsanan)))
         for yol in izlenmeyen_kapsanan:
             satirlar.append("      ℹ️ HENUZ IZLENMIYOR ama KAPSANMIS (cagri satiri/"
                             "muafiyet zaten var): %s" % yol)
@@ -6550,6 +6736,9 @@ def main():
                     help="YALNIZ pre-push kanca kablosunun DAVRANIS ayagini kosar "
                          "(45 GERCEK `git push`). BLOKLAYICI seride (deploy.yml) "
                          "AYRI adim olarak baglanir.")
+    ap.add_argument("--pre-push", action="store_true",
+                    help="stdin'deki git pre-push ref/SHA satirlarindan bu itmenin "
+                         "kapsamini turetir; yalniz kanca kullanir")
     args = ap.parse_args()
 
     # 🔴 HANGI KOL KARAR VERIYOR (mimar hukmu madde 3) — HER kosumda basilir.
@@ -6699,16 +6888,19 @@ def main():
             for h in hata8:
                 print("  ❌ " + h)
         ok9, hata9 = izlenmeyen_fikstur_kontrol()
-        print("IZLENMEYEN KESIF KOVASI — SENTETIK GIT DEPOSU (9 iddia: A1a taban "
+        print("IZLENMEYEN KESIF KOVASI + PUSH KAPSAMI — SENTETIK GIT DEPOSU "
+              "(18 iddia: A1a taban "
               "hukmu · A1b taban kovasi · A2 kova doluyor (4 ad sinifi) · A3 `git "
-              "add` ONCESI KIRMIZI · A4 `git add` SONRASI etiket degisiyor · A5 "
-              "negatif sizinti yok (.gitignore dahil) · A6 kapsanan izlenmeyen YESIL "
-              "· A7 olculemedi TUKETIM · A8 olculemedi URETIM)")
+              "add` ONCESI kapsam bilinmiyorsa KIRMIZI · A4 `git add` SONRASI "
+              "etiket degisiyor · A5 negatif sizinti yok (.gitignore dahil) · A6 "
+              "kapsanan izlenmeyen YESIL · A7/A8 olculemedi fail-closed · V1 izlenen "
+              "KIRMIZI · V2 push-yeni KIRMIZI · V3 push-disi WIP UYARI+YESIL · "
+              "bozuk/yok ref fail-closed)")
         if ok9:
-            print("  ✅ `git add` EDILMEMIS kapsamsiz kapi rc=1 yakiyor (`HENUZ "
-                  "IZLENMIYOR (kapsamsiz)`); `git add` sonrasi ayni dosya IZLENEN "
-                  "kovaya gecip `KAPSAMSIZ` etiketi aliyor; `.md`/`.json`/alt "
-                  "dizin/`tools/arsiv/` SIZMIYOR; kova okunamazsa fail-closed")
+            print("  ✅ V1/V2 KIRMIZI; V3 YESIL+UYARI; kapsam git'in pre-push "
+                  "ref/SHA araligindan turetiliyor; kapsam yok/bozuksa eski kati "
+                  "hukumle fail-closed; `.md`/`.json`/alt dizin/`tools/arsiv/` "
+                  "SIZMIYOR")
         else:
             for h in hata9:
                 print("  ❌ " + h)
@@ -6791,11 +6983,17 @@ def main():
     # verildiginde deploy.yml girisinin METNI mutantla degistirilir -> GERCEK dosyaya
     # DOKUNMADAN kirmizi-mutasyon kanitlanabilir.
     izlenmeyen, izlenmeyen_sebep = kesfet_izlenmeyen()
+    if args.pre_push:
+        push_kapsami, push_kapsami_sebep = push_kapsamini_turet(sys.stdin.read())
+    else:
+        push_kapsami = None
+        push_kapsami_sebep = "--pre-push verilmedi; ref/SHA kapsami mevcut degil"
     kod, satirlar = denetle(
         deploy_metin, kesfet(), IZIN_LISTESI, kontroller=gercek_deploy,
         akislar=is_akislari(None if gercek_deploy else deploy_metin),
         izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep,
-        model_uretim=gercek_deploy)
+        model_uretim=gercek_deploy, push_kapsami=push_kapsami,
+        push_kapsami_sebep=push_kapsami_sebep)
     for satir in satirlar:
         print(satir)
     return kod

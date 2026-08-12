@@ -33,8 +33,9 @@ fi
 # OLCULEN MALIYET: medyan 3,16 sn (3 kosum, 9 Agu 2026; taban 2,99 sn) -> 5 sn
 # esiginin ALTINDA, push'a eklenen bedel kabul edilebilir.
 # FAIL-CLOSED: rc != 0 -> PUSH DURUR. Bilincli atlama: `git push --no-verify`.
-# STDIN'E DOKUNMAZ (`</dev/null`): asagidaki sizinti kapisi ve D1 senkronu AYNI
-# stdin'i okur; tuketmek onlari SESSIZCE oldururdu.
+# Git'in verdigi ref/SHA satirlari gecici dosyaya ALINIR; kapsam kapisi bu girdiden
+# push araligini turetir, sonra stdin asagidaki sizinti kapisi ve D1 senkronu icin
+# AYNEN geri acilir. Kapsam bilgisi okunamazsa kapi fail-closed davranir.
 # SESSIZ CALISIR: kapi yesilse 193 satirlik envanter basilmaz, yalniz kirmizida
 # tam cikti dokulur.
 # 🔴 BAYRAKSIZ KOSAR (PAZARLIKSIZ): `--kendini-test` kolu GERCEK calisma agacini HIC
@@ -49,7 +50,14 @@ if [ -z "$pruvo_kapsam_kok" ] || [ ! -f "$pruvo_kapsam_kok/tools/ci-kapsam-test.
   echo "!! Kapsam kapisi fail-closed'dir. Kasten atlamak icin: git push --no-verify" >&2
   exit 1
 fi
-pruvo_kapsam_cikti=$(python3 "$pruvo_kapsam_kok/tools/ci-kapsam-test.py" 2>&1 </dev/null)
+pruvo_kapsam_girdi=$(mktemp 2>/dev/null)
+if [ -z "$pruvo_kapsam_girdi" ] || [ ! -f "$pruvo_kapsam_girdi" ]; then
+  echo "!! PUSH DURDURULDU — pre-push ref/SHA girdisi icin gecici dosya acilamadi." >&2
+  exit 1
+fi
+trap 'rm -f "$pruvo_kapsam_girdi"' EXIT HUP INT TERM
+cat > "$pruvo_kapsam_girdi"
+pruvo_kapsam_cikti=$(python3 "$pruvo_kapsam_kok/tools/ci-kapsam-test.py" --pre-push 2>&1 < "$pruvo_kapsam_girdi")
 pruvo_kapsam_rc=$?
 if [ "$pruvo_kapsam_rc" -ne 0 ]; then
   printf '%s
@@ -62,6 +70,9 @@ if [ "$pruvo_kapsam_rc" -ne 0 ]; then
   echo "!! Bilerek atlamak icin: git push --no-verify (gurultulu ve kayitli)." >&2
   exit 1
 fi
+exec < "$pruvo_kapsam_girdi"
+rm -f "$pruvo_kapsam_girdi"
+trap - EXIT HUP INT TERM
 
 # --- WORKTREE TAVAN NOBETI (RAPOR-ONLY; ASLA BLOKLAMAZ) ---------------------
 # Yerel worktree envanteri CI'da anlamsizdir; yalniz bu makinede gorunurluk verir.
