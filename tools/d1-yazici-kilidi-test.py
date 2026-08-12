@@ -174,6 +174,24 @@ def _kayit_yaz(yol, kayit):
         f.write(json.dumps(kayit, ensure_ascii=False))
 
 
+def _ortak_git_dizini(mod, kok):
+    """`kok`un ORTAK git dizini (mutlak, realpath) ya da "" (git agaci DEGIL).
+    Ortam `git_ortami()` ile temizlenir — miras GIT_DIR kesfi bozar."""
+    try:
+        r = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=kok,
+                           capture_output=True, text=True, timeout=10,
+                           env=mod.git_ortami())
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    yol = r.stdout.strip()
+    if r.returncode != 0 or not yol:
+        return ""
+    if not os.path.isabs(yol):
+        yol = os.path.join(kok, yol)
+    yol = os.path.realpath(yol)
+    return yol if os.path.isdir(yol) else ""
+
+
 def _agac_kur(hedef, modul):
     """`hedef` agacinda bir `tools/` kur: gercek tools/ icerigi SYMLINK, olculen modul
     ise `hedef/tools/d1-sync.py` olarak baglanir. Boylece modulun KOK'u `hedef` olur
@@ -434,11 +452,17 @@ def main(modul):
                 mod._kilit_yolu(depo_yok)
                 == os.path.join(depo_yok, mod.KILIT_YEDEK_ADI),
                 mod._kilit_yolu(depo_yok))
-        dogrula("F6 SAF: KILIT MUTLAK yol ve bu depoda ORTAK git dizinine capali "
-                "(KOK'e DEGIL) — worktree'ler ayni kilidi paylasir",
-                os.path.isabs(mod.KILIT)
-                and os.path.basename(mod.KILIT) == mod.KILIT_ADI
-                and os.path.dirname(mod.KILIT) != mod.KOK, mod.KILIT)
+        # 🔴 BEKLENTI OLCULEN AGACTAN TURETILIR, SABIT DEGIL: bu kapi hem gercek depoda
+        # hem de mutasyon AYNASINDA (git deposu OLMAYAN gecici dizin) kosar. Sabit
+        # "ortak git dizininde olmali" iddiasi aynada YANLIS-KIRMIZI yanar ve KONTROL
+        # mutantlarini kirmiziya boyardi ([[nobetci-fikstur-sekli]]).
+        ortak = _ortak_git_dizini(mod, mod.KOK)
+        dogrula("F6 SAF: KILIT MUTLAK ve capasi olculen agacin haline UYUYOR (%s)"
+                % ("depo -> ortak git dizini" if ortak else "depo DEGIL -> KOK'e cekilme"),
+                os.path.isabs(mod.KILIT) and mod.KILIT == (
+                    os.path.join(ortak, mod.KILIT_ADI) if ortak
+                    else os.path.join(mod.KOK, mod.KILIT_YEDEK_ADI)),
+                (mod.KILIT, ortak, mod.KOK))
 
         # ── G. WORKTREE KAPSAMI — AYNI DEPONUN IKI AGACI, TEK CANLI D1 ───────────
         # 🔴 OLCULEN KAPSAM HATASI: kilit KOK'e capalanirsa her worktree AYRI bir
