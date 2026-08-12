@@ -2,15 +2,6 @@
 
 ## 🕐 CI NOBETI — 12 Agu 2026 13:37 yerel / 10:37Z turu (KraL / Tamirci)
 
-**Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🟢 SUPURME rc=0 — HUKUM=SUPURULDU (GERCEK kosum, no-op degil).** Sabit kosucu isciye
-kosturuldu; betik YAZILMADI/DUZENLENMEDI. Basilan satirlar: `GITHUB_BILDIRIM_INBOX=2 ·
-BULUNAN=2 · TASINAN=2 · ATLANAN=0 · CIKAN=2 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 ·
-COP_IZI=3:2026-08-12T13:29:38 · HUKUM=SUPURULDU`. Uc fail-closed alarmin ucu de sessiz,
-muhasebe kapali (`CIKAN = TASINAN = 2`). Tasinan iki kayit da kimlikle secildi ve ikisi de
-GERCEK bir CI arizasini haber veriyordu (`serit-b` + `D1 uzlastirici`, ikisi de `c4a1931`).
-
 **🟠 COP DENETIMI: MESRU=3, YANLIS=8 — SUPURMEYE ATFEDILEMEZ (ucuncu ardisik tur).** Yeni
 dusen dort kayit (68194-68197) da GitHub-disi (3× Meta reklam bildirimi 13:11, 1× Cloudflare
 tanitim) ve kayit id'leri **bitisik blok** = tek elle-silme hareketinin imzasi. Uc bagimsiz iz:
