@@ -1,5 +1,64 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🔁 DEVIR — 12 Agu 2026 ~15:xxZ, eski hesap → yeni hesap (KraL)
+
+**SIRADAKI TEK IS:** `kral/deploy-model-evreni` dalini bitirip main'e al — model evrenini TEK
+kanonik kaynaktan turet, `serit-a2` "Model-kanon-D1-kolonu" ve `serit-a3` "FAZ3-bayrak"
+kapilarini yesillendir; **yayin bu iki kapi yuzunden KAPALI.**
+
+**Nerede kaldim:** Kosum `31595345905` **failure**; suclu `47b6734d` (marka model cipleri merge'u
+— cip 1022→1060, kapsama %67,33→%68,56). Yerelde de kirmizi (`YERELDE=1`), yani CI'ya ozgu degil.
+Kok neden: model evreni + aksan-normalize arama **iki yerde ayri tanimli** (ikiz tanim sinifi).
+Bugun main'e inen ve **canliya INEMEYEN** isler: `47b6734d` cipler · `9e9635fb` ilan tutari
+(kart ↔ yapisal veri 100 kat sapmasi duzeltildi: 30030 → 300) · `e5ecb4fb` vape 4 kayit cikarma.
+🔴 **Kapsama GERI ALINARAK kapi susturulMAYACAK** — cip 1060 / %68,56 korunacak.
+
+**Acik worktree/dal:**
+- `kral/deploy-model-evreni` (worktree `agent-a3251270b98f7b14b`, **locked**) → yayin onarimi,
+  UCUSTA; isciye "yarim da olsa commit'le ve PUSH et" denildi.
+- `kral/k35-k36-site-kusurlari` (`f343b398`, origin'de, 8 commit ileri) → malzeme cipi + jenerator
+  breadcrumb; **veri on-kosulu MaCiT tarafindan kapatildi** (`28ef3b43`), merge KraL kapisi, HAZIR.
+- `kral/k49-d1-yazici-kilidi` · `kral/k78-yayin-erisim-evren-hizalama` → **baska oturumlarin CANLI
+  isi**, worktree'leri kirli, DOKUNMA.
+- `worktree-agent-a9306261f47df111b` (`c09c4c1c`) = K27, **MERGE EDILMEYECEK**: `shop/` odeme
+  duzlemine dokunuyor + urun kaynak linki gizli kayittan turuyor (26.683 dolu kayit) → yalniz
+  atif ZORUNLU (CC BY) kayitlarda cozulmeli, ucretli/uyelikli kaynakta ASLA.
+
+**Baskasinin calisma kopyasinda duran:** `tools/d1-sapma-mutasyon.py` + `tools/d1-sapma-mutasyon-dayanak-kaniti.py`
+(K62 isi) · `tools/paket-deploy-kritik-yol.md` · `.scratch/` · `urunler.json` + `tools/duzelt.py`
+(vape cikarma iscisi UCUSTA, commit `e5ecb4fb` atildi ama is bitmedi).
+
+**Zamanlanmis nobetler (yeni hesapta YENIDEN KURULACAK):** `gunluk-mimar-ihtar` (`0 15 * * *`) ·
+`teftis-takip` (`0 17,23 * * *`) · `macit-parti-surucusu` (`0 */2 * * *`) ·
+`pazar-mimar-optimizasyon` (`0 12 * * 0`) + crontab `37 * * * *` CI nobeti
+(**`~/.claude/cron/.ci-token` OKAN KAPISI — tazelenmezse nobet sessizce olur**).
+
+**Dal emniyeti (devir turu):** **9 dal itildi**, kurtarma etiketi uzakta **6**. Uzaksiz kalan
+TEK dal `kurtarma/stash-8agu-baska-oturum` — **bilerek itilmedi**: pre-push sizinti kapisi
+fail-closed `OLCULEMEDI` verdi (aday butcesi 1.657.912 > 150.000; itmenin menzili patolojik
+genis). Kanca atlama bayragi KULLANILMADI. **Kayip YOK** — K33 yargisinda bu dalin icerigi davranis
+ekseninde main'de dogrulanmisti (19/19 urun main'de, 128 girdi scratch artefakti).
+⚠️ `main` uzaktan **1 commit ileride**: `d6a148af` (Alfa Romeo × Printables dilim-1, katalog
+26065→26068) — MaCiT'in isi, sahibi itecek; diskte duruyor, kayip degil.
+⚠️ Worktree tavani asik (**4**): ucunde main'de olmayan commit var (`agent-a3251270b98f7b14b` 1 ·
+`agent-a3c810bd32146b6b5` 5 · `agent-a3dd92d91c2416ab6` 2) → **kaldirmadan once BUNDLE gerekir**;
+ikisi baska oturumlarin CANLI isi.
+
+**Okan'da bekleyen karar:** Yayin kapali iken beklenecek mi yoksa `47b6734d` revert edilip yayin
+hemen acilacak mi — soruldu, cevap "sonra yap, once devir".
+
+**⚠️ D1 SENKRONU DEVIR ANINDA KIRMIZI (`--durum` rc=1, 1/5 eksen).** Sebep bilinen ve BEKLENEN
+ara hal: vape 4 kaydi katalogdan cikti (26069 → 26065) → o satirlar D1'de "fazla" gorundu ve
+uzlastiricinin silme kolu **KARANTINADA** (ilk gozlemde SILMEZ, `0eb8612b`); ustune esmanli urun
+partisi (`d6a148af`) geldi. **Yeni oturumun ISI: bir sonraki turda `d1-sync.py --durum` ile
+yeniden olc** — hala 5/5 degilse gercek sapma vardir. YAZAN bayragi kor korune kosma (K49:
+yazici kilidi hala YOK).
+
+**Devir aninda hala kosan (yeni oturum bunlari OLU bulacak):** yayin onarimi
+(`kral/deploy-model-evreni`, locked worktree) ve vape cikarma iscisi (`urunler.json` +
+`tools/duzelt.py` calisma kopyasinda acik). Ikisi de diskte iz birakti; yeni oturum once
+`git -C /Users/okan/dev/pruvo status --short` ile bunlari sahiplenmeli.
+
 ## 🕐 CI NOBETI — 12 Agu 2026 13:37 yerel / 10:37Z turu (KraL / Tamirci)
 
 **🟠 COP DENETIMI: MESRU=3, YANLIS=8 — SUPURMEYE ATFEDILEMEZ (ucuncu ardisik tur).** Yeni
