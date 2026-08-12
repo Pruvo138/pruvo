@@ -48,6 +48,18 @@ KAPI NEYİ ÖLÇER (üretilen HTML üzerinden, ÖRNEKLEME YOK — 1043 marka adr
   JS_SERIT      : `?kategori=K` ile şeridin BASTIĞI metin == "… — <beklenen> parça"; beklenen
                   HTML'den bağımsız sayılır (kart+model sayfası birleşimi, o kategoride).
   JS_ALTKUME    : şeritteki sayı görünen kart sayısından küçük olamaz.
+  INVARYANT_*   : 🔴 12 Ağu 2026 (Okan, canlı): aynı marka için ekranda DÖRT ayrı sayı vardı
+                  — beyan 593 · başlık 80 · kapsam beyanı 575 · kapsam başlığı 304. Başlık
+                  O AN BASILAN kartı (`MARKA_KART_N` tavanı) sayıyordu, sayfadan
+                  ERİŞİLEBİLENİ değil; istemcide ise GÖRÜNEN DOM DÜĞÜMÜNÜ. HÜKÜM: sayfada
+                  BEYAN EDİLEN parça sayısı == o yüzeyde ERİŞİLEBİLEN kart sayısı.
+                  INVARYANT_SSR (başlık == erişim, kırılımıyla) · INVARYANT_BEYAN (başlık
+                  ile beyan cümlesi TEK kırılımdan) · INVARYANT_PARCA (bölüm rozetleri
+                  sayfayı BÖLER) · INVARYANT_ALT (düz bağ rozeti alt kümedir) ·
+                  INVARYANT_KAPSAM[_PARCA|_ALT] (aynı hüküm HER `?kategori=` kolunda) ·
+                  SAYAC_KIRILIMLI/SAYAC_N/SAYAC_VAR/SAYAC_BOLUM_BILINEN (fail-closed
+                  envanter: kırılımsız/tanınmayan/eksik rozet KIRMIZI). ÖRNEKLEME YOK:
+                  93 marka + 1052 model sayfasının TAMAMI × her kapsam kolu.
 
 Kullanım:
   python3 tools/marka-sayac-kapisi.py            # kapı (rc=0 yeşil, rc=1 kırmızı)
@@ -94,6 +106,13 @@ TOPLAM_RE = re.compile(r'<p class="mm-toplam" data-katsay="([^"]*)">.*?'
                        r'<span class="mm-sayim-toplam">(\d+)</span>')
 SAYIM_KART_RE = re.compile(r'<span class="mm-sayim-kart">(\d+)</span>')
 SAYIM_MODEL_RE = re.compile(r'<span class="mm-sayim-model">(\d+)</span>')
+# BÖLÜM SAYACI — başlıklardaki "(N)". 🔴 12 Ağu 2026: bu sayı O AN BASILANI yazıyordu
+# (`MARKA_KART_N` tavanı), sayfadan ERİŞİLEBİLENİ değil; beyan cümlesiyle AYNI sayfada
+# ayrışıyordu (canlı: beyan 593 ↔ başlık 80; kapsam kolunda 575 ↔ 304). Artık her başlık
+# KENDİ kümesinin kategori kırılımını taşır ve INVARYANT ekseni bu kırılımı BAĞIMSIZ
+# ölçülen erişim kümesiyle karşılaştırır.
+BOLUM_RE = re.compile(r'<span class="mm-sayim-kart" data-bolum="([^"]*)" '
+                      r'data-katsay="([^"]*)">(\d+)</span>')
 # Artım manifesti (istemcinin veri yolunu BEYAN ettiği yer). 🔴 Kapı bu beyanı KANONİK
 # değerle karşılaştırır; sayfanın kendi beyanını "doğru" kabul ETMEZ (bkz. TESLIM_YOLU).
 MANIFEST_RE = re.compile(r'<script type="application/json" id="mmManifest">(.*?)</script>', re.S)
@@ -142,6 +161,13 @@ function shim(sayfa){
   const sayimToplam = {textContent: ""};
   const sayimKart = {textContent: ""};
   const sayimModel = {textContent: ""};
+  // BÖLÜM SAYAÇLARI: başlıkların taşıdığı "(N)". Şim onları vermezse `bolumSayaclari()`
+  // dalı HİÇ koşmaz ve "başlık o an basılanı yazıyor" kusuru kapıdan sessizce geçerdi.
+  const bolumler = (sayfa.bolumler || []).map((b) => {
+    const attrs = {"data-bolum": b.bolum, "data-katsay": b.katsay};
+    return {bolum: b.bolum, textContent: String(b.n),
+            getAttribute: (n) => (attrs[n] === undefined ? null : attrs[n])};
+  });
   const kutu = {
     kapsamNot: {style: {display: "none"}},
     kapsamNotMetin: {textContent: ""},
@@ -157,12 +183,13 @@ function shim(sayfa){
     ".mm-toplam[data-katsay]": toplamEl,
     "a[data-kapsam-tasi]": [],
     ".mm-sayim-kart": [sayimKart],
+    ".mm-sayim-kart[data-katsay]": bolumler,
     ".mm-sayim-model": [sayimModel],
     ".mm-sayim-toplam": [sayimToplam]
   };
   return {dok: {querySelectorAll: (s) => (harita[s] || []),
                 getElementById: (id) => (kutu[id] || null)},
-          kartlar, duzler, kutu, sayimToplam};
+          kartlar, duzler, kutu, sayimToplam, bolumler};
 }
 
 // SENTETİK FAIL-CLOSED FİKSTÜRLERİ: gerçek sayfalarda kırılım HEP sağlamdır, bu yüzden
@@ -172,7 +199,8 @@ const sentetik = {};
 for(const f of VERI.sentetik){
   const s = shim(f);
   K.uygula(s.dok, {search: "?kategori=" + encodeURIComponent(f.kategori), pathname: "/x/"});
-  sentetik[f.ad] = {serit: s.kutu.kapsamNotMetin.textContent, rozet: s.sayimToplam.textContent};
+  sentetik[f.ad] = {serit: s.kutu.kapsamNotMetin.textContent, rozet: s.sayimToplam.textContent,
+                    bolum: s.bolumler.map((b) => b.textContent)};
 }
 
 // ARTIM MODÜLÜ: istemcinin çizeceği kart gövdesi Python `_kart` ile BAYT-AYNI mı.
@@ -222,7 +250,9 @@ for(const yol of Object.keys(VERI.sayfalar)){
       rozet: s.sayimToplam.textContent,
       gorunenKart: s.kartlar.filter((k) => k.style.display !== "none").length,
       gorunenDuz: s.duzler.filter((k) => k.style.display !== "none").length,
-      gizlenenDuz: s.duzler.filter((k) => k.style.display === "none").length
+      gizlenenDuz: s.duzler.filter((k) => k.style.display === "none").length,
+      // Başlıkların kapsam altında BASTIĞI sayılar (INVARYANT ekseninin istemci ucu).
+      bolum: s.bolumler.map((b) => ({bolum: b.bolum, metin: b.textContent}))
     };
   }
   cikti[yol] = kayit;
@@ -232,11 +262,28 @@ console.log(JSON.stringify(cikti));
 
 
 class Kapi:
+    """İddia defteri + İNSANA GÖSTERİLEN ÖZETİN TEK KAYNAĞI.
+
+    🔴 NEDEN SAYFA BURADA KAYITLI (12 Ağu 2026, bağımsız çürütücü — bu kapının KENDİ
+    içinde, tam da bu işin onardığı sınıf): kapı `DUSEN=2292 HUKUM=KIRMIZI` derken
+    `--dokum` özeti "sapan marka 0" basıyordu. Sebep İKİ AYRI SAYIM NOKTASIYDI: hüküm
+    `self.dusen`den, özet ise AYRI bir karşılaştırmadan (üretilen toplam != gerçek toplam)
+    doğuyordu. Onarılan kusurun aynısı: kabul kümesi ile özet/kıyas kümesi ayrı
+    fonksiyonlardan türeyince SESSİZCE ayrışır ([[kabul-araligi-karsilastirma-araligi]] ·
+    [[ikiz-tanim-sessiz-ayrisma]]). Yarın biri `--dokum`a bakıp "sapan 0, sorun yok" der
+    ve kapı KIRMIZIYKEN iş kapanır.
+
+    ÇÖZÜM: özet, HÜKMÜ BESLEYEN `self.dusen` kümesinden türer — ikinci sayım noktası YOK.
+    Sapan sayfa, düşen iddianın KENDİ kimliğinden çözülür (`sayfa_coz`). Kaçış deliği
+    `OZET_KANONIK/aile_bilinen` ile fail-closed KIRMIZI kapatılır: sayfaya çözülmeyen bir
+    düşen iddia, KÜRESEL aile listesinde BEYAN EDİLMİŞ olmak zorundadır."""
+
     def __init__(self):
         self.gecen = 0
         self.dusen = []
+        self.sayfalar = frozenset()      # sayfa evreni (tara()'dan sonra atanır)
 
-    def iddia(self, kimlik, kosul, detay=""):
+    def iddia(self, kimlik, kosul, detay="", sayfa=None):
         if kosul:
             self.gecen += 1
         else:
@@ -245,6 +292,33 @@ class Kapi:
     @property
     def taban(self):
         return self.gecen + len(self.dusen)
+
+    def sayfa_coz(self, dusen_satiri):
+        """Bir DÜŞEN satırının ait olduğu sayfa yolu (yoksa None).
+        Kimlik biçimi: `<AILE>/<sayfa yolu>[/<kategori|indeks>] — <detay>`."""
+        parcalar = dusen_satiri.split(" — ")[0].split("/")
+        for n in range(len(parcalar), 1, -1):
+            aday = "/".join(parcalar[1:n])
+            if aday in self.sayfalar:
+                return aday
+        return None
+
+    @property
+    def sapan_sayfalar(self):
+        """İNSANA GÖSTERİLEN ÖZETİN TEK KAYNAĞI — hükmü besleyen kümeden türer."""
+        return {y for y in (self.sayfa_coz(d) for d in self.dusen) if y}
+
+
+# 🔴 SAYFAYA BAĞLI OLMAYAN (küresel) iddia aileleri — TEK TEK BEYAN EDİLİR.
+# Düşen bir iddia ne bir sayfaya çözülüyor ne de burada beyan edilmişse kapı
+# `OZET_KANONIK/aile_bilinen` ile KIRMIZI yanar: yeni bir eksen sayfa taşımayan bir
+# kimlik biçimiyle eklenirse özet onu SESSİZCE saymaz olurdu — kabul kümesi ile özet
+# kümesinin ayrışması bu depoda ölçülmüş bir sınıftır.
+KURESEL_AILELER = frozenset({
+    "BIRIM_TEKIL", "BIRIM_KALEM", "BIRIM_AYRIM", "MARKA_LITERAL", "FAIL_CLOSED",
+    "TESLIM_KANON", "ARTIM", "ARTIM_SUZ", "ARTIM_ADRES", "JS_SENTETIK",
+    "JS_DUZ_KONTROL", "OZET_KANONIK",
+})
 
 
 def kaynak_izi():
@@ -320,6 +394,9 @@ def tara(tmp):
             "toplam": int(t.group(2)) if t else None,
             "sayim_kart": [int(x) for x in SAYIM_KART_RE.findall(page)],
             "sayim_model": [int(x) for x in SAYIM_MODEL_RE.findall(page)],
+            # (bolum, kırılım, basılan N) — başlıkların taşıdığı sayı ve kaynağı
+            "bolumler": [{"bolum": b, "katsay": coz_katsay(k), "katsay_ham": k.replace(
+                "&quot;", '"'), "n": int(n)} for b, k, n in BOLUM_RE.findall(page)],
         }
     return sayfalar
 
@@ -431,7 +508,7 @@ def marka_literal_iddialari(kapi, mm, index_html):
                        r")(?![0-9A-Za-zÇĞİÖŞÜçğıöşü])")
     hedefler = {}
     for ad in ("_tekil", "sayfa_kalemleri", "bolum_ayrimi", "_kart_yuk_kaydi",
-               "_toplam_bloku", "_marka_sayfasi", "_model_sayfasi"):
+               "_toplam_bloku", "_bolum_sayaci", "_marka_sayfasi", "_model_sayfasi"):
         fn = getattr(mm, ad, None)
         if fn is not None:                    # yüklem yoksa AYRI eksen kırmızı yakar
             hedefler["mm." + ad] = inspect.getsource(fn)
@@ -439,7 +516,8 @@ def marka_literal_iddialari(kapi, mm, index_html):
         govde = getattr(mm, oz, None)
         if govde is not None:
             hedefler[ad] = govde
-    for ad in ("marka-sayac-kapisi.py", "marka-sayac-mutasyon.py"):
+    for ad in ("marka-sayac-kapisi.py", "marka-sayac-mutasyon.py",
+               "marka-invaryant-sayac-mutasyon.py"):
         with open(os.path.join(TOOLS, ad), encoding="utf-8") as f:
             hedefler["tools/" + ad] = f.read()
     for ad, metin in hedefler.items():
@@ -628,6 +706,77 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         kapi.iddia("KIRILIM_KAT/" + yol, tablo == beklenen_tablo,
                    "gömülü %r != ölçülen %r" % (tablo, beklenen_tablo))
 
+    # ═══════════════════════════════════════════════ İNVARYANT (12 Ağu 2026, Okan, canlı)
+    # 🔴 BELİRTİ: aynı marka için ekranda DÖRT ayrı sayı — beyan 593 · başlık 80 ·
+    # kapsam beyanı 575 · kapsam başlığı 304. Hata SESSİZ: sayfa "çalışıyor" görünüyor.
+    # HÜKÜM: sayfada BEYAN EDİLEN parça sayısı == o yüzeyde ERİŞİLEBİLEN kart sayısı.
+    # 🔴 ÖRNEKLEME YOK: TÜM marka VE model sayfaları (sayı beyan eden her yüzey) ölçülür;
+    # erişim kümesi kapının KENDİ türetmesidir (SSR kart ∪ düz bağ ∪ model sayfası kartı),
+    # sayfanın kendi beyanı "doğru" KABUL EDİLMEZ.
+    for yol, s in sayfalar.items():
+        gercek_tablo = {k: len(v) for k, v in erisim[yol].items() if k}
+        gercek = len(tumu(erisim[yol]))
+        bl = s["bolumler"]
+        eris = [b for b in bl if b["bolum"] == "erisim"]
+        parca = [b for b in bl if b["bolum"] == "parca"]
+        alt = [b for b in bl if b["bolum"] == "alt"]
+        # (a) FAIL-CLOSED ENVANTER: kırılım TAŞIMAYAN sayım rozeti KALMAYACAK. Böyle bir
+        # rozet istemcide DOM sayımına düşer = onarılan kusurun geri gelme yolu.
+        kapi.iddia("SAYAC_KIRILIMLI/" + yol, not s["sayim_kart"],
+                   "kırılım taşımayan %d sayım rozeti var (istemcide DOM sayımına düşer): %r"
+                   % (len(s["sayim_kart"]), s["sayim_kart"][:5]))
+        # 🔴 İKİ YÖNLÜ İŞARET: kapı onarım ÖNCESİ sayfa şeklini de ÖLÇEBİLİR kalmalı,
+        # yoksa "kaç sayfa GERÇEKTEN yalan sayı basıyordu" sorusu repo araçlarıyla
+        # yeniden üretilemez ve geçici bir betiğe mahkûm olur
+        # ([[mutasyon-kaniti-yeniden-uretilebilir]] aynı ilke: ölçüm repoda koşar durur).
+        # Kırılımsız rozet TAŞIYAN sayfalarda o rozetin DEĞERİ erişilebilir toplam mı?
+        # (Onarım sonrası kırılımsız rozet KALMADIĞI için bu eksen boş geçer.)
+        if s["sayim_kart"]:
+            kapi.iddia("SAYAC_ESKI_DEGER/" + yol,
+                       all(n == gercek for n in s["sayim_kart"]),
+                       "kırılımsız başlık sayısı %r != erişilebilir %d (sayfa YALAN SAYI "
+                       "basıyor)" % (s["sayim_kart"], gercek))
+        kapi.iddia("SAYAC_BOLUM_BILINEN/" + yol, len(eris) + len(parca) + len(alt) == len(bl),
+                   "tanınmayan data-bolum: %r"
+                   % (sorted(set(b["bolum"] for b in bl) - {"erisim", "parca", "alt"}),))
+        # (b) her rozetin BASTIĞI sayı KENDİ kırılımının toplamıdır (tek kaynak)
+        for i, b in enumerate(bl):
+            kapi.iddia("SAYAC_N/%s/%d" % (yol, i), b["n"] == sum(b["katsay"].values()),
+                       "basılan %d != kendi kırılımının toplamı %d (bolum=%s)"
+                       % (b["n"], sum(b["katsay"].values()), b["bolum"]))
+        # (c) 🔴 ÇEKİRDEK: "erisim" rozeti sayfanın TÜM erişilebilir yüzeyini beyan eder —
+        # SAYISI da KIRILIMI da bağımsız ölçülenle BİREBİR.
+        for i, b in enumerate(eris):
+            kapi.iddia("INVARYANT_SSR/%s/%d" % (yol, i),
+                       b["n"] == gercek and b["katsay"] == gercek_tablo,
+                       "başlık %d / kırılım %r != erişilebilir %d / %r"
+                       % (b["n"], b["katsay"], gercek, gercek_tablo))
+        # (d) BEYAN ile BAŞLIK TEK kanonik kırılımdan doğar (iki sayı ayrışamaz)
+        if eris:
+            kapi.iddia("INVARYANT_BEYAN/" + yol,
+                       all(b["katsay"] == (s["toplam_katsay"] or {}) and b["n"] == s["toplam"]
+                           for b in eris),
+                       "başlık beyan cümlesinden AYRIŞTI (başlık %r, beyan %r)"
+                       % ([b["n"] for b in eris], s["toplam"]))
+        # (e) "parca" rozetleri sayfayı BÖLER: kategori kategori toplamları erişim kümesi
+        if parca:
+            top = {}
+            for b in parca:
+                for k, v in b["katsay"].items():
+                    top[k] = top.get(k, 0) + v
+            kapi.iddia("INVARYANT_PARCA/" + yol, top == gercek_tablo,
+                       "bölüm rozetleri toplamı %r != erişilebilir %r" % (top, gercek_tablo))
+        # (f) "alt" rozeti erişim kümesinin ALT kümesidir (kategori kategori)
+        for i, b in enumerate(alt):
+            asan = {k: v for k, v in b["katsay"].items() if v > gercek_tablo.get(k, 0)}
+            kapi.iddia("INVARYANT_ALT/%s/%d" % (yol, i), not asan,
+                       "alt bölüm rozeti erişim kümesini AŞIYOR: %r" % (asan,))
+        # (g) sayı beyan eden her yüzeyde rozet BULUNMALI: yoksa "başlık sayı taşımasın"
+        # kararı sessizce alınmış olur ve invaryant ölçülemez hâle gelir (dejenere yeşil).
+        kapi.iddia("SAYAC_VAR/" + yol,
+                   len(eris) >= 1 if yol.count("/") == 1 else len(parca) >= 1,
+                   "sayfa hiç bölüm rozeti taşımıyor (kart yüzeyi beyan edilmiyor)")
+
     for yol, marka in slug_marka.items():
         s = marka_sayfalari.get(yol)
         if s is None:
@@ -749,7 +898,26 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
          "butonlar": [{"href": "/marka/x/y/", "katsay": '{"%s":5}' % KAT}],
          "toplamKatsay": '{"%s":7,"Ofis":1}' % KAT,
          "serit": "Kapsam: yalnız %s kategorisi — 7 parça" % KAT, "rozet": "7"},
+        # BÖLÜM ROZETİ, SAĞLAM: başlık kapsam içindeki sayıya DÜŞER (13 -> 9). Gerçek
+        # sayfalarda rozet HEP sağlamdır, bu yüzden aşağıdaki bozuk dallar yalnız sentetik
+        # fikstürle zorlanabilir (fail-open mutantı aksi hâlde hayatta kalırdı).
+        {"ad": "bolum_saglam", "kategori": KAT, "kartlar": [KAT], "butonlar": [],
+         "toplamKatsay": '{"%s":9}' % KAT,
+         "bolumler": [{"bolum": "erisim", "katsay": '{"%s":9,"Ofis":4}' % KAT, "n": 13}],
+         "serit": "Kapsam: yalnız %s kategorisi — 9 parça" % KAT, "rozet": "9",
+         "bolum": ["9"]},
+        # BÖLÜM ROZETİ, BOZUK/BOŞ kırılım: sayı BASILMAZ ("—"). Fail-open'a çeviren bir
+        # düzeltme burada 0 ya da DOM sayısı basar ([[duzeltme-fail-open-cevirebilir]]).
+        {"ad": "bolum_bozuk", "kategori": KAT, "kartlar": [KAT], "butonlar": [],
+         "toplamKatsay": '{"%s":9}' % KAT,
+         "bolumler": [{"bolum": "erisim", "katsay": "{bozuk", "n": 13},
+                      {"bolum": "alt", "katsay": "", "n": 2}],
+         "serit": "Kapsam: yalnız %s kategorisi — 9 parça" % KAT, "rozet": "9",
+         "bolum": ["—", "—"]},
     ]
+    for _f in sentetik:
+        _f.setdefault("bolumler", [])
+        _f.setdefault("bolum", [])
     # ---- ARTIM EKSENİ GİRDİSİ: her marka sayfasının yükündeki HER kalem için, istemcinin
     # çizeceği kart ile Python `_kart`ın çıktısını KARŞILAŞTIRILABİLİR hâle getir.
     # ÖRNEKLEME YOK: bütün kalemler ölçülür (kimlik gibi, kart gövdesi de 93/93 sayfada).
@@ -812,6 +980,8 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                          for h, t in s["butonlar"]],
             "baglar": [k for k, _i in s["baglar"]],
             "toplamKatsay": s["toplam_katsay_ham"],
+            "bolumler": [{"bolum": b["bolum"], "katsay": b["katsay_ham"], "n": b["n"]}
+                         for b in s["bolumler"]],
             "olcumKategorileri": sorted(k for k in erisim[yol] if k),
         }
     girdi = os.path.join(tmp, "js-girdi.json")
@@ -889,6 +1059,8 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                    "şerit %r != %r" % (r.get("serit"), f["serit"]))
         kapi.iddia("JS_SENTETIK/%s/rozet" % f["ad"], r.get("rozet") == f["rozet"],
                    "rozet %r != %r" % (r.get("rozet"), f["rozet"]))
+        kapi.iddia("JS_SENTETIK/%s/bolum" % f["ad"], r.get("bolum") == f["bolum"],
+                   "bölüm rozetleri %r != %r" % (r.get("bolum"), f["bolum"]))
 
     for yol, s in sayfalar.items():
         r = js_sonuc.get(yol)
@@ -915,6 +1087,26 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                        "görünen bağ %r (beklenen %d), gizlenen %r (beklenen %d)"
                        % (olcum.get("gorunenDuz"), len(bag_kat), olcum.get("gizlenenDuz"),
                           len(s["baglar"]) - len(bag_kat)))
+            # 🔴 İNVARYANTIN İSTEMCİ UCU — kusur TAM BURADAYDI: başlık GÖRÜNEN DOM
+            # düğümünü yazıyordu ve artımlı çizilecek kalemler henüz DOM'da olmadığı için
+            # kapsam kolunda beyan 575 iken başlık 304 basıyordu. Artık kapsam altında da
+            # BEYAN == ERİŞİLEBİLİR olmak zorunda; her sayfa × her kapsam kolu ölçülür.
+            bo = olcum.get("bolum") or []
+            eris_m = [b["metin"] for b in bo if b["bolum"] == "erisim"]
+            kapi.iddia("INVARYANT_KAPSAM/%s/%s" % (yol, kat),
+                       all(m == str(bek) for m in eris_m),
+                       "kapsam başlığı %r != erişilebilir %d" % (eris_m, bek))
+            parca_m = [b["metin"] for b in bo if b["bolum"] == "parca"]
+            if parca_m:
+                kapi.iddia("INVARYANT_KAPSAM_PARCA/%s/%s" % (yol, kat),
+                           all(m.isdigit() for m in parca_m)
+                           and sum(int(m) for m in parca_m if m.isdigit()) == bek,
+                           "bölüm başlıkları toplamı %r != erişilebilir %d" % (parca_m, bek))
+            alt_m = [b["metin"] for b in bo if b["bolum"] == "alt"]
+            kapi.iddia("INVARYANT_KAPSAM_ALT/%s/%s" % (yol, kat),
+                       all(m.isdigit() and int(m) == olcum.get("gorunenDuz") for m in alt_m),
+                       "düz bağ başlığı %r != görünen bağ %r"
+                       % (alt_m, olcum.get("gorunenDuz")))
 
     # KONTROL: JS_DUZ ekseni DEJENERE olmasın. Hiçbir sayfada bağ öğesi gizlenmiyorsa
     # "0 == 0" karşılaştırması her mutantı yeşil geçirir ([[fikstur-degeri-mutasyonu-korlestirir]]).
@@ -928,6 +1120,39 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
 
     bilgi = {"mukerrer": mukerrer_toplam, "marka": len(marka_sayfalari),
              "model": len(model_sayfalari), "bag": duz_toplam, "tmp": tmp}
+
+    # ═══════════════════════════════════ ÖZET ↔ HÜKÜM TEK KAYNAK (12 Ağu 2026)
+    # 🔴 BU KAPININ KENDİ İÇİNDE, ONARDIĞI SINIFIN AYNISI VARDI (bağımsız çürütücü ölçtü):
+    # merge-base jeneratörüyle kapı `DUSEN=2292 HUKUM=KIRMIZI` derken `--dokum` özeti
+    # "sapan marka 0" basıyordu. Hüküm `kapi.dusen`den, özet ise AYRI bir karşılaştırmadan
+    # (üretilen toplam != gerçek toplam + katalog ayrışması) doğuyordu — yani kabul kümesi
+    # ile özet kümesi İKİ AYRI SAYIM NOKTASINDAN geliyordu ve sessizce ayrıştılar. Marka
+    # sayfasında beyanın `toplam`dan, başlığın `basili`den doğması NE İSE bu O'dur.
+    # Artık özet HÜKMÜ BESLEYEN kümeden türer (`kapi.sapan_sayfalar`); ikinci sayım yok.
+    kapi.sayfalar = frozenset(sayfalar)
+    cozulmeyen = sorted({d.split(" — ")[0].split("/")[0] for d in kapi.dusen
+                         if kapi.sayfa_coz(d) is None} - KURESEL_AILELER)
+    kapi.iddia("OZET_KANONIK/aile_bilinen", not cozulmeyen,
+               "düşen iddia ne bir SAYFAYA çözülüyor ne de KURESEL_AILELER'de beyan "
+               "edilmiş: %s — özet bu aileyi SESSİZCE saymaz (hüküm KIRMIZI iken insan "
+               "'sapan 0' okur)" % (cozulmeyen,))
+    sapan_sayfalar = kapi.sapan_sayfalar
+    sapan_marka = {y for y in sapan_sayfalar if y.count("/") == 1}
+    # KONTROL: kapı kırmızıysa özet SUSAMAZ. Sayfaya bağlı bir eksen düştüğü hâlde özet
+    # sıfır sapan gösteriyorsa iki uç ayrışmış demektir (fail-closed).
+    sayfali_dusen = [d for d in kapi.dusen if kapi.sayfa_coz(d)]
+    kapi.iddia("OZET_KANONIK/ozet_susmuyor", bool(sapan_sayfalar) == bool(sayfali_dusen),
+               "sayfaya bağlı düşen iddia %d ama özetteki sapan sayfa %d — özet hükümden "
+               "KOPMUŞ" % (len(sayfali_dusen), len(sapan_sayfalar)))
+    # AİLE KIRILIMI — hangi eksen kaç MARKA sayfasını sapan yaptı (aynı kanonik kümeden).
+    aile_marka = {}
+    for d in kapi.dusen:
+        y = kapi.sayfa_coz(d)
+        if y and y.count("/") == 1:
+            aile_marka.setdefault(d.split(" — ")[0].split("/")[0], set()).add(y)
+    bilgi["aile_marka"] = {a: len(v) for a, v in sorted(aile_marka.items())}
+    bilgi["sapan_marka"] = len(sapan_marka)
+    bilgi["sapan_sayfa"] = len(sapan_sayfalar)
 
     # ---------------------------------------------------------------- BÜYÜKLÜK KATMANLARI
     # 🔴 TOPLAM TEKİL SAPMAYI GİZLER: onarım yalnız çok-ürünlü markalarda çalışıyorsa
@@ -948,14 +1173,26 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         d0 = katmanlar.setdefault((seviye, kt), {"sayfa": 0, "sapan": [], "mukerrer": 0})
         d0["sayfa"] += 1
         d0["mukerrer"] += len(s["kartlar"]) - len(set(i for _k, i in s["kartlar"]))
-        gercek = len(tumu(erisim[yol]))
-        if s["toplam"] != gercek:
-            d0["sapan"].append("%s (%s!=%d)" % (yol, s["toplam"], gercek))
-        elif yol.count("/") == 1:
-            marka = slug_marka.get(yol)
-            if marka and tumu(erisim[yol]) != uyelik.get(marka, set()):
-                d0["sapan"].append("%s (katalog ayrışması)" % yol)
+        # 🔴 SAPAN, HÜKMÜ BESLEYEN KÜMEDEN OKUNUR — burada YENİDEN HESAPLANMAZ.
+        # (Eski kod `s["toplam"] != gercek` ile ayrı bir kıyas kuruyordu: beyan cümlesi
+        # doğruyken BAŞLIK yalan söyleyen 35 markayı GÖRMÜYORDU.)
+        if yol in sapan_sayfalar:
+            aileler = sorted({d.split(" — ")[0].split("/")[0] for d in kapi.dusen
+                              if kapi.sayfa_coz(d) == yol})
+            d0["sapan"].append("%s (%s)" % (yol, ",".join(aileler)))
     bilgi["katmanlar"] = katmanlar
+
+    # 🔴 ÖZETİN KAYNAĞI ÖLÇÜLÜR (beyan değil): insana BASILAN tablonun sapan kümesi,
+    # hükmü besleyen kümenin AYNISI olmak zorunda. Özeti hükümden koparan her değişiklik
+    # burada KIRMIZI yakar — mutasyon bataryası bu ekseni ayrı bir mutantla sınar.
+    basilan_sapan = {satir.split(" ")[0] for d0 in katmanlar.values()
+                     for satir in d0["sapan"]}
+    kapi.iddia("OZET_KANONIK/ozet_kaynagi", basilan_sapan == sapan_sayfalar,
+               "insana basılan özetin sapan kümesi (%d) hükmü besleyen kümeden (%d) "
+               "AYRIŞTI — yalnız özette olan %s, yalnız hükümde olan %s"
+               % (len(basilan_sapan), len(sapan_sayfalar),
+                  sorted(basilan_sapan - sapan_sayfalar)[:3],
+                  sorted(sapan_sayfalar - basilan_sapan)[:3]))
 
     if dokum:
         print("== BÜYÜKLÜK KATMANLARI (üretilen == gerçek) ==")
@@ -998,6 +1235,13 @@ def main():
     print("IDDIA=%d/%d  DUSEN=%d  MUKERRER_KART=%s  SAYFA=marka %s + model %s"
           % (kapi.gecen, kapi.taban, len(kapi.dusen), bilgi.get("mukerrer"),
              bilgi.get("marka"), bilgi.get("model")))
+    # 🔴 ÖZET SAYI HÜKÜMLE AYNI KÜMEDEN — `--dokum` beklemeden GÖRÜNÜR. (Bu satır
+    # olmadığı için "DUSEN=2292 KIRMIZI" ile "sapan marka 0" aynı koşumda basılabiliyordu.)
+    print("SAPAN_MARKA=%s  SAPAN_SAYFA=%s"
+          % (bilgi.get("sapan_marka"), bilgi.get("sapan_sayfa")))
+    print("AILE_SAPAN_MARKA=" + (",".join("%s:%d" % kv for kv in
+                                          sorted((bilgi.get("aile_marka") or {}).items()))
+                                 or "-"))
     print("HUKUM=" + ("YESIL" if rc == 0 else ("KIRMIZI" if rc == 1 else "OLCULEMEDI")))
     return rc
 

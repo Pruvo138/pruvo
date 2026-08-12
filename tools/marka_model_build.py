@@ -1267,6 +1267,22 @@ _KAPSAM_JS_GOVDE = r"""
     var el = dok.querySelectorAll(sec), i;
     for(i = 0; i < el.length; i++){ el[i].textContent = String(deger); }
   }
+  // BÖLÜM SAYAÇLARI — başlıklardaki "(N)" sayıları. 🔴 DOM SAYIMI DEĞİL, KIRILIMDAN:
+  // marka sayfasının kartları artımlı çizilir, bu yüzden görünen DÜĞÜM sayısı o an
+  // BASILANI verir, kullanıcının ERİŞEBİLDİĞİNİ değil (canlıda ölçüldü: beyan 593 ↔
+  // başlık 80; kapsam kolunda 575 ↔ 304). Her başlık KENDİ kümesinin kırılımını taşır ve
+  // beyan cümlesiyle AYNI sayimla() ile okunur — ikinci sayma kuralı yok.
+  // FAIL-CLOSED: kırılım yok/bozuksa "—" (yanlış sayı basmaktansa sayı basma).
+  function bolumSayaclari(dok, c){
+    var el = dok.querySelectorAll(".mm-sayim-kart[data-katsay]"), i, ham, saglam;
+    for(i = 0; i < el.length; i++){
+      ham = el[i].getAttribute("data-katsay");
+      saglam = false;
+      try{ saglam = !!ham && !!JSON.parse(ham); }catch(e){ saglam = false; }
+      el[i].textContent = saglam ? String(sayimla(ham, c)) : "—";
+    }
+    return el.length;
+  }
   function uygula(dok, loc){
     var ham = null;
     try{
@@ -1284,11 +1300,17 @@ _KAPSAM_JS_GOVDE = r"""
     // DÜZ BAĞ ÖĞELERİ (model sayfası olmayan kalemlerin liste girdileri): kart DEĞİL ama
     // sayfada GÖRÜNÜR -> AYNI `gorunur()` yüklemiyle süzülür ve AYNI sayaca girer.
     // 🔴 EK SEÇİCİ, DEĞİŞTİRİLEN SEÇİCİ DEĞİL: `.card[data-kat]` davranışı bayt-aynı kalır.
+    // 🔴 AYRI SAYAÇ (gorunenBag), gorunenKart'a EKLENMEZ: düz bağ girdileri kartlarla AYNI
+    // ürünleri gösterir. Artım kalanı çizdikten sonra aynı ürün HEM kart HEM bağ olarak
+    // görünür; naif toplam kanonik toplamı AŞAR ve aşağıdaki tutarlılık kapısı sayıyı
+    // sessizce "—"ye düşürürdü (fail-closed ama YANLIŞ sebeple). İki küme AYRI AYRI
+    // toplamın alt kümesidir; kapı ikisini de ayrı ölçer.
+    var gorunenBag = 0;
     var duzler = dok.querySelectorAll(".mm-kalan-oge[data-kat]");
     for(i = 0; i < duzler.length; i++){
       var ad2 = gorunur(duzler[i].getAttribute("data-kat"), c);
       duzler[i].style.display = ad2 ? "" : "none";
-      if(ad2){ gorunenKart++; }
+      if(ad2){ gorunenBag++; }
     }
     var btnlar = dok.querySelectorAll(".mm-model-btn[data-katsay]"), gorunenModel = 0;
     for(i = 0; i < btnlar.length; i++){
@@ -1311,8 +1333,12 @@ _KAPSAM_JS_GOVDE = r"""
     // KANONİK TOPLAM. Tutarlılık kapısı: toplam görünen karttan KÜÇÜK olamaz (kartlar
     // toplamın alt kümesidir) — ihlal = kırılım bayat/bozuk demektir, sayı BASILMAZ.
     var toplam = toplamla(dok, c);
-    if(toplam !== null && toplam < gorunenKart){ toplam = null; }
+    if(toplam !== null && (toplam < gorunenKart || toplam < gorunenBag)){ toplam = null; }
+    // GERİYE DÖNÜK KOL: `data-katsay` TAŞIMAYAN bir sayım rozeti eski davranışta kalır
+    // (görünen kart sayısı). ÜRETİLEN her sayfada attribute ZORUNLUDUR; kapı bunu TÜM
+    // sayfa evreninde ölçer (fail-closed), yani üretimde bu kol hiç çalışmaz.
     yazSayim(dok, ".mm-sayim-kart", gorunenKart);
+    bolumSayaclari(dok, c);
     yazSayim(dok, ".mm-sayim-model", gorunenModel);
     yazSayim(dok, ".mm-sayim-toplam", toplam === null ? "—" : toplam);
 
@@ -1331,11 +1357,15 @@ _KAPSAM_JS_GOVDE = r"""
     var sifirla = dok.getElementById("kapsamNotSifirla");
     if(sifirla && loc && loc.pathname){ sifirla.setAttribute("href", loc.pathname); }
     var bos = dok.getElementById("kapsamBos");
-    if(bos){ bos.style.display = (gorunenKart === 0 && gorunenModel === 0) ? "" : "none"; }
+    if(bos){
+      bos.style.display = (gorunenKart === 0 && gorunenBag === 0 && gorunenModel === 0)
+        ? "" : "none";
+    }
     return c;
   }
   g.PRUVO_KAPSAM = {coz: coz, gorunur: gorunur, sayimla: sayimla, sorgu: sorgu,
-                    toplamla: toplamla, uygula: uygula, KATEGORILER: KATEGORILER};
+                    toplamla: toplamla, bolumSayaclari: bolumSayaclari,
+                    uygula: uygula, KATEGORILER: KATEGORILER};
 })(typeof window !== "undefined" ? window : globalThis);
 """
 
@@ -2167,6 +2197,30 @@ def _toplam_bloku(esc, kalemler, oncul):
                         esc("parça listeleniyor.")))
 
 
+def _bolum_sayaci(esc, urunler, bolum):
+    """BÖLÜM SAYACI — bir başlığın taşıdığı sayı, o bölümün KENDİ kategori kırılımından.
+
+    🔴 NEDEN VAR (12 Ağu 2026, Okan canlıda bildirdi — SESSİZ kusur): bu sayı O AN BASILAN
+    kart sayısını (`MARKA_KART_N` tavanı) yazıyordu, sayfadan ERİŞİLEBİLEN kalem sayısını
+    DEĞİL. Aynı sayfada iki sayı görünüyordu: beyan cümlesi "593 parça listeleniyor",
+    başlık "… parçaları (80)". Kapsam kolunda ÜÇÜNCÜ bir sayı doğuyordu (beyan 575 ↔
+    başlık 304): istemci başlığa GÖRÜNEN DOM DÜĞÜMÜ sayısını yazıyordu ve artımlı çizilecek
+    kalemler henüz DOM'da değildi. Sayfa "çalışıyor" görünür, kimse kırmızı yakmaz, müşteri
+    kataloğu eksik sanır.
+
+    🔴 ÇÖZÜM MARKA-BAĞIMSIZ VE TEK NOKTADIR: her başlık KENDİ kümesinin kategori kırılımını
+    taşır (`data-katsay`), istemci onu model butonlarıyla ve beyan cümlesiyle AYNI
+    `sayimla()` fonksiyonundan okur. DOM sayımı bir daha başlığa YAZILMAZ; ikinci bir sayma
+    kuralı doğamaz → [[ikiz-tanim-sessiz-ayrisma]].
+
+    `bolum` = kapının okuduğu SEMANTİK sınıf (marka-özel dal değil, sayfa-türü bağımsız):
+      "erisim" — sayfanın TÜM erişilebilir kart yüzeyi (beyan ile EŞİT olmak ZORUNDA),
+      "parca"  — sayfayı BÖLEN ayrık bölüm (bölümlerin toplamı erişim kümesini verir),
+      "alt"    — erişim kümesinin ALT kümesi (aynı ürünleri düz bağ olarak listeler)."""
+    return ('<span class="mm-sayim-kart" data-bolum="%s" data-katsay="%s">%d</span>'
+            % (bolum, esc(_kat_sayim_json(urunler)), len(urunler)))
+
+
 def _urun_grid(ctx, urunler, attr_of=None, grid_attr=""):
     parts = [_kart(ctx, p, attr_of(p) if attr_of else "") for p in urunler if p.get("id")]
     if not parts:
@@ -2207,8 +2261,7 @@ def _kusak_bolumleri_html(ctx, marka_slug, g):
         if b["sayfa"]:
             ad = ('<a href="/marka/' + marka_slug + '/' + b["slug"] + '/">' + ad + '</a>')
         parts.append('<h2 class="mm-sec-h mm-kusak-h" data-kusak="' + esc(b["display"]) + '">'
-                     + ad + ' (<span class="mm-sayim-kart">' + str(len(b["urunler"]))
-                     + '</span>)</h2>'
+                     + ad + ' (' + _bolum_sayaci(esc, b["urunler"], "parca") + ')</h2>'
                      + _urun_grid(ctx, b["urunler"]))
     return "".join(parts)
 
@@ -2283,7 +2336,7 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
             + _kapsam_not_html(esc)
             + _toplam_bloku(esc, _kalemler, "Bu sayfada")
             + '<h2 class="mm-sec-h">' + esc(display) + ' parçaları ('
-            + '<span class="mm-sayim-kart">' + str(len(ana)) + '</span>)</h2>'
+            + _bolum_sayaci(esc, ana, "parca") + ')</h2>'
             + _urun_grid(ctx, ana)
             + _kusak_bolumleri_html(ctx, marka_slug, g)
             + huni)
@@ -2395,8 +2448,11 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                esc(ctx["product_url"](p.get("id"))),
                esc(_kart_temizle((p.get("baslik") or "").strip()) or p.get("id")))
             for p in yerel_kalan)
+        # Başlık sayısı KENDİ kümesinin kırılımını taşır: kapsam gelince düz bağ listesi
+        # süzülüyor ama başlıktaki sayı SSR'de donuyordu (kapsam dışı kalemleri sayan
+        # yalan sayı). Artık istemci onu da AYNI `sayimla()` ile düşürür.
         kalan_html = ('<h2 class="mm-sec-h">' + esc(marka) + ' parça listesi ('
-                      + str(len(yerel_kalan)) + ')</h2>'
+                      + _bolum_sayaci(esc, yerel_kalan, "alt") + ')</h2>'
                       + '<ul class="mm-kalan-bag">' + baglar + '</ul>')
 
     kart_html = _urun_grid(ctx, basili, attr_of=_mm_attr, grid_attr=' id="mmGrid"')
@@ -2414,7 +2470,10 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
             + json.dumps(manifest, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
             + '</script>'
             + '<p class="mm-artim"><button type="button" id="mmTumu" class="mm-tumu-btn">'
-            + esc("Tümünü göster (%d parça)" % toplam) + '</button>'
+            # Düğmedeki sayı da KAPSAMA DÜŞER: kapsam kolunda "Tümünü göster (593 parça)"
+            # yazarken düğme yalnız kapsam içi kalemleri çiziyordu (yalan sayı).
+            + esc("Tümünü göster (") + _bolum_sayaci(esc, kalemler, "erisim")
+            + esc(" parça)") + '</button>'
             + '<span id="mmDurum" class="mm-artim-durum"></span></p>')
     filtre_html = ('<p class="mm-filtre-sifirla"><a href="#" id="mmFiltreSifirla">'
                    + esc("Model filtresini temizle") + '</a></p>') if btns else ""
@@ -2458,8 +2517,12 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                + str(len(btns)) + '</span>)</h2>' if btns else "")
             + model_html
             + filtre_html
+            # 🔴 BAŞLIK SAYISI = ERİŞİLEBİLİR KART YÜZEYİ (`kalemler`), O AN BASILAN
+            # (`basili`) DEĞİL. Okan hükmü korunur: sayfa markanın TÜM parçalarını kart
+            # olarak gösterir; `MARKA_KART_N` yalnız İLK BOYA kararıdır, VAAT DEĞİL.
+            # Vaadi 80'e çekmek yalanı düzeltmek değil vaadi düşürmek olurdu.
             + ('<h2 class="mm-sec-h">' + esc(marka) + ' parçaları ('
-               + '<span class="mm-sayim-kart">' + str(len(basili)) + '</span>)</h2>')
+               + _bolum_sayaci(esc, kalemler, "erisim") + ')</h2>')
             + kart_html
             + artim_html
             + kalan_html

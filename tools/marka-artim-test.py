@@ -38,7 +38,12 @@ KART_RE = re.compile(r'<div class="card" data-kat="([^"]*)"([^>]*)><a class="car
 BTN_RE = re.compile(r'<a class="mm-model-btn" href="([^"]+)" data-katsay="([^"]*)" '
                     r'data-mm="(\d+)"')
 MANIFEST_RE = re.compile(r'<script type="application/json" id="mmManifest">(.*?)</script>', re.S)
-SAYIM_RE = re.compile(r'<span class="mm-sayim-kart">(\d+)</span>')
+# BAŞLIK SAYACI. 🔴 12 Ağu 2026 (Okan, canlı): bu sayı O AN BASILAN kartı yazıyordu
+# ("… parçaları (80)") ama sayfanın beyanı erişilebilir yüzeydi ("593 parça listeleniyor").
+# A3d ESKİDEN o yalanı KUTSUYORDU: "sayaç == fiilen basılan kart". Yeni hüküm: başlık
+# kullanıcının ERİŞEBİLDİĞİNİ gösterir; sayaç KENDİ kategori kırılımını taşır.
+SAYIM_RE = re.compile(r'<span class="mm-sayim-kart" data-bolum="([^"]*)" '
+                      r'data-katsay="([^"]*)">(\d+)</span>')
 EDGE_KANON_RE = re.compile(
     r'fetch\(EDGE_UC \+ "([^"]+)" \+ encodeURIComponent\(eksik\.slice\(0,\s*(\d+)\)')
 
@@ -315,8 +320,8 @@ def olc(dokum=False):
         return 3, kapi
     manifest_metni = mm_manifest.group(1)
     manifest = json.loads(manifest_metni)
-    sayim_eslesmesi = SAYIM_RE.search(govde)
-    gorunur_sayac = int(sayim_eslesmesi.group(1)) if sayim_eslesmesi else None
+    sayaclar = [(b, k, int(n)) for b, k, n in SAYIM_RE.findall(govde)]
+    erisim_sayaclari = [n for b, _k, n in sayaclar if b == "erisim"]
 
     ssr_kartlar = [{"kat": kat, "mm": (ek.split('data-mm="')[1].split('"')[0]
                                       if 'data-mm="' in ek else None),
@@ -397,9 +402,22 @@ def olc(dokum=False):
     kapi.iddia("A3c GECERSIZ KIMLIKLI KART YOK",
                not gecersiz_kimlik,
                "gecersiz kimlik kartlari: %r" % (gecersiz_kimlik[:3],))
-    kapi.iddia("A3d GORUNUR KART SAYACI SSR ILE TUTARLI",
-               gorunur_sayac == len(ssr_kartlar),
-               "sayac %r != fiilen basilan kart %d" % (gorunur_sayac, len(ssr_kartlar)))
+    kapi.iddia("A3d BASLIK SAYACI ERISILEBILIR YUZEYI GOSTERIR",
+               bool(erisim_sayaclari)
+               and all(n == manifest["toplam"] for n in erisim_sayaclari),
+               "sayac %r != erisilebilir yuzey %r (o an basilan %d DEGIL: baslik "
+               "kullanicinin ERISEBILDIGINI gostermeli)"
+               % (erisim_sayaclari, manifest.get("toplam"), len(ssr_kartlar)))
+    kapi.iddia("A3d2 BASLIK SAYACI KENDI KIRILIMINDAN DOGAR",
+               all(n == sum(json.loads(k.replace("&quot;", '"').replace("&amp;", "&")).values())
+                   for _b, k, n in sayaclar),
+               "sayac kendi kategori kirilimiyla ayristi: %r"
+               % ([(b, n) for b, _k, n in sayaclar],))
+    kapi.iddia("A3d3 KONTROL: TAVAN BU FIKSTURDE GERCEKTEN KIRPIYOR",
+               manifest["toplam"] > len(ssr_kartlar),
+               "secilen sayfada SSR kart %d == toplam %r: sayac ekseni bu fiksturde "
+               "ayirt edici DEGIL (dejenere yesil)"
+               % (len(ssr_kartlar), manifest.get("toplam")))
 
     # ---- KABUL: ÇİP SAYFA İÇİNDE FİLTRELER, ADRES DEĞİŞMEZ
     kapi.iddia("A4 CIP TIKLAMASI ONLENDI (preventDefault)", bool(r.get("cipOnlendi")),

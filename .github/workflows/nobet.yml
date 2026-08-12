@@ -1656,6 +1656,36 @@ jobs:
       - name: "Model baslik kolu mutasyon bataryasi (18 oldurucu + 4 kontrol)"
         run: python3 tools/model-baslik-kolu-test.py --kendini-test
 
+  # SAYFA SAYACI INVARYANTI — CURUTME BATARYASI (12 Agu 2026).
+  # Olculen hukum: sayfada BEYAN EDILEN parca sayisi == o yuzeyde ERISILEBILEN kart
+  # sayisi. Okan canli ekranda ayni marka icin DORT ayri sayi gordu (beyan 593 ·
+  # baslik 80 · kapsam beyani 575 · kapsam basligi 304). Onarim + invaryant ekseni
+  # BLOKLAYICI seritteki tools/marka-sayac-kapisi.py'de; bu job o eksenin AYIRT
+  # EDICILIGINI 7 oldurucu + 2 kontrol mutantiyla olcer.
+  # 🔴 MUTASYON KOPYAYA UYGULANIR: surucu tools/ klasorunu gecici bir koke KOPYALAR,
+  # geri kalani sembolik baglar ve canli dosyanin bas/son sha256'sini karsilastirir —
+  # kardes surucude (marka-sayac-mutasyon.py) olculen "calisma agacini kirletiyor"
+  # arizasi burada YAPISAL olarak imkansizdir.
+  # ⚠️ `continue-on-error` KULLANILMADI · `needs:` YOK -> yayin yolunu uzatmaz.
+  # ⚠️ `timeout-minutes: 90` — olculen yerel sure ~7 dk; fail-slow = fail-open.
+  marka-invaryant-sayac-bataryasi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: "Sayfa sayaci invaryanti mutasyon bataryasi (7 oldurucu + 2 kontrol)"
+        run: python3 tools/marka-invaryant-sayac-mutasyon.py
+
   # ═════════════════════════════════════════════════════════════════════════════
   # R2 ONEK GELENEGI NOBETI (7 Agu 2026) — ONCEDEN VAR OLAN CANLI GERCEGI RAPORLAR
   # ═════════════════════════════════════════════════════════════════════════════
