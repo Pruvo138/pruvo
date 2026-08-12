@@ -1867,14 +1867,25 @@ TABLO_TABANLARI = (
     # yolunda degil YAZIM yolunda (urun-ekle.py/duzelt.py, flock altinda) kosar ve
     # modul yuklenemezse cagiran betik acilista COKER. Tam esitlik geregi taban AYNI
     # commit'te guncellendi.
-    # 12 Agu: 104 -> 105 (marka-invaryant-sayac-mutasyon.py beyan edildi). Bir TASIMA
+    # 12 Agu: 104 -> 106 (uzlastirici silme karantinasinin IKI kolu beyan edildi:
+    # uzlastirici-karantina-test.py + uzlastirici-karantina-mutasyon.py). Bir TASIMA
+    # DEGIL, EKLEME: iki adim `nobet.yml` job `cron-nabzi`ye YENI eklendi ve beyan
+    # AYNI sinifta ayni turda yazilmadigi icin kapi fail-closed KIRMIZI yanip yayini
+    # DURDURDU (kosum 31548210277, `serit-a3`). Serit secimi bilinclidir: uzlastirici
+    # `push` seridinde degil kendi cron/elle kolunda kosar ve yayin yolu KATALOG
+    # SENKRONUNA bagli degildir. Ikisi de TEK TEK yazildi — joker/toplu beyan YOK;
+    # tam esitlik geregi taban AYNI commit'te guncellendi.
+    # 12 Agu: 106 -> 107 (marka-invaryant-sayac-mutasyon.py beyan edildi). Bir TASIMA
     # DEGIL, EKLEME: Okan canli ekranda ayni marka icin DORT ayri sayi gordu (beyan
     # 593 · baslik 80 · kapsam beyani 575 · kapsam basligi 304). Baslik O AN BASILAN
     # karti sayiyordu, sayfadan ERISILEBILENI degil; istemcide ise GORUNEN DOM
     # dugumunu. Onarim + invaryant ekseni marka-sayac-kapisi.py'de BLOKLAYICI kaldi;
     # bu batarya o eksenin ayirt ediciligini olcer. Tam esitlik geregi taban AYNI
     # commit'te guncellendi.
-    ("SERIT_B", 105),
+    # 🔴 IKI GIRIS AYNI TURDA BIRLESTI (dal main'in GERISINDEYDI): dalin tabani 105,
+    # main'inki 106 idi ve ikisi de ayni satiri degistirdigi icin merge CAKISTI.
+    # Cozum SEÇIM DEGIL BIRLESIM — iki beyan da DURUYOR, taban ikisinin TOPLAMI.
+    ("SERIT_B", 107),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -3125,6 +3136,42 @@ SERIT_B = {
         "yayinlanan shop Worker'inin bayatligi (1 Agu: 14,5 saat, %84'e varan fazla "
         "tahsilat) ancak burada GORUNUR olur; olcumun KENDISI yayin yolundan ayri bir "
         "zamanlanmis is akisindadir (paket-tazelik-alarmi.yml, `push` tetikleyicisi YOK).",
+    # --- UZLASTIRICI SILME KARANTINASI (11 Agu 2026) — job `cron-nabzi` ------
+    # 🔴 BILINCLI SERIT SECIMI, ucuz etkisizlestirme DEGIL. Bu iki kapi D1
+    # uzlastiricisinin SILME kolunun KARANTINASINI olcer; kirmizisi VERI SILME
+    # riskini gosterir (kosum 31532464176: 37 mesru katalog satiri silindi) — yani
+    # ciddidir ve CI'da GORUNUR kalir. Yine de yayini DURDURMAMALIDIR:
+    #   (a) Uzlastirici `push` seridinde KOSMAZ; kendi cron/elle kolundadir. Yayin
+    #       yolunun (deploy.yml) uzlastiriciya `needs:` bagi YOKTUR -> yayini
+    #       durdurmanin bu kola TAMIR DEGERI SIFIRDIR.
+    #   (b) Yayin yolu KATALOG SENKRONUNA bagli degildir: senkron aksasa da site
+    #       yayinlanir (aksamanin bedeli Ege'nin katalogu gorememesidir, yayin
+    #       DEGIL) -> bu kirmizi bir YAYIN kusuru sinifi degildir.
+    #   (c) Bedel olculdu: yayin yoluyla ILGISIZ bir kapinin bloklayici seride
+    #       kalmasi bu depoda saatlerce yayin durmasi olarak yansidi
+    #       ([[kapi-birikimi-yayin-gecikmesi]]).
+    # 🔴 KARANTINANIN KENDISI bir A-kapisinin yerine gecmez: silme kolunu FIILEN
+    # durduran fail-closed esik uzlastirici KAYNAGINDADIR; bu iki adim o esigin
+    # canli ve ayirt edici oldugunu olcen GORUNURLUK/KANIT hattidir.
+    ("nobet.yml", "cron-nabzi", "tools/uzlastirici-karantina-test.py"):
+        "D1 uzlastiricisinin SILME kolunun karantinasini olcen kabul testi (K1..K7; "
+        "K7 gercek olayin birebir yeniden oynatimidir ve `silinen: 0` bekler). "
+        "Kirmizisi VERI SILME riskini gosterir ve CI'da gorunur kalir, ama yayini "
+        "DURDURMAMALIDIR: uzlastirici `push` seridinde degil kendi cron/elle kolunda "
+        "kosar ve yayin yolu KATALOG SENKRONUNA bagli degildir (senkron aksasa da site "
+        "yayinlanir). Yayini durdurmanin bu kola tamir degeri SIFIRDIR. Silmeyi FIILEN "
+        "durduran fail-closed esik uzlastiricinin KAYNAGINDADIR; bu adim o esigin canli "
+        "oldugunu olcer. BILINCLI serit secimidir, A-kapisini ucuza etkisizlestirme "
+        "DEGIL.",
+    ("nobet.yml", "cron-nabzi", "tools/uzlastirici-karantina-mutasyon.py"):
+        "Yukaridaki karantinanin AYIRT EDICILIGINI olcen mutasyon bataryasi: karantina "
+        "mantiginin her kolu icin bir mutant KIRMIZI yanmali, kontrol mutantlari YESIL "
+        "kalmali (tautoloji degil -> [[mutasyon-kaniti-yeniden-uretilebilir]]). Aracin "
+        "KENDINI sinamasidir; mutantlar gecici kopyaya uygulanir ve yayinlanan icerigi "
+        "URETMEZ. Kirmizisi 'karantinanin koruma gucu curudu' der, katalogun bozuk "
+        "oldugunu DEGIL — kardesiyle ayni gerekceyle serit B'dedir: uzlastirici `push` "
+        "seridinde kosmaz ve yayin yolu katalog senkronuna bagli degildir. BILINCLI "
+        "serit secimidir, A-kapisini ucuza etkisizlestirme DEGIL.",
     # --- JENERATOR HACIM TAM TAKIMI (2 Agu 2026) — DIS BAGIMLILIKLI, ELLE TETIK ----
     # Job `hacim-tam-takim` yalniz `workflow_dispatch` ile kosar ve `deploy` ona
     # `needs:` ile BAGLI DEGILDIR -> serit B. BILEREK boyle: bu iki kolun TAM kosumu

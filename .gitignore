@@ -63,6 +63,17 @@ gorseller/
 /varlik/
 
 # >>> uretilen-icerik-dizinleri (otomatik — elle duzenleme; tools/gitignore-kapisi.py dogrular)
+/tekne-guverte-dolum-agzi-ve-havalandirma-mantari-ozel-uretim/
+/sisme-bot-ve-zodyak-plastik-parcasi-ozel-uretim/
+/oto-multimedya-ve-radyo-panel-plastik-parcasi-yaptirma/
+/oto-motor-alt-koruma-ve-karter-muhafazasi-klipsi-yaptirma/
+/olcuye-ozel-plastik-sensor-yuvasi-ve-tutucusu-uretimi/
+/olcuye-ozel-plastik-kart-kizagi-ve-pcb-kilavuzu-uretimi/
+/insaat-santiyesi-ve-iskele-ekipmani-plastik-parca-uretimi/
+/spa-sauna-ve-hamam-ekipmani-plastik-parca-uretimi/
+/basinc-altinda-calisan-plastik-parca-uretilir-mi/
+/ozel-uretim-parca-sert-mi-esnek-mi-olmali/
+/oto-bagaj-tabani-ve-stepne-yuvasi-sabitleme-parcasi-yaptirma/
 /tekne-merdiveni-ve-yuzme-platformu-plastik-parcasi-uretimi/
 /tekne-kamis-tutucu-ve-olta-aparati-ozel-uretim/
 /oto-anahtar-kabugu-ve-kumanda-yuvasi-yaptirma/
