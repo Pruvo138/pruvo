@@ -1,5 +1,61 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 🔚 KraL — 12 Agu 2026 ~06:xxZ: MARKA SAYAC ESITLEMESI CANLIDA + K51/K52 kapandi
+
+**CANLIYA GITTI — `5ecac404`** (dal `5832204d`). Kosum `31564809178`: `build`+`deploy`+`yayin`
+**ucu de success**; ata kaniti `merge-base --is-ancestor` **rc=0**, negatif kontrol **rc=1**.
+
+**Sorun (Okan ekrandan yakaladi, Hyundai yalnizca ORNEKTI):** marka sayfasi beyan ile baslikta
+FARKLI sayi gosteriyordu — beyan `toplam`dan, baslik `basili = kalemler[:MARKA_KART_N]`
+kapagindan turuyordu. Olculdu: **93 marka sayfasinin 35'i** yanlis rakam basiyordu, en buyuk
+sapma **Ford 2582 ↔ 80**. Onarim marka-BAGIMSIZ tek noktada; Okan'in 8 Agu hukmu KORUNDU
+(vaat 80'e cekilmedi, `MARKA_KART_N=80` duruyor, kalanina artimli erisim var).
+
+**CANLI OLCUM, cache-bust'SIZ** — kapsamsiz: Hyundai **593/593** · Ford **2582/2582** ·
+BMW **2349/2349** · Fiat **475/475** · Renault **831/831** → sapan **0/5**.
+`?kategori=` kolu (istemci JS, tarayiciyla): Hyundai **575/575** · Ford **2579/2579** ·
+BMW **628/628** · Fiat **475/475** → sapan **0/4**.
+
+**Kapilar:** `marka-sayac-kapisi` rc=0 **21578/21578** · mutasyon **13/13 + kontrol 3/3,
+ayrismayan 0** · `is-akisi-kapisi` merge oncesi ve sonrasi **rc=0** · `ci-kapsam` rc=0 ·
+`marka-kapsam` 1437/1437 · `marka-model` 29/29 · `marka-artim` 26/26 · `kapi-envanteri` 7/7 ·
+agac artigi **0** (SIGTERM'le yarida kesilse bile dosya sha256 birebir) ·
+`d1-sync --durum` **5 eksen yesil, katalog 25.964** · kapsam ihlali YOK, sizinti 0.
+
+**UC TUR CURUTME GEREKTI (birinci ve ikinci tur MERGE'U BLOKLADI):**
+1. Dal, yayini durduran `is-akisi-kapisi`'ni **rc=1** yakiyordu (main rc=0 olculdu) ve
+   `MUTANT=7/7` iddiasi repodaki surucuyle **yeniden uretilemiyordu** (rc=3, uc bayat capa).
+2. 🔴 **Kapinin KENDI ozeti yalan soyluyordu:** ayni agacta ayni kosumda hukum
+   `rc=1 · DUSEN=2379 · KIRMIZI` iken insana basilan ozet **"sapan marka 0"** diyordu —
+   hukum `kapi.dusen`den, ozet AYRI bir kiyastan turuyordu.
+3. Kapandi: ozet artik hukmu besleyen kumeden turuyor; merge-base jeneratoruyle
+   `SAPAN_MARKA=93` ve `--dokum` marka satirlari **57+16+20 = 93** birebir esit.
+
+**🔴 IKI TASINABILIR DERS:**
+- **Beyan ile gosterilen ayri fonksiyondan turerse sessizce ayrisir** — ve bu tur olctu ki ayni
+  hata kapinin KENDI icinde de vardi. Bir kapi insana sayi basiyorsa o sayi hukmu besleyen
+  kumeden dogmali; yoksa kapi kirmiziyken "sapan 0" yazip isi kapattirir.
+- **Mutanti `rc` ile degil, beklenen iddia ailesinin IZIYLE kabul et.** Tautoloji kirici mutant
+  da rc=1 verir ama hedeflenen aile jetonunu TASIMAZ.
+
+**K51 KAPANDI — merge `0eb8612b`.** D1 uzlastiricisinin SILME kolu karantinada. Ayirt edici
+kanit: ayni fikstur **eski kodla `silinen=37`, yeni kodla `silinen=0`**; bayraksiz yol davranisi
+BAYT AYNI, `eksik`/`hash` kollari dokunulmadi, alarm susturulmadi. Ders: silme kolu olan bir
+emniyet aginda kabul testinin yesili YETMEZ — ayni fikstur ESKI kodla da kosulmali.
+
+**K52 KAPANDI.** Zombi agac kaldirildi. Arsivleme adimi OLCUMLE gereksiz cikti
+(`origin/main..c8b0451e` **0 satir**) — "arsivle-sonra-kaldir" bir ritüel degil KOSULDUR.
+
+**KOSUYOR:** YOK (kendi dalim/worktree'm kalmadi). **Bu turda:** urun verisine DOKUNULMADI ·
+deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI · kapi/nobetci GEVSETILMEDI · yabanci
+degisikliklere DOKUNULMADI · baskasinin worktree'sine DOKUNULMADI.
+
+**Sonraki turun ISI:** (a) `git worktree list` **6 satir** (tavan 2) — ikisi main'de OLMAYAN
+commit tasiyor (`kral/k49-d1-yazici-kilidi` · `kral/k70-index-kolu-pathspec`), ikisi de baska
+oturumun CANLI isi, SILINMEZ; (b) K67/K68 karari (ikiz kapisinin 5. ekseni ortak araca tasinsin
+mi + ortak isaret listesinin marka-notrlugu); (c) K61 SERIT B hala son tamamlanmis kosumda
+`failure`.
+
 ## 🕐 CI NOBETI — 12 Agu 2026 07:37 yerel / 04:37Z turu (KraL / Tamirci)
 
 **Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
@@ -66,58 +122,6 @@ verdi. Yani K70 teshisi (GIT_INDEX_FILE scrub'i) BEYAN degil, gunluk yolda OLCUL
 (b) K49 + K70 dallari origin'e itildi mi; (c) K65 3. turunun ozet-hukum ayrismasi kapandi mi;
 (d) BAYAT dort agacin (`a8877112` · `a8900e2a` · `k62-dayanak` · gerekirse `a3114d12`) sahipleri
 olculup arsivle-sonra-kaldir yordamina alinmasi (tavan 2, bugun 7).
-
-## 🕐 CI NOBETI — 12 Agu 2026 06:37 yerel / 03:37Z turu (KraL / Tamirci)
-
-**Ev kontrolu:** `pwd` = `git rev-parse --show-toplevel` = `/Users/okan/dev/pruvo` → DOGRU EV.
-
-**🟢 SUPURME rc=0 — HUKUM=TEMIZ.** Sabit kosucu isciye kosturuldu; betik YAZILMADI/DUZENLENMEDI.
-Betigin bastigi satirlar: `GITHUB_BILDIRIM_INBOX=0 · BULUNAN=0 · TASINAN=0 · ATLANAN=0 · CIKAN=0 ·
-KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=4:2026-08-12T04:05:51 · HUKUM=TEMIZ`.
-Uc fail-closed alarmin ucu de sessiz. Sayac 0 iken hukum TEMIZ yazilabildi cunku POZITIF tanima
-izi var: aranan dizenin AYNISI Cop'te 4 kayit tutuyor. **🟠 Cop denetimi: MESRU=4, YANLIS=0** —
-dordu de `Run failed` bildirimi, siparis/odeme ekseninde kayit YOK.
-
-**✅ CI TEMIZ — onarim GEREKMEDI.** En yeni basarisiz kosum `31549865286` (00:20Z), yani bu turun
-penceresinden (02:27Z–03:37Z) ONCE ve sinifi `3383aa90` ile zaten kapanmis. Pencerede 0 ariza.
-Taban yesil JOB birimiyle olculdu: `31558267707` → `build · serit-a2 · serit-a3 · serit-a4 ·
-deploy · yayin` **6/6 success**; ata testi `merge-base --is-ancestor` rc=0.
-
-**✅ K66 KAPANDI — kalici kapi main'de (merge `d111c286`).** Kanonik kapinin hukmu BAYT AYNI
-(diff bos); yalnizca yeni cagri noktasi eklendi ve eksen STAGE/INDEX secildi (calisma agaci
-DEGIL) — aksi halde baska oturumun stage'lenmemis taslagi bes evin commit'ini kilitlerdi.
-Bagimsiz CURUTUCU 8 eksende GECTI: tautoloji HAYIR (**7/7 mutant olduruldu**, kopyaya uygulandi) ·
-FAIL-CLOSED dogrulandi (sentetik depoda gercek commit: ihlal rc=1, arac silinince rc=1) · yanlis-pozitif
-YOK (620 dosya stage'lenip olculdu, 0 isabet) · gevsetme YOK (777 ekleme / **0 silme**) · sizinti 0.
-Merge sonrasi ana checkout: kanca-nobeti **16/16** · kablolama **22/22** · `--ci` rc=0 ·
-kabul bataryasi **19/19** · `ci-kapsam-test` rc=0 · `d1-sync --durum` rc=0 (katalog **25964**).
-
-**🔴 K49 — GECEN TURUN HUKMU YANLIS EKSENDEN VERILMISTI, duzeltildi.** "Dagitim artefakt
-birakmadi" hukmu beklenen DAL ADI ekseninden verilmisti; isci agaclari OTOMATIK dal adi tasiyor.
-Olculen gercek: birinci dagitim worktree URETMISTI (~91 satir), yanlis hukum uzerine IKINCI
-muhendis surdu (~292 satir + iki yeni test dosyasi) → **iki isci ayni kritik dosyaya paralel
-yazdi**, tam da kilidi olmayan yazicinin kendi sinifi. Ikisi de commit atmadan oldu.
-**Sinif dersi: artefakt evreni dal adindan degil `git worktree list` + agac diff'inden turetilir.**
-Ucuncu dagitim KURTARMA semasiyla yapildi (onceki agac salt-okunur devralinir, ilk 15 dk icinde
-WIP commit + dal itme ZORUNLU). Eski iki agac SILINMEDI (canlilik kesin degil).
-
-**🔧 TAMIRCI TURU (§4.7).** Tur basinda **9 acik 🔧**; bu turda **K66 KAPANDI**, **K69 ACILDI**
-(pre-commit adim 6'nin cagri satiri iki envanterin ikisinde de YOK = o adim izlenmiyor) →
-**9 acik.** K62 dali 0 commit ilerde (is ana agacta yabanci ` M` olarak surüyor, DOKUNULMADI);
-K65 3. turu ucusta (agaci 2 dk once hareketliydi).
-
-**📏 WORKTREE: SAYI=7, KraL'in KENDI agaci 0.** Altisi isci/muhendis agaci, biri ana agac.
-SILME YOK — canliligi olculmemis agac silinmez (K52 dersi).
-
-**Bu turda:** urun verisine DOKUNULMADI · deploy elle YAPILMADI · kosum rerun/cancel EDILMEDI ·
-mail betigi YAZILMADI/DUZENLENMEDI · kapi/nobetci GEVSETILMEDI · yabanci ` M`/`??` dosyalara
-DOKUNULMADI · baskasinin worktree'sine DOKUNULMADI (yalniz okundu). Bir merge YAPILDI (K66).
-Okan'a CIKILMADI (insan karari gerekmedi; §5).
-
-**Sonraki turun ILK ISI:** (a) merge `d111c286`in deploy zinciri JOB birimiyle yesil mi
-(`build`+`deploy`+`yayin`); (b) K49 ucuncu dagitiminin dali GERCEKTEN itildi mi — `git worktree
-list` + `git branch -r` ekseninden olc, spec varligina BAKMA; (c) K65 3. turunun ozet-hukum
-ayrismasi kapandi mi.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
