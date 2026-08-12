@@ -32,10 +32,27 @@ function gorunurKategoriKaynagi(INDEX) {
   return m ? m[0] : null;
 }
 
-/** Sandbox govdesinin basina konacak onek (kaynak + noktali virgul + satir sonu). */
-function gorunurKategoriOneki(INDEX) {
-  const src = gorunurKategoriKaynagi(INDEX);
-  return src === null ? null : src + ";\n";
+/**
+ * 🔴 IKINCI HALKA (12 Agu 2026): `syncUrl()` artik `gorunurKategori(activeCat)` DEGIL
+ * `aktifKategoriEtiketi()` cagiriyor — cunku "Jeneratör" ile "Ölçüye Özel Üretim" AYNI
+ * ic kategoriyi paylasan IKI AYRI gorunumdur ve adres cubuguna hangisinin yazilacagi
+ * `activeSeri` bitine baglidir. Bagimlilik AYNI SINIF: sandbox'ta tanimsiz kalirsa
+ * url-senkron/reklam-url testleri ham `ReferenceError` ile coker (11 Agu'da aynen oldu).
+ * Onek bu yuzden GERCEK kaynaktan bu halkayi da tasir; STUB KONMAZ.
+ * @returns {string|null} `var activeSeri = false; ... function aktifKategoriEtiketi(){...}`
+ */
+function seriEtiketiKaynagi(INDEX) {
+  const m = String(INDEX).match(
+    /var\s+activeSeri\s*=\s*false;[\s\S]{0,600}?function\s+aktifKategoriEtiketi\s*\(\s*\)\s*\{[\s\S]*?\n {2}\}/);
+  return m ? m[0] : null;
 }
 
-module.exports = { gorunurKategoriKaynagi, gorunurKategoriOneki };
+/** Sandbox govdesinin basina konacak onek (kaynak + noktali virgul + satir sonu).
+ *  FAIL-CLOSED: iki halkadan biri ayiklanamazsa null (cagiran KIRMIZI iddiaya cevirir). */
+function gorunurKategoriOneki(INDEX) {
+  const src = gorunurKategoriKaynagi(INDEX);
+  const seri = seriEtiketiKaynagi(INDEX);
+  return (src === null || seri === null) ? null : src + ";\n" + seri + ";\n";
+}
+
+module.exports = { gorunurKategoriKaynagi, seriEtiketiKaynagi, gorunurKategoriOneki };

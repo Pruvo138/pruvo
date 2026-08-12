@@ -410,6 +410,19 @@ function gorunurKategori(ic) {
   return Object.prototype.hasOwnProperty.call(t, ic) ? t[ic] : ic;
 }
 
+/* 🔴 SERI GORUNUMUNUN URL'I (12 Agu 2026, canlida olculdu).
+   ONCE: bu testler seri gorunumune IC ADLA (`?kategori=Jeneratör`) giriyordu. O adres
+   11 Agu'dan beri AMBIVALANT: ayni kelime 17 GERCEK jenerator yedek parcasinin da
+   kategorisidir ve build.py o urunlerin BREADCRUMB'ina AYNI adresi basiyor. Yani tek
+   adres iki AYRI kumeyi anlatiyordu ve gercek parcalarin linki kendi urununu
+   GOSTERMEYEN bir gorunume dusuyordu (17 urun, canlida dogrulandi).
+   SIMDI: seri gorunumune URETIMDEKI TEK gercek giris kapisindan (ana sayfa banner'i,
+   index.html `jenBanner` href'i = GORUNEN etiket) girilir; ASAGIDAKI IDDIALARIN HICBIRI
+   GEVSEMEDI. Ayrica test 3'e IC-AD adresinin kendi kumesini gosterdigi YENI bir iddia
+   EKLENDI (eksen daraldi degil, GENISLEDI). */
+const SERI_ARAMASI = "?kategori=" + encodeURIComponent(gorunurKategori("Jeneratör"));
+const IC_AD_ARAMASI = "?kategori=" + encodeURIComponent("Jeneratör");
+
 function kartBilgi(card) {
   const baslik = sinifla(card, "card-title")[0];
   const kategori = sinifla(card, "card-cat")[0];
@@ -472,7 +485,7 @@ async function test2Nav() {
 /** 3 — LINK: ?kategori=Jeneratör gorunumu calisir; banner bu gorunumde YOK */
 async function test3JeneratorGorunumu() {
   const hatalar = [];
-  const s = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN });
+  const s = await sayfaKur({ search: SERI_ARAMASI, tabanHarita: TABAN });
   /* CEVIRI TABLOSU OKUNDU MU — sessiz yastik nobeti. Tablo cozulemezse yukaridaki iki
      yardimci KIMLIGE duser ve bu testin (3/5/6) tamami "ic ad = gorunen ad" varsayimina
      geri doner; o hal SESSIZCE yesil yanardi. Tablonun VARLIGI ayri iddiadir; ICERIGI
@@ -480,8 +493,7 @@ async function test3JeneratorGorunumu() {
      mesru olarak bosalir ve burasi yalanci kirmizi vermemeli. */
   if (KATEGORI_ALIAS === null) { hatalar.push("index.html'de KATEGORI_ALIAS cozulemedi"); }
   if (KATEGORI_GORUNUR === null) { hatalar.push("index.html'de KATEGORI_GORUNUR cozulemedi"); }
-  /* Derin link IC adla gelmeye devam eder (eski linkler yasar) ama BASLIK musteriye
-     gorunen etiketi tasir — beklenti bu yuzden VERIDEN turetilir, elle yazilmaz. */
+  /* BASLIK musteriye gorunen etiketi tasir — beklenti VERIDEN turetilir, elle yazilmaz. */
   const beklenenBaslik = gorunurKategori("Jeneratör") + " Ürünleri";
   if (s.el("sectionTitle").textContent !== beklenenBaslik) {
     hatalar.push("baslik '" + s.el("sectionTitle").textContent +
@@ -507,15 +519,41 @@ async function test3JeneratorGorunumu() {
     hatalar.push("banner kategori gorunumunde gizlenmedi (display='" +
       s.el("jenBanner").style.display + "')");
   }
-  rapor("3 ?kategori=Jeneratör gorunumu + banner gizli", hatalar,
-    kartlar.length + " sari kart, baslik dogru, banner yok");
+  /* 🔴 YENI EKSEN (12 Agu): IC AD adresi AYRI bir gorunumdur ve o kategorinin GERCEK
+     (parametrik olmayan) parcalarini GOSTERMEK ZORUNDADIR. Once bu adres seri
+     gorunumune dusuyordu; sonuc: 17 gercek jenerator yedek parcasinin breadcrumb'i
+     kendi urununu gostermeyen bir sayfaya gidiyordu (sessiz kusur — sayfa 200,
+     gorunum aciliyor, urun YOK). */
+  const gercekler = URUNLER.filter(
+    (u) => (u.kategori || "") === "Jeneratör" && !u.parametrik);
+  if (!gercekler.length) {
+    hatalar.push("fikstur: kategoriyi paylasan parametrik OLMAYAN urun yok — " +
+      "ic-ad gorunumu iddiasi BOS kosuyor");
+  } else {
+    const g = await sayfaKur({ search: IC_AD_ARAMASI, tabanHarita: TABAN });
+    const gorunen = new Set(g.kartlar().map((c) => kartBilgi(c).baslik));
+    const toplam = g.el("resultCount").textContent;
+    if (toplam !== (PARAMETRIK.length + gercekler.length) + " ürün") {
+      hatalar.push("ic-ad gorunumu toplam sayaci '" + toplam + "' (beklenen '" +
+        (PARAMETRIK.length + gercekler.length) + " ürün')");
+    }
+    const eksik = gercekler.filter((u) => !gorunen.has(u.baslik));
+    /* Ilk sayfa PAGE_SIZE ile kirpilir; kirpma yuzunden yanlis kirmizi yakmamak icin
+       KART iddiasi yalniz sayaca sigan halde olculur, sayac iddiasi HER halde kosar. */
+    if (PARAMETRIK.length + gercekler.length <= PAGE_SIZE && eksik.length) {
+      hatalar.push("ic-ad gorunumunde gercek parca gorunmuyor: " +
+        eksik.slice(0, 3).map((u) => u.baslik).join(" ; "));
+    }
+  }
+  rapor("3 seri gorunumu + banner gizli + IC AD gorunumu gercek parcalari gosteriyor",
+    hatalar, kartlar.length + " sari kart, baslik dogru, banner yok, ic-ad gorunumu dolu");
 }
 
 /** 4 — KART FIYATI: sema tabaniyla birebir; harita yokken fallback */
 async function test4KartFiyati() {
   const hatalar = [];
   const s = await sayfaKur({
-    search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN, kapaliHarita: KAPALI });
+    search: SERI_ARAMASI, tabanHarita: TABAN, kapaliHarita: KAPALI });
   const idyeBaslik = {};
   for (const u of PARAMETRIK) { idyeBaslik[u.baslik] = u.id; }
   let dogru = 0;
@@ -553,7 +591,7 @@ async function test4KartFiyati() {
     hatalar.push("kapali aile ekseni BOS kostu (hic kapali kart olculmedi)");
   }
   // Fallback: harita yuklenmemis sayfada (build calismamis / 404) eski metin
-  const f = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r" });
+  const f = await sayfaKur({ search: SERI_ARAMASI });
   for (const c of f.kartlar()) {
     const k = kartBilgi(c);
     if (k.fiyat !== "Ölçüye özel fiyat") {
@@ -869,7 +907,7 @@ async function test9EdgeSozlesmesi() {
   }
   // (b) GIZLI SARI SERI: ozet.json'daki ayrik parametrik havuz yeter; kategori adini
   // paylasan parametrik olmayan urunleri /katalog'dan istemek sessizce sizdirirdi.
-  const kat = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN });
+  const kat = await sayfaKur({ search: SERI_ARAMASI, tabanHarita: TABAN });
   const katalogIstek = kat.istekler().filter((u) => u.indexOf(EDGE_UC + "/katalog") === 0);
   if (katalogIstek.length !== 0 || kat.istekler().length !== 1 ||
       kat.istekler()[0].indexOf("ozet.json") !== 0) {

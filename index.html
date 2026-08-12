@@ -1418,6 +1418,24 @@
     var k = (p && p.kategori) || "";
     return (p && p.parametrik) ? gorunurKategori(k) : k;
   }
+  // 🔴 KANONİK KATEGORİ YÜKLEMİ — TEK NOKTA. filtered(), edge sapma nöbetçisi
+  // (edgeSuzgecSapmasi) ve edgeYedek() BU fonksiyondan beslenir; kural üç ayrı yerde üç
+  // ayrı yazılmıştı ve aynı deep-link'te üç ayrı küme anlamına geliyordu
+  // ([[ikiz-tanim-sessiz-ayrisma]]).
+  // KURAL: kategori ekseni SUNUCUYLA AYNI — TAM EŞİTLİK (Worker `u.kategori = ?`).
+  // Tek daraltma SERİ görünümüdür: "Ölçüye Özel Üretim" bir kategori DEĞİL, aynı iç
+  // kategoriyi paylaşan sarı/parametrik SERİdir; o etiket istendiğinde küme parametrik
+  // kayıtlara daralır (`seri` bayrağı applyUrlParams'ta İSTENEN ETİKETTEN türer).
+  // ⚠️ ÖLÇÜLDÜ (12 Ağu, canlı): daraltma İSTENEN ETİKETE değil İÇ KATEGORİ ADINA
+  // bağlıydı → "Jeneratör" adını PAYLAŞAN 17 gerçek jeneratör yedek parçasının
+  // breadcrumb linki (/?kategori=Jeneratör) kendi ürününü GÖSTERMEYEN bir görünüme
+  // düşüyordu. İki etiket AYNI iç kategoriyi paylaşan İKİ AYRI görünümdür; alias
+  // çevirisi bu bilgiyi düşürmemelidir.
+  function kategoriEsler(kayit, kat, seri){
+    if(kat === "Tümü"){ return true; }
+    if(((kayit && kayit.kategori) || "") !== kat){ return false; }
+    return seri ? !!(kayit && kayit.parametrik) : true;
+  }
 
   // >>> ALTKATEGORI VERISI (URETILEN BLOK)
   // Alt kategori cip evreni kanonik arama kurallarindan uretilir.
@@ -2624,6 +2642,17 @@
   }
 
   var activeCat = "Tümü";
+  // SERİ GÖRÜNÜMÜ BAYRAĞI: activeCat İÇ kategori adını tutar (çip indeksleri, marka
+  // sayımları, uç isteği hep iç adla konuşur). "Ölçüye Özel Üretim" ile "Jeneratör"
+  // AYNI iç ada çözülür ama AYNI görünüm DEĞİLDİR — hangisinin istendiği bilgisi
+  // burada yaşar. Alias çevirisi bu biti düşürürse gerçek jeneratör parçaları kendi
+  // kategori linklerinde görünmez olur (12 Ağu, canlıda ölçüldü).
+  var activeSeri = false;
+  // Adres çubuğuna ve başlığa yazılan etiket TEK NOKTADAN türer: seri görünümünde
+  // görünen seri etiketi, kategori görünümünde kategorinin kendi adı.
+  function aktifKategoriEtiketi(){
+    return activeSeri ? gorunurKategori(activeCat) : activeCat;
+  }
   var activeBrand = "Tümü";
   // Alt kategori (grup) filtresi — kategori İÇİNDEKİ daraltma. "Tümü" = filtre YOK.
   var activeAlt = "Tümü";
@@ -3050,7 +3079,7 @@
     var params = new URLSearchParams();
     // Adres çubuğu MÜŞTERİYE GÖRÜNÜR → iç seri adı değil görünen etiket yazılır
     // (applyUrlParams KATEGORI_ALIAS ile geri çevirir; görünüm birebir aynı kalır).
-    if(activeCat !== "Tümü"){ params.set("kategori", gorunurKategori(activeCat)); }
+    if(activeCat !== "Tümü"){ params.set("kategori", aktifKategoriEtiketi()); }
     if(activeAlt !== "Tümü"){ params.set("altkategori", activeAlt); }
     if(activeBrand !== "Tümü"){ params.set("marka", activeBrand); }
     if(activeModel !== "Tümü"){ params.set("model", activeModel); }
@@ -3493,6 +3522,9 @@
       }
       b.onclick = function(){
         activeCat = c;
+        // Nav çubuğunda SERİ girişi YOK (gizli seri yalnız banner/derin linkle gelir) →
+        // nav'dan gelen her seçim kategori görünümüdür; bayrak burada DÜŞER.
+        activeSeri = false;
         if(c === "Tümü"){
           // TAM SIFIRLAMA (işletme kararı, 17 Tem): "Tümü" her yerden ana sayfa görünümüne tek
           // tıkla döner — marka + arama + URL paramları temizlenir, sayfa başına çıkılır.
@@ -3536,10 +3568,10 @@
     // "Mercedes-Benz"li ürünü de bulur (görünümde tek kalem + eşleşmede aynı kural).
     var hedefMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
     return PRODUCTS.filter(function(p){
-      // "Jeneratör" görünümü kategori adını paylaşan genel jeneratör parçalarını değil,
-      // yalnız gizli sarı/parametrik seriyi temsil eder. Diğer kategoriler tam eşitliktir.
-      var catOk = activeCat === "Tümü" ||
-        (activeCat === "Jeneratör" ? !!p.parametrik : p.kategori === activeCat);
+      // Kategori ekseni KANONİK yüklemden (kategoriEsler) gelir — edge sapma nöbetçisi ve
+      // edgeYedek() ile AYNI kural. Seri görünümü (sarı/parametrik) yalnız SERİ ETİKETİ
+      // istendiğinde daraltır; kategori adının kendisi istendiğinde TAM EŞİTLİK koşar.
+      var catOk = kategoriEsler(p, activeCat, activeSeri);
       // ALT KATEGORİ: TAM eşitlik (Worker'ın `u.altkategori = ?` koşuluyla AYNI kural).
       // Katlama/normalleştirme YOK — marka ekseninin aksine değerler kanonik tek kaynaktan
       // gelir. İzinli küme DIŞI bir değer (deep-link `?altkategori=xyzyok`) hiçbir kayda
@@ -3933,7 +3965,7 @@
       title.textContent = '"' + query.trim() + '" araması';
     }else{
       title.textContent = (activeCat === "Tümü")
-        ? "Tüm Ürünler" : gorunurKategori(activeCat) + " Ürünleri";
+        ? "Tüm Ürünler" : aktifKategoriEtiketi() + " Ürünleri";
     }
     count.textContent = toplam + " ürün";
     renderEdgeDurum();
@@ -3998,10 +4030,16 @@
     var hedefMarka = (activeBrand === "Tümü") ? null : markaKatla(activeBrand);
     for(var i = 0; i < kartlar.length; i++){
       var k = kartlar[i] || {};
-      if(activeCat !== "Tümü" && k.kategori !== undefined && k.kategori !== activeCat){
-        return "kategori";
+      // KANONİK yüklem (filtered() ile AYNI gövde): iki uçta iki kural olsaydı uç doğru
+      // süzse bile nöbetçi sapma diye REDDEDERDİ — 12 Ağu'ya kadar tam bu oluyordu:
+      // /?kategori=Jeneratör isteğinde uç DOĞRU kategoriyi döndürürken nöbetçi
+      // parametrik olmayan gerçek jeneratör parçalarını "parametrik sapması" sayıp
+      // TÜM sayfayı reddediyordu. Kart ekseni TAŞIMIYORSA (kategori undefined)
+      // doğrulanamaz → bugünkü gibi atlanır.
+      if(activeCat !== "Tümü" && k.kategori !== undefined &&
+         !kategoriEsler(k, activeCat, activeSeri)){
+        return activeSeri && k.kategori === activeCat ? "parametrik" : "kategori";
       }
-      if(activeCat === "Jeneratör" && !k.parametrik){ return "parametrik"; }
       if(activeAlt !== "Tümü" && k.altkategori !== undefined &&
          (k.altkategori || "") !== activeAlt){
         return "grup";
@@ -4196,11 +4234,14 @@
     return EDGE_UC + "/katalog?" + p.toString();
   }
 
-  // Gizli "Jeneratör" bağlantısı bir genel kategori değil, sarı/parametrik seri
-  // görünümüdür. ozet.json bu kümeyi zaten eksiksiz ve ayrı taşır; kategori adı aynı
-  // olan parametrik olmayan parçaları Worker'dan istemek görünümü genişletirdi.
+  // SERİ görünümü (sarı/parametrik) bir genel kategori değildir. ozet.json bu kümeyi
+  // zaten eksiksiz ve ayrı taşır; kategori adı aynı olan parametrik OLMAYAN parçaları
+  // Worker'dan istemek görünümü genişletirdi.
+  // 🔴 KOŞUL SERİ BAYRAĞINDA (12 Ağu): iç kategori adına bakılıyordu → aynı adı taşıyan
+  // GERÇEK jeneratör parçalarının kategori görünümü de bu havuza kaçırılıyor ve o
+  // ürünler hiçbir yerde görünmüyordu.
   function edgeJeneratorOzeti(){
-    if(activeCat !== "Jeneratör" || !OZET){ return null; }
+    if(!activeSeri || !OZET){ return null; }
     var liste = edgeTekille((OZET.parametrik || []).slice());
     if(activeAlt !== "Tümü"){
       liste = liste.filter(function(p){ return (p.altkategori || "") === activeAlt; });
@@ -4346,7 +4387,9 @@
     var liste = havuz;
 
     if(activeCat !== "Tümü"){
-      liste = liste.filter(function(p){ return p.kategori === activeCat; });
+      // filtered() ile AYNI kanonik yüklem (seri daraltması dahil) — yedek yol sessizce
+      // başka bir küme göstermesin.
+      liste = liste.filter(function(p){ return kategoriEsler(p, activeCat, activeSeri); });
     }
     // Grup filtresi YEDEK modda da UYGULANIR. ozet.json kartları `altkategori` TAŞIMAZ
     // (özet kart sözleşmesi) → seçili grupta sonuç 0 çıkar. Bu FAIL-CLOSED yön
@@ -4536,8 +4579,17 @@
     var kat = params.get("kategori");
     // Görünen etiket → iç ad (ör. "Ölçüye Özel Üretim" → "Jeneratör"). Alias ÇEVİRİSİDİR,
     // izinli-küme kontrolü ÇEVİRİDEN SONRA aynen koşar (bilinmeyen değer yine düşer).
-    if(kat && Object.prototype.hasOwnProperty.call(KATEGORI_ALIAS, kat)){ kat = KATEGORI_ALIAS[kat]; }
-    if(kat && (["Tümü"].concat(CATEGORIES).concat(GIZLI_KATEGORILER)).indexOf(kat) !== -1){ activeCat = kat; }
+    // 🔴 ÇEVİRİ BİLGİ KAYBETMEZ (12 Ağu): "Ölçüye Özel Üretim" ve "Jeneratör" AYNI iç ada
+    // çözülür ama AYNI görünüm DEĞİLDİR — hangisinin istendiği `seri` bitinde taşınır.
+    // Bit düşürüldüğünde iç adla gelen derin link (17 gerçek jeneratör parçasının
+    // breadcrumb'ı) sarı seri görünümüne düşüyor ve kullanıcı geldiği ürünü göremiyordu.
+    var seri = false;
+    if(kat && Object.prototype.hasOwnProperty.call(KATEGORI_ALIAS, kat)){
+      kat = KATEGORI_ALIAS[kat]; seri = true;
+    }
+    if(kat && (["Tümü"].concat(CATEGORIES).concat(GIZLI_KATEGORILER)).indexOf(kat) !== -1){
+      activeCat = kat; activeSeri = seri;
+    }
     // ALT KATEGORİ — kategori gibi izinli-küme SÜZGECİNDEN GEÇİRİLMEZ, AYNEN alınır.
     // 🔴 GEREKÇE (sessiz-hata sınıfı): bilinmeyen değeri düşürmek fail-OPEN olurdu —
     // ?altkategori=xyzyok tam listeyi getirir, Worker aynı girdide 0 döner, iki uç
@@ -4568,7 +4620,8 @@
   // geçmiş şişmesin) — bu dinleyici ürün sayfasından/ dış geçmişten dönüşte
   // görünümün URL'ye oturmasını garantiler.
   window.addEventListener("popstate", function(){
-    activeCat = "Tümü"; activeBrand = "Tümü"; activeAlt = "Tümü"; activeModel = "Tümü";
+    activeCat = "Tümü"; activeSeri = false;
+    activeBrand = "Tümü"; activeAlt = "Tümü"; activeModel = "Tümü";
     query = ""; searchEl.value = ""; clearEl.className = "search-clear";
     if(applyUrlParams()){ return; }
     resetPaging();

@@ -113,6 +113,24 @@ jobs:
       - name: "Uretici butunluk kapisi (yayinlanan her id'nin sayfasi var mi)"
         run: python3 tools/uretim-butunluk-kapisi.py
 
+      # MALZEME YUZEYI KAPISI (12 Agu, canlida olculdu): sayfa URETILDI ama MALZEME
+      # SECIMININ TAMAMI (fil-cip cipleri + tavsiye rozeti + muhendislik-malzeme WA notu +
+      # Malzeme Rehberi linki) sessizce dusmustu — /urun/volvo-penta-xact-top-mount-tek-
+      # kumanda-paneli-tutucusu/ icin `fil-cip` = 0, karsi ornekte 5. Hicbir kapi
+      # yanmiyordu: 200 doner, kart/fiyat/sepet yerinde. Kok neden VERIDE: kayit hem
+      # `"tur":"fiziksel"` (hazir ticari mal -> malzeme yuzeyi BILEREK basilmaz) hem
+      # `tavsiyeFilament` (baski malzemesi tavsiyesi = ozel uretim beyani) tasiyor.
+      # Kapi uretilen TUM urun sayfalarini olcer (orneklem YOK), her iki yonu de
+      # (ozel uretim -> cip VAR / hazir -> cip YOK) dogrular ve celiskili sinifi
+      # "N üründe malzeme çipi yok" diye SAYIYLA bildirir. Veriye DOKUNMAZ
+      # (urunler.json MaCiT'in duzlemi); onarim veri tarafinda yapilinca kendiliginden
+      # yesillenir — kanit: kapi 3 celiskili kayittan `tur` kaldirilmis gecici agacta rc=0.
+      # build.py'den SONRA kosmak ZORUNDA (urun/ ciktisina muhtac); yoksa rc=3 OLCULEMEDI.
+      # Offline, stdlib, yazma yok, ~2,5 s. Mutasyon nobeti (3 oldurucu + 1 KONTROL):
+      #   python3 tools/malzeme-yuzey-kapisi.py --mutasyon
+      - name: "Malzeme yuzeyi kapisi (uretilen sayfa malzeme secimini kaybetti mi)"
+        run: python3 tools/malzeme-yuzey-kapisi.py
+
       # YAYIN KOPYASI PARITE KAPISI: soyma PARAYI degistirdi mi. Kaynak JS ile _yayin/
       # (soyulmus) JS ayri ayri yuklenip TAM KUME fiyat karsilastirmasi yapilir
       # (23 sema x 25 olcu x 4 filament x 4 renk = 9200 kombinasyon, orneklem YOK) +
