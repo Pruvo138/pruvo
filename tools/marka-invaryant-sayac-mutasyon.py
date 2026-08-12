@@ -25,7 +25,6 @@ Kabul:
 
 Kullanım: python3 tools/marka-invaryant-sayac-mutasyon.py
 """
-import hashlib
 import os
 import re
 import shutil
@@ -35,22 +34,19 @@ import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
+sys.path.insert(0, TOOLS)
+
+# 🔴 KOPYA KÖKÜ + AĞAÇ DAMGASI TEK KAYNAKTAN (tools/mutasyon_kopya.py): üç sürücü de
+# aynı gövdeyi kullanır, ikiz tanım sessizce ayrışamaz → [[ikiz-tanim-sessiz-ayrisma]].
+import mutasyon_kopya as mk                                        # noqa: E402
+
 CANLI_HEDEF = os.path.join(TOOLS, "marka_model_build.py")
 
 
 def _bir_marka_adi():
     """Marka-özel dal mutantı için GERÇEK bir marka adı. Bu dosyada SABİT marka adı
     TUTULMAZ: kapının MARKA_LITERAL iddiası bu dosyayı da tarıyor."""
-    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
-        m = re.search(r"var TANINMIS_MARKALAR = \[(.*?)\];", f.read(), re.S)
-    return re.findall(r'"([^"]+)"', m.group(1))[0]
-
-
-def _sha256(yol):
-    h = hashlib.sha256()
-    with open(yol, "rb") as f:
-        h.update(f.read())
-    return h.hexdigest()
+    return mk.bir_marka_adi(ROOT)
 
 
 # (kimlik, öldürücü mü, eski_metin, yeni_metin)
@@ -100,21 +96,6 @@ def mutantlar():
     ]
 
 
-def depo_kopyala(tmp):
-    """tools/ KOPYALANIR, geri kalan her şey SEMBOLİK bağlanır -> mutasyon canlı ağaca
-    hiçbir koşulda sızamaz; kapı yine gerçek katalog ve gerçek index.html ile koşar."""
-    kok = os.path.join(tmp, "repo")
-    os.makedirs(kok)
-    for ad in sorted(os.listdir(ROOT)):
-        kaynak = os.path.join(ROOT, ad)
-        if ad == "tools":
-            shutil.copytree(kaynak, os.path.join(kok, "tools"),
-                            ignore=shutil.ignore_patterns("__pycache__"))
-        else:
-            os.symlink(kaynak, os.path.join(kok, ad))
-    return kok
-
-
 def kapi_kos(kok):
     ortam = dict(os.environ)
     ortam["PYTHONDONTWRITEBYTECODE"] = "1"
@@ -130,10 +111,10 @@ def kapi_kos(kok):
 
 
 def main():
-    canli_bas = _sha256(CANLI_HEDEF)
+    canli_bas = mk.agac_damgasi([CANLI_HEDEF])
     tmp = tempfile.mkdtemp(prefix="mm-invaryant-mutasyon-")
     try:
-        kok = depo_kopyala(tmp)
+        kok = mk.kopya_kok(tmp)
         hedef = os.path.join(kok, "tools", "marka_model_build.py")
         with open(hedef, encoding="utf-8") as f:
             metin = f.read()
@@ -173,18 +154,18 @@ def main():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    canli_son = _sha256(CANLI_HEDEF)
+    canli_son = mk.agac_damgasi([CANLI_HEDEF])
+    agac_temiz = canli_bas == canli_son and not canli_son[1]
     ayrismayan = sum(len(v) for v in imzalar.values() if len(v) > 1)
     print("\n== HUKUM ==")
     for imza, ks in sorted(imzalar.items()):
         if len(ks) > 1:
             print("  AYRISMAYAN: %s -> %s" % (", ".join(ks), imza[:120]))
-    print("CANLI_DOSYA_SHA256 bas=%s son=%s ayni=%s"
-          % (canli_bas[:16], canli_son[:16], canli_bas == canli_son))
-    print("OLDURUCU=%d/%d  KONTROL=%d/%d  AYRISMAYAN=%d  TABAN_IDDIA=%s"
-          % (old_g, old_t, kon_g, kon_t, ayrismayan, t_iddia))
-    tamam = (old_g == old_t and kon_g == kon_t and ayrismayan == 0
-             and canli_bas == canli_son)
+    print("AGAC_DAMGASI bas=%s son=%s artik=%s"
+          % (canli_bas[0], canli_son[0], canli_son[1]))
+    print("OLDURUCU=%d/%d  KONTROL=%d/%d  AYRISMAYAN=%d  AGAC_KIRLILIGI=%s"
+          % (old_g, old_t, kon_g, kon_t, ayrismayan, "YOK" if agac_temiz else "VAR"))
+    tamam = (old_g == old_t and kon_g == kon_t and ayrismayan == 0 and agac_temiz)
     print("HUKUM=" + ("YESIL" if tamam else "KIRMIZI"))
     return 0 if tamam else 1
 
