@@ -61,9 +61,12 @@ KATALOG = [
 ]
 
 hatalar = []
+iddia_sayisi = 0
 
 
 def kontrol(kosul, mesaj):
+    global iddia_sayisi
+    iddia_sayisi += 1
     if kosul:
         print("  OK   %s" % mesaj)
     else:
@@ -338,6 +341,50 @@ def test_konfigur():
     kontrol(not os.path.exists(os.path.join(repo2, ".urunler-duzelt-izin.json")),
             "MUTASYON: izin manifesti OLUSMADI")
     shutil.rmtree(repo2, ignore_errors=True)
+
+
+# ----------------------------------------------- (e2) tavsiyeFilament tip sozlesmesi
+def test_tavsiye_filament():
+    print("\n(e2) tavsiyeFilament: string dizisi KABUL + yanlis tip RED")
+    repo = sahte_repo()
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_tavsiye_filament")
+    urunler_yol = os.path.join(repo, "urunler.json")
+
+    beklenen = ["ASA"]  # gercek katalog bicimi ve KaaN'in somut ihtiyaci
+    rc, out, err = cagir(mod, ["test-urun-1", "--alan", "tavsiyeFilament",
+                               "--deger", json.dumps(beklenen, ensure_ascii=False)])
+    with open(urunler_yol, encoding="utf-8") as f:
+        yazilan = {p["id"]: p for p in json.load(f)}["test-urun-1"].get("tavsiyeFilament")
+    kontrol(rc == 0, "POZITIF: string dizisi KABUL EDILDI (rc=%s; %s)"
+            % (rc, err.strip() or out.strip().splitlines()[-1:]))
+    kontrol(yazilan == beklenen,
+            "POZITIF: tavsiyeFilament geri-okumada BIREBIR ayni (%r)" % yazilan)
+    kontrol("tavsiyeFilament" in mod.DEGISTIRILEBILIR,
+            "POZITIF: tavsiyeFilament izinli alan kumesinde")
+
+    once = sha(urunler_yol)
+    rc2, out2, err2 = cagir(mod, ["test-urun-1", "--alan", "tavsiyeFilament",
+                                  "--deger", "7"])
+    cikti2 = out2 + err2
+    kontrol(rc2 == 2, "NEGATIF: sayi deger REDDEDILDI (rc=%s)" % rc2)
+    kontrol(sha(urunler_yol) == once,
+            "NEGATIF: red sonrasi urunler.json BYTE-ESIT")
+    kontrol("tavsiyeFilament" in cikti2,
+            "NEGATIF: hata mesaji alan adini soyluyor")
+    kontrol("string ogelerden olusan bir dizi" in cikti2,
+            "NEGATIF: hata mesaji beklenen bicimi soyluyor")
+
+    yol = islem_yaz(repo, [{"id": "test-urun-2", "alan": "tavsiyeFilament",
+                             "deger": "ASA"}])
+    once_toplu = sha(urunler_yol)
+    rc3, out3, err3 = cagir(mod, ["--toplu", yol])
+    cikti3 = out3 + err3
+    kontrol(rc3 == 2 and "tavsiyeFilament" in cikti3
+            and "string ogelerden olusan bir dizi" in cikti3,
+            "NEGATIF TOPLU: string deger alan+bicim mesaji ile REDDEDILDI")
+    kontrol(sha(urunler_yol) == once_toplu,
+            "NEGATIF TOPLU: urunler.json BYTE-ESIT")
+    shutil.rmtree(repo, ignore_errors=True)
 
 
 # ------------------------------------------------- (f) aciklama olcu satiri korumasi
@@ -1020,6 +1067,7 @@ def main():
     test_c()
     test_d()
     test_konfigur()
+    test_tavsiye_filament()
     test_f_koruma()
     test_f_ciftleme()
     test_f_gomulu()
@@ -1046,7 +1094,8 @@ def main():
     test_h_mutasyon()
     test_h_cikis_kodu()
     test_h_cikis_kodu_mutasyon()
-    print("\n%s" % ("TUM KONTROLLER GECTI." if not hatalar
+    print("\nIDDIA SAYISI: %d" % iddia_sayisi)
+    print("%s" % ("TUM KONTROLLER GECTI." if not hatalar
                     else "BASARISIZ (%d): \n  - %s" % (len(hatalar), "\n  - ".join(hatalar))))
     return 0 if not hatalar else 1
 

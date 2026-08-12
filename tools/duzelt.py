@@ -163,10 +163,11 @@ LOG = os.path.join(ROOT, ".urunler-guard.log")
 # ELLE VERILEMEZ (bkz. _uyum_marka_turet / _uyum_marka_catismasi / _uyum_ihlalleri).
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
                     "gorseller", "lisans", "konfigur", "altkategori",
-                    "tur", "gorselsiz", "uyum"}
+                    "tur", "gorselsiz", "uyum", "tavsiyeFilament"}
 
 UYUM_ALANI = "uyum"
 MARKA_ALANI = "marka"
+TAVSIYE_FILAMENT_ALANI = "tavsiyeFilament"
 
 # --alan altkategori (ya da --alan kategori) ihlalinde donen cikis kodu. gorsel-koken
 # kapisinin 4'unden AYRI: cagiran (insan ya da betik) hangi kapinin reddettigini cikis
@@ -585,6 +586,22 @@ def _parse_deger(raw, alan=None):
     return raw  # duz metin (fiyat, baslik, kategori, ...)
 
 
+def _alan_tip_hatasi(alan, deger):
+    """Izinli ama yapisal olan alanlar icin dar tip sozlesmesi; None = gecerli.
+
+    `tavsiyeFilament` katalogda bos olmayan metin dizisi, filament_ortak.py ile
+    secenekler.js de onu dizi olarak geziyor. Serbest metin acmak iki tuketiciyi
+    sessizce ayirir. Malzeme adlarini burada kapali kumeye baglamiyoruz: tuketici
+    taninmayan adi bilerek fail-closed `taninmayan` kolunda raporlar.
+    """
+    if alan == TAVSIYE_FILAMENT_ALANI:
+        if (not isinstance(deger, list) or not deger
+                or not all(isinstance(x, str) and x.strip() for x in deger)):
+            return ("'%s' alani bos olmayan string ogelerden olusan bir dizi olmali; "
+                    "ornek: [\"ASA\"]" % TAVSIYE_FILAMENT_ALANI)
+    return None
+
+
 def _atomic_write(path, obj):
     tmp = path + ".tmp-" + str(os.getpid())
     with open(tmp, "w") as f:
@@ -711,6 +728,10 @@ def _toplu_cozumle(yol):
             if alan not in DEGISTIRILEBILIR:
                 hatalar.append("%s: bilinmeyen/izinsiz alan: %s (izinli: %s)"
                                % (etiket, alan, ", ".join(sorted(DEGISTIRILEBILIR))))
+                continue
+            tip_hatasi = _alan_tip_hatasi(alan, islem["deger"])
+            if tip_hatasi:
+                hatalar.append("%s: %s" % (etiket, tip_hatasi))
                 continue
             onceki = setler.get(uid, {})
             if alan in onceki and json.dumps(onceki[alan], sort_keys=True) != \
@@ -959,6 +980,10 @@ def main():
         except ValueError as e:
             print("HATA: '%s' alaninin degeri JSON olarak cozumlenemedi: %s" % (alan, e),
                   file=sys.stderr)
+            return 2
+        tip_hatasi = _alan_tip_hatasi(alan, degisiklikler[alan])
+        if tip_hatasi:
+            print("HATA: %s" % tip_hatasi, file=sys.stderr)
             return 2
 
     silinecek_alanlar = []
