@@ -27,7 +27,10 @@ bu turda **4 commit geride** (`31579986390` @ `9cf40ae3` ↔ o anki `origin/main
 Is `deploy.yml` `needs:` zincirinde DEGIL (ayri concurrency, yalniz `cron "26 * * * *"`) → **yayini
 DURDURMAZ.** Diger eksende CI temiz: son 30 kosumda baska `failure` **0**, `cron-nabzi` success.
 **K78 ACILDI ve AYNI TURDA DAGITILDI** (MUHENDIS/Opus, izole agac, dal `kral/k78-yayin-erisim-evren-
-hizalama`); dagitim ARTEFAKTLI ve CANLI — ilk 15 dk kurali TUTTU, WIP commit `e7ecec0e` alindi.
+hizalama`); dagitim ARTEFAKTLI ve CANLI — **K72 kurtarma semasinin IKI sarti da TUTTU**: WIP commit
+alindi (`e7ecec0e`) ve dal tur icinde origin'e **ITILDI** (`b3345e8c`, `ls-remote` ile bagimsiz
+teyit) → objeler tek nushada DEGIL, is kaybi riski **0**. Isci tur sonunda hala CALISIYOR; tur ici
+bekleme suresi (~25 dk) doldugu icin hukum YAZILMADI (§3.5) — devralma sonraki turun ILK isi.
 
 **📏 WORKTREE — K63/K64 AGACI ARSIVLEME GEREKTIRMEDEN DUSURULDU.** Uc eksen once olculdu:
 `merge-base --is-ancestor d5141b20 origin/main` **rc=0** · `origin/main..dal` **0 commit** ·
