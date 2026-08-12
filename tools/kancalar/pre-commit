@@ -215,4 +215,46 @@ if [ "$pruvo_devam_rc" -ne 0 ]; then
   exit 1
 fi
 
+# --- 7) IC RAPOR ADI KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) ----------
+# 🔴 12 AGU 2026 ONARIMI — ADIM 6 ILE AYNI SINIFIN IKINCI VAKASI (olculdu):
+#   Bir nobet turu ic isci-raporunun protokol adini IZLENEN kok defter DEVAM.md'ye
+#   birebir yazdi (satir 206 + 214). tools/ic-rapor-adi-kapisi.py DOGRU calisti ama
+#   YALNIZ CI'da yasiyordu: kosum 31549865286'da `serit-a3` KIRMIZI yandi, `deploy`
+#   + `yayin` SKIPPED kaldi ve YAYIN DURDU; kanama 3383aa90 ile durduruldu.
+#   `grep -rn ic-rapor-adi-kapisi tools/kancalar/` -> 0 isabet: kapi deploy.yml
+#   (2 cagri) + nobet.yml (2 cagri) disinda hicbir yerde yoktu, yani defteri yazan
+#   kisi ihlali ANCAK YAYIN DURDUKTAN SONRA ogreniyordu. Maliyet ihlalin
+#   BUYUKLUGUNDEN degil YAKALANDIGI YERDEN geliyor. Bu adim ihlali COMMIT ANINDA
+#   durdurur: main'e HIC girmez, yayini HIC durduramaz.
+# EKSEN INDEX'TIR, CALISMA AGACI DEGIL: bu checkout'u BES ev paylasir; kanonik
+#   kapinin BAYRAKSIZ kolu TUM izlenen CALISMA AGACINI tarar ve oldugu gibi
+#   baglansaydi baska bir oturumun STAGE'LENMEMIS yarim DEVAM.md taslagi HERKESIN
+#   commit'ini kilitlerdi ([[kanca-stage-disi-agaci-tarar]]). tools/ic-rapor-index-
+#   kolu.py o kapinin INDEX izdusumudur: hukum/desen/muafiyet govdesi KOPYALANMAZ,
+#   kanonik kapidan IMPORT edilir ve KENDI kirmizi-yesil sozlesmesiyle canliligi
+#   sinanir ([[ikiz-tanim-sessiz-ayrisma]]).
+# ON-ELEME KAPININ ICINDE, AYNI INDEX EKSENINDE: kabukta `git diff HEAD` ile
+#   elenseydi iki eksen sessizce ayrisirdi ([[kabul-araligi-karsilastirma-araligi]]).
+#   Atlama nedeni her seferinde BASILIR (sessiz atlama = sessiz yesil).
+# CI KOLU YERINDE KALIR: kancalar commit EDILMEZ ve atlanabilir; ZORLAYICI hukum
+#   deploy.yml serit-a3'tedir. Bu kol onun YERINE GECMEZ, ONUNDE DURUR. Kancanin
+#   GORMEDIGI kalici durumu (uzak dallar, kancasiz makineler) `--uzak` kolu olcer.
+# rc=2 (OLCULEMEDI) YESIL SAYILMAZ -> commit DURUR.
+pruvo_icrapor="$pruvo_kok/tools/ic-rapor-index-kolu.py"
+if [ ! -f "$pruvo_icrapor" ]; then
+  echo "!! COMMIT DURDURULDU — tools/ic-rapor-index-kolu.py YOK." >&2
+  echo "!! Ic rapor adi korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+python3 "$pruvo_icrapor"
+pruvo_icrapor_rc=$?
+if [ "$pruvo_icrapor_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — ic rapor adi kapisi INDEX kolu rc=$pruvo_icrapor_rc (0=YESIL 1=KIRMIZI 2=OLCULEMEDI)." >&2
+  echo "!! Kanonik hukum: tools/ic-rapor-adi-kapisi.py (CI'da serit-a3'te BLOKLAYICI)." >&2
+  echo "!! Gerekce yukarida. COZUM: yorum/docstring METNINDEN ic rapor dosya adini" >&2
+  echo "!!   kaldir, anlamini koruyan genel ifadeyle yaz (or. 'muhendis raporunda');" >&2
+  echo "!!   defter satiriysa DEVAM-ARSIV.md'ye (git DISI) TASI. Silme YOK, tasima VAR." >&2
+  exit 1
+fi
+
 exit 0

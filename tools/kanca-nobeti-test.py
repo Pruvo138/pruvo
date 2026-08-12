@@ -86,6 +86,22 @@ alan="$root/tools/katalog-alan-kapisi.py"
 if [ -f "$alan" ]; then
   python3 "$alan" || exit 1
 fi
+
+# IC RAPOR ADI KAPISININ INDEX KOLU (12 Agu 2026) — GERCEK kancadaki SEKLIN
+# taklidi: NEGATIF varlik kapisi (arac yoksa `exit 1`) + rc'yi `$?` ile yakalayip
+# girintili kosullu `exit 1`. Sekil taklit edilmezse nobetci gercekte olmayan bir
+# bicimi olcer ([[nobetci-fikstur-sekli]]).
+icrapor="$root/tools/ic-rapor-index-kolu.py"
+if [ ! -f "$icrapor" ]; then
+  echo "!! COMMIT DURDURULDU — ic rapor adi kolu YOK." >&2
+  exit 1
+fi
+python3 "$icrapor"
+icrapor_rc=$?
+if [ "$icrapor_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — ic rapor adi kapisi INDEX kolu rc=$icrapor_rc." >&2
+  exit 1
+fi
 exit 0
 """
 

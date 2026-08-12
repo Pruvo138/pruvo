@@ -145,6 +145,14 @@ FAIL_CLOSED = {
         "atliyordu (olculdu 8 Agu 2026: 5 bozuk kayit main'e girdi, ariza saatler "
         "sonra CI'da gorundu, deploy ATLANDI). Cikis kodu yutulursa bozuk kayit "
         "repoya girer ve yayin yine SAATLER sonra durur.",
+    ("pre-commit", "tools/ic-rapor-index-kolu.py"):
+        "yazim oncesi ic rapor adi kolu (INDEX ekseni). Kanonik kapi "
+        "(tools/ic-rapor-adi-kapisi.py) YALNIZ CI'da yasiyordu: 12 Agu 2026 kosumu "
+        "31549865286'da izlenen kok deftere sizan protokol adi `serit-a3`u KIRMIZI "
+        "yakti, `deploy` + `yayin` SKIPPED kaldi ve YAYIN DURDU. Cikis kodu "
+        "yutulursa ihlal repoya girer ve yayin yine SAATLER sonra, ihlali yazan "
+        "kisiden UZAKTA durur (ayni sinifin BIRINCI vakasi devam-sinif-kapisi.py "
+        "ekseninde olculdu).",
     ("commit-msg", "tools/commit-mesaji-kapisi.py"):
         "commit MESAJI yazildiktan sonra degistirilemez (depo PUBLIC) -> tek "
         "onleyici yuzey budur; yutulursa tedarikci kimligi kalici olarak sizar.",
