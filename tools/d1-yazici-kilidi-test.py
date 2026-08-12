@@ -28,12 +28,16 @@ OLCULEN EKSENLER
   C BAYAT KILIT / OLU  : kayittaki PID OLU -> kilit DEVRALINIR (rc=0) ve gurultuyle basar.
   D BAYAT KILIT / CANLI: kayittaki PID YASIYOR -> DEVRALINMAZ (rc != 0).
   E OKUYUCU MUAF       : kilit BASKASINDA iken `--durum`/`--kuru` kollari kilide TAKILMAZ.
-  F HIJYEN             : mutlu yolda kilit dosyasi BOS birakilir (bayat kayit kalmaz).
+  F SAF BIRIM          : PID/kayit cozumu + kilit CAPASININ geri cekilme hali.
+  G WORKTREE KAPSAMI   : AYNI deponun IKI agaci (ana + gercek `git worktree add`) TEK
+                         canli D1'e yazar -> kilit AGAC SINIRINI asmali. Kilit KOK'e
+                         capalanirsa her agac AYRI kilit alir ve ariza GERI DONER.
 
 IC KOLLAR (surucu kendini alt surec olarak cagirir — sentetik yazici sureci):
   --yavas-yazici <kilit> <urun> <gecikme>  GERCEK yazici kolunu offline kos, her ifadede
                                            <gecikme> sn uyu (kilit penceresi genisler)
   --yazici-dene  <kilit> [bekleme]         GERCEK yazici kolunu offline kos, cikis kodunu don
+  (<kilit> = `-` ise modulun KENDI cozdugu VARSAYILAN kilit kullanilir — G ekseni)
   --uyuyan       <saniye>                  yalnizca yasayan bir PID uret (D ekseni icin)
   --modul <yol>                            d1-sync modulunu BU dosyadan yukle (mutasyon
                                            surucusu mutant KOPYAYI boyle isaret eder)
@@ -67,8 +71,15 @@ def modul_yukle(yol):
 # ══════════════════════════════════════════════════════════════════════════════
 # IC KOLLAR — alt surec olarak kosarlar
 # ══════════════════════════════════════════════════════════════════════════════
+def _kilit_coz(mod, arg):
+    """`-` = modulun KENDI cozdugu VARSAYILAN kilit (G ekseni bunu olcer); aksi hal
+    acik yol (A-E eksenleri: gercek `.git` capasina DOKUNULMAZ)."""
+    return mod.KILIT if arg == "-" else arg
+
+
 def _kol_yavas_yazici(mod, kilit, urun_sayisi, gecikme):
     """GERCEK yazici kolu (main(), bayraksiz) — offline sqlite, her ifadede uyur."""
+    kilit = _kilit_coz(mod, kilit)
     conn = mod._kt_baglan()
     urunler = [mod._kt_urun("y%03d" % i) for i in range(urun_sayisi)]
 
@@ -85,6 +96,7 @@ def _kol_yavas_yazici(mod, kilit, urun_sayisi, gecikme):
 
 def _kol_yazici_dene(mod, kilit, bekleme):
     """GERCEK yazici kolu — kilit mesgulse fail-closed durmali."""
+    kilit = _kilit_coz(mod, kilit)
     if bekleme is not None:
         mod.KILIT_BEKLEME_SN = bekleme
     conn = mod._kt_baglan()
@@ -160,6 +172,78 @@ def _json_son(metin):
 def _kayit_yaz(yol, kayit):
     with open(yol, "w", encoding="utf-8") as f:
         f.write(json.dumps(kayit, ensure_ascii=False))
+
+
+def _agac_kur(hedef, modul):
+    """`hedef` agacinda bir `tools/` kur: gercek tools/ icerigi SYMLINK, olculen modul
+    ise `hedef/tools/d1-sync.py` olarak baglanir. Boylece modulun KOK'u `hedef` olur
+    (KOK = dirname(dirname(__file__)) ve abspath symlink COZMEZ)."""
+    tdizin = os.path.join(hedef, "tools")
+    os.makedirs(tdizin, exist_ok=True)
+    for ad in os.listdir(TOOLS):
+        h = os.path.join(tdizin, ad)
+        if os.path.lexists(h):
+            continue
+        os.symlink(os.path.join(TOOLS, ad), h)
+    d1 = os.path.join(tdizin, "d1-sync.py")
+    if os.path.lexists(d1):
+        os.unlink(d1)
+    os.symlink(os.path.abspath(modul), d1)
+    return d1
+
+
+def _worktree_ekseni(mod, modul, tmp, dogrula):
+    """G ekseni: AYNI deponun IKI agaci (ana + `git worktree add`) TEK canli D1'e
+    yazar; kilit ikisini de kapsamali. Doner: (kuruldu, ayni_capa, yaris_rc)."""
+    depo = os.path.join(tmp, "g-depo")
+    wt = os.path.join(tmp, "g-worktree")
+    os.makedirs(depo)
+    try:
+        mod.sentetik_git(depo, "init", "-q", check=True, capture_output=True)
+        open(os.path.join(depo, "tohum.txt"), "w").write("tohum\n")
+        mod.sentetik_git(depo, "add", "tohum.txt", check=True, capture_output=True)
+        mod.sentetik_git(depo, "commit", "-q", "-m", "tohum",
+                         check=True, capture_output=True)
+        mod.sentetik_git(depo, "worktree", "add", "-q", "-b", "ikinci", wt,
+                         check=True, capture_output=True)
+    except Exception as e:                                  # noqa: BLE001
+        dogrula("G0 PENCERE: sentetik depo + gercek `git worktree add` kuruldu",
+                False, "%s: %s" % (type(e).__name__, e))
+        return False, None, None
+
+    d1_ana = _agac_kur(depo, modul)
+    d1_wt = _agac_kur(wt, modul)
+    mod_ana = modul_yukle(d1_ana)
+    mod_wt = modul_yukle(d1_wt)
+
+    dogrula("G0 PENCERE: sentetik depo + gercek `git worktree add` kuruldu; iki agacta "
+            "AYRI KOK olctuk", mod_ana.KOK != mod_wt.KOK, (mod_ana.KOK, mod_wt.KOK))
+    ayni_capa = mod_ana.KILIT == mod_wt.KILIT
+    dogrula("G1 KAPSAM: AYRI KOK'lu iki agac AYNI kilit dosyasini cozuyor "
+            "(ortak git dizini capasi)", ayni_capa, (mod_ana.KILIT, mod_wt.KILIT))
+
+    # GERCEK YARIS: ana agactan yazici ucusta iken WORKTREE'den ikinci yazici.
+    yazici = subprocess.Popen(
+        _ben(d1_ana, "--yavas-yazici", "-", YAZICI_URUN, YAZICI_GECIKME),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        kuruldu = _kayit_bekle(mod_ana.KILIT, yazici.pid)
+        dogrula("G2 PENCERE: ana agactaki yazici kilidi ALDI", kuruldu,
+                "kayit belirmedi: %s" % mod_ana.KILIT)
+        r = subprocess.run(_ben(d1_wt, "--yazici-dene", "-", RACER_BEKLEME),
+                           capture_output=True, text=True)
+        yaris_rc = r.returncode
+        gj = _json_son(r.stdout)
+        dogrula("G3 WORKTREE YARISI: WORKTREE'deki ikinci yazici fail-closed durdu "
+                "(rc=%d, beklenen %d) — kilit AGAC SINIRINI asiyor"
+                % (yaris_rc, mod.KILIT_MESGUL_RC),
+                yaris_rc == mod.KILIT_MESGUL_RC, (r.stdout[-300:], r.stderr[-500:]))
+        dogrula("G4 WORKTREE YARISI: ikinci yazici TEK IFADE bile gondermedi",
+                gj.get("yazma") == 0 and gj.get("satir") == 0, gj)
+    finally:
+        yazici.kill()
+        yazici.communicate()
+    return True, ayni_capa, yaris_rc
 
 
 def _olu_pid():
@@ -343,9 +427,26 @@ def main(modul):
         dogrula("F4 SAF: BOZUK kayit -> pid COZULEMEZ (None) ama kayit 'bozuk' isaretli",
                 mod.kilit_kaydi_pid(mod.kilit_kaydi_oku(bozuk)) is None
                 and "bozuk" in (mod.kilit_kaydi_oku(bozuk) or {}))
-        dogrula("F5 SAF: KILIT sabiti depo kokunde ve .urunler.lock ile AYNI AILEDE",
-                os.path.basename(mod.KILIT) == ".d1-sync.lock"
-                and os.path.dirname(mod.KILIT) == mod.KOK, mod.KILIT)
+        depo_yok = os.path.join(tmp, "depo-yok")
+        os.makedirs(depo_yok, exist_ok=True)
+        dogrula("F5 SAF: git DEPOSU OLMAYAN dizinde kilit KOK'e geri cekilir "
+                "(olculemedi -> kilit yine ALINIR, yalniz kapsami daralir)",
+                mod._kilit_yolu(depo_yok)
+                == os.path.join(depo_yok, mod.KILIT_YEDEK_ADI),
+                mod._kilit_yolu(depo_yok))
+        dogrula("F6 SAF: KILIT MUTLAK yol ve bu depoda ORTAK git dizinine capali "
+                "(KOK'e DEGIL) — worktree'ler ayni kilidi paylasir",
+                os.path.isabs(mod.KILIT)
+                and os.path.basename(mod.KILIT) == mod.KILIT_ADI
+                and os.path.dirname(mod.KILIT) != mod.KOK, mod.KILIT)
+
+        # ── G. WORKTREE KAPSAMI — AYNI DEPONUN IKI AGACI, TEK CANLI D1 ───────────
+        # 🔴 OLCULEN KAPSAM HATASI: kilit KOK'e capalanirsa her worktree AYRI bir
+        # kilit dosyasi kullanir ve iki yazici AYNI canli veritabanina ayni anda yazar.
+        # `urunler.json` icin KOK dogru birimdir (her agacta AYRI dosya); D1 icin
+        # DEGILDIR (TEK global kaynak). Bu eksen sentetik bir depo + GERCEK
+        # `git worktree add` ile iki agac kurar ve aralarinda GERCEK yaris kosar.
+        g_kuruldu, g_ayni_capa, g_yaris_rc = _worktree_ekseni(mod, modul, tmp, dogrula)
     finally:
         import shutil
         shutil.rmtree(tmp, ignore_errors=True)
@@ -355,6 +456,8 @@ def main(modul):
     print("  KONTROL(tek yazici rc)       = %d   (beklenen 0)" % kontrol_rc)
     print("  BAYAT_KILIT_OLU rc           = %d   (beklenen 0)" % bayat_olu_rc)
     print("  BAYAT_KILIT_CANLI rc         = %d   (beklenen != 0)" % bayat_canli_rc)
+    print("  WORKTREE_YARISI rc           = %s   (beklenen %d · ayni capa: %s)"
+          % (g_yaris_rc, MESGUL, g_ayni_capa))
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 1 if kalan[0] else 0
 

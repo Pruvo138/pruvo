@@ -16,6 +16,8 @@ yazicisi) GERI GETIRIR:
   * OLDURUCU M4  — BLOKLAYAN flock (fail-slow = fail-open: yazici asilir, sirayla kosar)
   * OLDURUCU M5  — ikinci kat (kayit CANLI mi) sokulur
   * OLDURUCU M6  — kilit birakilirken SAHIP KAYDI temizlenmez (bayat kayit birikir)
+  * OLDURUCU M7  — kilit KOK'e capalanir (her worktree AYRI kilit = kapsam hatasi;
+                   D1 TEK global kaynak, `urunler.json` gibi agac-basina DEGIL)
 KONTROL mutantlari iddia edilmeyen eksende YESIL kalmali; kalmazsa batarya bir tautoloji
 ya da "her degisiklige kirmizi yanan" gurultu kaynagidir, nobetci degil.
 
@@ -90,6 +92,11 @@ MUTANTLAR = [
      "        pass\n"
      "    except OSError:\n"
      "        pass", "KIRMIZI"),
+
+    ("OLDURUCU M7 KILIT KOK'e CAPALANIR — her worktree AYRI kilit (kapsam hatasi)",
+     "d1-sync.py",
+     "KILIT = _kilit_yolu()",
+     "KILIT = os.path.join(KOK, KILIT_YEDEK_ADI)", "KIRMIZI"),
 
     # ── KONTROL: iddia EDILMEYEN eksen — batarya tautoloji olmasin ──────────────
     ("KONTROL K1 YOKLAMA ARALIGI (0,25 -> 0,20 sn; hukum degismez)",

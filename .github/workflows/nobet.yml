@@ -1230,8 +1230,11 @@ jobs:
       # olculup durduruldu — bizi kural degil tesaduf korumustu.
       # Kabul testi GERCEK isletim sistemi surecleriyle yaris kurar ama her surec
       # d1-sync'in OFFLINE harness'ini kosar: AG YOK, wrangler YOK, CANLI D1'e
-      # DOKUNULMAZ. ~8 sn. Mutasyon kaniti (6 olduruculu / 4 kontrollu batarya):
+      # DOKUNULMAZ. ~20 sn. Mutasyon kaniti (7 olduruculu / 4 kontrollu batarya):
       # python3 tools/d1-yazici-kilidi-mutasyon.py (asagida, ayri adim).
+      # G ekseni AYRICA sentetik bir depoda GERCEK `git worktree add` kurup iki agac
+      # arasinda yaris kosar: canli D1 TEK global kaynak oldugu icin kilit KOK'e DEGIL
+      # ORTAK git dizinine capalidir; KOK capasi her worktree'ye AYRI kilit verirdi.
       - name: D1 yazici kilidi kabul testi (yaris + bayat kilit + okuyucu muafiyeti)
         run: python3 tools/d1-yazici-kilidi-test.py
 
@@ -1412,11 +1415,12 @@ jobs:
       - name: "D1-sync durum kolu mutasyon bataryasi"
         run: python3 tools/d1-sync-durum-mutasyon.py
 
-      # D1 YAZICI KILIDI (K49) — kapinin KENDISI olcuyor mu. 6 OLDURUCU (kilit hic
+      # D1 YAZICI KILIDI (K49) — kapinin KENDISI olcuyor mu. 7 OLDURUCU (kilit hic
       # alinmaz · rc yutulur · CANLI pid OLU sayilir · bloklayan flock = fail-slow ·
-      # ikinci kat sokulur · sahip kaydi temizlenmez) KIRMIZI yanmali; 4 KONTROL
-      # mutanti YESIL kalmali (batarya tautoloji olmasin). Mutant DAIMA KOPYAYA
-      # uygulanir (ROOT aynasi), calisma agacina artik dosya birakilmaz. ~1 dk.
+      # ikinci kat sokulur · sahip kaydi temizlenmez · kilit KOK'e capalanir =
+      # worktree basina AYRI kilit) KIRMIZI yanmali; 4 KONTROL mutanti YESIL kalmali
+      # (batarya tautoloji olmasin). Mutant DAIMA KOPYAYA uygulanir (ROOT aynasi),
+      # calisma agacina artik dosya birakilmaz. ~4 dk.
       - name: "D1 yazici kilidi mutasyon bataryasi"
         run: python3 tools/d1-yazici-kilidi-mutasyon.py
 

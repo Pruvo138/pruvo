@@ -511,6 +511,9 @@ tools/URUN-EKLEME-REHBERI.md
 # d1-sync.py YAZICI kilidi (K49): iki eszamanli tam-katalog yazicisi birbirinin YENI
 # satirlarini 'fazla' sayip SILIYORDU (olculdu: 37 · 41 · 5 mesru satir). Dosya bir
 # JSON SAHIP KAYDI tasir (pid/baslangic/kol/makine) — yerel durum, commit'lenmez.
+# NOT: KANONIK kilit ORTAK git dizinindedir (`.git/pruvo-d1-sync.lock`) — canli D1 TEK
+# global kaynaktir ve ana agac + tum worktree'ler AYNI kilidi paylasmak ZORUNDADIR.
+# Asagidaki ad yalnizca GIT YOKKEN gecerli olan geri cekilme yoludur (KOK'te).
 .d1-sync.lock
 # parity-sequential-flock.py parti mutex'i (yerel kilit dosyasi; kardesleri yukarida)
 .parity-batch.lock

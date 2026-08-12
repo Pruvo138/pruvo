@@ -87,8 +87,51 @@ JEN_URUN_DIR = os.path.join(KOK, "jenerator", "urunler")
 # tasinir — PUBLIC urunler.json'a YAZILMAZ. Dosya yoksa (baska makine/CI) baski bos kalir.
 KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
 # YAZICI KILIDI (surecler-arasi). Ayni aile: .urunler.lock / .devam.lock / .yedek.lock
-# (CLAUDE.md "ORTAK CALISMA"). gitignore'da; 0 bayt degil, JSON bir SAHIP KAYDI tasir.
-KILIT = os.path.join(KOK, ".d1-sync.lock")
+# (CLAUDE.md "ORTAK CALISMA"); 0 bayt degil, JSON bir SAHIP KAYDI tasir.
+KILIT_ADI = "pruvo-d1-sync.lock"        # ORTAK git dizininde (tum worktree'ler paylasir)
+KILIT_YEDEK_ADI = ".d1-sync.lock"       # git YOKSA geri cekilme: KOK'te (gitignore'da)
+
+
+def _kilit_yolu(kok=None):
+    """YAZICI kilidinin CAPASI. Doner: mutlak kilit dosyasi yolu.
+
+    🔴 KAPSAM BIRIMI — `.urunler.lock` DESENI BURAYA KOREKORANE KOPYALANAMAZ.
+    `urunler.json` HER CALISMA AGACINDA AYRI bir dosyadir; onu KOK'teki bir kilitle
+    korumak DOGRU birimdir. Canli D1 (`pruvo-katalog`) ise TEK ve GLOBAL bir kaynaktir:
+    ana agac ile `.claude/worktrees/*` agaclari AYRI KOK'lere sahiptir, dolayisiyla
+    KOK'e capalanan bir kilit HER AGACA AYRI bir kilit dosyasi verir ve iki yazici
+    AYNI canli veritabanina ayni anda yazar — kapatmaya calistigimiz arizanin ta
+    kendisi. Olculen vakalar zaten merge/nobet turlarindan, yani WORKTREE'lerden cikti
+    (K48: ucustaki yazici PID 86177). Kilit bu yuzden `git rev-parse --git-common-dir`e
+    capalanir: bu dizin ana agac VE tum linkli worktree'ler icin AYNIDIR.
+    Olculdugu yer: tools/d1-yazici-kilidi-test.py G ekseni (sentetik depo + gercek
+    `git worktree add` + iki agactan GERCEK yaris).
+
+    Ortam `git_ortami()` ile temizlenir: pre-push kancasi MUTLAK `GIT_DIR` ihrac eder
+    ve miras baglam depo kesfini yanlis agaca capalar ([[kanca-git-dir-kok-cozumu]]).
+
+    GERI CEKILME: git yoksa/depo degilse KOK'teki `.d1-sync.lock`. Bu bir GEVSEME
+    DEGIL, olcunun MUMKUN OLMADIGI haldir (or. mutasyon aynasi, tarball checkout);
+    o halde de kilit ALINIR, yalnizca kapsami tek agaca daralir.
+    """
+    kok = KOK if kok is None else kok
+    try:
+        r = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=kok,
+                           capture_output=True, text=True, timeout=10,
+                           env=git_ortami())
+        ortak = r.stdout.strip()
+        if r.returncode == 0 and ortak:
+            if not os.path.isabs(ortak):
+                ortak = os.path.join(kok, ortak)
+            ortak = os.path.realpath(ortak)
+            if os.path.isdir(ortak):
+                return os.path.join(ortak, KILIT_ADI)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+    return os.path.join(kok, KILIT_YEDEK_ADI)
+
+
+KILIT = _kilit_yolu()
 
 # DB'yi ADIYLA cagiriyoruz (UUID DEGIL). NEDEN (olculdu 2026-07-22, T5): `npx wrangler@4`
 # YUZER pin -> CI o an 4.86.0'a cozuyordu; 4.86.0'da `d1 execute <arg>` argumani AD olarak
