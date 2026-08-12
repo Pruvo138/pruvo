@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""tools/katalog-alan-kapisi.py — COMMIT ANINDA `altkategori` + `uyum`/`marka` kapisi.
+"""tools/katalog-alan-kapisi.py — katalog semasi + commit ani alan kapisi.
 
     python3 tools/katalog-alan-kapisi.py        # INDEX ekseni (TEK kip, varsayilan)
 
 CIKIS KODLARI (fail-closed):  0 = YESIL · 1 = KIRMIZI (ihlal) · 2 = OLCULEMEDI.
 OLCULEMEDI YESIL SAYILMAZ — kanca commit'i DURDURUR.
+
+KATALOG GENELI EKSENI: index'teki HER kayitta `fiyat`, varsa STRING olmalidir.
+Bos string (`""`) GECERLIDIR: parametrik/sari seri fiyati taban-fiyatlar.js'ten gelir.
+Sayi/null/liste/sozluk ve diger tum string-disi tipler KIRMIZI yanar. Bu eksen HEAD
+ile index ayni olsa bile kosar; CI'daki dogrudan cagri boylece bozuk tipi build'den
+ONCE durdurur.
 
 ═══════════════════════════════════════════════════════════════════════════════
 NEDEN VAR (OLCULDU 8 AGU 2026 — yayini 3,5+ saat kapatti)
@@ -190,6 +196,26 @@ def degisen_kayitlar(index_kayit, head_kayit):
     return [u for u in index_kayit if _govde(u) not in taban]
 
 
+def fiyat_tip_ihlalleri(kayitlar):
+    """Katalog genelinde `fiyat` tipi sapmalari.
+
+    Alan yoksa bu eksenin kapsami disindadir. Alan varsa yalniz STRING kabul edilir;
+    bos string bilerek gecerlidir. Hata metni id + tip + deger + eylem ornegi tasir.
+    """
+    ihlaller = []
+    for u in kayitlar:
+        if not isinstance(u, dict) or "fiyat" not in u:
+            continue
+        ham = u["fiyat"]
+        if isinstance(ham, str):
+            continue
+        sebep = ("fiyat alani STRING olmali; gorulen tip=%s, gorulen deger=%r; "
+                 "beklenen ornek='430 TL' (parametrik/sari seri icin '' gecerli)"
+                 % (type(ham).__name__, ham))
+        ihlaller.append((u.get("id"), "fiyat", ham, sebep))
+    return ihlaller
+
+
 def ihlalleri_olc(arama, degisenler):
     """[(id, alan, mevcut_deger, kanonik_sebep), ...] — bos liste = TEMIZ.
 
@@ -221,20 +247,23 @@ def ihlalleri_olc(arama, degisenler):
     return ihlaller
 
 
-def rapor(ihlaller, degisen_sayisi):
+def rapor(ihlaller, degisen_sayisi, fiyat_tip_sayisi):
     """duzelt.py'nin _altkategori_rapor / _uyum_rapor tonu (id + alan + sebep + yol)."""
-    satirlar = ["HATA: KATALOG ALAN KAPISI — COMMIT REDDEDILDI (index ekseni; "
-                "degisen kayit: %d, ihlal: %d)." % (degisen_sayisi, len(ihlaller))]
+    satirlar = ["HATA: KATALOG ALAN KAPISI — COMMIT/YAYIN REDDEDILDI (index ekseni; "
+                "degisen kayit: %d, fiyat tipi sapmasi: %d, toplam ihlal: %d)."
+                % (degisen_sayisi, fiyat_tip_sayisi, len(ihlaller))]
     for uid, alan, deger, sebep in ihlaller:
         satirlar.append("  - id=%s [%s] mevcut=%r" % (uid, alan, deger))
         satirlar.append("      -> %s" % sebep)
-    satirlar.append("  Bu iki alanin TEK yetkili yazma yolu tools/duzelt.py'dir; kural "
+    satirlar.append("  altkategori/uyum alanlarinin TEK yetkili yazma yolu tools/duzelt.py'dir; kural "
                     "tools/arama.py'de TEK kaynaktir (elle sema kopyalanmaz):")
     satirlar.append("      python3 tools/duzelt.py <id> --alan altkategori --deger \"...\"")
     satirlar.append("      python3 tools/duzelt.py <id> --alan-sil altkategori")
     satirlar.append("      python3 tools/duzelt.py <id> --alan uyum --deger '[{\"marka\": \"...\"}]'")
     satirlar.append("  🔴 `marka` ELLE YAZILMAZ: `uyum` doluyken duzelt.py onu AYNI islemde "
                     "arama.marka_uyumdan_turet ile KENDISI yazar.")
+    satirlar.append("  `fiyat` JSON string olmali: \"430 TL\"; parametrik/sari seri icin "
+                    "bos string \"\" gecerlidir.")
     satirlar.append("  Izinli kumeler: arama.ALTKATEGORI_IZINLI · arama.UYUM_MARKA_IZINLI "
                     "(genisletmek MIMAR karari).")
     satirlar.append("  Kapiyi BILINCLI atlamak: git commit --no-verify (kapinin kendi "
@@ -249,15 +278,23 @@ def olc():
     head_var = _blob_oid("HEAD") is not None
     ind_oid = index_oid()
     if ind_oid is None:
-        return RC_YESIL, ("ATLANDI: %s INDEX'te YOK (izlenmiyor ya da silinmesi "
-                          "stage'lenmis) — dogrulanacak kayit yok." % DOSYA)
+        raise Olculemedi("%s INDEX'te YOK (izlenmiyor ya da silinmesi stage'lenmis)"
+                         % DOSYA)
 
     head_oid = _blob_oid("HEAD:" + DOSYA) if head_var else None
-    if head_oid == ind_oid:
-        return RC_YESIL, ("ATLANDI: %s INDEX'te HEAD'e gore DEGISMEDI (on-eleme, "
-                          "index ekseni)." % DOSYA)
-
     index_kayit = kayitlar(ind_oid, "INDEX")
+    fiyat_ihlalleri = fiyat_tip_ihlalleri(index_kayit)
+
+    if head_oid == ind_oid:
+        if fiyat_ihlalleri:
+            _yaz(rapor(fiyat_ihlalleri, 0, len(fiyat_ihlalleri)))
+            return RC_KIRMIZI, ("KIRMIZI: katalog=%d kayit, fiyat tipi sapmasi=%d; "
+                                "altkategori/uyum icin degisen kayit=0."
+                                % (len(index_kayit), len(fiyat_ihlalleri)))
+        return RC_YESIL, ("ATLANDI: %s INDEX'te HEAD'e gore DEGISMEDI; katalog "
+                          "genelinde %d fiyat tipi dogrulandi, sapma YOK (index ekseni)."
+                          % (DOSYA, len(index_kayit)))
+
     head_kayit = kayitlar(head_oid, "HEAD") if head_oid else []
     if head_oid is None:
         _yaz("-- HEAD'de %s YOK (ilk commit ya da yeni dosya): index'teki TUM kayitlar "
@@ -265,16 +302,26 @@ def olc():
 
     degisenler = degisen_kayitlar(index_kayit, head_kayit)
     if not degisenler:
+        if fiyat_ihlalleri:
+            _yaz(rapor(fiyat_ihlalleri, 0, len(fiyat_ihlalleri)))
+            return RC_KIRMIZI, ("KIRMIZI: katalog=%d kayit, fiyat tipi sapmasi=%d; "
+                                "DEGISEN KAYIT yok (yalniz siralama/bicim)."
+                                % (len(index_kayit), len(fiyat_ihlalleri)))
         return RC_YESIL, ("ATLANDI: %s degisti ama DEGISEN KAYIT yok (yalniz siralama/"
-                          "bicim) — dogrulanacak kayit yok." % DOSYA)
+                          "bicim); katalog genelinde %d fiyat tipi dogrulandi, sapma YOK."
+                          % (DOSYA, len(index_kayit)))
 
-    ihlaller = ihlalleri_olc(arama, degisenler)
+    alan_ihlalleri = ihlalleri_olc(arama, degisenler)
+    ihlaller = fiyat_ihlalleri + alan_ihlalleri
     if ihlaller:
-        _yaz(rapor(ihlaller, len(degisenler)))
-        return RC_KIRMIZI, ("KIRMIZI: %d degisen kayitta %d ihlal (altkategori/uyum)."
-                            % (len(degisenler), len(ihlaller)))
-    return RC_YESIL, ("YESIL: %d degisen kayit dogrulandi (altkategori + uyum/marka), "
-                      "ihlal YOK." % len(degisenler))
+        _yaz(rapor(ihlaller, len(degisenler), len(fiyat_ihlalleri)))
+        return RC_KIRMIZI, ("KIRMIZI: katalog=%d kayit, fiyat tipi sapmasi=%d; "
+                            "%d degisen kayitta altkategori/uyum ihlali=%d."
+                            % (len(index_kayit), len(fiyat_ihlalleri), len(degisenler),
+                               len(alan_ihlalleri)))
+    return RC_YESIL, ("YESIL: katalog genelinde %d fiyat tipi + %d degisen kayitta "
+                      "altkategori/uyum/marka dogrulandi; ihlal YOK."
+                      % (len(index_kayit), len(degisenler)))
 
 
 def main(argv):

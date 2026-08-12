@@ -834,6 +834,15 @@ jobs:
       #              iki tuzak AYRI AYRI, ayirt edici kontrolle olculur.
       #   MUT        iki dogrulama kolu AYRI AYRI oldurulur; her mutant kendi eksenini
       #              dusururken OTEKINI ayakta birakmali.
+      # FIYAT TIPI KATALOG GENELI — BLOKLAYICI (continue-on-error YOK). `fiyat` varsa
+      # JSON STRING olmalidir; "" sari/parametrik seri icin bilerek gecerlidir. Sayi,
+      # null, liste ve sozluk build.py `.strip()` koluna ulasmadan burada durur. Bu
+      # dogrudan kapi cagrisi gercek index blob'unu olcer; asagidaki kabul testi ise
+      # sentetik iki yonlu fiksturla kapinin kendisini sinar. Job `serit-a2`, `deploy`
+      # needs zincirindedir: bozuk katalog yayinlanamaz.
+      - name: "Katalog alan kapisi (fiyat tipi + commit ani alanlar)"
+        run: python3 tools/katalog-alan-kapisi.py
+
       - name: "Katalog alan kapisi kabul testi (commit ani altkategori + uyum kolu)"
         run: python3 tools/katalog-alan-kapisi-test.py
 
