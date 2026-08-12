@@ -195,6 +195,11 @@ DEPLOY_SHA_ORTAM = "PRUVO_DEPLOY_SHA"
 # (sayfalar.py) + K2 (landing_hub_build.py) oradadir; K4/K5 zaten izlenmez.
 ARSIV_YOLLARI = ("tools",)
 SHA_DESENI = re.compile(r"^[0-9a-f]{7,40}$")
+# Canli yuzeyi URETEN is akisi. Son `success` kosumunun `head_sha`'si = canlida duran
+# kumenin SHA'si. (Alarm is akisi bu sorgu icin `actions: read` izni tasir.)
+DEPLOY_IS_AKISI = "deploy.yml"
+DEPLOY_DALI = "main"
+API_TABAN = "https://api.github.com"
 
 
 class OlcumHatasi(Exception):
@@ -216,24 +221,66 @@ def _git(args, kok=ROOT, zaman_asimi=90.0):
     return p.returncode, (p.stdout or "").strip(), (p.stderr or "").strip()
 
 
-def deploy_sha_bul(ortam=None, acik=None):
+def deploy_sha_api(ortam=None, zaman_asimi=20.0, istek_fn=None):
+    """Son BASARILI `deploy.yml` kosumunun `head_sha`'si (GitHub API). None donebilir.
+
+    Yan etkisiz salt-okunur GET. Token yoksa / API konusmazsa None doner ve cagiran
+    OLCULEMEDI'ye duser — bu yol bir YEDEK DEGIL, kaynagin KENDISIDIR."""
+    ortam = os.environ if ortam is None else ortam
+    depo = (ortam.get("GITHUB_REPOSITORY") or "").strip()
+    jeton = (ortam.get("GITHUB_TOKEN") or ortam.get("GH_TOKEN") or "").strip()
+    if not depo or not jeton:
+        return None, "depo=%s jeton=%s" % ("VAR" if depo else "YOK",
+                                           "VAR" if jeton else "YOK")
+    url = ("%s/repos/%s/actions/workflows/%s/runs?status=success&branch=%s&per_page=1"
+           % (API_TABAN, depo, DEPLOY_IS_AKISI, DEPLOY_DALI))
+    istek = urllib.request.Request(url, headers={
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer %s" % jeton,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": UA})
+    try:
+        with urllib.request.urlopen(istek, timeout=zaman_asimi) as y:
+            veri = json.loads(y.read().decode("utf-8", "replace"))
+    except Exception as e:                                  # noqa: BLE001
+        return None, "API konusmadi (%s: %s)" % (type(e).__name__, str(e)[:80])
+    kosumlar = veri.get("workflow_runs") or []
+    if not kosumlar:
+        return None, "API basarili `%s` kosumu DONDURMEDI" % DEPLOY_IS_AKISI
+    sha = (kosumlar[0].get("head_sha") or "").strip().lower()
+    kosum_id = kosumlar[0].get("id")
+    if not sha:
+        return None, "API kosumu `head_sha` TASIMIYOR (id=%s)" % kosum_id
+    return sha, "kosum %s" % kosum_id
+
+
+def deploy_sha_bul(ortam=None, acik=None, api_fn=None):
     """SON BASARILI DEPLOY'un SHA'si. Doner: (sha, kaynak).
 
-    🔴 FAIL-CLOSED VE YEDEK YOLSUZ: deger yoksa/bozuksa OlcumHatasi -> OLCULEMEDI.
+    Sira: `--deploy-sha` > PRUVO_DEPLOY_SHA ortam degiskeni > GitHub API (son
+    `success` `deploy.yml` kosumunun `head_sha`'si).
+
+    🔴 FAIL-CLOSED VE YEDEK YOLSUZ: hicbiri vermezse OlcumHatasi -> OLCULEMEDI.
     "Bulamazsan HEAD'i kullan" bir kolaylik gibi gorunur ama tam da 12 Agu'da
     olculen ariza sinifidir: HEAD deploy'dan ONDEyse henuz yayinlanmamis sayfalar
     canlida aranir, 404 gelir ve alarm KALICI KAPANMA sanip kirmizi yanar."""
     ortam = os.environ if ortam is None else ortam
+    api_fn = api_fn or deploy_sha_api
+    api_notu = "denenmedi"
     if acik:
         ham, kaynak = acik, "--deploy-sha"
     else:
         ham, kaynak = ortam.get(DEPLOY_SHA_ORTAM) or "", DEPLOY_SHA_ORTAM
+        if not (ham or "").strip():
+            ham, api_notu = api_fn(ortam=ortam)
+            kaynak = "GitHub API/%s (%s)" % (DEPLOY_IS_AKISI, api_notu)
     ham = (ham or "").strip().lower()
     if not ham:
         raise OlcumHatasi(
-            "son basarili deploy SHA'si YOK (%s bos ve --deploy-sha verilmedi). Evren "
-            "HEAD'den TURETILMEZ: HEAD deploy'dan ONDEyse henuz yayinlanmamis sayfalar "
-            "canlida aranir ve 404 'KAPALI' sanilir." % DEPLOY_SHA_ORTAM)
+            "son basarili deploy SHA'si YOK (--deploy-sha verilmedi, %s bos, API: %s). "
+            "Evren HEAD'den TURETILMEZ: HEAD deploy'dan ONDEyse henuz yayinlanmamis "
+            "sayfalar canlida aranir ve 404 'KAPALI' sanilir."
+            % (DEPLOY_SHA_ORTAM, api_notu))
     if not SHA_DESENI.match(ham):
         raise OlcumHatasi("deploy SHA'si SHA'ya benzemiyor: %r (kaynak: %s)"
                           % (ham[:64], kaynak))
@@ -828,7 +875,7 @@ def gh_ozet_yaz(sinif, ozet, satirlar, sure):
 
 
 def evren_hazirla(kapsam="sayfa", kok=ROOT, ortam=None, acik_sha=None, git_fn=None,
-                  ref="HEAD"):
+                  ref="HEAD", api_fn=None):
     """HIZALANMIS evren. Doner: (yollar, kaynaklar, hizalama_sozlugu).
 
     🔴 TEK GIRIS KAPISI. Sira BAGLAYICIDIR ve her adim fail-closed'dur:
@@ -837,7 +884,7 @@ def evren_hazirla(kapsam="sayfa", kok=ROOT, ortam=None, acik_sha=None, git_fn=No
       3. `deploy_agaci`        — evren o SHA'nin agacindan cikarilir,
       4. `kume_turet(kok=...)` — kume O AGACTAN turer, calisma agacindan DEGIL.
     Herhangi bir adim OlcumHatasi atarsa hukum OLCULEMEDI'dir (rc 2), KAPALI DEGIL."""
-    deploy_sha, sha_kaynak = deploy_sha_bul(ortam=ortam, acik=acik_sha)
+    deploy_sha, sha_kaynak = deploy_sha_bul(ortam=ortam, acik=acik_sha, api_fn=api_fn)
     hz = hizalama_kanitla(deploy_sha, kok=kok, ref=ref, git_fn=git_fn)
     hz["kaynak"] = sha_kaynak
     evren_kok = deploy_agaci(hz["deploy_sha"], kok=kok, git_fn=git_fn)

@@ -54,6 +54,11 @@ on:
 
 permissions:
   contents: read
+  # 🔴 12 Agu 2026 EKLENDI (K78) — SALT OKUNUR. Olcum evreni "son BASARILI deploy'un
+  # SHA'si"ndan turer; o SHA `deploy.yml`in son `success` kosumunun `head_sha`'sidir ve
+  # yalniz Actions API'sinden okunur. Yazma yetkisi YOKTUR: bu is akisi kosum
+  # tetikleyemez/iptal edemez.
+  actions: read
 
 # Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup.
 concurrency:
@@ -64,21 +69,29 @@ jobs:
   erisim:
     runs-on: ubuntu-latest
     steps:
+      # 🔴 fetch-depth: 0 (K78) — sig klonda `git merge-base --is-ancestor` ve
+      # `git archive <deploy_sha>` CALISMAZ: deploy SHA'sinin objesi yoktur ve ata
+      # iliskisi bilinemez. Hizalama KANITI kosulan bir komuttur; kosamayan kanit
+      # OLCULEMEDI'ye duser (kalici sahte-kirmizi). Bu yuzden TAM gecmis cekilir.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       # ═══════════════════════════════════════════════════════════════════════
-      # UCA TAZELE — kume "YAYINLANMIS OLMASI GEREKEN" sayfalardan turesin
+      # UCA TAZELE — agac uzak main ucuna gelsin (hizalamanin OLCULEN REFI)
       # ═══════════════════════════════════════════════════════════════════════
-      # Zamanlanmis kosum tetikleme anindaki `github.sha`'yi checkout eder. Kuyruk +
-      # kurulum gecikmesinde main ilerlerse kume DOGUSTAN bayat olur: yeni eklenen
-      # landing'ler HIC olculmez (tam da 12 gun sessiz kalan sinif).
+      # Zamanlanmis kosum tetikleme anindaki `github.sha`'yi checkout eder; kuyruk +
+      # kurulum gecikmesinde main ilerler. Bu adim agaci uca getirir, AMA kume ARTIK
+      # bu agactan TURETILMEZ (K78): agac yalnizca hizalamanin `olculen ref`idir,
+      # evren `deploy_agaci()` ile son basarili deploy SHA'sindan cikarilir.
+      # 🔴 refspec ACIKCA verilir ([[ci-fetch-tek-dal-refspec]]).
       - name: Uca tazele — agaci uzak main ucuna getir (donmus github.sha DEGIL)
         run: |
-          git fetch --depth=1 origin main
-          git reset --hard FETCH_HEAD
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git reset --hard refs/remotes/origin/main
           git rev-parse HEAD
 
       # ═══════════════════════════════════════════════════════════════════════
@@ -89,7 +102,16 @@ jobs:
       # konusur, kosum KIRMIZI yanar, GitHub bildirimi duser.
       #   rc 0 acik       — kumedeki her URL 200 (ya da yonlendirme zinciri 200'de biter)
       #   rc 1 kapali     — en az bir yayinlanmis sayfa musteriye KAPALI (403/404/dongu)
-      #   rc 2 olculemedi — ag/DNS/zaman asimi ya da kume turetilemedi. SESSIZ YESIL DEGIL.
+      #   rc 2 olculemedi — ag/DNS/zaman asimi, kume turetilemedi YA DA EVREN
+      #                     HIZALANAMADI (deploy SHA'si okunamadi / ata degil).
+      #                     SESSIZ YESIL DEGIL, ama KAPALI da DEGIL (K78 ekseni).
+      #
+      # 🔴 GITHUB_TOKEN (K78): nobetci son basarili `deploy.yml` kosumunun `head_sha`'sini
+      # Actions API'sinden okur ve olcum evrenini O SHA'nin agacindan turetir. Token
+      # yoksa/API konusmazsa hukum OLCULEMEDI'dir — HEAD'e YEDEK YOL YOKTUR (HEAD'e
+      # dusmek 12 Agu'da olculen sahte-kirmizi sinifini geri getirirdi).
       - name: "Olcum — yayinlanmis sayfalar canlida ACIK mi (yayin yolundan AYRI)"
         id: olcum
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 tools/yayin-erisim-nobeti.py --gh-ozet
