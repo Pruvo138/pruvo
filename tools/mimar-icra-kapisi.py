@@ -265,7 +265,14 @@ CODEX_KURAL_SURUMU = "27tem-2"
 #   3. Mevcut '-o' codex kurali + tum kilit/icra kurallari AYNEN korunur (regresyon 0).
 AGENT_ARACLARI = {"Agent", "Task"}
 # Yasak-sinif token'lari (codex-isci yasak listesi). Bunlardan BIRI ayractan HEMEN sonra gelmeli.
-AGENT_SINIFLARI = ("görsel", "sessiz-hata", "muhakeme", "ölçüm", "güvenlik", "şema")
+AGENT_SINIFLARI = (
+    "görsel", "gorsel",
+    "sessiz-hata",
+    "muhakeme",
+    "ölçüm", "olcum",
+    "güvenlik", "guvenlik",
+    "şema", "sema",
+)
 # TEK makine-aranabilir regex (parser taklidi YOK — tek kaba tarama, fail-closed):
 #   'codex-muafiyet:'  (etikette buyuk/kucuk DUYARSIZ — re.IGNORECASE)
 #   + [^\S\n]*         (bosluk/tab esnek; NEWLINE degil -> kural TEK SATIRDA)
@@ -277,24 +284,42 @@ AGENT_SINIFLARI = ("görsel", "sessiz-hata", "muhakeme", "ölçüm", "güvenlik"
 # re.IGNORECASE: hem etiket hem sinif buyuk/kucuk duyarsiz. DOTALL YOK -> beyan tek satir.
 AGENT_MUAFIYET_RE = re.compile(
     r"codex-muafiyet:[^\S\n]*\S[^\n]*?[—–-][^\S\n]*(?:" +
-    "|".join(re.escape(s) for s in AGENT_SINIFLARI) + r")",
+    "|".join(re.escape(s) for s in AGENT_SINIFLARI) + r")(?![\w-])",
     re.IGNORECASE,
 )
 # SURUM DAMGASI — tools/mimar-kapi-kur.py --agent-kapisi bu dizeyi arayarak "bu evde
 # AGENT-KAPISI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev). Kurali
 # degistirirsen damgayi da yukselt.
-AGENT_KURAL_SURUMU = "28tem-1"
+AGENT_KURAL_SURUMU = "13agu-1"
 # Codex reddindeki gibi: AGENT reddinde GEREKCE_SONU KULLANILMAZ ("bu isi isciye delege et"
 # der — oysa AGENT cagrisi ZATEN isci acma girisimi). Yerine IKI CIKISI net soyleyen kuyruk.
+AGENT_SINIF_LISTESI = " / ".join(AGENT_SINIFLARI)
+AGENT_ORNEK_SINIF = AGENT_SINIFLARI[0]
 AGENT_GEREKCE = (
     "AGENT-KAPISI (28 Tem): mimar ANA oturumu bir Claude iscisi (Agent/Task) açıyor ama "
     "prompt/spec içinde 'codex-muafiyet:' BEYAN SATIRI YOK. Doktrin: Claude işçisi açmak da "
     "doğrudan 'codex exec' kadar TEK SATIR sürtünme taşır (asimetri kapatıldı). İKİ ÇIKIŞ: "
     "(a) İŞİ CODEX'E VER → codex-isci şablonu (codex exec -C <ev> -s workspace-write "
     "-o <scratchpad>/son-mesaj.txt \"<spec>\"); VEYA (b) prompt'a şu satırı EKLE: "
-    "'codex-muafiyet: <iş tanımı> — <sınıf>' (<sınıf> = neden Codex'e VERİLEMEDİĞİNİ beyan "
-    "eder: görsel / sessiz-hata / muhakeme / ölçüm / güvenlik / şema — codex-isci yasak listesi)."
-)
+    "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
+    "codex-isci yasak listesi)."
+).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
+
+
+def _agent_gorulen_sinif(prompt):
+    """Beyan satirindaki ayraç-sonrasi ilk jetonu yalniz red tanisi icin ayiklar."""
+    etiket = "codex-muafiyet:"
+    for satir in prompt.splitlines():
+        konum = satir.lower().find(etiket)
+        if konum < 0:
+            continue
+        kalan = satir[konum + len(etiket):]
+        ayrac = max(kalan.rfind("—"), kalan.rfind("–"), kalan.rfind("-"))
+        if ayrac < 0:
+            return "<ayrac-yok>"
+        parcalar = kalan[ayrac + 1:].strip().split()
+        return parcalar[0] if parcalar else "<bos>"
+    return "<bulunamadi>"
 
 # ============ 8 AGU: MCP-TARAYICI ICRA KAPISI (Okan teftisi K17, 2. ihtar) ============
 # OLCULEN DELIK: 6 evin settings.json PreToolUse matcher'lari yalnizca 'Bash',
@@ -685,7 +710,12 @@ def _agent_karari(girdi):
         prompt = ""
     if AGENT_MUAFIYET_RE.search(prompt):
         return "gecer"
-    return AGENT_GEREKCE
+    if "codex-muafiyet:" not in prompt.lower():
+        return AGENT_GEREKCE
+    return (
+        "AGENT-KAPISI (28 Tem): BEYAN VAR, SINIF JETONU ESLESMEDI: gorulen "
+        "'{gorulen}' · gecerli jetonlar: {liste}"
+    ).format(gorulen=_agent_gorulen_sinif(prompt), liste=AGENT_SINIF_LISTESI)
 
 
 def _py_izinli(ad, argumanlar, cwd):

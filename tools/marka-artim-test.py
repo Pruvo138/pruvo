@@ -72,6 +72,13 @@ const grid = el("div", {id: "mmGrid"});
 const dugme = el("button", {id: "mmTumu"});
 const durum = el("span", {id: "mmDurum"});
 const sifirla = el("a", {id: "mmFiltreSifirla"});
+const kalanBolum = el("div", {id: "mmKalan"});
+const beyanErisim = el("span", {"data-bolum": "erisim"});
+const beyanAlt = el("span", {"data-bolum": "alt"});
+const beyanToplam = el("span", {"class": "mm-sayim-toplam"});
+beyanErisim.textContent = String(V.manifest.toplam);
+beyanAlt.textContent = String(V.manifest.basili);
+beyanToplam.textContent = String(V.manifest.toplam);
 const manifestEl = {textContent: V.manifestMetni};
 
 // SSR kartları: gerçek HTML'den geldi (kategori + data-mm + ürün id)
@@ -98,13 +105,19 @@ function eklenenKartlar(){
 const dok = {
   getElementById(id){
     return ({mmGrid: grid, mmTumu: dugme, mmDurum: durum, mmFiltreSifirla: sifirla,
-             mmManifest: manifestEl})[id] || null;
+             mmKalan: kalanBolum, mmManifest: manifestEl})[id] || null;
+  },
+  querySelector(s){
+    if(s === ".mm-sayim-toplam"){ return beyanToplam; }
+    throw new Error("HARNESS: taninmayan querySelector " + s);
   },
   querySelectorAll(s){
     if(s === "#mmGrid .card"){ return ssrKartlar; }
     if(s === "#mmGrid .card:not([data-artim])"){ return ssrKartlar; }
     if(s === "#mmGrid .card[data-artim]"){ return []; }   // şimde ayrı düğüm tutulmuyor
+    if(s === "#mmGrid .mm-iskelet"){ return []; }
     if(s === ".mm-model-btn[data-mm]"){ return cipler; }
+    if(s === ".mm-sayim-kart"){ return [beyanErisim, beyanAlt]; }
     return [];
   },
   body: {scrollHeight: 5000}
@@ -370,7 +383,7 @@ def olc(dokum=False):
         shutil.rmtree(tmp, ignore_errors=True)
         return 3, kapi
     if cp.returncode != 0 or not cp.stdout.strip():
-        print("OLCULEMEDI: node rc=%d %s" % (cp.returncode, cp.stderr[-500:]))
+        print("OLCULEMEDI: node rc=%d %s" % (cp.returncode, cp.stderr[-2000:]))
         shutil.rmtree(tmp, ignore_errors=True)
         return 3, kapi
     r = json.loads(cp.stdout.strip().splitlines()[-1])
