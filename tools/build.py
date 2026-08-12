@@ -77,6 +77,34 @@ CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "O
 # index.html'deki GIZLI_KATEGORILER ile BİRLİKTE güncelle (CATEGORIES kuralının aynısı).
 NAV_GIZLI = ["Jeneratör", "Skan Art"]
 
+
+def fiyat_normalize(p):
+    """Katalog yukleme sinirinda `fiyat` alanini kanonik metne cevirir."""
+    fiyat = p.get("fiyat")
+    if isinstance(fiyat, str):
+        return p
+    if fiyat is None:
+        p["fiyat"] = ""
+        return p
+    if isinstance(fiyat, bool) or not isinstance(fiyat, (int, float)):
+        raise SystemExit("HATA: urun %s fiyat tipi desteklenmiyor: %s"
+                         % (p.get("id", "<id-yok>"), type(fiyat).__name__))
+    if isinstance(fiyat, float) and not math.isfinite(fiyat):
+        raise SystemExit("HATA: urun %s fiyat tipi desteklenmiyor: %s"
+                         % (p.get("id", "<id-yok>"), type(fiyat).__name__))
+    metin = str(int(fiyat)) if float(fiyat).is_integer() else str(fiyat)
+    p["fiyat"] = metin + " TL"
+    return p
+
+
+def load_products(path=JSON_PATH):
+    """Katalogu yukler; fiyat tipini tum tuketicilerden once tek noktada duzeltir."""
+    with open(path, encoding="utf-8") as f:
+        products = json.load(f)
+    for p in products:
+        fiyat_normalize(p)
+    return products
+
 # ---------------------------------------------------------------------------
 # 🔴 GIZLI SERI ADI -> MUSTERIYE GORUNEN ETIKET (11 Agu, canli kural ihlali onarimi)
 #
@@ -4723,8 +4751,7 @@ def main():
         # bu lever bir "gizli açma düğmesi" DEĞİL, kabul testinin iki hâli de aynı koşumda
         # ölçebilmesi içindir.
         _surum = _arg("--ozet-surum", None)
-        with open(_katalog, encoding="utf-8") as f:
-            _urunler = json.load(f)
+        _urunler = load_products(_katalog)
         _ozet = render_ozet(_urunler, temsil_surum=_surum)
         with open(_cikti, "w", encoding="utf-8") as f:
             f.write(_ozet)
@@ -4733,8 +4760,7 @@ def main():
                  _surum if _surum is not None else OZET_TEMSIL_SURUM))
         return
 
-    with open(JSON_PATH, encoding="utf-8") as f:
-        products = json.load(f)
+    products = load_products()
 
     # Kategori UYARISI (bilerek ölümcül DEĞİL): CATEGORIES + NAV_GIZLI dışında bir kategori,
     # ürünü katalogda bırakır ama kategori çipinden GÖRÜNMEZ yapar (index.html birebir eşler)

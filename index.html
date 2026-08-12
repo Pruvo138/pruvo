@@ -3249,21 +3249,13 @@
     out.sort(function(a, b){ return (b.n - a.n) || a.ad.localeCompare(b.ad, "tr"); });
     return out;
   }
-  // UÇ MARKA ETİKETİ — çip etiketi KATLANMIŞ kanoniktir, uç HAM etiketle TAM eşleşir.
-  // 🔴 ÖLÇÜLDÜ (3 Ağu, CANLI): /katalog?kategori=Marin&marka=Volvo → toplam 0 (51 ürün
-  // sessizce kayıp) · marka=Volvo Penta → 51. Uç virgül/çoklu param/önek/küçük-harf
-  // KABUL ETMİYOR (marka=Mercedes,Mercedes-Benz → 0 · marka=merc → 0 · marka=volvo penta
-  // → 0), yani gönderilebilecek TEK şey bir HAM etikettir. İki taraf ayrı etiket
-  // kullandığı sürece GÖRÜNEN çip ÖLÜ UÇ verir ([[ikiz-tanim-sessiz-ayrisma]]).
-  // Etiket burada UYDURULMAZ: çip indeksinin `e` alanından gelir; o da
-  // urunler.json'daki HAM değerden türer — tek kaynak, iki taraf.
-  // FAIL-CLOSED: indeks yoksa ya da `e` yoksa bugünkü davranış (kanonik ad) AYNEN kalır;
-  // uydurma etiket üretilmez. Dönen kartlar yine edgeSuzgecSapmasi ile DEĞER ekseninde
-  // doğrulanır (markaKatla("Volvo Penta") === "Volvo" → seçim ile tutarlı).
+  // UÇ MARKA ETİKETİ — D1 `marka_kanon` kolu sayfa/çip/arama ile AYNI ortak
+  // markaKatla kanonundan türer. Uca ham temsilci (`e`) göndermek Citroën/Citroen gibi
+  // karma yazımlarda yalnız tek varyantı getirip diğerini sessizce kaybettiriyordu.
+  // İkinci bir aksan/büyük-küçük gövdesi YOK: uca giden değer de markaKatla'dan geçer.
   function ucMarkaEtiketi(kat, marka){
     if(marka === "Tümü"){ return marka; }
-    var kd = _ixKat(kat), d = kd && kd[marka];
-    return (d && typeof d.e === "string" && d.e) ? d.e : marka;
+    return markaKatla(marka);
   }
   // UÇ MODEL ETİKETİ — marka ekseniyle AYNI sınıf, AYNI çözüm (yukarıdaki ucMarkaEtiketi).
   // Model çipinin etiketi artık KATLANMIŞ kanoniktir ("206" çipi "Peugeot 206" etiketli
@@ -4168,9 +4160,8 @@
     var q = query.trim();
     var p = new URLSearchParams();
     if(activeCat !== "Tümü"){ p.set("kategori", activeCat); }
-    // MARKA: uca KANONİK ad DEĞİL, ucun tanıdığı HAM etiket gider (ucMarkaEtiketi).
-    // Kanonik gönderilirse "Volvo" gibi yalnız KATLAMA sonucu var olan etiketler uçta
-    // 0 döner ve görünen çip ölü uç olur (ölçüm → ucMarkaEtiketi başlığı).
+    // MARKA: D1 `marka_kanon` üyeliğinin beklediği kanonik etiket gider. Sayfa, çip,
+    // arama ve uç yüklemi aynı markaKatla kaynağını kullanır.
     if(activeBrand !== "Tümü"){ p.set("marka", ucMarkaEtiketi(activeCat, activeBrand)); }
     // Alt kategori İKİ uçta da geçerli (Worker: /katalog ve /ara aynı katMarkaAltKosulu'nu
     // kullanır) — bu yüzden `if(q)` dallanmasından ÖNCE bağlanır.

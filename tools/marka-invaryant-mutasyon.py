@@ -17,9 +17,9 @@ bir istisna "olculemedi" damgasiyla yesile donusemez.
 
 
 NEDEN REPODA DURUYOR: anlatilan batarya kanit DEGILDIR ([[mutasyon-kaniti-yeniden-uretilebilir]]).
-Kapinin en buyuk riski TOTOLOJI ve eski yuklemin geri gelmesidir: kanonik filtre yerine HAM
-STRING ESITLIGI geri gelirse aksan/onek/ayirac varyantlari yeniden kaybolur. Buradaki
-OLDURUCU mutantlar eski filtre yuklemini ve arama totolojisini kurup kapinin KIRMIZI yanmasini
+Kapinin en buyuk riski TOTOLOJI'dir: iki ucu da AYNI fonksiyondan turetilirse kapi her zaman
+yesil yanar ve hicbir sey olcmez. Buradaki OLDURUCU mutantlar tam o hali kurar (uc modelini
+sayfa yuklemine cevir, arama modelini sayfa kumesine cevir) ve kapinin KIRMIZI yanmasini
 sart kosar. KONTROL mutantlari iddia edilmeyen eksende YESIL kalmali — yoksa kapi "her
 degisiklige kirmizi yanan" bir gurultu kaynagidir, nobetci degil.
 
@@ -64,11 +64,12 @@ MUTANTLAR = [
      "marka_model_build.py",
      "        kan = evren.katla((x or \"\").strip())",
      "        kan = (x or \"\").strip()", "KIRMIZI"),
-    ("OLDURUCU M2 REGRESYON — uctaki ?marka= yuklemini eski HAM STRING ESITLIGINE cevir",
+    ("OLDURUCU M2 KANONU KAPAT — uctaki ?marka= modelini ham esitlige cevir",
      KAPI_ADI,
-     "        filtre = {pid for pid, markalar in uyelik.items() if marka in markalar}",
+     "        filtre = {pid for pid in uyelik if marka in uyelik[pid]}",
      "        filtre = {p[\"id\"] for p in urunler\n"
-     "                  if p.get(\"id\") and marka in (p.get(\"marka\") or [])}", "KIRMIZI"),
+     "                  if p.get(\"id\") and marka in (p.get(\"marka\") or [])}",
+     "KIRMIZI"),
     # M3, marka sorgusu uyelige baglandiktan sonra ASIL kolu (kanon_marka dali) hedefler.
     # Eski hali serbest metin dalini mutasyona ugratiyordu; o dal artik OLU KOD (her kanonik
     # marka MARKA SORGUSU olarak taniniyor, Q ekseni bunu olcer) ve mutasyon YESIL kalirdi —
