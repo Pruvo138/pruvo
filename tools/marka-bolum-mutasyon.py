@@ -24,24 +24,31 @@ KABUL (çıkış kodu DEĞİL, ölçülen iddia):
 
 Kullanım: python3 tools/marka-bolum-mutasyon.py [--dokum]
 """
-import atexit
 import io
 import os
 import re
 import shutil
-import signal
 import subprocess
 import sys
+import tempfile
 import time
 
-# 🔴 SYMLINK'I IZLE: bu betik gercek dosyaya yazar, bu yuzden yolu COZ (realpath). Symlink'li
-# bir yoldan gelip kopyaya yazmak "mutasyon uygulanmadi" tuzagini dogurur.
 TOOLS = os.path.dirname(os.path.realpath(__file__))
-HEDEF = os.path.realpath(os.path.join(TOOLS, "marka_model_build.py"))
-KAPI = os.path.join(TOOLS, "marka-sayac-kapisi.py")
-ARTIM_TEST = os.path.join(TOOLS, "marka-artim-test.py")
-# Diskteki yedek: `finally` KESILSE bile (SIGINT/SIGTERM/kill) dal bozuk kalmasin.
-YEDEK_DOSYA = HEDEF + ".mutasyon-yedek"
+sys.path.insert(0, TOOLS)
+
+import mutasyon_kopya as mk                                        # noqa: E402
+
+# 🔴 MUTASYON KOPYAYA UYGULANIR, CANLI AGACA ASLA (12 Agu 2026, bagimsiz curutucu olctu).
+# ESKI TASARIM: mutant CANLI `tools/marka_model_build.py`ye yaziliyor, diske
+# `*.mutasyon-yedek` birakilip atexit/sinyal kancalariyla geri aliniyordu. Kosum KESILIRSE
+# yedek AGACTA KALIYOR ve KARDES nobetciyi kirmizi yakiyor: olculdu — artik yedek yuzunden
+# `marka-model-test.py` rc=1 verdi ("bolum kimligi ayristi"), AYNI SHA'nin temiz kopyasinda
+# rc=0. Yani bu surucunun YAN ETKISI baska bir kapinin hukmu olarak okundu
+# ([[kapi-yan-etkisi-gizli-onkosul]]). Artik `tools/` gecici bir koke KOPYALANIR, kokun
+# geri kalani sembolik baglanir; canli agac bas/son damgayla KANITLI olarak dokunulmaz.
+CANLI_HEDEF = os.path.join(TOOLS, "marka_model_build.py")
+# Kopya kok kurulunca doldurulur (mutasyonun ve kapi kosumunun TEK yeri).
+KOPYA = {"kok": None, "hedef": None, "kapi": None, "artim": None}
 
 # Jeneratörün İÇ fail-closed'u (katman A). Katman B'de bu SUSTURULUR ki kapı tek başına
 # ölçülebilsin.
@@ -107,61 +114,24 @@ KONTROL = ("KONTROL_YORUM",
 
 
 def oku():
-    with io.open(HEDEF, encoding="utf-8") as f:
+    with io.open(KOPYA["hedef"], encoding="utf-8") as f:
         return f.read()
 
 
-# --------------------------------------------------------------- kesintiye dayanikli geri alim
-_GERI_ALINDI = {"tamam": False}
-
-
-def yedegi_kur(taban):
-    """Mutasyona BASLAMADAN yedegi DISKE yaz + her cikis yolunda geri alimi bagla.
-
-    🔴 NEDEN DISKE: yalnizca `finally` ile geri alan bir surucu SIGINT/SIGTERM/kill
-    aldiginda dosyayi MUTANT halde birakir ve dal sessizce bozulur (bu depoda
-    mutasyonun "uygulandigini" izle dogrulamak da yanilticidir: iz DEGISMIS ama dogru
-    yonde degildir). Yedek diskte durur; atexit + sinyal kancalari geri alir; bir sonraki
-    kosum artik yedek bulursa FAIL-CLOSED durur."""
-    with io.open(YEDEK_DOSYA, "w", encoding="utf-8") as f:
-        f.write(taban)
-
-    def geri_al(*_a):
-        if _GERI_ALINDI["tamam"]:
-            return
-        try:
-            with io.open(YEDEK_DOSYA, encoding="utf-8") as f:
-                icerik = f.read()
-            with io.open(HEDEF, "w", encoding="utf-8") as f:
-                f.write(icerik)
-            _GERI_ALINDI["tamam"] = True
-            os.remove(YEDEK_DOSYA)
-        except Exception as e:                                    # noqa: BLE001
-            print("UYARI: geri alim BASARISIZ (%r) — yedek DURUYOR: %s" % (e, YEDEK_DOSYA))
-
-    atexit.register(geri_al)
-    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
-        try:
-            signal.signal(sig, lambda *_a: (geri_al(), sys.exit(130)))
-        except Exception:                                         # noqa: BLE001
-            pass
-    return geri_al
-
-
 def yaz(metin):
-    with io.open(HEDEF, "w", encoding="utf-8") as f:
+    """Mutanti KOPYAYA yaz (canli agac ASLA yazilmaz — bkz. dosya basi)."""
+    with io.open(KOPYA["hedef"], "w", encoding="utf-8") as f:
         f.write(metin)
     # Aynı uzunlukta + aynı saniyede yazılan mutasyon UYGULANMAYABİLİR (mtime çözünürlüğü /
     # bytecode önbelleği). mtime'ı ileri it ve pycache'i sil.
     now = time.time() + 2
-    os.utime(HEDEF, (now, now))
-    pc = os.path.join(TOOLS, "__pycache__")
-    shutil.rmtree(pc, ignore_errors=True)
+    os.utime(KOPYA["hedef"], (now, now))
+    shutil.rmtree(os.path.join(KOPYA["kok"], "tools", "__pycache__"), ignore_errors=True)
 
 
 def iz():
-    cp = subprocess.run([sys.executable, KAPI, "--iz"], capture_output=True, text=True,
-                        cwd=os.path.dirname(TOOLS))
+    cp = subprocess.run([sys.executable, KOPYA["kapi"], "--iz"], capture_output=True,
+                        text=True, cwd=KOPYA["kok"])
     m = re.search(r"IZ=([0-9a-f]+)", cp.stdout or "")
     return m.group(1) if m else None
 
@@ -169,7 +139,7 @@ def iz():
 def _tek_kostur(cmd, onek):
     """Bir nöbetçiyi koştur; düşen iddia KİMLİKLERİNİ topla (önekli, iki araç karışmasın)."""
     cp = subprocess.run(cmd, capture_output=True, text=True,
-                        cwd=os.path.dirname(TOOLS), timeout=3600)
+                        cwd=KOPYA["kok"], timeout=3600)
     cikti = (cp.stdout or "") + (cp.stderr or "")
     dusen = set()
     for satir in cikti.splitlines():
@@ -189,8 +159,8 @@ def kapiyi_kostur():
     yalnız kapıyı koşturan bir batarya onları HAYATTA bırakır — bağımsız çürütme X4'ü
     tam böyle buldu. İkisinin düşen kümesi BİRLEŞTİRİLİR; kimlikler araç önekiyle
     ayrılır ki hangi katmanın konuştuğu görünsün."""
-    a = _tek_kostur([sys.executable, KAPI], "KAPI")
-    b = _tek_kostur([sys.executable, ARTIM_TEST], "ARTIM")
+    a = _tek_kostur([sys.executable, KOPYA["kapi"]], "KAPI")
+    b = _tek_kostur([sys.executable, KOPYA["artim"]], "ARTIM")
     dusen = a["dusen"] | b["dusen"]
     aileler = {}
     for d in dusen:
@@ -218,19 +188,20 @@ def uygula(taban, ciftler, ic_kontrol_kapali):
 
 def main():
     dokum = "--dokum" in sys.argv[1:]
-    # FAIL-CLOSED: onceki kosum yarida kesilmis olabilir. Yedek DURUYORSA dosya mutant
-    # olabilir -> olcum yapMA, insana soyle.
-    if os.path.exists(YEDEK_DOSYA):
-        print("OLCULEMEDI: onceki kosumdan kalan yedek DURUYOR -> %s" % YEDEK_DOSYA)
-        print("  Dosya MUTANT olabilir. Once geri al:")
-        print("  cp %s %s && rm %s" % (YEDEK_DOSYA, HEDEF, YEDEK_DOSYA))
-        return 3
-    taban = oku()
-    taban_iz = iz()
-    print("TABAN IZ =", taban_iz)
-    geri_al = yedegi_kur(taban)
+    # 🔴 CANLI AGACIN DAMGASI: bu surucu artik canli dosyaya YAZMIYOR ve bunu BEYAN
+    # ETMIYOR, OLCUYOR. Bas/son damga esit degilse ya da artik `*-yedek` dosyasi kaldiysa
+    # hukum KIRMIZI olur ("geri aldim" iddiasi bu depoda kanit sayilmaz).
+    damga_bas = mk.agac_damgasi([CANLI_HEDEF])
+    tmp = tempfile.mkdtemp(prefix="mm-bolum-mutasyon-")
     sonuc = {}
     try:
+        KOPYA["kok"] = mk.kopya_kok(tmp)
+        KOPYA["hedef"] = os.path.join(KOPYA["kok"], "tools", "marka_model_build.py")
+        KOPYA["kapi"] = os.path.join(KOPYA["kok"], "tools", "marka-sayac-kapisi.py")
+        KOPYA["artim"] = os.path.join(KOPYA["kok"], "tools", "marka-artim-test.py")
+        taban = oku()
+        taban_iz = iz()
+        print("TABAN IZ =", taban_iz)
         # ---------------------------------------------------------- KATMAN A
         print()
         print("== KATMAN A: JENERATÖRÜN İÇ FAIL-CLOSED'U (mutant TEK BAŞINA) ==")
@@ -273,18 +244,21 @@ def main():
                 print("      ornek=%s" % (sorted(r["dusen"])[:4],))
             print("      >> %s" % acik)
     finally:
-        geri_al()
-        geri = iz()
-        print()
-        print("DOSYA GERI ALINDI, iz =", geri, "(taban ile ayni:", geri == taban_iz, ")")
-        print("YEDEK TEMIZ =", not os.path.exists(YEDEK_DOSYA))
-        if geri != taban_iz:
-            print("🔴 GERI ALIM BASARISIZ — dosya MUTANT halde olabilir, ELLE kontrol et.")
+        shutil.rmtree(tmp, ignore_errors=True)
 
     # ---------------------------------------------------------------- HÜKÜM
+    damga_son = mk.agac_damgasi([CANLI_HEDEF])
+    agac_temiz = damga_bas == damga_son and not damga_son[1]
+    print()
+    print("AGAC_DAMGASI bas=%s son=%s artik=%s"
+          % (damga_bas[0], damga_son[0], damga_son[1]))
+    print("AGAC_KIRLILIGI =", "YOK" if agac_temiz else "VAR")
     print()
     print("== HUKUM ==")
     hatalar = []
+    if not agac_temiz:
+        hatalar.append("CALISMA AGACI KIRLENDI (mutasyon kopyaya uygulanmali): %s"
+                       % (damga_son[1] or "damga degisti",))
     b_kumeleri = {}
     for (kat, ad), d in sonuc.items():
         if kat != "B" or d.get("durum") == "OLCULEMEDI":
