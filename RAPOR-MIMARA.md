@@ -153,9 +153,29 @@ bağımsız yargı TEK kanonik noktadan türesin.
 
 ---
 
-## 6. NE ÖLÇÜLMEDİ (beyan — uydurulmadı)
+## 6. KARDEŞ KAPILAR — HEPSİ YEŞİL (bu dalda ölçüldü)
 
-`marka-sayac-kapisi.py`, `ilan-tutari-kapisi.py`, çip kapısı, `is-akisi-kapisi.py`,
-`ci-kapsam-test.py`, `parite-test.js`, mutasyon bataryası ve güncel çip/kapsama sayıları
-bu turda **KOŞULMADI** (devir kesti). Çip 1060 / %68,56 rakamı `47b6734d`'nin kendi
-beyanıdır, bu turda bağımsız doğrulanmadı.
+```
+python3 tools/marka-sayac-kapisi.py   rc=0
+python3 tools/ilan-tutari-kapisi.py   rc=0
+python3 tools/marka-cip-kapisi.py     rc=0   HUKUM=YESIL
+python3 tools/is-akisi-kapisi.py      rc=0
+python3 tools/ci-kapsam-test.py       rc=0
+```
+
+Çip kapısının bastığı sayılar (bugün, bu ağaçta):
+`CIP_TOPLAM=1061 · OLCULEN_KOVA=1061 · ENVANTER_DRIFT=0 · GURULTU=0 · KIRIK_LINK=0 ·
+SAYI_SAPAN_SAYFA=0 · SAYI_SAPAN_FILTRE=0 · KOSAN_IDDIA=26 DUSEN_IDDIA=0`
+
+➡️ **Kapsama GERİLEMEMİŞ** (çip 1061 ≥ merge'ün beyan ettiği 1060). Yani yayını durduran
+şey kapsama değil, **yalnız bayat aynadır.** Kırmızı yüzey TAM OLARAK 2 kapı; başka
+düşen kapı YOK.
+
+## 7. NE ÖLÇÜLMEDİ (beyan — uydurulmadı)
+
+* `node tools/parite-test.js` — **KOŞULMADI** (ANA checkout işi; bu izole worktree'de
+  hüküm koşum konumuna bağlıdır, [[parite-testi-olculemedi-basiyor]]).
+* Mutasyon bataryası (`model-kanon-mutasyon.py`, `marka-cip-mutasyon.py`) — **KOŞULMADI**;
+  onarım yazılmadığı için mutant/kontrol ayrımı ölçülemezdi.
+* Kapsama YÜZDESİ (%68,56) — çip kapısı yüzde basmıyor; **doğrulanmadı**. Doğrulanan
+  şey mutlak çip sayısıdır (1061).
