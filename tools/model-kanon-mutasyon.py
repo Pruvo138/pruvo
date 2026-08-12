@@ -103,6 +103,24 @@ MUTANTLAR = [
      ["S2"],
      "KAPALILIK NOBETI: sozluge MIMAR EKI'ne yazilmadan uydurma bir ad ('Voranta') "
      "eklenir -> yargilanmis bolumleme buyur, S2 kimlik imzasi KIRILMALI"),
+    # ── 12 AGU HUKUMLERININ IKI KOLU: B7 aynasi bunlari GERCEKTEN gorüyor mu? ──────
+    # 🔴 NEDEN BURADALAR: iki kol `yayimlanir_mi`ye 47b6734d'de eklendi, B7'nin BAGIMSIZ
+    # aynasina eklenmedi ve kapi 5 gun KIRMIZI kalip YAYINI DURDURDU
+    # ([[ikiz-tanim-sessiz-ayrisma]]). Ayna simdi hizalandi; asagidaki iki mutant aynanin
+    # kollari HALA gordugunu KANITLAR — hizalama "yesile boyama" DEGILDIR.
+    ("M8", KAPI_MODEL, "marka_model_build.py",
+     '    if g.get("yabanci_marka"):\n        return False\n',
+     '    if False:\n        return False\n',
+     ["B7"],
+     "GURULTU SINIFI KAPATILIR: `Hyundai|Genesis` gibi AYRI MARKA etiketleri yeniden "
+     "sayfa/kolon evrenine girer — uc `?model=Genesis` mimarin KAPATTIGI sayfayi geri acar"),
+    ("M9", KAPI_MODEL, "marka_model_build.py",
+     "            or (sahip is not None and sahip == _canon(marka)))",
+     "            or (sahip is None and sahip == _canon(marka)))",
+     ["B7"],
+     "(d) JETON SAHIPLIGI KOLU OLDURULUR: envanterde olmayan ama katalogda sahibi belli "
+     "38 kova (`Hyundai|Accent`, `Kia|Picanto`...) yeniden sayfasiz/kolonsuz kalir — "
+     "[[envanter-drift-parti-basina]] sinifi geri doner"),
     ("K1", KAPI_MODEL, "d1-sync.py",
      "    toplam = {}\n", "    toplam = dict()\n", [],
      "KONTROL: davranisi degistirmeyen yazim — kapi gurultu kaynagi olmamali"),
@@ -113,6 +131,10 @@ MUTANTLAR = [
      "# 🔴 REDDEDILEN ADAYLAR", "# 🔴 REDDEDILEN ADAYLAR (kayit)", [],
      "KONTROL: yalniz yorum satiri — kapali kume kimligi DEGISMEZ"),
 ]
+
+# Yalniz iki uretim-hukmu mutanti icin kod adi yetmez: B7'nin beklenen fark YONU da
+# gorunmeli. Boylece ilgisiz bir B7 kirilmasi mutanti oldurulmus gibi gosteremez.
+BEKLENEN_IZ = {"M8": "fazla=", "M9": "eksik="}
 
 
 def ayna_kur(tmp):
@@ -193,10 +215,13 @@ def main():
                 kaybolan = t_kirmizi - kirmizi
                 if kaybolan:
                     gozlem = "COKME(taban kirmizisi KAYBOLDU: %s)" % sorted(kaybolan)
-                elif yeni_kirmizi == set(beyan):
+                elif yeni_kirmizi == set(beyan) and (kod not in BEKLENEN_IZ or
+                                                      BEKLENEN_IZ[kod] in cikti):
                     gozlem = "UYDU(%s)" % (sorted(yeni_kirmizi) or "taban degismedi")
                 else:
-                    gozlem = "SAPTI(gozlenen=%s)" % (sorted(yeni_kirmizi) or "-")
+                    iz = BEKLENEN_IZ.get(kod)
+                    iz_notu = " iz-yok=%s" % iz if iz and iz not in cikti else ""
+                    gozlem = "SAPTI(gozlenen=%s%s)" % (sorted(yeni_kirmizi) or "-", iz_notu)
             sonuc.append((kod, kapi, beyan, gozlem, aciklama))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
