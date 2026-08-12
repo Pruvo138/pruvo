@@ -155,6 +155,32 @@ function sayfaKos({ bayrak, fetchStub, arama }) {
   if (kod === once && kod.indexOf("var EDGE_KATALOG = " + (bayrak ? "true" : "false") + ";") === -1) {
     throw new Error("EDGE_KATALOG bayrak satiri bulunamadi — index.html degismis olabilir");
   }
+  /**
+   * KANONIK ARAMA YUKLEMINI DISA VER — testin IDDIASI ikinci bir govdeden DOGMASIN.
+   *
+   * 🔴 NEDEN (olculdu 12 Agu 2026): TEST 7'nin "yedek sonuclar sorguyla eslesiyor"
+   * iddiasi 20 Tem'den kalma ELLE yazilmis bir substring kuraliydi (kartin gorunen
+   * metninde sorgu sozcugunu arardi). index.html 5 Agu'da (a522cb14 / 8913db28) marka
+   * sorgusunu UYELIK ∪ BASLIKTA TAM KELIME yuklemine baglayinca (`markaSorgusuEsler`)
+   * iddia BAYAT AYNA'ya dondu: `marka:["Citroën"]` tasiyip basliginda marka gecmeyen
+   * kart sitenin KANONIK kuralina gore DOGRU sonuctu, testin substring kuralina gore
+   * "eslesmiyor"du. Yayin bu yuzden durdu. [[ikiz-tanim-sessiz-ayrisma]]
+   *
+   * COZUM: kabul araligi ile kiyas araligi AYNI kanonik fonksiyondan gelir — ihrac,
+   * test edilen sayfanin TA KENDI ornegindendir (ayri bir vm/ayri bir cip-indeks hali
+   * DEGIL), boylece iki taraf ayni calisma zamani durumunu paylasir.
+   * Capa tutmazsa FAIL-CLOSED durur: yuklemsiz, sessiz-yesil kosum YOK.
+   */
+  const KAPANIS = /\n\}\)\(\);\s*$/;
+  if (!KAPANIS.test(kod)) {
+    throw new Error("index.html ana script IIFE kapanisi bulunamadi — kanonik arama "
+      + "yuklemi disa verilemedi (yapi degisti mi?)");
+  }
+  kod = kod.replace(KAPANIS,
+    "\n  window.__PRUVO_ARAMA = { PAGE_SIZE: PAGE_SIZE, norm: norm, markaKatla: markaKatla,"
+    + " markaUyeMi: markaUyeMi, baslikMarkalari: baslikMarkalari,"
+    + " aramaPlani: aramaPlani, aramaPlaniEsler: aramaPlaniEsler,"
+    + " edgeHavuz: edgeHavuz, edgeTekille: edgeTekille };\n})();\n");
   const { document, kayit } = domYap(gerekliIdler(html));
   const ag = [];                       // cagrilan TUM url'ler
   const depo = {};
@@ -184,7 +210,12 @@ function sayfaKos({ bayrak, fetchStub, arama }) {
     "fetch", "console", "PRUVO_SECENEK", "alert", kod);
   calistir(window, document, location, history, localStorage,
     fetch, konsol, PRUVO_SECENEK, () => {});
-  return { ag, kayit, hatalar };
+  const api = window.__PRUVO_ARAMA;
+  if (!api || typeof api.aramaPlaniEsler !== "function") {
+    throw new Error("kanonik arama yuklemi disa verilemedi (window.__PRUVO_ARAMA yok) — "
+      + "iddia ELLE yazilmis ikinci govdeye dusemez, kosum durur");
+  }
+  return { ag, kayit, hatalar, api };
 }
 
 function yanit(veri, ok) {
@@ -239,6 +270,12 @@ function kontrol(ad, sart, detay) {
   else { kaldi++; console.log("  ❌ " + ad + (detay ? "\n       " + detay : "")); }
 }
 const kartlar = (kayit) => kayit.grid.children;
+/** Kartin urun id'si — kartCiz main.href = productUrl(p) = "/urun/<id>/". TEK GOVDE. */
+const kartId = (kart) => {
+  const ana = kart.bul("card-main");
+  const m = ana && /^\/urun\/(.+)\/$/.exec(ana.href || "");
+  return m ? m[1] : null;
+};
 const rozetliMi = (kart) => !!kart.bul("card-badge");
 /** Kartta buton var mi? (Sepete Ekle geri gelirse burasi kirmizi yanar.) */
 const kartButonu = (kart) => { for (const e of kart.hepsi()) if (e.tagName === "button") return e; return null; };
@@ -262,9 +299,7 @@ function tabanKontrolu(etiket, kartlarListesi) {
   const sapan = [];
   kartlarListesi.forEach((kart) => {
     // Kartin id'si linkinden okunur: kartCiz main.href = productUrl(p) = "/urun/<id>/"
-    const ana = kart.bul("card-main");
-    const m = ana && /^\/urun\/(.+)\/$/.exec(ana.href || "");
-    const id = m ? m[1] : null;
+    const id = kartId(kart);
     const bek = id ? beklenenTaban(id) : null;
     if (bek === null) return;          // taban fiyati olmayan sari urun — bu kontrolun disinda
     bakilan++;
@@ -275,6 +310,76 @@ function tabanKontrolu(etiket, kartlarListesi) {
     "HIC kart bakilmadi -> kontrol BOS kosuyor, kapsama yok");
   kontrol(etiket + " — her sari kart PRUVO_TABAN_FIYATLAR'dan turetilmis fiyat gosteriyor",
     bakilan > 0 && sapan.length === 0, sapan.slice(0, 5).join(" | "));
+}
+
+/**
+ * YEDEK YOLUN ESLESME KONTROLU — iddia sitenin KANONIK eslestiricisinden turer.
+ *
+ * Ne olcer (uc eksen, ucu de ayni kanonik yuklemi kullanir):
+ *   1. SAGLAMLIK+TAMLIK: cizilen kart kumesi, havuzun kanonik yuklemle suzulmus
+ *      halinin ilk PAGE_SIZE'i ile BIREBIR ayni mi (edgeYedek: liste.slice(0, PAGE_SIZE),
+ *      renderGrid edge-filtreli dalda edgeListe'nin TAMAMINI cizer).
+ *   2. AYIRT EDICILIK: sorgu havuzu GERCEKTEN daraltiyor mu (0 < beklenen < havuz)?
+ *      🔴 TOTOLOJI KIRICI: yuklem "hep true"ya (ya da "hep false"a) bozulursa 1. eksen
+ *      iki tarafi birden kaydirdigi icin YESIL kalirdi; bu eksen o mutanti KIRMIZI yakar.
+ *   3. UYELIK ALT SINIRI (yalniz marka sorgusunda): `marka[]` alaninda o markayi TASIYAN
+ *      her havuz urunu sonucta OLMALI. Bu bir URUN KURALIDIR (5 Agu, a522cb14: "marka
+ *      adiyla arama UYELIGI de bulur"), eslestirme algoritmasinin kopyasi DEGIL — girdisi
+ *      urun VERISI (`marka[]`) ve kanonik katlama. `markaSorgusuEsler`in uyelik kolu
+ *      dusurulurse (yani 5 Agu oncesine donulurse) bu eksen KIRMIZI yanar.
+ */
+function yedekEslesmeKontrolu(etiket, kayit, api, sorgu) {
+  const plan = api.aramaPlani(sorgu);
+  // Yedek yol serbest metinde YALNIZ BASLIGA bakar (ozet kartinda aciklama yok) —
+  // index.html::edgeYedek ile AYNI hsAl.
+  const baslikHs = (u) => api.norm(u.baslik || "");
+  const havuz = api.edgeTekille(api.edgeHavuz());
+  const beklenen = havuz.filter((p) => api.aramaPlaniEsler(p, plan, baslikHs));
+  const beklenenIlk = beklenen.slice(0, api.PAGE_SIZE).map((p) => p.id);
+  const cizilen = kartlar(kayit).map(kartId);
+
+  kontrol(etiket + " — cizilen kartlar KANONIK eslestiricinin verdigi kume (" +
+    cizilen.length + " kart / " + beklenen.length + " eslesme / " + havuz.length + " havuz)",
+    cizilen.length === beklenenIlk.length &&
+    cizilen.every((id, i) => id === beklenenIlk[i]),
+    "cizilen=" + JSON.stringify(cizilen.slice(0, 5)) +
+    " beklenen=" + JSON.stringify(beklenenIlk.slice(0, 5)));
+
+  kontrol(etiket + " — sorgu havuzu GERCEKTEN daraltiyor (yuklem ayirt edici)",
+    beklenen.length > 0 && beklenen.length < havuz.length,
+    "beklenen=" + beklenen.length + " havuz=" + havuz.length +
+    " (0 ya da havuzun tamami -> yuklem korelmis)");
+
+  if (plan.kanon) {
+    const uye = havuz.filter((p) => api.markaUyeMi(p, plan.kanon));
+    const kacan = uye.filter((p) => beklenen.indexOf(p) === -1).map((p) => p.id);
+    kontrol(etiket + " — uyelik kolu KOSUYOR (`marka[]`de " + plan.kanon +
+      " tasiyan " + uye.length + " havuz urunu var)", uye.length > 0,
+      "HIC uye urun yok -> 3. eksen BOS kosar, kapsama yok");
+    kontrol(etiket + " — `marka[]` uyeligi olan HER urun sonucta (" + plan.kanon + ")",
+      uye.length > 0 && kacan.length === 0, "kacan=" + JSON.stringify(kacan.slice(0, 5)));
+  }
+  return { beklenen: beklenen, havuz: havuz };
+}
+
+/**
+ * Havuzda basliginda marka gecmeyen EN COK uyeye sahip kanonik marka.
+ * Iki ilkel de test edilen sayfanin KANONIK yukleminden gelir: `markaUyeMi` ve
+ * `baslikMarkalari`. Boylece senaryo sabit ada/veri tesadufuna dayanmaz; uyelik kolu
+ * dusurulurse kaybolmasi gereken en az bir gercek urunu YAPISAL olarak garanti eder.
+ */
+function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
+  const say = {};
+  havuz.forEach((p) => (p.marka || []).forEach((b) => {
+    const k = api.markaKatla(b);
+    // Sorgu olarak AYNI kanona donmeli ve bu urun BASLIK kolundan bulunamiyor olmali.
+    if (k && api.aramaPlani(k).kanon === k && api.markaUyeMi(p, k) &&
+        api.baslikMarkalari(p).indexOf(k) === -1) {
+      say[k] = (say[k] || 0) + 1;
+    }
+  }));
+  const sirali = Object.keys(say).sort((a, b) => (say[b] - say[a]) || (a < b ? -1 : 1));
+  return sirali.length ? sirali[0] : null;
 }
 
 (async () => {
@@ -432,7 +537,7 @@ function tabanKontrolu(etiket, kartlarListesi) {
   // ── TEST 7: zarif bozulma ─────────────────────────────────────────────────
   console.log("\nTEST 7 — zarif bozulma: Worker 500 / ulasilamaz");
   {
-    const { kayit, hatalar } = sayfaKos({
+    const { kayit, hatalar, api } = sayfaKos({
       bayrak: true,
       fetchStub: (url) => {
         if (url.indexOf("ozet.json") !== -1) return ozetYaniti();
@@ -452,9 +557,26 @@ function tabanKontrolu(etiket, kartlarListesi) {
     kontrol("kullaniciya mesaj gosterildi", /bağlantısı kurulamadı/i.test(kayit.edgeDurum.innerHTML), "durum: " + kayit.edgeDurum.innerHTML);
     kontrol("durum satiri gorunur", kayit.edgeDurum.style.display === "flex", "display: " + kayit.edgeDurum.style.display);
     kontrol('yedek BASLIK aramasi calisti ("' + hedef + '")', kartlar(kayit).length > 0, "kart: " + kartlar(kayit).length);
-    kontrol("yedek sonuclar gercekten sorguyla eslesiyor",
-      kartlar(kayit).length > 0 && kartlar(kayit).every((c) => c.textContent.toLocaleLowerCase("tr").indexOf(hedef.toLocaleLowerCase("tr")) !== -1));
+    yedekEslesmeKontrolu('yedek sonuc ("' + hedef + '")', kayit, api, hedef);
     kontrol("hata konsola yazildi (sessiz yutulmadi)", hatalar.length > 0, "hatalar: " + hatalar.length);
+
+    // 🔴 MARKA SORGUSU SENARYOSU (12 Agu): yukaridaki `hedef` bir BASLIK kelimesidir ve
+    // marka sorgusu olup olmadigi katalogun o gunku ilk kartina baglidir — uyelik ekseni
+    // orada BOS kosabilir. Bu senaryo marka sorgusunu VERIDEN turetip o ekseni HER
+    // kosumda calistirir (sabit marka adi YAZILMAZ; katalog degisince kendiliginde kayar).
+    const markaSorgusu = havuzunUyelikKolunuEnCokGerektirenMarkasi(
+      api, api.edgeTekille(api.edgeHavuz()));
+    kontrol("marka sorgusu senaryosu VERIDEN kurulabildi", markaSorgusu !== null,
+      "havuzda kanonik marka bulunamadi -> uyelik ekseni olculemez");
+    if (markaSorgusu) {
+      kayit.search.value = markaSorgusu;
+      kayit.search.tetikle("input");
+      await bekle(450);
+      kontrol('yedek marka aramasi kart cizdi ("' + markaSorgusu + '")',
+        kartlar(kayit).length > 0, "kart: " + kartlar(kayit).length);
+      yedekEslesmeKontrolu('yedek marka sorgusu ("' + markaSorgusu + '")',
+        kayit, api, markaSorgusu);
+    }
 
     // Sonuc vermeyecek sorgu -> "bulunamadi" (bos ekran degil)
     kayit.search.value = "yokboylebirsey12345";

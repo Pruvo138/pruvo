@@ -249,11 +249,91 @@ def _bagimsiz_ayri_arac(ad):
     return len((ad or "").split()) >= 2 and not _bagimsiz_donanim_kuyruklu(ad)
 
 
-def _yayin_bagimsiz(marka, g):
-    """yayimlanir_mi()'nin BAGIMSIZ yeniden kurulusu — yargi tablolari arama.py'den."""
+# ── 12 Agu hukumlerinin BAGIMSIZ AYNASI: (d) JETON SAHIBI + GURULTU SINIFI ──────
+# 🔴 SAYIM ile YARGI AYRI TUTULUR. Asagidaki uc dagilim tablosu SAYIMDIR: uyelik
+# ilkellerinden (uyelik_jetonlari / marka_uyelikleri / evren.model_anahtari) turer,
+# yani `gruplandir`i cagirmakla AYNI SINIFTADIR — ikinci bir UYELIK govdesi yazmak
+# sahte kirmizi uretirdi. YARGI ise burada BAGIMSIZ kurulur: cogunluk esikleri,
+# ciplak sayi siniri, ham0 esigi ve capraz-marka susmasi yeniden yazilir; uretimin
+# `jeton_sahibi` / `yabanci_marka_mi` yuklemleri CAGRILMAZ ve kovaya basilan
+# `g["jeton_sahibi"]` / `g["yabanci_marka"]` DAMGALARI OKUNMAZ (totoloji tuzagi —
+# damgayi okusaydik yuklemi bozan mutant iddiayi da kendi lehine bukerdi).
+def _bagimsiz_kanon(s):
+    """Gruplama anahtarinin bagimsiz aynasi (model_normalize + kalan ayiraclar).
+    Bu ayna KENDI ICINDE tutarli kullanilir: hem tablo anahtarlari hem sorgular
+    ayni govdeden gecer, yani uretimin `_canon`u ile bayt-ayni olmak ZORUNDA degil."""
+    return re.sub(r"[/_]", "", arama.model_normalize(s or ""))
+
+
+_b_kova, _b_ham0, _b_jeton = {}, {}, {}
+for _p in URUNLER:
+    _m = _p.get("marka") or []
+    if not _m:
+        continue
+    _h = _bagimsiz_kanon(_m[0])
+    _b_ham0[_h] = _b_ham0.get(_h, 0) + 1
+    _jetonlar = mmb.uyelik_jetonlari(_p)
+    for _t in _jetonlar:
+        _jc = _bagimsiz_kanon(_t)
+        if not _jc:
+            continue
+        _jd = _b_jeton.setdefault(_jc, {})
+        _jd[_h] = _jd.get(_h, 0) + 1
+    _uyeler = mmb.marka_uyelikleri(_m, _evren, _ek)
+    for _mk in _uyeler or ():
+        for _t in _jetonlar:
+            _c = _evren.model_anahtari(_mk, _t)
+            if not _c:
+                continue
+            _kd = _b_kova.setdefault((_mk, _c), {})
+            _kd[_h] = _kd.get(_h, 0) + 1
+
+
+def _bagimsiz_ciplak_sayi(ad):
+    """Jeton tumuyle SAYISAL mi — (d) kolu ciplak sayidan sayfa DOGURMAZ."""
+    j = re.sub(r"[^a-z0-9]", "", arama.model_normalize(ad or ""))
+    return bool(j) and j.isdigit()
+
+
+def _bagimsiz_jeton_sahibi(ad):
+    """Jetonu tasiyan urunlerin ham `marka[0]` dagiliminda payi >= 1/2 olan marka
+    (yoksa SAHIPSIZ -> None). Kanit zayifsa sayfa dogmaz (fail-closed)."""
+    if _bagimsiz_ciplak_sayi(ad):
+        return None
+    say = _b_jeton.get(_bagimsiz_kanon(ad))
+    if not say:
+        return None
+    toplam = sum(say.values())
+    tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
+    return tepe if n * 2 >= toplam else None
+
+
+def _bagimsiz_yabanci_marka(marka, g):
+    """GURULTU SINIFI: cip etiketi bu markanin MODELI degil, katalogda KENDI urunleri
+    olan AYRI BIR MARKA mi (`Hyundai|Genesis`)? IKI SART BIRDEN, ikisi de katalogdan."""
+    etiket = _bagimsiz_kanon(g.get("display") or g.get("canon"))
+    if not etiket or etiket == _bagimsiz_kanon(marka):
+        return False
+    if _b_ham0.get(etiket, 0) < mmb.ESIK:
+        return False
+    say = _b_kova.get((marka, g.get("canon")))
+    if not say:
+        return False
+    n = sum(say.values())
+    return (say.get(etiket, 0) * 2 > n
+            and say.get(_bagimsiz_kanon(marka), 0) * 2 <= n)
+
+
+def _yayin_bagimsiz(marka, g, sahip=None):
+    """yayimlanir_mi()'nin BAGIMSIZ yeniden kurulusu — yargi tablolari arama.py'den.
+    `sahip`: (d) kolunun girdisi (jetonun katalogdaki sahibi) ya da None = (d) KAPALI."""
     ad = g.get("display") or g.get("canon")
     n = arama.model_normalize(ad)
     if (marka, arama.model_normalize(g.get("canon") or "")) in _rozet or (marka, n) in _rozet:
+        return False
+    # AYRI MARKA (12 Agu, Okan — canliya bakarak): etiket bu markanin MODELI degil,
+    # KENDI urunleri olan BASKA BIR MARKA -> sayfa ACILMAZ.
+    if _bagimsiz_yabanci_marka(marka, g):
         return False
     if (marka, n) in _olmayan:
         return False
@@ -269,22 +349,54 @@ def _yayin_bagimsiz(marka, g):
     if not (bool(g.get("birincil")) and len(g["urunler"]) >= mmb.ESIK):
         return False
     # YARGISIZ SAYFA DOGMAZ: yalnizca baslik kolu sayesinde esigi gecen kova, ancak
-    # ENVANTERDE (BASLIK_DOGAN_ALLOW) ya da H1/H3 KURALINDA yargilanmissa yayimlanir ->
-    # etiketi de UC evrenine girer. Kural kollari BAGIMSIZ yazilir (uretim cagrilmaz).
+    # ENVANTERDE (BASLIK_DOGAN_ALLOW), H1/H3 KURALINDA ya da (d) JETON SAHIPLIGINDE
+    # yargilanmissa yayimlanir -> etiketi de UC evrenine girer. Kural kollari BAGIMSIZ
+    # yazilir (uretim cagrilmaz).
     if g.get("baslik_dogan") and (marka, n) not in _baslik_izin \
             and (marka, arama.model_normalize(g.get("canon") or "")) not in _baslik_izin \
-            and not _bagimsiz_sasi_kodu(ad) and not _bagimsiz_ayri_arac(ad):
+            and not _bagimsiz_sasi_kodu(ad) and not _bagimsiz_ayri_arac(ad) \
+            and not (sahip is not None and sahip == _bagimsiz_kanon(marka)):
         return False
     return True
 
 
+# (d) KOLU CAPRAZ-MARKA CARPISMASINDA SUSAR: once (d) KAPALIYKEN yayimlanan kanonlar
+# olculur; kanonu baska bir markada zaten yayimda olan kovada (d) sorulmaz. Iki gecis
+# BAGIMSIZ kurulur — uretimin `_taban_canon` degiskeni okunmaz.
+_taban_canon_bagimsiz = set(g["canon"] for marka, d in _veri.items()
+                            for g in d["gruplar"].values() if _yayin_bagimsiz(marka, g))
+
+
+def _bagimsiz_sahip(g):
+    if g["canon"] in _taban_canon_bagimsiz:
+        return None
+    return _bagimsiz_jeton_sahibi(g.get("display") or g["canon"])
+
+
 _beklenen_evren = set(g["display"] for marka, d in _veri.items()
-                      for g in d["gruplar"].values() if _yayin_bagimsiz(marka, g))
+                      for g in d["gruplar"].values()
+                      if _yayin_bagimsiz(marka, g, _bagimsiz_sahip(g)))
+# 🔴 AYNA CANLI MI: iki yeni kol da GERCEKTEN is gormeli. Kollar sessizce etkisizlesirse
+# (tablo bosalir, esik kayar) B7 yine yesil yanardi ama ayna korelmis olurdu —
+# [[kapi-varlik-olcer-yokluk-olcmez]]: etkinin VARLIGI ayrica olculur.
+_d_kolu_acti = set()
+_gurultu_kapatti = set()
+for marka, d in _veri.items():
+    for g in d["gruplar"].values():
+        if _yayin_bagimsiz(marka, g, _bagimsiz_sahip(g)) and not _yayin_bagimsiz(marka, g):
+            _d_kolu_acti.add((marka, g["canon"]))
+        if _bagimsiz_yabanci_marka(marka, g):
+            _gurultu_kapatti.add((marka, g["canon"]))
 dogrula("B7 deger evreni = YAYIMLANAN kova etiketleri (bagimsiz yargi ile %d etiket); "
         "kapali sayfa etiketi SIZMIYOR"
         % len(_beklenen_evren), degerler == _beklenen_evren,
         "fazla=%s eksik=%s" % (sorted(degerler - _beklenen_evren)[:6],
                                sorted(_beklenen_evren - degerler)[:6]))
+dogrula("B8 bagimsiz aynanin IKI 12-Agu kolu da CANLI: (d) jeton sahipligi %d kova ACIYOR, "
+        "gurultu sinifi %d kova KAPATIYOR (kollar etkisizlesirse B7 sahte yesil yanardi)"
+        % (len(_d_kolu_acti), len(_gurultu_kapatti)),
+        len(_d_kolu_acti) > 0 and len(_gurultu_kapatti) > 0,
+        "d=%d gurultu=%d" % (len(_d_kolu_acti), len(_gurultu_kapatti)))
 
 kimlik_sayaci = {}
 for p in URUNLER:

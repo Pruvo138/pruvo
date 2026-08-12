@@ -500,7 +500,7 @@ jobs:
       # POZITIF CAPASI, 390 kalemlik kaybin 0'a inmesi, deger evreninin YAYIMLANAN kova
       # etiketleriyle birebir olmasi (kapali sayfa sizmasin), idempotens/olcek, FAIL-CLOSED
       # yonu ve SEMA SIRASI. Ayrica KAYIPSIZLIK sayisini basar (ucun BIRLESIM karari icin).
-      # Mutasyon bataryasi: python3 tools/model-kanon-mutasyon.py (10 mutant).
+      # Mutasyon bataryasi: python3 tools/model-kanon-mutasyon.py (12 mutant).
       - name: Model kanon D1 kolonu kabul testi (390 kalemlik model cip kaybi kapaniyor mu)
         run: python3 tools/model-kanon-d1-test.py
 
