@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""KABUL TESTI — D1 uzlastiricisinin SILME kolu KARANTINADA mi (K1..K7).
+"""KABUL TESTI — D1 uzlastiricisinin SILME kolu KARANTINADA mi (K1..K8).
 
 NEDEN VAR (OLCULDU, 11 Agu 2026 — kosum 31532464176, head c8b0451e)
 ====================================================================
@@ -23,6 +23,8 @@ BU TEST NE OLCER — spec: tools/paket-d1-uzlastirici-karantina.md
   K5 damga YOK / BOZUK                       -> SILME YOK · OLCULEMEDI (fail-closed)
   K6 EKSIK satirlar                          -> karantinadan ETKILENMEZ
   K7 11 Agu vakasinin BIREBIR oynatimi       -> silinen: 0
+  K8 damga INDIRME kolu (agli)               -> yonlendirmede jeton SIZMAZ, 401'de
+                                                fail-closed (bkz. vaka_indirme)
 
 + KABLO CAPALARI: karar dogru olsa bile CAGRILMIYORSA olu kalir. Bu yuzden d1-sync.py'nin
   silme kolu (AST ile), uzlastirici-onarim.py'nin bayrak/imza kablosu ve d1-uzlastirici.yml
@@ -40,12 +42,17 @@ ayristiricisi yok) — "olcemedim" YESIL DEGILDIR.
 """
 import argparse
 import ast
+import http.server
 import importlib.util
+import io
 import json
 import os
 import shutil
+import socket
 import sys
 import tempfile
+import threading
+import zipfile
 
 sys.dont_write_bytecode = True
 
@@ -229,6 +236,187 @@ def vaka_disk(uk):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# K8 — DAMGA INDIRME KOLU (AGLI): YONLENDIRMEDE JETON SIZINTISI
+# ═══════════════════════════════════════════════════════════════════════════════
+# OLCULEN ARIZA (12 Agu 2026, kosum 31592377276 · rc=4):
+#     KARANTINA DAMGASI INDIRILEMEDI (HTTPError: HTTP Error 401: Server failed to
+#     authenticate the request...) -> bu kosumda SILME YAPILMAZ (fail-closed).
+# `indir()` artifact zip'ini `archive_download_url` uzerinden ister; GitHub 302 ile
+# IMZALI (SAS) bir blob adresine yonlendirir. urllib'in varsayilan yonlendirme
+# isleyicisi `Authorization` basligini HEDEFE AYNEN TASIR ve imzali adres o basligi
+# gorunce 401 basar. Artifact VARDI ve suresi DOLMAMISTI (id 9139248461) — hal
+# "artifact yok" degil, "indirme kimlik dogrulamada dusuyor" idi.
+#
+# 🔴 ARIZA SESSIZDI: `indir()` False donuyor ama CLI kolu her halukarda 0 ile
+# cikiyor; adim YESIL kaliyor. Damga inmedigi icin silme kolu her kosumda
+# OLCULEMEDI'ye dusuyordu. OLCUM: karantina indigi 12 Agu 00:10Z'den 11:33Z'ye
+# kadar adimin kostugu 22 kosumun 0'inda "KARANTINA DAMGASI INDI" satiri BASMADI.
+#
+# BU VAKA GERCEK SOKET UZERINDEN KOSAR (metin taklidi degil): yerel bir sahte
+# GitHub, artifact listesini ve 302'yi uretir; "capraz host" ayni makinedeki
+# `localhost` <-> `127.0.0.1` ad farkiyla kurulur.
+AYAR = {}
+
+
+def _zip_ham(icerik):
+    tampon = io.BytesIO()
+    with zipfile.ZipFile(tampon, "w") as z:
+        z.writestr("karantina-damgasi.json", json.dumps(icerik, ensure_ascii=False))
+    return tampon.getvalue()
+
+
+class _SahteGitHub(http.server.BaseHTTPRequestHandler):
+    """Artifact listesi + 302 + (Azure taklidi) blob. Her hop'un basligini KAYDEDER."""
+
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *a):                                    # sessiz
+        pass
+
+    def _bas(self, kod, govde=b"", tur="application/json"):
+        self.send_response(kod)
+        self.send_header("Content-Type", tur)
+        self.send_header("Content-Length", str(len(govde)))
+        self.end_headers()
+        if govde:
+            self.wfile.write(govde)
+
+    def do_GET(self):                                             # noqa: N802
+        yol = self.path.split("?")[0]
+        AYAR["gozlem"].append((yol, self.headers.get("Authorization")))
+        if yol.startswith("/repos/"):
+            self._bas(200, json.dumps({"artifacts": AYAR["artifacts"]}).encode())
+        elif yol == "/indirme":
+            self.send_response(302)
+            self.send_header("Location", AYAR["hedef"])
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+        elif yol == "/blob":
+            if AYAR.get("azure") and self.headers.get("Authorization"):
+                # Azure Blob'un GERCEK davranisi: IMZALI adreste Authorization
+                # gorurse istegi reddeder (kosum 31592377276'daki 401 tam olarak bu).
+                self._bas(401, b"Server failed to authenticate the request.",
+                          "text/plain")
+            else:
+                self._bas(200, AYAR["zip"], "application/zip")
+        else:
+            self._bas(404, b"yol yok", "text/plain")
+
+
+def vaka_indirme(uk):
+    """K8 — `indir()` agli turu: jeton capraz-host'a SIZMAZ, 401'de FAIL-CLOSED kalir."""
+    try:
+        adresler = {b[4][0] for b in socket.getaddrinfo("localhost", None, socket.AF_INET)}
+    except Exception:                                             # noqa: BLE001
+        adresler = set()
+    if "127.0.0.1" not in adresler:
+        print("\n🔴 OLCULEMEDI: `localhost` 127.0.0.1'e cozulmuyor -> capraz-host "
+              "yonlendirmesi KURULAMADI ('olcemedim' YESIL degildir).")
+        sys.exit(2)
+
+    sunucu = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _SahteGitHub)
+    port = sunucu.server_address[1]
+    threading.Thread(target=sunucu.serve_forever, daemon=True).start()
+    taban = "http://127.0.0.1:%d" % port
+    eski_api, eski_jeton = uk.API, os.environ.get("GITHUB_TOKEN")
+    tmp = tempfile.mkdtemp(prefix="karantina-indirme-")
+    try:
+        uk.API = taban
+        os.environ["GITHUB_TOKEN"] = "sahte-jeton-yalniz-testte"
+        AYAR["zip"] = _zip_ham({"surum": uk.SURUM, "damga": uk.DAMGA_ADI,
+                                "sha": SHA_A, "yazma_ts": 1.0,
+                                "kayitlar": {"oksuz-aday-1": {"sha": SHA_A, "ts": 1.0}}})
+        AYAR["artifacts"] = [{"id": 9139248461, "created_at": "2026-08-12T11:20:31Z",
+                              "expired": False,
+                              "archive_download_url": taban + "/indirme"}]
+
+        # ── K8a: CAPRAZ-HOST yonlendirme -> ikinci hop'ta Authorization YOK ──────
+        AYAR["gozlem"], AYAR["azure"] = [], True
+        AYAR["hedef"] = "http://localhost:%d/blob" % port
+        hedef = os.path.join(tmp, uk.DAMGA_DOSYA)
+        mesajlar = []
+        sonuc = uk.indir(hedef, yaz=mesajlar.append)
+        hoplar = dict(AYAR["gozlem"])
+        iddia("K8", "BIRINCI hop (artifact listeleme, ayni host) Authorization TASIR "
+                    "(yoksa listeleme yetkisiz kalirdi)",
+              any(y.startswith("/repos/") and a for y, a in AYAR["gozlem"]),
+              AYAR["gozlem"])
+        iddia("K8", "yonlendirmeyi ureten hop da Authorization TASIR",
+              bool(hoplar.get("/indirme")), hoplar.get("/indirme"))
+        iddia("K8", "CAPRAZ-HOST 302'sinde IKINCI hop'ta Authorization YOK (imzali "
+                    "blob adresine jeton gonderilirse Azure 401 basar)",
+              hoplar.get("/blob") is None, hoplar.get("/blob"))
+        iddia("K8", "indir() True doner (uctan uca: liste -> 302 -> zip)",
+              sonuc is True, sonuc)
+        iddia("K8", "'KARANTINA DAMGASI INDI:' satiri BASILIR (CI logunun kabul capasi)",
+              any("KARANTINA DAMGASI INDI:" in m for m in mesajlar), mesajlar)
+        govde = None
+        try:
+            with open(hedef, encoding="utf-8") as f:
+                govde = json.load(f)
+        except Exception as e:                                    # noqa: BLE001
+            govde = "%s: %s" % (type(e).__name__, e)
+        iddia("K8", "inen hedef dosya GECERLI JSON ve damga semasini tasir",
+              isinstance(govde, dict) and govde.get("surum") == uk.SURUM
+              and isinstance(govde.get("kayitlar"), dict), govde)
+        kayitlar, sebep = uk.damga_oku(hedef)
+        iddia("K8", "inen damga `damga_oku()` ile OKUNUR (ikinci gozlem hafizasi geri "
+                    "gelir; okunmasaydi hukum OLCULEMEDI'de kalirdi)",
+              isinstance(kayitlar, dict) and "oksuz-aday-1" in kayitlar, sebep)
+        iddia("K8", "artifact zip'i gecici dosya olarak BIRAKILMAZ",
+              not os.path.exists(hedef + ".zip"), hedef + ".zip")
+
+        # ── K8b: AYNI-HOST yonlendirme -> Authorization KORUNUR ─────────────────
+        # (duzeltme asiri genis olmasin: her yonlendirmede jetonu dusuren bir kod
+        #  GitHub'in kendi ic yonlendirmelerinde istegi YETKISIZ birakirdi.)
+        AYAR["gozlem"], AYAR["azure"] = [], False
+        AYAR["hedef"] = taban + "/blob"
+        hedef2 = os.path.join(tmp, "ayni-host-" + uk.DAMGA_DOSYA)
+        sonuc2 = uk.indir(hedef2, yaz=lambda *a: None)
+        hoplar2 = dict(AYAR["gozlem"])
+        iddia("K8", "AYNI-HOST 302'sinde Authorization KORUNUR (duzeltme host "
+                    "ekseninde, yonlendirme ekseninde DEGIL)",
+              bool(hoplar2.get("/blob")), hoplar2.get("/blob"))
+        iddia("K8", "ayni-host yonlendirmesinde de indir() True doner",
+              sonuc2 is True, sonuc2)
+
+        # ── K8c: GERCEK 401 -> False + mesaj + ISTISNA SIZMAZ (fail-closed) ─────
+        AYAR["gozlem"], AYAR["azure"] = [], True
+        AYAR["hedef"] = taban + "/blob"        # ayni host -> jeton korunur -> 401
+        hedef3 = os.path.join(tmp, "dusen-" + uk.DAMGA_DOSYA)
+        mesajlar3, patladi, sonuc3 = [], False, None
+        try:
+            sonuc3 = uk.indir(hedef3, yaz=mesajlar3.append)
+        except BaseException as e:                                # noqa: BLE001
+            patladi = "%s: %s" % (type(e).__name__, e)
+        iddia("K8", "gercek 401'de indir() ISTISNA SIZDIRMAZ (adim cokup hukmu "
+                    "olcumsuz birakmaz)", patladi is False, patladi)
+        iddia("K8", "gercek 401'de indir() False doner -> sonraki adim OLCULEMEDI "
+                    "verir ve HICBIR SATIR SILINMEZ (fail-closed KORUNDU)",
+              sonuc3 is False, sonuc3)
+        iddia("K8", "401 GORUNUR: 'KARANTINA DAMGASI INDIRILEMEDI' basilir "
+                    "(sessiz yutma YOK)",
+              any("KARANTINA DAMGASI INDIRILEMEDI" in m for m in mesajlar3), mesajlar3)
+        iddia("K8", "401'de hedef damga dosyasi YAZILMAZ (yarim/bos damga dogmaz)",
+              not os.path.exists(hedef3), hedef3)
+
+        # ── K8d: `_api_getir` SOZLESMESI (ham=True -> bytes) DEGISMEDI ───────────
+        AYAR["gozlem"], AYAR["azure"] = [], False
+        ham = uk._api_getir(taban + "/blob", ham=True)
+        iddia("K8", "_api_getir(ham=True) BYTES doner (imza/donus sozlesmesi AYNI)",
+              isinstance(ham, bytes) and ham == AYAR["zip"], type(ham).__name__)
+    finally:
+        uk.API = eski_api
+        if eski_jeton is None:
+            os.environ.pop("GITHUB_TOKEN", None)
+        else:
+            os.environ["GITHUB_TOKEN"] = eski_jeton
+        sunucu.shutdown()
+        sunucu.server_close()
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def vaka_eksik_kolu(tools):
     """K6 — EKSIK/hash kollari karantinadan ETKILENMEZ.
 
@@ -399,17 +587,18 @@ def main():
     kok = os.path.dirname(tools)
     sys.path.insert(0, tools)
 
-    print("UZLASTIRICI SILME KARANTINASI — KABUL TESTI (K1..K7)")
+    print("UZLASTIRICI SILME KARANTINASI — KABUL TESTI (K1..K8)")
     print("olculen tools: %s\n" % tools)
     uk = _modul(os.path.join(tools, "uzlastirici_karantina.py"),
                 "uzlastirici_karantina_altinda_test")
 
     silinen_k7 = vaka_kararlari(uk)
     vaka_disk(uk)
+    vaka_indirme(uk)
     vaka_eksik_kolu(tools)
     kablo_capalari(tools, kok)
 
-    for vaka in ("K1", "K2", "K3", "K4", "K5", "K6", "K7", "KABLO"):
+    for vaka in ("K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "KABLO"):
         VAKA_DURUM.setdefault(vaka, False)
         if not VAKA_DURUM[vaka]:
             HATALAR.append("%s vakasi HIC KOSMADI (harness bayat)" % vaka)
@@ -423,7 +612,7 @@ def main():
         for h in HATALAR:
             print("   - %s" % h)
         return 1
-    print("✅ K1..K7 + kablo capalari GECTI")
+    print("✅ K1..K8 + kablo capalari GECTI")
     return 0
 
 

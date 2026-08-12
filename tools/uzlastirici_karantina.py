@@ -296,6 +296,52 @@ def _jeton():
     return None
 
 
+def _yonlendirme_elegi():
+    """`Authorization`i ANA MAKINE (host) DEGISIMINDE dusuren yonlendirme isleyicisi.
+
+    NEDEN VAR (OLCULDU, 12 Agu 2026 — kosum 31592377276, rc=4)
+    ==========================================================
+    Damga indirme adimi UC ARDISIK kosumda 401 aldi:
+
+        KARANTINA DAMGASI INDIRILEMEDI (HTTPError: HTTP Error 401: Server failed to
+        authenticate the request...) -> bu kosumda SILME YAPILMAZ (fail-closed).
+
+    Artifact VARDI ve suresi DOLMAMISTI (id 9139248461, created 11:20:31Z). Hal
+    "artifact yok" degil, "indirme kimlik dogrulamada dusuyor" idi:
+    `archive_download_url` GitHub tarafindan **302** ile IMZALI (SAS) bir blob
+    adresine yonlendirilir; urllib'in varsayilan `HTTPRedirectHandler`'i orijinal
+    basliklari — `Authorization` DAHIL — hedefe AYNEN tasir. Imzali adres kendi
+    imzasiyla yetkilendirir; ustune bir de `Authorization` gorunce 401 basar
+    ("Server failed to authenticate the request" tam olarak o depolamanin metnidir).
+
+    🔴 ARIZA SESSIZDI: `indir()` False donuyor ama CLI kolu 0 ile cikiyor, adim
+    YESIL kaliyordu. OLCULDU: karantina indigi 12 Agu 00:10Z'den 11:33Z'ye kadar
+    adimin kostugu 22 kosumun 0'inda "KARANTINA DAMGASI INDI" satiri BASMADI —
+    yani silme kolu dogdugu gunden beri HIC calismadi (her kosum OLCULEMEDI).
+
+    🔴 DUZELTME NEDEN HOST EKSENINDE, "her yonlendirmede dusur" DEGIL: jeton her
+    yonlendirmede dusurulseydi GitHub'in KENDI ic yonlendirmeleri yetkisiz kalir
+    ve listeleme cagrisi bu kez 401 verirdi. Sozlesme iki cumledir: host
+    DEGISIRSE dusur, AYNI host'a yonlendirmede KORU. Ikisi de K8'de olculur.
+    """
+    import urllib.parse
+    import urllib.request
+
+    class _HostDegisimindeJetonuDusur(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            yeni = urllib.request.HTTPRedirectHandler.redirect_request(
+                self, req, fp, code, msg, headers, newurl)
+            if yeni is None:
+                return None
+            eski_host = (urllib.parse.urlsplit(req.full_url).hostname or "").lower()
+            yeni_host = (urllib.parse.urlsplit(yeni.full_url).hostname or "").lower()
+            if eski_host != yeni_host:
+                yeni.remove_header("Authorization")
+            return yeni
+
+    return _HostDegisimindeJetonuDusur()
+
+
 def _api_getir(yol, ham=False, zaman_asimi=30):
     import urllib.error
     import urllib.request
@@ -307,7 +353,9 @@ def _api_getir(yol, ham=False, zaman_asimi=30):
     jeton = _jeton()
     if jeton:
         istek.add_header("Authorization", "Bearer %s" % jeton)
-    with urllib.request.urlopen(istek, timeout=zaman_asimi) as y:
+    # Varsayilan acici DEGIL: jetonu capraz-host yonlendirmede dusuren aciciyi kur.
+    acici = urllib.request.build_opener(_yonlendirme_elegi())
+    with acici.open(istek, timeout=zaman_asimi) as y:
         veri = y.read()
     return veri if ham else json.loads(veri.decode("utf-8", "replace"))
 
