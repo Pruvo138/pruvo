@@ -48,6 +48,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 AYAR = "/Users/okan/dev/pruvo/.claude/settings.json"
@@ -1248,6 +1249,276 @@ def mcp_kapisi(uygula):
     sys.exit(0 if eksik == 0 else 1)
 
 
+# ===================== 13 AGU: ISCI-SARMALAYICI KAPISI 6 EVE (goc karari) =====================
+# OLCULEN DELIK: 13 Agu gocu isci katini '~/.claude/cron/isci.sh <motor> <ev> <spec>
+# [etiket]' sarmalayicisina tasidi, ama 20 Tem'in "repo DISINDAKI betigi kosturma" kurali
+# sarmalayiciyi da reddediyordu -> mimarin UCUZ motora is verme yolu MAKINE tarafindan
+# kapali, geriye yalniz PAHALI yol (Claude iscisi) kaliyordu. Bu mod o kolu 6 EVE kurar.
+# Desen CODEX/AGENT/MCP modlariyla AYNI: DAR + IDEMPOTENT + YEDEKLI + FAIL-CLOSED.
+#
+# 🔴 IKIZ TANIM YASAGI: enjekte edilen blok AGENT_MUAFIYET_RE'yi YENIDEN TANIMLAMAZ,
+# AGENT-KAPISI'nin regex'ini ve _agent_isci_mi()'sini CAGIRIR. Bu yuzden AGENT_DAMGA bir
+# ZORUNLU SEMBOLDUR: AGENT-KAPISI kurulmamis eve DOKUNULMAZ (yoksa motor=claude beyan
+# sarti sessizce kaybolur ve sarmalayici AGENT-KAPISI'ni atlatan anahtara doner).
+ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "13agu-1"'
+ISCI_TANIM_BAS = "# === PRUVO ISCI-SARMALAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
+ISCI_TANIM_SON = "# === PRUVO ISCI-SARMALAYICI KAPISI BITIS ==="
+ISCI_CAGRI_BAS = "        # === PRUVO ISCI-SARMALAYICI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
+ISCI_CAGRI_SON = "        # === PRUVO ISCI-SARMALAYICI CAGRI BITIS ==="
+ISCI_ANKRAJ_TANIM = "\ndef main():\n"
+# CAGRI ankraji SEGMENT DONGUSUNUN icindedir (codex kolunun kullandigi ankrajin AYNISI) —
+# kural 'gecer' halinde segmenti 'continue' ile KAPATMAK ZORUNDA oldugu icin dongu DISINA
+# enjekte edilemez: sarmalayicinin argumanlari BILEREK repo DISIDIR.
+ISCI_ANKRAJ_CAGRI = "        ad = os.path.basename(argv0)\n"
+ISCI_ZORUNLU_SEMBOL = (
+    "def reddet(", "import os", "def _agent_isci_mi(", AGENT_DAMGA,
+    ISCI_ANKRAJ_TANIM, ISCI_ANKRAJ_CAGRI,
+)
+
+ISCI_TANIM_SABLON = '''
+
+''' + ISCI_TANIM_BAS + '''
+# 13 AGU (goc karari): sarmalayiciyi cagirmak KENDI ELIYLE IS YAPMAK DEGIL, ISCI
+# DAGITMAKTIR (26 Tem BaBa hukmu ile AYNI SINIF) — ama KOSULSUZ MUAFIYET DEGIL, ayni
+# KALITE KAPISI: yol TAM ESITLIK · argüman 3-4 · motor KAPALI KUME · motor=claude ise
+# AGENT-KAPISI'nin BEYAN SARTI (AYNI regex) · spec okunamiyorsa RED (fail-closed).
+ISCI_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/isci.sh"
+ISCI_M3_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/m3-isci.sh"
+ISCI_M3_CIVILI_MOTOR = "minimax-m3"
+ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")
+ISCI_ARGUMAN_SAYILARI = (3, 4)
+''' + ISCI_DAMGA + '''
+ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
+ISCI_GEREKCE_SONU = (
+    " DOGRUSU: " + ISCI_SARMALAYICI_YOLU + " <MOTOR> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
+    "(m3 kisayolu: " + ISCI_M3_SARMALAYICI_YOLU + " <EV_KOKU> <SPEC_DOSYASI> [ETIKET]). "
+    "Gecerli motor: " + ISCI_MOTOR_LISTESI + "."
+)
+ISCI_CLAUDE_GEREKCESI = (
+    "ISCI-SARMALAYICI KAPISI (13 Agu): sarmalayici 'claude' MOTORUYLA cagriliyor ama SPEC "
+    "DOSYASINDA 'codex-muafiyet:' BEYAN SATIRI YOK. Bu sart olmasaydi sarmalayici "
+    "AGENT-KAPISI'ni atlatan bir ANAHTAR olurdu. IKI CIKIS: (a) ISI UCUZ MOTORA VER "
+    "(minimax-m3 / deepseek-pro / deepseek-flash); VEYA (b) spec dosyasina su satiri EKLE: "
+    "'codex-muafiyet: <is tanimi> - " + AGENT_ORNEK_SINIF + "' (gecerli sinif jetonlari: " +
+    AGENT_SINIF_LISTESI + ")."
+)
+
+
+def _isci_reddet(neden):
+    """Ev kapisinin reddet() fonksiyonunu kullanir. Iki imza var: KraL'da
+    reddet(neden, sonu=None), yol-bagimsiz sablonda reddet(neden). Arity OLCULUR."""
+    try:
+        arity = reddet.__code__.co_argcount
+    except Exception:
+        arity = 1
+    if arity >= 2:
+        reddet(neden, sonu=ISCI_GEREKCE_SONU)
+    reddet(neden + ISCI_GEREKCE_SONU)
+
+
+def _isci_karari(tokenlar):
+    """None = kural uygulanmaz · "gecer" = izinli (isci dagitmak mimarliktir) ·
+    str = red gerekcesi. m3-isci.sh YONLENDIRMEDIR: imzasi MOTORSUZDUR ve motoru
+    minimax-m3'e CIVILIDIR — basina o motor konmus gibi degerlendirilir."""
+    if not tokenlar:
+        return None
+    argv0 = tokenlar[0]
+    if argv0 == ISCI_M3_SARMALAYICI_YOLU:
+        argumanlar = [ISCI_M3_CIVILI_MOTOR] + list(tokenlar[1:])
+    elif argv0 == ISCI_SARMALAYICI_YOLU:
+        argumanlar = list(tokenlar[1:])
+    else:
+        return None
+    if len(argumanlar) not in ISCI_ARGUMAN_SAYILARI:
+        return (
+            "isci sarmalayicisi YANLIS ARGUMAN SAYISIYLA cagriliyor (motor dahil " +
+            str(len(argumanlar)) + "; beklenen 3 ya da 4)."
+        )
+    motor = argumanlar[0]
+    if motor not in ISCI_MOTORLARI:
+        return (
+            "isci sarmalayicisinin MOTORU kapali kumede DEGIL (" + motor[:24] + "). "
+            "Bilinmeyen motor VARSAYILAN RED (fail-closed)."
+        )
+    if motor == "claude":
+        spec_yolu = argumanlar[2]
+        try:
+            with open(spec_yolu, encoding="utf-8") as _f:
+                spec_metni = _f.read()
+        except Exception:
+            return (
+                "isci sarmalayicisi 'claude' MOTORUYLA cagriliyor ama SPEC DOSYASI "
+                "OKUNAMADI (" + spec_yolu[:70] + "): beyani OLCEMEDIM. Olculemeyen beyan "
+                "YESIL DEGILDIR (fail-closed). " + ISCI_CLAUDE_GEREKCESI
+            )
+        if not AGENT_MUAFIYET_RE.search(spec_metni):
+            return ISCI_CLAUDE_GEREKCESI
+    return "gecer"
+''' + ISCI_TANIM_SON + '''
+'''
+
+# 🔴 KIMLIK: _agent_isci_mi() — AGENT-KAPISI'nin TESPITI YENIDEN KULLANILIR.
+# 🔴 OLCULEN KUSUR (BaBa evi, hermetik kopyada yakalandi): kimlik kontrolu 'continue'yi
+# de kapsayacak sekilde yazilinca ISCI kimligindeki sarmalayici cagrisi bloktan HIC
+# gecmiyor, sonra A adimina (repo-disi betik) dusup RED aliyordu. KraL'da gorunmez, cunku
+# orada ISCI main() BASINDA cikar; BaBa evinin kapisi kimlik ekseni TASIMIYOR ve kusur
+# orada gorundu. DOGRUSU: kimlik YALNIZ REDDI kosullar, SEGMENT KAPANISI ('continue') her
+# iki kimlikte de olur — boylece ISCI davranisi 6 evde AYNI kalir.
+ISCI_CAGRI_SABLON = (
+    ISCI_CAGRI_BAS + "\n"
+    "        _isci_karar = _isci_karari(tokenlar)\n"
+    "        if _isci_karar is not None:\n"
+    '            if _isci_karar != "gecer" and not _agent_isci_mi(girdi):\n'
+    "                _isci_reddet(_isci_karar)\n"
+    "            continue\n"
+    + ISCI_CAGRI_SON + "\n"
+)
+
+
+def _isci_fikstur_specleri():
+    """Enjeksiyon sonrasi CANLI FIKSTURLER icin gecici spec dosyalari (hermetik).
+    Doner: (beyansiz_yol, beyanli_yol, hic_yazilmayan_yol)."""
+    dizin = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-isci-kur-spec-"))
+    beyansiz = os.path.join(dizin, "beyansiz.md")
+    beyanli = os.path.join(dizin, "beyanli.md")
+    _yaz(beyansiz, "Olcum isi. Beyan satiri YOK.\n")
+    _yaz(beyanli, "Is X.\ncodex-muafiyet: kapi kodu insasi " + "—" + " sessiz-hata\n")
+    return dizin, beyansiz, beyanli, os.path.join(dizin, "hic-yazilmadi.md")
+
+
+def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
+    """Tek eve ISCI-SARMALAYICI kuralini enjekte eder. CODEX/AGENT/MCP ile AYNI desen.
+    Doner: (durum, yedek_yolu ya da None)."""
+    yol = os.path.join(kok, goreli)
+    if not os.path.exists(yol):
+        return "KAPI-DOSYASI-YOK", None
+    metin = _oku(yol)
+    if ISCI_DAMGA in metin:
+        return "ZATEN TAM", None
+
+    eksik = [s for s in ISCI_ZORUNLU_SEMBOL if s not in metin]
+    if eksik:
+        rapor.append("      zorunlu sembol EKSIK: " + repr(eksik[0]))
+        return "UYUMSUZ-KAPI (dokunulmadi)", None
+
+    if not uygula:
+        return "ENJEKTE EDILECEK", None
+
+    yedek = yol + ".yedek-" + time.strftime("%Y%m%d-%H%M%S")
+    shutil.copyfile(yol, yedek)
+
+    temiz = _blogu_sok(metin, ISCI_TANIM_BAS, ISCI_TANIM_SON)
+    temiz = _blogu_sok(temiz, ISCI_CAGRI_BAS, ISCI_CAGRI_SON)
+    yeni = temiz.replace(ISCI_ANKRAJ_TANIM, ISCI_TANIM_SABLON + ISCI_ANKRAJ_TANIM, 1)
+    yeni = yeni.replace(ISCI_ANKRAJ_CAGRI, ISCI_CAGRI_SABLON + ISCI_ANKRAJ_CAGRI, 1)
+    _yaz(yol, yeni)
+
+    def geri_al(neden):
+        shutil.copyfile(yedek, yol)
+        rapor.append("      GERI ALINDI (" + neden + ") — yedek: " + yedek)
+
+    try:
+        compile(yeni, yol, "exec")
+    except SyntaxError as hata:
+        geri_al("SyntaxError: " + str(hata)[:60])
+        return "GERI ALINDI (derlenmedi)", yedek
+
+    dizin, beyansiz, beyanli, yok_spec = _isci_fikstur_specleri()
+    try:
+        W = ISCI_SARMALAYICI_YOLU_SABIT
+        olcumler = [
+            ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz}, None, "allow"),
+            ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz + " etiket"},
+             None, "allow"),
+            ("Bash", {"command": ISCI_M3_YOLU_SABIT + " " + kok + " " + beyansiz}, None, "allow"),
+            ("Bash", {"command": W + " gpt-9 " + kok + " " + beyansiz}, None, "deny"),
+            ("Bash", {"command": W + " deepseek-flash " + kok}, None, "deny"),
+            ("Bash", {"command": W + " claude " + kok + " " + beyansiz}, None, "deny"),
+            ("Bash", {"command": W + " claude " + kok + " " + beyanli}, None, "allow"),
+            ("Bash", {"command": W + " claude " + kok + " " + yok_spec}, None, "deny"),
+            ("Bash", {"command": "/tmp/isci.sh deepseek-flash " + kok + " " + beyansiz},
+             None, "deny"),
+            ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz}, AGENT_ISCI_ID,
+             "allow"),
+            # REGRESYON: diger kollar degismedi.
+            ("Bash", {"command": "ls"}, None, "allow"),
+            ("Bash", {"command": 'codex exec "x"'}, None, "deny"),
+            ("Bash", {"command": 'codex exec -o /tmp/son-mesaj.txt "x"'}, None, "allow"),
+            ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
+            ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
+        ]
+        for tn, ti, aid, beklenen in olcumler:
+            olculen = _agent_fikstur(yol, kok, tn, ti, aid)
+            if olculen != beklenen:
+                geri_al("fikstur tn=" + tn + " beklenen=" + beklenen +
+                        " olculen=" + str(olculen))
+                return "GERI ALINDI (fikstur)", yedek
+    finally:
+        shutil.rmtree(dizin, ignore_errors=True)
+
+    rapor.append("      yedek: " + yedek)
+    rapor.append("      info/exclude: " + _yedeklerimi_gizle(kok) +
+                 " | skip-worktree: " + _skip_worktree(kok, goreli))
+    return "KURULDU", yedek
+
+
+# Kural METNI icindeki yollarin ARAC tarafindaki ikizi (fikstur kurmak icin). Tek kaynak
+# olmadigi icin degil, sablonun ICINDE yasayan sabitlere aractan erisilemedigi icin var;
+# ISCI_TANIM_SABLON metninde AYNEN gecmesi asagidaki 'oz-tutarlilik' kontrolu ile civilidir.
+ISCI_SARMALAYICI_YOLU_SABIT = "/Users/okan/.claude/cron/isci.sh"
+ISCI_M3_YOLU_SABIT = "/Users/okan/.claude/cron/m3-isci.sh"
+
+
+def isci_kapisi(uygula):
+    """6 EVE ISCI-SARMALAYICI kapisini kurar/dogrular. Cikis 0 = 6 evin hepsi TAM.
+    KraL 'kaynak' modda: kural commit'li tools/mimar-icra-kapisi.py'de yasar, bu arac
+    orayi YAZMAZ — yalnizca DOGRULAR (ISCI_DAMGA aranir)."""
+    print("ISCI-SARMALAYICI KAPISI DAMGASI: " + ISCI_DAMGA)
+    print("SARMALAYICI: " + ISCI_SARMALAYICI_YOLU_SABIT + " | YONLENDIRME: " +
+          ISCI_M3_YOLU_SABIT)
+    print("MOD: " + ("UYGULA" if uygula else "KURU KOSUM (degisiklik yok)"))
+    # OZ-TUTARLILIK (ikiz tanim nobetcisi): aractaki yol sabitleri sablonun ICINDEKI
+    # tanimlarla AYNI olmali; ayrisirsa fikstur YANLIS komutu olcer ve "kuruldu" der.
+    for _sabit in (ISCI_SARMALAYICI_YOLU_SABIT, ISCI_M3_YOLU_SABIT):
+        if ('"' + _sabit + '"') not in ISCI_TANIM_SABLON:
+            print("OZ-TUTARLILIK KIRMIZI: sablonda gecmiyor -> " + _sabit)
+            sys.exit(1)
+    print("")
+    eksik = 0
+    for ad, kok, _varsayilan_goreli, mod in CODEX_EVLER:
+        rapor = []
+        if not os.path.isdir(kok):
+            print("{:<7} {:<34} {:<9} {}".format(ad, "-", mod, "EV YOK"))
+            eksik += 1
+            continue
+        goreli, _kablo = _kapi_yolu_olc(kok)
+        if goreli is None:
+            print("{:<7} {:<34} {:<9} {}".format(
+                ad, "?", mod, "KAPI YOLU OLCULEMEDI (diskte aday yok) — DOKUNULMADI"))
+            eksik += 1
+            continue
+        if mod == "kaynak":
+            try:
+                durum_metni = "ZATEN TAM" if ISCI_DAMGA in _oku(os.path.join(kok, goreli)) \
+                    else "EKSIK (kaynak dosya — dal ile guncellenir, arac YAZMAZ)"
+            except Exception:
+                durum_metni = "KAPI-DOSYASI-YOK"
+        else:
+            durum_metni, _ = _eve_isci_enjekte(ad, kok, goreli, uygula, rapor)
+        if durum_metni != "ZATEN TAM" and not (uygula and durum_metni == "KURULDU"):
+            eksik += 1
+        print("{:<7} {:<34} {:<9} {}".format(ad, goreli, mod, durum_metni))
+        for satir in rapor:
+            print(satir)
+    print("")
+    print("TAM OLMAYAN EV: " + str(eksik))
+    print("KURULU_EV=" + str(len(CODEX_EVLER) - eksik) + "/" + str(len(CODEX_EVLER)))
+    if not uygula:
+        print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
+    print("Dogrula: python3 /Users/okan/dev/pruvo/tools/mimar-kilit-test.py")
+    sys.exit(0 if eksik == 0 else 1)
+
+
 def main():
     global AYAR, PRECOMMIT
     argv = sys.argv[1:]
@@ -1271,6 +1542,9 @@ def main():
 
     if "--mcp-kapisi" in argv:  # 8 Agu (Okan teftisi K17): MCP-TARAYICI KAPISI 6 EVE
         mcp_kapisi(uygula)
+
+    if "--isci-kapisi" in argv:  # 13 Agu (goc karari): ISCI-SARMALAYICI KAPISI 6 EVE
+        isci_kapisi(uygula)
 
     if not os.path.exists(AYAR):
         print("BULUNAMADI: " + AYAR)
