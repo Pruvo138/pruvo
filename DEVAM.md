@@ -23,7 +23,7 @@ sordugu "ayni kumeden mi" sorusunun cevabi **HAYIR**:
 🔴 **REVERT KAPI2'YI COZMEZ** — `47b6734d` geri alinsa bile FAZ3 kirmizisi kalir. Kapsama
 gerilemedi: cip kapisi `CIP_TOPLAM=1061`, `ENVANTER_DRIFT=0`, `HUKUM=YESIL`; sayac · ilan ·
 cip · is-akisi · ci-kapsam **5/5 rc=0**.
-⚠️ Dalda `RAPOR-MIMARA.md` **zorla eklendi** (gitignore'lu) — merge ONCESI dusurulmeli.
+⚠️ Dalda ic rapor dosyasi **zorla eklendi** (gitignore'lu) — merge ONCESI dusurulmeli.
 Bugun main'e inen ve **canliya INEMEYEN** isler: `47b6734d` cipler · `9e9635fb` ilan tutari
 (kart ↔ yapisal veri 100 kat sapmasi duzeltildi: 30030 → 300) · `e5ecb4fb` vape 4 kayit cikarma.
 🔴 **Kapsama GERI ALINARAK kapi susturulMAYACAK** — cip 1060 / %68,56 korunacak.
