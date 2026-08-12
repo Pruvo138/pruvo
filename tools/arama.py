@@ -1240,6 +1240,10 @@ def degistirici_izni_imzasi():
 # marka-ozel); buraya yazilmayan her sey "HENUZ YARGILANMADI" demektir, "reddedildi" degil.
 # 🔴 KARSILASTIRMA BIRIMI KUME'dir, SAYI degil (DEGISTIRICI_SAYFA_IZNI ile ayni disiplin).
 BASLIK_DOGAN_ALLOW = {
+    ("Alfa Romeo", "Alfetta"): "arac/motosiklet model adi",
+    ("Alfa Romeo", "Giulietta"): "arac/motosiklet model adi",
+    ("Alfa Romeo", "GTV"): "arac/motosiklet model adi",
+    ("Alfa Romeo", "Nord"): "arac/motosiklet motor ailesi adi",
     ("Audi", "TT"): "arac/motosiklet model adi",
     ("Chrysler", "300"): "arac/motosiklet model adi",
     ("Chrysler", "Voyager"): "arac/motosiklet model adi",
@@ -1252,6 +1256,7 @@ BASLIK_DOGAN_ALLOW = {
     ("Citroen", "XM"): "arac/motosiklet model adi",
     ("Fiat", "Doblo"): "arac/motosiklet model adi",
     ("Fiat", "Fiorino"): "arac/motosiklet model adi",
+    ("Fiat", "Qubo"): "arac/motosiklet model adi",
     ("Ford", "Connect"): "arac/motosiklet model adi",
     ("Ford", "Contour"): "arac/motosiklet model adi",
     ("Ford", "Cortina"): "arac/motosiklet model adi",
@@ -1277,6 +1282,7 @@ BASLIK_DOGAN_ALLOW = {
     ("Honda", "GX"): "arac/motosiklet AILE adi (GX motor serisi)",
     ("Honda", "HR-V"): "arac/motosiklet model adi",
     ("Honda", "Hornet"): "arac/motosiklet model adi",
+    ("Honda", "Clarity"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum D — TEKIL GERCEK MODEL ADI, rakamsiz tek jeton):
     ("Honda", "Legend"): "arac/motosiklet model adi",
     ("Honda", "Magna"): "arac/motosiklet model adi",
@@ -1287,6 +1293,19 @@ BASLIK_DOGAN_ALLOW = {
     ("Honda", "Stepwgn"): "arac/motosiklet model adi",
     ("Honda", "Talon"): "arac/motosiklet model adi",
     ("Honda", "Zoomer"): "arac/motosiklet model adi",
+    ("Hyundai", "Accent"): "arac/motosiklet model adi",
+    ("Hyundai", "Elantra"): "arac/motosiklet model adi",
+    ("Hyundai", "Kona"): "arac/motosiklet model adi",
+    ("Hyundai", "Veloster"): "arac/motosiklet model adi",
+    ("Jaguar", "S-Type"): "arac/motosiklet model adi",
+    ("Kia", "Carnival"): "arac/motosiklet model adi",
+    ("Kia", "e-Niro"): "arac/motosiklet model adi",
+    ("Kia", "Picanto"): "arac/motosiklet model adi",
+    ("Kia", "ProCeed"): "arac/motosiklet model adi",
+    ("Kia", "Sedona"): "arac/motosiklet model adi",
+    ("Kia", "Spectra"): "arac/motosiklet model adi",
+    ("Kia", "Stinger"): "arac/motosiklet model adi",
+    ("Mazda", "Demio"): "arac/motosiklet model adi",
     ("Mercedes", "Actros"): "arac/motosiklet model adi",
     # 6 Agu, mimar hukmu (ADIM 3 / hukum C — MERCEDES SINIF ADLARI):
     # `C-Class` ve `E-Klasse` GERCEK Mercedes sinif adlaridir; birlesecek ikizleri YOK
@@ -1312,8 +1331,16 @@ BASLIK_DOGAN_ALLOW = {
     # tasir; bugun hicbir sayfayi degistirmez (olculdu: sayfa kumesi AYNI).
     ("Mitsubishi", "Galant"): "arac/motosiklet model adi (tek jeton rakamsiz — kural GORMEZ)",
     ("Mitsubishi", "Minicab"): "arac/motosiklet model adi",
+    ("Mitsubishi", "i-MiEV"): "arac/motosiklet model adi",
+    ("Nissan", "Armada"): "arac/motosiklet model adi",
     ("Nissan", "Juke"): "arac/motosiklet model adi",
     ("Nissan", "Maxima"): "arac/motosiklet model adi",
+    ("Nissan", "Murano"): "arac/motosiklet model adi",
+    ("Nissan", "Rogue"): "arac/motosiklet model adi",
+    ("Nissan", "Stagea"): "arac/motosiklet model adi",
+    ("Nissan", "Sunny"): "arac/motosiklet model adi",
+    ("Nissan", "Terrano"): "arac/motosiklet model adi",
+    ("Nissan", "Tsuru"): "arac/motosiklet model adi",
     ("Nissan", "Versa"): "arac/motosiklet model adi",
     ("Peugeot", "1007"): "arac/motosiklet model adi",
     ("Peugeot", "107"): "arac/motosiklet model adi",
@@ -1339,10 +1366,15 @@ BASLIK_DOGAN_ALLOW = {
     ("Suzuki", "DR"): "arac/motosiklet AILE adi (DR serisi)",
     ("Suzuki", "Escudo"): "arac/motosiklet model adi",
     ("Suzuki", "Freewind"): "arac/motosiklet model adi",
+    ("Suzuki", "GSF"): "arac/motosiklet AILE adi (GSF serisi)",
     ("Suzuki", "GSX"): "arac/motosiklet AILE adi (GSX serisi)",
     ("Suzuki", "Hayabusa"): "arac/motosiklet model adi",
     ("Suzuki", "Katana"): "arac/motosiklet model adi",
+    ("Suzuki", "Maruti"): "arac/motosiklet AILE adi",
     ("Suzuki", "RM"): "arac/motosiklet AILE adi (RM/RM-Z kros serisi)",
+    ("Subaru", "Sambar"): "arac/motosiklet model adi",
+    ("Subaru", "STI"): "arac/motosiklet AILE adi",
+    ("Subaru", "XV"): "arac/motosiklet model adi",
     # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum A — TEKIL GIRIS, KURAL DEGISMEDI):
     # `86` Toyota'nin GERCEK rozetidir (GT86/GR86 kardesleri zaten yayinda) AMA CIPLAK
     # SAYIDIR: H1 sekil kurali ciplak sayiyi DISARIDA tutar ve TUTMAYA DEVAM EDER.
@@ -1354,6 +1386,7 @@ BASLIK_DOGAN_ALLOW = {
     ("Toyota", "Raize"): "arac/motosiklet model adi",
     ("Toyota", "Starlet"): "arac/motosiklet model adi",
     ("Toyota", "Tercel"): "arac/motosiklet model adi",
+    ("Toyota", "TRD"): "arac/motosiklet AILE adi",
     ("Toyota", "Vitz"): "arac/motosiklet model adi",
     ("Volkswagen", "Bora"): "arac/motosiklet model adi",
     ("Volkswagen", "CC"): "arac/motosiklet model adi",
@@ -1372,6 +1405,7 @@ BASLIK_DOGAN_ALLOW = {
     ("Volvo", "480"): "arac/motosiklet model adi",
     ("Volvo", "Amazon"): "arac/motosiklet model adi",
     ("Yamaha", "Grizzly"): "arac/motosiklet model adi",
+    ("Yamaha", "DragStar"): "arac/motosiklet model adi",
     # 🔴 6 Agu, mimar hukmu (ADIM 3 / hukum E — ARAC DISI, TEKIL GIRISLE DOGAR):
     # Yamaha cok-dikey bir markadir; bu iki sayfa GERCEK Yamaha urun modelidir ama ARAC
     # DEGILDIR (P-45 dijital piyano, Recording Custom davul kiti). Sayfalar KALIR — bu
@@ -1381,11 +1415,15 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "P-45"): "ARAC DISI urun modeli (dijital piyano) — tekil giris",
     ("Yamaha", "Recording Custom"): "ARAC DISI urun modeli (davul kiti) — tekil giris",
     ("Yamaha", "Seca"): "arac/motosiklet model adi",
+    ("Yamaha", "TDM"): "arac/motosiklet AILE adi (TDM serisi)",
+    ("Yamaha", "TMAX"): "arac/motosiklet model adi",
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
+    ("Yamaha", "XSR"): "arac/motosiklet AILE adi (XSR serisi)",
+    ("Yamaha", "XVS"): "arac/motosiklet AILE adi (XVS serisi)",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 102
-BASLIK_DOGAN_ALLOW_IMZA = "64b5816f2c9ea107"
+BASLIK_DOGAN_ALLOW_SAYISI = 140
+BASLIK_DOGAN_ALLOW_IMZA = "2d28bd413f044588"
 
 
 def baslik_dogan_allow_imzasi():

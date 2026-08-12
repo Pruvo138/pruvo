@@ -732,12 +732,12 @@
   }
 
   /* ---------------- İLAN TUTARI ARALIĞI (kart metni + yapılandırılmış veri) ----------
-     🔴 NEDEN VAR (işletme kararı, 12 Ağu — Okan): kart BAŞLANGIÇ tabanını, ürün sayfası
+     🔴 NEDEN VAR: kart BAŞLANGIÇ tabanını, ürün sayfası
      ÖNERİLEN malzemenin tutarını yazar. İki sayı BİLEREK farklı; müşteri kartta gördüğü
      tutarın bir TABAN olduğunu KARTTAN anlamalı -> kart metni düz "X TL" değil
      "X TL'den başlayan"dır ve yapılandırılmış veri tek fiyat değil ARALIK beyan eder.
 
-     🔴 EK TEK KAYNAKTAN: dize BURADA bir kez yazılır. Sayfa üreteci (tools/build.py)
+     🔴 EK TEK KAYNAKTAN: dize BURADA bir kez yazılır. Sayfa üreteci
      onu bu dosyadan OKUR, index.html ve marka/model kartı da buradan türer — üç yüzey
      ayrı ayrı dize taşısaydı biri değiştiğinde diğerleri sessizce ayrışırdı
      ([[ikiz-tanim-sessiz-ayrisma]]).
@@ -748,9 +748,8 @@
      demek yanıltıcı olurdu. Sayısal fiyatı olmayan üründe zaten tutar yoktur. */
   var BASLAYAN_SONEK = "'den başlayan";
 
-  /* Ürünün ilan tutarı MALZEME seçimiyle yükselebilir mi? (kapsam kuralı — üreteç
-     tarafındaki ikizi tools/build.py malzeme_aralikli_mi; ayrışma tam katalog üzerinde
-     tools/ilan-tutari-kapisi.py eksen 1'de fail-closed kırmızı yakar.) */
+  /* Ürünün ilan tutarı MALZEME seçimiyle yükselebilir mi? Üreteç tarafındaki ikizi aynı
+     kapsamı uygular; ayrışma tam katalog denetiminde fail-closed kırmızı yakar. */
   function malzemeAralikliMi(urun) {
     if (!urun || urun.parametrik || urun.konfigur || fizikselMi(urun.tur)) { return false; }
     if (!fonksiyonelMi(urun.kategori)) { return false; }
