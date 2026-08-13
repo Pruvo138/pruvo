@@ -98,6 +98,7 @@ ONCE_FIKSTUR_SHA256 = "17a8095d51af5b5b44539144aa1804b153d8fbf647d8fe00ba2f19072
 
 # duzelt.py bunlari KOSULSUZ import eder -> sahte repoya da kopyalanmalilar.
 YARDIMCILAR = ["gorsel_koken.py", "arama.py"]
+KAYNAK_INDEX = os.path.join(ROOT, "index.html")
 
 # --mutasyon kipinde sahte repoya yazilacak MUTANT duzelt.py kaynagi (None = gercegi).
 # TOOLS/ROOT sabitleri ASLA degistirilmez: P1 iddiasi (parti-kontrol) ve "ONCE" kolu
@@ -177,6 +178,8 @@ def sahte_repo(duzelt_kaynak=None, katalog=None):
     os.makedirs(os.path.join(d, "tools"))
     for ad in YARDIMCILAR:
         shutil.copy(os.path.join(TOOLS, ad), os.path.join(d, "tools", ad))
+    # arama.py arac es-anlamli sabitlerini kanonik index.html literalinden yukler.
+    shutil.copy(KAYNAK_INDEX, os.path.join(d, "index.html"))
     src = duzelt_kaynak
     if src is None:
         src = MUTANT_SRC if MUTANT_SRC is not None else _duzelt_kaynagi()
