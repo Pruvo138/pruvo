@@ -389,6 +389,38 @@ async function kolonMerdiveni(kolonlu, kolonsuz) {
   }
 }
 
+/**
+ * TABLO MERDIVENI — `urun_kaynak` OPSIYONELDIR (bkz. kolonMerdiveni gerekcesi).
+ *
+ * Tablo canli D1'de ancak `python3 tools/d1-kaynak-sync.py --sema` kosunca olusur;
+ * o ana kadar SELECT "no such table" ile PATLAR ve TUM panel listesi 500 donerdi.
+ * Yalniz "no such table" yutulur -> alan bos kalir, panel "kaynak kaydı yok" YAZAR
+ * (sessiz bosluk DEGIL). Baska her hata (D1 down, bind hatasi) YUKARI FIRLAR.
+ */
+async function tabloMerdiveni(tablolu, tablosuz) {
+  try {
+    return await tablolu();
+  } catch (e) {
+    if (!/no such table/i.test(String((e && e.message) || e))) { throw e; }
+    return await tablosuz();
+  }
+}
+
+/**
+ * URETICI KAYNAK LINKI SUZGECI (SAF — testler burayi dogrudan cagirir).
+ *
+ * 🔒 GIZLILIK: bu deger yalniz YONETIM panelinde gorunur; `urun_kaynak` tablosunu
+ * musteriye donen hicbir yol (site/shop/Ege) sorgulamaz. Tabloya YALNIZ `link` tasinir —
+ * tasarimci/uyelik/lisans/alis fiyati TASINMAZ (sizma yuzeyi buyutulmez).
+ *
+ * FAIL-CLOSED: yalniz `https://` ile baslayan mutlak adres gecer. `javascript:`, `data:`,
+ * bagil yol ya da tirnak tasiyan bozuk deger BOS DONER -> panel "kaynak kaydı yok" yazar
+ * ve HAM DEGER HTML'e HIC girmez (esc() ikinci savunma olarak yine uygulanir).
+ */
+export function kaynakLinkSuz(deger) {
+  return (typeof deger === "string" && /^https:\/\//i.test(deger)) ? deger : "";
+}
+
 function yjson(veri, kod) {
   return new Response(JSON.stringify(veri), {
     status: kod || 200,
@@ -439,6 +471,21 @@ async function liste(env, url) {
     for (const u of (ur.results || [])) { baskiMap.set(u.id, u); }
   }
 
+  // URETICI KAYNAK LINKI — AYRI tablo (`urun_kaynak`), TEK toplu sorgu (kalem basina
+  // sorgu ATILMAZ: 50 siparislik listede N+1 olurdu). Tablo/satir yoksa alan bos kalir.
+  // 🔒 Bu tabloyu YALNIZ bu yonetim ucu okur; `urunler` tablosuna kaynak kolonu EKLENMEDI
+  // cunku o tabloyu Ege (WhatsApp botu) okuyor — tedarikci linki musteriye sizardi.
+  const kaynakMap = new Map();
+  if (idKume.size) {
+    const idler = [...idKume];
+    const yertut = idler.map(() => "?").join(",");
+    const kr = await tabloMerdiveni(
+      () => env.KATALOG.prepare(
+        "SELECT id, link FROM urun_kaynak WHERE id IN (" + yertut + ")").bind(...idler).all(),
+      () => ({ results: [] }));
+    for (const x of (kr.results || [])) { kaynakMap.set(x.id, x.link); }
+  }
+
   const cikti = cozulmus.map(({ satir: s, urunler }) => {
     const kalemler = urunler.map((k, i) => {
       const ur = baskiMap.get(k.id) || {};
@@ -468,6 +515,9 @@ async function liste(env, url) {
         urun_url: (typeof k.url === "string" && /^https:\/\//i.test(k.url))
           ? k.url
           : siteUrl + "/urun/" + encodeURIComponent(k.id || "") + "/",
+        // URETICI KAYNAGI (platform sayfasi) — YALNIZ link. Tasarimci/uyelik/lisans/alis
+        // fiyati BILINCLI OLARAK TASINMAZ; link zaten kaynaga goturur.
+        kaynak_link: kaynakLinkSuz(kaynakMap.get(k.id)),
       };
       kayit.uretim_kaynaklari = driveKaynaklari(kayit.baski_oneri);
       // Yerel yazdir.py + tarayici indirme uclari (anahtar sayfa URL'inden eklenir).
@@ -1426,6 +1476,12 @@ button.ikincil{background:#6b7280}
 main{padding:12px;max-width:960px;margin:0 auto}
 .kart{background:#fff;border:1px solid var(--kenar);border-radius:10px;padding:14px;margin:0 0 14px}
 .ust{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}
+/* ACILIR/KAPANIR KART: kapali baslikta YALNIZ no/durum/tarih/tutar/kalem sayisi durur —
+   musteri adi/telefon/adres/e-posta acilinca gorunur (omuz-ustu gizliligi). */
+summary.ust{cursor:pointer;list-style:none;user-select:none}
+summary.ust::-webkit-details-marker{display:none}
+summary.ust::after{content:"▸";color:#6b7280;font-size:14px}
+details[open]>summary.ust::after{content:"▾"}
 .no{font-weight:bold;font-size:16px;color:var(--lacivert)}
 .rozet{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:bold;
  background:#e5edff;color:var(--lacivert)}
@@ -1514,6 +1570,18 @@ function kaynakHtml(k){
    '<a class="indir" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ad+'</a></div>';
  }).join("");
 }
+// URETICI KAYNAGI (platform urun sayfasi). 🔴 SESSIZ BOSLUK YASAK: kayit yoksa
+// "kaynak kaydı yok" ACIKCA yazilir — bos birakmak "kaynak YOK"u degil "OLCULEMEDI"yi
+// gizlerdi. Suzgec Worker tarafinda da uygulanir (kaynakLinkSuz); buradaki ikinci
+// savunmadir: https disi / bozuk deger href'e GECMEZ, ham deger de basilmaz.
+function kaynakLinkHtml(k){
+ var u=k&&k.kaynak_link;
+ if(!(typeof u==="string"&&/^https:\/\//i.test(u))){
+  return '<span class="yok">kaynak kaydı yok</span>';
+ }
+ return '<a class="indir" href="'+esc(u)+'" title="'+esc(u)+
+  '" target="_blank" rel="noopener">kaynak sayfası</a>';
+}
 function satirHtml(no,k){
  var indir;
  if(k.parametrik){
@@ -1523,9 +1591,11 @@ function satirHtml(no,k){
  }else{
   // COK-PARCA: dugme parca listesini ceker, parcalar tek tek indirilir (zip yok).
   var kutuId='parca-'+no+'-'+k.kalem;
+  // data-parca: kart ILK acildiginda kartAc() bu kutuyu bir kez doldurur (lazy).
+  // Dugme MANUEL YENILEME olarak KALIR (liste bayatlarsa tekrar cekilir).
   indir='<button class="ikincil" onclick="parcalar(\\''+esc(no)+'\\',\\''+esc(k.id)+
    '\\',\\''+kutuId+'\\')">Üretim dosyaları</button>'+
-   '<span id="'+kutuId+'"></span>';
+   '<span id="'+kutuId+'" data-parca="1" data-no="'+esc(no)+'" data-id="'+esc(k.id)+'"></span>';
  }
  var baslikLink=k.urun_url?
   '<a href="'+esc(k.urun_url)+'" target="_blank" rel="noopener">'+esc(k.baslik)+'</a>':
@@ -1541,6 +1611,7 @@ function satirHtml(no,k){
   '<div class="kucuk">Ürün kodu: '+esc(k.id)+'</div>'+
   '<div class="baski">🖨️ '+esc(k.baski_oneri)+'</div>'+
   '<div class="kaynak">📁 Üretim dosyası (Drive): '+kaynakHtml(k)+'</div>'+
+  '<div class="kaynak">🔗 Üretici kaynağı: '+kaynakLinkHtml(k)+'</div>'+
   indir+
   '</div>';
 }
@@ -1587,9 +1658,18 @@ function kartHtml(s){
  // Site siparisinde (kanal yok ya da "site") kart bugunku HALIYLE kalir.
  var kanalRozet=(s.kanal&&s.kanal!=="site")?'<span class="rozet kanal">'+esc(s.kanal)+'</span>':'';
  var disNo=s.dis_no?'<div class="kucuk">Ege sipariş no: '+esc(s.dis_no)+'</div>':'';
- return '<div class="kart">'+
-  '<div class="ust"><span class="no">'+esc(s.siparis_no)+'</span>'+durumRozet(s.durum)+kanalRozet+
-   '<span class="kucuk">'+esc((s.tarih||"").slice(0,16).replace("T"," "))+' · '+esc(s.odeme_yontemi)+'</span></div>'+
+ // 🔒 KAPALI BASLIK (summary) OMUZ-USTU GIZLILIGI: siparis no · durum · kanal · tarih ·
+ // toplam · kalem sayisi. Musteri adi/telefon/e-posta/adres BURAYA GIRMEZ — onlar
+ // yalnizca kart ACILINCA (govdede) gorunur.
+ var ozet='<summary class="ust"><span class="no">'+esc(s.siparis_no)+'</span>'+
+  durumRozet(s.durum)+kanalRozet+
+  '<span class="kucuk">'+esc((s.tarih||"").slice(0,16).replace("T"," "))+'</span>'+
+  '<span class="kucuk">'+tl(s.tutar_kurus)+' · '+(s.kalemler||[]).length+' kalem</span>'+
+  '</summary>';
+ // VARSAYILAN KAPALI; tek istisna 'odendi' — is kuyrugu odur, acik dogar.
+ var acik=s.durum==="odendi"?" open":"";
+ return '<details class="kart"'+acik+' ontoggle="kartAc(this)">'+ozet+
+  '<div class="kucuk">'+esc(s.odeme_yontemi)+'</div>'+
   disNo+
   '<div class="mus"><b>'+esc(s.musteri.ad)+'</b> · '+esc(s.musteri.tel)+'<br>'+esc(s.musteri.adres)+
    ' · '+esc(s.musteri.eposta)+'</div>'+
@@ -1600,7 +1680,21 @@ function kartHtml(s){
    '<button class="ikincil" onclick="komutKopyala(\\''+esc(s.yazdir_komut)+'\\')">Yerel komut kopyala</button>'+
   '</div>'+kargoForm+
   (gecmis?'<div class="gecmis">Geçmiş: '+gecmis+'</div>':'')+
-  '</div>';
+  '</details>';
+}
+/**
+ * KART ILK ACILDIGINDA uretim dosyasi listesini bir kez cek (lazy).
+ * Kapali kartlar R2/D1'e HIC dokunmaz; ikinci acilista da yeniden CEKMEZ
+ * (data-yuklendi damgasi). Kapanip acilma tekrar istek uretmez.
+ */
+function kartAc(el){
+ if(!el||!el.open||el.dataset.yuklendi)return;
+ el.dataset.yuklendi="1";
+ var kutular=el.querySelectorAll("[data-parca]");
+ for(var i=0;i<kutular.length;i++){
+  var x=kutular[i];
+  parcalar(x.getAttribute("data-no"),x.getAttribute("data-id"),x.id);
+ }
 }
 async function yukle(){
  var d=document.getElementById("durumSuzgec").value;
@@ -1612,6 +1706,10 @@ async function yukle(){
  var s=r.govde.siparisler||[];
  if(!s.length){m.innerHTML="<p>Sipariş yok.</p>";return;}
  m.innerHTML=s.map(kartHtml).join("");
+ // open ile DOGAN kartlarda (odendi) tarayici 'toggle' olayini ATESLEMEZ —
+ // lazy yukleme onlarda sessizce olmezdi. Render sonrasi elle tetiklenir.
+ var acik=m.querySelectorAll("details.kart[open]");
+ for(var i=0;i<acik.length;i++){kartAc(acik[i]);}
 }
 async function durumDegis(no,d){
  if(d==="iptal"&&!confirm("Sipariş iptal edilsin mi?"))return;

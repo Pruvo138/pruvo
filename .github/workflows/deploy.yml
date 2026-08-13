@@ -703,6 +703,32 @@ jobs:
       - name: Uretim dosyasi Drive baglantisi — mutasyon bataryasi (nobetci canli mi)
         run: python3 tools/uretim-kaynak-mutasyon.py
 
+      # URETICI KAYNAK LINKI + ACILIR/KAPANIR SIPARIS KARTI (panel sunum + GIZLILIK kapisi).
+      # OLCULEN GERCEK: kaynak linki AYRI bir D1 tablosunda (`urun_kaynak`) yasar cunku
+      # `urunler` tablosunu EGE (WhatsApp botu) OKUYOR — linki oraya koymak, botun agzindan
+      # musteriye tedarikci sizmasi icin yol acardi. Bu kapi o ayrimin ACIK kalmasini olcer:
+      #   * G2  `urun_kaynak`a DEGEN TEK kaynak dosyasi shop/src/yonet.js (yonetim ucu);
+      #         musteriye donen yollar (shop/src/index.js, webhook, onizleme) HIC dokunmaz,
+      #   * G3  kalem nesnesi YALNIZ `link` tasir — tasarimci/uyelik/lisans/alis_fiyati
+      #         ne Worker kolunda ne uretilen panel HTML'inde GECMEZ,
+      #   * G1  `urunler` tablosunda kaynak/link/tasarimci/uyelik kolonu YOK (kolon adlari
+      #         d1-sema.sql'den AYIKLANARAK olculur, alt-dize taramasiyla degil),
+      #   * FAIL-CLOSED SUZGEC: yalniz https:// gecer; javascript:/data:/bagil/`//host`
+      #     degeri href'e GIRMEZ ve ham deger HTML'e SIZMAZ (XSS regresyonu + esc kacisi),
+      #   * SESSIZ BOSLUK YASAK: kayit yoksa "kaynak kaydı yok" ACIKCA yazilir,
+      #   * OMUZ-USTU GIZLILIGI: kapali <summary>'de musteri adi/telefon/e-posta/adres
+      #     GECMEZ (acilinca govdede gorunur); varsayilan KAPALI, yalniz 'odendi' ACIK,
+      #   * LAZY: uretim dosyasi listesi kart ILK acildiginda BIR KEZ cekilir.
+      # Iddialar deploy edilen GERCEK kaynaktan cekilir, KOPYA yazilmaz. Senkron araci
+      # (tools/d1-kaynak-sync.py) CI'da KOSMAZ ve KOSAMAZ: gizli kayit CI'da YOKTUR, arac
+      # orada fail-closed durur. Ag/wrangler GEREKMEZ; calisma agaci KIRLENMEZ.
+      # continue-on-error YOK.
+      - name: Uretici kaynak linki + acilir kart (panel gizlilik kapisi)
+        run: node shop/test/panel-kaynak.mjs
+
+      - name: Uretici kaynak linki — mutasyon bataryasi (nobetci canli mi)
+        run: python3 tools/panel-kaynak-mutasyon.py
+
       # ALT KATEGORI (`altkategori`) veri yolu — kategori ICINDEKI daraltma etiketi.
       # OLCULEN BASLANGIC DURUMU (1 Agu): alan urunler.json'da 134 kayitta DOLUYDU ama
       # hicbir yerde ISLENMIYORDU (index.html/build.py/d1-sync/arama/d1-sema/duzelt YOK)
