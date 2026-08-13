@@ -1540,7 +1540,12 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     bakilir. Yoksa (gercekten tepede) eski davranis (sonraki=mseq+1, ...) AYNEN kalir.
     Varsa, bu "yeni" id GERCEKTE mid-array'dir -> iki komsu arasindaki TAM SAYI orta
     nokta kullanilir. Tam sayi araligi kalmadiysa kesir uretmek YASAKTIR; arac fail-loud
-    durur ve `--seq-normalize` ister."""
+    durur ve `--seq-normalize` ister.
+
+    🔴 KUYRUK BLOGU (13 Agu, H5): dizinin SONUNA dayanan "yeni" id blogu ALT komsusuz
+    oldugu icin mid-array kolundan AYRI ele alinir — PASS A blok uzunlugunu (k) ve her
+    uyenin sondan sirasini (i) cikarir, kol `adim = yuksek // (k + 1)` ile bloga ORANLI
+    yer ayirir (`atanan = i * adim`). `adim < 1` ise yer gercekten yoktur -> fail-loud."""
     mevcut_seq = mevcut_seq or {}
     yeni, degisen, baski_guncelle = [], [], []
     gorulen = set()
@@ -1551,9 +1556,14 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     # None = bu id ile dizinin BASI arasinda D1'de bilinen hicbir komsu yok -> GERCEKTEN
     # tepede -> asagida legacy/sinirsiz havuz (sonraki) GECERLI kalir.
     ust_sinir = {}
+    # KUYRUK BLOGU (H5): {uid: (i, k)} — dizinin SONUNA kadar KESINTISIZ devam eden "yeni"
+    # id blogunun uyeleri. k = blok uzunlugu, i = SONDAN kacinci (dizinin sonundaki i=1).
+    # Yalniz gercek kuyruk uyeleri girer; mid-array blogu bilinen bir komsu KIRAR.
+    kuyruk_blok = {}
     if mevcut_seq:
         son_bilinen = None
         gorulen_a = set()
+        kuyruk_kolu = []            # su ana dek KESINTISIZ suren "yeni" id dizisi
         for u in urunler:
             uid = u.get("id")
             if not uid or uid in gorulen_a:
@@ -1561,8 +1571,14 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
             gorulen_a.add(uid)
             if uid in mevcut_seq:
                 son_bilinen = mevcut_seq[uid]
+                kuyruk_kolu = []    # bilinen komsu blogu KIRAR -> kuyruk sifirlanir
             else:
                 ust_sinir[uid] = son_bilinen
+                kuyruk_kolu.append(uid)
+        # Gecis bitince elde kalan kol = dizinin SONUNA dayanan blok = GERCEK kuyruk.
+        blok_k = len(kuyruk_kolu)
+        for sira, uid in enumerate(kuyruk_kolu):
+            kuyruk_blok[uid] = (blok_k - sira, blok_k)
 
     # ANA GECIS — TERS: dizinin BASI en yeni -> en yuksek seq alsin (eski davranisla
     # AYNI sira/anlam). `taban` = su ana dek (TAIL'den buraya) gezilen en yakin BILINEN
@@ -1589,10 +1605,25 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
                 # MID-ARRAY yeni id (rename / araya sikisma): yalniz TAM SAYI.
                 alt = int(taban)
                 yuksek = int(ust)
-                if taban == 0:
-                    # Katalogun en SONUNA ekleme: alt komsu yoktur; son bilinenin
-                    # altindaki tam sayi guvenlidir (offline fikstur/geri doldurma yolu).
-                    atanan = yuksek - 1
+                blok = kuyruk_blok.get(uid)
+                if blok is not None:
+                    # KUYRUK BLOGU (H5, 13 Agu — olculdu): katalogun en SONUNA ekleme; alt
+                    # komsu YOKTUR. Eski kod bosluktan yalniz 1 tam sayi alirdi
+                    # (`atanan = yuksek - 1`) -> ayni kuyrukta IKINCI yeni id `yuksek - alt
+                    # <= 1` gorup DURURDU; ariza yogunluga degil blok UZUNLUGUNA bagliydi
+                    # (ust=45.000.000 ile de duruyordu). Cozum: blok tek tam sayi degil,
+                    # bloga ORANLI adim tuketir — (0, yuksek) araligi k+1 esit dilime
+                    # bolunur, sondaki kayit (i=1) en KUCUK dilimi alir. Boylece atamalar
+                    # TAM SAYI, birbirinden farkli, monoton ve hepsi 0 < atanan < yuksek;
+                    # aralarinda bir sonraki senkronun mid-array'ine yer de KALIR.
+                    blok_i, blok_k = blok
+                    adim = yuksek // (blok_k + 1)
+                    if adim < 1:
+                        # Yer GERCEKTEN yok -> AYNEN fail-loud (sessiz kesir/cakisma YOK).
+                        sys.exit("!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s). "
+                                 "Kesirli seq yazilmaz; once python3 tools/d1-sync.py "
+                                 "--seq-normalize kos." % (uid, taban, ust))
+                    atanan = blok_i * adim
                 elif yuksek - alt <= 1:
                     sys.exit("!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s). "
                              "Kesirli seq yazilmaz; once python3 tools/d1-sync.py "
@@ -2536,6 +2567,21 @@ def _kt_deger(conn, uid, kolon):
     return None if r is None else r["v"]
 
 
+def _kt_seyrelt(conn):
+    """Fikstur tablosunun seq'lerini SEYREK hale getirir (kanonik dunyanin taklidi).
+
+    🔴 NEDEN GEREKLI (13 Agu, olculdu): `_kt_kos` ile bootstrap edilen tablo seq'leri
+    YOGUN dogar (1, 2, 3 — legacy `mseq+1` kolu). Bir sonraki kosumda dizinin SONUNA
+    yeni urun eklenirse kuyruk blogunun elindeki aralik (0, 1)'dir ve orada TAM SAYI
+    YOKTUR -> `diff_plan` H5 kolu HAKLI olarak fail-loud durur (`--seq-normalize` ister).
+    Canli katalog normalize edilmis, yani SEYREKTIR (en dusuk seq = 1.000.000); bu yuzden
+    kuyruk eklemesini FIILEN olcen fiksturler once seyreltilir. Seyreltme iddialari
+    GEVSETMEZ — aksine olculmek istenen ekseni (bayatlik kapisi) seq kolunun golgesinden
+    cikarir; yogun tabloda kapi HIC olculmeden once cikilir."""
+    conn.execute("UPDATE urunler SET seq = seq * %d" % SEQ_ADIM)
+    conn.commit()
+
+
 def _kt_git(yol, *args):
     """Sentetik depoda git kos (kimlik + imza ayarlari sabit; kullanicinin ayarina bagli
     KALMAZ -> CI'da da yerelde de ayni davranir)."""
@@ -3151,6 +3197,7 @@ def kendini_test():
     # SALT-YENI parti (silme YOK): eski kapi bunu HIC olcmezdi, yeni kapi DURDURUR.
     connE2 = _kt_baglan()
     _kt_kos(connE2, eski_agac, [])
+    _kt_seyrelt(connE2)      # kuyruk eklemesine TAM SAYI yeri birak (bkz. _kt_seyrelt)
     kod, cikti, sayac = _kt_kos(connE2, eski_agac + [_kt_urun("yy")], [], bayatlik="BAYAT")
     dogrula("V55c UPSERT ENGELI: SILME YOK / yalniz YENI urun -> yine de yazilmadi",
             kod != 0 and sayac["yazma"] == 0 and sayac["bayatlik"] == 1
@@ -3179,6 +3226,7 @@ def kendini_test():
     # ── MALIYET EKSENI: YAZACAK IS varken TAM 1 kez, yoksa HIC olculmez ─────────
     connG = _kt_baglan()
     _kt_kos(connG, eski_agac, [])
+    _kt_seyrelt(connG)       # kuyruk eklemesine TAM SAYI yeri birak (bkz. _kt_seyrelt)
     kod, cikti, sayac = _kt_kos(connG, eski_agac + [_kt_urun("z1")], [])
     dogrula("V57 MALIYET: yazacak is VARKEN (yalniz yeni urun) bayatlik TAM 1 kez olculur",
             kod == 0 and sayac["bayatlik"] == 1, sayac)

@@ -20,7 +20,21 @@ ONARIM EKSENI: on-kosul GEVSETILMEDI, SIVRILTILDI — "kume esitligi" yerine "FA
   V5 GERI ALMA            -> eksik TEK BASINA geri alma sebebi DEGIL; ortak kumede sira
                              sapmasi / satir sayisi degisimi geri almayi TETIKLER.
 
-MUTASYON BATARYASI (`--mutasyon`): dort OLDURUCU mutant. Her mutant, `tools/d1-sync.py`nin
+IKINCI OLAY — KUYRUK BLOGU (13 Agu 2026, ayni gun): normalize kosup seq'ler SEYREK
+(1.000.000 arali) hale geldigi HALDE `d1-sync.py` HALA rc=1 veriyordu. Kok neden: 136
+eksik id iki BITISIK bloktu ve kuyruk blogu (dizinin SONUNA dayanan 44 yeni id) alt
+komsusuzdu; eski kuyruk kolu bosluktan yalniz 1 tam sayi aliyordu (`atanan = yuksek - 1`)
+-> IKINCI kuyruk kaydi `yuksek - alt <= 1` gorup DURUYORDU. 🔴 Ariza yogunluga DEGIL blok
+UZUNLUGUNA bagli: kuyrukta k>=2 yeni id varsa aralik ne kadar genis olursa olsun (ust=
+45.000.000 ile de) DURUYORDU. H5 hukmu: kuyruk blogu tek tam sayi degil, bloga ORANLI
+adim tuketir — `adim = yuksek // (k + 1)`, sondan i. kayit `i * adim` alir.
+  K1  kuyrukta 1 yeni id  -> uretir (eski davranisla AYNI sonuc sinifi: 0 < atanan < yuksek).
+  K2  kuyrukta 2 yeni id  -> URETIR (bu vaka onarimdan ONCE DURUYORDU) + bloga ORANLI dagilir.
+  K44 kuyrukta 44 yeni id (ust=45.000.000) -> hepsi uretilir, farkli/tam sayi/pozitif/<ust.
+  K_TASMA yuksek kucuk + blok buyuk (ust=3, k=10) -> yer YOK -> AYNEN fail-loud DURUR.
+  K_MID_REGRESYON ayni dizide hem mid-array hem kuyruk varken mid-array davranisi DEGISMEDI.
+
+MUTASYON BATARYASI (`--mutasyon`): alti OLDURUCU mutant. Her mutant, `tools/d1-sync.py`nin
 BIREBIR kopyasi uzerinde TEK bir metin degisimiyle uretilir, kopya `tools/` altina gecici
 sibling olarak yazilir (kardes modul importlari ayni dizinden cozulsun diye), yuklenir,
 vakalar yeniden kosulur ve dosya `finally` ile SILINIR. Kanonik kaynak DEGISMEZ (`git diff`
@@ -32,10 +46,15 @@ temiz kalir) ve `sys.dont_write_bytecode` ile `__pycache__` uretilmez.
   M3 kesir yasagi kolu silinir: `elif yuksek - alt <= 1:`     -> `elif False:`      => V4 KIRMIZI
   M4 geri alma NO-OP          : `return (sonra != once or bool(fark) or bool(ortak_sapma)), ...`
                                                              -> `return False, ...` => V5 KIRMIZI
+  M5 kuyrukta ORANLI adim yok : `adim = yuksek // (blok_k + 1)` -> `adim = 1`
+                                (eski davranisin sinifi: blok araligin DIBINE yigilir)
+                                                                   => K2 KIRMIZI
+  M6 kuyruk tasma kolu silinir: `if adim < 1:`                 -> `if False:`      => K_TASMA KIRMIZI
 Ayni degisimler kanonik dosyaya ELLE de uygulanabilir; kanit YENIDEN URETILEBILIR.
 """
 import importlib.util
 import os
+import re
 import sys
 
 sys.dont_write_bytecode = True   # __pycache__ artigi birakma (Okan disk emri)
@@ -55,6 +74,11 @@ MUTANTLAR = [
     ("M4 geri alma kolu her zaman NO-OP",
      "    return (sonra != once or bool(fark) or bool(ortak_sapma)), fark, ortak_sapma\n",
      "    return False, fark, ortak_sapma\n", "V5"),
+    ("M5 kuyruk kolunda bloga ORANLI adim yerine sabit 1",
+     "                    adim = yuksek // (blok_k + 1)\n",
+     "                    adim = 1\n", "K2"),
+    ("M6 kuyruk tasma (adim<1) fail-loud kolu silindi",
+     "                    if adim < 1:\n", "                    if False:\n", "K_TASMA"),
 ]
 
 
@@ -69,6 +93,31 @@ def modul_yukle(yol, ad):
 def urun(uid):
     return {"id": uid, "baslik": uid, "kategori": "Oyun/Hobi", "marka": [],
             "fiyat": "100 TL", "gorseller": [], "aciklama": uid}
+
+
+# INSERT SQL'inin 3. VALUES alani = atanan seq. Iddialar SQL METNINDEN okunur (fonksiyon
+# ic degiskeninden DEGIL): yazilan sey ile iddia edilen sey AYNI yuzeyden gelsin.
+SEQ_DESEN = re.compile(r"VALUES \('([^']*)','[^']*',(-?\d+),")
+
+
+def seq_oku(sql):
+    e = SEQ_DESEN.search(sql)
+    return (e.group(1), int(e.group(2))) if e else (None, None)
+
+
+def kuyruk_vaka(m, k, ust):
+    """KUYRUK fiksturu: [b2, b1(bilinen; en dusuk seq = ust), q<k> ... q1(yeni)].
+    q1 dizinin SON kaydidir. Doner: (atanan {id: seq}, patladi_mi, mesaj)."""
+    bilinenler = [urun("b2"), urun("b1")]
+    seqler = {"b2": ust * 2, "b1": ust}
+    var = {u["id"]: (m.arama.urun_hash(u), "") for u in bilinenler}
+    dizi = bilinenler + [urun("q%d" % i) for i in range(k, 0, -1)]
+    try:
+        yeni_sql, _d, _b, _s, _g = m.diff_plan(dizi, var, {}, False, seqler["b2"],
+                                               dict(seqler))
+        return dict(seq_oku(s) for s in yeni_sql), False, ""
+    except SystemExit as e:
+        return {}, True, str(e.code)
 
 
 def vakalar(m):
@@ -129,6 +178,67 @@ def vakalar(m):
         v4 = ("SEQ TAM SAYI ARALIGI TUKENDI" in str(e.code)
               and "--seq-normalize" in str(e.code), str(e.code))
     sonuc["V4 bitisik komsuda diff_plan HALA fail-loud durur"] = v4
+
+    # ── K1 — kuyrukta TEK yeni id: eski davranisla AYNI sonuc sinifi ───────────────────
+    ust1 = 2000000
+    a1, p1, msj1 = kuyruk_vaka(m, 1, ust1)
+    sonuc["K1 kuyrukta 1 yeni id -> tam sayi uretir (0 < atanan < ust)"] = (
+        not p1 and len(a1) == 1 and isinstance(a1.get("q1"), int)
+        and 0 < a1["q1"] < ust1, "patladi=%s a=%s %s" % (p1, a1, msj1))
+
+    # ── K2 — kuyrukta IKI yeni id: ONARIMIN EKSENI (bu vaka once DURUYORDU) ────────────
+    k2, ust2 = 2, 3000000
+    a2, p2, msj2 = kuyruk_vaka(m, k2, ust2)
+    d2 = [a2.get("q1"), a2.get("q2")]                       # sondan basa: q1 en KUCUK olmali
+    sonuc["K2a kuyrukta 2 yeni id URETILIR (fail-loud DURMAZ)"] = (
+        not p2 and len(a2) == 2, "patladi=%s a=%s %s" % (p2, a2, msj2))
+    sonuc["K2b iki atama TAM SAYI, FARKLI, monoton (dizinin sonundaki en KUCUK)"] = (
+        all(isinstance(v, int) for v in d2) and 0 < d2[0] < d2[1] < ust2,
+        "atamalar=%s ust=%d" % (d2, ust2))
+    # BLOGA ORANLI: 0 -> q1 -> q2 -> ust bosluklarinin HEPSI en az bir "adim" olmali.
+    # Sabit adim=1 (eski davranisin sinifi) blogu araligin DIBINE yigar -> bu iddia KIRMIZI.
+    bosluk2 = ([d2[0], d2[1] - d2[0], ust2 - d2[1]]
+               if all(isinstance(v, int) for v in d2) else [])
+    sonuc["K2c blok araliga ORANLI dagilir (her bosluk >= ust//(k+1))"] = (
+        bool(bosluk2) and min(bosluk2) >= ust2 // (k2 + 1),
+        "bosluklar=%s beklenen_adim=%d" % (bosluk2, ust2 // (k2 + 1)))
+
+    # ── K44 — olculen canli vaka: 44 kayitlik kuyruk, ust=45.000.000 ───────────────────
+    k44, ust44 = 44, 45000000
+    a44, p44, msj44 = kuyruk_vaka(m, k44, ust44)
+    v44 = sorted(a44.values())
+    sonuc["K44 44'luk kuyruk (ust=45.000.000) TAMAMEN uretilir"] = (
+        not p44 and len(a44) == k44, "patladi=%s adet=%d %s" % (p44, len(a44), msj44))
+    sonuc["K44b hepsi tam sayi, FARKLI, pozitif ve en buyugu ust'ten KUCUK"] = (
+        len(v44) == k44 and all(isinstance(v, int) for v in v44)
+        and len(set(v44)) == k44 and v44[0] > 0 and v44[-1] < ust44,
+        "en_kucuk=%s en_buyuk=%s adet=%d" % (v44[:1], v44[-1:], len(set(v44))))
+
+    # ── K_TASMA — yer GERCEKTEN yok: fail-loud kolu KORUNUR ────────────────────────────
+    a_t, p_t, msj_t = kuyruk_vaka(m, 10, 3)
+    sonuc["K_TASMA ust=3 + 10'luk kuyruk -> AYNEN fail-loud DURUR"] = (
+        p_t and "SEQ TAM SAYI ARALIGI TUKENDI" in msj_t and "--seq-normalize" in msj_t,
+        "patladi=%s a=%s msj=%s" % (p_t, a_t, msj_t))
+
+    # ── K_MID_REGRESYON — ayni dizide hem mid-array hem kuyruk: mid-array DEGISMEDI ────
+    u4, u3m, u2m, u1m = urun("u4"), urun("u3"), urun("u2"), urun("u1")
+    unm, q2m, q1m = urun("un"), urun("q2"), urun("q1")
+    seq_m = {"u4": 5000000, "u3": 4000000, "u2": 3000000, "u1": 2000000}
+    var_m = {u["id"]: (m.arama.urun_hash(u), "") for u in (u4, u3m, u2m, u1m)}
+    try:
+        yeni_m, _dm, _bm, _sm, _gm = m.diff_plan([u4, unm, u3m, u2m, u1m, q2m, q1m],
+                                                 var_m, {}, False, seq_m["u4"], dict(seq_m))
+        atanan_m, patladi_m = dict(seq_oku(s) for s in yeni_m), False
+    except SystemExit as e:
+        atanan_m, patladi_m = {}, str(e.code)
+    beklenen_mid = seq_m["u3"] + (seq_m["u4"] - seq_m["u3"]) // 2
+    sonuc["K_MID_REGRESYON mid-array TAM SAYI orta noktayi ALMAYA DEVAM EDER"] = (
+        patladi_m is False and atanan_m.get("un") == beklenen_mid,
+        "atanan=%s beklenen=%d patladi=%s" % (atanan_m, beklenen_mid, patladi_m))
+    kq = [atanan_m.get("q1"), atanan_m.get("q2")]
+    sonuc["K_MID_REGRESYON2 ayni dizideki kuyruk blogu da uretilir (mid-array'e sizmadan)"] = (
+        all(isinstance(v, int) for v in kq) and 0 < kq[0] < kq[1] < seq_m["u1"],
+        "kuyruk=%s ust=%d" % (kq, seq_m["u1"]))
 
     # ── V5 — GERI ALMA: eksik TEK BASINA sebep DEGIL; ortak kumede sapma SEBEP ─────────
     son_temiz = {"a": hedef["a"], "c": hedef["c"]}          # b, d hala D1'de YOK
