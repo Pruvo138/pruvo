@@ -45,6 +45,7 @@ tukenirse kesir uretmek yerine fail-loud durur ve `--seq-normalize` ister.
 """
 
 import argparse
+import fcntl
 import importlib.util
 import json
 import os
@@ -103,6 +104,73 @@ DB_AD = "pruvo-katalog"  # execute yolunda KULLANILAN tanimlayici (surumden bagi
 # Tek wrangler cagrisina konacak azami ifade sayisi (istek boyutu makul kalsin).
 PARCA = 400
 SEQ_ADIM = 1000000
+
+# D1 TAM-KATALOG YAZICI KILIDI. Bayatlik kapisi yalniz agacin origin/main ucunda olup
+# olmadigini olcer; AYNI uctan ayni anda baslayan iki yaziciyi ayiramaz. Ikisi de D1'i
+# okuyup kendi planini kurarsa once bitenin yazdiklarini ikinci (bayat plan) silebilir
+# veya geri alabilir. Yazici yollarini tum okuma-planlama-yazma-dogrulama boyunca TEK
+# surece indiriyoruz. Git common-dir/config tum worktree'lerde AYNI, zaten-var olan bir
+# inode'dur; yeni lock/cache dosyasi birakmaz. LOCK_NB bekletmez: ikinci yazici hemen ve
+# gurultulu bicimde fail-closed cikar.
+def yazici_yolu_mu(a):
+    """Argparse sonucu FIILEN D1 yazabilecek kola mi gider? main() onceligiyle ayni."""
+    if a.kendini or a.bayatlik:
+        return False
+    if a.seq_normalize or a.sema:
+        return True
+    if a.durum or a.kuru:
+        return False
+    return True
+
+
+def yazici_kilit_yolu():
+    """Tum worktree'lerin paylastigi, mevcut ve kalici Git config inode'unu dondur."""
+    try:
+        p = subprocess.run(
+            ["git", "-C", KOK, "rev-parse", "--git-common-dir"],
+            capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (%s) — yazma fail-closed DURDU."
+                 % type(e).__name__)
+    if p.returncode != 0 or not p.stdout.strip():
+        sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (git common-dir bulunamadi) — "
+                 "yazma fail-closed DURDU.\n   %s" % (p.stderr or "").strip()[-1000:])
+    ortak = p.stdout.strip()
+    if not os.path.isabs(ortak):
+        ortak = os.path.normpath(os.path.join(KOK, ortak))
+    yol = os.path.join(ortak, "config")
+    if not os.path.isfile(yol):
+        sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (Git config yok: %s) — "
+                 "yazma fail-closed DURDU." % yol)
+    return yol
+
+
+def yazici_kilidi_al(yol=None):
+    """Non-blocking flock al; donen fd acik kaldigi surece yazici sahipligi surer."""
+    kilit_yolu = yol or yazici_kilit_yolu()
+    try:
+        fd = open(kilit_yolu, "r+")
+        fcntl.flock(fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        fd.close()
+        sys.exit("!! D1 YAZICI UCUSTA — ikinci tam-katalog yazicisi fail-closed DURDU "
+                 "(PID=%d, kilit=%s)." % (os.getpid(), kilit_yolu))
+    except OSError as e:
+        try:
+            fd.close()
+        except (NameError, OSError):
+            pass
+        sys.exit("!! D1 YAZICI KILIDI OLCULEMEDI (%s: %s) — yazma fail-closed DURDU."
+                 % (type(e).__name__, e))
+    print("D1 yazici kilidi ALINDI (PID=%d, ortak-kilit=%s)" % (os.getpid(), kilit_yolu))
+    return fd
+
+
+def yazici_kilidi_birak(fd):
+    if fd is None:
+        return
+    fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
+    fd.close()
 
 
 # ── HATA KODU TESPITI — BICIMDEN BAGIMSIZ (31 Tem, run 30646713630'da OLCULDU) ───────
@@ -3705,6 +3773,12 @@ def main():
                     help="D1'de FAZLA satirlarin silinmesini IKI GOZLEME yay (karantina "
                          "damgasi dosyasi). Damga okunamazsa SILME YAPILMAZ.")
     a = ap.parse_args()
+
+    # Yazici kilidi kaynak/D1 okumalarindan ONCE alinir; aksi halde ikinci surec bayat
+    # planini kilit disinda kurup birincinin yazisini sonradan geri alabilir. Yerel fd
+    # main() donene/exception ile acilana kadar yasar; crash/kill halinde cekirdek flock'u
+    # otomatik salar. Global DEGIL: offline batarya main()i ayni surecte tekrar cagirir.
+    _yazici_kilit_fd = yazici_kilidi_al() if yazici_yolu_mu(a) else None
 
     # 🔴 SIRA: kaynak, katalogu okuyan HER daldan (senkron / --durum / --kuru) ONCE
     # baglanir. Bayrak verilmediyse modul sabitine DOKUNULMAZ -> bugunku davranis BAYT
