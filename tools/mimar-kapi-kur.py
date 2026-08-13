@@ -650,7 +650,7 @@ def codex_kurali(uygula):
 # enjekte + settings Agent|Task kablosu, commit YOK). Desen: DAR + IDEMPOTENT + YEDEKLI +
 # FAIL-CLOSED (zorunlu sembol/anksraj eksikse O EVE DOKUNULMAZ; enjeksiyon sonrasi compile +
 # CANLI FIKSTUR, biri tutmazsa ev DERHAL YEDEKTEN geri alinir — tek-ev FP tum evi durdurmaz).
-AGENT_DAMGA = 'AGENT_KURAL_SURUMU = "13agu-1"'
+AGENT_DAMGA = 'AGENT_KURAL_SURUMU = "13agu-2"'
 AGENT_TANIM_BAS = "# === PRUVO AGENT-KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 AGENT_TANIM_SON = "# === PRUVO AGENT-KAPISI BITIS ==="
 AGENT_CAGRI_BAS = "    # === PRUVO AGENT-KAPISI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
@@ -673,6 +673,9 @@ AGENT_TANIM_SABLON = '''
 # ISCI (agent_id dolu) TAM muaf. Agent/Task DISINDA hicbir arac etkilenmez. PARSER TAKLIDI
 # YASAK: tek makine-aranabilir regex (AGENT_MUAFIYET_RE); supheli form = RED (fail-closed).
 AGENT_ARACLARI = {"Agent", "Task"}
+SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")
+EV_ADI = os.path.basename(os.path.normpath(
+    globals().get("REPO_ONEKI") or REPO_ONEKLERI[0]))
 AGENT_SINIFLARI = (
     "görsel", "gorsel",
     "sessiz-hata",
@@ -697,6 +700,25 @@ AGENT_GEREKCE = (
     "'codex-muafiyet: <is tanimi> — {ornek}' (gecerli sinif jetonlari: {liste} — "
     "codex-isci yasak listesi)."
 ).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
+
+
+def _sert_blok_gerekcesi():
+    _sarmalayici = globals().get(
+        "ISCI_SARMALAYICI_YOLU", "/Users/okan/.claude/cron/isci.sh")
+    _motorlar = globals().get(
+        "ISCI_MOTORLARI", ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude"))
+    _motor_listesi = " / ".join(_motorlar)
+    return (
+        "AGENT-KAPISI (13 Agu Okan emri): bu evde mimar ANA oturumunun Claude iscisi "
+        "(Agent/Task ve isci.sh claude) acmasi, 'codex-muafiyet:' beyani bulunsa bile "
+        "YASAKTIR. 'claude' motoru da ayni yasagin kapsamindadir; pahali kat pahali kattir. "
+        "PRUVO_CLAUDE_ISCI_IZNI yalnizca tam olarak OKAN ise eski beyan kurali calisir; "
+        "bu izni yalnizca Okan verir ve ajan kendi ayarlayamaz. IKI ACIK YOL: (a) " +
+        _sarmalayici + " <motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
+        "(ucuz motorlar: " + " / ".join(_m for _m in _motorlar if _m != "claude") +
+        "; kapali motor kumesi: " + _motor_listesi + "); (b) codex exec -C <ev> "
+        "-s workspace-write -o <dosya> \\\"<spec>\\\"."
+    )
 
 
 def _agent_gorulen_sinif(prompt):
@@ -734,6 +756,9 @@ def _agent_reddet(neden):
 
 
 def _agent_karari(girdi):
+    if (EV_ADI in SERT_BLOK_EVLER and
+            os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):
+        return _sert_blok_gerekcesi()
     ti = girdi.get("tool_input") or {}
     prompt = ti.get("prompt")
     if not isinstance(prompt, str):
@@ -870,7 +895,13 @@ def _eve_agent_enjekte(ad, kok, goreli, uygula, rapor):
     # Eski damgali blok varsa SOK (kural yukseltmesi de tek hamle).
     temiz = _blogu_sok(metin, AGENT_TANIM_BAS, AGENT_TANIM_SON)
     temiz = _blogu_sok(temiz, AGENT_CAGRI_BAS, AGENT_CAGRI_SON)
-    yeni = temiz.replace(AGENT_ANKRAJ_TANIM, AGENT_TANIM_SABLON + AGENT_ANKRAJ_TANIM, 1)
+    # ISCI blogu Agent sembollerini import aninda kullanir; surum yukseltmesinde yeni
+    # Agent tanimi mevcut ISCI taniminin ONUNDE kalmalidir.
+    if ISCI_TANIM_BAS in temiz:
+        yeni = temiz.replace(ISCI_TANIM_BAS, AGENT_TANIM_SABLON + "\n" + ISCI_TANIM_BAS, 1)
+    else:
+        yeni = temiz.replace(AGENT_ANKRAJ_TANIM,
+                            AGENT_TANIM_SABLON + AGENT_ANKRAJ_TANIM, 1)
     yeni = yeni.replace(AGENT_ANKRAJ_CAGRI, AGENT_CAGRI_SABLON + AGENT_ANKRAJ_CAGRI, 1)
     _yaz(yol, yeni)
 
@@ -885,12 +916,16 @@ def _eve_agent_enjekte(ad, kok, goreli, uygula, rapor):
         return "GERI ALINDI (derlenmedi)", yedek
 
     # CANLI FIKSTURLER — AGENT gate + regresyon (rutin/codex) birlikte; biri tutmazsa geri al.
+    beyanli_beklenen = "deny" if ad in ("KraL", "MaCiT") else "allow"
     olcumler = [
         ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
-        ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — olcum"}, None, "allow"),
-        ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — ölçüm"}, None, "allow"),
+        ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — olcum"}, None,
+         beyanli_beklenen),
+        ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — ölçüm"}, None,
+         beyanli_beklenen),
         ("Agent", {"prompt": "codex-muafiyet: parti dilimi tarama — gizlilik"}, None, "deny"),
-        ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
+        ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None,
+         beyanli_beklenen),
         ("Task", {"prompt": "beyansiz"}, None, "deny"),
         ("Agent", {"prompt": "beyansiz"}, AGENT_ISCI_ID, "allow"),
         ("Bash", {"command": "ls"}, None, "allow"),
@@ -1262,7 +1297,7 @@ def mcp_kapisi(uygula):
 # AGENT-KAPISI'nin regex'ini ve _agent_isci_mi()'sini CAGIRIR. Bu yuzden AGENT_DAMGA bir
 # ZORUNLU SEMBOLDUR: AGENT-KAPISI kurulmamis eve DOKUNULMAZ (yoksa motor=claude beyan
 # sarti sessizce kaybolur ve sarmalayici AGENT-KAPISI'ni atlatan anahtara doner).
-ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "13agu-2"'
+ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "13agu-3"'
 ISCI_TANIM_BAS = "# === PRUVO ISCI-SARMALAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 ISCI_TANIM_SON = "# === PRUVO ISCI-SARMALAYICI KAPISI BITIS ==="
 ISCI_KIMLIK_CAGRI_BAS = "    # === PRUVO ISCI KIMLIK CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
@@ -1363,6 +1398,9 @@ def _isci_karari(tokenlar):
             "isci sarmalayicisinin MOTORU kapali kumede DEGIL (" + motor[:24] + "). "
             "Bilinmeyen motor VARSAYILAN RED (fail-closed)."
         )
+    if (motor == "claude" and EV_ADI in SERT_BLOK_EVLER and
+            os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):
+        return _sert_blok_gerekcesi()
     if motor == "claude":
         spec_yolu = argumanlar[2]
         try:
@@ -1461,6 +1499,7 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
     dizin, beyansiz, beyanli, yok_spec = _isci_fikstur_specleri()
     try:
         W = ISCI_SARMALAYICI_YOLU_SABIT
+        beyanli_beklenen = "deny" if ad in ("KraL", "MaCiT") else "allow"
         olcumler = [
             ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz}, None, "allow"),
             ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz + " etiket"},
@@ -1469,7 +1508,8 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
             ("Bash", {"command": W + " gpt-9 " + kok + " " + beyansiz}, None, "deny"),
             ("Bash", {"command": W + " deepseek-flash " + kok}, None, "deny"),
             ("Bash", {"command": W + " claude " + kok + " " + beyansiz}, None, "deny"),
-            ("Bash", {"command": W + " claude " + kok + " " + beyanli}, None, "allow"),
+            ("Bash", {"command": W + " claude " + kok + " " + beyanli}, None,
+             beyanli_beklenen),
             ("Bash", {"command": W + " claude " + kok + " " + yok_spec}, None, "deny"),
             ("Bash", {"command": "/tmp/isci.sh deepseek-flash " + kok + " " + beyansiz},
              None, "deny"),
@@ -1480,7 +1520,8 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
             ("Bash", {"command": 'codex exec "x"'}, None, "deny"),
             ("Bash", {"command": 'codex exec -o /tmp/son-mesaj.txt "x"'}, None, "allow"),
             ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
-            ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
+            ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None,
+             beyanli_beklenen),
         ]
         olcumler += [
             ("Bash", {"command": "python3 /private/tmp/analiz.py"}, None, "allow",

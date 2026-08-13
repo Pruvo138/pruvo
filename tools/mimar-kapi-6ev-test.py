@@ -115,6 +115,13 @@ VAKALAR = [
     ("MCP-FP", 48, "", None, "allow", "mcp__ccd_session__mark_chapter"),
     ("MCP-FP", 49, "", None, "allow", "mcp__scheduled-tasks__list_scheduled_tasks"),
     ("MCP-FP", 50, "", None, "allow", "mcp__Claude_Browser_Extra__computer"),
+    # === 13 AGU CLAUDE ISCI SERT BLOGU ===
+    # KraL + MaCiT'te gecerli beyan bile RED; kalan dort evde eski beyan kurali korunur.
+    ("AGENT", 60, "codex-muafiyet: kapi kodu — sessiz-hata", None,
+     {"KraL": "deny", "MaCiT": "deny", "*": "allow"}, "Agent"),
+    ("AGENT", 61, "beyansiz mimar isi", None, "deny", "Agent"),
+    ("AGENT", 62, "codex-muafiyet: kapi kodu — sessiz-hata", ISCI_ID,
+     "allow", "Agent"),
 ]
 
 
@@ -132,7 +139,9 @@ def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash", ortam_ek=No
         "permission_mode": "bypassPermissions",
         "hook_event_name": "PreToolUse",
         "tool_name": tool_name,
-        "tool_input": {} if tool_name.startswith("mcp__") else {"command": komut},
+        "tool_input": ({} if tool_name.startswith("mcp__") else
+                       ({"prompt": komut} if tool_name in ("Agent", "Task") else
+                        {"command": komut})),
     }
     if agent_id is not None:
         payload["agent_id"] = agent_id
@@ -142,6 +151,7 @@ def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash", ortam_ek=No
     # agent_id eksenini simule eder; dis PRUVO_ISCI_KOSUMU izi ic fiksturlere sizarsa
     # MIMAR deny vakalari yalanci allow olur.
     ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
     if ortam_ek:
         ortam.update(ortam_ek)
     sonuc = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(payload),

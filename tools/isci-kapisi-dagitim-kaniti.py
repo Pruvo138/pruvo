@@ -90,13 +90,20 @@ def main():
             kirmizi.append(ad)
             continue
         kaynak = os.path.join(gercek_kok, goreli)
-        sahte = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-isci-dagitim-"))
+        sahte_taban = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-isci-dagitim-"))
+        # Ev kimligi REPO_ONEKI'nin son bileseninden cikar; hermetik kopya da gercek ev
+        # basename'ini korumali, yoksa MaCiT yanlislikla kume-disi gorunur.
+        sahte = os.path.join(sahte_taban, os.path.basename(gercek_kok))
         hedef = os.path.join(sahte, goreli)
         os.makedirs(os.path.dirname(hedef), exist_ok=True)
         shutil.copyfile(kaynak, hedef)
         rapor = []
         try:
-            durum, _ = kur._eve_isci_enjekte(ad, sahte, goreli, True, rapor)
+            agent_durum, _ = kur._eve_agent_enjekte(ad, sahte, goreli, True, rapor)
+            if agent_durum not in ("KURULDU", "ZATEN TAM"):
+                durum = "AGENT ONKOSULU: " + agent_durum
+            else:
+                durum, _ = kur._eve_isci_enjekte(ad, sahte, goreli, True, rapor)
         except Exception as hata:
             durum = "ISTISNA: " + repr(hata)[:110]
         try:
@@ -113,7 +120,7 @@ def main():
                 print("        " + satir.strip())
         if not gecti:
             kirmizi.append(ad)
-        shutil.rmtree(sahte, ignore_errors=True)
+        shutil.rmtree(sahte_taban, ignore_errors=True)
 
     print("")
     print("KANIT: {}/{} kardes evin KOPYASINDA enjeksiyon + canli fikstur GECTI".format(
