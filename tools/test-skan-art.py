@@ -81,6 +81,8 @@ CEKIRDEK NODE GEREKTIRMEZ: node yoksa/patlarsa yalnizca UYARI cikar, exit 0 kali
 SKAN_ART_NODE_ATLA=1 de yalnizca uyari uretir.
 Kullanim:  python3 tools/test-skan-art.py     (0 = cekirdek gecti, 1 = cekirdek kirmizi)
 """
+import contextlib
+import fnmatch
 import importlib
 import json
 import os
@@ -1346,22 +1348,102 @@ KUM_ATLA = {".git", ".claude", "urunler.json"}   # girdi maliyeti/alakasizligi (
 KUM_TEMIZLE = ["urun", "sitemap.xml"]            # B9 bunlari OLCER -> gercekten uretilsinler
 
 
-def uretim_hatti_olc():
-    """build.py'yi kum havuzunda kostur; (kurt_sayfasi_html, sitemap_xml, hata) dondur."""
-    kum = tempfile.mkdtemp(prefix="skan-art-uretim-")
+# ---------------------------------------------------------------- (B9) OZYINELEME KILIDI
+# Gecici uretim koku kendi icine kopyalanabilir; bu kilit dort kural uygular:
+#   1. Derinlik tavani: ic ice ayni dizin adi MAKSIMUM_AYNI_DIZIN_DERINLIGI'yi gecemez.
+#   2. Zaten-varsa yeni seviye ACMA: hedef varsa mevcut dizin YENIDEN KULLANILIR.
+#   3. Kopyaya sir TASIMA: KUM_SIR_DESENLER ile eslesen adlar copytree ignore ile HARIC.
+#   4. Temp-altinda kalkani: silinecek kok tempfile.gettempdir() ALTINDA degilse SILME.
+# Temizlik try/finally ile kosar ve ignore_errors=True YOKTUR -> basarisiz temizlik
+# SESSIZ kalmaz (fail-closed).
+
+MAKSIMUM_AYNI_DIZIN_DERINLIGI = 2
+
+KUM_SIR_DESENLER = (
+    ".*", ".env*", "*.key", "*token*",
+    ".r2-credentials.json", ".gemini-key", ".mmf-token",
+    ".uyelik-kodlar", ".tedarikci-fiyat",
+)
+
+
+def ayni_ad_derinligi(yol):
+    """Yolda yan yana tekrarlanan AYNI dizin adinin en uzun zincir uzunlugunu dondurur."""
+    parcalar = [p for p in os.path.normpath(yol).split(os.sep) if p]
+    if not parcalar:
+        return 0
+    en_uzun = 1
+    suanki = 1
+    onceki = parcalar[0]
+    for p in parcalar[1:]:
+        if p == onceki:
+            suanki += 1
+            en_uzun = max(en_uzun, suanki)
+        else:
+            suanki = 1
+        onceki = p
+    return en_uzun
+
+
+def uretim_derinligini_dogrula(yol):
+    """Ic ice ayni dizin adi tavanini asarsa FAIL-CLOSED istisna firlatir."""
+    tekrar = ayni_ad_derinligi(yol)
+    if tekrar > MAKSIMUM_AYNI_DIZIN_DERINLIGI:
+        raise RuntimeError("uretim koku ozyineleme derinligini asti (%d): %s" % (tekrar, yol))
+
+
+def _kum_sir_mi(ad):
+    """Dosya/dizin adi sir desenlerinden herhangi birine uyuyor mu?"""
+    return any(fnmatch.fnmatch(ad, desen) for desen in KUM_SIR_DESENLER)
+
+
+def kum_kopya_yoksay(dizin, adlar):
+    """copytree ignore geri cagirisi: sir desenlerine uyan adlari HARIC tutar."""
+    return [ad for ad in adlar if _kum_sir_mi(ad)]
+
+
+def guvenli_agac_kopyala(kaynak, hedef):
+    """Agaci guvenle kopyala: hedef VARSA YENIDEN KULLAN, derinlik tavanli, sir tasimaz."""
+    if os.path.exists(hedef):
+        return hedef, True
+    uretim_derinligini_dogrula(hedef)
+    shutil.copytree(kaynak, hedef, symlinks=False, ignore=kum_kopya_yoksay)
+    return hedef, False
+
+
+@contextlib.contextmanager
+def gecici_uretim_koku(taban=None):
+    """Guvenli gecici uretim koku: derinlik tavanli, temp-altinda, fail-closed temizlik."""
+    if taban is None:
+        kok = tempfile.mkdtemp(prefix="skan-art-uretim-")
+    else:
+        kok = tempfile.mkdtemp(prefix="skan-art-uretim-", dir=taban)
+    uretim_derinligini_dogrula(kok)
     try:
+        yield kok
+    finally:
+        temp_koku = tempfile.gettempdir()
+        silinecek_kok = kok
+        if (silinecek_kok == temp_koku
+                or os.path.commonpath((temp_koku, silinecek_kok)) != temp_koku):
+            raise RuntimeError("gecici uretim koku temp disinda; silinmedi: %s" % kok)
+        shutil.rmtree(kok)
+
+
+def uretim_hatti_olc():
+    """build.py'yi kum havuzunda kostur; (kurt_sayfasi_html, sitemap_xml, hata) dondurur."""
+    with gecici_uretim_koku() as kum:
         for ad in os.listdir(ROOT):
-            if ad in KUM_ATLA:
+            if ad in KUM_ATLA or _kum_sir_mi(ad):
                 continue
             kaynak, hedef = os.path.join(ROOT, ad), os.path.join(kum, ad)
             if os.path.isdir(kaynak):
-                shutil.copytree(kaynak, hedef, symlinks=False)
+                guvenli_agac_kopyala(kaynak, hedef)
             else:
                 shutil.copy2(kaynak, hedef, follow_symlinks=True)
         for ad in KUM_TEMIZLE:
             hedef = os.path.join(kum, ad)
             if os.path.isdir(hedef):
-                shutil.rmtree(hedef, ignore_errors=True)
+                shutil.rmtree(hedef)
             elif os.path.exists(hedef):
                 os.unlink(hedef)
         alt = [kurt] + [u for u in katalog if u.get("kategori") == "Dekorasyon"][:8]
@@ -1383,8 +1465,6 @@ def uretim_hatti_olc():
             return sayfa, None, "sitemap.xml uretilmedi"
         with open(sm_yolu, encoding="utf-8") as f:
             return sayfa, f.read(), None
-    finally:
-        shutil.rmtree(kum, ignore_errors=True)
 
 
 KOMPAKT = ['class="eylem-ikonlar"', 'ikon-btn ikon-sepet', 'ikon-btn ikon-wa', 'opsiyon-adet-eylem']
