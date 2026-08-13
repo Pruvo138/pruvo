@@ -133,7 +133,6 @@ def sahte_repo(kok):
     os.makedirs(os.path.join(d, "tools"))
     for ad in ("duzelt.py", "arama.py", "gorsel_koken.py"):
         shutil.copy2(os.path.join(kok, "tools", ad), os.path.join(d, "tools", ad))
-    shutil.copy2(os.path.join(kok, "index.html"), os.path.join(d, "index.html"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(_SAHTE_KATALOG, f, ensure_ascii=False, indent=2)
     return d
@@ -565,7 +564,6 @@ def _kopya_kur():
     os.makedirs(os.path.join(tmp, "tools"))
     for ad in KOPYALANAN:
         shutil.copy2(os.path.join(GERCEK_KOK, "tools", ad), os.path.join(tmp, "tools", ad))
-    shutil.copy2(os.path.join(GERCEK_KOK, "index.html"), os.path.join(tmp, "index.html"))
     os.symlink(os.path.join(GERCEK_KOK, "urunler.json"), os.path.join(tmp, "urunler.json"))
     return tmp
 

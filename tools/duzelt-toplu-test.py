@@ -46,7 +46,6 @@ KAYNAK_DUZELT = os.path.join(KOK, "tools", "duzelt.py")
 KAYNAK_GUARD = os.path.join(KOK, "tools", "urunler-guard.py")
 KAYNAK_KOKEN = os.path.join(KOK, "tools", "gorsel_koken.py")
 KAYNAK_ARAMA = os.path.join(KOK, "tools", "arama.py")
-KAYNAK_INDEX = os.path.join(KOK, "index.html")
 KAYNAK_URUN_EKLE = os.path.join(KOK, "tools", "urun-ekle.py")
 
 KATALOG = [
@@ -86,8 +85,6 @@ def sahte_repo(katalog=None):
     # duzelt.py arama.py'yi de KOSULSUZ import eder (alt kategori taksonomisi + imza
     # nobeti orada TEK kaynak olarak yasar) -> sahte repoya kopyalanmali.
     shutil.copy(KAYNAK_ARAMA, os.path.join(d, "tools", "arama.py"))
-    # arama.py arac es-anlamli sabitlerini kanonik index.html literalinden yukler.
-    shutil.copy(KAYNAK_INDEX, os.path.join(d, "index.html"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(KATALOG if katalog is None else katalog, f, ensure_ascii=False, indent=2)
     return d

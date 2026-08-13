@@ -26,45 +26,49 @@ import unicodedata
 _INDEX_YOLU = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "index.html")
 
 
-def _arac_es_anlamli_yukle():
-    """index.html'deki TEK kanonik literalden arac sinifini fail-closed ayikla."""
-    with open(_INDEX_YOLU, encoding="utf-8") as f:
-        kaynak = f.read()
-    es = re.findall(r'^\s*var ARAC_ES_ANLAMLI = (\[[^\n]+\]);$', kaynak, re.MULTILINE)
-    if len(es) != 1:
-        raise RuntimeError("ARAC_ES_ANLAMLI tek kanonik literal olmali (bulunan: %d)" % len(es))
-    deger = json.loads(es[0])
-    if deger != ["oto", "otomobil", "araba", "arac"]:
-        raise RuntimeError("ARAC_ES_ANLAMLI dar sinifi degisti: %r" % deger)
-    return tuple(deger)
+ARAC_ES_ANLAMLI = None
+ARAC_ES_ANLAMLI_SINIR = None
+_ARAC_ES_ANLAMLI_TAM_JETON = None
+# None=henüz denenmedi, True=yüklendi, False=fail-closed. Bu bayrak yükleme
+# arızasını görünür kılar; False olduktan sonra aynı koşumda tekrar denenmez.
+_ARAC_ES_ANLAMLI_YUKLENDI = None
 
 
-ARAC_ES_ANLAMLI = _arac_es_anlamli_yukle()
+def _arac_es_anlamli_hazirla():
+    """Kanonik araç eş anlamlılarını ilk kullanımda bir kez, fail-closed yükle."""
+    global ARAC_ES_ANLAMLI, ARAC_ES_ANLAMLI_SINIR
+    global _ARAC_ES_ANLAMLI_TAM_JETON, _ARAC_ES_ANLAMLI_YUKLENDI
+    if _ARAC_ES_ANLAMLI_YUKLENDI is not None:
+        return _ARAC_ES_ANLAMLI_YUKLENDI
 
+    # Yeniden girişte ya da aşağıdaki herhangi bir arızada genişleme kapalı kalsın.
+    _ARAC_ES_ANLAMLI_YUKLENDI = False
+    try:
+        with open(_INDEX_YOLU, encoding="utf-8") as f:
+            kaynak = f.read()
+        es = re.findall(r'^\s*var ARAC_ES_ANLAMLI = (\[[^\n]+\]);$', kaynak, re.MULTILINE)
+        if len(es) != 1:
+            raise RuntimeError("ARAC_ES_ANLAMLI tek kanonik literal olmali")
+        deger = json.loads(es[0])
+        if deger != ["oto", "otomobil", "araba", "arac"]:
+            raise RuntimeError("ARAC_ES_ANLAMLI dar sinifi degisti")
+        sinirlar = re.findall(
+            r'^\s*var ARAC_ES_ANLAMLI_SINIR = "([^"\n]+)";$', kaynak, re.MULTILINE)
+        if len(sinirlar) != 1 or not re.fullmatch(r"\[\^[a-z0-9-]+\]", sinirlar[0]):
+            raise RuntimeError("ARAC_ES_ANLAMLI_SINIR turetilemez")
+        araclar = tuple(deger)
+        sinir = sinirlar[0]
+        tam_jeton = re.compile(
+            r"(^|%s)(?:%s)(?=$|%s)" % (
+                sinir, "|".join(re.escape(t) for t in araclar), sinir))
+    except (OSError, UnicodeError, ValueError, RuntimeError, re.error):
+        return False
 
-def _arac_es_anlamli_siniri_yukle():
-    """index.html'deki kanonik tam-jeton sinirini fail-closed ayikla."""
-    with open(_INDEX_YOLU, encoding="utf-8") as f:
-        kaynak = f.read()
-    sinirlar = re.findall(
-        r'^\s*var ARAC_ES_ANLAMLI_SINIR = "([^"\n]+)";$', kaynak, re.MULTILINE)
-    if len(sinirlar) != 1:
-        raise RuntimeError("ARAC_ES_ANLAMLI_SINIR tek kanonik literal olmali "
-                           "(bulunan: %d)" % len(sinirlar))
-    # JS ve Python'da ayni anlama gelen basit ASCII negated-class disina cikarsa
-    # sessizce tahmin etme: site literali uretim regex'ine guvenle turetilemez.
-    if not re.fullmatch(r"\[\^[a-z0-9-]+\]", sinirlar[0]):
-        raise RuntimeError("ARAC_ES_ANLAMLI_SINIR turetilemez: %r" % sinirlar[0])
-    return sinirlar[0]
-
-
-ARAC_ES_ANLAMLI_SINIR = _arac_es_anlamli_siniri_yukle()
-_ARAC_ES_ANLAMLI_TAM_JETON = re.compile(
-    r"(^|%s)(?:%s)(?=$|%s)" % (
-        ARAC_ES_ANLAMLI_SINIR,
-        "|".join(re.escape(t) for t in ARAC_ES_ANLAMLI),
-        ARAC_ES_ANLAMLI_SINIR,
-    ))
+    ARAC_ES_ANLAMLI = araclar
+    ARAC_ES_ANLAMLI_SINIR = sinir
+    _ARAC_ES_ANLAMLI_TAM_JETON = tam_jeton
+    _ARAC_ES_ANLAMLI_YUKLENDI = True
+    return True
 
 _HARF = str.maketrans({
     "ı": "i", "ç": "c", "ğ": "g", "ö": "o", "ş": "s", "ü": "u", "â": "a", "î": "i",
@@ -98,7 +102,8 @@ def tokenlar(q):
     asagida (L88) tanimli; modul seviyesi ad, cagri aninda cozulur (forward-ref sorun degil).
     DIKKAT: haystack()/urun_hash() DEGISMEZ — sadece SORGU tarafi kok alir, D1 kolonu ayni.
     """
-    return [ARAC_ES_ANLAMLI if t in ARAC_ES_ANLAMLI else arama_kok(t)
+    _arac_es_anlamli_hazirla()
+    return [ARAC_ES_ANLAMLI if (ARAC_ES_ANLAMLI and t in ARAC_ES_ANLAMLI) else arama_kok(t)
             for t in norm(q).split() if t]
 
 
