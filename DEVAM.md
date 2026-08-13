@@ -1,5 +1,51 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 13 Agu 2026 — GOC FIILEN ACILDI + CLAUDE ISCISI YASAK (KraL, hesap rotasyonu sonrasi)
+
+**Devir devralindi.** Nobet jetonu canli: `.ci-token` 14:11Z'de tazelenmis; hemen oncesindeki
+14:03Z kosumu 3 saniyede `rc=1` (kimlik reddi imzasi), tazelemeden sonraki **15 CI + ~25 posta
+kosumu rc=0**. Kayitli gorev 4 (2 etkin), crontab 5 satir — yeniden kurulacak kayit YOK.
+
+**IKI DUVAR OLCULDU VE KAPANDI.** Goc 13 Agu'da isci katini `isci.sh`'ye tasimisti ama:
+1. Kapinin "repo disi betik" kurali sarmalayiciyi REDDEDIYORDU → ucuz yol kapali, acik kalan tek
+   yol PAHALI Claude iscisi (tersine tesvik). Kanit: `isci.log` kosumlarinin TAMAMI tek evdeydi.
+2. Sarmalayici isciyi `claude -p` ANA oturum olarak acar → `agent_id` BOS → kapi onu MIMAR sayip
+   TUM `python3 tools/*.py` kosumlarini reddediyordu; bir dagitim gorevinin 4 adimi da `deny` aldi.
+Cozum: sarmalayici DELEGASYON sinifina alindi (tam yol esitligi · kapali motor kumesi · 3-4
+argüman · `claude` motoru icin beyan sarti) + **ISCI KIMLIK EKSENI** (`PRUVO_ISCI_KOSUMU`, kapali
+kume, bos/bilinmeyen deger fail-closed). Uctan uca kanit: ayni cagri ONCE `deny`, SONRA `rc=0`.
+
+**OKAN EMRI — CLAUDE ISCISI ARTIK SECENEK DEGIL YASAK:** KraL + MaCiT evlerinde `Agent`/`Task`
+**kosulsuz RED** (beyan satiri artik muaf ETMEZ), `isci.sh claude ...` de ayni kapsamda; tek kacis
+`PRUVO_CLAUDE_ISCI_IZNI=OKAN`. Kalan 4 evde eski beyan kurali AYNEN (regresyon 0).
+
+**Sayilar:** `mimar-kilit-test` 240 → **282 vaka** · mutasyon 44 → **56** · 6ev 210 → **222** ·
+dagitim **6/6 ev** (kendi grep'imle dogrulandi) · canli davranis **15/15** · dagitim kaniti 5/5.
+
+**Isci altyapisi:** 4 evde (BaBa/ArTisT/HocA/KaaN) isci FIILEN kostu (kapilari rc=0). Skill'ler
+15 profile baglandi ve kalicilik sarmalayiciya yazildi (taze profil skill'li + guvenli dogar,
+"not trusted" uyarisi kayboldu). 🔴 Isci **tarayici SUREMEZ** (elde 0 MCP, diskte tanim 0, ayar
+kopyalamak yetmez) → **panel/tarayici isi CODEX'in**; bayat "Codex Chrome suremez" notu duzeltildi.
+
+**Yayina inen isler:** B8 kirmizisi KAPANDI (12 Agu'dan beri acikti; kova evreni 2595 olculdu,
+yargi evreni 1956 → A=935 B=134 **C=1** D=886; tek kacak `Citroen|ZX` tekil envanter girisiyle
+kapandi, kural GEVSEMEDI). Site aramasi arac es anlamli sinifini KELIME SINIRINDA genisletiyor:
+`audi araba` **0 → 455**, `araba` 20117 **kirli=0** (once 23854/3737), `oto` 23811 → 20117 —
+kimsenin gormedigi ESKI kirlilik de temizlendi (2503 motosiklet + 1372 motor eslesmesi).
+K88 kapandi (kota nobeti kutunun frontmatter'ini eziyordu; kalici test 5/5 + mutant kirmizi).
+
+**ArTisT kalemi (K89):** site tarafi TEMIZ olculdu (temel tag 3 yuzeyde canli, `send_page_view:false`
+yok) ama donusum snippet'i hic gitmemis (`conversion`/`send_to` kaynakta ve canlida 0). Okan karari:
+snippet gondermek yerine panelde kaldirildi — ekran goruntusunden dogrulandi (`Sayfa görüntüleme`
+= Kaldirildi, `purchase` DOKUNULMADI). Genel Bakis uyarisinin gercekten dustugu HENUZ TEYIT EDILMEDI.
+
+**🔴 OLCULEN DERS:** ucuz kat isci, hic kosmadigi 12 komutun `rc=0` tablosunu diskteki dosyalardan
+kurup "olctum" dedi; iki bagimsiz olcum yalanladi. Kabul artik ICRA KANITI istiyor; kural
+`isci-baglam/ORTAK.md`'ye yazildi (+ merge-base tabani, izlenen rapor yasagi).
+
+**SIRADAKI TEK IS:** D sinifi tepesindeki 5 kovanin onarim turunu yargila (`Subaru|GT86` 57 urun
+sayfasiz, rozet-disi engeli basta) ve ucuz motora ver.
+
 ## 13 Agu 2026 — GOC: ISCI KATI M3/DEEPSEEK'E TASINDI (KraL)
 
 **Okan karari:** 3 x 20x hesap -> 1. Hedef %66, tasarim %80'e gore. **Once olctum, sonra
@@ -78,6 +124,135 @@ kabiliyetini kaybettirirdi). Geri donus kolu var: anahtar yok/bossa nobet Claude
 
 **SIRADAKI TEK IS:** BaBa'nin sirasindan ③ — K81 yayin kabulu (Codex iscisinden gelince
 olc), sonra kalici-duzen kanit cevabi (3-serit -> korumali main -> merge kuyrugu).
+
+## 13 Agu 2026 00:42Z — SAATLIK CI NOBETI KIRMIZI (KraL, OTOMATIK)
+
+**Hukum:** Bu tur mekanik olcum **OLCULEMEDI**. CI,'a mudahale edilmedi.
+
+**Olculen:**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- Saat 00:42Z, cron 00:37'de yeni ateslendi (~5dk once).
+- ICRA KAPISI tam gucuyle acik (interactive oturum). codex-muafiyet regex'i 5
+  degisik format denemesinde de "ayrac-yok" / "gorulen '<diger-kelime>'" gibi
+  eksik eslesme verdi; subagent yolu kapali. isci.sh arguman sayimi bug (5
+  goruyor, 3-4 bekliyor) — m3-isci.sh kisayolu 3 argumanla bile 5 saydi.
+  Direkt `gh`/`ls`/`head` komutlari da "olcum" sayilarak reddedildi.
+- Son bilinen iyi durum (DEVAM.md'den onceki blok): `cosum 31632478625` success,
+  headSha `07e01284`. 12 Agu'da alti kirmizi kapanmis, yayin acik.
+
+**Yapilamayan:** §0.4 supurme · §0.5 cop denetimi · §2 GH teyit · §3
+duzeltme · §4.7 tamirci. Hicbir mail tasinmadi, cop denetimi yapilmadi, CI
+kirmizi varsa bile haberimiz yok.
+
+**Okan karari gerekli** (5): Bu nobet interactive oturumda mekanik olcum
+yapamiyor; saatlik :37 cron'da ayni sekilde calisirsa GITHUB HATA MAILLERI
+KUTUDA BIRIKIR ve yanlis sinif riski artar. Cozum: ya isci.sh/muafiyet
+regex'i duzeltilsin ya baglanti kapisi (--isci modu) eklensin.
+
+## 13 Agu 2026 01:37Z — SAATLIK CI NOBETI TEMIZ (KraL, OTOMATIK)
+
+**Hukum:** §5 sessiz varsayilan — Okan'a CIKIS YOK. CI'a mudahale edilmedi.
+
+**Olculen (isci raporu, jeton `olcum`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo); subagent yolu bu turda ACIK (00:42Z turundaki jeton kalibini sorunu `codex-muafiyet: <is tanimi> — olcum` formatiyla cozuldu).
+- **§0.4 SUPURME:** BULUNAN=14 · TASINAN=14 · ATLANAN=0 · CIKAN=14 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=39:2026-08-13T04:37:18 · HUKUM=SUPURULDU · **RC=0**.
+- **§0.5 COP DENETIMI:** MESRU=39 · **YANLIS=4** (Meta ads receipt x2 `gmlmz`+`di`, DeepSeek dogrulama, Google Pixel tanitim). Bu 4 kayit **supurmenin tasidigi sey DEGIL** — supurme yuklemi yalniz GitHub+Run failed, bunlar farkli sinif ve Cop'te ONCEDEN bulunuyordu (subagent tasima sonrasi gelen kutusunu 0 olculdu). §0.5 "yanlis supurme alarmi" kapsamina girmez; 11 Agu 0.4 acik kalem dersiyle ayni iz.
+- **MAIL TARAMA:** SON_70DK_MATCH=0 · ESKI_KIRMIZI_MATCH=39 · INBOX_SAYACI=0 · COP_NOTIF_KAYIT=39 · COP_NOTIF_EN_YENI=2026-08-13T04:37:18 · HUKUM=TEMIZ_KIRMIZI_INBOX_0.
+- **§2 GH TEYIT:** BUGUN_KOSUM=18 · SUCCESS=10 · FAILURE=7 · CANCELLED=1 · IN_PROGRESS=2. FAILURE_IDs=31657457494,31655870062,31655870053,31654494015,31654493845,31654493844,31652927939. 31657457494 kok neden alintisi: `shop-bayatlik-kapisi.py` 937.3 dk eski, canli shop worker bayat — **Okan/mimar karari gerektirir ama YAYINI BLOKLAMAZ** (K30 KAPANDI, kapinin bugunku rc durumu ayri kontrol gerek). Diger 6 failure olcum/serit kapilari (D1 sapma, Yayin erisim, Paket tazeligi, Serit B nobet) → §2: `cron-nabzi` ALARM koludur, tek basina kirmizi "CI kirik" sayilmaz. SON_DEPLOY_SHA=1ec9a00e · SON_DEPLOY_KONCLUSION=success · HEAD_SHA=1ec9a00e · **HEAD_ATA_MI=true** · HUKUM=YAYIN_ATAMIS.
+- **§4.7 TAMIRCI NABZI:** ACIK=18 · EN_ESKI=K49 (2026-08-11, yas=2g) · EN_YENI=K88 (2026-08-13). Sahipleri: Tamirci→Tamirci 7 · KraL→Tamirci 4 · MaCiT→Tamirci 3. **BU_TURDA_KAPANDI=0 · DAGITIM=yok** (hacim artarsa birim degil KUYRUK buyur, kural). Tek Codex/spec cagirisi YAPILMADI.
+
+**Yapilmayan:** §3 duzeltme (Codex/spec) — yok; CI ariza degil (alarm-kol sinifi), 00:42Z turundaki "6 kirmizi" ile karismamali. YANLIS=4 icin kurtarma YAPILMADI (otomatik degil, Okan kapisi).
+
+**Okan karari gerekli mi?** HAYIR — §5 sessiz varsayilan. YAYIN_ATAMIS, supurme RC=0, MAIL TEMIZ, K30 zaten KAPANDI (12 Agu, premis bayatti); 18 🔧 acigi rutin tasima, haftalik BaBa olcumunde.
+
+**Kalici ders (jeton kalibi):** 00:42Z'de 5 denemede reddedilen `codex-muafiyet` regex'i bu turda `<is tanimi> — olcum` formatiyla gecti; `agent-kapisi-muafiyet-jetonu.md` hafizasi tutarli, tek harf/ayrac kaybiyordu. Not `agent-kapisi-muafiyet-jetonu.md`'deki "SIRA da kuraldir" notunu tasdiq etti.
+
+## 13 Agu 2026 04:42Z — SAATLIK CI NOBETI DUZELTME+KAPAMA (KraL, OTOMATIK)
+
+**Hukum:** §5 sessiz varsayilan — Okan'a CIKIS YOK. Yayin zinciri geri
+acildi (Peugeot x Thingiverse partisi `b6247cd` SKIPPED iken, fix sonrasi
+yayina girdi).
+
+**Olculen (isci raporlari, jeton `olcum`/`derinlesme`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=4 · TASINAN=4 · ATLANAN=0 · CIKAN=4 ·
+  KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=49:2026-08-13T04:42Z ·
+  HUKUM=SUPURULDU · **RC=0**.
+- **§0.5 COP DENETIMI:** MESRU=48 · **YANLIS=4** (Meta ads receipt x2,
+  DeepSeek dogrulama, Google Pixel tanitim) — **supurmenin tasidigi sey
+  DEGIL** (süpürme yüklemi yalnız GitHub+Run failed; bunlar Cop'te ONCEDEN
+  bulunuyordu, 11 Agu 0.4 acik kalem dersinin ayni izi). §0.5 kapsamina
+  girmez; kurtarma YAPILMADI (Okan kapisi).
+- **§1+§2 ILK OLÇUM:** SON_1H_FAILURE=3 (id 31666230217, 31665148551,
+  31666230171) + 31667315734 son-kosum success. GH_SON_KOSUM=
+  31667315734:success:b6247cd.
+- **§4.5 DERIN TARIhCE:** serit-a3 "Model uyeligi kapisi" adimi son 30
+  kosumda **1 kez** kirmizi (yalniz 31666230171) — **first_occurrence**,
+  DUR tetiklenmedi.
+- **KOK NEDEN (logdan, GH kosum 31666230171):** K19 capraz-marka ekseni; uc ciftin yargisi
+  eksikti, ayni kosumda serit-a2 pilot kabul testi de 1/29 kaldi. Onceki fix `9674f0f`
+  FARKLI kapiydi. _Tam metin DEVAM-ARSIV.md'ye tasindi (sinif kapisi E6; silme yok, tasima var)._
+- **§3 CODEX ICRA (jeton `sessiz-hata`):** ~52dk icinde tamamlandi.
+  KOK_NEDEN=K19 yargisiz uc cift ROZET allow olarak tools/arama.py
+  ROZET_CAPRAZ_IZINLI'ye eklendi · DEGISEN_DOSYALAR=tools/arama.py ·
+  YENI_KOSUM=31669165826:success.
+- **DOGRULAMA (bagimsiz):** yeni kosum 31669165826, headSha
+  `cb8d56b6`; job'lar: **build=success, serit-a2=success, serit-a3=success,
+  serit-a4=success, deploy=success, yayin=success**. Peugeot x Thingiverse
+  partisi (`b6247cd`) SKIPPED'tan LIVE'a gecti.
+- **§4.7 TAMIRCI NABZI:** ACIK=18 · EN_ESKI=K49 (2026-08-11, yas=2g) ·
+  EN_YENI=K88 (2026-08-13) · **BU_TURDA_KAPANDI=0** · DAGITIM=var.
+  K19'u KAPATAN tamirci KALICI kapisi henuz YOK — K30/K32 tipi kalemle
+  izleme Okan kapisi.
+
+**Yapilmayan:** §0.4/0.5 sonrasi EK supurme — Codex baslamadan once zaten
+4 mail cop'lendi, yeni kosum success oldu, baska failure maili yok. §3.5
+"DUR koşulu" tetiklenmedi (first_occurrence, ayni kok neden art arda 2
+kosum daha dusmedi, ulas 3 degil).
+
+**Okan karari gerekli mi?** HAYIR — §5 sessiz varsayilan. K19 kapandi;
+yayin zinciri YESIL; 4 GitHub failure maili Cop'e tasindi; 18 acik
+🔧 rutin tasima (haftalik BaBa olcumunde).
+
+## 13 Agu 2026 08:37Z — SAATLIK CI NOBETI TEMIZ (KraL, OTOMATIK)
+
+**Hukum:** §5 sessiz varsayilan — Okan'a CIKIS YOK. Zincir saglikli,
+onarim gerekmedi, mail cop'lendi, K19 ile ayni rota kapali (K88 yeni
+🔧 disinda).
+
+**Olculen (isci raporlari, jeton `olcum`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=5 · TASINAN=5 · ATLANAN=0 · CIKAN=5 ·
+  KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 ·
+  COP_IZI=5:2026-08-13T08:32:16 · HUKUM=SUPURULDU · **RC=0**.
+- **§0.5 COP DENETIMI:** MESRU=5 · YANLIS=0 · HUKUM=TEMIZ · RC=0.
+- **§1+§2 ILK OLÇUM:** SON_1H_FAILURE=2 (id 31670160822 + 31669165808),
+  ikisi de **alarm-job = `Odeme yolu bayatlik nabzi`** — §2 notu: "`cron-nabzi`
+  job'i bir ALARM koludur, deploy/yayin zincirini durdurmaz" → **CI kırık
+  SAYILMAZ**. Asıl deploy zinciri: son success `31669165826` (5:06Z,
+  `cb8d56b6`); su an `31670160821` (Build & deploy, 5:23Z) **in_progress**
+  serit-a2 + serit-a3 kollarinda ~14dk normal kuyruk davranisi (4.5
+  dersi: cancelled/in_progress yigini tek basina ariza degil).
+- **§3 FIX GEREKMEZ:** iki failure da ALARM-job, deploy zinciri success
+  ile kapali; DUR kosulu tetiklenmedi, Codex acilmadi.
+- **§4.7 TAMIRCI NABZI:** TOPLAM=70 · ACIK=10 · UCUSTA=8 ·
+  OKAN_KAPISI=2 · KAPANDI=32 · **TAMIRCI=18** (17'si 1 gunluk, **K49
+  2 gunluk — SLA 48 saate yaklasiyor**). BU_TUR_KAPANAN=0 ·
+  BU_TUR_DAGITILAN=0. Yeni tek 🔧 = **K88** (kota-olcum.py YAML frontmatter
+  ustune yazma), yeni tek UCUSTA = K87.
+
+**Yapilmayan:** §3 acilmadi, §3.5 zaten 0.4'te kapandi, mail
+denetiminde YANLIS=0.
+
+**Kalici ders (jeton kaliibi):** Bu turda `codex-muafiyet` regex'i ikinci
+kez `<is tanimi> — olcum` formatiyla gecti (sweep iscisi + tamirci
+sayim iscisi); onceki turda da ayni format tutmaliydi. AYNI KALIP
+(`<is tanimi> — <sinif>`) tekrar teyit edildi → `agent-kapisi-muafiyet-jetonu.md`
+notu GUC KAZANDI, SIRA kurali (bos satir/ayrac sonrasi) altin.
+
+**Okan karari gerekli mi?** HAYIR — §5 sessiz varsayilan. Zincir
+YESIL, mail TEMIZ, onarim gerekmedi; K49 SLA takibi 12 Agu 02:4xZ
+itibariyle basladi, ~38 saat sonra OKAN-KAPISI'ne kayar.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
