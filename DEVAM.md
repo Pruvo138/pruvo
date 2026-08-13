@@ -1,5 +1,68 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 13 Agu 2026 — OTURUM KAPANISI (KraL, interaktif)
+
+**YAYIN ACIK.** CI `31722405771`, HEAD `69b77c5f`, **6/6 job yesil**. Gun boyu kapaliydi;
+zincir bes sinif onarimi + iki veri duzeltmesiyle acildi.
+
+**CANLIYA GIDEN (SHA):**
+`6a3409ad` uc sinif onarimi bir arada — (a) **ozyineleme kilidi** `test-skan-art.py`
+(gecici kok kendi icine 33 kez kopyalanip **188 GB** uretmisti; derinlik tavani ·
+zaten-varsa-yeni-seviye-acmama · kopyaya sir tasimama · `ignore_errors` kaldirildi = fail-closed
+temizlik · temp-altinda kalkani), (b) **mukerrer kapisi** artik **commit icerigini** (index+HEAD)
+yargiliyor, calisma agacini degil — yabanci yarim parti alakasiz commit'i kilitlemiyor,
+(c) **katalog tip ekseni** tek alandan (`fiyat`) **kanonik semaya**: 15/15 alan, tam katalog
+**0 sapma**, yanlis-pozitif 0.
+`e03cc879` **id-rename yolu**: isci kimlik ekseni (`PRUVO_ISCI_KOSUMU`) ortak kaynaga
+(`tools/mimar_kimlik.py`) alindi ve kod-kilidi + icra kapisi ayni tablodan okuyor (ikiz tanim
+kapandi) · `urunler-guard --id-rename` (duplicate uretmiyor) · `duzelt.py` URL-guvenli id destegi.
+Uc yeni kabul testi CI'da **bloklayici**: `skan-art-ozyineleme` 6/6 · `mukerrer-kapsam` 5/5 ·
+`katalog-tip-sinifi` 9/9 · `id-rename` 6/6; toplam **13 oldurucu mutant** kirmizi.
+Veri tarafi (MaCiT, benim actigim araclarla): `a317b8c7` id ASCII rename · `69b77c5f` gorsel
+anahtari alt-cizgi→tire.
+
+**DISK (Okan sikayeti kapandi):** bos alan **68 GB → 272 GB**. Tek buyuk sebep bir uretim
+isinin kacak ozyinelemesiydi: **188 GB · 1.542.633 dosya · 33 kat** — ve icinde **99 sir dosyasi**
+(uc ayri kimlik turu, her biri ×33; adlar arsivde) sistem temp'ine cogaltilmisti;
+silindi, kalinti 0. Ayrica `/private/tmp` 85 eski dizin · `.thing-cache` 36G→360M ·
+`urun/`+`marka/` 828 MB build ciktisi · eski worktree'ler. 🔴 Kacagi ureten betik KraL evindeydi
+(`tools/test-skan-art.py`) — TeKiN'e kestigim fatura GERI ALINDI, kutuya duzeltme yazildi.
+
+**STL KURTARMA (Okan "Son Kullanilanlar"dan 10bin+ dosya sildi):** repo dosyalari etkilenmedi,
+R2 etkilenmedi (yukleyicide silme cagrisi YOK). Drive copundeki **5.772** STL'nin **877'si
+R2'de YOKTU** → turlar halinde kurtarildi. Kapanista **R2'de 11.888 STL** (12.394 model, 39,4 GB).
+**Okan kurali olculdu** ("her STL Drive'da VE R2'de"): yerel 580 dosyada
+`HER_IKISINDE` 251→**571** · `SADECE_R2` 301→**0** · `SADECE_DRIVE` 28→**9** ·
+🔴 `HICBIRINDE`=**0** (tek-kopya risk yok). Kalan 9 = 113 baytlik hasat stub'i, gercek STL degil.
+`.bundle` yedekleri Okan onayiyla silindi (main gecmisi repoda mevcuttu).
+
+**KOSUYOR (kapanista devam):**
+- `d1-senkron-ac` (isci, `SPEC-d1-senkron-ac.md`) — D1 136 kayit geri; **MaCiT bunu bekliyor**
+  (Toyota dilim-5 bloklu). Senkron koşumu + parite/Ege teyidi bu turda.
+
+**BEKLIYOR / DEVREDILDI:**
+- **MaCiT:** D1 senkron sonucu · 53 yerel STL'in kaynak-id'si gizli kaynak kaydinda
+  eslenmemis · 9 stub dosya yeniden hasat · `pruvo-hasat/olcum/*-cgtrader-cache` **git'e
+  commit'lenmis** (1.455 dosya / 214 MB) → gitignore + gecmis temizligi karari.
+- **HocA:** `/ara` Worker bayat — `db96c380` site tarafina INDI (`audi araba` 0→455) ama
+  Worker'a inmedi; Ege'ye soran musteri bulamiyor. `parite-test.js` adi "site" der ama fiilen
+  **o Worker'i** olcer (kirmizi saatlerce yanlis eve yazildi).
+- **ArTisT:** `pruvo-pazarlama/gorseller` 576 MB, R2'de kopyasi **YOK** (0/194) — silinmedi,
+  sahibine birakildi.
+- **Bende (siradaki):** D sinifi 13 kova (5'i haksiz kapali gercek model: Fiat Scudo ·
+  Mazda B-Serisi · Peugeot Jumpy · Nissan Primastar · Alfa 916) · `serit-a2` R2 anahtar
+  kapisini **aktif-referans eksenine** cekme karari (whitelist REDDEDILDI) ·
+  uc-kopya nobetcisi (`tools/stl-uc-kopya-nobet.py` onerisi) · `mimar-commit-kapisi` isci
+  eksenini tanimiyor · katalog sayisi **DUSUSUNU** olcen nobetci YOK (93 urun sessizce silinmisti).
+
+**OKAN'DA BEKLEYEN KARAR:** yok. (Disk temizligi, `.bundle`/`stl`/gorsel silme karari ve R2
+token'i verildi; token uretildi ve kullanildi.)
+
+**🔴 GUNUN DERSI (bes onarimin ortak kaliba):** kural bir kapiya kurulup **kardesine
+kurulmuyor** — tip ekseni tek alana, isci kimligi tek kapiya, mukerrer kapsami tek yere,
+R2 anahtar yargisi yanlis birime. Dordu de ayni gun yayini durdurdu. Panzehir: kapsami
+**elle listeden degil kanonik kaynaktan TURET** + kardes kapilari ayni turda tara.
+
 ## 13 Agu 2026 — SAATLIK NOBET TURU ~16:48 (KraL)
 **Süpürme OK:** rc=0 (işçi delege edildi, derinseek-flash motoru — mimar ana oturumu lock altında olduğundan lock muafiyeti). BULUNAN=6 TASINAN=6 ATLANAN=0 CIKAN=6 KOMSU_KAYIP=0 KALAN=0 COP_IZI=27:2026-08-13T19:36:22 (gmlmz hesabında 2 Deltaprints maili ÇÖP'te YANLIS sınıf — süpürme taşımadı, kullanıcının kendi işi; yeni taşınan 6 GitHub Run failed 27->21 MESRU, bağımsız teyit).
 **CI yayın AÇTI:** Build & deploy 31722405771 (HEAD `69b77c5f`, kapi kolu contasi gorsel temizlendi) — 16:46:53Z başladı, 17:07:51Z tamam (21m); 6 job HEPSİ success (build/serit-a2/serit-a3/serit-a4/deploy/yayin). Önceki kırmızı (a317b8c7, e03cc87, 6a3409a, 12de527) eski HEAD'lere aitti, Okan'ın `69b77c5f` fix'i onları kapattı.
@@ -435,3 +498,25 @@ _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 **Okan karari gerekli mi?** EVET — MaCiT tek-yazarli alaninda iki veri duzeltmesi gerekiyor: (1) `c3d-alfa-romeo-156-166-rölanti-sensor-kapagi-v2` id'deki `ö` ASCII disi karakter temizlenmeli, (2) `c3d-alfa-romeo-kapi-kolu-contasi-v2` kaydinda R2 gorsel anahtari alt-cizgi yerine tireye normalize edilmeli. Yalniz MaCiT yapabilir.
 
 **Okan'a cikis (TEK cumle):** "🔴 MaCiT hasat partisi c0106677 veri hatalari: `c3d-alfa-romeo-156-166-rölanti-sensor-kapagi-v2` id ASCII-disi `ö` tasiyor (build FAIL); `c3d-alfa-romeo-kapi-kolu-contasi-v2` gorseller URL'leri alt-cizgi (serit-a2 FAIL + D1 uzlastirici sapma). KraL YASAK — MaCiT tek-yazarli alani; tek fix MaCiT'te."
+
+## 13 Agu 2026 ~20:37Z — SAATLIK CI NOBETI TEMIZ+ZINCIR (KraL, OTOMATIK)
+
+**Hukum:** §5 sessiz varsayilan — Okan'a CIKIS YOK. Yayin zinciri AÇIK (HEAD 88edad3e deploy'lu, HEAD_ATA_MI=true); 9 failure tamameni alarm-monitör kanallarinda (D1 sapma alarmi, Odeme yolu bayatlik nabzi, Paket tazeligi alarmi — YAYINI BLOKLAMAZ). Iki ayri kritik sorun bu turda disarida: D1 SEQ normalize (MaCiT tek-yazarli alani YASAK, sonraki turda onarim paketi) · K30 Odeme worker 31.4 saat bayat (wrangler deploy = Okan kapisi, zaten 10:3xZ'de bildirilmisti; yeni cikis YAPILMAZ).
+
+**Olculen (isci raporu, jeton `olcum`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=4 · TASINAN=4 · ATLANAN=0 · CIKAN=4 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=31:2026-08-13T20:35:50 · HUKUM=SUPURULDU · **RC=0**. Silinen 4 mail: 20:35 D1 uzlastirici (88edad3) · 20:12 Odeme yolu bayatlik nabzi (88edad3) · 20:00 Nöbet şeridi SERIT B (a317b8c) · 19:47 Odeme yolu bayatlik nabzi (69b77c5).
+- **§0.5 COP DENETIMI:** MESRU=31 · **YANLIS=2** (gmlmz Deltaprints 68547/68548 — "Welcome" / Patreon; 15:51 & 08:40). Surepme muhasebesi kapali oldugundan bu 2'sini bu turun supurmesi tasimadi (süpürme yüklemi yalnız GitHub+Run failed; Deltaprints yükleme tutmaz) → 11 Agu 0.4 acik kalem deseninin ayni izi. §0.5 "yanlis supurme alarmi" kapsamina GIRMEZ. Kurtarma YAPILMADI (Okan kapisi).
+- **§1+§2 ILK OLÇUM:** SON_70DK_MATCH=4 · ESKI_KIRMIZI_MATCH=0 · INBOX_SAYACI=7546 · COP_NOTIF_KAYIT=31 · COP_NOTIF_EN_YENI=2026-08-13T20:35:50 · HUKUM=ARIZA_VAR (4 GitHub failure maili surepuldü). Bugun kosum 204, success=9, failure=9, in_progress=2 (sadece nöbet zinciri beklemede — cancelled/in_progress yigini tek basina ariza degil, §4.5).
+- **§2 GH DETAY:** FAILURE_IDS=31726199414 · 31724456149 · 31722405759 · 31721440860 · 31720811949 · 31718144194 · 31718143690 · 31718143666 · 31716498604. HEPSI alarm-monitör kanallarinda — yayin zinciri olculdu: SON_DEPLOY_SHA=88edad3e (HEAD ile ayni), SON_DEPLOY_KONCLUSION=success, **HEAD_ATA_MI=true** → YAYIN_ATAMIS.
+- **§3 TEKNIK TEŞHIS (jeton `derinlesme`):** 
+  - **D1 uzlastirici (31726199414)** kök neden alintisi: `SEQ TAM SAYI ARALIGI TUKENDI: c3d-alfa-romeo-159-spider-far-toz-kapagi-v2 (alt=999999 ust=1000000); once python3 tools/d1-sync.py --seq-normalize kos` → urunler.json 26756 vs D1 26620 = **136 urun D1'de gorunmuyor** (Ege riski). MaCiT tek-yazarli alani → KraL YASAK; onarim paketi sonraki turda MaCiT'e delege edilecek, §4.7 "merge/deploy ALMAZ" kurali.
+  - **Odeme yolu bayatlik (31724456149)** kök neden alintisi: `pruvo-shop worker BAYAT — aktif surum 751b14e9 (2026-08-11T20:00:47Z), en eski yayinlanmamis commit yasi 1886.9 dk (~31.4 saat), esik 120 dk` → **wrangler deploy = Okan KAPISI** (secret/ödeme); 10:3xZ'de zaten bildirildi, yeni cikis YAPILMAZ.
+- **§4.7 TAMIRCI NABZI:** ACIK=18 · EN_ESKI=K49 (2026-08-11, yas=2g) · EN_YENI=K88 (2026-08-13). Sahipleri: Tamirci→Tamirci 7 · KraL→Tamirci 4 · MaCiT→Tamirci 3 · Tamirci→MaCiT 1 · KraL→KraL 1 · diger→Tamirci 2. BU_TUR_KAPANAN=0 · **DAGITIM=yok** (sonraki turun isi; hacim artarsa birim degil KUYRUK buyur).
+- **Isci altyapisi:** derinseek-flash motoru, 1 isci kosumu (ci-nobeti, rc=0). Ana oturum opus'a dokunmadi. Isci temizlik yapti (`/tmp/isci-supurme-rc.py` silindi, dogrulandi).
+
+**Yapilmayan:** §3 duzeltme — D1 SEQ normalize (MaCiT alani YASAK) + K30 (Okan kapisi, zaten bildirilmis); §3.5 mail ek supurme (post-precondition YOK); §4.7 dagitim (sonraki tur). YANLIS=2 kurtarma YAPILMADI (otomatik degil, Okan kapisi; bilinen iz).
+
+**Okan karari gerekli mi?** HAYIR — §5 sessiz varsayilan. K30 zaten 10:3xZ'de bildirilmisti (yeni cikis YAPILMAZ); D1 SEQ sonraki turda MaCiT'e delege (KraL tek-yazarli alana dokunamaz); 4 GitHub failure maili cop'lendi; 18 acik 🔧 rutin tasima.
+
+**Isci ONERI (deftere dusulen):** D1 uzlastirici icin SEQ normalize adimini d1-sync.py'nin kanonik surecine gom, boylece aralik tukenince 'acil elle fix' yerine kendini duzeltsin.
