@@ -1931,25 +1931,41 @@ async function test24UrunKoduLinki() {
   // (b) sayfadaki GERCEK esc()/satirHtml() kaynagini cek (kopya yazmiyoruz — deploy
   //     edilen kod sinanir), vm'de calistir.
   const sayfa = await istekHam("GET", WORKER_UC + "/yonet", { "X-Yonet-Anahtar": TEST_YONET });
-  const dilimAl = (baslangic, bitis) => {
-    const b = sayfa.metin.indexOf(baslangic);
-    const s = b >= 0 ? sayfa.metin.indexOf(bitis, b) : -1;
-    return (b >= 0 && s > b) ? sayfa.metin.slice(b, s) : null;
+  // YAPISAL cikarim (metin siniri DEGIL): sayfanin <script> blogu alinir, icinden ihtiyac
+  // duyulan fonksiyonlar DENGELI SUSLU PARANTEZLE cekilir. Sonraki fonksiyonun adina/dizisine
+  // bagimli olmadigi icin yeni bir yardimci eklenince sinir KAYMAZ (eski dilim "function
+  // kaynakHtml" ile "function boyutMetni" arasini kesiyordu; 4b6f16ac araya kaynakLinkHtml
+  // ekleyince blok yarim cikti -> vm'de SyntaxError). Yalniz adini bildigimiz fonksiyonlar
+  // cikar; olculen yuzey (satirHtml + dogrudan bagimlilari) DEGISMEZ.
+  const scriptAl = (html) => {
+    const m = /<script>([\s\S]*?)<\/script>/.exec(html);
+    return m ? m[1] : null;
   };
-  const escKaynak = dilimAl("function esc(s){", "function tl(k){");
-  // 🔴 CAPA `kaynakHtml`TEN BASLAR, `satirHtml`ten DEGIL: satirHtml artik uretim dosyasi
-  // kaynak blogunu kaynakHtml() ile basiyor ve o fonksiyon satirHtml'in ONUNDE duruyor.
-  // Dar capa (yalniz satirHtml) vm'de `kaynakHtml is not defined` ile PATLIYORDU — yani
-  // kardes bir dosyaya eklenen yeni bir yardimci, bu testin ELLE TUTULAN dilim sinirini
-  // bayatlatti ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]]). Alt sinir asagi cekildi;
-  // olculen yuzey KUCULMEDI, BUYUDU (satirHtml aynen iceride).
-  const satirKaynak = dilimAl("function kaynakHtml(k){", "function boyutMetni(b){");
-  if (!escKaynak || !satirKaynak) {
+  const fonksiyonAl = (kaynak, ad) => {
+    const b = kaynak.indexOf("function " + ad + "(");
+    if (b < 0) { return null; }
+    const ac = kaynak.indexOf("{", b);
+    if (ac < 0) { return null; }
+    let derinlik = 0;
+    for (let i = ac; i < kaynak.length; i++) {
+      if (kaynak[i] === "{") { derinlik++; }
+      else if (kaynak[i] === "}") { derinlik--; if (derinlik === 0) { return kaynak.slice(b, i + 1); } }
+    }
+    return null;
+  };
+  const kaynakScript = scriptAl(sayfa.metin) || "";
+  // satirHtml'in dogrudan bagimli oldugu yardimcilar: esc (kacis), kaynakHtml (uretim dosyasi
+  // satiri) + kaynakLinkHtml (uretici kaynagi satiri). Hepsi cekilir; satirHtml tek basina
+  // vm'de "kaynakHtml is not defined" verirdi.
+  const parcaAdlari = ["esc", "kaynakHtml", "kaynakLinkHtml", "satirHtml"];
+  const parcalar = parcaAdlari.map((ad) => fonksiyonAl(kaynakScript, ad));
+  const kaynakBilesimi = parcalar.every(Boolean) ? parcalar.join("\n") : null;
+  if (!kaynakBilesimi) {
     hatalar.push("sayfa kaynaginda esc/satirHtml bulunamadi (sayfa yapisi degisti mi?)");
   } else {
     const baglam = {};
     vm.createContext(baglam);
-    vm.runInContext(escKaynak + "\n" + satirKaynak, baglam, { filename: "yonet-sayfa.js" });
+    vm.runInContext(kaynakBilesimi, baglam, { filename: "yonet-sayfa.js" });
     if (typeof baglam.satirHtml !== "function") {
       hatalar.push("satirHtml vm'de tanimlanamadi");
     } else {

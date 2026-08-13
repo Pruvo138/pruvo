@@ -1574,9 +1574,12 @@ function kaynakHtml(k){
 // "kaynak kaydı yok" ACIKCA yazilir — bos birakmak "kaynak YOK"u degil "OLCULEMEDI"yi
 // gizlerdi. Suzgec Worker tarafinda da uygulanir (kaynakLinkSuz); buradaki ikinci
 // savunmadir: https disi / bozuk deger href'e GECMEZ, ham deger de basilmaz.
+// ⚠️ REGEX KACISLAMASI: bu kod SAYFA_HTML sablon dizesinin ICINDE yasar; sablon
+// "\/" -> "/" indirdigi icin regex KAYNAKTA "\\/" diye yazilir (yoksa sunulan
+// sayfada "/^https:///" olur, "//" yorum baslatir ve TUM script derlenmez).
 function kaynakLinkHtml(k){
  var u=k&&k.kaynak_link;
- if(!(typeof u==="string"&&/^https:\/\//i.test(u))){
+ if(!(typeof u==="string"&&/^https:\\/\\//i.test(u))){
   return '<span class="yok">kaynak kaydı yok</span>';
  }
  return '<a class="indir" href="'+esc(u)+'" title="'+esc(u)+
