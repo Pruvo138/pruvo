@@ -446,6 +446,9 @@ jobs:
       - name: Marka liste kabul testi (küratörlü çipler + varyant katlama)
         run: python3 tools/marka-liste-test.py
 
+      - name: Site arac es anlamli fiksturu ve mutasyon nobeti
+        run: node tools/site-esanlam-test.js
+
       # MARKA SAYFASI UYELIGI (olculdu, 31 Tem): jenerator uyeligi HAM marka[0] ile
       # taniyordu; "Volvo Penta" (21 Marin) ve "Mercedes-Benz" (20) ham halde taninmis
       # listede olmadigi icin 41 urun HICBIR marka sayfasina girmiyordu. Hata SESSIZ:

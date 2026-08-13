@@ -19,8 +19,27 @@ test kirmizi yanar.
 import copy
 import hashlib
 import json
+import os
 import re
 import unicodedata
+
+_INDEX_YOLU = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "index.html")
+
+
+def _arac_es_anlamli_yukle():
+    """index.html'deki TEK kanonik literalden arac sinifini fail-closed ayikla."""
+    with open(_INDEX_YOLU, encoding="utf-8") as f:
+        kaynak = f.read()
+    es = re.findall(r'^\s*var ARAC_ES_ANLAMLI = (\[[^\n]+\]);$', kaynak, re.MULTILINE)
+    if len(es) != 1:
+        raise RuntimeError("ARAC_ES_ANLAMLI tek kanonik literal olmali (bulunan: %d)" % len(es))
+    deger = json.loads(es[0])
+    if deger != ["oto", "otomobil", "araba", "arac"]:
+        raise RuntimeError("ARAC_ES_ANLAMLI dar sinifi degisti: %r" % deger)
+    return tuple(deger)
+
+
+ARAC_ES_ANLAMLI = _arac_es_anlamli_yukle()
 
 _HARF = str.maketrans({
     "ı": "i", "ç": "c", "ğ": "g", "ö": "o", "ş": "s", "ü": "u", "â": "a", "î": "i",
@@ -54,12 +73,13 @@ def tokenlar(q):
     asagida (L88) tanimli; modul seviyesi ad, cagri aninda cozulur (forward-ref sorun degil).
     DIKKAT: haystack()/urun_hash() DEGISMEZ — sadece SORGU tarafi kok alir, D1 kolonu ayni.
     """
-    return [arama_kok(t) for t in norm(q).split() if t]
+    return [ARAC_ES_ANLAMLI if t in ARAC_ES_ANLAMLI else arama_kok(t)
+            for t in norm(q).split() if t]
 
 
 def esles(hs, tokens):
     """filtered() ile ayni: HER token, arama metninin ALT-DIZESI olmali."""
-    return all(t in hs for t in tokens)
+    return all(any(s in hs for s in t) if isinstance(t, tuple) else t in hs for t in tokens)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

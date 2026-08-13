@@ -2807,13 +2807,25 @@
   function markaSorgusuEsler(p, hedefMarka){
     return markaUyeMi(p, hedefMarka) || baslikMarkalari(p).indexOf(hedefMarka) !== -1;
   }
+  // DAR ES ANLAMLI SINIFI — TEK KANONIK LITERAL. tools/arama.py bu satiri kaynaktan
+  // ayiklar; site ve D1/uretim yuklemi ikinci bir liste tutmaz. norm() `araç`i `arac`
+  // yaptigi icin yazim varyanti ayni uyeye iner.
+  var ARAC_ES_ANLAMLI = ["oto", "otomobil", "araba", "arac"];
+  function aramaTokeniGenislet(token){
+    return ARAC_ES_ANLAMLI.indexOf(token) === -1 ? aramaKok(token) : ARAC_ES_ANLAMLI;
+  }
   // TEK ARAMA PLANI — dört serbest metin çağrı yeri (brandCounts, filtered,
   // edgeJeneratorOzeti, yedek liste) BU fonksiyondan geçer; ikinci gövde doğmaz.
   // kanon !== null → marka sorgusu; aksi halde bugünkü token listesi (davranış AYNEN).
   function aramaPlani(q){
     var kanon = markaAdiKanonu((q || "").replace(/\s+/g, " ").replace(/^ | $/g, ""));
     return { kanon: kanon,
-             tokens: kanon ? [] : norm(q).split(/\s+/).filter(Boolean).map(aramaKok) };
+             tokens: kanon ? [] : norm(q).split(/\s+/).filter(Boolean).map(aramaTokeniGenislet) };
+  }
+  function aramaSecenegiEsler(hs, secenek){
+    return Array.isArray(secenek)
+      ? secenek.some(function(t){ return hs.indexOf(t) !== -1; })
+      : hs.indexOf(secenek) !== -1;
   }
   // hsAl: ürünün arama metnini veren fonksiyon (yedek liste yalnız BAŞLIĞA bakar —
   // o davranış korunur). Marka sorgusunda haystack HİÇ kurulmaz.
@@ -2822,7 +2834,7 @@
     if(!plan.tokens.length){ return true; }
     var hs = (hsAl || haystack)(p);
     for(var i = 0; i < plan.tokens.length; i++){
-      if(hs.indexOf(plan.tokens[i]) === -1){ return false; }
+      if(!aramaSecenegiEsler(hs, plan.tokens[i])){ return false; }
     }
     return true;
   }

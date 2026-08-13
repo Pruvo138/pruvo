@@ -51,7 +51,9 @@ const FONKSIYON_RE = [
 ];
 /** Referansin FIILEN tasidigi imzalar; biri dusesse yuklem sessizce degisirdi. */
 const ZORUNLU_IMZALAR = ["markaAdiKanonu", "baslikMarkalari", "markaUyeMi",
-  "markaSorgusuEsler", "aramaPlani", "aramaPlaniEsler", "markaKatla", "markaNorm"];
+  "markaSorgusuEsler", "aramaTokeniGenislet", "aramaPlani", "aramaSecenegiEsler",
+  "aramaPlaniEsler",
+  "markaKatla", "markaNorm"];
 
 function blokAyikla(src, bas, son) {
   const i = src.indexOf(bas);
