@@ -360,7 +360,7 @@ MUTASYONLAR = [
      {129, 241}, False, 2),
     # --- 28 TEM AGENT-KAPISI NOBETCILERI (BaBa'nin '-o' turundaki 3-mutant standardi) ---
     # MA1 (a): REGEX KONTROLU silinir — _agent_karari daima "gecer" doner (beyan aranmaz).
-    # Boylece beyansiz MIMAR Agent/Task cagrilari (400/402/408/409) acilir.
+    # Sert blokta beyan zaten karar vermez; Okan izniyle eski kurala giren 710/711 acilir.
     ("MA1", lambda d: yama(
         d, ICRA,
         "    if AGENT_MUAFIYET_RE.search(prompt):\n"
@@ -368,14 +368,15 @@ MUTASYONLAR = [
         "    if True:\n"
         '        return "gecer"\n'),
      "28Tem AGENT: beyan REGEX kontrolu silinir (_agent_karari daima 'gecer')",
-     {400, 402, 408, 409}, True, 4),
+     {710, 711}, True, 2),
     # MA2 (b): DAIMA-IZIN-VER — main() AGENT kolu reddi hicbir zaman tetiklemez.
     ("MA2", lambda d: yama(
         d, ICRA,
         '        if agent_karari != "gecer":\n',
         "        if False:\n"),
      "28Tem AGENT: main() AGENT kolu daima izin verir (reddet hic tetiklenmez)",
-     {400, 402, 408, 409}, True, 4),
+     {400, 401, 402, 403, 406, 407, 408, 409, 700, 701, 702, 704, 705, 710, 711},
+     True, 15),
     # MA3 (c): agent_id MUAFIYETI TERSINE — ICRA kimlik daima MIMAR (isci muafiyeti duser).
     # Boylece beyansiz ISCI Agent/Task cagrilari (404/405) reddedilir. Tekil dosya (ICRA)
     # patch'i M2'den (KILIT+ICRA birlikte) ayrisir; beklenen AGENT worker vakalaridir.
@@ -461,12 +462,16 @@ MUTASYONLAR = [
     # I3: motor=='claude' BEYAN SARTI kaldirilir -> sarmalayici AGENT-KAPISI'ni atlatan
     # bir ANAHTAR olur (mimar -> 'isci.sh claude' -> surtunmesiz Claude iscisi).
     # IKI vaka birden kizarir: 613 (beyan yok) ve 615 (spec dosyasi hic okunmaz).
-    ("I3", lambda d: yama(
-        d, ICRA,
-        '    if motor == "claude":\n',
-        '    if False and motor == "claude":\n'),
-     "13Agu ISCI: motor=claude BEYAN SARTI kaldirilir (AGENT-KAPISI atlatilir)",
-     {613, 615}, True, 2),
+    ("I3", lambda d: (
+        yama(d, ICRA,
+             '    if (motor == "claude" and EV_ADI in SERT_BLOK_EVLER and\n'
+             '            os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):\n',
+             '    if False:\n'),
+        yama(d, ICRA,
+             '    if motor == "claude":\n',
+             '    if False and motor == "claude":\n')),
+     "13Agu ISCI: motor=claude sert blok + eski BEYAN SARTI birlikte kaldirilir",
+     {613, 614, 615, 707, 712}, True, 5),
     # I4: spec OKUNAMADIGINDA red yerine 'gecer' (FAIL-OPEN). "Beyani olcemedim" yesile
     # doner. I3'ten AYRISIR: 613 (spec OKUNUYOR, beyan yok) YESIL kalir — mutantin
     # kirmizisi yalniz 615'tir, yani iki eksen tek ize erimemistir.
@@ -480,7 +485,7 @@ MUTASYONLAR = [
         "            return (\n"
         "                \"isçi sarmalayıcısı 'claude' MOTORUYLA çağrılıyor ama SPEC DOSYASI \"\n"),
      "13Agu ISCI: spec okunamadiginda RED yerine 'gecer' (FAIL-OPEN)",
-     {615}, True, 1),
+     {712}, True, 1),
     # I5 (TERS YONLU): kural KOMPLE kapatilir -> 13 Agu ONCESI hale donus. Mesru
     # delegasyon cagrilarinin HEPSI yeniden RED alir (olculen delik geri gelir). Tek
     # yonlu nobetci olu nobetcidir: "kural yakaliyor mu" kadar "kural ACIYOR mu" da olculur.
@@ -492,7 +497,7 @@ MUTASYONLAR = [
         "        if False and isci_karari is not None:\n"),
      "13Agu ISCI: kural komple kapatilir (13 Agu ONCESI delik geri doner) — mesru "
      "delegasyon cagrilari yeniden RED",
-     {600, 601, 602, 603, 604, 614, 631}, True, 7),
+     {600, 601, 602, 603, 604, 631, 708, 709}, True, 8),
     # --- 13 AGU-2 SARMALAYICI KIMLIK EKSENI ---
     # J mutantlari yalniz 650-659 kimlik takiminda kosar. Boylece beklenen kume TAM
     # esitliktir; bir ekseni oldurmenin katalogdaki ilgisiz yuzlerce vakayi topluca
@@ -579,6 +584,65 @@ KENDI_TESTINI_KOSAN = {
 M7_YESIL_KALMALI = {4, 5}
 
 
+# 13 AGU SERT BLOK — uc zorunlu oldurucu. Bunlar ev kapsamını davranissal olcmek icin
+# kapiyi dogrudan PreToolUse payload'uyla kosturur; ana kabul takiminin KraL'a civilenmis
+# REPO_ONEKI sabiti diger-ev sizintisini tek basina olcemez.
+def _sert_tum_evlere_yay(dizin):
+    yama(dizin, ICRA,
+         'SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")\n',
+         'SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat", "pruvo-jenerator", '
+         '"pruvo-pazarlama", "pruvo-bot", "pruvo-advisor")\n')
+    yama(dizin, ICRA,
+         'REPO_ONEKI = "/Users/okan/dev/pruvo/"\n',
+         'REPO_ONEKI = "/Users/okan/dev/pruvo-jenerator/"\n')
+
+
+SERT_MUTASYONLAR = (
+    ("S1", lambda d: yama(
+        d, ICRA,
+        'SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")\n',
+        'SERT_BLOK_EVLER = ()\n'),
+     "sert blok ev kumesi bosaltilir", {}, "deny"),
+    ("S2", _sert_tum_evlere_yay,
+     "sert blok dort serbest eve sizdirilir (KaaN taklidi)", {}, "allow"),
+    ("S3", lambda d: yama(
+        d, ICRA,
+        'def _agent_karari(girdi):\n'
+        '    """28 TEM — AGENT-KAPISI karari (mimar ANA oturumu bir Claude iscisi acarken). Doner:\n',
+        'def _agent_karari(girdi):\n'
+        '    os.environ["PRUVO_CLAUDE_ISCI_IZNI"] = "OKAN" if '
+        'os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") else ""\n'
+        '    """28 TEM — AGENT-KAPISI karari (mimar ANA oturumu bir Claude iscisi acarken). Doner:\n'),
+     "Okan izninde deger kontrolu kaldirilir; varlik yeterli olur",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "evet"}, "deny"),
+)
+
+
+def sert_mutasyonu_kostur(ad, uygulayici, ek_env):
+    dizin = os.path.join(MUTASYON_KOK, ad)
+    os.makedirs(dizin)
+    shutil.copyfile(os.path.join(TOOLS, ICRA), os.path.join(dizin, ICRA))
+    uygulayici(dizin)
+    payload = {
+        "session_id": "sert-mutasyon",
+        "cwd": "/Users/okan/dev/pruvo",
+        "permission_mode": "bypassPermissions",
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Agent",
+        "tool_input": {"prompt": "codex-muafiyet: kapi kodu — sessiz-hata"},
+    }
+    ortam = dict(os.environ)
+    ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+    ortam.update(ek_env)
+    sonuc = subprocess.run([sys.executable, os.path.join(dizin, ICRA)],
+                           input=__import__("json").dumps(payload), capture_output=True,
+                           text=True, env=ortam)
+    if sonuc.returncode != 0:
+        return "COKTU"
+    return "deny" if '"permissionDecision": "deny"' in (sonuc.stdout or "") else "allow"
+
+
 def mutasyonu_kostur(ad, uygulayici, kendi_testi=False, yalniz_kimlik=False):
     """Mutasyonu gecici kopyaya uygular ve kabul testini kosturur.
 
@@ -634,6 +698,14 @@ def main():
             if not tamam:
                 basarisiz.append(ad)
 
+        for ad, uygulayici, aciklama, ek_env, dogru_beklenen in SERT_MUTASYONLAR:
+            olculen = sert_mutasyonu_kostur(ad, uygulayici, ek_env)
+            olduruldu = olculen != dogru_beklenen
+            print("SERT MUTASYON {} | dogru={} mutant={} | {} | {}".format(
+                ad, dogru_beklenen, olculen, "GECTI" if olduruldu else "KALDI", aciklama))
+            if not olduruldu:
+                basarisiz.append(ad)
+
         # KONTROL MUTANTLARI: kriter TERSTIR — SIFIR kirmizi + exit 0 beklenir. Takimin
         # "her degisiklige kirmizi yaniyor" olmadiginin, yani AYIRT EDICI oldugunun kaniti.
         for ad, uygulayici, aciklama in KONTROL_MUTANTLARI:
@@ -662,7 +734,8 @@ def main():
         subprocess.run(["git", "-C", KOK, "worktree", "prune"],
                        capture_output=True, text=True)
 
-    toplam = len(MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) + len(KONTROL_MUTANTLARI)
+    toplam = (len(MUTASYONLAR) + len(SERT_MUTASYONLAR) + len(KENDI_TESTINI_KOSAN) +
+              len(KONTROL_MUTANTLARI))
     print("")
     if basarisiz:
         print("SONUC: KIRMIZI — esigi tutturamayan mutasyonlar: " + ", ".join(basarisiz))
@@ -670,7 +743,8 @@ def main():
     print("SONUC: {}/{} mutant beklenen isareti verdi "
           "({} kural mutasyonu KIRMIZI + {} kontrol mutanti YESIL + {} cevre-ariza "
           "enjeksiyonu).".format(
-              toplam, toplam, len(MUTASYONLAR), len(KONTROL_MUTANTLARI),
+              toplam, toplam, len(MUTASYONLAR) + len(SERT_MUTASYONLAR),
+              len(KONTROL_MUTANTLARI),
               len(KENDI_TESTINI_KOSAN)))
     sys.exit(0)
 

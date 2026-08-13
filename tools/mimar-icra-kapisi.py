@@ -151,6 +151,12 @@ import sys
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
 GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
 
+# 13 AGU Okan emri: KraL + MaCiT evlerinde Claude iscisi bir secenek degil, makine
+# kuralidir. Ev karari bu TEK kapali kumeden ve evin kendi REPO_ONEKI sabitinden cikar;
+# ikinci ev listesi tutulmaz.
+SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")
+EV_ADI = os.path.basename(os.path.normpath(REPO_ONEKI))
+
 
 def kimlik_ekseni(girdi):
     """ISCI kimliginin kaynagini dondurur; None = MIMAR.
@@ -308,7 +314,7 @@ AGENT_MUAFIYET_RE = re.compile(
 # SURUM DAMGASI — tools/mimar-kapi-kur.py --agent-kapisi bu dizeyi arayarak "bu evde
 # AGENT-KAPISI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev). Kurali
 # degistirirsen damgayi da yukselt.
-AGENT_KURAL_SURUMU = "13agu-1"
+AGENT_KURAL_SURUMU = "13agu-2"
 # Codex reddindeki gibi: AGENT reddinde GEREKCE_SONU KULLANILMAZ ("bu isi isciye delege et"
 # der — oysa AGENT cagrisi ZATEN isci acma girisimi). Yerine IKI CIKISI net soyleyen kuyruk.
 AGENT_SINIF_LISTESI = " / ".join(AGENT_SINIFLARI)
@@ -322,6 +328,21 @@ AGENT_GEREKCE = (
     "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
     "codex-isci yasak listesi)."
 ).format(ornek=AGENT_ORNEK_SINIF, liste=AGENT_SINIF_LISTESI)
+
+
+def _sert_blok_gerekcesi():
+    """KraL/MaCiT sert reddi; acik yollar kanonik sabitlerden turetilir."""
+    return (
+        "AGENT-KAPISI (13 Ağu Okan emri): bu evde mimar ANA oturumunun Claude işçisi "
+        "(Agent/Task ve isci.sh claude) açması, 'codex-muafiyet:' beyanı bulunsa bile "
+        "YASAKTIR. 'claude' motoru da aynı yasağın kapsamındadır; pahalı kat pahalı kattır. "
+        "PRUVO_CLAUDE_ISCI_IZNI yalnızca tam olarak OKAN ise eski beyan kuralı çalışır; "
+        "bu izni yalnızca Okan verir ve ajan kendi ayarlayamaz. İKİ AÇIK YOL: (a) " +
+        ISCI_SARMALAYICI_YOLU + " <motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
+        "(ucuz motorlar: " + " / ".join(m for m in ISCI_MOTORLARI if m != "claude") +
+        "; kapalı motor kümesi: " + ISCI_MOTOR_LISTESI + "); (b) codex exec -C <ev> "
+        "-s workspace-write -o <dosya> \"<spec>\"."
+    )
 
 
 def _agent_gorulen_sinif(prompt):
@@ -433,7 +454,7 @@ ISCI_ARGUMAN_SAYILARI = (3, 4)
 # ISCI-SARMALAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
 # dogrulamasi; --codex-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
 # degistirirsen damgayi da yukselt.
-ISCI_KURAL_SURUMU = "13agu-2"
+ISCI_KURAL_SURUMU = "13agu-3"
 ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
 ISCI_GEREKCE_SONU = (
     " DOGRUSU: " + ISCI_SARMALAYICI_YOLU + " <MOTOR> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
@@ -495,6 +516,10 @@ def _isci_karari(tokenlar):
             "Bilinmeyen motor VARSAYILAN RED (fail-closed): yarın eklenecek bir motor bu "
             "kapıyı kendiliğinden AÇMAZ."
         )
+
+    if (motor == "claude" and EV_ADI in SERT_BLOK_EVLER and
+            os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):
+        return _sert_blok_gerekcesi()
 
     if motor == "claude":
         spec_yolu = argumanlar[2]
@@ -833,6 +858,9 @@ def _agent_karari(girdi):
     cagrilir. tool_input.prompt taranir (Agent/Task araclarinin spec alani). Prompt yoksa
     ya da str degilse BOS sayilir → beyan yok → RED (fail-closed: eksik/bozuk girdi acmaz).
     KABA + TEK REGEX (parser taklidi yok): AGENT_MUAFIYET_RE tek makine-aranabilir desendir."""
+    if (EV_ADI in SERT_BLOK_EVLER and
+            os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):
+        return _sert_blok_gerekcesi()
     ti = girdi.get("tool_input") or {}
     prompt = ti.get("prompt")
     if not isinstance(prompt, str):

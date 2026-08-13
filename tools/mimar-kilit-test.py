@@ -542,32 +542,53 @@ MIMAR_22TEM_VAKALARI = [
      "sh: tiresiz repo-disi yol argumani -> dis_yol (M20 nobetcisi)"),
 ]
 
-# === 28 TEM AGENT-KAPISI VAKALARI ===
-# Mimar ANA oturumu (agent_id YOK) bir Claude iscisi (Agent/Task) acarken prompt'ta
-# 'codex-muafiyet: <is> — <sinif>' beyan satiri SART. ISCI (agent_id DOLU) TAM muaf.
+# === 28 TEM AGENT-KAPISI + 13 AGU SERT BLOK VAKALARI ===
+# 13 Agu Okan emri: KraL'da mimar ANA oturumu Agent/Task'i beyanla bile ACAMAZ. Tek
+# kacis PRUVO_CLAUDE_ISCI_IZNI=OKAN; o zaman eski beyan kurali calisir. ISCI TAM muaf.
 # MA1/MA2/MA3 mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
 AGENT_DECL = "codex-muafiyet: kapi kodu insasi — sessiz-hata"
 AGENT_VAKALARI = [
     (400, "deny", "Agent", "Bir seyler yap, spec burada.", None,
      "MIMAR Agent + beyan YOK -> RED"),
-    (401, "allow", "Agent", "Is: X yap.\n" + AGENT_DECL + "\nDevam et.", None,
-     "MIMAR Agent + gecerli beyan -> GECER"),
+    # 13 Agu Okan emri: KraL sert blok evdir; eski allow beklentisi deny'a cevrildi.
+    (401, "deny", "Agent", "Is: X yap.\n" + AGENT_DECL + "\nDevam et.", None,
+     "MIMAR Agent + gecerli beyan -> RED (KraL sert blok)"),
     (402, "deny", "Task", "Task prompt, beyansiz.", None,
      "MIMAR Task + beyan YOK -> RED"),
-    (403, "allow", "Task", AGENT_DECL, None,
-     "MIMAR Task + beyan -> GECER"),
+    (403, "deny", "Task", AGENT_DECL, None,
+     "MIMAR Task + beyan -> RED (KraL sert blok)"),
     (404, "allow", "Agent", "Beyansiz isci prompt'u.", ISCI_ID,
      "ISCI Agent + beyan YOK -> GECER (kural yalniz ANA oturuma)"),
     (405, "allow", "Task", "Beyansiz isci prompt'u.", ISCI_ID,
      "ISCI Task + beyan YOK -> GECER (kimlik ekseni muafiyeti)"),
-    (406, "allow", "Agent", "codex-muafiyet: gorsel okuma isi - görsel", None,
-     "tire '-' ayrac + sinif -> GECER (ayrac toleransi)"),
-    (407, "allow", "Agent", "CODEX-MUAFIYET: olcum isi — ölçüm", None,
-     "etikette BUYUK/kucuk DUYARSIZ -> GECER"),
+    (406, "deny", "Agent", "codex-muafiyet: gorsel okuma isi - görsel", None,
+     "gecerli beyan sert blogu ACMAZ"),
+    (407, "deny", "Agent", "CODEX-MUAFIYET: olcum isi — ölçüm", None,
+     "buyuk/kucuk duyarsiz gecerli beyan sert blogu ACMAZ"),
     (408, "deny", "Agent", "codex-muafiyet: is — foobar", None,
      "GECERSIZ sinif (yasak listede degil) -> RED"),
     (409, "deny", "Agent", "Bu is bir ölçüm ve güvenlik isi.", None,
      "sinif KELIMELERI var ama ETIKET yok -> RED"),
+    (700, "deny", "Agent", "Is: X yap.\n" + AGENT_DECL, None,
+     "KraL Agent + gecerli beyan -> RED"),
+    (701, "deny", "Agent", "Beyansiz is.", None,
+     "KraL Agent + beyan yok -> RED"),
+    (702, "deny", "Task", AGENT_DECL, None,
+     "KraL Task + gecerli beyan -> RED"),
+    (703, "allow", "Agent", AGENT_DECL, None,
+     "Okan izni + beyan -> eski kural ALLOW", {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
+    (704, "deny", "Agent", AGENT_DECL, None,
+     "yanlis izin degeri fail-closed", {"PRUVO_CLAUDE_ISCI_IZNI": "evet"}),
+    (705, "deny", "Agent", AGENT_DECL, None,
+     "bos izin degeri fail-closed", {"PRUVO_CLAUDE_ISCI_IZNI": ""}),
+    (706, "allow", "Agent", "Beyansiz isci prompt'u.", ISCI_ID,
+     "agent_id dolu ISCI sert bloktan muaf"),
+    (710, "deny", "Agent", "Okan izni var ama beyan yok.", None,
+     "Okan izni eski beyan kuralini kaldirmaz",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
+    (711, "deny", "Agent", "codex-muafiyet: is — foobar", None,
+     "Okan izninde gecersiz sinif yine RED",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
 ]
 
 # === 8 AGU MCP-TARAYICI KAPISI VAKALARI (Okan teftisi K17) ===
@@ -675,9 +696,9 @@ ISCI_SARMALAYICI_VAKALARI = [
     (613, "deny", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "motor=claude + spec'te BEYAN YOK -> RED (AGENT-KAPISI atlatilamaz) [I3 sentinel]"),
-    (614, "allow", "Bash",
+    (614, "deny", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
-     "motor=claude + spec'te 'codex-muafiyet: ... — sessiz-hata' VAR -> GECER"),
+     "KraL sert blok: motor=claude + gecerli beyan bile RED"),
     (615, "deny", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, None,
      "motor=claude + spec dosyasi YOK (okunamadi) -> RED [I4 sentinel, fail-closed]"),
@@ -712,6 +733,20 @@ ISCI_SARMALAYICI_VAKALARI = [
     (641, "allow", "Bash",
      "/tmp/isci.sh gpt-9 /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, ISCI_ID,
      "ISCI + kuralin TUM sartlarini ihlal eden cagri -> GECER (kimlik ekseni muafiyeti)"),
+    (707, "deny", "Bash",
+     ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
+     "KraL isci.sh claude + beyan -> RED"),
+    (708, "allow", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "KraL isci.sh deepseek-flash -> ALLOW"),
+    (709, "allow", "Bash",
+     ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
+     "Okan izni + beyan: eski claude kurali ALLOW",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
+    (712, "deny", "Bash",
+     ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, None,
+     "Okan izninde okunamayan spec yine fail-closed RED",
+     {"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"}),
 ]
 
 # === 13 AGU-2: SARMALAYICI ANA OTURUMU KIMLIK EKSENI ===
@@ -831,6 +866,7 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None):
     ortam = dict(os.environ)
     ortam.pop("CLAUDE_PROJECT_DIR", None)
     ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
     ortam.update(ek_env or {})
     sonuc = subprocess.run(
         [sys.executable, kanca],
