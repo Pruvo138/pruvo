@@ -51,7 +51,7 @@ kume, bos/bilinmeyen deger fail-closed). Uctan uca kanit: ayni cagri ONCE `deny`
 **Sayilar:** `mimar-kilit-test` 240 → **282 vaka** · mutasyon 44 → **56** · 6ev 210 → **222** ·
 dagitim **6/6 ev** (kendi grep'imle dogrulandi) · canli davranis **15/15** · dagitim kaniti 5/5.
 
-**Isci altyapisi:** 4 evde (BaBa/ArTisT/HocA/KaaN) isci FIILEN kostu (kapilari rc=0). Skill'ler
+**Isci altyapisi:** 4 evde (BaBa/ArTisT/HocA/TeKiN) isci FIILEN kostu (kapilari rc=0). Skill'ler
 15 profile baglandi ve kalicilik sarmalayiciya yazildi (taze profil skill'li + guvenli dogar,
 "not trusted" uyarisi kayboldu). 🔴 Isci **tarayici SUREMEZ** (elde 0 MCP, diskte tanim 0, ayar
 kopyalamak yetmez) → **panel/tarayici isi CODEX'in**; bayat "Codex Chrome suremez" notu duzeltildi.
@@ -79,7 +79,7 @@ sayfasiz, rozet-disi engeli basta) ve ucuz motora ver.
 
 **Okan karari:** 3 x 20x hesap -> 1. Hedef %66, tasarim %80'e gore. **Once olctum, sonra
 tasidim.** 7 gunluk Claude yuku **32,26 milyar**; **%78,3'u ALT-AJAN**, %21,7 ana oturum.
-Ev: **MaCiT %51,3 · KraL %35,1** · ArTisT %6,9 · KaaN %3,7 · HocA %1,8 · BaBa %0,9.
+Ev: **MaCiT %51,3 · KraL %35,1** · ArTisT %6,9 · TeKiN %3,7 · HocA %1,8 · BaBa %0,9.
 Model **opus %91** (KraL evinde). Nobetler kotanin yalniz **%0,32**'si — cron gocunun
 kota etkisi ihmal edilebilir, degeri altyapiyi kurmasiydi.
 🔴 Iki hipotezim CURUTULDU: yuk ana oturumda DEGIL; "Codex'e veriyorum temizim" de yanlis —
@@ -110,7 +110,7 @@ Alarm: E1 toplam bir onceki olcume gore +%25 · E2 alt-ajan payi >%50 -> kutuya 
 tasima gerceklesmemistir. Motor secimi izlenimle DEGIL `isci.log`'daki `MOTOR=`/`sure=` +
 kapi rc'siyle revize edilir (kalite = kapi rc'si, hiz = sure).
 
-**SIRADAKI TEK IS:** ArTisT'in isci katini gecir (%6,9), sonra KaaN/HocA/BaBa; ardindan
+**SIRADAKI TEK IS:** ArTisT'in isci katini gecir (%6,9), sonra TeKiN/HocA/BaBa; ardindan
 BaBa'nin kalici-duzen kanit cevabi (3-serit -> korumali main -> merge kuyrugu).
 
 ## 13 Agu 2026 — YAYIN ZINCIRI KAPANDI (KraL)
@@ -135,12 +135,12 @@ olculup kapandi:
 **🔴 CI KAPSAM KAPISI YANLIS-POZITIFI KAPANDI (gunun en pahali sinifi).** Kapi push'un
 ICERIGINI degil CALISMA AGACINI yarguluyordu: `git add` edilmemis YABANCI bir dosya
 BASKASININ push'unu blokluyordu. Bugun **4 kez** oldu, ucu MaCiT'in urun partilerini +
-KaaN'in commit'ini durdurdu. Kapsam artik pre-push'un verdigi ref/SHA araligindan
+TeKiN'in commit'ini durdurdu. Kapsam artik pre-push'un verdigi ref/SHA araligindan
 turuyor; aralik olculemezse ESKI KATI davranis (fail-closed). Kati kol mutasyonla
 korundu, muafiyet listesine satir EKLENMEDI.
 
 **Ayrica:** `duzelt.py` `tavsiyeFilament` alanini kabul ediyor (tip dogrulamali, 185
-iddia) -> KaaN'in ASA tavsiyesi canliya indi (`a3d5cae1`). Kusurlu `--yeni-id` calismasi
+iddia) -> TeKiN'in ASA tavsiyesi canliya indi (`a3d5cae1`). Kusurlu `--yeni-id` calismasi
 (hal kapisi eski id ile cagriliyor + gizli kayitta hedef id kontrolu eksik) main'e
 ALINMADI, yamasi arsivde. Worktree **4 -> 1** (bundle verify rc=0, 103+102 ref; dallar
 SILINMEDI). K20 `son-zorunlu` kanit sha `cb35de6f` ile KAPALI.
@@ -311,5 +311,42 @@ _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory
 4. Odeme yolu bayatlik hâlâ kırmızı ise: §5 Okan cikis KAPALI (zaten bu turda bildirildi); sadece not olarak "hâlâ canli" yaz, yeni cikis YAPMA.
 
 **Okan karari gerekli mi?** EVET — §5: deploy/yetki/ödeme kapısı → canlı pruvo-shop worker 20+ saattir deploy edilmedi (esik 120 dk). Bu turda **TEK cümle** ile bildirildi (aşağıda).
+
+## 13 Agu 2026 11:37Z — SAATLIK CI NOBETI DUZELTME+KAPAMA (KraL, OTOMATIK)
+
+**Hukum:** §5 sessiz varsayilan — Okan'a EK CIKIS YOK (zaten 10:3xZ turunda Odeme yolu bayatlik bildirildi; zincir kapali, hâlâ kırmızı K30 alarm-kol sinifinda YAYINI BLOKLAMAZ). Yayin zinciri geri AÇILDI.
+
+**Olculen (isci raporlari, jeton `olcum`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=11 · TASINAN=11 · ATLANAN=0 · CIKAN=11 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · HUKUM=SUPURULDU · RC=0.
+- **§0.5 COP DENETIMI (turn basinda, 07:41Z):** MESRU=26 · **YANLIS=3** (gmlmz 68435/68433/68437 — WinningCircle ×2 + Skool — bu 3 kayit süpürmenin tasidigi sey DEGIL; 11 Agu 0.4 acik kalem deseninin ayni izi). Kapanis §3.5 sonrasi yeniden kosulan §0.4 SUPURME (11:39Z): GITHUB_BILDIRIM_INBOX=0, HUKUM=TEMIZ (tum Run failed mailler daha once tasinmis, yeni mail yok).
+- **§1+§2 ILK OLÇUM:** Onceki tur 10:3xZ'in yarim isi (a40d60af) dogrulandi — a40d60af Build&deploy 31675628397 FAILED (serit-a2 Alt kategori + serit-a3 Uyum yazma); sonraki 31677061919 + 31677709487 de serit-a2 kirmizi (CANLI ariza, 3 farkli failure). Son basarili deploy 05:23:34Z `c0c1ffe` (yayin ~6 saattir bloklu).
+- **§3 CODEX ICRA — ROUND 1 (jeton `sessiz-hata`):** Spec `/tmp/codex-spec-11-37.md` yazildi. Codex ~30dk icinde 3 commit atti: `26f1e51d` (serit-a2+serit-a3: arama importunu lazy fail-closed yap) · `2fea4c17` (serit-a3: arama lazy kabul testini CI kapsamina al) · `4b548f35` (serit-a2: lazy arama ikiz mutantini ilk kullanimda olc). Push sonrasi run `31680163661`: **build=success, serit-a3=success, serit-a4=success, serit-a2=failure, deploy=skipped, yayin=skipped**. KOK_NEDEN=`yayin-ic-dil-kapisi.py --kaynak` JS yorumlarindaki `tools/arama.py` literali fail-closed (4 vurus, index.html ~satir 2810-2815).
+- **§3 CODEX ICRA — ROUND 2 (jeton `sessiz-hata`):** Spec `/tmp/codex-spec-11-37b.md` ile hedefli duzeltme (yorumdaki `tools/arama.py` literallerini kaldir, anlami koru, `tools/arama.py`'ye DOKUNMA). Codex `30ae966e` commit'i push'la. Yeni run `31682761778`: **build=success, serit-a2=success, serit-a3=success, serit-a4=success, deploy=success, yayin=success**. Tum isler yesil; bagimsiz `gh run view --json conclusion` ile dogrulandi. YENI_KOSUM=31682761778:success.
+- **§4.7 TAMIRCI NABZI:** Onceki turdan degisiklik yok (ACIK=18, K49 2-gunluk SLA sinirinda). Tamirci bu turda onarim yapmadi — yalnizca Codex delegasyonu.
+- **K30 (Odeme yolu bayatlik):** HÂLÂ kirmizi (cron-nabzi alarm kolu), YAYINI BLOKLAMAZ, eşik 120 dk'yi coktan asti. 10:3xZ turunda Okan'a bildirildi; bu tur §5 sessiz varsayilan.
+
+**Yapilmayan:** §3 yeni fix gerekmedi; §3.5 zincirine gore 3 farkli failure sinifi (serit-a2 Alt kategori + serit-a3 Uyum yazma + serit-a2 ic-dil kapisi) teker teker KAPANDI → onlarin "Run failed" mailleri zaten turn basinda cop'lendi (BULUNAN=11'in tamami).
+
+**Okan karari gerekli mi?** HAYIR — §5 sessiz varsayilan. K30 hâlâ canli ama 10:3xZ'de bildirilmisti, yeni cikis YAPILMAZ; zincir YESIL.
+
+## 13 Agu 2026 12:42Z — SAATLIK CI NOBETI TEMIZ+ZINCIR (KraL, OTOMATIK)
+
+**Hukum:** §5 sessiz varsayilan — Okan'a CIKIS YOK. Zincir YESILE donuyor (HEAD'de kosum kosa), CI arıza degil; K30 bilinen, 10:3xZ'de bildirilmis.
+
+**Olculen (isci raporu, jeton `olcum`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=8 · TASINAN=8 · ATLANAN=0 · CIKAN=8 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=39:2026-08-13T13:27:41 · HUKUM=SUPURULDU · **RC=0**.
+- **§0.5 COP DENETIMI:** MESRU=39 · **YANLIS=4** (gmlmz 68435 WinningCircle 09:01 · gmlmz 68433 WinningCircle 09:01 · gmlmz 68437 Skool 09:01 · dio 68479 Google Store 10:30) — bunlar supurmenin tasidigi sey DEGIL (yuklem yalniz GitHub+Run failed; 4'u de onceden Cop'te bulunan bulten/spam izi, 11:37Z'de YANLIS=3'tu, yeni YANLIS yok). 11 Agu 0.4 acik kalem deseninin ayni izi → §0.5 "yanlis supurme alarmi" kapsamina GIRMEZ. Kurtarma YAPILMADI (Okan kapisi).
+- **§1+§2 ILK OLÇUM:** SON_1H_FAILURE=2 (F1 31691115071 @214b432 10:26:49Z · F2 31689865549 @0070241 10:09:50Z) — ikisi de **K30 "Odeme yolu bayatlik nabzi [push seridi]"** alarm-job, YAYINI BLOKLAMAZ (§2). MAIL_ESLEME: 8 Run failed mail → 2 canli + daha eski (30ae966/d8ae834/c2a6c15 SHA) workflow failure'lari.
+- **HEAD_DURUM:** HEAD_SHA=214b4323 · SON_DEPLOY_SHA=00702419 · MERGE_BASE: HEAD deploy'u ATA DEGIL (deploy 1 commit geride, HEAD'le catisiyor ama HEAD henuz deploy edilmemis). HEAD'de **in_progress** run 31691114971 (build/serit-a2/serit-a3 kosa; serit-a4 success). **ZINCIR YESILE DONUYOR.**
+- **K30_NBZ:** HALEN KIRMIZI (son 10 kosumun 10'u failure) — "canli shop worker deploy edilmedi" bilinen Okan kapisi, 10:3xZ'de bildirildi.
+- **§4.7 TAMIRCI NABZI:** ACIK=18 · EN_ESKI=K49 (2 gun) · EN_YENI=K88 · BU_TUR_KAPANAN=0 · DAGITIM=var. SAHIPLER: MaCiT=K53,K54,K55,K85 · Tamirci=K69,K70,K71,K72,K77,K78,K80,K84,K86 · KraL→Tamirci=K56,K58,K59,K88 · KraL=K49.
+
+**Yapilmayan:** §3 duzeltme (Codex/spec) — CANLI ariza yok, build zinciri HEAD'de kosuyor, §3.5 tetiklenmedi. YANLIS=4 icin kurtarma YAPILMADI (otomatik degil, Okan kapisi).
+
+**Okan karari gerekli mi?** HAYIR — §5 sessiz varsayilan. K30 hâlâ canli ama 10:3xZ'de bildirilmisti (yeni cikis YAPILMAZ); zincir YESILE donuyor; 8 mail cop'lendi; 18 acik 🔧 rutin tasima.
+
+**ONERI (isci):** cop-denetimi bulten kimliklerini (message-id) muafiyet listesine alip YANLIS'i "yeni-kayit" olarak olcse alarm tekrarini durdurur; kural degisikligi Okan kapisi.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._

@@ -366,12 +366,12 @@ Kategori `Skan Art` + görselli her ürün için `<koken-dizini>/<urun-id>.json`
 `kaynak_stl` + `taban_render` dosyaları **diskte gerçekten** bulunmalı. Zorlama CI'da değil
 **yazım anında**dır (`urun-ekle.py merge_safe` → `gk.zorla` → `KokenIhlali` → hiçbir şey yazılmaz).
 Köken dizinleri artık **BİRLEŞTİRİLİYOR** (12 Ağu onarımı): `pruvo/urun-gorsel-koken` **ve**
-`pruvo-jenerator/urun-gorsel-koken` birlikte taranır. Önceden yalnız ilki okunuyordu ve KaaN'ın
+`pruvo-jenerator/urun-gorsel-koken` birlikte taranır. Önceden yalnız ilki okunuyordu ve TeKiN'ın
 12 manifestlik deposu görünmüyordu: **YEŞİL 0/16 → onarımdan sonra 5/16**. Kalan 11'in **10'u
 gerçekten manifestsiz**, **1'i** (`capa-…`) manifestli ama `kaynak_stl` diskten silinmiş —
 bu iki sınıf `gorsel_koken.py --denetim` çıktısında ayrı ayrı basılır.
 👉 **Yap:** eklemeden önce `python3 tools/gorsel_koken.py --denetim` koş; ürünün adı YEŞİL
-değilse manifesti (ya da eksik STL/render dosyasını) **KaaN'dan** iste — manifest KaaN'ın
+değilse manifesti (ya da eksik STL/render dosyasını) **TeKiN'dan** iste — manifest TeKiN'ın
 düzlemidir, `pruvo-jenerator`'a sen yazmazsın.
 > ⚠️ Aynı id iki dizinde **farklı** içerikle varsa kapı fail-closed kırmızı yakar (hangisinin
 > gerçek köken olduğu aracın kararı değildir). Fazlalığı sil ya da içerikleri eşitle.

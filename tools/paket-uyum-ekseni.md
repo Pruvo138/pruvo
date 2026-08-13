@@ -187,7 +187,7 @@ kalır, kendi sayfası olmaz.
 6. **Ağaç budama + 301** — marka adı taşıyan kategori düğümleri kaldırılır, eskiler yeni sayfaya
    yönlendirilir. ⚠️ GitHub Pages sunucu tarafı 301 vermez; yönlendirme yolu (Cloudflare kuralı
    ya da sayfa içi) ayrıca kararlaştırılacak.
-7. **Yeni ürün doğuştan alanlı** — MaCiT hasat hattı, KaaN jeneratör kendi düzleminde.
+7. **Yeni ürün doğuştan alanlı** — MaCiT hasat hattı, TeKiN jeneratör kendi düzleminde.
 
 ---
 
