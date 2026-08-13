@@ -1886,6 +1886,9 @@ jobs:
       - name: "Uyum yazma yolu (duzelt.py: turetim + iki kaynak + atomiklik + kod ayrimi)"
         run: python3 tools/duzelt-uyum-test.py
 
+      - name: "Arama lazy yukleme (indexsiz fikstur + fail-closed genisleme)"
+        run: python3 tools/arama-lazy-yukleme-test.py
+
       # ALT KATEGORI CIP SATIRI (ana sayfa daraltma yuzeyi) — tools/altkategori-cip-test.py.
       # NEDEN AYRI BIR ADIM: ustteki iki kapi VERI yolunu (D1/hash/izinli kume) ve URUN
       # SAYFASI etiketini olcer; ANA SAYFA daraltmasi UCUNCU bir eksendir ve ikisi yesilken
