@@ -80,6 +80,24 @@ jobs:
       - name: "urunler-guard provenans + fail-loud kabulu"
         run: python3 tools/urunler-guard-provenans-test.py
 
+      # 🔴 SERIT A (BLOKLAYICI) — bu adim 2b19c28e'de nobet.yml serit-b'ye dusmustu
+      # (bloklamayan) ve is-akisi-kapisi beyansiz diye KIRMIZI yakti; geri SERIT A'ya.
+      # 13 Agu 2026 DAIRESEL KILIT: `diff_plan` mid-array yeni id icin tam sayi bosluk
+      # bulamayip `--seq-normalize` isterken, `seq_normalize` de "D1 id kumesi == katalog"
+      # on-kosuluyla duruyordu -> INSERT normalize'i, normalize INSERT'i bekledi. 136 urun
+      # D1'e HIC girmedi: site gosteriyordu, Ege (D1'den okur) ONEREMIYORDU = SESSIZ satis
+      # kaybi ve hicbir eksen bunu KENDILIGINDEN acmiyordu. On-kosul FAZLA>0 eksenine
+      # cekildi (gevseme DEGIL: FAZLA'da hala fail-loud). Bu adim hem yeni ekseni hem
+      # DEGISMEMESI gerekenleri (kesirli seq yasagi, geri alma kolu) cakar.
+      # Ikinci satir mutasyon bataryasidir: dort oldurucu mutant kanonik dosyanin GECICI
+      # kopyasina uygulanir (kaynak DEGISMEZ, kopya finally ile silinir); biri hayatta
+      # kalirsa kapi KIRMIZI yanar -> "kabul testi var" iddiasi olcume baglanir.
+      # Offline, stdlib, agsiz/wrangler'siz (~1 s).
+      - name: D1 seq dairesel kilit kabul testi + mutasyon bataryasi
+        run: |
+          python3 tools/d1-seq-kilit-test.py
+          python3 tools/d1-seq-kilit-test.py --mutasyon
+
       # SITEMAP DAMGA ONBELLEGI — <lastmod> tarihlerinin HIZLANDIRICISI, KAYNAGI DEGIL.
       # Tarihler git gecmisinden turer (tools/sitemap_damga.py); bu dosya yalnizca ayni
       # yurumeyi her kosumda tekrarlamamak icindir. ONBELLEK DUSERSE HICBIR TARIH
