@@ -2807,12 +2807,12 @@
   function markaSorgusuEsler(p, hedefMarka){
     return markaUyeMi(p, hedefMarka) || baslikMarkalari(p).indexOf(hedefMarka) !== -1;
   }
-  // DAR ES ANLAMLI SINIFI — TEK KANONIK LITERAL. tools/arama.py bu satiri kaynaktan
-  // ayiklar; site ve D1/uretim yuklemi ikinci bir liste tutmaz. norm() `araç`i `arac`
+  // DAR ES ANLAMLI SINIFI — TEK KANONIK LITERAL. uretim hattinda fail-closed
+  // ayiklanir; site ve D1/uretim yuklemi ikinci bir liste tutmaz. norm() `araç`i `arac`
   // yaptigi icin yazim varyanti ayni uyeye iner.
   var ARAC_ES_ANLAMLI = ["oto", "otomobil", "araba", "arac"];
   // Yalniz arac es anlamli sinifi TAM JETON eslesir. Sinir da burada kanoniktir;
-  // tools/arama.py bu literali fail-closed ayiklar, ikinci bir sinir tanimi tutmaz.
+  // Bu literal fail-closed ayiklanir, ikinci bir sinir tanimi tutulmaz.
   var ARAC_ES_ANLAMLI_SINIR = "[^a-z0-9]";
   function aramaTokeniGenislet(token){
     return ARAC_ES_ANLAMLI.indexOf(token) === -1 ? aramaKok(token) : ARAC_ES_ANLAMLI;
