@@ -299,6 +299,37 @@ def olc(kok):
         raise Olculemedi("jeneratör fail-closed durdu: %r" % (e,))
     if not veri:
         raise Olculemedi("jeneratör HİÇ kova üretmedi")
+    # (d) JETON SAHİPLİĞİ oracle'ı üretim gövdesinden BAĞIMSIZ kurulur. Üretimdeki
+    # `jeton_sahibi()` çağrılsaydı B8, yargı yüklemini kendi çıktısıyla doğrulayan bir
+    # totolojiye dönerdi. Sahip = jetonu taşıyan ürünlerin ham `marka[0]` dağılımında
+    # en az yarı payı olan marka; çıplak sayı bu kuralın bilinçli sınırıdır.
+    jeton_say = {}
+    for p in urunler:
+        markalar = p.get("marka") or []
+        if not markalar:
+            continue
+        ham0 = _sade(markalar[0])
+        jetonlar = list(markalar)
+        jetonlar.extend(o.get("model") for o in (p.get("uyum") or [])
+                        if isinstance(o, dict) and o.get("model"))
+        for jeton in jetonlar:
+            canon = _sade(jeton)
+            if not canon:
+                continue
+            say = jeton_say.setdefault(canon, {})
+            say[ham0] = say.get(ham0, 0) + 1
+
+    def _jeton_sahibi(display):
+        canon = _sade(display)
+        if not canon or canon.isdigit():
+            return None
+        say = jeton_say.get(canon)
+        if not say:
+            return None
+        toplam = sum(say.values())
+        tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
+        return tepe if n * 2 >= toplam else None
+
     kova = {}
     for marka, d in veri.items():
         for canon, g in d["gruplar"].items():
@@ -307,7 +338,7 @@ def olc(kok):
                                     bool(g.get("birincil"))
                                     and (marka, canon) not in mm.ROZET_DISI
                                     and not mm.model_olmayan_cift_mi(marka, g["display"]),
-                                    g["display"])
+                                    g["display"], _jeton_sahibi(g["display"]))
     return kova, evren, mm
 
 
@@ -414,18 +445,21 @@ def kabul(kok):
     # eşiği geçen kova (yani hükmedilseydi SAYFA OLACAK olan). Eşiğin altında kalan kovalar
     # bir karar gerektirmez ve bu sayıya KARIŞMAZ — model-uyelik-kapisi K21 ile aynı birim.
     yargisiz_dogan, bekleyen = [], 0
-    ciplak_sayi_dogan, donanim_dogan, kural_dogan = [], [], 0
-    for (mk, canon), (n, yayimda, bek, aday, dsp) in kova.items():
+    ciplak_sayi_dogan, donanim_dogan, kural_dogan, sahiplik_dogan = [], [], 0, 0
+    for (mk, canon), (n, yayimda, bek, aday, dsp, sahip) in kova.items():
         if not bek:
             continue
         if n - bek >= mm.ESIK:
             continue                     # başlık kolu OLMADAN da eşiği geçiyordu
         envanterde = (mk, _arama.model_normalize(canon)) in izin
         if yayimda:
-            if not (envanterde or _sasi_kodu(dsp) or _ayri_arac(dsp)):
+            sahip_yargisi = sahip is not None and sahip == _sade(mk)
+            if not (envanterde or _sasi_kodu(dsp) or _ayri_arac(dsp) or sahip_yargisi):
                 yargisiz_dogan.append("%s|%s" % (mk, canon))
             elif not envanterde:
                 kural_dogan += 1
+                if sahip_yargisi and not (_sasi_kodu(dsp) or _ayri_arac(dsp)):
+                    sahiplik_dogan += 1
             # H1 SINIRI: ÇIPLAK SAYI kural koluyla DOĞAMAZ (`86`, `660`).
             if not envanterde and _ciplak_sayi(dsp):
                 ciplak_sayi_dogan.append("%s|%s" % (mk, dsp))
@@ -440,9 +474,9 @@ def kabul(kok):
     # BİRİNCİLLİK kazanan kovalar. İki ölçüt BİLEREK bağımsızdır (aynısı olsaydı iddia
     # totoloji olurdu); ikisi de aynı sıfırı — "yargısız doğan=0" — savunur.
     dogrula("B8 YARGISIZ SAYFA DOĞMUYOR (başlık kolu sayesinde eşiği geçen kova ancak "
-            "ENVANTERDE ya da H1/H3 KURALINDA yargılanmışsa yayımlanır; SAYIM birimiyle "
-            "%d kova hüküm BEKLİYOR ve DOĞMADI, %d kova KURALLA doğdu)"
-            % (bekleyen, kural_dogan),
+            "ENVANTERDE ya da H1/H3/(d) SAHİPLİK KURALINDA yargılanmışsa yayımlanır; "
+            "SAYIM birimiyle %d kova hüküm BEKLİYOR ve DOĞMADI, %d kova KURALLA doğdu "
+            "(%d sahiplik))" % (bekleyen, kural_dogan, sahiplik_dogan),
             not yargisiz_dogan, "yargısız doğan=%s" % (yargisiz_dogan[:5] or "-"))
     # --- H1/H3 KURAL KOLLARININ SINIRLARI (ayırt edici; kural gevşerse KIRMIZI) -----
     dogrula("B8a H1 SINIRI: ÇIPLAK SAYI kural koluyla SAYFA AÇMIYOR (`86`, `660`, `17` "
@@ -574,7 +608,7 @@ def kabul(kok):
             "edilemiyor' sayilirdi)" % (list(_kimA), list(_kimB)))
     # 🔴 ÇIPLAK SAYI KURALI GEVŞEMEDİ — CANLI VERİ EKSENİ (B10 fikstür eksenidir, bu değil):
     # `Toyota|86` TEKİL GİRİŞLE açıldı; kuralın kendisi çıplak sayıya HÂLÂ kapalı olmalı.
-    _ciplak_kural = sorted("%s|%s" % (mk, dsp) for (mk, _c), (_n, _y, _b, _a, dsp)
+    _ciplak_kural = sorted("%s|%s" % (mk, dsp) for (mk, _c), (_n, _y, _b, _a, dsp, _s)
                            in kova.items() if _ciplak_sayi(dsp) and mm.sasi_motor_kodu_mu(dsp))
     dogrula("B8c H1 KURALI ÇIPLAK SAYIYA KAPALI (katalog geneli: üretim yüklemi çıplak "
             "sayılı hiçbir kova adına ŞASİ/MOTOR KODU demiyor; `Toyota|86` sayfası "
