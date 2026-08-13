@@ -19,6 +19,12 @@ Deger cozumleme: '[' veya '{' ile baslayan degerler JSON olarak (liste/sozluk)
 ayristirilir; digerleri duz metin kabul edilir (fiyat "500 TL" gibi).
 'id' alani degistirilemez.
 
+ID'YI GUVENLI YENIDEN ADLANDIRMAK icin:
+  python3 tools/duzelt.py --yeni-id <eski-id> <yeni-id>
+Yeni id ASCII kucuk harf/rakam/tire biciminde olmalidir. Islem katalogdaki dizi
+konumunu korur, gizli kaynak defteri anahtarini varsa tasir ve guard'in rename'i
+silme sanmamasi icin deger-bagli id-rename manifesti yazar. R2 objesi tasinmaz/silinmez.
+
 --alan aciklama ICIN OZEL KORUMA (hem tek-urun hem --toplu kipte):
 Otomatik uretilen "Yaklaşık dış ölçüler: A × B × C mm." satiri STL'den TURETILMIS
 veridir; reword onu sessizce dusuremez.
@@ -123,10 +129,13 @@ _arspec = importlib.util.spec_from_file_location(
 arama = importlib.util.module_from_spec(_arspec)
 _arspec.loader.exec_module(arama)
 URUNLER = os.path.join(ROOT, "urunler.json")
+KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
 MANIFEST_SIL = os.path.join(ROOT, ".urunler-sil-izin.json")
+MANIFEST_ID_RENAME = os.path.join(ROOT, ".urunler-id-rename-izin.json")
 LOG = os.path.join(ROOT, ".urunler-guard.log")
+URL_GUVENLI_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 # `eski_fiyat`: OPSIYONEL ustu cizili indirim gosterimi (tools/build.py
 # eski_fiyat_gosterim). Mesru bir urun alanidir -> guard onu "kirlilik" saymasin ve
@@ -609,6 +618,89 @@ def _atomic_write(path, obj):
     os.replace(tmp, path)
 
 
+def _id_gecerli(uid):
+    """Yayin URL'sinde kullanilabilen dar ASCII/kucuk-harf/tire kimligi."""
+    return isinstance(uid, str) and URL_GUVENLI_ID.fullmatch(uid) is not None
+
+
+def _kaynak_rename_hazirla(eski, yeni):
+    """Gizli kaynak defterini bellekte yeniden anahtarla; dosya yoksa atla."""
+    if not os.path.exists(KAYNAKLAR):
+        return None, "kaynak-defteri-yok"
+    try:
+        with open(KAYNAKLAR, encoding="utf-8") as f:
+            kaynaklar = json.load(f)
+    except (OSError, ValueError) as e:
+        raise ValueError(".urun-kaynaklari.json okunamadi: %s" % e)
+    if not isinstance(kaynaklar, dict):
+        raise ValueError(".urun-kaynaklari.json kok nesne degil")
+    if eski not in kaynaklar:
+        return kaynaklar, "hedef-zaten-var" if yeni in kaynaklar else "bag-yok"
+    if yeni in kaynaklar and _canon(kaynaklar[eski]) != _canon(kaynaklar[yeni]):
+        raise ValueError("kaynak defterinde yeni id baska bir kayda ait")
+    if yeni not in kaynaklar:
+        kaynaklar[yeni] = kaynaklar[eski]
+    del kaynaklar[eski]
+    return kaynaklar, "yeniden-anahtarlandi"
+
+
+def _canon(v):
+    return json.dumps(v, sort_keys=True, ensure_ascii=False)
+
+
+def _id_yeniden_adlandir(eski, yeni):
+    """Bir urunun id'sini ayni konumda, guard beyanini da yazarak degistir."""
+    if not _id_gecerli(yeni):
+        print("HATA: yeni id URL-guvenli olmali (ASCII kucuk harf, rakam, tek tire): %s"
+              % yeni, file=sys.stderr)
+        return 2
+    if eski == yeni:
+        print("HATA: eski ve yeni id ayni.", file=sys.stderr)
+        return 2
+
+    lockf = open(LOCK, "w")
+    fcntl.flock(lockf, fcntl.LOCK_EX)
+    try:
+        with open(URUNLER, encoding="utf-8") as f:
+            urunler = json.load(f)
+        eski_indeksler = [i for i, p in enumerate(urunler)
+                          if isinstance(p, dict) and p.get("id") == eski]
+        if len(eski_indeksler) != 1:
+            print("HATA: eski id katalogda tam bir kez bulunmali: %s (adet=%d)"
+                  % (eski, len(eski_indeksler)), file=sys.stderr)
+            return 1
+        if any(isinstance(p, dict) and p.get("id") == yeni for p in urunler):
+            print("HATA: yeni id katalogda zaten var: %s" % yeni, file=sys.stderr)
+            return 2
+        try:
+            kaynaklar, kaynak_durumu = _kaynak_rename_hazirla(eski, yeni)
+        except ValueError as e:
+            print("HATA: id-rename REDDEDILDI — %s" % e, file=sys.stderr)
+            return 2
+
+        urunler[eski_indeksler[0]]["id"] = yeni
+        rename_manifest = _manifest_oku(MANIFEST_ID_RENAME, {})
+        rename_manifest[eski] = yeni
+
+        _atomic_write(URUNLER, urunler)
+        if kaynaklar is not None and kaynak_durumu == "yeniden-anahtarlandi":
+            _atomic_write(KAYNAKLAR, kaynaklar)
+        _atomic_write(MANIFEST_ID_RENAME, rename_manifest)
+    finally:
+        fcntl.flock(lockf, fcntl.LOCK_UN)
+        lockf.close()
+
+    _log("id-rename: %s -> %s (guard manifesti; kaynak=%s)"
+         % (eski, yeni, kaynak_durumu))
+    print("ID yeniden adlandirildi: %s -> %s" % (eski, yeni))
+    print("Bagli duzlemler: kaynak=%s; canonical+sitemap build.py'de yeni id'den turetilir; "
+          "D1 senkronu eski satiri silip yeniyi ekler; R2 anahtarlari/gorsel URL'leri "
+          "degistirilmedi." % kaynak_durumu)
+    print("Eski /urun/%s/ URL'si icin repoda yonlendirme mekanizmasi yok; yayin oncesi "
+          "yonlendirme karari gerekir." % eski)
+    return 0
+
+
 def _sil(args):
     lockf = open(LOCK, "w")
     fcntl.flock(lockf, fcntl.LOCK_EX)
@@ -924,6 +1016,8 @@ def main():
     ap.add_argument("--toplu", metavar="ISLEM_JSON",
                     help="N urun/N alani TEK kilit + TEK yazimda uygula "
                          "(tek-urun argumanlariyla birlikte kullanilmaz)")
+    ap.add_argument("--yeni-id", nargs=2, metavar=("ESKI", "YENI"),
+                    help="mevcut urun id'sini URL-guvenli yeni id ile atomik degistir")
     ap.add_argument("--alan", action="append",
                     help="degistirilecek alan adi (tekrarlanabilir)")
     ap.add_argument("--deger", action="append",
@@ -938,6 +1032,14 @@ def main():
                     help="TICARI SINIF (hazir mal <-> ozel uretim) degistiren yazimlarda "
                          "ZORUNLU kisa gerekce; .urunler-guard.log'a yazilir")
     args = ap.parse_args()
+
+    if args.yeni_id is not None:
+        if (args.id or args.toplu is not None or args.alan or args.deger
+                or args.sil is not None or args.alan_sil or args.gerekce is not None):
+            print("HATA: --yeni-id baska islem argumanlariyla birlikte kullanilamaz.",
+                  file=sys.stderr)
+            return 2
+        return _id_yeniden_adlandir(args.yeni_id[0], args.yeni_id[1])
 
     if args.toplu is not None:
         if (args.id or args.alan or args.deger or args.sil is not None or args.alan_sil

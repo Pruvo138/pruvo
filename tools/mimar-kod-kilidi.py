@@ -14,8 +14,9 @@ kilitliyordu; 4 kez mesru isi engelledi, bir isci sed'e kacti = kapi guvenligi A
   * PreToolUse stdin JSON'unda `agent_id` DOLU ise cagri bir ALT AJANDAN gelmistir →
     kapi (cekirdek liste disinda) hicbir sey yapmaz.
   * agent_id kabuktan/env'den/cwd'den BESLENMEZ; Claude Code process'i icinde uretilir.
-    cwd (cd ile kayar), agent_type (alt ajanin sectigi ad) ve env eksenleri BILEREK
-    kullanilmaz — hepsi kaydirilabilir sinyaldir.
+    agent_id tasimayan isci.sh ana oturumu icin ikinci eksen, ortak mimar_kimlik.py'deki
+    KAPALI motor kumesine civilenmis PRUVO_ISCI_KOSUMU'dur. Bos/bilinmeyen deger
+    fail-closed MIMAR kalir; cwd ve agent_type kimlik olarak kullanilmaz.
   * CEKIRDEK liste kimlikten BAGIMSIZDIR: ana repodaki kapi/kablo dosyalari kimse
     tarafindan degistirilemez. Kapi bakimi zaten WORKTREE'de yapilir; worktree
     kopyalari serbesttir.
@@ -42,6 +43,8 @@ import json
 import os
 import sys
 
+from mimar_kimlik import kimlik_ekseni
+
 # Calistirilabilir uzantilar: KONUMDAN BAGIMSIZ yasak (scratchpad dahil).
 ICRA_UZANTILARI = (
     ".py", ".pyw", ".js", ".mjs", ".cjs", ".ts", ".tsx",
@@ -67,10 +70,12 @@ CEKIRDEK = {
     "/Users/okan/dev/pruvo/.claude/settings.json",
     "/Users/okan/dev/pruvo/.claude/settings.local.json",
     "/Users/okan/dev/pruvo/tools/mimar-kod-kilidi.py",
+    "/Users/okan/dev/pruvo/tools/mimar_kimlik.py",
     "/Users/okan/dev/pruvo/tools/mimar-icra-kapisi.py",
     "/Users/okan/dev/pruvo/tools/mimar-commit-kapisi.py",
     "/Users/okan/dev/pruvo/tools/mimar-kapi-kur.py",
     "/Users/okan/dev/pruvo/tools/mimar-kilit-test.py",
+    "/Users/okan/dev/pruvo/tools/id-rename-test.py",
     # NOBETCILER (kapiyi yalanci yapabilen dosyalar)
     "/Users/okan/dev/pruvo/tools/mimar-kapi-mutasyon-test.py",
     "/Users/okan/dev/pruvo/tools/mimar-commit-kapisi-test.py",
@@ -91,10 +96,7 @@ CEKIRDEK = {
 
 
 def kimlik(girdi):
-    aid = girdi.get("agent_id")
-    if isinstance(aid, str) and aid.strip():
-        return "ISCI"
-    return "MIMAR"
+    return "ISCI" if kimlik_ekseni(girdi) is not None else "MIMAR"
 
 
 def iz_bas(etiket):
@@ -168,7 +170,7 @@ except Exception:
 # icindeyse TAM MUAF" seklinde bir OTURUM muafiyeti vardi. KALDIRILDI — cwd kaydirilabilir
 # bir sinyal (kabuk cwd'si cagrilar arasi kalici, 'cd' makine olarak engellenmiyor, gercek
 # worktree dizinleri diskte duruyor) → "cd <worktree>" tek komutluk muafiyet anahtari olurdu.
-# Kimlik ekseni (agent_id) bunun yerini alir: kaydirilamaz, cunku kabuktan beslenmez.
+# Ortak kimlik ekseni bunun yerini alir: agent_id ya da kapali-kumeli isci sarmalayici izi.
 fp = (girdi.get("tool_input") or {}).get("file_path") or ""
 if not fp:
     sys.exit(0)

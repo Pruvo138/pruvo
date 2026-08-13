@@ -148,6 +148,8 @@ import re
 import shlex
 import sys
 
+from mimar_kimlik import ISCI_MOTORLARI, kimlik_ekseni
+
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
 GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
 
@@ -156,22 +158,6 @@ GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
 # ikinci ev listesi tutulmaz.
 SERT_BLOK_EVLER = ("pruvo", "pruvo-hasat")
 EV_ADI = os.path.basename(os.path.normpath(REPO_ONEKI))
-
-
-def kimlik_ekseni(girdi):
-    """ISCI kimliginin kaynagini dondurur; None = MIMAR.
-
-    Birinci eksen canli alt-ajan ``agent_id`` degeridir. Ikinci eksen, agent_id
-    tasimayan ``isci.sh`` ana oturumunun kapali motor kumesine civilenmis ortam
-    izidir. Bilinmeyen/bos deger muafiyet vermez (fail-closed).
-    """
-    aid = girdi.get("agent_id")
-    if isinstance(aid, str) and aid.strip():
-        return "agent_id"
-    motor = os.environ.get("PRUVO_ISCI_KOSUMU")
-    if motor in ISCI_MOTORLARI:
-        return "sarmalayici:" + motor
-    return None
 
 
 def kimlik(girdi):
@@ -446,8 +432,7 @@ ISCI_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/isci.sh"
 # basina bu motor konmus gibi degerlendirilir — ayri bir kural govdesi YAZILMAZ.
 ISCI_M3_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/m3-isci.sh"
 ISCI_M3_CIVILI_MOTOR = "minimax-m3"
-# KAPALI KUME (fail-closed): yarin eklenecek bir motor kapiyi KENDILIGINDEN ACMAZ.
-ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")
+# KAPALI KUME ortak mimar_kimlik.py kaynagindan gelir; burada ikinci tablo tutulmaz.
 # Argument sayisi (motor DAHIL): 3 (<motor> <ev> <spec>) ya da 4 (+ <etiket>).
 ISCI_ARGUMAN_SAYILARI = (3, 4)
 # SURUM DAMGASI — tools/mimar-kapi-kur.py --isci-kapisi bu dizeyi arayarak "bu evde

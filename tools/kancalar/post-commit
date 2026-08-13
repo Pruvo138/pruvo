@@ -5,4 +5,5 @@
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 rm -f "$root/.urunler-duzelt-izin.json" 2>/dev/null || true
 rm -f "$root/.urunler-sil-izin.json" 2>/dev/null || true
+rm -f "$root/.urunler-id-rename-izin.json" 2>/dev/null || true
 exit 0

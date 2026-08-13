@@ -28,6 +28,7 @@ MUTASYON_KOK = None  # main() icinde tempfile.mkdtemp ile doldurulur
 TEST = os.path.join(TOOLS, "mimar-kilit-test.py")
 
 KAPI_DOSYALARI = (
+    "mimar_kimlik.py",
     "mimar-kod-kilidi.py",
     "mimar-icra-kapisi.py",
     "mimar-commit-kapisi.py",
@@ -36,6 +37,7 @@ KAPI_DOSYALARI = (
 )
 
 KILIT = "mimar-kod-kilidi.py"
+KIMLIKORTAK = "mimar_kimlik.py"
 ICRA = "mimar-icra-kapisi.py"
 CMT = "mimar-commit-kapisi.py"
 KUR = "mimar-kapi-kur.py"
@@ -59,10 +61,8 @@ CEKIRDEK_NOBETCILERI = (
 )
 
 KIMLIK_GOVDE_KILIT = (
-    '    aid = girdi.get("agent_id")\n'
-    '    if isinstance(aid, str) and aid.strip():\n'
-    '        return "ISCI"\n'
-    '    return "MIMAR"\n'
+    'def kimlik(girdi):\n'
+    '    return "ISCI" if kimlik_ekseni(girdi) is not None else "MIMAR"\n'
 )
 KIMLIK_GOVDE_ICRA = (
     'def kimlik(girdi):\n'
@@ -88,7 +88,8 @@ def yama(dizin, dosya, eski, yeni, zorunlu=True):
 
 
 def kimligi_sabitle(dizin, deger):
-    yama(dizin, KILIT, KIMLIK_GOVDE_KILIT, '    return "' + deger + '"\n')
+    yama(dizin, KILIT, KIMLIK_GOVDE_KILIT,
+         'def kimlik(girdi):\n    return "' + deger + '"\n')
     yama(dizin, ICRA, KIMLIK_GOVDE_ICRA,
          'def kimlik(girdi):\n    return "' + deger + '"\n')
 
@@ -503,23 +504,23 @@ MUTASYONLAR = [
     # esitliktir; bir ekseni oldurmenin katalogdaki ilgisiz yuzlerce vakayi topluca
     # dusurmesi kanit diye sunulmaz.
     ("J1", lambda d: yama(
-        d, ICRA,
-        '    motor = os.environ.get("PRUVO_ISCI_KOSUMU")\n'
+        d, KIMLIKORTAK,
+        '    motor = cevre.get("PRUVO_ISCI_KOSUMU")\n'
         '    if motor in ISCI_MOTORLARI:\n'
         '        return "sarmalayici:" + motor\n',
-        '    motor = os.environ.get("PRUVO_ISCI_KOSUMU")\n'
+        '    motor = cevre.get("PRUVO_ISCI_KOSUMU")\n'
         '    if False and motor in ISCI_MOTORLARI:\n'
         '        return "sarmalayici:" + motor\n'),
      "13Agu-2 J1: ortam kimlik ekseni komple kaldirilir",
      {650, 652, 653, 654, 659}, True, 5),
     ("J2", lambda d: yama(
-        d, ICRA,
+        d, KIMLIKORTAK,
         '    if motor in ISCI_MOTORLARI:\n',
         '    if motor is not None:\n'),
      "13Agu-2 J2: kapali kume kontrolu kaldirilir (env varligi yeter)",
      {655, 656}, True, 2),
     ("J3", lambda d: yama(
-        d, ICRA,
+        d, KIMLIKORTAK,
         '    if motor in ISCI_MOTORLARI:\n'
         '        return "sarmalayici:" + motor\n',
         '    if motor is None or motor in ISCI_MOTORLARI:\n'
@@ -553,7 +554,7 @@ KONTROL_MUTANTLARI = [
     # K3: 13 Agu ISCI blogunun AYIRT EDICILIK kontrolu. I1-I5'in kirmizisi ancak yeni
     # vakalar "her degisiklige" kizarmiyorsa kanittir (memory/beyan-edilmis-survivor.md).
     ("K3", lambda d: yama(
-        d, ICRA,
+        d, KIMLIKORTAK,
         'ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")\n',
         'ISCI_MOTORLARI = ("claude", "deepseek-flash", "deepseek-pro", "minimax-m3")\n'),
      "ISCI motor kumesi YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
@@ -622,6 +623,7 @@ def sert_mutasyonu_kostur(ad, uygulayici, ek_env):
     dizin = os.path.join(MUTASYON_KOK, ad)
     os.makedirs(dizin)
     shutil.copyfile(os.path.join(TOOLS, ICRA), os.path.join(dizin, ICRA))
+    shutil.copyfile(os.path.join(TOOLS, KIMLIKORTAK), os.path.join(dizin, KIMLIKORTAK))
     uygulayici(dizin)
     payload = {
         "session_id": "sert-mutasyon",

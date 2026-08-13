@@ -1261,6 +1261,14 @@ jobs:
       - name: Mukerrer kapisi pre-commit kapsam testi
         run: python3 tools/mukerrer-kapsam-test.py
 
+      # ID-RENAME YOLU KABUL TESTI (13 Agu): kod-kilidinin isci kimlik eksenini
+      # kanonik mimar_kimlik.py'den tanidigini (mimar hala fail-closed RED), guard'in
+      # id degisimini duplicate uretmeden tek islem saydigini ve duzelt.py'nin yeni id'yi
+      # URL-guvenli (ASCII) dogruladigini kanitlar (6 iddia + 5 oldurucu mutant yerelde).
+      # Bloklayici: yayin URL-guvenli olmayan id yuzunden kapali; bu kol duzeltme yolunu aciyor.
+      - name: Id-rename yolu kabul testi (6 iddia)
+        run: python3 tools/id-rename-test.py
+
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten

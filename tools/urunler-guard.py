@@ -38,6 +38,8 @@ KURAL — working-tree urunler.json'i EBEVEYN(LER)le karsilastirir:
           HEAD'deki haline yerinde geri dondur ve GERI SARMAYI STDERR'E BAS.
     * HEAD'de olup working-tree'den SILINMIS urun:
         - id .urunler-sil-izin.json manifestinde beyan edilmisse -> KABUL.
+        - eski->yeni, .urunler-id-rename-izin.json'da beyanli ve kayit id disinda
+          birebir ayniysa -> tek ID-RENAME islemi olarak KABUL (duplicate uretilmez).
         - aksi halde (izinsiz) -> geri ekle (koru) + STDERR'E BAS.
   MERGE HALINDE (MERGE_HEAD var; ebeveynler = HEAD + MERGE_HEAD):
     * id HICBIR ebeveynde yoksa                      -> yeni urun, SERBEST.
@@ -105,6 +107,7 @@ URUNLER = os.path.join(ROOT, "urunler.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
 MANIFEST_SIL = os.path.join(ROOT, ".urunler-sil-izin.json")
+MANIFEST_ID_RENAME = os.path.join(ROOT, ".urunler-id-rename-izin.json")
 LOG = os.path.join(ROOT, ".urunler-guard.log")
 
 RED = 3          # provenans kararlastirilamadi -> commit REDDEDILIR
@@ -211,6 +214,53 @@ def _authorized(uid, field, wt_p, manifest):
     if field not in wt_p:  # WT'de silinmis alan -> deger-bagli izin veremez
         return False
     return _canon(wt_p[field]) == _canon(expected)
+
+
+def _id_rename_haritasi(manifest, wt_list, ebeveynler):
+    """Beyanli ve yapisal olarak kanitlanmis ``eski -> yeni`` islemleri.
+
+    ID guard'in kimlik ekseni oldugu icin rename normalde silme+ekleme gorunur.
+    Bu dar kol yalniz eski ebeveyn kaydinin ``id`` disinda byte-anlamsal olarak ayni
+    tek hedef kayda donustugu vakayi bir islem sayar. Cakisma, duplicate, eksik hedef
+    veya baska alan degisikligi muafiyet alamaz.
+    """
+    if not isinstance(manifest, dict):
+        return {}
+    wt_adet = {}
+    wt_by_id = {}
+    for p in wt_list:
+        if isinstance(p, dict) and isinstance(p.get("id"), str):
+            uid = p["id"]
+            wt_adet[uid] = wt_adet.get(uid, 0) + 1
+            wt_by_id[uid] = p
+    ebeveyn_ids = set()
+    for by_id in ebeveynler:
+        ebeveyn_ids |= set(by_id)
+    hedef_adet = {}
+    for yeni in manifest.values():
+        if isinstance(yeni, str):
+            hedef_adet[yeni] = hedef_adet.get(yeni, 0) + 1
+
+    gecerli = {}
+    for eski, yeni in manifest.items():
+        if not isinstance(eski, str) or not isinstance(yeni, str) or eski == yeni:
+            continue
+        if hedef_adet.get(yeni) != 1:
+            continue
+        eski_haller = [by_id[eski] for by_id in ebeveynler if eski in by_id]
+        if not eski_haller or eski in wt_by_id or yeni in ebeveyn_ids:
+            continue
+        if wt_adet.get(yeni) != 1:
+            continue
+        hedef = wt_by_id[yeni]
+        beklenenler = []
+        for eski_hal in eski_haller:
+            beklenen = copy.deepcopy(eski_hal)
+            beklenen["id"] = yeni
+            beklenenler.append(_canon(beklenen))
+        if _canon(hedef) in beklenenler:
+            gecerli[eski] = yeni
+    return gecerli
 
 
 # ----------------------------------------------------------------- provenans
@@ -346,7 +396,32 @@ def _heal_kilitli(tetik):
         except ValueError:
             _log("%s: UYARI silme manifesti bozuk — izin YOK sayildi." % tetik)
 
-    restored, kept_auth, merge_getirisi = [], [], []
+    id_rename_manifest = {}
+    if os.path.exists(MANIFEST_ID_RENAME):
+        try:
+            with open(MANIFEST_ID_RENAME, encoding="utf-8") as f:
+                r = json.load(f)
+            if isinstance(r, dict):
+                id_rename_manifest = r
+        except ValueError:
+            _log("%s: UYARI id-rename manifesti bozuk — izin YOK sayildi." % tetik)
+
+    id_rename = _id_rename_haritasi(id_rename_manifest, wt_list, ebeveynler)
+    wt_idleri = {p.get("id") for p in wt_list if isinstance(p, dict)}
+    ebeveyn_idleri = set()
+    for by_id in ebeveynler:
+        ebeveyn_idleri |= set(by_id)
+    gecersiz_rename = [eski for eski, yeni in id_rename_manifest.items()
+                       if eski in ebeveyn_idleri and eski not in wt_idleri
+                       and yeni in wt_idleri and eski not in id_rename]
+    if gecersiz_rename:
+        raise Belirsiz(
+            "ID-RENAME BEYANI DOGRULANAMADI",
+            "eski kayit geri eklenmedi; duplicate uretilmedi (%s)"
+            % ", ".join(sorted(gecersiz_rename)))
+    yeni_eski = {yeni: eski for eski, yeni in id_rename.items()}
+
+    restored, kept_auth, merge_getirisi, yetkili_rename = [], [], [], []
     belirsizler = []
     yeni = 0
     wt_ids = set()
@@ -357,6 +432,9 @@ def _heal_kilitli(tetik):
             continue
         uid = p["id"]
         wt_ids.add(uid)
+        if uid in yeni_eski:
+            yetkili_rename.append((yeni_eski[uid], uid))
+            continue
         halleri = _ebeveyn_halleri(uid, ebeveynler)
         if not halleri:
             yeni += 1
@@ -400,6 +478,8 @@ def _heal_kilitli(tetik):
 
     silinen, yetkili_silme, merge_silmesi = [], [], []
     for uid in eksik:
+        if uid in id_rename:
+            continue
         if uid in sil_izin:
             yetkili_silme.append(uid)
             continue
@@ -457,7 +537,12 @@ def _heal_kilitli(tetik):
             ", ".join("%s[%s]" % (u, ",".join(fs)) for u, fs in kept_auth[:40])))
     if yetkili_silme:
         parts.append("yetkili_silme=%d %s" % (len(yetkili_silme), ", ".join(yetkili_silme[:40])))
-    if not (restored or silinen or kept_auth or yetkili_silme or merge_getirisi or merge_silmesi):
+    if yetkili_rename:
+        parts.append("yetkili_id_rename=%d %s" % (
+            len(yetkili_rename),
+            ", ".join("%s->%s" % cift for cift in yetkili_rename[:40])))
+    if not (restored or silinen or kept_auth or yetkili_silme or merge_getirisi
+            or merge_silmesi or yetkili_rename):
         parts.append("mudahale=YOK")
     _log(" | ".join(parts))
     return "tamam"

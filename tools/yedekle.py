@@ -243,6 +243,7 @@ EK_EVLER = {
         ".marka-kapsama.json", ".stl-r2-manifest.json", ".stl-eslesmeyen-manifest.json",
         ".uyelik-kodlar", ".uyelik-parametreler.json", ".tedarikci-fiyat",
         ".urunler-duzelt-izin.json", ".diriltme-izin.json", ".urunler-sil-izin.json",
+        ".urunler-id-rename-izin.json",
         "urun-kaynaklari.json", "_yayin-icerik-dizinleri.txt",
         "worker-iyzico-webhook/worker.js", "worker-iyzico-webhook/wrangler.toml",
         # Uyelik ureteci degisken adlari eslemi: TICARI VERI (sir degil, kimlik
