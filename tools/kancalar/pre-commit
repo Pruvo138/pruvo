@@ -78,7 +78,7 @@ elif [ ! -f "$pruvo_kontrol" ]; then
   echo "!! Mukerrer korumasi OLCULEMEDI. Atlamak icin: PRUVO_MUKERRER_ATLA=1" >&2
   exit 1
 else
-  pruvo_mk_cikti=$(python3 "$pruvo_kontrol" 2>&1)
+  pruvo_mk_cikti=$(python3 "$pruvo_kontrol" --pre-commit 2>&1)
   pruvo_mk_rc=$?
   if [ "$pruvo_mk_rc" -ne 0 ]; then
     printf '%s\n' "$pruvo_mk_cikti" >&2

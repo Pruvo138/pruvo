@@ -4,6 +4,7 @@
 import argparse
 import json
 import os
+import subprocess
 import sys
 import tempfile
 from collections import defaultdict
@@ -172,13 +173,88 @@ def _oz_sinama():
     return 0
 
 
+def _git_oku(args):
+    return subprocess.run(["git", "-C", ROOT] + args, capture_output=True, text=True)
+
+
+def _index_urunler():
+    r = _git_oku(["show", ":urunler.json"])
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout)
+    except ValueError:
+        return None
+
+
+def _head_urunler():
+    r = _git_oku(["show", "HEAD:urunler.json"])
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout)
+    except ValueError:
+        return None
+
+
+def _commit_katalogu():
+    """Pre-commit yargi birimi: stage edilmisse INDEX, degilse HEAD surumu.
+    Ikisi de okunamazsa (None, gerekce) dondurur (fail-closed cagri sahibine dus)."""
+    r = _git_oku(["diff", "--cached", "--quiet", "--", "urunler.json"])
+    if r.returncode == 1:
+        urunler = _index_urunler()
+        if urunler is not None:
+            return urunler, None
+        return None, "urunler.json stage edilmis ama INDEX surumu okunamadi"
+    if r.returncode == 0:
+        urunler = _head_urunler()
+        if urunler is not None:
+            return urunler, None
+        return None, "urunler.json stage edilmemis ama HEAD surumu okunamadi"
+    urunler = _index_urunler()
+    if urunler is not None:
+        return urunler, None
+    urunler = _head_urunler()
+    if urunler is not None:
+        return urunler, None
+    return None, "commit icerigi okunamadi (INDEX ve HEAD)"
+
+
+def _pre_commit_tarama():
+    kaynaklar = _kaynaklari_oku(KAYNAKLAR)
+    istisnalar = _istisnalari_oku(ISTISNALAR)
+    urunler, gerekce = _commit_katalogu()
+    if urunler is None:
+        print("COMMIT KAYNAGI OKUNAMADI: %s" % gerekce)
+        with open(URUNLER, encoding="utf-8") as f:
+            calisma = json.load(f)
+        bulgular = _tara(calisma, kaynaklar, istisnalar)
+        if bulgular:
+            for tur, deger, ilgili_idler in bulgular:
+                print("MUKERRER %s: %s -> %s" % (tur, deger, ", ".join(ilgili_idler)))
+        print("calisma agaci tarandi: %d urun, %d mukerrer" % (len(calisma), len(bulgular)))
+        return 1
+    bulgular = _tara(urunler, kaynaklar, istisnalar)
+    if bulgular:
+        for tur, deger, ilgili_idler in bulgular:
+            print("MUKERRER %s: %s -> %s" % (tur, deger, ", ".join(ilgili_idler)))
+        return 1
+    print("mukerrer yok: %d urun tarandi (commit icerigi)" % len(urunler))
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--test", action="store_true", help="bellek ici oz-sinamayi calistir")
+    ap.add_argument("--pre-commit", action="store_true",
+                    help="commit icerigini (index/HEAD) yargila; calisma agaci degil")
     args = ap.parse_args()
 
     if args.test:
         return _oz_sinama()
+
+    if args.pre_commit:
+        return _pre_commit_tarama()
 
     with open(URUNLER, encoding="utf-8") as f:
         urunler = json.load(f)
