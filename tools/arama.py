@@ -2230,6 +2230,72 @@ TAVSIYE_FILAMENT_ALAN = "tavsiyeFilament"
 TAVSIYE_FILAMENT_YOK = "YOK"
 TAVSIYE_FILAMENT_DIZI = "dizi"
 
+# KATALOG KAYIT SEMASI — alan adlari ve JSON tipleri icin TEK KAYNAK.
+#
+# Kapi kapsamini bu sozlugun anahtarlarindan TURETIR; alanlari ikinci kez saymaz.
+# Alanlar opsiyoneldir: katalogun tarihsel ve urun-sinifi farklari nedeniyle `marka`,
+# `lisans`, `parametrik` gibi alanlar her kayitta bulunmaz. Ancak bir alan VARSA tipi
+# burada yazan tip olmak zorundadir. Semada olmayan alan sessizce kabul edilmez.
+KATALOG_ALAN_TIPLERI = {
+    "aciklama": str,
+    "altkategori": str,
+    "baslik": str,
+    "fiyat": str,
+    "gorseller": list,
+    "id": str,
+    "kategori": str,
+    "konfigur": dict,
+    "lisans": dict,
+    "marka": list,
+    "parametrik": bool,
+    "stokta": bool,
+    TAVSIYE_FILAMENT_ALAN: list,
+    "tur": str,
+    "uyum": list,
+}
+
+
+def katalog_alan_tip_sebebi(alan, deger):
+    """Bir katalog alaninin kanonik JSON tipine uyumsuzluk sebebi ya da None.
+
+    `type(...) is ...` bilerek kullanilir: Python'da bool, int'in alt sinifidir; JSON
+    semasinda boolean ile number ayni tip degildir. Bos string ve bos dizi, kendi
+    tipleri dogru oldugu icin gecerlidir.
+    """
+    beklenen = KATALOG_ALAN_TIPLERI.get(alan)
+    if beklenen is None:
+        return "TIP TANIMI YOK: %s" % alan
+    if type(deger) is beklenen:
+        return None
+    return ("%s alani %s olmali; gorulen tip=%s, gorulen deger=%r"
+            % (alan, beklenen.__name__, type(deger).__name__, deger))
+
+
+def katalog_tip_ihlalleri(kayitlar):
+    """Semadan tureyen tum alan-tip ihlalleri; bilinmeyen alan fail-loud'dur."""
+    ihlaller = []
+    for u in kayitlar:
+        if not isinstance(u, dict):
+            ihlaller.append((None, "kayit", u,
+                             "kayit bir JSON OBJESI degil (%s)" % type(u).__name__))
+            continue
+        uid = u.get("id")
+        for alan, deger in u.items():
+            sebep = katalog_alan_tip_sebebi(alan, deger)
+            if sebep is None and alan == TAVSIYE_FILAMENT_ALAN:
+                for i, oge in enumerate(deger):
+                    if not isinstance(oge, str):
+                        sebep = "%s[%d] metin olmali, %s degil (deger: %r)" % (
+                            alan, i, type(oge).__name__, oge)
+                        break
+                    if not oge.strip():
+                        sebep = "%s[%d] BOS metin — malzeme adi tasimayan oge yazilmaz" % (
+                            alan, i)
+                        break
+            if sebep is not None:
+                ihlaller.append((uid, alan, deger, sebep))
+    return ihlaller
+
 
 def tavsiye_filament_tip_etiketi(u):
     """Kaydin `tavsiyeFilament` TIP etiketi — dokum/sayim icin.
@@ -2257,10 +2323,10 @@ def tavsiye_filament_tip_sebebi(u):
     if TAVSIYE_FILAMENT_ALAN not in u:
         return None
     deger = u[TAVSIYE_FILAMENT_ALAN]
-    if not isinstance(deger, list):
-        return ("%s dizi olmali, %s degil (deger: %r) — tek elemanli diziye SESSIZCE "
-                "CEVRILMEZ: kusur katalogda kalicilasirdi"
-                % (TAVSIYE_FILAMENT_ALAN, type(deger).__name__, deger))
+    sebep = katalog_alan_tip_sebebi(TAVSIYE_FILAMENT_ALAN, deger)
+    if sebep is not None:
+        return ("%s — tek elemanli diziye SESSIZCE CEVRILMEZ: kusur katalogda "
+                "kalicilasirdi" % sebep)
     for i, oge in enumerate(deger):
         if not isinstance(oge, str):
             return ("%s[%d] metin olmali, %s degil (deger: %r)"

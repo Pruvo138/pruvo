@@ -387,18 +387,24 @@ def vaka_b(s, kok):
             "gercek katalog dizi olmali; tip=%s" % type(katalog).__name__)
 
     # Gercek katalogdaki bugunku sapma AYRICA olculur; B ekseni altkategori/uyum icin
-    # yanlis-pozitif butcesidir, bilinen fiyat arizasi bu bagimsiz ekseni golgelemesin.
+    # yanlis-pozitif butcesidir, bilinen tip arizasi bu bagimsiz ekseni golgelemesin.
     fiyat_sapma = [u for u in katalog if isinstance(u, dict) and "fiyat" in u
                    and not isinstance(u["fiyat"], str)]
     bos_fiyat = [u for u in katalog if isinstance(u, dict) and u.get("fiyat") == ""]
-    print("  OLCUM  gercek katalog fiyat tipi sapmasi=%d bos-string=%d"
-          % (len(fiyat_sapma), len(bos_fiyat)))
+    tavsiye_sapma = [u for u in katalog if isinstance(u, dict)
+                     and "tavsiyeFilament" in u
+                     and not isinstance(u["tavsiyeFilament"], list)]
+    print("  OLCUM  gercek katalog fiyat tipi sapmasi=%d tavsiyeFilament sapmasi=%d "
+          "bos-string=%d" % (len(fiyat_sapma), len(tavsiye_sapma), len(bos_fiyat)))
     katalog_tipi_temiz = []
     for u in katalog:
         kopya = dict(u) if isinstance(u, dict) else u
         if isinstance(kopya, dict) and "fiyat" in kopya \
                 and not isinstance(kopya["fiyat"], str):
             kopya["fiyat"] = "%s TL" % kopya["fiyat"]
+        if isinstance(kopya, dict) and "tavsiyeFilament" in kopya \
+                and not isinstance(kopya["tavsiyeFilament"], list):
+            kopya["tavsiyeFilament"] = []
         katalog_tipi_temiz.append(kopya)
     katalog = katalog_tipi_temiz
 

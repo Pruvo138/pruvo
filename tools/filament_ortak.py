@@ -12,6 +12,9 @@ turetilir. Tek istisna, YENI urunlerde ekleme scriptinin koyabildigi opsiyonel
 import json
 import os
 import re
+import warnings
+
+import arama
 
 _YOL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "filamentler.json")
 _ref = None
@@ -54,7 +57,10 @@ def tavsiyeler(kategori, override=None):
         # bulur, JS ise `length` goremeyip guvenli varsayilana duserdi: iki dil
         # sessizce ayrisirdi. Bos liste donmek kategori haritasina DUSMEK DEGILDIR
         # (dusulseydi alani bozuk urun sessizce %30 zamlanirdi).
-        if not isinstance(override, list):
+        sebep = arama.katalog_alan_tip_sebebi(arama.TAVSIYE_FILAMENT_ALAN, override)
+        if sebep is not None:
+            warnings.warn("KATALOG TIP UYARISI: %s" % sebep, RuntimeWarning,
+                          stacklevel=2)
             return []
         return [{"ad": a, "rozet": "Tavsiyemiz"} for a in override if a in site_adlar]
     kategori = _KATEGORI_ALIAS.get(kategori, kategori)

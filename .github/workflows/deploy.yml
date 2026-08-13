@@ -849,6 +849,15 @@ jobs:
       - name: "Katalog alan kapisi kabul testi (commit ani altkategori + uyum kolu)"
         run: python3 tools/katalog-alan-kapisi-test.py
 
+      # KATALOG ALAN-TIP SEMASI KABUL TESTI (13 Agu): tip ekseni tek alandan (`fiyat`)
+      # kanonik semaya (arama.KATALOG_ALAN_TIPLERI, 15 alan) cikarildi; kapsam elle
+      # sayilmaz, semadan turer ve bilinmeyen alan "TIP TANIMI YOK" diye fail-loud yanar.
+      # 9 iddia (mesru varyantlar dahil: bos fiyat/bos marka/marka yok/lisans yok/
+      # parametrik false) + 4 oldurucu mutant (M1..M4). Bloklayici: sema ikinci kez
+      # kopyalanirsa kapi ile test sessizce ayrisir (ikiz-tanim sinifi).
+      - name: Katalog alan-tip semasi kabul + mutant testi
+        run: python3 tools/katalog-tip-sinifi-test.py
+
       # ALT KATEGORI MUSTERI YUZEYI. Yukaridaki kapi alanin VERI/D1 yolunu korur; bu adim
       # o verinin MUSTERIYE GORUNEN yuzunu korur — ikisi AYRI eksendir, veri yolu yesilken
       # yuzey sessizce yok olabilir (1 Agu'a kadar OYLEYDI: 935 dolu kayit, gorunur yuzey 0).

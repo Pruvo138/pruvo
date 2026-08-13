@@ -907,7 +907,7 @@ def _birim_kurus(p, malzeme):
 
     Urun sayfasi tutari, kart tutari ve cipte GORUNEN tutar UCU DE buradan cikar; ikinci
     bir formul yazilmaz (yazilsaydi bir yuzey digerlerinden sessizce ayrisirdi)."""
-    temel = feed_price((p.get("fiyat") or "").strip())
+    temel = feed_price(p.get("fiyat") if "fiyat" in p else "")
     if not temel:
         return None
     yuzde = 0 if fiziksel_mi(p) else FILAMENT_FARK.get(malzeme, 0)
@@ -990,7 +990,7 @@ def malzeme_aralikli_mi(p):
         return False
     if p.get("kategori") not in FONKSIYONEL_KATEGORILER:
         return False
-    if feed_price((p.get("fiyat") or "").strip()) is None:
+    if feed_price(p.get("fiyat") if "fiyat" in p else "") is None:
         return False
     return en_pahali_malzeme_farki() > 0
 
@@ -1731,7 +1731,7 @@ def konfigur_dogrula(p):
 
     # "fiyat" alanı = çapa-1 (EN KÜÇÜK boyun) fiyatı (feed/JSON-LD ile TEK kaynak). Boş ya
     # da çapadan farklıysa minimum fiyat beyanı yalan olur -> reddedilir.
-    fiyat_sayi = feed_price((p.get("fiyat") or "").strip())
+    fiyat_sayi = feed_price(p.get("fiyat") if "fiyat" in p else "")
     if not fiyat_sayi:
         hatalar.append('konfigur\'lu üründe "fiyat" sayısal minimum fiyat taşımalı '
                        '(ör. "150 TL" — çapa-1/en küçük boyun fiyatı; JSON-LD/feed bunu basar)')
@@ -2322,7 +2322,14 @@ def marka_temiz(txt):
 
 def feed_price(fiyat):
     """Feed icin net sayisal TL fiyati: '650 TL'->'650', '1.250 TL'->'1250',
-    '350 TL (12 cm)'->'350'. Sayisal fiyat yoksa (parametrik/'olcuye ozel') None."""
+    '350 TL (12 cm)'->'350'. Sayisal fiyat yoksa (parametrik/'olcuye ozel') None.
+
+    Tip sozlesmesi arama.KATALOG_ALAN_TIPLERI'dir. Sayi gibi bozuk bir katalog degeri
+    burada ikinci, daha genis bir kabul sinifi acmaz; sayfa uretimini cokertmeden None
+    doner. Katalog kapisi ayni kanonik sebeple yayini zaten fail-closed durdurur.
+    """
+    if arama.katalog_alan_tip_sebebi("fiyat", fiyat) is not None:
+        return None
     if not fiyat:
         return None
     m = re.search(r"(\d[\d.]*)\s*(?:tl|try|₺)", fiyat, re.I) or re.search(r"(\d[\d.]*)", fiyat)
@@ -4052,7 +4059,7 @@ def render_merchant_feed(products):
     for p in products:
         if p.get("parametrik"):
             continue                                   # sari seri -> feed disi
-        price = feed_price((p.get("fiyat") or "").strip())
+        price = feed_price(p.get("fiyat") if "fiyat" in p else "")
         if not price:
             continue                                   # net sayisal fiyati yok -> feed disi
         # 🔴 BESLEME = LISTE/KART YUZEYI (isletme karari, 11 Agu): besleme BASLANGIC
