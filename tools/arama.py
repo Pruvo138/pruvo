@@ -1257,6 +1257,9 @@ BASLIK_DOGAN_ALLOW = {
     # emsal birebir `Renault|Duster`/`Renault|Logan` satirlaridir.
     ("Citroen", "Relay"): "Citroen Relay = Jumper'in GERCEK Ingiltere rozeti",
     ("Citroen", "XM"): "arac/motosiklet model adi",
+    # 13 Agu DS-4: ZX gercek Citroen modeli (1991-1998); H1/H3 sekil yuklemi rakamsiz tek
+    # jetonu tanimiyor, sayfa yayinda ve 3 urun tasiyor — tekil envanter girisi.
+    ("Citroen", "ZX"): "arac/motosiklet model adi (tek jeton rakamsiz — kural GORMEZ)",
     ("Fiat", "Doblo"): "arac/motosiklet model adi",
     ("Fiat", "Fiorino"): "arac/motosiklet model adi",
     ("Fiat", "Qubo"): "arac/motosiklet model adi",
@@ -1425,8 +1428,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "XVS"): "arac/motosiklet AILE adi (XVS serisi)",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 140
-BASLIK_DOGAN_ALLOW_IMZA = "2d28bd413f044588"
+BASLIK_DOGAN_ALLOW_SAYISI = 141
+BASLIK_DOGAN_ALLOW_IMZA = "feb8fe266049d902"
 
 
 def baslik_dogan_allow_imzasi():
