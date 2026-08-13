@@ -1,5 +1,34 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 13 Agu 2026 — OTURUM KAPANISI (KraL)
+
+**CANLIYA GIDEN (SHA ile):** `da896c3e` isci-sarmalayici kapisi + sahipsiz 9 dosya ·
+`b605c399` isci kimlik ekseni · `863c77f1` dagitim sonrasi iki kapi onarimi ·
+`c0c1ffef` B8 kapanisi (`Citroen|ZX`) · `db96c380` site arac es anlamli aramasi
+(kelime sinirli) · `1a0542e1` Claude iscisi YASAK (KraL+MaCiT) · `2f61a5a3` defter.
+Repo disi (git gecmisi YOK, yedekli): `isci.sh` (kimlik damgasi + profil kaliciligi) ·
+`kota-olcum.py` + `kota-yazici-test.py` (K88) · `isci-baglam/ORTAK.md` (kanit kurallari) ·
+6 evin kapi kopyasi (`ISCI_KURAL_SURUMU=13agu-2` + sert blok, 6/6 dogrulandi).
+
+**KOSUYOR:** kendi delegasyonlarimdan **hicbiri kosmuyor** — hepsi kapandi, dal ve worktree
+temiz (`worktree list` = 1 satir, ana agac). Not: `isci.log`'da MaCiT'in `agent-toyota-tv-d2`
+kosumu var; BASKA EVIN isi, dokunulmadi.
+
+**BEKLIYOR / BLOKE:**
+- **K89 (Okan'da kapandi, teyit bekliyor):** Ads'te `Sayfa görüntüleme` KALDIRILDI (ekran
+  goruntusuyle dogrulandi, `purchase` DOKUNULMADI). Genel Bakis'taki "izleme kodunu ekleyin"
+  uyarisinin fiilen dustugu **HENUZ OLCULMEDI** — sonraki tur panelden teyit.
+- **Site aramasi yayin teyidi:** `db96c380` sonrasi parite CANLI siteyi olcer; deploy inene
+  kadar sapma gorunebilir (`DEPLOY BEKLIYOR`, ariza degil). Deploy sonrasi `parite-test.js`
+  + `parite-ege.js` yeniden kosulmali.
+- **Ucus izi:** merge sirasinda main'de ON-MEVCUT iki kirmizi vardi (`Odeme yolu bayatlik
+  nabzi` alarm-kolu; SERIT B mutasyon kapsami K86) — bu oturumun isi DEGIL, defterde acik.
+
+**OKAN'DA BEKLEYEN KARAR:** yok (page_view karari alindi ve icra edildi; jeton tazelendi).
+
+**SIRADAKI TEK IS:** D sinifi tepesindeki 5 kovanin onarim turunu yargila (`Subaru|GT86`
+57 urun sayfasiz, engel rozet-disi) ve ucuz motora ver.
+
 ## 13 Agu 2026 — GOC FIILEN ACILDI + CLAUDE ISCISI YASAK (KraL, hesap rotasyonu sonrasi)
 
 **Devir devralindi.** Nobet jetonu canli: `.ci-token` 14:11Z'de tazelenmis; hemen oncesindeki
