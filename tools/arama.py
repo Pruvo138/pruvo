@@ -897,6 +897,9 @@ ROZET_CAPRAZ_IZINLI = {
     "Renault|logan": ("ROZET", "Renault Logan bazi pazarlarda gercek rozet — KENDI adi"),
     "Skoda|octavia": ("ROZET", "Octavia Skoda'nin kendi rozeti"),
     "Peugeot|partner": ("ROZET", "Peugeot Partner gercek rozet"),
+    "Opel|combo": ("ROZET", "Opel Combo Opel'in kendi rozeti (Berlingo/Partner/Rifter kardesi)"),
+    "Peugeot|expert": ("ROZET", "Peugeot Expert Peugeot'nun kendi rozeti (Jumpy/Proace kardesi)"),
+    "Peugeot|rifter": ("ROZET", "Peugeot Rifter Peugeot'nun kendi rozeti (Berlingo/Partner kardesi)"),
     "Toyota|proace": ("ROZET", "Toyota Proace gercek rozet"),
     "Dacia|sandero": ("ROZET", "Dacia Sandero gercek rozet"),
     "Renault|sandero": ("ROZET", "Renault Sandero bazi pazarlarda gercek rozet — KENDI adi"),
@@ -999,8 +1002,8 @@ ROZET_CAPRAZ_IZINLI = {
                             "Diversion); Jaguar XJ6 sedaniyla yalniz AD cakismasi var"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 46
-ROZET_CAPRAZ_IZINLI_IMZA = "e07810435337b2c3"
+ROZET_CAPRAZ_IZINLI_SAYISI = 49
+ROZET_CAPRAZ_IZINLI_IMZA = "5d8950adf827bbf2"
 
 
 def rozet_capraz_imzasi():
