@@ -1,5 +1,36 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 13 Agu 2026 — SAATLIK NOBET TURU ~16:48 (KraL)
+**Süpürme OK:** rc=0 (işçi delege edildi, derinseek-flash motoru — mimar ana oturumu lock altında olduğundan lock muafiyeti). BULUNAN=6 TASINAN=6 ATLANAN=0 CIKAN=6 KOMSU_KAYIP=0 KALAN=0 COP_IZI=27:2026-08-13T19:36:22 (gmlmz hesabında 2 Deltaprints maili ÇÖP'te YANLIS sınıf — süpürme taşımadı, kullanıcının kendi işi; yeni taşınan 6 GitHub Run failed 27->21 MESRU, bağımsız teyit).
+**CI yayın AÇTI:** Build & deploy 31722405771 (HEAD `69b77c5f`, kapi kolu contasi gorsel temizlendi) — 16:46:53Z başladı, 17:07:51Z tamam (21m); 6 job HEPSİ success (build/serit-a2/serit-a3/serit-a4/deploy/yayin). Önceki kırmızı (a317b8c7, e03cc87, 6a3409a, 12de527) eski HEAD'lere aitti, Okan'ın `69b77c5f` fix'i onları kapattı.
+**Onarım mimar tarafından BAŞLATILMADI:** Okan `a317b8c7` (ö→o ASCII rename) ve `69b77c5f` (gorsel anahtarı alt-çizgi→tire) commit'lerini kendi attı; mükerrer olurdu.
+**Tamirci:** 🔧 açık=18 (K49, K53, K54, K55, K56, K58, K59, K69, K70, K71, K72, K77, K78, K80, K84, K85, K86, K88); bu tur kapanan=0, dağıtılan=0.
+**Okan'a çıkılmadı** (§5: temiz tur bildirilmez, onarım kendi işiydi).
+
+## 13 Agu 2026 — SAATLIK NOBET TURU ~18:42 (KraL)
+**Süpürme OK:** rc=0, BULUNAN=6 TASINAN=6 ATLANAN=0 CIKAN=6 KOMSU_KAYIP=0 KALAN=0 COP_IZI=21:2026-08-13T18:37:27 (gmlmz hesabında 2 Deltaprints maili ÇÖP'te YANLIS sınıf — süpürme taşımadı, kullanıcının kendi işi; yeni taşınan 6 GitHub Run failed 21/21 MESRU, bağımsız teyit).
+**CI KIRMIZI 4 failure (HEAD e03cc87, son 70 dk):**
+- Build & deploy (31713140869): uretim butunluk kapisi + R2 anahtar testi KIRMIZI — id `c3d-alfa-romeo-156-166-rolanti-sensor-kapagi-v2` non-ASCII `ö` (URL-GUVENSIZ). Aynı kök neden 4 ardışık koşumda (0e7eec0@13:16Z, 12de527@13:34Z, 6a3409a@14:12Z, e03cc87@15:01Z) → DUR koşulu.
+- D1 uzlastirici (31716078588): SEQ tam sayı aralığı TUKENDI — `c3d-alfa-romeo-159-spider-far-toz-kapagi-v2` alt=999999 ust=1000000; `tools/d1-sync.py --seq-normalize` gerekli; D1 136 geri (26756 vs 26620).
+- Yayin erisim (31715416257): 11 landing sayfası canlıda HTTP 404 — yayın durduğu için üretilmedi (canlı main'den 10 commit geride, son yayınlanan sha 7dd3fc2b).
+- Paket tazeligi/yayin-nabzi (31716498604): 6 ardışık düşen koşum, 6 ardışık yayınsız koşum, en eski bekleyen 233 dk → yayın DURMUŞ.
+**Yerel düzeltme var:** `a317b8c7` ASCII rename ö→o (main ahead 1, push edilmedi).
+**DUR koşulu tetiklendi:** Build & deploy aynı kök nedenle 4 ardışık koşumda düzelmedi + deploy kapısı → mimar (KraL) push ETMEZ; Okan kararı.
+**Tamirci:** 🔧 açık=18 (K49,K53,K54,K55,K56,K58,K59,K69,K70,K71,K72,K77,K78,K80,K84,K85,K86,K88 — 17:xx listesiyle aynı), bu tur kapanan=0, dağıtılan=0.
+**Okan'a çıkıldı:** a317b8c7 (ö→o ASCII rename, 1 commit) push edeyim mi (Build & deploy + R2 anahtar KAPALI; D1/yayin ayrı iş)?
+
+## 13 Agu 2026 — SAATLIK NOBET TURU ~17:xx (KraL)
+**Süpürme OK:** rc=0, BULUNAN=7 TASINAN=7 KOMSU_KAYIP=0 (gmlmz hesabında 2 Deltaprints maili ÇÖP'te YANLIS sınıf, süpürme taşımadı — kullanıcının kendi işi).
+**CI KIRMIZI 5 failure (HEAD 6a3409a):**
+- Üretici bütünlük: sitemap.xml 26756 vs merchant-feed.xml 26733 (23 fark) — urunler.json mı build.py mi?
+- R2 anahtar türetme: 2 kirli (`c3d-alfa-romeo-kapi-kolu-contasi-v2` + normalize çevirisi) → urunler.json'da isim düzeltme gerekir
+- Shop worker bayat: 1728 dk (28.8s) yayınlanmamış commit, 9 commit geride
+- 11 URL canlıda 404 (erisim kapısı)
+- `cron-nabzi` (yayın DURMUŞ alarm kolu) — tek başına arıza sayılmaz
+**Tamirci:** 🔧 açık=18 (K49,K53,K54,K55,K56,K58,K59,K69,K70,K71,K72,K77,K78,K80,K84,K85,K86,K88); bu tur kapanan=0, dağıtılan=0.
+**DUR koşulu tetiklendi:** Üretici bütünlük + R2 anahtar düzeltmesi YASAK listeye (urunler.json) dokunuyor; Codex yapamaz → **MaCiT işi**. Mimar (KraL) sadece onarım paketi hazırlar, merge/deploy ALMAZ.
+**Okan'a çıkıldı:** MaCiT açayım mı (paket bırakırım), yoksa kendin mi bakarsın?
+
 ## 13 Agu 2026 — OTURUM KAPANISI (KraL)
 
 **CANLIYA GIDEN (SHA ile):** `da896c3e` isci-sarmalayici kapisi + sahipsiz 9 dosya ·
@@ -350,3 +381,57 @@ _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory
 **ONERI (isci):** cop-denetimi bulten kimliklerini (message-id) muafiyet listesine alip YANLIS'i "yeni-kayit" olarak olcse alarm tekrarini durdurur; kural degisikligi Okan kapisi.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
+
+## 13 Agu 2026 ~14:xxZ — SAATLIK CI NOBETI DUZELTME+DUR (KraL, OTOMATIK)
+
+**Hukum:** §5 sessiz varsayilan — Okan'a EK CIKIS YOK (K30 zaten 10:3xZ'de bildirilmisti, yeni cikis YAPILMAZ). Codex DUR karari bagimsiz olcumle yanlislandi; gercek kok neden OKAN KAPISI (pruvo-shop worker 25+ saattir deploy edilmedi), bu zaten 10:3xZ'de Okan'a bildirilmisti.
+
+**Olculen (isci raporlari, jeton `olcum`/`derinlesme`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=3 · TASINAN=3 · ATLANAN=0 · CIKAN=3 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=42:2026-08-13T14:07:39 · HUKUM=SUPURULDU · **RC=0**. Silinen 3 mail: `0070241` (Nöbet şeridi SERIT B) · `7dd3fc2` (Odeme yolu bayatlik nabzi) · `214b432` (Paket tazeligi alarmi). Uc fail-closed alarm da tetiklenmedi.
+- **§0.5 COP DENETIMI:** MESRU=42 · **YANLIS=4** (WinningCircle ×2 + Skool + Google Store). Bunlar supurmenin tasidigi sey DEGIL (yuklem yalniz GitHub+Run failed); 11 Agu 0.4 acik kalem deseninin ayni izi → §0.5 "yanlis supurme alarmi" kapsamina GIRMEZ. Kurtarma YAPILMADI (Okan kapisi).
+- **§2 GH TEYIT (10 kosum):** success=7 · failure=2 · in_progress=1 · cancelled=0. **FAILURE:** 31693879136 (head `7dd3fc2`, "Odeme yolu bayatlik nabzi", push) · 31692418997 (head `214b432`, "Paket tazeligi alarmi", schedule). 31679663271 in_progress.
+- **§3 CODEX ICRA (jeton `sessiz-hata`):** Spec `/private/tmp/claude-501/pruvo-20260813/spec.md` ile Codex'e devredildi. Codex `DUR` karari verdi: "Aynı worker bayatlığı en az 3 ardişik koşumda sürdüğü için dur koşulu uygulandı." Bagimsiz dogrulama (`gh run list` ile, jeton `derinlesme`): iddia **KISMI · YANLIS EKSENDEN** — gercek ardisik sayisi Odeme yolu bayatlik'te **48** (12 Agu 12:06Z'den beri), Paket tazeligi alarmi'nda **19** (3 degil); iki koşum FARKLI workflow'larda (push vs schedule). Gercek kok neden: `pruvo-shop` worker **2 commit yeni / 25+ saattir** deploy edilmedi (`5c24ca58` kart-tutari + `7a6fc6a3` CI ihlali) → tek cozum `npx wrangler deploy` = **OKAN KAPISI** (CLAUDE.md). 31692418997'de ayrica bagimsiz bir E4 "1 kosum CALISIRKEN olduruldu" var (deploy-aclik-kapisi); bayatlikla karistirilmamali.
+- **§4.7 TAMIRCI NABZI:** ACIK~=11 (K53, K54, K55, K56, K58, K59, K62-UCUSTA, K69, K70, K71) · **BU_TUR_KAPANAN=0** · **BU_TUR_DAGITILAN=0**. Hacim artarsa birim degil KUYRUK buyur kurali korundu; Codex/spec cagirisi YAPILMADI.
+
+**Yapilmayan:** §3 fix Codex DUR'u ile durdu (DUR gerekcesi yanlis ama OKAN KAPISI olmasi nedeniyle fix zaten gerekmiyor); §0.4/§0.5 normalleri; §3.5 tetiklenmedi (gercek fix Okan kapisi).
+
+**Kalici ders:** Codex "3 ardişik" iddiasi fiilen 48/19 — DUR karari **yanlis birlikte verilmis** (tek makine sayimi ile kapsam ekseni kanitlanmadan). Bagimsiz olcum yapilmadan DUR'a guvenilmez; bu tur Codex'in sayisina GUVENILMEDI, `gh run list` ile yeniden olculdu. Bu, K61'ın "kapının kendi içinde" sınıf dersinin bir başka örneği.
+
+**Okan karari gerekli mi?** HAYIR — §5 sessiz varsayilan. K30 zaten 10:3xZ'de bildirilmisti; yeni cikis YAPILMAZ.
+
+## 13 Agu 2026 12:46Z — SAATLIK CI NOBETI KIRMIZI+YAYIN BLOKLAR (KraL, OTOMATIK)
+
+**Hukum:** §5 — Okan'a TEK cumle (COP_YANLIS=11 alarmi + MaCiT duzeltmesi gerek, yayin BLOKLAR).
+
+**Olculen (isci raporu, jeton `olcum`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=5 · TASINAN=5 · ATLANAN=0 · CIKAN=5 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · HUKUM=SUPURULDU · **RC=0**.
+- **§0.5 COP DENETIMI:** MESRU=47 · **YANLIS=11** — supurme yuklemi yalniz GitHub+Run failed; 11 yanlis cop'te ONCEDEN bulunuyordu (supurme tasimadi), 11 Agu 0.4 acik kalem deseninin birikmis izi (Meta ads receipt / Skool / WinningCircle / Google Store vb. bulten-spam). §0.5 alarmi tetiklendi: **Okan'a tek cumle** (asagida). YANLIS icin kurtarma YAPILMADI (otomatik degil, Okan kapisi).
+- **§2 GH TEYIT:** SON_1H_FAILURE=4. `c010667` hasat push'u (44 urun) **D1 uzlastirici** kosum `31698319480`'da kirmizi — KOK NEDEN: `c3d-alfa-romeo-kapi-kolu-contasi-v2` kaydinda `tavsiyeFilament` alani dizi olmali ama str ('TPU (esnek filament) onerilir'); uzlastirici sessiz normalize ETMEDI → sapma KAPANMADI → **yayin BLOKLAR** (build/serit-a2/serit-a3 kapilari dustu, deploy+yayin skipped). Ayni push'un 31697983176 (build+serit kapilari) ve 31697983213 (bayatlik alarm-kolu, BLOKLAMAZ) failure'lari bu kok nedenin yankisi.
+- **§3 DUR:** Duzzeltme YASAK kapsama dokunuyor (`urunler.json`/`tavsiyeFilament` tip duzeltmesi = MaCiT tek-yazarli alani); §3 "push etme, mail silme; Okan'a tek cumleyle soyle ve bitir" → Codex acilmadi, hüküm KIRMIZI+YAYIN_BLOKLAR.
+- **§4.7 TAMIRCI NABZI:** ACIK=18 · EN_ESKI=2 gun · EN_YENI=2026-08-13 · BU_TUR_KAPANDI=0 · DAGITIM=var.
+
+**Yapilmayan:** §3 acilmadi (YASAK kapsam + §3 DUR); §3.5 zaten 0.4'te kapandi (5 mail cop'lendi). COPy'deki 11 yanlis icin kurtarma YAPILMADI (Okan kapisi).
+
+**Okan karari gerekli mi?** EVET — iki ayri kapi: (1) COP_YANLIS=11 alarmi → kurtarma yolu `/Users/okan/.claude/cron/kurtarma-cop-inbox.applescript` ELLE (otomatik degil); (2) MaCiT tek-yazarli alaninda `tavsiyeFilament` tip duzeltmesi → MaCiT'e iletilmeli, KraL dokunamaz.
+
+## 13 Agu 2026 16:37Z — SAATLIK CI NOBETI DUR+KIRMIZI (KraL, OTOMATIK)
+
+**Hukum:** §5 — Okan'a TEK cumle (MaCiT hasat partisi c0106677 veri hatalari: ASCII-disi `ö` id + alt-cizgi R2 anahtar; KraL YASAK kapsam, Codex acilmadi, mail silinmedi, push YOK).
+
+**Olculen (isci raporlari, jeton `olcum`/`derinlesme`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo).
+- **§0.4 SUPURME:** BULUNAN=8 · TASINAN=8 · ATLANAN=0 · CIKAN=8 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=8:2026-08-13T16:39:15 · HUKUM=SUPURULDU · **RC=0**. Silinen 8 mail: 2 (12de527, D1 uzlastirici + Odeme yolu bayatlik) · 2 (0e7eec0, Build&deploy + Odeme yolu) · 3 (ff9d91e, Paket tazeligi + Build&deploy + Odeme yolu) · 1 (c010667, Nöbet şeridi SERIT B).
+- **§0.5 COP DENETIMI:** MESRU=8 · **YANLIS=3** (gmlmz 68546 DMARC Aggregate Report, gmlmz 68547 Deltaprints "Welcome", gmlmz 68548 Deltaprints Patreon). Bunlar supurmenin tasidigi sey DEGIL (supurme yuklemi yalniz github+Run failed); 11 Agu 0.4 acik kalem deseninin ayni izi → §0.5 kapsamina GIRMEZ. Kurtarma YAPILMADI (Okan kapisi).
+- **§1+§2 ILK OLÇUM:** HEAD=`12de527a` (tavsiyeFilament fix). 10 koşumda 3 failure: `31705738546` D1 uzlastirici (scheduled) katalog sapmasi kapanmadi · `31705606361` Odeme yolu bayatlik nabzi (cron-nabzi ALARM, BLOKLAMAZ) · `31705606374` (veri push trigger) `build` FAIL step 9 "Uretici butunluk kapisi" + `serit-a2` FAIL step 7 "R2 anahtar turetme kabul testi" + `serit-a3` hâlâ **in_progress 3+ saattir** (updatedAt 13:34:34Z; §4.5 cancelled/in_progress yigini tek basina ariza DEGIL).
+- **§3 TEKNIK TEŞHIS (jeton `derinlesme`):** c0106677 hasat partisi (MaCiT, "urunler: hasat-cadcamonline-cults3d d1 =+44, 26664->26708") iki kirli kayıt birakti: (a) `c3d-alfa-romeo-156-166-rölanti-sensor-kapagi-v2` urunler.json:598591 id'de `ö` → URL-guvensiz sayfa yolu → build step 9 FAIL; (b) `c3d-alfa-romeo-kapi-kolu-contasi-v2` urunler.json:598215-598216 gorseller URL'leri `c3dalfa_door_handle_gasket` alt-cizgi tasir → serit-a2 step 7 FAIL. 12de527a fix yalniz `tavsiyeFilament` alan tipine dokunuyor (id/gorseller'e degil); kapi script'leri (2026-07-31 + 2026-08-07) veriden ONCE, uyumsuzlugu dogru yakaliyorlar. **SINIF=MAACIT, CODEX_CAGRISI_GEREKLI=HAYIR.**
+- **§3 DUR:** YASAK kapsam (urun verisi = MaCiT tek-yazarli alani); §3 "push etme, mail silme; Okan'a tek cumleyle soyle ve bitir". Codex acilmadi; ek mail silinmedi (12de527'nin build/serit-a2 failure mailleri henuz URETILMEDI cunku `31705606374` hâlâ in_progress); ek push YOK.
+- **§4.7 TAMIRCI NABZI:** Onceki turdan degisiklik yok (ACIK=18, K49 2-gunluk SLA sinirinda). Bu tur Codex/spec cagirisi YAPMADI; sadece olcum + teşhis.
+- **Isci altyapisi:** 2 isci kosumu: `ci-nobeti-mail-sweep` (deepseek-flash, rc=0/43sn) + `ci-nobeti-ci-teshis` (deepseek-flash, rc=0/38sn — deepseek-pro "Connection closed mid-response" ile dustukten sonra flash ile tekrarlandi). Ana oturum opus'a dokunmadi.
+
+**Yapilmayan:** §3 fix (YASAK); §3.5 ek mail silme (pre-condition yok); §4.7 dagitim (Tamirci YAPMADI).
+
+**Okan karari gerekli mi?** EVET — MaCiT tek-yazarli alaninda iki veri duzeltmesi gerekiyor: (1) `c3d-alfa-romeo-156-166-rölanti-sensor-kapagi-v2` id'deki `ö` ASCII disi karakter temizlenmeli, (2) `c3d-alfa-romeo-kapi-kolu-contasi-v2` kaydinda R2 gorsel anahtari alt-cizgi yerine tireye normalize edilmeli. Yalniz MaCiT yapabilir.
+
+**Okan'a cikis (TEK cumle):** "🔴 MaCiT hasat partisi c0106677 veri hatalari: `c3d-alfa-romeo-156-166-rölanti-sensor-kapagi-v2` id ASCII-disi `ö` tasiyor (build FAIL); `c3d-alfa-romeo-kapi-kolu-contasi-v2` gorseller URL'leri alt-cizgi (serit-a2 FAIL + D1 uzlastirici sapma). KraL YASAK — MaCiT tek-yazarli alani; tek fix MaCiT'te."
