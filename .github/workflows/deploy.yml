@@ -1245,6 +1245,13 @@ jobs:
       - name: Diriltme kapisi (silinmis urun geri gelmis mi)
         run: python3 tools/diriltme-kapisi.py
 
+      # MUKERRER PRECOMMIT KAPSAMI: mukerrer-kontrol.py --pre-commit'in calisma agacini
+      # DEGIL commit icerigini (index/HEAD) yargiladigini ve okunamazsa fail-closed eski
+      # davranisa dustugunu kanitlar (5 iddia). Bloklayici: kapsam calisma agacina kayarsa
+      # baska oturumun yarim urunler.json'i HERKESIN commit'ini kilitler.
+      - name: Mukerrer kapisi pre-commit kapsam testi
+        run: python3 tools/mukerrer-kapsam-test.py
+
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
@@ -1380,6 +1387,13 @@ jobs:
       # setup-node yukarida BLOKLAYICI on-kosul.
       - name: Skan Art kategori + banner kabul testi
         run: python3 tools/test-skan-art.py
+
+      # SKAN ART OZYINELEME KILIDI: uretim kum havuzunun kendini ic ice kopyalamasini
+      # onleyen kilidin (derinlik tavani · zaten-varsa yeni seviye acmama · sir tasimama ·
+      # fail-closed temizlik) kabul + mutant testi (4 mutant). Bloklayici: bir kol duserse
+      # gecici uretim koku diskte buyuyup sir dosyasi tasir (188 GB kacak sinifi).
+      - name: Skan Art ozyineleme kilidi kabul + mutant testi
+        run: python3 tools/skan-art-ozyineleme-test.py
 
       # ODEME BEYANI: statik yasal sayfalardaki siparis/odeme anlatimi canli akisla uyumlu mu
       # (kart formu/iframe yok, teslim suresi, wa.me/tel numara ayrimi). Bloklayici: uyumsuzluk
