@@ -71,7 +71,8 @@ function mutantOldur(ad, degistir, pythonKapisi) {
   let oldu = false;
   try {
     if (pythonKapisi) {
-      const r = cp.spawnSync("python3", ["-c", "import arama"],
+      const r = cp.spawnSync("python3", ["-c",
+        "import arama; arama.tokenlar('araba'); assert arama._ARAC_ES_ANLAMLI_YUKLENDI"],
         { cwd: d, env: Object.assign({}, process.env, { PYTHONPATH: path.join(d, "tools") }) });
       oldu = r.status !== 0;
     } else {
