@@ -285,3 +285,31 @@ itibariyle basladi, ~38 saat sonra OKAN-KAPISI'ne kayar.
 
 _Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
 _Acik kalemlerin KAYNAK DOGRUSU: ~/.claude/projects/-Users-okan-dev-pruvo/memory/acik-kalemler.md_
+
+## 13 Agu 2026 ~10:3xZ — SAATLIK CI NOBETI DUZELTME+YARIM (KraL, OTOMATIK)
+
+**Hukum:** §5 — Okan'a TEK cümle (Odeme yolu 20+ saattir bayat, deploy karari gerekiyor).
+
+**Olculen (isci raporlari, jeton `olcum`/`derinlesme`):**
+- EV dogru (cwd = /Users/okan/dev/pruvo); 0.4 supurme + 0.5 cop denetimi + §2 GH teyit isciye delege edildi (mimar-icra-kapisi + agent-kapisi disarida tutar).
+- **§0.4 SUPURME:** BULUNAN=7 · TASINAN=7 · ATLANAN=0 · CIKAN=7 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · HUKUM=SUPURULDU · RC=0.
+- **§0.5 COP DENETIMI:** MESRU=12 · **YANLIS=3** (WinningCircle Kıssadan Hisse x2 + Haddini Aş Kulübü Skool bildirimi). Bunlar supurmenin tasidigi sey DEGIL (süpürme yüklemi yalnız github+Run failed); 11 Agu 0.4 acik kalem deseninin aynı izi. Kurtarma YAPILMADI (Okan kapisi). Supurme kanit sonrasi inbox/github_durum ayni, hüküm: supurme TEMIZ.
+- **§2 GH TEYIT:** 10 koşum, 5 CANLI arıza. Per-workflow netice (failure'lı workflow'larin KENDI tarihcesine göre):
+  - `id=31674324786` `headSha=1a0542e1` Odeme yolu nabzi → CANLI (son 30 koşumda 0 başarı; **20,8 saattir canlı shop worker deploy edilmemiş**, eşik 120 dk). **Okan/mimar deploy kararı gerekiyor**; YAYINI BLOKLAMAZ (alarm-kol).
+  - `id=31674013361` `headSha=bd71c55a` Build&deploy serit-a3 "FileNotFoundError /tmp/duzelt-toplu-testi-ieaq9dmv/index.html (tools/arama.py:31)" + serit-a2 "ticari-hal-kapisi kabul caseleri ✘" → CANLI.
+  - `id=31674324739` `headSha=1a0542e1` Build&deploy serit-a3 → aynı FileNotFoundError → CANLI.
+  - `id=31674013358` `headSha=bd71c55a` Odeme yolu nabzi → CANLI (aynı kök 31674324786).
+  - `id=31673599382` `headSha=db96c380` D1 uzlastirici teyit → CANLI ("D1 urun sayisi=26419 vs urun_sayisi=26386; KARANTINADA, MUAF:33"); bd71c55a +33 ürün sonrası kapanabilir, sonraki uzlastirma koşumunda teyit.
+- **§3 CODEX ICRA (jeton `sessiz-hata`):** Spec `/tmp/codex-spec-serit-20260813.md` yazıldı; Codex CLI (tam yol, `danger-full-access`, `-o /private/tmp/...`) ile devredildi. Codex kodu okuyup commit + push'u **tamamladi** (`a40d60af` 09:53:44, mesaj: "serit-a3+serit-a2: arama.py temp fallback + ticari-hal-kapisi kabul testi duzeltme (CI Build&deploy onarim, 13 Agu)"). Ancak Codex `son-mesaj.txt`'i YAZMADI ve KOK_NEDEN/DEGISEN_DOSYALAR/YENI_KOSUM kabul satırları boş kaldı; ~40 dk sonra süre aşımıyla TaskStop ile DURDURULDU (per §3.5).
+- **YARIM IS:** Codex commit'i main'e girdi + push tetiklendi. Build&deploy koşumunun **success** olduğu **DOĞRULANMADI** (Codex bunu ölçecekti, ölçemeden durdu). DEGISEN_DOSYALAR `git show --stat a40d60af` ile yerelde okunabilir; KOK_NEDEN bilinmiyor (Codex son mesajı boş).
+- **§4.7 TAMIRCI NABZI:** toplam acik/KAPANDI/dagitim degisikligi yok (bu tur Codex acmadan Tamirci katinda onarim YAPMADI; sadece delegasyon).
+
+**Sonraki turun ILK isi (sifirdan teshise baslama YOK):**
+1. `git show --stat a40d60af` → DEGISEN_DOSYALAR satiri.
+2. `gh run list --repo Pruvo138/pruvo --limit 3 --json databaseId,conclusion,status,headSha,displayTitle` ile push sonrasi Build&deploy koşumunun `conclusion=success` oldugunu DOGRULA (yerel `python3` ile).
+3. DOGRULANIRSA: §3.5 zincirine gore bu kirmizi kosumlarin `Run failed` maillerini `mail-supurme-kos.sh` ile cop'e tasimaya YETKI VAR (sınıf KAPANDI). DOGRULANMAZSA: bir sonraki Codex cagirisi §3.5 "aynı kök neden arka arkaya 3 koşumda düzelmediyse" sınırına dikkat etsin; §3 ile durumu yeniden yargila.
+4. Odeme yolu bayatlik hâlâ kırmızı ise: §5 Okan cikis KAPALI (zaten bu turda bildirildi); sadece not olarak "hâlâ canli" yaz, yeni cikis YAPMA.
+
+**Okan karari gerekli mi?** EVET — §5: deploy/yetki/ödeme kapısı → canlı pruvo-shop worker 20+ saattir deploy edilmedi (esik 120 dk). Bu turda **TEK cümle** ile bildirildi (aşağıda).
+
+_Daha eski bloklarin TAM metni DEVAM-ARSIV.md dosyasindadir (kayipsiz tasindi)._
