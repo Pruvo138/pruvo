@@ -79,11 +79,16 @@ VAKALAR = [
     ("ISCI", 20, 'codex exec "x"', ISCI_ID, "allow"),
     ("ISCI", 21, 'nice -n 10 codex exec "x"', ISCI_ID, "allow"),
     ("ISCI", 22, 'codex exec --output-last-message=-o "x"', ISCI_ID, "allow"),
-    # ISCI muafiyetinin GENEL ekseni: repo-disi betik kosumu. 5 evde ISCI muaf; BaBa
-    # evinin kapisi kimlik ekseni TASIMIYOR (kurulum ONCESI de boyleydi) — olculur,
-    # raporlanir, bu isle DEGISTIRILMEZ.
-    ("ISCI", 23, "python3 /private/tmp/analiz.py", ISCI_ID,
-     {"BaBa": "deny", "*": "allow"}),
+    # ISCI muafiyetinin GENEL ekseni: repo-disi betik kosumu.
+    # 13 Agu: ISCI kimlik ekseni 6 eve dagitildi; isci muafiyeti artik BaBa'da da
+    # gecerli — eski `deny` beklentisi eksenin YOKLUGUNU olcuyordu.
+    ("ISCI", 23, "python3 /private/tmp/analiz.py", ISCI_ID, "allow"),
+    # BaBa negatif nobetcileri: kimliksiz mimar ve kume-disi sarmalayici izi ayni
+    # repo-disi betik cagrisinda kapinin tamamen acilmadigini kanitlar.
+    ("ISCI", 24, "python3 /private/tmp/analiz.py", None,
+     {"BaBa": "deny", "*": "deny"}),
+    ("ISCI", 25, "python3 /private/tmp/analiz.py", None,
+     {"BaBa": "deny", "*": "deny"}, "Bash", {"PRUVO_ISCI_KOSUMU": "gpt-9"}),
     # --- RUTIN: BaBa sarti — alakasiz gundelik cagri YESIL kalmali ---
     ("RUTIN", 30, "git -C {EV} status", None, "allow"),
     ("RUTIN", 31, "ls", None, "allow"),
@@ -113,7 +118,7 @@ VAKALAR = [
 ]
 
 
-def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash"):
+def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash", ortam_ek=None):
     """Doner: (karar, iz_var). karar: allow/deny/EKSIK-KAPI/COKTU/PARSE-HATASI.
 
     tool_name VARSAYILAN 'Bash' (mevcut TUM vakalar aynen kosar — regresyon 0). MCP
@@ -137,6 +142,8 @@ def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash"):
     # agent_id eksenini simule eder; dis PRUVO_ISCI_KOSUMU izi ic fiksturlere sizarsa
     # MIMAR deny vakalari yalanci allow olur.
     ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    if ortam_ek:
+        ortam.update(ortam_ek)
     sonuc = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(payload),
                            capture_output=True, text=True, env=ortam)
     iz = "MIMAR-KAPISI allow" in (sonuc.stderr or "")
@@ -175,11 +182,12 @@ def ev_kostur(ad, kok, goreli):
         # 5-elemanli = Bash vakasi (mevcut); 6-elemanli = tool_name tasiyan vaka (MCP).
         sinif, no, komut, agent_id, beklenen = vaka[:5]
         tool_name = vaka[5] if len(vaka) > 5 else "Bash"
+        ortam_ek = vaka[6] if len(vaka) > 6 else None
         if komut == "<PY>":
             komut, beklenen = PY_CAGRI[ad]
         komut = komut.replace("{EV}", kok)
         bek = beklenen_coz(beklenen, ad)
-        olculen, iz = kapiyi_kostur(kapi, kok, komut, agent_id, tool_name)
+        olculen, iz = kapiyi_kostur(kapi, kok, komut, agent_id, tool_name, ortam_ek)
         gecti = (olculen == bek)
         if not gecti:
             basarisiz.append((ad, no, bek, olculen))
