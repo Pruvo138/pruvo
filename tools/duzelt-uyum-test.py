@@ -44,6 +44,7 @@ import sys
 import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
 
 # duzelt.py bunlari KOSULSUZ import eder -> sahte repoya da kopyalanmalilar.
 YARDIMCILAR = ("gorsel_koken.py", "arama.py")
@@ -93,6 +94,7 @@ def sahte_repo(katalog):
     shutil.copy(os.path.join(TOOLS, "duzelt.py"), os.path.join(d, "tools", "duzelt.py"))
     for ad in YARDIMCILAR:
         shutil.copy(os.path.join(TOOLS, ad), os.path.join(d, "tools", ad))
+    shutil.copy(os.path.join(ROOT, "index.html"), os.path.join(d, "index.html"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(katalog, f, ensure_ascii=False, indent=2)
     return d
