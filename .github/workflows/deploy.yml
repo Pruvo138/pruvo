@@ -92,11 +92,16 @@ jobs:
       # Ikinci satir mutasyon bataryasidir: dort oldurucu mutant kanonik dosyanin GECICI
       # kopyasina uygulanir (kaynak DEGISMEZ, kopya finally ile silinir); biri hayatta
       # kalirsa kapi KIRMIZI yanar -> "kabul testi var" iddiasi olcume baglanir.
-      # Offline, stdlib, agsiz/wrangler'siz (~1 s).
-      - name: D1 seq dairesel kilit kabul testi + mutasyon bataryasi
+      # K49: ayni origin/main ucundaki iki tam-katalog yazicisi bayatlik kapisindan
+      # birlikte gecebildigi icin yazici yolu ortak non-blocking flock ile tekillestirildi.
+      # Eşzamanlilik testi gercek iki surecle ikinci yazicinin fail-closed durdugunu,
+      # birinci bitince kilidin yeniden alinabildigini ve salt-okuma kiplerinin kilitsiz
+      # kaldigini olcer. Offline, stdlib, agsiz/wrangler'siz (~2 s).
+      - name: D1 seq ve tam-katalog yazici kilidi kabul testleri
         run: |
           python3 tools/d1-seq-kilit-test.py
           python3 tools/d1-seq-kilit-test.py --mutasyon
+          python3 tools/d1-yazici-kilit-test.py
 
       # SITEMAP DAMGA ONBELLEGI — <lastmod> tarihlerinin HIZLANDIRICISI, KAYNAGI DEGIL.
       # Tarihler git gecmisinden turer (tools/sitemap_damga.py); bu dosya yalnizca ayni
