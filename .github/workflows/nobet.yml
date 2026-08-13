@@ -1101,6 +1101,26 @@ jobs:
       - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
         run: python3 tools/ci-kapsam-test.py --kendini-test
 
+      # ONARIM-COMMIT ARACI — iscinin onarimini yayina indiren TEK komut
+      # (tools/onarim-commit.py: stash -> worktree -> commit -> --ff-only merge -> push).
+      # NEDEN NOBET SERIDINDE: bu arac YAYIN ZINCIRINDE DEGIL, isci ergonomisindedir;
+      # kirmizisi "arac kordur" demektir, "site bayat" DEMEK DEGIL ([[hukum-yanlis-birimde]]).
+      # Her vaka GECICI dizinde SENTETIK bir depo (bare uzak + yerel klon) kurup araci
+      # GERCEKTEN kosar; metin eslemesi YOK, ag YOK, canli agaca YAZMAZ, gecici depolar
+      # kosum sonunda SILINIR. 12 vaka, ~5 s (olculdu, macOS).
+      - name: "Onarim-commit araci kabul testi (12 vaka: F1-F8 + --kuru, sentetik depo)"
+        run: python3 tools/onarim-commit-test.py
+
+      # AYNI DOSYANIN MUTASYON KOLU — AYRI ADIM OLMAK ZORUNDA (bayraksiz kosum bunu
+      # CAGIRMAZ): kapinin kendi KIRMIZISINI yakip yakamadigini olcer. 5 tekil satir
+      # mutasyonu (F1 kapisi kalkar / `git add -A` / ff yerine merge commit / push'a
+      # --force / F8 listesi bosalir) GECICI kopyaya uygulanir ve ilgili vaka o mutanta
+      # karsi kosulur; hayatta kalan mutant KIRMIZI'dir. Kanonik kaynak sha256 ile
+      # kosum oncesi/sonrasi karsilastirilir (batarya canli dosyaya DOKUNMAZ).
+      # Beyan: tools/onarim-commit-test.py :: CI-ALT-KUME --mutasyon.
+      - name: "Onarim-commit mutasyon bataryasi (5/5 oldurucu mutant kirmizi mi)"
+        run: python3 tools/onarim-commit-test.py --mutasyon
+
       # VARLIK KAPISI — EKSEN 1'IN KENDI KIRMIZI YOLU. Kapinin BAYRAKSIZ kolu ("varliga
       # tasima sirasinda icerik kaybolmadi/degismedi") serit A'da, deploy.yml job
       # `serit-a3`te BLOKLAYICI kalir — o kol "yanlis icerik canliya cikmasin" sinifidir.
