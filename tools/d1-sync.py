@@ -1352,6 +1352,55 @@ def seq_sira_hali(urunler, mevcut_seq):
     return kesirli, sapma, ornek
 
 
+def seq_normalize_plan(urunler, mevcut):
+    """SAF plan (canli D1'e DOKUNMAZ -> kabul testi burayi cagirir).
+    Doner: (ifadeler, hata). `hata` None degilse `ifadeler` None'dir ve cagiran fail-loud durur.
+
+    🔴 ON-KOSUL EKSENI (13 Agu 2026, DAIRESEL KILIT onarimi — GEVSEME DEGIL SIVRILME).
+    Eski sart "D1 id kumesi == kanonik katalog id kumesi" idi; bu sart EKSIK (katalogda var,
+    D1'de YOK) halinde de duruyordu ve kilit dairesel oluyordu: mid-array yeni id'nin
+    INSERT'i `diff_plan`'da tam sayi araligi bulamayip `--seq-normalize` istiyor, normalize
+    ise "once katalog senkronunu duzelt" deyip o INSERT'i bekliyordu. Kimse ilerlemiyordu
+    (olculdu: 136 urun D1'de YOK -> site gosteriyor, Ege ONEREMIYOR = sessiz satis kaybi).
+    Eksen ARTIK FAZLA uzerinde:
+      - FAZLA>0 (D1'de VAR, kanonik katalogda YOK) -> AYNEN fail-loud DUR. Bayat-yazici /
+        silme korumasi GEVSEMEZ: tanimadigimiz satirin seq'ini yeniden yazmak, eszamanli
+        baska bir yazarin canli isini ezmek demektir.
+      - FAZLA=0 ve EKSIK>0 -> KOSAR, ama UPDATE'i YALNIZ D1'de FIILEN MEVCUT id'ler icin
+        uretir. Eksik id icin UPDATE URETILMEZ; bu arac hicbir kosulda satir EKLEMEZ/SILMEZ.
+    NEDEN BU YETIYOR: `seq_hedefleri` hedefi ZATEN SEYREK uretir ((toplam-i) * SEQ_ADIM) ->
+    normalize bir kez kosabildiginde komsular arasi bosluklar acilir ve `diff_plan`'in
+    sandvici KENDILIGINDEN cozulur. `diff_plan` DEGISMEZ (kesirli seq yasagi + fail-loud durur).
+    """
+    hedef = seq_hedefleri(urunler)
+    fazla = [uid for uid in mevcut if uid not in hedef]
+    if fazla:
+        return None, ("!! SEQ NORMALIZASYONU DURDU: D1'de kanonik katalogda OLMAYAN %d id VAR "
+                      "(ornek: %s). Satir ekleme/silme YASAK; bu satirlarin seq'i yeniden "
+                      "yazilmaz. Once katalog senkronunu/karantinayi duzelt."
+                      % (len(fazla), ", ".join(sorted(fazla)[:5])))
+    ifadeler = ["UPDATE urunler SET seq=%d WHERE id=%s;" % (hedef[uid], q(uid))
+                for uid in hedef if uid in mevcut and mevcut[uid] != hedef[uid]]
+    return ifadeler, None
+
+
+def seq_geri_alma_gerek(urunler, hedef, son, once, sonra):
+    """SAF karar (D1'e DOKUNMAZ): normalize sonrasi geri-alma kolu tetiklensin mi?
+    Doner: (geri_al, fark, ortak_sapma).
+
+    🔴 ORTAK KUME EKSENI: yargi YALNIZ "D1'de VAR + katalogda VAR" kesisiminde verilir.
+    - satir sayisi degistiyse (sonra != once) -> GERI AL (eszamanli yazar araya girdi).
+    - ortak kumede deger farki ya da GORELI SIRA sapmasi varsa -> GERI AL.
+    - D1'de EKSIK olan id'lerin varligi TEK BASINA geri alma sebebi DEGILDIR; aksi halde
+      seq_normalize_plan'in FAZLA eksenine cekilmesi anlamsiz olurdu (normalize kosar,
+      dogrulama onu her seferinde geri alirdi = ayni dairesel kilit, bir adim sonra).
+    """
+    fark = [uid for uid in hedef if uid in son and son.get(uid) != hedef[uid]]
+    _kesirli, sapma, _ = seq_sira_hali(urunler, son)
+    ortak_sapma = [uid for uid in sapma if uid in son]
+    return (sonra != once or bool(fark) or bool(ortak_sapma)), fark, ortak_sapma
+
+
 def seq_normalize(urunler):
     """Canli D1'de YALNIZ seq kolonunu kanonik siradan yeniden yazar ve dogrular."""
     yerel_id = len(seq_hedefleri(urunler))
@@ -1365,12 +1414,13 @@ def seq_normalize(urunler):
     print("ORNEK_10=" + json.dumps(ornek, ensure_ascii=False, separators=(",", ":")))
     print("D1_SATIR_ONCE=%d" % once)
     print("YEREL_ID=%d" % yerel_id)
-    if once != yerel_id or set(mevcut) != set(seq_hedefleri(urunler)):
-        sys.exit("!! SEQ NORMALIZASYONU DURDU: D1 id kumesi kanonik katalogla ayni degil; "
-                 "satir ekleme/silme YASAK oldugu icin once katalog senkronunu duzelt.")
     hedef = seq_hedefleri(urunler)
-    ifadeler = ["UPDATE urunler SET seq=%d WHERE id=%s;" % (hedef[uid], q(uid))
-                for uid in hedef if mevcut.get(uid) != hedef[uid]]
+    print("EKSIK_D1=%d" % len([uid for uid in hedef if uid not in mevcut]))
+    print("FAZLA_D1=%d" % len([uid for uid in mevcut if uid not in hedef]))
+    ifadeler, hata = seq_normalize_plan(urunler, mevcut)
+    if hata:
+        sys.exit(hata)
+    print("SEQ_UPDATE=%d" % len(ifadeler))
     for i in range(0, len(ifadeler), PARCA):
         yaz, _ = dosya_calistir("\n".join(ifadeler[i:i + PARCA]))
         print("  seq parca %d/%d — yazilan satir: %d"
@@ -1382,17 +1432,20 @@ def seq_normalize(urunler):
     son_kesirli, son_sapma, _ = seq_sira_hali(urunler, son)
     print("D1_SATIR_SONRA=%d" % sonra)
     print("SEQ_TAM_SAYI_SONRA=%s" % ("EVET" if not son_kesirli else "HAYIR"))
-    fark = [uid for uid in hedef if son.get(uid) != hedef[uid]]
-    if sonra != once or fark or son_sapma:
+    print("SAPAN_SEQ_SONRA=%d (eksik dahil)" % len(son_sapma))
+    geri_al, fark, ortak_sapma = seq_geri_alma_gerek(urunler, hedef, son, once, sonra)
+    if geri_al:
         # GERI ALMA da yalniz seq kolonuna dokunur. Eszamanli baska bir yazar satir
         # ekledi/sildiyse o satiri uydurmayiz; bu arac kendi seq yazisini geri cevirir.
         geri = ["UPDATE urunler SET seq=%s WHERE id=%s;" % (str(mevcut[uid]), q(uid))
                 for uid in mevcut]
         for i in range(0, len(geri), PARCA):
             dosya_calistir("\n".join(geri[i:i + PARCA]))
+        # HUKMU URETEN EKSENLERI BAS (ozet != hukum olmasin): sira farki ORTAK kumede olculur.
         sys.exit("!! SEQ NORMALIZASYONU GERI ALINDI: satir %d->%d · deger farki=%d · "
-                 "sira farki=%d. DUR." % (once, sonra, len(fark), len(son_sapma)))
-    print("SEQ NORMALIZASYONU DOGRULANDI: %d satir, yalniz seq, kanonik sira ✅" % sonra)
+                 "ortak kumede sira farki=%d. DUR." % (once, sonra, len(fark), len(ortak_sapma)))
+    print("SEQ NORMALIZASYONU DOGRULANDI: %d satir, yalniz seq, ortak kumede kanonik sira ✅"
+          % sonra)
 
 
 def sema_plan(kolon, urunler, hedefler, mevcut, izleme=None, varsayilan=""):

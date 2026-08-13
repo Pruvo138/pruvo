@@ -70,6 +70,17 @@ R2 anahtar yargisi yanlis birime. Dordu de ayni gun yayini durdurdu. Panzehir: k
 **Tamirci:** 🔧 açık=18 (K49, K53, K54, K55, K56, K58, K59, K69, K70, K71, K72, K77, K78, K80, K84, K85, K86, K88); bu tur kapanan=0, dağıtılan=0.
 **Okan'a çıkılmadı** (§5: temiz tur bildirilmez, onarım kendi işiydi).
 
+## 13 Agu 2026 — SAATLIK NOBET TURU ~18:48 (KraL, isci deepseek-flash delegasyonu)
+**Süpürme OK:** rc=0, BULUNAN=5 TASINAN=5 ATLANAN=0 CIKAN=5 KOMSU_KAYIP=0 KALAN=0 COP_IZI=36:2026-08-13T21:34:46 (gmlmz hesabında **3** Deltaprints maili ÇÖP'te YANLIS sınıf — süpürme taşımadı, kullanıcının kendi işi; 17:xx=2, 18:42=2, şimdi **3** (+1 yeni); yeni taşınan 5 GitHub Run failed 36/36 MESRU, bağımsız teyit). Süpürme betiği koşucudan (`mail-supurme-kos.sh`) geçti, rc aynen dışarı; isci çıktıyı OLDUĞU GİBİ raporladı.
+**CI KIRMIZI 3 failure (HEAD 0827c4a, son 70 dk):**
+- D1 uzlastirici **31730977418** (18:29Z, 🔴 GERCEK HATA) — adım 9+20 failure: `SEQ TAM SAYI ARALIGI TUKENDI: c3d-alfa-romeo-159-spider-far-toz-kapagi-v2 (alt=999999 ust=1000000)`; `tools/d1-sync.py --seq-normalize` gerekli; D1 sapma **26756 vs 26620 = 136 geri** (KAPANMADI, ONARILAMADI). **3 ardışık koşum aynı kök neden** (31716078588 ~16:xx + 31726199414 17:32Z + 31730977418 18:29Z) → **DUR koşulu tetiklendi**.
+- DEVAM defteri / odeme bayatlik **31730141819** (18:19Z) — `DURUM: BAYAT (rc=1) canli shop worker eski, en eski yayinlanmamis commit yasi 1954.8 dk (esik 120)` — bilinen kirmizi (K30/K32, yayini DURDURMAZ).
+- Paket tazeligi/yayin-nabzi **31727071409** (17:42Z) — `DURUM: BAYAT (rc=1), yas 1918.3 dk (esik 120)` — bilinen kirmizi (K30/K32, yayini DURDURMAZ).
+**DUR koşulu tetiklendi (D1 seq):** 3 ardışık koşumda aynı kök neden düzelmedi; düzeltme `tools/d1-sync.py --seq-normalize` (urunler.json'a seq normalizasyonu yazar) → YASAK liste sınırında; mimar (KraL) push ETMEZ, mail silme YAPMAZ; **Okan kararı**.
+**Tamirci:** 🔧 açık=18 (K49,K53,K54,K55,K56,K58,K59,K69,K70,K71,K72,K77,K78,K80,K84,K85,K86,K88 — bir önceki turla aynı), bu tur kapanan=0, dağıtılan=0.
+**Okan'a çıkıldı:** D1 seq tam-sayı aralığı 3 koşumdur tükendi (`tools/d1-sync.py --seq-normalize` ile 26756 vs 26620 sapması kapanır); push edeyim mi, yoksa sen mi bakarsın?
+**ONERI:** nöbet raporu bilinen bayatlık kırmızısını gerçek hatadan ayıran sınıf anahtarı taşısın (D1 seq tükenmesi gibi tekrarlayan gerçek hatalar ayrı sayaç olarak izlensin) — yoksa bu tür arızalar saatlerce "bilinen" etiketiyle sessiz kalıyor.
+
 ## 13 Agu 2026 — SAATLIK NOBET TURU ~18:42 (KraL)
 **Süpürme OK:** rc=0, BULUNAN=6 TASINAN=6 ATLANAN=0 CIKAN=6 KOMSU_KAYIP=0 KALAN=0 COP_IZI=21:2026-08-13T18:37:27 (gmlmz hesabında 2 Deltaprints maili ÇÖP'te YANLIS sınıf — süpürme taşımadı, kullanıcının kendi işi; yeni taşınan 6 GitHub Run failed 21/21 MESRU, bağımsız teyit).
 **CI KIRMIZI 4 failure (HEAD e03cc87, son 70 dk):**
