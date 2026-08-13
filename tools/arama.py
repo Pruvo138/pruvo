@@ -41,6 +41,31 @@ def _arac_es_anlamli_yukle():
 
 ARAC_ES_ANLAMLI = _arac_es_anlamli_yukle()
 
+
+def _arac_es_anlamli_siniri_yukle():
+    """index.html'deki kanonik tam-jeton sinirini fail-closed ayikla."""
+    with open(_INDEX_YOLU, encoding="utf-8") as f:
+        kaynak = f.read()
+    sinirlar = re.findall(
+        r'^\s*var ARAC_ES_ANLAMLI_SINIR = "([^"\n]+)";$', kaynak, re.MULTILINE)
+    if len(sinirlar) != 1:
+        raise RuntimeError("ARAC_ES_ANLAMLI_SINIR tek kanonik literal olmali "
+                           "(bulunan: %d)" % len(sinirlar))
+    # JS ve Python'da ayni anlama gelen basit ASCII negated-class disina cikarsa
+    # sessizce tahmin etme: site literali uretim regex'ine guvenle turetilemez.
+    if not re.fullmatch(r"\[\^[a-z0-9-]+\]", sinirlar[0]):
+        raise RuntimeError("ARAC_ES_ANLAMLI_SINIR turetilemez: %r" % sinirlar[0])
+    return sinirlar[0]
+
+
+ARAC_ES_ANLAMLI_SINIR = _arac_es_anlamli_siniri_yukle()
+_ARAC_ES_ANLAMLI_TAM_JETON = re.compile(
+    r"(^|%s)(?:%s)(?=$|%s)" % (
+        ARAC_ES_ANLAMLI_SINIR,
+        "|".join(re.escape(t) for t in ARAC_ES_ANLAMLI),
+        ARAC_ES_ANLAMLI_SINIR,
+    ))
+
 _HARF = str.maketrans({
     "ı": "i", "ç": "c", "ğ": "g", "ö": "o", "ş": "s", "ü": "u", "â": "a", "î": "i",
 })
@@ -78,8 +103,9 @@ def tokenlar(q):
 
 
 def esles(hs, tokens):
-    """filtered() ile ayni: HER token, arama metninin ALT-DIZESI olmali."""
-    return all(any(s in hs for s in t) if isinstance(t, tuple) else t in hs for t in tokens)
+    """Siteyle ayni: arac sinifi tam jeton, diger tokenlar alt-dize eslesir."""
+    return all(bool(_ARAC_ES_ANLAMLI_TAM_JETON.search(hs))
+               if isinstance(t, tuple) else t in hs for t in tokens)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -2811,6 +2811,9 @@
   // ayiklar; site ve D1/uretim yuklemi ikinci bir liste tutmaz. norm() `araç`i `arac`
   // yaptigi icin yazim varyanti ayni uyeye iner.
   var ARAC_ES_ANLAMLI = ["oto", "otomobil", "araba", "arac"];
+  // Yalniz arac es anlamli sinifi TAM JETON eslesir. Sinir da burada kanoniktir;
+  // tools/arama.py bu literali fail-closed ayiklar, ikinci bir sinir tanimi tutmaz.
+  var ARAC_ES_ANLAMLI_SINIR = "[^a-z0-9]";
   function aramaTokeniGenislet(token){
     return ARAC_ES_ANLAMLI.indexOf(token) === -1 ? aramaKok(token) : ARAC_ES_ANLAMLI;
   }
@@ -2822,9 +2825,13 @@
     return { kanon: kanon,
              tokens: kanon ? [] : norm(q).split(/\s+/).filter(Boolean).map(aramaTokeniGenislet) };
   }
+  function aramaTamJetonEsler(hs, token){
+    return new RegExp("(^|" + ARAC_ES_ANLAMLI_SINIR + ")" + token +
+      "(?=$|" + ARAC_ES_ANLAMLI_SINIR + ")").test(hs);
+  }
   function aramaSecenegiEsler(hs, secenek){
     return Array.isArray(secenek)
-      ? secenek.some(function(t){ return hs.indexOf(t) !== -1; })
+      ? secenek.some(function(t){ return aramaTamJetonEsler(hs, t); })
       : hs.indexOf(secenek) !== -1;
   }
   // hsAl: ürünün arama metnini veren fonksiyon (yedek liste yalnız BAŞLIĞA bakar —

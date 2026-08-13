@@ -7,8 +7,9 @@ const path = require("node:path");
 const cp = require("node:child_process");
 
 const KOK = path.dirname(__dirname);
-const SORGULAR = ["araba", "audi araba", "audi arac", "oto conta", "araba icin braket"];
+const SORGULAR = ["araba", "oto", "audi araba", "audi arac", "oto conta", "araba icin braket"];
 const TERS = ["audi", "audi braket", "kamera"];
+const ARAC_TAM_JETON = /(^|[^a-z0-9])(oto|otomobil|araba|arac)(?=$|[^a-z0-9])/;
 
 function sayimlar(kok) {
   process.env.PARITE_INDEX_KOK = kok;
@@ -28,8 +29,14 @@ function sayimlar(kok) {
       return n + (tokens.every((t) => hs.indexOf(t) !== -1) ? 1 : 0);
     }, 0);
   };
+  const arabaPlani = R.aramaPlani("araba");
+  const motosikletSonuclari = urunler.filter((p) => p.kategori === "Motosiklet" &&
+    R.aramaPlaniEsler(p, arabaPlani));
+  const motosikletKirli = motosikletSonuclari.filter((p) =>
+    !ARAC_TAM_JETON.test(R.haystack(p)));
   return { yeni: Object.fromEntries([...SORGULAR, ...TERS].map((q) => [q, say(q)])),
-    eski: Object.fromEntries(TERS.map((q) => [q, eskiSay(q)])) };
+    eski: Object.fromEntries([...SORGULAR, ...TERS].map((q) => [q, eskiSay(q)])),
+    motosikletSonuc: motosikletSonuclari.length, motosikletKirli: motosikletKirli.length };
 }
 
 function fikstur(kok) {
@@ -38,6 +45,12 @@ function fikstur(kok) {
   for (const q of SORGULAR) if (s.yeni[q] === 0) hata.push(q + " sifir dondu");
   if (s.yeni["audi araba"] < s.yeni.audi) hata.push("audi araba, audi'den kucuk");
   for (const q of TERS) if (s.yeni[q] !== s.eski[q]) hata.push(q + " sinif disinda sisti");
+  // BEKLENEN DAVRANIS DEGISIKLIGI: yalniz `oto` eskiden motosiklet/motor/foto icindeki
+  // alt-dizeyi de esliyordu (23.811 sonuc). Tam-jeton siniri bu kirli tabani DUSURMELI;
+  // bu kayip regresyon degil, pre-mevcut kirliligin temizlenmesidir.
+  if (s.yeni.oto >= s.eski.oto) hata.push("oto tam-jeton daralmasi gerceklesmedi");
+  if (s.motosikletKirli !== 0) hata.push("araba sorgusunda oto alt-dizesinden " +
+    s.motosikletKirli + " kirli Motosiklet sonucu var");
   if (hata.length) throw new Error(hata.join("; "));
   return s;
 }
@@ -71,7 +84,8 @@ function mutantOldur(ad, degistir, pythonKapisi) {
 
 try {
   const s = fikstur(KOK);
-  console.log("FIKSTUR YESIL: " + SORGULAR.map((q) => q + "=" + s.yeni[q]).join(" | "));
+  console.log("FIKSTUR YESIL: " + SORGULAR.map((q) => q + "=" + s.yeni[q]).join(" | ") +
+    " | araba/Motosiklet=" + s.motosikletSonuc + " kirli=" + s.motosikletKirli);
   mutantOldur("M1 es anlamli kumesi bos",
     (x) => x.replace('var ARAC_ES_ANLAMLI = ["oto", "otomobil", "araba", "arac"];',
       "var ARAC_ES_ANLAMLI = [];"));
@@ -82,7 +96,10 @@ try {
     (x) => x.replace('var ARAC_ES_ANLAMLI = ["oto", "otomobil", "araba", "arac"];',
       'var ARAC_ES_ANLAMLI = ["oto", "otomobil", "araba", "arac"];\n' +
       '  var ARAC_ES_ANLAMLI = ["oto", "otomobil"];'), true);
-  console.log("MUTANT: 3/3 olduruldu");
+  mutantOldur("M4 arac sinifinda kelime siniri kaldirildi",
+    (x) => x.replace("? secenek.some(function(t){ return aramaTamJetonEsler(hs, t); })",
+      "? secenek.some(function(t){ return hs.indexOf(t) !== -1; })"));
+  console.log("MUTANT: 4/4 olduruldu");
 } catch (e) {
   console.error("KIRMIZI: " + e.message);
   process.exit(1);
