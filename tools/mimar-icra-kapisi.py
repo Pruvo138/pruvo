@@ -152,11 +152,29 @@ REPO_ONEKI = "/Users/okan/dev/pruvo/"
 GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
 
 
-def kimlik(girdi):
+def kimlik_ekseni(girdi):
+    """ISCI kimliginin kaynagini dondurur; None = MIMAR.
+
+    Birinci eksen canli alt-ajan ``agent_id`` degeridir. Ikinci eksen, agent_id
+    tasimayan ``isci.sh`` ana oturumunun kapali motor kumesine civilenmis ortam
+    izidir. Bilinmeyen/bos deger muafiyet vermez (fail-closed).
+    """
     aid = girdi.get("agent_id")
     if isinstance(aid, str) and aid.strip():
-        return "ISCI"
-    return "MIMAR"
+        return "agent_id"
+    motor = os.environ.get("PRUVO_ISCI_KOSUMU")
+    if motor in ISCI_MOTORLARI:
+        return "sarmalayici:" + motor
+    return None
+
+
+def kimlik(girdi):
+    return "ISCI" if kimlik_ekseni(girdi) is not None else "MIMAR"
+
+
+def kimlik_izi(girdi):
+    eksen = kimlik_ekseni(girdi)
+    return "ISCI(" + eksen + ")" if eksen is not None else "MIMAR"
 
 
 def iz_bas(etiket):
@@ -415,7 +433,7 @@ ISCI_ARGUMAN_SAYILARI = (3, 4)
 # ISCI-SARMALAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
 # dogrulamasi; --codex-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
 # degistirirsen damgayi da yukselt.
-ISCI_KURAL_SURUMU = "13agu-1"
+ISCI_KURAL_SURUMU = "13agu-2"
 ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
 ISCI_GEREKCE_SONU = (
     " DOGRUSU: " + ISCI_SARMALAYICI_YOLU + " <MOTOR> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
@@ -886,7 +904,7 @@ def main():
     # -m pytest, repo-disi betik: hepsi serbest). Olculmus ariza buydu: kapi 4 kez mesru
     # isi engelledi, bir isci sed'e kacti (denetlenemez yol) = kapi guvenligi AZALTTI.
     if kimlik(girdi) == "ISCI":
-        iz_bas("ISCI")
+        iz_bas(kimlik_izi(girdi))
         sys.exit(0)
 
     # === 28 TEM AGENT-KAPISI: mimar ANA oturumu Claude iscisi (Agent/Task) acarken

@@ -58,11 +58,15 @@ CEKIRDEK_NOBETCILERI = (
     '    "/Users/okan/dev/pruvo/.git/hooks/pre-commit",\n'
 )
 
-KIMLIK_GOVDE = (
+KIMLIK_GOVDE_KILIT = (
     '    aid = girdi.get("agent_id")\n'
     '    if isinstance(aid, str) and aid.strip():\n'
     '        return "ISCI"\n'
     '    return "MIMAR"\n'
+)
+KIMLIK_GOVDE_ICRA = (
+    'def kimlik(girdi):\n'
+    '    return "ISCI" if kimlik_ekseni(girdi) is not None else "MIMAR"\n'
 )
 
 # M12'de kod-kilidi kancasi silinir → TUM Write/Edit/MultiEdit "allow" vakalari
@@ -84,8 +88,9 @@ def yama(dizin, dosya, eski, yeni, zorunlu=True):
 
 
 def kimligi_sabitle(dizin, deger):
-    for dosya in (KILIT, ICRA):
-        yama(dizin, dosya, KIMLIK_GOVDE, '    return "' + deger + '"\n')
+    yama(dizin, KILIT, KIMLIK_GOVDE_KILIT, '    return "' + deger + '"\n')
+    yama(dizin, ICRA, KIMLIK_GOVDE_ICRA,
+         'def kimlik(girdi):\n    return "' + deger + '"\n')
 
 
 def cekirdegi_bosalt(dizin):
@@ -374,7 +379,8 @@ MUTASYONLAR = [
     # MA3 (c): agent_id MUAFIYETI TERSINE — ICRA kimlik daima MIMAR (isci muafiyeti duser).
     # Boylece beyansiz ISCI Agent/Task cagrilari (404/405) reddedilir. Tekil dosya (ICRA)
     # patch'i M2'den (KILIT+ICRA birlikte) ayrisir; beklenen AGENT worker vakalaridir.
-    ("MA3", lambda d: yama(d, ICRA, KIMLIK_GOVDE, '    return "MIMAR"\n'),
+    ("MA3", lambda d: yama(d, ICRA, KIMLIK_GOVDE_ICRA,
+                           'def kimlik(girdi):\n    return "MIMAR"\n'),
      "28Tem AGENT: agent_id muafiyeti tersine (ICRA kimlik MIMAR) — isci Agent/Task RED",
      {404, 405}, False, 2),
     # --- 8 AGU MCP-TARAYICI KAPISI NOBETCILERI (AGENT turundeki 3-mutant standardi + ---
@@ -487,6 +493,34 @@ MUTASYONLAR = [
      "13Agu ISCI: kural komple kapatilir (13 Agu ONCESI delik geri doner) — mesru "
      "delegasyon cagrilari yeniden RED",
      {600, 601, 602, 603, 604, 614, 631}, True, 7),
+    # --- 13 AGU-2 SARMALAYICI KIMLIK EKSENI ---
+    # J mutantlari yalniz 650-659 kimlik takiminda kosar. Boylece beklenen kume TAM
+    # esitliktir; bir ekseni oldurmenin katalogdaki ilgisiz yuzlerce vakayi topluca
+    # dusurmesi kanit diye sunulmaz.
+    ("J1", lambda d: yama(
+        d, ICRA,
+        '    motor = os.environ.get("PRUVO_ISCI_KOSUMU")\n'
+        '    if motor in ISCI_MOTORLARI:\n'
+        '        return "sarmalayici:" + motor\n',
+        '    motor = os.environ.get("PRUVO_ISCI_KOSUMU")\n'
+        '    if False and motor in ISCI_MOTORLARI:\n'
+        '        return "sarmalayici:" + motor\n'),
+     "13Agu-2 J1: ortam kimlik ekseni komple kaldirilir",
+     {650, 652, 653, 654, 659}, True, 5),
+    ("J2", lambda d: yama(
+        d, ICRA,
+        '    if motor in ISCI_MOTORLARI:\n',
+        '    if motor is not None:\n'),
+     "13Agu-2 J2: kapali kume kontrolu kaldirilir (env varligi yeter)",
+     {655, 656}, True, 2),
+    ("J3", lambda d: yama(
+        d, ICRA,
+        '    if motor in ISCI_MOTORLARI:\n'
+        '        return "sarmalayici:" + motor\n',
+        '    if motor is None or motor in ISCI_MOTORLARI:\n'
+        '        return "sarmalayici:" + (motor or "claude")\n'),
+     "13Agu-2 J3: env yokken de sarmalayici ISCI sayilir (MIMAR koluna sizma)",
+     {651, 657}, True, 2),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
@@ -545,7 +579,7 @@ KENDI_TESTINI_KOSAN = {
 M7_YESIL_KALMALI = {4, 5}
 
 
-def mutasyonu_kostur(ad, uygulayici, kendi_testi=False):
+def mutasyonu_kostur(ad, uygulayici, kendi_testi=False, yalniz_kimlik=False):
     """Mutasyonu gecici kopyaya uygular ve kabul testini kosturur.
 
     kendi_testi=False → ORIJINAL tools/mimar-kilit-test.py kosar (kapi dosyalari
@@ -561,9 +595,10 @@ def mutasyonu_kostur(ad, uygulayici, kendi_testi=False):
     uygulayici(dizin)
 
     kosulacak = os.path.join(dizin, TESTDOSYA) if kendi_testi else TEST
-    sonuc = subprocess.run(
-        [sys.executable, kosulacak, dizin], capture_output=True, text=True,
-    )
+    komut = [sys.executable, kosulacak, dizin]
+    if yalniz_kimlik:
+        komut.append("--kimlik-ekseni")
+    sonuc = subprocess.run(komut, capture_output=True, text=True)
     kirmizi = set()
     for satir in (sonuc.stdout or "").splitlines():
         m = re.match(r"\s*vaka (\d+):", satir)
@@ -580,7 +615,7 @@ def main():
     basarisiz = []
     try:
         for ad, uygulayici, aciklama, beklenen, tam, asgari in MUTASYONLAR:
-            kirmizi, _ = mutasyonu_kostur(ad, uygulayici)
+            kirmizi, _ = mutasyonu_kostur(ad, uygulayici, yalniz_kimlik=ad.startswith("J"))
             eksik = beklenen - kirmizi
             tamam = (not eksik) and len(kirmizi) >= asgari
             if tam and kirmizi != beklenen:

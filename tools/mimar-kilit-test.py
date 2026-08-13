@@ -47,7 +47,9 @@ import subprocess
 import sys
 import tempfile
 
-TOOLS = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
+SADECE_KIMLIK_EKSENI = "--kimlik-ekseni" in sys.argv[1:]
+TOOLS_ARGUMANLARI = [a for a in sys.argv[1:] if a != "--kimlik-ekseni"]
+TOOLS = os.path.abspath(TOOLS_ARGUMANLARI[0]) if TOOLS_ARGUMANLARI else os.path.dirname(
     os.path.abspath(__file__))
 
 KILIT = os.path.join(TOOLS, "mimar-kod-kilidi.py")
@@ -712,6 +714,38 @@ ISCI_SARMALAYICI_VAKALARI = [
      "ISCI + kuralin TUM sartlarini ihlal eden cagri -> GECER (kimlik ekseni muafiyeti)"),
 ]
 
+# === 13 AGU-2: SARMALAYICI ANA OTURUMU KIMLIK EKSENI ===
+# 7. alan vaka-bazli ortam, 8. alan ALLOW izinde beklenen kimlik parcasidir. Test
+# PRUVO_ISCI_KOSUMU'nu HER vakadan once miras ortamindan siler; boylece bir vakanin
+# degeri sonrakine sizip yalanci yesil uretemez.
+ISCI_KIMLIK_EKSENI_VAKALARI = [
+    (650, "allow", "Bash", "python3 tools/build.py", None,
+     "sarmalayici deepseek-flash: tools/build.py -> GECER",
+     {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}, "ISCI(sarmalayici:deepseek-flash)"),
+    (651, "deny", "Bash", "python3 tools/build.py", None,
+     "ayni cagri env YOK: MIMAR allowlist disi -> RED", {}, None),
+    (652, "allow", "Bash", "curl -s https://example.invalid", None,
+     "sarmalayici kimligi curl denetiminden tam muaf",
+     {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}, "ISCI(sarmalayici:deepseek-flash)"),
+    (653, "allow", "Bash", "tail -n 1 DEVAM.md", None,
+     "sarmalayici kimligi olcum komutundan tam muaf",
+     {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}, "ISCI(sarmalayici:deepseek-flash)"),
+    (654, "allow", "Bash", "python3 /private/tmp/analiz.py", None,
+     "sarmalayici kimligi repo-disi betikten tam muaf",
+     {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}, "ISCI(sarmalayici:deepseek-flash)"),
+    (655, "deny", "Bash", "python3 tools/build.py", None,
+     "kume disi gpt-9 muafiyet vermez", {"PRUVO_ISCI_KOSUMU": "gpt-9"}, None),
+    (656, "deny", "Bash", "python3 tools/build.py", None,
+     "bos sarmalayici degeri muafiyet vermez", {"PRUVO_ISCI_KOSUMU": ""}, None),
+    (657, "deny", "Bash", "python3 tools/build.py", None,
+     "env YOK + agent_id YOK: MIMAR kisiti korunur", {}, None),
+    (658, "allow", "Bash", "python3 tools/build.py", ISCI_ID,
+     "env YOK + agent_id DOLU: eski eksen korunur", {}, "ISCI(agent_id)"),
+    (659, "allow", "Bash", "python3 tools/build.py", None,
+     "sarmalayicinin claude kolu da ISCI",
+     {"PRUVO_ISCI_KOSUMU": "claude"}, "ISCI(sarmalayici:claude)"),
+]
+
 # COMMIT KAPISI — kanca degil, dogrudan betik cagrisi.
 # (no, beklenen_exit, stdin, ek_env, gitdir_hazirlik, aciklama)
 COMMIT_VAKALARI = [
@@ -757,7 +791,7 @@ BYPASS_MUHASEBESI = {
 }
 
 
-def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None):
+def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None, ek_env=None):
     """PreToolUse kancasini gercek payload'la kosturur.
     Doner: (karar, gerekce_ozeti). Karar: allow/deny/EKSIK-KANCA/COKTU/
     PARSE-HATASI/IZSIZ-ALLOW."""
@@ -796,6 +830,8 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None):
 
     ortam = dict(os.environ)
     ortam.pop("CLAUDE_PROJECT_DIR", None)
+    ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    ortam.update(ek_env or {})
     sonuc = subprocess.run(
         [sys.executable, kanca],
         input=json.dumps(payload),
@@ -808,7 +844,7 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None):
     if not cikti:
         # Fail-open korlugu onarimi: iz yoksa "allow" SAYILMAZ.
         if "MIMAR-KAPISI allow" in (sonuc.stderr or ""):
-            return "allow", ""
+            return "allow", (sonuc.stderr or "")[:160]
         return "IZSIZ-ALLOW", (sonuc.stderr or "")[:120]
     try:
         veri = json.loads(cikti)
@@ -829,7 +865,10 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
     basarisiz = []
     atlanan = []
     cevre_atlanan = []
-    for no, beklenen, arac, hedef, agent_id, aciklama in vakalar:
+    for vaka in vakalar:
+        no, beklenen, arac, hedef, agent_id, aciklama = vaka[:6]
+        ek_env = vaka[6] if len(vaka) > 6 else {}
+        beklenen_iz = vaka[7] if len(vaka) > 7 else None
         if KAYITLI_WT in hedef:
             if not KAYITLI_WT_YOL:
                 cevre_atlanan.append(no)
@@ -838,12 +877,14 @@ def kume_kostur(baslik, vakalar, cwd=REPO):
                     "ATLA", aciklama[:40]))
                 continue
             hedef = hedef.replace(KAYITLI_WT, KAYITLI_WT_YOL)
-        olculen, _ = kancayi_kostur(arac, hedef, cwd, agent_id)
-        gecti = (olculen == beklenen)
+        olculen, iz = kancayi_kostur(arac, hedef, cwd, agent_id, ek_env)
+        gecti = (olculen == beklenen and
+                 (beklenen_iz is None or beklenen_iz in iz))
         if olculen in ATLANAN_ISARETLER:
             atlanan.append(no)
         if not gecti:
-            basarisiz.append((no, beklenen, olculen, aciklama))
+            iz_notu = "" if beklenen_iz is None else " iz=" + iz.strip()
+            basarisiz.append((no, beklenen, olculen, aciklama + iz_notu))
         print("{:<4} {:<8} {:<12} {:<7} {:<6} {:<40}".format(
             no, beklenen, olculen, "ISCI" if agent_id else "MIMAR",
             "OK" if gecti else "KIRMIZI", aciklama[:40]))
@@ -1081,7 +1122,7 @@ def main():
     temel = os.path.realpath(tempfile.mkdtemp(prefix="pruvo-kapi-test-"))
     gecici_kok = os.path.join(temel, ".test-gitdir")
     os.makedirs(gecici_kok, exist_ok=True)
-    KAYITLI_WT_YOL = gecici_worktree_kur(temel)
+    KAYITLI_WT_YOL = None if SADECE_KIMLIK_EKSENI else gecici_worktree_kur(temel)
 
     kumeler = [
         ("ZORUNLU 15 VAKA (mimar spec'i) — MIMAR kimligi", VAKALAR, REPO),
@@ -1097,9 +1138,16 @@ def main():
         ("8 AGU MCP-TARAYICI KAPISI — ANA RED / ISCI GECER + YANLIS-POZITIF nobeti", MCP_VAKALARI, REPO),
         ("13 AGU ISCI-SARMALAYICI KAPISI — yol/argüman/motor/beyan + segment ayrimi",
          ISCI_SARMALAYICI_VAKALARI, REPO),
+        ("13 AGU-2 ISCI KIMLIK EKSENI — vaka-bazli env + ayrisik iz",
+         ISCI_KIMLIK_EKSENI_VAKALARI, REPO),
     ]
 
-    toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 3
+    if SADECE_KIMLIK_EKSENI:
+        kumeler = [("13 AGU-2 ISCI KIMLIK EKSENI — mutant izolasyonu",
+                    ISCI_KIMLIK_EKSENI_VAKALARI, REPO)]
+
+    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3
+    toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
     print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3)".format(
         toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI)))
     print("TOOLS DIZINI: " + TOOLS)
@@ -1114,12 +1162,13 @@ def main():
             basarisiz += b
             atlanan += a
             cevre_atlanan += c
-        b, a = commit_kume_kostur(gecici_kok)
-        basarisiz += b
-        atlanan += a
-        b, a = kablo_kume_kostur(gecici_kok)
-        basarisiz += b
-        atlanan += a
+        if not SADECE_KIMLIK_EKSENI:
+            b, a = commit_kume_kostur(gecici_kok)
+            basarisiz += b
+            atlanan += a
+            b, a = kablo_kume_kostur(gecici_kok)
+            basarisiz += b
+            atlanan += a
     finally:
         sizinti = gecici_worktree_kaldir(KAYITLI_WT_YOL)
         shutil.rmtree(temel, ignore_errors=True)

@@ -762,7 +762,7 @@ AGENT_CAGRI_SABLON = (
 AGENT_ISCI_ID = "a4482c781a922b6a1"  # canli olculmus bir alt-ajan agent_id bicimi
 
 
-def _agent_fikstur(kapi_yolu, kok, tool_name, tool_input, agent_id=None):
+def _agent_fikstur(kapi_yolu, kok, tool_name, tool_input, agent_id=None, ek_env=None):
     """Kurulan kapiyi GERCEK PreToolUse payload'u ile kosturur (gercek arac CAGRILMAZ —
     yalnizca kapi betigi kosar). Doner: allow/deny/COKTU/PARSE-HATASI."""
     payload = {
@@ -777,6 +777,8 @@ def _agent_fikstur(kapi_yolu, kok, tool_name, tool_input, agent_id=None):
         payload["agent_id"] = agent_id
     ortam = dict(os.environ)
     ortam["CLAUDE_PROJECT_DIR"] = kok
+    ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    ortam.update(ek_env or {})
     try:
         sonuc = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(payload),
                                capture_output=True, text=True, env=ortam)
@@ -1260,19 +1262,22 @@ def mcp_kapisi(uygula):
 # AGENT-KAPISI'nin regex'ini ve _agent_isci_mi()'sini CAGIRIR. Bu yuzden AGENT_DAMGA bir
 # ZORUNLU SEMBOLDUR: AGENT-KAPISI kurulmamis eve DOKUNULMAZ (yoksa motor=claude beyan
 # sarti sessizce kaybolur ve sarmalayici AGENT-KAPISI'ni atlatan anahtara doner).
-ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "13agu-1"'
+ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "13agu-2"'
 ISCI_TANIM_BAS = "# === PRUVO ISCI-SARMALAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 ISCI_TANIM_SON = "# === PRUVO ISCI-SARMALAYICI KAPISI BITIS ==="
+ISCI_KIMLIK_CAGRI_BAS = "    # === PRUVO ISCI KIMLIK CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
+ISCI_KIMLIK_CAGRI_SON = "    # === PRUVO ISCI KIMLIK CAGRI BITIS ==="
 ISCI_CAGRI_BAS = "        # === PRUVO ISCI-SARMALAYICI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
 ISCI_CAGRI_SON = "        # === PRUVO ISCI-SARMALAYICI CAGRI BITIS ==="
 ISCI_ANKRAJ_TANIM = "\ndef main():\n"
+ISCI_ANKRAJ_KIMLIK = "    # === PRUVO MCP-TARAYICI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
 # CAGRI ankraji SEGMENT DONGUSUNUN icindedir (codex kolunun kullandigi ankrajin AYNISI) —
 # kural 'gecer' halinde segmenti 'continue' ile KAPATMAK ZORUNDA oldugu icin dongu DISINA
 # enjekte edilemez: sarmalayicinin argumanlari BILEREK repo DISIDIR.
 ISCI_ANKRAJ_CAGRI = "        ad = os.path.basename(argv0)\n"
 ISCI_ZORUNLU_SEMBOL = (
     "def reddet(", "import os", "def _agent_isci_mi(", AGENT_DAMGA,
-    ISCI_ANKRAJ_TANIM, ISCI_ANKRAJ_CAGRI,
+    ISCI_ANKRAJ_TANIM, ISCI_ANKRAJ_KIMLIK, ISCI_ANKRAJ_CAGRI,
 )
 
 ISCI_TANIM_SABLON = '''
@@ -1302,6 +1307,24 @@ ISCI_CLAUDE_GEREKCESI = (
     "'codex-muafiyet: <is tanimi> - " + AGENT_ORNEK_SINIF + "' (gecerli sinif jetonlari: " +
     AGENT_SINIF_LISTESI + ")."
 )
+
+
+def _isci_kimlik_ekseni(girdi):
+    """None = MIMAR; agent_id veya kapali motor kumesi = ISCI kimlik kaynagi."""
+    aid = girdi.get("agent_id")
+    if isinstance(aid, str) and aid.strip():
+        return "agent_id"
+    motor = os.environ.get("PRUVO_ISCI_KOSUMU")
+    if motor in ISCI_MOTORLARI:
+        return "sarmalayici:" + motor
+    return None
+
+
+def _isci_iz_bas(etiket):
+    try:
+        sys.stderr.write("MIMAR-KAPISI allow " + etiket + "\\n")
+    except Exception:
+        pass
 
 
 def _isci_reddet(neden):
@@ -1357,6 +1380,15 @@ def _isci_karari(tokenlar):
 ''' + ISCI_TANIM_SON + '''
 '''
 
+ISCI_KIMLIK_CAGRI_SABLON = (
+    ISCI_KIMLIK_CAGRI_BAS + "\n"
+    "    _isci_eksen = _isci_kimlik_ekseni(girdi)\n"
+    "    if _isci_eksen is not None:\n"
+    '        _isci_iz_bas("ISCI(" + _isci_eksen + ")")\n'
+    "        sys.exit(0)\n"
+    + ISCI_KIMLIK_CAGRI_SON + "\n"
+)
+
 # 🔴 KIMLIK: _agent_isci_mi() — AGENT-KAPISI'nin TESPITI YENIDEN KULLANILIR.
 # 🔴 OLCULEN KUSUR (BaBa evi, hermetik kopyada yakalandi): kimlik kontrolu 'continue'yi
 # de kapsayacak sekilde yazilinca ISCI kimligindeki sarmalayici cagrisi bloktan HIC
@@ -1408,8 +1440,11 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
     shutil.copyfile(yol, yedek)
 
     temiz = _blogu_sok(metin, ISCI_TANIM_BAS, ISCI_TANIM_SON)
+    temiz = _blogu_sok(temiz, ISCI_KIMLIK_CAGRI_BAS, ISCI_KIMLIK_CAGRI_SON)
     temiz = _blogu_sok(temiz, ISCI_CAGRI_BAS, ISCI_CAGRI_SON)
     yeni = temiz.replace(ISCI_ANKRAJ_TANIM, ISCI_TANIM_SABLON + ISCI_ANKRAJ_TANIM, 1)
+    yeni = yeni.replace(ISCI_ANKRAJ_KIMLIK,
+                        ISCI_KIMLIK_CAGRI_SABLON + ISCI_ANKRAJ_KIMLIK, 1)
     yeni = yeni.replace(ISCI_ANKRAJ_CAGRI, ISCI_CAGRI_SABLON + ISCI_ANKRAJ_CAGRI, 1)
     _yaz(yol, yeni)
 
@@ -1447,8 +1482,19 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
             ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
             ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
         ]
-        for tn, ti, aid, beklenen in olcumler:
-            olculen = _agent_fikstur(yol, kok, tn, ti, aid)
+        olcumler += [
+            ("Bash", {"command": "python3 /private/tmp/analiz.py"}, None, "allow",
+             {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}),
+            ("Bash", {"command": "curl -s https://example.invalid"}, None, "allow",
+             {"PRUVO_ISCI_KOSUMU": "claude"}),
+            ("Bash", {"command": "python3 /private/tmp/analiz.py"}, None, "deny",
+             {"PRUVO_ISCI_KOSUMU": "gpt-9"}),
+            ("Bash", {"command": "python3 /private/tmp/analiz.py"}, None, "deny", {}),
+        ]
+        for olcum in olcumler:
+            tn, ti, aid, beklenen = olcum[:4]
+            ek_env = olcum[4] if len(olcum) > 4 else {}
+            olculen = _agent_fikstur(yol, kok, tn, ti, aid, ek_env)
             if olculen != beklenen:
                 geri_al("fikstur tn=" + tn + " beklenen=" + beklenen +
                         " olculen=" + str(olculen))

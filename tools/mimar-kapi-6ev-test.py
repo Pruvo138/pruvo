@@ -133,6 +133,10 @@ def kapiyi_kostur(kapi_yolu, kok, komut, agent_id, tool_name="Bash"):
         payload["agent_id"] = agent_id
     ortam = dict(os.environ)
     ortam["CLAUDE_PROJECT_DIR"] = kok
+    # Test gercek sarmalayici ISCI kosumunun icinde calisabilir. Buradaki vakalar kendi
+    # agent_id eksenini simule eder; dis PRUVO_ISCI_KOSUMU izi ic fiksturlere sizarsa
+    # MIMAR deny vakalari yalanci allow olur.
+    ortam.pop("PRUVO_ISCI_KOSUMU", None)
     sonuc = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(payload),
                            capture_output=True, text=True, env=ortam)
     iz = "MIMAR-KAPISI allow" in (sonuc.stderr or "")
