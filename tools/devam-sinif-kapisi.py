@@ -317,6 +317,61 @@ _GATE_ADI = (r"nobetci|nobetcisi|nobetcileri|nobeti|kapisi|kapi|kapilari|"
              r"riski|sinifi|ekseni")
 _OLCUM_SONUCU = r"yok|temiz|sifir|0\b"
 
+# 🔴 IS-AKISI ADI ISTISNASI (14 Agu 2026 — yanlis-pozitif, AYNI GUN DORT KEZ olculdu).
+# Deponun KENDI CI is akisi `.github/workflows/spec-ifsa-alarmi.yml` ve adi
+# "Spec/tasarim ifsasi alarmi". Nobet cron'u her turda kosum ADLARINI deftere yaziyor;
+# `ifsa` deseni bunu guvenlik bulgusu sanip commit'i DORT KEZ durdurdu ve her seferinde
+# metni elle notrlemek gerekti — kapinin olcmesi gereken sey bir DOSYA ADI degildi.
+# Istisna ELLE DEFTER DEGIL, `.github/workflows/` icinden TURER: yeni bir is akisi
+# eklendiginde kendiliginden kapsanir, bayatlamaz
+# ([[kapsam-evrenini-cagri-grafindan-turet]]).
+# 🔴 DAR TUTULDU: yalnizca jetonun bir is-akisi KIMLIGININ ICINDE gectigi konum muaftir.
+# "sunucu ifsa oldu" gibi GERCEK bulgu cumlesi KIRMIZI KALIR (kabul testinde olculur).
+# Dizin okunamazsa muafiyet BOS kalir -> bugunku (fail-closed) davranis korunur.
+def _is_akisi_kimlikleri():
+    """`.github/workflows/` icindeki dosya adlari + `name:` degerleri (kucuk harf)."""
+    kok = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                       ".github", "workflows")
+    kimlikler = set()
+    try:
+        adlar = sorted(os.listdir(kok))
+    except OSError:
+        return kimlikler
+    for ad in adlar:
+        if not ad.endswith((".yml", ".yaml")):
+            continue
+        kimlikler.add(ad.lower())
+        kimlikler.add(os.path.splitext(ad)[0].lower())
+        try:
+            with open(os.path.join(kok, ad), encoding="utf-8", errors="replace") as f:
+                for satir in f:
+                    m = re.match(r"\s*name:\s*[\"']?(.+?)[\"']?\s*$", satir)
+                    if m:
+                        kimlikler.add(m.group(1).strip().lower())
+                        break
+        except OSError:
+            continue
+    return {k for k in kimlikler if k}
+
+
+_IS_AKISI_KIMLIKLERI = _is_akisi_kimlikleri()
+
+
+def _is_akisi_adinda_mi(ham, bas, son):
+    """[bas,son) araligindaki isabet, bir is-akisi KIMLIGININ icinde mi geciyor?"""
+    for kimlik in _IS_AKISI_KIMLIKLERI:
+        yer = 0
+        alt = ham.lower()
+        while True:
+            i = alt.find(kimlik, yer)
+            if i < 0:
+                break
+            if i <= bas and son <= i + len(kimlik):
+                return True
+            yer = i + 1
+    return False
+
+
 E6_DESENLER = (
     ("yasakli-ad-ifadesi", re.compile(r"\byasakli ad\w*\b")),
     ("satici-kimlik-ifadesi",
@@ -404,8 +459,12 @@ def satir_eksenleri(ham, norm, kayit=None, ozet=None, markalar=None,
 
     # E6 — guvenlik bulgusu / sizinti olayi
     for etiket, rx in E6_DESENLER:
-        if rx.search(norm):
+        for m in rx.finditer(norm):
+            if (etiket == "ifsa"
+                    and _is_akisi_adinda_mi(ham, m.start(), m.end())):
+                continue
             bulgular.append(("E6 guvenlik-bulgusu", etiket))
+            break
     if E6_YUZEY.search(norm) and E6_ISTISMAR.search(norm):
         bulgular.append(("E6 guvenlik-bulgusu", "sunucu-yuzeyi+istismar"))
 
@@ -745,6 +804,12 @@ _KIRMIZI = [
     ("- Duz merge kapatilan sizintiyi geri acardi.", "E6 guvenlik-bulgusu"),
     ("- Yorumlar ic arac adlarini ifsa ediyordu.", "E6 guvenlik-bulgusu"),
     ("- Bilgi PUBLIC repoya sizdi.", "E6 guvenlik-bulgusu"),
+    # 🔴 IS-AKISI ADI MUAFIYETI — IKI YON DE VAKA (14 Agu 2026). Muafiyet, deponun KENDI
+    # CI is akisi adini (`spec-ifsa-alarmi.yml` / "Spec/tasarim ifsasi alarmi") guvenlik
+    # bulgusu sanan yanlis-pozitiften dogdu: kapi AYNI GUN DORT KEZ commit'i durdurdu.
+    # TEK YON yazilsaydi (yalniz "muaf oldu mu") muafiyetin FAZLA GENISLEMESI gorunmez
+    # kalirdi — ikinci vaka tam da onu olcer: gercek bir bulgu cumlesi KIRMIZI KALMALI.
+    ("sunucu tarafinda ic rapor ifsa edildi", "E6 guvenlik-bulgusu"),
     # E1 ALAN ADI kolu: TANINMAYAN her alan adi kirmizidir (bicim kurali —
     # gizli vitrin/satici alan adi ADI HIC YAZILMADAN yakalanir). Ornek UYDURMA.
     # (`.example` UZANTI listesinde oldugu icin dosya adi sayilir -> gercek bir
@@ -780,6 +845,12 @@ _YESIL = [
     "- Yedek 2645 dosya / 745824642 bayt; eksik 0, boyut farki 0.",
     "- Kosum `30678515290` (`86665da5`): envanter/build/deploy/yayin YESIL.",
     "- Vitrin https://pruvo3d.com uzerinden yayinlanir.",
+    # 🔴 IS-AKISI ADI MUAFIYETI — IKI YON DE VAKA (14 Agu 2026). Muafiyet, deponun KENDI
+    # CI is akisi adini (`spec-ifsa-alarmi.yml` / "Spec/tasarim ifsasi alarmi") guvenlik
+    # bulgusu sanan yanlis-pozitiften dogdu: kapi AYNI GUN DORT KEZ commit'i durdurdu.
+    # TEK YON yazilsaydi (yalniz "muaf oldu mu") muafiyetin FAZLA GENISLEMESI gorunmez
+    # kalirdi — ikinci vaka tam da onu olcer: gercek bir bulgu cumlesi KIRMIZI KALMALI.
+    "CI kosumu: Spec/tasarim ifsasi alarmi = success (spec-ifsa-alarmi.yml)",
     # --- 1 Agu: 6665 satirlik GERCEK arsiv korpusunda OLCULEN yanlis-pozitifler.
     # Ilk surumde bunlarin HEPSI yaniyordu; desenler daraltilarak kapatildi.
     "- `kisisel-veri-test.py` tedarikci-adi nobetcisi +104; git grep 0.",
