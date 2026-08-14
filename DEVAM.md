@@ -1,5 +1,66 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 14 Agu 2026 — 🟢 KAPANIS: YAYIN ACILDI + YEDEK GERI GELDI (KraL, interaktif)
+
+**HUKUM KOSUMDAN GELDI:** `Build & deploy` kosumu **`31792482488`** (HEAD `b2e8eb58`) →
+**SUCCESS**, **6/6 job yesil** (`serit-a2` · `serit-a3` · `serit-a4` · `build` · `deploy` ·
+`yayin`). `deploy` ve `yayin` **skipped DEGIL, KOSTU.** Bu, K98 (serit-a3) + K85 (serit-a2)
+onarimlarini birlikte tasiyan ILK kosum.
+
+**ONCE / SONRA (durum.py bolum 9):**
+- ONCE: 🔴 **TIKALI (rc 3)** — canli main'den **6 commit** geride, en eski bekleyen **115 dk**,
+  2 ardisik kosum yayinlamadan bitmis, son yayinlanan `dd68cd7a`.
+- SONRA: 🟢 **AKIYOR (rc 0)** — 1 commit bekliyor (2 dk), ardisik iptal 0, ardisik hata 0,
+  son yayinlanan **`b2e8eb58`**.
+
+**YEDEK (bolum 7):** ONCE "ÖLÇÜLEMEDİ + YARIM KALMIS YEDEK" → SONRA **"taze: son yedek 3 dk
+once — memory 227 + skills 19 + repo 4"**. `86e7a035`. Kok neden macOS izni DEGILMIS: eski
+`backup/` altindaki Drive nesneleri bizim kimligimizle kullanilamiyordu (yeni dosya
+olusturma/ezme/silme SERBEST ama **listeleme EPERM**). Taze kok (`backup-v2`) sinifi atladi;
+kok adi artik bes yerde degil TEK SABIT ve `durum.py` de ondan TURETIYOR.
+
+**BOLUM 8:** kancalar **18 eksen yesil**. **BOLUM 3:** artik dal **0**.
+**Katalog 27066** (MaCiT d7 dilimi +65 canliya girdi, ayni pencerede).
+
+**OKAN'DA KALAN (2, ikisi de kucuk):**
+- Eski `<Pruvo>/backup` klasoru Drive arayuzunden `backup-v2/` icine surukle-birak ile
+  tasinacak (`os.rename` EPERM verdi; SILINMEDI, yerinde duruyor).
+- `media.pruvo3d.com` tekil purge icin Zone.Cache Purge izinli token (devir).
+
+**ArTisT'e DEVREDILDI (Okan karari):** attribution sorusu cevaplandi + arastirma alani ona
+gecti; **K99** acildi (REF ↔ siparis bag kolonu YOK; spec ArTisT'te, Worker/D1 tarafi bende).
+
+**🔴 GUNUN IKINCI DERSI:** *"izin verildi ama hala duser"de siradaki soru "hangi ISLEM
+reddediliyor"dur.* Olusturma / ezme / silme / listeleme AYRI haklardir; biri reddedilirken
+otekiler serbest olabilir. "Klasor yazilabilir mi" sorusu bu vakada UC KEZ yanlis yonlendirdi
+ve bir kez de Okan'dan gereksiz yere sistem ayari istettirdi. Hipotezi degil **islemi** olc.
+
+## 14 Agu 2026 ~11:10Z — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=3 BULUNAN=3 TASINAN=3 ATLANAN=0 CIKAN=3 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=337:2026-08-14T12:37:34 HUKUM=SUPURULDU`. 3 mail (Build & deploy `ca146ce` · Paket tazeligi `ca146ce` · D1 uzlastirici `ebebb96`).
+COP_DENETIM: `MESRU=105 YANLIS=0 KAPSAM=105 ATFEDILMEYEN=25` → yanlis supurme izi YOK.
+
+CI BAGIMSIZ TEYIT (HEAD `ca146ced`): 3 koşum kırmızı: `Build & deploy serit-a2` (pre-push D1 kaynagi kabul testi) + `serit-a3` (Kanca kablosu davranis ayagi) + `Paket tazeligi` (adım-4 yayin gecikmesi + adım-9 iş bayatligi). 14:08 kod 116128af itildi (Okan emriyle); K98 (89941482) + K85-kapsam (6ee9ead2) + dal/oturum temizligi (b2e8eb5) geldi — `Build & deploy` YENI koşum (`31792482488`) **YESIL**, TÜM steps (serit-a2, serit-a3, serit-a4, build, deploy, yayin) basarili. CI zinciri çalışıyor; K91 (Odeme bayatlik) hâlâ OKAN-KAPISI (deploy kararı).
+
+§4.7.1 ONARIM KAPISI: `nobet-kapi.py --tur` → `HUKUM=ONCEKI_TUR_SURUYOR` (H7 kilidi, pid 72074). Codex spec'i scratchpad'e yazıldı (`/Users/okan/.claude/scratchpad/spec-kanca-kablo-kapsam.md`); Codex türetilirken K98 Okan tarafından itildi, **DEGISEN_DOSYALAR=YOK; yabancı K98 değişiklikleri korundu, YENI_KOSUM=YOK:BLOCKED**. K98 → K85 → b2e8eb5 ile sınıf kapandı.
+
+TAMIRCI BAKIM: bu turda K98 dagitildi+kapandi (KraL+Codex+Okan is birligi); K91 OKAN-KAPISI (madde 6); bakim 0/0.
+OKAN'A ÇIKIŞ: YOK (§5 — tüm Okan kararı gerektiren kalemler zaten K98 ile kapandı, K91 OKAN-KAPISI sinifinda).
+
+## 14 Agu 2026 ~10:42Z-t18 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=7 BULUNAN=7 TASINAN=7 ATLANAN=0 CIKAN=7 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=349:2026-08-14T13:37:59 HUKUM=SUPURULDU`. 7 mail (Nöbet SERIT B `116128a` · Odeme bayatlik `b2e8eb5`+`6ee9ead` · Build & deploy `8994148` · Paket tazeligi `b020320` · Odeme bayatlik `b020320`+`8994148`) — hepsi `github+Run failed` yüklemine uyuyor.
+COP_DENETIM: Pruvo hesabı **MESRU=117 / YANLIS=0 / KAPSAM=117 / ATFEDILMEYEN=26** — süpürme temiz, yanlış sınıf 0; sipariş/ödeme kaybı YOK.
+
+GH CI BAĞIMSIZ TEYİT (HEAD `b2e8eb5` "defter: acik kalem supurmesi blogu (89941482 + b0203209 + 6ee9ead2 + dal/oturum temizligi)"): 5 koşum — `D1 sapma alarmi` ✓ · `Spec/tasarim alarmi` (spec-*-alarmi.yml) ✓ · `Odeme yolu bayatlik nabzi**FAILURE** (`31792482445`) · `Nöbet şeridi SERIT B` in_progress · `Build & deploy to GitHub Pages` **in_progress** (queue 12dk, serit-a3 `Kisisel veri korumasi testi` çalışıyor; serit-a4 ✓). **K91 sınıfı (shop worker bayat, 3 unpublished commit, en eski 579 dk) OKAN-KAPISI** — alarm kendi çıktısında "Yayin: shop dizininden `npx wrangler deploy` (DEPLOY = OKAN/mimar karari)" yazıyor; §3 DUR (CLAUDE.md GÜVENLİK: deploy=OKAN gate). Diğer 12 Build & deploy failure'lari ESKİ HEAD'lere (12 unique SHA, gün boyu), mevcut HEAD'inki hâlâ koşuyor.
+
+§4.7.1 ONARIM KAPISI: `nobet-kapi.py --tur` → `HUKUM=ONCEKI_TUR_SURUYOR` (H7 kilidi, pid 72074 çalışıyor); `--kuru` → `ACIK_KALEM=10 KAPANAN=0 DAGITILAN=0 KAT_FLASH=0 KAT_PRO=1 KAT_CODEX=8 KAT_OKAN=1 HUKUM=ONARIMSIZ_TUR rc=1`. Tüm 10 açık kalem ESKALASYON=OKAN (3 dağıtım tamamlamış), K98 → OKAN [DAGITILMAZ]. Bu turda ikinci kez işçi AÇILMADI (kapı zaten dağıtıyor/dağıtmış).
+
+§3 DUR: aktif fail K91 (Odeme bayatlik) → OKAN-KAPISI, deploy kararı bekliyor; K98 Build & deploy zinciri hâlâ uçuşta (yarım tur, sonraki tur teyit). Yeni push YOK, mail silme YOK (zaten 7/7 yapıldı).
+
+TAMIRCI BAKIM: bu turda dağıtım yok, kapanan yok. K98 dağıtımı `nobet-kapi.py` için sırada; K80 zaten ESKALASYON=OKAN; K91 OKAN-KAPISI (madde 6).
+OKAN'A ÇIKIŞ: YOK (§5 — K91 zaten OKAN-KAPISI, K98 §4.7.1 dağıtımında, K80 ESKALASYON=OKAN; yeni Okan kararı gerektiren durum yok).
+
 ## 14 Agu 2026 — ACIK KALEM SUPURMESI: yayin tikanikligi + dal/oturum temizligi (KraL, interaktif)
 
 **CANLIYA GIDEN (SHA):** `89941482` · `b0203209` · `6ee9ead2` (ucu de push'lu, main FF).
@@ -215,3 +276,17 @@ SUPURME: `mail-supurme-kos.sh` → **ALARM rc=1** §0.4: `GITHUB_BILDIRIM_INBOX=
 TAMIRCI BAKIM: bu turda dağıtım yok, kapanan yok. §4.7.1 kapsamında `nobet-kapi.py --tur` bir sonraki turda K98'i dağıtabilir (bu turda ALARM nedeniyle ikinci kez işçi AÇILMADI).
 
 OKAN'A ÇIKIŞ: **VAR — TEK CÜMLE** (§0.4 son cümle: "yanlış silme para kaybı sınıfıdır; §5'in sessiz varsayılan kuralı bu alarmı KAPSAMAZ").
+
+
+## 14 Agu 2026 ~11:07Z-t16 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → `GITHUB_BILDIRIM_INBOX=2 BULUNAN=2 TASINAN=2 ATLANAN=0 CIKAN=2 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=351:2026-08-14T14:07:37 HUKUM=SUPURULDU` (alarm YOK; onceki turun KOMSU_KAYIP alarmi bu turda TEKRARLAMADI).
+COP DENETIMI: `MESRU=119 YANLIS=0 KAPSAM=119 ATFEDILMEYEN=26` → yanlis supurme izi YOK.
+
+CI BAGIMSIZ TEYIT (`gh run list`): HEAD 86e7a035 — `Spec/tasarim alarmi` (spec-*-alarmi.yml)=success, `Build & deploy`=pending, `Nobet seridi`=pending, **`Odeme yolu bayatlik nabzi`=failure (31794456264)**.
+KOK_NEDEN (logdan): `tools/shop-bayatlik-kapisi.py --gh-ozet` → canli odeme worker'i BAYAT; aktif surum 8081ccdf (13 Agu 20:36Z), yayinlanmamis 3 commit (a6a16a91 · 29c3232e · 116128af), en eski yasi **608.9 dk** > esik 120 dk → rc=1. Kapinin kendi hukmu: cozum `shop` dizininden `npx wrangler deploy`.
+DUZELTME YAPILMADI: tek cozum DEPLOY; CLAUDE.md "Deploy/yetki/odeme=OKAN KAPISI" + gorev §3 YASAK listesi (yesile boyama yok) → kod onarimi ile kapanamaz, Codex acilmadi.
+
+TAMIRCI BAKIM: bu turda yeni kalem acilmadi/kapanmadi; odeme worker bayatligi OKAN-KAPISI sinifinda bekliyor (dagitilamaz kalem, §4.7.1 tablosu).
+
+OKAN'A CIKIS: **VAR — TEK CUMLE** (deploy kapisi; onarim ajanla kapanamaz).
