@@ -1,75 +1,79 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 14 Agu 2026 ~03:38Z-t9 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+## 14 Agu 2026 — OTURUM KAPANISI (KraL, interaktif; gece boyu)
 
-SUPURME: `mail-supurme-kos.sh` → rc=0 · BULUNAN=4 · TASINAN=4 · ATLANAN=0 · CIKAN=4 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=76:2026-08-14T06:34 · HUKUM=SUPURULDU. 7ba6287 zinciri için 3 + eski 3519254 zinciri için 1 (toplam 4 mail).
-COP_DENETIM: Pruvo hesabı MESRU=61 / YANLIS=0 (süpürme temiz); gmlmz/gemalmaz/dio hesapları YANLIS=15 K92 bilinen sınıfı (süpürme dışı yol); sipariş/ödeme kaybı YOK.
-GH SON_1H (HEAD 7ba6287 "ekle: Audi+Mercedes x Cults3D dilim-1 14 urun canliya"): 4 failure aynı head'de — Build&deploy `31766288494` (serit-a3 marka-sayac: 60 düşen, ürün `kategori` alanları `CLAUDE.md` `CATEGORIES` listesinde YOK) + Spec güvenlik taraması `31766288497` (K94 sınıfı — bilinen, SERIT-B BLOKLAMAZ) + Odeme yolu `31766288498` (shop worker bayat 144,7 dk, K91 sınıfı, `DEPLOY = OKAN kapısı`). Yeni koşumlar `31767204268` D1 sapma alarmi success + `31766288630` Nöbet şeridi SERIT B pending. Build & deploy durumu: 3 iş serit-a3/a2/build failure → `deploy`+`yayin` SKIPPED → yeni 14 ürün canlıya inmedi (yayın BLOKLU yeni ürün için).
-K93 YARIM İŞ: önceki tur raporu "Codex lokal commit `710dd8df` push olmadı" diyordu; bu turda **710dd8df main + origin/main'de** (`branch -r --contains` → origin/main ✅, `merge-base --is-ancestor` rc=0). Çekirdek kök neden `SERIT B'DE BEYANSIZ KAPI: tools/onarim-commit-test.py` 710dd8df ile çözüldü.
-TAMIRCI: açık-kalemler.md'den 🔧 okundu (17 kalem: K49·K53·K55·K59·K69·K70·K71·K72·K77·K78·K80·K84·K85·K86·K88·K90·K93). K49/K53/K55 → ESKALASYON=OKAN (geri-iz.json). K59/K69/K70/K71 → DAGITILDI (işçide, tur kapanmadı). K72/K77/K78/K80/K84/K85/K86/K88/K90/K93 → SIRADA (kapı H2 fan-out'u tur=9 dağıtacak). K93 bu turda **KAPANDI** (kabul: `python3 tools/is-akisi-kapisi.py` YESIL ✅ — 5 B iddiası · 320 kapı çağrısı · 111 SERIT_B beyanı · 1 BLOKLAYICI beyan · 11 zorunlu adım · 205 kendini-test · etkisizleştirilmiş 0; "BEYANSIZ KAPI" mesajı çıktıda yok).
-ONARIM PAKETİ (yeni kalem açmadan): 7ba6287 ile gelen 14 Audi+Mercedes ürününün `kategori` alanları `CLAUDE.md` `CATEGORIES` listesinde YOK → serit-a3 marka-sayac 60 düşen, Build & deploy zinciri kırmızı. KraL/MaCiT koordinasyon sınıfı: ürün verisi = MaCiT tek-yazar, kategori listesi = KraL. Tek-yazar ilkesi bozulmaz: Tamirci teşhis + yama önerisi hazırlar, MaCiT defterine bırakır (merge/deploy almaz). K94 zaten 🔧 açık ve codex dağıtım SIRADA. Yeni K96/K97 açmıyorum — K94 (aynı serit-B güvenlik taraması) ve K95 (marka/model uyelik K19 ÇAPRAZ-MARKA farklı kök neden) mevcut kalemler bu arızayı kapsar. Tam detay için DEVAM-ARSIV.md bkz.
-TEMİZLİK: /tmp/kalem_durum_oku.py SİLİNDİ (13 Ağu kuralı).
-OKAN'A ÇIKIŞ: YOK (§5 — K93 kendi kabul testiyle kapandı, K91 zaten OKAN-KAPISI, K94 zaten Okan kararı bekliyordu, yeni onarım paketi MaCiT düzleminde — mimar kararı gerektirmez).
+**CANLIYA GIDEN (SHA):** `6f28a842` D1 seq **kuyruk** kolu bloga oranli adim (`adim=yuksek//(k+1)`)
+→ 136 INSERT gecti, **EKSIK=0**, Ege paritesi BIREBIR (893 sorgu) · `2b19c28e` seq normalize
+on-kosulu FAZLA eksenine · `4b6f16ac`+`15e89b11` panel: uretici kaynak linki (ayri `urun_kaynak`
+tablosu, 26422 satir) + `<details>` acilir kart + `kaynakLinkHtml` regex kacislamasi (sablon
+icindeki `\/` TUM client script'ini derlenemez yapiyordu) · **deploy `8081ccdf`** (panel canli;
+yonet veri ucu cerezsiz 404, musteri ucu 200) · `a6a16a91` **ABS satisa geri acildi** — katsayi
+ASA'dan **TURER** (`FILAMENT_TUREME`), 5 kategoride Worker fail-closed 400 · `37d62efc`
+`onarim-commit.py` (kendi kendini tasidi) + `132fb1dd` **stash yarisi SHA ile kapatildi** ·
+`0a921f92`+`fbe79882` STL uc-kopya nobetcisi + **158 eksik uretim dosyasi R2'ye** (9 stub imza
+dogrulamasinda elendi) · `d4ccdfa1` **serit beyani sinif kapisi: elle defter 111→0** (serit artik
+workflow'dan turer; `fiyat-prova` 13/13) · `a28e3262` `serit-a2` **aktif-referans ekseni**
+(1697 anahtar kapsam disi, gercek kirik 0, whitelist'e 0 satir) · `74be7cdc` kova **916 + Mazda
+B-Serisi ACILDI** (cok-sahipli esik 1/3 + ciplak sayi `marka[]` uyeligi; **KAPANAN_KOVA=0**,
+Honda|B Serisi yayinda kaldi) · `47389674` **CDN negatif-onbellek kokeni** (readback CDN'den
+S3 sondasina) · `29c3232e` ic-dil KAYNAK kolu · `35192543` yayin-gecikme tavani 75→**128**
+(121 kosum olculdu, normal max 86.6 — nobetci **sahte tikanma alarmi** uretiyordu) ·
+`1f1c2af5` defter bakimi (DEVAM 556→64 satir, **19/19 blok arsivde**, K20 iddiasi GERI CEKILDI).
+**Nobet onarim bacagi kuruldu** (`~/.claude/cron/nobet-kapi.py`): `ACIK>0 & KAPANAN=0 &
+DAGITILAN=0` → tur **BASARISIZ**; fan-out 4; kabul **kosulan komuttan** turer (3/3 guvenlik
+vakasi: kabuk yok, beyaz liste, `..` kacisi) → **7 gunluk "0 onarim" serisi kirildi**, K49·K53·
+K54·K55 kabul komutuyla dogrulanarak kapandi. Sıklık `37` → **`7,37`** (30 dk).
 
-## 13 Agu 2026 — OTURUM KAPANISI (KraL, interaktif)
+**KOSUYOR:** yok — tum delegasyonlar kapandi, `worktree list` **tek satir**, ana repo push'lu.
 
-**YAYIN ACIK.** CI `31722405771`, HEAD `69b77c5f`, **6/6 job yesil**. Gun boyu kapaliydi;
-zincir bes sinif onarimi + iki veri duzeltmesiyle acildi.
+**BEKLIYOR / BLOKE:**
+- 🔴 **YAYIN KAPALI, top MaCiT'te:** `7ba6287b` partisi iki SERIT A kapisini dusuruyor —
+  (1) `c3d-audi-q3-sis-farı-montaj-braketi` id'sinde `ı` (U+0131, URL-guvensiz),
+  (2) 14 kaydin `kategori` alani alt-bolum adi (`Dış Aksesuar` vb., CATEGORIES disi) → marka
+  sayac **60 dusen**. Ikisi de `urunler.json` = MaCiT tek-yazar. Kutuya araclariyla yazildi.
+- ⚖️ **KraL HUKMU (MaCiT'in sordugu guard kisiti):** `urunler-guard` byte-identical rename
+  kisiti id-rename + alan duzeltmeyi ayni commit'te reddediyor. **Karar: (a) guard yamasi** —
+  rename+duzelt kombinasyonu TEK islem sayilsin. (b) iki ayri commit gecici bozuk goruntu
+  birakir, (c) sil-izin muafiyeti kapiyi gevsetir; ikisi de RED. Yamayi bir sonraki KraL turu yazar.
+- **HocA:** `/ara` Worker bayat — parite kirmizisi **3 sorguya** indi (`arac`/`Otomobil`/
+  `Land Cruiser 90 arac`); `urunler_fts` sayimi birebir, indeks TEMIZ → care Worker deploy'u.
+- **Bende (siradaki):** `boy_secenekleri` deploy zinciri (MaCiT `--sema`'yi kosmus) · Q3 sis
+  fari gorseli **vizyonla** teyit (ucuz motor gorsel okuyamiyor) · arsivden 4 kalem
+  (`build.py` butce kirpmasi 34-commit cakisma riski · `uyum-kapisi` kesme beyani ·
+  `arama.py` allow temizligi — `Toyota|86` 71 urun tasidigi icin RISKLI, tek basina uygulanmaz).
 
-**CANLIYA GIDEN (SHA):**
-`6a3409ad` uc sinif onarimi bir arada — (a) **ozyineleme kilidi** `test-skan-art.py`
-(gecici kok kendi icine 33 kez kopyalanip **188 GB** uretmisti; derinlik tavani ·
-zaten-varsa-yeni-seviye-acmama · kopyaya sir tasimama · `ignore_errors` kaldirildi = fail-closed
-temizlik · temp-altinda kalkani), (b) **mukerrer kapisi** artik **commit icerigini** (index+HEAD)
-yargiliyor, calisma agacini degil — yabanci yarim parti alakasiz commit'i kilitlemiyor,
-(c) **katalog tip ekseni** tek alandan (`fiyat`) **kanonik semaya**: 15/15 alan, tam katalog
-**0 sapma**, yanlis-pozitif 0.
-`e03cc879` **id-rename yolu**: isci kimlik ekseni (`PRUVO_ISCI_KOSUMU`) ortak kaynaga
-(`tools/mimar_kimlik.py`) alindi ve kod-kilidi + icra kapisi ayni tablodan okuyor (ikiz tanim
-kapandi) · `urunler-guard --id-rename` (duplicate uretmiyor) · `duzelt.py` URL-guvenli id destegi.
-Uc yeni kabul testi CI'da **bloklayici**: `skan-art-ozyineleme` 6/6 · `mukerrer-kapsam` 5/5 ·
-`katalog-tip-sinifi` 9/9 · `id-rename` 6/6; toplam **13 oldurucu mutant** kirmizi.
-Veri tarafi (MaCiT, benim actigim araclarla): `a317b8c7` id ASCII rename · `69b77c5f` gorsel
-anahtari alt-cizgi→tire.
+**OKAN'DA BEKLEYEN KARAR (1):** `media.pruvo3d.com` icin **Zone.Cache Purge** izinli Cloudflare
+token'i. Olculdu: son partide 38 gorselin **19'u 404** (`cf-cache-status: HIT`), 100'luk genis
+ornekte **17 404** — TTL 1 YIL, kendiliginden duzelmez. Kok neden kapandi (`47389674`), kalan
+404'ler tekil purge ister (`purge_everything` KULLANILMAYACAK).
 
-**DISK (Okan sikayeti kapandi):** bos alan **68 GB → 272 GB**. Tek buyuk sebep bir uretim
-isinin kacak ozyinelemesiydi: **188 GB · 1.542.633 dosya · 33 kat** — ve icinde **99 sir dosyasi**
-(uc ayri kimlik turu, her biri ×33; adlar arsivde) sistem temp'ine cogaltilmisti;
-silindi, kalinti 0. Ayrica `/private/tmp` 85 eski dizin · `.thing-cache` 36G→360M ·
-`urun/`+`marka/` 828 MB build ciktisi · eski worktree'ler. 🔴 Kacagi ureten betik KraL evindeydi
-(`tools/test-skan-art.py`) — TeKiN'e kestigim fatura GERI ALINDI, kutuya duzeltme yazildi.
+**🔴 GUNUN DERSI:** *beyan kanit degildir.* Nobet 167 turda 0 onarim yaparken hep `rc=0`
+yaziyordu; isci "KAPANDI" derken sha baska depodaydi; MaCiT partisi "uctan uca kapandi" derken
+CI kirmiziydi. Panzehir ayni: **kapanisi kosulan bir komuta bagla.** Ikinci ders: stash yigini
+depo genelinde ORTAK — argumansiz `apply` komsunun isini alir ([[stash-yigini-ortak-yaris]]).
 
-**STL KURTARMA (Okan "Son Kullanilanlar"dan 10bin+ dosya sildi):** repo dosyalari etkilenmedi,
-R2 etkilenmedi (yukleyicide silme cagrisi YOK). Drive copundeki **5.772** STL'nin **877'si
-R2'de YOKTU** → turlar halinde kurtarildi. Kapanista **R2'de 11.888 STL** (12.394 model, 39,4 GB).
-**Okan kurali olculdu** ("her STL Drive'da VE R2'de"): yerel 580 dosyada
-`HER_IKISINDE` 251→**571** · `SADECE_R2` 301→**0** · `SADECE_DRIVE` 28→**9** ·
-🔴 `HICBIRINDE`=**0** (tek-kopya risk yok). Kalan 9 = 113 baytlik hasat stub'i, gercek STL degil.
-`.bundle` yedekleri Okan onayiyla silindi (main gecmisi repoda mevcuttu).
+## 14 Agu 2026 ~11:07Z-t16 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
 
-**KOSUYOR (kapanista devam):**
-- `d1-senkron-ac` (isci, `SPEC-d1-senkron-ac.md`) — D1 136 kayit geri; **MaCiT bunu bekliyor**
-  (Toyota dilim-5 bloklu). Senkron koşumu + parite/Ege teyidi bu turda.
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=5 BULUNAN=5 TASINAN=5 ATLANAN=0 CIKAN=5 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=334:2026-08-14T11:07:45 HUKUM=SUPURULDU`. ebebb96 zincirinden 5 mail (Build & deploy + Odeme yolu bayatlik + Paket tazeligi + D1 uzlastirici + Nöbet şeridi SERIT B) — hepsi `github+Run failed` yüklemine uyuyor.
+COP_DENETIM: Pruvo hesabı **MESRU=102 / YANLIS=0 / KAPSAM=102 / ATFEDILMEYEN=14** — süpürme temiz, yanlış sınıf 0; 14 ATFEDILMEYEN K92 sınıfı. Sipariş/ödeme kaybı YOK.
+GH CI BAĞIMSIZ TEYİT (HEAD `ebebb966` "K80: yeni CI adimini commit agacinda olc"): **Build & deploy `31781775890` — FAILURE** (6 job: `serit-a2` + `serit-a3` failure, `serit-a4`/`build`/`deploy`/`yayin` ok ama 0 step — concurrency `cancel-in-progress:false` zincirinin beklenen davranışı). Kök neden iki ayrı sınıf:
+- **serit-a2 `prepush-d1-kaynak-test.py:233`** `python3: can't open file '/tmp/prepush-d1-kaynak-t4o0lz5q/a/tools/is-akisi-kapisi.py': [Errno 2] No such file or directory` + sonrasında `os.unlink(kayit_a)` `FileNotFoundError: '/tmp/prepush-d1-kaynak-t4o0lz5q/a-kayit.json'` (tmp dizini cleanup sırasında silinmiş, script idempotent değil).
+- **serit-a3 `ci-kapsam-test.py --kanca-kablo`** fikstürü düştü: `beklenen=YESIL gelen=KIRMIZI · davranis=['D2 kapi YESIL: kanca rc=1 (DURDU) · kapi rc=0 iken kanca GECIRMELI (yanlis-kirmizi tum ekibin yayinini durdurur)']` — yani kanca `rc=1` döndürüyor ama kapi `rc=0` diyor; kanca YANLIŞ durumda `rc=1` döndü.
 
-**BEKLIYOR / DEVREDILDI:**
-- **MaCiT:** D1 senkron sonucu · 53 yerel STL'in kaynak-id'si gizli kaynak kaydinda
-  eslenmemis · 9 stub dosya yeniden hasat · `pruvo-hasat/olcum/*-cgtrader-cache` **git'e
-  commit'lenmis** (1.455 dosya / 214 MB) → gitignore + gecmis temizligi karari.
-- **HocA:** `/ara` Worker bayat — `db96c380` site tarafina INDI (`audi araba` 0→455) ama
-  Worker'a inmedi; Ege'ye soran musteri bulamiyor. `parite-test.js` adi "site" der ama fiilen
-  **o Worker'i** olcer (kirmizi saatlerce yanlis eve yazildi).
-- **ArTisT:** `pruvo-pazarlama/gorseller` 576 MB, R2'de kopyasi **YOK** (0/194) — silinmedi,
-  sahibine birakildi.
-- **Bende (siradaki):** D sinifi 13 kova (5'i haksiz kapali gercek model: Fiat Scudo ·
-  Mazda B-Serisi · Peugeot Jumpy · Nissan Primastar · Alfa 916) · `serit-a2` R2 anahtar
-  kapisini **aktif-referans eksenine** cekme karari (whitelist REDDEDILDI) ·
-  uc-kopya nobetcisi (`tools/stl-uc-kopya-nobet.py` onerisi) · `mimar-commit-kapisi` isci
-  eksenini tanimiyor · katalog sayisi **DUSUSUNU** olcen nobetci YOK (93 urun sessizce silinmisti).
+Diğer ebebb966 koşumları: `D1 sapma alarmi (kadans kolu)` ✓ (K59 bilinen sınıfın bağımsız ekseni), `K80 yeni CI adimi` 4× (cron tetiklemeli; 2 failure / 1 success / 1 in_progress), `Nöbet şeridi SERIT B` in_progress. K95 kökü DEĞİL — 4518a3d + dd68cd7 build'leri başarılı geçmiş, model-uyelik-kapisi muhtemelen temizlenmiş; K95 stale olabilir (ayrı teyit gerekir).
 
-**OKAN'DA BEKLEYEN KARAR:** yok. (Disk temizligi, `.bundle`/`stl`/gorsel silme karari ve R2
-token'i verildi; token uretildi ve kullanildi.)
+§3 DUR KOŞULU: aktif fail `31781775890` Build & deploy (K80+K85 ortak sonuç); K80 zaten ESKALASYON (geri-iz `tur=16`, 3 dağıtım, OKAN'a düşmüş) · K85 KAPANDI görünüyordu ama bugün **sınıf tekrarı** — kabul ölçütü (`tools/prepush-d1-kaynak-test.py`) yine kırık. **Yeni push YOK, mail silme YOK** (zaten yapıldı: 5/5).
 
-**🔴 GUNUN DERSI (bes onarimin ortak kaliba):** kural bir kapiya kurulup **kardesine
-kurulmuyor** — tip ekseni tek alana, isci kimligi tek kapiya, mukerrer kapsami tek yere,
-R2 anahtar yargisi yanlis birime. Dordu de ayni gun yayini durdurdu. Panzehir: kapsami
-**elle listeden degil kanonik kaynaktan TURET** + kardes kapilari ayni turda tara.
+TAMIRCI BAKIM: **K98 GERÇEKTEN AÇILDI** (acik-kalemler.md satır eklendi: 2026-08-14 · Tamirci→Tamirci · K85 sınıf tekrarı + K80 ortak zincir — Build & deploy BLOKLU · onarım K85 idempotent cleanup + K80 fikstür eşleşmesi · KAT: codex · YASAK: urunler.json/secret/adım-silme/continue-on-error). Defter açık kalem sayısı **19** (önceki 18 + K98). K95 stale teşhis notu K98'in kapanış kanıtına düşüldü (mimar yargısı gerekir). §4.7.1 kapsamında dağıtım `nobet-kapi.py --tur` bir sonraki turda K98'i K95'in yerine distributed olarak işaretleyecek (kapı zaten yapıyor, ikinci kez işçi AÇILMAZ).
+
+ONARIM: YOK (K98 dağıtımı kapıya bırakıldı; K80 zaten ESKALASYON=OKAN; K85 sınıf tekrarı K98 kapsamında).
+OKAN'A ÇIKIŞ: YOK (§5 — K98 defterde, K80 zaten OKAN'a düşmüş, K95/K96/K97 §4.7.1 SIRADA, K91 OKAN-KAPISI; mimar kararı gerektiren yeni durum yok).
+## 14 Agu 2026 ~07:37Z-t14 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → `GITHUB_BILDIRIM_INBOX=0 BULUNAN=0 TASINAN=0 ATLANAN=0 CIKAN=0 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=329:2026-08-14T07:07:53 HUKUM=TEMIZ`. Önceki turlar inbox'ı zaten süpürmüş, bu turda 0/0; COP_IZI=329 önceki süpürmelerin ürünü. §0.4 "0 bulundu pozitif tanıma izi ister" kuralı: COP_IZI ayağı inbox sayacı 0'ı TEMİZ'e çeviren geçerli ayak (aynı gün 07:07Z kayıtları) → hüküm **TEMİZ**.
+COP_DENETIM: Pruvo hesabı **MESRU=97 / YANLIS=0 / KAPSAM=97 / ATFEDILMEYEN=14** — süpürme temiz, yanlış sınıf 0; 14 ATFEDILMEYEN K92 sınıfı (süpürme dışı yoldan gelen mailler, K92 kapsamı). Sipariş/ödeme kaybı YOK.
+GH CI BAĞIMSIZ TEYİT (HEAD `dd68cd7a` "fix: pre-push D1 senkronu fail-closed (K85)"): son 8 koşumda 6 SUCCESS + 1 FAILURE (`31777286275` Odeme yolu bayatlik, K91/K30 sınıfı bilinen alarm kolu — **yayını DURDURMAZ** §2 + §4.5) + 1 in_progress (`31777286320` build & deploy zinciri 22+ dk, `serit-b` failure + `d1-kadans/uzlastir` failure — K86/K94/K97 + K59 bilinen sınıflar). Daha eski: `31775484640` Paket tazeligi ✗ (K95/K96+K30 sınıfı). **Düzeltme tetikleyen yeni arıza YOK** — tüm kırmızılar defterdeki açık kalemlerle eşleşiyor.
+§3 DUR KOŞULU: aktif fail `31777286275` Odeme yolu bayatlik K91 (OKAN-KAPISI, 11 Ağu kararı); K86/K94/K97 §4.7.1 kapsamında `nobet-kapi.py` dağıtımında (t13'te dağıtıldı); K95/K96 §3 DUR'da (MaCiT tek-yazar, YASAK kapsam). Yeni push YOK, mail silme YOK.
+TAMIRCI BAKIM: defter değişmedi (bu turda yeni kalem yok, kapanan yok); §4.7.1 kapsamında dağıtım `nobet-kapi.py --tur` t13'ün devamı olarak yürütülüyor. K85 KAPANDI commit dd68cd7a main'de (`merge-base --is-ancestor` önceki tur teyitli).
+OKAN'A ÇIKIŞ: YOK (§5 — K97 defterde bekliyor, K95/K96 §3 DUR'da, K86/K94 codex SIRADA, K91 OKAN-KAPISI; mimar kararı gerektiren yeni durum yok).
+
