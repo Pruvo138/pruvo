@@ -36,7 +36,37 @@ temsili is verilip panelden token+kota okunacak, `$/milyar` GERCEKLESEN'den hesa
 `3daadb79`), canli `q=arac`/`q=oto`/`q=otomobil` **ucu de 20808**, kontrol `q=fren` **365**
 sabit, `parite-test.js` **400** + `parite-ege.js` **400** BIREBIR. Musteriye dokunan taraf:
 bugun "arac" arayan 7826 yerine **20808** urun goruyor.
-**🔴 K103 (BENDE, HocA bulgusu):** `tools/ara-maliyet-kapisi.py` **13 Agu'dan beri cokuyor**
+**✅ K103 KAPANDI — merge `86e3bba3`** (ff imkansizdi, merge commit'i; kapsam 2 dosya
++155/-61). **FAIL MODU = LOUD ama ZARARSIZ GORUNUYORDU:** kapi `serit-b` icinde
+`continue-on-error`'suz kiriliyordu ama deploy seridini DURDURMUYORDU → kirmizi GORUNUR,
+kimse ilgilenmez. Olculmeyen gun **1**.
+Kol A: token tipi artik VARSAYILMIYOR — `arama.token_sozlesmesi_dogrula()` donus sozlesmesini
+(dize/tuple, adet, es-anlamli yuklemesi) her kosumda olcuyor, bozulursa sessiz dar aramaya
+donmek yerine **rc=2 OLCULEMEDI** ile duruyor.
+Kol B (asil is): kapinin `sql_kur()` + `KART` + duz-tarama KOPYASI **TAMAMEN KALDIRILDI**;
+kanonik govde `arama.py`'ye tasindi (`D1_KART_ALANLARI` + `d1_site_sql_kur(tokens, limit,
+birlesim)` — cross/join/duz, kosul+bag uretimi TEK govde, yalniz FROM degisiyor).
+Semantik karsilastirma artik **UC referansli**: eski sekil · yeni CROSS · `arama.esles()`
+kanonik Python eslemesi; sapma `ESKI<>YENI` / `KANONIK<>SQL` diye ayri etiketleniyor.
+Disk kurali: gecici ikiz `ikiz_kapat()` ile TEK yerden, hata/erken-cikis yollarinda da silinir.
+**Kabul:** kapi rc=0 · MUT_A (donus dizeye cevrilince) KIRMIZI · MUT_B (kanonik tarafta
+token/es-anlamli bozulunca) KIRMIZI → kapi gercekten kanonikten TURUYOR, kopya kullansa yesil
+gecerdi · `ci-kapsam-test` rc=0 · `kapi-envanteri` rc=0 · **`parite-test.js` rc=0** (arama
+semantigi kirilmadi) · merge sonrasi `d1-sync --durum` **BES EKSEN YESIL** (27078=27078, hash
+uyusmaz 0) · worktree+dal SILINDI.
+⚠️ **KALINTI (durustluk):** kopya kapidan kalkti ama `arama.py` (Python) ↔ `worker/src/index.js`
+`araD1` (JS) ikizligi SISTEMDE DURUYOR — onu canli uctan `parite-test.js`/`parite-ege.js`
+olcuyor, ayri eksen.
+
+**🔴 GLM TUZAGI (Okan yakaladi, ODEME RISKI):** Okan'in gordugu ucuncu-taraf satis sayfasi
+**gercek GLM DEGIL** — resmi taraf bambaska bir kurum (adresler ARSIVDE + hafizada).
+Dort isaret: resmi olmayan alan adi · site adi
+"GLM-4.5"te bayat kalmis (guncel `glm-5.3`) · geri sayim + "limited time" baski deseni ·
+**birim aslinda pahali**: "$6,3/ay = 10M token" → **~$630/milyar token**, mevcut M3
+aboneligine gore **~146x**. Okan'a "kart girme" denildi; resmi adresler hafizaya islendi
+([[motor-saglayici-resmi-adresler]]).
+
+**K103 DETAY (kapandi, referans):** `tools/ara-maliyet-kapisi.py` **13 Agu'dan beri cokuyor**
 (`TypeError: can only concatenate str (not "tuple")` — `arama.py tokenlar()` arac sinifinda
 tuple donduruyor, kapi dize varsayiyor) VE kapi arama SQL'inin **kendi kopyasini** tutuyor
 (bugunun es-anlamli dalini kapsamiyor). Coken kapi OLCMEZ. Onarim worktree'de kosuyor: kol A
