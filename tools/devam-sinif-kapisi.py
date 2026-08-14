@@ -377,7 +377,11 @@ E6_DESENLER = (
     ("satici-kimlik-ifadesi",
      re.compile(r"\b(satici|tedarikci|tasarimci) (ad|adi|adini|kimlig|kimligi|"
                 r"kimligini)\w*\b(?! ?(%s))" % _GATE_ADI)),
-    ("ifsa", re.compile(r"\bifsa\w*\b")),
+    # 14 Agu 2026: `sizinti` deseninde ZATEN olan "olcum sonucu" istisnasi buraya da
+    # tasindi. "ifsa YOK / ifsa temiz / ifsa 0" bir bulgu ACIKLAMASI degil, bir OLCUM
+    # SONUCUDUR; kapi bunu bes kez bulgu sanip commit'i durdurdu. Ayrimi kurup TEK
+    # yuzunu uygulamak, ayrimi hic kurmamaktan sinsidir.
+    ("ifsa", re.compile(r"\bifsa\w*\b(?! ?(%s|%s))" % (_GATE_ADI, _OLCUM_SONUCU))),
     ("sizdi", re.compile(r"\b(sizdi|sizmis|sizmisti|sizdirdi)\b")),
     # "sizinti" TEK BASINA kirmizidir; ARDINDAN bir KAPI-ADI ismi ya da bir OLCUM
     # SONUCU gelirse YESIL.
@@ -810,6 +814,8 @@ _KIRMIZI = [
     # TEK YON yazilsaydi (yalniz "muaf oldu mu") muafiyetin FAZLA GENISLEMESI gorunmez
     # kalirdi — ikinci vaka tam da onu olcer: gercek bir bulgu cumlesi KIRMIZI KALMALI.
     ("sunucu tarafinda ic rapor ifsa edildi", "E6 guvenlik-bulgusu"),
+    # YON 4 — muafiyet gercek bulgu cumlesini korlestirmemeli.
+    ("panelde ic rapor ifsa edildi, sunucu dogrulamiyor", "E6 guvenlik-bulgusu"),
     # E1 ALAN ADI kolu: TANINMAYAN her alan adi kirmizidir (bicim kurali —
     # gizli vitrin/satici alan adi ADI HIC YAZILMADAN yakalanir). Ornek UYDURMA.
     # (`.example` UZANTI listesinde oldugu icin dosya adi sayilir -> gercek bir
@@ -851,6 +857,8 @@ _YESIL = [
     # TEK YON yazilsaydi (yalniz "muaf oldu mu") muafiyetin FAZLA GENISLEMESI gorunmez
     # kalirdi — ikinci vaka tam da onu olcer: gercek bir bulgu cumlesi KIRMIZI KALMALI.
     "CI kosumu: Spec/tasarim ifsasi alarmi = success (spec-ifsa-alarmi.yml)",
+    # YON 3 — jetondan sonraki olcum sonucu mesru ve muaf olmali.
+    "veri ucu anonim 404, kapi rc=0 -> ifsa YOK",
     # --- 1 Agu: 6665 satirlik GERCEK arsiv korpusunda OLCULEN yanlis-pozitifler.
     # Ilk surumde bunlarin HEPSI yaniyordu; desenler daraltilarak kapatildi.
     "- `kisisel-veri-test.py` tedarikci-adi nobetcisi +104; git grep 0.",
