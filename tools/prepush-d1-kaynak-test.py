@@ -34,6 +34,7 @@ okudugu katalogu diske yazar.
 """
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -172,6 +173,49 @@ def fikstur_kur(tmp, ad, kanca_govdesi=None, sync_stub=None):
 
     govde = kanca_govdesi if kanca_govdesi is not None else \
         open(KANCA_KAYNAGI, encoding="utf-8").read()
+
+    # 🔴 STUB KUMESI KANCA GOVDESINDEN TURER — ELLE DEFTERDEN DEGIL (14 Agu 2026).
+    # Yukaridaki iki satir (ci-kapsam-test / gecmis-geri-donus) bir ZAMANLAR yeterliydi;
+    # `ebebb966` kancaya yeni bir arac cagrisi ekleyince (is-akisi-kapisi.py, 0c) liste
+    # bayatladi ve bu fikstur sentetik depoda olmayan araci arayip YANLIS-KIRMIZI verdi —
+    # yayin tikandi. Ayni kor nokta ayni gun KARDES fiksturde de patladi
+    # ([[kapsam-evrenini-cagri-grafindan-turet]]: ad/defter listesi BAYATLAR, cagri grafi
+    # bayatlamaz). Artik govdedeki HER `tools/<ad>.py` referansi taranir; `GERCEK` kumesi
+    # DISINDAKI her arac stub'lanir. Ne stub'landigi BASILIR: sessiz kapsam genislemesi
+    # olmaz, operator hangi ayagin GERCEK hangisinin taklit oldugunu GORUR.
+    # `GERCEK` DAR ve BILINCLIDIR: `d1-sync.py` bu testin OLCTUGU aractir (stub'lanirsa
+    # test hicbir sey olcmez), `git_ortami.py` ise yukarida gercek kopyasiyla serilir.
+    #
+    # 🔴 TURETIM KABUK SEMANTIGINI IZLER — "hepsini stub'la" YANLISTI (14 Agu, olculdu):
+    #   (1) `[ ! -f <arac> ] ... exit 1`  -> fail-closed ON KAPI: arac YOKSA kanca DURUR
+    #                                       -> STUB SART.
+    #   (2) `[ -f <arac> ]` (olumsuzlamasiz) -> OPSIYONEL/rapor kolu: arac YOKSA blok ATLANIR
+    #                                       -> sentetik depoda YOK KALMALI. Stub'lanirsa blok
+    #                                          KOSAR ve fikstur davranisi DEGISIR (bu tam da
+    #                                          ilk denemede `RC1=1`'e yol acan hataydi).
+    #   (3) varlik testi YOK, dogrudan cagri -> ZORUNLU -> STUB SART.
+    gercek_araclar = {"d1-sync.py", "git_ortami.py"}
+    stublanan, opsiyonel = [], []
+    for arac in sorted(set(re.findall(r"tools/([A-Za-z0-9._-]+\.py)", govde))
+                       - gercek_araclar):
+        kacis = re.escape(arac)
+        zorunlu = bool(re.search(r"!\s*-f\s+[^\n]*" + kacis, govde))
+        opsiyonel_mu = (not zorunlu
+                        and bool(re.search(r"(?<!!\s)-f\s+[^\n]*" + kacis, govde)))
+        if opsiyonel_mu:
+            opsiyonel.append(arac)
+            continue
+        arac_yolu = os.path.join(depo, "tools", arac)
+        if not os.path.exists(arac_yolu):
+            _yaz(arac_yolu, _KAPI_STUB)
+            stublanan.append(arac)
+    if stublanan:
+        print("  fikstur[%s] govdeden turetilen ZORUNLU stub: %s"
+              % (ad, ", ".join(stublanan)))
+    if opsiyonel:
+        print("  fikstur[%s] OPSIYONEL (bilerek YOK birakildi): %s"
+              % (ad, ", ".join(opsiyonel)))
+
     _yaz(os.path.join(depo, ".git", "hooks", "pre-push"), govde, calistirilabilir=True)
 
     _katalog_yaz(depo, ["u-taban"])
@@ -230,7 +274,11 @@ try:
 
     # KONTROL AYAGI 2 — ayni urun COMMIT'lenince senkrona GIRER (tek yon olculseydi
     # "hep bos senkronluyor" mutanti de gecerdi).
-    os.unlink(kayit_a)
+    # Idempotent: yukaridaki A1 KIRMIZI ise kayit hic yazilmamistir. Ciplak `unlink`
+    # burada FileNotFoundError firlatip TUM testi TRACEBACK'e dusuruyordu — kirmizi bir
+    # IDDIA, tanisiz bir COKMEYE donusuyordu. Kardes kalip satir 181-182'de zaten boyle.
+    if os.path.exists(kayit_a):
+        os.unlink(kayit_a)
     _git(depo_a, "add", "urunler.json")
     _git(depo_a, "commit", "-q", "-m", "artik commitli")
     rc_a2, cikti_a2, _ = push_et(depo_a)
