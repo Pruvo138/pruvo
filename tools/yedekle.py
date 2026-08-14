@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Makine olursa kaybolacak yeri-doldurulamaz yerel dosyalari Drive'a yedekler.
 Drive yolu tools/drive_yolu.py ile cozulur (kayitli .stl-backup-dir bayatsa kendini duzeltir).
-Hedef: <Pruvo>/backup/  (memory klasoru + global skill'ler + ~/.claude altindaki elle
+Hedef: <Pruvo>/backup-v2/  (memory klasoru + global skill'ler + ~/.claude altindaki elle
 yazilmis agaclar: zamanlanmis gorev tanimlari / cron nobeti / planlar
 + .urun-kaynaklari.json + baglam .md'leri).
 
@@ -109,6 +109,7 @@ Kullanim:
     python3 tools/yedekle.py --sir-temizle  # hedefteki sir kopyalarini SIL (kok + skills)
     python3 tools/yedekle.py --kuru-prova   # SILME PROVASI: ne silinecegini basar, SILMEZ
 """
+import errno
 import fcntl
 import fnmatch
 import json
@@ -118,6 +119,38 @@ import shutil
 import subprocess
 import sys
 import time
+
+
+def _drive_kopyala(kaynak, varis):
+    """Icerigi DAIMA kopyala; metadata reddini yut ama GORUNUR birak.
+
+    🔴 OLCULDU (14 Agu 2026): hedef Google Drive **Ortak Drive** (CloudStorage) baglama
+    noktasi. Klasorler YAZILABILIR (sonda: 5/5 basamak rc=0) ama saglayici genisletilmis
+    oznitelik/metadata yazmayi REDDEDIYOR (`xattr -l` her seviyede EPERM). `shutil.copy2`
+    icerikle BIRLIKTE metadata da kopyaladigi icin `[Errno 1] Operation not permitted`
+    firlatiyor ve TUM yedegi dusuruyordu -> depo gunlerce yedeksiz kaldi.
+
+    Ayrim: ICERIK kaybi KABUL EDILEMEZ, metadata kaybi kabul edilebilir (tazelik zaten
+    mtime'dan degil DAMGA'dan turer — bkz. dosya basligi). Bu yuzden once `copy2`
+    denenir (mtime korunur; artimli kopyalama kararlari ona bakar), reddedilirse icerik
+    `copy` ile yazilir ve mtime AYRICA denenir. Metadata yine reddedilirse SESSIZ
+    gecilmez: sayac artar, ozet satirinda basilir.
+    """
+    try:
+        shutil.copy2(kaynak, varis)
+        return True
+    except OSError as e:
+        if e.errno not in (errno.EPERM, errno.EACCES, errno.ENOTSUP, errno.EOPNOTSUPP):
+            raise
+    shutil.copy(kaynak, varis)          # ICERIK: burada hata olursa YUTULMAZ, yukari gider
+    try:
+        os.utime(varis, (os.path.getatime(kaynak), os.path.getmtime(kaynak)))
+    except OSError:
+        _DRIVE_METADATA_REDDI.append(varis)
+    return True
+
+
+_DRIVE_METADATA_REDDI = []
 
 
 def ana_calisma_agaci(taban=None):
@@ -153,6 +186,15 @@ def ana_calisma_agaci(taban=None):
 
 ROOT = ana_calisma_agaci()
 MEMORY = os.path.expanduser("~/.claude/projects/-Users-okan-dev-pruvo/memory")
+# 🔴 YEDEK KOK KLASORU — TEK KAYNAK (14 Agu 2026). Eskiden bes ayri yerde elle
+# `backup` yaziliyordu. Ad DEGISTI cunku eski `backup/` altindaki nesneler Ortak
+# Drive'da BIZIM kimligimizle kullanilamiyor hale gelmisti: klasoru LISTELEMEK EPERM
+# veriyordu (olculdu), oysa ayni klasorde yeni dosya olusturma/ezme/silme SERBESTTI.
+# Uc hipotez olcerek elendi (bayat kilit · macOS TCC · metadata/xattr); kalan sebep
+# eski nesnelerin Drive sahipligi. Taze kok bu sinifi tumden atlar.
+# Eski klasor SILINMEDI: dogrulanmis ilk yeni yedekten SONRA bu kokun ICINE tasinir
+# (`_eski-backup-2026-08-14`), boylece yedek TEK YERDE toplanir.
+YEDEK_KOK_ADI = "backup-v2"
 SKILLS = os.path.expanduser("~/.claude/skills")
 
 # ========== ~/.claude ALTINDAKI ELLE YAZILMIS AGACLAR (7 Agu 2026) ===========
@@ -560,7 +602,7 @@ def skills_yaz(kok, hedef, dahil, haric, sir_temizle=False):
         kaynak = os.path.join(kok, gor)
         varis = os.path.join(hedef, gor)
         os.makedirs(os.path.dirname(varis), exist_ok=True)
-        shutil.copy2(kaynak, varis)
+        _drive_kopyala(kaynak, varis)
         yazilan += 1
     bayat = []
     for gor, _sebep in haric:
@@ -1178,7 +1220,7 @@ def _kopyala_gerekliyse(kaynak, varis):
     except OSError:
         pass
     os.makedirs(os.path.dirname(varis), exist_ok=True)
-    shutil.copy2(kaynak, varis)
+    _drive_kopyala(kaynak, varis)
     return True
 
 
@@ -1821,7 +1863,7 @@ def main():
         if not pruvo_drive:
             print("KURU PROVA OLCULEMEDI — Drive yolu cozulemedi.", file=sys.stderr)
             return 1
-        backup = os.path.join(pruvo_drive, "backup")
+        backup = os.path.join(pruvo_drive, YEDEK_KOK_ADI)
         print("KURU PROVA — hicbir dosya SILINMEDI/YAZILMADI.")
         print("Hedef: " + backup)
         sayilar = yedek_kok_sir_raporu(backup, sir_temizle=True, kuru_prova=True)
@@ -1845,7 +1887,7 @@ def main():
         if not pruvo_drive:
             print("DOGRULANAMADI — Drive yolu cozulemedi.", file=sys.stderr)
             return 1
-        backup = os.path.join(pruvo_drive, "backup")
+        backup = os.path.join(pruvo_drive, YEDEK_KOK_ADI)
         rapor, kirmizi = ek_dogrula(backup)
         print("DOGRULAMA — hedef: " + backup)
         print("  planda %d dosya; hedefte BOYUTU TUTAN %d dosya, %d bayt"
@@ -1866,7 +1908,7 @@ def main():
     # ---- KURU KOSUM: hicbir sey yazma, sadece plani bas -------------------
     if kuru:
         pruvo_drive = drive_yolu.pruvo_dizini(sessiz=True)
-        hedef = os.path.join(pruvo_drive, "backup") if pruvo_drive else None
+        hedef = os.path.join(pruvo_drive, YEDEK_KOK_ADI) if pruvo_drive else None
         print("KURU KOSUM — hicbir dosya YAZILMADI.")
         print("Hedef: " + (hedef or "(Drive COZULEMEDI — gercek kosumda yedek ALINMAZ)"))
         mem = _agac_dosyalari(MEMORY)
@@ -1979,7 +2021,7 @@ def main():
     if not pruvo_drive:
         print("Yedek ALINMADI — Drive yolu cozulemedi (yukaridaki uyariya bak).")
         return 1
-    backup = os.path.join(pruvo_drive, "backup")
+    backup = os.path.join(pruvo_drive, YEDEK_KOK_ADI)
 
     # ---- KILIT: eszamanli iki kosum AYNI hedefe yazmasin -----------------
     # Kilit, --gerekliyse kararindan ONCE alinir: karar damgayi okur, damgayi da
@@ -2057,7 +2099,8 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
 
     # memory klasoru
     if os.path.isdir(MEMORY):
-        shutil.copytree(MEMORY, os.path.join(backup, "memory"), dirs_exist_ok=True)
+        shutil.copytree(MEMORY, os.path.join(backup, "memory"), dirs_exist_ok=True,
+                        copy_function=_drive_kopyala)
         print("yedek: memory/ ->", os.path.join(backup, "memory"))
 
     # ~/.claude/skills/ — global skill'ler (merge-kapisi dahil) GIT DISINDA tutuluyor
@@ -2113,7 +2156,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     #  duzeltildi; eskiden burada tam TERSI yaziyordu ve gercek dosya yedeksiz kalmisti.)
     repo_adlari, kok_elenen = repo_kok_ayrimi()
     for ad in repo_adlari:
-        shutil.copy2(os.path.join(ROOT, ad), os.path.join(backup, ad))
+        _drive_kopyala(os.path.join(ROOT, ad), os.path.join(backup, ad))
         print("yedek:", ad)
 
     # 🔴 SIR YAZMA YOLU KAPALI (8 Agu 2026, Okan karari) — SESSIZ ATLAMA YOK.
@@ -2166,6 +2209,10 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # DESENINE gore eler, ICERIGE gore degil; bu metinler suzgecten gecer. Koruma
     # "yedege almamak"ta degil PAYLASMAMA kuralindadir -> uyari artik KOSULSUZ basilir.
     # Kapsam DARALTILMADI, hicbir dosya ad ile elenmedi.
+    if _DRIVE_METADATA_REDDI:
+        print("NOT: %d dosyada metadata (mtime/xattr) yazilamadi — icerik TAM kopyalandi. "
+              "Hedef Ortak Drive saglayicisi metadata yazmayi reddediyor; tazelik DAMGADAN "
+              "turer, mtime'dan DEGIL." % len(_DRIVE_METADATA_REDDI))
     print("🔴 BU YEDEK KLASORU KIMSEYLE PAYLASILMAZ (link/dosya/e-posta) — ticari gizli")
     print("   icerik tasir: raporlar/, .tedarikci-fiyat/, .uyelik-*. Sir nobeti ADA gore")
     print("   eler, ICERIGE gore degil.")

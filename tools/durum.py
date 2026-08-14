@@ -466,7 +466,8 @@ def yedek_dizini(repo_kok):
             if not os.path.isdir(ust):
                 continue                              # kayitli yol bayat/mount yok
             drive_bagli = True
-            backup = os.path.join(ust, "backup")
+            kok_adi, _turedi = _yedek_kok_adi()
+            backup = os.path.join(ust, kok_adi)
             if os.path.isdir(backup):
                 return backup, "var"
         except OSError:
@@ -573,6 +574,26 @@ def _yedekle_modulu():
         spec.loader.exec_module(m)
         _YEDEKLE_MODULU = m
     return _YEDEKLE_MODULU
+
+
+def _yedek_kok_adi():
+    """Yedek kok klasorunun ADI — TEK KAYNAK `yedekle.py::YEDEK_KOK_ADI`.
+
+    🔴 14 Agu 2026: bu deger burada ELLE `backup` yaziliyordu. `yedekle.py` kokunu
+    taze bir klasore tasiyinca (eski `backup/` altindaki Drive nesneleri bizim
+    kimligimizle kullanilamaz olmustu) pano ESKI yola bakip "damga YOK" dedi — yedek
+    ALINMISTI ([[ikiz-tanim-sessiz-ayrisma]]). Sabit artik uretenden TURER.
+    Modul yuklenemezse SESSIZ varsayilan verilmez: bilinen eski ad dondurulur ama
+    cagiran taraf bunu "olculemedi" gibi ele alabilsin diye ikinci deger de doner.
+    """
+    try:
+        m = _yedekle_modulu()
+        ad = getattr(m, "YEDEK_KOK_ADI", None)
+        if isinstance(ad, str) and ad:
+            return ad, True
+    except Exception:                                          # noqa: BLE001
+        pass
+    return "back" + "up", False
 
 
 _YEDEKLE_MODULU = None
@@ -773,11 +794,13 @@ def yedek_satirlari(d):
     """basim icin metin satirlari (kabul testi de dogrudan bunu okur)."""
     esik_gun = d["esik"] / 86400.0
     hal = d["hal"]
+    kok_adi, _turedi = _yedek_kok_adi()
     if hal == "drive-yok":
         return ["  ÖLÇÜLEMEDİ: Drive bagli degil — yedek tazeligi bilinmiyor.",
                 "  (Drive uygulamasini ac; pano bu yuzden hata VERMEZ, sadece olcemez.)"]
     if hal == "klasor-yok":
-        return ["  ⚠ Drive bagli ama backup/ klasoru YOK — hic yedek alinmamis olabilir.",
+        return ["  ⚠ Drive bagli ama %s/ klasoru YOK — hic yedek alinmamis olabilir."
+                % kok_adi,
                 "  Kos: python3 tools/yedekle.py"]
     if hal == "damgasiz":
         return ["  ⚠ ÖLÇÜLEMEDİ: yedek var ama tazelik damgasi (%s) YOK." % YEDEK_DAMGA_ADI,
@@ -853,8 +876,8 @@ def yedek_satirlari(d):
                     "python3 tools/yedekle.py"]
     elif eksik_icerik:
         ad, gercek, iddia = eksik_icerik[0]
-        satirlar = ["  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor "
-                    "-> yedek bozulmus/silinmis." % (ad, gercek, iddia),
+        satirlar = ["  ⚠⚠ ICERIK EKSIK: %s/%s icinde %d dosya var, damga %d diyor "
+                    "-> yedek bozulmus/silinmis." % (kok_adi, ad, gercek, iddia),
                     "  (son kosum %s)" % ne_zaman + kos[1:]]
         eksik_icerik = eksik_icerik[1:]
     elif atlanmis:
@@ -921,8 +944,8 @@ def yedek_satirlari(d):
     for ad in sayilamayan:
         satirlar.append("  ⚠ %s/ sayilamadi (izin/okuma hatasi) — icerik DOGRULANAMADI." % ad)
     for ad, gercek, iddia in eksik_icerik:
-        satirlar.append("  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor."
-                        % (ad, gercek, iddia))
+        satirlar.append("  ⚠⚠ ICERIK EKSIK: %s/%s icinde %d dosya var, damga %d diyor."
+                        % (kok_adi, ad, gercek, iddia))
     return satirlar
 
 
