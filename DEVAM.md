@@ -68,10 +68,8 @@
   adayda da yayimlanmiyor → secimi fiyat degil CESITLILIK belirliyor; sayi ancak kullanimla
   olculur. Ekleme bedeli motor basina 6 kod noktasi.
 
-## 14 Agu 2026 (aksam) — 18:07Z saatlik CI nobeti turu (sikistirilmis)
-- supurme BULUNAN=0 TASINAN=0 CIKAN=0 KOMSU_KAYIP=0 HUKUM=TEMIZ; cop denetimi MESRU=140 YANLIS=0 KAPSAM=140 ATFEDILMEYEN=26; zincir aktif, yeni fail yok.
-- bagimsiz teyit (gh run list --limit 10): 2 in_progress/pending (31824876835 paket tazeligi, 31824345123/31824344897 sepet butonu — hepsi headSha f6404b95), 5 success, 1 cancelled (4.5 olcusu). Yeni fail YOK.
-- 🔧 Acik: K99, K100, K102 (rutin dev, CI arızasi degil).
+*(Arsive TASINDI — 18:07Z saatlik CI nobeti blogu, 14 Agu aksam.)*
+*(Arsive TASINDI — 21:07Z saatlik CI nobeti blogu, 14 Agu gece.)*
 
 ## ARSIVE TASINAN BLOKLAR
 
@@ -84,3 +82,29 @@
 *(Arsive TASINDI — 19:10 saatlik nobet blogu, 14 Agu aksam.)*
 *(Arsive TASINDI — 17:07 saatlik nobet blogu, 14 Agu aksam.)*
 *(Arsive TASINDI — 19:40 saatlik nobet blogu, 14 Agu aksam.)*
+
+## 14 Agu 2026 (gece) — 23:07Z saatlik CI nobeti turu (sikistirilmis)
+- supurme BULUNAN=2 TASINAN=2 CIKAN=2 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=378:2026-08-14T23:07:48 HUKUM=SUPURULDU; silinenler: `Run failed: Nobet seridi (SERIT B — yayini BLOKLAMAZ) - main (9e62b93)` (CS_kwDOTQTiEc8AAAAUGr2cBQ/1786736542) + `Run failed: Paket tazeligi alarmi (canli fiyat yolu) - main (c165986)` (CS_kwDOTQTiEc8AAAAUG9uDxw/1786736269). 4.7 SUPURME kapsaminda; tek duz `mail-supurme-kos.sh` rc=0; ikinci kosumda BULUNAN=0 (zaten temiz, HUKUM=TEMIZ, RC=0).
+- cop denetimi (sweep-sonrasi, salt okuma): MESRU=146 YANLIS=0 KAPSAM=146 ATFEDILMEYEN=31 — 11 Agu tabani (MESRU>=140, YANLIS=0) korunuyor; sweep'in 4 fail-closed alarmindan hicbiri ateslenmedi.
+- bagimsiz teyit (gh run list --limit 15): 2 failure + 1 in_progress. Kirmizilar: 31834081242 Paket tazeligi alarmi (19:37:13Z, head c165986) + 31833812927 Odeme yolu bayatlik nabzi (19:33:43Z, head c165986) — ikisi de `Olcum — canli shop worker nesli` step'i, ikisi de DURUM=BAYAT (rc=1) ve `CANLI ODEME WORKER'I BAYAT. Yayin: shop dizininden npx wrangler deploy (DEPLOY = OKAN/mimar karari)`; workflow basliklari ve step basliklari "yayini DURDURMAZ" yaziyor → 4.5 + 3.5 sinif kurali: zinciri DURDURMAZ. In_progress 31833813183 Nobet seridi (SERIT B), 19:33:44Z — SERIT B BLOKLAMAZ zaten. Build & deploy 31833812860 **SUCCESS** (head c165986, 19:33:43Z) → site canli, zincir yatay/duz. 19:33Z sonrasi **YENI kosum YOK** (son kosum 20:00:08Z D1 sapma alarmi SUCCESS); K104 Codex'te, degisiklik yok.
+- DEPLOY OKAN KAPISI (4. tur, 22:37Z ile AYNI alarm): `shop-bayatlik-kapisi.py` BAYAT (rc=1). Canli `34d4db64-5b96-4294-853a-cd17e94c48a9` (14:30:20Z), bundle AYNI 2 commit (4a495a4a 16:23Z "Kartla Guvenli Ode"; f6404b95 17:22Z "Havale/EFT veya Kartla Guvenli Ode"). En eski yayinlanmamis commit yasi yeni olculunce **~257 dk** > esik 120 dk (buyume devam — 22:07Z 166 dk, 22:37Z 195 dk). `npx wrangler deploy` shop dizininden — 4.7.1 tablosu: `merge/deploy HUKMU · Okan yetkisi` → **DAGITILMAZ**, Okan kalemi; Codex da gitmez (mimarin §5 kapisi).
+- 🔧 (acik-kalemler.md, son durum): onceki tur ile AYNI — K49, K53, K55 (kanama devam, Tamirci sirasi); K59, K69, K71, K77, K80, K84, K86, K96, K97 (rutin dev); K99, K100, K102 (rutin dev); K104 (54 saat, teşhis Codex'te); **DEPLOY (Okan)**. **Bu turda yeni 🔧 yok, dagitim yok, kapanan yok.**
+- Okan cikisi: §5 sessiz — deploy kalemi 4 turdur ayni ve Okan-kapisi acik; defter bunu zaten tasimakta. Yeni karar isteyen durum yok.
+
+*(Arsive TASINDI — 21:37Z saatlik CI nobeti blogu, 14 Agu gece.)*
+
+## 14 Agu 2026 (gece) — 22:07Z saatlik CI nobeti turu (sikistirilmis)
+- supurme BULUNAN=1 TASINAN=1 CIKAN=1 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=375:2026-08-14T22:07:32 HUKUM=SUPURULDU; silinen: `Run failed: Nobet seridi (SERIT B — yayini BLOKLAMAZ) - main (1ff9292)` (CS_kwDOTQTiEc8AAAAUGljx7w/1786733146). 4.7 SUPURME kapsaminda; tek duz `mail-supurme-kos.sh` rc=0.
+- cop denetimi (sweep-sonrasi, salt okuma): MESRU=143 YANLIS=0 KAPSAM=143 ATFEDILMEYEN=30 — 11 Agu tabani (MESRU>=140, YANLIS=0) korunuyor; sweep'in 4 fail-closed alarmindan hiçbiri ateslenmedi.
+- bagimsiz teyit (gh run list --limit 30): son kosum 31831681420 (D1 uzlastirici, 19:05:21Z success, head 9e62b93); 1 failure (31829139923 Paket tazeligi, 18:32Z — 21:37Z turunda sweep'lenmisti) + 1 in_progress (31827482236, 18:11Z, head 9e62b93) = **2 job in_progress**: `marka-bolum-bataryasi` + `model-uyelik-bataryasi` 3+ saat hareketsiz (model-uyelik normalde ~34m23s, 4.5 olcusu); serit-b failure eski — yayini BLOKLAMAZ, 3.5 sinif kurali. **19:05Z sonrasi YENI kosum YOK** — zincir aktif ama tetikleyici yok; K104 Codex'te, degisiklik yok.
+- DEPLOY OKAN KAPISI: `shop-bayatlik-kapisi.py` BAYAT (rc=1), eski yas 166.4 dk > esik 120 dk. Canli `34d4db64` (14:30:20Z), bundle 2 commit (4a495a4a, f6404b95) — 21:37Z ile AYNI, degisim yok. §5 sessiz.
+*(Arsive TASINDI — 22:07Z defter sinif kapisi satiri, 14 Agu gece.)*
+- Okan cikisi: §5 sessiz — ne Okan karar isteyen (deploy zaten Okan-kapisi acik) ne haber-degerli durum var.
+
+## 14 Agu 2026 (gece) — 22:37Z saatlik CI nobeti turu (sikistirilmis)
+- supurme BULUNAN=1 TASINAN=1 CIKAN=1 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=376:2026-08-14T22:37:30 HUKUM=SUPURULDU; silinen: `Run failed: Odeme yolu bayatlik nabzi (push seridi) - main (c165986)` (CS_kwDOTQTiEc8AAAAUG8_3XQ/1786736055). 4.7 SUPURME kapsaminda; tek duz `mail-supurme-kos.sh` rc=0.
+- cop denetimi (sweep-sonrasi, salt okuma): MESRU=144 YANLIS=0 KAPSAM=144 ATFEDILMEYEN=30 — 11 Agu tabani (MESRU>=140, YANLIS=0) korunuyor; sweep'in 4 fail-closed alarmindan hicbiri ateslenmedi.
+*(Arsive TASINDI — 22:37Z defter sinif kapisi satiri, 14 Agu gece.)*
+- DEPLOY OKAN KAPISI (22:07Z ile AYNI alarm, 3. tur): `shop-bayatlik-kapisi.py` BAYAT (rc=1), yeni olculen yas **194.7 dk** > esik 120 dk. Canli `34d4db64-5b96-4294-853a-cd17e94c48a9` (14:30:20Z), bundle AYNI 2 commit (4a495a4a, f6404b95). `npx wrangler deploy` ile shop yeniden yayinlanmali — 4.7.1 tablosu: `merge/deploy HUKMU · Okan yetkisi` → DAGITILMAZ, Okan kalemi; Codex da gitmez.
+- 🔧 (acik-kalemler.md, son durum): onceki tur ile AYNI — K49, K53, K55 (kanama devam, Tamirci sirasi); K99, K100, K102 (rutin dev); K104 (54 saat, teşhis Codex'te); DEPLOY (Okan). **Bu turda yeni 🔧 yok, dagitim yok, kapanan yok.**
+- Okan cikisi: §5 sessiz — deploy kalemi 3 turdur ayni ve Okan-kapisi acik; defter bunu zaten tasimakta. Yeni karar isteyen durum yok.
