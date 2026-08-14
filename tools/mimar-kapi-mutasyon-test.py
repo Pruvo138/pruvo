@@ -15,6 +15,7 @@ arac ana repo calisma agacini kirletiyordu. Artik sistem gecici dizinine yazilir
 
 Cikis kodu 0 = her mutasyon beklenen esigi tutturdu, 1 = en az biri tutturamadi.
 """
+import ast
 import os
 import re
 import shutil
@@ -85,6 +86,37 @@ def yama(dizin, dosya, eski, yeni, zorunlu=True):
         return
     with open(yol, "w", encoding="utf-8") as f:
         f.write(ham.replace(eski, yeni, 1))
+
+
+def isci_motorlarini_yeniden_sirala(dizin):
+    """ISCI_MOTORLARI atamasini kaynaktan bulup davranis-koruyarak dondurur."""
+    yol = os.path.join(dizin, KIMLIKORTAK)
+    with open(yol, encoding="utf-8") as f:
+        ham = f.read()
+    try:
+        agac = ast.parse(ham, filename=yol)
+    except SyntaxError as exc:
+        raise SystemExit("ISCI_MOTORLARI KAYNAGI AYRISTIRILAMADI: " + str(exc))
+    atamalar = [
+        dugum for dugum in ast.walk(agac)
+        if isinstance(dugum, ast.Assign)
+        and any(isinstance(hedef, ast.Name) and hedef.id == "ISCI_MOTORLARI"
+                for hedef in dugum.targets)
+    ]
+    if len(atamalar) != 1:
+        raise SystemExit("ISCI_MOTORLARI ATAMASI TEKIL DEGIL: " + str(len(atamalar)))
+    atama = atamalar[0]
+    try:
+        motorlar = ast.literal_eval(atama.value)
+    except (ValueError, TypeError, SyntaxError) as exc:
+        raise SystemExit("ISCI_MOTORLARI SABIT BIR DEGER DEGIL: " + str(exc))
+    if not isinstance(motorlar, tuple) or len(motorlar) < 2:
+        raise SystemExit("ISCI_MOTORLARI EN AZ IKI ELEMANLI TUPLE DEGIL")
+    yeni_motorlar = motorlar[1:] + motorlar[:1]
+    eski = ast.get_source_segment(ham, atama.value)
+    if not eski or yeni_motorlar == motorlar:
+        raise SystemExit("ISCI_MOTORLARI DAVRANIS-KORUYAN MUTASYONU URETILEMEDI")
+    yama(dizin, KIMLIKORTAK, eski, repr(yeni_motorlar))
 
 
 def kimligi_sabitle(dizin, deger):
@@ -553,10 +585,7 @@ KONTROL_MUTANTLARI = [
      "MCP blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
     # K3: 13 Agu ISCI blogunun AYIRT EDICILIK kontrolu. I1-I5'in kirmizisi ancak yeni
     # vakalar "her degisiklige" kizarmiyorsa kanittir (memory/beyan-edilmis-survivor.md).
-    ("K3", lambda d: yama(
-        d, KIMLIKORTAK,
-        'ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")\n',
-        'ISCI_MOTORLARI = ("claude", "deepseek-flash", "deepseek-pro", "minimax-m3")\n'),
+    ("K3", isci_motorlarini_yeniden_sirala,
      "ISCI motor kumesi YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
 ]
 
