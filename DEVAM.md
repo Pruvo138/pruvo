@@ -1,5 +1,76 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 14 Agu 2026 — ACIK KALEM SUPURMESI: yayin tikanikligi + dal/oturum temizligi (KraL, interaktif)
+
+**CANLIYA GIDEN (SHA):** `89941482` · `b0203209` · `6ee9ead2` (ucu de push'lu, main FF).
+Okan'in "tum acik gorevleri tamamla, isi biten gorev ve oturumlari temizle" emri.
+
+**YAYIN TIKANIKLIGI — TEK KOK, IKI FIKSTUR, UC KAPI.** `ebebb966` pre-push'a **0c** bolumunu
+(K80 yeni-CI-adimi hukum kapisi) ekledi. O tek adim gun boyunca UC ayri yerde patladi:
+- `89941482` **K98/serit-a3:** `ci-kapsam-test.py --kanca-kablo` D2 fiksturu 0b bolumunu
+  ayikliyor ama bitis capasini KOMSU bolumun basligina baglamisti -> araya 0c girince fikstur
+  0b sanip 0c'yi de kosturdu, sentetik depoda olmayan araci aradi -> **YANLIS-KIRMIZI**.
+  Onarim: 0b artik **KENDI capasiyla** biter (capa silinirse ayiklayici fail-closed durur,
+  KOPYA uzerinde mutasyonla kanitlandi) + acilan delik ayni commit'te kapandi: 0c adimi
+  `kanca-nobeti::BEKLENEN` + `kanca-kablolama::FAIL_CLOSED` envanterlerine girdi.
+- `6ee9ead2` **K85/serit-a2:** ayni adim KARDES fiksturu de kirdi —
+  `prepush-d1-kaynak-test.py` sentetik depoya GERCEK kancayi kuruyor ama bagimliliklarini
+  **elle tutulan** listeden stub'liyordu; liste bayatlayinca push dustu, kayit yazilmadi,
+  `os.unlink` **TRACEBACK** verdi. Onarim: stub kumesi artik **kanca govdesinden TURER** ve
+  turetim **kabuk semantigini** izler (`[ ! -f X ] exit 1` -> STUB · `[ -f X ]` -> YOK KALIR ·
+  guardsiz cagri -> STUB); iki kume de her kosumda BASILIR. Ayrica kirmizi iddia artik
+  tanisiz cokmeye donmuyor (`unlink` idempotent). "Hepsini stub'la" ilk denemede OLCULDU ve
+  YANLIS cikti (opsiyonel bloklar kosunca fikstur davranisi degisti) — kural ondan sonra daraldi.
+- `b0203209` **K80/silme kolu:** ayni kapi `git push --delete`'i "OLCULEMEDI" sayip rc=2
+  veriyordu -> **27 erimis dalin temizligi imkansizdi.** Ayrim yapildi: TUM satirlar silme ise
+  KAPSAM DISI (rc=0, gurultulu basilir); girdi BOS ise fail-closed OLCULEMEDI KALIR; karisik
+  push'ta guncellemeler yine OLCULUR. Muafiyet nobetsiz kalmasin diye `--kendini-test`e
+  **iki yonlu** vaka (S1 silme=kapsam disi · S2 bos=olculemedi) eklendi.
+
+**TEMIZLIK (Okan'in emrinin ikinci yarisi):** 9 artik yerel dal · **27 erimis uzak dal**
+(her biri `merge-base --is-ancestor` ile main'de dogrulandi, kayip YOK; kalan 29 dal is
+tasiyor, DOKUNULMADI) · 6 isi bitmis oturum arsivlendi (5 mimar evi + bu oturum duruyor) ·
+3 merge dali + worktree acildigi turda kapatildi. `worktree list` **tek satir**.
+Uzak dal denetiminde 57 dalin agacinda ic-rapor dosya adi tarandi -> isabet **0**.
+
+**KAPANAN ACIK KALEM (kabul komutu kosturularak):** **K59** boy varyanti (`116128af`) ·
+**K69** kanca envanteri (`116128af`) · **K71** D1 makineler-arasi lease (`116128af`) ·
+**K97** uzak dalda ic rapor (`ic-rapor-adi-kapisi --uzak` rc=0, isabet 0). **K98** kalemi
+nobet kapisinin kendi kabul komutuyla kapanacak (`prepush-d1-kaynak-test.py` artik rc=0) —
+o satiri cron sahipleniyor, elle EZMEDIM.
+
+**KOSUYOR (sonraki turun ILK isi):** `6ee9ead2` Build & deploy **ucusta**
+(`31792235940`). Ucustaki kosum yesil degildir: hukum SHA'yi ICEREN kosumdan alinacak.
+Yayin bu turdan once **6 commit / 115 dk** geride ve `deploy` SKIPPED idi.
+
+**🔴 BLOKE — OKAN'DA (2):**
+- `tools/yedekle.py` Drive hedefinde **`Operation not permitted`** ile duser (rc=1); yedek
+  yarim kalmis, tazelik damgasi YOK ve her push `!! YEDEK alinamadi` basiyor. macOS
+  dosya-erisim izni sinifi -> Okan kapisi. **Depo yedeksiz durumda.**
+- `media.pruvo3d.com` tekil purge icin Zone.Cache Purge izinli token (onceki turdan devir).
+
+**🔴 GUNUN DERSI:** *kancaya adim eklemek, o kancayi TAKLIT eden her fiksturun bagimliligini
+degistirir.* Bugun tek bir yeni adim iki kardes fiksturu ard arda kirdi ve yayini saatlerce
+durdurdu; ikisi de "elle tutulan bir liste"ye yaslanmisti. Kural: fikstur, taklit ettigi
+seyin bagimlilik kumesini **turetmeli**; ve bir bolum komsusunun basligiyla degil **kendi
+capasiyla** bitmeli ([[kardes-fikstur-yeni-kanca-adiminda-kirilir]] ·
+[[kapsam-evrenini-cagri-grafindan-turet]] · [[kapi-anchor-coupling-ikilemi]]).
+Ikinci ders: fail-closed'in dogru yeri "olcemedim"dir — **"olcecek sey YOK" ile "olcemedim"
+ayni sey degildir**; ayrilmazsa kapi kapsamindaki isi degil kapsamindaki HERKESI durdurur.
+
+## 14 Agu 2026 ~10:07Z-t17 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=5 BULUNAN=5 TASINAN=5 ATLANAN=0 CIKAN=5 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=342:2026-08-14T13:04:42 HUKUM=SUPURULDU`. 5 mail (Build & deploy `8bae6e9`+`116128a` · Odeme bayatlik `8bae6e9`+`116128a` · Nöbet SERIT B `ca146ce`) — hepsi `github+Run failed` yüklemine uyuyor. Önceki turun (t15) `KOMSU_KAYIP=1` alarmı bu turda **0**.
+COP_DENETIM: Pruvo hesabı **MESRU=110 / YANLIS=0 / KAPSAM=110 / ATFEDILMEYEN=25** — süpürme temiz, yanlış sınıf 0; sipariş/ödeme kaybı YOK.
+
+GH CI BAĞIMSIZ TEYİT (HEAD `89941482` "fix: K98"): Codex'in K98 düzeltmesi main'e push'lu, CI uçuşta. **Ölçülen: K98 düzeltmesi KISMI** — K80 bacağı KAPANDI (`ci-kapsam-test.py --kanca-kablo` lokal rc=0) ama **K85 bacağı (`prepush-d1-kaynak-test.py`) HÂLÂ KIRIK**: lokal rc=1 (`os.unlink(kayit_a)` FileNotFoundError:233) + `89941482` koşumu `serit-a2` zaten **failure** (`31790776423`; `serit-a3` in_progress, `deploy`+`yayin` yine skipped). **Yayın HÂLÂ BLOKLU.**
+
+§3 DUR: serit-a2 (`prepush-d1-kaynak-test.py` tmp idempotentliği) AYNI kök nedenden 3+ koşumdur kırmızı (`ebebb966` `31781775890` · `8bae6e9c` `31789322432` · `89941482` `31790776423`). K85 sınıf tekrarı; kalan onarım YALNIZ K85 bacağı (spec defterde K98 satırında). Yeni push YOK, mail silme zaten 5/5 yapıldı.
+⚠️ TUR İÇİ HAREKET: ölçümümden SONRA aktif oturum (Codex işçisi) `b0203209` "fix: K80 kapisi SILME push'unu bloklamasin — kapsam disi ≠ olculemedi" itti (10:14Z) — K80 onarımı SÜRÜYOR (silme-push kolu ayrı sınıf); serit-a2 (K85 bacağı) hâlâ açık, sonraki tur teyit eder.
+
+TAMIRCI BAKIM: **K95 KAPANDI** (mimar yargısı + ölçüm: `model-uyelik-kapisi.py` lokal `SONUC: 29/29 iddia GECTI`, `YARGISIZ` boş — 3 çift çözülmüş, STALE teşhisi doğrulandı). **K98** defter güncellendi: 89941482 K80 bacağını kapattı, K85 bacağı açık kaldı; dağıtım `nobet-kapi.py`'ye bırakıldı (kabul komutu `prepush-d1-kaynak-test.py` rc≠0 → BEYAN_VAR_KANIT_YOK ile AÇIK kalır, yeniden dağıtılır).
+OKAN'A ÇIKIŞ: YOK (§5 — mekanik kod onarımı, Okan kararı gerekmiyor; K80 zaten ESKALASYON=OKAN, K91 OKAN-KAPISI).
+
 ## 14 Agu 2026 — BOY VARYANTI + D1 LEASE + 3 BAYAT/KABLOSUZ KAPI (KraL, interaktif)
 
 **CANLIYA GIDEN (SHA):** `116128af` (push'lu, main FF) — 17 dosya, +887/-64.
