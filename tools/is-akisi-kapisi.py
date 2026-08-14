@@ -157,6 +157,7 @@ import argparse
 import ast
 import collections.abc
 import collections
+import io
 import itertools
 import json
 import os
@@ -5404,12 +5405,16 @@ def _k80_araliklar(args):
         return [(args.base, args.hedef)]
     if args.pre_push:
         araliklar = []
+        satir_sayisi = 0
+        silme_sayisi = 0
         for satir in sys.stdin:
             alan = satir.split()
             if len(alan) != 4:
                 raise Olculemedi("pre-push girdisi 4 alanli degil")
+            satir_sayisi += 1
             _yerel_ref, yerel_sha, _uzak_ref, uzak_sha = alan
             if yerel_sha == K80_SIFIR_SHA:
+                silme_sayisi += 1
                 continue
             if uzak_sha == K80_SIFIR_SHA:
                 ebeveyn = _k80_git(["rev-parse", yerel_sha + "^"]).strip()
@@ -5417,6 +5422,20 @@ def _k80_araliklar(args):
             else:
                 araliklar.append((uzak_sha, yerel_sha))
         if not araliklar:
+            # 🔴 14 Agu 2026 — SILME PUSH'U KAPSAM DISIDIR, "OLCULEMEDI" DEGIL.
+            # Bu kapi "workflow'a EKLENEN yeni run adimi, push EDILEN agacta fiilen
+            # rc=0 veriyor mu" sorusunu olcer. `--delete` push'u hicbir agac tasimaz ->
+            # eklenmis bir adim da olamaz. OLCULEMEDI sayilmasi kapiyi KORUMADIGI bir
+            # seye karsi bloklayici yapti ve dal temizligini tumden durdurdu (27 erimis
+            # dalin silinmesi bu yuzden dustu). Muafiyet DAR ve GURULTULU:
+            #   - girdi BOS ise (satir_sayisi == 0) olcum GERCEKTEN yapilamamistir ->
+            #     fail-closed OLCULEMEDI KALIR;
+            #   - KARISIK push'ta (silme + guncelleme) guncellemeler yukarida zaten
+            #     `araliklar`a girmistir ve OLCULUR — bu dala hic gelinmez.
+            if satir_sayisi and satir_sayisi == silme_sayisi:
+                print("K80: SILME PUSH'U (%d ref) — push edilen yeni agac YOK, "
+                      "eklenmis CI adimi olamaz: KAPSAM DISI." % silme_sayisi)
+                return []
             raise Olculemedi("pre-push girdisinde olculecek ref YOK")
         return araliklar
     ci_onceki = os.environ.get("PRUVO_CI_ONCEKI_SHA", "").strip()
@@ -5478,6 +5497,31 @@ def _k80_kendini_test(tespit_acik=True):
         pass
     if _k80_satirlar("python3 tools/a-test.py --x") != [["python3", "tools/a-test.py", "--x"]]:
         hatalar.append("K80-H2: duz yerel python komutu argv'ye donusmedi")
+    # SILME PUSH'U AYRIMI (14 Agu 2026): iki YON de olculur, yoksa muafiyet sessizce
+    # "girdi bos" halini de yutar ve kapi gercek bir olcememe halinde YESIL yanar.
+    class _SahteArgs:
+        base = hedef = None
+        pre_push = True
+
+    _eski_stdin = sys.stdin
+    try:
+        sys.stdin = io.StringIO(
+            "(delete) %s refs/heads/x %s\n(delete) %s refs/heads/y %s\n"
+            % (K80_SIFIR_SHA, "a" * 40, K80_SIFIR_SHA, "b" * 40))
+        if _k80_araliklar(_SahteArgs()) != []:
+            hatalar.append("K80-S1: TUM-SILME push'u kapsam disi ([]) donmedi")
+    except Olculemedi as e:
+        hatalar.append("K80-S1: TUM-SILME push'u OLCULEMEDI'ye dustu (%s)" % e)
+    finally:
+        sys.stdin = _eski_stdin
+    try:
+        sys.stdin = io.StringIO("")
+        _k80_araliklar(_SahteArgs())
+        hatalar.append("K80-S2: BOS girdi OLCULEMEDI olmadi (fail-closed devrildi)")
+    except Olculemedi:
+        pass
+    finally:
+        sys.stdin = _eski_stdin
     return hatalar, 4
 
 
