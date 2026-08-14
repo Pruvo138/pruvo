@@ -434,6 +434,16 @@ jobs:
       - name: R2 anahtar turetme kabul testi
         run: python3 tools/r2-anahtar-test.py
 
+      # YETIM KAYIT KAPISI (K55, 12 Agu 2026) — kaynak kaydi OLMAYAN + R2 anahtari kaynak-id
+      # (th/pr/mw/cgt/c3d) yerine BASLIK-slug'undan turetilmis urunler (yetim) yol-dedup
+      # tarafindan GORULMEZDI: gorsel-cakisma-onar yalniz URL CAKISAN urunu, mukerrer-kontrol
+      # yalniz mukerrer linki tarar. Bu adim kapiyi KENDINI-TEST ile kilitler (siniflandirici
+      # ve tarama fiksturde dogru -> dedektor curuyemez). Canli tarama ON-DEMAND kalir:
+      # bugun 193 yetim var, veri tek-yazar MaCiT duzlemi -> push'u BLOKLAMAZ; backfill
+      # bitince (canli tarama 0) nobet seridine tasinir. Offline, yazma yok, ag yok.
+      - name: Yetim kayit kapisi kendini-testi (kayit-yok + baslik-anahtar siniflandiricisi)
+        run: python3 tools/yetim-kayit-kapisi.py --kendini-test
+
       # FEED POLITIKA KAPISI — IKI KATMANLI. Merchant feed'inin <title> VE <description>
       # metinlerini tarar. BLOKLAYICI katman YALNIZ olculmus/bildirilmis GERCEK Merchant
       # reddinden turemis 3 jeton icerir (e-sigara/vape ailesi; "durbun" BLOKLAMAZ, RAPOR
