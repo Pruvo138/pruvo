@@ -139,11 +139,13 @@ def kapi_modulu(dizin=BETIK_DIZINI):
 
 
 def _git(kok, *args):
-    """(rc, stdout_bytes, stderr_metin). Ortam SCRUB'LI: kanca baglaminda miras
-    alinan GIT_DIR acik `-C kok` hedefini SESSIZCE ezerdi."""
+    """(rc, stdout_bytes, stderr_metin). Depo kesif baglami SCRUB'lidir;
+    Git'in `commit -- <yol>` icin kancaya ihrac ettigi GIT_INDEX_FILE ise
+    commit'in FIILEN tasidigi index oldugundan ACIKCA korunur."""
     try:
         p = subprocess.run(["git", "-C", kok] + list(args), capture_output=True,
-                           env=git_ortami(), timeout=120)
+                           env=git_ortami(korunan_baglam=("GIT_INDEX_FILE",)),
+                           timeout=120)
     except OSError as e:
         return 127, b"", "git calistirilamadi: %s" % e
     except subprocess.TimeoutExpired:

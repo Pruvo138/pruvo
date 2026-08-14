@@ -304,6 +304,27 @@ def commit_dene(d, mesaj="fikstur"):
     return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 
+def pathspec_commit_dene(d, yol, mesaj="pathspec fiksturu"):
+    """Gercek `git commit -- <yol>`; Git kancaya gecici index ihrac eder."""
+    p = sentetik_git(d, "commit", "-q", "-m", mesaj, "--", yol,
+                     capture_output=True, text=True,
+                     kimlik_ad="t", kimlik_eposta="t@t.local")
+    return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+
+def kolu_eski_scrub_mutantina_cevir(d):
+    """K70 kok nedenini yeniden uret: gecici index baglamini scrub'da dusur."""
+    yol = os.path.join(d, "tools", KOL_ADI)
+    with open(yol, encoding="utf-8") as f:
+        icerik = f.read()
+    eski = 'env=git_ortami(korunan_baglam=("GIT_INDEX_FILE",)),'
+    yeni = "env=git_ortami(),"
+    if icerik.count(eski) != 1:
+        raise RuntimeError("K70 mutasyon capasi TAM 1 kez bulunmadi")
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(icerik.replace(eski, yeni))
+
+
 def kanca_vakalari(modul):
     sonuc = []
     govde, hata = kanca_blogu()
@@ -368,6 +389,41 @@ def kanca_vakalari(modul):
         rc, cikti = commit_dene(d)
         sonuc.append(("B5 e2e stage ekseni: stage DISI ihlal commit'i DURDURMAZ",
                       rc == 0, "rc=%d; cikti=%r" % (rc, cikti[-260:])))
+
+    # B6 E2E PATHSPEC — proje commit bicimi `git commit -- <yol>` Git'in kancaya
+    # GIT_INDEX_FILE ile verdigi GECICI index'i olcmeli. Scrub bu adi dusururse
+    # kapi varsayilan (HEAD'e gore bos) index'i okuyup sessizce YESIL verir.
+    with tempfile.TemporaryDirectory() as d:
+        depo_kur(d)
+        kanca_kur(d, govde)
+        yaz(d, "DEVAM.md", "temiz\n")
+        ekle(d, "DEVAM.md", "tools")
+        rc0, cikti0 = commit_dene(d, "ilk")
+        yaz(d, "DEVAM.md", "temiz\n%s\n" % ihlal)
+        rc, cikti = pathspec_commit_dene(d, "DEVAM.md")
+        tamam = (rc0 == 0 and rc != 0 and "COMMIT DURDURULDU" in cikti
+                 and "DEVAM.md:2" in cikti)
+        sonuc.append(("B6 e2e pathspec: gecici index'teki ihlal REDDEDILIR",
+                      tamam, "ilk_rc=%d; rc=%d; ilk=%r; cikti=%r"
+                      % (rc0, rc, cikti0[-120:], cikti[-260:])))
+
+    # B7 KOK NEDEN MUTANTI — eski tam scrub geri getirildiginde AYNI gercek
+    # pathspec commit'i ihlale ragmen gecer. Bu, B6'nin yalniz genel bir kanca
+    # yesili degil tam K70 kusurunu olduren regresyon oldugunu kanitlar.
+    with tempfile.TemporaryDirectory() as d:
+        depo_kur(d)
+        kanca_kur(d, govde)
+        yaz(d, "DEVAM.md", "temiz\n")
+        ekle(d, "DEVAM.md", "tools")
+        rc0, cikti0 = commit_dene(d, "ilk")
+        kolu_eski_scrub_mutantina_cevir(d)
+        yaz(d, "DEVAM.md", "temiz\n%s\n" % ihlal)
+        rc, cikti = pathspec_commit_dene(d, "DEVAM.md")
+        tamam = (rc0 == 0 and rc == 0
+                 and "stage'de olculecek metin dosyasi YOK" in cikti)
+        sonuc.append(("B7 K70 mutanti: GIT_INDEX_FILE scrub edilirse fail-open",
+                      tamam, "ilk_rc=%d; mutant_rc=%d; ilk=%r; cikti=%r"
+                      % (rc0, rc, cikti0[-120:], cikti[-260:])))
     return sonuc
 
 

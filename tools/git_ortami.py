@@ -59,10 +59,21 @@ GIT_BAGLAM_DEGISKENLERI = (
 )
 
 
-def git_ortami():
-    """Miras alinan git baglami SILINMIS `os.environ` kopyasi (PATH vb. KORUNUR)."""
+def git_ortami(korunan_baglam=()):
+    """Miras alinan git baglami SILINMIS `os.environ` kopyasi (PATH vb. KORUNUR).
+
+    Bir tuketici Git'in kancaya ACIKCA ihrac ettigi bir baglami olcuyorsa o ad
+    ``korunan_baglam`` ile ilan edilir. Bilinmeyen ad fail-closed reddedilir;
+    varsayilan bos kume onceki tam-scrub davranisidir.
+    """
+    korunan = frozenset(korunan_baglam)
+    bilinmeyen = korunan.difference(GIT_BAGLAM_DEGISKENLERI)
+    if bilinmeyen:
+        raise ValueError("korunan_baglam kanonik degil: %s" % sorted(bilinmeyen))
     ort = os.environ.copy()
     for ad in GIT_BAGLAM_DEGISKENLERI:
+        if ad in korunan:
+            continue
         ort.pop(ad, None)
     return ort
 
