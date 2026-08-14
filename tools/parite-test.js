@@ -34,6 +34,20 @@ const KOK = path.dirname(__dirname);
 // icin vardir (tools/parite-fikstur.js) — normal kosumda verilmez.
 const URUNLER_YOLU = process.env.PARITE_URUNLER || path.join(KOK, "urunler.json");
 const UC = process.env.ARA_UC || "https://pruvo-whatsapp-bot.gmlmz.workers.dev/ara";
+function ucEtiketiTuret(uc) {
+  try {
+    const url = new URL(uc);
+    const araYolu = url.pathname === "/ara" || url.pathname === "/ara/";
+    if (url.hostname.endsWith(".workers.dev") || araYolu) {
+      return "/ara Worker (pruvo-bot)";
+    }
+    if (url.hostname === "pruvo3d.com" && !araYolu) return "site (Pages)";
+  } catch (_) {
+    // Tanimlanamayan uc sessizce site sayilmaz.
+  }
+  return "BILINMEYEN UC";
+}
+const UC_ETIKETI = ucEtiketiTuret(UC);
 const LIMIT = 1000;          // /ara'nin azami limiti; ustu sorgular sadece sayidan karsilastirilir
 const ESZAMANLI = 8;
 
@@ -207,7 +221,10 @@ async function araSor({ q, kat, marka }) {
 // Referans fonksiyonlari DISA VER: kabul fikstur'u (tools/parite-fikstur.js) sahte "D1"
 // ucunu BU fonksiyonlarla kurar. Elle kopya olsaydi fikstur zamanla ESKI davranisi
 // dogrulamaya devam ederdi. `require.main` kapisi: import etmek testi KOSTURMAZ.
-module.exports = { norm, aramaKok, haystack, filtered, sorgulariUret, urunleriYukle, KOK, LIMIT };
+module.exports = {
+  norm, aramaKok, haystack, filtered, sorgulariUret, urunleriYukle,
+  ucEtiketiTuret, KOK, LIMIT,
+};
 
 if (require.main === module) (async () => {
   // ── MARKA ADI SORGUSU EKSENI — SITE YUZEYI (opsiyonel, VARSAYILAN KAPALI) ─────────
@@ -238,7 +255,7 @@ if (require.main === module) (async () => {
       ") -> 0 sorgu olculdu");
     console.log("⚪ " + OLCULEMEDI[0]);
     return bitir(ortak.sonucYaz({
-      etiket: "site", gecti: 0, atlandi: 0, hatalar: [], onKosul: null,
+      etiket: UC_ETIKETI, gecti: 0, atlandi: 0, hatalar: [], onKosul: null,
       sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
       fazlaKume: null, olculemedi: OLCULEMEDI,
     }));
@@ -290,10 +307,10 @@ if (require.main === module) (async () => {
     if (e && e.olcum) {
       // Duvar/ariza on-kosulda: hicbir sorgu OLCULMEDI -> hatalar bos, karar yine
       // TEK noktada verilir (kirmizi bulunsaydi 1 olurdu).
-      OLCULEMEDI.push(ortak.olcumNotu(e, "site"));
+      OLCULEMEDI.push(ortak.olcumNotu(e, UC_ETIKETI));
       OLCULEMEDI.push("on-kosul basarisiz -> 0/" + sorgular.length + " sorgu olculdu");
       return bitir(ortak.sonucYaz({
-        etiket: "site", gecti: 0, atlandi: 0, hatalar: [], onKosul: null,
+        etiket: UC_ETIKETI, gecti: 0, atlandi: 0, hatalar: [], onKosul: null,
         sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
         fazlaKume: null, olculemedi: OLCULEMEDI,
       }));
@@ -314,7 +331,7 @@ if (require.main === module) (async () => {
   if (onKosul.durdu) {
     OLCULEMEDI.push("supurme tavani -> 0/" + sorgular.length + " sorgu olculdu");
     return bitir(ortak.sonucYaz({
-      etiket: "site", gecti: 0, atlandi: 0, hatalar: [], onKosul,
+      etiket: UC_ETIKETI, gecti: 0, atlandi: 0, hatalar: [], onKosul,
       sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
       fazlaKume: null, olculemedi: OLCULEMEDI,
     }));
@@ -372,7 +389,7 @@ if (require.main === module) (async () => {
   // 🔴 KOK SEBEP ONARIMI: ariza BURADA cikis vermez, yalnizca NOT olur. Karar
   // hatalar[] degerlendirildikten SONRA sonucYaz()'da verilir (1 > 3 > 0).
   if (olcumArizasi) {
-    OLCULEMEDI.push(ortak.olcumNotu(olcumArizasi, "site"));
+    OLCULEMEDI.push(ortak.olcumNotu(olcumArizasi, UC_ETIKETI));
     OLCULEMEDI.push("kosum ERKEN DURDU: " + (gecti + hatalar.length + atlandi) + "/" +
       sorgular.length + " sorgu olculdu");
   }
@@ -385,11 +402,11 @@ if (require.main === module) (async () => {
   }
 
   const kod = ortak.sonucYaz({
-    etiket: "site", gecti, atlandi, hatalar, onKosul, sayac: SAYAC, sn, fazlaKume,
+    etiket: UC_ETIKETI, gecti, atlandi, hatalar, onKosul, sayac: SAYAC, sn, fazlaKume,
     olculemedi: OLCULEMEDI, olculemeyenPencere,
   });
   if (kod === ortak.CIKIS_GECTI) {
-    console.log("\nSONUC: BIREBIR PARITE ✅ (%d sorgu, site ile ayni)", gecti);
+    console.log("\nSONUC: BIREBIR PARITE ✅ (%d sorgu, %s ile ayni)", gecti, UC_ETIKETI);
   } else if (kod === ortak.CIKIS_OLCULEMEDI && !hatalar.length && !OLCULEMEDI.length) {
     console.log("\n(hicbir ayrisim yok)");
   }
