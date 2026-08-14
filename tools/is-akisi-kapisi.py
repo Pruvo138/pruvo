@@ -1058,7 +1058,20 @@ YAYIN_ACTION_ONEKI = "actions/deploy-pages"
 # (`yayin_sinyali_kontrol`) kapsamin bu iki dosyayi da tasidigini AYRICA olcer.
 E_DOSYA = "deploy.yml"          # YAYIN is akisi (Pages deploy burada)
 N_DOSYA = "nobet.yml"           # NOBET/ALARM seridi (yayini BLOKLAMAZ)
-NOBET_DOSYALARI = (N_DOSYA,)
+# 🔴 14 Agu 2026 (serit-beyani sinif kapisi, T1): serit WORKFLOW DOSYASINDAN turer.
+# "Bloklamayan" dosyalar yalniz nobet.yml DEGIL — depodaki DIGER alarm/nobet is akislari
+# da (cron/elle-tetik, Pages yayini YOK) serit B'dir. Bu listeye GIRMEYEN yeni bir dosya
+# "bilinmeyen" sayilir ve kapi FAIL-CLOSED KIRMIZI verir (sessizce A varsayilmaz).
+NOBET_DOSYALARI = (
+    N_DOSYA,
+    "d1-sapma-alarmi.yml",
+    "d1-uzlastirici.yml",
+    "odeme-bayatlik-push.yml",
+    "onizleme-imaj.yml",
+    "paket-tazelik-alarmi.yml",
+    "spec-ifsa-alarmi.yml",
+    "yayin-erisim-alarmi.yml",
+)
 SERIT_B_DOSYALARI = (E_DOSYA,) + NOBET_DOSYALARI
 
 
@@ -1623,11 +1636,12 @@ KABLO_TABLOSU = (
     ("kapi_cagrilari", ("satir_sebepleri",)),
     ("icra_satirlari", ("_blok_baglami", "_kosmayan_joblar", "_olu_is_akisi_mi",
                         "_pipefail_etkisi")),
-    # 🔴 SERIT AYRIMI (31 Tem): `_serit_b_joblar(...)` ya da `_serit_b_hijyen(...)`
-    # cagrisi bolum_d()'den dusurulurse serit nobeti GERCEK deploy.yml icin HIC
-    # kosmaz — oysa Bolum C sentetik fiksturle olcmeye devam eder ve YESIL der.
+    # 🔴 SERIT AYRIMI (31 Tem; 14 Agu T1 ile daraltildi): `_serit_b_joblar(...)` cagrisi
+    # bolum_d()'den dusurulurse serit nobeti GERCEK is akisi dosyalari icin HIC kosmaz —
+    # oysa Bolum C sentetik fiksturle olcmeye devam eder ve YESIL der. Eski `_serit_b_hijyen`
+    # beyan hijyeni T1 ile Bolum F'ye (bloklayici_kapi_kontrol YON 2) tasindi.
     # Tam olculmus K-29 sinifi; kablo bu yuzden burada da tutulur.
-    ("bolum_d", ("kapi_cagrilari", "_serit_b_joblar", "_serit_b_hijyen")),
+    ("bolum_d", ("kapi_cagrilari", "_serit_b_joblar")),
     # 🔴 NOBETCININ NOBETCISI kablosu (8 Agu, 3. tur — bagimsiz curutucu M6): tablo/kablo
     # mekanizma iddialari kendini_test() govdesinde INLINE dururken sayaci elle yazilmis
     # bir IKIZDI; blok silinince sayac dusmuyordu ve eksen SESSIZCE kayboluyordu. Govde
@@ -1909,7 +1923,11 @@ TABLO_TABANLARI = (
     # 🔴 Bu satiri sonradan okuyan icin: sapmanin sebebi 710dd8df'in gerekce blogudur
     # (onarim-commit aracinin kabul + mutasyon kollari, "isci ergonomisi araci, A-sinifi
     # degil"); o gerekce KALDI, yalnizca sayac ona yetistirildi.
-    ("SERIT_B", 111),
+    # 14 Agu (serit-beyani sinif kapisi, T1): 111 -> 0. SERIT_B artik "B beyani defteri"
+    # DEGIL — bloklamayan job'daki kapi cagrisi WORKFLOW DOSYASINDAN turer (deploy.yml ->
+    # A · nobet.yml/alarm -> B). Tablo yalnizca BLOKLAYICI_KAPILAR'a ISTISNA kaydi tutar;
+    # bugun boyle bir istisna YOK (tek BLOKLAYICI kapi deploy.yml'de bloklayici job'da).
+    ("SERIT_B", 0),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.
@@ -2322,1039 +2340,33 @@ D_TANI_ONEK = (
     "   ciftiyle YAZ — yol repoda var olmak ZORUNDA.")
 
 
-# ---- SERIT B BEYANI: yayini BLOKLAMAYAN job'da BILEREK kosan kapilar --------
+# ---- SERIT ISTISNA TABLOSU: BLOKLAYICI kapinin ALARM seridinde BILEREK durmasi ---
 # ANAHTAR : (is_akisi_dosya_adi, job_id, kapi_yolu)   — UCU DE TAM, joker YASAK
 # DEGER   : GEREKCE metni (bos olamaz)
 #
-# 🔴 KURALLAR (kacis deligi olmasin diye dordu birden isler):
-#   S1  gerekce BOS/bosluk            -> KIRMIZI (gerekcesiz serit degisimi yok)
-#   S2  anahtarin herhangi bir alani `*` ya da bos -> KIRMIZI (BLANKET BEYAN YASAK;
-#       "hepsini B'ye at" tek satirla yapilamaz, her adim TEK TEK beyan edilir)
-#   S3  giris artik yayini bloklamayan bir cagriya karsilik gelmiyor -> KIRMIZI
-#       (bayat beyan; liste kendiliginden buyuyup kalamaz)
-#   S4  BEYANSIZ bir kapi cagrisi serit B job'unda bulunursa -> KIRMIZI (fail-closed)
+# 🔴 T1 (14 Agu 2026, serit-beyani sinif kapisi): bir adimin SERIDI ARTIK BU TABLODAN
+# DEGIL, icinde bulundugu WORKFLOW DOSYASINDAN turetiliyor (deploy.yml -> SERIT A /
+# bloklayici · nobet.yml + diger alarm dosyalari -> SERIT B). Bu tablo artik "beyan
+# defteri" DEGILDIR: yalnizca BLOKLAYICI_KAPILAR'da "yayini BLOKLAMALI" denilen bir
+# kapinin, BILEREK ve GEREKCELI olarak alarm seridinde (nobet.yml / bloklamayan job)
+# durmasi gerektiginde ISTISNA kaydi olarak kullanilir.
 #
-# SERIT SECIM OLCUTU (spec, 31 Tem): "yanlis/eksik/sizintili icerik canliya cikmasin"
-# diyen HER kapi SERIT A'dadir. Buraya YALNIZ aracin KENDINI sinadigi kapilar girer:
-# mutasyon bataryalari · `--kendini-test` / `--ic-nobetci` kollari · CI/kapi meta
-# kapilari · pano/teshis araci testleri · onizleme ve ayri-dagitim arayuz testleri.
-# SUPHEDE A (fail-closed). Bir kapiyi buraya tasimak = KraL KARARI, tek basina alinmaz.
+# 🔴 KURALLAR (kacis deligi olmasin diye — Bolum F'de olculur):
+#   E1  gerekce BOS/bosluk            -> KIRMIZI (gerekcesiz istisna yok)
+#   E2  anahtarin herhangi bir alani `*` ya da bos -> KIRMIZI (BLANKET YASAK)
+#   E3  istisna BLOKLAYICI_KAPILAR'da OLMAYAN bir kapiya yazilamaz -> KIRMIZI (bayat)
+#   E4  istisnanin job'u GERCEKTEN bloklamayan olmali -> KIRMIZI (yanlis guvenli)
+#   E5  ISTISNASIZ bir BLOKLAYICI kapi bloklamayan job'da durursa -> KIRMIZI
+#       (Bolum F YON 1 — bugunku uc tekrari doguran gercek sinif hala yakalanir).
+#
+# 🔴 BOS (14 Agu 2026): tek BLOKLAYICI_KAPILAR girisi (kanca-kablolama-nobeti.py)
+# deploy.yml'de BLOKLAYICI job'da duruyor -> alarm seridinde ISTISNA gerektiren kapi
+# yok. Eski 111 "B beyani" bu tablodan T1 turetimine devredildi (ELLE_KAYIT 111 -> 0).
 SERIT_B = {
-    # --- R2 ONEK GELENEGI NOBETI (7 Agu 2026) — GERCEK olcum kolu da burada ----------
-    # 🔴 ISTISNAI GIRIS: tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer;
-    # burada GERCEK tarama kolu (bayraksiz) B'dedir. GEREKCE (olculdu):
-    #   (a) ONCEDEN VAR OLAN canli gercegi RAPORLAR: taranan yuzey katalogda ZATEN
-    #       duran R2 anahtarlaridir. Yayini durdurmanin TAMIR DEGERI SIFIR — sapan
-    #       anahtari yayindan alikoymak sayfayi 404 yapar, gorseli ONARMAZ (ayni R2
-    #       anahtarinin uzerine yazmak bu depoda YASAK).
-    #   (b) Kirmizinin sahibi KraL DEGIL: bir eksen urun VERISI duzlemindedir (baska
-    #       mimarin sahasi), digeri kardes depodaki ikiz tanimla ayrisma (mimar karari
-    #       bekliyor) -> bloklayici seritte TUM EKIBIN yayini baskasinin kuyrugunda
-    #       beklerdi.
-    #   (c) ONLEME kolu CI'da DEGIL kaynagin kendisindedir: r2_anahtar.gkey() bilinmeyen
-    #       platformda FAIL-CLOSED (BilinmeyenPlatform) firlatir -> yeni sapma yazim
-    #       aninda durur; bu kol GORUNURLUK hattidir.
-    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
-    #       6 saatlik canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
-    ("nobet.yml", "r2-onek-nobeti", "tools/r2-onek-gelenek-kapisi.py"):
-        "ONLEME r2_anahtar.gkey()'in FAIL-CLOSED yolundadir (bilinmeyen platform "
-        "BilinmeyenPlatform firlatir); CI kolu GORUNURLUK hattidir. Kapi ONCEDEN VAR "
-        "OLAN canli anahtarlari raporlar — yayini durdurmanin tamir degeri SIFIR "
-        "(sapan anahtari yayindan alikoymak sayfayi 404 yapar, gorseli onarmaz; ayni "
-        "R2 anahtarinin uzerine yazmak yasaktir). Bugun kirmizi yanan iki eksenin "
-        "sahibi bu duzlem degil: biri urun VERISI, digeri kardes depodaki ikiz tanim.",
-    # --- COMMIT MESAJI SIZINTI NOBETI (1 Agu 2026) — GERCEK olcum kolu da burada -----
-    # 🔴 ISTISNAI GIRIS: bu tabloya kural olarak yalniz "aracin KENDINI sinamasi"
-    # girer; burada GERCEK tarama kolu (`--ci`) da B'dedir. GEREKCE (olculdu):
-    #   (a) deploy.yml YALNIZ `push: branches: [main]` ile ve PUSH'TAN SONRA kosar. O an
-    #       commit ZATEN public remote'tadir ve commit MESAJI nesnenin degistirilemez
-    #       parcasidir -> yayini durdurmanin TAMIR DEGERI SIFIRDIR (tek onarim tarihce
-    #       yeniden yazimi + force-push'tur, Okan kapisi).
-    #   (b) Commit mesaji SITEDE GORUNMEZ -> "sizintili icerik canliya cikmasin" sinifi
-    #       DEGILDIR; serit secim olcutu bu adimi A'ya cagirmaz.
-    #   (c) ONLEME kolu CI'da degil `commit-msg` KANCASINDADIR (fail-closed,
-    #       tools/commit-mesaji-hook-kur.py) — CI kolu GORUNURLUK hattidir.
-    #   (d) Olculen bedel: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
-    #       6 saatlik canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
-    ("nobet.yml", "mesaj-nobeti", "tools/commit-mesaji-kapisi.py"):
-        "ONLEME `commit-msg` KANCASINDADIR (fail-closed); CI kolu ikinci hattir. "
-        "Yayini durdurmanin tamir degeri SIFIR: deploy.yml push'tan SONRA kosar, "
-        "commit zaten public'tir ve commit mesaji nesnenin DEGISTIRILEMEZ parcasidir; "
-        "ayrica commit mesaji sitede GORUNMEZ (canliya cikan icerik sinifi degil).",
-    # --- GECMIS GERI-DONUS NOBETI (1 Agu 2026) — GERCEK olcum kolu da burada --------
-    # 🔴 ISTISNAI GIRIS, kardes commit-mesaji girisiyle AYNI gerekce zinciri:
-    #   (a) deploy.yml push'TAN SONRA kosar; geri gelen commit'ler o an ZATEN public
-    #       remote'tadir -> yayini durdurmanin TAMIR DEGERI SIFIRDIR (tek onarim yine
-    #       tarihce yeniden yazimi + force-push, Okan kapisi).
-    #   (b) Commit mesaji ve gecmisteki blob sitede GORUNMEZ -> "sizintili icerik
-    #       canliya cikmasin" sinifi DEGILDIR.
-    #   (c) ONLEME kolu CI'da degil `pre-push` KANCASINDADIR (fail-closed,
-    #       tools/gecmis-geri-donus-hook-kur.py) — CI kolu ikinci hat/gorunurluktur.
-    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
-    #       6 saatlik canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
-    ("nobet.yml", "mesaj-nobeti", "tools/gecmis-geri-donus-kapisi.py"):
-        "ONLEME `pre-push` KANCASINDADIR (fail-closed); CI kolu ikinci hattir. "
-        "Yayini durdurmanin tamir degeri SIFIR: deploy.yml push'tan SONRA kosar ve "
-        "geri getirilen commit'ler o an zaten public'tir; ayrica commit mesaji ile "
-        "gecmisteki blob sitede GORUNMEZ (canliya cikan icerik sinifi degil).",
-    # --- YAYIN GECIKME NOBETCISI (1 Agu 2026) — GERCEK OLCUM KOLU CI'DA HIC YOK ------
-    # 🔴 ISTISNAI GIRIS: yukaridaki kardeslerinde "gercek olcum kolu SERIT A'da
-    # bloklayici kosuyor" denir; burada gercek olcum kolu CI'DA HICBIR SERITTE KOSMAZ
-    # ve bu BILEREK boyledir. GEREKCE (1 Agu'ta olculdu): nobetci "canli, main'den ne
-    # kadar geride" sorusunu olcer; YALNIZ CI'da kossaydi hat tikandigi anda O DA
-    # KOSAMAZDI -> tam ihtiyac aninda susardi (o gun 20 commit birikene, 6 kosum ust
-    # uste dusene ve canli ~1,5 saat bayatlayana kadar kimse fark etmedi). Olcum kolu
-    # bu yuzden ELLE ve `tools/durum.py` bolum 9'dan kosar; CI'da yalnizca AGSIZ
-    # fikstur/kablolama kabulu vardir. tools/yayin-gecikme-test.py :: 4a iddiasi
-    # bayraksiz (olcum yapan) bir cagrinin deploy.yml'e sizmasini KIRMIZI yakar.
-    ("nobet.yml", "serit-b", "tools/yayin-gecikme-test.py"):
-        "Aracin KENDINI sinamasi: 15 AGSIZ fikstur + pano/bagimsizlik kablolamasi. "
-        "Gercek olcum kolu CI'da BILEREK kosmaz (olctugu hatta bagimli olmasin diye), "
-        "elle + tools/durum.py bolum 9'dan kosar; 'canliya sizintili icerik cikmasin' "
-        "sinifi DEGILDIR, yayini durdurmasi olculmus zarardir.",
-    # --- YAYIN ERISIM NOBETCISI (3 Agu 2026) — GERCEK OLCUM KOLU CI'DA HIC YOK ------
-    # 🔴 ISTISNAI GIRIS, yayin-gecikme kardesiyle AYNI sinif: gercek olcum kolu CI'da
-    # HICBIR SERITTE kosmaz ve bu BILEREK boyledir. Nobetci "yayinladigimiz sayfa
-    # canlida GERCEKTEN ACIK MI" sorusunu CANLI GET ile olcer; aga bagimli bir kapiyi
-    # `deploy`in onune koymak tek gecici DNS/oran-siniri hatasinda TUM EKIBIN yayinini
-    # durdururdu ([[kapi-kapsam-eksen-secimi]]) — bu depoda kapi birikmesi yayin
-    # suresini 21 gunde 15,6x uzatti ve musteriye 404 olarak yansidi
-    # ([[kapi-birikimi-yayin-gecikmesi]]). Olcum kolu bu yuzden AYRI, seyrek kosan bir
-    # alarm is akisindadir (.github/workflows/yayin-erisim-alarmi.yml — saatlik cron,
-    # `push` tetikleyicisi YOK, ayri concurrency grubu). CI'da yalnizca YEREL fikstur
-    # sunucusuyla (127.0.0.1, dis ag YOK) kosan kabul testi vardir;
-    # tools/yayin-erisim-test.py :: E7 ekseni, bayraksiz (olcum yapan) bir cagrinin
-    # deploy.yml'e sizmasini KIRMIZI yakar.
-    ("nobet.yml", "serit-b", "tools/yayin-erisim-test.py"):
-        "Aracin KENDINI sinamasi: yerel HTTP fikstur sunucusu (dis ag YOK) + kume "
-        "turetimi + kablolama nobetleri. Gercek olcum kolu CI'da BILEREK kosmaz "
-        "(aga bagimli yanlis-pozitif tum ekibin yayinini durdurur); canli kol "
-        "yayin-erisim-alarmi.yml cron'unda kosar. 'Canliya sizintili icerik cikmasin' "
-        "sinifi DEGILDIR.",
-    # --- IC RAPOR ADI KAPISI, UZAK DAL KOLU (10 Agu 2026) — GERCEK OLCUM KOLU B'DE --
-    # 🔴 ISTISNAI GIRIS: bu araç SERIT A'da ZATEN bloklayici kosuyor (deploy.yml:
-    # bayraksiz calisma-agaci kolu + `--kendini-test`). B'ye TASINAN bir sey YOK;
-    # B'ye EKLENEN, A'da KOSAMAYACAK yeni bir eksendir. GEREKCE (olculdu, beyan degil):
-    #   (a) YARIS: kol `git ls-remote` + her dalin `ls-tree` agacini okur; checkout'tan
-    #       SONRA push'lanan bir dalin NESNELERI yerelde YOKTUR -> kol o kosumda
-    #       fail-closed rc=2 verir. Yani kirmizisi ARALIKLI ve yayindan BAGIMSIZ bir
-    #       sebeple gelir; A'ya konsaydi yayin rastgele dururdu
-    #       ([[fail-slow-fail-opendir]]). Bu job `fetch-depth: 0` ile checkout eder.
-    #       ⚠️ DUZELTME (10 Agu, kaynaktan olculdu): "deploy.yml fetch-depth VERMEDEN
-    #       checkout eder" iddiasi YANLISTI — bu aracin bloklayici kollarini tasiyan
-    #       `serit-a3` (ayrica `build` ve `serit-a2`) `fetch-depth: 0` kullanir;
-    #       fetch-depth'siz olan yalniz `serit-a4` ve `yayin`'dir. Serit secimi
-    #       (a)+(b)+(c)'ye dayanir, klon DERINLIGINE degil.
-    #   (b) AGA BAGLIDIR: tek gecici GitHub oran-siniri/DNS hatasi tum ekibin yayinini
-    #       durdururdu — yayin-erisim kardesiyle AYNI sinif ([[kapi-kapsam-eksen-secimi]]).
-    #   (c) YAYINI DURDURMANIN TAMIR DEGERI SIFIR: olculen sey UZAKTA ZATEN DURAN bir
-    #       daldir; o dal main'e girmez, siteye cikmaz. Tek onarim uzak dali silmektir,
-    #       main'in yayinini alikoymak degil. "Canliya sizintili icerik cikmasin"
-    #       sinifi DEGILDIR — "public repoda ne DURUYOR" sinifidir.
-    #   (d) ONLEME kolu CI'da degil: yeni sizintiyi `pre-push` kancasi (kisisel-veri-
-    #       test.py --pre-push, fail-closed) ve SERIT A'daki bayraksiz calisma-agaci
-    #       kolu durdurur; bu kol onlarin GORMEDIGI KALICI DURUMU gorunur kilar
-    #       (kanca kurulu olmayan makine / kanca yazilmadan onceki push'lar).
-    # Kolun KENDI hukmu (`--mutasyon`, 10 oldurucu + 2 KONTROL mutanti) AGSIZ'dir ve
-    # ayni girise dusar: mutasyon bataryasi ~17 s surer, A'daki ~1,2 s'lik
-    # `--kendini-test` adimini bu maliyetle sismelemek yayin seridini uzatirdi
-    # ([[maliyet-tasimasi-serit-dusurur]]); A'daki `--kendini-test` 17 iddianin
-    # TAMAMINI (uzak eksen dahil) zaten bloklayici olarak kosar.
-    ("nobet.yml", "serit-b", "tools/ic-rapor-adi-kapisi.py"):
-        "Aracin SERIT A kollari (bayraksiz calisma-agaci taramasi + `--kendini-test`, "
-        "17 iddia) deploy.yml'de BLOKLAYICI kosmaya devam ediyor; buraya TASINAN yok, "
-        "EKLENEN var. `--uzak` kolu A'ya KONULMAZ: checkout'tan SONRA push'lanan dalin "
-        "nesneleri yerelde YOKTUR ve kol o kosumda fail-closed rc=2 verir -> yayin "
-        "ARALIKLI ve yayindan BAGIMSIZ bir sebeple dururdu; ayrica aga baglidir "
-        "(tek oran-siniri hatasi tum ekibin yayinini durdurur). Olctugu sey UZAKTA "
-        "DURAN bir daldir: main'e girmez, siteye cikmaz -> yayini durdurmanin tamir "
-        "degeri SIFIR, tek onarim uzak dali silmektir. `--mutasyon` kolu agsizdir ama "
-        "~17 s surer; yayin seridine bu maliyet eklenmez.",
-    # --- oz-nobetci / kendini-test kollari (gercek olcum kolu SERIT A'da BLOKLAYICI) ---
-    ("nobet.yml", "serit-b", "tools/diriltme-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu; silinmis urun diriltme OLCUMU (bayraksiz kol) "
-        "serit A'da bloklayici kosuyor.",
-    # --- GIT BAGLAM SCRUB'I / TEK KAYNAK DRIFT NOBETI (6 Agu 2026) -----------------
-    # Modulun BAYRAKSIZ kolu bir OLCUM DEGILDIR (yardim metni basar); tek kabul kolu
-    # `--kendini-test`tir, yani giris "aracin KENDINI sinamasi" sinifina TAM oturur.
-    # Serit A'ya konmadi cunku olctugu sey CANLIYA CIKAN ICERIK degil, kapilarin
-    # KOK TURETIMININ tek kaynaktan gelmesidir: ikiz bir tanim belirse bile o gunun
-    # yayini yanlis/sizintili icerik TASIMAZ — ama kapilar worktree/kanca baglaminda
-    # sessizce yanlis agaci olcmeye baslar. Ikinci katman zaten SERIT A'dadir:
-    # ic-rapor-adi-kapisi.py::IDDIA-6, spec-ifsa-kapisi.py::IDDIA-KOK3 ve
-    # diriltme-kapisi.py::W1-W4 ayni onarimi DAVRANISSAL olcer (gercek worktree +
-    # gercek commit + gercek kanca), yani bu adim TEK savunma hatti DEGILDIR.
-    ("nobet.yml", "serit-b", "tools/git_ortami.py"):
-        "YALNIZ `--kendini-test` kolu (scrub davranisi + `GIT_BAGLAM_DEGISKENLERI` "
-        "ikinci-tanim/drift nobeti); bayraksiz kol olcum YAPMAZ. 'Canliya sizintili/"
-        "yanlis icerik cikmasin' sinifi DEGILDIR — kok turetiminin TEK KAYNAKTAN "
-        "gelmesini olcer. Ayni onarimin DAVRANISSAL ayagi serit A'da bloklayici "
-        "kosuyor (ic-rapor-adi-kapisi.py --kendini-test :: IDDIA-6 ve "
-        "spec-ifsa-alarmi.yml'deki spec-ifsa-kapisi.py --kendini-test :: IDDIA-KOK3).",
-    ("nobet.yml", "serit-b", "tools/fikstur-git-sizinti-kapisi.py"):
-        "Sentetik/gecici git depolarinin miras GIT_* baglamiyla ana depoya yonelmesini "
-        "sinif olarak olcen nobet ve davranissal kendi testi; ayni gun yeni bir yayin "
-        "bloklayicisi eklenmemesi karariyla serit-b'de, deploy needs zincirinde DEGIL.",
-    ("nobet.yml", "serit-b", "tools/ege-bilgi-tavan-test.py"):
-        "YALNIZ `--ic-nobetci` kolu (30 gecici fikstur); canli ege-bilgi.md tavan olcumu "
-        "serit A'da bloklayici kosuyor.",
-    ("nobet.yml", "serit-b", "tools/ege-kabiliyet-kapisi.py"):
-        "YALNIZ `--ic-nobetci` kolu (73 fikstur); canli ege-bilgi.md kabiliyet-siniri "
-        "hukmu serit A'da bloklayici kosuyor.",
-    ("nobet.yml", "serit-b", "tools/konfigur-bundle-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu; artefakt DRIFT olcumu serit A'da bloklayici.",
-    ("nobet.yml", "serit-b", "tools/sema-bundle-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu; sema-bundle DRIFT olcumu serit A'da bloklayici.",
-    ("nobet.yml", "serit-b", "tools/konfigur-canli-kapisi.py"):
-        "YALNIZ `--kendini-test` (offline karar mantigi + mutasyon) kolu; bu is akisinda "
-        "canli karar hic verilmiyor.",
-    ("nobet.yml", "serit-b", "tools/canli-saglik-kapisi.py"):
-        "YALNIZ `--kendini-test` (offline vaka + mutasyon) kolu; canli saglik olcumu bu "
-        "is akisinda kosmuyor.",
-    ("nobet.yml", "serit-b", "tools/fiziksel-canli-kapisi.py"):
-        "YALNIZ `--kendini-test` (offline karar mantigi + yerel kahin) kolu; canli fiziksel "
-        "olcum bu is akisinda kosmuyor.",
-    ("nobet.yml", "serit-b", "tools/yasal-sayfa-drift-kapisi.py"):
-        "YALNIZ `--kendini-test` (bayatlatma + kirmizi-mutasyon) kolu; GERCEK yasal sayfa "
-        "drift olcumu serit A'da bloklayici kosuyor.",
-    ("nobet.yml", "serit-b", "tools/onizleme-vaat-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu (gecici AYNADA 7 kirmizi-mutant + 3 kontrol "
-        "mutanti; canli agaca YAZMAZ, sha256 bas/son esitligi kendi olcer). GERCEK "
-        "olcum kolu BAYRAKSIZ cagridir ve serit A'da (`build` job'u) BLOKLAYICI kosar: "
-        "11 iddia — uretilemez bolgesi beyan edilmis ailenin satis allowlist'i ile "
-        "KESISIMI BOS mu (∅) ve musteri uyari metninin IKI cagri yeri birebir ayni mi. "
-        "Yani 'yanlis/uretilemez icerik canliya cikmasin' hukmunu veren kol A'dadir; "
-        "buraya YALNIZ kapinin KENDI kirmizi yolunu deneyen mutasyon turu girer "
-        "(agac temizken bloklayici kol DAIMA yesildir, kirmizi yolu hic denemez).",
-    ("nobet.yml", "serit-b", "tools/varlik-test.py"):
-        "YALNIZ `--kendini-test` kolu (eksen 1 `cikarim_kaybi` mutasyon bataryasi; "
-        "agsiz, canli agaca YAZMAZ). GERCEK olcum kolu BAYRAKSIZ cagridir ve serit "
-        "A'da (`deploy.yml` job `serit-a3`) BLOKLAYICI kosar — 'varliga tasimada icerik "
-        "kaybolmasin' hukmunu o kol verir. Buraya YALNIZ kapinin KENDI kirmizi yolunu "
-        "deneyen mutasyon turu girer.",
-    ("nobet.yml", "serit-b", "tools/bayat-beyan-kapisi.py"):
-        "HER IKI kol da (bayraksiz gercek tarama + `--kendini-test` mutasyonu) serit "
-        "B'de kosar — komsularindan farkli olarak GERCEK olcum kolu da burada. Gerekce "
-        "(KraL karari, 4 Agu 2026): bu bir 'sizintili/uretilemez icerik canliya "
-        "cikmasin' A-kapisi DEGIL; kod YORUMU / izlenen .md BEYANI ile olculen "
-        "davranisin (hacim.js · yonet.js) ic tutarliligini olcer. Korudugu yuzey "
-        "musteriye render edilen icerik degil, kaynak yorumdur; yanlis-pozitifi TUM "
-        "ekibin yayinini durdurmasi orantisiz olurdu. Offline, ag YOK, deterministik, "
-        "mutasyon DAIMA KOPYAYA (kaynak sha256 bas=son).",
-    ("nobet.yml", "serit-b", "tools/ayip-beyani-kapisi.py"):
-        "HER IKI kol da (bayraksiz gercek tarama + `--kendini-test`) serit B'de kosar. "
-        "Gerekce (12 Agu 2026): kapi BUGUN KIRMIZI — 366 uretilen govde + 4 statik "
-        "sayfa tarandi, kapsamdaki 67 yuzeyin 10'u 6502 m.11 beyanini DAR ya da SARTA "
-        "BAGLI tasiyor. Kirmizinin sahibi KraL DEGIL: sekiz kalem pazarlama duzlemindeki "
-        "landing METNIDIR (ArTisT), iki kalem (/teslimat-iade · /mesafeli-satis) "
-        "BAGLAYICI yasal metindir ve ifade karari Okan kapisindadir. Bloklayici seritte "
-        "TUM EKIBIN yayini baskasinin kuyrugunda beklerdi "
-        "([[kapi-birikimi-yayin-gecikmesi]]). ONLEME kolu SUSTURULMADI: kapi fail-closed, "
-        "sapan sayisi her kosumda GORUNUR ve rc=1 doner. Sapan 0'a inince adim serit A'ya "
-        "(deploy.yml) TASINIR ve bu giris DUSER.",
-    ("nobet.yml", "serit-b", "tools/denetim-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu; urun denetimi `--commit-farki` serit A'da bloklayici.",
-    ("nobet.yml", "serit-b", "tools/gramer-artigi-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu; canli katalog uzerindeki HAM bloklayici tarama "
-        "serit A'da AYRI adim olarak kosuyor.",
-    ("nobet.yml", "serit-b", "tools/uretim-butunluk-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu (tempfile fiksturu, urun/ ISTEMEZ); yayinlanan "
-        "id<->sayfa butunlugu olcumu serit A'da build.py'den SONRA bloklayici kosuyor.",
-    ("nobet.yml", "serit-b", "tools/yayin-ic-dil-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu (tempfile fiksturu, index.built.html ISTEMEZ); "
-        "uretilen ciktinin yorum yuzeyi taramasi serit A'da bloklayici kosuyor.",
-    # --- MUTLAK YOL KAPISI (8 Agu 2026) — GERCEK olcum kolu (bayraksiz) da burada ----
-    # 🔴 ISTISNAI GIRIS: tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer;
-    # burada bayraksiz RAPOR kolu B'dedir. GEREKCE (mimar hukmu, olculdu):
-    #   (a) Kapinin KENDI sozlesmesi: bayraksiz kol maruziyeti SAYIYLA basar ve rc=0
-    #       verir; bloklayiciya cevirme (`--sifir-tolerans`) ve esik karari MIMARDADIR.
-    #       Bloklayici kol, KACIRMA SINIFI kapanmadan ACILMAYACAK.
-    #   (b) Raporladigi yuzey ONCEDEN VAR OLAN gercektir (depoda duran betiklerdeki
-    #       makineye ozgu kok sabitleri) -> yayini durdurmanin TAMIR DEGERI SIFIR.
-    #   (c) Yine de CI'da KOSMASI GEREKIR: olctugu sinif YERELDE DAIMA YESIL yanar
-    #       (yol gelistirici makinesinde cozulur, yalniz kosucuda patlar). CI'da hic
-    #       kosmayan kapi ise OLU NOBETCIDIR — tools/ci-kapsam-test.py bu dosyayi
-    #       7 Agu'dan beri KAPSAMSIZ sayip serit A3'u BLOKLAMISTI (deploy+yayin
-    #       skipped, 157 urun mahsur).
-    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
-    #       6+ saatlik canli bayatlik pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
-    ("nobet.yml", "serit-b", "tools/mutlak-yol-kapisi.py"):
-        "BAYRAKSIZ RAPOR KOLU (rc DAIMA 0): kapinin kendi sozlesmesi maruziyeti SAYIYLA "
-        "basmaktir; bloklayiciya cevirme (`--sifir-tolerans`) ve esik karari MIMARDADIR "
-        "ve kacirma sinifi kapanmadan acilmayacak. Raporladigi yuzey ONCEDEN VAR OLAN "
-        "gercektir (depoda duran makineye ozgu kok sabitleri) -> yayini durdurmanin tamir "
-        "degeri SIFIR. CI'da kosmasi ZORUNLU cunku olctugu sinif YERELDE DAIMA YESIL yanar; "
-        "CI'da hic kosmamak ise kapiyi ci-kapsam-test.py'ye KAPSAMSIZ gosterip serit A3'u "
-        "bloklamisti.",
-    ("nobet.yml", "serit-b", "tools/yayin-kapisi.py"):
-        "YALNIZ `--kendini-test` (aday secimi + 200 sarti) kolu; GERCEK atomik yayin "
-        "`yayin` job'unda, yayindan SONRA kosar.",
-    # --- LCP ONCULUK KAPISI (9 Agu 2026) — GERCEK tarama kolu da burada --------------
-    # 🔴 ISTISNAI GIRIS: tabloya kural olarak yalniz "aracin KENDINI sinamasi" girer;
-    # burada gercek tarama kolu da B'dedir (bayrak YOK — tek komut hem tarar hem 8
-    # mutantlik bataryayi kosar; bayrak eklemek ci-kapsam-test.py'ye ayri bir alt-kume
-    # kapsam borcu yazardi). GEREKCE (olculdu):
-    #   (a) Olctugu sinif PERFORMANS gerilemesidir, DOGRULUK hatasi degil: ikiz ayrisirsa
-    #       sayfa yine DOGRU gorunur, yalniz LCP gorseli iki kez iner. Urun/odeme/yasal
-    #       yuzeye dokunmaz -> yayini durdurmanin tamir degeri yok.
-    #   (b) Yine de CI'da KOSMASI GEREKIR: ayrisma tamamen sessizdir ve mevcut hicbir
-    #       kapi olcmez; CI'da hic kosmayan kapi OLU NOBETCIDIR
-    #       ([[nobetci-cagri-satiri-nobetsiz]]).
-    #   (c) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda 6+
-    #       saatlik canli bayatlik pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
-    ("nobet.yml", "serit-b", "tools/lcp-onculuk-kapisi.py"):
-        "GERCEK TARAMA + MUTASYON kolu (tek komut, bayraksiz). Olctugu sapma bir "
-        "PERFORMANS gerilemesidir (preload ile srcset ayrisirsa LCP gorseli IKI KEZ "
-        "iner), dogruluk hatasi DEGIL — sayfa her halukarda dogru gorunur ve urun/odeme/"
-        "yasal yuzeye dokunmaz, yayini durdurmanin tamir degeri yok. CI'da kosmasi yine "
-        "ZORUNLU cunku ayrisma tamamen sessizdir ve mevcut hicbir kapi bu ekseni olcmez; "
-        "kosmayan kapi olu nobetcidir.",
-    # ═══ MUTASYON SURUCULERI (8 Agu 2026) — KESIF GENISLEMESIYLE KABLOLANANLAR ═══
-    # 🔴 ORTAK SINIF GEREKCESI (her giris ASAGIDA AYRICA kendi olcumuyle durur):
-    # Bir mutasyon surucusu "kabul testi" DEGIL, bir kabul testinin/kapinin AYIRT
-    # EDICILIGINI kanitlayan META araçtir. Olctugu iddia ZATEN baska bir adimda
-    # (cogu serit A'da BLOKLAYICI) olculur; surucuyu bloklayici seride koymak
-    # CIFT SAYIM olur ve daha kotusu, mutantlar kaynak METNINE capalidir -> hedef
-    # kaynagin her MESRU refaktoru TUM EKIBIN yayinini durdururdu
-    # ([[kapi-anchor-coupling-ikilemi]]). Depo konvansiyonu bu: A_MUTASYON kumesi ve
-    # jenerator/test/kisit-mutasyon.js AYNI gerekceyle B'de/muaf.
-    # 🔴 O HALDE NEDEN CI'DA HIC OLMASIN DEGIL DE B'DE OLSUN: kosmayan surucu
-    # SESSIZCE CURUR. Olculdu (8 Agu, temiz klon): 43 surucunun 35'i hicbir OTOMATIK
-    # is akisinda kosmuyordu ve UCU ZATEN BAYATLAMISTI (rc=1, "capa bulunamadi").
-    # B seridi tam bu is icin var: kirmizi GORUNUR olur, yayin DURMAZ.
-    # 🔴 BU GIRIS "YENI KABLOLANAN" DEGIL — KESIF GENISLEMESININ ORTAYA CIKARDIGI
-    # ESKI BIR BEYANSIZ ADIM. `tools/yayin-sinyali-mutasyon.py` nobet.yml `serit-b`de
-    # ZATEN kosuyordu, ama kesif predikati `*-mutasyon.py`yi gormedigi icin bu kapi
-    # onu "kapi cagrisi" SAYMIYORDU -> beyan sorusu HIC SORULMAMISTI. Ayni korluk
-    # ters yonde de vardi: cagri satiri silinse ci-kapsam-test.py UYARMAZDI.
-    ("nobet.yml", "serit-b", "tools/yayin-sinyali-mutasyon.py"):
-        "SERIT AYRIMININ KENDI iki yonlu curutme bataryasi (YON A: bloklamayan kirmizi "
-        "yayin kosumunu boyamiyor · YON B: yayini DURDURAN kirmizi kosumu KIRMIZI "
-        "yapiyor + `deploy: needs` daraltmasi kapali). Bloklayici seride konsaydi "
-        "serit ayrimini olcen arac yayin seridini durdururdu — dairesel bagimlilik "
-        "(kardesi `tools/serit-bolme-mutasyon.py` ile AYNI gerekce). Olculdu (8 Agu "
-        "2026, temiz klon): rc=0, 1,1 s, canli dosyalarin sha256'si bas=son.",
-    ("nobet.yml", "serit-b", "tools/kesif-kapsam-mutasyon.py"):
-        "META-META surucu: ci-kapsam-test.py'nin KESIF ekseninin canli oldugunu "
-        "kanitlar (daraltma VE gevsetme yonu ayri ayri kirmizi; kablolanan surucunun "
-        "cagri satiri silinince KAPSAMSIZ kirmizisi yanar). Olctugu kapi "
-        "`tools/ci-kapsam-test.py` ZATEN ayni job'da kosuyor -> bloklayici seritte "
-        "cift sayim olurdu. Bellekte kosar, canli dosyaya YAZMAZ (sha256 bas=son).",
-    ("nobet.yml", "serit-b", "tools/ata-lisans-mutasyon.py"):
-        "Olctugu kapinin kendisi CI'da kosuyor; bu surucu onun AYIRT EDICILIGINI "
-        "olcer (oldurucu 20/20 KIRMIZI, kontrol 3/3 YESIL). Mutantlar kaynak metnine "
-        "capali -> bloklayici seritte mesru refaktor yayini durdururdu. Olculdu "
-        "(temiz klon + bos HOME): rc=0, 18,1 s, calisma agaci kirlenmiyor.",
-    ("nobet.yml", "serit-b", "tools/d1-sync-durum-mutasyon.py"):
-        "d1-sync `--durum` kolunun AYIRT EDICILIGI (18 mutant: her OLDURUCU kirmizi, "
-        "her KONTROL yesil). D1 duzlemi bu evin yayin yolunda DEGIL; kirmizisi yayini "
-        "durdurmamali. Olculdu (temiz klon + bos HOME): rc=0, 1,8 s, ag YOK.",
-    ("nobet.yml", "serit-b", "tools/faz3-bayrak-mutasyon.py"):
-        "FAZ3 bayrak kapisinin AYIRT EDICILIGINI 3 mutantla olcer. Korudugu kapinin "
-        "GERCEK olcum kolu deploy.yml serit-a3'te BLOKLAYICI kalir; bu giris bir "
-        "TASIMA DEGIL, kapinin AYIRT EDICILIK bataryasinin EKLENMESIDIR. Mutantlar "
-        "gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi kapinin "
-        "ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
-    ("nobet.yml", "serit-b", "tools/deploy-aclik-gh-mutasyon.py"):
-        "tools/deploy-aclik-kapisi.py GECICI AG SINIFININ mutasyon bataryasi (5 "
-        "oldurucu + 1 kontrol): gecici hata siniflamasi, sinirli yeniden deneme, "
-        "tukenince fail-closed davranis ve denemeler arasi bekleme tek tek olculur. "
-        "Korudugu kapinin bayraksiz GERCEK olcum kolu deploy.yml'de BLOKLAYICI kosar; "
-        "bu giris bir TASIMA DEGIL, kapinin AYIRT EDICILIK bataryasinin EKLENMESIDIR. "
-        "Canli GitHub API'sine cikmaz; yalniz kapinin `--kendini-test` kolunu kosar. "
-        "Mutasyon hedef dosyaya uygulanir ve her turda finally ile ozgun baytlar geri "
-        "yuklenir.",
-    ("nobet.yml", "serit-b", "tools/duzelt-uyum-mutasyon.py"):
-        "duzelt.py uyum kapisinin AYIRT EDICILIGI (her eksenin TEK-KIRMIZI mutanti "
-        "var). Hedef kaynak urun VERISI duzlemindedir (MaCiT) -> kirmizisinin sahibi "
-        "bu ev degil, bloklayici seritte tum ekip baskasinin kuyrugunda beklerdi. "
-        "Olculdu (temiz klon + bos HOME): rc=0, 11,7 s.",
-    ("nobet.yml", "serit-b", "tools/ege-bilgi-tavan-mutasyon.py"):
-        "Ege-bilgi tavan kapisinin ic nobetcisinin AYIRT EDICILIGI (14/14 oldurucu "
-        "olduruldu, 3 kontrol yesil). Kapinin KENDI kabul testi "
-        "(`ege-bilgi-tavan-test.py --ic-nobetci`) ZATEN ayni job'da kosuyor -> "
-        "bloklayicida cift sayim. Olculdu (temiz klon + bos HOME): rc=0, 0,8 s.",
-    ("nobet.yml", "serit-b", "tools/gramer-kisaltma-mutasyon.py"):
-        "Gramer kisaltma kolunun AYIRT EDICILIGI (8/8 oldurucu, taban oz-test 96 "
-        "iddia). Olctugu kapi `gramer-artigi-kapisi.py` ZATEN ayni job'da "
-        "`--kendini-test` ile kosuyor. Olculdu (temiz klon + bos HOME): rc=0, 2,6 s.",
-    ("nobet.yml", "serit-b", "tools/konfigur-nobet-mutasyon.py"):
-        "Konfigur nobetcisinin AYIRT EDICILIGI + AYNANIN KAYNAGA YAZAMADIGI. Sentetik "
-        "depo aynasi kurar (urunler.json ve .urun-kaynaklari.json AYNA_HARIC); ag YOK, "
-        "URL'ler fikstur dizesi. Olctugu kapi `konfigur-bundle-kapisi.py "
-        "--kendini-test` ZATEN ayni job'da. Olculdu (temiz klon + bos HOME): rc=0, "
-        "34,9 s — 40 s kablolama esiginin ALTINDA.",
-    ("nobet.yml", "serit-b", "tools/mimar-commit-kapisi-mutasyon.py"):
-        "Mimar commit kapisinin AYIRT EDICILIGI; mutasyon YALNIZ tempdir kopyasina "
-        "uygulanir ('Gercek gate degismedi' satiri bunu basar). Kapinin kendisi "
-        "MIMAR DISIPLIN cihazidir ve CI'da bloklayici kosmasi ANLAMSIZDIR (commit "
-        "EDILMEYEN .claude kablolamasina bagli, R_YOL sinifi). Olculdu (temiz klon + "
-        "bos HOME): rc=0, 9,4 s.",
-    ("nobet.yml", "serit-b", "tools/parite-marka-mutasyon.js"):
-        "Parite MARKA ekseninin AYIRT EDICILIGI (oldurucilerin hepsi kirmizi, "
-        "kontrollerin hepsi yesil). Surucunun kendi beyani: AG/wrangler ISTEMEZ. "
-        "Kardesi `tools/parite-mutasyon-test.js` SURE ile muaf (217 s); bu kol 1,2 s. "
-        "Olculdu (temiz klon + bos HOME): rc=0, 1,2 s. node ISTER (setup-node "
-        "on-kosulu bu job'da zaten var).",
-    ("nobet.yml", "serit-b", "tools/reklam-etiket-mutasyon.py"):
-        "Reklam etiket kapisinin AYIRT EDICILIGI (oldurucu mutantlarin hepsi TEK "
-        "BASINA kirmizi, kontrol YESIL). Olctugu kapi `reklam-etiket-kapisi.py "
-        "--kendini-test` ZATEN ayni job'da kosuyor. Olculdu (temiz klon + bos HOME): "
-        "rc=0, 10,4 s.",
-    ("nobet.yml", "serit-b", "tools/serit-bolme-mutasyon.py"):
-        "SERIT AYRIMININ KENDI fail-open kolunun AYIRT EDICILIGI (6 iddia; fail-open "
-        "KIRMIZI yaniyor, kontrol YESIL). Bloklayici seride konsaydi serit ayrimini "
-        "olcen arac yayin seridini durdururdu — dairesel bagimlilik. Olculdu (temiz "
-        "klon + bos HOME): rc=0, 1,0 s.",
-    ("nobet.yml", "serit-b", "tools/shop-bayatlik-mutasyon.py"):
-        "Shop bayatlik kapisinin AYIRT EDICILIGI (19 mutant, sapma 0). "
-        "`shop/wrangler.toml` dosyasini OKUR — wrangler CLI/ag ISTEMEZ. Shop AYRI "
-        "dagitim hedefidir (Cloudflare Worker), Pages yayinini bloklamasi yanlis "
-        "serit olurdu. Olculdu (temiz klon + bos HOME): rc=0, 20,6 s.",
-    ("nobet.yml", "serit-b", "tools/varlik-referans-mutasyon.py"):
-        "8 AGU SOMUT VAKASI: kiyas referansi kaydinin ALTI bozuk sekli TEK BASINA "
-        "rc=2 mi veriyor (ikisi o gun FAIL-OPEN'di: rc=0 verip YANLIS BEYAN "
-        "basiyordu). Kapinin kendi ic nobetcisi `varlik-test.py --kendini-test` ZATEN "
-        "ayni job'da -> bloklayicida cift sayim. Canli kaydi yedekler ve sha256 ile "
-        "geri yukler. Olculdu (temiz klon + bos HOME): rc=0, 4,9 s.",
-    ("nobet.yml", "serit-b", "tools/vitrin-kabul-mutasyon.py"):
-        "Vitrin kabul kolunun AYIRT EDICILIGI (6 mutant: her OLDURUCU kirmizi, her "
-        "KONTROL yesil). Olctugu kabul testi `jenerator/test/vitrin-kabul.js` serit "
-        "A'da BLOKLAYICI kosuyor -> bu surucu bloklayicida CIFT SAYIM olurdu. "
-        "Olculdu (temiz klon + bos HOME): rc=0, 33,0 s.",
-    ("nobet.yml", "serit-b", "tools/wa-yetki-mutasyon.py"):
-        "WhatsApp yetki kapisinin AYIRT EDICILIGI (5/5 mutant tuttu). Numara "
-        "ayrimi (wa.me <-> tel:) MARKA kuralidir ve kapisi ayrica kosar; bu surucu "
-        "yalniz o kapinin kor olmadigini kanitlar. Olculdu (temiz klon + bos HOME): "
-        "rc=0, 0,9 s.",
-    ("nobet.yml", "serit-b", "tools/yayin-erisim-mutasyon.py"):
-        "Yayin erisim nobetcisinin AYIRT EDICILIGI (her eksenin TEK-KIRMIZI mutanti "
-        "var). Nobetcinin GERCEK olcum kolu CI'da HIC kosmaz (ayri cron alarm is "
-        "akisi, canli ag); kabul testi `yayin-erisim-test.py` ZATEN bu job'da. "
-        "Olculdu (temiz klon + bos HOME): rc=0, 21,4 s, ag YOK.",
-    ("nobet.yml", "serit-b", "tools/yedek-gorev-kapsam-mutasyon.py"):
-        "yedekle.py'nin ~/.claude AGAC KAPSAMI + jeton DISLAMASI ekseninin AYIRT "
-        "EDICILIGI. Surucunun kendi beyani: sahte HOME + sahte git deposu + drive "
-        "STUB'u ile izole tempdir'de kosar, GERCEK HOME'a/hedefe YAZMAZ — bos HOME "
-        "ile dogrulandi. Yedek duzlemi yayin yolunda DEGIL. Olculdu (temiz klon + "
-        "bos HOME): rc=0, 3,0 s.",
-    ("nobet.yml", "serit-b", "jenerator/test/dogrula.py"):
-        "YALNIZ `--kendini-test` kolu (OpenSCAD yasak nobetcisinin kendi 18 iddiasi); "
-        "jenerator ayri dagitim hedefi, Pages ciktisini uretmez.",
-    ("nobet.yml", "serit-b", "jenerator/test/kabul.py"):
-        "YALNIZ `--kendini-test` kolu — TEST HARNESS'ININ KENDI testi (sahte KIRMIZI / "
-        "OLCULEMEDI / silinen test); yayinlanan icerige bakmaz.",
-    ("nobet.yml", "serit-b", "jenerator/test/yay-tarama.py"):
-        "YALNIZ `--kendini-test` kolu — TARAMA SURUCUSUNUN KENDI testi (izgara "
-        "kapsami · fail-closed hukum · olu-eksen paylasimi · hacim.js ayrisma kapisi). "
-        "Kardesleri dogrula.py/kabul.py ile AYNI band: yayinlanan icerige BAKMAZ. "
-        "🔴 DURUST BEYAN (3 Agu 2026, curutucu duzeltmesi): bayraksiz (GERCEK olcum) "
-        "kol OpenSCAD + kardes depodaki uretim modeli istedigi icin CI'da KOSMAZ ve "
-        "MERGE KAPISINA DA BAGLI DEGILDIR — YALNIZ YERELDE, ELLE kosulur. Onceki "
-        "beyan 'yerelde ve merge kapisinda kosulur' diyordu; olculdu, YALANDI (bu "
-        "dize repoda kendi dosyasi + bu beyan + deploy.yml'in --kendini-test satiri "
-        "disinda HIC gecmiyor). 🔴 KAPANAN KISIM (3 Agu 2026): hacim.js'e konan +%5 "
-        "TAHSILAT mutanti artik `build` job'undaki (BLOKLAYICI) kalibrasyon senkron "
-        "kapisinda kirmizi yaniyor — 3. katman dondurulmus kalibrasyon kaynagi, dis "
-        "kaynak istemez, 12 aile / 300 set, `yay` DAHIL. 🟡 ACIK KALAN KISIM: o kapi "
-        "hacim.js'i KALIBRASYON KAYNAGINA karsi olcer, GERCEK GEOMETRIYE karsi DEGIL; "
-        "motor=uretim aileleri (huni · izgara · kasnak · kayis · oring · pervane · "
-        "petek · rulman) ile bugun kaynaktan sapan rampa/profil kapsam DISIDIR ve "
-        "gerekceleri olculen sapmalariyla kaynak-referans.json::disi_birakilan'da "
-        "yazilidir.",
-    ("nobet.yml", "serit-b", "jenerator/test/kalibrasyon-senkron.js"):
-        "YALNIZ `--mutasyon` kolu (5 oldurucu + 3 kontrol mutant + 3 FAIL-CLOSED "
-        "vakasi; hacim.js'in KOPYASINA uygulanir, canli agacin sha256'sini kendi "
-        "olcer). GERCEK olcum "
-        "kolu BAYRAKSIZ cagridir ve serit A'da (`build` job'u) BLOKLAYICI kosar: "
-        "kardes ev yokken 39 iddia / ~3,5 s, `deploy: needs: build` oldugu icin "
-        "kirmizisi yayini GERCEKTEN durdurur. Buraya yalniz kapinin KENDI kirmizi "
-        "yolunu deneyen batarya girer (agac temizken bloklayici kol DAIMA yesildir, "
-        "kirmizi yolu hic denemez) — onizleme-vaat-kapisi ile AYNI desen.",
-    ("nobet.yml", "serit-b", "onizleme/test/eslem-olcum.py"):
-        "YALNIZ `--kendini-test` kolu; onizleme ayri dagitim hedefi (imaj).",
-    ("nobet.yml", "serit-b", "onizleme/test/iki-govde-olcum.py"):
-        "YALNIZ `--kendini-test` (agsiz) kolu; onizleme olcum mantigi.",
-    ("nobet.yml", "serit-b", "tools/iki-govde-kapisi.py"):
-        "YALNIZ `--kendini-test` kolu. Bayraksiz (GERCEK olcum) kol serit A'da "
-        "bloklayici kosuyor: 4. iddiasi YAYINLANAN secenekler.js ONIZLEME_PARCALAR "
-        "listesi ile uretim eslem json'unun TEK KAYNAK paritesidir; sapinca site "
-        "URETILEMEYEN 2-renk parcasi sunar. Ucret ekseni ayrica serit A'da "
-        "(shop/test/iki-renk-ucret.mjs).",
-    # --- mutasyon bataryalari / CI-kapi meta kapilari -----------------------
-    ("nobet.yml", "serit-b", "tools/ara-maliyet-kapisi.py"):
-        "IKI KOL DA burada (bayraksiz 600-sorgu olcumu + `--kendini-test` mutasyonu). "
-        "Serit A'ya konmadi cunku bayraksiz kol ILK CI kosumunda yanlis-pozitif verip "
-        "deploy'u atlatti (kosum 30654284096); kok neden onarildi ama hangi kolun "
-        "girildigi SQLite SURUMUNE bagli -> CI davranisi yerelde tam dogrulanamiyor ve "
-        "korudugu kaynak (araD1) bu depoda degil. Serit A'ya tasima karari MIMARIN.",
-    ("nobet.yml", "serit-b", "tools/marka-cip-mutasyon.py"):
-        "SAF MUTASYON SURUCUSU: olctugu sey `tools/marka-cip-kapisi.py`nin CANLILIGIDIR, "
-        "yayinlanan icerik DEGIL — KAPININ KENDISI SERIT A'DA (deploy.yml, bloklayici) "
-        "kosuyor, yani cip hedefi/sayisi/gurultusu/tiklama davranisi yayini ZATEN durdurur. "
-        "Surucu kapiyi 7 kez kosturur (~10 dk); serit A'ya konsaydi HER yayini 10 dk "
-        "geciktirirdi ([[kapi-birikimi-yayin-gecikmesi]]). Mutant envanteri o dosyanin "
-        "MUTANTLAR tablosundadir; buraya SAYI yazilmaz (prozadaki sayi sessizce bayatlar).",
-    ("nobet.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
-        "SAF MUTASYON BATARYASI (bolumler A..E): kapilarin kendi kirmizi-yolunu olcer, "
-        "yayinlanan hicbir ciktiya bakmaz. Mutant envanteri o dosyanin bolum "
-        "TABLOLARINDADIR; buraya SAYI yazilmaz — 8 Agu'da buradaki '17 mutant' beyani "
-        "gercek envanterle ayrismis bulundu (A 14 + C 3 + D 6 tablo mutanti + BOLUM E "
-        "kollari), yani prozada tutulan sayi sessizce bayatliyor "
-        "([[ikiz-tanim-sessiz-ayrisma]]).",
-    ("nobet.yml", "serit-b", "tools/ci-kapsam-test.py"):
-        "CI KAPSAM KAPISI — olctugu sey CI KABLOLAMASIDIR, yayinlanan icerik DEGIL. "
-        "28 Tem'de o gunku 13 fail'in HEPSI bu adimdandi ve 6 SAATLIK 404 pencereleri "
-        "acti; kapi KALDIRILMADI, dogru seride konumlandirildi.",
-    ("nobet.yml", "serit-b", "tools/paket-tazelik-kapisi.py"):
-        "ONIZLEME derleme paketinin (R2 imaj) tazeligi + oz-nobetci kollari; Pages "
-        "yayin ciktisini uretmez.",
-    # --- pano / teshis araci testleri ---------------------------------------
-    ("nobet.yml", "serit-b", "tools/marka-panel-test.py"):
-        "Marka DURUM PANOSU (parity-panel/CSV teshis ciktisi) testi; pruvo3d.com'a "
-        "hicbir sey yayinlamaz.",
-    ("nobet.yml", "serit-b", "tools/panel-mutasyon-test.py"):
-        "Ustteki marka-panel-test.py'nin MUTASYON BATARYASI (7 mutant + 1 kontrol); "
-        "olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
-        "(nobetci-mutasyon-test.py ile ayni desen). Korudugu pano zaten serit B'de.",
-    ("nobet.yml", "serit-b", "tools/panel-tazeleme-test.js"):
-        "Panelin OTOMATIK TAZELEME davranis testi (node DOM saplamasi): tazeleme "
-        "kullanicinin aramasini/filtresini/siralamasini SIFIRLAMIYOR mu. Panel bir "
-        "TESHIS ciktisidir, Pages'e yayinlanmaz; kendi adimi olmasi kapsamin GORUNUR "
-        "olmasi icindir (dolayli cagri ci-kapsam-test.py'de kapsam SAYILMAZ).",
-    # --- REKLAM/OLCUM ETIKET KAPSAM NOBETCISI (8 Agu 2026) -----------------------
-    # 🔴 ISTISNAI GIRIS: bu tabloya kural olarak yalniz "aracin KENDINI sinamasi"
-    # girer; burada GERCEK olcum kolu (bayraksiz) da B'dedir. GEREKCE (olculdu):
-    #   (a) SINIF SECIMI: olculen yuzey ZIYARETCIYE GIDEN icerik DEGIL, OLCUM
-    #       kablolamasidir. Eksik bir GA etiketi musteriye yanlis/sizintili bir sey
-    #       gostermez; bizim reklam butcemizi yanlis okutur. "Yanlis/eksik/sizintili
-    #       icerik canliya cikmasin" sinifi DEGILDIR -> serit secim olcutu A'ya
-    #       cagirmaz.
-    #   (b) TAMIR DEGERI SIFIR: kapi kirmizi yandiginda yayini durdurmak canlida
-    #       ZATEN duran (ve ayni eksigi tasiyan) sayfalari yerinde birakir; etiketi
-    #       ONARMAZ, yalnizca onarimin yayina inmesini GECIKTIRIR.
-    #   (c) ONLEME kolu CI'da degil TEK KAYNAKTADIR: GA blogu build.py::
-    #       GA_HEAD_SNIPPET'ten turer ve dort sablon `{ga_head}` capasini kullanir;
-    #       bu kol GORUNURLUK hattidir (ikiz ayrismasini + capa dusmesini yakalar).
-    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
-    #       6 SAATLIK canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
-    ("nobet.yml", "serit-b", "tools/reklam-etiket-kapisi.py"):
-        "Olculen yuzey ZIYARETCIYE GIDEN icerik DEGIL, OLCUM kablolamasidir (GA "
-        "etiketi · riza blogu · url_passthrough/ads_data_redaction · syncUrl'un "
-        "reklam parametresi korumasi) -> 'sizintili icerik canliya cikmasin' sinifi "
-        "DEGIL. Yayini durdurmanin TAMIR DEGERI SIFIR: kirmizi an canlida ZATEN ayni "
-        "eksigi tasiyan sayfalar durur, deploy'u bloklamak yalniz ONARIMI geciktirir. "
-        "ONLEME kolu tek kaynaktadir (build.py::GA_HEAD_SNIPPET + `{ga_head}` capasi); "
-        "bu kol GORUNURLUK hattidir. `--kendini-test` kolu ayni dosyanin ic nobetcisi.",
-    ("nobet.yml", "serit-b", "tools/reklam-url-test.js"):
-        "Ustteki kapinin (d) ekseninin DAVRANIS kolu (node DOM/URL saplamasi): "
-        "?gclid ile gelen ziyaretci filtreye dokununca parametre URL'de KALIYOR mu + "
-        "kapsam GENISLEMEDI mi. Ayni sinif ve ayni gerekce zinciri: olcum kablolamasi, "
-        "musteriye giden icerik degil; yayini durdurmanin tamir degeri SIFIR. Kendi "
-        "adimi olmasi kapsamin GORUNUR olmasi icindir (dolayli cagri ci-kapsam-test.py "
-        "kapsaminda SAYILMAZ).",
-    ("nobet.yml", "serit-b", "tools/backfill-koruma-test.py"):
-        "marka-kapsama.py --backfill'in VERI KAYBI kapisi: bos hucre dolar, dolu hucre "
-        "EZILMEZ/KUCULTULMEZ. Korudugu varlik gitignore'daki YEREL kapsama defteridir "
-        "(.marka-kapsama.json) — Pages ciktisina ya da katalog/odeme hattina hicbir sey "
-        "yazmaz; CI'da defter zaten YOKTUR, test SENTETIK fiksturle kosar. Bu yuzden "
-        "kirmizisi yayini durdurmamalidir; ama CI'da GORUNUR olmalidir cunku arizanin "
-        "kendisi (sessiz SET) tam da 'gorunmezlik' sinifindandi.",
-    ("nobet.yml", "serit-b", "tools/backfill-mutasyon-test.py"):
-        "Ustteki backfill-koruma-test.py'nin MUTASYON BATARYASI (6 mutant + 1 kontrol); "
-        "olctugu sey KABUL TESTININ KENDISI. Korudugu kapi serit B'de oldugu icin "
-        "batarya da serit B'dedir (panel-mutasyon-test.py ile ayni desen).",
-    # --- "SESSIZ UZERINE YAZMA YASAK" kapanis kanitlari (8 Agu 2026) ----------------
-    # Okan'in genel kurali ("sessiz uzerine yazma yasak") uc duzlemde kapatildi: hasat
-    # muhasebesi (backfill, ustte), GORSEL (R2 anahtari) ve KANIT DEFTERI (parite kaydi).
-    # Ucunun de GERCEK kapisi/kabul kolu SERIT A'da bloklayici kosuyor; buraya YALNIZ
-    # "kabul testi gercekten olcuyor mu" bataryalari ile aracin KENDINI sinama kolu girer.
-    ("nobet.yml", "serit-b", "tools/r2-ezme-mutasyon-test.py"):
-        "tools/r2-upload.py EZME-KORUMASININ mutasyon bataryasi (6 mutant + 1 kontrol): "
-        "koruma sokuldugunde TEK BASINA KIRMIZI yakiyor mu. Olctugu sey KABUL TESTININ "
-        "KENDISI, yayinlanan hicbir cikti DEGIL (backfill-mutasyon-test.py / "
-        "panel-mutasyon-test.py ile ayni desen). Korudugu KABUL TESTI "
-        "(tools/r2-upload-test.py) SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; "
-        "onleme kolu ise kaynagin kendisindedir (r2-upload.py varsayilanda fail-closed "
-        "REDDEDER, ezmek ACIK --ezmeye-izin-ver ister). S3 mock'lanir: gercek R2'ye ne "
-        "okuma ne yazma gider, adim ag GEREKTIRMEZ.",
-    # --- CTA DENGE KAPISININ BATARYASI (11 Agu 2026) ------------------------------
-    ("nobet.yml", "serit-b", "tools/cta-denge-mutasyon.py"):
-        "tools/cta-denge-kapisi.py CTA DENGE KAPISININ mutasyon bataryasi (11 oldurucu "
-        "+ 2 kontrol): orani ters cevirmek · sticky bandi eski %16,6 payina sismek · "
-        "Sepete Ekle etiketini sokmek · sepette WhatsApp'i odemenin onune gecirmek · "
-        "sepet CTA'larinin gecisini yeniden `all` yapmak (sinif takasinin ILK karesinde "
-        "ikincil kanal birincil odemeyi GECER; gorunmeyen sekmede o kare KALICIDIR) · "
-        "WhatsApp etiketini 375 px'te SARACAK kadar uzatmak (buton 44 -> 63,5 px) · "
-        "dokunma hedefini 44 px'in altina dusurmek · olcum capasini kirmak · kapinin "
-        "OLCULEMEDI kolunu sessiz yesile cevirmek · pozitif kanit kaynagini silmek "
-        "tek tek KIRMIZI yaniyor mu. Olctugu sey KABUL TESTININ KENDISI, yayinlanan "
-        "hicbir cikti DEGIL (ga4-olay-mutasyon.py ile ayni desen). Korudugu KAPI "
-        "(tools/cta-denge-kapisi.py) SERIT A'da, deploy.yml job `serit-a3`te "
-        "BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. "
-        "Ag GEREKTIRMEZ. ⚠️ DURUST BEYAN: mutasyon canli dosyalara HIC uygulanmaz — "
-        "her mutant icin sembolik bagli gecici bir kok kurulur ve yalnizca o kokteki "
-        "kopya bozulur; batarya kendi ciktisinda canli agacin sha256 esitligini olcer.",
-    # --- URUN SAYFASI / KART KAPSAM AYRIMININ BATARYASI (11 Agu 2026) --------------
-    ("nobet.yml", "serit-b", "tools/urun-vitrin-kapsam-mutasyon.py"):
-        "tools/d1-fiyat-parite-kapisi.py KAPSAM AYRIMI KAPISININ mutasyon bataryasi "
-        "(12 oldurucu + 3 kontrol): urun sayfasi kolunun tabana sabitlenmesi · ilan "
-        "tutarinin onden secili cipten AYRI turemesi · KART kolunun da yukselmesi "
-        "(Okan'in acikca REDDETTIGI davranis) · kart yuzeyinin urun sayfasi turetmesini "
-        "cagirmasi · markup/besleme dallarinin urun koluna baglanmasi · taninmayan "
-        "malzemenin sessizce 'varsayilan'a cokmesi · kenar veritabani kolonunun ham "
-        "alani birakmasi · taban secenegin tutarinin sayfadan kalkmasi · bilincli-secim "
-        "notunun sokulmesi ya da HER secimde gosterilmesi · kardes depo GORUNMEZ iken "
-        "gercek bir kapsam sizintisinin YUTULMASI tek tek KIRMIZI yaniyor mu. "
-        "UC KONTROL: davranis-notr yeniden adlandirma YESIL kalir; kardes depo GORUNMEZ "
-        "iken (CI fresh checkout'unun ta kendisi) kapi YESIL doner ve KAPSAM DISI jetonunu "
-        "basar; ZEHIRLI girdi + fail-open'a cevrilmis hukum fonksiyonu YESIL olur (o hukum "
-        "satirlarinin YUK TASIDIGININ kaniti — ayni zehir bozulmamis kapida KIRMIZI yanar, "
-        "ikisi CIFTTIR). Uc mutantta rc'ye EK OLARAK jeton izi aranir: renk DOGRU EKSENDEN "
-        "mi geliyor (kardes agac VARKEN E10 hukmu HALA HATALAR'da mi)? "
-        "Olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
-        "(cta-denge-mutasyon.py / edge-kart-tirnak-mutasyon.py ile ayni desen). Korudugu "
-        "KAPI (tools/d1-fiyat-parite-kapisi.py) SERIT A'da, deploy.yml job `build`te "
-        "BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Ag "
-        "GEREKTIRMEZ. ⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak metinleri "
-        "bellekte degistirilip exec/compile ile kosar (JS kaynagi kapinin STDIN'li "
-        "kosucusuna METIN olarak gecer); kosum sonunda alti hedef dosyanin sha256'si "
-        "bas=son karsilastirilir ve ciktida raporlanir.",
-    # --- R1 SIHIRLI-BAYT WHITELIST'I / AVIF EKSENI (9 Agu 2026) --------------------
-    ("nobet.yml", "serit-b", "tools/edge-kart-tirnak-mutasyon.py"):
-        "tools/edge-kart-kapisi.py'nin KARDES-DEPO AYRISTIRMASININ mutasyon bataryasi "
-        "(5 oldurucu + 1 kontrol): edge Worker `KART_ALANLARI` sabiti `+` ile COK PARCALI "
-        "yazildiginda ikinci parcadaki kolon goruluyor mu, gercekten eksik alan HALA eksik "
-        "deniyor mu (fail-open), cozulemeyen tanim 'alan yok' sayilip sessiz yesile "
-        "kaciyor mu, var olan alan yanlislikla eksik sayiliyor mu. Olctugu sey KAPININ "
-        "KENDI AYRISTIRMASI, yayinlanan hicbir cikti DEGIL (r2-avif-mutasyon-test.py / "
-        "ga4-olay-mutasyon.py ile ayni desen). Korudugu KAPI (tools/edge-kart-kapisi.py) "
-        "SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; bu giris bir TASIMA DEGIL, "
-        "bataryanin EKLENMESIDIR. Fiksturler SENTETIK: kardes depo (~/dev/pruvo-bot) "
-        "diskte OLMASA da kosar, urunler.json OKUNMAZ, ag GEREKTIRMEZ (~0,1 s). "
-        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
-        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
-        "karsilastirilir ve ciktida raporlanir.",
-    ("nobet.yml", "serit-b", "tools/konfigur-siyah-kapak-mutasyon.py"):
-        "tools/konfigur-siyah-kapak-kapisi.py'nin mutasyon bataryasi (5 oldurucu + 1 "
-        "kontrol). Korudugu invaryant Okan emridir: konfigur/dekor urununde kapak "
-        "gorseli siyah + onden secili renk Siyah. IKISI AYNI SEYDIR — on-secim AYRI bir "
-        "alanda durmaz, build.py::_konfigur_varsayilan_renk onu KAPAK GORSELINDEN "
-        "turetir; yani kapagi griye geri almak on-secimi de geri alir, SESSIZCE. Kapi "
-        "IKI KOLLUDUR ve bir kolu oldurmek digerinden GORUNMEZ, bu yuzden fiksturler "
-        "BILEREK birbirinin aynasi DEGIL: C2'yi (capa 0'da ama renk sirasi yuzunden "
-        "on-secim 'Gri') YALNIZ eksen A yakalar, C3'u (on-secim 'Siyah' ama "
-        "renkGorselIndeks BOSALTILMIS -> uretim fonksiyonu 'listenin ilki' koluna duser "
-        "ve kapak gri olsa bile 'Siyah' dondurur) YALNIZ eksen B yakalar. Olculen kollar: "
-        "turetimin URETIM KODUNDAN koparilip sabit renge baglanmasi · kapak capasinin "
-        "sokulmesi · OLCULEMEDI kolunun sessiz yesile cevrilmesi · pozitif kolun "
-        "oldurulmesi (gecerli siyah kapakli urunun reddi) · ihlal listesinin fail-open "
-        "bosaltilmasi. Olctugu sey KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL "
-        "(edge-kart-tirnak-mutasyon.py / cta-denge-mutasyon.py ile ayni desen). Korudugu "
-        "KAPI (tools/konfigur-siyah-kapak-kapisi.py) SERIT A'da, deploy.yml job `build`te "
-        "BLOKLAYICI kosar; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. "
-        "Fiksturler SENTETIK: urunler.json OKUNMAZ, ag GEREKTIRMEZ (~0,2 s; tools/build.py "
-        "OKUNUR cunku olculen sey tam da URETIM KODUNA capali olmaktir). "
-        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
-        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
-        "karsilastirilir ve ciktida raporlanir.",
-    ("nobet.yml", "serit-b", "tools/gorsel-koken-permutasyon-mutasyon.py"):
-        "tools/gorsel_koken.py TETIK (2) COK-KUME OLCUTUNUN mutasyon bataryasi "
-        "(6 oldurucu + 1 kontrol): tetik eskiden LISTE esitligiyle olculuyor, ayni URL "
-        "kumesinin saf PERMUTASYONU da 'gorsel degisimi' sayilip koken kaniti istiyordu — "
-        "oysa modulun korudugu olay bir gorselin yayina GIRMESIDIR (Okan'in 'konfigur "
-        "kapak siyaha' emri tam olarak bir permutasyondur ve 15/15 urunde kapiyi kirmizi "
-        "yakiyordu). 🔴 Daraltma fail-closed kapiyi fail-open'a cevirmenin ucuz yolu "
-        "oldugu icin batarya TEK YONLU DEGIL: permutasyonun muaf oldugu (pozitif) kolun "
-        "YANINDA ekleme · silme · DEGISTIRME (ayni uzunluk, farkli URL) · TEKRAR SAYISI "
-        "([A,A,B] vs [A,B,B] — set() ile yazilmis bir implementasyonun tam olarak "
-        "kacacagi delik) · yeni-urun kolu (1) · kategori-cevirme kolu (3) ele gecirildi "
-        "mi · kanonik anahtar cozulemeyince 'degismemis' deniyor mu (fail-closed) "
-        "eksenlerini AYRI AYRI olcer. Olctugu sey KAPININ KENDI TETIK YUKLEMI, yayinlanan "
-        "hicbir cikti DEGIL (edge-kart-tirnak-mutasyon.py / ga4-olay-mutasyon.py ile ayni "
-        "desen). Korudugu KAPI (tools/gorsel_koken.py) SERIT A DEGILDIR: yayim yolunda "
-        "DEGIL, YAZIM yolunda (duzelt.py / urun-ekle.py, flock altinda _atomic_write'tan "
-        "hemen once) kosar ve modul yuklenemezse cagiran betik acilista COKER; bu giris "
-        "bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Fiksturler SENTETIK: urunler.json "
-        "OKUNMAZ, koken manifest DIZINI okunmaz, disk gezilmez, ag GEREKTIRMEZ (~0,1 s). "
-        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
-        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
-        "karsilastirilir ve ciktida raporlanir.",
-    ("nobet.yml", "serit-b", "tools/gorsel-koken-dizin-mutasyon.py"):
-        "tools/gorsel_koken.py MANIFEST DIZINI BIRLESTIRMESININ mutasyon bataryasi "
-        "(6 oldurucu + 1 kontrol): kapi eskiden `manifest_dizini()` ile VAR OLAN ILK "
-        "dizini secip digerlerine HIC BAKMIYORDU. pruvo/urun-gorsel-koken (2 manifest) "
-        "var oldugu icin KaaN'in asil deposu pruvo-jenerator/urun-gorsel-koken (12 "
-        "manifest) okunmuyor; kapi korudugu olayi (koken kaniti VAR MI) degil DIZIN "
-        "SIRASINI olcuyordu ve kaniti GERCEKTEN OLAN urun bile eklenemiyordu — olculdu: "
-        "16 Skan Art kaydinda YESIL 0/16, GORSEL_KOKEN_DIR=jenerator kolunda 5/16. "
-        "🔴 'Daha cok yerde ara' bir kapiyi fail-open'a cevirmenin ucuz yolu oldugu icin "
-        "batarya TEK YONLU DEGIL: golgelemenin kalktigi (pozitif) kolun YANINDA "
-        "manifestsiz · CELISEN (ayni id iki dizinde FARKLI icerikle — sessiz cozum YOK) · "
-        "BOZUK (parse edilemeyen kopya) · DIZINSIZ kollarinin BLOCK kaldigini, kanonik "
-        "olarak AYNI iki kopyanin oncelik sirasindaki ilkiyle gectigini ve rapor SINIF "
-        "AYRIMININ ('manifest hic yok' != 'manifest var ama kaynak_stl diskte yok' — "
-        "11 kirmizinin 10'u ilki, 1'i ikincisi) canli oldugunu AYRI AYRI olcer. Olctugu "
-        "sey KAPININ KENDI YUKLEMI, yayinlanan hicbir cikti DEGIL (kardesi gorsel-koken-"
-        "permutasyon-mutasyon.py ile ayni desen). Korudugu KAPI (tools/gorsel_koken.py) "
-        "SERIT A DEGILDIR: yayim yolunda DEGIL, YAZIM yolunda (urun-ekle.py merge_safe / "
-        "duzelt.py, flock altinda _atomic_write'tan hemen once) kosar ve modul "
-        "yuklenemezse cagiran betik acilista COKER; bu giris bir TASIMA DEGIL, bataryanin "
-        "EKLENMESIDIR. Fikstur SENTETIK ve DEPO DISINDA (tempfile) kurulur: urunler.json "
-        "OKUNMAZ, gercek koken dizinleri OKUNMAZ, ag GEREKTIRMEZ (~0,1 s); "
-        "$GORSEL_KOKEN_DIR kosum boyunca temizlenir (cevre sizmasi hukmu bozar). "
-        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — kaynak bellekte degistirilip "
-        "exec/compile ile kosar; kosum sonunda canli dosyanin sha256'si bas=son "
-        "karsilastirilir ve ciktida raporlanir.",
-    ("nobet.yml", "serit-b", "tools/tavsiye-filament-mutasyon.py"):
-        "`tavsiye_filament` D1 HATTININ mutasyon bataryasi (6 oldurucu + 1 kontrol): "
-        "kolon urun_hash KAPSAMINDAN cikarilinca kirmizi yaniyor mu (SESSIZ AYRISMA — "
-        "'alan degisti ama hash ayni' hali kolonu HICBIR ZAMAN senkronlatmaz), tip kapisi "
-        "fail-open'a cevrilince (istisna yerine []) yakaliyor mu, dize SESSIZCE tek "
-        "elemanli diziye normalize edilince goruyor mu (veri kusurunu gizler), GECERLI "
-        "bir dizi kaydi reddedilince (yanlis-pozitif) kirmizi yaniyor mu, bozuk katalogta "
-        "KAC KAYITTA HANGI TIP oldugu SAYIYLA raporlaniyor mu, kolon bes tanimin "
-        "(d1-sema.sql · GOC_KOLON · _KT_SEMA · satir_sql INSERT · KOLONLAR) birinden "
-        "dusunce goruluyor mu. Olctugu sey KAYNAGIN KENDI YUKLEMLERI, yayinlanan hicbir "
-        "cikti DEGIL (edge-kart-tirnak-mutasyon.py / ga4-olay-mutasyon.py ile ayni desen). "
-        "Korudugu invaryantin SERIT A ayagi tools/stok-d1-kapisi.py C EKSENIDIR (bes-tanim "
-        "kilidi + `INSERT − KOLONLAR == KASITLI_DISARIDA`) ve deploy.yml'de BLOKLAYICI "
-        "kosar, yeni kolonu da kapsar; bu giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. "
-        "Fiksturler SENTETIK: urunler.json OKUNMAZ, canli D1/wrangler/AG GEREKMEZ (~0,3 s). "
-        "⚠️ DURUST BEYAN: mutasyon DISKE HIC yazilmaz — arama.py ve d1-sync.py kaynaklari "
-        "bellekte degistirilip exec/compile ile kosar; kosum sonunda IKI canli dosyanin da "
-        "sha256'si bas=son karsilastirilir ve ciktida raporlanir.",
-    ("nobet.yml", "serit-b", "tools/ga4-olay-mutasyon.py"):
-        "tools/ga4-olay-kapisi.py HUNI KAPISININ mutasyon bataryasi (10 oldurucu + 1 "
-        "kontrol): urun goruntuleme / sepete ekleme / odemeye baslama olaylari tek tek "
-        "sokulunca kapi GERCEKTEN kirmizi yaniyor mu, riza kapisi gondericiden alininca "
-        "yakaliyor mu, olay parametresine musteri alani sizarsa goruyor mu. Olctugu sey "
-        "KABUL TESTININ KENDISI, yayinlanan hicbir cikti DEGIL (r2-avif-mutasyon-test.py / "
-        "parite-kayit-mutasyon-test.py ile ayni desen). Korudugu KAPI "
-        "(tools/ga4-olay-kapisi.py — hem bayraksiz GERCEK olcum hem `--kendini-test` "
-        "ic nobetcisi) SERIT A'da, deploy.yml job `serit-a3`te BLOKLAYICI kosuyor; bu "
-        "giris bir TASIMA DEGIL, bataryanin EKLENMESIDIR. Ag GEREKTIRMEZ (GA4'e tek "
-        "istek gitmez, olay kuyrugu node:vm icinde sahte). ⚠️ DURUST BEYAN: batarya "
-        "mutasyonu gercek dosyalara uygular ve kosum sonunda BAYT BIREBIR geri alir "
-        "(kendi ciktisinda `geri alma: 3 dosya` satiriyla olcer); yayin yoluna dusen "
-        "kalici bir degisiklik birakmaz.",
-    ("nobet.yml", "serit-b", "tools/r2-avif-mutasyon-test.py"):
-        "tools/r2-upload.py R1 WHITELIST'ININ mutasyon bataryasi (6 mutant + 1 kontrol): "
-        "AVIF kabulu marka kumesine BAGLI kaldi mi, yoksa `ftyp` tek basina yeterli "
-        "sayilip kapi her ISO-BMFF govdesine (mp4/mov/heic) acildi mi. Olctugu sey KABUL "
-        "TESTININ KENDISI, yayinlanan hicbir cikti DEGIL (r2-ezme-mutasyon-test.py / "
-        "backfill-mutasyon-test.py ile ayni desen). Korudugu KABUL TESTI "
-        "(tools/r2-upload-test.py) SERIT A'da, deploy.yml'de BLOKLAYICI kosuyor; onleme "
-        "kolu ise kaynagin kendisindedir (r2-upload.py bilinmeyen govdeyi yukleme "
-        "ONCESI fail-closed REDDEDER). S3 mock'lanir: gercek R2'ye ne okuma ne yazma "
-        "gider, adim ag GEREKTIRMEZ.",
-    ("nobet.yml", "serit-b", "tools/parite-kayit-test.py"):
-        "tools/parite_kaydi.py YAZICISININ kabul testi: sayisal alanda gerileme "
-        "varsayilanda REDDEDILIYOR mu (dosya BAYT BAYT degismeden), olcu iki kaynaktan "
-        "mi aliniyor (mevcut kayit + MONOTON tavan), --kuru-prova tek bayt yazmiyor mu. "
-        "SENTETIK gecici kokle kosar: canli jenerator/test/uretilebilirlik-parite.json "
-        "ACILMAZ, urunler.json / uretilen sayfa / D1 / R2 / odeme yuzeylerine tek bayt "
-        "yazmaz — 'canliya yanlis/sizintili icerik cikmasin' sinifi DEGILDIR. Ayni "
-        "sozlesmenin GERCEK okuyucu kapisi (tools/onizleme-vaat-kapisi.py, bayraksiz "
-        "kol) SERIT A'da, deploy.yml'de BLOKLAYICI kosmaya devam ediyor.",
-    ("nobet.yml", "serit-b", "tools/parite-kayit-mutasyon-test.py"):
-        "Ustteki parite-kayit-test.py'nin MUTASYON BATARYASI (8 mutant + 1 kontrol): "
-        "tavan blogu bayatlatilarak kapi atlatilamiyor mu. Olctugu sey KABUL TESTININ "
-        "KENDISI. Korudugu kabul testi serit B'de oldugu icin batarya da serit B'dedir "
-        "(backfill-mutasyon-test.py ile ayni desen). Mutasyon gecici SYMLINK aynasina "
-        "uygulanir, canli tools/ dizinine YAZILMAZ.",
-    # --- ONARIM-COMMIT ARACI KABUL + MUTASYON (14 Agu 2026) -------------------------
-    # 37d62efc commit'i ile eklenen aracin KENDINI sinamasi: 12 vaka (F1-F8 + --kuru)
-    # sentetik gecici depoda (bare uzak + yerel klon), metin eslemesi YOK, ag YOK,
-    # canli agaca YAZMAZ, gecici depolar kosum sonunda SILINIR. Olculmus sure ~5 s.
-    # Mutasyon kolu 5 tekil satir mutasyonunu gecici kopyaya uygulayip ilgili vakayi
-    # kosar; 5/5 KIRMIZI olmali (canli tools/ dizinine YAZMAZ).
-    # HER IKI KOL da serit B'de: aracin KENDI kirmizi yolunu olcer (mutasyon bataryasi),
-    # "yanlis/eksik/sizintili icerik canliya cikmasin" A-sinifi DEGIL — isci
-    # ergonomisi aracinin stash/worktree/--ff-only merge/push yordamini sentetik
-    # depoda GERCEKTEN kosar ve sonucunu test eder. Yayini durdurmanin tamir
-    # degeri SIFIR (aracin kendisi hataliysa iscinin manuel workaround'u var).
-    ("nobet.yml", "serit-b", "tools/onarim-commit-test.py"):
-        "YALNIZ kapinin KENDINI sinamasi: 12 vaka (F1-F8 + --kuru) sentetik "
-        "gecici depoda GERCEK kosum (bare uzak + yerel klon, metin eslemesi YOK, "
-        "ag YOK, canli agaca YAZMAZ). Mutasyon kolu 5 tekil satir mutasyonunu "
-        "gecici kopyaya uygular (canli tools/ dizinine DOKUNMAZ). 'Yanlis/eksik/"
-        "sizintili icerik canliya cikmasin' A-sinifi DEGILDIR — isci ergonomisi "
-        "aracinin (stash/worktree/--ff-only merge/push) yordamini sinayan "
-        "kendi-kabulu; yayini durdurmanin tamir degeri SIFIR.",
-    ("nobet.yml", "serit-b", "tools/durum-test.py"):
-        "durum.py PANOSUNUN kabul testi; pano bir teshis ciktisidir, yayinlanmaz. "
-        "IKI KOL DA bu job'da: bayraksiz (gercek pano ciktisi) + `--ic-nobetci` "
-        "(6c sizinti muafiyetinin mutasyon bataryasi). ⚠️ Bu anahtar ARAC YOLU "
-        "granulundedir, KOL granulunde DEGIL — yani tek basina bir kolun adimi "
-        "silinirse BURASI kirmizi yanmaz. Kol capasi Bolum E'dedir "
-        "(E_ZORUNLU_CAGRILAR: iki kol AYRI AYRI beyan edilmistir).",
-    ("nobet.yml", "serit-b", "tools/durum-edge-test.py"):
-        "durum.py EDGE_KATALOG sayaci (pano bolumu) testi; yayinlanan cikti uretmez.",
-    ("nobet.yml", "serit-b", "tools/durum-yedek-test.py"):
-        "durum.py '7) YEDEK TAZELIGI' pano bolumunun testi; yayinlanan cikti uretmez.",
-    ("nobet.yml", "serit-b", "tools/yedek-sir-eleme-test.py"):
-        "yedekle.py'nin SIR ELEMESI + yedek KOKU sir temizligi bataryasi (8 Agu 2026 "
-        "Okan karari: jetonlar ortak Drive yedegine girmez). Serit B, cunku olctugu "
-        "yuzey YEREL YEDEKLEME ARACIDIR: yayinlanan hicbir bayta dokunmaz (urunler.json/"
-        "D1/R2/Pages/odeme yuzeyleri disinda, tamamen hermetik kum havuzunda kosar). "
-        "Buradaki kirmizi 'yedek araci curudu' der, 'site bozuk' DEMEZ — yayini "
-        "durdurmak yanlis olurdu ([[kapi-birikimi-yayin-gecikmesi]]). Kardesi "
-        "durum-yedek-test.py ile AYNI serit ve AYNI gerekce.",
-    ("nobet.yml", "serit-b", "tools/derin-cap-test.py"):
-        "Hasat adaptorlerinin `--derin` pagination ayrimi (urun EKLEME araci) testi; "
-        "yayin hattinda hicbir sey uretmez.",
-    ("nobet.yml", "serit-b", "tools/d1-sync-tani-test.py"):
-        "d1-sync HATA TANISI METNININ testi; GERCEK D1 yazma/geri-okuma nobeti "
-        "(`d1-sync.py --kendini-test`) serit A'da bloklayici kaldi.",
-    ("nobet.yml", "serit-b", "tools/d1-sync-durum-test.py"):
-        "d1-sync DURUM TANISI aracinin testi; gercek yazma nobeti serit A'da.",
-    ("nobet.yml", "serit-b", "tools/d1-seq-test.py"):
-        "D1 seq tam-sayi ve kanonik-sira hesaplarinin agsiz kabul/mutasyon testi; "
-        "gercek D1 yazma/geri-okuma nobeti serit A'da bloklayici kaldi.",
-    ("nobet.yml", "serit-b", "tools/test-baski-senkron.py"):
-        "Baski senkron ARACININ kabul testi; yayinlanan Pages ciktisini uretmez.",
-    ("nobet.yml", "serit-b", "tools/edge-flip-hazirlik-test.py"):
-        "EDGE_KATALOG bayragi icin SAF KARAR MANTIGI araci; yayinlanan icerigi "
-        "uretmez/degistirmez.",
-    ("nobet.yml", "serit-b", "tools/faz3-gecikme-test.py"):
-        "Teshis araci faz3-gecikme.js'in yanlis-pozitif/negatif nobetcisi (sahte worker "
-        "ucu); yayin ciktisi ekseninde degil.",
-    ("nobet.yml", "serit-b", "tools/faz3-sayfalama-test.py"):
-        "Teshis araci faz3-sayfalama.js'in 'OLCULEMEDI vs BOZUK' nobetcisi (sahte "
-        "katalog ucu, yalniz 127.0.0.1). Kardesi faz3-gecikme-test.py ile AYNI serit: "
-        "olctugu sey TESHIS ARACININ hukmu, yayinlanan icerik DEGIL — urunler.json'u "
-        "yalniz OKUR, uretilen sayfa/D1/R2/odeme yuzeylerine dokunmaz, tek bayt "
-        "yayinlamaz. Buradaki kirmizi 'nobetci curudu' der, 'site bozuk' DEMEZ; yayini "
-        "durdurmak yanlis olurdu ([[kapi-birikimi-yayin-gecikmesi]]). Bir A-kapisinin "
-        "buraya kaydirilmasi DEGILDIR: kapinin A karsiligi hic olmadi, arac bu dalda dogdu.",
-    ("nobet.yml", "serit-b", "tools/kutu-arsivle-test.py"):
-        "HIJYEN ARACI, YAYIN KAPISI DEGIL: tools/kutu-arsivle.py mimarlarin ORTAK POSTA "
-        "KUTUSUNU (~/.claude/.../mimar-posta-kutusu.md) tavana indirir. Olctugu sey "
-        "yazisma hijyenidir; urunler.json / index.html / uretilen sayfa / D1 / R2 / "
-        "odeme yuzeylerinin HICBIRINE dokunmaz, yayinlanan tek bir bayt uretmez. "
-        "Kabul testi + `--mutasyon` turu tempfile fiksturleriyle OFFLINE kosar ve "
-        "GERCEK kutuya YAZMAZ. Bir A-kapisinin buraya kaydirilmasi DEGILDIR: kapinin "
-        "A karsiligi hic olmadi, arac bu dalda dogdu.",
-    ("nobet.yml", "serit-b", "tools/kanca-nobeti-test.py"):
-        "YEREL GELISTIRME ORTAMI NOBETCISININ MANTIK TESTI, YAYIN KAPISI DEGIL: "
-        "tools/kanca-nobeti.py ANA CHECKOUT'un git kancalarinin sessizce devre disi "
-        "kalip kalmadigini olcer (1 Agu: `.git/config`'e `core.hooksPath = /dev/null` "
-        "sizdi, D1 senkronu + commit guard'i hic kosmadi ve hicbir yerde kirmizi "
-        "yanmadi). NOBETCININ KENDISI CI'DA KOSAMAZ: yargiladigi dosya "
-        "`<ana>/.git/config`'tir ve CI ayri bir klon yapar, `.git/` commit'lenmez. "
-        "Nobetci YEREL iki yoldan atesler (tools/durum.py bolum 8 + "
-        "tools/yedek-hook-kur.py kurulum-sonrasi dogrulamasi); CI'ya baglanan sey "
-        "yalnizca MANTIGIN kendisidir. Kabul testi + `--mutasyon` turu tempfile "
-        "icinde SENTETIK git depolari kurar, GERCEK depoya DOKUNMAZ ve urunler.json / "
-        "index.html / uretilen sayfa / D1 / R2 / odeme yuzeylerinin HICBIRINE "
-        "dokunmaz — yayinlanan tek bir bayt uretmez. Buradaki kirmizi 'nobetcinin "
-        "mantigi curudu' der, 'site bozuk' DEMEZ; yayini durdurmak yanlis olurdu "
-        "([[kapi-birikimi-yayin-gecikmesi]]). Bir A-kapisinin buraya kaydirilmasi "
-        "DEGILDIR: kapinin A karsiligi hic olmadi, arac bu dalda dogdu.",
-    # --- KANCA KABLOLAMASI (4 Agu 2026) — ICERIK KOLU SERIT A'DADIR ---------
-    # 🔴 AYRIM ACIK OLSUN: bu ailenin ICERIK kapisi
-    # `tools/kanca-kablolama-nobeti.py --ci` adimidir ve SERIT A'da (job
-    # `serit-a3`) BLOKLAYICI kosar — izlenen kanca kaynagi fail-open'a donerse
-    # yayin DURUR. Asagidaki TEK giris (betik `kanca-kablolama-test.py`) o
-    # kapinin degil, ARACIN KENDISININ sinamasidir; serit kuralinin "aracin
-    # kendini sinamasi" maddesine girer. Betik iki adimda kosar (bayraksiz kabul
-    # + `--mutasyon`); ikisi de bu tek giriste kapsanir.
-    ("nobet.yml", "serit-b", "tools/kanca-kablolama-test.py"):
-        "ARACIN KENDINI SINAMASI, YAYIN KAPISI DEGIL. Bu dosya iki kolu birden "
-        "kosar: (a) bayraksiz kabul testi — tempfile icinde SENTETIK git depolari "
-        "kurup GERCEK `git commit` ile 'eski govde gecti / izlenen govde durdu'yu "
-        "olcer; (b) `--mutasyon` — kendi mutant bataryasi. IKISI DE tamamen "
-        "OFFLINE'dir, GERCEK depoya / gercek `~/.gitconfig`e (sahte HOME + "
-        "GIT_CONFIG_GLOBAL/SYSTEM katmanlari) DOKUNMAZ ve urunler.json · "
-        "index.html · uretilen sayfa · D1 · R2 · odeme yuzeylerinin HICBIRINE "
-        "dokunmaz — yayinlanan tek bir bayt uretmez. Buradaki kirmizi 'nobetcinin "
-        "kabul testi curudu' der, 'site bozuk' DEMEZ; yayini durdurmak yanlis "
-        "olurdu ([[kapi-birikimi-yayin-gecikmesi]]). ICERIK ekseni ZATEN serit "
-        "A'da bloklar (`kanca-kablolama-nobeti.py --ci`), yani bir A-kapisinin "
-        "buraya kaydirilmasi DEGILDIR: A kolu YERINDE DURUYOR.",
-    # --- onizleme (ayri dagitim hedefi) arayuz testleri ---------------------
-    ("nobet.yml", "serit-b", "onizleme/test/onbellek-surum.mjs"):
-        "ONIZLEME alt sisteminin (ayri imaj dagitimi) onbellek surumu; Pages ciktisini "
-        "uretmez.",
-    ("nobet.yml", "serit-b", "onizleme/test/renk-yazi-gorunurluk.mjs"):
-        "ONIZLEME ARAYUZU (viewer) gorunurluk testi; Pages ciktisini uretmez.",
-    ("nobet.yml", "serit-b", "onizleme/test/iki-govde-kabul.mjs"):
-        "ONIZLEME worker parca ucu + viewer kabulu (+ kirmizi-mutasyon turu); ayri "
-        "dagitim hedefi.",
-    # --- KATALOG ENVANTERI isi (RAPOR kolu; bloklayici kol serit A'da) ------
-    ("nobet.yml", "envanter", "tools/denetim-kapisi.py"):
-        "YALNIZ `--tum-katalog --envanter` (RAPOR) kolu. Bu kol TAM katalogu tarar ve "
-        "ONCEDEN VAR OLAN kayitlari sayar; bugun 104 kayit KIRMIZI olurdu ve bloklayici "
-        "baglansaydi TUM EKIBIN yayini dururdu. BLOKLAYICI kol AYNEN SERIT A'da duruyor: "
-        "`--commit-farki` (job `build`) yeni/degisen her kaydi ayni sertlikte bloklar. "
-        "KURAL: yeni/degisen kayit BLOKLAR · tam katalog RAPORLAR. Katalog okunamazsa "
-        "rc 2 ile KIRMIZI yanar (olu nobetci olamaz).",
-    # --- CRON NABZI isi (ALARM kolu; yayin kusuru DEGIL) --------------------
-    ("nobet.yml", "cron-nabzi", "tools/cron-nabiz-kapisi.py"):
-        "ZAMANLANMIS DENETIM NABZI — olctugu sey GitHub'in TETIKLEME MOTORU ve "
-        "zamanlanmis denetimlerin TAZELIGIDIR, yayinlanan icerik DEGIL. Bu isin "
-        "kirmizisi 'denetim yapilmiyor' der; o hal bir YAYIN kusuru degildir ve yayini "
-        "durdurmak yanlis olurdu (olculdu: kapi birikmesi bu depoda yayin suresini "
-        "21 gunde 15,6x uzatti ve musteriye 404 olarak yansidi -> "
-        "[[kapi-birikimi-yayin-gecikmesi]]). Iki kol da burada: `--kendini-test` (agsiz "
-        "fikstur) ve GERCEK API olcumu. Veri cekilemezse rc 2 ile KIRMIZI yanar "
-        "(fail-closed; olu nobetci olamaz). 1 Agu: A4 PAKET ekseni eklendi — elle "
-        "yayinlanan shop Worker'inin bayatligi (1 Agu: 14,5 saat, %84'e varan fazla "
-        "tahsilat) ancak burada GORUNUR olur; olcumun KENDISI yayin yolundan ayri bir "
-        "zamanlanmis is akisindadir (paket-tazelik-alarmi.yml, `push` tetikleyicisi YOK).",
-    # --- UZLASTIRICI SILME KARANTINASI (11 Agu 2026) — job `cron-nabzi` ------
-    # 🔴 BILINCLI SERIT SECIMI, ucuz etkisizlestirme DEGIL. Bu iki kapi D1
-    # uzlastiricisinin SILME kolunun KARANTINASINI olcer; kirmizisi VERI SILME
-    # riskini gosterir (kosum 31532464176: 37 mesru katalog satiri silindi) — yani
-    # ciddidir ve CI'da GORUNUR kalir. Yine de yayini DURDURMAMALIDIR:
-    #   (a) Uzlastirici `push` seridinde KOSMAZ; kendi cron/elle kolundadir. Yayin
-    #       yolunun (deploy.yml) uzlastiriciya `needs:` bagi YOKTUR -> yayini
-    #       durdurmanin bu kola TAMIR DEGERI SIFIRDIR.
-    #   (b) Yayin yolu KATALOG SENKRONUNA bagli degildir: senkron aksasa da site
-    #       yayinlanir (aksamanin bedeli Ege'nin katalogu gorememesidir, yayin
-    #       DEGIL) -> bu kirmizi bir YAYIN kusuru sinifi degildir.
-    #   (c) Bedel olculdu: yayin yoluyla ILGISIZ bir kapinin bloklayici seride
-    #       kalmasi bu depoda saatlerce yayin durmasi olarak yansidi
-    #       ([[kapi-birikimi-yayin-gecikmesi]]).
-    # 🔴 KARANTINANIN KENDISI bir A-kapisinin yerine gecmez: silme kolunu FIILEN
-    # durduran fail-closed esik uzlastirici KAYNAGINDADIR; bu iki adim o esigin
-    # canli ve ayirt edici oldugunu olcen GORUNURLUK/KANIT hattidir.
-    ("nobet.yml", "cron-nabzi", "tools/uzlastirici-karantina-test.py"):
-        "D1 uzlastiricisinin SILME kolunun karantinasini olcen kabul testi (K1..K7; "
-        "K7 gercek olayin birebir yeniden oynatimidir ve `silinen: 0` bekler). "
-        "Kirmizisi VERI SILME riskini gosterir ve CI'da gorunur kalir, ama yayini "
-        "DURDURMAMALIDIR: uzlastirici `push` seridinde degil kendi cron/elle kolunda "
-        "kosar ve yayin yolu KATALOG SENKRONUNA bagli degildir (senkron aksasa da site "
-        "yayinlanir). Yayini durdurmanin bu kola tamir degeri SIFIRDIR. Silmeyi FIILEN "
-        "durduran fail-closed esik uzlastiricinin KAYNAGINDADIR; bu adim o esigin canli "
-        "oldugunu olcer. BILINCLI serit secimidir, A-kapisini ucuza etkisizlestirme "
-        "DEGIL.",
-    ("nobet.yml", "cron-nabzi", "tools/uzlastirici-karantina-mutasyon.py"):
-        "Yukaridaki karantinanin AYIRT EDICILIGINI olcen mutasyon bataryasi: karantina "
-        "mantiginin her kolu icin bir mutant KIRMIZI yanmali, kontrol mutantlari YESIL "
-        "kalmali (tautoloji degil -> [[mutasyon-kaniti-yeniden-uretilebilir]]). Aracin "
-        "KENDINI sinamasidir; mutantlar gecici kopyaya uygulanir ve yayinlanan icerigi "
-        "URETMEZ. Kirmizisi 'karantinanin koruma gucu curudu' der, katalogun bozuk "
-        "oldugunu DEGIL — kardesiyle ayni gerekceyle serit B'dedir: uzlastirici `push` "
-        "seridinde kosmaz ve yayin yolu katalog senkronuna bagli degildir. BILINCLI "
-        "serit secimidir, A-kapisini ucuza etkisizlestirme DEGIL.",
-    # --- JENERATOR HACIM TAM TAKIMI (2 Agu 2026) — DIS BAGIMLILIKLI, ELLE TETIK ----
-    # Job `hacim-tam-takim` yalniz `workflow_dispatch` ile kosar ve `deploy` ona
-    # `needs:` ile BAGLI DEGILDIR -> serit B. BILEREK boyle: bu iki kolun TAM kosumu
-    # OpenSCAD (nightly AppImage + xvfb) ve iki DIS kaynak ister (private kardes depo
-    # jetonu + gizli uretim paketi secret'i). Bloklayici `build` yoluna baglansaydi
-    # jeton/secret baglanana kadar TUM EKIBIN yayini dururdu; ayrica OpenSCAD kurulumu
-    # + 22 aile render'i yayin yolunu dakikalarca uzatirdi. Kusuru yayini durdurmaz
-    # ama SESSIZ de kalmaz: on-kosul adimi eksik secret'ta OLCULEMEDI deyip KIRMIZI
-    # yanar (fail-closed) ve kosum CI'da GORUNUR.
-    # 🔴 Bu iki kolun `--kendini-test` KARDESLERI serit A'da BLOKLAYICI kosuyor
-    # (job `serit-b` degil, `build`): kapinin kendi kablolamasi orada olculur.
-    ("nobet.yml", "hacim-tam-takim", "jenerator/test/dogrula.py"):
-        "Jeneratör TAM TAKIMI serit B'de: bayraksiz `--hepsi` kolu OpenSCAD + private "
-        "kardes depo jetonu + gizli uretim paketi ister; bloklayici yola baglansaydi "
-        "jeton/secret baglanana kadar tum ekibin yayini dururdu ve yayin yolu render "
-        "suresince uzardi. Kusuru yayini DURDURMAZ ama sessiz kalmaz: eksik secret'ta "
-        "on-kosul adimi OLCULEMEDI deyip KIRMIZI yanar. `--kendini-test` kolu serit "
-        "A'da bloklayici kosuyor.",
-    ("nobet.yml", "hacim-tam-takim", "jenerator/test/kabul.py"):
-        "Jeneratör TAM TAKIMI serit B'de: bayraksiz kabul kolu TEST 1'i (hacim vs "
-        "render) icerdigi icin ayni OpenSCAD + dis kaynak zincirine bagimlidir; "
-        "bloklayici yola baglanmasi ayni yayin durdurma bedelini dogururdu. Kusuru "
-        "yayini DURDURMAZ ama sessiz kalmaz (fail-closed on-kosul + CI'da gorunur "
-        "adim). `--kendini-test` kolu serit A'da bloklayici kosuyor.",
-    # --- MARKA SAYFASI ARTIM/FILTRE DAVRANISI (8 Agu 2026) -----------------
-    ("nobet.yml", "serit-b", "tools/marka-artim-test.py"):
-        "ISTEMCI DAVRANISI olcer (artimli kart cizimi + sayfa-ici model filtresi), "
-        "yayin DOGRULUGUNU degil. Marka sayfasinin SSR yuzeyi — kart yuzeyi kimligi, "
-        "bolum ayrimi (cakisma IHLAL), agirlik tavani, teslim yolunun kanonikligi — "
-        "BLOKLAYICI seritte tools/marka-sayac-kapisi.py'de ZATEN olculuyor; bu adim o "
-        "yuzeyin ISTEMCI ucunu (fetch gercekten cagrildi mi, kart cizdi mi, adres "
-        "degismiyor mu, JS-siz hal saglam mi) node'da kosturur. Kirmizisi 'kalan kartlar "
-        "artimli cizilmiyor' der — SSR'de basili N kart + duz bag listesi JS-siz halde "
-        "ZATEN gorunur oldugu icin sayfa yine dogru ve eksiksiz linklidir, yayini "
-        "durdurmanin tamir degeri yoktur.",
-    # 🔴 10 Agu 2026 — JOB ID DEGISTI (`serit-b` -> `marka-bolum-bataryasi`). Bu dort
-    # agir batarya `serit-b`den AYRI joblara alindi (olculdu: dordu birlikte o job'un
-    # 142 dakikasinin 123'unu yiyordu ve kuyrukta 12 kosumun 8'i `cancelled` dusuyordu).
-    # SERIT DEGISMEDI — nobet.yml'in TUM joblari serit B'dir; degisen YALNIZ anahtarin
-    # job alanidir. Bu satiri guncellemeseydik S3 (bayat beyan) KIRMIZI yanardi ve S4
-    # ayni anda "BEYANSIZ kapi cagrisi" derdi: tasima, beyan rejiminden CIKIS DEGILDIR.
-    ("nobet.yml", "marka-bolum-bataryasi", "tools/marka-bolum-mutasyon.py"):
-        "Marka bolum kimligi kapisinin ayirt ediciligini iki katmanda mutasyonla olcer; "
-        "agsiz ve deterministiktir. Yayin dogrulugunu degil nobetcinin KENDI koruma "
-        "gucunu sinadigi icin serit B'de kosar; fail-closed kirmizisi gorunur kalir ama "
-        "yayin yolunu durdurmaz.",
-    ("nobet.yml", "marka-sayfa-bataryasi", "tools/marka-sayfa-mutasyon.py"):
-        "Marka tek-sayfa hukmunun 13 oldurucu ve 5 kontrol mutantiyla ayirt "
-        "ediciligini olcer; agsiz ve deterministiktir. Yayin dogrulugunu degil "
-        "nobetcinin KENDI koruma gucunu sinadigi icin serit B'de kosar; fail-closed "
-        "kirmizisi gorunur kalir ama yayin yolunu durdurmaz.",
-    ("nobet.yml", "model-uyelik-bataryasi", "tools/model-uyelik-kapisi.py"):
-        "Aracin KENDINI sinayan 35 oldurucu + 7 kontrol mutasyon bataryasidir; "
-        "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "
-        "Mutantlar gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi "
-        "kapinin ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
-    ("nobet.yml", "marka-invaryant-sayac-bataryasi",
-     "tools/marka-invaryant-sayac-mutasyon.py"):
-        "Sayfa sayaci INVARYANTININ (beyan edilen parca sayisi == erisilebilen kart "
-        "sayisi) ayirt ediciligini 7 oldurucu + 2 kontrol mutantiyla olcer; agsiz ve "
-        "deterministiktir. Mutantlar tools/ klasorunun KOPYASINA uygulanir (canli "
-        "dosyanin bas/son sha256'si karsilastirilir), yayinlanan icerigi uretmez. "
-        "Invaryantin GERCEK katalog uzerindeki bayraksiz olcumu deploy.yml serit-a3'te "
-        "tools/marka-sayac-kapisi.py'de BLOKLAYICI kalir; buradaki kirmizi 'kapinin "
-        "ayirt ediciligi curudu' der, katalogun bozuk oldugunu DEGIL.",
-    ("nobet.yml", "model-baslik-bataryasi", "tools/model-baslik-kolu-test.py"):
-        "Aracin KENDINI sinayan 18 oldurucu + 4 kontrol mutasyon bataryasidir; "
-        "bayraksiz GERCEK katalog olcumu deploy.yml serit-a3'te BLOKLAYICI kalir. "
-        "Mutantlar gecici kopyaya uygulanir, yayinlanan icerigi uretmez; kirmizisi "
-        "kapinin ayirt ediciliginin curudugunu soyler, katalogun bozuk oldugunu degil.",
-    # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
-    ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
-        "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "
-        "canli 200 dogrulanan taslaklari 'yayinda'ya alir. Yayini bloklamasi zaten "
-        "MANTIKSIZ olurdu; buradaki kirmizi taslaklari TASLAK birakir (fail-closed).",
 }
 
 SERIT_B_SEBEP = ("yayini BLOKLAMAYAN job (`%s`) — `deploy` bu job'a `needs:` ile "
                  "BAGLI DEGIL (serit B)")
-
-SERIT_B_TANI = (
-    "SERIT B'DE BEYANSIZ KAPI: %s -> `%s`\n"
-    "   is akisi: %s · job: %s · adim %d %s\n"
-    "   NEDEN BLOKLAYICI: bu job kirmizi yansa da `deploy` KOSAR -> adim CI'da GORUNUR\n"
-    "   ama yayini DURDURMAZ. Bir A-kapisini etkisizlestirmenin en ucuz yolu onu buraya\n"
-    "   TASIMAKTIR (silmeye ya da `|| true` yazmaya gerek yok).\n"
-    "   COZUM: adim SERIT A'ya (job `build`) geri tasinmali; BILEREK serit B ise\n"
-    "   tools/is-akisi-kapisi.py::SERIT_B tablosuna (is_akisi, job, kapi_yolu) -> GEREKCE\n"
-    "   olarak TEK TEK yaz. Joker (`*`) KABUL EDILMEZ; toplu beyan yapilamaz.")
-
-
-def _serit_b_hijyen(kullanilan):
-    """SERIT_B tablosunun KACIS DELIGI HIJYENI (S1/S2/S3). `kullanilan` = bu kosumda
-    GERCEKTEN yayini bloklamayan bir cagriya karsilik gelen anahtarlar."""
-    hatalar = []
-    for anahtar, gerekce in sorted(SERIT_B.items()):
-        etiket = "%s :: %s :: %s" % anahtar
-        if not (isinstance(anahtar, tuple) and len(anahtar) == 3):
-            hatalar.append("SERIT_B anahtari (is_akisi, job, kapi) UCLUSU DEGIL: %r"
-                           % (anahtar,))
-            continue
-        if any((not isinstance(a, str)) or (not a.strip()) or ("*" in a)
-               for a in anahtar):
-            hatalar.append(
-                "SERIT_B BLANKET/JOKER BEYAN: %s -> anahtarin her alani TAM ve joker(`*`)"
-                "SIZ olmali. Toplu beyan tam da onlenmek istenen seydir: tek satirla "
-                "butun kapilar yayini bloklamaz hale getirilebilirdi." % etiket)
-            continue
-        if not (isinstance(gerekce, str) and gerekce.strip()):
-            hatalar.append("SERIT_B GEREKCESIZ giris (bos gerekce): %s" % etiket)
-        if anahtar not in kullanilan:
-            hatalar.append(
-                "SERIT_B BAYAT giris (artik yayini bloklamayan bir kapi cagrisina "
-                "karsilik gelmiyor — SIL ya da adimi geri tasi): %s" % etiket)
-    return hatalar
-
 
 # ---------------------------------------------------------------------------
 # BOLUM F — BLOKLAYICI-BEYAN DOGRULAMASI (4 Agu 2026, olculmus delik)
@@ -3403,10 +2415,12 @@ BLOKLAYICI_TANI_BLOKLAMAZ = (
     "   `needs:` ile bagli DEGIL). Beyan 'BLOKLAYICI' diyor, GERCEK 'bloklamaz' ->\n"
     "   BEYAN/GERCEK AYRISMASI (bugun kacirilan vaka: adim mesaj-nobeti'ndeydi).\n"
     "   COZUM: adimi deploy: needs zincirindeki bir job'a (build/serit-a2/serit-a3)\n"
-    "   TASI. Yayini bloklayan job kumesi: %s.")
+    "   TASI; BILEREK bloklamayan job'da kalacaksa SERIT_B istisna tablosuna\n"
+    "   (is_akisi, job, kapi_yolu) -> GEREKCE ile TEK TEK yaz (joker YASAK).\n"
+    "   Yayini bloklayan job kumesi: %s.")
 
 BLOKLAYICI_TANI_SERITB = (
-    "SERIT_B GIRISININ JOB'U BLOKLAYICI (yanlis GUVENLI beyani): %s\n"
+    "SERIT_B ISTISNASININ JOB'U BLOKLAYICI (yanlis GUVENLI beyani): %s\n"
     "   SERIT_B bu girisi 'yayini BLOKLAMAYAN job'da kosuyor' diye beyan ediyor,\n"
     "   ama `%s` job'u FIILEN yayini BLOKLAYAN kumede (deploy: needs zinciri). Yani\n"
     "   giris bir A-kapisini yanlislikla 'guvenli B' diye etiketliyor.\n"
@@ -3414,11 +2428,21 @@ BLOKLAYICI_TANI_SERITB = (
 
 
 def bloklayici_kapi_kontrol(dizin, kapilar=None, serit_b_tablo=None):
-    """(hatalar, iddia) — BLOKLAYICI/BLOKLAMAZ beyanlari GERCEGE karsi dogrular.
+    """(hatalar, iddia) — BLOKLAYICI beyani ve ISTISNA tablosunu GERCEGE karsi dogrular.
 
     TEK KAYNAK: yayini bloklamayan job kumesi `_serit_b_joblar`tan gelir (Bolum D
     ile ayni); "bloklayan" = o kumenin TUMLEYENI. Boylece iki bolum ayni gercegi
     olcer, sessizce ayrisamaz ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    🔴 14 Agu 2026 (serit-beyani sinif kapisi, T2/T3):
+      YON 1 (BLOKLAYICI beyan): BLOKLAYICI_KAPILAR'daki her (is_akisi, hedef) FIILEN
+             yayini BLOKLAYAN bir job'da ETKILI kosmali. Adim yoksa / etkisizse /
+             YALNIZ bloklamayan job(lar)da ise -> KIRMIZI; bloklamayan job'da durmasi
+             yalnizca SERIT_B istisna tablosunda GEREKCELI kayit varsa kabul edilir.
+      YON 2 (ISTISNA hijyeni): SERIT_B'deki her (is_akisi, job, kapi) girisinin
+             gerekcesi BOS olamaz (E1), joker tasiyamaz (E2), BLOKLAYICI_KAPILAR'da
+             (is_akisi, kapi) olarak VAR OLMALI (E3) ve job'u GERCEKTEN bloklamayan
+             kumede olmali (E4 — yoksa "yanlis GUVENLI beyani").
 
     `kapilar`/`serit_b_tablo` = kendini-test'in SENTETIK registry ile olcmesi icin;
     None ise CANLI BLOKLAYICI_KAPILAR / SERIT_B kullanilir."""
@@ -3483,17 +2507,43 @@ def bloklayici_kapi_kontrol(dizin, kapilar=None, serit_b_tablo=None):
                     "%r -> %s" % (k[:60], s) for k, s in reddedilen[:2]) + ")"
             hatalar.append(BLOKLAYICI_TANI_YOK % (ad, hedef, ad, ek))
             continue
-        if all(j in serit_b for j in etkili_joblar):
+        blokluyor = sorted(set(j for j in etkili_joblar if j not in serit_b))
+        if blokluyor:
+            continue  # en az bir BLOKLAYAN job'da etkili -> yayini blokluyor (YESIL)
+        # Hepsi BLOKLAMAYAN job'da -> bugunku uc tekrari doguran sinif. Istisna gerekli.
+        alarmda = sorted(set(etkili_joblar))
+        istisnasiz = [
+            j for j in alarmda
+            if not (isinstance(serit_b_tablo.get((ad, j, hedef)), str)
+                    and serit_b_tablo[(ad, j, hedef)].strip())
+        ]
+        if istisnasiz:
             hatalar.append(BLOKLAYICI_TANI_BLOKLAMAZ % (
-                ad, hedef, ", ".join(sorted(set(etkili_joblar))),
+                ad, hedef, ", ".join(alarmda),
                 ", ".join(sorted(bloklayan)) or "(bos)"))
 
-    # YON 2 — SERIT_B girislerinin job'u GERCEKTEN bloklamayan mi
+    # YON 2 — SERIT_B istisna girislerinin HIJYENI (E1/E2/E3/E4)
     for anahtar in sorted(serit_b_tablo):
-        if not (isinstance(anahtar, tuple) and len(anahtar) == 3):
-            continue  # sekil hatasi _serit_b_hijyen'in isi
-        ad, job_id, kapi = anahtar
+        gerekce = serit_b_tablo[anahtar]
         iddia += 1
+        if not (isinstance(anahtar, tuple) and len(anahtar) == 3):
+            hatalar.append("SERIT_B anahtari (is_akisi, job, kapi) UCLUSU DEGIL: %r"
+                           % (anahtar,))
+            continue
+        etiket = "%s :: %s :: %s" % anahtar
+        if any((not isinstance(a, str)) or (not a.strip()) or ("*" in a)
+               for a in anahtar):
+            hatalar.append("SERIT_B BLANKET/JOKER BEYAN: %s -> anahtarin her alani "
+                           "TAM ve joker(`*`)SIZ olmali." % etiket)
+            continue
+        if not (isinstance(gerekce, str) and gerekce.strip()):
+            hatalar.append("SERIT_B GEREKCESIZ giris (bos gerekce): %s" % etiket)
+            continue
+        ad, job_id, kapi = anahtar
+        if (ad, kapi) not in kapilar:
+            hatalar.append("SERIT_B BAYAT giris (BLOKLAYICI_KAPILAR'da OLMAYAN kapiya "
+                           "istisna yazilmis — SIL): %s" % etiket)
+            continue
         _metin, serit_b, _bloklayan, tani = serit_ayrimi(ad)
         if serit_b is None:
             hatalar.append("SERIT_B JOB DOGRULAMASI OLCULEMEDI (fail-closed KIRMIZI): "
@@ -3833,50 +2883,41 @@ def bolum_d(dizin):
     hatalar = []
     toplam = 0
     etkisiz_anahtarlar = set()
-    serit_b_kullanilan = set()
     for yol in is_akisi_dosyalari(dizin):
         ad = os.path.basename(yol)
         with open(yol, encoding="utf-8") as f:
             metin = f.read()
-        # SERIT AYRIMI — DOSYA BAZLI POZITIF (Bolum E ile ayni disiplin,
-        # [[kapi-kapsam-genisletme-tuzagi]]): kapsam SERIT_B_DOSYALARI'dir.
-        # 🔴 5 Agu 2026: kapsam deploy.yml'den (deploy.yml + nobet.yml)'e GENISLETILDI.
-        # Bloklamayan joblar nobet.yml'e tasinirken bu satir GUNCELLENMESEYDI 52
-        # SERIT_B beyani TEK COMMIT'te denetimsiz kalirdi (tasima = beyan rejiminden
-        # cikis) — tam da SERIT_B'nin engellemek icin var oldugu kacis. Kapsamin bu iki
-        # dosyayi tasidigi Bolum G'de AYRICA olculur (ikiz tanim yok, TEK sabit).
-        # Diger is akislarinda Pages yayini YOKTUR ve oraya kapi tasimak zaten
-        # ci-kapsam-test.py'nin kuresel kapsam olcumunde gorunur.
-        serit_b_joblar = set()
-        if ad in SERIT_B_DOSYALARI:
-            govde, ayr_hata = ayristir(metin)
-            if ayr_hata:
-                hatalar.append("SERIT AYRIMI OLCULEMEDI (fail-closed KIRMIZI): %s "
-                               "ayristirilamadi -> %s" % (ad, ayr_hata))
+        # 🔴 14 Agu 2026 (serit-beyani sinif kapisi, T1): bir adimin SERIDI ARTIK elle
+        # tutulan bir BEYAN DEFTERINDEN DEGIL, icinde bulundugu WORKFLOW DOSYASINDAN
+        # turer (deploy.yml -> SERIT A / bloklayici · nobet.yml + alarm dosyalari ->
+        # SERIT B). Bloklamayan job'daki bir kapi cagrisi BEYANSIZ YESIL sayilir; eski
+        # "SERIT B'DE BEYANSIZ KAPI" kirmizisi KALDIRILDI (uc tekrarin kaynagi buydu).
+        # Yalnizca TURETILEMEYEN dosya fail-closed KIRMIZI yakar (sessizce "A"
+        # varsayilmaz — U3 mutanti).
+        serit_b_joblar = None
+        serit_b_tani = None
+        govde, ayr_hata = ayristir(metin)
+        if ayr_hata:
+            hatalar.append("SERIT AYRIMI OLCULEMEDI (fail-closed KIRMIZI): %s "
+                           "ayristirilamadi -> %s" % (ad, ayr_hata))
+        else:
+            bulunan_b, sb_tani = _serit_b_joblar(govde, ad)
+            if bulunan_b is None:
+                serit_b_tani = sb_tani
             else:
-                bulunan_b, sb_tani = _serit_b_joblar(govde, ad)
-                if bulunan_b is None:
-                    hatalar.append("SERIT AYRIMI OLCULEMEDI (fail-closed KIRMIZI): "
-                                   "%s -> %s" % (ad, sb_tani))
-                else:
-                    serit_b_joblar = bulunan_b
-        for job_id, adim_no, adim_adi, kapi, komut, sebep in kapi_cagrilari(
-                metin, capalar, serit_b_joblar):
+                serit_b_joblar = bulunan_b
+        cagrilar = kapi_cagrilari(metin, capalar, serit_b_joblar or set())
+        if cagrilar and serit_b_joblar is None:
+            hatalar.append("SERIT AYRIMI OLCULEMEDI (fail-closed KIRMIZI): %s -> %s"
+                           % (ad, serit_b_tani or "bilinmeyen workflow dosyasi"))
+        for job_id, adim_no, adim_adi, kapi, komut, sebep in cagrilar:
             toplam += 1
             if not sebep:
                 continue
-            # SERIT B sebebi AYRI bir beyan mekanizmasina gider (D_IZIN'e DEGIL):
-            # kaybi karsilayan sey "baska bir nobetci" degil, adimin serit B'ye
-            # ait olmasinin GEREKCESIDIR.
-            serit_sebebi = [s for s in sebep if s.startswith("yayini BLOKLAMAYAN job")]
+            # "yayini BLOKLAMAYAN job" sebebi artik BEYAN GEREKTIRMEZ (T1) — yalnizca
+            # D_IZIN gerektiren ETKISIZLESTIRME sebepleri (|| true / --help / if:false)
+            # islenir.
             diger_sebep = [s for s in sebep if not s.startswith("yayini BLOKLAMAYAN job")]
-            if serit_sebebi:
-                s_anahtar = (ad, job_id, kapi)
-                serit_b_kullanilan.add(s_anahtar)
-                if s_anahtar not in SERIT_B:
-                    hatalar.append(SERIT_B_TANI % (
-                        kapi, komut, ad, job_id, adim_no,
-                        ("(%s)" % adim_adi) if adim_adi else ""))
             if not diger_sebep:
                 continue
             anahtar = (ad, kapi)
@@ -3886,7 +2927,6 @@ def bolum_d(dizin):
             hatalar.append(D_TANI_ONEK % (
                 kapi, komut, ad, job_id, adim_no,
                 ("(%s)" % adim_adi) if adim_adi else "", " + ".join(diger_sebep)))
-    hatalar.extend(_serit_b_hijyen(serit_b_kullanilan))
     # D2/D3/D3b — izin listesi HIJYENI
     kesif_kumesi, kosan_kume, kesif_tani = (
         _kosan_kapilar(dizin) if D_IZIN else (set(), set(), None))
@@ -5213,14 +4253,13 @@ def kendini_test():
             # D_IZIN bugun BOS oldugu icin mekanizma SENTETIK girislerle sinanir.
             iddia += 8
             hatalar.extend(_d_izin_mekanizma_kontrol())
-            # SERIT AYRIMI MEKANIZMASI (31 Tem): "yayini bloklamayan job" ekseni
-            # GERCEKTEN olcuyor mu + BLANKET beyan gercekten reddediliyor mu.
-            iddia += 9
+            # SERIT TURETIMI MEKANIZMASI (14 Agu, T1): serit WORKFLOW DOSYASINDAN
+            # turer; bloklamayan job'daki kapi BEYANSIZ YESIL; bilinmeyen dosya fail-closed.
+            iddia += 5
             hatalar.extend(_serit_b_mekanizma_kontrol())
-            # BOLUM F MEKANIZMASI (4 Agu): BLOKLAYICI/BLOKLAMAZ beyani GERCEGE karsi
-            # olculuyor mu. (ii) tam da uc curutmeyi geciren vakadir: adim
-            # bloklamayan job'da + beyan 'bloklayici' -> KIRMIZI.
-            iddia += 8
+            # BOLUM F MEKANIZMASI (4 Agu; 14 Agu T2 ile ISTISNA eklendi): BLOKLAYICI
+            # beyani GERCEGE karsi + istisna tablosu hijyeni (E1-E4) olculur.
+            iddia += 12
             hatalar.extend(_bolum_f_mekanizma_kontrol())
 
     # ---- NOBETCININ NOBETCISI: tablo + kablo kontrolleri GERCEKTEN olcuyor mu -
@@ -5723,100 +4762,87 @@ jobs:
 """ % {"c": S_CAGRI}
 
 
+# Sentetik nobet fiksturu: Pages yayini YOK, tek job `nobetci` — tum joblar SERIT B.
+N_FIKSTUR = """\
+name: "Sentetik nobet fiksturu"
+on:
+  push:
+    branches: [main]
+jobs:
+  nobetci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "B: kapi"
+        run: %(c)s
+""" % {"c": S_CAGRI}
+
+
 def _serit_b_mekanizma_kontrol():
-    """SERIT AYRIMI ekseninin KACIS DELIGI OLMAMASINI olcer (9 iddia).
+    """SERIT TURETIMI (T1) eksenini olcer (5 iddia; 14 Agu, serit-beyani sinif kapisi).
 
-    Sentetik bir deploy.yml gecici dizine yazilir ve bolum_d() TA KENDISI kosulur
-    (kopya mantik yazilmaz — [[mimar-kapi-parser-taklidi]]).
+    Sentetik deploy.yml + nobet.yml + bilinmeyen dosya gecici dizine yazilir ve
+    bolum_d() TA KENDISI kosulur (kopya mantik yazilmaz — [[mimar-kapi-parser-taklidi]]).
 
-      (i)    beyansiz serit-B cagrisi            -> KIRMIZI, TAM 1 tane
-      (ii)   BLOKLAYAN joblardaki ayni cagri     -> SESSIZ (yanlis-pozitif nobeti)
-      (iii)  gerekceli beyan                     -> bulgu DUSER
-      (iv)   BOS gerekce                         -> KIRMIZI
-      (v)    JOKER (`*`) beyan                   -> KIRMIZI ve bulguyu DUSURMEZ
-      (vi)   BAYAT beyan (kullanilmayan anahtar) -> KIRMIZI
-      (vii)  YANLIS JOB'a yazilmis beyan         -> KIRMIZI (job alani gercekten olculuyor)
-      (viii) `deploy` serit-b'ye de BAGLANIRSA   -> cagri artik SEBEPSIZ (graf okunuyor)
-      (ix)   Pages yayin adimi YOKSA             -> OLCULEMEDI, fail-closed KIRMIZI
+      (i)   deploy.yml BLOKLAYAN job'daki kapi -> SESSIZ (beyan GEREKMEZ, SERIT A)
+      (ii)  nobet.yml'deki kapi               -> SESSIZ (beyan GEREKMEZ, SERIT B)
+            🔴 bugunku uc tekrari doguran "beyansiz B" kirmizisi ARTIK YOK (vaka 2).
+      (iii) bilinmeyen workflow dosyasi + kapi -> KIRMIZI (fail-closed, vaka 6 / U3)
+      (iv)  Pages yayin adimi YOKSA            -> OLCULEMEDI, fail-closed KIRMIZI
+      (v)   kapi IKI workflow'da da varsa      -> her biri kendi dosyasina gore (vaka 5)
     """
-    global SERIT_B
     hatalar = []
     gecici = tempfile.mkdtemp(prefix="pruvo-isakisi-serit-")
-    yedek = SERIT_B
-    anahtar = (E_DOSYA, "serit-b", S_HEDEF)
 
-    def yaz(metin):
-        with open(os.path.join(gecici, E_DOSYA), "w", encoding="utf-8") as f:
+    def temizle():
+        for ad in os.listdir(gecici):
+            os.remove(os.path.join(gecici, ad))
+
+    def yaz(ad, metin):
+        with open(os.path.join(gecici, ad), "w", encoding="utf-8") as f:
             f.write(metin)
 
-    def olc(tablo, metin=S_FIKSTUR):
-        global SERIT_B
-        SERIT_B = tablo
-        yaz(metin)
-        return bolum_d(gecici)
-
     try:
-        # (i) + (ii) TABAN: beyan yok -> TAM 1 beyansiz bulgu (yalniz `serit-b`).
-        taban, _t, _e, _i = olc({})
-        beyansiz = [h for h in taban if "SERIT B'DE BEYANSIZ KAPI" in h]
-        if len(beyansiz) != 1:
-            hatalar.append("SERIT TABANI BOZUK: beyansiz serit-B cagrisi icin TAM 1 "
-                           "bulgu bekleniyordu, %d bulundu (%r)" % (len(beyansiz), taban))
-        if beyansiz and ("job: serit-b" not in beyansiz[0]):
-            hatalar.append("SERIT EKSENI YANLIS JOB'U SUCLADI: bulgu `serit-b` job'unu "
-                           "gostermiyor -> BLOKLAYAN joblar (build/onhazirlik) yanlis "
-                           "siniflaniyor olabilir (%r)" % (beyansiz[0],))
-        # (iii) gerekceli beyan -> bulgu DUSER
-        gecerli, _t, _e, _i = olc({anahtar: "SENTETIK OLCUM GIRISI — mekanizma testi."})
-        if any("SERIT B" in h for h in gecerli):
-            hatalar.append("SERIT BEYAN KABULU BOZUK: gerekceli beyan bulguyu dusurmedi "
-                           "(%r)" % (gecerli,))
-        # (iv) BOS gerekce -> KIRMIZI
-        bos, _t, _e, _i = olc({anahtar: "   "})
-        if not any("SERIT_B GEREKCESIZ" in h for h in bos):
-            hatalar.append("SERIT GEREKCE KAPISI OLU: bos gerekce KIRMIZI yakmadi (%r)"
-                           % (bos,))
-        # (v) JOKER beyan -> KIRMIZI + bulguyu DUSURMEZ (blanket yasak)
-        joker, _t, _e, _i = olc({(E_DOSYA, "*", S_HEDEF): "Hepsini tek satirda beyan et."})
-        if not any("BLANKET/JOKER" in h for h in joker):
-            hatalar.append("SERIT JOKER KAPISI OLU: `*` iceren anahtar KIRMIZI yakmadi "
-                           "-> tek satirla TUM kapilar serit B'ye atilabilirdi (%r)"
-                           % (joker,))
-        if not any("SERIT B'DE BEYANSIZ KAPI" in h for h in joker):
-            hatalar.append("SERIT JOKER KACISI: joker beyan gercek bulguyu DUSURDU -> "
-                           "blanket beyan fiilen ise yariyor (%r)" % (joker,))
-        # (vi) BAYAT beyan -> KIRMIZI
-        bayat, _t, _e, _i = olc({anahtar: "Gecerli.",
-                                 (E_DOSYA, "serit-b", "tools/ci-kapsam-test.py"):
-                                     "Bu fiksturde HIC kosmuyor."})
-        if not any("SERIT_B BAYAT giris" in h for h in bayat):
-            hatalar.append("SERIT BAYATLIK KAPISI OLU: kullanilmayan beyan KIRMIZI "
-                           "yakmadi -> liste kendiliginden buyuyup kalabilir (%r)"
-                           % (bayat,))
-        # (vii) YANLIS JOB'a yazilmis beyan -> KIRMIZI (job alani gercekten olculuyor)
-        yanlis_job, _t, _e, _i = olc({(E_DOSYA, "build", S_HEDEF): "Yanlis job."})
-        if not any("SERIT B'DE BEYANSIZ KAPI" in h for h in yanlis_job):
-            hatalar.append("SERIT JOB ALANI OLU: baska bir job icin yazilan beyan "
-                           "`serit-b` bulgusunu dusurdu -> anahtarin job alani "
-                           "olculmuyor (%r)" % (yanlis_job,))
-        # (viii) `deploy` serit-b'ye de baglanirsa cagri artik SEBEPSIZ olmali
-        bagli = S_FIKSTUR.replace("  deploy:\n    needs: build\n",
-                                  "  deploy:\n    needs: [build, serit-b]\n")
-        baglanan, _t, _e, _i = olc({}, bagli)
-        if any("SERIT B'DE BEYANSIZ KAPI" in h for h in baglanan):
-            hatalar.append("SERIT GRAFI OKUNMUYOR: `deploy` job'u serit-b'ye `needs:` ile "
-                           "BAGLANDIGI halde cagri hala 'yayini bloklamaz' sayildi -> "
-                           "eksen job ADINA capalanmis olabilir (%r)" % (baglanan,))
-        # (ix) Pages yayin adimi YOKSA -> fail-closed OLCULEMEDI
+        # (i) deploy.yml: BLOKLAYAN (onhazirlik/build) + BLOKLAMAYAN (serit-b) joblarin
+        #     HEPsi beyansiz YESIL (eski "SERIT B'DE BEYANSIZ KAPI" KALDIRILDI).
+        temizle()
+        yaz(E_DOSYA, S_FIKSTUR)
+        d_hatalar, _t, _e, _i = bolum_d(gecici)
+        if any("SERIT" in h for h in d_hatalar):
+            hatalar.append("SERIT TURETIMI BOZUK: deploy.yml fiksturunde SERIT bulgusu "
+                           "olmamali (beyan GEREKMEZ) -> %r" % (d_hatalar,))
+        # (ii) nobet.yml: kapi BEYANSIZ YESIL (SERIT B).
+        temizle()
+        yaz(N_DOSYA, N_FIKSTUR)
+        n_hatalar, _t, _e, _i = bolum_d(gecici)
+        if any("SERIT" in h for h in n_hatalar):
+            hatalar.append("SERIT TURETIMI BOZUK: nobet.yml'deki kapi BEYANSIZ YESIL "
+                           "olmali (SERIT B) ama bulgu var -> %r" % (n_hatalar,))
+        # (iii) bilinmeyen workflow dosyasi + kapi -> fail-closed KIRMIZI (U3: A varsayma).
+        temizle()
+        yaz("bilinmeyen.yml", N_FIKSTUR)
+        b_hatalar, _t, _e, _i = bolum_d(gecici)
+        if not any("SERIT AYRIMI OLCULEMEDI" in h for h in b_hatalar):
+            hatalar.append("SERIT FAIL-CLOSED OLU: bilinmeyen workflow dosyasi sessizce "
+                           "GECTI -> U3 mutanti (sessizce A varsay) (%r)" % (b_hatalar,))
+        # (iv) Pages yayin adimi YOKSA -> fail-closed OLCULEMEDI
+        temizle()
         yayinsiz = S_FIKSTUR.replace("      - uses: actions/deploy-pages@v4\n",
                                      "      - run: echo yayin-yok\n")
-        olcelemez, _t, _e, _i = olc({}, yayinsiz)
-        if not any("SERIT AYRIMI OLCULEMEDI" in h for h in olcelemez):
-            hatalar.append("SERIT FAIL-CLOSED OLU: Pages yayin adimi YOKKEN eksen sessizce "
-                           "atlandi -> `actions/deploy-pages` satirini silmek TUM serit "
-                           "nobetini kapatirdi (%r)" % (olcelemez,))
+        yaz(E_DOSYA, yayinsiz)
+        y_hatalar, _t, _e, _i = bolum_d(gecici)
+        if not any("SERIT AYRIMI OLCULEMEDI" in h for h in y_hatalar):
+            hatalar.append("SERIT FAIL-CLOSED OLU: Pages yayin adimi YOKKEN eksen "
+                           "sessizce gecti (%r)" % (y_hatalar,))
+        # (v) ayni kapi IKI workflow'da (deploy.yml + nobet.yml) -> ikisi de kendi
+        #     dosyasina gore sessizce turer (nobet kopyasi SERIT B, fail-closed OLMAZ).
+        temizle()
+        yaz(E_DOSYA, S_FIKSTUR)
+        yaz(N_DOSYA, N_FIKSTUR)
+        ik_hatalar, _t, _e, _i = bolum_d(gecici)
+        if any("SERIT" in h for h in ik_hatalar):
+            hatalar.append("SERIT IKI-DOSYA BOZUK: ayni kapi iki workflow'da kendi "
+                           "dosyasina gore yargilanmali -> %r" % (ik_hatalar,))
     finally:
-        SERIT_B = yedek
         shutil.rmtree(gecici, ignore_errors=True)
     return hatalar
 
@@ -5887,12 +4913,13 @@ jobs:
 
 
 def _bolum_f_mekanizma_kontrol():
-    """BOLUM F (BLOKLAYICI-BEYAN DOGRULAMASI) KACIS DELIGI OLMAMASINI olcer (8 iddia).
+    """BOLUM F (BLOKLAYICI beyani + ISTISNA tablosu) KACIS DELIGI OLMAMASINI olcer
+    (12 iddia; 14 Agu serit-beyani sinif kapisi — T2 istisna mekanizmasi eklendi).
 
     Sentetik deploy.yml gecici dizine yazilir ve bloklayici_kapi_kontrol() TA
-    KENDISI SENTETIK registry ile kosulur (kopya mantik yazilmaz). Bu tam da uc
-    curutmenin gecirdigi vakayi civiler: adim bloklamayan job'da + beyan
-    'bloklayici' -> KIRMIZI."""
+    KENDISI SENTETIK registry ile kosulur (kopya mantik yazilmaz). Vaka 3/4:
+    bloklamayan job'da 'BLOKLAYICI' beyani ISTISNA gerektirir; istisna gerekcesiz
+    olamaz."""
     hatalar = []
     gecici = tempfile.mkdtemp(prefix="pruvo-isakisi-f-")
     kapilar = {(E_DOSYA, S_HEDEF): "SENTETIK: bu kapi yayini BLOKLAMALI."}
@@ -5912,18 +4939,24 @@ def _bolum_f_mekanizma_kontrol():
         if any("BLOKLAYICI" in h for h in iyi):
             hatalar.append("F-YANLIS-POZITIF: cagri bloklayan job'da oldugu halde F "
                            "kirmizi yakti (%r)" % (iyi,))
-        # (ii) OLDURUCU (BUGUNKU VAKA): cagri YALNIZ bloklamayan job'da -> KIRMIZI
+        # (ii) OLDURUCU (VAKA 3, ISTISNASIZ): cagri YALNIZ bloklamayan job'da -> KIRMIZI
         kotu, _i = olc(F_YALNIZ_B)
         if not any("BEYAN GERCEGE UYMUYOR" in h for h in kotu):
-            hatalar.append("F EKSENI OLU (BUGUNKU VAKA): adim yalniz BLOKLAMAYAN "
-                           "job'da iken 'BLOKLAYICI' beyani KIRMIZI yakmadi -> uc "
-                           "curutmeyi geciren tam bu delik (%r)" % (kotu,))
+            hatalar.append("F EKSENI OLU (VAKA 3): adim yalniz BLOKLAMAYAN job'da iken "
+                           "'BLOKLAYICI' beyani KIRMIZI yakmadi -> uc curutmeyi geciren "
+                           "tam bu delik (%r)" % (kotu,))
+        # (ii-exc) VAKA 3 POZITIF: GEREKCELI istisna -> bulgu DUSER (SESSIZ)
+        exc, _i = olc(F_YALNIZ_B,
+                      sb={(E_DOSYA, "serit-b", S_HEDEF): "SENTETIK: bilerek B'de."})
+        if any("BEYAN GERCEGE UYMUYOR" in h for h in exc):
+            hatalar.append("F ISTISNA KABULU BOZUK: gerekceli istisna bulguyu "
+                           "dusurmedi (%r)" % (exc,))
         # (iii) adim YOK -> KIRMIZI
         yok, _i = olc(F_YOK)
         if not any("ADIM YOK/ETKISIZ" in h for h in yok):
             hatalar.append("F ADIM-YOK KAPISI OLU: hic cagri olmayan fikstur icin "
                            "'BLOKLAYICI beyan' KIRMIZI yakmadi (%r)" % (yok,))
-        # (iv) BOS gerekce -> KIRMIZI
+        # (iv) BLOKLAYICI_KAPILAR BOS gerekce -> KIRMIZI
         bos, _i = olc(S_FIKSTUR, kap={(E_DOSYA, S_HEDEF): "  "})
         if not any("GEREKCESIZ" in h for h in bos):
             hatalar.append("F GEREKCE KAPISI OLU: bos gerekce KIRMIZI yakmadi (%r)"
@@ -5933,20 +4966,31 @@ def _bolum_f_mekanizma_kontrol():
         if not any("ADIM YOK/ETKISIZ" in h for h in fo):
             hatalar.append("F ETKISIZLIK KAPISI OLU: bloklayan job'da `|| true` ile "
                            "etkisiz cagri 'bloklayici' sayildi (%r)" % (fo,))
-        # (vi) YON 2 OLDURUCU: SERIT_B girisi BLOKLAYAN job'da -> KIRMIZI
-        sb_kotu, _i = olc(S_FIKSTUR, kap={},
+        # (vi) E4: istisna BLOKLAYAN job'da -> KIRMIZI (yanlis GUVENLI beyani)
+        sb_kotu, _i = olc(S_FIKSTUR,
                           sb={(E_DOSYA, "build", S_HEDEF): "yanlislikla guvenli"})
         if not any("yanlis GUVENLI beyani" in h for h in sb_kotu):
-            hatalar.append("F YON-2 OLU: SERIT_B girisi BLOKLAYAN bir job'u "
-                           "gosterdigi halde KIRMIZI yakmadi (yanlis 'guvenli' "
-                           "beyani gecti) (%r)" % (sb_kotu,))
-        # (vii) YON 2 KONTROL: SERIT_B girisi bloklamayan job'da -> SESSIZ
-        sb_iyi, _i = olc(S_FIKSTUR, kap={},
-                         sb={(E_DOSYA, "serit-b", S_HEDEF): "gercekten guvenli"})
-        if any("yanlis GUVENLI" in h for h in sb_iyi):
-            hatalar.append("F YON-2 YANLIS-POZITIF: bloklamayan job'daki SERIT_B "
-                           "girisi KIRMIZI yakti (%r)" % (sb_iyi,))
-        # (viii) Pages yayin adimi YOKSA -> fail-closed OLCULEMEDI
+            hatalar.append("F YON-2 E4 OLU: istisna BLOKLAYAN bir job'u gosterdigi "
+                           "halde KIRMIZI yakmadi (%r)" % (sb_kotu,))
+        # (vii) E1 (VAKA 4): istisna gerekcesi BOS -> KIRMIZI
+        sb_bos, _i = olc(F_YALNIZ_B,
+                         sb={(E_DOSYA, "serit-b", S_HEDEF): "   "})
+        if not any("SERIT_B GEREKCESIZ" in h for h in sb_bos):
+            hatalar.append("F YON-2 E1 OLU: istisna bos gerekceyi KIRMIZI yakmadi "
+                           "(VAKA 4 — bos gerekce kapiyi kandirir) (%r)" % (sb_bos,))
+        # (viii) E3: istisna BLOKLAYICI_KAPILAR'da OLMAYAN kapiya -> KIRMIZI (bayat)
+        sb_bayat, _i = olc(F_YALNIZ_B, kap={},
+                           sb={(E_DOSYA, "serit-b", S_HEDEF): "gerekce"})
+        if not any("SERIT_B BAYAT giris" in h for h in sb_bayat):
+            hatalar.append("F YON-2 E3 OLU: BLOKLAYICI_KAPILAR'da OLMAYAN kapiya "
+                           "yazilan istisna KIRMIZI yakmadi (%r)" % (sb_bayat,))
+        # (ix) E2: joker istisna -> KIRMIZI
+        sb_joker, _i = olc(F_YALNIZ_B,
+                           sb={(E_DOSYA, "*", S_HEDEF): "gerekce"})
+        if not any("BLANKET/JOKER" in h for h in sb_joker):
+            hatalar.append("F YON-2 E2 OLU: `*` iceren istisna KIRMIZI yakmadi "
+                           "(%r)" % (sb_joker,))
+        # (x) Pages yayin adimi YOKSA -> fail-closed OLCULEMEDI
         yayinsiz = S_FIKSTUR.replace("      - uses: actions/deploy-pages@v4\n",
                                      "      - run: echo yayin-yok\n")
         oy, _i = olc(yayinsiz)
@@ -5954,6 +4998,15 @@ def _bolum_f_mekanizma_kontrol():
             hatalar.append("F FAIL-CLOSED OLU: Pages yayin adimi YOKKEN F sessizce "
                            "gecti -> deploy-pages satirini silmek F'i kapatirdi (%r)"
                            % (oy,))
+        # (xi) GRAF OKUNUYOR: `deploy` serit-b'ye de baglanirsa cagri artik BLOKLAYAN
+        #      job'da -> F SESSIZ (eksen job ADINA capalanmamis).
+        bagli = F_YALNIZ_B.replace("  deploy:\n    needs: build\n",
+                                   "  deploy:\n    needs: [build, serit-b]\n")
+        baglanan, _i = olc(bagli)
+        if any("BEYAN GERCEGE UYMUYOR" in h for h in baglanan):
+            hatalar.append("F GRAFI OKUNMUYOR: `deploy` serit-b'ye `needs:` ile "
+                           "baglandigi halde cagri hala 'bloklamaz' sayildi (%r)"
+                           % (baglanan,))
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
     return hatalar
@@ -6185,16 +5238,16 @@ def main():
         print("  ✅ D_IZIN DAYANAK KALITESI (K-21a): NOBETCI OLMAYAN mevcut yol "
               "(`CNAME`) KIRMIZI · DAIRESEL (kapinin kendisi) KIRMIZI · deploy.yml'de "
               "KOSMAYAN nobetci KIRMIZI · gercek+kosan+farkli dayanak KABUL")
-        print("  ✅ SERIT AYRIMI (31 Tem): yayini BLOKLAMAYAN job'daki BEYANSIZ kapi "
-              "KIRMIZI · BLOKLAYAN joblar (gecisli `needs:` atalari) SESSIZ · JOKER "
-              "(`*`) beyan KIRMIZI ve bulguyu DUSURMEZ · yanlis job'a yazilan beyan "
-              "KIRMIZI · BAYAT beyan KIRMIZI · `deploy` B'ye baglanirsa sebep DUSER · "
-              "`actions/deploy-pages` adimi yoksa fail-closed OLCULEMEDI")
-        print("  ✅ BOLUM F (BLOKLAYICI-BEYAN, 4 Agu): adim BLOKLAYAN job'da SESSIZ · "
-              "adim yalniz BLOKLAMAYAN job'da iken 'bloklayici' beyani KIRMIZI (bugunku "
-              "vaka) · adim YOK/fail-open KIRMIZI · bos gerekce KIRMIZI · SERIT_B girisi "
-              "BLOKLAYAN job'u gosterirse 'yanlis guvenli' KIRMIZI · bloklamayan job "
-              "SESSIZ · deploy-pages yoksa fail-closed OLCULEMEDI")
+        print("  ✅ SERIT TURETIMI (T1, 14 Agu): deploy.yml BLOKLAYAN job SESSIZ · "
+              "nobet.yml kapi BEYANSIZ YESIL (SERIT B) · bilinmeyen workflow fail-closed "
+              "KIRMIZI · `actions/deploy-pages` yoksa OLCULEMEDI · iki workflow'da kendi "
+              "dosyasina gore")
+        print("  ✅ BOLUM F (BLOKLAYICI-BEYAN + ISTISNA, 14 Agu): adim BLOKLAYAN job'da "
+              "SESSIZ · bloklamayan job'da istisnasiz KIRMIZI · GEREKCELI istisna DUSURUR · "
+              "bos gerekce KIRMIZI · BLOKLAYICI_KAPILAR'da OLMAYAN kapiya istisna KIRMIZI "
+              "· joker istisna KIRMIZI · istisna BLOKLAYAN job'u gosterirse 'yanlis "
+              "guvenli' KIRMIZI · deploy B'ye baglanirsa graf okunuyor · deploy-pages "
+              "yoksa fail-closed OLCULEMEDI")
         print("  ✅ K26-KABUK YAPISI: %d satir fiksturu (%d gercek oldurucu + %d MESRU "
               "kanarya) dogru siniflandi — her biri `bash -e` ile OLCULDU"
               % (len(K26_SATIR_FIKSTURLERI),
@@ -6259,10 +5312,10 @@ def main():
           "`if: false` / `set +e`)" % d_etkisiz)
     print("  D_IZIN beyan edilmis     : %d  (%s)" % (
         d_izinli, ", ".join("%s::%s" % a for a in sorted(D_IZIN)) or "-"))
-    print("  SERIT B beyani (tek tek) : %d  (yayini BLOKLAMAYAN job'da BILEREK kosan "
-          "kapi; joker `*` YASAK)" % len(SERIT_B))
+    print("  SERIT B istisnasi (tek)  : %d  (BLOKLAYICI kapinin alarm seridinde BILEREK "
+          "durmasi; joker `*` YASAK)" % len(SERIT_B))
     print("  BLOKLAYICI beyan (F)     : %d iddia  (%d BLOKLAYICI_KAPILAR + %d SERIT_B "
-          "girisi GERCEGE karsi: adim-job bloklayici mi?)"
+          "istisnasi GERCEGE karsi: adim-job bloklayici mi?)"
           % (f_iddia, len(BLOKLAYICI_KAPILAR), len(SERIT_B)))
     print("  Tetikleyici/zorunlu adim : %d iddia  (%s: `on.push` + %d zorunlu kapi adimi "
           "+ %d zorunlu yayin varligi)"

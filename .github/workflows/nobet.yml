@@ -1550,6 +1550,9 @@ jobs:
       - name: "Serit bolme kapisi mutasyon bataryasi (fail-open kirmizi yaniyor mu)"
         run: python3 tools/serit-bolme-mutasyon.py
 
+      - name: "Serit beyani sinif kapisi mutasyon bataryasi (T1 turetim + T2 istisna)"
+        run: python3 tools/serit-beyani-mutasyon.py
+
       - name: "Shop bayatlik kapisi mutasyon bataryasi (wrangler.toml OKUR, CLI degil)"
         run: python3 tools/shop-bayatlik-mutasyon.py
 

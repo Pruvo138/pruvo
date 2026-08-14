@@ -15,8 +15,11 @@ kapi CI'da GORUNUR (adim kosar, kirmizi yanar) ama YAYINI BLOKLAMAZ — yani kor
 sessizce fail-open olur. Bu arac tam o hali KOSTURARAK olcer; yorumla degil.
 
 YONTEM: kapinin KENDI kesif fonksiyonlari (tools/is-akisi-kapisi.py :: bolum_d ·
-bloklayici_kapi_kontrol) GECICI bir is-akisi DIZINI uzerinde kosturulur. Calisma
-agacina HICBIR SEY YAZILMAZ ve deploy.yml'in sha256'si kosum sonunda dogrulanir
+bloklayici_kapi_kontrol · yayin_sinyali_kontrol) GECICI bir is-akisi DIZINI uzerinde
+kosturulur. 14 Agu (serit-beyani sinif kapisi): "needs'ten dusen serit" sinifi artik
+Bolum D/F (beyan defteri) DEGIL Bolum G (G1 bagli-olmayan job + G8 needs tabani)
+tarafindan yakalanir — o yuzden G bulgusu da TOPLAMA girer. Calisma agacina HICBIR SEY
+YAZILMAZ ve deploy.yml'in sha256'si kosum sonunda dogrulanir
 ([[mutasyon-diske-yazma-tuzagi]]).
 
 VARYANTLAR:
@@ -119,16 +122,23 @@ def main():
             d_hatalar, d_cagri = list(d_ham[0]), d_ham[1]
             f_hatalar, f_iddia = iak.bloklayici_kapi_kontrol(dizin)
             f_hatalar = list(f_hatalar)
-            toplam = len(d_hatalar) + len(f_hatalar)
+            # 🔴 14 Agu (serit-beyani sinif kapisi, T1/T3): "serit-a4 needs'ten duser"
+            # sinifi artik Bolum D/F'te (beyan defteri) DEGIL, Bolum G'de yakalanir —
+            # G1 (yayin zincirine BAGLI olmayan job) + G8 (`deploy: needs` tabanin
+            # altina dustu). Bu yuzden G bulgusu da TOPLAMA girer (kapi gevşemedi).
+            g_hatalar, g_iddia = iak.yayin_sinyali_kontrol(dizin)
+            g_hatalar = list(g_hatalar)
+            toplam = len(d_hatalar) + len(f_hatalar) + len(g_hatalar)
             cagrilar.add(d_cagri)
             iddia += 1
             ok = (toplam > 0) if bulgu_bekle else (toplam == 0)
             if not ok:
                 kusur += 1
-            print("%s %-54s bulgu D=%d F=%d (F iddia %d) · olculen kapi cagrisi=%s -> %s"
-                  % ("✔" if ok else "✘", ad, len(d_hatalar), len(f_hatalar), f_iddia,
-                     d_cagri, "KIRMIZI" if toplam else "yesil"))
-            for h in (d_hatalar + f_hatalar)[:2]:
+            print("%s %-54s bulgu D=%d F=%d G=%d (F iddia %d · G iddia %d) · kapi cagrisi=%s -> %s"
+                  % ("✔" if ok else "✘", ad, len(d_hatalar), len(f_hatalar),
+                     len(g_hatalar), f_iddia, g_iddia, d_cagri,
+                     "KIRMIZI" if toplam else "yesil"))
+            for h in (d_hatalar + f_hatalar + g_hatalar)[:2]:
                 print("      " + str(h).replace("\n", " ")[:170])
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
