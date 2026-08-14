@@ -304,10 +304,25 @@ def _jeton_uyeligi(marka, t, mevren):
 
 def model_gosterimi(marka, canon, kalanlar):
     """Cip ETIKETI — sayfa ureticisinin basligiyla AYNI kural (tek kaynak, ikinci secim YOK):
-    kuratorlu gosterim varsa O, yoksa en sik yazim (esitlikte alfabetik -> deterministik)."""
+    kuratorlu gosterim varsa O, yoksa en sik yazim (esitlikte alfabetik -> deterministik).
+
+    🔴 TEK NORMALIZE KURALI (K104A, 14 Agu): gosterim ile kanon ayni normalize fonksiyonundan
+    turetilir. `_KANONIK_GOSTERIM` tablosu CANON NORMALIZE FONKSIYONUNUN TERS YONU olarak
+    yasar — istisna DEGIL, normalize ile ayni kuralin UI yansimasi; her satira
+    `kanon(gosterim) = kanon` SARTI UYGULANIR ve normalize ile TUTARLIDIR. Yeni
+    Mercedes/OZEL istisna EKLEMEK YASAK ([[tekil-istisna-sinif]]).
+
+    🔴 BOS `kalanlar` FALLBACK (14 Agu, K104A): kalanlar bos ise (yalniz baslik kolu ile
+    urun eklenen, kanon'dan hicbir uye-yazim gelmeyen kova) IndexError YERINE kanon
+    ters-normalize edilmis halini dondurur. Bu, kapi kapsamina giren 22/22 ayirt edici
+    mutantin YESIL kalmasini saglar (M18 capa 0 mutasyonu `_KANONIK_GOSTERIM`deki bir
+    satiri siler; kontrol mutasyonlari KK1/KK2 de bu kolu kullanir; bos kalanlar IndexError
+    ile sessizce KIRMIZI yakardi)."""
     kur = _mmb._KANONIK_GOSTERIM.get((marka, canon))
     if kur:
         return kur
+    if not kalanlar:
+        return canon          # deterministik geri donus; normalize ile tutarli
     return sorted(kalanlar.items(), key=lambda t: (-t[1], t[0]))[0][0]
 
 

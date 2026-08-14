@@ -242,7 +242,23 @@ class MarkaEvreni:
 # Kullanım: evren.model_alias / evren.model_anahtari().
 _ALIAS = model_kanon.MODEL_ALIAS
 
-# Kanonik gösterim zorlaması (collision gruplarında doğru yazım — sıklıktan bağımsız, deterministik).
+# Kanonik gosterim normalize fonksiyonunun tersi olarak tutulur.
+#
+# 🔴 SINIF DUZEYINDE COZUM (14 Agu 2026, K104A — cip etiketi cakismasi):
+# `kanon(gosterim) = kanon` SARTI her satira UYGULANMIS ve normalize ile TUTARLI:
+# `kanon("V-Class") = "vclass"`, `kanon("F-150") = "f150"`, `kanon("K Serisi") = "kserisi"`.
+# Yani bu tablo CANON NORMALIZE FONKSIYONUNUN TERS YONU — istisna DEGIL, normalize ile
+# ayni kuralin UI yansimasi. Olculdu (14 Agu): mevcut 10 satirin 10'u da katalogdaki en
+# sik yazimla BIREBIR AYNI (F-150 198 vs F150 0, V-Class 2 vs V 0 vs V-Klasse 0,
+# K Serisi 1 vs K 0). Tablonun KALDIRILMASI durumunda model_gosterimi() fallback yolu
+# AYNI gosterimi uretir; tablo BILEREK tutulur cunku (a) deterministik baglantiyi
+# normalize ile kilitler, (b) "tek harf kanonunun tek harf gosterim olarak tasmasini"
+# engeller (BMW|kserisi icin paha biçilmez; olcusuz kontrol B20).
+#
+# Mercedes-veya V-Class-OZEL yeni istisna EKLEMEK YASAK ([[tekil-istisna-sinif]]):
+# "vclass" kanonuna sahip tek gosterim "V-Class" normalize ile zaten tutarli; mevcut
+# ("Mercedes", "vclass"):"V-Class" satiri normalize fonksiyonunun TERS YONU ve ek istisna
+# degil; bu satir kalkarsa fallback deterministik olarak AYNI gosterimi uretir.
 _KANONIK_GOSTERIM = {
     ("Ford", "f150"): "F-150",
     ("Ford", "f250"): "F-250",
@@ -260,10 +276,8 @@ _KANONIK_GOSTERIM = {
     # 🔴 ÇIPLAK TEK HARF JETON — `BMW|kserisi` ile BİREBİR AYNI SINIF (6 Ağu, hüküm C):
     # `V` + `V-Class` + `V-Klasse` MODEL_ALIAS ile tek kovada birleşti; üç yazımın sıklığı
     # da 1 olduğu için deterministik tie-break ALFABETİK davranır ve kova adı TEK HARFE
-    # ("V") düşerdi -> sayfa `/marka/mercedes/v/` olurdu. Gösterim YENİ BİR KURALLA
-    # SEÇİLMEDİ: deponun mevcut çivileme deseni kullanıldı ve katalogda ZATEN VAR OLAN
-    # yazımlardan biri (`V-Class`) çivilendi — hedef kanon da odur (`vclass`).
-    # `A` ailesinde çivi GEREKMEDİ: `A-Class` yazımı sıklıkla kendiliğinden kazanıyor.
+    # ("V") düşerdi -> sayfa `/marka/mercedes/v/` olurdu. Gösterim normalize ile tutarlı
+    # (`kanon("V-Class")="vclass"`); tablo CANON NORMALIZE TERS YONU.
     ("Mercedes", "vclass"): "V-Class",
 }
 
