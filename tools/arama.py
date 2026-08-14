@@ -113,6 +113,97 @@ def esles(hs, tokens):
                if isinstance(t, tuple) else t in hs for t in tokens)
 
 
+# SITE /ara D1 SERBEST-METIN SOZLESMESI — TEK KAYNAK.
+#
+# `tokenlar()` her zaman bir LISTE dondurur. Listenin her elemani normal bir sorgu
+# jetonunda DIZE, dar arac es-anlamli sinifinda ise sinifin TAMAMINI tasiyan TUPLE'dir.
+# Ornek: `kapilar` -> ["kapi"], `arac` -> [("oto", "otomobil", "araba", "arac")],
+# `arabalar` -> ["araba"] (uyelik kok almadan ONCE sinandigi icin tuple degildir).
+#
+# D1 sorgusunu olcen araclar SQL/tokenizasyon govdesini yeniden yazmaz; asagidaki iki
+# fonksiyonu kosar. Boylece token tipi ya da es-anlamli dali degisirse olcum de ayni
+# kanonik kaynaktan degisir. `token_sozlesmesi_dogrula()` ayrica donus sekli bozuldugunda
+# iki tarafin birlikte sessizce yesil kalmasini engeller.
+D1_KART_ALANLARI = (
+    "u.id, u.baslik, u.kategori, u.marka, u.fiyat, u.taban_fiyat, u.gorsel,"
+    " u.parametrik, substr(u.aciklama, 1, 160) AS aciklama"
+)
+
+
+def token_sozlesmesi_dogrula(q, tokens):
+    """`tokenlar(q)` donusunun kanonik dize/tuple sozlesmesini dogrular.
+
+    Donus tipi ya da es-anlamli yuklemesi bozulursa sessiz dar aramaya donmek yerine
+    ValueError uretir. Uretim aramasinin fail-open davranisini degistirmez; bu fonksiyon
+    yalniz sozlesmeyi olcen kapilar tarafindan cagrilir.
+    """
+    if not _arac_es_anlamli_hazirla():
+        raise ValueError("arac es-anlamli kanonik kaynaktan yuklenemedi")
+    if not isinstance(tokens, list):
+        raise ValueError("tokenlar(q) liste dondurmeli: %r" % (type(tokens).__name__,))
+    hamlar = [t for t in norm(q).split() if t]
+    if len(tokens) != len(hamlar):
+        raise ValueError("token adedi ayrismasi: ham=%d donen=%d" % (len(hamlar), len(tokens)))
+    for ham, gercek in zip(hamlar, tokens):
+        beklenen = ARAC_ES_ANLAMLI if ham in ARAC_ES_ANLAMLI else arama_kok(ham)
+        if type(gercek) is not type(beklenen) or gercek != beklenen:
+            raise ValueError(
+                "token sozlesmesi ayrismasi: ham=%r beklenen=%r (%s) donen=%r (%s)" % (
+                    ham, beklenen, type(beklenen).__name__, gercek, type(gercek).__name__))
+    return True
+
+
+def _arac_es_anlamli_glob(uye):
+    """Padlenmis D1 hs alaninda siteyle ayni tam-jeton sinirini kurar."""
+    return "*" + ARAC_ES_ANLAMLI_SINIR + uye + ARAC_ES_ANLAMLI_SINIR + "*"
+
+
+def d1_site_sql_kur(tokens, limit, birlesim="cross"):
+    """Site-modu D1 serbest-metin SQL'ini ve baglarini kanonik tokenlardan kurar.
+
+    `birlesim`: `cross` canli plan civisi, `join` olay/semantik karsilastirmasi,
+    `duz` ise pahali JOIN planini kosmadan ayni kosullari `urunler u` uzerinde olcer.
+    Uc sekilde de kosul ve bag uretimi TEK govdedir; yalniz FROM sekli degisir.
+    """
+    if birlesim not in ("cross", "join", "duz"):
+        raise ValueError("bilinmeyen D1 birlesim sekli: %r" % birlesim)
+    _arac_es_anlamli_hazirla()
+    if tokens and not _ARAC_ES_ANLAMLI_YUKLENDI:
+        raise ValueError("arac es-anlamli kanonik kaynaktan yuklenemedi")
+
+    if not tokens or birlesim == "duz":
+        kaynak = "urunler u"
+    elif birlesim == "cross":
+        kaynak = "urunler_fts f CROSS JOIN urunler u ON u.rid = f.rowid"
+    else:
+        kaynak = "urunler_fts f JOIN urunler u ON u.rid = f.rowid"
+    f_hs = "u.hs" if birlesim == "duz" else "f.hs"
+
+    kosul, bag = [], []
+    for t in tokens:
+        if isinstance(t, tuple):
+            if t != ARAC_ES_ANLAMLI:
+                raise ValueError("bilinmeyen tuple token sinifi: %r" % (t,))
+            kosul.append("(" + " OR ".join(f_hs + " LIKE ?" for _ in t) + ")")
+            bag.extend("%" + uye + "%" for uye in t)
+            kosul.append("(" + " OR ".join(
+                "(' ' || u.hs || ' ') GLOB ?" for _ in t) + ")")
+            bag.extend(_arac_es_anlamli_glob(uye) for uye in t)
+        elif isinstance(t, str):
+            kosul.append(f_hs + " LIKE ?")
+            bag.append("%" + t + "%")
+            if "%" in t or "_" in t:
+                kosul.append("instr(u.hs, ?) > 0")
+                bag.append(t)
+        else:
+            raise ValueError("token dize ya da tuple olmali: %r" % (t,))
+    kosul.append("u.yayinda = 1")
+    nere = " WHERE " + " AND ".join(kosul)
+    return (("SELECT " + D1_KART_ALANLARI + " FROM " + kaynak + nere +
+             " ORDER BY u.seq DESC LIMIT ?", bag + [limit]),
+            ("SELECT COUNT(*) AS n FROM " + kaynak + nere, list(bag)))
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # MARKA SORGUSU — marka ADIYLA yapilan sorgu SERBEST METNE degil UYELIK yuklemine baglanir.
 #
