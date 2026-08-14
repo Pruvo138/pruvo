@@ -1,5 +1,55 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 14 Agu 2026 — BOY VARYANTI + D1 LEASE + 3 BAYAT/KABLOSUZ KAPI (KraL, interaktif)
+
+**CANLIYA GIDEN (SHA):** `116128af` (push'lu, main FF) — 17 dosya, +887/-64.
+Ana agacta commit'siz duran 3 kumeyi kabul bataryasindan gecirip kapattim (kaynak commit'i
+mimar kod-kilidine takildi → merge dali `fix/boy-lease-kapilar` acildi, commit orada, main
+FF ile ilerledi, dal+worktree AYNI TURDA kapatildi; `worktree list` **tek satir**).
+
+- **K59 BOY_SECENEKLERI uctan uca acildi:** sema (arama.py kanonik) → D1 kolonu + urun hash'i
+  → edge sepet karti (`build.kart_ozeti`) → odeme Worker'i. Worker artik istemci `boy_etiket`
+  degerini D1'deki KANONIK listeye karsi dogruluyor, fark site ile AYNI `secenekler.js boyFarki`
+  cekirdeginden geliyor. 4 fail-closed hukum: gecerli boy 200 · bilinmeyen etiket
+  `gecersiz-boy` · secim atlanmis `boy-secimi-zorunlu` · kolonsuz D1 `boy-desteklenmiyor`.
+  Kapi `tools/boy-secenekleri-kabul.py` deploy.yml'de **BLOKLAYICI** seride baglandi.
+  Kardes depo ekseni (pruvo-bot edge Worker'i) yerelde **olculdu ve VAR**; kosucuda
+  `EDGE=KAPSAM_DISI` diye BASILIR (sozlesme sahibi HocA deposu).
+- **K71 D1 DAGITIK YAZICI LEASE'i:** flock makineler-arasi degil; kosucu×kosucu ve
+  kosucu×yerel yarisinda ortak olan tek yer D1. Tek kosullu UPSERT + **sahiplik geri okumasi**
+  ("wrangler rc=0" kanit sayilmaz) + uzun yazmada yenileme + cikista yalniz kendi token'ini
+  silme. Kabul `tools/d1-dagitik-kilit-test.py` (6/6) deploy.yml'e baglandi.
+- **3 KAPI ONARIMI (hepsi "kapi var ama olcmuyor" sinifi):**
+  (a) `yayin-erisim-test.py` E7'nin son iddiasi `d4ccdfa1`den beri **BAYAT**ti — elle `SERIT_B`
+  defterini sorguluyordu, o defter ayni commit'te bilerek bosaltilmisti (taban 0) → iddia HER
+  ZAMAN kirmizi. Iddia AYNI, kaynak degisti: serit uyeligi **workflow'dan TURER** + bu kapi
+  ISTISNA tablosunda YOK (elle muafiyet kacisi kapali). M15 mutanti yeni mekanizmayi olduruyor.
+  (b) Yeni **E9 ROLLOUT** ekseni: canli sitemap'te henuz olmayan 404 yayin penceresidir, kirmizi
+  degil; sitemap okunamazsa fail-closed KAPALI kalir (+M22). M2'nin capraz beyani E9'u tasiyor.
+  (c) `kanca-devam-envanter-test.py`: pre-commit'teki `devam-sinif-kapisi` cagrisi iki nobetci
+  envanterinde de **kayitsizdi**; kablosuz kapi `ci-kapsam`i kirmizi yakip `fiyat-prova` M3a'nin
+  KONTROL on kosulunu dusuruyordu. Envanterler dolduruldu, kabul nobet.yml serit B'ye baglandi.
+
+**OLCULEN (kosulan komut):** kabul bataryasi **10/10 rc=0** · merge kapisi dalin worktree'sinde
+**8/8 rc=0** (`ci-kapsam` · `is-akisi-kapisi` · `kapi-envanteri` 7/7 · `yayin-erisim-test` 67/67 ·
+`boy-secenekleri-kabul` · `kanca-devam-envanter` 5/5 · `d1-dagitik-kilit` 6/6 ·
+`fiyat-prova` 13/13) · cakisma YOK · FF UYGUN · sizinti YOK ·
+`d1-sync --durum` 27001=27001, hash UYUSMAZ/EKSIK/FAZLA **0**, turetilmis kolonlar GUNCEL.
+
+**KOSUYOR (sonraki turun ILK isi):** `116128af` icin CI **ucusta** — `31789046024` Build &
+deploy + serit B/odeme/spec-alarm kollari. **Ucustaki kosum yesil degildir**: SHA'yi ICEREN kosumun
+hukmu alinacak. Push kancasi ayrica `!! YEDEK alinamadi` bastı (`tools/durum.py` ile bak).
+
+**BENDE KALAN:** Q3 sis fari gorseli **vizyonla** teyit · `media.pruvo3d.com` tekil purge
+(OKAN'da: Zone.Cache Purge token'i) · arsivden 4 kalem (`build.py` butce kirpmasi ·
+`uyum-kapisi` kesme beyani · `arama.py` allow temizligi — `Toyota|86` 71 urun tasiyor, RISKLI).
+
+**🔴 GUNUN DERSI:** *sinif kapisi kurmak, ondan besleneni bayatlatir.* `d4ccdfa1` elle serit
+defterini kaldirdi ve TEK KAYNAK'i workflow'a tasidi — dogru karardi; ama o defteri okuyan
+E7 iddiasi ve M15 mutanti ayni commit'te tasinmadi, ikisi de sessizce **olu** kaldi.
+Mekanizmayi degistiren, o mekanizmayi OKUYAN her yeri ayni commit'te tasimali
+([[ikiz-tanim-sessiz-ayrisma]] · [[bayat-kabul-testi]]).
+
 ## 14 Agu 2026 — OTURUM KAPANISI (KraL, interaktif; gece boyu)
 
 **CANLIYA GIDEN (SHA):** `6f28a842` D1 seq **kuyruk** kolu bloga oranli adim (`adim=yuksek//(k+1)`)
@@ -77,3 +127,20 @@ GH CI BAĞIMSIZ TEYİT (HEAD `dd68cd7a` "fix: pre-push D1 senkronu fail-closed (
 TAMIRCI BAKIM: defter değişmedi (bu turda yeni kalem yok, kapanan yok); §4.7.1 kapsamında dağıtım `nobet-kapi.py --tur` t13'ün devamı olarak yürütülüyor. K85 KAPANDI commit dd68cd7a main'de (`merge-base --is-ancestor` önceki tur teyitli).
 OKAN'A ÇIKIŞ: YOK (§5 — K97 defterde bekliyor, K95/K96 §3 DUR'da, K86/K94 codex SIRADA, K91 OKAN-KAPISI; mimar kararı gerektiren yeni durum yok).
 
+## 14 Agu 2026 ~09:07Z-t15 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU) — KIRMIZI
+
+SUPURME: `mail-supurme-kos.sh` → **ALARM rc=1** §0.4: `GITHUB_BILDIRIM_INBOX=3 BULUNAN=3 TASINAN=2 ATLANAN=1 CIKAN=1 KOMSU_KAYIP=1 KUME_DIFF=OLCULDU KALAN=2 COP_IZI=336:2026-08-14T12:07:50 HUKUM=OLCULEMEDI`.
+- SILINEN 2 · ATLANAN 1 · 🔴 KOMSU_KAYIP 1 kimlik dokumu **DEVAM-ARSIV.md**'ye tasindi —
+  sinif kapisi 3 satirin PUBLIC deftere girmesini DURDURDU (silme YOK, tasima VAR).
+  Ozet: hedef DISI bir havayolu sadakat bildirimi Cop'e dustu; §0.4 fail-closed alarmi
+  (`KOMSU_KAYIP=1`). ASIL ARIZA: hedef yukleminin URETMEDIGI bir kayit tasindi (indeks kaymasi
+  ya da §0.5 indeks-yasaginin devre disi kalmasi). Katalog/kaynak/secret/CNAME sinifina
+  DOKUNULMADI. Kurtarma ELLE + OKAN karari, ayrinti arsivde.
+
+§0.4 PROTOKOLÜ UYGULANDI: bu tur **KIRMIZI** (rc≠0). Çıktı olduğu gibi deftere yazıldı. **Teşhis/onarıma GEÇİLMEDİ.** Süpürme tekrar koşulmadı (§0.4 alarm koşulu). Çöp denetimi + CI bağımsız teyit + Codex açılışı YAPILMADI — ALARM koşulunda ölçüm artışı zararı büyütebilir, karar Okan'ın.
+
+**YAPILACAK KURTARMA (ELLE, Okan kararı):** `/Users/okan/.claude/cron/kurtarma-cop-inbox.applescript` (otomatik DEĞİL, §0.4). FAZ 4 doğrulaması: kurtarılan kaydın Gelen Kutusu'na döndüğünün ölçülmesi. Öncesinde Okan'ın kararı bekleniyor (TurkishAirlines mailinin silinmesi PARA KAYBI sınıfı olabilir — uçuş bileti/sipariş kaybı riski).
+
+TAMIRCI BAKIM: bu turda dağıtım yok, kapanan yok. §4.7.1 kapsamında `nobet-kapi.py --tur` bir sonraki turda K98'i dağıtabilir (bu turda ALARM nedeniyle ikinci kez işçi AÇILMADI).
+
+OKAN'A ÇIKIŞ: **VAR — TEK CÜMLE** (§0.4 son cümle: "yanlış silme para kaybı sınıfıdır; §5'in sessiz varsayılan kuralı bu alarmı KAPSAMAZ").
