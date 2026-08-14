@@ -31,7 +31,12 @@
 - K100 ACIK: defter sinifinda satir-sonu muafiyet kusuru; iki yonlu vaka ile sinif onarimi BENDE.
 - K101 KAPANDI: 36 turluk motor x rc/sure olcumu tamam.
 - K102 ACIK: nobet yazicisi kok deftere yasakli ic dosya adini uretiyor; genel ifadeye cevrilecek.
-- K103 KAPANDI: merge 86e3bba3; kabul ve temizlik tamam.
+- K103 KAPANDI: merge 86e3bba3; kabul ve temizlik tamam. (HocA'nin "kapi 13 Agu'dan beri
+  cokuyor" bildirimi BAYAT cikti: onarim `a13da9df` main'de, dosya kanonik sozlesmeyi cagiriyor.)
+- 🔴 K104 ACIK (bu turda OLCULDU): nobet is akisi (`nobet.yml`) son 200 kosumda 11 success /
+  77 failure / 110 cancelled; son 60 kosumda 0 success; son yesil 2026-08-12T11:17Z =
+  yaklasik 54 saat once. Bu surede seritteki kapilar HUKUM URETMEDI. Teshis Codex'te
+  (kirmizi adim dagilimi · iptallerin kaynagi · sure ekseni); gerekce ARSIVDE; hukum MIMARDA.
 - OKAN'DA: yeni tarife satin alma karari; eski yedek klasorunu backup-v2 icine surukle-birak; K89 olcum eylemi silme karari.
 - 🔧 TARIFE KARAR KURALI (olculdu, Okan onayina hazir): mevcut $20 plan KALIR. Kota dolmaya
   yaklasirsa (haftalik %80 esigi mimar tarafindan izlenir) → ikinci saglayicinin $39 basamagi
