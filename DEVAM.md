@@ -24,8 +24,52 @@ dalinda genisletmenin YOKLUGU **kasit mi eksik mi** — kasitsa testin olctugu u
 (bende), eksikse tek sozluk iki dala baglanir; (2) **ikinci alt-eksen:** `mod=ege` dali da
 yerelle TAM esmiyor (**20890 vs 20808, 82 fark**) → "mod=ege'yi olc" tek basina kirmiziyi
 KAPATMAZ.
-**BENDE KALAN:** `parite-test.js` ciktisi `[site]` etiketi basiyor ama olctugu uc Worker
-(`pruvo-whatsapp-bot/ara`) — etiket/ad duzeltmesi, ayri kalem.
+**✅ BENDEKI KOL KAPANDI (ayni turda):** `parite-test.js` etiketi artik SABIT degil, olculen
+UC'ten TURETILIYOR (`ucEtiketiTuret`) — 6/6 etiket kullanimi turetilmis deger kullaniyor
+(`TURETILMIS=6/6`), `[site]` sabiti kalmadi. Uc `workers.dev` ya da yol `/ara` ise
+`/ara Worker (pruvo-bot)`, `pruvo3d.com` kokunde ve `/ara` degilse `site (Pages)`, tanimsizsa
+**fail-loud** `BILINMEYEN UC` (sessizce "site" YAZMAZ).
+- Kabul: `tools/parite-etiket-test.js` 4/4 · ag ISTEMEZ · **CI'ya BAGLI: bloklayici `serit-a3`**
+  (test yazip CI'ya baglamamak = olu kabul; toplayici YOK, testler elle listeli).
+- **IKI mutasyon ayagi kirmizi yandi:** (1) etiket sabit `"site"` dondurulunce rc=1;
+  (2) `BILINMEYEN UC` fail-loud kolu `site (Pages)`'e cevrilince rc=1. Geri alinca yesil.
+- Bagimsiz curutucu tur "iddiayi yikamadi" (`CURUTULDU=HAYIR`); `ARA_UC` degistirilince gercek
+  betik `BILINMEYEN UC` bastı → turetim CANLI kanitlandi.
+- Fikstur beklentileri ELLE sabit — burada DOGRU tasarim: kanonik fonksiyondan turetilseydi
+  test tautoloji olur, mutant yesil gecerdi ([[anahat-referans-tautolojisi]]).
+
+**MERGE: `d57e1853` main'de** (ff-only; kod commit'i mimar elinden GECMEZ → `muh/parite-etiket`
+worktree'sinde commit'lendi, merge-kapisi prosedürüyle alindi). Kapsam 3 dosya (+44/-8),
+sizinti taramasi 0 isabet.
+Merge oncesi kapilar: `ci-kapsam-test` rc=0 · `kapi-envanteri` 7/7 · `node --check`
+2/2 · `komut-stili-kapisi --kendini-test` rc=0 · `mimar-kod-kilidi --kendini-test` rc=0.
+**Merge sonrasi `d1-sync --durum` BES EKSEN YESIL** (SAYI 27078=27078 · SEQ 0 sapma · SEMA 3
+indeks KURULU · TURETILMIS 5 kolon GUNCEL · ICERIK hash uyusmaz 0 / eksik 0 / fazla 0).
+**Temizlik:** worktree SILINDI · dal SILINDI · kendi stash girdisi SHA teyidiyle DROP
+(yabanci 2 girdiye DOKUNULMADI) · `worktree list` **tek satir**.
+
+**⏳ UCUSTA (sonraki turun ILK isi):** `Build & deploy 31815323721` (d57e1853) **pending** —
+yeni bloklayici testi tasiyan ILK kosum; yesil demiyorum, olculecek.
+🟢 **YAN BULGU:** `Odeme yolu bayatlik nabzi` bu SHA'da **SUCCESS** (31815323823) — dun 814.9 dk
+bayat yakan K91 alarmi shop deploy sonrasi yesile dondu; **K91 kapanmis olabilir**, taze teyit
+sonraki turda.
+
+**🔴 YENI KALEM — K100 (BENDE): defter sinif kapisi E6 ailesinin muafiyet jetonu SATIR
+SINIRINDA COKUYOR.** Desen muafiyet jetonunu yalnizca **ayni satirda ve tek bosluk sonrasinda**
+ariyor; mesru bir cumle satir sonunda bolununce (jeton sonraki satira dusuyor) kapi KIRMIZI
+yaniyor. Bu turda commit'i durdurdu, metni elle sardim. Ayni ailede bugunun **ucuncu**
+yanlis-pozitif eksenidir (is-akisi adi 4 kez → muafiyet · olcum-sonucu muafiyeti `adc45269` ·
+simdi satir siniri) → **tekil yama YASAK** ([[ucuncu-tekrar-sinif-kapisi]]). Onarim jeton
+aramasinin **satir sonunu da kapsamasi** ekseninde SINIF olarak yapilacak; IKI YONLU vaka sart
+(mesru bicim satir sonuna denk gelince YESIL · gercek bulgu satir sonuna denk gelince KIRMIZI
+KALMALI). Detay + desen alintisi ARSIVDE (kapinin kendi desenini deftere yazmak kapiyi tetikler
+— bu turda tam bu oldu, 3 satir).
+
+**🔴 GUNUN BESINCI DERSI:** *kisitli sandbox'ta kosan test KIRMIZI degil OLCULEMEDI'dir.*
+Uc fikstur testi `listen EPERM 127.0.0.1` ile rc=1 verdi ve isci "MERGE_HUKMU=EDILEMEZ" yazdi;
+ag izinli koşumda ucu de **rc=0** (248+140 iddia gecti). Yani hukum dogru sayidan, YANLIS
+kapsamdan cikarilmisti. Kural: rc!=0 gorunce once **engel mi ariza mi** diye sor
+([[codex-sandbox-agi-sahte-kirmizi]]).
 
 ## 14 Agu 2026 — 🔚 OTURUM KAPANISI (KraL, interaktif)
 
@@ -111,3 +155,44 @@ TAMIRCI BAKIM: bagimsiz kabul sayımı —
 - **K89**: OKAN-KAPISI (acik) — Ads'te `page_view` eylemi silme karari.
 Bu tur dagıtılan: **YOK** (kapı dağıtıyor; K96 MaCiT alanı zaten ASCII norm ile kapandı, K95/K97/K98 onarımı oncesi gerceklesmis).
 OKAN'A ÇIKIŞ: YOK (§5 — her kalem kendi sınıfında yargılandı; K91 zaten OKAN-KAPISI, routine).
+
+## 14 Agu 2026 ~15:07Z — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=1 BULUNAN=1 TASINAN=1 ATLANAN=0 CIKAN=1 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=367:2026-08-14T15:07:37Z HUKUM=SUPURULDU`. 1 mail: "Nöbet şeridi (SERIT B — yayını BLOKLAMAZ) - main (e084df0)".
+COP_DENETIM: `MESRU=136 YANLIS=0 KAPSAM=136 ATFEDILMEYEN=26` → yanlis supurme izi YOK. Inbox kalan: 1 mail GitHub `support@github.com` (Codespaces storage 90%, kapsam dışı: sender `notifications@github.com` değil, subject "Run failed" değil).
+
+CI BAGIMSIZ TEYIT (HEAD `8b8ca39` "defter: oturum kapanisi — 11 SHA canliya, shop deploy 34d4db64, kosan…"):
+- ✅ `Build & deploy 31805905402` (e084df0) **6/6 yesil** (K98 zinciri kapali).
+- ⏳ `Build & deploy 31811352307` (8b8ca39) **in_progress** — zincir aktif.
+- ✅ `D1 uzlastirici 31812327538` · `D1 sapma alarmi 31811561525` (8b8ca39) · `Paket tazeligi alarmi 31810737308` (d6e8881) yesil.
+- ⏸ `Nöbet şeridi (SERIT B) 31811352307` (8b8ca39) in_progress — beklenen concurrency.
+- 🔴 `Nöbet şeridi (SERIT B) 31805905627` (e084df0) failure → mail supurulen kayitla ayni; sinif KAPANDI (sonraki 9 commit zincirinde tekrarlanmadi, current head 8b8ca39 temiz).
+
+§4.7.1 ONARIM KAPISI: `nobet-kapi.py --tur` PID calisiyor (motor zinciri akıyor). H7 kilidi aktif.
+
+TAMIRCI BAKIM: bagimsiz kabul sayımı — K77/K80/K84/K86/K96/K97 zaten `ESKALASYON` geri-iz'de, kapı dagitim yapiyor (tur sayilari 15–19). Bu turda yeni dagitim **YOK**; K96 hâlâ `BEYAN_VAR_KANIT_YOK` (kabul rc=1, ascii norm MaCiT alaninda). K96 = MAÇİT tek-yazar → mimar eli sürmez, onarım paketi bekliyor.
+
+OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, arıza sınıfı KAPANDI).
+
+---
+
+## 2026-08-14 ~18:40 — saatlik CI nöbeti turu (KraL, ev `/Users/okan/dev/pruvo`)
+
+EV: `/Users/okan/dev/pruvo` ✅ (0. adım yeşil).
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=1 BULUNAN=1 TASINAN=1 ATLANAN=0 CIKAN=1 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=368:2026-08-14T18:38:06 HUKUM=SUPURULDU`. 1 mail: "Build & deploy to GitHub Pages - main (8b8ca39)".
+
+COP_DENETIM: `MESRU=136 YANLIS=0 KAPSAM=136 ATFEDILMEYEN=26` → yanlis supurme izi YOK.
+
+CI BAGIMSIZ TEYIT (son 10 koşum):
+- ⏳ `Build & deploy 31815323721` (d57e1853 parite) **pending** — yeni başladı.
+- ✅/⏳ `Build & deploy 31813810824` (692c7466 defter: parite kök nedeni) **in_progress**, serit-a2 52/52 adım koşuyor (failure YOK henüz).
+- 🔴 `Build & deploy 31811352076` (8b8ca391) **failure** · `serit-a2` failure adımı: `Yayin ic-dil kapisi — KAYNAK kolu (build'den once)` · `deploy`+`yayin` skipped → **K98 BLOKLU halen geçerli**.
+- ✅ `Build & deploy 31815289218` (692c7466 Paket tazeligi) success.
+- ⏸ `Build & deploy 31813811118` (692c7466 defter: parite) **cancelled** (kuyruk davranışı, BKM §4.5 — arıza değil).
+
+§4.7.1 ONARIM KAPISI: zincirler (`692c7466`, `d57e1853`) koşuyor — K98'in kök nedeni (K85 prepush-d1-kaynak-test idempotent + K80 kanca kablosu) bu zincirlerden birinde çözülürse BLOK kalkar; çözülmezse §3.5 "sonraki tur ilk işi devralır".
+
+TAMIRCI BAKIM: bağımsız kabul sayımı — bu turda yeni dağıtım YOK (kapı kendi motor zincirinde); K96 ascii norm MaCiT alanında (`BEYAN_VAR_KANIT_YOK`), K98 zincirleri koşuyor.
+
+OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, zincirler aktif).
