@@ -3054,6 +3054,25 @@ SERIT_B = {
         "KENDISI. Korudugu kabul testi serit B'de oldugu icin batarya da serit B'dedir "
         "(backfill-mutasyon-test.py ile ayni desen). Mutasyon gecici SYMLINK aynasina "
         "uygulanir, canli tools/ dizinine YAZILMAZ.",
+    # --- ONARIM-COMMIT ARACI KABUL + MUTASYON (14 Agu 2026) -------------------------
+    # 37d62efc commit'i ile eklenen aracin KENDINI sinamasi: 12 vaka (F1-F8 + --kuru)
+    # sentetik gecici depoda (bare uzak + yerel klon), metin eslemesi YOK, ag YOK,
+    # canli agaca YAZMAZ, gecici depolar kosum sonunda SILINIR. Olculmus sure ~5 s.
+    # Mutasyon kolu 5 tekil satir mutasyonunu gecici kopyaya uygulayip ilgili vakayi
+    # kosar; 5/5 KIRMIZI olmali (canli tools/ dizinine YAZMAZ).
+    # HER IKI KOL da serit B'de: aracin KENDI kirmizi yolunu olcer (mutasyon bataryasi),
+    # "yanlis/eksik/sizintili icerik canliya cikmasin" A-sinifi DEGIL — isci
+    # ergonomisi aracinin stash/worktree/--ff-only merge/push yordamini sentetik
+    # depoda GERCEKTEN kosar ve sonucunu test eder. Yayini durdurmanin tamir
+    # degeri SIFIR (aracin kendisi hataliysa iscinin manuel workaround'u var).
+    ("nobet.yml", "serit-b", "tools/onarim-commit-test.py"):
+        "YALNIZ kapinin KENDINI sinamasi: 12 vaka (F1-F8 + --kuru) sentetik "
+        "gecici depoda GERCEK kosum (bare uzak + yerel klon, metin eslemesi YOK, "
+        "ag YOK, canli agaca YAZMAZ). Mutasyon kolu 5 tekil satir mutasyonunu "
+        "gecici kopyaya uygular (canli tools/ dizinine DOKUNMAZ). 'Yanlis/eksik/"
+        "sizintili icerik canliya cikmasin' A-sinifi DEGILDIR — isci ergonomisi "
+        "aracinin (stash/worktree/--ff-only merge/push) yordamini sinayan "
+        "kendi-kabulu; yayini durdurmanin tamir degeri SIFIR.",
     ("nobet.yml", "serit-b", "tools/durum-test.py"):
         "durum.py PANOSUNUN kabul testi; pano bir teshis ciktisidir, yayinlanmaz. "
         "IKI KOL DA bu job'da: bayraksiz (gercek pano ciktisi) + `--ic-nobetci` "
