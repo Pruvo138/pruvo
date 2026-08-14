@@ -1171,7 +1171,11 @@ def _pre_push_tanisi(govde):
 # sahte kapi betiginin rc'si secilir ve KANCANIN rc'si olculur. Regex yalnizca
 # TANI metni uretir; ok/kirmizi hukmune GIRMEZ.
 _PP_BLOK_BAS = "# --- 0b) CI KAPSAM KAPISI"
-_PP_BLOK_SON = "# >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU"
+# 14 Agu 2026: capa KOMSU bolumun basligindan 0b'nin KENDI bitis satirina tasindi.
+# Eski hali "bir sonraki bolum nerede basliyorsa 0b orada bitiyordur" varsayimiydi;
+# araya bolum eklenince (K80/0c) fikstur yabanci bir adimi kosturdu ve yanlis-kirmizi
+# verdi. Capa artik bolumun KENDISINE ait ([[kapi-anchor-coupling-ikilemi]]).
+_PP_BLOK_SON = "# --- 0b) SONU (FIKSTUR CAPASI"
 # Sahte kapi: BAYRAKSIZ cagrida secilen rc'yi, `--kendini-test` cagrisinda 0 dondurur.
 # 🔴 BU MODEL OLCULMUSTUR: gercek agacta 3 izlenmeyen+kapsamsiz dosya varken
 # bayraksiz kol rc=1, `--kendini-test` rc=0 verdi. Sahte kapi bu ASIMETRIYI taklit

@@ -155,6 +155,15 @@ BEKLENEN = (
          "CI kapsam kapisi push ANINDA fail-closed: kapsamsiz VE henuz izlenmeyen "
          "(`git add` edilmemis) kabul testi -> PUSH DURUR; kosmazsa kapsam korlugu "
          "yalniz CI'da, yani push'tan SONRA konusur"),
+        # 14 Agu 2026 eklendi. GEREKCE: adim `ebebb966` ile pre-push'a girdi (0c) ama
+        # HICBIR envanterde kayitli DEGILDI — cagri satiri silinse hicbir nobetci kirmizi
+        # yakmazdi ([[nobetci-cagri-satiri-nobetsiz]]). Ayni turda `--kanca-kablo`
+        # fiksturunun kapsami 0b ile SINIRLANDI (capa onarimi), yani bu adimin canliligini
+        # olcen TEK yuzey artik BU envanterdir.
+        ("tools/is-akisi-kapisi.py",
+         "YENI CI ADIMI HUKUM KAPISI (K80): workflow'a eklenen `run` komutu push EDILEN "
+         "commit agacinda FIILEN rc=0 vermeli; kosmazsa 'kapi VAR' beyani olculmeden "
+         "gecer ve yayin seridi commit'ler sonra kirmizi konusur"),
     )),
     # 1 Agu 2026 eklendi (kurucu: tools/commit-mesaji-hook-kur.py).
     # GEREKCE: depo PUBLIC ve commit MESAJI yazildiktan sonra DEGISTIRILEMEZ —

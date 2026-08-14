@@ -137,6 +137,21 @@ if [ "$pruvo_kapsam_rc" -ne 0 ]; then
   echo "!! PUSH DURDURULDU — CI KAPSAM KAPISI KIRMIZI (rc=$pruvo_kapsam_rc)."
   exit 1
 fi
+# --- 0c) YENI CI ADIMI HUKUM KAPISI (K80, 14 Agu 2026) — GERCEK kancadaki SEKLIN
+# taklidi: stdin'i gecici dosyaya yakala -> kapiyi ondan besle -> `exec <` ile kalan
+# kancaya geri ver + rc'ye bagli girintili kosullu `exit 1`. Sekil taklit edilmezse
+# nobetci gercekte olmayan bir bicimi olcer ([[nobetci-fikstur-sekli]]).
+pruvo_k80_girdi=$(mktemp 2>/dev/null || echo /tmp/pruvo-k80-$$)
+cat > "$pruvo_k80_girdi"
+python3 "$pruvo_kapsam_kok/tools/is-akisi-kapisi.py" --pre-push < "$pruvo_k80_girdi"
+pruvo_k80_rc=$?
+if [ "$pruvo_k80_rc" -ne 0 ]; then
+  rm -f "$pruvo_k80_girdi"
+  echo "!! PUSH DURDURULDU — YENI CI ADIMI HUKMU KIRMIZI/OLCULEMEDI (rc=$pruvo_k80_rc)."
+  exit 1
+fi
+exec < "$pruvo_k80_girdi"
+rm -f "$pruvo_k80_girdi"
 # >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir) >>>
 # Fikstur GERCEK kanca govdesinin SEKLINI taklit eder (stdin yakala -> kapiyi besle ->
 # `exec <` ile kalan kancaya geri ver); aksi halde nobetci gercekte olmayan bir bicimi

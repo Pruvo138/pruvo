@@ -150,6 +150,11 @@ FAIL_CLOSED = {
         "kosmasina ragmen bu politika envanterinde yoktu; cagri satiri silinirse "
         "defter ihlali main'e girer ve ancak CI'da yayini durdurduktan sonra "
         "gorunur. Cikis kodu ve gerekce commit aninda korunmalidir.",
+    ("pre-push", "tools/is-akisi-kapisi.py"):
+        "itme oncesi YENI CI ADIMI hukum kolu (K80). Adim 0c'de fail-closed kosuyor "
+        "ama bu politika envanterinde yoktu; cikis kodu yutulursa olculmemis bir CI "
+        "adimi 'kapi VAR' sayilir ve yayin seridi ancak commit'ler sonra kirmizi "
+        "konusur. Cikis kodu ve gerekce push aninda korunmalidir.",
     ("pre-commit", "tools/ic-rapor-index-kolu.py"):
         "yazim oncesi ic rapor adi kolu (INDEX ekseni). Kanonik kapi "
         "(tools/ic-rapor-adi-kapisi.py) YALNIZ CI'da yasiyordu: 12 Agu 2026 kosumu "

@@ -73,6 +73,12 @@ fi
 exec < "$pruvo_kapsam_girdi"
 rm -f "$pruvo_kapsam_girdi"
 trap - EXIT HUP INT TERM
+# --- 0b) SONU (FIKSTUR CAPASI — SILME, TASIMA, YENIDEN ADLANDIRMA) ---------
+# `tools/ci-kapsam-test.py::_PP_BLOK_SON` BU satira capalanir. Capa eskiden KOMSU
+# bolumun BASLIGIYDI; 14 Agu'da araya 0c eklenince fikstur 0b sanip 0c'yi de kosturdu,
+# sentetik depoda olmayan bir araci aradi ve YANLIS-KIRMIZI verdi -> tum ekibin yayini
+# 6 commit tikandi. Bolum artik KENDI capasiyla biter: araya bolum eklemek fiksturu bir
+# daha kaydiramaz. Capa silinirse ayiklayici FAIL-CLOSED durur, sessizce "olctum" DEMEZ.
 
 # --- 0c) YENI CI ADIMI HUKUM KAPISI (FAIL-CLOSED, K80, 14 Agu 2026) --------
 # Workflow'a yeni eklenen run komutunu VAR diye saymak yetmez: push edilen commit
