@@ -4,7 +4,7 @@ import os
 
 
 # Kapali kume: bos ya da gelecekte eklenecek bilinmeyen bir motor kapiyi acmaz.
-ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")
+ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claude")
 
 
 def kimlik_ekseni(girdi, ortam=None):
