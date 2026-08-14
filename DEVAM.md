@@ -1,5 +1,16 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 14 Agu 2026 ~03:38Z-t9 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · BULUNAN=4 · TASINAN=4 · ATLANAN=0 · CIKAN=4 · KOMSU_KAYIP=0 · KUME_DIFF=OLCULDU · KALAN=0 · COP_IZI=76:2026-08-14T06:34 · HUKUM=SUPURULDU. 7ba6287 zinciri için 3 + eski 3519254 zinciri için 1 (toplam 4 mail).
+COP_DENETIM: Pruvo hesabı MESRU=61 / YANLIS=0 (süpürme temiz); gmlmz/gemalmaz/dio hesapları YANLIS=15 K92 bilinen sınıfı (süpürme dışı yol); sipariş/ödeme kaybı YOK.
+GH SON_1H (HEAD 7ba6287 "ekle: Audi+Mercedes x Cults3D dilim-1 14 urun canliya"): 4 failure aynı head'de — Build&deploy `31766288494` (serit-a3 marka-sayac: 60 düşen, ürün `kategori` alanları `CLAUDE.md` `CATEGORIES` listesinde YOK) + Spec güvenlik taraması `31766288497` (K94 sınıfı — bilinen, SERIT-B BLOKLAMAZ) + Odeme yolu `31766288498` (shop worker bayat 144,7 dk, K91 sınıfı, `DEPLOY = OKAN kapısı`). Yeni koşumlar `31767204268` D1 sapma alarmi success + `31766288630` Nöbet şeridi SERIT B pending. Build & deploy durumu: 3 iş serit-a3/a2/build failure → `deploy`+`yayin` SKIPPED → yeni 14 ürün canlıya inmedi (yayın BLOKLU yeni ürün için).
+K93 YARIM İŞ: önceki tur raporu "Codex lokal commit `710dd8df` push olmadı" diyordu; bu turda **710dd8df main + origin/main'de** (`branch -r --contains` → origin/main ✅, `merge-base --is-ancestor` rc=0). Çekirdek kök neden `SERIT B'DE BEYANSIZ KAPI: tools/onarim-commit-test.py` 710dd8df ile çözüldü.
+TAMIRCI: açık-kalemler.md'den 🔧 okundu (17 kalem: K49·K53·K55·K59·K69·K70·K71·K72·K77·K78·K80·K84·K85·K86·K88·K90·K93). K49/K53/K55 → ESKALASYON=OKAN (geri-iz.json). K59/K69/K70/K71 → DAGITILDI (işçide, tur kapanmadı). K72/K77/K78/K80/K84/K85/K86/K88/K90/K93 → SIRADA (kapı H2 fan-out'u tur=9 dağıtacak). K93 bu turda **KAPANDI** (kabul: `python3 tools/is-akisi-kapisi.py` YESIL ✅ — 5 B iddiası · 320 kapı çağrısı · 111 SERIT_B beyanı · 1 BLOKLAYICI beyan · 11 zorunlu adım · 205 kendini-test · etkisizleştirilmiş 0; "BEYANSIZ KAPI" mesajı çıktıda yok).
+ONARIM PAKETİ (yeni kalem açmadan): 7ba6287 ile gelen 14 Audi+Mercedes ürününün `kategori` alanları `CLAUDE.md` `CATEGORIES` listesinde YOK → serit-a3 marka-sayac 60 düşen, Build & deploy zinciri kırmızı. KraL/MaCiT koordinasyon sınıfı: ürün verisi = MaCiT tek-yazar, kategori listesi = KraL. Tek-yazar ilkesi bozulmaz: Tamirci teşhis + yama önerisi hazırlar, MaCiT defterine bırakır (merge/deploy almaz). K94 zaten 🔧 açık ve codex dağıtım SIRADA. Yeni K96/K97 açmıyorum — K94 (aynı serit-B güvenlik taraması) ve K95 (marka/model uyelik K19 ÇAPRAZ-MARKA farklı kök neden) mevcut kalemler bu arızayı kapsar. Tam detay için DEVAM-ARSIV.md bkz.
+TEMİZLİK: /tmp/kalem_durum_oku.py SİLİNDİ (13 Ağu kuralı).
+OKAN'A ÇIKIŞ: YOK (§5 — K93 kendi kabul testiyle kapandı, K91 zaten OKAN-KAPISI, K94 zaten Okan kararı bekliyordu, yeni onarım paketi MaCiT düzleminde — mimar kararı gerektirmez).
+
 ## 13 Agu 2026 — OTURUM KAPANISI (KraL, interaktif)
 
 **YAYIN ACIK.** CI `31722405771`, HEAD `69b77c5f`, **6/6 job yesil**. Gun boyu kapaliydi;
