@@ -180,8 +180,12 @@ fi
 #  - SADECE main'e push'ta calisir. Feature dal/worktree push'unda calissaydi,
 #    birlesmemis urunler D1'e girer ve Ege onlari musteriye onerirdi.
 #  - urunler.json degismediyse hic calismaz (push'u yavaslatmaz).
-#  - Push'u ASLA bloklamaz (exit 0). Senkron patlarsa site yayini durmasin; zaten
-#    diff bekledigi icin BIR SONRAKI push kendiliginden tekrar dener.
+#  - 🔴 FAIL-CLOSED (12 Agu 2026, K85): urunler.json DEGISTIYSE ve senkron
+#    kosamaz/basarisiz olursa PUSH DURUR. Gerekce: fail-open hali urun alani
+#    duzenlemesinin D1 senkronu OLMADAN main'e girmesine izin veriyordu (ayni
+#    urun ayni gun IKINCI kez uzlastiriciyi kirmizi yakti; aradaki pencerede Ege
+#    bayat katalog goruyordu = sessiz satis kaybi). D1 gecici arzasi varsa
+#    duzeltilip TEKRAR push edilir — drift'in dogmasi onlenir.
 #  - Bu dosya git'e GIRMEZ (.git/hooks commit'lenmez) — CLAUDE.md'de yazili.
 #
 # 🔴 KAYNAK = PUSH EDILEN COMMIT (9 Agu 2026 onarimi; ONCESI: bayraksiz cagri).
@@ -234,22 +238,23 @@ else
     set -- --kaynak "$kaynak_gecici"
   else
     rm -f "$kaynak_gecici"
-    echo "!! D1 SENKRONU ATLANDI — push edilen commit'ten ($push_sha) urunler.json"
-    echo "!! cikarilamadi. Calisma agacina DUSULMEZ: commit'lenmemis urunler CANLI"
-    echo "!! katalogda gorunmemeli. Elle: python3 $sync --kaynak <dosya>"
-    exit 0
+    echo "!! PUSH DURDURULDU — D1 SENKRONU KOSULAMADI: push edilen commit'ten"
+    echo "!! ($push_sha) urunler.json cikarilamadi. Calisma agacina DUSULMEZ"
+    echo "!! (commit'lenmemis urunler CANLI katalogda gorunmemeli)."
+    echo "!! Elle: python3 $sync --kaynak <dosya>   (sonra tekrar push et)"
+    exit 1
   fi
 fi
 
 echo "→ urunler.json degisti: D1 senkronlaniyor (Ege urunleri D1'den okuyor)..."
-if python3 "$sync" "$@"; then
-  :
-else
-  echo ""
-  echo "!! D1 SENKRONU BASARISIZ — push DEVAM ediyor ama EGE YENI URUNU GOREMEZ."
-  echo "!! Duzeltip elle calistir:  python3 $sync"
+if ! python3 "$sync" "$@"; then
+  echo "!! PUSH DURDURULDU — D1 SENKRONU BASARISIZ."
+  echo "!! urunler.json main'e girmek uzereydi ama D1 bayat kaldi; Ege (WhatsApp)"
+  echo "!! urunleri D1'den okudugu icin musteriye BAYAT/YANLIS katalog gosterilir"
+  echo "!! (sessiz satis kaybi — K85). Duzeltip tekrar push et:  python3 $sync"
   echo "!! (Kontrol: python3 $sync --durum  -> sayi urunler.json ile ayni olmali)"
-  echo ""
+  [ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"
+  exit 1
 fi
 [ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"
 

@@ -22,8 +22,8 @@ senkronun FIILEN okudugu katalog kaydedilir ve icerigi olculur. Kabuk taklidi YO
      olcmuyor demektir).
   C. KOPRU: `git push origin dal:main` — push edilen sha HEAD DEGIL. `--head` orada YANLIS
      agaci okurdu; kanca `--kaynak` ile push edilen commit'i cikarir.
-  D. FAIL-CLOSED: katalog push edilen commit'ten cikarilamazsa senkron HIC kosmaz (calisma
-     agacina SESSIZCE dusmez) ve push BLOKLANMAZ.
+  D. FAIL-CLOSED (K85): katalog push edilen commit'ten cikarilamazsa YA DA senkron
+     ARIZA verirse push BLOKLANIR (rc != 0); calisma agacina SESSIZCE DUSMEZ.
   E. SURE TAVANI: her gercek push <= 30 sn (fail-slow = fail-open; asili kalan kol iptal
      edilir ve kapi hic olculmez).
 
@@ -142,7 +142,13 @@ print("KAYIT: %%s" %% beyan)
 '''
 
 
-def fikstur_kur(tmp, ad, kanca_govdesi=None):
+# SENTETIK ARIZA STUB'I (K85) — d1-sync'in D1 yazmasinda patladigini taklit eder.
+# Kaynak secimini DELEGE ETMEZ: senkronun KENDISI basarisiz olursa kancanin
+# fail-closed davranmasi gerektigini olcer (BASARISIZ kolu, ATLANDI kolu degil).
+_HATA_STUB = "#!/usr/bin/env python3\nimport sys\nsys.exit(1)\n"
+
+
+def fikstur_kur(tmp, ad, kanca_govdesi=None, sync_stub=None):
     """GERCEK git deposu + GERCEK uzak (bare) + KURULU pre-push kancasi.
     Doner: (depo_yolu, kayit_yolu)."""
     depo = os.path.join(tmp, ad)
@@ -160,8 +166,9 @@ def fikstur_kur(tmp, ad, kanca_govdesi=None):
     _yaz(os.path.join(depo, "tools", "gecmis-geri-donus-kapisi.py"), _KAPI_STUB)
     shutil.copy2(os.path.join(TOOLS, "git_ortami.py"),
                  os.path.join(depo, "tools", "git_ortami.py"))
-    _yaz(os.path.join(depo, "tools", "d1-sync.py"),
-         _KAYIT_STUB % {"gercek": GERCEK_SYNC, "kayit": kayit})
+    stub = sync_stub if sync_stub is not None else \
+        (_KAYIT_STUB % {"gercek": GERCEK_SYNC, "kayit": kayit})
+    _yaz(os.path.join(depo, "tools", "d1-sync.py"), stub)
 
     govde = kanca_govdesi if kanca_govdesi is not None else \
         open(KANCA_KAYNAGI, encoding="utf-8").read()
@@ -235,10 +242,10 @@ try:
     # ══ B) KONTROL MUTANTI — bayrak sokulunce A KIRMIZI yanmali ══════════════════
     print("\n[B] KONTROL MUTANTI — cagridan bayrak sokulunce eksen KIRMIZI yaniyor mu?")
     ham = open(KANCA_KAYNAGI, encoding="utf-8").read()
-    mutant = ham.replace('if python3 "$sync" "$@"; then', 'if python3 "$sync"; then')
+    mutant = ham.replace('if ! python3 "$sync" "$@"; then', 'if ! python3 "$sync"; then')
     dogrula("B0 mutasyon FIILEN uygulandi (govde degisti) — uygulanmayan mutant "
             "'oldurulmus' sanilirdi", mutant != ham,
-            "cagri satiri bulunamadi: 'if python3 \"$sync\" \"$@\"; then'")
+            "cagri satiri bulunamadi: 'if ! python3 \"$sync\" \"$@\"; then'")
     depo_b, kayit_b = fikstur_kur(tmp, "b", kanca_govdesi=mutant)
     _katalog_yaz(depo_b, ["u-commitli", "u-taban"])
     _git(depo_b, "add", "urunler.json")
@@ -286,8 +293,8 @@ try:
     kyt_d = kayit_oku(kayit_d)
     dogrula("D1 🔴 kaynak cozulemedi -> senkron CALISMA AGACINA DUSMEDI (kayit YOK)",
             kyt_d is None, str(kyt_d and kyt_d["idler"]))
-    dogrula("D2 fail-closed kol push'u BLOKLAMADI (bu blok fail-open'dir, rc=0)",
-            rc_d == 0, "rc=%d %s" % (rc_d, cikti_d[-300:]))
+    dogrula("D2 🔴 FAIL-CLOSED (K85): senkron ARIZA -> push BLOKLANDI (rc != 0)",
+            rc_d != 0, "rc=%d %s" % (rc_d, cikti_d[-300:]))
 
     # D3 — KOPRU kolunun fail-closed'i (kancanin KENDI kodu; D1 d1-sync'in kodu).
     depo_d2, kayit_d2 = fikstur_kur(tmp, "d2")
@@ -298,11 +305,40 @@ try:
     _katalog_yaz(depo_d2, ["u-AGACTA-KALDI"])
     rc_d2, cikti_d2, _ = push_et(depo_d2, "origin", "dal2:main")
     kyt_d2 = kayit_oku(kayit_d2)
-    dogrula("D3 KOPRU kolu da fail-closed: kayit YOK ve kanca ATLANDI gerekcesini BASTI",
-            kyt_d2 is None and "D1 SENKRONU ATLANDI" in cikti_d2,
+    dogrula("D3 KOPRU kolu da fail-closed: kayit YOK ve kanca KOSULAMADI gerekcesini BASTI",
+            kyt_d2 is None and "D1 SENKRONU KOSULAMADI" in cikti_d2,
             "rc=%d kayit=%s cikti=%s" % (rc_d2, kyt_d2, cikti_d2[-300:]))
-    dogrula("D4 KOPRU fail-closed kolu push'u BLOKLAMADI (rc=0)", rc_d2 == 0,
+    dogrula("D4 🔴 KOPRU fail-closed kolu push'u BLOKLADI (rc != 0)", rc_d2 != 0,
             "rc=%d" % rc_d2)
+
+    # ══ D5/D6) BASARISIZ kolu — senkron ARIZA verince push BLOKLANIR (K85) ══════
+    print("\n[D5/D6] FAIL-CLOSED (K85) — senkron ARIZA verince push BLOKLANIR")
+    depo_d3, _kayit_d3 = fikstur_kur(tmp, "d3", sync_stub=_HATA_STUB)
+    _katalog_yaz(depo_d3, ["u-commitli", "u-taban"])
+    _git(depo_d3, "add", "urunler.json")
+    _git(depo_d3, "commit", "-q", "-m", "commitli urun")
+    rc_d3, cikti_d3, _ = push_et(depo_d3)
+    dogrula("D5a 🔴 senkron ARIZA -> push BLOKLANDI (rc != 0)", rc_d3 != 0,
+            "rc=%d %s" % (rc_d3, cikti_d3[-300:]))
+    dogrula("D5b gerekce BASILIYOR (PUSH DURDURULDU — D1 SENKRONU BASARISIZ)",
+            "PUSH DURDURULDU" in cikti_d3 and "D1 SENKRONU BASARISIZ" in cikti_d3,
+            cikti_d3[-300:])
+
+    # D6 — KONTROL MUTANTI: BASARISIZ kolu fail-open'a cevrilince D5 KIRMIZI yanmali
+    ham_fc = open(KANCA_KAYNAGI, encoding="utf-8").read()
+    mutant_fc = ham_fc.replace(
+        '[ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"\n  exit 1\nfi',
+        '[ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"\n  exit 0\nfi')
+    dogrula("D6a mutasyon FIILEN uygulandi (fail-open'a cevrildi)", mutant_fc != ham_fc,
+            "hedef dizi bulunamadi")
+    depo_d4, _kayit_d4 = fikstur_kur(tmp, "d4", kanca_govdesi=mutant_fc,
+                                     sync_stub=_HATA_STUB)
+    _katalog_yaz(depo_d4, ["u-commitli", "u-taban"])
+    _git(depo_d4, "add", "urunler.json")
+    _git(depo_d4, "commit", "-q", "-m", "commitli urun")
+    rc_d4, _cikti_d4, _ = push_et(depo_d4)
+    dogrula("D6b 🔴 MUTANT: senkron ARIZA vermesine ragmen push GECTI (fail-open)",
+            rc_d4 == 0, "rc=%d" % rc_d4)
 
     # ══ E) SURE TAVANI — fail-slow = fail-open ═══════════════════════════════════
     print("\n[E] SURE — asili kalan kol iptal edilir, kapi HIC olculmez")
