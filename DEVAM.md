@@ -45,8 +45,35 @@ riski. Pencereyle uc secenek sunuldu, Okan **"tpu kalsin, elleme"** dedi. **DOKU
 `deepseek-pro` **16** · `deepseek-flash` **4** (toplam 36). 🔴 Ama kalite olaylari
 ([[ucuz-isci-yesil-tablo-uydurur]] · [[isci-raporsuz-duser-bekleyecegim-deyip]]) hafizada
 **MOTOR ADI OLMADAN** kayitli → "hangisi daha iyi" sorusunun OLCULMUS cevabi YOK.
-**YENI KALEM K101 (BENDE):** basarisizlik sinifini motor adiyla etiketle (isci.log'da
-`MOTOR=` var, kalite defterinde yok — iki kayit birlestirilmeli), sonra sayiyla cevap ver.
+**K101 KAPANDI (ayni turda, olcum geldi):** `isci.log` **basari eksenini TASIYOR** (bitis
+kayitlari `rc=`) → motor x rc kirilimi cikarilabilir ve cikarildi. 14 Agu penceresi, 36 tur:
+M3 **15/15 rc=0** ort. **343 sn** (en uzun 739) · DS Pro **15/15 rc=0** ort. **1451 sn**
+(4,2x yavas, en uzun **3325 sn** — motor tavani 1500 sn) · DS Flash **4/4 rc=0** ort. 451 sn.
+**Kalite ayrimi YOK; hiz + fiyat ayrimi VAR.** Kaynakta DS'in vazgecilmez ozelligi YOK (dort
+motor ayni binary/arac seti); asimetri TERS yonde — **1M otomatik sikistirma M3'te var.**
+
+**🔴 FIYAT: KENDI HUKMUMU CURUTTUM (Okan'in panel olcumu).** "DS Flash off-peak M3'ten ucuz
+cikabilir" dedim; **liste token fiyatini SABIT UCRETLI KOTAYLA** kiyaslamisim →
+[[hukum-yanlis-birimde]]. Gerceklesen birim:
+- **DS (PAYG):** $18,72 / **1.081.021.287 token** / 8.639 istek → **~$17,3/milyar token**;
+  $20 kredi **2 GUNDE** bitti, kalan **$1,27**. (Liste fiyatinin cok altinda → kullanim
+  ezici oranda **cache-hit**.)
+- **M3 (abonelik $20/ay):** son 7 gun 476,72M token = haftalik kotanin **%45'i** → tam kota
+  ≈1,06 milyar/hafta ≈ **4,6 milyar/ay** → **~$4,3/milyar token**, 4 hafta hakki var.
+→ **M3 ~4x UCUZ; 16 Agu 16:00 UTC zammiyla (DS ~%100) fark ~8x.** Yeni ders dosyasi:
+[[sabit-kota-vs-token-tarifesi]].
+
+**KOD DEGISIKLIGI GEREKMEDI — zincir zaten dogru:** `nobet-kapi.py` sirasi
+`minimax-m3 → deepseek-pro → deepseek-flash`; DS yalniz M3 dusunce/429'da devreye giriyor.
+**Asil harcama DOGRUDAN cagrilardan:** bugunun Porsche/Opel/Hyundai turlarinin ucu de
+`isci.sh deepseek-pro`. Kutuya MaCiT'e not dusuldu (parti islerinde `minimax-m3`).
+Yeni motor eklemenin maliyeti olculdu: `isci.sh` 3 nokta (10 · 28 · 77-92) + cron zincirine
+tam katilim `nobet-kapi.py` 3 nokta (52 · 54-58 · 952-956). Hat **yalniz Anthropic-uyumlu uc**
+kabul ediyor. Olculen alternatif: `MiniMax-M2.7` $0,30/$1,20 · `-highspeed` $0,60/$2,40 —
+M3'un <=512k katiyla ayni, kazanim DUSUK.
+⚠️ **RISK:** M3 haftalik kotasi dolarsa yedek pratikte YOK ($1,27). Kota %45'te.
+**KARAR OKAN'DA:** uc secenek pencereyle sunuldu, **pencere KAPATILDI → zincire DOKUNULMADI**,
+talimat bekliyor.
 
 ## 14 Agu 2026 (aksam) — 🔴 PARITE KOK NEDENI OLCULDU: SOZLUK VAR, DAL BAGLI DEGIL (KraL, interaktif)
 
