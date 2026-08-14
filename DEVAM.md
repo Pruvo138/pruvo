@@ -22,10 +22,30 @@ kok adi artik bes yerde degil TEK SABIT ve `durum.py` de ondan TURETIYOR.
 **BOLUM 8:** kancalar **18 eksen yesil**. **BOLUM 3:** artik dal **0**.
 **Katalog 27066** (MaCiT d7 dilimi +65 canliya girdi, ayni pencerede).
 
-**OKAN'DA KALAN (2, ikisi de kucuk):**
-- Eski `<Pruvo>/backup` klasoru Drive arayuzunden `backup-v2/` icine surukle-birak ile
-  tasinacak (`os.rename` EPERM verdi; SILINMEDI, yerinde duruyor).
-- `media.pruvo3d.com` tekil purge icin Zone.Cache Purge izinli token (devir).
+**OKAN'DA KALAN (1):** eski `<Pruvo>/backup` klasoru Drive arayuzunden `backup-v2/` icine
+surukle-birak ile tasinacak (`os.rename` EPERM verdi; SILINMEDI, yerinde duruyor).
+
+**🟢 KAPANDI — `media.pruvo3d.com` PURGE BORCU YOKMUS (iddia CURUDU, token GEREKMEDI).**
+Defterdeki kalem "son partide 38 gorselin 19'u 404 (`cf-cache-status: HIT`), 100'luk ornekte
+17, **TTL 1 YIL kendiliginden duzelmez**, tekil purge + Zone.Cache Purge token'i gerekir"
+diyordu. **IKI BAGIMSIZ EKSENDE olculdu, 404 SAYISI SIFIR:**
+- bilinen-arizali parti: id'si `c3d-` ile baslayan **58 urunun 127 gorselinin 127'si 200**
+  (ayni kume onceden 19/38 404 vermisti);
+- katalogun EN ESKI **1500** URL'i → **1500'u 200**;
+- ilk sondada en YENI 1500 URL'i → **1500'u 200**. Toplam **3127 URL, 404 = 0, ARIZA = 0**.
+Ornek cevabin `cf-cache-status` degeri **MISS** — yani bu uc CDN'de uzun sureli tutulmuyor.
+**Kok yanlis: "Cloudflare 404'u 1 yil onbellekte tutar" cikarimi.** `max-age=31536000`
+BASARILI cevabin basligiydi; negatif cevabin omru cok daha kisadir ve kendiliginden dustu.
+Gercek kok neden (`47389674`, readback'in CDN yerine S3 sondasina alinmasi) zaten yeni
+negatif kayit URETILMESINI durdurmustu; kalan sey bekleyerek gecti.
+⚠️ KAPSAM DURUSTLUGU: bu olcum **bu makinenin bagli oldugu CDN noktasindan**. Negatif
+onbellek noktaya ozeldir; hukum "olculen kapsamda borc YOK"tur, "her noktada temiz" DEGIL.
+
+**🔴 UCUNCU DERS (bugunun uctan ucuncusu):** *bir alarmin SAYISI dogru olabilir ama
+CIKARIMI yanlis olabilir.* "19/38 404" olcumdu ve dogruydu; "TTL 1 yil, kendiliginden
+duzelmez" ise CIKARIMDI ve yanlisti — ve gunlerce bir Okan-kapisi acik tuttu, hatta bugun
+bir kez de gereksiz sistem-ayari istettirdi. Alarmi kapatmadan once **olcumu degil
+cikarimi** yeniden sorgula.
 
 **ArTisT'e DEVREDILDI (Okan karari):** attribution sorusu cevaplandi + arastirma alani ona
 gecti; **K99** acildi (REF ↔ siparis bag kolonu YOK; spec ArTisT'te, Worker/D1 tarafi bende).
@@ -278,6 +298,19 @@ TAMIRCI BAKIM: bu turda dağıtım yok, kapanan yok. §4.7.1 kapsamında `nobet-
 OKAN'A ÇIKIŞ: **VAR — TEK CÜMLE** (§0.4 son cümle: "yanlış silme para kaybı sınıfıdır; §5'in sessiz varsayılan kuralı bu alarmı KAPSAMAZ").
 
 
+## 14 Agu 2026 ~11:37Z-t19 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=3 BULUNAN=3 TASINAN=3 ATLANAN=0 CIKAN=3 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=354:2026-08-14T14:37:26 HUKUM=SUPURULDU`. 3 mail: Nöbet SERIT B `b2e8eb5` · Odeme yolu bayatlik `441dcd8` · Paket tazeligi `86e7a03` — üçü de zaten ÇÖZÜLMÜŞ eski koşumların artık mail'i (HAD'leri HEAD'ler Build & deploy başarılı).
+COP_DENETIM: Pruvo hesabı **MESRU=120 / YANLIS=0 / KAPSAM=120 / ATFEDILMEYEN=26** → yanlış süpürme izi YOK; sipariş/ödeme kaybı YOK. 26 ATFEDILMEYEN K92 sınıfı (elle silinen giriş-linki vb.).
+
+GH CI BAGIMSIZ TEYIT (HEAD `441dcd80` "defter: KAPANIS"): Build & deploy `31792482488` (HEAD `b2e8eb5`) = SUCCESS 6/6 — yayın **AKIYOR** (rc 0), 2 commit bekliyor (en eski 5 dk), son yayinlanan `86e7a035`. **Yeni fail YOK**: `31795318405` Paket tazeligi (HEAD `86e7a03`) bilinen K95/K30 sınıfı, Deploy chain'i BLOKLAMAZ; `31795542225` yalnız `bayatlik` job'u fail (K91 canlı shop worker, OKAN-KAPISI — deploy kararı), build/deploy/yayın skipped DEĞİL. SERIT B `31795542442` in_progress (mutasyon/K86+K94) — K94 (spec alarmi is akisi) Tamirci işinde, K95 KAPANDI bugün ölçüldü.
+
+§3 DUR: K91 hala OKAN-KAPISI (5 commit birikmiş, en eski 2000+ dk; deploy kararı mimarın DEĞİL). K96 (URL-guvensiz id) MaCiT tek-yazar — Tamirci ONARIM PAKETİ hazırlar, veriye YAZMAZ.
+
+TAMIRCI BAKIM: bu turda dağıtım yok, kapanan yok (K98 zaten dağıtılmış + K95/K97 KAPANDI önceki turlarda, K91 OKAN-KAPISI beklemede).
+
+OKAN'A ÇIKIŞ: YOK (§5 — tüm Okan kararı gerektiren kalemler zaten K91 OKAN-KAPISI sınıfında).
+
 ## 14 Agu 2026 ~11:07Z-t16 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
 
 SUPURME: `mail-supurme-kos.sh` → `GITHUB_BILDIRIM_INBOX=2 BULUNAN=2 TASINAN=2 ATLANAN=0 CIKAN=2 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=351:2026-08-14T14:07:37 HUKUM=SUPURULDU` (alarm YOK; onceki turun KOMSU_KAYIP alarmi bu turda TEKRARLAMADI).
@@ -290,3 +323,22 @@ DUZELTME YAPILMADI: tek cozum DEPLOY; CLAUDE.md "Deploy/yetki/odeme=OKAN KAPISI"
 TAMIRCI BAKIM: bu turda yeni kalem acilmadi/kapanmadi; odeme worker bayatligi OKAN-KAPISI sinifinda bekliyor (dagitilamaz kalem, §4.7.1 tablosu).
 
 OKAN'A CIKIS: **VAR — TEK CUMLE** (deploy kapisi; onarim ajanla kapanamaz).
+
+## 14 Agu 2026 ~12:08Z-t20 — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=0 BULUNAN=0 TASINAN=0 ATLANAN=0 CIKAN=0 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=354:2026-08-14T14:37:26 HUKUM=TEMIZ`. Onceki turlar inbox'i zaten supurmus; §0.4 "0 bulundu pozitif tanima izi ister" → COP_IZI ayağı TEMIZ'e ceviren gecerli ayak.
+COP_DENETIM: Pruvo hesabı **MESRU=122 / YANLIS=0 / KAPSAM=122 / ATFEDILMEYEN=26** — supurme temiz, yanlis sinif 0; siparis/odeme kaybi YOK.
+
+GH CI BAGIMSIZ TEYIT (HEAD `441dcd80` "defter: KAPANIS"): son koşumlar — `Yayin erisim alarmi` (`31798538005` 12:00:48) SUCCESS · `D1 sapma alarmi` (`31798282224` 11:57:08 + `31796897099` 11:36:23) SUCCESS · `D1 uzlastirici` (`31796575585` 11:31:41) SUCCESS · `defter KAPANIS` (`31795542442`) in_progress · 6 failure (HEPSI BILINEN):
+- `31799023364` (12:07:44 HEAD 441dcd8) **Paket tazeligi** — `tazelik` job FAILURE, `yayin-nabzi` SUCCESS; K95/K30 sınıfı, **Deploy chain'i BLOKLAMAZ**.
+- `31795542225` (11:16:22 HEAD 441dcd8) **defter KAPANIS** — yalnız `bayatlik` job FAILURE; K91 OKAN-KAPISI.
+- `31795318405` (11:13:07 HEAD 86e7a03) **Paket tazeligi** — K95/K30 sınıfı.
+- `31794456264` (11:00:19 HEAD 86e7a03) — eski HEAD, K91 OKAN-KAPISI.
+- `31792482732`/`31792482445` (10:30:23 HEAD b2e8eb5) — eski HEAD, K91+K95 bilinen.
+
+**Yeni fail YOK** — tüm kırmızılar bilinen sınıflarla eşleşiyor. K91 (shop worker bayat, 5 commit birikmiş, en eski 2000+ dk) hâlâ OKAN-KAPISI (deploy kararı mimarın DEĞİL); K95/K30 Paket tazeligi alarmi sınıfı Deploy chain'i BLOKLAMAZ (§2 + §4.5).
+
+§4.7.1 ONARIM KAPISI: `nobet-kapi.py --tur` → `HUKUM=ONCEKI_TUR_SURUYOR` (H7 kilidi, önceki tur hâlâ sürüyor); yeni dağıtım YOK. acik-kalemler.md'de K91 hâlâ OKAN-KAPISI, K95/K30+K98 KAPANDI, K96 MaCiT tek-yazar sınıfında.
+
+TAMIRCI BAKIM: bu turda dağıtım yok, kapanan yok (K98 zaten KAPANDI bugün ölçüldü; K95+K97 KAPANDI önceki turlarda; K91 OKAN-KAPISI beklemede; K96 MaCiT tek-yazar — Tamirci ONARIM PAKETİ hazırlar, veriye YAZMAZ).
+OKAN'A ÇIKIŞ: YOK (§5 — K91 zaten OKAN-KAPISI, K96 MaCiT tek-yazar sınıfında; mimar kararı gerektiren yeni durum yok).
