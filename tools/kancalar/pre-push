@@ -74,6 +74,27 @@ exec < "$pruvo_kapsam_girdi"
 rm -f "$pruvo_kapsam_girdi"
 trap - EXIT HUP INT TERM
 
+# --- 0c) YENI CI ADIMI HUKUM KAPISI (FAIL-CLOSED, K80, 14 Agu 2026) --------
+# Workflow'a yeni eklenen run komutunu VAR diye saymak yetmez: push edilen commit
+# agacinda FIILEN rc=0 vermelidir. YAML agaci strategy.matrix degerlerini de acar.
+# Ag/secret/kabuk yorumuna muhtac komut OLCULEMEDI (rc=2) olur, sessizce yesil sayilmaz.
+pruvo_k80_girdi=$(mktemp 2>/dev/null)
+if [ -z "$pruvo_k80_girdi" ] || [ ! -f "$pruvo_k80_girdi" ]; then
+  echo "!! PUSH DURDURULDU — K80 pre-push girdisi icin gecici dosya acilamadi." >&2
+  exit 1
+fi
+trap 'rm -f "$pruvo_k80_girdi"' EXIT HUP INT TERM
+cat > "$pruvo_k80_girdi"
+python3 "$pruvo_kapsam_kok/tools/is-akisi-kapisi.py" --pre-push < "$pruvo_k80_girdi"
+pruvo_k80_rc=$?
+if [ "$pruvo_k80_rc" -ne 0 ]; then
+  echo "!! PUSH DURDURULDU — YENI CI ADIMI HUKMU KIRMIZI/OLCULEMEDI (rc=$pruvo_k80_rc)." >&2
+  exit 1
+fi
+exec < "$pruvo_k80_girdi"
+rm -f "$pruvo_k80_girdi"
+trap - EXIT HUP INT TERM
+
 # --- WORKTREE TAVAN NOBETI (RAPOR-ONLY; ASLA BLOKLAMAZ) ---------------------
 # Yerel worktree envanteri CI'da anlamsizdir; yalniz bu makinede gorunurluk verir.
 # Nobetci hata verse bile bu adim push sonucunu ETKILEMEZ.

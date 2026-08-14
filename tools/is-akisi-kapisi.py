@@ -156,9 +156,12 @@ Cikis kodlari: 0 = YESIL · 1 = KIRMIZI · 2 = OLCULEMEDI (ayristirici yok).
 import argparse
 import ast
 import collections.abc
+import collections
+import itertools
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -4030,7 +4033,9 @@ def _main_ast_return1_var():
 #       D ekseni ~45 iddia atlar ve sayi 204 -> 148 duser; bu kol o hali KIRMIZI yakar.
 #       Tam esitlik bu gorevi de yapardi ama (a) yuzunden bedeli agir.
 # 12 Agu: 204 -> 205 (katalog alan gercek olcum adimi silme mutanti).
-KENDINI_TEST_TABAN = 205
+# 14 Agu K80: +6 (YAML/matrix + OLCULEMEDI + tespit-olu/kontrol mutanti). Bu taban
+# guncellenmezse K80 oz-test cagrilarinin TAMAMI silinip kapi yine yesil kalabilirdi.
+KENDINI_TEST_TABAN = 211
 
 KENDINI_TEST_TABAN_TANI = (
     "BOLUM C IDDIA SAYACI KIRMIZI: ariza-enjeksiyon %d iddia kosturdu, TABAN %d.\n"
@@ -5172,6 +5177,323 @@ def _d_izin_mekanizma_kontrol():
 
 
 # ---------------------------------------------------------------------------
+# BOLUM H — YENI CI ADIMI HUKUM KAPISI (K80, 14 Agu 2026)
+#
+# Olculen olay: ayip-beyani-kapisi.py, kendi agacinda SAPAN=10 iken ayni committe
+# nobet.yml'e eklendi; iki kosum kirmizi kaldi. Eski eksenler adimin VARLIGINI ve
+# fail-open olmadigini olcuyordu, EKLENDIGI COMMITTEKI HUKMUNU olcmuyordu.
+#
+# H1: diff evreni YAML agacindan turer; satir/desen envanteri degildir. strategy.matrix
+#     ile tasinan komutlar da genisletilir.
+# H2: yeni yerel python/node komutu PUSH EDILEN commitin ayri worktree'sinde kosar.
+# H3: ag/secret/kabuk yorumuna muhtac komut OLCULEMEDI olur; yesil sayilmaz.
+# H4: tespit kolunu olduren mutant ve yorumu degistiren kontrol mutanti oz-testtedir.
+K80_IC_KOSUM = "PRUVO_K80_IC_KOSUM"
+K80_META = re.compile(r"[;&|`$<>\n\r]")
+K80_MATRIX = re.compile(r"\$\{\{\s*matrix\.([A-Za-z_][A-Za-z0-9_-]*)\s*\}\}")
+K80_SIFIR_SHA = "0" * 40
+
+
+class Olculemedi(RuntimeError):
+    """K80 ekseni hukum kuracak kadar veri/guvenli icra yolu bulamadi."""
+
+
+def _k80_matrix_genislet(run, strategy):
+    """Bir run skalarini kullandigi matrix anahtarlarina gore genisletir (tavan 256)."""
+    anahtarlar = sorted(set(K80_MATRIX.findall(run or "")))
+    if not anahtarlar:
+        return [run]
+    matrix = strategy.get("matrix", {}) if isinstance(strategy, dict) else {}
+    if not isinstance(matrix, dict):
+        raise Olculemedi("strategy.matrix mapping DEGIL")
+    eksenler = []
+    dogrudan_var = True
+    for anahtar in anahtarlar:
+        ham = matrix.get(anahtar)
+        if not isinstance(ham, list) or not ham:
+            dogrudan_var = False
+            break
+        eksenler.append([str(x) for x in ham])
+    satirlar = []
+    if dogrudan_var:
+        for kombinasyon in itertools.product(*eksenler):
+            satirlar.append(dict(zip(anahtarlar, kombinasyon)))
+    # `include` ana eksen disinda komut tasiyabilir; satir/desen taramasi bunu kacirir.
+    include = matrix.get("include", [])
+    if include is not None and not isinstance(include, list):
+        raise Olculemedi("matrix.include liste DEGIL")
+    for kayit in include or []:
+        if isinstance(kayit, dict) and all(a in kayit for a in anahtarlar):
+            satirlar.append({a: str(kayit[a]) for a in anahtarlar})
+    exclude = matrix.get("exclude", [])
+    if exclude is not None and not isinstance(exclude, list):
+        raise Olculemedi("matrix.exclude liste DEGIL")
+    for kayit in exclude or []:
+        if not isinstance(kayit, dict):
+            raise Olculemedi("matrix.exclude girisi mapping DEGIL")
+        satirlar = [s for s in satirlar if not (
+            any(k in s for k in kayit)
+            and all(str(s.get(k)) == str(v) for k, v in kayit.items() if k in s))]
+    # Include ile ana eksen ayni satiri uretebilir; ayni CI icrasini iki kez kosturma.
+    benzersiz = []
+    gorulen = set()
+    for satir in satirlar:
+        kimlik = tuple((a, satir[a]) for a in anahtarlar)
+        if kimlik not in gorulen:
+            gorulen.add(kimlik)
+            benzersiz.append(satir)
+    if not benzersiz:
+        raise Olculemedi("matrix anahtarlari genisletilemedi: %s" % ",".join(anahtarlar))
+    if len(benzersiz) > 256:
+        raise Olculemedi("matrix genislemesi %d > 256" % len(benzersiz))
+    sonuc = []
+    for satir in benzersiz:
+        metin = run
+        for anahtar, deger in satir.items():
+            metin = re.sub(r"\$\{\{\s*matrix\.%s\s*\}\}" % re.escape(anahtar),
+                           deger, metin)
+        sonuc.append(metin)
+    return sonuc
+
+
+def _k80_komut_envreni(metinler, tespit_acik=True):
+    """{dosya: yaml_metin} -> Counter((dosya, job, komut)); H1'in tek tespit noktasi."""
+    if not tespit_acik:  # MUTASYON CAPASI — `_k80_mutasyon_kontrol` bu kolu oldurur.
+        return collections.Counter()
+    sonuc = collections.Counter()
+    for dosya, metin in sorted(metinler.items()):
+        govde, hata = ayristir(metin)
+        if hata or not isinstance(govde, dict):
+            raise Olculemedi("%s YAML ayristirilamadi: %s" % (dosya, hata or "kok mapping degil"))
+        jobs = govde.get("jobs")
+        if not isinstance(jobs, dict):
+            raise Olculemedi("%s jobs mapping YOK" % dosya)
+        for job_id, job in jobs.items():
+            if not isinstance(job, dict):
+                continue
+            steps = job.get("steps", [])
+            if not isinstance(steps, list):
+                raise Olculemedi("%s::%s steps liste DEGIL" % (dosya, job_id))
+            for step in steps:
+                if not isinstance(step, dict) or "run" not in step:
+                    continue
+                run = step.get("run")
+                if not isinstance(run, str) or not run.strip():
+                    raise Olculemedi("%s::%s run BOS/gecersiz" % (dosya, job_id))
+                for genis in _k80_matrix_genislet(run, job.get("strategy", {})):
+                    sonuc[(dosya, str(job_id), genis.strip())] += 1
+    return sonuc
+
+
+def _k80_git(args, kok=ROOT, metin=True):
+    r = subprocess.run(["git", "-C", kok] + list(args), capture_output=True,
+                       text=metin, timeout=30)
+    if r.returncode != 0:
+        tani = r.stderr.strip() if metin else "git rc=%d" % r.returncode
+        raise Olculemedi("git %s -> %s" % (" ".join(args), tani))
+    return r.stdout
+
+
+def _k80_workflow_metinleri(sha):
+    """Committeki workflow bloblarini oku; calisma agacina dusme YOK."""
+    adlar = _k80_git(["ls-tree", "-r", "--name-only", sha, ".github/workflows"])
+    sonuc = {}
+    for yol in adlar.splitlines():
+        if not re.search(r"\.ya?ml$", yol):
+            continue
+        sonuc[os.path.basename(yol)] = _k80_git(["show", "%s:%s" % (sha, yol)])
+    if not sonuc:
+        raise Olculemedi("%s commitinde workflow YOK" % sha)
+    return sonuc
+
+
+def _k80_yeni_komutlar(base, hedef, tespit_acik=True):
+    once = _k80_komut_envreni(_k80_workflow_metinleri(base), tespit_acik=tespit_acik)
+    sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik)
+    return list((sonra - once).elements())
+
+
+def _k80_satirlar(run):
+    """Yalniz duz yerel komutlari argv'ye cevir; belirsizlik OLCULEMEDI."""
+    satirlar = []
+    for ham in run.splitlines():
+        satir = ham.strip()
+        if not satir or satir.startswith("#"):
+            continue
+        if K80_META.search(satir) or "\\" in satir:
+            raise Olculemedi("kabuk metakarakteri/ifadesi var: %r" % satir)
+        try:
+            argv = shlex.split(satir)
+        except ValueError as hata:
+            raise Olculemedi("shlex ayristiramadi: %s" % hata)
+        if not argv:
+            continue
+        if argv[0] not in ("python3", "node"):
+            raise Olculemedi("ag/secret/harici arac olasiligi: %r" % argv[0])
+        uzanti = ".py" if argv[0] == "python3" else ".js"
+        adaylar = [i for i, a in enumerate(argv[1:], 1) if a.endswith(uzanti)]
+        if len(adaylar) != 1:
+            raise Olculemedi("tek betik yolu bulunamadi: %r" % satir)
+        yol = argv[adaylar[0]]
+        norm = os.path.normpath(yol)
+        if os.path.isabs(norm) or not norm.startswith("tools" + os.sep):
+            raise Olculemedi("betik tools/ altinda degil: %r" % yol)
+        if any("${{" in a for a in argv):
+            raise Olculemedi("cozulmemis GitHub ifadesi var: %r" % satir)
+        satirlar.append(argv)
+    if not satirlar:
+        raise Olculemedi("run govdesinde kosulabilir komut YOK")
+    return satirlar
+
+
+def _k80_commit_agacinda_kos(hedef, yeni):
+    """Yeni komutlari hedef commitin ayri, gecici worktree'sinde kos; ureten temizler."""
+    if not yeni:
+        return [], 0
+    gecici = tempfile.mkdtemp(prefix="pruvo-k80-")
+    eklendi = False
+    bulgular = []
+    kosulan = 0
+    try:
+        r = subprocess.run(["git", "-C", ROOT, "worktree", "add", "--detach", "--quiet",
+                            gecici, hedef], capture_output=True, text=True, timeout=60)
+        if r.returncode != 0:
+            raise Olculemedi("gecici commit agaci acilamadi: %s" % r.stderr.strip())
+        eklendi = True
+        env = dict(os.environ)
+        env[K80_IC_KOSUM] = "1"
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
+        for dosya, job, run in yeni:
+            etiket = "%s::%s `%s`" % (dosya, job, run.replace("\n", " ")[:180])
+            try:
+                argvler = _k80_satirlar(run)
+            except Olculemedi as hata:
+                bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> %s" % (etiket, hata))
+                continue
+            for argv in argvler:
+                yol = os.path.join(gecici, os.path.normpath(argv[[i for i, a in enumerate(argv)
+                                                                  if a.endswith((".py", ".js"))][0]]))
+                if not os.path.isfile(yol):
+                    bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> betik committe YOK: %s"
+                                    % (etiket, yol))
+                    continue
+                kosulan += 1
+                try:
+                    sonuc = subprocess.run(argv, cwd=gecici, env=env, capture_output=True,
+                                            text=True, timeout=300)
+                except subprocess.TimeoutExpired:
+                    bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> 300 s zaman asimi"
+                                    % etiket)
+                    continue
+                if sonuc.returncode != 0:
+                    kuyruk = ((sonuc.stdout or "") + "\n" + (sonuc.stderr or "")).strip()[-800:]
+                    bulgular.append("YENI CI ADIMI KIRMIZI: %s -> rc=%d cikti=%r"
+                                    % (etiket, sonuc.returncode, kuyruk))
+    finally:
+        if eklendi:
+            subprocess.run(["git", "-C", ROOT, "worktree", "remove", "--force", gecici],
+                           capture_output=True, text=True, timeout=60)
+        shutil.rmtree(gecici, ignore_errors=True)
+    return bulgular, kosulan
+
+
+def _k80_araliklar(args):
+    if args.base or args.hedef:
+        if not (args.base and args.hedef):
+            raise Olculemedi("--base ve --hedef birlikte zorunlu")
+        return [(args.base, args.hedef)]
+    if args.pre_push:
+        araliklar = []
+        for satir in sys.stdin:
+            alan = satir.split()
+            if len(alan) != 4:
+                raise Olculemedi("pre-push girdisi 4 alanli degil")
+            _yerel_ref, yerel_sha, _uzak_ref, uzak_sha = alan
+            if yerel_sha == K80_SIFIR_SHA:
+                continue
+            if uzak_sha == K80_SIFIR_SHA:
+                ebeveyn = _k80_git(["rev-parse", yerel_sha + "^"]).strip()
+                araliklar.append((ebeveyn, yerel_sha))
+            else:
+                araliklar.append((uzak_sha, yerel_sha))
+        if not araliklar:
+            raise Olculemedi("pre-push girdisinde olculecek ref YOK")
+        return araliklar
+    ci_onceki = os.environ.get("PRUVO_CI_ONCEKI_SHA", "").strip()
+    ci_hedef = os.environ.get("GITHUB_SHA", "").strip()
+    olay_yolu = os.environ.get("GITHUB_EVENT_PATH", "").strip()
+    if not ci_onceki and olay_yolu:
+        try:
+            with open(olay_yolu, encoding="utf-8") as f:
+                olay = json.load(f)
+            ci_onceki = str(olay.get("before") or "").strip()
+        except (OSError, ValueError, TypeError) as hata:
+            raise Olculemedi("GitHub push olayinin before SHA'si okunamadi: %s" % hata)
+    if ci_onceki and ci_hedef and ci_onceki != K80_SIFIR_SHA:
+        return [(ci_onceki, ci_hedef)]
+    hedef = _k80_git(["rev-parse", "HEAD"]).strip()
+    base = _k80_git(["rev-parse", "HEAD^"]).strip()
+    return [(base, hedef)]
+
+
+def yeni_ci_adimi_kontrol(args, tespit_acik=True):
+    if os.environ.get(K80_IC_KOSUM) == "1":
+        return [], 0, 0
+    bulgular, yeni_sayisi, kosulan = [], 0, 0
+    for base, hedef in _k80_araliklar(args):
+        if subprocess.run(["git", "-C", ROOT, "merge-base", "--is-ancestor", base, hedef],
+                          capture_output=True, timeout=30).returncode != 0:
+            raise Olculemedi("diff tabani hedefin atasi DEGIL: %s..%s" % (base, hedef))
+        commitler = _k80_git(["rev-list", "--reverse", "--topo-order", "%s..%s"
+                              % (base, hedef)]).splitlines()
+        for commit in commitler:
+            ebeveyn = _k80_git(["rev-parse", commit + "^1"]).strip()
+            yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik)
+            yeni_sayisi += len(yeni)
+            h, k = _k80_commit_agacinda_kos(commit, yeni)
+            bulgular.extend("commit %s: %s" % (commit[:12], x) for x in h)
+            kosulan += k
+    return bulgular, yeni_sayisi, kosulan
+
+
+def _k80_kendini_test(tespit_acik=True):
+    """H1/H3 sentetikleri; gercek komut icrasi bayraksiz/pre-push kolda yapilir."""
+    once = {"x.yml": """name: x\non: [push]\njobs:\n  t:\n    runs-on: ubuntu-latest\n    steps:\n      - run: python3 tools/eski-test.py\n"""}
+    sonra = {"x.yml": """name: x\non: [push]\njobs:\n  t:\n    strategy:\n      matrix:\n        komut: [tools/a-test.py, tools/b-test.py]\n    runs-on: ubuntu-latest\n    steps:\n      - run: python3 tools/eski-test.py\n      - run: python3 ${{ matrix.komut }}\n"""}
+    hatalar = []
+    a = _k80_komut_envreni(once, tespit_acik=tespit_acik)
+    b = _k80_komut_envreni(sonra, tespit_acik=tespit_acik)
+    yeni = list((b - a).elements())
+    if len(yeni) != 2 or not all("tools/" in x[2] for x in yeni):
+        hatalar.append("K80-H1: matrix icindeki iki yeni run komutu bulunamadi (%r)" % yeni)
+    try:
+        _k80_satirlar("curl -s https://example.invalid")
+        hatalar.append("K80-H3: ag komutu OLCULEMEDI olmadi")
+    except Olculemedi:
+        pass
+    try:
+        _k80_satirlar("python3 tools/a-test.py || true")
+        hatalar.append("K80-H3: kabuk metakarakterli komut OLCULEMEDI olmadi")
+    except Olculemedi:
+        pass
+    if _k80_satirlar("python3 tools/a-test.py --x") != [["python3", "tools/a-test.py", "--x"]]:
+        hatalar.append("K80-H2: duz yerel python komutu argv'ye donusmedi")
+    return hatalar, 4
+
+
+def _k80_mutasyon_kontrol():
+    """Tespit kolu olu -> batarya kirmizi; yorum mutanti -> yesil (tautoloji kanaryasi)."""
+    oldurucu, _ = _k80_kendini_test(tespit_acik=False)
+    kontrol, _ = _k80_kendini_test(tespit_acik=True)
+    hatalar = []
+    if not oldurucu:
+        hatalar.append("K80-H4: tespit kolu sokulunce batarya YESIL kaldi")
+    if kontrol:
+        hatalar.append("K80-H4: kontrol mutanti/temiz mekanizma KIRMIZI (%r)" % kontrol)
+    return hatalar, 2
+
+
+# ---------------------------------------------------------------------------
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dizin", default=WORKFLOW_DIZIN,
@@ -5179,6 +5501,10 @@ def main():
     ap.add_argument("--kendini-test", action="store_true",
                     help="YALNIZ ariza-enjeksiyon nobetcilerini AYRINTILI raporlar "
                          "(bayraksiz kosumda da BLOKLAYICI olarak kosarlar)")
+    ap.add_argument("--pre-push", action="store_true",
+                    help="stdin'deki pre-push ref/SHA araliklarinda yalniz K80 yeni-adim kapisi")
+    ap.add_argument("--base", help="K80 diff tabani (CI/teshis)")
+    ap.add_argument("--hedef", help="K80 hedef commit (CI/teshis)")
     args = ap.parse_args()
 
     if not ayristirici_var():
@@ -5193,6 +5519,11 @@ def main():
     # oluyordu -> BLOKLAYICI koldaki cagri silinse bile nobetci SUSUYORDU (olculdu: M7
     # mutasyonu iki kolda da rc=0). Tek cagri noktasi bu delige yer BIRAKMAZ.
     c_hata, c_iddia = kendini_test()
+    k80_oz_hata, k80_oz_iddia = _k80_kendini_test()
+    k80_mut_hata, k80_mut_iddia = _k80_mutasyon_kontrol()
+    c_hata.extend(k80_oz_hata)
+    c_hata.extend(k80_mut_hata)
+    c_iddia += k80_oz_iddia + k80_mut_iddia
 
     # 🔴 IDDIA SAYACI TABANI (K-20a, oz-koruma turu mutant 16): `kendini_test()` govdesi
     # `return [], 0` yapilinca 139 ariza-enjeksiyon iddiasinin HEPSI sessizce dusuyor ve
@@ -5203,6 +5534,17 @@ def main():
     # ayni gerekce). Kabul edilen sinir: bu SATIRI da silen IKI ADIMLI mutasyon kacar.
     if c_iddia < KENDINI_TEST_TABAN:
         _cikis_yolu_kirmizi([KENDINI_TEST_TABAN_TANI % (c_iddia, KENDINI_TEST_TABAN)])
+
+    if args.pre_push:
+        try:
+            h_hata, h_yeni, h_kosulan = yeni_ci_adimi_kontrol(args)
+        except Olculemedi as hata:
+            print("YENI CI ADIMI OLCULEMEDI: %s" % hata)
+            return OLCULEMEDI
+        print("YENI_CI_ADIMI=%d KOSULAN=%d" % (h_yeni, h_kosulan))
+        for hata in h_hata:
+            print("  ❌ " + hata)
+        return 1 if h_hata else 0
 
     if args.kendini_test:
         print("IS AKISI KAPISI — ARIZA ENJEKSIYONU (%d iddia)" % c_iddia)
@@ -5271,6 +5613,8 @@ def main():
               "`echo`/yorum mensiyonunu BULMAZ (tuketici jenerator/test/kabul.py CI'da "
               "muaf oldugu icin sozlesme BURADA olculur)")
         print("  ✅ F-SATIR-DEVAMI: `\\` ile bolunmus cagri TEK satir olarak goruluyor")
+        print("  ✅ K80 YENI-ADIM: YAML agaci + matrix kesfi · yerel python/node argv sinifi · "
+              "ag/secret/kabuk OLCULEMEDI · tespit-olu mutant KIRMIZI + kontrol YESIL")
         print("SONUC: YESIL ✅")
         return 0
 
@@ -5287,6 +5631,12 @@ def main():
     hatalar.extend(f_hata)
     g_hata, g_iddia = yayin_sinyali_kontrol(args.dizin)
     hatalar.extend(g_hata)
+    try:
+        h_hata, h_yeni, h_kosulan = yeni_ci_adimi_kontrol(args)
+        hatalar.extend(h_hata)
+    except Olculemedi as hata:
+        h_yeni, h_kosulan = 0, 0
+        hatalar.append("YENI CI ADIMI OLCULEMEDI: %s" % hata)
 
     # BOLUM C bayraksiz (bloklayici) kolda da BLOKLAR — `--kendini-test` adimi silinse
     # bile nobetci yasar (ci-kapsam-test.py'nin 27 Tem'de olctugu delik).
@@ -5326,6 +5676,8 @@ def main():
           "zincirini anlatir; alarmlar %s'de kendi conclusion'inda)"
           % (g_iddia, E_DOSYA, N_DOSYA))
     print("  Kendini-test iddiasi     : %d" % c_iddia)
+    print("  Yeni CI adimi (K80)      : %d yeni · %d commit-agacinda kosulan" %
+          (h_yeni, h_kosulan))
     print("-" * 70)
     if hatalar:
         for h in hatalar:
