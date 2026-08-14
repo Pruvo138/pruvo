@@ -23,6 +23,25 @@
 - K101 KAPANDI: 36 tur; 15/15 rc=0 ve 343 sn, 15/15 rc=0 ve 1451 sn, 4/4 rc=0 ve 451 sn. Kalan risk: haftalik kota %45, yedek $1,27.
 - Ayrintili asil blok tam metniyle ARSIVDE.
 
+## 15 Agu 2026 (gece) — KIMI MOTORU HATTA BAGLANDI (Okan uyelik aldi)
+
+- Dorduncu motor (aylik uyelik) isci hattina eklendi; uc, model listesi ve plan ayrintisi
+  ARSIVDE. Olculen baglam 262144 — saglayicinin afisindeki daha buyuk sayi bu ucta
+  DOGRULANMADI; olcum afisi yener.
+- Baglama noktasi: `isci.sh` 3 + `nobet-kapi.py` 1 (hafizadaki "3+3" tahmindi). Anahtar
+  dosyasi izin 600, repo DISI. M3'e ozel 1M kollari yeni motora UYGULANMADI.
+- Duman testi BAGIMSIZ dogrulandi (`isci.log`): rc=0 · sure 21 sn. Isci oz-raporu DEGIL,
+  hattin kendi logu okundu.
+- Nobet zinciri M3 → yeni motor → DS-pro → DS-flash. Kabul `nobet-kabul-test.py` rc=0
+  (VAKA=24 DUSEN=0). Gerekce: DS kredisi $1,27 ve 16 Agu'da zam → M3 kotasi dolarsa
+  GERCEK yedek yoktu, artik var.
+- Yeni motor gorsel okuyabiliyor (`supports_image_in`) → gorsel-okumali is verilebilir.
+- Ucuncu taraf baglayicilari (belge/depo/e-posta) KURULMADI: hat yalniz API ucundan MODEL
+  cagirir; gerekce ARSIVDE.
+- Ikiz taramasi 1 BAYAT belge buldu — nobet gorev metni nobetciye eski zinciri anlatiyordu
+  (2 satir), ikisi de olculen gercege esitlendi; sinif [[ikiz-tanim-sessiz-ayrisma]].
+- Temizlik: gecici sonda dosyasi (sir tasiyordu) + 3 yedek SILINDI, mimar `ls` ile teyit etti.
+
 ## ACIK / KAPALI DURUM
 
 - K91 KAPANDI (mimar OLCUMUYLE teyit, isci iddiasi degil): bayatlik nabzi is akisi son IKI
