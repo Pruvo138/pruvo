@@ -97,11 +97,16 @@ jobs:
       # Eşzamanlilik testi gercek iki surecle ikinci yazicinin fail-closed durdugunu,
       # birinci bitince kilidin yeniden alinabildigini ve salt-okuma kiplerinin kilitsiz
       # kaldigini olcer. Offline, stdlib, agsiz/wrangler'siz (~2 s).
+      # K71: flock makineler-arasi degildir. Ikinci test iki farkli yerel inode'u
+      # (iki makine) ortak SQLite-D1 fiksturune baglar; D1 kosullu lease'inin ikinci
+      # yaziciyi reddettigini, normal cikista birakildigini, crash lease'inin sona
+      # erdigini ve main/finally kablosunun canli kaldigini olcer.
       - name: D1 seq ve tam-katalog yazici kilidi kabul testleri
         run: |
           python3 tools/d1-seq-kilit-test.py
           python3 tools/d1-seq-kilit-test.py --mutasyon
           python3 tools/d1-yazici-kilit-test.py
+          python3 tools/d1-dagitik-kilit-test.py
 
       # SITEMAP DAMGA ONBELLEGI — <lastmod> tarihlerinin HIZLANDIRICISI, KAYNAGI DEGIL.
       # Tarihler git gecmisinden turer (tools/sitemap_damga.py); bu dosya yalnizca ayni
@@ -2065,6 +2070,19 @@ jobs:
       # OFFLINE: wrangler YOK, ag YOK, gercek/sahte SIPARIS YOK, repo dosyasi YAZILMAZ. ~40 s.
       - name: Fiyat esdegerligi + prova ucu kabul testi (yan etkisiz fiyat sorgusu)
         run: node shop/test/fiyat-prova.mjs
+
+      # BOY VARYANTI ZINCIRI (14 Agu 2026) — `boy_secenekleri` alani DORT yuzeyde birden
+      # fiyat sürer: urunler.json semasi (arama.py kanonik) -> D1 kolonu + urun hash'i
+      # (d1-sync satir_sql) -> edge sepet karti (build.kart_ozeti) -> odeme Worker'i
+      # (shop/src/index.js). Biri tasimazsa musteri BIR fiyat gorur, sunucu BASKASINI
+      # tahsil eder — sessiz eksik tahsilat ([[ui-kaldirmak-odeme-yolunu-kapatmaz]]).
+      # Kapi dort ekseni de tek kosumda olcer: sema RED'leri, D1 geri-okumasi, hash
+      # duyarliligi, ve Worker'in 4 fail-closed hukmu (gecerli boy / bilinmeyen etiket /
+      # secim atlanmasi / kolon gocu yapilmamis D1). BLOKLAYICI: para yolu.
+      # Kardes depo ekseni (pruvo-bot edge Worker'i) kosucuda OLCULEMEDI diye BASILIR —
+      # o sozlesmenin sahibi HocA deposudur, KraL CI'sinin kapsaminda degildir.
+      - name: "Boy varyanti kabul kapisi (D1 -> edge kart -> odeme fiyat paritesi)"
+        run: python3 tools/boy-secenekleri-kabul.py
 
       # ABS: FIYAT TUREMESI + KATEGORI SUZGECI (shop/test/abs-kapisi.mjs). Okan 14 Agu:
       # ABS satisa geri acildi, fiyati ASA ile BIREBIR; Ev/Ofis/Dekorasyon/Skan Art/

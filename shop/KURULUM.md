@@ -254,10 +254,10 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
   SABIT tutar (katsayi tablosu yanlis degistirilirse yakalar) — ikisi birlikte hem kod hem
   tablo kaymasini yakalar. Kanit: yuvarlama geri konuldugunda 1 ve 8 kirmizi yaniyor.
 - **Adet araligi disi istek REDDEDILIR** (400), sessizce 1-99'a cekilmez (test 8).
-- **Boy secimi Worker'da REDDEDILIR** (`boy-desteklenmiyor`): D1 katalogunda `boy_secenekleri`
-  kolonu YOK -> sunucu boy farkini dogrulayamaz. Bugun hicbir urunde kullanilmiyor; ileride
-  eklenirse once D1'e kolon + d1-sync.py alani, sonra buradaki red kaldirilir. Sessizce 0 TL
-  fark uygulayip eksik tahsil etmektense istek reddedilir.
+- **Boy seçimi sunucuda doğrulanır:** D1 `boy_secenekleri` kanonik JSON dizisini taşır;
+  istemcinin `boy_etiket` değeri bu listede yoksa veya ürün seçenekliyken etiket eksikse 400
+  döner. Fark, siteyle aynı `secenekler.js boyFarki` çekirdeğinden hesaplanır. Kolon göçü henüz
+  uygulanmamış bir D1'de boylu kalem `boy-desteklenmiyor` ile fail-closed kalır.
 
 ## Parametrik ("olcuye ozel" sari seri) — altyapi HAZIR, kanal KAPALI
 
@@ -294,4 +294,3 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
 - Tutar/kimlik uyusmazliginda siparis 'incele' durumuna duser + Telegram uyarisi (otomatik
   onay YOK).
 - Ayni D1 (pruvo-katalog) kullanilir ama `siparisler` tablosu d1-sync'ten bagimsizdir.
-

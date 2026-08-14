@@ -220,10 +220,9 @@ function kalemleriCoz(sepet) {
     if (!malzeme) return { hata: "gecersiz-malzeme", id: id };
     if (!renk) return { hata: "gecersiz-renk", id: id };
     if (!adet) return { hata: "gecersiz-adet", id: id };
-    // BOY: D1 katalogunda boy_secenekleri YOK -> sunucu boy farkini dogrulayamaz. Bugun hicbir
-    // urunde kullanilmiyor; ileride eklenirse sessizce 0 TL fark uygulayip musteriden eksik
-    // tahsil etmektense istek REDDEDILIR (D1'e kolon eklenince burasi acilir).
-    if (k.boy_etiket) return { hata: "boy-desteklenmiyor", id: id };
+    const boy_etiket = k.boy_etiket == null || k.boy_etiket === "" ? null
+      : (typeof k.boy_etiket === "string" && k.boy_etiket.length <= 60 ? k.boy_etiket : false);
+    if (boy_etiket === false) return { hata: "gecersiz-boy", id: id };
     const renk_ozel = renk === "Diğer" ? metin(k.renk_ozel, 1, 60) : "";
     if (renk === "Diğer" && !renk_ozel) return { hata: "renk-ozel-bos", id: id };
     // Parametreler ISTEMCIDEN alinir ama fiyat/hacim ONDAN OKUNMAZ — sunucu yeniden hesaplar
@@ -235,7 +234,7 @@ function kalemleriCoz(sepet) {
     // uygular; burada whitelist edilmezse client'in gonderdigi alan DUSER ve sunucu 2-renk'i
     // GORMEZ -> front 675 gosterip sunucu 600 tahsil ederdi (sessiz eksik tahsilat).
     const yazi_renk = SECENEK.RENK_SECENEKLERI.includes(k.yazi_renk) ? k.yazi_renk : null;
-    kalemler.push({ id, malzeme, renk, renk_ozel: renk_ozel || "", boy_etiket: null, adet,
+    kalemler.push({ id, malzeme, renk, renk_ozel: renk_ozel || "", boy_etiket, adet,
                     parametreler, yazi_renk });
   }
   return { kalemler };
@@ -264,7 +263,7 @@ async function sepetiFiyatla(env, kalemler) {
   // birini tasimiyorsa SELECT "no such column" ile PATLAR. `tur` (hazir ticari mal isareti,
   // 31 Tem) `konfigur`a BAGLANMAZ: tek listede olsalardi `tur`u olmayan bir sema (ornegin
   // geri alinmis bir ALTER) konfigur kalemlerini de fail-closed 400'e dusururdu.
-  const EK_KOLONLAR = ["konfigur", "tur"];
+  const EK_KOLONLAR = ["konfigur", "tur", "boy_secenekleri"];
   // `konfigur` (D1'deki sema) AYNI SELECT'e kolon olarak eklendi — EK SORGU ve EK ROUND-TRIP
   // YOK, satirla birlikte gelir (maliyet O(sepet kalemi), katalog buyuklugunden BAGIMSIZ).
   // FAZ 4'ten beri bu kolon PARA YOLUDUR: konfigur kaleminin fiyati BUNDAN hesaplanir.
@@ -335,6 +334,25 @@ async function sepetiFiyatla(env, kalemler) {
     // ile tahsil edilen fiyatin kaynagi TEKTIR. Cevirmenin sarti canlida olculdu: FAZ 3 golge
     // raporu 17/17 urunde `ayni`, fark_kurus_toplam = 0 (bkz. konfigur-golge.js).
     const d1Konfigur = d1Coz(u.konfigur);   // obje | null (bos/kolonsuz) | undefined (bozuk)
+    let boySecenekleri = null;
+    if (typeof u.boy_secenekleri === "string") {
+      try {
+        const aday = JSON.parse(u.boy_secenekleri);
+        if (Array.isArray(aday) && aday.every((s) => s && typeof s === "object" &&
+            typeof s.etiket === "string" && s.etiket !== "" &&
+            Number.isInteger(s.fark_tl) && s.fark_tl >= 0)) boySecenekleri = aday;
+      } catch (e) { /* asagidaki fail-closed hukum */ }
+    }
+    if (boySecenekleri === null) {
+      if (k.boy_etiket) return { hata: { hata: "boy-desteklenmiyor", id: k.id }, kod: 400 };
+      boySecenekleri = [];
+    }
+    if (boySecenekleri.length && !k.boy_etiket) {
+      return { hata: { hata: "boy-secimi-zorunlu", id: k.id }, kod: 400 };
+    }
+    if (k.boy_etiket && !boySecenekleri.some((s) => s.etiket === k.boy_etiket)) {
+      return { hata: { hata: "gecersiz-boy", id: k.id }, kod: 400 };
+    }
 
     // "Bu kalem konfiguratorlu MU?" — UC BAGIMSIZ SINYAL, herhangi biri yeterli. Amac: hicbir
     // konfigur kalemi asagidaki SABIT FIYAT koluna DUSMESIN (dusseydi 30 cm'lik 1.500 TL'lik
@@ -388,17 +406,19 @@ async function sepetiFiyatla(env, kalemler) {
                     hacim_mm3: ph.hacimMm3 };
     } else {
       // HESAP TEK KAYNAK: front'un gosterdigi fiyati ureten fonksiyonun AYNISI (secenekler.js).
-      // D1'de boy_secenekleri yok; boy'lu kalem zaten yukarida reddedildi (bkz. istekCoz).
+      // Boy etiketi D1'deki kanonik listeye karsi yukarida dogrulandi; fiyat cekirdegi
+      // istemci ve sunucuda AYNI secenekler.js boyFarki fonksiyonunu kullanir.
       // 🔴 `tur` D1'DEN GECER (para yolu): tam "fiziksel" ise hazir ticari mal demektir ve
       // satirOzeti/hesaplaFiyatKurus malzeme+renk carpanini 1,00'e sabitler -> tutar = LISTE
       // fiyati. Kural burada TEKRARLANMAZ, secenekler.js'te TEK yerdedir (front ile ayni
       // fonksiyon). Kolon okunamazsa (yukaridaki merdivenin daralan basamagi) u.tur undefined
       // kalir -> BUGUNKU davranis, yani `tur`suz 15.930 baski urununde regresyon 0.
       const ozet = SECENEK.satirOzeti(
-        { kategori: u.kategori, fiyat: u.fiyat, parametrik: false, boy_secenekleri: [],
+        { kategori: u.kategori, fiyat: u.fiyat, parametrik: false,
+          boy_secenekleri: boySecenekleri,
           tur: u.tur },
         { id: k.id, malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel,
-          boy_etiket: null, adet: 1 });
+          boy_etiket: k.boy_etiket, adet: 1 });
       if (!ozet.odenebilir || !(ozet.birimKurus > 0)) {
         return { hata: { hata: "fiyatsiz-urun", id: k.id }, kod: 400 };
       }

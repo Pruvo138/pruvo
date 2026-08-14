@@ -145,6 +145,12 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
 YENIDEN_YOKLAMA_BEKLEME = 5.0
 GECICI_KOD_ALT, GECICI_KOD_UST = 500, 600
 
+# ROLLOUT (12 Agu 2026, K78): yayin pencere sinifi. Canli sitemap'te HENUZ YOK bir
+# URL'nin 404/410 donmesi "silinmis sayfa" DEGILDIR — yayin o sayfayi canliya henuz
+# TASIMAMISTIR. Bu kodlar YALNIZ canli sitemap'te YOKSA rollout sayilir (sitemap'te VAR
+# bir 404 hala KAPALI'dir — 3 Agu 2026'nin 12 gun sessiz kalan sinifi korunur).
+ROLLOUT_KODLAR = (404, 410)
+
 ZAMAN_ASIMI_VARSAYILAN = 20.0
 # Istek hizi (istek/sn). Sayfa istekleri statik CDN'e gider (worker oran siniri DEGIL);
 # yine de uc nazikce kullanilir: 6/sn -> ~296 URL ~50 sn.
@@ -411,14 +417,68 @@ def yeniden_yokla(kayit, taban, yol, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=N
     return kalici
 
 
+def rollout_isaretle(kayit, sitemap_yollar):
+    """404/410 kaydini ROLLOUT sinifina ceker (yayin henuz canliya TASIMAMIS).
+
+    🔴 SINIR DAR TUTULUR: yalniz 404/410; 403 ASLA (yasakli sayfa yapisaldir). Yalniz
+    canli sitemap'te HENUZ YOK olan yol — sitemap'te VAR bir 404 gercek kusurdur
+    (3 Agu 2026 sinifi) ve KAPALI KALIR. `sitemap_yollar=None` ise ayrim YAPILAMAZ:
+    kayit OLDUGU GIBI doner (fail-closed, sessiz yesile DONUSMEZ)."""
+    if sitemap_yollar is None:
+        return kayit
+    if kayit.get("sinif") != "KAPALI" or kayit.get("kod") not in ROLLOUT_KODLAR:
+        return kayit
+    if kayit.get("yol") in sitemap_yollar:
+        return kayit
+    k = dict(kayit)
+    k["sinif"] = "ROLLOUT"
+    return k
+
+
+def _sitemap_yollar_ayikla(metin):
+    """sitemap.xml metninden <loc> YOL kumesi (sorgu/alan atilir)."""
+    yollar = set()
+    for u in re.findall(r"<loc>([^<]+)</loc>", metin or ""):
+        yollar.add(urllib.parse.urlsplit(u.strip()).path or "/")
+    return yollar
+
+
+def canli_sitemap_yollari(taban=SITE_VARSAYILAN, zaman_asimi=ZAMAN_ASIMI_VARSAYILAN,
+                          acici=None, istek_fn=None):
+    """Canli /sitemap.xml'in <loc> yol kumesi -> set|None.
+
+    None = okunamadi / 200 degil / <loc> YOK. Fail-closed: None dondugunde cagiran
+    ROLLOUT ayrimini YAPMAZ (404 yine KAPALI sayilir) — canli sitemap okunamadi diye
+    alarm sessiz yesile DONUSMEZ."""
+    url = taban.rstrip("/") + "/sitemap.xml"
+    if istek_fn is not None:
+        kod, _baslik, govde, hata = istek_fn(url, yontem=YONTEM,
+                                             zaman_asimi=zaman_asimi, acici=acici,
+                                             no_cache=False)
+        if hata or kod != 200:
+            return None
+        return _sitemap_yollar_ayikla((govde or b"").decode("utf-8", "replace")) or None
+    istek = urllib.request.Request(url, method=YONTEM,
+                                   headers={"User-Agent": UA,
+                                            "Accept": "application/xml,text/xml,*/*"})
+    acici = acici or _ACICI
+    try:
+        with acici.open(istek, timeout=zaman_asimi) as y:
+            ham = y.read()
+    except Exception:                                        # noqa: BLE001
+        return None
+    return _sitemap_yollar_ayikla(ham.decode("utf-8", "replace")) or None
+
+
 def olc(yollar, taban=SITE_VARSAYILAN, hiz=HIZ_VARSAYILAN,
         zaman_asimi=ZAMAN_ASIMI_VARSAYILAN, acici=None, yontem=None, uyu=time.sleep,
-        istek_fn=None, yeniden_bekleme=YENIDEN_YOKLAMA_BEKLEME):
+        istek_fn=None, yeniden_bekleme=YENIDEN_YOKLAMA_BEKLEME, sitemap_yollar=None):
     """Kumenin TAMAMINI olcer (ORNEKLEME YOK). Doner: (kayitlar, sure_sn).
 
     `hiz` istek/sn tavanidir: istekler arasi en az 1/hiz saniye beklenir. Sure OLCULUR
     ve rapora basilir (butce karari sayiyla verilsin diye). GECICI sinifa dusen URL
-    hukme yazilmadan ONCE bir kez yeniden yoklanir (bkz. `gecici_mi`)."""
+    hukme yazilmadan ONCE bir kez yeniden yoklanir (bkz. `gecici_mi`). `sitemap_yollar`
+    verildiyse 404/410 kaydi rollout ayrimina girer (bkz. `rollout_isaretle`)."""
     bekleme = (1.0 / hiz) if hiz and hiz > 0 else 0.0
     kayitlar = []
     bas = time.monotonic()
@@ -431,6 +491,7 @@ def olc(yollar, taban=SITE_VARSAYILAN, hiz=HIZ_VARSAYILAN,
             kayit = yeniden_yokla(kayit, taban, yol, zaman_asimi=zaman_asimi,
                                   acici=acici, yontem=yontem, uyu=uyu,
                                   bekleme=yeniden_bekleme, istek_fn=istek_fn)
+        kayit = rollout_isaretle(kayit, sitemap_yollar)
         kayitlar.append(kayit)
     return kayitlar, time.monotonic() - bas
 
@@ -446,6 +507,9 @@ def degerlendir(kayitlar, kume_sayisi=None):
     # GECICI: ilk yoklamada 5xx/ag arizasiydi, ikinci yoklamada (no-cache) ACIK dondu.
     # ACIK sayilir ama SAYILIR: kayboldugu an duzeltme sessizlestirmeye donusur.
     gecici = [k for k in kayitlar if k.get("gecici")]
+    # ROLLOUT: canli sitemap'te HENUZ YOK 404/410 — yayin henuz canliya tasimamis.
+    # KAPALI DEGILDIR (kirmizi yanmaz) ama ACIK DA DEGILDIR: sayilir ve raporda gorunur.
+    rollout = [k for k in kayitlar if k["sinif"] == "ROLLOUT"]
     olculen = len(kayitlar)
     beklenen = kume_sayisi if kume_sayisi is not None else olculen
 
@@ -456,6 +520,7 @@ def degerlendir(kayitlar, kume_sayisi=None):
             "ariza": [{"yol": k["yol"], "tani": k["tani"]} for k in ariza],
             "gecici": [{"yol": k["yol"], "ilk": k.get("ilk", ""), "kod": k["kod"]}
                        for k in gecici],
+            "rollout": [{"yol": k["yol"], "kod": k["kod"]} for k in rollout],
             "yonlendirme": [{"yol": k["yol"], "zincir": k["zincir"]}
                             for k in kayitlar if k["sinif"] == "YONLENDI"]}
 
@@ -481,24 +546,29 @@ def degerlendir(kayitlar, kume_sayisi=None):
         satirlar.append("🟡 GECICI %s -> ilk yoklama: %s · ikinci yoklama (no-cache) "
                         "%s ACIK (uc blip'i; ACIK sayildi ama SESSIZLESTIRILMEDI)"
                         % (k["yol"], k.get("ilk") or "-", k["kod"]))
+    for k in rollout:
+        satirlar.append("🟡 ROLLOUT %s -> HTTP %s (canli sitemap'te HENUZ YOK — yayin "
+                        "henuz canliya tasimamis; ACIK degil ama KAPALI da DEGIL)"
+                        % (k["yol"], k["kod"]))
 
     # SAPMA KANITI, OLCUM ARIZASINI EZER: elimizde kapali kapi varken "olculemedi"ye
     # dusmek kaniti kaybettirirdi. Iki hal de sayida AYRI AYRI gorunur.
     if kapali:
         satirlar.append("HUKUM: KAPALI — %d URL kapali/dongu, %d olcum arizasi, "
-                        "%d acik (%d yonlendirmeli) · GECICI=%d."
+                        "%d acik (%d yonlendirmeli) · GECICI=%d · ROLLOUT=%d."
                         % (len(kapali), len(ariza), sayim["ACIK"] + sayim["YONLENDI"],
-                           sayim["YONLENDI"], len(gecici)))
+                           sayim["YONLENDI"], len(gecici), len(rollout)))
         return "KAPALI", SINIF_RC["KAPALI"], satirlar, ozet
     if ariza or olculen != beklenen:
         satirlar.append("HUKUM: OLCULEMEDI — %d URL olculemedi (ag/DNS/zaman asimi) · "
-                        "GECICI=%d. Saglik KANITLANMADI; 'hepsi 200' VARSAYILMAZ."
-                        % (len(ariza), len(gecici)))
+                        "GECICI=%d · ROLLOUT=%d. Saglik KANITLANMADI; 'hepsi 200' "
+                        "VARSAYILMAZ."
+                        % (len(ariza), len(gecici), len(rollout)))
         return "OLCULEMEDI", SINIF_RC["OLCULEMEDI"], satirlar, ozet
     satirlar.append("HUKUM: ACIK — %d/%d URL 200 (%d yonlendirme zinciriyle) · "
-                    "GECICI=%d."
+                    "GECICI=%d · ROLLOUT=%d."
                     % (sayim["ACIK"] + sayim["YONLENDI"], beklenen, sayim["YONLENDI"],
-                       len(gecici)))
+                       len(gecici), len(rollout)))
     return "ACIK", SINIF_RC["ACIK"], satirlar, ozet
 
 
@@ -659,6 +729,7 @@ def gh_ozet_yaz(sinif, ozet, satirlar, sure):
             f.write("kapali=%d\n" % len(ozet.get("kapali") or []))
             f.write("olculen=%d\n" % ozet.get("olculen", 0))
             f.write("gecici=%d\n" % len(ozet.get("gecici") or []))
+            f.write("rollout=%d\n" % len(ozet.get("rollout") or []))
     ozet_yol = os.environ.get("GITHUB_STEP_SUMMARY")
     if ozet_yol:
         with open(ozet_yol, "a", encoding="utf-8") as f:
@@ -666,10 +737,12 @@ def gh_ozet_yaz(sinif, ozet, satirlar, sure):
             f.write("* olculen URL: **%d** · sure: **%.1f s**\n"
                     % (ozet.get("olculen", 0), sure))
             f.write("* kapali: **%d** · olcum arizasi: **%d** · yonlendirme: **%d** · "
-                    "GECICI (1 kez yeniden yoklandi, 200 dondu): **%d**\n\n"
+                    "GECICI (1 kez yeniden yoklandi, 200 dondu): **%d** · "
+                    "ROLLOUT (canli sitemap'te HENUZ YOK): **%d**\n\n"
                     % (len(ozet.get("kapali") or []), len(ozet.get("ariza") or []),
                        len(ozet.get("yonlendirme") or []),
-                       len(ozet.get("gecici") or [])))
+                       len(ozet.get("gecici") or []),
+                       len(ozet.get("rollout") or [])))
             for s in satirlar:
                 f.write("%s\n" % s)
             f.write("\nNE YAPILMALI: kapali URL'ler ORIGIN'de degil EDGE'de kapanmis "
@@ -714,7 +787,16 @@ def main(argv=None):
 
     print("YONTEM: %s (HEAD YETMEZ — olculdu: ayni URL HEAD 200 / GET 403)" % YONTEM)
     print("HIZ: %.1f istek/sn · zaman asimi %.0f s" % (a.hiz, a.zaman_asimi))
-    kayitlar, sure = olc(yollar, taban=a.taban, hiz=a.hiz, zaman_asimi=a.zaman_asimi)
+    # ROLLOUT ayrimi icin canli yuzeyin "ne yayinlandi" beyani (K78, 12 Agu 2026):
+    # olcum evreni HEAD'den, olculen yuzey son deploy'dan geldigi icin, henuz yayinlanmamis
+    # bir sayfanin 404'u rollout'tur (kirmizi DEGIL). Sitemap okunamazsa ayrim KAPALI.
+    sitemap_yollar = canli_sitemap_yollari(taban=a.taban, zaman_asimi=a.zaman_asimi)
+    print("CANLI SITEMAP: %s"
+          % ("%d yol — rollout ayrimi ACIK" % len(sitemap_yollar)
+             if sitemap_yollar is not None
+             else "OKUNAMADI — 404 yine KAPALI sayilir (fail-closed)"))
+    kayitlar, sure = olc(yollar, taban=a.taban, hiz=a.hiz, zaman_asimi=a.zaman_asimi,
+                         sitemap_yollar=sitemap_yollar)
     sinif, rc, satirlar, ozet = degerlendir(kayitlar, kume_sayisi=len(yollar))
     print("-" * 78)
     for s in satirlar:
@@ -722,7 +804,9 @@ def main(argv=None):
     print("SURE: %.1f s (%d URL · %.1f istek/sn olculen)"
           % (sure, len(kayitlar), (len(kayitlar) / sure) if sure else 0.0))
     print("SINIF: %s (rc %d) · GECICI=%d (5xx/ag arizasi bir kez yeniden yoklandi ve "
-          "ACIK dondu)" % (sinif, rc, len(ozet.get("gecici") or [])))
+          "ACIK dondu) · ROLLOUT=%d (canli sitemap'te henuz YOK)"
+          % (sinif, rc, len(ozet.get("gecici") or []),
+             len(ozet.get("rollout") or [])))
     if a.json:
         print(json.dumps({"sinif": sinif, "rc": rc, "sure_sn": round(sure, 2),
                           "kapsam": a.kapsam, "taban": a.taban, "ozet": ozet},
@@ -775,6 +859,27 @@ def kendini_test():
         iddia("301 -> 200 zinciri KAPALI DEGIL ama RAPORLANIR",
               sinif == "ACIK" and rc == 0 and len(ozet["yonlendirme"]) == 1,
               "%s yonlendirme=%d" % (sinif, len(ozet["yonlendirme"])))
+
+        # ROLLOUT (K78): canli sitemap'te HENUZ YOK bir 404 kirmizi DEGILDIR, sayilir.
+        kayitlar, _ = olc(["/yok/", "/acik-1/"], taban=s.taban, hiz=0,
+                          sitemap_yollar={"/acik-1/"})
+        sinif, rc, _, ozet = degerlendir(kayitlar)
+        iddia("ROLLOUT: 404 (canli sitemap'te YOK) + 200 -> ACIK, ROLLOUT=1 (K78)",
+              sinif == "ACIK" and rc == 0 and len(ozet.get("rollout") or []) == 1,
+              "%s rc=%d rollout=%d" % (sinif, rc, len(ozet.get("rollout") or [])))
+
+        # KONTROL: canli sitemap'te VAR olan 404 rollout DEGILDIR (3 Agu 2026 sinifi).
+        kayitlar, _ = olc(["/yok/"], taban=s.taban, hiz=0, sitemap_yollar={"/yok/"})
+        sinif, rc, _, _ = degerlendir(kayitlar)
+        iddia("ROLLOUT KONTROL: sitemap'te VAR 404 -> KAPALI kalir (3 Agu sinifi)",
+              sinif == "KAPALI" and rc == 1, "%s rc=%d" % (sinif, rc))
+
+        # KONTROL: 403 ASLA rollout degil (yasakli sayfa yapisaldir).
+        kayitlar, _ = olc(["/tutarli-403/"], taban=s.taban, hiz=0,
+                          sitemap_yollar={"/acik-1/"})
+        sinif, rc, _, _ = degerlendir(kayitlar)
+        iddia("ROLLOUT KONTROL: 403 ASLA rollout DEGIL (KAPALI)",
+              sinif == "KAPALI" and rc == 1, "%s rc=%d" % (sinif, rc))
 
     # Bekleme SAHTE: gercek 5 sn beklenmez (kabul testi ayni yordami kullanir).
     kayitlar, _ = olc(["/acik-1/"], taban=olu_taban(), hiz=0, zaman_asimi=3,

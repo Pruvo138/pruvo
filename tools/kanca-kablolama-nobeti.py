@@ -145,6 +145,11 @@ FAIL_CLOSED = {
         "atliyordu (olculdu 8 Agu 2026: 5 bozuk kayit main'e girdi, ariza saatler "
         "sonra CI'da gorundu, deploy ATLANDI). Cikis kodu yutulursa bozuk kayit "
         "repoya girer ve yayin yine SAATLER sonra durur.",
+    ("pre-commit", "tools/devam-sinif-kapisi.py"):
+        "yazim oncesi DEVAM.md icerik-sinifi kolu. Kanca adim 6'da fail-closed "
+        "kosmasina ragmen bu politika envanterinde yoktu; cagri satiri silinirse "
+        "defter ihlali main'e girer ve ancak CI'da yayini durdurduktan sonra "
+        "gorunur. Cikis kodu ve gerekce commit aninda korunmalidir.",
     ("pre-commit", "tools/ic-rapor-index-kolu.py"):
         "yazim oncesi ic rapor adi kolu (INDEX ekseni). Kanonik kapi "
         "(tools/ic-rapor-adi-kapisi.py) YALNIZ CI'da yasiyordu: 12 Agu 2026 kosumu "

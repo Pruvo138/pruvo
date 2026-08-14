@@ -193,6 +193,10 @@ CREATE TABLE IF NOT EXISTS urunler (
   -- basip DURUR (tavsiye_filament_tip_kapisi). Sessizce [] yazmak urunun kendi onerisini
   -- dusurur (tutar kayar); dizeyi tek elemanli diziye cevirmek veri kusurunu GIZLER.
   tavsiye_filament TEXT NOT NULL DEFAULT '[]',
+  -- BOY SECENEKLERI — fiyat varyantlari, kanonik JSON dizi. Bos dizi = varyant yok.
+  -- D1, edge karti ve odeme Worker'i ayni degeri okur; istemci etiketi sunucuda bu
+  -- listeye karsi dogrulanmadan fiyat hesaplanmaz.
+  boy_secenekleri TEXT NOT NULL DEFAULT '[]',
   fiyat     TEXT NOT NULL DEFAULT '',
   gorsel    TEXT,                         -- gorseller[0] (kart kapagi)
   parametrik INTEGER NOT NULL DEFAULT 0,

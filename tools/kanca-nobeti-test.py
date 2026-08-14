@@ -87,6 +87,20 @@ if [ -f "$alan" ]; then
   python3 "$alan" || exit 1
 fi
 
+# DEVAM SINIF KAPISININ INDEX KOLU (9 Agu 2026) — GERCEK kancadaki SEKLIN
+# taklidi: negatif varlik kapisi + rc'yi yakalayip kosullu exit 1.
+devam="$root/tools/devam-sinif-kapisi.py"
+if [ ! -f "$devam" ]; then
+  echo "!! COMMIT DURDURULDU — defter sinif kapisi YOK." >&2
+  exit 1
+fi
+python3 "$devam" --index
+devam_rc=$?
+if [ "$devam_rc" -ne 0 ]; then
+  echo "!! COMMIT DURDURULDU — defter sinif kapisi rc=$devam_rc." >&2
+  exit 1
+fi
+
 # IC RAPOR ADI KAPISININ INDEX KOLU (12 Agu 2026) — GERCEK kancadaki SEKLIN
 # taklidi: NEGATIF varlik kapisi (arac yoksa `exit 1`) + rc'yi `$?` ile yakalayip
 # girintili kosullu `exit 1`. Sekil taklit edilmezse nobetci gercekte olmayan bir

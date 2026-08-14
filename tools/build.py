@@ -4289,10 +4289,9 @@ def kart_ozeti(p):
     Worker'dan gelen kart farklı görünürdü.
 
     ⚠️ SÖZLEŞME: buraya alan EKLENİRSE Worker'ın KART_ALANLARI'na da eklenmeli.
-    Bugün urunler.json'da OLMAYAN ama sepet fiyatını etkileyecek bir alan (ör.
-    `boy_secenekleri`, secenekler.js boyFarki) ileride eklenirse BURAYA DA girmeli:
-    yoksa edge modunda sepet paneli boy farkını 0 sayar (sessiz fiyat sapması).
-    Bugün ölçüldü: urunler.json'da boy_secenekleri taşıyan ürün 0 → risk uyuyor.
+    Sepet fiyatını etkileyen alanlar (ör. `boy_secenekleri`, secenekler.js boyFarki)
+    BURAYA DA girmeli: yoksa edge modunda sepet paneli boy farkını 0 sayar (sessiz fiyat
+    sapması). Boy alanı aşağıda koşullu taşınır; kapısı tools/boy-secenekleri-kabul.py.
 
     🔴 `tur` (31 Tem / 1 Ağu) TAM DA O ALAN OLDU ve sözleşme İHLAL EDİLMİŞTİ: satirOzeti
     fiziksel üründe malzeme/renk çarpanını 1,00'e sabitler; kartta `tur` yoksa edge modunda
@@ -4349,6 +4348,9 @@ def kart_ozeti(p):
         kart["tavsiyeFilament"] = p.get("tavsiyeFilament")
     if p.get("konfigur"):
         kart["konfigur"] = p.get("konfigur")
+    # Boy varyanti sepet fiyatini surer; edge kartinda yoksa boyFarki sessizce 0 olur.
+    if p.get("boy_secenekleri"):
+        kart["boy_secenekleri"] = p.get("boy_secenekleri")
     return kart
 
 

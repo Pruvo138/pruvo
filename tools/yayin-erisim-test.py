@@ -438,6 +438,60 @@ def e8_gecici(ye):
                                       ye.gecici_mi({"sinif": "DONGU", "kod": None})))
 
 
+# ---------------------------------------------------------------- E9) ROLLOUT
+def e9_rollout(ye, sunucu):
+    # 1) Saf ayiklayici: canli sitemap <loc> -> yol kumesi.
+    yol = ye._sitemap_yollar_ayikla(
+        "<loc>https://pruvo3d.com/a/</loc><loc>https://pruvo3d.com/b/</loc>")
+    kayit("E9", "sitemap <loc> yollari yol kumesine ayiklaniyor (sorgu/alan atilir)",
+          yol == {"/a/", "/b/"}, "%s" % sorted(yol))
+
+    # 2) canli sitemap FIILEN okunur (istek_fn enjekte — ag YOK); 200 -> kume.
+    def sitemap200(url, yontem=None, zaman_asimi=None, acici=None, no_cache=False):
+        return 200, {"server": "cloudflare"}, \
+            (b"<?xml?><urlset><url>"
+             b"<loc>https://pruvo3d.com/acik-1/</loc>"
+             b"<loc>https://pruvo3d.com/eski/</loc></url></urlset>"), None
+    kume = ye.canli_sitemap_yollari(taban="http://ornek.invalid", istek_fn=sitemap200)
+    kayit("E9", "canli sitemap 200 -> yol kumesi (rollout ayriminin kaynagi)",
+          kume == {"/acik-1/", "/eski/"}, "%s" % sorted(kume or []))
+
+    # 3) FAIL-CLOSED: sitemap OKUNAMADI -> None (rollout ayrimi YAPILMAZ).
+    def sitemap404(url, yontem=None, zaman_asimi=None, acici=None, no_cache=False):
+        return 404, {}, b"", None
+    kayit("E9", "canli sitemap OKUNAMADI -> None (404 yine KAPALI, sessiz yesil YOK)",
+          ye.canli_sitemap_yollari(taban="http://ornek.invalid",
+                                   istek_fn=sitemap404) is None)
+
+    # 4) rollout_isaretle SINIRI: tek kaynakta, dar.
+    taban = {"yol": "/yeni/", "sinif": "KAPALI", "kod": 404, "tani": "HTTP 404"}
+    kayit("E9", "404 + sitemap'te YOK -> ROLLOUT (yayin henuz canliya tasimamis)",
+          ye.rollout_isaretle(dict(taban), {"/eski/"})["sinif"] == "ROLLOUT")
+    kayit("E9", "404 + sitemap'te VAR -> KAPALI KALIR (3 Agu 2026 sinifi korunur)",
+          ye.rollout_isaretle(dict(taban), {"/yeni/"})["sinif"] == "KAPALI")
+    kayit("E9", "403 ASLA rollout DEGIL (yasakli sayfa yapisaldir)",
+          ye.rollout_isaretle({"yol": "/yeni/", "sinif": "KAPALI", "kod": 403},
+                              {"/eski/"})["sinif"] == "KAPALI")
+    kayit("E9", "sitemap None -> 404 KAPALI KALIR (fail-closed, ayrim YAPILAMAZ)",
+          ye.rollout_isaretle(dict(taban), None)["sinif"] == "KAPALI")
+
+    # 5) UCTAN UCA: 404 (sitemap'te YOK) + ACIK -> hukum ACIK, ROLLOUT=1 BASILIYOR.
+    k, _ = ye.olc(["/yok/", "/acik-1/"], taban=sunucu.taban, hiz=0,
+                  sitemap_yollar={"/acik-1/"})
+    sinif, rc, satirlar, ozet = ye.degerlendir(k)
+    kayit("E9", "rollout penceresi: 404(sitemap'te YOK)+200 -> ACIK rc 0, ROLLOUT=1 "
+          "BASILIYOR (kirmizi YANMAZ ama SESSIZLESMEZ)",
+          sinif == "ACIK" and rc == 0 and len(ozet.get("rollout") or []) == 1
+          and any("ROLLOUT=1" in s for s in satirlar)
+          and any(s.startswith("🟡 ROLLOUT /yok/") for s in satirlar),
+          "%s rc=%d rollout=%d" % (sinif, rc, len(ozet.get("rollout") or [])))
+    # KONTROL: sitemap'te VAR olan 404 hala KIRMIZI (3 Agu sinifi korunuyor).
+    k2, _ = ye.olc(["/yok/"], taban=sunucu.taban, hiz=0, sitemap_yollar={"/yok/"})
+    sinif2, rc2, _, _ = ye.degerlendir(k2)
+    kayit("E9", "KONTROL: sitemap'te VAR olan 404 -> KAPALI rc 1 (korumuz korlesmedi)",
+          sinif2 == "KAPALI" and rc2 == 1, "%s rc=%d" % (sinif2, rc2))
+
+
 # -------------------------------------------------------------- E7) KABLOLAMA
 def _cagrilar(iak, suzgec, metin, yollar):
     """(job_id, yol, argumanlar, sebepler) — GERCEK ayristirici + ortak icra suzgeci."""
@@ -558,11 +612,24 @@ def e7_kablolama(ye, iak, suzgec, cron):
     etkisiz2 = [(c[0], c[3]) for c in kendi if c[3]]
     kayit("E7", "nobet.yml cagrisi ETKISIZLESTIRILMEMIS",
           not etkisiz2, "sebepler=%s" % (etkisiz2 or "-"))
-    beyan = getattr(iak, "SERIT_B", {})
-    anahtar = ("nobet.yml", "serit-b", BU_TEST_YOL)
-    kayit("E7", "serit B beyani is-akisi-kapisi::SERIT_B tablosunda VAR ve GEREKCELI",
-          bool((beyan.get(anahtar) or "").strip()),
-          (beyan.get(anahtar) or "BEYAN YOK")[:60])
+    # 🔴 14 Agu 2026 — IDDIA AYNI, KAYNAK DEGISTI ([[ikiz-tanim-sessiz-ayrisma]]).
+    # `d4ccdfa1` (serit-beyani sinif kapisi) ELLE B defterini kaldirdi: serit uyeligi
+    # artik WORKFLOW DOSYASINDAN turer (`_serit_b_joblar`), `SERIT_B` yalnizca
+    # BLOKLAYICI_KAPILAR'a ISTISNA tutar ve BILEREK bostur (taban 0). Eski iddia
+    # ("bu kapinin SERIT_B'de gerekceli girisi VAR mi") o commit'ten beri HER ZAMAN
+    # kirmizi yanacakti — bir kapi degil, BAYAT KALINTIYDI ([[bayat-kabul-testi]]).
+    # Yerine gecen iddia AYNI SEYI yeni kaynaktan olcer ve GEVSETMEZ:
+    #   (a) turetim CANLI — bu kabul testini kosan job GERCEKTEN serit B kumesinde,
+    #   (b) ve bu kapi ISTISNA tablosunda YOK — bloklamayan seritteki durusu
+    #       TURETIMDEN geliyor, elle yazilmis muafiyetle GECIRILMIYOR.
+    # (b) olmadan biri kapiyi bloklayici job'a tasiyip SERIT_B'ye muafiyet yazarak ayni
+    # yesili ELLE uretebilirdi; iddia o kacisi kapali tutar.
+    turetilen = sorted({c[0] for c in kendi} & set(n_serit_b))
+    istisna = sorted(k for k in getattr(iak, "SERIT_B", {}) if k[2] == BU_TEST_YOL)
+    kayit("E7", "serit B uyeligi WORKFLOW'dan TURUYOR (elle beyan defteri DEGIL) ve "
+          "bu kapi ISTISNA tablosunda YOK",
+          bool(turetilen) and not istisna,
+          "turetilen job=%s · istisna=%s" % (turetilen or "YOK", istisna or "-"))
 
 
 # ---------------------------------------------------------------- kosum
@@ -573,7 +640,9 @@ IDDIALAR = (("E1", "KUME — kaynaklardan turer, taban altinda OLCULEMEDI"),
             ("E5", "FAIL-CLOSED — ag/zaman asimi OLCULEMEDI"),
             ("E6", "MALIYET — hiz siniri, ornekleme yok, kapsam beyani"),
             ("E7", "KABLOLAMA — cron alarm kolu + serit B"),
-            ("E8", "GECICI — 5xx/ag blip'i bir kez yeniden yoklanir, 4xx/dongu ASLA"))
+            ("E8", "GECICI — 5xx/ag blip'i bir kez yeniden yoklanir, 4xx/dongu ASLA"),
+            ("E9", "ROLLOUT — canli sitemap'te henuz olmayan 404 yayin penceresidir, "
+                   "kirmizi degil"))
 
 
 def main():
@@ -599,7 +668,8 @@ def main():
                     ("E5", lambda: e5_fail_closed(ye, sunucu)),
                     ("E6", lambda: e6_maliyet(ye, sunucu)),
                     ("E7", lambda: e7_kablolama(ye, iak, suzgec, cron)),
-                    ("E8", lambda: e8_gecici(ye)))
+                    ("E8", lambda: e8_gecici(ye)),
+                    ("E9", lambda: e9_rollout(ye, sunucu)))
         for kod, fn in kosumlar:
             try:
                 fn()

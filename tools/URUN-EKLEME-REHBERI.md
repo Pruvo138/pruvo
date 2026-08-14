@@ -351,12 +351,13 @@ WhatsApp'a düşer — 29 Tem'de bu iki kez iş kaybettirdi.
 👉 **Yap:** `python3 tools/konfigur-bundle-kapisi.py --yaz` **+** `npx wrangler deploy --config
 shop/wrangler.toml`. İkisi de yapılmadan dekor ürünü "eklendi" sayılmaz.
 
-### 9.4 `boy_secenekleri` **KULLANILMAZ** (bugün taşıyan ürün sayısı: 0)
-Alan üç yerde birden yarım: ürün sayfası boy seçtirir, edge kartı boy farkını **0** sayar, ödeme
-sunucusu kalemi baştan reddeder (`boy-desteklenmiyor` → `index.html:2336`). Yani müşteriye
-seçtirilen boy ne fiyata yansır ne de ödenebilir.
-👉 **Yap:** alanı yazma. Gerekiyorsa önce **D1 kolonu + `kart_ozeti` + Worker `KART_ALANLARI`**
-üçü birden açılmalı — bu bir MİMAR kalemidir, ürün ekleyenin işi değildir.
+### 9.4 `boy_secenekleri` biçimi
+Boy varyantı D1, edge kartı ve ödeme Worker'ında aynı kanonik diziden okunur; geçersiz/eksik
+etiket ödeme yolunda fail-closed reddedilir. Biçim:
+`"boy_secenekleri":[{"etiket":"S","fark_tl":0},{"etiket":"L","fark_tl":150}]`.
+`etiket` benzersiz, boşluksuz ve en çok 60 karakter; `fark_tl` negatif olmayan tam sayı TL'dir.
+Alan kullanılırsa tüm seçenekler yazılır; istemcinin seçmediği/uydurduğu etiket kabul edilmez.
+👉 **Yap:** ekleme öncesi `python3 tools/boy-secenekleri-kabul.py` kapısını çalıştır.
 
 ### 9.5 Feed politika jetonları başlığa/açıklamaya GİRMEZ
 Yasak kelimeler: **elektronik sigara · e-sigara · vape**. `tools/feed-politika-kapisi.py`

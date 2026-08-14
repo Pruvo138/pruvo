@@ -1352,6 +1352,17 @@ jobs:
       - name: "Kanca nobeti cift yonlu mutasyon turu"
         run: python3 tools/kanca-nobeti-test.py --mutasyon
 
+      # DEVAM SINIF KAPISININ KANCA ENVANTERI (14 Agu 2026) — pre-commit kancasi
+      # `tools/devam-sinif-kapisi.py --index` kolunu fail-closed kosuyordu ama cagri
+      # IKI nobetci envanterinde de (kanca-nobeti::BEKLENEN + kanca-kablolama::
+      # FAIL_CLOSED) KAYITLI DEGILDI: satir silinseydi hicbir nobetci kaybi OLCMEZDI
+      # ([[nobetci-cagri-satiri-nobetsiz]]). Bu kabul testi ucunu birden olcer —
+      # iki envanterde birlikte kayitlilik, saglikli govdenin YESIL okunmasi, ve
+      # cagri-silme mutantinin IKI nobetcide de KIRMIZI yanmasi. Offline, ag YOK,
+      # gercek depoya YAZMAZ, ~1 s. SERIT B: kendi kirmizisi yayini durdurmaz.
+      - name: "Kanca envanteri kabul testi (DEVAM sinif kapisi cagrisi iki defterde de kayitli mi)"
+        run: python3 tools/kanca-devam-envanter-test.py
+
       # Kanca kablolama nobetcisinin KENDI kabulu: sentetik depolarda GERCEK `git commit` ile
       # "ONCE gecti / SONRA durdu" iki ayri SAYIYLA olculur, kurulumun
       # fail-closed'i ve 🔴 PAYLASILAN/GLOBAL CONFIG KIRLENMEDI vakasi kosar

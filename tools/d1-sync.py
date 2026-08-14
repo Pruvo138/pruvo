@@ -55,6 +55,7 @@ import sys
 from git_ortami import git_ortami, sentetik_git
 import tempfile
 import time
+import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import arama
@@ -171,6 +172,70 @@ def yazici_kilidi_birak(fd):
         return
     fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
     fd.close()
+
+
+# D1 DAGITIK YAZICI KILIDI. flock yalniz ayni cekirdekteki surecleri dislar; GitHub
+# kosucusu x GitHub kosucusu ve kosucu x yerel yarisinda ortak olan tek yer D1'dir.
+# Lease alma tek bir kosullu UPSERT'tir: D1 yazmalari siraladigi icin iki ayri makine
+# ayni anda bos/sona ermis kilidi sahiplenemez. Sahiplik hemen geri okunur; "wrangler
+# rc=0" tek basina kanit sayilmaz. Crash halinde satir kalabilir ama lease suresi dolar.
+# Normal cikista yalniz kendi token'imizi sileriz; baskasinin kilidi ezilemez.
+DAGITIK_KILIT_ADI = "tam-katalog"
+DAGITIK_KILIT_SURESI = 600
+
+
+def dagitik_kilit_al(sahip=None):
+    """D1 uzerinde non-blocking lease al; baska makine uctaysa fail-closed cik."""
+    token = sahip or uuid.uuid4().hex
+    sql = (
+        "CREATE TABLE IF NOT EXISTS senkron_kilit ("
+        "ad TEXT PRIMARY KEY, sahip TEXT NOT NULL, sona_erme INTEGER NOT NULL);\n"
+        "INSERT INTO senkron_kilit (ad,sahip,sona_erme) VALUES (%s,%s,unixepoch()+%d) "
+        "ON CONFLICT(ad) DO UPDATE SET sahip=excluded.sahip, sona_erme=excluded.sona_erme "
+        "WHERE senkron_kilit.sona_erme <= unixepoch() "
+        "OR senkron_kilit.sahip=excluded.sahip;"
+        % (q(DAGITIK_KILIT_ADI), q(token), DAGITIK_KILIT_SURESI))
+    try:
+        dosya_calistir(sql)
+        r = sorgu("SELECT sahip, sona_erme FROM senkron_kilit WHERE ad=%s"
+                  % q(DAGITIK_KILIT_ADI))
+        satirlar = (r[0].get("results") or []) if r else []
+    except SystemExit:
+        raise
+    except Exception as e:                                        # noqa: BLE001
+        sys.exit("!! D1 DAGITIK YAZICI KILIDI OLCULEMEDI (%s: %s) — yazma "
+                 "fail-closed DURDU." % (type(e).__name__, e))
+    bulunan = satirlar[0] if len(satirlar) == 1 else {}
+    if bulunan.get("sahip") != token:
+        sys.exit("!! D1 YAZICI UCUSTA (MAKINELER-ARASI) — ikinci tam-katalog "
+                 "yazicisi fail-closed DURDU (lease-sonu=%s)."
+                 % bulunan.get("sona_erme", "?"))
+    print("D1 dagitik yazici kilidi ALINDI (lease=%s...)" % token[:8])
+    return token
+
+
+def dagitik_kilit_yenile(token):
+    """Uzun yazmada lease'i uzat; sahiplik kaymissa tek satir bile daha yazma."""
+    dosya_calistir(
+        "UPDATE senkron_kilit SET sona_erme=unixepoch()+%d WHERE ad=%s AND sahip=%s;"
+        % (DAGITIK_KILIT_SURESI, q(DAGITIK_KILIT_ADI), q(token)))
+    r = sorgu("SELECT sahip FROM senkron_kilit WHERE ad=%s" % q(DAGITIK_KILIT_ADI))
+    satirlar = (r[0].get("results") or []) if r else []
+    if len(satirlar) != 1 or satirlar[0].get("sahip") != token:
+        sys.exit("!! D1 DAGITIK YAZICI LEASE'I KAYBEDILDI — yazma fail-closed DURDU.")
+
+
+def dagitik_kilit_birak(token):
+    """Yalniz bu kosumun lease'ini birak; hata cikista asil hatayi golgeleme."""
+    if not token:
+        return
+    try:
+        dosya_calistir("DELETE FROM senkron_kilit WHERE ad=%s AND sahip=%s;"
+                       % (q(DAGITIK_KILIT_ADI), q(token)))
+    except BaseException as e:                                    # noqa: BLE001
+        print("!! D1 DAGITIK YAZICI KILIDI BIRAKILAMADI (%s) — lease en gec %d sn "
+              "sonra sona erer." % (type(e).__name__, DAGITIK_KILIT_SURESI),
+              file=sys.stderr)
 
 
 # ── HATA KODU TESPITI — BICIMDEN BAGIMSIZ (31 Tem, run 30646713630'da OLCULDU) ───────
@@ -871,6 +936,8 @@ GOC_KOLON = [
     # kadarki pencerede mevcut satirlar "override YOK" der -> okuyan uc bugunku davranisi
     # (kategori haritasi) uygular; YANLIS bir malzeme ON-SECILMEZ.
     ("tavsiye_filament", "TEXT NOT NULL DEFAULT '[]'"),
+    # BOY SECENEKLERI — PUBLIC fiyat girdisi; icerik upsert'i + hash kapsaminda.
+    ("boy_secenekleri", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -939,6 +1006,7 @@ KOLONLAR = [
     # carpanini surer) edge modunda panel sunucudan FARKLI tutar gosterirdi: hash
     # "senkron" der, tutar ayrisir = sessiz fiyat sapmasi.
     "tavsiye_filament",
+    "boy_secenekleri",
 ]
 
 # satir_sql INSERT'inde YAZILAN ama ON CONFLICT/UPDATE yolunda BILEREK guncellenmeyen
@@ -1490,6 +1558,8 @@ def seq_normalize(urunler):
         sys.exit(hata)
     print("SEQ_UPDATE=%d" % len(ifadeler))
     for i in range(0, len(ifadeler), PARCA):
+        if _dagitik_kilit_token:
+            dagitik_kilit_yenile(_dagitik_kilit_token)
         yaz, _ = dosya_calistir("\n".join(ifadeler[i:i + PARCA]))
         print("  seq parca %d/%d — yazilan satir: %d"
               % (i // PARCA + 1, (len(ifadeler) + PARCA - 1) // PARCA, yaz))
@@ -1508,6 +1578,8 @@ def seq_normalize(urunler):
         geri = ["UPDATE urunler SET seq=%s WHERE id=%s;" % (str(mevcut[uid]), q(uid))
                 for uid in mevcut]
         for i in range(0, len(geri), PARCA):
+            if _dagitik_kilit_token:
+                dagitik_kilit_yenile(_dagitik_kilit_token)
             dosya_calistir("\n".join(geri[i:i + PARCA]))
         # HUKMU URETEN EKSENLERI BAS (ozet != hukum olmasin): sira farki ORTAK kumede olculur.
         sys.exit("!! SEQ NORMALIZASYONU GERI ALINDI: satir %d->%d · deger farki=%d · "
@@ -1901,6 +1973,8 @@ def kolon_goc():
         if not eksik:
             print("%s kolonlari tam — goc gerekmedi" % tablo)
             continue
+        if _dagitik_kilit_token:
+            dagitik_kilit_yenile(_dagitik_kilit_token)
         dosya_calistir("\n".join(
             "ALTER TABLE %s ADD COLUMN %s %s;" % (tablo, ad, tip) for ad, tip in eksik))
         print("%s eklenen kolon: %s" % (tablo, ", ".join(ad for ad, _ in eksik)))
@@ -1929,6 +2003,8 @@ def kolon_goc():
         if h["hal"] == IX_KURULU:
             continue                      # idempotent: zaten kurulu
         try:
+            if _dagitik_kilit_token:
+                dagitik_kilit_yenile(_dagitik_kilit_token)
             dosya_calistir(ix["sql"])
             print("indeks kuruldu (IDDIA): %s" % ix["ad"])
         except SystemExit as e:           # wrangler SIFIR-DISI (or. UNIQUE ihlali)
@@ -1988,6 +2064,12 @@ def tavsiye_filament_metin(u):
                       sort_keys=True, separators=(",", ":"))
 
 
+def boy_secenekleri_metin(u):
+    """Boy seceneklerini arama.py tek kaynagindan kanonik JSON'a cevirir."""
+    return json.dumps(arama.boy_secenekleri_kanonik(u), ensure_ascii=False,
+                      sort_keys=True, separators=(",", ":"))
+
+
 def satir_sql(u, seq, hs, h, baski=""):
     """Tek urun icin upsert. ON CONFLICT -> rid/seq korunur (FTS rowid'i sabit kalir)."""
     g = (u.get("gorseller") or [None])[0]
@@ -2014,6 +2096,7 @@ def satir_sql(u, seq, hs, h, baski=""):
         # arama.tavsiye_filament_kanonik tek kaynak, hash de AYNI fonksiyondan besleniyor
         # -> "hash degisti ama kolon degismedi" ayrismasi imkansiz).
         q(tavsiye_filament_metin(u)),
+        q(boy_secenekleri_metin(u)),
     ]
     # ATOMIK YAYIN: YENI satir DAIMA taslak (yayinda=0) girer. Kolon SQL'de ACIKCA
     # yazilir (DEFAULT'a guvenilmez): DEFAULT sonradan degistirilirse ya da tablo baska
@@ -2023,7 +2106,7 @@ def satir_sql(u, seq, hs, h, baski=""):
     return (
         "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
         "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski,tur,stokta,"
-        "altkategori,uyum,tavsiye_filament,yayinda) VALUES ("
+        "altkategori,uyum,tavsiye_filament,boy_secenekleri,yayinda) VALUES ("
         + ",".join(degerler) + ",0"
         + ") ON CONFLICT(id) DO UPDATE SET "
         + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
@@ -2055,7 +2138,7 @@ GERI_OKUMA_KOLONLARI = ["hash", "baslik", "kategori", "baski", "taban_fiyat",
 # konfigur'un aksine bunlar atlanabilir DEGIL: satir_sql'in INSERT listesindedirler,
 # yoksa HER upsert "no such column" ile duser. Bu yuzden main() basinda GURULTULU
 # olculur — kriptik yarim yazma yerine tek satirlik "kos: --sema" tanisi.
-ZORUNLU_KOLONLAR = ["tur", "stokta", "uyum", "tavsiye_filament"]
+ZORUNLU_KOLONLAR = ["tur", "stokta", "uyum", "tavsiye_filament", "boy_secenekleri"]
 
 # NEDEN `uyum` GERI_OKUMA_KOLONLARI'nda DEGIL (bilincli, gerekceli): uyum icerik upsert'i ile
 # hash ile AYNI ifadede yazilir -> hash D1'de dogruysa o upsert FIILEN uygulanmistir (baslik/
@@ -2476,7 +2559,8 @@ CREATE TABLE urunler (
   marka_kanon TEXT NOT NULL DEFAULT '[]',
   model_kanon TEXT NOT NULL DEFAULT '[]',
   marka_arama TEXT NOT NULL DEFAULT '[]',
-  tavsiye_filament TEXT NOT NULL DEFAULT '[]'
+  tavsiye_filament TEXT NOT NULL DEFAULT '[]',
+  boy_secenekleri TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
 """
@@ -2577,7 +2661,9 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
         kod = 0
         with contextlib.redirect_stdout(tampon):
             try:
-                main()
+                # Genel senkron davranisini olcer; kilit yasam dongusunun ayri kabul
+                # testi vardir. Wrapper'i cagirmak sayaclara lease DDL'ini karistirir.
+                _main(argumanlari_oku())
             except SystemExit as e:
                 c = e.code
                 if c is None or c == 0:
@@ -2786,7 +2872,7 @@ def _kt_sema_kos(conn):
     try:
         g["SEMA"] = yol
         sys.argv = ["d1-sync.py", "--sema"]
-        return _kt_goc_kos(conn, main)
+        return _kt_goc_kos(conn, lambda: _main(argumanlari_oku()))
     finally:
         g["SEMA"], sys.argv = eski_sema, eski_argv
         os.unlink(yol)
@@ -2806,7 +2892,7 @@ def _kt_durum_kos(conn):
     try:
         g["URUNLER"] = yol
         sys.argv = ["d1-sync.py", "--durum", "--hizli"]
-        return _kt_goc_kos(conn, main)
+        return _kt_goc_kos(conn, lambda: _main(argumanlari_oku()))
     finally:
         g["URUNLER"], sys.argv = eski_u, eski_argv
         os.unlink(yol)
@@ -3742,7 +3828,7 @@ def kendini_test():
     return 0 if kalan[0] == 0 else 1
 
 
-def main():
+def argumanlari_oku():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sema", action="store_true", help="semayi kur")
     ap.add_argument("--kuru", action="store_true", help="yazmadan ne yapacagini soyle")
@@ -3772,14 +3858,13 @@ def main():
                     metavar="YOL",
                     help="D1'de FAZLA satirlarin silinmesini IKI GOZLEME yay (karantina "
                          "damgasi dosyasi). Damga okunamazsa SILME YAPILMAZ.")
-    a = ap.parse_args()
+    return ap.parse_args()
 
-    # Yazici kilidi kaynak/D1 okumalarindan ONCE alinir; aksi halde ikinci surec bayat
-    # planini kilit disinda kurup birincinin yazisini sonradan geri alabilir. Yerel fd
-    # main() donene/exception ile acilana kadar yasar; crash/kill halinde cekirdek flock'u
-    # otomatik salar. Global DEGIL: offline batarya main()i ayni surecte tekrar cagirir.
-    _yazici_kilit_fd = yazici_kilidi_al() if yazici_yolu_mu(a) else None
 
+def _main(a):
+
+    # Yazici kilitleri wrapper'da kaynak/D1 okumalarindan ONCE alinir; aksi halde ikinci
+    # surec bayat planini kilit disinda kurup birincinin yazisini sonradan geri alabilir.
     # 🔴 SIRA: kaynak, katalogu okuyan HER daldan (senkron / --durum / --kuru) ONCE
     # baglanir. Bayrak verilmediyse modul sabitine DOKUNULMAZ -> bugunku davranis BAYT
     # AYNI (kancalar buna bagli). Verildiyse GURULTULU basilir: sessiz kaynak degisimi,
@@ -3816,6 +3901,8 @@ def main():
 
     if a.sema:
         with open(SEMA, encoding="utf-8") as f:
+            if _dagitik_kilit_token:
+                dagitik_kilit_yenile(_dagitik_kilit_token)
             yaz, _ = dosya_calistir(f.read())
         # 🔴 SIRA SERTLESTIRMESI: burada "sema kuruldu" DENMEZ. Sema dosyasi uygulandi
         # demek goc BITTI demek DEGIL — kolon ALTER'lari ve INDEKSLER daha kosmadi ve
@@ -4184,11 +4271,15 @@ def main():
 
     top_yaz = 0
     for i in range(0, len(ifadeler), PARCA):
+        if _dagitik_kilit_token:
+            dagitik_kilit_yenile(_dagitik_kilit_token)
         yaz, _ = dosya_calistir("\n".join(ifadeler[i:i + PARCA]))
         top_yaz += yaz
         print("  parca %d/%d — yazilan satir: %d"
               % (i // PARCA + 1, (len(ifadeler) + PARCA - 1) // PARCA, yaz))
 
+    if _dagitik_kilit_token:
+        dagitik_kilit_yenile(_dagitik_kilit_token)
     yaz, _ = dosya_calistir(
         "INSERT INTO senkron (anahtar,deger) VALUES ('urun_sayisi',%s) "
         "ON CONFLICT(anahtar) DO UPDATE SET deger=excluded.deger;" % q(str(len(gorulen)))
@@ -4241,6 +4332,27 @@ def main():
             "   Coz: karantina damgasi artifact'inin (`%s`) indirilmesini onar "
             "(actions: read izni / saklama suresi)."
             % (uzlastirici_karantina.OKUNAMADI_IMZASI, uzlastirici_karantina.DAMGA_ADI))
+
+
+def main():
+    """Yerel flock + D1 lease'i tum okuma-planlama-yazma-dogrulama boyunca tut."""
+    global _dagitik_kilit_token
+    a = argumanlari_oku()
+    yerel = yazici_kilidi_al() if yazici_yolu_mu(a) else None
+    dagitik = None
+    try:
+        if yazici_yolu_mu(a):
+            dagitik = dagitik_kilit_al()
+            _dagitik_kilit_token = dagitik
+        return _main(a)
+    finally:
+        if dagitik:
+            dagitik_kilit_birak(dagitik)
+        _dagitik_kilit_token = None
+        yazici_kilidi_birak(yerel)
+
+
+_dagitik_kilit_token = None
 
 
 if __name__ == "__main__":

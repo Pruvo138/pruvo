@@ -52,7 +52,7 @@ ALARM = ".github/workflows/yayin-erisim-alarmi.yml"
 HEDEFLER = (NOBETCI, TEST, IS_AKISI, DEPLOY, NOBET, ALARM)
 DOKUNULMAZ = [os.path.join(ROOT, y) for y in HEDEFLER]
 
-EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8")
+EKSENLER = ("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9")
 
 FAILS = []
 
@@ -81,7 +81,11 @@ M2 = ("M2", "404 'acik' sayiliyor (silinmis sayfa yesil yanar)",
       # CAPRAZ (gerekce): 404'u acik saymak yalniz hukmu (E3) degil GECICI eksenini de
       # dusurur — E8 "404 KAPALI kalir ve YENIDEN YOKLANMAZ" der; 404 'acik' olunca o
       # iddia da yanar. Ayrik degiller, ayni fiziksel olguyu (404 = kapali) olcerler.
-      ["E3", "E8"], "ESIT")
+      # 14 Agu 2026 +E9: ROLLOUT ekseni eklenince kapsam GERCEKTE buyudu ama beyan
+      # bayat kaldi. E9'un KONTROL iddiasi ("sitemap'te VAR olan 404 -> KAPALI rc 1")
+      # tam da 404'un KAPALI sayilmasina dayanir; M2 onu da dusurur. Beyan gercege
+      # yetistirildi — olcum KISILMADI ([[beyan-edilmis-survivor]]).
+      ["E3", "E8", "E9"], "ESIT")
 
 M3 = ("M3", "403 'acik' sayiliyor — hem metot ekseni hem hukum ekseni duser",
       NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 403)\n")],
@@ -153,12 +157,15 @@ M14 = ("M14", "nobet.yml'deki kabul testi adimi ETKISIZLESTIRILDI (olu nobetci)"
          "        run: python3 tools/yayin-erisim-test.py || true")],
        ["E7"], "ESIT")
 
-M15 = ("M15", "SERIT_B beyani SILINDI (serit degisimi gerekcesiz kaliyor)",
+# 14 Agu 2026: eski M15 (SERIT_B girisini bozma) `d4ccdfa1` ile OLDU — tablo bilerek
+# bosaltildi, mutant hicbir seye uygulanmiyordu. Yerine gecen mutant AYNI SINIFI yeni
+# mekanizmada oldurur: serit uyeligi TURETIMDEN geliyorken biri araya ELLE MUAFIYET
+# sokarsa E7 kirmizi yanmali (yoksa "bloklayici job'a tasi + muafiyet yaz" kacisi acilir).
+M15 = ("M15", "SERIT B UYELIGI ELLE MUAFIYETE CEVRILDI (turetim yerine istisna kaydi)",
        IS_AKISI,
-       [('    ("nobet.yml", "serit-b", "tools/yayin-erisim-test.py"):\n'
-         '        "Aracin KENDINI sinamasi: yerel HTTP fikstur sunucusu (dis ag YOK) + kume "',
-         '    ("nobet.yml", "serit-b", "tools/yayin-erisim-SILINDI.py"):\n'
-         '        "Aracin KENDINI sinamasi: yerel HTTP fikstur sunucusu (dis ag YOK) + kume "')],
+       [('SERIT_B = {\n}',
+         'SERIT_B = {\n    ("nobet.yml", "serit-b", "tools/yayin-erisim-test.py"):\n'
+         '        "elle muafiyet (mutant)",\n}')],
        ["E7"], "ESIT")
 
 M16 = ("M16", "KUMEYE ELLE URL GOMULDU (kaynak disi liste sizdi)",
@@ -200,6 +207,11 @@ M21 = ("M21", "ACIK_KODLAR TEK KAYNAK beyani genisletildi (204 'acik' sayildi)",
        NOBETCI, [("\nACIK_KODLAR = (200,)\n", "\nACIK_KODLAR = (200, 204)\n")],
        ["E3"], "ESIT")
 
+M22 = ("M22", "🔴 ROLLOUT SINIFI KALDIRILDI (yayin penceresindeki 404 yine KIRMIZI "
+       "yanar — K78 yanlis-pozitifi geri gelir)",
+       NOBETCI, [("ROLLOUT_KODLAR = (404, 410)", "ROLLOUT_KODLAR = ()")],
+       ["E9"], "ESIT")
+
 # ── KONTROL MUTANTLARI (YESIL kalmali) ──────────────────────────────────────────────
 # Surucu "her seye kirmizi yanan" gurultulu bir alarma donusmesin: anlam tasimayan
 # degisiklikler bataryayi KIRMIZI yakmamali, yoksa yukaridaki "OLDU" hukumlerinin hicbiri
@@ -227,7 +239,7 @@ K5 = ("K5", "ilgisiz: GECICI bekleme sabitine aciklama yorumu eklendi",
       [], "ESIT")
 
 MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, M16,
-             M17, M18, M19, M20, M21, K1, K2, K3, K4, K5)
+             M17, M18, M19, M20, M21, M22, K1, K2, K3, K4, K5)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)

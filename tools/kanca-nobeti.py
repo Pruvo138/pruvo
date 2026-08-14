@@ -107,6 +107,13 @@ BEKLENEN = (
          "yazim oncesi alan kolu: INDEX'te DEGISEN kayitlarin `altkategori` ve "
          "`uyum`/`marka` (K5 ikiz) alanlari arama.py'nin KANONIK fonksiyonlariyla "
          "dogrulanir; ihlal commit aninda BLOKLANIR"),
+        # 14 Agu 2026 envanter onarimi. GEREKCE: adim 6 kancada fail-closed
+        # kosuyor ama bu cagri BEKLENEN'de yoktu; satir silinse kanca-nobeti
+        # korumanin kaybini HIC olcmuyordu ([[nobetci-cagri-satiri-nobetsiz]]).
+        ("tools/devam-sinif-kapisi.py",
+         "yazim oncesi defter sinifi kolu: INDEX'e giren DEVAM.md icerigini "
+         "commit aninda BLOKLAR; cagri kaybolursa ihlal ancak CI'da yayini "
+         "durdurduktan sonra gorunur"),
         # 12 Agu 2026 eklendi. GEREKCE: ic isci-raporu protokol adi kapisi YALNIZ
         # CI'da yasiyordu (`grep -rn ic-rapor-adi-kapisi tools/kancalar/` -> 0
         # isabet). Bir nobet turu o adi izlenen kok defter DEVAM.md'ye yazdi;
