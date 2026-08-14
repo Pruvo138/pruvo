@@ -21,6 +21,7 @@ STATIK_DOSYALAR = [os.path.join(ROOT, slug, "index.html") for slug in STATIK]
 KOK_INDEX = os.path.join(ROOT, "index.html")
 SAYFALAR = os.path.join(TOOLS, "sayfalar.py")
 SECENEKLER = os.path.join(ROOT, "secenekler.js")
+SHOP_SRC = os.path.join(ROOT, "shop", "src", "index.js")
 
 sonuclar = []
 
@@ -135,6 +136,12 @@ sss_html = tum_statik[os.path.join(ROOT, "sss", "index.html")]
 kok_html = oku(KOK_INDEX)
 sayfalar_py = oku(SAYFALAR)
 secenekler_js = oku(SECENEKLER)
+shop_src = None
+shop_src_hatasi = None
+try:
+    shop_src = oku(SHOP_SRC)
+except (OSError, UnicodeError) as e:
+    shop_src_hatasi = "shop/src/index.js okunamadı: %s" % e
 
 # --- TARANAN GÖVDE KÜMESİ ---------------------------------------------------
 # Kontrol 1/5/6/8 yalnız 4 statik sayfayı tarıyordu; aynı bayat ifade
@@ -225,7 +232,7 @@ if faq:
 
 ortusme_hatalari = []
 beklenen = {
-    "Nasıl sipariş verebilirim?": ["Sepete Ekle", "Havale/EFT veya Kartla Güvenle Öde", "WhatsApp ile Sipariş Ver", "malzeme", "renk"],
+    "Nasıl sipariş verebilirim?": ["Sepete Ekle", "Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver", "malzeme", "renk"],
     "Ödemeyi nasıl yapıyorum? Sitede kartla ödeme var mı?": ["kartla güvenli online ödeme", "iyzico", "WhatsApp"],
 }
 for soru, anahtarlar in beklenen.items():
@@ -239,7 +246,7 @@ kontrol(3, "SSS JSON-LD ve görünen sipariş/ödeme cevapları aynı kanal ve b
 # 4) SSS sipariş cevabındaki buton etiketleri kök index.html davranışında var.
 siparis_cevap = faq_map.get("Nasıl sipariş verebilirim?", "")
 buton_hatalari = []
-for etiket in ["Havale/EFT veya Kartla Güvenle Öde", "WhatsApp ile Sipariş Ver"]:
+for etiket in ["Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver"]:
     if etiket not in siparis_cevap:
         buton_hatalari.append("SSS cevabında yok: %s" % etiket)
     if etiket not in kok_html:
@@ -429,6 +436,48 @@ else:
                 ",".join(dahil_ihlaller) or "-", ",".join(eksik_pozitif) or "-"),
             "%d sayfa tarandı, ihlal %d" % (
                 len(baglayici_govdeler), len(dahil_ihlaller) + len(eksik_pozitif)))
+
+# 11) Havale/EFT yolu AÇIKKEN müşteri bu seçeneği SSS'nin görünen cevabında ve
+#     JSON-LD karşılığında görebiliyor mu? Beklenti shop/src/index.js içindeki sunucu
+#     kabulünden türetilir; kaynak/kalıp ayrıştırılamazsa sessiz yeşil yerine FAIL.
+havale_beyan_desen = re.compile(r"\b(?:havale\s*/?\s*eft|iban)\b", re.I)
+odeme_kabul_m = None
+odeme_kabul_degerleri = []
+if shop_src_hatasi is None:
+    odeme_kabul_m = re.search(
+        r"if\s*\(\s*(?P<kosul>[^)\n]+)\s*\)\s*return\s*"
+        r"\{\s*hata\s*:\s*['\"]gecersiz-odeme['\"]\s*\}\s*;",
+        shop_src)
+    if odeme_kabul_m is not None:
+        kosul = odeme_kabul_m.group("kosul")
+        kabul_kalibi = re.compile(
+            r"odeme\s*!==\s*['\"][^'\"]+['\"]"
+            r"(?:\s*&&\s*odeme\s*!==\s*['\"][^'\"]+['\"])*")
+        if kabul_kalibi.fullmatch(kosul.strip()):
+            odeme_kabul_degerleri = re.findall(
+                r"odeme\s*!==\s*['\"]([^'\"]+)['\"]", kosul)
+
+if shop_src_hatasi is not None:
+    kontrol(11, "Havale/EFT beyanı sunucu kabulüyle çapraz doğrulandı",
+            False, shop_src_hatasi)
+elif odeme_kabul_m is None or not odeme_kabul_degerleri:
+    kontrol(11, "Havale/EFT beyanı sunucu kabulüyle çapraz doğrulandı",
+            False, "shop/src/index.js ödeme kabulü tespit edilemedi")
+elif "havale" in odeme_kabul_degerleri:
+    odeme_sorusu = "Ödemeyi nasıl yapıyorum? Sitede kartla ödeme var mı?"
+    gorunen_havale = bool(havale_beyan_desen.search(details.get(odeme_sorusu, "")))
+    jsonld_havale = bool(havale_beyan_desen.search(faq_map.get(odeme_sorusu, "")))
+    havale_eksikleri = []
+    if not gorunen_havale:
+        havale_eksikleri.append("SSS görünen metni")
+    if not jsonld_havale:
+        havale_eksikleri.append("SSS JSON-LD")
+    kontrol(11, "Havale yolu açıkken SSS görünen metni ve JSON-LD havale/EFT veya IBAN beyanı taşıyor",
+            not havale_eksikleri,
+            "havale yolu açık ama müşteriye beyan edilmiyor: %s" % ", ".join(havale_eksikleri))
+else:
+    kontrol(11, "Havale yolu kapalıyken SSS havale/EFT beyanı zorunlu değil",
+            True, "sunucu kabul değerleri: %s" % ", ".join(odeme_kabul_degerleri))
 
 print()
 gecen = 0

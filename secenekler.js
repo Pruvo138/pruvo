@@ -329,7 +329,7 @@
      Worker yeniden deploy (bundle'a gömülü) — tek başına front push'u Worker'ı DEĞİŞTİRMEZ. */
   var KONFIGUR_ODEME_ACIK = true;
 
-  /* SELF-SERVİS KARTLA ÖDEME anahtarı (sitedeki "Havale/EFT veya Kartla Güvenle Öde" butonu).
+  /* SELF-SERVİS KARTLA ÖDEME anahtarı (sitedeki "Kartla Güvenli Öde" butonu).
      Bugün KAPALI — sebebi teknik değil, TİCARİ: elimizde yalnız iyzico SANDBOX anahtarı var
      (canlı başvuru sürüyor). Buton canlı sitede açık olsaydı müşteri GERÇEK kartını SANDBOX
      sayfasına girerdi: para hareket etmez ama sandbox `retrieve` "başarılı" döner, sipariş
