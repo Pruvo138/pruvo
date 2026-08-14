@@ -296,16 +296,14 @@ def _bagimsiz_ciplak_sayi(ad):
 
 
 def _bagimsiz_jeton_sahibi(ad):
-    """Jetonu tasiyan urunlerin ham `marka[0]` dagiliminda payi >= 1/2 olan marka
-    (yoksa SAHIPSIZ -> None). Kanit zayifsa sayfa dogmaz (fail-closed)."""
-    if _bagimsiz_ciplak_sayi(ad):
-        return None
+    """Jetonun SAHİPLERİ (pay >= 1/3) KÜMESİ — üretim `jeton_sahibi` ÇAĞRILMAZ (H2 çok-sahipli).
+    ÇIPLAK SAYI veri katmanında (marka[]/uyum[]) ÜYE olarak geçiyorsa sayılır (H1): `_b_jeton`
+    yalnız üyelik jetonlarından kurulur; başlık-only çıplak sayı SAHİPSİZ döner (fail-closed)."""
     say = _b_jeton.get(_bagimsiz_kanon(ad))
     if not say:
-        return None
+        return frozenset()
     toplam = sum(say.values())
-    tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
-    return tepe if n * 2 >= toplam else None
+    return frozenset(k for k, n in say.items() if n * 3 >= toplam)
 
 
 def _bagimsiz_yabanci_marka(marka, g):
@@ -360,21 +358,14 @@ def _yayin_bagimsiz(marka, g, sahip=None, yabanci_hukmu=None, envanter_hukmu=Non
         envanter = bool(envanter_hukmu)
     if g.get("baslik_dogan") and not envanter \
             and not _bagimsiz_sasi_kodu(ad) and not _bagimsiz_ayri_arac(ad) \
-            and not (sahip is not None and sahip == _bagimsiz_kanon(marka)):
+            and not (sahip is not None and _bagimsiz_kanon(marka) in sahip):
         return False
     return True
 
 
-# (d) KOLU CAPRAZ-MARKA CARPISMASINDA SUSAR: once (d) KAPALIYKEN yayimlanan kanonlar
-# olculur; kanonu baska bir markada zaten yayimda olan kovada (d) sorulmaz. Iki gecis
-# BAGIMSIZ kurulur — uretimin `_taban_canon` degiskeni okunmaz.
-_taban_canon_bagimsiz = set(g["canon"] for marka, d in _veri.items()
-                            for g in d["gruplar"].values() if _yayin_bagimsiz(marka, g))
-
-
 def _bagimsiz_sahip(g):
-    if g["canon"] in _taban_canon_bagimsiz:
-        return None
+    # 🔴 H2 (14 Ağu): (d) çapraz-marka susturması KALDIRILDI (üretim `_taban_canon`'u kaldırdı).
+    # Çok-sahipli eşik (pay >= 1/3) çapraz çarpışmayı kurallı çözer; çiftin ROZET hükmü K19'da.
     return _bagimsiz_jeton_sahibi(g.get("display") or g["canon"])
 
 
@@ -417,9 +408,10 @@ def _b8_grup(marka, canon, display, adet, baslik_dogan, yabanci, sahip):
     }
 
 
-_b8_d = _b8_grup("Alfa Romeo", "giulietta", "Giulietta", 10, True, False, "alfaromeo")
+_b8_d = _b8_grup("Alfa Romeo", "giulietta", "Giulietta", 10, True, False,
+                 frozenset({"alfaromeo"}))
 _b8_d_kapali = dict(_b8_d, jeton_sahibi=None)
-_b8_g = _b8_grup("Hyundai", "genesis", "Genesis", 8, False, True, "genesis")
+_b8_g = _b8_grup("Hyundai", "genesis", "Genesis", 8, False, True, frozenset({"genesis"}))
 _b8_g_acik = dict(_b8_g, yabanci_marka=False)
 # 27155b41'de bu GERCEK kova yalniz (d) ile aciliyordu; sonraki envanter kaydi ayni
 # sonucu (a) kolundan da dogurdu. Fikstur (d)'yi ayirt etmek icin o SONRAKI kaydi
@@ -431,11 +423,11 @@ try:
     _b8_d_uretim = int(mmb.yayimlanir_mi(_b8_d) and not mmb.yayimlanir_mi(_b8_d_kapali))
 finally:
     mmb.BASLIK_DOGAN_ALLOW = _b8_envanter
-_b8_d_ayna = int(_yayin_bagimsiz("Alfa Romeo", _b8_d, "alfaromeo", False, False)
+_b8_d_ayna = int(_yayin_bagimsiz("Alfa Romeo", _b8_d, frozenset({"alfaromeo"}), False, False)
                    and not _yayin_bagimsiz("Alfa Romeo", _b8_d, None, False, False))
 _b8_g_uretim = int(not mmb.yayimlanir_mi(_b8_g) and mmb.yayimlanir_mi(_b8_g_acik))
-_b8_g_ayna = int(not _yayin_bagimsiz("Hyundai", _b8_g, "genesis", True)
-                   and _yayin_bagimsiz("Hyundai", _b8_g, "genesis", False))
+_b8_g_ayna = int(not _yayin_bagimsiz("Hyundai", _b8_g, frozenset({"genesis"}), True)
+                   and _yayin_bagimsiz("Hyundai", _b8_g, frozenset({"genesis"}), False))
 dogrula("B8 SABIT FIKSTUR: (d) jeton sahipligi 1 kova ACIYOR, gurultu sinifi 1 kova "
         "KAPATIYOR (uretim + bagimsiz ayna)",
         _b8_d_uretim == _b8_d_ayna == 1 and _b8_g_uretim == _b8_g_ayna == 1,

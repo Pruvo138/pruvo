@@ -321,14 +321,13 @@ def olc(kok):
 
     def _jeton_sahibi(display):
         canon = _sade(display)
-        if not canon or canon.isdigit():
-            return None
+        if not canon:
+            return frozenset()
         say = jeton_say.get(canon)
         if not say:
-            return None
+            return frozenset()
         toplam = sum(say.values())
-        tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
-        return tepe if n * 2 >= toplam else None
+        return frozenset(k for k, n in say.items() if n * 3 >= toplam)
 
     kova = {}
     for marka, d in veri.items():
@@ -453,15 +452,18 @@ def kabul(kok):
             continue                     # başlık kolu OLMADAN da eşiği geçiyordu
         envanterde = (mk, _arama.model_normalize(canon)) in izin
         if yayimda:
-            sahip_yargisi = sahip is not None and sahip == _sade(mk)
+            sahip_yargisi = bool(sahip) and _sade(mk) in sahip
             if not (envanterde or _sasi_kodu(dsp) or _ayri_arac(dsp) or sahip_yargisi):
                 yargisiz_dogan.append("%s|%s" % (mk, canon))
             elif not envanterde:
                 kural_dogan += 1
                 if sahip_yargisi and not (_sasi_kodu(dsp) or _ayri_arac(dsp)):
                     sahiplik_dogan += 1
-            # H1 SINIRI: ÇIPLAK SAYI kural koluyla DOĞAMAZ (`86`, `660`).
-            if not envanterde and _ciplak_sayi(dsp):
+            # H1 SINIRI (14 Ağu, güncellendi): ÇIPLAK SAYI kural koluyla DOĞAMAZ; yalnız
+            # envanterle YA DA veri katmanında ÜYE olarak geçiyorsa (d) ile doğabilir.
+            # `sahip` oracle'ı marka[]/uyum[] ÜYELERİNDEN kurulur; başlık-only çıplak sayı
+            # SAHİPSİZDİR ve (d)'den doğamaz — doğduysa KURAL (şekil) bozuldu demektir.
+            if not envanterde and _ciplak_sayi(dsp) and not sahip:
                 ciplak_sayi_dogan.append("%s|%s" % (mk, dsp))
             # H3 DENY KOLU: donanım kuyruklu kova SAYFA AÇMAZ (`Focus ST`).
             if _donanim_kuyruklu(dsp):
@@ -696,6 +698,51 @@ def kabul(kok):
             "`V-Class`/`v-class`, `Trafic`/`trafic`; ÇIPLAK TEK HARF slug DOĞMADI)",
             not _gost_sapan, "sapan=%s" % (_gost_sapan[:4] or "-"))
 
+    # --- H) KOVA 916/B-SERISI ONARIMI (14 Ağu, mimar hükmü H1+H2) ------------------
+    # H1: çıplak sayı veri katmanında (marka[]/uyum[]) ÜYE olarak geçiyorsa (d) ile
+    #     yargılanır; yalnız başlıkta geçen çıplak sayı hâlâ fail-closed SAHİPSİZ kalır.
+    # H2: jeton sahipliği ÇOK-SAHiPLİ (pay >= 1/3) — bir jeton iki markada da meşru olabilir.
+    _T = lambda j: (None, None, j)       # jeton_sahibi için sentetik (kova, ham0, jeton)
+    _h1a = mm.jeton_sahibi("916", _T({"916": {"alfaromeo": 2}}))
+    dogrula("H1A ÇIPLAK SAYI + marka[] ÜYELİĞİ VAR -> (d) YARGI SAYILIR (Alfa Romeo|916)",
+            "alfaromeo" in _h1a, "sahip=%s" % (sorted(_h1a) or "-"))
+    _h1b = mm.jeton_sahibi("916", _T({}))
+    dogrula("H1B ÇIPLAK SAYI + YALNIZ BAŞLIKTA -> YARGI SAYILMAZ (fail-closed korundu)",
+            not _h1b, "sahip=%s" % (sorted(_h1b) or "-"))
+    _h2a = mm.jeton_sahibi("bserisi", _T({"bserisi": {"mazda": 2, "honda": 1}}))
+    dogrula("H2A CANON ÇAKIŞMASI: iki marka da eşiği geçiyor -> İKİSİ DE yargı alır",
+            _h2a == frozenset({"mazda", "honda"}), "sahip=%s" % (sorted(_h2a) or "-"))
+    _h2b = mm.jeton_sahibi("bserisi", _T({"bserisi": {"mazda": 3, "honda": 1}}))
+    dogrula("H2B CANON ÇAKIŞMASI: bir marka eşiğin ALTINDA -> o marka yargı ALMAZ",
+            _h2b == frozenset({"mazda"}), "sahip=%s" % (sorted(_h2b) or "-"))
+    _h2c = mm.jeton_sahibi("stellantis",
+                           _T({"stellantis": {"opel": 1, "peugeot": 1, "citroen": 1,
+                                              "fiat": 1}}))
+    dogrula("H2C SAHİPSİZ JETON (hiçbir marka eşiği geçmiyor) -> yargı ÜRETİLMEZ",
+            not _h2c, "sahip=%s" % (sorted(_h2c) or "-"))
+    # Regresyonlar (gerçek evren): Honda DÜŞMEZ, Mazda+Alfa AÇILIR, rozet-disi KAPALI kalır.
+    _hk = evren.model_anahtari("Honda", "B Serisi")
+    _honda = kova.get(("Honda", _hk))
+    dogrula("H2D REGRESYON: Honda|B Serisi değişiklik SONRASI hâlâ YAYINDA",
+            bool(_honda) and _honda[1] and _honda[0] >= 4,
+            "honda yayın=%s n=%s" % (bool(_honda) and _honda[1],
+                                     (_honda or (0,))[0]))
+    _mk = evren.model_anahtari("Mazda", "B-Serisi")
+    _mazda = kova.get(("Mazda", _mk))
+    dogrula("H2E MAZDA|B-Serisi değişiklik SONRASI AÇILDI (H2)",
+            bool(_mazda) and _mazda[1],
+            "mazda yayın=%s" % (bool(_mazda) and _mazda[1]))
+    _ak = evren.model_anahtari("Alfa Romeo", "916")
+    _alfa = kova.get(("Alfa Romeo", _ak))
+    dogrula("H2F ALFA ROMEO|916 değişiklik SONRASI AÇILDI (H1)",
+            bool(_alfa) and _alfa[1],
+            "alfa yayın=%s" % (bool(_alfa) and _alfa[1]))
+    _sk = evren.model_anahtari("Subaru", "GT86")
+    _sub = kova.get(("Subaru", _sk))
+    dogrula("H2G ROZET-DISI DENY HÂLÂ ÇALIŞIYOR: Subaru|GT86 KAPALI kalır",
+            bool(_sub) and not _sub[1],
+            "subaru yayın=%s" % (bool(_sub) and _sub[1]))
+
     # --- G) KAYBEDEN YOK: hiçbir ürün kovasından DÜŞMEZ ----------------------------
     # (Kol yalnız EKLER; ölçüt yapısal: başlık kolu hiçbir kovadan ürün ÇIKARMAZ.)
     dogrula("B9 KONTROL: ölçüm dejenere değil (başlık kolu GERÇEKTEN üyelik ekliyor)",
@@ -825,9 +872,11 @@ MUTANTLAR = [
        "    return bool(j) and any(c.isdigit() for c in j)")]),
     ("tools/arama.py",
      "    (\"Suzuki\", \"DR\"): \"arac/motosiklet AILE adi (DR serisi)\",",
-     "    (\"Suzuki\", \"DRYOK\"): \"arac/motosiklet AILE adi (DR serisi)\",", "KIRMIZI",
-     "M15 HÜKÜM B ALLOW'UNU DÜŞÜR (`Suzuki|DR`) -> hükmedilen sayfa DOĞMAZ (B16; deny "
-     "eksenleri B15a/b/c DEĞİŞMEZ -> ters yön, ayırt edici)"),
+     "    (\"Suzuki\", \"DRYOK\"): \"arac/motosiklet AILE adi (DR serisi)\",", "YESIL",
+     "M15 HÜKÜM B ALLOW DÜŞÜRÜLSE BİLE SAYFA (d) İLE AYAKTA — 14 Ağu H2 ile (d) kolu çapraz-"
+     "marka susturması KALDIRILDI; `dr` jetonu %100 Suzuki olduğu için sayfa artık (d) ile "
+     "de yargılanır (B16 DEĞİŞMEZ). Allow kaydı REDUNDANT hale geldi — bu mutant o devri "
+     "sabitler (kontrol)"),
     ("tools/marka_model_build.py",
      "    if (marka, canon) in SEKIL_MUAF:\n        return False\n"
      "    return sasi_motor_kodu_mu(ad) or ayri_arac_adi_mi(ad)",
@@ -871,6 +920,48 @@ MUTANTLAR = [
      "K2 KONTROL: allow envanterini YENİDEN SIRALA -> küme ve davranış AYNI"),
     ("tools/cip-indeks.py", "SURUM = 1", "SURUM = 2", "YESIL",
      "K3 KONTROL: İLGİSİZ ALAN (çip indeksi sürümü) model üyeliğinde rol OYNAMAZ"),
+    # --- ÖLDÜRÜCÜ: KOVA 916/B-SERISI ONARIMI (14 Ağu, H1+H2) — 5 mutant + kontrol ----------
+    ("tools/marka_model_build.py",
+     "    say = jeton.get(_canon(display or \"\"))\n"
+     "    if not say:\n"
+     "        return frozenset()               # yalnız başlıkta -> veri katmanı konuşmadı (fail-closed)",
+     "    say = jeton.get(_canon(display or \"\"))\n"
+     "    if not say:\n"
+     "        return frozenset([_canon(display or \"\")]) if ciplak_sayi_mi(display) else frozenset()",
+     "KIRMIZI",
+     "N1 H1'in marka[] ÜYELİK koşulunu kaldır -> başlık-only ÇIPLAK SAYI kendini sahiplenir "
+     "(H1B kırmızı; H1A/marka[] üyeliği DEĞİŞMEZ -> ayırt edici)"),
+    ("tools/marka_model_build.py",
+     "    return frozenset(k for k, n in say.items() if n * JETON_SAHIP_ESIK_PAYDA >= toplam)",
+     "    return frozenset(k for k, n in say.items() if n > 0)",
+     "KIRMIZI",
+     "N2 H2 EŞİĞİNİ 0'A ÇEK -> eşik altı marka da sahip olur (H2B kırmızı; H2A DEĞİŞMEZ)"),
+    ("tools/marka_model_build.py",
+     "    return frozenset(k for k, n in say.items() if n * JETON_SAHIP_ESIK_PAYDA >= toplam)",
+     "    tepe, _n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]\n"
+     "    return frozenset([tepe]) if _n * 2 >= toplam else frozenset()",
+     "KIRMIZI",
+     "N3 H2'yi TEKİL-ÇOĞUNLUĞA geri çevir -> iki sahip TEK'e düşer (H2A kırmızı; H2B DEĞİŞMEZ "
+     "-> N2'den ayırt edici)"),
+    ("tools/marka_model_build.py",
+     "    return frozenset(k for k, n in say.items() if n * JETON_SAHIP_ESIK_PAYDA >= toplam)",
+     "    sahipler = frozenset(k for k, n in say.items() if n * JETON_SAHIP_ESIK_PAYDA >= toplam)\n"
+     "    if sahipler:\n        return sahipler\n"
+     "    tepe, _n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]\n"
+     "    return frozenset([tepe])",
+     "KIRMIZI",
+     "N4 SAHİPSİZ jeton TEPE sahibi üretsin -> sahipsizlik koruması ölür (H2C kırmızı; H2A/H2B "
+     "DEĞİŞMEZ -> N2'den ayırt edici)"),
+    ("tools/marka_model_build.py",
+     "    if (g.get(\"marka\"), g.get(\"canon\")) in ROZET_DISI:\n        return False",
+     "    if False:\n        return False",
+     "KIRMIZI",
+     "N5 ROZET-DISI deny kolunu kaldır -> Subaru|GT86 sayfası DOĞAR (H2G kırmızı)"),
+    ("tools/marka_model_build.py",
+     "JETON_SAHIP_ESIK_PAYDA = 3",
+     "JETON_SAHIP_ESIK_PAYDA = 3  # KONTROL",
+     "YESIL",
+     "K5 KONTROL: eşik sabitine yorum (davranış AYNI) -> iddia bozulmamalı"),
 ]
 
 # M4 mutantının ihtiyaç duyduğu kanca — üretim gövdesine SIZMAZ, yalnız mutant kopyada

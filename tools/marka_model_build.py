@@ -609,39 +609,50 @@ def marka_sahiplik_tablosu(products, evren, ek_markalar=()):
 
 
 def ciplak_sayi_mi(display):
-    """Jeton tümüyle SAYISAL mı (`916`, `86`, `660`)? H1 bu sınıfı BİLEREK dışarıda tutar
-    (harf şartı); (d) kolu da tutar — yoksa çıplak sayı KURAL koluyla doğmuş olurdu.
-    ÖLÇÜLDÜ 12 Ağu: (d) ilk yazımında `Alfa Romeo|916` doğuyordu ve kardeş kapı
-    (`model-uyelik-kapisi.py::K21 ÇIPLAK SAYI`) KIRMIZI yandı."""
+    """Jeton tümüyle SAYISAL mı (`916`, `86`, `660`)? H1 ŞEKİL kuralı bu sınıfı BİLEREK
+    dışarıda tutar (harf şartı). (d) kolundaki eski koşulsuz dışlama 14 Ağu'da H1 hükmüyle
+    KALDIRILDI: çıplak sayı, marka[]/uyum[] dizisinde ÜYE olarak geçiyorsa (veri katmanı
+    bilinçli konuştuysa) yargılanır; yalnız BAŞLIKTA geçen çıplak sayı hâlâ dışlanır —
+    çünkü başlık jetonu `jeton` tablosuna GİRMEZ (bkz. `jeton_sahibi`)."""
     j = "".join(_kelimeler(display or ""))
     return bool(j) and j.isdigit()
 
 
+# (d) kolunda sahiplik eşiği: bir markanın jeton payı >= 1/3 ise o marka için de yargı
+# sayılır (çok-sahipli). H2 (14 Ağu, mimar hükmü) — aday aralığı 1/4–1/3; fikstürle seçildi.
+JETON_SAHIP_ESIK_PAYDA = 3
+
+
 def jeton_sahibi(display, tablo):
-    """Jetonun KATALOGDAKİ SAHİBİ markası — ya da SAHİPSİZ (None).
+    """Jetonun KATALOGDAKİ SAHİPLERİ — payı >= 1/3 olan markalar KÜMESİ (çok-sahipli) ya da
+    boş (SAHİPSİZ). Birden fazla sahip mümkündür.
 
-    Sahip = jetonu taşıyan ürünlerin ham `marka[0]` dağılımında payı **>= 1/2** olan marka.
-    Çoğunluk yoksa jeton SAHİPSİZDİR ve hiçbir markanın modeli sayılmaz (fail-closed).
+    🔴 H2 (14 Ağu, mimar hükmü — ÇOK-SAHiPLİ): eski kural "çoğunluk sahibi TEK marka"
+    (pay >= 1/2) diyordu; bir jeton iki markada da meşru olabildiği için sahiplik EŞİK
+    tabanlıdır — bir markanın payı >= 1/3 ise o marka için de yargı sayılır. `bserisi`
+    dağılımı {mazda:2, honda:1} -> ikisi de 1/3'ü geçer, `Mazda|B-Serisi` (kamyonet) ile
+    `Honda|B Serisi` (motor ailesi) İKİSİ DE meşru. Sahipsiz jeton (hiçbir marka eşiği
+    geçmiyor) HÂLÂ yargı ÜRETMEZ (fail-closed). ESIK=1/3'ün gerekçesi: aday aralığın
+    (1/4–1/3) EN SIKI ucudur — gevşetme yalnız gerektiği kadar; 1/4 ile aynı kova evrenini
+    verdiği ölçüldü (ACILAN_KOVA farkı 0), 1/2 ise Honda'yı dışlardı.
 
-    🔴 12 Ağu 2026, KraL hükmü (kapsama lehine gevşetme, ŞARTLI): `BASLIK_DOGAN_ALLOW` elle
-    tutulan bir envanterdi ve her katalog partisinde bayatlıyordu — ölçüldü: eşiği ve
-    birincilliği FAZLASIYLA geçen 80 kova / 588 ürün yalnızca "envanterde yok" diye çipsiz
-    ve sayfasız kalıyordu (`Hyundai|Accent` 39 ürün, `Hyundai|Elantra` 49...). Bu, bu
-    depoda adı konmuş bir sınıftır ([[envanter-drift-parti-basina]]).
+    🔴 H1 (14 Ağu, mimar hükmü — ÇIPLAK SAYI VERİ KATMANINDA KONUŞTUYSA SAYILIR): çıplak
+    sayının (`916`) (d) kolundan dışlanması, o jeton ürünün marka[]/uyum[] dizisinde ÜYE
+    olarak geçiyorsa UYGULANMAZ — `marka[]` bilinçli bir veri kararıdır, başlıktaki rastgele
+    sayı değil. `jeton` tablosu YALNIZ üyelik jetonlarından kurulur (`uyelik_jetonlari` =
+    marka[] ∪ uyum[].model), başlık metni GİRMEZ — bu yüzden yalnız BAŞLIKTA geçen çıplak
+    sayı `say` boş kalır ve SAHİPSİZ döner (fail-closed korunur).
 
     KANIT ZAYIFSA ÇİP DOĞMAZ: kural yalnız katalogda SAHİBİ BELLİ jetonları doğurur.
-    Ölçülen ayırt edicilik (jeton -> sahip): `golf -> volkswagen` (Audi|Golf KAPALI kalır),
-    `trafic -> renault`, `primastar -> opel`, `fiorino -> fiat`, `ranger -> ford`,
-    `stellantis -> psa`, `iphone -> SAHİPSİZ` (Toyota|iPhone KAPALI kalır)."""
+    Ölçülen ayırt edicilik (jeton -> sahip): `golf -> {volkswagen}` (Audi|Golf KAPALI kalır),
+    `trafic -> {renault}`, `primastar -> {opel}`, `fiorino -> {fiat}`, `ranger -> {ford}`,
+    `stellantis -> {psa}`, `iphone -> SAHİPSİZ` (Toyota|iPhone KAPALI kalır)."""
     _kova, _ham0, jeton = tablo
-    if ciplak_sayi_mi(display):
-        return None                       # çıplak sayı KURAL koluyla doğmaz (H1 sınırı)
     say = jeton.get(_canon(display or ""))
     if not say:
-        return None
+        return frozenset()               # yalnız başlıkta -> veri katmanı konuşmadı (fail-closed)
     toplam = sum(say.values())
-    tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
-    return tepe if n * 2 >= toplam else None
+    return frozenset(k for k, n in say.items() if n * JETON_SAHIP_ESIK_PAYDA >= toplam)
 
 
 def yabanci_marka_mi(marka, display, canon, tablo):
@@ -845,7 +856,8 @@ def baslik_yargisi_var_mi(marka, canon, ad, sahip):
       (c) H3 `ayri_arac_adi_mi` — `<taban> <değiştirici>` AYRI araç adı (kural).
     (b)+(c) `sekil_kurali_yargisi` gövdesinde toplanır ve ARAÇ DIŞI muafiyetine tabidir:
     muaf çift ancak (a) ile doğar — kural araç dışı jetonlara açık kalmaz (hüküm E).
-      (d) `jeton_sahibi` — jetonun KATALOGDAKİ SAHİBİ bu marka (kural, 12 Ağu; KraL hükmü).
+      (d) `jeton_sahibi` — jetonun KATALOGDAKİ SAHİPLERİ bu markayı içeriyor (kural, 12 Ağu;
+          KraL hükmü; 14 Ağu H2 ile ÇOK-SAHiPLİ).
 
     🔴 (d) NEDEN EKLENDİ — (a)'nın YERİNE GEÇMEK İÇİN DEĞİL, (a)'yı BÜYÜTMEMEK için:
     envanter elle tutuluyordu ve her partide bayatlıyordu; 80 kova / 588 ürün yalnız
@@ -854,7 +866,7 @@ def baslik_yargisi_var_mi(marka, canon, ad, sahip):
     nöbetçi: `tools/marka-cip-kapisi.py::ENVANTER/*`."""
     return ((marka, canon) in BASLIK_DOGAN_ALLOW
             or sekil_kurali_yargisi(marka, canon, ad)
-            or (sahip is not None and sahip == _canon(marka)))
+            or (sahip is not None and _canon(marka) in sahip))
 
 
 def _dizi_iceriyor(hepsi, parca):
@@ -1177,24 +1189,11 @@ def gruplandir(products, evren, ek_markalar=()):
                                                   _sahiplik)
             # (d) kolunun girdisi de KOVAYA damgalanır: `yayimlanir_mi` tabloyu yeniden
             # kurmaz, OKUR. İkinci kurulum = ikinci gövde = sessiz ayrışma riski.
-            g["jeton_sahibi"] = None
-
-    # ---- (d) KOLU: ÇAPRAZ-MARKA ÇARPIŞMASINDA SUSAR (fail-closed) --------------------
-    # 🔴 ÖLÇÜLDÜ 12 Ağu: (d) ilk yazımında `Mazda|B-Serisi` doğdu; aynı kanon Honda'da
-    # ZATEN yayımdaydı (H3 kolu) ve ortaya YARGISIZ bir ÇAPRAZ-MARKA çifti çıktı — kardeş
-    # kapı (`model-uyelik-kapisi.py::K19`) KIRMIZI yandı. Çapraz çift bu depoda küratörlü
-    # bir yargıdır (`arama.ROZET_CAPRAZ_IZINLI`) ve KraL'in 12 Ağu gevşetmesi YALNIZ
-    # başlık-doğan eksenini kapsar. Çözüm elle liste büyütmek DEĞİL: (d) kolu, kanonu
-    # BAŞKA bir markada zaten yayımda olan kovalarda SUSAR. Kanıt zayıfsa çip DOĞMAZ.
-    _taban_canon = set()                 # (d) KAPALIYKEN yayımlanan kanonlar
-    for marka, d in veri.items():
-        for g in d["gruplar"].values():
-            if yayimlanir_mi(g):         # g["jeton_sahibi"] halen None -> (d) kapalı
-                _taban_canon.add(g["canon"])
-    for marka, d in veri.items():
-        for g in d["gruplar"].values():
-            if g["canon"] in _taban_canon:
-                continue                 # çapraz çarpışma riski -> (d) susar
+            # 🔴 H2 (14 Ağu, mimar hükmü): eski `_taban_canon` susması KALDIRILDI — (d) kolu
+            # kanonu BAŞKA bir markada zaten yayımda olan kovalarda SUSARDI (12 Ağu). Bir
+            # jeton iki markada da meşru olabildiği için (`bserisi -> {mazda, honda}`) bu
+            # susma `Mazda|B-Serisi`ni YARGISIZ kapatıyordu. Çok-sahipli eşik (jeton_sahibi)
+            # çapraz çarpışmayı kurallı biçimde çözer; çiftin ROZET hükmü K19'da küratörlü.
             g["jeton_sahibi"] = jeton_sahibi(g.get("display") or g["canon"], _sahiplik)
     return veri
 

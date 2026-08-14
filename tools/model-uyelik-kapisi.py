@@ -124,16 +124,16 @@ def _bagimsiz_sahiplik(urunler):
 
 
 def _bagimsiz_sahip(display, jeton):
-    """Jetonun SAHİBİ (pay >= 1/2) ya da SAHİPSİZ (None) — kapının KENDİ gövdesi.
-    ÇIPLAK SAYI bu kolun DIŞINDADIR (H1 ile aynı sınır; üretim de aynı sınırı çizer)."""
-    if _bagimsiz_ciplak_sayi(display or ""):
-        return None
+    """Jetonun SAHİPLERİ (pay >= 1/3) KÜMESİ — kapının KENDİ gövdesi (üretimin
+    `jeton_sahibi` yüklemi ÇAĞRILMAZ, aynı kural bağımsız kurulur; H2 çok-sahipli).
+    ÇIPLAK SAYI VERİ KATMANINDA KONUŞTUYSA SAYILIR (H1): `jeton` tablosu yalnız
+    marka[]/uyum[] ÜYELERİNDEN kurulur, başlık metni GİRMEZ — yalnız BAŞLIKTA geçen
+    çıplak sayı `say` boş kalır ve SAHİPSİZ döner (fail-closed korunur)."""
     say = jeton.get(_bagimsiz_kanon(display or ""))
     if not say:
-        return None
+        return frozenset()
     toplam = sum(say.values())
-    tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
-    return tepe if n * 2 >= toplam else None
+    return frozenset(k for k, n in say.items() if n * 3 >= toplam)
 
 
 def _bagimsiz_baslik_yargisi(marka, canon, display, izin_anahtar, jeton_sahiplik=None):
@@ -148,7 +148,7 @@ def _bagimsiz_baslik_yargisi(marka, canon, display, izin_anahtar, jeton_sahiplik
         return True
     if jeton_sahiplik is None:
         return False
-    return _bagimsiz_sahip(display, jeton_sahiplik) == _bagimsiz_kanon(marka)
+    return _bagimsiz_kanon(marka) in _bagimsiz_sahip(display, jeton_sahiplik)
 
 
 # ───────────────────────────────────────────────────────────────────────────────────────
@@ -822,24 +822,14 @@ def olc(kok, modul_yolu=None):
     _b_izin_anahtar = set("%s|%s" % (mk, _mk_kanon(jt)) for mk, jt in _b_izin)
     # (d) JETON SAHİPLİĞİ — kapının KENDİ bağımsız tablosu (üretimin tablosu ÇAĞRILMAZ).
     _b_sahiplik = _bagimsiz_sahiplik(urunler)
-    # (d) ÇAPRAZ-MARKA SUSTURMASI — üretimdeki kuralın kapıdaki AYNASI, ama kapının KENDİ
-    # dilbilgisiyle kurulur: kanon (d) KAPALIYKEN zaten yayımlanıyorsa (d) o kanonda SUSAR.
-    # Ayna olmasaydı kapı üretimden GEVŞEK yargı verir ve K19'a hayalet çift üretirdi.
-    _b_taban_canon = set()
-    for _mk, _d in veri.items():
-        for _canon, _g in _d["gruplar"].items():
-            if not (_g.get("birincil") and len(_g["urunler"]) >= mm.ESIK):
-                continue
-            if _g.get("baslik_dogan") and not _bagimsiz_baslik_yargisi(
-                    _mk, _canon, _g.get("display") or _canon, _b_izin_anahtar):
-                continue
-            _b_taban_canon.add(_canon)
+    # 🔴 H2 (14 Ağu, mimar hükmü): (d) ÇAPRAZ-MARKA SUSTURMASI KALDIRILDI — eski kural
+    # kanonu (d) KAPALIYKEN zaten yayımlanıyorsa (d) o kanonda SUSARDI ve `Mazda|B-Serisi`ni
+    # YARGISIZ kapatıyordu. Çok-sahipli eşik (pay >= 1/3) çapraz çarpışmayı kurallı çözer;
+    # çiftin ROZET hükmü K19'da küratörlüdür (ROZET_CAPRAZ_IZINLI / ROZET_DISI_CIFT).
 
     def _b_yargi(mk, canon, dsp):
-        """(d) dâhil bağımsız yargı — çapraz susturması UYGULANMIŞ hâli."""
-        return _bagimsiz_baslik_yargisi(
-            mk, canon, dsp, _b_izin_anahtar,
-            None if canon in _b_taban_canon else _b_sahiplik)
+        """(d) dâhil bağımsız yargı — çok-sahipli eşik UYGULANMIŞ hâli."""
+        return _bagimsiz_baslik_yargisi(mk, canon, dsp, _b_izin_anahtar, _b_sahiplik)
     capraz_aday = {}
     for _mk, _d in veri.items():
         for _canon, _g in _d["gruplar"].items():
@@ -1041,9 +1031,13 @@ def olc(kok, modul_yolu=None):
                     baslik_sizinti.append("%s|%s" % (_mk, _canon))
                 elif "%s|%s" % (_mk, _canon) not in _b_izin_anahtar:
                     baslik_kural_dogan += 1
-                # H1 SINIRI: ÇIPLAK SAYI kural koluyla DOĞAMAZ (yalnız envanterle).
+                # H1 SINIRI (14 Ağu, güncellendi): ÇIPLAK SAYI kural koluyla DOĞAMAZ; yalnız
+                # envanterle YA DA veri katmanında ÜYE olarak geçiyorsa (d) ile doğabilir.
+                # `_b_sahiplik` jeton tablosu marka[]/uyum[] ÜYELERİNDEN kurulur — başlık-only
+                # çıplak sayı tabloda YOKTUR ve (d)'den doğamaz; doğduysa KURAL (şekil) bozuldu.
                 if _bagimsiz_ciplak_sayi(_dsp) \
-                        and "%s|%s" % (_mk, _canon) not in _b_izin_anahtar:
+                        and "%s|%s" % (_mk, _canon) not in _b_izin_anahtar \
+                        and not _b_sahiplik.get(_bagimsiz_kanon(_dsp)):
                     baslik_ciplak_sayi.append("%s|%s" % (_mk, _dsp))
                 # H3 DENY KOLU: donanım kuyruklu kova SAYFA AÇMAZ.
                 if _bagimsiz_donanim_kuyruklu(_dsp):
@@ -1146,10 +1140,14 @@ def olc(kok, modul_yolu=None):
                 _sent.append({"id": "sent-baslik-%s-%d" % (_jt, _i), "kategori": "Otomobil",
                               "marka": ["Toyota"],
                               "baslik": "Toyota %s konsol klipsi %d" % (_jt, _i)})
-        # `Zumbaq` jetonunun SAHİBİ Toyota OLMASIN: çoğunluğu başka markanın olsun.
-        # Başlıklarda "Toyota" GEÇMEZ -> bu ürünler Toyota kovasına başlık kolundan da
-        # GİRMEZ (Toyota|Zumbaq kovası 4 üründe kalır, aşağıdaki iddia bunu ölçer).
-        for _i in range(3):
+        # `Zumbaq` jetonunun SAHİBİ Toyota OLMASIN: Toyota'nın PAYI EŞİĞİN (1/3) ALTINDA
+        # kalsın. Başlıklarda "Toyota" GEÇMEZ -> bu ürünler Toyota kovasına başlık kolundan
+        # da GİRMEZ (Toyota|Zumbaq kovası 4 üründe kalır, aşağıdaki iddia bunu ölçer).
+        # 🔴 14 Ağu: eşik 1/2'den 1/3'e indi (H2). Eski 3 Volvo, Toyota'yı 2/5=0.4 ile
+        # SAHİPLİ kılardı (>= 1/3). 5 Volvo ile Toyota payı 2/7≈0.286 < 1/3 -> negatif vaka
+        # KORUNDU (fikstür "geçsin diye" DEĞİL, eşik değiştiği için negatifi negatif tutacak
+        # yönde güncellendi — 12 Ağu değişikliğiyle aynı disiplin).
+        for _i in range(5):
             _sent.append({"id": "sent-yabanci-Zumbaq-%d" % _i, "kategori": "Otomobil",
                           "marka": ["Volvo", "Zumbaq"],
                           "baslik": "Volvo yedek parca Zumbaq-%d" % _i})

@@ -1062,10 +1062,26 @@ ROZET_CAPRAZ_IZINLI = {
     # ROZET_DISI_CIFT'e (deny) alindi.
     "Fiat|scudo": ("ROZET", "Fiat Scudo Fiat'in kendi hafif ticari rozeti (Jumpy/Expert/ProAce kardesi)"),
     "Nissan|primastar": ("ROZET", "Nissan Primastar Nissan'in kendi hafif ticari rozeti (Trafic/Vivaro kardesi)"),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 14 Agu — H2 (jeton sahipligi COK-SAHiPLI, pay >= 1/3) ile capraz olan ciftler. (d)
+    # kolundaki capraz-marka susmasi kaldirilinca ayni kanonun iki markadaki sayfa adayligi
+    # gorunur oldu. Uc cift de "ad cakismasi" sinifidir (emsal Mazda|5/Renault|5): ikiz ya
+    # da rozet muhendisligi DEGIL, AYNI ADI tasiyan AYRI araclar.
+    "Mazda|bserisi": ("ROZET", "Mazda B-Serisi Mazda'nin kendi kompakt kamyoneti; Honda B "
+                              "Serisi motor ailesiyle yalniz AD cakismasi var, ayri arac"),
+    "Honda|bserisi": ("ROZET", "Honda B Serisi Honda'nin kendi motor ailesi (B16/B18/B20); "
+                              "Mazda B-Serisi kamyonetiyle yalniz AD cakismasi var"),
+    "Hyundai|coupe": ("ROZET", "Hyundai Coupe Hyundai'nin kendi modeli (Tiburon'un Avrupa "
+                               "adi); Audi'de 'coupe' gövde tipi kelimesiyle AD cakismasi"),
+    "Seat|alhambra": ("ROZET", "Seat Alhambra Seat'in kendi MPV rozeti; VW'nin kardesi "
+                              "Sharan'dir (Alhambra VW rozeti DEGIL, o taraf ROZET_DISI)"),
+    "Audi|coupe": ("BEKLER", "Audi 'Coupe' bir GOVDE TIPI kelimesidir (Audi 80 B3/B4 coupe); "
+                             "ayri bir Audi Coupe (B2/B3) modeli de vardi. ROZET mi MODEL_"
+                             "OLMAYAN mi — mimar hukmu bekliyor (Hyundai|Coupe ROZET'tir)"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 51
-ROZET_CAPRAZ_IZINLI_IMZA = "50de32d1d32ddd3d"
+ROZET_CAPRAZ_IZINLI_SAYISI = 56
+ROZET_CAPRAZ_IZINLI_IMZA = "caf8dc4f2c3548a0"
 
 
 def rozet_capraz_imzasi():
