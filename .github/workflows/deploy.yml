@@ -2082,6 +2082,34 @@ jobs:
       - name: ABS kapisi mutasyon bataryasi (nobetci olu mu — 6/6 kirmizi + 2/2 kontrol)
         run: python3 tools/abs-mutasyon.py
 
+      # STL UC-KOPYA NOBETCISININ KABUL TESTI (tools/stl-uc-kopya-nobet.py). Okan kurali
+      # "her STL'in kopyasi hem Drive'da hem R2'de" YAZILIYDI ama OLCEN kimse yoktu ->
+      # Drive'da olup R2'de olmayan uretim dosyasi sayisi 9'dan 183'e SESSIZCE buyudu
+      # (13->14 Agu olcumu). Nobetci dort kovayi (her-ikisinde / sadece-R2 / sadece-Drive /
+      # hicbirinde) sayar; HICBIRINDE>0 tek-kopya kaybidir (esik YOK), SADECE_DRIVE>esik
+      # musteri yolunu kirar (panel uretim dosyasini R2'den ceker), SADECE_R2 yalniz uyaridir.
+      #
+      # 🔴 BURADA KOSAN SEY NOBETCI DEGIL, NOBETCININ KABUL TESTIDIR. Nobetcinin KENDISI
+      # hicbir is akisina BAGLANMADI: canli R2 listelemesi + Drive mount'u ister, kosucuda
+      # ikisi de YOKTUR -> her kosumda sahte kirmizi uretirdi. Kabul testi ise SAF
+      # FIKSTURDUR: ag YOK, R2 YOK, Drive YOK, kimlik YOK (~1 s).
+      #
+      # 🔴 NEDEN SERIT A: adim once nobet.yml'e (serit B) konmustu; is-akisi-kapisi.py
+      # "SERIT B'DE BEYANSIZ KAPI" diye KIRMIZI yakti ve HAKLIYDI — bloklamayan seride
+      # birakmak, bir kapiyi silmeden etkisizlestirmenin en ucuz yoludur. Muafiyet
+      # YAZILMADI, adim buraya TASINDI.
+      #
+      # Ikinci adim birincinin OLU OLMADIGINI her kosumda YENIDEN URETEREK gosterir:
+      # 4 oldurucu mutant (HICBIRINDE kolu kalkti · esik sonsuza cekildi · stub gercek STL
+      # sayildi · R2 reddinde fail-open) KIRMIZI, 1 kontrol mutanti YESIL yanmali.
+      # Mutantlar gecici AYNA dizinine uygulanir; canli tools/ dizinine YAZILMAZ.
+      - name: STL uc-kopya nobetcisi kabul testi (7 vaka — saf fikstur, ag YOK)
+        run: python3 tools/stl-uc-kopya-nobet-test.py
+
+      # CI-ALT-KUME: --mutasyon
+      - name: STL uc-kopya mutasyon bataryasi (nobetci olu mu — 4/4 kirmizi + kontrol yesil)
+        run: python3 tools/stl-uc-kopya-nobet-test.py --mutasyon
+
       # SERIT A (icerik) — 2-RENK URETIM SOZLESMESI. Serit ayriminda once SERIT B'ye
       # konmustu; denetimde A'ya alindi. GEREKCE: bu kapinin 4. iddiasi YAYINLANAN
       # `secenekler.js` (Pages beyaz listesinde) ONIZLEME_PARCALAR parca listesi ile

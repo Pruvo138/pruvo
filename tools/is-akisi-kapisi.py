@@ -1900,7 +1900,16 @@ TABLO_TABANLARI = (
     # EKLEME: korudugu FAZ3 bayrak kapisi deploy.yml serit-a3'te BLOKLAYICI kaldi;
     # buraya yalnizca onun CANLILIGINI olcen 3 mutantlik batarya girdi. Tam esitlik
     # geregi taban AYNI commit'te guncellendi.
-    ("SERIT_B", 110),
+    # 14 Agu: 110 -> 111. TABLOYU BUYUTEN BEN DEGILIM: giris `710dd8df` ("onarim-commit
+    # kapisini serit B'ye beyan et") ile eklendi ama taban AYNI commit'te bumplanmadi ->
+    # tam-esitlik iddiasi +1 sapmayla KIRMIZI kaldi ve `serit-a3` `deploy: needs`
+    # icinde oldugu icin YAYIN DURDU. Burada yapilan sey bir GEVSETME DEGIL: taban
+    # tablonun GERCEK boyutuna esitleniyor, hicbir iddia dusurulmuyor, hicbir giris
+    # silinmiyor (kucultme de buyutme de kirmizidir — invaryant tam esitliktir).
+    # 🔴 Bu satiri sonradan okuyan icin: sapmanin sebebi 710dd8df'in gerekce blogudur
+    # (onarim-commit aracinin kabul + mutasyon kollari, "isci ergonomisi araci, A-sinifi
+    # degil"); o gerekce KALDI, yalnizca sayac ona yetistirildi.
+    ("SERIT_B", 111),
     # 5 Agu: BOLUM G (yayin sinyali safligi) fikstur tablolari. Ikisi de
     # bosaltilirsa dongu bos liste uzerinde doner ve iki yonlu batarya SESSIZCE
     # oler — tam da bu tabanin engelledigi kacis.

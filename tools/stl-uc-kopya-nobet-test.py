@@ -17,9 +17,11 @@ Fikstur dosyalari GECICI dizinde uretilir ve her vakadan sonra SILINIR (disk emr
     python3 tools/stl-uc-kopya-nobet-test.py             # kabul testi (0 = gecti)
     python3 tools/stl-uc-kopya-nobet-test.py --mutasyon  # oldurucu mutant bataryasi
 
-Ikisi de DETERMINISTIK ve ag-siz; ikisi de `.github/workflows/nobet.yml` (SERIT B, push
-tetikli) icinde FIILEN kosar. Mutasyon kolu ci-kapsam-test.py'ye acikca beyan edilir ki
-CI cagrisi silinirse kapi KIRMIZI yansin (beyan edilmeyen alt kume kapiya GORUNMEZ):
+Ikisi de DETERMINISTIK ve ag-siz; ikisi de `.github/workflows/deploy.yml` job `serit-a3`
+(SERIT A — YAYINI BLOKLAR) icinde FIILEN kosar. Once nobet.yml'e (serit B) konmustu;
+is-akisi-kapisi.py "SERIT B'DE BEYANSIZ KAPI" diye HAKLI OLARAK kirmizi yakti — muafiyet
+yazilmadi, adim serit A'ya TASINDI. Mutasyon kolu ci-kapsam-test.py'ye acikca beyan edilir
+ki CI cagrisi silinirse kapi KIRMIZI yansin (beyan edilmeyen alt kume kapiya GORUNMEZ):
 # CI-ALT-KUME: --mutasyon
 """
 

@@ -1786,41 +1786,6 @@ jobs:
         run: python3 tools/r2-onek-gelenek-kapisi.py
 
   # ===========================================================================
-  # STL UC-KOPYA NOBETCISININ KABUL TESTI (2026-08-14)
-  #
-  # NEDEN VAR: Okan kurali ("her STL'in kopyasi hem Drive'da hem R2'de") YAZILIYDI
-  # ama OLCEN kimse yoktu -> `SADECE_DRIVE` 9'dan 183'e SESSIZCE buyudu (13->14 Agu
-  # olcumu). Kurali sayiya ceviren nobetci tools/stl-uc-kopya-nobet.py'dir.
-  #
-  # 🔴 BURADA KOSAN SEY NOBETCI DEGIL, NOBETCININ KABUL TESTIDIR. Nobetcinin KENDISI
-  # hicbir is akisina BAGLANMAZ: canli R2 listelemesi + Drive mount'u ister, ikisi de
-  # kosucuda YOKTUR -> her kosumda sahte kirmizi uretirdi ([[codex-sandbox-agi-sahte-kirmizi]]).
-  # Nobetcinin yeri: hasat partisi sonu + ~/.claude/cron/onarim-el-kitabi.md.
-  # Kabul testi ise SAF FIKSTURDUR: ag YOK, R2 YOK, Drive YOK, kimlik YOK (~1 s).
-  #
-  # 🔴 NEDEN SERIT B (deploy.yml DEGIL): bu nobetci YAYIN yolunu degil ARSIV/URETIM
-  # DOSYASI disiplinini olcer; kirmizisi "site yayinlanmasin" demek DEGILDIR
-  # ([[maliyet-tasimasi-serit-dusurur]] — hangi seride dustugu bilerek secildi).
-  # Fail-closed cikis kodu KORUNUR: `continue-on-error` YOK.
-  #
-  # Iki adim ayri: ikincisi birincinin OLU OLMADIGINI her kosumda YENIDEN URETEREK
-  # gosterir ([[mutasyon-kaniti-yeniden-uretilebilir]]) — 4 oldurucu mutant (HICBIRINDE
-  # kolu kalkti · esik sonsuza cekildi · stub gercek STL sayildi · R2 reddinde fail-open)
-  # KIRMIZI, 1 kontrol mutanti YESIL yanmali.
-  # ===========================================================================
-  stl-uc-kopya-nobeti:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: "STL uc-kopya nobetcisi kabul testi (7 vaka — saf fikstur, ag YOK)"
-        run: python3 tools/stl-uc-kopya-nobet-test.py
-      - name: "STL uc-kopya mutasyon bataryasi (nobetci olu mu — 4/4 kirmizi + kontrol yesil)"
-        run: python3 tools/stl-uc-kopya-nobet-test.py --mutasyon
-
-  # ===========================================================================
   # HACIM TAM TAKIM (2026-08-02) — GERCEK TEST 1 (kapali-form vs RENDER)
   #
   # NEDEN AYRI IS: serit-b'deki iki jeneratör adimi BILEREK `--kendini-test`
