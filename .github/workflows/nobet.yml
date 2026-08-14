@@ -581,6 +581,16 @@ jobs:
       - name: R2 ezme kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
         run: python3 tools/r2-ezme-mutasyon-test.py
 
+      # R2 CDN NEGATIF-ONBELLEK (14 Agu) — varlik/readback CDN'e giderse olmayan nesnenin
+      # 404'u 1 yil onbellenir. NE OLCER: kabul testi (r2-upload-test.py CDN_A/B/C vakalari)
+      # cdn_siz_readback'in S3 API uzerinden (CDN'siz) calistigini GERCEKTEN olcuyor mu —
+      # 2 mutant TEK BASINA KIRMIZI (fail-open: yetki hatasi 'yok' sanildi · 404 'VAR' sanildi)
+      # + 1 KONTROL mutanti (docstring) YESIL. Mutasyon gecici SYMLINK aynasina uygulanir,
+      # canli tools/ dizinine YAZILMAZ. MOCK S3: gercek R2'ye/CDN'e ne okuma ne yazma gider.
+      # OFFLINE, ~2 s.
+      - name: R2 CDN negatif-onbellek mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
+        run: python3 tools/r2-cdn-negatif-onbellek-mutasyon.py
+
       # R1 SIHIRLI-BAYT WHITELIST'I — AVIF ekseni (9 Agu). Whitelist GENISLETMEK, fail-closed
       # bir kapiyi sessizce fail-open'a cevirmenin en ucuz yoludur: `ftyp` GENEL bir ISO-BMFF
       # kutu basligidir, mp4/mov/heic de tasir. Kabul MARKAYA baglidir (offset 8: avif/avis).
