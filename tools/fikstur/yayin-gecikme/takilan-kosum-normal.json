@@ -1,5 +1,5 @@
 {
- "_aciklama": "EKSEN 2 KONTROL KANARISI (yanlis alarm kapisi): kosan kosum tam 49,1 dk'dir surmektedir — 2 Agu 2026'da 99 tamamlanmis kosum arasindaki EN UZUN omur. Bu bir ARIZA DEGIL, olculen NORMALDIR ve omur tavanini (75 dk) yakmamalidir -> AKIYOR. `ahead_by` BILEREK 0'dir: bu fikstur YALNIZ omur eksenini olcer, icerik ekseni (yas/zincir/birikme) tamamen disaridadir; boylece bir yas/taban mutanti bu kontrolu KIRLETEMEZ. Govde 2 Agu kosum 30750470532/30752012022'nin gercek alanlaridir.",
+ "_aciklama": "EKSEN 2 KONTROL KANARISI (yanlis alarm kapisi): kosan kosum tam 86,6 dk'dir surmektedir — 14 Agu 2026 yeniden olcumunde post-olay NORMAL omur max (OLCULEN_KOSUM_OMRU_MAX_DK). Bu bir ARIZA DEGIL, olculen NORMALDIR ve omur tavanini (128 dk) yakmamalidir -> AKIYOR. Tam bu sinif 14 Agu'da eski 75 dk'lik (BAYAT 49,1 dk tabanindan turemis) tavani SAHTE kirmizi yakmisti; bu fikstur o sahte alarmin geri gelmesini nobetler. `ahead_by` BILEREK 0'dir: bu fikstur YALNIZ omur eksenini olcer, icerik ekseni (yas/zincir/birikme) tamamen disaridadir; boylece bir yas/taban mutanti bu kontrolu KIRLETEMEZ. Govde 2 Agu kosum 30750470532/30752012022'nin gercek alanlaridir.",
  "_beklenen": "AKIYOR",
  "_isler": {
   "30751559031": {},
@@ -23,7 +23,7 @@
   }
  },
  "_karsilastirma_tabani": "0b26431e0345113a1eb96228fa1af9c3bf81818b",
- "_simdi": "2026-08-02T15:13:03Z",
+ "_simdi": "2026-08-02T15:50:33Z",
  "karsilastirma": {
   "ahead_by": 0,
   "commits": [],

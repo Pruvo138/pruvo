@@ -123,6 +123,8 @@ Olculen taban (99 tamamlanmis kosum · 41 yayin (`deploy`=success) · 40 dongu):
   * KOSUM OMRU (tamamlanmis 99 kosumun `updated_at - run_started_at`'i):
     ortanca 13,0 · p90 36,8 · max 49,1 dk. `build` isi (41 yayinlayan kosum):
     ortanca 22,6 · p90 23,5 · max 25,2 dk.
+    ⚠️ BU SATIR ARTIK BAYATTIR — EKSEN 2 tabani 14 Agu 2026'da YENIDEN OLCULDU
+    (asagidaki "EKSEN 2 TABANI BAYATLADI" bolumu). Tarihsel kayit olarak durur.
   * ZINCIR dagilimi (1 Agu olcumu, DEGISMEDI): IPTAL zincirleri [5,4,3,3,3,2,...] — 6 ve
     ustu HIC gorulmedi. HATA zincirleri [10,5,3,2,1,...] — 4 ve ustu yalniz IKI kez,
     ikisi de gercek tikanma.
@@ -133,16 +135,37 @@ Secilen degerler ve TEK CUMLE gerekceleri:
   TIKALI_YAS_DK    = 65  — saglikli tepenin (51,8) USTUNDE, olculen GERCEK olaylarin
                            (70,0 · 76,9) ALTINDA: 40 dongunun 3'u asar, ucu de gercek
                            olay ya da beyan edilmis kalinti siniftir.
-  KOSUM_OMUR_TAVANI_DK = 75 — olculen EN UZUN kosum omrunun (49,1 dk) ~1,5 kati ve
-                           olculen en uzun `build` isinin (25,2 dk) ~3 kati: bu deponun
-                           OLCULEN geometrisiyle (tek bekleyen kuyruk + ~25 dk build)
-                           aciklanamaz. 99 kosumun HICBIRI bu esige yaklasmadi.
+  KOSUM_OMUR_TAVANI_DK = 128 — NORMAL TABANA gore (14 Agu 2026 yeniden olcumu, Y1):
+                           olculen post-olay normal omur max 86,6 dk'nin ~1,5 kati.
+                           8-10 Agu olay penceresindeki GERCEK takilmalar (143,5 / 169,1
+                           dk) hala yakalanir (128 < 143,5); normal kosumlar artik alarm
+                           URETMEZ. Eski 75, 2 Agu'nun bayat 49,1 dk tabanindan turemisti.
   TIKALI_HATA_ZINCIR = 4 — olculen gurultu tavani 3 ardisik hata; gercek tikanmalar 5 ve
                            10 zincirdi.
   ACLIK_IPTAL_ZINCIR = 6 — 23 saatte olculen EN UZUN saglikli iptal zinciri 5; eszamanlilik
                            iptali NORMAL bir olaydir, alarm ancak zincir tavani asinca dogar.
   GECIKME_BIRIKME    = 12 — olculen dongu basi birikme: ortanca 3 · p90 7 · max 17;
                            12 saglikli p90'in cok ustu, olculen tepenin altidir.
+
+🔴 EKSEN 2 TABANI BAYATLADI — SABIT DEGIL, TABAN YANLISTI (14 Agu 2026, OLCULDU)
+==============================================================================
+14 Agu'da nobetci EKSEN 2'den SAHTE KIRMIZI yakti: NORMAL (basarili) kosumlar 75 dk
+esigini asiyordu (son 3 gunun her birinde 2-4 kosum; max 82,9-86,6 dk). Kok neden SABIT
+degil TABANDI: 75, 2 Agu'da olculen `OLCULEN_KOSUM_OMRU_MAX_DK = 49,1` tabaninin ~1,5
+katiydi; o tarihten sonra yayin zincirine `serit-a3`/`serit-a4` kollari eklendi, zincir
+YAPISAL olarak uzadi, taban bayat kaldi.
+
+YENIDEN OLCUM (14 Agu 2026, `gh api` ile deploy.yml/main, ~400 kosum cekildi):
+  * PENCERE: son 7 gun tamamlanmis kosum; TABAN KUMESI = `conclusion == "success"` olan
+    121 kosum (basarisiz/iptal kosum SAGLIKLI omur TANIMLAMAZ — eski tabanin kurali AYNI).
+  * OMUR dagilimi (basarili, `updated_at - run_started_at`): post-olay NORMAL max 86,6 dk.
+    Ham 7 gunluk basarili max 117,1 dk'dir ama o kosum 8-10 Agu OLAY PENCERESININ
+    icindedir (kuyruk birikimi) — Y1 geregi taban NORMAL'e gore kurulur, olaya gore DEGIL.
+  * GERCEK takilmalar (8-10 Agu olay penceresi): 143,5 ve 169,1 dk (olay aninda `simdi -
+    run_started_at` ile gozlenen tamamlanmamis kosum omurleri).
+  * TURETME (kural DEGISMEDI): 86,6 x ~1,5 = 129,9 -> KOSUM_OMUR_TAVANI_DK = 128.
+    128 < 143,5 -> gercek takilmalar hala yakalanir; 128 > 86,6 -> normal kosumlar artik
+    alarm URETMEZ. TAVAN ASAN NORMAL (yeni tavanla) = 0.
 
 🔴 EKSEN 3 — YAYINSIZ ZINCIR (5 Agu 2026, OLCULEN SESSIZLIK: 74 DK YAYIN DURDU, ALARM YOK)
 ==========================================================================================
@@ -233,8 +256,8 @@ KOSUM OMRU NASIL OLCULUR (EKSEN 2)
     takilan = bu omurlerin EN BUYUGU
 Tamamlanmis kosum bu ekseni ilgilendirmez (bitti = takilmadi). Kuyrukta BEKLEYEN kosum da
 sayilir ve bu BILEREK boyledir: `cancel-in-progress: false` kuyrugunda sonsuza kadar
-bekleyen bir kosum da "yayin inmiyor" demektir; olculen en uzun kosum omru (49,1 dk)
-KUYRUK BEKLEMESINI ZATEN ICERIR, esik onun uzerinden secilmistir.
+bekleyen bir kosum da "yayin inmiyor" demektir; olculen en uzun SAGLIKLI kosum omru
+(14 Agu 2026: 86,6 dk) KUYRUK BEKLEMESINI ZATEN ICERIR, esik onun uzerinden secilmistir.
 
 SINIFLAR ve CIKIS KODLARI (rc)
 ==============================
@@ -289,22 +312,30 @@ GECIKME_BIRIKME = 12
 TIKALI_YAYINSIZ_ZINCIR = 2
 
 # 🔴 EKSEN 2 — KOSUM OMUR TAVANI (dk). "Kosum basladi ama HIC bitmiyor" sinifinin TEK
-# olcusu budur ve `ahead_by` kapisinin ONUNDEDIR (bkz. baslik). Sayinin GELDIGI YER:
-# 2 Agu 2026 olcumunde 99 tamamlanmis kosumun EN UZUNU 49,1 dk surdu (kuyruk beklemesi
-# DAHIL), `build` isinin en uzunu 25,2 dk idi. 75 = 49,1 x ~1,5 = 25,2 x ~3 -> olculen
-# geometriyle aciklanamayan omur. Sihirli sabit DEGIL: asagidaki OLCULEN_* tavanlar
-# sozlesme nobetiyle bu esigin ALTINDA kalmak zorundadir.
-KOSUM_OMUR_TAVANI_DK = 75
+# olcusu budur ve `ahead_by` kapisinin ONUNDEDIR (bkz. baslik). Sayinin GELDIGI YER
+# (Y1, 14 Agu 2026 yeniden olcumu): NORMAL TABANA gore kurulur, olay penceresine gore
+# DEGIL. 128 = olculen post-olay normal omur max (86,6 dk) x ~1,5. Gerekce: 8-10 Agu
+# olay penceresindeki GERCEK takilmalar (143,5 / 169,1 dk) hala yakalanir (128 < 143,5),
+# normal kosumlar artik alarm URETMEZ. Eski 75, 2 Agu'nun bayat 49,1 dk tabanindan
+# turetilmisti ve 14 Agu'da SAHTE TIKANMA ALARMI uretti (bkz. "EKSEN 2 TABANI BAYATLADI").
+KOSUM_OMUR_TAVANI_DK = 128
 
-# 🔴 OLCULEN SAGLIKLI TAVANLAR (zincirler: 1 Agu 2026 / 100 kosum · omur+yas: 2 Agu 2026 /
-# 100 kosum — bkz. baslik "ESIKLER"). Esikler bu tavanlarin USTUNDE olmak ZORUNDADIR:
-# altina cekilen bir esik NORMAL eszamanlilik iptallerine, gurultu hatalarina ya da
-# NORMAL SUREN bir kosuma alarm verir (yanlis alarm = kapatilan nobetci). Sozlesme
-# nobeti bunu `kendini_test` icinde olcer; fikstur kanarilari
+# 🔴 OLCULEN SAGLIKLI TAVANLAR (zincirler: 1 Agu 2026 / 100 kosum · yas: 2 Agu 2026 /
+# 100 kosum · KOSUM OMRU: 14 Agu 2026 / son 7 gun / 121 BASARILI kosum — bkz. baslik
+# "ESIKLER" ve "EKSEN 2 TABANI BAYATLADI"). Esikler bu tavanlarin USTUNDE olmak
+# ZORUNDADIR: altina cekilen bir esik NORMAL eszamanlilik iptallerine, gurultu
+# hatalarina ya da NORMAL SUREN bir kosuma alarm verir (yanlis alarm = kapatilan
+# nobetci). Sozlesme nobeti bunu `kendini_test` icinde olcer; fikstur kanarilari
 # `iptal-zinciri-bayat-saglikli.json` (zincir) ve `takilan-kosum-normal.json` (omur).
 OLCULEN_SAGLIKLI_IPTAL_TAVANI = 5
 OLCULEN_SAGLIKLI_HATA_TAVANI = 3
-OLCULEN_KOSUM_OMRU_MAX_DK = 49.1
+# 🔴 OLCULEN KOSUM OMRU MAX (dk) — 14 Agu 2026 yeniden olcumu (Y2): pencere = son 7 gun
+# (deploy.yml/main, 399 kosum cekildi), TABAN = o pencerede `conclusion == "success"`
+# olan 121 kosum. Post-olay (8-10 Agu olay penceresi DISI) NORMAL omur max = 86,6 dk.
+# Eski 49,1 (2 Agu) bayatti: `serit-a3`/`serit-a4` kollari eklendikten sonra yayin
+# zinciri yapisal olarak uzadi ve 14 Agu'da sahte kirmizi uretti. Arsivin 85,0'i bugunku
+# 86,6'yi kucumsuyordu.
+OLCULEN_KOSUM_OMRU_MAX_DK = 86.6
 OLCULEN_SAGLIKLI_YAS_TAVANI_DK = 51.8
 # 5 Agu 2026 / 7 gun / 651 alarm tigi: "bekleyen icerik >= 50 dk yaslanmis" olan HER tikte
 # yayinsiz zincir >= 2 idi ve o tiklerin HEPSI gercek yayin durmasiydi -> saglikli tavan

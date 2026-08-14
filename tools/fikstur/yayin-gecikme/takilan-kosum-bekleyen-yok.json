@@ -1,5 +1,5 @@
 {
- "_aciklama": "EKSEN 2 KANARISI: canli = main (ahead_by 0, yas ekseni TAMAMEN kapali) ama bir kosum 99 dk'dir TAMAMLANMADI. Yas ekseni bu sinifi ASLA goremez (hepsi `ahead_by > 0` kapisinin arkasindadir) — hukum YALNIZ kosum omur tavanindan gelir. Govde 2 Agu 2026 kosum 30752012022'nin gercek alanlaridir; takilan kosum zamanlanmis (schedule) bir kosumdur.",
+ "_aciklama": "EKSEN 2 KANARISI (KORELME KONTROLU): canli = main (ahead_by 0, yas ekseni TAMAMEN kapali) ama bir kosum 130,0 dk'dir TAMAMLANMADI — 14 Agu 2026'da yenilenen omur tavaninin (128 dk) HEMEN USTU. Tavani yukseltmek gercek 'takilan kosum' tespitini OLDURMEMELIDIR; bu fikstur onun kanarisidir. Yas ekseni bu sinifi ASLA goremez (hepsi `ahead_by > 0` kapisinin arkasindadir) — hukum YALNIZ kosum omur tavanindan gelir. Govde 2 Agu 2026 kosum 30752012022'nin gercek alanlaridir; takilan kosum zamanlanmis (schedule) bir kosumdur, `_simdi` tavan yenilemesiyle birlikte 16:35 -> 17:06'ya tasindi (99,0 -> 130,0 dk).",
  "_beklenen": "TIKALI",
  "_isler": {
   "30752012022": {
@@ -22,7 +22,7 @@
   }
  },
  "_karsilastirma_tabani": "aa0f839c46e1f3ab7ea8d1344fe93dec2e877b56",
- "_simdi": "2026-08-02T16:35:00Z",
+ "_simdi": "2026-08-02T17:06:00Z",
  "karsilastirma": {
   "ahead_by": 0,
   "commits": [],

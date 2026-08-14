@@ -103,9 +103,10 @@ M2 = ("M2", "OLCULEMEDI -> YESIL: ag/yetki yoklugu 'sorun yok' diye okunuyor",
       [("        return \"OLCULEMEDI\", SINIF_RC[\"OLCULEMEDI\"], [str(e)], None",
         "        return \"AKIYOR\", 0, [str(e)], None")],
       # CAPRAZ (gerekce): ayni bozulma hem OLCULEMEDI fiksturlerini (agsiz/yetkisiz,
-      # Y1) hem SOZLESME'nin fail-closed nobetini (Y2) dusurur; ikisi de AYNI olguyu
-      # (olculemedi'nin yesile dusmesi) olcer, ayrik degiller.
-      ["Y1", "Y2"], "ESIT")
+      # Y1) hem SOZLESME'nin fail-closed nobetini (Y2) hem de KABUL vaka 5'i (bos
+      # kosum listesi fail-closed, Y8) dusurur; ucu de AYNI olguyu (olculemedi'nin
+      # yesile dusmesi) olcer, ayrik degiller.
+      ["Y1", "Y2", "Y8"], "ESIT")
 
 M3 = ("M3", "IPTAL = HATA: eszamanlilik iptali TIKANMA sayiliyor (yanlis alarm)",
       NOBETCI,
@@ -165,7 +166,34 @@ M9 = ("M9", "TABAN KOSUM BASLANGICINA GERI DONDU (2 Agu'da olculen YANLIS ALARM)
 
 M10 = ("M10", "OMUR TAVANI DEVRE DISI: takilan kosum ekseni sessizlesiyor",
        NOBETCI,
-       [("\nKOSUM_OMUR_TAVANI_DK = 75\n", "\nKOSUM_OMUR_TAVANI_DK = 100000\n")],
+       [("\nKOSUM_OMUR_TAVANI_DK = 128\n", "\nKOSUM_OMUR_TAVANI_DK = 100000\n")],
+       ["Y8"], "ESIT")
+
+V1 = ("V1", "TAVAN 75'E GERI CEKILDI: 86,6 dk NORMAL kosum yanlis alarm uretir "
+           "(sahte alarm sinifi geri gelir — KABUL vaka 1)",
+       NOBETCI,
+       [("\nKOSUM_OMUR_TAVANI_DK = 128\n", "\nKOSUM_OMUR_TAVANI_DK = 75\n")],
+       # Tek-yonlu: 75 < 86,6 oldugu icin OLCULEN normal omur (86,6) alarm uretir ->
+       # "KONTROL takilan-kosum-normal" + KABUL vaka 1 + omur-ekseni sozlesmesi
+       # (tavan > OLCULEN max) AYNI ANDA duser — ucu de Y8 eksenidir.
+       ["Y8"], "ESIT")
+
+V2 = ("V2", "TAVAN 200'E CIKARILDI: 143,5 dk GERCEK takilma kacirilir (alarm korlesir — "
+           "KABUL vaka 2/3)",
+       NOBETCI,
+       [("\nKOSUM_OMUR_TAVANI_DK = 128\n", "\nKOSUM_OMUR_TAVANI_DK = 200\n")],
+       # 200 > 143,5 oldugu icin gercek takilma (143,5/169,1) ve fiksturun 130 dk'lik
+       # kosumu artık yakalanmaz -> KABUL vaka 2/3 + "VAKA (b) takilan-kosum-bekleyen-yok"
+       # duser — hepsi Y8 eksenidir.
+       ["Y8"], "ESIT")
+
+V3 = ("V3", "BOS KOSUM LISTESI SESSIZ GECIRILDI: fail-closed kirildi (OLCULEMEDI yerine "
+           "bos liste akar — KABUL vaka 5)",
+       NOBETCI,
+       [("    if not kosumlar:\n        raise", "    if False:\n        raise")],
+       # Bos `workflow_runs` artik OlcumHatasi URETMEZ -> bos liste akar ve nobetci
+       # "sorun yok" demese bile OLCULEMEDI sinifini KAYBEDER -> KABUL vaka 5 (fail-closed)
+       # kirmizi yakar. Yalniz Y8: hicbir fikstur bos kosum listesi kullanmaz.
        ["Y8"], "ESIT")
 
 M11 = ("M11", "OMUR EKSENI `ahead_by` KAPISININ ARKASINA ALINDI (kor nokta geri geliyor)",
@@ -267,8 +295,8 @@ K5 = ("K5", "ilgisiz: EKSEN 3 sabitinin yanina aciklama yorumu eklendi (esik DEG
         "TIKALI_YAYINSIZ_ZINCIR = 2   # olculen tavan 1 (5 Agu, 7 gun)\n")],
       [], "ESIT")
 
-MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, M16,
-             M17, M18, M19, K1, K2, K3, K4, K5)
+MUTANTLAR = (M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, V1, V2, V3, M11, M12, M13,
+             M14, M15, M16, M17, M18, M19, K1, K2, K3, K4, K5)
 OLCUTLER = ("ESIT",)
 
 IDDIA_RE = re.compile(r"^IDDIA SAYISI:\s*(\d+)\s*$", re.M)

@@ -526,6 +526,41 @@ def y8_omur_ekseni(yg):
           and any("TAMAMLANMADI" in g for g in gerekce3),
           "%s · %d gerekce" % (sinif3, len(gerekce3)))
 
+    # ── KABUL TESTI (14 Agu, mimar hukmu Y1/Y2) — tavan 128 dk'lik BES vaka ──
+    # (1) 86,6 dk NORMAL -> ALARM YOK (bugunku sahte alarm sinifi kapanir).
+    # (2) 143,5 dk takilan -> ALARM VAR. (3) 169,1 dk -> ALARM VAR.
+    # (4) TAM ESIK 128 dk -> `>=` kurali geregi ALARM VAR (dahil; beyan edildi).
+    # (5) kosum listesi BOS -> OLCULEMEDI + rc != 0 (fail-closed, sessiz yesil YOK).
+    # Bu bes vaka OLDURUCU MUTANTLARIN hedefidir (bkz. tools/yayin-gecikme-mutasyon.py
+    # :: V1/V2/V3) — her mutant buradaki TAM BIR vakayi kirmizi yakar.
+    def _omur_olcum(dk):
+        return {"geride": 0, "yas_dk": 0.0, "ardisik_iptal": 0, "ardisik_hata": 0,
+                "ardisik_yayinsiz": 0, "son_basarili_sha": "abc12345", "pencere": 1,
+                "tamamlanan": 1, "taranan": 1, "takilan_kosum_dk": dk,
+                "takilan_kosum_id": 1}
+
+    kayit("Y8", "KABUL (1) 86,6 dk NORMAL kosum -> ALARM YOK (sahte alarm sinifi kapanir)",
+          yg.degerlendir(_omur_olcum(yg.OLCULEN_KOSUM_OMRU_MAX_DK))[0] == "AKIYOR",
+          "omur %.1f dk < tavan %d dk" % (yg.OLCULEN_KOSUM_OMRU_MAX_DK,
+                                          yg.KOSUM_OMUR_TAVANI_DK))
+    kayit("Y8", "KABUL (2) 143,5 dk takilan kosum -> ALARM VAR (gercek takilma yakalanir)",
+          yg.degerlendir(_omur_olcum(143.5))[0] == "TIKALI",
+          yg.degerlendir(_omur_olcum(143.5))[0])
+    kayit("Y8", "KABUL (3) 169,1 dk takilan kosum -> ALARM VAR",
+          yg.degerlendir(_omur_olcum(169.1))[0] == "TIKALI",
+          yg.degerlendir(_omur_olcum(169.1))[0])
+    kayit("Y8", "KABUL (4) TAM esik %d dk -> ALARM VAR (`>=` kurali, esik DAHIL)"
+          % yg.KOSUM_OMUR_TAVANI_DK,
+          yg.degerlendir(_omur_olcum(float(yg.KOSUM_OMUR_TAVANI_DK)))[0] == "TIKALI",
+          "esik %d dahil (>=)" % yg.KOSUM_OMUR_TAVANI_DK)
+
+    def _bos_getir(yol_, zaman_asimi=25, etiket="api"):   # noqa: ARG001
+        return {"workflow_runs": []}
+    sinif5, rc5, _, _ = yg.olc_ve_degerlendir(getir=_bos_getir)
+    kayit("Y8", "KABUL (5) kosum listesi BOS -> OLCULEMEDI + rc!=0 (fail-closed, "
+          "sessiz yesil YOK)",
+          sinif5 == "OLCULEMEDI" and rc5 != 0, "%s rc %d" % (sinif5, rc5))
+
 
 # ------------------------------------------------- Y9) EKSEN 3: YAYINSIZ ZINCIR
 def _sentetik(yg, **ustyazim):
