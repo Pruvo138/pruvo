@@ -53,8 +53,8 @@ MUTANTLAR = [
      '      cipler[oy].addEventListener("pointerdown", onYukle);',
      '      cipler[oy].addEventListener("mm-hicbir-zaman", onYukle);'),
     ("K6_KAPSAMA_jeton_sahibi_kolu_kapatildi", "ENVANTER/drift", "tools/marka_model_build.py",
-     '            or (sahip is not None and sahip == _canon(marka)))',
-     '            or (sahip is not None and sahip == _canon(marka) and False))'),
+     '            or (sahip is not None and _canon(marka) in sahip))',
+     '            or (sahip is not None and _canon(marka) in sahip and False))'),
     ("K7_TIKLAMA_iskelet_cizilmiyor", "TIKLAMA/ekran_dolu", "tools/marka_model_build.py",
      '      if(ix !== null){ iskeletCiz(beyan); }',
      '      if(false){ iskeletCiz(beyan); }'),
@@ -152,7 +152,12 @@ def main():
             return 3
 
         olduren, bekleyen, kontrol_sonuc = 0, 0, None
-        for kayit in MUTANTLAR:
+        mutantlar = MUTANTLAR
+        if "--k86" in sys.argv[1:]:
+            mutantlar = [m for m in MUTANTLAR
+                         if m[0] in ("K6_KAPSAMA_jeton_sahibi_kolu_kapatildi",
+                                     "KONTROL_sayfa_metni_degisti")]
+        for kayit in mutantlar:
             ad, beklenen, rel, eski, yeni = kayit[:5]
             kapi_yolu = kayit[5] if len(kayit) > 5 else "tools/marka-cip-kapisi.py"
             agac = agac_kur(dosyalar)

@@ -233,15 +233,12 @@ def envanter_drifti(products, mm, index_html):
             d[h] = d.get(h, 0) + 1
 
     def sahip(display):
-        j = "".join(ch for ch in mm._canon(display or "") if ch.isalnum())
-        if j.isdigit():
-            return None                       # çıplak sayı kural koluyla doğmaz
         say = jeton.get(mm._canon(display or ""))
         if not say:
-            return None
+            return frozenset()
         toplam = sum(say.values())
-        tepe, n = sorted(say.items(), key=lambda t: (-t[1], t[0]))[0]
-        return tepe if n * 2 >= toplam else None
+        return frozenset(k for k, n in say.items()
+                         if n * mm.JETON_SAHIP_ESIK_PAYDA >= toplam)
 
     izin = set((mk, mm.model_kanon.kanon(jt)) for mk, jt in arama.BASLIK_DOGAN_ALLOW)
     # (d) kolu çapraz-marka çarpışmasında SUSAR -> aynayı kapı da kurar
@@ -262,7 +259,7 @@ def envanter_drifti(products, mm, index_html):
             continue
         for g in d["gruplar"].values():
             canon, dsp = g["canon"], (g.get("display") or g["canon"])
-            kural_yargilar = (sahip(dsp) == mm._canon(marka)
+            kural_yargilar = (mm._canon(marka) in sahip(dsp)
                               and canon not in taban_canon)
             if (marka, canon) in izin and (
                     kural_yargilar or mm.sekil_kurali_yargisi(marka, canon, dsp)):

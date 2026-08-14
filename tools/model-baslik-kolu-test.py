@@ -511,14 +511,17 @@ def kabul(kok):
             % len(SEKIL_FIKSTURU), not _donanim_sapan,
             "sapan=%s" % (_donanim_sapan[:4] or "-"))
     # --- H2: DENY'in SON-KELİME kolu YALNIZ DEĞİŞTİRİCİLERE işler ------------------
-    _h2_sapan = []
+    _h2_ciplak_sapan, _h2_bilesik_sapan = [], []
     for marka, ad, beklenen in DENY_BILESIK_FIKSTURU:
         g = mm.model_olmayan_cift_mi(marka, ad)
         if g != beklenen:
-            _h2_sapan.append("%s|%s -> %s (beklenen %s)" % (marka, ad, g, beklenen))
-    dogrula("B11 H2 DENY SON-KELİME KOLU YALNIZ DEĞİŞTİRİCİYE İŞLER (%d fikstür; "
-            "`Focus ST` KAPANIR, `5 E-Tech`/`Megane E-Tech` AÇIK KALIR)"
-            % len(DENY_BILESIK_FIKSTURU), not _h2_sapan, "sapan=%s" % (_h2_sapan[:4] or "-"))
+            hedef = _h2_ciplak_sapan if len(ad.split()) == 1 else _h2_bilesik_sapan
+            hedef.append("%s|%s -> %s (beklenen %s)" % (marka, ad, g, beklenen))
+    dogrula("B11a H2 ÇIPLAK DENY KOLU ÇALIŞIR (`ST`/`E-Tech` çıplak rozetleri KAPANIR)",
+            not _h2_ciplak_sapan, "sapan=%s" % (_h2_ciplak_sapan[:4] or "-"))
+    dogrula("B11b H2 BİLEŞİK SON-KELİME KOLU YALNIZ DEĞİŞTİRİCİYE İŞLER "
+            "(`Focus ST` KAPANIR, `5 E-Tech`/`Megane E-Tech` AÇIK KALIR)",
+            not _h2_bilesik_sapan, "sapan=%s" % (_h2_bilesik_sapan[:4] or "-"))
     _etech = [k for k in kova
               if k[0] == "Renault" and evren.model_anahtari("Renault", "E-Tech") == k[1]]
     _etech_yayin = any(kova[k][1] for k in _etech)
@@ -1086,14 +1089,18 @@ def _kok_kur(tmp):
         os.symlink(os.path.join(GERCEK_KOK, ad), os.path.join(tmp, ad))
 
 
-def kendini_test():
+def kendini_test(k86=False):
     print("MUTASYON — başlık kolu (mutant KOPYAYA uygulanır; gerçek ağaç DEĞİŞMEZ)")
     basarisiz, olcum = [], []
     # 🔴 ONCE HUKUM YUZEYININ KENDISI: ayirt edicilik kiyasi bozuksa ASAGIDAKI butun
     # "ayni kume / farkli kume" sonuclari YALANCIDIR. Bu yuzden kimlik kapisi bataryadan
     # ONCE kosar ve kirmizisi ayni cikis koduna baglanir.
-    basarisiz.extend(_kimlik_mutasyonu())
-    for i, m in enumerate(MUTANTLAR, 1):
+    if not k86:
+        basarisiz.extend(_kimlik_mutasyonu())
+    mutantlar = list(enumerate(MUTANTLAR, 1))
+    if k86:
+        mutantlar = [(i, m) for i, m in mutantlar if i in (8, 9, 19)]
+    for i, m in mutantlar:
         dosya, eski, yeni, beklenen, aciklama = m[:5]
         # 6. eleman (opsiyonel): EK DÜZENLEME listesi — bir hüküm ancak İKİ tabloda birden
         # oynanınca ölçülebiliyorsa (deny'i kaldır + allow'a yaz) tek mutantta yapılır;
@@ -1185,9 +1192,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--kok", default=GERCEK_KOK)
     ap.add_argument("--kendini-test", action="store_true")
+    ap.add_argument("--k86", action="store_true")
     a = ap.parse_args()
     if a.kendini_test:
-        return kendini_test()
+        return kendini_test(k86=a.k86)
     try:
         return kabul(a.kok)
     except Olculemedi as e:

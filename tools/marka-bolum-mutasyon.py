@@ -188,6 +188,9 @@ def uygula(taban, ciftler, ic_kontrol_kapali):
 
 def main():
     dokum = "--dokum" in sys.argv[1:]
+    k86 = "--k86" in sys.argv[1:]
+    mutantlar = ([m for m in MUTANTLAR if m[0] == "X4_TUMUNU_GOSTER_OLU"]
+                 if k86 else MUTANTLAR)
     # 🔴 CANLI AGACIN DAMGASI: bu surucu artik canli dosyaya YAZMIYOR ve bunu BEYAN
     # ETMIYOR, OLCUYOR. Bas/son damga esit degilse ya da artik `*-yedek` dosyasi kaldiysa
     # hukum KIRMIZI olur ("geri aldim" iddiasi bu depoda kanit sayilmaz).
@@ -205,7 +208,7 @@ def main():
         # ---------------------------------------------------------- KATMAN A
         print()
         print("== KATMAN A: JENERATÖRÜN İÇ FAIL-CLOSED'U (mutant TEK BAŞINA) ==")
-        for ad, ciftler, _acik in MUTANTLAR:
+        for ad, ciftler, _acik in mutantlar:
             metin, hata = uygula(taban, ciftler, False)
             if metin is None:
                 print("  %-26s OLCULEMEDI: %s" % (ad, hata))
@@ -224,7 +227,7 @@ def main():
         # ---------------------------------------------------------- KATMAN B
         print()
         print("== KATMAN B: KAPI TEK BAŞINA (jeneratörün iç kontrolü DEVRE DIŞI) ==")
-        for ad, ciftler, acik in MUTANTLAR + [KONTROL]:
+        for ad, ciftler, acik in mutantlar + [KONTROL]:
             kontrol = ad == KONTROL[0]
             metin, hata = uygula(taban, ciftler, not kontrol)
             if metin is None:
@@ -291,7 +294,7 @@ def main():
     a_konusan = [ad for (kat, ad), d in sonuc.items()
                  if kat == "A" and d.get("fail_closed")]
     print("KATMAN_A_FAIL_CLOSED_YAKALADI =", sorted(a_konusan))
-    print("KATMAN_B_OLDURULEN = %d/%d" % (len(b_kumeleri), len(MUTANTLAR)))
+    print("KATMAN_B_OLDURULEN = %d/%d" % (len(b_kumeleri), len(mutantlar)))
     for ad in adlar:
         aileler = {}
         for d in b_kumeleri[ad]:
