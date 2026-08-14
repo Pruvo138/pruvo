@@ -22,7 +22,7 @@
      Sayı ELLE YAZILMAZ — bu depoda "aynı değer iki yerde, biri sessizce ayrışır" ölçülmüş
      bir sınıftır ([[ikiz-tanim-sessiz-ayrisma]]). Tablo TEK KAYNAKTAN türetilir: ASA'nın
      yüzdesi değişirse ABS kendiliğinden takip eder, ikinci bir sayı bakımı gerekmez.
-     Sayfa üreteci (tools/build.py) AYNI haritayı okuyup AYNI türetmeyi uygular; harita
+     Sayfa üreteci AYNI haritayı okuyup AYNI türetmeyi uygular; harita
      JSON-ayrıştırılabilir düz bir nesnedir, iki dil aynı satırdan beslenir. */
   var FILAMENT_TUREME = { "ABS": "ASA" };
   for (var _turAd in FILAMENT_TUREME) {
@@ -35,7 +35,7 @@
   /* 🔴 MALZEME × KATEGORİ KAPISI — TEK KANONİK TABLO (14 Ağu, işletme kararı).
      ABS ısınan ortamların mühendislik malzemesidir; ev/ofis/dekor/oyuncak sınıfı ürünlerde
      müşteriye SUNULMAZ. Tablo burada TEK yerde durur: site seçim listesi (ürün sayfası
-     çipleri + parametrik dropdown, tools/build.py) ve shop Worker'ı AYNI tabloyu okur.
+     çipleri + parametrik dropdown) ve shop Worker'ı AYNI tabloyu okur.
      Kısıtsız malzemeler tabloda HİÇ görünmez (boş liste yazmaya gerek yok).
 
      🔴 FAIL-CLOSED — "UI'dan gizlemek ödeme yolunu KAPATMAZ": bu depoda ölçüldü

@@ -70,6 +70,7 @@ Kullanim:
 Cikis kodu: 0 = temiz · 1 = IHLAL · 3 = OLCULEMEDI (kapsam bulunamadi / sozluk yuklenemedi).
 """
 import argparse
+import hashlib
 import io
 import os
 import re
@@ -650,6 +651,47 @@ def kendini_test():
         kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
         _iddia("KS5 index.html YOK -> OLCULEMEDI (bos kumede sessiz YESIL imkansiz)",
                kod == 3, "kod=%d" % kod)
+
+        # ---------------- GERCEK KAYNAK: onarimin KENDI KURBANI (14 Agu 2026) -------
+        # KS2/KS3 kovayi SENTETIK fiksturle olcer; bu vaka kovanin GERCEK kurbanini olcer:
+        # secenekler.js'te `tools/build.py` yorumu ifsa ediyordu (a6a16a91). Onarim o yorumu
+        # yeniden yazdi. Kanonik kaynak (depodaki gercek secenekler.js) YESIL kalmali; ic
+        # yolu GERI SOKAN iki mutant (blok-yorum / satir-yorum) KIRMIZI yanmali. sha256,
+        # mutasyonun FIILEN uygulandigini kanitlar (bayat kopya tuzağına karsi).
+        gercek_secenek = io.open(os.path.join(ROOT, "secenekler.js"), encoding="utf-8").read()
+        kanonik_sha = hashlib.sha256(gercek_secenek.encode("utf-8")).hexdigest()
+
+        def _gercek_kaynak_agac(kok, secenek_metni):
+            os.makedirs(kok, exist_ok=True)
+            os.makedirs(os.path.join(kok, "jenerator"), exist_ok=True)
+            io.open(os.path.join(kok, "index.html"), "w", encoding="utf-8").write(temiz_index)
+            io.open(os.path.join(kok, "secenekler.js"), "w", encoding="utf-8").write(secenek_metni)
+            for rel in ("konfigur.js", "jenerator/hacim.js"):
+                io.open(os.path.join(kok, rel), "w", encoding="utf-8").write(
+                    "/* PRUVO modul */\nvar a=1;\n")
+
+        k = os.path.join(tmp, "kaynak-gercek-temiz")
+        _gercek_kaynak_agac(k, gercek_secenek)
+        kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS6 GERCEK secenekler.js temiz (kontrol YESIL) + sha256 birebir",
+               kod == 0 and hashlib.sha256(gercek_secenek.encode("utf-8")).hexdigest()
+               == kanonik_sha, "kod=%d" % kod)
+
+        mutant1 = gercek_secenek.replace("Sayfa üreteci AYNI haritayı",
+                                         "Sayfa üreteci (tools/build.py) AYNI haritayı")
+        k = os.path.join(tmp, "kaynak-gercek-mutant1")
+        _gercek_kaynak_agac(k, mutant1)
+        kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS7 MUTANT blok-yorum: ic yol geri sokuldu -> KIRMIZI", kod == 1,
+               "kod=%d" % kod)
+
+        mutant2 = gercek_secenek.replace("  var FILAMENT_FARK =",
+                                         "  // tools/build.py farki\n  var FILAMENT_FARK =")
+        k = os.path.join(tmp, "kaynak-gercek-mutant2")
+        _gercek_kaynak_agac(k, mutant2)
+        kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS8 MUTANT satir-yorum: ic yol geri sokuldu -> KIRMIZI", kod == 1,
+               "kod=%d" % kod)
 
         # ---------------- LEXER nobetleri (dogrudan) --------------------------------
         y = js_yorumlari("var s = \"// degil\"; // yorum\n")
