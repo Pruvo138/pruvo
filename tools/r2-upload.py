@@ -170,6 +170,40 @@ def readback_dogrula(s3, bucket, key, yerel_boyut):
         )
 
 
+def cdn_siz_readback(s3, bucket, key):
+    """R2 nesnesinin CDN'SIZ (S3 API) varlik + icerik sondasi -> (var, uzunluk, tip).
+
+    NEDEN VAR (14 Agu 2026, OLCULDU — tahmin degil): hasat akisi R2'ye yuklemeden ONCE
+    varlik sorgusu ya da yukleme SONRASI readback icin media.pruvo3d.com'a (CDN) HEAD/GET
+    atiyordu. Nesne henuz yokken (ya da edge'e henuz yayilmamisken) donen 404 Cloudflare'de
+    ONBELLEGE alindi: `cf-cache-status: HIT`, `max-age=31536000` = 1 YIL. Sonuc OLCULDU:
+    nesneler S3 API'sinde VAR (38/38) ama ayni URL CDN uclarindan 200 ile 404 arasinda
+    KIPIRDIYOR (farkli edge'lerde farkli onbellek durumu) -> musteri urun gorselini
+    bazen goruyor bazen GOREMIYOR.
+
+    COZUM (secim a): varlik/readback S3 API uzerinden (head_object) yapilir — CDN'e HIC
+    dokunulmaz, dolayisiyla 404 ISITILAMAZ. Bu fonksiyon hasat akisinin (ve baska her
+    aracin) CDN readback'inin YERINE gecen TEK KAYNAKtir: medya URL'ine curl/HEAD atan
+    her varlik sorgusu bu sinifi yeniden uretir.
+
+    Donus: (var, uzunluk, tip)
+      var=False -> nesne YOK (uzunluk=None, tip=None).
+      var=True  -> nesne VAR (ContentLength, ContentType).
+    Fail-closed: 404/NoSuchKey/NotFound DISI hata (yetki, ag) YUTULMAZ, yukari firlar —
+    "yetkim yok" ile "nesne yok" karistirilirsa silme/yukleme dogrulamasi fail-open olur.
+    (s3_var_mi ile AYNI sinif yonu; bu fonksiyon tek cagrida META da doner.)"""
+    try:
+        h = s3.head_object(Bucket=bucket, Key=key)
+        return True, h.get("ContentLength"), h.get("ContentType")
+    except Exception as exc:
+        kod = (getattr(exc, "response", {}) or {}).get("Error", {}).get("Code", "")
+        durum = ((getattr(exc, "response", {}) or {})
+                 .get("ResponseMetadata", {}) or {}).get("HTTPStatusCode")
+        if str(kod) in ("404", "NoSuchKey", "NotFound") or durum == 404:
+            return False, None, None  # CDN_SIZ_YOK: nesne gercekten yok
+        raise  # CDN_SIZ_FAIL_CLOSED: yetki/ag hatasi 'yok' sanilmaz
+
+
 def s3_var_mi(s3, bucket):
     """boto3 istemcisinden R5 için varlık sondası üretir: var_mi(key) -> bool.
 

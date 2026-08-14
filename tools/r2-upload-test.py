@@ -581,6 +581,58 @@ def vaka_O_yetki():
            "O: gerçek 404 False döndü (yanlış-kırmızı yok)")
 
 
+# --- CDN_SIZ READBACK (cdn_siz_readback) — NEGATIF-ONBELLEK SINIFI --------------
+# 14 Agu 2026 OLCULDU: CDN'e (media.pruvo3d.com) atilan HEAD/GET, olmayan nesnenin
+# 404'unu 1 yil onbellekler -> nesne R2'de VAR olsa da CDN ayni URL'e 404 verir.
+# cdn_siz_readback varlik/readback'i S3 API (head_object) uzerinden yapar — CDN'e HIC
+# dokunmaz. Bu vakalar AG'SIZ sahte istemciyle o davranisi olcer.
+class CdnsizS3:
+    """cdn_siz_readback icin SAHTE S3: head_object'i kaydeder; ("yok") 404, ("var",len,tip)
+    meta, ("yetki") 403 dondurur. AĞ YOK."""
+    def __init__(self, durum):
+        self.durum = durum
+        self.izler = []
+
+    def head_object(self, Bucket, Key):
+        self.izler.append(("head_object", Key))
+        if self.durum[0] == "yok":
+            raise Yok404(Key)
+        if self.durum[0] == "yetki":
+            e = Exception("AccessDenied")
+            e.response = {"Error": {"Code": "AccessDenied"},
+                          "ResponseMetadata": {"HTTPStatusCode": 403}}
+            raise e
+        return {"ContentLength": self.durum[1], "ContentType": self.durum[2]}
+
+
+def vaka_CDN_A_yok():
+    s3 = CdnsizS3(("yok",))
+    var, uzunluk, tip = mod.cdn_siz_readback(s3, BUCKET, "urunler/cdn-a-1.jpg")
+    onayla(var is False and uzunluk is None and tip is None,
+           "CDN-A: nesne YOK -> var=False, meta None")
+    onayla(s3.izler == [("head_object", "urunler/cdn-a-1.jpg")],
+           "CDN-A: yalniz head_object cagrildi (CDN/HTTP istemcisi YOK)")
+
+
+def vaka_CDN_B_var():
+    s3 = CdnsizS3(("var", 12345, "image/jpeg"))
+    var, uzunluk, tip = mod.cdn_siz_readback(s3, BUCKET, "urunler/cdn-b-1.jpg")
+    onayla(var is True and uzunluk == 12345 and tip == "image/jpeg",
+           "CDN-B: nesne VAR -> uzunluk + tip dogru")
+
+
+def vaka_CDN_C_yetki():
+    s3 = CdnsizS3(("yetki",))
+    yakalandi = None
+    try:
+        mod.cdn_siz_readback(s3, BUCKET, "urunler/cdn-c-1.jpg")
+    except Exception as exc:
+        yakalandi = exc
+    onayla(isinstance(yakalandi, Exception)
+           and (getattr(yakalandi, "response", {}) or {}).get("Error", {}).get("Code") == "AccessDenied",
+           "CDN-C: yetki hatasi YUTULMADI (fail-closed; 'yok' ile karismaz)")
+
+
 # --- K1 ÜYELİK-KALDIRMA YOLU: P-U ---------------------------------------------
 BASE = "https://media.pruvo3d.com/"
 
@@ -737,6 +789,7 @@ def main():
                vaka_Y_kosullu_yazma, vaka_Z1_kosullu_desteksiz, vaka_Z2_onkosul_ihlali,
                vaka_Z3_sonda_sirasi, vaka_Z4_argparse_varsayilani, vaka_Z5_cikis_kodu,
                vaka_J, vaka_K, vaka_L, vaka_M, vaka_N_curutme, vaka_O_yetki,
+               vaka_CDN_A_yok, vaka_CDN_B_var, vaka_CDN_C_yetki,
                vaka_P_409_urun_yine_kalkar, vaka_Q_hepsi_409, vaka_R_kuyruk_kalici,
                vaka_S_kuyruk_supurucu, vaka_T_denetim_artiklari, vaka_U_hatasiz_yol):
         # 🔴 VAKA IZOLASYONU: bir vakanin YAKALANMAYAN istisnasi tum kosumu COKERTMEMELI.
