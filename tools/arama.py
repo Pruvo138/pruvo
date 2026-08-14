@@ -876,6 +876,8 @@ ROZET_DISI_CIFT = {
     ("Citroen", "Expert"): "Citroen'in rozeti Jumpy/Dispatch; Expert Peugeot'nun — "
                            "/marka/peugeot/expert/",
     ("Citroen", "Scudo"): "Citroen'in rozeti Jumpy; Scudo Fiat'in — /marka/citroen/jumpy/",
+    ("Peugeot", "Scudo"): "Scudo Fiat'in rozetidir; Peugeot'nun karsiligi Expert — "
+                          "/marka/peugeot/expert/",
     # Renault/Opel/Nissan hafif ticari (Trafic/Vivaro/Primastar):
     ("Opel", "Primastar"): "Opel'in rozeti Vivaro; Primastar Nissan'in — /marka/opel/vivaro/",
     ("Renault", "Primastar"): "Renault'nun rozeti Trafic; Primastar Nissan'in — "
@@ -893,8 +895,8 @@ ROZET_DISI_CIFT = {
     ("Volkswagen", "CITIGO"): "VW'nin rozeti Up; Citigo Skoda'nin — /marka/skoda/citigo/",
 }
 
-ROZET_DISI_SAYISI = 37
-ROZET_DISI_IMZA = "3ef3cea71b4e58de"
+ROZET_DISI_SAYISI = 38
+ROZET_DISI_IMZA = "348301721bed1989"
 
 
 def rozet_disi_imzasi():
@@ -1051,10 +1053,19 @@ ROZET_CAPRAZ_IZINLI = {
                             "X308); Yamaha XJ6 motosikletiyle yalniz AD cakismasi var"),
     "Yamaha|xj6": ("ROZET", "Yamaha XJ6 Yamaha'nin kendi motosiklet rozeti (XJ6 N/S "
                             "Diversion); Jaguar XJ6 sedaniyla yalniz AD cakismasi var"),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 14 Agu — marka[] jeton duzeltmesi (Fiat|Scudo + Nissan|Primastar) ile capraz olan
+    # ciftler (K19 KIRMIZI yakti, serit-a2 FAILURE, deploy SKIPPED). Scudo FIAT'in kendi
+    # hafif ticari rozetidir (Citroen Jumpy / Peugeot Expert / Toyota ProAce kardesleri);
+    # Primastar NISSAN'in kendi rozetidir (Renault Trafic / Opel Vivaro kardesi). Iki kol
+    # da KENDI adidir -> ROZET (kendi sayfasi dogar). Yanlis-rebadge kolu `Peugeot|scudo`
+    # ROZET_DISI_CIFT'e (deny) alindi.
+    "Fiat|scudo": ("ROZET", "Fiat Scudo Fiat'in kendi hafif ticari rozeti (Jumpy/Expert/ProAce kardesi)"),
+    "Nissan|primastar": ("ROZET", "Nissan Primastar Nissan'in kendi hafif ticari rozeti (Trafic/Vivaro kardesi)"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 49
-ROZET_CAPRAZ_IZINLI_IMZA = "5d8950adf827bbf2"
+ROZET_CAPRAZ_IZINLI_SAYISI = 51
+ROZET_CAPRAZ_IZINLI_IMZA = "50de32d1d32ddd3d"
 
 
 def rozet_capraz_imzasi():
@@ -2240,6 +2251,7 @@ KATALOG_ALAN_TIPLERI = {
     "aciklama": str,
     "altkategori": str,
     "baslik": str,
+    "boy_secenekleri": list,
     "fiyat": str,
     "gorseller": list,
     "id": str,
@@ -2255,6 +2267,40 @@ KATALOG_ALAN_TIPLERI = {
 }
 
 
+def boy_secenekleri_sebebi(deger):
+    """Boy varyantlarini fiyat yoluna girebilecek tek kanonik bicimde dogrula."""
+    if type(deger) is not list:
+        return "boy_secenekleri dizi olmali, %s degil" % type(deger).__name__
+    gorulen = set()
+    for i, secenek in enumerate(deger):
+        if type(secenek) is not dict:
+            return "boy_secenekleri[%d] nesne olmali" % i
+        fazla = sorted(set(secenek) - {"etiket", "fark_tl"})
+        if fazla:
+            return "boy_secenekleri[%d] bilinmeyen alan: %s" % (i, ", ".join(fazla))
+        etiket = secenek.get("etiket")
+        if type(etiket) is not str or not etiket.strip() or etiket != etiket.strip():
+            return "boy_secenekleri[%d].etiket bosluksuz, bos-olmayan metin olmali" % i
+        if len(etiket) > 60:
+            return "boy_secenekleri[%d].etiket 60 karakteri gecemez" % i
+        if etiket in gorulen:
+            return "boy_secenekleri etiketleri benzersiz olmali: %r" % etiket
+        gorulen.add(etiket)
+        fark = secenek.get("fark_tl", 0)
+        if type(fark) is not int or fark < 0:
+            return "boy_secenekleri[%d].fark_tl negatif-olmayan tam sayi olmali" % i
+    return None
+
+
+def boy_secenekleri_kanonik(u):
+    """D1/hash/istemci icin ayni boy secenekleri; kusurda sessizce bosaltma YOK."""
+    deger = u.get("boy_secenekleri") or []
+    sebep = boy_secenekleri_sebebi(deger)
+    if sebep:
+        raise ValueError(sebep)
+    return [{"etiket": s["etiket"], "fark_tl": s.get("fark_tl", 0)} for s in deger]
+
+
 def katalog_alan_tip_sebebi(alan, deger):
     """Bir katalog alaninin kanonik JSON tipine uyumsuzluk sebebi ya da None.
 
@@ -2266,6 +2312,8 @@ def katalog_alan_tip_sebebi(alan, deger):
     if beklenen is None:
         return "TIP TANIMI YOK: %s" % alan
     if type(deger) is beklenen:
+        if alan == "boy_secenekleri":
+            return boy_secenekleri_sebebi(deger)
         return None
     return ("%s alani %s olmali; gorulen tip=%s, gorulen deger=%r"
             % (alan, beklenen.__name__, type(deger).__name__, deger))
@@ -2413,5 +2461,8 @@ def urun_hash(u):
         # 🔴 BU CAGRI TIP KUSURUNDA ISTISNA ATAR (fail-closed): bozuk kayitli bir katalogda
         # hash URETILMEZ, yani bozuk veri D1'e sessizce akamaz.
         tavsiye_filament_kanonik(u),
+        # BOY SECENEKLERI: fiyat girdisi D1'e icerik upsert'iyle gider. Hash kapsaminda
+        # olmazsa fark/etiket degisimi D1'e yazilmaz ve edge/odeme eski tutari kullanir.
+        boy_secenekleri_kanonik(u),
     ], ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(ozet.encode("utf-8")).hexdigest()[:16]

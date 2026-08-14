@@ -48,7 +48,7 @@ DORT KOVA (evren = yerel `stl/` calisma klasoru snapshot'i; gerekce asagida):
   Sayilari `STUB=<n>` olarak AYRI basilir (bunlar yeniden hasat kalemidir).
 
 🔴 FAIL-CLOSED: R2 listeleme reddedilirse (`AccessDenied` — olculdu: ana `.r2-credentials.json`
-  tokeni `pruvo-media` kapsamli, `pruvo-ozel` kovasinda List 403 verir) ya da Drive mount'u
+  tokeni yalniz medya nesnelerine kapsamli, ozel kovada List 403 verir) ya da Drive mount'u
   yoksa nobetci SIFIR BASMAZ: `HUKUM=OLCULEMEDI` der ve rc=3 doner
   ([["olculdu" diyen hukum kanit ister]] · [[fail-slow-fail-opendir]]).
 

@@ -2074,6 +2074,30 @@ MUTANTLAR = [
      '    "Subaru|brz": ("ROZET", "Subaru BRZ gercek rozet"),', "YESIL",
      "K19 KONTROL: çapraz envanteri YENİDEN SIRALA -> küme ve kimlik AYNI, davranış AYNI "
      "(daima-kırmızı bir K19 M25-M28'i de geçerdi; kontrol bunu ayırt eder)"),
+    # --- K95 KÖK NEDEN KANITI (14 Agu): marka[] jeton düzeltmesi 3 çifti çapraz yaptı.
+    #     Onarım 2 allow (Fiat|scudo, Nissan|primastar) + 1 deny (Peugeot|Scudo) ekledi.
+    #     M42 allow kolunu, M43 deny kolunu DÜŞÜRÜR -> o çift yeniden YARGISIZ (K19 kırmızı;
+    #     regresyon kanıtı: onarım yük taşıyor, "körleşti" değil). K95 KONTROL iki allow
+    #     girişini YENİDEN SIRALAR -> küme/kimlik/davranış AYNI (kontrol YESIL kalır).
+    ("tools/arama.py",
+     '    "Fiat|scudo": ("ROZET", "Fiat Scudo Fiat\'in kendi hafif ticari rozeti (Jumpy/Expert/ProAce kardesi)"),\n',
+     "", "KIRMIZI",
+     "M42 ÇAPRAZ ALLOW KOLUNU DÜŞÜR (Fiat|scudo) -> çift YARGISIZ kalır, kimlik imzası da "
+     "kayar; K19 tek başına kırmızı yakar (onarımın kanıtı)"),
+    ("tools/arama.py",
+     '    ("Peugeot", "Scudo"): "Scudo Fiat\'in rozetidir; Peugeot\'nun karsiligi Expert — "\n'
+     '                          "/marka/peugeot/expert/",\n',
+     "", "KIRMIZI",
+     "M43 ÇAPRAZ DENY KOLUNU DÜŞÜR (Peugeot|Scudo) -> yanlış-rebadge çifti YARGISIZ kalır "
+     "(sessiz sayfa adayı); K19 tek başına kırmızı yakar (onarımın deny tarafının kanıtı)"),
+    ("tools/arama.py",
+     '    "Fiat|scudo": ("ROZET", "Fiat Scudo Fiat\'in kendi hafif ticari rozeti (Jumpy/Expert/ProAce kardesi)"),\n'
+     '    "Nissan|primastar": ("ROZET", "Nissan Primastar Nissan\'in kendi hafif ticari rozeti (Trafic/Vivaro kardesi)"),',
+     '    "Nissan|primastar": ("ROZET", "Nissan Primastar Nissan\'in kendi hafif ticari rozeti (Trafic/Vivaro kardesi)"),\n'
+     '    "Fiat|scudo": ("ROZET", "Fiat Scudo Fiat\'in kendi hafif ticari rozeti (Jumpy/Expert/ProAce kardesi)"),',
+     "YESIL",
+     "K95 KONTROL: iki allow girişini YENİDEN SIRALA -> küme, kimlik ve davranış AYNI "
+     "(daima-kırmızı bir K19 M42'yi de geçerdi; kontrol bunu ayırt eder)"),
     ("tools/marka_model_build.py",
      '            g["kusak_bolum"] = sorted(bolumler,\n'
      '                                      key=lambda b: (-len(b["urunler"]), b["display"]))',
