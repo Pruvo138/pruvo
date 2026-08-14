@@ -458,7 +458,7 @@ async function test5NormalAkis() {
   }
   const pay = s.el("cartPay");
   if (pay.disabled !== false || pay.className !== "cart-pay-btn" ||
-      pay.textContent !== "Kartla Güvenli Öde") {
+      pay.textContent !== "Havale/EFT veya Kartla Güvenli Öde") {
     hatalar.push("odeme butonu: disabled=" + pay.disabled + " class='" + pay.className +
       "' metin='" + pay.textContent + "'");
   }
@@ -776,7 +776,7 @@ async function test11KonfigurAcik() {
   const pay = s.el("cartPay");
   if (pay.disabled !== false) { hatalar.push("prova 200 dondu ama kart yolu KAPALI"); }
   if (pay.className !== "cart-pay-btn") { hatalar.push("buton sinifi '" + pay.className + "'"); }
-  if (pay.textContent !== "Kartla Güvenli Öde") {
+  if (pay.textContent !== "Havale/EFT veya Kartla Güvenli Öde") {
     hatalar.push("buton metni '" + pay.textContent + "'");
   }
   if (s.el("cartKonfigurNot").style.display === "block") {

@@ -232,7 +232,7 @@ if faq:
 
 ortusme_hatalari = []
 beklenen = {
-    "Nasıl sipariş verebilirim?": ["Sepete Ekle", "Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver", "malzeme", "renk"],
+    "Nasıl sipariş verebilirim?": ["Sepete Ekle", "Havale/EFT veya Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver", "malzeme", "renk"],
     "Ödemeyi nasıl yapıyorum? Sitede kartla ödeme var mı?": ["kartla güvenli online ödeme", "iyzico", "WhatsApp"],
 }
 for soru, anahtarlar in beklenen.items():
@@ -246,7 +246,7 @@ kontrol(3, "SSS JSON-LD ve görünen sipariş/ödeme cevapları aynı kanal ve b
 # 4) SSS sipariş cevabındaki buton etiketleri kök index.html davranışında var.
 siparis_cevap = faq_map.get("Nasıl sipariş verebilirim?", "")
 buton_hatalari = []
-for etiket in ["Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver"]:
+for etiket in ["Havale/EFT veya Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver"]:
     if etiket not in siparis_cevap:
         buton_hatalari.append("SSS cevabında yok: %s" % etiket)
     if etiket not in kok_html:
