@@ -33,6 +33,21 @@
 - K102 ACIK: nobet yazicisi kok deftere yasakli ic dosya adini uretiyor; genel ifadeye cevrilecek.
 - K103 KAPANDI: merge 86e3bba3; kabul ve temizlik tamam.
 - OKAN'DA: yeni tarife satin alma karari; eski yedek klasorunu backup-v2 icine surukle-birak; K89 olcum eylemi silme karari.
+- 🔧 TARIFE KARAR KURALI (olculdu, Okan onayina hazir): mevcut $20 plan KALIR. Kota dolmaya
+  yaklasirsa (haftalik %80 esigi mimar tarafindan izlenir) → ikinci saglayicinin $39 basamagi
+  TERCIH EDILIR, cunku ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota
+  duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici
+  riski surer. Ikinci saglayici hala bekleme listesindeyse tek uygulanabilir yol $50 basamak
+  (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi (kendi kendine ilerleyen hedef
+  modu · tek tikla ajan dagitimi) bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API
+  ucundan MODEL cagiriyoruz; orkestrasyon + kabul kapisi bizim tarafta. Kota sayilari iki
+  adayda da yayimlanmiyor → secimi fiyat degil CESITLILIK belirliyor; sayi ancak kullanimla
+  olculur. Ekleme bedeli motor basina 6 kod noktasi.
+
+## 14 Agu 2026 (aksam) — 18:07Z saatlik CI nobeti turu (sikistirilmis)
+- supurme BULUNAN=0 TASINAN=0 CIKAN=0 KOMSU_KAYIP=0 HUKUM=TEMIZ; cop denetimi MESRU=140 YANLIS=0 KAPSAM=140 ATFEDILMEYEN=26; zincir aktif, yeni fail yok.
+- bagimsiz teyit (gh run list --limit 10): 2 in_progress/pending (31824876835 paket tazeligi, 31824345123/31824344897 sepet butonu — hepsi headSha f6404b95), 5 success, 1 cancelled (4.5 olcusu). Yeni fail YOK.
+- 🔧 Acik: K99, K100, K102 (rutin dev, CI arızasi degil).
 
 ## ARSIVE TASINAN BLOKLAR
 
