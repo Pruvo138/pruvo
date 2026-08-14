@@ -272,3 +272,30 @@ düzeltilecek: cron metninde dosya adı yerine genel ifade kullanılmalı, yoksa
 bir sonraki commit'i durdurma riski taşır.)*
 
 OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, zincir aktif, yeni fail yok).
+
+---
+
+## 2026-08-14 ~19:40 — saatlik CI nöbeti turu (KraL, ev `/Users/okan/dev/pruvo`)
+
+EV: `/Users/okan/dev/pruvo` ✅ (0. adım yeşil).
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=0 BULUNAN=0 TASINAN=0 ATLANAN=0 CIKAN=0 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=371:2026-08-14T19:08:26Z HUKUM=TEMIZ`. Gelen kutusu boş — son 90 dk'da yeni fail maili yok, COP_IZI 371 son taşımayı doğruluyor (önceki turda 19:08).
+
+COP_DENETIM: `MESRU=139 YANLIS=0 KAPSAM=139 ATFEDILMEYEN=26` → yanlis supurme izi YOK.
+
+CI BAGIMSIZ TEYIT (son 15 koşum, HEAD `cd6c4a85` — yeni push):
+- ✅ `Paket tazeligi alarmi 31819799449` (cd6c4a85) **success**.
+- ✅ `Odeme yolu bayatlik nabzi 31819736028` (cd6c4a85) **success**.
+- ✅ `Spec/tasarim ifsasi alarmi 31819735995` (cd6c4a85) **success**.
+- ⏳ `Nöbet şeridi 31819736225` (cd6c4a85) **pending** — kuyrukta, jobs henüz başlamadı.
+- ⏳ `Build & deploy 31819735988` (cd6c4a85) **pending** — kuyrukta.
+- ✅ `Build & deploy 31817146407` (8b6620a9) **success** (YAYIN 14:08'den beri aktif).
+- ⏸ `Build & deploy 31813810824` (692c7466) **failure** · `Build & deploy 31815806932` (d9da7d4b) **failure** — K98 BLOKLU eski zincir, yeni HEAD değil; mailleri 19:08 turunda süpürüldü.
+
+Yeni fail YOK; HEAD `cd6c4a85` zinciri koşuyor (3 ✅ + 2 pending), eski 🔴 d9da7d4b/692c746 zincirleri K98 BLOKLU sayılmaz (yayın aktif).
+
+§4.7.1 ONARIM KAPISI: motor zinciri `minimax-m3 → deepseek-pro → deepseek-flash` akıyor, H7 kilidi aktif (DAMGA 16:37). Bu turda yeni dağıtım YOK (kapı kendi motorunda); K96 ascii norm MaCiT alanında, K97 KAPANDI, K98 zincirleri KAPALI. ACIK_KALEM=10 (geri-iz); bunların hepsi ESKALASYON.
+
+TAMIRCI BAKIM: bağımsız kabul sayımı — bu turda dağıtım YOK (kapı kendi motor zincirinde); K96 ascii normalize MaCiT düzleminde (`BEYAN_VAR_KANIT_YOK`), K91 OKAN-KAPISI shop worker deploy, K95 STALE (model-uyelik-kapisi.py YARGISIZ=0), K94 SERIT-B BLOKLAMAZ.
+
+OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, zincir aktif, yeni fail yok, K91 OKAN-KAPISI).
