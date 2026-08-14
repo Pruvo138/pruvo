@@ -30,10 +30,11 @@ NEDEN VAR (olculmus canli olay, 31 Tem — MUSTERI 500 GORDU):
   canli olcum onarimla: 13.275 ms -> 3,6 ms, rows_read 16.121 -> 9, DONEN SATIRLAR AYNI.
 
 BU KAPI NE OLCER (iki eksen, ikisi de calistirilabilir):
-  E1 SEMANTIK  — eski sekil ile yeni sekil, sorgu korpusunun TAMAMINDA birebir ayni id
-                 listesini VE ayni `toplam`i donduruyor mu? Sapma = KIRMIZI. (Arama
-                 semantigi degismeyecek sarti burada kanitlanir; parite-test.js canli uca
-                 bakar, bu kapi SQL SEKLINE bakar — ikisi farkli eksendir.)
+  E1 SEMANTIK  — eski sekil, yeni sekil ve tools/arama.py'nin kanonik Python eslemesi
+                 sorgu korpusunun TAMAMINDA birebir ayni id listesini VE ayni `toplam`i
+                 donduruyor mu? Sapma = KIRMIZI. (Arama semantigi degismeyecek sarti
+                 burada kanitlanir; parite-test.js canli uca bakar, bu kapi SQL SEKLINE
+                 bakar — ikisi farkli eksendir.)
   E2 PLAN      — yeni sekilde plan `u`'yu dis donguye ALMIYOR mu (cevrilme yok) ve maliyet
                  butcenin altinda mi? Cevrilme = KIRMIZI, tek bir sorguda bile.
 
@@ -45,6 +46,8 @@ oynakligina bagimli olmasin). Ikiz semayi ELLE TASIMAZ, gercek tanimi KOSAR:
 Kolon listesi de PRAGMA table_info'dan turetilir; hs kolonu tools/arama.py haystack() ile,
 yani D1'e yazan kodun TA KENDISI ile uretilir. Boylece "ikiz sessizce ayrisir" sinifi
 KAPALIDIR: tanim degisirse ikiz DEGISIR, kaynak alinamazsa kapi OLCULEMEDI ile durur.
+Arama SQL'i ve token tipleri de burada yeniden yazilmaz: tools/arama.py
+`token_sozlesmesi_dogrula()` + `d1_site_sql_kur()` kosularak kanonik kaynaktan turetilir.
 
 CAPA (kapinin KIRMIZI yanabilme sarti) DAVRANISTIR, yorum degil: her kosumda once
 capa_dogrula() olayin SEKLINI (`JOIN`) kosturup plan cevrilmesinin HALA uretilebildigini
@@ -99,11 +102,6 @@ except Exception as e:  # pragma: no cover
     print("OLCULEMEDI: gercek sema tanimi alinamadi "
           "(tools/d1-sync.py YAYIN_INDEKS / GOC_KOLON): %s" % e)
     sys.exit(2)
-
-# araD1()'in SELECT listesi (worker/src/index.js KART_ALANLARI) — id yeterli olurdu ama
-# gercek sorgunun sekli korunsun ki plan da gercekci olsun.
-KART = ("u.id, u.baslik, u.kategori, u.marka, u.fiyat, u.taban_fiyat, u.gorsel,"
-        " u.parametrik, substr(u.aciklama, 1, 160) AS aciklama")
 
 # CEVRILME NEDIR (plan uzerinden, INDEKS ADINDAN BAGIMSIZ): `u` bir INDEKS uzerinden
 # surulur -> u dis donguye gecmis, FTS ic dongude rowid ile aranıyor demektir; yani
@@ -225,6 +223,18 @@ def ikiz_kur(yol, urunler):
     return c
 
 
+def ikiz_kapat(c, yol, dizin, tut):
+    """Ikiz baglantisini kapatir; `--tut` yoksa uretilen gecici izi temizler."""
+    if c is not None:
+        c.close()
+    if not tut:
+        try:
+            os.remove(yol)
+            os.rmdir(dizin)
+        except OSError:
+            pass
+
+
 def capa_dogrula(c, limit):
     """CAPA CANLI MI? — kapinin KIRMIZI yanabilmesinin SARTLARI, her kosumda kosarak.
 
@@ -240,14 +250,15 @@ def capa_dogrula(c, limit):
     """
     hata = []
     try:
-        c.execute("SELECT " + KART + " FROM urunler u LIMIT 1").fetchall()
+        c.execute("SELECT " + arama.D1_KART_ALANLARI + " FROM urunler u LIMIT 1").fetchall()
     except sqlite3.Error as e:
         hata.append("CAPA YOK: araD1 SELECT listesi (KART) bu semada cozulmuyor: %s" % e)
 
     uretti, surucu = 0, []
     for q in OLAY_SORGULARI:
         tk = arama.tokenlar(q)
-        (eski_s, eski_b), _ = sql_kur(tk, limit, False)   # olayin SEKLI: CROSS yok
+        arama.token_sozlesmesi_dogrula(q, tk)
+        (eski_s, eski_b), _ = arama.d1_site_sql_kur(tk, limit, "join")
         try:
             plan = [r[3] for r in c.execute("EXPLAIN QUERY PLAN " + eski_s, eski_b)]
         except sqlite3.Error as e:
@@ -264,22 +275,6 @@ def capa_dogrula(c, limit):
             "degisti; kapinin varlik sebebi gozden gecirilmeli."
             % (len(OLAY_SORGULARI), yayin_indeks_adlari()))
     return hata, sorted(set(surucu))
-
-
-def sql_kur(tokenlar, limit, cross):
-    """araD1()'in urettigi SQL — `cross` disinda BIREBIR ayni sekil."""
-    birlesim = ("urunler_fts f CROSS JOIN urunler u ON u.rid = f.rowid" if cross
-                else "urunler_fts f JOIN urunler u ON u.rid = f.rowid")
-    kaynak = birlesim if tokenlar else "urunler u"
-    kosul, bag = [], []
-    for t in tokenlar:
-        kosul.append("f.hs LIKE ?")
-        bag.append("%" + t + "%")
-    kosul.append("u.yayinda = 1")
-    nere = " WHERE " + " AND ".join(kosul)
-    return (("SELECT " + KART + " FROM " + kaynak + nere +
-             " ORDER BY u.seq DESC LIMIT ?", bag + [limit]),
-            ("SELECT COUNT(*) AS n FROM " + kaynak + nere, list(bag)))
 
 
 def kos(c, sql, bag, adim_say=False):
@@ -344,7 +339,8 @@ def kendini_test(c, limit):
     yakalanan, kacan = [], []
     for q in mutant_sorgular:
         tk = arama.tokenlar(q)
-        (eski_s, eski_b), _ = sql_kur(tk, limit, False)   # MUTASYON: CROSS kaldirildi
+        arama.token_sozlesmesi_dogrula(q, tk)
+        (eski_s, eski_b), _ = arama.d1_site_sql_kur(tk, limit, "join")
         plan = [r[3] for r in c.execute("EXPLAIN QUERY PLAN " + eski_s, eski_b)]
         if cevrilmis_mi(plan, tk):
             yakalanan.append((q, plan))
@@ -428,6 +424,7 @@ def main():
         c = ikiz_kur(yol, urunler)
     except Exception as e:
         # Fail-closed: ikiz GERCEK semadan kurulamadiysa olculecek bir sey yoktur.
+        ikiz_kapat(None, yol, dizin, a.tut)
         print("OLCULEMEDI: ikiz gercek sema tanimindan kurulamadi "
               "(tools/d1-sema.sql + d1-sync.GOC_KOLON/YAYIN_INDEKS): %s" % e)
         return 2
@@ -437,9 +434,14 @@ def main():
     butce = max(ADIM_BUTCESI_TABAN, len(urunler) * ADIM_BUTCESI_KATSAYI)
 
     # CAPA once dogrulanir: capa oldiyse asagidaki 600 sorguluk yesil ANLAMSIZDIR.
-    capa_hata, surucu = capa_dogrula(c, a.limit)
+    try:
+        capa_hata, surucu = capa_dogrula(c, a.limit)
+    except (TypeError, ValueError, RuntimeError) as e:
+        ikiz_kapat(c, yol, dizin, a.tut)
+        print("OLCULEMEDI: tools/arama.py token/SQL sozlesmesi kullanilamadi: %s" % e)
+        return 2
     if capa_hata:
-        c.close()
+        ikiz_kapat(c, yol, dizin, a.tut)
         print("\n🔴 CAPA — kapi olctugunu sandigi seyi olcemiyor (sessiz gecis YOK):")
         for h in capa_hata:
             print("  " + h)
@@ -452,23 +454,27 @@ def main():
 
     if a.kendini_test:
         kod = kendini_test(c, a.limit)
-        c.close()
-        if not a.tut:
-            try:
-                os.remove(yol)
-                os.rmdir(dizin)
-            except OSError:
-                pass
+        ikiz_kapat(c, yol, dizin, a.tut)
         return kod
 
     sorgular = korpus(urunler, a.adet)
     semantik_sapma, plan_sapma = [], []
     en_kotu = (0, "")
+    kanonik_hs = [(u.get("id") or "", arama.haystack(u)) for u in urunler]
 
     for q in sorgular:
-        tk = arama.tokenlar(q)
-        (eski_s, eski_b), (eski_c, eski_cb) = sql_kur(tk, a.limit, False)
-        (yeni_s, yeni_b), (yeni_c, yeni_cb) = sql_kur(tk, a.limit, True)
+        try:
+            tk = arama.tokenlar(q)
+            arama.token_sozlesmesi_dogrula(q, tk)
+            (eski_s, eski_b), (eski_c, eski_cb) = arama.d1_site_sql_kur(
+                tk, a.limit, "join")
+            (yeni_s, yeni_b), (yeni_c, yeni_cb) = arama.d1_site_sql_kur(
+                tk, a.limit, "cross")
+        except (TypeError, ValueError, RuntimeError) as e:
+            ikiz_kapat(c, yol, dizin, a.tut)
+            print("OLCULEMEDI: tools/arama.py token/SQL sozlesmesi kullanilamadi "
+                  "(q=%r): %s" % (q, e))
+            return 2
 
         # ── E2 PLAN: yeni sekil `u`'yu dis donguye aliyor mu?
         plan = [r[3] for r in c.execute("EXPLAIN QUERY PLAN " + yeni_s, yeni_b)]
@@ -502,14 +508,10 @@ def main():
             # cevrildigi SQLite SURUMUNE bagli, yani bu kol yalniz bazi ortamlarda giriliyor.
             # `f.hs` (content='urunler') ile `u.hs` AYNI kolondur -> LIKE'li duz tarama,
             # FTS birlesimli LIKE'in birebir esdegeridir.
-            duz = ("SELECT " + KART + " FROM urunler u WHERE " +
-                   " AND ".join(["u.hs LIKE ?" for _ in tk] + ["u.yayinda = 1"]) +
-                   " ORDER BY u.seq DESC LIMIT ?")
-            # eski_b ZATEN limiti tasir (sql_kur: bag + [limit]); eski_cb yalniz baglar.
-            eski_satir, _ = kos(c, duz, list(eski_b))
-            duz_c = ("SELECT COUNT(*) AS n FROM urunler u WHERE " +
-                     " AND ".join(["u.hs LIKE ?" for _ in tk] + ["u.yayinda = 1"]))
-            eski_sayim, _ = kos(c, duz_c, list(eski_cb))
+            (duz, duz_b), (duz_c, duz_cb) = arama.d1_site_sql_kur(
+                tk, a.limit, "duz")
+            eski_satir, _ = kos(c, duz, duz_b)
+            eski_sayim, _ = kos(c, duz_c, duz_cb)
         else:
             eski_satir, _ = kos(c, eski_s, eski_b)
             eski_sayim, _ = kos(c, eski_c, eski_cb)
@@ -517,17 +519,17 @@ def main():
         eski_id = [r[0] for r in eski_satir]
         yeni_id = [r[0] for r in yeni_satir]
         if eski_id != yeni_id or eski_sayim[0][0] != yeni_sayim[0][0]:
-            semantik_sapma.append((q, tk, eski_sayim[0][0], yeni_sayim[0][0],
-                                   eski_id[:5], yeni_id[:5]))
+            semantik_sapma.append(("ESKI<>YENI", q, tk, eski_sayim[0][0],
+                                   yeni_sayim[0][0], eski_id[:5], yeni_id[:5]))
 
-    c.close()
-    if not a.tut:
-        try:
-            os.remove(yol)
-            os.rmdir(dizin)
-        except OSError:
-            pass
-    else:
+        beklenen_tum = [urun_id for urun_id, hs in kanonik_hs if arama.esles(hs, tk)]
+        beklenen_id = beklenen_tum[:a.limit]
+        if yeni_id != beklenen_id or yeni_sayim[0][0] != len(beklenen_tum):
+            semantik_sapma.append(("KANONIK<>SQL", q, tk, len(beklenen_tum),
+                                   yeni_sayim[0][0], beklenen_id[:5], yeni_id[:5]))
+
+    ikiz_kapat(c, yol, dizin, a.tut)
+    if a.tut:
         print("ikiz TUTULDU: %s" % yol)
 
     print("\nsorgu=%d  semantik sapma=%d  plan sapmasi=%d" % (
@@ -537,9 +539,10 @@ def main():
 
     if semantik_sapma:
         print("\n🔴 SEMANTIK SAPMA — arama sonucu DEGISTI (onarim kabul EDILEMEZ):")
-        for q, tk, es, ys, ei, yi in semantik_sapma[:20]:
-            print("  q=%r token=%s  toplam eski=%s yeni=%s\n    eski ilk: %s\n    yeni ilk: %s"
-                  % (q, tk, es, ys, ei, yi))
+        for eksen, q, tk, es, ys, ei, yi in semantik_sapma[:20]:
+            print("  eksen=%s q=%r token=%s  toplam referans=%s SQL=%s\n"
+                  "    referans ilk: %s\n    SQL ilk: %s"
+                  % (eksen, q, tk, es, ys, ei, yi))
     if plan_sapma:
         print("\n🔴 PLAN SAPMASI — birlesim sirasi cevrildi ya da butce asildi:")
         for q, tk, plan in plan_sapma[:20]:
