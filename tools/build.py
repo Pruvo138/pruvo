@@ -770,7 +770,62 @@ def _js_sayisi(kaynak, ad):
 with open(SECENEKLER_JS, encoding="utf-8") as _f:
     _SEC_JS = _f.read()
 FILAMENT_FARK = _js_sabiti(_SEC_JS, "FILAMENT_FARK")
+# 🔴 TÜREYEN KATSAYI (14 Ağu): ABS = ASA. Sayı BURAYA ELLE YAZILMAZ — istemciyle AYNI
+# haritadan (secenekler.js FILAMENT_TUREME) AYNI türetme uygulanır. Elle yazsaydık ASA
+# değiştiği gün Python tarafı sessizce eski sayıda kalır, sayfada ilan edilen tutar ile
+# Worker'ın tahsil ettiği tutar ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]).
+FILAMENT_TUREME = _js_sabiti(_SEC_JS, "FILAMENT_TUREME")
+for _t_ad, _t_kaynak in FILAMENT_TUREME.items():
+    if _t_kaynak not in FILAMENT_FARK:
+        raise SystemExit("FILAMENT_TUREME %r -> %r: kaynak malzeme FILAMENT_FARK'ta YOK "
+                         "(tek kaynak bozulmus)." % (_t_ad, _t_kaynak))
+    FILAMENT_FARK[_t_ad] = FILAMENT_FARK[_t_kaynak]
 FILAMENT_SIRA = _js_sabiti(_SEC_JS, "FILAMENT_SIRA")
+# 🔴 MALZEME x KATEGORI KAPISI — kanonik tablo secenekler.js'te; burada İKİNCİ KOPYA
+# TUTULMAZ, aynı satır okunur. Seçim listesi (çip + dropdown) bu tabloyu uygular; Worker
+# aynı tabloyu ZORLAR (fail-closed) — ikisi ayrışırsa müşteri göremediği bir malzemeyi
+# sipariş edebilir ya da görüp sipariş edemez.
+FILAMENT_KATEGORI_HARIC = _js_sabiti(_SEC_JS, "FILAMENT_KATEGORI_HARIC")
+_PARAMETRIK_KATEGORI_M = re.search(r'var\s+PARAMETRIK_KATEGORI\s*=\s*"([^"]+)";', _SEC_JS)
+if not _PARAMETRIK_KATEGORI_M:
+    raise SystemExit("secenekler.js'te PARAMETRIK_KATEGORI bulunamadi — kisitli malzeme "
+                     "kategori evreni turetilemez (tek kaynak bozulmus).")
+PARAMETRIK_KATEGORI = _PARAMETRIK_KATEGORI_M.group(1)
+# FAIL-CLOSED DRIFT NÖBETİ: secenekler.js'teki seri adı bu üretecin gizli kategori
+# defteriyle örtüşmeli. Ayrışırsa (ad değişir/silinir) ölçüye özel seride ABS sessizce
+# "tanınmayan kategori" sayılıp listeden düşerdi -> build DÜŞER, insan bakar.
+if PARAMETRIK_KATEGORI not in NAV_GIZLI:
+    raise SystemExit("secenekler.js PARAMETRIK_KATEGORI (%r) NAV_GIZLI listesinde YOK "
+                     "(%s) — kisitli malzeme kategori evreni ayrismis."
+                     % (PARAMETRIK_KATEGORI, ", ".join(NAV_GIZLI)))
+_HARIC_EVREN = set(CATEGORIES) | set(NAV_GIZLI)
+for _h_malzeme, _h_liste in FILAMENT_KATEGORI_HARIC.items():
+    _bilinmeyen = [k for k in _h_liste if k not in _HARIC_EVREN]
+    if _bilinmeyen:
+        raise SystemExit("FILAMENT_KATEGORI_HARIC[%r] taninmayan kategori iceriyor: %s "
+                         "(kategori defteri ayrismis — harıc satiri OLU olurdu)."
+                         % (_h_malzeme, ", ".join(_bilinmeyen)))
+
+
+def malzeme_kategori_uygun_mu(malzeme, kategori):
+    """Bu malzeme BU kategoride sunulabilir mi? (istemci ikizi: malzemeKategoriUygunMu)
+
+    Kısıtsız malzemede DAİMA True (bugünkü davranış birebir). Kısıtlı malzemede kategori
+    TANINMALIDIR — boş/None/bilinmeyen ad FAIL-CLOSED False'tur: "bilinmiyorsa göster"
+    yönü, kategorisi çözülemeyen bir üründe sessizce satış açardı."""
+    haric = FILAMENT_KATEGORI_HARIC.get(malzeme)
+    if haric is None:
+        return True
+    if not isinstance(kategori, str):
+        return False
+    if kategori not in FONKSIYONEL_KATEGORILER and kategori != PARAMETRIK_KATEGORI:
+        return False
+    return kategori not in haric
+
+
+def _kategori_katsayi_adlari(kategori):
+    """O kategoride ON-SECIME aday olabilecek malzeme adlari (katsayi tablosu x sizgec)."""
+    return {m for m in FILAMENT_FARK if malzeme_kategori_uygun_mu(m, kategori)}
 RENK_SECENEKLERI = _js_sabiti(_SEC_JS, "RENK_SECENEKLERI")
 RENK_DIGER_YUZDE = _js_sayisi(_SEC_JS, "RENK_DIGER_YUZDE")
 ADET_EN_AZ = _js_sayisi(_SEC_JS, "ADET_EN_AZ")
@@ -883,8 +938,13 @@ def on_secim_tani(p, acik=None):
         return (filament_ortak.TANI_KAPALI, VARSAYILAN_MALZEME)
     if fiziksel_mi(p) or p.get("parametrik") or p.get("konfigur"):
         return (filament_ortak.TANI_KAPSAM_DISI, VARSAYILAN_MALZEME)
+    # 🔴 KATEGORI SUZGECI (14 Agu): on-secime aday olan adlar, o kategoride FIILEN
+    # SUNULAN adlardir. Harıc bir malzeme on-secilseydi cipi hic basilmadigi halde
+    # sepete yazilir ve musteri gormedigi bir katsayiyla fiyatlanirdi. Istemci ikizi:
+    # secenekler.js _onSecimCekirdek icindeki malzemeKategoriUygunMu kosulu.
     return filament_ortak.on_secim_tani(p.get("kategori"), p.get("tavsiyeFilament"),
-                                        FILAMENT_FARK, VARSAYILAN_MALZEME, acik=acik)
+                                        _kategori_katsayi_adlari(p.get("kategori")),
+                                        VARSAYILAN_MALZEME, acik=acik)
 
 
 def on_secim_malzeme(p):
@@ -1436,8 +1496,9 @@ WA_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 '
            '.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45'
            '.21.51.32.06.11.06.64-.18 1.32z"/></svg>')
 
-# ABS ve Karbon Katkılı SİTEDE SATILMAZ (Okan, 16 Tem) — mühendislik malzemesi, WhatsApp
-# özel talebi (secenekler.js FILAMENT_SIRA'da zaten yok). Not metni TEK KAYNAK: hem malzeme
+# Karbon Katkılı SİTEDE SATILMAZ — mühendislik malzemesi, WhatsApp özel talebi
+# (secenekler.js FILAMENT_SIRA'da yok). ABS 14 Ağu'da satışa AÇILDI (kategori süzgeciyle);
+# bu not artık YALNIZ karbon fiber/takviyeli aileyi anlatır. Not metni TEK KAYNAK: hem malzeme
 # seçicisinin altında (fonksiyonel/parametrik ürün) hem de seçici olmayan ürünlerdeki filament
 # bilgi bloğunda (filament_html) aynen kullanılır.
 def muhendislik_wa_not(p=None, url=None):
@@ -1546,12 +1607,17 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None, secili=None):
 def _malzeme_renk_html(p=None, url=None):
     """Malzeme dropdown + mühendislik-malzeme WA notu + renk. YALNIZ parametrik (konfigüratör)
     ürün sayfası kullanır — fonksiyonel ürünlerde malzeme artık kartlardan seçilir (dropdown yok).
-    p/url verilirse WA notu sayfa bağlamını (ad + canonical URL) taşır."""
+    p/url verilirse WA notu sayfa bağlamını (ad + canonical URL) taşır.
+
+    🔴 MALZEME x KATEGORI KAPISI (14 Ağu): liste ürünün kategorisine göre SÜZÜLÜR
+    (secenekler.js FILAMENT_KATEGORI_HARIC — tek kaynak). p verilmezse kategori
+    çözülemez ve kısıtlı malzeme FAIL-CLOSED düşer."""
+    kategori = p.get("kategori") if p else None
     malzeme_opts = "".join(
         '\n          <option value="%s">%s</option>' % (
             esc(m), esc(m + (" (standart)" if not FILAMENT_FARK.get(m)
                              else " (+%%%d)" % FILAMENT_FARK[m])))
-        for m in FILAMENT_SIRA)
+        for m in FILAMENT_SIRA if malzeme_kategori_uygun_mu(m, kategori))
     # NOT: metinde yuzde-kacisli WhatsApp URL'i var (%2C, %C3%BC...) -> %-bicimlendirme
     # KULLANILMAZ (URL'i bozar / ValueError verir); parcalar birlestirilir.
     return ("""
@@ -2587,6 +2653,10 @@ def _fil_cipleri(p, secili=None):
     for f in ref["filamentler"]:
         if not f.get("site"):
             continue
+        # 🔴 MALZEME x KATEGORI KAPISI (14 Agu): haric kategoride cip HIC BASILMAZ.
+        # Tablo secenekler.js'te (tek kaynak); Worker AYNI tabloyu zorlar.
+        if not malzeme_kategori_uygun_mu(f["ad"], p.get("kategori")):
+            continue
         rozet = tavs.get(f["ad"], "")
         rozet_html = ""
         if rozet:
@@ -2672,9 +2742,10 @@ def panel_malzeme_html(p):
 
 def filament_html(p, wa_not=False, kartlar_gizli=False):
     """Fiyat bloğunun altındaki "Malzeme" bölümü: sitede satılan filament çipleri + tavsiye
-    rozeti + balon. ABS ve Karbon Katkılı SİTEDE SATILMAZ (Okan, 16 Tem) — mühendislik
-    malzemesi, WhatsApp özel talebiyle satılır; burada çip olarak SUNULMAZ (yalnız
-    /malzeme-rehberi/ sayfasında ayrı bölümde anlatılır). wa_not=True ise (malzeme
+    rozeti + balon. Karbon Katkılı SİTEDE SATILMAZ — mühendislik malzemesi, WhatsApp özel
+    talebiyle satılır; burada çip olarak SUNULMAZ (yalnız /malzeme-rehberi/ sayfasında ayrı
+    bölümde anlatılır). ABS satılır ama KATEGORİYE BAĞLIDIR: hariç kategorilerde
+    (secenekler.js FILAMENT_KATEGORI_HARIC) çipi HİÇ basılmaz. wa_not=True ise (malzeme
     seçicisi/dropdown'u olmayan ürün — MALZEME_RENK_HTML basılmıyor) mühendislik malzemesi
     notu burada gösterilir; dropdown'lu üründe not zaten opsiyonlar bloğunda var, mükerrer
     basılmaz.
@@ -3176,7 +3247,11 @@ def render_product(p, all_products, chip_map=None):
         if ld_yuksek:
             offer["lowPrice"] = ld_fiyat
             offer["highPrice"] = ld_yuksek
-            offer["offerCount"] = len(FILAMENT_SIRA)
+            # SAYI = MUSTERININ O SAYFADA SECEBILECEGI malzeme adedi: kategori sizgeci
+            # (FILAMENT_KATEGORI_HARIC) uygulanir. Ham FILAMENT_SIRA basilsaydi haric
+            # kategoride secilemeyen bir secenek DISA BEYAN EDILIRDI.
+            offer["offerCount"] = len([m for m in FILAMENT_SIRA
+                                       if malzeme_kategori_uygun_mu(m, p.get("kategori"))])
         offer["priceValidUntil"] = PRICE_VALID
 
     # `image` KOSULLU basilir; bu yuzden sozluk IKI parcada kurulur. Anahtar SIRASI

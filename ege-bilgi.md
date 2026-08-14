@@ -21,10 +21,10 @@ Malzememiz = özel üretim **filamentleri**; Ege SADECE bu aileden seçenek suna
 - **PLA** (Ev içi, ~55-60°C): İç mekân, dekoratif ve hafif kullanım parçaları için idealdir.
 - **PETG** (Dış mekân / genel amaçlı, ~70-75°C): Darbeye ve neme dayanıklı güvenli seçim.
 - **ASA** (Güneş + su, ~90-95°C): UV ve suya en dayanıklı; dış mekânın şampiyonu.
+- **ABS** (Isıya dayanıklı, ~95-100°C): Isınan ortamlar için ısı dayanımı yüksek malzeme; ev/ofis/dekor grubunda sunulmaz.
 - **TPU (esnek)** (Esnek / titreşim emici, ~60-80°C): Conta, tampon, koruyucu kılıf gibi esneme ve darbe emme gereken parçalar.
 
 Mühendislik malzemeleri — hepsi standart sipariş akışının DIŞINDA; WhatsApp özel talebiyle değerlendirilir, üretim kararıdır, koşulu netleştir:
-- **ABS** (Isıya dayanıklı, ~95-100°C) — [DEVRET]
 - **Karbon katkılı (PETG-CF/PA-CF)** (En yüksek mukavemet, ısı taşıyıcıya göre) — [DEVRET]
 - **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik edilebilir — [DEVRET]
 

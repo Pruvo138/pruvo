@@ -3,8 +3,11 @@
 Taban fiyat = ürünün **varsayılan ölçülerdeki PLA (Siyah/Beyaz/Gri)** satış fiyatı
 ve aynı zamanda ZEMİNDİR (altına inilmez). Diğer her şey formülden türetilir:
 `fiyat = tabanFiyat × max(1, hacim/tabanHacim) × filamentKatsayı × renkFaktör`
-(PLA 1.00 / PETG 1.30 / TPU 1.55 / ASA 1.60; ABS 1.50 ve Karbon 2.00 SİTEDE SATIŞA
-KAPALI — WhatsApp'a yönlendirilir; Diğer renk ×1.15). Varsayılandan küçük ölçüde
+(PLA 1.00 / PETG 1.30 / TPU 1.55 / ASA 1.60 / ABS 1.60; Diğer renk ×1.15).
+ABS fiyatta ASA ile BİREBİRDİR ve değeri `FILAMENT_TUREME` ile ASA'dan TÜRER — elle
+yazılmaz (14 Ağu); ev/ofis/dekor sınıfı kategorilerde seçilemez (`FILAMENT_KATEGORI_HARIC`).
+Karbon katkılı 2.00 ise SİTEDE SATIŞA KAPALI — WhatsApp'a yönlendirilir.
+Varsayılandan küçük ölçüde
 çarpan 1'e sabitlenir; taban üstünde hacimle SÜREKLİ artar (basamak yok).
 Kuruş korunur, yuvarlama yok.
 

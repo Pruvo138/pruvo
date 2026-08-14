@@ -9,15 +9,16 @@ Kullanim:
 Once tools/build.py'yi CALISTIRIR (uretilen sayfalar taze olsun), sonra sirayla:
   1. urunler.json DEGISMEMIS (git diff bos — paket urun verisine dokunmaz)
   2. 20 rastgele urun sayfasi (+ EN AZ BIR parametrik ZORLA dahil): sitede satilan filament
-     cipleri (ABS/Karbon HARIC) + tavsiye rozeti + balon metni filamentler.json ile birebir +
+     cipleri (Karbon HARIC; ABS 14 Agu'dan beri satilir ama KATEGORIYE BAGLI — secenekler.js
+     FILAMENT_KATEGORI_HARIC) + tavsiye rozeti + balon metni filamentler.json ile birebir +
      kategori haritasina gore dogru tavsiye (parametrik urunde OZEL KILIF YOK — F kalemi)
   3. hicbir uretilen sayfada "3d bask" / "her renk" yok
   4. /malzeme-rehberi/ uretildi, footer linki var, sitemap'te
   5. node tools/parite-test.js 300 + node tools/parite-ege.js 200 YESIL (aciklama degismedi)
   6. override: tavsiyeFilament alanli sahte urunle render -> harita degil override basiliyor
   7. mobil tooltip: DOM/CSS duzeyinde dogrulama (balon + .acik toggle JS + aria-expanded)
-  8. ABS/Karbon Katkili urun sayfasinda CIP OLARAK basilmiyor (site seceneği degil, sadece
-     /malzeme-rehberi/ + WhatsApp notu)
+  8. O SAYFADA SUNULMAYAN malzeme (Karbon Katkili her yerde; ABS haric kategorilerde)
+     CIP/OPTION olarak basilmiyor — sadece /malzeme-rehberi/ + WhatsApp notu
 
 KART-SECIM (Okan, 16 Tem — malzeme dropdown -> kart secici):
   9  (a) fonksiyonel sayfada malzeme dropdown YOK; kartlar data-malzeme tasir; tiklama SECER
@@ -266,7 +267,6 @@ def main():
         urunler = json.load(f)
     ref = filament_ortak.referans()
     site_fil = [f for f in ref["filamentler"] if f.get("site")]
-    ozel_fil = [f for f in ref["filamentler"] if not f.get("site")]
 
     # ── FIKSTUR SECIMI (TEK YER — kayma nobeti TEST 26) ────────────────────────────────
     # TEK KAYNAK: build.FONKSIYONEL_KATEGORILER (elle kopya YOK -> drift olmaz).
@@ -287,6 +287,22 @@ def main():
         _sarili._yayin_yuzeyli = True
         build.render_product = _sarili
     FONK = set(build.FONKSIYONEL_KATEGORILER)
+
+    # 🔴 KATEGORI SUZGECI (14 Agu): "sitede satilan malzeme" ile "BU SAYFADA sunulan
+    # malzeme" ARTIK AYNI SEY DEGIL. ABS satilir ama Ev/Ofis/Dekorasyon/Skan Art/
+    # Oyun-Hobi'de sunulmaz (secenekler.js FILAMENT_KATEGORI_HARIC; ureteci build.py
+    # okur). Beklenti bu yuzden SABIT bir sayi degil, urunun kategorisinden TURER —
+    # elle sayi yazsaydik fikstur haric bir kategoriye dustugu gun SAHTE kirmizi
+    # yanardi ve gercek bir eksik cip'ten ayirt edilemezdi.
+    def sunulan_fil(p):
+        """Bu urun sayfasinda FIILEN cip olarak basilan filament kayitlari."""
+        return [f for f in site_fil
+                if build.malzeme_kategori_uygun_mu(f["ad"], p.get("kategori"))]
+
+    def sunulmayan_fil(p):
+        """Bu sayfada basilMAYAcak kayitlar: satisa kapali olanlar + kategori disi olanlar."""
+        sunulan = {f["ad"] for f in sunulan_fil(p)}
+        return [f for f in ref["filamentler"] if f["ad"] not in sunulan]
     # HAVUZ = TEST 2'nin ornekleme evreni; fiziksel (hazir ticari mal) kayit DISARIDA.
     # Eskiden duz `random.sample(urunler, 20)` idi ve katalogtaki 806 fiziksel urun yuzunden
     # her kosumda ~%63 olasilikla anlamsiz kirmizi yaniyordu (olculdu).
@@ -331,16 +347,19 @@ def main():
         # ⚠️ Kapsayicinin sinifi `fil-cipler` -> `fil-cip[^"]*` onu da SAYAR (ilk yazimda
         # sayardi, 5 != 4 sahte kirmizisi). Sinif adi TAM eslesmeli: "fil-cip" ya da
         # "fil-cip <bir seyler>".
+        beklenen_cip = sunulan_fil(p)
         cip_n = len(re.findall(r'class="fil-cip(?:\s[^"]*)?"', s))
-        if cip_n != len(site_fil):
-            hatalar.append("%s: cip sayisi %d != %d" % (p["id"], cip_n, len(site_fil)))
+        if cip_n != len(beklenen_cip):
+            hatalar.append("%s (%s): cip sayisi %d != %d"
+                           % (p["id"], p.get("kategori"), cip_n, len(beklenen_cip)))
             continue
-        for f in site_fil:
+        for f in beklenen_cip:
             if html.escape(f["uzun"], quote=True) not in s:
                 hatalar.append("%s: '%s' balon metni birebir degil" % (p["id"], f["ad"]))
-        for f in ozel_fil:
+        for f in sunulmayan_fil(p):
             if html.escape(f["uzun"], quote=True) in s:
-                hatalar.append("%s: '%s' (ozel talep) urun sayfasinda cip olarak var" % (p["id"], f["ad"]))
+                hatalar.append("%s (%s): '%s' sunulmadigi halde cip olarak var"
+                               % (p["id"], p.get("kategori"), f["ad"]))
         # OZEL KILIF YOK: F kalemi (Okan, 16 Tem gece) sonrasi parametrik (sari) sayfa normal
         # sayfayla BIREBIR -> rozet beklentisi HER uronde ayni sekilde kategoriden turer.
         # Bugun "Jeneratör" kategoriTavsiye haritasinda olmadigi icin sonuc bos liste cikiyor
@@ -353,8 +372,9 @@ def main():
         if sorted(rozetli) != sorted(beklenen):
             hatalar.append("%s (%s): rozet %s != beklenen %s"
                            % (p["id"], p.get("kategori"), rozetli, beklenen))
-    kayit(2, "20 rastgele sayfa (+en az 1 parametrik): %d cip (ABS/Karbon HARIC) + rozet + "
-          "balon birebir + dogru tavsiye" % len(site_fil), not hatalar, "; ".join(hatalar[:4]))
+    kayit(2, "20 rastgele sayfa (+en az 1 parametrik): cip sayisi KATEGORIDEN turer "
+          "(en cok %d; Karbon HARIC, ABS haric kategoride DUSER) + rozet + balon birebir + "
+          "dogru tavsiye" % len(site_fil), not hatalar, "; ".join(hatalar[:4]))
 
     # ---- 3) yasak ifadeler: uretilen HICBIR sayfada "3d bask" / "her renk" yok
     yasak = []
@@ -434,7 +454,7 @@ def main():
     else:
         blok = ""
     kosullar7 = {
-        "balon her cipte": s.count('class="fil-balon"') == len(site_fil),
+        "balon her cipte": s.count('class="fil-balon"') == len(sunulan_fil(ornek_urun)),
         "CSS: .acik ile balon acilir": ".fil-cip.acik .fil-balon{display:block}" in s,
         "CSS: hover ile balon acilir": ".fil-cip:hover .fil-balon" in s,
         "JS: dokunma toggle": 'classList.toggle("acik")' in s,
@@ -445,15 +465,19 @@ def main():
     kayit(7, "mobil tooltip DOM/CSS dogrulamasi", all(kosullar7.values()),
           ", ".join(k for k, v in kosullar7.items() if not v) or "hepsi tamam")
 
-    # ---- 8) ABS/Karbon Katkili urun sayfasinda SITE SECENEGI OLARAK sunulmuyor
+    # ---- 8) O SAYFADA SUNULMAYAN malzeme SECENEK OLARAK basilmiyor
+    # Kapsam iki kaynaklidir: satisa kapali malzeme (Karbon — her sayfada) VE kategori
+    # suzgeciyle elenen malzeme (ABS — haric kategorilerde). Ikisi de ayni yerde biter:
+    # o sayfada <option>/cip olarak GORUNMEZ.
     hatalar8 = []
-    for f in ozel_fil:
+    for f in sunulmayan_fil(ornek_urun):
         if ('value="%s"' % f["ad"]) in ornek_sayfa:
-            hatalar8.append("%s: <option> olarak dropdown'da var" % f["ad"])
+            hatalar8.append("%s: <option> olarak dropdown'da var (kategori: %s)"
+                            % (f["ad"], ornek_urun.get("kategori")))
     if "wa.me/905451386526" not in ornek_sayfa:
         hatalar8.append("WhatsApp muhendislik-malzeme linki yok")
-    kayit(8, "ABS/Karbon Katkili SITE SECENEGI olarak sunulmuyor (cip/dropdown yok, WA notu var)",
-          not hatalar8, "; ".join(hatalar8) or "temiz")
+    kayit(8, "sunulmayan malzeme SECENEK olarak basilmiyor (satisa kapali + kategori disi; "
+          "WA notu var)", not hatalar8, "; ".join(hatalar8) or "temiz")
 
     # ================= KART-SECIM (malzeme dropdown -> kart secici) =================
     # fonk_urun / fs yukarida (FIKSTUR SECIMI blogu) secildi — EHLIYET suzgecinden gecti.
@@ -462,7 +486,7 @@ def main():
     h9 = []
     if 'id="malzemeSec"' in fs:
         h9.append("malzeme dropdown hala var")
-    for f in site_fil:
+    for f in sunulan_fil(fonk_urun):
         if ('data-malzeme="%s"' % html.escape(f["ad"], quote=True)) not in fs:
             h9.append("%s karti data-malzeme tasimıyor" % f["ad"])
     # KART-SECIM BAYRAGI (2 Agu 2026): paylasilan JS govdesi /varlik/urun-<hash>.js'e

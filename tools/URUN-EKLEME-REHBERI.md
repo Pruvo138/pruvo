@@ -327,10 +327,13 @@ Doğru: `"tavsiyeFilament": ["PETG"]` · Yanlış: `"tavsiyeFilament": "PETG"`.
 Alan liste değilse `filament_ortak.tavsiyeler` fail-closed boş liste döner (`filament_ortak.py:57`);
 istemci (`secenekler.js onSecimMalzeme`) ise dizeyi **karakter karakter** gezer — iki dil sessizce
 ayrışır, ürün rozetsiz kalır ve ön-seçili malzeme güvenli varsayılana düşer.
-**Geçerli adlar YALNIZ `PLA · PETG · ASA · TPU`** (`filament-veri.js` içinde `"site": true` olanlar).
-`"ABS"`, `"Karbon Katkılı"` ve `"TPU (esnek)"` gibi serbest metin **satılan malzeme değildir**:
-alan dolu olduğu halde hiçbir ad ayakta kalmaz, tanı `taninmayan` olur ve kapı bunu sayar.
-👉 **Yap:** alanı her zaman dizi yaz ve içine yalnız o dört addan seç; emin değilsen alanı hiç yazma
+**Geçerli adlar YALNIZ `PLA · PETG · ASA · ABS · TPU`** (`filament-veri.js` içinde `"site": true`
+olanlar; ABS 14 Ağu'da satışa açıldı). `"Karbon Katkılı"` ve `"TPU (esnek)"` gibi serbest metin
+**satılan malzeme değildir**: alan dolu olduğu halde hiçbir ad ayakta kalmaz, tanı `taninmayan`
+olur ve kapı bunu sayar. ⚠️ `"ABS"` **kategoriye bağlıdır** (`secenekler.js
+FILAMENT_KATEGORI_HARIC`): Ev · Ofis · Dekorasyon · Skan Art · Oyun/Hobi ürününde ABS yazmak
+aynı `taninmayan` tanısına düşer (o kategorilerde ABS ne çip olarak basılır ne de sipariş edilebilir).
+👉 **Yap:** alanı her zaman dizi yaz ve içine yalnız o adlardan seç; emin değilsen alanı hiç yazma
 (kategori haritası doğru tavsiyeyi zaten türetir).
 
 ### 9.2 Dekor/`konfigur` ürününde kapak görseli **SİYAH** + `renkGorselIndeks["Siyah"] = 0`

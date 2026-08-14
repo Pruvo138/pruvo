@@ -588,8 +588,12 @@ async function test3Idempotens(siparisNo, token) {
  *  yanlis degistirilirse test bunu yakalamali, sessizce yeni degeri onaylamamali. */
 async function test8KatsayiDogrulugu() {
   // Spec: 100 TL'lik urun -> PLA 100 / PETG 130 / TPU 155 / ASA 160.
-  // ABS ve Karbon Katkili KALDIRILDI (Okan, 16 Tem — 1ca4aab): muhendislik malzemeleri
-  // WhatsApp kanalindan gider; asagida REDDEDILDIKLERI ayrica sinanir.
+  // Karbon Katkili KALDIRILDI (Okan, 16 Tem — 1ca4aab): muhendislik malzemesi, WhatsApp
+  // kanalindan gider; asagida REDDEDILDIGI ayrica sinanir.
+  // 🔴 ABS (Okan, 14 Agu) GERI ACILDI ve fiyati ASA ile BIREBIR — ama KATEGORIYE BAGLI:
+  // test-urun-100 "Ev" kategorisindedir ve ABS orada SUNULMAZ. Bu yuzden ABS bu SPEC
+  // tablosuna GIRMEZ; asagida IKI eksende ayri ayri sinanir (haric kategoride RED,
+  // dahil kategoride KABUL + ASA ile ayni tutar).
   const SPEC = { "PLA": "100.00", "PETG": "130.00", "TPU": "155.00", "ASA": "160.00" };
   const hatalar = [];
   const olculen = {};
@@ -631,17 +635,47 @@ async function test8KatsayiDogrulugu() {
   const cbos = await baslatIstek([{ id: "test-urun-333", malzeme: "PETG", renk: "Diğer", adet: 1 }]);
   if (cbos.kod !== 400) { hatalar.push("'Diger' + bos renk metni: " + cbos.kod + " (400 olmali)"); }
 
-  // KALDIRILAN MALZEMELER (Okan, 16 Tem): ABS / Karbon Katkili artik secenek DEGIL ->
-  // istemci elle gonderse bile Worker REDDETMELI (malzeme listesi secenekler.js'ten okunur,
-  // ikinci kopya yok). Sessizce PLA fiyatina dusup ABS tahsil etmek OLMAZ.
+  // KALDIRILAN MALZEME (Okan, 16 Tem): Karbon Katkili secenek DEGIL -> istemci elle
+  // gonderse bile Worker REDDETMELI (malzeme listesi secenekler.js'ten okunur, ikinci
+  // kopya yok). Sessizce PLA fiyatina dusup baska malzeme tahsil etmek OLMAZ.
   const kaldirilan = [];
-  for (const m of ["ABS", "Karbon Katkılı"]) {
+  for (const m of ["Karbon Katkılı"]) {
     const r = await baslatIstek([{ id: "test-urun-100", malzeme: m, renk: "Siyah", adet: 1 }]);
     kaldirilan.push(m + "->" + r.kod + "/" + (r.govde.hata || "?"));
     if (r.kod !== 400 || r.govde.hata !== "gecersiz-malzeme") {
       hatalar.push("kaldirilan malzeme " + m + " reddedilmedi: " + r.kod + " " +
                    JSON.stringify(r.govde));
     }
+  }
+
+  // 🔴 ABS x KATEGORI (Okan, 14 Agu) — UI'dan gizlemek odeme yolunu KAPATMAZ; istemci
+  // dogrudan istek gonderse bile karar SUNUCUDA verilir (secenekler.js
+  // FILAMENT_KATEGORI_HARIC tek kaynagi). Iki yon de olculur, yoksa "hepsini reddet"
+  // ya da "hepsini kabul et" mutantlarindan biri sessizce gecerdi.
+  const rAbsHaric = await baslatIstek([{ id: "test-urun-100", malzeme: "ABS", renk: "Siyah",
+                                         adet: 1 }]);
+  kaldirilan.push("ABS@Ev->" + rAbsHaric.kod + "/" + (rAbsHaric.govde.hata || "?"));
+  if (rAbsHaric.kod !== 400 || rAbsHaric.govde.hata !== "malzeme-kategori") {
+    hatalar.push("haric kategoride (Ev) ABS reddedilmedi: " + rAbsHaric.kod + " " +
+                 JSON.stringify(rAbsHaric.govde));
+  }
+  // Dahil kategori: test-urun-a "Marin" / 850 TL -> ABS = ASA = 850 x 1,60 = 1360,00.
+  // SABIT beklenen (SPEC'ten), secenekler.js'ten TURETILMEZ.
+  const rAbsDahil = await baslatIstek([{ id: "test-urun-a", malzeme: "ABS", renk: "Siyah",
+                                         adet: 1 }]);
+  const absFiyat = rAbsDahil.kod === 200
+    ? urunKalemi((await mockOku()).sonInit).price : "HATA/" + rAbsDahil.kod;
+  kaldirilan.push("ABS@Marin->" + rAbsDahil.kod + "/" + absFiyat);
+  if (absFiyat !== "1360.00") {
+    hatalar.push("dahil kategoride (Marin) ABS fiyati: " + absFiyat + " (olmasi gereken " +
+                 "1360.00 = ASA ile ayni)");
+  }
+  const rAsaDahil = await baslatIstek([{ id: "test-urun-a", malzeme: "ASA", renk: "Siyah",
+                                         adet: 1 }]);
+  const asaFiyat = rAsaDahil.kod === 200
+    ? urunKalemi((await mockOku()).sonInit).price : "HATA/" + rAsaDahil.kod;
+  if (absFiyat !== asaFiyat) {
+    hatalar.push("ABS (" + absFiyat + ") ile ASA (" + asaFiyat + ") tutari AYRISTI");
   }
 
   // ADET ARALIGI (1-99): aralik disi SESSIZCE kirpilmaz, REDDEDILIR

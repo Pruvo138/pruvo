@@ -61,6 +61,9 @@ const BASKI_FALLBACK = {
   "PLA": "Genel öneri: 0.2 mm katman · %15 doluluk · 4-5 duvar hattı · ısı dayanımı ~55-60°C (iç mekân).",
   "PETG": "Genel öneri: 0.2 mm katman · %15-20 doluluk · 4-6 duvar hattı · ısı dayanımı ~70-75°C (genel amaçlı).",
   "ASA": "Genel öneri: 0.2 mm katman · %20 doluluk · 5-6 duvar hattı · ısı dayanımı ~90-95°C (UV/su, dış mekân).",
+  // ABS satisa 14 Agu'da geri acildi (kategori sizgeciyle). Metin BETIMSELDIR — fiyat/katsayi
+  // TASIMAZ (para yolu secenekler.js FILAMENT_FARK'tir, panel metni oradan beslenmez).
+  "ABS": "Genel öneri: 0.2 mm katman · %20 doluluk · 5-6 duvar hattı · ısı dayanımı ~95-100°C (ısınan ortam); doğrudan güneş altında uzun süreli kullanımda ASA daha iyidir.",
   "TPU": "Genel öneri: 0.2 mm katman · %15 doluluk · 3-4 duvar hattı · esnek; yavaş baskı önerilir.",
 };
 

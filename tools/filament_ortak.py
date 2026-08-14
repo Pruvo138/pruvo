@@ -42,9 +42,10 @@ def tavsiyeler(kategori, override=None):
     override (urunler.json'daki opsiyonel "tavsiyeFilament") varsa harita yerine O gecer;
     referans disindaki adlar sessizce atilir. Haritada ilk kayit varsayilan tavsiyedir
     ("Tavsiyemiz"); sonrakiler kosul notuyla ("Güneş gören parçada" vb.) rozetlenir.
-    SADECE SITEDE SATILAN ("site": true) malzemeler tavsiye edilir — ABS/Karbon Katkılı
+    SADECE SITEDE SATILAN ("site": true) malzemeler tavsiye edilir — Karbon Katkılı
     mühendislik malzemesi olup WhatsApp özel talebiyle satılır, rozetle "Tavsiyemiz"
-    diye SUNULMAZ (Okan, 16 Tem).
+    diye SUNULMAZ. (ABS 14 Ağu'da satışa açıldı; kategori süzgeci ROZET ekseninde değil,
+    ON-SECIM/CIP ekseninde uygulanır — bkz. build.py malzeme_kategori_uygun_mu.)
     """
     ref = referans()
     site_adlar = {f["ad"] for f in ref["filamentler"] if f.get("site")}
@@ -151,9 +152,11 @@ def tavsiye_filament(baski_metni):
     Cumleciklere bolup olumsuz baglamdakileri eler, kalanlarda kanonik malzeme adi arar.
     Ornek: "PLA is not a suitable material; I recommend PETG." -> ["PETG"].
     Kanonik ad bulunamazsa None (override yazilmaz, kategori haritasi gecerli kalir).
-    SADECE SITEDE SATILAN malzemeler override olarak yazilir — kaynak metni "ABS" ya da
-    "karbon" dese bile (mühendislik malzemesi, WhatsApp özel talebi; site secilebilir
-    degil) None doner, kategori haritasi gecerli kalir.
+    SADECE SITEDE SATILAN malzemeler override olarak yazilir — kaynak metni "karbon" dese
+    bile (mühendislik malzemesi, WhatsApp özel talebi; site secilebilir degil) o ad DUSER.
+    ABS 14 Ağu'dan beri satilir, yani override olarak YAZILABILIR; ama harıc kategoride
+    (Ev/Ofis/Dekorasyon/Skan Art/Oyun-Hobi) on-secim suzgeci onu ELER ve tani "taninmayan"
+    olur — o kategorilerde alani hic yazmamak dogrusudur.
     """
     if not baski_metni:
         return None

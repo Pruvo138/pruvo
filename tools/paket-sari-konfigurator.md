@@ -21,7 +21,8 @@ Sarı seri (parametrik:true) ürün sayfalarına müşteri konfigüratörü: par
   18 ürünün varsayılan parametre + taban hacim tablosunu çıkarıp Okan'a fiyat şablonu sunar;
   tabanFiyat gelene kadar konfigüratör fiyatı "—" gösterir, altyapı hazır bekler).
 - hacim oranı LİNEER, sınırsız hassasiyet; YUVARLAMA YOK (kuruş korunur: [[filament-fiyat-katsayilari]]).
-- filamentKatsayı: PLA 1.00 / PETG 1.30 / ABS 1.50 / TPU 1.55 / ASA 1.60 / Karbon 2.00.
+- filamentKatsayı: PLA 1.00 / PETG 1.30 / TPU 1.55 / ASA 1.60 / ABS 1.60 (14 Ağu: ABS = ASA,
+  değer `FILAMENT_TUREME` ile türetilir) / Karbon 2.00 (sitede satışa KAPALI).
 - renkFaktör: Siyah/Beyaz/Gri 1.00, "Diğer" 1.15. (Sarı seri rengi de artık müşteri seçer;
   "her renk" DENMEZ → "farklı renk seçenekleri".)
 

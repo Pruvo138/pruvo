@@ -410,12 +410,34 @@ def olc(secenekler_src, index_src, d1sync_src, build_src, urunler, ref_yolu, uru
             "kutukte OLMAYAN yeni taninmayan-malzeme kaydi YOK (%s)" % (yeni or "-"))
     # Kolun KENDISI canli mi? Sentetik girdiyle olculur: gercek katalog temizlense bile
     # eksen ATLANMAZ (sessiz yesil yasak).
+    # 🔴 FIKSTUR DEGERI 14 Agu'da TAZELENDI: burada uzun sure "ABS" yaziyordu; ABS satisa
+    # ACILINCA fikstur "satilmayan ad" olmaktan cikti ve kol OLCULEMEZ hale geldi
+    # ([[fikstur-degeri-mutasyon-koru]]). Deger ELLE SECILMEZ: satisa kapali ilk ad
+    # referanstan TURETILIR, boylece bir sonraki acilista da kendiliginden kayar.
+    kapali_adlar = [f["ad"] for f in build_mod.filament_ortak.referans()["filamentler"]
+                    if not f.get("site")]
+    kontrol(bool(kapali_adlar),
+            "satisa KAPALI en az bir malzeme var (fikstur turetilebilir: %s)"
+            % (", ".join(kapali_adlar) or "-"))
     sentetik = {"id": "_sentetik_", "kategori": "Otomobil", "fiyat": "100 TL",
-                "tavsiyeFilament": ["ABS"]}
+                "tavsiyeFilament": [kapali_adlar[0]] if kapali_adlar else ["_yok_"]}
     s_tani, s_malzeme = build_mod.on_secim_tani(sentetik, acik=True)
     kontrol(s_tani == "taninmayan" and s_malzeme == build_mod.VARSAYILAN_MALZEME,
             "taninmayan KOLU canli — satilmayan ad tasiyan urun 'varsayilan' ile "
             "AYNI jetona cokmuyor (olculen: %s/%s)" % (s_tani, s_malzeme))
+    # KATEGORI EKSENI (14 Agu): ad SATILIYOR ama O KATEGORIDE SUNULMUYOR (ABS x Ev).
+    # On-secim onu ELEMELI; elemeseydi cipi hic basilmayan bir malzeme onden secili gelir
+    # ve musteri sayfada GORMEDIGI bir katsayiyla (+%60) fiyatlanirdi.
+    haric_tablo = getattr(build_mod, "FILAMENT_KATEGORI_HARIC", {})
+    for _malzeme, _katlar in sorted(haric_tablo.items()):
+        if not _katlar:
+            continue
+        s2 = {"id": "_sentetik3_", "kategori": _katlar[0], "fiyat": "100 TL",
+              "tavsiyeFilament": [_malzeme]}
+        t2, m2 = build_mod.on_secim_tani(s2, acik=True)
+        kontrol(t2 == "taninmayan" and m2 == build_mod.VARSAYILAN_MALZEME,
+                "KATEGORI SUZGECI on-secimde canli — %s x %s onerisi 'varsayilan'a "
+                "dusuyor (olculen: %s/%s)" % (_malzeme, _katlar[0], t2, m2))
     bos = {"id": "_sentetik2_", "kategori": "Otomobil", "fiyat": "100 TL"}
     b_tani, _ = build_mod.on_secim_tani(bos, acik=True)
     kontrol(b_tani != "taninmayan",

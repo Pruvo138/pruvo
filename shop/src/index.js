@@ -313,6 +313,19 @@ async function sepetiFiyatla(env, kalemler) {
     const u = katalog.get(k.id);
     if (!u) return { hata: { hata: "bilinmeyen-urun", id: k.id }, kod: 400 };
 
+    // 🔴 MALZEME x KATEGORI KAPISI (14 Agu, isletme karari) — FAIL-CLOSED, HER KOLDAN ONCE.
+    // Bazi malzemeler (bugun ABS) yalniz belirli urun gruplarinda sunulur; tablo TEK
+    // kaynakta (secenekler.js FILAMENT_KATEGORI_HARIC) durur ve site secim listesi de
+    // ayni tabloyu uygular. UI'dan GIZLEMEK YETMEZ: bu depoda olculdu ki secici
+    // kaldirilan bir yolda sunucu hesaplamaya devam edebiliyor
+    // ([[ui-kaldirmak-odeme-yolunu-kapatmaz]]) — istemci dogrudan istek gonderirse kalem
+    // BURADA reddedilir ve FIYAT HESABINA HIC GIRMEZ (konfigur/parametrik/sabit, uc kol da
+    // bu satirin ALTINDA). Kategori D1'den gelir; bos/taninmayan ise cevap yine RED.
+    if (!SECENEK.malzemeKategoriUygunMu(k.malzeme, u.kategori)) {
+      return { hata: { hata: "malzeme-kategori", id: k.id, malzeme: k.malzeme,
+                       mesaj: "Bu ürün grubunda seçilen malzeme sunulmuyor." }, kod: 400 };
+    }
+
     let birimKurus, ekAlanlar = {};
     // 🔴 KONFIGUR FIYAT KAYNAGI = D1 (FAZ 4, 31 Tem). Eskiden fiyat Worker bundle'indaki
     // KONFIGURLAR haritasindan (shop/src/konfigurlar.js) hesaplanirdi; o harita ELLE uretilen

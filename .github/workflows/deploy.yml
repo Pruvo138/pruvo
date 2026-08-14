@@ -2056,6 +2056,32 @@ jobs:
       - name: Fiyat esdegerligi + prova ucu kabul testi (yan etkisiz fiyat sorgusu)
         run: node shop/test/fiyat-prova.mjs
 
+      # ABS: FIYAT TUREMESI + KATEGORI SUZGECI (shop/test/abs-kapisi.mjs). Okan 14 Agu:
+      # ABS satisa geri acildi, fiyati ASA ile BIREBIR; Ev/Ofis/Dekorasyon/Skan Art/
+      # Oyun-Hobi'de SECILEMEZ. Iki sessiz-hata sinifi olculur:
+      # (1) IKIZ SAYI — "ABS = ASA" iki ayri sayiya yazilirsa biri sessizce ayrisir. Esitlik
+      #     TEK BASINA yetmez: test ASA'yi fiksturde degistirip ABS'in TAKIP ETTIGINI olcer
+      #     (elle yazilmis 60 esitligi gecer, turemeyi GECEMEZ) — hem JS hem build.py tarafi.
+      # (2) UI'DAN GIZLEMEK ODEME YOLUNU KAPATMAZ (bu depoda olculdu): suzgec hem SECIM
+      #     LISTESINDE (gercek uretec: build.py cipleri + parametrik dropdown, python3
+      #     koprusuyle) hem WORKER KABULUNDE (gercek kod + sahte D1: 400, fiyat DONMEZ,
+      #     D1 yazma 0, ag cagrisi 0) ayri ayri olculur. Kategori bos/bilinmeyen -> RED.
+      # Ayrica: Skan Art konfigur kolu degismedi (ABS sizmadi), Karbon hala site:false,
+      # uc pakette "ABS 1.50 / satisa kapali" beyani kalmadi.
+      # OFFLINE: ag YOK, wrangler YOK, D1 sahte, siparis OLUSMAZ, depo dosyasi YAZILMAZ. ~1 s.
+      - name: ABS fiyat turemesi + kategori suzgeci kabul testi (fail-closed odeme yolu)
+        run: node shop/test/abs-kapisi.mjs
+
+      # ONCE-KIRMIZI KANITI — ustteki kabul testinin OLU OLMADIGI, her kosumda YENIDEN
+      # URETILEREK gosterilir ([[mutasyon-kaniti-yeniden-uretilebilir]]: anlatilan batarya
+      # kanit degildir). 6 oldurucu mutant (elle sabit katsayi · Worker suzgeci silindi ·
+      # haric listesinden bir kategori dustu · fail-open kategori · Skan Art konfigur'une ABS
+      # sizdi · Karbon site:true) KIRMIZI, 2 kontrol (yalniz-yorum · daraltilmis fikstur)
+      # YESIL yanmali. Mutantlar GECICI KOPYAYA uygulanir; betik bas/son sha256 ile depo
+      # dosyalarinin DEGISMEDIGINI kendisi kanitlar. ~2 s.
+      - name: ABS kapisi mutasyon bataryasi (nobetci olu mu — 6/6 kirmizi + 2/2 kontrol)
+        run: python3 tools/abs-mutasyon.py
+
       # SERIT A (icerik) — 2-RENK URETIM SOZLESMESI. Serit ayriminda once SERIT B'ye
       # konmustu; denetimde A'ya alindi. GEREKCE: bu kapinin 4. iddiasi YAYINLANAN
       # `secenekler.js` (Pages beyaz listesinde) ONIZLEME_PARCALAR parca listesi ile

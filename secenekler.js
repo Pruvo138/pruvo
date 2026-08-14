@@ -13,9 +13,47 @@
   "use strict";
 
   // PLA taban (fark yok); yüzdeler PLA fiyatına göre ek maliyet.
-  // ABS ve Karbon katkılı KALDIRILDI (işletme kararı, 16 Tem) — mühendislik malzemeleri WhatsApp'tan.
+  // 16 Tem'de ABS ve Karbon katkılı satıştan kaldırılmıştı; 14 Ağu'da işletme kararıyla
+  // ABS GERİ AÇILDI (fiyatta ASA ile birebir, aşağıdaki türeme). Karbon katkılı KAPALI KALIR
+  // — o hâlâ WhatsApp özel talebidir.
   var FILAMENT_FARK = { "PLA": 0, "PETG": 30, "ASA": 60, "TPU": 55 };
-  var FILAMENT_SIRA = ["PLA", "PETG", "ASA", "TPU"];
+
+  /* 🔴 TÜREYEN KATSAYI (14 Ağu, işletme kararı): ABS fiyatta ASA ile BİREBİR aynıdır.
+     Sayı ELLE YAZILMAZ — bu depoda "aynı değer iki yerde, biri sessizce ayrışır" ölçülmüş
+     bir sınıftır ([[ikiz-tanim-sessiz-ayrisma]]). Tablo TEK KAYNAKTAN türetilir: ASA'nın
+     yüzdesi değişirse ABS kendiliğinden takip eder, ikinci bir sayı bakımı gerekmez.
+     Sayfa üreteci (tools/build.py) AYNI haritayı okuyup AYNI türetmeyi uygular; harita
+     JSON-ayrıştırılabilir düz bir nesnedir, iki dil aynı satırdan beslenir. */
+  var FILAMENT_TUREME = { "ABS": "ASA" };
+  for (var _turAd in FILAMENT_TUREME) {
+    if (Object.prototype.hasOwnProperty.call(FILAMENT_TUREME, _turAd)) {
+      FILAMENT_FARK[_turAd] = FILAMENT_FARK[FILAMENT_TUREME[_turAd]];
+    }
+  }
+  var FILAMENT_SIRA = ["PLA", "PETG", "ASA", "ABS", "TPU"];
+
+  /* 🔴 MALZEME × KATEGORİ KAPISI — TEK KANONİK TABLO (14 Ağu, işletme kararı).
+     ABS ısınan ortamların mühendislik malzemesidir; ev/ofis/dekor/oyuncak sınıfı ürünlerde
+     müşteriye SUNULMAZ. Tablo burada TEK yerde durur: site seçim listesi (ürün sayfası
+     çipleri + parametrik dropdown, tools/build.py) ve shop Worker'ı AYNI tabloyu okur.
+     Kısıtsız malzemeler tabloda HİÇ görünmez (boş liste yazmaya gerek yok).
+
+     🔴 FAIL-CLOSED — "UI'dan gizlemek ödeme yolunu KAPATMAZ": bu depoda ölçüldü
+     ([[ui-kaldirmak-odeme-yolunu-kapatmaz]]) — seçici kaldırıldığı hâlde sunucu aynı
+     çarpanı uygulamaya devam etti. Bu yüzden kural bir GÖRÜNÜRLÜK kuralı değil, bir
+     KABUL kuralıdır: Worker hariç kategoride ABS'li kalemi 400 ile reddeder ve fiyat
+     hesabına SOKMAZ. Kategori çözülemiyorsa (boş / tanınmayan ad) cevap yine HAYIR'dır;
+     "bilinmiyorsa göster" yönü sessizce satış açardı. */
+  var FILAMENT_KATEGORI_HARIC = {
+    "ABS": ["Ev", "Ofis", "Dekorasyon", "Skan Art", "Oyun/Hobi"]
+  };
+
+  /* Ölçüye özel (sarı) serinin kategori adı. Kısıtlı malzemede kategori TANINMALI olduğu
+     için tanınan evrene bu ad da girer; FONKSIYONEL_KATEGORILER'de yoktur (o liste
+     "kart seçici basılan" kategorilerdir, parametrik seri oraya girmez).
+     İKİNCİ BİR KATEGORİ DEFTERİ DEĞİLDİR: sayfa üreteci bu adın kendi NAV_GIZLI
+     listesinde bulunduğunu build sırasında fail-closed doğrular (ayrışırsa build DÜŞER). */
+  var PARAMETRIK_KATEGORI = "Jeneratör";
   var RENK_SECENEKLERI = ["Siyah", "Beyaz", "Gri", "Diğer"];
   var RENK_DIGER_YUZDE = 15;
 
@@ -208,6 +246,32 @@
 
   function fonksiyonelMi(kategori) {
     return FONKSIYONEL_KATEGORILER.indexOf(kategori) !== -1;
+  }
+
+  /* Kısıtlı malzeme kuralının TANIDIĞI kategori evreni: seçici basılan kategoriler +
+     ölçüye özel serinin kategorisi. Yeni bir liste TUTULMAZ, ikisinden türetilir. */
+  function _kategoriTaninirMi(kategori) {
+    return fonksiyonelMi(kategori) || kategori === PARAMETRIK_KATEGORI;
+  }
+
+  /* 🔴 KANONİK KARAR: bu malzeme BU kategoride sunulabilir/kabul edilebilir mi?
+     Site seçim listesi de Worker kabulü de BU fonksiyondan geçer — ikiz kural YOK.
+     Kısıtsız malzemede (tabloda yoksa) cevap DAİMA evet: bugünkü davranış birebir korunur.
+     Kısıtlı malzemede kategori tanınmıyorsa (boş, null, sayı, bilinmeyen ad) cevap HAYIR. */
+  function malzemeKategoriUygunMu(malzeme, kategori) {
+    if (!Object.prototype.hasOwnProperty.call(FILAMENT_KATEGORI_HARIC, malzeme)) { return true; }
+    if (typeof kategori !== "string" || !_kategoriTaninirMi(kategori)) { return false; }
+    return FILAMENT_KATEGORI_HARIC[malzeme].indexOf(kategori) === -1;
+  }
+
+  /* Kategoriye göre SEÇİM LİSTESİ — FILAMENT_SIRA'nın kategori süzülmüş hâli.
+     Sıra korunur; süzgeç yalnızca eleme yapar. */
+  function kategoriFilamentSirasi(kategori) {
+    var out = [];
+    for (var i = 0; i < FILAMENT_SIRA.length; i++) {
+      if (malzemeKategoriUygunMu(FILAMENT_SIRA[i], kategori)) { out.push(FILAMENT_SIRA[i]); }
+    }
+    return out;
   }
 
   function boyFarki(urun, boyEtiket) {
@@ -688,7 +752,11 @@
       }
     }
     for (i = 0; i < adaylar.length; i++) {
-      if (FILAMENT_FARK.hasOwnProperty(adaylar[i])) {
+      /* 🔴 KATEGORI SUZGECI (14 Agu): harıc kategoride SUNULMAYAN bir malzeme ON-SECILI
+         GELEMEZ. Gelseydi, cipi hiç basılmayan bir malzeme sepete yazılır ve müşteri
+         sayfada göremediği bir katsayıyla (ABS = ASA, +%60) fiyatlanırdı. */
+      if (FILAMENT_FARK.hasOwnProperty(adaylar[i]) &&
+          malzemeKategoriUygunMu(adaylar[i], urun.kategori)) {
         return { tani: TANI_ONERI, malzeme: adaylar[i] };
       }
     }
@@ -1325,6 +1393,11 @@
   root.PRUVO_SECENEK = {
     FILAMENT_FARK: FILAMENT_FARK,
     FILAMENT_SIRA: FILAMENT_SIRA,
+    FILAMENT_TUREME: FILAMENT_TUREME,
+    FILAMENT_KATEGORI_HARIC: FILAMENT_KATEGORI_HARIC,
+    PARAMETRIK_KATEGORI: PARAMETRIK_KATEGORI,
+    malzemeKategoriUygunMu: malzemeKategoriUygunMu,
+    kategoriFilamentSirasi: kategoriFilamentSirasi,
     RENK_SECENEKLERI: RENK_SECENEKLERI,
     RENK_DIGER_YUZDE: RENK_DIGER_YUZDE,
     TUR_FIZIKSEL: TUR_FIZIKSEL,

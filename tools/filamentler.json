@@ -41,14 +41,14 @@
     },
     {
       "ad": "ABS",
-      "site": false,
+      "site": true,
       "kisaEtiket": "Isıya dayanıklı",
       "isiDayanimi": "~95-100°C",
       "uv": "Orta",
       "su": "Yüksek",
       "darbe": "Yüksek",
-      "kisa": "Isınan ortamlar için mühendislik malzemesi; WhatsApp'tan özel talep edilir.",
-      "uzun": "Isıya dayanıklı mühendislik malzemesi (~95-100°C). Motor bölmesi yakını, cihaz içi ve ısınan ortamlar için uygundur. Dayanıklı ve işlenebilirdir; doğrudan güneş altında uzun süreli kullanım için ASA daha iyi seçimdir. Standart malzeme seçeneklerimizin dışındadır; WhatsApp'tan özel talep olarak değerlendiririz."
+      "kisa": "Isınan ortamlar için ısı dayanımı yüksek malzeme; ev/ofis/dekor grubunda sunulmaz.",
+      "uzun": "Isıya dayanıklı mühendislik malzemesi (~95-100°C). Motor bölmesi yakını, cihaz içi ve ısınan ortamlar için uygundur. Dayanıklı ve işlenebilirdir; doğrudan güneş altında uzun süreli kullanım için ASA daha iyi seçimdir. Ev, ofis ve dekoratif ürün gruplarında seçenek olarak sunulmaz."
     },
     {
       "ad": "TPU",

@@ -62,7 +62,11 @@ aralıklar — abartma, taahhüt sayılır; "3D baskı" İFADESİ HİÇBİR MET�
 
 `Otomobil, Motosiklet, Bisiklet: [PETG, ASA]` (ilki varsayılan tavsiye; ASA "güneş gören parça"
 notuyla) · `Marin: [ASA]` · `Bahçe: [PETG, ASA]` · `Ev, Ofis, Dekorasyon, Oyun/Hobi: [PLA]` ·
-`Elektronik, Kamera: [PETG, ABS]` (ABS "ısınan ortam" notuyla) · `Tamirat: [PETG]`.
+`Elektronik, Kamera: [PETG, ASA]` (ASA "ısınan ortamda" notuyla) · `Tamirat: [PETG]`.
+(14 Ağu düzeltmesi: bu satır uzun süre `[PETG, ABS]` yazıyordu ve canlı
+`filament-veri.js kategoriTavsiye` ile ÇELİŞİYORDU — belge koda göre düzeltildi, kod
+DEĞİŞTİRİLMEDİ. Tavsiye haritası ile SATILAN malzeme listesi ayrı eksenlerdir: ABS 14
+Ağu'da satışa açıldı ama hiçbir kategoride varsayılan TAVSİYE değildir.)
 Override alanı `tavsiyeFilament` varsa harita yerine o geçer.
 
 ## UI (saf HTML/CSS/JS; kütüphane YOK; lacivert #12294d düzeni)

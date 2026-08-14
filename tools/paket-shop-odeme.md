@@ -15,7 +15,9 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
 ## OKAN'IN KARARLARI (16 Tem)
 
 1. **Filament fiyatı katsayılı (Okan ONAYLI, 16 Tem — kesin değerler):** liste fiyatı = PLA
-   taban. `PLA 1.00 / PETG 1.30 / ABS 1.50 / TPU 1.55 / ASA 1.60 / Karbon katkılı 2.00`.
+   taban. `PLA 1.00 / PETG 1.30 / TPU 1.55 / ASA 1.60 / ABS 1.60 / Karbon katkılı 2.00`
+   (14 Ağu: ABS satışa geri açıldı ve fiyatta ASA ile BİREBİR — değeri `FILAMENT_TUREME`
+   ile ASA'dan türer; ABS ev/ofis/dekor sınıfı kategorilerde seçilemez. Karbon KAPALI kalır).
    TEK yerde config; Okan sonradan değiştirebilir. (Önceki taslak 1.15/1.30 GEÇERSİZ.)
    TPU (esnek) seçenek listesine DAHİL — malzeme metinleri `tools/filamentler.json`'dan.
 2. **Renk (Okan KESİN kararı, 16 Tem): Siyah / Beyaz / Gri (fark yok) + "Diğer" (+%15).**
@@ -84,8 +86,8 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
 7. **Regresyon:** `node tools/parite-test.js` ve `node tools/parite-ege.js` YEŞİL kalır
    (arama koduna dokunulmuyor ama D1'e şema eklendiği için koşulacak).
 8. **Katsayı doğruluğu (Okan uyarısı: başka oturumlar YANLIŞ hesapladı):** 100 TL'lik ürün için
-   beklenen fiyatlar birebir doğrulanır: PLA 100 / PETG 130 / ABS 150 / TPU 155 / ASA 160 /
-   Karbon 200 TL. **YUVARLAMA YAPILMAZ (Okan, 16 Tem):** küsurat aynen korunur ve kuruşuyla
+   beklenen fiyatlar birebir doğrulanır: PLA 100 / PETG 130 / TPU 155 / ASA 160 / ABS 160
+   (ASA ile aynı) / Karbon 200 TL. **YUVARLAMA YAPILMAZ (Okan, 16 Tem):** küsurat aynen korunur ve kuruşuyla
    tahsil edilir — örn. 333×1.30 = 432,90 TL. Test: 333 TL'lik üründe PETG fiyatı TAM 432,90;
    sepet toplamı = kalemlerin kuruşlu fiyatlarının toplamı (ara yuvarlama da yok). Gösterim
    2 ondalık, TL formatı virgüllü. **Adet dahil:** 3 adet 333 TL'lik ürün PETG'de satır tutarı
