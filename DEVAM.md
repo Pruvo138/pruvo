@@ -1,5 +1,32 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 14 Agu 2026 (aksam) — 🔴 PARITE KOK NEDENI OLCULDU: SOZLUK VAR, DAL BAGLI DEGIL (KraL, interaktif)
+
+**KALEM KAPANDI (teshis): site paritesi 299/300'un kok nedeni bulundu, sinif KESIN.**
+Olcum Codex isciye delege edildi (salt-okuma, `DEGISTIRILEN_DOSYA=0`); hukum bende.
+
+**SAYILAR:** `parite-test.js` rc=1 · 1328 sorgu · 3 aciklanamayan (**ucu de TEK sinif**).
+- `q="arac"`: yerel **20808** · `/ara` **7826** · `workers.dev/ara` **7826** · `/ara&mod=ege` **20890**
+- Kontrol terimi `q="fren"` (es-anlamlisi YOK): yerel **365** = `/ara` **365** = `mod=ege` **365**
+- Diger iki sapma ayni sinif: `q="Otomobil"` 20671/20808 · `q="MX-30 arac"` 0/2
+- `/katalog` sorgu KABUL ETMIYOR (her terimde `toplam=27078`, `q=null`) → sorgulanabilir uc YOK
+
+**KOK NEDEN:** es-anlamli sozlugu (`oto/otomobil/araba/arac`) Worker'da **VAR** ama SQL'e
+yalniz `mod=ege` dalinda aktariliyor; parite testinin olctugu **varsayilan `/ara` dali
+genisletme YAPMIYOR**. Site kolu genisletiyor. Yani sozlugun VARLIGI, dala BAGLI oldugunu
+kanitlamaz → [[ikiz-tanim-sessiz-ayrisma]] sinifi.
+**"Worker bayat" ekseni KESIN OLARAK ELENDI:** es-anlamlisi olmayan terim (`fren`) uc yuzeyde
+de birebir esit; bayatlik/gecikme olsaydi o da sapardi. HocA'nin tazelik olcumu DOGRU'ydu —
+eksen yanlisti.
+
+**DEVREDILDI → HocA (Worker kolu, `pruvo-bot/worker/src/index.js`):** (1) varsayilan `/ara`
+dalinda genisletmenin YOKLUGU **kasit mi eksik mi** — kasitsa testin olctugu uc degisir
+(bende), eksikse tek sozluk iki dala baglanir; (2) **ikinci alt-eksen:** `mod=ege` dali da
+yerelle TAM esmiyor (**20890 vs 20808, 82 fark**) → "mod=ege'yi olc" tek basina kirmiziyi
+KAPATMAZ.
+**BENDE KALAN:** `parite-test.js` ciktisi `[site]` etiketi basiyor ama olctugu uc Worker
+(`pruvo-whatsapp-bot/ara`) — etiket/ad duzeltmesi, ayri kalem.
+
 ## 14 Agu 2026 — 🔚 OTURUM KAPANISI (KraL, interaktif)
 
 **KOSUYOR:** yok. Tum Codex delegasyonlari kapandi (13 cagri), `worktree list` **tek satir**,
@@ -14,9 +41,7 @@ anlatiyor · `e084df00` K80 bos girdi kolu · `d6e8881e` musteri notu + panel gr
 **Shop worker DEPLOY: VERSION 34d4db64** (Okan onayi, bayatlik 0'a indi).
 
 **BEKLIYOR / BLOKE:**
-- **Site paritesi 299/300** (`q="arac"` yerel 20808 / canli 7826) — TEMIZ HEAD'de de dusuyor,
-  D1 bayat DEGIL. "Worker bayat" atfim HocA olcumuyle CURUTULDU; **kok neden ACIK**, katman
-  belirsiz (/katalog ya da site tarafi). **BENDE**, ilk isim.
+- ~~Site paritesi 299/300 kok neden~~ → **OLCULDU, en ustteki bloga bak** (HocA'ya devredildi).
 - **K99** REF ↔ siparis bag kolonu yok — **spec ArTisT'te** (Okan karari), Worker/D1 tarafi bende.
 - **Defter sinif kapisi, ucuncu mesru bicim:** "is akisi ADI + kosum ID" listesi hala kirmizi
   yakiyor (bugun iki mesru bicim muaf edildi: kapi adi + olcum sonucu; ucuncusu kaldi).
@@ -53,94 +78,13 @@ TASINDI) · K20 "son-zorunlu" **0 isabet** (ls-files/dal/tag/log dorttu de 0) ·
 dogrulandi), 2 SPEC arsive · K34 kutu **348→271** satir (arsiv 27.208).
 Koktekі 3 kimlik dosyasi OLCULDU → **ucu de CANLI** (ref 40/48/17), silinmedi.
 
-**ACIK (bende):** site paritesi **299/300** — `q="arac"` yerel 20808 / canli 7826. TEMIZ
-HEAD'de de dusuyor (`TABAN_RC=1`), D1 bayat DEGIL (27078=27078). 🔴 Kok neden **ACIK**:
-"`/ara` Worker bayat" ATFIM **CURUTULDU** (HocA rowid-DESC olcumu: Worker taze, 494 ms
-gercek D1 gecikmesi). Baska katman (/katalog ya da site tarafi) — ayri kalem.
-
 **🔴 GUNUN DORDUNCU DERSI:** *devraldigin CIKARIMI kendi olcumun sanma.* Parite kirmizisini
 defterden gelen "Worker bayat" cumlesiyle acikladim; sayi bendendi ama SEBEP degildi ve
 yanlis cikti. Bugun ayni sinif dort kez tekrarladi (fikstur bagimliligi · alarm cikarimi ·
 kapi kapsamı · devralinan atif). Kural: **sebebi kim olctu?** diye sor.
 
-## 14 Agu 2026 — 🟢 KAPANIS: YAYIN ACILDI + YEDEK GERI GELDI (KraL, interaktif)
-
-**HUKUM KOSUMDAN GELDI:** `Build & deploy` kosumu **`31792482488`** (HEAD `b2e8eb58`) →
-**SUCCESS**, **6/6 job yesil** (`serit-a2` · `serit-a3` · `serit-a4` · `build` · `deploy` ·
-`yayin`). `deploy` ve `yayin` **skipped DEGIL, KOSTU.** Bu, K98 (serit-a3) + K85 (serit-a2)
-onarimlarini birlikte tasiyan ILK kosum.
-
-**ONCE / SONRA (durum.py bolum 9):**
-- ONCE: 🔴 **TIKALI (rc 3)** — canli main'den **6 commit** geride, en eski bekleyen **115 dk**,
-  2 ardisik kosum yayinlamadan bitmis, son yayinlanan `dd68cd7a`.
-- SONRA: 🟢 **AKIYOR (rc 0)** — 1 commit bekliyor (2 dk), ardisik iptal 0, ardisik hata 0,
-  son yayinlanan **`b2e8eb58`**.
-
-**YEDEK (bolum 7):** ONCE "ÖLÇÜLEMEDİ + YARIM KALMIS YEDEK" → SONRA **"taze: son yedek 3 dk
-once — memory 227 + skills 19 + repo 4"**. `86e7a035`. Kok neden macOS izni DEGILMIS: eski
-`backup/` altindaki Drive nesneleri bizim kimligimizle kullanilamiyordu (yeni dosya
-olusturma/ezme/silme SERBEST ama **listeleme EPERM**). Taze kok (`backup-v2`) sinifi atladi;
-kok adi artik bes yerde degil TEK SABIT ve `durum.py` de ondan TURETIYOR.
-
-**BOLUM 8:** kancalar **18 eksen yesil**. **BOLUM 3:** artik dal **0**.
-**Katalog 27066** (MaCiT d7 dilimi +65 canliya girdi, ayni pencerede).
-
-**OKAN'DA KALAN (1):** eski `<Pruvo>/backup` klasoru Drive arayuzunden `backup-v2/` icine
-surukle-birak ile tasinacak (`os.rename` EPERM verdi; SILINMEDI, yerinde duruyor).
-
-**🟢 KAPANDI — `media.pruvo3d.com` PURGE BORCU YOKMUS (iddia CURUDU, token GEREKMEDI).**
-Defterdeki kalem "son partide 38 gorselin 19'u 404 (`cf-cache-status: HIT`), 100'luk ornekte
-17, **TTL 1 YIL kendiliginden duzelmez**, tekil purge + Zone.Cache Purge token'i gerekir"
-diyordu. **IKI BAGIMSIZ EKSENDE olculdu, 404 SAYISI SIFIR:**
-- bilinen-arizali parti: id'si `c3d-` ile baslayan **58 urunun 127 gorselinin 127'si 200**
-  (ayni kume onceden 19/38 404 vermisti);
-- katalogun EN ESKI **1500** URL'i → **1500'u 200**;
-- ilk sondada en YENI 1500 URL'i → **1500'u 200**. Toplam **3127 URL, 404 = 0, ARIZA = 0**.
-Ornek cevabin `cf-cache-status` degeri **MISS** — yani bu uc CDN'de uzun sureli tutulmuyor.
-**Kok yanlis: "Cloudflare 404'u 1 yil onbellekte tutar" cikarimi.** `max-age=31536000`
-BASARILI cevabin basligiydi; negatif cevabin omru cok daha kisadir ve kendiliginden dustu.
-Gercek kok neden (`47389674`, readback'in CDN yerine S3 sondasina alinmasi) zaten yeni
-negatif kayit URETILMESINI durdurmustu; kalan sey bekleyerek gecti.
-⚠️ KAPSAM DURUSTLUGU: bu olcum **bu makinenin bagli oldugu CDN noktasindan**. Negatif
-onbellek noktaya ozeldir; hukum "olculen kapsamda borc YOK"tur, "her noktada temiz" DEGIL.
-
-**🔴 UCUNCU DERS (bugunun uctan ucuncusu):** *bir alarmin SAYISI dogru olabilir ama
-CIKARIMI yanlis olabilir.* "19/38 404" olcumdu ve dogruydu; "TTL 1 yil, kendiliginden
-duzelmez" ise CIKARIMDI ve yanlisti — ve gunlerce bir Okan-kapisi acik tuttu, hatta bugun
-bir kez de gereksiz sistem-ayari istettirdi. Alarmi kapatmadan once **olcumu degil
-cikarimi** yeniden sorgula.
-
-**ArTisT'e DEVREDILDI (Okan karari):** attribution sorusu cevaplandi + arastirma alani ona
-gecti; **K99** acildi (REF ↔ siparis bag kolonu YOK; spec ArTisT'te, Worker/D1 tarafi bende).
-
-**🔴 GUNUN IKINCI DERSI:** *"izin verildi ama hala duser"de siradaki soru "hangi ISLEM
-reddediliyor"dur.* Olusturma / ezme / silme / listeleme AYRI haklardir; biri reddedilirken
-otekiler serbest olabilir. "Klasor yazilabilir mi" sorusu bu vakada UC KEZ yanlis yonlendirdi
-ve bir kez de Okan'dan gereksiz yere sistem ayari istettirdi. Hipotezi degil **islemi** olc.
-
-## 14 Agu 2026 ~11:10Z — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
-
-SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=3 BULUNAN=3 TASINAN=3 ATLANAN=0 CIKAN=3 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=337:2026-08-14T12:37:34 HUKUM=SUPURULDU`. 3 mail (Build & deploy `ca146ce` · Paket tazeligi `ca146ce` · D1 uzlastirici `ebebb96`).
-COP_DENETIM: `MESRU=105 YANLIS=0 KAPSAM=105 ATFEDILMEYEN=25` → yanlis supurme izi YOK.
-
-CI BAGIMSIZ TEYIT (HEAD `ca146ced`): 3 koşum kırmızı: `Build & deploy serit-a2` (pre-push D1 kaynagi kabul testi) + `serit-a3` (Kanca kablosu davranis ayagi) + `Paket tazeligi` (adım-4 yayin gecikmesi + adım-9 iş bayatligi). 14:08 kod 116128af itildi (Okan emriyle); K98 (89941482) + K85-kapsam (6ee9ead2) + dal/oturum temizligi (b2e8eb5) geldi — `Build & deploy` YENI koşum (`31792482488`) **YESIL**, TÜM steps (serit-a2, serit-a3, serit-a4, build, deploy, yayin) basarili. CI zinciri çalışıyor; K91 (Odeme bayatlik) hâlâ OKAN-KAPISI (deploy kararı).
-
-§4.7.1 ONARIM KAPISI: `nobet-kapi.py --tur` → `HUKUM=ONCEKI_TUR_SURUYOR` (H7 kilidi, pid 72074). Codex spec'i scratchpad'e yazıldı (`/Users/okan/.claude/scratchpad/spec-kanca-kablo-kapsam.md`); Codex türetilirken K98 Okan tarafından itildi, **DEGISEN_DOSYALAR=YOK; yabancı K98 değişiklikleri korundu, YENI_KOSUM=YOK:BLOCKED**. K98 → K85 → b2e8eb5 ile sınıf kapandı.
-
-TAMIRCI BAKIM: bu turda K98 dagitildi+kapandi (KraL+Codex+Okan is birligi); K91 OKAN-KAPISI (madde 6); bakim 0/0.
-OKAN'A ÇIKIŞ: YOK (§5 — tüm Okan kararı gerektiren kalemler zaten K98 ile kapandı, K91 OKAN-KAPISI sinifinda).
-
-## 14 Agu 2026 ~14:14Z — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
-
-SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=4 BULUNAN=4 TASINAN=4 ATLANAN=0 CIKAN=4 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=364:2026-08-14T17:07:33 HUKUM=SUPURULDU`. 4 mail (Nöbet şeridi `e566e5a` · Paket tazeligi `e084df0` · Odeme yolu bayatlik nabzi `e084df0` · Odeme yolu bayatlik nabzi `ae50a9e`).
-COP_DENETIM: `MESRU=132 YANLIS=0 KAPSAM=132 ATFEDILMEYEN=26` → yanlis supurme izi YOK.
-
-CI BAGIMSIZ TEYIT (HEAD `393d4c82` "defter: K27 kapandi"): yeni fail YOK. Mevcut kırmızılar bilinen OKAN-KAPISI shop worker bayat sınıfı ("yayını DURDURMAZ"): `Paket tazeligi alarmi 31805974277` (e084df0, adım 9 shop worker nesli 771 dk, esik 120 dk) + `Odeme yolu bayatlik nabzi 31805905397` (e084df0, aynı sınıf). `Build & deploy 31808089155` 393d4c82 üzerinde **in_progress** (site deploy akıyor); `D1 sapma alarmi 31807875928` (e084df0) **SUCCESS** 14:06Z. Shop worker canlı KOD `8081ccdf-5301-4aa2-a2cd-a97e17310c67` (2026-08-13T20:36:20 UTC), bundle'da 4 yeni commit yayında yok → `npx wrangler deploy` (shop/) OKAN kararı.
-
-§4.7.1 ONARIM KAPISI: `nobet-kapi.py --tur` PID 41221 BASLANGIC 14:07:00Z (kapı çalışıyor, model katı bu görev).
-
-TAMIRCI BAKIM: ACIK_KALEM=10 KAPANAN=0 DAGITILAN=0 (uzun süredir bu şekilde, tüm OKAN-KAPISI sınıfında: K91 shop deploy + K86 SERIT-B zararsız; K98 önceki turda KAPANDI).
-OKAN'A ÇIKIŞ: YOK (§5 — rutin sonuç, mevcut alarm sınıfı OKAN'ın kendi karar penceresi).
+*(Arsive TASINDI — `DEVAM-ARSIV.md`, 14 Agu aksam budamasi: "🟢 KAPANIS: YAYIN ACILDI + YEDEK
+GERI GELDI" blogu + 11:10Z ve 14:14Z saatlik CI nobetleri.)*
 
 ## 14 Agu 2026 ~17:37Z — SAATLIK CI NOBETI (KraL, cron, ev=DOGRU)
 
