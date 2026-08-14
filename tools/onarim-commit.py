@@ -105,6 +105,33 @@ def stash_indeksi(kok: str, etiket: str) -> int:
     return -1
 
 
+def stash_sha_indeksi(kok: str, sha: str) -> int:
+    """Kendi girdimizin GUNCEL indeksini SHA ile bulur (-1 = yok).
+
+    `git stash drop` RAW SHA kabul ETMEZ (yalniz `stash@{i}`); bu yuzden SHA, yigin
+    listesindeki her girdinin `rev-parse stash@{i}` ciktisiyla KARSILASTIRILARAK guncel
+    indekse cevrilir. Etiket aramasindan (stash_indeksi) USTUNDUR: iki isci ayni etiketi
+    kullansa bile SHA ayrisir; indeks iki islem arasinda kaymis olsa bile SHA degismez."""
+    if not sha:
+        return -1
+    for i, _ in enumerate(satirlar(git(kok, "stash", "list").stdout)):
+        if git_ok(kok, "rev-parse", f"stash@{{{i}}}") == sha:
+            return i
+    return -1
+
+
+def es_zamanli_isci_sayisi(kok: str, kendi_sha: str) -> int:
+    """Yiginda KENDI girdimiz DISINDA kalan `onarim-commit:` etiketli girdi sayisi (S3).
+
+    Yarisi GORUNUR kilar: baska bir isci ayni anda onarim-commit.py kosturuyorsa sayi > 0.
+    Islem DURDURULMAZ (SHA ile guvenli), yalnizca uyari basilir."""
+    n = 0
+    for i, satir in enumerate(satirlar(git(kok, "stash", "list").stdout)):
+        if "onarim-commit:" in satir and git_ok(kok, "rev-parse", f"stash@{{{i}}}") != kendi_sha:
+            n += 1
+    return n
+
+
 def worktree_satirlari(kok: str) -> int:
     return len(satirlar(git(kok, "worktree", "list").stdout))
 
@@ -183,6 +210,7 @@ class Durum:
     def __init__(self) -> None:
         self.etiket = ""
         self.stash_once = 0
+        self.stash_sha = ""
         self.stash_kuruldu = False
         self.stash_dusuruldu = False
         self.worktree_yolu = ""
@@ -350,6 +378,12 @@ def main() -> int:
         bas((stash.stderr or stash.stdout).strip()[:800])
         return kapat(kok, durum, 2)
     durum.stash_kuruldu = True
+    # S1: kendi girdimizin SHA'sini PUSH'TAN HEMEN SONRA yakala — o an stash@{0} kesin bizim
+    # girdi (sonra indeks kayabilir, etiket bile baska iscide tekrarlanabilir; SHA degismez).
+    # S3: es-zamanli isci sayaci + STASH_SHA/STASH_YIGIN ciktiya.
+    durum.stash_sha = git_ok(kok, "rev-parse", "stash@{0}")
+    bas(f"ADIM3 STASH_SHA={durum.stash_sha} STASH_YIGIN={yeni_sayi} "
+        f"ES_ZAMANLI_ISCI={es_zamanli_isci_sayisi(kok, durum.stash_sha)}")
 
     # ---- ADIM 4: worktree + apply + add + commit --------------------------------------
     os.makedirs(os.path.dirname(wt_yolu), exist_ok=True)
@@ -367,8 +401,9 @@ def main() -> int:
         bas("HATA WORKTREE_SONRA noktasinda kesildi — worktree + dal + stash KORUNDU.")
         return kapat(kok, durum, 3)
 
-    # F5/F6: `apply` (pop DEGIL) — stash basariya kadar ag olarak DURUR.
-    uygula = git(wt_yolu, "stash", "apply")
+    # F5/F6: `apply` (pop DEGIL) — stash basariya kadar ag olarak DURUR. S1: SHA ile uygula;
+    # argumansiz `apply` yigin TEPESINI (stash@{0}) alir = baska iscinin girdisini yayinlar.
+    uygula = git(wt_yolu, "stash", "apply", durum.stash_sha)
     bas(f"ADIM4A UYGULA_RC={uygula.returncode}")
     if uygula.returncode != 0:
         durum.hukum = "STASH_CAKISMASI"
@@ -466,9 +501,16 @@ def main() -> int:
     kalan = worktree_temizle(kok, durum)
     durum.worktree_yolu = ""
     durum.dal = ""
-    i = stash_indeksi(kok, durum.etiket)
-    dusur = git(kok, "stash", "drop", f"stash@{{{i}}}") if i >= 0 else git(kok, "stash", "list")
-    if i >= 0 and dusur.returncode == 0:
+    # S2: DROP da indeks/etiket degil SHA ile. SHA bulunamazsa DROP ETME (fail-closed):
+    # komsu oturumun isi yigunda KORUNUR.
+    i = stash_sha_indeksi(kok, durum.stash_sha)
+    if i < 0:
+        durum.hukum = "STASH_KORUNDU"
+        bas("HATA: kendi stash girdisi SHA ile bulunamadi — DROP EDILMEDI (STASH_KORUNDU).")
+        bas(f"ADIM7 WORKTREE_SATIR={kalan} STASH_DROP_RC=-1")
+        return kapat(kok, durum, 0)
+    dusur = git(kok, "stash", "drop", f"stash@{{{i}}}")
+    if dusur.returncode == 0:
         durum.stash_dusuruldu = True
     bas(f"ADIM7 WORKTREE_SATIR={kalan} STASH_DROP_RC={dusur.returncode}")
 

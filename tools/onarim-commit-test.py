@@ -405,6 +405,119 @@ def v10_kaynak_taramasi(arac: str, tepe: str) -> tuple[bool, str]:
     return True, "zorlamali/atlatma bayragi yok"
 
 
+def v11_stash_yarisi(arac: str, tepe: str) -> tuple[bool, str]:
+    """YARIS (bu isin kalbi): A push -> B push (WORKTREE_SONRA dikisi yigina IKINCI girdi
+    birakir) -> A apply -> A KENDI degisikligini alir (B'ninkini DEGIL). Commit iceriginde
+    A'nin dosyasi olmali, B'nin dosyasi OLMAMALI."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('A iscinin onarimi')\n")
+    kanca = "WORKTREE_SONRA:printf 'B\\n' > b-dosyasi.txt && git stash push -u -q -m onarim-commit:b-diger"
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "yaris", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py", kanca=kanca,
+    )
+    if sonuc.returncode != 0:
+        return False, f"rc={sonuc.returncode} bekleniyordu 0\n{sonuc.stdout}{sonuc.stderr}"
+    if hukum_al(sonuc.stdout) != "KAPANDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)}\n{sonuc.stdout}"
+    dosyalar = commit_dosyalari(yerel, "HEAD")
+    if dosyalar != ["tools/x.py"]:
+        return False, f"commit icerigi {dosyalar} (B'nin dosyasi sizdi)"
+    if "A iscinin onarimi" not in gs(yerel, "show", "HEAD:tools/x.py"):
+        return False, "A'nin icerigi commit'te degil (B uygulanmis olabilir)"
+    return True, "A kendi degisikligini aldi, B commit'e girmedi"
+
+
+def v12_drop_komsuyu_korur(arac: str, tepe: str) -> tuple[bool, str]:
+    """A drop -> B'nin girdisi yiginda AYNEN durur (komsunun isi dusmez)."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('A iscinin onarimi')\n")
+    kanca = "WORKTREE_SONRA:printf 'B\\n' > b-dosyasi.txt && git stash push -u -q -m onarim-commit:b-diger"
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "komsu", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py", kanca=kanca,
+    )
+    if sonuc.returncode != 0:
+        return False, f"rc={sonuc.returncode}\n{sonuc.stdout}{sonuc.stderr}"
+    liste = gs(yerel, "stash", "list")
+    if "onarim-commit:b-diger" not in liste:
+        return False, f"B'nin girdisi yiginda YOK (komsunun isi dustu):\n{liste}"
+    if "onarim-commit:komsu" in liste:
+        return False, f"A'nin kendi girdisi hala yiginda:\n{liste}"
+    return True, "A dustu, B yiginda AYNEN durdu"
+
+
+def v13_sha_yok_korunur(arac: str, tepe: str) -> tuple[bool, str]:
+    """SHA bulunamazsa drop YAPILMAZ ve girdi korunur (HUKUM=STASH_KORUNDU)."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "komsu.txt"), "komsu oturumun isi\n")
+    g(yerel, "stash", "push", "-u", "-m", "gecici: komsu")
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('A iscinin onarimi')\n")
+    kanca = "MERGE_ONCE:git stash drop 'stash@{0}'"
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "shayok", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py", kanca=kanca,
+    )
+    if sonuc.returncode != 0:
+        return False, f"rc={sonuc.returncode} (STASH_KORUNDU rc=0 olmaliydi)\n{sonuc.stdout}{sonuc.stderr}"
+    if hukum_al(sonuc.stdout) != "STASH_KORUNDU":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)} (STASH_KORUNDU bekleniyordu)\n{sonuc.stdout}"
+    if "gecici: komsu" not in gs(yerel, "stash", "list"):
+        return False, "komsu girdi korunmadi"
+    return True, "SHA yok -> DROP YOK, komsu korundu (STASH_KORUNDU)"
+
+
+def v14_alakasiz_eski_girdiler(arac: str, tepe: str) -> tuple[bool, str]:
+    """Yiginda ALAKASIZ eski girdiler varken (iki 'gecici: ...') arac dogru calisir ve
+    onlara DOKUNMAZ — bugunku gercek durum (yiginda 10 Agu'dan kalma girdiler var)."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "eski1.txt"), "eski1\n")
+    g(yerel, "stash", "push", "-u", "-m", "gecici: eski1")
+    yaz(os.path.join(yerel, "eski2.txt"), "eski2\n")
+    g(yerel, "stash", "push", "-u", "-m", "gecici: eski2")
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('A iscinin onarimi')\n")
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "eski", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py",
+    )
+    if sonuc.returncode != 0:
+        return False, f"rc={sonuc.returncode}\n{sonuc.stdout}{sonuc.stderr}"
+    if hukum_al(sonuc.stdout) != "KAPANDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)}\n{sonuc.stdout}"
+    liste = gs(yerel, "stash", "list")
+    if "gecici: eski1" not in liste or "gecici: eski2" not in liste:
+        return False, f"alakasiz eski girdi dustu:\n{liste}"
+    if "onarim-commit:eski" in liste:
+        return False, f"kendi girdimiz dusmedi:\n{liste}"
+    if len([s for s in liste.splitlines() if s.strip()]) != 2:
+        return False, f"yigin sayisi 2 bekleniyordu (yalniz 2 eski kalmali):\n{liste}"
+    return True, "eski girdiler korundu, yalniz kendi girdimiz dustu"
+
+
+def v15_es_zamanli_sayac(arac: str, tepe: str) -> tuple[bool, str]:
+    """ES_ZAMANLI_ISCI sayaci: yiginda onceden baska bir onarim-commit girdisi varken
+    sayac 1 basilir; STASH_SHA basilir; komsu girdi korunur."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "diger.txt"), "diger isci dosyasi\n")
+    g(yerel, "stash", "push", "-u", "-m", "onarim-commit:diger-isci")
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('A iscinin onarimi')\n")
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "sayac", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py",
+    )
+    if sonuc.returncode != 0:
+        return False, f"rc={sonuc.returncode}\n{sonuc.stdout}{sonuc.stderr}"
+    if hukum_al(sonuc.stdout) != "KAPANDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)}\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "ES_ZAMANLI_ISCI") != "1":
+        return False, f"ES_ZAMANLI_ISCI={alan(sonuc.stdout, 'ES_ZAMANLI_ISCI')} (1 bekleniyordu)\n{sonuc.stdout}"
+    if len(alan(sonuc.stdout, "STASH_SHA")) != 40:
+        return False, f"STASH_SHA={alan(sonuc.stdout, 'STASH_SHA')} (40 hex bekleniyordu)\n{sonuc.stdout}"
+    if "onarim-commit:diger-isci" not in gs(yerel, "stash", "list"):
+        return False, "diger iscinin girdisi korunmadi"
+    return True, "ES_ZAMANLI_ISCI=1 + STASH_SHA basildi + komsu korundu"
+
+
 VAKALAR = [
     ("V1  mutlu yol", v1_mutlu_yol),
     ("V2  F1 bos liste", v2_bos_liste),
@@ -418,6 +531,11 @@ VAKALAR = [
     ("V8  F8 yasak yol", v8_yasak_yol),
     ("V9  F7 kuru kosum", v9_kuru),
     ("V10 kaynak taramasi", v10_kaynak_taramasi),
+    ("V11 stash yarisi (A kendini alir)", v11_stash_yarisi),
+    ("V12 drop komsuyu korur", v12_drop_komsuyu_korur),
+    ("V13 SHA yok -> STASH_KORUNDU", v13_sha_yok_korunur),
+    ("V14 alakasiz eski girdiler", v14_alakasiz_eski_girdiler),
+    ("V15 es-zamanli isci sayaci", v15_es_zamanli_sayac),
 ]
 
 VAKA_ADI = {ad.split()[0]: (ad, fn) for ad, fn in VAKALAR}
@@ -464,10 +582,39 @@ MUTANTLAR = [
         'YASAK_ADLAR = ()',
         "V8", "F8 listesi bosaltilir: urunler.json commit'lenebilir olur",
     ),
+    (
+        # Q1 — stash yarisi kapanisi: argumansiz `apply` yigin tepesini (B'nin girdisini) alir.
+        '    uygula = git(wt_yolu, "stash", "apply", durum.stash_sha)',
+        '    uygula = git(wt_yolu, "stash", "apply")',
+        "V11", "S1 kaldirilir: apply argumansiz, yigin tepesi (baska iscinin isi) uygulanir",
+    ),
+    (
+        # Q2 — drop, SHA yerine sabit stash@{0}: komsunun girdisini duserir.
+        '    i = stash_sha_indeksi(kok, durum.stash_sha)',
+        '    i = 0',
+        "V12", "S2 kaldirilir: drop stash@{0} ile komsunun isini duserir",
+    ),
+    (
+        # Q3 — SHA yoksa yine de drop eder: koruma kosulu atlanir (STASH_KORUNDU YOK).
+        '\n    if i < 0:\n        durum.hukum = "STASH_KORUNDU"',
+        '\n    if False:\n        durum.hukum = "STASH_KORUNDU"',
+        "V13", "S2 kaldirilir: SHA bulunamasa da drop yoluna girer (fail-closed acilir)",
+    ),
+]
+
+# KONTROL mutanti: yalnizca YORUM degisir -> davranis DEGISMEZ -> hedef vaka YESIL kalmali.
+# (Batarya disiplini: davranis degistirmeyen bir mutasyon KIRMIZI yakmamali.)
+KONTROL_MUTANTLAR = [
+    (
+        '    # S3: es-zamanli isci sayaci + STASH_SHA/STASH_YIGIN ciktiya.',
+        '    # S3: es-zamanli isci sayaci + STASH_SHA/STASH_YIGIN ciktiya (kontrol: yorum).',
+        "V15", "KONTROL: yalniz yorum — davranis DEGISMEZ, vaka YESIL kalmali",
+    ),
 ]
 
 
 def mutasyon_bataryasi(kok_tmp: str) -> int:
+    """0=basari (tum oldurucular olduruldu + kontrol yesil), 1=basarisiz, 2=kanonik bozuldu."""
     kaynak = oku(KANONIK_ARAC)
     once_sha = hashlib.sha256(kaynak.encode()).hexdigest()
     kirmizi = 0
@@ -486,14 +633,37 @@ def mutasyon_bataryasi(kok_tmp: str) -> int:
         print(f"     eski: {eski.strip()}")
         print(f"     yeni: {yeni.strip()}")
         print(f"     vaka notu: {not_.splitlines()[0] if not_ else ''}")
+    kontrol_yesil = 0
+    print("KONTROL TABLOSU (eski -> yeni | vaka | sonuc)")
+    for j, (eski, yeni, vaka, gerekce) in enumerate(KONTROL_MUTANTLAR, start=1):
+        if kaynak.count(eski) != 1:
+            print(f"K{j} OLCULEMEDI: desen {kaynak.count(eski)} kez gecti -> {eski!r}")
+            continue
+        mutant = os.path.join(kok_tmp, f"kontrol-{j}.py")
+        yaz(mutant, kaynak.replace(eski, yeni, 1))
+        gecti, not_ = vaka_kos(vaka, mutant, kok_tmp)
+        durum = "YESIL ✅" if gecti else "KIRMIZI ❌"
+        if gecti:
+            kontrol_yesil += 1
+        print(f"K{j} [{vaka}] {durum}  {gerekce}")
+        print(f"     eski: {eski.strip()}")
+        print(f"     yeni: {yeni.strip()}")
+        print(f"     vaka notu: {not_.splitlines()[0] if not_ else ''}")
     sonra_sha = hashlib.sha256(oku(KANONIK_ARAC).encode()).hexdigest()
     print(f"KANONIK_SHA256_ONCE={once_sha}")
     print(f"KANONIK_SHA256_SONRA={sonra_sha}")
     if once_sha != sonra_sha:
         print("KIRMIZI: batarya kanonik kaynagi DEGISTIRDI")
-        return -1
+        return 2
     print(f"MUTANT_KIRMIZI={kirmizi}/{len(MUTANTLAR)}")
-    return kirmizi
+    print(f"KONTROL_YESIL={kontrol_yesil}/{len(KONTROL_MUTANTLAR)}")
+    if kirmizi < len(MUTANTLAR):
+        print("KIRMIZI: hayatta kalan oldurucu mutant var")
+        return 1
+    if kontrol_yesil < len(KONTROL_MUTANTLAR):
+        print("KIRMIZI: kontrol mutanti olduruldu (kanonik davranis bozuldu)")
+        return 1
+    return 0
 
 
 def main() -> int:
@@ -508,11 +678,11 @@ def main() -> int:
     kok_tmp = tempfile.mkdtemp(prefix="onarim-commit-test-")
     try:
         if mutasyon:
-            kirmizi = mutasyon_bataryasi(kok_tmp)
-            if kirmizi < len(MUTANTLAR):
-                print("SONUC: KIRMIZI ❌ (hayatta kalan mutant var)")
+            rc = mutasyon_bataryasi(kok_tmp)
+            if rc != 0:
+                print("SONUC: KIRMIZI ❌")
                 return 1
-            print("SONUC: YESIL ✅ (tum mutantlar olduruldu)")
+            print("SONUC: YESIL ✅ (tum mutantlar olduruldu, kontrol yesil)")
             return 0
 
         basarisiz = []
