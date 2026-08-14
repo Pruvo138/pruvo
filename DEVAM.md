@@ -1,5 +1,48 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 14 Agu 2026 (aksam) — MOTOR KARARI: ALTERNATIFLER OLCULDU, "DS VAZGECILMEZ Mİ" KAPANDI (KraL)
+
+**"DS'in vazgecilmez ozelligi var mi?" (Okan sorusu) → CEVAP: KANIT KIMSEDE YOK.**
+- **Hat ekseni (olculdu):** dort motor ayni binary + ayni dosya/arac seti + ayni izin kipi;
+  motor basina tarayici/dosya farki TANIMLI DEGIL. 1M otomatik sikistirma **yalniz M3'te**.
+- **Model kalitesi (OLCULMEDI):** rc=0 orani esit (15/15 · 15/15 · 4/4) ama bu depoda rc=0
+  kalite kaniti degil. **A/B YOK.**
+- **MaCiT cevabi (kutu):** DS-Pro secimi kendi olcumu DEGIL, `CLAUDE.md`'deki **yazili
+  varsayilan** ("metin/kod→DS · gorsel/multimodal→M3"). M3'te somut tikanma YASAMAMIS ama
+  M3'e hic gorselsiz metin-tarama VERMEMIS → o eksen bos.
+→ **Hukum: DS'i pahaliya ragmen tutmanin olculmus gerekcesi YOK.** Olculen her fark M3 lehine
+(~4x ucuz · 4,2x hizli · 1M sikistirma). DS'e yeni kredi ALINMIYOR ($1,27 fallback'te tukensin).
+**ISTEK MaCiT'e:** siradaki GORSELSIZ metin taramasi `minimax-m3` ile kosulacak (kota icinde,
+para YOK) → eslestirilmis A/B'nin yarisi. 4 eksen raporlanacak (sure · aday sayisi · sema
+bozulmasi/sebat · homonim isabeti). Gelirse `CLAUDE.md` yazili varsayilani OLCUMLE guncellenecek.
+
+**ALTERNATIF TARIFE OLCUMU (13 resmi kaynak, Okan "aylik tarife" tercihi):**
+| Aday | Aylik | Kota (token/ay) | $/milyar | Anthropic uc |
+|---|---:|---:|---:|---|
+| **M3 Plus (mevcut)** | $20 | ≈4,6 mlr (GERCEKLESEN) | **≈$4,3** | VAR |
+| M3 Max | $50 | yayimlanmiyor | OLCULEMEDI | VAR |
+| GLM Lite | $18 | ≈187-378M (TAHMIN) | ≈$47,6-96,3 | VAR |
+| Kimi Moderato | $19 | yayimlanmiyor | OLCULEMEDI | VAR |
+(Uc adresleri + plan basamaklari + 13 kaynak URL'i **ARSIVDE**; gerekce de orada.)
+**DORDU DE Anthropic-uyumlu** → ikisini birlikte eklemek mumkun (motor basina `isci.sh` 3 +
+`nobet-kapi.py` 3 = 12 nokta). ⚠️ **Tablonun tek KESIN satiri M3 Plus.** GLM kotasi "kredi"
+cinsinden, kredi→token donusumu resmi tabloda YOK (aralik TAHMIN); Kimi ve M3 Max kota
+sayisini hic yayimlamiyor. Yani hem GLM'i elemek hem Kimi'yi secmek su an TAHMIN olur
+([[tahmin-degil-olcum-okan-uyarisi]]). **Denemek = olcmek:** abonelik acilirsa ilk hafta
+temsili is verilip panelden token+kota okunacak, `$/milyar` GERCEKLESEN'den hesaplanacak.
+**Satin alma OKAN'DA** (hesap/odeme bana kapali).
+
+**HocA KAPATTI — parite kirmizisi BITTI:** `araD1`'e site sozlugu aynalandi (Worker Version
+`3daadb79`), canli `q=arac`/`q=oto`/`q=otomobil` **ucu de 20808**, kontrol `q=fren` **365**
+sabit, `parite-test.js` **400** + `parite-ege.js` **400** BIREBIR. Musteriye dokunan taraf:
+bugun "arac" arayan 7826 yerine **20808** urun goruyor.
+**🔴 K103 (BENDE, HocA bulgusu):** `tools/ara-maliyet-kapisi.py` **13 Agu'dan beri cokuyor**
+(`TypeError: can only concatenate str (not "tuple")` — `arama.py tokenlar()` arac sinifinda
+tuple donduruyor, kapi dize varsayiyor) VE kapi arama SQL'inin **kendi kopyasini** tutuyor
+(bugunun es-anlamli dalini kapsamiyor). Coken kapi OLCMEZ. Onarim worktree'de kosuyor: kol A
+tip uyumu, **kol B kanonikten TURETME** (kopya kalirsa sinif yarin tekrar kirilir) + iki
+mutasyon ayagi + fail-modu teshisi (LOUD mu OPEN mu — 2 gun olculmemis mi).
+
 ## 14 Agu 2026 (aksam) — 🟢 YAYIN ACILDI + OKAN'IN IKI KALEMI (KraL, interaktif)
 
 **🔴 KOK NEDEN — KENDI COMMIT'IM YAYINI DURDURMUSTU.** Okan "not alani yok" dedi; alan
