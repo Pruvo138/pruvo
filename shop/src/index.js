@@ -183,6 +183,12 @@ function istekCoz(govde) {
   const adres = metin(m.adres, 10, 500);
   const sehir = metin(m.sehir, 2, 60);
   const tckn = (typeof m.tckn === "string" ? m.tckn : "").replace(/[^0-9]/g, "");
+  // MUSTERI NOTU: istege bagli serbest metin. 500 karakteri asan istek REDDEDILIR
+  // (sessizce kirpmak, musteriye "gitti" yalani soyler). Kontrol karakterleri atilir,
+  // satir sonu KORUNUR. Bos ise '' yazilir; siparis ASLA bu yuzden dusmez.
+  const musteri_notu_ham = typeof govde.musteri_notu === "string" ? govde.musteri_notu : "";
+  if (musteri_notu_ham.length > 500) return { hata: "not-uzun" };
+  const musteri_notu = musteri_notu_ham.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").trim();
   if (!ad) return { hata: "musteri-ad" };
   if (tel.length < 10 || tel.length > 13) return { hata: "musteri-tel" };
   if (!eposta || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(eposta)) return { hata: "musteri-eposta" };
@@ -193,7 +199,7 @@ function istekCoz(govde) {
   const kc = kalemleriCoz(govde.sepet);
   if (kc.hata) return kc;
   return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler: kc.kalemler, odeme,
-           atif: atifTemizle(govde) };
+           atif: atifTemizle(govde), musteri_notu };
 }
 
 /** SEPET KALEMLERI — dogrulama TEK KAYNAK: /baslat (istekCoz) ve /fiyat (prova) AYNI
@@ -467,7 +473,7 @@ async function baslat(request, env, url, ctx) {
   }
   const c = istekCoz(govde);
   if (c.hata) return json(c, 400, env);
-  const { musteri, kalemler, odeme, atif } = c;
+  const { musteri, kalemler, odeme, atif, musteri_notu } = c;
   // Atif kimlikleri (GA client_id + Meta fbp/fbc + UTM) order kaydina yazilir; purchase event
   // (donus'ta, iyzico OK aninda) bunlari kullanir. Redirect'te URL param/cerez duser.
   const atifJson = JSON.stringify(atif || {});
@@ -509,21 +515,21 @@ async function baslat(request, env, url, ctx) {
     await env.KATALOG.prepare(
       "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
       " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
-      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, atif)" +
-      " VALUES (?, NULL, ?, 'havale-bekliyor', ?, ?, ?, 'havale', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu, atif)" +
+      " VALUES (?, NULL, ?, 'havale-bekliyor', ?, ?, ?, 'havale', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).bind(
       siparisNo, new Date().toISOString(), toplamKurus, kargoKurus, kdv.kdvKurus,
       onayDamgasi, JSON.stringify(satirlar),
       kolonBirlestir(satirlar, (s) => s.malzeme),
       kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),
-      musteri.ad, musteri.tel, musteri.eposta, acikAdres, atifJson
+      musteri.ad, musteri.tel, musteri.eposta, acikAdres, musteri_notu, atifJson
     ).run();
     ctx.waitUntil(telegram(env, havaleMesaji(siparisNo, satirlar, toplamKurus, kargoKurus,
-      tahsilatKurus, musteri, acikAdres)));
+      tahsilatKurus, musteri, acikAdres, musteri_notu)));
     // Musteriye onay e-postasi (tetik 1, havale basladi) + satici kopyasi.
     onayEpostalari(env, ctx,
       { siparis_no: siparisNo, musteri_ad: musteri.ad, musteri_adres: acikAdres,
-        musteri_eposta: musteri.eposta },
+        musteri_eposta: musteri.eposta, musteri_notu: musteri_notu },
       satirlar,
       { tutarKurus: toplamKurus, kargoKurus: kargoKurus, kdvKurus: kdv.kdvKurus,
         tahsilatKurus: tahsilatKurus }, true);
@@ -620,8 +626,8 @@ async function baslat(request, env, url, ctx) {
   await env.KATALOG.prepare(
     "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
     " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
-    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, atif)" +
-    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, 'kart', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu, atif)" +
+    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, 'kart', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).bind(
     siparisNo, init.token, new Date().toISOString(), toplamKurus, kargoKurus,
     kdv.kdvKurus, onayDamgasi,
@@ -629,7 +635,7 @@ async function baslat(request, env, url, ctx) {
     kolonBirlestir(satirlar, (s) => s.malzeme),
     // "Diğer" renkte musterinin yazdigi renk kaydedilir (uretim bunu okur), yoksa liste rengi
     kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),
-    musteri.ad, musteri.tel, musteri.eposta, acikAdres, atifJson
+    musteri.ad, musteri.tel, musteri.eposta, acikAdres, musteri_notu, atifJson
   ).run();
 
   return json({ url: init.paymentPageUrl, no: siparisNo }, 200, env);
@@ -810,7 +816,8 @@ async function donus(request, env, ctx) {
   // Uydurma token: bizde kaydi yok -> siparis OLUSMAZ, 4xx (kabul testi 2).
   const siparis = await env.KATALOG.prepare(
     "SELECT siparis_no, durum, durum_gecmisi, tutar_kurus, kargo_kurus, kdv_kurus, urunler, atif," +
-    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres FROM siparisler WHERE token = ?"
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu" +
+    " FROM siparisler WHERE token = ?"
   ).bind(token).first();
   if (!siparis) return json({ hata: "bilinmeyen-token" }, 404, env);
 
@@ -942,7 +949,8 @@ async function donus(request, env, ctx) {
 
 /** Havale bildirimi (kalem 6). DIKKAT: para HENUZ gorulmedi — metin "odeme geldi" tonunda
  *  OLAMAZ (kabul testi 13 bunu sinar); uretim ancak elle onaydan (KURULUM.md komutu) sonra. */
-function havaleMesaji(siparisNo, satirlar, urunKurus, kargoKurus, tahsilatKurus, musteri, acikAdres) {
+function havaleMesaji(siparisNo, satirlar, urunKurus, kargoKurus, tahsilatKurus, musteri, acikAdres,
+  musteri_notu) {
   // Beyan bos ise (fiziksel kalem) " — ASA / turuncu" ibaresi HIC basilmaz; bkz. kalemSecimi.
   const kalemler = satirlar.map((s) =>
     "• " + s.baslik + (kalemSecimi(s) ? " — " + kalemSecimi(s) : "") +
@@ -955,6 +963,7 @@ function havaleMesaji(siparisNo, satirlar, urunKurus, kargoKurus, tahsilatKurus,
     "\nGenel toplam: " + kurusTL(tahsilatKurus) +
     "\nMusteri: " + musteri.ad + " — " + musteri.tel +
     "\nAdres: " + acikAdres +
+    (musteri_notu ? "\nNot: " + musteri_notu : "") +
     "\nDekont gorulunce shop/KURULUM.md'deki wrangler komutuyla isaretle; " +
     "isaretlenmeden uretim baslamaz, bildirim atilmaz.";
 }
@@ -974,6 +983,7 @@ function siparisMesaji(siparis, det) {
     "\nGenel toplam: " + kurusTL(siparis.tutar_kurus + kargo) +
     "\nMusteri: " + siparis.musteri_ad + " — " + siparis.musteri_tel +
     "\nAdres: " + siparis.musteri_adres +
+    (siparis.musteri_notu ? "\nNot: " + siparis.musteri_notu : "") +
     "\niyzico odeme id: " + (det.paymentId || "?");
 }
 
@@ -981,15 +991,16 @@ function siparisMesaji(siparis, det) {
  *  ctx.waitUntil ile: yanit bloklanmaz; anahtar yok/gonderim hatasi Telegram'a duser, siparis
  *  akisini ASLA dusurmez (epostaAkisi try/catch'li). */
 function onayEpostalari(env, ctx, siparis, satirlar, dokum, havale) {
-  const html = onayEpostasiHtml(siparis, satirlar, dokum, havale);
+  const musteriHtml = onayEpostasiHtml(siparis, satirlar, dokum, havale, false);
+  const saticiHtml = onayEpostasiHtml(siparis, satirlar, dokum, havale, true);
   const olaylar = [];
   if (siparis.musteri_eposta) {
     olaylar.push({ kime: siparis.musteri_eposta, konu: "Sipariş onayı — " + siparis.siparis_no,
-                   html: html, etiket: "müşteri" });
+                   html: musteriHtml, etiket: "müşteri" });
   }
   if (env.BILDIRIM_EPOSTA) {
     olaylar.push({ kime: env.BILDIRIM_EPOSTA, konu: "Yeni sipariş — " + siparis.siparis_no,
-                   html: html, etiket: "satıcı" });
+                   html: saticiHtml, etiket: "satıcı" });
   }
   if (olaylar.length) {
     ctx.waitUntil(epostaAkisi(env, telegram, siparis.siparis_no, olaylar));

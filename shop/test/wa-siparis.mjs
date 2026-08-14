@@ -342,6 +342,8 @@ async function setB() {
   const sql = ins[0] ? ins[0].sql : "";
   const args = ins[0] ? ins[0].args : [];
   ol("INSERT kanal + dis_no kolonlarini tasir", /kanal, dis_no\)/.test(sql));
+  ol("INSERT musteri_notu kolonunu bos degerle tasir",
+     /musteri_adres, musteri_notu, atif/.test(sql) && /\?, '', '', \?, \?, \?\)/.test(sql));
   ol("token NULL yazilir (iyzico donusu bu satiri bulamaz)", /\(\?, NULL, /.test(sql));
   ol("bind: kanal='whatsapp'", args.includes("whatsapp"));
   ol("bind: dis_no", args.includes("PR-260801-110139"));

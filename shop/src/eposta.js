@@ -156,7 +156,7 @@ function cerceve(baslikMetin, icerik) {
  * Siparis onay e-postasi govdesi (tetik 1: odendi / havale-bekliyor).
  * @param dokum {tutarKurus, kargoKurus, kdvKurus, tahsilatKurus}
  */
-export function onayEpostasiHtml(siparis, satirlar, dokum, havale) {
+export function onayEpostasiHtml(siparis, satirlar, dokum, havale, satici = false) {
   const dokumTablo = "<table style='margin-top:12px;font-size:14px'>" +
     "<tr><td style='padding:2px 12px 2px 0'>Ara toplam</td><td style='text-align:right'>" +
       kurusTL(dokum.tutarKurus) + "</td></tr>" +
@@ -188,12 +188,17 @@ export function onayEpostasiHtml(siparis, satirlar, dokum, havale) {
   const caymaNot = caymaMetni
     ? "<p style='font-size:13px;color:#374151;margin:8px 0'>" + kac(caymaMetni) + "</p>"
     : "";
+  const musteriNotu = satici && siparis.musteri_notu
+    ? "<p style='margin-top:12px;font-size:14px;white-space:pre-wrap'><b>Müşteri notu:</b><br>" +
+      kac(siparis.musteri_notu) + "</p>"
+    : "";
   const icerik =
     "<p>Sipariş numaranız: <b>" + kac(siparis.siparis_no) + "</b></p>" +
     durumNot +
     caymaNot +
     satirTablosu(satirlar, sinif) +
     dokumTablo +
+    musteriNotu +
     "<p style='margin-top:12px;font-size:14px'><b>Teslimat adresi:</b><br>" +
     kac(siparis.musteri_ad) + "<br>" + kac(siparis.musteri_adres) + "</p>";
   return cerceve("Sipariş Onayı", icerik);

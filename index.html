@@ -1222,6 +1222,11 @@
     <input type="email" id="oEposta" name="email" autocomplete="email" placeholder="E-posta" required>
     <input type="text" id="oSehir" name="city" autocomplete="address-level2" placeholder="Şehir" required>
     <textarea id="oAdres" name="address" autocomplete="street-address" rows="2" placeholder="Açık adres" required></textarea>
+    <!-- MUSTERI NOTU (14 Agu 2026, Okan): istege bagli. Sunucu 500 karakteri asani
+         400 ile REDDEDER (sessiz kirpma YOK). Panel + Telegram + satici e-postasinda
+         gorunur; HTML ureten yuzeylerde KACISLANIR. -->
+    <textarea id="oNot" name="musteri_notu" rows="2" maxlength="500"
+      placeholder="Bize notunuz (isteğe bağlı) — renk, teslim tarihi, fatura vb."></textarea>
     <!-- Ödeme yöntemi (kalem 6): kartın YANINDA Havale/EFT. Havalede sipariş
          'havale-bekliyor' düşer; IBAN/unvan/tutar SUNUCUDAN gelir (tek kaynak: worker
          secret'ı) — bu sayfada IBAN kopyası tutulmaz. -->
@@ -2415,6 +2420,7 @@
           // Reklam atıf kimlikleri (UTM + GA client_id + Meta fbp/fbc) — sunucu order kaydına
           // yazar, purchase event kullanır (reklam-roi-sistemi.md Faz 0). Boşsa {} gider.
           atif: PRUVO_ATIF.topla(),
+          musteri_notu: document.getElementById("oNot").value,
           musteri: {
             ad: document.getElementById("oAd").value.trim(),
             tel: document.getElementById("oTel").value.trim(),

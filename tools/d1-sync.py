@@ -962,6 +962,7 @@ GOC_KOLON_SIPARIS = [
     # Dis sistemin KENDI siparis numarasi (Ege: PR-yyMMdd-HHmmss, sonek YOK). Mutabakat +
     # /wa-siparis idempotens anahtari. Site siparislerinde '' kalir.
     ("dis_no", "TEXT NOT NULL DEFAULT ''"),
+    ("musteri_notu", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # 🔴 dis_no TEKILLIGI ICIN AYRI BIR LISTE YOKTUR: kismi UNIQUE indeks asagidaki GOC_INDEKS

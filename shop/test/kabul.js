@@ -583,6 +583,101 @@ async function test3Idempotens(siparisNo, token) {
     "telegram bildirimi=" + m.telegramSayisi + " (beklenen 1, tekrarlanmadi)");
 }
 
+/** MUSTERI NOTU — iki site INSERT yolu, 500 siniri, bos not ve HTML kacislamasi. */
+async function testMusteriNotu() {
+  const hatalar = [];
+  const kalem = [{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }];
+  const kotuNot = "<img src=x onerror=alert(1)>\nTeslimden önce arayın";
+
+  const epostaOnce = (await mockOku()).epostaSayisi;
+  const kart = await baslatIstek(kalem, { musteri_notu: kotuNot });
+  const kartToken = (await mockOku()).sonToken;
+  const kartSatir = kart.govde.no ? d1Sorgu(
+    "SELECT musteri_notu FROM siparisler WHERE siparis_no = '" + kart.govde.no + "'")[0] : null;
+  if (kart.kod !== 200 || !kartSatir || kartSatir.musteri_notu !== kotuNot) {
+    hatalar.push("kart D1 notu=" + JSON.stringify(kartSatir) + " HTTP=" + kart.kod);
+  }
+  const donus = kartToken ? await donusIstek(kartToken) : { kod: 0 };
+  await bekle(250);
+  const kartMock = await mockOku();
+  const kartTelegram = String((kartMock.sonTelegram || {}).text || "");
+  if (donus.kod !== 303 || !kartTelegram.includes("Not: " + kotuNot)) {
+    hatalar.push("kart Telegram notu eksik: " + kartTelegram.slice(-120));
+  }
+  const yeniEpostalar = (kartMock.epostalar || []).slice(epostaOnce);
+  const musteriE = yeniEpostalar.find((e) => (e.to || []).includes(MUSTERI.eposta));
+  const saticiE = yeniEpostalar.find((e) => (e.to || []).includes(TEST_BILDIRIM));
+  if (!saticiE || String(saticiE.html || "").includes("<img src=x") ||
+      !String(saticiE.html || "").includes("&lt;img src=x onerror=alert(1)&gt;")) {
+    hatalar.push("satıcı e-postasında not kacisi yok");
+  }
+  if (musteriE && String(musteriE.html || "").includes("Teslimden önce arayın")) {
+    hatalar.push("musteri kopyasina musteri_notu sizdi");
+  }
+
+  const havaleNot = "Havale notu\nikinci satır";
+  const havale = await baslatIstek(kalem, { odeme: "havale", musteri_notu: havaleNot });
+  await bekle(150);
+  const havaleSatir = havale.govde.no ? d1Sorgu(
+    "SELECT musteri_notu FROM siparisler WHERE siparis_no = '" + havale.govde.no + "'")[0] : null;
+  const havaleTelegram = String(((await mockOku()).sonTelegram || {}).text || "");
+  if (havale.kod !== 200 || !havaleSatir || havaleSatir.musteri_notu !== havaleNot ||
+      !havaleTelegram.includes("Not: " + havaleNot)) {
+    hatalar.push("havale D1/Telegram notu eksik: " + JSON.stringify(havaleSatir));
+  }
+
+  const sayiOnce = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
+  const uzun = await baslatIstek(kalem, { musteri_notu: "x".repeat(501) });
+  const sayiSonra = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
+  if (uzun.kod !== 400 || uzun.govde.hata !== "not-uzun" || sayiOnce !== sayiSonra) {
+    hatalar.push("501 siniri=" + uzun.kod + "/" + uzun.govde.hata + " satir=" + sayiOnce + "->" + sayiSonra);
+  }
+
+  const tamNot = "y".repeat(499) + "\n";
+  const tam = await baslatIstek(kalem, { musteri_notu: tamNot });
+  const tamSatir = tam.govde.no ? d1Sorgu(
+    "SELECT musteri_notu FROM siparisler WHERE siparis_no = '" + tam.govde.no + "'")[0] : null;
+  if (tam.kod !== 200 || !tamSatir || tamSatir.musteri_notu !== "y".repeat(499)) {
+    hatalar.push("500 karakter gecmedi/temizlenmedi: " + tam.kod + " " + JSON.stringify(tamSatir));
+  }
+
+  const bos = await baslatIstek(kalem, { odeme: "havale", musteri_notu: "" });
+  const bosSatir = bos.govde.no ? d1Sorgu(
+    "SELECT musteri_notu FROM siparisler WHERE siparis_no = '" + bos.govde.no + "'")[0] : null;
+  if (bos.kod !== 200 || !bosSatir || bosSatir.musteri_notu !== "") {
+    hatalar.push("bos not siparisi dustu: " + bos.kod + " " + JSON.stringify(bosSatir));
+  }
+
+  const liste = await yonetIstek("GET", "/liste", null, undefined);
+  const panelSiparis = (liste.govde.siparisler || []).find((s) => s.siparis_no === kart.govde.no);
+  const panel = await istekHam("GET", WORKER_UC + "/yonet", { "X-Yonet-Anahtar": TEST_YONET });
+  const scriptBas = panel.metin.lastIndexOf("<script>");
+  const scriptSon = panel.metin.lastIndexOf("</script>");
+  let panelHtml = "";
+  if (panelSiparis && scriptBas >= 0 && scriptSon > scriptBas) {
+    const elemanlar = {};
+    const belge = { getElementById: (id) => {
+      if (!elemanlar[id]) elemanlar[id] = { value: "", innerHTML: "", style: {},
+        querySelectorAll: () => [] };
+      return elemanlar[id];
+    } };
+    const baglam = { document: belge, fetch: async () => ({ status: 200,
+      json: async () => ({ siparisler: [] }) }), navigator: {}, alert: () => {},
+      confirm: () => true, console: console, encodeURIComponent: encodeURIComponent };
+    vm.runInNewContext(panel.metin.slice(scriptBas + 8, scriptSon) +
+      "\n;globalThis.__kartHtml=kartHtml;", baglam);
+    panelHtml = baglam.__kartHtml({ ...panelSiparis, kalemler: [], izinli_gecisler: [] });
+  }
+  if (!panelSiparis || panelSiparis.musteri_notu !== kotuNot || panelHtml.includes("<img src=x") ||
+      !panelHtml.includes("&lt;img src=x onerror=alert(1)&gt;")) {
+    hatalar.push("panel notu/kaçışı eksik: " + panelHtml.slice(0, 160));
+  }
+
+  rapor("MUSTERI NOTU uctan-uca + sinir + kacislama", hatalar.length === 0,
+    "kart+havale D1; 501=400 not-uzun; 500/bos gecti; panel+satici e-posta kacisli" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
 /** 8 — KATSAYI DOGRULUGU (Okan uyarisi: baska oturumlar yanlis hesapladi).
  *  Beklenen degerler SPEC'ten SABIT yazilir (secenekler.js'ten TURETILMEZ): katsayi tablosu
  *  yanlis degistirilirse test bunu yakalamali, sessizce yeni degeri onaylamamali. */
@@ -1677,6 +1772,71 @@ async function test18YonetimYetkisi() {
     "anahtarsiz/yanlis liste=404, anahtarsiz sayfa=sifre kutusu; dogru anahtar (baslik) liste=" +
     (c4.govde.siparisler || []).length +
     " siparis; sayfa HTML ok; suzgec ok" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** PANEL GRUPLAMA — goruntu katmani sirasi, grup-ici sira, kapsam mutasyonu ve bos grup. */
+async function test18bPanelGruplama() {
+  const hatalar = [];
+  const panel = await istekHam("GET", WORKER_UC + "/yonet", { "X-Yonet-Anahtar": TEST_YONET });
+  const scriptBas = panel.metin.lastIndexOf("<script>");
+  const scriptSon = panel.metin.lastIndexOf("</script>");
+  const elemanlar = {};
+  const belge = { getElementById: (id) => {
+    if (!elemanlar[id]) elemanlar[id] = { value: "", innerHTML: "", style: {},
+      querySelectorAll: () => [] };
+    return elemanlar[id];
+  } };
+  const baglam = { document: belge, fetch: async () => ({ status: 200,
+    json: async () => ({ siparisler: [] }) }), navigator: {}, alert: () => {},
+    confirm: () => true, console: console, encodeURIComponent: encodeURIComponent, Set: Set };
+  if (panel.kod !== 200 || scriptBas < 0 || scriptSon <= scriptBas) {
+    return rapor("18b panel gruplama", false, "panel scripti alinamadi: " + panel.kod);
+  }
+  vm.runInNewContext(panel.metin.slice(scriptBas + 8, scriptSon) +
+    "\n;globalThis.__gruplar=siparisGruplariHtml;" +
+    "globalThis.__kapsam=durumKapsamiTam;" +
+    "globalThis.__tum=PANEL_TUM_DURUMLAR;globalThis.__sira=PANEL_GRUP_SIRASI;", baglam);
+
+  const siparis = (no, durum) => ({ siparis_no: no, durum: durum, tarih: "2026-08-14T10:00",
+    kanal: "site", tutar_kurus: 10000, kargo_kurus: 0, kdv_kurus: 1667,
+    odeme_yontemi: "kart", musteri: { ad: "A", tel: "T", adres: "D", eposta: "E" },
+    musteri_notu: "", kalemler: [], izinli_gecisler: [], durum_gecmisi: [], yazdir_komut: "x" });
+  const html = baglam.__gruplar([
+    siparis("TAM-9", "tamamlandi"), siparis("URE-8", "uretimde"),
+    siparis("ODE-7", "odendi"), siparis("INC-6", "incele"),
+    siparis("URE-5", "uretimde"), siparis("KAR-4", "kargolandi"),
+    siparis("HAV-3", "havale-bekliyor"), siparis("BAS-2", "basarisiz"),
+    siparis("BEK-1", "bekliyor"),
+  ]);
+  const basliklar = ["incele", "havale-bekliyor", "odendi", "uretimde", "kargolandi",
+    "tamamlandi", "bekliyor", "basarisiz"];
+  let onceki = -1;
+  for (const durum of basliklar) {
+    const konum = html.indexOf('data-durum="' + durum + '"');
+    if (konum <= onceki) { hatalar.push("sira bozuk: " + durum); }
+    onceki = konum;
+  }
+  if (html.indexOf("URE-8") > html.indexOf("URE-5")) {
+    hatalar.push("uretimde grup-ici yeni->eski bozuk");
+  }
+  if (html.includes('data-durum="iptal"')) { hatalar.push("bos iptal grubu basildi"); }
+  const normalKapsam = baglam.__kapsam(baglam.__tum, baglam.__sira);
+  const sentetikKapsam = baglam.__kapsam([...baglam.__tum, "sentetik-durum"], baglam.__sira);
+  if (!normalKapsam || sentetikKapsam) {
+    hatalar.push("TUM_DURUMLAR sentetik mutasyonu kirmizi yanmadi");
+  }
+  const digerHtml = baglam.__gruplar([
+    siparis("ODE-BILINEN", "odendi"), siparis("YENI-DURUM", "sentetik-durum"),
+  ]);
+  if (!digerHtml.includes('data-durum="diger"') || !digerHtml.includes("YENI-DURUM") ||
+      digerHtml.indexOf('data-durum="diger"') < digerHtml.indexOf('data-durum="odendi"')) {
+    hatalar.push("bilinmeyen durum en alttaki diger grubunda korunmadi");
+  }
+
+  rapor("18b panel gruplama", hatalar.length === 0,
+    "sira=incele>havale-bekliyor>odendi>uretimde>kargolandi>tamamlandi>bekliyor>basarisiz; " +
+    "grup-ici URE-8>URE-5; kapsam sentetik mutasyon=KIRMIZI+diger; bos iptal=yok" +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
@@ -2965,6 +3125,7 @@ async function main() {
     else { rapor("4m uctan uca (mock iyzico)", false, "test 1 basarisiz oldugu icin kosulamadi"); }
     if (token) { await test3Idempotens(siparisNo, token); }
     else { rapor("3 idempotens", false, "token alinamadi"); }
+    await testMusteriNotu();
     // 8/10, mock'un sonInit/sonToken durumunu tazeledigi icin 1/4m/3'ten SONRA kosar.
     await test8KatsayiDogrulugu();
     await test10Kargo();
@@ -2982,6 +3143,7 @@ async function main() {
     // Siparis yonetimi paketi (18-23). 23 worker'i ANAHTARSIZ yeniden baslatir —
     // bu yuzden HTTP'ye dokunan diger tum testlerden SONRA kosar.
     await test18YonetimYetkisi();
+    await test18bPanelGruplama();
     const uretimdeNo = await test19DurumMakinesi();
     await test20Kargo(uretimdeNo);
     await test21EpostaTetigi();

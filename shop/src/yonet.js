@@ -47,6 +47,13 @@ const TUM_DURUMLAR = new Set([
   "uretimde", "kargolandi", "tamamlandi", "iptal",
 ]);
 
+// Paneldeki is akisi sirasi. Liste sorgusu en yeni N siparisi secmeye devam eder;
+// bu sira YALNIZ tarayicidaki goruntu katmaninda uygulanir.
+const PANEL_GRUP_SIRASI = [
+  "incele", "havale-bekliyor", "odendi", "uretimde", "kargolandi",
+  "tamamlandi", "iptal", "bekliyor", "basarisiz",
+];
+
 function gecisGecerli(mevcut, hedef) {
   if (!TUM_DURUMLAR.has(hedef)) { return false; }
   if (hedef === "iptal") { return mevcut !== "iptal"; } // her durum -> iptal
@@ -442,7 +449,7 @@ async function liste(env, url) {
   const TABAN =
     "SELECT id, siparis_no, tarih, durum, tutar_kurus, kargo_kurus, kdv_kurus, odeme_yontemi," +
     " urunler, kargo_firma, kargo_kodu, durum_gecmisi," +
-    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres";
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu";
   // kanal/dis_no OPSIYONEL (goc kosmadiysa yok) -> merdiven; yoksa alanlar undefined kalir
   // ve asagida 'site'/'' varsayilanina duser (bugunku ekranin AYNISI).
   const kur = (alanlar) => {
@@ -556,6 +563,7 @@ async function liste(env, url) {
       izinli_gecisler: [...(IZINLI[s.durum] || []), ...(s.durum !== "iptal" ? ["iptal"] : [])],
       musteri: { ad: s.musteri_ad, tel: s.musteri_tel, eposta: s.musteri_eposta,
                  adres: s.musteri_adres },
+      musteri_notu: s.musteri_notu || "",
       kalemler: kalemler,
       // Yerel araç (Faz 2) komutu — sayfadaki "kopyala" düğmesi bunu panoya yazar.
       yazdir_komut: "python3 tools/yazdir.py " + s.siparis_no,
@@ -1017,9 +1025,9 @@ export async function waSiparis(request, env) {
     await env.KATALOG.prepare(
       "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
       " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
-      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, atif, durum_gecmisi," +
+      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu, atif, durum_gecmisi," +
       " kanal, dis_no)" +
-      " VALUES (?, NULL, ?, ?, ?, ?, ?, ?, '', ?, '', '', ?, ?, ?, ?, '', ?, ?, ?)"
+      " VALUES (?, NULL, ?, ?, ?, ?, ?, ?, '', ?, '', '', ?, ?, ?, ?, '', '', ?, ?, ?)"
     ).bind(
       siparisNo, simdi, durum, tutarKurus, kargoKurus, kdvKurus, odeme,
       JSON.stringify(satirlar),
@@ -1492,6 +1500,13 @@ details[open]>summary.ust::after{content:"▾"}
 .rozet.tamamlandi{background:#dcfce7;color:#166534}
 .rozet.iptal{background:#fee2e2;color:#991b1b}
 .rozet.havale-bekliyor{background:#fef9c3;color:#854d0e}
+.rozet.incele{background:#ffedd5;color:#9a3412}
+.rozet.odendi{background:#e0e7ff;color:#3730a3}
+.rozet.uretimde{background:#ede9fe;color:#5b21b6}
+.rozet.bekliyor{background:#f3f4f6;color:#4b5563}
+.rozet.basarisiz{background:#fce7f3;color:#9d174d}
+.siparis-grubu{margin:0 0 20px}
+.grup-baslik{display:block;margin:0 0 9px;padding:7px 12px;border-radius:8px;font-size:15px}
 /* KANAL rozeti — yalniz site DISI kanalda basilir (WhatsApp/Ege). Site siparisinde
    ekran bugunku gibi kalir (rozet HIC olusmaz). */
 .rozet.kanal{background:#dcfce7;color:#14532d}
@@ -1540,6 +1555,8 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
 </header>
 <main id="liste"><p>Yükleniyor…</p></main>
 <script>
+var PANEL_TUM_DURUMLAR=${JSON.stringify([...TUM_DURUMLAR])};
+var PANEL_GRUP_SIRASI=${JSON.stringify(PANEL_GRUP_SIRASI)};
 function esc(s){s=(s==null?"":""+s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")
  .replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function tl(k){k=Math.max(0,Math.floor(+k||0));var t=Math.floor(k/100),ku=(""+(k%100)).padStart(2,"0");
@@ -1664,6 +1681,8 @@ function kartHtml(s){
  // Site siparisinde (kanal yok ya da "site") kart bugunku HALIYLE kalir.
  var kanalRozet=(s.kanal&&s.kanal!=="site")?'<span class="rozet kanal">'+esc(s.kanal)+'</span>':'';
  var disNo=s.dis_no?'<div class="kucuk">Ege sipariş no: '+esc(s.dis_no)+'</div>':'';
+ var musteriNotu=s.musteri_notu?'<div class="kucuk" style="white-space:pre-wrap"><b>Not:</b> '+
+  esc(s.musteri_notu)+'</div>':'';
  // 🔒 KAPALI BASLIK (summary) OMUZ-USTU GIZLILIGI: siparis no · durum · kanal · tarih ·
  // toplam · kalem sayisi. Musteri adi/telefon/e-posta/adres BURAYA GIRMEZ — onlar
  // yalnizca kart ACILINCA (govdede) gorunur.
@@ -1679,6 +1698,7 @@ function kartHtml(s){
   disNo+
   '<div class="mus"><b>'+esc(s.musteri.ad)+'</b> · '+esc(s.musteri.tel)+'<br>'+esc(s.musteri.adres)+
    ' · '+esc(s.musteri.eposta)+'</div>'+
+  musteriNotu+
   '<div class="kucuk">Toplam '+tl(s.tutar_kurus)+' + kargo '+tl(s.kargo_kurus)+
    ' · KDV '+tl(s.kdv_kurus)+'</div>'+
   kalem+kargoBilgi+
@@ -1687,6 +1707,31 @@ function kartHtml(s){
   '</div>'+kargoForm+
   (gecmis?'<div class="gecmis">Geçmiş: '+gecmis+'</div>':'')+
   '</details>';
+}
+function durumKapsamiTam(tumDurumlar,grupSirasi){
+ var sira=new Set(grupSirasi);
+ return tumDurumlar.every(function(d){return sira.has(d);});
+}
+function siparisGruplariHtml(siparisler){
+ if(!durumKapsamiTam(PANEL_TUM_DURUMLAR,PANEL_GRUP_SIRASI)){
+  console.error("Panel grup sirasi TUM_DURUMLAR kapsaminda eksik");
+ }
+ var bilinen=new Set(PANEL_GRUP_SIRASI),html="";
+ PANEL_GRUP_SIRASI.forEach(function(durum){
+  var grup=siparisler.filter(function(s){return s.durum===durum;});
+  if(!grup.length)return;
+  html+='<section class="siparis-grubu" data-durum="'+esc(durum)+'">'+
+   '<h2 class="grup-baslik rozet '+esc(durum)+'">'+esc(durum)+
+   ' <span class="grup-sayi">('+esc(grup.length)+')</span></h2>'+
+   grup.map(kartHtml).join("")+'</section>';
+ });
+ var diger=siparisler.filter(function(s){return !bilinen.has(s.durum);});
+ if(diger.length){
+  html+='<section class="siparis-grubu" data-durum="diger">'+
+   '<h2 class="grup-baslik rozet">diğer <span class="grup-sayi">('+
+   esc(diger.length)+')</span></h2>'+diger.map(kartHtml).join("")+'</section>';
+ }
+ return html;
 }
 /**
  * KART ILK ACILDIGINDA uretim dosyasi listesini bir kez cek (lazy).
@@ -1711,7 +1756,7 @@ async function yukle(){
   '). Oturum düşmüş olabilir — sayfayı yenileyin.</p>';return;}
  var s=r.govde.siparisler||[];
  if(!s.length){m.innerHTML="<p>Sipariş yok.</p>";return;}
- m.innerHTML=s.map(kartHtml).join("");
+ m.innerHTML=siparisGruplariHtml(s);
  // open ile DOGAN kartlarda (odendi) tarayici 'toggle' olayini ATESLEMEZ —
  // lazy yukleme onlarda sessizce olmezdi. Render sonrasi elle tetiklenir.
  var acik=m.querySelectorAll("details.kart[open]");

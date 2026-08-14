@@ -1019,6 +1019,25 @@ async function test15SinifBeyani() {
     "ozel=bugunku metin · hazir=uretim dili yok + 14 gun · karma=iki sinif · edge kart `tur` tasiyor");
 }
 
+/** 16 — MUSTERI NOTU istemci kablosu: konum + maxlength + /baslat govdesi. */
+function test16MusteriNotuKablosu() {
+  const hatalar = [];
+  const adres = INDEX.indexOf('id="oAdres"');
+  const not = INDEX.indexOf('id="oNot"');
+  const odeme = INDEX.indexOf('id="odemeYontem"');
+  if (!(adres >= 0 && adres < not && not < odeme)) {
+    hatalar.push("oNot, oAdres ile odemeYontem arasinda degil");
+  }
+  if (!/<textarea id="oNot" name="musteri_notu" rows="2" maxlength="500"/.test(INDEX)) {
+    hatalar.push("oNot textarea/name/maxlength sozlesmesi eksik");
+  }
+  if (!/musteri_notu:\s*document\.getElementById\("oNot"\)\.value/.test(SCRIPT)) {
+    hatalar.push("/baslat JSON govdesi oNot.value tasimiyor");
+  }
+  rapor("16 musteri notu istemci kablosu", hatalar,
+    "oAdres sonrasi · odemeYontem oncesi · maxlength=500 · musteri_notu gonderiliyor");
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
@@ -1038,6 +1057,7 @@ async function main() {
   await test13KarisikSepet();
   await test14IstekSayisi();
   await test15SinifBeyani();
+  test16MusteriNotuKablosu();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);

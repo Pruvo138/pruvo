@@ -427,6 +427,10 @@ CREATE TABLE IF NOT EXISTS siparisler (
   -- sentetik client_id ile gonderilseydi web disi ciro "direct" satis gibi gorunup site ROI
   -- raporunu sisirirdi.
   kanal           TEXT NOT NULL DEFAULT 'site',
+  -- MUSTERI NOTU (14 Agu 2026, Okan): siparis formunda ISTEGE BAGLI serbest metin.
+  -- Bos dize = not yazilmadi. Panel + Telegram + satici e-postasi bu tek kolondan okur.
+  -- HTML ureten yuzeylerde KACISLANARAK basilir (eposta kac(), panel esc()).
+  musteri_notu TEXT NOT NULL DEFAULT '',
   -- DIS SIPARIS NUMARASI: kaynak sistemin KENDI numarasi (Ege: PR-yyMMdd-HHmmss, sonek YOK).
   -- Bu tablonun `siparis_no`'su HER ZAMAN burada uretilir (PR-yyMMdd-HHmmss-XXX); dis_no
   -- yalnizca MUTABAKAT anahtaridir (Ege'nin Sheet kaydiyla eslesme) ve /wa-siparis ucunun

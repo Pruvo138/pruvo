@@ -25,7 +25,8 @@ function ol(ad, kosul, detay) {
 
 // Ortak dokum/siparis (onayEpostasiHtml imzasi: siparis, satirlar, dokum, havale)
 const SIPARIS = { siparis_no: "PR-260717-120000-ABC", musteri_ad: "Test Musteri",
-  musteri_adres: "Test Mah. No:1 / Mugla" };
+  musteri_adres: "Test Mah. No:1 / Mugla",
+  musteri_notu: "<img src=x onerror=alert(1)>\nTeslimden önce arayın" };
 const DOKUM = { tutarKurus: 20000, kargoKurus: 25000, kdvKurus: 7500, tahsilatKurus: 45000 };
 
 // Kapak resmi OLAN kalem + resmi OLMAYAN (bos) kalem + resmi tanimSIZ (eski siparis) kalem.
@@ -90,6 +91,17 @@ const RESIM_TANIMSIZ = { id: "eski-siparis-parca", baslik: "Eski Sipariş Parça
   ol("5d kacisli onerror (&#39;) VAR", h.includes("onerror=&#39;") || h.includes("&#39; onerror=&#39;"));
   // Cokme yok: HTML uretildi ve cerceve tamamlandi.
   ol("5e cerceve tamam (cokme yok)", h.includes("</div>") && h.includes("PRUVO"));
+}
+
+// ---- 6) MUSTERI NOTU: yalniz satici kopyasi + kacisli HTML ----
+{
+  const musteri = onayEpostasiHtml(SIPARIS, [RESIMLI], DOKUM, false, false);
+  const satici = onayEpostasiHtml(SIPARIS, [RESIMLI], DOKUM, false, true);
+  ol("6a musteri kopyasinda not YOK", !musteri.includes("Teslimden önce arayın"));
+  ol("6b satici kopyasinda ham <img YOK", !satici.includes("<img src=x"));
+  ol("6c satici kopyasinda kacisli not VAR",
+    satici.includes("&lt;img src=x onerror=alert(1)&gt;") &&
+    satici.includes("Teslimden önce arayın"));
 }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));
