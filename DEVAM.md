@@ -373,6 +373,29 @@ bir sonraki commit'i durdurma riski taşır.)*
 
 OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, zincir aktif, yeni fail yok).
 
+## 14 Agu 2026 — 17:07 saatlik CI nöbeti turu — zincir aktif, yeni fail yok (KraL, nöbet)
+
+EV: `/Users/okan/dev/pruvo` ✅ (0. adım yeşil).
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=1 BULUNAN=1 TASINAN=1 ATLANAN=0 CIKAN=1 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=372:2026-08-14T20:08:16 HUKUM=SUPURULDU`. Tek mail: "Nöbet şeridi (d9da7d4b)" — eski koşum, HEAD öncesi (HEAD 86e3bba3, 3 commit sonrası).
+
+COP_DENETIM: `MESRU=140 YANLIS=0` → yanlis supurme izi YOK (COP_IZI 372).
+
+CI BAGIMSIZ TEYIT (HEAD `86e3bba3`, "merge: K103 coken ara-maliyet kapisi onarimi"):
+- ⏳ `Build & deploy 31822434270` (86e3bba3) **pending** — kuyrukta (17:06:08).
+- ⏳ `Nöbet şeridi 31822434123` (86e3bba3, SERIT B — yayını BLOKLAMAZ) **pending** — kuyrukta.
+- ✅ `D1 sapma alarmi 31822441189` (86e3bba3) success.
+- ✅ `Build & deploy 31822434072` (86e3bba3) success.
+- ✅ `Build & deploy 31822434061` (86e3bba3) success.
+- 🔴 `Build & deploy 31815806932` (d9da7d4b, ~1.5 sa önce) **failure** — STALE (HEAD değil, 3 commit sonrası); mail zaten süpürüldü.
+- 🔴 `Nöbet şeridi 31815807223` (d9da7d4b) **failure** — STALE, SERIT B BLOKLAMAZ.
+
+Yeni fail YOK; HEAD `86e3bba3` zinciri koşuyor. §4.5 cancelled beklenen kuyruk davranışı, arıza değil.
+
+§4.7.1 ONARIM KAPISI: aktif 🔧=10, ACIK=11, UCUSTA=7, OKAN-KAPISI=5. Bu turda dağıtım/kapanış YOK — zincir aktif, yeni kalem açılmadı, model turu ölçüm+defter. K96 ascii normalize MaCiT düzleminde (`BEYAN_VAR_KANIT_YOK`), K91 OKAN-KAPISI, K98 zincirleri KAPALI-KAPALI tamirde.
+
+OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, zincir aktif, yeni fail yok).
+
 ---
 
 ## 2026-08-14 ~19:40 — saatlik CI nöbeti turu (KraL, ev `/Users/okan/dev/pruvo`)
