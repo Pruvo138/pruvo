@@ -1,5 +1,53 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 14 Agu 2026 (aksam) — 🟢 YAYIN ACILDI + OKAN'IN IKI KALEMI (KraL, interaktif)
+
+**🔴 KOK NEDEN — KENDI COMMIT'IM YAYINI DURDURMUSTU.** Okan "not alani yok" dedi; alan
+KAYNAKTA vardi (`index.html`, akisin 2/3. adimi, 3/3 INSERT yolu) ama **CANLIDA YOKTU.**
+Sebep: `d6e8881e` ile birakigim HTML yorumu **ic sahis adi** tasiyordu →
+`yayin-ic-dil-kapisi.py --kaynak` **serit-a2**'de kirmizi → `deploy`+`yayin` **SKIPPED**.
+Zincir: `d6e8881e` cancelled · `adc45269` cancelled · `8b8ca391` failure · `692c7466` failure ·
+`d57e1853` cancelled → canli vitrin **14:08'den (`393d4c82`) beri BAYAT**, 5 kosum boyunca.
+Yani Okan'in sert yenilemesi bosunaydi: HTML gercekten eskiydi.
+
+**ONARIM `8b6620a9` → `Build & deploy 31817146407` SUCCESS.** Yorumdan sahis adi cikti, teknik
+icerik (istege bagli · 500 karakter sunucu siniri · kacislama) AYNEN kaldi. Kapi rc=0 ·
+oz-test 88/88 · HTML yorum dengesi 30/30 · sinif taramasi (sahis adi + mimar takma adlari,
+8 kaynak dosyasi) 1/1 · mutasyon: ad geri konunca rc=1.
+**CANLI TEYIT (kanonik adres, cache-bust YOK):** `name="musteri_notu"` **1** · `id="oNot"` **1**
+· `cf-cache-status: HIT` · `age: 22` · `cache-control: max-age=14400` (4 saat — bu yuzden
+"sert yenile" bir sure eski HTML gosterebilir). **Not alani CANLIDA.**
+
+**OKAN KALEMI 1 — sepet butonu `Kartla Güvenli Öde`** (`4a495a4a`, deploy 31819332570 kuyrukta).
+Etiket **10 yuzeyde BIRLIKTE** tasindi, kalan eski dize **0**: index.html buton +
+`renderCartPanel` · SSS gorunen · SSS JSON-LD · hakkimizda adim listesi · `secenekler.js`
+yorumu · `shop/test/sepet-panel.js` iki beklenti · kapinin kontrol 3 ve 4 capalari.
+**Odeme MANTIGI DEGISMEDI** — Havale/EFT secenegi formda DURUYOR (sunucu kabulu, D1 havale
+kolu, iyzico akisi, fiyat mantigi ellenmedi).
+🔴 **KAYBOLAN EKSENIN YERINE KILIT (kontrol 11):** eski etiket havalenin varligini BUTONDA
+beyan ediyordu; capa tasininca o eksen kaybolur ve kapi "yalniz Kartla"yi havale ACIKKEN de
+gecirirdi. Yeni kontrol beklentisini **`shop/src/index.js` sunucu kabulunden TURETIR**
+(kontrol 9 deseni): havale kabul ediliyorsa SSS gorunen metni VE JSON-LD havale/EFT ya da
+IBAN beyani TASIMAK ZORUNDA; kalip ayristirilamazsa **FAIL-CLOSED**.
+**UC MUTASYON AYAGI:** (A) index.html etiketi bozulunca kontrol 4 rc=1 · (B) SSS gorunen
+havale beyani silinince kontrol 11 rc=1 · (C) sunucu kabulu havale'siz gorununce kontrol 11
+**GECER** → kontrolun kaynaktan gercekten turedigi kanitlandi (olu nobetci DEGIL).
+Merge oncesi: `odeme-beyani-kapisi` **11/11 PASS** · `yasal-sayfa-drift-kapisi` **0/4 sapma**
+(oz-test 18/18; `BUILD_EZER=HAYIR` — build.py yalniz isaretli attribution/piksel/yukari-cik
+bloklarini yeniler, govde `<slug>/index.html`'de korunur) · `ci-kapsam-test` rc=0 ·
+`kapi-envanteri` 7/7 · `yayin-ic-dil` rc=0 · `node --check` 2/2.
+
+**OKAN KALEMI 2 — TPU etiketi: IPTAL.** "Urun sayfasinda TPU'nun yanina (Silikon) yaz" istegi
+geldi; TPU teknik olarak silikon DEGIL (termoplastik poliuretan) → ayipli mal/yanlis beyan
+riski. Pencereyle uc secenek sunuldu, Okan **"tpu kalsin, elleme"** dedi. **DOKUNULMADI.**
+
+**MOTOR SORUSU (Okan: m3 vs ds):** `isci.log` sayimi — `minimax-m3` **16** tur ·
+`deepseek-pro` **16** · `deepseek-flash` **4** (toplam 36). 🔴 Ama kalite olaylari
+([[ucuz-isci-yesil-tablo-uydurur]] · [[isci-raporsuz-duser-bekleyecegim-deyip]]) hafizada
+**MOTOR ADI OLMADAN** kayitli → "hangisi daha iyi" sorusunun OLCULMUS cevabi YOK.
+**YENI KALEM K101 (BENDE):** basarisizlik sinifini motor adiyla etiketle (isci.log'da
+`MOTOR=` var, kalite defterinde yok — iki kayit birlestirilmeli), sonra sayiyla cevap ver.
+
 ## 14 Agu 2026 (aksam) — 🔴 PARITE KOK NEDENI OLCULDU: SOZLUK VAR, DAL BAGLI DEGIL (KraL, interaktif)
 
 **KALEM KAPANDI (teshis): site paritesi 299/300'un kok nedeni bulundu, sinif KESIN.**
@@ -196,3 +244,31 @@ CI BAGIMSIZ TEYIT (son 10 koşum):
 TAMIRCI BAKIM: bağımsız kabul sayımı — bu turda yeni dağıtım YOK (kapı kendi motor zincirinde); K96 ascii norm MaCiT alanında (`BEYAN_VAR_KANIT_YOK`), K98 zincirleri koşuyor.
 
 OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, zincirler aktif).
+
+## 2026-08-14 ~19:10 — saatlik CI nöbeti turu (KraL, ev `/Users/okan/dev/pruvo`)
+
+EV: `/Users/okan/dev/pruvo` ✅ (0. adım yeşil).
+
+SUPURME: `mail-supurme-kos.sh` → rc=0 · `GITHUB_BILDIRIM_INBOX=3 BULUNAN=3 TASINAN=3 ATLANAN=0 CIKAN=3 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=371:2026-08-14T19:08:26 HUKUM=SUPURULDU`. 3 mail: "Build & deploy (d9da7d4b)" + "Nöbet şeridi (8b8ca39)" + "Build & deploy (692c7466)" — üçü HEAD öncesi eski koşumlar.
+
+COP_DENETIM: `MESRU=139 YANLIS=0 KAPSAM=139 ATFEDILMEYEN=26` → yanlis supurme izi YOK.
+
+CI BAGIMSIZ TEYIT (son 15 koşum, HEAD `8b6620a9`):
+- ⏳ `Build & deploy/build 31817146407` (8b6620a9 "YAYIN ACILIYOR: index.html yorumundaki ic dil notrlendi") **in_progress** — serit-a4 ✅ · serit-a2 adım 12 in_progress (1-11 success) · serit-a3 adım 25 in_progress (1-24 success) · build adım 9 in_progress (1-8 success). **Yeni fail YOK.**
+- ⏳ `D1 sapma alarmi 31817146625` (8b6620a9) **pending** — kuyrukta.
+- ✅ `D1 uzlastirici 31817126059` (d9da7d4b) success.
+- 🔴 `Build & deploy 31815806932` (d9da7d4b) **failure** — K98 BLOKLU (eski zincir, yeni HEAD değil).
+- ⏸ `Build & deploy 31815807223` (d9da7d4b defter) **in_progress** — kuyruk davranışı (BKM §4.5, arıza değil).
+- ⏸ `Build & deploy 31815324153` (d57e1853 parite) **cancelled** — beklenen kuyruk davranışı.
+
+Yeni fail YOK; HEAD `8b6620a9` zinciri koşuyor, eski 🔴 d9da7d4b/8b8ca39/692c746 mail zaten süpürüldü. Süpürme+MESAJ YANLIŞ=0 uyumlu.
+
+§4.7.1 ONARIM KAPISI: zincir 8b6620a9 KOŞUYOR; K98 (K85/K80) çözümü bağımsız — bu zincirde K98 kökü yok, K95 STALE kalır (kabul `model-uyelik-kapisi.py` YARGISIZ=0); K96 ASCII-normalize MaCiT alanında (`BEYAN_VAR_KANIT_YOK`), K94 SERIT-B (BLOKLAMAZ). K91 shop worker deploy = OKAN-KAPISI (karar/uygulama, mimarın dışı).
+
+TAMIRCI BAKIM: bu turda dağıtım YOK (kapı kendi motor zincirinde, model turu ölçüm + defter); K96 ascii normalize MaCiT düzleminde, K97 KAPANDI (mühendis rapor dosyası ekseninde 0 isabet), K98 zincirleri KAPALI-KAPALI tamirde.
+*(Not — K102, BENDE: bu satırı NÖBET CRON'u yazdı ve iç-rapor-adı kapısı commit'i durdurdu;
+kapı doğru çalıştı ama cron kendi defter yazımını kapıya UYUMSUZ üretiyor. Yazıcı tarafı
+düzeltilecek: cron metninde dosya adı yerine genel ifade kullanılmalı, yoksa her nöbet turu
+bir sonraki commit'i durdurma riski taşır.)*
+
+OKAN'A ÇIKIŞ: YOK (§5 — rutin tur, zincir aktif, yeni fail yok).
