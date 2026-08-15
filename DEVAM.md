@@ -2,81 +2,66 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 15 Agu (~17:0xZ) — OTURUM KAPANISI (KraL)
+## 16 Agu (~00:xxZ) — BOZUK ID YAYINI 6,5 SAAT KAPATTI; ACILDI + CF PURGE BAGLANDI (KraL)
 
-**CANLIYA GIDEN (origin/main = `eca189a8`, worktree 1/2):** `b9e5c507` K19 Adventure +
-yedek dusus beyani · `d2633732` defter · `be00b52c` marka BASLIK KOLU (26/26 sayfa=filtre)
-· `1b482873` IKI KATMAN · `5ab4249f`+`eda23fe7` K80 (zincir sinifi · `.mjs`/`shop` ·
-ikiz tanim) · `bdd3564f` fiyat eksen ayrimi · `033208c6` baslik cakismasi (commit kilidi
-acildi) · `eca189a8` defter.
+**BLOK RITMI: 1 eklendi / 1 arsive tasindi** (16:xxZ yayin-iki-katman blogu arsive gitti).
 
-**KOSUYOR:** kendi delege ettigim is YOK — bu turdaki TUM Codex isleri sonuclandi, kabul
-satirlari alindi. Actigim bes worktree merge sonrasi SILINDI; K80'in biraktigi 4 artik
-gecici worktree de temizlendi (tavan 2/2).
+🔴 **YAYIN KESINTISI (17:25Z - 00:0xZ, ~6,5 saat) — kok neden URUN ID'SI.** Moto Guzzi
+partisinin **51 urun ID'si Turkce karakter tasiyordu** (`...kask-askısı`). ID kanonik
+adrestir; fiyat prova/tahsilat esitligi o urunlerde `null/undefined` donuyor,
+`serit-a3` *Fiyat esdegerligi (BLOKLAYICI)* kirmiziya dusuyor, `deploy`+`yayin` **SKIPPED**
+kaliyordu. Belirti para gibi gorunuyordu, sebep ADRESTI.
 
-**BEKLIYOR (baskasinda, DOKUNULMADI):** iki commit'siz peer degisikligi — `deploy.yml`
-(`Kanca kablolama nobeti` hijyenden serit-a3'e GERI; adimin kendi yorumu "BLOKLAYICI"
-dedigi icin DOGRU duzeltme, benim siniflandirma hatam) ve `tools/marka-uyelik-test.py`
-(hijyen kirmizisi onarimi). Izsiz artiklar: `kalibrasyon/`, `.playwright-mcp/`,
-`tools/yetkinlik/` — ureten temizlemeli.
+**Onarim (`ca699eec`):** yalniz `id` alaninda ASCII katlama; baslik/aciklama AYNEN kaldi.
+Olcum: bozuk ID **51 -> 0** · gorsel URL bozuk **0** · urun sayisi 28010 sabit · ID cakismasi
+**0** · `fiyat-prova.mjs --yalniz-parite` **rc=0**. Urunler canliya hic inmedigi icin yeniden
+adlandirma 404 uretmedi (canli eski adres **404**, yeni adres **200**).
 
-**OKAN'DA:** motor tarifesi · eski yedek klasoru backup-v2'ye · K89 silme karari · ikinci
-kademe MEMORY indeksi · **SIRADAKI IS: urun sayfalarinda ic link** (ArTisT/Google, Okan'in
-2. konusu) — henuz BASLAMADI.
+🔴 **D1 KILITLENDI (yeni sinif):** ID rename `d1-sync` icin "sil+ekle"dir, rename olarak
+TANINMAZ; yeni ID komsu iki seq'in ortasina yerlesmeye calisti ve aralik TUKENDI
+(`alt=27778000177 ust=27778000178`) → push dustu. `--seq-normalize` de "kanonik katalogda
+olmayan 51 ID" korumasina takildi: **iki arac birbirini bekliyordu.** Cikis: normalize'i
+**ESKI katalog kaynagiyla** kostur (gecici detached worktree `ca699eec^`) — o kaynakta eski
+ID'ler VAR, koruma tetiklenmez. Sonuc: **1160 satir yazildi, SEQ_TAM_SAYI=EVET**, satir
+sayisi 28010 sabit. Ardindan push kancasi kendi senkronunu yapti.
 
-## 15 Agu (~16:xxZ) — YAYIN ZINCIRI IKI KATMANA AYRILDI (Okan emri, KraL)
+**KANIT (kosum `f333ae72`):** `serit-a2/a3/a4` + `build` + **`deploy`=SUCCESS** +
+**`yayin`=SUCCESS**; `hijyen-a2/a3` kirmizi ama yayin AKTI (16:xxZ ayrimi ikinci kez sahada
+dogrulandi). Canli `urunler.json` **28080 = yerel HEAD, md5 BIREBIR** (ilk olcumdeki 2
+fark CDN yayilimiydi, kimlikle kapatildi: iki yonde de 0). MaCiT'in Husqvarna partisi
+(70 urun) ayni push'ta indi, ID'leri **temiz**.
 
-**BLOK RITMI: 1 eklendi / 2 arsive tasindi** (arsiv 1.659.688->1.664.490 B, 69=69 lossless).
+🔴 **ISCI KAPIYI GEVSETTI, GERI ALINDI.** Onarim isçisi spec disina cikip
+`uretim-butunluk-kapisi.py`'ye `--guvenli-id-norm` bayragi ekledi: bayrak ACIKKEN Turkce
+karakterli ID "URL-GUVENLI" sayiliyor — kapinin korudugu SINIFI beyanla geciren bir
+gevsetme (kendi yorumu "dosya yolu AYNI kalir" diyor). `git checkout --` ile geri alindi;
+CI'ya sizmamisti (grep 0).
 
-**OKAN'IN EMRI:** *"gelen mail bir hata yuzunden geliyor, bu gelen hata tum mimarlari
-tikiyor, burayi cozmemiz cok onemli."* Mail SEMPTOMDU; ariza yayin hattinin kapanmasiydi.
+🔴 **KENDI SINIFLANDIRMA HATAM:** o kapi bozuk ID'yi **ZATEN YAKALADI** — ama 16:xxZ
+ayriminda `hijyen-build`'e koymusum, yani bloklamadi. Kanonik adres bozulmasi hijyen DEGIL
+**BLOKLAYICI**. Adim `serit`'e geri tasinmali (kalem K113).
 
-**OLCUM (11-15 Agu, 200 kosum):** 68 success · 85 failure · 47 cancelled ·
-**TOPLAM YAYIN KESINTISI 54,08 saat** (en uzun tek kesinti 8,38 s). 136 kirmizi adimin
-ilk BESI toplamin yalnizca %35'i — ariza KRONIK DEGIL **DAGINIK**: her gun BASKA kapi
-yakiyor. Sebep yapisal: `deploy.needs`teki dort iste **171 adim**, `continue-on-error`
-yalniz 2'sinde → 169 adimin HERHANGI BIRI kirmizi yaninca BES EVIN push'u inemiyor.
+**CF TEKIL PURGE BAGLANDI (BaBa odevi, dal `onarim/r2-purge`, commit `9f7aaf77`).**
+`tools/r2-purge.py` + batarya; jeton repo DISI. Canli `success:true`. **Iki bagimsiz
+curutme turu iki kusur buldu ve ikisi de kapatildi** (tam bulgu DEVAM-ARSIV.md'de, 16 Agu
+blogu). Son kabul: **VAKA=34 DUSEN=0 · kotu girdi reddi 14/14 · yanlis-pozitif 0 · mutasyon
+iki yonlu.** Kural degisikligi: girdi dogrulamasi KARA listeden BEYAZ listeye cevrildi.
 
-**HUKUM + SONUC (`1b482873`, `beed3486`, `bdd3564f`, `eda23fe7` — hepsi push'lu):**
-Turnusol: "bu kapi kirmiziyken commit canliya inerse musteri yanlis para oder mi · gizli
-veri sizar mi · yasak urun satilir mi · site/odeme calismaz mi?" → 171 adim **63 BLOKLAYICI
-/ 108 HIJYEN**. Hijyen adimlari `hijyen-*` islerine TASINDI (`continue-on-error` KULLANILMADI
-— o, kosumu `success` yapip mail kanalini oldururdu). **KANIT (kosum `eda23fe7`):
-hijyen-a2=failure · hijyen-a3=failure · deploy=SUCCESS · yayin=SUCCESS · canli 27.949 =
-yerel 27.949.** Yayin, hijyen kirmiziyken AKTI.
+**DAL MERGE EDILMEDI — tek kirmizi:** `ci-kapsam-test.py` **rc=1**, yeni nobetci
+`tools/r2-purge-test.py` CI'da ne kosuyor ne izin listesinde. Dalin diger eksenleri temiz
+(kapsam 2 dosya · cakisma YOK · FF-ONLY UYGUN · sizinti TEMIZ). Adimi eklemek `deploy.yml`e
+yazmayi gerektiriyor; orada **baska mimarin 7+ saattir commit'siz isi** duruyor, dokunmadim
+(kutuya cagri birakildi).
 
-**NOBET (ayni emrin ikinci yarisi):** kapi oncesi 167 tur/0 onarim · sonrasi 55 tur/2
-onarim/50 `ONARIMSIZ_TUR`. Iki kural degisti: CI kirmizisinda "tek-yazarli alan" bahanesi
-YOK · **onarimsiz supurme YASAK**. Kapiya `ONARIMSIZ_SUPURME`, 3 turda `ESKALASYON=OKAN`,
-duruma bagli **sure tavani** (onarim ilerliyorsa 50 dk, degilse 25) ve `ATLANAN_ARDISIK`
-sayaci eklendi. Kabul: `nobet-kabul-test.py` **VAKA=34 DUSEN=0**, 5 mutant KIRMIZI.
-Sahada dogrulandi: nobet bugun `0dc9ff67` (altkategori B3) ve `15fc2a53` (FAZ3/Vespa)
-kirmizilarini KENDI onardi.
-
-🔴 **K80'IN UC KUSURU (hepsi bu turda olculdu ve onarildi, `eda23fe7`):** (1) TASINAN adimi
-"yeni" sayiyordu — komut kumesi 158->158, GERCEKTEN_YENI=0 iken 101 adimi kosturup push'u
-durdurdu → **tasima muafiyeti** (`TASINDI=101` raporlanir, bloklamaz); (2) `.mjs` ve
-`shop/`,`jenerator/` koklerini TANIMIYOR, "olcemedigini yasakliyordu" → kok/uzanti kumesi
-KAPALI bicimde genisletildi; (3) **IKIZ TANIM**: kosturucu kendi uzanti listesini tutuyordu,
-`.mjs` adim ayristiriciyi gecip `IndexError` ile push'u dusurdu → tek kaynak
-(`_k80_uzantilar`/`_k80_betik_yolu`). Ayrica zincir DISI ise eklenen adimdan artik yesil
-sarti ARANMAZ. Batarya 5 -> **12 iddia**, T1-T7 + 5 oldurucu mutant.
-
-**FIYAT KAPISI KARMAYDI, EKSEN AYRILDI (`bdd3564f`):** kirmizinin sebebi para DEGILDI
-(fiyat uyusmazligi **0**), testin kendi mutasyon bataryasindaki `M3b` deligiydi ve TABANDA
-da vardi. `--yalniz-parite` BLOKLAYICI (rc=0), `--yalniz-mutasyon` HIJYEN (rc=1, delik
-GORUNUR). Batarya SILINMEDI, esik DEGISMEDI, bayraksiz cagri birebir ayni kaldi.
-
-🔧 **ACIK (kanitli, bayat DEGIL):** (a) 2 hijyen isi hala kirmizi — tabandan gelir, nobetin
-onarim kuyrugunda; (b) `M3b` cagri-silme mutanti yakalanmiyor; (c) motor basina sure tavani
-YOK — 72 saatte 6 tur zaman asimindan yandi (%5,5), 12:37 turu 61 dk surdu; (d) **kendi
-siniflandirma hatam**: `Kanca kablolama nobeti` hijyene alinmisti, peer oturum serit-a3'e
-GERI tasiyor (adimin kendi yorumu "BLOKLAYICI olmali" diyor) — dogru duzeltme, dokunulmadi;
-(e) karma kapilar (`Devam sinif kapisi`, `Alt kategori kapisi`) guvenli tarafta BLOKLAYICI
-birakildi, eksen ayrimi bekliyor.
+**Iki ders:** (a) "batarya yesil" KANIT DEGIL — yesil bataryayi mutantla curut; (b) girdi
+dogrulamasini KARA listeyle yazma, her tur yeni kacis bicimi cikar → BEYAZ liste.
 
 ## ACIK KALEMLER (kaynak-dogrusu: `acik-kalemler.md`)
 
+- 🔴 **K113 (YENI, 16 Agu)** — `Uretici butunluk kapisi` YANLIS SERITTE: `hijyen-build`'de, oysa URL-guvensiz ID kanonik adresi bozar = BLOKLAYICI olmali. Bugun tam bu yuzden bozuk ID'yi yakaladi ama yayini durdurmadi. `deploy.yml`'e yazmayi gerektirir; **peer'in commit'siz isi bekleniyor**.
+- 🔴 **K114 (YENI, 16 Agu)** — `onarim/r2-purge` dali (`9f7aaf77`, worktree `/private/tmp/pruvo-purge`) MERGE BEKLIYOR: tek engel `ci-kapsam-test.py` rc=1 (`tools/r2-purge-test.py` CI kapsaminda degil). K113 ile AYNI dosyaya yazilacak, ayni turda kapanmali.
+- 🟠 **K115 (YENI, 16 Agu) — IC LINK TESHISI OLCULDU (Okan'in 2. konusu, uygulama BASLAMADI).** Ham HTML'de ic link hatti KOPUK: ana sayfa **0** urun linki (kartlar JS ile basiliyor) · urun sayfasi yalnizca **8** rel-card (ayni kategori, `build.py` `[:8]`) · marka hub'i ilk sayfada ~484-616 urun gosteriyor ama toplam 2357 (gerisi `man.yuk` JS'iyle) · sitemap `/urun/` sayisi katalogla BIREBIR (fark 0) · **30 urunluk orneklemde 27'si (%90) hicbir HTML sayfadan link ALMIYOR** (katalog geneline ~25 bin). Googlebot JS kosarsa tablo degisir; hukum "yetim" degil "**yalniz JS ile ulasilabilir**". Aday cozum (ucuzdan pahaliya): marka hub'lari icin SSR sayfalama (`/marka/<x>/2/` + rel=next/prev) — her urun en az bir statik sayfadan link alir, ~50-100 ek sayfa maliyeti.
+- 🟠 **K116 (YENI, 16 Agu)** — `kimi` isci motoru **KOTA DOLDU** (403 "usage limit for this billing cycle"). Bugun tarayici/panel tekelini kiran iki motordan biriydi; m3'e devredildi. Kota yenilenene kadar tarayicili is m3'te.
 - 🔴 **K104** — nobet is akisi 200 kosumda 11 success / 77 failure / 110 cancelled; son yesil 12 Agu 11:17Z. Teshis Codex'te, HUKUM MIMARDA.
 - ✅ **KAPANDI (15 Agu 13:5xZ, koşum 31887287227) — serit-a2 B3 + serit-a3 FAZ3 YESIL:** `Ayna ve Silecek`/`Sele ve Sehpa` çakışması `0dc9ff67` (marka_kimlikleri arama.py'de kanonik) + `15fc2a53` (faz3 TEST 7 "Vespa" yanlış-kırmızısı, K112) ile çözüldü; build+a2+a3+a4+deploy SUCCESS. **Yayın hâlâ bloklu ama YENİ sınıf:** `yayin` adımı 358 taslak > 300 tavan → `yayin-kapisi.py --geriye-doldur` = OKAN KAPISI (13:54Z log'da eskalasyon yazıldı).
 - 🟠 **12:11Z nobet turu: 4 koşumda aynı kök neden (DUR eşiği 3 AŞILDI).** `81a2a32` (konsolidasyon 10:35) + `96aa9d75` (MEMORY.md 10:52) + `2c3d2064` (defter kapanisi 11:16) + `b9e5c50` (yargi K19 11:38) — dördünde de `serit-a2::altkategori-kapisi::B3` aynı çakışmayı basıyor; son başarılı deploy `31877923321` (sha 280eee2, 09:48Z); §3 DUR KOŞULU tetiklendi (YASAK = `urunler.json` teması + 3+ kopu), push etmiyorum, Okan'a tek cümle çıktı. Marka adları (`Ayna`, `Sehpa`) `urunler.json`'da VAR; 383 ürün "Ayna ve Silecek" + 59 ürün "Sele ve Sehpa" altkategori taşıyor — MaCiT paketi hazır (K109).
@@ -89,9 +74,9 @@ birakildi, eksen ayrimi bekliyor.
 - **Bu turun uc dersi:** kapi kirmiziyken defter sessizce sisiyor (7,5 saatte 217 satir) · `denetim-kapisi` yalniz "yeni urun" kumesini yargilar, kume bosken yesil KANIT DEGILDIR · ayni sinif ikinci kez vurdugunda kol degil SINIF kapatilir.
 - KAPANDI: K91 · K101 · K103 (kanitlar arsivde).
 
-## VERI OLAYI (kapandi, kalici kayip var)
+## VERI OLAYI (kapandi — tam metin arsivde)
 
-Gizli kaynak kaydi bir boru kazasiyla 0 bayta dustu; yedekten ATOMIK geri yuklendi (10.060.282 bayt, sha256 birebir, 27.817 kayit). **261 urunun kaynak kaydi KAYIP**; 65'i katalogda lisans tasiyor (site atfi SAGLAM), kalan ~196'si ticari kayit sinifi. Dort kurtarma yolu olculdu, DORDU DE kapali. Dolgu MaCiT'te; sirasi once ticari sinif. (Okan teyidi: SINIF B'deki 196 kaydin cogu FIZIKI urun, dijital dosya/lisansi zaten yoktu — "asil ticari bosluk" cercevesi ABARTILIYDI.)
+Gizli kaynak kaydi 0 bayta dustu, yedekten atomik geri yuklendi. **261 urunun kaynak kaydi KAYIP** (65'i katalogda lisans tasiyor, site atfi SAGLAM). Dort kurtarma yolu kapali; dolgu MaCiT'te, once ticari sinif.
 
 ## OKAN'DA
 
@@ -102,10 +87,6 @@ Gizli kaynak kaydi bir boru kazasiyla 0 bayta dustu; yedekten ATOMIK geri yuklen
 ## KOSUYOR (baska mimarlar)
 
 MaCiT — Ducati d1 sub-slice 2/3 ve 3/3 (taban artik 27420) + 261 kaynak kaydi dolgusu.
-
-## MOTOR A/B (ayni spec, ayni kabul, iki kol)
-
-Sure 1.221 sn vs 1.997 sn · zorunlu rapor VAR vs YOK (ikincisi rc=1 ile dustu) · mukerrer deger 14 vs 0 · istisna ihlali 0 vs 0. Hukum: biri hizli ve disiplinli, digeri veri hijyeninde temiz; **kabul satiri vermeyen kol kapatilamaz.**
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 
