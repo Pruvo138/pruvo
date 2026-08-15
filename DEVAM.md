@@ -8,6 +8,8 @@
 - PARCA 2 `53f090e7`: 274 urunde birincil PETG artik ABS (PETG-ilk 274 sonra 0 · ABS-ilk 13 sonra 287 · ezmeli 433 sabit). Ayni commit'e MaCiT'in Ducati partisi (167 urun) karisti — paylasilan agac, olculdu ve kutuya bildirildi.
 - Mimar karari `9e18833e`: 4 yasak-tur urun silindi (1 maket + 2 logo/plaket + 1 surec adi); katalog **27420**, D1 geri-okuma DOGRULANDI. MaCiT'in "KEEP" secenegi rozet/plaket icin REDDEDILDI.
 - 🔧 Iki kapi bulgusu kuyrukta: (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle evreniyle ayni degil (25 tur kirmizi, delta 0 dosya); (b) `devam-sinif-kapisi.py` is-akisi muafiyeti norm/ham ekseninde ayrisiyor. Ucuncu ders: `denetim-kapisi` yalniz "yeni urun" kumesini yargilar — kume bosken yesil KANIT DEGILDIR.
+- 🔴 Yedek korumasi SINIF onarimi `7f5d45b6` (ayni sinif AYNI GUN 2. kez vurdu, tekil yama BIRAKILDI): tek dosyanin reddi artik kosumu OLDURMUYOR — reddedilen ATLANIR (kanonik yedegi degismez), kosum surer, atlama karantina defterine yazilir + rc=1. Kabul 5/5 + mutasyon 5/5. Canli: yedek TAMAMLANDI (memory 233 + skills 19 + repo 4), KARANTINA=1.
+- 🔧 KALAN: karantinadaki `posta-kutusu-kaan-izleme-ankor.txt` (485 sonra 185 bayt, MESRU rolling dusus) her kosumda rc=1 uretecek. Kalici cozum ad-bazli istisna DEGIL, `.diriltme-izin.json` ile AYNI desende bir BEYAN mekanizmasi (dusus bir kez kasitli ilan edilir). Beyansiz surekli kirmizi, kirmiziyi degersizlestirir.
 - Tam blok (olcum ayrintilari, gerekceler) ARSIVDE.
 
 ## 15 Agu 2026 (gece) — OTURUM KAPANISI (KraL)
