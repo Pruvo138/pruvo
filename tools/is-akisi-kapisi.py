@@ -5383,6 +5383,20 @@ def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None):
     return gercek
 
 
+def _k80_uzantilar(yorumlayici):
+    """Betik uzantilarinin TEK KAYNAGI — ayristirici da kosturucu da BURADAN okur."""
+    return (".py",) if yorumlayici == "python3" else (".js", ".mjs", ".cjs")
+
+
+def _k80_betik_yolu(argv):
+    """argv icindeki TEK betik yolunu dondurur (kosturucunun ikiz listesi kaldirildi)."""
+    uzantilar = _k80_uzantilar(argv[0])
+    adaylar = [a for a in argv[1:] if a.endswith(uzantilar)]
+    if len(adaylar) != 1:
+        raise Olculemedi("tek betik yolu bulunamadi: %r" % (argv,))
+    return adaylar[0]
+
+
 def _k80_satirlar(run):
     """Yalniz duz yerel komutlari argv'ye cevir; belirsizlik OLCULEMEDI."""
     satirlar = []
@@ -5404,7 +5418,7 @@ def _k80_satirlar(run):
         # Olculdu: `shop/test/fiyat-prova.mjs --yalniz-parite` gibi MESRU adimlar yalnizca
         # uzanti taninmadigi icin "tek betik yolu bulunamadi" ile OLCULEMEDI'ye dusuyor,
         # ve OLCULEMEDI push'u BLOKLADIGI icin kapi olcemedigi seyi yasaklar hale geliyordu.
-        uzantilar = (".py",) if argv[0] == "python3" else (".js", ".mjs", ".cjs")
+        uzantilar = _k80_uzantilar(argv[0])
         adaylar = [i for i, a in enumerate(argv[1:], 1) if a.endswith(uzantilar)]
         if len(adaylar) != 1:
             raise Olculemedi("tek betik yolu bulunamadi: %r" % satir)
@@ -5448,8 +5462,11 @@ def _k80_commit_agacinda_kos(hedef, yeni):
                 bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> %s" % (etiket, hata))
                 continue
             for argv in argvler:
-                yol = os.path.join(gecici, os.path.normpath(argv[[i for i, a in enumerate(argv)
-                                                                  if a.endswith((".py", ".js"))][0]]))
+                # 🔴 IKIZ TANIM KAPATILDI (15 Agu 2026): uzanti kumesi burada AYRI yaziliydi
+                # (`.py`, `.js`) ve `_k80_satirlar`daki kume genisletilince sessizce ayristi —
+                # `.mjs` adim ayristiriciyi GECIP kosturucuda IndexError ile cakildi
+                # ([[ikiz-tanim-sessiz-ayrisma]]). Ikisi de artik TEK sabitten turer.
+                yol = os.path.join(gecici, os.path.normpath(_k80_betik_yolu(argv)))
                 if not os.path.isfile(yol):
                     bulgular.append("YENI CI ADIMI OLCULEMEDI: %s -> betik committe YOK: %s"
                                     % (etiket, yol))
@@ -5677,7 +5694,15 @@ def _k80_kendini_test(tespit_acik=True):
                 hatalar.append("K80-T6: .mjs/shop betigi ayristirilamadi (%r)" % (_argv,))
         except Olculemedi as _e:
             hatalar.append("K80-T6: .mjs/shop betigi OLCULEMEDI'ye dustu (%s)" % _e)
-    return hatalar, 11
+        # T7: AYRISTIRICI ile KOSTURUCU ayni uzanti kumesinden turer (ikiz tanim nobeti).
+        # Olculdu: kosturucu kendi listesini (`.py`,`.js`) tutuyordu; `.mjs` adim
+        # ayristiriciyi gecip kosturucuda IndexError ile CAKILDI ve push'u dusurdu.
+        try:
+            if _k80_betik_yolu(["node", "shop/test/x.mjs", "--bayrak"]) != "shop/test/x.mjs":
+                hatalar.append("K80-T7: kosturucu betik yolunu ayristiriciyla AYNI cozmedi")
+        except Olculemedi as _e:
+            hatalar.append("K80-T7: kosturucu `.mjs` yolunu cozemedi (ikiz tanim) (%s)" % _e)
+    return hatalar, 12
 
 
 def _k80_mutasyon_kontrol():
