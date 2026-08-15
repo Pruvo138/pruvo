@@ -1,5 +1,44 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 15 Agu 2026 (gece) — OTURUM KAPANISI (KraL)
+
+**CANLIYA GIDEN (main'de, push'lu):**
+- `939af9f3` + `9e62b932` — K104 acildi; dorduncu isci motoru hatta baglandi (duman rc=0/21 sn).
+- `0a70e62c` — K27 defter 11.899 B / 110 satir · K34 kutu 278 satir (hedefler tuttu, lossless).
+- `bf9b1c43` — K104A: mimar kapisinin kapali motor kumesi + mutasyon capasi artik kaynaktan
+  TURETILIYOR (56/56 mutant: 51 oldurucu KIRMIZI + 3 kontrol + 2 cevre-ariza).
+- `decf55a5` — cip etiketi kanonu normalize ile tutarli; etki yaricapi 753 ciftte **0 degisim**.
+- `8b3646a0` — kaynak kayitlari icin IKI KATMAN: yedekleyici bos/ani-dusus reddi + tarihli surum
+  (3 koruma vakasi, 2 mutasyon KIRMIZI) ve ayri kasa (27.939 kayit, izolasyon kapisi rc=0 ve
+  CI'da bloklayici, mutasyonla kanitli).
+- `a721ac6b` — **malzeme politikasi**: 7 kategoride birincil tavsiye PETG -> ABS (Otomobil ·
+  Motosiklet · Bisiklet · Bahce · Elektronik · Kamera · Tamirat), ikincil ASA notlari aynen;
+  istisna 5 kategori + Marin DOKUNULMADI; bot metni ayni beyanla tazelendi; fikstur
+  etiket-beklenti ayrismasi artik fail-closed. Kabul: on-secim/dayanak/filament/kapsam rc=0,
+  iki parite paketi 0-0. Karar OKAN'IN (gerekce: kabin ici yaz sicakligi).
+
+**VERI OLAYI (kapandi, kalici kayip var):** gizli kaynak kaydi bir boru kazasiyla 0 bayta dustu
+(ayni dosyayi hem okuyup hem yazan komut). Yedekten ATOMIK geri yuklendi: 10.060.282 bayt,
+sha256 birebir, 27.817 kayit. **261 urunun kaynak kaydi kayip**; 65'i katalogda lisans tasiyor
+(site atfi SAGLAM), kalan ~196 ticari kayit sinifi. Dort kurtarma yolu olculdu, DORDU DE kapali
+(yerel anlik goruntu yok · yedekte daha taze surum yok · katalog semasi bu alanlari tasimiyor ·
+dosya izlenmiyor). Dolgu MaCiT'te, sirasi: once ticari sinif.
+
+**KOSUYOR (baska mimarlar):** MaCiT — Ducati d1 icerik-ekleme + 261 kayit dolgusu.
+
+**BEKLIYOR (bende):**
+- PARCA 2: urun bazli 286 tavsiye ezmesi TAZE katalog uzerinde ABS'e cevrilecek (kilitli kanonik
+  yol). Bilerek beklendi: katalog bu gece 27.135 -> 27.257 buyudu, yeni Motosiklet urunleri de
+  ayni kurala girmeli. Dal/spec: yeniden uretilecek (eski dal silindi, icerik yeniden hesaplanir).
+- K104B: nobet is akisinda IKI kapi main'de de KIRMIZI (mutasyon capalari M06/M31 ve kapi
+  envanterinde 2 kapinin kanca kablosu yok). Dalin getirdigi DEGIL, tabanda olculdu.
+
+**OKAN'DA:** motor tarifesi satin alma karari (yeni motor abonelikte, dorduncusu bagli).
+
+**MOTOR A/B (ayni spec, ayni kabul, iki kol):** sure 1.221 sn vs 1.997 sn · zorunlu rapor VAR
+vs YOK (ikincisi rc=1 ile dustu) · mukerrer deger 14 vs 0 · istisna ihlali 0 vs 0. Hukum: biri
+hizli ve disiplinli, digeri veri hijyeninde temiz; kabul satiri vermeyen kol kapatilamaz.
+
 ## 14 Agu 2026 (aksam) — MOTOR KARARI VE K103 KAPANISI (sikistirilmis)
 
 - Motor olcumu: rc=0 oranlari 15/15 · 15/15 · 4/4; ortalama sure 343 sn · 1451 sn · 451 sn. A/B kalite olcumu YOK; olculen farklar yaklasik 4x maliyet, 4,2x hiz ve 1M sikistirma lehine.
@@ -108,3 +147,22 @@
 - DEPLOY OKAN KAPISI (22:07Z ile AYNI alarm, 3. tur): `shop-bayatlik-kapisi.py` BAYAT (rc=1), yeni olculen yas **194.7 dk** > esik 120 dk. Canli `34d4db64-5b96-4294-853a-cd17e94c48a9` (14:30:20Z), bundle AYNI 2 commit (4a495a4a, f6404b95). `npx wrangler deploy` ile shop yeniden yayinlanmali — 4.7.1 tablosu: `merge/deploy HUKMU · Okan yetkisi` → DAGITILMAZ, Okan kalemi; Codex da gitmez.
 - 🔧 (acik-kalemler.md, son durum): onceki tur ile AYNI — K49, K53, K55 (kanama devam, Tamirci sirasi); K99, K100, K102 (rutin dev); K104 (54 saat, teşhis Codex'te); DEPLOY (Okan). **Bu turda yeni 🔧 yok, dagitim yok, kapanan yok.**
 - Okan cikisi: §5 sessiz — deploy kalemi 3 turdur ayni ve Okan-kapisi acik; defter bunu zaten tasimakta. Yeni karar isteyen durum yok.
+
+## 15 Agu 2026 — saatlik CI nobeti turlari 00:37Z-10:07Z (ARSIVE TASINDI)
+
+*(Arsive TASINDI — 22 saatlik nobet turu + HD x TV d1 ekleme blogu, 15 Agu. Ozet: sweep her turda KALAN=0, cop denetimi YANLIS=0, Build & deploy 3/3 SUCCESS, D1 27257=27257, site canli; tek acik kalem shop yayin kapisi (Okan'da, 24 turdur ayni).)*
+
+## 15 Agu 2026 (sabah) — 10:37Z saatlik CI nobeti turu (sikistirilmis, a721ac6 ilk olcum)
+
+- supurme BULUNAN=1 TASINAN=1 CIKAN=1 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=410:2026-08-15T10:37:22 HUKUM=SUPURULDU; silinen: `Run failed: Odeme yolu bayatlik nabzi (push seridi) - main (a721ac6)` (CS_kwDOTQTiEc8AAAAUIVohfg/1786778603@github.com, 10:23Z). 4.7 SUPURME kapsaminda; tek duz `mail-supurme-kos.sh` rc=0. **a721ac6 push'unun ILK sweep maili** — onceki 09:37Z temizdi (BULUNAN=0) cunku push 07:22Z'de olmus, bu turda meshur olcum mail'i ancak geldi.
+- cop denetimi (sweep-sonrasi, salt okuma): MESRU=178 YANLIS=0 KAPSAM=178 ATFEDILMEYEN=34 — 10:07Z turu (MESRU=177) ile uyumlu (1 yeni MESRU sweep); 11 Agu tabani (MESRU>=140, YANLIS=0) korunuyor; sweep'in 4 fail-closed alarmindan hicbiri ateslenmedi.
+- bagimsiz teyit (gh run list, son 15 dakika): **YENI HEAD a721ac6b** (parca 1: PETG ABS politika tablosu, 6 commit oncesi cac59d7'den beri evrilmis). 4 kosum tetiklendi:
+  - **31872398445** Paket tazeligi alarmi (canli fiyat yolu) — FAILURE 10:37:35Z (07:22 push'unda schedule tetiklendi ama step'in kendi saatine gore basladi; bu turda sweep'e dahil OLMADI — gelen kutusunda henuz yok, yarim saat sonra gelebilir, sonraki tur SUPURULUR)
+  - **31871800705** Spec/tasarim ifsasi alarmi — SUCCESS 07:23:23Z (32 sn)
+  - **31871800685** Odeme yolu bayatlik nabzi (push seridi) — FAILURE 07:23:23Z (32 sn, SWEEP'LENDI — deploy'a RACE: bayatlik job 07:23:05-07:23:19, build job 07:22:54-07:23:21 paralel; olcum sirasinda worker henuz yeni deploy edilmemisti, "yayini DURDURMAZ" workflow basligi)
+  - **31871800763** Build & deploy to GitHub Pages — IN_PROGRESS (last update 07:23:01Z), 15 dk icinde, tipik 26-37 dk → beklenen 07:48-08:00Z civari tamamlanmasi; onceki SHA'larda (cac59d7=27dk · 8b3646a=37dk · b3636f6=35dk) tipik OMUR. Cancelled degil, queued degil — kosan korunuyor (deploy.yml `concurrency: group: pages` + `cancel-in-progress: false` bilerekli).
+  - **31871800969** Nöbet seridi (SERIT B — yayini BLOKLAMAZ) — IN_PROGRESS (last update 07:22:57Z, 32 sn icinde tamamlaniyor, push seridi 4 islemden 3'u bitmis).
+- **Kritik zincir (a721ac6'ya tasinan):** Spec/tasarim ifsasi alarmi SUCCESS · D1 uzlastirici / Yayin erisim alarmi / D1 sapma alarmi schedule'larin hepsi oncesinde SUCCESS (a4622a7b ustu, 06:00-08:00Z araliginda 5/5 success). **D1 sync temiz** (10:07Z turuyla AYNI 27257=27257). a721ac6 push'u SADECE urunler.json politika tablosu + D1 etkilendirir; shop bundle'i DEGISTIRMEDI (bayatlik kapisi hâlâ ayni).
+- DEPLOY OKAN KAPISI (25. tur, 10:07Z ile AYNI alarm): `shop-bayatlik-kapisi.py` BAYAT (rc=1). Canli `34d4db64-5b96-4294-853a-cd17e94c48a9` (14:30:20Z, ~20s7dk once). En eski yayinlanmamis commit yasi `git log -1 --since=14:30:20Z -- shop/` YENI commit sayisi **0** — `npx wrangler deploy` shop dizininden zaten 0 satır tasıyacaktı → 4.7.1 tablosu: `merge/deploy HUKMU · Okan yetkisi` → **DAGITILMAZ**, Okan kalemi; Codex da gitmez. 3.5 STOP kosulu 01:07Z turu itibariyle tetiklenmisti — push YAPILMAZ.
+- 🔧 (acik-kalemler.md + nobet-geri-iz.json, son durum): onceki tur ile AYNI — K49, K53, K55 (kanama devam, Tamirci sirasi); K59, K69, K70, K71, K77, K80, K84, K86, K96, K97 (rutin dev); K99, K100, K102 (rutin dev); K104 (60+ saat, teşhis Codex'te); **DEPLOY (Okan)**. **Bu turda yeni 🔧 yok, dagitim yok, kapanan yok.** Kapidan yeni kalem cikmiyor (son damga 2026-08-15T05:08:56Z); alarm workflow'lari "yayini DURDURMAZ/BLOKLAMAZ" basligi ile bilinçli olarak fan-out disinda. Bu turdaki a721ac6 push'u mevcut kalemlerden BIRININ TEK BASINA kapanmasina da yol acmadi (deploy Okan'da, diger aciklar sahiplerinde).
+- Okan cikisi: §5 sessiz — deploy kalemi 25 turdur ayni, alarm kolu uzun suredir ayni (Paket tazeligi schedule periyodunda, "yayini DURDURMAZ"), Okan-kapisi acik; defter bunu zaten tasimakta. a721ac6 push'u yeni mail sweep'i tetikledi, SUPURME temiz; build & deploy 15 dk in_progress, olağan sure, izlemeye alindi. Yeni karar isteyen durum yok.
