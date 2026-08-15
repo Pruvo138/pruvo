@@ -1,43 +1,14 @@
 # DEVAM (KraL) — 8 Agu 2026
 
-## 15 Agu 2026 (sabah) — SHOP DAGITILDI (Okan onayi) + IKI KAPI BULGUSU
+## 15 Agu 2026 (sabah) — SHOP DAGITILDI + PARCA 2 + IKI KAPI BULGUSU (sikistirilmis)
 
-- **Defter sinif kapisi acildi:** bekleyen 216 satirlik defter commit'i 16 sinif ihlaliyle
-  bloke idi; saatlik nobet turlari (00:37Z-10:07Z, 177 satir) + HD x TV blogu arsive TASINDI
-  (lossless: TASINAN=177 · ARSIV_ARTIS=179), yerine notr isaretci. Kapi `temiz: 0 sinif
-  ihlali`, commit `fec2daf9`. Tasima Codex'te, sayi bagimsiz olculdu (`git diff --stat`).
-- **SHOP DAGITILDI (Okan acik onayi, 25 turluk alarm kapandi):** `npx wrangler deploy -c
-  shop/wrangler.toml`; worker adi `pruvo-shop` DOGRULANDI (kokte yabanci wrangler config YOK,
-  [[wrangler-kok-dizin-tuzagi]] kontrolu yapildi). Canli surum `34d4db64` -> **`01d41b07`**.
-  Kabul: `shop-bayatlik-kapisi.py` rc=0, **DURUM=TAZE**, bekleyen commit 0, yas 0.0 dk.
-- 🔧 **BULGU 1 — alarm 25 tur KIRMIZI yandi ama kendi evreninde DELTA SIFIRDI.** Olculdu:
-  (a) canli surumun dagitim aninden (14 Agu 14:30:20Z) bu yana `shop/src` + `wrangler.toml` +
-  `config.json` yuzeyine dokunan commit **0**; (b) kapinin kendi bildirdigi bundle kumesi 42
-  dosya, icinde `shop/test` yolu **0**, `index.html` **YOK**; (c) alarmin "bekleyen 2 commit"
-  dedigi `4a495a4a` + `f6404b95` YALNIZ `shop/test/sepet-panel.js` dosyasina dokunuyor.
-  Yani alarmin TETIK ekseni, RAPORLADIGI evrenle ayni degil → sinif
-  [[kabul-araligi-karsilastirma-araligi]]. Dagitim zararsizdi (kod birebir ayni) ama 25 tur
-  gurultu + 1 Okan eskalasyonu uretti. Onarim gate kodudur (Claude kati) → kuyruğa.
-- 🔧 **BULGU 2 — `devam-sinif-kapisi.py` is-akisi muafiyeti EKSEN AYRISMASI (kaynaktan okundu,
-  etki adedi HENUZ olculmedi):** E6'nin ilgili deseni `norm` uzerinde eslesiyor (`finditer(norm)`)
-  ama muafiyet `_is_akisi_adinda_mi(ham, m.start(), m.end())` ile **`ham`** uzerinde araniyor;
-  `normalize()` ASCII disi her karakteri bosluga cevirip **bosluk kumelerini daraltiyor**
-  (`" ".join(split())`), yani ofsetler iki eksende ORTUSMUYOR. Ayrica `_IS_AKISI_KIMLIKLERI`
-  yalniz `.lower()` uygulanmis ad tasiyor, `normalize()` uygulanmis degil. Dogru onarim: her
-  iki tarafi da AYNI kanonik fonksiyondan turet. Kabul testi iki yonlu olmali (mesru is-akisi
-  adi YESIL kalmali + gercek E6 bulgusu KIRMIZI kalmali) + mutasyon.
-- 🔴 **YEDEK ZINCIRI KIRIKTI, ONARILDI (`4a97fda5`, main'de):** dun gece veri kaybina karsi
-  konan "kaynak 0 bayt ise EZME" korumasi KOSULSUZDU; `memory/` altindaki flock nobetcisi
-  (mesru olarak daima 0 bayt) her kosumu bastan dusurdu → **koruma girdiginden beri hicbir
-  yedek tamamlanmadi.** Pano YESIL gorunuyordu ("son yedek 8 saat once, esik 2 gun"), kirmizi
-  yalnizca "YARIM KALMIS YEDEK" yan notundaydi. Onarim: sifir kolu artik GERILEME temelli
-  (kaynak bos AMA hedefte dolu surum varsa reddet). Korunan hal AYNEN duruyor. Kabul:
-  `yedek-koruma-test.py` **KORUMA_TEST=4/4 · MUTASYON_KIRMIZI=3/3** (ucuncu mutant kosulsuz
-  redde donusu yakaliyor). Canli teyit: yedek rc=0, YARIM_KALMIS=YOK, damga memory 232 +
-  skills 19 + repo 4. Sinif dersi: [[koruma-kurali-korudugunu-durdurur]].
-- **Duzeltme (kendi ifadem):** Okan'a "senin duzelttigin buton metni yayinda degil" dedim;
-  metin `index.html`'de ve Pages ile ZATEN canliydi. Bayat olan worker surum damgasiydi, iki
-  commit ise yalniz test fikstürüne dokunuyordu. Dagitim yine de dogruydu (alarmi kapatti).
+- Shop dagitildi (Okan acik onayi, 25 turluk alarm kapandi): canli `34d4db64` yerine `01d41b07`; bayatlik kapisi **TAZE rc=0**.
+- Defter sinif kapisi acildi `fec2daf9`: 177 satir arsive TASINDI (lossless), kapi 0 ihlal.
+- 🔴 Yedek zinciri KIRIKTI, onarildi `4a97fda5`: kosulsuz 0-bayt reddi mesru kilit dosyasina takilip HER kosumu dusuruyordu (koruma girdiginden beri sifir yedek). Kabul 4/4 + mutasyon 3/3; canli yedek rc=0. Ders: [[koruma-kurali-korudugunu-durdurur]].
+- PARCA 2 `53f090e7`: 274 urunde birincil PETG artik ABS (PETG-ilk 274 sonra 0 · ABS-ilk 13 sonra 287 · ezmeli 433 sabit). Ayni commit'e MaCiT'in Ducati partisi (167 urun) karisti — paylasilan agac, olculdu ve kutuya bildirildi.
+- Mimar karari `9e18833e`: 4 yasak-tur urun silindi (1 maket + 2 logo/plaket + 1 surec adi); katalog **27420**, D1 geri-okuma DOGRULANDI. MaCiT'in "KEEP" secenegi rozet/plaket icin REDDEDILDI.
+- 🔧 Iki kapi bulgusu kuyrukta: (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle evreniyle ayni degil (25 tur kirmizi, delta 0 dosya); (b) `devam-sinif-kapisi.py` is-akisi muafiyeti norm/ham ekseninde ayrisiyor. Ucuncu ders: `denetim-kapisi` yalniz "yeni urun" kumesini yargilar — kume bosken yesil KANIT DEGILDIR.
+- Tam blok (olcum ayrintilari, gerekceler) ARSIVDE.
 
 ## 15 Agu 2026 (gece) — OTURUM KAPANISI (KraL)
 
@@ -205,3 +176,19 @@ hizli ve disiplinli, digeri veri hijyeninde temiz; kabul satiri vermeyen kol kap
 - DEPLOY OKAN KAPISI (25. tur, 10:07Z ile AYNI alarm): `shop-bayatlik-kapisi.py` BAYAT (rc=1). Canli `34d4db64-5b96-4294-853a-cd17e94c48a9` (14:30:20Z, ~20s7dk once). En eski yayinlanmamis commit yasi `git log -1 --since=14:30:20Z -- shop/` YENI commit sayisi **0** — `npx wrangler deploy` shop dizininden zaten 0 satır tasıyacaktı → 4.7.1 tablosu: `merge/deploy HUKMU · Okan yetkisi` → **DAGITILMAZ**, Okan kalemi; Codex da gitmez. 3.5 STOP kosulu 01:07Z turu itibariyle tetiklenmisti — push YAPILMAZ.
 - 🔧 (acik-kalemler.md + nobet-geri-iz.json, son durum): onceki tur ile AYNI — K49, K53, K55 (kanama devam, Tamirci sirasi); K59, K69, K70, K71, K77, K80, K84, K86, K96, K97 (rutin dev); K99, K100, K102 (rutin dev); K104 (60+ saat, teşhis Codex'te); **DEPLOY (Okan)**. **Bu turda yeni 🔧 yok, dagitim yok, kapanan yok.** Kapidan yeni kalem cikmiyor (son damga 2026-08-15T05:08:56Z); alarm workflow'lari "yayini DURDURMAZ/BLOKLAMAZ" basligi ile bilinçli olarak fan-out disinda. Bu turdaki a721ac6 push'u mevcut kalemlerden BIRININ TEK BASINA kapanmasina da yol acmadi (deploy Okan'da, diger aciklar sahiplerinde).
 - Okan cikisi: §5 sessiz — deploy kalemi 25 turdur ayni, alarm kolu uzun suredir ayni (Paket tazeligi schedule periyodunda, "yayini DURDURMAZ"), Okan-kapisi acik; defter bunu zaten tasimakta. a721ac6 push'u yeni mail sweep'i tetikledi, SUPURME temiz; build & deploy 15 dk in_progress, olağan sure, izlemeye alindi. Yeni karar isteyen durum yok.
+
+## 15 Agu 2026 (sabah) — 11:07Z saatlik CI nobeti turu (sikistirilmis)
+- supurme BULUNAN=3 TASINAN=3 CIKAN=3 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=413:2026-08-15T11:07:27 HUKUM=SUPURULDU; silinenler (3 mail, hepsi Build & deploy + 2 alarm): `Run failed: Build & deploy to GitHub Pages - main (f977963)` + `Run failed: Build & deploy to GitHub Pages - main (a721ac6)` + `Run failed: Paket tazeligi alarmi (canli fiyat yolu) - main (a721ac6)`. 4.7 SUPURME kapsaminda; tek duz `mail-supurme-kos.sh` rc=0. Onceki tur (10:37Z, COP_IZI 410) ile fark **+3 MESRU** = sweep'in tasidigi kimlikler.
+- cop denetimi (sweep-sonrasi, salt okuma): YANLIS=0 — sweep'in 4 fail-closed alarmindan hicbiri ateslenmedi. 11 Agu tabani korunuyor.
+- bagimsiz teyit (gh run list, son 10): 10 koşum, **0 failure**; dagilim: 6 success (D1 sapma alarmi x2, D1 uzlastirici, Paket tazeligi alarmi, defter yedek zinciri x2) · 2 cancelled (yedek korumasi, onceki commit 4a97fda5'ten) · 2 in_progress/pending (defter yedek zinciri, ayni SHA 382eeb53 ile aktif calisma). §4.5: cancelled = beklenen kuyruk davranisi (`concurrency: group: pages` + `cancel-in-progress: false`), icerigi yeninin atasini tasiyor → YAYIN TIKANIK DEGIL. Tek "Build & deploy" koşumu SUCCESS (head 382eeb53, 08:02Z) → site canli.
+- DEPLOY OKAN KAPISI (26. tur, onceki turla AYNI alarm): `shop-bayatlik-kapisi.py` BAYAT (rc=1). Canli `34d4db64-5b96-4294-853a-cd17e94c48a9` (14:30:20Z), bundle AYNI 2 commit. Yeni `git log -1 --since=14:30:20Z -- shop/` commit YOK — `npx wrangler deploy` zaten 0 satır tasıyacakti. §5 sessiz; 4.7.1 tablosu: `merge/deploy HUKMU · Okan yetkisi` → DAGITILMAZ.
+- 🔧 (acik-kalemler.md, son durum): onceki tur ile AYNI — K49, K53, K55 (kanama devam, Tamirci sirasi); K59, K69, K70, K71, K77, K80, K84, K86, K96, K97 (rutin dev); K99, K100, K102 (rutin dev); K104 (60+ saat, teşhis Codex'te); **DEPLOY (Okan)**. **Bu turda yeni 🔧 yok, dagitim yok, kapanan yok.** Kapidan yeni kalem cikmiyor; bu turdaki herhangi bir alarm olusmadi, sweep hattinin disinda bir kirmizi yok.
+- Okan cikisi: §5 sessiz — deploy kalemi 26 turdur ayni, Okan-kapisi acik; sweep temiz, CI temiz (no failure), D1 sync temiz. Yeni karar isteyen durum yok.
+
+## 15 Agu 2026 (sabah) — 11:37Z saatlik CI nobeti turu (sikistirilmis)
+- supurme BULUNAN=2 TASINAN=2 CIKAN=2 KOMSU_KAYIP=0 KUME_DIFF=OLCULDU KALAN=0 COP_IZI=415:2026-08-15T11:37:34 HUKUM=SUPURULDU; silinenler (2 mail): `Run failed: Nöbet şeridi (SERIT B — yayını BLOKLAMAZ) - main (a721ac6)` + `Run failed: Build & deploy to GitHub Pages - main (382eeb5)`. 4.7 SUPURME kapsaminda; tek duz `mail-supurme-kos.sh` rc=0. Onceki tur (11:07Z, COP_IZI 413) ile fark **+2 MESRU** = sweep'in tasidigi kimlikler.
+- cop denetimi (sweep-sonrasi, salt okuma): YANLIS=0 — sweep'in 4 fail-closed alarmindan hicbiri ateslenmedi. 11 Agu tabani korunuyor.
+- bagimsiz teyit (gh run list --limit 50): 50 koşum, **0 aktif kirmizi** (11 failure var ama hepsi ONCEKI commit'lere ait — a721ac6'ya 4, a4622a7'a 5, f977963'a 1, 382eeb5'a 1; hepsi sonraki push'larla DUZELMIS, sha'larinin successor kosumu SUCCESS). Latest commit `9e18833e` (Ducati partisi) build & deploy SUCCESS; 2 pending schedule (D1 sapma alarminin bir sonraki tick'i) olağan.
+- DEPLOY OKAN KAPISI (27. tur, onceki turla AYNI alarm): `shop-bayatlik-kapisi.py` BAYAT (rc=1). Canli `34d4db64` (14:30:20Z), bundle AYNI 2 commit. Yeni `git log -1 --since=14:30:20Z -- shop/` commit YOK — `npx wrangler deploy` zaten 0 satır tasıyacakti. §5 sessiz; 4.7.1 tablosu: `merge/deploy HUKMU · Okan yetkisi` → DAGITILMAZ.
+- 🔧 (acik-kalemler.md, son durum): onceki tur (10) ile AYNI — K49, K53, K55 (kanama devam, Tamirci sirasi); K70, K77, K80, K84, K86, K96, K98 (rutin dev); K59, K69, K71 onceki turda KAPANDI. **Bu turda yeni 🔧 yok, dagitim yok, kapanan yok.** Kapidan yeni kalem cikmiyor; sweep temiz, CI temiz, sistem kararli.
+- Okan cikisi: §5 sessiz — deploy kalemi 27 turdur ayni, Okan-kapisi acik; sweep temiz, CI temiz, D1 sync temiz. Yeni karar isteyen durum yok.
