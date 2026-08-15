@@ -460,6 +460,34 @@ def _urun(**ek):
     return p
 
 
+PAY_KURUS = 35000          # ilan tutarinin USTUNE eklenen pay (350 TL) — vaka GERCEK indirim
+
+
+def _tl_metni(kurus):
+    """Kurusu `eski_fiyat` alaninin kabul ettigi TAM TL kalibina cevirir: 169500 -> '1.695 TL'."""
+    return "{:,}".format(kurus // 100).replace(",", ".") + " TL"
+
+
+def _gecerli_vaka(**ek):
+    """GECERLI indirim vakasi: eski fiyat, ILAN EDILEN tutardan KESIN buyuk secilir.
+
+    🔴 NEDEN TUREYEN DEGER (15 Agu 2026, olculdu): burada sabit "1.200 TL" (120.000 kurus)
+    yaziliydi. Malzeme politikasi PETG'den ABS'e cevrilince ayni fikstur urunun ILAN tutari
+    110.500 -> 136.000 kurusa cikti; eski fiyat ilanin ALTINDA kaldigi icin `eski_fiyat_html`
+    onu -- DOGRU davranarak -- basmayi birakti. Kural degil FIKSTUR bayatti; buna ragmen
+    serit-a2 kirmizi yandi ve `deploy` isi 7,5 saat SKIPPED kalarak canli siteyi main'in
+    gerisinde birakti. Ders: kabul degeri, kiyasin KENDI kaynagindan turemeli.
+    Turetme daima GERCEK `build` modulunden yapilir (mutant modulden DEGIL): fikstur test
+    VERISIDIR; mutantin kendi sayisindan turetilseydi mutant kendi kacisini ucuzlatirdi.
+    """
+    p = _urun(**ek)
+    taban = build.ilan_kurus(p) or 0
+    liste = build.fiyat_kurus_gevsek(p.get("fiyat") or "") or 0
+    eski_kurus = (max(taban, liste) + PAY_KURUS) // 100 * 100
+    p["eski_fiyat"] = _tl_metni(eski_kurus)
+    return p, eski_kurus, max(taban, liste)
+
+
 def _konfigur_urunu():
     """Gercek katalogdan bir konfigur'lu urunun KOPYASI (urunler.json'a DOKUNULMAZ)."""
     with open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
@@ -471,11 +499,15 @@ def _konfigur_urunu():
 
 def bolum_c(mod=build):
     print("\n(c) SAYFA — render_product ciktisi (uctan uca)")
-    gecerli = _urun(eski_fiyat="1.200 TL")
+    gecerli, eski_kurus, taban = _gecerli_vaka()
     html = mod.render_product(gecerli, [gecerli])
+    kontrol(eski_kurus > taban,
+            "vaka GERCEK indirim: eski %d kurus > ilan/liste %d kurus" % (eski_kurus, taban))
     kontrol('<s class="eski-fiyat"' in html, "gecerli vakada <s class=\"eski-fiyat\"> basilir")
-    kontrol('data-kurus="120000"' in html, "data-kurus dogru kurusu tasir (120000)")
-    kontrol(">1.200 TL</s>" in html, "ustu cizili metin sayfada gorunur")
+    kontrol('data-kurus="%d"' % eski_kurus in html,
+            "data-kurus dogru kurusu tasir (%d)" % eski_kurus)
+    kontrol(">%s</s>" % gecerli["eski_fiyat"] in html,
+            "ustu cizili metin sayfada gorunur")
     kontrol("text-decoration:line-through" in html,
             "CSS line-through kurali sayfada var")
     kontrol('class="fiyat-satiri"' in html,
@@ -513,8 +545,8 @@ def bolum_c(mod=build):
                 "konfigur'lu sayfada eski fiyat BASILMAZ (fiyat boya gore degisir)")
 
     # panelsiz (fonksiyonel OLMAYAN) dal da kapsanir
-    panelsiz = _urun(id="test-eski-fiyat-panelsiz", kategori="Jeneratör",
-                     eski_fiyat="1.200 TL")
+    panelsiz, _pk, _pt = _gecerli_vaka(id="test-eski-fiyat-panelsiz",
+                                      kategori="Jeneratör")
     ph = mod.render_product(panelsiz, [panelsiz])
     kontrol('<s class="eski-fiyat"' in ph and '<div class="price"' in ph,
             "panelsiz (statik .price) dalinda da basilir")
@@ -523,11 +555,15 @@ def bolum_c(mod=build):
 # ------------------------------------------------------------------ (d) CANLI NOBET
 def bolum_d(gecici, mod=build):
     print("\n(d) CANLI NOBET — sayfanin KENDI JS'i yaniltici indirimi gizler mi")
-    p = _urun(eski_fiyat="1.200 TL")
+    p, eski_kurus, _t = _gecerli_vaka()
     html = mod.render_product(p, [p])
-    beklenen = [("taban fiyat (85.000 kurus < 120.000)", 85000, False),
-                ("secim fiyati ASTI (127.500 kurus > 120.000)", 127500, True),
-                ("tam esit (120.000 kurus)", 120000, True),
+    beklenen = [("taban fiyat (%d kurus < %d)" %
+                 (eski_kurus - PAY_KURUS, eski_kurus),
+                 eski_kurus - PAY_KURUS, False),
+                ("secim fiyati ASTI (%d kurus > %d)" %
+                 (eski_kurus + 7500, eski_kurus),
+                 eski_kurus + 7500, True),
+                ("tam esit (%d kurus)" % eski_kurus, eski_kurus, True),
                 ("fiyat hesaplanamadi (null)", None, True)]
     for ad, birim, gizli_olmali in beklenen:
         sonuc, hata = node_sayfa_nobeti(gecici, html, birim)
