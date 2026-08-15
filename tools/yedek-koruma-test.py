@@ -89,6 +89,41 @@ def vaka_ani(mod, kok):
     return red and sha(yedek) == once
 
 
+def vaka_karantina(mod, kok):
+    """Reddedilen TEK dosya kosumu OLDURMEZ; komsu dosya yedeklenir, atlama SESSIZ DEGIL.
+
+    Gercek vaka (ayni gun IKI kez): `mimar-posta-kutusu.md.lock` (mesru 0 bayt) ve
+    `posta-kutusu-kaan-izleme-ankor.txt` (485 -> 185 mesru dusus) tum yedek kosumunu
+    dusurdu. Olculen uc eksen: (1) reddedilenin kanonigi DEGISMEZ, (2) komsu dosya
+    YINE DE kopyalanir, (3) atlama karantina defterine YAZILIR.
+    """
+    del mod._KORUMA_KARANTINA[:]
+    kotu_kaynak = os.path.join(kok, "kar-kotu.json")
+    kotu_yedek = os.path.join(kok, "kar-kotu-yedek.json")
+    yaz_json(kotu_kaynak, 2)
+    yaz_json(kotu_yedek, 10)
+    kotu_once = sha(kotu_yedek)
+    iyi_kaynak = os.path.join(kok, "kar-iyi.json")
+    iyi_yedek = os.path.join(kok, "kar-iyi-yedek.json")
+    yaz_json(iyi_kaynak, 11)
+    iyi_beklenen = sha(iyi_kaynak)
+    # (1) reddedilen dosya: kopyalanmadi, kanonik yedek BIREBIR ayni, ISTISNA SIZMADI
+    if mod._drive_kopyala_karantinali(kotu_kaynak, kotu_yedek) is not False:
+        return False
+    if sha(kotu_yedek) != kotu_once:
+        return False
+    # (2) komsu dosya AYNI kosumda yedeklendi
+    if mod._drive_kopyala_karantinali(iyi_kaynak, iyi_yedek) is not True:
+        return False
+    if sha(iyi_yedek) != iyi_beklenen:
+        return False
+    # (3) atlama SESSIZ degil: karantina defterinde TAM 1 giris, dogru dosya adiyla
+    if len(mod._KORUMA_KARANTINA) != 1:
+        return False
+    yol, sebep = mod._KORUMA_KARANTINA[0]
+    return yol == kotu_yedek and "REDDEDILDI" in sebep
+
+
 def vaka_normal(mod, kok):
     kaynak = os.path.join(kok, "normal-kaynak.json")
     yedek = os.path.join(kok, "normal-yedek.json")
@@ -111,7 +146,8 @@ def tek_vaka(modul_yolu, vaka):
     mod = modul_yukle(modul_yolu)
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
         sonuc = {"sifir": vaka_sifir, "sifir-yeni": vaka_sifir_yeni,
-                 "ani": vaka_ani, "normal": vaka_normal}[vaka](mod, kok)
+                 "ani": vaka_ani, "karantina": vaka_karantina,
+                 "normal": vaka_normal}[vaka](mod, kok)
     print("VAKA=%s RC=%d" % (vaka, 0 if sonuc else 1))
     return 0 if sonuc else 1
 
@@ -131,7 +167,8 @@ def tam_batarya():
     mod = modul_yukle(KANONIK)
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
         davranislar = [vaka_sifir(mod, kok), vaka_sifir_yeni(mod, kok),
-                       vaka_ani(mod, kok), vaka_normal(mod, kok)]
+                       vaka_ani(mod, kok), vaka_karantina(mod, kok),
+                       vaka_normal(mod, kok)]
         mutant_sifir = mutant_yaz(
             kok, "mutant-sifir",
             "    _yedek_korumasi(kaynak, varis)\n    if os.path.isfile",
@@ -146,6 +183,17 @@ def tam_batarya():
             kok, "mutant-sifir-kosulsuz",
             "        if os.path.isfile(varis) and os.path.getsize(varis) > 0:",
             "        if True:  # MUTANT: kosulsuz redde donus")
+        # Karantinanin IKI yonu ayri ayri oldurulur:
+        #  M4 — atlama SESSIZ kalirsa ("yedek alindi" yalan olur) KIRMIZI yanmali;
+        #  M5 — karantina istisnayi yeniden atarsa (kosum yine oluyor) KIRMIZI yanmali.
+        mutant_sessiz = mutant_yaz(
+            kok, "mutant-karantina-sessiz",
+            "        _KORUMA_KARANTINA.append((varis, str(e)))",
+            "        pass  # MUTANT: atlama sessiz kaldi")
+        mutant_yeniden_at = mutant_yaz(
+            kok, "mutant-karantina-yeniden-at",
+            "        return False\n\n\ndef _kopyala_gerekliyse",
+            "        raise  # MUTANT: kosum yine oluyor\n\n\ndef _kopyala_gerekliyse")
         komut = [sys.executable, os.path.abspath(__file__), "--modul"]
         sifir = subprocess.run(komut + [mutant_sifir, "--vaka", "sifir"],
                                capture_output=True, text=True)
@@ -153,11 +201,17 @@ def tam_batarya():
                              capture_output=True, text=True)
         kosulsuz = subprocess.run(komut + [mutant_sifir_kosulsuz, "--vaka", "sifir-yeni"],
                                   capture_output=True, text=True)
-    mutantlar = [sifir.returncode != 0, ani.returncode != 0, kosulsuz.returncode != 0]
+        sessiz = subprocess.run(komut + [mutant_sessiz, "--vaka", "karantina"],
+                                capture_output=True, text=True)
+        yeniden = subprocess.run(komut + [mutant_yeniden_at, "--vaka", "karantina"],
+                                 capture_output=True, text=True)
+    mutantlar = [sifir.returncode != 0, ani.returncode != 0, kosulsuz.returncode != 0,
+                 sessiz.returncode != 0, yeniden.returncode != 0]
     print("KORUMA_TEST=%d" % sum(1 for sonuc in davranislar if sonuc))
     print("MUTASYON_KIRMIZI=%d" % sum(1 for sonuc in mutantlar if sonuc))
-    print("MUTASYON_RC=%d,%d,%d" % (sifir.returncode, ani.returncode,
-                                    kosulsuz.returncode))
+    print("MUTASYON_RC=%d,%d,%d,%d,%d" % (sifir.returncode, ani.returncode,
+                                          kosulsuz.returncode, sessiz.returncode,
+                                          yeniden.returncode))
     print("SURUM_TAVANI=%d" % mod.SURUM_SAKLA)
     return 0 if all(davranislar) and all(mutantlar) else 1
 
@@ -165,7 +219,8 @@ def tam_batarya():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--modul")
-    ap.add_argument("--vaka", choices=("sifir", "sifir-yeni", "ani", "normal"))
+    ap.add_argument("--vaka", choices=("sifir", "sifir-yeni", "ani", "karantina",
+                                       "normal"))
     a = ap.parse_args()
     if a.modul or a.vaka:
         if not a.modul or not a.vaka:

@@ -127,6 +127,11 @@ class YedekKorumaHatasi(RuntimeError):
     """Saglam kanonik yedegin supheli kaynakla ezilmesini fail-closed durdurur."""
 
 
+# Korumanin ATLADIGI dosyalar: (hedef_yolu, sebep). Kosum sonunda basilir ve cikis
+# kodunu KIRMIZI yapar — atlama SESSIZ olamaz, yoksa "yedek alindi" yalan olur.
+_KORUMA_KARANTINA = []
+
+
 # Bir kaynagin bayt VEYA JSON kayit sayisi onceki kanonigin yarısından aza dusuyorsa
 # bunu normal guncelleme degil veri-kaybi adayi sayiyoruz. %50 esigi; kucuk duzenlemeleri
 # engellemez, fakat yarim/yanlis filtreleme gibi kitlesel kaybi iyi yedegin ustune yazmaz.
@@ -704,8 +709,8 @@ def skills_yaz(kok, hedef, dahil, haric, sir_temizle=False):
         kaynak = os.path.join(kok, gor)
         varis = os.path.join(hedef, gor)
         os.makedirs(os.path.dirname(varis), exist_ok=True)
-        _drive_kopyala(kaynak, varis)
-        yazilan += 1
+        if _drive_kopyala_karantinali(kaynak, varis):
+            yazilan += 1
     bayat = []
     for gor, _sebep in haric:
         varis = os.path.join(hedef, gor)
@@ -1309,6 +1314,32 @@ def yedek_plani(sirlar=False):
     return plan
 
 
+# KARANTINA: koruma bir DOSYAYI reddettiginde o dosya ATLANIR, kosum DEVAM EDER.
+def _drive_kopyala_karantinali(kaynak, varis):
+    """`_drive_kopyala` + tek-dosya karantinasi. Doner: True=kopyalandi, False=atlandi.
+
+    🔴 NEDEN VAR (olculdu 15 Agu 2026, AYNI GUN IKI KEZ): koruma dogru sinifi olcuyordu
+    ama YANLIS GRANULERLIKTE davraniyordu — tek bir dosyanin reddi `copytree` yurumesini
+    ortasindan kesip TUM yedegi dusuruyordu. Iki mesru vaka ayni gun yasandi:
+      1. `mimar-posta-kutusu.md.lock` — flock nobetcisi, MESRU olarak daima 0 bayt;
+      2. `posta-kutusu-kaan-izleme-ankor.txt` — izleme ankoru, 485 -> 185 bayta MESRU dustu.
+    Ikisinde de sonuc AYNI: veri kaybina karsi kurulan koruma, yedek zincirini TAMAMEN
+    kapatarak veri kaybi riskini ARTIRDI. Ilk vaka sifir-kolu onarimiyla kapatilmisti;
+    ayni sinif AYNI GUN tekrar edince tekil yama BIRAKILDI ve sinif kapatildi
+    -> [[tekil-yama-sinifi-kapatmaz]] · [[koruma-kurali-korudugunu-durdurur]].
+
+    KORUNAN HAL AYNEN DURUYOR: reddedilen dosyanin kanonik yedegi TEK BAYT degismez.
+    Degisen tek sey, redde ugramayan DIGER dosyalarin da yedeklenebilmesidir.
+    Sessizlik YOK: atlanan her dosya `_KORUMA_KARANTINA`ya girer, ozet satirinda
+    basilir ve kosumun cikis kodunu KIRMIZI yapar.
+    """
+    try:
+        return _drive_kopyala(kaynak, varis)
+    except YedekKorumaHatasi as e:
+        _KORUMA_KARANTINA.append((varis, str(e)))
+        return False
+
+
 def _kopyala_gerekliyse(kaynak, varis):
     """Idempotent kopya: hedef AYNI boyut ve >= mtime ise DOKUNMAZ.
     Doner: True = kopyalandi, False = zaten guncel.
@@ -1322,8 +1353,7 @@ def _kopyala_gerekliyse(kaynak, varis):
     except OSError:
         pass
     os.makedirs(os.path.dirname(varis), exist_ok=True)
-    _drive_kopyala(kaynak, varis)
-    return True
+    return _drive_kopyala_karantinali(kaynak, varis)
 
 
 def ek_yaz(backup):
@@ -2202,7 +2232,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # memory klasoru
     if os.path.isdir(MEMORY):
         shutil.copytree(MEMORY, os.path.join(backup, "memory"), dirs_exist_ok=True,
-                        copy_function=_drive_kopyala)
+                        copy_function=_drive_kopyala_karantinali)
         print("yedek: memory/ ->", os.path.join(backup, "memory"))
 
     # ~/.claude/skills/ — global skill'ler (merge-kapisi dahil) GIT DISINDA tutuluyor
@@ -2258,7 +2288,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     #  duzeltildi; eskiden burada tam TERSI yaziyordu ve gercek dosya yedeksiz kalmisti.)
     repo_adlari, kok_elenen = repo_kok_ayrimi()
     for ad in repo_adlari:
-        _drive_kopyala(os.path.join(ROOT, ad), os.path.join(backup, ad))
+        _drive_kopyala_karantinali(os.path.join(ROOT, ad), os.path.join(backup, ad))
         print("yedek:", ad)
 
     # 🔴 SIR YAZMA YOLU KAPALI (8 Agu 2026, Okan karari) — SESSIZ ATLAMA YOK.
@@ -2318,6 +2348,17 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     print("🔴 BU YEDEK KLASORU KIMSEYLE PAYLASILMAZ (link/dosya/e-posta) — ticari gizli")
     print("   icerik tasir: raporlar/, .tedarikci-fiyat/, .uyelik-*. Sir nobeti ADA gore")
     print("   eler, ICERIGE gore degil.")
+    # KARANTINA OZETI — atlama SESSIZ olamaz. Kosum tamamlandi (diger her dosya
+    # yedeklendi) ama en az bir dosya korumaya takildi: cikis kodu KIRMIZI, cunku
+    # "yedek alindi" beyani bu dosyalar icin DOGRU DEGIL. Kanonik yedekleri
+    # DEGISMEDI — korunan hal budur.
+    if _KORUMA_KARANTINA:
+        print("KORUMA KARANTINASI: %d dosya ATLANDI (kanonik yedekleri DEGISMEDI); "
+              "diger dosyalar yedeklendi." % len(_KORUMA_KARANTINA))
+        for yol, sebep in _KORUMA_KARANTINA:
+            print("  ATLANDI: %s   -> %s" % (os.path.basename(yol), sebep))
+        print("bitti (karantinali) ->", backup)
+        return 1
     print("bitti ->", backup)
     return 0
 
