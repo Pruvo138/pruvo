@@ -56,6 +56,29 @@ def vaka_sifir(mod, kok):
     return red and sha(yedek) == once and os.path.getsize(kaynak) == 0
 
 
+def vaka_sifir_yeni(mod, kok):
+    """0 bayt kaynak + KARSISI BOS/YOK -> gerileme DEGIL, KOPYALANMALI.
+
+    Gercek vaka: `mimar-posta-kutusu.md.lock` mesru olarak daima 0 bayttir; kosulsuz red
+    tum yedek kosumunu dusuruyordu. Iki alt hal de olculur: hedef HIC YOK, ve hedef VAR
+    ama 0 bayt.
+    """
+    yok_kaynak = os.path.join(kok, "kilit-yok.lock")
+    yok_yedek = os.path.join(kok, "kilit-yok-yedek.lock")
+    open(yok_kaynak, "wb").close()
+    if reddedildi_mi(mod, yok_kaynak, yok_yedek):
+        return False
+    if not os.path.isfile(yok_yedek) or os.path.getsize(yok_yedek) != 0:
+        return False
+    bos_kaynak = os.path.join(kok, "kilit-bos.lock")
+    bos_yedek = os.path.join(kok, "kilit-bos-yedek.lock")
+    open(bos_kaynak, "wb").close()
+    open(bos_yedek, "wb").close()
+    if reddedildi_mi(mod, bos_kaynak, bos_yedek):
+        return False
+    return os.path.isfile(bos_yedek) and os.path.getsize(bos_yedek) == 0
+
+
 def vaka_ani(mod, kok):
     kaynak = os.path.join(kok, "ani-kaynak.json")
     yedek = os.path.join(kok, "ani-yedek.json")
@@ -87,7 +110,8 @@ def vaka_normal(mod, kok):
 def tek_vaka(modul_yolu, vaka):
     mod = modul_yukle(modul_yolu)
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
-        sonuc = {"sifir": vaka_sifir, "ani": vaka_ani, "normal": vaka_normal}[vaka](mod, kok)
+        sonuc = {"sifir": vaka_sifir, "sifir-yeni": vaka_sifir_yeni,
+                 "ani": vaka_ani, "normal": vaka_normal}[vaka](mod, kok)
     print("VAKA=%s RC=%d" % (vaka, 0 if sonuc else 1))
     return 0 if sonuc else 1
 
@@ -106,7 +130,8 @@ def mutant_yaz(kok, ad, eski, yeni):
 def tam_batarya():
     mod = modul_yukle(KANONIK)
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
-        davranislar = [vaka_sifir(mod, kok), vaka_ani(mod, kok), vaka_normal(mod, kok)]
+        davranislar = [vaka_sifir(mod, kok), vaka_sifir_yeni(mod, kok),
+                       vaka_ani(mod, kok), vaka_normal(mod, kok)]
         mutant_sifir = mutant_yaz(
             kok, "mutant-sifir",
             "    _yedek_korumasi(kaynak, varis)\n    if os.path.isfile",
@@ -115,15 +140,24 @@ def tam_batarya():
             kok, "mutant-ani",
             "return eski > 0 and yeni < eski * ANI_DUSUS_ESIGI",
             "return False")
+        # Onarimin TERS yonu: sifir kolu yeniden KOSULSUZ redde donerse mesru bos nobetci
+        # dosyasi yine tum kosumu dusurur -> `sifir-yeni` vakasi KIRMIZI yanmali.
+        mutant_sifir_kosulsuz = mutant_yaz(
+            kok, "mutant-sifir-kosulsuz",
+            "        if os.path.isfile(varis) and os.path.getsize(varis) > 0:",
+            "        if True:  # MUTANT: kosulsuz redde donus")
         komut = [sys.executable, os.path.abspath(__file__), "--modul"]
         sifir = subprocess.run(komut + [mutant_sifir, "--vaka", "sifir"],
                                capture_output=True, text=True)
         ani = subprocess.run(komut + [mutant_ani, "--vaka", "ani"],
                              capture_output=True, text=True)
-    mutantlar = [sifir.returncode != 0, ani.returncode != 0]
+        kosulsuz = subprocess.run(komut + [mutant_sifir_kosulsuz, "--vaka", "sifir-yeni"],
+                                  capture_output=True, text=True)
+    mutantlar = [sifir.returncode != 0, ani.returncode != 0, kosulsuz.returncode != 0]
     print("KORUMA_TEST=%d" % sum(1 for sonuc in davranislar if sonuc))
     print("MUTASYON_KIRMIZI=%d" % sum(1 for sonuc in mutantlar if sonuc))
-    print("MUTASYON_RC=%d,%d" % (sifir.returncode, ani.returncode))
+    print("MUTASYON_RC=%d,%d,%d" % (sifir.returncode, ani.returncode,
+                                    kosulsuz.returncode))
     print("SURUM_TAVANI=%d" % mod.SURUM_SAKLA)
     return 0 if all(davranislar) and all(mutantlar) else 1
 
@@ -131,7 +165,7 @@ def tam_batarya():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--modul")
-    ap.add_argument("--vaka", choices=("sifir", "ani", "normal"))
+    ap.add_argument("--vaka", choices=("sifir", "sifir-yeni", "ani", "normal"))
     a = ap.parse_args()
     if a.modul or a.vaka:
         if not a.modul or not a.vaka:

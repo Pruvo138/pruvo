@@ -156,10 +156,19 @@ def _ciddi_dusus_var(yeni, eski):
 def _yedek_korumasi(kaynak, varis):
     """Sifir/ani dususu olcer; suphede kanonige tek bayt yazmadan once durur."""
     kaynak_boyut = os.path.getsize(kaynak)
+    # 🔴 SIFIR BAYT = ancak KARSISINDA DOLU BIR YEDEK VARSA gerilemedir (olculdu 15 Agu):
+    # kural kosulsuzdu ve `mimar-posta-kutusu.md.lock` gibi MESRU olarak daima 0 bayt olan
+    # flock nobetcisini "veri kaybi" sanip TUM yedek kosumunu dusurdu -> koruma girdiginden
+    # beri hicbir yedek tamamlanmadi (yani veri kaybina karsi kurulan kural, veri kaybi
+    # riskini ARTIRDI). Fonksiyonun geri kalani ZATEN gerileme-temellidir; sifir kolu tek
+    # basina bu ilkenin disinda kalmisti -> [[kabul-araligi-karsilastirma-araligi]].
+    # Korunan hal AYNEN durur: dolu bir kanonik yedegin uzerine 0 bayt YAZILAMAZ.
     if kaynak_boyut == 0:
-        raise YedekKorumaHatasi(
-            "YEDEK REDDEDILDI: kaynak 0 bayt; kanonik yedek DEGISMEDI (%s)" %
-            os.path.basename(kaynak))
+        if os.path.isfile(varis) and os.path.getsize(varis) > 0:
+            raise YedekKorumaHatasi(
+                "YEDEK REDDEDILDI: kaynak 0 bayt; kanonik yedek DEGISMEDI (%s)" %
+                os.path.basename(kaynak))
+        return
     if not os.path.isfile(varis):
         return
     yedek_boyut = os.path.getsize(varis)
