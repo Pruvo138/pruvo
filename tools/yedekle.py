@@ -111,7 +111,9 @@ Kullanim:
 """
 import errno
 import fcntl
+import filecmp
 import fnmatch
+import glob
 import json
 import os
 import re
@@ -121,7 +123,79 @@ import sys
 import time
 
 
-def _drive_kopyala(kaynak, varis):
+class YedekKorumaHatasi(RuntimeError):
+    """Saglam kanonik yedegin supheli kaynakla ezilmesini fail-closed durdurur."""
+
+
+# Bir kaynagin bayt VEYA JSON kayit sayisi onceki kanonigin yarısından aza dusuyorsa
+# bunu normal guncelleme degil veri-kaybi adayi sayiyoruz. %50 esigi; kucuk duzenlemeleri
+# engellemez, fakat yarim/yanlis filtreleme gibi kitlesel kaybi iyi yedegin ustune yazmaz.
+ANI_DUSUS_ESIGI = 0.50
+
+# Her dosya icin 20 degisik kanonik onceki surum: push-temelli sik yedekte birden cok
+# kurtarma noktasi verirken Drive kullanimini sinirli tutar. Ayni icerik yeni surum acmaz.
+SURUM_SAKLA = 20
+
+
+def _json_kayit_sayisi(yol):
+    """Ust seviye liste/sozluk kayit sayisi; JSON degilse None (icerik BASILMAZ)."""
+    if os.path.splitext(yol)[1].lower() != ".json":
+        return None
+    try:
+        with open(yol, "r", encoding="utf-8") as f:
+            veri = json.load(f)
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    return len(veri) if isinstance(veri, (list, dict)) else None
+
+
+def _ciddi_dusus_var(yeni, eski):
+    return eski > 0 and yeni < eski * ANI_DUSUS_ESIGI
+
+
+def _yedek_korumasi(kaynak, varis):
+    """Sifir/ani dususu olcer; suphede kanonige tek bayt yazmadan once durur."""
+    kaynak_boyut = os.path.getsize(kaynak)
+    if kaynak_boyut == 0:
+        raise YedekKorumaHatasi(
+            "YEDEK REDDEDILDI: kaynak 0 bayt; kanonik yedek DEGISMEDI (%s)" %
+            os.path.basename(kaynak))
+    if not os.path.isfile(varis):
+        return
+    yedek_boyut = os.path.getsize(varis)
+    if _ciddi_dusus_var(kaynak_boyut, yedek_boyut):
+        raise YedekKorumaHatasi(
+            "YEDEK REDDEDILDI: bayt olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI (%s)"
+            % (yedek_boyut, kaynak_boyut, os.path.basename(kaynak)))
+    kaynak_kayit = _json_kayit_sayisi(kaynak)
+    yedek_kayit = _json_kayit_sayisi(varis)
+    if (kaynak_kayit is not None and yedek_kayit is not None and
+            _ciddi_dusus_var(kaynak_kayit, yedek_kayit)):
+        raise YedekKorumaHatasi(
+            "YEDEK REDDEDILDI: kayit olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI (%s)"
+            % (yedek_kayit, kaynak_kayit, os.path.basename(kaynak)))
+
+
+def _surum_yolu(varis):
+    govde, uzanti = os.path.splitext(varis)
+    damga = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+    aday = "%s.%s%s" % (govde, damga, uzanti)
+    sira = 1
+    while os.path.exists(aday):
+        aday = "%s.%s-%02d%s" % (govde, damga, sira, uzanti)
+        sira += 1
+    return aday
+
+
+def _surumleri_buda(varis):
+    govde, uzanti = os.path.splitext(varis)
+    desen = "%s.[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9]*%s" % (govde, uzanti)
+    surumler = sorted(glob.glob(desen), key=os.path.getmtime, reverse=True)
+    for eski in surumler[SURUM_SAKLA:]:
+        os.unlink(eski)
+
+
+def _ham_drive_kopyala(kaynak, varis):
     """Icerigi DAIMA kopyala; metadata reddini yut ama GORUNUR birak.
 
     🔴 OLCULDU (14 Agu 2026): hedef Google Drive **Ortak Drive** (CloudStorage) baglama
@@ -148,6 +222,25 @@ def _drive_kopyala(kaynak, varis):
     except OSError:
         _DRIVE_METADATA_REDDI.append(varis)
     return True
+
+
+def _drive_kopyala(kaynak, varis):
+    """Tum yedek siniflari icin koruma + tarihli surum + kanonik guncelleme."""
+    _yedek_korumasi(kaynak, varis)
+    if os.path.isfile(varis) and filecmp.cmp(kaynak, varis, shallow=False):
+        return True
+    surum = None
+    if os.path.isfile(varis):
+        surum = _surum_yolu(varis)
+        shutil.copyfile(varis, surum)
+    try:
+        sonuc = _ham_drive_kopyala(kaynak, varis)
+    except BaseException:
+        # Kanonik yazim baslamadan once alinmis surum kurtarma noktasi olarak KALIR.
+        raise
+    if surum is not None:
+        _surumleri_buda(varis)
+    return sonuc
 
 
 _DRIVE_METADATA_REDDI = []
