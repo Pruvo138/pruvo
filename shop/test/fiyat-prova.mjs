@@ -45,6 +45,20 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 
+const CLI_BAYRAKLARI = process.argv.slice(2);
+const GECERLI_BAYRAKLAR = new Set(["--yalniz-parite", "--yalniz-mutasyon"]);
+const BILINMEYEN_BAYRAKLAR = CLI_BAYRAKLARI.filter((b) => !GECERLI_BAYRAKLAR.has(b));
+if (BILINMEYEN_BAYRAKLAR.length) {
+  console.error("Bilinmeyen bayrak: " + BILINMEYEN_BAYRAKLAR.join(", "));
+  process.exit(2);
+}
+if (CLI_BAYRAKLARI.length > 1) {
+  console.error("Bayraklar birlikte veya birden fazla kez kullanilamaz: " + CLI_BAYRAKLARI.join(", "));
+  process.exit(2);
+}
+const PARITE_KOS = !CLI_BAYRAKLARI.includes("--yalniz-mutasyon");
+const MUTASYON_KOS = !CLI_BAYRAKLARI.includes("--yalniz-parite");
+
 const BURASI = path.dirname(fileURLToPath(import.meta.url));
 const SHOP = path.dirname(BURASI);
 const KOK = path.dirname(SHOP);
@@ -407,6 +421,7 @@ const YENI_DIZIN = dizinKur("yeni", guncelKaynaklar());
 const YENI = await modulYukle(YENI_DIZIN);
 
 // =================================================================== 1a) SPEC (referanssiz)
+if (PARITE_KOS) {
 baslik("== 1a) FIYAT SPEC'i — SABIT beklenen kuruslar + bagimsiz orakil (/konfigur.js) ==");
 {
   // KALICI ve REFERANSSIZ iddia: [[60,500],[300,2500]] capali urunlerde 6 kombinasyonun kurusu
@@ -448,7 +463,10 @@ baslik("== 1a) FIYAT SPEC'i — SABIT beklenen kuruslar + bagimsiz orakil (/konf
   } else { ham.push("  ✅ GECTI — kuruslar SPEC ve bagimsiz orakille birebir"); }
 }
 
+}
+
 // =================================================================== 1b) ESDEGERLIK
+if (PARITE_KOS) {
 baslik("== 1b) FIYAT ESDEGERLIGI — git HEAD kodu vs CALISMA AGACI kodu ==");
 let eskiMod = null;
 const headIndex = (() => {
@@ -504,7 +522,10 @@ if (eskiMod) {
   else { ham.push("  ✅ GECTI — eski ve yeni kod BIREBIR ayni kurusu uretti (fark 0)"); }
 }
 
+}
+
 // =================================================================== 2) TAVAN
+if (PARITE_KOS) {
 baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hala uygulaniyor ==");
 {
   const hatalar = [];
@@ -533,7 +554,10 @@ baslik("== 2) 3x TAVAN (shop/src/konfigur.js:59 — 3 x fiyatCapalari[0][1]) hal
   } else { ham.push("  ✅ GECTI — tavan 14/14 urunde uygulaniyor"); }
 }
 
+}
+
 // =================================================================== 3) PROVA == TAHSILAT
+if (PARITE_KOS) {
 baslik("== 3) PROVA == TAHSILAT — /fiyat, /baslat'in D1'e YAZDIGI tutarin AYNISINI doner ==");
 {
   const hatalar = [];
@@ -583,7 +607,10 @@ baslik("== 3) PROVA == TAHSILAT — /fiyat, /baslat'in D1'e YAZDIGI tutarin AYNI
   } else { ham.push("  ✅ GECTI — prova tutari tahsilat tutariyla BIREBIR"); }
 }
 
+}
+
 // =================================================================== 4) YAN ETKISIZLIK
+if (PARITE_KOS) {
 baslik("== 4) PROVA YAN ETKISIZ — D1 yazma + ag cagri SAYACLARI (yapisal kanit) ==");
 {
   const hatalar = [];
@@ -634,7 +661,10 @@ baslik("== 4) PROVA YAN ETKISIZ — D1 yazma + ag cagri SAYACLARI (yapisal kanit
   } else { ham.push("  ✅ GECTI — prova hicbir yazma/bildirim uretmiyor, sayaclar canli"); }
 }
 
+}
+
 // =================================================================== 5) SIZINTI YUZEYI
+if (PARITE_KOS) {
 baslik("== 5) PROVA SIZINTI YUZEYI — beyaz liste + yasak alan taramasi ==");
 {
   const hatalar = [];
@@ -699,11 +729,14 @@ baslik("== 5) PROVA SIZINTI YUZEYI — beyaz liste + yasak alan taramasi ==");
   } else { ham.push("  ✅ GECTI — cevap beyaz-liste; ic alan/PII/uc yuzeyi temiz"); }
 }
 
+}
+
 async function mod_fetch(mod, istek, env) {
   return await mod.default.fetch(istek, env, { waitUntil() {} });
 }
 
 // =================================================================== 6) DOGRULAMA + HIZ SINIRI
+if (PARITE_KOS) {
 baslik("== 6) PROVA DOGRULAMASI /baslat ILE AYNI + hiz siniri ==");
 {
   const hatalar = [];
@@ -766,6 +799,8 @@ baslik("== 6) PROVA DOGRULAMASI /baslat ILE AYNI + hiz siniri ==");
   } else { ham.push("  ✅ GECTI — prova dogrulamasi tahsilatla ayni; hiz siniri calisiyor"); }
 }
 
+}
+
 // =================================================================== 7) FAIL-CLOSED IDDIALARI
 /** Artefaktta OLMAYAN konfigur urunu icin FAIL-CLOSED iddialari (hem /baslat hem /fiyat).
  *  Mutasyon altinda bu iddialarin KIRMIZI yanmasi beklenir (vakum olcumu). */
@@ -793,6 +828,7 @@ async function failClosedIddialari(mod) {
   return sonuc;
 }
 
+if (PARITE_KOS) {
 baslik("== 7) FAIL-CLOSED — artefaktta olmayan konfigur urunu (baslat + prova) ==");
 {
   const iddia = await failClosedIddialari(YENI);
@@ -801,6 +837,7 @@ baslik("== 7) FAIL-CLOSED — artefaktta olmayan konfigur urunu (baslat + prova)
   kalan.slice(0, 10).forEach((i) => ham.push("    ❌ " + i.ad + " (olculen: " + i.olculen + ")"));
   if (kalan.length) { kirmizi += 1; ham.push("  ❌ KALDI — fail-closed"); }
   else { ham.push("  ✅ GECTI — 28/28 iddia; sabit fiyat HESAPLANMIYOR, prova da 400 doner"); }
+}
 }
 
 // ====================================== 10) FIZIKSEL URUN — MALZEME/RENK CARPANI YOK
@@ -916,6 +953,7 @@ async function fizikselIddialari(mod) {
   return s;
 }
 
+if (PARITE_KOS) {
 baslik("== 10) FIZIKSEL URUN — malzeme/renk carpani UYGULANMAZ (tutar = LISTE fiyati) ==");
 {
   if (FIZ_GERCEK.length === 0) {
@@ -935,6 +973,7 @@ baslik("== 10) FIZIKSEL URUN — malzeme/renk carpani UYGULANMAZ (tutar = LISTE 
     ham.push("  ✅ GECTI — fiziksel urun DAIMA " + FIZ_LISTE_KURUS + " krs; 3D fiyatlamasi " +
              "onarim oncesiyle BIREBIR (100000/115000/184000)");
   }
+}
 }
 
 // ============================ 11) FIS EKSENI — fiziksel siparis "ASA / turuncu" DEMEZ
@@ -1231,6 +1270,7 @@ async function bicimIddialari(mod) {
   return s;
 }
 
+if (PARITE_KOS) {
 baslik("== 11) FIS EKSENI — fiziksel siparis kaydi/e-postasi malzeme-renk BEYAN ETMEZ ==");
 {
   const epostaMod = await epostaYukle(YENI_DIZIN);
@@ -1248,7 +1288,9 @@ baslik("== 11) FIS EKSENI — fiziksel siparis kaydi/e-postasi malzeme-renk BEYA
              "3D siparisinde DORT yuzeyde de AYNEN duruyor");
   }
 }
+}
 
+if (PARITE_KOS) {
 baslik("== 11b) BICIM EKSENI — iyzico kalem adi · D1 kolonlari · yonetim ekrani (KELIME DEGIL) ==");
 {
   const iddia = await bicimIddialari(YENI);
@@ -1264,6 +1306,7 @@ baslik("== 11b) BICIM EKSENI — iyzico kalem adi · D1 kolonlari · yonetim ekr
   else {
     ham.push("  ✅ GECTI — uc yuzeyin de BICIMI sozlesmeye uyuyor (M15/M16/M17 bunu olcer)");
   }
+}
 }
 
 // ============================================================ 9) SERT TAVAN (yardimcilar)
@@ -1589,8 +1632,10 @@ const TAVAN_M7 =
   "    return cokIstek(env);\n" +
   "  }";
 
-const KOD_PENCERE = Number((calismaIndex.match(/const PROVA_PENCERE_SN = (\d+);/) || [])[1]);
+const KOD_PENCERE = Number((fs.readFileSync(path.join(SRC, "index.js"), "utf8")
+  .match(/const PROVA_PENCERE_SN = (\d+);/) || [])[1]);
 
+if (PARITE_KOS) {
 baslik("== 9) HIZ SINIRI — native rate-limit binding DOGRU KULLANILIYOR (EN IYI CABA) ==");
 {
   const hatalar = [];
@@ -1740,8 +1785,10 @@ baslik("== 9) HIZ SINIRI — native rate-limit binding DOGRU KULLANILIYOR (EN IY
              "fail-closed; 0 yanlis-pozitif; yanlis-guvence ifadesi YOK");
   }
 }
+}
 
 // =================================================================== 8) MUTANTLAR
+if (MUTASYON_KOS) {
 baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
 {
   const KAYNAKLAR = guncelKaynaklar();
@@ -2444,6 +2491,7 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
     ham.push("    ✅ M9: semantik " + ILK_RED + ". -> " + m9Ilk +
              ". kaydirilinca set 9.2 KIRMIZI yanar");
   }
+}
 }
 
 // ------------------------------------------------------------------ kosum sonu

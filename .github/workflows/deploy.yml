@@ -993,8 +993,8 @@ jobs:
       #     400 (fail-closed). 4 KIRMIZI-MUTASYON: bayat artefakt / fail-closed kol silinmis /
       #     kapinin CI cagrisi silinmis / prova yan etki uretiyor.
       # OFFLINE: wrangler YOK, ag YOK, gercek/sahte SIPARIS YOK, repo dosyasi YAZILMAZ. ~40 s.
-      - name: Fiyat esdegerligi + prova ucu kabul testi (yan etkisiz fiyat sorgusu)
-        run: node shop/test/fiyat-prova.mjs
+      - name: Fiyat esdegerligi + prova ucu kabul testi (yan etkisiz fiyat sorgusu) (parite kolu — BLOKLAYICI)
+        run: node shop/test/fiyat-prova.mjs --yalniz-parite
 
       # BOY VARYANTI ZINCIRI (14 Agu 2026) — `boy_secenekleri` alani DORT yuzeyde birden
       # fiyat sürer: urunler.json semasi (arama.py kanonik) -> D1 kolonu + urun hash'i
@@ -1755,6 +1755,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Fiyat prova mutasyon bataryasi (M3b acik — HIJYEN, yayini durdurmaz)
+        run: node shop/test/fiyat-prova.mjs --yalniz-mutasyon
       # Kisisel veri sizinti kilidi — BILEREK BLOKLAYICI (continue-on-error YOK;
       # mukerrer-hook felsefesi): bu test kirmiziysa kisisel veri ham HTML'e siziyor
       # demektir, yayini erken durdurmak ucuz, sessiz sizinti pahali. JSON-LD
