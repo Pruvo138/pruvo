@@ -5191,6 +5191,8 @@ def _d_izin_mekanizma_kontrol():
 # H4: tespit kolunu olduren mutant ve yorumu degistiren kontrol mutanti oz-testtedir.
 K80_IC_KOSUM = "PRUVO_K80_IC_KOSUM"
 K80_META = re.compile(r"[;&|`$<>\n\r]")
+# Kapinin KOSTURABILECEGI betiklerin kokleri — KAPALI kume (repo ici, bilinen test agaclari).
+K80_BETIK_KOKLERI = ("tools" + os.sep, "shop" + os.sep, "jenerator" + os.sep)
 K80_MATRIX = re.compile(r"\$\{\{\s*matrix\.([A-Za-z_][A-Za-z0-9_-]*)\s*\}\}")
 K80_SIFIR_SHA = "0" * 40
 
@@ -5286,6 +5288,39 @@ def _k80_komut_envreni(metinler, tespit_acik=True):
     return sonuc
 
 
+def _k80_bloklayici_isler(metinler):
+    """{dosya: set(bloklayici job_id)} — YAYINI DURDURABILEN isler.
+
+    🔴 NEDEN (15 Agu 2026, KraL hukmu): yayin zinciri iki katmana ayrildi. `deploy`in
+    `needs` listesindeki isler yayini DURDURUR; `hijyen-*` gibi zincir DISI isler
+    durdurmaz (kirmizi yanar, mail uretir, nobet onarir). K80 "yeni adim YESIL olmali"
+    diyor; bu sart ZINCIR DISI ise eklenen adim icin ANLAMSIZDIR ve mimarinin kendisiyle
+    CELISIR: ornegin `--yalniz-mutasyon` adimi BILEREK kirmizidir (acik delik gorunur
+    kalsin diye). Zincir disi yeni adim RAPORLANIR, push'u BLOKLAMAZ.
+    """
+    sonuc = {}
+    for dosya, metin in sorted(metinler.items()):
+        govde, hata = ayristir(metin)
+        if hata or not isinstance(govde, dict):
+            raise Olculemedi("%s YAML ayristirilamadi: %s" % (dosya, hata or "kok mapping degil"))
+        jobs = govde.get("jobs")
+        if not isinstance(jobs, dict):
+            raise Olculemedi("%s jobs mapping YOK" % dosya)
+        bloklayici = set()
+        for job_id, job in jobs.items():
+            if not isinstance(job, dict):
+                continue
+            gerek = job.get("needs")
+            if isinstance(gerek, str):
+                gerek = [gerek]
+            if isinstance(gerek, list):
+                bloklayici.update(str(x) for x in gerek)
+        # `deploy`in KENDISI de bloklayicidir (yayin adimini o tasir).
+        bloklayici.update(str(j) for j in jobs if str(j) in ("deploy", "yayin"))
+        sonuc[dosya] = bloklayici
+    return sonuc
+
+
 def _k80_git(args, kok=ROOT, metin=True):
     r = subprocess.run(["git", "-C", kok] + list(args), capture_output=True,
                        text=metin, timeout=30)
@@ -5365,14 +5400,21 @@ def _k80_satirlar(run):
             continue
         if argv[0] not in ("python3", "node"):
             raise Olculemedi("ag/secret/harici arac olasiligi: %r" % argv[0])
-        uzanti = ".py" if argv[0] == "python3" else ".js"
-        adaylar = [i for i, a in enumerate(argv[1:], 1) if a.endswith(uzanti)]
+        # 🔴 UZANTI KUMESI (15 Agu 2026): node tarafinda `.mjs`/`.cjs` de gecerli betiktir.
+        # Olculdu: `shop/test/fiyat-prova.mjs --yalniz-parite` gibi MESRU adimlar yalnizca
+        # uzanti taninmadigi icin "tek betik yolu bulunamadi" ile OLCULEMEDI'ye dusuyor,
+        # ve OLCULEMEDI push'u BLOKLADIGI icin kapi olcemedigi seyi yasaklar hale geliyordu.
+        uzantilar = (".py",) if argv[0] == "python3" else (".js", ".mjs", ".cjs")
+        adaylar = [i for i, a in enumerate(argv[1:], 1) if a.endswith(uzantilar)]
         if len(adaylar) != 1:
             raise Olculemedi("tek betik yolu bulunamadi: %r" % satir)
         yol = argv[adaylar[0]]
         norm = os.path.normpath(yol)
-        if os.path.isabs(norm) or not norm.startswith("tools" + os.sep):
-            raise Olculemedi("betik tools/ altinda degil: %r" % yol)
+        # 🔴 KOK KUMESI: testler yalniz `tools/` altinda YASAMIYOR (`shop/test/`,
+        # `jenerator/test/`). Eski tek-kok kurali bu iki agaci komple olculemez kiliyordu.
+        # Kume KAPALI kalir (repo ici, bilinen test kokleri) — serbest yol YOK.
+        if os.path.isabs(norm) or not norm.startswith(K80_BETIK_KOKLERI):
+            raise Olculemedi("betik bilinen test koklerinin disinda: %r" % yol)
         if any("${{" in a for a in argv):
             raise Olculemedi("cozulmemis GitHub ifadesi var: %r" % satir)
         satirlar.append(argv)
@@ -5505,6 +5547,16 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True):
             ebeveyn = _k80_git(["rev-parse", commit + "^1"]).strip()
             yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik,
                                       tasinan_defteri=tasinan)
+            # ZINCIR DISI (hijyen) ise eklenen yeni adim: RAPORLANIR, BLOKLAMAZ.
+            bloklayici_harita = _k80_bloklayici_isler(_k80_workflow_metinleri(commit))
+            zincir_disi = [a for a in yeni
+                           if str(a[1]) not in bloklayici_harita.get(a[0], set())]
+            yeni = [a for a in yeni if a not in zincir_disi]
+            if zincir_disi:
+                print("K80 ZINCIR_DISI=%d (deploy.needs disindaki ise eklendi; yesil sarti "
+                      "ARANMAZ, gercek kosumda gorunur) ornek: %s"
+                      % (len(zincir_disi),
+                         " · ".join("%s::%s" % (j, k[:60]) for _d, j, k in zincir_disi[:3])))
             yeni_sayisi += len(yeni)
             h, k = _k80_commit_agacinda_kos(commit, yeni)
             bulgular.extend("commit %s: %s" % (commit[:12], x) for x in h)
@@ -5601,7 +5653,31 @@ def _k80_kendini_test(tespit_acik=True):
         # T3: GERCEKTEN yeni komut muafiyete SIZMAZ — kapinin kendisi olmez.
         if len([k for _d, _j, k in _gercek if "z-test.py" in k]) != 1:
             hatalar.append("K80-T3: GERCEKTEN yeni komut kacti (muafiyet fazla genis)")
-    return hatalar, 8
+
+    # ── T4-T6 ZINCIR SINIFI + BETIK KOKU/UZANTISI (15 Agu 2026) ───────────────────
+    _z = {"z.yml": "name: z\non: [push]\njobs:\n  serit:\n    runs-on: ubuntu-latest\n"
+                   "    steps:\n      - run: python3 tools/a.py\n"
+                   "  hijyen:\n    runs-on: ubuntu-latest\n"
+                   "    steps:\n      - run: python3 tools/b.py\n"
+                   "  deploy:\n    needs: [serit]\n    runs-on: ubuntu-latest\n"
+                   "    steps:\n      - run: python3 tools/c.py\n"}
+    _blok = _k80_bloklayici_isler(_z).get("z.yml", set())
+    if tespit_acik:
+        # T4: `deploy.needs`teki is BLOKLAYICI sayilir.
+        if "serit" not in _blok:
+            hatalar.append("K80-T4: deploy.needs'teki is bloklayici sayilmadi (%r)" % (_blok,))
+        # T5: zincirde OLMAYAN is bloklayici SAYILMAZ (hijyen).
+        if "hijyen" in _blok:
+            hatalar.append("K80-T5: zincir DISI is bloklayici sayildi -> hijyen adimi "
+                           "push'u bloklar (mimariyle celisir)")
+        # T6: node betik koku/uzantisi — `.mjs` ve `shop/` olculebilir olmali.
+        try:
+            _argv = _k80_satirlar("node shop/test/x.mjs --bayrak")
+            if not _argv or _argv[0][1] != "shop/test/x.mjs":
+                hatalar.append("K80-T6: .mjs/shop betigi ayristirilamadi (%r)" % (_argv,))
+        except Olculemedi as _e:
+            hatalar.append("K80-T6: .mjs/shop betigi OLCULEMEDI'ye dustu (%s)" % _e)
+    return hatalar, 11
 
 
 def _k80_mutasyon_kontrol():
