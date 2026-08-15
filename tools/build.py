@@ -161,6 +161,41 @@ AKRABA_KATEGORI = {"Skan Art": "Dekorasyon"}
 # Yedek havuz bu esigin ALTINDA devreye girer (ust sinir zaten 8).
 REL_EN_AZ = 4
 
+
+def rel_card_sec(p, all_products, limit=8):
+    """Ilgili urunleri katalog sirasini koruyan dagitici halkalardan sec."""
+    pid = p["id"]
+    kategori = p.get("kategori")
+    markalar = set(p.get("marka") or [])
+    secilen = []
+    secilen_id = set()
+
+    def halkadan_ekle(havuz):
+        if len(secilen) >= limit or len(havuz) < 2:
+            return
+        try:
+            baslangic = next(i for i, urun in enumerate(havuz)
+                             if urun["id"] == pid)
+        except StopIteration:
+            return
+        for adim in range(1, len(havuz)):
+            aday = havuz[(baslangic + adim) % len(havuz)]
+            aday_id = aday["id"]
+            if aday_id != pid and aday_id not in secilen_id:
+                secilen.append(aday)
+                secilen_id.add(aday_id)
+                if len(secilen) >= limit:
+                    return
+
+    if markalar:
+        halkadan_ekle([
+            x for x in all_products
+            if x.get("kategori") == kategori
+            and markalar.intersection(x.get("marka") or [])
+        ])
+    halkadan_ekle([x for x in all_products if x.get("kategori") == kategori])
+    return secilen
+
 # Malzeme katsayilari / renk listesi / adet araligi TEK KAYNAK: /secenekler.js.
 # Buraya kopyalanmaz — secici HTML'inin "(+%30)" etiketleri o dosyadan OKUNUR ki katsayi
 # degisince etiket sessizce eski kalmasin (Worker, sepet ve bu sablon ayni tabloyu gorur).
@@ -3626,9 +3661,8 @@ def render_product(p, all_products, chip_map=None):
     else:
         eylem_butonlar_html = BUYUK_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))
 
-    # --- ilgili ürünler (aynı kategori, kendisi hariç, en fazla 8)
-    rel = [x for x in all_products
-           if x.get("kategori") == kategori and x["id"] != pid][:8]
+    # --- ilgili ürünler (önce aynı marka+kategori, sonra aynı kategori; dağıtıcı halka)
+    rel = rel_card_sec(p, all_products)
     # Bolum basligi ("Diğer <X> ürünleri") MUSTERIYE GORUNUR -> gorunur etiket.
     rel_baslik = gorunur_kat
     # YEDEK HAVUZ: ince alt-seride (Skan Art) aynı kategoriden REL_EN_AZ adet aday
