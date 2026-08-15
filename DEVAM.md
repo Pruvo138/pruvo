@@ -2,6 +2,33 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 16 Agu (~00:xxZ) — UCUZ KAT YENIDEN KURULDU: CODEX + DEEPSEEK EMEKLI, KIMI BIRINCIL (KraL)
+
+**Okan karari, olcumle kapatildi.** Yeni hat: `isci.sh` → **kimi BIRINCIL · minimax-m3 YEDEK**;
+DS ve Codex'e yeni is YOLLANMAZ (abonelik iptali Okan kapisi).
+
+**Kanit — `tools/yetkinlik/` bataryasi** (6 sinif, hukum deterministik dogrulayicida; commit
+`54e9f4c7`). Iki kosum (1 tekrar + 3 tekrar), cevap verilen turda dogruluk:
+**kimi 18/18 · m3 21/22 · codex 14/15 (+1 yalan)**.
+- kimi'nin ham skorunu dusuren 6 tur **yetenek degil uc hatasi**: `motor_rc=1`, 2,3-4,3 sn,
+  ardisik alti tur; yeniden kosumda ayni tur **6/6**. → `isci.sh`'e **kisa-surede-rc≠0 →
+  1 kez otomatik tekrar** korumasi kondu.
+- **m3'un olculmus zafiyeti: uzun baglam / cagri grafi** (g5'te UYDURMA satir verdi). O sinif
+  kimi'ye ya da capraz dogrulamaya.
+- Batarya **kendisi 3 kez yanildi** (`ONERI=` satiri kabul satirini golgeledi · yol oneki ·
+  kirilim sirasi) — ucunde de once "motor kaldi" gorundu. Olcer `mutasyon.py` ile kanitlanir
+  (12 mutasyon, SURVIVOR=0; `dogrula-test.py` 21 vaka).
+
+**Tarayici tekeli kirildi.** Isci playwright ile **giris yapilmis panele giriyor**
+(`PANEL=ACIK`, Cloudflare). Iki mod: etiket `tarayici*` → HEADLESS (pencere yok, izole),
+`panel*` → HEADFUL + kalici profil. macOS ekran-disi konumu EZIYOR (pencere `(0,31)`'e
+cekiliyor), headless ise panelde bot dogrulamasina takiliyor → panel turunda pencere
+kacinilmaz, o yuzden **panel isi ONCE API**: yeni `tools/cf-durum.py` (salt okuma)
+D1/R2/Pages'i tarayicisiz veriyor.
+
+**ACIK KALEM (Okan):** cf-durum DNS kapsami icin salt-okuma CF jetonu lazim — ayrinti
+DEVAM-ARSIV.md'de (git disi).
+
 ## 16 Agu (~00:xxZ) — BOZUK ID YAYINI 6,5 SAAT KAPATTI; ACILDI + CF PURGE BAGLANDI (KraL)
 
 **BLOK RITMI: 1 eklendi / 1 arsive tasindi** (16:xxZ yayin-iki-katman blogu arsive gitti).
