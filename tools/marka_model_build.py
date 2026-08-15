@@ -1453,6 +1453,24 @@ _KAPSAM_JS_SON = "/* PRUVO MARKA KAPSAMI SON */"
 _KAPSAM_JS_GOVDE = r"""
 (function(g){
   var KATEGORILER = __KATEGORILER__;
+  // ---- MODEL SÜZGEÇ DURUMU (K117-A) ----
+  // Sayfa-içi model çipinin o anki seçimi. null = model filtresi KAPALI; aksi halde model
+  // indeksinin DİZE hali. Bu DEĞİŞKEN tek sahibidir; `uygula()` kart görünürlüğünü
+  // BURADAN türetir (kapsam `gorunur()` ile BİLEŞİK). Yazıcı dışa açık — filtre tarafı
+  // (artım JS) çipe basılınca EN BAŞTA bu durumu yazar.
+  var _modelSuzgeci = null;
+  function modelSuzgeciYaz(ix){
+    _modelSuzgeci = (ix === null || ix === undefined) ? null : String(ix);
+  }
+  // Süzgeç KAPALIYSA tüm öğeler geçer (kapsam kolu BAYT-AYNı kalır); AÇIKKEN data-mm
+  // taşımayan öğe FAIL-CLOSED -> gizli (sayfanın yerel kalemleri model üyesi değildir;
+  // bugünkü #mmKalan davranışıyla tutarlı).
+  function modelUye(ogeMm){
+    if(_modelSuzgeci === null){ return true; }
+    if(!ogeMm){ return false; }
+    var liste = String(ogeMm).split(" ");
+    return liste.indexOf(_modelSuzgeci) !== -1;
+  }
   // ham parametre -> karar. {aktif:kapsam var mı, gecerli:tanınan kategori mi, kategori:ad}
   function coz(ham, gecerliler){
     if(ham === null || ham === undefined || ham === ""){
@@ -1531,11 +1549,18 @@ _KAPSAM_JS_GOVDE = r"""
       ham = new URLSearchParams((loc && loc.search) || "").get("kategori");
     }catch(e){ ham = null; }
     var c = coz(ham, KATEGORILER);
-    if(!c.aktif){ return c; }   // KANONİK/parametresiz -> sayfaya DOKUNMA (SEO regresyonu yok)
+    // KANONİK/parametresiz + model filtresi yok -> sayfaya DOKUNMA (SEO regresyonu yok).
+    // Kapsam YOK ama model filtresi AÇIKSA yine de çalış: model süzgeci kendi başına
+    // görünürlük yüklemi (bugün hata: kapsam kolu model filtresinin gizlediği kartları
+    // geri getiriyordu — K117-A).
+    if(!c.aktif && _modelSuzgeci === null){ return c; }
 
     var i, kartlar = dok.querySelectorAll(".card[data-kat]"), gorunenKart = 0;
     for(i = 0; i < kartlar.length; i++){
-      var ac = gorunur(kartlar[i].getAttribute("data-kat"), c);
+      // BİLEŞİK YÜKLEM (K117-A): kapsam görünürlüğü + model üyeliği. Yüklem BİLEŞİK
+      // yapıldı; `gorunur()` gövdesi BYTE-AYNı kalır (değişmedi).
+      var ac = gorunur(kartlar[i].getAttribute("data-kat"), c)
+            && modelUye(kartlar[i].getAttribute("data-mm"));
       kartlar[i].style.display = ac ? "" : "none";
       if(ac){ gorunenKart++; }
     }
@@ -1550,12 +1575,17 @@ _KAPSAM_JS_GOVDE = r"""
     var gorunenBag = 0;
     var duzler = dok.querySelectorAll(".mm-kalan-oge[data-kat]");
     for(i = 0; i < duzler.length; i++){
-      var ad2 = gorunur(duzler[i].getAttribute("data-kat"), c);
+      // Düz bağ öğeleri (model sayfası olmayan kalemlerin liste girdileri) AYNI bileşik
+      // yüklemden geçer: model süzgeci AÇIKKEN data-mm taşımayan bu kalemler fail-closed
+      // -> gizli (bugünkü #mmKalan davranışıyla tutarlı).
+      var ad2 = gorunur(duzler[i].getAttribute("data-kat"), c)
+             && modelUye(duzler[i].getAttribute("data-mm"));
       duzler[i].style.display = ad2 ? "" : "none";
       if(ad2){ gorunenBag++; }
     }
     var btnlar = dok.querySelectorAll(".mm-model-btn[data-katsay]"), gorunenModel = 0;
     for(i = 0; i < btnlar.length; i++){
+      // Model çipleri model süzgecinden ETKİLENMEZ — kullanıcı çipten çipe geçebilmeli.
       var n = sayimla(btnlar[i].getAttribute("data-katsay"), c);
       btnlar[i].style.display = n > 0 ? "" : "none";
       if(n > 0){
@@ -1576,16 +1606,24 @@ _KAPSAM_JS_GOVDE = r"""
     // toplamın alt kümesidir) — ihlal = kırılım bayat/bozuk demektir, sayı BASILMAZ.
     var toplam = toplamla(dok, c);
     if(toplam !== null && (toplam < gorunenKart || toplam < gorunenBag)){ toplam = null; }
-    // GERİYE DÖNÜK KOL: `data-katsay` TAŞIMAYAN bir sayım rozeti eski davranışta kalır
-    // (görünen kart sayısı). ÜRETİLEN her sayfada attribute ZORUNLUDUR; kapı bunu TÜM
-    // sayfa evreninde ölçer (fail-closed), yani üretimde bu kol hiç çalışmaz.
-    yazSayim(dok, ".mm-sayim-kart", gorunenKart);
-    bolumSayaclari(dok, c);
-    yazSayim(dok, ".mm-sayim-model", gorunenModel);
-    yazSayim(dok, ".mm-sayim-toplam", toplam === null ? "—" : toplam);
+    // SAYAÇ SAHİPLİĞİ (K117-A): model süzgeci AÇIKKEN bu yazımların HEPSİ model
+    // filtresinin (`beyaniYaz`) mülkü; kapsam kolu bunlara DOKUNMAZ (yazsaydı bugünkü
+    // hata geri gelirdi: "model filtresi '7 parça' derken bölüm başlığı '… (355)' derdi").
+    // Süzgeç kapalıyken bugünkü yazım AYNEN sürer.
+    if(_modelSuzgeci === null){
+      // GERİYE DÖNÜK KOL: `data-katsay` TAŞIMAYAN bir sayım rozeti eski davranışta kalır
+      // (görünen kart sayısı). ÜRETİLEN her sayfada attribute ZORUNLUDUR; kapı bunu TÜM
+      // sayfa evreninde ölçer (fail-closed), yani üretimde bu kol hiç çalışmaz.
+      yazSayim(dok, ".mm-sayim-kart", gorunenKart);
+      bolumSayaclari(dok, c);
+      yazSayim(dok, ".mm-sayim-model", gorunenModel);
+      yazSayim(dok, ".mm-sayim-toplam", toplam === null ? "—" : toplam);
+    }
 
     // GÖRÜNÜR kapsam şeridi + kapsamı KALDIRMA yolu (kanonik, parametresiz adres).
     // Metin textContent ile yazılır (innerHTML YOK) -> URL'den gelen değer kod olamaz.
+    // Kapsam şeridi metni kapsamın KENDİ beyanıdır; model süzgecinden etkilenmez
+    // (kullanıcı ?kategori= ile geldiyse ne yazdığını GÖRMELİ).
     var not = dok.getElementById("kapsamNot");
     if(not){ not.style.display = ""; }
     var metin = dok.getElementById("kapsamNotMetin");
@@ -1607,7 +1645,8 @@ _KAPSAM_JS_GOVDE = r"""
   }
   g.PRUVO_KAPSAM = {coz: coz, gorunur: gorunur, sayimla: sayimla, sorgu: sorgu,
                     toplamla: toplamla, bolumSayaclari: bolumSayaclari,
-                    uygula: uygula, KATEGORILER: KATEGORILER};
+                    uygula: uygula, KATEGORILER: KATEGORILER,
+                    modelSuzgeciYaz: modelSuzgeciYaz, modelUye: modelUye};
 })(typeof window !== "undefined" ? window : globalThis);
 """
 
@@ -1953,6 +1992,12 @@ _ARTIM_JS_GOVDE = r"""
     }
     function filtreUygula(ix){
       if(mesgul){ return; }
+      // K117-A: model süzgeci durumunu kapsam modülüne EN BAŞTA yaz (çizim ve
+      // sayilariTazele() öncesi). Hem `ix` hem `null` için; PRUVO_KAPSAM yoksa bugünkü
+      // `sayilariTazele` deseniyle sessizce geçilir (sayfa eski davranışta kalır).
+      if(g.PRUVO_KAPSAM){
+        try{ g.PRUVO_KAPSAM.modelSuzgeciYaz(ix); }catch(e){ /* sessiz */ }
+      }
       aktifModel = ix;
       cipleriIsaretle(ix);
       artimKartlariniSil();

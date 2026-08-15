@@ -438,8 +438,13 @@ function ok(cond, msg){
 // ---- minimal DOM shim: glue'nun GERÇEKTEN kullandığı yüzey kadar ----
 function shim(sayfa, ekKartlar){
   const kartlar = (sayfa.kartlar.concat(ekKartlar || [])).map(function(k){
+    // K117-A: data-mm opsiyonel — sayfa-içi model filtresinin üyelik ekseni. Mevcut
+    // fikstür kartlarında YOK (backward compat), test ek kartlarında veya `sayfa.kartlar`
+    // üzerinden `dataMm` alanıyla verilir.
     const attrs = {"data-kat": k.kat};
-    return { id: k.id, kat: k.kat, style: {display: ""},
+    if(k.dataMm !== undefined && k.dataMm !== null){ attrs["data-mm"] = k.dataMm; }
+    return { id: k.id, kat: k.kat, dataMm: attrs["data-mm"],
+             style: {display: ""},
              getAttribute: (n) => (attrs[n] === undefined ? null : attrs[n]) };
   });
   const butonlar = sayfa.butonlar.map(function(b){
@@ -764,6 +769,200 @@ ok(araTasiCalistir("?kategori=Otomobil") === null,
        "ara+marka+kategori üçü BİRDEN taşınır (bağlam kaybı yok)");
   }
 })();
+
+// ============================ 8) K117-A — KAPSAM × MODEL FİLTRESİ BİLEŞİK YÜKLEM ============================
+// ÖLÇÜLEN KUSUR (mimar teşhisi): /marka/<m>/?kategori=… adresinde model çipine basılınca
+// filtre uygulanıyor, ~1 sn sonra tüm katalog geri geliyor (iki süzgeç, görünürlüğün tek
+// sahibi yok). HÜKÜM: görünürlük tek yüklemden türeR (`gorunur() && modelUye()`).
+//
+// Sentetik fikstür: 6 kart, 2 kategori × 3 model üyelik deseni.
+//   a: Marin      + model 0  (kesişim)
+//   b: Marin      + model 1  (yalnız model 1)
+//   c: Marin      +          (data-mm YOK → fail-closed)
+//   d: Otomobil   + model 0  (kesişim)
+//   e: Otomobil   + model 1  (yalnız model 1)
+//   f: Otomobil   +          (data-mm YOK → fail-closed)
+const K117_SENTETIK = {
+  kartlar: [
+    {id: "a", kat: "Marin",    dataMm: "0"},
+    {id: "b", kat: "Marin",    dataMm: "1"},
+    {id: "c", kat: "Marin",    dataMm: ""},
+    {id: "d", kat: "Otomobil", dataMm: "0"},
+    {id: "e", kat: "Otomobil", dataMm: "1"},
+    {id: "f", kat: "Otomobil", dataMm: ""}
+  ],
+  butonlar: [],
+  ad: "k117a-sentetik",
+  pathname: "/marka/k117a-sentetik/"
+};
+
+// Bileşik yüklemin beklentisi: yalnız A ve D (Marin ∩ model 0 + Otomobil ∩ model 0)
+// görünür; kapsam yokken model 0'a basılırsa yalnız A, D görünür; data-mm'siz kartlar
+// model filtresi altında GİZLİ (fail-closed). Bu fonksiyon bir K (PRUVO_KAPSAM) örneğine
+// karşı 6 vakayı koşar — mutasyon turunda HER MUTASYON İÇİN çağrılır.
+function k117aVakalari(K){
+  const sIz = (s, ix) => K.modelSuzgeciYaz(ix);
+  const sayfaAdi = K117_SENTETIK.ad;
+
+  // Vaka 1: kapsam AKTİF (Marin) + model AKTİF (0) → yalnız kesişim (a)
+  const s1 = shim(K117_SENTETIK);
+  sIz(s1, 0);
+  K.uygula(s1.dok, {search: "?kategori=Marin", pathname: K117_SENTETIK.pathname});
+  const g1 = gorunenKartlar(s1).map((k) => k.id).sort();
+  ok(g1.length === 1 && g1[0] === "a",
+     "vaka 1: kapsam+model kesişim (Marin ∩ model 0 → yalnız 'a': " + g1.join(",") + ")");
+
+  // Vaka 2: kapsam AKTİF (Marin) + model KAPALI → bugünkü davranış aynen (a, b, c)
+  sIz(s1, null);
+  const s2 = shim(K117_SENTETIK);
+  K.uygula(s2.dok, {search: "?kategori=Marin", pathname: K117_SENTETIK.pathname});
+  const g2 = gorunenKartlar(s2).map((k) => k.id).sort();
+  ok(g2.length === 3 && g2.join(",") === "a,b,c",
+     "vaka 2: kapsam AKTİF + model KAPALI = bugünkü davranış (Marin: a,b,c) — regresyon yok");
+
+  // Vaka 3: kapsam KAPALI + model AKTİF (0) → yalnız model üyeleri (a, d)
+  // M4 TESPİTİ: kapsam sayacı (`.mm-sayim-kart`) süzgeç açıkken YAZILMAZ; shim ilk
+  // değeri (kart sayısı = "6") korunmalı. M4 (sayaç koruması kaldırıldı) ile yazılır
+  // ve gorunenKart (2) basar — bu iddia kırılır.
+  const s3 = shim(K117_SENTETIK);
+  sIz(s3, 0);
+  K.uygula(s3.dok, {search: "", pathname: K117_SENTETIK.pathname});
+  const g3 = gorunenKartlar(s3).map((k) => k.id).sort();
+  ok(g3.length === 2 && g3.join(",") === "a,d",
+     "vaka 3: kapsam KAPALI + model AKTİF → yalnız model 0 üyeleri (a,d) — c,f GİZLİ (data-mm yok)");
+  ok(s3.sayimKart.textContent === String(K117_SENTETIK.kartlar.length),
+     "vaka 3: model altında kapsam sayacı YAZILMAZ (sayimKart='" + s3.sayimKart.textContent +
+     "', başlangıç='" + K117_SENTETIK.kartlar.length + "' kalır)");
+
+  // Vaka 4: kapsam KAPALI + model KAPALI → sayfaya hiç dokunulmaz (hiç style.display yazılmaz)
+  sIz(s3, null);
+  const s4 = shim(K117_SENTETIK);
+  K.uygula(s4.dok, {search: "", pathname: K117_SENTETIK.pathname});
+  const dokunma = s4.kartlar.every((k) => k.style.display === "");
+  ok(dokunma,
+     "vaka 4: kapsam+model KAPALI → sayfaya HİÇ dokunulmaz (tüm display='' kaldı: " + dokunma + ")");
+
+  // Vaka 5: model AKTİF iken data-mm taşımayan kart GİZLENİR (fail-closed)
+  sIz(s4, 0);
+  const s5 = shim(K117_SENTETIK);
+  K.uygula(s5.dok, {search: "", pathname: K117_SENTETIK.pathname});
+  const dmsiz = gorunenKartlar(s5).filter((k) => !k.dataMm || k.dataMm === "").length;
+  ok(dmsiz === 0,
+     "vaka 5: model AKTİF + data-mm YOK = GİZLİ (kaçak data-mmsiz görünür: " + dmsiz + ")");
+
+  // Vaka 6: geçersiz kapsam + model AKTİF → hiçbir kart görünmez (fail-closed korunur)
+  sIz(s5, 0);
+  const s6 = shim(K117_SENTETIK);
+  K.uygula(s6.dok, {search: "?kategori=Uydurma", pathname: K117_SENTETIK.pathname});
+  const g6 = gorunenKartlar(s6).length;
+  ok(g6 === 0,
+     "vaka 6: geçersiz kapsam + model AKTİF → 0 kart görünür (fail-closed korunur: " + g6 + ")");
+  ok(s6.sayimKart.textContent === String(K117_SENTETIK.kartlar.length),
+     "vaka 6: model altında kapsam sayacı YAZILMAZ (geçersiz kapsam + model 0: sayimKart='" +
+     s6.sayimKart.textContent + "', başlangıç='" + K117_SENTETIK.kartlar.length + "' kalır)");
+  sIz(s6, null);   // sonraki testlere temiz bırak
+}
+k117aVakalari(K);
+
+// ============================ 9) MUTASYON TURU — 4 MUTANTIN HEPSİ KIRMIZI YANMALI ============================
+// Her mutant: K'nın kaynak gövdesinin bir kopyası alınır, metinsel olarak değiştirilir,
+// yeni bir global scope'a `eval` ile yüklenir; 6 vaka yeniden koşar. Bir mutant
+// HİÇBİR vakayı kırmadan geçerse -> SURVIVOR (ölümcül). Beklenen: 4/4 mutant KIRMIZI.
+//
+// Mutant açıklamaları:
+//   M1 — bileşik yüklemdeki `&&` -> `||`  (görünürlük birleşim yerine VEYA olur; 3 vakada kırılır)
+//   M2 — modelUye: data-mm yoksa FALSE kolu -> TRUE  (data-mmsiz kartlar model altında GÖRÜNÜR; vaka 3,5 kırılır)
+//   M3 — erken çıkış eski haline döner (`if(!c.aktif) return c;`)  (kapsam yokken model kolu çalışmaz; vaka 3,4,5,6 kırılır)
+//   M4 — sayaç sahipliği atlanmaz (süzgeç açıkken de kapsam sayacı yazar) — bu K davranışıyla
+//        doğrudan ölçülemez (sayaç yazımı GÖZLEMLENEMEZ), bu yüzden M4 yerine KODDA YOK
+//        OLMAMASI gerek: model süzgeci altında `_modelSuzgeci === null` korumalı sayaç
+//        bloğu KALDIRILIRSA vaka 3 ve 5'te hâlâ kırılmaz (görünürlük doğru); bu yüzden
+//        M4'ü sayaç sahipliği yerine kapsam-not metninin (kapsamın KENDİ beyanı) model
+//        altında BOZULMAMASI iddiasıyla değiştiriyoruz — mutant oraya `metin.textContent`
+//        yazımı ekler. Ama o da gözlemlenemez. DOĞRU M4: `bolumSayaclari()` çağrısı
+//        kapsam kolunda KORUNMAZ (süzgeç açıkken bile çağrılır) — gözlem sayım rozetlerinin
+//        üzerinden yapılabilir; sentetik shim'imizde `.mm-sayim-kart[data-katsay]` yok,
+//        ama `.mm-sayim-kart` var. Bu yeterli.
+function mutantUygula(etiket, kaynak, degisiklik){
+  // (0, eval) global scope'a çalıştırır -> PRUVO_KAPSAM orada tanımlanır. Eval hata
+  // verirse mutant sessizce ölür; hata bilinçli olarak tetiklenebilir.
+  let M = null, hata = null;
+  const kod = kaynak.replace(degisiklik.eski, degisiklik.yeni);
+  if(kod === kaynak){
+    return {survivor: true, etiket: etiket + " (replace() eşleşmedi — mutant uygulanamadı)"};
+  }
+  const onceki = globalThis.PRUVO_KAPSAM;
+  // 🔴 KAYNAK IIFE: `typeof window !== "undefined" ? window : globalThis`. Test akışının
+  // bir noktasında `global.window = {...}` atandığı için (`araTasiCalistir`), eval
+  // sonradan `window`'a yazar — biz `globalThis`'i okuyoruz. Bu sorun ORJ eval için yok
+  // (window o sırada undefined). ÇÖZÜM: eval ÖNCESİ window'u gizle, sonra geri al.
+  const windowOnceki = (typeof window !== "undefined") ? window : undefined;
+  delete globalThis.PRUVO_KAPSAM;
+  if(typeof window !== "undefined"){ delete globalThis.window; }
+  try { (0, eval)(kod); }
+  catch(e){ hata = String((e && e.message) || e).slice(0, 140); }
+  if(windowOnceki !== undefined){ globalThis.window = windowOnceki; }
+  M = globalThis.PRUVO_KAPSAM || null;
+  if(onceki){ globalThis.PRUVO_KAPSAM = onceki; }
+  if(!M){ return {survivor: true, etiket: etiket + " (eval hata: " + hata + ")"}; }
+
+  // 6 vakayı bu M'ye karşı koş; mevcut `pass`/`fail` sayaçlarına dokunmadan YEREL
+  // sayacla ölç (mutant turu KIRMIZI olursa asıl `fail` sayacına yazılır).
+  const oncekiPass = pass, oncekiFail = fail;
+  const yedekK = globalThis.PRUVO_KAPSAM;
+  globalThis.PRUVO_KAPSAM = M;
+  // k117aVakalari `K` parametresiyle çalışır; ikinci kez M ile çağır.
+  k117aVakalari(M);
+  globalThis.PRUVO_KAPSAM = yedekK;
+  const yerelFail = fail - oncekiFail;
+  const survivor = (yerelFail === 0);
+  return {survivor: survivor, etiket: etiket, yerelFail: yerelFail};
+}
+
+const KAYNAK = VERI.kapsamJs;
+const MUTANTLAR = [
+  // M1: bileşik yüklemdeki && -> ||  (görünürlük birleşim yerine VEYA olur; vaka 1,3,5,6 kırılır)
+  // Tam dizge değil, kaynak parçası: replace ilk eşleşmeyi alır, dosya kaynaklı olduğu
+  // için unique (kart döngüsü YALNIZ burada).
+  {etiket: "M1: bileşik yüklem && -> ||",
+   eski: "gorunur(kartlar[i].getAttribute(\"data-kat\"), c)\n            && modelUye(kartlar[i].getAttribute(\"data-mm\"));",
+   yeni: "gorunur(kartlar[i].getAttribute(\"data-kat\"), c)\n            || modelUye(kartlar[i].getAttribute(\"data-mm\"));"},
+  // M2: modelUye: data-mm yoksa FALSE kolu -> TRUE  (data-mmsiz kartlar model altında GÖRÜNÜR; vaka 3,5 kırılır)
+  {etiket: "M2: modelUye data-mm YOK -> true",
+   eski: "if(_modelSuzgeci === null){ return true; }\n    if(!ogeMm){ return false; }",
+   yeni: "if(_modelSuzgeci === null){ return true; }\n    if(!ogeMm){ return true; }"},
+  // M3: erken çıkış eski haline döner (`if(!c.aktif) return c;`)  (kapsam yokken model kolu çalışmaz; vaka 3,4,5,6 kırılır)
+  {etiket: "M3: erken çıkış eski haline (model kolu çalışmaz)",
+   eski: "if(!c.aktif && _modelSuzgeci === null){ return c; }",
+   yeni: "if(!c.aktif){ return c; }"},
+  // M4: sayaç sahipliği atlanmaz (süzgeç açıkken de kapsam sayacı yazar) — model
+  //     filtresinin `beyaniYaz` ile yazdığı sayıyı kapsam kolu EZEBILECEK iddiası.
+  //     Sentetik shim'ımızde `.mm-sayim-kart` rozeti vardır; vaka 3'te rozet içeriği
+  //     model altında 0'a (kapsam=hiç) dönerse, model 0 = "a,d" sayısıyla çelişir.
+  {etiket: "M4: sayaç sahipliği kaldırıldı (süzgeç açıkken de kapsam sayacı yazar)",
+   eski: "if(_modelSuzgeci === null){\n      // GERİYE DÖNÜK KOL:",
+   yeni: "{\n      // GERİYE DÖNÜK KOL:"}
+];
+
+let survivorSayisi = 0;
+const mutOncekiPass = pass, mutOncekiFail = fail;
+for(const m of MUTANTLAR){
+  const sonuc = mutantUygula(m.etiket, KAYNAK, {eski: m.eski, yeni: m.yeni});
+  if(sonuc.survivor){
+    survivorSayisi++;
+    fail++;
+    console.log("  FAIL  SURVIVOR " + m.etiket + " (mutant tüm 6 vakayı geçti — öldürücü değil)");
+  }else{
+    console.log("  PASS  mutant yakalandı: " + m.etiket + " (yerel fail=" + sonuc.yerelFail + ")");
+  }
+}
+// Mutasyon turu KENDİ sayaçlarını sıfırlar: yakalanan mutantlar `k117aVakalari(M)` üzerinden
+// YEREL fail üretir; bunlar global `fail`'e eklenir ama harness sonu `fail === 0 ? 0 : 1`
+// ile çıkar — sayım bozulmasın diye mutasyon öncesi pass/fail'e GERİ AL.
+pass = mutOncekiPass;
+fail = mutOncekiFail;
+ok(survivorSayisi === 0,
+   "K117-A mutasyon turu: 4 mutantın HEPSİ kırmızı (SURVIVOR=" + survivorSayisi + ", beklenen 0)");
 
 console.log("SONUC " + pass + " gecti " + fail + " kaldi");
 process.exit(fail === 0 ? 0 : 1);
