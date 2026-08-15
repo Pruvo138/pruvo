@@ -963,6 +963,12 @@ GOC_KOLON_SIPARIS = [
     # /wa-siparis idempotens anahtari. Site siparislerinde '' kalir.
     ("dis_no", "TEXT NOT NULL DEFAULT ''"),
     ("musteri_notu", "TEXT NOT NULL DEFAULT ''"),
+    # MUSTERI IL / ILCE (Navlungo dilim-1, 16 Agu 2026). DEFAULT '' ile eski satirlar
+    # geriye donuk uyumlu; musteri_adres birlestirme metni aynen URUN OLAN KOLONDUR
+    # (cikirdeginda degisiklik YOK). Yeni INSERT iki ayri kolon yazar; okuyan uclar
+    # (yonet.js / telegram / eposta) musteri_adres'i okumaya devam eder.
+    ("musteri_il",     "TEXT NOT NULL DEFAULT ''"),
+    ("musteri_ilce",   "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # 🔴 dis_no TEKILLIGI ICIN AYRI BIR LISTE YOKTUR: kismi UNIQUE indeks asagidaki GOC_INDEKS

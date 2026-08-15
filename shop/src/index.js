@@ -182,6 +182,12 @@ function istekCoz(govde) {
   const eposta = metin(m.eposta, 6, 200);
   const adres = metin(m.adres, 10, 500);
   const sehir = metin(m.sehir, 2, 60);
+  // ILCE (Navlungo dilim-1, 16 Agu 2026): zorunlu, 2-60 karakter, kirpilip normalize
+  // edilir. Ayni dogrulama kapisi m.sehir ile es olarak calisir; biri bos ise siparis
+  // reddedilir (fail-closed). m.ilce YOKSA bugunku davranis korunur: 'musteri-ilce'
+  // hatasi doner; ileri yamuk geriye donuk API DEGILDIR — frontend yeni calistiktan
+  // sonra HER iki alani yollamak sart.
+  const ilce = metin(m.ilce, 2, 60);
   const tckn = (typeof m.tckn === "string" ? m.tckn : "").replace(/[^0-9]/g, "");
   // MUSTERI NOTU: istege bagli serbest metin. 500 karakteri asan istek REDDEDILIR
   // (sessizce kirpmak, musteriye "gitti" yalani soyler). Kontrol karakterleri atilir,
@@ -194,11 +200,15 @@ function istekCoz(govde) {
   if (!eposta || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(eposta)) return { hata: "musteri-eposta" };
   if (!adres) return { hata: "musteri-adres" };
   if (!sehir) return { hata: "musteri-sehir" };
+  // ILCE (Navlungo dilim-1, 16 Agu 2026): fail-closed; il VEYA ilce bos ise siparis
+  // dogrudan reddedilir, D1'e YAZMAZ. Boylece geriye donuk veriden il/ilce cikarilmaz
+  // (mevcut birlesik metin 0/11 oraninda " / " icermiyor — spec notu).
+  if (!ilce) return { hata: "musteri-ilce" };
   if (tckn && tckn.length !== 11) return { hata: "musteri-tckn" };
 
   const kc = kalemleriCoz(govde.sepet);
   if (kc.hata) return kc;
-  return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler: kc.kalemler, odeme,
+  return { musteri: { ad, tel, eposta, adres, sehir, ilce, tckn }, kalemler: kc.kalemler, odeme,
            atif: atifTemizle(govde), musteri_notu };
 }
 
@@ -515,14 +525,16 @@ async function baslat(request, env, url, ctx) {
     await env.KATALOG.prepare(
       "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
       " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
-      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu, atif)" +
-      " VALUES (?, NULL, ?, 'havale-bekliyor', ?, ?, ?, 'havale', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres," +
+      " musteri_il, musteri_ilce, musteri_notu, atif)" +
+      " VALUES (?, NULL, ?, 'havale-bekliyor', ?, ?, ?, 'havale', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).bind(
       siparisNo, new Date().toISOString(), toplamKurus, kargoKurus, kdv.kdvKurus,
       onayDamgasi, JSON.stringify(satirlar),
       kolonBirlestir(satirlar, (s) => s.malzeme),
       kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),
-      musteri.ad, musteri.tel, musteri.eposta, acikAdres, musteri_notu, atifJson
+      musteri.ad, musteri.tel, musteri.eposta, acikAdres,
+      musteri.sehir, musteri.ilce, musteri_notu, atifJson
     ).run();
     ctx.waitUntil(telegram(env, havaleMesaji(siparisNo, satirlar, toplamKurus, kargoKurus,
       tahsilatKurus, musteri, acikAdres, musteri_notu)));
@@ -626,8 +638,9 @@ async function baslat(request, env, url, ctx) {
   await env.KATALOG.prepare(
     "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
     " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
-    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu, atif)" +
-    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, 'kart', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres," +
+    " musteri_il, musteri_ilce, musteri_notu, atif)" +
+    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, 'kart', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).bind(
     siparisNo, init.token, new Date().toISOString(), toplamKurus, kargoKurus,
     kdv.kdvKurus, onayDamgasi,
@@ -635,7 +648,8 @@ async function baslat(request, env, url, ctx) {
     kolonBirlestir(satirlar, (s) => s.malzeme),
     // "Diğer" renkte musterinin yazdigi renk kaydedilir (uretim bunu okur), yoksa liste rengi
     kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),
-    musteri.ad, musteri.tel, musteri.eposta, acikAdres, musteri_notu, atifJson
+    musteri.ad, musteri.tel, musteri.eposta, acikAdres,
+    musteri.sehir, musteri.ilce, musteri_notu, atifJson
   ).run();
 
   return json({ url: init.paymentPageUrl, no: siparisNo }, 200, env);

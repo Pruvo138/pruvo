@@ -403,6 +403,17 @@ CREATE TABLE IF NOT EXISTS siparisler (
   musteri_tel     TEXT NOT NULL DEFAULT '',
   musteri_eposta  TEXT NOT NULL DEFAULT '',
   musteri_adres   TEXT NOT NULL DEFAULT '',
+  -- MUSTERI IL / ILCE (Navlungo dilim-1, 16 Agu 2026): ayrı kolonlar. Navlungo zorunlu
+  -- alanlari `recipient.city` ve `recipient.district` istiyor; form bugun yalniz sehir
+  -- topluyordu ve INSERT onu `musteri_adres` ile birlestiriyordu (`shop/src/index.js` ~501).
+  -- Dogru tasarim: il/ilce AYRI sutun olarak D1'e yazilsin; musteri_adres birebir eski
+  -- birlestirme metni olarak KALSIN — geriye donuk uyum, mevcut e-posta / Telegram / yonetim
+  -- metni / testler o metni okuyor (musteri_adres'in islenisi KIRILMAZ).
+  -- DEFAULT '': eski satirlar NULL degil BOYLEYLE yazilir; okuyan uclar `?? ''` ile eski
+  -- davranisi korur. Geriye donuk doldurma GEREKMEZ — tahsilat/uretim/dagitim eksenine
+  -- bilgi eklemiyor, yalniz Navlungo'ya iletilecek alan (yeni dilim). Veri KAYBI YOK.
+  musteri_il       TEXT NOT NULL DEFAULT '',
+  musteri_ilce     TEXT NOT NULL DEFAULT '',
   -- KARGO (siparis yonetimi paketi): /yonet/kargo ucu firma+kodu yazar, durum 'kargolandi'ya
   -- cekilir + musteriye kargo e-postasi tetiklenir. Eski satirlarda '' (kargolanmamis).
   kargo_firma     TEXT NOT NULL DEFAULT '',

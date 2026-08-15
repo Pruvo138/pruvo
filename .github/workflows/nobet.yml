@@ -1142,6 +1142,20 @@ jobs:
       - name: "Varlik cikarim beyani kapisi (kapsam kapali kume + blanket reddi + beyan-edilemez alan kor + 2 mutant)"
         run: python3 tools/varlik-beyan-test.py
 
+      # SIPARIS IL/ILCE DILIM-1 KABUL TESTI (Navlungo self-servis, 16 Agu 2026):
+      # musteri_il + musteri_ilce AYRI kolon, musteri_adres bugunku birebir,
+      # bos il/ilce FAIL-CLOSED, eski kayit panel PATLAMA Olmamali, SQL/HTML
+      # kacis, para ekseni etkilenmedi + 2 MUTANT (il/ilce kolon yazma kaldirilirsa,
+      # adres birlestirmesi bozulursa). 8 vaka, AGSIZ (subprocess wrangler / canli
+      # D1 / iyzico / API cagirmaz). NEDEN SERIT B: olctugu sinif FORMU VERI
+      # KAYBI suretinde DB'ye sizan bir ayrik alan eksigidir — siparis akisinin
+      # ana kapilari serit-a3'te BLOKLAYICI duruyor (siparisler-test.py,
+      # siparis-maske-test.py, odeme-beyani-kapisi.py); bu test ek alanin
+      # AKTARIM YOLUNU (form -> istekCoz -> INSERT -> SELECT) ANCAK KAYIT ALIR.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "Siparis il/ilce dilim-1 kabul testi (ayri kolon + bos fail-closed + 2 mutant)"
+        run: python3 tools/siparis-il-ilce-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

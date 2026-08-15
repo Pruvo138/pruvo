@@ -1221,6 +1221,10 @@
     <input type="tel" id="oTel" name="tel" autocomplete="tel" placeholder="Telefon (5xx...)" required>
     <input type="email" id="oEposta" name="email" autocomplete="email" placeholder="E-posta" required>
     <input type="text" id="oSehir" name="city" autocomplete="address-level2" placeholder="Şehir" required>
+    <!-- ILCE (Navlungo dilim-1, 16 Agu 2026): zorunlu, sehirle AYNI dogrulama kapisindan
+         gecer; bos birakildiginda backend 400 ile reddeder (fail-closed; D1'e yazma OLMAZ).
+         Tarayici otomatik doldurmesi adres-level3 — ilce seviyesini hedefler. -->
+    <input type="text" id="oIlce" name="ilce" autocomplete="address-level3" placeholder="İlçe" required>
     <textarea id="oAdres" name="address" autocomplete="street-address" rows="2" placeholder="Açık adres" required></textarea>
     <!-- MUSTERI NOTU: istege bagli. Sunucu 500 karakteri asani
          400 ile REDDEDER (sessiz kirpma YOK). Panel + Telegram + satici e-postasinda
@@ -2426,6 +2430,7 @@
             tel: document.getElementById("oTel").value.trim(),
             eposta: document.getElementById("oEposta").value.trim(),
             sehir: document.getElementById("oSehir").value.trim(),
+            ilce: document.getElementById("oIlce").value.trim(),
             adres: document.getElementById("oAdres").value.trim()
           }})
       });

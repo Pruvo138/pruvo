@@ -450,16 +450,20 @@ async function liste(env, url) {
     "SELECT id, siparis_no, tarih, durum, tutar_kurus, kargo_kurus, kdv_kurus, odeme_yontemi," +
     " urunler, kargo_firma, kargo_kodu, durum_gecmisi," +
     " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, musteri_notu";
-  // kanal/dis_no OPSIYONEL (goc kosmadiysa yok) -> merdiven; yoksa alanlar undefined kalir
-  // ve asagida 'site'/'' varsayilanina duser (bugunku ekranin AYNISI).
+  // kanal/dis_no + musteri_il/musteri_ilce OPSIYONEL (goc kosmadiysa yok) -> merdiven;
+  // yoksa alanlar undefined kalir ve asagidaki karta boslukla yansir (bugunku ekran bozulmaz).
   const kur = (alanlar) => {
     const secim = alanlar + " FROM siparisler";
     return durum
       ? env.KATALOG.prepare(secim + " WHERE durum = ? ORDER BY id DESC LIMIT ?").bind(durum, limit)
       : env.KATALOG.prepare(secim + " ORDER BY id DESC LIMIT ?").bind(limit);
   };
+  // Navlungo dilim-1: il/ilce artik ayri sutun. `musteri_adres` birlestirme metni OLD BITEN
+  // KAPSAMDA (mevcut e-posta/Telegram/yonetim ekrani metni onu okuyor — kirma). Bu yuzden
+  // SELECT'te `musteri_adres` ile YANI SIRA `musteri_il`/`musteri_ilce` ayri alinir; eski
+  // kayitlarda bu kolonlar DEFAULT '' ile dogar, ilisik kart etiketi sessizce bos cikar.
   const sonuc = await kolonMerdiveni(
-    () => kur(TABAN + ", kanal, dis_no").all(),
+    () => kur(TABAN + ", kanal, dis_no, musteri_il, musteri_ilce").all(),
     () => kur(TABAN).all());
   const satirlar = sonuc.results || [];
 
@@ -563,6 +567,10 @@ async function liste(env, url) {
       izinli_gecisler: [...(IZINLI[s.durum] || []), ...(s.durum !== "iptal" ? ["iptal"] : [])],
       musteri: { ad: s.musteri_ad, tel: s.musteri_tel, eposta: s.musteri_eposta,
                  adres: s.musteri_adres },
+      // Navlungo dilim-1: il/ilce ayri kolonlar (goc kosmadiysa undefined; burada ""ya
+      // dusurulur — kart render'i sessizce bos birakir, HIC PATLAMA olmaz, T4 sarti saglanir).
+      musteri_il: s.musteri_il || "",
+      musteri_ilce: s.musteri_ilce || "",
       musteri_notu: s.musteri_notu || "",
       kalemler: kalemler,
       // Yerel araç (Faz 2) komutu — sayfadaki "kopyala" düğmesi bunu panoya yazar.
@@ -617,10 +625,11 @@ async function siparisGetir(env, siparisNo) {
     " musteri_ad, musteri_eposta, musteri_adres";
   const kur = (alanlar) => env.KATALOG.prepare(
     alanlar + " FROM siparisler WHERE siparis_no = ?").bind(siparisNo);
-  // `kanal` opsiyoneldir (goc kosmadiysa yok): merdiven. Kolon yoksa s.kanal undefined
-  // kalir -> asagidaki olcum kapisi bugunku gibi ACIK olur (davranis degismez).
+  // `kanal` + il/ilce opsiyonel (goc kosmadiysa yok): merdiven. Kolon yoksa s.kanal/
+  // s.musteri_il/s.musteri_ilce undefined kalir; cagiranlarda ?? '' ile sessiz bosluga
+  // dusulur (T4 — eski kayitta panel/sorgu PATLAMA Olmamali).
   return kolonMerdiveni(
-    () => kur(TABAN + ", kanal").first(),
+    () => kur(TABAN + ", kanal, musteri_il, musteri_ilce").first(),
     () => kur(TABAN).first());
 }
 
@@ -1683,6 +1692,13 @@ function kartHtml(s){
  var disNo=s.dis_no?'<div class="kucuk">Ege sipariş no: '+esc(s.dis_no)+'</div>':'';
  var musteriNotu=s.musteri_notu?'<div class="kucuk" style="white-space:pre-wrap"><b>Not:</b> '+
   esc(s.musteri_notu)+'</div>':'';
+ // Navlungo dilim-1: il/ilce ayri kolonlar. Eski kayitlarda DEFAULT '' ile bos; o zaman
+ // kart metni bugunku HALIYLE kalir (T4 sarti — sessiz dusmek, patlamak yok). Yeni
+ // kayitlarda kart metnine " / <ilce>" yapistirilir; musteri_adres birebir ayni
+ // birlestirme metni olarak KALIR (HTML ureten yuzeyde esc() ile).
+ var musteriIlIlce=(s.musteri_il||s.musteri_ilce)?
+  '<div class="kucuk"><b>İl/İlçe:</b> '+esc(s.musteri_il||"-")+' / '+esc(s.musteri_ilce||"-")+'</div>'
+  :'';
  // 🔒 KAPALI BASLIK (summary) OMUZ-USTU GIZLILIGI: siparis no · durum · kanal · tarih ·
  // toplam · kalem sayisi. Musteri adi/telefon/e-posta/adres BURAYA GIRMEZ — onlar
  // yalnizca kart ACILINCA (govdede) gorunur.
@@ -1698,6 +1714,7 @@ function kartHtml(s){
   disNo+
   '<div class="mus"><b>'+esc(s.musteri.ad)+'</b> · '+esc(s.musteri.tel)+'<br>'+esc(s.musteri.adres)+
    ' · '+esc(s.musteri.eposta)+'</div>'+
+  musteriIlIlce+
   musteriNotu+
   '<div class="kucuk">Toplam '+tl(s.tutar_kurus)+' + kargo '+tl(s.kargo_kurus)+
    ' · KDV '+tl(s.kdv_kurus)+'</div>'+
