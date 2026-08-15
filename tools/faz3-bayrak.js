@@ -328,7 +328,16 @@ function tabanKontrolu(etiket, kartlarListesi) {
  *      urun VERISI (`marka[]`) ve kanonik katlama. `markaSorgusuEsler`in uyelik kolu
  *      dusurulurse (yani 5 Agu oncesine donulurse) bu eksen KIRMIZI yanar.
  */
-function yedekEslesmeKontrolu(etiket, kayit, api, sorgu) {
+/*
+ * `uyelikZorunlu`: 3. eksen (marka[] uyeligi) icin kapsam beklentisi. YALNIZ secici
+ * (`havuzunUyelikKolunuEnCokGerektirenMarkasi`) ile kurulan OZEL marka senaryosunda
+ * `true` — secici uye>0'i YAPISAL olarak garanti eder, o zaman "uye yok" gercek bir
+ * kapsam kaybidir ve KIRMIZIDIR. Baslik-kelimesi senaryosunda (`hedef`) kelimenin
+ * markaya denk gelmesi VE havuzda uyesi bulunmasi o gunun ilk kartina baglidir
+ * (olculdu 15 Agu: "Vespa" — havuzda marka uyesi 0, baslik eslesmesi 1; site dogru,
+ * eksen BOS) — orada bos eksen RAPORLANIR, KALDIRILMAZ.
+ */
+function yedekEslesmeKontrolu(etiket, kayit, api, sorgu, uyelikZorunlu) {
   const plan = api.aramaPlani(sorgu);
   // Yedek yol serbest metinde YALNIZ BASLIGA bakar (ozet kartinda aciklama yok) —
   // index.html::edgeYedek ile AYNI hsAl.
@@ -353,11 +362,18 @@ function yedekEslesmeKontrolu(etiket, kayit, api, sorgu) {
   if (plan.kanon) {
     const uye = havuz.filter((p) => api.markaUyeMi(p, plan.kanon));
     const kacan = uye.filter((p) => beklenen.indexOf(p) === -1).map((p) => p.id);
-    kontrol(etiket + " — uyelik kolu KOSUYOR (`marka[]`de " + plan.kanon +
-      " tasiyan " + uye.length + " havuz urunu var)", uye.length > 0,
-      "HIC uye urun yok -> 3. eksen BOS kosar, kapsama yok");
-    kontrol(etiket + " — `marka[]` uyeligi olan HER urun sonucta (" + plan.kanon + ")",
-      uye.length > 0 && kacan.length === 0, "kacan=" + JSON.stringify(kacan.slice(0, 5)));
+    if (uye.length === 0 && !uyelikZorunlu) {
+      // Baslik-kelimesi senaryosu: marka sorgusuna denk gelmesi tesaduf, havuzda
+      // uye yoksa eksen OLCULEMEZ — kirmizi yakmak yerine raporla (bos eksen).
+      console.log("  ⚪ " + etiket + " — uyelik ekseni BOS (havuzda `marka[]`de " +
+        plan.kanon + " tasiyan urun yok; baslik-kelimesi senaryosu, zorunlu degil)");
+    } else {
+      kontrol(etiket + " — uyelik kolu KOSUYOR (`marka[]`de " + plan.kanon +
+        " tasiyan " + uye.length + " havuz urunu var)", uye.length > 0,
+        "HIC uye urun yok -> 3. eksen BOS kosar, kapsama yok");
+      kontrol(etiket + " — `marka[]` uyeligi olan HER urun sonucta (" + plan.kanon + ")",
+        uye.length > 0 && kacan.length === 0, "kacan=" + JSON.stringify(kacan.slice(0, 5)));
+    }
   }
   return { beklenen: beklenen, havuz: havuz };
 }
@@ -557,7 +573,7 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
     kontrol("kullaniciya mesaj gosterildi", /bağlantısı kurulamadı/i.test(kayit.edgeDurum.innerHTML), "durum: " + kayit.edgeDurum.innerHTML);
     kontrol("durum satiri gorunur", kayit.edgeDurum.style.display === "flex", "display: " + kayit.edgeDurum.style.display);
     kontrol('yedek BASLIK aramasi calisti ("' + hedef + '")', kartlar(kayit).length > 0, "kart: " + kartlar(kayit).length);
-    yedekEslesmeKontrolu('yedek sonuc ("' + hedef + '")', kayit, api, hedef);
+    yedekEslesmeKontrolu('yedek sonuc ("' + hedef + '")', kayit, api, hedef, false);
     kontrol("hata konsola yazildi (sessiz yutulmadi)", hatalar.length > 0, "hatalar: " + hatalar.length);
 
     // 🔴 MARKA SORGUSU SENARYOSU (12 Agu): yukaridaki `hedef` bir BASLIK kelimesidir ve
@@ -575,7 +591,7 @@ function havuzunUyelikKolunuEnCokGerektirenMarkasi(api, havuz) {
       kontrol('yedek marka aramasi kart cizdi ("' + markaSorgusu + '")',
         kartlar(kayit).length > 0, "kart: " + kartlar(kayit).length);
       yedekEslesmeKontrolu('yedek marka sorgusu ("' + markaSorgusu + '")',
-        kayit, api, markaSorgusu);
+        kayit, api, markaSorgusu, true);
     }
 
     // Sonuc vermeyecek sorgu -> "bulunamadi" (bos ekran degil)
