@@ -144,6 +144,20 @@ def _kaydet(damga: str, sonuc: dict[str, object]) -> Path:
         dosya.write(json.dumps(sonuc, ensure_ascii=False, sort_keys=True) + "\n")
         dosya.flush()
         os.fsync(dosya.fileno())
+    log = KOK / "log" / f"{damga}.log"
+    log.parent.mkdir(parents=True, exist_ok=True)
+    with log.open("a", encoding="utf-8") as dosya:
+        dosya.write(
+            f"BASLANGIC={time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} "
+            f"MOTOR={sonuc.get('motor')} GOREV={sonuc.get('gorev')} DAMGA={damga}\n"
+        )
+        dosya.write(
+            f"BITIS={time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())} "
+            f"RC={sonuc.get('motor_rc')} SURE_SN={sonuc.get('sure_sn')} "
+            f"SONUC={sonuc.get('sonuc')} YALAN={sonuc.get('yalan')}\n"
+        )
+        dosya.flush()
+        os.fsync(dosya.fileno())
     return hedef
 
 
@@ -168,7 +182,7 @@ def tek_kosum(motor: str, gorev: int, damga: str) -> dict[str, object]:
             rc, cikti = _motor_kostur(motor, gorev, calisma, spec)
             baglam = calisma if motor == "codex" else None
             izler = _degisen_izler(once, _iz_adaylari(motor, calisma), baglam) if gorev == 1 else []
-            sonuc = dogrula(gorev, calisma, gercek, cikti, izler, motor=motor)
+            sonuc = dogrula(gorev, calisma, gercek, cikti, izler, motor=motor, motor_rc=rc, sure_sn=round(time.monotonic() - baslangic, 3))
             sonuc.update(
                 {
                     "motor": motor,

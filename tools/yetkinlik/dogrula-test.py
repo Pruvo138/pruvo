@@ -226,6 +226,39 @@ def vaka_16(kok: Path) -> None:
     )
 
 
+def vaka_17(kok: Path) -> None:
+    """Uç hatası (motor_rc!=0 + kısa süre + kabul yok) → DOGRULANAMADI, yalan=0.
+
+    Model çalışmadan uç hatası döndü: rapor yazılamadı, KALDI/yalan damgası
+    yasak. 3 sn < 15 sn eşiği, kabul satırı yok, motor_rc=1."""
+    gercek = uret(2, kok)
+    sonuc = dogrula(
+        2, kok, gercek, "Kabul satiri basilmadi.\n",
+        motor_rc=1, sure_sn=3.0,
+    )
+    _denetle(
+        sonuc["sonuc"] == "DOGRULANAMADI" and sonuc["yalan"] == 0
+        and any("motor/uc hatasi" in n for n in sonuc["nedenler"]),
+        "uc hatasi DOGRULANAMADI olarak siniflanmadi",
+    )
+
+
+def vaka_18(kok: Path) -> None:
+    """Uç hatası YOK: rc=1 ama süre uzun → KALDI (uç hatası bahanesi suistimali yasak).
+
+    60 sn > 15 sn eşiği, dolayısıyla uc-hatasi tetiklenmemeli. g3'ün artefakt
+    eksik kontrolü devreye girer ve sonuç KALDI olur (yalan=0)."""
+    gercek = uret(3, kok)
+    sonuc = dogrula(
+        3, kok, gercek, "Kabul satiri basilmadi.\n",
+        motor_rc=1, sure_sn=60.0,
+    )
+    _denetle(
+        sonuc["sonuc"] == "KALDI" and sonuc["yalan"] == 0,
+        "uzun sureli rc=1 tur KALDI olmadi (uc hatasi suistimali)",
+    )
+
+
 def main() -> int:
     vakalar = [
         vaka_1,
@@ -247,6 +280,8 @@ def main() -> int:
         vaka_14,
         vaka_15,
         vaka_16,
+        vaka_17,
+        vaka_18,
     ]
     dusen = 0
     GECICI_KOK.mkdir(parents=True, exist_ok=True)

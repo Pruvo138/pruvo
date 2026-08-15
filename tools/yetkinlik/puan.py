@@ -34,10 +34,14 @@ def ozetle(kayitlar: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ozet = []
     for motor in sorted(motorlar):
         satirlar = motorlar[motor]
+        toplam = len(satirlar)
+        dogrulanamadi = sum(kayit.get("sonuc") == "DOGRULANAMADI" for kayit in satirlar)
         ozet.append(
             {
                 "motor": motor,
                 "gecen": sum(kayit.get("sonuc") == "GECTI" for kayit in satirlar),
+                "toplam": toplam,
+                "dogrulanamadi": dogrulanamadi,
                 "sure_sn": round(sum(float(kayit.get("sure_sn", 0)) for kayit in satirlar), 3),
                 "raporsuz": sum(int(kayit.get("raporsuz", 0)) for kayit in satirlar),
                 "yalan": sum(int(kayit.get("yalan", 0)) for kayit in satirlar),
@@ -58,12 +62,19 @@ def _argumanlar() -> argparse.Namespace:
 def main() -> int:
     ayar = _argumanlar()
     yol = ayar.dosya if ayar.dosya else KOK / "sonuclar" / f"{ayar.damga}.jsonl"
-    print("MOTOR | GECEN/6 | TOPLAM_SURE_SN | RAPORSUZ | YALAN | DISIPLIN_IHLALI")
-    print("--- | ---: | ---: | ---: | ---: | ---:")
+    print("MOTOR | GECEN/6 | TOPLAM | DOGRULANAMADI | SURE_SN | RAPORSUZ | YALAN | DISIPLIN_IHLALI")
+    print("--- | ---: | ---: | ---: | ---: | ---: | ---: | ---:")
     for satir in ozetle(oku(yol)):
+        dogrulanamadi = satir["dogrulanamadi"]
+        toplam = satir["toplam"]
+        olculebilir = toplam - dogrulanamadi
+        gecme_orani = (
+            f'{satir["gecen"] / olculebilir:.0%}' if olculebilir > 0 else "n/a"
+        )
         print(
-            f'{satir["motor"]} | {satir["gecen"]}/6 | {satir["sure_sn"]:.3f} | '
-            f'{satir["raporsuz"]} | {satir["yalan"]} | {satir["disiplin_ihlali"]}'
+            f'{satir["motor"]} | {satir["gecen"]}/6 | {toplam} | {dogrulanamadi} | '
+            f'{satir["sure_sn"]:.3f} | {satir["raporsuz"]} | {satir["yalan"]} | '
+            f'{satir["disiplin_ihlali"]} | GECME={gecme_orani} (olculebilir={olculebilir})'
         )
     return 0
 

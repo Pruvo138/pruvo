@@ -79,6 +79,11 @@ MUTASYONLAR: list[tuple[str, str, str]] = [
         "kirilim_bildirimi == kirilim_gercek",
         "True  # mutasyon: g2 sozluk karsilastirmasi atlandi",
     ),
+    (
+        "uc hatasi ayrimini kaldir",
+        "return motor_rc is not None and motor_rc != 0 and kabul is None and sure_sn is not None and sure_sn < 15",
+        "return False  # mutasyon: uc hatasi ayrimi kapatildi",
+    ),
 ]
 
 

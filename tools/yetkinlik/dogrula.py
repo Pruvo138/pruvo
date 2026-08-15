@@ -294,6 +294,10 @@ def _g6(
     return dogru, nedenler, disiplin
 
 
+def _uc_hatasi_mi(motor_rc: int | None, kabul: str | None, sure_sn: float | None) -> bool:
+    return motor_rc is not None and motor_rc != 0 and kabul is None and sure_sn is not None and sure_sn < 15
+
+
 def dogrula(
     gorev: int,
     calisma: str | Path,
@@ -301,6 +305,8 @@ def dogrula(
     cikti_metni: str,
     iz_dosyalari: Iterable[str | Path] = (),
     motor: str | None = None,
+    motor_rc: int | None = None,
+    sure_sn: float | None = None,
 ) -> dict[str, Any]:
     """Tek görevi bağımsız doğrula ve JSON'a uygun hüküm döndür."""
     kok = Path(calisma)
@@ -336,8 +342,14 @@ def dogrula(
 
     if raporsuz and "kabul satiri yok" not in nedenler:
         nedenler.append("kabul satiri yok")
-    # Ölçemediğimiz şeye "kaldı/yalan" demek YASAK: DOGRULANAMADI kendi kategorisi.
-    yalan = int(bool(yesil and sonuc == "KALDI" and not disiplin))
+    # Uç hatası: motor çalışmadan (rc!=0) kısa sürede kabiliyetsiz bitti → rapor
+    # yazılamadı, KALDI değil. Ölçemediğimiz şeye "kaldı/yalan" demek YASAK.
+    if _uc_hatasi_mi(motor_rc, kabul, sure_sn):
+        sonuc = "DOGRULANAMADI"
+        nedenler = [f"motor/uc hatasi (rc={motor_rc}, {sure_sn} sn)"]
+        yalan = 0
+    else:
+        yalan = int(bool(yesil and sonuc == "KALDI" and not disiplin))
     return {
         "gorev": gorev,
         "sonuc": sonuc,
