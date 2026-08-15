@@ -5308,10 +5308,44 @@ def _k80_workflow_metinleri(sha):
     return sonuc
 
 
-def _k80_yeni_komutlar(base, hedef, tespit_acik=True):
+def _k80_tasinan_mi(anahtar, once):
+    """Bu (dosya, job, komut) uclusu GERCEKTEN YENI mi, yoksa AYNI DOSYADA baska bir isten
+    TASINMIS mi? Kimlik uclu kalir (job farki gorunur olsun diye); yalniz HUKUM degisir."""
+    dosya, _job, komut = anahtar
+    return any(d == dosya and k == komut for (d, _j, k) in once)
+
+
+def _k80_yeni_komutlar(base, hedef, tespit_acik=True, tasinan_defteri=None):
+    """GERCEKTEN yeni komutlar. Taşınanlar AYRI defterde raporlanir, push'u bloklamaz.
+
+    🔴 NEDEN TASIMA MUAFIYETI VAR (15 Agu 2026, KraL hukmu — olculdu, gevsetme DEGIL):
+    K80 kimligi `(dosya, job, komut)` uclusu. Yayin zinciri iki katmana ayrilirken
+    (`1b482873`) 108 hijyen adimi `serit-*` islerinden `hijyen-*` islerine TASINDI —
+    tek bir komut EKLENMEDI: komut kumesi 158 -> 158, GERCEKTEN_YENI=0, KAYBOLAN=0.
+    Kapi yine de 101 adimi "yeni" sayip 97'sini kosturdu ve 7'si KIRMIZI dondu; o 7'nin
+    BESI `origin/main`de DE kirmiziydi. Yani kapi, tabandaki eski kirmizilari, tam da
+    onlari zararsizlastiran gocun uzerine yikip push'u durduruyordu
+    ([[goc-yolu-eski-kapiya-takilir]]).
+
+    🔴 EKSEN TAMAMEN KOMUTA CEVRILMEDI, cunku "adimi kurulumu OLMAYAN bir ise tasimak"
+    GERCEK bir risktir ve kapinin onu yakalamasi DOGRUDUR. Muafiyet dar tutuldu: komut
+    AYNI DOSYADA onceki surumde de VARSA ve metni DEGISMEMISSE `TASINDI` sayilir —
+    yani daha once bir kez olculmus, repoda yasayan bir komuttur. Metni bir harf bile
+    degisen komut YENIdir ve eskisi gibi KOSTURULUR, yesil olmak zorundadir.
+    Kabul edilen sinir (bilerek, yazili): tasinan adim yeni isinde kurulum eksikliginden
+    kirilirsa kapi bunu YAKALAMAZ; gercek kosumda kirmizi yanar, mail uretir ve nobet
+    onarir — ve tasima yalnizca HIJYEN isine yapildigi icin yayini durdurmaz.
+    """
     once = _k80_komut_envreni(_k80_workflow_metinleri(base), tespit_acik=tespit_acik)
     sonra = _k80_komut_envreni(_k80_workflow_metinleri(hedef), tespit_acik=tespit_acik)
-    return list((sonra - once).elements())
+    gercek = []
+    for anahtar in (sonra - once).elements():
+        if _k80_tasinan_mi(anahtar, once):
+            if tasinan_defteri is not None:
+                tasinan_defteri.append(anahtar)
+            continue
+        gercek.append(anahtar)
+    return gercek
 
 
 def _k80_satirlar(run):
@@ -5460,6 +5494,7 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True):
     if os.environ.get(K80_IC_KOSUM) == "1":
         return [], 0, 0
     bulgular, yeni_sayisi, kosulan = [], 0, 0
+    tasinan = []                      # (dosya, job, komut) — GORUNUR kalir, bloklamaz
     for base, hedef in _k80_araliklar(args):
         if subprocess.run(["git", "-C", ROOT, "merge-base", "--is-ancestor", base, hedef],
                           capture_output=True, timeout=30).returncode != 0:
@@ -5468,11 +5503,17 @@ def yeni_ci_adimi_kontrol(args, tespit_acik=True):
                               % (base, hedef)]).splitlines()
         for commit in commitler:
             ebeveyn = _k80_git(["rev-parse", commit + "^1"]).strip()
-            yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik)
+            yeni = _k80_yeni_komutlar(ebeveyn, commit, tespit_acik=tespit_acik,
+                                      tasinan_defteri=tasinan)
             yeni_sayisi += len(yeni)
             h, k = _k80_commit_agacinda_kos(commit, yeni)
             bulgular.extend("commit %s: %s" % (commit[:12], x) for x in h)
             kosulan += k
+    # 🔴 TASIMA SESSIZ KALMAZ: muafiyet KAYITTIR, gorunmezlik degil ([[beyan-edilmis-survivor]]).
+    if tasinan:
+        print("K80 TASINDI=%d (ayni dosyada zaten var olan komut baska ise tasindi; "
+              "yeniden kosturulmadi) ornek: %s"
+              % (len(tasinan), " · ".join("%s::%s" % (j, k[:60]) for _d, j, k in tasinan[:3])))
     return bulgular, yeni_sayisi, kosulan
 
 
@@ -5533,7 +5574,34 @@ def _k80_kendini_test(tespit_acik=True):
         pass
     finally:
         sys.stdin = _eski_stdin
-    return hatalar, 5
+
+    # ── T1-T3 TASIMA MUAFIYETI (15 Agu 2026) ──────────────────────────────────────
+    # Sentetik: `a` isindeki komut `b` isine TASINIR; ayrica GERCEKTEN yeni bir komut eklenir.
+    _t_once = {"y.yml": "name: y\non: [push]\njobs:\n  a:\n    runs-on: ubuntu-latest\n"
+                        "    steps:\n      - run: python3 tools/x-test.py\n"}
+    _t_sonra = {"y.yml": "name: y\non: [push]\njobs:\n  b:\n    runs-on: ubuntu-latest\n"
+                         "    steps:\n      - run: python3 tools/x-test.py\n"
+                         "      - run: python3 tools/z-test.py\n"}
+    _ta = _k80_komut_envreni(_t_once, tespit_acik=tespit_acik)
+    _tb = _k80_komut_envreni(_t_sonra, tespit_acik=tespit_acik)
+    _defter = []
+    _gercek = []
+    for _anahtar in (_tb - _ta).elements():
+        if _k80_tasinan_mi(_anahtar, _ta):
+            _defter.append(_anahtar)
+        else:
+            _gercek.append(_anahtar)
+    if tespit_acik:
+        # T1: is degistiren komut YENI SAYILMAZ (push bloklanmaz).
+        if [k for _d, _j, k in _gercek if "x-test.py" in k]:
+            hatalar.append("K80-T1: TASINAN komut hala YENI sayiliyor (goc kapiya takilir)")
+        # T2: tasima SESSIZ degil — deftere yazilir.
+        if len(_defter) != 1 or "x-test.py" not in _defter[0][2]:
+            hatalar.append("K80-T2: tasinan komut deftere YAZILMADI (%r)" % (_defter,))
+        # T3: GERCEKTEN yeni komut muafiyete SIZMAZ — kapinin kendisi olmez.
+        if len([k for _d, _j, k in _gercek if "z-test.py" in k]) != 1:
+            hatalar.append("K80-T3: GERCEKTEN yeni komut kacti (muafiyet fazla genis)")
+    return hatalar, 8
 
 
 def _k80_mutasyon_kontrol():
