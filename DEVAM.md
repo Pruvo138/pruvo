@@ -2,6 +2,41 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 15 Agu (~11:0xZ) — OTURUM KAPANISI (KraL)
+
+**CANLIYA GIDEN (main'de, push'lu):** `280eee20` yayin acildi (eski fiyat fiksturu kanonik
+`ilan_kurus`tan turer) · `3d2adabf` K108 curutuldu · `81a2a32a` konsolidasyon defteri ·
+`96aa9d75` indeks hukmu. Dogrulama: `280eee20` kosumu **completed success**, alti isin ALTISI
+yesil (`deploy` + `yayin` SKIPPED DEGIL KOSTU); canli `urunler.json` 27420 = o commit'in
+katalogu; sabah silinen yasak urun `th3812744-...` canlida **HTTP 404**.
+
+**KOSUYOR:** kendi delege ettigim is YOK — bu turdaki tum Codex isleri (kok neden olcumu ·
+fikstur onarimi · taban mutasyon olcumu · canli dogrulama · defter konsolidasyonu · indeks
+turetme · uc yedek kosumu) SONUCLANDI, kabul satirlari alindi. Acilan tek worktree
+(`kral/eski-fiyat-fikstur`) merge sonrasi SILINDI; `git worktree list` = yalniz ana agac.
+Arka plan gorevi kalmadi.
+
+🔴 **YAYIN YINE BLOKLU — AMA FARKLI SINIF (bu tur acildi, BENDE):** `81a2a32a` ve `db3de830`
+kosumlari `serit-a2` "Marka->model pilot kabul testi" + `serit-a3` "Model uyeligi kapisi"
+adimlarinda KIRMIZI: **K19 CAPRAZ-MARKA CIFTI YARGISIZ — `BMW|adventure` ve `KTM|adventure`**
+(87 cift/40 model icinde 2 yargisiz cift; 1/29 iddia KALDI). Sebep K106 DEGIL: MaCiT'in KTM partisi
+`adventure` model jetonunu getirdi, ayni jeton BMW'de de esliyor. Bu K95'in AYNI SINIFI
+(Fiat|scudo · Nissan|primastar emsali) ve hukum MIMARDA: iki cift ya yargi tablosuna ya BEKLER
+listesine yazilacak. **Sonraki oturumun ILK isi budur.**
+
+**BEKLIYOR (baskasinda):** MaCiT — `ff88e3ec` (KTM SLICE 2, +106, katalog 27646) main'de ama
+**PUSH EDILMEMIS**; baskasinin commit'i oldugu icin ELLENMEDI. MaCiT kendi kapilarini kosup
+itecek; yukaridaki K19 kirmizisi cozulmeden o itme de yayina inmez.
+
+🔴 **REGRESYON NOTU (bu turda olculdu, sonra GERI GITTI):** `.yedek-dusus-izin.json` icine
+`posta-kutusu-macit-izleme-ankor.txt` icin yazdigim `surekli`/4096 beyani dosyadan DUSMUS
+(su an yalniz `DEVAM.md` + kaan ankoru var). Beyan yokken `yedekle.py` **rc=1** dusuyor
+(618 -> 188 B karantinasi). Beyan AILE olarak yeniden yazilmali — ikizi beyanli, kardesi degil.
+
+**OKAN'DA:** motor tarifesi karari · eski yedek klasorunu backup-v2'ye tasima · K89 olcum
+eylemi silme karari · (yeni) indeksi gercekten kucultmek icin ikinci kademe indeks karari —
+hangi girisler oturum basinda HER SEFERINDE gerekli degil, kategori kategori onaya sunulacak.
+
 ## 15 Agu (~09:5xZ) — YAYIN ACILDI (KraL)
 
 **`280eee20` — 7,5 saatlik yayin tikanikligi kaldirildi.** `serit-a2` (`eski-fiyat-test.py`)
