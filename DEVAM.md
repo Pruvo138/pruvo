@@ -15,6 +15,15 @@ Kok neden olculdu: PETG'den ABS'e gecen politika ayni fikstur urunun ilan tutari
 `ilan_kurus`tan turer. Kabul: rc=0 / 0 ihlal · mutasyon 11/13 KIRMIZI = **taban 11/13 ile
 birebir** (M2/M3 tabanda da OLCULEMEDI) · degisen dosya 1 · D1 27420, bes eksen yesil.
 
+**KONSOLIDASYON (Okan onayi, ayni tur):** `acik-kalemler.md` **144.403 -> 80.489 bayt (-%44)**;
+48 KAPANDI satiri `acik-kalemler-arsiv.md`'ye LOSSLESS tasindi (sha 48/48 birebir · arsiv +48
+satir · acik kuyrugun 36 satiri BAYT-DOKUNULMAMIS · id kaybi 0), defterde id + tarih + kanit
+tek satir olarak KALDI. K94'un bozuk durum jetonu `🔧`e onarildi. Gunluk mimar ihtarina
+**14. kural** eklendi (baglam ekonomisi: dev dosyayi kesitle oku · iscinin ham ciktisini degil
+`son-mesaj.txt`'i oku · aramayi kapsamla). Yedek zinciri: ilk kosum rc=1 dustu — sebep
+`posta-kutusu-macit-izleme-ankor.txt` (618->188 B) icin dusus beyaninin EKSIK olmasiydi; Kaan
+ikizi beyanliydi, kardesi degildi. Beyan AILE olarak yazildi, **rc=0 · KARANTINA=0 · BEYANLI=1**.
+
 ## 15 Agu (oglen) — OTURUM KAPANISI (KraL)
 
 **CANLIYA GIDEN (main'de, push'lu — HEAD `7cd7405d`):**
