@@ -1,5 +1,35 @@
 # DEVAM (KraL) — 8 Agu 2026
 
+## 15 Agu 2026 (sabah) — SHOP DAGITILDI (Okan onayi) + IKI KAPI BULGUSU
+
+- **Defter sinif kapisi acildi:** bekleyen 216 satirlik defter commit'i 16 sinif ihlaliyle
+  bloke idi; saatlik nobet turlari (00:37Z-10:07Z, 177 satir) + HD x TV blogu arsive TASINDI
+  (lossless: TASINAN=177 · ARSIV_ARTIS=179), yerine notr isaretci. Kapi `temiz: 0 sinif
+  ihlali`, commit `fec2daf9`. Tasima Codex'te, sayi bagimsiz olculdu (`git diff --stat`).
+- **SHOP DAGITILDI (Okan acik onayi, 25 turluk alarm kapandi):** `npx wrangler deploy -c
+  shop/wrangler.toml`; worker adi `pruvo-shop` DOGRULANDI (kokte yabanci wrangler config YOK,
+  [[wrangler-kok-dizin-tuzagi]] kontrolu yapildi). Canli surum `34d4db64` -> **`01d41b07`**.
+  Kabul: `shop-bayatlik-kapisi.py` rc=0, **DURUM=TAZE**, bekleyen commit 0, yas 0.0 dk.
+- 🔧 **BULGU 1 — alarm 25 tur KIRMIZI yandi ama kendi evreninde DELTA SIFIRDI.** Olculdu:
+  (a) canli surumun dagitim aninden (14 Agu 14:30:20Z) bu yana `shop/src` + `wrangler.toml` +
+  `config.json` yuzeyine dokunan commit **0**; (b) kapinin kendi bildirdigi bundle kumesi 42
+  dosya, icinde `shop/test` yolu **0**, `index.html` **YOK**; (c) alarmin "bekleyen 2 commit"
+  dedigi `4a495a4a` + `f6404b95` YALNIZ `shop/test/sepet-panel.js` dosyasina dokunuyor.
+  Yani alarmin TETIK ekseni, RAPORLADIGI evrenle ayni degil → sinif
+  [[kabul-araligi-karsilastirma-araligi]]. Dagitim zararsizdi (kod birebir ayni) ama 25 tur
+  gurultu + 1 Okan eskalasyonu uretti. Onarim gate kodudur (Claude kati) → kuyruğa.
+- 🔧 **BULGU 2 — `devam-sinif-kapisi.py` is-akisi muafiyeti EKSEN AYRISMASI (kaynaktan okundu,
+  etki adedi HENUZ olculmedi):** E6'nin ilgili deseni `norm` uzerinde eslesiyor (`finditer(norm)`)
+  ama muafiyet `_is_akisi_adinda_mi(ham, m.start(), m.end())` ile **`ham`** uzerinde araniyor;
+  `normalize()` ASCII disi her karakteri bosluga cevirip **bosluk kumelerini daraltiyor**
+  (`" ".join(split())`), yani ofsetler iki eksende ORTUSMUYOR. Ayrica `_IS_AKISI_KIMLIKLERI`
+  yalniz `.lower()` uygulanmis ad tasiyor, `normalize()` uygulanmis degil. Dogru onarim: her
+  iki tarafi da AYNI kanonik fonksiyondan turet. Kabul testi iki yonlu olmali (mesru is-akisi
+  adi YESIL kalmali + gercek E6 bulgusu KIRMIZI kalmali) + mutasyon.
+- **Duzeltme (kendi ifadem):** Okan'a "senin duzelttigin buton metni yayinda degil" dedim;
+  metin `index.html`'de ve Pages ile ZATEN canliydi. Bayat olan worker surum damgasiydi, iki
+  commit ise yalniz test fikstürüne dokunuyordu. Dagitim yine de dogruydu (alarmi kapatti).
+
 ## 15 Agu 2026 (gece) — OTURUM KAPANISI (KraL)
 
 **CANLIYA GIDEN (main'de, push'lu):**
