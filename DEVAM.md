@@ -2,6 +2,19 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 15 Agu (~09:5xZ) — YAYIN ACILDI (KraL)
+
+**`280eee20` — 7,5 saatlik yayin tikanikligi kaldirildi.** `serit-a2` (`eski-fiyat-test.py`)
+07:22Z'den beri her itmede kirmiziydi, `deploy` isi `needs` zinciriyle SKIPPED kaliyordu; son
+basarili yayin 02:04Z (`a4622a7b`) idi — canli site sabahki her seyin (167 Ducati, 274 ABS
+tavsiyesi, 4 silinen yasak urun) gerisindeydi.
+Kok neden olculdu: PETG'den ABS'e gecen politika ayni fikstur urunun ilan tutarini 110.500'den
+**136.000 kurusa** cikardi; testin sabit `1.200 TL` (120.000) fiksturu ilanin ALTINDA kaldi ve
+`eski_fiyat_html` onu **DOGRU** davranarak basmayi birakti. Kural degil FIKSTUR bayatti.
+**Hukum: kural gevsetilmedi, `build.py`'ye dokunulmadi**; kabul degeri artik kanonik
+`ilan_kurus`tan turer. Kabul: rc=0 / 0 ihlal · mutasyon 11/13 KIRMIZI = **taban 11/13 ile
+birebir** (M2/M3 tabanda da OLCULEMEDI) · degisen dosya 1 · D1 27420, bes eksen yesil.
+
 ## 15 Agu (oglen) — OTURUM KAPANISI (KraL)
 
 **CANLIYA GIDEN (main'de, push'lu — HEAD `7cd7405d`):**
