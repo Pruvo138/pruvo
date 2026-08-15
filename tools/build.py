@@ -53,6 +53,7 @@ def _cip_indeks_yukle():
     return _mod
 cip_indeks = _cip_indeks_yukle()
 import landing_hub_build
+import kategori_hub_build
 import yorum_soy
 # `altkategori` (kategori ICINDEKI daraltma etiketi) TEK KAYNAKTAN okunur: arama.py
 # altkategori_kanonik(). Burada ikinci bir "gecerli mi" mantigi YAZILMAZ — yazilsaydi
@@ -146,6 +147,16 @@ def gorunur_kategori(p):
     if p.get("parametrik") and kat in IC_SERI_ETIKET:
         return IC_SERI_ETIKET[kat]
     return kat
+
+
+def kategori_gorunur(kat):
+    """Kategori ADININ müşteriye görünen etiketi (kategori HUB'ı + breadcrumb HEDEFİ için).
+
+    Ürün-düzeyi `gorunur_kategori`nin AKSİNE burada parametrik bayrağı YOKTUR — bir kategori
+    TEK bir görünür karşılığa bağlanır: gizli seri adı ("Jeneratör") GIZLI_SERI_KARARI'ndaki
+    görünür etikete ("Ölçüye Özel Üretim") dönüşür; None karar "ad zaten publik" demektir
+    ("Skan Art" ham kalır). GIZLI_SERI_KARARI TEK KAYNAK — ikinci defter YOK."""
+    return GIZLI_SERI_KARARI.get(kat) or (kat or "")
 # Malzeme/renk seçicisi + kompakt ikon düzeni (Adet + sepet/WhatsApp ikonu üstte) bu
 # kategorilerde gösterilir. Okan 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını
 # (Marin/Otomobil ile birebir) alır — eski geniş sayfa-altı buton düzeni kalktı.
@@ -2397,6 +2408,24 @@ def kategori_url(kategori):
     return "/?kategori=" + "".join(_KATEGORI_KACIS.get(ch, ch) for ch in ad)
 
 
+def kategori_slug(kat):
+    """Kategori -> GÜVENLİ ASCII slug (^[a-z0-9-]+$). Gizli seri adı önce GÖRÜNÜR etikete
+    dönüşür (kategori_gorunur) — böylece iç ad ("Jeneratör") ne slug'da ne de parametrik ürün
+    sayfasının breadcrumb link'inde SIZAR (ic-seri-izi-kapisi'nin ölçtüğü yüzey). Türkçe harf
+    -> ascii, alfanümerik dışı -> '-': "Oyun/Hobi"->"oyun-hobi", "Skan Art"->"skan-art",
+    "Jeneratör"->"olcuye-ozel-uretim". Marka slug'ıyla AYNI katlama (marka_model_build._slug)."""
+    return marka_model_build._slug(kategori_gorunur(kat))
+
+
+def kategori_hub_url(kat, gorunur_kat):
+    """Ürün breadcrumb'ının kategori HEDEFİ: /kategori/<slug>/ (statik hub). Kategori evren
+    dışındaysa (geçersiz/boş) eski ?kategori= sorgu adresine düşer — var olmayan bir hub'a
+    link (404) üretilmez."""
+    if kat and kat in _HARIC_EVREN:
+        return "/kategori/" + kategori_slug(kat) + "/"
+    return kategori_url(gorunur_kat)
+
+
 def meta_desc(p):
     """Ürün açıklamasından ~160 karakterlik temiz meta açıklama üret."""
     txt = re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip()
@@ -3347,7 +3376,7 @@ def render_product(p, all_products, chip_map=None):
         "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": SITE + "/"},
             {"@type": "ListItem", "position": 2, "name": gorunur_kat,
-             "item": SITE + kategori_url(gorunur_kat)},
+             "item": SITE + kategori_hub_url(p.get("kategori") or "", gorunur_kat)},
             {"@type": "ListItem", "position": 3, "name": baslik, "item": url},
         ],
     }
@@ -3933,7 +3962,7 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         breadcrumb_ld=ld(breadcrumb_ld),
         stil=stil_bloklari(),
         # GORUNEN yuzey (breadcrumb metni+linki, `.cat` rozeti) IC seri adini tasimaz.
-        katq=esc(kategori_url(gorunur_kat)),
+        katq=esc(kategori_hub_url(p.get("kategori") or "", gorunur_kat)),
         kategori=esc(gorunur_kat),
         altkat=altkat_html,
         baslik=esc(baslik),
@@ -4838,6 +4867,12 @@ def marka_model_ctx():
         "aile_satis_kapali_mi": aile_satis_kapali_mi, "FIYATSIZ_METIN": FIYATSIZ_METIN,
         # Yukarı-çık oku TEK KAYNAK (build.py) — marka/model + hub şablonu kopyalamaz, buradan alır.
         "TOP_BTN_BLOCK_HTML": TOP_BTN_BLOCK_HTML,
+        # KATEGORİ HUB (tools/kategori_hub_build.py) — kategori evreni + slug + görünür etiket
+        # TEK KAYNAK build.py (CATEGORIES + NAV_GIZLI + GIZLI_SERI_KARARI); kardeş modül kopya
+        # liste TUTMAZ (ikiz liste ayrışması yasak). marka_model_build.uret de aynı ctx'i kullanır.
+        "kategori_evreni": CATEGORIES + NAV_GIZLI,
+        "kategori_slug": kategori_slug,
+        "kategori_gorunur": kategori_gorunur,
     }
 
 
@@ -4959,17 +4994,25 @@ def main():
     # üst dizin(ini) döner; sayfalar.py CONTENT_PAGES'e DOKUNMAZ (kaynağı oradan OKUR).
     hub_sonuc = landing_hub_build.uret(marka_model_ctx())
 
+    # KATEGORİ HUB — additive ek modül (tools/kategori_hub_build.py). Her kategori için statik,
+    # sayfalanmış /kategori/<slug>/ hub'ı (marka alanı BOŞ ürünler dahil TÜM kategori üyeleri);
+    # sitemap kaydı + kopyalanacak üst dizin döner. Ürün sayfası breadcrumb'ı render_product'ta
+    # kategori_hub_url ile ZATEN buraya bağlanır (iç link kök-fix'i).
+    kategori_sonuc = kategori_hub_build.uret(products, marka_model_ctx())
+
     # deploy.yml beyaz-listesi için TEK KAYNAK manifesti: içerik/yasal sayfa dizinleri
     # (statik hakkimizda/iletisim/sss/gizlilik + üretilen CONTENT_PAGES) = SITEMAP_SLUGS +
-    # marka->model üst dizini ("marka") + landing hub dizini. CI bu dosyayı okuyup her slug'ı
-    # _site'a kopyalar; böylece yeni CONTENT_PAGES/marka/hub eklenince deploy.yml elle
-    # güncellenmese de SESSİZCE 404 olmaz.
+    # marka->model üst dizini ("marka") + landing hub dizini + kategori hub dizini. CI bu
+    # dosyayı okuyup her slug'ı _site'a kopyalar; böylece yeni CONTENT_PAGES/marka/hub/kategori
+    # eklenince deploy.yml elle güncellenmese de SESSİZCE 404 olmaz.
     with open(os.path.join(ROOT, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
-        f.write("\n".join(SITEMAP_SLUGS + marka_sonuc["dizinler"] + hub_sonuc["dizinler"]) + "\n")
+        f.write("\n".join(SITEMAP_SLUGS + marka_sonuc["dizinler"] + hub_sonuc["dizinler"]
+                         + kategori_sonuc["dizinler"]) + "\n")
 
-    # sitemap.xml (marka->model + landing hub URL'leri lastmod'lu eklenir)
+    # sitemap.xml (marka->model + landing hub + kategori hub URL'leri lastmod'lu eklenir)
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
-        f.write(render_sitemap(products, extra_urls=marka_sonuc["sitemap"] + hub_sonuc["sitemap"]))
+        f.write(render_sitemap(products, extra_urls=marka_sonuc["sitemap"] + hub_sonuc["sitemap"]
+                               + kategori_sonuc["sitemap"]))
 
     # merchant-feed.xml  (Google Merchant Center — sadece sabit fiyatli urunler)
     feed_xml, feed_n = render_merchant_feed(products)
