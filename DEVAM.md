@@ -26,6 +26,15 @@
   yalniz `.lower()` uygulanmis ad tasiyor, `normalize()` uygulanmis degil. Dogru onarim: her
   iki tarafi da AYNI kanonik fonksiyondan turet. Kabul testi iki yonlu olmali (mesru is-akisi
   adi YESIL kalmali + gercek E6 bulgusu KIRMIZI kalmali) + mutasyon.
+- 🔴 **YEDEK ZINCIRI KIRIKTI, ONARILDI (`4a97fda5`, main'de):** dun gece veri kaybina karsi
+  konan "kaynak 0 bayt ise EZME" korumasi KOSULSUZDU; `memory/` altindaki flock nobetcisi
+  (mesru olarak daima 0 bayt) her kosumu bastan dusurdu → **koruma girdiginden beri hicbir
+  yedek tamamlanmadi.** Pano YESIL gorunuyordu ("son yedek 8 saat once, esik 2 gun"), kirmizi
+  yalnizca "YARIM KALMIS YEDEK" yan notundaydi. Onarim: sifir kolu artik GERILEME temelli
+  (kaynak bos AMA hedefte dolu surum varsa reddet). Korunan hal AYNEN duruyor. Kabul:
+  `yedek-koruma-test.py` **KORUMA_TEST=4/4 · MUTASYON_KIRMIZI=3/3** (ucuncu mutant kosulsuz
+  redde donusu yakaliyor). Canli teyit: yedek rc=0, YARIM_KALMIS=YOK, damga memory 232 +
+  skills 19 + repo 4. Sinif dersi: [[koruma-kurali-korudugunu-durdurur]].
 - **Duzeltme (kendi ifadem):** Okan'a "senin duzelttigin buton metni yayinda degil" dedim;
   metin `index.html`'de ve Pages ile ZATEN canliydi. Bayat olan worker surum damgasiydi, iki
   commit ise yalniz test fikstürüne dokunuyordu. Dagitim yine de dogruydu (alarmi kapatti).
