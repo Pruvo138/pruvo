@@ -1126,6 +1126,22 @@ jobs:
       - name: "Kategori hub sayfalama kabul testi (/kategori/<slug>/sayfa/<N>/)"
         run: python3 tools/kategori-hub-test.py
 
+      # VARLIK CIKARIM BEYANI KAPISI — varlik-test.py'nin muafiyet kolunun (kullanici
+      # beyaniyla KIRMIZI bulguyu yutma) SESSIZ calisamadigini olcer: kapsam kapali
+      # kume mi (T1/T2/T3) + blanket beyan (`"*"`/`"hepsi"`/bos kapsam) reddediliyor
+      # mu (T4) + beyan-edilemez alanlar (kimlik/guvenlik/lisans) beyan kapsamini icse
+      # bile GECMIYOR mu (T5) + bozuk JSON fail-closed mi (T6) + iki MUTANT sinifinda
+      # kapi kor mu (T7 kapsam kontrolu kaldirilirsa / T8 beyan-edilemez listesi
+      # bosaltilirsa). 8 vaka + 2 mutant, ~0,5 s. NEDEN SERIT B: olctugu sinif
+      # HIJYEN eksigidir — varlik-test.py'nin kendi kirmizi yolu serit-a3'te
+      # BLOKLAYICI duruyor; muafiyet kolunun yanlis-pozitif yutmasi "kullanici
+      # beyaniyla kirmizi bulguyu gecirmek"tir ve siteye CANLI icerik yansir,
+      # ama yayinin kendi kapisi zaten serit-a3'te KORUMACI'dIR — bu nobetci
+      # muafiyet kolunun SESSIZ etkisizlesmesini garanti eder. Offline, ag YOK,
+      # canli agaca YAZMAZ. Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "Varlik cikarim beyani kapisi (kapsam kapali kume + blanket reddi + beyan-edilemez alan kor + 2 mutant)"
+        run: python3 tools/varlik-beyan-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
