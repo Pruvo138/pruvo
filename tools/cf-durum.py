@@ -6,7 +6,8 @@ Hicbir alt komut degisiklik yapmaz (POST yalniz GraphQL ANALITIK sorgusu icin).
 
 Kimlik sirasi:
   1) ortam: CLOUDFLARE_API_TOKEN (+ varsa CLOUDFLARE_ACCOUNT_ID) — Actions ile ayni adlar
-  2) wrangler OAuth: ~/.wrangler/config/default.toml (oauth_token; suresi dolmussa
+  2) dosya: ~/.claude/cron/.cf-token (varsa, kirpilmis icerik; yoksa/bossa sessizce gec)
+  3) wrangler OAuth: ~/.wrangler/config/default.toml (oauth_token; suresi dolmussa
      yenileme BU ARACTAN YAPILMAZ — bir kez `npx --yes wrangler@4 whoami` kosulur)
 
 Cikis kodlari: 0=basari · 3=kimlik yok/yetki eksik (OKAN KAPISI: kapsam panelde eklenir)
@@ -29,6 +30,7 @@ CF_BASE = "https://api.cloudflare.com/client/v4"
 GH_API = "https://api.github.com"
 GH_REPO = "Pruvo138/pruvo"          # public repo — GitHub Pages dagitimlari burada
 WRANGLER_TOML = os.path.expanduser("~/.wrangler/config/default.toml")
+CF_TOKEN_DOSYA = os.path.expanduser("~/.claude/cron/.cf-token")
 DB_AD = "pruvo-katalog"
 
 RC_OK = 0
@@ -57,6 +59,10 @@ def kimlik_bul():
     tok = os.environ.get("CLOUDFLARE_API_TOKEN")
     if tok:
         return tok, os.environ.get("CLOUDFLARE_ACCOUNT_ID"), "ortam(CLOUDFLARE_API_TOKEN)"
+    if os.path.exists(CF_TOKEN_DOSYA):
+        tok = open(CF_TOKEN_DOSYA).read().strip()
+        if tok:
+            return tok, os.environ.get("CLOUDFLARE_ACCOUNT_ID"), "dosya(~/.claude/cron/.cf-token)"
     if os.path.exists(WRANGLER_TOML):
         icerik = open(WRANGLER_TOML).read()
         m = re.search(r'oauth_token\s*=\s*"([^"]+)"', icerik)
@@ -76,7 +82,8 @@ def kimlik_bul():
             return m.group(1), None, "wrangler-oauth(~/.wrangler/config/default.toml)"
     raise YetkiEksik(
         "Cloudflare kimligi YOK. Beklenen kaynaklar: ortamda CLOUDFLARE_API_TOKEN veya "
-        "~/.wrangler/config/default.toml icinde oauth_token. Token uretme/degistirme "
+        "~/.claude/cron/.cf-token dosyasi veya ~/.wrangler/config/default.toml icinde "
+        "oauth_token. Token uretme/degistirme "
         "OKAN KAPISI'dir — panelde 'My Profile → API Tokens' uzerinden salt-okuma "
         "kapsamli token eklenmeli.")
 
@@ -108,7 +115,11 @@ def hesap_id_bul(token, bilinen=None):
                     "Account → Account Settings → Read")
     hesaplar = res.get("result") or []
     if not hesaplar:
-        raise AgHatasi("/accounts bos dondu — token hicbir hesaba bagli degil.")
+        raise YetkiEksik(
+            "/accounts bos dondu — token hicbir hesaba hesap-duzeyinde bagli degil "
+            "(zone-kapsamli token). Eksik kapsam: Account → Account Settings → Read "
+            "(R2 icin ayrica Account → Cloudflare R2 → Read) — panelde token'a eklenmeli "
+            "(OKAN KAPISI; bu arac token uretmez/degistirmez).")
     return hesaplar[0]["id"]
 
 
@@ -266,14 +277,21 @@ def main():
         try:
             token, acc, kaynak = kimlik_bul()
             print("kimlik: %s (deger yazilmaz)" % kaynak)
-            acc = hesap_id_bul(token, acc)
-            print("hesap: id=%s\n" % _maske(acc, 4))
         except (YetkiEksik, AgHatasi) as e:
             print("KIMLIK HATASI: %s" % e)
             return RC_YETKI if isinstance(e, YetkiEksik) else RC_AG
 
     if a.r2 or a.hepsi:
-        rcler.append(_kosu("R2", lambda: r2_durum(token, acc)))
+        # Hesap-duzeyi kapsam YALNIZ R2 icin gerek; zone-kapsamli token'da
+        # /accounts bos doner — bu DNS'i engellemesin, R2 bolumu kendi hatasini versin.
+        try:
+            acc = hesap_id_bul(token, acc)
+            print("hesap: id=%s\n" % _maske(acc, 4))
+        except (YetkiEksik, AgHatasi) as e:
+            print("!! hesap id cozulemedi — R2 bolumu icin eksik kapsam: %s\n" % e)
+            rcler.append(_kosu("R2", lambda: (_ for _ in ()).throw(e)))
+        else:
+            rcler.append(_kosu("R2", lambda: r2_durum(token, acc)))
     if a.pages or a.hepsi:
         rcler.append(_kosu("PAGES", lambda: pages_durum(a.n)))
     if a.dns or a.hepsi:
