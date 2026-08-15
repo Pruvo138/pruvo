@@ -225,7 +225,14 @@ function bekle(ms) { return new Promise((r) => setTimeout(r, ms)); }
 const ACIKLAMA_KES = 160;
 
 /** urunler.json objesi -> Worker/ozet kart sekli (build.py kart_ozeti'nin aynisi).
- *  Bu projeksiyonun build.py ile BIREBIR oldugu test 8'de OLCULUR (drift = kirmizi). */
+ *  Bu projeksiyonun build.py ile BIREBIR oldugu test 8'de OLCULUR (drift = kirmizi).
+ *
+ *  IKIZ-TANIM DRIFT DUZELTMESI (15 Agu): JS `[]` truthy, Python `[]` falsy; hizalanmazsa
+ *  bos dizili alanlar (gorseller) uc tarafta biri `null`, digeri `undefined` doner ve
+ *  JSON.stringify sonunda DOSYA DUSURULUR — kart sekli sessizce ayrisir. taradigim
+ *  `|| [null]` / `|| []` kaliplari:
+ *    - `gorsel: (p.gorseller || [null])[0]`  → DUZELTILDI (bos dizi hâlâ `[null]`).
+ *    - `marka: p.marka || []`               → ZATEN HIZALI (her iki dil `[]` uretir). */
 function edgeKart(p) {
   const kart = {
     id: p.id,
@@ -233,7 +240,7 @@ function edgeKart(p) {
     kategori: p.kategori || "",
     marka: p.marka || [],
     fiyat: p.fiyat || "",
-    gorsel: (p.gorseller || [null])[0],
+    gorsel: (p.gorseller && p.gorseller.length ? p.gorseller : [null])[0],
     parametrik: !!p.parametrik,
     aciklama: (p.aciklama || "").slice(0, ACIKLAMA_KES),
   };
