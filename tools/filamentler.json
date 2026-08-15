@@ -92,18 +92,18 @@
     }
   ],
   "kategoriTavsiye": {
-    "Otomobil": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
-    "Motosiklet": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
-    "Bisiklet": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Otomobil": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Motosiklet": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Bisiklet": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
     "Marin": [{"ad": "ASA"}],
-    "Bahçe": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Bahçe": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
     "Ev": [{"ad": "PLA"}],
     "Ofis": [{"ad": "PLA"}],
     "Dekorasyon": [{"ad": "PLA"}],
     "Skan Art": [{"ad": "PLA"}],
     "Oyun/Hobi": [{"ad": "PLA"}],
-    "Elektronik": [{"ad": "PETG"}, {"ad": "ASA", "not": "Isınan ortamda"}],
-    "Kamera": [{"ad": "PETG"}, {"ad": "ASA", "not": "Isınan ortamda"}],
-    "Tamirat": [{"ad": "PETG"}]
+    "Elektronik": [{"ad": "ABS"}, {"ad": "ASA", "not": "Isınan ortamda"}],
+    "Kamera": [{"ad": "ABS"}, {"ad": "ASA", "not": "Isınan ortamda"}],
+    "Tamirat": [{"ad": "ABS"}]
   }
 }

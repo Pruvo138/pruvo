@@ -71,7 +71,7 @@ _spec.loader.exec_module(sepet_kapisi)
 
 # Fikstur urunleri — SABIT FIYATLI katalog kolu (kural yalnizca orada uygulanir).
 FIKSTURLER = [
-    {"id": "bmw-kaput-a-ma-kolu", "ad": "PLA-disi oneri (PETG +%30)", "bekle": "PETG"},
+    {"id": "bmw-kaput-a-ma-kolu", "ad": "PLA-disi oneri (ABS +%50)", "bekle": "ABS"},
     {"id": "genesis-coupe-jant-gobek-kapagi", "ad": "PLA-disi oneri (ASA +%60)",
      "bekle": "ASA"},
     {"id": "mitsubishi-klima-kumanda-standi", "ad": "PLA onerisi (fark %0)",
@@ -362,6 +362,43 @@ def bolum_2_3(gecici, urunler):
                        "ekseni HIC olculmedi (sessiz yesil yasak)")
     else:
         fiksturler.append(guvenli_fx)
+
+    # ----------------------------------------------------- ETIKET <-> BEKLE SINIF KONTROLU
+    # 🔴 SINIF KUSURU (13 Agu 2026): etiket metni "PLA-disi oneri (ABS +%60)" gibi bir
+    # yuzde tasirsa ve o yuzde OKAN'IN KILITLI katsayi tablosuyla CELISIRSE kapi yanlis
+    # malzemeye sessizce kayar (olculdu: +%60 ASA kilidine denk dustu, ABS fiksturu ASA
+    # on-secimine kaydi). Burada etiket metni COZULMEZ — kayit `bekle`'den turetme yok;
+    # sadece iki alan ARASINDA tutarlilik FAIL-CLOSED kontrol edilir: etiket malzeme
+    # adini iceriyor mu + etiket yuzdesi OKAN'IN KILITLI katsayi tablosuyla birebir ayni
+    # mi. (Canli `build.FILAMENT_FARK` degil — kilitli tablo kullanilir, cunku spec
+    # katsayi tablosunun KENDISINE dokunulmayacagini soyluyor; tablo ile kilitli referans
+    # arasinda drift olabilir ve o kapinin isi degil.)
+    # KILITLI REFERANS: PLA 0 · PETG 30 · ABS 50 · TPU 55 · ASA 60 (Karbon site haric).
+    KILITLI_KATSAYI = {"PLA": 0, "PETG": 30, "ABS": 50, "TPU": 55, "ASA": 60}
+    print("\n(0.5) ETIKET <-> BEKLE TUTARLILIK — etiket metni yanlis malzemeye cozulmesin")
+    for fx in FIKSTURLER:
+        bek = fx.get("bekle")
+        ad = fx.get("ad") or ""
+        if not bek or bek == build.VARSAYILAN_MALZEME:
+            # onerisi olmayan / PLA fiksturunde etiket-yuzde kurali yok
+            continue
+        if bek not in ad:
+            kontrol(False, "%s: etiket malzeme adini icermiyor (etiket=%r, bek=%r)"
+                           % (fx["id"], ad, bek))
+            continue
+        yuzde_m = re.search(r"\+%(\d+)", ad)
+        if not yuzde_m:
+            kontrol(False, "%s: etiket yuzdeyi icermiyor (etiket=%r)" % (fx["id"], ad))
+            continue
+        etiket_yuzde = int(yuzde_m.group(1))
+        if bek not in KILITLI_KATSAYI:
+            kontrol(False, "%s: KILITLI_KATSAYI'da %r YOK (kilitli tablo ile etiket "
+                           "dogrulanamadi)" % (fx["id"], bek))
+            continue
+        beklenen_yuzde = KILITLI_KATSAYI[bek]
+        kontrol(etiket_yuzde == beklenen_yuzde,
+                "%s: etiket yuzdesi (%%%d) = KILITLI_KATSAYI[%r] (%%%d)"
+                % (fx["id"], etiket_yuzde, bek, beklenen_yuzde))
 
     print("\n(2) BAYRAK KAPALI — bugunku davranis (on-secim guvenli, tutar liste tutari)")
     build.ONERI_ONSECIM_ACIK = False
