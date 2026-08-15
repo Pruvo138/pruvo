@@ -142,6 +142,89 @@ ANI_DUSUS_ESIGI = 0.50
 SURUM_SAKLA = 20
 
 
+# --------------------------------------------------------------- DUSUS BEYANI
+# 🔴 NEDEN VAR (olculdu 15 Agu 2026): koruma dogru calisiyordu ama MESRU kucultmeyi
+# yanlis kucultmeden ayirt edemiyordu. Iki gercek vaka ayni gun karantinaya dustu:
+#   * `DEVAM.md` 24.578 -> 5.308 bayt — mimarin KASITLI defter sikistirmasi;
+#   * `posta-kutusu-kaan-izleme-ankor.txt` 485 -> 185 bayt — ROLLING izleme ankoru.
+# Ikisi de her kosumda rc=1 uretiyordu; surekli kirmizi kirmiziyi DEGERSIZLESTIRIR ve
+# o dosyalarin yedegi BAYAT kalirdi. Cozum ad-bazli istisna DEGIL — kardes
+# `.diriltme-izin.json` ile AYNI desende bir BEYAN: dusus BIR KEZ ve GEREKCESIYLE
+# ilan edilir, kapi beyani gorunce gecirir. [[koruma-kurali-korudugunu-durdurur]]
+#
+# BEYAN BLANKET DEGILDIR — iki tur, ikisi de SAYIYA BAGLI:
+#   "tek-seferlik": yalniz ILAN EDILEN kaynak boyutu icin gecerli. Dosya sonra baska
+#                   bir boyuta duserse beyan ESLESMEZ -> yeni dusus YENI bir yargidir.
+#   "surekli"     : rolling artefakt (kilit/ankor/sayac). `azami_bayt` TAVANI zorunlu:
+#                   beyan ancak kaynak bu tavanin ALTINDAysa gecer. Boylece 10 MB'lik
+#                   bir veri dosyasi "rolling" ilan edilerek sessizce kaybedilemez.
+# Beyan dosyasi YOKSA koruma TAM GUCTEDIR (fail-closed varsayilan). Dosya BOZUKSA da
+# tam guctedir + UYARI basilir; "bozuk beyan" korumayi ACAMAZ ama yedegi de DUSURMEZ
+# (kosumu dusurmek, az once kapatilan sinifin ta kendisiydi).
+DUSUS_BEYAN_ADI = ".yedek-dusus-izin.json"
+# Yol TEMBEL cozulur: `ROOT` bu satirdan SONRA tanimlaniyor (modul yuklenirken calisma
+# agaci hesaplaniyor). None = "henuz cozulmedi"; okuyucu cagri aninda ROOT'a bakar.
+DUSUS_BEYAN_YOLU = None
+# Kullanilan beyanlar: (dosya_adi, tur, gerekce). Kosum sonunda BASILIR — beyanla
+# gecen bir dusus de SESSIZ olamaz.
+_BEYAN_KULLANILDI = []
+_BEYAN_UYARISI = []
+
+
+def _dusus_beyani_oku(yol=None):
+    """Beyan haritasi. Dosya yok/bozuksa BOS doner (koruma tam gucte kalir)."""
+    yol = yol or DUSUS_BEYAN_YOLU or os.path.join(ROOT, DUSUS_BEYAN_ADI)
+    try:
+        with open(yol, "r", encoding="utf-8") as f:
+            veri = json.load(f)
+    except FileNotFoundError:
+        return {}
+    except (OSError, UnicodeError, json.JSONDecodeError) as hata:
+        _BEYAN_UYARISI.append("beyan dosyasi OKUNAMADI (%s) -> koruma TAM GUCTE" % hata)
+        return {}
+    if not isinstance(veri, dict):
+        _BEYAN_UYARISI.append("beyan dosyasi sozluk DEGIL -> koruma TAM GUCTE")
+        return {}
+    return veri
+
+
+def _dusus_beyanli_mi(kaynak, beyanlar=None):
+    """Bu kaynagin dususu ILAN EDILMIS mi? Doner: (evet_mi, tur, gerekce).
+
+    ⚠️ Eslesme DOSYA ADI uzerindendir (kapinin hata metinleri de ad basar). Ayni ada
+    sahip iki dosya varsa beyan ikisini de kapsar — bu yuzden beyan TEK BASINA yetmez,
+    daima bir SAYI sartiyla birlikte olcuLur (tek-seferlik: tam boyut · surekli: tavan).
+    """
+    beyanlar = _dusus_beyani_oku() if beyanlar is None else beyanlar
+    kayit = beyanlar.get(os.path.basename(kaynak))
+    if not isinstance(kayit, dict):
+        return (False, None, None)
+    tur = kayit.get("tur")
+    gerekce = kayit.get("gerekce") or ""
+    try:
+        kaynak_boyut = os.path.getsize(kaynak)
+    except OSError:
+        return (False, None, None)
+    if tur == "tek-seferlik":
+        if kayit.get("kaynak_bayt") == kaynak_boyut:
+            return (True, tur, gerekce)
+        return (False, None, None)
+    if tur == "surekli":
+        tavan = kayit.get("azami_bayt")
+        if isinstance(tavan, int) and kaynak_boyut <= tavan:
+            return (True, tur, gerekce)
+        return (False, None, None)
+    return (False, None, None)
+
+
+def _beyan_gecerse(kaynak, beyanlar=None):
+    """Beyan varsa kullanildi defterine yazar ve True doner."""
+    evet, tur, gerekce = _dusus_beyanli_mi(kaynak, beyanlar)
+    if evet:
+        _BEYAN_KULLANILDI.append((os.path.basename(kaynak), tur, gerekce))
+    return evet
+
+
 def _json_kayit_sayisi(yol):
     """Ust seviye liste/sozluk kayit sayisi; JSON degilse None (icerik BASILMAZ)."""
     if os.path.splitext(yol)[1].lower() != ".json":
@@ -170,6 +253,8 @@ def _yedek_korumasi(kaynak, varis):
     # Korunan hal AYNEN durur: dolu bir kanonik yedegin uzerine 0 bayt YAZILAMAZ.
     if kaynak_boyut == 0:
         if os.path.isfile(varis) and os.path.getsize(varis) > 0:
+            if _beyan_gecerse(kaynak):
+                return
             raise YedekKorumaHatasi(
                 "YEDEK REDDEDILDI: kaynak 0 bayt; kanonik yedek DEGISMEDI (%s)" %
                 os.path.basename(kaynak))
@@ -178,16 +263,23 @@ def _yedek_korumasi(kaynak, varis):
         return
     yedek_boyut = os.path.getsize(varis)
     if _ciddi_dusus_var(kaynak_boyut, yedek_boyut):
-        raise YedekKorumaHatasi(
-            "YEDEK REDDEDILDI: bayt olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI (%s)"
-            % (yedek_boyut, kaynak_boyut, os.path.basename(kaynak)))
+        if not _beyan_gecerse(kaynak):
+            raise YedekKorumaHatasi(
+                "YEDEK REDDEDILDI: bayt olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
+                " (%s) — kasitliysa %s icine BEYAN yaz"
+                % (yedek_boyut, kaynak_boyut, os.path.basename(kaynak),
+                   DUSUS_BEYAN_ADI))
+        return
     kaynak_kayit = _json_kayit_sayisi(kaynak)
     yedek_kayit = _json_kayit_sayisi(varis)
     if (kaynak_kayit is not None and yedek_kayit is not None and
             _ciddi_dusus_var(kaynak_kayit, yedek_kayit)):
+        if _beyan_gecerse(kaynak):
+            return
         raise YedekKorumaHatasi(
-            "YEDEK REDDEDILDI: kayit olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI (%s)"
-            % (yedek_kayit, kaynak_kayit, os.path.basename(kaynak)))
+            "YEDEK REDDEDILDI: kayit olcusu ciddi dustu (%d -> %d); kanonik DEGISMEDI"
+            " (%s) — kasitliysa %s icine BEYAN yaz"
+            % (yedek_kayit, kaynak_kayit, os.path.basename(kaynak), DUSUS_BEYAN_ADI))
 
 
 def _surum_yolu(varis):
@@ -2352,6 +2444,16 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # yedeklendi) ama en az bir dosya korumaya takildi: cikis kodu KIRMIZI, cunku
     # "yedek alindi" beyani bu dosyalar icin DOGRU DEGIL. Kanonik yedekleri
     # DEGISMEDI — korunan hal budur.
+    # BEYANLA GECEN DUSUSLER — beyan bir muafiyet degil bir KAYITTIR: her kullanim
+    # adiyla, turuyle ve gerekcesiyle basilir. Basilmazsa beyan sessiz bir arka kapiya
+    # doner ve korumanin anlami kalmaz.
+    for uyari in _BEYAN_UYARISI:
+        print("BEYAN UYARISI: %s" % uyari)
+    if _BEYAN_KULLANILDI:
+        print("DUSUS BEYANI KULLANILDI: %d dosya (kucultme ILAN EDILMISTI, yedek "
+              "GUNCELLENDI)" % len(_BEYAN_KULLANILDI))
+        for ad, tur, gerekce in _BEYAN_KULLANILDI:
+            print("  BEYANLI: %s [%s] -> %s" % (ad, tur, gerekce))
     if _KORUMA_KARANTINA:
         print("KORUMA KARANTINASI: %d dosya ATLANDI (kanonik yedekleri DEGISMEDI); "
               "diger dosyalar yedeklendi." % len(_KORUMA_KARANTINA))

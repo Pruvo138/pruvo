@@ -124,6 +124,106 @@ def vaka_karantina(mod, kok):
     return yol == kotu_yedek and "REDDEDILDI" in sebep
 
 
+def _beyan_kur(mod, kok, harita):
+    """Gecici beyan dosyasi kurar ve modulu ona baglar. Doner: yol."""
+    yol = os.path.join(kok, ".yedek-dusus-izin.json")
+    with open(yol, "w", encoding="utf-8") as f:
+        json.dump(harita, f, ensure_ascii=False)
+    mod.DUSUS_BEYAN_YOLU = yol
+    del mod._BEYAN_KULLANILDI[:]
+    del mod._BEYAN_UYARISI[:]
+    return yol
+
+
+def vaka_beyan(mod, kok):
+    """Beyan BAGLAYICIDIR: ilan edilen dusus gecer, ilan edilmeyen/sartsiz REDDEDILIR.
+
+    Dort eksen olculur; herhangi biri kayarsa beyan ya arka kapiya ya da olu harfe doner:
+      1. tek-seferlik + ILAN EDILEN boyut  -> GECER (yedek guncellenir, kayit tutulur)
+      2. tek-seferlik + BASKA boyut        -> REDDEDILIR (beyan blanket DEGIL)
+      3. surekli + tavan ALTI              -> GECER
+      4. surekli + tavan USTU              -> REDDEDILIR (tavan baglayici)
+    """
+    onceki_yol = mod.DUSUS_BEYAN_YOLU
+    try:
+        # --- 1 + 2: tek-seferlik, boyuta bagli
+        kaynak = os.path.join(kok, "beyan-tek.json")
+        yedek = os.path.join(kok, "beyan-tek-yedek.json")
+        yaz_json(yedek, 40)
+        yaz_json(kaynak, 2)
+        ilan_boyut = os.path.getsize(kaynak)
+        _beyan_kur(mod, kok, {"beyan-tek.json": {
+            "tur": "tek-seferlik", "kaynak_bayt": ilan_boyut,
+            "gerekce": "kasitli sikistirma (test)"}})
+        yeni = sha(kaynak)
+        if reddedildi_mi(mod, kaynak, yedek):
+            return False
+        if sha(yedek) != yeni:                      # yedek GERCEKTEN guncellendi mi
+            return False
+        if len(mod._BEYAN_KULLANILDI) != 1:         # kullanim SESSIZ olamaz
+            return False
+        ad, tur, _ = mod._BEYAN_KULLANILDI[0]
+        if ad != "beyan-tek.json" or tur != "tek-seferlik":
+            return False
+        # kaynak BASKA bir boyuta duserse ayni beyan ARTIK ESLESMEZ
+        yaz_json(yedek, 40)
+        yaz_json(kaynak, 3)
+        if os.path.getsize(kaynak) == ilan_boyut:   # fikstur gercekten farklilasmali
+            return False
+        korunan = sha(yedek)
+        if not reddedildi_mi(mod, kaynak, yedek):
+            return False
+        if sha(yedek) != korunan:
+            return False
+        # --- 3 + 4: surekli, tavana bagli
+        rol_kaynak = os.path.join(kok, "beyan-rolling.json")
+        rol_yedek = os.path.join(kok, "beyan-rolling-yedek.json")
+        yaz_json(rol_yedek, 40)
+        yaz_json(rol_kaynak, 1)
+        kucuk = os.path.getsize(rol_kaynak)
+        _beyan_kur(mod, kok, {"beyan-rolling.json": {
+            "tur": "surekli", "azami_bayt": kucuk + 10,
+            "gerekce": "rolling ankor (test)"}})
+        beklenen = sha(rol_kaynak)
+        if reddedildi_mi(mod, rol_kaynak, rol_yedek):
+            return False
+        if sha(rol_yedek) != beklenen or len(mod._BEYAN_KULLANILDI) != 1:
+            return False
+        # tavanin USTUNDEKI bir dusus AYNI beyanla gecemez
+        yaz_json(rol_yedek, 400)
+        yaz_json(rol_kaynak, 60)
+        if os.path.getsize(rol_kaynak) <= kucuk + 10:   # fikstur tavani gercekten asmali
+            return False
+        korunan = sha(rol_yedek)
+        if not reddedildi_mi(mod, rol_kaynak, rol_yedek):
+            return False
+        return sha(rol_yedek) == korunan
+    finally:
+        mod.DUSUS_BEYAN_YOLU = onceki_yol
+
+
+def vaka_beyan_bozuk(mod, kok):
+    """Beyan dosyasi BOZUKSA koruma TAM GUCTE kalir (bozuk beyan kapi ACMAZ)."""
+    onceki_yol = mod.DUSUS_BEYAN_YOLU
+    try:
+        yol = os.path.join(kok, ".yedek-dusus-izin-bozuk.json")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write("{ bu gecerli json DEGIL")
+        mod.DUSUS_BEYAN_YOLU = yol
+        del mod._BEYAN_KULLANILDI[:]
+        del mod._BEYAN_UYARISI[:]
+        kaynak = os.path.join(kok, "bozuk-kaynak.json")
+        yedek = os.path.join(kok, "bozuk-yedek.json")
+        yaz_json(kaynak, 2)
+        yaz_json(yedek, 40)
+        once = sha(yedek)
+        if not reddedildi_mi(mod, kaynak, yedek):
+            return False
+        return sha(yedek) == once and len(mod._BEYAN_UYARISI) >= 1
+    finally:
+        mod.DUSUS_BEYAN_YOLU = onceki_yol
+
+
 def vaka_normal(mod, kok):
     kaynak = os.path.join(kok, "normal-kaynak.json")
     yedek = os.path.join(kok, "normal-yedek.json")
@@ -147,6 +247,7 @@ def tek_vaka(modul_yolu, vaka):
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
         sonuc = {"sifir": vaka_sifir, "sifir-yeni": vaka_sifir_yeni,
                  "ani": vaka_ani, "karantina": vaka_karantina,
+                 "beyan": vaka_beyan, "beyan-bozuk": vaka_beyan_bozuk,
                  "normal": vaka_normal}[vaka](mod, kok)
     print("VAKA=%s RC=%d" % (vaka, 0 if sonuc else 1))
     return 0 if sonuc else 1
@@ -168,6 +269,7 @@ def tam_batarya():
     with tempfile.TemporaryDirectory(prefix="pruvo-yedek-koruma-") as kok:
         davranislar = [vaka_sifir(mod, kok), vaka_sifir_yeni(mod, kok),
                        vaka_ani(mod, kok), vaka_karantina(mod, kok),
+                       vaka_beyan(mod, kok), vaka_beyan_bozuk(mod, kok),
                        vaka_normal(mod, kok)]
         mutant_sifir = mutant_yaz(
             kok, "mutant-sifir",
@@ -194,6 +296,23 @@ def tam_batarya():
             kok, "mutant-karantina-yeniden-at",
             "        return False\n\n\ndef _kopyala_gerekliyse",
             "        raise  # MUTANT: kosum yine oluyor\n\n\ndef _kopyala_gerekliyse")
+        # Beyanin UC yonu ayri ayri oldurulur:
+        #  M6 — beyan blanket olursa (her cagriya EVET) tur/boyut sarti olur, vaka KIRMIZI;
+        #  M7 — "surekli" tavani kalkarsa 10 MB'lik dosya rolling ilan edilebilirdi, KIRMIZI;
+        #  M8 — beyanla gecen dusus KAYDEDILMEZSE sessiz arka kapi olur, KIRMIZI.
+        mutant_beyan_blanket = mutant_yaz(
+            kok, "mutant-beyan-blanket",
+            "    kayit = beyanlar.get(os.path.basename(kaynak))",
+            "    return (True, 'tek-seferlik', 'MUTANT: blanket beyan')\n"
+            "    kayit = beyanlar.get(os.path.basename(kaynak))")
+        mutant_beyan_tavansiz = mutant_yaz(
+            kok, "mutant-beyan-tavansiz",
+            "        if isinstance(tavan, int) and kaynak_boyut <= tavan:",
+            "        if True:  # MUTANT: surekli tavani kalkti")
+        mutant_beyan_sessiz = mutant_yaz(
+            kok, "mutant-beyan-sessiz",
+            "        _BEYAN_KULLANILDI.append((os.path.basename(kaynak), tur, gerekce))",
+            "        pass  # MUTANT: beyan kullanimi kaydedilmedi")
         komut = [sys.executable, os.path.abspath(__file__), "--modul"]
         sifir = subprocess.run(komut + [mutant_sifir, "--vaka", "sifir"],
                                capture_output=True, text=True)
@@ -205,13 +324,22 @@ def tam_batarya():
                                 capture_output=True, text=True)
         yeniden = subprocess.run(komut + [mutant_yeniden_at, "--vaka", "karantina"],
                                  capture_output=True, text=True)
+        blanket = subprocess.run(komut + [mutant_beyan_blanket, "--vaka", "beyan"],
+                                 capture_output=True, text=True)
+        tavansiz = subprocess.run(komut + [mutant_beyan_tavansiz, "--vaka", "beyan"],
+                                  capture_output=True, text=True)
+        beyan_sessiz = subprocess.run(komut + [mutant_beyan_sessiz, "--vaka", "beyan"],
+                                      capture_output=True, text=True)
     mutantlar = [sifir.returncode != 0, ani.returncode != 0, kosulsuz.returncode != 0,
-                 sessiz.returncode != 0, yeniden.returncode != 0]
+                 sessiz.returncode != 0, yeniden.returncode != 0,
+                 blanket.returncode != 0, tavansiz.returncode != 0,
+                 beyan_sessiz.returncode != 0]
     print("KORUMA_TEST=%d" % sum(1 for sonuc in davranislar if sonuc))
     print("MUTASYON_KIRMIZI=%d" % sum(1 for sonuc in mutantlar if sonuc))
-    print("MUTASYON_RC=%d,%d,%d,%d,%d" % (sifir.returncode, ani.returncode,
-                                          kosulsuz.returncode, sessiz.returncode,
-                                          yeniden.returncode))
+    print("MUTASYON_RC=%d,%d,%d,%d,%d,%d,%d,%d" % (
+        sifir.returncode, ani.returncode, kosulsuz.returncode, sessiz.returncode,
+        yeniden.returncode, blanket.returncode, tavansiz.returncode,
+        beyan_sessiz.returncode))
     print("SURUM_TAVANI=%d" % mod.SURUM_SAKLA)
     return 0 if all(davranislar) and all(mutantlar) else 1
 
@@ -220,7 +348,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--modul")
     ap.add_argument("--vaka", choices=("sifir", "sifir-yeni", "ani", "karantina",
-                                       "normal"))
+                                       "beyan", "beyan-bozuk", "normal"))
     a = ap.parse_args()
     if a.modul or a.vaka:
         if not a.modul or not a.vaka:
