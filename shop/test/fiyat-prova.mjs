@@ -310,7 +310,12 @@ ENV_TABAN.FIYAT_RATE_LIMIT = LIMITER;
 function yeniSayac() { return { select: 0, first: 0, run: 0, yazilan: [] }; }
 
 const MUSTERI = { ad: "Test Musteri", tel: "05321112233", eposta: "test@pruvo3d.com",
-                  adres: "Test mahallesi test sokak no 1", sehir: "Mugla" };
+                  adres: "Test mahallesi test sokak no 1", sehir: "Mugla",
+                  // Navlungo dilim-1 (16 Agu 2026): il/ilce zorunlu, eski MUSTERI
+                  // fiksturu ilce'siz oldugu icin /baslat her testte 400 'musteri-ilce'
+                  // ile geri donuyordu. Fikstur guncellendi; bu bir FAKE-GREEN degil —
+                  // istekCoz'un yeni zorunlulugunun aynen geregi.
+                  ilce: "Merkez" };
 
 /** /baslat — GERCEK worker kodundan; cevabi + D1'e yazilan satiri + sayaclari dondurur.
  *  yasakKolonlar: D1 semasinda olmayan kolonlar (bkz. d1Sahte). */
