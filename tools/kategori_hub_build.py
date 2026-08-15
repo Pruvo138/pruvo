@@ -30,11 +30,12 @@ SITEMAP_SINIFLARI = {
 
 def _kategori_sayfa_adresi(SITE, slug, sayfa):
     """Kategori hub sayfasının KANONİK adresi. Sayfa 1 = /kategori/<slug>/ (DEĞİŞMEZ),
-    N>=2 = /kategori/<slug>/<N>/. TEK KAYNAK: canonical/rel=prev/next/gezinti AYNI fonksiyonu
-    çağırır; ikinci bir adres kuralı yazılsaydı kök ile devam sayfaları sessizce ayrışırdı."""
+    N>=2 = /kategori/<slug>/sayfa/<N>/. `sayfa` AYRIK İSİM ALANIDIR (mm.SAYFA_AYIRAC). TEK KAYNAK:
+    canonical/rel=prev/next/gezinti AYNI fonksiyonu çağırır; ikinci bir adres kuralı yazılsaydı
+    kök ile devam sayfaları sessizce ayrışırdı."""
     if sayfa == 1:
         return SITE + "/kategori/" + slug + "/"
-    return SITE + "/kategori/" + slug + "/" + str(sayfa) + "/"
+    return SITE + "/kategori/" + slug + "/" + mm.SAYFA_AYIRAC + "/" + str(sayfa) + "/"
 
 
 def _kategori_sayfa_sayisi(kalem_sayisi):
@@ -64,13 +65,16 @@ def _sayfa_rel_linkleri(esc, SITE, slug, sayfa, toplam_sayfa):
 
 def _sayfa_gezinti_html(esc, slug, sayfa, toplam_sayfa):
     """GÖRÜNÜR sayfa gezinmesi (Önceki · 1 2 3 … · Sonraki). Sayfa 1'de Önceki, son sayfada
-    Sonraki YOK. Kök adres /kategori/<slug>/ (DEĞİŞMEZ), N>=2 /kategori/<slug>/<N>/. Marka
-    hub'ıyla AYNI sınıflar (mm-sayfa) — yeni CSS YOK."""
+    Sonraki YOK. Kök adres /kategori/<slug>/ (DEĞİŞMEZ), N>=2 /kategori/<slug>/sayfa/<N>/.
+    `sayfa` AYRIK İSİM ALANI (mm.SAYFA_AYIRAC) — sayısal model slug'larıyla çakışma ölçüldü
+    (15 Ağu); marka hub'ıyla AYNI sınıflar (mm-sayfa) — yeni CSS YOK. Sayfa 1'e dönüş köke
+    gider; /sayfa/1/ ÜRETİLMEZ."""
     if toplam_sayfa <= 1:
         return ""
     parcalar = []
     if sayfa > 1:
-        onceki = slug + "/" if sayfa == 2 else slug + "/" + str(sayfa - 1) + "/"
+        onceki = (slug + "/" if sayfa == 2
+                  else slug + "/" + mm.SAYFA_AYIRAC + "/" + str(sayfa - 1) + "/")
         parcalar.append('<a class="mm-sayfa-onceki" rel="prev" href="/kategori/%s">%s</a>'
                         % (onceki, esc("← Önceki")))
     for n in range(1, toplam_sayfa + 1):
@@ -78,10 +82,11 @@ def _sayfa_gezinti_html(esc, slug, sayfa, toplam_sayfa):
             parcalar.append('<span class="mm-sayfa-sayi mm-simdi" aria-current="page">%d</span>'
                             % n)
         else:
-            hedef = slug + "/" if n == 1 else slug + "/" + str(n) + "/"
+            hedef = (slug + "/" if n == 1
+                     else slug + "/" + mm.SAYFA_AYIRAC + "/" + str(n) + "/")
             parcalar.append('<a class="mm-sayfa-sayi" href="/kategori/%s">%d</a>' % (hedef, n))
     if sayfa < toplam_sayfa:
-        sonraki = slug + "/" + str(sayfa + 1) + "/"
+        sonraki = slug + "/" + mm.SAYFA_AYIRAC + "/" + str(sayfa + 1) + "/"
         parcalar.append('<a class="mm-sayfa-sonraki" rel="next" href="/kategori/%s">%s</a>'
                         % (sonraki, esc("Sonraki →")))
     return ('<nav class="mm-sayfa" aria-label="Sayfa gezinmesi">' + "".join(parcalar) + '</nav>')

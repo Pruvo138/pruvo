@@ -51,6 +51,14 @@ SITEMAP_SAYFA_SINIFLARI = {
     "diger": ("0.6", "weekly"),
     "dizin": ("0.6", "weekly"),
 }
+
+# 🔴 AYRIK İSİM ALANI (15 Ağu, iç-link çakışması): sayfalanan hub devam sayfaları
+# /marka/<slug>/sayfa/<N>/ ve /kategori/<slug>/sayfa/<N>/ adresinde yaşar. Bu kelime bir MODEL
+# slug'ı OLAMAZ — sayısal model slug'ları (Mazda 2/3/5/6, Renault 5) sayfalama adresiyle
+# çakışıyordu; `sayfa` da bir model adı olursa aynı çakışma yeniden doğar. Üretici böyle bir
+# model görürse fail-closed durur (sessizce ezme YOK). kategori_hub_build.py de AYNI kaynaktan
+# (mm.SAYFA_AYIRAC) okur — ikinci bir kelime kopyası ayrışırdı.
+SAYFA_AYIRAC = "sayfa"
 # Marka sayfasında SSR'de basılan TAM KART sayısı; kalanı aynı sayfada artımlı çizilir.
 # 🔴 N ÖLÇÜMLE SEÇİLDİ (gerekçe: tools/paket-marka-tek-sayfa.md). Kısıt:
 # en büyük marka sayfasının HTML baytı index.html'i AŞMAMALI. Yerel kalemleri (model sayfası
@@ -1158,6 +1166,11 @@ def gruplandir(products, evren, ek_markalar=()):
                                  key=lambda t: (-t[1], t[0]))[0][0]
             g["display"] = display
             g["slug"] = _slug(display)
+            if g["slug"] == SAYFA_AYIRAC:
+                raise SystemExit(
+                    "HATA: model slug'ı AYRIK sayfalama isim alanıyla çakışıyor — %s/%s "
+                    "-> '%s' (/marka/<slug>/sayfa/<N>/ ile aynı adres). Üretim DURDURULDU "
+                    "(fail-closed; sessizce ezme yok)." % (marka, display, g["slug"]))
 
     # ---- FAZ 3: BAŞLIK KOLU (5 Ağu, mimar hükmü) ------------------------------------
     # Model disjunkt'ının ÜÇÜNCÜ kolu: ürünün BAŞLIĞINDA modelin adı TAM KELİME geçiyorsa
@@ -2686,11 +2699,13 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
 
 def _marka_sayfa_adresi(SITE, marka_slug, sayfa):
     """Marka hub sayfasının KANONİK adresi. Sayfa 1 = /marka/<slug>/ (ADRESİ DEĞİŞMEZ),
-    sayfa N>=2 = /marka/<slug>/<N>/. Tek kaynak: kök/rel=prev/next/gezinti AYNI fonksiyonu
-    çağırır; ikinci bir adres kuralı yazılsaydı kök ile devam sayfaları sessizce ayrışırdı."""
+    sayfa N>=2 = /marka/<slug>/sayfa/<N>/. `sayfa` AYRIK İSİM ALANIDIR (SAYFA_AYIRAC): sayısal
+    model slug'ları (/marka/mazda/2/) ile sayfalama çakışıyordu. Tek kaynak: kök/rel=prev/next/
+    gezinti AYNI fonksiyonu çağırır; ikinci bir adres kuralı yazılırsa kök ile devam sayfaları
+    sessizce ayrışırdı."""
     if sayfa == 1:
         return SITE + "/marka/" + marka_slug + "/"
-    return SITE + "/marka/" + marka_slug + "/" + str(sayfa) + "/"
+    return SITE + "/marka/" + marka_slug + "/" + SAYFA_AYIRAC + "/" + str(sayfa) + "/"
 
 
 def _marka_sayfa_sayisi(kalem_sayisi):
@@ -2721,23 +2736,24 @@ def _sayfa_rel_linkleri(esc, SITE, marka_slug, sayfa, toplam_sayfa):
 
 def _sayfa_gezinti_html(esc, marka_slug, sayfa, toplam_sayfa):
     """GÖRÜNÜR sayfa gezinmesi (Önceki · 1 2 3 … · Sonraki). Sayfa 1'de Önceki, son sayfada
-    Sonraki YOK. Kök adres /marka/<slug>/ (sayfa 1 adresi DEĞİŞMEZ), N>=2 /marka/<slug>/<N>/.
-    Göreli adresler (sayfanın diğer bağlarıyla aynı köken)."""
+    Sonraki YOK. Kök adres /marka/<slug>/ (sayfa 1 adresi DEĞİŞMEZ), N>=2 /marka/<slug>/sayfa/<N>/.
+    Sayfa 1'e dönüş köke gider; /sayfa/1/ ÜRETİLMEZ. Göreli adresler (sayfanın diğer bağlarıyla
+    aynı köken)."""
     if toplam_sayfa <= 1:
         return ""
     parcalar = []
     if sayfa > 1:
-        onceki = marka_slug + "/" if sayfa == 2 else marka_slug + "/" + str(sayfa - 1) + "/"
+        onceki = marka_slug + "/" if sayfa == 2 else marka_slug + "/" + SAYFA_AYIRAC + "/" + str(sayfa - 1) + "/"
         parcalar.append('<a class="mm-sayfa-onceki" rel="prev" href="/marka/%s">%s</a>'
                         % (onceki, esc("← Önceki")))
     for n in range(1, toplam_sayfa + 1):
         if n == sayfa:
             parcalar.append('<span class="mm-sayfa-sayi mm-simdi" aria-current="page">%d</span>' % n)
         else:
-            hedef = marka_slug + "/" if n == 1 else marka_slug + "/" + str(n) + "/"
+            hedef = marka_slug + "/" if n == 1 else marka_slug + "/" + SAYFA_AYIRAC + "/" + str(n) + "/"
             parcalar.append('<a class="mm-sayfa-sayi" href="/marka/%s">%d</a>' % (hedef, n))
     if sayfa < toplam_sayfa:
-        sonraki = marka_slug + "/" + str(sayfa + 1) + "/"
+        sonraki = marka_slug + "/" + SAYFA_AYIRAC + "/" + str(sayfa + 1) + "/"
         parcalar.append('<a class="mm-sayfa-sonraki" rel="next" href="/marka/%s">%s</a>'
                         % (sonraki, esc("Sonraki →")))
     return ('<nav class="mm-sayfa" aria-label="Sayfa gezinmesi">' + "".join(parcalar) + '</nav>')

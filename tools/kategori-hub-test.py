@@ -3,11 +3,13 @@
 """KATEGORİ HUB kabul testi — sentetik veri + bellek-içi mutasyon bataryası.
 
 ÖLÇTÜĞÜ İDDİA (spec dilim-5): /kategori/<slug>/ kökü ilk MARKA_KART_N ürünü TAM KART basar,
-kalanı /kategori/<slug>/<N>/ devam sayfalarına böler. Her ürün — `marka` alanı BOŞ olanlar
-DAHİL — statik hub sayfalarının HAM HTML'inde TEKİL ve EKSİKSİZ görünür; her sayfa kendi
-canonical'ını taşır; rel=prev/next zinciri kurulur; kategori adı güvenli ASCII slug üretir
-(^[a-z0-9-]+$, eğik çizgi yok, çakışma yok); ürün sayfası breadcrumb'ı hub'a bağlanır;
-gizli kategoriler (Jeneratör, Skan Art) için de hub üretilir.
+kalanı /kategori/<slug>/sayfa/<N>/ devam sayfalarına böler. Her ürün — `marka` alanı BOŞ
+olanlar DAHİL — statik hub sayfalarının HAM HTML'inde TEKİL ve EKSİKSİZ görünür; her sayfa
+kendi canonical'ını taşır; rel=prev/next zinciri kurulur; kategori adı güvenli ASCII slug
+üretir (^[a-z0-9-]+$, eğik çizgi yok, çakışma yok); ürün sayfası breadcrumb'ı hub'a
+bağlanır; gizli kategoriler (Jeneratör, Skan Art) için de hub üretilir. Sayfa N>=2 `sayfa`
+AYRIK isim alanında (mm.SAYFA_AYIRAC) — sayısal model slug'larıyla çakışma ölçüldü
+(15 Ağu).
 
 TAM katalogla lokalde KOŞMAZ (yasak) — build.marka_model_ctx() + SENTETİK ürünlerle koşar.
 Mutant (T9) diske YAZILMAZ, bellekte kurulur.
@@ -25,6 +27,7 @@ sys.path.insert(0, TOOLS)
 
 import build                                                    # noqa: E402
 import kategori_hub_build as kb                                  # noqa: E402
+import marka_model_build as mm                                   # noqa: E402
 
 KB_PATH = os.path.join(TOOLS, "kategori_hub_build.py")
 SITE = build.SITE
@@ -59,10 +62,11 @@ def kos(kb_modul, products, kategori_evreni):
 
 
 def sayfa_yolu(tmp, slug, sayfa):
-    """Sayfa 1 = kök /kategori/<slug>/index.html; N>=2 = /kategori/<slug>/<N>/index.html."""
+    """Sayfa 1 = kök /kategori/<slug>/index.html; N>=2 = /kategori/<slug>/sayfa/<N>/index.html.
+    `sayfa` AYRIK İSİM ALANI (mm.SAYFA_AYIRAC) — marka hub'ıyla AYNI şema (TEK KAYNAK)."""
     if sayfa == 1:
         return os.path.join(tmp, "kategori", slug, "index.html")
-    return os.path.join(tmp, "kategori", slug, str(sayfa), "index.html")
+    return os.path.join(tmp, "kategori", slug, mm.SAYFA_AYIRAC, str(sayfa), "index.html")
 
 
 def sayfa_okur(tmp, slug, sayfa):
@@ -186,13 +190,15 @@ def main():
         t6_n1 = NEXT_RE.search(t6_p1)
         t6_p2_prev = PREV_RE.search(t6_p2)
         t6_p2_next = NEXT_RE.search(t6_p2)
+        KS2 = SITE + "/kategori/" + SLUG + "/" + mm.SAYFA_AYIRAC + "/2/"
+        KS3 = SITE + "/kategori/" + SLUG + "/" + mm.SAYFA_AYIRAC + "/3/"
         kaydet("T6", (
             t6_c1 is not None and t6_c1.group(1) == SITE + "/kategori/" + SLUG + "/"
-            and t6_c2 is not None and t6_c2.group(1) == SITE + "/kategori/" + SLUG + "/2/"
+            and t6_c2 is not None and t6_c2.group(1) == KS2
             and PREV_RE.search(t6_p1) is None
-            and t6_n1 is not None and t6_n1.group(1) == SITE + "/kategori/" + SLUG + "/2/"
+            and t6_n1 is not None and t6_n1.group(1) == KS2
             and t6_p2_prev is not None and t6_p2_prev.group(1) == SITE + "/kategori/" + SLUG + "/"
-            and t6_p2_next is not None and t6_p2_next.group(1) == SITE + "/kategori/" + SLUG + "/3/"
+            and t6_p2_next is not None and t6_p2_next.group(1) == KS3
             and NEXT_RE.search(t6_son) is None),
             "kanonik/prev-next zinciri bozuk")
 
