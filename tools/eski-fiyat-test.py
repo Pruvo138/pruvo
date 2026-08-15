@@ -963,9 +963,15 @@ MUTANTLAR = [
      [("    if eski_kurus <= guncel_kurus:\n        return (None, None)",
        "    if False:\n        return (None, None)")]),
     ("M2 parametrik muafiyeti kalkti", "build",
-     [('if p.get("parametrik") or p.get("konfigur"):', 'if p.get("konfigur"):')]),
+     [('    if not isinstance(p, dict):\n        return (None, None)\n'
+       '    if p.get("parametrik") or p.get("konfigur"):',
+       '    if not isinstance(p, dict):\n        return (None, None)\n'
+       '    if p.get("konfigur"):')]),
     ("M3 konfigur muafiyeti kalkti", "build",
-     [('if p.get("parametrik") or p.get("konfigur"):', 'if p.get("parametrik"):')]),
+     [('    if not isinstance(p, dict):\n        return (None, None)\n'
+       '    if p.get("parametrik") or p.get("konfigur"):',
+       '    if not isinstance(p, dict):\n        return (None, None)\n'
+       '    if p.get("parametrik"):')]),
     ("M4 tam kalip gevsedi (bastan sona esleme yok)", "build",
      [("    m = _ESKI_FIYAT_TAM_RE.match(ham)", "    m = _FIYAT_ARA_RE.search(ham)")]),
     ("M5 guncel fiyat ayristirilamayinca fail-open", "build",
