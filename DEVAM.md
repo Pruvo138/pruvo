@@ -2,6 +2,28 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 15 Agu (~17:0xZ) — OTURUM KAPANISI (KraL)
+
+**CANLIYA GIDEN (origin/main = `eca189a8`, worktree 1/2):** `b9e5c507` K19 Adventure +
+yedek dusus beyani · `d2633732` defter · `be00b52c` marka BASLIK KOLU (26/26 sayfa=filtre)
+· `1b482873` IKI KATMAN · `5ab4249f`+`eda23fe7` K80 (zincir sinifi · `.mjs`/`shop` ·
+ikiz tanim) · `bdd3564f` fiyat eksen ayrimi · `033208c6` baslik cakismasi (commit kilidi
+acildi) · `eca189a8` defter.
+
+**KOSUYOR:** kendi delege ettigim is YOK — bu turdaki TUM Codex isleri sonuclandi, kabul
+satirlari alindi. Actigim bes worktree merge sonrasi SILINDI; K80'in biraktigi 4 artik
+gecici worktree de temizlendi (tavan 2/2).
+
+**BEKLIYOR (baskasinda, DOKUNULMADI):** iki commit'siz peer degisikligi — `deploy.yml`
+(`Kanca kablolama nobeti` hijyenden serit-a3'e GERI; adimin kendi yorumu "BLOKLAYICI"
+dedigi icin DOGRU duzeltme, benim siniflandirma hatam) ve `tools/marka-uyelik-test.py`
+(hijyen kirmizisi onarimi). Izsiz artiklar: `kalibrasyon/`, `.playwright-mcp/`,
+`tools/yetkinlik/` — ureten temizlemeli.
+
+**OKAN'DA:** motor tarifesi · eski yedek klasoru backup-v2'ye · K89 silme karari · ikinci
+kademe MEMORY indeksi · **SIRADAKI IS: urun sayfalarinda ic link** (ArTisT/Google, Okan'in
+2. konusu) — henuz BASLAMADI.
+
 ## 15 Agu (~16:xxZ) — YAYIN ZINCIRI IKI KATMANA AYRILDI (Okan emri, KraL)
 
 **BLOK RITMI: 1 eklendi / 2 arsive tasindi** (arsiv 1.659.688->1.664.490 B, 69=69 lossless).
