@@ -1142,6 +1142,16 @@ jobs:
       - name: "Varlik cikarim beyani kapisi (kapsam kapali kume + blanket reddi + beyan-edilemez alan kor + 2 mutant)"
         run: python3 tools/varlik-beyan-test.py
 
+      # IKIZ TANIM KAPISI — kart sekli iki uretici (build.py kart_ozeti + JS edgeKart)
+      # ayni sentetik urun kumesinden BIREBIR ayni cikti uretiyor mu (15 Agu 2026).
+      # Olculen hata: `gorseller:[]` icin Python `null` uretir, JS `undefined` uretir ve
+      # JSON.stringify alani DUSURURDU → `serit-a3` kirmizi → deploy SKIPPED → yayin kapali.
+      # Mutant: eski `(p.gorseller || [null])[0]` formu testte KIRMIZI yakar (kanit iceride).
+      # Bilerek ci-kapsam-test.py ADIMINDAN ONCE kosur: yeni testin kapsam kapisi "calisiyor"
+      # demesi icin bu satir listede OLMALI; sira onceligi bu yuzden onemli.
+      - name: Kart ikiz tanimi (build.py kart_ozeti <-> vitrin-kabul.js edgeKart)
+        run: node jenerator/test/kart-ikiz-test.js
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
