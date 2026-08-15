@@ -2,74 +2,56 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 15 Agu (~12:1xZ) — K19 KAPANDI + NOBETIN ONARIM ZORUNLULUGU KURULDU (KraL)
+## 15 Agu (~16:xxZ) — YAYIN ZINCIRI IKI KATMANA AYRILDI (Okan emri, KraL)
 
-**BLOK RITMI: 1 eklendi / 2 arsive tasindi** (arsiv 1.654.486->1.659.688 B, 54=54 lossless).
+**BLOK RITMI: 1 eklendi / 2 arsive tasindi** (arsiv 1.659.688->1.664.490 B, 69=69 lossless).
 
-**`b9e5c507` — K19 capraz-marka yargisi kapandi, yayin acildi.** Hukum: `Adventure` KTM'nin
-KENDI model ailesi adi -> `KTM|adventure` ROZET; BMW'de aile rozeti GS, `Adventure` onun
-VARYANT eki -> `("BMW","Adventure")` ROZET_DISI, urunler `/marka/bmw/gs/`de durur (emsal
-Fiat|scudo / Peugeot|Scudo). Olcum: YARGISIZ=0 BAYAT=0 CELISKI=0 · allow 56->57 ·
-deny 38->39 (iki imza tazelendi) · dort kapi rc=0 · parite-ege 893/893 · D1 27646 bes eksen
-yesil. Ayni commit'te macit ankor dusus beyani AILE olarak yeniden yazildi (ilk yazim
-dosyadan dusmustu; nobetci isi DEGIL, kayip HALA aciklanmadi).
+**OKAN'IN EMRI:** *"gelen mail bir hata yuzunden geliyor, bu gelen hata tum mimarlari
+tikiyor, burayi cozmemiz cok onemli."* Mail SEMPTOMDU; ariza yayin hattinin kapanmasiydi.
 
-🔴 **NOBETIN ONARIM BACAGI — OLCULDU VE ZORUNLU KILINDI (Okan emri).** ONCE 167 tur / 0
-onarim / 16 tasima · SONRA (14 Agu 11:00'den) **55 tur (hepsi KOSTU), 2 onarim, 17 tasima,
-50 tur `ONARIMSIZ_TUR` ile dustu** — tur kosuyor, mail temizliyor, onarmiyor; kapi 50 kez
-ayni hukmu basmis, kimse gormemis. Iki degisiklik (`~/.claude/cron/`, git disi):
-(1) **CI kirmizisi yetki istisnasi** — CI'i kirmizi birakan arizada "tek-yazarli alan"
-ayrimi UYGULANMAZ, nobet kendi onarir+push eder (yasak listesi aynen durur);
-(2) **onarimsiz supurme YASAK** — mail ancak sinifi olculerek kapaninca Cop'e gider.
-Kapiya `HUKUM=ONARIMSIZ_SUPURME` + ard arda 3 onarimsiz turda `ESKALASYON=OKAN` sayaci
-eklendi. Kabul: **VAKA=30 DUSEN=0** (27+3, 2 mutant KIRMIZI).
+**OLCUM (11-15 Agu, 200 kosum):** 68 success · 85 failure · 47 cancelled ·
+**TOPLAM YAYIN KESINTISI 54,08 saat** (en uzun tek kesinti 8,38 s). 136 kirmizi adimin
+ilk BESI toplamin yalnizca %35'i — ariza KRONIK DEGIL **DAGINIK**: her gun BASKA kapi
+yakiyor. Sebep yapisal: `deploy.needs`teki dort iste **171 adim**, `continue-on-error`
+yalniz 2'sinde → 169 adimin HERHANGI BIRI kirmizi yaninca BES EVIN push'u inemiyor.
 
-🔧 **YENI KALEM — K110 CIPLAK SAYI PARITE SAPMASI:** `parite-test.js` q="1290"da `/ara`=1
-yerel=0 (test `arama.py`yi HIC okumaz — K19'dan DEGIL). `1290` KTM partisiyle MODEL evrenine
-girdi; yerel plan sorguyu marka/model koluna alip haystack'i kullanmiyor, uc ise D1 `hs`
-kolonunda ALT-DIZE eslesip `9641290J00` parca numarasini yakaliyor. Supurme: **65 ciplak
-sayi jetonunda gercek yanlis-pozitif TEK**, kalani senkron gecikmesi. Hukum MIMARDA;
-uc `pruvo-bot` evinde, HocA'ya dusecek.
+**HUKUM + SONUC (`1b482873`, `beed3486`, `bdd3564f`, `eda23fe7` — hepsi push'lu):**
+Turnusol: "bu kapi kirmiziyken commit canliya inerse musteri yanlis para oder mi · gizli
+veri sizar mi · yasak urun satilir mi · site/odeme calismaz mi?" → 171 adim **63 BLOKLAYICI
+/ 108 HIJYEN**. Hijyen adimlari `hijyen-*` islerine TASINDI (`continue-on-error` KULLANILMADI
+— o, kosumu `success` yapip mail kanalini oldururdu). **KANIT (kosum `eda23fe7`):
+hijyen-a2=failure · hijyen-a3=failure · deploy=SUCCESS · yayin=SUCCESS · canli 27.949 =
+yerel 27.949.** Yayin, hijyen kirmiziyken AKTI.
 
-🔧 **K111 BAGLAM REGRESYONU (kok neden ACIK):** oturum ACILIS maliyeti pruvo evinde **14 Agu
-11:10'da 43,5K'dan 73,5K'ya sicradi**, geri inmedi (17 oturum 68,6-71,6K). Iki eksende
-birden: `cache_read` +14,9K (arac envanteri) · `cache_creation` +15,0K (ev metinleri).
-O saatte degisen ayar BULUNAMADI ama olcum yalniz son 12 saate bakti — yeniden olculecek.
+**NOBET (ayni emrin ikinci yarisi):** kapi oncesi 167 tur/0 onarim · sonrasi 55 tur/2
+onarim/50 `ONARIMSIZ_TUR`. Iki kural degisti: CI kirmizisinda "tek-yazarli alan" bahanesi
+YOK · **onarimsiz supurme YASAK**. Kapiya `ONARIMSIZ_SUPURME`, 3 turda `ESKALASYON=OKAN`,
+duruma bagli **sure tavani** (onarim ilerliyorsa 50 dk, degilse 25) ve `ATLANAN_ARDISIK`
+sayaci eklendi. Kabul: `nobet-kabul-test.py` **VAKA=34 DUSEN=0**, 5 mutant KIRMIZI.
+Sahada dogrulandi: nobet bugun `0dc9ff67` (altkategori B3) ve `15fc2a53` (FAZ3/Vespa)
+kirmizilarini KENDI onardi.
 
-## 15 Agu (~11:0xZ) — OTURUM KAPANISI (KraL)
+🔴 **K80'IN UC KUSURU (hepsi bu turda olculdu ve onarildi, `eda23fe7`):** (1) TASINAN adimi
+"yeni" sayiyordu — komut kumesi 158->158, GERCEKTEN_YENI=0 iken 101 adimi kosturup push'u
+durdurdu → **tasima muafiyeti** (`TASINDI=101` raporlanir, bloklamaz); (2) `.mjs` ve
+`shop/`,`jenerator/` koklerini TANIMIYOR, "olcemedigini yasakliyordu" → kok/uzanti kumesi
+KAPALI bicimde genisletildi; (3) **IKIZ TANIM**: kosturucu kendi uzanti listesini tutuyordu,
+`.mjs` adim ayristiriciyi gecip `IndexError` ile push'u dusurdu → tek kaynak
+(`_k80_uzantilar`/`_k80_betik_yolu`). Ayrica zincir DISI ise eklenen adimdan artik yesil
+sarti ARANMAZ. Batarya 5 -> **12 iddia**, T1-T7 + 5 oldurucu mutant.
 
-**CANLIYA GIDEN (main'de, push'lu):** `280eee20` yayin acildi (eski fiyat fiksturu kanonik
-`ilan_kurus`tan turer) · `3d2adabf` K108 curutuldu · `81a2a32a` konsolidasyon defteri ·
-`96aa9d75` indeks hukmu. Dogrulama: `280eee20` kosumu **completed success**, alti isin ALTISI
-yesil (`deploy` + `yayin` SKIPPED DEGIL KOSTU); canli `urunler.json` 27420 = o commit'in
-katalogu; sabah silinen yasak urun `th3812744-...` canlida **HTTP 404**.
+**FIYAT KAPISI KARMAYDI, EKSEN AYRILDI (`bdd3564f`):** kirmizinin sebebi para DEGILDI
+(fiyat uyusmazligi **0**), testin kendi mutasyon bataryasindaki `M3b` deligiydi ve TABANDA
+da vardi. `--yalniz-parite` BLOKLAYICI (rc=0), `--yalniz-mutasyon` HIJYEN (rc=1, delik
+GORUNUR). Batarya SILINMEDI, esik DEGISMEDI, bayraksiz cagri birebir ayni kaldi.
 
-**KOSUYOR:** kendi delege ettigim is YOK — bu turdaki tum Codex isleri (kok neden olcumu ·
-fikstur onarimi · taban mutasyon olcumu · canli dogrulama · defter konsolidasyonu · indeks
-turetme · uc yedek kosumu) SONUCLANDI, kabul satirlari alindi. Acilan tek worktree
-(`kral/eski-fiyat-fikstur`) merge sonrasi SILINDI; `git worktree list` = yalniz ana agac.
-Arka plan gorevi kalmadi.
-
-🔴 **YAYIN YINE BLOKLU — AMA FARKLI SINIF (bu tur acildi, BENDE):** `81a2a32a` ve `db3de830`
-kosumlari `serit-a2` "Marka->model pilot kabul testi" + `serit-a3` "Model uyeligi kapisi"
-adimlarinda KIRMIZI: **K19 CAPRAZ-MARKA CIFTI YARGISIZ — `BMW|adventure` ve `KTM|adventure`**
-(87 cift/40 model icinde 2 yargisiz cift; 1/29 iddia KALDI). Sebep K106 DEGIL: MaCiT'in KTM partisi
-`adventure` model jetonunu getirdi, ayni jeton BMW'de de esliyor. Bu K95'in AYNI SINIFI
-(Fiat|scudo · Nissan|primastar emsali) ve hukum MIMARDA: iki cift ya yargi tablosuna ya BEKLER
-listesine yazilacak. **Sonraki oturumun ILK isi budur.**
-
-**BEKLIYOR (baskasinda):** MaCiT — `ff88e3ec` (KTM SLICE 2, +106, katalog 27646) main'de ama
-**PUSH EDILMEMIS**; baskasinin commit'i oldugu icin ELLENMEDI. MaCiT kendi kapilarini kosup
-itecek; yukaridaki K19 kirmizisi cozulmeden o itme de yayina inmez.
-
-🔴 **REGRESYON NOTU (bu turda olculdu, sonra GERI GITTI):** `.yedek-dusus-izin.json` icine
-`posta-kutusu-macit-izleme-ankor.txt` icin yazdigim `surekli`/4096 beyani dosyadan DUSMUS
-(su an yalniz `DEVAM.md` + kaan ankoru var). Beyan yokken `yedekle.py` **rc=1** dusuyor
-(618 -> 188 B karantinasi). Beyan AILE olarak yeniden yazilmali — ikizi beyanli, kardesi degil.
-
-**OKAN'DA:** motor tarifesi karari · eski yedek klasorunu backup-v2'ye tasima · K89 olcum
-eylemi silme karari · (yeni) indeksi gercekten kucultmek icin ikinci kademe indeks karari —
-hangi girisler oturum basinda HER SEFERINDE gerekli degil, kategori kategori onaya sunulacak.
+🔧 **ACIK (kanitli, bayat DEGIL):** (a) 2 hijyen isi hala kirmizi — tabandan gelir, nobetin
+onarim kuyrugunda; (b) `M3b` cagri-silme mutanti yakalanmiyor; (c) motor basina sure tavani
+YOK — 72 saatte 6 tur zaman asimindan yandi (%5,5), 12:37 turu 61 dk surdu; (d) **kendi
+siniflandirma hatam**: `Kanca kablolama nobeti` hijyene alinmisti, peer oturum serit-a3'e
+GERI tasiyor (adimin kendi yorumu "BLOKLAYICI olmali" diyor) — dogru duzeltme, dokunulmadi;
+(e) karma kapilar (`Devam sinif kapisi`, `Alt kategori kapisi`) guvenli tarafta BLOKLAYICI
+birakildi, eksen ayrimi bekliyor.
 
 ## ACIK KALEMLER (kaynak-dogrusu: `acik-kalemler.md`)
 
