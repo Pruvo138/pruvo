@@ -1,0 +1,24 @@
+{
+  "beyanlar": [
+    {
+      "ref": "4380e7c8b4c27d6538cb433e70bad32b685efc96",
+      "tarih": "2026-08-16",
+      "gerekce": "Merge 4380e7c8 (rel-card halkasi + marka/kategori hub sayfalama K115) ic link hattini yeniledi; rel-card hedef dagilimi ve breadcrumb adres semasi BILEREK degisti.",
+      "kapsam": ["breadcrumb-adresi", "rel-card-hedefleri"],
+      "urunler": [
+        "olcuye-ozel-cerceve",
+        "olcuye-ozel-toka",
+        "capa-serit-dekoratif-figur",
+        "sierra-hava-filtresi-18-7908",
+        "toyota-redarc-tow-pro-22-mm-anahtar-paneli",
+        "th1801765-vespa-yedek-parca",
+        "th4185772-vespa-gts-aku-yuvasi",
+        "ara-kameras-ayna-montaj-aparat",
+        "th4837861-vespa-px-lml-direksiyon-kilidi-i-ptal-parcasi",
+        "volkswagen-phaeton-intercooler-borusu-montaj-braketi",
+        "subaru-outback-legacy-jant-gobek-kapagi",
+        "nissan-frontier-xterra-bardaklik-daraltma-adaptoru"
+      ]
+    }
+  ]
+}

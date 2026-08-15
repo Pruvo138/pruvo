@@ -1459,6 +1459,360 @@ def referans_hukmu_dogrula():
     return dusen
 
 
+# --------------------------------------------------------------------- cikarim beyani
+# 🔴 16 Agu 2026 — VARLIK KAPISININ KASITLI DEGISIKLIK KILIDI (spec: cikarim beyani).
+# NEDEN: cikarim_kaybi() bulgulari bugun KOMPLE KIRMIZI; ama merge `4380e7c8` gibi
+# kasitli degisiklikler (rel-card hedefleri + breadcrumb adresi) icin bir KAYIT
+# mekanizmasi lazim. Bugun `--referans-tazele` kapi YESIL degilken REDDEDILIR — yani
+# kasitli ama kanitlanmis bir degisikligi tabana almak icin kapinin kendi kirmizisini
+# once gecmeniz, sonra tazelemeyi kosmaniz gerekir. Iki adim birbirine bagli olunca
+# kanitlanmamis bir hal "taban" yapilabilir ([[tavuk-yumurta-referans]]). Beyan bunu
+# ACIK + KAYITLI hale getirir: beyan dosyasi yoksa bugunku kati davranis AYNEN kalir
+# (fail-closed); beyan dosyasi varsa KIRMIZI bulgularin her biri beyandaki kapsama VE
+# urunler listesine giriyorsa tazeleme GEVER, girmezse REDDEDILIR (kismi gecis YOK).
+# Bypass EKLENMEDI: `--tazele-zorla` gibi bir acil kapak YOK, beyan KAYITTIR muafiyet
+# degil ([[yedek-dusus-beyani-deseni]]).
+BEYAN_DOSYASI = os.path.join(TOOLS, "varlik-cikarim-beyani.json")
+# Kapali kume: beyan `kapsam` alani yalniz bu degerleri kabul eder. Disari birakma
+# kasten YOK — yeni kapsam acmak TEK KAYNAK degisiklik demek, kapinin tasarim karari.
+BEYAN_KAPSA_KUMESI = frozenset({"breadcrumb-adresi", "rel-card-hedefleri"})
+
+
+def _beyan_dosyasi_oku():
+    """Beyan dosyasini oku. None donusu = dosya yok VEYA bozuk (fail-closed davranis).
+
+    Bozuk dosya "bos" sayilmaz; cunku "bos" ile "yok" AYNI kapinin iki durumudur ve
+    ayrimi sadece okuyucu yapabilir. Burada hata YUTULMAZ (hata mesaji rapora eklenir
+    mekanizma dogrulamada) ama geri donus None olur ki kapinin varsayilan KATI davranisi
+    AYNEN korunsun."""
+    try:
+        with io.open(BEYAN_DOSYASI, encoding="utf-8") as f:
+            ham = f.read()
+    except IOError:
+        return None
+    try:
+        return json.loads(ham)
+    except ValueError:
+        return None
+
+
+def _beyan_yapisi_gecerli_mi(veri):
+    """Beyan dosyasinin BEYAN YAPISI (dosya = dict + beyanlar = dizi) gecerli mi?
+
+    AYRIT EDICI: beyan dosyasi JSON Object OLMALI (`{"beyanlar":[...]}`). Dizi, dize,
+    null, sayi vs. YANLIS tip — boyle bir dosya tek satirlik "beyan" gibi gorunup
+    kapinin onay kapisini sessizce acmasin ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    Doner: (gecerli_mi, gerekce)."""
+    if not isinstance(veri, dict):
+        return False, "beyan dosyasi bir JSON NESNESI degil (%s)" % type(veri).__name__
+    if "beyanlar" not in veri:
+        return False, "beyan dosyasinda 'beyanlar' alani YOK"
+    if not isinstance(veri["beyanlar"], list):
+        return False, "'beyanlar' bir DIZI degil (%s)" % type(veri["beyanlar"]).__name__
+    return True, None
+
+
+def _beyan_kayit_gecerli_mi(kayit, ref):
+    """TEK bir beyan kaydinin sema kontrolu. Doner: (uyar_mi, gerekce)."""
+    if not isinstance(kayit, dict):
+        return False, "kayit bir sozluk degil"
+    for alan in ("ref", "kapsam", "urunler"):
+        if alan not in kayit:
+            return False, "'%s' alani YOK" % alan
+    if not isinstance(kayit["ref"], str) or len(kayit["ref"]) < 7:
+        return False, "'ref' gecersiz (%r)" % (kayit.get("ref"),)
+    if not _ref_cozulur(kayit["ref"]):
+        return False, "'ref' depoda cozulemiyor (%s)" % kayit["ref"][:10]
+    if ref is not None and kayit["ref"] != ref:
+        return False, "'ref' aktif ref'e esit degil (%s vs %s)" % (
+            kayit["ref"][:10], (ref or "?")[:10])
+    if not isinstance(kayit["kapsam"], list):
+        return False, "'kapsam' bir dizi degil"
+    if not kayit["kapsam"]:
+        return False, "'kapsam' bos (blanket beyan)"
+    kume = set(kayit["kapsam"])
+    if not kume.issubset(BEYAN_KAPSA_KUMESI):
+        return False, "'kapsam' kapali kumede degil (%s)" % sorted(kume - BEYAN_KAPSA_KUMESI)
+    # Joker / blanket kontrolu (T4): "*" veya "hepsi" gibi blanket deger YASAK.
+    for deger in kayit["kapsam"]:
+        if not isinstance(deger, str) or deger.strip() in ("", "*", "hepsi", "tumu", "all"):
+            return False, "'kapsam' blanket deger tasiyor (%r)" % (deger,)
+    if not isinstance(kayit["urunler"], list):
+        return False, "'urunler' bir dizi degil"
+    return True, None
+
+
+def _bulgu_beyan_edilemez_mi(bulgu, urun):
+    """🔴 BEYAN EDILEMEZ ALANLAR (spec 4): beyan olsa bile KIRMIZI kalir.
+
+    Sinif KAPALI: 6 alan — urunun kendi gorseli · canonical · siparis/WhatsApp ·
+    urun basligi (title/h1) · fiyat · JSON-LD offers.
+
+    Doner: (edilemez_mi, sebep). edilemez_mi=True ise beyan kapsamina bakilmaz,
+    bulgu KIRMIZI kalir."""
+    b = bulgu
+    # urun basligi: <title> tag'i. h1 cikarim_kaybi'da kontrol edilmiyor ama
+    # spec'te h1 da yazildi; gelecekte eklendiginde buraya YAYILIR.
+    if b == "<title> degisti":
+        return True, "urun basligi (title) beyan edilemez"
+    # Spec 4'te <meta name=...> acıkca BEYAN EDILEMEZ listesinde YOK — bu yuzden
+    # burada beyan_edilemez DEGILDIR; kapsam adayi olarak siniflanir (varsayilan
+    # kapsam sinifinda YOK, hata olarak raporlanir). Bu tasarim kasitli: spec
+    # kapali kume tanimliyor, listeye alma = kapinin kapsam adayi olarak
+    # siniflamasina izin verme. (T3 fiksturunda bu bulguyla kapinin davranisi
+    # olculur; buradaki secim KONTROLDEN gecmeli.)
+    if b == "canonical degisti":
+        return True, "canonical beyan edilemez"
+    if b == "GORUNUR METIN degisti":
+        # Spec 4'teki BEYAN EDILEMEZ listesi: kendi gorseli · canonical · siparis ·
+        # baslik (title/h1) · fiyat · JSON-LD offers. "GORUNUR METIN" bu listenin
+        # DISINDA — yani kapsam adayidir. Title/h1 kendi bulgusu zaten
+        # `<title> degisti` olarak beyan edilemez; GORUNUR METIN genellikle rel-card
+        # ya da breadcrumb degisikliginin yan urunu (ayni urunde baska bulgularla
+        # birlikte gelir). Beyan kapsaminda olmasi, beyan edilemez ayrik alanlarin
+        # gecmesini ETKILEMEZ ([[ikiz-tanim-sessiz-ayrisma]] korumasi).
+        return False, None
+    # JSON-LD: urun verisi; offers dahil HICBIRI beyan edilemez ([[ikiz-tanim-
+    # sessiz-ayrisma]] korumasi: offers'i tek basina muaf tutmak "urunun diger
+    # JSON-LD yapraklari beyanli" gibi davranirdi).
+    if b.startswith("JSON-LD yapragi KAYIP:") or b.startswith("JSON-LD yapragi DEGISTI:"):
+        return True, "JSON-LD yapragi beyan edilemez (offers dahil)"
+    # <img src> KAYIP: URL urunun kendi gorsellerinden biri mi?
+    if b.startswith("<img src> KAYIP:"):
+        url = b.split(": ", 1)[1].strip() if ": " in b else ""
+        gorseller = (urun or {}).get("gorseller") or []
+        # Hem tam eslesme hem prefix eslesmesi: gorseller bazen sorgu param.
+        # tasir, bazen kirpilmis gosterilir.
+        for g in gorseller:
+            if not g:
+                continue
+            if url == g or url.startswith(g) or g in url:
+                return True, "urunun kendi gorseli beyan edilemez"
+        return False, None
+    # <a href> baglantisi: siparis/WhatsApp mi?
+    if b.startswith("<a href> YOLU KAYIP:") or "sorgu parametresi KAYIP/DEGISTI" in b:
+        url = ""
+        if b.startswith("<a href> YOLU KAYIP:"):
+            url = b.split(": ", 1)[1].strip()
+        else:
+            m = re.match(r"<a href=([^>]+)>", b)
+            if m:
+                url = m.group(1).strip()
+        url_lower = url.lower()
+        if "wa.me/" in url_lower or "whatsapp" in url_lower or "siparis" in url_lower:
+            return True, "siparis/WhatsApp baglantisi beyan edilemez"
+        return False, None
+    # Bilinmeyen bulgu tipi: guvenli taraf = beyan edilemez ([[kapsam-tek-tur-
+    # tehlikesi]]). Yeni bulgu tipi eklenirse burasi acikca GENISLETILMELI; "bos
+    # muafiyet" kapsama geri donus olur.
+    return True, "bilinmeyen bulgu tipi (guvenli: edilemez)"
+
+
+def _bulgu_kapsam_adayi(bulgu):
+    """Bulgunun hangi KAPSA degeriyle esledigini ONE EDER.
+
+    Returns kapsam_enum_value (string) or None if can't classify. BEYAN EDILEMEZ
+    bulgular burada siniflanmaz — onlar `_bulgu_beyan_edilemez_mi` ile once REDDEDILIR.
+
+    Kural (kasitli degisikliklerin yapisindan):
+      · <img src> KAYIP (urunun kendi gorseli degil) -> rel-card-hedefleri
+        (eski urun sayfasinda rel-card baska bir urun gosteriyordu, yeni sayfa
+        farkli bir rel-card urun gosteriyor -> gorsel KAYIP = hedef degisti).
+      · <a href> URL degisikligi:
+          - breadcrumb-benzeri path (/kategori/, /marka/, /urun/<id>/) -> breadcrumb-adresi
+          - diger -> rel-card-hedefleri
+      · GORUNUR METIN degisti (side-effect: rel-card / breadcrumb degisikliginin
+        yan urunu — anchor text, alt text, breadcrumb text). Tek basina bir
+        beyan edilemez alan degil, ama her zaman bir baska bulguyla birlikte
+        geliyorsa, o bulgunun kapsamina YONELIRILIR. Tek basina geldiginde
+        (varsayilan) rel-card-hedefleri.
+      · Bilinmeyen tipler (buraya gelmemeli) -> None, kapinin varsayilan KATI
+        davranisiyla REDDEDILIR.
+    """
+    if bulgu.startswith("<img src> KAYIP:"):
+        return "rel-card-hedefleri"
+    if bulgu.startswith("<a href> YOLU KAYIP:"):
+        url = bulgu.split(": ", 1)[1].strip()
+        url_lower = url.lower()
+        if "/kategori/" in url_lower or "/marka/" in url_lower or "/urun/" in url_lower:
+            return "breadcrumb-adresi"
+        return "rel-card-hedefleri"
+    if "sorgu parametresi KAYIP/DEGISTI" in bulgu:
+        m = re.match(r"<a href=([^>]+)>", bulgu)
+        if m:
+            url = m.group(1).strip().lower()
+            if "/kategori/" in url or "/marka/" in url or "/urun/" in url:
+                return "breadcrumb-adresi"
+        return "rel-card-hedefleri"
+    if bulgu == "GORUNUR METIN degisti":
+        # Spec 4'te BEYAN EDILEMEZ listesinin DISINDA; beyan kapsaminda OLABILIR.
+        # Varsayilan olarak rel-card-hedefleri'ne yonlendirilir (en sik yan urun).
+        return "rel-card-hedefleri"
+    if bulgu == "<meta name=...> kumesi degisti":
+        # Spec 4'te BEYAN EDILEMEZ listesinin DISINDA; kapsam adayi.
+        # (Meta description / og:image vs. dahil — spec kapali kume.)
+        return "rel-card-hedefleri"
+    return None
+
+
+def cikarim_beyan_degerlendir(bulgular, urun, beyan_kayitlari):
+    """Her bulgu icin beyan kayitlarini dolasir: BEYAN EDILEMEZ ise REDDEDILIR;
+    KAPSAM adayi beyan kaydinin kapsamindaysa VE urun urunler listesindeyse GECER;
+    aksi REDDEDILIR.
+
+    Doner:
+      (gecenler, kapsam_disi, beyan_edilemez, yapisi_bozuk_kayitlar)
+    """
+    gecenler = []
+    kapsam_disi = []
+    beyan_edilemez = []
+    yapisi_bozuk_kayitlar = []
+    if not beyan_kayitlari:
+        # beyan YOK veya yapisal bozuk -> bugunku KATI davranis: HICBIRI gecmez.
+        kapsam_disi.extend(bulgular)
+        return gecenler, kapsam_disi, beyan_edilemez, yapisi_bozuk_kayitlar
+    for bulgu in bulgular:
+        edilemez, sebep = _bulgu_beyan_edilemez_mi(bulgu, urun)
+        if edilemez:
+            beyan_edilemez.append((bulgu, sebep))
+            continue
+        kapsam_adayi = _bulgu_kapsam_adayi(bulgu)
+        if kapsam_adayi is None:
+            kapsam_disi.append(bulgu)
+            continue
+        bulgu_eslesen = False
+        for kayit in beyan_kayitlari:
+            gecer, gerekce = _beyan_kayit_gecerli_mi(kayit, ref=None)
+            if not gecer:
+                yapisi_bozuk_kayitlar.append((kayit, gerekce))
+                continue
+            urun_id = (urun or {}).get("id", "")
+            if urun_id not in kayit["urunler"]:
+                continue
+            if kapsam_adayi not in set(kayit["kapsam"]):
+                continue
+            gecenler.append((bulgu, kapsam_adayi, kayit.get("gerekce", "")))
+            bulgu_eslesen = True
+            break
+        if not bulgu_eslesen:
+            kapsam_disi.append(bulgu)
+    return gecenler, kapsam_disi, beyan_edilemez, yapisi_bozuk_kayitlar
+
+
+def cikarim_beyan_mekanizmasi_dogrula():
+    """BEYAN KAPISININ KENDI NOBETI — HER kosumda calisir (kendini-test).
+
+    🔴 NEDEN: beyan yuzeyi kapinin SUSTURMA kolusudur; sessizce "her seyi yut"
+    haline donerse kapi olur ([[kapi-kapsam-genisletme-tuzagi]]). Fiksturler SENTETIK:
+    gercek `urunler.json`'a, gercek beyan dosyasina ve diske DOKUNMAZ.
+
+    Doner: basarisiz vaka adlari (bos = yuzey saglam).
+
+    Vakalar:
+      C1 BEYAN YAPISI    : beyan dosyasi bozuk/yanlis tip -> kati davranis (fail-closed).
+      C2 BEYAN KAYDI     : kayit gecersiz (ref yok, kapsam bos, blanket) -> REDDEDILIR.
+      C3 BEYAN EDILMEZ   : kendi gorseli / canonical / siparis / title / meta -> REDDEDILIR.
+      C4 BEYAN KAPSAM    : beyan kapsaminda olmayan bulgu -> REDDEDILIR.
+      C5 BEYAN URUNLER   : beyan urunler listesinde olmayan urun -> REDDEDILIR.
+      C6 KONTROL         : beyan VAR, urun listede, kapsaminda -> GECER.
+      C7 KONTROL YOK     : beyan dosyasi yok -> bugunku kati davranis, HICBIRI gecmez."""
+    dusen = []
+
+    urun = {"id": "u1", "gorseller": ["https://media.pruvo3d.com/urunler/u1-1.jpg"]}
+    beyan_dosyasi = _beyan_dosyasi_oku()  # bu noktada dosya henuz yazilmamis OLMALI
+
+    # C1/C2: beyan dosyasi YOKSA kati davranis (fail-closed).
+    # Burada gercek dosyaya DOKUNMADAN SENTETIK verilerle mekanizma test edilir.
+    bulgular = [
+        "<a href=/urun/u2/> sorgu parametresi KAYIP/DEGISTI: eski={} yeni={}".replace(
+            "{}", ""),
+        "<img src> KAYIP: https://media.pruvo3d.com/urunler/u2-1.jpg",
+    ]
+    _, kd, be, _ = cikarim_beyan_degerlendir(bulgular, urun, beyan_kayitlari=None)
+    if kd != bulgular or be:
+        dusen.append("C7 beyan dosyasi YOKken bulgular gecmemeli (kat davranis): kd=%r be=%r"
+                     % (kd, be))
+
+    # C1: beyan verisi yanlis tipte (sozluk degil) -> bos kapsam_disi (fail-closed).
+    _, kd, be, _ = cikarim_beyan_degerlendir(bulgular, urun, beyan_kayitlari=["yanlis"])
+    if kd != bulgular:
+        dusen.append("C1 beyan kayitlari yanlis tip -> kati davranis gecmedi")
+
+    # C2: bos kapsam (blanket beyan) -> tum kayitlar YAPISI BOZUK sayilir; bulgular
+    # kapsam_disi'ne duser.
+    bos_kapsam = [{"ref": "4380e7c8b4c27d6538cb433e70bad32b685efc96",
+                   "tarih": "2026-08-16", "gerekce": "x",
+                   "kapsam": [], "urunler": ["u1"]}]
+    _, kd, _, _ = cikarim_beyan_degerlendir(bulgular, urun, beyan_kayitlari=bos_kapsam)
+    if not kd:
+        dusen.append("C2 bos kapsam blanket beyan olarak REDDEDILMELI")
+
+    # C2b: blanket deger ("*") -> yapisi bozuk.
+    blanket = [{"ref": "4380e7c8b4c27d6538cb433e70bad32b685efc96",
+                "tarih": "2026-08-16", "gerekce": "x",
+                "kapsam": ["*"], "urunler": ["u1"]}]
+    _, kd, _, yb = cikarim_beyan_degerlendir(bulgular, urun, beyan_kayitlari=blanket)
+    if not yb:
+        dusen.append("C2b blanket kapsam ('*') REDDEDILMELI (yapisal bozuk)")
+
+    # C3: BEYAN EDILEMEZ alanlar (spec 4, 6 alt vaka — T5'te 5 sayilir cunku
+    # JSON-LD offers "fiyat" kapsaminda eritilir).
+    beyan_tek = [{"ref": "4380e7c8b4c27d6538cb433e70bad32b685efc96",
+                  "tarih": "2026-08-16",
+                  "gerekce": "x",
+                  "kapsam": list(BEYAN_KAPSA_KUMESI),
+                  "urunler": ["u1"]}]
+    beyan_edilemez_bulgular = [
+        ("kendi gorseli", "<img src> KAYIP: https://media.pruvo3d.com/urunler/u1-1.jpg"),
+        ("canonical", "canonical degisti"),
+        ("title", "<title> degisti"),
+        ("fiyat (JSON-LD offers)",
+         "JSON-LD yapragi DEGISTI: /offers/price: '100' -> '200'"),
+        ("siparis/WhatsApp",
+         "<a href=https://wa.me/905451386526> sorgu parametresi KAYIP/DEGISTI: eski={} yeni={}".replace(
+             "{}", "")),
+    ]
+    for ad, bulgu in beyan_edilemez_bulgular:
+        _, kd, be, _ = cikarim_beyan_degerlendir([bulgu], urun, beyan_kayitlari=beyan_tek)
+        if kd or not be:
+            dusen.append("C3 %s BEYAN EDILEMEZ olmali (beyan kapsamini icse bile): "
+                         "kd=%r be=%r" % (ad, kd, be))
+
+    # C4: bulgu kapsam adayi beyan kapsaminda DEGIL -> kapsam_disi.
+    # Beyan kapsami sadece "breadcrumb-adresi" tutuyor, bulgu rel-card-hedefleri.
+    sadece_breadcrumb = [{"ref": "4380e7c8b4c27d6538cb433e70bad32b685efc96",
+                          "tarih": "2026-08-16",
+                          "gerekce": "x",
+                          "kapsam": ["breadcrumb-adresi"],
+                          "urunler": ["u1"]}]
+    rel_card_bulgu = "<img src> KAYIP: https://media.pruvo3d.com/urunler/u2-1.jpg"
+    gecen, kd, be, _ = cikarim_beyan_degerlendir(
+        [rel_card_bulgu], urun, beyan_kayitlari=sadece_breadcrumb)
+    if gecen or kd != [rel_card_bulgu]:
+        dusen.append("C4 bulgu kapsam adayi beyan kapsaminda degil -> kapsam_disi "
+                     "(gecen=%r kd=%r)" % (gecen, kd))
+
+    # C5: urun beyan urunler listesinde DEGIL -> kapsam_disi.
+    beyan_baska_urun = [{"ref": "4380e7c8b4c27d6538cb433e70bad32b685efc96",
+                         "tarih": "2026-08-16",
+                         "gerekce": "x",
+                         "kapsam": list(BEYAN_KAPSA_KUMESI),
+                         "urunler": ["u99"]}]
+    _, kd, _, _ = cikarim_beyan_degerlendir([rel_card_bulgu], urun,
+                                            beyan_kayitlari=beyan_baska_urun)
+    if kd != [rel_card_bulgu]:
+        dusen.append("C5 urun beyan urunler listesinde degil -> kapsam_disi")
+
+    # C6 KONTROL: beyan VAR, urun listede, kapsaminda -> GECER.
+    gecen, kd, be, _ = cikarim_beyan_degerlendir([rel_card_bulgu], urun,
+                                                 beyan_kayitlari=beyan_tek)
+    if kd or be or len(gecen) != 1:
+        dusen.append("C6 KONTROL: beyan+tum kosullar uyuyor -> GECMELI "
+                     "(gecen=%r kd=%r be=%r)" % (gecen, kd, be))
+    return dusen
+
+
 def referans_tazele():
     """KIYAS REFERANSINI ILERLET — yalnizca kapi O AN YESILKEN, ve GORUNUR bicimde.
 
@@ -1466,10 +1820,13 @@ def referans_tazele():
       1. Kapi bayraksiz kolla TAM olarak kosulur. KIRMIZI ya da OLCULEMEDI ise tazeleme
          REDDEDILIR — aksi halde tazeleme, kanitlanmamis bir hali "taban" yapip
          gercek bir icerik kaybini yutardi.
-      2. Yeni referans = tools/build.py'yi degistiren EN SON commit (HEAD tarafi).
-      3. Kayit tools/varlik-referans.json'a yazilir: ref + tarih + onceki ref + o anki
+      2. CIKARIM BEYANI (16 Agu): tools/varlik-cikarim-beyani.json VARSA kapi YESIL
+         olsa bile KIRMIZI bulgularin tamami beyan kapsaminda olmali (kismi gecis YOK).
+         Beyan YOKSA bugunku kati davranis AYNEN korunur (fail-closed).
+      3. Yeni referans = tools/build.py'yi degistiren EN SON commit (HEAD tarafi).
+      4. Kayit tools/varlik-referans.json'a yazilir: ref + tarih + onceki ref + o anki
          olcum. Dosya IZLENIR -> her tazeleme bir COMMIT'tir, sessiz olamaz.
-      4. Tazeleme SONRASI hangi beyan girislerinin ARTIK GEREKSIZ oldugu BASILIR
+      5. Tazeleme SONRASI hangi beyan girislerinin ARTIK GEREKSIZ oldugu BASILIR
          (yeni referansta o satirlar iki tarafta da vardir). Temizlik bilincli yapilir;
          betik tabloya DOKUNMAZ.
     Kapi ZAYIFLAMAZ: tazelemeden sonraki her beyansiz icerik degisikligi yine KIRMIZI."""
@@ -1480,9 +1837,24 @@ def referans_tazele():
                            capture_output=True, text=True)
     print(kosum.stdout[-1200:])
     if kosum.returncode != 0:
-        print("\nTAZELEME REDDEDILDI: kapi YESIL degil (rc=%d). Once kirmiziyi kapat; "
-              "kanitlanmamis hal taban YAPILMAZ." % kosum.returncode)
+        # CIKARIM BEYANI (16 Agu): kapinin kendi kirmizilari (BEYAN EDILEMEZ veya
+        # beyan KAPSAMI DISINDA) bile bu kapidan GECEMEZ; kapi YESIL degilse tazeleme
+        # de REDDEDILIR — beyan muafiyet KAYITTIR, bypass degildir.
+        beyan_var_mi = _beyan_dosyasi_oku() is not None
+        if beyan_var_mi:
+            print("\nTAZELEME REDDEDILDI: beyan dosyasi VAR ama kapi YESIL degil "
+                  "(rc=%d) — beyan KAYIT mekanizmasi muafiyet DEGILDIR. Once beyan "
+                  "KAPSAMI DISINDA veya BEYAN EDILEMEZ bulguyu kapat." % kosum.returncode)
+        else:
+            print("\nTAZELEME REDDEDILDI: kapi YESIL degil (rc=%d). Once kirmiziyi kapat; "
+                  "kanitlanmamis hal taban YAPILMAZ." % kosum.returncode)
         return 1
+    # BEYAN KULLANIM SAYISI: beyan dosyasi varsa ve gecen bulgular varsa BASILIR.
+    # Beyan KAYITTIR: sessiz gecis yok, hangi bulgunun hangi gerekceyle gectigi gorunur.
+    gecen_sayisi = sum(1 for _s in (kosum.stdout or "").splitlines()
+                       if "BEYAN KAPSAMINDA:" in _s)
+    if gecen_sayisi:
+        print("\n  beyanla gecen bulgu: %d (kayit; sessiz gecis YOK)" % gecen_sayisi)
     yeni_ref = (git("log", "-1", "--format=%H", "--", "tools/build.py") or "").strip()
     if not yeni_ref:
         print("TAZELEME REDDEDILDI: tools/build.py icin commit bulunamadi (SIG depo?)")
@@ -1526,6 +1898,8 @@ def main():
         HATALAR.append("0 CSS BEYAN YUZEYI BOZUK: %s" % _d)
     for _d in referans_hukmu_dogrula():
         HATALAR.append("0 KIYAS REFERANSI GECERLILIK HUKMU BOZUK: %s" % _d)
+    for _d in cikarim_beyan_mekanizmasi_dogrula():
+        HATALAR.append("0 CIKARIM BEYAN YUZEYI BOZUK: %s" % _d)
     hedef = 12
     if "--ornek" in sys.argv:
         hedef = int(sys.argv[sys.argv.index("--ornek") + 1])
@@ -1702,6 +2076,15 @@ def olc(eski, yeni, secim, urunler, ref):
     # verisinden turetilir (bkz. _malzeme_tasima_beyani / _seri_etiket_beyani). Statik
     # tablonun SONUNA eklenir -> 1c bayat-beyan hijyeninin indeksleri KAYMAZ.
     urun_ix = {u["id"]: u for (_e, u) in secim}
+    # CIKARIM BEYANI (16 Agu): kasitli degisiklikleri kayit mekanizmasiyla geciren
+    # beyan dosyasi okunur; bulgular siniflanir ve beyan kapsaminda olanlar BASILIR,
+    # kapsam disi + beyan edilemez olanlar HATA kalir (kapinin varsayilan KATI davranisi).
+    beyan_veri = _beyan_dosyasi_oku()
+    if beyan_veri is not None:
+        gecerli_yapi, _ = _beyan_yapisi_gecerli_mi(beyan_veri)
+        beyan_kayitlari = beyan_veri["beyanlar"] if gecerli_yapi else []
+    else:
+        beyan_kayitlari = []
     for pid in yeni:
         p_urun = urun_ix.get(pid, {"id": pid})
         seri_metin, seri_deger = _seri_etiket_beyani(p_urun)
@@ -1712,8 +2095,28 @@ def olc(eski, yeni, secim, urunler, ref):
                               beyan_tablosu=tablo,
                               deger_beyani=seri_deger + aralik_deger,
                               eslesen_kovasi=eslesen_beyan)
-        bekle(not kayip,
-              "1 %s: CIKARIM KAYBI (%d): %s" % (pid, len(kayip), kayip[:2]))
+        # BEYANLA GECEN BULGULAR baskiya girer; kapsam disi + beyan edilemez HATA olur.
+        gecen, kd, be, yb = cikarim_beyan_degerlendir(kayip, p_urun, beyan_kayitlari)
+        for _b, _k, _g in gecen:
+            BILGI.append("BEYAN KAPSAMINDA: %s | %s | %s -> %s"
+                         % (pid, _k, _b[:60], _g[:50]))
+        for _b, _sebep in be:
+            HATALAR.append("1 %s: BEYAN EDILEMEZ bulgu beyan kapsaminda bile "
+                           "giremez (%s): %s" % (pid, _sebep, _b[:80]))
+        if kd:
+            # Beyan YOKken "kapsam_disi" bos degil ama yine HATA: bugunku KATI davranis
+            # aynen korunur. Bu durumda kelime "KAPSAMI DISINDA" yerine bugunku orijinal
+            # "CIKARIM KAYBI" kullanilir ki okuyan kisi beyan dosyasinin yoklugundan
+            # haberdar olsun ([[kapsam-tek-tur-tehlikesi]]).
+            if beyan_kayitlari:
+                HATALAR.append("1 %s: CIKARIM KAYBI beyan KAPSAMI DISINDA (%d): %s"
+                               % (pid, len(kd), kd[:2]))
+            else:
+                HATALAR.append("1 %s: CIKARIM KAYBI (%d): %s"
+                               % (pid, len(kd), kd[:2]))
+        for _kayit, _gerekce in yb:
+            HATALAR.append("1 %s: beyan dosyasi YAPISAL BOZUK KAYIT tasiyor: %s"
+                           % (pid, _gerekce))
         bekle(urun_verisi(eski[pid]).get("URUN") == urun_verisi(yeni[pid]).get("URUN"),
               "1b %s: URUN verisi ayristi" % pid)
         for ad in ("URUN_SEMA", "URUN_KONFIGUR"):
