@@ -1059,6 +1059,52 @@ def gruplandir(products, evren, ek_markalar=()):
                 if kan == birincil:
                     g["birincil"] = True
 
+    # ---- FAZ 1B: MARKA BAŞLIK KOLU (15 Ağu 2026, KraL hükmü) ------------------------
+    # ÖLÇÜLEN SAPMA (26 marka, dört kaynak yan yana): ana sayfa filtresi marka sorgusunu
+    # ÜYELİK ∪ BAŞLIKTA TAM KELİME yüklemiyle cevaplıyor; marka KOVASI ise yalnız
+    # `marka[]`den kuruluyordu. 16 markada filtre katalogdan +1..+7 fazla saydı, toplam
+    # 37 ürün. Envanter çıkarıldı: 37/37 TAM KELİME, alt-dize 0, TERS YÖN 0 — yani hepsi
+    # gerçekten iki markaya uyan parçalar: "Kia/Hyundai Far Tutucu Klipsi"
+    # (marka=["Hyundai"]) Kia filtresinde çıkıyordu ama /marka/kia/ sayfasında YOKTU;
+    # "Mazda MX-5 / Fiat 124 Spider Güneş Siperliği" Fiat sayfasında, "VW/Skoda/Audi/Seat
+    # Yakıt Pompası Söküm Aleti" Skoda sayfasında yoktu. Aramada gösterip sayfada gizlemek
+    # hem SAYIYI bozuyor hem ürünü ikinci markanın müşterisinden saklıyordu. Kopya gövde
+    # bırakılmaz, yüklem TEK kaynaktan türer ([[ikiz-tanim-sessiz-ayrisma]]).
+    #
+    # 🔴 KAPSAM BİLEREK DAR — bu kol ürünü YALNIZ marka kovasının `ikincil` listesine ekler:
+    #   * BİRİNCİLLİK VERMEZ (`birincil_ids`e DOKUNMAZ) — çip haritası ve birincil sayımlar
+    #     değişmez, yani "bu ürünün asıl markası" yargısı olduğu gibi kalır;
+    #   * MODEL KOVASI AÇMAZ (`gruplar`a DOKUNMAZ) — yeni /marka/X/model/ sayfası DOĞMAZ,
+    #     dolayısıyla K19 çapraz-marka yargısı ve model eşiği bu koldan ETKİLENMEZ.
+    # Değişen TEK şey: marka sayfasının ürün kümesi artık ana sayfa filtresinin kümesiyle
+    # aynı. Kova evreni de UYDURULMAZ — yalnız FAZ 1'de ZATEN doğmuş markalar taranır,
+    # yani bu kol tek başına yeni bir marka sayfası açamaz.
+    _hedef_markalar = sorted(veri)
+    _ad_kanonu = {}                      # (kelime dizisi) -> kanonik marka
+    for _kan in _hedef_markalar:
+        for _ad in marka_yazimlari(_kan, evren):
+            _aw = _kelimeler(_ad)
+            if _aw:
+                _ad_kanonu.setdefault(tuple(_aw), _kan)
+    _azami_ad = max((len(k) for k in _ad_kanonu), default=0)
+    for p in products:
+        m0 = p.get("marka") or []
+        if not m0:
+            continue
+        _uyeler = set(marka_uyelikleri(m0, evren, ek_markalar))
+        if not _uyeler:
+            continue
+        _bw = _kelimeler(p.get("baslik") or "")
+        if not _bw:
+            continue
+        _eklendi = set()
+        for _i in range(len(_bw)):
+            for _n in range(1, _azami_ad + 1):
+                _kan = _ad_kanonu.get(tuple(_bw[_i:_i + _n]))
+                if _kan and _kan not in _uyeler and _kan not in _eklendi:
+                    _eklendi.add(_kan)
+                    kova(_kan)["ikincil"].append(p)
+
     # ---- FAZ 2: KUŞAK/VARYANT KATLAMASI (4 Ağu, KraL hükmü) -------------------------
     # `Golf 4`/`Golf Mk4`/`Golf IV`/`Golf R` ürünleri ANA `Golf` kovasına da girer.
     # 🔴 NEDEN AYRI FAZ: katlama YALNIZCA katalogda ZATEN VAR OLAN taban kovasına yapılır
