@@ -42,10 +42,23 @@ ESIK = 3                       # model sayfası + marka sayfası yalnız >= ESIK
 # Böylece yeni bir koleksiyon sınıfı yalnız sitemap'e eklenip sayaçtan kaçamaz.
 SITEMAP_SAYFA_SINIFLARI = {
     "marka": ("0.7", "weekly"),
+    # Sayfalanan marka hub devam sayfaları (/marka/<slug>/<N>/). `marka` kökünden AYRI sınıf:
+    # `marka_sayfasi_sayisi` marka KÖKÜ sayısı olarak kalır (slug başına 1); devam sayfaları
+    # kökü şişirmez — marka-model-test "marka dizini sayısı == marka_sayfasi_sayisi" ve
+    # marka-kapsam-test "sitemap sınıf evreni birebir" ölçüleri bozulmaz.
+    "marka_sayfa": ("0.6", "weekly"),
     "model": ("0.7", "weekly"),
     "diger": ("0.6", "weekly"),
     "dizin": ("0.6", "weekly"),
 }
+
+# 🔴 AYRIK İSİM ALANI (15 Ağu, iç-link çakışması): sayfalanan hub devam sayfaları
+# /marka/<slug>/sayfa/<N>/ ve /kategori/<slug>/sayfa/<N>/ adresinde yaşar. Bu kelime bir MODEL
+# slug'ı OLAMAZ — sayısal model slug'ları (Mazda 2/3/5/6, Renault 5) sayfalama adresiyle
+# çakışıyordu; `sayfa` da bir model adı olursa aynı çakışma yeniden doğar. Üretici böyle bir
+# model görürse fail-closed durur (sessizce ezme YOK). kategori_hub_build.py de AYNI kaynaktan
+# (mm.SAYFA_AYIRAC) okur — ikinci bir kelime kopyası ayrışırdı.
+SAYFA_AYIRAC = "sayfa"
 # Marka sayfasında SSR'de basılan TAM KART sayısı; kalanı aynı sayfada artımlı çizilir.
 # 🔴 N ÖLÇÜMLE SEÇİLDİ (gerekçe: tools/paket-marka-tek-sayfa.md). Kısıt:
 # en büyük marka sayfasının HTML baytı index.html'i AŞMAMALI. Yerel kalemleri (model sayfası
@@ -1153,6 +1166,11 @@ def gruplandir(products, evren, ek_markalar=()):
                                  key=lambda t: (-t[1], t[0]))[0][0]
             g["display"] = display
             g["slug"] = _slug(display)
+            if g["slug"] == SAYFA_AYIRAC:
+                raise SystemExit(
+                    "HATA: model slug'ı AYRIK sayfalama isim alanıyla çakışıyor — %s/%s "
+                    "-> '%s' (/marka/<slug>/sayfa/<N>/ ile aynı adres). Üretim DURDURULDU "
+                    "(fail-closed; sessizce ezme yok)." % (marka, display, g["slug"]))
 
     # ---- FAZ 3: BAŞLIK KOLU (5 Ağu, mimar hükmü) ------------------------------------
     # Model disjunkt'ının ÜÇÜNCÜ kolu: ürünün BAŞLIĞINDA modelin adı TAM KELİME geçiyorsa
@@ -1342,6 +1360,15 @@ _MM_CSS = """
   .mm-kalan-bag a{color:var(--navy-2);text-decoration:none}
   .mm-kalan-bag a:hover{text-decoration:underline}
   @media (max-width:640px){ .mm-kalan-bag{columns:1} }
+  /* SAYFALAMA: marka hub devam sayfaları (/marka/<slug>/<N>/) gezinmesi */
+  .mm-sayfa{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:22px 0 4px}
+  .mm-sayfa a,.mm-sayfa .mm-sayfa-sayi{display:inline-flex;align-items:center;justify-content:center;
+    min-width:34px;height:34px;padding:0 10px;border:1px solid var(--gray-line);
+    border-radius:8px;text-decoration:none;color:var(--navy);background:var(--gray-card);
+    font-weight:600;font-size:14px}
+  .mm-sayfa a:hover{border-color:var(--navy-2);background:#fff}
+  .mm-sayfa .mm-simdi{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .mm-sayfa .mm-sayfa-onceki,.mm-sayfa .mm-sayfa-sonraki{font-weight:700}
   /* Ürün-liste kartı = sitenin STANDART katalog kartı (index.html kartCiz ile BİREBİR sınıf/
      yapı/CSS). Kart CSS'i PAGE_CSS'te YOK (ürün sayfası tek ürün gösterir) -> buraya kopyalandı;
      :root değişkenleri (--radius/--shadow/--navy/--gray-*) PAGE_CSS'te tanımlı. */
@@ -2091,7 +2118,7 @@ def _huni_blok(esc, baslik, govde, prefill, cta):
 
 
 def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld, body_html,
-           kapsam_js=""):
+           kapsam_js="", head_extra=""):
     esc = ctx["esc"]
     # Taban CSS artik SAYFAYA GOMULMEZ: kritik cekirdek satir-ici, gerisi icerik-adresli
     # /varlik/sayfa-<hash>.css. _MM_CSS AYRI bir varliga gider -> taban dosya urun/icerik/
@@ -2108,7 +2135,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{url}">
-<meta name="robots" content="index,follow">
+{head_extra}<meta name="robots" content="index,follow">
 <link rel="icon" href="{favicon}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PRUVO">
@@ -2164,6 +2191,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
         breadcrumb_ld=breadcrumb_ld,
         top_btn=ctx["TOP_BTN_BLOCK_HTML"],
         kapsam_js=kapsam_js,
+        head_extra=head_extra,
     ))
 
 
@@ -2669,11 +2697,74 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
     return url, html
 
 
-def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
+def _marka_sayfa_adresi(SITE, marka_slug, sayfa):
+    """Marka hub sayfasının KANONİK adresi. Sayfa 1 = /marka/<slug>/ (ADRESİ DEĞİŞMEZ),
+    sayfa N>=2 = /marka/<slug>/sayfa/<N>/. `sayfa` AYRIK İSİM ALANIDIR (SAYFA_AYIRAC): sayısal
+    model slug'ları (/marka/mazda/2/) ile sayfalama çakışıyordu. Tek kaynak: kök/rel=prev/next/
+    gezinti AYNI fonksiyonu çağırır; ikinci bir adres kuralı yazılırsa kök ile devam sayfaları
+    sessizce ayrışırdı."""
+    if sayfa == 1:
+        return SITE + "/marka/" + marka_slug + "/"
+    return SITE + "/marka/" + marka_slug + "/" + SAYFA_AYIRAC + "/" + str(sayfa) + "/"
+
+
+def _marka_sayfa_sayisi(kalem_sayisi):
+    """Bir markanın gerektirdiği statik hub sayfası sayısı = ceil(kalem_sayisi / MARKA_KART_N).
+    TEK KAYNAK: üretici ve kabul testi (T3) AYNI formülü çağırır — kopya formül ayrışırdı."""
+    return (kalem_sayisi + MARKA_KART_N - 1) // MARKA_KART_N
+
+
+def _marka_sayfa_dilimi(kalemler, sayfa):
+    """Marka hub sayfası <sayfa>'nın basacağı dilim — TEK KAYNAK (T8 mutantı burayı hedefler).
+    Sayfa N (N>=1): kalemler[(N-1)*MARKA_KART_N : N*MARKA_KART_N]. Son sayfa eksik dolabilir."""
+    baslangic = (sayfa - 1) * MARKA_KART_N
+    return kalemler[baslangic:baslangic + MARKA_KART_N]
+
+
+def _sayfa_rel_linkleri(esc, SITE, marka_slug, sayfa, toplam_sayfa):
+    """<head> için rel=prev/next — kanonikle AYNI MUTLAK adres (crawler zinciri).
+    Sayfa 1'de prev YOK, son sayfada next YOK (spec kural 3)."""
+    out = []
+    if sayfa > 1:
+        out.append('<link rel="prev" href="%s">'
+                   % esc(_marka_sayfa_adresi(SITE, marka_slug, sayfa - 1)))
+    if sayfa < toplam_sayfa:
+        out.append('<link rel="next" href="%s">'
+                   % esc(_marka_sayfa_adresi(SITE, marka_slug, sayfa + 1)))
+    return "".join(x + "\n" for x in out)
+
+
+def _sayfa_gezinti_html(esc, marka_slug, sayfa, toplam_sayfa):
+    """GÖRÜNÜR sayfa gezinmesi (Önceki · 1 2 3 … · Sonraki). Sayfa 1'de Önceki, son sayfada
+    Sonraki YOK. Kök adres /marka/<slug>/ (sayfa 1 adresi DEĞİŞMEZ), N>=2 /marka/<slug>/sayfa/<N>/.
+    Sayfa 1'e dönüş köke gider; /sayfa/1/ ÜRETİLMEZ. Göreli adresler (sayfanın diğer bağlarıyla
+    aynı köken)."""
+    if toplam_sayfa <= 1:
+        return ""
+    parcalar = []
+    if sayfa > 1:
+        onceki = marka_slug + "/" if sayfa == 2 else marka_slug + "/" + SAYFA_AYIRAC + "/" + str(sayfa - 1) + "/"
+        parcalar.append('<a class="mm-sayfa-onceki" rel="prev" href="/marka/%s">%s</a>'
+                        % (onceki, esc("← Önceki")))
+    for n in range(1, toplam_sayfa + 1):
+        if n == sayfa:
+            parcalar.append('<span class="mm-sayfa-sayi mm-simdi" aria-current="page">%d</span>' % n)
+        else:
+            hedef = marka_slug + "/" if n == 1 else marka_slug + "/" + SAYFA_AYIRAC + "/" + str(n) + "/"
+            parcalar.append('<a class="mm-sayfa-sayi" href="/marka/%s">%d</a>' % (hedef, n))
+    if sayfa < toplam_sayfa:
+        sonraki = marka_slug + "/" + SAYFA_AYIRAC + "/" + str(sayfa + 1) + "/"
+        parcalar.append('<a class="mm-sayfa-sonraki" rel="next" href="/marka/%s">%s</a>'
+                        % (sonraki, esc("Sonraki →")))
+    return ('<nav class="mm-sayfa" aria-label="Sayfa gezinmesi">' + "".join(parcalar) + '</nav>')
+
+
+def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
+                   sayfa=1, toplam_sayfa=1):
     esc = ctx["esc"]
     SITE = ctx["SITE"]
     marka_slug = _slug(marka)
-    url = SITE + "/marka/" + marka_slug + "/"
+    url = _marka_sayfa_adresi(SITE, marka_slug, sayfa)
 
     h1 = marka + " Yedek Parça — Ölçüye Özel Üretim"
     # YEREL bölüm: <ESIK modeller + yalnız-marka + İKİNCİL (çok markalı uyumluluk) ürünler.
@@ -2692,14 +2783,25 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
         raise SystemExit("HATA: marka sayfası toplamı ayrıştı — %s: sayfadan ulaşılabilen "
                          "%d kalem, kova kanonik %d (sayaç birimi bozuk)."
                          % (marka, toplam, marka_urun_sayisi(d)))
+
+    # ---- SAYFALAMA: her sayfa kendi dilimini basar (kök adres /marka/<slug>/ DEĞİŞMEZ). ----
+    basili = _marka_sayfa_dilimi(kalemler, sayfa)
+    basili_ids = set(p.get("id") for p in basili)
+
     giris = _MARKA_GIRIS.get(marka, (
         marka + " için kırılan ya da artık bulunamayan plastik parçaları modele göre ölçüye "
         "özel üretiyoruz. Modelinizi seçin; klips, kapak, tutamak, dişli, braket ve bağlantı "
         "gibi parçaları elinizdeki numuneden birebir, çalışacağı yere göre doğru malzemeyle "
         "yeniden üretelim. Ölçü sizden, üretim bizden."))
-    description = (marka + " yedek parçaları: modele göre gezinin, kırılan ya da bulunamayan "
-                   "parçayı ölçüye özel üretelim. " + str(len(buyuk_gruplar)) + " model, "
-                   + str(toplam) + " parça listeleniyor.")
+    title = h1 if sayfa == 1 else h1 + " — Sayfa " + str(sayfa)
+    if sayfa == 1:
+        description = (marka + " yedek parçaları: modele göre gezinin, kırılan ya da bulunamayan "
+                       "parçayı ölçüye özel üretelim. " + str(len(buyuk_gruplar)) + " model, "
+                       + str(toplam) + " parça listeleniyor.")
+    else:
+        description = (marka + " yedek parçaları — sayfa " + str(sayfa) + ": "
+                       + str(len(basili)) + " parça listeleniyor. Diğer sayfalara gezinme "
+                       "bağlantılarından devam edin.")
 
     bc = ('<nav class="mm-bc" aria-label="breadcrumb"><a href="/">Ana Sayfa</a> &rsaquo; '
           '<a href="/marka/">Markalar</a> &rsaquo; ' + esc(marka) + '</nav>')
@@ -2711,12 +2813,13 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     # hükmü). `href` KORUNUR: JS yoksa çip model sayfasına gider (iç link + JS-siz erişim +
     # crawl hedefi bozulmaz), JS varsa preventDefault ile sayfa-içi filtre çalışır.
     btns = []
-    for i, g in enumerate(buyuk_gruplar):
-        murl = "/marka/" + marka_slug + "/" + g["slug"] + "/"
-        btns.append('<a class="mm-model-btn" href="%s" data-katsay="%s" data-mm="%d">'
-                    '%s<span class="adet">%d parça</span></a>'
-                    % (esc(murl), esc(_kat_sayim_json(g["urunler"])), i,
-                       esc(g["display"]), len(g["urunler"])))
+    if sayfa == 1:
+        for i, g in enumerate(buyuk_gruplar):
+            murl = "/marka/" + marka_slug + "/" + g["slug"] + "/"
+            btns.append('<a class="mm-model-btn" href="%s" data-katsay="%s" data-mm="%d">'
+                        '%s<span class="adet">%d parça</span></a>'
+                        % (esc(murl), esc(_kat_sayim_json(g["urunler"])), i,
+                           esc(g["display"]), len(g["urunler"])))
     model_html = '<div class="mm-models">' + "".join(btns) + "</div>" if btns else ""
 
     # ------------------------------------------------------- KART YÜZEYİ (Okan hükmü)
@@ -2738,14 +2841,15 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
         ix = model_uyelik.get(p.get("id")) or []
         return (' data-mm="%s"' % " ".join(str(x) for x in ix)) if ix else ""
 
-    basili = kalemler[:MARKA_KART_N]
-    basili_ids = set(p.get("id") for p in basili)
-    # 🔴 ORPHAN GÜVENLİĞİ (fail-closed): YEREL kalemlerin model sayfası YOKTUR — /marka/<m>/
-    # dışında hiçbir yerde linklenmezler. Kart olarak basılmayan yerel kalemler bu yüzden
-    # HTML'de düz bir link listesinde durmak ZORUNDA (yoksa marka hiyerarşisinde öksüz
-    # kalırlar; tools/marka-model-test.py bunu ölçüyor). Kova kalemleri öksüz OLAMAZ:
-    # çipin işaret ettiği model sayfası onları listeler.
-    yerel_kalan = [p for p in yerel if p.get("id") not in basili_ids]
+    # 🔴 ORPHAN GÜVENLİĞİ (fail-closed) YALNIZ KÖK SAYFADA: YEREL kalemlerin model sayfası
+    # YOKTUR — /marka/<m>/ dışında hiçbir yerde linklenmezler. Kök sayfada kart olarak
+    # basılmayan yerel kalemler HTML'de düz bir link listesinde durmak ZORUNDA (yoksa marka
+    # hiyerarşisinde öksüz kalırlar; tools/marka-model-test.py bunu ölçüyor). Kova kalemleri
+    # öksüz OLAMAZ: çipin işaret ettiği model sayfası onları listeler. Devam sayfaları yerel
+    # kalemleri KART basar -> öksüz doğmaz, ayrı düz-bağ listesi gerekmez.
+    yerel_kalan = []
+    if sayfa == 1:
+        yerel_kalan = [p for p in yerel if p.get("id") not in basili_ids]
     kalan_html = ""
     if yerel_kalan:
         # data-kat: bu kalemler de KAPSAM ekseninde (?kategori=) süzülür — kart olmasalar da
@@ -2769,46 +2873,49 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                       + '<ul class="mm-kalan-bag">' + baglar + '</ul></div>')
 
     kart_html = _urun_grid(ctx, basili, attr_of=_mm_attr, grid_attr=' id="mmGrid"')
-    # Artım manifesti. `uc`/`yol`/`parti` = kart verisinin EDGE yolu; TEK KAYNAK
-    # index.html'in `EDGE_UC`'si (ctx'e `uret` koyar). Tüm katalog İNDİRİLMEZ.
+    # Artım manifesti YALNIZ kök sayfada. `uc`/`yol`/`parti` = kart verisinin EDGE yolu; TEK
+    # KAYNAK index.html'in `EDGE_UC`'si (ctx'e `uret` koyar). Tüm katalog İNDİRİLMEZ.
     # (Yük sayfanın YANINDA duran parcalar.json'dur; HTML baytını şişirmez ve ancak
-    # kullanıcı kalanı isteyince çekilir.)
-    manifest = {"yuk": "/marka/" + marka_slug + "/parcalar.json", "uc": ctx["EDGE_UC"],
-                "yol": EDGE_KATALOG_YOLU, "parti": EDGE_PARTI,
-                "site": SITE, "toplam": toplam, "basili": len(basili)}
+    # kullanıcı kalanı isteyince çekilir.) Devam sayfası dilimini TAM basar -> artım YOK.
     artim_html = ""
-    if len(basili) < toplam:
-        artim_html = (
-            '<script type="application/json" id="mmManifest">'
-            + json.dumps(manifest, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-            + '</script>'
-            + '<p class="mm-artim"><button type="button" id="mmTumu" class="mm-tumu-btn">'
-            # Düğmedeki sayı da KAPSAMA DÜŞER: kapsam kolunda "Tümünü göster (593 parça)"
-            # yazarken düğme yalnız kapsam içi kalemleri çiziyordu (yalan sayı).
-            + esc("Tümünü göster (") + _bolum_sayaci(esc, kalemler, "erisim")
-            + esc(" parça)") + '</button>'
-            + '<span id="mmDurum" class="mm-artim-durum"></span></p>')
-    filtre_html = ('<p class="mm-filtre-sifirla"><a href="#" id="mmFiltreSifirla">'
-                   + esc("Model filtresini temizle") + '</a></p>') if btns else ""
+    filtre_html = ""
+    yuk = None
+    if sayfa == 1:
+        manifest = {"yuk": "/marka/" + marka_slug + "/parcalar.json", "uc": ctx["EDGE_UC"],
+                    "yol": EDGE_KATALOG_YOLU, "parti": EDGE_PARTI,
+                    "site": SITE, "toplam": toplam, "basili": len(basili)}
+        if len(basili) < toplam:
+            artim_html = (
+                '<script type="application/json" id="mmManifest">'
+                + json.dumps(manifest, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+                + '</script>'
+                + '<p class="mm-artim"><button type="button" id="mmTumu" class="mm-tumu-btn">'
+                # Düğmedeki sayı da KAPSAMA DÜŞER: kapsam kolunda "Tümünü göster (593 parça)"
+                # yazarken düğme yalnız kapsam içi kalemleri çiziyordu (yalan sayı).
+                + esc("Tümünü göster (") + _bolum_sayaci(esc, kalemler, "erisim")
+                + esc(" parça)") + '</button>'
+                + '<span id="mmDurum" class="mm-artim-durum"></span></p>')
+        filtre_html = ('<p class="mm-filtre-sifirla"><a href="#" id="mmFiltreSifirla">'
+                       + esc("Model filtresini temizle") + '</a></p>') if btns else ""
 
-    # Sayfanın YANINDA yazılacak yük (uret yazar). Kalem listesi KANONİK `kalemler`den
-    # türer — ikinci bir küme kurulmaz.
-    kat_tablosu = sorted(set((p.get("kategori") or "").strip() for p in kalemler))
-    kat_ix = {k: i for i, k in enumerate(kat_tablosu)}
-    override = {}
-    for p in kalemler:
-        kayit = _kart_yuk_kaydi(ctx, p)
-        if kayit:
-            override[p.get("id")] = kayit
-    yuk = {
-        "toplam": toplam,
-        "basili": len(basili),
-        "kat": kat_tablosu,
-        "m": [g["slug"] for g in buyuk_gruplar],
-        "k": [[p.get("id"), kat_ix[(p.get("kategori") or "").strip()],
-               model_uyelik.get(p.get("id")) or []] for p in kalemler],
-        "o": override,
-    }
+        # Sayfanın YANINDA yazılacak yük (uret yazar). Kalem listesi KANONİK `kalemler`den
+        # türer — ikinci bir küme kurulmaz. Devam sayfasının yükü YOK (dilim TAM SSR).
+        kat_tablosu = sorted(set((p.get("kategori") or "").strip() for p in kalemler))
+        kat_ix = {k: i for i, k in enumerate(kat_tablosu)}
+        override = {}
+        for p in kalemler:
+            kayit = _kart_yuk_kaydi(ctx, p)
+            if kayit:
+                override[p.get("id")] = kayit
+        yuk = {
+            "toplam": toplam,
+            "basili": len(basili),
+            "kat": kat_tablosu,
+            "m": [g["slug"] for g in buyuk_gruplar],
+            "k": [[p.get("id"), kat_ix[(p.get("kategori") or "").strip()],
+                   model_uyelik.get(p.get("id")) or []] for p in kalemler],
+            "o": override,
+        }
 
     prefill = ("Merhaba, " + marka + " için bir parça arıyorum, sitede bulamadım. Elimdeki "
                "numuneyi ölçüp ölçüye özel üretebilir misiniz?")
@@ -2820,25 +2927,35 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     huni = _huni_blok(esc, marka + " parçanızı bulamadınız mı?", huni_govde, prefill,
                       "WhatsApp'tan Yazın")
 
+    # SAYFA SAYACI/BEYAN: kök = erişilebilir TÜM kalemler (artım koluyla tamamı), devam = kendi
+    # dilimi. İkinci bir sayı kuralı YOK — `sayfa_kalemleri` tek kaynaktan seçilir.
+    sayfa_kalemleri = kalemler if sayfa == 1 else basili
+    oncul = "Bu markada" if sayfa == 1 else "Bu sayfada"
+    # Rozet SINIFI kök/devaı ayırır: kök "erisim" (tüm kart yüzeyi), devam "parca" (kendi
+    # dilimi) — model sayfasıyla AYNI sınıf. marka-sayac-kapisi `SAYAC_VAR` bunu ölçer:
+    # 2-seviyeli sayfa "parca" rozeti taşımalıdır (kök "erisim" taşır).
+    sayfa_bolumu = "erisim" if sayfa == 1 else "parca"
+    gezinti = _sayfa_gezinti_html(esc, marka_slug, sayfa, toplam_sayfa)
+
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
             + '<p class="lead">' + esc(giris) + '</p>'
             + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
-            + _toplam_bloku(esc, kalemler, "Bu markada")
+            + _toplam_bloku(esc, sayfa_kalemleri, oncul)
             + ('<h2 class="mm-sec-h">Modele göre seçin (<span class="mm-sayim-model">'
                + str(len(btns)) + '</span>)</h2>' if btns else "")
             + model_html
             + filtre_html
-            # 🔴 BAŞLIK SAYISI = ERİŞİLEBİLİR KART YÜZEYİ (`kalemler`), O AN BASILAN
-            # (`basili`) DEĞİL. Okan hükmü korunur: sayfa markanın TÜM parçalarını kart
-            # olarak gösterir; `MARKA_KART_N` yalnız İLK BOYA kararıdır, VAAT DEĞİL.
-            # Vaadi 80'e çekmek yalanı düzeltmek değil vaadi düşürmek olurdu.
+            # 🔴 BAŞLIK SAYISI = ERİŞİLEBİLİR KART YÜZEYİ. Kök sayfada (`kalemler`) — Okan
+            # hükmü: sayfa markanın TÜM parçalarını kart olarak gösterir, MARKA_KART_N yalnız
+            # İLK BOYA kararıdır, VAAT DEĞİL. Devam sayfasında kendi dilimi (başka kart YOK).
             + ('<h2 class="mm-sec-h">' + esc(marka) + ' parçaları ('
-               + _bolum_sayaci(esc, kalemler, "erisim") + ')</h2>')
+               + _bolum_sayaci(esc, sayfa_kalemleri, sayfa_bolumu) + ')</h2>')
             + kart_html
             + artim_html
             + kalan_html
+            + gezinti
             + huni)
 
     breadcrumb_ld = _ld({
@@ -2849,19 +2966,30 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
             {"@type": "ListItem", "position": 3, "name": marka, "item": url},
         ],
     })
-    # ItemList = model sayfaları (crawl hedefleri)
-    model_items = [{"@type": "ListItem", "position": i + 1,
-                    "url": SITE + "/marka/" + marka_slug + "/" + g["slug"] + "/",
-                    "name": marka + " " + g["display"]}
-                   for i, g in enumerate(buyuk_gruplar)]
-    collection_ld = _ld({
-        "@context": "https://schema.org", "@type": "CollectionPage",
-        "name": h1, "url": url, "description": description,
-        "mainEntity": {"@type": "ItemList", "numberOfItems": len(model_items),
-                       "itemListElement": model_items},
-    })
-    html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body,
-                  kapsam_scripti(kategoriler) + ara_tasi_scripti(marka) + artim_scripti())
+    # ItemList: kök = model sayfaları (crawl hedefleri), devam = bu sayfanın ÜRÜNLERİ.
+    if sayfa == 1:
+        model_items = [{"@type": "ListItem", "position": i + 1,
+                        "url": SITE + "/marka/" + marka_slug + "/" + g["slug"] + "/",
+                        "name": marka + " " + g["display"]}
+                       for i, g in enumerate(buyuk_gruplar)]
+        collection_ld = _ld({
+            "@context": "https://schema.org", "@type": "CollectionPage",
+            "name": h1, "url": url, "description": description,
+            "mainEntity": {"@type": "ItemList", "numberOfItems": len(model_items),
+                           "itemListElement": model_items},
+        })
+    else:
+        collection_ld = _ld({
+            "@context": "https://schema.org", "@type": "CollectionPage",
+            "name": h1, "url": url, "description": description,
+            "mainEntity": {"@type": "ItemList", "numberOfItems": len(basili),
+                           "itemListElement": _itemlist(ctx, basili)},
+        })
+    head_extra = _sayfa_rel_linkleri(esc, SITE, marka_slug, sayfa, toplam_sayfa)
+    html = _shell(ctx, title, url, description, breadcrumb_ld, collection_ld, body,
+                  kapsam_scripti(kategoriler) + ara_tasi_scripti(marka)
+                  + (artim_scripti() if sayfa == 1 else ""),
+                  head_extra=head_extra)
     return url, html, yuk, yerel_kalan
 
 
@@ -3011,24 +3139,34 @@ def uret(products, ctx):
                 _gorulen.add(pid)
                 kucuk_urunler.append(p)
 
-        murl, mhtml, myuk, yerel_kalan = _marka_sayfasi(
-            ctx, marka, d, buyuk, kucuk_urunler, kategoriler)
-        yaz(murl, mhtml)
-        # Artım yükü sayfanın YANINA yazılır (HTML baytını şişirmez, sitemap'e GİRMEZ:
-        # crawl hedefi değil, istemci verisidir). /marka/ gitignore'da -> repoya girmez.
-        yaz_json(murl + "parcalar.json", myuk)
-        sitemap_ekle("marka", murl)
+        # ---- SAYFALAMA: kök + gereken kadar devam sayfası. Sayfa sayısı TEK kaynaktan
+        # (_marka_sayfa_sayisi) hesaplanır; kök adres /marka/<slug>/ DEĞİŞMEZ. Devam sayfası
+        # yalnız index.html yazar (dilim TAM SSR -> parcalar.json/artım kolu YOK).
+        toplam_sayfa = _marka_sayfa_sayisi(marka_toplam[marka])
+        murl_kok = None
+        for sayfa_no in range(1, toplam_sayfa + 1):
+            murl, mhtml, myuk, yerel_kalan = _marka_sayfasi(
+                ctx, marka, d, buyuk, kucuk_urunler, kategoriler,
+                sayfa=sayfa_no, toplam_sayfa=toplam_sayfa)
+            yaz(murl, mhtml)
+            if myuk is not None:
+                # Artım yükü sayfanın YANINA yazılır (HTML baytını şişirmez, sitemap'e GİRMEZ:
+                # crawl hedefi değil, istemci verisidir). /marka/ gitignore'da -> repoya girmez.
+                yaz_json(murl + "parcalar.json", myuk)
+            sitemap_ekle("marka" if sayfa_no == 1 else "marka_sayfa", murl)
 
-        # İlk 80 SSR kartın dışında kalan ve yayımlanmış bir model sayfası olmayan ürünler
-        # düz bağ olarak marka kökünde kalır. Ayrıca JS'siz/kart-semantikli erişim için tek
-        # bir "Diğer" koleksiyonunda tam kartla yayımlanır; böylece artımlı ana sayfanın
-        # 80 kart tavanı bozulmadan marka ağacı katalog üyeliğini eksiksiz taşır.
-        if yerel_kalan:
-            diger = {"display": "Diğer", "slug": "diger", "canon": "diger",
-                     "urunler": yerel_kalan}
-            durl, dhtml = _model_sayfasi(ctx, marka, diger, kategoriler)
-            yaz(durl, dhtml)
-            sitemap_ekle("diger", durl)
+            # İlk 80 SSR kartın dışında kalan ve yayımlanmış bir model sayfası olmayan ürünler
+            # düz bağ olarak marka kökünde kalır (YALNIZ kök sayfa). Ayrıca JS'siz/kart-semantikli
+            # erişim için tek bir "Diğer" koleksiyonunda tam kartla yayımlanır; böylece artımlı
+            # ana sayfanın 80 kart tavanı bozulmadan marka ağacı katalog üyeliğini eksiksiz taşır.
+            if sayfa_no == 1:
+                murl_kok = murl
+                if yerel_kalan:
+                    diger = {"display": "Diğer", "slug": "diger", "canon": "diger",
+                             "urunler": yerel_kalan}
+                    durl, dhtml = _model_sayfasi(ctx, marka, diger, kategoriler)
+                    yaz(durl, dhtml)
+                    sitemap_ekle("diger", durl)
 
         marka_yolu = "/marka/" + marka_slug + "/"          # göreli (aynı köken; render_product /?marka= gibi göreli basar)
         for g in buyuk:
@@ -3057,7 +3195,7 @@ def uret(products, ctx):
 
         sayim[marka] = {"marka_sayfasi": 1, "model_sayfasi": len(buyuk),
                         "toplam_parca": marka_toplam[marka]}
-        index_ozet.append((marka, murl, len(buyuk), marka_toplam[marka]))
+        index_ozet.append((marka, murl_kok, len(buyuk), marka_toplam[marka]))
 
     # /marka/ index (tüm üretilen markalar)
     iurl, ihtml = _marka_index(ctx, index_ozet)
@@ -3098,6 +3236,9 @@ def uret(products, ctx):
         "sayfasiz_cipler": sayfasiz_cipler,
         "sayim": sayim,
         "marka_sayfasi_sayisi": sinif_sayilari["marka"],
+        # Sayfalanan marka hub DEVAM sayfaları (/marka/<slug>/<N>/). `marka` kökünden AYRI:
+        # marka_sayfasi_sayisi (köke göre) şişmez; ek yüzey bu sayaçtan okunur.
+        "marka_sayfa_sayisi": sinif_sayilari["marka_sayfa"],
         # "Diğer" de /marka/<marka>/<koleksiyon>/ biçiminde gerçek bir model-katmanı
         # sayfasıdır; aynı kanonik manifestten sayılır, ayrı elde tutulan +N yoktur.
         "model_sayfasi_sayisi": sinif_sayilari["model"] + sinif_sayilari["diger"],

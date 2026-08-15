@@ -1091,6 +1091,41 @@ jobs:
       - name: "Yayin sinyali ayrimi: iki yonlu curutme (YON A + YON B + needs daraltma)"
         run: python3 tools/yayin-sinyali-mutasyon.py
 
+      # ILISKILI KART HALKA SECIMI (rel-card) — sayfa altinda "bunlara da bak" halkasinin
+      # hangi urunleri sectigini olcer. Sentetik veri + bellek ici modullerle kosar; uretim
+      # katalogina DOKUNMAZ, urunler.json OKUNMAZ. Olculdu: 7/7 mutantla kapi kendi kirmizisini
+      # gercekten yakiyor. ~<1 s. NEDEN SERIT B: olctugu sinif bir HYJYEN eksigidir — urun
+      # yayindan DUSMEZ, odeme/veri/yasal yuzeye temas YOK; iliskili halka bozulursa "urun
+      # bulunamiyor" degil "iliskili kart bos gozukuyor" olur (musteri tekil urune zaten
+      # kanonik /urun/<id>/ uzerinden erisir). Bu yuzden bloklamaz, sadece GORUNUR kilar.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "Iliskili kart halka secimi (rel-card) kabul testi"
+        run: python3 tools/rel-card-test.py
+
+      # MARKA SAYFALAMA (/marka/<slug>/sayfa/<N>/) — marka hub sayfalarinin devam sayfalari
+      # ayrik isim alaninda (T9 mutant: /marka/mazda/2/ cakismasi) + canonical + rel=prev/next
+      # + sitemap dahil etimini + TAM-KART basimini sentetik katalogla olcer. Offline, stdlib,
+      # ~1 s. NEDEN SERIT B: olctugu sinif bir HIJYEN eksigidir — kok /marka/<slug>/ adresi
+      # DEGISMEZ ve orada urunler TAM KART basar; sayfalama bozulursa sadece /sayfa/<N>/ devam
+      # sayfalari gorunmez olur, urune erisim KOPMAZ (urun sayfalari kanonik /urun/<id>/'den
+      # tiklanir). Odeme/veri/yasal yuzeye dokunmaz; musteri yanlis para ODEMEZ, veri
+      # SIZDIRMAZ, yayin DURMAZ.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "Marka hub sayfalama kabul testi (/marka/<slug>/sayfa/<N>/)"
+        run: python3 tools/marka-sayfalama-test.py
+
+      # KATEGORI HUB SAYFALAMA (/kategori/<slug>/sayfa/<N>/) — kategori hub devam sayfalarinin
+      # ayrik isim alaninda (T9 mutant) + canonical + rel=prev/next + breadcrumb + gizli
+      # kategoriler (Jenerator/Skan Art) + ASCII slug guvenligini sentetik katalogla olcer.
+      # Offline, stdlib, ~1 s. NEDEN SERIT B: olctugu sinif HYJYEN eksigidir — kok
+      # /kategori/<slug>/ adresi degismez ve TAM KART basar; sayfalama bozulursa sadece
+      # /sayfa/<N>/ devam sayfalari kaybolur, urune erisim KOPMAZ. Gizli kategoriler icin
+      # ayni serit karari gecerli (bunlarin de kok adresi zaten nav'da GIZLI — hub zaten
+      # bilincli bir kez daha gizli sayfaya konumlanir). Odeme/veri/yasal yuzeye dokunmaz.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "Kategori hub sayfalama kabul testi (/kategori/<slug>/sayfa/<N>/)"
+        run: python3 tools/kategori-hub-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
