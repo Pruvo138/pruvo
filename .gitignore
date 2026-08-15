@@ -637,3 +637,7 @@ tools/arastirma-sari-fiyat.md
 # bu duz metin dosya YALNIZ `--desen-yaz` uretim koluna girdidir ve YOKLUGU kapiyi
 # durdurmaz (gerekce: tools/commit-mesaji-kapisi.py basligi).
 .sizinti-desenleri.txt
+# Playwright MCP anlik goruntuleri + konsol loglari: tarayici turu sirasinda
+# uretilir, repo PUBLIC oldugu icin burada YASAK. isci.sh --output-dir ile
+# /private/tmp/claude-501/playwright-cikti'ya yonlendirilir (13 Agu 2026).
+.playwright-mcp/
