@@ -311,6 +311,38 @@ def nrm(s):
     return _NRM_TEMIZ.sub(" ", s.translate(_NRM_HARF)).strip()
 
 
+def marka_kimlikleri(katalog):
+    """`urunler.json`'daki `marka` dizilerinden marka/firma KIMLIGI tasima
+    OLASILIGI olan degerleri turet — `Ayna`/`Sehpa` gibi bir urunun
+    yaninda TEK BASINA tasinan parca-turu etiketlerini elemek, AMA tekil
+    ASIL markayi (`Tekil Firma` gibi tekrarsiz) ve tekrarlanan IKINCIL
+    firma adini (`Tekrarlanan Firma` gibi >=2 urunde) korumak icin.
+
+    Kural:
+      * bir deger marka/firma kimligi sayilir — ya (a) tek basina marka ise
+        (`marka` dizisinde TE deger o urune ait) ya da (b) >=2 urunde gecerse;
+      * geri kalan (yalnizca ikincil genel ad olarak 1 urunde gecen) elenir.
+
+    Kullanan:
+      * tools/altkategori-kapisi.py::B3  (katalog marka x altkategori jetonu)
+      * tools/altkategori-sinifla-test.py::T10a  (izinli kume x katalog marka)
+    """
+    adet = {}
+    tek_basina = set()
+    for u in katalog or []:
+        if not isinstance(u, dict):
+            continue
+        degerler = {
+            m.strip().lower() for m in (u.get("marka") or [])
+            if isinstance(m, str) and m.strip()
+        }
+        for m in degerler:
+            adet[m] = adet.get(m, 0) + 1
+        if len(degerler) == 1:
+            tek_basina.update(degerler)
+    return {m for m, n in adet.items() if n >= 2 or m in tek_basina}
+
+
 # index.js ARAMA_EKLER — SIRA ONEMLI (uzundan kisaya; ilk eslesen ek kirpilir).
 ARAMA_EKLER = [
     "lerimiz", "larimiz", "lerim", "larim", "lerin", "larin", "imiz", "iniz", "umuz", "unuz",

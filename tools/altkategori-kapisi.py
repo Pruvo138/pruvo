@@ -154,31 +154,6 @@ def _kayit(repo, uid):
     return {}
 
 
-def marka_kimlikleri(katalog):
-    """`marka` dizisinden marka/firma kimligi kaniti tasiyan degerleri turet.
-
-    Katalogda `marka` alani yalniz marka kimligi tasimiyor; tek urunde gercek markanin
-    yanina parca turu etiketi de yazilabiliyor (olculen vaka: KTM+Ayna, KTM+Sehpa).
-    Bir degeri marka/firma kimligi saymak icin ya tek basina marka olmasi ya da en az
-    iki urunde tekrarlanmasi gerekir. Boylece tekil ikincil genel ad B3'u yakmaz;
-    tekil asil marka ve tekrarlanan ikincil firma adi sizinti nobetinde kalir.
-    """
-    adet = {}
-    tek_basina = set()
-    for u in katalog:
-        if not isinstance(u, dict):
-            continue
-        degerler = {
-            m.strip().lower() for m in (u.get("marka") or [])
-            if isinstance(m, str) and m.strip()
-        }
-        for m in degerler:
-            adet[m] = adet.get(m, 0) + 1
-        if len(degerler) == 1:
-            tek_basina.update(degerler)
-    return {m for m, n in adet.items() if n >= 2 or m in tek_basina}
-
-
 def kabul(kok):
     arama = yukle(kok, "arama", "arama.py")
     d1 = yukle(kok, "d1sync", "d1-sync.py")
@@ -249,7 +224,7 @@ def kabul(kok):
                       if arama.altkategori_imza_sebebi(d)]
     dogrula("B2 IZINLI kumesinin KENDISI de imza nobetinden geciyor (mimarin elle girisi "
             "denetimsiz kalmaz)", not izinli_supheli, izinli_supheli)
-    markalar = marka_kimlikleri(katalog)
+    markalar = arama.marka_kimlikleri(katalog)
     carpisan = []
     for d in tekil + izinli_hepsi:
         for w in d.replace("-", " ").replace("/", " ").split():
@@ -263,14 +238,14 @@ def kabul(kok):
     ]
     dogrula("B3a tek urunluk IKINCIL genel parca etiketi marka/firma kimligi sayilmiyor "
             "(Ayna/Sehpa yanlis-pozitifi geri gelemez)",
-            marka_kimlikleri(_etiket_fikstur) == {"ktm"},
-            sorted(marka_kimlikleri(_etiket_fikstur)))
+            arama.marka_kimlikleri(_etiket_fikstur) == {"ktm"},
+            sorted(arama.marka_kimlikleri(_etiket_fikstur)))
     _sizinti_fikstur = [
         {"marka": ["Tekil Firma"]},
         {"marka": ["KTM", "Tekrarlanan Firma"]},
         {"marka": ["BMW", "Tekrarlanan Firma"]},
     ]
-    _fikstur_kimlikleri = marka_kimlikleri(_sizinti_fikstur)
+    _fikstur_kimlikleri = arama.marka_kimlikleri(_sizinti_fikstur)
     dogrula("B3b tekil ASIL marka ve tekrarlanan IKINCIL firma hala kimlik sayiliyor "
             "(B3 sızıntı nobeti gevsemedi)",
             {"tekil firma", "tekrarlanan firma"} <= _fikstur_kimlikleri,

@@ -467,11 +467,16 @@ def kabul(kok):
     # ══ T10 — MARKA/MODEL JETONU SIZAMAZ ═══════════════════════════════════════════
     print("\n[T10] SIZMA — marka/model jetonu grup adi olamaz")
     marka_anahtar = {arama.model_normalize(m) for m in arama.UYUM_MARKA_IZINLI}
+    # Katalog `marka` alani yalniz marka kimligi tasimiyor; tek urunde gercek
+    # markanin yaninda parca-turu etiketi de yazilabiliyor (olculen vaka:
+    # KTM+Ayna, KTM+Sehpa). T10a icin yalniz marka/firma kimligi tasiyan
+    # degerleri dikkate al — `arama.marka_kimlikleri` ile ayni filtre.
+    marka_kimlik_set = arama.marka_kimlikleri(katalog)
     katalog_marka = set()
     for u in katalog:
         if isinstance(u, dict):
             for m in (u.get("marka") or []):
-                if isinstance(m, str) and m.strip():
+                if isinstance(m, str) and m.strip() and m.strip().lower() in marka_kimlik_set:
                     katalog_marka.add(arama.nrm(m.strip()))
     sizan = []
     for kategori, degerler in arama.ALTKATEGORI_IZINLI.items():
