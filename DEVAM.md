@@ -24,6 +24,19 @@ tek satir olarak KALDI. K94'un bozuk durum jetonu `🔧`e onarildi. Gunluk mimar
 `posta-kutusu-macit-izleme-ankor.txt` (618->188 B) icin dusus beyaninin EKSIK olmasiydi; Kaan
 ikizi beyanliydi, kardesi degildi. Beyan AILE olarak yazildi, **rc=0 · KARANTINA=0 · BEYANLI=1**.
 
+**MEMORY.md INDEKSI — DENENDI, GERI ALINDI (olcum hukmu):** indeksi her dosyanin kendi
+`description:` alanindan TURETME denendi (dogru fikir: ikiz tanim ayrismasini kapatir). Iki
+bicimde de indeks BUYUDU: satir-basina-giris 18.312 -> **19.409**, ikinci tur **28.249**.
+Sebep bicim iskeleti: `- [...](....md) — ` on eki 215 giriste yogun gruplu bicimden pahali.
+`MEMORY-ONCEKI.md`'den **bayt-birebir** geri yuklendi (sha dogrulandi), yalnizca GERCEK kusur
+elle duzeltildi: `kanonik-adres-olcum-yanlisi` MUKERRER girisi kaldirildi + arsiv baglantisi
+eklendi (18.312 -> **18.280**). Kirik bag 0, yetim 0, 215/215 dosya indekste. **Ders:** indeksi
+turetmek DOGRULUGU artirir ama BAYTI dusurmez; baglam ekonomisinde asil kazanc defterde
+(-%44) ve isci ciktisi disiplininde (ihtar 14) — indeks bu isin ana kaynagi DEGILDI.
+🔴 Isci notu: ikinci tur KIRMIZI raporladi ama SPEC'in "geri yukle" adimini UYGULAMADI, dosyayi
+28.249 baytta birakti; geri yuklemeyi mimar yapti. Kabul satiri "KIRMIZI" demek, agacin
+temizlendigi anlamina GELMIYOR — bunu kabul olcutune ayrica yazmak gerek.
+
 ## 15 Agu (oglen) — OTURUM KAPANISI (KraL)
 
 **CANLIYA GIDEN (main'de, push'lu — HEAD `7cd7405d`):**
