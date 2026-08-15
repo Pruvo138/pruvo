@@ -984,10 +984,16 @@ ROZET_DISI_CIFT = {
     ("Volkswagen", "Alhambra"): "VW'nin rozeti Sharan; Alhambra Seat'in — "
                                 "/marka/seat/alhambra/",
     ("Volkswagen", "CITIGO"): "VW'nin rozeti Up; Citigo Skoda'nin — /marka/skoda/citigo/",
+    # 15 Agu, KraL hukmu (K19 capraz-marka): BMW'nin motosiklet aile rozeti GS'tir; `Adventure`
+    # GS'in varyant ekidir (R 1250 GS Adventure), BAGIMSIZ bir BMW rozeti DEGIL. `Adventure`
+    # ciplak adiyla KTM'nin model ailesidir. Urun KAYBOLMAZ: BMW urunleri /marka/bmw/gs/ ve
+    # BMW marka sayfasinda durur (kapi K11 kaybolan=0 olcer). Emsal birebir ("Peugeot","Scudo").
+    ("BMW", "Adventure"): "BMW'nin aile rozeti GS; `Adventure` GS'in varyant eki, KTM'nin ise "
+                          "model ailesi adi — gercek sayfa /marka/bmw/gs/",
 }
 
-ROZET_DISI_SAYISI = 38
-ROZET_DISI_IMZA = "348301721bed1989"
+ROZET_DISI_SAYISI = 39
+ROZET_DISI_IMZA = "d0a98bfd609bbc0b"
 
 
 def rozet_disi_imzasi():
@@ -1169,10 +1175,21 @@ ROZET_CAPRAZ_IZINLI = {
     "Audi|coupe": ("BEKLER", "Audi 'Coupe' bir GOVDE TIPI kelimesidir (Audi 80 B3/B4 coupe); "
                              "ayri bir Audi Coupe (B2/B3) modeli de vardi. ROZET mi MODEL_"
                              "OLMAYAN mi — mimar hukmu bekliyor (Hyundai|Coupe ROZET'tir)"),
+    # ───────────────────────────────────────────────────────────────────────────────
+    # 15 Agu — KTM x Thingiverse partisiyle capraz olan cift (K19 KIRMIZI yakti, serit-a2 +
+    # serit-a3 FAILURE). `Adventure` KTM'nin KENDI model ailesi adidir (KTM serileri: DUKE,
+    # RC, ADVENTURE, ENDURO, SUPERMOTO; 390/790/890 Adventure, 1290 Super Adventure, klasik
+    # 950/990 Adventure) -> KTM kolu ROZET, kendi sayfasi dogar. BMW'de aile adi GS'tir ve
+    # `Adventure` GS'in VARYANT ekidir (R 1250 GS Adventure); BMW yalnizca "Adventure" adiyla
+    # rozetlenmis bir motosiklet SATMADI -> BMW kolu ROZET_DISI_CIFT'e (deny) alindi, urunler
+    # /marka/bmw/gs/ ve BMW marka sayfasinda durur. Emsal birebir `Fiat|scudo`/`Peugeot|Scudo`.
+    "KTM|adventure": ("ROZET", "KTM Adventure KTM'nin kendi model ailesi rozeti (390/790/890 "
+                               "Adventure, 1290 Super Adventure, 950/990 Adventure); BMW'de "
+                               "'Adventure' GS ailesinin VARYANT ekidir, ayri sinif"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 56
-ROZET_CAPRAZ_IZINLI_IMZA = "caf8dc4f2c3548a0"
+ROZET_CAPRAZ_IZINLI_SAYISI = 57
+ROZET_CAPRAZ_IZINLI_IMZA = "9c01bf09e4d0bab6"
 
 
 def rozet_capraz_imzasi():

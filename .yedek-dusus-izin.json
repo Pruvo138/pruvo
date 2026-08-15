@@ -8,5 +8,10 @@
     "tur": "surekli",
     "azami_bayt": 4096,
     "gerekce": "Mimar karari 15 Agu 2026: bu dosya posta kutusu izleme cron'unun ROLLING ANKORUDUR — son islenen girdiyi tutar, eski girdiler dustukce KUCULUR (olculdu: 485 -> 185 -> 412 bayt). Kucultme burada normal calisma, veri kaybi degil. Tavan 4096 bayt BILEREK dardir: ankor birkac yuz bayt mertebesindedir, tavan hicbir gercek veri dosyasinin (or. 10 MB'lik kaynak kaydi) bu beyanla sessizce kaybolmasina izin vermez. Tavani asan bir dusus beyanla GECMEZ."
+  },
+  "posta-kutusu-macit-izleme-ankor.txt": {
+    "tur": "surekli",
+    "azami_bayt": 4096,
+    "gerekce": "Mimar karari 15 Agu 2026 (IKINCI KEZ yazildi — ilk yazim dosyadan dustu ve yedek zinciri rc=1 ile karantinaya girdi): kaan ankorunun KARDESI, ayni sinif ayni yordam. Posta kutusu izleme cron'unun ROLLING ANKORU; son islenen girdiyi tutar, eski girdiler dustukce KUCULUR (olculdu: 618 -> 188 bayt). Beyan AILE olarak yazilir: ayni sinifin bir uyesi beyanli, kardesi beyansiz birakilirsa koruma tek uyede sessizce rc=1 uretir. Tavan 4096 bayt kaan ikiziyle BIREBIR aynidir; tavani asan bir dusus beyanla GECMEZ."
   }
 }
