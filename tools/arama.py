@@ -1364,10 +1364,22 @@ MODEL_OLMAYAN_CIFT = {
                               "modeli degil (Yamaha Quad Lock emsali)",
     ("Toyota", "107"): "`107` Peugeot'nun modelidir (Aygo/C1/107 uclusu ayni araci "
                       "paylasir) — Toyota'nin modeli degil (Volvo Sierra emsali)",
+    # 16 Agu, mimar hukumu (K117-C model kanonu — siniflandirmanin MODEL onerilerinin
+    # mimar tarafindan REDDEDILEN 5 hatali jetonu, kalici deny):
+    ("Toyota", "BRZ"): "BRZ Subaru'nun modeli (Subaru BRZ / Toyota 86 ikizi) — "
+                       "Toyota'nin modeli degil",
+    ("Subaru", "FR-S"): "FR-S Scion'un modeli (Toyota GT86 / Scion FR-S / Subaru "
+                        "BRZ uclusu) — Subaru'nun modeli degil",
+    ("Citroen", "107"): "`107` Peugeot'nun modelidir (Aygo/C1/107 uclusu ayni "
+                       "araci paylasir) — Citroen'in modeli degil (Toyota|107 emsali)",
+    ("Peugeot", "DS"): "DS Automobiles Peugeot'dan AYRI bir markadir — Peugeot'nun "
+                      "modeli degil",
+    ("Hyundai", "Coupe"): "govde tipi sozcugu (Audi|Coupe emsali) — bagimsiz model "
+                          "adi degil",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 35
-MODEL_OLMAYAN_CIFT_IMZA = "2f26387ba5b03d6f"  # arama.model_olmayan_cift_imzasi() ile hesaplandi
+MODEL_OLMAYAN_CIFT_SAYISI = 40
+MODEL_OLMAYAN_CIFT_IMZA = "4aa789c556ac2871"  # arama.model_olmayan_cift_imzasi() ile hesaplandi
 
 
 def model_olmayan_cift_imzasi():
@@ -1664,10 +1676,36 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
     ("Yamaha", "XSR"): "arac/motosiklet AILE adi (XSR serisi)",
     ("Yamaha", "XVS"): "arac/motosiklet AILE adi (XVS serisi)",
+    # 16 Agu, mimar hukumu (K117-C model kanonu): BASLIK KOLUYLA dogan, >= ESIK(3) urunlu
+    # ama yargisiz oldugu icin model listesine hic girmeyen 250 kovadan siniflandirma ile
+    # ayiklanan 17 GERCEK MODEL — model listesine girer.
+    ("Vespa", "Ciao"): "arac/motosiklet model adi (Piaggio Ciao — Vespa ailesi)",
+    ("Vespa", "PX"): "arac/motosiklet model adi",
+    ("Vespa", "GTS"): "arac/motosiklet model adi",
+    ("Vespa", "Smallframe"): "arac/motosiklet govde AILE adi (Vespa Smallframe)",
+    ("Vespa", "Cosa"): "arac/motosiklet model adi",
+    ("Vespa", "Bravo"): "arac/motosiklet model adi (Piaggio Bravo — Vespa ailesi)",
+    ("Vespa", "Fly"): "arac/motosiklet model adi (Piaggio Fly — Vespa ailesi)",
+    ("Vespa", "50"): "arac/motosiklet model adi (Vespa 50 — ikonik tek arac, ciplak "
+                    "sayi ama Vespa altinda TEKIL)",
+    ("Lexus", "GS"): "arac/motosiklet model adi",
+    # `Sierra` Ford'un gercek modelidir; deniz yedek parca ureticisi olarak BASKA
+    # markalarda deny (Volvo Sierra emsali) — yargi marka-ozeldir.
+    ("Ford", "Sierra"): "arac/motosiklet model adi (Volvo Sierra emsali — yargi "
+                        "marka-ozel)",
+    ("Mazda", "5"): "arac/motosiklet model adi (Mazda 2/3/6 emsali)",
+    # `Duster` Dacia Duster'in Renault yazimidir (ikiz model); tekil girisle dogar.
+    ("Renault", "Duster"): "arac/motosiklet model adi (Dacia Duster'in Renault yazimi)",
+    ("Renault", "Sandero"): "arac/motosiklet model adi",
+    ("Nissan", "Primastar"): "arac/motosiklet model adi",
+    # `Genesis` Hyundai'nin 2008-2016 doneminde ayri marka OLMA DAN ONCEki model adidir.
+    ("Hyundai", "Genesis"): "arac/motosiklet model adi (marka olmadan onceki adi)",
+    ("Peugeot", "203"): "arac/motosiklet model adi",
+    ("Yamaha", "Raptor"): "arac/motosiklet model adi (ATV serisi)",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 140
-BASLIK_DOGAN_ALLOW_IMZA = "7b1f2f27e25dd32c"  # arama.baslik_dogan_allow_imzasi() ile hesaplandi
+BASLIK_DOGAN_ALLOW_SAYISI = 157
+BASLIK_DOGAN_ALLOW_IMZA = "8b011d4fd0bcacae"  # arama.baslik_dogan_allow_imzasi() ile hesaplandi
 
 
 def baslik_dogan_allow_imzasi():
