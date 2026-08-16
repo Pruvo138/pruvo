@@ -258,4 +258,19 @@ if [ "$pruvo_icrapor_rc" -ne 0 ]; then
   exit 1
 fi
 
+# --- 8) DEFTER KOTASI KAPISI — INDEX (COMMIT ANI) kolu (FAIL-CLOSED) ----------
+# DEVAM.md 130 satirdan buyukse commit RED; CARE satiri rotasyon aracini gosterir.
+# Eksen INDEX'tir: baska oturumun stage'de olmayan yarim defteri bu commit'i
+# bloklamaz. Sayaç yazimi commit'i etkilemez (yazim hatasi RED'i degistirmez).
+pruvo_defter_kota="$pruvo_kok/tools/defter-kota-kapisi.py"
+if [ ! -f "$pruvo_defter_kota" ]; then
+  echo "!! COMMIT DURDURULDU — tools/defter-kota-kapisi.py YOK." >&2
+  echo "!! Defter kota korumasi OLCULEMEDI; olculemeyen sey yesil sayilmaz." >&2
+  exit 1
+fi
+python3 "$pruvo_defter_kota" "$pruvo_kok"
+pruvo_defter_kota_rc=$?
+if [ "$pruvo_defter_kota_rc" -ne 0 ]; then
+  exit 1
+fi
 exit 0
