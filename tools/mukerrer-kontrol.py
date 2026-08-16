@@ -15,6 +15,56 @@ URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 ISTISNALAR = os.path.join(ROOT, ".mukerrer-istisna.json")
 
+# Cozulen istisna yolu bir kez basilsin diye (iki cagri noktasi var).
+_ISTISNA_BILDIRILDI = set()
+
+
+def _ana_agac_koku(kok=ROOT):
+    """Paylasilan ANA calisma agacinin koku (worktree icinden cagrilsa da). Yoksa None."""
+    try:
+        p = subprocess.run(["git", "-C", kok, "rev-parse", "--git-common-dir"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                           text=True, timeout=15)
+    except Exception:                                           # noqa: BLE001
+        return None
+    if p.returncode != 0:
+        return None
+    ortak = (p.stdout or "").strip()
+    if not ortak:
+        return None
+    if not os.path.isabs(ortak):
+        ortak = os.path.join(kok, ortak)
+    ana = os.path.dirname(os.path.abspath(ortak))
+    return ana if os.path.isdir(ana) else None
+
+
+def istisna_yolu(kok=ROOT, bildir=True):
+    """Gecerli `.mukerrer-istisna.json` yolu — WORKTREE'DE DE ana agactaki kayit gorulur.
+
+    🔴 NEDEN VAR (olculdu, ayni sinif UCUNCU kez): dosya `.gitignore`dadir ve
+    `git worktree add` IZLENMEYEN dosyalari TASIMAZ. Sonuc olculdu (16 Agu 2026):
+    ayni HEAD icin ana agacta `rc=0`, worktree'de `rc=1` — yani hukum AGACA GORE
+    DEGISIYORDU. Bedeli: iki tur kancayi ATLADI, bir worktree (`k119e`) bu yuzden
+    temizlenemedi ve URUN VERISINE HIC DOKUNMAYAN commit'ler bile bloklandi.
+    Kural: **ayni HEAD, ayni hukum** — istisna kaydi ORTAK, agaca gore degismez.
+
+    🔴 KAPSAM DAR: yalniz KAYIT ARANAN YER degisir. Dosya hicbir agacta yoksa
+    davranis ESKISININ AYNISI (istisna YOK). Paylasilan dosyanin VARLIGI tek
+    basina hicbir seyi yesile cevirmez; icerigi eskisi gibi ISLENIR."""
+    yerel = os.path.join(kok, ".mukerrer-istisna.json")
+    if os.path.exists(yerel):
+        return yerel
+    ana = _ana_agac_koku(kok)
+    if ana and os.path.abspath(ana) != os.path.abspath(kok):
+        paylasilan = os.path.join(ana, ".mukerrer-istisna.json")
+        if os.path.exists(paylasilan):
+            if bildir and paylasilan not in _ISTISNA_BILDIRILDI:
+                _ISTISNA_BILDIRILDI.add(paylasilan)
+                print("ISTISNA KAYNAGI: %s (paylasilan ana agac — worktree izlenmeyen "
+                      "dosyayi tasimaz)" % paylasilan)
+            return paylasilan
+    return yerel
+
 
 def _kaynak_linki(kayit):
     """Desteklenen kaynak kaydi biciminden linki cikarir."""
@@ -222,7 +272,7 @@ def _commit_katalogu():
 
 def _pre_commit_tarama():
     kaynaklar = _kaynaklari_oku(KAYNAKLAR)
-    istisnalar = _istisnalari_oku(ISTISNALAR)
+    istisnalar = _istisnalari_oku(istisna_yolu())
     urunler, gerekce = _commit_katalogu()
     if urunler is None:
         print("COMMIT KAYNAGI OKUNAMADI: %s" % gerekce)
@@ -259,7 +309,7 @@ def main():
     with open(URUNLER, encoding="utf-8") as f:
         urunler = json.load(f)
     kaynaklar = _kaynaklari_oku(KAYNAKLAR)
-    istisnalar = _istisnalari_oku(ISTISNALAR)
+    istisnalar = _istisnalari_oku(istisna_yolu())
     bulgular = _tara(urunler, kaynaklar, istisnalar)
 
     if bulgular:
