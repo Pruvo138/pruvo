@@ -2,6 +2,42 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 16 Agu — OTURUM KAPANISI (KraL) — CANLIYA GIDEN · KOSUYOR · BEKLIYOR · OKAN'DA
+
+**CANLIYA GIDEN (main push'lu, ana repo temiz):**
+- `7a695700` K117 merge — kapsam × model filtresi tek yuklem + kanon deny/kusak + eksik
+  modeller (dal `kral/k117b-model-kanon` merge edildi, **worktree+dal SILINDI**).
+- `62386a64` gizli kayitta notrlenmemis alanlar temizlendi · `96e89833` varlik cikarim
+  beyani (6 urun) · `d17e7ebd` beyan tamamlandi (30 urun) → **deploy=success**, yayin ACILDI.
+- `935f6695` + `4e7f3602` defter.
+- D1: `model_kanon` bayat 44→0 ve 25→0; taslak yigini **496→55**, yayin gecikmesi **441→0**
+  (`--geriye-doldur`, 5/5 eksen YESIL, degismez ihlali 0).
+- Canli dogrulama (onbellek kirma YOK): Corolla cipi **184/184, TRD cipi 0**;
+  `trd`/`22re`/`107` **404**, `mr2`/`lexus/gs` **200**.
+- Repo DISI: mail supurucusu v2 (kimlik tabanli) — kabul 8/8, SURVIVOR=0, elle kosum
+  43 silindi **komsu kaybi 0**, crontab `21,51` ACILDI (5→6 aktif satir, kayip satir 0).
+
+**KOSUYOR:** KraL tarafinda kosan is YOK; delege turlarinin hepsi kabul satiriyla kapandi.
+(MaCiT parti-surucusu kendi cron'unda devam ediyor — ayri ev.)
+
+**BEKLIYOR (kim/neyle bloke):**
+- 8 Vespa + 7 model sayfasi **404** → bir sonraki `deploy` kosumunu bekliyor
+  (`BEKLIYOR=deploy`); urunler son yayina giren derlemede yoktu. Kod tarafi HAZIR.
+- `.claude/worktrees/k119e` (dal `fix/k119e`) **TEMIZLENEMEDI**: icinde staged
+  `varlik-cikarim-beyani.json` taslagi var, commit mukerrer kancasinda takiliyor —
+  worktree gitignore'lu istisna dosyasini TASIMIYOR (bilinen sinif). Atlama anahtari
+  KULLANILMADI. Icerik ayrica `stash@{0}`'da. Sahibi/onarim turu cozecek.
+- `kurtarma/k122-yabanci-is` dali **DURUYOR** — peer'in dusurulen commit'siz isi
+  (deploy.yml K113 · marka-uyelik-test.py K109 · kalibrasyon 4 dosya). Sahibi uygulayacak;
+  **`git gc` kosturulmayacak.**
+- Ana agacta yabanci ` M tools/marka-uyelik-test.py` — DOKUNULMADI.
+
+**OKAN'DA BEKLEYEN KARARLAR:**
+- **K120** gizli kaynak kaydinin git'ten cikarilmasi — karar VERILDI, uygulama bekliyor;
+  kapilarin yokluk kolu olculmeden kapanmaz (sessiz delik riski).
+- Navlungo kimlik dosyasinin doldurulmasi + dilim-1 merge (`il-ilce-dilim1`).
+- Motor tarifesi satin alma karari (tarife kural blogu asagida).
+
 ## 16 Agu (~13:xxZ) — K117 KAPANDI + YAYIN 21 SAAT SONRA ACILDI + TASLAK YIGINI COZULDU (KraL)
 
 **K117 (Okan emri) CANLIDA DOGRULANDI.** Okan'in ekran goruntusundeki vaka:
