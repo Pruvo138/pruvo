@@ -2992,22 +2992,6 @@ IZIN_LISTESI = {
         "kalem ve kendisi deploy'un ZATEN kosturdugu build.py'nin ciktisini yeniden "
         "uretir. CI'YA ALINMA KOSULU degismedi: alt-surec yerine render_merchant_feed "
         "import edilip 2 kez cagrilirsa sure saniyeye iner ve bloklayici eklenebilir."),
-    "tools/filament-test.py": (
-        R_YAVAS + " + " + R_AG + " 🔴 GEREKCE DUZELTILDI (1 Agu, OLCULDU): eski metin "
-        "\"76,1 s\" diyordu — BAYATTI (katalog buyudu) ve TEK EKSENLIYDI. Iki somut engel:\n"
-        "  (1) SURE: `PARITE=0` ile bile 161,8 s (16.736 urun). Testin 0. adimi build.py'yi "
-        "      BASTAN kosturur; deploy zaten ayni build'i yapar -> tek build job'una eklenen "
-        "      EN PAHALI kalem olur (feed-cache-bust 25,4 s ile kiyasla ~6x).\n"
-        "  (2) AG: VARSAYILAN kosum (PARITE=1) TEST 5'te `node tools/parite-test.js 300` + "
-        "      `parite-ege.js 200` ile CANLI CDN/D1'e 500 istek atar -> regresyon-kapisi.py "
-        "      ile AYNI sinif (R_AG): tek gecici DNS/429 hatasi tum ekibin yayinini durdurur. "
-        "      `PARITE=0` ile baglamak bu ekseni ANLAMSIZ YESILE cevirir ([[kapi-kapsam-eksen"
-        "-secimi]]); bu depoda \"hem kosuyor hem olcmuyor\" hali kabul edilmiyor.\n"
-        "  CI'YA ALINMA KOSULU (feed-cache-bust emsali): alt-surec build.py yerine "
-        "  `build.render_product` import edilip yalniz FIKSTUR sayfalari uretilirse sure "
-        "  saniyeye iner; TEST 5 ayri (agli) bir is'e alinir. O iki sart saglanmadan EKLENMEZ.\n"
-        "  NOT: fikstur kaymasi (eski 7/25 kirmizisi) 1 Agu'da KAPANDI ve TEST 26 nobetcisi "
-        "  eklendi (26/26); yani muafiyet artik BILINEN BIR KIRMIZIYI ortmuyor."),
     "tools/kaynak-akis-test.py": (
         R_YAVAS + " OLCULDU (31 Tem, temiz checkout): 86,9 s. "
         "🔴 GEREKCE DUZELTILDI: yalniz YAVAS degil — ayni kosumda rc=1 verdi. Iddialari "

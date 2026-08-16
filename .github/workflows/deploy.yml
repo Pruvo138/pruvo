@@ -1992,6 +1992,17 @@ jobs:
       - name: Malzeme dayanak kabul testi (landing + ege-bilgi.md + statik sayfa/JSON-LD)
         run: python3 tools/malzeme-dayanak-test.py
 
+      # FILAMENT PAKETI KABUL TESTLERI: 17 Agu 2026'da baglandi — kapsam boslugu olculdu
+      # (grep -rn "filament-test" .github/workflows/ tools/kancalar/ -> 0 satir; 26 vakalik
+      # tools/filament-test.py HICBIR yerde kosmuyordu). Ayni paylasilan checkout'a 5 ev
+      # baktigi icin komsunun kirli ağaci TEST 1'i yanlis eksende ("git diff bos mu") kirmizi
+      # yakiyordu — onarildi: TEST 1 artik sha256 once/sonra esitligi (paketin kendi yazma
+      # tespiti; komsunun durumu kapıyı yakmaz, mutant olumu kanitlandi). 26 vakanin TAMAMI
+      # calissin diye build.py'yi kendi icinden calistirir (yukariya ayri build adimi koymak
+      # double-run olurdu). Bloklayici (kapsam kapisi `tools/ci-kapsam-test.py` da sayar).
+      - name: Filament paketi kabul testleri (26 vaka; urunler.json'a YAZMAZ sha256 kapisi)
+        run: python3 tools/filament-test.py
+
       # EGE-BILGI TAVAN: ege-bilgi.md uzunlugu bot slice(0,6000) esigini asmasin.
       # Olcu UTF-16 kod birimi (JS String.slice birimi) — bayt sayan olcum sahte-kirmizi,
       # Python len(str) astral karakterde sahte-yesil yakar.
