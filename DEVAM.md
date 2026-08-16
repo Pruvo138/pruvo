@@ -3,6 +3,12 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
+## 16 Agu (~19:00Z) — OTURUM KAPANISI (KraL)
+**CANLIYA GIDEN:** `cadf9acb` K123 yayin-yasi nobetcisi + mukerrer istisnasi worktree'de · `04b48b36` K113 uretici butunluk kapisi BLOKLAYICI serit + K114 r2-purge (yayin ACILDI: deploy+yayin success) · `b68d9eb7` K124 turetilmis-hal saglik yuklemi (urun partisi artik yayini durdurmuyor; 14'luk parti beyansiz yesil gecti) · `ce5164d2`+`25c5cc34` K39 defter kotasi kancada, 2 evde canli · `5df50d78` K120 gizli kaynak kaydi izlemeden cikti (yokluk kolu: degisen 0, bloklayici 0).
+**KOSUYOR:** KraL tarafinda is YOK — tum delege turlari sayisal kabul satiriyla kapandi; worktree 1 (yalniz ana agac).
+**BEKLIYOR:** yerel main'de yabanci parti commit'i `2d1d8814` push bekliyor (D1 yazici kilidi UCUSTA, PID 75749 — sira, ariza degil; sahibinin turu itecek) · yabanci ` M tools/marka-uyelik-test.py` DOKUNULMADI · `kurtarma/k122-yabanci-is` dali sahibinde.
+🔴 **EKIBE:** gizli kaynak kaydi artik IZLENMIYOR — `git add` EDILMEZ, yerel diskte tutulur.
+
 ## 🔴 YAYIN NEDEN SUREKLI KAPANIYOR — KOK NEDEN OLCULDU (K124 ILE KAPANDI)
 
 Bugun uc kapanmanin ucu de ayni sekil: bloklayici `serit-a3` kirmizi -> `deploy` calismiyor.
