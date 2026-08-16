@@ -85,7 +85,17 @@ acildi: `~/.claude/cron/.navlungo-kimlik.json` (repo DISI, izin 600, degeri Clau
 
 ## ACIK KALEMLER (kaynak-dogrusu: `acik-kalemler.md`)
 
-- 🔴🔴 **K117 (OKAN EMRI, 16 Agu — SIRADAKI IS, baska ise BASLAMA):** **model filtresi
+- ✅ **K117 KAPANDI (16 Agu) — main `7a695700`, CI SUCCESS, D1 tazelendi.** Uc eksen de
+  canliya gitti; ayrinti asagidaki teshis blogunda. Kapanis sayilari:
+  merge 4 dosya (+343/−23) · parite 1328 + 893 BIREBIR · D1 `model_kanon` BAYAT 44 → **0**
+  (5 turetilmis kolon yesil, 47/47) · turnusol `Toyota+TRD` KAPALI, `Vespa+PX` ACIK ·
+  worktree+dal silindi. **(A)** kapsam × model tek yuklem, kabul 6/6 + **SURVIVOR=0** ·
+  **(B)** 6 deny + 10 kusak eslemesi, KAPANAN_SAYFA=6 KAYBOLAN_URUN=0 · **(C)** 17 allow
+  girdisi, bagimsiz olcum **17/17 kova var, 17/17 eslesti, 15 sayfa aciliyor** (Hyundai
+  Genesis yabanci-marka damgasi, Peugeot 203 esik alti). **ESIK=3 KALDI (Okan karari).**
+  🔴 **ISCI RAPORU CURUTULDU:** K117-C iscisi "14 kovada kova YOK, YENI_SAYFA=1" dedi;
+  bagimsiz olcum yanlisladi (15 sayfa). Oz-rapor kanit degildir — ders tekrar dogrulandi.
+- 🔴🔴 **K117 TESHIS ARSIVI (kapali):** **model filtresi
   calismiyor + model kapsami eksik.** `/marka/toyota/`: 2101 parca, "Modele gore secin (72)"
   ama cip sayilari 2101'e BOLUNMUYOR — cok sayida parca hicbir modele atanmamis, "neredeyse
   tum markalar icin gecerli" (Okan). Ayrica **model linkine basinca filtre CALISMIYOR**.
@@ -110,6 +120,77 @@ acildi: `~/.claude/cron/.navlungo-kimlik.json` (repo DISI, izin 600, degeri Clau
   modeli, Toyota kapsamina siziyor**). Hukum: `model_kanon` kurallari hem alt-kumeleri
   tekillestirmiyor hem marka-disi/model-olmayan jetonlari elemiyor.
   **Yeni oturum bu iki eksenle acilir: (A) kod, (B) kanon kurali.**
+  🔬 **16 Agu OTURUMU — UC EKSEN OLCULDU, ONARIM DALI `kral/k117b-model-kanon`:**
+  **(A) KOK NEDEN BULUNDU — kapsam modulu model filtresini EZIYOR.** `?kategori=` ACIKKEN
+  cipe basilinca filtre uygulaniyor, ~1 sn sonra tum katalog geri geliyor (canli:
+  Toyota/Corolla secili, ekran "2101 parca"). `marka_model_build.py:1855` filtre bitince
+  `sayilariTazele()` → `PRUVO_KAPSAM.uygula()`; `:1539` her `.card[data-kat]` icin
+  `style.display`'i YALNIZ kapsama gore yeniden yaziyor, `data-mm`'den habersiz.
+  Kapsam yokken `uygula()` erken cikiyor → kusur yalniz `?kategori=` kolunda gorunur
+  (bu yuzden parametresiz olcumler temiz cikti). **Marka-genel, tek kod yolu, 358 sayfa.**
+  Hukum: gorunurluk + sayaclar TEK kanonik yuklemden (kapsam ∧ model) turer; sayac sahipligi
+  tekillesir. SPEC yazildi, isci kosuyor.
+  **(B) KAPANDI — commit `1a567143` (dalda, push YOK).** `MODEL_OLMAYAN_CIFT` 29→35
+  (TRD · TRD Pro · 22RE · 4AGE · Scan Gauge · 107=Peugeot modeli) · `KUSAK_ESLEME` 9→19
+  (SW20/MR2 SW20/MR2 Spyder→MR2 · Prado/LC Prado/LC 200/FJ40/LC FJ40→Land Cruiser ·
+  T25/T27→Avensis) · `KUSAK_DISI_JETON` 1→2 (AE86 farkli arac) · `BASLIK_DOGAN_ALLOW`
+  141→140. 5 kapi rc=0, **KAPANAN_SAYFA=6, KAYBOLAN_URUN=0.** 86/GT86/GR86 birlestirmesi
+  AYRI hukme birakildi.
+  **(C) YENI EKSEN (Okan, "Aristo listede yok") — 275 KOVA / 63 MARKA / 636 URUN listeye
+  hic girmiyor.** 🔴 Aristo'nun sebebi yargi kolu DEGIL (`SAHIP=E`), **ESIK**: Toyota'nin
+  Aristo kovasi 2 urun (esik 3); basliktaki 4 urunun 2'si Lexus uyesi sayiliyor.
+  Elenen kume KARISIK — gercek model (Vespa PX 20 · Ciao 23 · Smallframe 10 · VW/Seat
+  Citigo · Opel Rifter/Partner · Peugeot Combo/Jumpy · Chevrolet Ampera · Seat Sharan) ile
+  cop (Vespa|Piaggio 258 marka adi · `Sierra` tedarikci 4 markada 104 urun · iPhone/MagSafe
+  aksesuar · Peugeot|Stellantis grup adi · Toyota|Berlingo, Seat|Golf baska marka modeli)
+  IC ICE. Tek kural acmak copu yayina sokar → 275 kova kanitla siniflandiriliyor,
+  hukum mimarda. Ters bulgu: H1 sekil kurali **848 kova/1849 urun** aciyor (motor/sasi
+  kodlari dahil) ama harf-only gercek model adlari kolsuz kaliyor.
+- 🔴🔴 **K119 (16 Agu, EN YUKSEK ONCELIK) — YAYIN 15 AGU 14:02'DEN BERI KAPALIYDI.**
+  Son basarili deploy SHA `268da994` (2026-08-15T14:02Z); uzerine **22 commit** birikti
+  (K117 · Ducati×PR 46 urun · Kia×C3D 9 urun · ic link isleri). Kimse fark etmemis —
+  `deploy` job'i `needs: [build, serit-a2, serit-a3, serit-a4]` ile fail-closed SKIPPED
+  oluyordu, kirmizi CI listesinde tek satirdi.
+  **Engeller sirayla kaldirildi:**
+  1. `serit-a3` KIRMIZI — gizli kayitta notrlestirilmemis 4 alan (iki urun partisinden).
+     Temizlendi → `62386a64`; 4 hata → **0**, `denetim-kapisi` IHLAL=0, 31 kayit notrlendi.
+     Ayrinti DEVAM-ARSIV.md (git disi).
+  2. `serit-a3` yine KIRMIZI — **`CIKARIM KAYBI`**, `tools/varlik-test.py`, 6 urun.
+     Olculdu: urunlerin KENDI gorselleri saglam (HTTP 200); dusen sey **rel-card
+     referanslariydi** (yeni ic-link algoritmasi eski hedefleri birakti). 6 id
+     `varlik-cikarim-beyani.json` kapsamina alindi → `96e89833`, **serit-a3 SUCCESS**.
+  3. Kalan engel `build` job'i: **D1 yazici lease'i (MAKINELER-ARASI)** — ariza DEGIL
+     SIRA. Bekle→rerun→canli turnusol isi kosuyor.
+  🔴 **DERS (sinif):** yayin kapaliligi hicbir yerde ALARM URETMIYOR. `deploy` SKIPPED
+  sessizdir; 14 saat boyunca bes ev calisti ve hicbiri canliya cikmadi. Kalici cozum
+  yayin-yasi nobetcisi olmali (son basarili deploy X saatten eskiyse KIRMIZI).
+  🔴 **IKI KANCA ATLAMASI OLDU (isci karari, kayit):** mukerrer kancasi iki kez asildi;
+  sebep `onarim-commit.py`'nin worktree kurarken izlenmeyen istisna dosyasini TASIMAMASI.
+  Ayri kalem, sinif kapisi gerekiyor. Ayrinti DEVAM-ARSIV.md (git disi).
+- 🔐 **K120 (OKAN KARARI, 16 Agu — UYGULANMADI, yayin acilinca yapilacak):** gizli kaynak
+  kaydi **git'ten CIKACAK** (izlenmeyecek), yalniz diskte yasayacak; notrlenen alanlar geri
+  yazilacak. Gerekce: doktrin dosyayi "gizli" sayiyor ama dosya IZLENEN ve repo PUBLIC —
+  celiskiyi Okan dosyayi izlemeden cikararak cozdu.
+  🔴 **UYARI (uygulayacak tura):** dosya CI checkout'unda ARTIK OLMAYACAK; onu okuyan
+  kapilar yoklukta sessizce yesil SAYMAMALI — her kapinin yokluk kolu olculmeden bu is
+  kapanmaz. Ad GECMISTE zaten public oldu; izlemeden cikarma geriye donuk temizlik DEGILDIR.
+  Ayrinti DEVAM-ARSIV.md (git disi).
+- 🔧 **K118 (YENI, 16 Agu — MaCiT bildirdi, HUKUM BENDE):** pre-push sizinti kapisi
+  (`tools/gecmis-geri-donus-kapisi.py`) her BICIM-KAYDIRAN urun partisinde rc=2 verecek →
+  isciler kapiyi atlamaya suruklendi (bir kez OLDU: `d8c48ad9`).
+  🔬 **IKI TESHIS DE OLCUMLE CURUDU:** MaCiT "hook `main..HEAD` kullaniyor" dedi, ben
+  "tum gecmisi tariyor" dedim — **ikisi de YANLIS.** `eklenen_commitler` (satir 260-280)
+  `rev-list <local> --not <remote_sha>`, yedegi `--not --remotes=origin`; uc vaka
+  (normal · sifir remote · bilinmeyen remote) **ucu de 0 commit / 0 aday / rc=0**.
+  **Gercek:** `d8c48ad9` menzili **1 commit**, o tek commit **1.298.794 aday** uretiyor
+  (butce 150.000 → %8659). Sinif bilinen: `urunler.json` girintisi kayinca diff tum
+  dosyayi "eklenen satir" sayiyor ([[urunler-json-bicim-diffi-icerigi-gizler]]). Butce
+  KOD commit'ine gore kalibre ("en pahali tek commit 57.339 aday"), tam-dosya veri
+  commit'i onu YAPISAL olarak asiyor. Tam gecmis 3288 commit.
+  **Yonum (uygulanmadi, olculecek):** butceyi buyutmek DEGIL (katalogla buyur, yine
+  kirilir) — icerik ekseninde `urunler.json`'u ayri ele al; o dosyanin sizinti riski
+  zaten `denetim-kapisi` + `kisisel-veri-test` mulku. Kapsam DARALTMA oldugu icin
+  olcumsuz yapilmaz. `kabul:` alani BOS — kapanmadan once doldurulacak.
 - 🟠 **Navlungo dilim-1 MERGE BEKLIYOR:** dal `il-ilce-dilim1` (`5d57c918`). Sonraki dilimler:
   telefon bicimi (`+90 5xx xxx xx xx`), Navlungo istemcisi (8 saat token onbellegi),
   yonetim ekraninda "Kargoya ver" (alanlar dolu, desi Okan'dan), webhook alicisi.
@@ -118,9 +199,12 @@ acildi: `~/.claude/cron/.navlungo-kimlik.json` (repo DISI, izin 600, degeri Clau
 - 🔴 **K113 (YENI, 16 Agu)** — `Uretici butunluk kapisi` YANLIS SERITTE: `hijyen-build`'de, oysa URL-guvensiz ID kanonik adresi bozar = BLOKLAYICI olmali. Bugun tam bu yuzden bozuk ID'yi yakaladi ama yayini durdurmadi. `deploy.yml`'e yazmayi gerektirir; **peer'in commit'siz isi bekleniyor**.
 - 🔴 **K114 (YENI, 16 Agu)** — `onarim/r2-purge` dali (`9f7aaf77`, worktree `/private/tmp/pruvo-purge`) MERGE BEKLIYOR: tek engel `ci-kapsam-test.py` rc=1 (`tools/r2-purge-test.py` CI kapsaminda degil). K113 ile AYNI dosyaya yazilacak, ayni turda kapanmali.
 - ✅ **K115 KAPANDI (16 Agu)** — ic link hatti canlida (yukaridaki blok). Sayilar orada.
-- 🟠 **K116** — `kimi` isci motoru **KOTA DOLDU** (403). Tarayicili is m3'te. Ayrica MaCiT
-  bildirdi: `isci.sh`/kapi kapali kumesi hala `kimi`yi TANIMIYOR (skill "kimi birincil" diyor,
-  makine listesi guncellenmemis) — **arac kusuru, bende.**
+- 🟠 **K116 — ARAC KUSURU YOK, DUZELTME (16 Agu, olculdu):** iki kapali kume de `kimi`yi
+  TANIYOR (`tools/mimar_kimlik.py` `ISCI_MOTORLARI` + `isci.sh` `GECERLI_MOTORLAR`). MaCiT'in
+  gordugu RED **kota karantinasiydi** (`~/.claude/cron/.motor-karantina`: `kimi 1786826660`,
+  6h omur — bugun DOLDU). Karantina bitti ama motor hala 403: *"usage limit for this billing
+  cycle … refreshed in the next cycle"* — yani **fatura donemi** kotasi, saatlik degil.
+  **Hat bugun: m3 BIRINCIL, kimi donem yenilenene kadar KAPALI.** Kod degisikligi GEREKMIYOR.
 - 🔴 **K104** — nobet is akisi 200 kosumda 11 success / 77 failure / 110 cancelled; son yesil
   12 Agu. Teshis var, HUKUM MIMARDA. · **K104B** — iki kapi main'de de KIRMIZI (mutasyon
   capalari M06/M31 + 2 kapinin kanca kablosu envanterde yok); tabanda olculdu.
