@@ -71,7 +71,7 @@ _spec.loader.exec_module(sepet_kapisi)
 
 # Fikstur urunleri — SABIT FIYATLI katalog kolu (kural yalnizca orada uygulanir).
 FIKSTURLER = [
-    {"id": "bmw-kaput-a-ma-kolu", "ad": "PLA-disi oneri (ABS +%50)", "bekle": "ABS"},
+    {"id": "bmw-kaput-a-ma-kolu", "ad": "PLA-disi oneri (ASA +%60)", "bekle": "ASA"},
     {"id": "genesis-coupe-jant-gobek-kapagi", "ad": "PLA-disi oneri (ASA +%60)",
      "bekle": "ASA"},
     {"id": "mitsubishi-klima-kumanda-standi", "ad": "PLA onerisi (fark %0)",
