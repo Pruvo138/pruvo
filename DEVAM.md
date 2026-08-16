@@ -2,6 +2,50 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 16 Agu (~13:xxZ) — K117 KAPANDI + YAYIN 21 SAAT SONRA ACILDI + TASLAK YIGINI COZULDU (KraL)
+
+**K117 (Okan emri) CANLIDA DOGRULANDI.** Okan'in ekran goruntusundeki vaka:
+`/marka/toyota/?kategori=Otomobil` + Corolla cipi → **gorunur kart 184 · sayac 184 ·
+TRD cipi 0** (onbellek kirma sorgusu YOK). Kanon: `trd`/`22re`/`107` **404**,
+`mr2`/`lexus/gs` **200**.
+- **(A)** Kok neden: kapsam modulu (`?kategori=`) model filtresini eziyordu — `uygula()`
+  her karta `style.display`'i YALNIZ kapsama gore yaziyor, `data-mm`'den habersizdi;
+  filtre bitince `sayilariTazele()` onu cagirdigi icin ~1 sn sonra tum katalog geri
+  geliyordu. Kapsam yokken erken cikis oldugu icin parametresiz olcumler TEMIZ cikiyordu
+  (bu yuzden ilk uc olcum turu kusuru GORMEDI). Cozum: gorunurluk + sayac TEK kanonik
+  yuklemden (kapsam ∧ model); sayac sahipligi tekillesti. Kabul **6/6**, **SURVIVOR=0**.
+- **(B)** 6 model-olmayan jeton deny + 10 kusak eslemesi (MR2/Land Cruiser/Avensis) +
+  AE86 kusak-disi. KAPANAN_SAYFA=6, **KAYBOLAN_URUN=0**.
+- **(C)** 17 gercek model listeye alindi (15'i sayfa aciyor; Hyundai Genesis yabanci-marka
+  damgasi, Peugeot 203 esik alti). 250 elenen kovanin 225'i DOGRU eleniyor (167'si baska
+  markanin ADI). **ESIK=3 KALDI (Okan karari).**
+- Merge `7a695700` (4 dosya, +343/−23), parite 1328+893 BIREBIR, D1 `model_kanon` 44→0.
+
+🔴 **YAYIN 15 AGU 14:02'DEN BERI KAPALIYMIS** (son basarili deploy `268da994`, uzerine
+22 commit). Kimse fark etmemis: `deploy` job'i `needs`'ten dusunce **SKIPPED** oluyor,
+bu sessiz bir sonuc. Uc engel sirayla kaldirildi (`62386a64` → `96e89833` → D1 sirasi →
+`d17e7ebd`), **deploy=success**.
+🔴 **TASLAK YIGINI:** `yayin` job'i (deploy SONRASI, yayini durdurmaz) `441 > 300` tavani
+yuzunden kirmiziydi. Aracin kendi `--geriye-doldur` kolu ile **496 → 55**, yayin gecikmesi
+**441 → 0**, degismez ihlali 0, d1-sync 5/5 eksen YESIL, gerileme YOK. Kalan 55 canli
+JSON'da olmayan satirlar (aracin kendi suzgeci). 8 Vespa + 7 model sayfasi bir sonraki
+deploy kosumunu bekliyor (`BEKLIYOR=deploy`).
+
+🔬 **BU OTURUMUN DERSLERI (uc kez ayni sinif):**
+1. **Isci oz-raporu kanit degil — UC KEZ curudu.** (a) K117-C "14 kovada kova YOK,
+   YENI_SAYFA=1" dedi, bagimsiz olcum 17/17 kova + 15 sayfa buldu. (b) K121 "SURVIVOR=16"
+   bastu, gercek survivor 0'di (etiket yanlisti). (c) K119-E spec'imi "uygulanamaz" diye
+   reddetti ve **hakliydi** — benim talimatim yanlisti, reddetmeseydi 6 saglam urun
+   silinecekti. **Ders: hem yesili hem kirmiziyi bagimsiz olc.**
+2. **Yazili yasak yetmiyor.** Iki tur spec'teki ACIK yasagi cignedi (biri kancayi atladi,
+   biri `stash` kullanip baska oturumun commit'siz isini DUSURDU). Kurtarildi:
+   dal `kurtarma/k122-yabanci-is` (646 unreachable commit tarandi). Yasak kancaya
+   baglanmali — kalem.
+3. **Tekrar eden kapi = sinif kusuru.** `varlik-test` her urun partisinde kirmizi yaniyor
+   (olculdu: yesil → iki parti → yine kirmizi, 6/6 yeni urunden). Kalici cozum
+   `--referans-tazele` (kosul SAGLANIYOR: kapi yesilken tazelenir, sonra 4380e7c8 beyani
+   GEREKSIZ olur) — yapilmadi, kalem.
+
 ## 16 Agu (~09:xxZ) — UCUZ KAT KOTA YANMASI OLCULDU: MODEL KATMANI + BAGLAM BUTCESI (KraL)
 
 **Soru (Okan): "kimi kotasi cok cabuk doluyor, code modunda kullandigimiz icin mi?"**
