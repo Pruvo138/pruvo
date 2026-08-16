@@ -184,8 +184,35 @@ DAGITIK_KILIT_ADI = "tam-katalog"
 DAGITIK_KILIT_SURESI = 600
 
 
+# CANLI lease (baska makine aktif yaziyor) SENARYOSUNUN OZEL CIKISI (16 Agu 2026).
+# SQL'in ON CONFLICT WHERE kosulu suresi dolmus lease'i devralir; bu noktaya geldiysek
+# lease baska bir sahipte ve CANLI — yazma YAPILMAZ, main() bu istisnayi yakalar ve
+# rc=4 doner (CI adimi bunu 0 sayar, emniyet agi zaten var: ucta kosan is + pre-push
+# hook + d1-uzlastirici.yml). SystemExit'ten turer: eski alt() testi (d1-dagitik-
+# kilit-test.py) bunu `except SystemExit` ile yakalar, yeni testler (V1) ozellikle
+# bu sinifi ayirt eder.
+class DagitikYaziciCanliLease(SystemExit):
+    """Baska makine canli D1 lease tutuyor — yazma ATLANMALI (main() -> rc=4).
+
+    SystemExit'ten turer; `e.code` istisnanin mesajidir (eski `sys.exit(mesaj)` ile
+    ayni davranis — d1-dagitik-kilit-test.py eski `alt()` bunu yakalar, `e.code`'u
+    basar ve "MAKINELER-ARASI" arayan test kendiliginden yesil kalir). main() bu
+    istisnayi ozellikle yakalar ve rc=4 ile cikar; geri-okuma YAPILMAZ."""
+
+    def __init__(self, mesaj, lease_sonu=None):
+        super().__init__(mesaj)
+        self.lease_sonu = lease_sonu
+        self.mesaj = mesaj
+
+
 def dagitik_kilit_al(sahip=None):
-    """D1 uzerinde non-blocking lease al; baska makine uctaysa fail-closed cik."""
+    """D1 uzerinde non-blocking lease al; baska makine uctaysa DurumAck'i OLUSTUR.
+
+    CANLI lease (farkli sahip, suresi dolmamis) -> DagitikYaziciCanliLease raise;
+        main() bunu yakalar ve rc=4 ile cikar; yazma YAPILMAZ (CI adimi 0 sayar).
+    STALE lease (sona_erme <= simdi) -> SQL'in WHERE kosulu zaten devralir;
+        token varsayilan olarak doner, yazma SOPAYA benzer (mevcut davranis).
+    Diger hata (ag, sema, yetki) -> sys.exit (fail-closed)."""
     token = sahip or uuid.uuid4().hex
     sql = (
         "CREATE TABLE IF NOT EXISTS senkron_kilit ("
@@ -207,9 +234,14 @@ def dagitik_kilit_al(sahip=None):
                  "fail-closed DURDU." % (type(e).__name__, e))
     bulunan = satirlar[0] if len(satirlar) == 1 else {}
     if bulunan.get("sahip") != token:
-        sys.exit("!! D1 YAZICI UCUSTA (MAKINELER-ARASI) — ikinci tam-katalog "
-                 "yazicisi fail-closed DURDU (lease-sonu=%s)."
-                 % bulunan.get("sona_erme", "?"))
+        # CANLI lease; SQL'in WHERE kosulu "sona_erme <= simdi" dedigi icin bu noktaya
+        # geldiysek ya suresi dolmamis lease ya da farkli sahip. Iki durum da AYNI:
+        # yazma YAPILMAZ (16 Agu 2026 — mergelenmemis publish'i tek baska yazici dolduruyor).
+        raise DagitikYaziciCanliLease(
+            "D1 YAZICI UCUSTA (MAKINELER-ARASI) — ikinci tam-katalog yazicisi "
+            "lease'i CANLI; yazma ATLANDI (rc=4). (lease-sonu=%s)"
+            % bulunan.get("sona_erme", "?"),
+            lease_sonu=bulunan.get("sona_erme"))
     print("D1 dagitik yazici kilidi ALINDI (lease=%s...)" % token[:8])
     return token
 
@@ -3865,6 +3897,16 @@ def argumanlari_oku():
                     metavar="YOL",
                     help="D1'de FAZLA satirlarin silinmesini IKI GOZLEME yay (karantina "
                          "damgasi dosyasi). Damga okunamazsa SILME YAPILMAZ.")
+    # --adim: TEK python3 cagrisi olarak `deploy.yml` "Katalogu D1'e senkronla"
+    # adiminin bash kolunu (secret/bayatlik/rc=4 atlama) ikame eder. K80 (YENI CI
+    # ADIMI HUKUM KAPISI) bash metakarakterli yeni satirlari OLCULEMEDI sayip
+    # push'u reddediyor; --adim ayni mantigi Python'da ifade eder. Cagri kodu:
+    #   python3 tools/d1-sync.py --adim
+    # Davranis birebir (kimlik 5 Agu): secret YOK → 0; bayat != 0 → 0; canli
+    # lease (d1-sync.py rc=4) → "D1 YAZICI UCUSTA..." + "D1_SENKRON=ATLANDI..."
+    # + 0; gercek hata → d1-sync.py'nin rc'si disari (fail-closed).
+    ap.add_argument("--adim", action="store_true",
+                    help="CI senkron adimi: secret/bayatlik/rc=4 tek Python surecinde.")
     return ap.parse_args()
 
 
@@ -4349,17 +4391,77 @@ def _main(a):
             % (uzlastirici_karantina.OKUNAMADI_IMZASI, uzlastirici_karantina.DAMGA_ADI))
 
 
+def _adim_kos():
+    """CI senkron adimi: secret/bayatlik/rc=4 tek Python surecinde.
+
+    `deploy.yml` "Katalogu D1'e senkronla" adiminin bash kolunu (kimlik 5 Agu:
+    secret YOK / bayat / canli lease / gercek hata) tek bir python3 cagrisi
+    olarak ifade eder. K80 (YENI CI ADIMI HUKUM KAPISI) bash metakarakterli
+    yeni satirlari OLCULEMEDI sayip push'u reddediyor; bu kol ayni SESLE
+    AYNI sonucu uretir. Recursion YOK: iceride cagirilan `d1-sync.py` alt
+    surecleri `--adim` bayragi TASIMAZ (sadece senkron/bayatlik yapar).
+
+    Cikis kodu (deploy.yml'in step logic'i ile BIRE AYNI):
+      0  secret YOK / bayat / basarili senkron / canli lease (yazma ATLANDI)
+      N  d1-sync.py'nin gercek hata kodu (sema/ag/yetki/SQL/IO; fail-closed)
+    """
+    # (1) SECRET YOK → eski bash davranisi: tek satir mesaj + exit 0.
+    if not os.environ.get("CLOUDFLARE_API_TOKEN") or not os.environ.get("CLOUDFLARE_ACCOUNT_ID"):
+        print("CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secret yok — D1 senkronu atlandi.")
+        return 0
+    # (2) BAYATLIK on-kosulu: bayat degilse devam; degilse eski bash davranisi.
+    #     --bayatlik KENDI yolunda D1'e DOKUNMAZ (sadece git ls-remote + merge-base).
+    bayatlik = subprocess.run(
+        [sys.executable, os.path.join(KOK, "tools", "d1-sync.py"), "--bayatlik"])
+    if bayatlik.returncode != 0:
+        print("BAYAT KOSUM — bu checkout uzak main'in ucunda DEGIL; D1 senkronu ATLANDI.")
+        print("(Ucta kosan is + pre-push hook + d1-uzlastirici.yml katalogu senkron tutar.)")
+        return 0
+    # (3) ASIL SENKRON — bash'teki `python3 tools/d1-sync.py` cagrisinin karsiligi.
+    #     Canli lease halinde main() DagitikYaziciCanliLease'i yakalar ve rc=4 ile
+    #     cikar; gercek hata sys.exit ile fail-closed.
+    senkron = subprocess.run(
+        [sys.executable, os.path.join(KOK, "tools", "d1-sync.py")])
+    if senkron.returncode == 4:
+        # CANLI lease (16 Agu 2026): baska makine aktif yaziyor; yazma YAPILMAZ,
+        # yayin DEVAM. Emniyet agi zaten var: ucta kosan is + pre-push hook +
+        # d1-uzlastirici.yml. Adim `continue-on-error` ALMAZ — bu kol susturur.
+        print("D1 YAZICI UCUSTA (baska makine) — bu kosumda senkron ATLANDI; "
+              "ucta kosan is + pre-push hook + d1-uzlastirici.yml katalogu senkron tutar.")
+        print("D1_SENKRON=ATLANDI SEBEP=YAZICI_UCUSTA")
+        return 0
+    return senkron.returncode
+
+
 def main():
-    """Yerel flock + D1 lease'i tum okuma-planlama-yazma-dogrulama boyunca tut."""
+    """Yerel flock + D1 lease'i tum okuma-planlama-yazma-dogrulama boyunca tut.
+
+    Cikis kodu:
+      0  basarili (yazildi / yazacak bir sey yoktu)
+      4  baska makine canli D1 lease tutuyor; bu kosumda yazma YAPILMAZ (CI adimi
+         `rc=4` -> `exit 0` ile ATLAR; emniyet agi zaten var: ucta kosan is + pre-push
+         hook + d1-uzlastirici.yml)
+      1+ gercek hata (sema / ag / yetki / SQL / IO) — fail-closed
+    """
     global _dagitik_kilit_token
     a = argumanlari_oku()
+    if a.adim:
+        return _adim_kos()
     yerel = yazici_kilidi_al() if yazici_yolu_mu(a) else None
     dagitik = None
     try:
         if yazici_yolu_mu(a):
-            dagitik = dagitik_kilit_al()
+            dagitik = dagitik_kilit_al()  # CANLI lease -> DagitikYaziciCanliLease
             _dagitik_kilit_token = dagitik
-        return _main(a)
+        return _main(a) or 0
+    except DagitikYaziciCanliLease as e:
+        # CANLI lease — yazma YAPILMAZ. CI adimi rc=4'u yakalar ve sessizce 0 sayar
+        # (emniyet agi zaten var: ucta kosan is + pre-push hook + d1-uzlastirici.yml).
+        # GURULTULU + makine-okunur: logdan "kalici tikanmis lease" sayilabilsin.
+        sys.stderr.write("D1 YAZICI UCUSTA (baska makine) — bu kosumda senkron ATLANDI; "
+                         "ucta kosan is + pre-push hook + d1-uzlastirici.yml katalogu senkron tutar.\n")
+        sys.stderr.write("D1_SENKRON=ATLANDI SEBEP=YAZICI_UCUSTA\n")
+        return 4
     finally:
         if dagitik:
             dagitik_kilit_birak(dagitik)
@@ -4371,4 +4473,4 @@ _dagitik_kilit_token = None
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
