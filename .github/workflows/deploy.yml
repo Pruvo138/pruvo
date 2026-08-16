@@ -1166,6 +1166,41 @@ jobs:
       # ekseni: adim yayin kritik yolunda BILEREK birakildi, cunku kirmizisi para eksenidir).
       - name: "Fiyat tipi normalizasyonu kabul (int/string/desteklenmeyen tip fail-closed)"
         run: python3 tools/fiyat-tipi-test.py
+
+      # KANCA KABLOLAMASI (tools/kanca-kablolama-nobeti.py --ci) — kancalar artik
+      # `.git/hooks` altinda (commit EDILMEYEN, elle duzenlenen) dosyalar degil,
+      # IZLENEN `tools/kancalar` kaynagidir; kablolamayi tools/kanca-kur.py kurar.
+      # Bu nobetci tools/kanca-nobeti.py'nin OLCMEDIGI ekseni sahiplenir: bir
+      # kanca beklenen araci CAGIRIYOR olup yine de HICBIR SEYI BLOKLAMIYOR
+      # olabilir. 4 Agu 2026'da olculen hal tam buydu:
+      #     python3 "$guard" --tetik commit >/dev/null 2>&1 || true
+      # `tools/urunler-guard.py` FAIL-LOUD bir nobetciye cevrilmisti ama git
+      # tarafinda cikis kodunu KIMSE OKUMUYORDU -> koruma yalniz bu makinenin
+      # oturum kablosuyla (PreToolUse) blokluyor, DUZ TERMINALDE / CODEX'TE /
+      # BASKA MAKINEDE bloklamiyordu.
+      #
+      # 🔴 NEDEN SERIT-A3 (BLOKLAYICI: `deploy: needs`te) — `envanter`/`ifsa-nobeti`/
+      # `mesaj-nobeti`den FARKI: onlar PUSH-SONRASI CANLI durumu raporlar, yayini
+      # durdurmanin tamir degeri sifirdir. Bu adim ise izlenen KANCA KAYNAGININ
+      # fail-open'a donup donmedigini olcer — biri `|| true` geri koyarsa ya da
+      # guard cagrisini silerse. O kaynak main'e girip `kanca-kur.py` ile HER
+      # makineye yayilirsa katalog guard'i · D1 senkronu · mimar kapisi · mukerrer ·
+      # commit-mesaji sizinti kapisi SESSIZCE susar. Bu PUSH-ONCESI kaynak
+      # butunlugu eksenidir ve is-akisi-kapisi'nin kendisi gibi BLOKLAYICI olmali
+      # ("SUPHEDE A", is-akisi Bolum D). Kabul testi + mutasyon turu ise "aracin
+      # kendini sinamasi"dir ve SERIT B'dedir (orada TEK TEK beyanli).
+      #
+      # 🔴 NEDEN `--ci`: kablolama `core.hooksPath`te yasar ve `.git/` COMMIT
+      # EDILMEZ -> CI checkout'unda ASLA kurulu degildir. O ekseni CI'da kirmizi
+      # yakmak yanlis-pozitif olurdu; sessizce yesil saymak ise fail-open'i geri
+      # getirirdi. `--ci` hali YALNIZ kablolama/sapma eksenlerini OLCULEMEDI olarak
+      # ILAN EDER (log'da GORUNUR) ve cikis kodunu ETKILEMEZ; BASKA bir eksen
+      # olculemezse cikis YINE sifir-disidir (muafiyet DAR — kabul testi olcer).
+      # CI'da olculen sey IZLENEN KAYNAKTIR: govdeler fail-closed mi, reddetme
+      # gerekcesi basiliyor mu, cagrilar duruyor mu, dosyalar git INDEKSINDE 100755
+      # mi. Tamamen offline; taze klonda rc=0 oldugu KOSULARAK olculdu.
+      - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
+        run: python3 tools/kanca-kablolama-nobeti.py --ci
   serit-a4:
     runs-on: ubuntu-latest
     steps:
@@ -2631,40 +2666,8 @@ jobs:
       # 🔴 AYNI KAPININ MUTASYON BATARYASI `nobet.yml` `serit-b` JOB'UNDADIR.
       # Bayraksiz GERCEK katalog olcumu burada BLOKLAYICI kalir; yalniz aracin
       # KENDINI sinayan pahali mutant kopyalari yayin kritik yolundan ayrilmistir.
-      # KANCA KABLOLAMASI (tools/kanca-kablolama-nobeti.py --ci) — kancalar artik
-      # `.git/hooks` altinda (commit EDILMEYEN, elle duzenlenen) dosyalar degil,
-      # IZLENEN `tools/kancalar` kaynagidir; kablolamayi tools/kanca-kur.py kurar.
-      # Bu nobetci tools/kanca-nobeti.py'nin OLCMEDIGI ekseni sahiplenir: bir
-      # kanca beklenen araci CAGIRIYOR olup yine de HICBIR SEYI BLOKLAMIYOR
-      # olabilir. 4 Agu 2026'da olculen hal tam buydu:
-      #     python3 "$guard" --tetik commit >/dev/null 2>&1 || true
-      # `tools/urunler-guard.py` FAIL-LOUD bir nobetciye cevrilmisti ama git
-      # tarafinda cikis kodunu KIMSE OKUMUYORDU -> koruma yalniz bu makinenin
-      # oturum kablosuyla (PreToolUse) blokluyor, DUZ TERMINALDE / CODEX'TE /
-      # BASKA MAKINEDE bloklamiyordu.
-      #
-      # 🔴 NEDEN SERIT-A3 (BLOKLAYICI: `deploy: needs`te) — `envanter`/`ifsa-nobeti`/
-      # `mesaj-nobeti`den FARKI: onlar PUSH-SONRASI CANLI durumu raporlar, yayini
-      # durdurmanin tamir degeri sifirdir. Bu adim ise izlenen KANCA KAYNAGININ
-      # fail-open'a donup donmedigini olcer — biri `|| true` geri koyarsa ya da
-      # guard cagrisini silerse. O kaynak main'e girip `kanca-kur.py` ile HER
-      # makineye yayilirsa katalog guard'i · D1 senkronu · mimar kapisi · mukerrer ·
-      # commit-mesaji sizinti kapisi SESSIZCE susar. Bu PUSH-ONCESI kaynak
-      # butunlugu eksenidir ve is-akisi-kapisi'nin kendisi gibi BLOKLAYICI olmali
-      # ("SUPHEDE A", is-akisi Bolum D). Kabul testi + mutasyon turu ise "aracin
-      # kendini sinamasi"dir ve SERIT B'dedir (orada TEK TEK beyanli).
-      #
-      # 🔴 NEDEN `--ci`: kablolama `core.hooksPath`te yasar ve `.git/` COMMIT
-      # EDILMEZ -> CI checkout'unda ASLA kurulu degildir. O ekseni CI'da kirmizi
-      # yakmak yanlis-pozitif olurdu; sessizce yesil saymak ise fail-open'i geri
-      # getirirdi. `--ci` hali YALNIZ kablolama/sapma eksenlerini OLCULEMEDI olarak
-      # ILAN EDER (log'da GORUNUR) ve cikis kodunu ETKILEMEZ; BASKA bir eksen
-      # olculemezse cikis YINE sifir-disidir (muafiyet DAR — kabul testi olcer).
-      # CI'da olculen sey IZLENEN KAYNAKTIR: govdeler fail-closed mi, reddetme
-      # gerekcesi basiliyor mu, cagrilar duruyor mu, dosyalar git INDEKSINDE 100755
-      # mi. Tamamen offline; taze klonda rc=0 oldugu KOSULARAK olculdu.
-      - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
-        run: python3 tools/kanca-kablolama-nobeti.py --ci
+      # (KANCA KABLOLAMASI step'i 16 Agu 2026'da serit-a3'e TASINDI — K80
+      # BLOKLAYICI BEYAN GERCEGE UYMUYOR sinifi kapansin diye.)
 
   # ═════════════════════════════════════════════════════════════════════════════
   # SERIT A4 — HERMETIK YEDEK GLOB KOD YOLU

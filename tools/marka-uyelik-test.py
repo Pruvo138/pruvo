@@ -196,12 +196,37 @@ def gorunur(k):
 
 def uyeler_js(p):
     """index.html marka FİLTRESİNİN yüklemi: some(b => markaKatla(b) === hedef),
-    hedef GÖRÜNÜR marka evreninden seçilir (yukarıdaki nota bak)."""
+    hedef GÖRÜNÜR marka evreninden seçilir (yukarıdaki nota bak).
+
+    16 Agu 2026: build.py'nin BASLIK KOLU ile (15 Agu 2026, tools/marka_model_build.py
+    FAZ 1B) eklenen ikincil üyelikler de dahil edilir — /marka/<X>/ sayfası ile
+    index.html filtresinin ürün kümelerinin BİREBİR eşit olması için. K109 sapması
+    (59 sapan marka; Ford +3, BMW +1, Toyota +7, Honda +1) bu yüklem ile kapanır:
+    başlıkta TAM KELİME eşleşen kanonik marka, marka[]'de olmasa bile üye olur
+    (BAŞLIK KOLU'nun tek yaptığı şey budur, burada BİREBİR kopyalanır)."""
     out = []
     for b in (p.get("marka") or []):
         k = katla(b)
         if gorunur(k) and k not in out:
             out.append(k)
+    # BASLIK KOLU — marka_model_build.py FAZ 1B'nin yaptığı TAM KELİME taramasının
+    # birebir kopyası. Kanonik marka, başlık kelime dizisinde geçiyorsa ve
+    # zaten üye değilse ikincil olarak eklenir. Kapsam SADECE sayfası olan
+    # markalar (veri); yeni marka SAYFASI DOĞMAZ (FAZ 1B "kapsam bilerek dar").
+    bw = mm._kelimeler(p.get("baslik") or "")
+    if bw and "SAYFA_MARKALARI" in globals():
+        _ad_kanonu = {}
+        for _kan in sorted(SAYFA_MARKALARI):
+            for _ad in mm.marka_yazimlari(_kan, EVREN):
+                _aw = mm._kelimeler(_ad)
+                if _aw:
+                    _ad_kanonu.setdefault(tuple(_aw), _kan)
+        _azami = max((len(k) for k in _ad_kanonu), default=0)
+        for _i in range(len(bw)):
+            for _n in range(1, _azami + 1):
+                _kan = _ad_kanonu.get(tuple(bw[_i:_i + _n]))
+                if _kan and _kan not in out and gorunur(_kan):
+                    out.append(_kan)
     return out
 
 
@@ -252,6 +277,7 @@ kontrol("jeneratör marka sayfası üretti (%d marka, %d model)"
 SLUG_MARKA = {mm._slug(m): m for m in SONUC["slug_map"]}
 # kanonik marka -> sayfada görünen ürün id kümesi (marka sayfası + model sayfaları)
 MARKA_URUNLERI = {}
+SAYFA_MARKALARI = set()                # BASLIK KOLU kapsamı: yalnız sayfası olan markalar
 for u in URLLER:
     if u == "/marka/":
         continue
@@ -261,6 +287,7 @@ for u in URLLER:
         continue
     s = MARKA_URUNLERI.setdefault(marka, set())
     s.update(pid for pid, _k in SAYFA.get(u, ()))
+    SAYFA_MARKALARI.add(marka)
 
 # ==================================================== A) KATLANMIŞ ÜYELİK
 # Sınıf: HAM marka[0] tanınmıyor ama KATLANINCA tanınıyor ("Volvo Penta", "Mercedes-Benz").
