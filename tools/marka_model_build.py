@@ -1002,6 +1002,62 @@ def model_jetonlari(marka, marka_dizisi, evren):
     return out
 
 
+def baslik_uyelik_hazirlik(hedef_markalar, evren):
+    """FAZ 1B ad-kanonu haritası: (kelime dizisi) -> kanonik marka.
+
+    `hedef_markalar` FAZ 1'de kovası DOĞMUŞ markalardır (`sorted(veri)`); yeni marka
+    sayfası bu koldan AÇILMAZ. `ek_markalar`'a dokunulmaz — yalnız `marka_yazimlari`
+    üzerinden TAM KELİME eşleşmesi kurulur.
+
+    Dönüş: (`ad_kanonu`, `azami_ad`). `azami_ad` 0 ise başlık taraması BOŞ sonuç verir
+    (hiç kelime içermeyen tek marka adı olsa bile hiçbir baslik bununla eşleşmez)."""
+    ad_kanonu = {}
+    for kan in hedef_markalar:
+        for ad in marka_yazimlari(kan, evren):
+            aw = _kelimeler(ad)
+            if aw:
+                ad_kanonu.setdefault(tuple(aw), kan)
+    azami_ad = max((len(k) for k in ad_kanonu), default=0)
+    return ad_kanonu, azami_ad
+
+
+def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
+    """Başlığında TAM KELİME geçen, mevcut üyeliğinde OLMAYAN kanonik markalar.
+
+    Üç ön koşul builder (FAZ 1B, eski 1103-1119) ile BİREBİR aynıdır:
+      * ürünün `marka` alanı BOŞ değil,
+      * mevcut `marka_uyelikleri(m0, evren, ek_markalar)` kümesi BOŞ değil,
+      * başlık kelimeleri BOŞ değil.
+    Aksi halde [] döner — ürün bu kola GİRMEZ.
+
+    Eklenen kanonik marka, ürünün mevcut üyeliğinde OLMAYAN ve bu iterasyonda daha
+    ÖNCE eklenmemiş olandır (yinelenen kanonik YOK). `_i`/`_n` kayan pencere sırası
+    korunur — `ikincil` kovasındaki ekleme sırası builder ile birebir aynıdır
+    ([[ikiz-tanim-sessiz-ayrisma]])."""
+    m0 = urun.get("marka") or []
+    # FAZLALIK; `_uyeler` kolu subsume ediyor (K126 hukmu — ölçüldü: marka_uyelikleri([])
+    # boş döner, `if not uyeler` aynı ürünü eler). MUTANT testi (m0 kolunu no-op yapınca
+    # sapan marka artmıyor — kol canlı ölçüye katılmıyor) bu satırın YORUM olarak kalmasını
+    # doğruluyor; SİLİNSE DE davranış değişmez, çıktı hash'i bozulmaz (K126 adım 2).
+    if not m0:
+        return []
+    uyeler = set(marka_uyelikleri(m0, evren, ek_markalar))
+    if not uyeler:
+        return []
+    bw = _kelimeler(urun.get("baslik") or "")
+    if not bw:
+        return []
+    eklendi = set()
+    sonuc = []
+    for i in range(len(bw)):
+        for n in range(1, azami_ad + 1):
+            kan = ad_kanonu.get(tuple(bw[i:i + n]))
+            if kan and kan not in uyeler and kan not in eklendi:
+                eklendi.add(kan)
+                sonuc.append(kan)
+    return sonuc
+
+
 def gruplandir(products, evren, ek_markalar=()):
     """Katalogdaki markaları topla:
     kanonik_marka -> {"marka_only":[p...], "ikincil":[p...], "gruplar":{canon:{...}}}.
@@ -1093,30 +1149,10 @@ def gruplandir(products, evren, ek_markalar=()):
     # aynı. Kova evreni de UYDURULMAZ — yalnız FAZ 1'de ZATEN doğmuş markalar taranır,
     # yani bu kol tek başına yeni bir marka sayfası açamaz.
     _hedef_markalar = sorted(veri)
-    _ad_kanonu = {}                      # (kelime dizisi) -> kanonik marka
-    for _kan in _hedef_markalar:
-        for _ad in marka_yazimlari(_kan, evren):
-            _aw = _kelimeler(_ad)
-            if _aw:
-                _ad_kanonu.setdefault(tuple(_aw), _kan)
-    _azami_ad = max((len(k) for k in _ad_kanonu), default=0)
+    _ad_kanonu, _azami_ad = baslik_uyelik_hazirlik(_hedef_markalar, evren)
     for p in products:
-        m0 = p.get("marka") or []
-        if not m0:
-            continue
-        _uyeler = set(marka_uyelikleri(m0, evren, ek_markalar))
-        if not _uyeler:
-            continue
-        _bw = _kelimeler(p.get("baslik") or "")
-        if not _bw:
-            continue
-        _eklendi = set()
-        for _i in range(len(_bw)):
-            for _n in range(1, _azami_ad + 1):
-                _kan = _ad_kanonu.get(tuple(_bw[_i:_i + _n]))
-                if _kan and _kan not in _uyeler and _kan not in _eklendi:
-                    _eklendi.add(_kan)
-                    kova(_kan)["ikincil"].append(p)
+        for _kan in baslik_uyelikleri(p, evren, _ad_kanonu, _azami_ad, ek_markalar):
+            kova(_kan)["ikincil"].append(p)
 
     # ---- FAZ 2: KUŞAK/VARYANT KATLAMASI (4 Ağu, KraL hükmü) -------------------------
     # `Golf 4`/`Golf Mk4`/`Golf IV`/`Golf R` ürünleri ANA `Golf` kovasına da girer.

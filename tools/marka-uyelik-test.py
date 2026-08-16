@@ -86,9 +86,15 @@ def bitir():
 
 
 # ---------------------------------------------------------------- kaynaklar
-MODUL_YOLU = os.path.join(TOOLS, "marka_model_build.py")
+# `--modul` (varsa) BUILDER (uret) içindir — test kendi hesapları için GERÇEK kaynaktan
+# okur (`mm`). NEDEN: refactor sonrası test de `mm.baslik_uyelikleri` çağırıyor; `--modul`
+# ile takılan mutant simetrik uygulanırsa test kendi kendine KÖR olur (sapma çıkmaz, mutant
+# anlamsız). Mevcut tasarımda test builder'ın MUTANTLI halini gerçekten yakalayamaz —
+# `mm` ve `mm_uret`'i ayırmak bu körlüğü kırar ([[ikiz-tanim-sessiz-ayrisma]]).
+GERCEK_MODUL = os.path.join(TOOLS, "marka_model_build.py")
+BUILDER_MODUL = GERCEK_MODUL
 if "--modul" in sys.argv:
-    MODUL_YOLU = sys.argv[sys.argv.index("--modul") + 1]
+    BUILDER_MODUL = sys.argv[sys.argv.index("--modul") + 1]
 
 try:
     import build
@@ -96,12 +102,20 @@ except Exception as e:                                        # noqa: BLE001
     olculemedi("build import edilemedi: %r" % (e,))
 
 try:
-    _spec = importlib.util.spec_from_file_location("mm_uyelik", MODUL_YOLU)
+    _spec = importlib.util.spec_from_file_location("mm_uyelik", GERCEK_MODUL)
     mm = importlib.util.module_from_spec(_spec)
     sys.modules["mm_uyelik"] = mm
     _spec.loader.exec_module(mm)
 except Exception as e:                                        # noqa: BLE001
-    olculemedi("jeneratör (%s) import edilemedi: %r" % (MODUL_YOLU, e))
+    olculemedi("jeneratör (%s) import edilemedi: %r" % (GERCEK_MODUL, e))
+
+try:
+    _spec_u = importlib.util.spec_from_file_location("mm_uret", BUILDER_MODUL)
+    mm_uret = importlib.util.module_from_spec(_spec_u)
+    sys.modules["mm_uret"] = mm_uret
+    _spec_u.loader.exec_module(mm_uret)
+except Exception as e:                                        # noqa: BLE001
+    olculemedi("builder (%s) import edilemedi: %r" % (BUILDER_MODUL, e))
 
 try:
     with open(build.JSON_PATH, encoding="utf-8") as f:
@@ -189,6 +203,53 @@ if not CIP_EVREN:
     olculemedi("çip evreni BOŞ — görünür marka evreni ölçülemez (fail-closed)")
 
 
+# FAZ 1B'nin YÜKLEMİ tek kaynaktan (marka_model_build) türer — kopyası BURAYA YAZILMAZ.
+# Builder'ın `uret()`'i `cip_evreni_markalari(products, index_html)` ile `ek_markalar`
+# kuruyor; test de AYNI evrenle `gruplandir` çağırır — aksi halde `_uyeler` kümesi
+# (FAZ 1B'nin "eklenmez" dediği set) builder'dan farklı olur ve parite sahte yeşile
+# döner ([[ikiz-tanim-sessiz-ayrisma]]).
+try:
+    _ek_markalar = mm.cip_evreni_markalari(PRODUCTS, INDEX_HTML)
+except Exception as _e:                                        # noqa: BLE001
+    olculemedi("cip_evreni_markalari okunamadı: %r" % (_e,))
+VERI = mm.gruplandir(PRODUCTS, EVREN, _ek_markalar)
+AD_KANONU, AZAMI_AD = mm.baslik_uyelik_hazirlik(sorted(VERI), EVREN)
+
+
+# ---------------------------------------------------------------- SUBSUMPTION KANITI (K126)
+# Mimar hükmü: `if not m0: return []` kolu FAZLALIK — `marka_uyelikleri([])` zaten [] döner
+# ve bir sonraki satırdaki `if not _uyeler: return []` aynı ürünü eler. Yani m0 kolunu öldüren
+# mutant sapma ÜRETMEZ (kol canlı ölçüye katılmıyor). Bu iddia makinede sabit:
+#   * marka=[] olan bir ürün için `baslik_uyelikleri(...)` BOŞ liste döner,
+#   * başlığında kanonik marka TAM KELİME geçse bile (turnusol: "Ford Focus Klipsi" başlığı +
+#     marka=[] ile Ford kovasına eklenmemeli).
+# Ölçüm: katalogdan rasgele bir `marka=[]` ürün seç (yoksa sentetik yedek). Başlığına en sık
+# görünen kanonik marka adını YAZ ve fonksiyonu çağır; sonuç [] olmalı.
+_bos_marka = [p for p in PRODUCTS if not (p.get("marka") or [])]
+if _bos_marka:
+    _ornek = _bos_marka[0]
+else:
+    _ornek = {"id": "k126-subsumption-sentetik", "marka": [], "kategori": "Tamirat",
+              "baslik": "Ford Focus Klipsi — sentetik K126 turnusol"}
+# BAŞLIK TURNUSOLÜ: kanonik marka adı TAM KELİME geçse bile sonuç [] olmalı.
+_en_sik_marka = max(sorted(VERI), key=lambda m: sum(len(d["marka_only"]) + len(d.get("ikincil", []))
+                                                   for d in [VERI[m]]))
+_baslik_turnusol = _en_sik_marka + " " + (_ornek.get("baslik") or "")
+_subsumption_sonuc = mm.baslik_uyelikleri(
+    {"marka": [], "baslik": _baslik_turnusol},
+    EVREN, AD_KANONU, AZAMI_AD, _ek_markalar,
+)
+BILGI.append("K126 subsumption turnusolü: marka=[], başlık=%r -> %d sonuç (beklenen 0)"
+             % (_baslik_turnusol[:60] + ("..." if len(_baslik_turnusol) > 60 else ""),
+                len(_subsumption_sonuc)))
+kontrol("K126 SUBSUMPTION: marka=[] ürün için baslik_uyelikleri BOŞ döner (başlıkta "
+        "kanonik marka TAM KELİME olsa bile)", _subsumption_sonuc == [])
+# İkinci turnusol: orijinal `_ornek` ürünün KENDİ başlığıyla da [] olmalı (kanonik kelime
+# başlıkta olmasa bile marka=[] şartı eler).
+kontrol("K126 SUBSUMPTION: gerçek marka=[] ürünün kendi başlığıyla da baslik_uyelikleri BOŞ",
+        mm.baslik_uyelikleri(_ornek, EVREN, AD_KANONU, AZAMI_AD, _ek_markalar) == [])
+
+
 def gorunur(k):
     """Kullanıcının marka olarak SEÇEBİLDİĞİ kanonik ad mı (çip + tanınmış liste)."""
     return bool(k) and (EVREN.taninmis_mi(k) or k in CIP_EVREN)
@@ -196,12 +257,17 @@ def gorunur(k):
 
 def uyeler_js(p):
     """index.html marka FİLTRESİNİN yüklemi: some(b => markaKatla(b) === hedef),
-    hedef GÖRÜNÜR marka evreninden seçilir (yukarıdaki nota bak)."""
+    hedef GÖRÜNÜR marka evreninden seçilir (yukarıdaki nota bak).
+
+    FAZ 1B başlık kolu AYNI fonksiyonu çağırır (tek gövde — kopyası burada YOK)."""
     out = []
     for b in (p.get("marka") or []):
         k = katla(b)
         if gorunur(k) and k not in out:
             out.append(k)
+    for ek in mm.baslik_uyelikleri(p, EVREN, AD_KANONU, AZAMI_AD, _ek_markalar):
+        if ek not in out and gorunur(ek):
+            out.append(ek)
     return out
 
 
@@ -219,7 +285,7 @@ try:
     with open(os.path.join(TMP, "index.html"), "w", encoding="utf-8") as f:
         f.write(INDEX_HTML)
     try:
-        SONUC = mm.uret(PRODUCTS, ctx)
+        SONUC = mm_uret.uret(PRODUCTS, ctx)
     except Exception as e:                                    # noqa: BLE001
         shutil.rmtree(TMP, ignore_errors=True)
         olculemedi("marka_model_build.uret çöktü: %r" % (e,))
