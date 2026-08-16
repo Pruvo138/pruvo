@@ -268296,5 +268296,145 @@
   "baski": "Print with plenty of infill, and switch filaments at the appropriate layer to get the nice logo infill.",
   "kaynak_baski_notu": "",
   "not": "TEK gorsel - render borcu (borc listesi: hasat raporu)"
+ },
+ "pr1766146-husqvarna-701-dual-sport-plaka-tutucu": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1766146-license-plate-holder-for-husqvarna-701-dual-sport",
+  "tasarimci": "Konstantin Ball",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez"
+ },
+ "pr1708856-husqvarna-701-arka-bagaj-rafi": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1708856-rear-rack-for-husqvarna-701",
+  "tasarimci": "dsiviero",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "I milled it from acetal, but I suspect a 3D print could do a reasonable job out of the right filament.",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez"
+ },
+ "pr1708857-husqvarna-701-topuk-korumasi-heybe-baglanti-noktasi": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1708857-heel-guard-pannier-anchor-husqvarna-701",
+  "tasarimci": "dsiviero",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez"
+ },
+ "pr1534184-husqvarna-norden-901-anahtarlik": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1534184-husqvarna-norden-901-brelock",
+  "tasarimci": "DimLiv",
+  "lisans": "GPL 2.0",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "TEK gorsel - render borcu (borc listesi: hasat raporu)"
+ },
+ "pr1771740-husqvarna-svartpilen-401-2024-arka-camurluk-duzenleyici": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1771740-2024-husqvarna-svartpilen-401-tail-tidy",
+  "tasarimci": "Michael K",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez"
+ },
+ "pr253331-husqvarna-701-plaka-titresim-emici-aralayici": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/253331-husqvarna-701-license-absorber-spacer",
+  "tasarimci": "4sStylZ",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "Printed in Sunlu TPU.",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez; TEK gorsel - render borcu (borc listesi: hasat raporu)"
+ },
+ "pr1235801-husqvarna-701-debriyaj-civatasi-aralayici": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1235801-spacer-for-husqvarna-701-clutch-bolt",
+  "tasarimci": "AlbertTheFuzzy",
+  "lisans": "CC-BY-SA",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC BY-SA: turetilmis dosya hicbir yere yayinlanmaz"
+ },
+ "pr600269-husqvarna-fe-dusme-koruma-tamponu": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/600269-husqvarna-fe-crashpet",
+  "tasarimci": "Exotechd",
+  "lisans": "CC-BY",
+  "tur": "ucretsiz-cc",
+  "baski": "Print whit 80% infill Print whit 80% infill NEW MODELL NOW OUT CHECK IT OUT !!!",
+  "kaynak_baski_notu": "",
+  "not": ""
+ },
+ "pr374057-husqvarna-701-kontak-anahtari-kapagi": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/374057-husqvarna-701-key-cover-for-ilco-tmc1-blank-key",
+  "tasarimci": "4sStylZ",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez"
+ },
+ "pr1109445-husqvarna-svartpilen-401-dar-gidon-ucu": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1109445-husqvarna-svartpilen-401-narrower-bar-ends",
+  "tasarimci": "ErnestasVai",
+  "lisans": "CC-BY-SA",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC BY-SA: turetilmis dosya hicbir yere yayinlanmaz"
+ },
+ "pr895578-husqvarna-norden-901-garmin-zumo-gps-montaji": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/895578-garmin-zumo-gps-mount-husqvarna-norden-901",
+  "tasarimci": "ttt126",
+  "lisans": "CC-BY-SA",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC BY-SA: turetilmis dosya hicbir yere yayinlanmaz"
+ },
+ "pr1328953-husqvarna-svartpilen-401-on-cam-flyscreen": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1328953-husqvarna-svartpilen-401-windshieldflyscreen",
+  "tasarimci": "ErnestasVai",
+  "lisans": "CC-BY-SA",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC BY-SA: turetilmis dosya hicbir yere yayinlanmaz"
+ },
+ "pr629624-husqvarna-svartpilen-401-depo-rafi": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/629624-husqvarna-svartpilen-401-tank-rack",
+  "tasarimci": "ErnestasVai",
+  "lisans": "CC-BY",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": ""
+ },
+ "pr644866-husqvarna-svartpilen-401-radyator-koruma-kapagi": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/644866-husqvarna-svartpilen-401-radiator-coversprotectors",
+  "tasarimci": "ErnestasVai",
+  "lisans": "CC-BY",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": ""
  }
 }
