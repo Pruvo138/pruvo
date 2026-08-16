@@ -2,6 +2,40 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 16 Agu (~09:xxZ) — UCUZ KAT KOTA YANMASI OLCULDU: MODEL KATMANI + BAGLAM BUTCESI (KraL)
+
+**Soru (Okan): "kimi kotasi cok cabuk doluyor, code modunda kullandigimiz icin mi?"**
+Olculdu — hayir, uc secimi degil. Iki sebep:
+1. **Model:** kimi hatti amiral gemisi `k3` ile kosuyordu (824/830 tur). Red metni
+   `403 usage limit for this billing cycle` → aylik kredi ~2 gunde bitti.
+2. **Baglam:** her tur tum konusmayi yeniden faturalar. kimi 830 turda **54,6M** girdi
+   token; ozgun icerik (tum arac ciktilari) ~290k token → **~180x tekrar**. m3 evinde ayni
+   desen: 174 oturum / **1,26 milyar** girdi token.
+
+**Tur sayisi maliyetin KARESI:** m3 evinde >60 turluk 111 oturum toplam yanmanin **%88,7**'si;
+<=40 turluk 33 oturum yalnizca %3,2. En pahali tek oturum 355 tur / 57,8M — 40'lik dilimlere
+bolunseydi ~16M (**%72 tasarruf**; taban tekrar odenir, rampa 9 kat kuculur).
+
+**YAPILAN (ikisi de kabul testiyle kapandi, 8/8):**
+- `isci.sh` kimi motoru **katmanlandi**: varsayilan `kimi-for-coding` (K2.7), `k3` yalniz
+  `tarayici*`/`panel*` turlarinda, `PRUVO_KIMI_MODEL` ile acik ezme (kapali kume, bilinmeyen
+  deger `exit 2`). Test: `~/.claude/cron/isci-kimi-model-test.py`.
+- `BASLANGIC` log satiri artik `model=` tasiyor; tur sonunda `OLCUM ... TUR= TOPLAM_GIRDI=
+  TEPE= CIKTI=` satiri + `~/.claude/cron/baglam-olcum.tsv` trend dosyasi (olcum turun
+  cikis kodunu DEGISTIRMEZ; ayrinti hafizada).
+- Isci ORTAK baglamina **baglam butcesi kurali**: tur butcesi ~40 (dolunca DILIM birak,
+  idempotent) · bagimsiz komutlari tek turda birlestir · ciktiyi kaynakta darat.
+
+**KUSUR BULUNDU VE KAPANDI:** ilk canli olcum kendi kusurunu gosterdi — 6 turluk kosum
+`TUR=46 TOPLAM_GIRDI=2.185.553` yazildi (isci profilleri (motor, ev) basina PAYLASILIR;
+es zamanli komsu oturum mtime penceresine girdi). Onarim: her `claude` cagrisi artik
+`--session-id <uuid>` ile kosuyor, olcum YALNIZ o UUID dosyasini okuyor (mtime mantigi
+kalkti; kisa-tur TEKRAR akisi ikinci UUID alir, degerler toplanir). Kabul **12/12**.
+Canli teyit 09:19Z: `TUR=6 TOPLAM_GIRDI=204.542 TEPE=35.189` — bagimsiz `jq` ile ayni
+oturum dosyasindan birebir dogrulandi. ⚠️ TSV'de **09:18Z oncesi satirlar onarim oncesidir,
+kanit sayilmaz**; yanlis 09:04Z satiri silindi.
+→ hafiza: `kimi-kota-amiral-gemisi-yakar` · `paylasilan-profilde-eszamanli-oturum-olcumu-kirletir`
+
 ## 16 Agu (~00:xxZ) — UCUZ KAT YENIDEN KURULDU: CODEX + DEEPSEEK EMEKLI, KIMI BIRINCIL (KraL)
 
 **Okan karari, olcumle kapatildi.** Yeni hat: `isci.sh` → **kimi BIRINCIL · minimax-m3 YEDEK**;
