@@ -9,42 +9,27 @@
 **BEKLIYOR:** yerel main'de yabanci parti commit'i `2d1d8814` push bekliyor (D1 yazici kilidi UCUSTA, PID 75749 — sira, ariza degil; sahibinin turu itecek) · yabanci ` M tools/marka-uyelik-test.py` DOKUNULMADI · `kurtarma/k122-yabanci-is` dali sahibinde.
 🔴 **EKIBE:** gizli kaynak kaydi artik IZLENMIYOR — `git add` EDILMEZ, yerel diskte tutulur.
 
-## 🔴 YAYIN NEDEN SUREKLI KAPANIYOR — KOK NEDEN OLCULDU (K124 ILE KAPANDI)
-
-Bugun uc kapanmanin ucu de ayni sekil: bloklayici `serit-a3` kirmizi -> `deploy` calismiyor.
-Bu kez sebep **varlik kapisi** idi ve KUSUR VERIDE DEGIL:
-- Rel-card (ilgili urun) havuzu **KATALOGDAN TURETILIR**; her yeni parti komsu sayfalarin
-  gosterdigi urunu degistirir. Kapi bunu `CIKARIM KAYBI` sayar.
-- Bu sinif **beyan edilebilir**: gecmesi icin birinin etkilenen urun kimliklerini elle
-  `tools/varlik-cikarim-beyani.json`'a yazmasi gerekir. Her partide yazilmadigi icin kapi
-  kirmizi kaliyor. `--referans-tazele` de kirmiziyken calismayi REDDEDIYOR -> taban kendini
-  onaramiyor (kilitli dongu).
-- **Veri kusuru YOK (olculdu):** dusen iki gorselin ikisi de canlida **200**, hicbiri sayfanin
-  KENDI gorseli degil; katalogda bicim disi gorsel URL'i **0/82462**. Urun ekleme hatti
-  suclu DEGIL.
-- **Ikinci incelik (olculdu):** ayni iyi huylu kayma IKI sinif uretiyor — rel-card GORSELI
-  (`rel-card-hedefleri`) ve rel-card BAGLANTISI; kapi `/urun/<id>/` tasiyan baglantiyi
-  `breadcrumb-adresi` sayiyor. Tek sinif beyan edilince kapi KIRMIZI KALDI.
-
-**Yayin bugun 6 sayfa beyan edilerek acildi** (blok 2, urun 36; `varlik-test` rc=0, 10 eksen
-yesil; `varlik-beyan-test` VAKA=8 DUSEN=0 — blanket beyan hala RED).
-
-🔴 **UCUNCU INCELIK (olculdu):** kapi her kosumda katalogdan **RASTGELE 12 urun** ornekler.
-28.682 urun beyan EDILEMEZ; yazilan beyan ancak o kimlikler TEKRAR ornekle gelirse ise yarar.
-Beyan yolu bu yuzden YAPISAL OLARAK kapanamazdi — K124 tam bu nedenle gerekliydi.
-
-
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- ✅ **K120 KAPANDI (16 Agu, merge `5df50d78`):** gizli kaynak kaydi artik IZLENMIYOR.
-  `.gitignore` onu ZATEN listeliyordu ama dosya bir kez zorla eklendigi icin indekste
-  kalmisti (gitignore izlenen dosyayi cikarmaz) — `git rm --cached`, dosya DISKTE duruyor.
-  **Yokluk kolu olculdu: davranisi degisen CI cagrisi 0, bloklayici kirmizi 0.** `d1-sync`
-  zaten yokluk-farkindadir (`baski_yetki=False` -> `baski` kolonuna dokunulmaz, degerler
-  KORUNUR). Iki ara iddia CURUDU: "3 kapi sessiz yesil" (ucu de dosyayi okumuyor) ve
-  "d1-sync bloklayici kirmizi" (sebep kayit degil D1 yazici kilidiydi — gurultu tabani
-  olculunce dustu).
-  🔴 **EKIBE:** dosya artik taze klonda GELMEZ ve **`git add` EDILMEZ**; yerel diskte tutulur.
+- 🔧 **K126 (yeni, 16 Agu, ONCEDEN VARDI — K125 kirmizisi bunu MASKELIYORDU):** `hijyen-a2`
+  icindeki **`Marka uyelik kabul testi`** kirmizi: `POZ: /marka/<X>/ urun kumesi = index.html
+  marka filtresi` — **sapan marka 65** (Ford 0/3, BMW 0/1, Toyota …; sayfa kumesi bos, filtre
+  dolu). Yeni DEGIL: `b68d9eb7` (12:16) · `6865b918` (14:14) · `8117a3a5` (15:26) kosumlarinda
+  da AYNI adim kirmizi — yani gun boyu kirmiziydi, 16:12 kosumunda K125'in R2 adimi ondan ONCE
+  dustugu icin bu adim HIC KOSMADI ve gorunmedi. **YAYINI BLOKLAMAZ** (`deploy`+`yayin`
+  success; hijyen seridi). ⚠️ `tools/marka-uyelik-test.py` uzerinde YABANCI ` M` var ve ayni
+  dosya `kurtarma/k122-yabanci-is` dalinda duruyor → sahibi K122 kaleminde; DOKUNULMADI.
+  kabul: `python3 tools/marka-uyelik-test.py`
+- 🔧 **K127 (yeni, 16 Agu ~20:40Z, OLCULDU):** K39 rotasyon araci bu deftere YARAMIYOR —
+  `tools/defter-rotasyon.py` kosuldu, `TASINAN=0 DEFTER_SATIR=155` dondu. Sebep yapisal:
+  arac blogu `## ` basligindan ayirir ve `## ACIK KALEMLER` basliginin KENDISI acik
+  isaretcisi tasidigi icin altindaki TUM liste tek blok sayilir; icindeki `✅ KAPANDI`
+  maddeleri ayri blok olmadigindan hicbiri tasinmaz. Yani kota kancasi commit'i durduruyor,
+  onun gosterdigi CARE komutu ise 0 satir tasiyor — **kilitli dongu** (K124'teki
+  `--referans-tazele` desenin aynisi). Yon: rotasyona **satir/madde granulu** kol ekle
+  (acik blogun icindeki `✅`/`KAPANDI` MADDESINI tasi, acik maddeye DOKUNMA); kabul
+  fikstur + **mutant** (acik maddeyi tasimaya kalkan mutant KIRMIZI yanmali).
+  kabul: `python3 tools/defter-rotasyon-test.py`
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
@@ -63,52 +48,13 @@ Beyan yolu bu yuzden YAPISAL OLARAK kapanamazdi — K124 tam bu nedenle gerekliy
   DEGIL ama kosumun genel `conclusion`'ini `failure` yapiyor — "yayin durdu" yanlis hukmu
   doguyor. `is-akisi-kapisi` bunu 5 bulgunun 4'unde soyluyor; cozum joblari `nobet.yml`'e
   tasimak. Bugun iki kez bu yuzden "kirmizi" gorundu, yayin akiyordu.
-- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K123 · K124.
-
-
-## 16 Agu (~15:xxZ) — ISCI HATTI: KOTA GERCEGI DUZELTILDI + SISME EKSENI KAPANDI (KraL)
-
-**🔴 TESHIS DUZELTILDI:** "kimi aylik kredisi 2 gunde bitti" YANLISTI. Panel: aylik %9,05;
-sinirlayan eksen **kayan pencere** (kimi 5s %24,4 · 7g %45,24 · Allegretto, yenileme 15 Eyl ·
-m3 5s %23 · haftalik %44). Ikisinde de yedek kredi $0 → pencere dolunca **is durur**.
-Hata metni ("billing cycle") limiti yanlis adlandiriyor. Olcum hattim dogrulandi: panel
-534,12M, ben 508M olcmustum (%95). → [[kimi-kota-amiral-gemisi-yakar]]
-
-**Isci hattinda kapananlar (hepsi kabul testli, detay hafizada):** kimi modeli katmanlandi
-(varsayilan K2.7, canli) · tur basi olcum + `--session-id` oturum izolasyonu · kendi motor
-kurulumunu yapan uc cron `isci.sh`'ye alindi (13/13) · baglam butcesi `BUTCE.md` ile nobet
-ve postaya da ulasti · kosum basi tavan **$10** (`--max-budget-usd`; 4.50 rutin isi 142.
-turda kesiyordu) · okuma telemetrisi (ilk olcum: bir kosumda **mukerrer okuma 59**) ·
-`isci-onerileri.md` 500 satir tavani · **bos ortam degiskeni turu sessizce dusuruyordu**
-(artik bos=tanimsiz; bozuk deger yine `exit 2`) · **ortak `isci.log` dondurmesi kilitsizdi**
-(artik `flock`+`mktemp`, 5 surec eszamanli kabul) · test paketleri birbirini kosuyordu →
-capraz 0, tek giris `python3 ~/.claude/cron/testler.py` (**5/5**, 4,3-45 sn).
-
-**CANLIYA GIDEN:** `d819bf9e` yedek kapsaminda .py deligi (0→47 dosya) · `9c4e2de3` sir
-temizleyicisi alt agaclari da tariyor (16 kopya + 203 kapsam-disi klasor kaldirildi, kalan 0)
-· `7f14ea67` push hukmu uzak DURUMDAN turuyor (yaris yalan kirmizi uretiyordu).
-
-**OKAN'DA:** Navlungo kimlik yenileme ("sonra" denildi; Drive kopyasi silindi).
-**SIRADAKI OLCUM:** nobet 119 tura cikiyor — $10 ona degiyor mu, TSV'den olculecek.
-
-
-## 16 Agu (~18:00Z) — K39 KAPANDI: DEFTER KOTASI ARTIK KANCADA (KraL)
-
-**Merge `ce5164d2`.** Elle budama 4. kez tasmisti; artik sinif kapisi var.
-- `tools/defter-rotasyon.py` — KAPALI bloklari arsive LOSSLESS tasir, **CANLI BAS
-  DOKUNULMAZ**. Kesme olcutu TARIH DEGIL: blokta ACIK isaretci varsa TASINMAZ; tasinmak icin
-  KAPANDI/KAPANIS/✅ ZORUNLU. Suphede KALIR. Bayt esitligi tutmazsa iki dosya da geri yazilir.
-- `tools/defter-kota-kapisi.py` + `kancalar/pre-commit` adim 8: DEVAM.md STAGE'DE ve INDEX
-  blob'u >130 satirsa commit RED + ekrana CARE komutu. Kapsam DAR (defter stage'de degilse
-  hicbir commit etkilenmez).
-- 🔴 **SAYAC KOLU `pre-push`'ta ve DURDURMAZ:** kapinin kosmadigi haller ancak SONUCUNDAN
-  sayilabilir; kol HEAD'deki defteri olcer, kota asilmissa repo DISI sayaca satir yazar
-  (yol + mekanik DEVAM-ARSIV.md'de; gunluk 15:00 olcumune eksen olarak girer).
-- **Olcum:** rotasyon FIKSTUR **6/6** · MUTANT **OLDU** (acik-blok vetosunu bozan mutant
-  kirmizi yakti) · sayac vakalari **1/0/0** (kota asan / kota alti / deftersiz ev) ·
-  KraL RED **rc=1** + CARE satiri VAR · KraL KONTROL **rc=0** · MaCiT RED **rc=1** + CARE VAR.
-  **Iki evde canli.** MaCiT'te `tools/kancalar/` yoktu; kablo `.git/hooks/pre-commit`
-  (commit'e girmez), o evin izlenen dosyalarina DOKUNULMADI.
+  🔴 **AMA (16 Agu ~19:30Z olculdu — ters yonlu ders):** "hijyen kirmizisi = gurultu" HUKMU
+  KURULAMAZ. Bugunku kosumda `hijyen-a3` gercekten beyan edilmis borctu (is ADINDA yaziyor:
+  "M3b acik"), ama `hijyen-a2` **GERCEK ve CANLI bir veri kusuru** buldu (K125, 11 urun bozuk
+  gorsel anahtari). Iki kirmizi ayni kosumda, biri gurultu digeri musteriye bozuk gorsel.
+  Kural: koşumun genel `conclusion`'ina degil, **is bazinda** bakilir; job tasima isi
+  kirmiziyi susturmak DEGIL, yayin hukmunu ayirmak icindir.
+- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K125 · K124.
 
 
 ## OKAN'DA
