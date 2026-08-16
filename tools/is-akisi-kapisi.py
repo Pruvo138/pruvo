@@ -1075,6 +1075,13 @@ NOBET_DOSYALARI = (
     "paket-tazelik-alarmi.yml",
     "spec-ifsa-alarmi.yml",
     "yayin-erisim-alarmi.yml",
+    # 16 Agu 2026 (K123): yayin YASI alarmi — icinde Pages yayin job'u YOK, `deploy.yml`
+    # onu `uses:` ile CAGIRMAZ, `needs:` ile bagli DEGIL; tum joblari SERIT B'dir.
+    # Kayitsizken kapi fail-closed "SERIT AYRIMI OLCULEMEDI" veriyordu (dogru davranis).
+    # ⚠️ BU LISTE ELLE TUTULUR = BAYATLAR: her yeni alarm is akisi burada da kaydedilmeli.
+    # Ucuncu kez unutulursa liste yerine TURETIM'e gecilmeli (Pages job'u YOK **ve**
+    # deploy.yml `uses:` ile cagirmiyor -> hepsi B) — [[kapsam-evrenini-cagri-grafindan-turet]].
+    "yayin-yasi-alarmi.yml",
 )
 SERIT_B_DOSYALARI = (E_DOSYA,) + NOBET_DOSYALARI
 

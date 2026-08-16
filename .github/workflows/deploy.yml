@@ -117,6 +117,30 @@ jobs:
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
+      # URETICI BUTUNLUK KAPISI (ATOMIK YAYIN — EKSEN 2, 31 Tem): yayinlanan
+      # urunler.json'daki HER benzersiz id icin urun/<id>/index.html VAR mi? Ters yon
+      # (oksuz sayfa), sitemap.xml + merchant-feed.xml'deki her urun URL'inin dosyasi ve
+      # id'lerin URL-GUVENLIGI de olculur. build.py'den SONRA kosmak ZORUNDA (urun/
+      # ciktisina muhtac); urun/ yoksa OLCULEMEDI ile KIRMIZI yanar, sessiz YESIL
+      # imkansiz. continue-on-error YOK. Offline, stdlib, yazma yok.
+      #
+      # 🔴 NEDEN BURAYA TASINDI (K113, 16 Agu 2026) — YANLIS SERITTEYDI. Kapi
+      # `hijyen-build`teydi, yani `deploy: needs` DISINDA: kirmizisi yayini durdurmuyordu.
+      # Oysa olctugu sey KANONIK ADRESIN kendisidir. Bedeli 16 Agu'da OLCULDU: 51 urun
+      # ID'si Turkce karakter tasiyinca ID (= kanonik adres) bozuldu; kart 200, sayfa 404
+      # olur. Kapi o gun ihlali GORDU ama HIJYEN seridinde oldugu icin yayini DURDURMADI
+      # ve bozuk adresler canliya gitti. Serit turnusolu (`nobet.yml` SERIT B gerekcesi):
+      # kirmizisi SITEYI/PARAYI vuruyorsa BLOKLAYICI. Bu kapinin kirmizisi tam olarak
+      # musterinin actigi adresi vuruyor -> `build` isi (= `deploy: needs: build`).
+      #
+      # 🔴 IKIZ TANIM YOK: adim `hijyen-build`ten SILINDI, kopyalanmadi
+      # ([[ikiz-tanim-sessiz-ayrisma]]) — iki kopya zamanla ayrisir ve hangisinin hukum
+      # verdigi belirsizlesir. `hijyen-build` yerinde yalniz TASINDI notu durur.
+      # 🔴 BLOKLAYICIYA TASIMADAN ONCE YESIL OLDUGU OLCULDU (main ucu, ayni gun):
+      # kapiyi kirmiziyken bloklayici seride koymak yayini ANINDA kapatirdi.
+      - name: "Uretici butunluk kapisi (yayinlanan her id'nin sayfasi var mi — BLOKLAYICI)"
+        run: python3 tools/uretim-butunluk-kapisi.py
+
       # YAYIN KOPYASI PARITE KAPISI: soyma PARAYI degistirdi mi. Kaynak JS ile _yayin/
       # (soyulmus) JS ayri ayri yuklenip TAM KUME fiyat karsilastirmasi yapilir
       # (23 sema x 25 olcu x 4 filament x 4 renk = 9200 kombinasyon, orneklem YOK) +
@@ -1222,18 +1246,10 @@ jobs:
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
-      # URETICI BUTUNLUK KAPISI (ATOMIK YAYIN — EKSEN 2, 31 Tem): yayinlanan
-      # urunler.json'daki HER benzersiz id icin urun/<id>/index.html VAR mi? Ters yon
-      # (oksuz sayfa), sitemap.xml + merchant-feed.xml'deki her urun URL'inin dosyasi ve
-      # id'lerin URL-guvenligi de olculur. NEDEN: site tarafinda JSON ile sayfalar AYNI
-      # `_site` artefaktinda gider (zaman penceresi YOK), geriye tek ayrisma yolu URETIM
-      # kalir — ve bugune dek hicbir kapi "JSON'da var, sayfasi yok" halini olcmuyordu.
-      # build.py'den SONRA kosmak ZORUNDA (urun/ ciktisina muhtac); urun/ yoksa OLCULEMEDI
-      # ile KIRMIZI yanar, sessiz YESIL imkansiz. continue-on-error YOK (fail-closed).
-      # Offline, stdlib, yazma yok. Gercek agacta olculdu (15.479/15.479 YESIL) + 4 mutant
-      # (sayfa silindi / sayfa 0 bayt / sitemap'te sayfasiz URL / oksuz sayfa) 4/4 KIRMIZI.
-      - name: "Uretici butunluk kapisi (yayinlanan her id'nin sayfasi var mi)"
-        run: python3 tools/uretim-butunluk-kapisi.py
+      # (URETICI BUTUNLUK KAPISI 16 Agu 2026'da `build` isine TASINDI — K113: kapi
+      # KANONIK ADRESI olcuyor, kirmizisi musterinin actigi URL'i vuruyor, o yuzden
+      # `deploy: needs` DISINDA duramaz. Adim BURADAN SILINDI, kopyalanmadi: iki kopya
+      # zamanla ayrisir. Gerekcenin tam metni `build` isindeki adimin uzerindedir.)
 
       # JSON-LD BRAND KAPISI: uretilen TUM urun sayfalarinin JSON-LD bloklari taranir —
       # JSON gecerli + hicbir objede yinelenen anahtar yok + Product.brand TEK deger

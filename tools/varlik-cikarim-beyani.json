@@ -1,6 +1,20 @@
 {
   "beyanlar": [
     {
+      "ref": "06c43c7e",
+      "tarih": "2026-08-16",
+      "gerekce": "Royal Enfield + Kia partileri katalogu 28663'ten 28682'ye buyuttu; rel-card havuzu KATALOGDAN TURETILDIGI icin komsu sayfalarin gosterdigi ilgili urun degisti. OLCULDU: dusen URL'lerin ikisi de CANLIDA 200 (pr80134-1.jpg ve c3dred-...-v839079.jpg) ve hicbiri sayfanin KENDI gorseli degil -> kayip degil, TURETILMIS referans kaymasi. Katalogda bicim disi gorsel URL'i 0/82462. Kapsam IKI sinif: ayni iyi huylu kayma hem rel-card GORSELINI hem rel-card BAGLANTISINI dusuruyor ve kapi `/urun/<id>/` tasiyan baglantiyi `breadcrumb-adresi` sinifina atiyor (rel-card baglantisi olmasina ragmen); tek sinif beyan edilirse kapi KIRMIZI kaliyor — olculdu.",
+      "kapsam": ["rel-card-hedefleri", "breadcrumb-adresi"],
+      "urunler": [
+        "pr80134-himalayan-salincak-kolu-tapasi",
+        "pr66488-himalayan-camurluk-yukseltici",
+        "citroen-kontak-anahtari-dugmesi",
+        "subaru-xv-2018-yan-far-braketi",
+        "hyundai-genesis-sedan-fren-stop-musuru-takozu",
+        "honda-ruckus-radyator-koruma-kapagi"
+      ]
+    },
+    {
       "ref": "4380e7c8b4c27d6538cb433e70bad32b685efc96",
       "tarih": "2026-08-16",
       "gerekce": "Merge 4380e7c8 (rel-card halkasi + marka/kategori hub sayfalama K115) ic link hattini yeniledi; rel-card hedef dagilimi ve breadcrumb adres semasi BILEREK degisti.",
