@@ -426,7 +426,15 @@ AGAC_KAPSAMI = (
     # 🔴 `.log` BILEREK IZINSIZ: log turetilmis (yeniden uretilir), SINIRSIZ BUYUR
     # ve icinde kosum ciktisi (jeton yankisi) tasiyabilir. Yedege ALINMAZ, ama
     # SESSIZCE dusmez: kac dosya, hangi sebeple elendigi SAYILIR ve BASILIR.
-    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json")),
+    # 🔴 16 AGU 2026 — `.py` EKLENDI (olculdu): 24+ python betigi (nobet-kapi.py,
+    # nobet-kabul-test.py, baglam-olcum.py, isci-kimi-model-test.py ...) bu agacta
+    # yaziliyor, repo DISINDA (git'te kopyasi YOK) ve eski kume (".sh", ".crontab",
+    # ".md", ".txt", ".json") yuzunden hicbiri yedege GIRMIYORDU → disk kaybinda
+    # EMIMEYEN IS KAYBI. 16 Agu 2026 olcumunde gercek ~/.claude/cron agacinda 48
+    # .py dosyasi vardi; bunlarin hicbirinin adi gizli kalip (token/key/secret/
+    # anahtar/kimlik desenlerine uymuyor) → ekleme guvenli. Diger iki agaca
+    # (gorev/plan) DOKUNULMADI — kapsam genisletme tuzagi.
+    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json", ".py")),
     # Plan belgeleri saf Markdown.
     ("plan", PLANLAR, "planlar", (".md", ".txt", ".json")),
 )
@@ -609,6 +617,16 @@ KILIT_UYARI_YASI = 3600.0   # sn. Bundan uzun tutulan kilit "asili surec" suphes
 
 # ---- GURULTU (turetilmis; sir DEGIL, sadece yedege deger etmez) --------------
 GURULTU_DIZIN = {"__pycache__", ".git", "node_modules", ".venv", ".mypy_cache", ".pytest_cache"}
+# Agac bazinda EK atlama listesi (allowlist/SIR disinda, sadece DIZIN). AGAC_KAPSAMI
+# Satiri icin: cron agacinda tarayici profilleri (profil-*, m3-profil*, tarayici-profili)
+# + nobet-raporlar arsivi BUYUK / SUREKLI BUYUYEN / YENIDEN URETILEBILR (yeniden acilirsa
+# bosluktan geri gelir); `isci-baglam/` listede DEGIL — oradaki *.md yedeklenir
+# (ORTAK.md / BUTCE.md / motor baglamlari). Bu liste PREFIKSAL eslesir; ornek
+# "profil-" deseni "profil-minimax-m3-pruvo" ve benzerlerini toptan budar.
+# Gorev/plan agaclarina DOKUNMA — kapsam genisletme tuzagi.
+AGAC_EK_ATLA = {
+    "cron": ("profil-", "m3-profil", "tarayici-profili", "nobet-raporlar"),
+}
 GURULTU_DOSYA = ("*.pyc", "*.pyo", ".DS_Store")
 
 # ---- SIR NOBETI (skills agacinda kosulsuz) ----------------------------------
@@ -627,6 +645,13 @@ SIR_DESENLERI = (
     # geciyor (kardes evler, .claude/, .codex/). Oralardaki bilinen sir bicimleri:
     "*.dev.vars", "*cookie*", "secrets.local*", "*auth.json", "*.credentials",
     "*-key", "*_key", "*anahtar",
+    # 16 Agu 2026 — `.navlungo-kimlik.json` uzantili (.json → eski kronik allowlist'te
+    # izinli) AMA `*kimlik*` desenine uydugu icin sir nobeti oncelik alir. Daha genis
+    # kalip (`*kimlik*`) ileride gelebilecek ayni sinif dosyalari da eler; `agac_plani`
+    # sir nobetini allowlist'ten ONCE kosturdugu icin yanlis pozitif (gelecekte izinli
+    # .py uzantili bir `kimlik-uretici.py` gibi) sadece cron agacindaki dosyalari ele
+    # aldigindan sinirli yuzeyde kalir (cron = ozgu + vetted alan).
+    "*kimlik*",
 )
 # Icerik imzalari: YUKSEK SINYAL olanlar (yanlis-pozitif ucuz degil ama fail-closed sectik).
 # (etiket, regex) -- rapora YALNIZ etiket girer, eslesen metin GIRMEZ.
@@ -948,11 +973,19 @@ def agac_plani(agac):
     dahil, haric, gurultu = [], [], []
     if not os.path.isdir(kok):
         return dahil, haric, gurultu
+    # Agac-bazinda ek atlama: "cron" agacinda profil-*/m3-profil*/tarayici-profili/
+    # nobet-raporlar/ BUYUK + SUREKLI BUYUR + gecici/session tasir; "cron" disindaki
+    # agaclarda (gorev/plan) bu desenler yoktur, yine de bos kosum (birakilabilir).
+    ek_atla_onEk = AGAC_EK_ATLA.get(_etiket, ())
     for dizin, altlar, dosyalar in os.walk(kok):
-        for budanan in sorted(a for a in altlar if a in GURULTU_DIZIN):
+        for budanan in sorted(a for a in altlar
+                              if a in GURULTU_DIZIN
+                              or any(a.startswith(p) for p in ek_atla_onEk)):
             gurultu.append(os.path.relpath(os.path.join(dizin, budanan), kok)
                            + "/ (dizin budandi)")
-        altlar[:] = sorted(a for a in altlar if a not in GURULTU_DIZIN)
+        altlar[:] = sorted(a for a in altlar
+                           if a not in GURULTU_DIZIN
+                           and not any(a.startswith(p) for p in ek_atla_onEk))
         for ad in sorted(dosyalar):
             tam = os.path.join(dizin, ad)
             gor = os.path.relpath(tam, kok)

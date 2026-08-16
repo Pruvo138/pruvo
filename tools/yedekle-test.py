@@ -1760,6 +1760,155 @@ def main():
     hermetik_adet = hermetik_bolum(yedekle)
     hermetik_kapisi(hermetik_adet, serit_paritesi=True)
 
+    # ---------------- 17) CRON AGACI: .py DELIGI (16 AGU 2026) ----------------
+    # Olculdu: ~/.claude/cron altindaki 24+ python betigi (nobet-kapi.py,
+    # nobet-kabul-test.py, baglam-olcum.py, ...) eski ACIK ALLOWLIST'te (sadece
+    # .sh/.crontab/.md/.txt/.json) UZANTI YOK diye disarida kaliyordu. Repo
+    # DISINDA (git'te kopyasi YOK) → disk kaybinda EMIMEYEN KAYIP. Ayrica
+    # `.navlungo-kimlik.json` `.json` uzantisinin korunmasiyla yedege
+    # SIZIYORDU; buyuk transient dizinler (profil-*/, m3-profil*/,
+    # tarayici-profili/, nobet-raporlar/) yedegi sisiriyordu.
+    # Bu bolum kum havuzunda (sahte CRON kokune belirli atomlar konur) davranisi
+    # olcer. Pseudo-AGAC_KAPSAMI girdisi kullanir (gercek kronik kok YAZILMAZ).
+    print("\n17) CRON AGACI — .py deligi (16 Agu 2026) + sızıntı kapısı")
+    with tempfile.TemporaryDirectory() as td:
+        sahte_cron = os.path.join(td, "cron")
+        os.makedirs(os.path.join(sahte_cron, "isci-baglam"))
+        # Vaka A: izinli .py dosyasi plana GIRMELI
+        with open(os.path.join(sahte_cron, "nobet-kapi.py"), "w") as fh:
+            fh.write("#!/usr/bin/env python3\n# nobet yurutucusu\n")
+        # Vaka A: izinli olmayan .pyc dosyasi (gurultu) plana GIRMEMELI
+        os.makedirs(os.path.join(sahte_cron, "scripts", "__pycache__"))
+        with open(os.path.join(sahte_cron, "scripts", "__pycache__", "x.py"), "wb") as fh:
+            fh.write(b"\x00\x01\x00\x00")
+        with open(os.path.join(sahte_cron, "scripts", "__pycache__", "x.pyc"), "wb") as fh:
+            fh.write(b"\x00\x01\x00\x00")
+        # Vaka B: sir dosyalari plana GIRMEMELI
+        with open(os.path.join(sahte_cron, ".kimi-anahtar"), "w") as fh:
+            fh.write("kimi-anahtar-icerik\n")
+        with open(os.path.join(sahte_cron, ".deepseek-anahtar"), "w") as fh:
+            fh.write("deepseek-anahtar-icerik\n")
+        with open(os.path.join(sahte_cron, ".cf-token"), "w") as fh:
+            fh.write("cf-token-icerik\n")
+        with open(os.path.join(sahte_cron, ".gh-token"), "w") as fh:
+            fh.write("gh-token-icerik\n")
+        with open(os.path.join(sahte_cron, ".ci-token"), "w") as fh:
+            fh.write("ci-token-icerik\n")
+        with open(os.path.join(sahte_cron, ".cf-purge-token"), "w") as fh:
+            fh.write("cf-purge-token-icerik\n")
+        with open(os.path.join(sahte_cron, ".navlungo-kimlik.json"), "w") as fh:
+            fh.write('{"platform":"navlungo","kimlik":"SAHTE"}\n')
+        # Vaka C: BUYUK transient dizinler plana GIRMEMELI (profil-*/m3-profil*/
+        # tarayici-profili/nobet-raporlar). Eklenen her dizine .jsonl transkript ve
+        # .md not konur; HEPSI haric olmali (klasor budanir, dosyalar sayilmaz).
+        for d in ("profil-minimax-m3-pruvo", "m3-profil-pruvo", "tarayici-profili",
+                  "nobet-raporlar"):
+            os.makedirs(os.path.join(sahte_cron, d))
+            with open(os.path.join(sahte_cron, d, "oturum.jsonl"), "w") as fh:
+                fh.write('{"konusma":"model-cevabi-sim"}\n')
+            with open(os.path.join(sahte_cron, d, "rapor.md"), "w") as fh:
+                fh.write("# nobet raporu\n")
+        # Vaka D: isci-baglam/*.md plana GIRMELI (ORTAK.md / BUTCE.md / motor)
+        for ad in ("ORTAK.md", "BUTCE.md", "minimax-m3.md",
+                   "deepseek-flash.md", "deepseek-pro.md"):
+            with open(os.path.join(sahte_cron, "isci-baglam", ad), "w") as fh:
+                fh.write("# %s baglami\n" % ad)
+        # Vaka D-negatif: isci-baglam/*.py GENELDE calismaz; yapinin .md icin
+        # oldugunu kontrol etmek icin bir .json bile konur — SIZMAMALI (uzanti yok).
+        with open(os.path.join(sahte_cron, "isci-baglam", "ek-not.json"), "w") as fh:
+            fh.write('{"ek":1}\n')
+        # ----------------------------------------------------------------------
+        # Sahte AGAC_KAPSAMI girdisi: cron agaci etiketini kullanmak, gercek
+        # koklerin yazilmasini ONLER (sadece bu kum havuzuna yazilir).
+        sahte_agac = ("cron", sahte_cron, "cron-nobet-DUMMY", (".sh", ".crontab", ".md", ".txt", ".json", ".py"))
+        # Vaka gercek kokun uzerine yazma riski: KAPALI (sahte_cron = tempfile icinde).
+        kontrol("SAHTE KOK GERCEK ~/.claude/cron DEGIL (güvenli kum havuzu)",
+                not os.path.realpath(sahte_cron).startswith(os.path.realpath(os.path.expanduser("~/.claude"))),
+                sahte_cron)
+        # Direkt agac_plani cagrisi
+        dahil, haric, gurultu = yedekle.agac_plani(sahte_agac)
+        dahil_set = set(dahil)
+        haric_set = {x: y for x, y in haric}
+        gurultu_set = set(gurultu)
+        # ---- Vaka A: .py dosyasi VAR ----
+        kontrol("A) cron kokunde .py dosyasi yedek planinda VAR",
+                "nobet-kapi.py" in dahil_set, dahil_set)
+        kontrol("A) .py dosyasi haric listesinde DEGIL",
+                "nobet-kapi.py" not in haric_set, haric_set.get("nobet-kapi.py"))
+        # ---- Vaka B: sir dosyalari YOK ----
+        for sir in (".kimi-anahtar", ".deepseek-anahtar", ".cf-token", ".gh-token",
+                    ".ci-token", ".cf-purge-token", ".navlungo-kimlik.json"):
+            kontrol("B) cron'daki sir %s plana GIRMEDI" % sir,
+                    sir not in dahil_set, dahil_set)
+            kontrol("B) cron'daki sir %s haric SEBEBIYLE sayildi" % sir,
+                    sir in haric_set, haric_set.get(sir))
+        kontrol("B) TUM sirlar ayni kategoride (sir nobeti yakaliyor)",
+                all("ad deseni" in haric_set.get(s, "")
+                    or "icerik imzasi" in haric_set.get(s, "")
+                    for s in (".kimi-anahtar", ".deepseek-anahtar", ".cf-token",
+                              ".gh-token", ".ci-token", ".cf-purge-token",
+                              ".navlungo-kimlik.json")),
+                "sebepler: " + " | ".join(
+                    haric_set.get(s, "(YOK)") for s in
+                    (".kimi-anahtar", ".navlungo-kimlik.json")))
+        # ---- Vaka C: transient dizinler BUDANDI (dosyalar plana GIREMEZ) ----
+        for d in ("profil-minimax-m3-pruvo", "m3-profil-pruvo", "tarayici-profili",
+                  "nobet-raporlar"):
+            kontrol("C) transient dizin %s/ plana GIRMEDI (dosyalar dahil)" % d,
+                    not any(x.startswith(d + "/") for x in dahil_set),
+                    [x for x in dahil_set if x.startswith(d + "/")])
+            kontrol("C) transient dizin %s/ gurultu listesinde budandi" % d,
+                    any(d in g for g in gurultu_set), gurultu_set)
+        kontrol("C) __pycache__/x.py + x.pyc plana GIRMEDI (mevcut GURULTU_DIZIN hâlâ calisiyor)",
+                not any(x.startswith("scripts/__pycache__/") for x in dahil_set),
+                [x for x in dahil_set if x.startswith("scripts/__pycache__/")])
+        # ---- Vaka D: isci-baglam/*.md VAR ----
+        kontrol("D) isci-baglam/ORTAK.md yedek planinda VAR",
+                "isci-baglam/ORTAK.md" in dahil_set, dahil_set)
+        kontrol("D) isci-baglam/BUTCE.md yedek planinda VAR",
+                "isci-baglam/BUTCE.md" in dahil_set, dahil_set)
+        for ad in ("isci-baglam/minimax-m3.md", "isci-baglam/deepseek-flash.md",
+                   "isci-baglam/deepseek-pro.md"):
+            kontrol("D) isci-baglam/%s VAR" % os.path.basename(ad), ad in dahil_set)
+        # isci-baglam/ kendisi haric listesinde OLMAMALI (sadece gecici dizinler
+        # budanir; isci-baglam icindeki *.md gercek icerik)
+        kontrol("D) isci-baglam/ dizini haric listesinde DEGIL (yalniz girisler kontrol)",
+                not any(x == "isci-baglam" or x.startswith("isci-baglam (") for x in haric_set),
+                [x for x in haric_set if "isci-baglam" in x])
+        # D-ek: isci-baglam/ icindeki .json uzanti da allowlist'te (sadece *.md
+        # gelmedi; bu dogrudan allowlist davranisi - isci-baglam/ icin ozel kural
+        # yok). Bu, sirf baglam .md'lerinin yedeklendigini GARANTI etmez ama
+        # tasarim geregi: allowlist + dizin atlama birlikte calisiyor.
+        kontrol("D) isci-baglam/ dizini AGAC EK ATLA listesinde DEGIL (kullanici .md gibi dosyalar yedeklenir)",
+                "isci-baglam" not in [d.rstrip("/") for d in yedekle.AGAC_EK_ATLA.get("cron", ())],
+                yedekle.AGAC_EK_ATLA.get("cron", ()))
+        # ---- Vaka E: REGRESYON (mevcut kontrollerden bir kismi) ----
+        # .sh, .md, .crontab, .txt, .json — eski kume hâlâ calisiyor
+        with open(os.path.join(sahte_cron, "nober.sh"), "w") as fh:
+            fh.write("#!/bin/sh\nsahte nobet\n")
+        with open(os.path.join(sahte_cron, "gorev.md"), "w") as fh:
+            fh.write("# nobet gorevi\n")
+        with open(os.path.join(sahte_cron, "zamanlama.crontab"), "w") as fh:
+            fh.write("0 * * * * /usr/bin/true\n")
+        with open(os.path.join(sahte_cron, "not.txt"), "w") as fh:
+            fh.write("not\n")
+        with open(os.path.join(sahte_cron, "ayar.json"), "w") as fh:
+            fh.write("{}\n")
+        # Teste dahil etmek icin plani YENIDEN hesapla
+        dahil2, haric2, _ = yedekle.agac_plani(sahte_agac)
+        kontrol("E) eski kume .sh hâlâ VAR (regresyon)",
+                "nober.sh" in set(dahil2), dahil2)
+        kontrol("E) eski kume .md hâlâ VAR",
+                "gorev.md" in set(dahil2), dahil2)
+        kontrol("E) eski kume .crontab hâlâ VAR",
+                "zamanlama.crontab" in set(dahil2), dahil2)
+        kontrol("E) eski kume .txt hâlâ VAR",
+                "not.txt" in set(dahil2), dahil2)
+        kontrol("E) eski kume .json hâlâ VAR",
+                "ayar.json" in set(dahil2), dahil2)
+        # 17 bolumunun toplam kontrol sayisi (sonraki serit paritesi icin)
+        print("     17) bolumunun test sayisi: %d" % len([1 for _ in SONUC if _]))
+
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok, _ in SONUC if not ok]
     print("\n" + "=" * 70)
