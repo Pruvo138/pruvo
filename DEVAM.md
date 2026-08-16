@@ -2,6 +2,54 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 16 Agu (~16:00Z) — K113 + K114 KAPANDI · YAYIN ACILDI · KOK NEDEN BULUNDU (K124 ACILDI) (KraL)
+
+**Merge `04b48b36`** (origin/main). Worktree+dal SILINDI. **`deploy`=success · `yayin`=success.**
+Canli dogrulama (onbellek kirma YOK, kanonik adres): `pr80134` **200** · `pr66488` **200** ·
+`c3dred-bull-250ml-adaptoru` **200** · `/marka/vespa/` **200** · kok **200** ·
+canli `urunler.json` **28682** (= D1 = agac). Yayin-yasi nobetcisi canli hukum: **ACIK**.
+
+**(A) K113 — uretici butunluk kapisi BLOKLAYICI oldu.** Adim `hijyen-build`ten `build` isine
+TASINDI (kopya BIRAKILMADI). Kapi kanonik adresi olcer; `deploy: needs` disindayken 16 Agu'da
+bozuk ID'leri GORDU ama yayini durdurmadi. Tasimadan ONCE canli CI kaydindan yesil oldugu
+olculdu (`hijyen-build` icindeki adim `success`); ilk kosumda **`build` yesil gecti**.
+
+**(B) K114 — `onarim/r2-purge` birlesti** (`tools/r2-purge.py` + `tools/r2-purge-test.py`),
+batarya `nobet.yml` `r2-onek-nobeti` isine baglandi (SERIT B, agsiz). `ci-kapsam` KAPSAMSIZ
+kirmizisi kapandi (rc=0, taban 0).
+
+**(C) K123 ardil onarimi:** `is-akisi-kapisi::NOBET_DOSYALARI`'na `yayin-yasi-alarmi.yml`
+eklendi; kapi **6 sorun -> 5**. Kalan 5 tabanda da var (hijyen isleri kosumun genel
+`conclusion`'ini kirletiyor).
+
+## 🔴 YAYIN NEDEN SUREKLI KAPANIYOR — KOK NEDEN OLCULDU (K124, KALICI COZUM BEKLIYOR)
+
+Bugun uc kapanmanin ucu de ayni sekil: bloklayici `serit-a3` kirmizi -> `deploy` calismiyor.
+Bu kez sebep **varlik kapisi** idi ve KUSUR VERIDE DEGIL:
+- Rel-card (ilgili urun) havuzu **KATALOGDAN TURETILIR**; her yeni parti komsu sayfalarin
+  gosterdigi urunu degistirir. Kapi bunu `CIKARIM KAYBI` sayar.
+- Bu sinif **beyan edilebilir**: gecmesi icin birinin etkilenen urun kimliklerini elle
+  `tools/varlik-cikarim-beyani.json`'a yazmasi gerekir. Her partide yazilmadigi icin kapi
+  kirmizi kaliyor. `--referans-tazele` de kirmiziyken calismayi REDDEDIYOR -> taban kendini
+  onaramiyor (kilitli dongu).
+- **Veri kusuru YOK (olculdu):** dusen iki gorselin ikisi de canlida **200**, hicbiri sayfanin
+  KENDI gorseli degil; katalogda bicim disi gorsel URL'i **0/82462**. Urun ekleme hatti
+  suclu DEGIL.
+- **Ikinci incelik (olculdu):** ayni iyi huylu kayma IKI sinif uretiyor — rel-card GORSELI
+  (`rel-card-hedefleri`) ve rel-card BAGLANTISI; kapi `/urun/<id>/` tasiyan baglantiyi
+  `breadcrumb-adresi` sayiyor. Tek sinif beyan edilince kapi KIRMIZI KALDI.
+
+**Yayin bugun 6 sayfa beyan edilerek acildi** (blok 2, urun 36; `varlik-test` rc=0, 10 eksen
+yesil; `varlik-beyan-test` VAKA=8 DUSEN=0 — blanket beyan hala RED).
+
+🔧 **K124 (KALICI COZUM, yapilacak):** turetilmis sinifta soru "insan beyan etti mi" DEGIL
+**"yeni hal saglikli mi"** olmali: (1) sayfa rel-card'larini kaybetmemis (sayi beklenen
+aralikta), (2) her rel-card hedefi katalogda VAR, (3) hedefin gorsel anahtari gecerli.
+Saglikliysa bulgu bloklayici degildir ve taban KENDILIGINDEN tazelenir; degilse KIRMIZI.
+Urunun KENDI gorseli · canonical · siparis/WhatsApp baglantisi · baslik · fiyat · JSON-LD
+ekseni **beyan EDILEMEZ ve bloklayici KALIR**. Bu, onemli eksende bugunkunden **DAHA SIKI**:
+bugun insan, tum rel-card'larini kaybetmis bir sayfayi da beyanla gecirebiliyor.
+
 ## 16 Agu (~15:00Z) — K123 KAPANDI: YAYIN-YASI NOBETCISI CANLIDA + MUKERRER ISTISNASI WORKTREE'DE (KraL)
 
 **Merge `cadf9acb`** (origin/main'de; dal `kral/k123-yayin-yasi` + worktree SILINDI).
