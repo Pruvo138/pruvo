@@ -2985,7 +2985,7 @@
   // OTORİTE sunucu tarafındaki kuşak-dışı jeton tablosudur; aşağısı JS'in çalışma anı
   // AYNASIDIR ve ayrışması üyelik kapısında fail-closed KIRMIZI yakar (K15).
   // Elle üye EKLEME: önce otorite tabloya gir, sonra ayna güncellenir.
-  var KUSAK_DISI = ["Citroen|Ami 6"];
+  var KUSAK_DISI = ["Citroen|Ami 6","Toyota|AE86"];
   function kusakDisiMi(marka, s){
     return KUSAK_DISI.indexOf((marka || "") + "|" + s) !== -1;
   }
@@ -2999,7 +2999,12 @@
   var KUSAK_ESLEME = ["Volkswagen|T1|Transporter","Volkswagen|T2|Transporter",
     "Volkswagen|T3|Transporter","Volkswagen|T4|Transporter","Volkswagen|T5|Transporter",
     "Volkswagen|T6|Transporter","Volkswagen|T6.1|Transporter",
-    "Volkswagen|Transporter T5|Transporter","Volkswagen|T4 Transporter|Transporter"];
+    "Volkswagen|Transporter T5|Transporter","Volkswagen|T4 Transporter|Transporter",
+    "Toyota|SW20|MR2","Toyota|MR2 SW20|MR2","Toyota|MR2 Spyder|MR2",
+    "Toyota|Prado|Land Cruiser","Toyota|Land Cruiser Prado|Land Cruiser",
+    "Toyota|Land Cruiser 200|Land Cruiser","Toyota|FJ40|Land Cruiser",
+    "Toyota|Land Cruiser FJ40|Land Cruiser",
+    "Toyota|T25|Avensis","Toyota|T27|Avensis"];
   function kusakEslemeTabani(marka, s){
     var onek = (marka || "") + "|" + s + "|";
     for(var i = 0; i < KUSAK_ESLEME.length; i++){

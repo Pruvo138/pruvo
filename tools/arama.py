@@ -1252,10 +1252,16 @@ def rozet_capraz_imzasi():
 KUSAK_DISI_JETON = {
     ("Citroen", "Ami 6"): "Ami 6 (1961) klasik otomobil; `Ami` kovasindaki 15 urun 2020 "
                           "elektrikli dortteker Ami'ye ait — ayni ad, FARKLI arac",
+    # 16 Agu, mimar hukumu (K117-B Toyota model kanonu): `AE86` 1983 Corolla Levin/Trueno'dur;
+    # modern `86`/`GT86`/`GR86` ailesiyle AYNI ARAC DEGILDIR. Bugun bir katlama YOK, ama
+    # yarin bir kural sessizce katlamasin diye kalici deny. (`86`/`GT86`/`GR86` birlestirmesi
+    # BU SPEC'IN DISINDA — mimar ayri hukum yazacak.)
+    ("Toyota", "AE86"): "AE86 = 1983 Corolla Levin/Trueno (Corolla 4. kusak AE86 sasi kodu); "
+                        "modern `86`/`GT86`/`GR86` ailesiyle AYNI ARAC DEGIL — kalici deny",
 }
 
-KUSAK_DISI_SAYISI = 1
-KUSAK_DISI_IMZA = "82f480ed1147446d"
+KUSAK_DISI_SAYISI = 2
+KUSAK_DISI_IMZA = "e7e4a44338472984"  # arama.kusak_disi_imzasi() ile hesaplandi
 
 
 def kusak_disi_imzasi():
@@ -1345,10 +1351,35 @@ MODEL_OLMAYAN_CIFT = {
     # donusturur ama VW'nin bir MODELI degildir. Urunler taban model sayfasinda kalir.
     ("Volkswagen", "Westfalia"): "kamper donusturucusu (Westfalia-Werke) — VW'nin arac "
                                  "modeli degil; urunler taban model sayfasinda kalir",
+    # 16 Agu, mimar hukumu (K117-B Toyota model kanonu): 6 jeton MODEL DEGIL — sayfalari
+    # KAPANIR, urunler taban modelde kalir. Emsaller Ford ST / ST Line / EcoBoost,
+    # Yamaha Quad Lock, Volvo Sierra. Yargi marka-ozel.
+    ("Toyota", "TRD"): "Toyota Racing Development donanim/performans rozeti — arac modeli "
+                       "degil; urunler taban model sayfasinda kalir (Ford ST emsali)",
+    ("Toyota", "TRD Pro"): "TRD ile ayni sinif, ayri yazim — arac modeli degil (Ford ST "
+                           "Line emsali)",
+    ("Toyota", "22RE"): "motor kodu (22R-E) — arac modeli degil (Ford EcoBoost emsali)",
+    ("Toyota", "4AGE"): "motor kodu (4A-GE) — arac modeli degil (Ford EcoBoost emsali)",
+    ("Toyota", "Scan Gauge"): "ucuncu taraf OBD gosterge markasi (ScanGauge) — Toyota "
+                              "modeli degil (Yamaha Quad Lock emsali)",
+    ("Toyota", "107"): "`107` Peugeot'nun modelidir (Aygo/C1/107 uclusu ayni araci "
+                      "paylasir) — Toyota'nin modeli degil (Volvo Sierra emsali)",
+    # 16 Agu, mimar hukumu (K117-C model kanonu — siniflandirmanin MODEL onerilerinin
+    # mimar tarafindan REDDEDILEN 5 hatali jetonu, kalici deny):
+    ("Toyota", "BRZ"): "BRZ Subaru'nun modeli (Subaru BRZ / Toyota 86 ikizi) — "
+                       "Toyota'nin modeli degil",
+    ("Subaru", "FR-S"): "FR-S Scion'un modeli (Toyota GT86 / Scion FR-S / Subaru "
+                        "BRZ uclusu) — Subaru'nun modeli degil",
+    ("Citroen", "107"): "`107` Peugeot'nun modelidir (Aygo/C1/107 uclusu ayni "
+                       "araci paylasir) — Citroen'in modeli degil (Toyota|107 emsali)",
+    ("Peugeot", "DS"): "DS Automobiles Peugeot'dan AYRI bir markadir — Peugeot'nun "
+                      "modeli degil",
+    ("Hyundai", "Coupe"): "govde tipi sozcugu (Audi|Coupe emsali) — bagimsiz model "
+                          "adi degil",
 }
 
-MODEL_OLMAYAN_CIFT_SAYISI = 29
-MODEL_OLMAYAN_CIFT_IMZA = "868bc698dd69224e"
+MODEL_OLMAYAN_CIFT_SAYISI = 40
+MODEL_OLMAYAN_CIFT_IMZA = "4aa789c556ac2871"  # arama.model_olmayan_cift_imzasi() ile hesaplandi
 
 
 def model_olmayan_cift_imzasi():
@@ -1610,7 +1641,8 @@ BASLIK_DOGAN_ALLOW = {
     ("Toyota", "Raize"): "arac/motosiklet model adi",
     ("Toyota", "Starlet"): "arac/motosiklet model adi",
     ("Toyota", "Tercel"): "arac/motosiklet model adi",
-    ("Toyota", "TRD"): "arac/motosiklet AILE adi",
+    # 16 Agu, mimar hukumu (K117-B Toyota model kanonu): `TRD` Toyota Racing Development
+    # donanim/performans ROZETIDIR, bagimsiz arac modeli DEGIL — MODEL_OLMAYAN_CIFT'te deny.
     ("Toyota", "Vitz"): "arac/motosiklet model adi",
     ("Volkswagen", "Bora"): "arac/motosiklet model adi",
     ("Volkswagen", "CC"): "arac/motosiklet model adi",
@@ -1644,10 +1676,36 @@ BASLIK_DOGAN_ALLOW = {
     ("Yamaha", "YBR"): "arac/motosiklet model adi",
     ("Yamaha", "XSR"): "arac/motosiklet AILE adi (XSR serisi)",
     ("Yamaha", "XVS"): "arac/motosiklet AILE adi (XVS serisi)",
+    # 16 Agu, mimar hukumu (K117-C model kanonu): BASLIK KOLUYLA dogan, >= ESIK(3) urunlu
+    # ama yargisiz oldugu icin model listesine hic girmeyen 250 kovadan siniflandirma ile
+    # ayiklanan 17 GERCEK MODEL — model listesine girer.
+    ("Vespa", "Ciao"): "arac/motosiklet model adi (Piaggio Ciao — Vespa ailesi)",
+    ("Vespa", "PX"): "arac/motosiklet model adi",
+    ("Vespa", "GTS"): "arac/motosiklet model adi",
+    ("Vespa", "Smallframe"): "arac/motosiklet govde AILE adi (Vespa Smallframe)",
+    ("Vespa", "Cosa"): "arac/motosiklet model adi",
+    ("Vespa", "Bravo"): "arac/motosiklet model adi (Piaggio Bravo — Vespa ailesi)",
+    ("Vespa", "Fly"): "arac/motosiklet model adi (Piaggio Fly — Vespa ailesi)",
+    ("Vespa", "50"): "arac/motosiklet model adi (Vespa 50 — ikonik tek arac, ciplak "
+                    "sayi ama Vespa altinda TEKIL)",
+    ("Lexus", "GS"): "arac/motosiklet model adi",
+    # `Sierra` Ford'un gercek modelidir; deniz yedek parca ureticisi olarak BASKA
+    # markalarda deny (Volvo Sierra emsali) — yargi marka-ozeldir.
+    ("Ford", "Sierra"): "arac/motosiklet model adi (Volvo Sierra emsali — yargi "
+                        "marka-ozel)",
+    ("Mazda", "5"): "arac/motosiklet model adi (Mazda 2/3/6 emsali)",
+    # `Duster` Dacia Duster'in Renault yazimidir (ikiz model); tekil girisle dogar.
+    ("Renault", "Duster"): "arac/motosiklet model adi (Dacia Duster'in Renault yazimi)",
+    ("Renault", "Sandero"): "arac/motosiklet model adi",
+    ("Nissan", "Primastar"): "arac/motosiklet model adi",
+    # `Genesis` Hyundai'nin 2008-2016 doneminde ayri marka OLMA DAN ONCEki model adidir.
+    ("Hyundai", "Genesis"): "arac/motosiklet model adi (marka olmadan onceki adi)",
+    ("Peugeot", "203"): "arac/motosiklet model adi",
+    ("Yamaha", "Raptor"): "arac/motosiklet model adi (ATV serisi)",
 }
 
-BASLIK_DOGAN_ALLOW_SAYISI = 141
-BASLIK_DOGAN_ALLOW_IMZA = "feb8fe266049d902"
+BASLIK_DOGAN_ALLOW_SAYISI = 157
+BASLIK_DOGAN_ALLOW_IMZA = "8b011d4fd0bcacae"  # arama.baslik_dogan_allow_imzasi() ile hesaplandi
 
 
 def baslik_dogan_allow_imzasi():
@@ -1724,10 +1782,23 @@ KUSAK_ESLEME = {
     # Ayni aracin BILESIK yazimlari — yoksa tek urunluk oksuz kovalar olarak kalirlar.
     ("Volkswagen", "Transporter T5"): "Transporter",
     ("Volkswagen", "T4 Transporter"): "Transporter",
+    # 16 Agu, mimar hukumu (K117-B Toyota model kanonu): ayni arac birden cok kovaya
+    # bolunmus — taban olculen en buyuk/canli kovadir. Kucuk/kod/spyder jetonlari gramer
+    # katlamaz, kuratorlu esleme sart.
+    ("Toyota", "SW20"): "MR2",                # MR2 ikinci kusak sasi kodu (W20 = SW20)
+    ("Toyota", "MR2 SW20"): "MR2",            # bilesik yazim — yoksa oksuz kova
+    ("Toyota", "MR2 Spyder"): "MR2",          # ABD pazar adi (roofless roadster)
+    ("Toyota", "Prado"): "Land Cruiser",      # Land Cruiser Prado — ayni arac, kisa adi
+    ("Toyota", "Land Cruiser Prado"): "Land Cruiser",  # tam yazim
+    ("Toyota", "Land Cruiser 200"): "Land Cruiser",    # J200 kusak sasi kodu
+    ("Toyota", "FJ40"): "Land Cruiser",       # klasik Land Cruiser ailesi
+    ("Toyota", "Land Cruiser FJ40"): "Land Cruiser",   # tam yazim
+    ("Toyota", "T25"): "Avensis",             # Avensis 2. kusak (T250) sasi kodu
+    ("Toyota", "T27"): "Avensis",             # Avensis 3. kusak (T270) sasi kodu
 }
 
-KUSAK_ESLEME_SAYISI = 9
-KUSAK_ESLEME_IMZA = "9dcae2fc27d7a581"
+KUSAK_ESLEME_SAYISI = 19
+KUSAK_ESLEME_IMZA = "674916073b452620"  # arama.kusak_esleme_imzasi() ile hesaplandi
 
 
 def kusak_esleme_imzasi():
