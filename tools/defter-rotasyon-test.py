@@ -186,10 +186,10 @@ def _son_satirdaki_sayiyi_al(stdout, jeton):
 
 
 def madde_test():
-    """Madde granulu vakalari (V1-V9). Tek tek kontrol listesi."""
+    """Madde granulu vakalari (V1-V9 + K128 yenileri V10-V14). Tek tek kontrol listesi."""
     hatalar = []
     gecen = 0
-    kontrol = 9  # V1..V9
+    kontrol = 14  # V1..V14
 
     # ----- V1 POZ -------------------------------------------------------
     # Acik blok icinde kapali madde TASINIR.
@@ -426,6 +426,161 @@ def madde_test():
                 hatalar.append("V9 blok arsive gecti")
             else:
                 gecen += 1
+
+    # ----- V10 NEG (CANLI VAKANIN FIKSTURU; K128) -----------------------
+    # ## OKAN'DA blogundaki `- Eski yedek klasorunu ... karari.` maddesinin
+    # devam satirinda `(Motor tarifesi kalemi 16 Agu'da KAPANDI: ...)` atfi
+    # gecir; konum sarti yalnizca ILK SATIRA baktigi icin bu madde
+    # TASINMAZ (ilk satir `- 🔧 Eski yedek...` ile basliyor; kapanis jetonu
+    # ilk anlamli kelime degil).
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## OKAN'DA\n"
+            "- 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum "
+            "eylemi silme karari.\n"
+            "  (Motor tarifesi kalemi 16 Agu'da KAPANDI: kimi + minimax-m3 "
+            "ust aboneligine gecildi.)\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V10 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v10_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            v10_blok = _son_satirdaki_sayiyi_al(stdout, "TASINAN")
+            if v10_madde != 0 or v10_blok != 0:
+                hatalar.append(
+                    "V10 ACIK Okan maddesi tasindi TASINAN=%d TASINAN_MADDE=%d "
+                    "(beklenen 0/0; KAPANDI devam satirinda)" % (v10_blok, v10_madde))
+            elif "Eski yedek klasorunu" not in yeni_defter:
+                hatalar.append("V10 Eski yedek satiri defterden kayboldu")
+            elif "Motor tarifesi kalemi" in yeni_arsiv:
+                hatalar.append("V10 acik Okan maddesi (devam satiriyla) arsive gecti")
+            elif "Motor tarifesi kalemi" not in yeni_defter:
+                hatalar.append("V10 devam satiri kayipsiz durmali (defterde)")
+            else:
+                gecen += 1
+
+    # ----- V11 NEG (kapanis kelimesi ORTADA; K128) ----------------------
+    # `- Bu is devam ediyor; K91 KAPANDI diye referans veriyoruz.` —
+    # kapanis jetonu ilk anlamli kelime degil; konum sarti tasinmamali
+    # soyluyor.
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- Bu is devam ediyor; K91 KAPANDI diye referans veriyoruz.\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V11 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v11_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v11_madde != 0:
+                hatalar.append(
+                    "V11 KAPANDI ortada olmasina ragmen tasindi TASINAN_MADDE=%d" % v11_madde)
+            elif "K91 KAPANDI diye referans" not in yeni_defter:
+                hatalar.append("V11 acik madde defterden kayboldu")
+            elif "K91 KAPANDI" in yeni_arsiv:
+                hatalar.append("V11 acik madde arsive gecti")
+            else:
+                gecen += 1
+
+    # ----- V12 POZ (`- ✅ **... KAPANDI ...`); K128 konum sarti ---------
+    # `- ✅ **K1 KAPANDI**` formu zaten V1'de gecmistir; burada K127
+    # davranisinin K128 konum sartiyla KORUNDUGUNU ayrica dogruluyoruz.
+    # Konum sarti: `- ` sonrasi ilk anlamli jeton `✅`.
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- 🔴 genel acik\n"
+            "- ✅ **K120 KAPANDI (16 Agu, merge 5df50d78):** gizli kaynak "
+            "kaydi artik izleme disi.\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V12 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v12_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v12_madde != 1:
+                hatalar.append("V12 - ✅ **... KAPANDI tasinmadi TASINAN_MADDE=%d" % v12_madde)
+            elif "K120 KAPANDI" not in yeni_arsiv:
+                hatalar.append("V12 KAPANDI maddesi arsive gecmedi")
+            elif "K120 KAPANDI" in yeni_defter:
+                hatalar.append("V12 KAPANDI maddesi defterde kaldi")
+            else:
+                gecen += 1
+
+    # ----- V13 POZ (yalin `- KAPANDI ...`); K128 -------------------------
+    # `- KAPANDI (K2): is bitti` formu. Konum sarti: `- ` sonrasi ilk
+    # anlamli kelime `KAPANDI`. Arsiv veto YOK (metinde 'arsivde' yok);
+    # dolayisiyla TASINIR. AYNI vakada `- KAPANDI (arsivde): ...` indeks
+    # satiri tasinmaz (V7 ile cakismiyor; iki kural birlikte calisir).
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- KAPANDI (K2): is bitti, ek bilgi.\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V13 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v13_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v13_madde != 1:
+                hatalar.append("V13 yalin - KAPANDI tasinmadi TASINAN_MADDE=%d" % v13_madde)
+            elif "KAPANDI (K2)" not in yeni_arsiv:
+                hatalar.append("V13 KAPANDI (K2) arsive gecmedi")
+            elif "KAPANDI (K2)" in yeni_defter:
+                hatalar.append("V13 KAPANDI (K2) defterde kaldi")
+            else:
+                gecen += 1
+
+    # ----- V14 (GORUNURLUK); K128 ---------------------------------------
+    # Tasima yapilan kosumda stdout'ta `TASINAN-MADDE:` satiri VAR ve
+    # tasinan maddenin ilk satirini (kirpilmis 100 kar.) icerir; hicbir
+    # sey tasinmayan kosumda YOK.
+    with tempfile.TemporaryDirectory() as tmp:
+        # (a) Tasima var → TASINAN-MADDE: satir beklene.
+        defter_tasima = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- ✅ **K1 KAPANDI** detay metni\n"
+            "  devam satiri 2\n"
+        )
+        rc_a, stdout_a, yeni_defter_a, yeni_arsiv_a = _yaz_ve_calistir(tmp, defter_tasima)
+        tasinan_satirlari = [
+            s for s in (stdout_a or "").splitlines()
+            if s.startswith("TASINAN-MADDE:")
+        ]
+        # (b) Tasima yok → TASINAN-MADDE: satir YOK.
+        defter_yok = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- 🔧 **K2:** devam ediyor\n"
+        )
+        rc_b, stdout_b, yeni_defter_b, yeni_arsiv_b = _yaz_ve_calistir(tmp, defter_yok)
+        yok_satirlari = [
+            s for s in (stdout_b or "").splitlines()
+            if s.startswith("TASINAN-MADDE:")
+        ]
+
+        if rc_a != 0 or rc_b != 0:
+            hatalar.append("V14 rotasyon basarisiz rc_a=%d rc_b=%d" % (rc_a, rc_b))
+        elif len(tasinan_satirlari) != 1:
+            hatalar.append(
+                "V14 tasima kosumunda TASINAN-MADDE: satir sayisi=%d (beklenen 1): %r"
+                % (len(tasinan_satirlari), tasinan_satirlari))
+        elif "K1 KAPANDI" not in tasinan_satirlari[0]:
+            hatalar.append(
+                "V14 TASINAN-MADDE: satiri tasinan maddenin ilk satirini icermiyor: %r"
+                % tasinan_satirlari[0])
+        elif len(tasinan_satirlari[0]) > len("TASINAN-MADDE: ") + 100:
+            hatalar.append("V14 TASINAN-MADDE: satiri 100 kar. asmis: %r" % tasinan_satirlari[0])
+        elif len(yok_satirlari) != 0:
+            hatalar.append(
+                "V14 tasima yok kosumunda TASINAN-MADDE: satiri YAZILDI: %r" % yok_satirlari)
+        else:
+            gecen += 1
 
     return hatalar, gecen, kontrol
 
@@ -729,6 +884,152 @@ def mutant_m5_test():
         return False, "M5 V8'i bozMADI (SURVIVOR, TASINAN=%d)" % v8_blok
 
 
+def mutant_m6_test():
+    """M6: konum sarti no-op (yine 'metinde herhangi bir yerde') -> V10/V11 KIRMIZI.
+
+    `_ilk_satirda_kapanis` govdesini eski davranisa (substring arama)
+    donusturur; boylece K128 konum sarti baypas edilir ve V10 (`- 🔧 Eski
+    yedek...` devam satirinda `KAPANDI` atfi olan ACIK madde) ile V11
+    (`- Bu is devam ediyor; K91 KAPANDI diye...` kapanis ortada) yanlis
+    tasinir. V10/V11 beklenen sonucunu (TASINMAZ) kaybeder.
+    """
+    with open(ROTASYON, encoding="utf-8") as f:
+        govde = f.read()
+
+    # M6 capa: `_ilk_satirda_kapanis` icindeki tek-return `if not ...: return False`.
+    # Bu satiri silip yerine eski davranis (substring arama) koy.
+    eski = "    if not _ilk_satirda_kapanis(metin):\n        return False\n"
+    yeni = ("    # M6 mutant: konum sarti no-op; eski substring arama.\n"
+            "    for _isaretci in KAPANIS_ISARETCILER:\n"
+            "        if _isaretci in metin:\n"
+            "            return True\n"
+            "    return False\n")
+    if eski not in govde:
+        return None, "MUTANT M6 CAPA BULUNAMADI: %r" % eski
+
+    mutant_govde = govde.replace(eski, yeni, 1)
+    sonuclar = []
+    with tempfile.TemporaryDirectory() as tmp:
+        mutant_yol = os.path.join(tmp, "mutant-m6.py")
+        with open(mutant_yol, "w", encoding="utf-8") as f:
+            f.write(mutant_govde)
+
+        # V10 fiksturu — Eski yedek Okan kalemi. M6 ile devam satiri
+        # parantezindeki KAPANDI yakalar ve madde TASINIR (yanlis).
+        defter_v10 = (
+            "## OKAN'DA\n"
+            "- 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum "
+            "eylemi silme karari.\n"
+            "  (Motor tarifesi kalemi 16 Agu'da KAPANDI: kimi + minimax-m3 "
+            "ust aboneligine gecildi.)\n"
+        )
+        def _calistir_mutantla(defter_icerik, arsiv_icerik=""):
+            defter = os.path.join(tmp, "DEVAM.md")
+            arsiv = os.path.join(tmp, "DEVAM-ARSIV.md")
+            with open(defter, "w", encoding="utf-8") as f:
+                f.write(defter_icerik)
+            with open(arsiv, "w", encoding="utf-8") as f:
+                f.write(arsiv_icerik)
+            r = subprocess.run(
+                [sys.executable, mutant_yol, defter, arsiv, "--tarih", "2026-08-16"],
+                capture_output=True, text=True)
+            if r.returncode != 0:
+                return None
+            return _son_satirdaki_sayiyi_al(r.stdout, "TASINAN_MADDE")
+
+        # V10 fiksturu — Eski yedek Okan kalemi. Ilk satirda � acik
+        # jetonu var; `_acik_eslesiyor` once devreye girer. M6 ile bile
+        # madde TASINMAZ — V10 bu mutant ile ayirt edilEMEZ. V11 ile
+        # birlikte degerlendirilir.
+        defter_v10 = (
+            "## OKAN'DA\n"
+            "- 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum "
+            "eylemi silme karari.\n"
+            "  (Motor tarifesi kalemi 16 Agu'da KAPANDI: kimi + minimax-m3 "
+            "ust aboneligine gecildi.)\n"
+        )
+        v10_madde = _calistir_mutantla(defter_v10)
+        if v10_madde is None:
+            return None, "M6 mutant V10 calistirilamadi"
+        sonuclar.append(("V10", v10_madde, 0, "Eski yedek M6 ile tasindi"))
+
+        # V11 fiksturu — kapanis ortada, ACIK jetonu yok. M6 ile KAPANDI
+        # substring'i yakalar ve madde TASINIR (yanlis).
+        defter_v11 = (
+            "## B — ACIK KALEMLER\n"
+            "- Bu is devam ediyor; K91 KAPANDI diye referans veriyoruz.\n"
+        )
+        v11_madde = _calistir_mutantla(defter_v11)
+        if v11_madde is None:
+            return None, "M6 mutant V11 calistirilamadi"
+        sonuclar.append(("V11", v11_madde, 0, "kapanis ortada M6 ile tasindi"))
+
+    kirildi = sum(1 for _, g, b, _ in sonuclar if g != b)
+    toplam = len(sonuclar)
+    if kirildi >= 1:
+        return True, "M6 V10/V11'i bozdu (%d/%d): %s" % (
+            kirildi, toplam,
+            "; ".join("%s g=%d b=%d" % (ad, g, b) for ad, g, b, _ in sonuclar))
+    return False, "M6 hicbir vakayi bozMADI (SURVIVOR)"
+
+
+def mutant_m7_test():
+    """M7: gorunurluk basimini sil -> V14 KIRMIZI.
+
+    `TASINAN-BLOK` ve `TASINAN-MADDE` basimini iceren 6-satirlik blogu
+    bosaltir; boylece operator ne gittigini GOREMEZ. V14 beklenen
+    sonucunu (tasima kosumunda `TASINAN-MADDE:` satiri VAR) kaybeder.
+    """
+    with open(ROTASYON, encoding="utf-8") as f:
+        govde = f.read()
+
+    # M6 capa: gorunurluk basim blogu — `for` dongusu + iki `print`.
+    eski = (
+        "    for blok in tasinacak_bloklar:\n"
+        "        print(\"TASINAN-BLOK: %s\" % blok[\"baslik\"])\n"
+        "    for madde in tasinacak_maddeler:\n"
+        "        ilk = madde.split(\"\\n\", 1)[0]\n"
+        "        if len(ilk) > 100:\n"
+        "            ilk = ilk[:100]\n"
+        "        print(\"TASINAN-MADDE: %s\" % ilk)\n"
+    )
+    yeni = "    # M7 mutant: gorunurluk basimi silindi\n"
+    if eski not in govde:
+        return None, "MUTANT M7 CAPA BULUNAMADI: %r" % eski
+
+    mutant_govde = govde.replace(eski, yeni, 1)
+    with tempfile.TemporaryDirectory() as tmp:
+        mutant_yol = os.path.join(tmp, "mutant-m7.py")
+        with open(mutant_yol, "w", encoding="utf-8") as f:
+            f.write(mutant_govde)
+
+        # V14 fiksturu — tasima olan kosum. M7 ile stdout'ta
+        # `TASINAN-MADDE:` satiri YAZILMAZ.
+        defter_v14 = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- ✅ **K1 KAPANDI** detay metni\n"
+            "  devam satiri 2\n"
+        )
+        defter = os.path.join(tmp, "DEVAM.md")
+        arsiv = os.path.join(tmp, "DEVAM-ARSIV.md")
+        with open(defter, "w", encoding="utf-8") as f:
+            f.write(defter_v14)
+        with open(arsiv, "w", encoding="utf-8") as f:
+            f.write("")
+        r = subprocess.run(
+            [sys.executable, mutant_yol, defter, arsiv, "--tarih", "2026-08-16"],
+            capture_output=True, text=True)
+        if r.returncode != 0:
+            return None, "M7 mutant rc=%d (calistirilamadi)" % r.returncode
+        tasinan_satirlari = [
+            s for s in (r.stdout or "").splitlines()
+            if s.startswith("TASINAN-MADDE:")
+        ]
+        if len(tasinan_satirlari) == 0:
+            return True, "M7 V14'u bozdu (TASINAN-MADDE: satiri YOK; gorunurluk sustu)"
+        return False, "M7 V14'u bozMADI (SURVIVOR, %d sat)" % len(tasinan_satirlari)
+
+
 # ---------------------------------------------------------------------------
 # RED PROVASI (pre-commit)
 # ---------------------------------------------------------------------------
@@ -827,6 +1128,8 @@ def main():
     mutant_m3_oldu, mutant_m3_mesaj = mutant_m3_test()
     mutant_m4_oldu, mutant_m4_mesaj = mutant_m4_test()
     mutant_m5_oldu, mutant_m5_mesaj = mutant_m5_test()
+    mutant_m6_oldu, mutant_m6_mesaj = mutant_m6_test()
+    mutant_m7_oldu, mutant_m7_mesaj = mutant_m7_test()
 
     r_red, r_kontrol, r_kapsam, sayac_yol, sayac_satir = red_provasi()
 
@@ -864,16 +1167,20 @@ def main():
     m3_durum = "OLDU" if mutant_m3_oldu else "SURVIVOR"
     m4_durum = "OLDU" if mutant_m4_oldu else "SURVIVOR"
     m5_durum = "OLDU" if mutant_m5_oldu else "SURVIVOR"
+    m6_durum = "OLDU" if mutant_m6_oldu else "SURVIVOR"
+    m7_durum = "OLDU" if mutant_m7_oldu else "SURVIVOR"
     mutant_oldu_toplam = sum(1 for x in (
         mutant_oldu, mutant_m2_oldu, mutant_m3_oldu,
         mutant_m4_oldu, mutant_m5_oldu,
+        mutant_m6_oldu, mutant_m7_oldu,
     ) if x)
-    mutant_toplam = 5
+    mutant_toplam = 7
 
     gecen = kontrol - len(hatalar)
-    print("FIKSTUR=%d/%d YENI_VAKA=%d/%d MUTANT=%s,M2=%s,M3=%s,M4=%s,M5=%s(%d/%d) RED_RC=%d KONTROL_RC=%d KAPSAM_RC=%d CARE_SATIRI=%s SAYAC_YOL=%s SAYAC_SATIR=%d"
+    print("FIKSTUR=%d/%d YENI_VAKA=%d/%d MUTANT=%s,M2=%s,M3=%s,M4=%s,M5=%s,M6=%s,M7=%s(%d/%d) RED_RC=%d KONTROL_RC=%d KAPSAM_RC=%d CARE_SATIRI=%s SAYAC_YOL=%s SAYAC_SATIR=%d"
           % (gecen, kontrol, madde_gecen, madde_kontrol,
              mutant_durum, m2_durum, m3_durum, m4_durum, m5_durum,
+             m6_durum, m7_durum,
              mutant_oldu_toplam, mutant_toplam,
              red_rc, kontrol_rc, kapsam_rc, care_var, sayac_yol, sayac_satir))
 
@@ -888,6 +1195,10 @@ def main():
             print("M4 MUTANT DETAY: %s" % mutant_m4_mesaj, file=sys.stderr)
         if not mutant_m5_oldu:
             print("M5 MUTANT DETAY: %s" % mutant_m5_mesaj, file=sys.stderr)
+        if not mutant_m6_oldu:
+            print("M6 MUTANT DETAY: %s" % mutant_m6_mesaj, file=sys.stderr)
+        if not mutant_m7_oldu:
+            print("M7 MUTANT DETAY: %s" % mutant_m7_mesaj, file=sys.stderr)
         return 1
     if mutant_oldu_toplam < mutant_toplam:
         if not mutant_oldu:
@@ -900,6 +1211,10 @@ def main():
             print("M4 MUTANT DETAY: %s" % mutant_m4_mesaj, file=sys.stderr)
         if not mutant_m5_oldu:
             print("M5 MUTANT DETAY: %s" % mutant_m5_mesaj, file=sys.stderr)
+        if not mutant_m6_oldu:
+            print("M6 MUTANT DETAY: %s" % mutant_m6_mesaj, file=sys.stderr)
+        if not mutant_m7_oldu:
+            print("M7 MUTANT DETAY: %s" % mutant_m7_mesaj, file=sys.stderr)
         return 1
     return 0
 
