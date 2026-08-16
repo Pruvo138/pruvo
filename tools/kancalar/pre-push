@@ -112,6 +112,23 @@ if [ -n "$pruvo_kapsam_kok" ] && [ -f "$pruvo_kapsam_kok/tools/worktree-tavan-no
   fi
 fi
 
+# --- DEFTER KOTASI BYPASS SAYACI (RAPOR-ONLY; ASLA BLOKLAMAZ) ---------------
+# 🔴 NEDEN BURADA: `--no-verify` ile atlanan pre-commit kancasi HIC KOSMAZ, yani kendi
+# atlanisini KAYDEDEMEZ. Bypass ancak SONUCUNDAN anlasilir: kota asilmis bir DEVAM.md
+# commit'lenip push'a gelmisse kapi atlanmistir. Bu adim o hali SAYAR.
+# Okan hukmu: "`--no-verify` yasaklanamaz ama SAYILIR" -> adim push'u DURDURMAZ; sayac
+# repo DISINDADIR (~/.claude/cron/defter-kota-bypass.tsv) ve gunluk 15:00 olcumune
+# DEFTER_KOTA_BYPASS ekseni olarak girer. Defteri olmayan kardes depoda sessiz gecer.
+# ⚠️ `|| true` KULLANILMADI (bu depoda beyansiz fail-open sayilir): kol zaten kendi
+# icinde her yolda exit 0 doner; yine de hata verirse GORUNUR bir satir basilir.
+if [ -n "$pruvo_kapsam_kok" ] && [ -f "$pruvo_kapsam_kok/tools/defter-kota-kapisi.py" ]; then
+  if python3 "$pruvo_kapsam_kok/tools/defter-kota-kapisi.py" --bypass-kontrol "$pruvo_kapsam_kok"; then
+    :
+  else
+    echo "!! DEFTER KOTA BYPASS SAYACI hata verdi (push DEVAM ediyor)."
+  fi
+fi
+
 # >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir — ELLE DUZENLEME) >>>
 # FAIL-CLOSED: bu itme temizlenmis sizintiyi (mesaj YA DA icerik ekseni) GERI
 # GETIRIYORSA PUSH DURUR. Gerekce: tools/gecmis-geri-donus-hook-kur.py basligi.
