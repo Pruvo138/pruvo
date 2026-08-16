@@ -1,0 +1,85 @@
+name: Yayin yasi alarmi (main ilerledi mi, canli kaldi mi)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — OLCULEN SESSIZLIK (15-16 Agu 2026)
+# ══════════════════════════════════════════════════════════════════════════════
+# Yayin 15 Agu 14:02'den 16 Agu ~12:00'ye kadar (~21 SAAT) KAPALIYDI. Son basarili
+# dagitim `268da994`; uzerine 22 commit birikti (K117 model kanonu, uc urun partisi,
+# ic link hatti) ve HICBIRI musteriye gitmedi. Bes ev calisti, kimse fark etmedi.
+#
+# 🔴 SESSIZLIGIN MEKANIGI: deploy.yml'de `deploy` isi `needs: [build, serit-a2,
+# serit-a3, serit-a4]` ile fail-closed baglidir; biri kirmizi olunca `deploy`
+# **SKIPPED** olur. SKIPPED sessizdir: ayri bildirim uretmez, kirmizi listede tek
+# satir olarak kaybolur. Yani KOSUMUN YESILI YAYIN DEMEK DEGILDIR.
+#
+# 🔴 MEVCUT NOBETCILER BU SINIFI GORMEZ (olculdu):
+#   * `yayin-erisim-alarmi` kumeyi main AGACINDAN turetir ve canli sitemap'te henuz
+#     olmayan 404'leri ROLLOUT sayar -> yayin TAMAMEN durdugunda tam olarak
+#     SESSIZLESIR (yeni sayfalar "henuz tasinmamis" kovasina duser).
+#   * `yayin-gecikme-nobeti` D1 taslak yiginini olcer — CI/Pages yayin akisini DEGIL.
+# Bu is akisi o kor noktanin karsiligidir.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN YAYINI DURDURAMAZ (yapisal, beyan degil)
+# ══════════════════════════════════════════════════════════════════════════════
+#   * `push`/`pull_request`/`workflow_call` tetikleyicisi YOK -> deploy.yml bu isi
+#     HIC baslatmaz.
+#   * deploy.yml'e `needs:` ile BAGLI DEGIL -> buradaki kirmizinin yayin yoluna
+#     maliyeti 0 sn'dir.
+#   * `concurrency` grubu AYRI -> hicbir yayin adimini bekletmez.
+# Gerekce: yayinin kapali oldugunu olcen bir kapinin yayin yolunu BLOKLAMASI
+# kusuru buyutur (kapali yayin daha da kapanir) ve kapi birikmesi bu depoda yayin
+# suresini 21 gunde 15,6x uzatti ([[kapi-birikimi-yayin-gecikmesi]]).
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# CADANS
+# ══════════════════════════════════════════════════════════════════════════════
+# Saatlik: olculen olay 21 saat sessiz kaldi; saatlik cadans + 3 saatlik tavan o
+# pencereyi ~7x daraltir. 🔴 DAKIKA yogun degil ve komsu is akislarinin fazlarina
+# carpmaz: yayin-erisim 26 · d1-uzlastirici 9,24,39,54 · paket-tazelik 13,28,43,58
+# (`*/15` ve 0/15/30/45 GitHub tarafindan dusuruluyor — 31 Tem'de olculdu).
+on:
+  schedule:
+    - cron: "41 * * * *"
+  # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: read
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup.
+concurrency:
+  group: yayin-yasi-alarmi
+  cancel-in-progress: true
+
+jobs:
+  yas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # KABUL — hukum once KENDI fiksturunde olculur (ag YOK, ~1 sn)
+      # ═══════════════════════════════════════════════════════════════════════
+      # Nobetci kirmizi yandiginda ilk soru "kapi mi bozuk" olur; bu adim o soruyu
+      # ayni kosumda kapatir. Mutasyon bataryasi da buradadir (SURVIVOR=0 sarti).
+      - name: "Kabul + mutasyon (dis ag YOK)"
+        run: python3 tools/yayin-yasi-test.py
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # OLCUM — GERCEK dagitim kaydi (kosum `conclusion`'i DEGIL)
+      # ═══════════════════════════════════════════════════════════════════════
+      # `continue-on-error` YOK ve cikis kodu kabukta YAKALANMAZ (`|| true` bu depoda
+      # beyansiz fail-open sayilir): cikis kodu DOGRUDAN konusur.
+      #   rc 0 acik       — canli main ucuyla ayni ya da bekleyen en eski commit taze
+      #   rc 1 bayat      — yayina girmemis en eski commit 3 saatten yasli
+      #   rc 2 olculemedi — jeton/API/kayit yok, SHA main gecmisinde degil. YESIL DEGIL.
+      - name: "Olcum — yayina girmemis en eski commit kac saattir bekliyor"
+        id: olcum
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/yayin-yasi-nobetcisi.py --gh-ozet
