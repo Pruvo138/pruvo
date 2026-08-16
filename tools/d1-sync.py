@@ -1296,10 +1296,27 @@ def marka_kanon_haritasi(urunler):
     """{id: kanonik JSON dizi metni} — urunun UYE OLDUGU /marka/<slug>/ sayfalarinin
     kanonik adlari. Doner: (harita, sebep). sebep None = turetildi; DOLU ise TURETILEMEDI.
 
+    🔴 KAYNAK (K133, SPEC ADIM-2): FILTRE/uyelik kumesi, marka SAYFASI kovasiyla AYNI
+    kanonik yuklemden turetilir. Sayfa kovasi FAZ 1B ile `marka_model_build.baslik_uyelikleri`
+    cagirarak kanonik marka ekler; bu fonksiyon da AYNI cagriyi yapar (`mmb.baslik_uyelikleri`).
+    Ikinci bir govde / ikinci bir ucun-yuklemi YAZILMAZ — ikiz tanimin sessiz ayrismasi
+    ([[ikiz-tanim-sessiz-ayrisma]]) burada kapinin olcudugu sorun: 45 GERCEK marka sayfada
+    var, filtrede yok (musteri cipe basincav urunu KAYBEDER).
+
     🔴 IKINCI KATLAMA TABLOSU YOK: deger deponun TEK KAYNAGINDAN — ana sayfa marka
-    filtresinin ta kendisi olan marka_model_build.marka_uyelikleri()'nden — turetilir
-    (evren = index.html TANINMIS_MARKALAR portu + MARKA_ALIAS; ek evren = cip indeksi).
-    Yeni bir liste ya da ikinci bir tablo ACILMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+    filtresinin ta kendisi olan marka_model_build.marka_uyelikleri() VE sayfa kovasinin
+    FAZ 1B kolu `baslik_uyelikleri` — turetilir. Yeni bir liste ya da ikinci bir tablo
+    ACILMAZ.
+
+    🔴 23 MODEL JETONU HARIC (K133, SPEC ADIM-1; K126 subsumption sonrasi): spec'in
+    `_hedef_markalar` filtresi YALNIZ `marka_only>0` (gercek marka) olan markalari
+    icerir. Model jetonlari (EXC, Duke, 690, 1290, Huawei, TomTom …) bu koldan
+    etkilenmez — kendi marka sayfasi ayri bir yapisal soru olarak kalir
+    (`marka_kanon` kolonunda bu turda DOKUNULMAZ davranisi).
+
+    🔴 KAYNAK YINE `index.html`: client-side `markaSorgusuEsler` zaten
+    `markaUyeMi || baslikMarkalari` (marka[] ∪ baslikta TAM KELIME) kuralini calistirir.
+    D1 marka_kanon bunu KANONIK URETIMIYLE yapar; uc yalnizca hazir degeri okur.
 
     🔴 FAIL-CLOSED YONU "ATLA", "BOSALT" DEGIL: tek kaynak okunamazsa (index.html bozuk,
     cip indeksi yuklenemedi...) BOS harita DONMEZ — sebep dondurulur ve cagiran senkronu
@@ -1308,6 +1325,23 @@ def marka_kanon_haritasi(urunler):
     mmb, evren, ek, sebep = marka_kaynaklari(urunler)
     if sebep:
         return {}, sebep
+    # Sayfa kovasinin AYNI yukleminden turetilir (K133, SPEC ADIM-2). `gruplandir` zaten
+    # `marka_uyelikleri` + FAZ 1B `baslik_uyelikleri` cagirarak kovayi kurar; biz burada
+    # yalnizca _hedef_markalar setini DARALTMADAN (sadece marka_only>0) ayni fonksiyonlari
+    # yeniden isletiriz. Maliyet: bir ek `gruplandir` tarama; UCUNCU tarama (d1-sync
+    # basina model_kanon_haritasi zaten kendi `gruplandir`ini cagirir), fail-closed sinirlarda
+    # ekstra fayda/yuk degil — kosum basina tarama 2 -> 3 olur, UCTAN ucuz.
+    try:
+        veri = mmb.gruplandir(urunler, evren, ek)
+    except SystemExit as e:
+        return {}, "SystemExit: %s" % (e.code,)
+    except Exception as e:                                         # noqa: BLE001
+        return {}, "gruplandir: %s: %s" % (type(e).__name__, e)
+    # 🔴 23 MODEL JETONU HARIC tutulur: yalniz marka_only>0 (gercek marka) olan markalar
+    # _hedef_markalar'a girer. Model jetonlari (marka_only==0) bu koldan ETKILENMEZ —
+    # spec K133 adim-1'in "23 model jetonunun uyelik/sayfa davranisi DEGISMEYECEK" hükmu.
+    _hedef_markalar = sorted(m for m, d in veri.items() if d.get("marka_only"))
+    _ad_kanonu, _azami_ad = mmb.baslik_uyelik_hazirlik(_hedef_markalar, evren)
     harita = {}
     for u in urunler:
         if not isinstance(u, dict):
@@ -1316,11 +1350,19 @@ def marka_kanon_haritasi(urunler):
         if not uid:
             continue
         uyeler = mmb.marka_uyelikleri(u.get("marka") or [], evren, ek)
-        if uyeler:
-            # SIRA urunun kendi `marka` dizisinden gelir (marka_uyelikleri onu korur);
-            # UYELIK anlami siradan BAGIMSIZDIR. Uyesiz urun haritaya GIRMEZ -> hedef
-            # '[]' = D1 varsayilani -> UPDATE URETILMEZ (olcek kapisi; konfigur deseni).
-            harita[uid] = json.dumps(uyeler, ensure_ascii=False, separators=(",", ":"))
+        if not uyeler:
+            continue
+        # SIRA urunun kendi `marka` dizisinden gelir (marka_uyelikleri onu korur);
+        # UYELIK anlami siradan BAGIMSIZDIR. Uyesiz urun haritaya GIRMEZ -> hedef
+        # '[]' = D1 varsayilani -> UPDATE URETILMEZ (olcek kapisi; konfigur deseni).
+        # FAZ 1B — baslik_uyelikleri ayni yukleminden turetilir; bu ekler marka_kanon
+        # kolonunu sayfa kovasiyla BIREBIR esitler (45 gercek marka eksik kalmaz).
+        baslik_uyeler = mmb.baslik_uyelikleri(u, evren, _ad_kanonu, _azami_ad, ek)
+        uyeler = list(uyeler)
+        for kan in baslik_uyeler:
+            if kan not in uyeler:
+                uyeler.append(kan)
+        harita[uid] = json.dumps(uyeler, ensure_ascii=False, separators=(",", ":"))
     return harita, None
 
 
