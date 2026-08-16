@@ -288,7 +288,22 @@ jobs:
             echo "(Ucta kosan is + pre-push hook + d1-uzlastirici.yml katalogu senkron tutar.)"
             exit 0
           fi
+          # CANLI lease (baska makine aktif yaziyor) -> d1-sync.py rc=4 ile cikar;
+          # bu kosumda D1 senkronu ATLANIR (yazma YAPILMAZ), yayin YINE DE DEVAM
+          # EDER. Emniyet agi zaten var: ucta kosan is + pre-push hook +
+          # d1-uzlastirici.yml katalogu senkron tutar. Adim `continue-on-error` ALMAZ
+          # — bu kolun kendisi (rc=4'u yakalayan `if`) sessizce 0 sayar, is AKTARILMAZ.
+          # GURULTULU + makine-okunur: "kalici tikanmis lease" logdan sayilabilsin.
+          set +e
           python3 tools/d1-sync.py
+          d1_rc=$?
+          set -e
+          if [ "$d1_rc" -eq 4 ]; then
+            echo "D1 YAZICI UCUSTA (baska makine) — bu kosumda senkron ATLANDI; ucta kosan is + pre-push hook + d1-uzlastirici.yml katalogu senkron tutar."
+            echo "D1_SENKRON=ATLANDI SEBEP=YAZICI_UCUSTA"
+            exit 0
+          fi
+          exit "$d1_rc"
 
   # ══════════════════════════════════════════════════════════════════════════════
   # SERIT A2 — agir bagimsiz kapilar (yasal sayfa drift capasi)
