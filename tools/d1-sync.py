@@ -3530,6 +3530,57 @@ def kendini_test():
             kod == 0 and _bayat_var and _sync_var,
             (cagrilar, cikti[-300:]))
 
+    # V63c MUT-ONKOSUL (17 Agu 2026, serit-a2): davranis kafesi CANLI. Mutant: alt-surec
+    # sahtesi HER ZAMAN rc=0 dondurur (bayatlik "yokmus" gibi). BAYAT modda bile sync
+    # alt sureci cagirilir. V63 kapisi `kod==0 and _bayat_var and _sync_yok` istiyor;
+    # mutant altinda sync VAR olur -> `_sync_yok` False -> V63 KIRMIZI. Olmezse kafes
+    # yalan olur ve bir sonraki commit sessiz YESIL donerdi.
+    class _MUT_AltSurec(_AltSurecKuyrugu):
+        """`subprocess.run` sahtesi: bayatlik returncode'u HER ZAMAN 0. Simule edilen
+        ortamda --bayatlik yokmus gibi davranilir; _adim_kos sync yoluna gecer."""
+        def run(self, cmd, *a, **kw):
+            self.cagrilar.append(list(cmd))
+            return _CP(args=list(cmd), returncode=0)
+    _mut_kuy = _MUT_AltSurec()
+    _eski_alt2 = globals()["_alt_surec_calistir"]
+    globals()["_alt_surec_calistir"] = _mut_kuy.run
+    try:
+        # Env secret'larini yerlestir; yoksa _adim_kos erken cikar (V63c test sinifi
+        # bu yuzden sessiz YESIL olabilirdi).
+        _eski_tok2 = os.environ.get("CLOUDFLARE_API_TOKEN")
+        _eski_acc2 = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+        os.environ["CLOUDFLARE_API_TOKEN"] = "kendini-test"
+        os.environ["CLOUDFLARE_ACCOUNT_ID"] = "kendini-test"
+        try:
+            kod_mut = _adim_kos()
+        finally:
+            if _eski_tok2 is None:
+                os.environ.pop("CLOUDFLARE_API_TOKEN", None)
+            else:
+                os.environ["CLOUDFLARE_API_TOKEN"] = _eski_tok2
+            if _eski_acc2 is None:
+                os.environ.pop("CLOUDFLARE_ACCOUNT_ID", None)
+            else:
+                os.environ["CLOUDFLARE_ACCOUNT_ID"] = _eski_acc2
+    finally:
+        globals()["_alt_surec_calistir"] = _eski_alt2
+    _mut_bayat_var = any("--bayatlik" in c for c in _mut_kuy.cagrilar)
+    _mut_sync_var = any("--bayatlik" not in c for c in _mut_kuy.cagrilar)
+    # V63'in gercek cagrisiyla AYNI iddia: BAYAT'ta sync ATLANMAMALIydi. Mutant bunu
+    # bozar (her iki cagriyi de cagirir + rc=0 ile sync yoluna gecer). `_mut_sync_var`
+    # True olursa mutant canli; V63 kapisi KIRMIZI yakardi demek.
+    dogrula("V63c MUT-ONKOSUL: --bayatlik bypass edilirse (rc her zaman 0) BAYAT'ta sync "
+            "cagirilir -> V63 davranis kafesi bypass'i YAKALAMALI (kafes oldu mu?)",
+            _mut_bayat_var and _mut_sync_var,
+            (_mut_kuy.cagrilar, kod_mut))
+    # MUT geri alindi: asil `_alt_surec_calistir` yerinde, BAYAT davranisi yine GERI DONER.
+    kod2, cikti2, cagrilar2 = _adim_kos_test(bayatlik_rc=1, senkron_rc=0)
+    _geri_bayat_var = any("--bayatlik" in c for c in cagrilar2)
+    _geri_sync_yok = not any("--bayatlik" not in c for c in cagrilar2)
+    dogrula("V63d MUT geri alindi: BAYAT'ta sync yine ATLANIYOR + cikis 0",
+            kod2 == 0 and _geri_bayat_var and _geri_sync_yok and "BAYAT KOSUM" in cikti2,
+            (cagrilar2, cikti2[-300:]))
+
     # V64 YAPISAL — kaynak metni (K131): --bayatlik sync'ten ONCE + returncode
     # fiilen KULLANILMALI (mensiyon degil). 16 Agu 2026 K129: --bayatlik cagrisi
     # disaridan ozel bir _adim_kos'a tasindi; burasi davranis kapisi icin referans.

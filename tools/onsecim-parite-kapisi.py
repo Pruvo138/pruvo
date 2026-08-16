@@ -93,7 +93,13 @@ FIKSTURLER = [
 # Boyle bir kayit katalogda kalmazsa eksen ATLANMAZ (atlanmasi sessiz yesil olurdu):
 # gercek bir sabit-fiyatli kayittan SENTETIK denek turetilir (alan sitede satilmayan
 # bir ada ayarlanir) ve eksen aynen olculur.
-_SENTETIK_ONERI = "ABS"          # gercek muhendislik malzemesi, sitede SATILMIYOR
+# DENEK ADI: sentetik + kapinin kendi icinde tanimli; canli katalog hijyenine bagli
+# DEGIL (17 Agu 2026, serit-a3 — "ABS" 14 Agu'da satisa acildi ve kapinin o adla
+# turettigi denek "sentetik degil" diye KIRMIZI yakti: denek canli envantere
+# kenetlenmisti). Asagidaki koşum anindaki dogrulama (`_turetilemeyen_fikstur`
+# icinde `if _SENTETIK_ONERI in site_adlar`) ayni sinif kusurunun geri donmasini
+# YUKSEK SESLE yakar (mutant N12 referansa sentetik adi sizdirirsa ayni kapi KIRMIZI).
+_SENTETIK_ONERI = "YOKMALZEME-DENEK"   # sentetik: sitede ASLA satilmaz
 
 
 def _turetilemeyen_fikstur(urunler):
@@ -572,6 +578,15 @@ MUTANTLAR = [
      "tools/filament_ortak.py",
      "    if not acik:\n        return (TANI_KAPALI, guvenli)",
      "    if False:\n        return (TANI_KAPALI, guvenli)", 1),
+    # N12 = sentetik denek adinin BEKCISI (17 Agu 2026, serit-a3). Ad kapinin kendi
+    # icinde tanimli; mutant onu sitede satilan bir ada (PETG) cevirirse kosum anindaki
+    # `if _SENTETIK_ONERI in site_adlar` kontrolu YUKSEK SESLE KIRMIZI yakmali ("ad
+    # degistirilmeli"). Bu olmezse kapinin sentetik-ada beyani yalan olur ve bir sonraki
+    # kosumda sessiz yesil donebilirdi (CI kosumunun onune gecmesi GEREKEN sey).
+    ("N12", "sentetik denek adi referansa sizdi (kapinin kendi denek tanimi kirildi)",
+     "tools/onsecim-parite-kapisi.py",
+     '_SENTETIK_ONERI = "YOKMALZEME-DENEK"',
+     '_SENTETIK_ONERI = "PETG"', 1),
     ("N7", "KONTROL: davranisi degistirmeyen yeniden adlandirma", "tools/build.py",
      "def fiziksel_mi(p):\n    return bool(p) and p.get(\"tur\") == TUR_FIZIKSEL",
      "def fiziksel_mi(kayit):\n    return bool(kayit) and kayit.get(\"tur\") == TUR_FIZIKSEL",
