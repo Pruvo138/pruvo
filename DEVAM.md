@@ -94,9 +94,28 @@ Beyan yolu bu yuzden YAPISAL OLARAK kapanamazdi — K124 tam bu nedenle gerekliy
   tasimak. Bugun iki kez bu yuzden "kirmizi" gorundu, yayin akiyordu.
 - KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K123 · K124.
 
+## 16 Agu (~18:00Z) — K39 KAPANDI: DEFTER KOTASI ARTIK KANCADA (KraL)
+
+**Merge `ce5164d2`.** Elle budama 4. kez tasmisti; artik sinif kapisi var.
+- `tools/defter-rotasyon.py` — KAPALI bloklari arsive LOSSLESS tasir, **CANLI BAS
+  DOKUNULMAZ**. Kesme olcutu TARIH DEGIL: blokta ACIK isaretci varsa TASINMAZ; tasinmak icin
+  KAPANDI/KAPANIS/✅ ZORUNLU. Suphede KALIR. Bayt esitligi tutmazsa iki dosya da geri yazilir.
+- `tools/defter-kota-kapisi.py` + `kancalar/pre-commit` adim 8: DEVAM.md STAGE'DE ve INDEX
+  blob'u >130 satirsa commit RED + ekrana CARE komutu. Kapsam DAR (defter stage'de degilse
+  hicbir commit etkilenmez).
+- 🔴 **SAYAC KOLU `pre-push`'ta ve DURDURMAZ:** kapinin kosmadigi haller ancak SONUCUNDAN
+  sayilabilir; kol HEAD'deki defteri olcer, kota asilmissa repo DISI sayaca satir yazar
+  (yol + mekanik DEVAM-ARSIV.md'de; gunluk 15:00 olcumune eksen olarak girer).
+- **Olcum:** rotasyon FIKSTUR **6/6** · MUTANT **OLDU** (acik-blok vetosunu bozan mutant
+  kirmizi yakti) · sayac vakalari **1/0/0** (kota asan / kota alti / deftersiz ev) ·
+  KraL RED **rc=1** + CARE satiri VAR · KraL KONTROL **rc=0** · MaCiT RED **rc=1** + CARE VAR.
+  **Iki evde canli.** MaCiT'te `tools/kancalar/` yoktu; kablo `.git/hooks/pre-commit`
+  (commit'e girmez), o evin izlenen dosyalarina DOKUNULMADI.
+
 ## OKAN'DA
 
-- Motor tarifesi satin alma karari · eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
+- Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
+  (Motor tarifesi kalemi 16 Agu'da KAPANDI: kimi + minimax-m3 ust aboneligine gecildi.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
