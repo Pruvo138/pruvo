@@ -305,11 +305,20 @@ _KANONIK_ISTISNA = (
     "        raise TavsiyeFilamentTipHatasi(\n"
     '            "%s (id=%r)" % (sebep, u.get("id")))\n')
 _TIP_YARGISI = (
-    "    if not isinstance(deger, list):\n"
-    '        return ("%s dizi olmali, %s degil (deger: %r) — tek elemanli diziye SESSIZCE "\n'
-    '                "CEVRILMEZ: kusur katalogda kalicilasirdi"\n'
-    "                % (TAVSIYE_FILAMENT_ALAN, type(deger).__name__, deger))\n")
-_KOLONLAR_GIRISI = '    "tavsiye_filament",\n]\n'
+    "    if TAVSIYE_FILAMENT_ALAN not in u:\n"
+    "        return None\n"
+    "    deger = u[TAVSIYE_FILAMENT_ALAN]\n"
+    "    sebep = katalog_alan_tip_sebebi(TAVSIYE_FILAMENT_ALAN, deger)\n"
+    "    if sebep is not None:\n"
+    '        return ("%s — tek elemanli diziye SESSIZCE CEVRILMEZ: kusur katalogda "\n'
+    '                "kalicilasirdi" % sebep)\n'
+    "    for i, oge in enumerate(deger):\n")
+_TIP_KAPATMA = (
+    "    sebep = katalog_alan_tip_sebebi(TAVSIYE_FILAMENT_ALAN, deger)\n")
+_KOLONLAR_GIRISI = (
+    '    "tavsiye_filament",\n'
+    '    "boy_secenekleri",\n'
+    ']\n')
 
 MUTANTLAR = [
     ("M-1 HASH KAPSAMI SOKULDU: kolon urun_hash'ten cikarildi (SESSIZ AYRISMA)",
@@ -331,14 +340,22 @@ MUTANTLAR = [
      True, "NORMALIZE_YOK/TIP_ISTISNA"),
     ("M-4 POZITIF KOL OLDURULDU: gecerli dizi kaydi da REDDEDILIYOR (yanlis-pozitif)",
      ARAMA, _TIP_YARGISI,
+     "    if TAVSIYE_FILAMENT_ALAN not in u:\n"
+     "        return None\n"
+     "    deger = u[TAVSIYE_FILAMENT_ALAN]\n"
      "    if isinstance(deger, list):\n"
-     '        return "%s dizi OLMAMALI" % TAVSIYE_FILAMENT_ALAN\n',
+     '        return "%s dizi OLMAMALI" % TAVSIYE_FILAMENT_ALAN\n'
+     "    sebep = katalog_alan_tip_sebebi(TAVSIYE_FILAMENT_ALAN, deger)\n"
+     "    if sebep is not None:\n"
+     '        return ("%s — tek elemanli diziye SESSIZCE CEVRILMEZ: kusur katalogda "\n'
+     '                "kalicilasirdi" % sebep)\n'
+     "    for i, oge in enumerate(deger):\n",
      True, "POZITIF_KOL"),
     ("M-5 TIP YARGISI KORLESTIRILDI: her deger gecerli sayiliyor (kapi fiilen YOK)",
-     ARAMA, _TIP_YARGISI, "    if False:\n        return None\n",
+     ARAMA, _TIP_KAPATMA, "    sebep = None\n",
      True, "TIP_ISTISNA/NORMALIZE_YOK/SAYIM_DOKUMU"),
     ("M-6 UPSERT KILIDI SOKULDU: kolon KOLONLAR'dan cikti (ilk yazim dogru, guncelleme BAYAT)",
-     D1SYNC, _KOLONLAR_GIRISI, "]\n", True, "KOLON_KILIDI"),
+     D1SYNC, _KOLONLAR_GIRISI, '    "boy_secenekleri",\n]\n', True, "KOLON_KILIDI"),
     ("M-7 KONTROL: tip dokumu raporunun AYIRACI degisti (davranis DEGISMEZ) — YESIL kalmali",
      D1SYNC, '    return " · ".join("%s=%d" % (k, dokum[k]) for k in sorted(dokum))\n',
      '    return " | ".join("%s=%d" % (k, dokum[k]) for k in sorted(dokum))\n',
