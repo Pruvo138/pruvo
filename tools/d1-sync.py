@@ -3455,27 +3455,119 @@ def kendini_test():
     dogrula("V62 --bayatlik: OLCULEMEDI -> sifir-disi (olcemedim YESIL degil)",
             kod != 0, kod)
 
-    # ── CI ON-KOSULU CAPASI: deploy.yml'deki senkron adimi bayatligi SORUYOR mu ──
-    # NEDEN BURADA: `d1-sync.py` ci-kapsam/is-akisi kesif predikatlarina GIRMEZ ve
-    # senkron adimi bilincli olarak `continue-on-error` (fail-open) -> Bolum D/E o
-    # adimi GORMEZ. On-kosul satiri sessizce silinirse BAYAT KOSUM yine D1'e yazar
-    # (upsert'ler bayat kalir) ve hicbir kapi kirmizi yanmaz. Capa burada yasar.
+    # ── CI ON-KOSULU CAPASI (K131): davranis + kontrol + yapisal + YAML ────────
+    # NEDEN METIN DEGIL DAVRANIS: onceki V63/V64 `deploy.yml` metnini okuyordu; biri
+    # `--adim` yolunu ham `python3 tools/d1-sync.py` cagrisina cevirir ve `--bayatlik`
+    # kontrolunu SESSIZCE silerse, BAYAT KOSUM D1'E YAZMAYA DEVAM eder (upsert bayat
+    # kalir) ve hicbir kapida kirmizi yanmaZ (ci-kapsam/is-akisi kesif metodu bu
+    # adimi GORMEZ). Yeni V63: `--adim` yolunu BAYAT alt sureciyle gercekten kosar,
+    # sync alt surecinin cagirilIP cagirilmadigini, cikis kodunu ve bayat mesajini
+    # OLCEK. V63b ayni harness'ta UC yolunda sync'in GERCEKTEN cagirildigini teyit
+    # eder (tek yonlu capinin "her zaman GECTI" diye ucuz kacmasini engeller).
+    # V64 kaynak metninde `--bayatlik` cagrisinin ONCE gelmesini + returncode
+    # kullanimini yapisal olarak olcer. V64b `deploy.yml` metnini OKUR (zayif ama
+    # kalsin); biri adimi ham cevirirse dogrudan yine yanar.
+    import contextlib as _ctx
+    import io as _io
+    from subprocess import CompletedProcess as _CP
+
+    class _AltSurecKuyrugu:
+        """`subprocess.run` sahtesi: `--bayatlik` ve senkron cagrisini ayri ayri
+        islerlenir; her cagrinin returncode'u enjekte edilir. V63 (BAYAT) ve V63b
+        (UC) ayni kuyrukla farkli sonuc verir — olu nobetci olmaz."""
+        def __init__(self, bayatlik_rc=0, senkron_rc=0):
+            self._bayatlik_rc = bayatlik_rc
+            self._senkron_rc = senkron_rc
+            self.cagrilar = []                          # komut listesi sirayla
+        def run(self, cmd, *a, **kw):
+            self.cagrilar.append(list(cmd))
+            rc = self._bayatlik_rc if "--bayatlik" in cmd else self._senkron_rc
+            return _CP(args=list(cmd), returncode=rc)
+
+    def _adim_kos_test(bayatlik_rc, senkron_rc):
+        """`_adim_kos`u alt-surec sahtesiyle calistirir. CLOUDFLARE_* env'i
+        gecici olarak yerlestirir (yoksa fonk erken cikar ve test yanlis YESIL
+        olur). Doner: (kod, cikti, cagrilar)."""
+        tamper = _io.StringIO()
+        _eski_tok = os.environ.get("CLOUDFLARE_API_TOKEN")
+        _eski_acc = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+        os.environ["CLOUDFLARE_API_TOKEN"] = "kendini-test"
+        os.environ["CLOUDFLARE_ACCOUNT_ID"] = "kendini-test"
+        _kuy = _AltSurecKuyrugu(bayatlik_rc, senkron_rc)
+        _eski_fn = globals()["_alt_surec_calistir"]
+        globals()["_alt_surec_calistir"] = _kuy.run
+        try:
+            with _ctx.redirect_stdout(tamper):
+                kod = _adim_kos()
+        finally:
+            globals()["_alt_surec_calistir"] = _eski_fn
+            if _eski_tok is None:
+                os.environ.pop("CLOUDFLARE_API_TOKEN", None)
+            else:
+                os.environ["CLOUDFLARE_API_TOKEN"] = _eski_tok
+            if _eski_acc is None:
+                os.environ.pop("CLOUDFLARE_ACCOUNT_ID", None)
+            else:
+                os.environ["CLOUDFLARE_ACCOUNT_ID"] = _eski_acc
+        return kod, tamper.getvalue(), _kuy.cagrilar
+
+    # V63 DAVRANIS — asil kanit (K131):
+    # --bayatlik BAYAT => sync alt sureci HIC cagirilMAZ + cikis 0 + BAYAT mesaj.
+    kod, cikti, cagrilar = _adim_kos_test(bayatlik_rc=1, senkron_rc=0)
+    _bayat_var = any("--bayatlik" in c for c in cagrilar)
+    _sync_yok = not any("--bayatlik" not in c for c in cagrilar)
+    dogrula("V63 DAVRANIS: --adim BAYAT donusunda sync alt sureci HIC cagirilMAZ + "
+            "cikis 0 + BAYAT atlama satiri VAR",
+            kod == 0 and _bayat_var and _sync_yok and "BAYAT KOSUM" in cikti,
+            (cagrilar, cikti[-300:]))
+
+    # V63b KONTROL — ters yon (K131): olu nobetci olmasin: UC yolunda sync
+    # alt sureci GERCEK CALISIR (yazma girisimi olcusu).
+    kod, cikti, cagrilar = _adim_kos_test(bayatlik_rc=0, senkron_rc=0)
+    _bayat_var = any("--bayatlik" in c for c in cagrilar)
+    _sync_var = any("--bayatlik" not in c for c in cagrilar)
+    dogrula("V63b KONTROL: --adim UC donusunda sync alt sureci GERCEKTEN cagirilir",
+            kod == 0 and _bayat_var and _sync_var,
+            (cagrilar, cikti[-300:]))
+
+    # V64 YAPISAL — kaynak metni (K131): --bayatlik sync'ten ONCE + returncode
+    # fiilen KULLANILMALI (mensiyon degil). 16 Agu 2026 K129: --bayatlik cagrisi
+    # disaridan ozel bir _adim_kos'a tasindi; burasi davranis kapisi icin referans.
+    _kaynak = open(os.path.join(KOK, "tools", "d1-sync.py"), encoding="utf-8").read()
+    _adim_fn = _kaynak[_kaynak.find("def _adim_kos()"):_kaynak.find("\ndef ", _kaynak.find("def _adim_kos()"))]
+    _bayat_idx = _adim_fn.find("--bayatlik")
+    # Senkron cagrisinin imzasi: ayni "d1-sync.py" alt-string'i, BAYATLIK cagrisindan SONRA.
+    # (Bunu bulmak icin BAYAT --bayatlik satirinin BITISINI bul, orada 'bitti' demek --bayatlik'ten
+    # sonraki ilk "d1-sync.py" senkron satiridir.)
+    _sonraki_d1 = _adim_fn.find('d1-sync.py', _bayat_idx + 1) if _bayat_idx >= 0 else -1
+    _returncode_kullanimi = _adim_fn.find("returncode") > _bayat_idx and _bayat_idx >= 0
+    dogrula("V64 YAPISAL: --bayatlik cagrisi senkron cagrisindan ONCE gelir VE "
+            "returncode KULLANILIR (mensiyon degil)",
+            _bayat_idx >= 0 and _sonraki_d1 > _bayat_idx and _returncode_kullanimi,
+            (_bayat_idx, _sonraki_d1, _returncode_kullanimi))
+
+    # V64b YAML CAPASI — zayif ama kalsin (K131): deploy.yml metninde adim
+    # tam olarak `python3 tools/d1-sync.py --adim` cagirir; ham bayraksiz cagri
+    # (eski V63'un metin umudu) kapidan YAKALANMAZ, bu satir o yuzden duruyor.
     _dy = os.path.join(KOK, ".github", "workflows", "deploy.yml")
     if not os.path.exists(_dy):
-        dogrula("V63 CI ON-KOSUL CAPASI: deploy.yml BULUNAMADI (olculemedi = KIRMIZI)",
+        dogrula("V64b YAML CAPASI: deploy.yml BULUNAMADI (olculemedi = KIRMIZI)",
                 False, _dy)
     else:
         with open(_dy, encoding="utf-8") as _f:
             _gv = _f.read()
-        _adim = _gv.split("- name: Katalogu D1'e senkronla")
-        _blok = _adim[1].split("\n  - name:")[0].split("\n\n  deploy:")[0] if len(_adim) > 1 else ""
-        _on = _blok.find("d1-sync.py --bayatlik")
-        _tam = _blok.find("python3 tools/d1-sync.py\n")
-        dogrula("V63 CI ON-KOSUL CAPASI: senkron adimi ONCE `--bayatlik` sorar, SONRA senkronlar",
-                len(_adim) == 2 and _on > 0 and _tam > _on, (len(_adim), _on, _tam))
-        dogrula("V64 CI ON-KOSUL CAPASI: on-kosulun CIKIS KODU kullaniliyor (mensiyon degil)",
-                "if ! python3 tools/d1-sync.py --bayatlik; then" in _blok,
-                _blok[:400])
+        _adim_bolumu = _gv.split("- name: Katalogu D1'e senkronla")
+        if len(_adim_bolumu) >= 2:
+            _blok = _adim_bolumu[1].split("\n  - name:")[0].split("\n\n  deploy:")[0]
+        else:
+            _blok = ""
+        _run_satiri = [l for l in _blok.splitlines() if l.strip().startswith("run:")]
+        _run = _run_satiri[0] if _run_satiri else ""
+        dogrula("V64b YAML CAPASI: deploy.yml senkron adimi TAM OLARAK "
+                "`python3 tools/d1-sync.py --adim` cagirir (ham bayraksiz YASAK)",
+                "python3 tools/d1-sync.py --adim" in _run
+                and "python3 tools/d1-sync.py\n" not in _blok,
+                _run)
 
     # ══════════════════════════════════════════════════════════════════════════
     # WRANGLER HATA SINIFLANDIRMASI + CIKTI COZUMU (31 Tem, run 30646713630)
@@ -4391,6 +4483,18 @@ def _main(a):
             % (uzlastirici_karantina.OKUNAMADI_IMZASI, uzlastirici_karantina.DAMGA_ADI))
 
 
+def _alt_surec_calistir(args):
+    """Alt surec cagrisi TEK NOKTASI (K131).
+
+    `_adim_kos` iki alt surec cagirir (--bayatlik + senkron). Her ikisi de
+    buradan gecsin diye sinirli; kendini-test altinda bu ISIM (global)
+    sahte ile degistirilir ve davranis kapisi (V63/V63b) BAYAT donusunun
+    sync'i atlayip atlamadigini olcebilir. Diger yerde cagri YAPILMAZ; yeni
+    alt surec eklenirse de buradan gecmeli.
+    """
+    return subprocess.run(args)
+
+
 def _adim_kos():
     """CI senkron adimi: secret/bayatlik/rc=4 tek Python surecinde.
 
@@ -4411,7 +4515,8 @@ def _adim_kos():
         return 0
     # (2) BAYATLIK on-kosulu: bayat degilse devam; degilse eski bash davranisi.
     #     --bayatlik KENDI yolunda D1'e DOKUNMAZ (sadece git ls-remote + merge-base).
-    bayatlik = subprocess.run(
+    #     DAVRANIS KAPISI (K131): donus kodu YOKSAYMAZ; sifir-disi => sync ATLANIR.
+    bayatlik = _alt_surec_calistir(
         [sys.executable, os.path.join(KOK, "tools", "d1-sync.py"), "--bayatlik"])
     if bayatlik.returncode != 0:
         print("BAYAT KOSUM — bu checkout uzak main'in ucunda DEGIL; D1 senkronu ATLANDI.")
@@ -4420,7 +4525,7 @@ def _adim_kos():
     # (3) ASIL SENKRON — bash'teki `python3 tools/d1-sync.py` cagrisinin karsiligi.
     #     Canli lease halinde main() DagitikYaziciCanliLease'i yakalar ve rc=4 ile
     #     cikar; gercek hata sys.exit ile fail-closed.
-    senkron = subprocess.run(
+    senkron = _alt_surec_calistir(
         [sys.executable, os.path.join(KOK, "tools", "d1-sync.py")])
     if senkron.returncode == 4:
         # CANLI lease (16 Agu 2026): baska makine aktif yaziyor; yazma YAPILMAZ,
