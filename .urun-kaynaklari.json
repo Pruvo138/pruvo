@@ -53,35 +53,27 @@
  "ozel-egri-boyunlu-huni": "https://makerworld.com/en/models/2902398-customizable-funnel#profileId-3244681",
  "ozel-disli-kramayer-uretimi": {
   "link": "https://makerworld.com/en/models/1049303-gear-generator-parametric-gears-racks#profileId-1035715",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-oring-conta": {
   "link": "https://makerworld.com/en/models/3024278-o-ring-generator#profileId-3398234",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-ramp-sim-takoz": {
   "link": "https://makerworld.com/en/models/3023635-ramp-generator-parametric-ramps-shims-wedges#profileId-3397482",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-profil-beam": {
   "link": "https://makerworld.com/en/models/1818081-beam-generator-parametric-beams-bars-extrudes#profileId-1940358",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-pervane-fan-cark": {
   "link": "https://makerworld.com/en/models/1800273-propeller-generator-parametric-elliptical-blades#profileId-1919705",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-izgara-menfez-kapak": {
   "link": "https://makerworld.com/en/models/1778438-grille-generator-parametric-vents-covers#profileId-1894189",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-huni": {
   "link": "https://makerworld.com/en/models/1770041-funnel-generator-parametric-fluid-funnels#profileId-1884266",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-petek-delikli-panel": {
   "link": "https://makerworld.com/en/models/1237157-grid-generator-parametric-patterns-structures#profileId-1257024",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-yay-dalga-flexure": {
   "varyantlar": [
@@ -94,27 +86,21 @@
     "tip": "spiral / sarim kompresyon (basi) yayi (Spring Generator)"
    }
   ],
-  "uyelik": "koolm"
  },
  "olcuye-ozel-baglanti-konektor": {
   "link": "https://makerworld.com/en/models/1166433-connector-generator-parametric-connectors#profileId-1173855",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-montaj-braketi": {
   "link": "https://makerworld.com/en/models/1145333-bracket-generator-parametric-mounting-brackets#profileId-1148507",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-triger-kasnagi": {
   "link": "https://makerworld.com/en/models/1102161-pulley-generator-parametric-timing-belt-pulleys#profileId-1097545",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-triger-kayisi": {
   "link": "https://makerworld.com/en/models/1090724-belt-generator-parametric-timing-belts#profileId-1084172",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-rulman": {
   "link": "https://makerworld.com/en/models/1083205-bearing-generator-parametric-ball-bearings#profileId-1075444",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-vida-civata-somun-pul": {
   "varyantlar": [
@@ -127,27 +113,21 @@
     "tip": "vida / civata + somun + pul (Screw Generator)"
    }
   ],
-  "uyelik": "koolm"
  },
  "olcuye-ozel-cetvel": {
   "link": "https://makerworld.com/en/models/1070245-ruler-maker-customizable-rulers#profileId-1059969",
-  "uyelik": "koolm"
  },
  "olcuye-ozel-damga-kase": {
   "link": "https://makerworld.com/en/models/1037541-stamp-maker-customizable-stamps#profileId-1021711",
-  "uyelik": "koolm"
  },
  "dekoratif-kalp-sevgi-susu": {
   "link": "https://makerworld.com/en/models/1012177-the-equation-of-the-heart#profileId-991761",
-  "uyelik": "koolm"
  },
  "kisiye-ozel-jeton-cip-madalyon": {
   "link": "https://makerworld.com/en/models/989209-chip-maker#profileId-... (designId 989209 ChipMaker)",
-  "uyelik": "koolm"
  },
  "kisiye-ozel-masa-tabelasi": {
   "link": "https://makerworld.com/en/models/950626-flipstands (designId 950626 FlipStands)",
-  "uyelik": "koolm"
  },
  "dekoratif-zincir": {
   "varyantlar": [
@@ -160,35 +140,27 @@
     "tip": "Cuban (kalın hip-hop) bakla"
    }
   ],
-  "uyelik": "koolm"
  },
  "kisiye-ozel-oyun-zari": {
   "link": "https://makerworld.com/en/models/906811-dice-maker (designId 906811 DiceMaker)",
-  "uyelik": "koolm"
  },
  "kisiye-ozel-gyro-kolye-madalyon": {
   "link": "https://makerworld.com/en/models/882711-gyro-pendantmaker (designId 882711 Gyro PendantMaker)",
-  "uyelik": "koolm"
  },
  "masaustu-gyro-fidget-spinner": {
   "link": "https://makerworld.com/en/models/868246-gyromaker (designId 868246 GyroMaker)",
-  "uyelik": "koolm"
  },
  "kisiye-ozel-katlanir-etiket": {
   "link": "https://makerworld.com/en/models/857709-fliptags (designId 857709 FlipTags)",
-  "uyelik": "koolm"
  },
  "planet-disli-fidget-stem": {
   "link": "https://makerworld.com/en/models/843288-parametric-planetary-gearset (designId 843288 PlanetaryGearset)",
-  "uyelik": "koolm"
  },
  "kisiye-ozel-harf-sayi-kupleri": {
   "link": "https://makerworld.com/en/models/832913-cubees (designId 832913 Cubees)",
-  "uyelik": "koolm"
  },
  "moduler-saklama-kabi-pod": {
   "link": "https://makerworld.com/en/models/785380-cirkit-pods (designId 785380 Cirkit Pods)",
-  "uyelik": "koolm"
  },
  "mercury-tespit-somunu-anahtari": {
   "kaynak": "Printables",
@@ -38040,7 +38012,7 @@
   "kaynak": "Printables",
   "link": "https://www.printables.com/model/553802-skoda-superb-can-holder",
   "lisans": "Creative Commons — Attribution",
-  "tasarimci": "wimrens@hotmail.com",
+  "tasarimci": "wimrens",
   "tur": "ucretsiz-cc",
   "baski": "I used PLA to print the model with standard settings for a 0,4mm nozzle and 0,2mm layer height.",
   "not": "en buyuk parca [68, 58, 50] mm; 1 STL"
@@ -230287,7 +230259,7 @@
  "jaguar-xj6-series2-ic-lamba-yuvasi": {
   "kaynak": "Printables",
   "link": "https://www.printables.com/model/1473982-jaguar-xj6-series-ii-interior-lamp-holder",
-  "tasarimci": "Johan@kuitenco.nl",
+  "tasarimci": "Johan",
   "lisans": "CC0",
   "tur": "ucretsiz-cc",
   "baski": "I printed it in PETG en the lamp now used is a LED lamp.",
@@ -230317,7 +230289,7 @@
  "jaguar-xj6-series2-ic-aydinlatma-lensleri": {
   "kaynak": "Printables",
   "link": "https://www.printables.com/model/1474345-jaguar-xj6-series-2-interior-lighting-lenses",
-  "tasarimci": "Johan@kuitenco.nl",
+  "tasarimci": "Johan",
   "lisans": "CC0",
   "tur": "ucretsiz-cc",
   "baski": "If have printed them in clear petg and standing up with minimal support.",
