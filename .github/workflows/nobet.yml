@@ -1860,6 +1860,29 @@ jobs:
   #    yerelde anlamlidir; sessiz atlama YERINE gorunur kirmizi tercih edildi.
   # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (bayat sayi yanlis guven verir) — betigin
   #    KENDISI "IDDIA: N (taban N)" satirini basar.
+  # ===========================================================================
+  # DEFTER KOTASI (K39, 16 Agu 2026) — SERIT B, yayini BLOKLAMAZ
+  # `needs:` YOK ve hicbir is buna bagli DEGIL -> `deploy` ile PARALEL kosar.
+  # Iki adim:
+  #   1. Rotasyon betiginin KABUL bataryasi (fikstur + mutant). Kirmizisi "budama araci
+  #      bozuldu" demektir; bu bir HIJYEN eksenidir — musteriye yanlis para odetmez,
+  #      veri sizdirmaz, siteyi durdurmaz.
+  #   2. Kota olcumu (`--bypass-kontrol`): main'deki DEVAM.md kotayi asmis mi. Bu kol
+  #      TASARIM GEREGI exit 0 doner (Okan hukmu: sayilir, durdurulmaz); CI'daki degeri
+  #      GORUNURLUKTUR — log'da satir dogar ve gunluk olcume kaynak olur.
+  # ⚠️ `continue-on-error` KULLANILMADI: rc dogrudan konusur.
+  defter-kotasi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: "Defter rotasyonu kabul + mutasyon bataryasi (agsiz)"
+        run: python3 tools/defter-rotasyon-test.py
+      - name: "Defter kota olcumu (RAPOR-ONLY — yayini durdurmaz)"
+        run: python3 tools/defter-kota-kapisi.py --bypass-kontrol
+
   r2-onek-nobeti:
     runs-on: ubuntu-latest
     steps:
