@@ -92,8 +92,8 @@
     }
   ],
   "kategoriTavsiye": {
-    "Otomobil": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
-    "Motosiklet": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Otomobil": [{"ad": "ASA"}, {"ad": "ABS", "not": "Kaput altı / güneş görmeyen parçada"}],
+    "Motosiklet": [{"ad": "ASA"}, {"ad": "ABS", "not": "Kaput altı / güneş görmeyen parçada"}],
     "Bisiklet": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
     "Marin": [{"ad": "ASA"}],
     "Bahçe": [{"ad": "ABS"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
