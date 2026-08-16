@@ -30,9 +30,15 @@ Beyan yolu bu yuzden YAPISAL OLARAK kapanamazdi — K124 tam bu nedenle gerekliy
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔐 **K120 (OKAN KARARI, uygulanmadi):** gizli kaynak kaydi git'ten CIKACAK. 🔴 Cikarmadan
-  ONCE o dosyayi okuyan HER kapinin YOKLUK KOLU olculmeli — sessiz yesil sayan kapi,
-  dosya izlemeden ciktiginda korumasini kaybeder. **Olcum turu KOSUYOR.**
+- ✅ **K120 KAPANDI (16 Agu, merge `5df50d78`):** gizli kaynak kaydi artik IZLENMIYOR.
+  `.gitignore` onu ZATEN listeliyordu ama dosya bir kez zorla eklendigi icin indekste
+  kalmisti (gitignore izlenen dosyayi cikarmaz) — `git rm --cached`, dosya DISKTE duruyor.
+  **Yokluk kolu olculdu: davranisi degisen CI cagrisi 0, bloklayici kirmizi 0.** `d1-sync`
+  zaten yokluk-farkindadir (`baski_yetki=False` -> `baski` kolonuna dokunulmaz, degerler
+  KORUNUR). Iki ara iddia CURUDU: "3 kapi sessiz yesil" (ucu de dosyayi okumuyor) ve
+  "d1-sync bloklayici kirmizi" (sebep kayit degil D1 yazici kilidiydi — gurultu tabani
+  olculunce dustu).
+  🔴 **EKIBE:** dosya artik taze klonda GELMEZ ve **`git add` EDILMEZ**; yerel diskte tutulur.
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
