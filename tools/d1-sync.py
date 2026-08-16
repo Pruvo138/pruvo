@@ -4453,7 +4453,10 @@ def main():
         if yazici_yolu_mu(a):
             dagitik = dagitik_kilit_al()  # CANLI lease -> DagitikYaziciCanliLease
             _dagitik_kilit_token = dagitik
-        return _main(a) or 0
+        # _main(a)'in donusu bilgi amacli (ornek: yazilan satir sayisi) — cikis koduna
+        # sizmamali. Gercek hata yollari zaten _main icinde sys.exit(...) ile cikar.
+        _main(a)
+        return 0
     except DagitikYaziciCanliLease as e:
         # CANLI lease — yazma YAPILMAZ. CI adimi rc=4'u yakalar ve sessizce 0 sayar
         # (emniyet agi zaten var: ucta kosan is + pre-push hook + d1-uzlastirici.yml).
