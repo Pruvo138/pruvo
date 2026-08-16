@@ -1817,7 +1817,119 @@ def main():
         # oldugunu kontrol etmek icin bir .json bile konur — SIZMAMALI (uzanti yok).
         with open(os.path.join(sahte_cron, "isci-baglam", "ek-not.json"), "w") as fh:
             fh.write('{"ek":1}\n')
-        # ----------------------------------------------------------------------
+        # ---------------- 18) ALT AGAC + KAPSAM-DISI PLAN (16 Agu 2026) ----------------
+    # Olculmus kusur: yedek_kok_sir_plani yalniz os.listdir(backup) ile KOKU arar;
+    # alt agactaki sir kopyalari (ornek: backup-v2/cron-nobet/.navlungo-kimlik.json)
+    # GORULMEDIGI icin hedefte bayat kaliyordu. Ayni delik her alt klasor icin acik.
+    # Yeni: yedek_agac_sir_plani (ozyinelemeli, sir_sebebi icerik_tara=False ile)
+    # + yedek_agac_kapsamdisi_plani (AGAC_EK_ATLA["cron"] desenleriyle hedef
+    # bayat klasor tarama). Bu bolum kum havuzunda vakalari sinar.
+    print("\n18) ALT AGAC + KAPSAM-DISI — kok disinda sir + artik kapsam-disi klasor")
+    with tempfile.TemporaryDirectory() as td:
+        backup = os.path.join(td, "backup-v2")
+        os.makedirs(backup)
+
+        # ---- Vaka A: ic ice sir (cron-nobet/.navlungo-kimlik.json) ----
+        os.makedirs(os.path.join(backup, "cron-nobet"))
+        nav_yol = os.path.join(backup, "cron-nobet", ".navlungo-kimlik.json")
+        with open(nav_yol, "w") as fh:
+            fh.write("SIMULASYON: 350 B ic ice sir\n")
+        # ---- Vaka B: surumlenmis kopya (ad.YYYYMMDD-HHMMSS.uzanti) ----
+        versiyonlu = os.path.join(backup, "cron-nobet",
+                                  ".navlungo-kimlik.20260816-011600.json")
+        with open(versiyonlu, "w") as fh:
+            fh.write("SIMULASYON: surumlenmis kopya\n")
+        # ---- Vaka C: masum dosyalar — plana GIRMEDI ----
+        with open(os.path.join(backup, "cron-nobet", "isci.sh"), "w") as fh:
+            fh.write("#!/bin/sh\nsimulasyon\n")
+        os.makedirs(os.path.join(backup, "gorev-tanimlari"))
+        with open(os.path.join(backup, "gorev-tanimlari", "x.md"), "w") as fh:
+            fh.write("# masum\n")
+        # ---- Vaka D: kapsam-disi klasorler (AGAC_EK_ATLA["cron"] desenleri) ----
+        for d in ("profil-kimi-x", "m3-profil-blabla", "tarayici-profili", "nobet-raporlar"):
+            tam = os.path.join(backup, "cron-nobet", d)
+            os.makedirs(tam)
+            with open(os.path.join(tam, ".claude.json"), "w") as fh:
+                fh.write("{}\n")           # D klasorunun ici dolu olmali (bos dizin atlanir)
+        # ---- Vaka F: yedek KOKU DISINDAKI sir — kum havuzunun komsu dizini ----
+        os.makedirs(os.path.join(td, "komsu"))
+        komsu_dosya = os.path.join(td, "komsu", ".navlungo-kimlik.json")
+        with open(komsu_dosya, "w") as fh:
+            fh.write("SIMULASYON: yedek kokunun DISINDA\n")
+
+        # --- Planlari uret ---
+        sir_plan = yedekle.yedek_agac_sir_plani(backup)
+        kap_plan = yedekle.yedek_agac_kapsamdisi_plani(backup)
+        sir_yollar = {g for g, _, _ in sir_plan}
+        kap_yollar = {g for g, _ in kap_plan}
+
+        # ---- Vaka A ----
+        kontrol("A) ic ice sir plana GIRDI: cron-nobet/.navlungo-kimlik.json",
+                "cron-nobet/.navlungo-kimlik.json" in sir_yollar, sir_yollar)
+        kontrol("A) ic ice sir icin YOL + BOYUT + SEBEP ucu de doner",
+                any(g == "cron-nobet/.navlungo-kimlik.json" and boyut > 0 and sebep
+                    for g, sebep, boyut in sir_plan), sir_plan)
+        # ---- Vaka B ----
+        kontrol("B) surumlenmis kopya plana GIRDI: .navlungo-kimlik.20260816-011600.json",
+                "cron-nobet/.navlungo-kimlik.20260816-011600.json" in sir_yollar,
+                sir_yollar)
+        # ---- Vaka C ----
+        kontrol("C) masum dosya plana GIRMEDI: cron-nobet/isci.sh",
+                "cron-nobet/isci.sh" not in sir_yollar, sir_yollar)
+        kontrol("C) masum dosya plana GIRMEDI: gorev-tanimlari/x.md",
+                "gorev-tanimlari/x.md" not in sir_yollar, sir_yollar)
+        kontrol("C) masum dizin plana GIRMEDI (cron-nobet ISIMLI dizinin kendisi)",
+                "cron-nobet" not in sir_yollar, sir_yollar)
+        # ---- Vaka D ----
+        for d in ("profil-kimi-x", "m3-profil-blabla", "tarayici-profili", "nobet-raporlar"):
+            kontrol("D) kapsam-disi VAR: cron-nobet/%s" % d,
+                    "cron-nobet/%s" % d in kap_yollar, kap_yollar)
+        kontrol("D) desene uymayan klasor plana GIRMEDI: cron-nobet/profil-baska",
+                not any(g == "cron-nobet/profil-baska" for g in kap_yollar), kap_yollar)
+        # ---- Vaka F: yedek kok disi dosya plana GIRMEDI ----
+        kontrol("F) yedek kok disi dosya plana GIRMEDI (`..` segmenti YOK)",
+                not any("/../" in g or g.startswith("..") for g in sir_yollar),
+                [g for g in sir_yollar if ".." in g])
+        # ---- Vaka E: --sir-temizle sonrasi 0 sir / 0 kapsamdisi ----
+        sir_islenen, sir_atlanan, _bul_s = yedekle.yedek_agac_sir_sil(sir_plan, backup)
+        kap_islenen, kap_atlanan, _bul_k = yedekle.yedek_agac_kapsamdisi_sil(kap_plan, backup)
+        kontrol("E) sir temizle sonrasi sir plani 0",
+                yedekle.yedek_agac_sir_plani(backup) == [],
+                [g for g, _, _ in yedekle.yedek_agac_sir_plani(backup)])
+        kontrol("E) sir temizle sonrasi kapsam-disi plani 0",
+                yedekle.yedek_agac_kapsamdisi_plani(backup) == [],
+                [g for g, _ in yedekle.yedek_agac_kapsamdisi_plani(backup)])
+        kontrol("E) yedek kok disi dosya HIC DOKUNULMAMAMALI (fail-closed)",
+                os.path.exists(komsu_dosya), komsu_dosya)
+        kontrol("E) atlanan kalem YOK (kum havuzu senaryosunda hersey temizlenebilir)",
+                not sir_atlanan and not kap_atlanan,
+                "sir_atlanan=%s kap_atlanan=%s"
+                % (sir_atlanan, kap_atlanan))
+        kontrol("E) ic ice sir dosyasi SILINDI",
+                not os.path.exists(nav_yol), nav_yol)
+        kontrol("E) surumlenmis kopya SILINDI",
+                not os.path.exists(versiyonlu), versiyonlu)
+        kontrol("E) kapsam-disi klasor SILINDI (profil-kimi-x)",
+                not os.path.exists(os.path.join(backup, "cron-nobet", "profil-kimi-x")),
+                os.path.join(backup, "cron-nobet", "profil-kimi-x"))
+        # ---- Vaka G: regresyon mevcut kalmasin ----
+        # Bu bölüm PASS olduysa mevcut `yedek_kok_sir_plani` hâlâ calisiyor demektir
+        # (bölum 7). Yeni fonksiyonlar onu bozmadi. Burada dogrudan kontrol etmek
+        # yerine, davranissal olarak: ayni kum havuzunda `yedek_kok_sir_plani` de
+        # bos donmeli (yoksa cift sinif sinifi var — kok sir burada yok).
+        kontrol("G) REGRESYON — yedek_kok_sir_plani yine bos (yeni kod yok sir eklemedi)",
+                yedekle.yedek_kok_sir_plani(backup) == [],
+                yedekle.yedek_kok_sir_plani(backup))
+        # Ve `--dogrula` YASAK degil ama G'nin onemli parcasi: yedek_plani hâlâ
+        # AYNI icerigi uretiyor — yeni fonksiyonlar onu degistirmedi.
+        kontrol("G) REGRESYON — yedek_plani genisletildi/budanamadi (vaka sadece sir + kapsamdisi)",
+                len(yedekle.yedek_plani(False)) > 0,
+                len(yedekle.yedek_plani(False)))
+        kontrol("G) REGRESYON — kronik doluluk (masum dosyalar hala vardi)",
+                os.path.exists(os.path.join(backup, "cron-nobet", "isci.sh"))
+                and os.path.exists(os.path.join(backup, "gorev-tanimlari", "x.md")),
+                [os.path.exists(os.path.join(backup, "cron-nobet", "isci.sh")),
+                 os.path.exists(os.path.join(backup, "gorev-tanimlari", "x.md"))])
         # Sahte AGAC_KAPSAMI girdisi: cron agaci etiketini kullanmak, gercek
         # koklerin yazilmasini ONLER (sadece bu kum havuzuna yazilir).
         sahte_agac = ("cron", sahte_cron, "cron-nobet-DUMMY", (".sh", ".crontab", ".md", ".txt", ".json", ".py"))

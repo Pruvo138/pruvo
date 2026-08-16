@@ -697,15 +697,24 @@ def _icerik_imzasi(yol):
     return None
 
 
-def sir_sebebi(yol, ad):
+def sir_sebebi(yol, ad, icerik_tara=True):
     """Dosya sir sayiliyorsa INSANA OKUNUR sebep, degilse None.
-    Sebep metni ASLA sirrin kendisini icermez (yalniz kural/imza sinifi)."""
+    Sebep metni ASLA sirrin kendisini icermez (yalniz kural/imza sinifi).
+
+    `icerik_tara=False` (16 Agu 2026): yalniz ad kara-listesi + ad desenine
+    bakilir, ICERIK IMZASI taranmaz. Yedek KOKU altindaki sir kopyalari icin
+    kullanilir — silinecek dosyalarin iceriginin acilmasi/gorulmesi gerekmez
+    (spec: SESSIZ DELIK kapisi; eriskin yol budur). Varsayilan `True` geriye
+    donuk uyumlu: skills/agac agaclarinda bilinmeyen sir bicimleri IMZA ile
+    yakalanmaya devam eder."""
     dusuk = ad.lower()
     if dusuk in SIR_ADLARI:
         return "ad kara listede"
     for desen in SIR_DESENLERI:
         if fnmatch.fnmatch(dusuk, desen):
             return "ad deseni: %s" % desen
+    if not icerik_tara:
+        return None
     imza = _icerik_imzasi(yol)
     if imza:
         return "icerik imzasi: %s" % imza
@@ -931,6 +940,217 @@ def yedek_kok_sir_raporu(backup, sir_temizle, kuru_prova=False, adlar=None):
     return {"kok_sir_bulunan": bulunan,
             "kok_sir_silinen": 0 if prova else len(islenen),
             "kok_sir_atlanan": len(atlanan)}
+
+
+# ============== AGAC GENELINDE SIR TEMIZLIGI (16 Agu 2026) =================
+# Olculdu: `yedek_kok_sir_plani` YALNIZ `os.listdir(backup)` ile KOKU tarar;
+# alt agaclardaki sir kopyalari GORULMEDIGI icin hedefte bayat olarak kaliyor
+# (ornek: `backup-v2/cron-nobet/.navlungo-kimlik.json`, 350 B, 16 Agu 01:16).
+# Tekil elle silme sinifi kapatmaz — ayni delik her alt klasor icin acik.
+# Bu bolum: kok ALTINDAKI sir kopyalarini (versiyonlenmis dahil) ozyinelemeli
+# bulan tek kaynak + kapsam-disi bayat klasorler icin ayri plan.
+#
+# ICERIK IMZASI KAPALI: spec'in "icerik acma yasagi" geregi `sir_sebebi`'ye
+# `icerik_tara=False` gecilir; ad + ad deseni esitligi YETER. Klasor zaten
+# silinecekse icerigi OKUMAYA GEREK YOK.
+
+
+def _agac_sinir_icinde(dizin, kok):
+    """`dizin` gercek yolu `kok`un gercek yolunu veya alt kumesini mi gosteriyor?
+
+    `os.walk(followlinks=False)` ile birlikte kullanilir; burada eklenen kontrol,
+    bir dizini symlink ile `kok`un DISINA cikarip gene de "icinde" gorunmesini
+    ONLER (sembolik olarak icinde olsa bile gercek yol disari cikiyorsa yuruyus
+    orada KIRILIR). Hata durumunda False — dosyayla is yapma, gec."""
+    try:
+        g = os.path.realpath(dizin)
+        k = os.path.realpath(kok)
+    except OSError:
+        return False
+    return g == k or g.startswith(k + os.sep)
+
+
+def yedek_agac_sir_plani(backup):
+    """Yedek KOKUNUN ALT AGACINDA duran sir kopyalarini BULUR.
+
+    Doner: [(gorece_yol, sebep_etiketi, boyut)] sirali.
+
+    - `sir_sebebi(tam_yol, ad, icerik_tara=False)` YUKLENIR (yeni liste YAZMAZ;
+      ikiz tanim yasagi).
+    - Surumlenmis kopyalar (`ad.YYYYMMDD-HHMMSS.uzanti`) da yakalanir — sir_sebebi
+      ad uzerinde calistigi icin govde sinifinda olan surumlu kopya da VAR sayilir
+      (kabul vakasi B).
+    - Yedek kokunun gercek yolu disina ASLA cikmaz; symlink izleme YOK.
+    - Bulunmayan/okunamayan kok -> bos liste (ust katman yorumlar).
+
+    🔴 ICERIK ACILMAZ: sadece `os.stat`/`os.path.getsize` ile boyut olculur,
+    dosya hic ACILMAZ/OKUNMAZ/KOPYALANMAZ. Ad bazli karar YETER, cunku silinecek
+    dosya zaten icerigiyle birlikte gidecek."""
+    if not backup:
+        return []
+    try:
+        if not os.path.isdir(backup):
+            return []
+    except OSError:
+        return []
+    cikti = []
+    for dizin, _altlar, dosyalar in os.walk(backup, followlinks=False):
+        if not _agac_sinir_icinde(dizin, backup):
+            continue
+        for dosya in sorted(dosyalar):
+            tam = os.path.join(dizin, dosya)
+            if os.path.islink(tam):
+                continue                     # symlink: hedefi zaten ayrica degerlendirilir
+            sebep = sir_sebebi(tam, dosya, icerik_tara=False)
+            if sebep:
+                try:
+                    boyut = os.path.getsize(tam)
+                except OSError:
+                    boyut = 0
+                gor = os.path.relpath(tam, backup)
+                cikti.append((gor, sebep, boyut))
+    return sorted(cikti)
+
+
+def yedek_agac_sir_temizle(plan, backup, kuru_prova=False):
+    """`yedek_agac_sir_plani`nin urettigi plani uygular (TEK KOD YOLU — prova ile
+    gercek silme AYNI suzgeci kullanir, [[ikiz-tanim-sessiz-ayrisma]] onlemi).
+
+    Doner: (islenen[(gorece_yol, tam_yol)], atlanan[(gorece_yol, sebep)], bulunan_sayisi)
+
+    `kuru_prova=True` hicbir sey silmez — yalniz ne silinecegini beyan eder.
+    `kuru_prova=False` ise gercek silme yapar; OSError durumunda kalemi ATLAR ve
+    `atlanan`'a ekler (silinememis bir tek kopya tekrar kosumda yine gorunur,
+    zararsiz — veri silmek geri alinamaz ama atlanan dosya gizli de degil)."""
+    return yedek_agac_sir_sil(plan, backup, kuru_prova=kuru_prova)
+
+
+def yedek_agac_sir_sil(plan, backup, kuru_prova=False):
+    """Plan = [(gorece_yol, sebep, boyut)] + backup kok = TAM yol uretip siler.
+    Doner: (islenen, atlanan, bulunan). KAPSAYICI; `yedek_agac_sir_temizle` de
+    buraya yonlendirir (tek kod yolu)."""
+    islenen, atlanan = [], []
+    for gor, _sebep, _boyut in plan:
+        tam = os.path.join(backup, gor)
+        if kuru_prova:
+            islenen.append((gor, tam))
+            continue
+        try:
+            os.remove(tam)
+            islenen.append((gor, tam))
+        except OSError as e:
+            atlanan.append((gor, "silinemedi: %s" % type(e).__name__))
+    return islenen, atlanan, len(plan)
+
+
+def yedek_agac_kapsamdisi_plani(backup):
+    """AGAC_EK_ATLA['cron'] desenlerine uyan HEDEF ALT KLASORLERINI listeler.
+
+    NEDEN: 16 Agu 2026'da `cron` kaynaginda `profil-*` / `m3-profil` /
+    `tarayici-profili` / `nobet-raporlar` KAPSAM DISI yapildi. Hedefte onceki
+    surumlerden kalma bu klasorler BAYAT; kapladiklari alan + dosya sayisi
+    buyuk. `cron-nobet` altinda ayni desenlere uyan dizinler bu planla bulunur.
+
+    Doner: [(gorece_klasor_yolu, eslesen_desen)] sirali.
+
+    🔴 SINIF KAPATMA: sadece LISTELER — silme `--sir-temizle` isine birakilir
+    (yine TEK KOD YOLU, prova ile gercek silme AYNI plan uzerinden)."""
+    desenler = tuple(AGAC_EK_ATLA.get("cron", ()))
+    if not desenler:
+        return []
+    if not backup or not os.path.isdir(backup):
+        return []
+    cikti = []
+    for dizin, altlar, _dosyalar in os.walk(backup, followlinks=False):
+        if not _agac_sinir_icinde(dizin, backup):
+            continue
+        for alt in sorted(altlar):
+            es = [d for d in desenler if alt.startswith(d)]
+            if not es:
+                continue
+            tam = os.path.join(dizin, alt)
+            if os.path.islink(tam):
+                continue
+            if not os.path.isdir(tam):
+                continue
+            gor = os.path.relpath(tam, backup)
+            cikti.append((gor, "desen: %s" % "/".join(es)))
+    return sorted(cikti)
+
+
+def yedek_agac_kapsamdisi_sil(plan, backup, kuru_prova=False):
+    """Kapsam-disi klasor planini siler: ONCE icindeki dosyalar, SONRA dizinin
+    kendisi (bos olmayan dizinler icin `os.rmdir` yetmez, icerigiyle silinmeli).
+
+    🔴 TEK KOD YOLU (prova ile gercek silme AYNI plan uzerinden). Hedef agacin
+    altinda dosya/dizin SILINIR — bu dizinler zaten hedef agacin BAYAT kopyasidir
+    ve yeniden uretilmez, yerel kaynaga dokunulmaz (sadece yedek kokunun alti).
+
+    `shutil.rmtree` kullanir; bu SESSIZ OLMAMALI: silinemez kalem `atlanan`'a yazilir
+    ve sonraki kosumda yine gorulur (gizli kalem = sessiz yesil olur, fail-closed)."""
+    islenen, atlanan = [], []
+    for gor, sebep in plan:
+        tam = os.path.join(backup, gor)
+        if kuru_prova:
+            islenen.append((gor, tam))
+            continue
+        try:
+            shutil.rmtree(tam)
+            islenen.append((gor, tam))
+        except OSError as e:
+            atlanan.append((gor, "silinemedi: %s" % type(e).__name__))
+    return islenen, atlanan, len(plan)
+
+
+def yedek_agac_raporu(backup, sir_temizle, kuru_prova=False):
+    """Yedek kokunun alt agacinda sir temizligi + kapsam-disi temizligi.
+
+    Doner: {"agac_sir_bulunan": int, "agac_sir_silinen": int, "agac_sir_atlanan": int,
+            "kapsamdisi_bulunan": int, "kapsamdisi_silinen": int, "kapsamdisi_atlanan": int}
+
+    Hesap TEK YOLDAN gecer — prova ile gercek silme ayni planlar uzerinden.
+    Kok sir temizliginden BAGIMSIZ calisir (farkli kod yolu, farkli sayaclar)."""
+    prova = kuru_prova or not sir_temizle
+    sir_plan = yedek_agac_sir_plani(backup)
+    kap_plan = yedek_agac_kapsamdisi_plani(backup)
+    sir_islenen, sir_atlanan = [], []
+    kap_islenen, kap_atlanan = [], []
+
+    print("  ALT AGAC SIR TARAMASI: %d kalem (recursively) — %s"
+          % (len(sir_plan),
+             "KURU PROVA (hicbir sey silinmedi)" if prova else "TEMIZLIK KOSTU"))
+    if sir_plan:
+        sir_islenen, sir_atlanan, _bul = yedek_agac_sir_sil(sir_plan, backup,
+                                                             kuru_prova=prova)
+        sir_sozluk = {g: b for g, _s, b in sir_plan}
+        for gor, _yol in sir_islenen:
+            etiket = "KURU PROVA — SILINECEK:" if prova else "AGAC SIR SILINDI:"
+            print("    %s %s   (boyut: %d B)" % (etiket, gor, sir_sozluk.get(gor, 0)))
+        for gor, sebep in sir_atlanan:
+            print("    🔴 SILINMEDI (fail-closed): %s   -> %s" % (gor, sebep))
+
+    print("  KAPSAM-DISI BAYAT KLASOR TARAMASI: %d klasor — %s"
+          % (len(kap_plan),
+             "KURU PROVA (hicbir sey silinmedi)" if prova else "TEMIZLIK KOSTU"))
+    if kap_plan:
+        kap_islenen, kap_atlanan, _bul = yedek_agac_kapsamdisi_sil(kap_plan, backup,
+                                                                   kuru_prova=prova)
+        kap_sozluk = {g: d for g, d in kap_plan}
+        for gor, _yol in kap_islenen:
+            etiket = "KURU PROVA — SILINECEK:" if prova else "KAPSAM-DISI SILINDI:"
+            print("    %s %s   (%s)" % (etiket, gor, kap_sozluk.get(gor, "?")))
+        for gor, sebep in kap_atlanan:
+            print("    🔴 SILINMEDI (fail-closed): %s   -> %s" % (gor, sebep))
+
+    if prova and not kuru_prova and (sir_islenen or kap_islenen):
+        print("      (silmek icin: python3 tools/yedekle.py --sir-temizle)")
+
+    return {"agac_sir_bulunan": len(sir_plan),
+            "agac_sir_silinen": 0 if prova else len(sir_islenen),
+            "agac_sir_atlanan": len(sir_atlanan),
+            "kapsamdisi_bulunan": len(kap_plan),
+            "kapsamdisi_silinen": 0 if prova else len(kap_islenen),
+            "kapsamdisi_atlanan": len(kap_atlanan)}
 
 
 def _agac_izinli_mi(ad, izinli):
@@ -2131,10 +2351,17 @@ def main():
         print("  SKILLS BAYAT SIR KOPYASI: %d" % len(s_bayat))
         for y in s_bayat:
             print("    KURU PROVA — SILINECEK: " + y)
+        # 16 Agu 2026 — alt agac + kapsam-disi planlari (yeni).
+        agac_sayilar = yedek_agac_raporu(backup, sir_temizle=True, kuru_prova=True)
         kok_silinecek = sayilar["kok_sir_bulunan"] - sayilar["kok_sir_atlanan"]
-        print("TOPLAM SILINECEK: %d (kok %d + skills %d) · SILINMEYECEK (fail-closed): %d"
-              % (kok_silinecek + len(s_bayat), kok_silinecek, len(s_bayat),
-                 sayilar["kok_sir_atlanan"]))
+        agac_silinecek = agac_sayilar["agac_sir_bulunan"] - agac_sayilar["agac_sir_atlanan"]
+        kap_silinecek = agac_sayilar["kapsamdisi_bulunan"] - agac_sayilar["kapsamdisi_atlanan"]
+        print("TOPLAM SILINECEK: %d (kok %d + skills %d + agac-sir %d + kapsam-disi %d) "
+              "· SILINMEYECEK (fail-closed): %d"
+              % (kok_silinecek + len(s_bayat) + agac_silinecek + kap_silinecek,
+                 kok_silinecek, len(s_bayat), agac_silinecek, kap_silinecek,
+                 sayilar["kok_sir_atlanan"] + agac_sayilar["agac_sir_atlanan"]
+                 + agac_sayilar["kapsamdisi_atlanan"]))
         print("Gercek silme icin: python3 tools/yedekle.py --sir-temizle")
         return 0
 
@@ -2429,6 +2656,11 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # Yedek KOKUNDE onceki surumlerden kalmis sir kopyalari: --sir-temizle ile SILINIR,
     # bayraksiz kosumda YALNIZ UYARILIR (yedekten veri silmek elle onaylanir).
     kok_sir_sayilari = yedek_kok_sir_raporu(backup, sir_temizle=sir_temizle)
+
+    # 16 Agu 2026 — ALT AGAC + KAPSAM-DISI planlari (yeni).
+    # `cron` kaynaginda kapsam disi kalan desenler hedefte bayat klasor olarak duruyor;
+    # `--sir-temizle` ile onlar da temizlenir. Bayraksiz normal kosum yalniz UYARIR.
+    agac_sayilari = yedek_agac_raporu(backup, sir_temizle=sir_temizle)
 
     # ---- EK KAPSAM: 5+1 evin izlenmeyen kalici bilgisi + diger hafiza uzaylari ----
     # Kum havuzunda (sahte ROOT) kardes ev YOKTUR -> faz kendini kapatir ve bunu BASAR.
