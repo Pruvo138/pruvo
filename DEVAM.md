@@ -2,6 +2,50 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 16 Agu (~15:00Z) — K123 KAPANDI: YAYIN-YASI NOBETCISI CANLIDA + MUKERRER ISTISNASI WORKTREE'DE (KraL)
+
+**Merge `cadf9acb`** (origin/main'de; dal `kral/k123-yayin-yasi` + worktree SILINDI).
+D1 teyidi **5/5 eksen YESIL** (28682 = 28682).
+
+**(A) YAYIN-YASI NOBETCISI** (`tools/yayin-yasi-nobetcisi.py` + `.github/workflows/yayin-yasi-alarmi.yml`).
+15 Agu 14:02 - 16 Agu ~12:00 arasi yayin ~21 saat kapaliydi; o pencerede yayin YASI hicbir
+yerde OLCULMUYORDU (mekanik ayrinti DEVAM-ARSIV.md'de).
+- Olculen buyukluk **"son dagitimin yasi" DEGIL, "yayina girmemis EN ESKI commit'in yasi"**
+  (tavan **3 sa**): sakin gecede main ilerlemedigi icin alarm otmez; main ilerleyip canli
+  kalinca saat isler. Commit SAYISI hukum vermez (Pages ara kosumlari iptal eder), raporlanir.
+- Hukum kosum `conclusion`'ina DEGIL `github-pages` ortamina dusen **gercek dagitim kaydina**
+  bakar. Fail-closed: jeton/kayit yok · dagitilan SHA main gecmisinde degil · tarih okunamadi
+  · negatif yas hepsi **rc 2** (sessiz yesil YOK).
+- 🔴 **Mevcut nobetciler bu sinifi YAPISAL olarak gormuyordu:** `yayin-erisim` kumeyi main
+  agacindan turetip canli sitemap'te olmayan 404'leri ROLLOUT sayiyor — yani yayin tamamen
+  durunca **tam olarak sessizlesiyor**; `yayin-gecikme` ise D1 taslak yigini olcuyor.
+- AYRI SERIT: `push`/`pull_request`/`workflow_call` tetigi yok, `deploy.yml`'e `needs` ile
+  bagli degil, `concurrency` ayri → yayin yoluna maliyeti 0 sn. Cron **41** (yogun dakika
+  degil; 26 · 9,24,39,54 · 13,28,43,58 fazlarina carpmaz).
+- Olcum: **KABUL 23/23 · MUTASYON 9/9 OLDU · SURVIVOR=0 · UYGULANMADI=0** · CI_KAPSAM_RC=0
+  (taban 0) · canli `workflow_dispatch` kosumu **rc=0**: *"12 commit yayin sirasinda; en
+  eskisi 1 sa 57 dk bekliyor — tavan 3.0 sa · son basarili dagitim 2 sa 04 dk once."*
+
+**(B) 🔴 SINIF ONARIMI — mukerrer istisnasi worktree'de de gorulur.** `.mukerrer-istisna.json`
+`.gitignore`da ve `git worktree add` **izlenmeyen dosyayi tasimiyor** → AYNI HEAD icin ana
+agacta `rc=0`, worktree'de `rc=1` olcuuldu; **urun verisine hic dokunmayan** commit'ler bile
+"MUKERRER KAYNAK" ile bloklandi. Bedeli kayitli: iki kanca atlamasi + `k119e` worktree'sinin
+temizlenememesi. Ucuncu tekrar oldugu icin tekil yama YAPILMADI: `istisna_yolu()` yereli
+bulamazsa `git rev-parse --git-common-dir` ile **paylasilan ana agactan** okur ve hangi yolu
+kullandigini basar. **Kapi gevsetilmedi** — dosya hicbir agacta yoksa davranis eskisinin
+aynisi; paylasilan dosyanin VARLIGI degil ICERIGI hukum verir.
+Kabul `tools/mukerrer-kapsam-test.py` 5 → **8 iddia** (A6 worktree istisnayi gorur · A7 istisna
+hicbir agacta yoksa KIRMIZI · A8 varlik degil icerik). **ESKI kapiyla A6 KALDI** (regresyon
+kanitli), taban 5/5 yesil.
+
+**Olcuulen yan bulgular:**
+- `cron-nabiz-kapisi.py` **A2 ekseninin "henuz main'de olmayan yeni is akisi" kolu YOK**
+  (`A2_MUAFIYET=YOK`, `tools/cron-nabiz-kapisi.py:1233`): yeni cron dosyasi dalda KIRMIZI
+  yakar, main'e girip GitHub kaydettikten sonra kendiliginden yesile doner. SERIT B, yayini
+  BLOKLAMAZ — kalem ACILMADI, sonraki cron ekleyen icin not.
+- Push aninda **K85 D1 yazici lease'i** (baska evin ucusu) bir kez durdurdu; sira, ariza degil.
+  Ikinci denemede D1 senkron gecti, push `refs/heads/main +4`.
+
 ## 16 Agu — OTURUM KAPANISI (KraL) — CANLIYA GIDEN · KOSUYOR · BEKLIYOR · OKAN'DA
 
 **CANLIYA GIDEN (main push'lu, ana repo temiz):**
