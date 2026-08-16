@@ -5,7 +5,7 @@
 Gercek DEVAM.md / DEVAM-ARSIV.md / pre-commit uzerinde CALISMAZ; tempfile
 altinda sentetik veri kurar. Cikti son satiri:
 
-    FIKSTUR=<g/t> MUTANT=<OLDU|SURVIVOR> RED_RC=<n> KONTROL_RC=<n> KAPSAM_RC=<n> CARE_SATIRI=<VAR|YOK> SAYAC_YOL=<yol> SAYAC_SATIR=<n>
+    FIKSTUR=<g/t> YENI_VAKA=<n> MUTANT=<OLDU|RED|...> RED_RC=<n> KONTROL_RC=<n> KAPSAM_RC=<n> CARE_SATIRI=<VAR|YOK> SAYAC_YOL=<yol> SAYAC_SATIR=<n>
 """
 import os
 import shutil
@@ -155,8 +155,209 @@ def fikstur_test():
     return hatalar, kontrol
 
 
+def _yaz_ve_calistir(tmp, defter_icerik, arsiv_icerik=None, tarih="2026-08-16"):
+    """Sentetik defter+arsiv yaz, rotasyonu calistir, sonuclari dondur.
+
+    Donus: (rc, stdout, yeni_defter, yeni_arsiv).
+    """
+    defter = os.path.join(tmp, "DEVAM.md")
+    arsiv = os.path.join(tmp, "DEVAM-ARSIV.md")
+    with open(defter, "w", encoding="utf-8") as f:
+        f.write(defter_icerik)
+    with open(arsiv, "w", encoding="utf-8") as f:
+        f.write(arsiv_icerik if arsiv_icerik is not None else "")
+    r = _kostur(defter, arsiv, tarih)
+    yeni_defter = open(defter, encoding="utf-8").read()
+    yeni_arsiv = open(arsiv, encoding="utf-8").read()
+    return r.returncode, r.stdout, yeni_defter, yeni_arsiv
+
+
+def _son_satirdaki_sayiyi_al(stdout, jeton):
+    """Son cikti satirindan <jeton>=<n> degerini cek (yoksa 0)."""
+    for satir in (stdout or "").splitlines()[::-1]:
+        if satir.startswith("TASINAN="):
+            parca = [p for p in satir.split() if p.startswith(jeton + "=")]
+            if parca:
+                try:
+                    return int(parca[0].split("=", 1)[1])
+                except ValueError:
+                    return 0
+    return 0
+
+
+def madde_test():
+    """Madde granulu vakalari (V1-V6). Tek tek kontrol listesi."""
+    hatalar = []
+    gecen = 0
+    kontrol = 6  # V1..V6
+
+    # ----- V1 POZ -------------------------------------------------------
+    # Acik blok icinde kapali madde TASINIR.
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "# Baslik bolgesi\n"
+            "\n"
+            "## B — ACIK KALEMLER 🔴\n"
+            "- 🔴 genel acik\n"
+            "- ✅ **K1 KAPANDI** detay\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V1 rotasyon basarisiz rc=%d: %s" % (rc, stdout))
+        else:
+            v1_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            v1_blok = _son_satirdaki_sayiyi_al(stdout, "TASINAN")
+            if v1_madde != 1 or v1_blok != 0:
+                hatalar.append("V1 sayac yanlis: TASINAN=%d TASINAN_MADDE=%d (beklenen 0/1)" % (
+                    v1_blok, v1_madde))
+            elif "K1 KAPANDI" not in yeni_arsiv:
+                hatalar.append("V1 KAPANDI maddesi arsive gecmedi")
+            elif "K1 KAPANDI" in yeni_defter:
+                hatalar.append("V1 KAPANDI maddesi defterde kaldi")
+            elif "🔴 genel acik" not in yeni_defter:
+                hatalar.append("V1 acik madde yanlislikla tasindi")
+            else:
+                gecen += 1
+
+    # ----- V2 NEG -------------------------------------------------------
+    # Acik blok icinde acik madde TASINMAZ.
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- 🔧 **K2:** devam ediyor\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V2 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v2_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v2_madde != 0:
+                hatalar.append("V2 acik madde tasindi TASINAN_MADDE=%d" % v2_madde)
+            elif "K2:" not in yeni_defter:
+                hatalar.append("V2 acik madde defterden kayboldu")
+            elif "K2:" in yeni_arsiv:
+                hatalar.append("V2 acik madde arsive gecti")
+            else:
+                gecen += 1
+
+    # ----- V3 NEG (karisik) ---------------------------------------------
+    # Ayni maddede hem KAPANDI hem 🔧 -> TASINMAZ (suphede kalir).
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- ✅ K3 KAPANDI ama 🔧 hala acik\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V3 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v3_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v3_madde != 0:
+                hatalar.append("V3 karisik madde tasindi TASINAN_MADDE=%d" % v3_madde)
+            elif "K3 KAPANDI ama" not in yeni_defter:
+                hatalar.append("V3 karisik madde defterden kayboldu")
+            elif "K3 KAPANDI ama" in yeni_arsiv:
+                hatalar.append("V3 karisik madde arsive gecti")
+            else:
+                gecen += 1
+
+    # ----- V4 POZ (cok satirli) -----------------------------------------
+    # Kapali madde devam satirlariyla TUMUYLE tasinir, komsu acik
+    # maddenin ilk satiri KESILMEZ.
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- 🔧 **K2:** acik satir 1\n"
+            "- ✅ **K1 KAPANDI** detay\n"
+            "  devam satiri 2\n"
+            "  devam satiri 3\n"
+            "- 🔧 **K4:** diger acik satir 1\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V4 rotasyon basarisiz rc=%d: %s" % (rc, stdout))
+        else:
+            v4_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v4_madde != 1:
+                hatalar.append("V4 cok satirli kapali tasinmadi TASINAN_MADDE=%d" % v4_madde)
+            elif "K1 KAPANDI" not in yeni_arsiv or "devam satiri 3" not in yeni_arsiv:
+                hatalar.append("V4 kapali madde devam satirlariyla arsive gecmedi")
+            elif "🔧 **K2:** acik satir 1" not in yeni_defter:
+                hatalar.append("V4 acik K2'nin ilk satiri kesildi")
+            elif "🔧 **K4:** diger acik satir 1" not in yeni_defter:
+                hatalar.append("V4 acik K4'un ilk satiri kesildi")
+            elif "K1 KAPANDI" in yeni_defter:
+                hatalar.append("V4 kapali madde defterde kaldi")
+            else:
+                gecen += 1
+
+    # ----- V5 NEG (mukerrer yok) ----------------------------------------
+    # Blok granulu zaten tasiyorsa, madde kolu AYNI icerigi 2. kez
+    # tasimamali. Burada blok KAPANDI isaretci tasir ve hic ACIK
+    # isaretci yok -> blok olarak tasinir; madde kolu bos.
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## A — KAPANDI ✅\n"
+            "- ✅ **K1 KAPANDI** detay\n"
+            "- ✅ **K2 KAPANDI** detay\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V5 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v5_blok = _son_satirdaki_sayiyi_al(stdout, "TASINAN")
+            v5_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v5_blok != 1:
+                hatalar.append("V5 blok tasinmadi TASINAN=%d (beklenen 1)" % v5_blok)
+            elif v5_madde != 0:
+                hatalar.append("V5 mukerrer TASINAN_MADDE=%d (beklenen 0, blok zaten tasindi)" % v5_madde)
+            else:
+                # K1 ve K2 hem blok hem arsivde 1 kez gorunmeli.
+                arsiv_ici = open(os.path.join(tmp, "DEVAM-ARSIV.md"), encoding="utf-8").read()
+                k1_say = arsiv_ici.count("K1 KAPANDI")
+                k2_say = arsiv_ici.count("K2 KAPANDI")
+                if k1_say != 1 or k2_say != 1:
+                    hatalar.append("V5 mukerrer: K1=%d K2=%d (her biri 1 olmali)" % (k1_say, k2_say))
+                else:
+                    gecen += 1
+
+    # ----- V6 NEG (sonraki blog basligi tasinmaz) -----------------------
+    # Acik blogun son kapali maddesi tasinir; bir sonraki blogun basligi
+    # (`## C — ...`) yanlislikla tasinmamali.
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- ✅ **K_last KAPANDI** detay\n"
+            "\n"
+            "## C — SONRAKI BLOG 🔴\n"
+            "- acik icerik\n"
+        )
+        rc, stdout, yeni_defter, yeni_arsiv = _yaz_ve_calistir(tmp, defter)
+
+        if rc != 0:
+            hatalar.append("V6 rotasyon basarisiz rc=%d" % rc)
+        else:
+            v6_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+            if v6_madde != 1:
+                hatalar.append("V6 son kapali tasinmadi TASINAN_MADDE=%d" % v6_madde)
+            elif "## C — SONRAKI BLOG" not in yeni_defter:
+                hatalar.append("V6 sonraki blog basligi defterden kayboldu")
+            elif "## C — SONRAKI BLOG" in yeni_arsiv:
+                hatalar.append("V6 sonraki blog basligi arsive gecti")
+            elif "- acik icerik" not in yeni_defter:
+                hatalar.append("V6 sonraki blog govdesi kesildi")
+            else:
+                gecen += 1
+
+    return hatalar, gecen, kontrol
+
+
 def mutant_test():
-    """Aci isaretci vetosunu devre disi birakan mutant uret; F1/F2'yi kir."""
     with open(ROTASYON, encoding="utf-8") as f:
         govde = f.read()
 
@@ -212,6 +413,136 @@ def mutant_test():
         if bozuk:
             return True, "mutant F1/F2'yi bozdu (%s)" % "; ".join(sebep)
         return False, "mutant F1/F2'yi bozMADI (SURVIVOR)"
+
+
+def mutant_m2_test():
+    """M2: madde sinirini 'bir sonraki `- `' yerine 'blok sonu' yap.
+
+    Yani `_maddeleri_isle()` icindeki `not govde[j].startswith("- ")` kosulu
+    kaldirilir; boylece ilk madde blogun tum govdesini yutar. Kapali+acik
+    karisik bir maddede veto devreye girer ve hicbir madde tasinmaz.
+    V4 (cok satirli kapali tasinmali) ve V6 (son kapali tasinmali) kirilir.
+    """
+    with open(ROTASYON, encoding="utf-8") as f:
+        govde = f.read()
+
+    eski = "    while j < n and not govde[j].startswith(\"- \"):\n"
+    yeni = "    while j < n:  # mutant M2: madde siniri blok sonu\n"
+    if eski not in govde:
+        return None, "MUTANT CAPA BULUNAMADI: %r" % eski
+
+    mutant_govde = govde.replace(eski, yeni, 1)
+    sonuclar = []
+    with tempfile.TemporaryDirectory() as tmp:
+        mutant_yol = os.path.join(tmp, "mutant-m2.py")
+        with open(mutant_yol, "w", encoding="utf-8") as f:
+            f.write(mutant_govde)
+
+        # V4 fiksturu — M2 ile tasinmamali (komsu acik ile karisip veto).
+        defter_v4 = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- 🔧 **K2:** acik satir 1\n"
+            "- ✅ **K1 KAPANDI** detay\n"
+            "  devam satiri 2\n"
+            "  devam satiri 3\n"
+            "- 🔧 **K4:** diger acik satir 1\n"
+        )
+        rc, stdout, _, _ = _yaz_ve_calistir(tmp, defter_v4)
+        v4_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+        sonuclar.append(("V4", v4_madde, 0, "cok satirli kapali M2 ile tasindi"))
+
+        # V6 fiksturu — son kapali M2 ile tasinmamali.
+        defter_v6 = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- ✅ **K_last KAPANDI** detay\n"
+            "\n"
+            "## C — SONRAKI BLOG 🔴\n"
+            "- acik icerik\n"
+        )
+        rc, stdout, _, _ = _yaz_ve_calistir(tmp, defter_v6)
+        v6_madde = _son_satirdaki_sayiyi_al(stdout, "TASINAN_MADDE")
+        sonuclar.append(("V6", v6_madde, 0, "son kapali M2 ile tasindi"))
+
+    kirildi = sum(1 for _, g, b, _ in sonuclar if g != b)
+    toplam = len(sonuclar)
+    if kirildi >= 1:
+        return True, "M2 V4/V6'yi bozdu (%d/%d): %s" % (
+            kirildi, toplam,
+            "; ".join("%s g=%d b=%d" % (ad, g, b) for ad, g, b, _ in sonuclar))
+    return False, "M2 hicbir vakayi bozMADI (SURVIVOR)"
+
+
+def mutant_m3_test():
+    """M3: bayt esitligi kontrolunu no-op yap -> her rotasyon rollback.
+
+    `_dogru` ifadesi `False` ile degistirilir; boylece her transferden
+    sonra dosyalar geri yazilir. V1 (kapali madde tasinmali), V5 (blok
+    tasinmali) gibi rotasyon bekleyen vakalardan en az biri kirilir.
+    """
+    with open(ROTASYON, encoding="utf-8") as f:
+        govde = f.read()
+
+    # Eski: cok satirli `dogru = (...)` formunu hedefliyoruz; kaynak
+    # kodda tek satir halinde `dogru = (` ile basliyor.
+    eski = "    dogru = (\n"
+    yeni = "    dogru = (False)  # mutant M3: bayt esitligi no-op\n        and False\n"
+    if eski not in govde:
+        return None, "MUTANT M3 CAPA BULUNAMADI: %r" % eski
+
+    mutant_govde = govde.replace(eski, yeni, 1)
+    sonuclar = []
+    with tempfile.TemporaryDirectory() as tmp:
+        mutant_yol = os.path.join(tmp, "mutant-m3.py")
+        with open(mutant_yol, "w", encoding="utf-8") as f:
+            f.write(mutant_govde)
+
+        # V1 fiksturu — kapali madde M3 ile arsive GECMEMELI (rollback).
+        defter_v1 = (
+            "## B — ACIK KALEMLER 🔴\n"
+            "- 🔴 genel acik\n"
+            "- ✅ **K1 KAPANDI** detay\n"
+        )
+        defter = os.path.join(tmp, "DEVAM.md")
+        arsiv = os.path.join(tmp, "DEVAM-ARSIV.md")
+        with open(defter, "w", encoding="utf-8") as f:
+            f.write(defter_v1)
+        with open(arsiv, "w", encoding="utf-8") as f:
+            f.write("")
+        r = subprocess.run(
+            [sys.executable, mutant_yol, defter, arsiv, "--tarih", "2026-08-16"],
+            capture_output=True, text=True)
+        v1_madde = _son_satirdaki_sayiyi_al(r.stdout, "TASINAN_MADDE")
+        yeni_defter = open(defter, encoding="utf-8").read()
+        v1_arsivde = "K1 KAPANDI" in open(arsiv, encoding="utf-8").read()
+        # Beklenen: rollback oldu icin K1 KAPANDI arsive gecmedi VE
+        # TASINAN_MADDE=0 yazildi (cikti satirinda). Aralarin hepsi
+        # bos; bunlar transfer-sinyalleri.
+        sonuclar.append(("V1", v1_madde, 0, v1_arsivde))
+
+        # Mevcut F1 fiksturu — A ve C bloglari tasinmali. M3 ile hicbiri
+        # tasinmamali.
+        defter_f1 = _fikstur_defter()
+        defter2 = os.path.join(tmp, "DEVAM.md")
+        arsiv2 = os.path.join(tmp, "DEVAM-ARSIV.md")
+        with open(defter2, "w", encoding="utf-8") as f:
+            f.write(defter_f1)
+        with open(arsiv2, "w", encoding="utf-8") as f:
+            f.write("## Eski arsiv basligi\n- Eski kayit\n")
+        r2 = subprocess.run(
+            [sys.executable, mutant_yol, defter2, arsiv2, "--tarih", "2026-08-16"],
+            capture_output=True, text=True)
+        yeni_arsiv_f1 = open(arsiv2, encoding="utf-8").read()
+        f1_tasindi = ("A — OTURUM KAPANISI" in yeni_arsiv_f1 or
+                      "C — X KAPANDI" in yeni_arsiv_f1)
+        sonuclar.append(("F1", f1_tasindi, True, False))
+
+    kirildi = sum(1 for _, g, b, _ in sonuclar if g != b)
+    toplam = len(sonuclar)
+    if kirildi >= 1:
+        return True, "M3 vakalari bozdu (%d/%d): %s" % (
+            kirildi, toplam,
+            "; ".join("%s g=%r b=%r" % (ad, g, b) for ad, g, b, _ in sonuclar))
+    return False, "M3 hicbir vakayi bozMADI (SURVIVOR)"
 
 
 # ---------------------------------------------------------------------------
@@ -303,7 +634,13 @@ def red_provasi():
 
 def main():
     hatalar, kontrol = fikstur_test()
+    madde_hatalar, madde_gecen, madde_kontrol = madde_test()
+    hatalar.extend(madde_hatalar)
+    kontrol += madde_kontrol
+
     mutant_oldu, mutant_mesaj = mutant_test()
+    mutant_m2_oldu, mutant_m2_mesaj = mutant_m2_test()
+    mutant_m3_oldu, mutant_m3_mesaj = mutant_m3_test()
 
     r_red, r_kontrol, r_kapsam, sayac_yol, sayac_satir = red_provasi()
 
@@ -335,20 +672,34 @@ def main():
         print("  ✗ Bypass sayaci yazilmadi (%s)" % sayac_yol, file=sys.stderr)
         hatalar.append("bypass sayaci yazilmadi")
 
-    for h in hatalar:
-        if h not in ["RED vakasi RED vermedi", "KONTROL vakasi yanlis-pozitif",
-                     "KAPSAM vakasi stage-disini engelledi", "CARE satiri yok",
-                     "bypass sayaci yazilmadi"]:
-            pass  # zaten yukarida basilacak
-
+    # Mutant durumlari
     mutant_durum = "OLDU" if mutant_oldu else "SURVIVOR"
-    gecen = kontrol - len(hatalar)
-    print("FIKSTUR=%d/%d MUTANT=%s RED_RC=%d KONTROL_RC=%d KAPSAM_RC=%d CARE_SATIRI=%s SAYAC_YOL=%s SAYAC_SATIR=%d"
-          % (gecen, kontrol, mutant_durum, red_rc, kontrol_rc, kapsam_rc,
-             care_var, sayac_yol, sayac_satir))
+    m2_durum = "OLDU" if mutant_m2_oldu else "SURVIVOR"
+    m3_durum = "OLDU" if mutant_m3_oldu else "SURVIVOR"
+    mutant_oldu_toplam = sum(1 for x in (mutant_oldu, mutant_m2_oldu, mutant_m3_oldu) if x)
+    mutant_toplam = 3
 
-    if hatalar or not mutant_oldu:
-        print("MUTANT DETAY: %s" % mutant_mesaj, file=sys.stderr)
+    gecen = kontrol - len(hatalar)
+    print("FIKSTUR=%d/%d YENI_VAKA=%d/%d MUTANT=%s,M2=%s,M3=%s(%d/%d) RED_RC=%d KONTROL_RC=%d KAPSAM_RC=%d CARE_SATIRI=%s SAYAC_YOL=%s SAYAC_SATIR=%d"
+          % (gecen, kontrol, madde_gecen, madde_kontrol,
+             mutant_durum, m2_durum, m3_durum, mutant_oldu_toplam, mutant_toplam,
+             red_rc, kontrol_rc, kapsam_rc, care_var, sayac_yol, sayac_satir))
+
+    if hatalar:
+        if not mutant_oldu:
+            print("M1 MUTANT DETAY: %s" % mutant_mesaj, file=sys.stderr)
+        if not mutant_m2_oldu:
+            print("M2 MUTANT DETAY: %s" % mutant_m2_mesaj, file=sys.stderr)
+        if not mutant_m3_oldu:
+            print("M3 MUTANT DETAY: %s" % mutant_m3_mesaj, file=sys.stderr)
+        return 1
+    if mutant_oldu_toplam < mutant_toplam:
+        if not mutant_oldu:
+            print("M1 MUTANT DETAY: %s" % mutant_mesaj, file=sys.stderr)
+        if not mutant_m2_oldu:
+            print("M2 MUTANT DETAY: %s" % mutant_m2_mesaj, file=sys.stderr)
+        if not mutant_m3_oldu:
+            print("M3 MUTANT DETAY: %s" % mutant_m3_mesaj, file=sys.stderr)
         return 1
     return 0
 
