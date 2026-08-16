@@ -1870,6 +1870,20 @@ jobs:
       - name: "R2 onek gelenegi: canli katalogda sapma + ikiz tanim ayrismasi (ALARM — yayini DURDURMAZ)"
         run: python3 tools/r2-onek-gelenek-kapisi.py
 
+      # R2 PURGE ARACININ KABUL BATARYASI (K114, 16 Agu 2026) — AGSIZ.
+      # `tools/r2-purge.py` CF onbellegini temizler; bu batarya onun HATA KOLLARINI ve
+      # ANAHTAR BEYAZ LISTESINI mutantlarla olcer (`urlopen` mock'lanir, DIS AG YOK).
+      # Iki curutme turu iki kusur buldu ve ikisi de kapandi: (a) gizlilik olcumu yalniz
+      # MUTLU YOLDAYDI — hata kollarinda anahtar sizabiliyordu, (b) `--anahtar` KARA
+      # listesini bos dize atlatip medya KOK adresini hedefliyordu (kara liste BEYAZ
+      # listeye cevrildi).
+      # 🔴 NEDEN SERIT B (yayini BLOKLAMAZ): kirmizisi musteriye yanlis para odetmez,
+      # veri sizdirmaz ve siteyi durdurmaz — yalnizca bir OPERASYON aracinin bozuldugunu
+      # soyler. Turnusol `nobet.yml` SERIT B gerekcesiyle ayni.
+      # ⚠️ `continue-on-error` YOK: rc dogrudan konusur.
+      - name: "R2 purge araci kabul + mutasyon bataryasi (agsiz — ALARM, yayini DURDURMAZ)"
+        run: python3 tools/r2-purge-test.py
+
   # ===========================================================================
   # HACIM TAM TAKIM (2026-08-02) — GERCEK TEST 1 (kapali-form vs RENDER)
   #
