@@ -28,7 +28,7 @@ Mühendislik malzemeleri — hepsi standart sipariş akışının DIŞINDA; What
 - **Karbon katkılı (PETG-CF/PA-CF)** (En yüksek mukavemet, ısı taşıyıcıya göre) — [DEVRET]
 - **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik edilebilir — [DEVRET]
 
-Kategori varsayılanı: Otomobil/Motosiklet → ASA; Kaput altı / güneş görmeyen parçada ABS · Bisiklet/Bahçe → ABS; Güneş gören parçada ASA · Marin → ASA · Ev/Ofis/Dekorasyon/Skan Art/Oyun/Hobi → PLA · Elektronik/Kamera → ABS; Isınan ortamda ASA · Tamirat → ABS.
+Kategori varsayılanı: Otomobil/Motosiklet → ASA; Kaput altı / güneş görmeyen parçada ABS · Bisiklet/Marin → ASA · Bahçe → ABS; Güneş gören parçada ASA · Ev/Ofis/Dekorasyon/Skan Art/Oyun/Hobi → PLA · Elektronik/Kamera → ABS; Isınan ortamda ASA · Tamirat → ABS.
 Seçimi kullanım yerine göre yap; deniz/tuzlu su → su+tuza dirençli olanı seç. Emin değilsen uydurma: araştırıp döneceğini söyle + [DEVRET].
 ÖNEMLİ: karbon katkı ISI dayanımını ARTIRMAZ, taşıyıcınınkini korur (PETG-CF ~70°C); karbonu mukavemet/sertlik için öner, ısıda taşıyıcıya bak.
 
