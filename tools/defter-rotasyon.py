@@ -14,10 +14,15 @@ KESME OLcUTU (mimar verdi):
       (b) baslik ya da govdesinde en az bir KAPANIS isaretci tasiyorsa.
   * Blok granulu tasinma GERCEKLESMEYEN bir acik blok icindeki LISTE MADDELERI
     tek tek degerlendirilir. Bir MADDE tasinir ancak ve ancak:
-      (a) maddede en az bir KAPANIS isaretci tasiyorsa VE
+      (a) maddenin ILK SATIRINDA kapanis isaretci (`KAPANDI`, `KAPANIS`,
+          `✅`) ilk anlamli jeton olarak yer aliyorsa VE
       (b) maddede hic ACIK isaretci gecmiyorsa VE
       (c) madde ARSIV'E isaret etmiyorsa (MADDE_VETO_DESENLERI icinde
           gecen desenlerden biri bulunursa TASINMAZ).
+    Maddenin DEVAM satirlarinda ya da parantez icinde gecen `KAPANDI`/
+    `KAPANIS`/`✅` TASIMA GEREKCESI OLAMAZ (K128; canli vaka: `- Eski
+    yedek ...` maddesinin devaminda `(Motor tarifesi kalemi ... KAPANDI:
+    ...)` atfi vardi ve olcut kapali sayip arsive supurmustu).
   * ACIK jetonlarin BULUNMASI harf tabanli olanlarda kelime-sinirli
     (`re` ile `\bJETON\b`); emoji/ikon olanlarda alt-dize kalir. Bu ayrim
     `ACIKLAMA`, `ACIKLANDI` gibi alakasiz kelimelerin yanlis veto
@@ -30,6 +35,10 @@ CIKIS:
 
 Cikti son satiri:
     TASINAN=<n> TASINAN_MADDE=<n> DEFTER_SATIR=<n> ARSIV_SATIR=<n>
+
+Her tasinan blok icin (son-ozetten ONCE) bir `TASINAN-BLOK: <baslik>` satiri;
+her tasinan madde icin `TASINAN-MADDE: <ilk satir, kirpilmis 100 kar.>`.
+Hicbir sey tasinmadiysa bu satirlar YAZILMAZ (V14).
 """
 import argparse
 import os
@@ -124,16 +133,47 @@ def _tasinir_mi(blok):
     return False
 
 
+def _ilk_satirda_kapanis(metin):
+    """Madde ilk satirinda kapanis isaretci varsa True (K128).
+
+    `- ` isaretinden sonra, ilk anlamli jeton (bosluk ve '**' atlanir)
+    KAPANDI / KAPANIS / ✅ olmali. Devam satirlarinda ya da parantez
+    icinde gecen `KAPANDI`/`KAPANIS`/`✅` TASIMA GEREKCESI OLAMAZ.
+    Case-sensitive (mevcut KAPANIS_ISARETCILER ile ayni kural).
+    """
+    if not metin or not metin.startswith("- "):
+        return False
+    s = metin[2:]
+    n = len(s)
+    i = 0
+    while i < n:
+        if s[i].isspace():
+            i += 1
+            continue
+        if s[i:i + 2] == "**":
+            i += 2
+            continue
+        if s[i] == "✅":
+            return True
+        j = i
+        while j < n and (s[j].isalnum() or s[j] == "_"):
+            j += 1
+        kelime = s[i:j]
+        if kelime in ("KAPANDI", "KAPANIS"):
+            return True
+        return False
+    return False
+
+
 def _madde_tasinir_mi(metin):
     """Madde kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA."""
     if _acik_eslesiyor(metin):
         return False
     if _madde_arsiv_vetolu(metin):
         return False
-    for isaretci in KAPANIS_ISARETCILER:
-        if isaretci in metin:
-            return True
-    return False
+    if not _ilk_satirda_kapanis(metin):
+        return False
+    return True
 
 
 def _maddeleri_isle(govde):
@@ -236,6 +276,16 @@ def main(argv=None):
         print("TASINAN=0 TASINAN_MADDE=0 DEFTER_SATIR=%d ARSIV_SATIR=%d" % (
             defter_satir, arsiv_satir))
         return 0
+
+    # Gorunurluk (K128): operator ne gittigini GORMELI. Son-ozet satirindan
+    # ONCE basiliyor; en son satir yine ozet olmaya devam eder.
+    for blok in tasinacak_bloklar:
+        print("TASINAN-BLOK: %s" % blok["baslik"])
+    for madde in tasinacak_maddeler:
+        ilk = madde.split("\n", 1)[0]
+        if len(ilk) > 100:
+            ilk = ilk[:100]
+        print("TASINAN-MADDE: %s" % ilk)
 
     tasinan_blok_parcalar = [_blok_metni(b) for b in tasinacak_bloklar]
 
