@@ -268246,5 +268246,55 @@
   "baski": "",
   "kaynak_baski_notu": "",
   "not": ""
+ },
+ "pr1332733-indian-scout-101-on-yuk-ayar-aleti": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1332733-indian-scout-101-preload-adjustment-tool",
+  "tasarimci": "JH3D",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez; TEK gorsel - render borcu (borc listesi: hasat raporu)"
+ },
+ "pr1699453-indian-challenger-yan-panel-grommeti": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/1699453-indian-challenger-side-panel-grommet",
+  "tasarimci": "manillaprints",
+  "lisans": "CC-BY",
+  "tur": "ucretsiz-cc",
+  "baski": "Printed in TPU 95A. Might work with softer TPU and be less tight, just haven't had the",
+  "kaynak_baski_notu": "",
+  "not": ""
+ },
+ "pr129716-indian-scout-ruzgar-deflektoru": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/129716-indian-scout-wind-deflector",
+  "tasarimci": "Mike",
+  "lisans": "CC0",
+  "tur": "ucretsiz-cc",
+  "baski": "",
+  "kaynak_baski_notu": "",
+  "not": "CC0 (Public Domain) - atif gerekmez"
+ },
+ "pr34200-indian-scout-bobber-plaka-cercevesi-dikey-yatay": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/34200-indian-scout-bobber-license-plate-frame-vertical-h",
+  "tasarimci": "Lyle Svendsen",
+  "lisans": "CC-BY",
+  "tur": "ucretsiz-cc",
+  "baski": "The frame is printed in PETG for strength and flexibility.",
+  "kaynak_baski_notu": "",
+  "not": ""
+ },
+ "pr668999-indian-motorcycle-yan-sehpa-pedi": {
+  "kaynak": "Printables",
+  "link": "https://www.printables.com/model/668999-indian-motorcycle-kickstand-pad",
+  "tasarimci": "Ken226",
+  "lisans": "CC-BY",
+  "tur": "ucretsiz-cc",
+  "baski": "Print with plenty of infill, and switch filaments at the appropriate layer to get the nice logo infill.",
+  "kaynak_baski_notu": "",
+  "not": "TEK gorsel - render borcu (borc listesi: hasat raporu)"
  }
 }
