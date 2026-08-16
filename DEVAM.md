@@ -4,11 +4,13 @@
 
 
 
+
 ## 16 Agu (~19:00Z) — OTURUM KAPANISI (KraL)
 **CANLIYA GIDEN:** `cadf9acb` K123 yayin-yasi nobetcisi + mukerrer istisnasi worktree'de · `04b48b36` K113 uretici butunluk kapisi BLOKLAYICI serit + K114 r2-purge (yayin ACILDI: deploy+yayin success) · `b68d9eb7` K124 turetilmis-hal saglik yuklemi (urun partisi artik yayini durdurmuyor; 14'luk parti beyansiz yesil gecti) · `ce5164d2`+`25c5cc34` K39 defter kotasi kancada, 2 evde canli · `5df50d78` K120 gizli kaynak kaydi izlemeden cikti (yokluk kolu: degisen 0, bloklayici 0).
 **KOSUYOR:** KraL tarafinda is YOK — tum delege turlari sayisal kabul satiriyla kapandi; worktree 1 (yalniz ana agac).
 **BEKLIYOR:** yerel main'de yabanci parti commit'i `2d1d8814` push bekliyor (D1 yazici kilidi UCUSTA, PID 75749 — sira, ariza degil; sahibinin turu itecek) · yabanci ` M tools/marka-uyelik-test.py` DOKUNULMADI · `kurtarma/k122-yabanci-is` dali sahibinde.
 🔴 **EKIBE:** gizli kaynak kaydi artik IZLENMIYOR — `git add` EDILMEZ, yerel diskte tutulur.
+
 
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
@@ -33,6 +35,19 @@
   (+690/-49). Gercek defterin KOPYASI uzerinde prova: indeks satiri AYNEN durdu, acik kalem
   **6/6** yerinde. D1 5 eksende temiz (28783=28783). Worktree+dal (yerel+uzak) silindi.
   kabul: `python3 tools/defter-rotasyon-test.py`
+- 🔵 **K128 SINIF DERSI (kayit):** K127'nin madde
+  olcutu "metinde KAPANIS isaretcisi VAR + acik isaretci YOK" idi. Ilk canli kosumda
+  (`e5ba6251`) bu olcut `- Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi
+  silme karari. (Motor tarifesi kalemi 16 Agu'da KAPANDI: ...)` maddesini **arsive tasidi** —
+  madde ACIK bir Okan kalemi, "KAPANDI" yalnizca PARANTEZDEKI ATIFTA geciyordu. Icerik
+  arsivde duruyor (kayipsiz), madde deftere GERI KONDU. **Kok kusur:** olcut maddenin KENDI
+  DURUMUNA degil, metninde gecen herhangi bir kelimeye bakiyor — capraz atif ile durum beyani
+  ayni sayiliyor. **Yon:** (a) madde ANCAK ilk satiri kapanis isaretcisiyle BASLIYORSA tasinir
+  (`- ✅` / `- KAPANDI`); govdede gecen atif YETMEZ; (b) arac tasidigi HER maddenin ilk
+  satirini ekrana bassin (operator ne gittigini gorsun — bu vakayi gorunur kilan sey buydu).
+  🔴 Kendi hatam olarak kayit: kabul listem 6 jetonu (K104/K118/K122/K126/K127/Navlungo) tek
+  tek sayiyordu; supurulen madde o listede YOKTU — **sayilan jeton listesi kapsam kaniti
+  degildir.** kabul: `python3 tools/defter-rotasyon-test.py`
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
@@ -61,16 +76,22 @@
 
 
 
+
 ## OKAN'DA
 
+- 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
+  (16 Agu: rotasyon bu maddeyi bir kez arsive supurdu — parantezdeki kapali kalem atfi
+  yuzunden; geri konuldu, sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+
 
 
 
 ## KOSUYOR (baska mimarlar)
 
 MaCiT — Ducati d1 sub-slice 2/3 ve 3/3 (taban artik 27420) + 261 kaynak kaydi dolgusu.
+
 
 
 
