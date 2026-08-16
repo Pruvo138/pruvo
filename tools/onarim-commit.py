@@ -24,6 +24,9 @@ FAIL-CLOSED KURALLARI (hepsi tools/onarim-commit-test.py'de KOSULAN vakadir):
       worktree + dal KORUNUR (is kaybolmasin), HUKUM=FF_IMKANSIZ.
   F4  Push reddedilirse fetch + merge <taban> + tekrar push (EN FAZLA 1 kez). Hala
       reddediliyorsa DUR. `--force` / `--force-with-lease` KAYNAKTA GECMEZ.
+      ADIM 6C YARIS TESPITI: push rc!=0 dondugunde hukum YALNIZ rc'den turmez — uzak
+      ucta bizim commit'imiz VARSA (es-zamanli baska oturum bizden once push'layip
+      yerlestirdiyse) hukum KAPANDI'dir. ls-remote olculemezse fail-closed PUSH_REDDEDILDI.
   F5  Stash uygulamasi cakisirsa DUR, cakisan dosyalari bas, worktree KORUNUR; otomatik
       cozme YOK.
   F6  Herhangi bir adim yarim kalirsa stash KAYBOLMAZ; arac cikmadan STASH_ONCE/STASH_SONRA
@@ -217,6 +220,8 @@ class Durum:
         self.dal = ""
         self.commit = "YOK"
         self.push_rc = -1
+        self.uzak_uc = ""
+        self.push_yarisi = False
         self.hukum = "BASLAMADI"
 
 
@@ -229,6 +234,35 @@ def kapat(kok: str, durum: Durum, rc: int) -> int:
         f"WORKTREE_SATIR={worktree_satirlari(kok)} HUKUM={durum.hukum}"
     )
     return rc
+
+
+def push_yarisi_teyit(kok: str, commit: str, ana_dal: str) -> tuple[bool, str]:
+    """ADIM 6C — push reddedildiginde uzak durumu OLCCEK gercek hukum kaynagi.
+
+    (yaris_mi, uzak_sha) -> (False, "<erisilemez/olculemedi>")  fail-closed
+                            (True, "<uzak_sha>")                 commit uzakta VAR (yaris)
+                            (False, "<uzak_sha>")                commit uzakta YOK (gercek red)
+
+    Metin ayiklama YASAK: yalniz git araclari. Akis:
+      1. `git ls-remote origin refs/heads/<dal>` ile uzak SHA. Basarisiz/bos -> fail-closed.
+      2. Uzak SHA yerelde yoksa `git fetch origin <dal>` (yalniz okuma, merge/checkout YOK).
+      3. `git merge-base --is-ancestor <commit> <uzak_sha>` -> rc=0 ise VAR, degilse YOK."""
+    if not commit or commit == "YOK":
+        return False, ""
+    ref = f"refs/heads/{ana_dal}"
+    ls = git(kok, "ls-remote", "origin", ref)
+    if ls.returncode != 0 or not ls.stdout.strip():
+        return False, ""
+    # ls-remote ciktisi: "<sha>\t<ref>\n"; SHA ilk jeton.
+    uzak_sha = ls.stdout.splitlines()[0].split()[0] if ls.stdout.splitlines() else ""
+    if not uzak_sha:
+        return False, ""
+    # SHA yerelde yoksa fetch (yalniz okuma).
+    if git(kok, "rev-parse", "--verify", "--quiet", uzak_sha).returncode != 0:
+        if git(kok, "fetch", "origin", ana_dal).returncode != 0:
+            return False, uzak_sha
+    var = git(kok, "merge-base", "--is-ancestor", commit, uzak_sha).returncode == 0
+    return var, uzak_sha
 
 
 def worktree_temizle(kok: str, durum: Durum) -> int:
@@ -474,28 +508,81 @@ def main() -> int:
         return kapat(kok, durum, 3)
 
     # ---- ADIM 6: push (F4: en fazla 1 tekrar, --force ASLA) ---------------------------
+    # 🔴 YARIS KOLU: hukum YALNIZ push rc'sinden turmez; red alindiginda ORTAM OLCULUR —
+    # bizim commit'imiz uzakta VARSA (es-zamanli baska oturum bizden once push'layip ayni
+    # commit'i yerlestirdiyse) push aslinda BASARILIDIR, red yalniz ref-lock yaristir.
+    # Metin ayiklama YASAK (saglayiciya/surume gore degisir); karar git araclariyla.
+    # Fail-closed: olcum yapilamazsa (ls-remote erisilemez) hukum PUSH_REDDEDILDI kalir
+    # ve fetch+merge+tekrar push ATLANIR (daha fazla olcum yapmaya calismak da riskli).
+    # Teyit HER push denemesinden sonra kosar: ilk push'ta commit zaten uzaktaysa gereksiz
+    # fetch+merge+tekrar push atlanir; ikinci push'ta da yaris varsa KAPANDI doner.
+
+    def push_tek_dene(deneme_no: int) -> subprocess.CompletedProcess:
+        sonuc = git(kok, "push", "origin", ana_dal)
+        bas(f"ADIM6 PUSH_RC={sonuc.returncode} DENEME={deneme_no}")
+        if sonuc.returncode != 0:
+            bas((sonuc.stderr or sonuc.stdout).strip()[:500])
+        return sonuc
+
+    def teyit(deneme_no: int) -> str:
+        """Push reddi sonrasi uzak OLCCUM. Sonuc: 'yaris' | 'erisilemez' | 'devam'.
+        'yaris'         -> commit uzakta VAR (yalan kirmizi degil); push_rc=0, KAPANDI
+        'erisilemez'    -> ls-remote olculemedi (fail-closed); PUSH_REDDEDILDI, fetch atlanir
+        'devam'         -> commit uzakta YOK; fetch+merge+tekrar push denenir"""
+        yaris_mi, uzak_sha = push_yarisi_teyit(kok, durum.commit, ana_dal)
+        bas(f"ADIM6_TEYIT DENEME={deneme_no} PUSH_YARISI={'EVET' if yaris_mi else 'HAYIR'} "
+            f"UZAK_UC={uzak_sha} COMMIT={durum.commit}")
+        if yaris_mi:
+            durum.push_yarisi = True
+            durum.push_rc = 0
+            durum.uzak_uc = uzak_sha
+            return "yaris"
+        if not uzak_sha:
+            # ls-remote bos/hata -> fail-closed.
+            return "erisilemez"
+        durum.uzak_uc = uzak_sha
+        return "devam"
+
     deneme = 1
-    itme = git(kok, "push", "origin", ana_dal)
-    if itme.returncode != 0:
-        bas(f"ADIM6A PUSH_RC={itme.returncode} (reddedildi — fetch + merge {args.taban} + TEK tekrar)")
-        bas((itme.stderr or itme.stdout).strip()[:500])
-        git(kok, "fetch", "origin")
-        birlestir = git(kok, "merge", args.taban)
-        bas(f"ADIM6B UZAK_MERGE_RC={birlestir.returncode}")
-        if birlestir.returncode != 0:
+    itme = push_tek_dene(1)
+    if itme.returncode == 0:
+        durum.push_rc = 0
+    else:
+        sonuc_t = teyit(1)
+        if sonuc_t == "yaris":
+            bas("ADIM6 gerekce: ilk push rc!=0 idi; commit uzak dalin atasi olarak OLCULDU.")
+        elif sonuc_t == "erisilemez":
             durum.push_rc = itme.returncode
-            durum.hukum = "UZAK_MERGE_CAKISMASI"
-            bas("HATA uzak taban ile merge cakisti — insan/mimar karari gerekir.")
+            durum.hukum = "PUSH_REDDEDILDI"
+            bas("HATA F4: push reddedildi VE uzak olculmedi (ls-remote erisilemez) — fail-closed.")
             return kapat(kok, durum, 3)
-        deneme = 2
-        itme = git(kok, "push", "origin", ana_dal)
-    durum.push_rc = itme.returncode
-    bas(f"ADIM6 PUSH_RC={itme.returncode} DENEME={deneme}")
-    if itme.returncode != 0:
-        durum.hukum = "PUSH_REDDEDILDI"
-        bas("HATA F4: push ikinci kez de reddedildi — DUR. --force KULLANILMAZ.")
-        bas((itme.stderr or itme.stdout).strip()[:500])
-        return kapat(kok, durum, 3)
+        else:  # 'devam' -> gercek red
+            fetch_rc = git(kok, "fetch", "origin").returncode
+            birlestir = git(kok, "merge", args.taban)
+            bas(f"ADIM6B FETCH_RC={fetch_rc} UZAK_MERGE_RC={birlestir.returncode}")
+            if birlestir.returncode != 0:
+                durum.push_rc = itme.returncode
+                durum.hukum = "UZAK_MERGE_CAKISMASI"
+                bas("HATA uzak taban ile merge cakisti — insan/mimar karari gerekir.")
+                return kapat(kok, durum, 3)
+            deneme = 2
+            itme = push_tek_dene(2)
+            if itme.returncode == 0:
+                durum.push_rc = 0
+            else:
+                sonuc_t = teyit(2)
+                if sonuc_t == "yaris":
+                    bas("ADIM6 gerekce: ikinci push rc!=0 idi; commit uzak dalin atasi olarak OLCULDU.")
+                elif sonuc_t == "erisilemez":
+                    durum.push_rc = itme.returncode
+                    durum.hukum = "PUSH_REDDEDILDI"
+                    bas("HATA F4: push reddedildi VE uzak olculmedi — fail-closed.")
+                    return kapat(kok, durum, 3)
+                else:
+                    durum.push_rc = itme.returncode
+                    durum.hukum = "PUSH_REDDEDILDI"
+                    bas("HATA F4: push ikinci kez de reddedildi — DUR. --force KULLANILMAZ.")
+                    return kapat(kok, durum, 3)
 
     # ---- ADIM 7: temizlik -------------------------------------------------------------
     kalan = worktree_temizle(kok, durum)

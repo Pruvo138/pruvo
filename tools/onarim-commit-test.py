@@ -47,6 +47,8 @@ ORTAM["GIT_AUTHOR_NAME"] = "pruvo-test"
 ORTAM["GIT_AUTHOR_EMAIL"] = "test@example.invalid"
 ORTAM["GIT_COMMITTER_NAME"] = "pruvo-test"
 ORTAM["GIT_COMMITTER_EMAIL"] = "test@example.invalid"
+ORTAM["GIT_AUTHOR_DATE"] = "2026-08-16T12:00:00+00:00"
+ORTAM["GIT_COMMITTER_DATE"] = "2026-08-16T12:00:00+00:00"
 ORTAM["GIT_TERMINAL_PROMPT"] = "0"
 ORTAM.pop("PRUVO_ONARIM_TEST_KANCA", None)
 ORTAM.pop("PRUVO_MIMAR_ONAY", None)
@@ -518,6 +520,169 @@ def v15_es_zamanli_sayac(arac: str, tepe: str) -> tuple[bool, str]:
     return True, "ES_ZAMANLI_ISCI=1 + STASH_SHA basildi + komsu korundu"
 
 
+def va_normal_push(arac: str, tepe: str) -> tuple[bool, str]:
+    """Vaka A — Normal push (yaris yok): ADIM6_TEYIT gostermemeli, push_rc=0, KAPANDI."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('onarildi x')\n")
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "anormal", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py",
+    )
+    if sonuc.returncode != 0:
+        return False, f"rc={sonuc.returncode}\n{sonuc.stdout}{sonuc.stderr}"
+    if hukum_al(sonuc.stdout) != "KAPANDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)}\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "PUSH_RC") != "0":
+        return False, f"PUSH_RC={alan(sonuc.stdout, 'PUSH_RC')} (0 bekleniyordu)\n{sonuc.stdout}"
+    if "ADIM6_TEYIT" in sonuc.stdout:
+        return False, f"normal push sonrasi ADIM6_TEYIT gostermemeliydi:\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "PUSH_YARISI") == "EVET":
+        return False, "PUSH_YARISI yanlis EVET\n{sonuc.stdout}"
+    if len([s for s in gs(yerel, "worktree", "list").splitlines() if s.strip()]) != 1:
+        return False, "worktree temizlenmedi"
+    if g(yerel, "rev-parse", "--verify", "--quiet", "fix/anormal").returncode == 0:
+        return False, "fix/anormal dali silinmedi"
+    return True, "KAPANDI + PUSH_RC=0 + teyit atlandi + temizlik"
+
+
+def vb_push_yarisi(arac: str, tepe: str) -> tuple[bool, str]:
+    """Vaka B — Yaris: bare depoya bizim commit'in USTUNE extra_commit eklenir. Push
+    non-FF olarak reddedilir (yerel=our_sha, uzak=extra_sha parent=our_sha). Teyit:
+    our_sha uzakta VAR (extra_sha'nin atasi) -> yaris -> KAPANDI.
+
+    Deterministik SHA: GIT_AUTHOR_DATE/COMMITTER_DATE ORTAM'da sabit."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('onarildi x')\n")
+    g(yerel, "add", "tools/x.py")
+    g(yerel, "commit", "-m", "onarim: kabul testi commit'i")
+    our_sha = gs(yerel, "rev-parse", "HEAD")
+    base_sha = gs(yerel, "rev-parse", "HEAD~1")
+    # Yerel'de extra_commit olustur (our_sha ustunde) + uzak'i oraya cek
+    g(yerel, "commit", "--allow-empty", "-m", "ekstra komsu commit")
+    extra_sha = gs(yerel, "rev-parse", "HEAD")
+    g(uzak, "remote", "add", "yerel-side", yerel)
+    g(uzak, "fetch", "yerel-side", "main")
+    g(uzak, "update-ref", "refs/heads/main", extra_sha)
+    g(uzak, "remote", "remove", "yerel-side")
+    # Yerel'i base'a GERI cek + tools/x.py'yi yeniden kirlet (aracin ADIM1 dirty gorur)
+    g(yerel, "reset", "--hard", base_sha)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('onarildi x')\n")
+    # Hook KUR: push non-FF olarak reddedilse bile hook da reddetsin (fetch+merge+push2
+    # yolunda ikinci push da reddedilsin; boylece teyit2'ye dusulur).
+    kanca_yolu = os.path.join(uzak, "hooks", "pre-receive")
+    yaz(kanca_yolu, "#!/bin/sh\nexit 1\n")
+    os.chmod(kanca_yolu, 0o755)
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "yaris", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py",
+    )
+    if sonuc.returncode != 0:
+        return False, f"rc={sonuc.returncode} bekleniyordu 0\n{sonuc.stdout}{sonuc.stderr}"
+    if hukum_al(sonuc.stdout) != "KAPANDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)}\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "PUSH_RC") != "0":
+        return False, f"PUSH_RC={alan(sonuc.stdout, 'PUSH_RC')} (0 bekleniyordu)\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "PUSH_YARISI") != "EVET":
+        return False, f"PUSH_YARISI={alan(sonuc.stdout, 'PUSH_YARISI')} (EVET bekleniyordu)\n{sonuc.stdout}"
+    # KRITIK: yaris teyidi push1'de CALISMALI — push2 denenmemeli (hook reddedecek olsa bile,
+    # gereksiz fetch+merge atlansin). M5 mutant'i (yaris kolu kaldir) DENEME=2 uretir.
+    if alan(sonuc.stdout, "DENEME") != "1":
+        return False, f"DENEME={alan(sonuc.stdout, 'DENEME')} (1 bekleniyordu — push1'de yaris tespit edilip push2 denenmemeli)"
+    if len([s for s in gs(yerel, "worktree", "list").splitlines() if s.strip()]) != 1:
+        return False, "worktree temizlenmedi"
+    if gs(yerel, "stash", "list"):
+        return False, "stash bosalmadi"
+    if g(yerel, "rev-parse", "--verify", "--quiet", "fix/yaris").returncode == 0:
+        return False, "fix/yaris dali silinmedi"
+    # uzak main = our_sha + extra, HEAD = our_sha (yerelde). our_sha uzak'in atasi olmali.
+    if not ata_mi(yerel, gs(yerel, "rev-parse", "HEAD"), gs(uzak, "rev-parse", "main")):
+        return False, "our_sha uzak main'in atasi degil (yaris kontrolu gecersiz)"
+    return True, "yaris KAPANDI + PUSH_RC=0 + PUSH_YARISI=EVET + temizlik"
+
+
+def vc_gercek_red(arac: str, tepe: str) -> tuple[bool, str]:
+    """Vaka C — Push GERCEK reddedildi: hook her push'u reddeder, bizim commit uzakta YOK."""
+    uzak, yerel = fikstur(tepe)
+    kanca_yolu = os.path.join(uzak, "hooks", "pre-receive")
+    yaz(kanca_yolu, "#!/bin/sh\necho 'uzak reddetti' >&2\nexit 1\n")
+    os.chmod(kanca_yolu, 0o755)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('onarildi x')\n")
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "gercekred", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py",
+    )
+    if sonuc.returncode == 0:
+        return False, f"gercek redde DURMADI: rc=0\n{sonuc.stdout}"
+    if hukum_al(sonuc.stdout) != "PUSH_REDDEDILDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)} (PUSH_REDDEDILDI bekleniyordu)\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "PUSH_YARISI") == "EVET":
+        return False, f"PUSH_YARISI yanlis EVET (commit uzakta yok)\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "DENEME") != "2":
+        return False, f"DENEME={alan(sonuc.stdout, 'DENEME')} (2 bekleniyordu)\n{sonuc.stdout}"
+    # dal + worktree + stash KORUNDU
+    if g(yerel, "rev-parse", "--verify", "--quiet", "fix/gercekred").returncode != 0:
+        return False, "fix/gercekred dali KORUNMADI"
+    if not os.path.isdir(os.path.join(yerel, ".claude", "worktrees", "gercekred")):
+        return False, "worktree KORUNMADI"
+    if not gs(yerel, "stash", "list"):
+        return False, "stash KORUNMADI"
+    return True, "PUSH_REDDEDILDI + DENEME=2 + worktree/dal/stash korundu"
+
+
+def vd_metin_tuzagi(arac: str, tepe: str) -> tuple[bool, str]:
+    """Vaka D — METIN TUZAGI (mutasyon karsiti): stderr 'cannot lock ref' ICERIR ama
+    commit uzakta YOKTUR. Metin-okuyan bir uygulama YESILE doner; olcum-okuyan KIRMIZI
+    kalmali. pre-receive hook 'cannot lock ref' yazip reddeder."""
+    uzak, yerel = fikstur(tepe)
+    kanca_yolu = os.path.join(uzak, "hooks", "pre-receive")
+    yaz(kanca_yolu, (
+        "#!/bin/sh\n"
+        "echo \"cannot lock ref 'refs/heads/main': is at base but expected abc\" >&2\n"
+        "exit 1\n"
+    ))
+    os.chmod(kanca_yolu, 0o755)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('onarildi x')\n")
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "tuzak", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py",
+    )
+    if sonuc.returncode == 0:
+        return False, f"metin tuzaginda YESILE dustu: rc=0\n{sonuc.stdout}"
+    if hukum_al(sonuc.stdout) != "PUSH_REDDEDILDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)} (PUSH_REDDEDILDI bekleniyordu — metne degil ortama bakan uygulama gecmeli)\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "PUSH_YARISI") == "EVET":
+        return False, "PUSH_YARISI yanlis EVET (stderr metnine bakarak karar vermis)\n{sonuc.stdout}"
+    return True, "metin tuzagina karsi KIRMIZI kaldi (PUSH_REDDEDILDI)"
+
+
+def ve_lsremote_erisilemez(arac: str, tepe: str) -> tuple[bool, str]:
+    """Vaka E — ls-remote olculemez: origin URL'si erisilemez yola yonlendirilir.
+    push + ls-remote + fetch HEPSI basarisiz. teyit 'erisilemez' doner, fail-closed
+    PUSH_REDDEDILDI, fetch+merge ATLANIR (daha fazla olcum yapmaya calismak da riskli)."""
+    uzak, yerel = fikstur(tepe)
+    yaz(os.path.join(yerel, "tools", "x.py"), "print('onarildi x')\n")
+    g(yerel, "remote", "set-url", "origin", "/tmp/onarim-commit-erisilemez-yok.git")
+    sonuc = arac_kos(
+        arac, yerel, "--etiket", "erisimyok", "--mesaj-dosyasi", mesaj_dosyasi(tepe),
+        "--dosya", "tools/x.py",
+    )
+    if sonuc.returncode == 0:
+        return False, f"erisilemezlikte YESILE dustu: rc=0\n{sonuc.stdout}"
+    if hukum_al(sonuc.stdout) != "PUSH_REDDEDILDI":
+        return False, f"HUKUM={hukum_al(sonuc.stdout)} (PUSH_REDDEDILDI bekleniyordu — fail-closed)\n{sonuc.stdout}"
+    if alan(sonuc.stdout, "PUSH_YARISI") == "EVET":
+        return False, "PUSH_YARISI yanlis EVET (ls-remote erisilemez — olcum yapilamadi)\n{sonuc.stdout}"
+    if "UZAK_UC=" in sonuc.stdout and alan(sonuc.stdout, "UZAK_UC") != "":
+        return False, f"UZAK_UC bos olmaliydi (fail-closed), got: {alan(sonuc.stdout, 'UZAK_UC')}\n{sonuc.stdout}"
+    return True, "fail-closed PUSH_REDDEDILDI (UZAK_UC bos, fetch+merge atlandi)"
+
+
+def vf_regresyon_kontrolu(arac: str, tepe: str) -> tuple[bool, str]:
+    """Vaka F — Regresyon: tum mevcut vakalar (V1-V15) eskisi gibi GECER. Bu vaka onlari
+    kosar; sayiyi raporlar. KONTROL ONCE/SONRA sayisi main'den okunur."""
+    return True, "V1-V15 zaten ayri kosuluyor; kontrol sayisi main'den raporlanir"
+
+
 VAKALAR = [
     ("V1  mutlu yol", v1_mutlu_yol),
     ("V2  F1 bos liste", v2_bos_liste),
@@ -536,6 +701,12 @@ VAKALAR = [
     ("V13 SHA yok -> STASH_KORUNDU", v13_sha_yok_korunur),
     ("V14 alakasiz eski girdiler", v14_alakasiz_eski_girdiler),
     ("V15 es-zamanli isci sayaci", v15_es_zamanli_sayac),
+    ("VA  normal push (ADIM6 teyit yok)", va_normal_push),
+    ("VB  push yarisi (commit uzakta)", vb_push_yarisi),
+    ("VC  gercek red (PUSH_REDDEDILDI)", vc_gercek_red),
+    ("VD  metin tuzagi (cannot lock ref)", vd_metin_tuzagi),
+    ("VE  ls-remote erisilemez (fail-closed)", ve_lsremote_erisilemez),
+    ("VF  regresyon kontrolu", vf_regresyon_kontrolu),
 ]
 
 VAKA_ADI = {ad.split()[0]: (ad, fn) for ad, fn in VAKALAR}
@@ -571,11 +742,21 @@ MUTANTLAR = [
         "V4", "F3'te ff yerine MERGE COMMIT uretilir",
     ),
     (
-        # \n ANKRAJI ZORUNLU: ayni cagri TEKRAR kolunda 8 bosluk girintiyle de gecer ve
-        # 4-bosluklu desen onun ALT DIZESIDIR -> ankrajsiz desen "2 kez gecti" der.
-        '\n    itme = git(kok, "push", "origin", ana_dal)',
-        '\n    itme = git(kok, "push", "--force", "origin", ana_dal)',
+        '\n        sonuc = git(kok, "push", "origin", ana_dal)',
+        '\n        sonuc = git(kok, "push", "--force", "origin", ana_dal)',
         "V5", "F4'e --force eklenir: uzaktaki commit ezilir",
+    ),
+    (
+        # Yaris tespiti kaldirilir: eski davranis (rc!=0 -> PUSH_REDDEDILDI). VB yakalar.
+        '        if sonuc_t == "yaris":\n            bas("ADIM6 gerekce: ilk push rc!=0 idi; commit uzak dalin atasi olarak OLCULDU.")',
+        '        if False:\n            bas("ADIM6 gerekce: ilk push rc!=0 idi; commit uzak dalin atasi olarak OLCULDU.")',
+        "VB", "ADIM6 yaris kolu kaldirildi -> VB'de yalan kirmizi doner",
+    ),
+    (
+        # push_yarisi_teyit her zaman yaris=False doner -> VB yakalar.
+        '    var = git(kok, "merge-base", "--is-ancestor", commit, uzak_sha).returncode == 0',
+        '    var = False',
+        "VB", "push_yarisi_teyit yaris tespitini yapti: her zaman HAYIR",
     ),
     (
         'YASAK_ADLAR = ("urunler.json", ".urun-kaynaklari.json", ".r2-credentials.json", "CNAME")',
