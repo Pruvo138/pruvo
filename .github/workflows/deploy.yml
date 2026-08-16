@@ -68,6 +68,21 @@ jobs:
       - name: "Kaynak kasasi Worker/binding izolasyon kapisi"
         run: python3 tools/kasa-izolasyon-kapisi.py
 
+      # BAYATLIK KAPISI CIKIS KODU BEYANI (16 Agu 2026 sinif kusuru). d1-sync.py
+      # uzun senkron (~95 sn) sirasinda ağac bayatladiginda ICERIDEKI bayatlik kapisi
+      # devreye giriyor; beyan metni "yayin DURMAZ — exit 0 doner" diyordu ama kapinin
+      # kendisi rc=1 ile cikip CI adimini durduruyordu (3 ardarda #31966004096 /
+      # #31968088742 / #31969477134). Onarim: bayat kolu `return` ile cikar, yazma
+      # YAPMAZ (fail-closed yazma reddi aynen kalir), gercek senkron hatalari gene
+      # rc=1. Buradaki kapi Uc vakayi + 1 mutant testini CALISTIRARAK olcer: BAYAT
+      # agac → rc=0 + D1'e yazma 0; TAZE agac → rc=0 + yazma > 0; TAZE + gercek hata
+      # → rc=1 (fail-open sizmamali); mutant = bayat kolu sys.exit'e geri alininca
+      # test KIRMIZI (zayif testin survivor olmasini engeller). BLOKLAYICI: bayat
+      # kolunun yeniden bozulmasi bu kosumun YAYININI durdurur (serit-a2'ye konsa
+      # delik "kagida kapanmis" gorunurdu). Offline, stdlib.
+      - name: "d1-bayat-cikis kabul testi (bayatlik kapisi beyan-cikis hizalamasi)"
+        run: python3 tools/d1-bayat-cikis-test.py
+
       # URUNLER-GUARD PROVENANS + FAIL-LOUD (4 Agu 2026 olayi): bir muhendis
       # worktree'sinde `origin/main` dala merge edilirken guard, merge'in GETIRDIGI
       # guncel katalogu dalin BAYAT haline SESSIZCE geri sardi (5 ekleme / 11 silme;

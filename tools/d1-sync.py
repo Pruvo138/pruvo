@@ -3322,9 +3322,13 @@ def kendini_test():
     kalan_sonra = sum(1 for u in yeni_parti if _kt_deger(connC, u["id"], "hash") is not None)
     dogrula("V51 YENIDEN URETIM (KAPI SONRASI): silinen 0 — 42 id'nin 42'si D1'de DURUYOR",
             kalan_sonra == 42, kalan_sonra)
-    dogrula("V52 YENIDEN URETIM: engel SESSIZ DEGIL -> sifir-disi + id'ler mesajda",
-            kod != 0 and "BAYATLIK KAPISI" in cikti and "dp0000" in cikti,
-            (kod, cikti[-500:]))
+    # 16 Agu 2026: BAYAT kolu artik rc=0 ile cikiyor (beyan hizalamasi). Sessiz hata
+    # DEGIL: engel metni BASILIR, 42 id yazilMAZ, yazma sayaci 0 kalir.
+    dogrula("V52 YENIDEN URETIM: engel SESSIZ DEGIL -> rc=0 (beyan hizalı) + id'ler mesajda "
+            "+ D1'e yazma 0",
+            kod == 0 and "BAYATLIK KAPISI" in cikti and "dp0000" in cikti
+            and sayac["yazma"] == 0,
+            (kod, cikti[-500:], sayac))
     dogrula("V53 YENIDEN URETIM: D1'e HIC yazma yapilmadi",
             sayac["yazma"] == 0, sayac)
 
@@ -3332,8 +3336,8 @@ def kendini_test():
     connD = _kt_baglan()
     _kt_kos(connD, eski_agac + yeni_parti, [])
     kod, cikti, _ = _kt_kos(connD, eski_agac, [], bayatlik="OLCULEMEDI")
-    dogrula("V54 FAIL-CLOSED: OLCULEMEDI -> silme 0 + sifir-disi",
-            kod != 0 and _kt_deger(connD, "dp000000", "hash") is not None, kod)
+    dogrula("V54 FAIL-CLOSED: OLCULEMEDI -> silme 0 + rc=0 (beyan hizalı, BAYAT ile AYNI kanal)",
+            kod == 0 and _kt_deger(connD, "dp000000", "hash") is not None, kod)
 
     # ── UPSERT EKSENI (KraL karari 31 Tem): bayat agac UPSERT de YAPAMAZ ──────────
     # Bayat upsert D1'e ESKI alan degerlerini YENI degerlerin ustune yazar — silmeyle
@@ -3343,8 +3347,9 @@ def kendini_test():
     kod, cikti, sayac = _kt_kos(
         connE, [_kt_urun("a", "Tamirat"), _kt_urun("b"), _kt_urun("c")], [],
         bayatlik="BAYAT")
-    dogrula("V55 UPSERT ENGELI: bayat agacin ALAN guncellemesi D1'e YAZILMADI",
-            _kt_deger(connE, "a", "kategori") == "Oyun/Hobi" and kod != 0,
+    dogrula("V55 UPSERT ENGELI: bayat agacin ALAN guncellemesi D1'e YAZILMADI "
+            "(rc=0 beyan hizalı)",
+            _kt_deger(connE, "a", "kategori") == "Oyun/Hobi" and kod == 0,
             (_kt_deger(connE, "a", "kategori"), kod))
     dogrula("V55b UPSERT ENGELI: D1'e HIC yazma cagrisi gitmedi + is dokumu mesajda",
             sayac["yazma"] == 0 and "Engellenen is" in cikti and "degisen 1" in cikti,
@@ -3354,12 +3359,13 @@ def kendini_test():
     _kt_kos(connE2, eski_agac, [])
     _kt_seyrelt(connE2)      # kuyruk eklemesine TAM SAYI yeri birak (bkz. _kt_seyrelt)
     kod, cikti, sayac = _kt_kos(connE2, eski_agac + [_kt_urun("yy")], [], bayatlik="BAYAT")
-    dogrula("V55c UPSERT ENGELI: SILME YOK / yalniz YENI urun -> yine de yazilmadi",
-            kod != 0 and sayac["yazma"] == 0 and sayac["bayatlik"] == 1
+    dogrula("V55c UPSERT ENGELI: SILME YOK / yalniz YENI urun -> yine de yazilmadi "
+            "(rc=0 beyan hizalı)",
+            kod == 0 and sayac["yazma"] == 0 and sayac["bayatlik"] == 1
             and _kt_deger(connE2, "yy", "hash") is None, (kod, sayac))
-    dogrula("V55d UPSERT ENGELI: OLCULEMEDI de upsert'i durdurur (fail-closed)",
+    dogrula("V55d UPSERT ENGELI: OLCULEMEDI de upsert'i durdurur (fail-closed, rc=0)",
             _kt_kos(connE2, eski_agac + [_kt_urun("yy")], [],
-                    bayatlik="OLCULEMEDI")[0] != 0
+                    bayatlik="OLCULEMEDI")[0] == 0
             and _kt_deger(connE2, "yy", "hash") is None)
     _sayac_deger = connE2.execute(
         "SELECT deger AS v FROM senkron WHERE anahtar='urun_sayisi'").fetchone()
@@ -4230,19 +4236,27 @@ def _main(a):
     # MALIYET: yalnizca YAZILACAK is varken olculur (medyan 0,81 s) ve yayin yolunda
     # DEGIL pre-push hook'unda oturur; yazacak bir sey yoksa hic olculmez.
     # FAIL-CLOSED: OLCULEMEDI de BAYAT gibi durdurur — "olcemedim" YESIL degildir.
-    # YAYIN DURMAZ: hook her halukarda exit 0 doner, CI adimi `continue-on-error` —
-    # bayat yazici yalnizca YAZMAZ ve yuksek sesle sifir-disi cikar.
+    # 🔴 SINIF KUSURU ONARIMI (16 Agu 2026): bu kol eskiden `sys.exit(...)` ile sifir-disi
+    # cikardi ve CI adimi (`continue-on-error` YOK) YAYINI DURDURUYORDU — beyan "yayin
+    # DURMAZ" diyordu, davranis durduruyordu (3 ardarda `31966004096`/`31968088742`/
+    # `31969477134` komsumunda dogrulandi). Cikis kodu beyanla hizalanir: BAYAT
+    # AGACTAN YAZMA YAPILMAZ, ama senkron process'i exit 0 ile BITIRILIR; yuksek sesli
+    # engel metni baslir, deploy/needs zinciri etkilenmez, d1-uzlastirici.yml (yayin
+    # yolu DISINDA, 15 dk) kalintiyi kapatir. GERCEK senkron hatasi (ag/yetki/SQL/
+    # wrangler/sema) gene sifir-dISI cikar — fail-open kapsamini sizdirmiyoruz.
     b = bayatlik_olc()
     print("bayatlik kapisi: %s — %s (HEAD=%s · uzak uc=%s)"
           % (b["durum"], b["sebep"], str(b["head"])[:12], str(b["uzak"])[:12]))
     if b["durum"] != "UC":
-        sys.exit("\n".join(bayatlik_engel_metni(b, {
+        # Yazma YAPMA; yuksek sesli engel metnini BAS ve fonksiyonu NORMAL bitir (rc=0).
+        print("\n".join(bayatlik_engel_metni(b, {
             "yeni": len(yeni), "degisen": len(degisen), "silinen": len(silinen),
             "baski": len(baski_guncelle), "taban": len(taban_guncelle),
             "konfigur": len(konfigur_guncelle),
             "marka_kanon": len(marka_kanon_guncelle),
             "model_kanon": len(model_kanon_guncelle),
             "marka_arama": len(marka_arama_guncelle)}, silinen)))
+        return
 
     # ══ SILME KARANTINASI — "D1'in ILERISI" ile "gercek oksuz" AYRI SORULARDIR ═════
     # OLCULDU 11 Agu 2026 (kosum 31532464176): bayatlik kapisi UC dedi (agac uzak main
