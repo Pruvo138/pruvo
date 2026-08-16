@@ -15,7 +15,13 @@ KESME OLcUTU (mimar verdi):
   * Blok granulu tasinma GERCEKLESMEYEN bir acik blok icindeki LISTE MADDELERI
     tek tek degerlendirilir. Bir MADDE tasinir ancak ve ancak:
       (a) maddede en az bir KAPANIS isaretci tasiyorsa VE
-      (b) maddede hic ACIK isaretci gecmiyorsa.
+      (b) maddede hic ACIK isaretci gecmiyorsa VE
+      (c) madde ARSIV'E isaret etmiyorsa (MADDE_VETO_DESENLERI icinde
+          gecen desenlerden biri bulunursa TASINMAZ).
+  * ACIK jetonlarin BULUNMASI harf tabanli olanlarda kelime-sinirli
+    (`re` ile `\bJETON\b`); emoji/ikon olanlarda alt-dize kalir. Bu ayrim
+    `ACIKLAMA`, `ACIKLANDI` gibi alakasiz kelimelerin yanlis veto
+    tetiklememesi icin zorunludur (KUSUR-2).
   * Suphede kalirsan (fail-closed) tasma.
 
 CIKIS:
@@ -27,6 +33,7 @@ Cikti son satiri:
 """
 import argparse
 import os
+import re
 import sys
 import tempfile
 
@@ -34,6 +41,21 @@ import tempfile
 ACIK_ISARETCILER = ("🔴", "🔧", "🟠", "🟡", "ACIK", "UCUSTA", "OKAN-KAPISI",
                     "BEKLIYOR", "KOSUYOR", "OKAN'DA", "ACIK KALEMLER", "YAPILACAK")
 KAPANIS_ISARETCILER = ("KAPANDI", "KAPANIS", "✅")
+# Madde seviyesinde ARSIV'E isaret eden kalip; gecerse madde TASINMAZ
+# (KUSUR-1 onarimi). Case-insensitive alt-dize esleme.
+MADDE_VETO_DESENLERI = ("arsivde",)
+
+# ACIK_ISARETCILER ikiye ayrilir: harf tabanli olanlar kelime-sinirli
+# (`\bJETON\b`), emoji/ikon olanlar alt-dize. Bu ayrim KUSUR-2'nin
+# onarimi: aksi halde "ACIK" ciplak alt-dize aranirsa "ACIKLAMA",
+# "ACIKLANDI" gibi alakasiz kelimeler acik veto tetikler ve kapanmis
+# blok sonsuza kadar defterde kalirdi.
+_HARF_JETON_RE = re.compile(
+    r"\b(?:" + "|".join(
+        re.escape(j) for j in ACIK_ISARETCILER if any(c.isalpha() for c in j)
+    ) + r")\b"
+)
+_EMOJI_JETONLAR = tuple(j for j in ACIK_ISARETCILER if not any(c.isalpha() for c in j))
 
 
 def _satir_sayisi(metin):
@@ -75,12 +97,27 @@ def _blok_metni(blok):
     return "\n".join(parcalar)
 
 
+def _acik_eslesiyor(metin):
+    """ACIK jetonu varsa True (veto). Harf tabanli kelime-sinirli, emoji alt-dize."""
+    if _HARF_JETON_RE.search(metin):
+        return True
+    for jeton in _EMOJI_JETONLAR:
+        if jeton in metin:
+            return True
+    return False
+
+
+def _madde_arsiv_vetolu(metin):
+    """Madde ARSIV'E isaret ediyorsa True (veto). Case-insensitive."""
+    kucuk = metin.lower()
+    return any(d in kucuk for d in MADDE_VETO_DESENLERI)
+
+
 def _tasinir_mi(blok):
     """Blok kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA."""
     tum = blok["baslik"] + "\n" + "\n".join(blok["govde"])
-    for isaretci in ACIK_ISARETCILER:
-        if isaretci in tum:
-            return False
+    if _acik_eslesiyor(tum):
+        return False
     for isaretci in KAPANIS_ISARETCILER:
         if isaretci in tum:
             return True
@@ -89,9 +126,10 @@ def _tasinir_mi(blok):
 
 def _madde_tasinir_mi(metin):
     """Madde kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA."""
-    for isaretci in ACIK_ISARETCILER:
-        if isaretci in metin:
-            return False
+    if _acik_eslesiyor(metin):
+        return False
+    if _madde_arsiv_vetolu(metin):
+        return False
     for isaretci in KAPANIS_ISARETCILER:
         if isaretci in metin:
             return True
