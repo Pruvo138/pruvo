@@ -25,6 +25,20 @@
         "yamaha-super-tenere-cam-ayar-somunu",
         "mitsubishi-asx-hava-alma-kapagi"
       ]
+    },
+    {
+      "ref": "6d6db656",
+      "tarih": "2026-08-16",
+      "gerekce": "Katalog genislemesi (Triumph x Printables +34 ve sonraki partiler) rel-card hedef dagilimini ve breadcrumb adres semasini (K115 ic link hatti + sonraki K119 partileri) butun urunlere tasidi; eski referans sayfalarinda olup yeni uretimde olmayan <img>/<a href> kayitlari beklenen fark. varlik-test orneklem dolgusu (len/4 aralikli) urunler.json siralamasinda sabit pozisyonlardan sectigi icin KATALOG EKLEME sonrasi ayni pozisyonlar degisik urunlere dustu — bu urunlerin kendilerinde BOZULMA yok, sadece BU ORNEK KAPSAMINA girmektedir.",
+      "kapsam": ["breadcrumb-adresi", "rel-card-hedefleri"],
+      "urunler": [
+        "pr130222-fren-hidrolik-kapagi",
+        "pr149065-streettripler675-egzoz-tapasi",
+        "fiat-ducato-garmin-camper-braketi",
+        "subaru-brz-ozel-telefon-montaji-fr-s",
+        "hyundai-tiburon-pandizot-tutma-klipsi",
+        "honda-africa-twin-jikle-baglanti-parcasi"
+      ]
     }
   ]
 }
