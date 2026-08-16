@@ -5,6 +5,24 @@
 
 
 
+## 17 Agu (~00:3xZ) — OTURUM KAPANISI (KraL) — kota/tur-tavani hatti
+**CANLIYA GIDEN (repo DISI — `~/.claude/cron` + crontab):** `nobet-kapi.py` nobet motor
+zinciri `("kimi","minimax-m3")` -> `("minimax-m3",)` (BaBa hukmu: cron nobeti Kimi'ye
+BAGLANMAZ) · `crontab` ci-nobeti `7,37` -> `7` (48 -> 24 tur/gun) · `isci.sh` + yeni
+`isci-tur-bekcisi.py` tur tavani (sert 45, canary + `--azami-sn`; olcum alinamayan turda
+kesme YAPILMAZ, kesilince `--resume` ile DURMA NOKTASI cagrisi) · yeni
+`isci-tur-tavani-test.py` `testler.py`'ye 6. paket olarak baglandi.
+**OLCUM (bagimsiz, isci beyani DEGIL):** `NOBET_RC=0` (39 vaka, dusen 0) ·
+`TESTLER_HUKUM=GECTI` 6/6 · tur-tavani vaka 11/11 · mutasyon 6/6 (onceki 3/6) ·
+`OKSUZ_SUREC=0`. Kota olcumu: 16 Agu **145,1M** girdi token (dun 29,3M); yakan model
+DEGIL TUR SAYISI — ilk 40 tur faturanin %12-14'u.
+**KOSUYOR:** KraL tarafinda is YOK; tum delege turlari sayisal kabul satiriyla kapandi.
+**BEKLIYOR:** K132 (asagida) · yabanci ` M tools/marka-uyelik-test.py` DOKUNULMADI ·
+`.claude/worktrees/k131` (`kral/k131-capa`) BASKA oturumun, DOKUNULMADI.
+🔴 **EKIBE:** `--max-budget-usd` **M3'te calisiyor, Kimi'de CALISMIYOR** (Kimi
+transkriptinde maliyet alani yok) — Kimi hattinda dolar tavanina GUVENME, tur tavani
+kullan. Cron nobeti/parti -> M3; Kimi yalniz tek-seferlik <=40-tur dilim.
+
 ## 16 Agu (~19:00Z) — OTURUM KAPANISI (KraL)
 **CANLIYA GIDEN:** `cadf9acb` K123 yayin-yasi nobetcisi + mukerrer istisnasi worktree'de · `04b48b36` K113 uretici butunluk kapisi BLOKLAYICI serit + K114 r2-purge (yayin ACILDI: deploy+yayin success) · `b68d9eb7` K124 turetilmis-hal saglik yuklemi (urun partisi artik yayini durdurmuyor; 14'luk parti beyansiz yesil gecti) · `ce5164d2`+`25c5cc34` K39 defter kotasi kancada, 2 evde canli · `5df50d78` K120 gizli kaynak kaydi izlemeden cikti (yokluk kolu: degisen 0, bloklayici 0).
 **KOSUYOR:** KraL tarafinda is YOK — tum delege turlari sayisal kabul satiriyla kapandi; worktree 1 (yalniz ana agac).
@@ -15,6 +33,21 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
+- 🔵 **K132 (yeni, 17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` bir
+  olcumde **TEK BASINA** kosumda vaka 1 (`bekci-kesmez-kapanis-yok-rc=0`) KALDI verdi,
+  ayni test `testler.py` icinden GECTI. Kontrol kosumu (kirli / beyaz-liste temiz /
+  kanonik ortam) **celiskiyi YENIDEN URETEMEDI** — ucunde de gecti; "ambient `PRUVO_ISCI_*`
+  siziyor" hipotezi de YAPISAL olarak curudu (test zaten kendi `temiz_env()`'i ile
+  `isci.sh` cagrisindan ONCE filtreliyor). Muhtemel kok: **eszamanli kosumdan kalan bekci
+  sureci kontaminasyonu** — KANITLANMADI. Cagirana gore hukum degistiren kapi kapi
+  degildir; tekrarlarsa kapatilmali. Yon: testin kendi `temiz_env()` ciktisini stdout'a
+  env-dump olarak bastir (hangi degiskenler `isci.sh`'ye ulasiyor tek adimda gorunur),
+  yapisal olmayan kokleri (artik kalan surec / ortam kontaminasyonu) ayirt et.
+  KAT: Claude/Opus (olcum kodunun kendisi). Yasak: vaka 1'i yesile boyama · esik
+  gevsetme · env sabitleyerek belirtiyi susturma.
+  kabul: `python3 /Users/okan/.claude/cron/isci-tur-tavani-test.py` (rc=0) **VE**
+  `python3 /Users/okan/.claude/cron/testler.py` (`HUKUM=GECTI`) — ikisi ARDISIK 3 kosumda
+  ayni hukmu vermeli.
 - 🔧 **K126 (yeni, 16 Agu, ONCEDEN VARDI — K125 kirmizisi bunu MASKELIYORDU):** `hijyen-a2`
   icindeki **`Marka uyelik kabul testi`** kirmizi: `POZ: /marka/<X>/ urun kumesi = index.html
   marka filtresi` — **sapan marka 65** (Ford 0/3, BMW 0/1, Toyota …; sayfa kumesi bos, filtre
@@ -24,17 +57,7 @@
   success; hijyen seridi). ⚠️ `tools/marka-uyelik-test.py` uzerinde YABANCI ` M` var ve ayni
   dosya `kurtarma/k122-yabanci-is` dalinda duruyor → sahibi K122 kaleminde; DOKUNULMADI.
   kabul: `python3 tools/marka-uyelik-test.py`
-- ✅ **K127 KAPANDI (16 Agu, merge `e5f5c32b`):** rotasyona MADDE GRANULU kol eklendi — acik
-  blogun icindeki KAPALI madde artik arsive tasinir, acik maddeye DOKUNULMAZ; cikti
-  `TASINAN_MADDE=<n>` (eski `TASINAN=` jetonu korundu). Mimar kod denetimi IKI kusur buldu ve
-  ikisi de vaka+mutantla kapatildi: (1) `- KAPANDI (arsivde): ...` **indeks** satiri
-  supruluyordu (kayit degil isaretci) → veto + V7/M4; (2) `ACIK` ciplak alt-dize eslesiyordu
-  (`ACIKLAMA` blogu sonsuza kadar defterde tutardi — kilitli dongunun ta kendisi) → kelime
-  siniri + V8/V9/M5. **OLCUM:** fikstur **15/15**, yeni vaka **9/9**, mutant **5/5**,
-  `ci-kapsam` rc=0 (yeni test CI kesfine otomatik girdi), kapsam **yalniz 2 dosya**
-  (+690/-49). Gercek defterin KOPYASI uzerinde prova: indeks satiri AYNEN durdu, acik kalem
-  **6/6** yerinde. D1 5 eksende temiz (28783=28783). Worktree+dal (yerel+uzak) silindi.
-  kabul: `python3 tools/defter-rotasyon-test.py`
+- KAPANDI (arsivde): K127 rotasyon MADDE GRANULU kol (merge `e5f5c32b`) — 17 Agu rotasyonu.
 - 🔵 **K128 SINIF DERSI (kayit):** K127'nin madde
   olcutu "metinde KAPANIS isaretcisi VAR + acik isaretci YOK" idi. Ilk canli kosumda
   (`e5ba6251`) bu olcut `- Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi
