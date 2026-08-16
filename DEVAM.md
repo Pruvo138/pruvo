@@ -3,11 +3,13 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
+
 ## 16 Agu (~19:00Z) — OTURUM KAPANISI (KraL)
 **CANLIYA GIDEN:** `cadf9acb` K123 yayin-yasi nobetcisi + mukerrer istisnasi worktree'de · `04b48b36` K113 uretici butunluk kapisi BLOKLAYICI serit + K114 r2-purge (yayin ACILDI: deploy+yayin success) · `b68d9eb7` K124 turetilmis-hal saglik yuklemi (urun partisi artik yayini durdurmuyor; 14'luk parti beyansiz yesil gecti) · `ce5164d2`+`25c5cc34` K39 defter kotasi kancada, 2 evde canli · `5df50d78` K120 gizli kaynak kaydi izlemeden cikti (yokluk kolu: degisen 0, bloklayici 0).
 **KOSUYOR:** KraL tarafinda is YOK — tum delege turlari sayisal kabul satiriyla kapandi; worktree 1 (yalniz ana agac).
 **BEKLIYOR:** yerel main'de yabanci parti commit'i `2d1d8814` push bekliyor (D1 yazici kilidi UCUSTA, PID 75749 — sira, ariza degil; sahibinin turu itecek) · yabanci ` M tools/marka-uyelik-test.py` DOKUNULMADI · `kurtarma/k122-yabanci-is` dali sahibinde.
 🔴 **EKIBE:** gizli kaynak kaydi artik IZLENMIYOR — `git add` EDILMEZ, yerel diskte tutulur.
+
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
@@ -20,15 +22,16 @@
   success; hijyen seridi). ⚠️ `tools/marka-uyelik-test.py` uzerinde YABANCI ` M` var ve ayni
   dosya `kurtarma/k122-yabanci-is` dalinda duruyor → sahibi K122 kaleminde; DOKUNULMADI.
   kabul: `python3 tools/marka-uyelik-test.py`
-- 🔧 **K127 (yeni, 16 Agu ~20:40Z, OLCULDU):** K39 rotasyon araci bu deftere YARAMIYOR —
-  `tools/defter-rotasyon.py` kosuldu, `TASINAN=0 DEFTER_SATIR=155` dondu. Sebep yapisal:
-  arac blogu `## ` basligindan ayirir ve `## ACIK KALEMLER` basliginin KENDISI acik
-  isaretcisi tasidigi icin altindaki TUM liste tek blok sayilir; icindeki `✅ KAPANDI`
-  maddeleri ayri blok olmadigindan hicbiri tasinmaz. Yani kota kancasi commit'i durduruyor,
-  onun gosterdigi CARE komutu ise 0 satir tasiyor — **kilitli dongu** (K124'teki
-  `--referans-tazele` desenin aynisi). Yon: rotasyona **satir/madde granulu** kol ekle
-  (acik blogun icindeki `✅`/`KAPANDI` MADDESINI tasi, acik maddeye DOKUNMA); kabul
-  fikstur + **mutant** (acik maddeyi tasimaya kalkan mutant KIRMIZI yanmali).
+- ✅ **K127 KAPANDI (16 Agu, merge `e5f5c32b`):** rotasyona MADDE GRANULU kol eklendi — acik
+  blogun icindeki KAPALI madde artik arsive tasinir, acik maddeye DOKUNULMAZ; cikti
+  `TASINAN_MADDE=<n>` (eski `TASINAN=` jetonu korundu). Mimar kod denetimi IKI kusur buldu ve
+  ikisi de vaka+mutantla kapatildi: (1) `- KAPANDI (arsivde): ...` **indeks** satiri
+  supruluyordu (kayit degil isaretci) → veto + V7/M4; (2) `ACIK` ciplak alt-dize eslesiyordu
+  (`ACIKLAMA` blogu sonsuza kadar defterde tutardi — kilitli dongunun ta kendisi) → kelime
+  siniri + V8/V9/M5. **OLCUM:** fikstur **15/15**, yeni vaka **9/9**, mutant **5/5**,
+  `ci-kapsam` rc=0 (yeni test CI kesfine otomatik girdi), kapsam **yalniz 2 dosya**
+  (+690/-49). Gercek defterin KOPYASI uzerinde prova: indeks satiri AYNEN durdu, acik kalem
+  **6/6** yerinde. D1 5 eksende temiz (28783=28783). Worktree+dal (yerel+uzak) silindi.
   kabul: `python3 tools/defter-rotasyon-test.py`
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
@@ -57,17 +60,18 @@
 - KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K125 · K124.
 
 
+
 ## OKAN'DA
 
-- Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
-  (Motor tarifesi kalemi 16 Agu'da KAPANDI: kimi + minimax-m3 ust aboneligine gecildi.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+
 
 
 ## KOSUYOR (baska mimarlar)
 
 MaCiT — Ducati d1 sub-slice 2/3 ve 3/3 (taban artik 27420) + 261 kaynak kaydi dolgusu.
+
 
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
