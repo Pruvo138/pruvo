@@ -1161,6 +1161,82 @@ def kablo_kume_kostur(gecici_kok):
     return basarisiz, atlanan
 
 
+def k159_mesaj_denetim():
+    """K159 SON KOL: yasak kumeden turetilen RED mesajinin KAYNAKLA PARITESI.
+
+    Bagimsiz curutucu buldu (17 Agu K159 son kol): kapinin RET metninde model adi
+    ELLE gomulu duruyordu; yeni amiral model eklendiginde mantik dogru kalir ama
+    mesaj bayatlar ve kullaniciyi yanlis bilgilendirir. Duzeltme sonrasi metin
+    `mimar_kimlik.CODEX_YASAK_MODELLER` kumeden turetilmeli; bu kume degisince
+    mesajin DA ICERIGI degismis olmali. Test kume sabitini import edip kontrol
+    EDER — elle 'substring aranir' yapmaz (bekci bayatlayan metni yakalar)."""
+    import importlib.util
+    basarisiz = []
+    atlanan = []
+    kimlik_yol = os.path.join(TOOLS, "mimar_kimlik.py")
+    if not os.path.exists(kimlik_yol):
+        basarisiz.append((910, "deny+tum yasak adi", "EKSIK-KIMLIK",
+                          "mimar_kimlik.py bulunamadi: " + kimlik_yol))
+        print("910  K159 son kol: EKSIK-KIMLIK")
+        return basarisiz, atlanan
+    spec = importlib.util.spec_from_file_location("_k159_kimlik", kimlik_yol)
+    kimlik = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kimlik)
+    yasak = kimlik.CODEX_YASAK_MODELLER
+
+    if not yasak:
+        # Kume bossa ornek model secilemez — istisna olarak skip; "0 yasak model yok"
+        # durumu kapi acisindan zaten testsiz (M2 mutasyonu yakalar). Burada raporlanir.
+        print("910  K159 son kol: CODEX_YASAK_MODELLER bos — vaka KOSULAMAZ (M2 yakalar)")
+        return basarisiz, atlanan
+
+    # Kumeden BIRINI sec (ilk sirali); davranis kumeden bagimsiz — hepsi yasak.
+    ornek_model = sorted(yasak)[0]
+    hedef = ("codex exec -m " + ornek_model + " -C " + REPO +
+             " -s workspace-write -o " + SCRATCH + "/son-mesaj.txt \"spec\"")
+    # Kapidan HAM red sebebini oku (kancayi_kostur 80 char'a kirpiyor; biz tam metin isteriz).
+    payload = {"session_id": "test", "cwd": REPO,
+               "permission_mode": "bypassPermissions", "hook_event_name": "PreToolUse",
+               "tool_name": "Bash", "tool_input": {"command": hedef}}
+    ortam = dict(os.environ)
+    ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+    proc = subprocess.run([sys.executable, ICRA], input=json.dumps(payload),
+                          capture_output=True, text=True, env=ortam)
+    if proc.returncode != 0:
+        basarisiz.append((910, "deny", "COKTU",
+                          "kapi kosmadi: " + (proc.stderr or "")[:80]))
+        print("910  K159 son kol: COKTU")
+        return basarisiz, atlanan
+    try:
+        veri = json.loads(proc.stdout.strip() or "{}")
+    except Exception:
+        basarisiz.append((910, "deny", "PARSE-HATASI",
+                          "kapi cikti JSON degil"))
+        print("910  K159 son kol: PARSE-HATASI")
+        return basarisiz, atlanan
+    hso = veri.get("hookSpecificOutput") or {}
+    karar = hso.get("permissionDecision", "allow")
+    sebep = hso.get("permissionDecisionReason") or ""
+
+    if karar != "deny":
+        basarisiz.append((910, "deny", karar, "yasak model RED almadi"))
+        print("910  K159 son kol: olculen={} (KIRMIZI — RED bekleniyordu)".format(karar))
+        return basarisiz, atlanan
+
+    eksik_adi = sorted(ad for ad in yasak if ad not in sebep)
+    if eksik_adi:
+        basarisiz.append((910, "tum yasak adi sebep'te",
+                          "eksik=" + ",".join(eksik_adi),
+                          "mimar_kimlik.CODEX_YASAK_MODELLER adlari RED sebebinde yok"))
+        print("910  K159 son kol: iz='{}' | eksik={} (KIRMIZI)".format(
+            sebep.replace("\n", " ")[:80], eksik_adi))
+        return basarisiz, atlanan
+    print("910  K159 son kol: olculen={} yasak-sayisi={} sebep-uzunluk={} | OK".format(
+        karar, len(yasak), len(sebep)))
+    return basarisiz, atlanan
+
+
 def gecici_worktree_kur(temel):
     """Repo DISINDA, git'e KAYITLI gecici bir worktree kurar (hermetiklik).
     '--no-checkout' sayesinde dosya kopyalanmaz — yalniz .git/worktrees kaydi olusur.
@@ -1224,8 +1300,12 @@ def main():
         kumeler = [("13 AGU-2 ISCI KIMLIK EKSENI — mutant izolasyonu",
                     ISCI_KIMLIK_EKSENI_VAKALARI, REPO)]
 
-    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3
+    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3 + 1
     toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
+    k159_mesaj_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
+    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {})".format(
+        toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
+        k159_mesaj_vaka_sayisi))
     print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3)".format(
         toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI)))
     print("TOOLS DIZINI: " + TOOLS)
@@ -1245,6 +1325,9 @@ def main():
             basarisiz += b
             atlanan += a
             b, a = kablo_kume_kostur(gecici_kok)
+            basarisiz += b
+            atlanan += a
+            b, a = k159_mesaj_denetim()
             basarisiz += b
             atlanan += a
     finally:

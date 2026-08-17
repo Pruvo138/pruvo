@@ -937,7 +937,7 @@ def _codex_karari(tokenlar):
         if model in CODEX_YASAK_MODELLER:
             return (
                 "codex modeli AMIRAL SINIFINDA (" + model + "). Okan karari: amiral "
-                "(gpt-5.6-sol dahil) yasak. IZINLI: " +
+                "(" + ", ".join(sorted(CODEX_YASAK_MODELLER)) + " dahil) yasak. IZINLI: " +
                 ", ".join(CODEX_IZINLI_MODELLER) + "."
             )
         if model not in CODEX_IZINLI_MODELLER and model not in CODEX_YASAK_MODELLER:

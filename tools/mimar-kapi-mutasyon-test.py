@@ -281,8 +281,9 @@ MUTASYONLAR = [
         d, ICRA,
         "    if not _codex_cikti_degerli(kalan[1:]):\n",
         "    if True:\n"),
-     "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED)",
-     {232, 233, 273, 274, 281, 902}, True, 6),
+     "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED); K159 son kol: "
+     "910 yasak model cagrisinin yapisal izin yolunu da eklenen RED'a kat",
+     {232, 233, 273, 274, 281, 902, 910}, True, 7),
     ("ME7", lambda d: yama(
         d, ICRA,
         "    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
@@ -575,8 +576,9 @@ MUTASYONLAR = [
         d, ICRA,
         '    if model in CODEX_YASAK_MODELLER:\n',
         '    if False and model in CODEX_YASAK_MODELLER:\n'),
-     "17Agu K159: amiral reddi kaldirilir (gpt-5.6-sol amiral gecer)",
-     {901}, True, 1),
+     "17Agu K159: amiral reddi kaldirilir (gpt-5.6-sol amiral gecer); K159 son kol: "
+     "910 yasak model RED'i da amiral kapisi kapali olunca ACILIR",
+     {901, 910}, True, 2),
     # M3: fail-closed (izinli kume disi) RED kaldirilir -> V5 (904) artik ALLOW olur.
     # Spec'te "fail-open" mutant — bilinmeyen model GECER yapilir.
     ("M_K159_3", lambda d: yama(
