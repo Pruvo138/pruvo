@@ -39,17 +39,17 @@
   Spec: `SPEC-k140-marka-evreni.md`. 🔴 Hedef rc=0 DEGIL **dogru kirmizi**: `Rover` KALMALI.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover`
   DURUYOR **VE** mutasyon 4/4.
-- 🔴🔴 **K153 (17 Agu — YAYIN ZINCIRI BLOKE; en pahali kalem):** `urunler.json` **29006**,
-  D1 **28980** → **26 urun Ege'de GORUNMUYOR** (olculebilir satis kaybi, K85 sinifi).
-  Bes push denemesi + MaCiT'in push'u ayni duvarda: `SEQ TAM SAYI ARALIGI TUKENDI
-  (alt=29005999999 ust=29006000000)`. 🔴 **Aracin recete ettigi care NO-OP:** teshis turu
-  `SEQ_UPDATE=0 GERI_ALMA=YOK FAZLA_D1=0 EKSIK_D1=26` — 28980 satirin hepsi ZATEN hedef
-  seq'inde, normalize'in yazacak tek satiri yok (KraL'in "geri alinmis olabilir" hipotezi
-  CURUDU). **Kok:** mid-array INSERT ikili bolme yapiyor ve `taban=atanan` ile boslugu
-  USTEL tuketiyor; `SEQ_ADIM=1e6` bir boslukta ~20 ardisik ekleme kaldirir, parti 26.
-  Care ayni dosyada KANITLI: `kuyruk_blok` kolunun blok-oranli adimi mid-array koluna
-  GENELLENIR. Spec: `SPEC-k153-seq-mid-array-blok.md` (5 vaka + 4 mutant).
-  kabul: `python3 tools/d1-sync.py --durum` → 29006=29006 **VE** `git push` hatasiz.
+- ✅ **K153 KAPANDI (17 Agu, `5050fbed` push):** mid-array INSERT ikili bolme yapiyordu,
+  `taban=atanan` ile boslugu USTEL tuketiyordu (`SEQ_ADIM=1e6` bir boslukta ~20 ardisik
+  ekleme kaldirir, parti 26 idi). Care: `kuyruk_blok` kolunun blok-oranli adimi mid-array
+  koluna GENELLENDI (`adim=(yuksek-alt)//(k+1)`, alt blogun ILK uyesinde SABIT) + fail-loud
+  mesaji normalize plani BOSSA ayri kola ayrildi (eski metin kullaniciyi donguye sokuyordu:
+  MaCiT 1, KraL 5 kez). Olcum IKI BAGIMSIZ turda uyustu: `TEST_RC=0 GECEN=10 KALAN=0 ·
+  MUTANT=4/4 KONTROL=YESIL · CI_ADIM=VAR`; ayrica elle iki mutant (blok kolunu geri alma,
+  `adim<1` gevsetme) testi KIRMIZI yakti → test gercekten olcuyor.
+  **CANLI SONUC:** push gecti (bes denemedir duvardaydi), D1 **28980 → 29012**, bes eksen
+  de yesil (SAYI 29012=29012 · SEQ tam-sayi-olmayan=0 sapan=0 · SEMA · TURETILMIS 5/5
+  GUNCEL · ICERIK hash uyusmaz=0). Peugeot 26 + Chevrolet 6 artik Ege'de GORUNUYOR.
 - ✅ **K147 KAPANDI** (sayac 63 → 65, DUSMEDI) → karar ②'ye gecti, devami K148. ARSIVDE.
 - 🟠 **K148 (GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama kaldi):**
   uc dosya `~/.claude/cron/` altinda, **repo ayak izi SIFIR**; tetik gozcude, icra AYNEN
