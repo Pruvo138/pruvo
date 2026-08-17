@@ -2,10 +2,6 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-
-
-
-
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
 - 🔧 **K134 (17 Agu — defter rotasyonu SINIF kalemi):** kota kancasinin gosterdigi care
@@ -42,12 +38,10 @@
   🔴 ETKI: posta kutusu OTOMATIK izlenmiyor (oturum basinda ELLE okunacak) ve **urun
   partileri kendiliginden ILERLEMIYOR**. Ders: kota keserken EN COK YAKANI olc — 16 Agu
   kesintisi 144 turluk izleyici ciftine hic dokunmamisti. `kabul:` alani BOS.
-- 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, sonraki turun ILK isi):** guncel uc `9f5e26da`; push
-  seridinin nabizlari success, `build`+nobet seridi PENDING.
-  [[ucustaki-kosum-yesil-degildir]] — yesil DENMEDI. Bir push UZAKTAN REDDEDILDI (pre-push
-  ~10 dk surerken baska oturum ayni partileri farkli SHA ile yayimladi); cozum rebase DEGIL
-  fetch+merge, once `urunler.json` iki tarafta BIREBIR AYNI olculdu.
-  kabul: `9f5e26da`'yi ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
+- 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, guncel uc `c071bfd5`):** onceki iki ucun build'i
+  `cancelled` (ardarda push iptali, ARIZA DEGIL); `c071bfd5`'te 4 nabiz success, `build`
+  + nobet seridi PENDING. Tam metin ARSIVDE.
+  kabul: `c071bfd5`'i ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - 🔧 **K140 (17 Agu — K133'un KALAN kuyrugu, YAYINI BLOKLAMAZ):** `marka-invaryant-kapisi.py`
   hala 5 kontrol kirmizi (`FILTRE_KAYIP=23/197` · `ARAMA_KAYIP=4/105`). Olculdu: kalan kayip
   jetonlarin **7/8'i MARKA DEGIL MODEL jetonu** (`1290` `690` `Ciao` `DL650` `MT-07` `MT-09`
@@ -55,12 +49,27 @@
   **Acik soru MIMARDA:** model jetonu icin `/marka/<jeton>/` beklemek kapinin MODEL hatasi
   mi, uretec mi eksik? Once bu ayrim. ⚠️ Taban BAYAT (`142 -> 155`).
   kabul: `python3 tools/marka-invaryant-kapisi.py` (rc=0) **VE** secilen sinif YAZILI.
-- 🔴 **K147 (17 Agu — NOBETIN DAGITACAK ISI YOK; BaBa'nin ② kararinin girdisi):** K145 gocu
-  sonrasi kuru tur `KAT_MIMAR=10 KAT_TARAMA=1 KAT_MEKANIK=0 KAT_OKAN=1 **DAGITILAN=0**`.
-  Goc kati acti ama kuyrugun **%83'u sessiz-hata sinifi** — isciye VERILEMEZ, mimar isidir.
-  Dagitim kolu bu kuyrugu ERITEMEZ; eriten sey MIMAR turudur.
-  kabul: (a) `nobet-onarimsiz-sayac.json` **63'un ALTINA** iner (dusmezse karar ②'ye gecer),
-  (b) ayni pencerede `ci-nobeti.log`'da `KAPANAN>0` ya da `ONARIM>0` gecen EN AZ BIR tur.
+- ✅ **K147 KAPANDI** (kabul OLCULDU ve **DUSTU**): sayac 63'un altina inecekti,
+  **65'e cikti** → hukum yazili sarta gore **② (gozcu + kosullu isci)**, devami K148.
+  Ders + tam metin ARSIVDE.
+- 🟠 **K148 (17 Agu — GOZCU SPEC'I YAZILDI, ICRA OKAN KAPISINDA):** BaBa ② maddesinin
+  eksiksiz spec'i `kalibrasyon/SPEC-nobet-gozcusu.md` (karar tablosu, 10 fonksiyon
+  sozlesmesi, 25 kabul vakasi, 10 mutant, taban-alma emniyeti, run-id kilidi, fail-loud
+  kalp atisi). Tasarim: **tetik gozcude, icra AYNEN `nobet-kapi.py`'de** (H1-H7 korunur,
+  ikinci kopya yok). Beklenen: 24 LLM turu/gun → ~1 + kirmizi sayisi.
+  🔴 **BLOKE:** uretilecek sey olcum/kapi KODU = sessiz-hata sinifi → ucuz kata VERILMEZ
+  (`skill: codex-isci` §2), Claude iscisi KraL'da kosulsuz RED, mimar kod-kilidi mimara
+  `.py` yazdirmaz. Yani icranin TEK yolu Okan'in acacagi kapidir (yol adi CLAUDE.md'de
+  yazili). Soru Okan'a penceresiyle soruldu.
+  kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=10/10`.
+- 🔧 **K149 (17 Agu — CRON DIZINI TUR ARTIGIYLA DOLU; disk kurali ihlali):** olculdu
+  (`ls -1a | grep -c`): `~/.claude/cron/` **2473 girdi**; **1208 `.isci-cikti.*`** +
+  **887 `.bekci-cikti.*`** = 2095 girdi tek basina tur artigi, ayrica **240 `profil-*`
+  dizini** + 37 `.yedek*` dosyasi. Ureten (`isci.sh`, `isci-tur-bekcisi.py`) temizlemiyor
+  → "**ureten temizler**" kurali (Okan, USTUN) bu hatta HIC uygulanmamis. Dosya artigi
+  K148 gozcusunun temizlik koluna yazildi (onek kumesi kapali, 2 saat yas esigi, dizinler
+  HARIC); `profil-*` dizinleri AYRI ele alinir — canli turun profili silinirse tur coker.
+  `kabul:` alani BOS.
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA, degisen dosyanin yedegi alinmiyor → curutucu, iscinin kabul-testi fiksturunu
   MESRU mu degistirdi **OLCEMEDI** (`FIKSTUR_MESRU=0/0`); dolayli kanit guclu (mutant 9/9)
@@ -76,9 +85,7 @@
   `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi). Canlida 404 veren URUN
   KAPAKLARI — K125 ile AYNI SINIF ([[gorsel-anahtar-cakismasi]]). Tam liste push logunda,
   kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
-- ✅ **K133 KAPANDI** (`42e28cf7` merge, `c5225016` push): cip ile sayfa tek govdeden turer;
-  FILTRE `68/535`→`23/197`, ARAMA `11/118`→`4/105`; canli JS testi 11/11 + mutasyon 5/5
-  CI'da. Detay ARSIVDE. Kalan kuyruk K140.
+- ✅ **K133 KAPANDI** (`42e28cf7` merge, `c5225016` push) — tam metin ARSIVDE; kuyruk K140.
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
@@ -101,10 +108,6 @@
   **is bazinda** bakilir; job tasima kirmiziyi susturmak degil yayin hukmunu ayirmak icin.
 - KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]) · K127 rotasyon madde granulu kol (`e5f5c32b`) · **K138** (mail ARIZA SINYALI degildi — nobet metni "maile guvenme" diyor, olcum `gh run list`; Okan GitHub bildirimini kapatti, crontab satiri KALDIRILDI **ve** nobet gorev metnindeki supurme adimlari §0.4+§1+§4 EMEKLI isaretlendi — yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi; otomatik mail silicisi KALMADI, bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yol; geri acma OKAN KAPISI, ikisi AYNI turda) · **K137** (birkac saat `crontab` YAZIMI asildi — okuma calisiyordu, asili surec `pgrep` ile teyitli, SIGKILL gerekti; 11:00 civari acildi. Tuzak: `crontab <dosya>` dosyayi BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc).
 
-
-
-
-
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -113,17 +116,9 @@
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
-
-
-
-
 ## KOSUYOR (baska mimarlar)
 
 MaCiT — Ducati d1 sub-slice 2/3 ve 3/3 (taban artik 27420) + 261 kaynak kaydi dolgusu.
-
-
-
-
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 
