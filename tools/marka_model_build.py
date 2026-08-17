@@ -1031,9 +1031,13 @@ def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
     Aksi halde [] döner — ürün bu kola GİRMEZ.
 
     Eklenen kanonik marka, ürünün mevcut üyeliğinde OLMAYAN ve bu iterasyonda daha
-    ÖNCE eklenmemiş olandır (yinelenen kanonik YOK). `_i`/`_n` kayan pencere sırası
-    korunur — `ikincil` kovasındaki ekleme sırası builder ile birebir aynıdır
-    ([[ikiz-tanim-sessiz-ayrisma]])."""
+    ÖNCE eklenmemiş olandır (yinelenen kanonik YOK).
+
+    🔴 UZUN-ÖNCE KURALI (K133B — index.html `baslikMarkalari` ile BİREBİR aynı sıra):
+    Her pozisyonda EN UZUN eşleşme önce; eşleşme varsa `i += vuruldu`, yoksa `i += 1`.
+    "Land Rover ..." başlığında bigram tutunca tekil "Rover" ÜRETİLMEZ (ölçüldü 5 Ağu:
+    uzun-önce kuralı olmadan 80 kalem daha doğuyor ve HEPSİ "Rover" — Land Rover ürünleri
+    başka bir marque'ın sorgusuna sızıyor)."""
     m0 = urun.get("marka") or []
     # FAZLALIK; `_uyeler` kolu subsume ediyor (K126 hukmu — ölçüldü: marka_uyelikleri([])
     # boş döner, `if not uyeler` aynı ürünü eler). MUTANT testi (m0 kolunu no-op yapınca
@@ -1049,12 +1053,18 @@ def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
         return []
     eklendi = set()
     sonuc = []
-    for i in range(len(bw)):
-        for n in range(1, azami_ad + 1):
+    i = 0
+    while i < len(bw):
+        vuruldu = 0
+        ust = min(azami_ad, len(bw) - i)
+        for n in range(ust, 0, -1):
             kan = ad_kanonu.get(tuple(bw[i:i + n]))
             if kan and kan not in uyeler and kan not in eklendi:
                 eklendi.add(kan)
                 sonuc.append(kan)
+                vuruldu = n
+                break
+        i += vuruldu or 1
     return sonuc
 
 

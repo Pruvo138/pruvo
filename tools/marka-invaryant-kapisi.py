@@ -243,15 +243,37 @@ def olc(mmb, arama, urunler, index_html):
         return _bellek[dizge]
 
     hs = [(p.get("id"), arama.haystack(p)) for p in urunler]
-    # URUN BASINA IKI AYRI KAYNAK (gecis kuralinin iki kolu; ayni fonksiyondan turemezler):
-    #   uyelik      = sayfa/cip ile AYNI yuklem (marka_model_build.marka_uyelikleri)
-    #   baslik_uyum = baslikta TAM KELIME marka uyumu (arama.baslik_marka_uyumlari)
-    uyelik, baslik_uyum = {}, {}
+    # 🔴 K133 (SPEC ADIM-2): _hedef_markalar YALNIZ marka_only>0 (gercek marka) olanlari
+    # icerir. Model jetonlari (marka_only==0) bu koldan ETKILENMEZ — sayfada kalsalar
+    # bile filtreye EKLENMEZ (spec K133 adim-1 hükmu).
+    _hedef_markalar = sorted(m for m, d in veri.items() if d.get("marka_only"))
+    _ad_kanonu, _azami_ad = mmb.baslik_uyelik_hazirlik(_hedef_markalar, evren)
+    # URUN BASINA UC AYRI KAYNAK (gECis kuralinin iki kolu + filtre zenginlestirme):
+    #   uyelik_sorgu = marka_model_build.marka_uyelikleri (marka[] DEN — UZUN-ONCE yok)
+    #   baslik_uyum  = baslikta TAM KELIME marka uyumu (arama.baslik_marka_uyumlari;
+    #                  UZUN-ONCE SINIFINDAN — Land Rover bigram tutunca tekil Rover URETILMEZ)
+    #   uyelik_filtre = uyelik_sorgu + baslik_uyelikleri (FAZ 1B, sayfa kovasinin yaptigi
+    #                   ayni islem, 23 model jetonu HARIC). UZUN-ONCE YOK (baslik_uyelikleri
+    #                   kendi yapisinin parcasi); ANCAK `baslik_uyelikleri` YALNIZ FILTRE
+    #                   icin kullanilir, ARAMA icin DEGIL — ARAMA uzun-once'yi `baslik_uyum`
+    #                   uzerinden alir.
+    uyelik_sorgu, uyelik_filtre, baslik_uyum = {}, {}, {}
     for p in urunler:
         pid = p.get("id")
         if not pid:
             continue
-        uyelik[pid] = mmb.marka_uyelikleri(p.get("marka") or [], evren, ek)
+        uyeler = mmb.marka_uyelikleri(p.get("marka") or [], evren, ek)
+        if not uyeler:
+            continue
+        uyelik_sorgu[pid] = list(uyeler)
+        # FAZ 1B: baslik_uyelikleri (KANONIK - sayfa kovasinin yaptigi ayni islem). Ikinci
+        # bir govde YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]); 23 model jetonu (marka_only==0)
+        # HARIC tutulur → kendi marka sayfasi ayri yapisal soru olarak kalir.
+        filtre_uyeler = list(uyeler)
+        for kan in mmb.baslik_uyelikleri(p, evren, _ad_kanonu, _azami_ad, ek):
+            if kan not in filtre_uyeler:
+                filtre_uyeler.append(kan)
+        uyelik_filtre[pid] = filtre_uyeler
         baslik_uyum[pid] = arama.baslik_marka_uyumlari(p.get("baslik"), kanon)
 
     kumeler, serbeste_dusen = {}, []
@@ -263,20 +285,25 @@ def olc(mmb, arama, urunler, index_html):
                 if p.get("id"):
                     sayfa.add(p["id"])
         # UCTAKI `?marka=` KOLU — D1 `marka_kanon` uyeligi. Hedef kolon
-        # marka_uyelikleri'nden turetilir; sayfa/cip/arama ayni kanonik katlamayi kullanir.
-        # Urunler TEK TEK yurur; `filtre = sayfa` gibi sonuc-kumesi totolojisi kurulmaz.
-        filtre = {pid for pid in uyelik if marka in uyelik[pid]}
+        # marka_uyelikleri ∪ baslik_uyelikleri'nden turetilir (K133, SPEC ADIM-2);
+        # sayfa/cip/arama ayni kanonik katlamayi kullanir. Urunler TEK TEK yurur;
+        # `filtre = sayfa` gibi sonuc-kumesi totolojisi kurulmaz.
+        filtre = {pid for pid in uyelik_filtre if marka in uyelik_filtre[pid]}
         # `?q=<marka>` KOLU — MARKA SORGUSU ise gecis kurali, degilse serbest metin.
+        # ARAMA K1224 (K133): uyelik_sorgu (marka_uyelikleri) + baslik_uyum (UZUN-ONCE)
+        # ile calisir. baslik_uyelikleri (sayfa kovasi ile ayni) FILTREYE eklenir ama
+        # ARAMAYA eklenmez — uzun-once olmadan «Rover» -> «Land Rover» bigraminda
+        # tekil «Rover» URETILIR, GURULTU CAPASI (Rover-Land Rover) bozulur.
         kanon_marka = arama.marka_sorgu_kanonu(marka, kanon)
         if kanon_marka:
-            srch = {pid for pid in uyelik
-                    if arama.marka_sorgusu_esler(kanon_marka, uyelik[pid], baslik_uyum[pid])}
+            srch = {pid for pid in uyelik_sorgu
+                    if arama.marka_sorgusu_esler(kanon_marka, uyelik_sorgu[pid], baslik_uyum[pid])}
         else:
             serbeste_dusen.append(marka)
             tok = arama.tokenlar(marka)
             srch = {i for i, h in hs if i and arama.esles(h, tok)}
         kumeler[marka] = (sayfa, filtre, srch)
-    return veri, kumeler, serbeste_dusen, uyelik, baslik_uyum, kanon
+    return veri, kumeler, serbeste_dusen, uyelik_sorgu, baslik_uyum, kanon
 
 
 def taban_kur(veri, kumeler, katalog):
