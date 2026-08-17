@@ -42,13 +42,17 @@
   `cancelled` (ardarda push iptali, ARIZA DEGIL); `c071bfd5`'te 4 nabiz success, `build`
   + nobet seridi PENDING. Tam metin ARSIVDE.
   kabul: `c071bfd5`'i ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
-- 🔧 **K140 (17 Agu — K133'un KALAN kuyrugu, YAYINI BLOKLAMAZ):** `marka-invaryant-kapisi.py`
-  hala 5 kontrol kirmizi (`FILTRE_KAYIP=23/197` · `ARAMA_KAYIP=4/105`). Olculdu: kalan kayip
-  jetonlarin **7/8'i MARKA DEGIL MODEL jetonu** (`1290` `690` `Ciao` `DL650` `MT-07` `MT-09`
-  `V-Strom`; yalniz `Rover` gercek marka); dal bunlari BILEREK haric tuttu.
-  **Acik soru MIMARDA:** model jetonu icin `/marka/<jeton>/` beklemek kapinin MODEL hatasi
-  mi, uretec mi eksik? Once bu ayrim. ⚠️ Taban BAYAT (`142 -> 155`).
-  kabul: `python3 tools/marka-invaryant-kapisi.py` (rc=0) **VE** secilen sinif YAZILI.
+- 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum: **kapinin MODEL
+  hatasi degil, EVREN KAYNAGI hatasi**. Olculdu: (1) 8 jetonu tasiyan 185 urunun **184'unde
+  jeton gercek markanin YANINDA** (`Yamaha+MT-07`, `KTM+1290`), tek istisna `["Rover"]`;
+  (2) `index.html:3148` cip evreni KURATORLU — model/motor kodu **CIP OLMAZ**, yani o
+  baglanti sitede YOK; (3) `TANINMIS_MARKALAR`'da 7 model jetonu **YOK**, `Rover` **VAR**.
+  Yani kapi olmayan bir baglanti icin sayfa istiyor → evren, ciplerin kullandigi AYNI
+  kuratorlu kaynaktan turemeli (K133 sinifinin aynisi). `Rover` ise GERCEK kayip (2 urun).
+  Spec: `kalibrasyon/SPEC-k140-marka-evreni.md`. 🔴 Hedef rc=0 DEGIL, **dogru kirmizi**:
+  daraltmadan sonra `Rover` KALMALI, dusrse kapi korlesmistir (mutant M2).
+  kabul: `python3 tools/marka-invaryant-kapisi.py` — `FILTRE_KAYIP`'ta 7 model jetonu
+  DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
 - ✅ **K147 KAPANDI** (kabul OLCULDU ve **DUSTU**): sayac 63'un altina inecekti,
   **65'e cikti** → hukum yazili sarta gore **② (gozcu + kosullu isci)**, devami K148.
   Ders + tam metin ARSIVDE.
