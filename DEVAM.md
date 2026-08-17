@@ -2,23 +2,35 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔻 OTURUM KAPANISI — 17 Agu 2026 gece (ana repo `44cd9b96` = origin, agac temiz)
-**CANLIYA GITTI:** K153 seq tikanmasi (`5050fbed`, D1 28980→29012) · K155 marka bos jetonu
-(`8b81c769`) · K154 mutasyon capasi (`2c092d5c`) · K156 karantina yanlis-pozitifi · K159 codex
-pencere kapisi (`db2cc183`) · K140 marka evreni (`10ae08d1`) · K149 temizlik sayaci (`64039de8`) ·
-**K150** rc=5 ERTELENDI + kapsam kapisi (`ed47d317`) + `--mutasyon` CI kablosu (`2f87a8bc`) ·
-**K148** gozcu faz-2 · **K160** kilit govdesi TEK KAYNAK (repo disi; capraz 5/5 KIRMIZI).
-⚠️ `b180fa1a` urun metni duzeltmesi de "K160" diye anilmisti; K160 = BaBa'nin KILIT hukmu.
-**KOSUYOR (baska oturumlar — DOKUNMA):** `build.py` cokmesi. K150/K148/K160 KAPANDI.
-**BEKLIYOR:** 🔴 `build.py` exit 1 (`ozet.json` v3 temsili bozuk + sitemap git taramasi 240 sn
-doldu) → `deploy`+`yayin` **skipped**, vitrin yayini KAPALI · dal `k152-link-temiz`
-(`56269db4`) main'e GIRMEDI, merge bekliyor · `tools/marka-uyelik-test.py` bes oturumdur
-commit'siz (K136).
+## ✅ K164 KAPANDI — YAYIN ACILDI (18 Agu, `f5671d37` + `0ab9dcde`) — tam metin ARSIVDE
+Kok neden sitemap DEGIL: `kart_ozeti` 11 Agu'da karta `boy_secenekleri` yaziyordu ama
+`OZET_KART_ALANLARI`na eklenmemisti (ikiz tanim) — alan tele HIC cikmiyor, konum capasi KOR.
+Kusur alani tasiyan ILK urun dogana kadar 6 gun uyudu. `PATOLOJIK_KAYIT=1`.
+Onarim: alan sozlugun SONUNA · konum capasi artik "kartta VAR sozlukte YOK"u ALAN ADIYLA
+reddediyor · yeni statik sinif kapisi `tools/ozet-alan-ikiz-test.py` (AST + mutasyon,
+`serit-a3`) → alan eklendigi GUN kirmizi yanar. 🔴 Ders: ilk kirmizi ayni sinifin IKINCI
+yuzeyini (`vitrin-kabul.js::edgeKart`) MASKELEMISTI — bir job'da ilk kirmizi duzelince
+KALAN adimlari yeniden olc.
+Kabul: `IKIZ=0 (KENDINI_TEST=5/5) OZET=0 EDGE=0 ESKIFIYAT=0 TEMSIL=0 CIKAPSAM=0` · mutasyon
+`M1_IKIZ=1 M1_BUILD=1 M2=1`. CI (`0ab9dcde`): `build`+`serit-a2/a3/a4`+`hijyen-build`+
+**`deploy`**+**`yayin`** success; kirmizi yalniz hijyen (K140 Rover + M3b) → yayini DURDURMAZ.
+CANLI (cache-bust'SIZ): `SITE_HTTP=200 URUN_HTTP=200 OZET_SURUM=3 ALAN_SAYISI=13
+SON_ALAN=boy_secenekleri BOY_KONUM=12 BOY_DEGER_VAR=EVET CANLI_TOPLAM=29038` (=`origin/main`,
+EDGE BAYAT DEGIL). D1 5/5 eksen YESIL (29038, ICERIK uyusmaz=0).
+ℹ️ Yerel main olcum aninda 1 commit ILERIDE (`a6246722`, baska oturumun 24 urunu, itilmemis)
+— 29062 ↔ 29038 farkinin sebebi budur. Itme sahibinin.
+**BEKLIYOR:** dal `k152-link-temiz` (`56269db4`) merge bekliyor · `tools/marka-uyelik-test.py`
+bes oturumdur commit'siz (K136).
 **OKAN'DA:** 22 Agu kimi/codex motor karari · $100 plan karari (once yanma olcumu) ·
 Navlungo `il-ilce-dilim1` merge'i.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
+- 🟠 **K165 (18 Agu — K164 teshisinin YAN BULGUSU; yayini BLOKLAMAZ ama SESSIZ):** sitemap
+  `lastmod` git taramasi sure butcesini (`VARSAYILAN_SURE_BUTCESI=240.0`,
+  `sitemap_damga.py:66`) dolduruyor; asimda **fail-loud DEGIL** (`:242-244` yalnizca `break`),
+  cozulemeyen kayit `lastmod`SIZ kaliyor (`build.py:4153-4155`); kirmizi kosumda 13. Olcek
+  buyudukce SESSIZCE buyur. Yon: esigi BUYUTMEDEN fail-loud'a bagla. `kabul:` BOS.
 - 🔧 **K134 (defter kotasi SINIF kalemi; BaBa 3. kez kirmizi dedi, SPEC HAZIR):** care (`defter-rotasyon.py`) mimar kod kilidinde YASAK.
   Tam metin ARSIVDE.
   kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
@@ -87,8 +99,7 @@ Navlungo `il-ilce-dilim1` merge'i.
   kabul: `python3 tools/koken-bul.py --eksik` → `EKSIK` DUSER **VE** `--kendini-test` rc=0.
 - 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
-  ekseninde ayrisiyor.
-- 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
+  ekseninde ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
   (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
 - 🟡 **Kosum sinyali kirli (olculdu):** `hijyen-a2`/`a3` yayin zincirinde DEGIL ama genel
   `conclusion`'i `failure` yapiyor. Kural: genel hukme degil **is bazinda** bakilir
@@ -108,23 +119,11 @@ Navlungo `il-ilce-dilim1` merge'i.
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
-
-
 ## KOSUYOR (baska mimarlar)
 
 K152: `xenodochial-bardeen` TEK YAZICI (gizli kayit duzlemi, flock + public sha256 nobeti);
 worktree'sinde main'de OLMAYAN 1 commit var → temizlikte bilerek ATLANDI, bundle ister.
 (`musing-shaw` ve MaCiT'in peugeot/chevy worktree'leri kapandi; K153 blokeri kalkti.)
-
-
-## CANLI OLCUM (17 Agu — marka dili KIP ekseni main'de, `daa6410d`)
-Kapi kapsami genisletildi ve katalog metni Okan onayli kalip tablosuyla onarildi. Kapi envanteri **297 vurus / 284 kayit** iken onarim sonrasi **21 vurus / 14 kayit**. ONARILAN=281 · KARMA_ATLANAN=1 · ELLE=10 · **SILINEN_URUN=0** · uniq 29037 · olcu satiri 22679 SABIT. Kok neden + kalip tablosu POSTA KUTUSUNDA.
-Kabul: `GECEN=95 KALAN=0 MUTANT=7/7` · `--commit-farki` rc=0 · kendini-test 50/50 · ci-kapsam rc=0 · public tarama 0 bulgu. BAGIMSIZ dogrulayici turu (onceki rapora bakmadan) ayni sayilari uretti.
-D1 5/5 eksen YESIL (SAYI 29037=29037 · SEQ · SEMA · TURETILMIS 5/5 · ICERIK uyusmaz=0). CI `daa6410d` VE `31156ade`: `build`+`serit-a2/a3/a4`+**`deploy`**+**`yayin`** hepsi success; kirmizi yalniz `hijyen-a2` (K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ (IS BAZINDA bakin).
-CANLI (cache-bust'SIZ, kanonik adres): `SITE_HTTP=200` · canli katalog 29037/29037 · onarilan metin canlida GORUNUYOR (ornek urun sayfasi 200, sayfada eski kalip 0) · EDGE BAYAT DEGIL.
-
-
-
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
