@@ -2,75 +2,89 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-
-
-
-## 17 Agu (~00:3xZ) — OTURUM KAPANISI (KraL) — kota/tur-tavani hatti
-**CANLIYA GIDEN (repo DISI — `~/.claude/cron` + crontab):** `nobet-kapi.py` nobet motor
-zinciri `("kimi","minimax-m3")` -> `("minimax-m3",)` (BaBa hukmu: cron nobeti Kimi'ye
-BAGLANMAZ) · `crontab` ci-nobeti `7,37` -> `7` (48 -> 24 tur/gun) · `isci.sh` + yeni
-`isci-tur-bekcisi.py` tur tavani (sert 45, canary + `--azami-sn`; olcum alinamayan turda
-kesme YAPILMAZ, kesilince `--resume` ile DURMA NOKTASI cagrisi) · yeni
-`isci-tur-tavani-test.py` `testler.py`'ye 6. paket olarak baglandi.
-**OLCUM (bagimsiz, isci beyani DEGIL):** `NOBET_RC=0` (39 vaka, dusen 0) ·
-`TESTLER_HUKUM=GECTI` 6/6 · tur-tavani vaka 11/11 · mutasyon 6/6 (onceki 3/6) ·
-`OKSUZ_SUREC=0`. Kota olcumu: 16 Agu **145,1M** girdi token (dun 29,3M); yakan model
-DEGIL TUR SAYISI — ilk 40 tur faturanin %12-14'u.
-**KOSUYOR:** KraL tarafinda is YOK; tum delege turlari sayisal kabul satiriyla kapandi.
-**BEKLIYOR:** K132 (asagida) · yabanci ` M tools/marka-uyelik-test.py` DOKUNULMADI ·
-`.claude/worktrees/k131` (`kral/k131-capa`) BASKA oturumun, DOKUNULMADI.
-🔴 **EKIBE:** `--max-budget-usd` **M3'te calisiyor, Kimi'de CALISMIYOR** (Kimi
-transkriptinde maliyet alani yok) — Kimi hattinda dolar tavanina GUVENME, tur tavani
-kullan. Cron nobeti/parti -> M3; Kimi yalniz tek-seferlik <=40-tur dilim.
-
-## 16 Agu (~19:00Z) — OTURUM KAPANISI (KraL)
-**CANLIYA GIDEN:** `cadf9acb` K123 yayin-yasi nobetcisi + mukerrer istisnasi worktree'de · `04b48b36` K113 uretici butunluk kapisi BLOKLAYICI serit + K114 r2-purge (yayin ACILDI: deploy+yayin success) · `b68d9eb7` K124 turetilmis-hal saglik yuklemi (urun partisi artik yayini durdurmuyor; 14'luk parti beyansiz yesil gecti) · `ce5164d2`+`25c5cc34` K39 defter kotasi kancada, 2 evde canli · `5df50d78` K120 gizli kaynak kaydi izlemeden cikti (yokluk kolu: degisen 0, bloklayici 0).
-**KOSUYOR:** KraL tarafinda is YOK — tum delege turlari sayisal kabul satiriyla kapandi; worktree 1 (yalniz ana agac).
-**BEKLIYOR:** yerel main'de yabanci parti commit'i `2d1d8814` push bekliyor (D1 yazici kilidi UCUSTA, PID 75749 — sira, ariza degil; sahibinin turu itecek) · yabanci ` M tools/marka-uyelik-test.py` DOKUNULMADI · `kurtarma/k122-yabanci-is` dali sahibinde.
-🔴 **EKIBE:** gizli kaynak kaydi artik IZLENMIYOR — `git add` EDILMEZ, yerel diskte tutulur.
+## 17 Agu (~11:4xZ) — OTURUM KAPANISI (KraL) — mail hatti EMEKLI + cron temizligi
+**CANLIYA GIDEN (push'lu; main = origin = `56d3e779`):** `dac8c8ab` defter rotasyon sinifi
+(K134) + K121 acildi · `d333bd0d` **K121+K138**: mail supurme once KANONIK yola
+yonlendirildi, sonra GitHub bildirimi kapatilinca hat EMEKLI (crontab satiri **ve** nobet
+gorev metni §0.4/§1/§4) · `56d3e779` **K139**: crontab'tan uc zamanli gorev kaldirildi —
+gunluk atesleme **181 iken 25**; canli teyit `crontab -l` = 2 aktif gorev.
+Dal `kral/k133-uyelik` `e928210e` origin'de, **MERGE EDILMEDI** (kabul kirmizi, K133'e bak).
+**KOSUYOR:** KraL'da is YOK. Makinede tek canli isci MaCiT'in evinde:
+`isci.sh minimax-m3 pruvo-hasat/.claude/worktrees/agent-fordcgt-ekle`, spec
+`SPEC-ford-cgtrader-icerik-final-dilim3.md`, etiket `fordcgt-dilim3` — OLDURULMEDI.
+**BEKLIYOR:** K133 bagimsiz curutucu (sonraki oturumun ilk isi) · yabanci ` M
+tools/marka-uyelik-test.py` (K136) ve ` M urunler.json` (MaCiT ucusta) DOKUNULMADI ·
+worktree `kanca-kok` BASKA oturumun, dokunulmadi.
+🔴 **BU OTURUMUN DERSI (BaBa'ya iletildi):** "ci-nobeti calisiyor" dedim, OLCMEDIM —
+gorev metnini ve tek bir `rc=0`'i kanit sandim. Olcum: **76 turun HEPSINDE `ONARIM=0`
+`KAPANAN=0`**, `USTUSTE_ONARIMSIZ=62`. Tikanma yapisal: 12 kalemin **10'u EMEKLI Codex
+katinda**, **7'sinin `kabul:` alani BOS**. Nobet uzerine yapilan tum kabuller MAKINEYI
+olcuyordu, URUNU degil. → [[makineyi-olctuk-urunu-olcmedik]]
+**TEMIZLIK:** scratchpad 11 dosya / ~44 KB silindi · worktree `k133b` kaldirildi (dal
+push'lu) · gecici crontab dosyalari (`ct*.txt`) silindi · advisor'daki v2 YEDEGI BaBa'ya
+birakildi (onun kodu, silmedim).
 
 
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔵 **K132 (yeni, 17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` bir
-  olcumde **TEK BASINA** kosumda vaka 1 (`bekci-kesmez-kapanis-yok-rc=0`) KALDI verdi,
-  ayni test `testler.py` icinden GECTI. Kontrol kosumu (kirli / beyaz-liste temiz /
-  kanonik ortam) **celiskiyi YENIDEN URETEMEDI** — ucunde de gecti; "ambient `PRUVO_ISCI_*`
-  siziyor" hipotezi de YAPISAL olarak curudu (test zaten kendi `temiz_env()`'i ile
-  `isci.sh` cagrisindan ONCE filtreliyor). Muhtemel kok: **eszamanli kosumdan kalan bekci
-  sureci kontaminasyonu** — KANITLANMADI. Cagirana gore hukum degistiren kapi kapi
-  degildir; tekrarlarsa kapatilmali. Yon: testin kendi `temiz_env()` ciktisini stdout'a
-  env-dump olarak bastir (hangi degiskenler `isci.sh`'ye ulasiyor tek adimda gorunur),
-  yapisal olmayan kokleri (artik kalan surec / ortam kontaminasyonu) ayirt et.
-  KAT: Claude/Opus (olcum kodunun kendisi). Yasak: vaka 1'i yesile boyama · esik
-  gevsetme · env sabitleyerek belirtiyi susturma.
+- 🔧 **K134 (17 Agu — defter rotasyonu SINIF kalemi):** kota kancasinin gosterdigi care
+  (`defter-rotasyon.py`) mimar kod kilidinde YASAK; isciye verilince arac `TASINAN=0` dondu
+  (tarihli kapanis bloklari govdesinde `BEKLIYOR`/`KOSUYOR`/🔴 tasiyordu → acik-isaretci
+  vetosu). **Kok kusur ARACTA DEGIL DEFTERDE:** tarihli blok TARIH olmali, canli durum
+  kalem bolumlerinde. Temizlenince rotasyon 5 blok aldi (233 -> 178).
+  **Yon:** (a) kancanin `CARE:` metni ROLUN kosabilecegi yolu gostersin, (b) "tarihli
+  blokta acik-isaretci jetonu KULLANILMAZ" doktrine gecsin, (c) teste "canli durum tasiyan
+  tarihli blok" fiksturu + mutant. Hafiza: [[kapinin-recete-ettigi-care-baska-kapida-yasak]].
+  kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
+- 🔧 **K135 (17 Agu, MaCiT→KraL):** `tools/cgt-ekle.py::fetch()` tek satir UA ile CGTrader'in
+  AWS WAF JS-challenge'ina takiliyor (HTTP 202 + ~2KB placeholder); buyuk partilerde IP bazli
+  rate-limit. Dilim-2'de 15 KEEP bloke kaldi. Yon: `fetch()`'e retry/backoff + tam Chrome
+  baslik seti. Ayrica `tools/arsiv/cgt-ara.py:41` `printables-api.py`'yi `arsiv/` altinda
+  ariyor ama dosya ust dizinde — arsivdeki haliyle `FileNotFoundError`.
+  🔴 **17 Agu EK:** mukerrer kancasi TUM agaci yargiliyor ve 3 mukerrer cift buldu (Yamaha
+  MT-07 fren hazne braketi · RE Hunter 350 hava filtresi · RE Himalayan camurluk yukseltici);
+  biri MaCiT'te geri cekildi. Kalem kapanana kadar KraL'in defter commit'leri kancanin
+  belgeli atlama anahtariyla geciyor (urunlere DOKUNMADAN). `kabul:` alani BOS.
+- 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` UC oturumdur commit'siz;
+  agac hali K126'nin "tek govde" yuklemini ham dongu olarak GERI ALIYOR (commit'lenirse K126
+  regresyonu). Sahibi belirsiz, DOKUNULMADI. K133B kapanisinda kanonik hale karsi elenecek.
+- 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` TEK BASINA
+  kosumda vaka 1 KALDI verdi, `testler.py` icinden GECTI; kontrol kosumu celiskiyi YENIDEN
+  URETEMEDI, ambient `PRUVO_ISCI_*` bulasmasi hipotezi yapisal olarak curudu. Muhtemel kok:
+  eszamanli kosumdan kalan bekci sureci — KANITLANMADI. Yon: `temiz_env()` ciktisini env-dump
+  olarak bastir. KAT: Claude/Opus. Yasak: vakayi yesile boyama · esik gevsetme.
   kabul: `python3 /Users/okan/.claude/cron/isci-tur-tavani-test.py` (rc=0) **VE**
-  `python3 /Users/okan/.claude/cron/testler.py` (`HUKUM=GECTI`) — ikisi ARDISIK 3 kosumda
-  ayni hukmu vermeli.
-- 🔧 **K126 (yeni, 16 Agu, ONCEDEN VARDI — K125 kirmizisi bunu MASKELIYORDU):** `hijyen-a2`
-  icindeki **`Marka uyelik kabul testi`** kirmizi: `POZ: /marka/<X>/ urun kumesi = index.html
-  marka filtresi` — **sapan marka 65** (Ford 0/3, BMW 0/1, Toyota …; sayfa kumesi bos, filtre
-  dolu). Yeni DEGIL: `b68d9eb7` (12:16) · `6865b918` (14:14) · `8117a3a5` (15:26) kosumlarinda
-  da AYNI adim kirmizi — yani gun boyu kirmiziydi, 16:12 kosumunda K125'in R2 adimi ondan ONCE
-  dustugu icin bu adim HIC KOSMADI ve gorunmedi. **YAYINI BLOKLAMAZ** (`deploy`+`yayin`
-  success; hijyen seridi). ⚠️ `tools/marka-uyelik-test.py` uzerinde YABANCI ` M` var ve ayni
-  dosya `kurtarma/k122-yabanci-is` dalinda duruyor → sahibi K122 kaleminde; DOKUNULMADI.
-  kabul: `python3 tools/marka-uyelik-test.py`
-- KAPANDI (arsivde): K127 rotasyon MADDE GRANULU kol (merge `e5f5c32b`) — 17 Agu rotasyonu.
-- 🔵 **K128 SINIF DERSI (kayit):** K127'nin madde
-  olcutu "metinde KAPANIS isaretcisi VAR + acik isaretci YOK" idi. Ilk canli kosumda
-  (`e5ba6251`) bu olcut `- Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi
-  silme karari. (Motor tarifesi kalemi 16 Agu'da KAPANDI: ...)` maddesini **arsive tasidi** —
-  madde ACIK bir Okan kalemi, "KAPANDI" yalnizca PARANTEZDEKI ATIFTA geciyordu. Icerik
-  arsivde duruyor (kayipsiz), madde deftere GERI KONDU. **Kok kusur:** olcut maddenin KENDI
-  DURUMUNA degil, metninde gecen herhangi bir kelimeye bakiyor — capraz atif ile durum beyani
-  ayni sayiliyor. **Yon:** (a) madde ANCAK ilk satiri kapanis isaretcisiyle BASLIYORSA tasinir
-  (`- ✅` / `- KAPANDI`); govdede gecen atif YETMEZ; (b) arac tasidigi HER maddenin ilk
-  satirini ekrana bassin (operator ne gittigini gorsun — bu vakayi gorunur kilan sey buydu).
-  🔴 Kendi hatam olarak kayit: kabul listem 6 jetonu (K104/K118/K122/K126/K127/Navlungo) tek
-  tek sayiyordu; supurulen madde o listede YOKTU — **sayilan jeton listesi kapsam kaniti
-  degildir.** kabul: `python3 tools/defter-rotasyon-test.py`
+  `python3 /Users/okan/.claude/cron/testler.py` (`HUKUM=GECTI`), ARDISIK 3 kosumda ayni hukum.
+- 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM DEGISIKLIGI, ekip bilmeli):** crontab'tan UC
+  zamanli gorev kaldirildi (satirlar silinmedi, yorumlandi): posta kutusu izleyicileri
+  (MaCiT + TeKiN, 144 tur/gun) ve **MaCiT parti surucusu** (12 tur/gun). Canli teyit
+  `crontab -l` = **2 aktif** (ci-nobeti + kota-olcum), 181 -> **25 atesleme/gun**.
+  🔴 ETKI: posta kutusu OTOMATIK izlenmiyor (oturum basinda ELLE okunacak) ve **urun
+  partileri kendiliginden ILERLEMIYOR** — katalog buyumesi acilan oturuma bagli.
+  Ders: kota keserken EN COK YAKANI olc; 16 Agu kesintisi ci-nobeti'ni yariya indirmis ama
+  144 turluk izleyici ciftine hic dokunmamisti. `kabul:` alani BOS.
+- 🔧 **K133 (dal `kral/k133-uyelik` `e928210e` origin'de — MERGE EDILMEDI):** marka CIPI,
+  marka SAYFASININ ALTINDA. Taban: `MARKA=155 FILTRE_KAYIP=68/533 ARAMA_KAYIP=4/105`
+  (ornek `Rover` 0/82 · `1290` 0/15 · `V-Strom` 0/19). Dal D1 `marka_kanon` + kapinin FILTRE
+  modelini duzeltiyor (`68/533 -> 23/196`, parite 1328+893 rc=0, D1 etkisi 332 satir).
+  🔴 **MERGE NEDEN TUTULDU (mimar olctu):** cagri noktasi UC degil **DORT** —
+  `:3574`(`filtered` brandOk) `:4043` `:4239` `:4389` ham `markaUyeMi`; tek govde
+  `markaSorgusuEsler`(`:2813`) yalniz `:2846`'dan cagriliyor. Dahasi iki taraf **FARKLI
+  baslik kurali**: `index.html:2788` **UZUN-ONCE** yapiyor (Land Rover bigrami tutunca tekil
+  `Rover` URETILMEZ — 5 Agu: kuralsiz 80 kalem sizar), `marka_model_build.py:1024` YAPMIYOR
+  → sayfa cipten yapisal GENIS. Yalniz cagri noktalarini baglamak kapiyi yesile cevirir,
+  `Rover (0/82)` sinifi CANLIDA kalirdi.
+  **MIMAR HUKMU:** uzun-once her yerde KANONIK (site JS · uretec FAZ 1B · kapi modeli).
+  Kart sozlesmesi olculdu: `baslik` HER iki ucta da kartta VAR (`build.py:4284` ·
+  pruvo-bot `worker/src/index.js:3944`).
+  🔴 **KABUL KIRMIZI (iscinin KENDI sayisi, bagimsiz DOGRULANMADI):** `KAPI_RC=1`
+  `MUTANT=1/3` — M1+M2 hayatta, cunku **JS'i CALISTIRAN test YOK**, yani `index.html`
+  degisikligi fiilen OLCULMUYOR. Sonraki oturumun ILK isi bagimsiz curutucu: kabul
+  eksenlerini KENDIN kos · 4 cagri noktasini grep'le say · 3 mutant (`:4389` ham yukleme
+  geri · JS uzun-once etkisiz · uretec uzun-once geri).
+  ⚠️ Taban BAYAT (`marka evreni 142 -> 155`); `--taban-yaz` borcu sifirlamaz CIMENTOLAR.
+  YAYINI BLOKLAMAZ (hijyen seridi). kabul: `python3 tools/marka-invaryant-kapisi.py`
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
@@ -85,20 +99,13 @@ kullan. Cron nobeti/parti -> M3; Kimi yalniz tek-seferlik <=40-tur dilim.
   ekseninde ayrisiyor.
 - 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
   (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
-- 🟡 **Kosum sinyali kirli (yeni, olculdu):** `hijyen-a2` + `hijyen-a3` yayin zincirine bagli
-  DEGIL ama kosumun genel `conclusion`'ini `failure` yapiyor — "yayin durdu" yanlis hukmu
-  doguyor. `is-akisi-kapisi` bunu 5 bulgunun 4'unde soyluyor; cozum joblari `nobet.yml`'e
-  tasimak. Bugun iki kez bu yuzden "kirmizi" gorundu, yayin akiyordu.
-  🔴 **AMA (16 Agu ~19:30Z olculdu — ters yonlu ders):** "hijyen kirmizisi = gurultu" HUKMU
-  KURULAMAZ. Bugunku kosumda `hijyen-a3` gercekten beyan edilmis borctu (is ADINDA yaziyor:
-  "M3b acik"), ama `hijyen-a2` **GERCEK ve CANLI bir veri kusuru** buldu (K125, 11 urun bozuk
-  gorsel anahtari). Iki kirmizi ayni kosumda, biri gurultu digeri musteriye bozuk gorsel.
-  Kural: koşumun genel `conclusion`'ina degil, **is bazinda** bakilir; job tasima isi
-  kirmiziyi susturmak DEGIL, yayin hukmunu ayirmak icindir.
-- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K125 · K124.
-
-
-
+- 🟡 **Kosum sinyali kirli (olculdu):** `hijyen-a2` + `hijyen-a3` yayin zincirine bagli DEGIL
+  ama kosumun genel `conclusion`'ini `failure` yapiyor → "yayin durdu" yanlis hukmu. Cozum:
+  joblari `nobet.yml`'e tasimak. 🔴 AMA "hijyen kirmizisi = gurultu" HUKMU KURULAMAZ:
+  16 Agu kosumunda `hijyen-a3` beyan edilmis borctu, `hijyen-a2` ise GERCEK canli veri
+  kusuru buldu (K125, 11 urun bozuk gorsel anahtari). Kural: genel `conclusion`'a degil
+  **is bazinda** bakilir; job tasima kirmiziyi susturmak degil yayin hukmunu ayirmak icin.
+- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]) · K127 rotasyon madde granulu kol (`e5f5c32b`) · **K138** (mail ARIZA SINYALI degildi — nobet metni "maile guvenme" diyor, olcum `gh run list`; Okan GitHub bildirimini kapatti, crontab satiri KALDIRILDI **ve** nobet gorev metnindeki supurme adimlari §0.4+§1+§4 EMEKLI isaretlendi — yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi; otomatik mail silicisi KALMADI, bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yol; geri acma OKAN KAPISI, ikisi AYNI turda) · **K137** (birkac saat `crontab` YAZIMI asildi — okuma calisiyordu, asili surec `pgrep` ile teyitli, SIGKILL gerekti; 11:00 civari acildi. Tuzak: `crontab <dosya>` dosyayi BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc).
 
 ## OKAN'DA
 
@@ -108,15 +115,9 @@ kullan. Cron nobeti/parti -> M3; Kimi yalniz tek-seferlik <=40-tur dilim.
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
-
-
-
 ## KOSUYOR (baska mimarlar)
 
 MaCiT — Ducati d1 sub-slice 2/3 ve 3/3 (taban artik 27420) + 261 kaynak kaydi dolgusu.
-
-
-
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 
