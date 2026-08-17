@@ -129,6 +129,26 @@ jobs:
           python3 tools/d1-yazici-kilit-test.py
           python3 tools/d1-dagitik-kilit-test.py
 
+      # SITEMAP DAMGA ONBELLEGI — ayni kosum/katalog/dakika olcumunde hijyen-build
+      # `önbellekten 29037 · git'ten 1 · çözülemedi 0 · yürünen commit 2 · 0,6 sn`,
+      # bloklayici build ise `önbellekten 0 · git'ten 29025 · çözülemedi 13 · yürünen
+      # commit 938 · 240,0 sn · süre aşıldı: True` ölçtü. Build de aynı hızlandırıcıyı
+      # kullanmalı. Aynı koşumda iki iş aynı key'i kaydetmeye çalışırsa ikincisi
+      # "cache already exists" uyarısı alır; bu zararsızdır, adımı kırmızı yapmaz.
+      - name: "Sitemap damga onbellegi (lastmod hizlandiricisi — dogruluk buna bagli DEGIL)"
+        uses: actions/cache@v4
+        with:
+          path: sitemap-damgalari.json
+          key: sitemap-damga-${{ github.sha }}
+          restore-keys: |
+            sitemap-damga-
+
+      - name: Ozet kart alani sozlesme kabul testi
+        run: python3 tools/ozet-alan-sozlesme-test.py
+
+      - name: Ozet kart alani sozlesme mutasyon kabul testi
+        run: python3 tools/ozet-alan-sozlesme-test.py --mutasyon
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
