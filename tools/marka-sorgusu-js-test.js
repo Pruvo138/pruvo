@@ -39,8 +39,10 @@ const ROOT = path.dirname(__dirname);
 const INDEX = process.env.PRUVO_INDEX_YOLU || path.join(ROOT, "index.html");
 
 const FAILS = [];
+let TOPLAM = 0; // 🔴 sabit yazılmaz: kontrol eklenince `GECEN=` payda'sı sessizce bayatlardı
 
 function kontrol(ad, kosul) {
+  TOPLAM += 1;
   if (kosul) {
     console.log("  PASS  " + ad);
   } else {
@@ -129,19 +131,36 @@ kontrol("C2 uyelik onek kuralindan katlanir ('Volvo Penta' urunu → Volvo)",
 kontrol("C3 ilgisiz urun hicbir kolla eslesMEZ",
   esler(urun({ marka: ["Bosch"], baslik: "Jant kapagi klipsi" }), katla("Rover")) === false);
 
-// D. TEK GÖVDE İNVARYANTI — süzme yollarında ham `markaUyeMi(` kalmaz
-// Meşru geçiş yerleri: tanım satırı + `markaSorgusuEsler` gövdesindeki TEK çağrı.
+// D. TEK GÖVDE İNVARYANTI — süzme yollarında ham üyelik yüklemi KALMAZ.
+// 🔴 İKİ BİÇİM birden yasaklanır (ölçüldü 17 Ağu, mutasyon M1): ham üyelik yalnız
+// `markaUyeMi(` ADIYLA geri gelmez — asıl regresyon deseni INLINE yazımdır
+// (`(p.marka||[]).some(function(b){ return markaKatla(b) === hedefMarka; })`), ki dal
+// öncesi dört çağrı noktasında tam olarak o duruyordu. Yalnız adı arayan bir ölçüt
+// mutantı YEŞİL geçirir ([[fikstur-degeri-mutasyon-koru]]).
+// Meşru geçiş: `markaUyeMi` TANIM GÖVDESİ (inline yüklemin tek kanonik evi) +
+// `markaSorgusuEsler` gövdesindeki TEK adlı çağrı.
+const HAM_YUKLEM_IZI = "markaKatla(b) === hedefMarka";
+const uyeMiTanimSatiri = satirlar.findIndex(function (s) {
+  return /^\s*function markaUyeMi\(/.test(s);
+});
 const hamCagrilar = [];
 satirlar.forEach(function (s, i) {
-  if (s.indexOf("markaUyeMi(") === -1) { return; }
-  if (/^\s*function markaUyeMi\(/.test(s)) { return; }          // tanım
-  if (s.indexOf("return markaUyeMi(p, hedefMarka) ||") !== -1) { return; } // tek gövde
-  if (/^\s*\/\//.test(s)) { return; }                             // yorum
-  hamCagrilar.push((i + 1) + ": " + s.trim());
+  if (/^\s*\/\//.test(s)) { return; }                                       // yorum
+  const adlaCagri = s.indexOf("markaUyeMi(") !== -1 &&
+    !/^\s*function markaUyeMi\(/.test(s) &&
+    s.indexOf("return markaUyeMi(p, hedefMarka) ||") === -1;
+  // inline yüklem: yalnız markaUyeMi tanımının HEMEN İÇİNDE (tanım satırı + 2) meşru
+  const inline = s.indexOf(HAM_YUKLEM_IZI) !== -1 &&
+    !(uyeMiTanimSatiri !== -1 && i > uyeMiTanimSatiri && i <= uyeMiTanimSatiri + 2);
+  if (adlaCagri || inline) {
+    hamCagrilar.push((i + 1) + ": " + s.trim());
+  }
 });
-kontrol("D1 suzme yollarinda HAM markaUyeMi cagrisi YOK (bulunan: " +
+kontrol("D1 suzme yollarinda HAM uyelik yuklemi YOK — ad VE inline biciminde (bulunan: " +
   hamCagrilar.length + (hamCagrilar.length ? " → " + hamCagrilar.join(" | ") : "") + ")",
   hamCagrilar.length === 0);
+kontrol("D1b markaUyeMi tanimi bulundu (inline yuklemin kanonik evi olculebilir)",
+  uyeMiTanimSatiri !== -1);
 
 // D2: dört çağrı noktasının hepsi tek gövdeden geçiyor mu (pozitif sayaç)
 let govdeCagri = 0;
@@ -154,7 +173,7 @@ kontrol("D2 markaSorgusuEsler cagri noktasi >= 4 (olculen: " + govdeCagri + ")",
 
 // --- 4) HÜKÜM ---------------------------------------------------------------
 console.log("");
-console.log("GECEN=" + (10 - FAILS.length) + "/10  HAM_UYELIK_CAGRISI=" + hamCagrilar.length +
+console.log("GECEN=" + (TOPLAM - FAILS.length) + "/" + TOPLAM + "  HAM_UYELIK_CAGRISI=" + hamCagrilar.length +
   "  GOVDE_CAGRI=" + govdeCagri);
 if (FAILS.length) {
   console.log("SONUC: KALDI ❌  (" + FAILS.length + ")");

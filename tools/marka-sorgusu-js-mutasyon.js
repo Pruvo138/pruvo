@@ -58,6 +58,14 @@ const MUTANTLAR = [
     if (s.indexOf(eski) === -1) { return null; }
     return s.replace(eski, "return markaUyeMi(p, hedefMarka);");
   }],
+  // M5, M1'in KARDESI: ayni regresyon ADLI cagri biciminde geri gelirse de yakalanmali.
+  // Iki bicim ayri ayri kanitlanir — yoksa olcut yalnizca birini gorur ve digeri sizardi.
+  ["M5 grup filtresi ADLI ham cagriya geri (`:4239` sinifi)", function (s) {
+    const iz = "return markaSorgusuEsler(p, hedefMarka);";
+    const ix = s.indexOf(iz);
+    if (ix === -1 || ix === s.lastIndexOf(iz)) { return null; } // en az 2 capa sart
+    return s.slice(0, ix) + "return markaUyeMi(p, hedefMarka);" + s.slice(ix + iz.length);
+  }],
   ["M4 cip filtresi ham uyelige geri (`:3574` sinifi)", function (s) {
     const eski = "var brandOk = !hedefMarka || markaSorgusuEsler(p, hedefMarka);";
     if (s.indexOf(eski) === -1) { return null; }
