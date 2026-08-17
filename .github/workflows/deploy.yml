@@ -1127,6 +1127,19 @@ jobs:
       # olcum BIREBIR ayni (332/332). Saf Python, agsiz, ~10 s.
       - name: "Urun denetim kapisi (uretim-sureci ifsasi + 200 TL fiyat tabani/TUM katalog — bu itmenin GETIRDIGI ihlal)"
         run: python3 tools/denetim-kapisi.py --commit-farki
+      # IFSA KIP EKSENI (17 Agu 2026). Yukaridaki kapi 'basıl-' fiilini YALNIZ konjonksiyon
+      # koluyla goruyordu: ayni cumlede bir SUREC JETONU (PLA/PETG/dolgu/katman/yazici) da
+      # bulunmali. OLCULDU (canli katalog 29.035 kayit): `basıl-` koku 288 satir, bunun 238'i
+      # ("<sifat> malzemeden basılır") jetonsuz -> kapi SERT DEGIL **UYARI** diyordu, yani
+      # BLOKLAMIYORDU. O 238 kayit BUGUN YENI gelse de gecerdi; 'onceden var' filtresi tek
+      # sebep degildi. Genisleme (B1 surec jetonu + `uretim-kipi-basil` + `baski-surec-cekimi`)
+      # ve Okan onayli onarim tablosu (tools/ifsa-metin-onar.py) bu adimla olculur.
+      # 🔴 BU ADIMIN ASIL ISI IKIZ-TANIM KAPISI: kapi ile onarim araci AYRI dosyalarda AYNI
+      # gercegi tanimlar; D bolumu her pozitif vakayi onarimdan gecirip kapiya sorar. Kapiya
+      # yeni sinif eklenip onarim tablosuna karsiligi yazilmazsa BURASI kirmizi yanar.
+      # Saf Python, agsiz, urunler.json'a DOKUNMAZ, diske YAZMAZ (mutasyon yalniz bellekte).
+      - name: "Uretim-sureci ifsasi — KIP ekseni kabul + mutasyon (kapi <-> onarim tablosu ikiz-tanim kapisi)"
+        run: python3 tools/ifsa-kip-test.py
       - name: Marka filtre + yargi (silah) kabul testi
         run: |
           python3 tools/marka-filtre-test.py

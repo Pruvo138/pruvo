@@ -525,6 +525,58 @@ _IFSA_SERT = (
      #   susturur (OLCULDU: 'kayak-trolling-motoru-direksiyon-montaji' — "servo KUTUSU ust ve
      #   alt yarim parca olarak basilir" sinirsiz desende sessizce dusuyordu = fail-open).
      r"\bd[üu][ğg]me\w*|\btu[şs]\w*|\bbuton\w*|\bkorna\w*|\bpedal\w*|\bfitil\w*|ayak\s*day"),
+    # =====================================================================================
+    # 17 AGU 2026 — UCUNCU TUR: KIP EKSENI (kapinin OLCULMUS ucuncu kor noktasi)
+    # -------------------------------------------------------------------------------------
+    # Kapi 'basıl-' fiilini YALNIZ konjonksiyon koluyla (asagida kapi_ifsa madde 3) taniyordu:
+    # ayni cumlede bir SUREC JETONU (PLA/PETG/dolgu/katman/yazici/tabla...) da bulunmali.
+    # Katalogdaki BASKIN kalip o jetonu TASIMIYOR:
+    #     "Sert malzemeden basılır."  ·  "Esnek malzemeden basılması önerilir."
+    # OLCULDU (17 Agu, canli katalog 29.035 kayit): `basıl-` koku 288 satir; bunun 216'si
+    # "<sifat> malzemeden basılır", 22'si "<sifat> malzemeden basılması <tavsiye>". Bu 238
+    # kayit kapida SERT DEGIL **UYARI** kovasina dusuyordu -> BLOKLAMIYORDU. Yani sorun
+    # yalniz `--commit-farki`nin 'onceden var' kolu degildi: bu 238 kayit BUGUN YENI gelse
+    # de kapidan GECERDI. (17 Agu'da SEAT partisinde yakalanan 3 ihlal yalnizca metinde
+    # "ABS"/"PETG" gectigi icin — yani surec jetonu tasidigi icin — SERT olmustu.)
+    #
+    # SINIF (tekil yama DEGIL): 'basıl-' fiilinin YAN OGESI uretim baglamini KESINLESTIRIYOR.
+    #   * `malzemeden/malzemeyle/malzemesiyle basıl-` -> B1 olarak _SUREC_TOKEN_RE'ye eklendi
+    #     (konjonksiyon kolunun KENDI press-suzgecini bedavaya kullanir; bkz. _SUREC_TOKEN_RE).
+    #   * jetonsuz ama yan-ogesi URETIM NITELIGI olan kipler -> asagidaki kural.
+    # ⚠️ `eleme` press-anlami suzgeci ZORUNLU: "pedala sağlam basılır" gibi bir cumle
+    #   BASMA'dir. Suzgec `basil-print` kuralininkiyle AYNI kume (kelime sinirli).
+    ("uretim-kipi-basil",
+     r"bas[ıi]lmadan\s+[öo]nce"
+     r"|(?:sa[ğg]lam|sad[ıi]k|hassas|p[üu]r[üu]zs[üu]z|kaliteli|eksiksiz)\s+bas[ıi]l",
+     "'basıl-' URETIM yan ogesiyle ('basılmadan önce', 'sağlam basılır') — konjonksiyon kolu "
+     "surec JETONU istedigi icin bu kipler UYARI kovasinda kaliyordu (olculdu: 288 satirin "
+     "238'i jetonsuz)",
+     r"\bd[üu][ğg]me\w*|\btu[şs]\w*|\bbuton\w*|\bkorna\w*|\bpedal\w*|\bfitil\w*|ayak\s*day"),
+    # --- `baskı` ISMININ SUREC CEKIMLERI --------------------------------------------------
+    # Mevcut `baski-parametre`/`baski-hacmi` kurallari `baskı`yi yalniz SIFAT/PARAMETRE
+    # es-diziminde goruyordu ("ekonomik baskı", "baskı ayarı", "baskı yatağı"). Katalogdaki
+    # kalan sizinti `baskı`nin YER/ZAMAN cekimlerinde ve URUN-ISMI tamlamasinda yaziliydi:
+    #   "baskıda ölçü toleransı" · "baskı sonrası tolerans" · "baskıyla üretilen" ·
+    #   "test baskısıyla teyit edilmiş" · "dekoratif baskı modeli" · "baskı muhafazadır"
+    # 🔴 CIPLAK `baskı` YINE YOK (mevcut olcum: 140 kayda carpar, %69 yanlis-pozitif). Her
+    #   alternatif DAR bir tamlamadir; basinc okumasi olculmus olanlar (`baskı takozu`,
+    #   `baskıyla oturur`, `baskı yüzeyi`) `eleme` suzgeciyle DUSER.
+    # ⚠️ BILEREK DISARIDA: `baskı parçası` (basinc plakasi parcasi olabilir) ve
+    #   `baskıya göre` (basinc okumasi olculmedi, tek kayit) — supheliyi SERT yakmiyoruz.
+    ("baski-surec-cekimi",
+     r"bask[ıi]\s*(?:sonras|[öo]ncesi|model|esnas|s[ıi]ras)"
+     r"|bask[ıi]da\s+(?:[öo]l[çc]|ince|marka|test|[üu]retil|[çc][ıi]k)"
+     r"|test\s+bask[ıi]"
+     r"|bask[ıi](?:yla|\s+ile)\s+(?:[üu]retil|yap[ıi]l)"
+     r"|dekoratif\s+bask[ıi]"
+     r"|bask[ıi]\s+i[çc]in\s+(?:optimize|tasarlan)"
+     r"|bask[ıi]\s+(?:kutu|muhafaza)",
+     "'baskı' isminin SUREC cekimi/tamlamasi ('baskıda ölçü', 'baskı sonrası', 'baskıyla "
+     "üretilen', 'test baskısı', 'dekoratif baskı modeli') = uretim sureci dili",
+     r"bask[ıi]\s*(?:balata|plaka|pim|c[ıi]vata|bur[çc]|disk|nokta|apar|merkez|takoz"
+     r"|klips|y[üu]zey|kuvvet|yay[ıi]|g[öo]rd)"
+     r"|bask[ıi]y[la]a?\s*(?:otur|tutun|ge[çc]|tak[ıi]l|s[ıi]k[ıi][şs]|yerle|klipsle)"
+     r"|su\s*bask[ıi]n|bask[ıi]l[ıi]\s*devre|debriyaj|bask[ıi]\s*ge[çc]me"),
 )
 
 # --- UYARI (SUPHELI -> eskalasyon; BLOKLAMAZ) -----------------------------------------
@@ -583,8 +635,22 @@ _BASMA_RE = re.compile(
     r"bas[ıi]l(ab[ıi]l[ıi]r|ab[ıi]lece|[ıi]r|mas[ıi]|m[ıi][şs]|[ıi]p|mal[ıi]|an|"
     r"d[ıi][ğg][ıi]nda|d[ıi]ktan|acak|[ıi]nca)|\bbas[ıi]m\b", re.UNICODE)
 # baski anlamini KESINLESTIREN surec jetonlari (malzeme / dilimleyici / yerlesim)
+#
+# 🔴 B1 (17 Agu 2026) — `malzemeden|malzemeyle|malzemesiyle` EKLENDI. Gerekce (OLCULDU,
+#   canli katalog 29.035 kayit): katalogdaki en yogun ifsa kalibi "<sifat> malzemeden
+#   basılır." (216 kayit) + "<sifat> malzemeden basılması <tavsiye>" (22 kayit) hicbir
+#   surec jetonu tasimiyordu -> konjonksiyon kolu SERT diyemiyor, UYARI'ya dusuyor,
+#   yayin BLOKLANMIYORDU. Bir seyin "malzemeDEN basılması" Turkce'de yalnizca URETIM
+#   okumasi tasir (bir yuzeye/dugmeye BASMA'nin ablatif malzeme tumleci olmaz).
+# ⚠️ CIPLAK `malzeme` BILEREK YOK: "esnek malzeme tercih edilmesi kazara basılmasını
+#   önler" gibi cumlelerde yalin ad BASMA cumlesinde de gecer. Yalniz ablatif/vasita
+#   ekli bicimler alinir.
+# ✅ PRESS SUZGECI BEDAVA GELIR: konjonksiyon kolu (kapi_ifsa madde 3) _SUREC_TOKEN_RE'ye
+#   BAKMADAN ONCE _PRESS_RE ile cikar; "pedala yumuşak malzemeden basılır" gibi bir
+#   cumle bu eklemeden ETKILENMEZ.
 _SUREC_TOKEN_RE = re.compile(
     r"\bpla\b|\bpetg\b|\babs\b|\btpu\b|\basa\b|\btpe\b|filaman|filament"
+    r"|malzemeden|malzemeyle|malzemesiyle"
     r"|dolgu|doluluk|destek|katman|yaz[ıi]c[ıi]|tabla|[çc][öo]z[üu]n[üu]rl[üu]k"
     r"|par[çc]a\s*halinde|par[çc]ada|par[çc]a\s*bas|ters\s*bas|yan\s*yat[ıi]r"
     r"|k[öo]pr[üu]|saatte|dakikada|solid|a[çc][ıi]yla|a[şs]a[ğg][ıi]\s*bakacak"
