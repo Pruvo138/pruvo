@@ -2,7 +2,20 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-
+## 🔻 OTURUM KAPANISI — 17 Agu 2026 gece (ana repo `44cd9b96` = origin, agac temiz)
+**CANLIYA GITTI:** K153 seq tikanmasi (`5050fbed`, D1 28980→29012, canli 200/29012 teyitli) ·
+K155 marka bos jetonu (`8b81c769`) · K154 mutasyon capasi (`2c092d5c`) · K156 karantina
+yanlis-pozitifi · K159 codex pencere kapisi (`db2cc183`, 20 Agu'da KENDILIGINDEN kapanir) ·
+K160 urun metni duzeltmesi (`b180fa1a`) · K140 marka evreni (`10ae08d1`) · K149 temizlik
+sayaci (`64039de8`; `profil-*` 268→13 disk teyitli).
+**KOSUYOR (baska oturumlar — DOKUNMA):** urun dili temizligi (worktree `amazing-hamilton-c45e91`) ·
+BaBa kalemleri K150+K148 (worktree `competent-dijkstra-754039`) · `build.py` cokmesi (yeni chip).
+**BEKLIYOR:** 🔴 `build.py` exit 1 (`ozet.json` v3 temsili bozuk + sitemap git taramasi 240 sn
+doldu) → `deploy`+`yayin` **skipped**, vitrin yayini KAPALI · dal `k152-link-temiz`
+(`56269db4`) main'e GIRMEDI, merge bekliyor · `tools/marka-uyelik-test.py` bes oturumdur
+commit'siz (K136).
+**OKAN'DA:** 22 Agu kimi/codex motor karari · $100 plan karari (once yanma olcumu) ·
+Navlungo `il-ilce-dilim1` merge'i.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
