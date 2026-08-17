@@ -4,6 +4,8 @@
 
 
 
+
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
 - 🔧 **K134 (17 Agu — defter rotasyonu SINIF kalemi):** kota kancasinin gosterdigi care
@@ -11,23 +13,22 @@
   (tarihli kapanis bloklari govdesinde `BEKLIYOR`/`KOSUYOR`/🔴 tasiyordu → acik-isaretci
   vetosu). **Kok kusur ARACTA DEGIL DEFTERDE:** tarihli blok TARIH olmali, canli durum
   kalem bolumlerinde. Temizlenince rotasyon 5 blok aldi (233 -> 178).
-  **Yon:** (a) kancanin `CARE:` metni ROLUN kosabilecegi yolu gostersin, (b) "tarihli
-  blokta acik-isaretci jetonu KULLANILMAZ" doktrine gecsin, (c) teste "canli durum tasiyan
-  tarihli blok" fiksturu + mutant. [[kapinin-recete-ettigi-care-baska-kapida-yasak]].
-  🔴 **17 Agu EK:** rotasyon 2 blok aldi (185→152) ama kota yine kirmizi — kalem bolumu TEK BASINA tavani asiyor; kapanis 7 ardisik elle kisaltma gerektirdi.
+  **Yon:** (a) kancanin `CARE:` metni ROLUN kosabilecegi yolu gostersin, (b) "tarihli blokta
+  ve KAPANDI maddesinde acik-isaretci jetonu KULLANILMAZ" doktrine gecsin, (c) teste "canli
+  durum tasiyan blok" fiksturu + mutant. [[kapinin-recete-ettigi-care-baska-kapida-yasak]].
+  🔴 **EK:** rotasyon 4 kosumda 3 madde aldi, kota yine kirmizi; kapanis **11 elle kisaltma**
+  istedi — kalem bolumu TEK BASINA tavani asiyor. KAPANDI maddesinin govdesine acik is
+  yazmak (K145'te ben yaptim) araci veto ettiriyor; acik is AYRI kaleme cikmali.
   kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `tools/cgt-ekle.py::fetch()` tek satir UA ile CGTrader'in
   AWS WAF JS-challenge'ina takiliyor (HTTP 202 + ~2KB placeholder); buyuk partilerde IP bazli
-  rate-limit. Dilim-2'de 15 KEEP bloke kaldi. Yon: `fetch()`'e retry/backoff + tam Chrome
-  baslik seti. Ayrica `tools/arsiv/cgt-ara.py:41` `printables-api.py`'yi `arsiv/` altinda
-  ariyor ama dosya ust dizinde — arsivdeki haliyle `FileNotFoundError`.
-  Mukerrer kanca sinifi K143'te KAPANDI. `kabul:` alani BOS.
-  🔴 **17 Agu EK-2:** arac HALA Codex'e bagimli; MaCiT Ford dilim-3 + Volvo dilim-2'yi her
-  seferinde YENIDEN yazilan gecici bir final betigiyle asti (ikisi de silindi). Kalici
-  `--yerel` yolu KraL'da; bir sonraki dilim oncesi baglanacak.
+  rate-limit. Yon: `fetch()`'e retry/backoff + tam Chrome baslik seti. Ayrica
+  `tools/arsiv/cgt-ara.py:41` `printables-api.py`'yi `arsiv/` altinda ariyor ama dosya ust
+  dizinde — arsivdeki haliyle `FileNotFoundError`. `kabul:` alani BOS.
+  🔴 **EK-2:** arac HALA Codex'e bagimli; MaCiT Ford d3 + Volvo d2'yi her seferinde YENIDEN
+  yazilan gecici final betigiyle asti. Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` DORT oturumdur
-  commit'siz; agac hali K126'nin "tek govde" yuklemini ham donguye GERI ALIYOR
-  (commit'lenirse K126 regresyonu). Sahibi belirsiz, DOKUNULMADI.
+  commit'siz; agac hali K126 "tek govde" yuklemini ham donguye GERI ALIYOR. DOKUNULMADI.
 - 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` TEK BASINA
   kosumda vaka 1 KALDI verdi, `testler.py` icinden GECTI; kontrol kosumu celiskiyi YENIDEN
   URETEMEDI. Muhtemel kok: eszamanli kosumdan kalan bekci sureci — KANITLANMADI.
@@ -41,49 +42,43 @@
   🔴 ETKI: posta kutusu OTOMATIK izlenmiyor (oturum basinda ELLE okunacak) ve **urun
   partileri kendiliginden ILERLEMIYOR**. Ders: kota keserken EN COK YAKANI olc — 16 Agu
   kesintisi 144 turluk izleyici ciftine hic dokunmamisti. `kabul:` alani BOS.
-- 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, sonraki turun ILK isi):** guncel uc `659524df` (K143
-  merge'i; onceki `c5225016` bu uctan geriye kapsandi). Push seridinin iki nabzi success,
-  `build`+nobet seridi PENDING (kuyrukta). [[ucustaki-kosum-yesil-degildir]] — yesil DENMEDI.
-  🔴 17 Agu EK: push bir kez UZAKTAN REDDEDILDI — pre-push kapak taramasi ~10 dk surerken baska
-  oturum ayni iki urun partisini FARKLI SHA ile yayimladi (`cannot lock ref`). Cozum rebase DEGIL
-  fetch+merge; ONCE `urunler.json`'un iki tarafta BIREBIR AYNI oldugu OLCULDU (mukerrer urun riski
-  yok). kabul: `659524df`'yi ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
-- ✅ **K143 KAPANDI** (kanca yeniden KORUYOR; belgeli atlama yoluna gerek kalmadi): (a) BASLIK
-  ekseninin istisnasi YOKTU — dogrulanmis mesru cift hicbir yere cokemiyordu. Istisna artik
-  `baslik`+`idler` ile yazilir ve **ID KUMESINE** baglidir (ucuncu kayit girerse eslesme
-  BOZULUR, kapi yeniden kirmizi yanar); Himalayan cifti islendi (**48 -> 49 kayit**).
-  (b) Kapsam **stage'lenmis** degisiklige daraldi — urun dosyasina dokunmayan commit TARANMAZ
-  (neden BASILIR), git OKUNAMAZSA tarama yine kosar ([[kanca-stage-disi-agaci-tarar]]).
-  Olculdu: **14/14 iddia + 6/6 mutant OLDU** (A9/A10 kapsam ayirt edicisi), `--test` GECTI,
-  CI_KAPSAM_RC=0. kabul: `python3 /Users/okan/dev/pruvo/tools/mukerrer-kapsam-test.py`
+- 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, sonraki turun ILK isi):** guncel uc `9f5e26da`; push
+  seridinin nabizlari success, `build`+nobet seridi PENDING.
+  [[ucustaki-kosum-yesil-degildir]] — yesil DENMEDI. Bir push UZAKTAN REDDEDILDI (pre-push
+  ~10 dk surerken baska oturum ayni partileri farkli SHA ile yayimladi); cozum rebase DEGIL
+  fetch+merge, once `urunler.json` iki tarafta BIREBIR AYNI olculdu.
+  kabul: `9f5e26da`'yi ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - 🔧 **K140 (17 Agu — K133'un KALAN kuyrugu, YAYINI BLOKLAMAZ):** `marka-invaryant-kapisi.py`
   hala 5 kontrol kirmizi (`FILTRE_KAYIP=23/197` · `ARAMA_KAYIP=4/105`). Olculdu: kalan kayip
   jetonlarin **7/8'i MARKA DEGIL MODEL jetonu** (`1290` `690` `Ciao` `DL650` `MT-07` `MT-09`
-  `V-Strom`; yalniz `Rover` gercek marka). Dal bunlari BILEREK haric tuttu
-  (`marka_kanon_haritasi` `_hedef_markalar` yalniz `marka_only>0`).
-  **Acik soru MIMARDA:** model jetonu icin `/marka/<jeton>/` sayfasi beklemek kapinin MODEL
-  hatasi mi, uretec mi eksik? Once bu ayrim. ⚠️ Taban BAYAT (`142 -> 155`).
-  kabul: `python3 tools/marka-invaryant-kapisi.py` (rc=0) **VE** hukum notunda hangi
-  sinifin secildigi YAZILI.
+  `V-Strom`; yalniz `Rover` gercek marka); dal bunlari BILEREK haric tuttu.
+  **Acik soru MIMARDA:** model jetonu icin `/marka/<jeton>/` beklemek kapinin MODEL hatasi
+  mi, uretec mi eksik? Once bu ayrim. ⚠️ Taban BAYAT (`142 -> 155`).
+  kabul: `python3 tools/marka-invaryant-kapisi.py` (rc=0) **VE** secilen sinif YAZILI.
+- 🔴 **K147 (17 Agu — NOBETIN DAGITACAK ISI YOK; BaBa'nin ② kararinin girdisi):** K145 gocu
+  sonrasi kuru tur `KAT_MIMAR=10 KAT_TARAMA=1 KAT_MEKANIK=0 KAT_OKAN=1 **DAGITILAN=0**`.
+  Goc kati acti ama kuyrugun **%83'u sessiz-hata sinifi** — isciye VERILEMEZ, mimar isidir.
+  Dagitim kolu bu kuyrugu ERITEMEZ; eriten sey MIMAR turudur.
+  kabul: (a) `nobet-onarimsiz-sayac.json` **63'un ALTINA** iner (dusmezse karar ②'ye gecer),
+  (b) ayni pencerede `ci-nobeti.log`'da `KAPANAN>0` ya da `ONARIM>0` gecen EN AZ BIR tur.
+- 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
+  DISINDA, degisen dosyanin yedegi alinmiyor → curutucu, iscinin kabul-testi fiksturunu
+  MESRU mu degistirdi **OLCEMEDI** (`FIKSTUR_MESRU=0/0`); dolayli kanit guclu (mutant 9/9)
+  ama eksen KOR. Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
 - 🔴 **K141 (17 Agu — OLCULEMEYEN NOBET, sinif kalemi):** `tools/kapi-envanteri.py` main'de
   DE kirmizi (`rc=1`): `mimar-icra-kapisi` ve `mimar-kod-kilidi` icin
   **"NOBETTE degil — reddetmesi gerekeni REDDETMEDI"**. Sebep yapisal: bu iki kapinin
-  nobet testi **isci turunda** kosuyor ve kapilarin isci/agent muafiyet kolu "reddetmeli"
-  vakasini gecirmiyor; mimar ise ayni komutu KENDI kosamaz (kapi mimarin Bash'ini
-  reddediyor). Yani **iki mimar kapisinin
-  canliligi hicbir yerden olculemiyor** — [[makineyi-olctuk-urunu-olcmedik]] ile ayni aile,
-  [[parite-testi-olculemedi-basiyor]] ile ayni mekanik. Yon: nobet vakasi muafiyet kolundan
-  BAGIMSIZ bir altsurecte kosmali (muafiyeti taklit etmeyen temiz ortam).
-  `kabul:` alani BOS — kapanmadan once doldurulacak.
+  nobet testi **isci turunda** kosuyor ve isci/agent muafiyet kolu "reddetmeli" vakasini
+  gecirmiyor; mimar ise ayni komutu KENDI kosamaz. Yani **iki mimar kapisinin canliligi
+  hicbir yerden olculemiyor** — [[makineyi-olctuk-urunu-olcmedik]] ailesi. Yon: nobet vakasi
+  muafiyet kolundan BAGIMSIZ altsurecte kossun. `kabul:` alani BOS.
 - 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari
   `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi). Canlida 404 veren URUN
   KAPAKLARI — K125 ile AYNI SINIF ([[gorsel-anahtar-cakismasi]]). Tam liste push logunda,
   kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
-- ✅ **K133 KAPANDI** (`42e28cf7` merge, `c5225016` push): marka cipi ile marka sayfasi tek
-  govdeden (`markaSorgusuEsler`) turuyor; FILTRE farki `68/535` iken `23/197`, ARAMA farki
-  `11/118` iken `4/105`; degisikligi olcen canli JS testi + mutasyon bataryasi (11/11, 5/5)
-  CI'a baglandi. Tam gerekce, tutma karari ve iki curutme turunun sayilari ARSIVDE
-  (17 Agu 09:5x blogu). Kalan kuyruk K140, ucustaki kosum K144.
+- ✅ **K133 KAPANDI** (`42e28cf7` merge, `c5225016` push): cip ile sayfa tek govdeden turer;
+  FILTRE `68/535`→`23/197`, ARAMA `11/118`→`4/105`; canli JS testi 11/11 + mutasyon 5/5
+  CI'da. Detay ARSIVDE. Kalan kuyruk K140.
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
@@ -108,6 +103,8 @@
 
 
 
+
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -118,9 +115,13 @@
 
 
 
+
+
 ## KOSUYOR (baska mimarlar)
 
 MaCiT — Ducati d1 sub-slice 2/3 ve 3/3 (taban artik 27420) + 261 kaynak kaydi dolgusu.
+
+
 
 
 
