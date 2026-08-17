@@ -136,8 +136,11 @@ def kutu_uret(n, citli=False):
 
 
 # -------------------------------------------------- BAGIMSIZ ORACLE (araci taklit ETMEZ)
-def oracle_kesim(metin, tavan, koru):
+def oracle_kesim(metin, tavan, koru, su_seviye_orani=0.8):
     """(tasinacak_blok, kesim_indeksi) — aracin mantigindan BAGIMSIZ, sade yeniden hesap.
+
+    O1 (16 Agu 2026): kutu tavanin su seviyesine (~%80) dusurulur; gelecek
+    bloklar icin bas payi birakir. Oracle da ayni kurala uyar.
 
     Fikstur uretimi cit-siz vakalarda ust duzey `## ` disinda `## ` uretmez; citli
     fikstur icin ayri (13.) vaka vardir.
@@ -166,19 +169,24 @@ def oracle_kesim(metin, tavan, koru):
     tasinabilir = max(0, len(baslar) - koru)
     if tasinabilir <= 0:
         return 0, None
+    su_seviye = int(tavan * su_seviye_orani)
+    if su_seviye < 1:
+        su_seviye = 1
     t = 1
     while t <= tasinabilir:
         kesim = baslar[len(baslar) - t]
-        if kesim <= tavan:
+        if kesim <= su_seviye:
             return t, kesim
         t += 1
     return tasinabilir, baslar[len(baslar) - tasinabilir]
 
 
 # --------------------------------------------------------------------- kosucu
-def kos(arac, kutu, arsiv, kilit, tavan=300, koru=3, kuru=False, ortam=None):
+def kos(arac, kutu, arsiv, kilit, tavan=300, koru=3, kuru=False, ortam=None,
+        su_seviye_orani=0.8):
     komut = [sys.executable, arac, "--kutu", kutu, "--arsiv", arsiv, "--kilit", kilit,
-             "--tavan", str(tavan), "--koru", str(koru)]
+             "--tavan", str(tavan), "--koru", str(koru),
+             "--su-seviye-orani", str(su_seviye_orani)]
     if kuru:
         komut.append("--kuru")
     env = dict(os.environ)
@@ -456,11 +464,59 @@ def v14_iki_kosum(arac, kok):
     iddia("14e hicbir blok IKIZLENMEDI", not ikiz, "ikiz=%r" % ikiz)
 
 
+def v15_su_seviyesi_doldurur(arac, kok):
+    """[15] V-D: kutu TAM tavanda → rotasyon KOSAR ve su seviyesine iner.
+
+    O1 (16 Agu 2026): eski davranis kutu tam 300'te duruyor, bir sonraki
+    blok 301'e itiyordu. Yeni davranis: rotasyon su seviyesine (~%80)
+    kadar indiri ki bir sonraki blok tavanin ustune HEMEN cikmasin.
+    """
+    print("\n[15] V-D: kutu tam tavanda → rotasyon KOSAR + su seviyesine iner")
+    # Tavan 300; dosya TAM 300 satir olacak sekilde blok sayisi ayarlanir.
+    # kutu_uret(N) her blogu 10 satir uretir; FM 7 satir. 30 blok = 300 + 7.
+    metin = kutu_uret(30)
+    a = Alan(kok, metin)
+    # On kosul: dosya tavani asiyor (veya esit).
+    assert len(metin.splitlines()) > 300, "fikstur tavan altinda"
+    h1, h2 = sha(a.kutu), sha(a.arsiv)
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=300, koru=3)
+    iddia("15a rc=0", rc == 0, cikti)
+    sonra = len(oku(a.kutu).splitlines())
+    # Su seviyesi 240; kutu < 240 olmali (veya tavanin altinda kalmali).
+    iddia("15b kutu su seviyesinin altinda (sonra=%d, su_seviye=240)" % sonra,
+          sonra <= 240)
+    # TAVAN altinda ama 300'e YAKIN DEGIL — bas payi var.
+    iddia("15c kutu tavana kadar inmedi (bas payi var)",
+          sonra < 300 - 30, "sonra=%d, tavan-30=%d" % (sonra, 300 - 30))
+    iddia("15d kutu DEGISTI", sha(a.kutu) != h1)
+    iddia("15e arsiv DEGISTI", sha(a.arsiv) != h2)
+
+
+def v16_su_seviyesi_nop(arac, kok):
+    """[16] V-E: kutu su seviyesinin altinda → NO-OP (bayt-bayt ayni).
+
+    Dosya zaten 200 satirdan az oldugunda rotasyon KOSMAZ; arsiv ve kutu
+    bayt-bayt ayni kalmali.
+    """
+    print("\n[16] V-E: kutu su seviyesinin altinda → NO-OP (bayt-bayt ayni)")
+    # kutu_uret(15) uretiyor ~150 satir; bu su seviyesinin (240) altinda.
+    metin = kutu_uret(15)
+    a = Alan(kok, metin)
+    assert len(metin.splitlines()) < 240, "fikstur su seviyesinin ustunde"
+    h1, h2 = sha(a.kutu), sha(a.arsiv)
+    rc, cikti = kos(arac, a.kutu, a.arsiv, a.kilit, tavan=300, koru=3)
+    iddia("16a rc=0", rc == 0, cikti)
+    iddia("16b kutu bayt-bayt ayni", sha(a.kutu) == h1)
+    iddia("16c arsiv bayt-bayt ayni", sha(a.arsiv) == h2)
+    iddia("16d 'TAVAN ALTINDA' basildi", "TAVAN ALTINDA" in cikti, cikti)
+
+
 VAKALAR = (v01_tavan_altinda, v02_dogru_sayida_blok, v03_birebir_satirlar,
            v04_frontmatter_ve_ust_bloklar, v05_blok_bolunmez,
            v06_arsiv_yoksa_frontmatter, v07_kilit, v08_bozuk_frontmatter,
            v09_bozuk_utf8, v10_kuru, v11_sentetik_ariza, v12_koru_tavani,
-           v13_cit_ici_baslik, v14_iki_kosum)
+           v13_cit_ici_baslik, v14_iki_kosum,
+           v15_su_seviyesi_doldurur, v16_su_seviyesi_nop)
 
 
 def suite(arac, sessiz=False):

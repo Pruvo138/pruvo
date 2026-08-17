@@ -223,23 +223,121 @@ def _atomik_yaz(yol, icerik):
         raise
 
 
+def _tavan_asildi_mi(defter_yol, tavan_sayi, tavan_bayt):
+    """Dosya tavanin ustunde mi? Satir/bayt esiklerinden herhangi biri asildiysa True.
+
+    tavan_sayi/tavan_bayt None ise o eksen yok sayilir. Ikisi de None ise
+    her zaman False (mevcut tek-gecis davranisina geri doner).
+    """
+    if tavan_sayi is None and tavan_bayt is None:
+        return False
+    try:
+        with open(defter_yol, "rb") as f:
+            ham = f.read()
+    except OSError:
+        return False
+    satir = len(ham.splitlines())
+    bayt = len(ham)
+    if tavan_sayi is not None and satir > tavan_sayi:
+        return True
+    if tavan_bayt is not None and bayt > tavan_bayt:
+        return True
+    return False
+
+
+def _bugun():
+    import datetime
+    return datetime.date.today().isoformat()
+
+
+# Tek-gecis emniyeti: sonsuz donguye karsi maksimum deneme sayisi.
+_TEK_GECIS_TAVAN = 64
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("defter", help="kaynak defter (ornek: DEVAM.md)")
     p.add_argument("arsiv", help="hedef arsiv (ornek: DEVAM-ARSIV.md)")
     p.add_argument("--tarih", default=None,
                    help="rotasyon tarihi YYYY-MM-DD (varsayilan: bugun)")
+    p.add_argument("--tavan-sayi", type=int, default=None,
+                   help="defter satir tavanini asagiya cekmek icin kapali icerik"
+                        " bitene kadar tekrar gecis yapar (ornek: 130). None ise"
+                        " tek gecis (geriye uyumlu).")
+    p.add_argument("--tavan-bayt", type=int, default=None,
+                   help="defter bayt tavanini asagiya cekmek icin kapali icerik"
+                        " bitene kadar tekrar gecis yapar (ornek: 12288). None ise"
+                        " tek gecis (geriye uyumlu).")
     a = p.parse_args(argv)
 
-    if a.tarih is None:
-        import datetime
-        tarih = datetime.date.today().isoformat()
-    else:
-        tarih = a.tarih
+    tarih = a.tarih if a.tarih is not None else _bugun()
 
     defter_yol = os.path.abspath(a.defter)
     arsiv_yol = os.path.abspath(a.arsiv)
 
+    # TAVAN BAGIMLI ROTASYON: --tavan-sayi veya --tavan-bayt set ise
+    # kapali icerik tukenene kadar tekrar gecis yap; tavan altina inerse
+    # BASARILI, inemezse FAIL-LOUD.
+    if a.tavan_sayi is not None or a.tavan_bayt is not None:
+        # V-C: tavan altindayiz mi? Onceki dosya durumunu OLCEMEDEN once
+        # bayt-bayt ayni kalmali; eger zaten tavan altindaysa NO-OP.
+        with open(defter_yol, "rb") as f:
+            onceki_ham = f.read()
+        if not _tavan_asildi_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
+            satir = len(onceki_ham.splitlines())
+            arsiv_satir = (len(open(arsiv_yol, "rb").read().splitlines())
+                           if os.path.exists(arsiv_yol) else 0)
+            print("TASINAN=0 TASINAN_MADDE=0 DEFTER_SATIR=%d ARSIV_SATIR=%d TAVAN=DOLU_NO_OP" % (
+                satir, arsiv_satir))
+            return 0
+        # Tavan ustundeyiz — kapali icerik bitene kadar tekrar gecis yap.
+        toplam_blok = 0
+        toplam_madde = 0
+        gecis = 0
+        son_rc = 0
+        while gecis < _TEK_GECIS_TAVAN:
+            gecis += 1
+            # ic _tek_gecis mantigini calistirmak icin satir 277+ govdesini
+            # yeniden calistirmak yerine, bir alt fonksiyon olarak yeniden
+            # cagiriyoruz.
+            rc, tb, tm, _ds, _as = _tek_gecis_calistir(defter_yol, arsiv_yol, tarih)
+            toplam_blok += tb
+            toplam_madde += tm
+            if rc != 0:
+                son_rc = rc
+                break
+            if tb == 0 and tm == 0:
+                # Kapali icerik tukendi.
+                son_rc = 1
+                break
+            if not _tavan_asildi_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
+                print("TAVAN_BASARILI GECIS=%d TASINAN=%d TASINAN_MADDE=%d" % (
+                    gecis, toplam_blok, toplam_madde))
+                return 0
+        with open(defter_yol, "rb") as f:
+            ham = f.read()
+        satir = len(ham.splitlines())
+        bayt = len(ham)
+        if son_rc == 1:
+            print("TAVAN_FAIL_LOUD: defter hâlâ tavanin ustunde — kapali madde yok",
+                  file=sys.stderr)
+            print("  DEFTER_SATIR=%d DEFTER_BAYT=%d TAVAN_SAYI=%s TAVAN_BAYT=%s GECIS=%d" % (
+                satir, bayt,
+                str(a.tavan_sayi) if a.tavan_sayi is not None else "-",
+                str(a.tavan_bayt) if a.tavan_bayt is not None else "-",
+                gecis), file=sys.stderr)
+        return son_rc
+
+    # Tek-gecis davranisi (tavan bayragi yok): mevcut tek-tekil yol.
+    return _tek_gecis_calistir(defter_yol, arsiv_yol, tarih)[0]
+
+
+def _tek_gecis_calistir(defter_yol, arsiv_yol, tarih):
+    """TEK rotasyon gecisi. (rc, tasinan_blok, tasinan_madde, defter_satir, arsiv_satir).
+
+    Disaridaki tavan dongusu icin birim; tavan kontrolu YAPMAZ; sadece
+    kapali icerigi tasiyip diske yazar.
+    """
     # Oku (orijinal baytlar uzerinden dogrulama yapacagiz).
     with open(defter_yol, "rb") as f:
         defter_ham = f.read()
@@ -275,7 +373,7 @@ def main(argv=None):
         arsiv_satir = _satir_sayisi(arsiv_metin)
         print("TASINAN=0 TASINAN_MADDE=0 DEFTER_SATIR=%d ARSIV_SATIR=%d" % (
             defter_satir, arsiv_satir))
-        return 0
+        return 0, 0, 0, defter_satir, arsiv_satir
 
     # Gorunurluk (K128): operator ne gittigini GORMELI. Son-ozet satirindan
     # ONCE basiliyor; en son satir yine ozet olmaya devam eder.
@@ -350,13 +448,13 @@ def main(argv=None):
         arsiv_satir = _satir_sayisi(arsiv_yedek.decode("utf-8"))
         print("TASINAN=%d TASINAN_MADDE=%d DEFTER_SATIR=%d ARSIV_SATIR=%d" % (
             len(tasinacak_bloklar), len(tasinacak_maddeler), defter_satir, arsiv_satir))
-        return 2
+        return 2, len(tasinacak_bloklar), len(tasinacak_maddeler), defter_satir, arsiv_satir
 
     defter_satir = _satir_sayisi(yeni_defter_metin)
     arsiv_satir = _satir_sayisi(yeni_arsiv_metin)
     print("TASINAN=%d TASINAN_MADDE=%d DEFTER_SATIR=%d ARSIV_SATIR=%d" % (
         len(tasinacak_bloklar), len(tasinacak_maddeler), defter_satir, arsiv_satir))
-    return 0
+    return 0, len(tasinacak_bloklar), len(tasinacak_maddeler), defter_satir, arsiv_satir
 
 
 if __name__ == "__main__":

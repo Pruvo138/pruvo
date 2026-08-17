@@ -62,6 +62,9 @@ import tempfile
 
 VARSAYILAN_TAVAN = 300
 VARSAYILAN_KORU = 3
+# O1 (16 Agu 2026): rotasyon sonrasi kutu tavanin bu kadarina kadar inmeli.
+# 0.8 = tavanin %80'i; gelecek birkac blok icin bas payi.
+SU_SEVIYESI_ORANI = 0.8
 
 KUTU_VARSAYILAN = os.path.expanduser(
     "~/.claude/projects/-Users-okan-dev-pruvo/memory/mimar-posta-kutusu.md")
@@ -155,7 +158,15 @@ class Plan(object):
 
 
 def planla(kutu_metin, tavan, koru):
-    """Kutuyu tavana indirmek icin SONDAN kac blok tasinacagini hesapla."""
+    """Kutuyu tavana indirmek icin SONDAN kac blok tasinacagini hesapla.
+
+    O1 (16 Agu 2026): eski davranis kutu tam tavanda (300) duruyor ve bir
+    sonraki blok onu asiyordu. SU SEVIYESI kurali: rotasyon sonrasi kutu
+    tavanin altinda bir SU SEVIYESI noktasina inmeli (varsayilan: tavanin
+    ~%80'i), boylece yeni gelen birkac blok tavanin ustune HEMEN cikmasin.
+    Bu sabit (SU_SEVIYESI_ORANI) ile kontrol edilir; --su-seviye-orani
+    bayragiyla degistirilebilir.
+    """
     p = Plan()
     satirlar = kutu_metin.splitlines(keepends=True)
     p.once_satir = len(satirlar)
@@ -171,6 +182,12 @@ def planla(kutu_metin, tavan, koru):
     p.korunan = min(koru, len(baslar))
     p.tasinabilir = max(0, len(baslar) - koru)
 
+    # Su seviyesi: tavanin bu kadarina kadar dus (varsayilan 0.8). Esik
+    # mutlak olarak > 0 ve <= 1 olmali.
+    su_seviye = int(tavan * SU_SEVIYESI_ORANI)
+    if su_seviye < 1:
+        su_seviye = 1
+
     if p.once_satir <= tavan:
         p.kesim = None                      # tavan altinda -> is yok
         return p
@@ -180,12 +197,14 @@ def planla(kutu_metin, tavan, koru):
         return p
 
     # Adaylar: baslar[koru:] — en ESKI blok listenin SONUNDA. SONDAN k blok tasi.
+    # Hedef: kesim (kalan satir sayisi) <= su_seviye (tavanin %80'i). Bu,
+    # gelecek bloklar icin bas gostermesi payi birakir.
     k = 1
     secilen = None
     while k <= p.tasinabilir:
         kesim = baslar[len(baslar) - k]
         secilen = (k, kesim)
-        if kesim <= tavan:
+        if kesim <= su_seviye:
             break
         k += 1
     k, kesim = secilen
@@ -429,6 +448,10 @@ def main(argv=None):
     ap.add_argument("--tavan", type=int, default=VARSAYILAN_TAVAN)
     ap.add_argument("--koru", type=int, default=VARSAYILAN_KORU,
                     help="en ustteki kac blok DOKUNULMAZ (varsayilan 3)")
+    ap.add_argument("--su-seviye-orani", type=float, default=SU_SEVIYESI_ORANI,
+                    help="rotasyon sonrasi kutu tavanin bu kadarina kadar iner "
+                         "(varsayilan: 0.8 = %%80). O1 (16 Agu) caresi: gelecek "
+                         "bloklar icin bas payi birakir.")
     ap.add_argument("--kuru", action="store_true",
                     help="hicbir sey yazma, ne yapacagini SAYIYLA bas")
     a = ap.parse_args(argv)
@@ -438,6 +461,9 @@ def main(argv=None):
         return RC_KIRMIZI
     if a.koru < 0:
         print("KIRMIZI: --koru >= 0 olmali")
+        return RC_KIRMIZI
+    if a.su_seviye_orani <= 0 or a.su_seviye_orani > 1:
+        print("KIRMIZI: --su-seviye-orani (0, 1] araliginda olmali")
         return RC_KIRMIZI
 
     kutu_yolu = os.path.abspath(os.path.expanduser(a.kutu))
@@ -457,7 +483,8 @@ def main(argv=None):
     print("KUTU  : %s" % kutu_yolu)
     print("ARSIV : %s" % arsiv_yolu)
     print("KILIT : %s" % kilit_yolu)
-    print("tavan=%d koru=%d kip=%s" % (a.tavan, a.koru, "KURU" if a.kuru else "YAZAR"))
+    print("tavan=%d koru=%d su_seviye_orani=%.2f kip=%s" % (
+        a.tavan, a.koru, a.su_seviye_orani, "KURU" if a.kuru else "YAZAR"))
 
     # 🔴 KILIT ONCE, OKUMA SONRA: bayat kopyayla plan yapip baska bir yazicinin
     # ekledigi blogu ezmemek icin dosya KILIT ALTINDA okunur.
@@ -480,13 +507,17 @@ def main(argv=None):
             arsiv_metin, arsiv_var = None, False
 
         p = planla(kutu_metin, a.tavan, a.koru)
+        p.su_seviye = int(a.tavan * a.su_seviye_orani)
+        if p.su_seviye < 1:
+            p.su_seviye = 1
         if p.hata:
             print("KIRMIZI (bozuk/yarim kutu): %s" % p.hata)
             return RC_KIRMIZI
 
         arsiv_once = len((arsiv_metin or "").splitlines())
-        print("once_satir=%d blok=%d korunan=%d tasinabilir=%d"
-              % (p.once_satir, p.blok_toplam, p.korunan, p.tasinabilir))
+        print("once_satir=%d blok=%d korunan=%d tasinabilir=%d su_seviye=%d"
+              % (p.once_satir, p.blok_toplam, p.korunan, p.tasinabilir,
+                 getattr(p, "su_seviye", int(a.tavan * a.su_seviye_orani))))
 
         if p.kesim is None:
             if p.tavan_asili_kaldi:

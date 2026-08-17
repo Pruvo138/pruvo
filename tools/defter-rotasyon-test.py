@@ -585,6 +585,151 @@ def madde_test():
     return hatalar, gecen, kontrol
 
 
+def tavan_test():
+    """V-A/V-B/V-C: --tavan-sayi + --tavan-bayt tavan-bagli rotasyon.
+
+    V-A: defter tavanin USTUNDE + kapali madde VAR → tavan altina INER.
+    V-B: defter tavanin USTUNDE + kapali madde YOK → fail-loud (sessizce
+         acik kalem arsive GITMEZ; rc != 0 ve stderr FAIL_LOUD icerir).
+    V-C: defter tavanin ALTINDA → NO-OP (bayt-bayt ayni, arsiv dokunulmaz).
+    """
+    hatalar = []
+    gecen = 0
+    kontrol = 3
+
+    # ----- V-A: tavan ustunde + kapali madde VAR → tavan altina iner -----
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = os.path.join(tmp, "DEVAM.md")
+        arsiv = os.path.join(tmp, "DEVAM-ARSIV.md")
+        # 12 kapali madde + 4 acik = 16 madde. Kapali olanlar tasiyabilir
+        # olmali ve tavan altina dusmeli.
+        kapali_satirlar = "\n".join(
+            "- ✅ **K%02d KAPANDI** detay" % i for i in range(1, 13))
+        acik_satirlar = "\n".join(
+            "- 🔧 **A%02d:** acik kalem" % i for i in range(1, 5))
+        icerik = (
+            "# Baslik bolgesi\n\n"
+            "## ACIK KALEMLER 🔴\n" + acik_satirlar + "\n\n"
+            "## KAPALI SERI ✅\n" + kapali_satirlar + "\n"
+        )
+        with open(defter, "w", encoding="utf-8") as f:
+            f.write(icerik)
+        with open(arsiv, "w", encoding="utf-8") as f:
+            f.write("")
+        eski_defter_bayt = os.path.getsize(defter)
+        eski_arsiv_bayt = os.path.getsize(arsiv)
+        # Tavan dusuk secildi (5); dosya 21 satir, tavan ustunde.
+        # Kapali blogun tamami tasininca defter 8 satira inmeli (5 < 8 DEGIL
+        # — tavan kontrolu dosya SON halinde tavan altinda olmalI). Daha
+        # dusuk tavan: kapali blog tasindiktan sonra kalan 8 satir tavanin
+        # ustunde, o yuzden tavan 7 olarak secildi. Aciklarin tamami
+        # (4 madde + 1 baslik + 1 govde satirlari) = 6-7 satir; kapali
+        # blog tasininca 8 civari. tavan=10 secildi: dosya tavan altinda
+        # olur (21 -> 8 < 10). Boylelikle tavan tek geciste altina dusuyor.
+        r = subprocess.run(
+            [sys.executable, ROTASYON, defter, arsiv,
+             "--tarih", "2026-08-16",
+             "--tavan-sayi", "10"],
+            capture_output=True, text=True)
+        if r.returncode != 0:
+            hatalar.append("V-A rotasyon basarisiz rc=%d: %s" % (r.returncode, r.stderr))
+        else:
+            yeni_defter_bayt = os.path.getsize(defter)
+            yeni_arsiv_bayt = os.path.getsize(arsiv)
+            yeni_defter_satir = len(open(defter, "rb").read().splitlines())
+            # KAPANDI iceren hicbir madde defterde kalmamali.
+            defter_ici = open(defter, encoding="utf-8").read()
+            if "KAPANDI" in defter_ici:
+                hatalar.append("V-A kapali madde defterde kaldi")
+            elif yeni_defter_satir > 10:
+                hatalar.append("V-A tavan altina inmedi (satir=%d, tavan=10)" %
+                               yeni_defter_satir)
+            elif yeni_arsiv_bayt <= eski_arsiv_bayt:
+                hatalar.append("V-A arsiv buyumedi (kayipsizlik)")
+            elif yeni_defter_bayt >= eski_defter_bayt:
+                hatalar.append("V-A defter kuculmedi")
+            elif "TAVAN_BASARILI" not in r.stdout:
+                hatalar.append("V-A TAVAN_BASARILI yok: stdout=%r" % r.stdout)
+            else:
+                gecen += 1
+
+    # ----- V-B: tavan ustunde + kapali madde YOK → fail-loud -------------
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = os.path.join(tmp, "DEVAM.md")
+        arsiv = os.path.join(tmp, "DEVAM-ARSIV.md")
+        # YALNIZ acik icerik; kapali yok. Tavan 4 (defter ~7 satir).
+        icerik = (
+            "# Baslik bolgesi\n\n"
+            "## ACIK KALEMLER 🔴\n"
+            "- 🔧 **A01:** acik 1\n"
+            "- 🔧 **A02:** acik 2\n"
+            "- 🔧 **A03:** acik 3\n"
+            "- 🔧 **A04:** acik 4\n"
+            "- 🔧 **A05:** acik 5\n"
+        )
+        with open(defter, "w", encoding="utf-8") as f:
+            f.write(icerik)
+        with open(arsiv, "w", encoding="utf-8") as f:
+            f.write("")
+        eski_defter_icerik = open(defter, encoding="utf-8").read()
+        eski_arsiv_icerik = open(arsiv, encoding="utf-8").read()
+        r = subprocess.run(
+            [sys.executable, ROTASYON, defter, arsiv,
+             "--tarih", "2026-08-16",
+             "--tavan-sayi", "4"],
+            capture_output=True, text=True)
+        yeni_defter_icerik = open(defter, encoding="utf-8").read()
+        yeni_arsiv_icerik = open(arsiv, encoding="utf-8").read()
+        if r.returncode == 0:
+            hatalar.append("V-B fail-loud vermedi (rc=0): %s" % r.stdout)
+        elif yeni_defter_icerik != eski_defter_icerik:
+            hatalar.append("V-B defter degisti (kapali icerik yoktu)")
+        elif yeni_arsiv_icerik != eski_arsiv_icerik:
+            hatalar.append("V-B arsiv degisti (kapali icerik yoktu)")
+        elif "TAVAN_FAIL_LOUD" not in r.stderr:
+            hatalar.append("V-B stderr FAIL_LOUD yok: %s" % r.stderr)
+        elif "A01" in yeni_arsiv_icerik or "A02" in yeni_arsiv_icerik:
+            hatalar.append("V-B acik kalem arsive gecti (sessiz kayip)")
+        else:
+            gecen += 1
+
+    # ----- V-C: tavan altinda → NO-OP -----------------------------------
+    with tempfile.TemporaryDirectory() as tmp:
+        defter = os.path.join(tmp, "DEVAM.md")
+        arsiv = os.path.join(tmp, "DEVAM-ARSIV.md")
+        icerik = (
+            "# Baslik\n\n"
+            "## ACIK 🔴\n"
+            "- 🔧 **A01:** acik\n"
+            "- ✅ **K01 KAPANDI** detay\n"
+        )
+        with open(defter, "w", encoding="utf-8") as f:
+            f.write(icerik)
+        arsiv_icerik = "## Eski\n- eski\n"
+        with open(arsiv, "w", encoding="utf-8") as f:
+            f.write(arsiv_icerik)
+        # Tavan 100; dosya cok altinda. NO-OP.
+        r = subprocess.run(
+            [sys.executable, ROTASYON, defter, arsiv,
+             "--tarih", "2026-08-16",
+             "--tavan-sayi", "100"],
+            capture_output=True, text=True)
+        yeni_defter = open(defter, "rb").read()
+        yeni_arsiv = open(arsiv, encoding="utf-8").read()
+        if r.returncode != 0:
+            hatalar.append("V-C rotasyon basarisiz rc=%d: %s" % (r.returncode, r.stderr))
+        elif yeni_defter.decode("utf-8") != icerik:
+            hatalar.append("V-C defter bayt-bayt ayni degil")
+        elif yeni_arsiv != arsiv_icerik:
+            hatalar.append("V-C arsiv bayt-bayt ayni degil")
+        elif "TAVAN=DOLU_NO_OP" not in r.stdout:
+            hatalar.append("V-C NO-OP isareti yok: stdout=%r" % r.stdout)
+        else:
+            gecen += 1
+
+    return hatalar, gecen, kontrol
+
+
 def mutant_test():
     """M1: tum acik jeton kontrolleri no-op -> E blogu yanlis tasir.
 
@@ -1122,6 +1267,9 @@ def main():
     madde_hatalar, madde_gecen, madde_kontrol = madde_test()
     hatalar.extend(madde_hatalar)
     kontrol += madde_kontrol
+    tavan_hatalar, tavan_gecen, tavan_kontrol = tavan_test()
+    hatalar.extend(tavan_hatalar)
+    kontrol += tavan_kontrol
 
     mutant_oldu, mutant_mesaj = mutant_test()
     mutant_m2_oldu, mutant_m2_mesaj = mutant_m2_test()
