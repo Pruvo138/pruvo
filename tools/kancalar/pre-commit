@@ -69,7 +69,14 @@ fi
 
 # --- 2) MUKERRER taramasi (FAIL-CLOSED) -------------------------------------
 # Ayni id / birebir ayni baslik / ayni kaynak linki commit'i BLOKLAR.
-# Istisna: .mukerrer-istisna.json. Acil atlama: PRUVO_MUKERRER_ATLA=1
+# Istisna: .mukerrer-istisna.json (kaynak ekseni -> "kaynak"; baslik ekseni ->
+#   "baslik"+"idler", ID KUMESINE bagli). Acil atlama: PRUVO_MUKERRER_ATLA=1
+# KAPSAM: kapi commit'in INDEX'ini yargilar; urun dosyalarina dokunmayan commit
+#   taranmaz (on-eleme kapinin KENDI icinde, AYNI index ekseninde kosar).
+# 🔴 17 AGU 2026 — CIKTI ARTIK HER ZAMAN BASILIR: kapi yalnizca RED halinde
+#   konusuyordu, yani "tarandi" ile "atlandi" operatore AYNI gorunuyordu. Bir
+#   atlamanin gorunmez olmasi sessiz yesildir; adim 4-7 zaten atlama nedenlerini
+#   basiyor, bu adim tek istisnaydi.
 pruvo_kontrol="$pruvo_kok/tools/mukerrer-kontrol.py"
 if [ "$PRUVO_MUKERRER_ATLA" = "1" ]; then
   echo "!! UYARI: PRUVO_MUKERRER_ATLA=1 — mukerrer taramasi ATLANDI (bilincli)." >&2
@@ -80,10 +87,13 @@ elif [ ! -f "$pruvo_kontrol" ]; then
 else
   pruvo_mk_cikti=$(python3 "$pruvo_kontrol" --pre-commit 2>&1)
   pruvo_mk_rc=$?
+  printf '%s\n' "$pruvo_mk_cikti" >&2
   if [ "$pruvo_mk_rc" -ne 0 ]; then
-    printf '%s\n' "$pruvo_mk_cikti" >&2
     echo "!! COMMIT ENGELLENDI — mukerrer taramasi rc=$pruvo_mk_rc." >&2
-    echo "!! Mesru cift ise .mukerrer-istisna.json'a ekle; acil atlama: PRUVO_MUKERRER_ATLA=1" >&2
+    echo "!! Mesru cift ise .mukerrer-istisna.json'a ekle:" >&2
+    echo "!!   kaynak ekseni -> {\"kaynak\": \"<url>\", \"neden\": \"...\"}" >&2
+    echo "!!   baslik ekseni -> {\"baslik\": \"<baslik>\", \"idler\": [\"<id>\",\"<id>\"], \"neden\": \"...\"}" >&2
+    echo "!! Acil atlama: PRUVO_MUKERRER_ATLA=1" >&2
     exit 1
   fi
 fi
