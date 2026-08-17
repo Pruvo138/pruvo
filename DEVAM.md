@@ -29,15 +29,12 @@
   181 -> **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve urun
   partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
 - 🔴 **K150 (17 Agu — UZLASTIRICI YANLIS SINIFLANDIRIYOR; ② ICIN BLOKER):** kosum
-  `32026332006` KIRMIZI: baska makinede D1 yazicisi calisiyordu, senkron **tasarim geregi
-  ATLANDI** (`D1_SENKRON=ATLANDI SEBEP=YAZICI_UCUSTA`), sürücü bunu **"GERCEK HATA
-  (wrangler/D1/sema/kod), YENIDEN DENENMEZ"** ilan etti. Kok: ayni `rc=4`
-  `deploy.yml`'de **0** (iyi huylu atlama, `d1-sync.py:4090` yazili sozlesme),
-  uzlastiricida **1** — cunku `onar()` `--adim`SIZ cagiriyor ve yalniz IKI imza taniyor;
-  ucuncu red sinifi ogretilmemis, tanimayan her red `else`'ten GERCEK HATA'ya dusuyor.
+  `32026332006` KIRMIZI: baska makinede D1 yazicisi vardi, senkron **tasarim geregi
+  ATLANDI** (`SEBEP=YAZICI_UCUSTA`); surucu bunu **"GERCEK HATA, YENIDEN DENENMEZ"** ilan
+  etti. Kok: ayni `rc=4` `deploy.yml`'de **0**, uzlastiricida **1** — `onar()` `--adim`SIZ
+  cagiriyor, yalniz IKI imza taniyor, tanimadigi her red `else`'ten GERCEK HATA'ya dusuyor.
   🔴 ② blokeri: gozcu her `failure`'a LLM turu acar → MaCiT her D1'e yazdiginda yanlis
-  kirmizi → gozcu tam da onlemesi gereken bos turu parti basina uretir.
-  Spec: `kalibrasyon/SPEC-k150-uzlastirici-rc4.md` (rc=5 ERTELENDI + RETRY + kapsam kapisi).
+  kirmizi. Spec: `SPEC-k150-uzlastirici-rc4.md` (rc=5 ERTELENDI + RETRY + kapsam kapisi).
   kabul: `python3 /Users/okan/dev/pruvo/tools/uzlastirici-onarim.py --kendini-test`
 - 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, guncel uc `c071bfd5`):** onceki iki ucun build'i
   `cancelled` (ardarda push iptali, ARIZA DEGIL); `c071bfd5`'te 4 nabiz success, `build`
@@ -73,9 +70,8 @@
 - 🔧 **K149 (17 Agu — CRON DIZINI TUR ARTIGIYLA DOLU; disk kurali ihlali):** olculdu
   (`ls -1a | grep -c`): `~/.claude/cron/` **2473 girdi** — **1208 `.isci-cikti.*` + 887
   `.bekci-cikti.*` = 2095 tur artigi**, ayrica **240 `profil-*` dizini** + 37 `.yedek*`.
-  Ureten (`isci.sh`, `isci-tur-bekcisi.py`) temizlemiyor: "ureten temizler" (Okan, USTUN)
-  bu hatta HIC uygulanmamis. Dosya kolu K148 gozcusune baglandi (canli ILK turda duser);
-  `profil-*` AYRI — canli turun profili silinirse tur coker. `kabul:` alani BOS.
+  Ureten temizlemiyor ("ureten temizler" bu hatta HIC uygulanmamis). Dosya kolu K148
+  gozcusune baglandi; `profil-*` AYRI (canli turun profili silinirse tur coker).
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA, degisen dosyanin yedegi alinmiyor → curutucu, iscinin kabul-testi fiksturunu
   MESRU mu degistirdi **OLCEMEDI** (`FIKSTUR_MESRU=0/0`); dolayli kanit guclu (mutant 9/9)
@@ -105,12 +101,16 @@
   ekseninde ayrisiyor.
 - 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
   (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
-- 🟡 **Kosum sinyali kirli (olculdu):** `hijyen-a2` + `hijyen-a3` yayin zincirine bagli DEGIL
-  ama kosumun genel `conclusion`'ini `failure` yapiyor → "yayin durdu" yanlis hukmu. Cozum:
-  joblari `nobet.yml`'e tasimak. 🔴 AMA "hijyen kirmizisi = gurultu" HUKMU KURULAMAZ:
-  16 Agu kosumunda `hijyen-a3` beyan edilmis borctu, `hijyen-a2` ise GERCEK canli veri
-  kusuru buldu (K125, 11 urun bozuk gorsel anahtari). Kural: genel `conclusion`'a degil
-  **is bazinda** bakilir; job tasima kirmiziyi susturmak degil yayin hukmunu ayirmak icin.
+- 🟡 **Kosum sinyali kirli (olculdu):** `hijyen-a2`/`a3` yayin zincirinde DEGIL ama genel
+  `conclusion`'i `failure` yapiyor. Kural: genel hukme degil **is bazinda** bakilir
+  (hijyen kirmizisi gurultu DEGIL — K125'i o buldu). Tam metin ARSIVDE.
+- 🔧 **K151 (17 Agu — YEDEK DUSUS BEYANI HER ROTASYONDA YENIDEN YAZILIYOR; sinif kalemi):**
+  karantina bugun `DEVAM.md` + `mimar-posta-kutusu.md` yedegini durdurdu; ikisi de MESRU
+  rotasyondu (OLCULDU: kutu -104079 B / arsivi **+107530 B** · defter -20961 B / arsivi
+  **+59657 B** — icerik TASINDI, kayip YOK). Beyan TAM boyuta bagli oldugu icin her
+  rotasyonda eslesmez olup ELLE yeniden yaziliyor (3. tekrar → tekil yama YASAK).
+  **Yon:** araca ROTASYON CIFTI invaryanti (`X.md`↔`X-ARSIV.md`): dusus ancak esi o kadar
+  BUYUDUYSE mesru. Ara cozum yazildi. `kabul:` alani BOS.
 - KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]) · K127 rotasyon madde granulu kol (`e5f5c32b`) · **K138** (mail ARIZA SINYALI degildi — nobet metni "maile guvenme" diyor, olcum `gh run list`; Okan GitHub bildirimini kapatti, crontab satiri KALDIRILDI **ve** nobet gorev metnindeki supurme adimlari §0.4+§1+§4 EMEKLI isaretlendi — yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi; otomatik mail silicisi KALMADI, bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yol; geri acma OKAN KAPISI, ikisi AYNI turda) · **K137** (birkac saat `crontab` YAZIMI asildi — okuma calisiyordu, asili surec `pgrep` ile teyitli, SIGKILL gerekti; 11:00 civari acildi. Tuzak: `crontab <dosya>` dosyayi BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc).
 
 ## OKAN'DA

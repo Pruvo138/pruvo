@@ -1,8 +1,13 @@
 {
   "DEVAM.md": {
+    "tur": "surekli",
+    "azami_bayt": 24576,
+    "gerekce": "Mimar karari 17 Agu 2026 (KraL) — TUR DEGISTIRILDI: 'tek-seferlik' (6637 B, 15 Agu) YANLIS TURDU. Kok defter SABIT BOYUTLU bir belge degil, TAVANI OLAN ROLLING bir artefakttir: kanca her commit'te 130 satir / ~12288 bayt tavanini zorlar ve tavan asilinca en eski bloklar DEVAM-ARSIV.md'ye TASINIR (silinmez). Yani kuculme burada ARIZA DEGIL, tasarlanmis normal calisma — ankor dosyalariyla AYNI SINIF. Tek-seferlik beyan her rotasyonda ESLESMEZ hale geliyordu ve ayni beyan tekrar tekrar yazilmak zorunda kaliyordu (bugun ucuncu tekrar; [[ucuncu-tekrar-sinif-kapisi]]). Bu turda olculdu: DEVAM.md 33058 -> 12097 B (-20961) iken DEVAM-ARSIV.md 1675638 -> 1735295 B (+59657) — arsiv dususten FAZLA buyudu, icerik TASINDI. Tavan 24576 B BILEREK dardir: defterin kendi kotasi ~12288 B'dir, yani tavanin iki kati bile hicbir gercek veri dosyasini kapsamaz. EK EMNIYET: DEVAM.md git'te IZLENIR — felaket bir kirpilma olsa bile tam gecmis git'ten geri alinir; bu, 'surekli' turunun riskini bu dosya icin yapisal olarak dusurur."
+  },
+  "mimar-posta-kutusu.md": {
     "tur": "tek-seferlik",
-    "kaynak_bayt": 6637,
-    "gerekce": "Mimar karari 15 Agu 2026: kok defter K27 hedefine (12288 B / 110 satir) indirildi. Defter 24.578 B / 196 satirdan 5.308 B / 42 satira sikistirildi; SILME YOK, 196 satirlik TAM hal DEVAM-ARSIV.md'ye tasindi ve prefix karsilastirmasiyla dogrulandi (arsiv 17.865 -> 18.063 satir). Yani kucultme veri kaybi DEGIL, kasitli tasima. Bu beyan TEK SEFERLIKTIR ve yalnizca ilan edilen kaynak boyutu icin gecerlidir: defter baska bir boyuta duserse beyan ESLESMEZ ve o dusus yeniden yargilanir."
+    "kaynak_bayt": 26902,
+    "gerekce": "Mimar karari 17 Agu 2026 (KraL): posta kutusu 14:36'da mimar-posta-kutusu-arsiv.md'ye ROTASYONA girdi. OLCULDU (beyan degil): kanonik yedek 130981 B -> yerel 26902 B = -104079; ayni pencerede arsiv 2669993 B -> 2777523 B = +107530. Arsivin BUYUMESI dususten FAZLA, yani icerik TASINDI, kayip YOK. 🔴 TUR BILEREK 'tek-seferlik': bu dosya DEVAM.md'nin aksine git'te IZLENMEZ ve tavani da yoktur (27 KB ile 131 KB arasinda salinir); 'surekli' bir tavan ancak ~140 KB olabilirdi ki bu korumayi fiilen kapatirdi. Kutunun tek kopyasi disktedir, dolayisiyla burada beyan tekrar yazma zahmetini KABUL EDIYORUZ — koruma bu dosyada en cok gereken yerdedir. Sonraki rotasyonda bu satir yeni boyutla YENIDEN yargilanir."
   },
   "posta-kutusu-kaan-izleme-ankor.txt": {
     "tur": "surekli",
