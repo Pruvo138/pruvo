@@ -1544,6 +1544,9 @@ jobs:
       - name: "D1-sync durum kolu mutasyon bataryasi"
         run: python3 tools/d1-sync-durum-mutasyon.py
 
+      - name: "D1-sync mid-array seq bloku mutasyon bataryasi (K153)"
+        run: python3 tools/d1-seq-mutasyon.py
+
       - name: "FAZ3 bayrak mutasyon bataryasi (3 mutant)"
         run: python3 tools/faz3-bayrak-mutasyon.py
 
