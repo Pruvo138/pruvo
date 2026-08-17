@@ -256,6 +256,10 @@ function edgeKart(p) {
   // deger tasimayan urunde alan HIC yazilmaz, tasiyanda BIREBIR kopyalanir.
   if (p.tavsiyeFilament) { kart.tavsiyeFilament = p.tavsiyeFilament; }
   if (p.konfigur) { kart.konfigur = p.konfigur; }
+  // BOY VARYANTI (17 Agu / K164): sepet fiyatini surer (secenekler.js boyFarki); build.py
+  // kart_ozeti ile ayni kural — deger tasimayan urunde alan HIC yazilmaz, tasiyanda
+  // BIREBIR kopyalanir. Bu satir duserse tools/edge-kart-kapisi.py KIRMIZI yanar (drift).
+  if (p.boy_secenekleri) { kart.boy_secenekleri = p.boy_secenekleri; }
   return kart;
 }
 
