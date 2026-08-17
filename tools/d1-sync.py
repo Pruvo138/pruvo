@@ -1730,6 +1730,22 @@ def marka_arama_plan(urunler, aramalar, mevcut_arama, izleme=None):
                      varsayilan="[]")
 
 
+def _seq_fail_loud(uid, alt, ust, k, urunler, mevcut_seq):
+    """Ardisik ekleme tukendiginde normalize planina gore mesaj sec.
+
+    - Normalize gercekten bir sey duzeltecekse mevcut oneri korunur.
+    - Normalize plani bossa (NO-OP olacaksa) kullaniciyi sonsuz donguye sokmamak
+      icin yeni mesaj basilir: bu bir ARDISIK EKLEME tukenmesidir.
+    """
+    ifadeler, hata = seq_normalize_plan(urunler, mevcut_seq)
+    if hata or ifadeler:
+        sys.exit("!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s k=%s). "
+                 "Kesirli seq yazilmaz; once python3 tools/d1-sync.py "
+                 "--seq-normalize kos." % (uid, alt, ust, k))
+    sys.exit("!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s k=%s). "
+             "bosluk zaten kanonik; bu bir ARDISIK EKLEME tukenmesidir" % (uid, alt, ust, k))
+
+
 def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izleme=None):
     """SAF diff (canli D1'e DOKUNMAZ -> birim testi burayi cagirir).
     mevcut = {id: (hash, baski)}. mevcut_seq = {id: seq} (OPSIYONEL; verilmezse legacy
@@ -1771,34 +1787,53 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     # None = bu id ile dizinin BASI arasinda D1'de bilinen hicbir komsu yok -> GERCEKTEN
     # tepede -> asagida legacy/sinirsiz havuz (sonraki) GECERLI kalir.
     ust_sinir = {}
-    # KUYRUK BLOGU (H5): {uid: (i, k)} — dizinin SONUNA kadar KESINTISIZ devam eden "yeni"
-    # id blogunun uyeleri. k = blok uzunlugu, i = SONDAN kacinci (dizinin sonundaki i=1).
-    # Yalniz gercek kuyruk uyeleri girer; mid-array blogu bilinen bir komsu KIRAR.
-    kuyruk_blok = {}
+    # MID-ARRAY + KUYRUK BLOGU (K153): ardisik "yeni" id'leri blok olarak ele al;
+    # her bloga oranli adim tuketir, ikili bolmenin ustel tuketimini engeller.
+    mid_blok = {}               # {uid: (i, k, grup_id)} — mid-array ardisik yeni id blogu
+    kuyruk_blok = {}            # {uid: (i, k)} — dizinin SONUNA dayanan yeni id blogu
     if mevcut_seq:
         son_bilinen = None
         gorulen_a = set()
-        kuyruk_kolu = []            # su ana dek KESINTISIZ suren "yeni" id dizisi
+        bloklar = []            # [(ust_deger, [uid, ...]), ...] — bilinen komsu KIRAR
+        mevcut_blok = []
         for u in urunler:
             uid = u.get("id")
             if not uid or uid in gorulen_a:
                 continue
             gorulen_a.add(uid)
             if uid in mevcut_seq:
+                if mevcut_blok:
+                    bloklar.append((son_bilinen, mevcut_blok))
+                    mevcut_blok = []
                 son_bilinen = mevcut_seq[uid]
-                kuyruk_kolu = []    # bilinen komsu blogu KIRAR -> kuyruk sifirlanir
             else:
                 ust_sinir[uid] = son_bilinen
-                kuyruk_kolu.append(uid)
-        # Gecis bitince elde kalan kol = dizinin SONUNA dayanan blok = GERCEK kuyruk.
-        blok_k = len(kuyruk_kolu)
-        for sira, uid in enumerate(kuyruk_kolu):
-            kuyruk_blok[uid] = (blok_k - sira, blok_k)
+                mevcut_blok.append(uid)
+        son_blok_kuyruk = bool(mevcut_blok)
+        if mevcut_blok:
+            bloklar.append((son_bilinen, mevcut_blok))
+        # Son blok gercek kuyruk YALNIZCA dizinin sonuna dayaniyorsa; aksi halde
+        # (dizinin sonu bilinen id ile bittiyse) tum bloklar mid-array'dir.
+        for grup_id, (ust_deger, uyeler) in enumerate(bloklar):
+            k = len(uyeler)
+            if grup_id == len(bloklar) - 1 and son_blok_kuyruk:
+                hedef_blok = kuyruk_blok
+            else:
+                hedef_blok = mid_blok
+            for sira, uid in enumerate(uyeler):
+                # sira=0 dizide en BASTA, sira=k-1 dizide en SONDA.
+                # ters geciste en SONDAKI (sira=k-1) ilk islenir -> i=1.
+                i = k - sira
+                if hedef_blok is mid_blok:
+                    hedef_blok[uid] = (i, k, grup_id)
+                else:
+                    hedef_blok[uid] = (i, k)
 
     # ANA GECIS — TERS: dizinin BASI en yeni -> en yuksek seq alsin (eski davranisla
     # AYNI sira/anlam). `taban` = su ana dek (TAIL'den buraya) gezilen en yakin BILINEN
     # (D1'de mevcut) komsunun seq'i — mid-array "yeni" id'ler icin ALT sinir.
     taban = 0.0
+    aktif_mid_grup = None       # (grup_id, alt) — islenen mid-blokun sabit alt siniri
     for u in reversed(urunler):
         uid = u.get("id")
         if not uid or uid in gorulen:
@@ -1821,6 +1856,7 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
                 alt = int(taban)
                 yuksek = int(ust)
                 blok = kuyruk_blok.get(uid)
+                mid = mid_blok.get(uid)
                 if blok is not None:
                     # KUYRUK BLOGU (H5, 13 Agu — olculdu): katalogun en SONUNA ekleme; alt
                     # komsu YOKTUR. Eski kod bosluktan yalniz 1 tam sayi alirdi
@@ -1834,15 +1870,29 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
                     blok_i, blok_k = blok
                     adim = yuksek // (blok_k + 1)
                     if adim < 1:
-                        # Yer GERCEKTEN yok -> AYNEN fail-loud (sessiz kesir/cakisma YOK).
-                        sys.exit("!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s). "
-                                 "Kesirli seq yazilmaz; once python3 tools/d1-sync.py "
-                                 "--seq-normalize kos." % (uid, taban, ust))
+                        _seq_fail_loud(uid, taban, ust, blok_k, urunler, mevcut_seq)
                     atanan = blok_i * adim
+                elif mid is not None:
+                    # MID-ARRAY BLOGU (K153): ayni bosluga dusen ardisik yeni id'ler
+                    # bloga ORANLI yer tuketir. ALT sinir blogun ILK islenen uyesinde
+                    # SABITLENIR ve blok boyunca degismez; aksi halde ikili bolmeye geri
+                    # donulur ve ~20 ardisik eklemede bosluk tukenir.
+                    blok_i, blok_k, grup_id = mid
+                    if blok_i == 1:
+                        mid_alt = int(taban)
+                        aktif_mid_grup = (grup_id, mid_alt)
+                    else:
+                        if aktif_mid_grup is None or aktif_mid_grup[0] != grup_id:
+                            sys.exit("!! SEQ mid_blok tutarsizligi: %s" % uid)
+                        mid_alt = aktif_mid_grup[1]
+                    adim = (yuksek - mid_alt) // (blok_k + 1)
+                    if adim < 1:
+                        _seq_fail_loud(uid, mid_alt, yuksek, blok_k, urunler, mevcut_seq)
+                    atanan = mid_alt + blok_i * adim
+                    if blok_i == blok_k:
+                        aktif_mid_grup = None
                 elif yuksek - alt <= 1:
-                    sys.exit("!! SEQ TAM SAYI ARALIGI TUKENDI: %s (alt=%s ust=%s). "
-                             "Kesirli seq yazilmaz; once python3 tools/d1-sync.py "
-                             "--seq-normalize kos." % (uid, taban, ust))
+                    _seq_fail_loud(uid, taban, ust, 1, urunler, mevcut_seq)
                 else:
                     atanan = alt + (yuksek - alt) // 2
             taban = atanan
