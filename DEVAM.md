@@ -121,7 +121,8 @@ worktree'sinde main'de OLMAYAN 1 commit var → temizlikte bilerek ATLANDI, bund
 ## CANLI OLCUM (17 Agu — marka dili KIP ekseni main'de, `daa6410d`)
 Kapi kapsami genisletildi ve katalog metni Okan onayli kalip tablosuyla onarildi. Kapi envanteri **297 vurus / 284 kayit** iken onarim sonrasi **21 vurus / 14 kayit**. ONARILAN=281 · KARMA_ATLANAN=1 · ELLE=10 · **SILINEN_URUN=0** · uniq 29037 · olcu satiri 22679 SABIT. Kok neden + kalip tablosu POSTA KUTUSUNDA.
 Kabul: `GECEN=95 KALAN=0 MUTANT=7/7` · `--commit-farki` rc=0 · kendini-test 50/50 · ci-kapsam rc=0 · public tarama 0 bulgu. BAGIMSIZ dogrulayici turu (onceki rapora bakmadan) ayni sayilari uretti.
-D1 5/5 eksen YESIL (SAYI 29037=29037 · SEQ · SEMA · TURETILMIS 5/5 · ICERIK uyusmaz=0). CI `daa6410d`: **`serit-a3` (yeni iki adimin yasadigi BLOKLAYICI is) success**, `serit-a2/a4` success, `build`+`deploy` KOSUYOR; kirmizi yalniz `hijyen-a2` (K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ.
+D1 5/5 eksen YESIL (SAYI 29037=29037 · SEQ · SEMA · TURETILMIS 5/5 · ICERIK uyusmaz=0). CI `daa6410d` VE `31156ade`: `build`+`serit-a2/a3/a4`+**`deploy`**+**`yayin`** hepsi success; kirmizi yalniz `hijyen-a2` (K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ (IS BAZINDA bakin).
+CANLI (cache-bust'SIZ, kanonik adres): `SITE_HTTP=200` · canli katalog 29037/29037 · onarilan metin canlida GORUNUYOR (ornek urun sayfasi 200, sayfada eski kalip 0) · EDGE BAYAT DEGIL.
 
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
