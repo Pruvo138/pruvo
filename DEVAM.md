@@ -25,7 +25,7 @@
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- 🔧 **K161 (17 Agu — K149'un ARTIGI; ayni fail-silent sinifi SURUYOR):** `isci-temizlik.py`
+- 🔧 **K163 (17 Agu — K149'un ARTIGI; ayni fail-silent sinifi SURUYOR):** `isci-temizlik.py`
   satir **168-169'da hala ciplak `except OSError: pass`**; ayrica 45/63/125'te listeleme
   hatasi `return 0` ile **"olculemedi"yi 0 okuyor** — bu depoda yasak eksen. Yon: her kol
   ya `atlanan`'a yazsin ya fail-loud dursun; `0` yalnizca OLCULEN sifir icin.
