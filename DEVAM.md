@@ -3,6 +3,7 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
 - 🔧 **K134 (defter kotasi SINIF kalemi; BaBa 3. kez kirmizi dedi, SPEC HAZIR):** care (`defter-rotasyon.py`) mimar kod kilidinde YASAK.
@@ -18,43 +19,25 @@
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
-- 🟢 **K150 KAPANDI ve main'e ALINDI (`ed47d317`) — ② blokeri kalkti:** ucuncu red sinifi
-  (`SEBEP=YAZICI_UCUSTA`) ADIYLA taniniyor, RETRY ediliyor, tavan tukenirse **rc=5 ERTELENDI**
-  (YESIL DEGIL, "ONARILAMADI" da DEGIL). CI kablosu: `ertelendi=evet` ciktisi -> teyit ve
-  ONARILAMADI adimlari KOSMAZ, damga YAZILMAZ (erteleme yesile boyanmaz, A0 ekseni surerse
-  kirmizi yakar). **KAPSAM KAPISI:** d1-sync rc evreni `ast` ile + `SEBEP=` jeton evreni
-  kaynaktan TURETILIR; dorduncu red sinifi sessizce "GERCEK HATA"ya DUSEMEZ. `ERTELENDI_RC`
-  tek kaynak, yml'deki kol ondan turetilir. Olcum: `28/28` · `MUTANT=5/5 IDDIA=5 ISTASYON=0
-  UYGULANAMADI=0` · nabiz `202/202` · N1/N2/N3 OLDU · sizinti 0 · `d1-sync.py` DOKUNULMADI.
-  ✅ **Alt kalem KAPANDI (`2f87a8bc`):** `--mutasyon` adimi `nobet.yml` L144-145'te
-  (`--kendini-test` ardinda, ayni blok, `continue-on-error` YOK); yerel `28 iddia 0 KIRMIZI` +
-  `MUTANT=5/5 UYGULANAMADI=0`. 🔶 CI kaniti BEKLIYOR (K144 `cancelled` yigini) — YESIL SAYILMADI.
 - 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- 🟢 **K148 (GOZCU FAZ-2 KAPANDI, BAGIMSIZ TEYITLI; kalan: canliya baglama = OKAN KAPISI):**
-  F1 (`O_EXCL`) · F2 (sahiplik) · F3 (ikiz esik) + **olculmus KILITLENME onarimi**: 0 baytlik
-  artik kilit gozcuyu SONSUZA KADAR blokluyordu (prob: bos sinifinda iki cagri da False).
-  Yaris dikisi ile F1 deterministik olculuyor; ayri turda cururtme probu testin olu olmadigini
-  kanitladi (93→91, 93→89). crontab DOKUNULMADI. Govde K160'ta tek kaynaga tasindi.
-  kabul: `python3 ~/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=16/16` (K160 sonrasi).
-- 🟢 **K160 KAPANDI (BaBa hukmu, bagimsiz teyitli):** kilit govdesi TEK MODULE indi
-  (`~/.claude/cron/kilit.py`); `nobet-kapi.py`+`gozcu.py` yalniz ADAPTOR. Govde K148 onarimi:
-  `O_EXCL` once, `FileExistsError`'da taze oku, `DOLU` CALINMAZ, artik kilit TEK KEZ devralinir
-  → 0 baytlik kilitlenme HER IKI yuzeyde kapali. gozcu 93/93 · `MUTANT=16/16 ISTASYON=0
-  KABLO_KOPUK=0` · nobet-kabul 39→45 · nobet-mut 9/9 · **CAPRAZ 5/5 KIRMIZI** (temel rc=0).
-  kabul: `python3 ~/.claude/cron/nobet-kabul-test.py` **VE** capraz 5/5 KIRMIZI.
-- 🔧 **K149 (URETEN KOLU KURULDU; `profil-*` ekseni ACIK ve BEYAN CELISKILI):** 17 Agu
-  `isci-temizlik.py` + 5/5 test yazildi, `isci.sh:757`'ye baglandi (`TEMIZLIK_CAGRISI=VAR`).
-  🔴 Bir tur `PROFIL_SILINEN=239` beyan etti; BAGIMSIZ sayim **253 dizin** buldu ve
-  **hepsi 2 saatten TAZE** (en eski 114,9 dk) → yas kurali hicbirini silemiyor. Iki
-  ihtimal ayirt EDILEMEDI: silme hic olmadi VEYA temizlik gecisi dizin mtime'larini
-  tazeleyip kurali kendi kendine etkisiz kildi. Sonraki tur bunu OLCSUN (mtime'i
-  degistirmeyen bir yas olcutu: dizin ADINDAKI tur damgasi ya da ic dosya mtime'i).
-  kabul: iki ardisik turda `profil-*` sayisi DUSMELI **VE** canli tur profili silinmemis olmali.
+- 🔧 **K161 (17 Agu — K149'un ARTIGI; ayni fail-silent sinifi SURUYOR):** `isci-temizlik.py`
+  satir **168-169'da hala ciplak `except OSError: pass`**; ayrica 45/63/125'te listeleme
+  hatasi `return 0` ile **"olculemedi"yi 0 okuyor** — bu depoda yasak eksen. Yon: her kol
+  ya `atlanan`'a yazsin ya fail-loud dursun; `0` yalnizca OLCULEN sifir icin.
+  kabul: `grep -c "except OSError: pass" ~/.claude/cron/isci-temizlik.py` → **0** VE
+  listeleme hatasinda sayac `OLCULEMEDI` isaretlesin (vaka + mutant).
+- 🔴 **K162 (17 Agu — CANLI TURUN PROFILI "CANLI" SAYILMIYOR; tur cokme riski):**
+  profil dizini `profil-<MODEL>-<ETIKET>` adlanirken canli kontrol `pgrep -fl isci.sh`
+  ciktisinin SON token'ini (`<ETIKET>`) karsilastiriyor → eslesmiyor. Su an tek koruma
+  **2 saatlik tazelik penceresi**; 2 saati asan bir tur profilini kaybedip COKER.
+  Bugun tetiklenmedi (`CANLI_ETIKET=0`) ama kosul rastlantisal.
+  kabul: canli tur fiksturuyle profil silinmez (vaka) **VE** mutant (eslesmeyi bozan)
+  KIRMIZI yakar.
 - 🔴 **K157 (17 Agu — KIMI HATTI KOK NEDEN BULUNDU, karar OKAN'DA):** `max_tokens=1`'in 200'u
   SAHTE (icerik bos, `stop_reason=null`) → gercek uretim SIFIR; `>=2` daima 403
   `permission_error`. Girdi ekseni · anahtar sinifi/uc · baslik · model/stream · hiz penceresi ·
@@ -103,6 +86,7 @@
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
 
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -112,17 +96,20 @@
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
 
+
 ## KOSUYOR (baska mimarlar)
 
 K152: `xenodochial-bardeen` TEK YAZICI (gizli kayit duzlemi, flock + public sha256 nobeti);
 worktree'sinde main'de OLMAYAN 1 commit var → temizlikte bilerek ATLANDI, bundle ister.
 (`musing-shaw` ve MaCiT'in peugeot/chevy worktree'leri kapandi; K153 blokeri kalkti.)
 
+
 ## CANLI OLCUM (17 Agu — marka dili KIP ekseni main'de, `daa6410d`)
 Kapi kapsami genisletildi ve katalog metni Okan onayli kalip tablosuyla onarildi. Kapi envanteri **297 vurus / 284 kayit** iken onarim sonrasi **21 vurus / 14 kayit**. ONARILAN=281 · KARMA_ATLANAN=1 · ELLE=10 · **SILINEN_URUN=0** · uniq 29037 · olcu satiri 22679 SABIT. Kok neden + kalip tablosu POSTA KUTUSUNDA.
 Kabul: `GECEN=95 KALAN=0 MUTANT=7/7` · `--commit-farki` rc=0 · kendini-test 50/50 · ci-kapsam rc=0 · public tarama 0 bulgu. BAGIMSIZ dogrulayici turu (onceki rapora bakmadan) ayni sayilari uretti.
 D1 5/5 eksen YESIL (SAYI 29037=29037 · SEQ · SEMA · TURETILMIS 5/5 · ICERIK uyusmaz=0). CI `daa6410d` VE `31156ade`: `build`+`serit-a2/a3/a4`+**`deploy`**+**`yayin`** hepsi success; kirmizi yalniz `hijyen-a2` (K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ (IS BAZINDA bakin).
 CANLI (cache-bust'SIZ, kanonik adres): `SITE_HTTP=200` · canli katalog 29037/29037 · onarilan metin canlida GORUNUYOR (ornek urun sayfasi 200, sayfada eski kalip 0) · EDGE BAYAT DEGIL.
+
 
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
