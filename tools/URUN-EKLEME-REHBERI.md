@@ -57,7 +57,15 @@
    - Döner (küçük JSON, `.thing-cache/<id>/oneri.json`): `sec_gorseller` (seçili 3-4 görsel, en iyi ilk),
      `elenen`, `baslik`, `aciklama` (ölçü satırı dahil), `kategori`, `marka`, `not`.
    - Bu JSON'u OKU (görselleri `Read` ETME). Öneriyi hızlıca gözden geçir: kategori/marka mantıklı mı,
-     açıklama "3D baskı" demiyor mu, uydurma özellik var mı. Küçük düzeltmeyi sen yap.
+     uydurma özellik var mı. Küçük düzeltmeyi sen yap.
+   - 🔴 **MARKA DİLİNİ GÖZLE KONTROL ETME — KAPIYA SORDUR.** Eskiden burada
+     `açıklama "3D baskı" demiyor mu` yazıyordu; bu bir **dizge** kontrolüdür ve ihlalin
+     kendisini görmez. Ölçüldü (17 Ağu 2026): `"Sert malzemeden basılır."` bu kontrolden
+     GEÇER — içinde "3D baskı" geçmez — ve katalogda **216 kayıt** böyle doğdu. Yasak olan
+     bir kelime değil, üretim sürecine dair **anlam sınıfının tamamıdır** (`basıl-` kökünün
+     her kipi, `baskı`nın süreç çekimleri, dilimleyici/dosya/makine dili, malzeme tavsiyesi).
+     Sınıfın tam tanımı + kanonik karşılıklar + dokunulmaz istisnalar (basma/basınç anlamı):
+     `tools/paket-marka-dili-ureteci.md`.
    - `sec_gorseller` yollarını doğrudan (f) adımında R2'ye yükle.
    - `.gemini-key` yoksa / Gemini hata verirse → aşağıdaki (c) manuel yola düş.
 
@@ -95,6 +103,19 @@
    varsa `MUKERRER <TÜR>: <değer> -> <id...>` satırları basar, çıkış 1 — o ürünü ele/düzelt.
    ⚠️ **İnline `python3 -c "..."` KULLANMA** — `komut-stili-kapisi.py` bunu makine olarak REDDEDER,
    rehberi izleyen işçi kapıya takılır (buradaki eski örnek buydu, 20 Tem düzeltildi).
+
+**h2. 🔴 DENETİM KAPISI — PUSH'TAN ÖNCE, ÇALIŞTIRILABİLİR (göz kontrolünün YERİNE GEÇER):**
+   ```
+   python3 tools/denetim-kapisi.py --idler <id1> <id2> ...
+   ```
+   `IHLAL: 0` görmeden **push ETME**. Kapı marka dilini (üretim süreci ifşası) + 200 TL fiyat
+   tabanını **sınıf** olarak ölçer; ihlal varsa hangi cümlenin hangi kuralı tetiklediğini yazar.
+   Düzeltip tekrar koş. Id yazmak istemezsen bayraksız kol da aynı işi görür (çalışma ağacı
+   EKSİ HEAD = commit'lenmemiş parti): `python3 tools/denetim-kapisi.py`
+   ⚠️ Bu adım atlanırsa ihlal **CI'da** yakalanır ve `deploy` KIRMIZI kalır — yani yalnız senin
+   partin değil **tüm ekibin yayını** durur (17 Ağu 2026'da ölçüldü: 3 ihlal, saatlerce kırmızı).
+   🚫 Kapının önerdiği `--uygula --evet-sil N` **KOŞULMAZ** — bu sınıfta çare silme DEĞİL metin
+   düzeltmedir (Okan: "sitede bulunan tüm ürünler satılabilir, SAKIN siteden bir ürün SİLME").
 
 **i. Yedek:** `python3 tools/yedekle.py --sirlar`
 

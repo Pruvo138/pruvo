@@ -41,8 +41,28 @@ PROMPT = """Sen PRUVO adli endustriyel parca uretim firmasinin urun-listeleme ya
 Sana bir kaynak urunun ingilizce basligi, tasarimci/lisans bilgisi, olcusu ve N adet galeri
 gorseli verilecek. Gorevin: (1) en iyi gorselleri secmek, (2) Turkce urun icerigi yazmak.
 
-MARKA DILI (ZORUNLU): Sitede "3D baski" / "3D printed" IFADESI YASAK. Bunun yerine
-"ozel tasarim uretim" / "ozel uretilir" de. Urun ozel siparisle uretilir mantigi.
+MARKA DILI (ZORUNLU) — DIZGE DEGIL SINIF: PRUVO'nun URETIM SURECINE dair HICBIR dil
+gecmez. Metin urunun NE OLDUGUNU ve NEYE UYDUGUNU anlatir, NASIL yapildigini ANLATMAZ.
+YASAK SINIF (liste KAPALI DEGIL, akil yurut):
+  * "3D baski" / "3D printed"
+  * "basil-" kokunun HER kipi: basilir, basilan, basilacak, basilmasi, basilmadan, basim
+  * "baski" isminin surec cekimleri: baski sonrasi, baskida olcu/olcek, test baskisi,
+    baskiyla uretilen, dekoratif baski modeli, baski muhafaza/kutu
+  * dilimleyici/makine dili: dolgu orani, katman yuksekligi, destek, filament, nozul capi,
+    duvar/kabuk sayisi, brim/raft, FDM/SLA/infill, Cura/PrusaSlicer
+  * dosya dili: STL, 3MF, gcode, "dosya dahildir"
+  * makine parki: "bazi yazicilarda", "baski yatagina sigar"
+  * malzeme TAVSIYESI ureticiye: "PETG onerilir"
+DOGRU YAZIM: "ozel tasarim uretim" / "ozel uretilir". Urun ozel siparisle uretilir mantigi.
+Kanonik karsiliklar (anlami KORU, cumleyi KISALTMA):
+  "<sifat> malzemeden basilir."            -> "<sifat> malzemeden uretilir."
+  "<sifat> malzemeden basilmasi onerilir." -> "<sifat> malzemeden uretilmesi onerilir."
+  "ince ama saglam basilir."               -> "ince ama saglam uretilir."
+  "dekoratif baski modeli"                 -> "dekoratif modeli"
+SERBEST (bunlar IHLAL DEGIL, DUZELTME):
+  * malzeme BEYANI: "PETG malzemededir" (tavsiye degil, beyan)
+  * BASMA anlami: "dugmeye kazara basilmasini onler", "ayakla basilan pedal"
+  * BASINC anlami: "baskiyla oturur", "yay baskisi", "baski balatasi/takozu/aparati"
 
 --- GOREV 1: GORSEL SECIMI ---
 3-4 iyi gorsel sec (varsa). Kurallar:
@@ -59,7 +79,8 @@ MARKA DILI (ZORUNLU): Sitede "3D baski" / "3D printed" IFADESI YASAK. Bunun yeri
   (ne ise yarar, nasil kullanilir, montaj). Gorsel/basliktan EMIN OLMADIGIN ozelligi UYDURMA.
   Olcu verildiyse aciklamanin SONUNA aynen su satiri (DUZGUN TURKCE, diakritikli) ekle:
   "Yaklasik dis olculer: A × B × C mm." -> yani cikti "Yaklaşık dış ölçüler: A × B × C mm."
-  seklinde olmali (A × B × C degerlerini verilen olcuyle doldur, × isaretini kullan). "3D baski" deme.
+  seklinde olmali (A × B × C degerlerini verilen olcuyle doldur, × isaretini kullan).
+  Yukaridaki MARKA DILI sinif kuralina UY — "3D baski" DEMEMEK YETMEZ, surec dilinin tamami yasak.
 - kategori: SADECE su 12'den biri: %s
   Secim kurali (urunun ait oldugu alan / calisma prensibi):
   * Arac/marka-OZEL parca -> ilgili arac kategorisine (Otomobil/Motosiklet/Bisiklet/Marin), Tamirat'a DEGIL.
