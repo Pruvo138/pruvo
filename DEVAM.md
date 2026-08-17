@@ -23,6 +23,7 @@ EDGE BAYAT DEGIL). D1 5/5 eksen YESIL (29038, ICERIK uyusmaz=0).
 bes oturumdur commit'siz (K136).
 **OKAN'DA:** 22 Agu kimi/codex motor karari · $100 plan karari (once yanma olcumu) ·
 Navlungo `il-ilce-dilim1` merge'i.
+**AYRICA CANLIYA GITTI (KraL/amazing-hamilton, bu bloktan IKI KEZ dusuruldu):** K150 rc=5 ERTELENDI + kapsam kapisi (`ed47d317`) + `--mutasyon` CI kablosu (`2f87a8bc`; kosum `32071071340` `cron-nabzi` adim 7 **success**) · K148 gozcu faz-2 · K160 kilit govdesi TEK KAYNAK (repo disi, capraz 5/5). ⚠️ `b180fa1a` da "K160" diye anilmisti; K160 = BaBa'nin KILIT hukmu.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
