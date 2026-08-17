@@ -152,6 +152,54 @@ MUTANTLAR = [
      KAPI_ADI,
      "                kova.setdefault(marka, []).append(pid)",
      "                kova.setdefault(marka, list()).append(pid)", "YESIL"),
+
+    # ── K140 KAYNAK DEGISIMI (17 Agu 2026, spec §3) — evren artik index.html
+    # TANINMIS_MARKALAR'dan turer; cip_evreni_markalari genisletmesi YOK. Bu dort
+    # mutant kapinin yeni evren kaynagina BAGIMLI oldugunu kanitlar.
+    # K1: evreni eski haline (cip evreni eklemeli) dondur → model jetonlari (1290,
+    #     690, MT-07, ...) yeniden kirmizi → sayfa/filtre ekseninde FAIL uretmeli.
+    ("OLDURUCU M15 K140 GERI CEVIR — evreni cip_evreni_markalari EKLEMELI haline don (1290/690 "
+     "yeniden evrende)",
+     KAPI_ADI,
+     "    ek = ()                                                       # K140: cip genisletmesi YOK\n"
+     "    veri = mmb.gruplandir(urunler, evren, ek)",
+     "    ek = mmb.cip_evreni_markalari(urunler, index_html)\n"
+     "    veri = mmb.gruplandir(urunler, evren, ek)", "KIRMIZI"),
+    # K2: KALICI_KIRMIZI'daki 'Rover'i dusur → Rover 82 kirmizisi kaybolur, kapi YESIL
+    #     yanar → korlesme yakalanir (susturma basarili olmamali; onarim yok).
+    ("OLDURUCU M16 KALICI_KIRMIZI'dan Rover'i dusur (korlesme — susturma gizlenmemeli)",
+     KAPI_ADI,
+     "    \"ARAMA_KAYIP\": {\"Rover\"},       # gercek kayip: rover sayfasi yok, urun kayboluyor",
+     "    \"ARAMA_KAYIP\": set(),", "KIRMIZI"),
+    # K3: 'Opel' evrenden dusurulurse (sayfasi kapali gercek marka) → model_only testi /
+    #     K kontrolu yakalar. Tabana bagli degil; KALICI_KIRMIZI mekanizmasi bunu KIRMIZI
+    #     vermeli — K140 evren kaynagi bunu otomatik izliyor.
+    ("OLDURUCU M17 KALICI_KIRMIZI'da OLMAYAN bir markayi icerige sok → K kontrolu yakalar",
+     KAPI_ADI,
+     "KALICI_KIRMIZI = {\n"
+     "    \"ARAMA_KAYIP\": {\"Rover\"},       # gercek kayip: rover sayfasi yok, urun kayboluyor\n"
+     "}",
+     "KALICI_KIRMIZI = {\n"
+     "    \"ARAMA_KAYIP\": {\"Rover\", \"HayaliMarka\"},\n"
+     "}", "KIRMIZI"),
+    # K4: kapida kuratorlu liste YOK — ikiz tanim nobetcisi. Eger birisi listeyi kapiya
+    #     kopyalarsa KIRMIZI vermeli. NOT: kapida liste ZATEN yok; bu mutant listeyi
+    #     ekleyerek "ikiz tanim" riskini canlandirir ve kapinin "evren TANINMIS'tan
+    #     OKUNUR" davranisini test eder — ekleme yapilmazsa KIRMIZI.
+    ("OLDURUCU M18 KAPIDA LISTEYI KOPYALA — ikiz-tanim nobetcisi tetiklenmeli (kirmizi: "
+     "kapinin TEK KAYNAK invariantini bozuyorsun)",
+     KAPI_ADI,
+     "    evren = mmb.MarkaEvreni(index_html)\n"
+     "    ek = ()                                                       # K140: cip genisletmesi YOK",
+     "    # IKIZ TANIM (yasak) — kapida kuratorlu liste KOPYALANAMAZ\n"
+     "    evren = mmb.MarkaEvreni(index_html)\n"
+     "    _yasak_evren = mmb.MarkaEvreni(index_html)\n"
+     "    if 'OpelFake' not in _yasak_evren.taninmis:\n"
+     "        _yasak_evren.taninmis.append('OpelFake')\n"
+     "        _yasak_evren._kanonik['opelfake'] = 'OpelFake'\n"
+     "    evren = _yasak_evren\n"
+     "    ek = ()                                                       # K140: cip genisletmesi YOK",
+     "KIRMIZI"),
 ]
 
 
