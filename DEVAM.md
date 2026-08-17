@@ -2,11 +2,8 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ K150 / K148 / K160 KAPANDI (17-18 Agu, KraL) — tam metin ARSIVDE
-K150 rc=5 ERTELENDI + kapsam kapisi (`ed47d317`) + `--mutasyon` CI kablosu (`2f87a8bc`; kosum
-`32071071340` `cron-nabzi` adim 7 **success**) · K148 gozcu faz-2 · K160 kilit govdesi TEK
-KAYNAK (repo disi, capraz 5/5). ⚠️ `b180fa1a` da "K160" diye anilmisti; K160 = BaBa'nin KILIT
-hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerekce K167.)
+## ✅ K150 / K148 / K160 KAPANDI (17-18 Agu, KraL) — tam metin + 18 Agu kabul olcumu ARSIVDE
+SHA'lar `ed47d317` · `2f87a8bc` · `b180fa1a`. Karma bloktan iki kez dustu (gerekce K167).
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
@@ -23,10 +20,15 @@ hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerek
   cozulemeyen kayit `lastmod`SIZ kaliyor (`build.py:4153-4155`); kirmizi kosumda 13. Olcek
   buyudukce SESSIZCE buyur. Yon: esigi BUYUTMEDEN fail-loud'a bagla. `kabul:` BOS.
 - 🔧 **K168 (18 Agu — K134'un HALEFI; K134 KAPANDI, tam metin ARSIVDE):** care
-  (`defter-rotasyon.py`) mutasyonla teyitli YESIL (7/7) ama kota bugun IKI KEZ kaybedildi
-  (141/130, 139/130 — ikisini de mimar ELLE dondurdu). Mekanizma: kotayi asan rol MIMAR ve
-  mimar `defter-rotasyon.py`'yi KOSAMAZ (icra kapisi python'u reddediyor). Yon: rotasyonu
-  mimarin KOSABILDIGI bir kola bagla (kanca otomatigi). `kabul:` BOS.
+  (`defter-rotasyon.py`) mutasyonla teyitli YESIL (7/7) ama kota bugun UC KEZ kaybedildi
+  (141/139/136 — ucunu de mimar ELLE dondurdu). Mekanizma: kotayi asan rol MIMAR ve mimar
+  o araci KOSAMAZ (icra kapisi python'u reddediyor). Yon: kanca otomatigi. `kabul:` BOS.
+- 🔴 **K169 (18 Agu — ⚖️ OKAN: "ikiz urunler silinebilir"; ama `a0fa061c` O SILMEYI YAPMIYOR):**
+  mesaj "15 ikiz urun silindi, 29062->29047" diyor; `jq` olcumu iki ucta da **29062 benzersiz
+  id**, "silinen" 3 id'nin 3'u de DURUYOR → **0 silme**. Fiilen yapilan: 23 kaydin YERI
+  degismis (saf yeniden siralama) = kardes oturumun SEQ DRIFT'i (23 satir, Renault partisi).
+  HUKUM: main'e ITILMEZ, sahibi geri alsin. Gercek silme AYRI/temiz commit olsun; icra MaCiT'te.
+  kabul: id sayisi 29062 -> 29047 OLCULDU **VE** `d1-sync --durum` SEQ ekseni YESIL.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   Tam metin ARSIVDE.
   Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. `kabul:` alani BOS.
@@ -77,9 +79,9 @@ hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerek
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
 - 🔴 **K141 (17 Agu — OLCULEMEYEN NOBET, sinif kalemi; 18 Agu YENIDEN OLCULDU, HALA KIRMIZI):**
   `kapi-envanteri.py` rc=1 · `5/7 kapi TAM` · iki kapi da `reddetmeli=allow kabuletmeli=allow`
-  ⚠️ Karsi-kanit: iki kapi CANLI (bu oturumda mimarin `wc`/`sort` komutlarini REDDETTILER)
-  → kusur KAPIDA degil OLCUM ALETINDE. Kok neden BULUNDU ve ARSIVDE (satir numarasiyla);
-  icra paketi `tools/paket-k141-nobet-probu.md`. Once ALET onarilir, sonra teshis.
+  ⚠️ Karsi-kanit: iki kapi CANLI (mimarin `wc`/`sort` komutlarini bu oturumda REDDETTILER)
+  → kusur KAPIDA degil OLCUM ALETINDE; kok neden ARSIVDE (satir numarasiyla), icra paketi
+  `tools/paket-k141-nobet-probu.md`. Once ALET onarilir, sonra teshis.
   kabul: `python3 tools/kapi-envanteri-test.py` → `DUSEN=0 MUTANT=3/3 KONTROL=2/2` **VE**
   ardindan `kapi-envanteri.py` rc=0 **VE** ikinci tur ciktisi rapora BIREBIR yapistirilir.
 - 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi).
@@ -98,9 +100,8 @@ hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerek
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
   ekseninde ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
   (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
-- 🟡 **Kosum sinyali kirli (olculdu):** `hijyen-a2`/`a3` yayin zincirinde DEGIL ama genel
-  `conclusion`'i `failure` yapiyor. Kural: genel hukme degil **is bazinda** bakilir
-  (hijyen kirmizisi gurultu DEGIL — K125'i o buldu). Tam metin ARSIVDE.
+- ✅ **"Kosum sinyali kirli" KAPANDI** — K166 (`c6c05cf9`) dort hijyen isini SERIT B'ye tasidi;
+  `Build & deploy` kirmizisi artik GERCEKTEN yayin durdu demek. Tam metin ARSIVDE.
 - 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
   cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
