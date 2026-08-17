@@ -27,14 +27,6 @@
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- ✅ **K147 KAPANDI** (sayac 63 → 65, DUSMEDI) → karar ②'ye gecti, devami K148. ARSIVDE.
-- ✅ **K154 KAPANDI** (`2c092d5c`): K153'un ekledigi ikinci `if adim < 1:` kolu mutasyon
-  capasini IKIZLEMISTI (M6 capa=2, M3 olu kola nisan) → `build` kirmizi, `deploy` skipped.
-  Capa 2-line hedefle tekillestirildi, M3 canli kola tasindi + V6 vakasi; mutant SILINMEDI.
-  Olcum `KILIT_RC=0 22/22 · MUT 6/6 · CAPA_UYARISI=0`. Ders: [[yeni-kol-mutasyon-capasini-ikizler]].
-- ✅ **K155 KAPANDI** (`8b81c769`): `chevy-klasik-jant` `"marka":["Chevrolet",""]` bos jeton
-  → uyum kapisi `IKIZ TANIM` reddi. Sinif supuruldu (evrende **1** kayit), `duzelt.py` ile
-  yazildi. Kapi `gecen 39 · kalan 0` rc=0.
 - 🟠 **K148 (GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama kaldi):** uc dosya `~/.claude/cron/` altinda, **repo ayak izi SIFIR**;
   Tam metin ARSIVDE.
   kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=13/13`.
@@ -46,15 +38,30 @@
   tazeleyip kurali kendi kendine etkisiz kildi. Sonraki tur bunu OLCSUN (mtime'i
   degistirmeyen bir yas olcutu: dizin ADINDAKI tur damgasi ya da ic dosya mtime'i).
   kabul: iki ardisik turda `profil-*` sayisi DUSMELI **VE** canli tur profili silinmemis olmali.
-- ✅ **K156 KAPANDI (17 Agu):** karantina tetigi turun CIKTI METNINDE desen ariyordu →
-  kimi'nin 403'unu RAPORLAYAN saglam `minimax-m3` de karantinaya girmisti (nobet zinciri
-  iki motoru da ayakta gormez = ucuz kat SIFIR). `isci.sh:717` artik `(( CLAUDE_RC != 0 ))`
-  sartini da ariyor: motor kendi reddettiginde tur DUSER, alinti yapan tur `rc=0` biter.
-  Desen kumesi GEVSETILMEDI. Yanlis `minimax-m3` satiri `.motor-karantina`'dan cikarildi.
-  Bagimsiz teyit: `BASH_N=0 TEST_RC=0 VAKA=5/5 MUT_RC=0 MUTANT=3/3 KONTROL=YESIL
-  TEMIZLIK_RC=0 ATAMA_ONCE=EVET KARANTINA=kimi`. Yedek `isci.sh.yedek-k156` DURUYOR (K146).
-  🔴 Surec notu: onaran tur kabul satirina `BASH_N=13` yazip yine de "kapandi" dedi —
-  sayi YANLISTI (gercegi 0). Isci sayisi DAIMA bagimsiz yeniden olculur.
+- 🔴 **K157 (17 Agu — KIMI HATTI KOK NEDEN BULUNDU, karar OKAN'DA):** iki m3 olcum turu:
+  `max_tokens=1`'in **200'u SAHTE** (`content[0].text=""`, `stop_reason=null`, `type/role` bos)
+  → "1 token calisiyor" kapasite DEGIL olcum artefakti; **gercek uretim SIFIR**. `>=2` daima
+  403 `permission_error`, govde byte-byte ayni. 10x15.007=**150.070 girdi token** mt=1 ile
+  gecti, esigi DEGISTIRMEDI → girdi ekseni ilgisiz. Kota basligi/`request-id` **yok**, kota
+  okuma ucu icin **47 aday 404** → API'den kota OKUNAMIYOR. `/coding/v1/me`=200,
+  `status=USER_STATUS_NORMAL`, `created_time=2026-08-14` (anahtar mtime + 15 Eyl yenilemesiyle
+  tutarli) → anahtar Okan'in KENDI hesabinda; "baska plan" teshisi dustu. 403 TAM metni careyi
+  soyluyor (TAM 403 metni ARSIVDE — satici URL'i guvenlik geregi tasindi).
+  ✅ **Panel celiskisi COZULDU** (Okan'in sorusu + saticinin oz dokumani): Kimi Code'un AYRI
+  kredisi YOK, uyelik havuzunu paylasir (ucuncu parti API dahil) ve **krediler 7 GUNDE BIR,
+  abonelik tarihinden yenilenir, artan devretmez**. Panelin **%19,99'u AYLIK** sayac; tukenen
+  **haftalik dilim**. "5s Kod %0 / 7g Kod %0" ise HIZ penceresi (kredi sayaci degil) — saatlerdir
+  her istek reddedildigi icin bos okuyorlar. 403'un "next cycle"i = **~22 Agu**, 15 Eyl DEGIL →
+  **odeme GEREKMIYOR**. **Yanlislanabilir kanit kuruldu:** `~/.claude/cron/kimi-nabiz.py`
+  gunde 2x (09:10/21:10) GERCEK is atar (`max_tokens=1024`) ve UC sarta bakar (200 + icerik
+  bos degil + `stop_reason` null degil); `kimi-nabiz-test.py` **5/5 vaka, 2/2 mutasyon YESIL**,
+  crontab **36→38** teyitli. Ilk olcum `2026-08-17T15:51:09Z SAGLIK=KIRMIZI http=403
+  tip=permission_error icerik=bos stop=null`.
+  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → haftalik dongu DOGRULANDI; hala KIRMIZI
+  ise aylik tavan hipotezi kazanir ve **karar Okan'a doner** (extra usage / plan yukseltme).
+- 🔵 **K158 (17 Agu, TASARIM ACIGI — KAYIT):** isci tarayicisi YALNIZ kimi motorunda var
+  (m3'te yok) → kimi dustugunde paneli okuyacak yol da kapaniyor; tek tarayicili motorun
+  dususu TESHIS yolunu da kesiyor. Yon: tarayiciyi motordan bagimsiz kola tasi. `kabul:` BOS.
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
@@ -64,7 +71,6 @@
 - 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi).
   Tam metin ARSIVDE.
   kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
-- ✅ **K133 KAPANDI** (`42e28cf7` merge, `c5225016` push) — tam metin ARSIVDE; kuyruk K140.
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal
   asiyor (tam-dosya diff). Yon: butce buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   AYRI ele almak. `kabul:` alani BOS.
@@ -85,7 +91,6 @@
 - 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
   cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
-- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]) · K127 rotasyon madde granulu kol (`e5f5c32b`) · **K138** (mail ARIZA SINYALI degildi — nobet metni "maile guvenme" diyor, olcum `gh run list`; Okan GitHub bildirimini kapatti, crontab satiri KALDIRILDI **ve** nobet gorev metnindeki supurme adimlari §0.4+§1+§4 EMEKLI isaretlendi — yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi; otomatik mail silicisi KALMADI, bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yol; geri acma OKAN KAPISI, ikisi AYNI turda) · **K137** (birkac saat `crontab` YAZIMI asildi — okuma calisiyordu, asili surec `pgrep` ile teyitli, SIGKILL gerekti; 11:00 civari acildi. Tuzak: `crontab <dosya>` dosyayi BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc).
 
 
 ## OKAN'DA
@@ -111,4 +116,4 @@ CI `2c092d5c`: `build`+`serit-a2`+`deploy`+`yayin` **success**; kirmizi yalniz `
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 
-14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali.
+14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
