@@ -447,13 +447,13 @@ MIMAR_22TEM_VAKALARI = [
      "/Applications/ChatGPT.app/Contents/Resources/codex exec \"x\"", None,
      "26Tem: tam yol da olsa bayraksiz = RED"),
     (232, "allow", "Bash",
-     "codex exec -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
      "/son-mesaj.txt \"spec dosyasindaki isi yap\"", None,
-     "26Tem POZITIF: -o ile codex-isci standardi = GECER"),
+     "26Tem POZITIF: -o ile codex-isci standardi + 17Agu model bayragi = GECER"),
     (233, "allow", "Bash",
-     "/Applications/ChatGPT.app/Contents/Resources/codex exec --output-last-message " +
-     SCRATCH + "/son-mesaj.txt \"spec\"", None,
-     "26Tem POZITIF: tam yol + --output-last-message = GECER"),
+     "/Applications/ChatGPT.app/Contents/Resources/codex exec -m gpt-5.6-luna "
+     "--output-last-message " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
+     "26Tem POZITIF: tam yol + --output-last-message + 17Agu model bayragi = GECER"),
     (234, "allow", "Bash", "codex --version", None,
      "26Tem: zararsiz gozlem cagrisi = GECER"),
     (235, "deny", "Bash", "codex", None,
@@ -502,12 +502,12 @@ MIMAR_22TEM_VAKALARI = [
     (276, "allow", "Bash", "codex -V", None, "27Tem: '-V' gozlem = GECER"),
     # (3e) MESRU CAGRILAR — daraltma/sikilastirma bunlari KAPATMAMALI. Sentinel: ME6.
     (273, "allow", "Bash",
-     "codex exec -C " + REPO + " --sandbox danger-full-access -o " + SCRATCH +
-     "/son-mesaj.txt \"ag isi: feed dogrula\"", None,
-     "27Tem: ag isi recetesi (--sandbox danger-full-access) REDDEDILMEZ"),
+     "codex exec -m gpt-5.6-luna -C " + REPO + " --sandbox danger-full-access -o " +
+     SCRATCH + "/son-mesaj.txt \"ag isi: feed dogrula\"", None,
+     "27Tem: ag isi recetesi (--sandbox danger-full-access) + 17Agu model bayragi = GECER"),
     (274, "allow", "Bash",
-     "codex exec --output-last-message=" + SCRATCH + "/son-mesaj.txt \"spec\"", None,
-     "27Tem: esitlikli bicim (DEGERLI) = GECER"),
+     "codex exec -m gpt-5.6-luna --output-last-message=" + SCRATCH + "/son-mesaj.txt \"spec\"",
+     None, "27Tem: esitlikli bicim (DEGERLI) + 17Agu model bayragi = GECER"),
     # --- 27 TEM IKINCI TUR (BaBa: sart 6 EVE tasinir) — kapatilan IKI kusur ---
     # (3f) KUSUR-1: esitlikli bicimde '-' oneki denetimi YOKTU. Sentinel: ME13 / ME14.
     (279, "deny", "Bash", "codex exec --output-last-message=-o \"x\"", None,
@@ -520,8 +520,8 @@ MIMAR_22TEM_VAKALARI = [
     (283, "deny", "Bash", "env -u FOO codex exec \"x\"", None,
      "27Tem-2: ayni sizintinin env varyanti ('-u FOO') -> ikinci okuma RED"),
     (281, "allow", "Bash",
-     "nice -n 10 codex exec -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
-     "27Tem-2 POZITIF: ikinci okuma MESRU sarmalanmis cagriyi KAPATMAZ"),
+     "nice -n 10 codex exec -m gpt-5.6-luna -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
+     "27Tem-2 POZITIF: ikinci okuma MESRU sarmalanmis cagriyi KAPATMAZ (17Agu model bayragi ekli)"),
     (282, "allow", "Bash", "time grep -rn codex " + REPO + "/tools/", None,
      "27Tem-2 FP NOBETCISI: sarmalayici + 'codex' KELIMESI -> kural TETIKLENMEZ"),
     # (4) python/node ALLOWLIST
@@ -540,6 +540,47 @@ MIMAR_22TEM_VAKALARI = [
      "sh: bitisik bayrakla repo-disi yol -> dis_yol (M13 nobetcisi)"),
     (253, "deny", "Bash", "bash tools/x.sh /private/tmp/disari", None,
      "sh: tiresiz repo-disi yol argumani -> dis_yol (M20 nobetcisi)"),
+]
+
+# === 17 AGU K159: CODEX SURELI PENCERESI + MODEL KAPISI ===
+# Okan karari (17 Agu 2026): codex 17->20 AGU arasinda kapali kumeden CIKTI (sureli
+# istisna); 20 AGU sonrasi tekrar kapali (fail-closed). Yeni eklenen dort kural:
+#   1. -m / --model YOKSA RED (bayraksiz = saglayici VARSAYILANI = amiral)
+#   2. Model CODEX_YASAK_MODELLER icindeyse RED (amiral)
+#   3. Model CODEX_IZINLI_MODELLER icinde degilse RED (fail-closed)
+#   4. Bugunun tarihi CODEX_PENCERE_BITIS'ten sonraysa RED (PRUVO_BUGUN env ile
+#      test enjekte edebilir; V6 vakasi icin sart)
+# Tarih enjekte kanalini kullanmak icin 7. tuple alani (ek_env) kullanildi; M1-M4
+# mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
+K159_CODEX_VAKALARI = [
+    (900, "deny", "Bash",
+     "codex exec -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", None,
+     "K159 V1: model bayragi (-m/--model) YOK -> RED (bayraksiz = amiral) [M1 sentinel]"),
+    (901, "deny", "Bash",
+     "codex exec -m gpt-5.6-sol -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", None,
+     "K159 V2: amiral model (gpt-5.6-sol) -> RED (Okan emri) [M2 sentinel]"),
+    (902, "allow", "Bash",
+     "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", None,
+     "K159 V3: izinli model (luna) + pencere ICINDE -> GECER"),
+    (903, "deny", "Bash",
+     "codex exec -m gpt-5.6-luna \"spec\"", None,
+     "K159 V4: model var, cikti bayragi YOK -> RED (eski kural korunuyor)"),
+    (904, "deny", "Bash",
+     "codex exec -m gpt-9 -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", None,
+     "K159 V5: bilinmeyen model -> RED (fail-closed: yarin eklenen model kapiyi ACMAZ) [M3 sentinel]"),
+    (905, "deny", "Bash",
+     "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", None,
+     "K159 V6: izinli model ama tarih 21 Agu (enjekte PRUVO_BUGUN) -> pencere KAPANDI, RED [M4 sentinel]",
+     {"PRUVO_BUGUN": "2026-08-21"}),
+    (906, "allow", "Bash",
+     "codex exec -m gpt-5.6-luna -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec\"", ISCI_ID,
+     "K159 V7: ayni cagri agent_id DOLU (ISCI) -> GECER (muafiyet bozulmadi)"),
 ]
 
 # === 28 TEM AGENT-KAPISI + 13 AGU SERT BLOK VAKALARI ===
@@ -1120,6 +1161,82 @@ def kablo_kume_kostur(gecici_kok):
     return basarisiz, atlanan
 
 
+def k159_mesaj_denetim():
+    """K159 SON KOL: yasak kumeden turetilen RED mesajinin KAYNAKLA PARITESI.
+
+    Bagimsiz curutucu buldu (17 Agu K159 son kol): kapinin RET metninde model adi
+    ELLE gomulu duruyordu; yeni amiral model eklendiginde mantik dogru kalir ama
+    mesaj bayatlar ve kullaniciyi yanlis bilgilendirir. Duzeltme sonrasi metin
+    `mimar_kimlik.CODEX_YASAK_MODELLER` kumeden turetilmeli; bu kume degisince
+    mesajin DA ICERIGI degismis olmali. Test kume sabitini import edip kontrol
+    EDER — elle 'substring aranir' yapmaz (bekci bayatlayan metni yakalar)."""
+    import importlib.util
+    basarisiz = []
+    atlanan = []
+    kimlik_yol = os.path.join(TOOLS, "mimar_kimlik.py")
+    if not os.path.exists(kimlik_yol):
+        basarisiz.append((910, "deny+tum yasak adi", "EKSIK-KIMLIK",
+                          "mimar_kimlik.py bulunamadi: " + kimlik_yol))
+        print("910  K159 son kol: EKSIK-KIMLIK")
+        return basarisiz, atlanan
+    spec = importlib.util.spec_from_file_location("_k159_kimlik", kimlik_yol)
+    kimlik = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kimlik)
+    yasak = kimlik.CODEX_YASAK_MODELLER
+
+    if not yasak:
+        # Kume bossa ornek model secilemez — istisna olarak skip; "0 yasak model yok"
+        # durumu kapi acisindan zaten testsiz (M2 mutasyonu yakalar). Burada raporlanir.
+        print("910  K159 son kol: CODEX_YASAK_MODELLER bos — vaka KOSULAMAZ (M2 yakalar)")
+        return basarisiz, atlanan
+
+    # Kumeden BIRINI sec (ilk sirali); davranis kumeden bagimsiz — hepsi yasak.
+    ornek_model = sorted(yasak)[0]
+    hedef = ("codex exec -m " + ornek_model + " -C " + REPO +
+             " -s workspace-write -o " + SCRATCH + "/son-mesaj.txt \"spec\"")
+    # Kapidan HAM red sebebini oku (kancayi_kostur 80 char'a kirpiyor; biz tam metin isteriz).
+    payload = {"session_id": "test", "cwd": REPO,
+               "permission_mode": "bypassPermissions", "hook_event_name": "PreToolUse",
+               "tool_name": "Bash", "tool_input": {"command": hedef}}
+    ortam = dict(os.environ)
+    ortam.pop("PRUVO_ISCI_KOSUMU", None)
+    ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+    proc = subprocess.run([sys.executable, ICRA], input=json.dumps(payload),
+                          capture_output=True, text=True, env=ortam)
+    if proc.returncode != 0:
+        basarisiz.append((910, "deny", "COKTU",
+                          "kapi kosmadi: " + (proc.stderr or "")[:80]))
+        print("910  K159 son kol: COKTU")
+        return basarisiz, atlanan
+    try:
+        veri = json.loads(proc.stdout.strip() or "{}")
+    except Exception:
+        basarisiz.append((910, "deny", "PARSE-HATASI",
+                          "kapi cikti JSON degil"))
+        print("910  K159 son kol: PARSE-HATASI")
+        return basarisiz, atlanan
+    hso = veri.get("hookSpecificOutput") or {}
+    karar = hso.get("permissionDecision", "allow")
+    sebep = hso.get("permissionDecisionReason") or ""
+
+    if karar != "deny":
+        basarisiz.append((910, "deny", karar, "yasak model RED almadi"))
+        print("910  K159 son kol: olculen={} (KIRMIZI — RED bekleniyordu)".format(karar))
+        return basarisiz, atlanan
+
+    eksik_adi = sorted(ad for ad in yasak if ad not in sebep)
+    if eksik_adi:
+        basarisiz.append((910, "tum yasak adi sebep'te",
+                          "eksik=" + ",".join(eksik_adi),
+                          "mimar_kimlik.CODEX_YASAK_MODELLER adlari RED sebebinde yok"))
+        print("910  K159 son kol: iz='{}' | eksik={} (KIRMIZI)".format(
+            sebep.replace("\n", " ")[:80], eksik_adi))
+        return basarisiz, atlanan
+    print("910  K159 son kol: olculen={} yasak-sayisi={} sebep-uzunluk={} | OK".format(
+        karar, len(yasak), len(sebep)))
+    return basarisiz, atlanan
+
+
 def gecici_worktree_kur(temel):
     """Repo DISINDA, git'e KAYITLI gecici bir worktree kurar (hermetiklik).
     '--no-checkout' sayesinde dosya kopyalanmaz — yalniz .git/worktrees kaydi olusur.
@@ -1170,6 +1287,7 @@ def main():
         ("MIMAR TARAFI YENI VAKALAR (onek/kayit/test-modulu/Edit)", MIMAR_YENI_VAKALARI, REPO),
         ("CWD REPO DISINDA (F adiminin kalan isi) — MIMAR kimligi", DIS_CWD_VAKALARI, DIS_CWD),
         ("22 TEM SERTLESTIRME (olcum/curl/codex/python-allowlist/sh-nobetci)", MIMAR_22TEM_VAKALARI, REPO),
+        ("17 AGU K159 CODEX SURELI PENCERESI + MODEL KAPISI (V1..V7)", K159_CODEX_VAKALARI, REPO),
         ("28 TEM AGENT-KAPISI (Agent/Task beyan sarti) — MIMAR + ISCI ekseni", AGENT_VAKALARI, REPO),
         ("8 AGU MCP-TARAYICI KAPISI — ANA RED / ISCI GECER + YANLIS-POZITIF nobeti", MCP_VAKALARI, REPO),
         ("13 AGU ISCI-SARMALAYICI KAPISI — yol/argüman/motor/beyan + segment ayrimi",
@@ -1182,8 +1300,12 @@ def main():
         kumeler = [("13 AGU-2 ISCI KIMLIK EKSENI — mutant izolasyonu",
                     ISCI_KIMLIK_EKSENI_VAKALARI, REPO)]
 
-    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3
+    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3 + 1
     toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
+    k159_mesaj_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
+    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {})".format(
+        toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
+        k159_mesaj_vaka_sayisi))
     print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3)".format(
         toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI)))
     print("TOOLS DIZINI: " + TOOLS)
@@ -1203,6 +1325,9 @@ def main():
             basarisiz += b
             atlanan += a
             b, a = kablo_kume_kostur(gecici_kok)
+            basarisiz += b
+            atlanan += a
+            b, a = k159_mesaj_denetim()
             basarisiz += b
             atlanan += a
     finally:

@@ -23,6 +23,21 @@ CANLI_ISCI_MOTORLARI = ("kimi", "minimax-m3")
 # Emekli: yeni is YOLLANMAZ. Kimlik tanimada gecerli kalir.
 EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash")
 
+# === 17 AGU 2026 (K159): CODEX SURELI PENCERESI KIMLIK KAYNAGI ===
+# Okan karari: codex 17->20 AGU arasinda kapali kumeden CIKTI; 20->22 AGU kapali; 22 AGU
+# kimi donunce yeni karar. Pencere bitis TARIH olarak sabit; kapilar bu degerden turetilir
+# ([[ikiz-tanim-sessiz-ayrisma]] — kapiya ELLE gomulmez).
+# Bu tarihten SONRA codex yeniden KAPALI sayilir (sessiz kalicilasma engeli:
+# [[goc-yolu-eski-kapiya-takilir]]).
+CODEX_IZINLI_MODELLER = (
+    "gpt-5.6-luna",        # birincil alt model
+    "gpt-5.6-terra",       # ikincil
+    "gpt-5.4-mini",        # ucuz alternatif
+    "gpt-5.3-codex-spark", # ucuz alternatif
+)
+CODEX_YASAK_MODELLER = frozenset({"gpt-5.6-sol"})  # amiral — Okan "sol kullanmayin" emri
+CODEX_PENCERE_BITIS = "2026-08-20"  # dahil; bu tarihten SONRA codex yeniden KAPALI
+
 
 def canli_motor_mu(motor):
     """Yeni is bu motora gonderilebilir mi? Bilinmeyen ad FAIL-CLOSED (False)."""
