@@ -7,11 +7,10 @@
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
 - 🔧 **K134 (17 Agu — defter rotasyonu SINIF kalemi):** kota kancasinin gosterdigi care
-  (`defter-rotasyon.py`) mimar kod kilidinde YASAK — deftere commit atan tek rol mimar
-  oldugu icin recete erisilemez. Isciye verilince arac `TASINAN=0` dondu: tarihli kapanis
-  bloklari govdesinde `BEKLIYOR`/`KOSUYOR`/`OKAN'DA`/🔴 tasiyordu → acik-isaretci vetosu.
-  **Kok kusur ARACTA DEGIL DEFTERDE:** tarihli blok TARIH olmali, canli durum kalem
-  bolumlerinde. Bu oturum bloklari temizledi, rotasyon 5 blok aldi (233 -> 178).
+  (`defter-rotasyon.py`) mimar kod kilidinde YASAK; isciye verilince arac `TASINAN=0` dondu
+  (tarihli kapanis bloklari govdesinde `BEKLIYOR`/`KOSUYOR`/🔴 tasiyordu → acik-isaretci
+  vetosu). **Kok kusur ARACTA DEGIL DEFTERDE:** tarihli blok TARIH olmali, canli durum
+  kalem bolumlerinde. Temizlenince rotasyon 5 blok aldi (233 -> 178).
   **Yon:** (a) kancanin `CARE:` metni ROLUN kosabilecegi yolu gostersin, (b) "tarihli
   blokta acik-isaretci jetonu KULLANILMAZ" doktrine gecsin, (c) teste "canli durum tasiyan
   tarihli blok" fiksturu + mutant. Hafiza: [[kapinin-recete-ettigi-care-baska-kapida-yasak]].
@@ -22,12 +21,17 @@
   kaldi. Yon: `fetch()`'e retry/backoff + tam Chrome baslik seti
   (`sec-ch-ua`/`sec-fetch-*`/`Accept-Language`/`Referer`). Ayrica
   `tools/arsiv/cgt-ara.py:41` `printables-api.py`'yi `arsiv/` altinda ariyor ama dosya
-  ust dizinde — arsivdeki haliyle `FileNotFoundError`. `kabul:` alani BOS.
+  ust dizinde — arsivdeki haliyle `FileNotFoundError`.
+  🔴 **17 Agu EK (MaCiT'e):** mukerrer kancasi TUM agaci yargiliyor ve **3 mukerrer cift**
+  buldu (Yamaha MT-07 fren hazne braketi · RE Hunter 350 hava filtresi kapagi · RE Himalayan
+  camurluk yukseltici). Urun benim duzlemim degil; mesru ciftse `.mukerrer-istisna.json`,
+  degilse `duzelt.py --sil`. Kalem kapanana kadar KraL'in defter commit'leri kancanin
+  belgeli atlama anahtariyla geciyor (urunlere DOKUNMADAN; anahtar adi ARSIVDE).
+  `kabul:` alani BOS.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` UC oturumdur
-  commit'siz duruyor. Olculdu: agac hali K126'nin "tek govde" yuklemini ham dongu olarak
-  GERI ALIYOR → commit'lenirse K126 regresyonu. Sahibi belirsiz, DOKUNULMADI
-  ([[commitsiz-onarim-paylasilan-agacta-yasamaz]]). Yon: sahibi cikmazsa K133B kapanisinda
-  kanonik hale karsi olculup elenecek. `kabul:` alani BOS.
+  commit'siz duruyor; agac hali K126'nin "tek govde" yuklemini ham dongu olarak GERI ALIYOR
+  → commit'lenirse K126 regresyonu. Sahibi belirsiz, DOKUNULMADI. Yon: sahibi cikmazsa
+  K133B kapanisinda kanonik hale karsi olculup elenecek. `kabul:` alani BOS.
 - 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` TEK BASINA
   kosumda vaka 1 (`bekci-kesmez-kapanis-yok-rc=0`) KALDI verdi, `testler.py` icinden GECTI.
   Kontrol kosumu (kirli/temiz/kanonik ortam) celiskiyi YENIDEN URETEMEDI; ambient
@@ -75,17 +79,18 @@
   sifirlamaz CIMENTOLAR — once mesru gecis borcu (veri: `marka[]` eksik urunler → MaCiT)
   ile uretec kusuru ayrilacak. YAYINI BLOKLAMAZ (hijyen seridi).
 - KAPANDI (arsivde): K127 rotasyon MADDE GRANULU kol (merge `e5f5c32b`) — 17 Agu rotasyonu.
-- 🟡 **K121 (17 Agu — OKAN EMRIYLE YENIDEN ACILDI, canli):** `mail-supurme-v2.applescript
-  sil` crontab satiri (`21,51`) geri acildi; canli teyit `crontab -l` = 6 aktif satir,
-  digerlerine dokunulmadi. 🔴 **Onceki oturumun kok-sebep hipotezi CURUDU:** "silme
-  `item 1 of eslesen` ile indeksli, indeks kaymasi sinifi" denmisti — betik okundu, hedefler
-  once `message id` olarak toplaniyor (`:37`), silme `whose message id is mid` ile TEK
-  elemanli kumede yapiliyor (`:46-48`), yani silme KIMLIK tabanli. 22:21 kosumu da
-  `HEDEF=4 SILINEN=4` (fazla silme izi YOK). **ACIK KALAN:** 3 GitHub-disi mailin hangi
-  yolla coplendigi HALA BILINMIYOR — v2 kanitlanmadi, yalnizca o pencerede kosan tek
-  surecti. Tekrarlarsa UCUNCU bir silici aranacak ([[ikinci-silici-birincinin-emniyetini-sifirlar]]).
-  Onerim (BaBa'ya, bloklamaz): silinen her kaydin kimlik+konu kaydi + komsu-kayip alarmi.
-  kabul: `crontab -l` v2 satiri yorumsuz + `mail-supurme.log` son 24 saatte `KALAN=0`
+- 🟡 **K138 (yeni, 17 Agu — K121'den ARTAN iki soru, BaBa'da):** (1) 3 GitHub-disi mailin
+  yolu HALA bilinmiyor; kanonik yolda `KOMSU_KAYIP` alarmi oldugu icin tekrarlarsa rc<>0 ile
+  GORUNUR olacak — yanarsa ucuncu silici aranacak. (2) 30 dk'lik supurme "once CI yesile
+  donsun" on kosulunu ATLIYOR (v2 de atliyordu). Tempo Okan karari. `kabul:` alani BOS.
+- 🔧 **K137 (yeni, 17 Agu):** bu makinede **`crontab` YAZIMI asiliyor** — okuma (`crontab -l`)
+  calisiyor, `crontab <dosya>` ve `cat | crontab -` surec canli kalarak HIC BITMIYOR
+  (sandbox kapali da olsa; `pgrep` ile teyitli, SIGKILL gerekti). Ilk kurulum 03:00'da
+  CALISTI, sonrasi kilitlendi → K121 acigi cron satirinda degil BETIKTE kapatildi.
+  Yon: `/var/at` kilidi suphesi (root); yazim acilinca `21,51` dogrudan
+  `mail-supurme-kos.sh`'e cevrilecek. ⚠️ Tuzak (tekrar yasandi): `crontab <dosya>` dosyayi
+  BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc.
+  `kabul:` alani BOS.
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
@@ -106,7 +111,7 @@
   16 Agu kosumunda `hijyen-a3` beyan edilmis borctu, `hijyen-a2` ise GERCEK canli veri
   kusuru buldu (K125, 11 urun bozuk gorsel anahtari). Kural: genel `conclusion`'a degil
   **is bazinda** bakilir; job tasima kirmiziyi susturmak degil yayin hukmunu ayirmak icin.
-- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada).
+- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]).
 
 ## OKAN'DA
 
