@@ -4,11 +4,15 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔧 **K134 (17 Agu — defter rotasyonu SINIF kalemi):** kotanin gosterdigi care
-  (`defter-rotasyon.py`) mimar kod kilidinde YASAK; isciye verilince `TASINAN=0` dondu.
-  Kok kusur ARACTA DEGIL DEFTERDE (tarihli blok canli durum tasiyor). 🔴 Ayni gun
-  **UCUNCU** kez elle kisaltma gerekti (151→125, 137→130) — kalem kendi tarif ettigi
-  sinifin canli kaniti. Yon + tam metin ARSIVDE.
+- 🔧 **K134 (17 Agu — defter kotasi SINIF kalemi; BaBa 3. kez kirmizi dedi, SPEC HAZIR):**
+  care (`defter-rotasyon.py`) mimar kod kilidinde YASAK; isciye verilince `TASINAN=0`.
+  🔴 Bu oturumda kota **ALTI kez** elle indirildi (151→125·137→130·133→130·131→130·
+  140→130·131→130) — ceza yazma aninda degil **COMMIT aninda** odeniyor. Kok: K39 kancasi
+  **INDEX** olcuyor, BaBa **CALISMA AGACI** olcuyor; hukum farkli birimlerde
+  ([[hukum-yanlis-birimde]]) → kanca "yesil" derken diskte 140 satir olabiliyor.
+  Yon: (a) `CARE:` metni **1:1 tasimayi** gostersin (rolun kosabilecegi yol),
+  (b) calisma-agaci kolu UYARI olarak eklensin (BLOKLAYICI olursa kotayi dusuren
+  commit'in kendisi bloklanir). Spec: `SPEC-defter-kota-1e1.md` (5 vaka + 4 mutant).
   kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina
   takiliyor (HTTP 202 + placeholder); yon: retry/backoff + tam Chrome baslik seti. Ayrica
@@ -18,10 +22,7 @@
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` DORT oturumdur
   commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
 - 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` tek basina
-  kosumda vaka 1 KALDI, `testler.py` icinden GECTI; celiski YENIDEN URETILEMEDI. Muhtemel
-  kok: eszamanli kosumdan kalan bekci sureci (KANITLANMADI). Yasak: yesile boyama.
-  kabul: `python3 /Users/okan/.claude/cron/isci-tur-tavani-test.py` (rc=0) **VE**
-  `python3 /Users/okan/.claude/cron/testler.py` (`HUKUM=GECTI`), ARDISIK 3 kosumda ayni.
+  KALDI, `testler.py` icinden GECTI; celiski uretilemedi. Tam metin + kabul ARSIVDE.
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
@@ -33,10 +34,9 @@
   🔴 ② blokeri: gozcu her `failure`'a LLM turu acar → MaCiT her D1'e yazdiginda yanlis
   kirmizi. Spec: `SPEC-k150-uzlastirici-rc4.md` (rc=5 ERTELENDI + RETRY + kapsam kapisi).
   kabul: `python3 /Users/okan/dev/pruvo/tools/uzlastirici-onarim.py --kendini-test`
-- 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, guncel uc `c071bfd5`):** onceki iki ucun build'i
-  `cancelled` (ardarda push iptali, ARIZA DEGIL); `c071bfd5`'te 4 nabiz success, `build`
-  + nobet seridi PENDING. Tam metin ARSIVDE.
-  kabul: `c071bfd5`'i ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
+- 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
+  hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
+  kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum: **kapinin MODEL
   hatasi degil, EVREN KAYNAGI hatasi**. Olculdu: (1) 8 jetonu tasiyan 185 urunun **184'unde
   jeton gercek markanin YANINDA** (`Yamaha+MT-07`, `KTM+1290`), tek istisna `["Rover"]`;
@@ -48,9 +48,7 @@
   daraltmadan sonra `Rover` KALMALI, dusrse kapi korlesmistir (mutant M2).
   kabul: `python3 tools/marka-invaryant-kapisi.py` — `FILTRE_KAYIP`'ta 7 model jetonu
   DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- ✅ **K147 KAPANDI** (kabul OLCULDU ve **DUSTU**): sayac 63'un altina inecekti,
-  **65'e cikti** → hukum yazili sarta gore **② (gozcu + kosullu isci)**, devami K148.
-  Ders + tam metin ARSIVDE.
+- ✅ **K147 KAPANDI** (sayac 63 → 65, DUSMEDI) → karar ②'ye gecti, devami K148. ARSIVDE.
 - 🟠 **K148 (17 Agu — GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama
   kaldi):** Okan izniyle Claude iscisi uc dosya uretti (`gozcu.py` · `gozcu-test.py` ·
   `gozcu-mutasyon.py`, hepsi `~/.claude/cron/`, **repo ayak izi SIFIR**). Tasarim: tetik
@@ -62,21 +60,22 @@
   `ESKALASYON_ESIGI` ile IKIZ. Spec: `SPEC-gozcu-kilit-onarimi.md` (+3 mutant). Canliya
   baglama (48s paralel) faz-2'den SONRA; crontab'a DOKUNULMADI.
   kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=13/13`.
-- 🔧 **K149 (17 Agu — CRON DIZINI TUR ARTIGIYLA DOLU; disk kurali ihlali):** olculdu
-  (`ls -1a | grep -c`): `~/.claude/cron/` **2473 girdi** — **1208 `.isci-cikti.*` + 887
-  `.bekci-cikti.*` = 2095 tur artigi**, ayrica **240 `profil-*` dizini** + 37 `.yedek*`.
-  Ureten temizlemiyor ("ureten temizler" bu hatta HIC uygulanmamis). Dosya kolu K148
-  gozcusune baglandi; `profil-*` AYRI (canli turun profili silinirse tur coker).
+- 🔧 **K149 (17 Agu — DOSYA KOLU KAPANDI, URETEN-KOLU ACIK):** `~/.claude/cron/`
+  **2495 → 576 girdi** (SILINEN=1919; `.isci-cikti.*` 1209→3, `.bekci-cikti.*` 900→187 —
+  kalanlar 2 saatten TAZE). `profil-*` **243=243 DOKUNULMADI**, token dosyalari YERINDE.
+  🔴 ACIK KALAN: (a) ureten (`isci.sh`, `isci-tur-bekcisi.py`) hala toplamiyor — otomatik
+  kol + testi gerek; (b) **243 `profil-*` dizini** (en eski 4 gun, en yeni 1 dk) ayri
+  kural ister: canli turun profili silinirse tur coker.
+  kabul: `ls -1a /Users/okan/.claude/cron | grep -c "^\.isci-cikti\."` iki tur ust uste
+  dusmeli (ureten kolu calisiyor demektir).
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
-  DISINDA, degisen dosyanin yedegi alinmiyor → curutucu, iscinin kabul-testi fiksturunu
-  MESRU mu degistirdi **OLCEMEDI** (`FIKSTUR_MESRU=0/0`); dolayli kanit guclu (mutant 9/9)
-  ama eksen KOR. Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
-- 🔴 **K141 (17 Agu — OLCULEMEYEN NOBET, sinif kalemi):** `tools/kapi-envanteri.py` main'de
-  DE kirmizi (`rc=1`): `mimar-icra-kapisi` ve `mimar-kod-kilidi` icin
-  **"NOBETTE degil — reddetmesi gerekeni REDDETMEDI"**. Sebep yapisal: bu iki kapinin
-  nobet testi **isci turunda** kosuyor ve isci/agent muafiyet kolu "reddetmeli" vakasini
-  gecirmiyor; mimar ise ayni komutu KENDI kosamaz. Yani **iki mimar kapisinin canliligi
-  hicbir yerden olculemiyor** — [[makineyi-olctuk-urunu-olcmedik]] ailesi. Yon: nobet vakasi
+  DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
+  (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
+- 🔴 **K141 (17 Agu — OLCULEMEYEN NOBET, sinif kalemi):** `kapi-envanteri.py` main'de DE
+  kirmizi: `mimar-icra-kapisi` + `mimar-kod-kilidi` "NOBETTE degil — reddetmesi gerekeni
+  REDDETMEDI". Yapisal: nobet testi **isci turunda** kosuyor, muafiyet kolu "reddetmeli"
+  vakasini gecirmiyor; mimar ayni komutu KENDI kosamaz → **iki mimar kapisinin canliligi
+  hicbir yerden olculemiyor** ([[makineyi-olctuk-urunu-olcmedik]]). Yon: nobet vakasi
   muafiyet kolundan BAGIMSIZ altsurecte kossun. `kabul:` alani BOS.
 - 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari
   `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi). Canlida 404 veren URUN
@@ -89,15 +88,16 @@
 - 🟠 **Navlungo dilim-1 MERGE BEKLIYOR:** dal `il-ilce-dilim1` (`5d57c918`); Okan kapisi.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
-- 🟡 **K152 (17 Agu, HocA bulgusu → KraL OLCTU ve HUKUM VERDI; buyuk kismi TEMIZ CIKTI):**
-  `uyelik` ve `lisans` alani bos **2484** kaydin `tur` kirilimi: **satin-alma=1442 ·
-  deal=987** (= 2429 PARA ODENMIS) · ozgun/jenerator=23 · yedek-parca=1 · diger=2 ·
-  kaynak alani bos=28. 🔴 **HUKUM: bu kayitlarda public `lisans` alaninin BOS olmasi
-  DOGRUDUR**; geri doldurma bir duzeltme DEGIL, "PARA EL DEGISTIRDI MI?" kuralinin
-  ihlalidir → UYGULANMAZ. Gerekce + KraL'in kendi cikarim hatasi ARSIVDE.
-  🔴 **DERS:** `uyelik` BOSLUGU "ucretsiz kanal" DEMEK DEGIL — odeme `tur` alaninda.
-  **Kalan artik (fail-closed):** 28 kaynaksiz + 2 `diger` + 12 bozuk dizge = ~42.
-  kabul: `python3 /Users/okan/dev/pruvo/tools/denetim-kapisi.py` (artik kume 0 olmali).
+- 🟠 **K152 (17 Agu — ⚖️ OKAN KARARI KAPSAMI BELIRLEDI; onceki iki hukum de DUSTU):**
+  Okan (birebir): **"sitede bulunan tum urunler satilabilir. SAKIN siteden bir urun
+  SILME."** Yapilacak TEK is: isaret ettigi kaynak grubunun urunlerine **uretici linki**
+  eklemek, ayni durumdaki digerlerine de. **"SORU SATILABILIRLIK YA DA LISANS KONTROLU
+  DEGIL, EKSIK LINKLERI TAMAMLAMA."**
+  🔴 Dolayisiyla (a) HocA'nin "eksik alan" bulgusu → ISLENECEK, (b) benim "geri doldurma
+  ihlal olur" hukmum → **EZILDI**, (c) "fail-closed satistan cekilme" ekseni → **IPTAL**.
+  Silme/`yayinda=0` YASAK. Olculen sayilar + iki dusen hukum ARSIVDE (kayit icin).
+  Duzlem VERI = MaCiT; yazim flock + `duzelt.py`, MaCiT'in parti yazicisi UCUSTA.
+  kabul: `python3 /Users/okan/dev/pruvo/tools/denetim-kapisi.py` (rc=0).
 - 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
   ekseninde ayrisiyor.
