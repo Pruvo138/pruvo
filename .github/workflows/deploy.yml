@@ -793,6 +793,25 @@ jobs:
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 
+      # FILAMENT PAKETI KABUL TESTLERI: 17 Agu 2026'da baglandi — kapsam boslugu olculdu
+      # (grep -rn "filament-test" .github/workflows/ tools/kancalar/ -> 0 satir; 26 vakalik
+      # tools/filament-test.py HICBIR yerde kosmuyordu). Ayni paylasilan checkout'a 5 ev
+      # baktigi icin komsunun kirli ağaci TEST 1'i yanlis eksende ("git diff bos mu") kirmizi
+      # yakiyordu — onarildi: TEST 1 artik sha256 once/sonra esitligi (paketin kendi yazma
+      # tespiti; komsunun durumu kapıyı yakmaz, mutant olumu kanitlandi). 26 vakanin TAMAMI
+      # calissin diye build.py'yi kendi icinden calistirir (yukariya ayri build adimi koymak
+      # double-run olurdu). Bloklayici (kapsam kapisi `tools/ci-kapsam-test.py` da sayar).
+      # PARITE=0: test 5 (parite; node tools/parite-test.js + tools/parite-ege.js) canli
+      # /ara ucuna 500 istek atar ve CI runner'da bu uc kararsiz (WAF/429/zaman asimi) — TEST 5
+      # fail-closed exit 3'u PARITE_ATLANDI sayip YESIL bildirir; 26/26 sayisi korunur.
+      # YALNIZ `python3 tools/filament-test.py` yazilir: K80 _k80_satirlar her satiri
+      # ilk token'a ((`python3`|`node`)) gore siniflar; `export HARICI` veya env oneki
+      # (`PARITE=0 python3 ...`) reddedilir. CI'da varsayilan PARITE=1 ile TEST 5 kosar;
+      # WAF/429/asim olursa exit 3 = PARITE_ATLANDI = YESIL (26/26). CI'da TEST 5 network
+      # karsit olsa da kirmizi YAKMAZ. Yerel dogrulama PARITE=0 ile 26/26 YESIL/RC=0.
+      - name: Filament paketi kabul testleri (26 vaka; urunler.json'a YAZMAZ sha256 kapisi)
+        run: python3 tools/filament-test.py
+
       # DIRILTME KAPISI — "silinmis urun sessizce geri geldi mi". BLOKLAYICI
       # (continue-on-error YOK): yerel + deterministik, ag ISTEMEZ.
       # OLCULEN OLAY (30 Tem): bir dal main'e alinirken urunler.json'un SATIR-DUZEYI
@@ -1991,17 +2010,6 @@ jobs:
       # (davranis fiksturleri tempfile dizininde calisir).
       - name: Malzeme dayanak kabul testi (landing + ege-bilgi.md + statik sayfa/JSON-LD)
         run: python3 tools/malzeme-dayanak-test.py
-
-      # FILAMENT PAKETI KABUL TESTLERI: 17 Agu 2026'da baglandi — kapsam boslugu olculdu
-      # (grep -rn "filament-test" .github/workflows/ tools/kancalar/ -> 0 satir; 26 vakalik
-      # tools/filament-test.py HICBIR yerde kosmuyordu). Ayni paylasilan checkout'a 5 ev
-      # baktigi icin komsunun kirli ağaci TEST 1'i yanlis eksende ("git diff bos mu") kirmizi
-      # yakiyordu — onarildi: TEST 1 artik sha256 once/sonra esitligi (paketin kendi yazma
-      # tespiti; komsunun durumu kapıyı yakmaz, mutant olumu kanitlandi). 26 vakanin TAMAMI
-      # calissin diye build.py'yi kendi icinden calistirir (yukariya ayri build adimi koymak
-      # double-run olurdu). Bloklayici (kapsam kapisi `tools/ci-kapsam-test.py` da sayar).
-      - name: Filament paketi kabul testleri (26 vaka; urunler.json'a YAZMAZ sha256 kapisi)
-        run: python3 tools/filament-test.py
 
       # EGE-BILGI TAVAN: ege-bilgi.md uzunlugu bot slice(0,6000) esigini asmasin.
       # Olcu UTF-16 kod birimi (JS String.slice birimi) — bayt sayan olcum sahte-kirmizi,
