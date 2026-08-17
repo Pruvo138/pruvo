@@ -153,18 +153,16 @@ MUTANTLAR = [
      "                kova.setdefault(marka, []).append(pid)",
      "                kova.setdefault(marka, list()).append(pid)", "YESIL"),
 
-    # ── K140 KAYNAK DEGISIMI (17 Agu 2026, spec §3) — evren artik index.html
-    # TANINMIS_MARKALAR'dan turer; cip_evreni_markalari genisletmesi YOK. Bu dort
-    # mutant kapinin yeni evren kaynagina BAGIMLI oldugunu kanitlar.
-    # K1: evreni eski haline (cip evreni eklemeli) dondur → model jetonlari (1290,
-    #     690, MT-07, ...) yeniden kirmizi → sayfa/filtre ekseninde FAIL uretmeli.
-    ("OLDURUCU M15 K140 GERI CEVIR — evreni cip_evreni_markalari EKLEMELI haline don (1290/690 "
-     "yeniden evrende)",
+    # ── K140-ONARIM KAYNAK DEGISIMI (17 Agu 2026, spec §3) — evren artik
+    # `cip_evreni_markalari()` EKLEMELI + post-filter (model jetonlari ikincil-only ise
+    # evren DISI). Bu dort mutant kapinin yeni evren kaynagina BAGIMLI oldugunu kanitlar.
+    # K1: post-filter kaldirilirsa model jetonlari (1290, 690, MT-07, ...) yeniden
+    #     evrende → sayfa/filtre ekseninde FAIL uretmeli.
+    ("OLDURUCU M15 K140-ONARIM GERI CEVIR — post-filter kaldirildi (1290/690/MT-07 yeniden "
+     "evrende)",
      KAPI_ADI,
-     "    ek = ()                                                       # K140: cip genisletmesi YOK\n"
-     "    veri = mmb.gruplandir(urunler, evren, ek)",
-     "    ek = mmb.cip_evreni_markalari(urunler, index_html)\n"
-     "    veri = mmb.gruplandir(urunler, evren, ek)", "KIRMIZI"),
+     "    veri = {m: d for m, d in veri.items() if m in tan or d[\"marka_only\"]}",
+     "    pass  # post-filter kaldirildi → model jetonlari evrende", "KIRMIZI"),
     # K2: KALICI_KIRMIZI'daki 'Rover'i dusur → Rover 82 kirmizisi kaybolur, kapi YESIL
     #     yanar → korlesme yakalanir (susturma basarili olmamali; onarim yok).
     ("OLDURUCU M16 KALICI_KIRMIZI'dan Rover'i dusur (korlesme — susturma gizlenmemeli)",
@@ -190,7 +188,7 @@ MUTANTLAR = [
      "kapinin TEK KAYNAK invariantini bozuyorsun)",
      KAPI_ADI,
      "    evren = mmb.MarkaEvreni(index_html)\n"
-     "    ek = ()                                                       # K140: cip genisletmesi YOK",
+     "    ek = mmb.cip_evreni_markalari(urunler, index_html)",
      "    # IKIZ TANIM (yasak) — kapida kuratorlu liste KOPYALANAMAZ\n"
      "    evren = mmb.MarkaEvreni(index_html)\n"
      "    _yasak_evren = mmb.MarkaEvreni(index_html)\n"
@@ -198,7 +196,7 @@ MUTANTLAR = [
      "        _yasak_evren.taninmis.append('OpelFake')\n"
      "        _yasak_evren._kanonik['opelfake'] = 'OpelFake'\n"
      "    evren = _yasak_evren\n"
-     "    ek = ()                                                       # K140: cip genisletmesi YOK",
+     "    ek = mmb.cip_evreni_markalari(urunler, index_html)",
      "KIRMIZI"),
 ]
 

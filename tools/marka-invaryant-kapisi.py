@@ -246,16 +246,24 @@ def olc(mmb, arama, urunler, index_html):
     urun basina iki AYRI kaynaktir ve UYUM CAPA HAVUZU onlardan kurulur (bkz. blok basi);
     `kanon` fikstur olcumunun kullandigi TEK KAYNAK marka-adi yargisidir.
 
-    🔴 K140 KAYNAK DEGISIMI: evren YALNIZ index.html TANINMIS_MARKALAR'dan turer
-    (cip_evreni_markalari genisletmesi YOK). Katalogdaki ham `marka[]` jetonlari (model
-    jetonlari `1290`/`690`/`MT-07`/`MT-09`/`DL650`/`V-Strom`/`Ciao`) artik evren DISI;
-    kapi onlar icin sayfa/filtre/arama ekseni ACMASINA gerek kalmaz — gercek marka
-    sayfalari TANINMIS listesindeki adlarla olculur. Listeye klavye ile marka eklemek
-    kapidan tek satirla izlenir (`TANINMIS_MARKALAR` → `evren.taninmis`).
+    🔴 K140-ONARIM KAYNAK DEGISIMI: evren `cip_evreni_markalari()` EKLEMELI — gercek
+    markalar (Sierra, NGK, Aprilia, Ducati, ...) `marka[0]`'da BIRINCIL olarak tasindigi
+    icin evrene girer. Model jetonlari (1290/690/MT-07/...) urunde HER ZAMAN `marka[1+]`
+    olarak IKINCIL — `marka_only` bos, sonraki satir onlari dogal olarak evren DISINA
+    iter. Single source: `marka_uyelikleri`/`birincil_marka` (marka_model_build.py).
+    Elle istisna listesi YASAK ([[ikiz-tanim-sessiz-ayrisma]]); M4 kapinin tek kaynagi
+    izledigini olcer, M18 ikiz tanimi tetikler.
     """
     evren = mmb.MarkaEvreni(index_html)
-    ek = ()                                                       # K140: cip genisletmesi YOK
+    ek = mmb.cip_evreni_markalari(urunler, index_html)
     veri = mmb.gruplandir(urunler, evren, ek)
+    # ONARIM A: model jetonlari ikincil-only ise evren DISI. `marka_only` bos olan kova
+    # katalogda HICBIR urunun birincil markasi degil → gercek marka DEGIL, model/parca
+    # kodu. Filtre marka_uyelikleri'nin marka[0] kolunu okur; single source (ek elle liste
+    # YASAK). Bu satir sayesinde 7 model jetonu "kendiliginden" evren DISI. TAN'da olan
+    # markalar her durumda tutulur (kuratorluk karari zaten orada).
+    tan = set(evren.taninmis)
+    veri = {m: d for m, d in veri.items() if m in tan or d["marka_only"]}
 
     # "Bu dizge bir MARKA ADI mi" yargisi TEK KAYNAKTAN (mmb.marka_adi_kanonu -> index.html
     # markaKatla portu + cip evreni). Bellek: ayni jeton katalog boyunca binlerce kez sorulur.
@@ -597,6 +605,12 @@ def main():
     # Spec K140: bu kayitlar HER KOSUMDA KIRMIZI kalmali (susturmak basarisizlik).
     # Kural: KALICI_KIRMIZI'daki marka eksende >0 gorunmeli. 0'a dusmesi = onarim yapildi
     # ya da veri sessizce kayboldu — ikisi de kapiyi durdurur.
+    #
+    # ONARIM B (M16 KORLESME): liste bosaltilinca kapinin susturmasi gizlenmemeli. Kural
+    # kendini KORUMALI: KALICI_KIRMIZI'daki her ogE eksende ACIK olmali (susturmak =
+    # basarisizlik) + eksendeki HER kayip KALICI_KIRMIZI'da BEKLENIYOR olmali. Boylece M16
+    # (`KALICI_KIRMIZI'dan Rover dusur`) beklenmeyen_kayip olarak FAIL uretir; liste
+    # bosaldiginda kapinin YESIL gecmesi imkansiz olur.
     kalici_eksiler = []
     kalici_hala_acik = []
     for ad, eksen in (("ARAMA_KAYIP", ak),):
@@ -606,12 +620,18 @@ def main():
                 kalici_eksiler.append((ad, m, n))
             else:
                 kalici_hala_acik.append((ad, m, n))
+    beklenen_acik = KALICI_KIRMIZI.get("ARAMA_KAYIP", ())
+    beklenmeyen_kayip = sorted((m, n) for m, n in ak.items()
+                               if n > 0 and m not in beklenen_acik)
     # KAPI KIRMIZI kalmali — acik olan KALICI KIRMIZI kayitlari FAIL uretir (susturma yok).
     kontrol("K: KALICI KIRMIZI (%d kayit) eksende hala ACIK (susturma yok: %s)"
             % (len(kalici_hala_acik), kalici_hala_acik),
             not kalici_hala_acik)
     kontrol("K: KALICI KIRMIZI sayisi 0'a dusmedi (kapali: %s; 0 = onarim ya da sessiz "
             "kayip — ikisi de kirmizi)" % kalici_eksiler, not kalici_eksiler)
+    kontrol("K: eksendeki HER kayip KALICI_KIRMIZI'da BEKLENIYOR olmali (M16 korlesme — "
+            "beklenmeyen: %s)" % beklenmeyen_kayip,
+            not beklenmeyen_kayip)
 
     if taban.get("marka_sayisi") != len(veri):
         BILGI.append("marka evreni degisti: taban %s -> olculen %d (taban --taban-yaz ile "
