@@ -762,8 +762,12 @@ MUTANT_TANIMLARI = [
     # (etiket, arama, degistirme)
     ("M1 YAZICI_IMZASI kolunu 'if False and ...' yap -> V8 GERCEK HATA'ya dusmeli",
      "if YAZICI_IMZASI in cikti:", "if False and YAZICI_IMZASI in cikti:"),
-    ("M2 ERTELENDI rc=5 yerine rc=0 -> V9 yesile boyanirdi",
-     "return 5, DENEME_TAVANI", "return 0, DENEME_TAVANI"),
+    # DİLİM-2B: M2 çapası dilim-2 ile degisti — eski arama kaynakta count=0 idi
+    # ([[yeni-kol-mutasyon-capasini-ikizler]]); UYGULANAMADI sayisini arttirip sessizce
+    # YESIL'e boyuyordu. Yeni arama iki yerde gecmektedir: gercek cagri (source) ve bu
+    # MUTANT_TANIMLARI satiri; replace(...,1) ilkini (source) degistirir.
+    ("M2 ERTELENDI_RC yerine 0 doner (yesile boyama) -> V9 yakalar",
+     "return ERTELENDI_RC, DENEME_TAVANI", "return 0, DENEME_TAVANI"),
     ("M3 YAZICI kolundaki 'continue' -> 'return 1, deneme' -> V8 tek denemede GERCEK HATA",
      "yaz(\"⚠️  YAZICI UCUSTA: baska makine canli D1 lease'i tutuyor; senkron \"\n"
      "                    \"TASARIM GEREGI atlandi (GERCEK HATA DEGIL). %d sn geri cekilip \"\n"
@@ -792,12 +796,18 @@ MUTANT_TANIMLARI = [
 
 
 def _mutasyonu_kos(dosya_yolu):
-    """5 mutant + KONTROL kos. (olduler, toplam, kontrol, detaylar, iddia_n, istasyon_n).
+    """5 mutant + KONTROL kos. (olduler, toplam, kontrol, detaylar, iddia_n, istasyon_n,
+    uygulanamadi_n).
 
-    iddia_n   : IDDIA ile yakalanan mutant sayisi (gercek kapinin ispati)
-    istasyon_n: ISTASYON (istisna) ile yakalanan mutant sayisi (fikstur tukenmesi; IDDIA'ya
-                cevrilmeli — cevrilemiyorsa ISTASYON olarak raporlanir)
-    iddia_n + istasyon_n == olduler (kendi icinde tutarli).
+    iddia_n        : IDDIA ile yakalanan mutant sayisi (gercek kapinin ispati)
+    istasyon_n     : ISTASYON (istisna) ile yakalanan mutant sayisi (fikstur tukenmesi;
+                     IDDIA'ya cevrilmeli — cevrilemiyorsa ISTASYON olarak raporlanir)
+    uygulanamadi_n : arama metni kaynakta HIC yok (count=0) → mutant ENJEKTE EDILEMEDI.
+                     Sessiz survivor YASAK ([[beyan-edilmis-survivor]]); 0'dan buyukse
+                     batarya rc=1 ile BASARISIZ sayilir (kapakli degil).
+    iddia_n + istasyon_n + uygulanamadi_n == olduler degil: uygulanamadi ayri sayilir
+    (replace uygulanamadi → mutant calismadi → olduler 0, uygulanamadi 1). 5 = 5+0+0
+    ile 5 = 4+0+1 AYNI sayi vermez; bu farkindalik cercevesinde raporlanir.
     """
     with open(dosya_yolu, encoding="utf-8") as f:
         orijinal = f.read()
@@ -807,16 +817,19 @@ def _mutasyonu_kos(dosya_yolu):
     if kontrol_hata:
         return 0, len(MUTANT_TANIMLARI), False, [
             "KONTROL kirmizi: degismemis kaynak bile kendini_test()'i gecmiyor (mod=%s) — "
-            "batarya GEÇERSIZ (sessiz survivor olcmeden YESIL olamaz)" % kontrol_mod], 0, 0
+            "batarya GEÇERSIZ (sessiz survivor olcmeden YESIL olamaz)" % kontrol_mod], 0, 0, 0
 
     detaylar = []
     olduler = 0
     iddia_n = 0
     istasyon_n = 0
+    uygulanamadi_n = 0
     for etiket, arama, degistirme in MUTANT_TANIMLARI:
         mutant = orijinal.replace(arama, degistirme, 1)
         if mutant == orijinal:
-            # replace uygulanamadi → sessiz survivor YASAK ([[beyan-edilmis-survivor]])
+            # replace uygulanamadi → sessiz survivor YASAK ([[beyan-edilmis-survivor]]).
+            # olduler artmaz; uygulanamadi_n ayri sayilir ve bataryayi KIRMIZI yapar.
+            uygulanamadi_n += 1
             detaylar.append("🔴 %s: UYGULANAMADI (kaynak metni degisti / count=0)" % etiket)
             continue
         oldu, mod, _ = _mutant_oldu_mu(mutant, dosya_yolu)
@@ -833,7 +846,7 @@ def _mutasyonu_kos(dosya_yolu):
         else:
             detaylar.append("🔴 %s: SURVIVOR (mod=IDDIA, kendini_test() yine gecti — "
                             "kapali YOK)" % etiket)
-    return olduler, len(MUTANT_TANIMLARI), True, detaylar, iddia_n, istasyon_n
+    return olduler, len(MUTANT_TANIMLARI), True, detaylar, iddia_n, istasyon_n, uygulanamadi_n
 
 
 def main():
@@ -855,16 +868,16 @@ def main():
         return 0
     if a.mutasyon:
         print("UZLASTIRICI ONARIM SURUCUSU — MUTASYON BATARYASI")
-        olduler, toplam, kontrol_ok, detaylar, iddia_n, istasyon_n = _mutasyonu_kos(
-            os.path.abspath(__file__))
+        olduler, toplam, kontrol_ok, detaylar, iddia_n, istasyon_n, uygulanamadi_n = \
+            _mutasyonu_kos(os.path.abspath(__file__))
         for d in detaylar:
             print("  " + d)
         kontrol_hukum = "YESIL" if kontrol_ok else "KIRMIZI"
-        # iddia_n + istasyon_n == olduler (kendi icinde tutarli)
-        print("\nMUTANT=%d/%d IDDIA=%d ISTASYON=%d KONTROL=%s" % (
-            olduler, toplam, iddia_n, istasyon_n, kontrol_hukum))
-        # kontrol kirmizi veya survivor varsa batarya basarisiz
-        if not kontrol_ok or olduler != toplam:
+        # iddia_n + istasyon_n == olduler (kendi icinde tutarli); uygulanamadi_n ayri sayilir
+        print("\nMUTANT=%d/%d IDDIA=%d ISTASYON=%d UYGULANAMADI=%d KONTROL=%s" % (
+            olduler, toplam, iddia_n, istasyon_n, uygulanamadi_n, kontrol_hukum))
+        # KIRMIZI: kontrol kirmizi VEYA survivor VEYA en az bir UYGULANAMADI
+        if not kontrol_ok or olduler != toplam or uygulanamadi_n > 0:
             return 1
         return 0
     rc, deneme = onar()
