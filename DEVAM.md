@@ -3,30 +3,27 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## ✅ K164 KAPANDI — YAYIN ACILDI (18 Agu, `f5671d37` + `0ab9dcde`) — tam metin ARSIVDE
-Kok neden sitemap DEGIL: `kart_ozeti` 11 Agu'da karta `boy_secenekleri` yaziyordu ama
-`OZET_KART_ALANLARI`na eklenmemisti (ikiz tanim) — alan tele HIC cikmiyor, konum capasi KOR.
-Kusur alani tasiyan ILK urun dogana kadar 6 gun uyudu. `PATOLOJIK_KAYIT=1`.
-Onarim: alan sozlugun SONUNA · konum capasi artik "kartta VAR sozlukte YOK"u ALAN ADIYLA
-reddediyor · yeni statik sinif kapisi `tools/ozet-alan-ikiz-test.py` (AST + mutasyon,
-`serit-a3`) → alan eklendigi GUN kirmizi yanar. 🔴 Ders: ilk kirmizi ayni sinifin IKINCI
-yuzeyini (`vitrin-kabul.js::edgeKart`) MASKELEMISTI — bir job'da ilk kirmizi duzelince
-KALAN adimlari yeniden olc.
-Kabul: `IKIZ=0 (KENDINI_TEST=5/5) OZET=0 EDGE=0 ESKIFIYAT=0 TEMSIL=0 CIKAPSAM=0` · mutasyon
-`M1_IKIZ=1 M1_BUILD=1 M2=1`. CI (`0ab9dcde`): `build`+`serit-a2/a3/a4`+`hijyen-build`+
-**`deploy`**+**`yayin`** success; kirmizi yalniz hijyen (K140 Rover + M3b) → yayini DURDURMAZ.
-CANLI (cache-bust'SIZ): `SITE_HTTP=200 URUN_HTTP=200 OZET_SURUM=3 ALAN_SAYISI=13
-SON_ALAN=boy_secenekleri BOY_KONUM=12 BOY_DEGER_VAR=EVET CANLI_TOPLAM=29038` (=`origin/main`,
-EDGE BAYAT DEGIL). D1 5/5 eksen YESIL (29038, ICERIK uyusmaz=0).
-ℹ️ Yerel main olcum aninda 1 commit ILERIDE (`a6246722`, baska oturumun 24 urunu, itilmemis)
-— 29062 ↔ 29038 farkinin sebebi budur. Itme sahibinin.
-**BEKLIYOR:** dal `k152-link-temiz` (`56269db4`) merge bekliyor · `tools/marka-uyelik-test.py`
-bes oturumdur commit'siz (K136).
-**OKAN'DA:** 22 Agu kimi/codex motor karari · $100 plan karari (once yanma olcumu) ·
-Navlungo `il-ilce-dilim1` merge'i.
-**AYRICA CANLIYA GITTI (KraL/amazing-hamilton, bu bloktan IKI KEZ dusuruldu):** K150 rc=5 ERTELENDI + kapsam kapisi (`ed47d317`) + `--mutasyon` CI kablosu (`2f87a8bc`; kosum `32071071340` `cron-nabzi` adim 7 **success**) · K148 gozcu faz-2 · K160 kilit govdesi TEK KAYNAK (repo disi, capraz 5/5). ⚠️ `b180fa1a` da "K160" diye anilmisti; K160 = BaBa'nin KILIT hukmu.
+`kart_ozeti` ↔ `OZET_KART_ALANLARI` IKIZ TANIMI; sinif kapisi `tools/ozet-alan-ikiz-test.py`
+(AST + mutasyon, `serit-a3`) alan eklendigi GUN kirmizi yanar. CI (`0ab9dcde`)
+`deploy`+`yayin` success · CANLI 29038 (cache-bust'SIZ) · D1 5/5 YESIL.
+
+## ✅ K150 / K148 / K160 KAPANDI (17-18 Agu, KraL) — tam metin ARSIVDE
+K150 rc=5 ERTELENDI + kapsam kapisi (`ed47d317`) + `--mutasyon` CI kablosu (`2f87a8bc`; kosum
+`32071071340` `cron-nabzi` adim 7 **success**) · K148 gozcu faz-2 · K160 kilit govdesi TEK
+KAYNAK (repo disi, capraz 5/5). ⚠️ `b180fa1a` da "K160" diye anilmisti; K160 = BaBa'nin KILIT
+hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerekce K166.)
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
+- 🔴 **K166 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor):** `1c741e54`
+  K150+K148'i, arsivde KAPANIS kaydi varken "KOSUYOR" ve main-disi commit'i OLMAYAN bir
+  worktree ile yazdi (`main..competent-dijkstra-754039` BOS; `amazing-hamilton` da main'in
+  ATASI). Devralan oturum mukerrer tur acar. "Blok birikimli olsun" onerisi bu zarari
+  ONLEMEZDI: satir silinmedi, YANLIS satir eklendi. Spec + kabul + mutasyon:
+  `tools/paket-defter-durum-iddiasi.md` (IZLENEN — `SPEC-*.md` gitignore'da). Yazim kurali: kapanis
+  ozeti kapanis isaretcisiyle BASLAR, KARMA blok (✅ + BEKLIYOR/KOSUYOR) YASAK.
+  kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
+- 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
 - 🟠 **K165 (18 Agu — K164 teshisinin YAN BULGUSU; yayini BLOKLAMAZ ama SESSIZ):** sitemap
   `lastmod` git taramasi sure butcesini (`VARSAYILAN_SURE_BUTCESI=240.0`,
   `sitemap_damga.py:66`) dolduruyor; asimda **fail-loud DEGIL** (`:242-244` yalnizca `break`),
@@ -38,7 +35,7 @@ Navlungo `il-ilce-dilim1` merge'i.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   Tam metin ARSIVDE.
   Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. `kabul:` alani BOS.
-- 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` DORT oturumdur
+- 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` BES oturumdur
   commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
 - 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` tek basina
   KALDI, `testler.py` icinden GECTI; celiski uretilemedi. Tam metin + kabul ARSIVDE.
@@ -118,13 +115,16 @@ Navlungo `il-ilce-dilim1` merge'i.
   (16 Agu: rotasyon bu maddeyi bir kez arsive supurdu — parantezdeki kapali kalem atfi
   yuzunden; geri konuldu, sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
+- 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu) ·
+  Navlungo `il-ilce-dilim1` merge'i. (K164 blogundan tasindi.)
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
-## KOSUYOR (baska mimarlar)
+## KOSUYOR (baska mimarlar) — 18 Agu OLCULDU, iddia GUNCELLENDI (K166 kurali)
 
-K152: `xenodochial-bardeen` TEK YAZICI (gizli kayit duzlemi, flock + public sha256 nobeti);
-worktree'sinde main'de OLMAYAN 1 commit var → temizlikte bilerek ATLANDI, bundle ister.
-(`musing-shaw` ve MaCiT'in peugeot/chevy worktree'leri kapandi; K153 blokeri kalkti.)
+`git worktree list` + `main..<ref>`: agacta yalniz `amazing-hamilton-c45e91` (`10ae08d1`,
+main'in ATASI) ve `competent-dijkstra-754039` (`f3d5a2c3`, main'in ATASI) var — **ikisinde de
+main disi commit YOK**. `xenodochial-bardeen` agacta YOK; K152'nin isi `k152-link-temiz`
+dalinda YASIYOR (`56269db4`, merge bekliyor — ustte kalem). Yani "KOSUYOR" iddiasi kalmadi.
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
