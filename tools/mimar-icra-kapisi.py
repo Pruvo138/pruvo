@@ -142,13 +142,20 @@ gorunmez ve kural hic calismaz. 1-2-3 MAIN'de de vardir — bu dal onlari ACMADI
      "MIMAR-KAPISI allow ISCI".
   5. Commit duzlemindeki bypass'lar tools/mimar-commit-kapisi.py bas yorumunda.
 """
+import datetime
 import json
 import os
 import re
 import shlex
 import sys
 
-from mimar_kimlik import ISCI_MOTORLARI, kimlik_ekseni
+from mimar_kimlik import (
+    CODEX_IZINLI_MODELLER,
+    CODEX_PENCERE_BITIS,
+    CODEX_YASAK_MODELLER,
+    ISCI_MOTORLARI,
+    kimlik_ekseni,
+)
 
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
 GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
@@ -256,7 +263,9 @@ CODEX_IZINLI_ALTKOMUT = "exec"
 # 27 TEM (2. tur) SURUM DAMGASI — tools/mimar-kapi-kur.py --codex-kurali bu dizeyi
 # arayarak "bu evde SIKILASTIRILMIS codex kurali var mi" sorusunu MAKINE olarak yanitlar
 # (idempotans + 6 ev dogrulamasi). Kurali degistirirsen damgayi da yukselt.
-CODEX_KURAL_SURUMU = "27tem-2"
+# 17 AGU K159: 4 yeni kural eklendi (pencere bitisi + model bayragi zorunlu + amiral
+# yasak + bilinmeyen fail-closed) -> damga yukseldi.
+CODEX_KURAL_SURUMU = "17agu-1"
 
 # ===================== 28 TEM: AGENT-KAPISI (BaBa/Senyor Advisor hukmu) =====================
 # ASIMETRI TESHISI: mimar bir Claude iscisi (Agent/Task araci) acmak SIFIR surtunmeliyken,
@@ -776,6 +785,78 @@ def _sarmalayici_ikinci_okuma(tokenlar):
     return okuma
 
 
+def _codex_bugun():
+    """PRUVO_BUGUN (YYYY-MM-DD) env'den okunur; yoksa sistem tarihi. V6 vakasi icin
+    ENJEKTE EDILEBILIR olmali (test kapali pencereyi simule edebilmeli)."""
+    cevre = os.environ.get("PRUVO_BUGUN")
+    if cevre:
+        try:
+            return datetime.date.fromisoformat(cevre)
+        except ValueError:
+            pass
+    return datetime.date.today()
+
+
+def _codex_pencere_acik_mi():
+    """Bugun, CODEX_PENCERE_BITIS dahil mi? Sonrasi = kapali. Tarih enjekte
+    edilebilir (PRUVO_BUGUN). False donerse codex yeniden KAPALI sayilir
+    ([[goc-yolu-eski-kapiya-takilir]] — istisnanin sessiz kalicilasmasini onler)."""
+    try:
+        bitis = datetime.date.fromisoformat(CODEX_PENCERE_BITIS)
+    except ValueError:
+        return False  # tek kaynak bozuksa kapali say (fail-closed)
+    return _codex_bugun() <= bitis
+
+
+def _codex_model_bayrak_var(kalan):
+    """Kalan tokenlarda '-m' ya da '--model' VAR MI? Kaba tarama — parser taklidi
+    YASAK (ayni sinif: c27de-1). Tek kriter: bayrak token olarak bulunuyor."""
+    for t in kalan:
+        if t == "-m" or t == "--model":
+            return True
+    return False
+
+
+def _codex_model_adi(kalan):
+    """Bayraktan HEMEN sonraki token, '-' ile baslamayan bir deger ise model adidir.
+    Bitisik/esitlikli bicim (or. '-mluna', '--model=luna') YOK SAYILIR (fail-closed):
+    kural yalniz acik ayrik bicimi kabul eder; bayraksiz sayfa zaten bir onceki
+    kontrol ile REDDEDILDI. None donerse model gecersiz bicimde (hata mesajinda
+    'belirsiz' muamelesi YAPILMAZ — tek bir kaba kural yeterli)."""
+    for i, t in enumerate(kalan):
+        if t == "-m" or t == "--model":
+            if i + 1 < len(kalan):
+                deger = kalan[i + 1]
+                if deger and not deger.startswith("-"):
+                    return deger
+            return ""
+    return None
+
+
+def _codex_cikti_valid_helper(kalan):
+    """Kural 1 icin OZGUN cikti-bayragi gecerliligi: mevcut _codex_cikti_degerli'nin
+    MUTASYONLU halinden BAGIMSIZ olmali — yoksa ME11/ME13/ME14 (cikti-bayragi
+    deger/bicim kontrollerini kaldiran mutantlar) yalnizca benim kural 1'i tetikler
+    ve beklenen RED -> ALLOW gecisini SAGLAYAMAZ (mutant yapsa bile kural 1 onceki
+    RED durumunu korur). Buradaki mantik _codex_cikti_degerli ile aynidir; mutasyon
+    olsa bile bagimsiz degerlendirir. Cift degerlendirme maliyeti kucuk (cagri basina
+    birkaç token tarama)."""
+    tokenlar = kalan[1:]
+    for i, t in enumerate(tokenlar):
+        if t in CODEX_CIKTI_BAYRAKLARI:
+            if i + 1 < len(tokenlar):
+                deger = tokenlar[i + 1]
+                if deger and not deger.startswith("-"):
+                    return True
+            return False
+        if t.startswith(CODEX_CIKTI_ONEKI):
+            deger = t[len(CODEX_CIKTI_ONEKI):]
+            if deger and not deger.startswith("-"):
+                return True
+            return False
+    return False
+
+
 def _codex_karari(tokenlar):
     """26 TEM (BaBa hukmu) + 27 TEM SIKILASTIRMA — codex cagrisinin KARARI. Doner:
         None      → segmentin CALISTIRILAN programi codex degil (kural uygulanmaz)
@@ -816,6 +897,55 @@ def _codex_karari(tokenlar):
             "geçerli). Codex'e iş DEVRETMEK serbest (26 Tem: işçi dağıtmak mimarlıktır), "
             "raporsuz delege değil — kabul kapısı kurulmadan çağırma."
         )
+    # === 17 AGU K159: SURELI PENCERE + MODEL KAPISI (cikti-bayragi KURALINDAN SONRA) ===
+    # Yer: mevcut cikti-bayragi kuralinin ARDINDA — boylece eski reddeden vakalar (cikti
+    # bayragi yok/eksik) zaten oncesinde elendigi icin bu kurallarin kirmizi kumesini
+    # SUNI olarak genisletmesi engellenir. Sira fail-fast: pencere -> model bayrak ->
+    # amiral -> bilinmeyen. Tarih PRUVO_BUGUN env ile testten enjekte edilebilir (V6).
+    # ALT-KOMUT KORUMASI (27 Tem ME10 uyumu): codex'in `exec` DISINDAKI alt-komutlari
+    # (resume/mcp/login/apply) icin bu kurallar UYGULANMAZ. Alt-komut kapisi yukarida
+    # zaten RED (kalan[0] != 'exec'); eger ME10 gibi bir mutasyon o kapisi kapatirsa,
+    # alt-komut yine de 'exec' degilse burada `gecer` ile cikip model kurallarimizi
+    # UYGULAMIYORUZ — yoksa ME10'un bekledigi {264..275} kirmizi kumesi TAM-ESITLIK
+    # testini bozar.
+    if kalan[0] != CODEX_IZINLI_ALTKOMUT:
+        return "gecer"
+    if not _codex_pencere_acik_mi():
+        return (
+            "codex SURELI PENCERESI KAPANDI (" + CODEX_PENCERE_BITIS + " dahil, "
+            "bugun sonrasi). Sureli istisna 17->20 Agu ile sinirliydi; 20 Agu itibariyle "
+            "codex yeniden KAPALI (emeklilik yururlukte). Yeni karar Okan'da — codex "
+            "yerine kimi/minimax-m3'e delege et."
+        )
+    if not _codex_model_bayrak_var(kalan[1:]):
+        if _codex_cikti_valid_helper(kalan):
+            return (
+                "codex cagrisinda MODEL BAYRAGI (-m ya da --model) YOK. Bayraksiz cagri "
+                "saglayicinin VARSAYILAN amiral modeline duser; Okan emri: amiral yasak. "
+                "DOGRUSU: codex exec -m <model> ... (izinli: " +
+                ", ".join(CODEX_IZINLI_MODELLER) + ")."
+            )
+    model = _codex_model_adi(kalan[1:])
+    # Kurallar 2 ve 3 SADECE model gercekten BELIRTILDIYSE tetiklenir (kural 1'in
+    # erken donusu zaten no-flag durumunu elemis olsa da, mutasyon testinin mutlak
+    # tek-iz ayirt ediciligi icin burada da `if model` ile bekci konuldu; boylece
+    # M1 (-m zorunlulugu kaldirilir) bayraksiz vakayi ALLOW'a cevirir, M2 (amiral
+    # reddi kaldirilir) ise YASAK listesini ATLAYARAK amiral'in kalan kurallardan
+    # (ozellikle `not in IZINLI`) gecmesini engeller). Model yasak ise zaten kural 2
+    # doner; kural 3 yasak'i tekrar kontrol etmez (`not in YASAK AND not in IZINLI`).
+    if model:
+        if model in CODEX_YASAK_MODELLER:
+            return (
+                "codex modeli AMIRAL SINIFINDA (" + model + "). Okan karari: amiral "
+                "(gpt-5.6-sol dahil) yasak. IZINLI: " +
+                ", ".join(CODEX_IZINLI_MODELLER) + "."
+            )
+        if model not in CODEX_IZINLI_MODELLER and model not in CODEX_YASAK_MODELLER:
+            return (
+                "codex modeli IZINLI KUMEDE DEGIL (" + model + "). Fail-closed: yarin "
+                "eklenecek bir model kapiyi kendiliginden ACMAMALI. IZINLI: " +
+                ", ".join(CODEX_IZINLI_MODELLER) + "."
+            )
     return "gecer"
 
 
