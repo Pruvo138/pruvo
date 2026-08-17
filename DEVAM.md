@@ -18,7 +18,7 @@
   🔴 **EK-2:** arac HALA Codex'e bagimli; MaCiT Ford d3 + Volvo d2'yi her seferinde YENIDEN
   yazilan gecici final betigiyle asti. Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` DORT oturumdur
-  commit'siz; agac hali K126 "tek govde" yuklemini ham donguye GERI ALIYOR. DOKUNULMADI.
+  commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
 - 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` tek basina
   kosumda vaka 1 KALDI, `testler.py` icinden GECTI; celiski YENIDEN URETILEMEDI. Muhtemel
   kok: eszamanli kosumdan kalan bekci sureci (KANITLANMADI). Yasak: yesile boyama.
@@ -57,24 +57,25 @@
 - ✅ **K147 KAPANDI** (kabul OLCULDU ve **DUSTU**): sayac 63'un altina inecekti,
   **65'e cikti** → hukum yazili sarta gore **② (gozcu + kosullu isci)**, devami K148.
   Ders + tam metin ARSIVDE.
-- 🟠 **K148 (17 Agu — GOZCU SPEC'I YAZILDI, ICRA OKAN KAPISINDA):** BaBa ② maddesinin
-  eksiksiz spec'i `kalibrasyon/SPEC-nobet-gozcusu.md` (karar tablosu, 10 fonksiyon
-  sozlesmesi, 25 kabul vakasi, 10 mutant, taban-alma emniyeti, run-id kilidi, fail-loud
-  kalp atisi). Tasarim: **tetik gozcude, icra AYNEN `nobet-kapi.py`'de** (H1-H7 korunur,
-  ikinci kopya yok). Beklenen: 24 LLM turu/gun → ~1 + kirmizi sayisi.
-  🔴 **BLOKE:** uretilecek sey olcum/kapi KODU = sessiz-hata sinifi → ucuz kata VERILMEZ
-  (`skill: codex-isci` §2), Claude iscisi KraL'da kosulsuz RED, mimar kod-kilidi mimara
-  `.py` yazdirmaz. Yani icranin TEK yolu Okan'in acacagi kapidir (yol adi CLAUDE.md'de
-  yazili). Soru Okan'a penceresiyle soruldu.
-  kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=10/10`.
+- 🟠 **K148 (17 Agu — GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama
+  kaldi):** Okan izniyle Claude iscisi uc dosya uretti (`gozcu.py` · `gozcu-test.py` ·
+  `gozcu-mutasyon.py`, hepsi `~/.claude/cron/`, **repo ayak izi SIFIR**). Tasarim: tetik
+  gozcude, icra AYNEN `nobet-kapi.py`'de. **BAGIMSIZ olcum** (ayri isci, kimi, ayri surec):
+  `GECEN=63/63` · `MUTANT=10/10 KONTROL=YESIL` · kuru tur `TETIK=DEFTER_DAGITIM LLM_TURU=0`
+  · `KALP=YOK rc=1` (dogru: hic gercek tur kosmadi) · `YAN_ETKI=HAYIR`. Oz-rapor ile
+  bagimsiz kosum UYUSTU.
+  🔴 **FAZ-2 (canliya baglamadan ONCE, mimar denetiminde bulundu — testler goremedi cunku
+  SPEC eksikti):** F1 `_kilit_al` O_EXCL DEGIL (TOCTOU: ayni run-id'ye iki tur) · F2
+  `_kilit_birak` sahiplik denetimsiz (baskasinin kilidini siler) · F3 `deneme >= 3` sabiti
+  `ESKALASYON_ESIGI` ile IKIZ. Spec: `kalibrasyon/SPEC-gozcu-kilit-onarimi.md` (+3 mutant).
+  Canliya baglama (48s paralel kosum) faz-2'den SONRA; crontab'a DOKUNULMADI.
+  kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=13/13`.
 - 🔧 **K149 (17 Agu — CRON DIZINI TUR ARTIGIYLA DOLU; disk kurali ihlali):** olculdu
-  (`ls -1a | grep -c`): `~/.claude/cron/` **2473 girdi**; **1208 `.isci-cikti.*`** +
-  **887 `.bekci-cikti.*`** = 2095 girdi tek basina tur artigi, ayrica **240 `profil-*`
-  dizini** + 37 `.yedek*` dosyasi. Ureten (`isci.sh`, `isci-tur-bekcisi.py`) temizlemiyor
-  → "**ureten temizler**" kurali (Okan, USTUN) bu hatta HIC uygulanmamis. Dosya artigi
-  K148 gozcusunun temizlik koluna yazildi (onek kumesi kapali, 2 saat yas esigi, dizinler
-  HARIC); `profil-*` dizinleri AYRI ele alinir — canli turun profili silinirse tur coker.
-  `kabul:` alani BOS.
+  (`ls -1a | grep -c`): `~/.claude/cron/` **2473 girdi** — **1208 `.isci-cikti.*` + 887
+  `.bekci-cikti.*` = 2095 tur artigi**, ayrica **240 `profil-*` dizini** + 37 `.yedek*`.
+  Ureten (`isci.sh`, `isci-tur-bekcisi.py`) temizlemiyor: "ureten temizler" (Okan, USTUN)
+  bu hatta HIC uygulanmamis. Dosya kolu K148 gozcusune baglandi (canli ILK turda duser);
+  `profil-*` AYRI — canli turun profili silinirse tur coker. `kabul:` alani BOS.
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA, degisen dosyanin yedegi alinmiyor → curutucu, iscinin kabul-testi fiksturunu
   MESRU mu degistirdi **OLCEMEDI** (`FIKSTUR_MESRU=0/0`); dolayli kanit guclu (mutant 9/9)
@@ -91,11 +92,10 @@
   KAPAKLARI — K125 ile AYNI SINIF ([[gorsel-anahtar-cakismasi]]). Tam liste push logunda,
   kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
 - ✅ **K133 KAPANDI** (`42e28cf7` merge, `c5225016` push) — tam metin ARSIVDE; kuyruk K140.
-- 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
-  asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
-  ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
-- 🟠 **Navlungo dilim-1 MERGE BEKLIYOR:** dal `il-ilce-dilim1` (`5d57c918`). Okan kapisi:
-  `.navlungo-kimlik.json` doldurulmasi.
+- 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal
+  asiyor (tam-dosya diff). Yon: butce buyutmek DEGIL, `urunler.json`'u icerik ekseninde
+  AYRI ele almak. `kabul:` alani BOS.
+- 🟠 **Navlungo dilim-1 MERGE BEKLIYOR:** dal `il-ilce-dilim1` (`5d57c918`); Okan kapisi.
 - 🔴 **K104 / K104B:** nobet is akisi sicili + iki kapi main'de de kirmizi (mutasyon
   capalari M06/M31 + iki kapinin kanca kablosu envanterde yok). HUKUM MIMARDA.
 - **K99** bag kolonu spec'i · **K100** defter sinifinda satir-sonu muafiyet kusuru ·
