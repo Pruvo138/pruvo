@@ -106,7 +106,49 @@ def _istisnalari_oku(path):
     }
 
 
-def _tara(urunler, kaynaklar=None, istisnalar=None):
+def _baslik_istisnalari_oku(path):
+    """Baslik ekseni istisnalari -> {(baslik, frozenset(idler))}.
+
+    🔴 17 AGU 2026 — "DOGRULANMIS YARGI HICBIR YERE COKMUYOR" SINIFI (olculdu):
+    Bir BASLIK bulgusu mimarca DOGRULANIP MESRU ilan edildi (iki kayit FARKLI
+    tasarimcidan) ama istisna dosyasi YALNIZ `kaynak` eksenini taniyordu; yargiyi
+    yazacak alan YOKTU. Sonuc: ayni gerekce ile kanca UC kez blokladi, iki ev
+    `PRUVO_MUKERRER_ATLA=1` ile gecti — kapi fiilen DEVRE DISI kaldi. Istisnasi
+    OLMAYAN bir eksen, o eksende kapiyi kapatmaz; ATLAMAYI ogretir.
+
+    🔴 NEDEN ID KUMESIYLE ANAHTARLANIR: yalniz baslik METNINE bakan bir istisna o
+    basligi SONSUZA DEK acardi — ayni basligi tasiyan UCUNCU bir kayit sessizce
+    girerdi. Kayit id KUMESINE baglidir: kume degisirse istisna ESLESMEZ ve bulgu
+    YENIDEN kirmizi yanar. Yani istisna "bu baslik serbest" degil, "SU IKI KAYDIN
+    ayni basligi tasimasi incelendi" demektir.
+
+    FAIL-CLOSED: eksik/bos/tekil `idler` GECERSIZ sayilir — joker istisna YOKTUR.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            kayitlar = json.load(f)
+    except (OSError, ValueError):
+        return set()
+    if not isinstance(kayitlar, list):
+        return set()
+    cikti = set()
+    for kayit in kayitlar:
+        if not isinstance(kayit, dict):
+            continue
+        baslik = kayit.get("baslik")
+        idler = kayit.get("idler")
+        if not isinstance(baslik, str) or not baslik.strip():
+            continue
+        if not isinstance(idler, list) or len(idler) < 2:
+            continue
+        temiz = {i.strip() for i in idler if isinstance(i, str) and i.strip()}
+        if len(temiz) != len(idler):      # bos/tekrarli/str-olmayan giris -> GECERSIZ
+            continue
+        cikti.add((baslik.strip(), frozenset(temiz)))
+    return cikti
+
+
+def _tara(urunler, kaynaklar=None, istisnalar=None, baslik_istisnalari=None):
     """Bulunan mukerrerleri (tur, deger, idler) olarak dondurur."""
     idler = defaultdict(list)
     basliklar = defaultdict(list)
@@ -127,8 +169,11 @@ def _tara(urunler, kaynaklar=None, istisnalar=None):
         if len(ilgili_idler) > 1:
             bulgular.append(("ID", str(urun_id), ilgili_idler))
 
+    baslik_muaf = baslik_istisnalari or set()
     for baslik, ilgili_idler in basliklar.items():
         if len(ilgili_idler) > 1:
+            if (baslik, frozenset(ilgili_idler)) in baslik_muaf:
+                continue
             bulgular.append(("BASLIK", baslik, ilgili_idler))
 
     if kaynaklar is not None:
@@ -214,6 +259,43 @@ def _oz_sinama():
             bozuk_istisna_ok = False
     kontroller.append(("bozuk istisna dosyasi", bozuk_istisna_ok))
 
+    # --- BASLIK EKSENI ISTISNASI (K143 (a) kolu) -----------------------------
+    # Istisna id KUMESINE baglidir: ayni cift -> muaf; kumeye UCUNCU kayit
+    # girerse -> YENIDEN kirmizi. Eksik `idler` joker DEGIL, GECERSIZ'dir.
+    ayni_baslikli_cift = [
+        {"id": "kaynak-a-parca", "baslik": "Ayni Ad Farkli Tasarim"},
+        {"id": "kaynak-b-parca", "baslik": "Ayni Ad Farkli Tasarim"},
+    ]
+    ucuncu_kayit = ayni_baslikli_cift + [
+        {"id": "kaynak-c-parca", "baslik": "Ayni Ad Farkli Tasarim"},
+    ]
+    with tempfile.TemporaryDirectory() as gecici:
+        baslik_istisnasi = os.path.join(gecici, "istisnalar.json")
+        with open(baslik_istisnasi, "w", encoding="utf-8") as f:
+            json.dump([{
+                "baslik": "Ayni Ad Farkli Tasarim",
+                "idler": ["kaynak-a-parca", "kaynak-b-parca"],
+                "neden": "Incelendi: bagimsiz iki tasarim",
+            }], f)
+        muaf = _baslik_istisnalari_oku(baslik_istisnasi)
+
+        jokersiz = os.path.join(gecici, "jokersiz.json")
+        with open(jokersiz, "w", encoding="utf-8") as f:
+            json.dump([{"baslik": "Ayni Ad Farkli Tasarim",
+                        "neden": "idler ALANI YOK — gecersiz olmali"}], f)
+        joker = _baslik_istisnalari_oku(jokersiz)
+
+    kontroller.extend([
+        ("baslik istisnasi kayitli cifti susturur",
+         not _tara(ayni_baslikli_cift, {}, set(), muaf)),
+        ("baslik istisnasi UCUNCU kayitta ESLESMEZ",
+         any(b[0] == "BASLIK" for b in _tara(ucuncu_kayit, {}, set(), muaf))),
+        ("idler'siz istisna GECERSIZ (joker yok)",
+         any(b[0] == "BASLIK" for b in _tara(ayni_baslikli_cift, {}, set(), joker))),
+        ("istisnasiz baslik cifti KIRMIZI",
+         any(b[0] == "BASLIK" for b in _tara(ayni_baslikli_cift, {}, set(), set()))),
+    ])
+
     hatalar = [ad for ad, gecti in kontroller if not gecti]
     if hatalar:
         for ad in hatalar:
@@ -247,16 +329,38 @@ def _head_urunler():
         return None
 
 
-def _commit_katalogu():
+# Kapsam on-elemesinin ve yargi biriminin ORTAK pathspec'i. TEK YERDE durur ki
+# "neyi eliyoruz" ile "neyi yargiliyoruz" sessizce ayrisamasin.
+URUN_YOLLARI = ["urunler.json", ".urun-kaynaklari.json"]
+
+
+def _urun_stage_durumu():
+    """Bu commit URUN dosyalarina dokunuyor mu — TEK KANONIK OLCUM.
+
+    Donus: "stage" | "stage-disi" | "olculemedi".
+
+    Hem kapsam on-elemesi hem de yargi birimi (`_commit_katalogu`) AYNI bu olcumu
+    kullanir. Iki ayri `git diff --cached` cagrisi yapilsaydi, biri kapsami elerken
+    digeri baska bir surumu yargilayabilir ve iki eksen sessizce ayrisirdi
+    ([[kabul-araligi-karsilastirma-araligi]]).
+    """
+    r = _git_oku(["diff", "--cached", "--quiet", "--"] + URUN_YOLLARI)
+    if r.returncode == 0:
+        return "stage-disi"
+    if r.returncode == 1:
+        return "stage"
+    return "olculemedi"
+
+
+def _commit_katalogu(durum):
     """Pre-commit yargi birimi: stage edilmisse INDEX, degilse HEAD surumu.
     Ikisi de okunamazsa (None, gerekce) dondurur (fail-closed cagri sahibine dus)."""
-    r = _git_oku(["diff", "--cached", "--quiet", "--", "urunler.json"])
-    if r.returncode == 1:
+    if durum == "stage":
         urunler = _index_urunler()
         if urunler is not None:
             return urunler, None
         return None, "urunler.json stage edilmis ama INDEX surumu okunamadi"
-    if r.returncode == 0:
+    if durum == "stage-disi":
         urunler = _head_urunler()
         if urunler is not None:
             return urunler, None
@@ -271,20 +375,39 @@ def _commit_katalogu():
 
 
 def _pre_commit_tarama():
+    # --- KAPSAM ON-ELEMESI (17 Agu 2026, K143 (b) kolu) ----------------------
+    # 🔴 OLCULEN ARIZA: bu kol commit'in KAPSAMINI hic sormuyordu. urunler.json
+    #   stage'lenmemisse yargi birimi HEAD'e dusuyor (bkz. `_commit_katalogu`) —
+    #   yani YALNIZ `DEVAM.md` degistiren bir commit bile HEAD'de duran bir urun
+    #   mukerrerinden BLOKLANIYORDU. Commit'in kapsami ile kancanin kapsami
+    #   ayrismisti ([[kanca-stage-disi-agaci-tarar]]). Bedeli olculdu: ayni gerekce
+    #   UC commit'i durdurdu, iki ev PRUVO_MUKERRER_ATLA=1 ile gecti; bir kapiyi
+    #   herkesin atladigi an o kapi KORUMUYOR demektir.
+    # FAIL-CLOSED YON KORUNUR: yalnizca "URUN DOSYASINA DOKUNULMADIGI OLCULDU"
+    #   hali eler. Urun dosyasi stage'lendiginde tarama AYNEN kosar; olcum
+    #   YAPILAMADIGINDA da (rc>1) kosar — olculemeyen sey yesil sayilmaz.
+    # ATLAMA SESSIZ DEGIL: nedeni her seferinde BASILIR (sessiz atlama = sessiz yesil).
+    durum = _urun_stage_durumu()
+    if durum == "stage-disi":
+        print("-- mukerrer taramasi ATLANDI: bu commit urun dosyalarina DOKUNMUYOR "
+              "(%s stage'lenmedi; kapsam on-elemesi INDEX ekseninde)." % ", ".join(URUN_YOLLARI))
+        return 0
+
     kaynaklar = _kaynaklari_oku(KAYNAKLAR)
     istisnalar = _istisnalari_oku(istisna_yolu())
-    urunler, gerekce = _commit_katalogu()
+    baslik_istisnalari = _baslik_istisnalari_oku(istisna_yolu())
+    urunler, gerekce = _commit_katalogu(durum)
     if urunler is None:
         print("COMMIT KAYNAGI OKUNAMADI: %s" % gerekce)
         with open(URUNLER, encoding="utf-8") as f:
             calisma = json.load(f)
-        bulgular = _tara(calisma, kaynaklar, istisnalar)
+        bulgular = _tara(calisma, kaynaklar, istisnalar, baslik_istisnalari)
         if bulgular:
             for tur, deger, ilgili_idler in bulgular:
                 print("MUKERRER %s: %s -> %s" % (tur, deger, ", ".join(ilgili_idler)))
         print("calisma agaci tarandi: %d urun, %d mukerrer" % (len(calisma), len(bulgular)))
         return 1
-    bulgular = _tara(urunler, kaynaklar, istisnalar)
+    bulgular = _tara(urunler, kaynaklar, istisnalar, baslik_istisnalari)
     if bulgular:
         for tur, deger, ilgili_idler in bulgular:
             print("MUKERRER %s: %s -> %s" % (tur, deger, ", ".join(ilgili_idler)))
@@ -310,7 +433,8 @@ def main():
         urunler = json.load(f)
     kaynaklar = _kaynaklari_oku(KAYNAKLAR)
     istisnalar = _istisnalari_oku(istisna_yolu())
-    bulgular = _tara(urunler, kaynaklar, istisnalar)
+    baslik_istisnalari = _baslik_istisnalari_oku(istisna_yolu())
+    bulgular = _tara(urunler, kaynaklar, istisnalar, baslik_istisnalari)
 
     if bulgular:
         for tur, deger, ilgili_idler in bulgular:
