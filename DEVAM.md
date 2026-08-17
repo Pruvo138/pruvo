@@ -38,15 +38,15 @@
 - 🟢 **K148 (GOZCU FAZ-2 KAPANDI, BAGIMSIZ TEYITLI; kalan: canliya baglama = OKAN KAPISI):**
   F1 (`O_EXCL`) · F2 (sahiplik) · F3 (ikiz esik) + **olculmus KILITLENME onarimi**: 0 baytlik
   artik kilit gozcuyu SONSUZA KADAR blokluyordu (prob: bos sinifinda iki cagri da False).
-  Kor silme YOK — taze oku, `DOLU` ise CALMA, yalniz artik kilidi TEK KEZ devral; yaris dikisi
-  ile F1 deterministik olculuyor. `GECEN=63->93 · MUTANT=15/15 · YAMA_TUTMADI=0`; ayri turda
-  cururtme probu testin olu olmadigini kanitladi (93->91, 93->89). crontab DOKUNULMADI.
-  kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=15/15`.
-- 🔴 **K160 (17 Agu, K148'de OLCULDU — SINIF kalemi, BES EVI DE vurur):** `nobet-kapi.py::kilit_al`
-  AYNI kusuru tasiyor: `kilit_karari("")` -> `"AL"` -> dogrudan `O_EXCL` -> `FileExistsError` ->
-  `False`. `os.open` ile `write` arasinda olen bir tur 0 BAYTLIK kilit birakirsa **nobet KALICI
-  DURUR**. Gozcude kapandi, `nobet-kapi.py`'ye DOKUNULMADI (yasak). Yon: tekil yama DEGIL —
-  `kilit_al`/`kilit_birak` TEK KAYNAK govdesi (gozcu + nobet ayni kodu cagirsin). `kabul:` BOS.
+  Yaris dikisi ile F1 deterministik olculuyor; ayri turda cururtme probu testin olu olmadigini
+  kanitladi (93→91, 93→89). crontab DOKUNULMADI. Govde K160'ta tek kaynaga tasindi.
+  kabul: `python3 ~/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=16/16` (K160 sonrasi).
+- 🟢 **K160 KAPANDI (BaBa hukmu, bagimsiz teyitli):** kilit govdesi TEK MODULE indi
+  (`~/.claude/cron/kilit.py`); `nobet-kapi.py`+`gozcu.py` yalniz ADAPTOR. Govde K148 onarimi:
+  `O_EXCL` once, `FileExistsError`'da taze oku, `DOLU` CALINMAZ, artik kilit TEK KEZ devralinir
+  → 0 baytlik kilitlenme HER IKI yuzeyde kapali. gozcu 93/93 · `MUTANT=16/16 ISTASYON=0
+  KABLO_KOPUK=0` · nobet-kabul 39→45 · nobet-mut 9/9 · **CAPRAZ 5/5 KIRMIZI** (temel rc=0).
+  kabul: `python3 ~/.claude/cron/nobet-kabul-test.py` **VE** capraz 5/5 KIRMIZI.
 - 🔧 **K149 (URETEN KOLU KURULDU; `profil-*` ekseni ACIK ve BEYAN CELISKILI):** 17 Agu
   `isci-temizlik.py` + 5/5 test yazildi, `isci.sh:757`'ye baglandi (`TEMIZLIK_CAGRISI=VAR`).
   🔴 Bir tur `PROFIL_SILINEN=239` beyan etti; BAGIMSIZ sayim **253 dizin** buldu ve
