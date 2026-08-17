@@ -11,17 +11,17 @@
 K150 rc=5 ERTELENDI + kapsam kapisi (`ed47d317`) + `--mutasyon` CI kablosu (`2f87a8bc`; kosum
 `32071071340` `cron-nabzi` adim 7 **success**) · K148 gozcu faz-2 · K160 kilit govdesi TEK
 KAYNAK (repo disi, capraz 5/5). ⚠️ `b180fa1a` da "K160" diye anilmisti; K160 = BaBa'nin KILIT
-hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerekce K166.)
+hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerekce K167.)
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔴 **K166 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor):** `1c741e54`
-  K150+K148'i, arsivde KAPANIS kaydi varken "KOSUYOR" ve main-disi commit'i OLMAYAN bir
-  worktree ile yazdi (`main..competent-dijkstra-754039` BOS; `amazing-hamilton` da main'in
-  ATASI). Devralan oturum mukerrer tur acar. "Blok birikimli olsun" onerisi bu zarari
-  ONLEMEZDI: satir silinmedi, YANLIS satir eklendi. Spec + kabul + mutasyon:
-  `tools/paket-defter-durum-iddiasi.md` (IZLENEN — `SPEC-*.md` gitignore'da). Yazim kurali: kapanis
-  ozeti kapanis isaretcisiyle BASLAR, KARMA blok (✅ + BEKLIYOR/KOSUYOR) YASAK.
+- 🔴 **K167 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor; K166 baska
+  oturumca 01:2xZ'de alinmisti):** `1c741e54` K150+K148'i, arsivde KAPANIS kaydi varken
+  "KOSUYOR" ve main-disi commit'i OLMAYAN worktree ile yazdi (`main..competent-dijkstra-754039`
+  BOS; `amazing-hamilton` main'in ATASI) → devralan mukerrer tur acar. "Blok birikimli olsun"
+  onerisi bu zarari ONLEMEZDI: satir silinmedi, YANLIS satir eklendi. Paket (invaryant + gercek
+  tarih fiksturu + 4 mutant/2 kontrol): `tools/paket-defter-durum-iddiasi.md`. Yazim kurali:
+  kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok (✅ + BEKLIYOR/KOSUYOR) YASAK.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
 - 🟠 **K165 (18 Agu — K164 teshisinin YAN BULGUSU; yayini BLOKLAMAZ ama SESSIZ):** sitemap
@@ -119,7 +119,7 @@ hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerek
   Navlungo `il-ilce-dilim1` merge'i. (K164 blogundan tasindi.)
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
-## KOSUYOR (baska mimarlar) — 18 Agu OLCULDU, iddia GUNCELLENDI (K166 kurali)
+## KOSUYOR (baska mimarlar) — 18 Agu OLCULDU, iddia GUNCELLENDI (K167 kurali)
 
 `git worktree list` + `main..<ref>`: agacta yalniz `amazing-hamilton-c45e91` (`10ae08d1`,
 main'in ATASI) ve `competent-dijkstra-754039` (`f3d5a2c3`, main'in ATASI) var — **ikisinde de

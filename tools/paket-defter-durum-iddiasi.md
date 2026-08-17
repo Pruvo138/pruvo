@@ -1,4 +1,9 @@
-# SPEC K166 — Defterdeki DURUM iddiasi olculmeden yaziliyor (SINIF kalemi)
+# PAKET K167 — Defterdeki DURUM iddiasi olculmeden yaziliyor (SINIF kalemi)
+
+> ⚠️ Bu paket once K166 diye acildi; posta kutusunda baska bir oturum K166'yi (`is-akisi-kapisi.py`
+> yayin sinyali safligi) 01:2xZ'de ALMISTI — numara K167'ye cevrildi. Kalem numarasi tahsisi
+> paylasilan defterde YARISIYOR (K161 iki kez, K164 iki kez, "K160" iki farkli is, K166 iki kez);
+> bu kapinin OLCTUGU eksen DEGIL, ayri kalem.
 
 Mimar: KraL · 18 Agu 2026 · hedef kat: MUHENDIS (kapi kodu Claude katinda kalir, ama
 yazimi mimar eli DEGIL — `tools/` altina mühendis koyar).
