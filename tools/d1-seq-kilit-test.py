@@ -69,16 +69,26 @@ MUTANTLAR = [
     ("M2 eksik id icin de UPDATE uretilir (satir ekleme yolu)",
      "for uid in hedef if uid in mevcut and mevcut[uid] != hedef[uid]]",
      "for uid in hedef if mevcut.get(uid) != hedef[uid]]", "V1"),
-    ("M3 diff_plan kesir yasagi kolu silindi",
-     "                elif yuksek - alt <= 1:\n", "                elif False:\n", "V4"),
+    # M3 (K154): K153 ile nisan `elif yuksek - alt <= 1:` kolundan mid-array blogundaki
+    # `if adim < 1:` satirlarina tasindi — eski `elif` artik yalniz mukerrer id gibi
+    # dejenere hallerde FIILEN calisiyor, canli akis (26 ardisik yeni id) `mid_blok`
+    # kolundan geciyor. Tekillestirmek icin ust satiriyla birlikte 2-line hedef.
+    ("M3 mid-array kesir yasagi (adim<1) kolu silindi (canli kol)",
+     "                    adim = (yuksek - mid_alt) // (blok_k + 1)\n                    if adim < 1:\n",
+     "                    adim = (yuksek - mid_alt) // (blok_k + 1)\n                    if False:\n",
+     "V6"),
     ("M4 geri alma kolu her zaman NO-OP",
      "    return (sonra != once or bool(fark) or bool(ortak_sapma)), fark, ortak_sapma\n",
      "    return False, fark, ortak_sapma\n", "V5"),
     ("M5 kuyruk kolunda bloga ORANLI adim yerine sabit 1",
      "                    adim = yuksek // (blok_k + 1)\n",
      "                    adim = 1\n", "K2"),
-    ("M6 kuyruk tasma (adim<1) fail-loud kolu silindi",
-     "                    if adim < 1:\n", "                    if False:\n", "K_TASMA"),
+    # M6 (K154): K153 sonrasi `if adim < 1:` metni hem kuyruk (line 1872) hem mid-array
+    # (line 1889) kolunda TEK SATIR olarak iki kez geciyordu -> capa = 2 (1 olmaliydi).
+    # Kuyruk koluna OZGÜ ust satiriyla 2-line hedef kullanarak tekillestirildi.
+    ("M6 kuyruk tasma (adim<1) fail-loud kolu silindi (tekillestirilmis)",
+     "                    adim = yuksek // (blok_k + 1)\n                    if adim < 1:\n",
+     "                    adim = 1\n                    if False:\n", "K_TASMA"),
 ]
 
 
@@ -239,6 +249,26 @@ def vakalar(m):
     sonuc["K_MID_REGRESYON2 ayni dizideki kuyruk blogu da uretilir (mid-array'e sizmadan)"] = (
         all(isinstance(v, int) for v in kq) and 0 < kq[0] < kq[1] < seq_m["u1"],
         "kuyruk=%s ust=%d" % (kq, seq_m["u1"]))
+
+    # ── V6 — DAR BOSLUK + MID-ARRAY BLOK (K154, M3 OLDURUCU) ────────────────────────
+    # K153 sonrasi 26 ardisik yeni id AYNI bosluga dusunce `mid_blok` kolundan islenir;
+    # k=26, mid_alt=ust_komsu, adim = (yuksek - mid_alt) // (blok_k + 1). Bosluk yeterince
+    # kucukse (adim < 1) fail-loud. Eski M3 hedefi (`elif yuksek - alt <= 1:`) artik BU
+    # vakayi FIILEN gostermiyordu (mid-array kolu onu yutmustu); nisan mid-array `if
+    # adim < 1:` satirlarina tasindi. Bu fikstur d1-seq-test.py V2 ile AYNIDIR.
+    v6_head, v6_tail = urun("v6-head"), urun("v6-tail")
+    v6_yeni = [urun("v6-y%02d" % i) for i in range(26)]
+    v6_urunler = [v6_head] + v6_yeni + [v6_tail]
+    v6_mevcut_seq = {v6_head["id"]: 30, v6_tail["id"]: 4}   # bosluk = 26, k = 26 -> adim < 1
+    v6_mevcut = {u["id"]: (m.arama.urun_hash(u), "") for u in (v6_head, v6_tail)}
+    try:
+        m.diff_plan(v6_urunler, v6_mevcut, {}, False, 0, v6_mevcut_seq)
+        v6_patladi, v6_msj = False, ""
+    except SystemExit as e:
+        v6_patladi, v6_msj = True, str(e.code)
+    sonuc["V6 dar bosluk + mid-array blok -> fail-loud DURUR (M3 nisan)"] = (
+        v6_patladi and "SEQ TAM SAYI ARALIGI TUKENDI" in v6_msj and "k=" in v6_msj,
+        "patladi=%s msj=%s" % (v6_patladi, v6_msj))
 
     # ── V5 — GERI ALMA: eksik TEK BASINA sebep DEGIL; ortak kumede sapma SEBEP ─────────
     son_temiz = {"a": hedef["a"], "c": hedef["c"]}          # b, d hala D1'de YOK
