@@ -2,6 +2,28 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+## 17 Agu (~11:4xZ) — OTURUM KAPANISI (KraL) — mail hatti EMEKLI + cron temizligi
+**CANLIYA GIDEN (push'lu; main = origin = `56d3e779`):** `dac8c8ab` defter rotasyon sinifi
+(K134) + K121 acildi · `d333bd0d` **K121+K138**: mail supurme once KANONIK yola
+yonlendirildi, sonra GitHub bildirimi kapatilinca hat EMEKLI (crontab satiri **ve** nobet
+gorev metni §0.4/§1/§4) · `56d3e779` **K139**: crontab'tan uc zamanli gorev kaldirildi —
+gunluk atesleme **181 iken 25**; canli teyit `crontab -l` = 2 aktif gorev.
+Dal `kral/k133-uyelik` `e928210e` origin'de, **MERGE EDILMEDI** (kabul kirmizi, K133'e bak).
+**KOSUYOR:** KraL'da is YOK. Makinede tek canli isci MaCiT'in evinde:
+`isci.sh minimax-m3 pruvo-hasat/.claude/worktrees/agent-fordcgt-ekle`, spec
+`SPEC-ford-cgtrader-icerik-final-dilim3.md`, etiket `fordcgt-dilim3` — OLDURULMEDI.
+**BEKLIYOR:** K133 bagimsiz curutucu (sonraki oturumun ilk isi) · yabanci ` M
+tools/marka-uyelik-test.py` (K136) ve ` M urunler.json` (MaCiT ucusta) DOKUNULMADI ·
+worktree `kanca-kok` BASKA oturumun, dokunulmadi.
+🔴 **BU OTURUMUN DERSI (BaBa'ya iletildi):** "ci-nobeti calisiyor" dedim, OLCMEDIM —
+gorev metnini ve tek bir `rc=0`'i kanit sandim. Olcum: **76 turun HEPSINDE `ONARIM=0`
+`KAPANAN=0`**, `USTUSTE_ONARIMSIZ=62`. Tikanma yapisal: 12 kalemin **10'u EMEKLI Codex
+katinda**, **7'sinin `kabul:` alani BOS**. Nobet uzerine yapilan tum kabuller MAKINEYI
+olcuyordu, URUNU degil. → [[makineyi-olctuk-urunu-olcmedik]]
+**TEMIZLIK:** scratchpad 11 dosya / ~44 KB silindi · worktree `k133b` kaldirildi (dal
+push'lu) · gecici crontab dosyalari (`ct*.txt`) silindi · advisor'daki v2 YEDEGI BaBa'ya
+birakildi (onun kodu, silmedim).
+
 
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
@@ -42,55 +64,27 @@
   partileri kendiliginden ILERLEMIYOR** — katalog buyumesi acilan oturuma bagli.
   Ders: kota keserken EN COK YAKANI olc; 16 Agu kesintisi ci-nobeti'ni yariya indirmis ama
   144 turluk izleyici ciftine hic dokunmamisti. `kabul:` alani BOS.
-- 🔧 **K133 DURUM (17 Agu, dal `kral/k133-uyelik` `dbc49f45` — MERGE TUTULDU):** olcum
-  ADIM-1: 533 ciftin **tamami** tek sinif (C: `marka[]` DOLU, eksik jeton orada YOK;
-  A=B=D=E=**0**); gurultu riski **4/4 hayir**; 68 jeton = **45 gercek marka + 23 model
-  jetonu**. ADIM-2 dali: `d1-sync.py` `marka_kanon` turetimi + kapinin FILTRE modeli
-  `mmb.baslik_uyelikleri` cagiriyor (K126'daki TEK GOVDE), 23 model jetonu HARIC.
-  Sayilar: `FILTRE_KAYIP 68/533 -> 23/196` · `MODEL_JETON_DEGISTI=hayir` ·
-  `parite-test.js` rc=0 (1328 sorgu) · `parite-ege.js` rc=0 (893 sorgu) ·
-  `marka-uyelik-test` rc=0 · `ci-kapsam` rc=0 · D1 etkisi **332 satir** · mutant 2/2.
-  🔴 **MERGE NEDEN TUTULDU (mimar olctu):** `index.html`'de marka yuklemi **IKI AYRI
-  YERDE**: MARKA SORGUSU blogu (`:2814`) `markaUyeMi(...) || baslikMarkalari(...)` —
-  baslik kolu VAR; ama **marka CIPI/filtresi uc ayri cagri noktasinda** (`:4043` `:4239`
-  `:4389`) hala ham `(p.marka||[]).some(b => markaKatla(b)===hedef)` — baslik kolu YOK.
-  Yani dal D1 kolonunu ve kapinin modelini duzeltiyor, **musterinin bastigi cip hala
-  urunu kaybediyor**; kapi YESILE donerken belirti CANLIDA kalirdi.
-  🔴 **17 Agu — SINIF BIR KAT DAHA DERIN (mimar olctu, onceki "sonraki adim" TEK BASINA
-  YETMEZ):** cagri noktasi UC degil **DORT** — `:3574` (`filtered()` `brandOk`) da ham
-  `markaUyeMi` kullaniyor; `markaSorgusuEsler` (`:2813`) bugun YALNIZ `:2846`'dan
-  (arama plani) cagriliyor. Dahasi iki taraf **FARKLI baslik kurali** kullaniyor:
-  `index.html:2788 baslikMarkalari` **UZUN-ONCE** yapiyor (Land Rover bigrami tutunca
-  tekil `Rover` URETILMEZ — 5 Agu olcumu: kural olmadan 80 kalem sizar), ama
-  `marka_model_build.py:1024 baslik_uyelikleri` (sayfa kovasi FAZ 1B) uzun-once YAPMIYOR
-  → sayfa cipten yapisal olarak GENIS. Yani yalnizca cagri noktalarini baglamak kapiyi
-  yesile cevirir, `Rover (0/82)` sinifi CANLIDA kalirdi — tuttugum merge'in gercek sebebi.
-  **MIMAR HUKMU:** uzun-once her yerde KANONIK (site JS · uretec FAZ 1B · kapi modeli);
-  ters yon 80+ urunu yanlis marka sayfasina tasirdi. Kart sozlesmesi olculdu, `baslik`
-  HER iki ucta da kartta VAR (`build.py:4284` · pruvo-bot `worker/src/index.js:3944`).
-  **UCUSTA:** dal `kral/k133-uyelik` main ile guncellendi (`618fa25f`), worktree
-  `.claude/worktrees/k133b`, spec `SPEC-K133B-CIP-TEK-GOVDE.md`, isci `kimi` etiket
-  `k133b-cip`. Spec'te DURMA NOKTASI var: uzun-once uygulaninca bir marka sayfasi 0 urune
-  duserse isci DURUR, hukmu mimar verir.
-  kabul: `python3 tools/marka-invaryant-kapisi.py`
-- 🗒️ **K133 OLCUM TABANI (kayit):** kapi 5 kontrol kaldi —
-  `MARKA=155 FILTRE_FARK=68/533 ARAMA_FARK=11/118` (`FILTRE_KAYIP=68/533` ·
-  `FILTRE_FAZLA=0/0` · `ARAMA_KAYIP=4/105`); ornek `1290` (0/15) · `Rover` (0/82) ·
-  `V-Strom` (0/19). ⚠️ Taban BAYAT (`marka evreni 142 -> 155`); `--taban-yaz` borcu
-  sifirlamaz CIMENTOLAR — once mesru gecis borcu (veri: `marka[]` eksik urunler → MaCiT)
-  ile uretec kusuru ayrilacak. YAYINI BLOKLAMAZ (hijyen seridi).
-- KAPANDI (arsivde): K127 rotasyon MADDE GRANULU kol (merge `e5f5c32b`) — 17 Agu rotasyonu.
-- ✅ **K138 KAPANDI (17 Agu, Okan karari — SINIF ORTADAN KALKTI):** mail ARIZA SINYALI
-  DEGILDI (nobet metni "BAGIMSIZ TEYIT (maile guvenme)", olcum `gh run list`). Okan GitHub
-  bildirimini KAPATTI; crontab satiri KALDIRILDI **VE** nobet gorev metnindeki supurme
-  adimlari EMEKLI isaretlendi (§0.4+§1+§4) — yalniz crontab'i kaldirmak silme yolunu AJAN
-  elinde canli birakirdi. Otomatik mail SILICISI KALMADI; bundan sonra mail kaybolursa
-  sebep KESINLIKLE ucuncu bir yoldur. Geri acma OKAN KAPISI, ikisi AYNI turda.
-- 🔵 **K137 (17 Agu, KAYIT — sonradan ACILDI):** birkac saat boyunca `crontab` YAZIMI asildi
-  (okuma calisiyordu; `pgrep` ile asili surec teyitli, SIGKILL gerekti). O pencerede K121
-  acigi cron satirinda degil BETIKTE kapatilmisti; 11:00 civari yazim acildi ve satirlar
-  dogrudan kaldirildi. ⚠️ Tuzak (tekrar yasandi): `crontab <dosya>` dosyayi BULAMAZSA
-  stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc.
+- 🔧 **K133 (dal `kral/k133-uyelik` `e928210e` origin'de — MERGE EDILMEDI):** marka CIPI,
+  marka SAYFASININ ALTINDA. Taban: `MARKA=155 FILTRE_KAYIP=68/533 ARAMA_KAYIP=4/105`
+  (ornek `Rover` 0/82 · `1290` 0/15 · `V-Strom` 0/19). Dal D1 `marka_kanon` + kapinin FILTRE
+  modelini duzeltiyor (`68/533 -> 23/196`, parite 1328+893 rc=0, D1 etkisi 332 satir).
+  🔴 **MERGE NEDEN TUTULDU (mimar olctu):** cagri noktasi UC degil **DORT** —
+  `:3574`(`filtered` brandOk) `:4043` `:4239` `:4389` ham `markaUyeMi`; tek govde
+  `markaSorgusuEsler`(`:2813`) yalniz `:2846`'dan cagriliyor. Dahasi iki taraf **FARKLI
+  baslik kurali**: `index.html:2788` **UZUN-ONCE** yapiyor (Land Rover bigrami tutunca tekil
+  `Rover` URETILMEZ — 5 Agu: kuralsiz 80 kalem sizar), `marka_model_build.py:1024` YAPMIYOR
+  → sayfa cipten yapisal GENIS. Yalniz cagri noktalarini baglamak kapiyi yesile cevirir,
+  `Rover (0/82)` sinifi CANLIDA kalirdi.
+  **MIMAR HUKMU:** uzun-once her yerde KANONIK (site JS · uretec FAZ 1B · kapi modeli).
+  Kart sozlesmesi olculdu: `baslik` HER iki ucta da kartta VAR (`build.py:4284` ·
+  pruvo-bot `worker/src/index.js:3944`).
+  🔴 **KABUL KIRMIZI (iscinin KENDI sayisi, bagimsiz DOGRULANMADI):** `KAPI_RC=1`
+  `MUTANT=1/3` — M1+M2 hayatta, cunku **JS'i CALISTIRAN test YOK**, yani `index.html`
+  degisikligi fiilen OLCULMUYOR. Sonraki oturumun ILK isi bagimsiz curutucu: kabul
+  eksenlerini KENDIN kos · 4 cagri noktasini grep'le say · 3 mutant (`:4389` ham yukleme
+  geri · JS uzun-once etkisiz · uretec uzun-once geri).
+  ⚠️ Taban BAYAT (`marka evreni 142 -> 155`); `--taban-yaz` borcu sifirlamaz CIMENTOLAR.
+  YAYINI BLOKLAMAZ (hijyen seridi). kabul: `python3 tools/marka-invaryant-kapisi.py`
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
@@ -111,7 +105,7 @@
   16 Agu kosumunda `hijyen-a3` beyan edilmis borctu, `hijyen-a2` ise GERCEK canli veri
   kusuru buldu (K125, 11 urun bozuk gorsel anahtari). Kural: genel `conclusion`'a degil
   **is bazinda** bakilir; job tasima kirmiziyi susturmak degil yayin hukmunu ayirmak icin.
-- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]).
+- KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]) · K127 rotasyon madde granulu kol (`e5f5c32b`) · **K138** (mail ARIZA SINYALI degildi — nobet metni "maile guvenme" diyor, olcum `gh run list`; Okan GitHub bildirimini kapatti, crontab satiri KALDIRILDI **ve** nobet gorev metnindeki supurme adimlari §0.4+§1+§4 EMEKLI isaretlendi — yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi; otomatik mail silicisi KALMADI, bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yol; geri acma OKAN KAPISI, ikisi AYNI turda) · **K137** (birkac saat `crontab` YAZIMI asildi — okuma calisiyordu, asili surec `pgrep` ile teyitli, SIGKILL gerekti; 11:00 civari acildi. Tuzak: `crontab <dosya>` dosyayi BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc).
 
 ## OKAN'DA
 
