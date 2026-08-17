@@ -294,7 +294,7 @@ def imza_kapsam_kapisi(d1_sync_yolu=D1_SYNC):
                         "TANIMIYOR" % sorted(eksik_sebep))
     if fazla_sebep:
         sorunlar.append("surucu ELE_ALINAN_SEBEP icinde `%s` beyan ediyor ama d1-sync "
-                        "bunu URETMIVOR -> imza sessizce degismis olabilir"
+                        "bunu URETMIYOR -> imza sessizce degismis olabilir"
                         % sorted(fazla_sebep))
 
     return (sorunlar, evren)
@@ -494,9 +494,14 @@ def kendini_test():
           len([a for a in kayit if a[:2] == ["git", "fetch"]]) == 2, kayit)
 
     # --- KIRMIZI YOL: GERCEK HATA YENIDEN DENENMEZ ---
-    rc, deneme, d1, uyku, _ = kos_senaryo([(1, _GERCEK_HATA_CIKTI)])
+    # FIKSTUR SERTLESTIRILDI (dilim-1b): M4 mutantı 1 girişlik fikstürde sirali tukenmesine
+    # yol açıyor, kendini_test() istasyona dusuyordu. 3 giriş: dogru kod 1. denemede rc=1
+    # ile cikar (2 giriş kullanilmaz); M4 mutantı 3 denemeyi tuketir, rc=3 (YARIS SURDU)
+    # doner -> iddia (1, 1, 1, []) YAKALAR (mod=IDDIA).
+    rc, deneme, d1, uyku, _ = kos_senaryo([(1, _GERCEK_HATA_CIKTI)] * DENEME_TAVANI)
     iddia("V3 GERCEK hata (D1 7429 CPU tavani) -> rc 1 · TEK deneme · 0 bekleme "
-          "(kod/altyapi hatasi yeniden denemeyle ORTULMEZ)",
+          "(kod/altyapi hatasi yeniden denemeyle ORTULMEZ; M4 fikstur tukenmesi "
+          "IDDIA'ya cevrildi)",
           (rc, deneme, d1, uyku) == (1, 1, 1, []), (rc, deneme, d1, uyku))
 
     # --- FAIL-CLOSED: KARANTINA DAMGASI OKUNAMADI ---
@@ -581,8 +586,14 @@ def kendini_test():
           "ONARILAMADI" not in yazi and "YARIS SURDU" not in yazi, repr(yazi[:200]))
 
     # V10: GERCEK wrangler hatasi (regresyon — V3 zaten var, KALIR)
-    rc, deneme, d1, uyku, _ = kos_senaryo([(1, _GERCEK_HATA_CIKTI)])
-    iddia("V10 GERCEK wrangler hatasi -> rc 1 AYNEN (V3 regresyonu; gevsetme YOK)",
+    # FIKSTUR SERTLESTIRILDI (dilim-1b): M4 mutantı `_sahte_kos`'un 1 girişlik fikstürde
+    # tükenmesine yol açıyordu (3. deneme MutationError → ISTASYON ölümü, IDDIA değil).
+    # 3 girişli fikstür: doğru kodun davranışı DEĞİŞMEZ (ilk d1 hatasında `return 1, deneme`
+    # ile çıkar; 2 giriş kullanılmaz); M4 mutantı 3 denemeyi de TÜKETİR, sonunda rc=3
+    # (YARIS SURDU) üretir → test `(1, 1, 1, [])` iddiasıyla YAKALAR (mod=IDDIA).
+    rc, deneme, d1, uyku, _ = kos_senaryo([(1, _GERCEK_HATA_CIKTI)] * DENEME_TAVANI)
+    iddia("V10 GERCEK wrangler hatasi -> rc 1 AYNEN (V3 regresyonu; M4 fikstur tukenmesi "
+          "IDDIA'ya cevrildi; dogru kod hâlâ 1. denemede rc=1)",
           (rc, deneme, d1, uyku) == (1, 1, 1, []), (rc, deneme, d1, uyku))
 
     # V11: karantina imzasi (regresyon — V3b zaten var, KALIR)
@@ -605,6 +616,7 @@ def kendini_test():
     # V14/V15 fikstur: gecici kopya uzerinde
     import shutil as _shutil
     import tempfile as _tempfile
+    import importlib as _importlib
     tmp = _tempfile.mkdtemp(prefix="pruvo-uzl-kapsam-")
     try:
         _shutil.copy(D1_SYNC, os.path.join(tmp, "d1-sync.py"))
@@ -642,9 +654,61 @@ def kendini_test():
                 f.write(yeni15)
             sorunlar15, _ = imza_kapsam_kapisi(d1_sync_yolu=gecici)
             iddia("V15 fikstur: gecici kopyanin main()'ine `return 7` eklenmis -> KIRMIZI",
-                  any("7" in s for s in sorunlar15), sorunlar15)
+                  any("[7]" in s for s in sorunlar15), sorunlar15)
+
+        # V16: TANINMAYAN return sekli — `return sys.exit(3)` (ast.Call, attr='exit',
+        # TURETILMIS_RC_IZNI ∋ {"_adim_kos"} listesinde YOK). Fail-closed kolu
+        # olculmemis ([[cec-dilim1b-cekTrC]] testi).
+        with open(gecici, "w", encoding="utf-8") as f:
+            f.write(govde15)
+        with open(gecici, encoding="utf-8") as f:
+            govde16 = f.read()
+        yeni16 = govde16.replace("        return _adim_kos()",
+                                  "        return _adim_kos()\n        return sys.exit(3)", 1)
+        if yeni16 == govde16:
+            iddia("V16 fikstur: `return sys.exit(3)` enjekte EDILEMEDI (kaynak metni degisti)",
+                  False, "eslesme yok")
+        else:
+            with open(gecici, "w", encoding="utf-8") as f:
+                f.write(yeni16)
+            sorunlar16, _ = imza_kapsam_kapisi(d1_sync_yolu=gecici)
+            iddia("V16 fikstur: gecici kopyanin main()'ine `return sys.exit(3)` eklenmis -> "
+                  "KIRMIZI (taninmayan return sekli; TURETILMIS_RC_IZNI listesinde YOK)",
+                  any("exit" in s and "TURETILMIS_RC_IZNI" in s for s in sorunlar16), sorunlar16)
     finally:
         _shutil.rmtree(tmp, ignore_errors=True)
+
+    # --- V17: fazla_sebep kolu (P3) ---
+    # surucu'da `ELE_ALINAN_SEBEP`'e elle `"UYDURMA"` eklenmis bir kopyada kapı KIRMIZI
+    # vermeli (fazla_sebep kolu olculmemis). Yontem: gecici surucu kopyasina sahneyi
+    # yaz, importlib ile yukle, imza_kapsam_kapisi()'ni GERCEK d1-sync.py uzerinde kos.
+    _tmp_surucu = _tempfile.mkdtemp(prefix="pruvo-uzl-surucu-")
+    try:
+        _shutil.copy(os.path.abspath(__file__), os.path.join(_tmp_surucu, "uzlastirici-onarim.py"))
+        gecici_surucu = os.path.join(_tmp_surucu, "uzlastirici-onarim.py")
+        with open(gecici_surucu, encoding="utf-8") as f:
+            govde_surucu = f.read()
+        yeni_surucu = govde_surucu.replace(
+            'ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA"}',
+            'ELE_ALINAN_SEBEP = {"YAZICI_UCUSTA", "UYDURMA"}', 1)
+        if yeni_surucu == govde_surucu:
+            iddia("V17 fikstur: `ELE_ALINAN_SEBEP'e 'UYDURMA' enjekte EDILEMEDI",
+                  False, "eslesme yok")
+        else:
+            with open(gecici_surucu, "w", encoding="utf-8") as f:
+                f.write(yeni_surucu)
+            # Gecici surecu import et (kendi mod adinda, ana surucuyle cakisma olmasin)
+            _spec = _importlib.util.spec_from_file_location("uzlastirici_onarim_v17", gecici_surucu)
+            _mod = _importlib.util.module_from_spec(_spec)
+            sys.modules["uzlastirici_onarim_v17"] = _mod
+            _spec.loader.exec_module(_mod)
+            sorunlar17, _ = _mod.imza_kapsam_kapisi(d1_sync_yolu=D1_SYNC)
+            iddia("V17 fikstur: ELE_ALINAN_SEBEP'e 'UYDURMA' eklenmis gecici surucu kopyasinda "
+                  "kapı KIRMIZI (fazla_sebep kolu: surucu 'UYDURMA' beyan ediyor ama d1-sync "
+                  "URETMIYOR)",
+                  any("UYDURMA" in s for s in sorunlar17), sorunlar17)
+    finally:
+        _shutil.rmtree(_tmp_surucu, ignore_errors=True)
 
     print("\n%d iddia kosturuldu, %d KIRMIZI." % (sayac[0], len(hatalar)))
     return hatalar
@@ -656,11 +720,17 @@ def _mutant_oldu_mu(mutant_kaynak, dosya_yolu):
     zincirinin patlamamasi icin). Mutant disk yazmaz; Okan disk kurali + bytecode
     onbellegi tuzaginin onlemi.
 
-    Calisma sirasinda ISTASYON (ornek: bir mutant `_sahte_kos` icin yeterli cevap
-    vermeden retry'i tetiklerse) olursa bu mutant calistirilamadi demektir — survivor
-    DEGILDIR: testin kendisi bile mutantli kaynakta calismadi. Bu durumda mutant
-    KILITLANMIS sayilir ([[beyan-edilmis-survivor]] invariantinin tam tersi: mutant
-    calismadi -> kapinin var oldugu ispatlandi)."""
+    Doner: (oldu:bool, mod:str, detay:str)
+      mod ∈ "IDDIA"    -> kendini_test() hata listesi bos degil (gercek iddia ile yakalandi)
+      mod ∈ "ISTASYON" -> kendini_test() calismadi (istisna atildi; mutant KILITLI)
+
+    IDDIA modu: gercek kapinin calistigini ispatlar.
+    ISTASYON modu: mutant calistirilamadi; fikstur tukenmesi yuzunden mutant kendini_test'i
+    bile bitiremedi. Hâlâ OLDU sayilir ([[beyan-edilmis-survivor]] invariantinin tam tersi:
+    mutant calismadi -> kapinin var oldugu ispatlandi) AMA GORUNUR ([[mutasyon-kaniti-
+    yeniden-uretilebilir]]): --mutasyon ISTASYON sayisini ayri raporlar; sessiz esitleme
+    biter. Ideal durum IDDIA=5; ISTASYON>0 fikstur sertlestirmesi bekleyen mutanttir.
+    """
     import io as _io
 
     ns = globals().copy()
@@ -673,13 +743,14 @@ def _mutant_oldu_mu(mutant_kaynak, dosya_yolu):
         hatalar = ns["kendini_test"]()
     except Exception as e:                                            # noqa: BLE001
         sys.stdout = eski_stdout
-        # Mutantli kaynakta kendini_test bile calismadi -> mutant KILITLI (hata listesi
-        # bos degilmis gibi davran; kapinin varligini ispatla).
-        return True, ("🔴 MUTANT CALISTIRILAMADI (kendini_test() istasyon): %s: %s"
-                      % (type(e).__name__, e))
+        # ISTASYON: mutant calismadi. Kapinin var oldugunu ispatlar AMA kapinin NE
+        # yakaladigini iddia duzeyinde ispatlamaz -> fikstur sertlestirmesiyle IDDIA'ya
+        # cevrilmeli; cevrilemiyorsa ISTASYON olarak raporlanir.
+        return True, "ISTASYON", ("🔴 MUTANT CALISTIRILAMADI (kendini_test() istasyon): %s: %s"
+                                   % (type(e).__name__, e))
     finally:
         sys.stdout = eski_stdout
-    return bool(hatalar), yakala.getvalue()
+    return bool(hatalar), "IDDIA", yakala.getvalue()
 
 
 MUTANT_TANIMLARI = [
@@ -716,32 +787,48 @@ MUTANT_TANIMLARI = [
 
 
 def _mutasyonu_kos(dosya_yolu):
-    """5 mutant + KONTROL kos. (olduler:int, toplam:int, kontrol:bool, detaylar:list)."""
+    """5 mutant + KONTROL kos. (olduler, toplam, kontrol, detaylar, iddia_n, istasyon_n).
+
+    iddia_n   : IDDIA ile yakalanan mutant sayisi (gercek kapinin ispati)
+    istasyon_n: ISTASYON (istisna) ile yakalanan mutant sayisi (fikstur tukenmesi; IDDIA'ya
+                cevrilmeli — cevrilemiyorsa ISTASYON olarak raporlanir)
+    iddia_n + istasyon_n == olduler (kendi icinde tutarli).
+    """
     with open(dosya_yolu, encoding="utf-8") as f:
         orijinal = f.read()
 
     # KONTROL: degismemis kaynak ayni yolla -> hata listesi BOS olmali (YESIL).
-    kontrol_hata, _ = _mutant_oldu_mu(orijinal, dosya_yolu)
+    kontrol_hata, kontrol_mod, _ = _mutant_oldu_mu(orijinal, dosya_yolu)
     if kontrol_hata:
         return 0, len(MUTANT_TANIMLARI), False, [
-            "KONTROL kirmizi: degismemis kaynak bile kendini_test()'i gecmiyor — "
-            "batarya GEÇERSIZ (sessiz survivor olcmeden YESIL olamaz)"]
+            "KONTROL kirmizi: degismemis kaynak bile kendini_test()'i gecmiyor (mod=%s) — "
+            "batarya GEÇERSIZ (sessiz survivor olcmeden YESIL olamaz)" % kontrol_mod], 0, 0
 
     detaylar = []
     olduler = 0
+    iddia_n = 0
+    istasyon_n = 0
     for etiket, arama, degistirme in MUTANT_TANIMLARI:
         mutant = orijinal.replace(arama, degistirme, 1)
         if mutant == orijinal:
             # replace uygulanamadi → sessiz survivor YASAK ([[beyan-edilmis-survivor]])
             detaylar.append("🔴 %s: UYGULANAMADI (kaynak metni degisti / count=0)" % etiket)
             continue
-        oldu, _ = _mutant_oldu_mu(mutant, dosya_yolu)
+        oldu, mod, _ = _mutant_oldu_mu(mutant, dosya_yolu)
         if oldu:
             olduler += 1
-            detaylar.append("✅ %s: OLDU" % etiket)
+            if mod == "IDDIA":
+                iddia_n += 1
+                detaylar.append("✅ %s: OLDU (mod=IDDIA)" % etiket)
+            elif mod == "ISTASYON":
+                istasyon_n += 1
+                detaylar.append("⚠️  %s: OLDU (mod=ISTASYON) — iddia YAKALAYAMADI, fikstur "
+                                "tukenmesi kapinin varligini ispatliyor; IDDIA'ya cevirmek "
+                                "icin fikstur sertlestirilmeli" % etiket)
         else:
-            detaylar.append("🔴 %s: SURVIVOR (kendini_test() yine gecti — kapali YOK)" % etiket)
-    return olduler, len(MUTANT_TANIMLARI), True, detaylar
+            detaylar.append("🔴 %s: SURVIVOR (mod=IDDIA, kendini_test() yine gecti — "
+                            "kapali YOK)" % etiket)
+    return olduler, len(MUTANT_TANIMLARI), True, detaylar, iddia_n, istasyon_n
 
 
 def main():
@@ -763,11 +850,14 @@ def main():
         return 0
     if a.mutasyon:
         print("UZLASTIRICI ONARIM SURUCUSU — MUTASYON BATARYASI")
-        olduler, toplam, kontrol_ok, detaylar = _mutasyonu_kos(os.path.abspath(__file__))
+        olduler, toplam, kontrol_ok, detaylar, iddia_n, istasyon_n = _mutasyonu_kos(
+            os.path.abspath(__file__))
         for d in detaylar:
             print("  " + d)
         kontrol_hukum = "YESIL" if kontrol_ok else "KIRMIZI"
-        print("\nMUTANT=%d/%d KONTROL=%s" % (olduler, toplam, kontrol_hukum))
+        # iddia_n + istasyon_n == olduler (kendi icinde tutarli)
+        print("\nMUTANT=%d/%d IDDIA=%d ISTASYON=%d KONTROL=%s" % (
+            olduler, toplam, iddia_n, istasyon_n, kontrol_hukum))
         # kontrol kirmizi veya survivor varsa batarya basarisiz
         if not kontrol_ok or olduler != toplam:
             return 1
