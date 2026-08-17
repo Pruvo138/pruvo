@@ -2,11 +2,6 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ K164 KAPANDI — YAYIN ACILDI (18 Agu, `f5671d37` + `0ab9dcde`) — tam metin ARSIVDE
-`kart_ozeti` ↔ `OZET_KART_ALANLARI` IKIZ TANIMI; sinif kapisi `tools/ozet-alan-ikiz-test.py`
-(AST + mutasyon, `serit-a3`) alan eklendigi GUN kirmizi yanar. CI (`0ab9dcde`)
-`deploy`+`yayin` success · CANLI 29038 (cache-bust'SIZ) · D1 5/5 YESIL.
-
 ## ✅ K150 / K148 / K160 KAPANDI (17-18 Agu, KraL) — tam metin ARSIVDE
 K150 rc=5 ERTELENDI + kapsam kapisi (`ed47d317`) + `--mutasyon` CI kablosu (`2f87a8bc`; kosum
 `32071071340` `cron-nabzi` adim 7 **success**) · K148 gozcu faz-2 · K160 kilit govdesi TEK
@@ -15,13 +10,11 @@ hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerek
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔴 **K167 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor; K166 baska
-  oturumca 01:2xZ'de alinmisti):** `1c741e54` K150+K148'i, arsivde KAPANIS kaydi varken
-  "KOSUYOR" ve main-disi commit'i OLMAYAN worktree ile yazdi (`main..competent-dijkstra-754039`
-  BOS; `amazing-hamilton` main'in ATASI) → devralan mukerrer tur acar. "Blok birikimli olsun"
-  onerisi bu zarari ONLEMEZDI: satir silinmedi, YANLIS satir eklendi. Paket (invaryant + gercek
-  tarih fiksturu + 4 mutant/2 kontrol): `tools/paket-defter-durum-iddiasi.md`. Yazim kurali:
-  kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok (✅ + BEKLIYOR/KOSUYOR) YASAK.
+- 🔴 **K167 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor):** `1c741e54`
+  K150+K148'i, arsivde KAPANIS kaydi varken "KOSUYOR" ve main-disi commit'i OLMAYAN worktree
+  ile yazdi (`main..competent-dijkstra-754039` BOS) → devralan mukerrer tur acar. "Blok
+  birikimli olsun" onerisi ONLEMEZDI: satir silinmedi, YANLIS satir eklendi. Yazim kurali:
+  kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK. `tools/paket-defter-durum-iddiasi.md`.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
 - 🟠 **K165 (18 Agu — K164 teshisinin YAN BULGUSU; yayini BLOKLAMAZ ama SESSIZ):** sitemap
@@ -29,9 +22,11 @@ hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerek
   `sitemap_damga.py:66`) dolduruyor; asimda **fail-loud DEGIL** (`:242-244` yalnizca `break`),
   cozulemeyen kayit `lastmod`SIZ kaliyor (`build.py:4153-4155`); kirmizi kosumda 13. Olcek
   buyudukce SESSIZCE buyur. Yon: esigi BUYUTMEDEN fail-loud'a bagla. `kabul:` BOS.
-- 🔧 **K134 (defter kotasi SINIF kalemi; BaBa 3. kez kirmizi dedi, SPEC HAZIR):** care (`defter-rotasyon.py`) mimar kod kilidinde YASAK.
-  Tam metin ARSIVDE.
-  kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
+- 🔧 **K168 (18 Agu — K134'un HALEFI; K134 KAPANDI, tam metin ARSIVDE):** care
+  (`defter-rotasyon.py`) mutasyonla teyitli YESIL (7/7) ama kota bugun IKI KEZ kaybedildi
+  (141/130, 139/130 — ikisini de mimar ELLE dondurdu). Mekanizma: kotayi asan rol MIMAR ve
+  mimar `defter-rotasyon.py`'yi KOSAMAZ (icra kapisi python'u reddediyor). Yon: rotasyonu
+  mimarin KOSABILDIGI bir kola bagla (kanca otomatigi). `kabul:` BOS.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   Tam metin ARSIVDE.
   Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. `kabul:` alani BOS.
@@ -80,9 +75,13 @@ hukmu. (Bu ozet KARMA bir bloktan iki kez dustu; ayri ✅ bloga alindi — gerek
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
-- 🔴 **K141 (17 Agu — OLCULEMEYEN NOBET, sinif kalemi):** `kapi-envanteri.py` main'de DE kirmizi: `mimar-icra-kapisi` + `mimar-kod-kilidi` "NOBETTE degil — reddetmesi gerekeni REDDETMEDI".
-  Tam metin ARSIVDE.
-  muafiyet kolundan BAGIMSIZ altsurecte kossun. `kabul:` alani BOS.
+- 🔴 **K141 (17 Agu — OLCULEMEYEN NOBET, sinif kalemi; 18 Agu YENIDEN OLCULDU, HALA KIRMIZI):**
+  `kapi-envanteri.py` rc=1 · `5/7 kapi TAM` · iki kapi da `reddetmeli=allow kabuletmeli=allow`
+  ⚠️ Karsi-kanit: iki kapi CANLI (bu oturumda mimarin `wc`/`sort` komutlarini REDDETTILER)
+  → kusur KAPIDA degil OLCUM ALETINDE. Kok neden BULUNDU ve ARSIVDE (satir numarasiyla);
+  icra paketi `tools/paket-k141-nobet-probu.md`. Once ALET onarilir, sonra teshis.
+  kabul: `python3 tools/kapi-envanteri-test.py` → `DUSEN=0 MUTANT=3/3 KONTROL=2/2` **VE**
+  ardindan `kapi-envanteri.py` rc=0 **VE** ikinci tur ciktisi rapora BIREBIR yapistirilir.
 - 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi).
   Tam metin ARSIVDE.
   kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
