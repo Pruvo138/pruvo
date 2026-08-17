@@ -201,6 +201,33 @@ def eksik_olc(urunler, kayitlar):
     return satirlar, eksik
 
 
+def defter_olc(kayitlar):
+    """DEFTER ekseni — gizli kayit haritasinin TAMAMI (public urun evreninden BAGIMSIZ).
+
+    🔴 NEDEN AYRI BASILIR: onarim DEFTER uzerinde calisir, site PUBLIK urun uzerinde. Ayni
+    kova iki eksende AYRI sayi verir (olculdu: linksiz-platform defterde 88, publikte 44 —
+    fark, canli public urunu OLMAYAN defter kayitlari). Iki sayiyi tek satirda karsilastirmak
+    "celiski" gorunumu uretir; birim AYRIDIR ([[hukum-yanlis-birimde]]).
+    🔴 Bu eksen `parametrik` bayragini GOREMEZ (o alan public urunde durur) — sari seri
+    kayitlari burada KOKEN_YOK'a dusebilir; publik eksende dusMEZ. Eksenlerin ayri durmasinin
+    sebebi tam olarak budur."""
+    dizge = sum(1 for v in kayitlar.values() if not isinstance(v, dict))
+    linksiz_platform = kokensiz = 0
+    for v in kayitlar.values():
+        if not isinstance(v, dict):
+            continue
+        _ok, sebep = izlenebilir(v)
+        if sebep == SEBEP_LINKSIZ_PLATFORM:
+            linksiz_platform += 1
+        elif sebep == SEBEP_KOKEN_YOK:
+            kokensiz += 1
+    return ["--- DEFTER EKSENI (BAGIMSIZ BIRIM — publik eksenle KARSILASTIRILMAZ) ---",
+            "KAYIT=%d" % len(kayitlar),
+            "DEFTER_LINKSIZ_PLATFORM=%d" % linksiz_platform,
+            "DEFTER_DIZGE=%d" % dizge,
+            "DEFTER_KOKEN_YOK=%d  (parametrik bayragi bu eksende GORUNMEZ)" % kokensiz]
+
+
 # ─────────────────────────────────────────────────────────────── tek urun (GIZLI cikti)
 def id_ara(urunler, sorgu):
     """Tam ID eslesmezse baslikta ARAR -> aday ID listesi (en cok 10)."""
@@ -303,6 +330,17 @@ def kendini_test(yaz=None):
         k.append(("sizinti YOK: %r rapora girmiyor" % s, s not in metin))
     k.append(("maske uygulandi", MASKE in metin))
     k.append(("platform adi yazilabilir", "cults3d" in metin))
+
+    # --- IKI EKSEN AYRI BIRIM: defter sayisi publik sayisiyla AYNI OLMAK ZORUNDA DEGIL
+    dmetin = "\n".join(defter_olc(kayitlar))
+    k.append(("defter: KAYIT=9", "KAYIT=9" in dmetin))
+    k.append(("defter: linksiz-platform=1", "DEFTER_LINKSIZ_PLATFORM=1" in dmetin))
+    k.append(("defter: dizge=1", "DEFTER_DIZGE=1" in dmetin))
+    k.append(("defter: kokensiz=3 (parametrik bu eksende GORUNMEZ — birim farki)",
+              "DEFTER_KOKEN_YOK=3" in dmetin))
+    k.append(("defter ekseni birim uyarisini TASIYOR", "KARSILASTIRILMAZ" in dmetin))
+    for s in sizabilir:
+        k.append(("defter ekseni sizdirmiyor: %r" % s, s not in dmetin))
 
     # --- maskeleme birim davranisi
     k.append(("maske: tedarikci adi maskelenir", maskele("GizliTedarikciAdi") == MASKE))
@@ -443,7 +481,7 @@ def main(argv=None):
         return 0
 
     satirlar, eksik = eksik_olc(urunler, kayitlar)
-    for satir in satirlar:
+    for satir in satirlar + defter_olc(kayitlar):
         print(satir)
     return 0 if eksik == 0 else 1
 
