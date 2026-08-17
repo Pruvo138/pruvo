@@ -3568,10 +3568,10 @@
       // eşit olmaz → 0 sonuç. Bu FAIL-CLOSED yön BİLEREK: değeri düşürseydik sessizce
       // TÜM liste dönerdi ve sunucu (0 döner) ile istemci AYRIŞIRDI.
       var altOk = activeAlt === "Tümü" || (p.altkategori || "") === activeAlt;
-      // ÜYELİK yüklemi TEK GÖVDE (markaUyeMi): marka ÇİPİ ile marka ARAMASI aynı kuraldan
-      // beslenir; ayrı yazılsalardı çipin gösterdiği ürün ile aramanın bulduğu ürün
-      // sessizce ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]).
-      var brandOk = !hedefMarka || markaUyeMi(p, hedefMarka);
+      // ÜYELİK yüklemi TEK GÖVDE (markaSorgusuEsler): marka ÇİPİ ile marka ARAMASI aynı kuraldan
+      // beslenir (üyelik ∪ başlıkta tam kelime); ayrı yazılsalardı çipin gösterdiği ürün ile
+      // aramanın bulduğu ürün sessizce ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]).
+      var brandOk = !hedefMarka || markaSorgusuEsler(p, hedefMarka);
       // MODEL: etiket `marka` dizisinde mi. `marka` alanı `uyum`dan türetilir ve model
       // jetonunu da taşır (ör. ["BMW","E46"]) — bu yüzden model ekseni AYNI dizide yaşar.
       // MARKA katlaması BURAYA uygulanmaz (uygulasaydık "E46" → "BMW"ye düşer, model
@@ -4040,7 +4040,7 @@
         if(Object.prototype.toString.call(mk) !== "[object Array]"){
           return "olculemedi";           // kart marka taşımıyor → doğrulanamaz
         }
-        if(hedefMarka && !mk.some(function(b){ return markaKatla(b) === hedefMarka; })){
+        if(hedefMarka && !markaSorgusuEsler(k, hedefMarka)){
           return "marka";
         }
         // filtered() ile AYNI yüklem (modelEsler): iki uçta iki kural olsaydı uç doğru
@@ -4236,7 +4236,7 @@
     if(activeBrand !== "Tümü"){
       var hedefMarka = markaKatla(activeBrand);
       liste = liste.filter(function(p){
-        return (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
+        return markaSorgusuEsler(p, hedefMarka);
       });
     }
     if(activeModel !== "Tümü"){
@@ -4386,7 +4386,7 @@
       // filtered() ile aynı katlama kuralı (varyantlı ürün yedek modda da eşleşsin)
       var hedefMarka = markaKatla(activeBrand);
       liste = liste.filter(function(p){
-        return (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
+        return markaSorgusuEsler(p, hedefMarka);
       });
     }
     // Model filtresi YEDEK modda da UYGULANIR (grup filtresiyle aynı gerekçe): yok saymak
