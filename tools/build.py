@@ -4281,9 +4281,22 @@ ILK_YUK_BUTCE = 500 * 1024
 # ozet.json kartları sabit sıralı diziler olarak taşır; uzun alan adlarını her kartta
 # tekrarlamaz. Alan adları artefaktın kendisinde TEK sözlük olarak bulunur ve istemci
 # dizileri bu sözlüğe göre açar. Değerlerin tamamı korunur; yalnız temsil sıkıştırılır.
+# 🔴 İKİZ TANIM — `kart_ozeti` BURAYA BAKMADAN alan yazabilir; yazarsa o alan tele HİÇ
+# çıkmaz (`ozet_karti_sikistir` yalnız bu sözlüğü gezer) ve konum çapası da KÖRDÜR (o da
+# yalnız bu sözlüğü gezer). Ölçüldü (17 Ağu 2026, K164): `boy_secenekleri` 11 Ağu'da
+# `kart_ozeti`ye eklendi, buraya eklenMEDİ; alanı taşıyan İLK ürün katalogda doğduğu gün
+# (`vw-t5-dugme-yuvasi-kor-kapagi`, `fb53b496`) build "ozet.json temsili KAYIPLI" ile
+# exit 1 verdi ve `deploy`+`yayin` job'ları skipped oldu — SİTENİN TÜM YAYINI DURDU.
+# Latent süre: 6 gün. İki nöbetçi bu sınıfı bugünden itibaren kapatıyor:
+#   (a) `_temsil_konum_capasi` kartta olup bu sözlükte OLMAYAN anahtarı ALAN ADIYLA reddeder
+#       (çalışma anı, yalnız alanı TAŞIYAN ürün katalogda varsa);
+#   (b) `tools/ozet-alan-ikiz-test.py` `kart_ozeti` kaynağından alan evrenini çıkarıp bu
+#       sözlükle karşılaştırır (statik — ürün DOĞMADAN, eklendiği gün kırmızı yanar).
+# ⚠️ YENİ ALAN DAİMA SONA eklenir: 0-11 konumları artefakt sözleşmesidir, bayat istemci
+# (`index.html ozetAc`) onları indeksle okur.
 OZET_KART_ALANLARI = ("id", "baslik", "kategori", "marka", "fiyat", "gorsel",
                       "parametrik", "aciklama", "eski_fiyat", "tur",
-                      "tavsiyeFilament", "konfigur")
+                      "tavsiyeFilament", "konfigur", "boy_secenekleri")
 # 🔴 ARTEFAKT SÜRÜMÜ — istemci sözleşmesi. v1 = sözlük kartları · v2 = sabit sıralı dizi ·
 # v3 = dizi + görsel ortak öneki başlıkta (`gorselOnek`) + `yeni` kesiti havuz kartlarını
 # ID ile REFERANSLAR (`yeniRef`). index.html ozetAc ÜÇÜNÜ DE açar (bayat tarayıcı
@@ -4529,6 +4542,17 @@ def _temsil_konum_capasi(tel_dizileri, kartlar, alanlar, onek, etiket):
         if not isinstance(dizi, list):
             raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): tel kaydi dizi degil: %r"
                              % (etiket, sira, dizi))
+        # 🔴 İKİZ TANIM KOLU (K164): kartta olup ALAN SÖZLÜĞÜNDE olmayan anahtar, tele HİÇ
+        # çıkmaz. Aşağıdaki döngü `alanlar` üzerinde yürüdüğü için bu kayba KÖRDÜ; ayrışmayı
+        # yalnız geri-açma karşılaştırması görüyordu ve "temsil KAYIPLI" derken HANGİ ALAN
+        # olduğunu söylemiyordu (ölçüldü: teşhis için ayrı bir koşum gerekti).
+        fazla = [a for a in kart if a not in alanlar]
+        if fazla:
+            raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d, id=%r): kartta `%s` alani VAR "
+                             "ama OZET_KART_ALANLARI'nda YOK — deger tele HIC cikmaz (IKIZ "
+                             "TANIM). Alani sozlugun SONUNA ekle (0-11 konumlari artefakt "
+                             "sozlesmesidir)."
+                             % (etiket, sira, kart.get("id"), ", ".join(sorted(fazla))))
         if len(dizi) > len(alanlar):
             raise SystemExit("ozet.json TEMSIL CAPASI (%s #%d): tel %d konum tasiyor, alan "
                              "sozlugu %d — fazla konumun karsiligi YOK."

@@ -952,6 +952,16 @@ jobs:
       - name: Edge kart alan kapsami (sepet fiyatini etkileyen alan kartta var mi)
         run: python3 tools/edge-kart-kapisi.py
 
+      # OZET KART ALANI IKIZ TANIM KAPISI (K164, 17 Agu). `kart_ozeti` bir alan yazip
+      # OZET_KART_ALANLARI'na eklemezse alan ozet.json teline HIC cikmaz; konum capasi
+      # (yalniz sozlugu gezdigi icin) kordur ve ariza alani TASIYAN ilk urun katalogda
+      # dogana kadar uyur. Olculdu: `boy_secenekleri` 6 gun uyudu, dogdugu gun build exit 1
+      # verip deploy+yayin'i skipped yapti (run 32064889335). Bu kapi STATIK olcer -> alan
+      # eklendigi GUN kirmizi yanar, urun beklemeden. Kendi mutasyon bataryasini da kosar
+      # (3 mutant kirmizi + 2 kontrol yesil); offline, dosya YAZMAZ, ~1 s.
+      - name: Ozet kart alani ikiz tanim kapisi (kart_ozeti <-> OZET_KART_ALANLARI)
+        run: python3 tools/ozet-alan-ikiz-test.py
+
       # FAZ3 EDGE_KATALOG BAYRAK KABULU (tools/faz3-bayrak.js) — kabul testleri 2, 6, 7.
       # NE KANITLAR: (2) bayrak KAPALI iken sayfa bugunku gibi davranir — urunler.json cekilir,
       # /katalog, /ara ve ozet.json HIC istenmez (geri donus yolu saglam) + kartta "Sepete Ekle"
