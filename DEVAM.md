@@ -26,9 +26,9 @@
   kaynaktan TURETILIR; dorduncu red sinifi sessizce "GERCEK HATA"ya DUSEMEZ. `ERTELENDI_RC`
   tek kaynak, yml'deki kol ondan turetilir. Olcum: `28/28` · `MUTANT=5/5 IDDIA=5 ISTASYON=0
   UYGULANAMADI=0` · nabiz `202/202` · N1/N2/N3 OLDU · sizinti 0 · `d1-sync.py` DOKUNULMADI.
-  🔧 **ACIK ALT KALEM:** `--mutasyon` bataryasi CI'da KOSMUYOR (`nobet.yml`'de yalniz
-  `--kendini-test` var). `nobet.yml` su an baska oturumun commit'siz duzenlemesi altinda →
-  DOKUNULMADI. Sahibi ekleyecek: `python3 tools/uzlastirici-onarim.py --mutasyon`.
+  ✅ **Alt kalem KAPANDI (`2f87a8bc`):** `--mutasyon` adimi `nobet.yml` L144-145'te
+  (`--kendini-test` ardinda, ayni blok, `continue-on-error` YOK); yerel `28 iddia 0 KIRMIZI` +
+  `MUTANT=5/5 UYGULANAMADI=0`. 🔶 CI kaniti BEKLIYOR (K144 `cancelled` yigini) — YESIL SAYILMADI.
 - 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
