@@ -28,18 +28,24 @@
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
 - ✅ **K147 KAPANDI** (sayac 63 → 65, DUSMEDI) → karar ②'ye gecti, devami K148. ARSIVDE.
-- 🔴 **K154 (17 Agu — K153'UN YAN HASARI, DEPLOY BLOKE):** `Build & deploy` kirmizi → `deploy`+`yayin` **skipped** (vitrin yayini durdu;
-  Tam metin ARSIVDE.
-  kabul: `python3 tools/d1-seq-kilit-test.py --mutasyon` rc=0 **VE** `MUTANT_KALDI=0` **VE** `CAPA_UYARISI=0`.
-- 🔴 **K155 (17 Agu — serit-a2 KIRMIZI, veri kusuru):** `chevy-klasik-jant` kaydinda `"marka": ["Chevrolet", ""]` — dizide BOS JETON.
-  Tam metin ARSIVDE.
-  kabul: uyum kapisi rc=0 **VE** `kalan 0`.
+- ✅ **K154 KAPANDI** (`2c092d5c`): K153'un ekledigi ikinci `if adim < 1:` kolu mutasyon
+  capasini IKIZLEMISTI (M6 capa=2, M3 olu kola nisan) → `build` kirmizi, `deploy` skipped.
+  Capa 2-line hedefle tekillestirildi, M3 canli kola tasindi + V6 vakasi; mutant SILINMEDI.
+  Olcum `KILIT_RC=0 22/22 · MUT 6/6 · CAPA_UYARISI=0`. Ders: [[yeni-kol-mutasyon-capasini-ikizler]].
+- ✅ **K155 KAPANDI** (`8b81c769`): `chevy-klasik-jant` `"marka":["Chevrolet",""]` bos jeton
+  → uyum kapisi `IKIZ TANIM` reddi. Sinif supuruldu (evrende **1** kayit), `duzelt.py` ile
+  yazildi. Kapi `gecen 39 · kalan 0` rc=0.
 - 🟠 **K148 (GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama kaldi):** uc dosya `~/.claude/cron/` altinda, **repo ayak izi SIFIR**;
   Tam metin ARSIVDE.
   kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=13/13`.
-- 🔧 **K149 (DOSYA KOLU KAPANDI, URETEN-KOLU ACIK):** `~/.claude/cron/` **2495 → 576 girdi** (SILINEN=1919;
-  Tam metin ARSIVDE.
-  kabul: `ls -1a /Users/okan/.claude/cron | grep -c "^\.isci-cikti\."` iki tur ust uste DUSMELI.
+- 🔧 **K149 (URETEN KOLU KURULDU; `profil-*` ekseni ACIK ve BEYAN CELISKILI):** 17 Agu
+  `isci-temizlik.py` + 5/5 test yazildi, `isci.sh:757`'ye baglandi (`TEMIZLIK_CAGRISI=VAR`).
+  🔴 Bir tur `PROFIL_SILINEN=239` beyan etti; BAGIMSIZ sayim **253 dizin** buldu ve
+  **hepsi 2 saatten TAZE** (en eski 114,9 dk) → yas kurali hicbirini silemiyor. Iki
+  ihtimal ayirt EDILEMEDI: silme hic olmadi VEYA temizlik gecisi dizin mtime'larini
+  tazeleyip kurali kendi kendine etkisiz kildi. Sonraki tur bunu OLCSUN (mtime'i
+  degistirmeyen bir yas olcutu: dizin ADINDAKI tur damgasi ya da ic dosya mtime'i).
+  kabul: iki ardisik turda `profil-*` sayisi DUSMELI **VE** canli tur profili silinmemis olmali.
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
@@ -84,9 +90,14 @@
 
 ## KOSUYOR (baska mimarlar)
 
-MaCiT — Peugeot×Cults3D dilim-2 (`658d0333`, `peugeot-push-tmp` worktree'de, K153'e BLOKE).
-K152 iki oturum: `musing-shaw` SALT OKUMA (koken bulucu) · `xenodochial-bardeen` TEK YAZICI
-(yalniz gizli kayit duzlemi, flock + public sha256 nobeti). Sahiplik KraL'ca kesildi.
+K152: `xenodochial-bardeen` TEK YAZICI (gizli kayit duzlemi, flock + public sha256 nobeti);
+worktree'sinde main'de OLMAYAN 1 commit var → temizlikte bilerek ATLANDI, bundle ister.
+(`musing-shaw` ve MaCiT'in peugeot/chevy worktree'leri kapandi; K153 blokeri kalkti.)
+
+## CANLI OLCUM (17 Agu, K153 sonrasi — cache-bust'SIZ, kanonik adres)
+`SITE_HTTP=200 · canli urunler.json benzersiz id=29012 · D1=29012 · yeni urun sayfalari 200`
+CI `2c092d5c`: `build`+`serit-a2`+`deploy`+`yayin` **success**; kirmizi yalniz `hijyen-a2`
+(K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ.
 
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
