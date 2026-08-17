@@ -138,6 +138,11 @@ jobs:
       # olebilirdi (yaris zaten nadir: olculen %1,47).
       - name: "Uzlastirici onarim surucusu: kendini test (yaris + fail-closed)"
         run: python3 tools/uzlastirici-onarim.py --kendini-test
+      # MUTASYON BATARYASI (K150): kabul testinin OLU olmadigini olcer. 5 mutant + KONTROL;
+      # capa uygulanamazsa `UYGULANAMADI` sayaci ile rc=1 (sessiz survivor YOK). Bu adim
+      # olmadan `--kendini-test` yesili "test gercekten olcuyor" demek DEGILDI.
+      - name: "Uzlastirici onarim surucusu: mutasyon bataryasi (5 mutant + KONTROL)"
+        run: python3 tools/uzlastirici-onarim.py --mutasyon
       # SILME KARANTINASI (11 Agu 2026, kosum 31532464176: 37 MESRU katalog satiri
       # silindi). K1..K7 vakalari + is akisi kablo capalari; K7 o kosumun BIREBIR
       # yeniden oynatimidir ve `silinen: 0` bekler.
