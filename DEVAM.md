@@ -47,18 +47,25 @@
   `status=USER_STATUS_NORMAL`, `created_time=2026-08-14` (anahtar mtime + 15 Eyl yenilemesiyle
   tutarli) → anahtar Okan'in KENDI hesabinda; "baska plan" teshisi dustu. 403 TAM metni careyi
   soyluyor (TAM 403 metni ARSIVDE — satici URL'i guvenlik geregi tasindi).
-  ✅ **Panel celiskisi COZULDU** (Okan'in sorusu + saticinin oz dokumani): Kimi Code'un AYRI
-  kredisi YOK, uyelik havuzunu paylasir (ucuncu parti API dahil) ve **krediler 7 GUNDE BIR,
-  abonelik tarihinden yenilenir, artan devretmez**. Panelin **%19,99'u AYLIK** sayac; tukenen
-  **haftalik dilim**. "5s Kod %0 / 7g Kod %0" ise HIZ penceresi (kredi sayaci degil) — saatlerdir
-  her istek reddedildigi icin bos okuyorlar. 403'un "next cycle"i = **~22 Agu**, 15 Eyl DEGIL →
-  **odeme GEREKMIYOR**. **Yanlislanabilir kanit kuruldu:** `~/.claude/cron/kimi-nabiz.py`
+  🔴 **"Haftalik dilim doldu, 22 Agu'da gelir" teshisi CURUDU** (Okan'in `Kotam` ekrani, 17 Agu):
+  `Toplam %19,99` barinin efsanesi **Kimi + Kod**; yalnizca Kimi dilimi dolu, **Kod dilimi YOK**.
+  `5 saatlik Kod %0` · `7 gunluk Kod %0` (sifirlanma 08-22 21:42) · Ek Kullanim kapali, bakiye $0.
+  Haftalik dilim tukenmis olsaydi `7 gunluk Kod` **%100** okurdu; %0 okuyor → **Kod'un UC sayaci da
+  SIFIR**, yani abonelik tarafinda tuketimimiz HIC gorunmuyor, ama ayni ucun API'si "bu dongude
+  limite ulastin" diyor. **Panel ile kapi AYNI SAYACI GOSTERMIYOR.** Elenenler (tekrar denenmesin):
+  anahtar sinifi/uc secimi (kullandigimiz uc ZATEN aboneligin ucu; kimlik ucu uyeligi dogruluyor —
+  adresler hafizada) · baslik sinifi (iki auth sinifi da 403) · model/alt-yol/beta/stream · hiz
+  penceresi · aylik tavan. **Kalan hukum: saglayici tarafinda hesap/kota durumu ya da hatasi** →
+  dogru hamle PARA DEGIL, ekranla birlikte Kimi destegine sormak (Okan kapisi).
+  **Yanlislanabilir kanit AYAKTA:** `~/.claude/cron/kimi-nabiz.py`
   gunde 2x (09:10/21:10) GERCEK is atar (`max_tokens=1024`) ve UC sarta bakar (200 + icerik
   bos degil + `stop_reason` null degil); `kimi-nabiz-test.py` **5/5 vaka, 2/2 mutasyon YESIL**,
   crontab **36→38** teyitli. Ilk olcum `2026-08-17T15:51:09Z SAGLIK=KIRMIZI http=403
   tip=permission_error icerik=bos stop=null`.
-  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → haftalik dongu DOGRULANDI; hala KIRMIZI
-  ise aylik tavan hipotezi kazanir ve **karar Okan'a doner** (extra usage / plan yukseltme).
+  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → hat kendiliginden dondu, kalem kapanir;
+  hala KIRMIZI ise **saglayici arizasi** teyitlenir ve karar Okan'a doner (destek talebi; para
+  SON care). ⚖️ Okan emri (17 Agu): kimi kalemi kapali, **yeni olcum turu ACILMAZ**, kimi hattina
+  is YOLLANMAZ; motor plani 20 Agu'ya kadar codex (alt model), 20→22 Agu m3, 22 Agu'da yeniden karar.
 - 🔵 **K158 (17 Agu, TASARIM ACIGI — KAYIT):** isci tarayicisi YALNIZ kimi motorunda var
   (m3'te yok) → kimi dustugunde paneli okuyacak yol da kapaniyor; tek tarayicili motorun
   dususu TESHIS yolunu da kesiyor. Yon: tarayiciyi motordan bagimsiz kola tasi. `kabul:` BOS.
