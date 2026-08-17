@@ -18,18 +18,35 @@
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
-- 🔴 **K150 (UZLASTIRICI YANLIS SINIFLANDIRIYOR; ② ICIN BLOKER):** kosum `32026332006` KIRMIZI: senkron **tasarim geregi ATLANDI** (`SEBEP=YAZICI_UCUSTA`), surucu bunu **"GERCEK HATA, YENIDEN DENENMEZ"** ilan etti.
-  Tam metin ARSIVDE.
-  kabul: `python3 /Users/okan/dev/pruvo/tools/uzlastirici-onarim.py --kendini-test`
+- 🟢 **K150 KAPANDI ve main'e ALINDI (`ed47d317`) — ② blokeri kalkti:** ucuncu red sinifi
+  (`SEBEP=YAZICI_UCUSTA`) ADIYLA taniniyor, RETRY ediliyor, tavan tukenirse **rc=5 ERTELENDI**
+  (YESIL DEGIL, "ONARILAMADI" da DEGIL). CI kablosu: `ertelendi=evet` ciktisi -> teyit ve
+  ONARILAMADI adimlari KOSMAZ, damga YAZILMAZ (erteleme yesile boyanmaz, A0 ekseni surerse
+  kirmizi yakar). **KAPSAM KAPISI:** d1-sync rc evreni `ast` ile + `SEBEP=` jeton evreni
+  kaynaktan TURETILIR; dorduncu red sinifi sessizce "GERCEK HATA"ya DUSEMEZ. `ERTELENDI_RC`
+  tek kaynak, yml'deki kol ondan turetilir. Olcum: `28/28` · `MUTANT=5/5 IDDIA=5 ISTASYON=0
+  UYGULANAMADI=0` · nabiz `202/202` · N1/N2/N3 OLDU · sizinti 0 · `d1-sync.py` DOKUNULMADI.
+  🔧 **ACIK ALT KALEM:** `--mutasyon` bataryasi CI'da KOSMUYOR (`nobet.yml`'de yalniz
+  `--kendini-test` var). `nobet.yml` su an baska oturumun commit'siz duzenlemesi altinda →
+  DOKUNULMADI. Sahibi ekleyecek: `python3 tools/uzlastirici-onarim.py --mutasyon`.
 - 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- 🟠 **K148 (GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama kaldi):** uc dosya `~/.claude/cron/` altinda, **repo ayak izi SIFIR**;
-  Tam metin ARSIVDE.
-  kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=13/13`.
+- 🟢 **K148 (GOZCU FAZ-2 KAPANDI, BAGIMSIZ TEYITLI; kalan: canliya baglama = OKAN KAPISI):**
+  F1 (`O_EXCL`) · F2 (sahiplik) · F3 (ikiz esik) + **olculmus KILITLENME onarimi**: 0 baytlik
+  artik kilit gozcuyu SONSUZA KADAR blokluyordu (prob: bos sinifinda iki cagri da False).
+  Kor silme YOK — taze oku, `DOLU` ise CALMA, yalniz artik kilidi TEK KEZ devral; yaris dikisi
+  ile F1 deterministik olculuyor. `GECEN=63->93 · MUTANT=15/15 · YAMA_TUTMADI=0`; ayri turda
+  cururtme probu testin olu olmadigini kanitladi (93->91, 93->89). crontab DOKUNULMADI.
+  kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=15/15`.
+- 🔴 **K160 (17 Agu, K148'de OLCULDU — SINIF kalemi, BES EVI DE vurur):** `nobet-kapi.py::kilit_al`
+  AYNI kusuru tasiyor: `kilit_karari("")` -> `"AL"` -> dogrudan `O_EXCL` -> `FileExistsError` ->
+  `False`. `os.open` ile `write` arasinda olen bir tur 0 BAYTLIK kilit birakirsa **nobet KALICI
+  DURUR**. Gozcude kapandi, `nobet-kapi.py`'ye DOKUNULMADI (yasak). Yon: tekil yama DEGIL —
+  `kilit_al`/`kilit_birak` TEK KAYNAK govdesi (gozcu + nobet ayni kodu cagirsin). `kabul:` BOS.
 - 🔧 **K149 (URETEN KOLU KURULDU; `profil-*` ekseni ACIK ve BEYAN CELISKILI):** 17 Agu
   `isci-temizlik.py` + 5/5 test yazildi, `isci.sh:757`'ye baglandi (`TEMIZLIK_CAGRISI=VAR`).
   🔴 Bir tur `PROFIL_SILINEN=239` beyan etti; BAGIMSIZ sayim **253 dizin** buldu ve
@@ -38,34 +55,19 @@
   tazeleyip kurali kendi kendine etkisiz kildi. Sonraki tur bunu OLCSUN (mtime'i
   degistirmeyen bir yas olcutu: dizin ADINDAKI tur damgasi ya da ic dosya mtime'i).
   kabul: iki ardisik turda `profil-*` sayisi DUSMELI **VE** canli tur profili silinmemis olmali.
-- 🔴 **K157 (17 Agu — KIMI HATTI KOK NEDEN BULUNDU, karar OKAN'DA):** iki m3 olcum turu:
-  `max_tokens=1`'in **200'u SAHTE** (`content[0].text=""`, `stop_reason=null`, `type/role` bos)
-  → "1 token calisiyor" kapasite DEGIL olcum artefakti; **gercek uretim SIFIR**. `>=2` daima
-  403 `permission_error`, govde byte-byte ayni. 10x15.007=**150.070 girdi token** mt=1 ile
-  gecti, esigi DEGISTIRMEDI → girdi ekseni ilgisiz. Kota basligi/`request-id` **yok**, kota
-  okuma ucu icin **47 aday 404** → API'den kota OKUNAMIYOR. `/coding/v1/me`=200,
-  `status=USER_STATUS_NORMAL`, `created_time=2026-08-14` (anahtar mtime + 15 Eyl yenilemesiyle
-  tutarli) → anahtar Okan'in KENDI hesabinda; "baska plan" teshisi dustu. 403 TAM metni careyi
-  soyluyor (TAM 403 metni ARSIVDE — satici URL'i guvenlik geregi tasindi).
-  🔴 **"Haftalik dilim doldu, 22 Agu'da gelir" teshisi CURUDU** (Okan'in `Kotam` ekrani, 17 Agu):
-  `Toplam %19,99` barinin efsanesi **Kimi + Kod**; yalnizca Kimi dilimi dolu, **Kod dilimi YOK**.
-  `5 saatlik Kod %0` · `7 gunluk Kod %0` (sifirlanma 08-22 21:42) · Ek Kullanim kapali, bakiye $0.
-  Haftalik dilim tukenmis olsaydi `7 gunluk Kod` **%100** okurdu; %0 okuyor → **Kod'un UC sayaci da
-  SIFIR**, yani abonelik tarafinda tuketimimiz HIC gorunmuyor, ama ayni ucun API'si "bu dongude
-  limite ulastin" diyor. **Panel ile kapi AYNI SAYACI GOSTERMIYOR.** Elenenler (tekrar denenmesin):
-  anahtar sinifi/uc secimi (kullandigimiz uc ZATEN aboneligin ucu; kimlik ucu uyeligi dogruluyor —
-  adresler hafizada) · baslik sinifi (iki auth sinifi da 403) · model/alt-yol/beta/stream · hiz
-  penceresi · aylik tavan. **Kalan hukum: saglayici tarafinda hesap/kota durumu ya da hatasi** →
-  dogru hamle PARA DEGIL, ekranla birlikte Kimi destegine sormak (Okan kapisi).
-  **Yanlislanabilir kanit AYAKTA:** `~/.claude/cron/kimi-nabiz.py`
-  gunde 2x (09:10/21:10) GERCEK is atar (`max_tokens=1024`) ve UC sarta bakar (200 + icerik
-  bos degil + `stop_reason` null degil); `kimi-nabiz-test.py` **5/5 vaka, 2/2 mutasyon YESIL**,
-  crontab **36→38** teyitli. Ilk olcum `2026-08-17T15:51:09Z SAGLIK=KIRMIZI http=403
-  tip=permission_error icerik=bos stop=null`.
-  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → hat kendiliginden dondu, kalem kapanir;
-  hala KIRMIZI ise **saglayici arizasi** teyitlenir ve karar Okan'a doner (destek talebi; para
-  SON care). ⚖️ Okan emri (17 Agu): kimi kalemi kapali, **yeni olcum turu ACILMAZ**, kimi hattina
-  is YOLLANMAZ; motor plani 20 Agu'ya kadar codex (alt model), 20→22 Agu m3, 22 Agu'da yeniden karar.
+- 🔴 **K157 (17 Agu — KIMI HATTI KOK NEDEN BULUNDU, karar OKAN'DA):** `max_tokens=1`'in 200'u
+  SAHTE (icerik bos, `stop_reason=null`) → gercek uretim SIFIR; `>=2` daima 403
+  `permission_error`. Girdi ekseni · anahtar sinifi/uc · baslik · model/stream · hiz penceresi ·
+  aylik tavan ELENDI. Kimlik ucu anahtarin Okan'in KENDI hesabinda oldugunu dogruladi.
+  🔴 "Haftalik dilim doldu" teshisi CURUDU: panelde `5 saatlik Kod %0` · `7 gunluk Kod %0`
+  → **panel ile kapi AYNI SAYACI GOSTERMIYOR**. Kalan hukum: saglayici tarafinda hesap/kota
+  durumu ya da hatasi → hamle PARA DEGIL, ekranla birlikte destege sormak (Okan kapisi).
+  Yanlislanabilir kanit AYAKTA: `~/.claude/cron/kimi-nabiz.py` gunde 2x GERCEK is atar
+  (5/5 vaka, 2/2 mutasyon); ilk olcum `2026-08-17T15:51Z SAGLIK=KIRMIZI 403`. Tam metin
+  ARSIVDE + DEVAM.md git gecmisinde.
+  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → kalem kapanir; hala KIRMIZI ise
+  saglayici arizasi teyitlenir, karar Okan'a doner. ⚖️ Okan emri (17 Agu): kimi kalemi kapali,
+  **yeni olcum turu ACILMAZ**; motor plani 20 Agu'ya kadar codex (alt model), sonra m3.
 - 🔵 **K158 (17 Agu, TASARIM ACIGI — KAYIT):** isci tarayicisi YALNIZ kimi motorunda var
   (m3'te yok) → kimi dustugunde paneli okuyacak yol da kapaniyor; tek tarayicili motorun
   dususu TESHIS yolunu da kesiyor. Yon: tarayiciyi motordan bagimsiz kola tasi. `kabul:` BOS.
