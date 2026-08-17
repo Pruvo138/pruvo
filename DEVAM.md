@@ -15,19 +15,15 @@
   blokta acik-isaretci jetonu KULLANILMAZ" doktrine gecsin, (c) teste "canli durum tasiyan
   tarihli blok" fiksturu + mutant. Hafiza: [[kapinin-recete-ettigi-care-baska-kapida-yasak]].
   kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
-- 🔧 **K135 (yeni, 17 Agu, MaCiT→KraL):** `tools/cgt-ekle.py::fetch()` tek satir UA ile
-  CGTrader'in AWS WAF JS-challenge'ina takiliyor (HTTP 202 + ~2KB placeholder); buyuk
-  partilerde IP bazli rate-limit devreye giriyor. Dilim-2'de 15 KEEP bu yuzden bloke
-  kaldi. Yon: `fetch()`'e retry/backoff + tam Chrome baslik seti
-  (`sec-ch-ua`/`sec-fetch-*`/`Accept-Language`/`Referer`). Ayrica
-  `tools/arsiv/cgt-ara.py:41` `printables-api.py`'yi `arsiv/` altinda ariyor ama dosya
-  ust dizinde — arsivdeki haliyle `FileNotFoundError`.
-  🔴 **17 Agu EK (MaCiT'e):** mukerrer kancasi TUM agaci yargiliyor ve **3 mukerrer cift**
-  buldu (Yamaha MT-07 fren hazne braketi · RE Hunter 350 hava filtresi kapagi · RE Himalayan
-  camurluk yukseltici). Urun benim duzlemim degil; mesru ciftse `.mukerrer-istisna.json`,
-  degilse `duzelt.py --sil`. Kalem kapanana kadar KraL'in defter commit'leri kancanin
-  belgeli atlama anahtariyla geciyor (urunlere DOKUNMADAN; anahtar adi ARSIVDE).
-  `kabul:` alani BOS.
+- 🔧 **K135 (17 Agu, MaCiT→KraL):** `tools/cgt-ekle.py::fetch()` tek satir UA ile CGTrader'in
+  AWS WAF JS-challenge'ina takiliyor (HTTP 202 + ~2KB placeholder); buyuk partilerde IP bazli
+  rate-limit. Dilim-2'de 15 KEEP bloke kaldi. Yon: `fetch()`'e retry/backoff + tam Chrome
+  baslik seti. Ayrica `tools/arsiv/cgt-ara.py:41` `printables-api.py`'yi `arsiv/` altinda
+  ariyor ama dosya ust dizinde — arsivdeki haliyle `FileNotFoundError`.
+  🔴 **17 Agu EK:** mukerrer kancasi TUM agaci yargiliyor ve 3 mukerrer cift buldu (Yamaha
+  MT-07 fren hazne braketi · RE Hunter 350 hava filtresi · RE Himalayan camurluk yukseltici);
+  biri MaCiT'te geri cekildi. Kalem kapanana kadar KraL'in defter commit'leri kancanin
+  belgeli atlama anahtariyla geciyor (urunlere DOKUNMADAN). `kabul:` alani BOS.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` UC oturumdur
   commit'siz duruyor; agac hali K126'nin "tek govde" yuklemini ham dongu olarak GERI ALIYOR
   → commit'lenirse K126 regresyonu. Sahibi belirsiz, DOKUNULMADI. Yon: sahibi cikmazsa
@@ -79,10 +75,14 @@
   sifirlamaz CIMENTOLAR — once mesru gecis borcu (veri: `marka[]` eksik urunler → MaCiT)
   ile uretec kusuru ayrilacak. YAYINI BLOKLAMAZ (hijyen seridi).
 - KAPANDI (arsivde): K127 rotasyon MADDE GRANULU kol (merge `e5f5c32b`) — 17 Agu rotasyonu.
-- 🟡 **K138 (yeni, 17 Agu — K121'den ARTAN iki soru, BaBa'da):** (1) 3 GitHub-disi mailin
-  yolu HALA bilinmiyor; kanonik yolda `KOMSU_KAYIP` alarmi oldugu icin tekrarlarsa rc<>0 ile
-  GORUNUR olacak — yanarsa ucuncu silici aranacak. (2) 30 dk'lik supurme "once CI yesile
-  donsun" on kosulunu ATLIYOR (v2 de atliyordu). Tempo Okan karari. `kabul:` alani BOS.
+- ✅ **K138 KAPANDI (17 Agu, Okan karari — SINIF ORTADAN KALKTI):** mail hicbir zaman ARIZA
+  SINYALI degildi (nobet metni birebir "BAGIMSIZ TEYIT (maile guvenme)", olcum `gh run list`).
+  Okan GitHub'da "Run failed" bildirimini KAPATTI → mail gelmiyor → supurulecek sey yok.
+  **Crontab `21,51` satiri KALDIRILDI** (canli `crontab -l` = **5**, digerleri yerinde)
+  **VE nobet gorev metnindeki supurme adimlari EMEKLI isaretlendi** (§0.4 + §1 + §4) —
+  yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi. Sonuc: otomatik
+  mail SILICISI KALMADI; bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yoldur.
+  Geri acma OKAN KAPISI: emekli blogu + crontab satiri AYNI turda.
 - 🔧 **K137 (yeni, 17 Agu):** bu makinede **`crontab` YAZIMI asiliyor** — okuma (`crontab -l`)
   calisiyor, `crontab <dosya>` ve `cat | crontab -` surec canli kalarak HIC BITMIYOR
   (sandbox kapali da olsa; `pgrep` ile teyitli, SIGKILL gerekti). Ilk kurulum 03:00'da
