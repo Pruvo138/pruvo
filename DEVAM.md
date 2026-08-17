@@ -21,7 +21,7 @@
   rate-limit. Dilim-2'de 15 KEEP bloke kaldi. Yon: `fetch()`'e retry/backoff + tam Chrome
   baslik seti. Ayrica `tools/arsiv/cgt-ara.py:41` `printables-api.py`'yi `arsiv/` altinda
   ariyor ama dosya ust dizinde — arsivdeki haliyle `FileNotFoundError`.
-  Mukerrer kanca sinifi K143'e devredildi. `kabul:` alani BOS.
+  Mukerrer kanca sinifi K143'te KAPANDI. `kabul:` alani BOS.
   🔴 **17 Agu EK-2:** arac HALA Codex'e bagimli; MaCiT Ford dilim-3 + Volvo dilim-2'yi her
   seferinde YENIDEN yazilan gecici bir final betigiyle asti (ikisi de silindi). Kalici
   `--yerel` yolu KraL'da; bir sonraki dilim oncesi baglanacak.
@@ -46,17 +46,14 @@
   [[ucustaki-kosum-yesil-degildir]] — yesil DENMEDI. kabul: `gh -R Pruvo138/pruvo run list`
   ile `c5225016`'yi ICEREN kosum `conclusion=success` **VE** canonical URL'den cache-bust'SIZ
   canli teyit (marka cipi genisledi mi).
-- 🔴 **K143 (17 Agu — UCUNCU TEKRAR, tekil yama YASAK → sinif kalemi):** mukerrer kancasi
-  ayni gerekce ile **bu oturumda 3 kez** commit'imi engelledi (RE Himalayan camurluk)
-  ve MaCiT de ayni gerekceyle Ford dilim-3 + Volvo dilim-2'de belgeli atlama yolunu
-  kullandi. **Yani kapi fiilen DEVRE DISI — herkes atliyor.** Iki katmanli kok kusur:
-  (a) bu cift **MIMARCA DOGRULANMIS MESRU** (farkli tasarimci — kutuda yazili) ama
-  `.mukerrer-istisna.json`'a HIC islenmemis, yani dogrulama hicbir yere COKMEMIS;
-  (b) kanca **stage disi TUM agaci** yargiliyor — `DEVAM.md` commit'inin urunle ilgisi yok
-  ([[kanca-stage-disi-agaci-tarar]]). Yon: dogrulanmis cift istisnaya YAZILIR + kanca
-  kapsami **stage'lenmis** degisiklige daraltilir. KAT: Claude/Opus (yargi + kapi kodu).
-  kabul: atlama yolu KULLANILMADAN `git commit -- DEVAM.md` rc=0 **VE** gercek bir
-  mukerrer ciftte kanca HALA rc=1 (mutant: istisnayi genisletip gercek mukerreri kacirma).
+- ✅ **K143 KAPANDI** (kanca yeniden KORUYOR; belgeli atlama yoluna gerek kalmadi): (a) BASLIK
+  ekseninin istisnasi YOKTU — dogrulanmis mesru cift hicbir yere cokemiyordu. Istisna artik
+  `baslik`+`idler` ile yazilir ve **ID KUMESINE** baglidir (ucuncu kayit girerse eslesme
+  BOZULUR, kapi yeniden kirmizi yanar); Himalayan cifti islendi (**48 -> 49 kayit**).
+  (b) Kapsam **stage'lenmis** degisiklige daraldi — urun dosyasina dokunmayan commit TARANMAZ
+  (neden BASILIR), git OKUNAMAZSA tarama yine kosar ([[kanca-stage-disi-agaci-tarar]]).
+  Olculdu: **14/14 iddia + 6/6 mutant OLDU** (A9/A10 kapsam ayirt edicisi), `--test` GECTI,
+  CI_KAPSAM_RC=0. kabul: `python3 /Users/okan/dev/pruvo/tools/mukerrer-kapsam-test.py`
 - 🔧 **K140 (17 Agu — K133'un KALAN kuyrugu, YAYINI BLOKLAMAZ):** `marka-invaryant-kapisi.py`
   hala 5 kontrol kirmizi (`FILTRE_KAYIP=23/197` · `ARAMA_KAYIP=4/105`). Olculdu: kalan kayip
   jetonlarin **7/8'i MARKA DEGIL MODEL jetonu** (`1290` `690` `Ciao` `DL650` `MT-07` `MT-09`
