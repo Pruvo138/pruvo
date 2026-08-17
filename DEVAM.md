@@ -4,15 +4,12 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔧 **K134 (17 Agu — defter kotasi SINIF kalemi; BaBa 3. kez kirmizi dedi, SPEC HAZIR):**
-  care (`defter-rotasyon.py`) mimar kod kilidinde YASAK; isciye verilince `TASINAN=0`.
-  🔴 Bu oturumda kota **ALTI kez** elle indirildi (151→125·137→130·133→130·131→130·
-  140→130·131→130) — ceza yazma aninda degil **COMMIT aninda** odeniyor. Kok: K39 kancasi
-  **INDEX** olcuyor, BaBa **CALISMA AGACI** olcuyor; hukum farkli birimlerde
-  ([[hukum-yanlis-birimde]]) → kanca "yesil" derken diskte 140 satir olabiliyor.
-  Yon: (a) `CARE:` metni **1:1 tasimayi** gostersin (rolun kosabilecegi yol),
-  (b) calisma-agaci kolu UYARI olarak eklensin (BLOKLAYICI olursa kotayi dusuren
-  commit'in kendisi bloklanir). Spec: `SPEC-defter-kota-1e1.md` (5 vaka + 4 mutant).
+- 🔧 **K134 (defter kotasi SINIF kalemi; BaBa 3. kez kirmizi dedi, SPEC HAZIR):** care
+  (`defter-rotasyon.py`) mimar kod kilidinde YASAK. 🔴 Kota bu oturumda **YEDI kez** elle
+  indirildi — ceza yazma aninda degil **COMMIT aninda** odeniyor. Kok: kanca **INDEX**,
+  BaBa **CALISMA AGACI** olcuyor ([[hukum-yanlis-birimde]]) → kanca "yesil" derken diskte
+  140 satir olabiliyor. Yon: `CARE:` metni 1:1 tasimayi gostersin + calisma-agaci kolu
+  UYARI olsun. Spec: `SPEC-defter-kota-1e1.md` (5 vaka + 4 mutant).
   kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina
   takiliyor (HTTP 202 + placeholder); yon: retry/backoff + tam Chrome baslik seti. Ayrica
@@ -26,48 +23,48 @@
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
-- 🔴 **K150 (17 Agu — UZLASTIRICI YANLIS SINIFLANDIRIYOR; ② ICIN BLOKER):** kosum
-  `32026332006` KIRMIZI: baska makinede D1 yazicisi vardi, senkron **tasarim geregi
-  ATLANDI** (`SEBEP=YAZICI_UCUSTA`); surucu bunu **"GERCEK HATA, YENIDEN DENENMEZ"** ilan
-  etti. Kok: ayni `rc=4` `deploy.yml`'de **0**, uzlastiricida **1** — `onar()` `--adim`SIZ
-  cagiriyor, yalniz IKI imza taniyor, tanimadigi her red `else`'ten GERCEK HATA'ya dusuyor.
-  🔴 ② blokeri: gozcu her `failure`'a LLM turu acar → MaCiT her D1'e yazdiginda yanlis
-  kirmizi. Spec: `SPEC-k150-uzlastirici-rc4.md` (rc=5 ERTELENDI + RETRY + kapsam kapisi).
+- 🔴 **K150 (UZLASTIRICI YANLIS SINIFLANDIRIYOR; ② ICIN BLOKER):** kosum `32026332006`
+  KIRMIZI: senkron **tasarim geregi ATLANDI** (`SEBEP=YAZICI_UCUSTA`), surucu bunu
+  **"GERCEK HATA, YENIDEN DENENMEZ"** ilan etti. Ayni `rc=4` `deploy.yml`'de **0**,
+  uzlastiricida **1**; surucu yalniz IKI imza taniyor, tanimadigini GERCEK HATA'ya dusuruyor.
+  Spec: `SPEC-k150-uzlastirici-rc4.md` (rc=5 ERTELENDI + RETRY + kapsam kapisi).
   kabul: `python3 /Users/okan/dev/pruvo/tools/uzlastirici-onarim.py --kendini-test`
 - 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
-- 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum: **kapinin MODEL
-  hatasi degil, EVREN KAYNAGI hatasi**. Olculdu: (1) 8 jetonu tasiyan 185 urunun **184'unde
-  jeton gercek markanin YANINDA** (`Yamaha+MT-07`, `KTM+1290`), tek istisna `["Rover"]`;
-  (2) `index.html:3148` cip evreni KURATORLU — model/motor kodu **CIP OLMAZ**, yani o
-  baglanti sitede YOK; (3) `TANINMIS_MARKALAR`'da 7 model jetonu **YOK**, `Rover` **VAR**.
-  Yani kapi olmayan bir baglanti icin sayfa istiyor → evren, ciplerin kullandigi AYNI
-  kuratorlu kaynaktan turemeli (K133 sinifinin aynisi). `Rover` ise GERCEK kayip (2 urun).
-  Spec: `kalibrasyon/SPEC-k140-marka-evreni.md`. 🔴 Hedef rc=0 DEGIL, **dogru kirmizi**:
-  daraltmadan sonra `Rover` KALMALI, dusrse kapi korlesmistir (mutant M2).
-  kabul: `python3 tools/marka-invaryant-kapisi.py` — `FILTRE_KAYIP`'ta 7 model jetonu
-  DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
+- 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL
+  hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin
+  YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede
+  OLMAYAN bir baglanti icin sayfa istiyor. `Rover` ise GERCEK kayip (2 urun).
+  Spec: `SPEC-k140-marka-evreni.md`. 🔴 Hedef rc=0 DEGIL **dogru kirmizi**: `Rover` KALMALI.
+  kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover`
+  DURUYOR **VE** mutasyon 4/4.
+- 🔴🔴 **K153 (17 Agu — YAYIN ZINCIRI BLOKE; en pahali kalem):** `urunler.json` **29006**,
+  D1 **28980** → **26 urun Ege'de GORUNMUYOR** (olculebilir satis kaybi, K85 sinifi).
+  Bes push denemesi + MaCiT'in push'u ayni duvarda: `SEQ TAM SAYI ARALIGI TUKENDI
+  (alt=29005999999 ust=29006000000)`. 🔴 **Aracin recete ettigi care NO-OP:** teshis turu
+  `SEQ_UPDATE=0 GERI_ALMA=YOK FAZLA_D1=0 EKSIK_D1=26` — 28980 satirin hepsi ZATEN hedef
+  seq'inde, normalize'in yazacak tek satiri yok (KraL'in "geri alinmis olabilir" hipotezi
+  CURUDU). **Kok:** mid-array INSERT ikili bolme yapiyor ve `taban=atanan` ile boslugu
+  USTEL tuketiyor; `SEQ_ADIM=1e6` bir boslukta ~20 ardisik ekleme kaldirir, parti 26.
+  Care ayni dosyada KANITLI: `kuyruk_blok` kolunun blok-oranli adimi mid-array koluna
+  GENELLENIR. Spec: `SPEC-k153-seq-mid-array-blok.md` (5 vaka + 4 mutant).
+  kabul: `python3 tools/d1-sync.py --durum` → 29006=29006 **VE** `git push` hatasiz.
 - ✅ **K147 KAPANDI** (sayac 63 → 65, DUSMEDI) → karar ②'ye gecti, devami K148. ARSIVDE.
-- 🟠 **K148 (17 Agu — GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama
-  kaldi):** Okan izniyle Claude iscisi uc dosya uretti (`gozcu.py` · `gozcu-test.py` ·
-  `gozcu-mutasyon.py`, hepsi `~/.claude/cron/`, **repo ayak izi SIFIR**). Tasarim: tetik
-  gozcude, icra AYNEN `nobet-kapi.py`'de. **BAGIMSIZ olcum** (ayri isci, ayri surec):
-  `GECEN=63/63` · `MUTANT=10/10 KONTROL=YESIL` · kuru tur `TETIK=DEFTER_DAGITIM LLM_TURU=0`
-  · `KALP=YOK rc=1` (dogru) · `YAN_ETKI=HAYIR`. Oz-rapor ile bagimsiz kosum UYUSTU.
-  🔴 **FAZ-2 (mimar denetiminde bulundu — testler goremedi, SPEC eksikti):** F1 `_kilit_al`
-  O_EXCL DEGIL (TOCTOU) · F2 `_kilit_birak` sahiplik denetimsiz · F3 `deneme >= 3` sabiti
-  `ESKALASYON_ESIGI` ile IKIZ. Spec: `SPEC-gozcu-kilit-onarimi.md` (+3 mutant). Canliya
-  baglama (48s paralel) faz-2'den SONRA; crontab'a DOKUNULMADI.
+- 🟠 **K148 (GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama kaldi):**
+  uc dosya `~/.claude/cron/` altinda, **repo ayak izi SIFIR**; tetik gozcude, icra AYNEN
+  `nobet-kapi.py`'de. Bagimsiz olcum (ayri isci): `GECEN=63/63` · `MUTANT=10/10
+  KONTROL=YESIL` · kuru tur `TETIK=DEFTER_DAGITIM LLM_TURU=0` · `YAN_ETKI=HAYIR`.
+  🔴 **FAZ-2 (mimar denetiminde; testler goremedi, SPEC eksikti):** F1 `_kilit_al` O_EXCL
+  DEGIL · F2 `_kilit_birak` sahiplik denetimsiz · F3 esik IKIZ.
+  Spec: `SPEC-gozcu-kilit-onarimi.md`. Sahipsiz — bos bir oturuma verilecek.
   kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=13/13`.
-- 🔧 **K149 (17 Agu — DOSYA KOLU KAPANDI, URETEN-KOLU ACIK):** `~/.claude/cron/`
-  **2495 → 576 girdi** (SILINEN=1919; `.isci-cikti.*` 1209→3, `.bekci-cikti.*` 900→187 —
-  kalanlar 2 saatten TAZE). `profil-*` **243=243 DOKUNULMADI**, token dosyalari YERINDE.
-  🔴 ACIK KALAN: (a) ureten (`isci.sh`, `isci-tur-bekcisi.py`) hala toplamiyor — otomatik
-  kol + testi gerek; (b) **243 `profil-*` dizini** (en eski 4 gun, en yeni 1 dk) ayri
-  kural ister: canli turun profili silinirse tur coker.
+- 🔧 **K149 (DOSYA KOLU KAPANDI, URETEN-KOLU ACIK):** `~/.claude/cron/` **2495 → 576
+  girdi** (SILINEN=1919; kalanlar 2 saatten TAZE). `profil-*` 243=243 DOKUNULMADI,
+  token'lar YERINDE. 🔴 ACIK: (a) ureten betikler hala toplamiyor (otomatik kol + test),
+  (b) 243 `profil-*` dizini ayri kural ister (canli turun profili silinirse tur coker).
   kabul: `ls -1a /Users/okan/.claude/cron | grep -c "^\.isci-cikti\."` iki tur ust uste
-  dusmeli (ureten kolu calisiyor demektir).
+  DUSMELI.
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
@@ -93,11 +90,14 @@
   SILME."** Yapilacak TEK is: isaret ettigi kaynak grubunun urunlerine **uretici linki**
   eklemek, ayni durumdaki digerlerine de. **"SORU SATILABILIRLIK YA DA LISANS KONTROLU
   DEGIL, EKSIK LINKLERI TAMAMLAMA."**
-  🔴 Dolayisiyla (a) HocA'nin "eksik alan" bulgusu → ISLENECEK, (b) benim "geri doldurma
-  ihlal olur" hukmum → **EZILDI**, (c) "fail-closed satistan cekilme" ekseni → **IPTAL**.
-  Silme/`yayinda=0` YASAK. Olculen sayilar + iki dusen hukum ARSIVDE (kayit icin).
-  Duzlem VERI = MaCiT; yazim flock + `duzelt.py`, MaCiT'in parti yazicisi UCUSTA.
-  kabul: `python3 /Users/okan/dev/pruvo/tools/denetim-kapisi.py` (rc=0).
+  Ek emir: **"public'e link KESINLIKLE YASAK, sadece bizde intern kaydedin, ben istedigimde
+  HEMEN bulunacak."** Silme/`yayinda=0`/`auto_sil` YASAK; dusen iki hukum ARSIVDE.
+  🔴 PUBLIK↔KAYIT birlesim ekseni de olculdu (`ebf61902`, `tools/koken-bul.py --eksik`):
+  `EKSIK=259` — **KAYIT_YOK=197** (public urunun gizli kaydi HIC yok, kayit evreninde
+  GORUNMEZ) · linksiz-cults3d 44 · dizge 12 · kokensiz 6 (+25 kaynak alani bos).
+  Duzlem VERI = MaCiT (parti yazicisi UCUSTA; flock + `duzelt.py`). Eski kabul
+  (`denetim-kapisi` rc=0) DUSTU: rc=0 ulasilamaz (3154 ihlal) ve caresi SILME.
+  kabul: `python3 tools/koken-bul.py --eksik` → `EKSIK` DUSER **VE** `--kendini-test` rc=0.
 - 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
   ekseninde ayrisiyor.
@@ -106,11 +106,9 @@
 - 🟡 **Kosum sinyali kirli (olculdu):** `hijyen-a2`/`a3` yayin zincirinde DEGIL ama genel
   `conclusion`'i `failure` yapiyor. Kural: genel hukme degil **is bazinda** bakilir
   (hijyen kirmizisi gurultu DEGIL — K125'i o buldu). Tam metin ARSIVDE.
-- 🔧 **K151 (17 Agu — YEDEK DUSUS BEYANI HER ROTASYONDA YENIDEN YAZILIYOR; sinif kalemi):**
-  karantina `DEVAM.md` + `mimar-posta-kutusu.md` yedegini durdurdu; ikisi de MESRU rotasyon
-  (OLCULDU: kutu -104079 B / arsivi **+107530 B** · defter -20961 B / arsivi **+59657 B**).
-  Beyan TAM boyuta bagli, her rotasyonda ELLE yeniden yaziliyor (3. tekrar → tekil yama
-  YASAK). **Yon:** ROTASYON CIFTI invaryanti — dusus ancak esi o kadar BUYUDUYSE mesru.
+- 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
+  cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
+  → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - KAPANDI (arsivde): K91 · K101 · K103 · K113 · K114 · K115 · K116 · K117 · K119 · K120 · K123 · K124 · K125 · K128 (madde olcutu ILK SATIR sartina daraltildi, `6dc1a94e`, fikstur 20/20 mutant 7/7; ders hafizada) · K121 (17 Agu: supurme Okan emriyle acildi, denetlendi, acik KAPATILDI — zamanlanan giris noktasi kanonik `github-mail-cope.applescript` yoluna YONLENDIRILDI; kabul `DERLEME_RC=0 MAIL_ERISIMI=0 KENDINI_TEST_RC=0 KOMSU_ALARM=4 SILINEN_MAIL=0`; olculen acik = v2'nin uc emniyeti YOKTU + `ATLANAN>0` 6 kosumda yani message-id cakismasi gercek; detay posta kutusunda, ders [[korelasyon-mekanizma-teshisi-degildir]]) · K127 rotasyon madde granulu kol (`e5f5c32b`) · **K138** (mail ARIZA SINYALI degildi — nobet metni "maile guvenme" diyor, olcum `gh run list`; Okan GitHub bildirimini kapatti, crontab satiri KALDIRILDI **ve** nobet gorev metnindeki supurme adimlari §0.4+§1+§4 EMEKLI isaretlendi — yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi; otomatik mail silicisi KALMADI, bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yol; geri acma OKAN KAPISI, ikisi AYNI turda) · **K137** (birkac saat `crontab` YAZIMI asildi — okuma calisiyordu, asili surec `pgrep` ile teyitli, SIGKILL gerekti; 11:00 civari acildi. Tuzak: `crontab <dosya>` dosyayi BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc).
 
 ## OKAN'DA
@@ -123,7 +121,9 @@
 
 ## KOSUYOR (baska mimarlar)
 
-MaCiT — Ducati d1 sub-slice 2/3 ve 3/3 (taban artik 27420) + 261 kaynak kaydi dolgusu.
+MaCiT — Peugeot×Cults3D dilim-2 (`658d0333`, `peugeot-push-tmp` worktree'de, K153'e BLOKE).
+K152 iki oturum: `musing-shaw` SALT OKUMA (koken bulucu) · `xenodochial-bardeen` TEK YAZICI
+(yalniz gizli kayit duzlemi, flock + public sha256 nobeti). Sahiplik KraL'ca kesildi.
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 
