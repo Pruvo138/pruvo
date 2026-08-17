@@ -85,19 +85,19 @@
 - 🟠 **Navlungo dilim-1 MERGE BEKLIYOR:** dal `il-ilce-dilim1` (`5d57c918`); Okan kapisi.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
-- 🟠 **K152 (17 Agu — ⚖️ OKAN KARARI KAPSAMI BELIRLEDI; onceki iki hukum de DUSTU):**
-  Okan (birebir): **"sitede bulunan tum urunler satilabilir. SAKIN siteden bir urun
-  SILME."** Yapilacak TEK is: isaret ettigi kaynak grubunun urunlerine **uretici linki**
-  eklemek, ayni durumdaki digerlerine de. **"SORU SATILABILIRLIK YA DA LISANS KONTROLU
-  DEGIL, EKSIK LINKLERI TAMAMLAMA."**
-  Ek emir: **"public'e link KESINLIKLE YASAK, sadece bizde intern kaydedin, ben istedigimde
-  HEMEN bulunacak."** Silme/`yayinda=0`/`auto_sil` YASAK; dusen iki hukum ARSIVDE.
-  🔴 PUBLIK↔KAYIT birlesim ekseni de olculdu (`ebf61902`, `tools/koken-bul.py --eksik`):
-  `EKSIK=259` — **KAYIT_YOK=197** (public urunun gizli kaydi HIC yok, kayit evreninde
-  GORUNMEZ) · linksiz-cults3d 44 · dizge 12 · kokensiz 6 (+25 kaynak alani bos).
-  Duzlem VERI = MaCiT (parti yazicisi UCUSTA; flock + `duzelt.py`). Eski kabul
-  (`denetim-kapisi` rc=0) DUSTU: rc=0 ulasilamaz (3154 ihlal) ve caresi SILME.
-  kabul: `python3 tools/koken-bul.py --eksik` → `EKSIK` DUSER **VE** `--kendini-test` rc=0.
+- ✅ **K152/LINK KOLU KAPANDI** (⚖️ OKAN: tum urunler satilabilir · SILINMEZ · public'e link
+  KESINLIKLE YASAK, yalniz intern kayit + "istedigimde HEMEN bulunacak"): **100 kayit** onarildi
+  (88'inde link `not` alani ICINDE gomuluydu + 12 dizge kayit objeye cevrildi). **MIMAR BAGIMSIZ
+  OLCTU:** hedef kume 1066'dan 978'e · dizge 12'den 0'a · kayit sayisi DEGISMEDI ·
+  `urunler.json` durumu BOS · kapsam disi alanlara **+0**. Kalan 5 CEKILMEZ. Gerekce ARSIVDE.
+  kabul: `python3 tools/kaynak-link-tamamla.py` → `HUKUM=TAM` rc=0 **VE** `python3 tools/kaynak-link-test.py --mutasyon` → `MUTANT=14/14 KONTROL=YESIL` (nobet.yml'e bagli).
+- 🔴 **K155 (K152'den AYRILDI — link onarimi bunu KAPATMAZ):** publik↔kayit ekseninde
+  **KAYIT_YOK=197** (public urunun gizli kaydi HIC yok). 🔴 Defter eksenli olcum bu 197'yi
+  GORMEZ (ayri birim [[hukum-yanlis-birimde]]); "HEMEN bulunacak" sarti KARSILANMIYOR,
+  turetilebilir kaynak YOK → uydurma YASAK. +25 kayitta `kaynak` BOS. Eski kabul DUSTU.
+  kabul: `python3 tools/koken-bul.py --eksik` → `KAYIT_YOK` DUSER **VE** `--kendini-test` rc=0.
+- 🔴 **K154 (KIMI URETIME KAPALI; ucuz kat m3 TEK):** `/v1/models` **200** ama `/v1/messages`
+  **dort model kolunda da 403**; model kolu/baslik/golgeleme/ariza ELENDI → **OKAN KAPISI**.
 - 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
   ekseninde ayrisiyor.

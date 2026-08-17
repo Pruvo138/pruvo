@@ -1690,6 +1690,15 @@ jobs:
       - name: "Marka sayfasi artim + sayfa-ici model filtresi (davranis, node)"
         run: python3 tools/marka-artim-test.py
 
+      # KAYNAK LINK TAMAMLA — K152 kabul + mutasyon bataryasi (17 Agu 2026).
+      # Gizli kaynak defterindeki eksik uretici linkini tamamlar; urunler.json'a
+      # dokunmaz. Hijyen ekseni: kirmizisi musteriye yanlis para odetmez, veri
+      # sizdirmaz, siteyi durdurmaz.
+      - name: "Kaynak link tamamlama: kabul testi (fikstur + gercek beyan)"
+        run: python3 tools/kaynak-link-test.py
+      - name: "Kaynak link tamamlama: mutasyon bataryasi"
+        run: python3 tools/kaynak-link-test.py --mutasyon
+
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
       # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,
