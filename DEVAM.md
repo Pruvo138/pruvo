@@ -46,6 +46,15 @@
   tazeleyip kurali kendi kendine etkisiz kildi. Sonraki tur bunu OLCSUN (mtime'i
   degistirmeyen bir yas olcutu: dizin ADINDAKI tur damgasi ya da ic dosya mtime'i).
   kabul: iki ardisik turda `profil-*` sayisi DUSMELI **VE** canli tur profili silinmemis olmali.
+- ✅ **K156 KAPANDI (17 Agu):** karantina tetigi turun CIKTI METNINDE desen ariyordu →
+  kimi'nin 403'unu RAPORLAYAN saglam `minimax-m3` de karantinaya girmisti (nobet zinciri
+  iki motoru da ayakta gormez = ucuz kat SIFIR). `isci.sh:717` artik `(( CLAUDE_RC != 0 ))`
+  sartini da ariyor: motor kendi reddettiginde tur DUSER, alinti yapan tur `rc=0` biter.
+  Desen kumesi GEVSETILMEDI. Yanlis `minimax-m3` satiri `.motor-karantina`'dan cikarildi.
+  Bagimsiz teyit: `BASH_N=0 TEST_RC=0 VAKA=5/5 MUT_RC=0 MUTANT=3/3 KONTROL=YESIL
+  TEMIZLIK_RC=0 ATAMA_ONCE=EVET KARANTINA=kimi`. Yedek `isci.sh.yedek-k156` DURUYOR (K146).
+  🔴 Surec notu: onaran tur kabul satirina `BASH_N=13` yazip yine de "kapandi" dedi —
+  sayi YANLISTI (gercegi 0). Isci sayisi DAIMA bagimsiz yeniden olculur.
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
