@@ -275,12 +275,15 @@ MUTASYONLAR = [
       279, 280, 283, 285}, False, 18),
     # ME6 (26 Tem, 27 Tem REPOINT): POZITIF yonun nobetcisi — cikti-bayragi muafiyeti
     # silinirse delege KOMPLE kapanir (22 Tem'e geri donus) ve mesru cagrilar kizarir.
+    # 17 Agu K159: V3 (902) eklenir — cikti-bayragi muafiyeti silindiginde artik
+    # izinli model + pencere ici olan V3 de KOSULSUZ RED'a dusuyor (legitimate capa).
     ("ME6", lambda d: yama(
         d, ICRA,
         "    if not _codex_cikti_degerli(kalan[1:]):\n",
         "    if True:\n"),
-     "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED)",
-     {232, 233, 273, 274, 281}, True, 5),
+     "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED); K159 son kol: "
+     "910 yasak model cagrisinin yapisal izin yolunu da eklenen RED'a kat",
+     {232, 233, 273, 274, 281, 902, 910}, True, 7),
     ("ME7", lambda d: yama(
         d, ICRA,
         "    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
@@ -559,6 +562,40 @@ MUTASYONLAR = [
         '        return "sarmalayici:" + (motor or "claude")\n'),
      "13Agu-2 J3: env yokken de sarmalayici ISCI sayilir (MIMAR koluna sizma)",
      {651, 657}, True, 2),
+    # --- 17 AGU K159 CODEX SURELI PENCERESI + MODEL KAPISI NOBETCILERI ---
+    # Her mutant yeni 4 kuruldan BIRINI dusurur; AYIRT EDICI bir kirmizi iz birakir.
+    # M1: model bayragi zorunlulugu kaldirilir -> V1 (900) artik ALLOW olur.
+    ("M_K159_1", lambda d: yama(
+        d, ICRA,
+        '    if not _codex_model_bayrak_var(kalan[1:]):\n',
+        '    if False and not _codex_model_bayrak_var(kalan[1:]):\n'),
+     "17Agu K159: model bayragi zorunlulugu kaldirilir (bayraksiz codex exec acilir)",
+     {900}, True, 1),
+    # M2: amiral (CODEX_YASAK_MODELLER) reddi kaldirilir -> V2 (901) artik ALLOW olur.
+    ("M_K159_2", lambda d: yama(
+        d, ICRA,
+        '    if model in CODEX_YASAK_MODELLER:\n',
+        '    if False and model in CODEX_YASAK_MODELLER:\n'),
+     "17Agu K159: amiral reddi kaldirilir (gpt-5.6-sol amiral gecer); K159 son kol: "
+     "910 yasak model RED'i da amiral kapisi kapali olunca ACILIR",
+     {901, 910}, True, 2),
+    # M3: fail-closed (izinli kume disi) RED kaldirilir -> V5 (904) artik ALLOW olur.
+    # Spec'te "fail-open" mutant — bilinmeyen model GECER yapilir.
+    ("M_K159_3", lambda d: yama(
+        d, ICRA,
+        '    if model not in CODEX_IZINLI_MODELLER and model not in CODEX_YASAK_MODELLER:\n',
+        '    if False and model not in CODEX_IZINLI_MODELLER and model not in CODEX_YASAK_MODELLER:\n'),
+     "17Agu K159: bilinmeyen model fail-OPEN (bilinmeyen model gecer, yarin eklenen acar)",
+     {904}, True, 1),
+    # M4: pencere/tarih kontrolu kaldirilir -> V6 (905) tarih 21 Agu olsa bile ALLOW.
+    # Anchor: pencere kapali kontrolu ONCESINDEKI yorum + satir. _codex_pencere_acik_mi
+    # helper taniminda da gectigi icin yorumla TEKILLESTIRILDI (capasi 2 kez gecmez).
+    ("M_K159_4", lambda d: yama(
+        d, ICRA,
+        '    if not _codex_pencere_acik_mi():\n',
+        '    if False and not _codex_pencere_acik_mi():\n'),
+     "17Agu K159: pencere/tarih kontrolu kaldirilir (21 Agu tarihli codex GECER)",
+     {905}, True, 1),
 ]
 
 # ===================== KONTROL MUTANTLARI (AYIRT EDICILIK OLCUMU) =====================
@@ -587,6 +624,14 @@ KONTROL_MUTANTLARI = [
     # vakalar "her degisiklige" kizarmiyorsa kanittir (memory/beyan-edilmis-survivor.md).
     ("K3", isci_motorlarini_yeniden_sirala,
      "ISCI motor kumesi YENIDEN SIRALANIR (ayni kume, ayni karar) -> YESIL kalmali"),
+    # K4: 17 Agu K159 codex blogunun AYIRT EDICILIK kontrolu. M_K159_1..4'un kirmizisi
+    # ancak yeni 4 kural "her degisiklige kirmizi yakiyor" degilse kanittir. Surum
+    # damgasina eklenen kullanilmayan bir sabit davranisi degistirmez.
+    ("K4", lambda d: yama(
+        d, ICRA,
+        'CODEX_KURAL_SURUMU = "17agu-1"\n',
+        'CODEX_KURAL_SURUMU = "17agu-1"\n_K159_KONTROL_MUTANTI = True\n'),
+     "17Agu K159 codex blogua OLU bir sabit eklenir (davranis degismez) -> YESIL kalmali"),
 ]
 
 # CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine

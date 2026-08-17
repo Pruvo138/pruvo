@@ -2064,6 +2064,170 @@ def _kosul_degerlendir(kosul, ortam):
     return sonuc
 
 
+def _ertelendi_sabiti(yol=os.path.join(TOOLS, "uzlastirici-onarim.py")):
+    """(deger, uretildi) — `ERTELENDI_RC = <tamsayi>` surucu kaynagindan TURETILIR.
+
+    Tek kaynak: is akisinin `if [ "$rc" = "5" ]` kolu ile bu kapinin okudugu sabit
+    AYNI dosyadan gelir ([[ikiz-tanim-sessiz-ayrisma]]). ast basarisiz olursa regex'e
+    DUSULUR; ikisi de basarisizsa (None, False) -> yml'de saglikli 5 kolu AYNI sekilde
+    SESSIZ OLMAMALI (fail-closed: 'surekli uretilmeyen ertelendiyi is akisi ele aliyor
+    sanilamaz')."""
+    import ast as _ast
+    try:
+        with open(yol, encoding="utf-8") as f:
+            kaynak = f.read()
+    except Exception as e:  # noqa: BLE001
+        raise OlcumHatasi("surucu okunamadi (%s): %s" % (yol, type(e).__name__, e))
+    agac = _ast.parse(kaynak)
+    for dugum in _ast.walk(agac):
+        if not isinstance(dugum, _ast.Assign):
+            continue
+        if len(dugum.targets) != 1:
+            continue
+        hedef = dugum.targets[0]
+        if not isinstance(hedef, _ast.Name) or hedef.id != "ERTELENDI_RC":
+            continue
+        deger = dugum.value
+        if isinstance(deger, _ast.Constant) and isinstance(deger.value, int):
+            return deger.value, True
+    # AST bulamadi -> regex (fallback, fail-closed): tam satir eslesmesi.
+    m = re.search(r"^\s*ERTELENDI_RC\s*=\s*(\d+)\s*$", kaynak, re.M)
+    if m:
+        return int(m.group(1)), True
+    return None, False
+
+
+def _ertelendi_adimi(adimlar):
+    """d1-uzlastirici.yml icinde `tools/uzlastirici-onarim.py` cagiran adim -> dict|None.
+
+    Adi 'Onarim' olan ya da komutunda dosya adini gecen TEKIL adim varsayilir; yarim
+    kalmis kablolamada (birden cok olursa) TEK kaynaktan ayrismadan biri secilir — yine
+    fail-closed ikinci adim KIRMIZI yakar."""
+    adaylar = []
+    for a in adimlar:
+        if str(a.get("uses") or ""):
+            continue
+        komut = str(a.get("run") or "")
+        if "uzlastirici-onarim.py" in komut:
+            adaylar.append(a)
+    if not adaylar:
+        return None
+    return adaylar[0]
+
+
+def ertelendi_kablosu(surucu_yolu=os.path.join(TOOLS, "uzlastirici-onarim.py"),
+                      yml_yolu=os.path.join(WORKFLOW_DIZIN, UZLASTIRICI_DOSYA)):
+    """K150 dilim-2 — uc soru, uc olcum, TEK KAYNAK.
+
+    (1) Surucu kaynaginda `ERTELENDI_RC = <tamsayi>` sabit olarak VAR MI?
+    (2) d1-uzlastirici.yml'de onarim adimi `run` govdesinde `ERTELENDI_RC` DEGERINE
+        ESIT bir kiyaslama kolu VAR MI? — yoksa surucu 5 uretiyor ama is akisi onu
+        GERCEK HATA sayar.
+    (3) d1-uzlastirici.yml'de `steps.onarim.outputs.ertelendi` atomunu okuyan EN AZ BIR
+        `if:` VAR MI? — kablolama yarim kalmis demektir.
+
+    Doner: (sorunlar, bulgular) — sorunlar bossa YESIL."""
+    sorunlar = []
+    bulgular = {}
+
+    # (1) ERTELENDI_RC sabiti
+    try:
+        sabit, uretildi = _ertelendi_sabiti(surucu_yolu)
+        bulgular["sabit"] = sabit
+        bulgular["sabit_kaynaktan"] = uretildi
+    except OlcumHatasi as e:
+        sorunlar.append("ERTELENDI_RC okunamadi: %s" % e)
+        return sorunlar, bulgular
+    if not uretildi or sabit is None:
+        sorunlar.append(
+            "ERTELENDI KOLU YOK: surucude `ERTELENDI_RC = <tamsayi>` sabiti BULUNAMADI. "
+            "Is akisinin `if [ \"$rc\" = \"5\" ]` kolu 5 rakamini nereden alacagini "
+            "BILMEZ; ikiz sayi uretmek TEK KAYNAK ilkesini ihlal eder. "
+            "Surucuye tek satirla `ERTELENDI_RC = 5` ekleyin.")
+        return sorunlar, bulgular
+
+    # (2) yml'de onarim adimi + run govdesinde `5` (sabitin degeri) ele aliniyor mu.
+    try:
+        with open(yml_yolu, encoding="utf-8") as f:
+            govde = yaml_belge(f.read())
+        adimlar = _uzl_adimlari()
+    except (OlcumHatasi, Exception) as e:  # noqa: BLE001
+        sorunlar.append("%s ayristirilamadi: %s" % (UZLASTIRICI_DOSYA, e))
+        return sorunlar, bulgular
+
+    onarim = _ertelendi_adimi(adimlar)
+    bulgular["onarim_var"] = onarim is not None
+    if onarim is None:
+        sorunlar.append(
+            "ERTELENDI KOLU YOK: %s icinde `uzlastirici-onarim.py` cagiran adim "
+            "bulunamadi -> surucu run edilmiyor, ertelendiyi isleyecek bir kol YOK."
+            % UZLASTIRICI_DOSYA)
+        return sorunlar, bulgular
+
+    komut = str(onarim.get("run") or "")
+    bulgular["run_ilk_120"] = komut[:120]
+    # "5" rakami bir kosul kapsaminda AYNI satirda mi? `if [ "$rc" = "5" ]` ele alir;
+    # tum `5` gecisleri DEGIL (5 saniye, 5 dk gibi olcum degeri yanlis tetikler).
+    desen = r'\[\s*"\$rc"\s*=\s*"%d"\s*\]' % sabit
+    if not re.search(desen, komut):
+        sorunlar.append(
+            "ERTELENDI KOLU YOK: surucu rc=%d uretiyor ama is akisinin onarim adiminda "
+            "`if [ \"$rc\" = \"%d\" ]` kolu YOK -> erteleme `exit \"%s\"` ile GERCEK "
+            "HATA gibi iletilir, teyit ve (3) ONARILAMADI KIRMIZI yanar "
+            "(`[[ikiz-tanim-sessiz-ayrisma]]`: 5 rakami surucuden DEGIL is akisindan "
+            "turetildi; ERTELENDI_RC sabitini kaynaktan okuyup karsilastirir)"
+            % (sabit, sabit, "$rc"))
+
+    # (3) `steps.onarim.outputs.ertelendi` atomunu okuyan en az bir `if:`.
+    bakan = False
+    for a in adimlar:
+        kosul = str(a.get("if") or "")
+        if "steps.onarim.outputs.ertelendi" in kosul:
+            bakan = True
+            break
+    bulgular["ertelendi_oku_var"] = bakan
+    if not bakan:
+        sorunlar.append(
+            "ERTELENDI KABLOSU YARIM: %s icinde `steps.onarim.outputs.ertelendi` "
+            "atomunu okuyan HICBIR `if:` yok -> onarim adimi ertelendiyi 5 -> 'evet' "
+            "cikti olarak yazsa bile teyit ve (3) ONARILAMADI kosulunda yer almaz; "
+            "erteleme KIRMIZI YAKMAYA devam eder." % UZLASTIRICI_DOSYA)
+
+    # (4) ONARIM cikis komutu surucunun urettigi rc'yi PROPAGATE ediyor mu?
+    # Dilim-2 mutation N3 koruyucu: `exit "$rc"` -> `exit 0` mutanti her hatayi yutar;
+    # mevcut YON (i-a)/tablo ekseni onu yakalamaz (N3 'hata kapisi' eksiktir — yeni
+    # eksen). Bu kontrolcunun metni: onarim adiminin SON `exit` komutu yalniz `exit 0`
+    # iceriyorsa ARIZA.
+    cikis_durumu = None
+    for satir in reversed(komut.splitlines()):
+        s = satir.strip()
+        if not s.startswith("exit"):
+            continue
+        cikis_durumu = s
+        break
+    bulgular["cikis_durumu"] = cikis_durumu
+    if cikis_durumu is None:
+        sorunlar.append(
+            "ONARIM cikis komutu YOK: %s onarim adimi `run` govdesinde `exit` ile "
+            "bitmiyor -> surucunun urettigi rc propagete edilmeden adim TAMAMLANAMAZ."
+            % UZLASTIRICI_DOSYA)
+    else:
+        if re.fullmatch(r"exit\s+0\s*", cikis_durumu):
+            sorunlar.append(
+                "ONARIM cikis komutu HER HATAYI YUTAR: `exit 0` mutantiyla surucunun "
+                "GERCEK HATA (rc=1), YARIS SURDU (rc=3) ya da OLCULEMEDI (rc=2) cikislari "
+                "TUMU 'basarili' sayilir; teyit + (3) ONARILAMADI bu halde KIRMIZI "
+                "yakamaz, emniyet agi sessizce calismaz hale gelir. ZORUNLU: `exit \"$rc\"` "
+                "ile surucunun urettigi rc adima propagate edilmeli.")
+        elif not (re.search(r"\$\{?rc\}?", cikis_durumu) or "$rc" in cikis_durumu):
+            sorunlar.append(
+                "ONARIM cikis komutu rc'yi PROPAGATE etmiyor: `exit %s` surucunun "
+                "GERCEK HATA/YARIS SURDU/OLCULEMEDI durumunda bile 0'a doner — "
+                "bilinen tek gecerli kaliptir `exit \"$rc\"`" % cikis_durumu)
+
+    return sorunlar, bulgular
+
+
 def _uzl_adimlari():
     """d1-uzlastirici.yml'in `uzlastir` isindeki adimlar (GERCEK ayristirici)."""
     yol = os.path.join(WORKFLOW_DIZIN, UZLASTIRICI_DOSYA)
@@ -2120,15 +2284,25 @@ def _sinyal_adimlari(adimlar):
 # 🔴 TABLONUN KENDISI IDDIADIR: her satir bir SENARYODUR ve tam olarak BIR hukum
 # uretir. "onarildi" ile "onarilamadi" tek adima yigilirsa ya da bayrak yok sayilirsa
 # satirlardan EN AZ IKISI carpisir.
+#
+# (K150 dilim-2 — 17 Agu 2026): 9. boyut `ertelendi` — uzlastirici-onarim.py rc=5 = ERTELENDI
+# (baska makine canli D1 lease'i tutuyor, senkron denenmedi). Asil iddia: ERTELENDI
+# "emniyet agi tutmadi" hukuMUNE DUSMEZ; onarim+'teyit' atlanir ama kosum KENDI kanalindan
+# (cron gorunurluk / sapma damgasi) gorunur kalir. ertelendi default False (mevcut satirlar).
 SINYAL_TABLOSU = (
-    # (etiket,               kol_bayragi, sapma,        durum,     cron, yaz, yuk, onarilamadi)
-    ("cron + sapma onarildi",      False, "var",        "success",  True, False, False, False),
-    ("kadans + sapma onarildi",     True, "var",        "success", False,  True,  True, False),
-    ("cron + onarilamadi",         False, "var",        "failure", False, False, False,  True),
-    ("kadans + onarilamadi",        True, "var",        "failure", False, False, False,  True),
-    ("cron + sapma yok",           False, "yok",        "success", False, False, False, False),
-    ("kadans + sapma yok",          True, "yok",        "success", False, False, False, False),
-    ("kadans + olcum olculemedi",   True, "olculemedi", "failure", False, False, False, False),
+    # (etiket, kol, sapma, durum, cron, yaz, yuk, onarilamadi, ertelendi)
+    ("cron + sapma onarildi",      False, "var",        "success",  True, False, False, False, False),
+    ("kadans + sapma onarildi",     True, "var",        "success", False,  True,  True, False, False),
+    ("cron + onarilamadi",         False, "var",        "failure", False, False, False,  True, False),
+    ("kadans + onarilamadi",        True, "var",        "failure", False, False, False,  True, False),
+    ("cron + sapma yok",           False, "yok",        "success", False, False, False, False, False),
+    ("kadans + sapma yok",          True, "yok",        "success", False, False, False, False, False),
+    ("kadans + olcum olculemedi",   True, "olculemedi", "failure", False, False, False, False, False),
+    # ERTELENDI — sapma vardi ama YAZICI_UCUSTA yuzunden senkron denenmedi. Cron kolu
+    # gorunurluk adimini YINELEMEZ (DEGISMEZ); kadans kolu YINE damga yazar (susturma YOK).
+    # Onarilamadi=False: erteleme "emniyet agi tutmadi" hukuMUNE dusmez.
+    ("cron + ERTELENDI",           False, "var",        "success",  True, False, False, False,  True),
+    ("kadans + ERTELENDI",          True, "var",        "success", False,  True,  True, False,  True),
 )
 
 
@@ -2198,12 +2372,38 @@ def sinyal_ayrimi():
             "Ikincisinde katalog SU AN sapmali olabilir (Ege katalogun bir kismini "
             "goremez); bu bir gorunurluk notu degil ARIZADIR.")
 
+    # ── K150 DILIM-2: ERTELENDI KABLOSU — rc=5 kolunun is akisina KABLOLANMASINI OLCER ──
+    # Tek kaynak: ERTELENDI_RC surucuden AST ile okunur, yml run govdesiyle eslesme + en az
+    # bir `steps.onarim.outputs.ertelendi` atomu okuyan `if:`. Hucresi bu eksende eksikse
+    # erteleme YINE GERCEK HATA gibi davranir (teyit + (3) ONARILAMADI KIRMIZI yanar).
+    er_bulgu = {}
+    try:
+        er_sorun, er_bulgu = ertelendi_kablosu()
+        sorunlar.extend(er_sorun)
+    except Exception as e:  # noqa: BLE001 — OlcumHatasi + import/yaml arizalari dahil
+        sorunlar.append("ERTELENDI kablo capasi calisamadi (%s): %s"
+                        % (type(e).__name__, e))
+
     # ── DOGRULUK TABLOSU: kosul semantigi FIILEN calistirilir ──────────────────
     tablo = []
-    for etiket, kol, sapma, durum, b_cron, b_yaz, b_yuk, b_onar in SINYAL_TABLOSU:
+    for satir in SINYAL_TABLOSU:
+        # 9 alan: (etiket, kol, sapma, durum, b_cron, b_yaz, b_yuk, b_onar, b_ertelendi)
+        etiket, kol, sapma, durum, b_cron, b_yaz, b_yuk, b_onar, b_ertelendi = satir
+        # K150 dilim-2: ertelendi 9. sutun. Ertelendi = True ise teyit adimi GERCEKTE
+        # `skipped` olur (if kosulu ertelendi kosulunu icerir). `success`/`failure`
+        # modunda degerlendirme yapilirsa N2 mutanti (`&& ertelendi != 'evet'` silinir)
+        # yakalanamaz — teyit.outcome'u 'skipped' olarak modelleyerek (3) ONARILAMADI'nin
+        # 'teyit.outcome != success' kolu ERTELENDI rows'ta ACILIR, boylece N2 mutanti
+        # carpisir (saglikli kodda ertelendi=evet oldugu icin onarilamadi KOSMAZ).
+        if b_ertelendi:
+            teyit_outcome = "skipped"
+        else:
+            teyit_outcome = "success" if durum == "success" else "failure"
         ortam = {"durum": durum, "girdiler": {KADANS_BAYRAGI: kol},
-                 "ciktilar": {("olcum", "sapma"): sapma},
-                 "sonuclar": {"teyit": "success" if durum == "success" else "failure"}}
+                 "ciktilar": {("olcum", "sapma"): sapma,
+                              # K150 dilim-2: ertelendi adimi 9. sutun.
+                              ("onarim", "ertelendi"): ("evet" if b_ertelendi else None)},
+                 "sonuclar": {"teyit": teyit_outcome}}
         gerceklesen = []
         for ad, adim, beklenen in (("cron", cron_adim, b_cron),
                                    ("damga-yaz", kadans_yaz, b_yaz),
@@ -2223,7 +2423,8 @@ def sinyal_ayrimi():
 
     return sorunlar, {"cron": cron_adim is not None, "yaz": kadans_yaz is not None,
                       "yuk": kadans_yuk is not None, "onarilamadi": onarilamadi is not None,
-                      "tablo": tablo}
+                      "tablo": tablo,
+                      "ertelendi_kablo": er_bulgu if not sorunlar or er_bulgu else None}
 
 
 def ayrim_kaniti():
@@ -3440,6 +3641,52 @@ def kendini_test():
     iddia("SINYAL: DOGRULUK TABLOSU — %d senaryonun hepsinde GitHub kosul semantigi "
           "FIILEN calistirildi ve tam olarak beklenen adimlar kostu (carpisma YOK)"
           % len(SINYAL_TABLOSU), not s_sorun, s_ariza or "; ".join(s_sorun))
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # ERTELENDI KABLOSU — K150 dilim-2, GERCEK iki dosyadan olcer
+    # ═══════════════════════════════════════════════════════════════════════
+    try:
+        er_sorun, er_bulgu = ertelendi_kablosu()
+        er_ariza = None
+    except Exception as e:  # noqa: BLE001
+        er_sorun, er_bulgu, er_ariza = [str(e)], {}, "%s: %s" % (type(e).__name__, e)
+    iddia("ERTELENDI KABLO: surucu kaynaginda `ERTELENDI_RC = <tamsayi>` sabiti VAR "
+          "(tek kaynak; ikiz sayi URETILMEZ — is akisinin `%s` rakamini okuyacagi yer)"
+          % (er_bulgu.get("sabit") if er_bulgu.get("sabit") is not None else "?"),
+          not er_sorun and er_bulgu.get("sabit_kaynaktan") is True
+          and isinstance(er_bulgu.get("sabit"), int),
+          er_ariza or "; ".join(er_sorun) or repr(er_bulgu))
+    iddia("ERTELENDI KABLO: %s onarim adiminda `uzlastirici-onarim.py` cagiran adim VAR "
+          "(yoksa kolun calisip calismadigi bile olculmez)" % UZLASTIRICI_DOSYA,
+          not er_sorun and er_bulgu.get("onarim_var") is True,
+          er_ariza or "; ".join(er_sorun))
+    iddia("ERTELENDI KABLO: onarim adiminin `run` govdesinde `if [ \"$rc\" = \"<N>\" ]` "
+          "kolu VAR (yoksa surucunun urettigi %s rc'si is akisinda GERCEK HATA sayilir, "
+          "teyit + (3) ONARILAMADI KIRMIZI yanar)" % er_bulgu.get("sabit"),
+          not er_sorun and er_bulgu.get("run_ilk_120"),
+          er_ariza or "; ".join(er_sorun) or "run yok: %r" % er_bulgu)
+    iddia("ERTELENDI KABLO: en az bir `if:` `steps.onarim.outputs.ertelendi` atomunu "
+          "okuyor (yoksa kablolama yarim — erteleme is akisinin GERI KALANINA yazilimaz)",
+          not er_sorun and er_bulgu.get("ertelendi_oku_var") is True,
+          er_ariza or "; ".join(er_sorun) or repr(er_bulgu))
+    # (4) ONARIM cikis komutu surucunun urettigi rc'yi propagate ediyor mu — N3
+    # koruyucu (mevcut YON (i-a) bu mutantin USTUNDE duramiyor; dilim-2 ek ekseni).
+    iddia("ERTELENDI KABLO: onarim `run` govdesinin son `exit` komutu `exit 0` DEGIL "
+          "(N3 `exit \"$rc\"` -> `exit 0` mutanti surucunun GERCEK HATA/YARIS SURDU/"
+          "OLCULEMEDI cikislarini yutar — mevcut YON (i-a) bunu yakalamaz)",
+          not er_sorun and er_bulgu.get("cikis_durumu") not in (None, "exit 0"),
+          er_ariza or "; ".join(er_sorun)
+          or "cikis yok: %r" % er_bulgu.get("cikis_durumu"))
+    # DOGRULUK TABLOSU ERTELENDI KOLU: `cron + ERTELENDI` ve `kadans + ERTELENDI`
+    # satirlarinda `onarilamadi` KOSMAMALI (asil iddia: erteleme 'emniyet agi tutmadi'
+    # hukuMUNE dusmez). siny.al_ayrimi() zaten tam tabloyu calistiriyor — burada
+    # iki ERTELENDI satirinin TEK BASINA da goruldugunu dogrular.
+    iddia("SINYAL TABLOSU: 9 satirin HEPSI icinde iki ERTELENDI satiri VAR (`cron + "
+          "ERTELENDI` ve `kadans + ERTELENDI`) — erteleme 'emniyet agi tutmadi' hukuMUNE "
+          "DUSMEZ, onarilamadi=False",
+          any("ERTELENDI" in s[0] for s in SINYAL_TABLOSU)
+          and sum(1 for s in SINYAL_TABLOSU if "ERTELENDI" in s[0]) == 2,
+          "tablo: %s" % [s[0] for s in SINYAL_TABLOSU])
 
     # Kosul degerlendiricinin KENDI iki yonlu fiksturu (gercek dosyaya bagimli kalmasin).
     _o = lambda kol, sapma, durum: {  # noqa: E731

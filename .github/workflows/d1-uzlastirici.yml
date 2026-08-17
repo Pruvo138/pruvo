@@ -263,10 +263,23 @@ jobs:
       # YENIDEN DENENMEZ, rc 1 ile GORUNUR kalir.
       - name: Onarim — uzlastirici surucusu (uca tazele + yaris yeniden denemesi)
         if: steps.olcum.outputs.sapma == 'var'
+        id: onarim
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: python3 tools/uzlastirici-onarim.py
+        run: |
+          rc=0
+          python3 tools/uzlastirici-onarim.py || rc=$?
+          if [ "$rc" = "5" ]; then
+            echo "ertelendi=evet" >> "$GITHUB_OUTPUT"
+            echo "D1_SENKRON=ERTELENDI SEBEP=YAZICI_UCUSTA"
+            echo "### 🟠 D1 senkronu ERTELENDI (baska makine canli D1 lease'i tutuyor)" >> "$GITHUB_STEP_SUMMARY"
+            echo "Senkron DENENMEDI, BASARISIZ OLMADI — bu 'ONARILAMADI' DEGILDIR." >> "$GITHUB_STEP_SUMMARY"
+            echo "Sapma HALA ACIK olabilir: teyit adimi KOSMADI, uzlastirma damgasi YAZILMADI." >> "$GITHUB_STEP_SUMMARY"
+            echo "Erteleme SURERSE cron-nabiz-kapisi A0 ekseni (son basarili uzlastirma yasi) KIRMIZI yakar." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit "$rc"
 
       # Geri yazilan satir TASLAK dogar; Ege taslagi GORMEZ. Canlida 200 donen
       # taslaklari yayina al -> onarim fiilen musteriye ulasir.
@@ -288,7 +301,7 @@ jobs:
       # basar, `sapma=var` uretir ve `d1-sapma-damgasi` alarm kanali AYNEN kirmizi yakar.
       # Damga yoksa/bozuksa muaf kume BOStur (muafiyet KANIT ister — fail-closed).
       - name: Teyit — onarimdan sonra sapma SIFIR mi
-        if: steps.olcum.outputs.sapma == 'var'
+        if: steps.olcum.outputs.sapma == 'var' && steps.onarim.outputs.ertelendi != 'evet'
         id: teyit
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -440,7 +453,7 @@ jobs:
       # `steps.teyit.outcome != 'success'` GERCEK sonucu okur (fail-closed: teyit
       # skipped/cancelled olursa da != 'success' true'dur, adim yine KIRMIZI yanar).
       - name: "ONARILAMADI: sapma KAPANMADI (ayri hukum — her iki kolda KIRMIZI)"
-        if: always() && steps.olcum.outputs.sapma == 'var' && steps.teyit.outcome != 'success'
+        if: always() && steps.olcum.outputs.sapma == 'var' && steps.teyit.outcome != 'success' && steps.onarim.outputs.ertelendi != 'evet'
         run: |
           echo "🔴 D1 SAPMASI KAPANMADI — onarim ve/veya teyit adimi DUSTU."
           echo "### 🔴 D1 sapmasi ONARILAMADI (emniyet agi tutmadi)" >> "$GITHUB_STEP_SUMMARY"

@@ -18,18 +18,35 @@
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
-- 🔴 **K150 (UZLASTIRICI YANLIS SINIFLANDIRIYOR; ② ICIN BLOKER):** kosum `32026332006` KIRMIZI: senkron **tasarim geregi ATLANDI** (`SEBEP=YAZICI_UCUSTA`), surucu bunu **"GERCEK HATA, YENIDEN DENENMEZ"** ilan etti.
-  Tam metin ARSIVDE.
-  kabul: `python3 /Users/okan/dev/pruvo/tools/uzlastirici-onarim.py --kendini-test`
+- 🟢 **K150 KAPANDI ve main'e ALINDI (`ed47d317`) — ② blokeri kalkti:** ucuncu red sinifi
+  (`SEBEP=YAZICI_UCUSTA`) ADIYLA taniniyor, RETRY ediliyor, tavan tukenirse **rc=5 ERTELENDI**
+  (YESIL DEGIL, "ONARILAMADI" da DEGIL). CI kablosu: `ertelendi=evet` ciktisi -> teyit ve
+  ONARILAMADI adimlari KOSMAZ, damga YAZILMAZ (erteleme yesile boyanmaz, A0 ekseni surerse
+  kirmizi yakar). **KAPSAM KAPISI:** d1-sync rc evreni `ast` ile + `SEBEP=` jeton evreni
+  kaynaktan TURETILIR; dorduncu red sinifi sessizce "GERCEK HATA"ya DUSEMEZ. `ERTELENDI_RC`
+  tek kaynak, yml'deki kol ondan turetilir. Olcum: `28/28` · `MUTANT=5/5 IDDIA=5 ISTASYON=0
+  UYGULANAMADI=0` · nabiz `202/202` · N1/N2/N3 OLDU · sizinti 0 · `d1-sync.py` DOKUNULMADI.
+  🔧 **ACIK ALT KALEM:** `--mutasyon` bataryasi CI'da KOSMUYOR (`nobet.yml`'de yalniz
+  `--kendini-test` var). `nobet.yml` su an baska oturumun commit'siz duzenlemesi altinda →
+  DOKUNULMADI. Sahibi ekleyecek: `python3 tools/uzlastirici-onarim.py --mutasyon`.
 - 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- 🟠 **K148 (GOZCU FAZ-1 KOSTU ve BAGIMSIZ DOGRULANDI; faz-2 + canliya baglama kaldi):** uc dosya `~/.claude/cron/` altinda, **repo ayak izi SIFIR**;
-  Tam metin ARSIVDE.
-  kabul: `python3 /Users/okan/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=13/13`.
+- 🟢 **K148 (GOZCU FAZ-2 KAPANDI, BAGIMSIZ TEYITLI; kalan: canliya baglama = OKAN KAPISI):**
+  F1 (`O_EXCL`) · F2 (sahiplik) · F3 (ikiz esik) + **olculmus KILITLENME onarimi**: 0 baytlik
+  artik kilit gozcuyu SONSUZA KADAR blokluyordu (prob: bos sinifinda iki cagri da False).
+  Yaris dikisi ile F1 deterministik olculuyor; ayri turda cururtme probu testin olu olmadigini
+  kanitladi (93→91, 93→89). crontab DOKUNULMADI. Govde K160'ta tek kaynaga tasindi.
+  kabul: `python3 ~/.claude/cron/gozcu-test.py` (rc=0) **VE** `MUTANT=16/16` (K160 sonrasi).
+- 🟢 **K160 KAPANDI (BaBa hukmu, bagimsiz teyitli):** kilit govdesi TEK MODULE indi
+  (`~/.claude/cron/kilit.py`); `nobet-kapi.py`+`gozcu.py` yalniz ADAPTOR. Govde K148 onarimi:
+  `O_EXCL` once, `FileExistsError`'da taze oku, `DOLU` CALINMAZ, artik kilit TEK KEZ devralinir
+  → 0 baytlik kilitlenme HER IKI yuzeyde kapali. gozcu 93/93 · `MUTANT=16/16 ISTASYON=0
+  KABLO_KOPUK=0` · nobet-kabul 39→45 · nobet-mut 9/9 · **CAPRAZ 5/5 KIRMIZI** (temel rc=0).
+  kabul: `python3 ~/.claude/cron/nobet-kabul-test.py` **VE** capraz 5/5 KIRMIZI.
 - 🔧 **K149 (URETEN KOLU KURULDU; `profil-*` ekseni ACIK ve BEYAN CELISKILI):** 17 Agu
   `isci-temizlik.py` + 5/5 test yazildi, `isci.sh:757`'ye baglandi (`TEMIZLIK_CAGRISI=VAR`).
   🔴 Bir tur `PROFIL_SILINEN=239` beyan etti; BAGIMSIZ sayim **253 dizin** buldu ve
@@ -38,34 +55,19 @@
   tazeleyip kurali kendi kendine etkisiz kildi. Sonraki tur bunu OLCSUN (mtime'i
   degistirmeyen bir yas olcutu: dizin ADINDAKI tur damgasi ya da ic dosya mtime'i).
   kabul: iki ardisik turda `profil-*` sayisi DUSMELI **VE** canli tur profili silinmemis olmali.
-- 🔴 **K157 (17 Agu — KIMI HATTI KOK NEDEN BULUNDU, karar OKAN'DA):** iki m3 olcum turu:
-  `max_tokens=1`'in **200'u SAHTE** (`content[0].text=""`, `stop_reason=null`, `type/role` bos)
-  → "1 token calisiyor" kapasite DEGIL olcum artefakti; **gercek uretim SIFIR**. `>=2` daima
-  403 `permission_error`, govde byte-byte ayni. 10x15.007=**150.070 girdi token** mt=1 ile
-  gecti, esigi DEGISTIRMEDI → girdi ekseni ilgisiz. Kota basligi/`request-id` **yok**, kota
-  okuma ucu icin **47 aday 404** → API'den kota OKUNAMIYOR. `/coding/v1/me`=200,
-  `status=USER_STATUS_NORMAL`, `created_time=2026-08-14` (anahtar mtime + 15 Eyl yenilemesiyle
-  tutarli) → anahtar Okan'in KENDI hesabinda; "baska plan" teshisi dustu. 403 TAM metni careyi
-  soyluyor (TAM 403 metni ARSIVDE — satici URL'i guvenlik geregi tasindi).
-  🔴 **"Haftalik dilim doldu, 22 Agu'da gelir" teshisi CURUDU** (Okan'in `Kotam` ekrani, 17 Agu):
-  `Toplam %19,99` barinin efsanesi **Kimi + Kod**; yalnizca Kimi dilimi dolu, **Kod dilimi YOK**.
-  `5 saatlik Kod %0` · `7 gunluk Kod %0` (sifirlanma 08-22 21:42) · Ek Kullanim kapali, bakiye $0.
-  Haftalik dilim tukenmis olsaydi `7 gunluk Kod` **%100** okurdu; %0 okuyor → **Kod'un UC sayaci da
-  SIFIR**, yani abonelik tarafinda tuketimimiz HIC gorunmuyor, ama ayni ucun API'si "bu dongude
-  limite ulastin" diyor. **Panel ile kapi AYNI SAYACI GOSTERMIYOR.** Elenenler (tekrar denenmesin):
-  anahtar sinifi/uc secimi (kullandigimiz uc ZATEN aboneligin ucu; kimlik ucu uyeligi dogruluyor —
-  adresler hafizada) · baslik sinifi (iki auth sinifi da 403) · model/alt-yol/beta/stream · hiz
-  penceresi · aylik tavan. **Kalan hukum: saglayici tarafinda hesap/kota durumu ya da hatasi** →
-  dogru hamle PARA DEGIL, ekranla birlikte Kimi destegine sormak (Okan kapisi).
-  **Yanlislanabilir kanit AYAKTA:** `~/.claude/cron/kimi-nabiz.py`
-  gunde 2x (09:10/21:10) GERCEK is atar (`max_tokens=1024`) ve UC sarta bakar (200 + icerik
-  bos degil + `stop_reason` null degil); `kimi-nabiz-test.py` **5/5 vaka, 2/2 mutasyon YESIL**,
-  crontab **36→38** teyitli. Ilk olcum `2026-08-17T15:51:09Z SAGLIK=KIRMIZI http=403
-  tip=permission_error icerik=bos stop=null`.
-  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → hat kendiliginden dondu, kalem kapanir;
-  hala KIRMIZI ise **saglayici arizasi** teyitlenir ve karar Okan'a doner (destek talebi; para
-  SON care). ⚖️ Okan emri (17 Agu): kimi kalemi kapali, **yeni olcum turu ACILMAZ**, kimi hattina
-  is YOLLANMAZ; motor plani 20 Agu'ya kadar codex (alt model), 20→22 Agu m3, 22 Agu'da yeniden karar.
+- 🔴 **K157 (17 Agu — KIMI HATTI KOK NEDEN BULUNDU, karar OKAN'DA):** `max_tokens=1`'in 200'u
+  SAHTE (icerik bos, `stop_reason=null`) → gercek uretim SIFIR; `>=2` daima 403
+  `permission_error`. Girdi ekseni · anahtar sinifi/uc · baslik · model/stream · hiz penceresi ·
+  aylik tavan ELENDI. Kimlik ucu anahtarin Okan'in KENDI hesabinda oldugunu dogruladi.
+  🔴 "Haftalik dilim doldu" teshisi CURUDU: panelde `5 saatlik Kod %0` · `7 gunluk Kod %0`
+  → **panel ile kapi AYNI SAYACI GOSTERMIYOR**. Kalan hukum: saglayici tarafinda hesap/kota
+  durumu ya da hatasi → hamle PARA DEGIL, ekranla birlikte destege sormak (Okan kapisi).
+  Yanlislanabilir kanit AYAKTA: `~/.claude/cron/kimi-nabiz.py` gunde 2x GERCEK is atar
+  (5/5 vaka, 2/2 mutasyon); ilk olcum `2026-08-17T15:51Z SAGLIK=KIRMIZI 403`. Tam metin
+  ARSIVDE + DEVAM.md git gecmisinde.
+  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → kalem kapanir; hala KIRMIZI ise
+  saglayici arizasi teyitlenir, karar Okan'a doner. ⚖️ Okan emri (17 Agu): kimi kalemi kapali,
+  **yeni olcum turu ACILMAZ**; motor plani 20 Agu'ya kadar codex (alt model), sonra m3.
 - 🔵 **K158 (17 Agu, TASARIM ACIGI — KAYIT):** isci tarayicisi YALNIZ kimi motorunda var
   (m3'te yok) → kimi dustugunde paneli okuyacak yol da kapaniyor; tek tarayicili motorun
   dususu TESHIS yolunu da kesiyor. Yon: tarayiciyi motordan bagimsiz kola tasi. `kabul:` BOS.
@@ -98,6 +100,7 @@
 - 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
   cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
+- 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
 
 ## OKAN'DA
@@ -115,10 +118,11 @@ K152: `xenodochial-bardeen` TEK YAZICI (gizli kayit duzlemi, flock + public sha2
 worktree'sinde main'de OLMAYAN 1 commit var → temizlikte bilerek ATLANDI, bundle ister.
 (`musing-shaw` ve MaCiT'in peugeot/chevy worktree'leri kapandi; K153 blokeri kalkti.)
 
-## CANLI OLCUM (17 Agu, K153 sonrasi — cache-bust'SIZ, kanonik adres)
-`SITE_HTTP=200 · canli urunler.json benzersiz id=29012 · D1=29012 · yeni urun sayfalari 200`
-CI `2c092d5c`: `build`+`serit-a2`+`deploy`+`yayin` **success**; kirmizi yalniz `hijyen-a2`
-(K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ.
+## CANLI OLCUM (17 Agu — marka dili KIP ekseni main'de, `daa6410d`)
+Kapi kapsami genisletildi ve katalog metni Okan onayli kalip tablosuyla onarildi. Kapi envanteri **297 vurus / 284 kayit** iken onarim sonrasi **21 vurus / 14 kayit**. ONARILAN=281 · KARMA_ATLANAN=1 · ELLE=10 · **SILINEN_URUN=0** · uniq 29037 · olcu satiri 22679 SABIT. Kok neden + kalip tablosu POSTA KUTUSUNDA.
+Kabul: `GECEN=95 KALAN=0 MUTANT=7/7` · `--commit-farki` rc=0 · kendini-test 50/50 · ci-kapsam rc=0 · public tarama 0 bulgu. BAGIMSIZ dogrulayici turu (onceki rapora bakmadan) ayni sayilari uretti.
+D1 5/5 eksen YESIL (SAYI 29037=29037 · SEQ · SEMA · TURETILMIS 5/5 · ICERIK uyusmaz=0). CI `daa6410d` VE `31156ade`: `build`+`serit-a2/a3/a4`+**`deploy`**+**`yayin`** hepsi success; kirmizi yalniz `hijyen-a2` (K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ (IS BAZINDA bakin).
+CANLI (cache-bust'SIZ, kanonik adres): `SITE_HTTP=200` · canli katalog 29037/29037 · onarilan metin canlida GORUNUYOR (ornek urun sayfasi 200, sayfada eski kalip 0) · EDGE BAYAT DEGIL.
 
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
