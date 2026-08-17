@@ -153,15 +153,32 @@ BASLIK_FIKSTURLERI = [
      "ALT-DIZE GURULTUSU: '43mm' icindeki '3m' marka DEGILDIR"),
 ]
 
+# ── KALICI KIRMIZI (yapisal kayip; taban mekanizmasi DISI, her kosumda KIRMIZI) ─
+# Spec K140 hükmu: model jetonlari evren DISINA dusurulunce kalan KIRMIZI yalniz GERCEK
+# kayiplari gosterir. Bu liste o gercek kayiplardan taban mekanizmasiyla SUSMAYACAK olanlari
+# barindirir. Hukuk gerekcesi ([[beyan-edilmis-survivor]]): taban circiri borc kapandiktan
+# sonra geri gelmeyi engeller — bu liste "geri gelmemesini istemedigimiz borc" degil,
+# "GERCEK BIR AÇIK" — yani /marka/<X>/ sayfasinin olmasi/yayinda olmasi gerekip de
+# olmayan urun. Rover: sayfa uretiminin tekil "Rover" icin acilmamis olmasi + cip
+# evreniyle eszamanli sayfa uretiminin kapatilmis olmasi; onarim ayri kalem ([[k140-spec]]).
+KALICI_KIRMIZI = {
+    "ARAMA_KAYIP": {"Rover"},       # gercek kayip: rover sayfasi yok, urun kayboluyor
+}
+
 # ── GURULTU CAPASI (serbest metne geri donusu yakar) ────────────────────────────
 # (urun id, kanonik marka, gurultu sinifi). Her biri BUGUN serbest metin `?q=<marka>`
 # sonucunda CIKIYOR ve HICBIRI o markayla ilgili DEGIL. Marka sorgusu uyelige baglandiktan
 # sonra ARAMADA OLMAMALI.
+#
+# 🔴 K140 KAYNAK DEGISIMI: 3M artik evren DISI (TANINMIS_MARKALAR'a dahil degil); eski
+# alt-dize capasinin ("43mm" -> "3M") bir karsiligi yok, cunku evrende olmayan marka
+# icin ARAMA zaten bos. Bu sutun kaldirildi: ayni alt-dize riski "Acer" (iceride "acer"
+# gecmez) ya da "Anker" ("anker" icinde "nker" alt-dizesi) ile kapansa da 3M-katlamasi
+# YOK. Kalan 3 capa yeterli — serbest metne GERI donusu uc ayri gurultu sinifinda yakalar.
 GURULTU_CAPALARI = [
     ("suzuki-samurai-kalorifer-havalandirma-dugmesi", "Haval",
      "morfolojik (Havalandirma -> 'haval')"),
     ("nissan-altima-torpido-gozu-mandali", "MAN", "morfolojik (Mandali -> 'man')"),
-    ("suzuki-dl650-v-strom-43mm-kece-montaj-aleti", "3M", "alt-dize (43mm -> '3m')"),
     ("land-rover-defender-orta-konsol-govdesi-1997-2000", "Rover",
      "farkli marque ayni ad (Land Rover -> 'Rover'; UZUN-ONCE kurali keser)"),
 ]
@@ -227,10 +244,26 @@ def olc(mmb, arama, urunler, index_html):
     kumeler = {marka: (sayfa, filtre, arama)}; serbeste_dusen = MARKA SORGUSU olarak
     TANINMAYIP serbest metne dusen kanonik markalar (0 olmali). `uyelik`/`baslik_uyum`
     urun basina iki AYRI kaynaktir ve UYUM CAPA HAVUZU onlardan kurulur (bkz. blok basi);
-    `kanon` fikstur olcumunun kullandigi TEK KAYNAK marka-adi yargisidir."""
+    `kanon` fikstur olcumunun kullandigi TEK KAYNAK marka-adi yargisidir.
+
+    🔴 K140-ONARIM KAYNAK DEGISIMI: evren `cip_evreni_markalari()` EKLEMELI — gercek
+    markalar (Sierra, NGK, Aprilia, Ducati, ...) `marka[0]`'da BIRINCIL olarak tasindigi
+    icin evrene girer. Model jetonlari (1290/690/MT-07/...) urunde HER ZAMAN `marka[1+]`
+    olarak IKINCIL — `marka_only` bos, sonraki satir onlari dogal olarak evren DISINA
+    iter. Single source: `marka_uyelikleri`/`birincil_marka` (marka_model_build.py).
+    Elle istisna listesi YASAK ([[ikiz-tanim-sessiz-ayrisma]]); M4 kapinin tek kaynagi
+    izledigini olcer, M18 ikiz tanimi tetikler.
+    """
     evren = mmb.MarkaEvreni(index_html)
     ek = mmb.cip_evreni_markalari(urunler, index_html)
     veri = mmb.gruplandir(urunler, evren, ek)
+    # ONARIM A: model jetonlari ikincil-only ise evren DISI. `marka_only` bos olan kova
+    # katalogda HICBIR urunun birincil markasi degil → gercek marka DEGIL, model/parca
+    # kodu. Filtre marka_uyelikleri'nin marka[0] kolunu okur; single source (ek elle liste
+    # YASAK). Bu satir sayesinde 7 model jetonu "kendiliginden" evren DISI. TAN'da olan
+    # markalar her durumda tutulur (kuratorluk karari zaten orada).
+    tan = set(evren.taninmis)
+    veri = {m: d for m, d in veri.items() if m in tan or d["marka_only"]}
 
     # "Bu dizge bir MARKA ADI mi" yargisi TEK KAYNAKTAN (mmb.marka_adi_kanonu -> index.html
     # markaKatla portu + cip evreni). Bellek: ayni jeton katalog boyunca binlerce kez sorulur.
@@ -243,10 +276,14 @@ def olc(mmb, arama, urunler, index_html):
         return _bellek[dizge]
 
     hs = [(p.get("id"), arama.haystack(p)) for p in urunler]
-    # 🔴 K133 (SPEC ADIM-2): _hedef_markalar YALNIZ marka_only>0 (gercek marka) olanlari
-    # icerir. Model jetonlari (marka_only==0) bu koldan ETKILENMEZ — sayfada kalsalar
-    # bile filtreye EKLENMEZ (spec K133 adim-1 hükmu).
-    _hedef_markalar = sorted(m for m, d in veri.items() if d.get("marka_only"))
+    # 🔴 K140 KAYNAK DEGISIMI: _hedef_markalar artik marka_only VEYA ikincil iceren
+    # markalari kapsar. Eski K133 filtresi (yalniz marka_only>0) model jetonlarini elemek
+    # icin DARALTMISTI — fakat K140 ile model jetonlari zaten evren DISI (TANINMIS listesinde
+    # olmadiklari icin `veri`'ye girmez). Bu genisletme Google/Huawei/Pontiac/Siemens gibi
+    # "ikincil-only" markalarin baslik-uyelik kapsamina girmesini saglar (aksi halde
+    # /marka/<X>/ sayfasinda gorunen urun ?marka=<X> filtresinde YOK — yapisal drift).
+    _hedef_markalar = sorted(m for m, d in veri.items()
+                              if d.get("marka_only") or d.get("ikincil"))
     _ad_kanonu, _azami_ad = mmb.baslik_uyelik_hazirlik(_hedef_markalar, evren)
     # URUN BASINA UC AYRI KAYNAK (gECis kuralinin iki kolu + filtre zenginlestirme):
     #   uyelik_sorgu = marka_model_build.marka_uyelikleri (marka[] DEN — UZUN-ONCE yok)
@@ -517,9 +554,17 @@ def main():
                 % (pid, marka), arama.marka_sorgusu_esler(marka, uy, bs))
         # 2) ARAMA kumesinde GORUNUYOR mu (kapinin kurdugu kume ile uretim yuklemi ayni mi)
         kontrol("UYUM CAPASI %s x '%s' -> ARAMA kumesinde" % (pid, marka), pid in srch)
-        # 3) SAYFADA YOK (capa totoloji degil: sayfa uyelikten turer, capanin uyeligi yok)
-        kontrol("UYUM CAPASI %s x '%s' -> /marka/ SAYFASINDA DEGIL" % (pid, marka),
-                pid not in sayfa)
+        # 3) SAYFADA (K140 EVREN KAYNAGI DEGISIMI, 17 Agu 2026: evren YALNIZ
+        # TANINMIS_MARKALAR'dan turer, model jetonlari evren DISI). FAZ 1B (15
+        # Agu 2026, K133B) sayfayi uyelik ∪ baslik_uyum bilesiminden kurar; capanin
+        # uyeligi YOK ama baslik_uyum'u VAR => FAZ 1B ikincil'e ekler, sayfada
+        # OLMALI. Eski "pid not in sayfa" assertion'i FAZ 1B'nin oncesindeki
+        # "sayfa = uyelik" varsayimina yazilmisti; yeni bileske sayfa kuralini
+        # dogrular. Capa havuzu yine baslik_uyum \ uyelik (totoloji degil: FAZ 1B
+        # kirilirsa — yani baslik_uyum ikincil'e eklenmezse — capanin sayfada
+        # OLMAMASINI beklemek gerekirdi, kapi KIRMIZI yakardı).
+        kontrol("UYUM CAPASI %s x '%s' -> /marka/ SAYFASINDA (FAZ 1B: uyelik+baslik)"
+                % (pid, marka), pid in sayfa)
 
     # ── G) GURULTU CAPASI — serbest metnin yanlis bagladigi urun ARAMADA OLMAMALI ──
     for pid, marka, sinif in GURULTU_CAPALARI:
@@ -536,12 +581,17 @@ def main():
                 pid not in srch)
 
     # ── T) TABAN KARSILASTIRMASI (bloklayici uc eksen) ───────────────────────────
+    # KALICI_KIRMIZI kayitlari taban mekanizmasinin DISINDA — onlar K asamasinda olculur.
+    # Burada "artan" listesi yalniz taban mekanizmasiyla susturulan markalardan olusur.
     print()
     kopuk = False
     for ad, olc_e, tab_e in (("FILTRE_KAYIP", fk, taban.get("filtre_kayip", {})),
                              ("FILTRE_FAZLA", ff, taban.get("filtre_fazla", {})),
                              ("ARAMA_KAYIP", ak, taban.get("arama_kayip", {}))):
-        artan, azalan = eksen_karsilastir(ad, olc_e, tab_e)
+        kalici = KALICI_KIRMIZI.get(ad, ())
+        olc_e_filt = {m: n for m, n in olc_e.items() if m not in kalici}
+        tab_e_filt = {m: n for m, n in tab_e.items() if m not in kalici}
+        artan, azalan = eksen_karsilastir(ad, olc_e_filt, tab_e_filt)
         kontrol("%s: hicbir markada TABANIN USTUNE cikmadi (artan: %d %s)"
                 % (ad, len(artan), artan[:4]), not artan)
         if azalan:
@@ -550,6 +600,38 @@ def main():
                   % (ad, len(azalan), azalan[:6]))
         kontrol("%s: taban GUNCEL (circir — dusus de kirmizidir; azalan: %d)"
                 % (ad, len(azalan)), not azalan)
+
+    # ── K) KALICI KIRMIZI — yapisal kayip; taban mekanizmasi DISI ─────────────────
+    # Spec K140: bu kayitlar HER KOSUMDA KIRMIZI kalmali (susturmak basarisizlik).
+    # Kural: KALICI_KIRMIZI'daki marka eksende >0 gorunmeli. 0'a dusmesi = onarim yapildi
+    # ya da veri sessizce kayboldu — ikisi de kapiyi durdurur.
+    #
+    # ONARIM B (M16 KORLESME): liste bosaltilinca kapinin susturmasi gizlenmemeli. Kural
+    # kendini KORUMALI: KALICI_KIRMIZI'daki her ogE eksende ACIK olmali (susturmak =
+    # basarisizlik) + eksendeki HER kayip KALICI_KIRMIZI'da BEKLENIYOR olmali. Boylece M16
+    # (`KALICI_KIRMIZI'dan Rover dusur`) beklenmeyen_kayip olarak FAIL uretir; liste
+    # bosaldiginda kapinin YESIL gecmesi imkansiz olur.
+    kalici_eksiler = []
+    kalici_hala_acik = []
+    for ad, eksen in (("ARAMA_KAYIP", ak),):
+        for m in KALICI_KIRMIZI.get(ad, ()):
+            n = eksen.get(m, 0)
+            if n <= 0:
+                kalici_eksiler.append((ad, m, n))
+            else:
+                kalici_hala_acik.append((ad, m, n))
+    beklenen_acik = KALICI_KIRMIZI.get("ARAMA_KAYIP", ())
+    beklenmeyen_kayip = sorted((m, n) for m, n in ak.items()
+                               if n > 0 and m not in beklenen_acik)
+    # KAPI KIRMIZI kalmali — acik olan KALICI KIRMIZI kayitlari FAIL uretir (susturma yok).
+    kontrol("K: KALICI KIRMIZI (%d kayit) eksende hala ACIK (susturma yok: %s)"
+            % (len(kalici_hala_acik), kalici_hala_acik),
+            not kalici_hala_acik)
+    kontrol("K: KALICI KIRMIZI sayisi 0'a dusmedi (kapali: %s; 0 = onarim ya da sessiz "
+            "kayip — ikisi de kirmizi)" % kalici_eksiler, not kalici_eksiler)
+    kontrol("K: eksendeki HER kayip KALICI_KIRMIZI'da BEKLENIYOR olmali (M16 korlesme — "
+            "beklenmeyen: %s)" % beklenmeyen_kayip,
+            not beklenmeyen_kayip)
 
     if taban.get("marka_sayisi") != len(veri):
         BILGI.append("marka evreni degisti: taban %s -> olculen %d (taban --taban-yaz ile "
