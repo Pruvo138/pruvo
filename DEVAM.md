@@ -100,6 +100,7 @@
 - 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
   cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
+- 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
 
 ## OKAN'DA
@@ -117,10 +118,10 @@ K152: `xenodochial-bardeen` TEK YAZICI (gizli kayit duzlemi, flock + public sha2
 worktree'sinde main'de OLMAYAN 1 commit var → temizlikte bilerek ATLANDI, bundle ister.
 (`musing-shaw` ve MaCiT'in peugeot/chevy worktree'leri kapandi; K153 blokeri kalkti.)
 
-## CANLI OLCUM (17 Agu, K153 sonrasi — cache-bust'SIZ, kanonik adres)
-`SITE_HTTP=200 · canli urunler.json benzersiz id=29012 · D1=29012 · yeni urun sayfalari 200`
-CI `2c092d5c`: `build`+`serit-a2`+`deploy`+`yayin` **success**; kirmizi yalniz `hijyen-a2`
-(K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ.
+## CANLI OLCUM (17 Agu — marka dili KIP ekseni main'de, `daa6410d`)
+Kapi kapsami genisletildi ve katalog metni Okan onayli kalip tablosuyla onarildi. Kapi envanteri **297 vurus / 284 kayit** iken onarim sonrasi **21 vurus / 14 kayit**. ONARILAN=281 · KARMA_ATLANAN=1 · ELLE=10 · **SILINEN_URUN=0** · uniq 29037 · olcu satiri 22679 SABIT. Kok neden + kalip tablosu POSTA KUTUSUNDA.
+Kabul: `GECEN=95 KALAN=0 MUTANT=7/7` · `--commit-farki` rc=0 · kendini-test 50/50 · ci-kapsam rc=0 · public tarama 0 bulgu. BAGIMSIZ dogrulayici turu (onceki rapora bakmadan) ayni sayilari uretti.
+D1 5/5 eksen YESIL (SAYI 29037=29037 · SEQ · SEMA · TURETILMIS 5/5 · ICERIK uyusmaz=0). CI `daa6410d`: **`serit-a3` (yeni iki adimin yasadigi BLOKLAYICI is) success**, `serit-a2/a4` success, `build`+`deploy` KOSUYOR; kirmizi yalniz `hijyen-a2` (K140) + `hijyen-a3` (M3b) — hijyen seridi, yayini DURDURMAZ.
 
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
