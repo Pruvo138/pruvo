@@ -24,19 +24,24 @@
   MT-07 fren hazne braketi · RE Hunter 350 hava filtresi · RE Himalayan camurluk yukseltici);
   biri MaCiT'te geri cekildi. Kalem kapanana kadar KraL'in defter commit'leri kancanin
   belgeli atlama anahtariyla geciyor (urunlere DOKUNMADAN). `kabul:` alani BOS.
-- 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` UC oturumdur
-  commit'siz duruyor; agac hali K126'nin "tek govde" yuklemini ham dongu olarak GERI ALIYOR
-  → commit'lenirse K126 regresyonu. Sahibi belirsiz, DOKUNULMADI. Yon: sahibi cikmazsa
-  K133B kapanisinda kanonik hale karsi olculup elenecek. `kabul:` alani BOS.
+- 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` UC oturumdur commit'siz;
+  agac hali K126'nin "tek govde" yuklemini ham dongu olarak GERI ALIYOR (commit'lenirse K126
+  regresyonu). Sahibi belirsiz, DOKUNULMADI. K133B kapanisinda kanonik hale karsi elenecek.
 - 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` TEK BASINA
-  kosumda vaka 1 (`bekci-kesmez-kapanis-yok-rc=0`) KALDI verdi, `testler.py` icinden GECTI.
-  Kontrol kosumu (kirli/temiz/kanonik ortam) celiskiyi YENIDEN URETEMEDI; ambient
-  `PRUVO_ISCI_*` bulasmasi hipotezi de yapisal olarak curudu (test kendi `temiz_env()`'i ile
-  filtreliyor). Muhtemel kok: eszamanli kosumdan kalan bekci sureci — KANITLANMADI.
-  Yon: `temiz_env()` ciktisini env-dump olarak bastir. KAT: Claude/Opus. Yasak: vakayi
-  yesile boyama · esik gevsetme · env sabitleyerek belirtiyi susturma.
+  kosumda vaka 1 KALDI verdi, `testler.py` icinden GECTI; kontrol kosumu celiskiyi YENIDEN
+  URETEMEDI, ambient `PRUVO_ISCI_*` bulasmasi hipotezi yapisal olarak curudu. Muhtemel kok:
+  eszamanli kosumdan kalan bekci sureci — KANITLANMADI. Yon: `temiz_env()` ciktisini env-dump
+  olarak bastir. KAT: Claude/Opus. Yasak: vakayi yesile boyama · esik gevsetme.
   kabul: `python3 /Users/okan/.claude/cron/isci-tur-tavani-test.py` (rc=0) **VE**
   `python3 /Users/okan/.claude/cron/testler.py` (`HUKUM=GECTI`), ARDISIK 3 kosumda ayni hukum.
+- 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM DEGISIKLIGI, ekip bilmeli):** crontab'tan UC
+  zamanli gorev kaldirildi (satirlar silinmedi, yorumlandi): posta kutusu izleyicileri
+  (MaCiT + TeKiN, 144 tur/gun) ve **MaCiT parti surucusu** (12 tur/gun). Canli teyit
+  `crontab -l` = **2 aktif** (ci-nobeti + kota-olcum), 181 -> **25 atesleme/gun**.
+  🔴 ETKI: posta kutusu OTOMATIK izlenmiyor (oturum basinda ELLE okunacak) ve **urun
+  partileri kendiliginden ILERLEMIYOR** — katalog buyumesi acilan oturuma bagli.
+  Ders: kota keserken EN COK YAKANI olc; 16 Agu kesintisi ci-nobeti'ni yariya indirmis ama
+  144 turluk izleyici ciftine hic dokunmamisti. `kabul:` alani BOS.
 - 🔧 **K133 DURUM (17 Agu, dal `kral/k133-uyelik` `dbc49f45` — MERGE TUTULDU):** olcum
   ADIM-1: 533 ciftin **tamami** tek sinif (C: `marka[]` DOLU, eksik jeton orada YOK;
   A=B=D=E=**0**); gurultu riski **4/4 hayir**; 68 jeton = **45 gercek marka + 23 model
@@ -75,22 +80,17 @@
   sifirlamaz CIMENTOLAR — once mesru gecis borcu (veri: `marka[]` eksik urunler → MaCiT)
   ile uretec kusuru ayrilacak. YAYINI BLOKLAMAZ (hijyen seridi).
 - KAPANDI (arsivde): K127 rotasyon MADDE GRANULU kol (merge `e5f5c32b`) — 17 Agu rotasyonu.
-- ✅ **K138 KAPANDI (17 Agu, Okan karari — SINIF ORTADAN KALKTI):** mail hicbir zaman ARIZA
-  SINYALI degildi (nobet metni birebir "BAGIMSIZ TEYIT (maile guvenme)", olcum `gh run list`).
-  Okan GitHub'da "Run failed" bildirimini KAPATTI → mail gelmiyor → supurulecek sey yok.
-  **Crontab `21,51` satiri KALDIRILDI** (canli `crontab -l` = **5**, digerleri yerinde)
-  **VE nobet gorev metnindeki supurme adimlari EMEKLI isaretlendi** (§0.4 + §1 + §4) —
-  yalniz crontab'i kaldirmak silme yolunu AJAN elinde canli birakirdi. Sonuc: otomatik
-  mail SILICISI KALMADI; bundan sonra mail kaybolursa sebep KESINLIKLE ucuncu bir yoldur.
-  Geri acma OKAN KAPISI: emekli blogu + crontab satiri AYNI turda.
-- 🔧 **K137 (yeni, 17 Agu):** bu makinede **`crontab` YAZIMI asiliyor** — okuma (`crontab -l`)
-  calisiyor, `crontab <dosya>` ve `cat | crontab -` surec canli kalarak HIC BITMIYOR
-  (sandbox kapali da olsa; `pgrep` ile teyitli, SIGKILL gerekti). Ilk kurulum 03:00'da
-  CALISTI, sonrasi kilitlendi → K121 acigi cron satirinda degil BETIKTE kapatildi.
-  Yon: `/var/at` kilidi suphesi (root); yazim acilinca `21,51` dogrudan
-  `mail-supurme-kos.sh`'e cevrilecek. ⚠️ Tuzak (tekrar yasandi): `crontab <dosya>` dosyayi
-  BULAMAZSA stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc.
-  `kabul:` alani BOS.
+- ✅ **K138 KAPANDI (17 Agu, Okan karari — SINIF ORTADAN KALKTI):** mail ARIZA SINYALI
+  DEGILDI (nobet metni "BAGIMSIZ TEYIT (maile guvenme)", olcum `gh run list`). Okan GitHub
+  bildirimini KAPATTI; crontab satiri KALDIRILDI **VE** nobet gorev metnindeki supurme
+  adimlari EMEKLI isaretlendi (§0.4+§1+§4) — yalniz crontab'i kaldirmak silme yolunu AJAN
+  elinde canli birakirdi. Otomatik mail SILICISI KALMADI; bundan sonra mail kaybolursa
+  sebep KESINLIKLE ucuncu bir yoldur. Geri acma OKAN KAPISI, ikisi AYNI turda.
+- 🔵 **K137 (17 Agu, KAYIT — sonradan ACILDI):** birkac saat boyunca `crontab` YAZIMI asildi
+  (okuma calisiyordu; `pgrep` ile asili surec teyitli, SIGKILL gerekti). O pencerede K121
+  acigi cron satirinda degil BETIKTE kapatilmisti; 11:00 civari yazim acildi ve satirlar
+  dogrudan kaldirildi. ⚠️ Tuzak (tekrar yasandi): `crontab <dosya>` dosyayi BULAMAZSA
+  stdin'den okur ve SESSIZCE asilir — once `ls`, sonra `crontab -l` ile FARK olc.
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal olarak
   asiyor (tam-dosya diff). Yon: butceyi buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   ayri ele almak. `kabul:` alani BOS — kapanmadan once doldurulacak.
