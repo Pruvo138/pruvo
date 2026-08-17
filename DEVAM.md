@@ -4,17 +4,11 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔧 **K134 (17 Agu — defter rotasyonu SINIF kalemi):** kota kancasinin gosterdigi care
-  (`defter-rotasyon.py`) mimar kod kilidinde YASAK; isciye verilince arac `TASINAN=0` dondu
-  (tarihli kapanis bloklari govdesinde `BEKLIYOR`/`KOSUYOR`/🔴 tasiyordu → acik-isaretci
-  vetosu). **Kok kusur ARACTA DEGIL DEFTERDE:** tarihli blok TARIH olmali, canli durum
-  kalem bolumlerinde. Temizlenince rotasyon 5 blok aldi (233 -> 178).
-  **Yon:** (a) kancanin `CARE:` metni ROLUN kosabilecegi yolu gostersin, (b) "tarihli blokta
-  ve KAPANDI maddesinde acik-isaretci jetonu KULLANILMAZ" doktrine gecsin, (c) teste "canli
-  durum tasiyan blok" fiksturu + mutant. [[kapinin-recete-ettigi-care-baska-kapida-yasak]].
-  🔴 **EK:** rotasyon 4 kosumda 3 madde aldi, kota yine kirmizi; kapanis **11 elle kisaltma**
-  istedi — kalem bolumu TEK BASINA tavani asiyor. KAPANDI maddesinin govdesine acik is
-  yazmak (K145'te ben yaptim) araci veto ettiriyor; acik is AYRI kaleme cikmali.
+- 🔧 **K134 (17 Agu — defter rotasyonu SINIF kalemi):** kotanin gosterdigi care
+  (`defter-rotasyon.py`) mimar kod kilidinde YASAK; isciye verilince `TASINAN=0` dondu.
+  Kok kusur ARACTA DEGIL DEFTERDE (tarihli blok canli durum tasiyor). 🔴 Ayni gun
+  **UCUNCU** kez elle kisaltma gerekti (151→125, 137→130) — kalem kendi tarif ettigi
+  sinifin canli kaniti. Yon + tam metin ARSIVDE.
   kabul: `python3 /Users/okan/dev/pruvo/tools/defter-rotasyon-test.py`
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `tools/cgt-ekle.py::fetch()` tek satir UA ile CGTrader'in
   AWS WAF JS-challenge'ina takiliyor (HTTP 202 + ~2KB placeholder); buyuk partilerde IP bazli
@@ -25,19 +19,26 @@
   yazilan gecici final betigiyle asti. Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` DORT oturumdur
   commit'siz; agac hali K126 "tek govde" yuklemini ham donguye GERI ALIYOR. DOKUNULMADI.
-- 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` TEK BASINA
-  kosumda vaka 1 KALDI verdi, `testler.py` icinden GECTI; kontrol kosumu celiskiyi YENIDEN
-  URETEMEDI. Muhtemel kok: eszamanli kosumdan kalan bekci sureci — KANITLANMADI.
-  Yon: `temiz_env()` env-dump. KAT: Claude/Opus. Yasak: yesile boyama · esik gevsetme.
+- 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` tek basina
+  kosumda vaka 1 KALDI, `testler.py` icinden GECTI; celiski YENIDEN URETILEMEDI. Muhtemel
+  kok: eszamanli kosumdan kalan bekci sureci (KANITLANMADI). Yasak: yesile boyama.
   kabul: `python3 /Users/okan/.claude/cron/isci-tur-tavani-test.py` (rc=0) **VE**
-  `python3 /Users/okan/.claude/cron/testler.py` (`HUKUM=GECTI`), ARDISIK 3 kosumda ayni hukum.
-- 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM DEGISIKLIGI, ekip bilmeli):** crontab'tan UC
-  zamanli gorev kaldirildi (satirlar silinmedi, yorumlandi): posta kutusu izleyicileri
-  (MaCiT + TeKiN, 144 tur/gun) ve **MaCiT parti surucusu** (12 tur/gun). Canli teyit
-  `crontab -l` = **2 aktif** (ci-nobeti + kota-olcum), 181 -> **25 atesleme/gun**.
-  🔴 ETKI: posta kutusu OTOMATIK izlenmiyor (oturum basinda ELLE okunacak) ve **urun
-  partileri kendiliginden ILERLEMIYOR**. Ders: kota keserken EN COK YAKANI olc — 16 Agu
-  kesintisi 144 turluk izleyici ciftine hic dokunmamisti. `kabul:` alani BOS.
+  `python3 /Users/okan/.claude/cron/testler.py` (`HUKUM=GECTI`), ARDISIK 3 kosumda ayni.
+- 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 zamanli gorev
+  yorumlandi (2 posta izleyicisi + MaCiT parti surucusu); `crontab -l` = 2 aktif,
+  181 -> **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve urun
+  partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
+- 🔴 **K150 (17 Agu — UZLASTIRICI YANLIS SINIFLANDIRIYOR; ② ICIN BLOKER):** kosum
+  `32026332006` KIRMIZI: baska makinede D1 yazicisi calisiyordu, senkron **tasarim geregi
+  ATLANDI** (`D1_SENKRON=ATLANDI SEBEP=YAZICI_UCUSTA`), sürücü bunu **"GERCEK HATA
+  (wrangler/D1/sema/kod), YENIDEN DENENMEZ"** ilan etti. Kok: ayni `rc=4`
+  `deploy.yml`'de **0** (iyi huylu atlama, `d1-sync.py:4090` yazili sozlesme),
+  uzlastiricida **1** — cunku `onar()` `--adim`SIZ cagiriyor ve yalniz IKI imza taniyor;
+  ucuncu red sinifi ogretilmemis, tanimayan her red `else`'ten GERCEK HATA'ya dusuyor.
+  🔴 ② blokeri: gozcu her `failure`'a LLM turu acar → MaCiT her D1'e yazdiginda yanlis
+  kirmizi → gozcu tam da onlemesi gereken bos turu parti basina uretir.
+  Spec: `kalibrasyon/SPEC-k150-uzlastirici-rc4.md` (rc=5 ERTELENDI + RETRY + kapsam kapisi).
+  kabul: `python3 /Users/okan/dev/pruvo/tools/uzlastirici-onarim.py --kendini-test`
 - 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, guncel uc `c071bfd5`):** onceki iki ucun build'i
   `cancelled` (ardarda push iptali, ARIZA DEGIL); `c071bfd5`'te 4 nabiz success, `build`
   + nobet seridi PENDING. Tam metin ARSIVDE.
