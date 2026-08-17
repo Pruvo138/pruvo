@@ -41,11 +41,13 @@
   🔴 ETKI: posta kutusu OTOMATIK izlenmiyor (oturum basinda ELLE okunacak) ve **urun
   partileri kendiliginden ILERLEMIYOR**. Ders: kota keserken EN COK YAKANI olc — 16 Agu
   kesintisi 144 turluk izleyici ciftine hic dokunmamisti. `kabul:` alani BOS.
-- 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, sonraki turun ILK isi):** `c5225016` (K133 merge'i)
-  CI kosumu ucusta birakildi; push seridinin iki nabzi success, `build`+nobet seridi pending.
-  [[ucustaki-kosum-yesil-degildir]] — yesil DENMEDI. kabul: `gh -R Pruvo138/pruvo run list`
-  ile `c5225016`'yi ICEREN kosum `conclusion=success` **VE** canonical URL'den cache-bust'SIZ
-  canli teyit (marka cipi genisledi mi).
+- 🟠 **K144 (17 Agu — UCUSTAKI KOSUM, sonraki turun ILK isi):** guncel uc `659524df` (K143
+  merge'i; onceki `c5225016` bu uctan geriye kapsandi). Push seridinin iki nabzi success,
+  `build`+nobet seridi PENDING (kuyrukta). [[ucustaki-kosum-yesil-degildir]] — yesil DENMEDI.
+  🔴 17 Agu EK: push bir kez UZAKTAN REDDEDILDI — pre-push kapak taramasi ~10 dk surerken baska
+  oturum ayni iki urun partisini FARKLI SHA ile yayimladi (`cannot lock ref`). Cozum rebase DEGIL
+  fetch+merge; ONCE `urunler.json`'un iki tarafta BIREBIR AYNI oldugu OLCULDU (mukerrer urun riski
+  yok). kabul: `659524df`'yi ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - ✅ **K143 KAPANDI** (kanca yeniden KORUYOR; belgeli atlama yoluna gerek kalmadi): (a) BASLIK
   ekseninin istisnasi YOKTU — dogrulanmis mesru cift hicbir yere cokemiyordu. Istisna artik
   `baslik`+`idler` ile yazilir ve **ID KUMESINE** baglidir (ucuncu kayit girerse eslesme
