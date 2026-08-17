@@ -2150,6 +2150,23 @@ jobs:
       - name: Marka cip tavani kabul testi (MARKA_LIMIT + slice)
         run: node tools/marka-limit-test.js
 
+      # MARKA SORGUSU CANLI JS YUKLEMI (K133) — kardes testlerden AYRI EKSEN: bunlar
+      # yuklemi KENDI ICINE KOPYALAR, bu test index.html'in KENDI blogunu AYIKLAYIP
+      # node vm'inde KOSTURUR. Neden gerekti (olculdu 17 Agu): cip ile marka sayfasi
+      # tek govdeye (`markaSorgusuEsler`) baglandi ama degisikligi olcen test YOKTU —
+      # `:4389` ham uyelige geri donduruldugunde ve uzun-once kurali etkisizlestiginde
+      # TUM kardes testler YESIL kaliyordu ([[makineyi-olctuk-urunu-olcmedik]]).
+      # NE KORUR: (A) uyeliksiz ama basligi markayi tam kelime anan urun cipte GORUNUR
+      # (taban: `Rover` 0/82, `V-Strom` 0/19 — musteri cipe basinca urunu kaybediyordu),
+      # (B) "Land Rover" bigrami tutunca tekil `Rover` URETILMEZ (5 Agu: kuralsiz 80 kalem
+      # sizar), (D) suzme yollarinda HAM `markaUyeMi(` cagrisi KALMAZ.
+      # 🔴 NEDEN SERIT A (BLOKLAYICI): kirmizisi musteriye urun KAYBETTIRIR (cipin
+      # gosterdigi kume ile sayfanin kumesi sessizce ayrisir). Offline, index.html'i
+      # okur, ~0,1 s. FAIL-CLOSED: blok ayiklanamazsa rc=2 (OLCULEMEDI), sessiz yesil YOK.
+      # MUTASYON KANITI hijyen seridinde kosar (nobet.yml): MUTANT=4/4 KONTROL=YESIL.
+      - name: Marka sorgusu canli JS yuklem testi (cip <-> sayfa tek govde)
+        run: node tools/marka-sorgusu-js-test.js
+
       # ARAMA/FILTRE URL SENKRONU (index.html) — ayni sinif, ayni yanlis gerekce.
       # NE KORUR: arama/kategori/marka secimlerinin URL'ye yazilmasi (syncUrl), derin
       # linkin geri okunmasi, aramayi temizleyince URL'nin temizlenmesi ve "yukari cik"

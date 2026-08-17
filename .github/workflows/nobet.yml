@@ -1301,6 +1301,17 @@ jobs:
       - name: Marka model cipi kapisi mutasyon bataryasi (5 oldurucu + 1 kontrol)
         run: python3 tools/marka-cip-mutasyon.py
 
+      # MARKA SORGUSU CANLI JS YUKLEMI — mutasyon bataryasi (4 oldurucu + 1 kontrol).
+      # Serit A'daki `marka-sorgusu-js-test.js`'in CANLILIGINI olcer: mutant index.html
+      # KOPYASINA uygulanir (calisma agaci KIRLENMEZ), kopya isin sonunda SILINIR.
+      # KONTROL kosumu (mutasyonsuz kopya) YESIL olmali — aksi halde kirmizilar
+      # mutasyondan degil kopyalama kusurundan gelirdi ([[fikstur-degeri-mutasyon-koru]]).
+      # 🔴 NEDEN SERIT B: surucu testi 5 kez kosturur; kapinin kendisi ZATEN serit A'da,
+      # burada olculen sey kapinin OLDURUCULUGU ([[kapi-birikimi-yayin-gecikmesi]]).
+      # node ISTER (yukaridaki setup-node bloklayici on-kosul; yoksa rc<>0 -> KIRMIZI).
+      - name: Marka sorgusu JS yuklemi mutasyon bataryasi (4 oldurucu + 1 kontrol)
+        run: node tools/marka-sorgusu-js-mutasyon.js
+
       # ================= MUAFIYET DENETIMI (31 Tem) — 28 OLU-NOBETCI ADAYI BAGLANDI ====
       # NEDEN: tools/ci-kapsam-test.py IZIN_LISTESI'ndeki 65 muafiyetin BUYUK bir kismi
       # "offline-YESIL ama bu turda deploy.yml'e 0-hunk sarti var / sonraki turda alinir"
