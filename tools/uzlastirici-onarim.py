@@ -98,6 +98,11 @@ KARANTINA_DAMGASI = os.environ.get("PRUVO_KARANTINA_DAMGASI") or os.path.join(
 
 DENEME_TAVANI = 3
 GERI_CEKILME_SN = (15, 45)      # 1. ve 2. basarisiz denemeden SONRA beklenen sure
+# TEK KAYNAK: erteleme rc'sinin GERCEK sayisi. Is akisinin `if [ "$rc" = "5" ]` kolu
+# ve tools/cron-nabiz-kapisi.py kablo capasi BU SABITI `ast` ile okur; ikiz sayi URETILMEZ
+# ([[ikiz-tanim-sessiz-ayrisma]]). Bu satir silinir/yeniden adlandirilirsa kapi KIRMIZI
+# yakar (cron-nabiz-kapisi.py kablo capasi).
+ERTELENDI_RC = 5
 
 # KAPSAM KAPISI — surucunun ELE ALDIGI d1-sync sinif evreni (beyan). Kapi bu beyani
 # d1-sync.py'den TURETILEN evrenle karsilastirir; evrende olup burada olmayan bir
@@ -187,7 +192,7 @@ def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
         yaz("🟠 ERTELENDI: %d denemenin hepsinde baska makine canli D1 lease'i tutuyordu. "
             "Senkron denenmedi, BASARISIZ OLMADI (lease geri cekildiginde tekrar denenebilir); "
             "YESIL de DEGILDIR: sapma hala acik olabilir." % DENEME_TAVANI)
-        return 5, DENEME_TAVANI
+        return ERTELENDI_RC, DENEME_TAVANI
     yaz("🔴 YARIS SURDU: %d denemenin hepsinde main'in ucu yazma penceresinde ilerledi. "
         "Olculen tek-deneme carpisma olasiligi %%1,47 idi; %d ardisik carpisma bu "
         "olcumun BAYATLADIGINA isarettir (itme sikligi artmis olabilir)."
