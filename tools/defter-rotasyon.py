@@ -49,6 +49,8 @@ import argparse
 import importlib.util as _ilu
 import os
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -71,6 +73,53 @@ _HARF_JETON_RE = re.compile(
     ) + r")\b"
 )
 _EMOJI_JETONLAR = tuple(j for j in ACIK_ISARETCILER if not any(c.isalpha() for c in j))
+
+# K181d I2: acik bir madde `K###` kimlik tasimiyorsa KAYIP muamelesi
+# gorur. Sayi 1-4 hane; bosluk ya da kelime siniriyla cevrili.
+# Not: "K181d" gibi harf-ekli takip kodlari da eslenir (rakam parcasi
+# yeterli), bu kasitli — paketin fail-closed kurali.
+_KIMLIK_RE = re.compile(r"\bK\d{1,4}\b")
+
+# K181d I2: "(özet çıkarılamadı)" gibi sessiz yedek YASAK. Satici
+# tarafindan (ozet = ...) gibi desenlerle sessizce eklenmesini engelle.
+_YASAK_SESSIZ_YEDEK_RE = re.compile(r"\(özet çıkarılamadı\)|\(ozet cikarilamadi\)")
+
+
+def _kayip_kimliksiz_acik_madde(defter_yol):
+    """I2: defterdeki acik (ACIK jetonlu) bir madde `K###` kimlik
+    tasimiyorsa o maddenin ILK SATIRINI (kirpilmis) dondurur. Boyle bir
+    madde yoksa None doner.
+
+    Amac: T1 PENCERE MUHASEBESI gibi kimliksiz acik kalemler defterde
+    takildiginda sessizce yer tutucu yazmak yerine KAYIP + rc!=0 ile
+    durmali (64-gecis dondugusu bu yuzden olusmustu).
+    """
+    try:
+        with open(defter_yol, "rb") as f:
+            ham = f.read().decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    for satir in ham.splitlines():
+        if not satir.startswith("- "):
+            continue
+        if not _acik_eslesiyor(satir):
+            continue
+        if _KIMLIK_RE.search(satir):
+            continue
+        return satir
+    return None
+
+
+def _sessiz_yedek_yok(defter_yol):
+    """I2: defterde yasakli sessiz yedek (ornek '(özet çıkarılamadı)') VARSA
+    True. Boyle bir desen tespit edilirse sessiz yedek kolu calismis
+    demektir; KAYIP ile durulmali."""
+    try:
+        with open(defter_yol, "rb") as f:
+            ham = f.read().decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    return _YASAK_SESSIZ_YEDEK_RE.search(ham) is not None
 
 
 def _satir_sayisi(metin):
@@ -427,6 +476,190 @@ def _kendini_test():
                       (satir, bayt, char_say)))
     _temizle({**fikstur, "arsiv": arsiv_yol})
 
+    # ---- K181d I1+I2: kotu bicimli (K### kimliksiz) acik kalem --------
+    # Belirleyici fikstur: tavan asan, kapali maddesi olmayan, icinde
+    # K### kimligi olmayan acik bir kalem bulunan defter. Beklenen:
+    # dosya hic degismez (bayt birebir), KAYIP basiliR, rc!=0.
+    kotu_bicim = (
+        "# Baslik bolgesi\n\n"
+        "## T1 PENCERE MUHASEBESI (baglayici)\n"
+        "- 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere "
+        "`08:48:05Z` -> `20 Agu 08:48:05Z`, kapali kalem yok.\n"
+    )
+    fd, kotu_yol = tempfile.mkstemp(suffix=".md", prefix="k181d-fkayip-")
+    with os.fdopen(fd, "wb") as f:
+        f.write(kotu_bicim.encode("utf-8"))
+    kotu_arsiv = kotu_yol + ".arsiv"
+    if os.path.exists(kotu_arsiv):
+        os.unlink(kotu_arsiv)
+    with open(kotu_yol, "rb") as f:
+        kotu_onceki_bayt = len(f.read())
+    sys.argv = ["defter-rotasyon.py", kotu_yol, kotu_arsiv,
+                "--tarih", "2026-08-18", "--tavan-sayi", "3"]
+    try:
+        rc_kayip = main(sys.argv[1:])
+    except SystemExit as e:
+        rc_kayip = e.code
+    with open(kotu_yol, "rb") as f:
+        kotu_sonra_bayt = len(f.read())
+    kayip_beklenen = _kayip_kimliksiz_acik_madde(kotu_yol)
+    sonuclar.append(("F-KAYIP",
+                      rc_kayip != 0 and kotu_sonra_bayt == kotu_onceki_bayt
+                      and kayip_beklenen is not None,
+                      "rc=%d onceki=%d sonra=%d kayip=%r (KAYIP+rc!=0+birebir beklenir)" %
+                      (rc_kayip, kotu_onceki_bayt, kotu_sonra_bayt, kayip_beklenen)))
+    _temizle({"yol": kotu_yol, "arsiv": kotu_arsiv})
+
+    # ---- K181d I1: ilerleme fiksturu (K### kimlikLI acik kalem) --------
+    # Ayni kosumda K### kimligi tasirsa KAYIP degil ILERLEME_YOK beklenir.
+    ilerleme = (
+        "# Baslik bolgesi\n\n"
+        "## K171 PENCERE MUHASEBESI\n"
+        "- 🔴 **K171 PENCERE MUHASEBESI:** tavan asildi, kapali kalem yok.\n"
+    )
+    fd, iler_yol = tempfile.mkstemp(suffix=".md", prefix="k181d-filer-")
+    with os.fdopen(fd, "wb") as f:
+        f.write(ilerleme.encode("utf-8"))
+    iler_arsiv = iler_yol + ".arsiv"
+    if os.path.exists(iler_arsiv):
+        os.unlink(iler_arsiv)
+    with open(iler_yol, "rb") as f:
+        iler_onceki_bayt = len(f.read())
+    r_iler = subprocess.run(
+        [sys.executable,
+         os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      "defter-rotasyon.py"),
+         iler_yol, iler_arsiv, "--tarih", "2026-08-18", "--tavan-sayi", "3"],
+        capture_output=True, text=True)
+    with open(iler_yol, "rb") as f:
+        iler_sonra_bayt = len(f.read())
+    ilerleme_stdout = r_iler.stdout + r_iler.stderr
+    ilerleme_var = "ILERLEME_YOK" in ilerleme_stdout
+    kayip_yok = "KAYIP:" not in ilerleme_stdout
+    sonuclar.append(("F-ILERLEME",
+                      r_iler.returncode != 0 and ilerleme_var and kayip_yok
+                      and iler_sonra_bayt == iler_onceki_bayt,
+                      "rc=%d var=%s kayip_yok=%s birebir=%s (ILERLEME_YOK beklenir, KAYIP yok)" %
+                      (r_iler.returncode, ilerleme_var, kayip_yok,
+                       iler_sonra_bayt == iler_onceki_bayt)))
+    _temizle({"yol": iler_yol, "arsiv": iler_arsiv})
+
+    # ---- K181d M-I1 mutanti: I1 byte-kontrolu no-op ----------------------
+    with open(os.path.abspath(__file__), encoding="utf-8") as f:
+        ana_govde = f.read()
+    i1_capa = (
+        "            if yeni_bayt >= onceki_bayt:\n"
+        "                # I2: oncelikle K### kimliksiz acik kalem ya da\n"
+        "                # dosyada \"(özet çıkarılamadı)\" sessiz yedegi var mi?\n"
+        "                kayip = _kayip_kimliksiz_acik_madde(defter_yol)\n"
+        "                if kayip is None and _sessiz_yedek_yok(defter_yol):\n"
+        "                    kayip = \"(özet çıkarılamadı) yer tutucusu tespit edildi\"\n"
+        "                if kayip is not None:\n"
+        "                    print(\"KAYIP: %s\" % kayip[:60], file=sys.stderr)\n"
+        "                    son_rc = 2\n"
+        "                else:\n"
+        "                    print(\"ILERLEME_YOK\", file=sys.stderr)\n"
+        "                    son_rc = 3\n"
+        "                break\n"
+    )
+    i1_yerine = "            # M-I1 mutanti: I1 byte-kontrolu no-op\n            pass\n"
+    if i1_capa not in ana_govde:
+        sonuclar.append(("M-I1", False, "I1 capa bulunamadi (kod degismis olabilir)"))
+    else:
+        mutant_kod = ana_govde.replace(i1_capa, i1_yerine, 1)
+        fd, mut_yol = tempfile.mkstemp(suffix=".py", prefix="k181d-mutant-i1-")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(mutant_kod)
+        shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "defter-kota-taban.py"),
+                    os.path.join(os.path.dirname(mut_yol), "defter-kota-taban.py"))
+        fd2, mut_defter = tempfile.mkstemp(suffix=".md", prefix="k181d-m1-fi-")
+        with os.fdopen(fd2, "wb") as f:
+            f.write(ilerleme.encode("utf-8"))
+        mut_arsiv = mut_defter + ".arsiv"
+        if os.path.exists(mut_arsiv):
+            os.unlink(mut_arsiv)
+        try:
+            r_mut = subprocess.run(
+                [sys.executable, mut_yol, mut_defter, mut_arsiv,
+                 "--tarih", "2026-08-18", "--tavan-sayi", "3"],
+                capture_output=True, text=True)
+        finally:
+            try:
+                os.unlink(mut_yol)
+            except OSError:
+                pass
+            try:
+                os.unlink(mut_defter)
+            except OSError:
+                pass
+            if os.path.exists(mut_arsiv):
+                try:
+                    os.unlink(mut_arsiv)
+                except OSError:
+                    pass
+        mut_iler_yok = "ILERLEME_YOK" not in (r_mut.stdout + r_mut.stderr)
+        sonuclar.append(("M-I1", mut_iler_yok,
+                          "rc=%d mut_iler_yok=%s (mutant ILERLEME_YOK basmamali)" %
+                          (r_mut.returncode, mut_iler_yok)))
+
+    # ---- K181d M-I2 mutanti: I2 KAYIP branch yer tutucu yaziyor --------
+    with open(os.path.abspath(__file__), encoding="utf-8") as f:
+        ana_govde = f.read()
+    i2_capa = (
+        "                    kayip = \"(özet çıkarılamadı) yer tutucusu tespit edildi\"\n"
+        "                if kayip is not None:\n"
+        "                    print(\"KAYIP: %s\" % kayip[:60], file=sys.stderr)\n"
+        "                    son_rc = 2\n"
+    )
+    i2_yerine = (
+        "                    kayip = \"(özet çıkarılamadı) yer tutucusu tespit edildi\"\n"
+        "                if kayip is not None:\n"
+        "                    # M-I2 mutanti: KAYIP yer tutucu yaziyor (sessiz yedek geri geldi)\n"
+        "                    print(\"OZET: (özet çıkarılamadı)\", file=sys.stderr)\n"
+        "                    son_rc = 2\n"
+    )
+    if i2_capa not in ana_govde:
+        sonuclar.append(("M-I2", False, "I2 capa bulunamadi (kod degismis olabilir)"))
+    else:
+        mutant_kod = ana_govde.replace(i2_capa, i2_yerine, 1)
+        fd, mut_yol = tempfile.mkstemp(suffix=".py", prefix="k181d-mutant-i2-")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(mutant_kod)
+        shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "defter-kota-taban.py"),
+                    os.path.join(os.path.dirname(mut_yol), "defter-kota-taban.py"))
+        fd2, mut_defter = tempfile.mkstemp(suffix=".md", prefix="k181d-m2-fk-")
+        with os.fdopen(fd2, "wb") as f:
+            f.write(kotu_bicim.encode("utf-8"))
+        mut_arsiv = mut_defter + ".arsiv"
+        if os.path.exists(mut_arsiv):
+            os.unlink(mut_arsiv)
+        try:
+            r_mut = subprocess.run(
+                [sys.executable, mut_yol, mut_defter, mut_arsiv,
+                 "--tarih", "2026-08-18", "--tavan-sayi", "3"],
+                capture_output=True, text=True)
+        finally:
+            try:
+                os.unlink(mut_yol)
+            except OSError:
+                pass
+            try:
+                os.unlink(mut_defter)
+            except OSError:
+                pass
+            if os.path.exists(mut_arsiv):
+                try:
+                    os.unlink(mut_arsiv)
+                except OSError:
+                    pass
+        mut_kayip_yok = "KAYIP:" not in (r_mut.stdout + r_mut.stderr)
+        mut_yer_tutucu = "(özet çıkarılamadı)" in (r_mut.stdout + r_mut.stderr)
+        sonuclar.append(("M-I2", mut_kayip_yok and mut_yer_tutucu,
+                          "rc=%d kayip_yok=%s yer_tutucu=%s (mutant KAYIP basMAMALI, yer tutucu basMALI)" %
+                          (r_mut.returncode, mut_kayip_yok, mut_yer_tutucu)))
+
     gecen = 0
     dusen = 0
     for ad, gecti, detay in sonuclar:
@@ -488,6 +721,10 @@ def main(argv=None):
         son_rc = 0
         while gecis < _TEK_GECIS_TAVAN:
             gecis += 1
+            # I1: ilerleme invaryanti — defter bayti ONCESI (mukayese icin).
+            # Eger transferden sonra bayt sayisi azalmadiysa ILERLEME_YOK.
+            with open(defter_yol, "rb") as f:
+                onceki_bayt = len(f.read())
             # ic _tek_gecis mantigini calistirmak icin satir 277+ govdesini
             # yeniden calistirmak yerine, bir alt fonksiyon olarak yeniden
             # cagiriyoruz.
@@ -497,8 +734,27 @@ def main(argv=None):
             if rc != 0:
                 son_rc = rc
                 break
+            # I1: bayt sayisi KESIN azalmali. Azalmadiysa (>=) gecis
+            # no-op'tur; I2 once KAYIP (K### kimliksiz acik madde ya da
+            # dosyada "(özet çıkarılamadı)" sessiz yedegi), yoksa
+            # ILERLEME_YOK. Her iki durumda da dosyaya yazma yok.
+            with open(defter_yol, "rb") as f:
+                yeni_bayt = len(f.read())
+            if yeni_bayt >= onceki_bayt:
+                # I2: oncelikle K### kimliksiz acik kalem ya da
+                # dosyada "(özet çıkarılamadı)" sessiz yedegi var mi?
+                kayip = _kayip_kimliksiz_acik_madde(defter_yol)
+                if kayip is None and _sessiz_yedek_yok(defter_yol):
+                    kayip = "(özet çıkarılamadı) yer tutucusu tespit edildi"
+                if kayip is not None:
+                    print("KAYIP: %s" % kayip[:60], file=sys.stderr)
+                    son_rc = 2
+                else:
+                    print("ILERLEME_YOK", file=sys.stderr)
+                    son_rc = 3
+                break
             if tb == 0 and tm == 0:
-                # Kapali icerik tukendi.
+                # Kapali icerik tukendi (savunmada; I1 zaten yakalar).
                 son_rc = 1
                 break
             if not _tavan_asildi_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
