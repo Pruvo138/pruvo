@@ -1876,6 +1876,23 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/t3-yonlendirme-kapisi.py --kendini-test
 
+      # T4 PARTI BORC KAPISI — SERIT B (19 Agu 2026, Paket T4).
+      # Acik kalemli evde YENI PARTI baslatma makinece REDDEDILIR kapisi. Dort kol:
+      # T4-BORC (esik asildi -> RED) · T4-TEMIZ (esik altinda -> GECER) · T4-EV
+      # (partiyi baslatan EV'in defteri okunur, baskasi karar vermez) ·
+      # T4-OLCULEMEDI (defter okunamazsa fail-closed; "borc yok" SAYILMAZ). Kol
+      # ayrimi mesaj onekiyle (T4-BORC / T4-TEMIZ / T4-EV / T4-OLCULEMEDI) saglanir;
+      # `acik_kalem_sayisi()` ACIK/UCUSTA/OKAN-KAPISI/🔧 sayar, KAPANDI HARIC.
+      # `--kendini-test` GERCEK deftere DOKUNMAZ: tempfile.mkdtemp izolasyonu; her
+      # mutant hedef kolunu AYRICA kanitlar. CANLI kablolama (urun-ekle.py on-kosul)
+      # BU PAKETTE YOK — yalniz RED kaniti uretilir. Offline, ag YOK. Beyan:
+      # tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "T4 parti borc kapisi oz-nobetcisi (4 mutant + curutme, hedef kol kanitli)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/parti-borc-kapisi.py --kendini-test
+          python3 tools/parti-borc-kapisi.py --curutme-test
+
       # SERIT-B MASKELEME KAPISI — Paket K178 (18 Agu 2026, OLCULEN KUSUR).
       # SERIT B'nin 126 adimindan birinin kirmizisi geri kalani 114'u SKIP yapiyor ->
       # kapilar maskeleniyor ([[kirmizi-adim-sonrakini-maskeler]]). Bu kapi serit-b
