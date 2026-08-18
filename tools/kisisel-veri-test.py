@@ -34,7 +34,7 @@ Neyi doğrular:
 (çıkış kodu 0 = geçti)
 """
 import json
-import inspect
+import glob
 import os
 import re
 import subprocess
@@ -1148,7 +1148,13 @@ def _bolunmus_rakam_isabetleri(dosyalar, oku=None):
 
 
 def _bolunmus_rakam_fikstur_korpusu():
-    """Pozitif JS/Python ve yanlis-pozitif sinirlarini bellekte kurar."""
+    """Pozitif JS/Python ve yanlis-pozitif sinirlarini bellekte kurar.
+
+    Negatif sinirlar özellikle telefon-benzeri rakamlar içerse de gerçek string
+    literal birleştirmesi değildir: kısa sürüm, rakam-dışı sağ taraf, JS template
+    literal ve Python format/f-string vakaları ayrı ayrı korunur. Sürüm
+    birleştirmesi ile kısa-sayı birleştirmesi de birbirinden bağımsızdır.
+    """
     cift_tirnak = chr(34)
     tek_tirnak = chr(39)
     pozitif_js = ("const telefon = " + cift_tirnak + "905" + cift_tirnak +
@@ -1157,17 +1163,86 @@ def _bolunmus_rakam_fikstur_korpusu():
                   " + " + tek_tirnak + "550001111" + tek_tirnak)
     kisa_surum = ("surum = " + cift_tirnak + "20" + cift_tirnak +
                   " + " + cift_tirnak + "26" + cift_tirnak)
+    kisa_sayi = ("parca = " + cift_tirnak + "123" + cift_tirnak +
+                 " + " + cift_tirnak + "4567" + cift_tirnak)
     rakam_olmayan = ("etiket = " + cift_tirnak + "905" + cift_tirnak +
                      " + " + cift_tirnak + "parca" + cift_tirnak)
+    sablon_js = "const telefon = `${905}${550001111}`"
+    sablon_py = ('telefon_format = "{}{}".format(905, 550001111)\n'
+                 'telefon_f = f"{905}{550001111}"')
     return {
         "fikstur/pozitif.js": pozitif_js.encode("utf-8"),
         "fikstur/pozitif.py": pozitif_py.encode("utf-8"),
         "fikstur/yesil-surum.js": kisa_surum.encode("utf-8"),
+        "fikstur/yesil-kisa-sayi.js": kisa_sayi.encode("utf-8"),
         "fikstur/yesil-metin.py": rakam_olmayan.encode("utf-8"),
+        "fikstur/yesil-sablon.js": sablon_js.encode("utf-8"),
+        "fikstur/yesil-sablon.py": sablon_py.encode("utf-8"),
     }
 
 
-def bolunmus_rakam_fikstur_hatalari():
+def _bolunmus_rakam_mutant_sureci():
+    """Mutant kaynagi diske yazip ayri Python surecinde uctan uca olcer."""
+    kaynak_yolu = os.path.abspath(__file__)
+    with open(kaynak_yolu, encoding="utf-8") as f:
+        kaynak = f.read()
+    eski = "for m in _BOLUNMUS_RE.finditer(metin):"
+    yeni = "for m in ():  # MUTANT: bolunmus-rakam vakasini oldurur"
+    if eski not in kaynak:
+        return ["MUTANT KAYNAKTA YERI YOK — tarama dongusu bulunamadi"]
+    mutant_kaynak = kaynak.replace(eski, yeni, 1)
+    if mutant_kaynak == kaynak or yeni not in mutant_kaynak:
+        return ["MUTANT KAYNAGA GIRMEDI — kaynak degisikligi kanitlanamadi"]
+
+    mutant_yolu = None
+    hatalar = []
+    try:
+        fd, mutant_yolu = tempfile.mkstemp(
+            prefix="kisisel-veri-test-mutant-",
+            suffix=".py",
+            dir=os.path.dirname(kaynak_yolu))
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(mutant_kaynak)
+        try:
+            sonuc = subprocess.run(
+                [sys.executable, mutant_yolu, "--bolunmus-rakam-mutant-probe"],
+                cwd=ROOT, capture_output=True, text=True,
+                encoding="utf-8", errors="replace")
+        except OSError as e:
+            hatalar.append("MUTANT AYRI SUREC KOSTURULAMADI — %s" % e)
+        else:
+            print("MUTANT AYRI SUREC HAM STDOUT BASLANGICI")
+            print(sonuc.stdout or "", end="")
+            print("MUTANT AYRI SUREC HAM STDERR BASLANGICI")
+            print(sonuc.stderr or "", end="")
+            print("MUTANT AYRI SUREC HAM CIKTI SONU")
+            print("MUTANT AYRI SUREC rc=%d" % sonuc.returncode)
+            ham = (sonuc.stdout or "") + (sonuc.stderr or "")
+            if sonuc.returncode == 0:
+                hatalar.append(
+                    "MUTANT UCTAN UCA YESIL KALDI — pozitif fikstur iddiasi "
+                    "dusmedi (rc=0)")
+            elif "FIKSTUR(karisik)" not in ham:
+                hatalar.append(
+                    "MUTANT TESTI DUSTU AMA POZITIF FIKSTUR IDDIASI GORUNMEDI — "
+                    "rc=%d; rc=1 tek basina mutant kaniti degil" % sonuc.returncode)
+    finally:
+        if mutant_yolu and os.path.exists(mutant_yolu):
+            try:
+                os.unlink(mutant_yolu)
+            except OSError as e:
+                hatalar.append("MUTANT GECICI DOSYA SILINEMEDI — %s" % e)
+
+    kalan = glob.glob(os.path.join(ROOT, "**", "kisisel-veri-test-mutant-*.py"),
+                       recursive=True)
+    if kalan:
+        hatalar.append("MUTANT GECICI DOSYA KALDI — %r" % sorted(kalan))
+    else:
+        print("MUTANT GECICI DOSYA TEMIZ — kisisel-veri-test-mutant-*.py kalmadi")
+    return hatalar
+
+
+def bolunmus_rakam_fikstur_hatalari(mutant_kosumu=True):
     """Pozitif/negatif vaka ve tarayiciyi olduren mutant kaniti."""
     hatalar = []
     korpus = _bolunmus_rakam_fikstur_korpusu()
@@ -1184,31 +1259,14 @@ def bolunmus_rakam_fikstur_hatalari():
         hatalar.append("FIKSTUR(karisik) beklenen pozitif/negatif kumesi %r yerine %r"
                        % (beklenen, bulunan))
 
-    # Mutant: tarama dongusunu bosaltir; pozitif vakalar artik gorulmez.
-    # Kaynak metnindeki eski/yeni satirlar AYRICA kontrol edilir; yalnizca bir
-    # fonksiyonu kopyalayan veya mutation satirini uygulamayan test yesil kalamaz.
-    kaynak = inspect.getsource(_bolunmus_rakam_isabetleri)
-    eski = "for m in _BOLUNMUS_RE.finditer(metin):"
-    yeni = "for m in ():  # MUTANT: bolunmus-rakam vakasini oldurur"
-    if eski not in kaynak:
-        hatalar.append("MUTANT KAYNAKTA YERI YOK — tarama dongusu bulunamadi")
-    mutant_kaynak = kaynak.replace(eski, yeni, 1)
-    if mutant_kaynak == kaynak or yeni not in mutant_kaynak:
-        hatalar.append("MUTANT KAYNAGA GIRMEDI — kaynak degisikligi kanitlanamadi")
-    else:
-        mutant_ad = {}
-        exec(mutant_kaynak, globals(), mutant_ad)
-        mutant_bulunan = mutant_ad["_bolunmus_rakam_isabetleri"](
-            sorted(korpus), oku=lambda y: korpus[y])
-        if mutant_bulunan:
-            hatalar.append("MUTANT VAKAYI OLDUREMEDI — mutant kaynakta ama pozitif isabet "
-                           "hala bulundu: %r" % (mutant_bulunan,))
+    if mutant_kosumu:
+        hatalar.extend(_bolunmus_rakam_mutant_sureci())
     return hatalar
 
 
-def bolunmus_rakam_nobeti():
+def bolunmus_rakam_nobeti(mutant_kosumu=True):
     """Izlenen kaynaklarda iki komsu rakam literalinin telefon-benzeri birlesimini tara."""
-    hatalar = bolunmus_rakam_fikstur_hatalari()
+    hatalar = bolunmus_rakam_fikstur_hatalari(mutant_kosumu=mutant_kosumu)
     yollar, hata = _izlenen_dosyalar()
     if hata:
         hatalar.append("OLCULEMEDI (bolunmus rakam nobeti) — %s" % hata)
@@ -1984,6 +2042,13 @@ def main():
               % (len(t["iddia"]), ",".join(sorted(t["iddia"])), t["dosya"], t["wa"],
                  t["arama"], t["host"], len(_EPOSTA_MUAFIYET)))
         sys.exit(0)
+    if "--bolunmus-rakam-mutant-probe" in argv:
+        h, _t = bolunmus_rakam_nobeti(mutant_kosumu=False)
+        if h:
+            _yaz_hatalar("bölünmüş rakam literal sızıntı nöbetçisi mutant probu", h)
+            sys.exit(1)
+        print("YEŞİL — bölünmüş rakam literal mutant probu geçti")
+        sys.exit(0)
     if "--aralik" in argv:
         i = argv.index("--aralik")
         aralik = argv[i + 1:]
@@ -2090,8 +2155,9 @@ def main():
           "(%d izlenen dosya içeriği tarandı, %d dar literal)."
           % (ted_taranan, len(_TED_KALIPLAR)))
     print("YEŞİL — bölünmüş rakam literal sızıntı nöbetçisi geçti "
-          "(%d izlenen kaynak dosya tarandı; JS/Python pozitif + kısa sürüm/rakam-dışı "
-          "negatif fikstür; mutant kaynakta uygulanıp öldürüldü)."
+          "(%d izlenen kaynak dosya tarandı; JS/Python pozitif + sürüm/kısa sayı/rakam-dışı "
+          "+ JS template/Python format-f-string negatif fikstür; mutant kaynak kopyası "
+          "ayrı süreçte kırmızı oldu ve temizlendi)."
           % bolunmus_taranan)
     print("YEŞİL — iletişim yüzeyi nöbetçisi geçti (%d iddia: %s / taban: %d dosya · "
           "%d WA vuruşu · %d arama vuruşu · %d e-posta host · %d gerekçeli muafiyet · "
