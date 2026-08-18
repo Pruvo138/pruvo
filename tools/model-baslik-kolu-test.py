@@ -735,16 +735,37 @@ def kabul(kok):
     dogrula("H2E MAZDA|B-Serisi değişiklik SONRASI AÇILDI (H2)",
             bool(_mazda) and _mazda[1],
             "mazda yayın=%s" % (bool(_mazda) and _mazda[1]))
-    _ak = evren.model_anahtari("Alfa Romeo", "916")
-    _alfa = kova.get(("Alfa Romeo", _ak))
-    dogrula("H2F ALFA ROMEO|916 değişiklik SONRASI AÇILDI (H1)",
-            bool(_alfa) and _alfa[1],
-            "alfa yayın=%s" % (bool(_alfa) and _alfa[1]))
+    # 🔴 H2F: çıplak sayı + marka[] üyesi -> (d) yargı sayılır ve kova YAYINDA (H1).
+    # K170 Alfa Romeo|916'yı deny'e aldı (H2F orijinal çapası ÖLDÜ: paket K174). Yeni
+    # çapa Ducati|916: aynı eksen — çıplak sayı (916) Ducati ürünlerinin marka[] dizisinde
+    # ÜYE, baslik_dogan=True (kova başlık kolundan doğdu, birincil True ama yargı yine (d)
+    # koluyla geliyor), ROZET_DISI'DE DEĞİL ve ROZET_CAPRAZ_IZINLI'de yargısı VAR. Bu
+    # seçim H1 kolunu GERÇEKTEN ölçer: (d) kolu kapanırsa kova kapanır (H1-killer mutant
+    # N6 ile kanıtlanır; N1 yalnız H1B'yi kırar, (d) kolunu etkilemez — bu yüzden mimar
+    # notundaki "N1 ile H2F kırmızı yansın" beklentisi N1'in tanımıyla ÇATIŞIR; K174 bu
+    # çelişkiyi N6 ile kapatır).
+    _dk = evren.model_anahtari("Ducati", "916")
+    _ducati = kova.get(("Ducati", _dk))
+    dogrula("H2F DUCATI|916 çıplak sayı + marka[] üyesi -> (d) yargı sayıldı, kova YAYINDA (H1)",
+            bool(_ducati) and _ducati[1],
+            "ducati yayın=%s" % (bool(_ducati) and _ducati[1]))
     _sk = evren.model_anahtari("Subaru", "GT86")
     _sub = kova.get(("Subaru", _sk))
     dogrula("H2G ROZET-DISI DENY HÂLÂ ÇALIŞIYOR: Subaru|GT86 KAPALI kalır",
             bool(_sub) and not _sub[1],
             "subaru yayın=%s" % (bool(_sub) and _sub[1]))
+    # 🔴 H2H: K170 ile deny'e alınan Alfa Romeo|916 — H1 kolu sahipleniyor (`jeton_sahibi`
+    # 'alfaromeo' döndürür) AMA ROZET_DISI deny kilidi kovayı YAYINDA AÇMIYOR. Bu iddia
+    # deny kolunu sessizce kaldıran bir mutant'a karşı kilit: deny kalkarsa Alfa Romeo|916
+    # sayfası DOĞAR (ürünler canlıda zaten bu markanın ağacında duruyor, sayfa yalnız
+    # AÇILIR — model-uyelik-kapisi.py de bu yargıyı taşır, çift etki).
+    _ah = evren.model_anahtari("Alfa Romeo", "916")
+    _alfadn = kova.get(("Alfa Romeo", _ah))
+    dogrula("H2H ALFA ROMEO|916 deny kilidi: jeton_sahibi sahipleniyor AMA kova YAYINDA değil",
+            bool(_alfadn) and (not _alfadn[1]) and ("alfaromeo" in (_alfadn[5] if _alfadn else ())),
+            "alfa yayın=%s jeton_sahibi=%s"
+            % ((bool(_alfadn) and _alfadn[1]),
+               sorted(_alfadn[5]) if _alfadn else []))
 
     # --- G) KAYBEDEN YOK: hiçbir ürün kovasından DÜŞMEZ ----------------------------
     # (Kol yalnız EKLER; ölçüt yapısal: başlık kolu hiçbir kovadan ürün ÇIKARMAZ.)
@@ -965,6 +986,30 @@ MUTANTLAR = [
      "JETON_SAHIP_ESIK_PAYDA = 3  # KONTROL",
      "YESIL",
      "K5 KONTROL: eşik sabitine yorum (davranış AYNI) -> iddia bozulmamalı"),
+    # 🔴 K174: H1 KOLUNU ÖLDÜREN (d) şerit mutantı — paket K174.
+    # N1 başlık-only çıplak sayıya phantom sahiplik VERİR (H1B kırar, H1A'ya dokunmaz).
+    # Bu yüzden mimar notundaki "N1 ile H2F kırmızı yansın" beklentisi N1'in tanımıyla
+    # ÇATIŞIR — mevcut hiçbir canlı çıplak-sayı kovası N1 ile kapanmaz. N6, H1'in (d)
+    # kolunu ÇIPLAK SAYI için TAMAMEN KESER: çıplak sayı, marka[] üyesi olsa bile
+    # yargılanmaz. Ducati|916 (yeni H2F çapası, baslik_dogan=True) kapanır; H1A birimi de
+    # kırmızı yanar (jeton_sahibi artık 'alfaromeo' döndürmez). H2H etkilenmez (deny kilidi
+    # (d) kolunu BİLE bypass etmez çünkü deny (d)'den ÖNCE çalışır).
+    ("tools/marka_model_build.py",
+     "    say = jeton.get(_canon(display or \"\"))\n"
+     "    if not say:\n"
+     "        return frozenset()               # yalnız başlıkta -> veri katmanı konuşmadı (fail-closed)\n"
+     "    toplam = sum(say.values())\n"
+     "    return frozenset(k for k, n in say.items() if n * JETON_SAHIP_ESIK_PAYDA >= toplam)",
+     "    say = jeton.get(_canon(display or \"\"))\n"
+     "    if not say:\n"
+     "        return frozenset()               # yalnız başlıkta -> veri katmanı konuşmadı (fail-closed)\n"
+     "    if ciplak_sayi_mi(display or \"\"):\n"
+     "        return frozenset()               # H1 KILLER: çıplak sayı (d) kolundan düşer\n"
+     "    toplam = sum(say.values())\n"
+     "    return frozenset(k for k, n in say.items() if n * JETON_SAHIP_ESIK_PAYDA >= toplam)",
+     "KIRMIZI",
+     "N6 H1 (d) KOLUNU ÇIPLAK SAYI İÇİN KES -> Ducati|916 (yeni H2F çapası) kapanır, H1A "
+     "birimi kırmızı yanar; H2H (deny kilidi) etkilenmez"),
 ]
 
 # M4 mutantının ihtiyaç duyduğu kanca — üretim gövdesine SIZMAZ, yalnız mutant kopyada
