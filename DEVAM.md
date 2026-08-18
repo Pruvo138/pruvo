@@ -12,8 +12,8 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
 **K181d MAIN'DE (`a2f6db8f`, 18 Agu 18:3xZ):** merge+push tamam (kapsam 2 dosya/261+, cakisma
 yok, ff imkansiz→merge commit). Kabul BAGIMSIZ yeniden olculdu: `9/9` · `23/23` · yeni vaka
 `14/14` · mutant `7/7` · agac temiz. D1 bes eksen yesil (29350). Worktree 2→1, artik dal 4
-silindi. CI: `a2f6db8f` icin 2 kosum success, `Build & deploy` **pending** (site dosyasi
-degismedi). · Ana agacta YABANCI kalan: `marka-uyelik-test.py` K136.
+silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merge-base
+--is-ancestor a2f6db8f 0b0dc49f` rc=0 → K181d bu kosumun icinde). · YABANCI: `marka-uyelik-test.py` K136.
 **K175/T2/K170-K174-K166 kapanis isaretcileri ARSIVE tasindi** (lossless, 10 satir).
 - 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
   ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
