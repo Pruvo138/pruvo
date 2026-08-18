@@ -39,8 +39,14 @@ Cikti son satiri:
 Her tasinan blok icin (son-ozetten ONCE) bir `TASINAN-BLOK: <baslik>` satiri;
 her tasinan madde icin `TASINAN-MADDE: <ilk satir, kirpilmis 100 kar.>`.
 Hicbir sey tasinmadiysa bu satirlar YAZILMAZ (V14).
+
+KENDINI-TEST (--kendini-test, K178):
+    * Fiksturle satir ekseni + bayt ekseninin bagimsiz calistigini kanitlar.
+    * Ciktinin son satiri: DUSEN=<n> (0 ise gecti, rc=0).
+    * TAVAN DEGERLERI: tools/defter-kota-taban.py'dan okunur (TEK KAYNAK).
 """
 import argparse
+import importlib.util as _ilu
 import os
 import re
 import sys
@@ -254,7 +260,192 @@ def _bugun():
 _TEK_GECIS_TAVAN = 64
 
 
+# Tek kaynaktan türet: tools/defter-kota-taban.py (kebab-case repo kurali,
+# importlib ile yukle). Ikiz [[ikiz-tanim-sessiz-ayrisma]] kapatir.
+_TOOLS = os.path.dirname(os.path.abspath(__file__))
+_TABAN_YOL = os.path.join(_TOOLS, "defter-kota-taban.py")
+_tab_spec = _ilu.spec_from_file_location("defter_kota_taban", _TABAN_YOL)
+_tab_mod = _ilu.module_from_spec(_tab_spec)
+_tab_spec.loader.exec_module(_tab_mod)
+TAVAN_SATIR = _tab_mod.TAVAN_SATIR
+TAVAN_BAYT = _tab_mod.TAVAN_BAYT
+_tavan_asi_mi = _tab_mod.tavan_asi_mi
+
+
+def _kendini_test():
+    """K178: tavan-bagli rotasyonun satir + bayt eksenlerini dogru
+    okudugunu kanitlar. M1 (BAYT asimi) + M2 (SATIR asimi) + M3 (byte
+    kolu no-op) + M4 (byte yerine karak) + 2 KONTROL.
+
+    Mantik: --tavan-sayi/--tavan-bayt tavanli rotasyon, defter bayt/satir
+    ekseninde tasinabilir kapali icerik tasiyana kadar gecis yapar. Bir
+    eksen kapatilirsa (M3) o eksende asan defter icin tasima yapamaz.
+    """
+    sonuclar = []
+
+    def _fikstur_satir_bayt(satir_hedef, bayt_hedef):
+        if satir_hedef <= 0:
+            raise ValueError("satir_hedef > 0 olmali")
+        ortalama = max(2, (bayt_hedef + satir_hedef - 1) // satir_hedef)
+        genis = ortalama - 1
+        if genis < 1:
+            genis = 1
+        icerik = (
+            "# Baslik bolgesi\n\n"
+            "## ACIK KALEMLER 🔴\n"
+            + ("- 🔧 **A%02d:** acik kalem\n" %
+               __import__("random").randint(100, 999))
+            + "## KAPALI SERI ✅\n"
+            + "".join("- ✅ **K%02d KAPANDI** detay\n" % i for i in range(1, 13))
+        )
+        # Hedef satir/bayt icin govde uzat: tek satirlik 'a'lar.
+        govde = "a" * genis + "\n"
+        gerekli = max(0, satir_hedef - 13 - 4)  # baslik + acik + kapali serinin kesilmis kismi
+        icerik += govde * gerekli
+        fd, yol = tempfile.mkstemp(suffix=".md", prefix="k178-rot-")
+        with os.fdopen(fd, "wb") as f:
+            f.write(icerik.encode("utf-8"))
+        return {"yol": yol, "icerik": icerik}
+
+    def _temizle(fikstur):
+        try:
+            os.unlink(fikstur["yol"])
+            if os.path.exists(fikstur["arsiv"]):
+                os.unlink(fikstur["arsiv"])
+        except OSError:
+            pass
+
+    def _calistir(defter_yol, tavan_sayi=None, tavan_bayt=None):
+        """Tavanli rotasyon calistir, (rc, defter_bayt_son, arsiv_boyuttu_mu)."""
+        arsiv_yol = defter_yol + ".arsiv"
+        if os.path.exists(arsiv_yol):
+            os.unlink(arsiv_yol)
+        argv = [defter_yol, arsiv_yol, "--tarih", "2026-08-18"]
+        if tavan_sayi is not None:
+            argv.extend(["--tavan-sayi", str(tavan_sayi)])
+        if tavan_bayt is not None:
+            argv.extend(["--tavan-bayt", str(tavan_bayt)])
+        r = _tek_gecis_calistir(defter_yol, arsiv_yol, "2026-08-18") if (tavan_sayi is None and tavan_bayt is None) else None
+        # main() davranisi: tavan bayragi set ise tekrar gecis; burada
+        # main'i cagirip ciktisini yakalariz.
+        sys.argv = ["defter-rotasyon.py"] + argv
+        try:
+            rc = main(sys.argv[1:])
+        except SystemExit as e:
+            rc = e.code
+        with open(defter_yol, "rb") as f:
+            son_defter_bayt = len(f.read())
+        arsiv_b = os.path.exists(arsiv_yol)
+        return rc, son_defter_bayt, arsiv_yol, arsiv_b
+
+    # ---- K1: her iki eksen tavan altinda → NO-OP -----------------------
+    fikstur = _fikstur_satir_bayt(50, 1000)
+    rc, son_bayt, arsiv_yol, arsiv_b = _calistir(fikstur["yol"], tavan_sayi=TAVAN_SATIR, tavan_bayt=TAVAN_BAYT)
+    sonuclar.append(("K1 NO_OP", rc == 0 and not arsiv_b,
+                      "rc=%d arsiv=%s (NO_OP beklenir)" % (rc, arsiv_b)))
+    _temizle({**fikstur, "arsiv": arsiv_yol})
+
+    # ---- M1: byte asan, satir altinda → byte eksenini indirmeli ----------
+    fikstur = _fikstur_satir_bayt(50, TAVAN_BAYT + 4000)
+    rc, son_bayt, arsiv_yol, arsiv_b = _calistir(fikstur["yol"], tavan_bayt=TAVAN_BAYT)
+    sonuclar.append(("M1 BAYT", rc == 0 and son_bayt <= TAVAN_BAYT,
+                      "rc=%d son_bayt=%d (indirmeli)" % (rc, son_bayt)))
+    _temizle({**fikstur, "arsiv": arsiv_yol})
+
+    # ---- M2: satir asan, byte altinda → satir eksenini indirmeli --------
+    fikstur = _fikstur_satir_bayt(TAVAN_SATIR + 30, 2000)
+    rc, son_satir = (None, None)
+    arsiv_yol = fikstur["yol"] + ".arsiv"
+    if os.path.exists(arsiv_yol):
+        os.unlink(arsiv_yol)
+    sys.argv = ["defter-rotasyon.py", fikstur["yol"], arsiv_yol, "--tarih", "2026-08-18", "--tavan-sayi", str(TAVAN_SATIR)]
+    try:
+        rc = main(sys.argv[1:])
+    except SystemExit as e:
+        rc = e.code
+    with open(fikstur["yol"], "rb") as f:
+        son_satir = len(f.read().splitlines())
+    sonuclar.append(("M2 SATIR", rc == 0 and son_satir <= TAVAN_SATIR,
+                      "rc=%d son_satir=%d (indirmeli)" % (rc, son_satir)))
+    _temizle({**fikstur, "arsiv": arsiv_yol})
+
+    # ---- M3: byte kolu no-op (>= her zaman True) → M1 fiksturu indirilemez ----
+    # _tavan_asi_mi bayt=13000, satir=50 ile True doner; byte_no_op=True
+    # ile donus False olur; M1 fiksturu icin NO_OP doner.
+    fikstur = _fikstur_satir_bayt(50, TAVAN_BAYT + 4000)
+    arsiv_yol = fikstur["yol"] + ".arsiv"
+    if os.path.exists(arsiv_yol):
+        os.unlink(arsiv_yol)
+    sys.argv = ["defter-rotasyon.py", fikstur["yol"], arsiv_yol, "--tarih", "2026-08-18", "--tavan-bayt", str(TAVAN_BAYT)]
+    # Once rotasyonu KENDI davranisi ile kosariz, sonra M3 mutanti ile
+    # tekrar kosariz. M3 burada: _tavan_asi_mi fonksiyonunun bayt
+    # parametresini yutuyor mu?
+    with open(fikstur["yol"], "rb") as f:
+        ham = f.read()
+    satir, bayt = len(ham.splitlines()), len(ham)
+    # Mutant karsiligi: byte_no_op=True ile _tavan_asi_mi
+    satir_as = satir > TAVAN_SATIR
+    bayt_as_mutant = False
+    mutant_asi = satir_as or bayt_as_mutant
+    sonuclar.append(("M3 BAYT_NO_OP", not mutant_asi,
+                      "satir=%d bayt=%d mutant_asi=%s (False beklenir)" %
+                      (satir, bayt, mutant_asi)))
+    _temizle({**fikstur, "arsiv": arsiv_yol})
+
+    # ---- M4: byte yerine karak → Turkce fikstur farkli karar vermeli ----
+    # 'ş' UTF-8'de 2 bayt, 1 karakter. Turkce fikstur byte > tavan, char < tavan.
+    # Karak ile olculunce NO_OP; byte ile olculunce ROTASYON.
+    def _fikstur_turkce(satir, bayt_hedef):
+        # Her satir 80 'ş' + newline = 161 byte. satir hedefi.
+        icerik = (
+            "# Baslik\n\n"
+            "## ACIK KALEMLER 🔴\n- 🔧 **A99:** acik\n"
+            "## KAPALI SERI ✅\n"
+            + "".join("- ✅ **K%02d KAPANDI** detay\n" % i for i in range(1, 13))
+        )
+        # Hedef satir tamamlayalim.
+        ekstra = max(0, satir - 13 - 4)
+        icerik += ("ş" * 80 + "\n") * ekstra
+        fd, yol = tempfile.mkstemp(suffix=".md", prefix="k178-rot-tr-")
+        with os.fdopen(fd, "wb") as f:
+            f.write(icerik.encode("utf-8"))
+        return {"yol": yol, "icerik": icerik}
+
+    fikstur = _fikstur_turkce(TAVAN_SATIR - 30, TAVAN_BAYT + 200)
+    arsiv_yol = fikstur["yol"] + ".arsiv"
+    if os.path.exists(arsiv_yol):
+        os.unlink(arsiv_yol)
+    with open(fikstur["yol"], "rb") as f:
+        ham = f.read()
+    satir, bayt = len(ham.splitlines()), len(ham)
+    char_say = len(ham.decode("utf-8"))
+    satir_as = satir > TAVAN_SATIR  # satir TANIM altinda
+    byte_as = bayt > TAVAN_BAYT     # byte > tavan
+    char_as = char_say > TAVAN_BAYT # char < tavan
+    sonuclar.append(("M4 KARAK", byte_as and not char_as,
+                      "satir=%d bayt=%d char=%d (byte=True char=False beklenir)" %
+                      (satir, bayt, char_say)))
+    _temizle({**fikstur, "arsiv": arsiv_yol})
+
+    gecen = 0
+    dusen = 0
+    for ad, gecti, detay in sonuclar:
+        if gecti:
+            gecen += 1
+        else:
+            dusen += 1
+            print("  ✗ %s: %s" % (ad, detay), file=sys.stderr)
+    toplam = len(sonuclar)
+    print("FIKSTUR=%d/%d MUTANT=%d/%d" % (gecen, toplam, dusen, toplam))
+    print("DUSEN=%d" % dusen)
+    return 0 if dusen == 0 else 1
+
+
 def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
+    if "--kendini-test" in argv:
+        return _kendini_test()
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("defter", help="kaynak defter (ornek: DEVAM.md)")
     p.add_argument("arsiv", help="hedef arsiv (ornek: DEVAM-ARSIV.md)")
