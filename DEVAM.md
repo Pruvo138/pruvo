@@ -33,6 +33,13 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
 - 🔧 **K179 (18 Agu — recete kapisi CI'da kostu, kirmizisi KISMEN parser artefakti):**
   `RECETE=9 REDDEDILEN=8 EVREN=390`; ayiklayici koddan artik yutuyor. Hukum
   `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
+- 🟠 **K183 (18 Agu, OLCULDU — SERIT B geri bildirimi push yogunluguyla TERS ORANTILI):**
+  son 12 SERIT B kosumunun **7'si `cancelled`** (`gh run list --workflow=nobet.yml`).
+  `cancel-in-progress: false` UCUSTAKI kosumu korur ama KUYRUKTAKI olur; parti/paket
+  yogunlugunda kapi kabulu saatlerce OLCULEMEZ (bugun ③/K168/K179 icin uc kez tekrar
+  beklendi). Yayini BLOKLAMAZ. ⚖️ Yon Okan kapisina bakar (Actions dakikasi): ya seyrek
+  `schedule` tetigi (push'suz pencere garantisi) ya kosum basina ayri concurrency grubu.
+  kabul: art arda push senaryosunda EN AZ bir tam SERIT B kosumu tamamlanir.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
