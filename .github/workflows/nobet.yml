@@ -1872,7 +1872,7 @@ jobs:
       # · T3-OLCULEMEDI (hedef kutuya yazilamazsa fail-closed). `--kendini-test`
       # GERCEK posta kutusuna YAZMAZ: tempfile.mkdtemp izolasyonu; her mutant hedef
       # kolunu AYRICA kanitlar. Offline, ag YOK. Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
-      - name: "T3 yonlendirme kapisi oz-nobetcisi (3 mutant, hedef kol kanitli)"
+      - name: "T3 yonlendirme kapisi oz-nobetcisi (4 mutant, hedef kol kanitli)"
         if: ${{ !cancelled() }}
         run: python3 tools/t3-yonlendirme-kapisi.py --kendini-test
 
