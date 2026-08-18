@@ -1112,19 +1112,23 @@ def _dosya_oku(yol):
 # ---------------------------------------------------------------------------
 # BOLUNMUS RAKAM LITERAL NOBETCISI — KACIS TEKNIGI REGRESYON KAPISI
 #
-# KACIS: kanonik telefon degeri kaynakta iki rakam literaline bolunup arti ile
-# birlestirilirse, duz literal arayan sizinti nobetcisi onu goremez. Bu kapi
-# numaranin kendisini listelemez; kaynakta telefon uzunluguna yakin iki komsu
-# rakam literalini yakalar. Fiksturler asagida parcalardan kurulur ki bu dosya
-# kendi pozitif vakasini canli taramada yeniden yakalamasin.
+# KACIS: kanonik telefon degeri kaynakta iki rakam literaline bolunup arti veya
+# SQL cift boru operatoru ile birlestirilirse, duz literal arayan sizinti nobetcisi
+# onu goremez. Bu kapi numaranin kendisini listelemez; kaynakta telefon uzunluguna
+# yakin iki komsu rakam literalini yakalar. Fiksturler asagida parcalardan kurulur
+# ki bu dosya kendi pozitif vakasini canli taramada yeniden yakalamasin.
 _BOLUNMUS_KAYNAK_UZANTILARI = (
     ".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".html", ".css",
-    ".json", ".yaml", ".yml", ".sh",
+    ".json", ".yaml", ".yml", ".sh", ".sql",
 )
 _BOLUNMUS_MIN_BASAMAK = 10
 _BOLUNMUS_MAX_BASAMAK = 12
+# DIKKAT: Bu dedektor TELEFON DESENI eslestirmez; TOPLAM BASAMAK SAYISINI
+# (10 ila 12) olcer. Bu ayrim, ileride birinin bu regex'i telefon esliyor sanip
+# ustune yanlis bir kural kurmamasi icin burada acik tutulur.
 _BOLUNMUS_RE = re.compile(
-    r"(?P<sol_tirnak>[\"'])(?P<sol>\d{2,})(?P=sol_tirnak)\s*\+\s*"
+    r"(?P<sol_tirnak>[\"'])(?P<sol>\d{2,})(?P=sol_tirnak)"
+    r"\s*(?:\+|\|\|)\s*"
     r"(?P<sag_tirnak>[\"'])(?P<sag>\d{2,})(?P=sag_tirnak)"
 )
 
@@ -1148,7 +1152,7 @@ def _bolunmus_rakam_isabetleri(dosyalar, oku=None):
 
 
 def _bolunmus_rakam_fikstur_korpusu():
-    """Pozitif JS/Python ve yanlis-pozitif sinirlarini bellekte kurar.
+    """Pozitif JS/Python/SQL ve yanlis-pozitif sinirlarini bellekte kurar.
 
     Negatif sinirlar özellikle telefon-benzeri rakamlar içerse de gerçek string
     literal birleştirmesi değildir: kısa sürüm, rakam-dışı sağ taraf, JS template
@@ -1167,6 +1171,10 @@ def _bolunmus_rakam_fikstur_korpusu():
                  " + " + cift_tirnak + "4567" + cift_tirnak)
     rakam_olmayan = ("etiket = " + cift_tirnak + "905" + cift_tirnak +
                      " + " + cift_tirnak + "parca" + cift_tirnak)
+    pozitif_sql = ("SELECT " + tek_tirnak + "905" + tek_tirnak +
+                   " || " + tek_tirnak + "550001111" + tek_tirnak + ";")
+    mesru_sql = ("SELECT " + tek_tirnak + "urun-" + tek_tirnak +
+                 " || " + tek_tirnak + "kodu" + tek_tirnak + ";")
     sablon_js = "const telefon = `${905}${550001111}`"
     sablon_py = ('telefon_format = "{}{}".format(905, 550001111)\n'
                  'telefon_f = f"{905}{550001111}"')
@@ -1176,6 +1184,8 @@ def _bolunmus_rakam_fikstur_korpusu():
         "fikstur/yesil-surum.js": kisa_surum.encode("utf-8"),
         "fikstur/yesil-kisa-sayi.js": kisa_sayi.encode("utf-8"),
         "fikstur/yesil-metin.py": rakam_olmayan.encode("utf-8"),
+        "fikstur/pozitif.sql": pozitif_sql.encode("utf-8"),
+        "fikstur/yesil-mesru-sql.sql": mesru_sql.encode("utf-8"),
         "fikstur/yesil-sablon.js": sablon_js.encode("utf-8"),
         "fikstur/yesil-sablon.py": sablon_py.encode("utf-8"),
     }
@@ -1253,11 +1263,16 @@ def bolunmus_rakam_fikstur_hatalari(mutant_kosumu=True):
                    cift_tirnak + "550001111" + cift_tirnak)
     beklenen_py = (tek_tirnak + "905" + tek_tirnak + " + " +
                    tek_tirnak + "550001111" + tek_tirnak)
+    beklenen_sql = (tek_tirnak + "905" + tek_tirnak + " || " +
+                    tek_tirnak + "550001111" + tek_tirnak)
     beklenen = [("fikstur/pozitif.js", 12, beklenen_js),
-                ("fikstur/pozitif.py", 12, beklenen_py)]
+                ("fikstur/pozitif.py", 12, beklenen_py),
+                ("fikstur/pozitif.sql", 12, beklenen_sql)]
     if bulunan != beklenen:
         hatalar.append("FIKSTUR(karisik) beklenen pozitif/negatif kumesi %r yerine %r"
                        % (beklenen, bulunan))
+    else:
+        print("NEGATIF SQL DIZGE BIRLESTIRMESI TETIKLENMEDI — mesru fikstur YESIL")
 
     if mutant_kosumu:
         hatalar.extend(_bolunmus_rakam_mutant_sureci())
@@ -1265,7 +1280,7 @@ def bolunmus_rakam_fikstur_hatalari(mutant_kosumu=True):
 
 
 def bolunmus_rakam_nobeti(mutant_kosumu=True):
-    """Izlenen kaynaklarda iki komsu rakam literalinin telefon-benzeri birlesimini tara."""
+    """Izlenen kaynaklarda iki komsu rakam literalinin operatorlu birlesimini tara."""
     hatalar = bolunmus_rakam_fikstur_hatalari(mutant_kosumu=mutant_kosumu)
     yollar, hata = _izlenen_dosyalar()
     if hata:
@@ -2155,7 +2170,7 @@ def main():
           "(%d izlenen dosya içeriği tarandı, %d dar literal)."
           % (ted_taranan, len(_TED_KALIPLAR)))
     print("YEŞİL — bölünmüş rakam literal sızıntı nöbetçisi geçti "
-          "(%d izlenen kaynak dosya tarandı; JS/Python pozitif + sürüm/kısa sayı/rakam-dışı "
+          "(%d izlenen kaynak dosya tarandı; JS/Python/SQL pozitif + sürüm/kısa sayı/rakam-dışı "
           "+ JS template/Python format-f-string negatif fikstür; mutant kaynak kopyası "
           "ayrı süreçte kırmızı oldu ve temizlendi)."
           % bolunmus_taranan)
