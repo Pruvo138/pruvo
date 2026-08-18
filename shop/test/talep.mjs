@@ -2,6 +2,7 @@
 /** POST /api/shop/talep davranis testi. */
 
 import { pathToFileURL } from "node:url";
+import { readFile } from "node:fs/promises";
 
 const kaynak = process.env.TALEP_SOURCE
   ? pathToFileURL(process.env.TALEP_SOURCE).href
@@ -20,7 +21,7 @@ function ol(ad, kosul, detay = "") {
     console.log("  ✅ " + ad);
   } else {
     dusen++;
-    console.log("  ❌ " + ad + (detay ? " — " + detay : ""));
+    console.log("DUSEN: " + ad + " — beklenen=kabul / gerceklesen=" + (detay || "kosul false"));
   }
 }
 
@@ -35,7 +36,10 @@ async function iddia(ad, fn) {
 }
 
 function basliklar(kayit = {}) {
-  const girdi = { kanal: "site", kategori: "Marin", parca_adi: "kapak", ...kayit };
+  const girdi = {
+    kanal: "site", kategori: "Marin", marka: "Ornek", model: "Model-1", yil: "2015-2018",
+    parca_adi: "kapak", notu: "kisa not", ...kayit,
+  };
   return JSON.stringify(girdi);
 }
 
@@ -48,7 +52,10 @@ function istek(body, opts = {}) {
   return {
     method: opts.method || "POST",
     headers: { get: (anahtar) => baslik[String(anahtar).toLowerCase()] ?? null },
-    text: async () => ham,
+    text: async () => {
+      if (typeof opts.onText === "function") { opts.onText(); }
+      return ham;
+    },
   };
 }
 
@@ -58,12 +65,14 @@ function siteIstek(body, opts = {}) {
 
 function ortam(opts = {}) {
   const env = { inserts: [], prepareCalls: 0, KATALOG: {
-    prepare(sql) {
+      prepare(sql) {
       env.prepareCalls++;
       return { bind: (...args) => ({
         async run() {
+          if (args.some((arg) => arg === undefined)) { throw new TypeError("undefined D1 argument"); }
           if (opts.d1 === "unique") { throw new Error("UNIQUE constraint failed: talepler.kod"); }
           if (opts.d1 === "down") { throw new Error("D1 down"); }
+          if (opts.d1 === "notnull") { throw new Error("NOT NULL constraint failed: talepler.kanal"); }
           env.inserts.push({ sql, args });
           return { meta: { changes: 1 } };
         },
@@ -102,10 +111,14 @@ await iddia("B2", async () => {
 });
 
 await iddia("B3", async () => {
-  const govde = basliklar({ notu: "ş".repeat(2100) });
+  const govde = '{"kanal":"site",' + " ".repeat(5000) + '"parca_adi":"kapak"}';
   const { env, res, body } = await gecersizTalep(govde);
-  return new TextEncoder().encode(govde).length > 4096 && govde.length < 4096 &&
-    res.status === 400 && body.hata === "gecersiz" && env.prepareCalls === 0;
+  const kucuk = '{"kanal":"site",' + " ".repeat(1000) + '"parca_adi":"kapak"}';
+  const kucukSonuc = await talepKaydet(siteIstek(kucuk), ortam());
+  return new TextEncoder().encode(govde).length > 4096 &&
+    new TextEncoder().encode(kucuk).length < 4096 &&
+    res.status === 400 && body.hata === "gecersiz" && env.prepareCalls === 0 &&
+    kucukSonuc.status === 200;
 });
 
 await iddia("B4", async () => {
@@ -118,6 +131,43 @@ await iddia("B4", async () => {
 await iddia("B5", async () => {
   const { env, res, body } = await gecersizTalep(basliklar(), { headers: { Origin: "https://evil.example" } });
   return res.status === 400 && body.hata === "gecersiz" && env.prepareCalls === 0;
+});
+
+await iddia("K1", async () => {
+  const { env, res, body } = await gecersizTalep("null");
+  return res.status === 400 && body.hata === "gecersiz" && env.prepareCalls === 0;
+});
+
+await iddia("K2", async () => {
+  const env = ortam();
+  const res = await talepKaydet(siteIstek({ kanal: "site", parca_adi: "kapak" }), env);
+  const body = await json(res);
+  const args = env.inserts[0] ? env.inserts[0].args : [];
+  return res.status === 200 && TALEP_KOD_RE.test(body.kod) && env.inserts.length === 1 &&
+    args.length === 9 && args.slice(2).every((arg) => arg !== undefined) &&
+    args[3] === null && args[4] === null && args[5] === null && args[6] === null && args[8] === null;
+});
+
+await iddia("K3", async () => {
+  const env = ortam({ d1: "notnull" });
+  const res = await beklenenHataSessiz(() => talepKaydet(siteIstek(basliklar()), env));
+  const body = await json(res);
+  return res.status === 200 && body.kod === null && env.prepareCalls === 1;
+});
+
+await iddia("K4", async () => {
+  const kaynakMetni = await readFile(new URL(kaynak, import.meta.url), "utf8");
+  return !kaynakMetni.includes("talep kod cakismasi: tekrar siniri");
+});
+
+await iddia("K5", async () => {
+  let textCalls = 0;
+  const env = ortam();
+  const res = await talepKaydet(siteIstek(basliklar(), {
+    headers: { "Content-Length": "4097" }, onText: () => { textCalls++; },
+  }), env);
+  const body = await json(res);
+  return res.status === 400 && body.hata === "gecersiz" && textCalls === 0 && env.prepareCalls === 0;
 });
 
 if (!sizinti) {

@@ -6,7 +6,7 @@
  */
 
 export const TALEP_ALFABE = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
-export const TALEP_KOD_RE = /^PR-[23456789ABCDEFGHJKMNPQRSTVWXYZ]{6}$/;
+export const TALEP_KOD_RE = new RegExp("^PR-[" + TALEP_ALFABE + "]{6}$");
 
 const KOD_UZUNLUGU = 6;
 const GOVDE_BAYT_TAVANI = 4096;
@@ -105,7 +105,7 @@ function talepKoduUret() {
 
 function benzersizCakisma(hata) {
   const metin = String(hata && hata.message || hata || "").toUpperCase();
-  return metin.includes("UNIQUE") || metin.includes("PRIMARY KEY") || metin.includes("CONSTRAINT");
+  return metin.includes("UNIQUE") || metin.includes("PRIMARY KEY");
 }
 
 function hataSinifi(hata) {
@@ -116,6 +116,11 @@ export async function talepKaydet(request, env) {
   if (request.method !== "POST") { return gecersiz(405); }
   if (!originIzinli(request, env)) { return gecersiz(); }
   if (await kotaAsildi(request, env)) { return gecersiz(); }
+
+  const contentLength = request.headers && typeof request.headers.get === "function"
+    ? request.headers.get("Content-Length") : null;
+  if (contentLength !== null && Number.isFinite(Number(contentLength)) &&
+      Number(contentLength) > GOVDE_BAYT_TAVANI) { return gecersiz(); }
 
   let metin;
   try {
@@ -131,6 +136,7 @@ export async function talepKaydet(request, env) {
   } catch (e) {
     return gecersiz();
   }
+  if (!govde || typeof govde !== "object" || Array.isArray(govde)) { return gecersiz(); }
   if (govde.website !== undefined && govde.website !== "") { return gecersiz(); }
   if (!alanlarGecerli(govde)) { return gecersiz(); }
 
@@ -143,8 +149,8 @@ export async function talepKaydet(request, env) {
         " (kod, olusturma, kanal, kategori, marka, model, yil, parca_adi, notu, durum)" +
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'yeni')"
       ).bind(
-        kod, tarih, govde.kanal, govde.kategori, govde.marka, govde.model,
-        govde.yil, govde.parca_adi, govde.notu
+        kod, tarih, govde.kanal, govde.kategori ?? null, govde.marka ?? null,
+        govde.model ?? null, govde.yil ?? null, govde.parca_adi ?? null, govde.notu ?? null
       ).run();
       return cevap({ kod, wa: waAdresi(kod) }, 200);
     } catch (e) {
@@ -156,8 +162,6 @@ export async function talepKaydet(request, env) {
       return cevap({ kod: null, wa: WA_BASE }, 200);
     }
   }
-  console.error("talep kod cakismasi: tekrar siniri", "Error", "");
-  return cevap({ kod: null, wa: WA_BASE }, 200);
 }
 
 export { ALAN_TAVANLARI, izinliAnahtarlar, talepKoduUret };

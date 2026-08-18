@@ -186,7 +186,7 @@ taramasını KENDİ yapar. Python testi hem çağrının çıkış kodunu hem id
 
 | # | İddia | Şerit |
 |---|---|---|
-| A1 | Kod üreteci: 100.000 üretimde **0 çakışma** | B |
+| A1 | Kod üreteci **entropi** ölçümü — bkz. 🔴 DÜZELTME A1 (aşağıda) | B |
 | A2 | Kod alfabesinde `0 1 I L O U` **YOK** (üretilen 100.000 kodun hiçbirinde) | B |
 | A3 | Üretilen her kod `^PR-[...]{6}$` regex'ini geçer | B |
 | A4 | `Math.random` kaynakta **geçmez**, `crypto.getRandomValues` geçer | B |
@@ -332,6 +332,94 @@ biri yazarsa hata **sessiz** olur.
 Bu da eksen ölçümüdür, kelime avı değil: `talepler` tablosuna değen SQL ifadelerini
 ayrıştır, `yil` operandının karşılaştırma operatörüne girip girmediğine bak.
 Ayrıca `d1-sema.sql`'deki `talepler` bloğuna bu kısıtı **yorum olarak** yaz.
+
+---
+
+# 🔴 DÜZELTME A1 (MİMARIN KENDİ SPEC HATASI — ölçüm yakaladı)
+
+§5'teki **"100.000 üretimde 0 çakışma"** iddiası **matematiksel olarak yanlıştı**; kod
+kusuru değil, benim spec kusurum. Doğum-günü sınırı: evren `30^6 = 729.000.000`,
+`n = 100.000` çekimde beklenen çakışma `n²/(2N) ≈ 6,9`. Yani **doğru çalışan bir üreteç
+bile ~7 çakışma verir** ve iddia HER KOŞUMDA düşer.
+
+Ölçüm bunu doğruladı: taban koşumda `DUSEN=1` — düşen iddia **A1**. Mutant koşumlarının
+ham çıktısında da `{"say":99996,"tekrar":true}` görünüyor: 4 çakışma, tam beklenen aralıkta.
+
+🔴 **Kavram hatası neredeydi:** üretecin işi **tekillik** değil **entropi**dir. Tekilliği
+`kod` PRIMARY KEY + 5 denemelik yeniden üretim garanti eder (§1) — orası zaten
+ölçülüyor (D4/D10). Üreteçten tekillik istemek, veritabanının işini üretece yıkmaktı.
+
+**A1 YENİ TANIMI:**
+
+| # | İddia | Şerit |
+|---|---|---|
+| A1 | 100.000 üretimde **farklı kod sayısı ≥ 99.900** (entropi tabanı). Bozuk üreteç kesin düşer: sabit üreteç `1`, tek-karakter entropili üreteç `30` verir; sağlam üreteç ~99.993 verir — aradaki uçurum 3 büyüklük mertebesi, eşik istatistiksel gürültüye DEĞMEZ | B |
+
+**Çakışma sayısı iddia edilmez** — beklenen aralıkta olması normaldir ve onu sıfıra
+zorlamak yanlış-pozitif üretir. Eşiğin gerekçesi rapora yazılacak: 99.900 eşiği beklenen
+~7 çakışmanın 14 katına kadar tolerans tanır (yanlış-pozitif yok), ama entropi kaybının
+her gerçek biçimini yakalar (say ≤ 30).
+
+## A1 — KABUL EDİLEN İKİNCİ ÇÖZÜM: DETERMİNİSTİK VEKİL RNG
+
+İşçi eşik yerine **`crypto.getRandomValues`'i sayaç tabanlı bir vekille değiştirip** ölçümü
+deterministik yapan bir yol seçti (kod `i`, `i`'nin 30 tabanındaki gösterimi olur → 100.000
+çekimde 100.000 farklı kod, çakışma **yapısal olarak** imkânsız).
+
+**Bu çözüm KABUL** — eşik toleransından üstündür: istatistiksel pay gerekmez, iddia
+`say == 100000 and not tekrar` biçiminde kesin kalır ve yanlış-pozitif üretmez. İkisinden
+biri yeterli; hangisi seçilirse **gerekçesi kodun yanına yazılır** (bir sonraki okuyan
+"0 çakışma olmalı" diye geri sıkıştırmasın — bugün düşen iddia tam olarak buydu).
+
+🔴 **AMA BU YOLUN AÇTIĞI KÖR NOKTA KAPATILACAK.** Vekil RNG takılıyken üretecin **gerçek
+rastgelelik yolu hiç koşmuyor**; özellikle `talepKoduUret` içindeki **red-örnekleme**
+(`do { ... } while (bayt[0] >= kabulSiniri)`) ölçülmemiş kalıyor. Vekil hep `0..29`
+döndürdüğü için o `while` koşulu **hiçbir zaman doğru olmuyor** — yani deponun bilinen
+tuzağı: *ölü kola nişanlanmış ölçüm*. Red-örnekleme bozulursa (ör. `>=` yerine `>`,
+ya da `kabulSiniri` yanlış hesaplanırsa) kodlar **düzgün dağılmaz** ve alfabenin ilk
+karakterleri fazla çıkar — hiçbir iddia bunu görmez.
+
+| # | İddia | Şerit |
+|---|---|---|
+| A5 | Vekil RNG **tavan üstü** değerler de döndürdüğünde (ör. sırayla `250, 7`) üreteç `250`'yi **REDDEDİP** yeniden çeker; üretilen karakter `ALFABE[7]` olur, `ALFABE[250 % 30]` DEĞİL | B |
+| A6 | Vekil RNG düzgün dağılımlı `0..255` ürettiğinde, 60.000 karakterde alfabenin **30 harfinin hepsi** görülür ve en sık/en seyrek harf oranı **1,5'i aşmaz** (red-örnekleme modulo sapmasını gerçekten kaldırıyor mu) | B |
+
+A5 mutantı: `bayt[0] >= kabulSiniri` → `bayt[0] >= 256` (red hiç çalışmaz).
+A6 mutantı: `kabulSiniri` → `256` (modulo sapması geri gelir).
+İkisi de **yalnız kendi iddiasını** düşürmeli.
+
+### 🔴 A6 GİRDİSİ **TAM DEVİR** OLACAK (kırılganlık önlemi — mimar şerhi)
+
+A6'nın vekili `0..255` aralığını **tam devirlerle** süpürecek (`k × 256` çekim, yarım
+devir YOK). Gerekçe — koda yorum olarak yazılacak:
+```
+# Kabul penceresi 0..239 = 240 deger = 30 harf x 8. Supurme 0..255'in TAM kati oldugunda
+# her harf birebir 8k kez duser -> en sik / en seyrek orani DETERMINISTIK 1,0 cikar.
+# Yarim devirle biten supurme kuyrukta yapay sapma uretir; o zaman 1,5 esigi bir gun
+# SEBEPSIZ kirilir ve kimse nedenini bulamaz (kirilgan esik = susturulan kapi).
+```
+Eşik 1,5 olarak KALIR (mutant marjı), ama sağlam kodda ölçülen değer **tam 1,0** olmalı;
+rapora ölçülen oran AYNEN yazılacak. 1,0 değilse süpürme tam devir değildir → önce onu düzelt.
+
+### A7 — GERÇEK RNG YOLU ÖLÇÜM DIŞINDA KALMAYACAK (duman vakası)
+
+Vekil takılıyken üretim yolu hiç koşmuyor. Küçük, **kırılgan olmayan** bir duman vakası:
+
+| # | İddia | Şerit |
+|---|---|---|
+| A7 | **GERÇEK** `crypto.getRandomValues` ile 1.000 kod üretilir; hepsi `TALEP_KOD_RE`'yi geçer, hepsi 9 karakterdir ve **yalnız** `TALEP_ALFABE` harflerini taşır. **İstatistik YOK** (çakışma/dağılım iddia edilmez) — bu yüzden kırılgan değildir | B |
+
+Böylece "üretim yolu hiç çağrılmadı" sınıfı kapanır; entropi ve tekillik iddiaları
+deterministik vekilde kalmaya devam eder. A7 mutantı: `talepKoduUret` gövdesinde
+`TALEP_ALFABE` yerine sabit bir dizge — biçim bozulur, A7 düşer.
+
+### 🔴 `BEKLENEN_IDDIA` SABİTLERİ AYNI COMMIT'TE GÜNCELLENECEK
+
+İddia sayısı 20'den arttı (K1–K5, A5–A7, D5–D12, E3, F1–F4, G1–G7 eklendikçe). G5
+invaryantı sabitle karşılaştırdığı için **sabit güncellenmezse kendi kapımız kırmızı
+yanar** — bu DOĞRU davranıştır (invaryant çalışıyor demektir), ama sabitler iddia
+listesiyle **aynı commit'te** güncellenmezse gürültü üretir. Kapanış raporunda nihai
+iki sayı (bayraksız kol / `--sizinti` kolu) AYNEN yazılacak.
 
 ---
 

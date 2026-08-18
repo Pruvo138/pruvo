@@ -210,6 +210,188 @@ göndermez ve her talebi 400 alır.
 
 ---
 
+## 0.17 🔴 KABUL TESTİNİN KENDİ KUSURLARI — `tools/talep-hatti-test.py` (mimar tam okudu)
+
+Kaynak okundu, aşağıdakiler **teşhis edilmiş kök nedenlerdir**; tahmin değil.
+
+### H1 🔴🔴 `DUSEN=1`İN KİMLİĞİ: **A1** — ve suç KODDA DEĞİL, SPEC'TE
+`kod_ekseni`'nin A1 iddiası `veri["say"] == 100000 and not veri["tekrar"]`.
+Doğum-günü sınırı: `30^6 = 729.000.000` evrende `100.000` çekim → beklenen çakışma ≈ **6,9**.
+**Sağlam üreteç bile bu iddiayı HER KOŞUMDA düşürür.** Mutant ham çıktıları da bunu
+gösteriyor: `{"say":99996,"tekrar":true}` = 4 çakışma, tam beklenen aralıkta.
+**Çare:** spec'te **DÜZELTME A1** yazıldı (`tools/paket-k186-talep-hatti.md`) — iddia
+"0 çakışma" değil **"farklı kod sayısı ≥ 99.900" (entropi tabanı)** olacak. Çakışma
+sayısı İDDİA EDİLMEZ; tekilliği PRIMARY KEY + 5 deneme garanti eder.
+Eşiğin ayırt ediciliği: sabit üreteç `say=1`, tek-karakter entropi `say=30`, sağlam
+üreteç `~99.993` → üç büyüklük mertebesi fark, yanlış-pozitif riski yok.
+
+### H2 🔴 MUTANT B4 ÖLÜ KOLA NİŞANLANMIŞ (B4'ün sağ kalma sebebi — KESİN)
+```js
+"B4": js.replace('if (!headers || typeof headers.get !== "function") { return false; }',
+                 '... { return true; }')
+```
+Bu satır YALNIZ `headers` nesnesi YOK/bozuk olduğunda çalışır. Test fikstürü (`istek()`)
+**her zaman** çalışan bir `headers.get` veriyor → mutasyona uğrayan kol **HİÇ
+ÇALIŞMIYOR** → mutant fiilen no-op → doğal olarak yaşıyor.
+B4 iddiası ise "Origin/Referer YOK → RED" — o karar `originIzinli`'nin **sonundaki**
+`return false;` satırında veriliyor.
+**Çare:** mutant o son `return false;` satırını `return true;` yapacak. (Çapa benzersiz
+olmalı: dosyada birden çok `return false;` var → daha geniş, tek geçen bir çapa seç ve
+`grep -c` ile 1 olduğunu ÖLÇ.)
+
+### H3 🔴 A2/A3/A4 MUTANTLARI BİRDEN ÇOK İDDİA DÜŞÜRÜYOR
+Ölçülen ham çıktılar:
+```
+A2 -> yasak:true  + bicim:false + tekrar:true   (hedefi A2, ama A3'ü ve A1'i de yakar)
+A3 -> bicim:false + tekrar:true                 (hedefi A3, A1'i de yakar)
+A4 -> say:1       + tekrar:true                 (hedefi kaynak iddiasi, A1'i de yakar)
+```
+⚠️ Düzeltme: A1 ve A4 **aynı mutasyon değil** (A1 üreteci sabitler, A4
+`crypto.getRandomValues`'i `Math.random` yapar ve `bayt[0]` hiç güncellenmediği için
+üreteç yine sabitlenir). Sonuç aynı görünüyor, sebep farklı. Asıl kusur: **üçü de hedef
+dışı iddia düşürüyor** — K182 ihlali.
+**Çare:** A ekseni iddialarını birbirinden BAĞIMSIZ ölç (her mutant için yalnız KENDİ
+iddiasının değerine bak, diğerlerini o koşumda değerlendirme) ve raporda her mutant için
+"düşen iddia listesi = tek eleman" göster.
+
+### H4 🔴 C1–C5 MUTANTLARI HAM ÇIKTI BASMIYOR
+`mutant_sonuclari` içindeki `print` yalnız `tur in ("kod","talep","node")` için çalışıyor;
+`"source"` türü (C ekseni) **hiç satır basmıyor**. Beş bloklayıcı iddianın mutant kanıtı
+çıktıda YOK — hüküm var, ham kanıt yok. **Çare:** C mutantları için de
+`MUTANT <ad> ... base=<x> mutant=<y>` satırı bas.
+
+### H5 🔴 `main()` B/D/E İDDİALARINI ÖNCE KOŞULSUZ `True` YAPIYOR
+```python
+for ad in iddialar:
+    if ad.startswith(("B","D","E")): sonuclar[ad] = ... if args.sizinti else True
+```
+Sonra yalnız `dusen` varsa `❌ <ad>` satırları aranıp `False`'a çevriliyor. Yani hüküm
+"ölçüldü" değil "aksi kanıtlanmadıkça doğru" temelinde kuruluyor — **fail-open**.
+`talep.mjs` bir iddiayı hiç koşmazsa (ör. `--only` süzgeci, isim değişikliği, erken
+`process.exit`) o iddia **YEŞİL** sayılır. **Çare:** `talep.mjs` her iddia için `✅/❌`
+satırı bassın ve Python tarafı **her iddianın satırını GÖRDÜĞÜNÜ** doğrulasın; satır
+yoksa `OLCULEMEDI` → fail-closed (`False`).
+
+### H6 `kod_ekseni`'nde ÖLÜ KOD
+İlk `ifade` ataması hemen ikincisiyle eziliyor ve içinde bozuk sözdizimi var
+(`say:iym=s.size`). Sil — K4 ile aynı sınıf (ölü kol, mutasyon çapası oraya kayabilir).
+
+### H7 C5 YANLIŞ-POZİTİF YÜZEYİ
+`if "4005" in metin` üretim dosyalarının TAMAMINI tarıyor (`shop/src/index.js` dahil).
+Bugün temiz, ama o dosyada herhangi bir yerde geçen `4005` alt-dizgesi (ör. bir sayı,
+bir ID, bir tarih) **bloklayıcı kapıyı** kırmızı yakar ve yayını durdurur. Taramayı
+telefon bağlamına daralt (`tel:` / `wa.me` / `contactPoint` yakınında) ve **negatif vaka**
+yaz: bağlamsız bir `4005` alt-dizgesi kapıyı TETİKLEMEZ.
+
+---
+
+## 0.18 🔴 MİMAR ŞERHLERİ — H5 SAYI İNVARYANTI · A1 GEREKÇESİ · H7 TEK KAYNAK
+
+### 0.18.1 H5'in yanına **SAYI İNVARYANTI** (tek ucuz çare)
+
+"İddianın satırını gördüm mü" tek başına YETMEZ: iddia **adı** değişirse ya da bir blok
+atlanırsa (erken `return`, `--only` süzgeci, `if` bloğu) test yine sessiz kalır — daha az
+iddia koşar, hepsi yeşil görünür.
+
+**Zorunlu:** beklenen iddia sayısı kaynağa **SABİT** yazılır ve her koşumda gerçekleşenle
+karşılaştırılır:
+```
+BEKLENEN_IDDIA        = 20   (bayraksiz kol)
+BEKLENEN_IDDIA_SIZINTI = 10   (--sizinti kolu)
+```
+Gerçekleşen ≠ beklenen → `OLCULEMEDI: <beklenen> iddia bekleniyordu, <gerceklesen> kosdu`
++ **sıfır-dışı çıkış**. Fail-closed. Bu, "sessizce eksilen iddia" sınıfını kapatan tek
+ucuz invaryanttır.
+
+| # | İddia | Şerit |
+|---|---|---|
+| G5 | Bir iddia bloğu devre dışı bırakılırsa (mutant: bir `iddia(...)` çağrısını sil) kapı **OLCULEMEDI** verip sıfır-dışı çıkar — "kalan hepsi yeşil" DEMEZ | 🔴 BLOKLAYICI |
+
+### 0.18.2 A1 eşiğinin GEREKÇESİ KODA yazılacak
+
+`≥ 99.900` eşiği yorumsuz bırakılırsa bir sonraki okuyan onu "0 çakışma olmalı" diye geri
+sıkılaştırır ve testi **kalıcı kırmızı** yapar (bugün düşen iddia tam olarak buydu).
+Eşiğin yanına iki satır + formül:
+```
+# Dogum-gunu siniri: evren N = 30^6 = 729.000.000, cekim n = 100.000
+# Beklenen cakisma = n^2 / (2N) ~= 6,9 -> "0 cakisma" iddiasi SAGLAM uretecte bile duser.
+# Uretecten ENTROPI istenir; TEKILLIGI `kod` PRIMARY KEY + 5 denemelik yeniden uretim
+# garanti eder (D4/D10). Esik 99.900: beklenenin ~14 kati tolerans (yanlis-pozitif yok),
+# ama entropi kaybinin her gercek bicimini yakalar (sabit uretec say=1, tek-karakter say=30).
+```
+
+### 0.18.3 H7 — telefon taraması TEK KAYNAKTAN türeyecek
+
+Ham `"4005" in metin` alt-dizge taraması bloklayıcı kolda **tüm ekibin yayınını**
+durduracak bir yanlış-pozitif yüzeyidir. Tarama, deponun kanonik numara kuralından
+türesin (`…6526` yalnız WhatsApp bağlamı, `…4005` yalnız arama bağlamı) ve **bağlamla**
+ölçsün: numara `wa.me` / `tel:` / `contactPoint` yakınında mı?
+
+| # | İddia | Şerit |
+|---|---|---|
+| G6 | **NEGATİF:** telefon bağlamı OLMAYAN bir sayı dizisi (ör. bir ID, bir tarih, `4005` alt-dizgesi taşıyan rastgele bir sayı) kapıyı **TETİKLEMEZ** | 🔴 BLOKLAYICI |
+| G7 | Gerçek ihlal (`wa.me/…4005` ya da `tel:…6526`) kapıyı **TETİKLER** | 🔴 BLOKLAYICI |
+
+### 0.18.4 C1–C5 mutantları "şu iddia düştü" yazacak
+
+H4'ü kapatırken yalnız "kırmızı geldi" yetmez; her C mutantının ham çıktısı **hangi
+iddianın** düştüğünü söylesin (`base=<x> mutant=<y> dusen=<iddia adi>`).
+
+---
+
+## 0.25 🔴 MİMAR ŞERHLERİ — K2, K5 ve A EKSENİ İÇİN BAĞLAYICI EK
+
+Bu üç madde §0.2'deki K2/K5 ve §0.15'teki A ekseni kalemlerini **daraltır**; TUR 2a
+bunları kapsamadıysa TUR 2b'de kapanır ve kabulde AYRICA ölçülür.
+
+### 0.25.1 K2 — sahtenin katılığı GERÇEKTEN TÜREMELİ, yoruma yazılmamalı
+
+Sahte `env.KATALOG`'u katılaştırırken **ikiz tanım kurma**: "gerçek D1 `undefined` kabul
+etmez" bilgisini bir yoruma yazıp sahteyi elle ayarlama. Katılık **davranıştan** türesin:
+`bind(...args)` çağrısında argümanlardan herhangi biri `undefined` ise **FIRLAT**
+(gerçek D1'in `D1_TYPE_ERROR`'ıyla aynı sınıf). Böylece sahte, gerçeğin sözleşmesini
+taklit eder; iki ayrı "doğru davranış" tanımı doğmaz.
+
+🔴 **ÜRÜN SEVİYESİ VAKA (yalnız sayaç yetmez):**
+
+| # | İddia | Şerit |
+|---|---|---|
+| G1 | İsteğe bağlı alanların **HİÇBİRİ** gönderilmemiş minimal talep (`kanal` + `parca_adi`) → **`kod` ÜRETİLİR**, `kod:null` DEĞİL, ve D1'e **1 satır** yazılır | 🔴 BLOKLAYICI |
+
+Gerekçe: bugünkü hatada müşterilerin ÇOĞU `kod:null` alacaktı — form isteğe bağlı alanları
+boş bırakan herkes. Bu yolu `kod:null` sayacıyla (D9/D10) kapatmak yetmez; sayaç arızayı
+*görür*, G1 arızanın *olmamasını* zorlar.
+
+**Kapanış raporuna ders cümlesi (sınıf kalemi):** "Sahte D1 her şeyi kabul ediyordu,
+gerçek D1 `undefined` kabul etmez — test 11/11 yeşilken ürün ölüydü."
+→ `[[makineyi-olctuk-urunu-olcmedik]]`
+
+### 0.25.2 K5 — tavan "kabul"ü değil **OKUMAYI** da sınırlamalı
+
+Gövde tavanı `request.text()` TAMAMLANDIKTAN sonra bakılıyorsa tavan yalnız kabul
+kararını değiştirir, **okumayı engellemez** — kimliksiz, herkese açık bir uçta bu tavanın
+koruma amacını boşa çıkarır. İki katman, ikisi de gerekli:
+1. `Content-Length` **ön kontrolü**: tavanı aşıyorsa `request.text()` **HİÇ** çağrılmaz.
+2. Okuma sırasında **sert kesme**: başlık yalan söyleyebilir → gerçek BAYT ölçümü yine
+   yapılır ve tavan aşılırsa reddedilir. (Ön kontrol ölçümün YERİNE değil ÖNÜNE geçer.)
+
+| # | İddia | Şerit |
+|---|---|---|
+| G2 | `Content-Length` tavanı aşıyor → `request.text()` **çağrılmaz** (sahte request'te sayaçla ölç), 400 döner | 🔴 BLOKLAYICI |
+| G3 | **NEGATİF:** meşru, büyük ama tavan ALTINDA gövde → `text()` çağrılır ve istek **REDDEDİLMEZ** | 🔴 BLOKLAYICI |
+| G4 | `Content-Length` YALAN söylüyor (küçük beyan, büyük gövde) → gerçek bayt ölçümü yakalar, 400 | B |
+
+### 0.25.3 A ekseni — ÇAPA BENZERSİZLİĞİ ÖLÇÜLECEK, VARSAYILMAYACAK
+
+A1≡A4 ve A2'nin yan eksen yakması **K182'nin ta kendisi**. Üç zorunluluk:
+1. Her mutantın çapa metni kaynakta **tam olarak 1 kez** geçmeli — bunu `grep -c` ile
+   **ÖLÇ** ve sayıyı rapora yaz. 1 değilse çapayı değiştir, mutantı koşturma.
+2. Her mutant **tam olarak BİR** iddiayı düşürsün; raporda "düşen iddia listesi = tek
+   eleman" diye göster. A2 mutantı yalnız alfabeyi bozacak — biçimi ve tekilliği DEĞİL.
+3. Test **hangi** iddianın düştüğünü bassın. `DUSEN=1` tek başına kanıt değildir.
+
+---
+
 ## 0.5 🔴 MİMARIN TUR 1'DE YAKALADIĞI KUSUR — `talep-temizlik.py` SAYAR ve SİLER FARKLI ÖLÇÜYOR
 
 TUR 1 çıktısını okurken ölçüldü, düzelt:
@@ -256,6 +438,68 @@ koşuyor — **fikstür kusuru bu hatayı KÖR EDİYORDU**. Fikstürü F1–F4'�
 
 ---
 
+## 0.6 🔴 TUR 2a SONRASI KALINTILAR — `tools/talep-temizlik.py` (mimar okudu)
+
+F1–F4 doğru kuruldu (karışık `Z` / `+00:00` fikstürü + ayrıştırılamayan satır, sayma ve
+silme artık **tek yordam**: `silinecek_kodlar`). İki kalıntı var.
+
+### R1 🔴 `calistir` LİSTEYİ İKİ KEZ HESAPLIYOR — kapattığımız sınıf geri geldi
+```python
+kodlar = silinecek_kodlar(baglanti, esik)   # sayilan kume
+sayi = len(kodlar)
+if uygula and sayi:
+    sil_eski(baglanti, esik)                # <-- listeyi YENIDEN hesapliyor
+```
+`sil_eski` aynı sorguyu **tekrar** koşuyor. Tek yazıcılı bir dosyada aynı sonucu verir,
+ama `talepler` **canlı D1'de eşzamanlı yazılıyor** (site + Faz-2 WhatsApp): iki hesap
+arasında satır eklenip silinebilir → **basılan sayı ile gerçekten silinen sayı yine
+ayrışır.** F1'in kapattığı sınıfın ta kendisi, yalnız bu sefer sebep biçim değil YARIŞ.
+**Çare:** `sil_eski(baglanti, kodlar)` — listeyi ARGÜMAN olarak al, yeniden hesaplama.
+**Vaka (F5):** `sil_eski`ye verilen liste ile silinen satır kümesi **birebir aynı**;
+fonksiyon kendi başına sorgu KOŞMAZ (mutant: içeride yeniden hesaplarsa iddia düşer).
+
+### R2 🔴🔴 BU ARAÇ CANLI D1'İ TEMİZLEYEMEZ — SAKLAMA SÜRESİ FİİLEN UYGULANMIYOR
+Araç `sqlite3.connect(yol)` ile **yerel bir dosyaya** bağlanıyor; `--db` yerel yol alıyor.
+Gerçek depo ise Cloudflare **D1**'dir. Yani bugün:
+- 90 günlük saklama süresi **hiçbir yerde uygulanmıyor**;
+- araç yalnız *mantığı* ve *kendini testi* taşıyor, üretim yolu YOK.
+
+🔴 **Raporda bu AÇIKÇA yazılacak, "temizlik aracı var" diye geçilmeyecek.** Aksi hâlde
+biri saklama süresinin yürürlükte olduğunu sanır; oysa tablo sınırsız büyür ve
+`pruvo-katalog` D1'i Ege + `d1-sync` + `reklam_ref_gclid` ile PAYLAŞILIR.
+Rapora giren satır:
+```
+OLCULEMEDI/UYGULANMIYOR: 90 gunluk saklama suresi CANLIDA YURURLUKTE DEGIL.
+talep-temizlik.py yerel sqlite uzerinde calisir; canli D1 yolu (wrangler d1 execute ya da
+worker ucu) ACILMADI — altyapi/deploy karari, MIMAR/OKAN kapisi. ACIK KALEM.
+```
+
+---
+
+## 0.7 🔴 MİMAR ŞERHLERİ — ORIGIN POLİTİKASI · İSTEMCİ TAVANLARI
+
+### 0.7.1 `Origin`/`Referer` fail-closed — NEGATİF VAKA ZORUNLU
+Kendi sayfamızın gönderemediği bir uç yayınlamak "kapıyı doğru kurup ürünü kırmak"tır.
+Uçtan uca teyit K184 (site sihirbazı) chip'iyle yapılacak ve **merge ondan önce YOK**.
+Bu pakette bize düşen, politikayı negatif vakasıyla yazmak:
+
+| # | İddia | Şerit |
+|---|---|---|
+| G8 | **NEGATİF:** meşru aynı-köken isteği (`Origin: https://pruvo3d.com`) **REDDEDİLMEZ** — 200 döner | 🔴 BLOKLAYICI |
+| G9 | **NEGATİF:** `Origin` yok ama `Referer: https://pruvo3d.com/...` var → **REDDEDİLMEZ** (tarayıcı bazı akışlarda `Origin` göndermez) | 🔴 BLOKLAYICI |
+| G10 | `env.SITE_URL` host'u izinli kümeye GERÇEKTEN ekleniyor (staging/preview kökeni kırılmasın) | B |
+
+### 0.7.2 İstemci tavanları uçla BİREBİR aynı — TEK KAYNAK
+RED gerekçe vermiyor (güvenlik açısından doğru), ama o zaman 600 karakter yazan kullanıcı
+**sebepsiz hata** görür. Tavanlar tek kaynaktan türeyecek; `ALAN_TAVANLARI` zaten
+`shop/src/talep.js`'te `export` — K184 chip'i onu içe aktaracak, kendi kopyasını YAZMAYACAK.
+
+| # | İddia | Şerit |
+|---|---|---|
+| G11 | `ALAN_TAVANLARI` dışa aktarılmış ve **tek tanım**; repoda ikinci bir tavan tablosu YOK (eksen taraması) | B |
+
+---
+
 ## 1. CI KABLOLAMA (spec §6 — şerit kararı MİMAR HÜKMÜ, değiştirme)
 
 ### 1.1 BLOKLAYICI kol → `.github/workflows/deploy.yml`, `serit-a3` job'u
@@ -279,6 +523,21 @@ Kendi adımlarıyla (bu iş yayını BLOKLAMAZ, bilerek):
 🔴 **Beyan ölçüm değildir.** Bir adımın "bloklayıcı" olduğunu YAZMAK yetmez —
 `nobet.yml`de duran adım kırmızı yansa bile yayın GEÇER. Raporda bağladığın job adını
 **dosya:satır** ile ver ve `deploy: needs:` satırını da alıntıla.
+
+### 1.0 🔴 ÖNCE TABAN ÖLÇ — kablolamadan ÖNCE
+
+Kablolamaya dokunmadan **önce** koş ve çıkış kodunu kaydet:
+```
+python3 /Users/okan/dev/pruvo/.claude/worktrees/zen-lehmann-d54167/tools/ci-kapsam-test.py
+```
+Sebep: bu kapı bizim dalımızdan bağımsız sebeplerle de kırmızı olabilir. Tabanı
+ölçmeden kablolarsak, sonradan gelen kırmızıyı yanlış yere (bizim değişikliğimize)
+yazarız — ya da tersi, zaten kırmızı olan bir kapıyı "biz bozmadık" diye susturmaya
+çalışırız. **Taban rc rapora yazılır**, kablolama sonrası rc ile YAN YANA.
+
+Taban rc≠0 ise: sebebini oku. Bizim dalımızla ilgisizse rapora `KAPSAM DISI: taban
+zaten kirmizi, sebep=<...>` yaz ve kendi kablolamanı yine de tamamla — başkasının
+kırmızısını onarmak bu paketin işi DEĞİL, ama onu bizim kırmızımız gibi göstermek de yasak.
 
 ### 1.3 `tools/ci-kapsam-test.py`
 Üç yeni dosya (`tools/talep-hatti-test.py`, `tools/talep-temizlik.py`,

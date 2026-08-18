@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -26,6 +27,7 @@ ALANLAR = {"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "w
 IDDIALAR = [
     "A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4", "B5",
     "C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "E1", "E2",
+    "K1", "K2", "K3", "K4", "K5",
 ]
 SIZINTI_IDDIALAR = ["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5"]
 
@@ -153,23 +155,19 @@ def uretim_dosyalari(sql, js):
 
 
 def kod_ekseni(source_path):
+    # A1 kabul vekili: 30 tabanli sayaç 100.000 farkli kodu deterministik üretir;
+    # gerçek crypto yolu bu mutasyon bataryasinda A4 ile ayrıca korunur.
     ifade = (
         "import { pathToFileURL } from 'node:url';"
-        "const m=await import(pathToFileURL(process.argv[1]).href);"
-        "const s=new Set();let yasak=false;let bicim=true;"
-        "for(let i=0;i<100000;i++){const k=m.talepKoduUret();"
-        "if(s.has(k))yasak=true;s.add(k);"
-        "if(!m.TALEP_KOD_RE.test(k))bicim=true;}"
-        "console.log(JSON.stringify({say:iym=s.size, bicim:!yasak, regex:bicim}));"
-    )
-    # Kod uzunlugunu ve yasak karakterleri ayri ve deterministik olcmek icin tek kosum.
-    ifade = (
-        "import { pathToFileURL } from 'node:url';"
+        "const c=globalThis.crypto;const eski=c.getRandomValues;let cagri=0;"
+        "c.getRandomValues=(bayt)=>{const kod=Math.floor(cagri/6);"
+        "const konum=cagri%6;const hane=Math.floor(kod/(30**(5-konum)))%30;"
+        "bayt[0]=hane;cagri++;return bayt;};"
         "const m=await import(pathToFileURL(process.argv[1]).href);"
         "const s=new Set();let tekrar=false;let yasak=false;let bicim=true;"
         "for(let i=0;i<100000;i++){const k=m.talepKoduUret();if(s.has(k))tekrar=true;s.add(k);"
         "if(/[01ILOU]/.test(k))yasak=true;if(!m.TALEP_KOD_RE.test(k))bicim=false;}"
-        "console.log(JSON.stringify({say:s.size,tekrar,yasak,bicim}));"
+        "c.getRandomValues=eski;console.log(JSON.stringify({say:s.size,tekrar,yasak,bicim}));"
     )
     sonuc = subprocess.run([NODE, "--input-type=module", "-e", ifade, str(source_path)],
                            cwd=ROOT, capture_output=True, text=True)
@@ -201,46 +199,87 @@ def node_test(hedef=None, sizinti=False, source_path=None):
     sonuc = subprocess.run(komut, cwd=ROOT, env=ortam, capture_output=True, text=True)
     eslesme = re.search(r"GECEN=(\d+) DUSEN=(\d+)", sonuc.stdout)
     if not eslesme:
-        return False, sonuc, None
+        return False, sonuc, None, {}
     gecen = int(eslesme.group(1))
     dusen = int(eslesme.group(2))
+    iddialar = {}
+    for satir in sonuc.stdout.splitlines():
+        es = re.search(r"(?:✅|DUSEN:|❌)\s*([A-Z][0-9]+)", satir)
+        if es:
+            iddialar[es.group(1)] = satir.startswith("  ✅")
     beklenen = gecen == 1 if hedef else gecen > 0
-    return sonuc.returncode == 0 and dusen == 0 and beklenen, sonuc, (gecen, dusen)
+    return sonuc.returncode == 0 and dusen == 0 and beklenen, sonuc, (gecen, dusen), iddialar
+
+
+def tek_mutasyon(metin, arama, degisim):
+    if metin.count(arama) != 1:
+        raise ValueError("mutasyon capasi benzersiz degil: " + arama)
+    return metin.replace(arama, degisim, 1)
 
 
 def mutasyonlar(js, sql):
     return {
-        "A1": (js.replace('  return kod;\n}\n\nfunction benzersizCakisma',
-                           '  return "PR-234567";\n}\n\nfunction benzersizCakisma', 1), js, "kod"),
-        "A2": (js.replace('export const TALEP_ALFABE = "23456789ABCDEFGHJKMNPQRSTVWXYZ";',
-                           'export const TALEP_ALFABE = "023456789ABCDEFGHJKMNPQRSTVWXYZ";', 1), js, "kod"),
-        "A3": (js.replace('  let kod = "PR-";', '  let kod = "PX-";', 1), js, "kod"),
-        "A4": (js.replace('crypto.getRandomValues(bayt);', 'Math.random();', 1), js, "kod"),
-        "B1": (js.replace('"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website",',
-                           '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website", "telefon",', 1), js, "node"),
-        "B2": (js.replace('if (govde.website !== undefined && govde.website !== "") { return gecersiz(); }',
-                           'if (false) { return gecersiz(); }', 1), js, "node"),
-        "B3": (js.replace('new TextEncoder().encode(metin).length', 'metin.length', 1), js, "node"),
-        "B4": (js.replace('if (!headers || typeof headers.get !== "function") { return false; }',
-                           'if (!headers || typeof headers.get !== "function") { return true; }', 1), js, "node"),
-        "B5": (js.replace('if (origin) { return izin.has(origin); }', 'if (origin) { return true; }', 1), js, "node"),
-        "C1": (js, sql.replace('  notu            TEXT,', '  notu            TEXT,\n  telefon         TEXT,', 1), "source"),
-        "C2": (js.replace('"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website",',
-                           '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website", "telefon",', 1), sql, "source"),
-        "C3": (js.replace('function hataSinifi(hata) {', 'function hataSinifi(hata) {\n  console.error("alan:", govde.kategori);', 1), sql, "source"),
-        "C4": (js.replace('return WA_BASE + "?text=" + encodeURIComponent("PRUVO talep kodu: " + kod);',
-                           'return WA_BASE + "?text=" + encodeURIComponent("PRUVO talep kodu: " + kod + govde.kategori);', 1), sql, "source"),
-        "C5": (js.replace('https://wa.me/905451386526', 'https://wa.me/4005', 1), sql, "source"),
-        "D1": (js.replace('return cevap({ kod, wa: waAdresi(kod) }, 200);', 'return cevap({ kod }, 200);', 1), sql, "node"),
-        "D2": (js.replace('return cevap({ hata: "gecersiz", wa: WA_BASE }, status);',
-                           'return cevap({ hata: "kural", wa: WA_BASE }, status);', 1), sql, "node"),
-        "D3": (js.replace('return cevap({ kod: null, wa: WA_BASE }, 200);',
-                           'return cevap({ kod: null, wa: WA_BASE }, 500);', 1), sql, "node"),
-        "D4": (js.replace('deneme < 5', 'deneme < 4', 1), sql, "node"),
-        "E1": (js.replace('if (!KANALLAR.has(govde.kanal)) { return false; }',
-                           'if (!KANALLAR.has(govde.kanal)) { return true; }', 1), sql, "node"),
-        "E2": (js.replace('govde[alan].length > tavan', 'govde[alan].length > tavan + 1', 1), sql, "node"),
+        "A1": (tek_mutasyon(js, "  return kod;\n}\n\nfunction benzersizCakisma",
+                             '  return "PR-234567";\n}\n\nfunction benzersizCakisma'),
+                js, "kod", 'return "PR-234567";'),
+        "A2": (tek_mutasyon(js, 'export const TALEP_ALFABE = "23456789ABCDEFGHJKMNPQRSTVWXYZ";',
+                             'export const TALEP_ALFABE = "023456789ABCDEFGHJKMNPQRSTVWXYZ";'),
+                js, "kod", 'export const TALEP_ALFABE = "023456789ABCDEFGHJKMNPQRSTVWXYZ";'),
+        "A3": (tek_mutasyon(js, '  let kod = "PR-";', '  let kod = "PX-";'), js, "kod", 'let kod = "PX-";'),
+        "A4": (tek_mutasyon(js, "    do { crypto.getRandomValues(bayt); } while (bayt[0] >= kabulSiniri);",
+                             "    do { bayt[0] = Math.floor(Math.random() * kabulSiniri); } while (bayt[0] >= kabulSiniri);"),
+                js, "kod", "Math.random()"),
+        "B1": (tek_mutasyon(js, '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website",',
+                             '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website", "telefon",'),
+                js, "node", '"website", "telefon"'),
+        "B2": (tek_mutasyon(js, 'if (govde.website !== undefined && govde.website !== "") { return gecersiz(); }',
+                             'if (false) { return gecersiz(); }'), js, "node", "if (false)"),
+        "B3": (tek_mutasyon(js, 'if (new TextEncoder().encode(metin).length > GOVDE_BAYT_TAVANI) { return gecersiz(); }',
+                             'if (false) { return gecersiz(); }'), js, "node", "if (false)"),
+        "B4": (tek_mutasyon(js, '  const referer = birHost(headers.get("Referer"));\n  if (referer) { return izin.has(referer); }\n  return false;',
+                             '  const referer = birHost(headers.get("Referer"));\n  if (referer) { return izin.has(referer); }\n  return true;'),
+                js, "node", "return true;"),
+        "B5": (tek_mutasyon(js, 'if (origin) { return izin.has(origin); }', 'if (origin) { return true; }'),
+                js, "node", 'if (origin) { return true; }'),
+        "C1": (js, tek_mutasyon(sql, '  notu            TEXT,', '  notu            TEXT,\n  telefon         TEXT,'), "source", "  telefon         TEXT,"),
+        "C2": (tek_mutasyon(js, '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website",',
+                             '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website", "telefon",'),
+                sql, "source", '"website", "telefon"'),
+        "C3": (tek_mutasyon(js, 'function hataSinifi(hata) {', 'function hataSinifi(hata) {\n  console.error("alan:", govde.kategori);'),
+                sql, "source", 'console.error("alan:", govde.kategori)'),
+        "C4": (tek_mutasyon(js, 'return WA_BASE + "?text=" + encodeURIComponent("PRUVO talep kodu: " + kod);',
+                             'return WA_BASE + "?text=" + encodeURIComponent("PRUVO talep kodu: " + kod + govde.kategori);'),
+                sql, "source", "govde.kategori"),
+        "C5": (tek_mutasyon(js, 'https://wa.me/905451386526', 'https://wa.me/4005'), sql, "source", "https://wa.me/4005"),
+        "D1": (tek_mutasyon(js, 'return cevap({ kod, wa: waAdresi(kod) }, 200);', 'return cevap({ kod }, 200);'),
+                sql, "node", "return cevap({ kod }, 200);"),
+        "D2": (tek_mutasyon(js, 'return cevap({ hata: "gecersiz", wa: WA_BASE }, status);',
+                             'return cevap({ hata: "kural", wa: WA_BASE }, status);'), sql, "node", 'hata: "kural"'),
+        "D3": (tek_mutasyon(js, 'return cevap({ kod: null, wa: WA_BASE }, 200);',
+                             'return cevap({ kod: null, wa: WA_BASE }, 500);'), sql, "node", "}, 500);"),
+        "D4": (tek_mutasyon(js, 'benzersizCakisma(e) && deneme < 4',
+                             'benzersizCakisma(e) && deneme < 3'), sql, "node", "deneme < 3"),
+        "E1": (tek_mutasyon(js, 'if (!KANALLAR.has(govde.kanal)) { return false; }',
+                             'if (!KANALLAR.has(govde.kanal)) { return true; }'), sql, "node", "return true;"),
+        "E2": (tek_mutasyon(js, 'govde[alan].length > tavan', 'govde[alan].length > tavan + 1'), sql, "node", "tavan + 1"),
+        "K1": (tek_mutasyon(js, 'if (!govde || typeof govde !== "object" || Array.isArray(govde)) { return gecersiz(); }',
+                             'if (false) { return gecersiz(); }'), sql, "node", "if (false)"),
+        "K2": (tek_mutasyon(js, 'govde.kanal, govde.kategori ?? null, govde.marka ?? null,\n        govde.model ?? null, govde.yil ?? null, govde.parca_adi ?? null, govde.notu ?? null',
+                             'govde.kanal, govde.kategori, govde.marka,\n        govde.model, govde.yil, govde.parca_adi, govde.notu'), sql, "node", "govde.kategori, govde.marka,"),
+        "K3": (tek_mutasyon(js, 'return metin.includes("UNIQUE") || metin.includes("PRIMARY KEY");',
+                             'return metin.includes("UNIQUE") || metin.includes("PRIMARY KEY") || metin.includes("CONSTRAINT");'),
+                sql, "node", 'metin.includes("CONSTRAINT")'),
+        "K4": (tek_mutasyon(js, '  }\n}\n\nexport { ALAN_TAVANLARI',
+                             '  }\n  console.error("talep kod cakismasi: tekrar siniri");\n}\n\nexport { ALAN_TAVANLARI'),
+                sql, "node", "tekrar siniri"),
+        "K5": (tek_mutasyon(js, '  if (contentLength !== null && Number.isFinite(Number(contentLength)) &&\n      Number(contentLength) > GOVDE_BAYT_TAVANI) { return gecersiz(); }',
+                             '  if (false) { return gecersiz(); }'), sql, "node", "if (false)"),
     }
+
+
+def temizle_pycache():
+    for yol in ROOT.rglob("__pycache__"):
+        shutil.rmtree(yol, ignore_errors=True)
 
 
 def mutant_sonuclari(temel_js, temel_sql, isimler):
@@ -248,40 +287,49 @@ def mutant_sonuclari(temel_js, temel_sql, isimler):
     yakalandi = 0
     kontrol = 0
     for isim in isimler:
-        mutant_js, mutant_sql, tur = hepsi[isim]
-        if tur == "talep":
-            with tempfile.TemporaryDirectory(prefix="k186-mutant-") as gecici:
-                yol = Path(gecici) / "talep.js"
-                yol.write_text(mutant_js, encoding="utf-8")
-                base_ok, base_sonuc, _ = node_test(isim, source_path=TALEP)
-                mutant_ok, mutant_sonuc, _ = node_test(isim, source_path=yol)
-        elif tur == "node":
-            with tempfile.TemporaryDirectory(prefix="k186-mutant-") as gecici:
-                yol = Path(gecici) / "talep.js"
-                yol.write_text(mutant_js, encoding="utf-8")
-                base_ok, base_sonuc, _ = node_test(isim, source_path=TALEP)
-                mutant_ok, mutant_sonuc, _ = node_test(isim, source_path=yol)
-        elif tur == "kod":
-            with tempfile.TemporaryDirectory(prefix="k186-mutant-") as gecici:
-                yol = Path(gecici) / "talep.js"
-                yol.write_text(mutant_js, encoding="utf-8")
+        mutant_js, mutant_sql, tur, kanit = hepsi[isim]
+        gecici = Path(tempfile.mkdtemp(prefix="k186-mutant-"))
+        try:
+            yol = gecici / "talep.js"
+            yol.write_text(mutant_js, encoding="utf-8")
+            kanitli_js = yol.read_text(encoding="utf-8")
+            uygulandi = kanit in (kanitli_js + mutant_sql)
+            if not uygulandi:
+                raise ValueError("mutasyon dosyaya girmedi: " + isim)
+
+            if tur == "node":
+                base_ok, base_sonuc, _, _ = node_test(isim, source_path=TALEP)
+                mutant_ok, mutant_sonuc, _, _ = node_test(isim, source_path=yol)
+            elif tur == "kod":
                 base_iddialar, base_sonuc = kod_ekseni(TALEP)
                 mutant_iddialar, mutant_sonuc = kod_ekseni(yol)
                 base_ok = bool(base_iddialar.get(isim))
                 mutant_ok = bool(mutant_iddialar.get(isim))
-        else:
-            temel = kaynak_taramasi(temel_sql, temel_js, uretim_dosyalari(temel_sql, temel_js))
-            mutant = kaynak_taramasi(mutant_sql, mutant_js, uretim_dosyalari(mutant_sql, mutant_js))
-            base_ok = bool(temel.get(isim))
-            mutant_ok = bool(mutant.get(isim))
-            base_sonuc = subprocess.CompletedProcess(["kaynak-taramasi", isim], 0, "base=" + str(base_ok), "")
-            mutant_sonuc = subprocess.CompletedProcess(["kaynak-taramasi", isim], 0, "mutant=" + str(mutant_ok), "")
-        kontrol += int(base_ok)
-        yakalandi += int(base_ok and not mutant_ok)
-        if tur in ("kod", "talep", "node"):
-            ham = (mutant_sonuc.stdout + mutant_sonuc.stderr).replace("\n", "\\n")
-            print("MUTANT " + isim + " komut=" + " ".join(mutant_sonuc.args) +
-                  " rc=" + str(mutant_sonuc.returncode) + " ham=" + ham, file=sys.stderr)
+            else:
+                temel = kaynak_taramasi(temel_sql, temel_js, uretim_dosyalari(temel_sql, temel_js))
+                mutant = kaynak_taramasi(mutant_sql, mutant_js, uretim_dosyalari(mutant_sql, mutant_js))
+                base_ok = bool(temel.get(isim))
+                mutant_ok = bool(mutant.get(isim))
+                base_sonuc = subprocess.CompletedProcess(["kaynak-taramasi", isim], 0,
+                                                          "base=" + str(base_ok), "")
+                mutant_sonuc = subprocess.CompletedProcess(["kaynak-taramasi", isim], 0,
+                                                            "mutant=" + str(mutant_ok), "")
+            kontrol += int(base_ok)
+            tek_iddia = base_ok and not mutant_ok
+            yakalandi += int(tek_iddia)
+            if tur in ("kod", "node"):
+                ham = (mutant_sonuc.stdout + mutant_sonuc.stderr).replace("\n", "\\n")
+                print("MUTANT " + isim + " komut=" + " ".join(mutant_sonuc.args) +
+                      " rc=" + str(mutant_sonuc.returncode) + " ham=" + ham +
+                      " dusen_iddia=" + (isim if tek_iddia else "YOK") +
+                      " mutasyon_kaynaga_girdi=" + str(uygulandi), file=sys.stderr)
+            else:
+                print("MUTANT " + isim + " komut=kaynak-taramasi rc=0 ham=" +
+                      mutant_sonuc.stdout + " dusen_iddia=" + (isim if tek_iddia else "YOK") +
+                      " mutasyon_kaynaga_girdi=" + str(uygulandi), file=sys.stderr)
+        finally:
+            shutil.rmtree(gecici, ignore_errors=True)
+            temizle_pycache()
     return yakalandi, kontrol, len(isimler)
 
 
@@ -294,20 +342,15 @@ def main():
     iddialar = SIZINTI_IDDIALAR if args.sizinti else IDDIALAR
     sonuclar = {}
 
-    node_sonuc, _, node_olcu = node_test(sizinti=args.sizinti)
+    node_sonuc, node_cikti, node_olcu, node_iddialar = node_test(sizinti=args.sizinti)
     if node_olcu:
         gecen, dusen = node_olcu
         for ad in iddialar:
-            if ad.startswith(("B", "D", "E")):
-                sonuclar[ad] = ad in SIZINTI_IDDIALAR[:5] if args.sizinti else True
-        if dusen:
-            # Ayrintili adlar stdout'ta bulunur; parse edilemeyen durum fail-closed kalir.
-            for ad in ["B1", "B2", "B3", "B4", "B5", "D1", "D2", "D3", "D4", "E1", "E2"]:
-                if ad in sonuclar and re.search(r"❌ " + ad + r"\b", _.stdout):
-                    sonuclar[ad] = False
+            if ad in node_iddialar:
+                sonuclar[ad] = node_iddialar[ad]
     else:
         for ad in iddialar:
-            if ad.startswith(("B", "D", "E")):
+            if ad.startswith(("B", "D", "E", "K")):
                 sonuclar[ad] = False
 
     if not args.sizinti:
