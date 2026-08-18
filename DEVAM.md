@@ -5,9 +5,15 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- ✅ **K175 KAPANDI (18 Agu) — T1 penceresi ARTIK OLCUYOR.** Canli kabul (cron'un KENDI
-  atesledigi tur): `11:23:00Z TETIK=DEFTER_DAGITIM CI_SEBEP=TAMAM rc=1` · `ci_olculdu=true` ·
-  `taban_alindi=true` (4 kosum). rc=1 gh degil `HUKUM=ONARIMSIZ_TUR`. Tam metin ARSIVDE.
+## 🔻 KraL OTURUM KAPANISI — 18 Agu ~18:0xZ
+**CANLIYA GITTI:** K170 `69e6b83a` · K174+K166 `e70c89d7` · K152 `83aaf4e2` · K171 `043568e7` ·
+K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 success).
+**KOSUYOR (oldurulmedi):** yok — kendi turlarim bitti.
+**BEKLIYOR:** dal `kral/k181d-ilerleme` (`5d7c592a`, spec `paket-k181d-ilerleme-invaryanti.md`,
+motor minimax-m3) MERGE EDILEMEDI: MaCiT'in CANLI `urunler.json` yazimi ana agaci tutuyor.
+Kabul YESIL (kotu bicim fiksturu 170→170 bayt birebir, 9/9, mutant 2/2) — devralan yalnizca
+merge+push yapacak. · Ana agacta YABANCI: `urunler.json`(+3 `.bak`) MaCiT'in, `marka-uyelik-test.py` K136.
+**K175/T2/K170-K174-K166 kapanis isaretcileri ARSIVE tasindi** (lossless, 10 satir).
 - 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
   ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
   olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
@@ -24,8 +30,6 @@
   🔎 SINIF DERSI: sabit hedef (`CANON`) yuzunden DOGRU worktree'de kosmak YETMIYORDU →
   [[kapi-sabit-kok-yanlis-agaci-olcer]]. Iki sahte kirmizi da MIMARIN spec hatasiydi (③c
   mutlak yollu kabul komutu · ③e jeton adi sayan kabul). Paketler `3d`/`3e`/`3f`.
-- ✅ **T2 KAPANDI (18 Agu) — BaBa sayaci 0/6 → 1/6.** `CAKISMA_KANITI=EVET MUTANT=3/3 RC=0`;
-  mimar ham logu KENDI grep'ledi (2/4/3, onceki uydurmada 0/0/0). Tam metin ARSIVDE.
 - 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):**
   `d1-sync.py:157-158` `BlockingIOError` kolunda `os.getpid()` basiyor — ENGELLENEN surecin
   pid'i, kilidi TUTANIN degil. MaCiT dort denemede dort farkli PID gorup "baska makine"
@@ -37,16 +41,11 @@
   ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
   EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
-- ✅ **K170 + K174 + K166 KAPANDI (18 Agu, KraL) — tam metin ARSIVDE.** SHA'lar `69e6b83a` ·
-  `e70c89d7`. Yargi 17→0; `build.py` model sayfasi 1280→1273 (tam -7), K11 kaybolan=0,
-  CANLI cache-bust'SIZ 3×200 / 3×404 / urun 200, D1 bes eksen yesil.
-  **CI hukmu: `Build & deploy` conclusion=success (6/6)** — kirli kosum sinyali KAPANDI.
-  Susturma yok: serit B'de hijyen-a2/a3 hala kirmizi raporluyor. Serit B net kirmizi 5→5.
+- ✅ **K172 KAPANDI (18 Agu, codex `gpt-5.6-luna`):** `mk1` MARKA-KOR jetona tasindi (tek satir), uc BEKLER allow'dan dustu (67→64). `KAPI_RC=0 BUILD_RC=0 SAYFA 1719→1717 KAYBOLAN=0 MUTANT=3/3`.
 - 🔧 **K177 (18 Agu, OLCULDU — bloklayici seritte "olculemedi" yesil sayiliyor):**
   `kanca-kablolama-nobeti.py --ci` "24 eksen: 22 yesil, 0 kirmizi, **2 OLCULEMEDI**" deyip
   `SONUC: OLCULEMEDI` basiyor ama **cikis kodu 0** donuyor; K166 bu adimi bloklayici serit-a2'ye
   tasidi → yayinda olcemeyen kapi GECIYOR ([[fail-slow-fail-opendir]]). Bugun davranis DEGISMEDI. kabul: olculemeyen eksen rc=0 DONDURMEZ.
-- 🔧 **K172 (18 Agu — K170'ten dogdu, SINIF; yayini BLOKLAMAZ):** `mk1` uc markada BEKLER, uc kol TEK hukumle kapanir. Tam metin ARSIVDE. `kabul:` BOS.
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
