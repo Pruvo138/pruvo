@@ -365,6 +365,22 @@ jobs:
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         run: python3 tools/diriltme-kapisi.py --kendini-test
 
+      # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
+      # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
+      # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
+      # "musteriye para odettirmez / veri sizdirmaz / siteyi durdurmaz"; musteri yuzeyine degmez,
+      # yalniz MIMAR-ISCI yetki sinirini olcer. ~<1 s. KENDI --kendini-test'i ayri adimda
+      # (asagida) kosulur; burada production kodu isletilir.
+      - name: Recete kapisi (mimar-icra-kapisi recete denetimi — RECETE/REDDEDILEN/EVREN)
+        run: python3 tools/recete-kapisi.py
+
+      # RECETE KAPISI OZ-NOBETCI — 3 mutant + 2 kontrol kendi kendini testi.
+      # Kol kendi mutant fiksturu uzerinden KENDI kirmizisini gercekten yakar; bayraksiz
+      # kosumda sadece production kodu calisir ve mutantlarin bir kismi kapinin KENDI
+      # oz-testi olmadan SESSIZ kalabilirdi. ~<1 s.
+      - name: Recete kapisi oz-nobetcisi (3 mutant + 2 kontrol, dogrudan)
+        run: python3 tools/recete-kapisi.py --kendini-test
+
       # GIT BAGLAM SCRUB'I — TEK KAYNAK DRIFT NOBETI (6 Agu 2026).
       # tools/git_ortami.py bu depoda `GIT_BAGLAM_DEGISKENLERI` listesinin TEK
       # tanimidir; uc kapi (diriltme · ic-rapor-adi · spec-ifsa) kok turetimini

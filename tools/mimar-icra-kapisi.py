@@ -224,6 +224,16 @@ ICRA_UZANTILARI = (
 # Mimar SERBEST kosabildigi YALNIZ IKI python komutu (tam-yol ya da repo-goreli TAM esitlik).
 DURUM_YOL = REPO_ONEKI + "tools/durum.py"
 D1_YOL = REPO_ONEKI + "tools/d1-sync.py"
+# === 18 AGU K168 H1: defter-rotasyon.py serbest birakildi (K168 paketi). ===
+# K168 sinif kararidir: "mimar DEVAM.md kota tavanini astiginda cabalayan CARE basar,
+#  ama cabalayan CAGIRAMIYOR" bilinen kusuruna karsi bu komut — Python'un argparse
+# izniyle — TAM ESITLIKLE serbest. Kapsam bilerek DAR: iki konumsal arg, DEVAM.md ve
+#  DEVAM-ARSIV.md (kanonik yollar), bayrak YOK, kabuk operatoru YOK. Daha genis
+#  erisim (or. --tavan-sayi, --tarih) mimar hukmu KAPALI tutar (K168 §2.H1).
+# Yetki genisletme: tools/recete-kapisi.py bu komutu kapida kuru kontrol eder.
+DEFTER_ROTASYON_YOL = REPO_ONEKI + "tools/defter-rotasyon.py"
+DEFTER_ROTASYON_DEFTER = REPO_ONEKI + "DEVAM.md"
+DEFTER_ROTASYON_ARSIV = REPO_ONEKI + "DEVAM-ARSIV.md"
 
 # Olcum / dosya-tarama komutlari: bunlar mimarin elinden kacan siniftir (boyut, sayim,
 # arama, icerik dokme). Komut zincirinin HERHANGI bir segmentinde (pipe dahil —
@@ -991,11 +1001,19 @@ def _agent_karari(girdi):
 
 
 def _py_izinli(ad, argumanlar, cwd):
-    """22 Tem — mimar tarafinda python/node ALLOWLIST'i. YALNIZ iki tam komut serbest:
-        python3 tools/durum.py            (baska argüman YOK)
-        python3 tools/d1-sync.py --durum  (yalniz --durum)
-    Yol tam-yol ya da repo-goreli olabilir (_coz ile cozulur); node/python2/pypy icin
-    IZINLI KOMUT YOKTUR (hepsi RED). 'Baska argüman eklenirse RED' — len kontrolu bunu saglar."""
+    """22 Tem — mimar tarafinda python/node ALLOWLIST'i. YALNIZ uc tam komut serbest:
+        python3 tools/durum.py                          (baska argüman YOK)
+        python3 tools/d1-sync.py --durum                (yalniz --durum)
+        python3 tools/defter-rotasyon.py <defter> <arsiv>  (18 Agu K168 H1)
+    3. satir (K168 H1): 'defter-rotasyon.py' uzerinden DEVAM.md -> DEVAM-ARSIV.md
+    rotasyonu icin serbest. Arguman sayisi 3 (yol + 2 konum), herhangi bir bayrak
+    YASAK (--tavan-sayi / --tarih dahil; K168 §2.H1). Konum argumanlari kanonik
+    DEVAM.md ve DEVAM-ARSIV.md yolu olmali (baska yol = RED) — sinir kapinin kendi
+    GEREKCESIYLE'nde aciklanir: 'serbest-biçim argüman, ek bayrak, kabuk operatörü
+    REDDEDILIR'. tools/recete-kapisi.py bu serbesti KURU kontrol eder.
+    Yol tam-yol ya da repo-goreli olabilir (_coz ile cozulur); node/python2/pypy
+    icin IZINLI KOMUT YOKTUR (hepsi RED). 'Baska argüman eklenirse RED' — len
+    kontrolu bunu saglar."""
     if not re.match(r"^python3(\.\d+)?$", ad):
         return False
     if not argumanlar:
@@ -1005,6 +1023,17 @@ def _py_izinli(ad, argumanlar, cwd):
         return len(argumanlar) == 1
     if ilk == D1_YOL:
         return len(argumanlar) == 2 and argumanlar[1] == "--durum"
+    if ilk == DEFTER_ROTASYON_YOL:
+        # K168 H1: TAM ESITLIK + 3 ARGS + 2 KONUM KANONIK YOL. Bayrak YASAK (astarik
+        # kontrolu: hicbir arg '-' ile baslayamaz) — aksi halde 'python3 defter-rotasyon.py
+        # DEVAM.md DEVAM-ARSIV.md --tavan-sayi 130' komutu serbest kalirdi.
+        if len(argumanlar) != 3:
+            return False
+        if any(a.startswith("-") for a in argumanlar[1:]):
+            return False
+        d1 = _coz(argumanlar[1], cwd)
+        d2 = _coz(argumanlar[2], cwd)
+        return d1 == DEFTER_ROTASYON_DEFTER and d2 == DEFTER_ROTASYON_ARSIV
     return False
 
 
