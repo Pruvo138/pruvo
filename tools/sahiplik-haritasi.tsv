@@ -92,6 +92,7 @@ is-akisi-kapisi	tools/is-akisi-kapisi.py	BILINMIYOR	hijyen	python3 tools/is-akis
 isci-kapisi-dagitim-kaniti	tools/isci-kapisi-dagitim-kaniti.py	BILINMIYOR	arac	YOK
 jenerator-tasi	tools/jenerator-tasi.py	BILINMIYOR	arac	YOK
 k86-kabul	tools/k86-kabul.py	BILINMIYOR	hijyen	YOK
+kaynak-link-tamamla	tools/kaynak-link-tamamla.py	BILINMIYOR	veri	YOK
 kanca-kablolama-nobeti	tools/kanca-kablolama-nobeti.py	BILINMIYOR	nobet	YOK
 kanca-kur	tools/kanca-kur.py	BILINMIYOR	hijyen	YOK
 kanca-nobeti	tools/kanca-nobeti.py	BILINMIYOR	nobet	python3 tools/kanca-nobeti-test.py
@@ -141,6 +142,7 @@ parti-kontrol	tools/parti-kontrol.py	BILINMIYOR	hijyen	YOK
 r2-onek-gelenek-kapisi	tools/r2-onek-gelenek-kapisi.py	BILINMIYOR	veri	YOK
 r2-purge	tools/r2-purge.py	BILINMIYOR	veri	python3 tools/r2-purge-test.py
 r2-upload	tools/r2-upload.py	BILINMIYOR	veri	python3 tools/r2-upload-test.py
+recete-kapisi	tools/recete-kapisi.py	BILINMIYOR	yayin	YOK
 regresyon-kapisi	tools/regresyon-kapisi.py	BILINMIYOR	yayin	YOK
 reklam-etiket-kapisi	tools/reklam-etiket-kapisi.py	BILINMIYOR	yayin	python3 tools/reklam-etiket-kapisi --kendini-test
 sahiplik-kapisi	tools/sahiplik-kapisi.py	BILINMIYOR	hijyen	python3 tools/sahiplik-kapisi.py --kendini-test
