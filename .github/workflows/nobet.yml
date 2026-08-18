@@ -357,14 +357,14 @@ jobs:
         with:
           python-version: "3.12"
       - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: pip install boto3 pyyaml
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test
 
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
@@ -374,7 +374,7 @@ jobs:
       # yalniz MIMAR-ISCI yetki sinirini olcer. ~<1 s. KENDI --kendini-test'i ayri adimda
       # (asagida) kosulur; burada production kodu isletilir.
       - name: Recete kapisi (mimar-icra-kapisi recete denetimi — RECETE/REDDEDILEN/EVREN)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/recete-kapisi.py
 
       # RECETE KAPISI OZ-NOBETCI — 3 mutant + 2 kontrol kendi kendini testi.
@@ -382,7 +382,7 @@ jobs:
       # kosumda sadece production kodu calisir ve mutantlarin bir kismi kapinin KENDI
       # oz-testi olmadan SESSIZ kalabilirdi. ~<1 s.
       - name: Recete kapisi oz-nobetcisi (3 mutant + 2 kontrol, dogrudan)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/recete-kapisi.py --kendini-test
 
       # GIT BAGLAM SCRUB'I — TEK KAYNAK DRIFT NOBETI (6 Agu 2026).
@@ -400,7 +400,7 @@ jobs:
       # tanim yok" hukmu VERILMEZ, adim KIRMIZI yanar. `continue-on-error` YOK.
       # Offline, stdlib, ~200 ms.
       - name: Git baglam scrub'i — tek kaynak drift nobeti
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/git_ortami.py --kendini-test
 
       # IC RAPOR — UZAK DAL GECMISI EKSENI (10 Agu 2026 OLCULEN KUSUR)
@@ -428,21 +428,21 @@ jobs:
       # `conclusion`'inda gorunur. Olculen sure: uzak kolu ~1,6 s (52 dal), mutasyon
       # bataryasi ~17 s. Kol ONLEME degil TESPIT'tir; onleme pre-push kancasindadir.
       - name: "Ic rapor UZAK DAL kolu (uzakta duran ic rapor — SERIT B, ag ister)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ic-rapor-adi-kapisi.py --uzak
       # Kolun KENDI hukmu: 14 oldurucu mutant TEK KIRMIZI + 2 KONTROL mutanti YESIL
       # (biri UZAK kolunun no-op'u). Ustteki adim yesilken bu adim kirmizi ise nobetci
       # OLMUS demektir ([[mutasyon-kaniti-yeniden-uretilebilir]]). Ag ISTEMEZ.
       - name: "Ic rapor adi kapisi mutasyon bataryasi (uzak eksen dahil)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ic-rapor-adi-kapisi.py --mutasyon
 
       - name: Sentetik git fiksturu sizinti kapisi
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/fikstur-git-sizinti-kapisi.py
 
       - name: Sentetik git fiksturu sizinti kapisi kabul testi
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/fikstur-git-sizinti-kapisi.py --kendini-test
 
       # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 30 gecici fiksturle olcer
@@ -472,7 +472,7 @@ jobs:
       # sadece exit kodu karsilastiran bir fikstur onlari GOREMEZ.
       # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~40 ms.
       - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
 
       # TUR 4 TASARIM NOTU: (C) sinifi POZITIF SART ile calisir — [para jetonu] VE
@@ -521,7 +521,7 @@ jobs:
       # "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" maskelenir. Fiksturler bellekte; repo
       # dosyalarina DOKUNMAZ. Offline, stdlib.
       - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
 
       # NOBETCI MUTASYON HARNESS: kapilarin KENDISINI olcer — bozulunca GERCEKTEN kirmizi
@@ -538,7 +538,7 @@ jobs:
       # SURE de ayni sinifta: eski "olculdu 38 s" beyani BOLUM E eklendikten sonra bayatti.
       # Bugunku olcum bolumun kendi ciktisindadir; buraya sabit sure YAZILMAZ.
       - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/nobetci-mutasyon-test.py
 
       # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
@@ -552,7 +552,7 @@ jobs:
       # TAZELEMESI arama/filtre/siralamayi bozmaz (node DOM testi: panel-tazeleme-test.js,
       # node yoksa FAIL-CLOSED). Saf Python + node, sentetik fikstur, OFFLINE, ~2 s.
       - name: Marka durum paneli kabul testi (kanonik satır + katlama + kolon + tazeleme)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/marka-panel-test.py
 
       # ... ve kabul testinin KENDISI olculur: 7 mutant (onek kurali, katlama, null->0,
@@ -561,7 +561,7 @@ jobs:
       # degisiklikte kirmizi"dir ve hicbir sey olcmuyordur. Mutasyon gecici SYMLINK
       # aynasina uygulanir, canli tools/ dizinine YAZILMAZ. ~20 s.
       - name: Marka paneli mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/panel-mutasyon-test.py
 
       # PANEL OTOMATIK TAZELEME DAVRANIS TESTI — KENDI ADIMI olarak kosar (BILEREK).
@@ -580,7 +580,7 @@ jobs:
       # DUSER — sessiz "yesil" YOK, hal OLCULEMEDI olarak KIRMIZI yanar. HTML uretilemezse
       # betik de fail-loud exit 1 verir (kendi kendine "gecti" DEMEZ). OFFLINE, ~1 s.
       - name: Marka paneli otomatik tazeleme davranış testi (arama/filtre korunuyor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node tools/panel-tazeleme-test.js
 
       # BACKFILL VERI KAYBI KAPISI (8 Agu): marka-kapsama.py --backfill her hucreye
@@ -596,7 +596,7 @@ jobs:
       # SENTETIK fikstur: canli .marka-kapsama.json / .urun-kaynaklari.json / urunler.json
       # OKUNMAZ (yollar PRUVO_KAPSAMA_* ile gecici dizine cevrilir). OFFLINE, ~1 s.
       - name: Backfill veri kaybi kapisi (bos hucre dolar, dolu hucre EZILMEZ)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/backfill-koruma-test.py
 
       # ... ve kabul testinin KENDISI olculur: 6 mutant (kucultme korumasi, None/0 ayrimi,
@@ -605,7 +605,7 @@ jobs:
       # "her degisiklikte kirmizi"dir ve hicbir sey olcmuyordur. Mutasyon gecici SYMLINK
       # aynasina uygulanir, canli tools/ dizinine YAZILMAZ. OFFLINE, ~5 s.
       - name: Backfill kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/backfill-mutasyon-test.py
 
       # R2 EZME KAPISI (8 Agu) — ayni "sessizce uzerine yazma" sinifi, GORSEL duzleminde.
@@ -617,7 +617,7 @@ jobs:
       # 6 mutant TEK BASINA KIRMIZI + 1 KONTROL mutanti YESIL. MOCK S3: gercek R2'ye ne
       # okuma ne yazma gider. OFFLINE, ~4 s. (Kabul testinin kendisi deploy.yml'de kosar.)
       - name: R2 ezme kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/r2-ezme-mutasyon-test.py
 
       # R2 CDN NEGATIF-ONBELLEK (14 Agu) — varlik/readback CDN'e giderse olmayan nesnenin
@@ -628,7 +628,7 @@ jobs:
       # canli tools/ dizinine YAZILMAZ. MOCK S3: gercek R2'ye/CDN'e ne okuma ne yazma gider.
       # OFFLINE, ~2 s.
       - name: R2 CDN negatif-onbellek mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/r2-cdn-negatif-onbellek-mutasyon.py
 
       # R1 SIHIRLI-BAYT WHITELIST'I — AVIF ekseni (9 Agu). Whitelist GENISLETMEK, fail-closed
@@ -642,7 +642,7 @@ jobs:
       # gercek R2'ye ne okuma ne yazma gider. OFFLINE, ~4 s.
       # (Kabul testinin KENDISI — tools/r2-upload-test.py — deploy.yml'de BLOKLAYICI kosar.)
       - name: R2 AVIF whitelist mutasyon bataryası (whitelist sessizce gevşetilemez)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/r2-avif-mutasyon-test.py
 
       # PARITE KAYDI KUCULME/GERILEME KAPISI (8 Agu) — SATIS kapisinin kanit defteri.
@@ -653,7 +653,7 @@ jobs:
       # bile KIRMIZI, tavan yoksa OLCULEMEDI, tavanin USTUNDEKI kayit YESIL (yon kontrolu).
       # SENTETIK gecici kok: canli jenerator/test/uretilebilirlik-parite.json ACILMAZ. ~1 s.
       - name: Parite kaydi kuculme kapisi (kanit sessizce zayiflatilamaz)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/parite-kayit-test.py
 
       # ... ve kabul testinin KENDISI olculur: 8 mutant (kuculme reddi, bayrak kapisi,
@@ -661,7 +661,7 @@ jobs:
       # fail-closed'i, kontrol mutanti sayilari, CLI bayrak varsayilani) TEK BASINA KIRMIZI;
       # +1 KONTROL mutanti YESIL. Mutasyon gecici SYMLINK aynasina uygulanir. OFFLINE, ~8 s.
       - name: Parite kaydi kapisi mutasyon bataryası (kabul testi gerçekten ölçüyor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/parite-kayit-mutasyon-test.py
 
       # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
@@ -670,7 +670,7 @@ jobs:
       # (fail-closed: yarim/bozuk artefakt ship edilmez). Gecici dizinde calisir, repo dosyasi
       # DEGISMEZ. ~2 s.
       - name: Konfigur bundle kapisi — kendini test (yanlis-pozitif + kirmizi-mutasyon)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/konfigur-bundle-kapisi.py --kendini-test
 
       # ... ve kapinin KENDI kabulu: 4 yanlis-pozitif + 9 negatif vaka (sema eklendi/silindi/
@@ -678,7 +678,7 @@ jobs:
       # artefakt yok, kaynak bos) + 5 uretici iddiasi + 3 no-op mutasyonu. Gecici dizinde
       # calisir, repo dosyasi DEGISMEZ. ~0,4 s.
       - name: Sema bundle kapisi — kendini test (pozitif + negatif + no-op mutasyon)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/sema-bundle-kapisi.py --kendini-test
 
       # KONFIGUR CANLI KAPISI — kendini test (OFFLINE, BLOKLAYICI, continue-on-error YOK).
@@ -701,7 +701,7 @@ jobs:
       # dosyayi bulup CAGIRIR, bulamazsa ARAC-YOK -> ARIZA -> OLCULEMEDI verir.
       # Elle/nobette kosum:  python3 tools/konfigur-canli-kapisi.py --gecikme 0.4
       - name: Konfigur canli kapisi — kendini test (offline karar mantigi + mutasyon)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/konfigur-canli-kapisi.py --kendini-test
 
       # FIZIKSEL CANLI KAPISI — kendini test (OFFLINE, BLOKLAYICI, continue-on-error YOK).
@@ -729,7 +729,7 @@ jobs:
       # CAGIRIR, bulamazsa ARAC-YOK -> ARIZA -> OLCULEMEDI verir.
       # Elle/nobette kosum:  python3 tools/fiziksel-canli-kapisi.py --gecikme 0.5
       - name: Fiziksel canli kapisi — kendini test (offline karar mantigi + yerel kahin)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/fiziksel-canli-kapisi.py --kendini-test
 
 
@@ -742,13 +742,13 @@ jobs:
       # bozulursa (or. sahte-GO / yanlis band / 12.000 esik kaymasi) bu test kirmizi yanar.
       # build.py'den ONCE kosar, ~40 ms.
       - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/edge-flip-hazirlik-test.py
 
       # D1-SYNC HATA TANISI: gecici ag ve gercek kimlik hatalarinin retry/teshis ayrimini
       # sahte subprocess sonuclariyla kanitlar. Offline/mock; D1'e ve aga dokunmaz.
       - name: D1-sync hata tanisi kabul testi
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/d1-sync-tani-test.py
 
       # ATOMIK YAYIN KAPISI — KARAR MANTIGININ offline kabulu (EKSEN 1, 31 Tem).
@@ -759,7 +759,7 @@ jobs:
       # dustu / WHERE yayinda=0 dustu / parcalama kirpti / tavan kalkti / olculmeyen id
       # 'iyi' sayildi / bayat satir sarti dustu) 7/7 KIRMIZI. Offline, stdlib, <1 s.
       - name: "Atomik yayin kapisi — kendini test (aday secimi + 200 sarti + tek yon)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yayin-kapisi.py --kendini-test
 
       # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
@@ -777,7 +777,7 @@ jobs:
       # OFFLINE: yalniz 127.0.0.1; urunler.json/D1/R2/canli Worker OKUNMAZ. node gerekir
       # (setup-node yukarida bloklayici on-kosul; node yoksa FAIL-CLOSED exit 1). ~23 s.
       - name: Faz3 gecikme nobetcisi (RTT degil worker-ici sure ile karar)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/faz3-gecikme-test.py
 
       # FAZ3 SAYFALAMA NOBETCISI (tools/faz3-sayfalama.js) — "OLCULEMEDI vs BOZUK" kapisi.
@@ -797,7 +797,7 @@ jobs:
       # OKUNMAZ (sahte uc urunler.json'u kendi okur, yalniz id doner). node gerekir
       # (setup-node yukarida; node yoksa FAIL-CLOSED exit 1). ~50 s.
       - name: Faz3 sayfalama nobetcisi (olculemeyen uc "bozuk" sayilmasin)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/faz3-sayfalama-test.py
 
       # YEDEK TAZELIK PANOSU (durum.py bolum 7): yedegin kendisi degil, YEDEGIN SESSIZCE
@@ -848,7 +848,7 @@ jobs:
       # nobetcinin kendisi `ps`e bagliydi ve `ps`siz makinede iki gercek mutant sessiz
       # YESIL geciyordu (olculdu).
       - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/durum-yedek-test.py
 
       # YEDEK SIR ELEMESI (8 Agu 2026, Okan karari: "jetonlari yedekten cikar").
@@ -872,7 +872,7 @@ jobs:
       # Drive'a/HOME'a DOKUNMAZ. Kum havuzu yedekle-test.py'den ITHAL edilir (ikiz
       # kurulum yazilmaz). Offline, stdlib, ~15 sn.
       - name: "Yedek sir elemesi + kok sir temizligi kabul testi (mutasyon kanitli)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yedek-sir-eleme-test.py
 
       # JENERATOR NOBETCILERININ KENDI KABULU (madde 34b, 31 Tem). Bu iki nobetci 30 Tem'de
@@ -887,7 +887,7 @@ jobs:
       # urun/_pruvo-kendini-test, __pycache__ .pyc) kendi temizler — olculdu, kosum sonrasi
       # `git status --porcelain` degismedi. Toplam ~0,5 s.
       - name: "OpenSCAD yasak nobetcisi — kendini test (18 iddia; PATH/symlink/maskeli shim)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 jenerator/test/dogrula.py --kendini-test
 
       # 31 Tem: bu kola SUITE BUTUNLUGU eksenleri (V6-V8) eklendi. Gerekce: bayraksiz
@@ -895,7 +895,7 @@ jobs:
       # idi -> bir testin GOVDESINI SILMEK suite'i sessizce yesil birakiyordu. Hukum
       # mantigi saf fonksiyona (suite_butunlugu) alindi ve CI'da kosan bu kolda olculuyor.
       - name: "Jeneratör tarama kumesi + suite butunlugu nobetcisi — kendini test (sahte KIRMIZI + OLCULEMEDI + silinen test)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 jenerator/test/kabul.py --kendini-test
 
       # YAY TARAMA SURUCUSU (3 Agu). NEDEN VAR: dogrula.py her kosumda RASTGELE tohum
@@ -921,7 +921,7 @@ jobs:
       # paylasiminin fail-open olmasi ve olcum aracinin olctugu hacim.js'i EZMESI
       # KIRMIZI yanar. Offline: ag YOK, OpenSCAD YOK, node YOK, diske YAZMAZ. ~0,6 s.
       - name: "Yay tarama surucusu — kendini test (44 iddia; izgara + fail-closed hukum + tara() hukum yolu + hacim.js ayrisma kapisi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 jenerator/test/yay-tarama.py --kendini-test
 
       # KALIBRASYON SENKRON KAPISININ MUTASYON TURU — kapinin AYIRT EDICILIGI.
@@ -942,7 +942,7 @@ jobs:
       # KOPYAYA uygulanir; canli hacim.js'in sha256'si bas/son ESIT olmali
       # (batarya bunu kendi olcer). Offline, olculdu ~38 s.
       - name: "Kalibrasyon senkron kapisi mutasyon turu (5 oldurucu + 3 kontrol + 3 fail-closed; canli agaca yazmaz)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node jenerator/test/kalibrasyon-senkron.js --mutasyon
 
       # 31 Tem: eslem-olcum.py TAM kolu CI'da kosamaz (gizli `eslem-ozel.json` paketi
@@ -951,7 +951,7 @@ jobs:
       # "yesil" ilan ediliyor, arac rc=0 donuyordu (sifir olculen set = yesil).
       # Hukum saf fonksiyona alindi; bu kol ag/openscad/paket ISTEMEZ.
       - name: "Onizleme eslem-olcum hukum nobetcisi — kendini test (sifir olculen set / 422 yesil sayilmaz)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 onizleme/test/eslem-olcum.py --kendini-test
 
       # ... ve kapinin KENDI kabulu: 6 pozitif (temiz urun / urun disi degisiklik / mesru alan
@@ -961,13 +961,13 @@ jobs:
       # (HEAD^ yok, HEAD'deki JSON bozuk) + 2 mutasyon (DEGISEN ekseni NO-OP -> N3 susar;
       # 'onceden' filtresi asiri-susturma -> N1 susar). Sentetik git deposu, ~10 s.
       - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/denetim-kapisi.py --kendini-test
       # SERIT B — bu adim 68 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
       # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
       # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
       - name: "Gramer artigi kapisi oz-nobetcisi (SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/gramer-artigi-kapisi.py --kendini-test
 
       # YAYIN GECIKME NOBETCISI — KABUL TESTI (1 Agu 2026).
@@ -983,7 +983,7 @@ jobs:
       # DEGIL, aracin kendini sinamasidir; yayini durdurmasi olculmus zarardir.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B. Offline, ag YOK, ~1 s.
       - name: "Yayin gecikme nobetcisi kabul testi (fikstur + kablolama, SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yayin-gecikme-test.py
 
       # YAYIN ERISIM NOBETCISI — KABUL TESTI (3 Agu 2026).
@@ -1000,7 +1000,7 @@ jobs:
       # SERIT B gerekcesi: bu bir "sizintili icerik canliya cikmasin" kapisi DEGIL,
       # aracin kendini sinamasidir. Beyan: tools/is-akisi-kapisi.py :: SERIT_B. ~3 s.
       - name: "Yayin erisim nobetcisi kabul testi (yerel fikstur + kablolama, SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yayin-erisim-test.py
 
 
@@ -1015,7 +1015,7 @@ jobs:
       # (module.registerHooks gibi Node 22+ API'si YOK; JSON import'lari gomulur).
       # OFFLINE: ag yok, R2 yok, wrangler yok, repo dosyasi YAZILMAZ (gecici dizin). ~0,5 s.
       - name: Onizleme onbellek surum kapisi (bayat mesh servis edilmesin)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node onizleme/test/onbellek-surum.mjs
 
       # ONIZLEME GORUNURLUK KAPISI (Okan canli sikayeti, 29 Tem — olcuye-ozel-cerceve):
@@ -1036,7 +1036,7 @@ jobs:
       # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ, dosya yazmaz.
       # Node 20'de olculdu (Node 22+ API'si kullanilmaz). ~1 s.
       - name: Onizleme gorunurluk kapisi (secilen renk + kabartma yazi ekranda mi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node onizleme/test/renk-yazi-gorunurluk.mjs
 
       # IKI GOVDE (2-RENK YAZI) SOZLESMESI — Okan canli sikayeti, 29 Tem:
@@ -1063,13 +1063,13 @@ jobs:
       # -> sapinca site URETILEMEYEN bir 2-renk parcasi SUNAR (Okan'in 29 Tem vakasinin
       # ta kendisi: site satiyor, uretim veremiyor). Oz-nobetci kolu burada kaldi.
       - name: Iki govde eslem kapisi oz-nobetcisi
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/iki-govde-kapisi.py --kendini-test
       - name: Iki govde kabul kapisi (worker parca ucu + viewer iki renk + sayfa)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node onizleme/test/iki-govde-kabul.mjs
       - name: Iki govde kabul kapisi kirmizi-mutasyon turu
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node onizleme/test/iki-govde-kabul.mjs --kendini-test
 
       # PAKET TAZELIK KAPISI — OFFLINE kip. Bloklayici PAKET olcumu BILEREK burada DEGIL,
@@ -1087,7 +1087,7 @@ jobs:
       # Bu kip yalnizca kendi fiksturlerini ve onizleme-imaj.yml METNINI okur; urunler.json /
       # index.html / sema dosyalari OKUNMAZ -> rutin degisiklikte yanlis-pozitif uretemez.
       - name: Paket tazelik kapisi oz-nobetcileri (cagri satiri + govde inertligi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/paket-tazelik-kapisi.py
 
       # ONIZLEME VAAT KAPISI — KIRMIZI-MUTASYON TURU (ayri adim olmak ZORUNDA: yukaridaki
@@ -1108,7 +1108,7 @@ jobs:
       # birlesik ozeti) sha256'si bas/son basilir, esit olmazsa adim kirmizi yanar.
       # SERIT B (yayini durdurmaz sinifinda degil — bu adim BLOKLAYICI). Offline, ~10 s.
       - name: Onizleme vaat kapisi kirmizi-mutasyon turu (oldurucu + kontrol + fail-closed)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/onizleme-vaat-kapisi.py --kendini-test
 
       # BAYAT BEYAN KAPISI (4 Agu 2026): depo BEYANI (kod yorumu / izlenen .md) ile
@@ -1119,10 +1119,10 @@ jobs:
       # cikmasi" degil; yayini durdurmasi olculmus zarardir (beyan: is-akisi-kapisi.py ::
       # SERIT_B). Offline, ag YOK, mutasyon DAIMA KOPYAYA (kaynak sha256 bas=son), ~1 s.
       - name: Bayat beyan kapisi ic nobetci (mutasyon — beyan/davranis ayrismasi kor mu)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/bayat-beyan-kapisi.py --kendini-test
       - name: Bayat beyan kapisi (depo beyani == olculen davranis)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/bayat-beyan-kapisi.py
 
       # AYIP BEYANI KAPISI (K64, 12 Agu 2026): cayma hakkinin kullanilamadigini soyleyen
@@ -1137,10 +1137,10 @@ jobs:
       # 🔴 GEVSETME YOK: kapi fail-closed, sapan sayisi her kosumda GORUNUR ve rc=1
       # doner; sapan 0'a inince A seridine (deploy.yml) TASINACAK — karar KraL'in.
       - name: Ayip beyani kapisi ic nobetci (oz-test — iddia aileleri ayakta mi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ayip-beyani-kapisi.py --kendini-test
       - name: Ayip beyani kapisi (6502 m.11 dort secenek, sartsiz)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ayip-beyani-kapisi.py
 
       # ═════════════════════════════════════════════════════════════════════
@@ -1163,7 +1163,7 @@ jobs:
       # Agsiz, canli dosyalara DOKUNMAZ (sha256 nobeti), ~1 s.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "Yayin sinyali ayrimi: iki yonlu curutme (YON A + YON B + needs daraltma)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yayin-sinyali-mutasyon.py
 
       # ILISKILI KART HALKA SECIMI (rel-card) — sayfa altinda "bunlara da bak" halkasinin
@@ -1175,7 +1175,7 @@ jobs:
       # kanonik /urun/<id>/ uzerinden erisir). Bu yuzden bloklamaz, sadece GORUNUR kilar.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "Iliskili kart halka secimi (rel-card) kabul testi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/rel-card-test.py
 
       # MARKA SAYFALAMA (/marka/<slug>/sayfa/<N>/) — marka hub sayfalarinin devam sayfalari
@@ -1188,7 +1188,7 @@ jobs:
       # SIZDIRMAZ, yayin DURMAZ.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "Marka hub sayfalama kabul testi (/marka/<slug>/sayfa/<N>/)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/marka-sayfalama-test.py
 
       # KATEGORI HUB SAYFALAMA (/kategori/<slug>/sayfa/<N>/) — kategori hub devam sayfalarinin
@@ -1201,7 +1201,7 @@ jobs:
       # bilincli bir kez daha gizli sayfaya konumlanir). Odeme/veri/yasal yuzeye dokunmaz.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "Kategori hub sayfalama kabul testi (/kategori/<slug>/sayfa/<N>/)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kategori-hub-test.py
 
       # VARLIK CIKARIM BEYANI KAPISI — varlik-test.py'nin muafiyet kolunun (kullanici
@@ -1218,7 +1218,7 @@ jobs:
       # muafiyet kolunun SESSIZ etkisizlesmesini garanti eder. Offline, ag YOK,
       # canli agaca YAZMAZ. Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "Varlik cikarim beyani kapisi (kapsam kapali kume + blanket reddi + beyan-edilemez alan kor + 2 mutant)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/varlik-beyan-test.py
 
       # IKIZ TANIM KAPISI — kart sekli iki uretici (build.py kart_ozeti + JS edgeKart)
@@ -1229,14 +1229,14 @@ jobs:
       # Bilerek ci-kapsam-test.py ADIMINDAN ONCE kosur: yeni testin kapsam kapisi "calisiyor"
       # demesi icin bu satir listede OLMALI; sira onceligi bu yuzden onemli.
       - name: Kart ikiz tanimi (build.py kart_ozeti <-> vitrin-kabul.js edgeKart)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node jenerator/test/kart-ikiz-test.js
 
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
       - name: CI kapsam kapisi (her kabul testi kosuluyor mu / gerekceli muaf mi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ci-kapsam-test.py
 
       # KAPININ KENDI NOBETCILERI — ayri adim olmak ZORUNDA (olculdu 27 Tem):
@@ -1251,7 +1251,7 @@ jobs:
       # --kendini-test nobetcileri DOGRUDAN cagirir ve exit kodunu kendi uretir -> her iki
       # sinif BLOKLAYICI olur. Offline, deploy.yml disinda girdi okumaz, <1 s.
       - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ci-kapsam-test.py --kendini-test
 
       # ONARIM-COMMIT ARACI — iscinin onarimini yayina indiren TEK komut
@@ -1262,7 +1262,7 @@ jobs:
       # GERCEKTEN kosar; metin eslemesi YOK, ag YOK, canli agaca YAZMAZ, gecici depolar
       # kosum sonunda SILINIR. 12 vaka, ~5 s (olculdu, macOS).
       - name: "Onarim-commit araci kabul testi (12 vaka: F1-F8 + --kuru, sentetik depo)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/onarim-commit-test.py
 
       # AYNI DOSYANIN MUTASYON KOLU — AYRI ADIM OLMAK ZORUNDA (bayraksiz kosum bunu
@@ -1273,7 +1273,7 @@ jobs:
       # kosum oncesi/sonrasi karsilastirilir (batarya canli dosyaya DOKUNMAZ).
       # Beyan: tools/onarim-commit-test.py :: CI-ALT-KUME --mutasyon.
       - name: "Onarim-commit mutasyon bataryasi (5/5 oldurucu mutant kirmizi mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/onarim-commit-test.py --mutasyon
 
       # VARLIK KAPISI — EKSEN 1'IN KENDI KIRMIZI YOLU. Kapinin BAYRAKSIZ kolu ("varliga
@@ -1288,7 +1288,7 @@ jobs:
       # hic kosmayan kapi olu nobetcidir. Offline, ag YOK, canli agaca YAZMAZ, ~3 s.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "Varlik kapisi eksen-1 mutasyon bataryasi (kapi kendi kirmizisini yakiyor mu)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/varlik-test.py --kendini-test
 
       # MUTLAK YOL KAPISI — RAPOR KOLU (rc DAIMA 0, yayini DURDURMAZ). Kapinin kendi
@@ -1303,7 +1303,7 @@ jobs:
       # bloklamisti -> deploy+yayin skipped. SERIT B: kapinin kendi kirmizisi yayin
       # kosumunun rengini boyamaz. Offline, ag YOK, dosya YAZMAZ, ~2 s.
       - name: "Mutlak yol kapisi — rapor kolu (makineye ozgu kok sabiti maruziyeti)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/mutlak-yol-kapisi.py
 
       # LCP ONCULUK KAPISI (9 Agu 2026) — ana sayfa banner yaminin IKIZ TANIMI.
@@ -1321,7 +1321,7 @@ jobs:
       # saatlik canli bayatlik pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "LCP onculuk kapisi (preload <-> srcset ikiz tanimi + mutasyon bataryasi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/lcp-onculuk-kapisi.py
 
       # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
@@ -1332,7 +1332,7 @@ jobs:
       # KOPYA uzerinde mutasyona ugratip her mutantin sapmayi KACIRDIGINI dogrular.
       # Ana checkout'a DOKUNMAZ (git archive kopyasi + kirpik katalog), ~3 s.
       - name: "Yasal sayfa drift kapisi ic nobetcisi (bayatlatma + kirmizi-mutasyon)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yasal-sayfa-drift-kapisi.py --kendini-test
 
       # CANLI SAGLIK NOBETCISI — YALNIZ KENDINI TEST (AGSIZ). Nobetcinin kendisi CANLIYA
@@ -1346,7 +1346,7 @@ jobs:
       # 8 KIRMIZI-MUTASYON (6 kontrol no-op + `age` esigi + cf HIT listesi) mutantin
       # sapmayi KACIRDIGINI kanitlamali. Offline, stdlib, git/ag GEREKTIRMEZ, <1 s.
       - name: "Canli saglik nobetcisi — kendini test (3 vaka + yanlis-pozitif + mutasyon)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/canli-saglik-kapisi.py --kendini-test
 
       # ARA MALIYET KAPISI — IKI KOL DA BURADA (yayini BLOKLAMAYAN job).
@@ -1371,11 +1371,11 @@ jobs:
       # Bu ikisi birlikte "yanlis-pozitifi TUM EKIBIN yayinini durdurur" bedelini
       # kabul edilemez kilar. Serit A'ya tasima karari MIMARINDIR.
       - name: Ara maliyet kapisi (D1 arama plani cevrilmis mi + semantik parite)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ara-maliyet-kapisi.py
 
       - name: "Ara maliyet kapisi ic nobetcisi (kirmizi-mutasyon: CROSS JOIN -> JOIN)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ara-maliyet-kapisi.py --kendini-test
 
       # MARKA MODEL CIPI KAPISININ MUTASYON KANITI (12 Agu). Kapinin KENDISI serit A'da
@@ -1390,7 +1390,7 @@ jobs:
       # mutasyon KOPYAYA uygulanir (calisma agaci KIRLENMEZ, SIGTERM dahil).
       # node ISTER (yukaridaki setup-node bloklayici on-kosul; yoksa kapi rc=3 -> KIRMIZI).
       - name: Marka model cipi kapisi mutasyon bataryasi (5 oldurucu + 1 kontrol)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/marka-cip-mutasyon.py
 
       # MARKA SORGUSU CANLI JS YUKLEMI — mutasyon bataryasi (4 oldurucu + 1 kontrol).
@@ -1402,7 +1402,7 @@ jobs:
       # burada olculen sey kapinin OLDURUCULUGU ([[kapi-birikimi-yayin-gecikmesi]]).
       # node ISTER (yukaridaki setup-node bloklayici on-kosul; yoksa rc<>0 -> KIRMIZI).
       - name: Marka sorgusu JS yuklemi mutasyon bataryasi (4 oldurucu + 1 kontrol)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node tools/marka-sorgusu-js-mutasyon.js
 
       # ================= MUAFIYET DENETIMI (31 Tem) — 28 OLU-NOBETCI ADAYI BAGLANDI ====
@@ -1420,7 +1420,7 @@ jobs:
       # Toplam ek sure ~17 s. Hicbiri `continue-on-error` DEGILDIR (bilerek: hepsi
       # deterministik + agsiz; fail-open bir kapi bu blogun tam olarak kacindigi seydir).
       - name: Katalog/parti veri kapilari kabul testi (durum + edge + derin cap)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: |
           python3 tools/durum-test.py
           python3 tools/durum-edge-test.py
@@ -1438,7 +1438,7 @@ jobs:
       # dek yesil yanardi (olculdu: F0 fiksturu olmadan hicbir kapi bunu gormuyor).
       # Offline, stdlib, ~30 ms.
       - name: "6c sizinti muafiyeti ic nobetcisi (mutasyon)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/durum-test.py --ic-nobetci
       # d1-sync-durum-test.py 6 Agu'da TURETILMIS KOLON EKSENINI (4.) de kapsar: urun_hash'in
       # KAPSAMADIGI kolonlarin (konfigur/taban_fiyat/marka_kanon/model_kanon/marka_arama)
@@ -1447,30 +1447,30 @@ jobs:
       # (13 olduruculu / 5 kontrollu batarya): python3 tools/d1-sync-durum-mutasyon.py.
       # Agsiz + wrangler'siz kosar (sorgu() fikstur, uretici govdeler index.html'den okur).
       - name: D1 durum tanisi + baski senkron kabul testi
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: |
           python3 tools/d1-sync-durum-test.py
           python3 tools/test-baski-senkron.py
 
       - name: D1 seq tam sayi ve kanonik sira nobetcisi
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/d1-seq-test.py
       # Iki govde OLCUM MANTIGININ agsiz/openscad'siz kolu (MESH olcumu degil).
       - name: Iki govde olcum mantigi — kendini test (agsiz kol)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 onizleme/test/iki-govde-olcum.py --kendini-test
       # SERIT B — bu adim 95 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
       # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
       # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
       - name: "Uretici butunluk kapisi oz-nobetcisi (SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/uretim-butunluk-kapisi.py --kendini-test
 
       # SERIT B — bu adim 99 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
       # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
       # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
       - name: "Yayin ic-dil kapisi oz-nobetcisi (SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yayin-ic-dil-kapisi.py --kendini-test
 
       # KUTU ARSIVLEYICI — HIJYEN ARACI, YAYIN KAPISI DEGIL. Ortak posta kutusu
@@ -1485,7 +1485,7 @@ jobs:
       # hijyenidir; canliya cikan hicbir sayfayi/veriyi etkilemez. Tamamen offline,
       # yalniz tempfile fiksturleri okur (GERCEK kutuya DOKUNMAZ), ~3 s.
       - name: "Kutu arsivleyici kabul testi (kayipsiz tasima + flock, SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py
 
       # ... ve kabul testinin KENDI kabulu: mutasyon KOPYAYA uygulanir, canli arac
@@ -1493,7 +1493,7 @@ jobs:
       # (b) flock'u oldur -> suite KIRMIZI, (c) ilgisiz degisiklik -> suite YESIL.
       # Bu adim olmadan "kabul testi olu" hali (her mutant yesil) GORUNMEZ kalirdi.
       - name: "Kutu arsivleyici cift yonlu mutasyon turu (SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
       # KANCA NOBETI (tools/kanca-nobeti.py) — git kancalarinin SESSIZCE devre disi
@@ -1515,7 +1515,7 @@ jobs:
       # (yanlis-pozitif yok) · kok neden yeniden uretimi · fail-closed (OLCULEMEDI).
       # Tamamen offline, tempfile fiksturleri; GERCEK depoya DOKUNMAZ.
       - name: "Kanca nobeti kabul testi (git kancalari sessizce olu mu)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kanca-nobeti-test.py
 
       # ... ve kabul testinin KENDI kabulu. Mutasyon KOPYAYA uygulanir, canli aracin
@@ -1525,7 +1525,7 @@ jobs:
       # `exit`, ve fail-closed'in devrilmesi (OLCULEMEDI -> YESIL). Ilgisiz degisiklik
       # YESIL kalmali. Bu adim olmadan "kabul testi olu" hali GORUNMEZ kalirdi.
       - name: "Kanca nobeti cift yonlu mutasyon turu"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kanca-nobeti-test.py --mutasyon
 
       # DEVAM SINIF KAPISININ KANCA ENVANTERI (14 Agu 2026) — pre-commit kancasi
@@ -1537,7 +1537,7 @@ jobs:
       # cagri-silme mutantinin IKI nobetcide de KIRMIZI yanmasi. Offline, ag YOK,
       # gercek depoya YAZMAZ, ~1 s. SERIT B: kendi kirmizisi yayini durdurmaz.
       - name: "Kanca envanteri kabul testi (DEVAM sinif kapisi cagrisi iki defterde de kayitli mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kanca-devam-envanter-test.py
 
       # Kanca kablolama nobetcisinin KENDI kabulu: sentetik depolarda GERCEK `git commit` ile
@@ -1546,7 +1546,7 @@ jobs:
       # (sahte HOME + GIT_CONFIG_GLOBAL/SYSTEM katmanlarinda; gercek
       # `~/.gitconfig`e DOKUNULMAZ).
       - name: "Kanca kablolama kabul testi (fail-open kapandi mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kanca-kablolama-test.py
 
       # ... ve kabul testinin KENDI kabulu. Her mutant KIRMIZI yakmasi beklenen
@@ -1558,7 +1558,7 @@ jobs:
       # deseni listesi, rc-kontrolu ekseni ve kablolama ekseni. Mutasyon
       # KOPYAYA uygulanir; canli 9 dosyanin sha256'si once=sonra olculur.
       - name: "Kanca kablolama cift yonlu mutasyon turu"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kanca-kablolama-test.py --mutasyon
 
       # REKLAM/OLCUM ETIKET KAPSAM NOBETCISI (8 Agu 2026).
@@ -1583,7 +1583,7 @@ jobs:
       # ayristirilamiyor · kume BOS) kapi rc=3 ile OLCULEMEDI verir, YESIL DEMEZ.
       # Offline, stdlib, urunler.json OKUNMAZ, ~200 ms.
       - name: Reklam/olcum etiket kapsam nobetcisi (sayfa sinifi basina dort eksen)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/reklam-etiket-kapisi.py
 
       # ... ve nobetcinin KENDI hukmu 13 sentetik agacla olculur. IKI YONLU: K1-K8
@@ -1595,7 +1595,7 @@ jobs:
       # DOKUNMAZ. Mutasyon bataryasi CI adimi DEGILDIR, elde kosulur:
       #   python3 tools/reklam-etiket-mutasyon.py   (7 oldurucu mutant + 1 KONTROL)
       - name: Reklam etiket nobetcisi ic nobetci (kapinin kendi mantigi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/reklam-etiket-kapisi.py --kendini-test
 
       # REKLAM TIKLAMA KIMLIGI DAVRANIS TESTI (node DOM/URL semantigi).
@@ -1610,7 +1610,7 @@ jobs:
       # Kaynak GERCEK index.html'den kesilir (kopya tutulmaz). node ISTER (yukaridaki
       # setup-node on-kosul); node yoksa adim 127 ile DUSER — sessiz "yesil" YOK.
       - name: Reklam parametresi sayfalar arasi korunuyor mu (davranis testi)
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node tools/reklam-url-test.js
 
       # ═══════════════════════════════════════════════════════════════════════
@@ -1643,27 +1643,27 @@ jobs:
       # surucunun cagri satiri silinince kapi kirmizi yaniyor mu (RATCHET). Bellekte
       # kosar, canli dosyalara YAZMAZ (sha256 bas=son nobeti icinde).
       - name: "CI kapsam kapisi KESIF ekseni mutasyon bataryasi (ratchet canli mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kesif-kapsam-mutasyon.py
 
       - name: "Ata lisans kapisi mutasyon bataryasi (kabul testi gercekten olcuyor mu)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ata-lisans-mutasyon.py
 
       - name: "CTA denge kapisi mutasyon bataryasi (duzen sessizce geri gelirse kirmizi mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/cta-denge-mutasyon.py
 
       - name: "D1-sync durum kolu mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/d1-sync-durum-mutasyon.py
 
       - name: "D1-sync mid-array seq bloku mutasyon bataryasi (K153)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/d1-seq-mutasyon.py
 
       - name: "FAZ3 bayrak mutasyon bataryasi (3 mutant)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/faz3-bayrak-mutasyon.py
 
       # DEPLOY ACLIK KAPISININ GECICI AG SINIFI (11 Agu 2026). Batarya 5 oldurucu
@@ -1671,11 +1671,11 @@ jobs:
       # cikmaz, kapinin `--kendini-test` kolunu kosar. Mutasyon hedef dosyaya uygulanir
       # ve her turda finally ile bayt-bayt geri yuklenir.
       - name: "Deploy aclik kapisi gecici ag sinifi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/deploy-aclik-gh-mutasyon.py
 
       - name: "duzelt.py uyum kapisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/duzelt-uyum-mutasyon.py
 
       # EDGE KART KAPISININ KARDES-DEPO AYRISTIRMASI (11 Agu 2026 onarimi). Eski regex
@@ -1686,7 +1686,7 @@ jobs:
       # SENTETIK — kardes depo diskte olmasa da kosar; katalog OKUNMAZ, ag GEREKTIRMEZ.
       # Mutasyon BELLEKTE uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
       - name: "Edge kart kapisi kardes-depo ayristirma mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/edge-kart-tirnak-mutasyon.py
 
       # GORSEL-KOKEN TETIK (2) COK-KUME OLCUTU (11 Agu 2026 onarimi). Tetik eskiden
@@ -1700,7 +1700,7 @@ jobs:
       # katalog OKUNMAZ, koken manifest dizini OKUNMAZ, ag GEREKTIRMEZ.
       # Mutasyon BELLEKTE uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
       - name: "Gorsel-koken permutasyon (cok-kume) mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/gorsel-koken-permutasyon-mutasyon.py
 
       # GORSEL-KOKEN MANIFEST DIZINI BIRLESTIRMESI (12 Agu 2026 onarimi). Kapi eskiden
@@ -1716,7 +1716,7 @@ jobs:
       # gercek koken dizinleri OKUNMAZ, ag GEREKTIRMEZ.
       # Mutasyon BELLEKTE uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
       - name: "Gorsel-koken manifest dizini birlestirme mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/gorsel-koken-dizin-mutasyon.py
 
       # KONFIGUR SIYAH KAPAK KAPISININ mutasyon bataryasi (11 Agu 2026). Kapi IKI KOLLUDUR
@@ -1729,7 +1729,7 @@ jobs:
       # Fiksturler SENTETIK: urunler.json OKUNMAZ, ag GEREKTIRMEZ. Mutasyon BELLEKTE
       # uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
       - name: "Konfigur siyah kapak kapisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/konfigur-siyah-kapak-mutasyon.py
 
       # URUN SAYFASI / KART AYRIMI (11 Agu, Okan karari). Kartin da yukselmesi ACIKCA
@@ -1742,47 +1742,47 @@ jobs:
       # M3 ayni zehirle KIRMIZI yanar — ikisi bir CIFTTIR).
       # Mutasyon BELLEKTE uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son).
       - name: "Urun sayfasi / kart kapsam ayrimi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/urun-vitrin-kapsam-mutasyon.py
 
       - name: "Ege-bilgi tavan kapisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ege-bilgi-tavan-mutasyon.py
 
       - name: "GA4 olay kapisi mutasyon bataryasi (huni olayi sokulunca kirmizi mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/ga4-olay-mutasyon.py
 
       - name: "Gramer kisaltma kapisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/gramer-kisaltma-mutasyon.py
 
       - name: "Konfigur nobetcisi mutasyon bataryasi (ayna kaynaga yazamiyor mu)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/konfigur-nobet-mutasyon.py
 
       - name: "Mimar commit kapisi mutasyon bataryasi (gercek gate'e dokunmuyor mu)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/mimar-commit-kapisi-mutasyon.py
 
       - name: "Parite marka ekseni mutasyon bataryasi (ag/wrangler YOK)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: node tools/parite-marka-mutasyon.js
 
       - name: "Reklam etiket kapisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/reklam-etiket-mutasyon.py
 
       - name: "Serit bolme kapisi mutasyon bataryasi (fail-open kirmizi yaniyor mu)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/serit-bolme-mutasyon.py
 
       - name: "Serit beyani sinif kapisi mutasyon bataryasi (T1 turetim + T2 istisna)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/serit-beyani-mutasyon.py
 
       - name: "Shop bayatlik kapisi mutasyon bataryasi (wrangler.toml OKUR, CLI degil)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/shop-bayatlik-mutasyon.py
 
       # TAVSIYE FILAMENT D1 HATTI (11 Agu 2026) — `tavsiyeFilament` bir FIYAT girdisidir:
@@ -1794,30 +1794,30 @@ jobs:
       # SENTETIK: urunler.json OKUNMAZ, canli D1/wrangler/AG GEREKMEZ. Mutasyon BELLEKTE
       # uygulanir, canli dosyaya tek bayt yazilmaz (sha256 bas=son nobeti icinde).
       - name: "Tavsiye filament D1 hatti mutasyon bataryasi (hash kapsami + tip kapisi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/tavsiye-filament-mutasyon.py
 
       # 8 AGU SOMUT VAKASI: kiyas referansi kaydinin bozuk sekilleri (kisa `ref`,
       # JSON DIZISI, sayi, alan yok, bozuk metin, cozulemeyen sha) TEK BASINA rc=2
       # veriyor mu. Ikisi 8 Agu'da FAIL-OPEN'di ve rc=0 verip YANLIS BEYAN basiyordu.
       - name: "Varlik referans kaydi mutasyon bataryasi (bozuk sekil fail-closed mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/varlik-referans-mutasyon.py
 
       - name: "Vitrin kabul kapisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/vitrin-kabul-mutasyon.py
 
       - name: "WhatsApp yetki kapisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/wa-yetki-mutasyon.py
 
       - name: "Yayin erisim nobetcisi mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yayin-erisim-mutasyon.py
 
       - name: "Yedek gorev kapsami mutasyon bataryasi (sahte HOME, gercek HOME'a YAZMAZ)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/yedek-gorev-kapsam-mutasyon.py
       # MARKA SAYFASI ARTIM/FILTRE DAVRANISI (8 Agu 2026) — SERIT B.
       # Marka sayfasi markanin TUM parcalarini kart olarak listeler; ilk N kart SSR'de,
@@ -1827,30 +1827,33 @@ jobs:
       # ISTEMCI DAVRANISINI olcer; SSR yuzeyi (kart yuzeyi kimligi, bolum ayrimi, agirlik
       # tavani) bloklayici seritteki marka-sayac-kapisi'nda ZATEN olculuyor.
       - name: "Marka sayfasi artim + sayfa-ici model filtresi (davranis, node)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/marka-artim-test.py
       # KAYNAK LINK TAMAMLA — K152 kabul + mutasyon bataryasi (17 Agu 2026).
       # Gizli kaynak defterindeki eksik uretici linkini tamamlar; urunler.json'a
       # dokunmaz. Hijyen ekseni: kirmizisi musteriye yanlis para odetmez, veri
       # sizdirmaz, siteyi durdurmaz.
       - name: "Kaynak link tamamlama: kabul testi (fikstur + gercek beyan)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kaynak-link-test.py
       - name: "Kaynak link tamamlama: mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/kaynak-link-test.py --mutasyon
 
       # KAYNAK DUZLEMI TEMIZLEME — K171 kabul + mutasyon bataryasi (18 Agu 2026).
       # `duzelt.py --kaynak-durum` / `--kaynak-temizle` kollarini olcer. SERIT B:
       # kirmizisi musteriye yanlis para odetmez, veri sizdirmaz, siteyi durdurmaz —
       # emsal birebir yukaridaki kaynak-link adimlari (K152).
-      # `continue-on-error` maskeleme DEGIL: serit B zaten yayini bloklamaz; bayrak
-      # kirmizi bir adimin SONRAKILERI gizlemesini onler ([[kirmizi-adim-sonrakini-maskeler]]).
+      # 🔴 `continue-on-error` KULLANILMIYOR (K178b): adim duzeyinde o bayrak adimin
+      # kirmizisinin job'u dusurmesini ENGELLER — `conclusion=success` olur ve kirmizi
+      # YESIL RAPORLANIR ([[fail-slow-fail-opendir]]). Istenen davranis "onceki adim
+      # kirmiziysa da kos"; onu saglayan sey `if` kosuludur. `always()` DEGIL: bu serit
+      # kuyrukta sik `cancelled` oluyor ([[cancelled-yigini-yayin-tavani]]).
       - name: "Kaynak duzlemi temizleme: kabul testi (8 eksen)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/duzelt-kaynak-test.py
       - name: "Kaynak duzlemi temizleme: mutasyon bataryasi"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/duzelt-kaynak-mutasyon.py
 
       # SAHIPLIK HARITASI KAPISI — SERIT B (18 Agu 2026, Paket ③-d §4).
@@ -1860,7 +1863,7 @@ jobs:
       # envanter hicyesigidir; yayini durdurmasi olculmus zarardir. Beyan:
       # tools/is-akisi-kapisi.py :: SERIT_B. Offline, ag YOK, ~1 s.
       - name: "Sahiplik haritasi kapisi — envanter + invaryant (hijyen, SERIT B)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/sahiplik-kapisi.py
 
       # SERIT-B MASKELEME KAPISI — Paket K178 (18 Agu 2026, OLCULEN KUSUR).
@@ -1872,7 +1875,7 @@ jobs:
       # --kendini-test modunda 3 mutant RED + 2 kontrol YESIL uretir. Offline, stdlib.
       # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
       - name: "Serit-b maskeleme kapisi (her kapi adimi bagimsiz mi)"
-        continue-on-error: true
+        if: ${{ !cancelled() }}
         run: python3 tools/serit-b-maskeleme-test.py --kendini-test
 
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.

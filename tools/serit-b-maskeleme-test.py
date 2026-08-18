@@ -1,55 +1,65 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""SERIT-B MASKELEME KAPISI KABUL TESTI — Paket K178 (18 Agu 2026).
+"""SERIT-B MASKELEME KAPISI KABUL TESTI — Paket K178b (18 Agu 2026, K178 ACIL
+follow-up: continue-on-error: true kirmiziyi YUTAR, yesil raporlar).
 
 MUTLAK KOK KULLANMAZ ([[kapi-sabit-kok-yanlis-agaci-olcer]]). Dosya yolu senin calisma
 dizininden hesaplanir (BETIK yer = <repo>/tools/).
 
-OLCULEN KUSUR (Pakete baglanan kosum 32133861890): serit-b job'unda bir adim kirmizi
-olunca GitHub'in varsayilan fail-fast davranisi geri kalan 114 adimi SKIP yapiyor ->
-uc kapinin kirmizisi halk GORUNMEZ ([[kirmizi-adim-sonrakini-maskeler]]).
+OLCULEN KUSURLAR (Kosum 32133861890 ve K178b commit df26964b):
+  (a) serit-b job'unda bir adim kirmizi olunca GitHub'in varsayilan fail-fast
+      davranisi geri kalan 114 adimi SKIP yapiyor -> uc kapinin kirmizisi halk
+      GORUNMEZ ([[kirmizi-adim-sonrakini-maskeler]]).
+  (b) `continue-on-error: true` adim duzeyinde kullanimi adimin kirmizisini YUTAR:
+      adimin outcome'i `failure` olur ama conclusion'i `success` ve JOB YESIL
+      BITER ([[fail-slow-fail-opendir]]). Bu, (a)'dan DAHA TEHLIKELI: kirmizinin
+      VAR oldugu raporlanir ama job saglikli gorunur.
 
 BU KAPI: serit-b job'undaki HER KAPI adiminda (altyapi adimlari haric) bagimsizlik
-isareti (continue-on-error: true VEYA if: always()) olup olmadigini olcer. Yoksa
-adim adim adla REDDEDER ve rc=1 ile cikar.
+isareti durumunu olcer. Uc kusak var:
+  * MASKELEYEN — bagimsizlik isareti YOK (GitHub fail-fast, sonraki adimlar skip).
+  * YUTAN       — `continue-on-error: true` tasiyor (adim kirmizisini yutar, job
+                  yesil raporlanir). K178b care paketinin H1 ile bu eksen de
+                  REDDEDILIR (care: continue-on-error → if: ${{ !cancelled() }}).
+  * BAGIMSIZ    — `if: ${{ !cancelled() }}` veya `if: always()` (kosar, kendi
+                  kirmizisi job'u dusurur; sonraki adimlari maskelemez).
 
-KAPSAM DISI (yeşil sayilir):
+KAPSAM DISI (sayilmaz):
   * Altyapi adimlari: actions/checkout*, actions/setup-* (K2 kontrolu)
-  * Diger joblar: hijyen-a2, hijyen-a3, hijyen-build, hijyen-a4, deploy vb. (K1 kontrolu)
+  * Diger joblar: hijyen-a2, hijyen-a3, hijyen-build, hijyen-a4, deploy vb. (K1)
   * sadece `serit-b` job'una bakar.
 
-BAGIMSIZLIK ISARETLERI (ikisinden biri yeterli):
-  * continue-on-error: true (top-level veya run-level)
-  * if: always() (string icinde)
+CI'DA KABLO: bu test `serit-b` job'unda BIR ADIM olarak kosar ve muafiyet
+listesinde DEGIL (davranissal kontrol, grep degil). ci-kapsam-test.py ile kapsam
+kapisi saglanir.
 
-CI'DA KABLO: bu test `serit-b` job'unda BIR ADIM olarak kosar ve muafiyet listesinde
-DEGIL (davranissal kontrol, grep degil). ci-kapsam-test.py ile kapsam kapisi saglanir.
+MUTANTLAR (4/4 KIRMIZI olmali):
+  * M1 --bir adimdan bagimsizlik isaretini kaldir (if: !cancelled() sil) ->
+        MASKELEYEN >= 1, o adimin adi yazilir, rc=1
+  * M2 --bir adima `continue-on-error: true` GERI KOY -> YUTAN >= 1, o adimin
+        adi yazilir, rc=1 (bugunku K178b hatasi birebir yakalayan mutant).
+  * M3 --evreni bos kume yap (serit-b job'unun steps: [] olarak ayarla) ->
+        ADIM=0, "OLCULEMEDI" yazip rc=1 ile cikar (yesil donmemeli).
+  * M4 --nöbetciyi bloklayici seride de uygula (hijyen-a2 adimlarina da bak) ->
+        kapsam genisletme kurali ihlal edildi -> rc=1 RED.
 
-MUTANTLAR (3/3 KIRMIZI olmali):
-  * M1 --bir adimdan bagimsizlik isaretini kaldir (continue-on-error: true sil)
-        -> MASKELEYEN >= 1, o adimin adi yazilir, rc=1
-  * M2 --evreni bos kume yap (no bet.yml icinde serit-b job'unun steps: []
-        olarak ayarla) -> ADIM=0, MASKELEYEN=0 ama kapi BOŞ EVREN kabul etmez,
-        "OLCULEMEDI" yazip rc=1 ile cikar (yesil donmemeli).
-  * M3 --nöbetciyi bloklayici seride de uygula (hijyen-a2'ye de bakmaya basla) ->
-        kapinin kapsam genisletme kurali ihlal edildi -> rc=1 RED.
-
-KONTROLLER (2/2 YEŞİL kalmali):
-  * K1 --hijyen-a2 veya hijyen-a3 adiminda bagimsizlik isareti OLMAMALI, kapi bunlari
-        saymamali (kapsam disi). Bu kontrol kapinin kendi ic mantigindan gelir.
-  * K2 --checkout/setup-python/setup-node adimlari bagimsiz isareti tasiMAMALI,
-        kapi bunlari MASKELEYEN saymamali. Altyapi adimlarinin OLMAMASI BEKLENIR
-        (yesil yanmali).
+KONTROLLER (2/2 YESIL kalmali):
+  * K1 --hijyen-a2 veya hijyen-a3 adiminda MASKELEYEN veya YUTAN isareti
+        OLMAMALI, kapi bunlari saymamali (kapsam disi). Bu kontrol kapinin kendi
+        ic mantigindan gelir.
+  * K2 --checkout/setup-python/setup-node adimlari MASKELEYEN/YUTAN isareti
+        tasIMAMALI, kapi bunlari saymamali. Altyapi adimlarinin OLMAMASI
+        BEKLENIR (yesil yanmali).
 
 CI CIKTI FORMATI:
-  ADIM=<n> BAGIMSIZ=<n> MASKELEYEN=0 MUTANT=3/3 KONTROL=2/2
-  (rc=0 yalniz MASKELEYEN=0 ve MUTANT=3/3 ve KONTROL=2/2 ise)
+  ADIM=<n> BAGIMSIZ=<n> MASKELEYEN=0 YUTAN=0 MUTANT=4/4 KONTROL=2/2
+  (rc=0 yalniz MASKELEYEN=0 ve YUTAN=0 ve MUTANT=4/4 ve KONTROL=2/2 ise)
 """
 
 import argparse
 import os
+import re
 import shutil
-import subprocess
 import sys
 import tempfile
 
@@ -62,6 +72,10 @@ SERIT_B_JOB_ADI = "serit-b"
 ALTYAPI_USES_ON_EK = ("actions/checkout", "actions/setup-")
 
 CIKIS_KIRMIZI_DAGILIM_BEKLENEN = "ADIM="
+
+# Bagimsizlik isareti tipleri
+BAGIMSIZLIK_YUTAN = "YUTAN"            # continue-on-error: true -> yutar
+BAGIMSIZLIK_KOSAR = "BAGIMSIZ"          # if: !cancelled() / always() -> kosar, dusurur
 
 
 # ─────────────── YAML OKUMA ───────────────
@@ -79,16 +93,12 @@ def yaml_yukle_guvenli(yol):
 
 
 def _yaml_manuel(yol):
-    """no bet.yml icin minimum gerekli YAML cozumleyici. Sadece serit-b job'unun
-    adimlarini (name veya uses + sonraki 10 satira continue-on-error/if:) okur.
-    """
+    """no bet.yml icin minimum gerekli YAML cozumleyici."""
     with open(yol, "r", encoding="utf-8") as fh:
         satirlar = fh.readlines()
     joblar = {}
     aktif_job = None
-    aktif_job_indent = None
     aktif_adim = None
-    aktif_adim_indent = None
     adim_blok = []
     is_akis_disi = True
     for line in satirlar:
@@ -102,7 +112,6 @@ def _yaml_manuel(yol):
         if stripped.startswith("  ") and not stripped.startswith("    "):
             m = stripped[2:].split(":")
             if len(m) == 2 and m[0] and m[0][0].isalpha():
-                # adim bitisini kapat
                 if aktif_adim is not None and aktif_job is not None:
                     joblar.setdefault(aktif_job, []).append(
                         {"name": aktif_adim[0], "uses": aktif_adim[1], "_blok": "\n".join(adim_blok)}
@@ -113,7 +122,6 @@ def _yaml_manuel(yol):
                 continue
         # Adim baslangici (4 bosluk indent, "- ")
         if stripped.startswith("    - "):
-            # onceki adimi kaydet
             if aktif_adim is not None and aktif_job is not None:
                 joblar.setdefault(aktif_job, []).append(
                     {"name": aktif_adim[0], "uses": aktif_adim[1], "_blok": "\n".join(adim_blok)}
@@ -129,7 +137,6 @@ def _yaml_manuel(yol):
         # Adim alt alani (6+ bosluk)
         if aktif_adim is not None:
             adim_blok.append(stripped)
-    # son adim
     if aktif_adim is not None and aktif_job is not None:
         joblar.setdefault(aktif_job, []).append(
             {"name": aktif_adim[0], "uses": aktif_adim[1], "_blok": "\n".join(adim_blok)}
@@ -138,35 +145,42 @@ def _yaml_manuel(yol):
 
 
 # ─────────────── ADIM ANALIZI ───────────────
-def _adim_bagimsiz_mi(adim):
-    """Bir adim bagimsizlik isareti tasiyor mu?"""
-    # PyYAML dict ise
+def _adim_bagimsizlik_tipi(adim):
+    """Bir adimin bagimsizlik isareti durumunu doner:
+       * BAGIMSIZLIK_YUTAN   — continue-on-error: true (kirmiziyi yutar)
+       * BAGIMSIZLIK_KOSAR   — if: !cancelled() veya if: always() (kosar, dusurur)
+       * None                — bagimsizlik isareti yok (fail-fast, maskeleyen)
+    """
     if isinstance(adim, dict):
         if adim.get("continue-on-error") is True:
-            return True
+            return BAGIMSIZLIK_YUTAN
         if_clause = str(adim.get("if", ""))
-        if "always()" in if_clause.replace(" ", ""):
-            return True
-        # run altinda continue-on-error
+        if _if_clause_bagimsizmi(if_clause):
+            return BAGIMSIZLIK_KOSAR
         run = adim.get("run")
         if isinstance(run, dict) and run.get("continue-on-error") is True:
-            return True
-        return False
-    # Manuel dict ise
-    if isinstance(adim, dict) and "_blok" in adim:
-        blok = adim["_blok"]
-        if "continue-on-error" in blok:
-            return True
-        if re_search_if_always(blok):
-            return True
+            return BAGIMSIZLIK_YUTAN
+        blok = adim.get("_blok")
+        if blok is not None:
+            if re.search(r"continue-on-error:\s*true", blok):
+                return BAGIMSIZLIK_YUTAN
+            if re.search(r"if:\s*!\s*cancelled\(\)", blok):
+                return BAGIMSIZLIK_KOSAR
+            if re.search(r"if:\s*always\(\)", blok):
+                return BAGIMSIZLIK_KOSAR
+    return None
+
+
+def _if_clause_bagimsizmi(if_clause):
+    """if clause'un `!cancelled()` veya `always()` icerip icermedigini kontrol eder.
+    `always()` yine de BAGIMSIZ sayilir cunku bir sonraki adimi maskelemez.
+    """
+    s = if_clause.replace(" ", "")
+    if "!cancelled()" in s:
+        return True
+    if "always()" in s:
+        return True
     return False
-
-
-def re_search_if_always(blok):
-    # if: always() | if: always() && ... | if: failure() vs yok say
-    import re
-
-    return bool(re.search(r"if:\s*always\(\)", blok))
 
 
 def _adim_altyapi_mi(adim):
@@ -178,148 +192,131 @@ def _adim_altyapi_mi(adim):
 
 
 def maske_tara(veri):
-    """serit-b job'unun kapı adimlarini sayar, bagimsiz olanlari ve MASKELEYEN'leri
-    (bagimsiz isareti olmayan kapı adimlari) listeler.
-
-    Returns: dict(toplam_kapi, bagimsiz, maskeleyen_liste, evren_bos_mu)
+    """serit-b job'unun kapı adimlarini sayar:
+       * toplam_kapi   — altyapi haric kapı adimi sayisi
+       * bagimsiz      — if: !cancelled() / always() tasiyan (kosar, dusurur)
+       * yutan         — continue-on-error: true tasiyan (kirmiziyi yutar) — RED
+       * maskeleyen    — bagimsizlik isareti olmayan (fail-fast) — RED
+       * evren_bos_mu  — serit-b steps yoksa True
     """
     joblar = veri.get("jobs", {}) or {}
     sb = joblar.get(SERIT_B_JOB_ADI)
     if sb is None:
-        return {"evren_bos_mu": True, "maskeleyen_liste": [], "toplam_kapi": 0, "bagimsiz": 0}
+        return {"evren_bos_mu": True, "maskeleyen_liste": [], "yutan_liste": [],
+                "toplam_kapi": 0, "bagimsiz": 0}
     steps = sb.get("steps") if isinstance(sb, dict) else None
     if steps is None:
-        return {"evren_bos_mu": True, "maskeleyen_liste": [], "toplam_kapi": 0, "bagimsiz": 0}
+        return {"evren_bos_mu": True, "maskeleyen_liste": [], "yutan_liste": [],
+                "toplam_kapi": 0, "bagimsiz": 0}
     toplam = 0
     bagimsiz = 0
     maskeleyen = []
+    yutan = []
     for adim in steps:
         if _adim_altyapi_mi(adim):
             continue  # K2 kontrolu
         toplam += 1
-        if _adim_bagimsiz_mi(adim):
+        tip = _adim_bagimsizlik_tipi(adim)
+        nm = adim.get("name") if isinstance(adim, dict) else ""
+        nm = str(nm)[:80]
+        if tip == BAGIMSIZLIK_KOSAR:
             bagimsiz += 1
+        elif tip == BAGIMSIZLIK_YUTAN:
+            yutan.append(nm)
         else:
-            nm = adim.get("name") if isinstance(adim, dict) else ""
-            maskeleyen.append(str(nm)[:80])
-    return {"evren_bos_mu": toplam == 0, "maskeleyen_liste": maskeleyen, "toplam_kapi": toplam, "bagimsiz": bagimsiz}
+            maskeleyen.append(nm)
+    return {"evren_bos_mu": toplam == 0, "maskeleyen_liste": maskeleyen, "yutan_liste": yutan,
+            "toplam_kapi": toplam, "bagimsiz": bagimsiz}
 
 
 # ─────────────── MUTANT TESTLERI ───────────────
 def _yerel_no_bet_kopyasi(tmpdir):
-    """no bet.yml'in gecici kopyasini olusturur, dosya yolunu dondurur."""
     hedef = os.path.join(tmpdir, "nobet.yml")
     shutil.copy(NOBET_YML, hedef)
     return hedef
 
 
-def _yaml_kullan(yol, mutator):
-    """YAML'i oku, mutator(u veri) ile degistir, yaz. PyYAML kullanir; yoksa string
-    manipülasyonu yapar (no bet.yml'in bilinen yapisina dayanir)."""
-    try:
-        import yaml
-
-        with open(yol, "r", encoding="utf-8") as fh:
-            veri = yaml.safe_load(fh)
-        mutator(veri)
-        with open(yol, "w", encoding="utf-8") as fh:
-            yaml.safe_dump(veri, fh, allow_unicode=True, sort_keys=False)
-        return True
-    except ModuleNotFoundError:
-        # Manuel test: bir adimdan continue-on-error satirini cikar
-        return False
-
-
 def mutant_testleri_calistir():
-    """3 mutant calistir, 3/3 kirmizi olmalidir.
+    """4 mutant calistir, 4/4 kirmizi olmalidir."""
+    sonuc = {"m1": None, "m2": None, "m3": None, "m4": None}
 
-    Lokalde PyYAML yoksa string-duzeyinde kaba bir mutant yapar (M1). M2 ve M3 icin
-    PyYAML gerekir; yoksa mutant calistirilmaz ve 'OLCULEMEDI' yazilir (CI'da pyyaml
-    kurulu olacagi icin tam olcum orada olur).
-
-    Returns: dict(m1_red, m2_red, m3_red, mutant_sonuc)
-    """
-    sonuc = {"m1": None, "m2": None, "m3": None}
-
-    # M1: bir adimdan continue-on-error satirini cikar
+    # M1: bir adimdan `if: !cancelled()` satırini kaldir → MASKELEYEN=1 RED
     with tempfile.TemporaryDirectory() as tmp:
         kopya = _yerel_no_bet_kopyasi(tmp)
         with open(kopya, "r", encoding="utf-8") as fh:
             metin = fh.read()
-        # serit-b job'unun icindeki ILK "continue-on-error: true" satırını kaldır
-        import re
-
-        # serit-b blogunu bul
-        sb_match = re.search(r"^  serit-b:\s*\n(?:(?:    .*\n)|(?:    .*\n.*\n.*\n)){0,2000}", metin, re.MULTILINE)
+        sb_match = re.search(
+            r"^  serit-b:\s*\n(?:(?:    .*\n)|(?:    .*\n.*\n.*\n)){0,5000}",
+            metin, re.MULTILINE,
+        )
         if sb_match:
             sb_blok = sb_match.group(0)
-            yeni_blok = re.sub(r"[ \t]+continue-on-error: true\n", "", sb_blok, count=1)
+            yeni_blok = re.sub(
+                r"[ \t]+if:\s*\$\{\{\s*!\s*cancelled\(\)\s*}}\n", "", sb_blok, count=1
+            )
             if yeni_blok != sb_blok:
                 yeni_metin = metin.replace(sb_blok, yeni_blok, 1)
                 with open(kopya, "w", encoding="utf-8") as fh:
                     fh.write(yeni_metin)
                 sonuc["m1"] = _kabul_calistir(kopya, beklenen_kirmizi=True)
             else:
-                sonuc["m1"] = ("OLCULEMEDI", "serit-b icinde continue-on-error yok")
+                sonuc["m1"] = ("OLCULEMEDI", "serit-b icinde if: !cancelled() yok")
         else:
             sonuc["m1"] = ("OLCULEMEDI", "serit-b blogu bulunamadi")
 
-    # M2 ve M3 icin PyYAML gerekli
+    # M2: bir adima `continue-on-error: true` GERI KOY → YUTAN=1 RED
+    try:
+        import yaml  # noqa: F401
+    except ModuleNotFoundError:
+        sonuc["m2"] = ("OLCULEMEDI", "pyyaml yok")
+    else:
+        with tempfile.TemporaryDirectory() as tmp:
+            kopya = _yerel_no_bet_kopyasi(tmp)
+            with open(kopya, "r", encoding="utf-8") as fh:
+                veri = yaml.safe_load(fh)
+            sb = veri["jobs"][SERIT_B_JOB_ADI]
+            hedef_idx = None
+            for i, adim in enumerate(sb["steps"]):
+                if not _adim_altyapi_mi(adim):
+                    hedef_idx = i
+                    break
+            if hedef_idx is None:
+                sonuc["m2"] = ("OLCULEMEDI", "serit-b icinde kapı adimi yok")
+            else:
+                sb["steps"][hedef_idx]["continue-on-error"] = True
+                with open(kopya, "w", encoding="utf-8") as fh:
+                    yaml.safe_dump(veri, fh, allow_unicode=True, sort_keys=False)
+                sonuc["m2"] = _kabul_calistir(kopya, beklenen_kirmizi=True)
+
+    # M3 + M4 icin PyYAML gerekli
     try:
         import yaml  # noqa: F401
 
-        # M2: serit-b job'unun steps: [] yap
+        # M3: serit-b job'unun steps: [] yap → ADIM=0, evren bos, RED
         with tempfile.TemporaryDirectory() as tmp:
             kopya = _yerel_no_bet_kopyasi(tmp)
             with open(kopya, "r", encoding="utf-8") as fh:
                 veri = yaml.safe_load(fh)
 
-            def m2_mutator(v):
+            def m3_mutator(v):
                 v["jobs"]["serit-b"]["steps"] = []
 
-            m2_mutator(veri)
+            m3_mutator(veri)
             with open(kopya, "w", encoding="utf-8") as fh:
                 yaml.safe_dump(veri, fh, allow_unicode=True, sort_keys=False)
-            sonuc["m2"] = _kabul_calistir(kopya, beklenen_kirmizi=True)
+            sonuc["m3"] = _kabul_calistir(kopya, beklenen_kirmizi=True)
 
-        # M3: kapinin kapsamini bloklayici seritlere de genislet
-        with tempfile.TemporaryDirectory() as tmp:
-            kopya = _yerel_no_bet_kopyasi(tmp)
-            with open(kopya, "r", encoding="utf-8") as fh:
-                veri = yaml.safe_load(fh)
-            # bu, KAPI'NIN KENDISI: kapinin hangi job'lara baktigini manipule edemeyiz
-            # -- bunun yerine kapinin KENDI davranisina mudahale eden bir ortam
-            # olusturmaliyiz. En sade temsili: kapiya alternatif bir cagri yapip
-            # kontrol et.
-            # Bu test kapinin KAYNAK KODUNUN kapsam genisletmesini yakalar: kapi
-            # icinde `SERIT_B_JOB_ADI` veya `BLOKLAYICI_JOB_UZANTILARI` tanimlarini
-            # arar ve eger `SERIT_B_JOB_ADI` yerine baska bir isimle aranmissa RED
-            # verir. Bu, kapinin kendi mantigina mudahale eden bir dis ortamdir.
-
-            # Bu test icin kapinin KENDI KAYNAK KODUNU okuruz ve SERIT_B_JOB_ADI'nin
-            # neden orada oldugunu kontrol ederiz.
-            sonuc["m3"] = _m3_kapsam_genisletme_kontrol()
+        # M4: nöbetci bloklayici seride de uygulansaydi RED olurdu mu?
+        sonuc["m4"] = _m4_kapsam_genisletme_kontrol()
     except ModuleNotFoundError:
-        sonuc["m2"] = ("OLCULEMEDI", "pyyaml yok")
         sonuc["m3"] = ("OLCULEMEDI", "pyyaml yok")
+        sonuc["m4"] = ("OLCULEMEDI", "pyyaml yok")
 
     return sonuc
 
 
-def _m3_kapsam_genisletme_kontrol():
-    """M3 mutant testi -- kapinin KAPSAM GENISLETILMIS hali KIRMIZI donmeli.
-
-    Spek MUTANT'in kapsam genisletilmis halde ne yapacagini soyluyor -- nöbetçi
-    bloklayici seride de uygulanirsa, mevcut nobet.yml'de bloklayici serit
-    adimlarinin bagimsizlik isareti OLMADIGI icin kapinin KIRMIZI donmesi BEKLENIR.
-    Bu davranis kapinin kapsam disi tutan mantigini DOGRULAR: eger kapinin kapsam
-    korumasi YANLIS genisletilirse (bloklayici seritlere de bakarsa), mevcut
-    nobet.yml ile KIRMIZI uretir -- ve M3 mutant testinin GECME SARTI budur.
-
-    Test ortami: kapinin maske_tara mantigini `serit-b` yerine `hijyen-a2` ile
-    calistirir. Mevcut nobet.yml'de bloklayici serit adimlarinin bagimsizlik
-    isareti YOK (continue-on-error YASAK), dolayisiyla mutant KIRMIZI doner.
-    """
+def _m4_kapsam_genisletme_kontrol():
+    """M4 mutant testi -- kapinin KAPSAM GENISLETILMIS hali KIRMIZI donmeli."""
     try:
         import yaml  # noqa: F401
     except ModuleNotFoundError:
@@ -333,7 +330,7 @@ def _m3_kapsam_genisletme_kontrol():
     for adim in hijyen["steps"]:
         if _adim_altyapi_mi(adim):
             continue
-        if not _adim_bagimsiz_mi(adim):
+        if _adim_bagimsizlik_tipi(adim) is None:
             mutant_maskeleyen += 1
     if mutant_maskeleyen >= 1:
         return (
@@ -346,50 +343,41 @@ def _m3_kapsam_genisletme_kontrol():
     )
 
 
-
-
 def _kabul_calistir(yaml_yol, beklenen_kirmizi):
-    """Kapiyi verilen no bet.yml uzerinden calistirir. beklenen_kirmizi=True ise
-    MASKELEYEN>=1 veya ADIM=0 beklenir; False ise MASKELEYEN=0 beklenir.
+    """Kapiyi verilen no bet.yml uzerinden calistirir.
 
-    Returns: (sonuc, detay) tuple -- sonuc "KIRMIZI", "YESIL" veya "OLCULEMEDI"
+    beklenen_kirmizi=True ise: MASKELEYEN>=1 VEYA YUTAN>=1 VEYA evren bos -> KIRMIZI.
+    beklenen_kirmizi=False ise: hepsi 0 olmali (kontrol).
     """
-    # Biz burada kapinin ANALIZINI dogrudan yapiyoruz -- subprocess overhead'i yok
-    # ve mutant yalnizligini korur.
     veri = yaml_yukle_guvenli(yaml_yol)
     sonuc = maske_tara(veri)
     toplam = sonuc["toplam_kapi"]
     bagimsiz = sonuc["bagimsiz"]
     maske = sonuc["maskeleyen_liste"]
+    yutan = sonuc["yutan_liste"]
     evren_bos = sonuc["evren_bos_mu"]
 
     if beklenen_kirmizi:
         if evren_bos:
-            return ("KIRMIZI", "M2 bos evren -> kapi yesil donmedi, kirmizi (beklenen)")
+            return ("KIRMIZI", "evren bos -> kapi yesil donmedi, kirmizi (beklenen)")
         if len(maske) >= 1:
             return ("KIRMIZI", f"MASKELEYEN={len(maske)} beklenen kirmizi")
+        if len(yutan) >= 1:
+            return ("KIRMIZI", f"YUTAN={len(yutan)} beklenen kirmizi")
         return ("YESIL", "mutant beklenen kirmiziyi uremedi")
     else:
         if evren_bos:
             return ("OLCULEMEDI", "evren bos, kontrol anlamsiz")
-        if len(maske) >= 1:
-            return ("KIRMIZI", f"KONTROL beklenmedik kirmizi: {len(maske)} maske")
+        if len(maske) >= 1 or len(yutan) >= 1:
+            return ("KIRMIZI", f"KONTROL beklenmedik kirmizi: maske={len(maske)} yutan={len(yutan)}")
         return ("YESIL", None)
 
 
 # ─────────────── KONTROL TESTLERI ───────────────
 def kontrol_testleri_calistir():
-    """K1: bloklayici seritlerdeki adimlar sayilmaz. K2: altyapi adimlari maskeleyen
-    sayilmaz. Bunlar kapinin KENDI MANTIGINDA sabit; sadece nobet.yml'in mevcut hali
-    uzerinden dogrulaniyor.
-
-    K1 icin: serit-b disindaki herhangi bir bloklayici job (hijyen-a2 veya3) adimlarinda
-    bagimsizlik isareti OLMAMAMALI. Bu kontrolu KAYNAK KOD uzerinden yapariz --
-    kapinin `BLOKLAYICI_JOB_UZANTILARI` listesi bunlari icermeli.
-    """
+    """K1: bloklayici seritlerdeki adimlar sayilmaz. K2: altyapi adimlari sayilmaz."""
     sonuc = {"k1": None, "k2": None}
 
-    # K1 -- bloklayici serit isimleri kapsam disi listenin icinde mi?
     betik = os.path.abspath(__file__)
     with open(betik, "r", encoding="utf-8") as fh:
         kaynak = fh.read()
@@ -399,9 +387,7 @@ def kontrol_testleri_calistir():
             return sonuc
     sonuc["k1"] = ("YESIL", None)
 
-    # K2 -- altyapi on-ekleri ALTYAPI_USES_ON_EK icinde mi?
-    gerekli = ("actions/checkout", "actions/setup-")
-    for on_ek in gerekli:
+    for on_ek in ("actions/checkout", "actions/setup-"):
         if on_ek not in kaynak:
             sonuc["k2"] = ("KIRMIZI", f"K2 kontrolu eksik: {on_ek} listede degil")
             return sonuc
@@ -412,12 +398,8 @@ def kontrol_testleri_calistir():
 
 # ─────────────── ANA KABUL ───────────────
 def ana_kabul(yaml_yol):
-    """Verilen nobet.yml uzerinden kapinin ASIL kararini uretir. MASKELEYEN=0 ise
-    YESIL; >0 ise adim adlariyla KIRMIZI.
-    """
     veri = yaml_yukle_guvenli(yaml_yol)
-    sonuc = maske_tara(veri)
-    return sonuc
+    return maske_tara(veri)
 
 
 def main():
@@ -426,11 +408,11 @@ def main():
     parser.add_argument("--yaml", default=NOBET_YML, help="nobet.yml yolu (test/olcum)")
     args = parser.parse_args()
 
-    # 1) ASIL KABUL
     ana = ana_kabul(args.yaml)
     toplam = ana["toplam_kapi"]
     bagimsiz = ana["bagimsiz"]
     maske = ana["maskeleyen_liste"]
+    yutan = ana["yutan_liste"]
     evren_bos = ana["evren_bos_mu"]
 
     if evren_bos:
@@ -439,10 +421,14 @@ def main():
     if maske:
         for nm in maske[:10]:
             print(f"MASKELEYEN_ADIM: {nm}")
-        print(f"ADIM={toplam} BAGIMSIZ={bagimsiz} MASKELEYEN={len(maske)} MUTANT=0/0 KONTROL=0/0")
+        print(f"ADIM={toplam} BAGIMSIZ={bagimsiz} MASKELEYEN={len(maske)} YUTAN={len(yutan)} MUTANT=0/0 KONTROL=0/0")
+        return 1
+    if yutan:
+        for nm in yutan[:10]:
+            print(f"YUTAN_ADIM: {nm}")
+        print(f"ADIM={toplam} BAGIMSIZ={bagimsiz} MASKELEYEN=0 YUTAN={len(yutan)} MUTANT=0/0 KONTROL=0/0")
         return 1
 
-    # 2) KENDINI TEST (mutant + kontrol)
     mt_red = mt_total = 0
     kt_yesil = kt_total = 0
     mutant_bilgi = ""
@@ -461,17 +447,16 @@ def main():
             if v[0] == "KIRMIZI":
                 mt_red += 1
             elif v[0] == "OLCULEMEDI":
-                mt_total -= 1  # olcum disi sayilir
+                mt_total -= 1
         for k, v in kt.items():
             kt_total += 1
             if v[0] == "YESIL":
                 kt_yesil += 1
     else:
-        # kendini-test verilmedi ise 0/0 yaz ama kapi MASKELEYEN=0 ile gecti
         mt_red, mt_total = 0, 0
         kt_yesil, kt_total = 0, 0
 
-    print(f"ADIM={toplam} BAGIMSIZ={bagimsiz} MASKELEYEN=0 MUTANT={mt_red}/{mt_total} KONTROL={kt_yesil}/{kt_total}")
+    print(f"ADIM={toplam} BAGIMSIZ={bagimsiz} MASKELEYEN=0 YUTAN=0 MUTANT={mt_red}/{mt_total} KONTROL={kt_yesil}/{kt_total}")
     if args.kendini_test and (mutant_bilgi or kontrol_bilgi):
         print(mutant_bilgi)
         print(kontrol_bilgi)
