@@ -33,9 +33,11 @@
   🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
   K186'nin semasi/ucu KANONIK ve uctan uca olcum K186'nin ucune karsi YENIDEN kosulur. Tam metin KUTUDA.
 - 🔧 **K192 (19 Agu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU kapisinda YOK + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.** (BaBa serhi: 20 Agu codex bitisi.)
-
-
-
+- 🔴 **YAYIN KAPALI → ⚖️ HUKUM VERILDI (19 Agu 23:1xZ, KraL) — icra CHIP'te:** `deploy.yml` 3
+  push'tur kirmizi (son yesil `32941dfe` 21:31Z); kok neden mimarca olculdu (`32191804434`/
+  `serit-a3`): K19 `YARGISIZ`=6 cift, tetik `54d69028`. **K19 HAKLI, kapi kusurlu DEGIL.**
+  Vespa 3 → ROZET · Piaggio 3 → ROZET_DISI (emsal K170 birebir; BEKLER'e girmez, `kaybolan=0`).
+  Hukum + 5 CIVILENMIS kabul + K202 sinif kalemi: `tools/paket-k202-vespa-piaggio-rozet-hukmu.md`.
 
 ## 🔻 KraL OTURUM KAPANISI — 19 Agu ~06:0xZ
 **CANLIYA (bu oturum):** K185 chip duzeni + K188 kutu esik kapisi `4ebefad1` · K195a/K195b defter
