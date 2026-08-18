@@ -57,6 +57,7 @@ build	tools/build.py	KraL	arac	YOK
 canli-saglik-kapisi	tools/canli-saglik-kapisi.py	KraL	yayin	python3 tools/canli-saglik-kapisi --kendini-test
 cayma-beyani-kapisi	tools/cayma-beyani-kapisi.py	KraL	yayin	YOK
 cf-durum	tools/cf-durum.py	KraL	hijyen	YOK
+chip-duzeni-kapisi	tools/chip-duzeni-kapisi.py	KraL	nobet	python3 tools/chip-duzeni-kapisi.py --kendini-test
 cip-indeks	tools/cip-indeks.py	KraL	hijyen	python3 tools/cip-indeks-test.py
 cip-sayfa-bagi	tools/cip-sayfa-bagi.py	KraL	hijyen	YOK
 commit-mesaji-hook-kur	tools/commit-mesaji-hook-kur.py	KraL	hijyen	YOK
@@ -125,6 +126,7 @@ konfigur-canli-kapisi	tools/konfigur-canli-kapisi.py	TeKiN	yayin	python3 tools/k
 konfigur-olcek-olcum	tools/konfigur-olcek-olcum.py	TeKiN	hijyen	YOK
 konfigur-siyah-kapak-kapisi	tools/konfigur-siyah-kapak-kapisi.py	TeKiN	yayin	YOK
 kutu-arsivle	tools/kutu-arsivle.py	KraL	hijyen	python3 tools/kutu-arsivle-test.py
+kutu-esik-kapisi	tools/kutu-esik-kapisi.py	KraL	nobet	python3 tools/kutu-esik-kapisi.py --kendini-test
 landing-hukuk-kapisi	tools/landing-hukuk-kapisi.py	KraL	yayin	YOK
 landing-wa-kapisi	tools/landing-wa-kapisi.py	HocA	yayin	YOK
 lcp-onculuk-kapisi	tools/lcp-onculuk-kapisi.py	KraL	yayin	YOK
@@ -152,6 +154,7 @@ onsecim-parite-kapisi	tools/onsecim-parite-kapisi.py	TeKiN	yayin	YOK
 ozet-bayt-atifi	tools/ozet-bayt-atifi.py	KraL	hijyen	YOK
 parity-sequential-flock	tools/parity-sequential-flock.py	KraL	hijyen	YOK
 parity-server	tools/parity-server.py	KraL	veri	YOK
+parti-borc-kapisi	tools/parti-borc-kapisi.py	KraL	nobet	python3 tools/parti-borc-kapisi.py --kendini-test
 parti-kontrol	tools/parti-kontrol.py	MaCiT	hijyen	YOK
 r2-onek-gelenek-kapisi	tools/r2-onek-gelenek-kapisi.py	MaCiT	veri	YOK
 r2-purge	tools/r2-purge.py	MaCiT	veri	python3 tools/r2-purge-test.py
@@ -169,6 +172,7 @@ sitemap-damga-uret	tools/sitemap-damga-uret.py	KraL	hijyen	YOK
 spec-ifsa-kapisi	tools/spec-ifsa-kapisi.py	KraL	hijyen	python3 tools/spec-ifsa-kapisi --kendini-test
 stl-uc-kopya-nobet	tools/stl-uc-kopya-nobet.py	MaCiT	nobet	python3 tools/stl-uc-kopya-nobet-test.py
 stok-d1-kapisi	tools/stok-d1-kapisi.py	MaCiT	yayin	YOK
+t3-yonlendirme-kapisi	tools/t3-yonlendirme-kapisi.py	KraL	nobet	python3 tools/t3-yonlendirme-kapisi.py --kendini-test
 test-bbox-3mf	tools/test-bbox-3mf.py	MaCiT	hijyen	YOK
 test-jsonld-brand	tools/test-jsonld-brand.py	KraL	hijyen	YOK
 test-jsonld-offers	tools/test-jsonld-offers.py	KraL	hijyen	YOK
