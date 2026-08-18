@@ -876,10 +876,11 @@ MODEL_OLMAYAN_JETON = {
     "Roland": "elektronik davul markasi — Yamaha/Alesis ile birlikte gecer, model degil",
     # MARQUE — baska bir markanin ADI, dolayisiyla o markanin MODELI olamaz.
     "Geo": "GM marque'i (Geo Tracker/Metro); Suzuki'nin modeli degil, kardes marka",
+    "Mk1": "nesil işareti, rozet değil; <Model> Mk1 biçiminde geçer; hiçbir markada tekil rozet olarak satılmadı (K172, 18 Ağu, KraL hükmü)",
 }
 
-MODEL_OLMAYAN_SAYISI = 7
-MODEL_OLMAYAN_IMZA = "5b8777ee23cefcb1"
+MODEL_OLMAYAN_SAYISI = 8
+MODEL_OLMAYAN_IMZA = "5cd49e343cc7852b"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ROZET DISI (marka, model) CIFTLERI — /marka/X/M/ sayfasi ACILMAZ (4 Agu, KraL hukmu)
@@ -1170,11 +1171,8 @@ ROZET_CAPRAZ_IZINLI = {
                               "F-Serisi ise kamyonet rozeti. Aile sayfasi mesru mu (emsal "
                               "`BMW|K Serisi`) yoksa ROZET_DISI mi — mimar hukmu bekliyor"),
     "Subaru|gr86": ("BEKLER", "Subaru'nun rozeti BRZ'dir; `GR86` Toyota rozetidir (emsal "
-                              "birebir `Toyota|107`). ROZET_DISI'ye alinsin mi — mimar "
-                              "hukmu bekliyor (deny yazilirsa urunler Subaru agacinda kalir)"),
-    "Ford|mk1": ("BEKLER", "`Mk1` bir NESIL isaretidir, rozet DEGIL; iki markada da ayni "
-                           "isaret. MODEL_OLMAYAN/ROZET_DISI mi olmali — mimar hukmu bekliyor"),
-    "Volkswagen|mk1": ("BEKLER", "`Mk1` nesil isareti — `Ford|mk1` ile AYNI hukmu bekliyor"),
+                             "birebir `Toyota|107`). ROZET_DISI'ye alinsin mi — mimar "
+                             "hukmu bekliyor (deny yazilirsa urunler Subaru agacinda kalir)"),
     # ─────────────────────────────────────────────────────────────────────────
     # 8 Agu — Lexus veri partisiyle capraz olan cift (K19 KIRMIZI yakti). Emsal birebir
     # `Ford|sierra`/`Suzuki|sierra` ve `Ford|raptor`/`Yamaha|raptor` satirlaridir: AYNI ADI
@@ -1271,14 +1269,10 @@ ROZET_CAPRAZ_IZINLI = {
                                   "(\"Vespa\",\"Smallframe\")"),
     # Volvomk1 (K170) BEKLER: Ford|mk1 / Volkswagen|mk1 ile AYNI bekleyen hukum uyesi;
     # Mk1 bir NESIL isareti, rozet degil. Uc kol TEK turda, TEK hukumle kapanir -> K172.
-    "Volvo|mk1": ("BEKLER", "`Mk1` bir NESIL isaretidir, rozet DEGIL — `Ford|mk1` / "
-                              "`Volkswagen|mk1` ile AYNI bekleyen hukum uyesi (K172). K170 "
-                              "yalniz Volvo kolunu yargisiz birakmamak icin BEKLER yazdi; "
-                              "deny/allow hukum K172'de TEK turda verilecek"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 67
-ROZET_CAPRAZ_IZINLI_IMZA = "d3f5c34599c0481b"  # K170 sonrasi: kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 64
+ROZET_CAPRAZ_IZINLI_IMZA = "b01f6f590b99ac82"  # K172 sonrasi: kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
