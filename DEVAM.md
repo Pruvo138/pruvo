@@ -32,10 +32,10 @@
 **CANLIYA:** K181d · K177 · K141 · K183 `77bb3195` · T3 `8ca4c716` · T4 `893d278d`. **KOSUYOR (hepsi CHIP):** K184 · K185 (donuk, merge sirasinda) · K186 · K188. **BEKLIYOR:** HocA Faz-2 · MaCiT Honda (K191).
 🔧 **K187 — ⚖️ OKAN KARARI 19 Agu: KV BINDING** (Logpush DEGIL). Icra K186 chip'te (binding tanimi + `talepOlayiSay()` govdesi); namespace acma + deploy Okan kapisi.
 🔧 **K190 — ⚖️ OKAN KARARI 19 Agu: CANLI D1'e BAGLANACAK, talep hatti canliya cikmadan ONCE.** `talep-temizlik.py` yerel sqlite'a bagliydi → 90 gunluk saklama fiilen yururlukte DEGILDI. Icra K186 chip'te (`--kuru` olcumune kadar); canli kosum + zamanlanmis is Okan/mimar kapisi.
-- 🔴 **T1 pencere muhasebesi + T3/T4 kaniti (baglayici):** olculen baslangic `11:23:00Z`,
-  `OLCULEMEDI_TUR=2` AYRI satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
-- 🔧 **K195 (19 Agu — 4. TEKRAR, tekil yama YASAK):** `defter-rotasyon.py` kapali madde yokken
-  TASIMIYOR → kota her oturumda ELLE rotasyon istiyor (bugun 4 kez). **Tam metin ARSIVDE.**
+- 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
+- 🔧 **K195 (19 Agu — 4. TEKRAR):** `defter-rotasyon.py` kapali madde yokken TASIMIYOR → kota her oturumda ELLE rotasyon istiyor. **Tam metin ARSIVDE.**
+- 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
+  taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
 - ✅ **19 Agu MERGE EDILDI:** **K185** chip duzeni (14/14 · 9/9 · tavan 12/12 · aday=0) · **K188** kutu
   esik kapisi (11/11 · 7/7; ⚠️ KANCA BAGLI DEGIL → kapi main'de ama CANLI DEGIL, chip acildi) ·
   T3 `8ca4c716` · T4 `893d278d`. Iki chip agaci + bes artik dal temizlendi (worktree 7→4).
