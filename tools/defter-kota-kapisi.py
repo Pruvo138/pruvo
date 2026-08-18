@@ -6,8 +6,13 @@ Kullanim:
     python3 tools/defter-kota-kapisi.py [depo-koku]
     python3 tools/defter-kota-kapisi.py --kendini-test
 
-Davranis (IK EKSEN, pre-commit; K178):
-    * DEVAM.md INDEX'te (staged) yoksa: sessizce exit 0 (kapsam disi).
+Davranis (IK EKSEN, pre-commit; K178 + K195b):
+    * DEVAM.md INDEX'te (staged) yoksa: **SESSIZCE GECMEZ** (K195b, 19 Agu).
+      INDEX blob'u yine de OLCULUR ve hukum adiyla basilir —
+      `KAPSAM_DISI_OLCULDU ... ASIM=YOK` / `KAPSAM_DISI_ASIM` (sayaca yazilir) /
+      `KAPSAM_DISI_OLCULEMEDI` + sebep. Her uc halde de exit 0: bu commit
+      defteri DEGISTIRMIYOR, durdurmak kapsam disi olurdu. Degisen sey
+      BLOKLAMA degil, "bakmadim"in bitmesi.
     * DEVAM.md INDEX'te varsa ve (satir > 130 VEYA bayt > 12288) ise:
         - stderr'e iki satirlik RED mesaji basar (ASAN_EKSEN=...).
         - sayac dosyasina `RED` satiri yazar.
@@ -137,6 +142,52 @@ def bypass_kontrol(kok):
     return 0
 
 
+def _kapsam_disi_olc(kok):
+    """K195(b) — DEVAM.md stage'de DEGILKEN de OLCER; sessizce gecmez.
+
+    OLCULEN DELIK (19 Agu 2026): eski kol burada ciplak `return 0` doner ve
+    kapinin yesili "olctum, temiz" degil "BAKMADIM" demekti. Kapi HIC olcmeden
+    yesil donerse kota asimi kapinin GOZUNDEN kacar; elle rotasyon dongusu
+    (bir gunde 4 kez) tam da bu koru noktada yasadi.
+
+    YENI DAVRANIS (iki hal, ikisi de SESSIZ DEGIL):
+      * INDEX blob'u okunabiliyorsa OLCULUR ve hukum ADIYLA basilir.
+        - Asim VARSA: `KAPSAM_DISI_ASIM` sinifiyla sayaca yazilir + stderr.
+        - Asim YOKSA: `KAPSAM_DISI_OLCULDU ... ASIM=YOK` stdout'a basilir.
+      * Blob okunamiyorsa `KAPSAM_DISI_OLCULEMEDI` + SEBEP basilir.
+
+    🔴 BLOKLAMA SEMANTIGI DEGISMEDI (her zaman 0): bu commit defteri
+    DEGISTIRMIYOR; onu durdurmak kapinin kapsami disidir. Okan doktrini
+    (`bypass_kontrol` ile ayni): "yasaklanamaz ama SAYILIR". Burada olculen
+    sey commit'in kendisi degil, deftere BAKILDIGI gercegidir.
+    """
+    satir, bayt = _devam_olcu_index(kok)
+    if satir is None:
+        print("!! KAPSAM_DISI_OLCULEMEDI — DEVAM.md stage'de yok VE INDEX blob'u "
+              "okunamadi. SEBEP: `git cat-file blob :DEVAM.md` sifir-disi dondu "
+              "(defter izlenmiyor ya da depo kokü yanlis: %s). Kota OLCULMEDI."
+              % kok, file=sys.stderr)
+        return 0
+
+    asi, eksen, _, _ = tavan_asi_mi(satir, bayt)
+    if asi:
+        _sayaç_yaz(kok, satir, bayt, sinif="KAPSAM_DISI_ASIM")
+        # Jeton ALT CIZGILI ve sayac sinifiyla AYNI ("KAPSAM_DISI_ASIM"):
+        # bu satirlar grep'lenir; bosluklu "KAPSAM DISI" yazmak jetonu
+        # makine-aranamaz yapar (K195b kabulunde V2 bu yuzden kirmizi yandi).
+        print("!! KAPSAM_DISI_ASIM — DEFTER KOTASI ASILDI ama DEVAM.md bu commit'te "
+              "stage'de DEGIL. INDEX blob'u %d satir / %d bayt (tavan satir=%d "
+              "bayt=%d, ASAN_EKSEN=%s). Commit DURDURULMADI (defteri "
+              "degistirmiyor), yalnizca SAYILDI: %s"
+              % (satir, bayt, TAVAN_SATIR, TAVAN_BAYT, eksen, SAYAC_YOLU),
+              file=sys.stderr)
+        return 0
+
+    print("KAPSAM_DISI_OLCULDU satir=%d bayt=%d tavan_satir=%d tavan_bayt=%d ASIM=YOK"
+          % (satir, bayt, TAVAN_SATIR, TAVAN_BAYT))
+    return 0
+
+
 def _hukum_red(satir, bayt, eksen, kok):
     """RED ciktisi; sayac yaz + exit 1 (ana akis)."""
     print("!! DEFTER KOTASI ASILDI — DEVAM.md %d satir / %d bayt "
@@ -164,7 +215,7 @@ def main(argv=None):
               file=sys.stderr)
         return 1
     if not stage_de:
-        return 0
+        return _kapsam_disi_olc(kok)
 
     satir, bayt = _devam_olcu_index(kok)
     if satir is None:
