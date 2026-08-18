@@ -61,6 +61,19 @@ VAKALAR = (
         "- 🟠 **K185 CHIP `KraL-adi kutuda yok`:** açık"),
      "K185 BASLIYORUM\n", 0,
      ("YESIL", "IZ_KIRMIZI=0")),
+    ("V11 ADSIZ K184 regresyon", _defter(
+        "- 🟠 **K184 (18 Agu, BaBa emri — EGE REFORMU FAZ-1, CHIP acildi):** sitede LLM'siz \"Eksik Parca Talebi\" sihirbazi; adim listeleri tek kaynaktan, terminal Worker+D1 `talepler` (additive; SEMA HUKMU MIMARDA), gorsel icin public yukleme ucu ACILMAZ (WhatsApp'a yonlendirir), spam icin honeypot + Worker hiz siniri. Faz-2 (WhatsApp) HocA'da; Ege dar-LLM eslestirme AYRI kalem. kabul: `tools/talep-sihirbazi-test.py` + `CI_KAPSAM_RC=0` (SERIT B) + her mutant hedef kolu oldurdugunu kanitlar. Chip pilotunun kabulu: chip turlari ile ana oturum turlari AYRI sayilir, genelleme kuralini KraL yazar."),
+     "K184 BASLIYORUM\n", 1,
+     ("ADSIZ=1", "CHIP=0", "ONEK_KIRMIZI=0")),
+    ("V12 CHIP kelime icinde", _defter(
+        "- 🟠 **K187 ARCHIPELAG kalemi:** açık"),
+     "", 0,
+     ("CHIP=0", "ADSIZ=0")),
+    ("V13 ADLI ve ADSIZ birlikte", _defter(
+        "- 🟠 **K185 CHIP `KraL-adli`:** açık",
+        "- 🟠 **K184 (18 Agu, CHIP acildi):** terminal Worker+D1 `talepler` (additive; ..."),
+     "KraL-adli BASLIYORUM\n", 1,
+     ("CHIP=1", "ADSIZ=1", "KraL-adli", "ONEK_KIRMIZI=0")),
 )
 
 
@@ -98,6 +111,10 @@ def _vaka_kontrol(source, owner, base_dir, vaka):
     rc, cikti = _kos(source, owner, base_dir, defter, kutu)
     son = cikti.strip().splitlines()[-1] if cikti.strip() else ""
     tamam = rc == beklenen_rc and all(jeton in cikti for jeton in jetonlar)
+    if ad.startswith("V11") and "talepler" in cikti:
+        tamam = False
+    if ad.startswith("V13") and "KraL-adli" not in cikti:
+        tamam = False
     return tamam, (ad, rc, son)
 
 
@@ -173,7 +190,7 @@ def main():
              5, (0, 0), "ABSENT:KUTU_KAPSAM_DISI"),
             ("M4 fail-open",
              (("return _olculemedi_sonucu(\"defter dosyası okunamadı\")  # CHIP_MUTANT_M4_FAIL_CLOSED",
-               "return {\"hal\": YESIL, \"rc\": 0, \"kalem\": 0, \"chip\": 0, \"onek_kirmizi\": 0, \"iz_kirmizi\": 0, \"items\": [], \"kutu_kapsam_dis\": False, \"gerekce\": \"mutant\"}  # CHIP_MUTANT_M4_FAIL_CLOSED"),),
+               "return {\"hal\": YESIL, \"rc\": 0, \"kalem\": 0, \"chip\": 0, \"adsiz\": 0, \"onek_kirmizi\": 0, \"iz_kirmizi\": 0, \"items\": [], \"adsiz_items\": [], \"kutu_kapsam_dis\": False, \"gerekce\": \"mutant\"}  # CHIP_MUTANT_M4_FAIL_CLOSED"),),
              7, (0, 2), "CHIP DUZENI: YESIL"),
             ("M5 canary + kesif",
              (("if not _canary():  # CHIP_MUTANT_M5_CANARY",
@@ -185,6 +202,18 @@ def main():
              (("if kutu_kapsam_dis:\n        # CHIP_MUTANT_M6_SCOPE\n        kutu_kapsam_dis = True",
                "if kutu_kapsam_dis:\n        # CHIP_MUTANT_M6_SCOPE\n        return _olculemedi_sonucu(\"kutu okunamadı\")"),),
              5, (2, 0), "OLCULEMEDI"),
+            ("M7 adsiz-atlama",
+             (("adsizlar.append({\"satir\": satir})  # CHIP_MUTANT_M7_ADSIZ",
+               "pass  # CHIP_MUTANT_M7_ADSIZ"),),
+             11, (0, 1), "ABSENT:ADSIZ=1"),
+            ("M8 ileri-backtick",
+             (("re.match(r\"[ \\t]*`([^`]+)`\", satir[token.end():])  # CHIP_MUTANT_M8_ADJACENCY",
+               "re.search(r\"`([^`]+)`\", satir[token.end():])  # CHIP_MUTANT_M8_ADJACENCY"),),
+             11, (1, 1), "talepler"),
+            ("M9 kelime-siniri",
+             (("CHIP_TOKEN_RE = re.compile(r\"\\bCHIP\\b\")  # CHIP_MUTANT_M5_DISCOVERY",
+               "CHIP_TOKEN_RE = re.compile(r\"CHIP\")  # CHIP_MUTANT_M5_DISCOVERY"),),
+             12, (1, 0), "ADSIZ=1"),
         )
         mutant_sonuclari = [_mutasyon_kontrol(source, SAHIPLIK, base_dir, mutant)
                             for mutant in mutantlar]

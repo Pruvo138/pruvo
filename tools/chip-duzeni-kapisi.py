@@ -71,19 +71,21 @@ def chipleri_kesfet(defter):
     """Açık kalem bölgesinden CHIP kalemlerini ve kalem sayılarını çıkarır."""
     bolge = _acik_bolge(defter)
     if bolge is None:
-        return None, None
+        return None, None, None
     kalemler = [satir for satir in bolge if satir.startswith("- ")]
     chipler = []
+    adsizlar = []
     for satir in kalemler:
         token = CHIP_TOKEN_RE.search(satir)
         if token is None:
             continue
-        tirnak = re.search(r"`([^`]+)`", satir[token.end():])
+        tirnak = re.match(r"[ \t]*`([^`]+)`", satir[token.end():])  # CHIP_MUTANT_M8_ADJACENCY
         if tirnak is None:
+            adsizlar.append({"satir": satir})  # CHIP_MUTANT_M7_ADSIZ
             continue
         chipler.append({"ad": tirnak.group(1), "satir": satir,
                         "kimlikler": tuple(x.upper() for x in KIMLIK_RE.findall(satir))})
-    return kalemler, chipler
+    return kalemler, chipler, adsizlar
 
 
 def _ev_onek_gecerli(chip_adi, evler):
@@ -112,14 +114,15 @@ def kutu_iz_hukmu(chip_adi, kimlikler, kutu):
 
 def _olculemedi_sonucu(gerekce):
     return {"hal": OLCULEMEDI, "rc": 2, "kalem": 0, "chip": 0,
-            "onek_kirmizi": 0, "iz_kirmizi": 0, "items": [],
+            "adsiz": 0, "onek_kirmizi": 0, "iz_kirmizi": 0, "items": [],
+            "adsiz_items": [],
             "kutu_kapsam_dis": False, "gerekce": gerekce}
 
 
 def _denetle_metin(defter, kutu, evler):
     if defter is None:
         return _olculemedi_sonucu("defter okunamadı")
-    kalemler, chipler = chipleri_kesfet(defter)
+    kalemler, chipler, adsizlar = chipleri_kesfet(defter)
     if kalemler is None:
         return _olculemedi_sonucu("ACIK KALEMLER bölgesi yok")
     if not kalemler:
@@ -139,15 +142,20 @@ def _denetle_metin(defter, kutu, evler):
     if kutu_kapsam_dis:
         # CHIP_MUTANT_M6_SCOPE
         kutu_kapsam_dis = True
-    if not chipler:
+    if adsizlar:
+        hal, rc = KIRMIZI, 1
+    elif not chipler:
+        hal, rc = YESIL, 0
         hal, rc = YESIL, 0
     elif onek_kirmizi or iz_kirmizi:
         hal, rc = KIRMIZI, 1
     else:
         hal, rc = YESIL, 0
     return {"hal": hal, "rc": rc, "kalem": len(kalemler), "chip": len(chipler),
+            "adsiz": len(adsizlar),
             "onek_kirmizi": onek_kirmizi, "iz_kirmizi": iz_kirmizi,
-            "items": items, "kutu_kapsam_dis": kutu_kapsam_dis,
+            "items": items, "adsiz_items": adsizlar,
+            "kutu_kapsam_dis": kutu_kapsam_dis,
             "gerekce": "ölçüm tamamlandı"}
 
 
@@ -183,8 +191,9 @@ def _canary():
                "- CHIP `KraL-canary bir`\n"
                "- CHIP `HocA-canary iki`\n"
                "## SONRA\n")
-    kalemler, chipler = chipleri_kesfet(fikstur)
-    return len(kalemler or ()) == 2 and len(chipler or ()) == 2
+    kalemler, chipler, adsizlar = chipleri_kesfet(fikstur)
+    return (len(kalemler or ()) == 2 and len(chipler or ()) == 2 and
+            len(adsizlar or ()) == 0)
 
 
 def kendini_test():
@@ -222,12 +231,14 @@ def _yaz(sonuc):
         print("%s %s — %s" %
               (ISARET[YESIL if onek and (iz or sonuc["kutu_kapsam_dis"]) else KIRMIZI],
                ad, neden))
+    for _adsiz in sonuc.get("adsiz_items", ()):
+        print("🔴 ADSIZ — CHIP kalemi ADSIZ — <Ev>-<Is> biçiminde backtick'li ad yok")
     if sonuc["chip"] == 0 and sonuc["kalem"] > 0:
         print("CHIP=0 — açık kalemlerde CHIP kalemi yok")
     kapsam = " KUTU_KAPSAM_DISI" if sonuc["kutu_kapsam_dis"] else ""  # CHIP_MUTANT_M3_SCOPE_OUTPUT
-    print("CHIP DUZENI: %s (cikis %d) KALEM=%d CHIP=%d ONEK_KIRMIZI=%d IZ_KIRMIZI=%d%s" %
+    print("CHIP DUZENI: %s (cikis %d) KALEM=%d CHIP=%d ADSIZ=%d ONEK_KIRMIZI=%d IZ_KIRMIZI=%d%s" %
           (sonuc["hal"], sonuc["rc"], sonuc["kalem"], sonuc["chip"],
-           sonuc["onek_kirmizi"], sonuc["iz_kirmizi"], kapsam))
+           sonuc["adsiz"], sonuc["onek_kirmizi"], sonuc["iz_kirmizi"], kapsam))
 
 
 def main(argv=None):
