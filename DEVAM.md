@@ -22,16 +22,27 @@ curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar si
   ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
   EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
-- 🔴 **K170 (18 Agu — yayin sinyali safligi ERTELENDI; K166 GERI ALINDI `d95de40e`):** kirmizi
-  VERI degil YARGI — `model-uyelik-kapisi.py` 29 iddiadan yalniz K19, ETKILENEN_URUN=0, 17
-  capraz-marka cifti yargisiz; K166 dosyalari `1b74bcbc`de DURUYOR. Tam metin ARSIVDE.
-  kabul: `model-uyelik-kapisi.py` rc=0 **VE** K166 tekrar inince `is-akisi-kapisi.py` rc=0 + yayin success.
+- 🔴 **K170 (18 Agu — UCUSTA; yargi YAZILDI, icra iscide):** kirmizi VERI degil YARGI —
+  `model-uyelik-kapisi.py` 29 iddiadan yalniz K19, ETKILENEN_URUN=0, 17 capraz-marka cifti
+  yargisiz; K166 dosyalari `1b74bcbc`de DURUYOR. Mimar hukmu `tools/paket-k170-capraz-marka-yargisi.md`
+  (`f5399380`): allow 57->67 (9 ROZET + 1 BEKLER), deny 39->46 (7 satir), yargisiz 17->0.
+  Isci minimax-m3, worktree `k170-capraz-yargi`, etiket `k170-yargi`, 08:12Z.
+  kabul: `model-uyelik-kapisi.py` rc=0 **VE** K11 `kaybolan=0` **VE** 3 mutant **VE** K166
+  tekrar inince `is-akisi-kapisi.py` rc=0 + yayin success.
+- 🔧 **K172 (18 Agu — K170'ten dogdu, SINIF kalemi):** `mk1` NESIL isareti uc markada BEKLER
+  (`Ford` · `Volkswagen` mevcut + `Volvo` K170'te yazildi); tek kolu deny yazmak ayni alana iki
+  hukum koyardi, uc kol TEK hukumle kapanir. Yayini BLOKLAMAZ (BEKLER hata degil). `kabul:` BOS.
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
 - 🟠 **K165 (18 Agu):** sitemap `lastmod` sure butcesi dolunca fail-loud DEGIL, sessizce
   kesiliyor; kayit `lastmod`SIZ kaliyor (13). Yayini BLOKLAMAZ. Tam metin ARSIVDE.
-- 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR):** ikiz silmesinden sonra gizli kaynak kayit duzleminde
-  **15 artik kayit** kaldi; kanonik duzeltme araci o duzleme DOKUNMUYOR. Talep: temizleme
-  bayragi (ayni kilit + atomik yazimda). Tam metin ARSIVDE. `kabul:` BOS.
+- 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR, icra bekliyor):** ikiz silmesinden sonra
+  gizli kaynak kayit duzleminde **15 artik kayit** kaldi; kanonik duzeltme araci o duzleme
+  DOKUNMUYOR. Hukum `tools/paket-k171-kaynak-temizle.md` (`cc6fece2`): ayri betik YOK, ayni
+  dosyadaki `_id_yeniden_adlandir` deseni (AYNI flock + AYNI atomik yazim turu) `--sil`/`--toplu`ya
+  genisletilir; bayrak bu dilimde OPT-IN (MaCiT'in partileri kosuyor); sessiz sifir YASAK
+  (okunamayan duzlem OLCULEMEDI). Tam metin ARSIVDE, kabul satiri pakette.
+  kabul: `--kaynak-durum` ONCE `ARTIK=15` / SONRA `ARTIK=0` (ikisi de diskten) **VE** paketteki
+  nobetci kolu yesil **VE** 4 mutant.
 - 🔧 **K168 (18 Agu — K134'un HALEFI; K134 KAPANDI, tam metin ARSIVDE):** care
   (`defter-rotasyon.py`) mutasyonla YESIL (7/7) ama kota bugun BES KEZ elle dondurulda
   (141/139/136/141/137). Kotayi asan rol MIMAR ve mimar o araci KOSAMAZ (icra kapisi).
@@ -68,19 +79,9 @@ curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar si
   Bugun tetiklenmedi (`CANLI_ETIKET=0`) ama kosul rastlantisal.
   kabul: canli tur fiksturuyle profil silinmez (vaka) **VE** mutant (eslesmeyi bozan)
   KIRMIZI yakar.
-- 🔴 **K157 (17 Agu — KIMI HATTI KOK NEDEN BULUNDU, karar OKAN'DA):** `max_tokens=1`'in 200'u
-  SAHTE (icerik bos, `stop_reason=null`) → gercek uretim SIFIR; `>=2` daima 403
-  `permission_error`. Girdi ekseni · anahtar sinifi/uc · baslik · model/stream · hiz penceresi ·
-  aylik tavan ELENDI. Kimlik ucu anahtarin Okan'in KENDI hesabinda oldugunu dogruladi.
-  🔴 "Haftalik dilim doldu" teshisi CURUDU: panelde `5 saatlik Kod %0` · `7 gunluk Kod %0`
-  → **panel ile kapi AYNI SAYACI GOSTERMIYOR**. Kalan hukum: saglayici tarafinda hesap/kota
-  durumu ya da hatasi → hamle PARA DEGIL, ekranla birlikte destege sormak (Okan kapisi).
-  Yanlislanabilir kanit AYAKTA: `~/.claude/cron/kimi-nabiz.py` gunde 2x GERCEK is atar
-  (5/5 vaka, 2/2 mutasyon); ilk olcum `2026-08-17T15:51Z SAGLIK=KIRMIZI 403`. Tam metin
-  ARSIVDE + DEVAM.md git gecmisinde.
-  kabul: 22 Agu'da `kimi-nabiz.log` **SAGLIK=YESIL** → kalem kapanir; hala KIRMIZI ise
-  saglayici arizasi teyitlenir, karar Okan'a doner. ⚖️ Okan emri (17 Agu): kimi kalemi kapali,
-  **yeni olcum turu ACILMAZ**; motor plani 20 Agu'ya kadar codex (alt model), sonra m3.
+- 🔴 **K157 (17 Agu — kimi hatti kok neden BULUNDU, karar OKAN'DA; 22 Agu'ya kadar KAPALI):**
+  tam metin ARSIVDE. ⚖️ Okan emri: yeni olcum turu ACILMAZ; motor plani 20 Agu'ya kadar
+  codex (alt model), sonra m3. kabul: 22 Agu'da nabiz `SAGLIK=YESIL` ise kapanir.
 - 🔵 **K158 (17 Agu, TASARIM ACIGI — KAYIT):** isci tarayicisi YALNIZ kimi motorunda var
   (m3'te yok) → kimi dustugunde paneli okuyacak yol da kapaniyor; tek tarayicili motorun
   dususu TESHIS yolunu da kesiyor. Yon: tarayiciyi motordan bagimsiz kola tasi. `kabul:` BOS.
