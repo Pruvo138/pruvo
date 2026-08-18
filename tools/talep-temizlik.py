@@ -6,6 +6,7 @@ import argparse
 import contextlib
 import importlib.util
 import io
+import re
 import sqlite3
 import shutil
 import sys
@@ -16,6 +17,11 @@ from pathlib import Path
 
 SAKLAMA_GUN = 90
 TAHMIN_TAVAN = 5000  # TAHMIN
+KOD_ALFABE = "23456789ABCDEFGHJKMNPQRSTVWXYZ"
+KOD_UZUNLUGU = 6
+KOD_DESENI = re.compile(
+    r"^PR-[" + re.escape(KOD_ALFABE) + r"]{" + str(KOD_UZUNLUGU) + r"}$"
+)
 L9_IZINLI_DOSYALAR = {
     "tools/talep-temizlik.py", "tools/talep-hatti-test.py"
 }
@@ -80,6 +86,7 @@ def _lazy_d1_wrangler():
 class D1Yurutucu:
     def __init__(self, calistir=None):
         self.calistir = calistir or _lazy_d1_wrangler()
+        self.karantina_kod = 0
 
     def _zarf(self, sql):
         zarf = self.calistir(["--command", sql])
@@ -95,8 +102,15 @@ class D1Yurutucu:
 
     def sil(self, kodlar):
         toplam = 0
-        for baslangic in range(0, len(kodlar), 500):
-            parca = kodlar[baslangic:baslangic + 500]
+        izinli = []
+        self.karantina_kod = 0
+        for kod in kodlar:
+            if kod_gecerli(kod):
+                izinli.append(kod)
+            else:
+                self.karantina_kod += 1
+        for baslangic in range(0, len(izinli), 500):
+            parca = izinli[baslangic:baslangic + 500]
             ifadeler = ",".join("'" + str(kod).replace("'", "''") + "'"
                                  for kod in parca)
             zarf = self._zarf(
@@ -113,11 +127,17 @@ class D1Yurutucu:
         return toplam
 
 
-def _satir_yaz(uygula, sayi, kalan, kodlar, okunan=None):
+def kod_gecerli(kod):
+    return isinstance(kod, str) and KOD_DESENI.fullmatch(kod) is not None
+
+
+def _satir_yaz(uygula, sayi, kalan, kodlar, okunan=None, karantina=0):
     print("KURU=" + str(int(not uygula)) + " SILINECEK=" + str(sayi))
     print("KALAN=" + str(kalan))
     if okunan is not None:
         print("SORGU_KOSTU=EVET OKUNAN_SATIR=" + str(okunan))
+    print("KARANTINA_KOD=" + str(karantina) +
+          " TEMIZ=" + ("HAYIR" if karantina else "EVET"))
     print("ORNEK=" + ",".join(str(kod) for kod in kodlar[:5]))
     if not uygula:
         print("UYARI: silinen kod artik COZULEMEZ (Faz-2 'PR-...' aramasi bos doner).")
@@ -135,11 +155,14 @@ def calistir(db_yolu, uygula=False, d1=False, tavan=TAHMIN_TAVAN, yurutucu=None)
                 return 1
             raise
         kodlar, kalan = karar_ver(satirlar, esik, tavan)
+        karantina = 0
         if uygula and kodlar:
             silinen = yurutucu.sil(kodlar)
-            if silinen != len(kodlar):
+            karantina = getattr(yurutucu, "karantina_kod", 0)
+            if silinen != len(kodlar) - karantina:
                 raise RuntimeError("D1 silinen kume sayilan kumeden ayristi")
-        _satir_yaz(uygula, len(kodlar), kalan, kodlar, okunan=len(satirlar))
+        _satir_yaz(uygula, len(kodlar) - karantina, kalan, kodlar,
+                   okunan=len(satirlar), karantina=karantina)
         return 0
     if db_yolu is None:
         print("KURU=1 SILINECEK=0 DB=YOK")
@@ -165,10 +188,10 @@ def calistir(db_yolu, uygula=False, d1=False, tavan=TAHMIN_TAVAN, yurutucu=None)
 
 def _fikstur(simdi):
     return [
-        ("PR-Z89", (simdi - timedelta(days=89)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")),
-        ("PR-P89", (simdi - timedelta(days=89)).isoformat()),
-        ("PR-Z91", (simdi - timedelta(days=91)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")),
-        ("PR-P91", (simdi - timedelta(days=91)).isoformat()),
+        ("PR-Z89XYZ", (simdi - timedelta(days=89)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")),
+        ("PR-P89XYZ", (simdi - timedelta(days=89)).isoformat()),
+        ("PR-Z92XYZ", (simdi - timedelta(days=91)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")),
+        ("PR-P92XYZ", (simdi - timedelta(days=91)).isoformat()),
         ("PR-BOZUK", "belli-degil"),
     ]
 
@@ -278,7 +301,7 @@ def l10_olc():
 def d1_changes_olc():
     """D1 değişiklik sayısı yoksa kapının ölçümsüz kalmasını ölçer."""
     try:
-        D1Yurutucu(DegisensizD1().calistir).sil(["PR-Z91"])
+        D1Yurutucu(DegisensizD1().calistir).sil(["PR-Z92XYZ"])
     except RuntimeError as hata:
         return str(hata) == (
             "OLCULEMEDI: D1 changes bildirmedi (silinen sayi dogrulanamadi)"
@@ -311,15 +334,15 @@ def kabul_bataryasi(mutant=None):
         d1_karar = karar_ver(d1_yurutucu.satirlari_getir(), esik, tavan)
         l1 = sqlite_karar == d1_karar
         l1b = kabul_bataryasi.__code__.co_argcount == 1 and kaynakta_tek_karar()
-        l2 = karar_ver(temel, esik, 2) == (["PR-P91", "PR-Z91"], 0)
+        l2 = karar_ver(temel, esik, 2) == (["PR-P92XYZ", "PR-Z92XYZ"], 0)
         kuru_d1 = SahteD1(temel)
         calistir(sqlite_dosya.name, d1=False, tavan=2,
                  yurutucu=D1Yurutucu(kuru_d1.calistir))
         l3 = not kuru_d1.silinen
-        bozuk = [("PR-BOZUK", "belli-degil"), ("PR-Z91", temel[2][1])]
+        bozuk = [("PR-BOZUK", "belli-degil"), ("PR-Z92XYZ", temel[2][1])]
         bozuk_d1 = SahteD1(bozuk)
-        l4 = karar_ver(D1Yurutucu(bozuk_d1.calistir).satirlari_getir(), esik, 5)[0] == ["PR-Z91"]
-        secim = ["PR-P91", "PR-Z91"]
+        l4 = karar_ver(D1Yurutucu(bozuk_d1.calistir).satirlari_getir(), esik, 5)[0] == ["PR-Z92XYZ"]
+        secim = ["PR-P92XYZ", "PR-Z92XYZ"]
         D1Yurutucu(d1_sahte.calistir).sil(secim)
         l5 = set(d1_sahte.silinen) == set(sqlite_karar[0])
         l6 = karar_ver(temel[:2], esik, 5)[0] == []
@@ -330,9 +353,12 @@ def kabul_bataryasi(mutant=None):
         r1 = r1_davranissal()
         f5 = f5_statik()
         l10 = l10_olc()
+        l11 = l11_olc()
         return {"L1": l1, "L1b": l1b, "L2": l2, "L3": l3, "L4": l4,
                 "L5": l5, "L5b": l5b, "L6": l6, "L7": l7, "L8": l8,
-                "L9": l9, "R1": r1, "F5": f5, "L10": l10}
+                "L9": l9, "R1": r1, "F5": f5, "L10": l10,
+                "L11a": l11["L11a"], "L11b": l11["L11b"],
+                "L11c": l11["L11c"], "L11d": l11["L11d"]}
     finally:
         sqlite.close()
         sqlite_dosya.close()
@@ -350,13 +376,65 @@ def kaynakta_tek_saklama():
     return len(__import__("re").findall(r"^SAKLAMA_GUN = 90$", kaynak, __import__("re").M)) == 1 and "timedelta(days=90)" not in govde
 
 
+def _kanonik_talep_ayarlari():
+    kanonik_yol = Path.cwd() / "shop" / "src" / "talep.js"
+    if not kanonik_yol.exists():
+        kanonik_yol = Path(__file__).resolve().parent.parent / "shop" / "src" / "talep.js"
+    kaynak = kanonik_yol.read_text(encoding="utf-8")
+    alfabe = re.search(r'export const TALEP_ALFABE = "([^"]+)";', kaynak)
+    uzunluk = re.search(r"const KOD_UZUNLUGU = (\d+);", kaynak)
+    if alfabe is None or uzunluk is None:
+        raise RuntimeError("OLCULEMEDI: kanonik talep kodu ayarlari bulunamadi")
+    return alfabe.group(1), int(uzunluk.group(1))
+
+
+def l11_olc():
+    """D1 DELETE sinirini, drift kapisini ve karantina alarmını ölçer."""
+    simdi = datetime(2026, 8, 19, tzinfo=timezone.utc)
+    eski = (simdi - timedelta(days=91)).isoformat()
+    gecersiz = ["PR-A' OR 1=1--", "PR-AAAAA0"]
+    gecerli = ["PR-P92XYZ", "PR-Z92XYZ"]
+    sahte = SahteD1([(kod, eski) for kod in gecerli + gecersiz])
+    cikti = io.StringIO()
+    with contextlib.redirect_stdout(cikti):
+        rc = calistir(None, uygula=True, d1=True, tavan=5000,
+                      yurutucu=D1Yurutucu(sahte.calistir))
+    delete_sql = [sql for sql in sahte.sql if sql.startswith("DELETE")]
+    metin = cikti.getvalue()
+    karantina = re.search(r"KARANTINA_KOD=(\d+)", metin)
+    red_olculdu = (rc == 0 and
+                   all(kod not in sql for sql in delete_sql for kod in gecersiz) and
+                   all(kod not in sahte.silinen for kod in gecersiz) and
+                   karantina is not None and int(karantina.group(1)) > 0)
+    mesru_silindi = all(kod in sahte.silinen for kod in gecerli)
+    kanonik_alfabe, kanonik_uzunluk = _kanonik_talep_ayarlari()
+    drift_uyumlu = (kanonik_alfabe == KOD_ALFABE and
+                    kanonik_uzunluk == KOD_UZUNLUGU)
+
+    temiz_sahte = SahteD1([(kod, eski) for kod in gecerli])
+    temiz_cikti = io.StringIO()
+    with contextlib.redirect_stdout(temiz_cikti):
+        temiz_rc = calistir(None, uygula=True, d1=True, tavan=5000,
+                            yurutucu=D1Yurutucu(temiz_sahte.calistir))
+    temiz_metin = temiz_cikti.getvalue()
+    alarm_cikti = io.StringIO()
+    with contextlib.redirect_stdout(alarm_cikti):
+        _satir_yaz(True, 0, 0, [], karantina=2)
+    alarm_metin = alarm_cikti.getvalue()
+    alarm = ("KARANTINA_KOD=2" in alarm_metin and
+             "TEMIZ=HAYIR" in alarm_metin and temiz_rc == 0 and
+             "KARANTINA_KOD=0" in temiz_metin and "TEMIZ=EVET" in temiz_metin)
+    return {"L11a": red_olculdu, "L11b": mesru_silindi,
+            "L11c": drift_uyumlu, "L11d": alarm}
+
+
 def mutant_bataryasi(temel):
     tanimlar = {
         "L1": ("l1 = " + "sqlite_karar == d1_karar", "l1 = False"),
         "L1b": ("l1b = " + "kabul_bataryasi.__code__.co_argcount == 1 and kaynakta_tek_karar()", "l1b = False"),
-        "L2": ("l2 = karar_ver(temel, esik, " + "2) == ([\"PR-P91\", \"PR-Z91\"], 0)", "l2 = False"),
+        "L2": ("l2 = karar_ver(temel, esik, " + "2) == ([\"PR-P92XYZ\", \"PR-Z92XYZ\"], 0)", "l2 = False"),
         "L3": ("l3 = " + "not kuru_d1.silinen", "l3 = False"),
-        "L4": ("l4 = karar_ver(D1Yurutucu(bozuk_d1.calistir).satirlari_getir(), esik, " + "5)[0] == [\"PR-Z91\"]", "l4 = False"),
+        "L4": ("l4 = karar_ver(D1Yurutucu(bozuk_d1.calistir).satirlari_getir(), esik, " + "5)[0] == [\"PR-Z92XYZ\"]", "l4 = False"),
         "L5": ("l5 = " + "set(d1_sahte.silinen) == set(sqlite_karar[0])", "l5 = False"),
         "L5b": (
             "            if degisen is None:\n"
@@ -385,6 +463,16 @@ def mutant_bataryasi(temel):
         "L10-1": ("                print(\"OLCULEMEDI: talepler tablosu canlida YOK\")", "                print(\"OLCULEMEDI: talepler tablosu canlida YOK SILINECEK=0\")"),
         "L10-2": ("        print(\"SORGU_KOSTU=EVET OKUNAN_SATIR=\" + str(okunan))", "        print(\"OKUNAN_SATIR=\" + str(okunan))"),
         "L10-3": ("    print(\"KURU=\" + str(int(not uygula)) + \" SILINECEK=\" + str(sayi))", "    print(\"KURU=\" + str(int(not uygula)) + \" SILINECEK=0\")"),
+        "L11a": (
+            "KOD_DESENI = re.compile(\n"
+            "    r\"^PR-[\" + re.escape(KOD_ALFABE) + r\"]{\" + str(KOD_UZUNLUGU) + r\"}$\"\n"
+            ")",
+            "KOD_DESENI = re.compile(r\"^PR-[A-Z0-9]{6}$\")"),
+        "L11a-sizinti": ("            if kod_" + "gecerli(kod):", "            if True:"),
+        "L11c": ("kanonik_uzunluk == " + "KOD_UZUNLUGU", "kanonik_uzunluk == " + "KOD_UZUNLUGU - 1"),
+        "L11d": (
+            "          \" TEMIZ=\" + (\"HAYIR\" if karantina else \"EVET\"))",
+            "          \" TEMIZ=EVET\")"),
     }
     sonuc = []
     scratch = Path(tempfile.mkdtemp(prefix="k190-mutants-"))
@@ -410,7 +498,8 @@ def mutant_bataryasi(temel):
                 kalan = kabul_anahtar_sonuclari(calisma.stdout)
                 dusen = [isim for isim, gecti in kalan.items() if not gecti]
                 kaynak_farki = mutant != kaynak
-                hedef_adi = {"L10-1": "L10", "L10-2": "L10", "L10-3": "L10"}.get(ad, ad)
+                hedef_adi = {"L10-1": "L10", "L10-2": "L10", "L10-3": "L10",
+                             "L11a-sizinti": "L11a"}.get(ad, ad)
                 hedef = dusen == [hedef_adi]
                 sonuc.append((ad, kaynak_farki and hedef, dusen,
                               "derlenebilir=EVET hedef_kol_atfi=" + ("EVET" if hedef else "HAYIR")))
@@ -444,8 +533,8 @@ def kendini_test(mutant=None):
         baglanti.commit()
         kalan = {kod for (kod,) in baglanti.execute("SELECT kod FROM talepler").fetchall()}
         f1 = len(kuru) == silinen == 2
-        f2 = "PR-Z91" not in kalan and "PR-P91" not in kalan
-        f3 = "PR-Z89" in kalan and "PR-P89" in kalan
+        f2 = "PR-Z92XYZ" not in kalan and "PR-P92XYZ" not in kalan
+        f3 = "PR-Z89XYZ" in kalan and "PR-P89XYZ" in kalan
         f4 = "PR-BOZUK" in kalan
         f5 = f5_statik()
         r1 = r1_davranissal()
