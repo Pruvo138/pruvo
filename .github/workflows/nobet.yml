@@ -382,6 +382,23 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test
 
+      # T5 DURGUN KALEM KAPISI (19 Agu 2026, K193 paketi) — 4 saat hareketsiz
+      # kalem OTOMATIK DEVREDILIR kapisi. 4 kol (T5-DURGUN, T5-TAZE, T5-IZ,
+      # T5-OLCULEMEDI) kendi --kendini-test'inde MUTANT=4/4 verir. CANLI
+      # kablolama BU PAKETTE YOK (nobet-kapi.py'ye takilmasi ayri karar);
+      # burada yalniz olcumun YESIL oldugu teyit edilir. SERIT B: kirmizisi
+      # yayini DURDURMAZ.
+      - name: "Durgun kalem kapisi — kendini test (4 kol + 4 mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/durgun-kalem-kapisi.py --kendini-test
+
+      # T5 CURUTME (19 Agu 2026) — her kolun govdesi oldurulunce ilgili
+      # mutant YASAMALI (sessiz kalmali). kirmizi gelmesi kanit DEGILDIR;
+      # bir mutant hedef kolu gercekten olcuyor mu burada kanitlanir.
+      - name: "Durgun kalem kapisi — curutme (kol oldurulunce mutant sessiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/durgun-kalem-kapisi.py --curutme
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
