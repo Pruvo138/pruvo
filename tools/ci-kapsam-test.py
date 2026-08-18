@@ -646,6 +646,158 @@ KAPSANMIS_MUTANTLARI = (
 )
 
 
+# 🔴 ZINCIR MUTANTI — CITIN "BOS KAPSAM" KOR NOKTASI (19 Agu 2026).
+# `None` (olcemedim) ile `set()` (olctum, bos) AYNI SEY DEGILDIR. Hata yolu bos kume
+# dondurmeye baslarsa cit onu "kapsam BILINIYOR" sayar ve kapsanan kova SESSIZCE
+# yesil kola gider. Bu mutant o kolu FIILEN oldurur; zincir BOZUK bir pre-push
+# girdisinden BASLAR, yani kapsam turetimi de olcume girer.
+# (etiket, capa, ikame, beklenen_rc, neden)
+KAPSANMIS_ZINCIR_MUTANTLARI = (
+    ("M6 BOS KAPSAM",
+     "            return None, (\"pre-push satiri %d dort alanli degil: %r\"\n",
+     "            return set(), (\"pre-push satiri %d dort alanli degil: %r\"\n",
+     0,
+     "hata yolu BOS KUME dondurunce 'olcemedim' -. 'kapsamda bir sey yok' kiligina "
+     "girer ve kapsanan kova yesil kola kacar"),
+)
+
+
+# ---- K189-C: CIKIS KODU SOZLESMESININ KABUK/CI TARAFI ---------------------
+CIKIS_SOZLESMESI_HEDEFLERI = ("tools/ci-kapsam-test.py", "tools/is-akisi-kapisi.py")
+KANCA_RC_DEGISKENLERI = ("pruvo_kapsam_rc", "pruvo_k80_rc")
+_COE_RE = re.compile(r"^\s*continue-on-error:\s*true\s*$")
+_ADIM_BASI_RE = re.compile(r"^(\s*)-\s")
+
+
+def _cikis_sozlesmesi_govdesi(akis_metinleri, kanca_metni):
+    """[hatalar] — cagiranlar sifir-disini sifir-disi sayiyor mu.
+
+    <akis_metinleri>: {yol: metin}. <kanca_metni>: pre-push kaynagi (None = OLCULEMEDI).
+    Hicbir sey BASMAZ; GERCEK dosyalara YAZMAZ."""
+    hatalar = []
+    for yol in sorted(akis_metinleri):
+        satirlar = akis_metinleri[yol].splitlines()
+        for i, satir in enumerate(satirlar):
+            if "run:" not in satir:
+                continue
+            if not any(h in satir for h in CIKIS_SOZLESMESI_HEDEFLERI):
+                continue
+            bas = i
+            girinti = None
+            while bas >= 0:
+                m = _ADIM_BASI_RE.match(satirlar[bas])
+                if m:
+                    girinti = len(m.group(1))
+                    break
+                bas -= 1
+            if girinti is None:
+                hatalar.append("CIKIS SOZLESMESI OLCULEMEDI (%s:%d): adim basi "
+                               "bulunamadi -. blok siniri cizilemedi." % (yol, i + 1))
+                continue
+            son = i + 1
+            while son < len(satirlar):
+                m = _ADIM_BASI_RE.match(satirlar[son])
+                if m and len(m.group(1)) <= girinti:
+                    break
+                son += 1
+            for j in range(bas, son):
+                if _COE_RE.match(satirlar[j]):
+                    hatalar.append(
+                        "FAIL-OPEN CAGIRAN (%s:%d): `%s` adimi `continue-on-error: "
+                        "true` tasiyor -. rc=2 (OLCULEMEDI) SESSIZCE 'gecti' sayilir "
+                        "ve kapatilan delik KABUGA TASINIR."
+                        % (yol, j + 1, satirlar[i].strip()[:120]))
+    if kanca_metni is None:
+        hatalar.append("CIKIS SOZLESMESI OLCULEMEDI (fail-closed): pre-push kanca "
+                       "kaynagi OKUNAMADI; 'kabuk dogru okuyor' DIYEMEYIZ.")
+        return hatalar
+    for degisken in KANCA_RC_DEGISKENLERI:
+        ne_sifir = re.search(r"\[\s*\"\$%s\"\s*-ne\s+0\s*\]" % re.escape(degisken),
+                             kanca_metni)
+        if not ne_sifir:
+            hatalar.append(
+                "KANCA SOZLESMESI DUSTU (%s): `[ \"$%s\" -ne 0 ]` karsilastirmasi YOK "
+                "-. ya cagri satiri kalkmis ya da rc'ye OZEL esitlik konmus; her iki "
+                "halde rc=2 bloklamayabilir." % (degisken, degisken))
+        ozel = re.search(r"\[\s*\"\$%s\"\s*(?:-eq|=)\s*1\s*\]" % re.escape(degisken),
+                         kanca_metni)
+        if ozel:
+            hatalar.append(
+                "KANCA RC'YE OZEL ESITLIK (%s): `-eq 1` / `= 1` karsilastirmasi VAR "
+                "-. rc=2 (OLCULEMEDI) bu kolda 'gecti' sayilir." % degisken)
+    return hatalar
+
+
+# (etiket, akislar, kanca, hata_bekleniyor, neden)
+_CS_TEMIZ_AKIS = ("jobs:\n  a:\n    steps:\n      - name: kapi\n"
+                  "        run: python3 tools/ci-kapsam-test.py\n")
+_CS_TEMIZ_KANCA = ("pruvo_kapsam_rc=$?\nif [ \"$pruvo_kapsam_rc\" -ne 0 ]; then\n"
+                   "  exit 1\nfi\npruvo_k80_rc=$?\n"
+                   "if [ \"$pruvo_k80_rc\" -ne 0 ]; then\n  exit 1\nfi\n")
+CIKIS_SOZLESMESI_FIKSTURLERI = (
+    ("KC1 KONTROL temiz", {"z.yml": _CS_TEMIZ_AKIS}, _CS_TEMIZ_KANCA, False,
+     "mesru hal -. hicbir bulgu olmamali (yoksa nobetci hep kirmizi yanar)"),
+    ("KC2 KONTROL ilgisiz adim",
+     {"z.yml": _CS_TEMIZ_AKIS + "      - name: baska\n"
+      "        continue-on-error: true\n        run: echo selam\n"},
+     _CS_TEMIZ_KANCA, False,
+     "HEDEF OLMAYAN adimda fail-open yazimi bu nobetcinin isi DEGIL"),
+    ("MC1 OLDURUCU continue-on-error",
+     {"z.yml": "jobs:\n  a:\n    steps:\n      - name: kapi\n"
+      "        continue-on-error: true\n        run: python3 tools/ci-kapsam-test.py\n"},
+     _CS_TEMIZ_KANCA, True,
+     "hedef adim fail-open yazilirsa rc=2 sessizce gecer"),
+    ("MC2 OLDURUCU kanca `-eq 1`",
+     {"z.yml": _CS_TEMIZ_AKIS},
+     _CS_TEMIZ_KANCA.replace("[ \"$pruvo_kapsam_rc\" -ne 0 ]",
+                             "[ \"$pruvo_kapsam_rc\" -eq 1 ]"), True,
+     "kanca rc'ye OZEL esitlik yaparsa rc=2 bloklamaz"),
+    ("MC3 OLDURUCU kanca cagrisi dustu",
+     {"z.yml": _CS_TEMIZ_AKIS}, "echo hicbir sey\n", True,
+     "karsilastirma HIC yoksa 'kabuk dogru okuyor' DIYEMEYIZ"),
+    ("MC4 OLDURUCU kanca OKUNAMADI", {"z.yml": _CS_TEMIZ_AKIS}, None, True,
+     "fail-closed: kaynak okunamazsa YESIL DEGIL"),
+)
+
+
+def cikis_sozlesmesi_kontrol():
+    """🔴 (ok, hatalar) — rc=2 hukmunun ANLAMINI tasiyan cagiranlari olcer.
+
+    IKI AYAK: (1) FIKSTUR — 3 kontrol/oldurucu cifti govdenin FIILEN ayirt ettigini
+    kanitlar; (2) CANLI — GERCEK is akislari + GERCEK pre-push kaynagi bugun temiz mi.
+    Hicbir sey BASMAZ."""
+    hata = []
+    for etiket, akislar, kanca, bekleniyor, neden in CIKIS_SOZLESMESI_FIKSTURLERI:
+        try:
+            bulgu = _cikis_sozlesmesi_govdesi(akislar, kanca)
+        except Exception as e:  # noqa: BLE001
+            hata.append("CIKIS SOZLESMESI FIKSTURU OLCULEMEDI (%s): %s: %s"
+                        % (etiket, type(e).__name__, e))
+            continue
+        if bool(bulgu) != bekleniyor:
+            hata.append("CIKIS SOZLESMESI FIKSTURU DUSTU (%s): beklenen=%s gelen=%s "
+                        "· %s · %r"
+                        % (etiket, "BULGU" if bekleniyor else "TEMIZ",
+                           "BULGU" if bulgu else "TEMIZ", neden,
+                           [b[:100] for b in bulgu[:2]]))
+    akis_metinleri = {}
+    for yol in is_akisi_yollari():
+        try:
+            with open(os.path.join(ROOT, yol), encoding="utf-8") as f:
+                akis_metinleri[yol] = f.read()
+        except OSError as e:
+            hata.append("CANLI AKIS OKUNAMADI (fail-closed): %s: %s" % (yol, e))
+    kanca_yol = os.path.join(ROOT, "tools", "kancalar", "pre-push")
+    try:
+        with open(kanca_yol, encoding="utf-8") as f:
+            kanca_metni = f.read()
+    except OSError:
+        kanca_metni = None
+    for h in _cikis_sozlesmesi_govdesi(akis_metinleri, kanca_metni):
+        hata.append("CANLI: " + h)
+    return (not hata), hata
+
+
 def kapsanan_hukum_mutasyon_kontrol(kaynak=None):
     """🔴 K189 HEDEF KOL ATFI — (ok, hatalar). Hicbir sey BASMAZ.
 
@@ -672,6 +824,17 @@ def kapsanan_hukum_mutasyon_kontrol(kaynak=None):
         mod = _davranis_modulu(metin)
         return mod.denetle(_IZ_DEPLOY, kesif, {}, kontroller=False, akislar=None,
                            izlenmeyen=izlenmeyen, push_kapsami=push_kapsami)
+
+    def yargila_zincir(metin):
+        """UCTAN UCA: BOZUK pre-push girdisi -. kapsam turetimi -. cit -. hukum.
+
+        `push_kapsami`/`push_kapsami_sebep` ELLE VERILMEZ; kapsam KAYNAKTAN turetilir.
+        Boylece "hata yolu ne donuyor" sorusu hukme FIILEN baglanir."""
+        mod = _davranis_modulu(metin)
+        kapsam, sebep = mod.push_kapsamini_turet("bozuk satir\n")
+        return mod.denetle(_IZ_DEPLOY, [], {}, kontroller=False, akislar=None,
+                           izlenmeyen=[_IZ_TABAN], push_kapsami=kapsam,
+                           push_kapsami_sebep=sebep)
 
     # J: jeton ayrikligi (bu depoda OLCULEN tuzak; sabit metinden olculur).
     if (KAPSANMIS_OLCULEMEDI_JETONU in KAPSANMIS_PUSH_DISI_JETONU
@@ -710,6 +873,23 @@ def kapsanan_hukum_mutasyon_kontrol(kaynak=None):
             hata.append("N NEGATIF TABAN COKTU: aday YOKKEN mutasyonsuz kaynak rc=%d "
                         "(beklenen 0) -> kapi 'hep OLCULEMEDI' diyor olabilir." % kod)
             return False, hata
+
+        # R: BOZUK pre-push girdisi UCTAN UCA -. kapsam OLCULEMEZ -. hukum OLCULEMEDI.
+        # `set()` (olctum-bos) ile `None` (olcemedim) ayrimi BURADA hukme baglanir;
+        # ayrimin kendisi M6 ile oldurulur.
+        kapsam_r, sebep_r = _davranis_modulu(kaynak).push_kapsamini_turet(
+            "bozuk satir\n")
+        if kapsam_r is not None or not sebep_r:
+            hata.append("R KAPSAM UYDURULDU: bozuk pre-push girdisi kapsam=%r "
+                        "sebep=%r dondurdu -. 'olcemedim' bos kume kiligina girmis."
+                        % (kapsam_r, sebep_r))
+        kod, satir = yargila_zincir(kaynak)
+        if kod != OLCULEMEDI_RC:
+            hata.append("R ZINCIR COKTU: bozuk pre-push girdisiyle UCTAN UCA rc=%d "
+                        "(beklenen %d) -. kapsam OLCULEMEZKEN kapsanan kova yesil "
+                        "kola kaciyor." % (kod, OLCULEMEDI_RC))
+        elif KAPSANMIS_PUSH_DISI_JETONU in "\n".join(satir):
+            hata.append("R KOL KARISTI: kapsam OLCULEMEZKEN yesil kol jetonu basildi.")
     except Exception as e:  # noqa: BLE001 — cokme KIRMIZI ile KARISTIRILMAZ
         return False, ["K189 MUTASYON BATARYASI OLCULEMEDI (taban): %s: %s"
                        % (type(e).__name__, e)]
@@ -731,6 +911,24 @@ def kapsanan_hukum_mutasyon_kontrol(kaynak=None):
             hata.append("K189 MUTANTI HUKMU DEGISTIRMEDI (%s): rc=%d (beklenen %d) — "
                         "%s. Hedef kol ATFI COKTU: ya kol zaten olu ya hukum BASKA "
                         "bir eksenden geliyor." % (etiket, kod, beklenen_rc, neden))
+    for etiket, capa, ikame, beklenen_rc, neden in KAPSANMIS_ZINCIR_MUTANTLARI:
+        gecti = kaynak.count(capa)
+        if gecti != 1:
+            hata.append("K189 ZINCIR MUTANTI OLCULEMEDI (%s): capa %d kez gecti "
+                        "(beklenen 1) -. mutasyon UYGULANMADI (sessiz gecis DEGIL, "
+                        "olcum YOKLUGU)." % (etiket, gecti))
+            continue
+        try:
+            kod, _s = yargila_zincir(kaynak.replace(capa, ikame))
+        except Exception as e:  # noqa: BLE001
+            hata.append("K189 ZINCIR MUTANT DAVRANISI OLCULEMEDI (%s): %s: %s"
+                        % (etiket, type(e).__name__, e))
+            continue
+        if kod != beklenen_rc:
+            hata.append("K189 ZINCIR MUTANTI HUKMU DEGISTIRMEDI (%s): rc=%d "
+                        "(beklenen %d) — %s. Yani `None` (olcemedim) ile `set()` "
+                        "(olctum-bos) ayrimi HUKME BAGLI DEGIL."
+                        % (etiket, kod, beklenen_rc, neden))
     return (not hata), hata
 
 
@@ -5488,8 +5686,8 @@ NOBETCI_KABLOLARI = (
     ("main", ("alt_kume_fikstur_kontrol", "bayraksiz_adim_kontrol",
               "bulgu1_mutasyon_kontrol", "hukum_davranis_fikstur_kontrol",
               "hukum_davranis_kontrol", "hukum_fuzz_kontrol",
-              "izlenmeyen_fikstur_kontrol", "kanca_kablo_serit_kontrol",
-              "kapsanan_hukum_mutasyon_kontrol",
+              "cikis_sozlesmesi_kontrol", "izlenmeyen_fikstur_kontrol",
+              "kanca_kablo_serit_kontrol", "kapsanan_hukum_mutasyon_kontrol",
               "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
               "main_kablosu_kontrol", "muaf_sayaci_kontrol",
               "pre_push_kablo_kontrol", "suzgec_fikstur_kontrol",
@@ -5507,11 +5705,12 @@ NOBETCI_KABLOLARI = (
 # birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
 # NOT: bu SAYI artik TEK BASINA yuk tasimiyor (dusurulebilir olmasi E5-a deligiydi);
 # asil capa yukaridaki ESITLIK kontroludur. Sayi ikinci bir ratchet olarak kalir.
-KOL_BIRLESIM_TABANI = 19
+KOL_BIRLESIM_TABANI = 20
 # UCUNCU (BLOKLAYICI) KOL — `--kanca-kablo`. `NOBETCI_KABLOLARI`'nin anahtarlari
 # FONKSIYON adi oldugu icin bu kolun nobetcileri `main` kaydinda erir ve kol dokumu
 # onu RAPORLAMIYORDU (5. tur F6). Ayri kayit: dokum UC SERIDI de basar.
-KANCA_KABLO_KOL_NOBETCILERI = ("hukum_davranis_fikstur_kontrol",
+KANCA_KABLO_KOL_NOBETCILERI = ("cikis_sozlesmesi_kontrol",
+                               "hukum_davranis_fikstur_kontrol",
                                "kanca_kablo_serit_kontrol",
                                "kapsanan_hukum_mutasyon_kontrol",
                                "pre_push_kablo_kontrol")
@@ -6169,8 +6368,8 @@ def hukum_davranis_kontrol(kaynak=None):
 # yakalandigini KALICI olarak civiler. Sabotajlar GERCEK kaynak metnine uygulanir
 # (bellekte), ucuncu kolun hukum blogu hedeflenir. Tablo kucultulurse kirmizi yanar.
 # (AYNI GEREKCE: parcali yazim, GERCEK hukum satirinin ikizini uretmemek icin.)
-_DK_HUKUM = ("        if ok and ok_s and ok_d and %s:\n"
-             "            print(\"SONUC: YESIL ✅\")\n" % "ok_k")
+_DK_HUKUM = ("        if ok and ok_s and ok_d and ok_k and %s:\n"
+             "            print(\"SONUC: YESIL ✅\")\n" % "ok_c")
 # 🔴 PARCALI YAZIM (bilincli): duz yazilsaydi bu sabit, GERCEK `main()` satiriyla
 # BIREBIR ayni metni ikinci kez uretir ve mutasyon capalari "2 kez gecti" diye
 # COKERDI ([[mutasyon-kaniti-yeniden-uretilebilir]]: cokme kirmiziyla karisir).
@@ -6205,6 +6404,13 @@ HUKUM_DAVRANIS_FIKSTURLERI = (
     ("H3-1 `_ = nobetci()` + sabit atama", _DK_OKS,
      "        _ = kanca_kablo_serit_kontrol()\n        ok_s, hata_s = True, []\n",
      False, "🔴 7. tur kacisi: donus HIC kullanilmiyor"),
+    # 🔴 K189 tur-3: AYNI SINIF, YENI DEGISKEN. `ok_c` varyantlari `ok_s`in
+    # YERINE DEGIL, YANINA eklenir — yoksa tablo buyumeden kapsam yer degistirir
+    # ([[kapi-yan-etkisi-gizli-onkosul]]).
+    ("H3-1c `_ = nobetci()` + sabit atama (ok_c)",
+     "        ok_c, hata_c = cikis_sozlesmesi_kontrol()\n",
+     "        _ = cikis_sozlesmesi_kontrol()\n        ok_c, hata_c = True, []\n",
+     False, "🔴 K189 tur-3 kacisi: cikis sozlesmesi donusu HIC kullanilmiyor"),
     ("H3-5 tuple'dan YANLIS indis", _DK_OKS,
      "        _r = kanca_kablo_serit_kontrol()\n        hata_s, ok_s = _r[0], _r[1]\n",
      False, "🔴 7. tur kacisi: ok/hata yer degistirdi"),
@@ -6214,22 +6420,27 @@ HUKUM_DAVRANIS_FIKSTURLERI = (
     ("H3-7 hukum `any([ok, ok_s, True])`", _DK_HUKUM,
      "        if any([ok, ok_s, True]):\n            print(\"SONUC: YESIL ✅\")\n",
      False, "🔴 7. tur kacisi: sabit dal"),
-    ("H3-8 `ok` sonradan sabitle eziliyor", _DK_OKS,
-     _DK_OKS + "        ok_s = True\n", False, "ikinci atama sabit"),
+    ("H3-8 `ok_s` sonradan sabitle eziliyor", _DK_OKS,
+     "        ok_s, hata_s = kanca_kablo_serit_kontrol()\n        ok_s = True\n",
+     False, "ikinci atama sabit"),
+    ("H3-8c `ok_c` sonradan sabitle eziliyor",
+     "        ok_c, hata_c = cikis_sozlesmesi_kontrol()\n",
+     "        ok_c, hata_c = cikis_sozlesmesi_kontrol()\n        ok_c = True\n",
+     False, "ikinci atama sabit (K189 tur-3 degiskeni)"),
     # --- KONTROLLER: MESRU yazimlar YESIL kalmali (sahte-kirmizi yuzeyi) ---
     ("K-1 `bool(...)` sarmali", _DK_HUKUM,
-     "        if bool(ok and ok_s and ok_d and ok_k):\n"
+     "        if bool(ok and ok_s and ok_d and ok_k and ok_c):\n"
      "            print(\"SONUC: YESIL ✅\")\n", True,
      "sabit DEGIL, hukum degiskenlerinden turer"),
     ("K-2 ara degisken", _DK_HUKUM,
-     "        _karar = ok and ok_s and ok_d and ok_k\n        if _karar:\n"
+     "        _karar = ok and ok_s and ok_d and ok_k and ok_c\n        if _karar:\n"
      "            print(\"SONUC: YESIL ✅\")\n", True, "tasiyici ad"),
     ("K-3 ters kosul", _DK_HUKUM,
-     "        if not (ok and ok_s and ok_d and ok_k):\n            pass\n"
-     "        elif ok and ok_s and ok_d and ok_k:\n"
+     "        if not (ok and ok_s and ok_d and ok_k and ok_c):\n            pass\n"
+     "        elif ok and ok_s and ok_d and ok_k and ok_c:\n"
      "            print(\"SONUC: YESIL ✅\")\n", True, "negatif yazim"),
     ("K-4 `all([...])` hukum degiskenleriyle", _DK_HUKUM,
-     "        if all([ok, ok_s, ok_d, ok_k]):\n            print(\"SONUC: YESIL ✅\")\n",
+     "        if all([ok, ok_s, ok_d, ok_k, ok_c]):\n            print(\"SONUC: YESIL ✅\")\n",
      True, "`all` MESRU olabilir — icerik sabit degil"),
 )
 
@@ -7072,7 +7283,17 @@ def main():
         else:
             for h in hata_k:
                 print("  ❌ " + h)
-        if ok and ok_s and ok_d and ok_k:
+        ok_c, hata_c = cikis_sozlesmesi_kontrol()
+        print("CIKIS KODU SOZLESMESI — CAGIRAN TARAFI (%d fikstur + CANLI is akisi/"
+              "kanca): rc=2 (OLCULEMEDI) SIFIR-DISI olarak okunuyor mu"
+              % len(CIKIS_SOZLESMESI_FIKSTURLERI))
+        if ok_c:
+            print("  ✅ hedef adimlarda `continue-on-error: true` YOK; kancada "
+                  "`-ne 0` karsilastirmasi DURUYOR ve rc'ye OZEL esitlik YOK")
+        else:
+            for h in hata_c:
+                print("  ❌ " + h)
+        if ok and ok_s and ok_d and ok_k and ok_c:
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")
