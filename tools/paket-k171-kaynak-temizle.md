@@ -48,7 +48,18 @@ yalnız id. Dosya okunamazsa `OLCULEMEDI` + rc≠0.
 - Turun sonunda basılan satır: `KAYNAK_SILINEN=<n> ZATEN_YOK=<n> KAYNAK_KALAN=<n>`.
 - Manifest'e yalnız id listesi + sayı yazılır; **kayıt gövdesi YAZILMAZ**.
 
-### Adım 3 — mevcut 15 artığın temizliği (ayrı tur, bayrak indikten SONRA)
+### 🔴 SAYI GÜNCELLİĞİ KAPISI (18 Ağu 16:5x eki — ÖNCE BUNU OKU)
+Aşağıdaki "15" sayısı **MaCiT'in FAZ C kapanışında ölçülmüştü ve BAYAT olabilir**: o günden
+sonra MaCiT `dilim-4c` turunda "35 orphan-kaynak tombstone temizliği" yaptığını bildirdi ve
+katalog 29.057'den 29.3xx'e büyüdü. **`--kaynak-durum` ne diyorsa DOĞRU O'dur.**
+- `ARTIK` **0** çıkarsa: temizlik zaten olmuş → **TEMİZLEME ÇALIŞTIRMA**, sayıyı raporla, DUR.
+- `ARTIK` 15'ten FARKLI çıkarsa: yine DUR ve mimara yaz — sayı değiştiyse sebebini bilmeden
+  silme yapılmaz ([[silme-sayaci-diskten-dogrulanmali]]).
+- Bayrak işi (Adım 1-2) her hâlükârda YAPILIR; şüphe yalnız Adım 3'ü (fiili temizlik) durdurur.
+⚠️ MaCiT şu anda `urunler.json` ve gizli düzlem üzerinde **CANLI parti koşuyor**. Kanonik
+aracın flock'u dışında hiçbir yazım yolu kullanma; kilit meşgulse BEKLE, zorlama.
+
+### Adım 3 — mevcut artıkların temizliği (ayrı tur, bayrak indikten SONRA, sayı teyitliyse)
 `--kaynak-durum` ile ÖNCE ölç → temizle → SONRA tekrar ölç. İki ölçüm de rapora BİREBİR
 yapıştırılır. "15 temizlendi" iddiası **diskten** doğrulanmadan yazılmaz
 ([[silme-sayaci-diskten-dogrulanmali]]).
