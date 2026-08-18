@@ -31,6 +31,13 @@ Mutasyon bataryasi kurali (EK, 18 Agu 2026): haritanin evreni -test/-mutasyon/-p
 dislar; bu yuzden `X-mutasyon.py` icin EV, olctugu kapinin EV'idir
 (`X-kapisi.py` ya da `X.py`). Eslesme yoksa BILINMIYOR.
 
+Icerikten EV turetimi (EK, 19 Agu 2026 — PAKET T3b): ad-ekseni ve mutant-turev
+adimi ile cozulemeyen bir mekanizma icin dosyanin metni okunur; icinden toplanan
+tools/ referanslarinin haritadaki EV'leri arasinda TAM OLARAK BIR ayirt edici
+EV varsa o doner. SIFIR → BILINMIYOR (sahipsiz kalir); BIRDEN COK → BILINMIYOR
++ CAKISMA sayaci artar. Sessiz secim / varsayilan EV YASAK. Okuma IO/encoding
+hatasinda BILINMIYOR + OKUNAMADI sayaci artar; sessiz 0 yasak.
+
 Isletim modlari:
   default (analiz)   : gercek harita uzerinde EV dagilimini basar; YAZMAZ.
   --kendini-test     : 4 mutant + izolasyon (tempfile.mkdtemp); gercek posta
@@ -154,7 +161,73 @@ def mekanizmaya_mekanizma_adlari(harita):
     return out
 
 
-def mekanizma_icin_ev(mekanizma, harita_index, mutant_ayarlari=None):
+def _icerikten_ev(mekanizma, harita_index, stats):
+    """4. adim (PAKET T3b): mutant dosyasinin metnini oku, tools/ referanslarini
+    topla, haritadaki EV'lerinden tek ayirt edici olan varsa doner.
+
+    Kurallar:
+      - Kendi adi ve -test/-mutasyon turevleri haric tutulur (M7 onlemi).
+      - BILINMIYOR olanlar atilir.
+      - Tam olarak 1 ayirt edici EV → o EV.
+      - SIFIR → BILINMIYOR (durust sonuc; sahipsiz KALIR).
+      - BIRDEN COK ayrik EV → BILINMIYOR + stats["CAKISMA"]++ (mimara birakir).
+      - Okuma IO/encoding hatasi → BILINMIYOR + stats["OKUNAMADI"]++ (sessiz 0 yasak).
+
+    Fail-open YASAK: hicbir kosulda BILINMIYOR bir EV'e cevrilmez; secim mimarin isidir.
+    """
+    import re as _re
+    try:
+        with open(mekanizma, encoding="utf-8") as f:
+            metin = f.read()
+    except (OSError, UnicodeDecodeError):
+        stats["OKUNAMADI"] = stats.get("OKUNAMADI", 0) + 1
+        return "BILINMIYOR"
+
+    # tools/<ad>.py ve tools/<ad>.js referanslari
+    adaylar = set(_re.findall(r"tools/([a-zA-Z0-9_-]+\.(?:py|js))", metin))
+    # Dosyanin KENDI referansini cikar (M7): hem tam ad, hem -test/-mutasyon turevleri
+    baz = os.path.basename(mekanizma)
+    kok_no_ext = baz[:-3] if baz.endswith(".py") else (baz[:-3] if baz.endswith(".js") else baz)
+    haric = set()
+    for t in (baz, kok_no_ext):
+        haric.add(t)
+        # -test / -mutasyon turevleri
+        for ek in ("-test", "-mutasyon", "-mutasyon-test", "-prob"):
+            haric.add(t + ek)
+            haric.add(t + ek + ".py")
+            haric.add(t + ek + ".js")
+    adaylar -= haric
+    if not adaylar:
+        return "BILINMIYOR"
+
+    # Her aday icin harita_index'te EV bul (kapi/kapisi.py/uzantisiz arama)
+    evler = set()
+    for a in sorted(adaylar):
+        # a ornegi "abs-kapisi.py" — harita anahtari "abs-kapisi" (uzantisiz)
+        # veya ".py" ile; bak.
+        if a in harita_index:
+            ev = harita_index[a]["EV"]
+        elif a.endswith(".py") and a[:-3] in harita_index:
+            ev = harita_index[a[:-3]]["EV"]
+        elif a.endswith(".js") and a[:-3] in harita_index:
+            ev = harita_index[a[:-3]]["EV"]
+        elif (not a.endswith(".py")) and (a + ".py") in harita_index:
+            ev = harita_index[a + ".py"]["EV"]
+        elif (not a.endswith(".js")) and (a + ".js") in harita_index:
+            ev = harita_index[a + ".js"]["EV"]
+        else:
+            continue
+        if ev != "BILINMIYOR":
+            evler.add(ev)
+    if len(evler) == 1:
+        return next(iter(evler))
+    if len(evler) > 1:
+        stats["CAKISMA"] = stats.get("CAKISMA", 0) + 1
+    return "BILINMIYOR"
+
+
+def mekanizma_icin_ev(mekanizma, harita_index, mutant_ayarlari=None,
+                     repo_kok=None, stats=None):
     """Bir mekanizma adinin EV'sini haritadan coz. Kural:
 
       1) Mekanizma adinin kendisi haritada varsa: o satirin EV'si.
@@ -163,12 +236,21 @@ def mekanizma_icin_ev(mekanizma, harita_index, mutant_ayarlari=None):
       2) "X-mutasyon.py" gibi bir mutant bataryasi icin: -mutasyon ekini
          atip olcutun kapisini ara: "X-kapisi" / "X-kapisi.py" (varsa onun
          EV'si), yoksa "X" / "X.py" (varsa onun EV'si). Bulunamazsa BILINMIYOR.
-      3) Haritada yoksa BILINMIYOR (sessiz varsayilan YOK).
+      3) -test/-prob turevleri: ayni kok ile dene.
+      4) Icerikten EV (PAKET T3b): ad-ekseni ile cozulmediyse mutant dosyasinin
+         metnini oku, tools/ referanslarinin haritadaki EV'lerinden TEK
+         ayirt edici olan varsa onu doner. SIFIR → BILINMIYOR; BIRDEN COK →
+         BILINMIYOR + stats["CAKISMA"]++ (mimara birakir). IO/encoding hatasi
+         OKUNAMADI++.
 
     mutant_ayarlari: opsiyonel dict; "ev_override" verilmisse o kullanilir (M1).
+    stats: opsiyonel sayac dict; COZULDU_ICERIKTEN/CAKISMA/OKUNAMADI icin.
+    repo_kok: 4. adim icin mutlak yol cozumlemede kullanilir.
     """
     if mutant_ayarlari and "ev_override" in mutant_ayarlari:
         return mutant_ayarlari["ev_override"]
+    if stats is None:
+        stats = {}
     ad = mekanizma
 
     def _bak(aday):
@@ -205,6 +287,22 @@ def mekanizma_icin_ev(mekanizma, harita_index, mutant_ayarlari=None):
                 ev = _bak(a)
                 if ev is not None:
                     return ev
+    # 4) Icerikten EV (PAKET T3b) — yalniz BILINMIYOR kalanlara uygulanir.
+    #    Onceki adimlar eski davranisi degistirmez; yalniz BILINMIYOR kalan
+    #    mekanizmalar icin ek bir sans verilir.
+    #    Dosya yolu: gercek mutant dosyalari tools/ altinda; adim hem
+    #    "repo_kok/<ad>" hem "repo_kok/tools/<ad>" dener.
+    if repo_kok and ad.endswith("-mutasyon.py"):
+        tam = ad if os.path.isabs(ad) else os.path.join(repo_kok, ad)
+        if not os.path.isfile(tam):
+            alt = os.path.join(repo_kok, "tools", ad)
+            if os.path.isfile(alt):
+                tam = alt
+        if os.path.isfile(tam):
+            ev = _icerikten_ev(tam, harita_index, stats)
+            if ev != "BILINMIYOR":
+                stats["COZULDU_ICERIKTEN"] = stats.get("COZULDU_ICERIKTEN", 0) + 1
+                return ev
     return "BILINMIYOR"
 
 
@@ -316,7 +414,8 @@ def krat_satir_yoksa_bul(repo_kok):
     return None
 
 
-def yonlendir(kalem, harita_index, koku_root=None, *, yazilamaz_yollar=None):
+def yonlendir(kalem, harita_index, koku_root=None, *, yazilamaz_yollar=None,
+               repo_kok=None, stats=None):
     """Bir kalemi EV'sine yonlendir.
 
     kalem: {"mekanizma": str, "kosum_id": str, "kirmizi_adim": str,
@@ -326,7 +425,7 @@ def yonlendir(kalem, harita_index, koku_root=None, *, yazilamaz_yollar=None):
     Dondurur:
       {
         "EV": str,
-        "EV_KAYNAK": "HARITA"|"MUTANT_EV"|"BILINMIYOR",
+        "EV_KAYNAK": "HARITA"|"MUTANT_EV"|"ICERIKTEN"|"BILINMIYOR",
         "POSTA_YOL": str|None,
         "YAZILDI": bool,
         "DEVREDILDI_NOTU_KRAIL": bool,   # KraL'a yazilan DEVREDILDI notu (sadece KraL disi ise)
@@ -336,13 +435,22 @@ def yonlendir(kalem, harita_index, koku_root=None, *, yazilamaz_yollar=None):
       }
 
     yazilamaz_yollar: set/None; icindeki yazilamaz (M3 simulasyonu).
+    repo_kok: icerikten EV turetimi icin (PAKET T3b).
+    stats: COZULDU_ICERIKTEN/CAKISMA/OKUNAMADI sayac dict.
     """
     damga = kalem.get("damga") or _damga()
+    stats = stats if stats is not None else {}
+    # Once-sonra sayac karsilastirmasi: bu kalem icerikten EV ile cozuldu mu?
+    once = stats.get("COZULDU_ICERIKTEN", 0)
     ev = mekanizma_icin_ev(kalem["mekanizma"], harita_index,
-                           mutant_ayarlari=kalem.get("mutant_ayar"))
+                           mutant_ayarlari=kalem.get("mutant_ayar"),
+                           repo_kok=repo_kok, stats=stats)
+    sonra = stats.get("COZULDU_ICERIKTEN", 0)
     ev_kaynak = "HARITA"
     if kalem.get("mutant_ayar", {}).get("ev_override"):
         ev_kaynak = "MUTANT_EV"
+    elif sonra > once and ev != "BILINMIYOR":
+        ev_kaynak = "ICERIKTEN"
 
     sonuc = {
         "EV": ev,
@@ -729,6 +837,222 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
                 pass
 
 
+def kendini_test_butun(repo_kok, harita_yolu, koku_root):
+    """M1-M4 (4 eski mutant) + M5-M7 (3 yeni mutant) + K3, K4 (2 kontrol).
+
+    M1-M4 mevcut izolasyonlu test; M5-M7 + K3/K4 sentetik fiksturde.
+    Toplam kabul: MUTANT=7/7 + KONTROL=2/2 + TEMIZ=EVET.
+    """
+    # Once M1-M4 (eski gerileme nobeti)
+    rc_eski = kendini_test(repo_kok, harita_yolu, koku_root)
+    # Sonra M5-M7 + K3/K4 (yeni)
+    print("")
+    m5_7_sayaci, k3_4_sayaci, hata = paket_t3b_mutant_test(repo_kok)
+    print("M5-M7=%d/3 K3-K4=%d/2" % (m5_7_sayaci, k3_4_sayaci))
+    if rc_eski != 0 or m5_7_sayaci != 3 or k3_4_sayaci != 2:
+        return 1
+    return 0
+
+
+# ------------------------------------------------------------------------------
+# PAKET T3b — M5/M6/M7 + K3/K4 (sentetik fikstur; gercek haritaya DOKUNMAZ)
+# ------------------------------------------------------------------------------
+def paket_t3b_mutant_test(repo_kok):
+    """PAKET T3b: 3 yeni mutant (M5/M6/M7) + 2 kontrol (K3, K4).
+
+    Sentetik fikstur kullanir: tempfile.mkdtemp() altinda sentetik harita + sentetik
+    mutant dosyalari. Gercek tools/sahiplik-haritasi.tsv'e DOKUNMAZ.
+
+    M5: coklu ayrik EV'de sessiz ILKINI secseydi mutant YASARDI.
+        Kirmizi: CAKISMA vakasi; tekil-EV kolu YESIL.
+    M6: sifir aday kalinca varsayilan bir EV donseydi mutant YASARDI.
+        Kirmizi: SAHIPSIZ korunur; COZULDU_ICERIKTEN YESIL.
+    M7: oz-referans taramaya katilsaydi (self-ref-mutasyon haritada -> KraL),
+        self-ref + bilgi-kapisi = KraL+MaCiT = CAKISMA uretirdi. Duzeltme: self
+        haric tutulur → tek bilgi-kapisi → MaCiT. Kirmizi: oz-referans haric;
+        CAKISMA kolu YESIL.
+    K3: ad ekseninden ZATEN cozulen bir mekanizma icin 4. adim devreye
+        GIRMEZ (EV DEGISMEZ); COZULDU_ICERIKTEN artmaz.
+    K4: haritada olmayan X-mutasyon icin 4. adim BEKLENEN EV'yi bulur.
+
+    Dondurur: (mutant_sayaci, kontrol_sayaci, hata_mesaji)
+    """
+    fikstur = tempfile.mkdtemp(prefix="t3b-fikstur-")
+    try:
+        fikstur_tools = os.path.join(fikstur, "tools")
+        os.makedirs(fikstur_tools, exist_ok=True)
+
+        # --- Sentetik harita (v1: coklu EV + tekil EV + bilgi-kapisi) ---
+        sentetik_tsv = os.path.join(fikstur, "harita.tsv")
+        with open(sentetik_tsv, "w", encoding="utf-8") as f:
+            f.write("MEKANIZMA\tYOL\tEV\tSERIT\tKABUL_KOMUTU\n")
+            f.write("KraL-tool-1\tKraL-tool-1.py\tKraL\tA\tpython3 tools/KraL-tool-1-test.py\n")
+            f.write("MaCiT-tool-2\tMaCiT-tool-2.py\tMaCiT\tV\tpython3 tools/MaCiT-tool-2-test.py\n")
+            f.write("bilgi-kapisi\tbilgi-kapisi.py\tMaCiT\tV\tpython3 tools/bilgi-kapisi-test.py\n")
+            f.write("r2-purge\tr2-purge.py\tMaCiT\tV\tpython3 tools/r2-purge-test.py\n")
+
+        # --- Sentetik mutant dosyalari -----------------------------------
+        # M5: coklu ayrik EV
+        multi_ev = os.path.join(fikstur_tools, "multi-ev-mutasyon.py")
+        with open(multi_ev, "w", encoding="utf-8") as f:
+            f.write("# multi-ev sentetik\n")
+            f.write("tools/KraL-tool-1.py\n")
+            f.write("tools/MaCiT-tool-2.py\n")
+        # M5 karsilastirma: tekil EV
+        single_ev = os.path.join(fikstur_tools, "single-ev-mutasyon.py")
+        with open(single_ev, "w", encoding="utf-8") as f:
+            f.write("tools/KraL-tool-1.py\n")
+        # M6: hic referans yok
+        no_ev = os.path.join(fikstur_tools, "no-ev-mutasyon.py")
+        with open(no_ev, "w", encoding="utf-8") as f:
+            f.write("# hic referans yok\n")
+        # M6 karsilastirma: gecerli tek EV
+        valid_ev = os.path.join(fikstur_tools, "valid-ev-mutasyon.py")
+        with open(valid_ev, "w", encoding="utf-8") as f:
+            f.write("tools/bilgi-kapisi.py\n")
+        # M7: oz-referans + gecerli ref
+        self_ref = os.path.join(fikstur_tools, "self-ref-mutasyon.py")
+        with open(self_ref, "w", encoding="utf-8") as f:
+            f.write("# kendi adini + gecerli ref\n")
+            f.write("tools/self-ref-mutasyon.py\n")
+            f.write("tools/bilgi-kapisi.py\n")
+        # K3: haritada ZATEN cozulen bir mekanizma (ad-ekseni)
+        k3_direkt = os.path.join(fikstur_tools, "r2-purge-mutasyon.py")
+        with open(k3_direkt, "w", encoding="utf-8") as f:
+            f.write("tools/r2-purge.py\n")
+        # K4: haritada olmayan X-mutasyon; icerigi X-kapisi.py'ye yonlendirir
+        k4_indirect = os.path.join(fikstur_tools, "indirect-mutasyon.py")
+        with open(k4_indirect, "w", encoding="utf-8") as f:
+            f.write("tools/bilgi-kapisi.py\n")
+
+        # M7 icin ozel harita: self-ref-mutasyon -> KraL (bilgi-kapisi -> MaCiT)
+        # Duzeltme: self-ref haric tutulursa EV=MaCiT; bug'da KraL+MaCiT CAKISMA
+        sentetik_tsv_2 = os.path.join(fikstur, "harita2.tsv")
+        with open(sentetik_tsv_2, "w", encoding="utf-8") as f:
+            f.write("MEKANIZMA\tYOL\tEV\tSERIT\tKABUL_KOMUTU\n")
+            f.write("bilgi-kapisi\tbilgi-kapisi.py\tMaCiT\tV\tpython3 tools/bilgi-kapisi-test.py\n")
+            f.write("self-ref-mutasyon\tself-ref-mutasyon.py\tKraL\tA\tpython3 tools/self-ref-mutasyon-test.py\n")
+
+        # --- Haritayi oku -----------------------------------------------
+        harita, _ = haritayi_oku(fikstur, "harita.tsv")
+        harita_index = mekanizmaya_mekanizma_adlari(harita)
+        harita2, _ = haritayi_oku(fikstur, "harita2.tsv")
+        harita_index2 = mekanizmaya_mekanizma_adlari(harita2)
+
+        adimlar = []
+
+        # --- M5: coklu ayrik EV'de sessiz secim --------------------------
+        # Buggy: BILINMIYOR yerine ILK EV (KraL) dondururdu.
+        # Duzeltme: BILINMIYOR + CAKISMA=1.
+        stats = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        sonuc = _icerikten_ev(multi_ev, harita_index, stats)
+        m5_kirmizi = (sonuc == "BILINMIYOR" and stats["CAKISMA"] == 1)
+        # Yan eksen: tekil-EV kolu YESIL kalmali (KraL donebilmeli).
+        stats_tekil = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        sonuc_tek = _icerikten_ev(single_ev, harita_index, stats_tekil)
+        m5_tekil_yesil = (sonuc_tek == "KraL" and stats_tekil["CAKISMA"] == 0)
+        m5_hedef_kol_atfi = (m5_kirmizi and m5_tekil_yesil)
+        m5_mesaj = ("EV=BILINMIYOR CAKISMA=1 (KIRMIZI); tekil test EV=KraL "
+                    "CAKISMA=0 (YESIL)")
+        adimlar.append(("M5", "CAKISMA", m5_hedef_kol_atfi, m5_mesaj, {
+            "BILINMIYOR_BEKLENEN": sonuc, "CAKISMA": stats["CAKISMA"],
+            "TEKIL_EV": sonuc_tek, "TEKIL_CAKISMA": stats_tekil["CAKISMA"],
+        }))
+
+        # --- M6: sifir adayda varsayilan EV dondur -----------------------
+        # Buggy: BILINMIYOR yerine varsayilan EV (KraL) dondururdu.
+        # Duzeltme: BILINMIYOR + COZULDU_ICERIKTEN degismez.
+        stats = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        sonuc = _icerikten_ev(no_ev, harita_index, stats)
+        m6_kirmizi = (sonuc == "BILINMIYOR" and stats["COZULDU_ICERIKTEN"] == 0)
+        # Yan eksen: COZULDU_ICERIKTEN YESIL kalmali (gecerli ref test).
+        stats_valid = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        sonuc_valid = _icerikten_ev(valid_ev, harita_index, stats_valid)
+        m6_coz_yesil = (sonuc_valid == "MaCiT" and stats_valid["CAKISMA"] == 0)
+        m6_hedef_kol_atfi = (m6_kirmizi and m6_coz_yesil)
+        m6_mesaj = ("EV=BILINMIYOR COZULDU_ICERIKTEN=0 (KIRMIZI); gecerli ref "
+                    "EV=MaCiT CAKISMA=0 (YESIL)")
+        adimlar.append(("M6", "SAHIPSIZ", m6_hedef_kol_atfi, m6_mesaj, {
+            "BILINMIYOR_BEKLENEN": sonuc, "COZULDU_NO": stats["COZULDU_ICERIKTEN"],
+            "VALID_EV": sonuc_valid, "VALID_CAKISMA": stats_valid["CAKISMA"],
+        }))
+
+        # --- M7: oz-referans taramaya katilmasin ------------------------
+        # Eger KENDI adi da katilmis olsaydi: self-ref-mutasyon -> KraL +
+        # bilgi-kapisi -> MaCiT = 2 ayrik EV = CAKISMA. Duzeltme: self-ref
+        # haric tutulur → sadece bilgi-kapisi → MaCiT.
+        stats = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        sonuc = _icerikten_ev(self_ref, harita_index2, stats)
+        m7_kirmizi = (sonuc == "MaCiT" and stats["CAKISMA"] == 0)
+        # Yan eksen: CAKISMA kolu YESIL (coklu EV dosyasinda CAKISMA uretir).
+        # harita_index2'de KraL-tool-1/MaCiT-tool-2 yok; harita_index kullan.
+        stats_cakisma = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        sonuc_cak = _icerikten_ev(multi_ev, harita_index, stats_cakisma)
+        m7_cakisma_yesil = (sonuc_cak == "BILINMIYOR" and stats_cakisma["CAKISMA"] >= 1)
+        m7_hedef_kol_atfi = (m7_kirmizi and m7_cakisma_yesil)
+        m7_mesaj = ("EV=MaCiT CAKISMA=0 (self-ref haric, KIRMIZI); "
+                    "coklu-EV dosyasinda CAKISMA>=1 (YESIL)")
+        adimlar.append(("M7", "OZ_REFERANS", m7_hedef_kol_atfi, m7_mesaj, {
+            "SELF_EV": sonuc, "SELF_CAKISMA": stats["CAKISMA"],
+            "CAKISMA_TEST_EV": sonuc_cak, "CAKISMA_TEST_CAKISMA": stats_cakisma["CAKISMA"],
+        }))
+
+        # --- K3: ad ekseninden ZATEN cozulen bir mekanizma DEGISMEZ -----
+        # r2-purge-mutasyon.py -> "mutant bataryasi" turetme kurali (adim 2)
+        # "r2-purge" EV'sini MaCiT olarak bulur; 4. adim devreye GIRMEZ.
+        # Dogrulama: mekanizma_icin_ev EV=MaCiT donmeli; COZULDU_ICERIKTEN
+        # ARTAMAZ (4. adim tetiklenmemis).
+        stats_k3 = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        ev_k3 = mekanizma_icin_ev("r2-purge-mutasyon.py", harita_index,
+                                 repo_kok=fikstur, stats=stats_k3)
+        k3_yesil = (ev_k3 == "MaCiT" and stats_k3["COZULDU_ICERIKTEN"] == 0)
+        k3_mesaj = ("EV=MaCiT (ad-ekseni); COZULDU_ICERIKTEN=0 (4. adim KAPALI)")
+        adimlar.append(("K3", "AD_EKSEN_KORUMALI", k3_yesil, k3_mesaj, {
+            "EV": ev_k3, "COZULDU_ICERIKTEN": stats_k3["COZULDU_ICERIKTEN"],
+        }))
+
+        # --- K4: haritada olmayan X-mutasyon icin 4. adim BEKLENEN EV -----
+        # indirect-mutasyon.py haritada YOK; eski 1-2-3 adimlari da bulamaz
+        # (kok "indirect" haritada yok). 4. adim icerikten bulmali → MaCiT.
+        # Bu, gercek dunyadaki gercek BOYUTLU is gormezligi gibi: dosyanin
+        # metni tek hedef kapiya isaret ediyor.
+        stats_k4 = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}
+        ev_k4 = mekanizma_icin_ev("indirect-mutasyon.py", harita_index,
+                                 repo_kok=fikstur, stats=stats_k4)
+        k4_yesil = (ev_k4 == "MaCiT" and stats_k4["COZULDU_ICERIKTEN"] == 1)
+        k4_mesaj = ("EV=MaCiT (icerikten); COZULDU_ICERIKTEN=1")
+        adimlar.append(("K4", "ICERIKTEN_GERCEK", k4_yesil, k4_mesaj, {
+            "EV": ev_k4, "COZULDU_ICERIKTEN": stats_k4["COZULDU_ICERIKTEN"],
+        }))
+
+        # --- Ozet --------------------------------------------------------
+        print("T3b YENI MUTANTLAR — sentetik fikstur: %s" % fikstur)
+        print("gercek tools/sahiplik-haritasi.tsv'e DOKUNULMADI")
+        print("")
+        mutant_sayaci = 0
+        kontrol_sayaci = 0
+        for ad, jeton, gecti, mesaj, detay in adimlar:
+            if ad.startswith("M"):
+                etiket = "MUTANT"
+            else:
+                etiket = "KONTROL"
+            print("%s %s -> hedef kol %s" % (etiket, ad, jeton))
+            print("  mesaj: %s" % mesaj)
+            print("  detay: %s" % detay)
+            if gecti:
+                print("  SONUÇ: BEKLENDI YAKALANDI (mutant yasamaz)")
+                if ad.startswith("M"):
+                    mutant_sayaci += 1
+                else:
+                    kontrol_sayaci += 1
+            else:
+                print("  SONUÇ: BEKLENDI YAKALANMADI (MUTANT YASARDI)")
+            print("")
+        return mutant_sayaci, kontrol_sayaci, ""
+    finally:
+        shutil.rmtree(fikstur, ignore_errors=True)
+
+
 # ------------------------------------------------------------------------------
 # ANALIZ (default, yazmaz)
 # ------------------------------------------------------------------------------
@@ -745,6 +1069,7 @@ def analiz(repo_kok, harita_yolu, sahipsiz_listele=False):
     dagilim_ev_kaynak = {"HARITA": 0, "MUTANT_EV": 0, "BILINMIYOR": 0}
     mutant_turevleri = []  # (mekanizma, EV, EV_kaynak)
     sahipsiz_listesi = []  # (mekanizma, kaynak) — BILINMIYOR olanlar
+    stats = {"COZULDU_ICERIKTEN": 0, "CAKISMA": 0, "OKUNAMADI": 0}  # PAKET T3b
 
     # Mutasyon bataryalari haritanin evreninde yok; onlar icin ek cozumleme.
     ek_mekanizmalar = set()
@@ -763,7 +1088,7 @@ def analiz(repo_kok, harita_yolu, sahipsiz_listele=False):
             sahipsiz_listesi.append((h["MEKANIZMA"], "HARITA"))
 
     for m in sorted(ek_mekanizmalar):
-        ev = mekanizma_icin_ev(m, idx)
+        ev = mekanizma_icin_ev(m, idx, repo_kok=repo_kok, stats=stats)
         if ev == "BILINMIYOR":
             dagilim["BILINMIYOR"] += 1
             mutant_turevleri.append((m, ev, "BILINMIYOR"))
@@ -792,6 +1117,13 @@ def analiz(repo_kok, harita_yolu, sahipsiz_listele=False):
         print("-mutasyon turevleri (haritada yok; -kapisi.py'nin EV'sine dustu):")
         for m, ev, kaynak in mutant_turevleri:
             print("  %-32s -> %s (%s)" % (m, ev, kaynak))
+    # PAKET T3b: ozet EK satir (KAPI CI OZETI). SAYILAR KAYNAGINDAN.
+    print("")
+    print("SAHIPSIZ=%d COZULDU_ICERIKTEN=%d CAKISMA=%d OKUNAMADI=%d"
+          % (dagilim["BILINMIYOR"],
+             stats.get("COZULDU_ICERIKTEN", 0),
+             stats.get("CAKISMA", 0),
+             stats.get("OKUNAMADI", 0)))
     return 0
 
 
@@ -804,6 +1136,7 @@ def sahipsiz_listele(repo_kok, harita_yolu):
             print("  " + h, file=sys.stderr)
     idx = mekanizmaya_mekanizma_adlari(harita)
 
+    stats = {}
     sahipsiz = []
     for h in harita:
         if h["EV"] == "BILINMIYOR":
@@ -815,12 +1148,19 @@ def sahipsiz_listele(repo_kok, harita_yolu):
                 if f not in idx:
                     ek_mekanizmalar.add(f)
     for m in sorted(ek_mekanizmalar):
-        if mekanizma_icin_ev(m, idx) == "BILINMIYOR":
+        if mekanizma_icin_ev(m, idx, repo_kok=repo_kok, stats=stats) == "BILINMIYOR":
             sahipsiz.append((m, "MUTANT_TUREV"))
 
     print("SAHIPSIZ=%d" % len(sahipsiz))
     for ad, kaynak in sahipsiz:
         print("  %-44s [%s]" % (ad, kaynak))
+    # PAKET T3b: ozet EK satir (KAPI CI OZETI). SAYILAR KAYNAGINDAN.
+    print("")
+    print("SAHIPSIZ=%d COZULDU_ICERIKTEN=%d CAKISMA=%d OKUNAMADI=%d"
+          % (len(sahipsiz),
+             stats.get("COZULDU_ICERIKTEN", 0),
+             stats.get("CAKISMA", 0),
+             stats.get("OKUNAMADI", 0)))
     return 0
 
 
@@ -879,7 +1219,8 @@ def main():
     ap.add_argument("--harita", default=HARITA_RELATIF,
                     help="harita TSV yolu (repo-goreli veya mutlak)")
     ap.add_argument("--kendini-test", action="store_true",
-                    help="4 mutantu izole kos (gercek posta kutularina DOKUNMAZ)")
+                    help="M1-M4 + M5-M7 + K3/K4 mutan/kontrolleri izole kos "
+                         "(gercek posta kutularina DOKUNMAZ)")
     ap.add_argument("--tatbikat", action="store_true",
                     help="sentetik kirmizi uretip gercek posta kutusuna yazar; "
                          "AYNI kosumda siler, TEMIZ=EVET kanitlar (hedef ev + "
@@ -909,7 +1250,7 @@ def main():
         # ki M1 yazabilsin; bunlar yine de gecici.
         for ev in ("MaCiT", "ArTisT", "HocA", "TeKiN", "KraL"):
             os.makedirs(os.path.join(koku, ev, "memory"), exist_ok=True)
-        rc = kendini_test(repo_kok, args.harita, koku)
+        rc = kendini_test_butun(repo_kok, args.harita, koku)
         # Is bitince gecici koku temizle (Okan diski).
         if not args.posta_koku_root:
             shutil.rmtree(koku, ignore_errors=True)
