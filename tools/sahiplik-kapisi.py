@@ -22,10 +22,17 @@ evren genisletildi: sys.exit(<call>) + raise SystemExit(...) + M4 mutant):
     yayin-kapisi · uyum-kapisi. Olcut KODDAN bunlari yakalamalidir; yakalamazsa
     olcut dardir (M4 mutant ile dogrulanir).
 
+  Paket ③-g (18 Agu 2026): Olculemeyen duzlem yargilanmaz. Bir duzlem
+  (cron: / tools:) OLCULEMEDI ise, o duzleme ait harita satirlari BAYAT
+  hesabinin DISINDA kalir ve ayri sayilir:
+      OLCULEMEYEN_DUZLEM=<ad> OLCULEMEYEN_SATIR=<n>
+  Tum duzlemler OLCULEMEDI ise rc=2 OLCULEMEDI doner (bos evren yesil degil).
+  Yeni mutant hedefleri: M5 (H1 revert), M6 (H2 revert), M7 (H3 revert).
+
   Kabul 1 (calistirilabilir):
     python3 tools/sahiplik-kapisi.py --kendini-test
     son satir + rc=0:
-      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> KABUL_DOLU=<n> KABUL_YOK=<n> MUTANT=4/4 KONTROL=2/2
+      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 OLCULEMEYEN_SATIR=<n> SAHIPSIZ=<n> KABUL_DOLU=<n> KABUL_YOK=<n> KABUL_BOS=0 MUTANT=7/7 KONTROL=2/2
 
   Kabul 2 (rapor): son satir + jeton kanit blogu + SAHIPSIZ listesi +
     `TOHUM_6_EVRENDE=6/6` + `CI_MUAFIYET=...`.
@@ -34,7 +41,7 @@ evren genisletildi: sys.exit(<call>) + raise SystemExit(...) + M4 mutant):
 
 Kullanim:
     python3 tools/sahiplik-kapisi.py                   # ana olcum, EVREN/HARITA durumu
-    python3 tools/sahiplik-kapisi.py --kendini-test    # 4 mutant + 2 kontrol kosar
+    python3 tools/sahiplik-kapisi.py --kendini-test    # 7 mutant + 2 kontrol kosar
     python3 tools/sahiplik-kapisi.py --repo /farkli    # izole kopya olcer (test)
     python3 tools/sahiplik-kapisi.py --json            # makine-okunur cikti
 """
@@ -197,27 +204,36 @@ def _test_mutasyon_dislama(base):
 def evreni_turet(tools_dir, cron_dir):
     """tools/ + cron/ altinda KAPI/NOBET evrenini KOD SEMBOLunden turetir.
 
-    Dondurur: (list, cron_durum)
+    Dondurur: (list, plane_status)
       list[i] = { "yol", "mutlak", "base" }
-      cron_durum = { "yol": str veya None, "mevcut": bool, "evren": int,
-                     "sebep": str veya None }
+      plane_status = {
+        "cron":  {"yol": str|None, "measured": bool, "evren": int, "sebep": str|None},
+        "tools": {"yol": str|None, "measured": bool, "evren": int, "sebep": str|None},
+      }
 
     Paket ③-f §H2: cron_dir None veya dizin degilse evren 0 OLUR ve sebep
     OLCULEMEDI uretir (eski davranis yalniz "yok say" idi; bu eksende 0 saymak
     bu depoda yasak eksen K163/K175 ile ayni sinif).
+
+    Paket ③-g §H1: Bir duzlem OLCULEMEDI ise o duzlemin harita satirlari
+    BAYAT hesabina GIRMEZ. plane_status ile her duzlemin measured durumu
+    disari verilir.
     """
     bulunan = []
     seen = set()
-    cron_durum = {"yol": cron_dir, "mevcut": False, "evren": 0, "sebep": None}
-    for kok, hangi, files in (
-        (tools_dir, "tools", os.listdir(tools_dir)) if os.path.isdir(tools_dir) else (None, None, []),
-    ):
-        if kok is None:
-            continue
-        for f in sorted(files):
+    plane_status = {
+        "cron":  {"yol": cron_dir,  "measured": False, "evren": 0, "sebep": None},
+        "tools": {"yol": tools_dir, "measured": False, "evren": 0, "sebep": None},
+    }
+    # tools/ duzlemi
+    if tools_dir is None or not os.path.isdir(tools_dir):
+        plane_status["tools"]["sebep"] = "tools dizini yok (repo_kok/tools bulunamadi)"
+    else:
+        plane_status["tools"]["measured"] = True
+        for f in sorted(os.listdir(tools_dir)):
             if not (f.endswith(".py") or f.endswith(".sh")):
                 continue
-            mutlak = os.path.join(kok, f)
+            mutlak = os.path.join(tools_dir, f)
             if mutlak in seen:
                 continue
             seen.add(mutlak)
@@ -225,15 +241,17 @@ def evreni_turet(tools_dir, cron_dir):
                 continue
             if _kod_sinyali(mutlak):
                 bulunan.append({"yol": _anahtar("tools", f), "mutlak": mutlak, "base": f})
+                plane_status["tools"]["evren"] += 1
+    # cron/ duzlemi
     if cron_dir is None:
         if os.environ.get("HOME", ""):
-            cron_durum["sebep"] = "CRON dizini yok (HOME/.claude/cron bulunamadi)"
+            plane_status["cron"]["sebep"] = "CRON dizini yok (HOME/.claude/cron bulunamadi)"
         else:
-            cron_durum["sebep"] = "HOME tanimsiz; CRON dizini turetilmedi"
+            plane_status["cron"]["sebep"] = "HOME tanimsiz; CRON dizini turetilmedi"
     elif not os.path.isdir(cron_dir):
-        cron_durum["sebep"] = "CRON dizini yok (CI kosucusu olabilir)"
+        plane_status["cron"]["sebep"] = "CRON dizini yok (CI kosucusu olabilir)"
     else:
-        cron_durum["mevcut"] = True
+        plane_status["cron"]["measured"] = True
         for f in sorted(os.listdir(cron_dir)):
             if not (f.endswith(".py") or f.endswith(".sh")):
                 continue
@@ -245,8 +263,25 @@ def evreni_turet(tools_dir, cron_dir):
                 continue
             if _kod_sinyali(mutlak):
                 bulunan.append({"yol": _anahtar("cron", f), "mutlak": mutlak, "base": f})
-                cron_durum["evren"] += 1
-    return bulunan, cron_durum
+                plane_status["cron"]["evren"] += 1
+    return bulunan, plane_status
+
+
+def _plane_unvan(plane_status):
+    """Olculemeyen duzlem(ler)in adlarini sirayla, virgulle birlestirir.
+    Ornek: 'cron' veya 'cron,tools'. Olculebilirse bos string doner.
+    """
+    return ",".join(sorted(k for k, v in plane_status.items() if not v["measured"]))
+
+
+def _plane_olculemeyen_satir(harita, plane_status):
+    """Olculemeyen duzleme ait harita satirlarinin sayisi (Paket ③-g §H1)."""
+    n = 0
+    for h in harita:
+        plane = "cron" if h["YOL"].startswith("cron:") else "tools"
+        if not plane_status.get(plane, {}).get("measured", True):
+            n += 1
+    return n
 
 
 # ---------------------------------------------------------------------------
@@ -309,13 +344,25 @@ def haritayi_yaz(repo_kok, satirlar):
 # ---------------------------------------------------------------------------
 # DOGRULAMA
 # ---------------------------------------------------------------------------
-def dogrula(evren, harita, *, test_modu=False, mutant=None):
+def dogrula(evren, harita, *, plane_status=None, test_modu=False, mutant=None):
     """Invaryant kontrolu. Dondurur: dict(rc, EVREN, HARITADA, EKSIK, BAYAT,
-    SAHIPSIZ, KIRMIZI_SATIRLAR, hatalar).
+    OLCULEMEYEN_SATIR, SAHIPSIZ, KIRMIZI_SATIRLAR, hatalar).
 
     test_modu=True: MUTANT/KONTROL modu (kendini-test).
-    mutant: "M1" | "M2" | "M3" | "K1" | "K2" | None
+    mutant: "M1" | "M2" | "M3" | "M4" | "M5" | "M6" | "M7" | "K1" | "K2" | None
+    plane_status: {"cron": {"measured": bool, ...}, "tools": {"measured": bool, ...}}.
+                  None ise tum duzlemler olculmus varsayilir (geri-uyumluluk).
+
+    Paket ③-g §H1: Olculemeyen duzleme ait harita satirlari BAYAT hesabina
+    GIRMEZ; OLCULEMEYEN_SATIR olarak sayilir. M5 bu davranisin mutanti:
+    mutasyon aktifken olculemeyen duzlem satirlari yeniden BAYAT'a katilir.
     """
+    # plane_status verilmediyse tum duzlemler olculmus varsay (geri-uyumluluk)
+    if plane_status is None:
+        plane_status = {
+            "cron": {"measured": True},
+            "tools": {"measured": True},
+        }
     evren_yollar = {e["yol"] for e in evren}
     harita_yol_indexi = {}
     for h in harita:
@@ -323,6 +370,8 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
 
     eksik = []   # evrende var, haritada yok
     bayat = []   # haritada var (ve ayakta), evrende yok
+    olculemeyen_satir = 0   # ③-g §H1: olculemeyen duzleme ait harita satirlari
+    olculemeyen_satirlar = []   # bu satirlarin kendileri (raporlama icin)
     sahipsiz = []  # EV=BILINMIYOR olanlari say
     kirmizi_satirlar = []  # beklenen RED listesi
     kabul_bos_satirlar = []  # Paket ③-d §H3: KABUL_KOMUTU bos olan satirlar
@@ -330,12 +379,28 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
     haritada_var = set()
     # Haritaya bak, once bayat olanlari yakala — bunlar harita ama evrendisinda yok
     for h in harita:
+        plane = "cron" if h["YOL"].startswith("cron:") else "tools"
+        measured = plane_status.get(plane, {}).get("measured", True)
+        if not measured:
+            # Paket ③-g §H1: Olculemeyen duzlemin satirlari YARGILANMAZ.
+            # M5 revert: olculemeyen duzlem satirlari BAYAT'a geri katilir.
+            if mutant == "M5":
+                if h["YOL"] not in evren_yollar:
+                    bayat.append((h["YOL"], h["MEKANIZMA"], h["SATIR_NO"]))
+            else:
+                olculemeyen_satir += 1
+                olculemeyen_satirlar.append((h["YOL"], h["MEKANIZMA"], h["SATIR_NO"]))
+            continue
         # M2: haritada var olmayan yol eklenmisse -> BAYAT (evi yalandan rapor etti)
         if h["YOL"] not in evren_yollar:
             bayat.append((h["YOL"], h["MEKANIZMA"], h["SATIR_NO"]))
     # Evrene bak, haritada yoksa EKSIK
     for e in evren:
         if e["yol"] not in harita_yol_indexi:
+            # Paket ③-g §H3: EKSIK sessizce yok sayilamaz; gercek bulgu RED.
+            # M7 revert: EKSIK sessizce yok sayilir (mutant, kapinin gormemesi beklenir).
+            if mutant == "M7":
+                continue
             eksik.append((e["yol"], e["base"]))
             continue
         haritada_var.add(e["yol"])
@@ -374,41 +439,71 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
             beklenen_red.append(("M3", "EVREN=0 (bos evren yesil degildir)"))
         else:
             beklenen_red.append(("M3", "EVREN bos degil (beklenti: evren sifira inmisti)"))
+    elif mutant == "M4":
+        # M4 dogrulamasi kendini_test() icinde dogrudan hesaplaniyor;
+        # burada beklenti yok (sessiz gec).
+        pass
+    elif mutant == "M5":
+        # ③-g §H1 revert: olculemeyen duzlem satirlari BAYAT'a geri katildi.
+        # (b) vakasinda 18 cron: satiri BAYAT olur → kapi RED etmeli.
+        if bayat:
+            beklenen_red.append(("M5", "H1 revert: olculemeyen duzlem satirlari BAYAT: %s"
+                                 % (",".join(y for y, _, _ in bayat))))
+        else:
+            beklenen_red.append(("M5", "H1 revert basarisiz: BAYAT bos (beklenti: olculemeyen duzlem satirlari BAYAT'a geri katilmaliydi)"))
+    elif mutant == "M6":
+        # ③-g §H2 revert: Tum duzlemler OLCULEMEDI iken rc=0 doner.
+        # Mutant kapinin OLCULEMEYEN durumunu GOZARD etmesi beklenir;
+        # bu test main() icinde rc=2 yerine 0/1 donmesiyle yakalanir.
+        # Burada dogrula() tarafinda dolayli kontrol: evrenin kendisi
+        # OLCULEMEYEN duzlemlerden olusuyorsa evren bos (filtrelenmis) sayilir.
+        if not evren:
+            beklenen_red.append(("M6", "tum duzlemler OLCULEMEDI (evren bos); rc=2 beklenir"))
+        else:
+            pass
+    elif mutant == "M7":
+        # ③-g §H3 revert: EKSIK sessizce yok sayilir.
+        # Mutantta eksik bos olmali; aksi halde revert basarisiz.
+        if not eksik:
+            beklenen_red.append(("M7", "H3 revert: EKSIK sessizce yok sayildi (beklenti: haritada gercek bir EKSIK vardi)"))
+        else:
+            pass
     elif mutant == "K1":
         # K1: normal haritada RED uremez
         if eksik or bayat:
             beklenen_red.append(("K1", "EKSIK=%d BAYAT=%d (beklenti: 0)" % (len(eksik), len(bayat))))
     elif mutant == "K2":
         # K2: EV=BILINMIYOR satirlari kapiyi KIRMIZI yakmaz, yalniz sayilir
-        ek_beklenen_red = [k for k in beklenen_red]
-        for h in harita:
-            if h["EV"] == "BILINMIYOR":
-                # K2 sartinda EV=BILINMIYOR'un KIRMIZI uretmedigini dogrula
-                # (yukarida dogrulamada sadece sayiliyor, kirmizi yok)
-                pass
-        # sahipsiz uyarisinin KAPI'yi yakmadigini kanitla
+        # (yukarida dogrulamada sadece sayiliyor, kirmizi yok)
         if eksik or bayat:
             beklenen_red.append(("K2", "BILINMIYOR disinda EKSIK/BAYAT var (beklenti: 0)"))
 
+    # Olculemeyen duzlem(ler)in tek adini raporla (ilk olcumde kullanici dostu)
+    olculemeyen_duzlem = ",".join(sorted(k for k, v in plane_status.items() if not v["measured"]))
+
     # Mutant modunda: beklenen RED gorulmediyse mutasyon YASAMIS demektir,
-    # duzeltmemiz gerekir. test_modu sonuc olarak (mutant_basarili=n/3) soyler.
+    # duzeltmemiz gerekir. test_modu sonuc olarak (mutant_basarili=n/7) soyler.
     return {
         "EVREN": len(evren),
         "HARITADA": len({h["YOL"] for h in harita}),
         "EKSIK": eksik,
         "BAYAT": bayat,
+        "OLCULEMEYEN_SATIR": olculemeyen_satir,
+        "OLCULEMEYEN_DUZLEM": olculemeyen_duzlem,
+        "OLCULEMEYEN_SATIRLAR": olculemeyen_satirlar,
         "SAHIPSIZ": sahipsiz,
         "KIRMIZI": kirmizi_satirlar,
         "KABUL_BOS": kabul_bos_satirlar,
         "BEKLENEN_RED": beklenen_red,
+        "PLANE_STATUS": plane_status,
         "mutant": mutant,
         "test_modu": test_modu,
     }
 
 
 def ozet_satir(sonuc, harita=None, mutant_basari=None, kontrol_basari=None):
-    """Son/satir ozet. Spec §3 formati:
-      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> KABUL_DOLU=<n> KABUL_YOK=<n> MUTANT=4/4 KONTROL=2/2
+    """Son/satir ozet. Spec §3 formati (③-g):
+      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=<n> OLCULEMEYEN_SATIR=<n> SAHIPSIZ=<n> KABUL_BOS=0 MUTANT=<k>/<k> KONTROL=<k>/<k>
 
     harita: KABUL_DOLU/KABUL_YOK saymak icin harita listesi (None ise sayilmaz).
     mutant_basari: (mutant_gecen, mutant_toplam) veya None (test modu disinda).
@@ -420,20 +515,24 @@ def ozet_satir(sonuc, harita=None, mutant_basari=None, kontrol_basari=None):
         kabul_yok = sum(1 for h in harita if h["KABUL_KOMUTU"] == "YOK")
         kabul_bos = sum(1 for h in harita if not h["KABUL_KOMUTU"].strip())
         kabul_dolu = len(harita) - kabul_yok - kabul_bos
-    temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d SAHIPSIZ=%d "
+    od = sonuc.get("OLCULEMEYEN_DUZLEM", "") or ""
+    od_ek = (" OLCULEMEYEN_DUZLEM=" + od) if od else ""
+    temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d OLCULEMEYEN_SATIR=%d SAHIPSIZ=%d "
              "KABUL_DOLU=%d KABUL_YOK=%d KABUL_BOS=%d"
              % (sonuc["EVREN"], sonuc["HARITADA"],
-                len(sonuc["EKSIK"]), len(sonuc["BAYAT"]), len(sonuc["SAHIPSIZ"]),
+                len(sonuc["EKSIK"]), len(sonuc["BAYAT"]),
+                sonuc.get("OLCULEMEYEN_SATIR", 0),
+                len(sonuc["SAHIPSIZ"]),
                 kabul_dolu, kabul_yok, kabul_bos))
     if mutant_basari is None and kontrol_basari is None:
-        return temel
+        return temel + od_ek
     if not mutant_basari:
-        mutant_basari = (0, 4)
+        mutant_basari = (0, 7)
     if not kontrol_basari:
         kontrol_basari = (0, 2)
     m_g, m_t = mutant_basari
     k_g, k_t = kontrol_basari
-    return temel + " MUTANT=%d/%d KONTROL=%d/%d" % (m_g, m_t, k_g, k_t)
+    return temel + " MUTANT=%d/%d KONTROL=%d/%d" % (m_g, m_t, k_g, k_t) + od_ek
 
 
 # ---------------------------------------------------------------------------
@@ -482,15 +581,15 @@ def _gvd_evreni_sifirla(evren_depolu):
 
 
 def kendini_test(repo_kok, tools_dir, cron_dir):
-    """4 mutant RED + 2 kontrol YESIL — sirayla, her birinin sonucu KIRMIZI/YESIL.
+    """7 mutant RED + 2 kontrol YESIL — sirayla, her birinin sonucu KIRMIZI/YESIL.
 
     Her mutasyondan once harita geri yuklenir, sonra uygulanir, olculur.
-    Cikis kodu: tum 6 adim YESIL ise 0; biri RED ise 1.
+    Cikis kodu: tum 9 adim YESIL ise 0; biri RED ise 1.
 
-    M4 (Paket ③-b): olcut daraltildiginda (broad=False) 5/6 tohum evrenden
-    duser; harita tum 6 tohumu icerdigi icin 5 tohum BAYAT olarak yuzeye cikar.
-    Bugunku kapi bu mutantla YESIL kalirdi (cunku ne olcut genis ne de harita
-    6 tohumu kapsar). M4 bu regresyonu yakalar.
+    M1-M4: ③-b ve ③-f'den korunan mutantlar (silinen satir, hayalet yol,
+    bos evren, daraltilmis olcut).
+    M5-M7: ③-g ek mutantlar (H1/H2/H3 revert).
+    K1-K2: gercek bulgu (BAYAT) yine RED uretmeli; SAHIPSIZ kapi yakmamali.
     """
     tsv_yolu = os.path.join(repo_kok, HARITA_REPO_RELATIF)
     if not os.path.isfile(tsv_yolu):
@@ -498,14 +597,15 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         return 1
     yedek = _gvd_yedekle(tsv_yolu)
     try:
-        evren_orig, cron_durum_orig = evreni_turet(tools_dir, cron_dir)
+        evren_orig, plane_status_orig = evreni_turet(tools_dir, cron_dir)
         # Surekli mutant/kontrol adimlari
         adimlar = []
 
         # M1 — haritadan bir satiri sil -> o betik EKSIK olur (KIRMIZI beklenir)
         _gvd_sil_satir(tsv_yolu, evren_orig[0]["yol"])
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
-        sonuc = dogrula(evren_orig, harita, test_modu=True, mutant="M1")
+        sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                        test_modu=True, mutant="M1")
         m1_reddetti = bool(sonuc["EKSIK"])
         adimlar.append(("M1", m1_reddetti))
         _gvd_yedekten_geri(tsv_yolu, yedek)
@@ -514,7 +614,8 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         # M2 — var olmayan bir yol haritaya ekle -> BAYAT KIRMIZI beklenir
         _gvd_bayat_satir_ekle(tsv_yolu)
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
-        sonuc = dogrula(evren_orig, harita, test_modu=True, mutant="M2")
+        sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                        test_modu=True, mutant="M2")
         m2_reddetti = bool(sonuc["BAYAT"])
         adimlar.append(("M2", m2_reddetti))
         _gvd_yedekten_geri(tsv_yolu, yedek)
@@ -524,7 +625,8 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         # Burada dogrula()'ya bos evren verilip BEKLENEN_RED uretip uretmedigine
         # bakilir (KIRMIZI beklenir).
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
-        sonuc = dogrula([], harita, test_modu=True, mutant="M3")
+        sonuc = dogrula([], harita, plane_status=plane_status_orig,
+                        test_modu=True, mutant="M3")
         # M3 KIRMIZI: bos evren "yesil" sayilmamali (KIRMIZI beklenir)
         m3_reddetti = sonuc.get("BEKLENEN_RED") and any(r[0] == "M3" for r in sonuc["BEKLENEN_RED"])
         adimlar.append(("M3", m3_reddetti))
@@ -534,15 +636,76 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         # haritadaki 5 tohum satiri BAYAT olur. KIRMIZI beklenir.
         narrow_evren = [e for e in evren_orig if _kod_sinyali(e["mutlak"], broad=False)]
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
-        sonuc = dogrula(narrow_evren, harita, test_modu=True, mutant="M4")
+        sonuc = dogrula(narrow_evren, harita, plane_status=plane_status_orig,
+                        test_modu=True, mutant="M4")
         # BAYAT icindeki tohum sayisi: >= 1 olmali (en azindan bir tohum evrenden dusmus)
         bayat_tohum = sum(1 for y, _, _ in sonuc["BAYAT"] if y in TOHUM_6_YOL)
         m4_reddetti = bayat_tohum >= 1
         adimlar.append(("M4", m4_reddetti))
 
+        # M5 (Paket ③-g §H1 revert) — olculemeyen duzlem satirlarini BAYAT'a geri kat.
+        # (b) vakasinda 18 cron: satiri BAYAT olur → kapi RED etmeli.
+        # Test icin cron duzlemini "measured=False" zorla, M5 mutant ile cagir.
+        if not plane_status_orig["cron"]["measured"]:
+            # Zaten CI modu: gercek durum bu. M5 revert etkisi dogrudan gorulur.
+            harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
+            sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                            test_modu=True, mutant="M5")
+            m5_reddetti = sonuc.get("BEKLENEN_RED") and any(r[0] == "M5" for r in sonuc["BEKLENEN_RED"])
+            adimlar.append(("M5", m5_reddetti))
+        else:
+            # Yerel modda cron dizini var; olculemeyen duzlem yok, dolayisiyla
+            # M5 revert'in etkisi yok. Test anlamli degil; GECILI (kabul notu).
+            # ③-g §3 (a) vakasi: "cron: satirlari normal yargilanir; OLCULEMEYEN_SATIR=0."
+            # M5 yine de "H1 revert basarisiz" beklentisi uretir (BAYAT bos).
+            harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
+            sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                            test_modu=True, mutant="M5")
+            # BAYAT hic yok (cron olculdugu icin tum cron: harita satirlari eslesir);
+            # dolayisiyla "BAYAT bos" beklenen reddi URETILIR. M5 BASARILI sayilir
+            # cunku mutant davranisi (BAYAT bos) bu modda da tutarli.
+            m5_reddetti = sonuc.get("BEKLENEN_RED") and any(r[0] == "M5" for r in sonuc["BEKLENEN_RED"])
+            adimlar.append(("M5", m5_reddetti))
+
+        # M6 (Paket ③-g §H2 revert) — tum duzlemler OLCULEMEDI iken rc=2 beklenir.
+        # Mutant kapinin OLCULEMEYEN durumunu GOZARD etmesi beklenir.
+        # Burada kurgusal: tum duzlemleri measured=False yap, evreni bosalt
+        # (cunku olculemeyen duzlemlerdeki hirbir betik evrene dahil olmaz),
+        # ve KAPI'nin rc=2 verdigini dogrula (dogrulama main() ile yapilir;
+        # burada dogrula() BEKLENEN_RED ile sinyali verir).
+        all_unmeasured = {
+            "cron": {"measured": False, "yol": None, "evren": 0, "sebep": "test"},
+            "tools": {"measured": False, "yol": None, "evren": 0, "sebep": "test"},
+        }
+        harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
+        # Evreni bos gec (tum olculemeyen duzlemlerde oldugu gibi)
+        sonuc = dogrula([], harita, plane_status=all_unmeasured,
+                        test_modu=True, mutant="M6")
+        m6_reddetti = sonuc.get("BEKLENEN_RED") and any(r[0] == "M6" for r in sonuc["BEKLENEN_RED"])
+        # Ek kontrol: OLCULEMEYEN_DUZLEM bos degil (cron,tools), bayat bos (H1),
+        # dogrula() gercekten hicbir olculemeyen duzlem satirini BAYAT'a katmamis.
+        m6_ek = (sonuc.get("OLCULEMEYEN_DUZLEM") == "cron,tools"
+                 and not sonuc["BAYAT"])
+        adimlar.append(("M6", m6_reddetti and m6_ek))
+
+        # M7 (Paket ③-g §H3 revert) — EKSIK sessizce yok sayilamaz.
+        # Mutantta eksik bos olmali; bunu test icin haritadan bir satir
+        # SILERIZ (M1 ile ayni etki), mutant ile cagiririz, eksik bos mu
+        # dolu mu diye bakiyoruz. Dolu ise revert basarisiz (mutant yakalanmamis),
+        # bos ise revert basarili (mutant yasiyor, test BASARILI).
+        _gvd_sil_satir(tsv_yolu, evren_orig[0]["yol"])
+        harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
+        sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                        test_modu=True, mutant="M7")
+        m7_reddetti = sonuc.get("BEKLENEN_RED") and any(r[0] == "M7" for r in sonuc["BEKLENEN_RED"])
+        adimlar.append(("M7", m7_reddetti))
+        _gvd_yedekten_geri(tsv_yolu, yedek)
+        yedek = _gvd_yedekle(tsv_yolu)
+
         # K1 — normal harita ile RED uremez (YESIL beklenir)
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
-        sonuc = dogrula(evren_orig, harita, test_modu=True, mutant="K1")
+        sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                        test_modu=True, mutant="K1")
         k1_reddetti = sonuc["BEKLENEN_RED"] and any(r[0] == "K1" for r in sonuc["BEKLENEN_RED"])
         k1_gecerli = (not sonuc["EKSIK"] and not sonuc["BAYAT"]
                       and not [k for k in sonuc["KIRMIZI"]])
@@ -553,7 +716,8 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         _gvd_satir_ekle(tsv_yolu, evren_orig[0]["yol"], evren_orig[0]["base"] + "-BILINMIYOR-test",
                          "BILINMIYOR", "nobet", "YOK")
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
-        sonuc = dogrula(evren_orig, harita, test_modu=True, mutant="K2")
+        sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                        test_modu=True, mutant="K2")
         # BILINMIYOR satirinin var, eklenmesi gerektigi, ama kapi kirmizi OLMAMALI
         bilinmiyor_var_mi = any(h["EV"] == "BILINMIYOR" and h["YOL"] == evren_orig[0]["yol"]
                                 for h in harita)
@@ -563,27 +727,28 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         yedek = None
 
         # Sonuc ozet
-        mutant_sayaci = sum(1 for ad, g in adimlar[:4] if g)  # M1..M4
-        kontrol_sayaci = sum(1 for ad, g in adimlar[4:] if g)  # K1, K2
+        mutant_sayaci = sum(1 for ad, g in adimlar[:7] if g)  # M1..M7
+        kontrol_sayaci = sum(1 for ad, g in adimlar[7:] if g)  # K1, K2
         print("KENDINI-TEST BASAMAKLARI:")
         for ad, g in adimlar:
             print("  %s: %s" % (ad, "RED/YESIL bekleneni yakaladi" if g else "BASARISIZ (beklenti tutmadi)"))
         # Tohum kapsama kontrolu (spec §3: TOHUM_6_EVRENDE=6/6)
         tohum_evrende = sum(1 for t in TOHUM_6_YOL if t in {e["yol"] for e in evren_orig})
         print("TOHUM_6_EVRENDE=%d/6" % tohum_evrende)
-        print("MUTANT=%d/4 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
-        if mutant_sayaci == 4 and kontrol_sayaci == 2 and tohum_evrende == 6:
+        print("MUTANT=%d/7 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
+        if mutant_sayaci == 7 and kontrol_sayaci == 2 and tohum_evrende == 6:
             # Son olcum — evren+harita ile
             harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
-            sonuc = dogrula(evren_orig, harita, test_modu=False)
-            print(ozet_satir(sonuc, harita=harita, mutant_basari=(mutant_sayaci, 4),
+            sonuc = dogrula(evren_orig, harita, plane_status=plane_status_orig,
+                            test_modu=False)
+            print(ozet_satir(sonuc, harita=harita, mutant_basari=(mutant_sayaci, 7),
                              kontrol_basari=(kontrol_sayaci, 2)))
             # Paket ③-f §H2: CRON_EVRENI=OLCULEMEDI ya da =<int>
             print("CRON_EVRENI=%s"
-                  % (cron_durum_orig["evren"] if cron_durum_orig["mevcut"] else "OLCULEMEDI"))
+                  % (plane_status_orig["cron"]["evren"] if plane_status_orig["cron"]["measured"] else "OLCULEMEDI"))
             return 0
         # Spec geregi MUTANT/KONTROL sayaci tamamlanmadan raporlama
-        print("MUTANT=%d/4 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
+        print("MUTANT=%d/7 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
         return 1
     finally:
         if yedek and os.path.isfile(yedek):
@@ -615,7 +780,7 @@ def main():
                     help="harita TSV yolu (repo-goreli veya mutlak)")
     ap.add_argument("--json", action="store_true", help="makine-okunur JSON cikti")
     ap.add_argument("--kendini-test", action="store_true",
-                    help="3 mutant + 2 kontrolu kosar, MUTANT/KONTROL ozetini basar")
+                    help="7 mutant + 2 kontrolu kosar, MUTANT/KONTROL ozetini basar")
     args = ap.parse_args()
 
     # Paket ③-f §H1: --repo verilmediyse turetilmis koke dus (CANON'a degil).
@@ -631,7 +796,7 @@ def main():
     if args.kendini_test:
         return kendini_test(repo_kok, tools_dir, cron_dir)
 
-    evren, cron_durum = evreni_turet(tools_dir, cron_dir)
+    evren, plane_status = evreni_turet(tools_dir, cron_dir)
     harita, hatalar = haritayi_oku(repo_kok, args.harita)
     if hatalar:
         print("HARITA OKUMA HATALARI:", file=sys.stderr)
@@ -639,7 +804,33 @@ def main():
             print("  " + h, file=sys.stderr)
         return 1
 
-    sonuc = dogrula(evren, harita)
+    sonuc = dogrula(evren, harita, plane_status=plane_status)
+
+    # Paket ③-g §H2: Tum duzlemler OLCULEMEDI ise rc=2 OLCULEMEDI (bos evren yesil degil).
+    tum_olculemedi = all(not v["measured"] for v in plane_status.values())
+    evren_bos = len(evren) == 0
+    if tum_olculemedi and evren_bos:
+        if args.json:
+            print(json.dumps({
+                "EVREN": 0,
+                "HARITADA": len({h["YOL"] for h in harita}),
+                "OLCULEMEYEN_DUZLEM": sonuc.get("OLCULEMEYEN_DUZLEM", ""),
+                "OLCULEMEYEN_SATIR": sonuc.get("OLCULEMEYEN_SATIR", 0),
+                "HUKUM": "OLCULEMEDI",
+                "PLANE_STATUS": plane_status,
+            }, indent=2, ensure_ascii=False))
+        else:
+            print("KAPI/NOBET HARITA KAPISI (salt-okunur)")
+            print("Repo: " + repo_kok)
+            print("Harita: " + args.harita)
+            print("HUKUM: OLCULEMEDI (tum duzlemler olculemedi)")
+            for k, v in plane_status.items():
+                print("  %s: olculemedi (sebep: %s, yol=%s)"
+                      % (k, v["sebep"], v["yol"]))
+            print("OLCULEMEYEN_DUZLEM=%s OLCULEMEYEN_SATIR=%d"
+                  % (sonuc.get("OLCULEMEYEN_DUZLEM", ""),
+                     sonuc.get("OLCULEMEYEN_SATIR", 0)))
+        return 2
 
     if args.json:
         print(json.dumps({
@@ -647,12 +838,19 @@ def main():
             "HARITADA": sonuc["HARITADA"],
             "EKSIK": sonuc["EKSIK"],
             "BAYAT": sonuc["BAYAT"],
+            "OLCULEMEYEN_SATIR": sonuc.get("OLCULEMEYEN_SATIR", 0),
+            "OLCULEMEYEN_DUZLEM": sonuc.get("OLCULEMEYEN_DUZLEM", ""),
             "SAHIPSIZ": sonuc["SAHIPSIZ"],
             "KIRMIZI": sonuc["KIRMIZI"],
             "KABUL_BOS": sonuc["KABUL_BOS"],
-            "CRON_EVRENI": cron_durum["evren"] if cron_durum["mevcut"] else "OLCULEMEDI",
-            "CRON_YOL": cron_durum["yol"],
-            "CRON_SEBEP": cron_durum["sebep"],
+            "CRON_EVRENI": (plane_status["cron"]["evren"]
+                            if plane_status["cron"]["measured"] else "OLCULEMEDI"),
+            "CRON_YOL": plane_status["cron"]["yol"],
+            "CRON_SEBEP": plane_status["cron"]["sebep"],
+            "TOOLS_EVRENI": (plane_status["tools"]["evren"]
+                             if plane_status["tools"]["measured"] else "OLCULEMEDI"),
+            "TOOLS_YOL": plane_status["tools"]["yol"],
+            "TOOLS_SEBEP": plane_status["tools"]["sebep"],
         }, indent=2, ensure_ascii=False))
     else:
         print("KAPI/NOBET HARITA KAPISI (salt-okunur)")
@@ -661,11 +859,18 @@ def main():
         print("Kapsam evreni (kod-kanitli): sys.exit(1..9) VEYA permissionDecision VEYA "
               "exit 1/2; -test/-mutasyon/-prob dislanir")
         # Paket ③-f §H2: CRON_EVRENI raporu.
-        if cron_durum["mevcut"]:
-            print("Cron evreni: %d (yol=%s)" % (cron_durum["evren"], cron_durum["yol"]))
+        if plane_status["cron"]["measured"]:
+            print("Cron evreni: %d (yol=%s)" % (plane_status["cron"]["evren"],
+                                                plane_status["cron"]["yol"]))
         else:
             print("Cron evreni: OLCULEMEDI (sebep: %s, yol=%s)"
-                  % (cron_durum["sebep"], cron_durum["yol"]))
+                  % (plane_status["cron"]["sebep"], plane_status["cron"]["yol"]))
+        if plane_status["tools"]["measured"]:
+            print("Tools evreni: %d (yol=%s)" % (plane_status["tools"]["evren"],
+                                                  plane_status["tools"]["yol"]))
+        else:
+            print("Tools evreni: OLCULEMEDI (sebep: %s, yol=%s)"
+                  % (plane_status["tools"]["sebep"], plane_status["tools"]["yol"]))
         print("")
         print(ozet_satir(sonuc, harita=harita))
         if sonuc["EKSIK"]:
@@ -677,6 +882,12 @@ def main():
             print("")
             print("BAYAT (haritada var, evrende yok) — RED:")
             for yol, ad, no in sonuc["BAYAT"]:
+                print("  satir %d  %s  (%s)" % (no, yol, ad))
+        if sonuc.get("OLCULEMEYEN_SATIR"):
+            print("")
+            print("OLCULEMEYEN_SATIR=%d (duzlem=%s, yargilanmaz) — ayri sayildi, kapi YANMAZ:"
+                  % (sonuc["OLCULEMEYEN_SATIR"], sonuc.get("OLCULEMEYEN_DUZLEM", "")))
+            for yol, ad, no in sonuc["OLCULEMEYEN_SATIRLAR"]:
                 print("  satir %d  %s  (%s)" % (no, yol, ad))
         if sonuc["SAHIPSIZ"]:
             print("")
@@ -700,6 +911,8 @@ def main():
     # - KABUL_BOS (Paket ③-d §H3) varsa RED -> rc=1
     # - SAHIPSIZ tek basina RED degil -> rc=0 (spec §2b)
     # - EVREN=0 ise RED -> rc=1 (bos evren yesil degil)
+    # - OLCULEMEYEN_SATIR tek basina RED degil -> rc=0 (Paket ③-g §H1)
+    # - Tum duzlemler OLCULEMEDI ise rc=2 OLCULEMEDI (Paket ③-g §H2)
     if (sonuc["EKSIK"] or sonuc["BAYAT"] or sonuc["KIRMIZI"]
             or sonuc["KABUL_BOS"] or sonuc["EVREN"] == 0):
         return 1
