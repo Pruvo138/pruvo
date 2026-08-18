@@ -36,10 +36,9 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
   basina TEK bekleyen tutuldugu icin **her yeni push bekleyeni ezer** → push akisi
   durmadikca SERIT B TAMAMLANAMAZ (bugun ③/K168/K179 icin dort kez beklendi).
   ❌ `workflow_dispatch` ara cozumu CURUDU: elle tetiklenen `32174776514` de AYNI gruba
-  girip iptal oldu — trigger'in VARLIGI davranis degildi (once "cozum" yazdim, olcunce
-  dustu). Yayini BLOKLAMAZ ama HICBIR kapi kabulu olculemez. ⚖️ Yon Okan kapisi (Actions
-  dakikasi): seyrek `schedule` tetigi ya da kosum basina ayri concurrency grubu.
-  kabul: art arda push senaryosunda EN AZ bir tam SERIT B kosumu tamamlanir.
+  girip iptal oldu — trigger'in VARLIGI davranis degildi (once "cozum" yazdim, olcunce dustu).
+  ⚠️ **DUZELTME (25 kosum olculdu): "HICBIR kabul olculemez" FAZLA GENIS** — 16 iptal · **6 TAMAMLANDI** · 2 ucusta (suren korunuyor, ~70-100 dk). Zarar tikanma degil **SHA SECEMEMEK**. Yon: push kolu AYNEN kalir, `workflow_dispatch` KENDI grubunu alir (dal `kral/k183-dispatch-grubu` ucusta); her push'a ayri grup ~25x85 dk/gun ederdi, REDDEDILDI.
+  kabul: dispatch kosumu push trafigi altinda TAMAMLANIR + `is-akisi-kapisi.py` uc iddiayi AYRI olcer + mutant 3/3.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
