@@ -644,6 +644,104 @@ def _kaynak_rename_hazirla(eski, yeni):
     return kaynaklar, "yeniden-anahtarlandi"
 
 
+# ─────────────────────────────────────────────────────────────────────────────────────
+# KAYNAK DUZLEMI TEMIZLEME (K171) — `--kaynak-durum` + `--kaynak-temizle`
+# Gizli kayit duzleminde urunler.json'da OLMAYAN (artik) id'ler birikir: kanonik duzeltme
+# araci (`--sil` ve `--toplu`) yalniz urunler.json'a yaziyor, kaynak defterine
+# DOKUNMUYORDU. Bu kol, _sil / _toplu ile AYNI flock altinda, AYNI atomik yazim turunda
+# ikinci duzlemi de temizler. _kaynak_rename_hazirla'nin ONCEDEN cozulmus kalibina
+# (kaynaklar yoksa None, kok dict degilse ValueError) YASLANIR — yeni yazici YOK.
+#
+# GIZLILIK: bu duzlem uyelik/tedarikci bilgisi tasir. Hesap defteri hicbir ciktiya
+# (stdout/stderr/log/manifest) YAZILMAZ; rapor yalniz SAYI ve id listesi (en fazla 5).
+# ─────────────────────────────────────────────────────────────────────────────────────
+
+def _kaynak_yukle_guvenli(zorunlu):
+    """KAYNAKLAR dosyasini dict olarak dondur.
+
+    `zorunlu=True`  -> dosya yoksa ValueError (--kaynak-durum; sessiz sifir YASAK).
+    `zorunlu=False` -> dosya yoksa BOS dict doner (idempotent: --kaynak-temizle'nin
+                       hicbir sey yapmamasi kabul edilebilir bir sonuctur).
+    JSON ayristirilamiyorsa veya kok obje dict degilse IKI DURUMDA DA ValueError
+    ([[kayit-sifir-sessiz-olculmez]]): "dosya yazilacaksa" gercek durum bilinmeli,
+    sessiz bos sozluk UYDURMA veri yazar.
+    """
+    if not os.path.exists(KAYNAKLAR):
+        if zorunlu:
+            raise ValueError("kaynak defteri yok (.urun-kaynaklari.json)")
+        return {}
+    try:
+        with open(KAYNAKLAR, encoding="utf-8") as f:
+            v = json.load(f)
+    except (OSError, ValueError) as e:
+        raise ValueError("kaynak defteri okunamadi: %s" % e)
+    if not isinstance(v, dict):
+        raise ValueError("kaynak defteri kok obje dict degil")
+    return v
+
+
+def _kaynak_durum_yaz():
+    """Salt okuma: KAYNAK_KAYIT / URUN / ARTIK / ARTIK_ORNEK tek satir basar.
+
+    ARTıK = kaynak duzleminde olup urunler.json'da OLMAYAN id sayisi (silinmis/eski
+    urunlerin ardi). ARTıK_ORNEK = en fazla 5 id; dosya okunamazsa OLCULEMEDI + rc!=0.
+    Cıktıya kayit govdesi/tedarikci/tasarimci/uyelik BILGISI YAZILMAZ.
+    """
+    try:
+        kaynaklar = _kaynak_yukle_guvenli(zorunlu=True)
+    except ValueError as e:
+        print("OLCULEMEDI: %s" % e, file=sys.stderr)
+        return 1
+    try:
+        with open(URUNLER, encoding="utf-8") as f:
+            urunler = json.load(f)
+    except (OSError, ValueError) as e:
+        print("OLCULEMEDI: urunler.json okunamadi: %s" % e, file=sys.stderr)
+        return 1
+    urun_id_set = set()
+    for p in urunler:
+        if isinstance(p, dict):
+            uid = p.get("id")
+            if isinstance(uid, str) and uid:
+                urun_id_set.add(uid)
+    artik = [k for k in kaynaklar if k not in urun_id_set]
+    print("KAYNAK_KAYIT=%d URUN=%d ARTIK=%d ARTIK_ORNEK=%s"
+          % (len(kaynaklar), len(urun_id_set), len(artik), ",".join(artik[:5])))
+    return 0
+
+
+def _kaynak_temizle_uygula(silinecek_idler):
+    """Ayni flock ICINDE cagirilir. Sozluk kopyasi URETMEZ; onceki KAYNAKLAR
+    yuklemesinin devami olarak calisir.
+
+    Idempotent: silinecek id KAYNAKLAR'da yoksa hata DEGIL, ZATEN_YOK sayilir.
+    Doner: (silinen, zaten_yok, kalan) — KAYNAKLAR dosyasi yoksa (idempotent sifir)
+    (0, 0, 0); KAYNAKLAR ayristirilamiyorsa (None, None, None) ve OLCULEMEDI basar.
+    """
+    try:
+        kaynaklar = _kaynak_yukle_guvenli(zorunlu=False)
+    except ValueError as e:
+        print("OLCULEMEDI: %s" % e, file=sys.stderr)
+        return None, None, None
+    dosya_yoktu = not os.path.exists(KAYNAKLAR)
+    silinen = 0
+    zaten_yok = 0
+    for uid in sorted(set(silinecek_idler)):
+        if not isinstance(uid, str) or not uid:
+            continue
+        if uid in kaynaklar:
+            del kaynaklar[uid]
+            silinen += 1
+        else:
+            zaten_yok += 1
+    # Dosya hic yoktuysa (idempotent sifir) atomik yazim da atlaniyor: ortaya
+    # bos bir .urun-kaynaklari.json DOSYASI URETMEK, artik olmayan kayit icin
+    # yeniligini SILMEKten daha kotudur.
+    if not dosya_yoktu:
+        _atomic_write(KAYNAKLAR, kaynaklar)
+    return silinen, zaten_yok, len(kaynaklar)
+
+
 def _canon(v):
     return json.dumps(v, sort_keys=True, ensure_ascii=False)
 
@@ -713,6 +811,21 @@ def _sil(args):
             print("HATA: '%s' id'li urun urunler.json'da yok." % args.id, file=sys.stderr)
             return 1
         urunler.pop(idx)
+
+        # KAYNAK TEMIZLEME (--kaynak-temizle): urunler.json'a yazmadan ONCE ayni
+        # flock icinde kaynak duzlemini de hazirla. _kaynak_temizle_uygula
+        # dosyayi kendisi tekrar OKUR (kilit altinda, baska writer yarisma riski yok)
+        # ve geri donen (silinen, zaten_yok, kalan) demetini yazim icin hazir tutar.
+        # KAYNAKLAR ayristirilamiyorsa onceki urun-silme icin hicbir yazim YAPILMAZ
+        # (kısmi yazım YASAK).
+        kaynak_sonuc = None
+        if getattr(args, "kaynak_temizle", False):
+            kaynak_sonuc = _kaynak_temizle_uygula({args.id})
+            if kaynak_sonuc[0] is None:
+                print("HATA: --kaynak-temizle basarisiz; urun-silme geri cekildi "
+                  "(kaynak duzlemi yazilamadi).", file=sys.stderr)
+                return 1
+
         _atomic_write(URUNLER, urunler)
 
         sil_izin = []
@@ -727,12 +840,22 @@ def _sil(args):
         if args.id not in sil_izin:
             sil_izin.append(args.id)
         _atomic_write(MANIFEST_SIL, sil_izin)
+
+        # KAYNAK DUZLEMI YAZIMI: urunler.json ve silme manifesti AYNI flock altinda
+        # basariyla yazildi; simdi (sessiz) kaynak duzlemi yazimini da yap. _uygula
+        # idempotent oldugu icin idempotent tekrar (dosya yoklugu) sorun degil.
+        if kaynak_sonuc is not None:
+            # _kaynak_temizle_uygula yazimi kendi yapti; burada sadece UYARI VARSA yakala.
+            pass
     finally:
         fcntl.flock(lockf, fcntl.LOCK_UN)
         lockf.close()
 
     _log("sil: %s -> kaldirildi (%s) (silme manifestine yazildi)" % (args.id, args.sil))
     print("Silindi: %s  (gerekce: %s)" % (args.id, args.sil))
+    if kaynak_sonuc is not None:
+        print("KAYNAK_SILINEN=%d ZATEN_YOK=%d KAYNAK_KALAN=%d"
+              % (kaynak_sonuc[0], kaynak_sonuc[1], kaynak_sonuc[2]))
     print("Guard bu silmeyi manifest sayesinde gecirir; commit sonrasi post-commit "
           "hook manifesti temizler.")
     return 0
@@ -863,7 +986,7 @@ def _toplu_cozumle(yol):
     return setler, alan_silmeler, urun_silmeler, gerekceler, hatalar
 
 
-def _toplu(yol):
+def _toplu(yol, kaynak_temizle=False):
     setler, alan_silmeler, urun_silmeler, gerekceler, hatalar = _toplu_cozumle(yol)
     if hatalar:
         print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.", file=sys.stderr)
@@ -950,6 +1073,22 @@ def _toplu(yol):
             print(_uyum_rapor(uyum_ihlal, "toplu islem"), file=sys.stderr)
             return RC_UYUM
         yeni_hal = _hal_haritasi(urunler, set(setler) | set(alan_silmeler))
+
+        # KAYNAK TEMIZLEME (--kaynak-temizle): urunler.json'a yazmadan ONCE ayni
+        # flock icinde kaynak duzleminden de silinecek id'leri dusur. AYNI tek-yazim
+        # kapisindan (gorsel-koken/altkategori/ticari-hal/uyum) sonra, urunler.json
+        # yazimindan HEMEN ONCE — kısmi yazım YASAK: KAYNAKLAR ayristirilamiyorsa
+        # urunler.json da yazilmaz, tum parti geri cekilir.
+        kaynak_sonuc = None
+        if kaynak_temizle and urun_silmeler:
+            kaynak_sonuc = _kaynak_temizle_uygula(urun_silmeler)
+            if kaynak_sonuc[0] is None:
+                print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.",
+                      file=sys.stderr)
+                print("  - kaynak duzlemi yazilamadi (OLCULEMEDI); kısmi yazım "
+                      "yasagi: urunler.json da yazilmadi.", file=sys.stderr)
+                return 1
+
         _atomic_write(URUNLER, urunler)  # TEK yazim
 
         if setler or alan_silmeler:
@@ -1004,6 +1143,9 @@ def _toplu(yol):
         print("Silindi: %s  (gerekce: %s)" % (uid, gerekce))
     print("TOPLU: %d urun, %d alan islemi, %d silme — TEK kilit + TEK yazim."
           % (n_urun, n_alan, len(urun_silmeler)))
+    if kaynak_sonuc is not None:
+        print("KAYNAK_SILINEN=%d ZATEN_YOK=%d KAYNAK_KALAN=%d"
+              % (kaynak_sonuc[0], kaynak_sonuc[1], kaynak_sonuc[2]))
     print("Guard bu degisiklikleri manifest sayesinde gecirir; commit sonrasi post-commit "
           "hook manifesti temizler.")
     return 0
@@ -1031,11 +1173,47 @@ def main():
     ap.add_argument("--gerekce", metavar="METIN",
                     help="TICARI SINIF (hazir mal <-> ozel uretim) degistiren yazimlarda "
                          "ZORUNLU kisa gerekce; .urunler-guard.log'a yazilir")
+    ap.add_argument("--kaynak-durum", action="store_true",
+                    help="salt okuma: KAYNAK_KAYIT / URUN / ARTIK / ARTIK_ORNEK basar. "
+                         "Baska islem argumanlariyla birlikte KULLANILAMAZ.")
+    ap.add_argument("--kaynak-temizle", action="store_true",
+                    help="--sil/--toplu ile birlikte: gizli kaynak duzleminden de ayni "
+                         "flock icinde id'leri dusur (idempotent, OPT-IN). Yalniz "
+                         "--sil/--toplu ile kullanilir; tek basina hata.")
     args = ap.parse_args()
+
+    # --kaynak-durum: kendi dispens, tum diger argumanlarla mutually exclusive.
+    # Once kontrol edilir: hata durumunu erkenden vermek + diger is kollarina
+    # yanlislikla dalmayi engeller.
+    if args.kaynak_durum:
+        if (args.id or args.toplu is not None or args.alan or args.deger
+                or args.sil is not None or args.alan_sil or args.gerekce is not None
+                or args.yeni_id is not None or args.kaynak_temizle):
+            print("HATA: --kaynak-durum baska islem argumanlariyla birlikte kullanilamaz.",
+                  file=sys.stderr)
+            return 2
+        return _kaynak_durum_yaz()
+
+    # --kaynak-temizle: --sil veya --toplu zorunlu, geri kalan argumanlar yasak.
+    if args.kaynak_temizle:
+        if args.sil is None and args.toplu is None:
+            print("HATA: --kaynak-temizle yalniz --sil veya --toplu ile birlikte "
+                  "kullanilabilir.", file=sys.stderr)
+            return 2
+        if args.alan or args.deger or args.alan_sil or args.gerekce is not None:
+            print("HATA: --kaynak-temizle yalniz --sil veya --toplu ile kullanilir; "
+                  "--alan/--deger/--alan-sil/--gerekce ile birlikte KULLANILAMAZ.",
+                  file=sys.stderr)
+            return 2
+        if args.yeni_id is not None:
+            print("HATA: --kaynak-temizle --yeni-id ile birlikte kullanilamaz.",
+                  file=sys.stderr)
+            return 2
 
     if args.yeni_id is not None:
         if (args.id or args.toplu is not None or args.alan or args.deger
-                or args.sil is not None or args.alan_sil or args.gerekce is not None):
+                or args.sil is not None or args.alan_sil or args.gerekce is not None
+                or args.kaynak_temizle):
             print("HATA: --yeni-id baska islem argumanlariyla birlikte kullanilamaz.",
                   file=sys.stderr)
             return 2
@@ -1048,7 +1226,7 @@ def main():
                   "--alan-sil/--gerekce) birlikte kullanilamaz. Toplu kipte gerekce "
                   "islemin kendi \"gerekce\" anahtarindadir.", file=sys.stderr)
             return 2
-        return _toplu(args.toplu)
+        return _toplu(args.toplu, kaynak_temizle=args.kaynak_temizle)
 
     if args.id is None:
         print("HATA: urun id'si gerekli (ya da --toplu <islem.json>).", file=sys.stderr)
