@@ -4,7 +4,10 @@
 
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🟠 **K185 CHIP `KraL-Chip duzeni genelleme`** (kural CLAUDE.md'ye 3 madde; nobetci IZLENEBILIRLIK ekseninden, kutu yoksa KAPSAM DISI / OLCULEMEDI fail-closed; kabul `chip-duzeni-test.py` + CI kablosu + ihlal tatbikati) · 🟠 **K186 CHIP `KraL-Ege reformu altyapi`** (Faz-1+Faz-2 ortak talep hatti; PII bizde DURMAZ → kisa `talep_kodu`, `talepler` additive, `POST /talep` allow-list+honeypot+hiz siniri; sema canliya CHIP'ce UYGULANMAZ; kabul `talep-hatti-test.py` + CI kablosu). Tam metin KUTUDA.
+- 🟠 **K185 CHIP `KraL-Chip duzeni genelleme`** — dal `b024bd42` KAPANDI, **merge kuyrugunda**
+  (kapsam 4 dosya/+726−18 mimarca dogrulandi, cakisma YOK). · 🟠 **K186 CHIP `KraL-Ege reformu
+  altyapi`** — TUR 2c kosuyor; serit hukmu verildi (G6/G7 sizinti eksenine, G5 ayri adim+CAPA SAYI).
+  Ikisinin tam metni KUTUDA.
 - 🔧 **K189 (SAHIPLENILDI 19 Agu — KraL; chip sirada, kosan chip 4 oldugu icin biri kapaninca acilir):**
   `tools/ci-kapsam-test.py` hukum ekseni kusurlu (K185 tur-1'de OLCULDU). **Tam metin ARSIVDE.**
   kabul: izlenmeyen aday > 0 iken hukum `OLCULEMEDI` (sifir-disi rc) **VE** `aday` hali ayri
@@ -13,7 +16,13 @@
   OLCUMDEN degil (Honda oto TV/PR/MW "taranmadi" onculu YANLIS cikti; chip commit ETMEDI).
   **Tam metin ARSIVDE + KUTUDA.** kabul: SPEC'in ILK blogu KAPSAM ON-OLCUMU degilse kosturucu
   RED verir **VE** tarama kabulu tazelik capasi tasir (self-consistency yetmez).
-- 🟠 **K184 CHIP (Ege reformu FAZ-1, site sihirbazi):** LLM'siz "Eksik Parca Talebi"; listeler tek kaynaktan, terminal K186 talep hatti, public yukleme ucu ACILMAZ, honeypot+hiz siniri. Faz-2 HocA'da; Ege dar-LLM AYRI kalem. kabul: `talep-sihirbazi-test.py` + CI kablosu + mutant hedef kolu kanitli. Tam metin KUTUDA.
+- 🟠 **K184 CHIP `KraL-Faz-1 sihirbaz`** (Ege reformu FAZ-1, site sihirbazi): LLM'siz "Eksik Parca Talebi"; listeler tek kaynaktan, terminal K186 talep hatti, public yukleme ucu ACILMAZ, honeypot+hiz siniri. Dal `kral/k184-talep-sihirbazi` `42c47288` KAPANDI, **merge SIRADA (K186'dan SONRA)**. 🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz sihirbaz ISTEMCISI kalir; K186'nin semasi/ucu KANONIK (ikiz tanim yasagi) ve uctan uca olcum K186'nin `talepKaydet`ine karsi YENIDEN kosulur. Tam metin KUTUDA.
+- 🔧 **K192 (19 Agu, K185 chip olctu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU
+  kapisinda YOK (damga karardan eski) + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.**
+- 🔧 **K193 (19 Agu, K184 chip; IKIZ TANIM):** varlik `cp` satiri iki yerde (`deploy.yml` + `nobet.yml`).
+  **Tam metin ARSIVDE.** kabul: tek kaynaktan TURETILIR + ayrisinca kapi KIRMIZI (mutant kanitli).
+- 🔧 **K194 (19 Agu, K184 chip):** kaynak, kosum takimina gore bukuldu (sahte DOM). Koruma KALIR +
+  SEBEP satiri zorunlu; kalici care kosum takimi. **Tam metin ARSIVDE.**
 
 
 
@@ -27,25 +36,22 @@
   olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
 - 🔴 **T3/T4 KANITI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0 ONARIM=0
   KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, onarmiyor; 10'u MIMAR'da.
-- ✅ **③ KAPANDI (18 Agu, `4270c95e`)** — sahiplik haritasi kapisi canlida SUCCESS. ARSIVDE.
+- ✅ **KAPANANLAR (tam metin ARSIVDE):** ③ `4270c95e` (sahiplik haritasi kapisi canlida SUCCESS) ·
+  K178+K178b (SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu → [[kablo-da-kosuyor-demek-degil]]) ·
+  K183 `77bb3195` (dispatch kendi grubunda, canli kabul YESIL, kosum `32176203099` 59 dk) ·
+  K167 (defter durum kapisi) · 13 KOR KIRMIZI NOBETCI'nin SAHIPLIK dagilimi (6'si KraL DISI).
 - 🟠 **T3 (kapi MAIN'DE `0572ae57`, UC DILIM ACIK):** `tools/t3-yonlendirme-kapisi.py` —
   `MUTANT=3/3`, uc curutmede hedef kol oldurulunce mutant SESSIZ, `--tatbikat` `TEMIZ=EVET`,
   SERIT B'ye kablolandi. ACIK: (a) `DEVREDILDI` izi dosyaya YAZILMIYOR (hukumden sapma),
   (b) `--analiz` `SAHIPSIZ=44` (`-mutasyon` aileleri kapiya baglanamiyor), (c) `nobet-kapi.py`
   kablolamasi YOK.
-- ✅ **K178+K178b KAPANDI (18 Agu)** — SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu. ARSIVDE. → [[kablo-da-kosuyor-demek-degil]]
 - 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
-- ✅ **K183 KAPANDI (18 Agu, `77bb3195`) — dispatch kolu kendi grubunda, canli kabul YESIL
-  (kosum `32176203099` 59 dk TAMAMLANDI). Kabul yolu + sinir + tam kanit ARSIVDE.**
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
-- 🔴 **13 KOR KIRMIZI NOBETCI (18 Agu, kosum `32158268667`):** yayini bloklamaz ama kirmizi
-  nobetci nobet TUTMAZ. SAHIPLERI COZULDU: ~20 adimin 6'si KraL DISI (ArTisT 2 · MaCiT 4). ARSIVDE.
 - 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):** `d1-sync.py:157`
   `os.getpid()` — ENGELLENEN surecin pid'i, TUTANIN degil; MaCiT'i 4 tur hayalet kovalatti.
   Yayini BLOKLAMAZ. kabul: mesaj tutani basar ya da "OLCULEMEDI" der + mutant.
-- 🔴 **K167 (18 Agu — SINIF):** defterdeki DURUM iddiasi OLCULMEDEN yaziliyor; kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK. kabul: `defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`. ARSIVDE.
 - ⛔ **Dal `origin/k152-link-temiz` MERGE EDILMEYECEK (olculdu):** main'in atasi DEGIL, merge 76 dosya / −20.339 satir geri sarardi; icerik zaten `83aaf4e2` ile main'de. SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
