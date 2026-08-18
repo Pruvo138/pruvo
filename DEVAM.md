@@ -36,16 +36,16 @@
   ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
   EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
-- 🔴 **K170 (18 Agu — UCUSTA; yargi YAZILDI, icra iscide):** kirmizi VERI degil YARGI —
-  `model-uyelik-kapisi.py` 29 iddiadan yalniz K19, ETKILENEN_URUN=0, 17 capraz-marka cifti
-  yargisiz; K166 dosyalari `1b74bcbc`de DURUYOR. Mimar hukmu `tools/paket-k170-capraz-marka-yargisi.md`
-  (`f5399380`): allow 57->67 (9 ROZET + 1 BEKLER), deny 39->46 (7 satir), yargisiz 17->0.
-  Isci minimax-m3, worktree `k170-capraz-yargi`, etiket `k170-yargi`, 08:12Z.
-  kabul: `model-uyelik-kapisi.py` rc=0 **VE** K11 `kaybolan=0` **VE** 3 mutant **VE** K166
-  tekrar inince `is-akisi-kapisi.py` rc=0 + yayin success.
-- 🔧 **K172 (18 Agu — K170'ten dogdu, SINIF kalemi):** `mk1` NESIL isareti uc markada BEKLER
-  (`Ford` · `Volkswagen` mevcut + `Volvo` K170'te yazildi); tek kolu deny yazmak ayni alana iki
-  hukum koyardi, uc kol TEK hukumle kapanir. Yayini BLOKLAMAZ (BEKLER hata degil). `kabul:` BOS.
+- ✅ **K170 + K174 + K166 KAPANDI (18 Agu, KraL) — tam metin ARSIVDE.** SHA'lar `69e6b83a` ·
+  `e70c89d7`. Yargi 17→0; `build.py` model sayfasi 1280→1273 (tam -7), K11 kaybolan=0,
+  CANLI cache-bust'SIZ 3×200 / 3×404 / urun 200, D1 bes eksen yesil.
+  **CI hukmu: `Build & deploy` conclusion=success (6/6)** — kirli kosum sinyali KAPANDI.
+  Susturma yok: serit B'de hijyen-a2/a3 hala kirmizi raporluyor. Serit B net kirmizi 5→5.
+- 🔧 **K177 (18 Agu, OLCULDU — bloklayici seritte "olculemedi" yesil sayiliyor):**
+  `kanca-kablolama-nobeti.py --ci` "24 eksen: 22 yesil, 0 kirmizi, **2 OLCULEMEDI**" deyip
+  `SONUC: OLCULEMEDI` basiyor ama **cikis kodu 0** donuyor; K166 bu adimi bloklayici serit-a2'ye
+  tasidi → yayinda olcemeyen kapi GECIYOR ([[fail-slow-fail-opendir]]). Bugun davranis DEGISMEDI. kabul: olculemeyen eksen rc=0 DONDURMEZ.
+- 🔧 **K172 (18 Agu — K170'ten dogdu, SINIF; yayini BLOKLAMAZ):** `mk1` uc markada BEKLER, uc kol TEK hukumle kapanir. Tam metin ARSIVDE. `kabul:` BOS.
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR, icra bekliyor):** ikiz silmesinden sonra
   gizli kaynak kayit duzleminde **15 artik kayit** kaldi; kanonik duzeltme araci o duzleme
