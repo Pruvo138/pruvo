@@ -4,13 +4,9 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🟠 **K185 CHIP `KraL-Chip duzeni genelleme`** (kural CLAUDE.md'ye 3 madde; nobetci IZLENEBILIRLIK ekseninden, kutu yoksa KAPSAM DISI / OLCULEMEDI fail-closed; kabul `chip-duzeni-test.py` + CI kablosu + ihlal tatbikati) · 🟠 **K186 CHIP `KraL-Ege reformu altyapi`** (Faz-1+Faz-2 ortak talep hatti; PII bizde DURMAZ → kisa `talep_kodu`, `talepler` additive, `POST /talep` allow-list+honeypot+hiz siniri; sema canliya CHIP'ce UYGULANMAZ; kabul `talep-hatti-test.py` + CI kablosu). Tam metin KUTUDA.
-- 🔧 **K188 (18 Agu — SINIF: elle rotasyon 5. kez):** esik ROTASYON ARACINDA biliniyor, kutuya
-  YAZAN yol onu hic olcmuyor. Care `tools/kutu-esik-kapisi.py` (PreToolUse: yazmadan ONCE olcer,
-  asilmissa rotasyonu tetikler, indiremezse REDDEDER; esik `kutu-arsivle.py`'den IMPORT).
-  TUR 1 ve TUR 2 kabulu mimarca REDDEDILDI; gerekce + hukum + kalan kol
-  `tools/paket-k188-tur2-kapali-kol.md`de (git ICI; ayrinti ORADA, defterde DEGIL).
-  kabul: `--kendini-test` 11/11 **VE** mutasyon 7/7, her mutant yan vakalari YESIL birakir.
 - 🟠 **K184 CHIP (Ege reformu FAZ-1, site sihirbazi):** LLM'siz "Eksik Parca Talebi"; listeler tek kaynaktan, terminal K186 talep hatti, public yukleme ucu ACILMAZ, honeypot+hiz siniri. Faz-2 HocA'da; Ege dar-LLM AYRI kalem. kabul: `talep-sihirbazi-test.py` + CI kablosu + mutant hedef kolu kanitli. Tam metin KUTUDA.
+
+
 
 ## 🔻 KraL OTURUM KAPANISI — 18 Agu ~18:0xZ
 **CANLIYA GITTI:** K170 `69e6b83a` · K174+K166 `e70c89d7` · K152 `83aaf4e2` · K171 `043568e7` ·
@@ -23,6 +19,12 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
   olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
 - 🔴 **T3/T4 KANITI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0 ONARIM=0
   KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, onarmiyor; 10'u MIMAR'da.
+- ✅ **③ KAPANDI (18 Agu) — CANLI KABUL YESIL.** Merge `4270c95e`; kosum `32158268667`:
+  `Sahiplik haritasi kapisi = SUCCESS` (adim `skipped` DEGIL). Harita 43→188. Tam metin ARSIVDE.
+- ✅ **K178 + K178b KAPANDI (18 Agu) — SINIF: "kablo da KOSUYOR demek degil".** SERIT B'nin
+  126 adiminin **114'u SKIPPED**'ti; ③ ve K168'in yeni kapilari da o kor bolgedeydi. Ilk care
+  TERS ETKI verdi (benim spec hatam), ikinci turda onarildi. CANLI: `skipped 114→2`, job
+  `failure` KORUNDU, **13 KOR kirmizi gorunur oldu**. ARSIVDE. → [[kablo-da-kosuyor-demek-degil]]
 - 🔧 **K179 (18 Agu — recete kapisi CI'da kostu, kirmizisi KISMEN parser artefakti):**
   `RECETE=9 REDDEDILEN=8 EVREN=390`; ayiklayici koddan artik yutuyor. Hukum
   `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
@@ -102,6 +104,9 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
+
+
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -112,5 +117,9 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
 - 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
   SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+
+
+
+
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
