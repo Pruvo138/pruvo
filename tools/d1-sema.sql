@@ -356,6 +356,21 @@ CREATE TABLE IF NOT EXISTS senkron (
   deger   TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS talepler (
+  kod             TEXT PRIMARY KEY,
+  olusturma       TEXT NOT NULL,
+  kanal           TEXT NOT NULL,
+  kategori        TEXT,
+  marka           TEXT,
+  model           TEXT,
+  yil             TEXT,
+  parca_adi       TEXT,
+  notu            TEXT,
+  durum           TEXT NOT NULL DEFAULT 'yeni',
+  eslesen_urun_id TEXT
+);
+CREATE INDEX IF NOT EXISTS talepler_durum ON talepler(durum, olusturma DESC);
+
 -- SHOP — self-servis siparisler (shop/ worker'i yazar; is paketleri tools/paket-shop-odeme.md
 -- + tools/paket-shop-kargo.md).
 -- Katalog senkronundan BAGIMSIZ: d1-sync.py bu tabloya dokunmaz, urun silinse de siparis kalir.

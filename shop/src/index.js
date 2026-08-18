@@ -42,6 +42,7 @@ import { yeniSiparisNo } from "./siparis-no.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
 import { refKaydet, REF_KALIBI } from "./ref.js";
+import { talepKaydet } from "./talep.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -1041,6 +1042,7 @@ export default {
       // wa.me lead attribution (OCI #1): landing beacon'i REF->click-id'yi D1'e kalici kilar.
       // Handler yalniz POST'u yazar, digerini 204 gecer; her durumda 204 (bilgi sizmaz).
       if (yol === "/ref") return await refKaydet(request, env);
+      if (yol === "/talep" && request.method === "POST") return await talepKaydet(request, env);
       // Anahtar korumali yonetim (same-origin; anahtar yok/yanlis -> 404, telegram fallback icin
       // index.js'in telegram fonksiyonu gecirilir).
       if (yol === "/yonet" || yol.startsWith("/yonet/")) {
