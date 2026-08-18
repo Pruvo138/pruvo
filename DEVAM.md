@@ -43,10 +43,8 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
   EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
 - ✅ **K172 KAPANDI (18 Agu, codex `gpt-5.6-luna`):** `mk1` MARKA-KOR jetona tasindi (tek satir), uc BEKLER allow'dan dustu (67→64). `KAPI_RC=0 BUILD_RC=0 SAYFA 1719→1717 KAYBOLAN=0 MUTANT=3/3`.
-- 🔧 **K177 (18 Agu, OLCULDU — bloklayici seritte "olculemedi" yesil sayiliyor):**
-  `kanca-kablolama-nobeti.py --ci` "24 eksen: 22 yesil, 0 kirmizi, **2 OLCULEMEDI**" deyip
-  `SONUC: OLCULEMEDI` basiyor ama **cikis kodu 0** donuyor; K166 bu adimi bloklayici serit-a2'ye
-  tasidi → yayinda olcemeyen kapi GECIYOR ([[fail-slow-fail-opendir]]). Bugun davranis DEGISMEDI. kabul: olculemeyen eksen rc=0 DONDURMEZ.
+- ✅ **K177 KAPANDI (`8e00020c`):** `KAPSAM DISI` hali `OLCULEMEDI`den ayrildi; olculemeyen eksen kosulsuz sifir-disi, hukum ekranla AYRISMAZ. Iddia 62→64, mutant 23/0, curutucu 2 tur (K177b bir eksigi kapatti).
+- 🔴 **D1 DRIFT (19:1xZ, MaCiT duzlemi, kutuda):** `b164b1b5` Ford 17 urun D1'de YOK (D1=29353 · json=29370 · seq 17 · 3 kolon BAYAT); care `d1-sync.py` (yazan kol MaCiT'te). Hipotez: cakisan push kilidi senkronu atlatiyor.
 - ⛔ **Dal `origin/k152-link-temiz` (`56269db4`) MERGE EDILMEYECEK — 18 Agu OLCULDU:** main'in atasi DEGIL ve `git diff main origin/k152-link-temiz` = 76 dosya / +2.095 −20.339 (urunler.json dahil) geri sarardi; icerik zaten `83aaf4e2` ile main'de (yeniden uygulandi). Dal SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
