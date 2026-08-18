@@ -37,6 +37,23 @@ vardı) · madde silmek (Okan kuralı 11: **hiçbir şey silinmez, TAŞINIR**).
    yolunu taşıması: sahibi kalemini kaybetmez, yalnız gövdesi bir tık uzağa gider.
 5. **Kapanmış maddeye dokunmaz** (o birinci kolun işi), **başlık/bölüm satırlarına dokunmaz**.
 
+## 🔴 İKİNCİ DENEME — BİRİNCİSİ NEDEN DÜŞTÜ (18 Ağu, ölçüldü)
+İlk tur `Error: Exceeded USD budget (10)` ile düştü ve **worktree BOŞTU**; buna karşılık ANA
+ağaçta `tools/defter-rotasyon.py` 11 satırlık, **uygulanmamış özelliği anlatan** bir docstring
+almıştı. İki ders, ikisi de bu turda BAĞLAYICI:
+
+**A) AĞAÇ DİSİPLİNİ.** Sana verilen ağaçta çalış. **Mutlak yol
+(`/Users/okan/dev/pruvo/tools/...`) KULLANMA** — göreli yol kullan. **Ana ağaca YAZMA**
+(orada başka oturumların işçileri koşuyor). Tur sonunda kendi ağacının
+`git status --short` çıktısını rapora yapıştır.
+
+**B) SIRA: ÖNCE KOD, SONRA BELGE.** Docstring/rapor'u ÖNDEN yazma. Uygulanmamış bir özelliği
+anlatan docstring hiç yoktan kötüdür ve tur düşerse geriye o yalan kalır.
+
+**C) BU DİLİM DARALTILDI.** Bu turda YALNIZ şunlar var: ikinci kol + aşağıdaki BELİRLEYİCİ
+FİKSTÜR + M1 mutantı. **M2/M3/M4 ve kontrol vakaları BU TURDA YOK** — ayrı dilimde istenecek.
+Kapsamı kendiliğinden genişletme; bütçe bu yüzden yandı.
+
 ## KABUL (hepsi ZORUNLU, sayıyla)
 ```
 python3 tools/defter-rotasyon.py --kendini-test   → DUSEN=0
