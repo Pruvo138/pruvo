@@ -20,8 +20,12 @@ TEST = ROOT / "shop" / "test" / "talep.mjs"
 SEMA = ROOT / "tools" / "d1-sema.sql"
 TEMIZLIK = ROOT / "tools" / "talep-temizlik.py"
 NODE = "node"
+MUTANT_SCRATCHPAD = Path(
+    "/private/tmp/claude-501/-Users-okan-dev-pruvo--claude-worktrees-unruffled-hellman-19f116/"
+    "1e6c2b84-a53d-4b4b-9177-8a363a80eb75/scratchpad"
+)
 
-BEKLENEN_IDDIA = 50
+BEKLENEN_IDDIA = 51
 BEKLENEN_IDDIA_SIZINTI = 16
 IDDIALAR = [
     "A1", "A2", "A3", "A4", "A5", "A6", "A7",
@@ -32,7 +36,9 @@ IDDIALAR = [
     "F5",
     "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11",
     "K1", "K2", "K3", "K4", "K5", "R1",
+    "L9",
 ]
+NODE_IDDIALAR = [ad for ad in IDDIALAR if ad != "L9"]
 SIZINTI_IDDIALAR = ["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D6", "D7", "D8", "D11", "G6", "G7"]
 CAPA_IDDIALAR = ["G5"]
 PIS = {"telefon", "tel", "email", "eposta", "ad", "adres", "address"}
@@ -186,8 +192,17 @@ def temizlik_kaynak_kontrolu(metin):
     imza = bool(re.search(r"def\s+sil_eski\s*\(\s*baglanti\s*,\s*kodlar\s*\)", metin))
     calistir = re.search(r"def\s+calistir\s*\(.*?\n(?=def\s|if __name__)", metin, re.S)
     govde = calistir.group(0) if calistir else ""
-    tek_liste = "sil_eski(baglanti, kodlar)" in govde
-    return imza and tek_liste, imza, tek_liste
+    yurutucu = re.search(r"class\s+SqliteYurutucu:.*?(?=class\s+|def\s+_lazy)", metin, re.S)
+    delegasyon = bool(yurutucu and "return sil_eski(self.baglanti, kodlar)" in yurutucu.group(0))
+    tek_liste = "yurutucu.sil(kodlar)" in govde
+    return imza and tek_liste and delegasyon, imza, tek_liste
+
+
+def temizlik_l9_kontrolu(temizlik_path=None):
+    kaynak = temizlik_path or TEMIZLIK
+    sonuc = subprocess.run([sys.executable, str(kaynak), "--kendini-test"],
+                           cwd=ROOT, capture_output=True, text=True)
+    return sonuc.returncode == 0 and "L9=GECTI" in sonuc.stdout
 
 
 def node_test(hedef=None, sizinti=False, source_path=None, test_path=None):
@@ -210,7 +225,7 @@ def node_test(hedef=None, sizinti=False, source_path=None, test_path=None):
         es = re.search(r"(?:✅|DUSEN:|❌)\s*([A-Z][0-9]+)", satir)
         if es:
             iddialar[es.group(1)] = satir.startswith("  ✅")
-    beklenen = [hedef] if hedef else (SIZINTI_IDDIALAR if sizinti else IDDIALAR)
+    beklenen = [hedef] if hedef else (SIZINTI_IDDIALAR if sizinti else NODE_IDDIALAR)
     eksik = [ad for ad in beklenen if ad not in iddialar]
     ok = sonuc.returncode == 0 and dusen == 0 and gecen == len(beklenen) and not eksik
     return ok, sonuc, (gecen, dusen), iddialar
@@ -266,7 +281,7 @@ def mutasyonlar(js, sql, temizlik, test):
         "E1": (tek_mutasyon(js, 'if (!KANALLAR.has(govde.kanal)) { return false; }', 'if (!KANALLAR.has(govde.kanal)) { return true; }'), sql, "node", 'if (!KANALLAR.has(govde.kanal)) { return true; }'),
         "E2": (tek_mutasyon(js, 'govde[alan].length > tavan', 'govde[alan].length > tavan + 1'), sql, "node", 'tavan + 1'),
         "E3": (js, tek_mutasyon(sql, 'CREATE INDEX IF NOT EXISTS talepler_durum', 'SELECT yil FROM talepler WHERE yil > 2010;\nCREATE INDEX IF NOT EXISTS talepler_durum'), "source", 'SELECT yil FROM talepler WHERE yil > 2010;'),
-        "F5": (tek_mutasyon(temizlik, 'f5 = sil_eski.__code__.co_argcount == 2 and "silinecek_kodlar" not in sil_eski.__code__.co_names', 'f5 = False'), temizlik, "temizlik", 'f5 = False'),
+        "F5": (tek_mutasyon(temizlik, 'f5 = sil_eski.__code__.co_argcount == 2 and "karar_ver" not in sil_eski.__code__.co_names', 'f5 = False'), temizlik, "temizlik", 'f5 = False'),
         "G1": (tek_mutasyon(js, 'govde.kanal, govde.kategori ?? null, govde.marka ?? null,', 'govde.kanal, govde.kategori, govde.marka,'), sql, "node", 'govde.kategori, govde.marka,'),
         "G2": (tek_mutasyon(js, 'if (contentLength !== null && Number.isFinite(Number(contentLength)) &&\n      Number(contentLength) > GOVDE_BAYT_TAVANI) { return gecersiz(); }', 'if (false) { return gecersiz(); } /* G2_MUTANT */'), sql, "node", 'G2_MUTANT'),
         "G3": (tek_mutasyon(js, 'metin = await request.text();', 'metin = "";'), sql, "node", 'metin = "";'),
@@ -277,18 +292,21 @@ def mutasyonlar(js, sql, temizlik, test):
         "G8": (tek_mutasyon(js, 'if (origin) { return izin.has(origin); }', 'if (origin) { return false; }'), sql, "node", 'if (origin) { return false; }'),
         "G9": (tek_mutasyon(js, 'if (referer) { return izin.has(referer); }', 'if (referer) { return false; }'), sql, "node", 'if (referer) { return false; }'),
         "G10": (tek_mutasyon(js, 'if (h) { set.add(h); }', 'if (false) { set.add(h); }'), sql, "node", 'set.add(h)'),
-        "G11": (tek_mutasyon(js, 'export const ALAN_TAVANLARI = Object.freeze({', 'export const ALAN_TAVANLARI = Object.freeze({\nconst ALAN_TAVANLARI = {};'), sql, "source", 'const ALAN_TAVANLARI = {};'),
+        "G11": (tek_mutasyon(js, 'export const ALAN_TAVANLARI = Object.freeze({', 'export var ALAN_TAVANLARI = Object.freeze({'), sql, "source", 'export var ALAN_TAVANLARI'),
         "K1": (tek_mutasyon(js, 'if (!govde || typeof govde !== "object" || Array.isArray(govde)) { return false; }', 'if (!govde || typeof govde !== "object" || Array.isArray(govde)) { return true; }'), sql, "node", 'Array.isArray(govde)) { return true; }'),
         "K2": (tek_mutasyon(js, 'govde.kanal, govde.kategori ?? null, govde.marka ?? null,\n        govde.model ?? null, govde.yil ?? null, govde.parca_adi ?? null, govde.notu ?? null', 'govde.kanal, govde.kategori, govde.marka,\n        govde.model, govde.yil, govde.parca_adi, govde.notu'), sql, "node", 'govde.kanal, govde.kategori, govde.marka,'),
         "K3": (tek_mutasyon(js, 'return metin.includes("UNIQUE") || metin.includes("PRIMARY KEY");', 'return metin.includes("UNIQUE") || metin.includes("PRIMARY KEY") || metin.includes("NOT NULL");'), sql, "node", 'metin.includes("NOT NULL")'),
         "K4": (tek_mutasyon(js, 'export { izinliAnahtarlar, talepKoduUret };', '/* tekrar siniri */\nexport { izinliAnahtarlar, talepKoduUret };'), sql, "node", 'tekrar siniri'),
         "K5": (tek_mutasyon(js, 'if (contentLength !== null && Number.isFinite(Number(contentLength)) &&\n      Number(contentLength) > GOVDE_BAYT_TAVANI) { return gecersiz(); }', 'if (false) { return gecersiz(); }'), sql, "node", 'Content-Length'),
-        "R1": (tek_mutasyon(temizlik, '            sil_eski(baglanti, kodlar)', '            sil_eski(baglanti, esik)'), temizlik, "cleanup-source", '            sil_eski(baglanti, esik)'),
+        "R1": (tek_mutasyon(temizlik, '        return sil_eski(self.baglanti, kodlar)', '        return 0  # R1_MUTANT'), temizlik, "cleanup-source", 'R1_MUTANT'),
+        "L9": (tek_mutasyon(temizlik, '        l9 = _l9_olc()', '        l9 = False'), temizlik, "cleanup-l9", '        l9 = False'),
     }
 
 
 def temp_python(metin):
-    dosya = tempfile.NamedTemporaryFile(prefix="k186-mutant-", suffix=".py", dir=ROOT / "tools", delete=False)
+    MUTANT_SCRATCHPAD.mkdir(parents=True, exist_ok=True)
+    dosya = tempfile.NamedTemporaryFile(prefix="k186-mutant-", suffix=".py",
+                                         dir=MUTANT_SCRATCHPAD, delete=False)
     dosya.write(metin.encode("utf-8"))
     dosya.close()
     return Path(dosya.name)
@@ -308,6 +326,9 @@ def tam_batarya(js, sql, temizlik, isimler, source_path=None, test_path=None,
     for ad in ("C1", "C2", "C3", "C4", "C5", "E3", "G6", "G7", "G11", "R1"):
         if ad in sonuclar:
             sonuclar[ad] = kaynak.get(ad, False)
+    if "R1" in sonuclar and temizlik_path:
+        sonuclar["R1"] = temizlik_kaynak_kontrolu(
+            temizlik_path.read_text(encoding="utf-8"))[0]
     python_kaynagi = python_path or Path(__file__)
     for ad in ("G6", "G7"):
         if ad in sonuclar:
@@ -316,7 +337,10 @@ def tam_batarya(js, sql, temizlik, isimler, source_path=None, test_path=None,
     if "F5" in sonuclar:
         temizlik_kaynagi = temizlik_path or TEMIZLIK
         temiz_sonuc = calistir_python(temizlik_kaynagi, "--kendini-test")
-        sonuclar["F5"] = temiz_sonuc.returncode == 0 and "F5=GECTI" in temiz_sonuc.stdout
+        sonuclar["F5"] = "F5=GECTI" in temiz_sonuc.stdout
+    if "L9" in sonuclar:
+        temizlik_kaynagi = temizlik_path or TEMIZLIK
+        sonuclar["L9"] = temizlik_l9_kontrolu(temizlik_kaynagi)
     return sonuclar, node_ok, node_sonuc, node_olcu
 
 
@@ -368,7 +392,8 @@ def mutant_sonuclari(temel_js, temel_sql, temel_temizlik, temel_test, isimler, t
         temizlik_yolu = None
         try:
             if tur in ("node", "source"):
-                gecici = Path(tempfile.mkdtemp(prefix="k186-mutant-", dir=ROOT / "shop" / "test"))
+                MUTANT_SCRATCHPAD.mkdir(parents=True, exist_ok=True)
+                gecici = Path(tempfile.mkdtemp(prefix="k186-mutant-", dir=MUTANT_SCRATCHPAD))
                 kaynak_yolu = gecici / "talep.js"
                 kaynak_yolu.write_text(mutant_js, encoding="utf-8")
                 uygulandi = kanit in (mutant_js + mutant_sql)
@@ -376,7 +401,7 @@ def mutant_sonuclari(temel_js, temel_sql, temel_temizlik, temel_test, isimler, t
             elif tur == "test":
                 gecici = None
                 test_dosya = tempfile.NamedTemporaryFile(
-                    prefix="k186-mutant-", suffix=".mjs", dir=ROOT / "shop" / "test", delete=False)
+                    prefix="k186-mutant-", suffix=".mjs", dir=MUTANT_SCRATCHPAD, delete=False)
                 test_yolu = Path(test_dosya.name)
                 test_dosya.close()
                 test_yolu.write_text(mutant_js, encoding="utf-8")
@@ -396,7 +421,8 @@ def mutant_sonuclari(temel_js, temel_sql, temel_temizlik, temel_test, isimler, t
                 batarya_js, batarya_sql = temel_js, temel_sql
             mutant_sonuclar, node_ok, mutant_node, node_olcu = tam_batarya(
                 batarya_js, batarya_sql, temel_temizlik, isimler,
-                source_path=kaynak_yolu if tur in ("node", "source") else None,
+                source_path=(kaynak_yolu if tur in ("node", "source") else
+                             TALEP if tur == "test" else None),
                 test_path=test_yolu,
                 python_path=python_yolu,
                 temizlik_path=temizlik_kaynagi)
@@ -469,7 +495,7 @@ def capa_kosumu(test):
     mutant_test = None
     try:
         mutant_test = tempfile.NamedTemporaryFile(
-            prefix="k186-capa-mutant-", suffix=".mjs", dir=ROOT / "shop" / "test", delete=False)
+            prefix="k186-capa-mutant-", suffix=".mjs", dir=MUTANT_SCRATCHPAD, delete=False)
         mutant_test_yolu = Path(mutant_test.name)
         mutant_test.close()
         mutant_test_yolu.write_text(hepsi["G5"][0], encoding="utf-8")
@@ -521,8 +547,9 @@ def main():
         gerceklesen = node_olcu[0]
     else:
         gerceklesen = 0
-    if gerceklesen != beklenen:
-        print("OLCULEMEDI: " + str(beklenen) + " iddia bekleniyordu, " + str(gerceklesen) + " kosdu")
+    beklenen_node = len(NODE_IDDIALAR) if not args.sizinti else beklenen
+    if gerceklesen != beklenen_node:
+        print("OLCULEMEDI: " + str(beklenen_node) + " node iddia bekleniyordu, " + str(gerceklesen) + " kosdu")
     for ad in iddialar:
         if not sonuclar[ad]:
             print("DUSEN: " + ad + " — node satiri veya kaynak ekseni gecmedi")
@@ -536,7 +563,7 @@ def main():
           " IZOLE=" + str(izole) + "/" + str(toplam_mutant) +
           " OLCULEMEDI=" + str(olculemedi))
     olcum_acigi = izole + olculemedi != toplam_mutant
-    return 1 if dusen_sayisi or mutant != toplam_mutant or kontrol != toplam_mutant or olcum_acigi or not node_ok or gerceklesen != beklenen else 0
+    return 1 if dusen_sayisi or mutant != toplam_mutant or kontrol != toplam_mutant or olcum_acigi or not node_ok or gerceklesen != beklenen_node else 0
 
 
 if __name__ == "__main__":
