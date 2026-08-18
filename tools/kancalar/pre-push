@@ -302,6 +302,35 @@ if ! python3 "$sync" "$@"; then
 fi
 [ -n "$kaynak_gecici" ] && rm -f "$kaynak_gecici"
 
+# --- MERGE KANIT UYARISI (RAPOR-ONLY; ASLA BLOKLAMAZ) ---------------------
+# NEDEN (18 Agu 2026, BaBa hukmu): merge-kanit tablosu main'e alinan her dal
+# icin bir kabul kanit satiri bekliyor. Bu kol SADECE uyari basar; engelleme
+# karan OLCUMDEN SONRA mimarindir (bir kapinin dogdugu gun bloklayici olmasi
+# kuyrukta bekleyen mesru isleri durdurur — [[kapi-birikimi-yayin-gecikmesi]]).
+# Yapilan: itilen dal(lar)in kanit satiri var mi; yoksa stderr'e uyari.
+# Hata verirse (kanit dosyasi yok, arac patlar, ...) PUSH DEVAM eder.
+# main'e olmayan itmeler sessizce gecilir (kanit tablosu yalniz main-dal
+# birlesimlerini izler; ozellikle force-push / tag itmeleri kapsam DISI).
+merge_kanit_arac="$root/tools/merge-kanit.py"
+if [ -f "$merge_kanit_arac" ]; then
+  # local_ref stdin'den okundu (yukaridaki D1 blogu ile ayni desen), dal adini
+  # "refs/heads/<ad>" -> "<ad>" biciminde cikar.
+  while read -r m_local_ref m_local_sha m_remote_ref m_remote_sha; do
+    case "$m_remote_ref" in
+      refs/heads/main) ;;
+      *) continue ;;
+    esac
+    [ "$m_local_sha" = "$sifir" ] && continue
+    dal="${m_local_ref#refs/heads/}"
+    if python3 "$merge_kanit_arac" --dogrula "$dal" >/dev/null 2>&1; then
+      :
+    else
+      printf '!! MERGE-KANIT: %s icin kanit satiri YOK (push DEVAM ediyor — uyari).\n' "$dal" >&2
+      printf '!!   Olcum: python3 %s --dogrula %s\n' "$merge_kanit_arac" "$dal" >&2
+    fi
+  done
+fi
+
 # --- KAPAK THUMBNAIL URETIMI (yeni urun eklendikce otomatik) ---
 # 🔴 KAYNAK: paralel `pagespeed-thumb-fix` oturumu (a7dd82ba, HENUZ main'de DEGIL).
 # Canli `.git/hooks/pre-push`ta duruyordu; kurulum izlenen kaynaga gecince blok
