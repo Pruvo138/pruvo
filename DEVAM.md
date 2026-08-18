@@ -8,8 +8,10 @@
   chip kendi yakaladi: `--capa` acilacak, G5 kendi bayragina tasinacak 17→16, serit-a3'e 2. adim).
   🔴 **MERGE SARTI (19 Agu):** ya Node 20 ile kosmus ham cikti ya da SHA'yi iceren YESIL CI kosumu —
   yerel 50/50 tek basina YETMEZ. Tam metin KUTUDA.
-- 🔧 **K196 (19 Agu, DEPO GENELI):** CI 15 adimda **node 20**, yerel **25.8.1** → yereldeki her JS
-  yesili CI surumunde OLCULMEMIS. **Tam metin ARSIVDE.** K186'nin merge sartina baglandi.
+- 🔧 **K196 (19 Agu, DEPO GENELI):** CI node 20 / yerel 25.8.1 → yereldeki JS yesilleri CI surumunde OLCULMEMIS. **Tam metin ARSIVDE.** K186 merge sartina bagli.
+- 🔧 **K197 (19 Agu, K189 chip olctu — YAYIN YOLU MALIYETI, RATCHET YOK):** pre-push kancasinin
+  maliyet beyani 3,16 sn (9 Agu) diyor, **bugun olculen medyan 6,11 sn** → 5 sn esigi zaten asilmis;
+  sayiyi YORUM soyluyor, dogrulayan yok. **Tam metin ARSIVDE.**
 - 🔧 **K189 (SAHIPLENILDI 19 Agu — KraL; CHIP ACILDI):** `tools/ci-kapsam-test.py` hukum ekseni
   kusurlu. **Tam metin ARSIVDE.** kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc, ayri jeton, mutant
   hedef kolu kanitli (K182).
@@ -18,8 +20,7 @@
 - 🟠 **K184 CHIP `KraL-Faz-1 sihirbaz`** — dal `42c47288` KAPANDI, **merge SIRADA (K186'dan SONRA)**.
   🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
   K186'nin semasi/ucu KANONIK ve uctan uca olcum K186'nin ucune karsi YENIDEN kosulur. Tam metin KUTUDA.
-- 🔧 **K192 (19 Agu, K185 chip olctu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU
-  kapisinda YOK (damga karardan eski) + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.**
+- 🔧 **K192 (19 Agu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU kapisinda YOK + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.** (BaBa serhi: 20 Agu codex bitisi.)
 - 🔧 **K193 · K194 (19 Agu, K184 chip):** varlik `cp` satiri iki yerde (ikiz tanim; kabul: tek
   kaynaktan turer + ayrisinca kapi KIRMIZI) · kaynak kosum takimina gore bukuldu (sahte DOM; koruma
   KALIR + SEBEP satiri zorunlu, kalici care kosum takimi). **Ikisinin tam metni ARSIVDE.**

@@ -75,6 +75,7 @@ denetim-kapisi	tools/denetim-kapisi.py	MaCiT	yayin	python3 tools/denetim-kapisi-
 deploy-aclik-kapisi	tools/deploy-aclik-kapisi.py	KraL	yayin	python3 tools/deploy-aclik-kapisi --kendini-test
 devam-sinif-kapisi	tools/devam-sinif-kapisi.py	KraL	yayin	python3 tools/devam-sinif-kapisi --kendini-test
 diriltme-kapisi	tools/diriltme-kapisi.py	KraL	yayin	python3 tools/diriltme-kapisi --kendini-test
+durgun-kalem-kapisi	tools/durgun-kalem-kapisi.py	KraL	nobet	python3 tools/durgun-kalem-kapisi.py --kendini-test
 durum	tools/durum.py	KraL	hijyen	python3 tools/durum-test.py
 duzelt	tools/duzelt.py	MaCiT	hijyen	YOK
 e2-birim-ikiz-kanit	tools/e2-birim-ikiz-kanit.py	KraL	hijyen	YOK
