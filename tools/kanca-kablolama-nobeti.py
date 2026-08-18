@@ -60,7 +60,7 @@ KASITLI IZOLASYON olarak raporlanir ve kirmizi YAKMAZ.
   DARLIGI kabul testinde tek degiskenli KONTROL iddiasiyla olculur.
 
 ═══════════════════════════════════════════════════════════════════════════════
-IKI HAL — GELISTIRICI vs CI (yanlis-pozitif butcesi)
+UC HAL — GELISTIRICI / CI / KAPSAM DISI (K177 ayrimi)
 ═══════════════════════════════════════════════════════════════════════════════
 Kablolama `core.hooksPath`te yasar; `.git/` COMMIT EDILMEZ -> CI checkout'unda
 ASLA kurulu degildir. Eksen K'yi CI'da kirmizi yakmak her yayini durdururdu;
@@ -68,14 +68,13 @@ sessizce yesil saymak ise fail-open'i geri getirirdi. Ikisi de yanlis:
 
   * VARSAYILAN (gelistirici/yerel): eksen K ve S OLCULUR. Kurulu degilse KIRMIZI
     + "python3 tools/kanca-kur.py" tarifi (gecis durustlugu).
-  * `--ci`: eksen K ve S OLCULEMEDI olarak ILAN EDILIR (raporda GORUNUR) ve
+  * `--ci`: eksen K ve S KAPSAM DISI olarak ILAN EDILIR (raporda GORUNUR) ve
     cikis kodunu ETKILEMEZ. CI'da olculen sey IZLENEN KAYNAKTIR: govdeler
     fail-closed mi, gerekce basiliyor mu, cagrilar duruyor mu, dosyalar git
     INDEKSINDE 100755 mi.
-    ⚠️ MUAFIYET DAR: `--ci` yalnizca `_CI_MUAF_EKSENLER` kumesindeki eksenlerin
-    OLCULEMEDI'sini affeder. BASKA bir eksen OLCULEMEDI olursa (or. kanca
-    dosyasi okunamiyor) cikis yine SIFIR-DISIDIR. Muafiyetin darligi kabul
-    testinde AYRI bir iddiayla olculur ([[maskeleme-kismi-kapatma]]).
+  * `OLCULEMEDI` (⚪): her zaman fail-closed'dir — "olcemedim" diyen gercek bir
+    ariza rc=1 verir. KAPSAM DISI (▫️) ile OLCULEMEDI arasindaki fark, alarmin
+    zararsiz yapisal durumu (CI'da kurulu kopya yok) gercek arizadan ayirmasidir.
 
 Kullanim:
     python3 tools/kanca-kablolama-nobeti.py            # yerel hukum (rc 0/1)
@@ -95,22 +94,19 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 YESIL = "YESIL"
 KIRMIZI = "KIRMIZI"
 OLCULEMEDI = "OLCULEMEDI"
-ISARET = {YESIL: "✅", KIRMIZI: "🔴", OLCULEMEDI: "⚪"}
+KAPSAM_DISI = "KAPSAM DISI"
+ISARET = {YESIL: "✅", KIRMIZI: "🔴", OLCULEMEDI: "⚪", KAPSAM_DISI: "▫️"}
 
 # 🔴 KENDI SOZLESMESI — kabul testi bunu okur. Bir sabit/fonksiyon yeniden
 # adlandirilirsa test COKMEK yerine KIRMIZI yakabilsin diye burada ILAN edilir
 # (cokme kirmizi SAYILMAZ: o eksen OLCULMEMIS demektir).
 SOZLESME = ("FAIL_CLOSED", "FAIL_OPEN", "YUTMA_DESENLERI", "GEREKCE_CAPALARI",
-            "_CI_MUAF_EKSENLER", "EKSEN_KABLOLAMA", "EKSEN_SAPMA", "denetle",
+            "KAPSAM_DISI", "EKSEN_KABLOLAMA", "EKSEN_SAPMA", "denetle",
             "genel_hal", "cikis_kodu", "yutma_hukmu", "bloklama_hukmu",
             "izole_agac_mi")
 
 EKSEN_KABLOLAMA = "k) kablolama"
 EKSEN_SAPMA = "s) sapma (kurulu kopya vs kaynak)"
-
-# 🔴 `--ci` MUAFIYETININ TAM KAPSAMI. Genisletmek = gercek arizalarin CI'da
-# sessizce gecmesi. Kabul testi bu kumenin DARLIGINI ayrica olcer.
-_CI_MUAF_EKSENLER = frozenset({EKSEN_KABLOLAMA, EKSEN_SAPMA})
 
 _NOBET_SOZLESME = ("BEKLENEN", "ana_checkout", "etkin_hookspath", "hooks_dizini",
                    "suzgec_yukle", "cagri_hukmu", "_etkili_satirlar",
@@ -350,7 +346,7 @@ def izole_agac_mi(deger, kaynak):
 
 def kablolama_bulgusu(nobet, kur, kaynak_kok, ci):
     if ci:
-        return (EKSEN_KABLOLAMA, OLCULEMEDI,
+        return (EKSEN_KABLOLAMA, KAPSAM_DISI,
                 "CI checkout'unda `core.hooksPath` KURULU DEGILDIR (`.git/` "
                 "commit edilmez) -> bu eksen CI'da OLCULEMEZ ve cikis kodunu "
                 "ETKILEMEZ. Yerelde: python3 tools/kanca-kablolama-nobeti.py")
@@ -394,7 +390,7 @@ def kablolama_bulgusu(nobet, kur, kaynak_kok, ci):
 def sapma_bulgusu(nobet, kur, ana_kok, kaynak_kok, ci):
     """Kurulan kopya IZLENEN kaynakla bayt-esit mi?"""
     if ci:
-        return (EKSEN_SAPMA, OLCULEMEDI,
+        return (EKSEN_SAPMA, KAPSAM_DISI,
                 "CI checkout'unda kurulu kopya YOKTUR -> bu eksen CI'da OLCULEMEZ "
                 "ve cikis kodunu ETKILEMEZ.")
     try:
@@ -640,18 +636,13 @@ def genel_hal(bulgular):
 def cikis_kodu(bulgular, ci):
     """Cikis kodu.
 
-    🔴 `--ci` MUAFIYETI DARDIR: yalnizca `_CI_MUAF_EKSENLER` kumesindeki
-    eksenlerin OLCULEMEDI'si affedilir (CI'da kablolama/kurulu kopya ZATEN
-    olamaz). BASKA bir eksenin OLCULEMEDI'si fail-closed'dir — aksi halde
-    "olcemedim" diyen her gercek ariza CI'da sessizce gecerdi
-    ([[maskeleme-kismi-kapatma]])."""
+    🔴 OLCULEMEDI fail-closed'dir: "olcemedim" diyen her gercek ariza
+    rc=1 verir. KAPSAM_DISI rc'yi HICBIR ZAMAN etkilemez; bu hal
+    bilincli olarak CI'da olculmeyen yapisal eksenleri (kablolama/kurulu
+    kopya) YESIL/OLCULEMEDI'den ayirir."""
     if any(h == KIRMIZI for _e, h, _m in bulgular):
         return 1
-    for eksen, hal, _m in bulgular:
-        if hal != OLCULEMEDI:
-            continue
-        if ci and eksen in _CI_MUAF_EKSENLER:
-            continue
+    if any(h == OLCULEMEDI for _e, h, _m in bulgular):
         return 1
     return 0
 
@@ -706,9 +697,17 @@ def main(argv=None):
             print("  %s %-46s %s" % (ISARET[h], eksen, mesaj))
         kirmizi = sum(1 for _e, h, _m in bulgular if h == KIRMIZI)
         olcusuz = sum(1 for _e, h, _m in bulgular if h == OLCULEMEDI)
-        print("\n%d eksen: %d yesil, %d kirmizi, %d olculemedi"
-              % (len(bulgular), len(bulgular) - kirmizi - olcusuz, kirmizi, olcusuz))
-    print("SONUC: %s (cikis %d)" % (hal, rc))
+        kapsamdisi = sum(1 for _e, h, _m in bulgular if h == KAPSAM_DISI)
+        yesil = len(bulgular) - kirmizi - olcusuz - kapsamdisi
+        print("\n%d eksen: %d yesil, %d kirmizi, %d olculemedi, %d kapsam disi"
+              % (len(bulgular), yesil, kirmizi, olcusuz, kapsamdisi))
+        if kapsamdisi:
+            adlar = ", ".join(e for e, h, _m in bulgular if h == KAPSAM_DISI)
+            print("SONUC: %s (cikis %d) [KAPSAM DISI: %s]" % (hal, rc, adlar))
+        else:
+            print("SONUC: %s (cikis %d)" % (hal, rc))
+    else:
+        print("SONUC: %s (cikis %d)" % (hal, rc))
     return rc
 
 

@@ -33,10 +33,10 @@ gercek `~/.gitconfig`e DOKUNULMAZ):
     kurulu kopya SAPMIS · gerekce susturulmus. Yanlis-pozitif kontrolu: BEYAN
     EDILMIS fail-open bloklar (yedekle/kutu-arsivle/d1-sync) YESIL kalir.
 
-  🔴 VAKA 5 — CI HALI + MUAFIYETIN DARLIGI
-    `--ci` halinde eksen K/S OLCULEMEDI ilan edilir ve rc=0. AMA muafiyet
-    DARDIR: BASKA bir eksen OLCULEMEDI olursa (kanca dosyasi okunamiyor) rc=1
-    (curutucu deligi H — muafiyet `if ci`e genisletilirse gercek arizalar CI'da
+  🔴 VAKA 5 — CI HALI + KAPSAM DISI AYRIMI
+    `--ci` halinde eksen K/S KAPSAM DISI ilan edilir, rc=0 ve genel_hal YESIL.
+    OLCULEMEDI fail-closed'dir: BASKA bir eksen OLCULEMEDI olursa (kanca dosyasi
+    okunamiyor) rc=1 (curutucu deligi H — OLCULEMEDI kolu atlarsa gercek ariza
     sessizce gecerdi, [[maskeleme-kismi-kapatma]]).
 
   🔴 VAKA 6 — OLU AGAC (KUSUR 2, mimar iadesi)
@@ -589,38 +589,47 @@ def kos_vakalar(tools_dizini, ayrintili=True):
         o5 = yeni_ortam("v5")
         d = depo_kur(os.path.join(kok, "v5-ci"), kanca_kaynagi, ortam=o5)
         h, rc, b = hukum(d, ci=True, env=o5)
-        s.bekle("V5.ci-rc-sifir", rc == 0,
-                "CI halinde (kablolama kurulu degil) rc=0 olmali; rc=%d kirmizilar=%s"
-                % (rc, [(e, m) for e, x, m in b if x == nobetci.KIRMIZI]))
         s.bekle("V5.ci-kablolama-ilan",
-                any(e == nobetci.EKSEN_KABLOLAMA and x == nobetci.OLCULEMEDI
+                any(e == nobetci.EKSEN_KABLOLAMA and x == nobetci.KAPSAM_DISI
                     for e, x, _m in b),
-                "CI halinde eksen K OLCULEMEDI olarak ILAN EDILMELI")
-        # 🔴 CURUTUCU DELIGI H: muafiyet YALNIZ K/S eksenlerini kapsamali.
-        # BASKA bir eksen OLCULEMEDI olursa CI'da da rc=1 olmali.
+                "CI halinde eksen K KAPSAM DISI olarak ILAN EDILMELI")
+        s.bekle("V5.ci-sapma-ilan",
+                any(e == nobetci.EKSEN_SAPMA and x == nobetci.KAPSAM_DISI
+                    for e, x, _m in b),
+                "CI halinde eksen S KAPSAM DISI olarak ILAN EDILMELI")
+        s.bekle("V5.ci-hal-yesil", h == nobetci.YESIL,
+                "CI halinde KAPSAM DISI hukum dusurmez -> genel_hal YESIL olmali; %s" % h)
+        # 🔴 CURUTUCU DELIGI H (guncel): CI'da HERHANGI bir eksenin OLCULEMEDI'si rc=1.
         dh = depo_kur(os.path.join(kok, "v5-okunamaz"), kanca_kaynagi, ortam=o5)
         okunamaz = os.path.join(dh, "tools", "kancalar", "pre-commit")
         os.chmod(okunamaz, 0o000)
         try:
             hh, rch, bh = hukum(dh, ci=True, env=o5)
-            olculemeyenler = [e for e, x, _m in bh if x == nobetci.OLCULEMEDI
-                              and e not in nobetci._CI_MUAF_EKSENLER]
+            olculemeyenler = [e for e, x, _m in bh if x == nobetci.OLCULEMEDI]
             s.bekle("V5.ci-muafiyet-dar-fikstur", bool(olculemeyenler),
-                    "TUZAK KURULUMU: MUAF OLMAYAN bir eksen OLCULEMEDI olmali "
+                    "TUZAK KURULUMU: bir eksen OLCULEMEDI olmali "
                     "(yoksa darlik olculmemis olur); bulgular=%s"
                     % [(e, x) for e, x, _m in bh])
+            s.bekle("V5.ci-hal-olculemedi", hh == nobetci.OLCULEMEDI,
+                    "v5-okunamaz'da genel_hal OLCULEMEDI olmali; %s" % hh)
+            mutant_nobetci = os.path.join(tools_dizini, "kanca-kablolama-nobeti.py")
+            p_ci = subprocess.run([sys.executable, mutant_nobetci, "--ci", "--depo", dh],
+                                  capture_output=True, text=True, env=o5, timeout=60)
+            ci_cikti = p_ci.stdout + p_ci.stderr
+            if "SONUC:" in ci_cikti:
+                sonuc_kismi = ci_cikti.split("SONUC:", 1)[1].splitlines()[0]
+                hukum_kelimesi = sonuc_kismi.split("(")[0].split("[")[0].strip()
+            else:
+                sonuc_kismi = ""
+                hukum_kelimesi = "YOK"
+            s.bekle("V5.ci-ozet-olculemedi", hukum_kelimesi == nobetci.OLCULEMEDI,
+                    "CI ciktisindaki SONUC hukum kelimesi OLCULEMEDI olmali; "
+                    "bulunan=%r (satir: %r)" % (hukum_kelimesi, sonuc_kismi))
             s.bekle("V5.ci-muafiyet-dar", rch != 0,
-                    "`--ci` muafiyeti YALNIZ K/S eksenlerini kapsamali: baska bir "
-                    "eksen OLCULEMEDI iken rc SIFIR-DISI olmali; rc=%d" % rch)
+                    "CI'da HERHANGI bir eksen OLCULEMEDI iken rc SIFIR-DISI olmali "
+                    "(muafiyet yok); rc=%d" % rch)
         finally:
             os.chmod(okunamaz, 0o644)
-        y = os.path.join(d, "tools", "kancalar", "pre-commit")
-        govde = open(y, encoding="utf-8").read()
-        yaz(y, govde.replace('python3 "$pruvo_guard" --tetik commit\n',
-                             'python3 "$pruvo_guard" --tetik commit || true\n'), True)
-        _h2, rc2, _b2 = hukum(d, ci=True, env=o5)
-        s.bekle("V5.ci-yutma-kirmizi", rc2 != 0,
-                "CI halinde de izlenen kaynaktaki `|| true` KIRMIZI yakmali; rc=%d" % rc2)
 
         # ================= VAKA 6: OLU AGAC (KUSUR 2) =========================
         if ayrintili:
@@ -919,7 +928,7 @@ MUTANTLAR = (
      "kanca-kablolama-nobeti.py",
      "    for desen, tarif in YUTMA_DESENLERI:",
      "    for desen, tarif in ():",
-     frozenset({"V4.yutma-kirmizi", "V5.ci-yutma-kirmizi"})),
+     frozenset({"V4.yutma-kirmizi"})),
 
     ("MU7 nobetci: EKSEN B oldurulur (rc kontrolu aranmaz)",
      "kanca-kablolama-nobeti.py",
@@ -934,13 +943,6 @@ MUTANTLAR = (
      '        return (EKSEN_KABLOLAMA, YESIL,\n'
      '                "core.hooksPath AYARLI DEGIL',
      frozenset({"V4.kablolamasiz-kirmizi"})),
-
-    # 🔴 MU9 CURUTUCU DELIGI H: `--ci` muafiyeti TUM OLCULEMEDI'lere genisler.
-    ("MU9 nobetci: --ci muafiyeti GENISLER (H)",
-     "kanca-kablolama-nobeti.py",
-     "        if ci and eksen in _CI_MUAF_EKSENLER:",
-     "        if ci:",
-     frozenset({"V5.ci-muafiyet-dar"})),
 
     # 🔴 MU10 KUSUR 2-b: nobetci yine ANA checkout'a bakar.
     ("MU10 nobetci: kosturuldugu agac yerine ANA checkout olculur (KUSUR 2-b)",
@@ -983,8 +985,9 @@ MUTANTLAR = (
      frozenset({"V0.sozlesme", "V4.saglikli-yesil", "V4.kablolamasiz-kirmizi",
                 "V4.xbitsiz-kirmizi", "V4.yutma-kirmizi", "V4.sapma-kirmizi",
                 "V4.cagrisiz-kirmizi", "V4.rc-kontrolsuz-kirmizi",
-                "V4.gerekce-kirmizi", "V5.ci-rc-sifir", "V5.ci-kablolama-ilan",
-                "V5.ci-muafiyet-dar-fikstur", "V6.ana-saglikli",
+                "V4.gerekce-kirmizi", "V5.ci-hal-olculemedi", "V5.ci-hal-yesil",
+                "V5.ci-kablolama-ilan", "V5.ci-muafiyet-dar-fikstur",
+                "V5.ci-ozet-olculemedi", "V5.ci-sapma-ilan", "V6.ana-saglikli",
                 "V6.saglikli-agac-yesil", "V7.izole-worktree-yesil"})),
 
     # 🔴 MU15 KUSUR 2-a'nin TAM mutanti: config'e yazilan deger ELENEN SECENEK
@@ -1037,6 +1040,30 @@ MUTANTLAR = (
      '    if os.path.normpath(ham) == os.path.normpath("/dev/null"):',
      '    if False:',
      frozenset({"V9.devnull-golge-rc0"})),
+
+    ("M-K177a nobetci: CI K/S KAPSAM_DISI yerine OLCULEMEDI ilan eder",
+     "kanca-kablolama-nobeti.py",
+     "return (EKSEN_KABLOLAMA, KAPSAM_DISI,",
+     "return (EKSEN_KABLOLAMA, OLCULEMEDI,",
+     frozenset({"V5.ci-kablolama-ilan", "V5.ci-hal-yesil"})),
+
+    ("M-K177b nobetci: genel_hal KAPSAM_DISI'yi de hukum dusuren hal sayar",
+     "kanca-kablolama-nobeti.py",
+     "    if any(h == OLCULEMEDI for _e, h, _m in bulgular):\n        return OLCULEMEDI\n    return YESIL",
+     "    if any(h in (OLCULEMEDI, KAPSAM_DISI) for _e, h, _m in bulgular):\n        return OLCULEMEDI\n    return YESIL",
+     frozenset({"V5.ci-hal-yesil"})),
+
+    ("M-K177c nobetci: cikis_kodu OLCULEMEDI kolunu atlar",
+     "kanca-kablolama-nobeti.py",
+     "    if any(h == OLCULEMEDI for _e, h, _m in bulgular):\n        return 1\n    return 0",
+     "    return 0",
+     frozenset({"V5.ci-muafiyet-dar"})),
+
+    ("M-K177d nobetci: genel_hal OLCULEMEDI'yi YESIL'e yuvarlar",
+     "kanca-kablolama-nobeti.py",
+     'def genel_hal(bulgular):\n    """🔴 FAIL-CLOSED: OLCULEMEDI asla YESIL\'e YUVARLANMAZ."""\n    if any(h == KIRMIZI for _e, h, _m in bulgular):\n        return KIRMIZI\n    if any(h == OLCULEMEDI for _e, h, _m in bulgular):\n        return OLCULEMEDI',
+     'def genel_hal(bulgular):\n    """🔴 FAIL-CLOSED: OLCULEMEDI asla YESIL\'e YUVARLANMAZ."""\n    if any(h == KIRMIZI for _e, h, _m in bulgular):\n        return KIRMIZI\n    if any(h == OLCULEMEDI for _e, h, _m in bulgular):\n        return YESIL',
+     frozenset({"V5.ci-hal-olculemedi", "V5.ci-ozet-olculemedi"})),
 
     ("N1 ILGISIZ: yorum eklenir (davranis degismez)",
      "kanca-kablolama-nobeti.py",
