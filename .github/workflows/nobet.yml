@@ -1541,6 +1541,29 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-esik-kapisi-mutasyon.py
 
+      # K195(b) — DEFTER KOTA KAPISI "STAGE DISI" KOLU. Olculen delik (19 Agu):
+      # DEVAM.md stage'de degilken kapi HIC OLCMEDEN `return 0` donuyordu; yesili
+      # "olctum, temiz" degil "BAKMADIM" demekti. Kabul GERCEK kapiyi GERCEK bir
+      # gecici git deposunda kosar (uc vaka + iki kontrol) ve DORT mutantin her
+      # birinin YALNIZ kendi hedef kolunu oldurdugunu ayrica olcer (K182).
+      # NEDEN SERIT B: yayinlanan icerigi DEGIL defter hijyenini olcer; tamamen
+      # offline, yalniz tempfile depolari, GERCEK DEVAM.md'ye DOKUNMAZ.
+      - name: "Defter kota kapisi kapsam-disi kolu (5 vaka, 4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-kota-kapsam-disi-test.py
+
+      # K195(a) — ROTASYON ARACININ "ISARETCIYE INDIRME" KOLU. Olculen delik
+      # (19 Agu): kapali icerik yokken arac HIC tasimiyordu ve mimar elle
+      # rotasyona zorlaniyordu (bir gunde 4 kez). Kabul YEDI vaka + DORT mutant;
+      # her mutant YALNIZ kendi hedef kolunu oldurur (K182). Fiksturler kasitli
+      # olarak birbirinden AYRIdir: tek fikstur kullanildiginda dort mutantin
+      # dordu de YASAMISTI (hedef kollar ayirt edilemiyordu).
+      # NEDEN SERIT B: tamamen offline, yalniz tempfile fiksturleri; kabul kendi
+      # icinde GERCEK DEVAM.md ve DEVAM-ARSIV.md'nin BIREBIR degismedigini olcer.
+      - name: "Defter isaretciye indirme kabul testi (7 vaka, 4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-isaretciye-indirme-test.py
+
       # KANCA NOBETI (tools/kanca-nobeti.py) — git kancalarinin SESSIZCE devre disi
       # kalmasina karsi nobetci. 1 Agu'ta ANA CHECKOUT'ta gercekten yasandi:
       # `.git/config`'e `core.hooksPath = /dev/null` sizdi ve push'taki D1 senkronu +
