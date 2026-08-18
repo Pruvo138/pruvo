@@ -1840,6 +1840,19 @@ jobs:
         continue-on-error: true
         run: python3 tools/kaynak-link-test.py --mutasyon
 
+      # KAYNAK DUZLEMI TEMIZLEME — K171 kabul + mutasyon bataryasi (18 Agu 2026).
+      # `duzelt.py --kaynak-durum` / `--kaynak-temizle` kollarini olcer. SERIT B:
+      # kirmizisi musteriye yanlis para odetmez, veri sizdirmaz, siteyi durdurmaz —
+      # emsal birebir yukaridaki kaynak-link adimlari (K152).
+      # `continue-on-error` maskeleme DEGIL: serit B zaten yayini bloklamaz; bayrak
+      # kirmizi bir adimin SONRAKILERI gizlemesini onler ([[kirmizi-adim-sonrakini-maskeler]]).
+      - name: "Kaynak duzlemi temizleme: kabul testi (8 eksen)"
+        continue-on-error: true
+        run: python3 tools/duzelt-kaynak-test.py
+      - name: "Kaynak duzlemi temizleme: mutasyon bataryasi"
+        continue-on-error: true
+        run: python3 tools/duzelt-kaynak-mutasyon.py
+
       # SAHIPLIK HARITASI KAPISI — SERIT B (18 Agu 2026, Paket ③-d §4).
       # KAPI/NOBET betiklerinin sahiplik haritasi kapisi: envareri KODDAN turetir,
       # TSV ile karsilastirip EKSIK/BAYAT/KIRMIZI/KABUL_BOS uretir. Salt-okunur.
