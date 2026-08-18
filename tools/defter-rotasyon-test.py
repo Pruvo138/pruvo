@@ -696,8 +696,10 @@ def tavan_test():
             hatalar.append("V-B defter degisti (kapali icerik yoktu)")
         elif yeni_arsiv_icerik != eski_arsiv_icerik:
             hatalar.append("V-B arsiv degisti (kapali icerik yoktu)")
-        elif "TAVAN_FAIL_LOUD" not in r.stderr:
-            hatalar.append("V-B stderr FAIL_LOUD yok: %s" % r.stderr)
+        elif "TAVAN_FAIL_LOUD" not in r.stderr and "KAYIP:" not in r.stderr:
+            # K181d: acik kalemler K### kimliksiz ise yeni I2 KAYIP mesaji
+            # basar (FAIL_LOUD yerine); her iki mesaj da fail-loud muamelesi.
+            hatalar.append("V-B stderr FAIL_LOUD/KAYIP yok: %s" % r.stderr)
         elif "A01" in yeni_arsiv_icerik or "A02" in yeni_arsiv_icerik:
             hatalar.append("V-B acik kalem arsive gecti (sessiz kayip)")
         else:
