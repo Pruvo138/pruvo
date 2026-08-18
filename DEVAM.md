@@ -5,15 +5,21 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🟠 **K185 CHIP `KraL-Chip duzeni genelleme`** (kural CLAUDE.md'ye 3 madde; nobetci IZLENEBILIRLIK ekseninden, kutu yoksa KAPSAM DISI / OLCULEMEDI fail-closed; kabul `chip-duzeni-test.py` + CI kablosu + ihlal tatbikati) · 🟠 **K186 CHIP `KraL-Ege reformu altyapi`** (Faz-1+Faz-2 ortak talep hatti; PII bizde DURMAZ → kisa `talep_kodu`, `talepler` additive, `POST /talep` allow-list+honeypot+hiz siniri; sema canliya CHIP'ce UYGULANMAZ; kabul `talep-hatti-test.py` + CI kablosu). Tam metin KUTUDA.
+- 🔧 **K189 (SAHIPLENILDI 19 Agu — KraL; chip sirada, kosan chip 4 oldugu icin biri kapaninca acilir):**
+  `tools/ci-kapsam-test.py` hukum ekseni kusurlu (K185 tur-1'de OLCULDU). **Tam metin ARSIVDE.**
+  kabul: izlenmeyen aday > 0 iken hukum `OLCULEMEDI` (sifir-disi rc) **VE** `aday` hali ayri
+  jetonla ilan **VE** mutant hedef kolu oldurdugunu ayrica kanitlar (K182 dersi).
+- 🔧 **K191 (19 Agu, KraL olctu → sahibi MaCiT; SINIF):** tarama SPEC'i isi ONCULDEN aliyor,
+  OLCUMDEN degil (Honda oto TV/PR/MW "taranmadi" onculu YANLIS cikti; chip commit ETMEDI).
+  **Tam metin ARSIVDE + KUTUDA.** kabul: SPEC'in ILK blogu KAPSAM ON-OLCUMU degilse kosturucu
+  RED verir **VE** tarama kabulu tazelik capasi tasir (self-consistency yetmez).
 - 🟠 **K184 CHIP (Ege reformu FAZ-1, site sihirbazi):** LLM'siz "Eksik Parca Talebi"; listeler tek kaynaktan, terminal K186 talep hatti, public yukleme ucu ACILMAZ, honeypot+hiz siniri. Faz-2 HocA'da; Ege dar-LLM AYRI kalem. kabul: `talep-sihirbazi-test.py` + CI kablosu + mutant hedef kolu kanitli. Tam metin KUTUDA.
 
 
 
 
-## 🔻 KraL OTURUM KAPANISI — 18 Agu ~23:3xZ
-**CANLIYA:** K181d `a2f6db8f` · K177 `8e00020c` · K141 `c123019d` · K183 `77bb3195`. main=origin `f25bf18e`, agac TEMIZ, D1 5 eksen yesil (29371).
-**KOSUYOR (oldurulmedi, hepsi CHIP; mimar oturumunda kosan is 0):** K184 sihirbaz · K185 chip duzeni · K186 talep hatti (TUR 2a: IDDIA=25 DUSEN=0 MUTANT=25/25) · gun-kapanisi hijyeni. Dallar `kral/k18{4,5,6}-*`, motor codex `luna`/m3. Yabanci iki `claude/*` agacina DOKUNULMADI.
-**BEKLIYOR:** HocA Faz-2 (sozlesme verildi) · MaCiT Honda taramasi (isci rc=0, hukum MaCiT'te).
+## 🔻 KraL SON DURUM — 19 Agu ~04:0xZ (kapanis blogunun tam metni ARSIVDE)
+**CANLIYA:** K181d · K177 · K141 · K183 `77bb3195`; main=origin `6e4720b5`, agac TEMIZ, D1 5 eksen yesil (29371). **KOSUYOR (hepsi CHIP, mimar oturumunda kosan is 0):** K184 · K185 · K186 · K188 hijyen (kutu esik kapisi dalda). **BEKLIYOR:** HocA Faz-2 · MaCiT Honda (hukum verildi → K191).
 🔧 **K187 (K186'dan, OLCULDU):** `kod:null` sayacinin KALICI sink'i YOK (KV binding yok; R2 sayac degil). `console.error` yalniz tail/Logpush ile gorunur → oran GERIYE DONUK olculemez. Care KV ya da Logpush = OKAN KAPISI; kod `talepOlayiSay()` arkasinda hazir.
 🔧 **K190 (K186'dan, OLCULDU):** `talep-temizlik.py` yerel sqlite'a baglaniyor, canli D1'e DEGIL → **90 gunluk saklama hicbir yerde yururlukte DEGIL**. Canli yol (wrangler d1 / worker ucu) OKAN KAPISI.
 - 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
@@ -29,14 +35,8 @@
   kablolamasi YOK.
 - ✅ **K178+K178b KAPANDI (18 Agu)** — SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu. ARSIVDE. → [[kablo-da-kosuyor-demek-degil]]
 - 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
-- ✅ **K183 KAPANDI (18 Agu) — DAVRANIS OLCULDU.** dispatch kolu KENDI grubunda
-  (`nobet-serit-b-<run_id>`), push kolu `-push` sabitinde. KANIT 19:49:48Z, AYNI SHA
-  `73ab1093`: dispatch `32178504446` `in_progress` iken push kosumu `32178475055`
-  `pending`; `32178418454` cancelled olurken dispatch `32176203099` kosmaya devam etti.
-  ASIL KABUL: dispatch `32176203099` 19:22:09Z→20:20:56Z (59 dk) **TAMAMLANDI** (`completed`,
-  iptal DEGIL) — o pencerede main'e UC push indi (`41a62ece`·`73ab1093`·`0572ae57`) ve push
-  kolu kosumu `32178418454` cancelled oldu. (`conclusion=failure` BEKLENEN: 13 kor kirmizi;
-  yayini bloklamaz.) Merge `41a62ece`; `Build & deploy` SUCCESS (birebir SHA). Tarihce ARSIVDE.
+- ✅ **K183 KAPANDI (18 Agu, `77bb3195`) — dispatch kolu kendi grubunda, canli kabul YESIL
+  (kosum `32176203099` 59 dk TAMAMLANDI). Kabul yolu + sinir + tam kanit ARSIVDE.**
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
