@@ -13,12 +13,15 @@ SHA'lar `ed47d317` · `2f87a8bc` · `b180fa1a`. Karma bloktan iki kez dustu (ger
   birikimli olsun" onerisi ONLEMEZDI: satir silinmedi, YANLIS satir eklendi. Yazim kurali:
   kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK. `tools/paket-defter-durum-iddiasi.md`.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
+- 🔴 **K170 (18 Agu — yayin sinyali safligi ERTELENDI; K166 GERI ALINDI `d95de40e`):** kirmizi
+  VERI degil YARGI — `model-uyelik-kapisi.py` 29 iddiadan yalniz K19, ETKILENEN_URUN=0,
+  17 capraz-marka cifti yargisiz. K166 dosyalari `1b74bcbc`de DURUYOR. Tam metin ARSIVDE.
+  kabul: `python3 tools/model-uyelik-kapisi.py` rc=0 **VE** K166 tekrar indirilince
+  `is-akisi-kapisi.py` rc=0 + `deploy`+`yayin` success.
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
-- 🟠 **K165 (18 Agu — K164 teshisinin YAN BULGUSU; yayini BLOKLAMAZ ama SESSIZ):** sitemap
-  `lastmod` git taramasi sure butcesini (`VARSAYILAN_SURE_BUTCESI=240.0`,
-  `sitemap_damga.py:66`) dolduruyor; asimda **fail-loud DEGIL** (`:242-244` yalnizca `break`),
-  cozulemeyen kayit `lastmod`SIZ kaliyor (`build.py:4153-4155`); kirmizi kosumda 13. Olcek
-  buyudukce SESSIZCE buyur. Yon: esigi BUYUTMEDEN fail-loud'a bagla. `kabul:` BOS.
+- 🟠 **K165 (18 Agu — yayini BLOKLAMAZ ama SESSIZ):** sitemap `lastmod` git taramasi sure
+  butcesini doldurunca fail-loud DEGIL, sessizce kesiliyor; kayit `lastmod`SIZ kaliyor
+  (kirmizi kosumda 13). Yon: esigi BUYUTMEDEN fail-loud'a bagla. Tam metin ARSIVDE.
 - 🔧 **K168 (18 Agu — K134'un HALEFI; K134 KAPANDI, tam metin ARSIVDE):** care
   (`defter-rotasyon.py`) mutasyonla teyitli YESIL (7/7) ama kota bugun UC KEZ kaybedildi
   (141/139/136 — ucunu de mimar ELLE dondurdu). Mekanizma: kotayi asan rol MIMAR ve mimar
@@ -100,14 +103,11 @@ SHA'lar `ed47d317` · `2f87a8bc` · `b180fa1a`. Karma bloktan iki kez dustu (ger
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
   ekseninde ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
   (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
-- ✅ **"Kosum sinyali kirli" KAPANDI** — K166 (`c6c05cf9`) dort hijyen isini SERIT B'ye tasidi;
-  `Build & deploy` kirmizisi artik GERCEKTEN yayin durdu demek. Tam metin ARSIVDE.
+- 🟡 **"Kosum sinyali kirli" ACIK KALDI** — K166 girdi (`c6c05cf9`) ve GERI ALINDI (`d95de40e`); devami K170.
 - 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
   cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
-
-
 
 ## OKAN'DA
 
