@@ -1511,6 +1511,36 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
+      # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
+      # onu hic olcmuyordu. Sonuc: tavan asimi ancak biri ELLE bakinca goruluyor ve
+      # rotasyon elle kosuluyordu — 18 Agu'ta BESINCI kez (budandi, 16 dk sonra yeniden
+      # tasti). Bu kapi PreToolUse kancasi olarak yazan yola esigi OLCTURUR: kutu tavan
+      # ustundeyse yazmadan ONCE rotasyonu tetikler, rotasyon tavani indiremezse yazmayi
+      # REDDEDER. Esik `kutu-arsivle.py::VARSAYILAN_TAVAN`'dan IMPORT edilir (ikiz tanim
+      # YOK). 11 vaka: alakasiz arac / hedef disi dosya / esik alti / rotasyon basarili
+      # (lossless bayt kanitiyla) + BES ayri reddetme kolu (esik kaynagi yuklenemedi ·
+      # hedef kutu rotasyon ONCESI olculemedi · rotasyon istisna atti · rotasyon SONRASI
+      # olcum patladi · rotasyon indiremedi). V10 kapinin hedef DISINDAKI dosyalara
+      # karismadigini olcer — "her seyi reddet"e kaymadiginin capasi.
+      # NEDEN SERIT B: yayinlanan icerigi DEGIL mimar yazisma hijyenini olcer; tamamen
+      # offline, yalniz tempfile fiksturleri, GERCEK kutuya DOKUNMAZ.
+      - name: "Kutu esik kapisi kabul testi (11 vaka, 5 reddetme kolu, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-esik-kapisi.py --kendini-test
+
+      # ... ve kabul testinin KENDI kabulu. Mutasyon KOPYAYA uygulanir (canli kaynak
+      # degismez, bytecode yazilmaz). YEDI mutant, her biri BIR kola nisanli: esik
+      # okunmuyor · rotasyon tetiklenmiyor · bes reddetme kolundan her biri ayri ayri
+      # olduruluyor. Her mutant icin (a) HEDEF vaka KIRMIZI (b) YAN vakalarin TAMAMI
+      # YESIL (c) capa kaynakta TAM 1 kez bulundu (d) mutantsiz taban 11/11 — dordu
+      # birden aranir. (b) sarti K182'nin caresidir: "kirmizi geldi" kanit degildir,
+      # kirmizinin SEBEBI hedef kol olmalidir. Bu adim olmadan "kabul testi olu" hali
+      # (her mutant yesil) GORUNMEZ kalirdi.
+      - name: "Kutu esik kapisi mutasyon turu (7 mutant, hedef-kol atifli, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-esik-kapisi-mutasyon.py
+
       # KANCA NOBETI (tools/kanca-nobeti.py) — git kancalarinin SESSIZCE devre disi
       # kalmasina karsi nobetci. 1 Agu'ta ANA CHECKOUT'ta gercekten yasandi:
       # `.git/config`'e `core.hooksPath = /dev/null` sizdi ve push'taki D1 senkronu +
