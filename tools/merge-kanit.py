@@ -12,7 +12,13 @@ Override: MERGE_KANIT_DOSYASI env var.
 Kabul:
   python3 /Users/okan/dev/pruvo/tools/merge-kanit.py --kendini-test
   SON SATIR + rc=0:
-    VAKA=<n> DUSEN=0 MUTANT=3/3 KONTROL=2/2
+    VAKA=6 DUSEN=0 MUTANT=4/4 KONTROL=2/2
+
+Not (K173): shell=True ile FileNotFoundError erisilemez (kabuk 127 doner). Bu
+yuzden M3 yeniden yazildi: "komut yok → yazilan rc 127, asla 0 degil" — canli
+kolda spesifik deger korunur. M4 (YENI) genel non-zero sozlesmesini nobetler:
+"aracin sifir-disi rc'yi 0 diye yazmamali". Ikisi farkli iddia yerlerinden
+duser (bkz. dalin kanonik muhendis raporu).
 
 Tuzak iliskisi: [[merge-kanit-tablosu-yok]] · [[commit-mesaji-iddiasi-olcum-degildir]]
 """
@@ -44,9 +50,14 @@ YENI_SATIR = "\n"
 def kostur_kanit(komut):
     """Kabul komutunu KENDI kosturur; (rc, son_satir) doner.
 
-    rc=None ise kosum ANLAMLI yapilamadi (FileNotFoundError/timeout/genel hata);
-    bu durumda SON_SATIR hata iletisini tasir, RC OLCULEMEDI yazilir.
+    rc=None ise kosum ANLAMLI yapilamadi (timeout/genel hata); bu durumda
+    SON_SATIR hata iletisini tasir, RC OLCULEMEDI yazilir.
     """
+    # Not (K173): shell=True ile subprocess.run /bin/sh uzerinden kosar; bu
+    # yuzden FileNotFoundError YALNIZ /bin/sh yoksa olusur (sistem cabuk
+    # kullanilamaz halinde). Olu kolu kaldirildi; canli yolda shell "command
+    # not found" icin rc=127, timeout/genel hata icin rc=None doner. M3 ve M4
+    # canli yolda olculur.
     try:
         islem = subprocess.run(
             komut,
@@ -55,8 +66,6 @@ def kostur_kanit(komut):
             text=True,
             timeout=600,
         )
-    except FileNotFoundError as e:
-        return None, f"shell bulunamadi: {e}"
     except subprocess.TimeoutExpired as e:
         return None, f"zamanaşimi: {e}"
     except Exception as e:
@@ -130,7 +139,7 @@ def dogrula(dal):
 # --------------------------- KENDINI-TEST ---------------------------
 
 def _kendini_test_alet(script_yolu):
-    """3 mutant + 2 kontrolu kara-kutu kosar; sayar.
+    """4 mutant + 2 kontrolu kara-kutu kosar; sayar.
 
     VAKA = tum senaryo (mutant + kontrol). DUSEN = senaryo basarisiz.
     MUTANT = mutantlarin YAKALANAN kismi (sistem hatayi geri cevirdi).
@@ -199,8 +208,9 @@ def _kendini_test_alet(script_yolu):
             dusen += 1
             sys.stderr.write(f"M2 FAIL: kanit yokken rc=0 dondu\n")
 
-        # === MUTANT M3: kabul komutu calismazsa RC=0 yazilmamali ===
-        # Komut 127 ile cikar (shell "command not found"); rc != 0.
+        # === MUTANT M3 (K173 yeniden): kabul komutu YOK → yazilan rc 127, ASLA 0 degil ===
+        # Bu, canli koldaki spesifik savunma: shell=True iken "komut yok" → rc=127.
+        # Genel non-zero sozlesmesi M4'te (asil nobetci).
         vaka += 1
         r = _kos(
             "--kaydet",
@@ -214,22 +224,59 @@ def _kendini_test_alet(script_yolu):
         dosya_icerik = ""
         if gecici.exists():
             dosya_icerik = gecici.read_text()
+        m3_satir = None
         if "m3-dal" in dosya_icerik:
             for line in dosya_icerik.split(YENI_SATIR):
                 parcalar = line.split(AYIRA)
                 if len(parcalar) >= 6 and parcalar[1] == "m3-dal":
-                    if parcalar[5] != "0":
-                        mutant += 1
-                    else:
-                        dusen += 1
-                        sys.stderr.write(f"M3 FAIL: komut calismadi ama RC=0 yazildi\n")
+                    m3_satir = parcalar
                     break
-            else:
-                dusen += 1
-                sys.stderr.write(f"M3 FAIL: m3-dal satiri eslesmedi\n")
+        if m3_satir is None:
+            dusen += 1
+            sys.stderr.write(f"M3 FAIL: m3-dal satiri eslesmedi (kanit yazilmadi)\n")
+        elif m3_satir[5] == "127":
+            mutant += 1  # IDDIA_M3_RC127: spesifik deger korundu
+        elif m3_satir[5] != "0":
+            dusen += 1
+            sys.stderr.write(f"M3 FAIL: komut yok iken beklenen 127, got {m3_satir[5]!r} (M4 kapisi gecti ama M3 ozelinde 127 sart)\n")
         else:
             dusen += 1
-            sys.stderr.write(f"M3 FAIL: kanit dosyasi yazilmadi\n")
+            sys.stderr.write(f"M3 FAIL: komut yok iken rc=0 yazildi (sozlesme bozuk)\n")
+
+        # === MUTANT M4 (K173 YENI): sifir-disi rc ASLA 0 yazilmamali (genel nobetci) ===
+        # Bu, "RC uydurulamaz" sozlesmesinin ASIL koruyucusu. Komut 42 ile cikar;
+        # M4 mutantlari (kaydet'te rc_str="0" gibi) bu senaryoda kirmizi yakalanir.
+        vaka += 1
+        r = _kos(
+            "--kaydet",
+            "--tarih", "2026-08-18T00:00Z",
+            "--dal", "m4-dal",
+            "--merge-sha", "sha",
+            "--merge-base", "base",
+            "--kabul-komutu", "exit 42",
+            "--mimar", "KraL",
+        )
+        dosya_icerik = ""
+        if gecici.exists():
+            dosya_icerik = gecici.read_text()
+        m4_satir = None
+        if "m4-dal" in dosya_icerik:
+            for line in dosya_icerik.split(YENI_SATIR):
+                parcalar = line.split(AYIRA)
+                if len(parcalar) >= 6 and parcalar[1] == "m4-dal":
+                    m4_satir = parcalar
+                    break
+        if m4_satir is None:
+            dusen += 1
+            sys.stderr.write(f"M4 FAIL: m4-dal satiri eslesmedi (kanit yazilmadi)\n")
+        elif m4_satir[5] == "42":
+            mutant += 1  # IDDIA_M4_RC42: genel non-zero deger korundu
+        elif m4_satir[5] != "0":
+            dusen += 1
+            sys.stderr.write(f"M4 FAIL: beklenen 42, got {m4_satir[5]!r}\n")
+        else:
+            dusen += 1
+            sys.stderr.write(f"M4 FAIL: non-zero rc=42 iken 0 yazildi (asil nobetci gecti)\n")
 
         # === KONTROL K1: gercek rc=0 uretmis bir kabul icin --dogrula YESIL ===
         vaka += 1
@@ -259,7 +306,7 @@ def _kendini_test_alet(script_yolu):
             except OSError:
                 pass
 
-    print(f"VAKA={vaka} DUSEN={dusen} MUTANT={mutant}/3 KONTROL={kontrol}/2")
+    print(f"VAKA={vaka} DUSEN={dusen} MUTANT={mutant}/4 KONTROL={kontrol}/2")
     if dusen > 0:
         sys.exit(1)
     return 0
@@ -275,7 +322,7 @@ def main():
     grup = p.add_mutually_exclusive_group(required=True)
     grup.add_argument("--kaydet", action="store_true", help="Kanit satiri yaz (RC ve SON_SATIR aracin kendi kosumundan gelir).")
     grup.add_argument("--dogrula", metavar="DAL", help="Dal icin kanit dogrula (yesilse rc=0).")
-    grup.add_argument("--kendini-test", action="store_true", help="3 mutant + 2 kontrol kosar.")
+    grup.add_argument("--kendini-test", action="store_true", help="4 mutant + 2 kontrol kosar.")
 
     # --kaydet argumanlari. --rc / --son-satir BILINCLI YOK (M1 tuzagi).
     p.add_argument("--tarih", help="ISO-8601 UTC (bos birakirsan simdi).")
