@@ -21,6 +21,7 @@ cron:isci-log-dondur	cron:isci-log-dondur.py	BILINMIYOR	hijyen	YOK
 cron:isci-temizlik	cron:isci-temizlik.py	BILINMIYOR	hijyen	YOK
 cron:isci	cron:isci.sh	BILINMIYOR	nobet	YOK
 cron:k96-kabul	cron:k96-kabul.py	BILINMIYOR	hijyen	YOK
+cron:kilit-tatbikat	cron:kilit-tatbikat.py	BILINMIYOR	nobet	YOK
 cron:kimi-nabiz-kur	cron:kimi-nabiz-kur.py	BILINMIYOR	hijyen	YOK
 cron:kimi-nabiz	cron:kimi-nabiz.py	BILINMIYOR	hijyen	YOK
 cron:kota-olcum	cron:kota-olcum.py	BILINMIYOR	nobet	YOK
@@ -134,7 +135,6 @@ onizleme-kapisi	tools/onizleme-kapisi.py	BILINMIYOR	yayin	YOK
 onizleme-vaat-kapisi	tools/onizleme-vaat-kapisi.py	BILINMIYOR	yayin	python3 tools/onizleme-vaat-kapisi --kendini-test
 onsecim-parite-kapisi	tools/onsecim-parite-kapisi.py	BILINMIYOR	yayin	YOK
 ozet-bayt-atifi	tools/ozet-bayt-atifi.py	BILINMIYOR	hijyen	YOK
-paket3b-harita-yaz	tools/paket3b-harita-yaz.py	BILINMIYOR	hijyen	YOK
 parity-sequential-flock	tools/parity-sequential-flock.py	BILINMIYOR	hijyen	YOK
 parity-server	tools/parity-server.py	BILINMIYOR	veri	YOK
 parti-kontrol	tools/parti-kontrol.py	BILINMIYOR	hijyen	YOK

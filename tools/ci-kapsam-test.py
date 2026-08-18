@@ -2664,13 +2664,16 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
           "ayni sinif: yapisal olarak CI-disi, deploy.yml'e EKLENMEZ; canli D1 dogrulamasi ayri "
           "go-live fazinda yapilir.")
 
-R_SAHIPLIK = ("Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar): KAPI/NOBET sahiplik haritasi "
-              "kapisi. Salt-okunur envanter + invaryant kontrolu + `--kendini-test` bayragi "
-              "(3 mutant + 2 kontrol). CI'da ayri kosulmaz (R_URETEC + R_TASARIM karisimi: "
-              "KENDISI evren hesaplar ve evrene kendi dahildir -- CI'da koşarsa oz-dongu "
-              "sinyali uretir); merge-kapisi sirasinda ve mimar oncesi elle kosulur. "
-              "IDDIA semasi: --kendini-test 3 mutant RED + 2 kontrol YESIL; main cikti "
-              "EVREN=HARITADA EKSIK=0 BAYAT=0.")
+# R_SAHIPLIK = ("Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar): KAPI/NOBET sahiplik haritasi "
+#              "kapisi. Salt-okunur envanter + invaryant kontrolu + `--kendini-test` bayragi "
+#              "(3 mutant + 2 kontrol). CI'da ayri kosulmaz (R_URETEC + R_TASARIM karisimi: "
+#              "KENDISI evren hesaplar ve evrene kendi dahildir -- CI'da koşarsa oz-dongu "
+#              "sinyali uretir); merge-kapisi sirasinda ve mimar oncesi elle kosulur. "
+#              "IDDIA semasi: --kendini-test 3 mutant RED + 2 kontrol YESIL; main cikti "
+#              "EVREN=HARITADA EKSIK=0 BAYAT=0.")
+# Paket ③-d §4 (18 Agu 2026): R_SAHIPLIK muafiyeti ve IZIN_LISTESI girisi KALDIRILDI —
+# kapi artik nobet.yml SERIT B adimi olarak OTOMATIK kosar (`python3 tools/sahiplik-kapisi.py`).
+# Referans yorum olarak korunur; muafiyet/izin anlamsiz ve yanlis yon olurdu.
 
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
@@ -3193,7 +3196,10 @@ IZIN_LISTESI = {
         "YAKALANDI, KONTROLLER YESIL`. 40 s esiginin ~1,4 kati — ESIGE EN YAKIN "
         "GIRIS. Surucu ~10 s hizlandirilirsa esigi gecer; o zaman BURADAN CIKARILIP "
         "nobet.yml `serit-b`ye kendi adimiyla baglanmalidir."),
-    "tools/sahiplik-kapisi.py": R_SAHIPLIK,
+    # "tools/sahiplik-kapisi.py" muafiyeti KALDIRILDI (18 Agu, Paket ③-d §4) — kapi
+    # artik nobet.yml SERIT B adimi olarak OTOMATIK kosar; muafiyet anlamsiz ve
+    # yanlis yon olurdu (kosulmuyor muamelesi). Izin listesi bos YOK (eger referans
+    # gerekirse R_SAHIPLIK yorumu yukarida).
 }
 
 

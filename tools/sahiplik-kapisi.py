@@ -74,6 +74,19 @@ SERIT_OLARAK_KABUL = {"yayin", "veri", "nobet", "hijyen", "arac"}
 # ---------------------------------------------------------------------------
 # EVREN — KODDAN turetir (ad desenine degil).
 # ---------------------------------------------------------------------------
+def _anahtar(hangi, base):
+    """Tek anahtar normalizasyonu — Paket ③-d §H1.
+
+    Evren tarafi ve harita YOL kolonu ayni fonksiyondan gecer; iki ayri
+    normalizasyon YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]). Kanonik bicim:
+      tools/<base>         — repo-goreli tools/ dosyasi
+      cron:<base>          — ~/.claude/cron/ altindaki betik
+    """
+    if hangi == "cron":
+        return "cron:" + base
+    return "tools/" + base
+
+
 def _kod_sinyali(path, broad=True):
     """Bir dosyanin fail-closed gate / nobet semantigi tasidiginin KOD kaniti.
 
@@ -171,7 +184,7 @@ def evreni_turet(tools_dir, cron_dir):
             if _test_mutasyon_dislama(f):
                 continue
             if _kod_sinyali(mutlak):
-                bulunan.append({"yol": "tools/" + f, "mutlak": mutlak, "base": f})
+                bulunan.append({"yol": _anahtar("tools", f), "mutlak": mutlak, "base": f})
     if os.path.isdir(cron_dir):
         for f in sorted(os.listdir(cron_dir)):
             if not (f.endswith(".py") or f.endswith(".sh")):
@@ -183,7 +196,7 @@ def evreni_turet(tools_dir, cron_dir):
             if _test_mutasyon_dislama(f):
                 continue
             if _kod_sinyali(mutlak):
-                bulunan.append({"yol": "cron:" + f, "mutlak": mutlak, "base": f})
+                bulunan.append({"yol": _anahtar("cron", f), "mutlak": mutlak, "base": f})
     return bulunan
 
 
@@ -263,6 +276,7 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
     bayat = []   # haritada var (ve ayakta), evrende yok
     sahipsiz = []  # EV=BILINMIYOR olanlari say
     kirmizi_satirlar = []  # beklenen RED listesi
+    kabul_bos_satirlar = []  # Paket ③-d §H3: KABUL_KOMUTU bos olan satirlar
 
     haritada_var = set()
     # Haritaya bak, once bayat olanlari yakala — bunlar harita ama evrendisinda yok
@@ -284,6 +298,10 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
             if h["SERIT"] not in SERIT_OLARAK_KABUL:
                 kirmizi_satirlar.append((h["SATIR_NO"], "SERIT gecersiz: %r (beklenen: %s)"
                                          % (h["SERIT"], "|".join(sorted(SERIT_OLARAK_KABUL)))))
+            # Paket ③-d §H3: KABUL_KOMUTU bos olamaz. Yalniz dolu komut ya da acik
+            # `YOK` yazisi gecerli; isci uydurmaz, bilmiyorsa YOK yazar.
+            if not h.get("KABUL_KOMUTU", "").strip():
+                kabul_bos_satirlar.append((h["SATIR_NO"], h["YOL"], h["MEKANIZMA"]))
 
     # Beklenen RED (kirmizi) ciktilari mutant/kontrol bilgisine gore:
     beklenen_red = []
@@ -332,6 +350,7 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
         "BAYAT": bayat,
         "SAHIPSIZ": sahipsiz,
         "KIRMIZI": kirmizi_satirlar,
+        "KABUL_BOS": kabul_bos_satirlar,
         "BEKLENEN_RED": beklenen_red,
         "mutant": mutant,
         "test_modu": test_modu,
@@ -347,14 +366,16 @@ def ozet_satir(sonuc, harita=None, mutant_basari=None, kontrol_basari=None):
     """
     kabul_dolu = 0
     kabul_yok = 0
+    kabul_bos = 0
     if harita is not None:
         kabul_yok = sum(1 for h in harita if h["KABUL_KOMUTU"] == "YOK")
-        kabul_dolu = len(harita) - kabul_yok
+        kabul_bos = sum(1 for h in harita if not h["KABUL_KOMUTU"].strip())
+        kabul_dolu = len(harita) - kabul_yok - kabul_bos
     temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d SAHIPSIZ=%d "
-             "KABUL_DOLU=%d KABUL_YOK=%d"
+             "KABUL_DOLU=%d KABUL_YOK=%d KABUL_BOS=%d"
              % (sonuc["EVREN"], sonuc["HARITADA"],
                 len(sonuc["EKSIK"]), len(sonuc["BAYAT"]), len(sonuc["SAHIPSIZ"]),
-                kabul_dolu, kabul_yok))
+                kabul_dolu, kabul_yok, kabul_bos))
     if mutant_basari is None and kontrol_basari is None:
         return temel
     if not mutant_basari:
@@ -567,6 +588,7 @@ def main():
             "BAYAT": sonuc["BAYAT"],
             "SAHIPSIZ": sonuc["SAHIPSIZ"],
             "KIRMIZI": sonuc["KIRMIZI"],
+            "KABUL_BOS": sonuc["KABUL_BOS"],
         }, indent=2, ensure_ascii=False))
     else:
         print("KAPI/NOBET HARITA KAPISI (salt-okunur)")
@@ -575,7 +597,7 @@ def main():
         print("Kapsam evreni (kod-kanitli): sys.exit(1..9) VEYA permissionDecision VEYA "
               "exit 1/2; -test/-mutasyon/-prob dislanir")
         print("")
-        print(ozet_satir(sonuc))
+        print(ozet_satir(sonuc, harita=harita))
         if sonuc["EKSIK"]:
             print("")
             print("EKSIK (evrende var, haritada yok) — RED:")
@@ -596,13 +618,20 @@ def main():
             print("KIRMIZI (gecersiz EV/SERIT) — RED:")
             for no, msg in sonuc["KIRMIZI"]:
                 print("  satir %d  %s" % (no, msg))
+        if sonuc["KABUL_BOS"]:
+            print("")
+            print("KABUL_BOS (KABUL_KOMUTU bos) — RED (Paket ③-d §H3):")
+            for no, yol, ad in sonuc["KABUL_BOS"]:
+                print("  satir %d  %s  (%s)" % (no, yol, ad))
 
     # RC davranisi:
     # - EKSIK veya BAYAT varsa RED -> rc=1
     # - KIRMIZI (gecersiz EV/SERIT) varsa RED -> rc=1
+    # - KABUL_BOS (Paket ③-d §H3) varsa RED -> rc=1
     # - SAHIPSIZ tek basina RED degil -> rc=0 (spec §2b)
     # - EVREN=0 ise RED -> rc=1 (bos evren yesil degil)
-    if (sonuc["EKSIK"] or sonuc["BAYAT"] or sonuc["KIRMIZI"] or sonuc["EVREN"] == 0):
+    if (sonuc["EKSIK"] or sonuc["BAYAT"] or sonuc["KIRMIZI"]
+            or sonuc["KABUL_BOS"] or sonuc["EVREN"] == 0):
         return 1
     return 0
 

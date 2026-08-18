@@ -1695,6 +1695,15 @@ jobs:
       - name: "Marka sayfasi artim + sayfa-ici model filtresi (davranis, node)"
         run: python3 tools/marka-artim-test.py
 
+      # SAHIPLIK HARITASI KAPISI — SERIT B (18 Agu 2026, Paket ③-d §4).
+      # KAPI/NOBET betiklerinin sahiplik haritasi kapisi: envareri KODDAN turetir,
+      # TSV ile karsilastirip EKSIK/BAYAT/KIRMIZI/KABUL_BOS uretir. Salt-okunur.
+      # SERIT B gerekcesi: bu bir "sizintili icerik canliya cikmasin" kapisi DEGIL,
+      # envanter hicyesigidir; yayini durdurmasi olculmus zarardir. Beyan:
+      # tools/is-akisi-kapisi.py :: SERIT_B. Offline, ag YOK, ~1 s.
+      - name: "Sahiplik haritasi kapisi — envanter + invaryant (hijyen, SERIT B)"
+        run: python3 tools/sahiplik-kapisi.py
+
       # ⚠️ DORT AGIR MUTASYON BATARYASI BU JOB'DAN CIKARILDI (10 Agu 2026) — bkz.
       # asagidaki `marka-bolum-bataryasi` · `marka-sayfa-bataryasi` ·
       # `model-uyelik-bataryasi` · `model-baslik-bataryasi` joblari. SILINMEDILER,
