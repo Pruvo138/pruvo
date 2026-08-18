@@ -12,12 +12,8 @@
 **CANLIYA GITTI:** K170 `69e6b83a` · K174+K166 `e70c89d7` · K152 `83aaf4e2` · K171 `043568e7` ·
 K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 success).
 **KOSUYOR (oldurulmedi):** yok — kendi turlarim bitti.
-**K181d MAIN'DE (`a2f6db8f`, 18 Agu 18:3xZ):** merge+push tamam (kapsam 2 dosya/261+, cakisma
-yok, ff imkansiz→merge commit). Kabul BAGIMSIZ yeniden olculdu: `9/9` · `23/23` · yeni vaka
-`14/14` · mutant `7/7` · agac temiz. D1 bes eksen yesil (29350). Worktree 2→1, artik dal 4
-silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merge-base
---is-ancestor a2f6db8f 0b0dc49f` rc=0 → K181d bu kosumun icinde). · YABANCI: `marka-uyelik-test.py` K136.
-**K175/T2/K170-K174-K166 kapanis isaretcileri ARSIVE tasindi** (lossless, 10 satir).
+**K181d MAIN'DE (`a2f6db8f`):** kabul bagimsiz olculdu (9/9 · 23/23 · 14/14 · mutant 7/7), D1 5 eksen yesil, `Build & deploy` `32155584610` SUCCESS (atalik rc=0). · YABANCI: `marka-uyelik-test.py` K136.
+🔧 **K187 (19 Agu, K186'dan dogdu — OLCULDU):** `kod:null` sayaci icin KALICI sink YOK (`shop/wrangler.toml`'da `kv_namespaces` yok; R2 sayac degil — atomik artirma yok + kapsam disi). Sink `console.error`, yalniz tail/Logpush ile gorunur → "yarim birakilan akis orani" GERIYE DONUK olculemez. Care KV binding ya da Logpush = OKAN KAPISI. Kod `talepOlayiSay()` arkasinda hazir.
 - 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
   ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
   olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
