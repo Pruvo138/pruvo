@@ -2,21 +2,35 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## ✅ K150 / K148 / K160 KAPANDI (17-18 Agu, KraL) — tam metin + 18 Agu kabul olcumu ARSIVDE
-SHA'lar `ed47d317` · `2f87a8bc` · `b180fa1a`. Karma bloktan iki kez dustu (gerekce K167).
-
-## 🔻 OTURUM KAPANISI — 18 Agu 03:1xZ (main `76358122` = origin, BIREBIR)
-**CANLIYA GITTI:** K164 yayin blokeri `f5671d37` (+ ikinci yuzey `0ab9dcde`); `build`+`deploy`+
-`yayin` success, CANLI `SITE_HTTP=200 URUN_HTTP=200`, `ozet.json` 13 alan/son `boy_secenekleri`
-· K166 `c6c05cf9` GIRDI, `d95de40e` GERI ALINDI (K170) · defter `da289188`.
-**KOSUYAN ISCI YOK** — 7 delege turu (codex `gpt-5.6-luna`: K164-teshis/kabul · K166-tasima/
-curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar silindi.
-**BEKLIYOR:** K170 (17 ciftin yargisi — BENDE) · `k152-link-temiz` merge ·
-`tools/marka-uyelik-test.py` yabanci+commitsiz (K136, DOKUNULMADI). **AGACTA (YABANCI):**
-`amazing-hamilton-c45e91` · `competent-dijkstra-754039` (OKSUZ/TEMIZ, main disi commit 0).
-
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
+- 🔴 **K175 (18 Agu — T1 PENCERESI OLCMUYOR; ONARIM UYGULANDI, CANLI KABUL BEKLIYOR):**
+  gozcu 09:23Z+10:23Z turlari `TETIK=OLCULEMEDI rc=2 · ci_olculdu=false · taban_alindi=false`
+  → pencereden kayip **2 tur**. KOK NEDEN OLCULDU (bagimsiz prob): `SEBEP_CRON=IKILI_YOK
+  WHICH_CRON=YOK SEBEP_TAM=TAMAM WHICH_TAM=/opt/homebrew/bin/gh KOSUM_TAM=40` — `gozcu.py:315`
+  ciplak `["gh",...]` + cron PATH'i `/usr/bin:/bin`; kardes hat `ci-nobeti.sh` PATH'i KENDISI
+  export ettigi icin `:07` calisiyordu. AYRI OLGU: `_gh_kosumlar` uc dunyayi tek `None`a
+  esliyordu (sebepsiz OLCULEMEDI). Hukum `tools/paket-k175-t1-gozcu-ci-sebebi.md`.
+  kabul: isci `VAKA=102 MUTANT=4/4 KONTROL=2/2` dedi (MIMARCA YENIDEN OLCULMEDI) **VE**
+  cron'un ATESLEDIGI turda `CI_SEBEP=TAMAM` (11:23Z).
+- 🔴 **③d (18 Agu — ③b'nin IDDIASI CURUDU; ③c kabulu KIRMIZI):** olculen
+  `EVREN=170 HARITADA=28 EKSIK=142 BAYAT=0 SAHIPSIZ=28 KABUL_DOLU=0 rc=1`. TSV'de 185 veri
+  satiri (171'i `EV=BILINMIYOR`) ama evrenle 28'i eslesiyor ve `BAYAT=0` → 157 satir ne
+  eslesiyor ne bayat: **birlestirme ekseni (EVREN anahtari ↔ `YOL` kolonu) tutmuyor** —
+  icerik degil ANAHTAR eksigi. Ayrica `--kendini-test` rc=1: **M4 mutanti + K1 kontrolu
+  TUTMADI** (batarya bozuk), `KABUL_KOMUTU` tum satirlarda BOS. `R_SAHIPLIK` muafiyeti
+  DURUYOR, kablo YOK. Dal `kral/paket3b-evren` KORUNDU, worktree 3→2. Hukum sonraki dilimde.
+- 🔧 **T2 (18 Agu — BaBa tatbikat sayaci 0/6):** kilit mekanizmasi VAR, tatbikati YOK.
+  Mimar ayrica olctu: `kilit.py` docstring'i `DEVRALINDI` hukmunu vaat ediyor, GOVDE hicbir
+  yolda URETMIYOR → temiz baslangic ile artik-kilit devralma AYIRT EDILEMIYOR.
+  Hukum `tools/paket-t2-sentetik-yaris.md`. kabul: `kilit-tatbikat.py` son satiri
+  **`CAKISMA_KANITI=EVET`** dahil + `MUTANT=3/3`.
+- 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):**
+  `d1-sync.py:157-158` `BlockingIOError` kolunda `os.getpid()` basiyor — ENGELLENEN surecin
+  pid'i, kilidi TUTANIN degil. MaCiT dort denemede dort farkli PID gorup "baska makine"
+  sandi; kilit GECICI'ydi (ikinci denemede alindi, D1 zaten 29151 senkron). Yayini BLOKLAMAZ,
+  TESHISI yanlis yone cevirir. kabul: mesaj tutanin kimligini basar ya da "tutanin kimligi
+  OLCULEMEDI" der; `os.getpid()` "PID=" etiketiyle BASILMAZ + mutant.
 - 🔴 **K167 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor):** `1c741e54`
   K150+K148'i, arsivde KAPANIS kaydi varken "KOSUYOR" ve main-disi commit'i OLMAYAN worktree
   ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
@@ -33,8 +47,6 @@ curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar si
   (`Ford` · `Volkswagen` mevcut + `Volvo` K170'te yazildi); tek kolu deny yazmak ayni alana iki
   hukum koyardi, uc kol TEK hukumle kapanir. Yayini BLOKLAMAZ (BEKLER hata degil). `kabul:` BOS.
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
-- 🟠 **K165 (18 Agu):** sitemap `lastmod` sure butcesi dolunca fail-loud DEGIL, sessizce
-  kesiliyor; kayit `lastmod`SIZ kaliyor (13). Yayini BLOKLAMAZ. Tam metin ARSIVDE.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR, icra bekliyor):** ikiz silmesinden sonra
   gizli kaynak kayit duzleminde **15 artik kayit** kaldi; kanonik duzeltme araci o duzleme
   DOKUNMUYOR. Hukum `tools/paket-k171-kaynak-temizle.md` (`cc6fece2`): ayri betik YOK, ayni
@@ -47,16 +59,11 @@ curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar si
   (`defter-rotasyon.py`) mutasyonla YESIL (7/7) ama kota bugun BES KEZ elle dondurulda
   (141/139/136/141/137). Kotayi asan rol MIMAR ve mimar o araci KOSAMAZ (icra kapisi).
   Yon: kanca otomatigi. `kabul:` BOS.
-- ✅ **K169 KAPANDI (18 Agu):** `a0fa061c` 0 silme yapiyordu (olculdu, main'e GIRMEDI); gercek
-  silme MaCiT'in `2d8fc34b`+`90ece475` commit'leriyle geldi — 29062→29047, `d1-sync --durum`
-  D1=29047 birebir. Tam metin ARSIVDE.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   Tam metin ARSIVDE.
   Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. `kabul:` alani BOS.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` BES oturumdur
   commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
-- 🔵 **K132 (17 Agu, KAYIT — yayini BLOKLAMAZ):** `isci-tur-tavani-test.py` tek basina
-  KALDI, `testler.py` icinden GECTI; celiski uretilemedi. Tam metin + kabul ARSIVDE.
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
@@ -66,19 +73,13 @@ curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar si
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- 🔧 **K163 (17 Agu — K149'un ARTIGI; ayni fail-silent sinifi SURUYOR):** `isci-temizlik.py`
-  satir **168-169'da hala ciplak `except OSError: pass`**; ayrica 45/63/125'te listeleme
-  hatasi `return 0` ile **"olculemedi"yi 0 okuyor** — bu depoda yasak eksen. Yon: her kol
-  ya `atlanan`'a yazsin ya fail-loud dursun; `0` yalnizca OLCULEN sifir icin.
-  kabul: `grep -c "except OSError: pass" ~/.claude/cron/isci-temizlik.py` → **0** VE
-  listeleme hatasinda sayac `OLCULEMEDI` isaretlesin (vaka + mutant).
-- 🔴 **K162 (17 Agu — CANLI TURUN PROFILI "CANLI" SAYILMIYOR; tur cokme riski):**
-  profil dizini `profil-<MODEL>-<ETIKET>` adlanirken canli kontrol `pgrep -fl isci.sh`
-  ciktisinin SON token'ini (`<ETIKET>`) karsilastiriyor → eslesmiyor. Su an tek koruma
-  **2 saatlik tazelik penceresi**; 2 saati asan bir tur profilini kaybedip COKER.
-  Bugun tetiklenmedi (`CANLI_ETIKET=0`) ama kosul rastlantisal.
-  kabul: canli tur fiksturuyle profil silinmez (vaka) **VE** mutant (eslesmeyi bozan)
-  KIRMIZI yakar.
+- 🔧 **K163 (17 Agu — K149'un ARTIGI, fail-silent sinifi):** `isci-temizlik.py:168-169` ciplak
+  `except OSError: pass`; 45/63/125'te listeleme hatasi `return 0` ile "olculemedi"yi 0 okuyor.
+  Tam metin ARSIVDE. kabul: `grep -c "except OSError: pass"` → **0** VE `OLCULEMEDI` isareti.
+- 🔴 **K162 (17 Agu — canli turun profili "CANLI" sayilmiyor; tur cokme riski):** profil adi
+  `profil-<MODEL>-<ETIKET>` iken canli kontrol `pgrep` ciktisinin SON token'ini karsilastiriyor.
+  Tek koruma 2 saatlik tazelik penceresi. Tam metin ARSIVDE. kabul: canli tur fiksturuyle
+  profil silinmez **VE** mutant KIRMIZI yakar.
 - 🔴 **K157 (17 Agu — kimi hatti kok neden BULUNDU, karar OKAN'DA; 22 Agu'ya kadar KAPALI):**
   tam metin ARSIVDE. ⚖️ Okan emri: yeni olcum turu ACILMAZ; motor plani 20 Agu'ya kadar
   codex (alt model), sonra m3. kabul: 22 Agu'da nabiz `SAGLIK=YESIL` ise kapanir.
@@ -111,7 +112,6 @@ curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar si
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
   ekseninde ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
   (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
-- 🟡 **"Kosum sinyali kirli" ACIK KALDI** — K166 girdi (`c6c05cf9`) ve GERI ALINDI (`d95de40e`); devami K170.
 - 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
   cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
