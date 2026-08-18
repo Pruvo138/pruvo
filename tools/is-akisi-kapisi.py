@@ -4765,6 +4765,23 @@ G_IDDIA_TABANI = 11
 # gerekli — sayac degerinin niye 11 oldugu ileride sorulursa cevap burada.
 
 
+def _hedef_kol_dogrula(ad, bulgu, hedef_kollar):
+    """Beyan edilen her hedef kol icin BULGU'da o kolun satiri var mi?
+
+    Doner: hata metinleri listesi (bos liste = tum hedef kollar yandi).
+    TEK GOVDE: hem mutant dongusu hem META-VAKA BURAYI cagirir; ikinci
+    kopya YASAK (kopyalayan test kaynagi olcmez).
+    """
+    hatalar = []
+    for kol in hedef_kollar:
+        if not any(h.startswith(kol + " ") for h in bulgu):
+            hatalar.append(
+                "G-HEDEF KOL OLMEDI: %r -> %s yanmadi (kirmizi BASKA "
+                "koldan geldi; beyan yanlis ya da eksen OLmus olabilir)."
+                % (ad, kol))
+    return hatalar
+
+
 def _g_kendini_test():
     """(hatalar, iddia) — Bolum G ariza enjeksiyonu + kosum sonucu simulatoru."""
     hatalar = []
@@ -4833,12 +4850,9 @@ def _g_kendini_test():
             # K182 hedef kol dogrulamasi: her beyan edilen kol icin BULGU'da o
             # kolun baslattigi bir satir olmali. Yoksa mutant BASIT bir hata
             # uretiyor olabilir, HEDEF kolu yakmiyor olabilir — sessiz.
-            for kol in hedef_kollar:
-                if not any(h.startswith(kol + " ") for h in bulgu):
-                    hatalar.append(
-                        "G-HEDEF KOL OLMEDI: %r -> %s yanmadi (kirmizi BASKA "
-                        "koldan geldi; beyan yanlis ya da eksen OLmus olabilir)."
-                        % (ad, kol))
+            # TEK GOVDE: _hedef_kol_dogrula; META-VAKA da BURAYA cagirir
+            # (kopyalayan test kaynagi olcmez).
+            hatalar.extend(_hedef_kol_dogrula(ad, bulgu, hedef_kollar))
 
         # META-VAKA (TABLOYA GIRMEZ): K183-M2 mutasyonunu uygula ama hedef kolu
         # KASTEN yanlis beyan et. Bu durumda `G-HEDEF KOL OLMEDI` uretilmeli —
@@ -4850,22 +4864,33 @@ def _g_kendini_test():
                  "github.event_name == 'workflow_dispatch' && github.run_id || 'push'",
                  "github.event_name == 'workflow_dispatch' && 'dispatch' || 'push'"))
         meta_bulgu, _ = yayin_sinyali_kontrol(gecici)
-        # Hedef kolu KASTEN yanlis beyan et (gercek kol G10) — asagidaki AYNI
-        # dongu K182 mekanizmasinin parcasi. Beyan yanlis oldugu icin
-        # `G-HEDEF KOL OLMEDI` uretilmeli.
-        _meta_hedef = ("G1",)
-        _meta_uretti_hedef_hatasi = False
-        for kol in _meta_hedef:
-            if not any(h.startswith(kol + " ") for h in meta_bulgu):
-                # K182 mekanizmasi bunu tablo disinda uretiyor (rapora girmesin);
-                # burada sadece "calisiyor mu" sorusuna cevap topluyoruz.
-                _meta_uretti_hedef_hatasi = True
-                break
-        if not _meta_uretti_hedef_hatasi:
+        # IKI YONLU ATIF DOGRULAMASI (K183b TUR 2): K183-M2 mutasyonu uygulandi;
+        # gercek kol G10 (dispatch), biz iki ayri beyanla TEK GOVDEYI
+        # (_hedef_kol_dogrula) her iki yonden de olcuyoruz. Ikinci kopya YASAK
+        # (kopyalayan test kaynagi olcmez). Iki yon de AYRI iddia sayilir —
+        # tek yon yetmez: yalniz yanlis-beyan yonu olculurse sabit
+        # `return ["hata"]` body bile yesil verirdi.
+        #
+        # YANLIS beyan yonu (G1): gercek kol G10, beyan G1. ATIF mekanizmasi
+        # `G-HEDEF KOL OLMEDI` uretmeli (yakalamali). Bos donerse MEKANIZMA OLU.
+        iddia += 1
+        _yanlis_meta_hatalar = _hedef_kol_dogrula("META", meta_bulgu, ("G1",))
+        if not _yanlis_meta_hatalar:
             hatalar.append(
                 "G-ATIF MEKANIZMASI OLU: K183-M2 mutasyonu + yanlis hedef beyani "
                 "(G1) uygulandi, ama `G-HEDEF KOL OLMEDI` uretilmedi -> K182 "
                 "ATIF kontrolu calismiyor; hedef kol dogrulamasi BYPASS olabilir.")
+        # DOGRU beyan yonu (G10): gercek kol G10, beyan G10. ATIF mekanizmasi
+        # hata URETMEMELI. Uretirse YANLIS POZITIF — sabit-TRUE body bile
+        # bunu yakalar.
+        iddia += 1
+        _dogru_meta_hatalar = _hedef_kol_dogrula("META", meta_bulgu, ("G10",))
+        if _dogru_meta_hatalar:
+            hatalar.append(
+                "G-ATIF YANLIS POZITIF: K183-M2 mutasyonu + dogru hedef beyani "
+                "(G10) uygulandi, ama `G-HEDEF KOL OLMEDI` uretildi -> K182 ATIF "
+                "mekanizmasi sabit-TRUE (her zaman hata donen) body olabilir: %s"
+                % _dogru_meta_hatalar[0])
         # G7: kapsam ekseni — SERIT_B_DOSYALARI'nda OLMAYAN bir nobet adi KIRMIZI.
         iddia += 1
         yaz(G_YAYIN_FIKSTUR, G_NOBET_FIKSTUR)
