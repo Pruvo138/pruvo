@@ -1710,6 +1710,14 @@ jobs:
       # tavani) bloklayici seritteki marka-sayac-kapisi'nda ZATEN olculuyor.
       - name: "Marka sayfasi artim + sayfa-ici model filtresi (davranis, node)"
         run: python3 tools/marka-artim-test.py
+      # KAYNAK LINK TAMAMLA — K152 kabul + mutasyon bataryasi (17 Agu 2026).
+      # Gizli kaynak defterindeki eksik uretici linkini tamamlar; urunler.json'a
+      # dokunmaz. Hijyen ekseni: kirmizisi musteriye yanlis para odetmez, veri
+      # sizdirmaz, siteyi durdurmaz.
+      - name: "Kaynak link tamamlama: kabul testi (fikstur + gercek beyan)"
+        run: python3 tools/kaynak-link-test.py
+      - name: "Kaynak link tamamlama: mutasyon bataryasi"
+        run: python3 tools/kaynak-link-test.py --mutasyon
 
       # SAHIPLIK HARITASI KAPISI — SERIT B (18 Agu 2026, Paket ③-d §4).
       # KAPI/NOBET betiklerinin sahiplik haritasi kapisi: envareri KODDAN turetir,
