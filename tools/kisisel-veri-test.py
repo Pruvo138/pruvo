@@ -34,6 +34,7 @@ Neyi doğrular:
 (çıkış kodu 0 = geçti)
 """
 import json
+import inspect
 import os
 import re
 import subprocess
@@ -1108,6 +1109,123 @@ def _dosya_oku(yol):
         return f.read()
 
 
+# ---------------------------------------------------------------------------
+# BOLUNMUS RAKAM LITERAL NOBETCISI — KACIS TEKNIGI REGRESYON KAPISI
+#
+# KACIS: kanonik telefon degeri kaynakta iki rakam literaline bolunup arti ile
+# birlestirilirse, duz literal arayan sizinti nobetcisi onu goremez. Bu kapi
+# numaranin kendisini listelemez; kaynakta telefon uzunluguna yakin iki komsu
+# rakam literalini yakalar. Fiksturler asagida parcalardan kurulur ki bu dosya
+# kendi pozitif vakasini canli taramada yeniden yakalamasin.
+_BOLUNMUS_KAYNAK_UZANTILARI = (
+    ".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".html", ".css",
+    ".json", ".yaml", ".yml", ".sh",
+)
+_BOLUNMUS_MIN_BASAMAK = 10
+_BOLUNMUS_MAX_BASAMAK = 12
+_BOLUNMUS_RE = re.compile(
+    r"(?P<sol_tirnak>[\"'])(?P<sol>\d{2,})(?P=sol_tirnak)\s*\+\s*"
+    r"(?P<sag_tirnak>[\"'])(?P<sag>\d{2,})(?P=sag_tirnak)"
+)
+
+
+def _bolunmus_rakam_isabetleri(dosyalar, oku=None):
+    """Izlenen kaynaklar -> (yol, basamak sayisi, kaynak eslesmesi) isabetleri."""
+    oku = oku or _dosya_oku
+    isabet = []
+    for yol in sorted(dosyalar):
+        if not yol.endswith(_BOLUNMUS_KAYNAK_UZANTILARI):
+            continue
+        try:
+            metin = oku(yol).decode("utf-8", "ignore")
+        except OSError:
+            continue
+        for m in _BOLUNMUS_RE.finditer(metin):
+            basamak = len(m.group("sol")) + len(m.group("sag"))
+            if _BOLUNMUS_MIN_BASAMAK <= basamak <= _BOLUNMUS_MAX_BASAMAK:
+                isabet.append((yol, basamak, m.group(0)))
+    return sorted(isabet)
+
+
+def _bolunmus_rakam_fikstur_korpusu():
+    """Pozitif JS/Python ve yanlis-pozitif sinirlarini bellekte kurar."""
+    cift_tirnak = chr(34)
+    tek_tirnak = chr(39)
+    pozitif_js = ("const telefon = " + cift_tirnak + "905" + cift_tirnak +
+                  " + " + cift_tirnak + "550001111" + cift_tirnak)
+    pozitif_py = ("telefon = " + tek_tirnak + "905" + tek_tirnak +
+                  " + " + tek_tirnak + "550001111" + tek_tirnak)
+    kisa_surum = ("surum = " + cift_tirnak + "20" + cift_tirnak +
+                  " + " + cift_tirnak + "26" + cift_tirnak)
+    rakam_olmayan = ("etiket = " + cift_tirnak + "905" + cift_tirnak +
+                     " + " + cift_tirnak + "parca" + cift_tirnak)
+    return {
+        "fikstur/pozitif.js": pozitif_js.encode("utf-8"),
+        "fikstur/pozitif.py": pozitif_py.encode("utf-8"),
+        "fikstur/yesil-surum.js": kisa_surum.encode("utf-8"),
+        "fikstur/yesil-metin.py": rakam_olmayan.encode("utf-8"),
+    }
+
+
+def bolunmus_rakam_fikstur_hatalari():
+    """Pozitif/negatif vaka ve tarayiciyi olduren mutant kaniti."""
+    hatalar = []
+    korpus = _bolunmus_rakam_fikstur_korpusu()
+    bulunan = _bolunmus_rakam_isabetleri(sorted(korpus), oku=lambda y: korpus[y])
+    cift_tirnak = chr(34)
+    tek_tirnak = chr(39)
+    beklenen_js = (cift_tirnak + "905" + cift_tirnak + " + " +
+                   cift_tirnak + "550001111" + cift_tirnak)
+    beklenen_py = (tek_tirnak + "905" + tek_tirnak + " + " +
+                   tek_tirnak + "550001111" + tek_tirnak)
+    beklenen = [("fikstur/pozitif.js", 12, beklenen_js),
+                ("fikstur/pozitif.py", 12, beklenen_py)]
+    if bulunan != beklenen:
+        hatalar.append("FIKSTUR(karisik) beklenen pozitif/negatif kumesi %r yerine %r"
+                       % (beklenen, bulunan))
+
+    # Mutant: tarama dongusunu bosaltir; pozitif vakalar artik gorulmez.
+    # Kaynak metnindeki eski/yeni satirlar AYRICA kontrol edilir; yalnizca bir
+    # fonksiyonu kopyalayan veya mutation satirini uygulamayan test yesil kalamaz.
+    kaynak = inspect.getsource(_bolunmus_rakam_isabetleri)
+    eski = "for m in _BOLUNMUS_RE.finditer(metin):"
+    yeni = "for m in ():  # MUTANT: bolunmus-rakam vakasini oldurur"
+    if eski not in kaynak:
+        hatalar.append("MUTANT KAYNAKTA YERI YOK — tarama dongusu bulunamadi")
+    mutant_kaynak = kaynak.replace(eski, yeni, 1)
+    if mutant_kaynak == kaynak or yeni not in mutant_kaynak:
+        hatalar.append("MUTANT KAYNAGA GIRMEDI — kaynak degisikligi kanitlanamadi")
+    else:
+        mutant_ad = {}
+        exec(mutant_kaynak, globals(), mutant_ad)
+        mutant_bulunan = mutant_ad["_bolunmus_rakam_isabetleri"](
+            sorted(korpus), oku=lambda y: korpus[y])
+        if mutant_bulunan:
+            hatalar.append("MUTANT VAKAYI OLDUREMEDI — mutant kaynakta ama pozitif isabet "
+                           "hala bulundu: %r" % (mutant_bulunan,))
+    return hatalar
+
+
+def bolunmus_rakam_nobeti():
+    """Izlenen kaynaklarda iki komsu rakam literalinin telefon-benzeri birlesimini tara."""
+    hatalar = bolunmus_rakam_fikstur_hatalari()
+    yollar, hata = _izlenen_dosyalar()
+    if hata:
+        hatalar.append("OLCULEMEDI (bolunmus rakam nobeti) — %s" % hata)
+        return hatalar, 0
+    if KAPI_YOLU not in yollar:
+        hatalar.append("OLCULEMEDI (CANLILIK, bolunmus rakam nobeti) — izlenen liste "
+                       "kapinin KENDI yolunu (%s) icermiyor" % KAPI_YOLU)
+        return hatalar, 0
+    for yol, basamak, _eslesme in _bolunmus_rakam_isabetleri(yollar):
+        hatalar.append("BOLUNMUS RAKAM LITERAL SIZINTI TEKNIGI: %s icinde telefon "
+                       "uzunluguna yakin iki rakam dizisi arti ile birlestirildi "
+                       "(%d basamak)" % (yol, basamak))
+    taranan = len([yol for yol in yollar
+                   if yol.endswith(_BOLUNMUS_KAYNAK_UZANTILARI)])
+    return hatalar, taranan
+
+
 def tedarikci_isabetleri(yollar, oku=None):
     """Izlenen yol listesi -> (yol, kalip) isabetleri, sirali. GERCEK tarama ve fikstur
     oz-kontrolu AYNI fonksiyonu kullanir: govdesi no-op yapilirsa (or. 'return []')
@@ -1923,7 +2041,10 @@ def main():
     # 4) TEDARIKCI/URUN ADI SIZINTI NOBETCISI (kuresel negatif ICERIK kurali)
     tedarikci_hatalari, ted_taranan = tedarikci_nobeti()
 
-    # 4b) ILETISIM YUZEYI NOBETCISI (icerik ekseni: telefon baglami + e-posta alan adi,
+    # 4b) BOLUNMUS RAKAM LITERAL NOBETCISI (kacis teknigi regresyon kapisi)
+    bolunmus_hatalari, bolunmus_taranan = bolunmus_rakam_nobeti()
+
+    # 4c) ILETISIM YUZEYI NOBETCISI (icerik ekseni: telefon baglami + e-posta alan adi,
     #     KANONIK desen kaynagina bagli). Kor nokta gerekcesi icin bolum basligina bak.
     iletisim_hatalari, iletisim_taban = iletisim_nobeti()
 
@@ -1941,7 +2062,7 @@ def main():
         for h in pk_hatalari:
             print("  - " + h)
 
-    if (hatalar or rapor_hatalari or tedarikci_hatalari or pk_hatalari
+    if (hatalar or rapor_hatalari or tedarikci_hatalari or bolunmus_hatalari or pk_hatalari
             or gecmis_hatalari or iletisim_hatalari):
         if hatalar:
             _yaz_hatalar("kişisel veri testi", hatalar)
@@ -1949,6 +2070,8 @@ def main():
             _yaz_hatalar("iç rapor sızıntı nöbetçisi", rapor_hatalari)
         if tedarikci_hatalari:
             _yaz_hatalar("tedarikçi/ürün adı sızıntı nöbetçisi", tedarikci_hatalari)
+        if bolunmus_hatalari:
+            _yaz_hatalar("bölünmüş rakam literal sızıntı nöbetçisi", bolunmus_hatalari)
         if iletisim_hatalari:
             _yaz_hatalar("iletişim yüzeyi nöbetçisi (içerik ekseni)", iletisim_hatalari)
         if gecmis_hatalari:
@@ -1966,6 +2089,10 @@ def main():
     print("YEŞİL — tedarikçi/ürün adı sızıntı nöbetçisi geçti "
           "(%d izlenen dosya içeriği tarandı, %d dar literal)."
           % (ted_taranan, len(_TED_KALIPLAR)))
+    print("YEŞİL — bölünmüş rakam literal sızıntı nöbetçisi geçti "
+          "(%d izlenen kaynak dosya tarandı; JS/Python pozitif + kısa sürüm/rakam-dışı "
+          "negatif fikstür; mutant kaynakta uygulanıp öldürüldü)."
+          % bolunmus_taranan)
     print("YEŞİL — iletişim yüzeyi nöbetçisi geçti (%d iddia: %s / taban: %d dosya · "
           "%d WA vuruşu · %d arama vuruşu · %d e-posta host · %d gerekçeli muafiyet · "
           "%d kanonik desen)."
