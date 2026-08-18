@@ -4,25 +4,27 @@
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
-- 🔴 **K175 (18 Agu — T1 PENCERESI OLCMUYOR; ONARIM UYGULANDI, CANLI KABUL BEKLIYOR):**
-  gozcu 09:23Z+10:23Z turlari `TETIK=OLCULEMEDI rc=2 · ci_olculdu=false · taban_alindi=false`
-  → pencereden kayip **2 tur**. KOK NEDEN OLCULDU (bagimsiz prob): `SEBEP_CRON=IKILI_YOK
-  WHICH_CRON=YOK SEBEP_TAM=TAMAM WHICH_TAM=/opt/homebrew/bin/gh KOSUM_TAM=40` — `gozcu.py:315`
-  ciplak `["gh",...]` + cron PATH'i `/usr/bin:/bin`; kardes hat `ci-nobeti.sh` PATH'i KENDISI
-  export ettigi icin `:07` calisiyordu. AYRI OLGU: `_gh_kosumlar` uc dunyayi tek `None`a
-  esliyordu (sebepsiz OLCULEMEDI). Hukum `tools/paket-k175-t1-gozcu-ci-sebebi.md`.
-  kabul: isci `VAKA=102 MUTANT=4/4 KONTROL=2/2` dedi (MIMARCA YENIDEN OLCULMEDI) **VE**
-  cron'un ATESLEDIGI turda `CI_SEBEP=TAMAM` (11:23Z).
-- 🔴 **③d (18 Agu — ③b'nin IDDIASI CURUDU; ③c kabulu KIRMIZI):** olculen
-  `EVREN=170 HARITADA=28 EKSIK=142 BAYAT=0 SAHIPSIZ=28 KABUL_DOLU=0 rc=1`. TSV'de 185 veri
-  satiri (171'i `EV=BILINMIYOR`) ama evrenle 28'i eslesiyor ve `BAYAT=0` → 157 satir ne
-  eslesiyor ne bayat: **birlestirme ekseni (EVREN anahtari ↔ `YOL` kolonu) tutmuyor** —
-  icerik degil ANAHTAR eksigi. Ayrica `--kendini-test` rc=1: **M4 mutanti + K1 kontrolu
-  TUTMADI** (batarya bozuk), `KABUL_KOMUTU` tum satirlarda BOS. `R_SAHIPLIK` muafiyeti
-  DURUYOR, kablo YOK. Dal `kral/paket3b-evren` KORUNDU, worktree 3→2. Hukum sonraki dilimde.
-- ✅ **T2 KAPANDI (18 Agu) — BaBa tatbikat sayaci 0/6 → 1/6, ILK gercek "kuruldu".**
-  `CAKISMA_KANITI=EVET T2B_HUKUM=DEVRALINDI DUSEN=0 MUTANT=3/3 RC=0`; mimar ham logu KENDI
-  grep'ledi (jeton 2/4/3, onceki uydurmada 0/0/0). Tam metin ARSIVDE.
+- ✅ **K175 KAPANDI (18 Agu) — T1 penceresi ARTIK OLCUYOR.** Canli kabul (cron'un KENDI
+  atesledigi tur): `11:23:00Z TETIK=DEFTER_DAGITIM CI_SEBEP=TAMAM rc=1` · `ci_olculdu=true` ·
+  `taban_alindi=true` (4 kosum). rc=1 gh degil `HUKUM=ONARIMSIZ_TUR`. Tam metin ARSIVDE.
+- 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
+  ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
+  olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
+- 🔴 **T3/T4 KANITI GELDI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0
+  ONARIM=0 KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, HICBIR SEY
+  onarmiyor; 12 kalemin 10'u MIMAR'a yigiliyor. T3 tam bu sayiyi hedefliyor.
+- 🔴 **③f (18 Agu — UC TURUN CELISKISI COZULDU; kok neden SABIT MUTLAK KOK):**
+  `sahiplik-kapisi.py:47` `CANON="/Users/okan/dev/pruvo"`; `--repo` verilmezse **hangi
+  worktree'den cagrilirsa cagrilsin ANA CHECKOUT'u olcer**. Mimarin git objesinden olcumu:
+  dal TSV'si 186 satir (main 43) → dosya YERINDE. ③c (`HARITADA=28`) ve ③e (`28`) main'in
+  TSV'sini okumus; ③d (`171/171`) `--repo` ile dogru agaci okumus. Uc tur da dogru kostu,
+  KAPI yanlis yere bakti. 🔴 CI ETKISI: ③d kapiyi `nobet.yml` SERIT B'ye BAGLADI ama
+  kosucuda `/Users/okan/...` YOK → merge edilirse serit her kosumda kirmizi/coker.
+  ⚠️ ③e'nin ikinci kirmizisi (`R_SAHIPLIK grep -c=3`) BENIM kabul jetonumun hatasi: muafiyet
+  gercekten kalkmis (tanim yorumda, `IZIN_LISTESI` girdisi silinmis), 3 isabet yorum metninde
+  — jeton adi sayan kabul davranis olcmez. Hukum `tools/paket-3f-kapi-agac-bagimsizligi.md`.
+- ✅ **T2 KAPANDI (18 Agu) — BaBa sayaci 0/6 → 1/6.** `CAKISMA_KANITI=EVET MUTANT=3/3 RC=0`;
+  mimar ham logu KENDI grep'ledi (2/4/3, onceki uydurmada 0/0/0). Tam metin ARSIVDE.
 - 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):**
   `d1-sync.py:157-158` `BlockingIOError` kolunda `os.getpid()` basiyor — ENGELLENEN surecin
   pid'i, kilidi TUTANIN degil. MaCiT dort denemede dort farkli PID gorup "baska makine"
