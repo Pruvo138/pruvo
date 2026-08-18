@@ -2,30 +2,39 @@
 # -*- coding: utf-8 -*-
 """tools/sahiplik-kapisi.py — KAPI/NOBET betiklerinin SAHIPLIK HARITASI kapisi.
 
-Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar):
+Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar) + Paket ③-b (18 Agu 2026,
+evren genisletildi: sys.exit(<call>) + raise SystemExit(...) + M4 mutant):
 
   Invaryant: `tools/` ve `~/.claude/cron/` altindaki HER KAPI/NOBET betigi
   haritada BIR satira sahiptir (1 satir = 1 betik).
 
   Kapsam evreni KODDAN turetilir (ad desenine DEGIL):
     - dosya .py ise: `sys.exit(1..9)` ile fail-closed RED uretiyor
-      ya da `permissionDecision` yaziyor (PreToolUse gate semantigi)
+      ya da `sys.exit(<fonksiyon_cagrisi>)` (sys.exit(main()) dahil)
+      ya da `raise SystemExit(...)` ya da `permissionDecision` yaziyor
+      (PreToolUse gate semantigi)
     - dosya .sh ise: `exit 1` ya da `exit 2` ile fail-closed RED uretiyor
     - dosya -test.py / -mutasyon- / -prob- iceriyorsa DISLANIR
       (bunlar KAPI'lari TEST eden altyapi, KAPI'nin kendisi degil)
 
+  Paket ③-b: BILINEN KAPI LISTESI (tohum) olarak 6 dosya test kasidir:
+    defter-rotasyon · denetim-kapisi · kanca-nobeti · stl-uc-kopya-nobet ·
+    yayin-kapisi · uyum-kapisi. Olcut KODDAN bunlari yakalamalidir; yakalamazsa
+    olcut dardir (M4 mutant ile dogrulanir).
+
   Kabul 1 (calistirilabilir):
     python3 tools/sahiplik-kapisi.py --kendini-test
     son satir + rc=0:
-      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> MUTANT=3/3 KONTROL=2/2
+      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> KABUL_DOLU=<n> KABUL_YOK=<n> MUTANT=4/4 KONTROL=2/2
 
-  Kabul 2 (rapor): son satir + jeton kanit blogu + SAHIPSIZ listesi.
+  Kabul 2 (rapor): son satir + jeton kanit blogu + SAHIPSIZ listesi +
+    `TOHUM_6_EVRENDE=6/6` + `CI_MUAFIYET=...`.
 
   Disiplin: salt-okunur; hicbir yola YAZMAZ, git degisikligi YAPMAZ.
 
 Kullanim:
     python3 tools/sahiplik-kapisi.py                   # ana olcum, EVREN/HARITA durumu
-    python3 tools/sahiplik-kapisi.py --kendini-test    # 3 mutant + 2 kontrol kosar
+    python3 tools/sahiplik-kapisi.py --kendini-test    # 4 mutant + 2 kontrol kosar
     python3 tools/sahiplik-kapisi.py --repo /farkli    # izole kopya olcer (test)
     python3 tools/sahiplik-kapisi.py --json            # makine-okunur cikti
 """
@@ -35,10 +44,56 @@ import os
 import re
 import sys
 
-CANON = "/Users/okan/dev/pruvo"
-CRON = "/Users/okan/.claude/cron"
 HARITA_REPO_RELATIF = "tools/sahiplik-haritasi.tsv"
 HARITA_GENEL = HARITA_REPO_RELATIF
+
+# Paket ③-f §H1 — HEDEF AĞACIN TURETILMESI:
+# CANON ("/Users/okan/dev/pruvo") artik varsayilan hedef degildir. Hedef ağac
+# betigin KENDI konumundan turetilir (tools/ altinda olduguna gore bir ust dizin).
+# --repo bayragi OVERRIDE olarak kalir; sessiz geri dusus YASAK.
+#
+# Paket ③-f §H2 — CRON DIZINININ OPSIYONELLIGI:
+# CRON eskiden "/Users/okan/.claude/cron" sabit mutlak yoluna bagliydi; CI kosucusunda
+# bu yol YOKTUR ve kapinin evreni yalanla "0 cron" diye rapor ediyordu. CRON dizini
+# artik $HOME/.claude/cron olarak turetilir; yoksa OLCULEMEDI, "0" DEGIL.
+#
+# Paket ③-f §H3 — TASNABILIRLIK:
+# Repo koku disinda HICBIR mutlak yol hedef belirlemede kullanilmaz. CI farkli
+# bir kok acabilir, CRON dizini farkli bir evde olabilir; kapinin kendi konumu
+# + $HOME tek girdidir.
+def _repo_kok_turetilmis():
+    """Betigin konumundan repo kokunu turetir. __file__ = .../tools/sahiplik-kapisi.py
+    olduguna gore ust dizin (parent.parent) repo kokudur. Hangi worktree'den
+    cagrilirsa cagrilsin KENDI agacini olcer — paket ③-f §H1.
+    """
+    burasi = os.path.dirname(os.path.abspath(__file__))
+    return os.path.abspath(os.path.join(burasi, os.pardir))
+
+
+def _cron_yolu_turetilmis():
+    """$HOME/.claude/cron — CRON evreninin tasinabilir koku. $HOME tanimsizsa veya
+    dizin yoksa None doner; bu durumda evren turetimi OLCULEMEDI uretir (paket ③-f §H2).
+    """
+    home = os.environ.get("HOME", "")
+    if not home:
+        return None
+    yol = os.path.join(home, ".claude", "cron")
+    if not os.path.isdir(yol):
+        return None
+    return yol
+
+# BILINEN KAPI LISTESI (tohum) — Paket ③-b spec §2a'dan. Evren KAYNAGI degil,
+# kabul testinde vaka olarak kullanilir. Olcut bu 6 dosyayi KODDAN yakalamalidir;
+# yakalamiyorsa olcut dardir (M4 mutant ile dogrulanir).
+TOHUM_6 = (
+    "defter-rotasyon.py",
+    "denetim-kapisi.py",
+    "kanca-nobeti.py",
+    "stl-uc-kopya-nobet.py",
+    "yayin-kapisi.py",
+    "uyum-kapisi.py",
+)
+TOHUM_6_YOL = tuple("tools/" + t for t in TOHUM_6)
 
 # Kabul edilen EV degerleri — spec §2a'dan; BILINMIYOR sozlesmeli gecersiz EV
 # yerine kullanilir (sahipsiz sayilir ama kapiyi YAKMAZ — spec §2b).
@@ -52,11 +107,31 @@ SERIT_OLARAK_KABUL = {"yayin", "veri", "nobet", "hijyen", "arac"}
 # ---------------------------------------------------------------------------
 # EVREN — KODDAN turetir (ad desenine degil).
 # ---------------------------------------------------------------------------
-def _kod_sinyali(path):
+def _anahtar(hangi, base):
+    """Tek anahtar normalizasyonu — Paket ③-d §H1.
+
+    Evren tarafi ve harita YOL kolonu ayni fonksiyondan gecer; iki ayri
+    normalizasyon YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]). Kanonik bicim:
+      tools/<base>         — repo-goreli tools/ dosyasi
+      cron:<base>          — ~/.claude/cron/ altindaki betik
+    """
+    if hangi == "cron":
+        return "cron:" + base
+    return "tools/" + base
+
+
+def _kod_sinyali(path, broad=True):
     """Bir dosyanin fail-closed gate / nobet semantigi tasidiginin KOD kaniti.
 
-    Python: sys.exit(1..9) ya da permissionDecision.
-    Shell:  exit 1 / exit 2.
+    Python:
+      - her zaman: sys.exit(1..9) literal VEYA permissionDecision VEYA shell exit 1/2
+      - broad=True: sys.exit(main()) veya raise SystemExit(...) (ek KAPI/NOBET sema)
+      Bu sayede Paket ③-b ozellikle defter-rotasyon.py, denetim-kapisi.py,
+      kanca-nobeti.py, stl-uc-kopya-nobet.py, yayin-kapisi.py, uyum-kapisi.py
+      (6 tohum) kapsama alinir.
+    M4 mutant testi broad=False kullanir — bu sayede olcut daraltildiginda
+      5 tohum evrenden duser ve haritada BAYAT olarak yuzeye cikar.
+
     Bos dosya, okunamayan dosya, .md/.txt/.log/.tsv -> False.
     """
     if not os.path.isfile(path):
@@ -77,9 +152,19 @@ def _kod_sinyali(path):
     if not icerik.strip():
         return False
     if path.endswith(".py"):
-        if "sys.exit(1)" in icerik or "sys.exit(2)" in icerik or "sys.exit(3)" in icerik:
+        # Dar (her zaman): sys.exit(1..9) literal
+        if re.search(r"sys\.exit\([1-9]\)", icerik):
             return True
+        # permissionDecision (PreToolUse gate semantigi)
         if "permissionDecision" in icerik:
+            return True
+        if not broad:
+            return False
+        # Genis: sys.exit(<fonksiyon_cagrisi>) — sys.exit(main()), sys.exit(rc) vb.
+        if re.search(r"sys\.exit\(\s*[A-Za-z_]\w*\s*\(", icerik):
+            return True
+        # raise SystemExit(...) — sys.exit ile esanlamli fail-closed
+        if re.search(r"raise\s+SystemExit\s*\(", icerik):
             return True
         return False
     if path.endswith(".sh"):
@@ -112,11 +197,18 @@ def _test_mutasyon_dislama(base):
 def evreni_turet(tools_dir, cron_dir):
     """tools/ + cron/ altinda KAPI/NOBET evrenini KOD SEMBOLunden turetir.
 
-    Dondurur: list of dict, her biri:
-      { "yol": repo-goreli veya "cron:<base>", "mutlak": tam yol, "base": dosya adi }
+    Dondurur: (list, cron_durum)
+      list[i] = { "yol", "mutlak", "base" }
+      cron_durum = { "yol": str veya None, "mevcut": bool, "evren": int,
+                     "sebep": str veya None }
+
+    Paket ③-f §H2: cron_dir None veya dizin degilse evren 0 OLUR ve sebep
+    OLCULEMEDI uretir (eski davranis yalniz "yok say" idi; bu eksende 0 saymak
+    bu depoda yasak eksen K163/K175 ile ayni sinif).
     """
     bulunan = []
     seen = set()
+    cron_durum = {"yol": cron_dir, "mevcut": False, "evren": 0, "sebep": None}
     for kok, hangi, files in (
         (tools_dir, "tools", os.listdir(tools_dir)) if os.path.isdir(tools_dir) else (None, None, []),
     ):
@@ -132,8 +224,16 @@ def evreni_turet(tools_dir, cron_dir):
             if _test_mutasyon_dislama(f):
                 continue
             if _kod_sinyali(mutlak):
-                bulunan.append({"yol": "tools/" + f, "mutlak": mutlak, "base": f})
-    if os.path.isdir(cron_dir):
+                bulunan.append({"yol": _anahtar("tools", f), "mutlak": mutlak, "base": f})
+    if cron_dir is None:
+        if os.environ.get("HOME", ""):
+            cron_durum["sebep"] = "CRON dizini yok (HOME/.claude/cron bulunamadi)"
+        else:
+            cron_durum["sebep"] = "HOME tanimsiz; CRON dizini turetilmedi"
+    elif not os.path.isdir(cron_dir):
+        cron_durum["sebep"] = "CRON dizini yok (CI kosucusu olabilir)"
+    else:
+        cron_durum["mevcut"] = True
         for f in sorted(os.listdir(cron_dir)):
             if not (f.endswith(".py") or f.endswith(".sh")):
                 continue
@@ -144,8 +244,9 @@ def evreni_turet(tools_dir, cron_dir):
             if _test_mutasyon_dislama(f):
                 continue
             if _kod_sinyali(mutlak):
-                bulunan.append({"yol": "cron:" + f, "mutlak": mutlak, "base": f})
-    return bulunan
+                bulunan.append({"yol": _anahtar("cron", f), "mutlak": mutlak, "base": f})
+                cron_durum["evren"] += 1
+    return bulunan, cron_durum
 
 
 # ---------------------------------------------------------------------------
@@ -224,6 +325,7 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
     bayat = []   # haritada var (ve ayakta), evrende yok
     sahipsiz = []  # EV=BILINMIYOR olanlari say
     kirmizi_satirlar = []  # beklenen RED listesi
+    kabul_bos_satirlar = []  # Paket ③-d §H3: KABUL_KOMUTU bos olan satirlar
 
     haritada_var = set()
     # Haritaya bak, once bayat olanlari yakala — bunlar harita ama evrendisinda yok
@@ -245,6 +347,10 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
             if h["SERIT"] not in SERIT_OLARAK_KABUL:
                 kirmizi_satirlar.append((h["SATIR_NO"], "SERIT gecersiz: %r (beklenen: %s)"
                                          % (h["SERIT"], "|".join(sorted(SERIT_OLARAK_KABUL)))))
+            # Paket ③-d §H3: KABUL_KOMUTU bos olamaz. Yalniz dolu komut ya da acik
+            # `YOK` yazisi gecerli; isci uydurmaz, bilmiyorsa YOK yazar.
+            if not h.get("KABUL_KOMUTU", "").strip():
+                kabul_bos_satirlar.append((h["SATIR_NO"], h["YOL"], h["MEKANIZMA"]))
 
     # Beklenen RED (kirmizi) ciktilari mutant/kontrol bilgisine gore:
     beklenen_red = []
@@ -293,24 +399,36 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
         "BAYAT": bayat,
         "SAHIPSIZ": sahipsiz,
         "KIRMIZI": kirmizi_satirlar,
+        "KABUL_BOS": kabul_bos_satirlar,
         "BEKLENEN_RED": beklenen_red,
         "mutant": mutant,
         "test_modu": test_modu,
     }
 
 
-def ozet_satir(sonuc, mutant_basari=None, kontrol_basari=None):
-    """Son/satir ozet. Spec §3 formati: EVREN=HARITADA=EKSIK=0 BAYAT=0 SAHIPSIZ= MUTANT=3/3 KONTROL=2/2
+def ozet_satir(sonuc, harita=None, mutant_basari=None, kontrol_basari=None):
+    """Son/satir ozet. Spec §3 formati:
+      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> KABUL_DOLU=<n> KABUL_YOK=<n> MUTANT=4/4 KONTROL=2/2
 
+    harita: KABUL_DOLU/KABUL_YOK saymak icin harita listesi (None ise sayilmaz).
     mutant_basari: (mutant_gecen, mutant_toplam) veya None (test modu disinda).
     """
-    temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d SAHIPSIZ=%d"
+    kabul_dolu = 0
+    kabul_yok = 0
+    kabul_bos = 0
+    if harita is not None:
+        kabul_yok = sum(1 for h in harita if h["KABUL_KOMUTU"] == "YOK")
+        kabul_bos = sum(1 for h in harita if not h["KABUL_KOMUTU"].strip())
+        kabul_dolu = len(harita) - kabul_yok - kabul_bos
+    temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d SAHIPSIZ=%d "
+             "KABUL_DOLU=%d KABUL_YOK=%d KABUL_BOS=%d"
              % (sonuc["EVREN"], sonuc["HARITADA"],
-                len(sonuc["EKSIK"]), len(sonuc["BAYAT"]), len(sonuc["SAHIPSIZ"])))
+                len(sonuc["EKSIK"]), len(sonuc["BAYAT"]), len(sonuc["SAHIPSIZ"]),
+                kabul_dolu, kabul_yok, kabul_bos))
     if mutant_basari is None and kontrol_basari is None:
         return temel
     if not mutant_basari:
-        mutant_basari = (0, 3)
+        mutant_basari = (0, 4)
     if not kontrol_basari:
         kontrol_basari = (0, 2)
     m_g, m_t = mutant_basari
@@ -364,10 +482,15 @@ def _gvd_evreni_sifirla(evren_depolu):
 
 
 def kendini_test(repo_kok, tools_dir, cron_dir):
-    """3 mutant RED + 2 kontrol YESIL — sirayla, her birinin sonucu KIRMIZI/YESIL.
+    """4 mutant RED + 2 kontrol YESIL — sirayla, her birinin sonucu KIRMIZI/YESIL.
 
     Her mutasyondan once harita geri yuklenir, sonra uygulanir, olculur.
-    Cikis kodu: tum 5 adim YESIL ise 0; biri RED ise 1.
+    Cikis kodu: tum 6 adim YESIL ise 0; biri RED ise 1.
+
+    M4 (Paket ③-b): olcut daraltildiginda (broad=False) 5/6 tohum evrenden
+    duser; harita tum 6 tohumu icerdigi icin 5 tohum BAYAT olarak yuzeye cikar.
+    Bugunku kapi bu mutantla YESIL kalirdi (cunku ne olcut genis ne de harita
+    6 tohumu kapsar). M4 bu regresyonu yakalar.
     """
     tsv_yolu = os.path.join(repo_kok, HARITA_REPO_RELATIF)
     if not os.path.isfile(tsv_yolu):
@@ -375,7 +498,7 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         return 1
     yedek = _gvd_yedekle(tsv_yolu)
     try:
-        evren_orig = evreni_turet(tools_dir, cron_dir)
+        evren_orig, cron_durum_orig = evreni_turet(tools_dir, cron_dir)
         # Surekli mutant/kontrol adimlari
         adimlar = []
 
@@ -406,6 +529,17 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         m3_reddetti = sonuc.get("BEKLENEN_RED") and any(r[0] == "M3" for r in sonuc["BEKLENEN_RED"])
         adimlar.append(("M3", m3_reddetti))
 
+        # M4 (Paket ③-b) — olcutu daralt (broad=False) ve 6 tohum haritada
+        # olsun; daraltilmis evrende 5 tohum (yayin-kapisi haric) kaybolur ve
+        # haritadaki 5 tohum satiri BAYAT olur. KIRMIZI beklenir.
+        narrow_evren = [e for e in evren_orig if _kod_sinyali(e["mutlak"], broad=False)]
+        harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
+        sonuc = dogrula(narrow_evren, harita, test_modu=True, mutant="M4")
+        # BAYAT icindeki tohum sayisi: >= 1 olmali (en azindan bir tohum evrenden dusmus)
+        bayat_tohum = sum(1 for y, _, _ in sonuc["BAYAT"] if y in TOHUM_6_YOL)
+        m4_reddetti = bayat_tohum >= 1
+        adimlar.append(("M4", m4_reddetti))
+
         # K1 — normal harita ile RED uremez (YESIL beklenir)
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
         sonuc = dogrula(evren_orig, harita, test_modu=True, mutant="K1")
@@ -429,21 +563,27 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         yedek = None
 
         # Sonuc ozet
-        mutant_sayaci = sum(1 for ad, g in adimlar[:3] if g)
-        kontrol_sayaci = sum(1 for ad, g in adimlar[3:] if g)
+        mutant_sayaci = sum(1 for ad, g in adimlar[:4] if g)  # M1..M4
+        kontrol_sayaci = sum(1 for ad, g in adimlar[4:] if g)  # K1, K2
         print("KENDINI-TEST BASAMAKLARI:")
         for ad, g in adimlar:
             print("  %s: %s" % (ad, "RED/YESIL bekleneni yakaladi" if g else "BASARISIZ (beklenti tutmadi)"))
-        print("MUTANT=%d/3 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
-        if mutant_sayaci == 3 and kontrol_sayaci == 2:
+        # Tohum kapsama kontrolu (spec §3: TOHUM_6_EVRENDE=6/6)
+        tohum_evrende = sum(1 for t in TOHUM_6_YOL if t in {e["yol"] for e in evren_orig})
+        print("TOHUM_6_EVRENDE=%d/6" % tohum_evrende)
+        print("MUTANT=%d/4 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
+        if mutant_sayaci == 4 and kontrol_sayaci == 2 and tohum_evrende == 6:
             # Son olcum — evren+harita ile
             harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
             sonuc = dogrula(evren_orig, harita, test_modu=False)
-            print(ozet_satir(sonuc, mutant_basari=(mutant_sayaci, 3),
+            print(ozet_satir(sonuc, harita=harita, mutant_basari=(mutant_sayaci, 4),
                              kontrol_basari=(kontrol_sayaci, 2)))
+            # Paket ③-f §H2: CRON_EVRENI=OLCULEMEDI ya da =<int>
+            print("CRON_EVRENI=%s"
+                  % (cron_durum_orig["evren"] if cron_durum_orig["mevcut"] else "OLCULEMEDI"))
             return 0
         # Spec geregi MUTANT/KONTROL sayaci tamamlanmadan raporlama
-        print("MUTANT=%d/3 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
+        print("MUTANT=%d/4 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
         return 1
     finally:
         if yedek and os.path.isfile(yedek):
@@ -467,7 +607,10 @@ def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--repo", default=CANON, help="olculecek repo koku")
+    # Paket ③-f §H1: --repo artik default olarak turetilmis repo kokunu kullanir
+    # (CANON sabit yolu DEGIL); --repo hâlâ OVERRIDE olarak calisir.
+    ap.add_argument("--repo", default=None,
+                    help="olculecek repo koku (default: betigin konumundan turetilir)")
     ap.add_argument("--harita", default=HARITA_REPO_RELATIF,
                     help="harita TSV yolu (repo-goreli veya mutlak)")
     ap.add_argument("--json", action="store_true", help="makine-okunur JSON cikti")
@@ -475,14 +618,20 @@ def main():
                     help="3 mutant + 2 kontrolu kosar, MUTANT/KONTROL ozetini basar")
     args = ap.parse_args()
 
-    repo_kok = os.path.abspath(args.repo)
+    # Paket ③-f §H1: --repo verilmediyse turetilmis koke dus (CANON'a degil).
+    # Paket ③-f §H3: hedef belirlemede CANON-style sabit mutlak yol YOK.
+    if args.repo:
+        repo_kok = os.path.abspath(args.repo)
+    else:
+        repo_kok = _repo_kok_turetilmis()
     tools_dir = os.path.join(repo_kok, "tools")
-    cron_dir = CRON
+    # Paket ③-f §H2: cron_dir turetilmis ($HOME/.claude/cron); yoksa None.
+    cron_dir = _cron_yolu_turetilmis()
 
     if args.kendini_test:
         return kendini_test(repo_kok, tools_dir, cron_dir)
 
-    evren = evreni_turet(tools_dir, cron_dir)
+    evren, cron_durum = evreni_turet(tools_dir, cron_dir)
     harita, hatalar = haritayi_oku(repo_kok, args.harita)
     if hatalar:
         print("HARITA OKUMA HATALARI:", file=sys.stderr)
@@ -500,6 +649,10 @@ def main():
             "BAYAT": sonuc["BAYAT"],
             "SAHIPSIZ": sonuc["SAHIPSIZ"],
             "KIRMIZI": sonuc["KIRMIZI"],
+            "KABUL_BOS": sonuc["KABUL_BOS"],
+            "CRON_EVRENI": cron_durum["evren"] if cron_durum["mevcut"] else "OLCULEMEDI",
+            "CRON_YOL": cron_durum["yol"],
+            "CRON_SEBEP": cron_durum["sebep"],
         }, indent=2, ensure_ascii=False))
     else:
         print("KAPI/NOBET HARITA KAPISI (salt-okunur)")
@@ -507,8 +660,14 @@ def main():
         print("Harita: " + args.harita)
         print("Kapsam evreni (kod-kanitli): sys.exit(1..9) VEYA permissionDecision VEYA "
               "exit 1/2; -test/-mutasyon/-prob dislanir")
+        # Paket ③-f §H2: CRON_EVRENI raporu.
+        if cron_durum["mevcut"]:
+            print("Cron evreni: %d (yol=%s)" % (cron_durum["evren"], cron_durum["yol"]))
+        else:
+            print("Cron evreni: OLCULEMEDI (sebep: %s, yol=%s)"
+                  % (cron_durum["sebep"], cron_durum["yol"]))
         print("")
-        print(ozet_satir(sonuc))
+        print(ozet_satir(sonuc, harita=harita))
         if sonuc["EKSIK"]:
             print("")
             print("EKSIK (evrende var, haritada yok) — RED:")
@@ -529,13 +688,20 @@ def main():
             print("KIRMIZI (gecersiz EV/SERIT) — RED:")
             for no, msg in sonuc["KIRMIZI"]:
                 print("  satir %d  %s" % (no, msg))
+        if sonuc["KABUL_BOS"]:
+            print("")
+            print("KABUL_BOS (KABUL_KOMUTU bos) — RED (Paket ③-d §H3):")
+            for no, yol, ad in sonuc["KABUL_BOS"]:
+                print("  satir %d  %s  (%s)" % (no, yol, ad))
 
     # RC davranisi:
     # - EKSIK veya BAYAT varsa RED -> rc=1
     # - KIRMIZI (gecersiz EV/SERIT) varsa RED -> rc=1
+    # - KABUL_BOS (Paket ③-d §H3) varsa RED -> rc=1
     # - SAHIPSIZ tek basina RED degil -> rc=0 (spec §2b)
     # - EVREN=0 ise RED -> rc=1 (bos evren yesil degil)
-    if (sonuc["EKSIK"] or sonuc["BAYAT"] or sonuc["KIRMIZI"] or sonuc["EVREN"] == 0):
+    if (sonuc["EKSIK"] or sonuc["BAYAT"] or sonuc["KIRMIZI"]
+            or sonuc["KABUL_BOS"] or sonuc["EVREN"] == 0):
         return 1
     return 0
 
