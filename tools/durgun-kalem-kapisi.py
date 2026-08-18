@@ -193,6 +193,95 @@ def kalem_listesi(defter):
 
 
 # ------------------------------------------------------------------------------
+# GENIS KALEM LISTESI (cok-bolumlu — T6 + damga ureticisi TEK KAYNAK)
+# ------------------------------------------------------------------------------
+# T6'nin park suzgeci gercek yuzeylere (OKAN'DA, KraL SON DURUM) baglandi.
+# Damga ureticisinin de ayni bolgelerdeki kalemlere damga uretebilmesi icin
+# `kalem_listesi_genis` eklenmistir. **TEK KAYNAK KURALI:** bolge kumesi,
+# bolum regexleri ve bolum-adi cikarimi BURADA (uretici yaninda) tanimli;
+# T6 (`okan-kapisi-penceresi.py`) `t5` uzerinden import eder. Ikinci bir
+# tanim birakilirsa sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]]) — YASAK.
+#
+# 🔴 `kalem_listesi()` (sadece ACIK KALEMLER) KORUNUR — T5'in kendi
+# `--gercek`/`--rapor` tablosu onun uzerinden kosar ve K5 kontrolu
+# "genislemeden ONCE ve SONRA ayni"yi pinler. Damga ureticisi ise
+# `kalem_listesi_genis` kullanir.
+
+import re as _re_t5
+
+ACIK_KALEMLER_BOLUM_RE = _re_t5.compile(r"^##\s+ACIK\s+KALEMLER\b", _re_t5.IGNORECASE)
+OKAN_DA_BOLUM_RE = _re_t5.compile(r"^##\s+OKAN'?DA\b", _re_t5.IGNORECASE)
+SON_DURUM_BOLUM_RE = _re_t5.compile(r"^##\s+.*SON\s+DURUM\b", _re_t5.IGNORECASE)
+
+TARANACAK_BOLUMLER = ("ACIK KALEMLER", "OKAN'DA", "KraL SON DURUM")
+
+
+def _bolum_adi_genis(satir, tar=None):
+    """Bir `## ...` basliginin TARANACAK_BOLUMLER'den hangisi oldugunu
+    doner; degilse None. T5 + T6 ortak cikarim.
+
+    `tar` (opsiyonel) verilirse VE TARANACAK_BOLUMLER icinde degilse None
+    doner — bu sayede `kalem_listesi_genis` sabit daraltildiginda
+    (ornek M8 mutasyonu) gercek filtre uygulanir. Verilmezse
+    TARANACAK_BOLUMLER kullanilir.
+    """
+    aday = None
+    if ACIK_KALEMLER_BOLUM_RE.match(satir):
+        aday = "ACIK KALEMLER"
+    elif OKAN_DA_BOLUM_RE.match(satir):
+        aday = "OKAN'DA"
+    elif SON_DURUM_BOLUM_RE.match(satir):
+        aday = "KraL SON DURUM"
+    if aday is None:
+        return None
+    if tar is None:
+        tar = TARANACAK_BOLUMLER
+    return aday if aday in tar else None
+
+
+def kalem_listesi_genis(defter, tar=None):
+    """TARANACAK_BOLUMLER'in (veya verilen `tar` kumesinin) kalemlerini
+    topla. `tar` verilmezse modül-s Seviyse `TARANACAK_BOLUMLER` kullanilir
+    (canli okunur; M8 mutasyonuyla daraltilabilir).
+
+    Returns: [{kimlik, satir, satir_no, bolum, tip}, ...]
+
+    - ACIK KALEMLER + KraL SON DURUM: K-prefix zorunlu (K\\d+); kimliksiz
+      maddeler ATLANIR (T5 tutarliligi).
+    - OKAN'DA: K-prefix zorunlu DEGIL — genis anlamli acik park
+      maddeleri. Kimliksizsa `OKAN_DA_L<n>` uretilir (tekil iz).
+    """
+    if tar is None:
+        tar = TARANACAK_BOLUMLER
+    satirlar = defter.splitlines()
+    aktif_bolum = None
+    out = []
+    kimlik_re = _re_t5.compile(KIMLIK_RE_PATTERN)
+    for i, satir in enumerate(satirlar):
+        if satir.startswith("## "):
+            aktif_bolum = _bolum_adi_genis(satir, tar=tar)
+            continue
+        if aktif_bolum is None:
+            continue
+        if not satir.startswith("- "):
+            continue
+        if aktif_bolum == "OKAN'DA":
+            m = kimlik_re.search(satir)
+            kimlik = m.group(0).upper() if m else "OKAN_DA_L%d" % (i + 1)
+            out.append({"kimlik": kimlik, "satir": satir, "satir_no": i,
+                        "bolum": aktif_bolum, "tip": "KALEM"})
+        else:
+            # ACIK KALEMLER + KraL SON DURUM: K-prefix zorunlu
+            m = kimlik_re.search(satir)
+            if m is None:
+                continue
+            out.append({"kimlik": m.group(0).upper(), "satir": satir,
+                        "satir_no": i, "bolum": aktif_bolum,
+                        "tip": "KALEM"})
+    return out
+
+
+# ------------------------------------------------------------------------------
 # DURUM DOSYASI
 # ------------------------------------------------------------------------------
 def durum_oku(yol):
@@ -309,10 +398,12 @@ def damga_uret(defter_yol, repo_kok, durum_yol, simdi_dt, *, mutant=None):
         out["neden_defter_gitsiz"] += 1
         return out
 
-    # ACIK KALEMLER bolgesini parse et
+    # TARANACAK_BOLUMLER (ACIK KALEMLER + OKAN'DA + KraL SON DURUM)
+    # bolgelerini parse et — TEK KAYNAK (ureticinin yaninda). T6 bu haritayi
+    # okuyarak ayni kalem kumesini 24-saat penceresine sokar.
     with open(defter_yol, encoding="utf-8") as f:
         defter = f.read()
-    kalemler_raw = kalem_listesi(defter)
+    kalemler_raw = kalem_listesi_genis(defter)
 
     simdi_str = simdi_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 

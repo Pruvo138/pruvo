@@ -96,15 +96,15 @@ T6_IZ_JETON         = "T6-IZ"
 import re as _re
 
 ETIKET_KALIP_RE = _re.compile(r"okan[\s\-_]kapisi", _re.IGNORECASE)
-OKAN_DA_BOLUM_RE = _re.compile(r"^##\s+OKAN'?DA\b", _re.IGNORECASE)
-SON_DURUM_BOLUM_RE = _re.compile(r"^##\s+.*SON\s+DURUM\b", _re.IGNORECASE)
-ACIK_KALEMLER_BOLUM_RE = _re.compile(r"^##\s+ACIK\s+KALEMLER\b", _re.IGNORECASE)
 
-# Taranan bolumler: ACIK KALEMLER + OKAN'DA + KraL SON DURUM. KraL SON DURUM
-# "kapanis blogu" olmasina ragmen icinde `OKAN KAPISI` tasiyan kalemler
-# (ornek K198) park yuzeyi olarak yasiyor — bunlar OKAN'DA tasinmadan
-# once kapanis bloguna yazilmis olabilir.
-TARANACAK_BOLUMLER = ("ACIK KALEMLER", "OKAN'DA", "KraL SON DURUM")
+# Taranan bolum kumesi + bolum regexleri TEK KAYNAK: damga ureticisi
+# (`t5` = `durgun-kalem-kapisi.py`). Ikinci tanim YASAK
+# ([[ikiz-tanim-sessiz-ayrisma]]). Bu pakette uretici kapsam
+# genisletildi (TARANACAK_BOLUMLER); T6 ayni sabitten okur.
+OKAN_DA_BOLUM_RE = t5.OKAN_DA_BOLUM_RE
+SON_DURUM_BOLUM_RE = t5.SON_DURUM_BOLUM_RE
+ACIK_KALEMLER_BOLUM_RE = t5.ACIK_KALEMLER_BOLUM_RE
+TARANACAK_BOLUMLER = t5.TARANACAK_BOLUMLER
 
 MUTANT_HEDEF = {
     "M1": T6_DUSTU_JETON,
@@ -164,73 +164,18 @@ def park_mi(kalem, *, bolum_uyeligi_aktif=True, okan_karari_aktif=False):
 
 
 # ------------------------------------------------------------------------------
-# GENIS KALEM LISTESI (cok-bolumlu parser)
+# GENIS KALEM LISTESI (cok-bolumlu parser) — damga ureticisinden (t5)
 # ------------------------------------------------------------------------------
 # T5'in `kalem_listesi` yalniz `## ACIK KALEMLER` bolgesini tarar. T6b
 # suzgeci gercek yuzeylere (OKAN'DA, KraL SON DURUM) baglandigi icin
-# bu parser BOLUM-duzeyinde calisir ve her kaleme `bolum` alani ekler.
-# T6 kendi parserini yazar; T5'in parserina DOKUNMAZ ([[tek-kaynak
-# -genisleme-disiplin-ihlali]]).
+# T6 da ayni parseri kullanir — fakat parser T5'te tanimlidir ve T6
+# `t5` uzerinden ALIR (tek kaynak). [[tek-kaynak-genisleme-disiplin-ihlali]]
+# Bu pakette damga ureticisinin kapsami genisletildi; T6 ayni sabitten
+# okur, ayri tanim ACILMAZ.
 
-KIMLIK_RE = _re.compile(r"\bK\d+\b")
-
-
-def _bolum_adi(satir):
-    """Bir `## ...` basliginin bizim taradigimiz bolumlerden hangisi
-    oldugunu doner; degilse None."""
-    if ACIK_KALEMLER_BOLUM_RE.match(satir):
-        return "ACIK KALEMLER"
-    if OKAN_DA_BOLUM_RE.match(satir):
-        return "OKAN'DA"
-    if SON_DURUM_BOLUM_RE.match(satir):
-        return "KraL SON DURUM"
-    return None
-
-
-def kalem_listesi_genis(defter):
-    """TARANACAK_BOLUMLER'in tumundeki `- ` ile baslayan satirlari topla.
-    OKAN'DA bolumu: K-prefix sartı YOK (orada "kalem" genis anlamli —
-    acik park maddeleri). Diger bolumler: K-prefix zorunlu (tutarlilik).
-
-    Returns: [{kimlik, satir, satir_no, bolum, tip, etiketli: bool}, ...]
-
-    `kimlik` alani: K\\d+ bulursa onu; yoksa "OKAN_DA_<line_no>" uretir
-    (OKAN'DA bolumu icin — kimliksiz maddelerin tekil izi). Diger
-    bolumlerde kimliksiz maddeler ATLANIR (T5 tutarliligi).
-    """
-    satirlar = defter.splitlines()
-    aktif_bolum = None
-    out = []
-    for i, satir in enumerate(satirlar):
-        if satir.startswith("## "):
-            yeni = _bolum_adi(satir)
-            if yeni is not None:
-                aktif_bolum = yeni
-                continue
-            else:
-                # Bilinmeyen `## ` basligi: bu bolumu KAPAT
-                aktif_bolum = None
-                continue
-        if aktif_bolum is None:
-            continue
-        if not satir.startswith("- "):
-            continue
-        # Madde aday
-        if aktif_bolum == "OKAN'DA":
-            # OKAN'DA bolumu: K-prefix sartı yok — tum bullet'lar alinir.
-            m = KIMLIK_RE.search(satir)
-            kimlik = m.group(0).upper() if m else "OKAN_DA_L%d" % (i + 1)
-            out.append({"kimlik": kimlik, "satir": satir, "satir_no": i,
-                        "bolum": aktif_bolum, "tip": "KALEM"})
-        else:
-            # ACIK KALEMLER / KraL SON DURUM: K-prefix sartı.
-            m = KIMLIK_RE.search(satir)
-            if m is None:
-                continue
-            out.append({"kimlik": m.group(0).upper(), "satir": satir,
-                        "satir_no": i, "bolum": aktif_bolum,
-                        "tip": "KALEM"})
-    return out
+KIMLIK_RE = t5._re_t5.compile(t5.KIMLIK_RE_PATTERN)
+_bolum_adi = t5._bolum_adi_genis  # geriye uyumlu alias
+kalem_listesi_genis = t5.kalem_listesi_genis
 
 
 def kalem_listesi_etiketli(defter, *, bolum_uyeligi_aktif=True,
