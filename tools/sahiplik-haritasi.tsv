@@ -1,0 +1,43 @@
+MEKANIZMA	YOL	EV	SERIT	KABUL_KOMUTU
+# Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar). KAPI/NOBET betiklerinin
+# sahiplik haritasi. Kapsam evreni `tools/sahiplik-kapisi.py` icindeki
+# KOD-kanitli olcutle turetilir (`sys.exit(1..9)` ya da `permissionDecision`
+# ya da shell `exit 1/2`; -test/-mutasyon/-prob haric). EV=BILINMIYOR olan
+# satirlar sayilir (SAHIPSIZ) ama kapisi YAKILMAZ — mimar sahiplik atamasi yapar.
+#
+# SERIT kodlamasi:
+#   yayin  — yayin/onay kapisi (publish gate)
+#   veri   — veri/urun/senkron kapisi
+#   nobet  — periyodik nobet/cron izci
+#   hijyen — komut-stili, kod-kilidi, ortam/format kapisi
+#   arac   — kurulum/dagitim/yardimci arac
+#
+# KABUL_KOMUTU = o mekanizmayi olcen calistirilabilir komut, ya da YOK.
+ara-maliyet-kapisi	tools/ara-maliyet-kapisi.py	BILINMIYOR	veri	YOK
+build	tools/build.py	BILINMIYOR	arac	YOK
+is-akisi-kapisi	tools/is-akisi-kapisi.py	BILINMIYOR	hijyen	YOK
+isci-kapisi-dagitim-kaniti	tools/isci-kapisi-dagitim-kaniti.py	BILINMIYOR	arac	YOK
+jenerator-tasi	tools/jenerator-tasi.py	BILINMIYOR	arac	YOK
+kapi-envanteri	tools/kapi-envanteri.py	BILINMIYOR	arac	YOK
+komut-stili-kapisi	tools/komut-stili-kapisi.py	BILINMIYOR	hijyen	YOK
+marka-invaryant-kapisi	tools/marka-invaryant-kapisi.py	BILINMIYOR	veri	YOK
+marka-kapsama	tools/marka-kapsama.py	BILINMIYOR	veri	YOK
+merge-kanit	tools/merge-kanit.py	BILINMIYOR	arac	YOK
+mimar-icra-kapisi	tools/mimar-icra-kapisi.py	BILINMIYOR	hijyen	YOK
+mimar-kapi-kur	tools/mimar-kapi-kur.py	BILINMIYOR	arac	YOK
+mimar-kod-kilidi	tools/mimar-kod-kilidi.py	BILINMIYOR	hijyen	YOK
+parity-server	tools/parity-server.py	BILINMIYOR	veri	YOK
+r2-onek-gelenek-kapisi	tools/r2-onek-gelenek-kapisi.py	BILINMIYOR	veri	YOK
+r2-upload	tools/r2-upload.py	BILINMIYOR	veri	YOK
+serit-ariza-enjeksiyon	tools/serit-ariza-enjeksiyon.py	BILINMIYOR	arac	YOK
+spec-ifsa-kapisi	tools/spec-ifsa-kapisi.py	BILINMIYOR	hijyen	YOK
+test-skan-art	tools/test-skan-art.py	BILINMIYOR	arac	YOK
+thing-hazirla	tools/thing-hazirla.py	BILINMIYOR	veri	YOK
+urun-ekle	tools/urun-ekle.py	BILINMIYOR	veri	YOK
+uyelik-cek	tools/uyelik-cek.py	BILINMIYOR	veri	YOK
+uzlastirici-onarim	tools/uzlastirici-onarim.py	BILINMIYOR	veri	YOK
+yayin-kapisi	tools/yayin-kapisi.py	BILINMIYOR	yayin	YOK
+isci-nobet	cron:isci.sh	BILINMIYOR	nobet	YOK
+kota-olcum-nobet	cron:kota-olcum.py	BILINMIYOR	nobet	YOK
+mail-supurme-kos-nobet	cron:mail-supurme-kos.sh	BILINMIYOR	nobet	YOK
+sahiplik-kapisi	tools/sahiplik-kapisi.py	BILINMIYOR	hijyen	python3 tools/sahiplik-kapisi.py --kendini-test
