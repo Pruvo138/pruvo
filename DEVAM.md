@@ -37,6 +37,8 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
   yogunlugunda kapi kabulu saatlerce OLCULEMEZ (bugun ③/K168/K179 icin uc kez tekrar
   beklendi). Yayini BLOKLAMAZ. ⚖️ Yon Okan kapisina bakar (Actions dakikasi): ya seyrek
   `schedule` tetigi (push'suz pencere garantisi) ya kosum basina ayri concurrency grubu.
+  ✅ ARA COZUM OLCULDU: `nobet.yml`de `workflow_dispatch` VAR → `gh workflow run nobet.yml
+  --ref main` ile mimar kabulu ZORLAYABILIR (K179'da kullanildi, 4 iptalden sonra).
   kabul: art arda push senaryosunda EN AZ bir tam SERIT B kosumu tamamlanir.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
