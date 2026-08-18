@@ -101,8 +101,9 @@ ayrı ayrı yazılır; ikisi de diskten.
 * Dal `kral/paket3b-evren` (`dfc7eb5a`) KORUNDU ve TABANDIR — sıfırdan başlama, üstüne çık.
 * Harita satırlarının `EV` içeriğine DOKUNULMAZ (H5).
 * Kardeş depolar kapsam dışı.
-* Worktree tavanı şu an **2/2 DOLU**; yeni worktree açmadan önce `git worktree list` ile
-  boşluk ölç, yoksa mimara bildir — tavanı kendi başına aşma.
+* Worktree tavanı 2/2 DOLU (ana ağaç + `k166b-yayin-sinyali`, ikincisi başka bir oturumun).
+  ⚖️ **MİMAR KARARI: bu dilim için BİR worktree aç** (tavan uyarısı basacak, bloklamaz) ve
+  **aynı turda kaldır**. `k166b`'ye DOKUNMA — başka oturumun canlı ağacı.
 * Merge main'e MİMAR tarafından; işçi merge ETMEZ.
 
 ## 7. İŞÇİ TALİMATI
