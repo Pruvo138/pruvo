@@ -11,9 +11,10 @@
   kumeler AYNI; (b) SEBEP granulu **OLCULMEDI**, chip olcecek (K182). Sira: K202, K186, K184,
   K190/K187 (`ba6d9d77`+`76c8444f`). Tam metin KUTUDA. 🔴 **K200 yesil olmadan TRAFIK YOK.**
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
-  isliyor"u iddia eder. Uc ayak: (i) canli `--kuru` bir kez olculdu, (ii) periyodik kablolama
-  (MIMARDA, K198'in arkasinda), (iii) kablolamanin KOSTUGU kanit (zaman damgali iz + tetiklenmezse
-  KIRMIZI). Sira: sema → tesisat kaniti → trafik.
+  isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
+  gerekce KUTUDA**; "chip kosturur" PLAN DEGIL. (ii) periyodik kablolama (MIMARDA, K198
+  arkasinda), (iii) kablolamanin KOSTUGU kanit (zaman damgali iz + tetiklenmezse KIRMIZI).
+  Sira: sema, tesisat, trafik.
 - 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py`'nin "etkili tasiyici" tanimi LITERALE capali;
   varlik turetilmis mekanizmaya gecince kapi korlesiyor (K193'te olctuk). Kalici care: sonucu olc
   ya da makine-okunur beyani tasiyici say. Mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT
