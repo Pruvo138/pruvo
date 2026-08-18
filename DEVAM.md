@@ -81,13 +81,8 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
-- 🔴 **K141 (17 Agu — OLCULEMEYEN NOBET, sinif kalemi; 18 Agu YENIDEN OLCULDU, HALA KIRMIZI):**
-  `kapi-envanteri.py` rc=1 · `5/7 kapi TAM` · iki kapi da `reddetmeli=allow kabuletmeli=allow`
-  ⚠️ Karsi-kanit: iki kapi CANLI (mimarin `wc`/`sort` komutlarini bu oturumda REDDETTILER)
-  → kusur KAPIDA degil OLCUM ALETINDE; kok neden ARSIVDE (satir numarasiyla), icra paketi
-  `tools/paket-k141-nobet-probu.md`. Once ALET onarilir, sonra teshis.
-  kabul: `python3 tools/kapi-envanteri-test.py` → `DUSEN=0 MUTANT=3/3 KONTROL=2/2` **VE**
-  ardindan `kapi-envanteri.py` rc=0 **VE** ikinci tur ciktisi rapora BIREBIR yapistirilir.
+- ✅ **K141 KAPANDI (`c123019d`, codex `gpt-5.6-luna`):** hukum — kusur KAPILARDA DEGIL OLCUM ALETINDEYDI. Prob dort jetona cikti (`deny`/`allow`/`allow-SESSIZ`/`OLCULEMEDI`): bos stdout+rc=0 kancanin izin kanalidir (kabul ekseninde gecerli), red ekseninde red SAYILMAZ; olculemeyen eksende arac sifir-disi doner (ham olcum: rc=1). Envanter `7/7 kapi TAM` rc=0 (uc kosumda ayni), kabul `VAKA=7 DUSEN=0 MUTANT=6/6 KONTROL=2/2` (iddia 7→22), capalar benzersiz 6/6, kapsam 2 dosya.
+  🔎 SINIF DERSI: aletin ilk onarimi FAZLA sikti (protokol sessizligini `OLCULEMEDI` sayip 3 sahte alarm uretti, 5/7→4/7); iki asamada duzeldi. Ayrica curutucu raporu "rc=1" ile "mutant yakalandi"yi ayni satirda karistirdi — HAM cikti istenince gercek gorundu.
 - 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi).
   Tam metin ARSIVDE.
   kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
