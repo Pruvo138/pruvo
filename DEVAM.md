@@ -43,8 +43,8 @@
   K178+K178b (SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu → [[kablo-da-kosuyor-demek-degil]]) ·
   K183 `77bb3195` (dispatch kendi grubunda, canli kabul YESIL, kosum `32176203099` 59 dk) ·
   K167 (defter durum kapisi) · 13 KOR KIRMIZI NOBETCI'nin SAHIPLIK dagilimi (6'si KraL DISI).
-- 🟠 **T3 (`8ca4c716`, CI success) + T4 (`893d278d`) KURULDU:** ikisi de SERIT B'de, `MUTANT=4/4`; T3'te DORT curutme "hedef kol oldurulunce mutant SESSIZ" verdi (C2 KENETLIYDI → `T3-EV-GECERSIZ` ayrildi), `DEVREDILDI` izi artik yaziliyor (yazilamazsa fail-closed), `--tatbikat` `TEMIZ=EVET`; T4'te ayrica `CURUTME=4/4`.
-  ACIK: T3 `SAHIPSIZ=44` + `nobet-kapi.py` kablosu YOK · T4 canli on-kosul BILEREK takilmadi (Okan kapisi). Sahiplik kapisi CI'da KIRMIZIYDI (`EKSIK=4`: yeni kapilara harita satiri yok) → `ed64d4f0` ile `EKSIK=0 SAHIPSIZ=0`.
+- 🟠 **T3 (`8ca4c716`, CI success) + T4 (`893d278d`) + T5 (`f07b40aa`) KURULDU:** ucu de SERIT B'de, `MUTANT=4/4`; T3'te DORT curutme "hedef kol oldurulunce mutant SESSIZ" verdi (C2 KENETLIYDI → `T3-EV-GECERSIZ` ayrildi), `DEVREDILDI` izi yaziliyor (yazilamazsa fail-closed); T4+T5'te ayrica `CURUTME=4/4`.
+  ACIK: T3 `SAHIPSIZ=44` · T4/T5 canli kablo BILEREK YOK (Okan kapisi) · **T5 gercek defterde 7/7 `OLCULEMEDI`: kalemde HAREKET DAMGASI YOK** → damga alani ayri dilim, T5 canli veride olcemez.
 - 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
