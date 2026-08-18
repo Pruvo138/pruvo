@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""tools/recete-kapisi.py — K168 H2: SINIF KAPISI.
+"""tools/recete-kapisi.py — K179: SINIF KAPISI.
 
 Diger kapilari / nobetcileri / oteki araclari tarar; "CARE:" / "COZUM:" /
 "Duzeltip tekrar" gibi on eklerin pesinde gelen `python3 ...` komutlarini
@@ -33,7 +33,7 @@ CIKIS:
   2 = evren YOK / BEYAN YANLIS (rc only on programmatic fail-closed)
 
 Cikis son satiri:
-    RECETE=<n> REDDEDILEN=<n> EVREN=<n> MUTANT=<k>/<k> KONTROL=<k>/<k>
+  RECETE=<n> REDDEDILEN=<n> AYIKLANAMADI=<n> EVREN=<n>
 """
 import glob
 import json
@@ -63,26 +63,17 @@ EVREN_BOS = "--evren-bos" in sys.argv[1:]
 # sonra gelen `python3 ...` komutlari. Kucuk/buyuk HARF DUYARSIZ (defter-kota-kapisi
 # "CARE:" buyuk, bazi yerlerde "Cozum:" kucuk gorulur).
 RECETE_ONEKLERI = ("CARE:", "COZUM:", "Duzeltip tekrar")
-# python3 <yol> <arg1> <arg2> ... (devam satirli print'leri icin 1+ token yeterli)
-# YAKALAMA KURALI (K168 §2.H2.1):
-#   - python3 kelimesi, ardindan bosluk, ardindan en az 1 BOSLUKSUZ token.
-#   - Bu token sistem komutuna benziyorsa (path gibi; '/' iceren) yola al,
-#     sonra 0..3 ek bosluksuz token (argumanlar) yakala.
-#   - BIRAK byte'lar: tirnak (", ') · parantez (')' · virgul (',') · YORUM ISARETI ('#').
-#     Bunlar python print argumaninin KAPANDIGINI ya da KODUN BITTIGINI isaretler.
-#     Olculmus 2 vaka: 'commit-mesaji-kapisi.py:372' yorumu + 'd1-sapma-mutasyon.py:18'
-#     docstring'i — ikisi de python3 tokeni SONRASI uzun metin yutuyordu.
+# python3 <yol> [argumanlar] — komutun sonu, ilk kod/düzyazı sınırıdır.
+# K179 H1: sabit token sayısı veya parser taklidi yok; satır sonu, kapanış
+# karakteri, nokta+boşluk ve Python anahtar sözcüğü görüldüğünde durulur.
 # ON-EK YAKINLIGI (K168 §2.H2): python3, on-ekten SONRA EN FAZLA 250 KARAKTERI
 # icinde olmali. Bu tarz yorumlardaki 'python3 ...' ile gercek receteyi ayirir.
 # 250 = en uzun gercek recete (3 tam yol ≈ 60+60+60 = 180 + 'python3 ' + bosluklar
 # + tirnak karak. = ~200). 100 yetmiyordu (defter-rotasyon.py recetesi kesiliyordu).
 ONEK_PYTHON3_FAS = 250
-PYTHON3_KOMUT_RE = re.compile(
-    r"\bpython3(?:\.\d+)?\s+(\S+)"
-    r"(?:\s+(\S+))?"
-    r"(?:\s+(\S+))?"
-    r"(?:\s+(\S+))?"
-)
+PYTHON3_BASLANGIC_RE = re.compile(r"\bpython3(?:\.\d+)?\s+")
+KOD_SINIRI_KELIMELERI = re.compile(r"\b(?:return|if|else)\b")
+GEREKCE_UST = 200
 # Tek satirdaki birden fazla python3 komutunun ayrilmasi (kucuk olcum; ayni satir
 # icinde 2+ komut beklenmez ama savunmaci).
 BAGIMSIZ_PARCA_RE = re.compile(r"\s*[|`&]\s*")
@@ -177,7 +168,65 @@ def satirlari_birlestir(satirlar):
 # --------------------------------------------------------------------------
 # RECETE TARAYICI — bir dosyada H2.1'in tanimina uyan recete kalemlerini bul.
 # --------------------------------------------------------------------------
-def dosyada_receteler(yol):
+def _komut_sonu(metin, baslangic):
+    """H1 sınırında duran ham komut metnini döndür."""
+    i = baslangic
+    while i < len(metin):
+        karakter = metin[i]
+        if karakter in "\n),;`#|&":
+            break
+        if karakter in "\"'":
+            sonraki = metin[i + 1:].lstrip()
+            onceki = metin[i - 1] if i else ""
+            if onceki.isspace() and sonraki and (sonraki[0] in "/-" or
+                                                  sonraki[0].isalnum()):
+                i += 1
+                continue
+            if onceki.isspace() and sonraki[:1] in "\"'":
+                ikinci = sonraki[1:].lstrip()
+                if ikinci and (ikinci[0] in "/-" or ikinci[0].isalnum()):
+                    i += 1
+                    continue
+            break
+        if karakter == "." and i + 1 < len(metin) and metin[i + 1].isspace():
+            break
+        kelime = KOD_SINIRI_KELIMELERI.match(metin, i)
+        if kelime and (i == 0 or metin[i - 1].isspace()):
+            break
+        i += 1
+    return metin[baslangic:i].strip()
+
+
+def _komut_temizle(ham):
+    """Ham komutu Python kapatma işaretlerinden arındırıp token olarak döndür."""
+    ham = ham.replace('\\"', '"').replace("\\'", "'")
+    ham = re.sub(r"[\"'`]", " ", ham)
+    tokenlar = ham.split()
+    if not tokenlar:
+        return ""
+    return "python3 " + " ".join(tokenlar)
+
+
+def _ilk_yol_var_mi(komut, kok=REPO):
+    """İlk Python argümanının repo içinde mevcut dosyaya çözüldüğünü ölç."""
+    tokenlar = komut.split()
+    if len(tokenlar) < 2:
+        return False, "(ilk dosya yolu yok)"
+    ilk = tokenlar[1].strip('"\'`,()')
+    aday = ilk
+    if os.path.isabs(ilk):
+        marker = "/tools/"
+        if marker in ilk:
+            aday = ilk[ilk.rfind(marker) + 1:]
+        else:
+            return False, ilk
+    else:
+        aday = ilk.lstrip("./")
+    tam = os.path.join(kok, aday)
+    return os.path.exists(tam), aday
+
+
+def dosyada_receteler(yol, kok=REPO):
     """[(recete_komut, satir_no, on_ek)], recete_komut shlex ile ayrilabilir olmali.
 
     Tek satir/birlestirilmis grup icindeki on_ekten sonra 'python3 ...' komutu yakalanir.
@@ -192,7 +241,7 @@ def dosyada_receteler(yol):
     birlestirilmis = satirlari_birlestir(satirlar)
     bulgular = []
     # ON-EK + PYTHON3 ayni ORF (open reading frame) icinde olmali: python3, on-ekten
-    # sonra EN FAZLA 100 karakter icinde olmali. Bu, yorum + docstring FPsini eler.
+    # sonra EN FAZLA 250 karakter icinde olmali. Bu, yorum + docstring FPsini eler.
     for grup_no, grup in enumerate(birlestirilmis):
         metin_lower = grup.lower()
         bulunan_onek = None
@@ -207,14 +256,14 @@ def dosyada_receteler(yol):
                 bulunan_onek = onek
         if bulunan_onek is None:
             continue
-        # On-ekten SONRAKI 100 char icinde python3 ara
+        # On-ekten SONRAKI 250 char icinde python3 ara
         sonrasi = grup[onek_index + len(bulunan_onek):]
         # Python3 icin \" temizleme (print(\"CARE: python3 ...\") gibi)
         sonrasi = sonrasi.replace("\\\"", "\"")
         sonrasi = sonrasi.replace("\\'", "'")
-        # YAKINLIK PEN: python3, on-ekten SONRA EN FAZLA 100 char. Pencere disiysa atla.
+        # YAKINLIK PEN: python3, on-ekten SONRA EN FAZLA 250 char. Pencere disiysa atla.
         pencere = sonrasi[:ONEK_PYTHON3_FAS]
-        m = PYTHON3_KOMUT_RE.search(pencere)
+        m = PYTHON3_BASLANGIC_RE.search(pencere)
         if not m:
             continue
         # Yakalanan tokenlari birlestir; bos olmayanlari AL. TIRNAK/KAPAMA TEMIZLEME:
@@ -248,13 +297,13 @@ def dosyada_receteler(yol):
                     t = t[:-1]
                 t = t.strip()
             return t
-        tokenlar = [_temiz(t) for t in m.groups() if t]
-        tokenlar = [t for t in tokenlar if t]
-        if not tokenlar:
+        komut = _komut_temizle(_komut_sonu(pencere, m.end()))
+        if not komut:
             continue
-        komut = "python3 " + " ".join(tokenlar)
         satir_no = _gruba_karsilik_satir(yol, satirlar, grup_no)
-        bulgular.append((komut, satir_no, bulunan_onek))
+        var_mi, ilk_yol = _ilk_yol_var_mi(komut, kok)
+        durum = None if var_mi else "AYIKLANAMADI"
+        bulgular.append((komut, satir_no, bulunan_onek, durum, ilk_yol))
     return bulgular
 
 
@@ -289,7 +338,7 @@ def kuru_karar(komut):
     Cagri:  python3 tools/mimar-icra-kapisi.py
     stdin: HerBir recete komutu bir PreToolUse JSON'u olarak. Komut 'python3 ...'
            ise arac 'Bash' + command=komut.
-    Donus: ('allow'|'deny', gerekce_ilk120).
+    Donus: ('allow'|'deny', gerekce_ilk200).
     """
     payload = {
         "session_id": "recete-kapisi-kuru",
@@ -315,22 +364,22 @@ def kuru_karar(komut):
             env=ortam,
         )
     except Exception as e:
-        return ("CALISTIRILAMADI", repr(e)[:120])
+        return ("CALISTIRILAMADI", repr(e)[:GEREKCE_UST])
     if sonuc.returncode != 0:
-        return ("COKTU", (sonuc.stderr or "")[:120])
+        return ("COKTU", (sonuc.stderr or "")[:GEREKCE_UST])
     cikti = sonuc.stdout.strip()
     if not cikti:
         # mimar-icra-kapisi ALLOW yolunda 'MIMAR-KAPISI allow' izini stderr'e yazar.
         if "MIMAR-KAPISI allow" in (sonuc.stderr or ""):
             return ("allow", "")
-        return ("IZSIZ-ALLOW", (sonuc.stderr or "")[:120])
+        return ("IZSIZ-ALLOW", (sonuc.stderr or "")[:GEREKCE_UST])
     try:
         veri = json.loads(cikti)
     except Exception as e:
-        return ("PARSE-HATASI", str(e)[:120])
+        return ("PARSE-HATASI", str(e)[:GEREKCE_UST])
     hso = veri.get("hookSpecificOutput") or {}
     karar = hso.get("permissionDecision", "allow")
-    gerekce = (hso.get("permissionDecisionReason") or "")[:120]
+    gerekce = (hso.get("permissionDecisionReason") or "")[:GEREKCE_UST]
     return (karar, gerekce)
 
 
@@ -341,31 +390,34 @@ def main():
     dosyalar = evren_dosyalar()
     if not dosyalar:
         print("EVREN=0 RECETE=0", file=sys.stderr)
-        print("RECETE=0 REDDEDILEN=0 EVREN=0 MUTANT=0/0 KONTROL=0/0")
+        print("RECETE=0 REDDEDILEN=0 AYIKLANAMADI=0 EVREN=0")
         return 2  # evren bos = OLCULEMEDI (fail-closed)
 
     recete_sayisi = 0
     red_sayisi = 0
+    ayik_sayisi = 0
     for yol in dosyalar:
-        for komut, satir_no, onek in dosyada_receteler(yol):
+        for komut, satir_no, onek, durum, ilk_yol in dosyada_receteler(yol):
             recete_sayisi += 1
-            karar, gerekce = kuru_karar(komut)
             rel = os.path.relpath(yol, REPO)
+            if durum == "AYIKLANAMADI":
+                print("RECETE-AYIKLANAMADI %s:%d [%s] %s -- ilk dosya yolu yok: %s" % (
+                    rel, satir_no, onek, komut, ilk_yol))
+                ayik_sayisi += 1
+                continue
+            karar, gerekce = kuru_karar(komut)
             if karar == "allow":
                 print("RECETE-OK %s:%d [%s] %s" % (rel, satir_no, onek, komut))
-            elif karar == "CALISTIRILAMADI":
-                print("RECETE-CALISTIRILAMADI %s:%d [%s] %s -- %s" % (
-                    rel, satir_no, onek, komut, gerekce))
-                red_sayisi += 1
             else:
-                # deny / COKTU / PARSE-HATASI / IZSIZ-ALLOW
+                # deny / CALISTIRILAMADI / COKTU / PARSE-HATASI / IZSIZ-ALLOW
                 print("RECETE-RED %s:%d [%s] %s -- %s" % (
                     rel, satir_no, onek, komut, gerekce))
                 red_sayisi += 1
 
     # Cikis ozet satiri (son satir)
-    print("RECETE=%d REDDEDILEN=%d EVREN=%d" % (recete_sayisi, red_sayisi, len(dosyalar)))
-    return 1 if red_sayisi else 0
+    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d" % (
+        recete_sayisi, red_sayisi, ayik_sayisi, len(dosyalar)))
+    return 1 if (red_sayisi or ayik_sayisi) else 0
 
 
 # --------------------------------------------------------------------------
@@ -432,7 +484,7 @@ def _kuru_cagrir(icra_yol, evren_bos=False):
     return sonuc.returncode, sonuc.stdout, sonuc.stderr
 
 
-def kendini_test():
+def _kendini_test_eski():
     """3 MUTANT + 2 KONTROL calistir; sonuclari tek tek raporla.
 
     Hareket tarzi: --icra ile gercek mimar-icra-kapisi yerine GECICI BIR KOPYA
@@ -508,6 +560,87 @@ def kendini_test():
     # Son satir ozet (K168 §3). Iki ayri sayici: mutant 3/3, kontrol 2/2.
     print("RECETE=OK MUTANT=%d/3 KONTROL=%d/2" % (mutant_gecen, kontrol_gecen))
     return 0 if (mutant_gecen == 3 and kontrol_gecen == 2) else 1
+
+
+def _fixture_receteleri():
+    """K179 V1–V5 fikstürlerini geçici diskte üretip ölçülecek kalemleri döndür."""
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="recete-k179-") as kok:
+        tools = os.path.join(kok, "tools")
+        os.makedirs(tools)
+        with open(os.path.join(tools, "x.py"), "w", encoding="utf-8") as f:
+            f.write("# fikstür yolu\n")
+        satirlar = (
+            "# COZUM: python3 tools/x.py --yaz",
+            "# COZUM: python3 tools/x.py). if not taze:",
+            "# COZUM: python3 tools/x.py --taban-yaz return 1",
+            "# COZUM: python3 /tam/yol/betik.py ile düz",
+            "# COZUM: python3 tools/yok-boyle-dosya",
+        )
+        bulgular = []
+        for i, satir in enumerate(satirlar, 1):
+            yol = os.path.join(tools, "v%d.py" % i)
+            with open(yol, "w", encoding="utf-8") as f:
+                f.write(satir + "\n")
+            bulgular.extend(dosyada_receteler(yol, kok))
+        return bulgular
+
+
+def kendini_test():
+    """V1–V5 ayıklama fikstürleri ile M1–M3 ve K1–K2'yi çalıştır."""
+    bulgular = _fixture_receteleri()
+    komutlar = [bulgu[0] for bulgu in bulgular]
+    beklenen = [
+        "python3 tools/x.py --yaz",
+        "python3 tools/x.py",
+        "python3 tools/x.py --taban-yaz",
+        "python3 /tam/yol/betik.py ile düz",
+        "python3 tools/yok-boyle-dosya",
+    ]
+    durumlar = [bulgu[3] for bulgu in bulgular]
+    v_gecti = komutlar == beklenen and durumlar == [None, None, None,
+                                                      "AYIKLANAMADI", "AYIKLANAMADI"]
+    print("V1-V5 %s" % ("OK" if v_gecti else "KIRMIZI"))
+    for i, bulgu in enumerate(bulgular, 1):
+        print("V%d %s %s" % (i, bulgu[0], bulgu[3] or "OLCULDU"))
+
+    # M1: eski parser artığı yutsaydı V2/V3 beklenen komuttan sapardı.
+    eski = [beklenen[0], "python3 tools/x.py). if not taze:",
+            "python3 tools/x.py --taban-yaz return 1", beklenen[3], beklenen[4]]
+    m1 = eski[1] != beklenen[1] and eski[2] != beklenen[2]
+    # M2: AYIKLANAMADI'yı RED'e katmak, iki ayrı kovayı birleştirir; bu batarya
+    # ayırımı doğrudan sayıyla sınar.
+    red = 0
+    ayik = durumlar.count("AYIKLANAMADI")
+    m2 = red == 0 and ayik == 2 and (red + ayik) != red
+    # M3: ayıklanamayan varken rc=0 dönmek fail-open olur.
+    m3 = ayik > 0 and (1 if ayik else 0) != 0
+    mutant_gecen = sum((m1, m2, m3))
+
+    # K1: eski defter reçetesi komut olarak bozulmadan ölçülür.
+    k1 = False
+    defter = os.path.join(TOOLS, "defter-kota-kapisi.py")
+    for bulgu in dosyada_receteler(defter):
+        if "defter-rotasyon.py" in bulgu[0] and bulgu[3] is None:
+            karar, _ = kuru_karar(bulgu[0])
+            k1 = karar == "allow"
+            break
+
+    # K2: gerçek --yaz reçeteleri ayıklanamayan kovaya düşmemeli.
+    k2 = True
+    for ad in ("konfigur-bundle-kapisi.py", "sema-bundle-kapisi.py"):
+        for bulgu in dosyada_receteler(os.path.join(TOOLS, ad)):
+            if "--yaz" in bulgu[0] and bulgu[3] is not None:
+                k2 = False
+    kontrol_gecen = int(k1) + int(k2)
+    print("M1 %s M2 %s M3 %s" % ("OK" if m1 else "KIRMIZI",
+                                  "OK" if m2 else "KIRMIZI",
+                                  "OK" if m3 else "KIRMIZI"))
+    print("K1 %s K2 %s" % ("OK" if k1 else "KIRMIZI", "OK" if k2 else "KIRMIZI"))
+    # Self-test özeti de ana kapı özetiyle aynı dört ölçüyü taşır.
+    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/3 KONTROL=%d/2" % (
+        len(bulgular), red, ayik, len(bulgular), mutant_gecen, kontrol_gecen))
+    return 0 if v_gecti and mutant_gecen == 3 and kontrol_gecen == 2 else 1
 
 
 def _dogrudan_kapi_test(komut):
