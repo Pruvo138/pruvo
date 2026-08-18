@@ -610,6 +610,21 @@ def kos_vakalar(tools_dizini, ayrintili=True):
                     "TUZAK KURULUMU: bir eksen OLCULEMEDI olmali "
                     "(yoksa darlik olculmemis olur); bulgular=%s"
                     % [(e, x) for e, x, _m in bh])
+            s.bekle("V5.ci-hal-olculemedi", hh == nobetci.OLCULEMEDI,
+                    "v5-okunamaz'da genel_hal OLCULEMEDI olmali; %s" % hh)
+            mutant_nobetci = os.path.join(tools_dizini, "kanca-kablolama-nobeti.py")
+            p_ci = subprocess.run([sys.executable, mutant_nobetci, "--ci", "--depo", dh],
+                                  capture_output=True, text=True, env=o5, timeout=60)
+            ci_cikti = p_ci.stdout + p_ci.stderr
+            if "SONUC:" in ci_cikti:
+                sonuc_kismi = ci_cikti.split("SONUC:", 1)[1].splitlines()[0]
+                hukum_kelimesi = sonuc_kismi.split("(")[0].split("[")[0].strip()
+            else:
+                sonuc_kismi = ""
+                hukum_kelimesi = "YOK"
+            s.bekle("V5.ci-ozet-olculemedi", hukum_kelimesi == nobetci.OLCULEMEDI,
+                    "CI ciktisindaki SONUC hukum kelimesi OLCULEMEDI olmali; "
+                    "bulunan=%r (satir: %r)" % (hukum_kelimesi, sonuc_kismi))
             s.bekle("V5.ci-muafiyet-dar", rch != 0,
                     "CI'da HERHANGI bir eksen OLCULEMEDI iken rc SIFIR-DISI olmali "
                     "(muafiyet yok); rc=%d" % rch)
@@ -970,8 +985,9 @@ MUTANTLAR = (
      frozenset({"V0.sozlesme", "V4.saglikli-yesil", "V4.kablolamasiz-kirmizi",
                 "V4.xbitsiz-kirmizi", "V4.yutma-kirmizi", "V4.sapma-kirmizi",
                 "V4.cagrisiz-kirmizi", "V4.rc-kontrolsuz-kirmizi",
-                "V4.gerekce-kirmizi", "V5.ci-kablolama-ilan", "V5.ci-sapma-ilan",
-                "V5.ci-hal-yesil", "V5.ci-muafiyet-dar-fikstur", "V6.ana-saglikli",
+                "V4.gerekce-kirmizi", "V5.ci-hal-olculemedi", "V5.ci-hal-yesil",
+                "V5.ci-kablolama-ilan", "V5.ci-muafiyet-dar-fikstur",
+                "V5.ci-ozet-olculemedi", "V5.ci-sapma-ilan", "V6.ana-saglikli",
                 "V6.saglikli-agac-yesil", "V7.izole-worktree-yesil"})),
 
     # 🔴 MU15 KUSUR 2-a'nin TAM mutanti: config'e yazilan deger ELENEN SECENEK
@@ -1042,6 +1058,12 @@ MUTANTLAR = (
      "    if any(h == OLCULEMEDI for _e, h, _m in bulgular):\n        return 1\n    return 0",
      "    return 0",
      frozenset({"V5.ci-muafiyet-dar"})),
+
+    ("M-K177d nobetci: genel_hal OLCULEMEDI'yi YESIL'e yuvarlar",
+     "kanca-kablolama-nobeti.py",
+     'def genel_hal(bulgular):\n    """🔴 FAIL-CLOSED: OLCULEMEDI asla YESIL\'e YUVARLANMAZ."""\n    if any(h == KIRMIZI for _e, h, _m in bulgular):\n        return KIRMIZI\n    if any(h == OLCULEMEDI for _e, h, _m in bulgular):\n        return OLCULEMEDI',
+     'def genel_hal(bulgular):\n    """🔴 FAIL-CLOSED: OLCULEMEDI asla YESIL\'e YUVARLANMAZ."""\n    if any(h == KIRMIZI for _e, h, _m in bulgular):\n        return KIRMIZI\n    if any(h == OLCULEMEDI for _e, h, _m in bulgular):\n        return YESIL',
+     frozenset({"V5.ci-hal-olculemedi", "V5.ci-ozet-olculemedi"})),
 
     ("N1 ILGISIZ: yorum eklenir (davranis degismez)",
      "kanca-kablolama-nobeti.py",
