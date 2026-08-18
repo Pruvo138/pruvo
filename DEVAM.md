@@ -47,7 +47,7 @@ degismedi). · Ana agacta YABANCI kalan: `marka-uyelik-test.py` K136.
   `kanca-kablolama-nobeti.py --ci` "24 eksen: 22 yesil, 0 kirmizi, **2 OLCULEMEDI**" deyip
   `SONUC: OLCULEMEDI` basiyor ama **cikis kodu 0** donuyor; K166 bu adimi bloklayici serit-a2'ye
   tasidi → yayinda olcemeyen kapi GECIYOR ([[fail-slow-fail-opendir]]). Bugun davranis DEGISMEDI. kabul: olculemeyen eksen rc=0 DONDURMEZ.
-- 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
+- ⛔ **Dal `origin/k152-link-temiz` (`56269db4`) MERGE EDILMEYECEK — 18 Agu OLCULDU:** main'in atasi DEGIL ve `git diff main origin/k152-link-temiz` = 76 dosya / +2.095 −20.339 (urunler.json dahil) geri sarardi; icerik zaten `83aaf4e2` ile main'de (yeniden uygulandi). Dal SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
   `tools/paket-k171-kaynak-temizle.md`de; tam metin ARSIVDE.
