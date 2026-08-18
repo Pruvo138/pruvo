@@ -19,34 +19,36 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
   olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
 - 🔴 **T3/T4 KANITI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0 ONARIM=0
   KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, onarmiyor; 10'u MIMAR'da.
-- ✅ **③ KAPANDI (18 Agu) — CANLI KABUL YESIL.** Merge `4270c95e`; kosum `32158268667`:
-  `Sahiplik haritasi kapisi = SUCCESS` (adim `skipped` DEGIL). Harita 43→188. Tam metin ARSIVDE.
-- ✅ **K178 + K178b KAPANDI (18 Agu) — SINIF: "kablo da KOSUYOR demek degil".** SERIT B'nin
-  126 adiminin **114'u SKIPPED**'ti; ③ ve K168'in yeni kapilari da o kor bolgedeydi. Ilk care
-  TERS ETKI verdi (benim spec hatam), ikinci turda onarildi. CANLI: `skipped 114→2`, job
-  `failure` KORUNDU, **13 KOR kirmizi gorunur oldu**. ARSIVDE. → [[kablo-da-kosuyor-demek-degil]]
-- 🔧 **K179 (18 Agu — recete kapisi CI'da kostu, kirmizisi KISMEN parser artefakti):**
-  `RECETE=9 REDDEDILEN=8 EVREN=390`; ayiklayici koddan artik yutuyor. Hukum
-  `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
-- ✅ **K183 KAPANDI (18 Agu) — CANLI KABUL YESIL.** Care `77bb3195` (dispatch grubu run_id'li,
-  push kolu sabit). Dispatch `32176203099` 19:22:09→20:20:56Z: `failure` (SERIT B nobetci
-  kirmizisi), **`cancelled` DEGIL**; pencerede 3 push tetikli nobet indi ve push kolundaki
-  `32178418454` IPTAL oldu → ayrim calisti. 2. dispatch `32178504446` eszamanli kostu, iptal
-  olmadi. Push kolunun iptal yigini AYNEN durur (K144). Tam metin ARSIVDE.
+- ✅ **③ KAPANDI (18 Agu, `4270c95e`)** — sahiplik haritasi kapisi canlida SUCCESS. ARSIVDE.
+- ✅ **③e (18 Agu, `41a62ece`):** harita 173 satir SAHIPLENDI, `SAHIPSIZ=0` (KraL 109 ·
+  MaCiT 40 · TeKiN 11 · ArTisT 9 · HocA 4); mutant kapiyi rc=1 yakiyor. Atama KARARDIR.
+- 🟠 **T3 (kapi MAIN'DE `0572ae57`, UC DILIM ACIK):** `tools/t3-yonlendirme-kapisi.py` —
+  `MUTANT=3/3`, uc curutmede hedef kol oldurulunce mutant SESSIZ, `--tatbikat` `TEMIZ=EVET`,
+  SERIT B'ye kablolandi. ACIK: (a) `DEVREDILDI` izi dosyaya YAZILMIYOR (hukumden sapma),
+  (b) `--analiz` `SAHIPSIZ=44` (`-mutasyon` aileleri kapiya baglanamiyor), (c) `nobet-kapi.py`
+  kablolamasi YOK.
+- ✅ **K178+K178b KAPANDI (18 Agu)** — SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu. ARSIVDE. → [[kablo-da-kosuyor-demek-degil]]
+- 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
+- ✅ **K183 KAPANDI (18 Agu) — DAVRANIS OLCULDU.** dispatch kolu KENDI grubunda
+  (`nobet-serit-b-<run_id>`), push kolu `-push` sabitinde. KANIT 19:49:48Z, AYNI SHA
+  `73ab1093`: dispatch `32178504446` `in_progress` iken push kosumu `32178475055`
+  `pending`; `32178418454` cancelled olurken dispatch `32176203099` kosmaya devam etti.
+  ASIL KABUL: dispatch `32176203099` 19:22:09Z→20:20:56Z (59 dk) **TAMAMLANDI** (`completed`,
+  iptal DEGIL) — o pencerede main'e UC push indi (`41a62ece`·`73ab1093`·`0572ae57`) ve push
+  kolu kosumu `32178418454` cancelled oldu. (`conclusion=failure` BEKLENEN: 13 kor kirmizi;
+  yayini bloklamaz.) Merge `41a62ece`; `Build & deploy` SUCCESS (birebir SHA). Tarihce ARSIVDE.
+- ✅ **K183b KAPANDI (`ade8f7ae`+`00e95a8a`):** `77bb3195` yamasinda UC kusur olculdu ve
+  onarildi — G8 KIMLIK CAKISMASI · kollar AYRI olcmuyordu · "mutant 3/3" OLCULMEMISTI.
+  Kanit: G10 govdesi oldurulunce M2 mutanti HICBIR hata uretmiyor. → [[kol-kimligi-tek-iddiaya-baglidir]]
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
-- 🔴 **13 KOR KIRMIZI NOBETCI (18 Agu, K178b acti — SAHIPSIZ, kosum `32158268667`):**
-  serit-b'de `failure` veren 13 adim; yayini bloklamaz ama hepsi NOBETCI — **kirmizi
-  nobetci nobet tutmaz.** Liste ARSIVDE. Sahip atamasi mimarda.
+- 🔴 **13 KOR KIRMIZI NOBETCI (18 Agu, kosum `32158268667`):** yayini bloklamaz ama kirmizi
+  nobetci nobet TUTMAZ. SAHIPLERI COZULDU: ~20 adimin 6'si KraL DISI (ArTisT 2 · MaCiT 4). ARSIVDE.
 - 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):** `d1-sync.py:157`
   `os.getpid()` — ENGELLENEN surecin pid'i, TUTANIN degil; MaCiT'i 4 tur hayalet kovalatti.
   Yayini BLOKLAMAZ. kabul: mesaj tutani basar ya da "OLCULEMEDI" der + mutant.
-- 🔴 **K167 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor):** `1c741e54`
-  K150+K148'i, arsivde KAPANIS kaydi varken "KOSUYOR" ve main-disi commit'i OLMAYAN worktree
-  ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
-  EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
-  kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
+- 🔴 **K167 (18 Agu — SINIF):** defterdeki DURUM iddiasi OLCULMEDEN yaziliyor; kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK. kabul: `defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`. ARSIVDE.
 - ⛔ **Dal `origin/k152-link-temiz` MERGE EDILMEYECEK (olculdu):** main'in atasi DEGIL, merge 76 dosya / −20.339 satir geri sarardi; icerik zaten `83aaf4e2` ile main'de. SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
