@@ -28,14 +28,13 @@
 
 
 ## 🔻 KraL SON DURUM — 19 Agu ~04:0xZ (kapanis blogunun tam metni ARSIVDE)
-**CANLIYA:** K181d · K177 · K141 · K183 `77bb3195`; main=origin `6e4720b5`, agac TEMIZ, D1 5 eksen yesil (29371). **KOSUYOR (hepsi CHIP, mimar oturumunda kosan is 0):** K184 · K185 · K186 · K188 hijyen (kutu esik kapisi dalda). **BEKLIYOR:** HocA Faz-2 · MaCiT Honda (hukum verildi → K191).
-🔧 **K187 (K186'dan, OLCULDU):** `kod:null` sayacinin KALICI sink'i YOK (KV binding yok; R2 sayac degil). `console.error` yalniz tail/Logpush ile gorunur → oran GERIYE DONUK olculemez. Care KV ya da Logpush = OKAN KAPISI; kod `talepOlayiSay()` arkasinda hazir.
-🔧 **K190 (K186'dan, OLCULDU):** `talep-temizlik.py` yerel sqlite'a baglaniyor, canli D1'e DEGIL → **90 gunluk saklama hicbir yerde yururlukte DEGIL**. Canli yol (wrangler d1 / worker ucu) OKAN KAPISI.
-- 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
-  ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
-  olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
-- 🔴 **T3/T4 KANITI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0 ONARIM=0
-  KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, onarmiyor; 10'u MIMAR'da.
+**CANLIYA:** K181d · K177 · K141 · K183 `77bb3195` · T3 `8ca4c716` · T4 `893d278d`. **KOSUYOR (hepsi CHIP):** K184 · K185 (donuk, merge sirasinda) · K186 · K188. **BEKLIYOR:** HocA Faz-2 · MaCiT Honda (K191).
+🔧 **K187 — ⚖️ OKAN KARARI 19 Agu: KV BINDING** (Logpush DEGIL). Icra K186 chip'te (binding tanimi + `talepOlayiSay()` govdesi); namespace acma + deploy Okan kapisi.
+🔧 **K190 — ⚖️ OKAN KARARI 19 Agu: CANLI D1'e BAGLANACAK, talep hatti canliya cikmadan ONCE.** `talep-temizlik.py` yerel sqlite'a bagliydi → 90 gunluk saklama fiilen yururlukte DEGILDI. Icra K186 chip'te (`--kuru` olcumune kadar); canli kosum + zamanlanmis is Okan/mimar kapisi.
+- 🔴 **T1 pencere muhasebesi + T3/T4 kaniti (baglayici):** olculen baslangic `11:23:00Z`,
+  `OLCULEMEDI_TUR=2` AYRI satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
+- 🔧 **K195 (19 Agu — 4. TEKRAR, tekil yama YASAK):** `defter-rotasyon.py` kapali madde yokken
+  TASIMIYOR → kota her oturumda ELLE rotasyon istiyor (bugun 4 kez). **Tam metin ARSIVDE.**
 - ✅ **KAPANANLAR (tam metin ARSIVDE):** ③ `4270c95e` (sahiplik haritasi kapisi canlida SUCCESS) ·
   K178+K178b (SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu → [[kablo-da-kosuyor-demek-degil]]) ·
   K183 `77bb3195` (dispatch kendi grubunda, canli kabul YESIL, kosum `32176203099` 59 dk) ·
@@ -92,7 +91,7 @@
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal
   asiyor (tam-dosya diff). Yon: butce buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   AYRI ele almak. `kabul:` alani BOS.
-- 🟠 **Navlungo dilim-1 MERGE BEKLIYOR:** dal `il-ilce-dilim1` (`5d57c918`); Okan kapisi.
+- 🟠 **Navlungo dilim-1 — ⚖️ OKAN ONAYI 19 Agu: MERGE ET.** Dal `il-ilce-dilim1` (`5d57c918`, 2 commit). MIMAR OLCUMU: dal main'in **346 commit** gerisinde, `nobet.yml` **CAKISIYOR**. 🔴 D1 SEMA SIRASI: once `--sema` ile kolon canliya + PRAGMA teyidi, SONRA kolonu SELECT eden kod. Cakisma cozumu CHIP'te.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
 - 🟠 **K152 (17 Agu — ⚖️ OKAN KARARI KAPSAMI BELIRLEDI; onceki iki hukum de DUSTU):** Okan (birebir): **"sitede bulunan tum urunler satilabilir.
