@@ -4,25 +4,25 @@
 
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🟠 **K185 CHIP `KraL-Chip duzeni genelleme`** — dal `b024bd42` KAPANDI, **merge kuyrugunda**
-  (kapsam 4 dosya/+726−18 mimarca dogrulandi, cakisma YOK). · 🟠 **K186 CHIP `KraL-Ege reformu
-  altyapi`** — TUR 2c kosuyor; serit hukmu verildi (G6/G7 sizinti eksenine, G5 ayri adim+CAPA SAYI).
-  Ikisinin tam metni KUTUDA.
-- 🔧 **K189 (SAHIPLENILDI 19 Agu — KraL; chip sirada, kosan chip 4 oldugu icin biri kapaninca acilir):**
-  `tools/ci-kapsam-test.py` hukum ekseni kusurlu (K185 tur-1'de OLCULDU). **Tam metin ARSIVDE.**
-  kabul: izlenmeyen aday > 0 iken hukum `OLCULEMEDI` (sifir-disi rc) **VE** `aday` hali ayri
-  jetonla ilan **VE** mutant hedef kolu oldurdugunu ayrica kanitlar (K182 dersi).
-- 🔧 **K191 (19 Agu, KraL olctu → sahibi MaCiT; SINIF):** tarama SPEC'i isi ONCULDEN aliyor,
-  OLCUMDEN degil (Honda oto TV/PR/MW "taranmadi" onculu YANLIS cikti; chip commit ETMEDI).
-  **Tam metin ARSIVDE + KUTUDA.** kabul: SPEC'in ILK blogu KAPSAM ON-OLCUMU degilse kosturucu
-  RED verir **VE** tarama kabulu tazelik capasi tasir (self-consistency yetmez).
-- 🟠 **K184 CHIP `KraL-Faz-1 sihirbaz`** (Ege reformu FAZ-1, site sihirbazi): LLM'siz "Eksik Parca Talebi"; listeler tek kaynaktan, terminal K186 talep hatti, public yukleme ucu ACILMAZ, honeypot+hiz siniri. Dal `kral/k184-talep-sihirbazi` `42c47288` KAPANDI, **merge SIRADA (K186'dan SONRA)**. 🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz sihirbaz ISTEMCISI kalir; K186'nin semasi/ucu KANONIK (ikiz tanim yasagi) ve uctan uca olcum K186'nin `talepKaydet`ine karsi YENIDEN kosulur. Tam metin KUTUDA.
+- 🟠 **K186 CHIP `KraL-Ege reformu altyapi`** — TUR 2d kosuyor (serit hukmu YARIM uygulanmisti,
+  chip kendi yakaladi: `--capa` acilacak, G5 kendi bayragina tasinacak 17→16, serit-a3'e 2. adim).
+  🔴 **MERGE SARTI (19 Agu):** ya Node 20 ile kosmus ham cikti ya da SHA'yi iceren YESIL CI kosumu —
+  yerel 50/50 tek basina YETMEZ. Tam metin KUTUDA.
+- 🔧 **K196 (19 Agu, DEPO GENELI):** CI 15 adimda **node 20**, yerel **25.8.1** → yereldeki her JS
+  yesili CI surumunde OLCULMEMIS. **Tam metin ARSIVDE.** K186'nin merge sartina baglandi.
+- 🔧 **K189 (SAHIPLENILDI 19 Agu — KraL; CHIP ACILDI):** `tools/ci-kapsam-test.py` hukum ekseni
+  kusurlu. **Tam metin ARSIVDE.** kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc, ayri jeton, mutant
+  hedef kolu kanitli (K182).
+- 🔧 **K191 (19 Agu, KraL olctu → sahibi MaCiT; SINIF):** tarama SPEC'i isi ONCULDEN aliyor.
+  **Tam metin ARSIVDE + KUTUDA.** kabul: ILK blok KAPSAM ON-OLCUMU degilse RED + tazelik capasi.
+- 🟠 **K184 CHIP `KraL-Faz-1 sihirbaz`** — dal `42c47288` KAPANDI, **merge SIRADA (K186'dan SONRA)**.
+  🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
+  K186'nin semasi/ucu KANONIK ve uctan uca olcum K186'nin ucune karsi YENIDEN kosulur. Tam metin KUTUDA.
 - 🔧 **K192 (19 Agu, K185 chip olctu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU
   kapisinda YOK (damga karardan eski) + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.**
-- 🔧 **K193 (19 Agu, K184 chip; IKIZ TANIM):** varlik `cp` satiri iki yerde (`deploy.yml` + `nobet.yml`).
-  **Tam metin ARSIVDE.** kabul: tek kaynaktan TURETILIR + ayrisinca kapi KIRMIZI (mutant kanitli).
-- 🔧 **K194 (19 Agu, K184 chip):** kaynak, kosum takimina gore bukuldu (sahte DOM). Koruma KALIR +
-  SEBEP satiri zorunlu; kalici care kosum takimi. **Tam metin ARSIVDE.**
+- 🔧 **K193 · K194 (19 Agu, K184 chip):** varlik `cp` satiri iki yerde (ikiz tanim; kabul: tek
+  kaynaktan turer + ayrisinca kapi KIRMIZI) · kaynak kosum takimina gore bukuldu (sahte DOM; koruma
+  KALIR + SEBEP satiri zorunlu, kalici care kosum takimi). **Ikisinin tam metni ARSIVDE.**
 
 
 
@@ -35,6 +35,9 @@
   `OLCULEMEDI_TUR=2` AYRI satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
 - 🔧 **K195 (19 Agu — 4. TEKRAR, tekil yama YASAK):** `defter-rotasyon.py` kapali madde yokken
   TASIMIYOR → kota her oturumda ELLE rotasyon istiyor (bugun 4 kez). **Tam metin ARSIVDE.**
+- ✅ **19 Agu MERGE EDILDI:** **K185** chip duzeni (14/14 · 9/9 · tavan 12/12 · aday=0) · **K188** kutu
+  esik kapisi (11/11 · 7/7; ⚠️ KANCA BAGLI DEGIL → kapi main'de ama CANLI DEGIL, chip acildi) ·
+  T3 `8ca4c716` · T4 `893d278d`. Iki chip agaci + bes artik dal temizlendi (worktree 7→4).
 - ✅ **KAPANANLAR (tam metin ARSIVDE):** ③ `4270c95e` (sahiplik haritasi kapisi canlida SUCCESS) ·
   K178+K178b (SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu → [[kablo-da-kosuyor-demek-degil]]) ·
   K183 `77bb3195` (dispatch kendi grubunda, canli kabul YESIL, kosum `32176203099` 59 dk) ·
@@ -91,7 +94,6 @@
 - 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal
   asiyor (tam-dosya diff). Yon: butce buyutmek DEGIL, `urunler.json`'u icerik ekseninde
   AYRI ele almak. `kabul:` alani BOS.
-- 🟠 **Navlungo dilim-1 — ⚖️ OKAN ONAYI 19 Agu: MERGE ET.** Dal `il-ilce-dilim1` (`5d57c918`, 2 commit). MIMAR OLCUMU: dal main'in **346 commit** gerisinde, `nobet.yml` **CAKISIYOR**. 🔴 D1 SEMA SIRASI: once `--sema` ile kolon canliya + PRAGMA teyidi, SONRA kolonu SELECT eden kod. Cakisma cozumu CHIP'te.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
 - 🟠 **K152 (17 Agu — ⚖️ OKAN KARARI KAPSAMI BELIRLEDI; onceki iki hukum de DUSTU):** Okan (birebir): **"sitede bulunan tum urunler satilabilir.
@@ -115,8 +117,7 @@
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
   (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
-- 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu) ·
-  Navlungo `il-ilce-dilim1` merge'i. (K164 blogundan tasindi.)
+- 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
 - 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
   SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
