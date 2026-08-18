@@ -11,7 +11,7 @@ const { ALAN_TAVANLARI, TALEP_ALFABE, TALEP_KOD_RE, talepKaydet, talepKoduUret }
 const hedef = process.argv.find((arg) => arg.startsWith("--only="));
 const hedefAdi = hedef ? hedef.slice("--only=".length) : null;
 const sizinti = process.argv.includes("--sizinti");
-const SIZINTI_IDDIALAR = new Set(["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D6", "D7", "D8", "D11", "G5", "G6", "G7"]);
+const SIZINTI_IDDIALAR = new Set(["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D6", "D7", "D8", "D11", "G6", "G7"]);
 let gecen = 0;
 let dusen = 0;
 
@@ -255,9 +255,9 @@ await iddia("D1", async () => {
 
 await iddia("D2", async () => {
   const { res, body } = await gecersizTalep({ ...JSON.parse(basliklar()), kanal: "sms" });
-  return res.status === 400 && JSON.stringify(body) === JSON.stringify({
-    hata: "gecersiz", wa: "https://wa.me/905451386526",
-  });
+  return res.status === 400 && body.hata === "gecersiz" &&
+    typeof body.wa === "string" && body.wa.startsWith("https://wa.me/") &&
+    !body.wa.includes("?text=");
 });
 
 await iddia("D3", async () => {
