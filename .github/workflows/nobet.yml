@@ -363,6 +363,21 @@ jobs:
         with:
           node-version: "20"
 
+      # CHIP DUZENI NOBETI (K185, 19 Agu 2026) — Okan emri: hicbir mimarin ana
+      # oturumunda kosan is olmayacak; her is chip+worktree'de, chip adi `<Ev>-<Is>`.
+      # OLCULEN EKSEN IZLENEBILIRLIKTIR: "oturumda kosan is var mi" repo icinden
+      # olculemez, bu yuzden kapi defterdeki her ACIK CHIP kalemi icin (i) ev oneki
+      # ve (ii) kutuda BASLIYORUM/kapanis izi arar. Kutu repo DISIDIR: CI'da
+      # `KUTU_KAPSAM_DISI` ILAN EDILIR ve cikis kodunu ETKILEMEZ (K177 ayrimi);
+      # eksen (i) CI'da da TAM olculur. SERIT B: kirmizisi yayini DURDURMAZ.
+      - name: "Chip duzeni nobeti (ev oneki + kutu izi; kutu CI'da KAPSAM DISI)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/chip-duzeni-kapisi.py
+
+      - name: "Chip duzeni kabul testi (vaka + mutasyon + kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/chip-duzeni-test.py
+
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test
