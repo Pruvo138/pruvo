@@ -1866,6 +1866,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/sahiplik-kapisi.py
 
+      # T3 YONLENDIRME KAPISI — SERIT B (18 Agu 2026, Paket T3).
+      # Kirmizinin SAHIBINI sahiplik haritasindan cozer. Uc kol: T3-YON (harita
+      # okunuyor mu) · T3-SAHIPSIZ (eslesme yoksa BILINMIYOR, sessiz varsayilan YOK)
+      # · T3-OLCULEMEDI (hedef kutuya yazilamazsa fail-closed). `--kendini-test`
+      # GERCEK posta kutusuna YAZMAZ: tempfile.mkdtemp izolasyonu; her mutant hedef
+      # kolunu AYRICA kanitlar. Offline, ag YOK. Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "T3 yonlendirme kapisi oz-nobetcisi (3 mutant, hedef kol kanitli)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/t3-yonlendirme-kapisi.py --kendini-test
+
       # SERIT-B MASKELEME KAPISI — Paket K178 (18 Agu 2026, OLCULEN KUSUR).
       # SERIT B'nin 126 adimindan birinin kirmizisi geri kalani 114'u SKIP yapiyor ->
       # kapilar maskeleniyor ([[kirmizi-adim-sonrakini-maskeler]]). Bu kapi serit-b
