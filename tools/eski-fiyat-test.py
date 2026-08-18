@@ -62,6 +62,7 @@ Offline; depoya YAZMAZ (mutantlar bellekte exec / gecici dizinde).
 """
 import argparse
 import copy
+import importlib.util
 import inspect
 import json
 import os
@@ -868,18 +869,61 @@ def bolum_f(mod=build):
     # mesru sekilde degistigi gun (vitrin sirasi derleme aninda hesaplaniyor) referanssiz
     # KIRMIZI yanardi. Kalici iddia: bugunku katalogda alanin IZI YOK, alan enjekte
     # edilince ozet YALNIZ `eski_fiyat` anahtari kadar degisir.
+    #
+    # SECIM KURALI (K180, 18 Agu): enjeksiyon, `render_ozet` ciktisinda GERCEKTEN yer alan
+    # urunlerden secilir. Aksi takdirda eklenen `eski_fiyat` ciktiyi hic degistirmez ve
+    # nöbetçi KENDI FIKSTURU yuzunden KIRMIZI yanar — sessiz bir test daha (K152-B,
+    # olculdu). Vitrin kapsami: (a) `products[:OZET_YENI]` (yeni kesiti) · (b) her
+    # vitrin kategorisinin `aday[:havuz]` ilk N urunu. Bir urun ikisinden birinde mi,
+    # yoksa hic vitrinde degil mi — kural burada hesaplanir.
+    vitrin_bloklar = mod._index_vitrin_kurali()
+    havuz_baski = {}        # {kategori: havuz_n}; 0 = tum kategori
+    for kural in vitrin_bloklar:
+        if kural["kaynak"] == "parametrik":
+            continue
+        kat = kural["kategori"]
+        havuz_baski[kat] = int(kural["havuz"] or 0)
+
+    def _vitrinde_mi(idx, p):
+        """`render_ozet` bu urunu ciktiya dahil eder mi?"""
+        if idx < mod.OZET_YENI:
+            return True
+        kat = p.get("kategori") or ""
+        baski = havuz_baski.get(kat)
+        if not baski:
+            return False
+        # Bu urun kendi kategorisinin ilk `baski` siralamasinda mi?
+        sayac = 0
+        for onceki in urunler:
+            if onceki is p:
+                return sayac < baski
+            if (onceki.get("kategori") or "") == kat:
+                sayac += 1
+                if sayac >= baski:
+                    return False
+        return False
+
     ozet_yalin = mod.render_ozet(urunler)
     enjekte = []
     ekli = 0
-    for p in urunler:
+    vitrinde_toplam = 0
+    for idx, p in enumerate(urunler):
         q = copy.deepcopy(p)
+        if _vitrinde_mi(idx, p):
+            vitrinde_toplam += 1
         if ekli < 10 and not (q.get("parametrik") or q.get("konfigur")):
             kurus = mod.fiyat_kurus_gevsek(q.get("fiyat") or "")
-            if kurus:
+            if kurus and _vitrinde_mi(idx, p):
                 q["eski_fiyat"] = "%d TL" % (kurus // 100 * 2)
                 ekli += 1
         enjekte.append(q)
-    kontrol(ekli >= 5, "ozet A/B icin alan enjekte edilen urun (%d) — vakum nobeti" % ekli)
+    # VAKUM NOBETI: vitrin kapsaminda 10 aday YOKSA nöbetçi sessiz gecmez — katalog
+    # yapisal olarak degismis (yeni eklenen urunler havuzun onune gecmis) demektir, ya
+    # da havuz_baski yanlis hesaplanmis. [[fikstur-degeri-mutasyon-koru]] uyarinca
+    # fikstur KENDI kendini sifirlayip "ekli>=5" ile gecirilmez; gercek KIRMIZI.
+    kontrol(ekli >= 10,
+            "VAKUM: uygun urun YOK (ekli=%d, vitrinde=%d) — havuz_baski veya vitrin kapsami bayat"
+            % (ekli, vitrinde_toplam))
     ozet_enjekte = mod.render_ozet(enjekte)
     kontrol(ozet_yalin != ozet_enjekte,
             "enjeksiyon ozet ciktisini GERCEKTEN degistirdi — vakum nobeti")
@@ -1009,6 +1053,25 @@ MUTANTLAR = [
     ("M13 index.html sayi kalibi gevsedi (9.99 -> 999 TL)", "index",
      [(r"(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?)\s*(?:TL|TRY|₺)\s*$/i;",
        r"\d[\d.]*(?:,\d{1,2})?)\s*(?:TL|TRY|₺)\s*$/i;")]),
+    # --- K180 (18 Agu 2026) ozel mutasyonlar — vakum nobetci KOR oldu mu / KIRMIZI YANAR MI?
+    # YALIT: her mutant TEK bir ekseni tetikler (eski_kart_ozeti_kolu_oldu_VEYA_secim_kurali_yanlis).
+    # Bunlar (f) vakum nobetcisinin "uygunsuz urunu sectigi" veya "eski_fiyat'in kart_ozeti'ne
+    # hic girmedigi" regresyonunu yakalar — mevcut M9 kosulu kaldirir ama KOLU korur, M-K180-A
+    # ise KOLUN KENDISINI oldurur.
+    ("M-K180-A kart_ozeti eski_fiyat kolu oldu (KOLU KALMAZ)", "build",
+     [('    eski_metin, _ = eski_fiyat_gosterim(p)\n    if eski_metin:\n'
+       '        kart["eski_fiyat"] = eski_metin\n',
+       '    pass  # K180: kol oldu\n')]),
+    # Secim kuralini TERSINE cevirip parametrik/konfigur urunleri sectirir: vitrinde
+    # bunlarin sayisi az (parametrik blok 4 urun + belki birkaç konfigur) oldugundan ekli
+    # 10'a ULASAMAZ -> vakum nobetci KIRMIZI yanar ([[test-hatali-davranisi-kutsar]]).
+    # Capa: satir ONCESINDE 'vitrinde_toplam += 1' ile birlikte TEKIL — sadece bu testin
+    # gercek kodunda var (mutant taniminin kendisinde yok).
+    ("M-K180-B secim TERS (parametrik/konfigur one cikarildi)", "test",
+     [('            vitrinde_toplam += 1\n        if ekli < 10 and '
+       'not (q.get("parametrik") or q.get("konfigur")):',
+       '            vitrinde_toplam += 1\n        if ekli < 10 and '
+       '(q.get("parametrik") or q.get("konfigur")):')]),
 ]
 
 
@@ -1042,9 +1105,14 @@ def mutasyon(gecici):
     print("\n=== MUTASYON — her mutant KIRMIZI yanmali ===")
     build_ham = open(os.path.join(TOOLS, "build.py"), encoding="utf-8").read()
     index_ham = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
+    test_ham = open(os.path.join(TOOLS, "eski-fiyat-test.py"), encoding="utf-8").read()
     kirmizi = 0
     for ad, hedef, ciftler in MUTANTLAR:
-        ham = build_ham if hedef == "build" else index_ham
+        ham = {"build": build_ham, "index": index_ham, "test": test_ham}.get(hedef)
+        if ham is None:
+            print("  ⚪ %s -> bilinmeyen hedef: %s — OLCULEMEDI" % (ad, hedef))
+            OLCULEMEDI.append("mutant hedef: " + ad)
+            continue
         mutant_kaynak = _uygula(ham, ciftler)
         if mutant_kaynak is None:
             print("  ⚪ %s -> capa bulunamadi/tekil degil — OLCULEMEDI" % ad)
@@ -1060,11 +1128,23 @@ def mutasyon(gecici):
                 bolum_d(gecici, mod)
             except Exception as e:                      # coken mutant da KIRMIZIdir
                 HATALAR.append("%s -> istisna: %s" % (ad, e))
-        else:
+        elif hedef == "index":
             mutant_yol = os.path.join(gecici, "mutant-index.html")
             with open(mutant_yol, "w", encoding="utf-8") as f:
                 f.write(mutant_kaynak)
             bolum_b(gecici, mutant_yol)
+        else:                                           # "test" — mutant kendi kaynagi
+            mutant_yol = os.path.join(gecici, "mutant-eski-fiyat-test.py")
+            with open(mutant_yol, "w", encoding="utf-8") as f:
+                f.write(mutant_kaynak)
+            spec = importlib.util.spec_from_file_location("eski_fiyat_test_mutant",
+                                                          mutant_yol)
+            mod_test = importlib.util.module_from_spec(spec)
+            try:
+                spec.loader.exec_module(mod_test)
+                mod_test.bolum_f()
+            except Exception as e:                      # coken mutant da KIRMIZIdir
+                HATALAR.append("%s -> istisna: %s" % (ad, e))
         yeni_hata = len(HATALAR) - n0
         del HATALAR[n0:]                                 # mutant hatalari SAYILMAZ
         if yeni_hata > 0:
