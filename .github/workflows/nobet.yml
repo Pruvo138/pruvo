@@ -378,6 +378,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/chip-duzeni-test.py
 
+      # CHIP DUZENI OZ-NOBETCISI (K189, 19 Agu 2026) — K185'in KAPANIS NOTUNDA
+      # DURUSTCE BILDIRDIGI ACIK: `--kendini-test` kolu VARDI ama HICBIR OTOMATIK
+      # is akisinda KOSMUYORDU; yani nobetcinin KENDI curumesini yakacak kol CI'da
+      # YOKTU. Sinif: [[nobetci-cagri-satiri-nobetsiz]] — ozellik duruyor, kablosu
+      # yok. Emsal: asagidaki `recete-kapisi.py` cifti (bayraksiz kol + oz-nobet
+      # kolu AYRI adimlar). SERIT B: kirmizisi yayini DURDURMAZ.
+      - name: "Chip duzeni oz-nobetcisi (--kendini-test: kapinin KENDI mutantlari)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/chip-duzeni-kapisi.py --kendini-test
+
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test

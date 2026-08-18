@@ -454,6 +454,53 @@ def kesfet_izlenmeyen():
     return sorted(y for y in r.stdout.splitlines() if _kesif_adayi_mi(y)), None
 
 
+# ---- K189: "KAPSANMIS SAYILDI" UCUNCU HUKUM (19 Agu 2026) -------------------
+# 🔴 OLCULEN DELIK (18 Agu 2026, K185 tur-1): AYNI ciktida `Henuz izlenmiyor
+# (aday): 2` + `SONUC: YESIL ✅` + `CI_KAPSAM_RC=0`. Bu agacta 19 Agu 2026'da
+# AYNEN yeniden uretildi (sentetik A6 kolu: `aday: 1  (bloklayan 0 · push-disi
+# uyari 0 · kosuyor/muaf 1)` + `SONUC: YESIL ✅` + rc=0).
+#
+# SEBEP: kapsam sorusu `git ls-files` ekseninde, yani COMMIT EDILMIS dunyaya
+# sorulur. `git add` EDILMEMIS bir aday icin "kosuyor/muaf" hukmu YALNIZ calisma
+# agacindaki delile dayanir (dosyanin kendisi + commit'lenmemis is akisi cagri
+# satiri). O delil PUSH EDILEN dunyada YOKTUR -> kapi bir sey OLCMEDI, olctugunu
+# SANDI. ZARAR: isci (commit ATAMAZ) nobetci + testini yazar, kapi YESIL der,
+# kablolamayi KIMSE olcmemistir ([[kablo-da-kosuyor-demek-degil]] ·
+# [[kapi-varlik-olcer-yokluk-olcmez]]).
+#
+# HUKUM: bu hal YESIL DEGIL `OLCULEMEDI`dir ve KIRMIZI'dan da AYRI jetonla ilan
+# edilir — "kapsam YOK" demiyoruz, "bu eksende hukum VEREMEM" diyoruz.
+#
+# 🔴 YANLIS-POZITIF CITI (V3 ILE AYNI KACIS — kapsam SESSIZCE GENISLETILMEDI):
+# pre-push kancasi ref/SHA araligini VERDIGINDE izlenmeyen dosya TANIMI GEREGI o
+# araligin disindadir (hicbir commit'te yoktur) -> o itmeyi BLOKLAMAZ, GORUNUR
+# uyari olur. Boylece "yanlis-pozitif TUM ekibin yayinini durdurur" riski KAPALI
+# kalir; hukum yalnizca kapsam sorusunun FIILEN soruldugu kosumda (yerel bayraksiz
+# kosum · CI) konusur. Olculen zarar (K185 tur-1) TAM OLARAK kapsamin BILINMEDIGI
+# kosumdaydi. CI'da kova zaten BOStur (olculdu 9 Agu: temiz klonda `--others`
+# 0 satir; 19 Agu bu agacta yeniden: `Henuz izlenmiyor (aday): 0`) -> CI maliyeti 0.
+#
+# 🔴 IKI JETON AYRIK OLMAK ZORUNDA — BIRI OTEKININ ALT-DIZESI OLAMAZ. Bu depoda
+# OLCULEN tuzak: `OLCULEMEDI` metni pozitif kolun capasini de tasiyordu ve pozitif
+# kolu olduren mutant kabul testini YESIL gecti ([[beyan-edilmis-survivor]]).
+# Ayriklik `kapsanan_hukum_mutasyon_kontrol()` icinde FIILEN olculur; iki jetondan
+# biri otekinin icine sokulursa o iddia TEK BASINA kirmizi yakar.
+OLCULEMEDI_RC = 2
+KAPSANMIS_OLCULEMEDI_JETONU = "KAPSANMIS SAYILDI -> OLCULEMEDI"
+KAPSANMIS_PUSH_DISI_JETONU = "KAPSANMIS SAYILDI -> PUSH KAPSAMI DISI"
+SONUC_OLCULEMEDI_JETONU = "SONUC: OLCULEMEDI ⚪"
+_KAPSANMIS_OLCULEMEDI_SATIRI = (
+    KAPSANMIS_OLCULEMEDI_JETONU + ": %s — kapsam iddiasi YALNIZ calisma agacindaki "
+    "(commit'LENMEMIS) delile dayaniyor; dosya `git add` EDILMEDIGI icin "
+    "kablolamasi PUSH EDILEN dunyada OLCULEMEZ. Bu 'kosuyor' DEMEK DEGILDIR — "
+    "hukum VERILMEMISTIR. COZUM: `git add %s` (VE cagri satirini tasiyan is akisi "
+    "dosyasini) sonra kapiyi TEKRAR kos.")
+_KAPSANMIS_PUSH_DISI_SATIRI = (
+    "UYARI: " + KAPSANMIS_PUSH_DISI_JETONU + ": %s — kapsam iddiasi commit'LENMEMIS "
+    "delile dayaniyor ama bu itmenin ref/SHA araliginda yok; push'u BLOKLAMIYOR. "
+    "(Gorunur uyari: gorunmeyen uyari yesilin ta kendisir.)")
+
+
 # ---- PRE-PUSH KAPSAMI (git'in kancaya verdigi ref/SHA satirlari) -----------
 # Kapsam yalnız pre-push stdin'indeki
 #   <local ref> <local sha> <remote ref> <remote sha>
@@ -560,6 +607,131 @@ def _iz_yaz(depo, rel, metin):
     os.makedirs(os.path.dirname(tam), exist_ok=True)
     with open(tam, "w", encoding="utf-8") as f:
         f.write(metin)
+
+
+# ---- K189 MUTASYON BATARYASI: HEDEF KOL ATFI ------------------------------
+# 🔴 K182 SARTI: "rc sifir-disi geldi" YETMEZ. Kirmizinin SEBEBININ *bu kol* oldugu,
+# kolu TEK TEK sokup hukmun GERI DONDUGU gosterilerek kanitlanir.
+# YONTEM: kaynak metnine tek satirlik sabotaj uygulanir, AYRI bir modul kopyasi
+# yuklenir (canli modul KIRLENMEZ; `_davranis_modulu` ile AYNI desen) ve AYNI girdi
+# yeniden yargilanir. Fikstur HERMETIKTIR: `kesif`/`izlenmeyen` argumanla verilir,
+# `kontroller=False`, `akislar=None` -> git'e HIC dokunulmaz, ozyineleme YOK.
+# (etiket, capa, ikame, beklenen_rc, neden)
+KAPSANMIS_MUTANTLARI = (
+    ("M1 BESLEME", "        olculemedi.append(_KAPSANMIS_OLCULEMEDI_SATIRI % (yol, yol))\n",
+     "        pass\n", 0,
+     "kova hic beslenmezse hukum YESIL'e doner -> kirmizinin sebebi BU satirdir"),
+    ("M2 HUKUM KOLU", "    if olculemedi:\n        satirlar.append(\n",
+     "    if False and olculemedi:\n        satirlar.append(\n", 0,
+     "kova DOLU ama hukum kolu olu -> [[beyan-edilmis-survivor]]: olculur, basilir, "
+     "hukme GIRMEZ"),
+    ("M3 CIKIS KODU", "        return OLCULEMEDI_RC, satirlar\n",
+     "        return 0, satirlar\n", 0,
+     "hukum satiri duruyor ama cikis kodu sifira kaciriliyor"),
+    ("M4 RC SABITI", "OLCULEMEDI_RC = 2\n", "OLCULEMEDI_RC = 0\n", 0,
+     "sabit TEK BASINA hukum tasiyor; 0'a cekilirse kabuk/CI YESIL sayar"),
+    # 🔴 M5 — CITIN KENDISI HEDEF: "kapsam biliniyor" dali HER ZAMAN dogru olursa
+    # kapsam-BILINMEYEN kosum da sessizce yesile doner, yani cit deligi kapatmak
+    # yerine TASIR. Bu mutant olmadan cit kendi kor noktasini olcmemis olur.
+    ("M5 CIT", "        if push_kapsami is not None:\n            satirlar.append(_KAPSANMIS_PUSH_DISI_SATIRI % yol)\n",
+     "        if True:\n            satirlar.append(_KAPSANMIS_PUSH_DISI_SATIRI % yol)\n", 0,
+     "cit her zaman aciksa kapsam-BILINMEYEN kosum da yesil gecer -> delik TASINMIS olur"),
+    # --- KONTROLLER: MESRU yeniden yazimlar hukmu DEGISTIRMEMELI (sahte-kirmizi yuzeyi)
+    ("K1 KONTROL len()", "    if olculemedi:\n        satirlar.append(\n",
+     "    if len(olculemedi) > 0:\n        satirlar.append(\n", 2,
+     "esdeger yazim -> hukum AYNI kalmali (yoksa kapi bicimi yargilar, davranisi degil)"),
+    ("K2 KONTROL list()", "    for yol in izlenmeyen_kapsanan:\n        if push_kapsami is not None:\n",
+     "    for yol in list(izlenmeyen_kapsanan):\n        if push_kapsami is not None:\n", 2,
+     "esdeger dongu -> hukum AYNI kalmali"),
+)
+
+
+def kapsanan_hukum_mutasyon_kontrol(kaynak=None):
+    """🔴 K189 HEDEF KOL ATFI — (ok, hatalar). Hicbir sey BASMAZ.
+
+    Iddialar:
+      P  POZITIF TABAN — mutasyonsuz kaynak AYNI girdide rc=OLCULEMEDI_RC verir,
+         OLCULEMEDI jetonunu basar ve push-disi (yesil kol) jetonunu BASMAZ.
+      Q  CIT TABANI   — AYNI girdi push_kapsami VERILINCE rc=0 + GORUNUR uyari.
+      N  NEGATIF TABAN — aday YOKKEN rc=0 (kirmizi 'hep kirmizi'dan AYIRT EDILSIN).
+      J  JETON AYRIKLIGI — iki kolun jetonu birbirinin alt-dizesi OLAMAZ.
+      M1..M5 OLDURUCU — kolu (ve citi) sokan her sabotaj hukmu YESIL'e (rc=0)
+         DUSURUR; yani P'deki kirmizinin SEBEBI kanitlanmis olur.
+      K1/K2 KONTROL — esdeger yeniden yazimlar hukmu DEGISTIRMEZ."""
+    hata = []
+    kaynak_yol = os.path.abspath(__file__)
+    if kaynak is None:
+        try:
+            with open(kaynak_yol, encoding="utf-8") as f:
+                kaynak = f.read()
+        except OSError as e:
+            return False, ["K189 MUTASYON BATARYASI OLCULEMEDI: kendi kaynagi "
+                           "okunamadi: %s" % e]
+
+    def yargila(metin, kesif, izlenmeyen, push_kapsami=None):
+        mod = _davranis_modulu(metin)
+        return mod.denetle(_IZ_DEPLOY, kesif, {}, kontroller=False, akislar=None,
+                           izlenmeyen=izlenmeyen, push_kapsami=push_kapsami)
+
+    # J: jeton ayrikligi (bu depoda OLCULEN tuzak; sabit metinden olculur).
+    if (KAPSANMIS_OLCULEMEDI_JETONU in KAPSANMIS_PUSH_DISI_JETONU
+            or KAPSANMIS_PUSH_DISI_JETONU in KAPSANMIS_OLCULEMEDI_JETONU):
+        hata.append("J JETON AYRIK DEGIL: `%s` ile `%s` biri otekinin alt-dizesi -> "
+                    "pozitif kolu olduren mutant kabul testini YESIL gecer."
+                    % (KAPSANMIS_OLCULEMEDI_JETONU, KAPSANMIS_PUSH_DISI_JETONU))
+
+    try:
+        kod, satir = yargila(kaynak, [], [_IZ_TABAN])
+        rapor = "\n".join(satir)
+        if kod != OLCULEMEDI_RC:
+            hata.append("P POZITIF TABAN COKTU: mutasyonsuz kaynak rc=%d (beklenen "
+                        "%d) -> asagidaki mutant iddialarinin HICBIRI anlamli degil."
+                        % (kod, OLCULEMEDI_RC))
+            return False, hata
+        for jeton in (KAPSANMIS_OLCULEMEDI_JETONU, SONUC_OLCULEMEDI_JETONU):
+            if jeton not in rapor:
+                hata.append("P JETON KAYIP: `%s` raporda YOK." % jeton)
+        if KAPSANMIS_PUSH_DISI_JETONU in rapor:
+            hata.append("P KOL KARISTI: kapsam BILINMEZKEN yesil kol jetonu basildi.")
+
+        kod, satir = yargila(kaynak, [], [_IZ_TABAN], push_kapsami=set())
+        rapor = "\n".join(satir)
+        if kod != 0:
+            hata.append("Q CIT COKTU: push kapsami VERILINCE rc=%d (beklenen 0) -> "
+                        "pre-push kolunda yanlis-pozitif; agacinda WIP olan herkesin "
+                        "itmesi durur." % kod)
+        if KAPSANMIS_PUSH_DISI_JETONU not in rapor or "ADAY=1" not in rapor:
+            hata.append("Q GORUNURLUK KAYIP: yesil kolda `%s` jetonu ya da `ADAY=1` "
+                        "sayaci YOK -> gorunmeyen uyari yesilin ta kendisidir."
+                        % KAPSANMIS_PUSH_DISI_JETONU)
+
+        kod, _s = yargila(kaynak, [_IZ_TABAN], [])
+        if kod != 0:
+            hata.append("N NEGATIF TABAN COKTU: aday YOKKEN mutasyonsuz kaynak rc=%d "
+                        "(beklenen 0) -> kapi 'hep OLCULEMEDI' diyor olabilir." % kod)
+            return False, hata
+    except Exception as e:  # noqa: BLE001 — cokme KIRMIZI ile KARISTIRILMAZ
+        return False, ["K189 MUTASYON BATARYASI OLCULEMEDI (taban): %s: %s"
+                       % (type(e).__name__, e)]
+
+    for etiket, capa, ikame, beklenen_rc, neden in KAPSANMIS_MUTANTLARI:
+        gecti = kaynak.count(capa)
+        if gecti != 1:
+            hata.append("K189 MUTANTI OLCULEMEDI (%s): capa %d kez gecti (beklenen 1) "
+                        "-> kaynak yeniden yazilmis, mutasyon UYGULANMADI (sessiz "
+                        "gecis DEGIL, olcum YOKLUGU)." % (etiket, gecti))
+            continue
+        try:
+            kod, _s = yargila(kaynak.replace(capa, ikame), [], [_IZ_TABAN])
+        except Exception as e:  # noqa: BLE001
+            hata.append("K189 MUTANT DAVRANISI OLCULEMEDI (%s): %s: %s"
+                        % (etiket, type(e).__name__, e))
+            continue
+        if kod != beklenen_rc:
+            hata.append("K189 MUTANTI HUKMU DEGISTIRMEDI (%s): rc=%d (beklenen %d) — "
+                        "%s. Hedef kol ATFI COKTU: ya kol zaten olu ya hukum BASKA "
+                        "bir eksenden geliyor." % (etiket, kod, beklenen_rc, neden))
+    return (not hata), hata
 
 
 def izlenmeyen_fikstur_kontrol():
@@ -702,16 +874,74 @@ def izlenmeyen_fikstur_kontrol():
             hata.append("A4 ETIKET KARISTI: izlenen dosya icin `HENUZ IZLENMIYOR` "
                         "etiketi basildi -> iki kova ayni sey sanilir.")
 
-        # --- A6: izlenmeyen ama KAPSANMIS (cagri satiri VAR) -> hata DEGIL ---
+        # --- A6 (K189, 19 Agu): izlenmeyen ama "KAPSANMIS" -> YESIL DEGIL,
+        #     OLCULEMEDI. Eski iddia rc=0 BEKLIYORDU; olculen delik TAM oradaydi.
         kod, satir = hukum([], [_IZ_TABAN])
         rapor = "\n".join(satir)
+        if kod != OLCULEMEDI_RC:
+            hata.append(
+                "A6 SESSIZ YESIL (K189): cagri satiri OLAN ama `git add` EDILMEMIS "
+                "dosya icin rc=%d (beklenen %d = OLCULEMEDI) -> kapsam iddiasi "
+                "commit'lenmemis delile dayaniyor ve kapi bunu OLCUM sayiyor."
+                % (kod, OLCULEMEDI_RC))
+        if KAPSANMIS_OLCULEMEDI_JETONU not in rapor:
+            hata.append("A6 JETON KAYIP: `%s` jetonu raporda YOK -> 'aday' hali AYRI "
+                        "jetonla ilan EDILMIYOR." % KAPSANMIS_OLCULEMEDI_JETONU)
+        if SONUC_OLCULEMEDI_JETONU not in rapor:
+            hata.append("A6 HUKUM JETONU KAYIP: rapor `%s` satirini BASMIYOR -> hukum "
+                        "YESIL/KIRMIZI ikiligine geri dusmus."
+                        % SONUC_OLCULEMEDI_JETONU)
+        if "SONUC: YESIL" in rapor:
+            hata.append("A6 CELISKI: OLCULEMEDI hukmuyle AYNI raporda `SONUC: YESIL` "
+                        "de basildi -> iki hukum ayni ciktida yasiyor.")
+        if KAPSANMIS_PUSH_DISI_JETONU in rapor:
+            hata.append("A6 KOL KARISTI: kapsam BILINMEZKEN push-disi (yesil kol) "
+                        "jetonu basildi -> cit deligi kapatmiyor, TASIYOR.")
+
+        # --- A6b POZITIF-KONTROL (aday=0): kova BOSKEN hukum YESIL + rc=0 kalmali.
+        #     Bu vaka OLMADAN A6'nin kirmizisi "hep kirmizi"dan ayirt edilemez ve
+        #     "izlenmeyen kova varsa hep OLCULEMEDI" tekil yamasi fark edilmez.
+        kod, satir = hukum([_IZ_TABAN], [])
+        rapor = "\n".join(satir)
+        if kod != 0 or "SONUC: YESIL" not in rapor:
+            hata.append("A6b YANLIS-POZITIF: aday YOKKEN (kova bos, taban dosya "
+                        "kosuyor) rc=%d ve YESIL satiri %s -> yeni hukum kovayi "
+                        "atlayip her kosumu OLCULEMEDI yapiyor."
+                        % (kod, "VAR" if "SONUC: YESIL" in rapor else "YOK"))
+        if SONUC_OLCULEMEDI_JETONU in rapor:
+            hata.append("A6b JETON SIZINTISI: aday YOKKEN `%s` basildi."
+                        % SONUC_OLCULEMEDI_JETONU)
+
+        # --- A6c YANLIS-POZITIF CITI: AYNI girdi, ama PUSH KAPSAMI BILINIYOR ->
+        #     GORUNUR UYARI + YESIL (V3 ile AYNI kacis). Bu vaka silinirse pre-push
+        #     kolu sessizce sertlesir ve agacinda WIP olan HERKESIN itmesi durur.
+        kod, satir = denetle(_IZ_DEPLOY, [], izin, kontroller=False, akislar=None,
+                             izlenmeyen=[_IZ_TABAN], push_kapsami=set())
+        rapor = "\n".join(satir)
         if kod != 0:
-            hata.append("A6 YANLIS-KIRMIZI: cagri satiri OLAN izlenmeyen dosya icin "
-                        "rc=%d (beklenen 0) -> kova kapsam sorusunu HIC sormuyor, "
-                        "korlemesine kirmizi yakiyor." % kod)
-        if "HENUZ IZLENMIYOR ama KAPSANMIS" not in rapor:
-            hata.append("A6 BILGI SATIRI KAYIP: kapsanan izlenmeyen dosya rapora "
-                        "HIC girmiyor -> gorunmeyen olcum olculmemis sayilir.")
+            hata.append("A6c YANLIS-POZITIF (pre-push): push kapsami BILINIRKEN "
+                        "kapsanan izlenmeyen dosya rc=%d (beklenen 0) -> agacinda "
+                        "WIP olan herkesin itmesi durur." % kod)
+        if KAPSANMIS_PUSH_DISI_JETONU not in rapor:
+            hata.append("A6c UYARI KAYIP: push kapsami BILINIRKEN `%s` jetonu "
+                        "basilmiyor -> hal SESSIZ gecer; gorunmeyen uyari yesilin "
+                        "ta kendisidir." % KAPSANMIS_PUSH_DISI_JETONU)
+        if "ADAY=1" not in rapor or _IZ_TABAN not in rapor:
+            hata.append("A6c SAYI/AD KAYIP: yesil kolda `ADAY=1` sayaci ya da aday "
+                        "ADI raporda YOK -> 'uyari + yesil' olculemez hale gelir.")
+        if KAPSANMIS_OLCULEMEDI_JETONU in rapor:
+            hata.append("A6c KOL KARISTI: kapsam BILINIRKEN OLCULEMEDI jetonu "
+                        "basildi -> iki kol ayni jetonu paylasiyor.")
+
+        # --- A6d JETON AYRIKLIGI (bu depoda OLCULEN tuzak): iki kolun jetonundan
+        #     biri otekinin ALT-DIZESI olursa, pozitif kolu olduren mutant kabul
+        #     testini YESIL gecer ([[beyan-edilmis-survivor]]).
+        if (KAPSANMIS_OLCULEMEDI_JETONU in KAPSANMIS_PUSH_DISI_JETONU
+                or KAPSANMIS_PUSH_DISI_JETONU in KAPSANMIS_OLCULEMEDI_JETONU):
+            hata.append("A6d JETON AYRIK DEGIL: `%s` ile `%s` biri otekinin "
+                        "alt-dizesi -> `jeton in rapor` iddialari IKI KOLU "
+                        "AYIRT EDEMEZ."
+                        % (KAPSANMIS_OLCULEMEDI_JETONU, KAPSANMIS_PUSH_DISI_JETONU))
 
         # --- A7: kova OKUNAMADI -> fail-closed (bos kova SAYILMAZ) ---
         # kesif KASTEN yalniz TABAN dosya: rc=1'in TEK sebebi OLCULEMEDI olsun.
@@ -5251,6 +5481,7 @@ NOBETCI_KABLOLARI = (
                  "bayraksiz_adim_kontrol", "bulgu1_mutasyon_kontrol",
                  "hukum_davranis_kontrol", "hukum_fuzz_kontrol",
                  "izlenmeyen_fikstur_kontrol", "kanca_kablo_adimi_kontrol",
+                 "kapsanan_hukum_mutasyon_kontrol",
                  "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
                  "main_kablosu_kontrol", "muaf_sayaci_kontrol",
                  "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",
@@ -5276,7 +5507,7 @@ NOBETCI_KABLOLARI = (
 # birinden otekine TASIMAK yuzeyi SESSIZCE kucultebilir — iki kol da rc=0 verirken.
 # NOT: bu SAYI artik TEK BASINA yuk tasimiyor (dusurulebilir olmasi E5-a deligiydi);
 # asil capa yukaridaki ESITLIK kontroludur. Sayi ikinci bir ratchet olarak kalir.
-KOL_BIRLESIM_TABANI = 18
+KOL_BIRLESIM_TABANI = 19
 # UCUNCU (BLOKLAYICI) KOL — `--kanca-kablo`. `NOBETCI_KABLOLARI`'nin anahtarlari
 # FONKSIYON adi oldugu icin bu kolun nobetcileri `main` kaydinda erir ve kol dokumu
 # onu RAPORLAMIYORDU (5. tur F6). Ayri kayit: dokum UC SERIDI de basar.
@@ -6401,6 +6632,9 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
                                 % akis_yol)
 
     hatalar = []
+    # 🔴 K189: UCUNCU KOVA. `hatalar` "kapsam YOK" der, bu kova "OLCEMEDIM" der.
+    # Ikisi AYRI cikis kodu ve AYRI jeton tasir; birlestirilirse tani coker.
+    olculemedi = []
 
     # Iki model araci artik iki seride kosar: pahali KENDINI-TEST nobet.yml'de,
     # canli katalogu olcen BAYRAKSIZ kollar deploy.yml'de. Dosya-granullu kapsam
@@ -6526,6 +6760,14 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
             "kapatmaz: once cagri satirini ekle ya da GEREKCELI muafiyet yaz."
             % (yol, kapsam_tani))
 
+    # 1c) 🔴 K189 — "KAPSANMIS SAYILDI" YESIL DEGILDIR, OLCULEMEDI'DIR.
+    # (Gerekce + yanlis-pozitif citi: dosyanin basindaki K189 blogu.)
+    for yol in izlenmeyen_kapsanan:
+        if push_kapsami is not None:
+            satirlar.append(_KAPSANMIS_PUSH_DISI_SATIRI % yol)
+            continue
+        olculemedi.append(_KAPSANMIS_OLCULEMEDI_SATIRI % (yol, yol))
+
     # 5) kendi mutasyon nobetcileri — yalniz GERCEK deploy.yml'e karsi (mutant --deploy
     #    verildiginde pozitif kontrol anlamsiz olur, o yuzden atlanir) ve nobetcinin
     #    kendi ic cagrilarinda (ozyineleme) atlanir.
@@ -6553,6 +6795,11 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, izlenmeyen_hata = izlenmeyen_fikstur_kontrol()
         for h in izlenmeyen_hata:
             hatalar.append("IZLENMEYEN-FIKSTUR: " + h)
+        # K189 (19 Agu): "KAPSANMIS SAYILDI" hukmunun HEDEF KOL ATFI. Ucuncu
+        # hukmun asil tuketicisi YEREL bayraksiz kosumdur -> kanit BU kolda durur.
+        _, kapsanan_hata = kapsanan_hukum_mutasyon_kontrol()
+        for h in kapsanan_hata:
+            hatalar.append("K189-KAPSANMIS-MUTASYON: " + h)
         # KABLO (9 Agu): `main()` olcumu `denetle()`'ye FIILEN geciriyor mu.
         # Ozellik + fikstur duruyorken kablosu sokulebiliyordu (Y4/Y8).
         _, kablo_hata = main_kablosu_kontrol()
@@ -6667,12 +6914,18 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         bloklayan_izlenmeyen = len(izlenmeyen_kapsamsiz) - len(izlenmeyen_push_disi)
         satirlar.append(
             "  Henuz izlenmiyor (aday): %d  (bloklayan %d · push-disi uyari %d · "
-            "kosuyor/muaf %d)"
+            "KAPSANMIS SAYILDI %d)"
             % (len(izlenmeyen), bloklayan_izlenmeyen,
                len(izlenmeyen_push_disi), len(izlenmeyen_kapsanan)))
-        for yol in izlenmeyen_kapsanan:
-            satirlar.append("      ℹ️ HENUZ IZLENMIYOR ama KAPSANMIS (cagri satiri/"
-                            "muafiyet zaten var): %s" % yol)
+        if izlenmeyen_kapsanan:
+            # 🔴 YESIL KOL SESSIZ OLAMAZ: kapsam BILINIYORKEN de aday sayisi ve
+            # ADLARI KENDI jetonuyla basilir. "Uyari + yesil" ancak GORUNURSE
+            # mesrudur; gorunmeyen uyari yesilin ta kendisidir.
+            satirlar.append(
+                "      ⚪ %s · ADAY=%d: %s"
+                % (KAPSANMIS_PUSH_DISI_JETONU if push_kapsami is not None
+                   else KAPSANMIS_OLCULEMEDI_JETONU,
+                   len(izlenmeyen_kapsanan), ", ".join(izlenmeyen_kapsanan)))
     if akislar is not None:
         satirlar.append("  Beyan edilen alt kume  : %d  (kapsanan %d · muaf %d)"
                         % (beyan_sayisi, kapsanan_alt_kume, muaf_alt_kume))
@@ -6718,12 +6971,21 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
     if akislar is not None:
         hatalar.extend(tutarlilik_kontrolu(satirlar, hatalar, kontroller))
     satirlar.append("-" * 70)
-    if hatalar:
+    if hatalar or olculemedi:
         for h in hatalar:
             satirlar.append("  ❌ " + h)
+        for h in olculemedi:
+            satirlar.append("  ⚪ " + h)
         satirlar.append("-" * 70)
+    if hatalar:
         satirlar.append("SONUC: KIRMIZI ❌  (%d sorun)" % len(hatalar))
         return 1, satirlar
+    if olculemedi:
+        satirlar.append(
+            "%s  (%d eksen) — kapsam sorusu SORULDU ama CEVAPLANAMADI; bu YESIL "
+            "DEGILDIR ve KIRMIZI da degildir (rc=%d)."
+            % (SONUC_OLCULEMEDI_JETONU, len(olculemedi), OLCULEMEDI_RC))
+        return OLCULEMEDI_RC, satirlar
     satirlar.append("SONUC: YESIL ✅  — her kabul testi ya kosuluyor ya gerekceli muaf.")
     return 0, satirlar
 
