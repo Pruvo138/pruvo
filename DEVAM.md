@@ -6,10 +6,10 @@
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🟠 **K186 dal `74d6cfcd` DONDURULDU, MERGE BEKLIYOR** (chip kapandi): olculmus tablo
   `IDDIA=50 DUSEN=0 MUTANT=50/50` · bloklayici kol `16/16` · `--capa 1/1` · kisisel-veri rc=0.
-  🔴 MERGE SARTI: kosum **`32192345810` @ `74d6cfcd`** yesili (yerel olcum CI node 20'de DEGIL,
-  K196). Kosum 22:21Z'de basladi, oturum kapanirken hala `in_progress`. Bloklayici kolun ILK
-  gercek kosumu merge'de; geri alma `git revert -m 1`. 🔴 TAAHHUT: **K200 yesil olmadan TRAFIK
-  acilmaz** (sema uygulanabilir, uc deploy + sihirbaz yayini K200'e bagli).
+  🔴 ESKI SART ("`32192345810` yesili") **DUSTU — UYGULANAMAZ** (ayni is akisi main'de de 8/17
+  kirmizi, taban `32190783790`). ⚖️ YENI: *YENI kirmizi URETMIYOR* — (a) IS granulu OLCULDU,
+  kumeler AYNI; (b) SEBEP granulu **OLCULMEDI**, chip olcecek (K182). Sira: K202, K186, K184,
+  K190/K187 (`ba6d9d77`+`76c8444f`). Tam metin KUTUDA. 🔴 **K200 yesil olmadan TRAFIK YOK.**
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
   isliyor"u iddia eder. Uc ayak: (i) canli `--kuru` bir kez olculdu, (ii) periyodik kablolama
   (MIMARDA, K198'in arkasinda), (iii) kablolamanin KOSTUGU kanit (zaman damgali iz + tetiklenmezse
