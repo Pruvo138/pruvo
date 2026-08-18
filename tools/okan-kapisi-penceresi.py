@@ -86,10 +86,25 @@ T6_PENCEREDE_JETON  = "T6-PENCEREDE"
 T6_OLCULEMEDI_JETON = "T6-OLCULEMEDI"
 T6_IZ_JETON         = "T6-IZ"
 
-# Etiket suzgeci — OKAN-KAPISI etiketi. case-insensitive substring eslesmesi
-# (DEFTER satirinda "OKAN-KAPISI" veya "OKAN KAPISI" gecerse yakalar).
-# Hicbir kalem etiket tasimiyorsa K1'e girer ve sayaclara katilmaz.
-ETIKET_KALIP = "okan-kapisi"
+# Etiket suzgeci — OKAN-KAPISI etiketi. T6b (19 Agu): iki yuzey var:
+#   (a) Satir ici ibare: "OKAN-KAPISI" veya "OKAN KAPISI" (tireli VEYA
+#       bosluklu; case-insensitive). Tek basina "OKAN KARARI" yetmez —
+#       okan'in ZATEN VERDIGI karari isaretler, park yuzeyi DEGIL.
+#   (b) Bolum uyeligi: `## OKAN'DA` bolumunun altinda olmak (ayrica acik
+#       bir park beyanidir — `OKAN KARARI` bile olsa konum kazanir).
+# Hicbir yuzeye uymayan kalem K1/K4'e girer, sayaclara katilmaz.
+import re as _re
+
+ETIKET_KALIP_RE = _re.compile(r"okan[\s\-_]kapisi", _re.IGNORECASE)
+OKAN_DA_BOLUM_RE = _re.compile(r"^##\s+OKAN'?DA\b", _re.IGNORECASE)
+SON_DURUM_BOLUM_RE = _re.compile(r"^##\s+.*SON\s+DURUM\b", _re.IGNORECASE)
+ACIK_KALEMLER_BOLUM_RE = _re.compile(r"^##\s+ACIK\s+KALEMLER\b", _re.IGNORECASE)
+
+# Taranan bolumler: ACIK KALEMLER + OKAN'DA + KraL SON DURUM. KraL SON DURUM
+# "kapanis blogu" olmasina ragmen icinde `OKAN KAPISI` tasiyan kalemler
+# (ornek K198) park yuzeyi olarak yasiyor — bunlar OKAN'DA tasinmadan
+# once kapanis bloguna yazilmis olabilir.
+TARANACAK_BOLUMLER = ("ACIK KALEMLER", "OKAN'DA", "KraL SON DURUM")
 
 MUTANT_HEDEF = {
     "M1": T6_DUSTU_JETON,
@@ -104,23 +119,131 @@ VARSAYILAN_KUTU_YOLU = os.path.expanduser(
 
 
 # ------------------------------------------------------------------------------
-# ETIKET SUZGECI
+# PARK SUZGECI (T6b — iki yuzey)
 # ------------------------------------------------------------------------------
-def etiket_tasiyor_mu(satir):
-    """Kalem satiri OKAN-KAPISI etiketini tasiyor mu? (case-insensitive)."""
+def satir_ibare_var_mi(satir):
+    """Satir 'OKAN-KAPISI' veya 'OKAN KAPISI' (tireli veya bosluklu)
+    tasiyor mu? case-insensitive. YALNIZ satir ici ibare testi — bolum
+    uyeligi bunu ETKILEMEZ."""
     if not isinstance(satir, str):
         return False
-    return ETIKET_KALIP in satir.lower()
+    return bool(ETIKET_KALIP_RE.search(satir))
 
 
-def kalem_listesi_etiketli(defter):
-    """ACIK KALEMLER bolgesindeki KALEM'leri bul; etiket suzgecini UYGULANMAMIS
-    liste doner. Returns: [{kimlik, satir, satir_no, tip, etiketli: bool}, ...]
+def park_mi(kalem, *, bolum_uyeligi_aktif=True, okan_karari_aktif=False):
+    """Kalem park yuzeylerinden BIRINE uyuyor mu?
+
+    Kurallar (T6b, 19 Agu):
+      (1) `## OKAN'DA` bolumunun altindaysa bolum uyeligi yeterli
+          (bolum_uyeligi_aktif=True ise).
+      (2) Satirda `OKAN-KAPISI` veya `OKAN KAPISI` ibaresi varsa
+          (case-insensitive) satir ibaresi yeterli (her zaman aktif).
+      (3) M6 mutant kapisi: okan_karari_aktif=True ise `OKAN KARARI`
+          tasiyan satirlar da dahil edilir (yanlis davranis simulasyonu).
+
+    HARIC tutma: `OKAN KARARI` normal modda dahil etmez; ancak kalem
+    ayni zamanda OKAN'DA bolumundeyse KONUM kazanir (K3).
     """
-    tum = t5.kalem_listesi(defter)
+    satir = kalem.get("satir", "")
+    bolum = kalem.get("bolum", "")
+    low = satir.lower() if isinstance(satir, str) else ""
+
+    # Kural 2: satir ici "OKAN-KAPISI"/"OKAN KAPISI" ibaresi
+    if satir_ibare_var_mi(satir):
+        return True
+
+    # Kural 1: bolum uyeligi
+    if bolum_uyeligi_aktif and bolum == "OKAN'DA":
+        return True
+
+    # Kural 3 (M6 mutant kapisi): "OKAN KARARI" ibaresi
+    if okan_karari_aktif and "okan karari" in low:
+        return True
+
+    return False
+
+
+# ------------------------------------------------------------------------------
+# GENIS KALEM LISTESI (cok-bolumlu parser)
+# ------------------------------------------------------------------------------
+# T5'in `kalem_listesi` yalniz `## ACIK KALEMLER` bolgesini tarar. T6b
+# suzgeci gercek yuzeylere (OKAN'DA, KraL SON DURUM) baglandigi icin
+# bu parser BOLUM-duzeyinde calisir ve her kaleme `bolum` alani ekler.
+# T6 kendi parserini yazar; T5'in parserina DOKUNMAZ ([[tek-kaynak
+# -genisleme-disiplin-ihlali]]).
+
+KIMLIK_RE = _re.compile(r"\bK\d+\b")
+
+
+def _bolum_adi(satir):
+    """Bir `## ...` basliginin bizim taradigimiz bolumlerden hangisi
+    oldugunu doner; degilse None."""
+    if ACIK_KALEMLER_BOLUM_RE.match(satir):
+        return "ACIK KALEMLER"
+    if OKAN_DA_BOLUM_RE.match(satir):
+        return "OKAN'DA"
+    if SON_DURUM_BOLUM_RE.match(satir):
+        return "KraL SON DURUM"
+    return None
+
+
+def kalem_listesi_genis(defter):
+    """TARANACAK_BOLUMLER'in tumundeki `- ` ile baslayan satirlari topla.
+    OKAN'DA bolumu: K-prefix sartı YOK (orada "kalem" genis anlamli —
+    acik park maddeleri). Diger bolumler: K-prefix zorunlu (tutarlilik).
+
+    Returns: [{kimlik, satir, satir_no, bolum, tip, etiketli: bool}, ...]
+
+    `kimlik` alani: K\\d+ bulursa onu; yoksa "OKAN_DA_<line_no>" uretir
+    (OKAN'DA bolumu icin — kimliksiz maddelerin tekil izi). Diger
+    bolumlerde kimliksiz maddeler ATLANIR (T5 tutarliligi).
+    """
+    satirlar = defter.splitlines()
+    aktif_bolum = None
+    out = []
+    for i, satir in enumerate(satirlar):
+        if satir.startswith("## "):
+            yeni = _bolum_adi(satir)
+            if yeni is not None:
+                aktif_bolum = yeni
+                continue
+            else:
+                # Bilinmeyen `## ` basligi: bu bolumu KAPAT
+                aktif_bolum = None
+                continue
+        if aktif_bolum is None:
+            continue
+        if not satir.startswith("- "):
+            continue
+        # Madde aday
+        if aktif_bolum == "OKAN'DA":
+            # OKAN'DA bolumu: K-prefix sartı yok — tum bullet'lar alinir.
+            m = KIMLIK_RE.search(satir)
+            kimlik = m.group(0).upper() if m else "OKAN_DA_L%d" % (i + 1)
+            out.append({"kimlik": kimlik, "satir": satir, "satir_no": i,
+                        "bolum": aktif_bolum, "tip": "KALEM"})
+        else:
+            # ACIK KALEMLER / KraL SON DURUM: K-prefix sartı.
+            m = KIMLIK_RE.search(satir)
+            if m is None:
+                continue
+            out.append({"kimlik": m.group(0).upper(), "satir": satir,
+                        "satir_no": i, "bolum": aktif_bolum,
+                        "tip": "KALEM"})
+    return out
+
+
+def kalem_listesi_etiketli(defter, *, bolum_uyeligi_aktif=True,
+                           okan_karari_aktif=False):
+    """Tum taranan bolumlerdeki kalemleri bul; her birine `etiketli`
+    (yeni T6b tanimi: park_mi) alanini ekle. Returns:
+    [{kimlik, satir, satir_no, bolum, tip, etiketli: bool}, ...]
+    """
+    tum = kalem_listesi_genis(defter)
     out = []
     for k in tum:
-        etiketli = etiket_tasiyor_mu(k["satir"])
+        etiketli = park_mi(k, bolum_uyeligi_aktif=bolum_uyeligi_aktif,
+                           okan_karari_aktif=okan_karari_aktif)
         out.append({**k, "etiketli": etiketli})
     return out
 
@@ -157,6 +280,11 @@ def kalem_sinifla(kalem, durum, simdi, *, kirik_kol=None, esik_dk=None):
     kirik_kol: curutme testi icin. None ise normal mantik; bir kol jetonu
     ise o kolu DEVRE DISI birakir (o kolun karar vermesi gereken yerde
     her zaman ZIT kol uretir).
+
+    `kalem["etiketli"]` degeri hepsini_simfla tarafindan ONCEDEN
+    hesaplanir (park_mi ile). Bu fonksiyon etiketi yeniden hesaplamaz.
+    T6b mutant kapilari (M5/M6) park_mi uzerinden, hepsini_simfla'nin
+    parametreleri ile uygulanir — burada yalniz kol mantigi kosar.
     """
     if not kalem.get("etiketli", False):
         return {"kol": "T6-ETIKETSIZ", "damga": None,
@@ -209,31 +337,43 @@ def kalem_sinifla(kalem, durum, simdi, *, kirik_kol=None, esik_dk=None):
 
 
 def hepsini_simfla(defter, durum_yolu, simdi, *,
-                   kirik_kol=None, esik_dk=None):
+                   kirik_kol=None, esik_dk=None,
+                   bolum_uyeligi_aktif=True, okan_karari_aktif=False):
     """Butun kalemleri siniflandir. Returns:
-      {"kalemler": [{kimlik, kol, damga, fark_dakika, hata, etiketli}, ...],
+      {"kalemler": [{kimlik, kol, damga, fark_dakika, hata, etiketli, bolum}, ...],
        "dustu": int, "pencerede": int, "olculemedi": int, "etiketsiz": int,
        "kalem_sayisi": int, "etiketli_sayisi": int,
+       "bolum_dagilimi": {"OKAN'DA": int, "ACIK KALEMLER": int, "KraL SON DURUM": int},
        "durum_ok": bool, "hata": str|None}.
+
+    bolum_uyeligi_aktif/okan_karari_aktif: T6b mutant kapilari (M5/M6).
     """
     if not defter or not isinstance(defter, str):
         return {"kalemler": [], "dustu": 0, "pencerede": 0,
                 "olculemedi": 0, "etiketsiz": 0,
                 "kalem_sayisi": 0, "etiketli_sayisi": 0,
+                "bolum_dagilimi": {},
                 "durum_ok": False, "hata": "defter yok/yanlis tip"}
-    kalemler_raw = kalem_listesi_etiketli(defter)
+    kalemler_raw = kalem_listesi_etiketli(defter,
+                                          bolum_uyeligi_aktif=bolum_uyeligi_aktif,
+                                          okan_karari_aktif=okan_karari_aktif)
     durum = t5.durum_oku(durum_yolu)
     kalemler = []
     dustu = pencerede = olcu = etiketsiz = 0
     etiketli_sayisi = sum(1 for k in kalemler_raw if k["etiketli"])
+    bolum_dagilimi = {}
     for k in kalemler_raw:
+        b = k.get("bolum", "?")
+        bolum_dagilimi[b] = bolum_dagilimi.get(b, 0) + 1
         sonuc = kalem_sinifla(k, durum, simdi,
                               kirik_kol=kirik_kol, esik_dk=esik_dk)
         kalemler.append({"kimlik": k["kimlik"], "kol": sonuc["kol"],
                          "damga": sonuc["damga"],
                          "fark_dakika": sonuc["fark_dakika"],
                          "hata": sonuc["hata"],
-                         "etiketli": k["etiketli"]})
+                         "etiketli": k["etiketli"],
+                         "bolum": k.get("bolum", "?"),
+                         "satir": k.get("satir", "")})
         if sonuc["kol"] == T6_DUSTU_JETON:
             dustu += 1
         elif sonuc["kol"] == T6_PENCEREDE_JETON:
@@ -248,6 +388,7 @@ def hepsini_simfla(defter, durum_yolu, simdi, *,
             "olculemedi": olcu, "etiketsiz": etiketsiz,
             "kalem_sayisi": len(kalemler_raw),
             "etiketli_sayisi": etiketli_sayisi,
+            "bolum_dagilimi": bolum_dagilimi,
             "durum_ok": durum is not None, "hata": hata}
 
 
@@ -303,18 +444,26 @@ def iz_yaz(kalem, damga, fark_dakika, kutu_yolu, *,
 # ------------------------------------------------------------------------------
 # SENTETIK FIKSTUR
 # ------------------------------------------------------------------------------
+# T6b (19 Agu): sentetik fiksture iki yeni kalem eklendi — biri
+# OKAN'DA bolumunde (bolum uyeligi vakalari M5/K3), biri OKAN KARARI
+# tasiyan satir ile sadece OKAN KARARI vakalari (M6). Ayrica KraL
+# SON DURUM kapanis blogu parcasi eklendi (parser cok-bolumlu tarama).
 SENTETIK_DEfter = (
     "# sentetik devter\n"
     "\n"
     "## ACIK KALEMLER\n"
     "- 🟠 **K190 — durum OKAN-KAPISI CHIP `KraL-test bir`**\n"
-    "- 🔧 **K191 — durum OKAN-KAPISI CHIP `KraL-test iki`**\n"
+    "- 🔧 **K191 — durum OKAN KAPISI CHIP `KraL-test iki`**\n"
     "- 🔧 **K192 — durum OKAN-KAPISI CHIP `KraL-test uc`**\n"
     "- 🟠 **K193 — durum OKAN-KAPISI CHIP `KraL-test dort`**\n"
     "- 🟠 **K194 — durum ACIK CHIP `KraL-test bes`** (etiketsiz; K1)\n"
     "- 🔧 **K195 — durum ACIK CHIP `KraL-test alti`** (etiketsiz; K1)\n"
+    "## 🔻 KraL SON DURUM\n"
+    "- 🔧 **K198 — OKAN KAPISI kapanis blogu parcasi**\n"
+    "- 🔧 **K199 — OKAN KARARI kapanis blogu parcasi**\n"
     "## OKAN'DA\n"
-    "eski OKAN bolumu\n"
+    "- 📌 Eski yedek (bolum uyeligi ile yakalanan; satir ibaresi yok)\n"
+    "- 🔧 **K196 — OKAN KARARI 19 Agu: yalniz OKAN KARARI diyor ama OKAN'DA bolumunde** (K3: konum kazanir)\n"
 )
 
 
@@ -390,18 +539,33 @@ def kendini_test(gecici_kok):
     # Damga yok/bozuk/gelecek -> OLCULEMEDI (fail-closed).
     # M3 dogrulamasi: damgasi olculemeyen kalemi "pencerede" say (fail-open)
     # -> mutant YASAMAZ.
+    # T6b: sentetik defterde yeni 3 etiketli var (K196, K198, OKAN_DA_Lxx).
+    # Bunlara da gecerli damga yaz ki OLCULEMEDI sayaci kirletilmesin.
     durum_m3 = {"son_guncelleme": simdi_str,
                 "kalemler": {"K190": t5._ft(26 * 60),  # dustu (yan eksen yesil)
                              "K191": t5._ft(3 * 60),   # pencerede (yan eksen yesil)
                              # K192 yok (olculemedi)
                              "K193": "bozuk-tarih-degil",  # OLCULEMEDI
-                             "K195": t5._ft(3 * 60)}}  # etiketsiz
+                             "K195": t5._ft(3 * 60),  # etiketsiz
+                             # T6b yeni etiketliler: gecerli damga
+                             "K196": t5._ft(3 * 60),
+                             "K198": t5._ft(3 * 60),
+                             # OKAN_DA_L kimligi satir numarasina bagli;
+                             # tam kimlik kalem_listesi_genis ciktisindan
+                             # sonra cozulur (asagida).
+                             }}
+    # OKAN_DA_L kimligini bul (sentetik defterde Eski yedek satiri)
+    tum_m3 = kalem_listesi_etiketli(defter)
+    okan_da_l = next((k["kimlik"] for k in tum_m3
+                      if k["kimlik"].startswith("OKAN_DA_L")), None)
+    if okan_da_l is not None:
+        durum_m3["kalemler"][okan_da_l] = t5._ft(3 * 60)
     t5.durum_yaz_atomik(durum_yol, durum_m3)
     sonuc_m3 = hepsini_simfla(defter, durum_yol, simdi_dt)
     olcu = sum(1 for k in sonuc_m3["kalemler"]
                if k["kol"] == T6_OLCULEMEDI_JETON)
-    # 4 etiketli kalem (K190..K193). K192 yok + K193 bozuk = 2 OLCULEMEDI.
-    # K190 + K191 gecerli damga = DUSTU + PENCEREDE.
+    # 7 etiketli kalem (K190..K193 + K196 + K198 + OKAN_DA_L). K192 yok +
+    # K193 bozuk = 2 OLCULEMEDI. Digerleri gecerli damga → PENCEREDE.
     k192 = next((k for k in sonuc_m3["kalemler"] if k["kimlik"] == "K192"), None)
     k193 = next((k for k in sonuc_m3["kalemler"] if k["kimlik"] == "K193"), None)
     m3_olcu = (olcu == 2
@@ -414,7 +578,7 @@ def kendini_test(gecici_kok):
     m3_yan_yesil = (k190_m3 is not None and k190_m3["kol"] == T6_DUSTU_JETON
                     and k191_m3 is not None and k191_m3["kol"] == T6_PENCEREDE_JETON)
     m3_atfi = m3_olcu and m3_yan_yesil
-    t6_m3_mesaj = ("OLCULEMEDI sayaci=%d (K192 yok, K193 bozuk) | "
+    t6_m3_mesaj = ("OLCULEMEDI sayaci=%d (K192 yok, K193 bozuk; K196+K198+OKAN_DA gecerli damga) | "
                    "K190 yan T6-DUSTU=%s K191 yan T6-PENCEREDE=%s"
                    % (olcu, m3_yan_yesil,
                       k191_m3["kol"] if k191_m3 else "?"))
@@ -479,16 +643,154 @@ def kendini_test(gecici_kok):
         atfi_dogru += 1
 
     # --- K1: ETIKET SUZGECI -------------------------------------------------
-    # OKAN-KAPISI tasimayan kalemler (K194, K195) hicbir kovaya GIRMEZ;
-    # sayaclari DEGISTIRMEZ. Yukaridaki M3 durumu: 4 etiketli kalem
-    # (K190..K193); K194/K195 etiketsiz; etiketsiz=2 olmali.
+    # T6b: hicbir park yuzeyine uymayan kalemler (K194, K195, K199) hicbir
+    # kovaya GIRMEZ; sayaclari DEGISTIRMEZ. Yeni sentetik: 10 kalem,
+    # 7 etiketli, 3 etiketsiz.
     k194 = next((k for k in sonuc_m3["kalemler"] if k["kimlik"] == "K194"), None)
     k195 = next((k for k in sonuc_m3["kalemler"] if k["kimlik"] == "K195"), None)
-    k1_ok = (sonuc_m3["etiketsiz"] == 2
+    k199 = next((k for k in sonuc_m3["kalemler"] if k["kimlik"] == "K199"), None)
+    k1_ok = (sonuc_m3["etiketsiz"] == 3
              and k194 is not None and k194["kol"] == "T6-ETIKETSIZ"
              and k195 is not None and k195["kol"] == "T6-ETIKETSIZ"
-             and sonuc_m3["kalem_sayisi"] == 6
-             and sonuc_m3["etiketli_sayisi"] == 4)
+             and k199 is not None and k199["kol"] == "T6-ETIKETSIZ"
+             and sonuc_m3["kalem_sayisi"] == 10
+             and sonuc_m3["etiketli_sayisi"] == 7
+             and sonuc_m3["bolum_dagilimi"].get("ACIK KALEMLER") == 6
+             and sonuc_m3["bolum_dagilimi"].get("KraL SON DURUM") == 2
+             and sonuc_m3["bolum_dagilimi"].get("OKAN'DA") == 2)
+
+    # ==========================================================================
+    # T6b — PARK SUZGECI GENISLETME (paket-t6b-canli-duzlem.md)
+    # 2 yeni mutant (M5/M6) + 2 yeni kontrol (K3/K4).
+    # Bolum uyeligi (OKAN'DA) ve satir ibaresi varyantlari (tireli/bosluklu)
+    # test edilir. OKAN KARARI'nin haric-tutulmasi kanitlanir.
+    # ==========================================================================
+
+    # --- M5: BOLUM UYELIGI KURALINI CIKAR ----------------------------------
+    # Sentetik defterde OKAN'DA altinda 2 kalem var: OKAN_DA_Lxx (satir
+    # ibaresi yok) + K196 (sadece OKAN KARARI). Normal modda ikisi de
+    # etiketli (bolum uyeligi). M5'te bolum_uyeligi_aktif=False; satir
+    # ibaresi olmayan OKAN_DA_Lxx etiketsiz olmali. K196 da etiketsiz
+    # olmali (yalniz OKAN KARARI, satirda OKAN KAPISI yok).
+    # Yan eksen: satir ibaresi olan K198 her iki modda etiketli=True
+    # kalir (YESIL).
+    durum_m5 = {"son_guncelleme": simdi_str,
+                "kalemler": {"K190": t5._ft(60),
+                             "K191": t5._ft(60),
+                             "K192": t5._ft(60),
+                             "K193": t5._ft(60),
+                             "K196": t5._ft(60),
+                             "K198": t5._ft(60)}}
+    if okan_da_l is not None:
+        durum_m5["kalemler"][okan_da_l] = t5._ft(60)
+    t5.durum_yaz_atomik(durum_yol, durum_m5)
+    # Normal mod
+    sonuc_m5_normal = hepsini_simfla(defter, durum_yol, simdi_dt,
+                                     bolum_uyeligi_aktif=True)
+    k196_n = next((k for k in sonuc_m5_normal["kalemler"]
+                   if k["kimlik"] == "K196"), None)
+    okan_da_l_n = next((k for k in sonuc_m5_normal["kalemler"]
+                        if k["kimlik"] == okan_da_l), None) if okan_da_l else None
+    # M5 mod (bolum uyeligi kapali)
+    sonuc_m5_mut = hepsini_simfla(defter, durum_yol, simdi_dt,
+                                  bolum_uyeligi_aktif=False)
+    k196_m = next((k for k in sonuc_m5_mut["kalemler"]
+                   if k["kimlik"] == "K196"), None)
+    okan_da_l_m = next((k for k in sonuc_m5_mut["kalemler"]
+                        if k["kimlik"] == okan_da_l), None) if okan_da_l else None
+    k198_n = next((k for k in sonuc_m5_normal["kalemler"]
+                   if k["kimlik"] == "K198"), None)
+    k198_m = next((k for k in sonuc_m5_mut["kalemler"]
+                   if k["kimlik"] == "K198"), None)
+    # M5 hedef: K196 ve OKAN_DA_Lxx normalde etiketli, mutantta ETIKETSIZ
+    m5_k196_hedef = (k196_n is not None and k196_n["etiketli"] is True
+                     and k196_m is not None and k196_m["etiketli"] is False
+                     and k196_m["kol"] == "T6-ETIKETSIZ")
+    m5_odl_hedef = (okan_da_l_n is not None and okan_da_l_n["etiketli"] is True
+                    and okan_da_l_m is not None and okan_da_l_m["etiketli"] is False
+                    and okan_da_l_m["kol"] == "T6-ETIKETSIZ")
+    # M5 yan: K198 her iki modda etiketli=True (satir ibaresi)
+    m5_k198_yan = (k198_n is not None and k198_n["etiketli"] is True
+                   and k198_m is not None and k198_m["etiketli"] is True)
+    m5_hedef_kirmizi = m5_k196_hedef and m5_odl_hedef
+    m5_yan_yesil = m5_k198_yan
+    m5_atfi = m5_hedef_kirmizi and m5_yan_yesil
+    t6_m5_mesaj = ("K196: normal etiketli=%s mut etiketli=%s | "
+                   "OKAN_DA_L: normal etiketli=%s mut etiketli=%s | "
+                   "K198 (yan): normal etiketli=%s mut etiketli=%s"
+                   % (k196_n["etiketli"] if k196_n else "?",
+                      k196_m["etiketli"] if k196_m else "?",
+                      okan_da_l_n["etiketli"] if okan_da_l_n else "?",
+                      okan_da_l_m["etiketli"] if okan_da_l_m else "?",
+                      k198_n["etiketli"] if k198_n else "?",
+                      k198_m["etiketli"] if k198_m else "?"))
+    adimlar.append(("M5", T6_DUSTU_JETON, m5_atfi, t6_m5_mesaj,
+                    {"hedef_kirmizi": m5_hedef_kirmizi,
+                     "yan_yesil": m5_yan_yesil,
+                     "HEDEF_KOL_ATFI": "EVET" if m5_atfi else "HAYIR"}))
+    if m5_atfi:
+        atfi_dogru += 1
+
+    # --- M6: OKAN KARARI'YI DE SUZGEÇE KAT ---------------------------------
+    # Sentetik: K199 (sadece OKAN KARARI, KraL SON DURUM). Normal modda
+    # etiketsiz. M6'da (okan_karari_aktif=True) etiketli=True olur — bu
+    # YANLIS davranis (verilmis kararlar "park yuzeyi" gibi yuzeye cikar).
+    # Yan eksen: K198 satir ibaresi YESIL kalir (her iki modda etiketli).
+    durum_m6 = {"son_guncelleme": simdi_str,
+                "kalemler": {"K190": t5._ft(60),
+                             "K198": t5._ft(60),
+                             "K199": t5._ft(60)}}
+    t5.durum_yaz_atomik(durum_yol, durum_m6)
+    # Normal mod
+    sonuc_m6_normal = hepsini_simfla(defter, durum_yol, simdi_dt,
+                                     okan_karari_aktif=False)
+    k199_n = next((k for k in sonuc_m6_normal["kalemler"]
+                   if k["kimlik"] == "K199"), None)
+    # M6 mod (OKAN KARARI aktif)
+    sonuc_m6_mut = hepsini_simfla(defter, durum_yol, simdi_dt,
+                                  okan_karari_aktif=True)
+    k199_m = next((k for k in sonuc_m6_mut["kalemler"]
+                   if k["kimlik"] == "K199"), None)
+    k198_m6_n = next((k for k in sonuc_m6_normal["kalemler"]
+                      if k["kimlik"] == "K198"), None)
+    k198_m6_m = next((k for k in sonuc_m6_mut["kalemler"]
+                      if k["kimlik"] == "K198"), None)
+    # M6 hedef: K199 normalde etiketsiz, mutantta etiketli (yanlis)
+    m6_hedef_kirmizi = (k199_n is not None and k199_n["etiketli"] is False
+                        and k199_n["kol"] == "T6-ETIKETSIZ"
+                        and k199_m is not None and k199_m["etiketli"] is True
+                        and k199_m["kol"] != "T6-ETIKETSIZ")
+    # M6 yan: K198 her iki modda etiketli (satir ibaresi)
+    m6_yan_yesil = (k198_m6_n is not None and k198_m6_n["etiketli"] is True
+                    and k198_m6_m is not None and k198_m6_m["etiketli"] is True)
+    m6_atfi = m6_hedef_kirmizi and m6_yan_yesil
+    t6_m6_mesaj = ("K199: normal etiketli=%s mut etiketli=%s | "
+                   "K198 (yan): normal etiketli=%s mut etiketli=%s"
+                   % (k199_n["etiketli"] if k199_n else "?",
+                      k199_m["etiketli"] if k199_m else "?",
+                      k198_m6_n["etiketli"] if k198_m6_n else "?",
+                      k198_m6_m["etiketli"] if k198_m6_m else "?"))
+    adimlar.append(("M6", T6_PENCEREDE_JETON, m6_atfi, t6_m6_mesaj,
+                    {"hedef_kirmizi": m6_hedef_kirmizi,
+                     "yan_yesil": m6_yan_yesil,
+                     "HEDEF_KOL_ATFI": "EVET" if m6_atfi else "HAYIR"}))
+    if m6_atfi:
+        atfi_dogru += 1
+
+    # --- K3: OKAN'DA + OKAN KARARI = DAHIL ----------------------------------
+    # K196 sentetik defterde OKAN'DA altinda OKAN KARARI tasiyor; bolum
+    # uyeligi yuzunden suzgece dahil edilmeli, ETIKETSIZ olmamali.
+    k196_k3 = next((k for k in sonuc_m3["kalemler"]
+                    if k["kimlik"] == "K196"), None)
+    k3_ok = (k196_k3 is not None
+             and k196_k3["etiketli"] is True
+             and k196_k3["kol"] != "T6-ETIKETSIZ")
+
+    # --- K4: HICBIR PARK IBARESI/KONUMU OLMAYAN KALEM -----------------------
+    # K194/K195/K199 hicbir yuzeye uymuyor; T6-ETIKETSIZ olmali.
+    k4_ok = (k194 is not None and k194["kol"] == "T6-ETIKETSIZ"
+             and k195 is not None and k195["kol"] == "T6-ETIKETSIZ"
+             and k199 is not None and k199["kol"] == "T6-ETIKETSIZ")
 
     # --- K2: T5 GERILEME NOBETI ---------------------------------------------
     # T5'in --kendini-test ve --curutme sonuclari T6 eklendikten sonra
@@ -532,15 +834,35 @@ def kendini_test(gecici_kok):
     print("")
     print("KONTROL K1 etiket suzgeci (OKAN-KAPISI tasimayan kalemler kovaya GIRMEZ)")
     print("  mesaj: etiketsiz=%d kalem_sayisi=%d etiketli=%d "
-          "K194 kol=%s K195 kol=%s"
+          "K194 kol=%s K195 kol=%s K199 kol=%s"
           % (sonuc_m3["etiketsiz"], sonuc_m3["kalem_sayisi"],
              sonuc_m3["etiketli_sayisi"],
              k194["kol"] if k194 else "?",
-             k195["kol"] if k195 else "?"))
+             k195["kol"] if k195 else "?",
+             k199["kol"] if k199 else "?"))
     if k1_ok:
-        print("  SONUÇ: etiket suzgeci calisiyor")
+        print("  SONUÇ: etiket suzgeci calisiyor (10 kalem; 7 etiketli, 3 etiketsiz)")
     else:
         print("  SONUÇ: K1 KUSUR! etiketsiz kalem kovaya girdi")
+    print("")
+    print("KONTROL K3 OKAN'DA + OKAN KARARI = DAHIL (bolum uyeligi konum kazandirir)")
+    print("  mesaj: K196 etiketli=%s kol=%s (OKAN'DA altinda, OKAN KARARI tasiyor)"
+          % (k196_k3["etiketli"] if k196_k3 else "?",
+             k196_k3["kol"] if k196_k3 else "?"))
+    if k3_ok:
+        print("  SONUÇ: K196 dahil (konum kazandi)")
+    else:
+        print("  SONUÇ: K3 KUSUR! K196 haric tutuldu (yanlis)")
+    print("")
+    print("KONTROL K4 hicbir park yuzeyi yoksa kovaya GIRMEZ")
+    print("  mesaj: K194=%s K195=%s K199=%s"
+          % (k194["kol"] if k194 else "?",
+             k195["kol"] if k195 else "?",
+             k199["kol"] if k199 else "?"))
+    if k4_ok:
+        print("  SONUÇ: K4 calisiyor (3 kalem ETIKETSIZ)")
+    else:
+        print("  SONUÇ: K4 KUSUR!")
     print("")
     print("KONTROL K2 T5 gerileme nobeti (T5 --kendini-test + --curutme AYNEN gecer)")
     print("  mesaj: t5_kendini_rc=%d t5_curutme_rc=%d"
@@ -550,18 +872,29 @@ def kendini_test(gecici_kok):
     else:
         print("  SONUÇ: K2 KUSUR! T5 gerilemesi VAR")
     print("")
-    kontrol_sayaci = sum([k1_ok, k2_ok])
-    # VAKA=4 + DUSEN=0
+    kontrol_sayaci = sum([k1_ok, k2_ok, k3_ok, k4_ok])
+    # VAKA=4 + DUSEN=0 (mevcut MUTANT=4/4 KONTROL=2/2 gerileme korunur;
+    # T6b yeni mutant/kontrol eklenir)
     vaka = 4
-    print("VAKA=%d DUSEN=%d MUTANT=%d/4 HEDEF_KOL_ATFI=%d/4 "
-          "KONTROL=%d/2 TEMIZ=EVET"
-          % (vaka, 0, mutant_sayaci, atfi_dogru, kontrol_sayaci))
+    eski_adlar = {"M1", "M2", "M3", "M4"}
+    yeni_adlar = {"M5", "M6"}
+    eski_olan = sum(1 for (ad, _, gecti, _, _) in adimlar
+                    if ad in eski_adlar and gecti)
+    yeni_olan = sum(1 for (ad, _, gecti, _, _) in adimlar
+                    if ad in yeni_adlar and gecti)
+    print("ESKI_MUTANT=%d/4 YENI_MUTANT=%d/2 MUTANT=%d/6 "
+          "HEDEF_KOL_ATFI=%d/6 KONTROL=%d/4 TEMIZ=EVET"
+          % (eski_olan, yeni_olan, mutant_sayaci, atfi_dogru,
+             kontrol_sayaci))
+    print("bolum_dagilimi: %s" % sonuc_m3["bolum_dagilimi"])
     rc = 0
-    if mutant_sayaci != 4:
+    if eski_olan != 4:
         rc = 1
-    if atfi_dogru != 4:
+    if yeni_olan != 2:
         rc = 1
-    if kontrol_sayaci != 2:
+    if atfi_dogru != 6:
+        rc = 1
+    if kontrol_sayaci != 4:
         rc = 1
     return rc
 
@@ -720,8 +1053,26 @@ def gercek_kos(repo_kok=None, defter_yol=None, durum_yol=None,
              sonuc["dustu"], sonuc["pencerede"],
              sonuc["olculemedi"], sonuc["etiketsiz"],
              sonuc["durum_ok"]))
+    print("bolum_dagilimi: %s" % sonuc["bolum_dagilimi"])
     if sonuc["hata"]:
         print("HATA: %s" % sonuc["hata"], file=sys.stderr)
+    print("")
+    # Kimlik listesi + yuzey kaynagi (T6b spec madde 3)
+    kimlik_listesi = []
+    bolum_uyeligi = 0
+    satir_ibaresi = 0
+    for k in sonuc["kalemler"]:
+        if not k["etiketli"]:
+            continue
+        kimlik_listesi.append(k["kimlik"])
+        # Bu kalem satir ibaresi mi tasima yoksa bolum uyeligi ile mi yakalandi?
+        if satir_ibare_var_mi(k["satir"]):
+            satir_ibaresi += 1
+        else:
+            bolum_uyeligi += 1
+    print("ETIKETLI_KIMLIKLER: %s" % ", ".join(kimlik_listesi))
+    print("ETIKETLI_KAYNAK_DAGILIMI: bolum_uyeligi=%d satir_ibaresi=%d"
+          % (bolum_uyeligi, satir_ibaresi))
     print("")
     for k in sonuc["kalemler"]:
         if not k["etiketli"]:
@@ -730,8 +1081,8 @@ def gercek_kos(repo_kok=None, defter_yol=None, durum_yol=None,
         if k["fark_dakika"] is not None:
             fark = "%.0f dk" % k["fark_dakika"]
         damga = k["damga"] or "-"
-        print("%-10s %-15s damga=%-22s fark=%-12s %s"
-              % (k["kimlik"], k["kol"], damga, fark,
+        print("%-15s %-15s damga=%-22s fark=%-12s bolum=%-15s %s"
+              % (k["kimlik"], k["kol"], damga, fark, k["bolum"],
                  ("hata: " + k["hata"]) if k["hata"] else ""))
     print("")
     # Son satir: makine-okur ozet
