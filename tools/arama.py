@@ -1028,9 +1028,8 @@ ROZET_DISI_CIFT = {
     # acar. Bu 7 ciftin hicbirinde o kosul yok. URUN KAYBOLMAZ (K11 kaybolan=0).
     # Alfa Romeo'nun `916` tip/sasi kodu (GTV/Spider 1995-2006) Ducati'nin 916 superbike
     # rozetiyle AD CAKISMASI — gercek 916 sayfasi Ducati'nindir.
-    ("Alfa Romeo", "916"): "`916` Alfa Romeo'nun TIP/SASI kodudur (GTV/Spider 1995-2006); "
-                           "Alfa Romeo `916` rozetiyle arac SATMADI. Gercek sayfa /marka/ducati/916/. "
-                           "Urunler Alfa Romeo agacinda durur; urun KAYBOLMAZ",
+    ("Alfa Romeo", "916"): "Alfa Romeo `916` rozetiyle arac SATMADI (tip/sasi kodu); "
+                           "urunler Alfa Romeo agacinda durur. `916` model sayfasi Ducati'nindir",
     # PSA C5 Peugeot rozeti degil (eksik kalmis Citroen C5 deny'i — yeni).
     ("Peugeot", "C5"): "C5 Citroen rozetidir; Peugeot C5 diye bir arac satilmadi (PSA "
                        "platform ortakligi) — gercek sayfa /marka/citroen/c5/. Emsal birebir "
