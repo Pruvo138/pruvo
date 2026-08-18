@@ -2,9 +2,9 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-
-
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
+- 🟠 **K184 (18 Agu, BaBa emri — EGE REFORMU FAZ-1, CHIP acildi):** sitede LLM'siz "Eksik Parca Talebi" sihirbazi; adim listeleri tek kaynaktan, terminal Worker+D1 `talepler` (additive; SEMA HUKMU MIMARDA), gorsel icin public yukleme ucu ACILMAZ (WhatsApp'a yonlendirir), spam icin honeypot + Worker hiz siniri. Faz-2 (WhatsApp) HocA'da; Ege dar-LLM eslestirme AYRI kalem. kabul: `tools/talep-sihirbazi-test.py` + `CI_KAPSAM_RC=0` (SERIT B) + her mutant hedef kolu oldurdugunu kanitlar. Chip pilotunun kabulu: chip turlari ile ana oturum turlari AYRI sayilir, genelleme kuralini KraL yazar.
+
 
 
 ## 🔻 KraL OTURUM KAPANISI — 18 Agu ~18:0xZ
@@ -28,8 +28,6 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
   126 adiminin **114'u SKIPPED**'ti; ③ ve K168'in yeni kapilari da o kor bolgedeydi. Ilk care
   TERS ETKI verdi (benim spec hatam), ikinci turda onarildi. CANLI: `skipped 114→2`, job
   `failure` KORUNDU, **13 KOR kirmizi gorunur oldu**. ARSIVDE. → [[kablo-da-kosuyor-demek-degil]]
-- ✅ **K168 KAPANDI (18 Agu):** kapinin RECETE ETTIGI care artik mimarca kosulabiliyor
-  (tam esitlik, bayrak yasak — `--tavan-sayi` denemesi `deny`). Bugun ILK kez ARACLA donduruldu.
 - 🔧 **K179 (18 Agu — recete kapisi CI'da kostu, kirmizisi KISMEN parser artefakti):**
   `RECETE=9 REDDEDILEN=8 EVREN=390`; ayiklayici koddan artik yutuyor. Hukum
   `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
@@ -88,8 +86,6 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
 - 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
   DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
   (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
-- ✅ **K141 KAPANDI (`c123019d`, codex `gpt-5.6-luna`):** hukum — kusur KAPILARDA DEGIL OLCUM ALETINDEYDI. Prob dort jetona cikti (`deny`/`allow`/`allow-SESSIZ`/`OLCULEMEDI`): bos stdout+rc=0 kancanin izin kanalidir (kabul ekseninde gecerli), red ekseninde red SAYILMAZ; olculemeyen eksende arac sifir-disi doner (ham olcum: rc=1). Envanter `7/7 kapi TAM` rc=0 (uc kosumda ayni), kabul `VAKA=7 DUSEN=0 MUTANT=6/6 KONTROL=2/2` (iddia 7→22), capalar benzersiz 6/6, kapsam 2 dosya.
-  🔎 SINIF DERSI: aletin ilk onarimi FAZLA sikti (protokol sessizligini `OLCULEMEDI` sayip 3 sahte alarm uretti, 5/7→4/7); iki asamada duzeldi. Ayrica curutucu raporu "rc=1" ile "mutant yakalandi"yi ayni satirda karistirdi — HAM cikti istenince gercek gorundu.
 - 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi).
   Tam metin ARSIVDE.
   kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
@@ -113,6 +109,7 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
 
 
 
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -123,6 +120,7 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
 - 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
   SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+
 
 
 
