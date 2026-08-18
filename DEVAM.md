@@ -3,7 +3,8 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🟠 **K184 (18 Agu, BaBa emri — EGE REFORMU FAZ-1, CHIP acildi):** sitede LLM'siz "Eksik Parca Talebi" sihirbazi; adim listeleri tek kaynaktan, terminal Worker+D1 `talepler` (additive; SEMA HUKMU MIMARDA), gorsel icin public yukleme ucu ACILMAZ (WhatsApp'a yonlendirir), spam icin honeypot + Worker hiz siniri. Faz-2 (WhatsApp) HocA'da; Ege dar-LLM eslestirme AYRI kalem. kabul: `tools/talep-sihirbazi-test.py` + `CI_KAPSAM_RC=0` (SERIT B) + her mutant hedef kolu oldurdugunu kanitlar. Chip pilotunun kabulu: chip turlari ile ana oturum turlari AYRI sayilir, genelleme kuralini KraL yazar.
+- 🟠 **K185 CHIP `KraL-Chip duzeni genelleme`** (kural CLAUDE.md'ye 3 madde; nobetci IZLENEBILIRLIK ekseninden, kutu yoksa KAPSAM DISI / OLCULEMEDI fail-closed; kabul `chip-duzeni-test.py` + CI kablosu + ihlal tatbikati) · 🟠 **K186 CHIP `KraL-Ege reformu altyapi`** (Faz-1+Faz-2 ortak talep hatti; PII bizde DURMAZ → kisa `talep_kodu`, `talepler` additive, `POST /talep` allow-list+honeypot+hiz siniri; sema canliya CHIP'ce UYGULANMAZ; kabul `talep-hatti-test.py` + CI kablosu). Tam metin KUTUDA.
+- 🟠 **K184 CHIP (Ege reformu FAZ-1, site sihirbazi):** LLM'siz "Eksik Parca Talebi"; listeler tek kaynaktan, terminal K186 talep hatti, public yukleme ucu ACILMAZ, honeypot+hiz siniri. Faz-2 HocA'da; Ege dar-LLM AYRI kalem. kabul: `talep-sihirbazi-test.py` + CI kablosu + mutant hedef kolu kanitli. Tam metin KUTUDA.
 
 
 
@@ -37,8 +38,7 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
   durmadikca SERIT B TAMAMLANAMAZ (bugun ③/K168/K179 icin dort kez beklendi).
   ❌ `workflow_dispatch` ara cozumu CURUDU: elle tetiklenen `32174776514` de AYNI gruba
   girip iptal oldu — trigger'in VARLIGI davranis degildi (once "cozum" yazdim, olcunce dustu).
-  ⚠️ **DUZELTME (25 kosum olculdu): "HICBIR kabul olculemez" FAZLA GENIS** — 16 iptal · **6 TAMAMLANDI** · 2 ucusta (suren korunuyor, ~70-100 dk). Zarar tikanma degil **SHA SECEMEMEK**. Yon: push kolu AYNEN kalir, `workflow_dispatch` KENDI grubunu alir (dal `kral/k183-dispatch-grubu` ucusta); her push'a ayri grup ~25x85 dk/gun ederdi, REDDEDILDI.
-  kabul: dispatch kosumu push trafigi altinda TAMAMLANIR + `is-akisi-kapisi.py` uc iddiayi AYRI olcer + mutant 3/3.
+  ⚠️ **DUZELTME (25 kosum): "hicbir kabul olculemez" FAZLA GENIS** — 16 iptal · **6 TAMAMLANDI** · 2 ucusta. Zarar tikanma degil **SHA SECEMEMEK**. CARE MAIN'DE (`77bb3195`): dispatch kendi grubunda kosar, push kolu ayni; her push'a ayri grup (~25x85 dk/gun) REDDEDILDI. kabul: chip `KraL-K183 canli kabul` — dispatch kosumu push trafigi altinda TAMAMLANIR.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
@@ -53,7 +53,7 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
   ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
   EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
-- ⛔ **Dal `origin/k152-link-temiz` (`56269db4`) MERGE EDILMEYECEK — 18 Agu OLCULDU:** main'in atasi DEGIL ve `git diff main origin/k152-link-temiz` = 76 dosya / +2.095 −20.339 (urunler.json dahil) geri sarardi; icerik zaten `83aaf4e2` ile main'de (yeniden uygulandi). Dal SILINEBILIR.
+- ⛔ **Dal `origin/k152-link-temiz` MERGE EDILMEYECEK (olculdu):** main'in atasi DEGIL, merge 76 dosya / −20.339 satir geri sarardi; icerik zaten `83aaf4e2` ile main'de. SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
   `tools/paket-k171-kaynak-temizle.md`de; tam metin ARSIVDE.
