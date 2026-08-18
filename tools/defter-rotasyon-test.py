@@ -13,9 +13,19 @@ import subprocess
 import sys
 import tempfile
 
+
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROTASYON = os.path.join(TOOLS, "defter-rotasyon.py")
 PRE_COMMIT_KAYNAK = os.path.join(TOOLS, "kancalar", "pre-commit")
+
+
+def _mutant_taban_kopyala(tmp):
+    """K178: mutant tek kaynaktan (defter-kota-taban.py) okur; temp dir'e
+    de kopyalanmali yoksa import_rc=1 ile mutantlar SURVIVOR olur."""
+    taban = os.path.join(TOOLS, "defter-kota-taban.py")
+    if os.path.exists(taban):
+        import shutil
+        shutil.copy(taban, os.path.join(tmp, "defter-kota-taban.py"))
 
 
 def _fikstur_defter():
@@ -754,6 +764,7 @@ def mutant_test():
     mutant_govde = govde.replace(eski, yeni, 1)
     with tempfile.TemporaryDirectory() as tmp:
         mutant_yol = os.path.join(tmp, "mutant-defter-rotasyon.py")
+        _mutant_taban_kopyala(tmp)
         with open(mutant_yol, "w", encoding="utf-8") as f:
             f.write(mutant_govde)
 
@@ -820,6 +831,7 @@ def mutant_m2_test():
     sonuclar = []
     with tempfile.TemporaryDirectory() as tmp:
         mutant_yol = os.path.join(tmp, "mutant-m2.py")
+        _mutant_taban_kopyala(tmp)
         with open(mutant_yol, "w", encoding="utf-8") as f:
             f.write(mutant_govde)
 
@@ -878,6 +890,7 @@ def mutant_m3_test():
     sonuclar = []
     with tempfile.TemporaryDirectory() as tmp:
         mutant_yol = os.path.join(tmp, "mutant-m3.py")
+        _mutant_taban_kopyala(tmp)
         with open(mutant_yol, "w", encoding="utf-8") as f:
             f.write(mutant_govde)
 
@@ -950,6 +963,7 @@ def mutant_m4_test():
     mutant_govde = govde.replace(eski, yeni, 1)
     with tempfile.TemporaryDirectory() as tmp:
         mutant_yol = os.path.join(tmp, "mutant-m4.py")
+        _mutant_taban_kopyala(tmp)
         with open(mutant_yol, "w", encoding="utf-8") as f:
             f.write(mutant_govde)
 
@@ -1003,6 +1017,7 @@ def mutant_m5_test():
     mutant_govde = govde.replace(eski, yeni, 1)
     with tempfile.TemporaryDirectory() as tmp:
         mutant_yol = os.path.join(tmp, "mutant-m5.py")
+        _mutant_taban_kopyala(tmp)
         with open(mutant_yol, "w", encoding="utf-8") as f:
             f.write(mutant_govde)
 
@@ -1056,6 +1071,7 @@ def mutant_m6_test():
     sonuclar = []
     with tempfile.TemporaryDirectory() as tmp:
         mutant_yol = os.path.join(tmp, "mutant-m6.py")
+        _mutant_taban_kopyala(tmp)
         with open(mutant_yol, "w", encoding="utf-8") as f:
             f.write(mutant_govde)
 
@@ -1145,6 +1161,7 @@ def mutant_m7_test():
     mutant_govde = govde.replace(eski, yeni, 1)
     with tempfile.TemporaryDirectory() as tmp:
         mutant_yol = os.path.join(tmp, "mutant-m7.py")
+        _mutant_taban_kopyala(tmp)
         with open(mutant_yol, "w", encoding="utf-8") as f:
             f.write(mutant_govde)
 
@@ -1215,6 +1232,10 @@ def _sentetik_depo(tmp, sayac_yol):
     os.makedirs(kanca_tools, exist_ok=True)
     shutil.copy(os.path.join(TOOLS, "defter-kota-kapisi.py"),
                 os.path.join(kanca_tools, "defter-kota-kapisi.py"))
+    # K178: tek kaynaktan (defter-kota-taban.py) okuyan kapinin de ihtiyaci.
+    taban_yol = os.path.join(TOOLS, "defter-kota-taban.py")
+    if os.path.exists(taban_yol):
+        shutil.copy(taban_yol, os.path.join(kanca_tools, "defter-kota-taban.py"))
     kanca_dizin = os.path.join(tmp, ".git", "hooks")
     os.makedirs(kanca_dizin, exist_ok=True)
     kanca_yol = os.path.join(kanca_dizin, "pre-commit")
