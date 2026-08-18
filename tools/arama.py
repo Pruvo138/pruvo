@@ -1022,10 +1022,37 @@ ROZET_DISI_CIFT = {
     # BMW marka sayfasinda durur (kapi K11 kaybolan=0 olcer). Emsal birebir ("Peugeot","Scudo").
     ("BMW", "Adventure"): "BMW'nin aile rozeti GS; `Adventure` GS'in varyant eki, KTM'nin ise "
                           "model ailesi adi — gercek sayfa /marka/bmw/gs/",
+    # ─────────────────────────────────────────────────────────────────────────
+    # 18 Agu, K170 (KraL hukmu): 17 YARGISIZ ciftin 7'sini DENY'e aliyor. Kural
+    # AYNI: bir /marka/X/M/ sayfasi ancak M modeli GERCEKTEN X rozetiyle satilmissa
+    # acar. Bu 7 ciftin hicbirinde o kosul yok. URUN KAYBOLMAZ (K11 kaybolan=0).
+    # Alfa Romeo'nun `916` tip/sasi kodu (GTV/Spider 1995-2006) Ducati'nin 916 superbike
+    # rozetiyle AD CAKISMASI — gercek 916 sayfasi Ducati'nindir.
+    ("Alfa Romeo", "916"): "Alfa Romeo `916` rozetiyle arac SATMADI (tip/sasi kodu); "
+                           "urunler Alfa Romeo agacinda durur. `916` model sayfasi Ducati'nindir",
+    # PSA C5 Peugeot rozeti degil (eksik kalmis Citroen C5 deny'i — yeni).
+    ("Peugeot", "C5"): "C5 Citroen rozetidir; Peugeot C5 diye bir arac satilmadi (PSA "
+                       "platform ortakligi) — gercek sayfa /marka/citroen/c5/. Emsal birebir "
+                       "(Audi,Golf) satiri. Urunler Peugeot agacinda durur; urun KAYBOLMAZ",
+    # C1 Peugeot rozeti degil (eksik kalmis A-segment uclusu deny'i).
+    ("Peugeot", "C1"): "Peugeot'nun A-segment rozeti 107/108; C1 Citroen'in — gercek sayfa "
+                       "/marka/citroen/c1/. Emsal birebir mevcut (Toyota,C1) satiri. Urunler "
+                       "Peugeot agacinda durur; urun KAYBOLMAZ",
+    # Piaggio ana marque, GTS/Primavera/PX/Largeframe VESPA rozetleri (4 eksik aile).
+    ("Piaggio", "GTS"): "GTS bir VESPA rozetidir; Piaggio ana marque'tir, `Piaggio GTS` diye "
+                         "arac satilmadi — gercek sayfa /marka/vespa/gts/. Urunler Piaggio "
+                         "agacinda durur; urun KAYBOLMAZ",
+    ("Piaggio", "Primavera"): "Primavera VESPA rozetidir — gercek sayfa /marka/vespa/primavera/. "
+                               "Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
+    ("Piaggio", "PX"): "PX VESPA rozetidir — gercek sayfa /marka/vespa/px/. Urunler Piaggio "
+                       "agacinda durur; urun KAYBOLMAZ",
+    ("Piaggio", "Largeframe"): "Largeframe VESPA govde aile adidir (Smallframe'in karsiligi), "
+                                "Piaggio rozeti DEGIL — gercek sayfa /marka/vespa/largeframe/. "
+                                "Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
 }
 
-ROZET_DISI_SAYISI = 39
-ROZET_DISI_IMZA = "d0a98bfd609bbc0b"
+ROZET_DISI_SAYISI = 46
+ROZET_DISI_IMZA = "de169c442a3cb70a"  # K170 sonrasi: kapinin hesabiyla
 
 
 def rozet_disi_imzasi():
@@ -1218,10 +1245,40 @@ ROZET_CAPRAZ_IZINLI = {
     "KTM|adventure": ("ROZET", "KTM Adventure KTM'nin kendi model ailesi rozeti (390/790/890 "
                                "Adventure, 1290 Super Adventure, 950/990 Adventure); BMW'de "
                                "'Adventure' GS ailesinin VARYANT ekidir, ayri sinif"),
+    # ─────────────────────────────────────────────────────────────────────────
+    # 18 Agu, K170 (KraL hukmu): K166'nin kusuru URUN URETMEDI; 17 capraz-marka cifti
+    # bugune kadar YARGISIZ bekliyordu (K19 KIRMIZI) — 10 satirla ALLOW (1'i BEKLER).
+    # AD CAKISMASI emsalleri: Ford|sierra/Suzuki|sierra, BMW|gs/Lexus·gs, Mazda|5/Renault|5.
+    # ETKILENEN_URUN = 0 (K11 kaybolan=0 olcer): sayfasi acilmayan kovanin urunleri ayni
+    # markanin gercek rozet sayfasinda / aramada / marka kovasinda durur.
+    "Ducati|916": ("ROZET", "Ducati 916 gercek superbike rozeti (1994-1998); Alfa Romeo'nun "
+                            "`916` tip/sasi koduyla yalniz AD cakismasi var (emsal Ford|sierra / "
+                            "Suzuki|sierra, BMW|gs / Lexus|gs)"),
+    "Alfa Romeo|stelvio": ("ROZET", "Alfa Romeo Stelvio gercek SUV rozeti (2016->); Moto Guzzi "
+                                    "Stelvio 1200 ile yalniz AD cakismasi (Stelvio Gecidi) — "
+                                    "rozet muhendisligi DEGIL"),
+    "Moto Guzzi|stelvio": ("ROZET", "Moto Guzzi Stelvio 1200 gercek motosiklet rozeti (2008->); "
+                                      "Alfa Romeo Stelvio SUV ile yalniz AD cakismasi, ayri "
+                                      "rozet — emsal BMW|gs / Lexus|gs"),
+    "Citroen|c5": ("ROZET", "Citroen C5 gercek rozet; Peugeot C5 diye bir arac satilmadi (PSA "
+                            "platform ortakligi) — emsal birebir (Audi,Golf) deny satiri"),
+    "Toyota|aygo": ("ROZET", "Toyota Aygo gercek rozet (A-segment uclusu 107/C1/Aygo); emsal "
+                              "birebir mevcut Peugeot|107 / Citroen|c1 satirlari"),
+    "Vespa|gts": ("ROZET", "Vespa GTS gercek rozet"),
+    "Vespa|primavera": ("ROZET", "Vespa Primavera gercek rozet"),
+    "Vespa|px": ("ROZET", "Vespa PX gercek rozet"),
+    "Vespa|largeframe": ("ROZET", "Vespa Largeframe govde AILE adi; emsal birebir mevcut "
+                                  "(\"Vespa\",\"Smallframe\")"),
+    # Volvomk1 (K170) BEKLER: Ford|mk1 / Volkswagen|mk1 ile AYNI bekleyen hukum uyesi;
+    # Mk1 bir NESIL isareti, rozet degil. Uc kol TEK turda, TEK hukumle kapanir -> K172.
+    "Volvo|mk1": ("BEKLER", "`Mk1` bir NESIL isaretidir, rozet DEGIL — `Ford|mk1` / "
+                              "`Volkswagen|mk1` ile AYNI bekleyen hukum uyesi (K172). K170 "
+                              "yalniz Volvo kolunu yargisiz birakmamak icin BEKLER yazdi; "
+                              "deny/allow hukum K172'de TEK turda verilecek"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 57
-ROZET_CAPRAZ_IZINLI_IMZA = "9c01bf09e4d0bab6"
+ROZET_CAPRAZ_IZINLI_SAYISI = 67
+ROZET_CAPRAZ_IZINLI_IMZA = "d3f5c34599c0481b"  # K170 sonrasi: kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
