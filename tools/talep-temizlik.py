@@ -102,13 +102,7 @@ class D1Yurutucu:
 
     def sil(self, kodlar):
         toplam = 0
-        izinli = []
-        self.karantina_kod = 0
-        for kod in kodlar:
-            if kod_gecerli(kod):
-                izinli.append(kod)
-            else:
-                self.karantina_kod += 1
+        izinli, self.karantina_kod = kodlari_ayir(kodlar)
         for baslangic in range(0, len(izinli), 500):
             parca = izinli[baslangic:baslangic + 500]
             ifadeler = ",".join("'" + str(kod).replace("'", "''") + "'"
@@ -129,6 +123,17 @@ class D1Yurutucu:
 
 def kod_gecerli(kod):
     return isinstance(kod, str) and KOD_DESENI.fullmatch(kod) is not None
+
+
+def kodlari_ayir(kodlar):
+    izinli = []
+    karantina = 0
+    for kod in kodlar:
+        if kod_gecerli(kod):
+            izinli.append(kod)
+        else:
+            karantina += 1
+    return izinli, karantina
 
 
 def _satir_yaz(uygula, sayi, kalan, kodlar, okunan=None, karantina=0):
@@ -155,13 +160,12 @@ def calistir(db_yolu, uygula=False, d1=False, tavan=TAHMIN_TAVAN, yurutucu=None)
                 return 1
             raise
         kodlar, kalan = karar_ver(satirlar, esik, tavan)
-        karantina = 0
+        izinli, karantina = kodlari_ayir(kodlar)
         if uygula and kodlar:
             silinen = yurutucu.sil(kodlar)
-            karantina = getattr(yurutucu, "karantina_kod", 0)
-            if silinen != len(kodlar) - karantina:
+            if silinen != len(izinli):
                 raise RuntimeError("D1 silinen kume sayilan kumeden ayristi")
-        _satir_yaz(uygula, len(kodlar) - karantina, kalan, kodlar,
+        _satir_yaz(uygula, len(izinli), kalan, kodlar,
                    okunan=len(satirlar), karantina=karantina)
         return 0
     if db_yolu is None:
@@ -258,7 +262,7 @@ class L10SahteD1:
         if sql.startswith("SELECT"):
             return [{"results": [{"kod": kod, "olusturma": zaman}
                                   for kod, zaman in self.satirlar]}]
-        return [{"results": [], "meta": {"changes": 0}}]
+        return [{"results": [], "meta": {"changes": len(self.satirlar)}}]
 
 
 class DegisensizD1:
@@ -276,7 +280,7 @@ def _d1_kuru_olc(yurutucu):
 def l10_olc():
     """D1 kuru kolunda yok, boş ve eski tablo hallerini ayırt eder."""
     simdi = datetime.now(timezone.utc)
-    eski = ("PR-L10", (simdi - timedelta(days=91)).isoformat())
+    eski = ("PR-P92XYZ", (simdi - timedelta(days=91)).isoformat())
     yok_rc, yok_cikti = _d1_kuru_olc(
         L10SahteD1(tablo_var=False).calistir)
     bos_rc, bos_cikti = _d1_kuru_olc(
@@ -358,7 +362,8 @@ def kabul_bataryasi(mutant=None):
                 "L5": l5, "L5b": l5b, "L6": l6, "L7": l7, "L8": l8,
                 "L9": l9, "R1": r1, "F5": f5, "L10": l10,
                 "L11a": l11["L11a"], "L11b": l11["L11b"],
-                "L11c": l11["L11c"], "L11d": l11["L11d"]}
+                "L11c": l11["L11c"], "L11d": l11["L11d"],
+                "L11e": l11["L11e"]}
     finally:
         sqlite.close()
         sqlite_dosya.close()
@@ -393,6 +398,7 @@ def l11_olc():
     simdi = datetime(2026, 8, 19, tzinfo=timezone.utc)
     eski = (simdi - timedelta(days=91)).isoformat()
     gecersiz = ["PR-A' OR 1=1--", "PR-AAAAA0"]
+    kuru_gecersiz = ["PR-A' OR 1=1--", "PR-AAAAA_"]
     gecerli = ["PR-P92XYZ", "PR-Z92XYZ"]
     sahte = SahteD1([(kod, eski) for kod in gecerli + gecersiz])
     cikti = io.StringIO()
@@ -424,8 +430,31 @@ def l11_olc():
     alarm = ("KARANTINA_KOD=2" in alarm_metin and
              "TEMIZ=HAYIR" in alarm_metin and temiz_rc == 0 and
              "KARANTINA_KOD=0" in temiz_metin and "TEMIZ=EVET" in temiz_metin)
+    kuru_sahte = SahteD1([(kod, eski) for kod in gecerli + kuru_gecersiz])
+    kuru_cikti = io.StringIO()
+    with contextlib.redirect_stdout(kuru_cikti):
+        kuru_rc = calistir(None, uygula=False, d1=True, tavan=5000,
+                           yurutucu=D1Yurutucu(kuru_sahte.calistir))
+    kuru_metin = kuru_cikti.getvalue()
+    kuru_karantina = re.search(r"KARANTINA_KOD=(\d+)", kuru_metin)
+    kuru_delete = [sql for sql in kuru_sahte.sql if sql.startswith("DELETE")]
+    temiz_kuru_sahte = SahteD1([(kod, eski) for kod in gecerli])
+    temiz_kuru_cikti = io.StringIO()
+    with contextlib.redirect_stdout(temiz_kuru_cikti):
+        temiz_kuru_rc = calistir(None, uygula=False, d1=True, tavan=5000,
+                                 yurutucu=D1Yurutucu(temiz_kuru_sahte.calistir))
+    temiz_kuru_metin = temiz_kuru_cikti.getvalue()
+    kuru_alarm = (kuru_rc == 0 and
+                  "SILINECEK=2" in kuru_metin and
+                  kuru_karantina is not None and int(kuru_karantina.group(1)) == 2 and
+                  "TEMIZ=HAYIR" in kuru_metin and not kuru_delete and
+                  not kuru_sahte.silinen and
+                  temiz_kuru_rc == 0 and
+                  "KARANTINA_KOD=0" in temiz_kuru_metin and
+                  "TEMIZ=EVET" in temiz_kuru_metin and
+                  not temiz_kuru_sahte.silinen)
     return {"L11a": red_olculdu, "L11b": mesru_silindi,
-            "L11c": drift_uyumlu, "L11d": alarm}
+            "L11c": drift_uyumlu, "L11d": alarm, "L11e": kuru_alarm}
 
 
 def mutant_bataryasi(temel):
@@ -468,11 +497,27 @@ def mutant_bataryasi(temel):
             "    r\"^PR-[\" + re.escape(KOD_ALFABE) + r\"]{\" + str(KOD_UZUNLUGU) + r\"}$\"\n"
             ")",
             "KOD_DESENI = re.compile(r\"^PR-[A-Z0-9]{6}$\")"),
-        "L11a-sizinti": ("            if kod_" + "gecerli(kod):", "            if True:"),
+        "L11a-sizinti": (
+            "        if kod_" + "gecerli(kod):",
+            "        if True:"),
         "L11c": ("kanonik_uzunluk == " + "KOD_UZUNLUGU", "kanonik_uzunluk == " + "KOD_UZUNLUGU - 1"),
         "L11d": (
             "          \" TEMIZ=\" + (\"HAYIR\" if karantina else \"EVET\"))",
             "          \" TEMIZ=EVET\")"),
+        "L11e-kuru-karantina": (
+            "        izinli, karantina = kodlari_ayir(kodlar)\n"
+            "        if uygula and kodlar:",
+            "        izinli, karantina = (kodlari_ayir(kodlar) if uygula else (kodlar, 0))\n"
+            "        if uygula and kodlar:"),
+        "L11e-kuru-delete": (
+            "        if uygula and kodlar:\n"
+            "            silinen = yurutucu.sil(kodlar)\n"
+            "            if silinen != len(izinli):\n"
+            "                raise RuntimeError(\"D1 silinen kume sayilan kumeden ayristi\")",
+            "        if True:\n"
+            "            silinen = yurutucu.sil(kodlar)\n"
+            "            if silinen != len(izinli):\n"
+            "                raise RuntimeError(\"D1 silinen kume sayilan kumeden ayristi\")"),
     }
     sonuc = []
     scratch = Path(tempfile.mkdtemp(prefix="k190-mutants-"))
@@ -498,11 +543,18 @@ def mutant_bataryasi(temel):
                 kalan = kabul_anahtar_sonuclari(calisma.stdout)
                 dusen = [isim for isim, gecti in kalan.items() if not gecti]
                 kaynak_farki = mutant != kaynak
-                hedef_adi = {"L10-1": "L10", "L10-2": "L10", "L10-3": "L10",
-                             "L11a-sizinti": "L11a"}.get(ad, ad)
-                hedef = dusen == [hedef_adi]
+                hedef_kumesi = {"L10-1": ["L10"], "L10-2": ["L10"],
+                                "L10-3": ["L10", "L11e"],
+                                "L11a-sizinti": ["L11a", "L11e"],
+                                "L11d": ["L11d", "L11e"],
+                                "L11e-kuru-karantina": ["L11e"],
+                                "L11e-kuru-delete": ["L11e"]}.get(ad, [ad])
+                iki_yonlu = (ad not in {"L11e-kuru-karantina", "L11e-kuru-delete"} or
+                             ("L11b" not in dusen and "L3" not in dusen))
+                hedef = dusen == hedef_kumesi and iki_yonlu
                 sonuc.append((ad, kaynak_farki and hedef, dusen,
-                              "derlenebilir=EVET hedef_kol_atfi=" + ("EVET" if hedef else "HAYIR")))
+                              "derlenebilir=EVET hedef_kol_atfi=" + ("EVET" if hedef else "HAYIR") +
+                              " iki_yonlu_ayrim=" + ("EVET" if iki_yonlu else "HAYIR")))
             finally:
                 if yol and yol.exists():
                     yol.unlink()
