@@ -2,26 +2,26 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🟠 **K185 CHIP `KraL-Chip duzeni genelleme`** (kural CLAUDE.md'ye 3 madde; nobetci IZLENEBILIRLIK ekseninden, kutu yoksa KAPSAM DISI / OLCULEMEDI fail-closed; kabul `chip-duzeni-test.py` + CI kablosu + ihlal tatbikati) · 🟠 **K186 CHIP `KraL-Ege reformu altyapi`** (Faz-1+Faz-2 ortak talep hatti; PII bizde DURMAZ → kisa `talep_kodu`, `talepler` additive, `POST /talep` allow-list+honeypot+hiz siniri; sema canliya CHIP'ce UYGULANMAZ; kabul `talep-hatti-test.py` + CI kablosu). Tam metin KUTUDA.
 - 🟠 **K184 CHIP (Ege reformu FAZ-1, site sihirbazi):** LLM'siz "Eksik Parca Talebi"; listeler tek kaynaktan, terminal K186 talep hatti, public yukleme ucu ACILMAZ, honeypot+hiz siniri. Faz-2 HocA'da; Ege dar-LLM AYRI kalem. kabul: `talep-sihirbazi-test.py` + CI kablosu + mutant hedef kolu kanitli. Tam metin KUTUDA.
 
 
 
-## 🔻 KraL OTURUM KAPANISI — 18 Agu ~18:0xZ
-**CANLIYA GITTI:** K170 `69e6b83a` · K174+K166 `e70c89d7` · K152 `83aaf4e2` · K171 `043568e7` ·
-K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 success).
-**KOSUYOR (oldurulmedi):** yok — kendi turlarim bitti.
-**K181d MAIN'DE (`a2f6db8f`):** kabul bagimsiz olculdu (9/9 · 23/23 · 14/14 · mutant 7/7), D1 5 eksen yesil, `Build & deploy` `32155584610` SUCCESS (atalik rc=0). · YABANCI: `marka-uyelik-test.py` K136.
-🔧 **K187 (19 Agu, K186'dan dogdu — OLCULDU):** `kod:null` sayaci icin KALICI sink YOK (`shop/wrangler.toml`'da `kv_namespaces` yok; R2 sayac degil — atomik artirma yok + kapsam disi). Sink `console.error`, yalniz tail/Logpush ile gorunur → "yarim birakilan akis orani" GERIYE DONUK olculemez. Care KV binding ya da Logpush = OKAN KAPISI. Kod `talepOlayiSay()` arkasinda hazir.
+
+## 🔻 KraL OTURUM KAPANISI — 18 Agu ~23:3xZ
+**CANLIYA:** K181d `a2f6db8f` · K177 `8e00020c` · K141 `c123019d` · K183 `77bb3195`. main=origin `f25bf18e`, agac TEMIZ, D1 5 eksen yesil (29371).
+**KOSUYOR (oldurulmedi, hepsi CHIP; mimar oturumunda kosan is 0):** K184 sihirbaz · K185 chip duzeni · K186 talep hatti (TUR 2a: IDDIA=25 DUSEN=0 MUTANT=25/25) · gun-kapanisi hijyeni. Dallar `kral/k18{4,5,6}-*`, motor codex `luna`/m3. Yabanci iki `claude/*` agacina DOKUNULMADI.
+**BEKLIYOR:** HocA Faz-2 (sozlesme verildi) · MaCiT Honda taramasi (isci rc=0, hukum MaCiT'te).
+🔧 **K187 (K186'dan, OLCULDU):** `kod:null` sayacinin KALICI sink'i YOK (KV binding yok; R2 sayac degil). `console.error` yalniz tail/Logpush ile gorunur → oran GERIYE DONUK olculemez. Care KV ya da Logpush = OKAN KAPISI; kod `talepOlayiSay()` arkasinda hazir.
+🔧 **K190 (K186'dan, OLCULDU):** `talep-temizlik.py` yerel sqlite'a baglaniyor, canli D1'e DEGIL → **90 gunluk saklama hicbir yerde yururlukte DEGIL**. Canli yol (wrangler d1 / worker ucu) OKAN KAPISI.
 - 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
   ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
   olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
 - 🔴 **T3/T4 KANITI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0 ONARIM=0
   KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, onarmiyor; 10'u MIMAR'da.
 - ✅ **③ KAPANDI (18 Agu, `4270c95e`)** — sahiplik haritasi kapisi canlida SUCCESS. ARSIVDE.
-- ✅ **③e (18 Agu, `41a62ece`):** harita 173 satir SAHIPLENDI, `SAHIPSIZ=0` (KraL 109 ·
-  MaCiT 40 · TeKiN 11 · ArTisT 9 · HocA 4); mutant kapiyi rc=1 yakiyor. Atama KARARDIR.
 - 🟠 **T3 (kapi MAIN'DE `0572ae57`, UC DILIM ACIK):** `tools/t3-yonlendirme-kapisi.py` —
   `MUTANT=3/3`, uc curutmede hedef kol oldurulunce mutant SESSIZ, `--tatbikat` `TEMIZ=EVET`,
   SERIT B'ye kablolandi. ACIK: (a) `DEVREDILDI` izi dosyaya YAZILMIYOR (hukumden sapma),
@@ -37,9 +37,6 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
   iptal DEGIL) — o pencerede main'e UC push indi (`41a62ece`·`73ab1093`·`0572ae57`) ve push
   kolu kosumu `32178418454` cancelled oldu. (`conclusion=failure` BEKLENEN: 13 kor kirmizi;
   yayini bloklamaz.) Merge `41a62ece`; `Build & deploy` SUCCESS (birebir SHA). Tarihce ARSIVDE.
-- ✅ **K183b KAPANDI (`ade8f7ae`+`00e95a8a`):** `77bb3195` yamasinda UC kusur olculdu ve
-  onarildi — G8 KIMLIK CAKISMASI · kollar AYRI olcmuyordu · "mutant 3/3" OLCULMEMISTI.
-  Kanit: G10 govdesi oldurulunce M2 mutanti HICBIR hata uretmiyor. → [[kol-kimligi-tek-iddiaya-baglidir]]
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
@@ -107,6 +104,7 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
 
 
 
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -117,6 +115,7 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
 - 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
   SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+
 
 
 
