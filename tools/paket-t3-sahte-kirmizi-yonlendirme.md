@@ -30,6 +30,19 @@ düşeceği. İkisi BİRBİRİNİN YERİNE GEÇMEZ; bir kalem hem `KAT=MIMAR` he
 - **eşleşme yoksa `BILINMIYOR` döner ve kalem MIMAR'da kalır** — varsayılan eve
   SESSİZCE düşmek YASAK. `BILINMIYOR` ayrı sayaçla raporlanır (`SAHIPSIZ=n`).
 
+### 2b) Mutasyon bataryasının kırmızısı, ÖLÇTÜĞÜ KAPININ evine gider
+Ölçüldü (18 Ağu, koşum `32158268667`): kör kırmızıların çoğu `-mutasyon.py`
+bataryalarından geliyor (`cta-denge-mutasyon.py` · `duzelt-uyum-mutasyon.py` ·
+`marka-bolum-mutasyon.py` · `marka-invaryant-sayac-mutasyon.py`) — ve bu dosyalar
+haritanın EVRENİNDE **yok**: kapsam ölçütü `-test/-mutasyon/-prob` eklerini dışarıda
+bırakır. Kural: `X-mutasyon.py` → ölçtüğü kapı `X-kapisi.py` (ya da `X.py`) → onun EV'i.
+Eşleşme kurulamıyorsa `BILINMIYOR` döner (mimara düşer); **sessiz varsayılan YOK.**
+
+Bu kuralın bugünkü sonucu (aynı koşumun kırmızı adımları elle çözüldü): ~20 kırmızı
+adımın **6'sı KraL dışı** — ArTisT 2 (`cta-denge-mutasyon`, `feed-politika-kapisi`),
+MaCiT 4 (`duzelt-uyum-mutasyon`, `model-uyelik-kapisi`, `marka-bolum-mutasyon`,
+`marka-invaryant-sayac-mutasyon`). T3 bunu ELLE değil MAKİNEYLE yapacak.
+
 ### 3) Yönlendirme: yazma + devir izi
 `EV != KraL` olan kalem:
 - hedef evin posta kutusuna yazılır:
