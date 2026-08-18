@@ -55,7 +55,7 @@ K188 · K185 · BaBa tatbikat (sayac 4/6).
 **BEKLIYOR:** K184 merge → K186'ya bagli · K186 merge → CI `32192345810` · HocA Faz-2 prose ·
 MaCiT Honda (K191).
 🔧 **K187 — ⚖️ OKAN KARARI 19 Agu: KV BINDING** (Logpush DEGIL). Icra K186 chip'te (binding tanimi + `talepOlayiSay()` govdesi); namespace acma + deploy Okan kapisi.
-🔧 **K190 — ⚖️ OKAN KARARI 19 Agu: CANLI D1'e BAGLANACAK, talep hatti canliya cikmadan ONCE.** `talep-temizlik.py` yerel sqlite'a bagliydi → 90 gunluk saklama fiilen yururlukte DEGILDI. Icra K186 chip'te (`--kuru` olcumune kadar); canli kosum + zamanlanmis is Okan/mimar kapisi.
+✅ **K190+K187 KAPANDI — MIMARCA TEYIT** (`kral/k190-canli-temizlik` uc `91479a60`, K186 dalina 0 commit): `IDDIA=22/22 MUTANT=22/22 ATIF=22/22 OLCULEMEDI=0`, K187 `KV=4/4`. Tam metin KUTUDA. Merge K186 arkasinda; kalan tek kalem K200(i).
 - 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
 - 🔧 **K195 (19 Agu — 4. TEKRAR):** `defter-rotasyon.py` kapali madde yokken TASIMIYOR → kota her oturumda ELLE rotasyon istiyor. **Tam metin ARSIVDE.**
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
