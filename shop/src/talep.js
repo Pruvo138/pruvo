@@ -12,7 +12,7 @@ const KOD_UZUNLUGU = 6;
 const GOVDE_BAYT_TAVANI = 4096;
 const WA_BASE = "https://wa.me/905451386526";
 const KANALLAR = new Set(["site", "whatsapp"]);
-const ALAN_TAVANLARI = Object.freeze({
+export const ALAN_TAVANLARI = Object.freeze({
   kategori: 40,
   marka: 60,
   model: 60,
@@ -37,6 +37,52 @@ function gecersiz(status = 400) {
 
 function waAdresi(kod) {
   return WA_BASE + "?text=" + encodeURIComponent("PRUVO talep kodu: " + kod);
+}
+
+/*
+ * Kategori/marka satirlari bu pakette yalniz kanonik jetonlardan uretilir.
+ * Ham serbest metin, RED disindaki yolda bile WA URL'ine dogrudan tasinmaz.
+ * Katalogdaki karsiligi olmayan jetonlar ozete girmez; serbest alanlar da
+ * normalize edilip kendi tavanlarinin yarisinda tutulur.
+ */
+const KANONIK_KATEGORI_JETONLARI = new Set([
+  "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis",
+  "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi",
+]);
+
+function kanonikJeton(deger, kaynak) {
+  if (typeof deger !== "string") { return ""; }
+  const temiz = deger.normalize("NFKC").trim().replace(/\s+/gu, " ");
+  if (!temiz || /[\u0000-\u001f\u007f]/u.test(temiz)) { return ""; }
+  if (kaynak === "kategori" && !KANONIK_KATEGORI_JETONLARI.has(temiz)) { return ""; }
+  /* Marka kaynagi D1'deki kanonik marka jetonudur; guvenli jeton bicimi korunur. */
+  if (kaynak === "marka" && !/^[\p{L}\p{N}][\p{L}\p{N} ._\-/]*$/u.test(temiz)) { return ""; }
+  return temiz;
+}
+
+function ozetAlani(deger, tavan) {
+  if (typeof deger !== "string") { return ""; }
+  const temiz = deger.replace(/[\u0000-\u001f\u007f]/gu, " ").replace(/\s+/gu, " ").trim();
+  return temiz.slice(0, Math.floor(tavan / 2));
+}
+
+function waOzeti(govde) {
+  const satirlar = [];
+  const kategori = kanonikJeton(govde.kategori, "kategori");
+  const marka = kanonikJeton(govde.marka, "marka");
+  const alanlar = [
+    ["kategori", kategori], ["marka", marka],
+    ["model", ozetAlani(govde.model, ALAN_TAVANLARI.model)],
+    ["yil", ozetAlani(govde.yil, ALAN_TAVANLARI.yil)],
+    ["parca", ozetAlani(govde.parca_adi, ALAN_TAVANLARI.parca_adi)],
+    ["not", ozetAlani(govde.notu, ALAN_TAVANLARI.notu)],
+  ];
+  for (const [ad, deger] of alanlar) {
+    if (deger) { satirlar.push(ad + ": " + deger); }
+  }
+  let metin = satirlar.join("\n");
+  if (metin.length > 1500) { metin = metin.slice(0, 1499) + "…"; }
+  return WA_BASE + "?text=" + encodeURIComponent(metin);
 }
 
 function birHost(deger) {
@@ -112,6 +158,12 @@ function hataSinifi(hata) {
   return hata && hata.name ? hata.name : "Error";
 }
 
+/* KV binding yok: bugunku sayac sink'i yalniz gecici console.error kaydidir. */
+function talepOlayiSay(env, sebep) {
+  if (!["d1_hata", "kod_cakisma", "yapilandirma"].includes(sebep)) { sebep = "yapilandirma"; }
+  console.error("talep_kod_uretilemedi sebep=" + sebep + " zaman=" + new Date().toISOString());
+}
+
 export async function talepKaydet(request, env) {
   if (request.method !== "POST") { return gecersiz(405); }
   if (!originIzinli(request, env)) { return gecersiz(); }
@@ -136,32 +188,37 @@ export async function talepKaydet(request, env) {
   } catch (e) {
     return gecersiz();
   }
-  if (!govde || typeof govde !== "object" || Array.isArray(govde)) { return gecersiz(); }
-  if (govde.website !== undefined && govde.website !== "") { return gecersiz(); }
   if (!alanlarGecerli(govde)) { return gecersiz(); }
+  if (govde.website !== undefined && govde.website !== "") { return gecersiz(); }
 
   const tarih = new Date().toISOString();
   for (let deneme = 0; deneme < 5; deneme++) {
     const kod = talepKoduUret();
+    let ifade;
+    let bag;
     try {
-      await env.KATALOG.prepare(
+      ifade = env.KATALOG.prepare(
         "INSERT INTO talepler" +
         " (kod, olusturma, kanal, kategori, marka, model, yil, parca_adi, notu, durum)" +
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'yeni')"
-      ).bind(
+      );
+      bag = ifade.bind(
         kod, tarih, govde.kanal, govde.kategori ?? null, govde.marka ?? null,
         govde.model ?? null, govde.yil ?? null, govde.parca_adi ?? null, govde.notu ?? null
-      ).run();
+      );
+    } catch (e) {
+      talepOlayiSay(env, "yapilandirma");
+      return cevap({ kod: null, wa: waOzeti(govde) }, 200);
+    }
+    try {
+      await bag.run();
       return cevap({ kod, wa: waAdresi(kod) }, 200);
     } catch (e) {
       if (benzersizCakisma(e) && deneme < 4) { continue; }
-      console.error(
-        benzersizCakisma(e) ? "talep kod cakismasi:" : "talep D1 yazma hatasi:",
-        hataSinifi(e), e && e.stack ? e.stack : ""
-      );
-      return cevap({ kod: null, wa: WA_BASE }, 200);
+      talepOlayiSay(env, benzersizCakisma(e) ? "kod_cakisma" : "d1_hata");
+      return cevap({ kod: null, wa: waOzeti(govde) }, 200);
     }
   }
 }
 
-export { ALAN_TAVANLARI, izinliAnahtarlar, talepKoduUret };
+export { izinliAnahtarlar, talepKoduUret };

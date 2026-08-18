@@ -814,6 +814,9 @@ jobs:
         with:
           node-version: "20"
 
+      - name: "Talep hatti sizinti kapisi (PII + allow-list + honeypot + govde tavani, BLOKLAYICI)"
+        run: python3 tools/talep-hatti-test.py --sizinti
+
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 

@@ -363,6 +363,13 @@ jobs:
         with:
           node-version: "20"
 
+      - name: "Talep hatti davranis testi (CI kapsam envanteri)"
+        run: node shop/test/talep.mjs
+      - name: "Talep hatti TAM batarya + mutasyon (SERIT B)"
+        run: python3 tools/talep-hatti-test.py
+      - name: "Talep temizlik surucusu: kendini test (iki yonlu, SERIT B)"
+        run: python3 tools/talep-temizlik.py --kendini-test
+
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test

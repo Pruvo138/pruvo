@@ -369,6 +369,8 @@ CREATE TABLE IF NOT EXISTS talepler (
   durum           TEXT NOT NULL DEFAULT 'yeni',
   eslesen_urun_id TEXT
 );
+-- `yil` TEXT'tir: talepler sorgularinda yil uzerinde <, >, BETWEEN veya
+-- CAST(... AS INTEGER) kullanilmaz; aralik metni ve "bilmiyorum" korunur.
 CREATE INDEX IF NOT EXISTS talepler_durum ON talepler(durum, olusturma DESC);
 
 -- SHOP — self-servis siparisler (shop/ worker'i yazar; is paketleri tools/paket-shop-odeme.md

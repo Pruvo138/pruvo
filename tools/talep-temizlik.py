@@ -31,8 +31,13 @@ def say_eski(baglanti, esik):
     return len(silinecek_kodlar(baglanti, esik))
 
 
-def sil_eski(baglanti, esik):
-    kodlar = silinecek_kodlar(baglanti, esik)
+def sil_eski(baglanti, kodlar):
+    """Yalniz calistir tarafindan hesaplanan kod listesini siler.
+
+    Listeyi burada yeniden hesaplamak, canli D1 yazarlari arasinda sayilan ve
+    silinen kumelerin ayrismasina izin verirdi. Bu fonksiyonun kendi SQL'i
+    yalnizca verilen kodlar uzerindedir.
+    """
     for baslangic in range(0, len(kodlar), 500):
         parca = kodlar[baslangic:baslangic + 500]
         yerler = ",".join("?" for _ in parca)
@@ -53,7 +58,7 @@ def calistir(db_yolu, uygula=False):
         kodlar = silinecek_kodlar(baglanti, esik)
         sayi = len(kodlar)
         if uygula and sayi:
-            sil_eski(baglanti, esik)
+            sil_eski(baglanti, kodlar)
             baglanti.commit()
         print("KURU=" + str(int(not uygula)) + " SILINECEK=" + str(sayi))
     return 0
@@ -73,7 +78,7 @@ def kendini_test():
             ])
             esik = esik_zamani(simdi)
             kuru = silinecek_kodlar(baglanti, esik)
-            silinen = sil_eski(baglanti, esik)
+            silinen = sil_eski(baglanti, kuru)
             baglanti.commit()
             satirlar = baglanti.execute("SELECT kod FROM talepler ORDER BY kod").fetchall()
         kalan = {kod for (kod,) in satirlar}
@@ -81,12 +86,25 @@ def kendini_test():
         f2 = "PR-Z91" not in kalan and "PR-P91" not in kalan
         f3 = "PR-Z89" in kalan and "PR-P89" in kalan
         f4 = "PR-BOZUK" in kalan
-        sonuc = f1 and f2 and f3 and f4
+        f5 = sil_eski.__code__.co_argcount == 2 and "silinecek_kodlar" not in sil_eski.__code__.co_names
+        with tempfile.NamedTemporaryFile(prefix="k186-talep-calistir-", suffix=".sqlite3") as calistir_dosyasi:
+            with sqlite3.connect(calistir_dosyasi.name) as calistir_baglanti:
+                calistir_baglanti.execute("CREATE TABLE talepler (kod TEXT PRIMARY KEY, olusturma TEXT NOT NULL)")
+                calistir_baglanti.execute(
+                    "INSERT INTO talepler (kod, olusturma) VALUES (?, ?)",
+                    ("PR-R1", (simdi - timedelta(days=91)).isoformat()),
+                )
+            calistir(calistir_dosyasi.name, uygula=True)
+            with sqlite3.connect(calistir_dosyasi.name) as kalan_baglanti:
+                r1 = kalan_baglanti.execute("SELECT COUNT(*) FROM talepler").fetchone()[0] == 0
+        sonuc = f1 and f2 and f3 and f4 and f5 and r1
     print("KENDINI_TEST=" + ("GECTI" if sonuc else "DUSTU") +
           " F1=" + ("GECTI" if f1 else "DUSTU") +
           " F2=" + ("GECTI" if f2 else "DUSTU") +
           " F3=" + ("GECTI" if f3 else "DUSTU") +
-          " F4=" + ("GECTI" if f4 else "DUSTU"))
+          " F4=" + ("GECTI" if f4 else "DUSTU") +
+          " F5=" + ("GECTI" if f5 else "DUSTU") +
+          " R1=" + ("GECTI" if r1 else "DUSTU"))
     return 0 if sonuc else 1
 
 

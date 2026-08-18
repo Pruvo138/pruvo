@@ -469,10 +469,19 @@ biri saklama süresinin yürürlükte olduğunu sanır; oysa tablo sınırsız b
 `pruvo-katalog` D1'i Ege + `d1-sync` + `reklam_ref_gclid` ile PAYLAŞILIR.
 Rapora giren satır:
 ```
-OLCULEMEDI/UYGULANMIYOR: 90 gunluk saklama suresi CANLIDA YURURLUKTE DEGIL.
+UYGULANMIYOR: 90 gunluk saklama suresi CANLIDA YURURLUKTE DEGIL.
 talep-temizlik.py yerel sqlite uzerinde calisir; canli D1 yolu (wrangler d1 execute ya da
-worker ucu) ACILMADI — altyapi/deploy karari, MIMAR/OKAN kapisi. ACIK KALEM.
+worker ucu + zamanlayici) ACILMADI — altyapi/deploy karari, MIMAR/OKAN kapisi.
+ACIK KALEM: K190 (mimar defterinde).
 ```
+
+🔴 **KAPSAM ÇİTİ — R2'yi ÇÖZMEYE ÇALIŞMA.** Mimar bunu **K190** olarak ayrı kaleme aldı;
+K186'nın kapsamında **DEĞİL**. Yani:
+- `shop/wrangler.toml`'a cron/trigger EKLEME · yeni worker ucu AÇMA ·
+  `wrangler d1 execute` ÇALIŞTIRMA · `talep-temizlik.py`'yi D1'e bağlamaya ÇALIŞMA.
+- Araç **yerel sqlite mantığını + `--kendini-test`ini taşımaya devam etsin**; yapacağın tek
+  değişiklik **R1/F5**'tir (liste argümanla geçsin).
+Senden istenen R2 için **tek şey**: yukarıdaki satırı rapora AYNEN yazmak.
 
 ---
 
@@ -538,6 +547,28 @@ yazarız — ya da tersi, zaten kırmızı olan bir kapıyı "biz bozmadık" diy
 Taban rc≠0 ise: sebebini oku. Bizim dalımızla ilgisizse rapora `KAPSAM DISI: taban
 zaten kirmizi, sebep=<...>` yaz ve kendi kablolamanı yine de tamamla — başkasının
 kırmızısını onarmak bu paketin işi DEĞİL, ama onu bizim kırmızımız gibi göstermek de yasak.
+
+### 1.2 🔴 TUZAK: `shop/test/talep.mjs` ALT SÜREÇ OLARAK KOŞMAK "KAPSANAN" SAYILMAYABİLİR
+
+Ölçülen taban şunu diyor:
+```
+❌ KAPSAMSIZ (ne kosuluyor ne izin listesinde): shop/test/talep.mjs
+❌ KAPSAMSIZ (ne kosuluyor ne izin listesinde): tools/talep-hatti-test.py
+```
+`talep.mjs` bugün **yalnız** `talep-hatti-test.py` tarafından alt süreç olarak çağrılıyor.
+`ci-kapsam-test.py` ise iş akışı YAML'ındaki **çağrı satırlarını** okuyor — Python testini
+kablolamak `talep.mjs`'i kapsanan yapmaya **yetmeyebilir**.
+
+**Çözüm sırası (bu sırayla dene, ilki tutarsa dur):**
+1. `nobet.yml`'a `talep.mjs` için de **kendi düz adımını** ekle:
+   `run: node shop/test/talep.mjs` — dürüst çözüm, çünkü o dosya gerçekten koşuyor ve
+   tek başına anlamlı bir iddia kümesi (16 iddia) taşıyor. Maliyeti milisaniye.
+2. Ancak (1) kapıyı kapatmazsa muafiyet/izin listesine **gerekçeyle** ekle.
+**Muafiyet İLK ÇARE DEĞİL** — "gerçekten koşuyor ama kapı göremiyor" durumunda bile
+adımı açıkça yazmak, kapının okuyabildiği bir gerçeklik üretir.
+
+🔴 Kapatma ölçütü: `python3 tools/ci-kapsam-test.py` rc=**0** ve çıktıda `KAPSAMSIZ`
+satırı **kalmamış** olacak. "2 sorundan 1'e indi" KABUL DEĞİL.
 
 ### 1.3 `tools/ci-kapsam-test.py`
 Üç yeni dosya (`tools/talep-hatti-test.py`, `tools/talep-temizlik.py`,

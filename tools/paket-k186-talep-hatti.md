@@ -151,8 +151,8 @@ ve `console.error` ile gürültülü log.
 savunma haritası verilmez.
 🔴 **Kural:** `wa` metni YALNIZ kodu taşır. Marka/model/parça/not **query'ye KONMAZ**
 (kişisel veri olmasa da URL'ler loglanır/indekslenir; talep içeriği bizim değil müşterinin
-bilgisidir). `905451386526` **yalnız** `wa.me`'de geçer; `+90 532 595 4005` bu dosyalarda
-HİÇ geçmez.
+bilgisidir). WhatsApp numarası **yalnız** `wa.me` bağlamında geçer; deponun **arama**
+numarası (CLAUDE.md'de yazılı, burada tekrarlanmaz) bu paketin hiçbir dosyasında geçmez.
 🔴 **Kural:** `console.log`/`console.error` çağrılarına **alan DEĞERİ** verilmez — yalnız
 kod, hata sınıfı ve `e.stack`. Değer loglanırsa müşteri metni Cloudflare loglarına düşer.
 
