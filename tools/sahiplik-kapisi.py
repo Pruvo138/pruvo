@@ -2,30 +2,39 @@
 # -*- coding: utf-8 -*-
 """tools/sahiplik-kapisi.py — KAPI/NOBET betiklerinin SAHIPLIK HARITASI kapisi.
 
-Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar):
+Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar) + Paket ③-b (18 Agu 2026,
+evren genisletildi: sys.exit(<call>) + raise SystemExit(...) + M4 mutant):
 
   Invaryant: `tools/` ve `~/.claude/cron/` altindaki HER KAPI/NOBET betigi
   haritada BIR satira sahiptir (1 satir = 1 betik).
 
   Kapsam evreni KODDAN turetilir (ad desenine DEGIL):
     - dosya .py ise: `sys.exit(1..9)` ile fail-closed RED uretiyor
-      ya da `permissionDecision` yaziyor (PreToolUse gate semantigi)
+      ya da `sys.exit(<fonksiyon_cagrisi>)` (sys.exit(main()) dahil)
+      ya da `raise SystemExit(...)` ya da `permissionDecision` yaziyor
+      (PreToolUse gate semantigi)
     - dosya .sh ise: `exit 1` ya da `exit 2` ile fail-closed RED uretiyor
     - dosya -test.py / -mutasyon- / -prob- iceriyorsa DISLANIR
       (bunlar KAPI'lari TEST eden altyapi, KAPI'nin kendisi degil)
 
+  Paket ③-b: BILINEN KAPI LISTESI (tohum) olarak 6 dosya test kasidir:
+    defter-rotasyon · denetim-kapisi · kanca-nobeti · stl-uc-kopya-nobet ·
+    yayin-kapisi · uyum-kapisi. Olcut KODDAN bunlari yakalamalidir; yakalamazsa
+    olcut dardir (M4 mutant ile dogrulanir).
+
   Kabul 1 (calistirilabilir):
     python3 tools/sahiplik-kapisi.py --kendini-test
     son satir + rc=0:
-      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> MUTANT=3/3 KONTROL=2/2
+      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> KABUL_DOLU=<n> KABUL_YOK=<n> MUTANT=4/4 KONTROL=2/2
 
-  Kabul 2 (rapor): son satir + jeton kanit blogu + SAHIPSIZ listesi.
+  Kabul 2 (rapor): son satir + jeton kanit blogu + SAHIPSIZ listesi +
+    `TOHUM_6_EVRENDE=6/6` + `CI_MUAFIYET=...`.
 
   Disiplin: salt-okunur; hicbir yola YAZMAZ, git degisikligi YAPMAZ.
 
 Kullanim:
     python3 tools/sahiplik-kapisi.py                   # ana olcum, EVREN/HARITA durumu
-    python3 tools/sahiplik-kapisi.py --kendini-test    # 3 mutant + 2 kontrol kosar
+    python3 tools/sahiplik-kapisi.py --kendini-test    # 4 mutant + 2 kontrol kosar
     python3 tools/sahiplik-kapisi.py --repo /farkli    # izole kopya olcer (test)
     python3 tools/sahiplik-kapisi.py --json            # makine-okunur cikti
 """
@@ -40,6 +49,19 @@ CRON = "/Users/okan/.claude/cron"
 HARITA_REPO_RELATIF = "tools/sahiplik-haritasi.tsv"
 HARITA_GENEL = HARITA_REPO_RELATIF
 
+# BILINEN KAPI LISTESI (tohum) — Paket ③-b spec §2a'dan. Evren KAYNAGI degil,
+# kabul testinde vaka olarak kullanilir. Olcut bu 6 dosyayi KODDAN yakalamalidir;
+# yakalamiyorsa olcut dardir (M4 mutant ile dogrulanir).
+TOHUM_6 = (
+    "defter-rotasyon.py",
+    "denetim-kapisi.py",
+    "kanca-nobeti.py",
+    "stl-uc-kopya-nobet.py",
+    "yayin-kapisi.py",
+    "uyum-kapisi.py",
+)
+TOHUM_6_YOL = tuple("tools/" + t for t in TOHUM_6)
+
 # Kabul edilen EV degerleri — spec §2a'dan; BILINMIYOR sozlesmeli gecersiz EV
 # yerine kullanilir (sahipsiz sayilir ama kapiyi YAKMAZ — spec §2b).
 EV_BILINEN = {"KraL", "MaCiT", "TeKiN", "ArTisT", "HocA", "BaBa", "ORTAK"}
@@ -52,11 +74,18 @@ SERIT_OLARAK_KABUL = {"yayin", "veri", "nobet", "hijyen", "arac"}
 # ---------------------------------------------------------------------------
 # EVREN — KODDAN turetir (ad desenine degil).
 # ---------------------------------------------------------------------------
-def _kod_sinyali(path):
+def _kod_sinyali(path, broad=True):
     """Bir dosyanin fail-closed gate / nobet semantigi tasidiginin KOD kaniti.
 
-    Python: sys.exit(1..9) ya da permissionDecision.
-    Shell:  exit 1 / exit 2.
+    Python:
+      - her zaman: sys.exit(1..9) literal VEYA permissionDecision VEYA shell exit 1/2
+      - broad=True: sys.exit(main()) veya raise SystemExit(...) (ek KAPI/NOBET sema)
+      Bu sayede Paket ③-b ozellikle defter-rotasyon.py, denetim-kapisi.py,
+      kanca-nobeti.py, stl-uc-kopya-nobet.py, yayin-kapisi.py, uyum-kapisi.py
+      (6 tohum) kapsama alinir.
+    M4 mutant testi broad=False kullanir — bu sayede olcut daraltildiginda
+      5 tohum evrenden duser ve haritada BAYAT olarak yuzeye cikar.
+
     Bos dosya, okunamayan dosya, .md/.txt/.log/.tsv -> False.
     """
     if not os.path.isfile(path):
@@ -77,9 +106,19 @@ def _kod_sinyali(path):
     if not icerik.strip():
         return False
     if path.endswith(".py"):
-        if "sys.exit(1)" in icerik or "sys.exit(2)" in icerik or "sys.exit(3)" in icerik:
+        # Dar (her zaman): sys.exit(1..9) literal
+        if re.search(r"sys\.exit\([1-9]\)", icerik):
             return True
+        # permissionDecision (PreToolUse gate semantigi)
         if "permissionDecision" in icerik:
+            return True
+        if not broad:
+            return False
+        # Genis: sys.exit(<fonksiyon_cagrisi>) — sys.exit(main()), sys.exit(rc) vb.
+        if re.search(r"sys\.exit\(\s*[A-Za-z_]\w*\s*\(", icerik):
+            return True
+        # raise SystemExit(...) — sys.exit ile esanlamli fail-closed
+        if re.search(r"raise\s+SystemExit\s*\(", icerik):
             return True
         return False
     if path.endswith(".sh"):
@@ -299,18 +338,27 @@ def dogrula(evren, harita, *, test_modu=False, mutant=None):
     }
 
 
-def ozet_satir(sonuc, mutant_basari=None, kontrol_basari=None):
-    """Son/satir ozet. Spec §3 formati: EVREN=HARITADA=EKSIK=0 BAYAT=0 SAHIPSIZ= MUTANT=3/3 KONTROL=2/2
+def ozet_satir(sonuc, harita=None, mutant_basari=None, kontrol_basari=None):
+    """Son/satir ozet. Spec §3 formati:
+      EVREN=<n> HARITADA=<n> EKSIK=0 BAYAT=0 SAHIPSIZ=<n> KABUL_DOLU=<n> KABUL_YOK=<n> MUTANT=4/4 KONTROL=2/2
 
+    harita: KABUL_DOLU/KABUL_YOK saymak icin harita listesi (None ise sayilmaz).
     mutant_basari: (mutant_gecen, mutant_toplam) veya None (test modu disinda).
     """
-    temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d SAHIPSIZ=%d"
+    kabul_dolu = 0
+    kabul_yok = 0
+    if harita is not None:
+        kabul_yok = sum(1 for h in harita if h["KABUL_KOMUTU"] == "YOK")
+        kabul_dolu = len(harita) - kabul_yok
+    temel = ("EVREN=%d HARITADA=%d EKSIK=%d BAYAT=%d SAHIPSIZ=%d "
+             "KABUL_DOLU=%d KABUL_YOK=%d"
              % (sonuc["EVREN"], sonuc["HARITADA"],
-                len(sonuc["EKSIK"]), len(sonuc["BAYAT"]), len(sonuc["SAHIPSIZ"])))
+                len(sonuc["EKSIK"]), len(sonuc["BAYAT"]), len(sonuc["SAHIPSIZ"]),
+                kabul_dolu, kabul_yok))
     if mutant_basari is None and kontrol_basari is None:
         return temel
     if not mutant_basari:
-        mutant_basari = (0, 3)
+        mutant_basari = (0, 4)
     if not kontrol_basari:
         kontrol_basari = (0, 2)
     m_g, m_t = mutant_basari
@@ -364,10 +412,15 @@ def _gvd_evreni_sifirla(evren_depolu):
 
 
 def kendini_test(repo_kok, tools_dir, cron_dir):
-    """3 mutant RED + 2 kontrol YESIL — sirayla, her birinin sonucu KIRMIZI/YESIL.
+    """4 mutant RED + 2 kontrol YESIL — sirayla, her birinin sonucu KIRMIZI/YESIL.
 
     Her mutasyondan once harita geri yuklenir, sonra uygulanir, olculur.
-    Cikis kodu: tum 5 adim YESIL ise 0; biri RED ise 1.
+    Cikis kodu: tum 6 adim YESIL ise 0; biri RED ise 1.
+
+    M4 (Paket ③-b): olcut daraltildiginda (broad=False) 5/6 tohum evrenden
+    duser; harita tum 6 tohumu icerdigi icin 5 tohum BAYAT olarak yuzeye cikar.
+    Bugunku kapi bu mutantla YESIL kalirdi (cunku ne olcut genis ne de harita
+    6 tohumu kapsar). M4 bu regresyonu yakalar.
     """
     tsv_yolu = os.path.join(repo_kok, HARITA_REPO_RELATIF)
     if not os.path.isfile(tsv_yolu):
@@ -406,6 +459,17 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         m3_reddetti = sonuc.get("BEKLENEN_RED") and any(r[0] == "M3" for r in sonuc["BEKLENEN_RED"])
         adimlar.append(("M3", m3_reddetti))
 
+        # M4 (Paket ③-b) — olcutu daralt (broad=False) ve 6 tohum haritada
+        # olsun; daraltilmis evrende 5 tohum (yayin-kapisi haric) kaybolur ve
+        # haritadaki 5 tohum satiri BAYAT olur. KIRMIZI beklenir.
+        narrow_evren = [e for e in evren_orig if _kod_sinyali(e["mutlak"], broad=False)]
+        harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
+        sonuc = dogrula(narrow_evren, harita, test_modu=True, mutant="M4")
+        # BAYAT icindeki tohum sayisi: >= 1 olmali (en azindan bir tohum evrenden dusmus)
+        bayat_tohum = sum(1 for y, _, _ in sonuc["BAYAT"] if y in TOHUM_6_YOL)
+        m4_reddetti = bayat_tohum >= 1
+        adimlar.append(("M4", m4_reddetti))
+
         # K1 — normal harita ile RED uremez (YESIL beklenir)
         harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
         sonuc = dogrula(evren_orig, harita, test_modu=True, mutant="K1")
@@ -429,21 +493,24 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         yedek = None
 
         # Sonuc ozet
-        mutant_sayaci = sum(1 for ad, g in adimlar[:3] if g)
-        kontrol_sayaci = sum(1 for ad, g in adimlar[3:] if g)
+        mutant_sayaci = sum(1 for ad, g in adimlar[:4] if g)  # M1..M4
+        kontrol_sayaci = sum(1 for ad, g in adimlar[4:] if g)  # K1, K2
         print("KENDINI-TEST BASAMAKLARI:")
         for ad, g in adimlar:
             print("  %s: %s" % (ad, "RED/YESIL bekleneni yakaladi" if g else "BASARISIZ (beklenti tutmadi)"))
-        print("MUTANT=%d/3 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
-        if mutant_sayaci == 3 and kontrol_sayaci == 2:
+        # Tohum kapsama kontrolu (spec §3: TOHUM_6_EVRENDE=6/6)
+        tohum_evrende = sum(1 for t in TOHUM_6_YOL if t in {e["yol"] for e in evren_orig})
+        print("TOHUM_6_EVRENDE=%d/6" % tohum_evrende)
+        print("MUTANT=%d/4 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
+        if mutant_sayaci == 4 and kontrol_sayaci == 2 and tohum_evrende == 6:
             # Son olcum — evren+harita ile
             harita, _ = haritayi_oku(repo_kok, HARITA_REPO_RELATIF)
             sonuc = dogrula(evren_orig, harita, test_modu=False)
-            print(ozet_satir(sonuc, mutant_basari=(mutant_sayaci, 3),
+            print(ozet_satir(sonuc, harita=harita, mutant_basari=(mutant_sayaci, 4),
                              kontrol_basari=(kontrol_sayaci, 2)))
             return 0
         # Spec geregi MUTANT/KONTROL sayaci tamamlanmadan raporlama
-        print("MUTANT=%d/3 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
+        print("MUTANT=%d/4 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
         return 1
     finally:
         if yedek and os.path.isfile(yedek):
