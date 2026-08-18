@@ -20,11 +20,9 @@
   icerik degil ANAHTAR eksigi. Ayrica `--kendini-test` rc=1: **M4 mutanti + K1 kontrolu
   TUTMADI** (batarya bozuk), `KABUL_KOMUTU` tum satirlarda BOS. `R_SAHIPLIK` muafiyeti
   DURUYOR, kablo YOK. Dal `kral/paket3b-evren` KORUNDU, worktree 3→2. Hukum sonraki dilimde.
-- 🔧 **T2 (18 Agu — BaBa tatbikat sayaci 0/6):** kilit mekanizmasi VAR, tatbikati YOK.
-  Mimar ayrica olctu: `kilit.py` docstring'i `DEVRALINDI` hukmunu vaat ediyor, GOVDE hicbir
-  yolda URETMIYOR → temiz baslangic ile artik-kilit devralma AYIRT EDILEMIYOR.
-  Hukum `tools/paket-t2-sentetik-yaris.md`. kabul: `kilit-tatbikat.py` son satiri
-  **`CAKISMA_KANITI=EVET`** dahil + `MUTANT=3/3`.
+- ✅ **T2 KAPANDI (18 Agu) — BaBa tatbikat sayaci 0/6 → 1/6, ILK gercek "kuruldu".**
+  `CAKISMA_KANITI=EVET T2B_HUKUM=DEVRALINDI DUSEN=0 MUTANT=3/3 RC=0`; mimar ham logu KENDI
+  grep'ledi (jeton 2/4/3, onceki uydurmada 0/0/0). Tam metin ARSIVDE.
 - 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):**
   `d1-sync.py:157-158` `BlockingIOError` kolunda `os.getpid()` basiyor — ENGELLENEN surecin
   pid'i, kilidi TUTANIN degil. MaCiT dort denemede dort farkli PID gorup "baska makine"
