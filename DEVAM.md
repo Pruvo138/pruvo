@@ -9,10 +9,11 @@
 **CANLIYA GITTI:** K170 `69e6b83a` · K174+K166 `e70c89d7` · K152 `83aaf4e2` · K171 `043568e7` ·
 K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 success).
 **KOSUYOR (oldurulmedi):** yok — kendi turlarim bitti.
-**BEKLIYOR:** dal `kral/k181d-ilerleme` (`5d7c592a`, spec `paket-k181d-ilerleme-invaryanti.md`,
-motor minimax-m3) MERGE EDILEMEDI: MaCiT'in CANLI `urunler.json` yazimi ana agaci tutuyor.
-Kabul YESIL (kotu bicim fiksturu 170→170 bayt birebir, 9/9, mutant 2/2) — devralan yalnizca
-merge+push yapacak. · Ana agacta YABANCI: `urunler.json`(+3 `.bak`) MaCiT'in, `marka-uyelik-test.py` K136.
+**K181d MAIN'DE (`a2f6db8f`, 18 Agu 18:3xZ):** merge+push tamam (kapsam 2 dosya/261+, cakisma
+yok, ff imkansiz→merge commit). Kabul BAGIMSIZ yeniden olculdu: `9/9` · `23/23` · yeni vaka
+`14/14` · mutant `7/7` · agac temiz. D1 bes eksen yesil (29350). Worktree 2→1, artik dal 4
+silindi. CI: `a2f6db8f` icin 2 kosum success, `Build & deploy` **pending** (site dosyasi
+degismedi). · Ana agacta YABANCI kalan: `marka-uyelik-test.py` K136.
 **K175/T2/K170-K174-K166 kapanis isaretcileri ARSIVE tasindi** (lossless, 10 satir).
 - 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
   ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
