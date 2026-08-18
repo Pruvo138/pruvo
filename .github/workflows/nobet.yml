@@ -399,6 +399,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/durgun-kalem-kapisi.py --curutme
 
+      # PAKET ⑤b (19 Agu 2026): merge-kanit tablosu oz-nobetcisi.
+      # Kapi kuruldu ama tablo BESLENMIYORDU; bu adim --kendini-test ile
+      # aracin kendi mutantlarini (M1-M6) FIILEN yakar. SERIT B: kirmizisi
+      # yayini durdurmaz; --eksikler BLOKLAYICI olarak BAGLANMAZ.
+      - name: "Merge-kanit tablosu — kendini test (6 mutant + 2 kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/merge-kanit.py --kendini-test
+
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
       # uzerinden kuru kosuma yollar; REDDEDILEN sayisi > 0 ise rc=1. SERIT B kapsaminda — kirmizisi
