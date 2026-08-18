@@ -644,3 +644,6 @@ tools/arastirma-sari-fiyat.md
 # uretilir, repo PUBLIC oldugu icin burada YASAK. isci.sh --output-dir ile
 # /private/tmp/claude-501/playwright-cikti'ya yonlendirilir (13 Agu 2026).
 .playwright-mcp/
+
+# K177 worktree spec — ic rapor adi referanslari tasir, public repoya girmez.
+tools/paket-k177-kapsam-disi-ayrimi.md
