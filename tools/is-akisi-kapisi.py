@@ -5637,6 +5637,56 @@ def _k80_satirlar(run):
     return satirlar
 
 
+# ---- K189 EKSEN-3: ORTAM KISITI AYRI HALDIR (19 Agu 2026) -------------------
+# 🔴 OLCULEN OLAY (K184 worktree'si): kapi rc=1 verdi ve sebep DIFF DEGIL ORTAMDI —
+# `git worktree add ... Operation not permitted`. O gun "kirmizi benim isimden mi"
+# sorusu CEVAPLANAMADI, cunku ortam kisiti GERCEK bulgularla AYNI jetonu ve AYNI
+# cikis kodunu paylasiyordu. Ayrica ayni olay `--pre-push` kolunda rc=2, tam kolda
+# rc=1 idi: AYNI OLAY IKI KOLDA IKI RENK.
+# HUKUM: ortam kisiti bir BULGU degil OLCUM YOKLUGUDUR -> rc=2 (OLCULEMEDI).
+# Cagiran tarafi 19 Agu'da OLCUDU: pre-push kancasi `[ "$pruvo_k80_rc" -ne 0 ]` ile
+# bakiyor ve is akislarinda `continue-on-error` YOK -> rc=2 BLOKLAMAYA DEVAM EDER.
+#
+# 🔴 IKI JETON AYRIK OLMAK ZORUNDA (biri otekinin ALT-DIZESI olamaz): aksi halde
+# `jeton in cikti` iddialari iki hali AYIRT EDEMEZ ve pozitif kolu olduren mutant
+# kabul testini YESIL gecer ([[beyan-edilmis-survivor]]). Ayriklik `_k80_kendini_test`
+# icinde FIILEN olculur.
+K80_ORTAM_KISITI_JETONU = "K80 OLCULEMEDI [ORTAM KISITI]"
+K80_KOMUT_JETONU = "K80 OLCULEMEDI [KOMUT COZULEMEDI]"
+
+
+class OrtamKisiti(Olculemedi):
+    """Kapinin OLCEMEDIGI hal: ortam gecici commit agaci acma HAKKI vermiyor.
+
+    `Olculemedi`nin ALT SINIFI — boylece onu yakalayan mevcut kollar davranisini
+    KORUR; yalnizca AYIRT ETMEK isteyen kollar `except OrtamKisiti` yazar."""
+
+
+def _k80_ortam():
+    """Kosum ortami: `ci` (GitHub Actions) ya da `yerel` (gelistirici/isci sureci).
+
+    NEDEN RAPORDA: CI'da gecici agac hakki VAR, sandbox'li isci surecinde YOK
+    (olculdu 19 Agu: bu worktree'den `git worktree add` rc=0; K184'un isci
+    surecinde `Operation not permitted`). Ikisi AYNI jetonla raporlanirsa ayni
+    kor nokta tekrar eder."""
+    if os.environ.get("GITHUB_ACTIONS") or os.environ.get("CI"):
+        return "ci"
+    return "yerel"
+
+
+def k80_hukum(hatalar, ortam_kisiti):
+    """K80 ekseninin UC HALLI hukmu: 1 = bulgu · OLCULEMEDI = olcum yoklugu · 0 = temiz.
+
+    🔴 AYRI FONKSIYON (bilincli): hukum `main()` govdesine gomulu kalirsa mutasyonla
+    tek tek sinanamaz. Kabul testi bu fonksiyonun KAYNAK METNINI mutasyona sokar ve
+    her kolun TEK BASINA hukum tasidigini kanitlar (K182 sarti)."""
+    if hatalar:
+        return 1
+    if ortam_kisiti:
+        return OLCULEMEDI
+    return 0
+
+
 def _k80_commit_agacinda_kos(hedef, yeni):
     """Yeni komutlari hedef commitin ayri, gecici worktree'sinde kos; ureten temizler."""
     if not yeni:
@@ -5649,7 +5699,8 @@ def _k80_commit_agacinda_kos(hedef, yeni):
         r = subprocess.run(["git", "-C", ROOT, "worktree", "add", "--detach", "--quiet",
                             gecici, hedef], capture_output=True, text=True, timeout=60)
         if r.returncode != 0:
-            raise Olculemedi("gecici commit agaci acilamadi: %s" % r.stderr.strip())
+            raise OrtamKisiti("gecici commit agaci acilamadi (ORTAM=%s): %s"
+                              % (_k80_ortam(), r.stderr.strip()))
         eklendi = True
         env = dict(os.environ)
         env[K80_IC_KOSUM] = "1"
@@ -5902,7 +5953,100 @@ def _k80_kendini_test(tespit_acik=True):
                 hatalar.append("K80-T7: kosturucu betik yolunu ayristiriciyla AYNI cozmedi")
         except Olculemedi as _e:
             hatalar.append("K80-T7: kosturucu `.mjs` yolunu cozemedi (ikiz tanim) (%s)" % _e)
-    return hatalar, 12
+    # ---- K189 EKSEN-3 IDDIALARI (19 Agu 2026) ------------------------------
+    # E1 JETON AYRIKLIGI · E2 SINIF DAVRANISI · E3 HUKUM MUTANTLARI · E4 KABLO
+    # ( `_iddia` degiskeni bu fonksiyonda yok; spec'teki `iddia += 4` ifadesi
+    #   yerine dogrudan donus degeri 12 -> 16 yapilarak 4 yeni iddia eklendi. )
+    if (K80_ORTAM_KISITI_JETONU in K80_KOMUT_JETONU
+            or K80_KOMUT_JETONU in K80_ORTAM_KISITI_JETONU):
+        hatalar.append("E1 JETON AYRIK DEGIL: `%s` ile `%s` biri otekinin alt-dizesi "
+                       "-> `jeton in cikti` iddialari iki hali AYIRT EDEMEZ."
+                       % (K80_ORTAM_KISITI_JETONU, K80_KOMUT_JETONU))
+    # E2: gecici agac ACILAMAYINCA `OrtamKisiti` ATILIYOR MU (duz `Olculemedi` DEGIL).
+    # ROOT git deposu OLMAYAN bir dizine cevrilir; `yeni` DOLU verilir ki kol FIILEN
+    # acilsin (`if not yeni: return [], 0` erken cikisini atlamak icin).
+    global ROOT
+    _e2_eski_kok = ROOT
+    _e2_gec = tempfile.mkdtemp(prefix="pruvo-k189-e2-")
+    try:
+        ROOT = _e2_gec
+        try:
+            _k80_commit_agacinda_kos("HEAD", [("z.yml", "j", "python3 tools/z-test.py")])
+        except OrtamKisiti:
+            pass
+        except Olculemedi as _e:
+            hatalar.append("E2 SINIF DUSTU: gecici agac acilamayinca duz `Olculemedi` "
+                           "atildi (`OrtamKisiti` DEGIL) -> ortam kisiti gercek "
+                           "bulguyla AYNI renge doner: %s" % _e)
+        except Exception as _e:  # noqa: BLE001
+            hatalar.append("E2 OLCULEMEDI: beklenmedik istisna %s: %s"
+                           % (type(_e).__name__, _e))
+        else:
+            hatalar.append("E2 SESSIZ GECIS: gecici agac acilamadigi halde HICBIR "
+                           "istisna atilmadi -> 'olcemedim' sessizce 'olctum' sayilir.")
+    finally:
+        ROOT = _e2_eski_kok
+        shutil.rmtree(_e2_gec, ignore_errors=True)
+    # E3: HUKUM MUTANTLARI — kirmizinin/olculemedinin SEBEBI hedef kol mu (K182).
+    # `k80_hukum` KAYNAK METNI mutasyona sokulur ve UC VAKALI tablo yeniden kosulur.
+    _e3_tablo = ((["bulgu"], None, 1), ([], "ortam sebebi", OLCULEMEDI), ([], None, 0))
+    try:
+        with open(os.path.abspath(__file__), encoding="utf-8") as _f:
+            _e3_kaynak = _f.read()
+    except OSError as _e:
+        hatalar.append("E3 OLCULEMEDI: kendi kaynagi okunamadi: %s" % _e)
+        _e3_kaynak = None
+    if _e3_kaynak is not None:
+        _e3_bas = _e3_kaynak.find("def k80_hukum(hatalar, ortam_kisiti):")
+        _e3_son = _e3_kaynak.find("\ndef ", _e3_bas + 1)
+        if _e3_bas < 0 or _e3_son < 0:
+            hatalar.append("E3 OLCULEMEDI: `k80_hukum` govdesi kaynakta bulunamadi.")
+        else:
+            _e3_govde = _e3_kaynak[_e3_bas:_e3_son]
+
+            def _e3_kos(metin, etiket):
+                _ns = {"OLCULEMEDI": OLCULEMEDI}
+                try:
+                    exec(compile(metin, "<k80_hukum>", "exec"), _ns)  # noqa: S102
+                except Exception as _ex:  # noqa: BLE001
+                    hatalar.append("E3 OLCULEMEDI (%s): govde derlenemedi: %s"
+                                   % (etiket, _ex))
+                    return None
+                return _ns.get("k80_hukum")
+
+            _e3_fn = _e3_kos(_e3_govde, "TABAN")
+            if _e3_fn is not None:
+                for _h, _o, _bek in _e3_tablo:
+                    _g = _e3_fn(_h, _o)
+                    if _g != _bek:
+                        hatalar.append("E3 TABAN DUSTU: k80_hukum(%r, %r) = %r "
+                                       "(beklenen %r)" % (_h, _o, _g, _bek))
+            _e3_mutantlar = (
+                ("M-ORTAM", "    if ortam_kisiti:\n        return OLCULEMEDI\n",
+                 "    if ortam_kisiti:\n        return 0\n",
+                 "ortam kisiti kolu 0'a kacirilirsa OLCEMEDIGI kosum YESIL gorunur"),
+                ("M-BULGU", "    if hatalar:\n        return 1\n",
+                 "    if hatalar:\n        return 0\n",
+                 "gercek bulgu kolu 0'a kacirilirsa KIRMIZI kaybolur"),
+            )
+            for _et, _capa, _ikame, _neden in _e3_mutantlar:
+                if _e3_govde.count(_capa) != 1:
+                    hatalar.append("E3 MUTANT OLCULEMEDI (%s): capa %d kez gecti "
+                                   "(beklenen 1)" % (_et, _e3_govde.count(_capa)))
+                    continue
+                _mf = _e3_kos(_e3_govde.replace(_capa, _ikame), _et)
+                if _mf is None:
+                    continue
+                if all(_mf(_h, _o) == _bek for _h, _o, _bek in _e3_tablo):
+                    hatalar.append("E3 MUTANT HUKMU DEGISTIRMEDI (%s): sabotaj UC "
+                                   "VAKANIN UCUNDE de ayni sonucu verdi — %s. Hedef "
+                                   "kol ATFI COKTU." % (_et, _neden))
+    # E4: KABLO — `main()` hukmu `k80_hukum()`den ALIYOR mu (ozellik durur, kablosu
+    # dusebilir: [[nobetci-cagri-satiri-nobetsiz]]).
+    if _e3_kaynak is not None and "_k80_rc = k80_hukum(hatalar, h_ortam_kisiti)" not in _e3_kaynak:
+        hatalar.append("E4 KABLO KOPUK: `main()` icinde `k80_hukum(...)` cagrisi YOK "
+                       "-> hukum fonksiyonu OKSUZ, davranisi kimseyi baglamaz.")
+    return hatalar, 16
 
 
 def _k80_mutasyon_kontrol():
@@ -5962,10 +6106,20 @@ def main():
     if args.pre_push:
         try:
             h_hata, h_yeni, h_kosulan = yeni_ci_adimi_kontrol(args)
-        except Olculemedi as hata:
-            print("YENI CI ADIMI OLCULEMEDI: %s" % hata)
+        except OrtamKisiti as hata:
+            # 🔴 ALT SINIF ONCE yakalanmali; `except Olculemedi` yukari alinirsa
+            # ayrim SESSIZCE olur (Python ilk eslesen bloga girer).
+            print("%s: %s" % (K80_ORTAM_KISITI_JETONU, hata))
+            print("YENI_CI_ADIMI=OLCULEMEDI KOSULAN=OLCULEMEDI ORTAM=%s OLCUM=ORTAM_KISITI"
+                  % _k80_ortam())
             return OLCULEMEDI
-        print("YENI_CI_ADIMI=%d KOSULAN=%d" % (h_yeni, h_kosulan))
+        except Olculemedi as hata:
+            print("%s: %s" % (K80_KOMUT_JETONU, hata))
+            print("YENI_CI_ADIMI=OLCULEMEDI KOSULAN=OLCULEMEDI ORTAM=%s OLCUM=COZULEMEDI"
+                  % _k80_ortam())
+            return OLCULEMEDI
+        print("YENI_CI_ADIMI=%d KOSULAN=%d ORTAM=%s OLCUM=YAPILDI"
+              % (h_yeni, h_kosulan, _k80_ortam()))
         for hata in h_hata:
             print("  ❌ " + hata)
         return 1 if h_hata else 0
@@ -6061,12 +6215,18 @@ def main():
     hatalar.extend(f_hata)
     g_hata, g_iddia = yayin_sinyali_kontrol(args.dizin)
     hatalar.extend(g_hata)
+    h_ortam_kisiti = None
     try:
         h_hata, h_yeni, h_kosulan = yeni_ci_adimi_kontrol(args)
         hatalar.extend(h_hata)
+    except OrtamKisiti as hata:
+        # ORTAM KISITI KIRMIZI DEGILDIR: `hatalar`a konursa GERCEK bulguyla AYNI
+        # renkte gorunur ve "kirmizi benim isimden mi" sorusu cevapsiz kalir (K184).
+        h_yeni, h_kosulan = 0, 0
+        h_ortam_kisiti = str(hata)
     except Olculemedi as hata:
         h_yeni, h_kosulan = 0, 0
-        hatalar.append("YENI CI ADIMI OLCULEMEDI: %s" % hata)
+        hatalar.append("%s: %s" % (K80_KOMUT_JETONU, hata))
 
     # BOLUM C bayraksiz (bloklayici) kolda da BLOKLAR — `--kendini-test` adimi silinse
     # bile nobetci yasar (ci-kapsam-test.py'nin 27 Tem'de olctugu delik).
@@ -6106,15 +6266,31 @@ def main():
           "zincirini anlatir; alarmlar %s'de kendi conclusion'inda)"
           % (g_iddia, E_DOSYA, N_DOSYA))
     print("  Kendini-test iddiasi     : %d" % c_iddia)
-    print("  Yeni CI adimi (K80)      : %d yeni · %d commit-agacinda kosulan" %
-          (h_yeni, h_kosulan))
+    # 🔴 GERIYE DONUK AYRIM ANCAK BU SATIRLA MUMKUN: "o yesil sahici miydi" sorusu
+    # ileride yalnizca kosum ciktisindan cevaplanabilir. `OLCUM=YAPILDI` + `0 yeni`
+    # -> yesil SAHICIDIR (olcecek yeni adim YOKTU); `OLCUM=ORTAM_KISITI` -> hukum
+    # VERILMEMISTIR. Ikisi AYRI jetondur.
+    print("  Yeni CI adimi (K80)      : %s yeni · %s commit-agacinda kosulan · "
+          "ORTAM=%s · OLCUM=%s"
+          % ("OLCULEMEDI" if h_ortam_kisiti else h_yeni,
+             "OLCULEMEDI" if h_ortam_kisiti else h_kosulan,
+             _k80_ortam(), "ORTAM_KISITI" if h_ortam_kisiti else "YAPILDI"))
+    if h_ortam_kisiti:
+        print("  ⚪ %s: %s" % (K80_ORTAM_KISITI_JETONU, h_ortam_kisiti))
     print("-" * 70)
+    _k80_rc = k80_hukum(hatalar, h_ortam_kisiti)
     if hatalar:
         for h in hatalar:
             print("  ❌ " + h)
         print("-" * 70)
         print("SONUC: KIRMIZI ❌  (%d sorun)" % len(hatalar))
-        return 1
+        return _k80_rc
+    if h_ortam_kisiti:
+        print("SONUC: OLCULEMEDI ⚪ (ORTAM KISITI) — kapi bu ekseni OLCEMEDI; bu "
+              "'yeni CI adimi temiz' DEMEK DEGILDIR. ORTAM=%s. Cikis kodu SIFIR-DISI "
+              "kalir (fail-closed): kabuk `-ne 0` ile bakar ve bloklar."
+              % _k80_ortam())
+        return _k80_rc
     print("SONUC: YESIL ✅  — is akislari ayristirilabilir · %d POZITIF cagri iddiasinin "
           "hepsi etkili · muafiyet kilidi saglam · hicbir kapi cagrisi beyansiz fail-open "
           "degil · deploy.yml `on.push` ile tetiklenir + zorunlu kapi adimlari etkili."
