@@ -28,13 +28,11 @@ K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 succes
 - 🔧 **K179 (18 Agu — recete kapisi CI'da kostu, kirmizisi KISMEN parser artefakti):**
   `RECETE=9 REDDEDILEN=8 EVREN=390`; ayiklayici koddan artik yutuyor. Hukum
   `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
-- 🔴 **K183 (18 Agu, OLCULDU — SERIT B KABUL YOLU KAPALI, gecikme DEGIL):** son 12 kosumun
-  **7'si `cancelled`**. `cancel-in-progress: false` UCUSTAKI kosumu korur; kuyrukta grup
-  basina TEK bekleyen tutuldugu icin **her yeni push bekleyeni ezer** → push akisi
-  durmadikca SERIT B TAMAMLANAMAZ (bugun ③/K168/K179 icin dort kez beklendi).
-  ❌ `workflow_dispatch` ara cozumu CURUDU: elle tetiklenen `32174776514` de AYNI gruba
-  girip iptal oldu — trigger'in VARLIGI davranis degildi (once "cozum" yazdim, olcunce dustu).
-  ⚠️ **DUZELTME (25 kosum): "hicbir kabul olculemez" FAZLA GENIS** — 16 iptal · **6 TAMAMLANDI** · 2 ucusta. Zarar tikanma degil **SHA SECEMEMEK**. CARE MAIN'DE (`77bb3195`): dispatch kendi grubunda kosar, push kolu ayni; her push'a ayri grup (~25x85 dk/gun) REDDEDILDI. kabul: chip `KraL-K183 canli kabul` — dispatch kosumu push trafigi altinda TAMAMLANIR.
+- ✅ **K183 KAPANDI (18 Agu) — CANLI KABUL YESIL.** Care `77bb3195` (dispatch grubu run_id'li,
+  push kolu sabit). Dispatch `32176203099` 19:22:09→20:20:56Z: `failure` (SERIT B nobetci
+  kirmizisi), **`cancelled` DEGIL**; pencerede 3 push tetikli nobet indi ve push kolundaki
+  `32178418454` IPTAL oldu → ayrim calisti. 2. dispatch `32178504446` eszamanli kostu, iptal
+  olmadi. Push kolunun iptal yigini AYNEN durur (K144). Tam metin ARSIVDE.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
