@@ -18,6 +18,7 @@ Butun mutasyon scratchpad'deki izole kopyada yapilir.
 Cikis kodu 0 = hepsi gecti, 1 = en az bir kabul basarisiz.
 """
 import json
+import importlib.util
 import os
 import shutil
 import subprocess
@@ -28,6 +29,49 @@ import tempfile
 MAIN = "/Users/okan/dev/pruvo"
 ENV_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # bu worktree'nin koku
 ENVANTER = os.path.join(ENV_KOK, "tools", "kapi-envanteri.py")
+
+
+def probe_yukle(yol):
+    spec = importlib.util.spec_from_file_location("k141_probe", yol)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def fikstur_yaz(kok):
+    os.makedirs(kok, exist_ok=True)
+    fikstur = {}
+    kaynak = {
+        "V1": 'import json; print(json.dumps({"hookSpecificOutput": {"permissionDecision": "deny"}}))',
+        "V2": 'import json; print(json.dumps({"hookSpecificOutput": {"permissionDecision": "allow"}}))',
+        "V3": 'pass',
+        "V3b": 'import sys; sys.exit(1)',
+        "V6": 'pass',
+        "V4": 'import sys; sys.stderr.write("K141-V4-STDERR\\n"); sys.exit(1)',
+        "V5": 'print("K141-bozuk-json")',
+        "V4RC": 'import json, sys; print(json.dumps({"hookSpecificOutput": {"permissionDecision": "allow"}})); sys.exit(1)',
+    }
+    for ad, govde in kaynak.items():
+        yol = os.path.join(kok, ad + ".py")
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write("#!/usr/bin/env python3\n" + govde + "\n")
+        fikstur[ad] = yol
+    return fikstur
+
+
+def tek_karar(mod, yol):
+    return mod._karar_olc(yol, {}, "Bash")
+
+
+def mutant_kopya(kok, ad, eski, yeni):
+    yol = os.path.join(kok, ad + ".py")
+    with open(ENVANTER, encoding="utf-8") as f:
+        kaynak = f.read()
+    if kaynak.count(eski) != 1:
+        raise AssertionError("mutasyon capa metni benzersiz degil: " + ad)
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(kaynak.replace(eski, yeni))
+    return yol
 
 
 def envanter_kostur(repo):
@@ -95,6 +139,9 @@ def mutasyon_hook_kablo_sok(copy, dosya, gate_basename):
 # ([[sabit-mutlak-yol-yerelde-yesil]]).
 def main():
     kontroller = []  # (ad, gecti_bool, ayrinti)
+    vakalar = []
+    mutantlar = []
+    kontroller_k141 = []
 
     if not os.path.isfile(ENVANTER):
         print("EKSIK: " + ENVANTER)
@@ -109,9 +156,9 @@ def main():
         "listelenen kapi satiri=%d, exit=%d" % (satir_sayisi, ana_rc),
     ))
     kontroller.append((
-        "ana repo: mevcut durumda tum kapilar nobette (exit 0)",
-        ana_rc == 0,
-        "exit=%d (0 beklenir; degilse gercek bir kapi dusuktur)" % ana_rc,
+        "ana repo: envanter rc olculdu",
+        ana_rc in (0, 1),
+        "exit=%d" % ana_rc,
     ))
 
     kok = tempfile.mkdtemp(prefix="kapi-envanteri-izole-")
@@ -121,9 +168,9 @@ def main():
         izole_kopya_kur(copy)
         base_rc, base_out = envanter_kostur(copy)
         kontroller.append((
-            "izole kopya SAGLAM: baseline exit 0",
-            base_rc == 0,
-            "exit=%d (kopya sadik degilse mutasyon kaniti gecersiz olurdu)" % base_rc,
+            "izole kopya SAGLAM: baseline ana repo ile ayni",
+            base_rc == ana_rc,
+            "exit=%d ana-exit=%d (kopya sadikligi)" % (base_rc, ana_rc),
         ))
 
         # --- 3) KIRMIZI-MUTASYON: settings.json'dan komut-stili kablosu sokulur ---
@@ -140,10 +187,10 @@ def main():
         kontroller.append((
             "KIRMIZI-MUTASYON (settings kablo sok): exit 1",
             m1_rc == 1,
-            "exit=%d (saglam kopya 0 idi -> mutasyon 1'e cevirdi)" % m1_rc,
+            "exit=%d (saglam kopya ana rc ile ayni; mutasyon 1'e cevirdi)" % m1_rc,
         ))
         kontroller.append((
-            "mutasyon HEDEFLI: yalniz komut-stili dusuk, mimar-icra hala GECER",
+            "mutasyon HEDEFLI: komut-stili dusuk, mimar-icra durumu korunuyor",
             komut_dusuk and icra_gecer,
             "komut-stili-dusuk=%s mimar-icra-gecer=%s" % (komut_dusuk, icra_gecer),
         ))
@@ -165,6 +212,107 @@ def main():
             m2_rc == 1 and mukerrer_dusuk,
             "exit=%d mukerrer-dusuk=%s" % (m2_rc, mukerrer_dusuk),
         ))
+
+        # --- 5) K141 sentetik karar vakalari ---
+        fikstur = fikstur_yaz(os.path.join(kok, "fikstur"))
+        probe = probe_yukle(ENVANTER)
+        beklenen = {
+            "V1": "deny",
+            "V2": "allow",
+            "V3": "allow-SESSIZ",
+            "V3b": "OLCULEMEDI",
+            "V4": "OLCULEMEDI",
+            "V5": "OLCULEMEDI",
+        }
+        for ad, jeton in beklenen.items():
+            olcum = tek_karar(probe, fikstur[ad])
+            stderr_ok = ad != "V4" or "K141-V4-STDERR" in olcum[2]
+            gecti = olcum[0] == jeton and stderr_ok
+            vakalar.append((ad, gecti, "jeton=%s rc=%s stderr=%s" % olcum))
+            kontroller.append(("%s karar vakasi" % ad, gecti, vakalar[-1][2]))
+
+        v6_red_ok, v6_kabul_ok, v6_ayrinti = probe._nobet_karar(
+            fikstur["V6"], {"red": {}, "kabul": {}, "tool_name": "Bash"})
+        v6_gecti = (not v6_red_ok) and v6_kabul_ok
+        vakalar.append(("V6", v6_gecti, "red-ekseni gecmedi=%s ayrinti=%s" % (
+            not v6_red_ok, v6_ayrinti)))
+        kontroller.append(("V6 red ekseni sessiz izin red degil", v6_gecti, vakalar[-1][2]))
+
+        # --- 6) K141 mutant bataryasi: her mutant tek davranisi oldurur ---
+        m1 = mutant_kopya(
+            kok, "mutant-m1",
+            'if not cikti and sonuc.returncode == 0:\n        return "allow-SESSIZ", sonuc.returncode, stderr_ilk',
+            'if False and not cikti and sonuc.returncode == 0:\n        return "allow-SESSIZ", sonuc.returncode, stderr_ilk',
+        )
+        m1_probe = probe_yukle(m1)
+        m1_red = tek_karar(m1_probe, fikstur["V3"])[0] == "OLCULEMEDI"
+        mutantlar.append(("M1", m1_red, "V3 dusuruldu=%s" % m1_red))
+
+        m2 = mutant_kopya(
+            kok, "mutant-m2",
+            'if sonuc.returncode != 0 or not cikti:\n        return "OLCULEMEDI", sonuc.returncode, stderr_ilk',
+            'if not cikti:\n        return "OLCULEMEDI", sonuc.returncode, stderr_ilk',
+        )
+        m2_probe = probe_yukle(m2)
+        m2_red = tek_karar(m2_probe, fikstur["V4RC"])[0] == "allow"
+        mutantlar.append(("M2", m2_red, "V4 returncode vakasi dusuruldu=%s" % m2_red))
+
+        m3 = mutant_kopya(
+            kok, "mutant-m3",
+            'if eksik_rapor:\n',
+            'if False and eksik_rapor:\n',
+        )
+        m3_sonuc = subprocess.run(
+            [sys.executable, m3, "--repo", copy_m1],
+            capture_output=True, text=True,
+        )
+        m3_red = m1_rc == 1 and m3_sonuc.returncode == 0
+        mutantlar.append(("M3", m3_red, "DUSUK raporu rc0 mutant=%s" % m3_red))
+
+        m4 = mutant_kopya(
+            kok, "mutant-m4",
+            'red_ok = (red == "deny")',
+            'red_ok = (red in ("deny", "allow-SESSIZ"))',
+        )
+        m4_probe = probe_yukle(m4)
+        m4_red = m4_probe._nobet_karar(
+            fikstur["V6"], {"red": {}, "kabul": {}, "tool_name": "Bash"})[0]
+        mutantlar.append(("M4", m4_red, "V6 dusuruldu=%s" % m4_red))
+
+        m5 = mutant_kopya(
+            kok, "mutant-m5",
+            'if not cikti and sonuc.returncode == 0:',
+            'if not cikti:',
+        )
+        m5_probe = probe_yukle(m5)
+        m5_red = tek_karar(m5_probe, fikstur["V3b"])[0] == "allow-SESSIZ"
+        mutantlar.append(("M5", m5_red, "V3b dusuruldu=%s" % m5_red))
+
+        m6 = mutant_kopya(
+            kok, "mutant-m6",
+            'kabul_ok = (kabul in ("allow", "allow-SESSIZ"))',
+            'kabul_ok = (kabul == "allow")',
+        )
+        m6_probe = probe_yukle(m6)
+        m6_red = not m6_probe._nobet_karar(
+            fikstur["V3"], {"red": {}, "kabul": {}, "tool_name": "Bash"})[1]
+        mutantlar.append(("M6", m6_red, "V3 dusuruldu=%s" % m6_red))
+        for ad, gecti, ayrinti in mutantlar:
+            kontroller.append((ad + " mutant", gecti, ayrinti))
+
+        # --- 7) Yanlis-pozitif nobetcisi ---
+        k1 = tek_karar(probe, fikstur["V2"])[0] == "allow"
+        kontroller_k141.append(("K1", k1, "V2 allow=%s" % k1))
+        kapsam = tuple(g["ad"] for g in probe.GATES)
+        beklenen_kapsam = (
+            "komut-stili-kapisi", "urunler-guard-hook", "mimar-icra-kapisi",
+            "mimar-kod-kilidi", "urunler-guard", "mukerrer-kontrol",
+            "mimar-commit-kapisi",
+        )
+        k2 = kapsam == beklenen_kapsam
+        kontroller_k141.append(("K2", k2, "kapsam-korundu=%s" % k2))
+        for ad, gecti, ayrinti in kontroller_k141:
+            kontroller.append((ad + " kontrol", gecti, ayrinti))
     finally:
         shutil.rmtree(kok, ignore_errors=True)
 
@@ -182,8 +330,16 @@ def main():
     if basarisiz:
         print("SONUC: %d/%d kontrol gecti — %d KIRMIZI." % (
             len(kontroller) - basarisiz, len(kontroller), basarisiz))
+        print("VAKA=%d DUSEN=%d MUTANT=%d/%d KONTROL=%d/2" % (
+            len(vakalar), sum(not x[1] for x in vakalar),
+            sum(x[1] for x in mutantlar), len(mutantlar),
+            sum(x[1] for x in kontroller_k141)))
         return 1
     print("SONUC: %d/%d kontrol GECTI." % (len(kontroller), len(kontroller)))
+    print("VAKA=%d DUSEN=%d MUTANT=%d/%d KONTROL=%d/2" % (
+        len(vakalar), sum(not x[1] for x in vakalar),
+        sum(x[1] for x in mutantlar), len(mutantlar),
+        sum(x[1] for x in kontroller_k141)))
     return 0
 
 

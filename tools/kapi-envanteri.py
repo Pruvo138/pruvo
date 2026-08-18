@@ -44,8 +44,8 @@ CANON = "/Users/okan/dev/pruvo"
 # ---------------------------------------------------------------------------
 # NOBET (dry-run reddet/kabul) sinayicilari — hepsi yan-etkisiz.
 # ---------------------------------------------------------------------------
-def _karar(script, tool_input, tool_name):
-    """Karar-kancasini (PreToolUse) sentetik payload ile kostur, permissionDecision dondur."""
+def _karar_olc(script, tool_input, tool_name):
+    """Karar-kancasini kostur; jeton, returncode ve stderr ilk satirini dondur."""
     payload = {
         "session_id": "kapi-envanteri",
         "cwd": CANON,
@@ -61,22 +61,40 @@ def _karar(script, tool_input, tool_name):
         capture_output=True, text=True, env=ortam,
     )
     cikti = (sonuc.stdout or "").strip()
-    if not cikti:
-        return "allow"
+    stderr = (sonuc.stderr or "").splitlines()
+    stderr_ilk = stderr[0][:120] if stderr else ""
+    if not cikti and sonuc.returncode == 0:
+        return "allow-SESSIZ", sonuc.returncode, stderr_ilk
+    if sonuc.returncode != 0 or not cikti:
+        return "OLCULEMEDI", sonuc.returncode, stderr_ilk
     try:
         veri = json.loads(cikti)
     except ValueError:
-        return "PARSE-HATASI"
-    return (veri.get("hookSpecificOutput") or {}).get("permissionDecision", "allow")
+        return "OLCULEMEDI", sonuc.returncode, stderr_ilk
+    karar = (veri.get("hookSpecificOutput") or {}).get("permissionDecision")
+    if karar not in ("deny", "allow"):
+        return "OLCULEMEDI", sonuc.returncode, stderr_ilk
+    return karar, sonuc.returncode, stderr_ilk
+
+
+def _karar(script, tool_input, tool_name):
+    """Karar-kancasini sentetik payload ile kostur, uc jetondan birini dondur."""
+    return _karar_olc(script, tool_input, tool_name)[0]
 
 
 def _nobet_karar(script, params):
     tn = params.get("tool_name", "Bash")
-    red = _karar(script, params["red"], tn)
-    kabul = _karar(script, params["kabul"], tn)
+    red, red_rc, red_stderr = _karar_olc(script, params["red"], tn)
+    kabul, kabul_rc, kabul_stderr = _karar_olc(script, params["kabul"], tn)
     red_ok = (red == "deny")
-    kabul_ok = (kabul != "deny" and kabul != "PARSE-HATASI")
-    return red_ok, kabul_ok, "reddetmeli=%s kabuletmeli=%s" % (red, kabul)
+    kabul_ok = (kabul in ("allow", "allow-SESSIZ"))
+    ayrinti = ("reddetmeli=%s(rc=%d) kabuletmeli=%s(rc=%d) "
+               "stderr=%s | stderr=%s" % (
+                   red, red_rc, kabul, kabul_rc,
+                   red_stderr or "-", kabul_stderr or "-"))
+    if red == "OLCULEMEDI" or kabul == "OLCULEMEDI":
+        ayrinti = "NOBETTE=OLCULEMEDI " + ayrinti
+    return red_ok, kabul_ok, ayrinti
 
 
 def _cikis(script, spec):
@@ -89,6 +107,8 @@ def _cikis(script, spec):
         input=spec.get("stdin", ""),
         capture_output=True, text=True, env=ortam,
     )
+    if not isinstance(sonuc.returncode, int):
+        return "OLCULEMEDI"
     return sonuc.returncode
 
 
@@ -97,7 +117,15 @@ def _nobet_cikis(script, params):
     kabul_rc = _cikis(script, params["kabul"])
     red_ok = (red_rc == 1)
     kabul_ok = (kabul_rc == 0)
-    return red_ok, kabul_ok, "reddetmeli->exit%d kabuletmeli->exit%d" % (red_rc, kabul_rc)
+    olculemedi = red_rc == "OLCULEMEDI" or kabul_rc == "OLCULEMEDI"
+    if olculemedi:
+        red_ok = False
+        kabul_ok = False
+        durum = "NOBETTE=OLCULEMEDI"
+    else:
+        durum = "NOBETTE=OLCULEMEDI"
+    return red_ok, kabul_ok, "%s reddetmeli->exit%s kabuletmeli->exit%s" % (
+        durum, red_rc, kabul_rc)
 
 
 def _yukle(script):
