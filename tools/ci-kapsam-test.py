@@ -2664,6 +2664,14 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
           "ayni sinif: yapisal olarak CI-disi, deploy.yml'e EKLENMEZ; canli D1 dogrulamasi ayri "
           "go-live fazinda yapilir.")
 
+R_SAHIPLIK = ("Paket ③ (18 Agu 2026, BaBa hukmu, KraL mimar): KAPI/NOBET sahiplik haritasi "
+              "kapisi. Salt-okunur envanter + invaryant kontrolu + `--kendini-test` bayragi "
+              "(3 mutant + 2 kontrol). CI'da ayri kosulmaz (R_URETEC + R_TASARIM karisimi: "
+              "KENDISI evren hesaplar ve evrene kendi dahildir -- CI'da koşarsa oz-dongu "
+              "sinyali uretir); merge-kapisi sirasinda ve mimar oncesi elle kosulur. "
+              "IDDIA semasi: --kendini-test 3 mutant RED + 2 kontrol YESIL; main cikti "
+              "EVREN=HARITADA EKSIK=0 BAYAT=0.")
+
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
     # --- Ayri dagitim hedefleri (shop / onizleme / jenerator) ---
@@ -3185,6 +3193,7 @@ IZIN_LISTESI = {
         "YAKALANDI, KONTROLLER YESIL`. 40 s esiginin ~1,4 kati — ESIGE EN YAKIN "
         "GIRIS. Surucu ~10 s hizlandirilirsa esigi gecer; o zaman BURADAN CIKARILIP "
         "nobet.yml `serit-b`ye kendi adimiyla baglanmalidir."),
+    "tools/sahiplik-kapisi.py": R_SAHIPLIK,
 }
 
 
