@@ -5,33 +5,40 @@
 ## ✅ K150 / K148 / K160 KAPANDI (17-18 Agu, KraL) — tam metin + 18 Agu kabul olcumu ARSIVDE
 SHA'lar `ed47d317` · `2f87a8bc` · `b180fa1a`. Karma bloktan iki kez dustu (gerekce K167).
 
+## 🔻 OTURUM KAPANISI — 18 Agu 03:1xZ (main `76358122` = origin, BIREBIR)
+**CANLIYA GITTI:** K164 yayin blokeri `f5671d37` (+ ikinci yuzey `0ab9dcde`); `build`+`deploy`+
+`yayin` success, CANLI `SITE_HTTP=200 URUN_HTTP=200`, `ozet.json` 13 alan/son `boy_secenekleri`
+· K166 `c6c05cf9` GIRDI, `d95de40e` GERI ALINDI (K170) · defter `da289188`.
+**KOSUYAN ISCI YOK** — 7 delege turu (codex `gpt-5.6-luna`: K164-teshis/kabul · K166-tasima/
+curutme/geri · K169-olcum · canli-teyit) BITTI; worktree kaldirildi, dallar silindi.
+**BEKLIYOR:** K170 (17 ciftin yargisi — BENDE) · `k152-link-temiz` merge ·
+`tools/marka-uyelik-test.py` yabanci+commitsiz (K136, DOKUNULMADI). **AGACTA (YABANCI):**
+`amazing-hamilton-c45e91` · `competent-dijkstra-754039` (OKSUZ/TEMIZ, main disi commit 0).
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
 - 🔴 **K167 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor):** `1c741e54`
   K150+K148'i, arsivde KAPANIS kaydi varken "KOSUYOR" ve main-disi commit'i OLMAYAN worktree
-  ile yazdi (`main..competent-dijkstra-754039` BOS) → devralan mukerrer tur acar. "Blok
-  birikimli olsun" onerisi ONLEMEZDI: satir silinmedi, YANLIS satir eklendi. Yazim kurali:
-  kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK. `tools/paket-defter-durum-iddiasi.md`.
+  ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
+  EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
   kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
 - 🔴 **K170 (18 Agu — yayin sinyali safligi ERTELENDI; K166 GERI ALINDI `d95de40e`):** kirmizi
-  VERI degil YARGI — `model-uyelik-kapisi.py` 29 iddiadan yalniz K19, ETKILENEN_URUN=0,
-  17 capraz-marka cifti yargisiz. K166 dosyalari `1b74bcbc`de DURUYOR. Tam metin ARSIVDE.
-  kabul: `python3 tools/model-uyelik-kapisi.py` rc=0 **VE** K166 tekrar indirilince
-  `is-akisi-kapisi.py` rc=0 + `deploy`+`yayin` success.
+  VERI degil YARGI — `model-uyelik-kapisi.py` 29 iddiadan yalniz K19, ETKILENEN_URUN=0, 17
+  capraz-marka cifti yargisiz; K166 dosyalari `1b74bcbc`de DURUYOR. Tam metin ARSIVDE.
+  kabul: `model-uyelik-kapisi.py` rc=0 **VE** K166 tekrar inince `is-akisi-kapisi.py` rc=0 + yayin success.
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
-- 🟠 **K165 (18 Agu — yayini BLOKLAMAZ ama SESSIZ):** sitemap `lastmod` git taramasi sure
-  butcesini doldurunca fail-loud DEGIL, sessizce kesiliyor; kayit `lastmod`SIZ kaliyor
-  (kirmizi kosumda 13). Yon: esigi BUYUTMEDEN fail-loud'a bagla. Tam metin ARSIVDE.
+- 🟠 **K165 (18 Agu):** sitemap `lastmod` sure butcesi dolunca fail-loud DEGIL, sessizce
+  kesiliyor; kayit `lastmod`SIZ kaliyor (13). Yayini BLOKLAMAZ. Tam metin ARSIVDE.
+- 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR):** ikiz silmesinden sonra gizli kaynak kayit duzleminde
+  **15 artik kayit** kaldi; kanonik duzeltme araci o duzleme DOKUNMUYOR. Talep: temizleme
+  bayragi (ayni kilit + atomik yazimda). Tam metin ARSIVDE. `kabul:` BOS.
 - 🔧 **K168 (18 Agu — K134'un HALEFI; K134 KAPANDI, tam metin ARSIVDE):** care
-  (`defter-rotasyon.py`) mutasyonla teyitli YESIL (7/7) ama kota bugun UC KEZ kaybedildi
-  (141/139/136 — ucunu de mimar ELLE dondurdu). Mekanizma: kotayi asan rol MIMAR ve mimar
-  o araci KOSAMAZ (icra kapisi python'u reddediyor). Yon: kanca otomatigi. `kabul:` BOS.
-- 🔴 **K169 (18 Agu — ⚖️ OKAN: "ikiz urunler silinebilir"; ama `a0fa061c` O SILMEYI YAPMIYOR):**
-  mesaj "15 ikiz urun silindi, 29062->29047" diyor; `jq` olcumu iki ucta da **29062 benzersiz
-  id**, "silinen" 3 id'nin 3'u de DURUYOR → **0 silme**. Fiilen yapilan: 23 kaydin YERI
-  degismis (saf yeniden siralama) = kardes oturumun SEQ DRIFT'i (23 satir, Renault partisi).
-  HUKUM: main'e ITILMEZ, sahibi geri alsin. Gercek silme AYRI/temiz commit olsun; icra MaCiT'te.
-  kabul: id sayisi 29062 -> 29047 OLCULDU **VE** `d1-sync --durum` SEQ ekseni YESIL.
+  (`defter-rotasyon.py`) mutasyonla YESIL (7/7) ama kota bugun BES KEZ elle dondurulda
+  (141/139/136/141/137). Kotayi asan rol MIMAR ve mimar o araci KOSAMAZ (icra kapisi).
+  Yon: kanca otomatigi. `kabul:` BOS.
+- ✅ **K169 KAPANDI (18 Agu):** `a0fa061c` 0 silme yapiyordu (olculdu, main'e GIRMEDI); gercek
+  silme MaCiT'in `2d8fc34b`+`90ece475` commit'leriyle geldi — 29062→29047, `d1-sync --durum`
+  D1=29047 birebir. Tam metin ARSIVDE.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   Tam metin ARSIVDE.
   Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. `kabul:` alani BOS.
@@ -112,19 +119,11 @@ SHA'lar `ed47d317` · `2f87a8bc` · `b180fa1a`. Karma bloktan iki kez dustu (ger
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
-  (16 Agu: rotasyon bu maddeyi bir kez arsive supurdu — parantezdeki kapali kalem atfi
-  yuzunden; geri konuldu, sinif kusuru K128.)
+  (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu) ·
   Navlungo `il-ilce-dilim1` merge'i. (K164 blogundan tasindi.)
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
-## KOSUYOR (baska mimarlar) — 18 Agu OLCULDU, iddia GUNCELLENDI (K167 kurali)
-
-`git worktree list` + `main..<ref>`: agacta yalniz `amazing-hamilton-c45e91` (`10ae08d1`,
-main'in ATASI) ve `competent-dijkstra-754039` (`f3d5a2c3`, main'in ATASI) var — **ikisinde de
-main disi commit YOK**. `xenodochial-bardeen` agacta YOK; K152'nin isi `k152-link-temiz`
-dalinda YASIYOR (`56269db4`, merge bekliyor — ustte kalem). Yani "KOSUYOR" iddiasi kalmadi.
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
-
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
