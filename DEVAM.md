@@ -31,14 +31,14 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
 - 🔧 **K179 (18 Agu — recete kapisi CI'da kostu, kirmizisi KISMEN parser artefakti):**
   `RECETE=9 REDDEDILEN=8 EVREN=390`; ayiklayici koddan artik yutuyor. Hukum
   `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
-- 🟠 **K183 (18 Agu, OLCULDU — SERIT B geri bildirimi push yogunluguyla TERS ORANTILI):**
-  son 12 SERIT B kosumunun **7'si `cancelled`** (`gh run list --workflow=nobet.yml`).
-  `cancel-in-progress: false` UCUSTAKI kosumu korur ama KUYRUKTAKI olur; parti/paket
-  yogunlugunda kapi kabulu saatlerce OLCULEMEZ (bugun ③/K168/K179 icin uc kez tekrar
-  beklendi). Yayini BLOKLAMAZ. ⚖️ Yon Okan kapisina bakar (Actions dakikasi): ya seyrek
-  `schedule` tetigi (push'suz pencere garantisi) ya kosum basina ayri concurrency grubu.
-  ✅ ARA COZUM OLCULDU: `nobet.yml`de `workflow_dispatch` VAR → `gh workflow run nobet.yml
-  --ref main` ile mimar kabulu ZORLAYABILIR (K179'da kullanildi, 4 iptalden sonra).
+- 🔴 **K183 (18 Agu, OLCULDU — SERIT B KABUL YOLU KAPALI, gecikme DEGIL):** son 12 kosumun
+  **7'si `cancelled`**. `cancel-in-progress: false` UCUSTAKI kosumu korur; kuyrukta grup
+  basina TEK bekleyen tutuldugu icin **her yeni push bekleyeni ezer** → push akisi
+  durmadikca SERIT B TAMAMLANAMAZ (bugun ③/K168/K179 icin dort kez beklendi).
+  ❌ `workflow_dispatch` ara cozumu CURUDU: elle tetiklenen `32174776514` de AYNI gruba
+  girip iptal oldu — trigger'in VARLIGI davranis degildi (once "cozum" yazdim, olcunce
+  dustu). Yayini BLOKLAMAZ ama HICBIR kapi kabulu olculemez. ⚖️ Yon Okan kapisi (Actions
+  dakikasi): seyrek `schedule` tetigi ya da kosum basina ayri concurrency grubu.
   kabul: art arda push senaryosunda EN AZ bir tam SERIT B kosumu tamamlanir.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
