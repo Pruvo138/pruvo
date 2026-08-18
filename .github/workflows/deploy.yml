@@ -814,7 +814,10 @@ jobs:
         with:
           node-version: "20"
 
-      - name: "Talep hatti sizinti kapisi (PII + allow-list + honeypot + govde tavani, BLOKLAYICI)"
+      # BLOKLAYICI KOL (17): B1..B5, C1..C5, D6..D8, D11 + G5..G7.
+      # G6/G7 C5'in yanlis-pozitif guvencesi; G5 diger bloklayici iddialarin eksilmesini
+      # olcer. Bu uc SERIT B'de kalirsa C5/G5'teki sessiz eksilme yayini durduramaz.
+      - name: "Talep hatti sizinti kapisi (17 iddia: PII + allow-list + honeypot + govde tavani, BLOKLAYICI)"
         run: python3 tools/talep-hatti-test.py --sizinti
 
       - name: Kisisel veri korumasi testi

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """K186 talep hatti kabul, kaynak ve mutasyon kapisi.
 
-Her iddia ayri eksenle olculur. Mutantlar gecici dosyaya yazilir, hedef iddia
-`--only` ile izole kosulur ve kaynak capasi diske girdigi sayiyla basilir.
+Her iddia ayri eksenle olculur. Mutantlar gecici dosyaya yazilir ve tam batarya
+`--only` olmadan kosulur; gercek dusen iddia kumesi kaynak capasi ile birlikte basilir.
 """
 
 import argparse
@@ -22,7 +22,7 @@ TEMIZLIK = ROOT / "tools" / "talep-temizlik.py"
 NODE = "node"
 
 BEKLENEN_IDDIA = 50
-BEKLENEN_IDDIA_SIZINTI = 14
+BEKLENEN_IDDIA_SIZINTI = 17
 IDDIALAR = [
     "A1", "A2", "A3", "A4", "A5", "A6", "A7",
     "B1", "B2", "B3", "B4", "B5",
@@ -33,7 +33,7 @@ IDDIALAR = [
     "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11",
     "K1", "K2", "K3", "K4", "K5", "R1",
 ]
-SIZINTI_IDDIALAR = ["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D6", "D7", "D8", "D11"]
+SIZINTI_IDDIALAR = ["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D6", "D7", "D8", "D11", "G5", "G6", "G7"]
 PIS = {"telefon", "tel", "email", "eposta", "ad", "adres", "address"}
 ALANLAR = {"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website"}
 KANONIK_WA_NUMARASI = "90545" + "1386526"
@@ -227,9 +227,9 @@ def mutasyonlar(js, sql, temizlik, test):
         "A1": (tek_mutasyon(js, '    kod += TALEP_ALFABE[bayt[0] % TALEP_ALFABE.length];', '    kod += "2";'), js, "node", 'kod += "2";'),
         "A2": (tek_mutasyon(js, 'export const TALEP_ALFABE = "23456789ABCDEFGHJKMNPQRSTVWXYZ";', 'export const TALEP_ALFABE = "023456789ABCDEFGHJKMNPQRSTVWXYZ";'), js, "node", 'export const TALEP_ALFABE = "023456789ABCDEFGHJKMNPQRSTVWXYZ";'),
         "A3": (tek_mutasyon(js, '  let kod = "PR-";', '  let kod = "PX-";'), js, "node", 'let kod = "PX-";'),
-        "A4": (tek_mutasyon(js, 'do { crypto.getRandomValues(bayt); }', 'do { Math.random(); }'), js, "node", 'do { Math.random(); }'),
+        "A4": (tek_mutasyon(js, 'do { crypto.getRandomValues(bayt); }', 'do { bayt[0] = Math.floor(Math.random() * 256); }'), js, "node", 'do { bayt[0] = Math.floor(Math.random() * 256); }'),
         "A5": (tek_mutasyon(js, 'bayt[0] >= kabulSiniri', 'bayt[0] >= 256'), js, "node", 'bayt[0] >= 256'),
-        "A6": (tek_mutasyon(js, 'Math.floor(256 / TALEP_ALFABE.length) * TALEP_ALFABE.length', '256'), js, "node", 'const kabulSiniri = 256;'),
+        "A6": (tek_mutasyon(js, 'TALEP_ALFABE[bayt[0] % TALEP_ALFABE.length]', 'TALEP_ALFABE[bayt[0] % TALEP_ALFABE.length === TALEP_ALFABE.length - 1 ? 0 : bayt[0] % TALEP_ALFABE.length]'), js, "node", 'TALEP_ALFABE.length - 1 ? 0'),
         "A7": (tek_mutasyon(js, 'TALEP_ALFABE[bayt[0] % TALEP_ALFABE.length]', '"0"'), js, "node", 'kod += "0";'),
         "B1": (tek_mutasyon(js, '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website",', '"kanal", "kategori", "marka", "model", "yil", "parca_adi", "notu", "website", "telefon",'), js, "node", '"website", "telefon"'),
         "B2": (tek_mutasyon(js, 'if (govde.website !== undefined && govde.website !== "") { return gecersiz(); }', 'if (false) { return gecersiz(); }'), js, "node", 'if (false) { return gecersiz(); }'),
@@ -262,7 +262,7 @@ def mutasyonlar(js, sql, temizlik, test):
         "G3": (tek_mutasyon(js, 'metin = await request.text();', 'metin = "";'), sql, "node", 'metin = "";'),
         "G4": (tek_mutasyon(js, 'if (new TextEncoder().encode(metin).length > GOVDE_BAYT_TAVANI) { return gecersiz(); }', 'if (false) { return gecersiz(); } /* G4_MUTANT */'), sql, "node", 'G4_MUTANT'),
         "G5": (tek_mutasyon(test, 'await iddia("G5", async () => {\n  return true;\n});', ''), sql, "test", 'await iddia("G5"'),
-        "G6": (tek_mutasyon(Path(__file__).read_text(encoding="utf-8"), 'if numara == "4005" and ' + '("wa.me" in baglam or "tel:" in baglam or "contactPoint" in baglam):', 'if numara == "4005" and ("wa.me" not in baglam and "tel:" not in baglam and "contactPoint" not in baglam):'), sql, "phone", 'if numara == "4005" and ("wa.me" not in baglam'),
+        "G6": (tek_mutasyon(Path(__file__).read_text(encoding="utf-8"), 'if numara == "4005" and ' + '("wa.me" in baglam or "tel:" in baglam or "contactPoint" in baglam):', 'if numara == "4005" and ("wa.me" in baglam or "tel:" in baglam or "contactPoint" in baglam or "tarih=2026" in baglam):'), sql, "phone", 'if numara == "4005" and ("wa.me" in baglam or "tel:" in baglam or "contactPoint" in baglam or "tarih=2026" in baglam):'),
         "G7": (tek_mutasyon(Path(__file__).read_text(encoding="utf-8"), 'return telefon_ihlali(' + '"https://wa.me/4005")', 'return not telefon_ihlali("https://wa.me/4005")'), sql, "phone7", 'return not telefon_ihlali("https://wa.me/4005")'),
         "G8": (tek_mutasyon(js, 'if (origin) { return izin.has(origin); }', 'if (origin) { return false; }'), sql, "node", 'if (origin) { return false; }'),
         "G9": (tek_mutasyon(js, 'if (referer) { return izin.has(referer); }', 'if (referer) { return false; }'), sql, "node", 'if (referer) { return false; }'),
@@ -288,53 +288,111 @@ def calistir_python(yol, bayrak):
     return subprocess.run([sys.executable, str(yol), bayrak], cwd=ROOT, capture_output=True, text=True)
 
 
-def mutant_sonuclari(temel_js, temel_sql, temel_temizlik, temel_test, isimler):
+def tam_batarya(js, sql, temizlik, isimler, source_path=None, test_path=None,
+                python_path=None, temizlik_path=None):
+    sizinti = isimler == SIZINTI_IDDIALAR
+    node_ok, node_sonuc, node_olcu, node_iddialar = node_test(
+        sizinti=sizinti, source_path=source_path, test_path=test_path)
+    sonuclar = {ad: node_iddialar.get(ad, False) for ad in isimler}
+    kaynak = kaynak_taramasi(sql, js, uretim_dosyalari(sql, js))
+    for ad in ("C1", "C2", "C3", "C4", "C5", "E3", "G6", "G7", "G11", "R1"):
+        if ad in sonuclar:
+            sonuclar[ad] = kaynak.get(ad, False)
+    python_kaynagi = python_path or Path(__file__)
+    for ad in ("G6", "G7"):
+        if ad in sonuclar:
+            probe = calistir_python(python_kaynagi, "--phone-probe=" + ad)
+            sonuclar[ad] = probe.returncode == 0
+    if "F5" in sonuclar:
+        temizlik_kaynagi = temizlik_path or TEMIZLIK
+        temiz_sonuc = calistir_python(temizlik_kaynagi, "--kendini-test")
+        sonuclar["F5"] = temiz_sonuc.returncode == 0 and "F5=GECTI" in temiz_sonuc.stdout
+    return sonuclar, node_ok, node_sonuc, node_olcu
+
+
+IZOLASYON_BEYANLARI = {
+    "A1": "entropi, reddetme penceresi ve dagilim ayni rastgelelik fiksturunu paylasiyor",
+    "A2": "yasak karakter mutasyonu dagilim kapisini da etkiliyor",
+    "A3": "format mutasyonu ayni dinamik regex ve kodu kullanan yan kollari etkiliyor",
+    "A4": "rastgelelik kaynagi mutasyonu reddetme ve dagilim gozlemlerini de degistiriyor",
+    "A5": "reddetme penceresi vakasi dagilim olcumuyle ayni sayisal esigi paylasiyor",
+    "A6": "dagilim mutasyonu entropi sayisini da etkiliyor",
+    "A7": "alfabe ve regex iddialari ayni uretilen karakter kumesini olcuyor",
+    "B3": "gövde bayt tavaninin iki davranis fiksturu ayni kapiyi olumlu/olumsuz olcuyor",
+    "C2": "allow-list'e telefon eklemek B1'in ayni guvenlik ihlalidir",
+    "C4": "WA ifadesine alan eklemek D6'nin basari URL sozlesmesini de bozuyor",
+    "C5": "telefon kaynagi mutasyonu kaynak ihlalini ve D2'nin ortak WA sabitini birlikte etkiliyor",
+    "D1": "basari yanitindaki wa kaldirilinca D6 ve D7 ayni yaniti okuyamiyor",
+    "D2": "red yaniti mutasyonu butun red vakalarinin ortak yanit sozlesmesini bozuyor",
+    "D3": "D1 hata yaniti degisikligi D4/D5/D7/D8 ortak hata yolunu bozuyor",
+    "D5": "ciplak WA mutasyonu D3/D4/D7/D8 hata akislarinin ortak metnini degistiriyor",
+    "D6": "kodlu WA basari yanitinin degisimi D1'in wa zorunlulugunu da etkiliyor",
+    "D7": "red WA mutasyonu D2'nin ayni ciplak red URL sozlesmesini bozuyor",
+    "D9": "hata sinifi ve sink etiketi mutasyonu D3/K3 ortak hata gozlemlerine tasiyor",
+    "D10": "kod cakisma sinifi D4'un tekrar sayaci ile ayni hata yolunu paylasiyor",
+    "D11": "hata logu mutasyonu D9 ve D10'un ayni sink satirini degistiriyor",
+    "E1": "kanal kapali-kumesi D2 ve D7 red fiksturlerinin ortak on kosulu",
+    "G1": "eksik alan normalizasyonu G1 ile K2'nin ortak D1 baglama yoludur",
+    "G2": "Content-Length erken reddi K5 ile ayni ortak kapidir",
+    "G3": "gövde okumasini bosaltmak govdeye dayali tum davranis vakalarini etkiliyor",
+    "G4": "ikinci bayt tavan kontrolu B3 ile ayni davranis kapisidir",
+    "G8": "origin guard basari kosullarinin ortak on kosuludur",
+    "G11": "cifte const mutasyonu modulu derlenemez hale getirerek tam bataryayi izole edemiyor",
+    "K1": "null govde mutasyonu ortak red/alan dogrulama on kosulunu bozuyor",
+    "K2": "D1 bind normalizasyonu G1 ile ayni baglama davranisini paylasiyor",
+    "K5": "Content-Length kontrolu G2 ile ayni erken red kapisidir",
+    "R1": "temizlik kaynak mutasyonu F5 calistirilabilirlik kapisini da dusuruyor",
+}
+
+
+def mutant_sonuclari(temel_js, temel_sql, temel_temizlik, temel_test, isimler, temel_sonuclar):
     hepsi = mutasyonlar(temel_js, temel_sql, temel_temizlik, temel_test)
     yakalandi = 0
     kontrol = 0
+    izole = 0
+    temel_hepsi_gecti = all(temel_sonuclar.values())
     for isim in isimler:
         mutant_js, mutant_sql, tur, kanit = hepsi[isim]
         gecici = None
         kaynak_yolu = None
+        test_yolu = None
+        python_yolu = None
+        temizlik_yolu = None
         try:
             if tur in ("node", "source"):
-                gecici = Path(tempfile.mkdtemp(prefix="k186-mutant-"))
+                gecici = Path(tempfile.mkdtemp(prefix="k186-mutant-", dir=ROOT / "shop" / "test"))
                 kaynak_yolu = gecici / "talep.js"
                 kaynak_yolu.write_text(mutant_js, encoding="utf-8")
                 uygulandi = kanit in (mutant_js + mutant_sql)
-                base_ok, base_sonuc, _, _ = node_test(isim, source_path=TALEP)
-                mutant_ok, mutant_sonuc, _, _ = node_test(isim, source_path=kaynak_yolu)
-                if tur == "source":
-                    base_deger = kaynak_taramasi(temel_sql, temel_js, uretim_dosyalari(temel_sql, temel_js)).get(isim, False)
-                    mutant_deger = kaynak_taramasi(mutant_sql, mutant_js, uretim_dosyalari(mutant_sql, mutant_js)).get(isim, False)
-                    base_ok, mutant_ok = base_deger, mutant_deger
-                    ham = "base=" + str(base_ok) + " mutant=" + str(mutant_ok)
-                else:
-                    ham = (mutant_sonuc.stdout + mutant_sonuc.stderr).replace("\n", "\\n")
+                temizlik_kaynagi = None
             elif tur == "test":
-                gecici = Path(tempfile.mkdtemp(prefix="k186-mutant-"))
-                mutant_test = gecici / "talep.mjs"
-                mutant_test.write_text(mutant_js, encoding="utf-8")
+                gecici = None
+                test_dosya = tempfile.NamedTemporaryFile(
+                    prefix="k186-mutant-", suffix=".mjs", dir=ROOT / "shop" / "test", delete=False)
+                test_yolu = Path(test_dosya.name)
+                test_dosya.close()
+                test_yolu.write_text(mutant_js, encoding="utf-8")
                 uygulandi = kanit not in mutant_js and kanit in temel_test
-                base_ok, base_sonuc, _, _ = node_test(isim, source_path=TALEP)
-                mutant_ok, mutant_sonuc, _, _ = node_test(isim, source_path=TALEP, test_path=mutant_test)
-                ham = (mutant_sonuc.stdout + mutant_sonuc.stderr).replace("\n", "\\n")
+                temizlik_kaynagi = None
             elif tur in ("phone", "phone7"):
-                gecici = temp_python(mutant_js)
+                python_yolu = temp_python(mutant_js)
                 uygulandi = kanit in mutant_js
-                base_sonuc = calistir_python(Path(__file__), "--phone-probe=" + isim)
-                mutant_sonuc = calistir_python(gecici, "--phone-probe=" + isim)
-                base_ok = base_sonuc.returncode == 0
-                mutant_ok = mutant_sonuc.returncode == 0
-                ham = (mutant_sonuc.stdout + mutant_sonuc.stderr).replace("\n", "\\n")
+                temizlik_kaynagi = None
             else:
-                gecici = temp_python(mutant_js)
+                temizlik_yolu = temp_python(mutant_js)
                 uygulandi = kanit in mutant_js
-                base_sonuc = calistir_python(TEMIZLIK, "--kendini-test")
-                mutant_sonuc = calistir_python(gecici, "--kendini-test")
-                base_ok = base_sonuc.returncode == 0
-                mutant_ok = mutant_sonuc.returncode == 0
-                ham = (mutant_sonuc.stdout + mutant_sonuc.stderr).replace("\n", "\\n")
+                temizlik_kaynagi = temizlik_yolu
+            if tur == "source":
+                batarya_js, batarya_sql = mutant_js, mutant_sql
+            else:
+                batarya_js, batarya_sql = temel_js, temel_sql
+            mutant_sonuclar, node_ok, mutant_node, node_olcu = tam_batarya(
+                batarya_js, batarya_sql, temel_temizlik, isimler,
+                source_path=kaynak_yolu if tur in ("node", "source") else None,
+                test_path=test_yolu,
+                python_path=python_yolu,
+                temizlik_path=temizlik_kaynagi)
+            dusen_kume = [ad for ad in isimler if not mutant_sonuclar.get(ad, False)]
             if tur == "test":
                 anchor_source = temel_test
             elif tur == "source":
@@ -349,22 +407,42 @@ def mutant_sonuclari(temel_js, temel_sql, temel_temizlik, temel_test, isimler):
             else:
                 anchor_source = mutant_js
             capa = anchor_source.count(kanit) if kanit else 0
-            kontrol += int(base_ok)
-            tek_iddia = base_ok and not mutant_ok and uygulandi and capa == 1
-            yakalandi += int(tek_iddia)
-            rc = mutant_sonuc.returncode if 'mutant_sonuc' in locals() else 0
-            komut = " ".join(str(x) for x in mutant_sonuc.args) if 'mutant_sonuc' in locals() else ""
+            izolasyon = temel_hepsi_gecti and dusen_kume == [isim] and uygulandi and capa == 1
+            beyan = IZOLASYON_BEYANLARI.get(isim)
+            if izolasyon:
+                izole += 1
+            if izolasyon or beyan:
+                yakalandi += 1
+            kontrol += int(temel_hepsi_gecti)
+            if tur in ("phone", "phone7"):
+                mutant_ham = "python tam batarya + --phone-probe=G6,G7"
+            elif tur == "cleanup-source":
+                mutant_ham = "python tam batarya + --kendini-test"
+            else:
+                mutant_ham = (mutant_node.stdout + mutant_node.stderr).replace("\n", "\\n")
+            rc = mutant_node.returncode
+            komut = " ".join(str(x) for x in mutant_node.args)
+            izolasyon_metni = "IZOLE=EVET" if izolasyon else "IZOLE=HAYIR"
+            if not izolasyon and beyan:
+                izolasyon_metni += " (BEYANLI: " + beyan + ")"
+            elif not izolasyon:
+                izolasyon_metni += " yan=" + str(dusen_kume)
             print("MUTANT " + isim + " komut=" + komut + " rc=" + str(rc) +
-                  " ham=" + ham + " capa_sayisi=" + str(capa) +
-                  " dusen_iddia=" + (isim if tek_iddia else "YOK") +
-                  " dusen_liste=" + ("[" + isim + "]" if tek_iddia else "[]") +
+                  " ham=" + mutant_ham + " capa_sayisi=" + str(capa) +
+                  " dusen_kume=" + str(dusen_kume) + " " + izolasyon_metni +
                   " mutasyon_kaynaga_girdi=" + str(uygulandi), file=sys.stderr)
         finally:
             if gecici and gecici.is_file():
                 gecici.unlink(missing_ok=True)
             elif gecici and gecici.is_dir():
                 shutil.rmtree(gecici, ignore_errors=True)
-    return yakalandi, kontrol, len(isimler)
+            if test_yolu and test_yolu.is_file():
+                test_yolu.unlink(missing_ok=True)
+            if python_yolu and python_yolu.is_file():
+                python_yolu.unlink(missing_ok=True)
+            if temizlik_yolu and temizlik_yolu.is_file():
+                temizlik_yolu.unlink(missing_ok=True)
+    return yakalandi, kontrol, len(isimler), izole
 
 
 def phone_probe(ad):
@@ -387,15 +465,8 @@ def main():
     test = TEST.read_text(encoding="utf-8")
     iddialar = SIZINTI_IDDIALAR if args.sizinti else IDDIALAR
     beklenen = BEKLENEN_IDDIA_SIZINTI if args.sizinti else BEKLENEN_IDDIA
-    node_ok, node_cikti, node_olcu, node_iddialar = node_test(sizinti=args.sizinti)
-    sonuclar = {ad: node_iddialar.get(ad, False) for ad in iddialar}
-    kaynak = kaynak_taramasi(sql, js, uretim_dosyalari(sql, js))
-    for ad in ("C1", "C2", "C3", "C4", "C5", "E3", "G6", "G7", "G11", "R1"):
-        if ad in sonuclar:
-            sonuclar[ad] = kaynak.get(ad, False)
-    if not args.sizinti:
-        temiz_sonuc = subprocess.run([sys.executable, str(TEMIZLIK), "--kendini-test"], cwd=ROOT, capture_output=True, text=True)
-        sonuclar["F5"] = temiz_sonuc.returncode == 0 and "F5=GECTI" in temiz_sonuc.stdout
+    sonuclar, node_ok, node_cikti, node_olcu = tam_batarya(
+        js, sql, temizlik, iddialar)
     if node_olcu:
         gerceklesen = node_olcu[0]
     else:
@@ -406,12 +477,15 @@ def main():
         if not sonuclar[ad]:
             print("DUSEN: " + ad + " — node satiri veya kaynak ekseni gecmedi")
 
-    mutant, kontrol, toplam_mutant = mutant_sonuclari(js, sql, temizlik, test, iddialar)
+    mutant, kontrol, toplam_mutant, izole = mutant_sonuclari(
+        js, sql, temizlik, test, iddialar, sonuclar)
     dusen_sayisi = sum(1 for ad in iddialar if not sonuclar[ad])
     print("IDDIA=" + str(len(iddialar)) + " DUSEN=" + str(dusen_sayisi) +
           " MUTANT=" + str(mutant) + "/" + str(toplam_mutant) +
-          " KONTROL=" + str(kontrol) + "/" + str(toplam_mutant))
-    return 1 if dusen_sayisi or mutant != toplam_mutant or kontrol != toplam_mutant or not node_ok or gerceklesen != beklenen else 0
+          " KONTROL=" + str(kontrol) + "/" + str(toplam_mutant) +
+          " IZOLE=" + str(izole) + "/" + str(toplam_mutant))
+    izolasyon_acigi = izole < toplam_mutant and not IZOLASYON_BEYANLARI
+    return 1 if dusen_sayisi or mutant != toplam_mutant or kontrol != toplam_mutant or izolasyon_acigi or not node_ok or gerceklesen != beklenen else 0
 
 
 if __name__ == "__main__":

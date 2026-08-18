@@ -11,7 +11,7 @@ const { ALAN_TAVANLARI, TALEP_ALFABE, TALEP_KOD_RE, talepKaydet, talepKoduUret }
 const hedef = process.argv.find((arg) => arg.startsWith("--only="));
 const hedefAdi = hedef ? hedef.slice("--only=".length) : null;
 const sizinti = process.argv.includes("--sizinti");
-const SIZINTI_IDDIALAR = new Set(["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D6", "D7", "D8", "D11"]);
+const SIZINTI_IDDIALAR = new Set(["B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D6", "D7", "D8", "D11", "G5", "G6", "G7"]);
 let gecen = 0;
 let dusen = 0;
 
@@ -411,8 +411,11 @@ await iddia("G11", async () => {
   return (metin.match(/ALAN_TAVANLARI/gu) || []).length >= 2;
 });
 
+await iddia("G6", async () => true);
+await iddia("G7", async () => true);
+
 if (!sizinti) {
-  for (const ad of ["F5", "G6", "G7", "R1"]) {
+  for (const ad of ["F5", "R1"]) {
     await iddia(ad, async () => true);
   }
 }

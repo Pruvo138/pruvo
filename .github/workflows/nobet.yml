@@ -366,6 +366,8 @@ jobs:
       - name: "Talep hatti davranis testi (CI kapsam envanteri)"
         run: node shop/test/talep.mjs
       - name: "Talep hatti TAM batarya + mutasyon (SERIT B)"
+        # Tam 50'li olcum burada nobet olarak kalir; bloklayici 17'li sizinti kolu
+        # deploy.yml/serit-a3'tedir. G5-G7 iki kolda da ayni test kaynagindan kosar.
         run: python3 tools/talep-hatti-test.py
       - name: "Talep temizlik surucusu: kendini test (iki yonlu, SERIT B)"
         run: python3 tools/talep-temizlik.py --kendini-test
