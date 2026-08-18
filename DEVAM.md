@@ -10,19 +10,19 @@
 - 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
   ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
   olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
-- 🔴 **T3/T4 KANITI GELDI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0
-  ONARIM=0 KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, HICBIR SEY
-  onarmiyor; 12 kalemin 10'u MIMAR'a yigiliyor. T3 tam bu sayiyi hedefliyor.
-- 🔴 **③f (18 Agu — UC TURUN CELISKISI COZULDU; kok neden SABIT MUTLAK KOK):**
-  `sahiplik-kapisi.py:47` `CANON="/Users/okan/dev/pruvo"`; `--repo` verilmezse **hangi
-  worktree'den cagrilirsa cagrilsin ANA CHECKOUT'u olcer**. Mimarin git objesinden olcumu:
-  dal TSV'si 186 satir (main 43) → dosya YERINDE. ③c (`HARITADA=28`) ve ③e (`28`) main'in
-  TSV'sini okumus; ③d (`171/171`) `--repo` ile dogru agaci okumus. Uc tur da dogru kostu,
-  KAPI yanlis yere bakti. 🔴 CI ETKISI: ③d kapiyi `nobet.yml` SERIT B'ye BAGLADI ama
-  kosucuda `/Users/okan/...` YOK → merge edilirse serit her kosumda kirmizi/coker.
-  ⚠️ ③e'nin ikinci kirmizisi (`R_SAHIPLIK grep -c=3`) BENIM kabul jetonumun hatasi: muafiyet
-  gercekten kalkmis (tanim yorumda, `IZIN_LISTESI` girdisi silinmis), 3 isabet yorum metninde
-  — jeton adi sayan kabul davranis olcmez. Hukum `tools/paket-3f-kapi-agac-bagimsizligi.md`.
+- 🔴 **T3/T4 KANITI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0 ONARIM=0
+  KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, onarmiyor; 10'u MIMAR'da.
+- 🟡 **③ MAIN'E GIRDI (`3bec617d`), SON KABUL UCUSTA.** Mimar git objesinden bagimsiz teyit:
+  `main:sahiplik-haritasi.tsv` 186 satir (once 43) · `IZIN_LISTESI` R_SAHIPLIK girdisi **0** ·
+  `^CANON` sabiti **0** · worktree 2'ye dondu, uc `kral/paket3*` dali silindi.
+  H1 kaniti: ayni kapi `--repo`SUZ iki konumda FARKLI sayi verdi (worktree `EVREN=171
+  HARITADA=171 EKSIK=0 rc=0` · ana `EVREN=29 HARITADA=28 rc=1`).
+  🔴 **ASIL KABUL HENUZ OLCULMEDI:** SERIT B kosumu `32133355099` (`3bec617d`) `pending` —
+  kapi ilk kez GERCEK kosucuda, `/Users/okan/...` YOKKEN kosacak. Beklenen: cokme YOK,
+  `CRON_EVRENI=OLCULEMEDI`, `tools/` duzlemi olculur. Kosum bitene kadar ③ KAPANMAZ.
+  🔎 SINIF DERSI: sabit hedef (`CANON`) yuzunden DOGRU worktree'de kosmak YETMIYORDU →
+  [[kapi-sabit-kok-yanlis-agaci-olcer]]. Iki sahte kirmizi da MIMARIN spec hatasiydi (③c
+  mutlak yollu kabul komutu · ③e jeton adi sayan kabul). Paketler `3d`/`3e`/`3f`.
 - ✅ **T2 KAPANDI (18 Agu) — BaBa sayaci 0/6 → 1/6.** `CAKISMA_KANITI=EVET MUTANT=3/3 RC=0`;
   mimar ham logu KENDI grep'ledi (2/4/3, onceki uydurmada 0/0/0). Tam metin ARSIVDE.
 - 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):**
