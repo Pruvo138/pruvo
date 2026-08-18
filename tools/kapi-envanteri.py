@@ -63,6 +63,8 @@ def _karar_olc(script, tool_input, tool_name):
     cikti = (sonuc.stdout or "").strip()
     stderr = (sonuc.stderr or "").splitlines()
     stderr_ilk = stderr[0][:120] if stderr else ""
+    if not cikti and sonuc.returncode == 0:
+        return "allow-SESSIZ", sonuc.returncode, stderr_ilk
     if sonuc.returncode != 0 or not cikti:
         return "OLCULEMEDI", sonuc.returncode, stderr_ilk
     try:
@@ -85,7 +87,7 @@ def _nobet_karar(script, params):
     red, red_rc, red_stderr = _karar_olc(script, params["red"], tn)
     kabul, kabul_rc, kabul_stderr = _karar_olc(script, params["kabul"], tn)
     red_ok = (red == "deny")
-    kabul_ok = (kabul == "allow")
+    kabul_ok = (kabul in ("allow", "allow-SESSIZ"))
     ayrinti = ("reddetmeli=%s(rc=%d) kabuletmeli=%s(rc=%d) "
                "stderr=%s | stderr=%s" % (
                    red, red_rc, kabul, kabul_rc,

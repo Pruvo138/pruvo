@@ -45,6 +45,8 @@ def fikstur_yaz(kok):
         "V1": 'import json; print(json.dumps({"hookSpecificOutput": {"permissionDecision": "deny"}}))',
         "V2": 'import json; print(json.dumps({"hookSpecificOutput": {"permissionDecision": "allow"}}))',
         "V3": 'pass',
+        "V3b": 'import sys; sys.exit(1)',
+        "V6": 'pass',
         "V4": 'import sys; sys.stderr.write("K141-V4-STDERR\\n"); sys.exit(1)',
         "V5": 'print("K141-bozuk-json")',
         "V4RC": 'import json, sys; print(json.dumps({"hookSpecificOutput": {"permissionDecision": "allow"}})); sys.exit(1)',
@@ -180,7 +182,7 @@ def main():
         komut_dusuk = ("komut-stili-kapisi" in m1_out
                        and any(s.strip().startswith("komut-stili-kapisi") and "DUSUK" in s
                                for s in m1_out.splitlines()))
-        icra_gecer = any(s.strip().startswith("mimar-icra-kapisi") and "DUSUK" in s
+        icra_gecer = any(s.strip().startswith("mimar-icra-kapisi") and "GECER" in s
                          for s in m1_out.splitlines())
         kontroller.append((
             "KIRMIZI-MUTASYON (settings kablo sok): exit 1",
@@ -217,7 +219,8 @@ def main():
         beklenen = {
             "V1": "deny",
             "V2": "allow",
-            "V3": "OLCULEMEDI",
+            "V3": "allow-SESSIZ",
+            "V3b": "OLCULEMEDI",
             "V4": "OLCULEMEDI",
             "V5": "OLCULEMEDI",
         }
@@ -228,14 +231,21 @@ def main():
             vakalar.append((ad, gecti, "jeton=%s rc=%s stderr=%s" % olcum))
             kontroller.append(("%s karar vakasi" % ad, gecti, vakalar[-1][2]))
 
+        v6_red_ok, v6_kabul_ok, v6_ayrinti = probe._nobet_karar(
+            fikstur["V6"], {"red": {}, "kabul": {}, "tool_name": "Bash"})
+        v6_gecti = (not v6_red_ok) and v6_kabul_ok
+        vakalar.append(("V6", v6_gecti, "red-ekseni gecmedi=%s ayrinti=%s" % (
+            not v6_red_ok, v6_ayrinti)))
+        kontroller.append(("V6 red ekseni sessiz izin red degil", v6_gecti, vakalar[-1][2]))
+
         # --- 6) K141 mutant bataryasi: her mutant tek davranisi oldurur ---
         m1 = mutant_kopya(
             kok, "mutant-m1",
-            'if sonuc.returncode != 0 or not cikti:\n        return "OLCULEMEDI", sonuc.returncode, stderr_ilk',
-            'if not cikti:\n        return "allow", sonuc.returncode, stderr_ilk',
+            'if not cikti and sonuc.returncode == 0:\n        return "allow-SESSIZ", sonuc.returncode, stderr_ilk',
+            'if False and not cikti and sonuc.returncode == 0:\n        return "allow-SESSIZ", sonuc.returncode, stderr_ilk',
         )
         m1_probe = probe_yukle(m1)
-        m1_red = tek_karar(m1_probe, fikstur["V3"])[0] == "allow"
+        m1_red = tek_karar(m1_probe, fikstur["V3"])[0] == "OLCULEMEDI"
         mutantlar.append(("M1", m1_red, "V3 dusuruldu=%s" % m1_red))
 
         m2 = mutant_kopya(
@@ -253,11 +263,40 @@ def main():
             'if False and eksik_rapor:\n',
         )
         m3_sonuc = subprocess.run(
-            [sys.executable, m3, "--repo", MAIN],
+            [sys.executable, m3, "--repo", copy_m1],
             capture_output=True, text=True,
         )
-        m3_red = ana_rc != 0 and m3_sonuc.returncode == 0
-        mutantlar.append(("M3", m3_red, "OLCULEMEDI rc0 mutant=%s" % m3_red))
+        m3_red = m1_rc == 1 and m3_sonuc.returncode == 0
+        mutantlar.append(("M3", m3_red, "DUSUK raporu rc0 mutant=%s" % m3_red))
+
+        m4 = mutant_kopya(
+            kok, "mutant-m4",
+            'red_ok = (red == "deny")',
+            'red_ok = (red in ("deny", "allow-SESSIZ"))',
+        )
+        m4_probe = probe_yukle(m4)
+        m4_red = m4_probe._nobet_karar(
+            fikstur["V6"], {"red": {}, "kabul": {}, "tool_name": "Bash"})[0]
+        mutantlar.append(("M4", m4_red, "V6 dusuruldu=%s" % m4_red))
+
+        m5 = mutant_kopya(
+            kok, "mutant-m5",
+            'if not cikti and sonuc.returncode == 0:',
+            'if not cikti:',
+        )
+        m5_probe = probe_yukle(m5)
+        m5_red = tek_karar(m5_probe, fikstur["V3b"])[0] == "allow-SESSIZ"
+        mutantlar.append(("M5", m5_red, "V3b dusuruldu=%s" % m5_red))
+
+        m6 = mutant_kopya(
+            kok, "mutant-m6",
+            'kabul_ok = (kabul in ("allow", "allow-SESSIZ"))',
+            'kabul_ok = (kabul == "allow")',
+        )
+        m6_probe = probe_yukle(m6)
+        m6_red = not m6_probe._nobet_karar(
+            fikstur["V3"], {"red": {}, "kabul": {}, "tool_name": "Bash"})[1]
+        mutantlar.append(("M6", m6_red, "V3 dusuruldu=%s" % m6_red))
         for ad, gecti, ayrinti in mutantlar:
             kontroller.append((ad + " mutant", gecti, ayrinti))
 
@@ -291,14 +330,16 @@ def main():
     if basarisiz:
         print("SONUC: %d/%d kontrol gecti — %d KIRMIZI." % (
             len(kontroller) - basarisiz, len(kontroller), basarisiz))
-        print("VAKA=%d DUSEN=%d MUTANT=%d/3 KONTROL=%d/2" % (
+        print("VAKA=%d DUSEN=%d MUTANT=%d/%d KONTROL=%d/2" % (
             len(vakalar), sum(not x[1] for x in vakalar),
-            sum(x[1] for x in mutantlar), sum(x[1] for x in kontroller_k141)))
+            sum(x[1] for x in mutantlar), len(mutantlar),
+            sum(x[1] for x in kontroller_k141)))
         return 1
     print("SONUC: %d/%d kontrol GECTI." % (len(kontroller), len(kontroller)))
-    print("VAKA=%d DUSEN=%d MUTANT=%d/3 KONTROL=%d/2" % (
+    print("VAKA=%d DUSEN=%d MUTANT=%d/%d KONTROL=%d/2" % (
         len(vakalar), sum(not x[1] for x in vakalar),
-        sum(x[1] for x in mutantlar), sum(x[1] for x in kontroller_k141)))
+        sum(x[1] for x in mutantlar), len(mutantlar),
+        sum(x[1] for x in kontroller_k141)))
     return 0
 
 
