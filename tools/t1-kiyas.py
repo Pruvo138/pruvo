@@ -142,18 +142,26 @@ def _beklenen_dakika(iso):
     return _damka_dakika(_iso_oku(iso))
 
 
-def kova_hesapla(beklenen, kayitlar, mutasyon=None):
+def kova_hesapla(beklenen, kayitlar, mutasyon=None, simdi=None):
     """Bir hat icin kova sayilarini ve toplamlari hesapla.
 
     beklenen: ISO damga listesi (takvimden)
     kayitlar: yeni hat icin {dakika_dt: kayit}; eski hat icin [kayit]
-    mutasyon: None, 'm1', 'm2'
+    mutasyon: None, 'm1', 'm2', 'm3', 'm4', 'm5', 'm6'
+    simdi: datetime UTC (None ise aracin kendi UTC saati)
+
+    Dort kova:
+      OLCULDU     - kayit VAR, TETIK != OLCULEMEDI
+      OLCULEMEDI  - kayit VAR, TETIK == OLCULEMEDI
+      KOSMADI     - kayit YOK ve beklenen damga <= simdi (vakti geldi, kayit yok)
+      BEKLEMEDE   - kayit YOK ve beklenen damga > simdi (vakti gelmedi)
 
     Donus: {
         "kosan": int,
         "olculdu": int,
         "olculemedi": int,
         "kosmadi": int,
+        "beklemede": int,
         "kirmizi": int,
         "llm": int,
         "tetiklenen": int,
@@ -182,10 +190,14 @@ def kova_hesapla(beklenen, kayitlar, mutasyon=None):
     else:
         kayit_dict = kayitlar
 
+    if simdi is None:
+        simdi = datetime.now(timezone.utc)
+
     kosan = 0
     olculdu = 0
     olculemedi = 0
     kosmadi = 0
+    beklemede = 0
     kirmizi = 0
     llm = 0
     tetiklenen = 0
@@ -194,7 +206,11 @@ def kova_hesapla(beklenen, kayitlar, mutasyon=None):
     for iso, dak in beklenen_dakikalar.items():
         kayit = kayit_dict.get(dak)
         if kayit is None:
-            kova = "KOSMADI"
+            # Kayit yok. Vakte gore KOSMADI mi BEKLEMEDE mi?
+            if dak <= simdi:
+                kova = "KOSMADI"
+            else:
+                kova = "BEKLEMEDE"
         elif isinstance(kayit, dict) and "tetik" in kayit:
             if kayit["tetik"] == "OLCULEMEDI":
                 kova = "OLCULEMEDI"
@@ -208,7 +224,7 @@ def kova_hesapla(beklenen, kayitlar, mutasyon=None):
         if mutasyon == "m1" and kova == "OLCULEMEDI":
             kova = "OLCULDU"
             # OLCULEMEDI satirlarinin kendi degerleri 0 kabul edilir,
-            # dolayisiyla toplamlara katki vermez.
+            # dolayisiyla toplamlara katgi vermez.
             if isinstance(kayit, dict):
                 kayit = dict(kayit)
                 kayit["llm"] = 0
@@ -216,9 +232,18 @@ def kova_hesapla(beklenen, kayitlar, mutasyon=None):
         if mutasyon == "m2" and kova == "KOSMADI":
             kova = "OLCULDU"
             kayit = {"rc": 0, "llm": 0, "kirmizi": 0}
+        # M5: BEKLEMEDE turlarini yine KOSMADI say (ayrim kaldirilir)
+        if mutasyon == "m5" and kova == "BEKLEMEDE":
+            kova = "KOSMADI"
+        # M6: BEKLEMEDE turlarini OLCULDU kovasina kat
+        if mutasyon == "m6" and kova == "BEKLEMEDE":
+            kova = "OLCULDU"
+            kayit = {"rc": 0, "llm": 0, "kirmizi": 0}
 
         if kova == "KOSMADI":
             kosmadi += 1
+        elif kova == "BEKLEMEDE":
+            beklemede += 1
         elif kova == "OLCULEMEDI":
             kosan += 1
             olculemedi += 1
@@ -251,6 +276,7 @@ def kova_hesapla(beklenen, kayitlar, mutasyon=None):
         "olculdu": olculdu,
         "olculemedi": olculemedi,
         "kosmadi": kosmadi,
+        "beklemede": beklemede,
         "kirmizi": kirmizi,
         "llm": llm,
         "tetiklenen": tetiklenen,
@@ -274,9 +300,10 @@ def tablo_satir(eski, yeni):
     ]
 
 
-def calistir(kok, mutasyon=None):
+def calistir(kok, mutasyon=None, simdi=None):
     """Ana islem: loglari oku, kovala, tablo ve son satir uret.
 
+    simdi: datetime UTC veya None (None ise aracin kendi UTC saati)
     Donus: (rc, cikti_dict, satirlar)
     """
     pencere_yol = os.path.join(kok, PENCERE_DOSYASI)
@@ -291,7 +318,8 @@ def calistir(kok, mutasyon=None):
     baslangic = pencere["baslangic"]
     bitis = pencere["bitis"]
 
-    simdi = datetime.now(timezone.utc)
+    if simdi is None:
+        simdi = datetime.now(timezone.utc)
     durum = "KAPANDI" if simdi > _iso_oku(bitis) else "ACIK"
 
     yeni_beklenen = beklenen_turlar(baslangic, bitis, YENI_DAKIKA)
@@ -300,8 +328,8 @@ def calistir(kok, mutasyon=None):
     yeni_oku = yeni_hat_oku(yeni_yol)
     eski_oku = eski_hat_oku(eski_yol)
 
-    yeni_sonuc = kova_hesapla(yeni_beklenen, yeni_oku, mutasyon=mutasyon)
-    eski_sonuc = kova_hesapla(eski_beklenen, eski_oku, mutasyon=mutasyon)
+    yeni_sonuc = kova_hesapla(yeni_beklenen, yeni_oku, mutasyon=mutasyon, simdi=simdi)
+    eski_sonuc = kova_hesapla(eski_beklenen, eski_oku, mutasyon=mutasyon, simdi=simdi)
 
     yeni_sonuc["beklenen"] = len(yeni_beklenen)
     eski_sonuc["beklenen"] = len(eski_beklenen)
@@ -331,10 +359,20 @@ def calistir(kok, mutasyon=None):
 
     # Yeni log yoksa tum yeni eksenler OLCULEMEDI
     if not os.path.exists(yeni_yol):
-        for k in ("kosan", "olculdu", "olculemedi", "kosmadi", "kirmizi", "llm", "tetiklenen"):
+        for k in ("kosan", "olculdu", "olculemedi", "kosmadi", "beklemede", "kirmizi", "llm", "tetiklenen"):
             yeni_sonuc[k] = None
         fiilen = "YOK"
         rc = 1
+
+    # KAPANDI iken BEKLEMEDE > 0 ise ic tutarsizlik. rc != 0, BEKLEMEDE_TUR
+    # OLCULEMEDI_IC_TUTARSIZLIK olarak yazilir (sessiz gecme YOK).
+    beklemede_tur_yaz = yeni_sonuc.get("beklemede")
+    beklemede_ic_tutarsiz = False
+    if durum == "KAPANDI":
+        if (yeni_sonuc.get("beklemede") or 0) > 0 or (eski_sonuc.get("beklemede") or 0) > 0:
+            beklemede_tur_yaz = "OLCULEMEDI"
+            beklemede_ic_tutarsiz = True
+            rc = 1
 
     baslik = "ARA TABLO (pencere ACIK)" if durum == "ACIK" else "NIHAI KIYAS TABLOSU"
 
@@ -352,12 +390,18 @@ def calistir(kok, mutasyon=None):
         f"OLCULDU_TUR={_yaz(yeni_sonuc.get('olculdu'))} "
         f"OLCULEMEDI_TUR={_yaz(yeni_sonuc.get('olculemedi'))} "
         f"KOSMADI_TUR={_yaz(yeni_sonuc.get('kosmadi'))} "
+        f"BEKLEMEDE_TUR={_yaz(beklemede_tur_yaz)} "
         f"YENI_KIRMIZI={_yaz(yeni_kirmizi_toplam)} "
         f"LLM_TURU_YENI={_yaz(yeni_llm_toplam)} "
         f"LLM_TURU_ESKI={_yaz(eski_sonuc.get('llm'))} "
         f"DURUM={durum}"
     )
     satirlar.append(son)
+    if beklemede_ic_tutarsiz:
+        satirlar.append(
+            f"SEBEP=KAPANDI_DURUM_BEKLEMEDE_TUR={yeni_sonuc.get('beklemede')} "
+            f"(pencere kapali ama vakti gelmemis tur var; ic tutarsizlik)"
+        )
 
     cikti = {
         "pencere": pencere,
@@ -367,6 +411,7 @@ def calistir(kok, mutasyon=None):
         "eski": eski_sonuc,
         "yeni_kirmizi_toplam": yeni_kirmizi_toplam,
         "yeni_llm_toplam": yeni_llm_toplam,
+        "simdi": simdi,
     }
     return rc, cikti, satirlar
 
@@ -446,7 +491,11 @@ def _fikstur_olustur(tmp):
 
 
 def _beklenen_sonuc():
-    """Fiksture gore beklenen normal (mutasyonsuz) sonuc."""
+    """Fiksture gore beklenen normal (mutasyonsuz) sonuc.
+
+    Base fikstur pencere 08:48-13:48, simdi enjekte 14:00 (KAPANDI).
+    Tum beklenen turlar vakti gelmis; kayit yoksa KOSMADI, BEKLEMEDE=0.
+    """
     return {
         "yeni": {
             "beklenen": 5,
@@ -454,6 +503,7 @@ def _beklenen_sonuc():
             "olculdu": 2,
             "olculemedi": 2,
             "kosmadi": 1,
+            "beklemede": 0,
             "kirmizi": 5,
             "llm": 2,
             "tetiklenen": 2,
@@ -465,6 +515,7 @@ def _beklenen_sonuc():
             "olculdu": 4,
             "olculemedi": 0,
             "kosmadi": 1,
+            "beklemede": 0,
             "kirmizi": 2,
             "llm": 2,
             "tetiklenen": 2,
@@ -473,6 +524,45 @@ def _beklenen_sonuc():
         "yeni_kirmizi_toplam": 5,
         "yeni_llm_toplam": 2,
         "durum": "KAPANDI",
+    }
+
+
+def _beklenen_mid_sonuc():
+    """Ayni fikstur, simdi enjekte 11:00 (pencere ortasinda, ACIK).
+
+    Yeni: 09:23 OLCULDU, 10:23 OLCULEMEDI, 11:23 OLCULEMEDI, 12:23 OLCULDU,
+          13:23 kayit yok + vakti gelmemis -> BEKLEMEDE.
+    Eski: 09:07 OLCULDU, 10:07 OLCULDU, 11:07 kayit yok + vakti gelmis -> KOSMADI,
+          12:07 OLCULDU, 13:07 OLCULDU.
+    """
+    return {
+        "yeni": {
+            "beklenen": 5,
+            "kosan": 4,
+            "olculdu": 2,
+            "olculemedi": 2,
+            "kosmadi": 0,
+            "beklemede": 1,
+            "kirmizi": 5,
+            "llm": 2,
+            "tetiklenen": 2,
+            "ilk_olculen": "2026-08-18T09:23:00Z",
+        },
+        "eski": {
+            "beklenen": 5,
+            "kosan": 4,
+            "olculdu": 4,
+            "olculemedi": 0,
+            "kosmadi": 1,
+            "beklemede": 0,
+            "kirmizi": 2,
+            "llm": 2,
+            "tetiklenen": 2,
+        },
+        "fiilen_baslangic": "2026-08-18T09:23:00Z",
+        "yeni_kirmizi_toplam": 5,
+        "yeni_llm_toplam": 2,
+        "durum": "ACIK",
     }
 
 
@@ -485,10 +575,91 @@ def _karsilastir(beklenen, gercek):
     for hat in ("yeni", "eski"):
         b = beklenen.get(hat, {})
         g = gercek.get(hat, {})
-        for k in ("beklenen", "kosan", "olculdu", "olculemedi", "kosmadi", "kirmizi", "llm", "tetiklenen"):
+        for k in ("beklenen", "kosan", "olculdu", "olculemedi", "kosmadi", "beklemede", "kirmizi", "llm", "tetiklenen"):
             if b.get(k) != g.get(k):
                 farklar.append(f"{hat}.{k}: beklenen={b.get(k)} gercek={g.get(k)}")
     return "; ".join(farklar) if farklar else None
+
+
+def _rastgele_fikstur_olustur(tmp, seed):
+    """K4 icin rastgele fikstur uret. Returns simdi datetime."""
+    import random
+    rng = random.Random(seed)
+
+    # Pencere araliklari (UTC)
+    gun = 17 + rng.randint(0, 5)
+    saat = rng.randint(0, 23)
+    dakika = rng.randint(0, 59)
+    bas = datetime(2026, 8, gun, saat, dakika, 0, tzinfo=timezone.utc)
+    pencere_saat = rng.randint(2, 6)
+    bitis = bas + timedelta(hours=pencere_saat)
+
+    # Simdi stratejisi
+    strateji = rng.choice(["onunde", "sinda", "arkasinda", "tam_bitiste"])
+    if strateji == "onunde":
+        simdi = bas - timedelta(hours=rng.randint(1, 3))
+    elif strateji == "sinda":
+        dakika_ic = rng.randint(0, max(1, pencere_saat * 60 - 1))
+        simdi = bas + timedelta(minutes=dakika_ic)
+    elif strateji == "arkasinda":
+        simdi = bitis + timedelta(hours=rng.randint(1, 3))
+    else:
+        simdi = bitis
+
+    # Yeni hat log
+    yeni_beklenen = beklenen_turlar(_iso_yaz(bas), _iso_yaz(bitis), YENI_DAKIKA)
+    eski_beklenen = beklenen_turlar(_iso_yaz(bas), _iso_yaz(bitis), ESKI_DAKIKA)
+
+    yeni_satirlar = []
+    for iso in yeni_beklenen:
+        if rng.random() < 0.6:
+            secim = rng.random()
+            if secim < 0.35:
+                tetik = "OLCULEMEDI"
+                llm = 0
+                kirmizi = 0
+                rc = 2
+            else:
+                tetik = rng.choice(["CI_KIRMIZI", "DEFTER_DAGITIM", "CI_KIRMIZI"])
+                llm = rng.randint(1, 3)
+                kirmizi = rng.randint(1, 5)
+                rc = 1
+            yeni_satirlar.append(
+                f"GOZCU {iso} TETIK={tetik} LLM_TURU={llm} YENI_KIRMIZI={kirmizi} DAGITILABILIR=1 rc={rc}\n"
+            )
+
+    # Eski hat log
+    eski_satirlar = []
+    for iso in eski_beklenen:
+        if rng.random() < 0.6:
+            rc = rng.choice([0, 1])
+            uyari = 1 if rc == 1 else 0
+            motor = rng.random() < 0.5
+            motor_str = "kimi" if motor else "minimax-m3"
+            eski_satirlar.append(f"=== {iso} BASLANGIC ===\n")
+            if motor:
+                eski_satirlar.append(f"MOTOR={motor_str}\n")
+            eski_satirlar.append(f"HUKUM={'ONARIMSIZ_TUR' if rc else 'TEMIZ'} rc={rc}\n")
+            eski_satirlar.append(f"=== {iso} BITIS rc={rc} ===\n")
+            if uyari:
+                eski_satirlar.append("UYARI: Tur KIRMIZI\n")
+
+    pencere = {
+        "baslangic": _iso_yaz(bas),
+        "bitis": _iso_yaz(bitis),
+        "sure_saat": pencere_saat,
+        "eski_cron": "ci-nobeti",
+        "yeni_hat": "gozcu.py --tur",
+        "gerekce": f"rastgele test seed={seed}",
+    }
+    with open(os.path.join(tmp, PENCERE_DOSYASI), "w", encoding="utf-8") as f:
+        json.dump(pencere, f)
+    with open(os.path.join(tmp, YENI_LOG), "w", encoding="utf-8") as f:
+        f.writelines(yeni_satirlar)
+    with open(os.path.join(tmp, ESKI_LOG), "w", encoding="utf-8") as f:
+        f.writelines(eski_satirlar)
+
+    return simdi
 
 
 def kendini_test():
@@ -499,9 +670,14 @@ def kendini_test():
     try:
         _fikstur_olustur(tmp)
         beklenen = _beklenen_sonuc()
+        beklenen_mid = _beklenen_mid_sonuc()
 
-        def calistir_mut(m):
-            rc, cikti, _ = calistir(tmp, mutasyon=m)
+        # Simdi enjekte:
+        base_simdi = _iso_oku("2026-08-18T14:00:00Z")  # pencere kapali
+        mid_simdi = _iso_oku("2026-08-18T11:00:00Z")  # pencere ortasi
+
+        def calistir_mut(m, simdi=base_simdi):
+            rc, cikti, _ = calistir(tmp, mutasyon=m, simdi=simdi)
             return rc, cikti
 
         rc0, cikti0 = calistir_mut(None)
@@ -522,6 +698,7 @@ def kendini_test():
         hedef = c["yeni"]["olculemedi"] != beklenen["yeni"]["olculemedi"]
         yan = (
             c["yeni"]["kosmadi"] == beklenen["yeni"]["kosmadi"]
+            and c["yeni"]["beklemede"] == beklenen["yeni"]["beklemede"]
             and c["fiilen_baslangic"] == beklenen["fiilen_baslangic"]
             and c["yeni_kirmizi_toplam"] == beklenen["yeni_kirmizi_toplam"]
             and c["yeni_llm_toplam"] == beklenen["yeni_llm_toplam"]
@@ -533,6 +710,7 @@ def kendini_test():
         hedef = c["yeni"]["kosmadi"] != beklenen["yeni"]["kosmadi"]
         yan = (
             c["yeni"]["olculemedi"] == beklenen["yeni"]["olculemedi"]
+            and c["yeni"]["beklemede"] == beklenen["yeni"]["beklemede"]
             and c["fiilen_baslangic"] == beklenen["fiilen_baslangic"]
             and c["yeni_kirmizi_toplam"] == beklenen["yeni_kirmizi_toplam"]
             and c["yeni_llm_toplam"] == beklenen["yeni_llm_toplam"]
@@ -546,6 +724,7 @@ def kendini_test():
             c["yeni"]["olculdu"] == beklenen["yeni"]["olculdu"]
             and c["yeni"]["olculemedi"] == beklenen["yeni"]["olculemedi"]
             and c["yeni"]["kosmadi"] == beklenen["yeni"]["kosmadi"]
+            and c["yeni"]["beklemede"] == beklenen["yeni"]["beklemede"]
             and c["yeni_kirmizi_toplam"] == beklenen["yeni_kirmizi_toplam"]
             and c["yeni_llm_toplam"] == beklenen["yeni_llm_toplam"]
         )
@@ -561,9 +740,36 @@ def kendini_test():
             c["yeni"]["olculdu"] == beklenen["yeni"]["olculdu"]
             and c["yeni"]["olculemedi"] == beklenen["yeni"]["olculemedi"]
             and c["yeni"]["kosmadi"] == beklenen["yeni"]["kosmadi"]
+            and c["yeni"]["beklemede"] == beklenen["yeni"]["beklemede"]
             and c["fiilen_baslangic"] == beklenen["fiilen_baslangic"]
         )
         mutantlar.append(("M4", hedef, yan))
+
+        # M5: BEKLEMEDE -> KOSMADI (mid-window simdi; BEKLEMEDE > 0 beklenir)
+        # Base (mid): 1 beklemede; M5 sonrasi 0 beklemede + 1 ek KOSMADI.
+        # Yan eksen: OLCULDU/OLCULEMEDI/kirmizi/llm YESIL.
+        rc, c = calistir_mut("m5", simdi=mid_simdi)
+        hedef = c["yeni"]["beklemede"] != beklenen_mid["yeni"]["beklemede"]
+        yan = (
+            c["yeni"]["olculdu"] == beklenen_mid["yeni"]["olculdu"]
+            and c["yeni"]["olculemedi"] == beklenen_mid["yeni"]["olculemedi"]
+            and c["yeni_kirmizi_toplam"] == beklenen_mid["yeni_kirmizi_toplam"]
+            and c["yeni_llm_toplam"] == beklenen_mid["yeni_llm_toplam"]
+        )
+        mutantlar.append(("M5", hedef, yan))
+
+        # M6: BEKLEMEDE -> OLCULDU (mid-window simdi)
+        # Base (mid): 2 olculdu; M6 sonrasi 3 olculdu + 0 beklemede.
+        # Yan eksen: OLCULEMEDI/KOSMADI/kirmizi/llm YESIL.
+        rc, c = calistir_mut("m6", simdi=mid_simdi)
+        hedef = c["yeni"]["olculdu"] != beklenen_mid["yeni"]["olculdu"]
+        yan = (
+            c["yeni"]["olculemedi"] == beklenen_mid["yeni"]["olculemedi"]
+            and c["yeni"]["kosmadi"] == beklenen_mid["yeni"]["kosmadi"]
+            and c["yeni_kirmizi_toplam"] == beklenen_mid["yeni_kirmizi_toplam"]
+            and c["yeni_llm_toplam"] == beklenen_mid["yeni_llm_toplam"]
+        )
+        mutantlar.append(("M6", hedef, yan))
 
         # K1: Pencere disi satirlar sayaclari degistirmiyor (base fikstur zaten iceriyor)
         rc, c = calistir_mut(None)
@@ -574,11 +780,38 @@ def kendini_test():
         k2 = c["eski"]["kosan"] == beklenen["eski"]["kosan"]
         kontroller.append(("K2", k2))
 
+        # K3: DURUM=KAPANDI iken BEKLEMEDE=0 (kapanista ayrim dogru colluyor)
+        k3 = (
+            cikti0["durum"] == "KAPANDI"
+            and cikti0["yeni"]["beklemede"] == 0
+            and cikti0["eski"]["beklemede"] == 0
+        )
+        kontroller.append(("K3", k3))
+
+        # K4: Dort kova toplami BEKLENEN_TUR'a esit (en az 3 rastgele fiksturde)
+        k4_ok = 0
+        k4_toplam = 0
+        for seed in (101, 202, 303):
+            simdi_r = _rastgele_fikstur_olustur(tmp, seed)
+            rc_r, c_r, _ = calistir(tmp, mutasyon=None, simdi=simdi_r)
+            for hat in ("yeni", "eski"):
+                k4_toplam += 1
+                toplam = (
+                    c_r[hat]["olculdu"]
+                    + c_r[hat]["olculemedi"]
+                    + c_r[hat]["kosmadi"]
+                    + c_r[hat]["beklemede"]
+                )
+                if toplam == c_r[hat]["beklenen"]:
+                    k4_ok += 1
+        k4 = (k4_ok == k4_toplam)
+        kontroller.append(("K4", k4))
+
         hedef_atfi = sum(1 for _, h, y in mutantlar if h and y)
         kontrol_gecen = sum(1 for _, g in kontroller if g)
 
         for ad, h, y in mutantlar:
-            rapor.append(f"{ad} HEDEF_KIRMIZI={h} YAN_EKSEN_YESIL={y}")
+            rapor.append(f"{ad} HEDEF_KIRMIZI={h} YAN_EKSEN_YESIL={y} HEDEF_KOL_ATFI={'EVET' if (h and y) else 'HAYIR'}")
         for ad, g in kontroller:
             rapor.append(f"{ad} GECTI={g}")
 
@@ -601,13 +834,29 @@ def main():
     parser.add_argument("--kok", default=VARSAYILAN_KOK, help="Loglarin kok dizini")
     parser.add_argument("--kendini-test", action="store_true", help="Mutasyon bataryasini kos")
     parser.add_argument("--gercek", action="store_true", help="Gercek veri kolu (rapora yazilacak)")
+    parser.add_argument("--simdi", help="Simdi (UTC ISO 8601 Z). Kabul testi icin enjekte edilebilir; varsayilan gercek UTC.")
+    parser.add_argument("--pencere", help="Sentetik pencere JSON (kabul testi icin)")
     args = parser.parse_args()
 
     if args.kendini_test:
         sys.exit(kendini_test())
 
+    simdi_dt = None
+    if args.simdi:
+        simdi_dt = _iso_oku(args.simdi)
+
     try:
-        rc, _, satirlar = calistir(args.kok)
+        if args.pencere:
+            # Kabul testi icin tek seferlik pencere kopyasi ile calistir
+            import shutil
+            tmp = tempfile.mkdtemp(prefix="t1-kiyas-tek-")
+            try:
+                shutil.copy(args.pencere, os.path.join(tmp, PENCERE_DOSYASI))
+                rc, _, satirlar = calistir(tmp, simdi=simdi_dt)
+            finally:
+                shutil.rmtree(tmp, ignore_errors=True)
+        else:
+            rc, _, satirlar = calistir(args.kok, simdi=simdi_dt)
         print("\n".join(satirlar))
         sys.exit(rc)
     except OkumaHatasi as e:
