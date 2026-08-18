@@ -2,6 +2,7 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 
 - ✅ **K175 KAPANDI (18 Agu) — T1 penceresi ARTIK OLCUYOR.** Canli kabul (cron'un KENDI
@@ -47,14 +48,9 @@
   tasidi → yayinda olcemeyen kapi GECIYOR ([[fail-slow-fail-opendir]]). Bugun davranis DEGISMEDI. kabul: olculemeyen eksen rc=0 DONDURMEZ.
 - 🔧 **K172 (18 Agu — K170'ten dogdu, SINIF; yayini BLOKLAMAZ):** `mk1` uc markada BEKLER, uc kol TEK hukumle kapanir. Tam metin ARSIVDE. `kabul:` BOS.
 - 🟠 **Dal `k152-link-temiz` (`56269db4`) MERGE BEKLIYOR** (K164 blogundan tasindi).
-- 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR, icra bekliyor):** ikiz silmesinden sonra
-  gizli kaynak kayit duzleminde **15 artik kayit** kaldi; kanonik duzeltme araci o duzleme
-  DOKUNMUYOR. Hukum `tools/paket-k171-kaynak-temizle.md` (`cc6fece2`): ayri betik YOK, ayni
-  dosyadaki `_id_yeniden_adlandir` deseni (AYNI flock + AYNI atomik yazim turu) `--sil`/`--toplu`ya
-  genisletilir; bayrak bu dilimde OPT-IN (MaCiT'in partileri kosuyor); sessiz sifir YASAK
-  (okunamayan duzlem OLCULEMEDI). Tam metin ARSIVDE, kabul satiri pakette.
-  kabul: `--kaynak-durum` ONCE `ARTIK=15` / SONRA `ARTIK=0` (ikisi de diskten) **VE** paketteki
-  nobetci kolu yesil **VE** 4 mutant.
+- 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
+  duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
+  `tools/paket-k171-kaynak-temizle.md`de; tam metin ARSIVDE.
 - 🔧 **K168 (18 Agu — K134'un HALEFI; K134 KAPANDI, tam metin ARSIVDE):** care
   (`defter-rotasyon.py`) mutasyonla YESIL (7/7) ama kota bugun BES KEZ elle dondurulda
   (141/139/136/141/137). Kotayi asan rol MIMAR ve mimar o araci KOSAMAZ (icra kapisi).
@@ -117,6 +113,7 @@
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -124,7 +121,10 @@
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu) ·
   Navlungo `il-ilce-dilim1` merge'i. (K164 blogundan tasindi.)
+- 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
+  SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
