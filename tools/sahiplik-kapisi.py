@@ -44,10 +44,43 @@ import os
 import re
 import sys
 
-CANON = "/Users/okan/dev/pruvo"
-CRON = "/Users/okan/.claude/cron"
 HARITA_REPO_RELATIF = "tools/sahiplik-haritasi.tsv"
 HARITA_GENEL = HARITA_REPO_RELATIF
+
+# Paket ③-f §H1 — HEDEF AĞACIN TURETILMESI:
+# CANON ("/Users/okan/dev/pruvo") artik varsayilan hedef degildir. Hedef ağac
+# betigin KENDI konumundan turetilir (tools/ altinda olduguna gore bir ust dizin).
+# --repo bayragi OVERRIDE olarak kalir; sessiz geri dusus YASAK.
+#
+# Paket ③-f §H2 — CRON DIZINININ OPSIYONELLIGI:
+# CRON eskiden "/Users/okan/.claude/cron" sabit mutlak yoluna bagliydi; CI kosucusunda
+# bu yol YOKTUR ve kapinin evreni yalanla "0 cron" diye rapor ediyordu. CRON dizini
+# artik $HOME/.claude/cron olarak turetilir; yoksa OLCULEMEDI, "0" DEGIL.
+#
+# Paket ③-f §H3 — TASNABILIRLIK:
+# Repo koku disinda HICBIR mutlak yol hedef belirlemede kullanilmaz. CI farkli
+# bir kok acabilir, CRON dizini farkli bir evde olabilir; kapinin kendi konumu
+# + $HOME tek girdidir.
+def _repo_kok_turetilmis():
+    """Betigin konumundan repo kokunu turetir. __file__ = .../tools/sahiplik-kapisi.py
+    olduguna gore ust dizin (parent.parent) repo kokudur. Hangi worktree'den
+    cagrilirsa cagrilsin KENDI agacini olcer — paket ③-f §H1.
+    """
+    burasi = os.path.dirname(os.path.abspath(__file__))
+    return os.path.abspath(os.path.join(burasi, os.pardir))
+
+
+def _cron_yolu_turetilmis():
+    """$HOME/.claude/cron — CRON evreninin tasinabilir koku. $HOME tanimsizsa veya
+    dizin yoksa None doner; bu durumda evren turetimi OLCULEMEDI uretir (paket ③-f §H2).
+    """
+    home = os.environ.get("HOME", "")
+    if not home:
+        return None
+    yol = os.path.join(home, ".claude", "cron")
+    if not os.path.isdir(yol):
+        return None
+    return yol
 
 # BILINEN KAPI LISTESI (tohum) — Paket ③-b spec §2a'dan. Evren KAYNAGI degil,
 # kabul testinde vaka olarak kullanilir. Olcut bu 6 dosyayi KODDAN yakalamalidir;
@@ -164,11 +197,18 @@ def _test_mutasyon_dislama(base):
 def evreni_turet(tools_dir, cron_dir):
     """tools/ + cron/ altinda KAPI/NOBET evrenini KOD SEMBOLunden turetir.
 
-    Dondurur: list of dict, her biri:
-      { "yol": repo-goreli veya "cron:<base>", "mutlak": tam yol, "base": dosya adi }
+    Dondurur: (list, cron_durum)
+      list[i] = { "yol", "mutlak", "base" }
+      cron_durum = { "yol": str veya None, "mevcut": bool, "evren": int,
+                     "sebep": str veya None }
+
+    Paket ③-f §H2: cron_dir None veya dizin degilse evren 0 OLUR ve sebep
+    OLCULEMEDI uretir (eski davranis yalniz "yok say" idi; bu eksende 0 saymak
+    bu depoda yasak eksen K163/K175 ile ayni sinif).
     """
     bulunan = []
     seen = set()
+    cron_durum = {"yol": cron_dir, "mevcut": False, "evren": 0, "sebep": None}
     for kok, hangi, files in (
         (tools_dir, "tools", os.listdir(tools_dir)) if os.path.isdir(tools_dir) else (None, None, []),
     ):
@@ -185,7 +225,15 @@ def evreni_turet(tools_dir, cron_dir):
                 continue
             if _kod_sinyali(mutlak):
                 bulunan.append({"yol": _anahtar("tools", f), "mutlak": mutlak, "base": f})
-    if os.path.isdir(cron_dir):
+    if cron_dir is None:
+        if os.environ.get("HOME", ""):
+            cron_durum["sebep"] = "CRON dizini yok (HOME/.claude/cron bulunamadi)"
+        else:
+            cron_durum["sebep"] = "HOME tanimsiz; CRON dizini turetilmedi"
+    elif not os.path.isdir(cron_dir):
+        cron_durum["sebep"] = "CRON dizini yok (CI kosucusu olabilir)"
+    else:
+        cron_durum["mevcut"] = True
         for f in sorted(os.listdir(cron_dir)):
             if not (f.endswith(".py") or f.endswith(".sh")):
                 continue
@@ -197,7 +245,8 @@ def evreni_turet(tools_dir, cron_dir):
                 continue
             if _kod_sinyali(mutlak):
                 bulunan.append({"yol": _anahtar("cron", f), "mutlak": mutlak, "base": f})
-    return bulunan
+                cron_durum["evren"] += 1
+    return bulunan, cron_durum
 
 
 # ---------------------------------------------------------------------------
@@ -449,7 +498,7 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
         return 1
     yedek = _gvd_yedekle(tsv_yolu)
     try:
-        evren_orig = evreni_turet(tools_dir, cron_dir)
+        evren_orig, cron_durum_orig = evreni_turet(tools_dir, cron_dir)
         # Surekli mutant/kontrol adimlari
         adimlar = []
 
@@ -529,6 +578,9 @@ def kendini_test(repo_kok, tools_dir, cron_dir):
             sonuc = dogrula(evren_orig, harita, test_modu=False)
             print(ozet_satir(sonuc, harita=harita, mutant_basari=(mutant_sayaci, 4),
                              kontrol_basari=(kontrol_sayaci, 2)))
+            # Paket ③-f §H2: CRON_EVRENI=OLCULEMEDI ya da =<int>
+            print("CRON_EVRENI=%s"
+                  % (cron_durum_orig["evren"] if cron_durum_orig["mevcut"] else "OLCULEMEDI"))
             return 0
         # Spec geregi MUTANT/KONTROL sayaci tamamlanmadan raporlama
         print("MUTANT=%d/4 KONTROL=%d/2" % (mutant_sayaci, kontrol_sayaci))
@@ -555,7 +607,10 @@ def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--repo", default=CANON, help="olculecek repo koku")
+    # Paket ③-f §H1: --repo artik default olarak turetilmis repo kokunu kullanir
+    # (CANON sabit yolu DEGIL); --repo hâlâ OVERRIDE olarak calisir.
+    ap.add_argument("--repo", default=None,
+                    help="olculecek repo koku (default: betigin konumundan turetilir)")
     ap.add_argument("--harita", default=HARITA_REPO_RELATIF,
                     help="harita TSV yolu (repo-goreli veya mutlak)")
     ap.add_argument("--json", action="store_true", help="makine-okunur JSON cikti")
@@ -563,14 +618,20 @@ def main():
                     help="3 mutant + 2 kontrolu kosar, MUTANT/KONTROL ozetini basar")
     args = ap.parse_args()
 
-    repo_kok = os.path.abspath(args.repo)
+    # Paket ③-f §H1: --repo verilmediyse turetilmis koke dus (CANON'a degil).
+    # Paket ③-f §H3: hedef belirlemede CANON-style sabit mutlak yol YOK.
+    if args.repo:
+        repo_kok = os.path.abspath(args.repo)
+    else:
+        repo_kok = _repo_kok_turetilmis()
     tools_dir = os.path.join(repo_kok, "tools")
-    cron_dir = CRON
+    # Paket ③-f §H2: cron_dir turetilmis ($HOME/.claude/cron); yoksa None.
+    cron_dir = _cron_yolu_turetilmis()
 
     if args.kendini_test:
         return kendini_test(repo_kok, tools_dir, cron_dir)
 
-    evren = evreni_turet(tools_dir, cron_dir)
+    evren, cron_durum = evreni_turet(tools_dir, cron_dir)
     harita, hatalar = haritayi_oku(repo_kok, args.harita)
     if hatalar:
         print("HARITA OKUMA HATALARI:", file=sys.stderr)
@@ -589,6 +650,9 @@ def main():
             "SAHIPSIZ": sonuc["SAHIPSIZ"],
             "KIRMIZI": sonuc["KIRMIZI"],
             "KABUL_BOS": sonuc["KABUL_BOS"],
+            "CRON_EVRENI": cron_durum["evren"] if cron_durum["mevcut"] else "OLCULEMEDI",
+            "CRON_YOL": cron_durum["yol"],
+            "CRON_SEBEP": cron_durum["sebep"],
         }, indent=2, ensure_ascii=False))
     else:
         print("KAPI/NOBET HARITA KAPISI (salt-okunur)")
@@ -596,6 +660,12 @@ def main():
         print("Harita: " + args.harita)
         print("Kapsam evreni (kod-kanitli): sys.exit(1..9) VEYA permissionDecision VEYA "
               "exit 1/2; -test/-mutasyon/-prob dislanir")
+        # Paket ③-f §H2: CRON_EVRENI raporu.
+        if cron_durum["mevcut"]:
+            print("Cron evreni: %d (yol=%s)" % (cron_durum["evren"], cron_durum["yol"]))
+        else:
+            print("Cron evreni: OLCULEMEDI (sebep: %s, yol=%s)"
+                  % (cron_durum["sebep"], cron_durum["yol"]))
         print("")
         print(ozet_satir(sonuc, harita=harita))
         if sonuc["EKSIK"]:
