@@ -41,7 +41,7 @@ permissions:
 # TERSI (gorunurluk kaybi). Grup `pages` DEGIL: yayin kosumuyla ayni kuyruga
 # girseydi nobetler yayini geciktirirdi ([[kapi-birikimi-yayin-gecikmesi]]).
 concurrency:
-  group: nobet-serit-b
+  group: nobet-serit-b-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'push' }}
   cancel-in-progress: false
 
 jobs:
