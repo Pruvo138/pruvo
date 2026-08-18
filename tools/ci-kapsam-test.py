@@ -5481,7 +5481,6 @@ NOBETCI_KABLOLARI = (
                  "bayraksiz_adim_kontrol", "bulgu1_mutasyon_kontrol",
                  "hukum_davranis_kontrol", "hukum_fuzz_kontrol",
                  "izlenmeyen_fikstur_kontrol", "kanca_kablo_adimi_kontrol",
-                 "kapsanan_hukum_mutasyon_kontrol",
                  "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
                  "main_kablosu_kontrol", "muaf_sayaci_kontrol",
                  "pre_push_capa_kontrol", "suzgec_fikstur_kontrol",
@@ -5490,6 +5489,7 @@ NOBETCI_KABLOLARI = (
               "bulgu1_mutasyon_kontrol", "hukum_davranis_fikstur_kontrol",
               "hukum_davranis_kontrol", "hukum_fuzz_kontrol",
               "izlenmeyen_fikstur_kontrol", "kanca_kablo_serit_kontrol",
+              "kapsanan_hukum_mutasyon_kontrol",
               "kendini_test_adimi_kontrol", "kesif_predikat_kontrol",
               "main_kablosu_kontrol", "muaf_sayaci_kontrol",
               "pre_push_kablo_kontrol", "suzgec_fikstur_kontrol",
@@ -5513,6 +5513,7 @@ KOL_BIRLESIM_TABANI = 19
 # onu RAPORLAMIYORDU (5. tur F6). Ayri kayit: dokum UC SERIDI de basar.
 KANCA_KABLO_KOL_NOBETCILERI = ("hukum_davranis_fikstur_kontrol",
                                "kanca_kablo_serit_kontrol",
+                               "kapsanan_hukum_mutasyon_kontrol",
                                "pre_push_kablo_kontrol")
 
 # 🔴 `--kendini-test` HUKMUNUN KENDISI (KB-E): butun `okN` degiskenleri hukme
@@ -6168,8 +6169,8 @@ def hukum_davranis_kontrol(kaynak=None):
 # yakalandigini KALICI olarak civiler. Sabotajlar GERCEK kaynak metnine uygulanir
 # (bellekte), ucuncu kolun hukum blogu hedeflenir. Tablo kucultulurse kirmizi yanar.
 # (AYNI GEREKCE: parcali yazim, GERCEK hukum satirinin ikizini uretmemek icin.)
-_DK_HUKUM = ("        if ok and ok_s and %s:\n"
-             "            print(\"SONUC: YESIL ✅\")\n" % "ok_d")
+_DK_HUKUM = ("        if ok and ok_s and ok_d and %s:\n"
+             "            print(\"SONUC: YESIL ✅\")\n" % "ok_k")
 # 🔴 PARCALI YAZIM (bilincli): duz yazilsaydi bu sabit, GERCEK `main()` satiriyla
 # BIREBIR ayni metni ikinci kez uretir ve mutasyon capalari "2 kez gecti" diye
 # COKERDI ([[mutasyon-kaniti-yeniden-uretilebilir]]: cokme kirmiziyla karisir).
@@ -6217,18 +6218,18 @@ HUKUM_DAVRANIS_FIKSTURLERI = (
      _DK_OKS + "        ok_s = True\n", False, "ikinci atama sabit"),
     # --- KONTROLLER: MESRU yazimlar YESIL kalmali (sahte-kirmizi yuzeyi) ---
     ("K-1 `bool(...)` sarmali", _DK_HUKUM,
-     "        if bool(ok and ok_s and ok_d):\n"
+     "        if bool(ok and ok_s and ok_d and ok_k):\n"
      "            print(\"SONUC: YESIL ✅\")\n", True,
      "sabit DEGIL, hukum degiskenlerinden turer"),
     ("K-2 ara degisken", _DK_HUKUM,
-     "        _karar = ok and ok_s and ok_d\n        if _karar:\n"
+     "        _karar = ok and ok_s and ok_d and ok_k\n        if _karar:\n"
      "            print(\"SONUC: YESIL ✅\")\n", True, "tasiyici ad"),
     ("K-3 ters kosul", _DK_HUKUM,
-     "        if not (ok and ok_s and ok_d):\n            pass\n"
-     "        elif ok and ok_s and ok_d:\n"
+     "        if not (ok and ok_s and ok_d and ok_k):\n            pass\n"
+     "        elif ok and ok_s and ok_d and ok_k:\n"
      "            print(\"SONUC: YESIL ✅\")\n", True, "negatif yazim"),
     ("K-4 `all([...])` hukum degiskenleriyle", _DK_HUKUM,
-     "        if all([ok, ok_s, ok_d]):\n            print(\"SONUC: YESIL ✅\")\n",
+     "        if all([ok, ok_s, ok_d, ok_k]):\n            print(\"SONUC: YESIL ✅\")\n",
      True, "`all` MESRU olabilir — icerik sabit degil"),
 )
 
@@ -6795,11 +6796,14 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, izlenmeyen_hata = izlenmeyen_fikstur_kontrol()
         for h in izlenmeyen_hata:
             hatalar.append("IZLENMEYEN-FIKSTUR: " + h)
-        # K189 (19 Agu): "KAPSANMIS SAYILDI" hukmunun HEDEF KOL ATFI. Ucuncu
-        # hukmun asil tuketicisi YEREL bayraksiz kosumdur -> kanit BU kolda durur.
-        _, kapsanan_hata = kapsanan_hukum_mutasyon_kontrol()
-        for h in kapsanan_hata:
-            hatalar.append("K189-KAPSANMIS-MUTASYON: " + h)
+        # 🔴 K189 MUTASYON BATARYASI BU KOLDA DEGIL — `--kanca-kablo` KOLUNDADIR.
+        # EKSEN GEREKCESI (maliyet DEGIL): bayraksiz pre-push kolunun isi ITILEN
+        # ICERIGI olcmektir; batarya KAPININ KENDI SAGLAMLIGINI olcer, yani OZ-TEST
+        # eksenidir — tek sayi iki farkli seyi saymasin. Olculen maliyet zaten
+        # kucuktu (0,19 sn; bayraksiz kol tasimadan ONCE de ~5,9 sn), yani tasima
+        # ucuzlatma DEGIL EKSEN duzeltmesidir. Kol dokumu + `KOL_BIRLESIM_TABANI`
+        # bu tasimayi GORUNUR kilar: yuzey KUCULMEDI, YER DEGISTIRDI
+        # ([[kapi-yan-etkisi-gizli-onkosul]] · [[maliyet-tasimasi-serit-dusurur]]).
         # KABLO (9 Agu): `main()` olcumu `denetle()`'ye FIILEN geciriyor mu.
         # Ozellik + fikstur duruyorken kablosu sokulebiliyordu (Y4/Y8).
         _, kablo_hata = main_kablosu_kontrol()
@@ -7055,7 +7059,20 @@ def main():
         else:
             for h in hatalar:
                 print("  ❌ " + h)
-        if ok and ok_s and ok_d:
+        ok_k, hata_k = kapsanan_hukum_mutasyon_kontrol()
+        print("K189 \"KAPSANMIS SAYILDI\" HUKMU — HEDEF KOL ATFI (%d oldurucu + %d "
+              "kontrol + tabanlar; her mutant AYRI modul kopyasinda UCTAN UCA "
+              "yargilanir, GERCEK depoya DOKUNULMAZ)"
+              % (sum(1 for _e, _c, _i, r, _n in KAPSANMIS_MUTANTLARI if r == 0),
+                 sum(1 for _e, _c, _i, r, _n in KAPSANMIS_MUTANTLARI if r != 0)))
+        if ok_k:
+            print("  ✅ besleme · hukum kolu · cikis kodu · rc sabiti · CIT TEK "
+                  "BASINA kirmizi; esdeger yazimlar hukmu DEGISTIRMIYOR; kapsam "
+                  "BILINIYORKEN gorunur uyari + yesil; iki kolun jetonu AYRIK")
+        else:
+            for h in hata_k:
+                print("  ❌ " + h)
+        if ok and ok_s and ok_d and ok_k:
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")
