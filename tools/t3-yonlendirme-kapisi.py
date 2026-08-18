@@ -8,13 +8,24 @@ EV ekseni KAT ekseninden AYRIDIR: KAT = is hangi motorun yaptigi, EV = kalemin
 kimin defterine (posta kutusuna) dustugu. nobet-kapi.py YALNIZ KAT ekseninde
 dagitiyor; bu kapi EV eksenini HARITADAN (`tools/sahiplik-haritasi.tsv`) okur.
 
-3 kol — her birinin MUTANT tarafindan hedef kolu kanitlanmistir:
-  T3-YON       : haritadan EV cozumle, hedef evin posta kutusuna yaz,
-                 KRAI'daki satir silinmez; `DEVREDILDI: <EV> <damga>` ile isaretlenir.
-  T3-SAHIPSIZ  : mekanizma haritada YOK ise BILINMIYOR; kalem MIMAR'da KALIR
-                 + SAHIPSIZ sayaci artar (sessiz varsayilan YOK).
-  T3-OLCULEMEDI: hedef kutuya yazma BASARISIZ ise tatbikat KIRMIZI + OLCULEMEDI
-                 (fail-closed; "teslim edildi" DEGIL).
+4 kol — her birinin MUTANT tarafindan hedef kolu kanitlanmistir:
+  T3-YON          : haritadan EV cozumle, hedef evin posta kutusuna yaz,
+                    KRAI'daki satir silinmez; `DEVREDILDI: <EV> <damga>` ile
+                    isaretlenir.
+  T3-SAHIPSIZ     : mekanizma haritada YOK ise BILINMIYOR; kalem MIMAR'da
+                    KALIR + SAHIPSIZ sayaci artar (sessiz varsayilan YOK).
+                    Mesaj `T3-SAHIPSIZ ` onekiyle baslar.
+  T3-OLCULEMEDI   : hedef kutuya yazma BASARISIZ ise tatbikat KIRMIZI +
+                    OLCULEMEDI (fail-closed; "teslim edildi" DEGIL).
+                    Mesaj `T3-OLCULEMEDI ` onekiyle baslar.
+  T3-IZ           : DEVREDILDI izi yazma kanali oldurulurse (KraL'in posta
+                    kutusu yazilamaz) YAZILDI True KALMAZ + HATA.
+                    Mesaj `T3-IZ ` onekiyle baslar.
+  (kod yolu — mutanti yok) T3-EV-GECERSIZ: ev_adresi() gecersiz EV donusu
+                    icin AYRI hata sinifi; SAHIPSIZ ASLA True set edilmez;
+                    mesaj `T3-EV-GECERSIZ ` onekiyle baslar. Bu sayede
+                    T3-SAHIPSIZ govdesi oldurulunce M2, T3-EV-GECERSIZ
+                    mesajini gormez (kol ayrimi).
 
 Mutasyon bataryasi kurali (EK, 18 Agu 2026): haritanin evreni -test/-mutasyon/-prob
 dislar; bu yuzden `X-mutasyon.py` icin EV, olctugu kapinin EV'idir
@@ -22,14 +33,14 @@ dislar; bu yuzden `X-mutasyon.py` icin EV, olctugu kapinin EV'idir
 
 Isletim modlari:
   default (analiz)   : gercek harita uzerinde EV dagilimini basar; YAZMAZ.
-  --kendini-test     : 3 mutant + izolasyon (tempfile.mkdtemp); gercek posta
+  --kendini-test     : 4 mutant + izolasyon (tempfile.mkdtemp); gercek posta
                        kutularina DOKUNMAZ.
   --tatbikat         : sentetik sahte kirmizi uretir + gercek posta kutusuna
                        yazar; AYNI kosumda siler ve TEMIZ=EVET kanitlar.
 
 KABUL (calistirilabilir):
   python3 tools/t3-yonlendirme-kapisi.py --kendini-test
-    -> rc=0, MUTANT=3/3, T3-YON, T3-SAHIPSIZ, T3-OLCULEMEDI gecti,
+    -> rc=0, MUTANT=4/4, T3-YON, T3-SAHIPSIZ, T3-OLCULEMEDI, T3-IZ gecti,
        SAHIPSIZ ayri basildi, TEMIZ=EVET kanitlandi.
 
 Disiplin:
@@ -39,6 +50,8 @@ Disiplin:
     verilir ve tempfile.mkdtemp() altinda kosar.
   - --tatbikat gercek kutuya yazarsa AYNI koşumda siler, TEMIZ=EVET kanitlar;
     kanitlayamazsa TEMIZ=OLCULEMEDI + rc!=0.
+  - DEVREDILDI izi: EV != KraL ise KraL'in posta kutusuna TEK satir yazilir.
+    Yazma BASARISIZSA fail-closed: YAZILDI True KALMAZ + HATA OLCULEMEDI.
 """
 import argparse
 import datetime
@@ -71,15 +84,21 @@ EV_BILINEN = {"KraL", "MaCiT", "TeKiN", "ArTisT", "HocA", "BaBa", "ORTAK"}
 EV_KABUL = EV_BILINEN | {"BILINMIYOR"}
 
 # Hedef kol jetonlari — cikti satirinda ve mutant dogrulamada kullanilir.
-T3_YON_JETON        = "T3-YON"
-T3_SAHIPSIZ_JETON   = "T3-SAHIPSIZ"
-T3_OLCULEMEDI_JETON = "T3-OLCULEMEDI"
+# Kol ATIFI mesajin BASINDA gecer; mutant dogrulamasi `startswith(kol + " ")`
+# ile yalnizca kendi kolunun imzasini dogrular. Bu sayede bir kol oldurulunce
+# diger kolun mesaji onun yerine gecse bile mutant YASAMAZ (kol ayrimi).
+T3_YON_JETON          = "T3-YON"
+T3_SAHIPSIZ_JETON     = "T3-SAHIPSIZ"
+T3_OLCULEMEDI_JETON   = "T3-OLCULEMEDI"
+T3_IZ_JETON           = "T3-IZ"
+T3_EV_GECERSIZ_JETON  = "T3-EV-GECERSIZ"   # ev_adresi() gecersiz EV donusu
 
 # Mutant adlari + hedef kol eslestirmesi.
 MUTANT_HEDEF = {
     "M1": T3_YON_JETON,
     "M2": T3_SAHIPSIZ_JETON,
     "M3": T3_OLCULEMEDI_JETON,
+    "M4": T3_IZ_JETON,
 }
 
 # ------------------------------------------------------------------------------
@@ -329,8 +348,11 @@ def yonlendir(kalem, harita_index, koku_root=None, *, yazilamaz_yollar=None):
         "EV": ev,
         "EV_KAYNAK": ev_kaynak,
         "POSTA_YOL": None,
+        "HEDEF_YAZILDI": False,
         "YAZILDI": False,
         "DEVREDILDI_NOTU_KRAIL": False,
+        "IZ_YOL": None,
+        "IZ_YAZILDI": None,
         "HATA": None,
         "SAHIPSIZ": (ev == "BILINMIYOR"),
         "DAMGA": damga,
@@ -342,20 +364,31 @@ def yonlendir(kalem, harita_index, koku_root=None, *, yazilamaz_yollar=None):
         "SENTETIK": kalem.get("sentetik", False),
     }
 
-    # SAHIPSIZ: kalem MIMAR'da KALIR, yazilamaz.
+    # T3-SAHIPSIZ kolu: YALNIZ ev == "BILINMIYOR" icin konusur.
+    # Kendi jetonunu mesajin BASINDA uretir; boylece M2 dogrulamasi
+    # SAHIPSIZ bayragina degil, "T3-SAHIPSIZ " onekine baglanir (kol ayrimi).
+    # ev_adresi()'nin gecersiz-EV donusu AYRI bir hata sinifi (T3-EV-GECERSIZ)
+    # olarak asagida yakalanir; SAHIPSIZ ASLA True set edilmez.
+    # Format: "<JETON> <govde>" — jeton ile govde arasinda BOSLUK (K183b).
     if ev == "BILINMIYOR":
-        sonuc["HATA"] = "BILINMIYOR: haritada eslesme yok; kalem MIMAR'da kaldi"
+        sonuc["HATA"] = ("T3-SAHIPSIZ haritada eslesme yok; "
+                         "kalem MIMAR'da kaldi")
         return sonuc
 
     kok, posta_yol, gecerli = ev_adresi(ev, koku_root=koku_root)
     if not gecerli:
-        sonuc["HATA"] = "EV gecersiz: %r" % ev
+        # T3-EV-GECERSIZ: ev_adresi() gecersiz EV donusu. SAHIPSIZ bayragina
+        # DOKUNMAZ (ASLA set etmez — kol sozlesmesi); mesaj T3-EV-GECERSIZ
+        # onekiyle baslar ki M2'nin "T3-SAHIPSIZ " onekini arayan dogrulamasi
+        # bu mesaji T3-SAHIPSIZ olarak YAKALAMASIN (kol ayrimi).
+        sonuc["HATA"] = ("T3-EV-GECERSIZ ev gecersiz: %r" % ev)
         return sonuc
     sonuc["POSTA_YOL"] = posta_yol
 
-    # M3 simulasyonu: yazilamaz yol.
+    # T3-OLCULEMEDI kolu: hedef kutuya yazilamaz (M3 simulasyonu veya IO).
+    # Mesaj T3-OLCULEMEDI onekiyle baslar; kol ayrimi.
     if yazilamaz_yollar and posta_yol in yazilamaz_yollar:
-        sonuc["HATA"] = "OLCULEMEDI: hedef kutu yazilamaz (M3 simulasyonu)"
+        sonuc["HATA"] = "T3-OLCULEMEDI hedef kutu yazilamaz (M3 simulasyonu)"
         return sonuc
 
     # Satiri hedef posta kutusuna yaz.
@@ -367,17 +400,47 @@ def yonlendir(kalem, harita_index, koku_root=None, *, yazilamaz_yollar=None):
                 kalem.get("sahte_mi", "OLCULEMEDI"), sentetik_isaret, ev, ev_kaynak))
     try:
         _posta_satir_ekle(posta_yol, satir)
-        sonuc["YAZILDI"] = True
+        sonuc["HEDEF_YAZILDI"] = True
     except Exception as e:
-        sonuc["HATA"] = "OLCULEMEDI: yazma basarisiz: %r" % e
+        sonuc["HATA"] = "T3-OLCULEMEDI hedef kutu yazma basarisiz: %r" % e
         return sonuc
 
-    # KraL disi: kendi acik-kalemler.md'mize DEVREDILDI notu BIRAKILMAZ (kaldirma
-    # yok); sadece cikti ile isaretlenir (mimarin dosyasi).
-    # Buradaki iz: rapora yansitilir, dosyaya yazilmaz (spec §3: satır
-    # SILINMEZ). "DEVREDILDI notu" dosyaya YAZILMAZ; sadece sonuc dict'inde.
+    # T3-IZ kolu: DEVREDILDI izi (EV != KraL ise KraL'in posta kutusuna TEK
+    # satir). Yazma BASARISIZSA fail-closed: YAZILDI True KALMAZ.
+    # Mesaj T3-IZ onekiyle baslar; kol ayrimi.
     if ev != "KraL":
-        sonuc["DEVREDILDI_NOTU_KRAIL"] = True
+        kral_kok, kral_posta_yol, kral_gecerli = ev_adresi("KraL", koku_root=koku_root)
+        sonuc["IZ_YOL"] = kral_posta_yol
+        if not kral_gecerli:
+            sonuc["HATA"] = "T3-IZ DEVREDILDI izi yazilamadi (KraL kutu gecersiz)"
+            sonuc["YAZILDI"] = False
+            sonuc["DEVREDILDI_NOTU_KRAIL"] = False
+            sonuc["IZ_YAZILDI"] = False
+            return sonuc
+        # M4 simulasyonu: KraL'in posta kutusu yazilamaz.
+        if yazilamaz_yollar and kral_posta_yol in yazilamaz_yollar:
+            sonuc["HATA"] = ("T3-IZ DEVREDILDI izi yazilamadi (M4 simulasyonu)")
+            sonuc["YAZILDI"] = False
+            sonuc["DEVREDILDI_NOTU_KRAIL"] = False
+            sonuc["IZ_YAZILDI"] = False
+            return sonuc
+        # DEVREDILDI iz satiri (KraL'in defterine dusur; satir silinmez).
+        iz_satir = ("DEVREDILDI: %s | mekanizma=%s | kosum=%s | damga=%s"
+                    % (ev, kalem["mekanizma"],
+                       kalem.get("kosum_id", "-"), damga))
+        try:
+            _posta_satir_ekle(kral_posta_yol, iz_satir)
+            sonuc["IZ_YAZILDI"] = True
+            sonuc["DEVREDILDI_NOTU_KRAIL"] = True
+        except Exception as e:
+            sonuc["HATA"] = ("T3-IZ DEVREDILDI izi yazilamadi: %r" % e)
+            sonuc["YAZILDI"] = False
+            sonuc["DEVREDILDI_NOTU_KRAIL"] = False
+            sonuc["IZ_YAZILDI"] = False
+            return sonuc
+
+    # Tum adimlar OK; YAZILDI=True.
+    sonuc["YAZILDI"] = True
     return sonuc
 
 
@@ -398,8 +461,14 @@ def temizle_sentetik(yonlendirme_sonuclari, koku_root=None):
         for ev in EV_BILINEN:
             yollar.append(os.path.join(koku_root, ev, POSTA_DOSYA))
     else:
+        # EV_DIZIN'de KraL/BaBa/ORTAK ayni kok; tekrari onle.
+        gorulen = set()
         for kok in EV_DIZIN.values():
-            yollar.append(os.path.join(kok, POSTA_DOSYA))
+            yol = os.path.join(kok, POSTA_DOSYA)
+            if yol in gorulen:
+                continue
+            gorulen.add(yol)
+            yollar.append(yol)
     out = {}
     for yol in yollar:
         for d in damgalar:
@@ -447,12 +516,12 @@ def _mutant_ev_degistir(tsv_yolu, mekanizma_adi, yeni_ev):
 
 
 def kendini_test(repo_kok, harita_yolu, koku_root):
-    """3 mutant + izolasyon. Her biri hedef kolunu AYRICA kanitlar.
+    """4 mutant + izolasyon. Her biri hedef kolunu AYRICA kanitlar.
 
     koku_root: --kendini-test'te tempfile.mkdtemp(); gercek posta kutularina
     DOKUNULMAZ.
 
-    KABUL: MUTANT=3/3, T3-YON, T3-SAHIPSIZ, T3-OLCULEMEDI gecti,
+    KABUL: MUTANT=4/4, T3-YON, T3-SAHIPSIZ, T3-OLCULEMEDI, T3-IZ gecti,
     SAHIPSIZ sayaci ayri basildi, TEMIZ=EVET kanitlandi.
     """
     tsv = os.path.join(repo_kok, harita_yolu) if not os.path.isabs(harita_yolu) else harita_yolu
@@ -500,7 +569,10 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
         yedek = _gvd_yedekle(tsv)
 
         # --- M2: mekanizma haritada YOK ---------------------------------------
-        # Beklenen: BILINMIYOR + kalem MIMAR'da KALIR + SAHIPSIZ sayaci artar.
+        # Beklenen: BILINMIYOR + kalem MIMAR'da KALIR + HATA `T3-SAHIPSIZ ` oneki.
+        # Dogrulama SAHIPSIZ bayragina degil, hedef kolun KENDI mesajina bakinir
+        # (kol ayrimi); boylece T3-SAHIPSIZ govdesi oldurulurse M2 burada
+        # mutant YASAMAZ (kirmizi kalir).
         kalem_m2 = {
             "mekanizma": "hayalet-mekanizma-yok-12345",
             "kosum_id": "kosum-M2-test",
@@ -516,14 +588,17 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
             and sonuc_m2["SAHIPSIZ"] is True
             and sonuc_m2["YAZILDI"] is False
             and sonuc_m2["HATA"] is not None
+            and sonuc_m2["HATA"].startswith(T3_SAHIPSIZ_JETON + " ")
         )
-        t3_sahipsiz_mesaj = "EV=BILINMIYOR SAHIPSIZ=EVET (MIMAR'da kaldi)"
+        t3_sahipsiz_mesaj = ("EV=BILINMIYOR HATA=T3-SAHIPSIZ: "
+                             "haritada eslesme yok (MIMAR'da kaldi)")
         m2_reddetti = m2_sahipsiz
         adimlar.append(("M2", T3_SAHIPSIZ_JETON, m2_reddetti, t3_sahipsiz_mesaj,
                         sonuc_m2))
 
         # --- M3: hedef kutuya yazma BASARISIZ --------------------------------
         # Beklenen: tatbikat KIRMIZI + OLCULEMEDI; "teslim edildi" DEMEZ.
+        # Mesaj `T3-OLCULEMEDI ` onekiyle baslar (kol ayrimi).
         # Simulasyon: posta kutusu yolunu yazilamaz_yollar'a ekle.
         ev_can = "MaCiT"
         kok_m3, yol_m3, _ = ev_adresi(ev_can, koku_root=koku_root)
@@ -545,13 +620,47 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
         m3_olculemedi = (
             sonuc_m3["YAZILDI"] is False
             and sonuc_m3["HATA"] is not None
-            and "OLCULEMEDI" in sonuc_m3["HATA"]
+            and sonuc_m3["HATA"].startswith(T3_OLCULEMEDI_JETON + " ")
         )
-        t3_olculemedi_mesaj = ("EV=%s YAZILDI=False HATA=OLCULEMEDI (fail-closed)"
-                               % sonuc_m3["EV"])
+        t3_olculemedi_mesaj = ("EV=%s YAZILDI=False HATA=T3-OLCULEMEDI "
+                               "(fail-closed)" % sonuc_m3["EV"])
         m3_reddetti = m3_olculemedi
         adimlar.append(("M3", T3_OLCULEMEDI_JETON, m3_reddetti, t3_olculemedi_mesaj,
                         sonuc_m3))
+
+        # --- M4: KraL'in posta kutusuna DEVREDILDI izi yazilamaz --------------
+        # Beklenen: MaCiT yazildi, ama KraL izi yazilamadi → YAZILDI=False,
+        # HATA `T3-IZ ` onekiyle baslar (kol ayrimi; OLCULEMEDI degil).
+        # Kurulum: yazilamaz_yollar = {KraL mailbox path} (gercek arsiv adresi).
+        _, kral_posta_yol_m4, _ = ev_adresi("KraL", koku_root=koku_root)
+        yazilamaz_m4 = {kral_posta_yol_m4}
+        # r2-purge MaCiT (gercek harita MaCiT).
+        harita4, _ = haritayi_oku(repo_kok, harita_yolu)
+        idx4 = mekanizmaya_mekanizma_adlari(harita4)
+        kalem_m4 = {
+            "mekanizma": "r2-purge",
+            "kosum_id": "kosum-M4-test",
+            "kirmizi_adim": "M4.adim",
+            "kabul_komutu": "python3 tools/r2-purge-test.py",
+            "sahte_mi": "EVET",
+            "sentetik": True,
+            "damga": ortak_damga,
+        }
+        sonuc_m4 = yonlendir(kalem_m4, idx4, koku_root=koku_root,
+                             yazilamaz_yollar=yazilamaz_m4)
+        m4_iz_yazilamadi = (
+            sonuc_m4["HEDEF_YAZILDI"] is True
+            and sonuc_m4["YAZILDI"] is False
+            and sonuc_m4["HATA"] is not None
+            and sonuc_m4["HATA"].startswith(T3_IZ_JETON + " ")
+            and "DEVREDILDI" in sonuc_m4["HATA"]
+        )
+        t3_iz_mesaj = ("EV=%s HEDEF_YAZILDI=True YAZILDI=False "
+                       "HATA=T3-IZ: DEVREDILDI izi yazilamadi (fail-closed)"
+                       % sonuc_m4["EV"])
+        m4_reddetti = m4_iz_yazilamadi
+        adimlar.append(("M4", T3_IZ_JETON, m4_reddetti, t3_iz_mesaj,
+                        sonuc_m4))
 
         # --- TEMIZLIK KANITI --------------------------------------------------
         # Tum sentetik kalemleri AYNI damga ile urettik; temizlik kanitla.
@@ -568,8 +677,8 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
             icerik = open(ortak_dosya, encoding="utf-8").read()
             if ortak_damga in icerik:
                 temizlik_ok = False
-        # Ek: alt dizinlerde de (ArTisT, MaCiT) damga kalmasin.
-        for ev in ("ArTisT", "MaCiT"):
+        # Ek: alt dizinlerde de (ArTisT, MaCiT, KraL) damga kalmasin.
+        for ev in ("ArTisT", "MaCiT", "KraL"):
             alt = os.path.join(koku_root, ev, POSTA_DOSYA)
             if os.path.isfile(alt):
                 if ortak_damga in open(alt, encoding="utf-8").read():
@@ -584,9 +693,13 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
         for ad, jeton, gecti, mesaj, sonuc in adimlar:
             print("MUTANT %s -> hedef kol %s" % (ad, jeton))
             print("  mesaj: %s" % mesaj)
-            print("  EV=%s YAZILDI=%s SAHIPSIZ=%s HATA=%r"
-                  % (sonuc["EV"], sonuc["YAZILDI"], sonuc["SAHIPSIZ"], sonuc["HATA"]))
+            print("  EV=%s HEDEF_YAZILDI=%s YAZILDI=%s SAHIPSIZ=%s HATA=%r"
+                  % (sonuc["EV"], sonuc.get("HEDEF_YAZILDI"),
+                     sonuc["YAZILDI"], sonuc["SAHIPSIZ"], sonuc["HATA"]))
             print("  POSTA_YOL=%s" % (sonuc["POSTA_YOL"] or "(yok)"))
+            if "IZ_YOL" in sonuc and sonuc["IZ_YOL"]:
+                print("  IZ_YOL=%s IZ_YAZILDI=%s"
+                      % (sonuc["IZ_YOL"], sonuc.get("IZ_YAZILDI")))
             if gecti:
                 print("  SONUÇ: BEKLENDI YAKALANDI (mutant yasamaz)")
                 mutant_sayaci += 1
@@ -604,8 +717,8 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
         else:
             print("TEMIZ=OLCULEMEDI")
         print("")
-        print("MUTANT=%d/3" % mutant_sayaci)
-        if mutant_sayaci == 3 and temizlik_ok:
+        print("MUTANT=%d/4" % mutant_sayaci)
+        if mutant_sayaci == 4 and temizlik_ok:
             return 0
         return 1
     finally:
@@ -619,7 +732,7 @@ def kendini_test(repo_kok, harita_yolu, koku_root):
 # ------------------------------------------------------------------------------
 # ANALIZ (default, yazmaz)
 # ------------------------------------------------------------------------------
-def analiz(repo_kok, harita_yolu):
+def analiz(repo_kok, harita_yolu, sahipsiz_listele=False):
     harita, hatalar = haritayi_oku(repo_kok, harita_yolu)
     if hatalar:
         print("HARITA OKUMA HATALARI:", file=sys.stderr)
@@ -631,6 +744,7 @@ def analiz(repo_kok, harita_yolu):
     dagilim["BILINMIYOR"] = 0
     dagilim_ev_kaynak = {"HARITA": 0, "MUTANT_EV": 0, "BILINMIYOR": 0}
     mutant_turevleri = []  # (mekanizma, EV, EV_kaynak)
+    sahipsiz_listesi = []  # (mekanizma, kaynak) — BILINMIYOR olanlar
 
     # Mutasyon bataryalari haritanin evreninde yok; onlar icin ek cozumleme.
     ek_mekanizmalar = set()
@@ -646,12 +760,14 @@ def analiz(repo_kok, harita_yolu):
             dagilim[ev] += 1
         elif ev == "BILINMIYOR":
             dagilim["BILINMIYOR"] += 1
+            sahipsiz_listesi.append((h["MEKANIZMA"], "HARITA"))
 
     for m in sorted(ek_mekanizmalar):
         ev = mekanizma_icin_ev(m, idx)
         if ev == "BILINMIYOR":
             dagilim["BILINMIYOR"] += 1
             mutant_turevleri.append((m, ev, "BILINMIYOR"))
+            sahipsiz_listesi.append((m, "MUTANT_TUREV"))
         else:
             dagilim[ev] += 1
             mutant_turevleri.append((m, ev, "MUTANT_TUREV"))
@@ -665,11 +781,46 @@ def analiz(repo_kok, harita_yolu):
         print("  %-10s = %d" % (ev, dagilim[ev]))
     print("")
     print("SAHIPSIZ=%d (BILINMIYOR)" % dagilim["BILINMIYOR"])
+    # SAHIPSIZ listesi (eslestirme kurali mimarindir; uydurma yok).
+    if sahipsiz_listesi:
+        print("")
+        print("SAHIPSIZ_LISTESI (%d kayit, ADLAR):" % len(sahipsiz_listesi))
+        for ad, kaynak in sahipsiz_listesi:
+            print("  %-44s [%s]" % (ad, kaynak))
     if mutant_turevleri:
         print("")
         print("-mutasyon turevleri (haritada yok; -kapisi.py'nin EV'sine dustu):")
         for m, ev, kaynak in mutant_turevleri:
             print("  %-32s -> %s (%s)" % (m, ev, kaynak))
+    return 0
+
+
+def sahipsiz_listele(repo_kok, harita_yolu):
+    """Sadece SAHIPSIZ (BILINMIYOR) listesini bas; analiz ozetini atlar."""
+    harita, hatalar = haritayi_oku(repo_kok, harita_yolu)
+    if hatalar:
+        print("HARITA OKUMA HATALARI:", file=sys.stderr)
+        for h in hatalar:
+            print("  " + h, file=sys.stderr)
+    idx = mekanizmaya_mekanizma_adlari(harita)
+
+    sahipsiz = []
+    for h in harita:
+        if h["EV"] == "BILINMIYOR":
+            sahipsiz.append((h["MEKANIZMA"], "HARITA"))
+    ek_mekanizmalar = set()
+    if os.path.isdir(os.path.join(repo_kok, "tools")):
+        for f in sorted(os.listdir(os.path.join(repo_kok, "tools"))):
+            if "-mutasyon" in f and f.endswith(".py") and not f.endswith("-test.py"):
+                if f not in idx:
+                    ek_mekanizmalar.add(f)
+    for m in sorted(ek_mekanizmalar):
+        if mekanizma_icin_ev(m, idx) == "BILINMIYOR":
+            sahipsiz.append((m, "MUTANT_TUREV"))
+
+    print("SAHIPSIZ=%d" % len(sahipsiz))
+    for ad, kaynak in sahipsiz:
+        print("  %-44s [%s]" % (ad, kaynak))
     return 0
 
 
@@ -693,8 +844,12 @@ def tatbikat(repo_kok, harita_yolu, temizlik=True):
         "damga": damga,
     }
     sonuc = yonlendir(kalem, idx, koku_root=None)
-    print("TATBIKAT sonuc: EV=%s YAZILDI=%s POSTA_YOL=%s"
-          % (sonuc["EV"], sonuc["YAZILDI"], sonuc["POSTA_YOL"]))
+    print("TATBIKAT sonuc: EV=%s YAZILDI=%s HEDEF_YAZILDI=%s POSTA_YOL=%s"
+          % (sonuc["EV"], sonuc["YAZILDI"], sonuc["HEDEF_YAZILDI"],
+             sonuc["POSTA_YOL"]))
+    if sonuc.get("IZ_YOL"):
+        print("DEVREDILDI izi: IZ_YOL=%s IZ_YAZILDI=%s"
+              % (sonuc["IZ_YOL"], sonuc.get("IZ_YAZILDI")))
     if temizlik:
         silinenler = temizle_sentetik([sonuc], koku_root=None)
         # Kanit: dosya hâlâ varsa icinde damga YOKMUs
@@ -724,15 +879,19 @@ def main():
     ap.add_argument("--harita", default=HARITA_RELATIF,
                     help="harita TSV yolu (repo-goreli veya mutlak)")
     ap.add_argument("--kendini-test", action="store_true",
-                    help="3 mutantu izole kos (gercek posta kutularina DOKUNMAZ)")
+                    help="4 mutantu izole kos (gercek posta kutularina DOKUNMAZ)")
     ap.add_argument("--tatbikat", action="store_true",
                     help="sentetik kirmizi uretip gercek posta kutusuna yazar; "
-                         "AYNI kosumda siler, TEMIZ=EVET kanitlar")
+                         "AYNI kosumda siler, TEMIZ=EVET kanitlar (hedef ev + "
+                         "KraL DEVREDILDI izi dahil)")
     ap.add_argument("--temizlik-yapma", action="store_true",
                     help="--tatbikat ile: silme adimini atla (test icin)")
     ap.add_argument("--posta-koku-root", default=None,
                     help="--kendini-test icin izole posta kutusu koku "
                          "(default: tempfile.mkdtemp()). Belirtilmezse gecici dizin.")
+    ap.add_argument("--sahipsiz-listele", action="store_true",
+                    help="Sadece SAHIPSIZ (BILINMIYOR) listesini bas; "
+                         "44 kaydin ADLARINI icerir.")
     args = ap.parse_args()
 
     repo_kok = args.repo or _repo_kok()
@@ -759,6 +918,9 @@ def main():
     if args.tatbikat:
         return tatbikat(repo_kok, args.harita,
                         temizlik=not args.temizlik_yapma)
+
+    if args.sahipsiz_listele:
+        return sahipsiz_listele(repo_kok, args.harita)
 
     return analiz(repo_kok, args.harita)
 
