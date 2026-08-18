@@ -4,10 +4,22 @@
 
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🟠 **K186 CHIP `KraL-Ege reformu altyapi`** — TUR 2d kosuyor (serit hukmu YARIM uygulanmisti,
-  chip kendi yakaladi: `--capa` acilacak, G5 kendi bayragina tasinacak 17→16, serit-a3'e 2. adim).
-  🔴 **MERGE SARTI (19 Agu):** ya Node 20 ile kosmus ham cikti ya da SHA'yi iceren YESIL CI kosumu —
-  yerel 50/50 tek basina YETMEZ. Tam metin KUTUDA.
+- 🟠 **K186 dal `74d6cfcd` DONDURULDU, MERGE BEKLIYOR** (chip kapandi): olculmus tablo
+  `IDDIA=50 DUSEN=0 MUTANT=50/50` · bloklayici kol `16/16` · `--capa 1/1` · kisisel-veri rc=0.
+  🔴 MERGE SARTI: kosum **`32192345810` @ `74d6cfcd`** yesili (yerel olcum CI node 20'de DEGIL,
+  K196). Kosum 22:21Z'de basladi, oturum kapanirken hala `in_progress`. Bloklayici kolun ILK
+  gercek kosumu merge'de; geri alma `git revert -m 1`. 🔴 TAAHHUT: **K200 yesil olmadan TRAFIK
+  acilmaz** (sema uygulanabilir, uc deploy + sihirbaz yayini K200'e bagli).
+- 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
+  isliyor"u iddia eder. Uc ayak: (i) canli `--kuru` bir kez olculdu, (ii) periyodik kablolama
+  (MIMARDA, K198'in arkasinda), (iii) kablolamanin KOSTUGU kanit (zaman damgali iz + tetiklenmezse
+  KIRMIZI). Sira: sema → tesisat kaniti → trafik.
+- 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py`'nin "etkili tasiyici" tanimi LITERALE capali;
+  varlik turetilmis mekanizmaya gecince kapi korlesiyor (K193'te olctuk). Kalici care: sonucu olc
+  ya da makine-okunur beyani tasiyici say. Mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT
+  KENDINI OLCMEZ** — bes vaka: K192 damga · K197 yorumdaki maliyet · K189'un kablo defteri (4 vs 5)
+  · capa tablosu (18'de kaldi) · `--kendini-test 17` (dogrusu 12). Kural: her kayit ya TURETILIR
+  ya kendi sayisiyla KABUL EDILIR; "EKLE" yetmez, SONUC SAYISI sart.
 - 🔧 **K196 (19 Agu, DEPO GENELI):** CI node 20 / yerel 25.8.1 → yereldeki JS yesilleri CI surumunde OLCULMEMIS. **Tam metin ARSIVDE.** K186 merge sartina bagli.
 - 🔧 **K197 (19 Agu, K189 chip olctu — YAYIN YOLU MALIYETI, RATCHET YOK):** pre-push kancasinin
   maliyet beyani 3,16 sn (9 Agu) diyor, **bugun olculen medyan 6,11 sn** → 5 sn esigi zaten asilmis;
@@ -21,30 +33,34 @@
   🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
   K186'nin semasi/ucu KANONIK ve uctan uca olcum K186'nin ucune karsi YENIDEN kosulur. Tam metin KUTUDA.
 - 🔧 **K192 (19 Agu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU kapisinda YOK + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.** (BaBa serhi: 20 Agu codex bitisi.)
-- 🔧 **K193 · K194 (19 Agu, K184 chip):** varlik `cp` satiri iki yerde (ikiz tanim; kabul: tek
-  kaynaktan turer + ayrisinca kapi KIRMIZI) · kaynak kosum takimina gore bukuldu (sahte DOM; koruma
-  KALIR + SEBEP satiri zorunlu, kalici care kosum takimi). **Ikisinin tam metni ARSIVDE.**
 
 
 
 
-## 🔻 KraL SON DURUM — 19 Agu ~04:0xZ (kapanis blogunun tam metni ARSIVDE)
-**CANLIYA:** K181d · K177 · K141 · K183 `77bb3195` · T3 `8ca4c716` · T4 `893d278d`. **KOSUYOR (hepsi CHIP):** K184 · K185 (donuk, merge sirasinda) · K186 · K188. **BEKLIYOR:** HocA Faz-2 · MaCiT Honda (K191).
+## 🔻 KraL OTURUM KAPANISI — 19 Agu ~06:0xZ
+**CANLIYA (bu oturum):** K185 chip duzeni + K188 kutu esik kapisi `4ebefad1` · K195a/K195b defter
+rotasyonu + kota kapisi `77390a81` · sahiplik haritasi `durgun-kalem-kapisi` satiri `dbb798ae`
+(T5 merge'inde EKSIK=1 kalmisti) · defter kalemleri. main=origin `77390a81`+; ana agacta **yabanci
+1 commit** (`12d3e333` hasat) — D1 yazicisi ucusta oldugu icin ITILEMEDI, sahibi tasiyacak.
+**KOSUYOR (chip · dal · motor):** K189 `claude/agitated-haslett-240c77` `0302a97b` (codex/m3;
+eksen 1-2 KAPANDI, eksen 3 yama turu, sonra K197) · K190 `kral/k190-canli-temizlik` (codex luna;
+L1..L9 gecti, L10 turu + K187 sirada) · Onarim grubu devami (T6·⑤·T3·T5·T1 — T1 **20 Agu 08:48Z
+TARIHLI**) · HocA sihirbaz tasarimi (kardes ev).
+**KAPANAN CHIP'LER:** K184 (`2f001db2`, uc CIVILENMIS olcut YESIL: `test -s` kapisi + W2 kirmizi
+yakti + uc jeton bagimsiz; `MUTANT=38/38 KONTROL=16/16`; merge K186'dan SONRA) · K186 (dal dondu) ·
+K188 · K185 · BaBa tatbikat (sayac 4/6).
+**BEKLIYOR:** K184 merge → K186'ya bagli · K186 merge → CI `32192345810` · HocA Faz-2 prose ·
+MaCiT Honda (K191).
 🔧 **K187 — ⚖️ OKAN KARARI 19 Agu: KV BINDING** (Logpush DEGIL). Icra K186 chip'te (binding tanimi + `talepOlayiSay()` govdesi); namespace acma + deploy Okan kapisi.
 🔧 **K190 — ⚖️ OKAN KARARI 19 Agu: CANLI D1'e BAGLANACAK, talep hatti canliya cikmadan ONCE.** `talep-temizlik.py` yerel sqlite'a bagliydi → 90 gunluk saklama fiilen yururlukte DEGILDI. Icra K186 chip'te (`--kuru` olcumune kadar); canli kosum + zamanlanmis is Okan/mimar kapisi.
 - 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
 - 🔧 **K195 (19 Agu — 4. TEKRAR):** `defter-rotasyon.py` kapali madde yokken TASIMIYOR → kota her oturumda ELLE rotasyon istiyor. **Tam metin ARSIVDE.**
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
   taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
-- ✅ **19 Agu MERGE EDILDI:** **K185** chip duzeni (14/14 · 9/9 · tavan 12/12 · aday=0) · **K188** kutu
-  esik kapisi (11/11 · 7/7; ⚠️ KANCA BAGLI DEGIL → kapi main'de ama CANLI DEGIL, chip acildi) ·
-  T3 `8ca4c716` · T4 `893d278d`. Iki chip agaci + bes artik dal temizlendi (worktree 7→4).
-- ✅ **KAPANANLAR (tam metin ARSIVDE):** ③ `4270c95e` (sahiplik haritasi kapisi canlida SUCCESS) ·
-  K178+K178b (SERIT B'de skipped 114→2, 13 kor kirmizi gorunur oldu → [[kablo-da-kosuyor-demek-degil]]) ·
-  K183 `77bb3195` (dispatch kendi grubunda, canli kabul YESIL, kosum `32176203099` 59 dk) ·
-  K167 (defter durum kapisi) · 13 KOR KIRMIZI NOBETCI'nin SAHIPLIK dagilimi (6'si KraL DISI).
-- 🟠 **T3 (`8ca4c716`, CI success) + T4 (`893d278d`) + T5 (`f07b40aa`) KURULDU:** ucu de SERIT B'de, `MUTANT=4/4`; T3'te DORT curutme "hedef kol oldurulunce mutant SESSIZ" verdi (C2 KENETLIYDI → `T3-EV-GECERSIZ` ayrildi), `DEVREDILDI` izi yaziliyor (yazilamazsa fail-closed); T4+T5'te ayrica `CURUTME=4/4`.
-  ACIK: T3 `SAHIPSIZ=44` · T4/T5 canli kablo BILEREK YOK (Okan kapisi) · **T5 gercek defterde 7/7 `OLCULEMEDI`: kalemde HAREKET DAMGASI YOK** → damga alani ayri dilim, T5 canli veride olcemez.
+- ✅ **19 Agu KAPANANLAR (tam metin ARSIVDE):** K185 · K188 · K195a/b · K193 · K194 · T3 `8ca4c716` ·
+  T4 `893d278d` · T5 `f07b40aa` · ③ · K178/K178b · K183 · K167. **KALAN ACIK ARTIKLAR:** T3
+  `SAHIPSIZ=44` · T4/T5 canli kablo (Okan kapisi) · T5'te hareket damgasi yok (7/7 `OLCULEMEDI`) ·
+  K188'in kancasi BAGLI DEGIL · sahte DOM olay uretmiyor (Escape olcumu yok) — hepsi chip'lerde.
 - 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
@@ -70,28 +86,11 @@
 - 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
   Tam metin ARSIVDE.
   kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- 🔧 **K163 (17 Agu — K149'un ARTIGI, fail-silent sinifi):** `isci-temizlik.py:168-169` ciplak
-  `except OSError: pass`; 45/63/125'te listeleme hatasi `return 0` ile "olculemedi"yi 0 okuyor.
-  Tam metin ARSIVDE. kabul: `grep -c "except OSError: pass"` → **0** VE `OLCULEMEDI` isareti.
-- 🔴 **K162 (17 Agu — canli turun profili "CANLI" sayilmiyor; tur cokme riski):** profil adi
-  `profil-<MODEL>-<ETIKET>` iken canli kontrol `pgrep` ciktisinin SON token'ini karsilastiriyor.
-  Tek koruma 2 saatlik tazelik penceresi. Tam metin ARSIVDE. kabul: canli tur fiksturuyle
-  profil silinmez **VE** mutant KIRMIZI yakar.
-- 🔴 **K157 (17 Agu — kimi hatti kok neden BULUNDU, karar OKAN'DA; 22 Agu'ya kadar KAPALI):**
-  tam metin ARSIVDE. ⚖️ Okan emri: yeni olcum turu ACILMAZ; motor plani 20 Agu'ya kadar
-  codex (alt model), sonra m3. kabul: 22 Agu'da nabiz `SAGLIK=YESIL` ise kapanir.
-- 🔵 **K158 (17 Agu, TASARIM ACIGI — KAYIT):** isci tarayicisi YALNIZ kimi motorunda var
-  (m3'te yok) → kimi dustugunde paneli okuyacak yol da kapaniyor; tek tarayicili motorun
-  dususu TESHIS yolunu da kesiyor. Yon: tarayiciyi motordan bagimsiz kola tasi. `kabul:` BOS.
-- 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
-  DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
-  (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
-- 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi).
-  Tam metin ARSIVDE.
-  kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
-- 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal
-  asiyor (tam-dosya diff). Yon: butce buyutmek DEGIL, `urunler.json`'u icerik ekseninde
-  AYRI ele almak. `kabul:` alani BOS.
+- 🔧 **17 Agu KALEMLERI (tam metinleri ARSIVDE, kabul satirlari orada):** **K163** fail-silent ciplak
+  `except OSError: pass` · **K162** canli turun profili CANLI sayilmiyor (tur cokme riski) · **K157**
+  kimi hatti (⚖️ Okan: 22 Agu'ya kadar KAPALI, yeni olcum turu ACILMAZ) · **K158** isci tarayicisi
+  yalniz kimi'de · **K146** nobet dosyalari yedeksiz · **K142** 14 R2 anahtari `NoSuchKey` (MaCiT) ·
+  **K118** pre-push kapisi bicim-kaydiran partide butceyi yapisal asiyor.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
 - 🟠 **K152 (17 Agu — ⚖️ OKAN KARARI KAPSAMI BELIRLEDI; onceki iki hukum de DUSTU):** Okan (birebir): **"sitede bulunan tum urunler satilabilir.
