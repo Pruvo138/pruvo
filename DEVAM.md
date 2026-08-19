@@ -15,8 +15,7 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
   + kabul ARSIVDE. Ayri kalem; onarim SeritB kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (tam blok ARSIVDE).
-- ✅ **K190 KAPANDI — main'de `4340c0b9`** (5 dosya, +829/-80; bayat capalar D11+F5 + kayit ayrismasi kapandi, L9 ambiyanstan koparildi, 4 CI ekseni birlesim ustunde rc=0). Canli dogrulama chip'in kapanis raporunda.
+- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211 · K190 `4340c0b9` · K215/K80 · SeritB `d46747d0`** (tam bloklar ARSIVDE + kutuda).
 - 🟠 **K209 kalintisi (kalem KAPANDI, ARSIVDE):** `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
 - 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
@@ -43,14 +42,16 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
   `talep-sihirbazi-test.py` VAKA 36 (batarya kabuk metnini olcuyor, adim araca tasindi).
   Kalan is + delege plani POSTA KUTUSUNDA. Uc daldan CIKTI; HocA E6 dumani bu merge'e bagli.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
-- 🔧 **K202-kendini-test** (M06 cokme + bayat capa) = SeritB S1 uyesi, o chip'te; kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
+- 🔧 **K202-kendini-test** (M06 cokme + bayat capa) — 🔴 SAHIPSIZ: SeritB chip'i "bende HIC olmadi" diye olctu (onun uyesi K203'tu, YESIL kapandi). kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
   AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
-  📏 PAKET DALI OLCULDU (mb `dc6c50b1` · 1 dosya/+277 · cakisma YOK · ff IMKANSIZ · sizinti 0) = MERGE
-  EDILEBILIR, `KraL-K206 merge` chip'i ACILDI. kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit (parametrik, fiyat bos) · 8 gorsel R2 200 · parite yesil.
-- 🔴 **K216 (19 Agu, MaCiT olctu → hukum+sahip KraL):** `marka_model_build.py` uzun-once deligi —
-  `Land Rover` urunleri `/marka/rover/`'a dusuyor (sayfa 92, katalog 2), D kovasi **83**. SIRA BAGLAYICI
-  D→A→B; `bagimsiz_uyelik` hizalamasi YASAK (147 yanlis yerlestirmeyi kutsar). kabul: D 83→0 + A/B/C DEGISMEDEN · Range Rover kaydi + 6 kayit · 3 mutant hedef-kol atfi · negatif vaka.
+  PAKET main'de (`7ce644ae`). kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit · 8 gorsel R2 200 · parite yesil.
+- ✅ **K216 KAPANDI — main `8634bc49`** (uzun-once jeton tuketimi): D **83→0**, ayni kosumda A/B/C SABIT;
+  `/marka/rover/` 92→10; uretilen yol 1726→1724, kaybolan 2 yolun ikisinde de katalog uyesi **0**.
+  🟠 KALINTI: D1 `marka_kanon` **82 satirda BAYAT** (urun_hash disi kolon, Ege kor kalir) → uzlastirici.
+- 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
+  ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
+  sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
 
 ## KraL SON DURUM (19 Agu ~17:xxZ; eski kapanis blogu ARSIVDE)
 📍 **KOK RAPORU OLCULDU: `DEVAM-ARSIV.md` 20250-20488 = 239 satir = kokteki 239 → LOSSLESS**
