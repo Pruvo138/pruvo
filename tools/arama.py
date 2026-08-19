@@ -1319,6 +1319,24 @@ def rozet_capraz_imzasi():
         .encode("utf-8")).hexdigest()[:16]
 
 
+# 🔴 SINIF EKSENI KENDI IMZASINI TASIR (19 Agu, K202 kabul olcutu 4 — kontrol mutanti).
+# OLCULDU: `rozet_capraz_imzasi()` YALNIZ anahtarlari imzaliyor ve "BEKLER" sinifi K19'da
+# yalnizca BILGI satiri basiyor (KIRMIZI YAKMIYOR). Dolayisiyla bir satirin sinifini
+# ROZET -> BEKLER kaydiran mutant HICBIR kapiyi yakmadan gecerdi: hukum sessizce
+# "karar bekliyor"a duser, sayfa ise dogmaya devam ederdi. Anahtar ekseni sizintiyi
+# (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
+# imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
+# GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
+ROZET_CAPRAZ_SINIF_IMZA = "4fdb0b0c53f35094"  # K205: kapinin hesabiyla (main govdesinde kosuldu)
+
+
+def rozet_capraz_sinif_imzasi():
+    """Envanterin SINIF kimligi: "<anahtar>|<SINIF>" cifti imzalanir (gerekce HARIC)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (k, v[0]) for k, v in ROZET_CAPRAZ_IZINLI.items()),
+                   ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # KUSAK DISI JETONLAR — gramere UYAN ama AYNI ARAC AILESI OLMAYAN (marka, jeton)
 # ciftleri (4 Agu, KraL hukmu; katlama paketinin istisna tablosu)
