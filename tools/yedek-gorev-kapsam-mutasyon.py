@@ -435,7 +435,13 @@ def bataryayi_kos(kaynak_betik, atla=None):
 # ----------------------------------------------------------------- mutantlar --
 SIR_CAPA = "            sebep = sir_sebebi(tam, ad)                 # KATMAN 1 — sir nobeti"
 ALW_CAPA = "            if not _agac_izinli_mi(ad, izinli):         # KATMAN 2 — acik allowlist"
-CRON_CAPA = '    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json")),'
+# 🔴 CAPA TAZELIGI (19 Agu 2026, K212): bu satir 16 Agu'da `.py` ile genisletilmisti,
+# capa metni ESKI kumede kalmisti -> M7/M8 mutantlari "CAPA BULUNAMADI" ile SURUCUYU
+# DUSURURDU. Taban kirmizi oldugu icin mutasyon fazina hic gelinmedigi surece bu
+# GORUNMEDI ([[capa-cokmesi-arkasindaki-capalari-gizler]]). Capa artik AGAC_KAPSAMI
+# satirinin BIREBIR kendisidir; bayatlarsa `capa_tazeligi()` KAYIT dusurur, patlamaz.
+CRON_CAPA = ('    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt",'
+             ' ".json", ".py")),')
 GOREV_CAPA = '    ("gorev", GOREVLER, "gorev-tanimlari", (".md", ".txt", ".json")),'
 
 MUTANTLAR = (
@@ -466,7 +472,7 @@ MUTANTLAR = (
     ("M8-cron-log-kapsama-alindi", "oldurucu", (
         (CRON_CAPA,
          '    ("cron", CRON, "cron-nobet", (".sh", ".crontab", ".md", ".txt", ".json",\n'
-         '                                  ".log")),  # MUTANT: log kapsama alindi'),)),
+         '                                  ".py", ".log")),  # MUTANT: log kapsama alindi'),)),
     ("M10-IKI-KATMAN-BIRDEN", "oldurucu", (
         (SIR_CAPA, "            sebep = None  # MUTANT"),
         (ALW_CAPA, "            if False:  # MUTANT"))),
@@ -527,9 +533,23 @@ def main():
     td = tempfile.mkdtemp(prefix="agac-mutant-")
     oldurucu_bek = oldurucu_ok = kontrol_bek = kontrol_ok = 0
     imzalar = {}
+    bayat_capalar = []
     try:
         for i, (ad, sinif, degisimler) in enumerate(MUTANTLAR):
-            yol = mutant_uret(td, "mutant-%02d-%s.py" % (i, ad), degisimler, taban_sha)
+            # 🔴 BAYAT CAPA PATLAMAZ, KAYIT DUSURUR (19 Agu 2026, K212):
+            # `raise` eden bir capa ARKASINDAKI butun capalari GIZLER — bu depoda
+            # iki bayat capa iki tur yemisti ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
+            # Bayat capa hukmu KIRMIZI yapar ama batarya SONUNA KADAR kosar.
+            try:
+                yol = mutant_uret(td, "mutant-%02d-%s.py" % (i, ad), degisimler, taban_sha)
+            except RuntimeError as e:
+                bayat_capalar.append((ad, str(e)[:160]))
+                print("  ❌ BAYAT CAPA %-28s %s" % (ad, str(e)[:100]))
+                if sinif == "oldurucu":
+                    oldurucu_bek += 1
+                else:
+                    kontrol_bek += 1
+                continue
             shutil.copy2(DRIVE_YOLU, os.path.join(td, "drive_yolu.py"))
             sonuc, _n = bataryayi_kos(yol)
             dusen = tuple(sorted(k for k in TABAN_IDDIALAR if not sonuc.get(k, False)))
@@ -572,8 +592,11 @@ def main():
             print("  ⚠️ AYNI IMZA %s -> %s" % (list(imza), adlar))
     print("BYTECODE   = %d batarya kosumu, toplam %d __pycache__ girisi (0 olmali)"
           % (len(PYC_SAYAC), sum(PYC_SAYAC)))
+    print("BAYAT CAPA = %d (0 olmali)" % len(bayat_capalar))
+    for ad, sebep in bayat_capalar:
+        print("  ❌ %s -> %s" % (ad, sebep))
     hazir = (taban_gecen == len(TABAN_IDDIALAR) and oldurucu_ok == oldurucu_bek
-             and kontrol_ok == kontrol_bek and ayrismayan == 0)
+             and kontrol_ok == kontrol_bek and ayrismayan == 0 and not bayat_capalar)
     print("HUKUM      = " + ("hazir" if hazir else "KIRMIZI"))
     return 0 if hazir else 1
 
