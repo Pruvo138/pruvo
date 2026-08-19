@@ -563,6 +563,12 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
 
     # ---------------------------------------------------------- ulaşılabilir tekil kümeler
     erisim = {}          # marka yolu -> {kategori: set(id)}
+
+    def _sayfalama_alt(kok_yol):
+        """`<kok>/sayfa/<N>` yuzeyleri — gezintiyle ULASILABILIR devam dilimleri."""
+        onek = kok_yol + "/sayfa/"
+        return [v for k, v in sayfalama_sayfalari.items() if k.startswith(onek)]
+
     for yol, s in marka_sayfalari.items():
         kume = {}
         for kat, pid in s["kartlar"]:
@@ -575,11 +581,26 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                 continue
             for kat, pid in mp["kartlar"]:
                 kume.setdefault(kat, set()).add(pid)
+        # 🔴 SAYFALAMA DILIMLERI DE ERISILEBILIR (19 Agu 2026, SERIT B onarimi):
+        # sayfalama geldiginden beri kok marka sayfasi markanin TAMAMINI basmiyor,
+        # kalani `<yol>/sayfa/<N>` yuzeylerinde ve oraya SAYFA GEZINTISIYLE ulasilir.
+        # Kok sayfanin KENDI beyani (build.py `sayfa_kalemleri`, sayfa==1 kolu) zaten
+        # TUM erisilebilir kumeyi sayar; erisim turetmesi o dilimleri saymayinca
+        # TOPLAM ve KAYIP eksenleri 69 markada KIRMIZI yaniyordu (olculdu — kapi
+        # daha once KeyError ile coktugu icin bu satirlar hic gorunmemisti).
+        for ds in _sayfalama_alt(yol):
+            for kat, pid in ds["kartlar"]:
+                kume.setdefault(kat, set()).add(pid)
+            for kat, pid in ds["baglar"]:
+                kume.setdefault(kat, set()).add(pid)
         erisim[yol] = kume
     for yol, s in model_sayfalari.items():
         kume = {}
         for kat, pid in s["kartlar"]:
             kume.setdefault(kat, set()).add(pid)
+        for ds in _sayfalama_alt(yol):        # model sayfasinin kendi sayfalamasi
+            for kat, pid in ds["kartlar"]:
+                kume.setdefault(kat, set()).add(pid)
         erisim[yol] = kume
     # Sayfalama sayfalari: kendi diliminin kartlari (build.py `sayfa_kalemleri`
     # kolu 1. sayfada tum erisilebilir kumeyi, devam sayfasinda KENDI dilimini

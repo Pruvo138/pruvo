@@ -781,16 +781,40 @@ def akis_ayna_kur(hedef_kok, mutasyonlar=None):
     # dahil TUM bolum E hukumleri bu yuzden gecersizdi (olculdu). Once BOS bir taban
     # commit'i, sonra icerik commit'i: HEAD^ = bos taban. Kimlik config'e YAZILMAZ,
     # her commit'e `-c` ile verilir (sentetik_git deseni).
-    kimlik = ("-c", "user.name=e-ayna", "-c", "user.email=e-ayna@ornek.gecersiz")
-    r = git("-C", hedef_kok, *kimlik, "commit", "--quiet", "--no-verify",
-            "--allow-empty", "-m", "ayna bos taban")
+    # 🔴 COMMIT INDEX'TEN URETILIR, `git commit` KULLANILMAZ: ayna dosyalari SYMLINK
+    # oldugu icin `git commit` calisma agacini tararken "Too many levels of symbolic
+    # links" ile duser (olculdu). `write-tree` + `commit-tree` + `update-ref` yalniz
+    # INDEX'i okur, calisma agacina HIC bakmaz — ayna zaten `git add -f` ile eksiksiz
+    # stage'lenmisti. Kimlik ortam degiskeniyle verilir, hicbir config'e YAZILMAZ.
+    kimlik_ortam = dict(os.environ)
+    kimlik_ortam.update({
+        "GIT_AUTHOR_NAME": "e-ayna", "GIT_AUTHOR_EMAIL": "e-ayna@ornek.gecersiz",
+        "GIT_COMMITTER_NAME": "e-ayna", "GIT_COMMITTER_EMAIL": "e-ayna@ornek.gecersiz",
+    })
+
+    def _g(*args):
+        return subprocess.run(["git", "-C", hedef_kok] + list(args),
+                              capture_output=True, text=True, env=kimlik_ortam)
+
+    r = _g("write-tree")
     if r.returncode != 0:
-        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna bos taban commit'i basarisiz: %s"
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna write-tree basarisiz: %s"
                          % (r.stderr or "").strip()[:200])
-    r = git("-C", hedef_kok, *kimlik, "commit", "--quiet", "--no-verify",
-            "-m", "ayna icerik")
+    agac = (r.stdout or "").strip()
+    # BOS taban commit'i: kapinin K80 ekseni `HEAD^`i (bu itmenin ONCESI) ister.
+    r = _g("commit-tree", "-m", "ayna bos taban", agac)
     if r.returncode != 0:
-        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna icerik commit'i basarisiz: %s"
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna taban commit-tree basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    taban_sha = (r.stdout or "").strip()
+    r = _g("commit-tree", "-p", taban_sha, "-m", "ayna icerik", agac)
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna icerik commit-tree basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    tepe_sha = (r.stdout or "").strip()
+    r = _g("update-ref", "HEAD", tepe_sha)
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna update-ref basarisiz: %s"
                          % (r.stderr or "").strip()[:200])
     return hedef_kok
 
