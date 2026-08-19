@@ -2,16 +2,22 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔻 KraL CANLI DURUM — 19 Agu ~18:0xZ (main=origin `4340c0b9`)
-**CANLIYA (bugun):** T-altyapisi `74475c70` · K186 `e25bea7b`+`73f41c8b` · K205 `bcde35fa` ·
-K210 `33b663e4` · K211 semasi · hijyen `840a6e26` · kok-rapor `bf543b60` · **K190 `4340c0b9`**.
-**KOSAN 2 CHIP (OLDURME, motor luna):** ① K214 `kral/k214-motor-tek-kaynak` @ `3a8a0434`
-② K215/K80 KAPANDI — seritb `d46747d0` · k215 `a1d20460` · onarim `a18b2d1c` CANLI; esdegerlik
-FARK=0 (iki blok), K80 blokaji kalkti: K184 push'u `YENI_CI_ADIMI=3 KOSULAN=3`.
-**YENI 2 CHIP (~17:5xZ):** `KraL-K206 merge` (paket dalini main'e alir) · `KraL-K216 D-KOD` (marka
-uzun-once deligi, dal `kral/k216-marka-uzun-once`). **BEKLIYOR:** K212 · K213 sayi 51 (MaCiT) ·
-gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
-**TEMIZLIK:** worktree 7 (1 mimar + 5 chip + 1 MaCiT'in, DOKUNULMADI). Rol tavani **MIMAR 1/2 · CHIP 6/12** ✅.
+## 🔁 DEVIR — 19 Agu 2026 22:1xZ, eski hesap → yeni hesap (KraL)
+**SIRADAKI TEK IS:** Uc hazir dali merge kapisindan gecirip main'e al — `kral/n1-gozcu-kablolama`
+`fd6b6d8d` · `kral/n2-kirleten-onarir` `a87f1809` · `kral/k184-talep-sihirbazi` `f623d712`.
+**Nerede kaldim:** main=origin `83dab393`, ana agac TEMIZ. Bugun canliya: K190 `4340c0b9` ·
+K216 `8634bc49` · K206 `7ce644ae` · K223 `9965c4fb` · K212 `df7425ea` · K224 (isci hatti) ·
+shop worker Okan'in deploy'uyla taze (`5606ffbe`, TALEP_SAYAC KV bagli) · D1 bes eksen YESIL.
+🟢 **N1 KABLOLAMASI CANLI** (cron repo disi): `crontab` gozcu `8,23,38,53` (15 dk) + `ci-nobeti.sh`
+artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merge BEKLIYOR.
+**Acik worktree/dal:** 3 agac, ucu de TEMIZ ve chip'leri kapandi — `nostalgic-noyce`(N1) ·
+`magical-mcclintock`(N2) · `optimistic-blackburn`(K184); merge sonrasi kapatilacak. Ayrica
+`kral/k195-defter-rotasyon` (DEVAM.md CAKISMASI var, once cozulecek) + `kral/k214-motor-tek-kaynak`.
+**Baskasinin calisma kopyasinda duran:** YOK (uc agac da porcelain temiz).
+**Zamanlanmis nobetler:** `7 * * * *` ci-nobeti.sh (⚠️ `.ci-token`'a BAGLI — yeni hesapta ILK IS
+tazelemek) · `8,23,38,53 * * * *` gozcu.py (deterministik) · `41 6` kota-olcum · `10 9`/`10 21`
+kimi-nabiz. Scheduled-tasks KAYITLARI hesapta yasar → yeniden kurulacak.
+**Okan'da bekleyen karar:** yok (shop deploy bugun yapildi; K200(i) canli `--kuru --d1` duruyor).
 
 
 
@@ -56,17 +62,11 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 
 
 
-## KraL SON DURUM (19 Agu ~17:xxZ; eski kapanis blogu ARSIVDE)
-📍 **KOK RAPORU OLCULDU: `DEVAM-ARSIV.md` 20250-20488 = 239 satir = kokteki 239 → LOSSLESS**
-(ayrinti KUTUDA). ⚠️ CLAUDE.md 12.269/12.288 bayt — sonraki dokunus ONCE rotasyon ister.
-🧹 **TEMIZLIK (mimar eli, olculdu):** worktree **3→1** (yalnizca CANLI `gallant-shirley` =
-SeritB onarim kaldi; `dreamy-mclean`+`suspicious-cerf` temiz+icerik-main'de kanitiyla silindi,
-raporlari scratchpad'e yedeklendi) · **10 zombi yerel dal silindi** (`-d`, hepsi main'e merged).
-✅ **K190+K187 mimarca teyitli** (`91479a60`): `22/22`, K187 `KV=4/4` — ama MERGE ICIN
-onarim sart (yukarida). · 🔧 **K203:** tavan kapisi worktree
-ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204:** `OKSUZ` fiilen
-"kirli mi" olcuyor; TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188 yarim yedek OLCULEBILIR**
-(`§7` izi buldu, pid 3594 YOK); kabul: `YEDEK=TAM/YARIM` jetonu + fikstur.
+## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
+🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);
+K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204:** `OKSUZ` fiilen
+"kirli mi" olcuyor, TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188:** yarim yedek OLCULEBILIR;
+kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
 - 🔧 **K195 (19 Agu — 4. TEKRAR):** `defter-rotasyon.py` kapali madde yokken TASIMIYOR → kota her oturumda ELLE rotasyon istiyor. **Tam metin ARSIVDE.**
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
