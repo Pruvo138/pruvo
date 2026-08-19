@@ -1,36 +1,30 @@
 # DEVAM (KraL) — 8 Agu 2026
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
-## 🔻 KraL OTURUM KAPANISI — 19 Agu ~17:3xZ (main=origin `bf543b60`, agac TEMIZ)
-**CANLIYA (bugun, hepsi deploy SUCCESS + D1 5 eksen):** Onarim T-altyapisi `74475c70` ·
-K186 `e25bea7b`+`73f41c8b` · K205 `bcde35fa` · K210 `33b663e4` · K211 semasi (Okan eliyle) ·
-hijyen `840a6e26` · kok-rapor kaniti `bf543b60`.
-**KOSUYOR (OLDURME) — ucu de motor luna:** ① `KraL-K190 onarim` · dal `kral/k190-canli-temizlik`
-· agac `gallant-lichterman` ② `KraL-Motor kapisi` K214 · `kral/k214-motor-tek-kaynak` ·
-`magical-mcclintock` ③ `KraL-K80 yayin-topla` K215 · `kral/k215-yayin-topla` · `nostalgic-noyce`;
-UC MERGE onun kuyrugunda: seritb `a93f2fb2` → k215 → K184 `6576bf27`.
-**BEKLIYOR:** K206 dal `k206-uretec-baglama` `6d635230` (origin'de) merge SIRADA · K212 chip'i ·
-K213 sayi 51 + 69 marka sapmasi (MaCiT) · gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
-**TEMIZLIK:** worktree 9→7 (2 oksuz agac silindi, dallari origin'de); kalan 6'nin 3'u KOSAN
-chip, 1'i MaCiT'in (DOKUNULMADI). Rol tavani **MIMAR 1/2 · CHIP 6/12** ✅.
+## 🔻 KraL CANLI DURUM — 19 Agu ~18:0xZ (main=origin `4340c0b9`)
+**CANLIYA (bugun):** T-altyapisi `74475c70` · K186 `e25bea7b`+`73f41c8b` · K205 `bcde35fa` ·
+K210 `33b663e4` · K211 semasi · hijyen `840a6e26` · kok-rapor `bf543b60` · **K190 `4340c0b9`**.
+**KOSAN 4 CHIP (OLDURME, motor luna):** ① K214 `kral/k214-motor-tek-kaynak` @ `3a8a0434` ② K215
+`kral/k215-yayin-topla` — UC MERGE kuyrugunda: seritb `a93f2fb2` → k215 → K184 `6576bf27`
+③ SeritB onarim `a93f2fb2` ④ K184 `6576bf27`.
+**YENI 2 CHIP (~17:5xZ):** `KraL-K206 merge` (paket dalini main'e alir) · `KraL-K216 D-KOD` (marka
+uzun-once deligi, dal `kral/k216-marka-uzun-once`). **BEKLIYOR:** K212 · K213 sayi 51 (MaCiT) ·
+gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
+**TEMIZLIK:** worktree 7 (1 mimar + 5 chip + 1 MaCiT'in, DOKUNULMADI). Rol tavani **MIMAR 1/2 · CHIP 6/12** ✅.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
   + kabul ARSIVDE. Ayri kalem; onarim SeritB kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (SHA/kapi/deploy kanitlari + K202 devri ARSIVDE). K211'in SON teyidi HocA'da KAPANDI: `sqlite_master`=1 satir · PRAGMA=11 kolon · kod-sema sapmasi 0.
-- 🔴 **K190 MERGE EDILMEDI — DAL-ICI KIRMIZI (chip KOSUYOR):** kok dalin KENDI `76c8444f`
-  commit'i (capa/beklenti guncellenmedi); main mb'den beri 5 dosyaya DOKUNMADI, birlesim SUCSUZ.
-  kabul: `talep-hatti-test.py` + `talep-temizlik.py --kendini-test` rc=0 + mutant atfi, sonra merge.
-- ✅ **K209 KAPANDI — worker CANLI** (kanit ARSIVDE). 🟠 Kalinti ACIK: `33b663e4` (K210'un TEK
-  yorum satiri, davranis AYNI) canlida degil → alarm 102,5/120 dk; care ikinci `wrangler deploy`.
+- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (kanitlar + K202 devri ARSIVDE; K211 teyidi HocA'da KAPANDI).
+- ✅ **K190 KAPANDI — main'de `4340c0b9`** (5 dosya, +829/-80; bayat capalar D11+F5 + kayit ayrismasi kapandi, L9 ambiyanstan koparildi, 4 CI ekseni birlesim ustunde rc=0). Canli dogrulama chip'in kapanis raporunda.
+- ✅ **K209 KAPANDI — worker CANLI** (ARSIVDE). 🟠 Kalinti: `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
 - 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
 - 🔴 **K213 (19 Agu, MaCiT olctu → hukum KraL'da, sahibi MaCiT):** CC BY/BY-SA **50 kayitta**
   `lisans.tasarimci` yer tutucu (`?` 49 + `...` 1) → canlida atif KOSULU karsilanmiyor.
-  HUKUM KUTUDA (4 madde): urun CEKILMEZ + `lisans` SILINMEZ · ad KAYNAKTAN doldurulur ·
-  kurtarilamayanda K27'nin izin verdigi dar kolla kaynak LINKI (ucretli/uyelikli kayda SICRAMAZ) ·
-  **2. vaka oldugu icin KALICI KAPI SART** (tarama/ekleme katmani, fail-closed).
+  HUKUM KUTUDA (4 madde: urun CEKILMEZ + `lisans` SILINMEZ · ad KAYNAKTAN · kurtarilamayanda
+  K27'nin dar kaynak-LINKI kolu · 2. vaka oldugu icin KALICI fail-closed KAPI).
   kabul: kapi + mutant + ihlal sayisi duser + `denetim-kapisi` yesil.
 - 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
   varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur
@@ -51,10 +45,13 @@ chip, 1'i MaCiT'in (DOKUNULMADI). Rol tavani **MIMAR 1/2 · CHIP 6/12** ✅.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
 - 🔧 **K202-kendini-test** (M06 cokme + M17/M20/M31 bayat capa) = SeritB S1 uyesi, `KraL-SeritB
   onarim` chip'inde; kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
-- 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama
-  AYRI AILE · gyro semasinda `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220);
-  ⚠️ kupler render guncelligi CELISKILI, chip OLCECEK. kabul: ONIZLEME_AILELER 22→30 ·
-  taban-fiyat 21→29 · +8 sari kayit (parametrik, fiyat boş) · 8 gorsel R2'de 200 · parite yesil.
+- 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
+  AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
+  📏 PAKET DALI OLCULDU (mb `dc6c50b1` · 1 dosya/+277 · cakisma YOK · ff IMKANSIZ · sizinti 0) = MERGE
+  EDILEBILIR, `KraL-K206 merge` chip'i ACILDI. kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit (parametrik, fiyat bos) · 8 gorsel R2 200 · parite yesil.
+- 🔴 **K216 (19 Agu, MaCiT olctu → hukum+sahip KraL):** `marka_model_build.py` uzun-once deligi —
+  `Land Rover` urunleri `/marka/rover/`'a dusuyor (sayfa 92, katalog 2), D kovasi **83**. SIRA BAGLAYICI
+  D→A→B; `bagimsiz_uyelik` hizalamasi YASAK (147 yanlis yerlestirmeyi kutsar). kabul: D 83→0 + A/B/C DEGISMEDEN · Range Rover kaydi + 6 kayit · 3 mutant hedef-kol atfi · negatif vaka.
 
 ## KraL SON DURUM (19 Agu ~17:xxZ; eski kapanis blogu ARSIVDE)
 📍 **KOK RAPORU OLCULDU: `DEVAM-ARSIV.md` 20250-20488 = 239 satir = kokteki 239 → LOSSLESS**
