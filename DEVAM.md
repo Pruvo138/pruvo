@@ -5,18 +5,18 @@
 ## 🔁 DEVIR — 19 Agu 2026 22:1xZ, eski hesap → yeni hesap (KraL)
 **SIRADAKI TEK IS:** Uc hazir dali merge kapisindan gecirip main'e al — `kral/n1-gozcu-kablolama`
 `fd6b6d8d` · `kral/n2-kirleten-onarir` `a87f1809` · `kral/k184-talep-sihirbazi` `f623d712`.
-**Nerede kaldim:** main=origin `83dab393`, ana agac TEMIZ. Bugun canliya: K190 `4340c0b9` ·
+**Nerede kaldim:** 20 Agu ACILIS: main=origin `519fdb2d`, agac TEMIZ, worktree **1**, cakisma
+on-testi ucunde de YOK, D1 bes eksen YESIL (29573), `.ci-token` **GECERLI** (01:45 turu rc=0
+gercek icra — Okan kapisi ACILMADI). Spec `tools/paket-uc-dal-merge.md`. Onceki tur: K190 `4340c0b9` ·
 K216 `8634bc49` · K206 `7ce644ae` · K223 `9965c4fb` · K212 `df7425ea` · K224 (isci hatti) ·
 shop worker Okan'in deploy'uyla taze (`5606ffbe`, TALEP_SAYAC KV bagli) · D1 bes eksen YESIL.
 🟢 **N1 KABLOLAMASI CANLI** (cron repo disi): `crontab` gozcu `8,23,38,53` (15 dk) + `ci-nobeti.sh`
 artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merge BEKLIYOR.
-**Acik worktree/dal:** 3 agac, ucu de TEMIZ ve chip'leri kapandi — `nostalgic-noyce`(N1) ·
-`magical-mcclintock`(N2) · `optimistic-blackburn`(K184); merge sonrasi kapatilacak. Ayrica
-`kral/k195-defter-rotasyon` (DEVAM.md CAKISMASI var, once cozulecek) + `kral/k214-motor-tek-kaynak`.
-**Baskasinin calisma kopyasinda duran:** YOK (uc agac da porcelain temiz).
-**Zamanlanmis nobetler:** `7 * * * *` ci-nobeti.sh (⚠️ `.ci-token`'a BAGLI — yeni hesapta ILK IS
-tazelemek) · `8,23,38,53 * * * *` gozcu.py (deterministik) · `41 6` kota-olcum · `10 9`/`10 21`
-kimi-nabiz. Scheduled-tasks KAYITLARI hesapta yasar → yeniden kurulacak.
+**Acik dal:** merge sirasi N1→N2→K184; ayrica `kral/k195-defter-rotasyon` (DEVAM.md cakismasi)
++ `kral/k214-motor-tek-kaynak`. **Baskasinin calisma kopyasinda duran:** YOK.
+**Zamanlanmis nobetler:** crontab 5 satir CANLI ve OLCULDU · scheduled-tasks kayitli 3, ucu de
+`enabled=false` — KASITLI: `saatlik-github-hata-nobeti` crontab surumuyle MUKERRER olurdu,
+`kuyruk-geri-tepmesi-48sa` penceresi gecti, POM izleyicisi bayat. Yeniden kurulan: YOK.
 **Okan'da bekleyen karar:** yok (shop deploy bugun yapildi; K200(i) canli `--kuru --d1` duruyor).
 
 
