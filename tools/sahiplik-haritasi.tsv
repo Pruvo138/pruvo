@@ -146,6 +146,7 @@ model_kanon	tools/model_kanon.py	MaCiT	hijyen	YOK
 mukerrer-kontrol	tools/mukerrer-kontrol.py	MaCiT	hijyen	YOK
 mutlak-yol-kapisi	tools/mutlak-yol-kapisi.py	KraL	yayin	python3 tools/mutlak-yol-kapisi --kendini-test
 myminifactory-api	tools/myminifactory-api.py	MaCiT	hijyen	YOK
+okan-kapisi-penceresi	tools/okan-kapisi-penceresi.py	KraL	nobet	python3 tools/okan-kapisi-penceresi.py --kendini-test
 olculmemis-siparis	tools/olculmemis-siparis.py	KraL	hijyen	python3 tools/olculmemis-siparis-test.py
 onarim-commit	tools/onarim-commit.py	KraL	hijyen	python3 tools/onarim-commit-test.py
 onizleme-deploy-hazirla	tools/onizleme-deploy-hazirla.py	KraL	hijyen	python3 tools/onizleme-deploy-hazirla --kendini-test
@@ -173,6 +174,7 @@ sitemap-damga-uret	tools/sitemap-damga-uret.py	KraL	hijyen	YOK
 spec-ifsa-kapisi	tools/spec-ifsa-kapisi.py	KraL	hijyen	python3 tools/spec-ifsa-kapisi --kendini-test
 stl-uc-kopya-nobet	tools/stl-uc-kopya-nobet.py	MaCiT	nobet	python3 tools/stl-uc-kopya-nobet-test.py
 stok-d1-kapisi	tools/stok-d1-kapisi.py	MaCiT	yayin	YOK
+t1-kiyas	tools/t1-kiyas.py	KraL	nobet	python3 tools/t1-kiyas.py --kendini-test
 t3-yonlendirme-kapisi	tools/t3-yonlendirme-kapisi.py	KraL	nobet	python3 tools/t3-yonlendirme-kapisi.py --kendini-test
 talep-temizlik	tools/talep-temizlik.py	KraL	veri	python3 tools/talep-temizlik.py --kendini-test
 test-bbox-3mf	tools/test-bbox-3mf.py	MaCiT	hijyen	YOK
