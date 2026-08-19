@@ -250,6 +250,95 @@ kontrol("K126 SUBSUMPTION: gerçek marka=[] ürünün kendi başlığıyla da ba
         mm.baslik_uyelikleri(_ornek, EVREN, AD_KANONU, AZAMI_AD, _ek_markalar) == [])
 
 
+# ------------------------------------------------- UZUN-ÖNCE KURALI — HEDEF KOL (K216)
+# ÖLÇÜLEN SESSİZ HATA (19 Ağu 2026, taban 29.461 ürün): `baslik_uyelikleri`'nin uzun-önce
+# döngüsünde TÜKETİM, AD EŞLEŞMESİNE değil EKLEME YARGISINA bağlıydı (`kan and kan not in
+# uyeler and kan not in eklendi` tek `if`e katlanmıştı). Uzun eşleşme ZATEN ÜYE ise
+# `vuruldu` atanmıyor, jetonlar serbest kalıyor ve bir sonraki pozisyonda KISA ad
+# ateşliyordu: `marka=["Land Rover"]` ürünleri `/marka/rover/` sayfasına düşüyordu
+# (sayfa 92 ↔ katalog 2; 92 kalemin 88'i Land Rover üyesi). Fonksiyonun KENDİ docstring'i
+# ("Land Rover ..." başlığında bigram tutunca tekil "Rover" ÜRETİLMEZ) bunu YASAKLIYORDU —
+# sözleşme yazılıydı, uygulaması yoktu. Kanonik dip: index.html `baslikMarkalari`.
+#
+# 🔴 DÖRT İDDİA, İKİ YÖNLÜ: (1)+(4) uzun adın jetonu yuttuğunu, (2) TEK YÖNLÜ NÖBETÇİ
+# OLMADIĞINI (örtülü olmayan kısa ad HÂLÂ ateşler), (3) tüketimin taramayı DURDURMADIĞINI
+# ölçer. (2) olmasaydı `baslik_uyelikleri`'yi tümden söndüren bir mutant da YEŞİL geçerdi.
+_K216_UZUN = {"id": "k216-uzun-once-sentetik", "marka": ["Land Rover"],
+              "kategori": "Otomobil", "baslik": "Land Rover Arka Kapi Trim Kapagi"}
+_K216_KISA = {"id": "k216-kisa-ad-sentetik", "marka": ["Opel"],
+              "kategori": "Otomobil", "baslik": "Rover 75 Sis Fari Cercevesi"}
+_K216_IKINCI = {"id": "k216-ikinci-marka-sentetik", "marka": ["Land Rover"],
+                "kategori": "Otomobil", "baslik": "Land Rover Bosch Sensor Tutucusu"}
+
+
+def _k216(p):
+    return mm.baslik_uyelikleri(p, EVREN, AD_KANONU, AZAMI_AD, _ek_markalar)
+
+
+_k216_uzun = _k216(_K216_UZUN)
+_k216_kisa = _k216(_K216_KISA)
+_k216_ikinci = _k216(_K216_IKINCI)
+BILGI.append("K216 sentetik: uzun=%r kısa=%r ikinci=%r" % (_k216_uzun, _k216_kisa, _k216_ikinci))
+kontrol("K216 UZUN-ÖNCE: marka=[Land Rover] + 'Land Rover ...' başlığı tekil 'Rover' ÜRETMEZ "
+        "(üye uzun eşleşme de jetonları TÜKETİR)", "Rover" not in _k216_uzun)
+kontrol("K216 POZİTİF KONTROL (tek yönlü nöbetçi DEĞİL): uzun ad ÖRTMEYEN 'Rover 75 ...' "
+        "başlığı hâlâ 'Rover' ÜRETİR", _k216_kisa == ["Rover"])
+kontrol("K216 TÜKETİM TARAMAYI DURDURMAZ: 'Land Rover Bosch ...' başlığında ikinci marka "
+        "(Bosch) HÂLÂ eklenir", _k216_ikinci == ["Bosch"])
+kontrol("K216 ÜYE MARKA KENDİ LİSTESİNE EKLENMEZ (tüketim ≠ ekleme): sonuç BOŞ",
+        _k216_uzun == [])
+
+# GERÇEK KATALOG EKSENİ — sentetik turnusol yetmez ([[prob-gercek-isi-taklit-etmeli]]).
+# Sınıf: başlığında "land rover" bigramı GEÇEN ve Land Rover ÜYESİ olan her ürün.
+#
+# 🔴 EKSEN AYRIMI (mimar hükmü, 19 Ağu 2026): burada ölçülen şey UZUN-ÖNCE MEKANİZMASIDIR.
+# Başlığında "range rover" bigramı da geçen kayıtlar AYRI bir kusurdan sızar — `ad_kanonu`'da
+# ("range","rover") anahtarı YOKTUR, dolayısıyla "range" tüketilmez ve tarayıcı doğrudan
+# "rover"a düşer; uzun-önce kuralı orada zaten hiç devreye girmez. O boşluk K220 kalemidir
+# (`marka_yazimlari()` ile `taninmis_mi()` TEK listeden besleniyor; ayrılması gerekiyor) ve
+# `tools/arama.py` BILESIK_MARKA_REDDEDILEN'de "Range Rover: (Rover, AYRISMA)" olarak ZATEN
+# kayıtlıdır. İddia BU YÜZDEN "hiç sızma yok" demez — "uzun-önce deliğinden sızma YOK, kalan
+# HER sızıntı K220 boşluğuyla AÇIKLANABİLİR" der. Ölçüt genişletmek değil, doğru ekseni
+# adlandırmaktır: K220 kapandığında bu satır kendiliğinden 0/0 olur.
+def _bigram(bw, a, b):
+    return any(bw[i] == a and bw[i + 1] == b for i in range(len(bw) - 1))
+
+
+_LR_SINIF, _RR_SINIF = [], set()
+_RR_BASLIK = set()            # başlığında "range rover" bigramı geçen HER ürün (K220 sınıfı)
+_LR_UYE = set()               # Land Rover katalog üyeleri
+_ROVER_UYE = set()            # GERÇEK Rover marque'ı katalog üyeleri (negatif vakanın çapası)
+for _p in PRODUCTS:
+    if not _p.get("id"):
+        continue
+    _uy = mm.marka_uyelikleri(_p.get("marka") or [], EVREN, _ek_markalar)
+    _bw = mm._kelimeler(_p.get("baslik") or "")
+    if _bigram(_bw, "range", "rover"):
+        _RR_BASLIK.add(_p["id"])
+    if "Rover" in _uy:
+        _ROVER_UYE.add(_p["id"])
+    if "Land Rover" not in _uy:
+        continue
+    _LR_UYE.add(_p["id"])
+    if not _bigram(_bw, "land", "rover"):
+        continue
+    _LR_SINIF.append(_p)
+    if _bigram(_bw, "range", "rover"):
+        _RR_SINIF.add(_p["id"])
+_k216_sizan = [p["id"] for p in _LR_SINIF if "Rover" in _k216(p)]
+_k216_mekanizma = [i for i in _k216_sizan if i not in _RR_SINIF]
+BILGI.append("K216 katalog sınıfı: 'land rover' bigramlı Land Rover üyesi %d ürün · 'Rover' "
+             "sızdıran %d · bunun K220 boşluğuyla açıklanan %d · UZUN-ÖNCE deliğinden %d"
+             % (len(_LR_SINIF), len(_k216_sizan),
+                len(_k216_sizan) - len(_k216_mekanizma), len(_k216_mekanizma)))
+kontrol("K216 sınıf BOŞ DEĞİL (iddia gerçekten ölçülüyor): %d ürün" % len(_LR_SINIF),
+        len(_LR_SINIF) > 0)
+kontrol("K216 KATALOG/MEKANİZMA: UZUN-ÖNCE deliğinden 'Rover' kovasına sızan ürün YOK "
+        "(sızan: %d %s)" % (len(_k216_mekanizma), _k216_mekanizma[:5]), not _k216_mekanizma)
+kontrol("K216 KALAN SIZINTI TAMAMEN K220 BOŞLUĞU (açıklanamayan sızıntı yok): %d kayıt"
+        % len(_k216_sizan), set(_k216_sizan) <= _RR_SINIF)
+
+
 def gorunur(k):
     """Kullanıcının marka olarak SEÇEBİLDİĞİ kanonik ad mı (çip + tanınmış liste)."""
     return bool(k) and (EVREN.taninmis_mi(k) or k in CIP_EVREN)
@@ -506,6 +595,32 @@ kontrol("POZ: /marka/<X>/ ürün kümesi = index.html marka filtresi (sapan mark
 # NEG: sayfası olan her markanın kümesi BOŞ olmasın (sessiz boşalma nöbeti)
 bos = [m for m, s in MARKA_URUNLERI.items() if not s]
 kontrol("NEG: sayfası olan hiçbir marka BOŞ değil (boş: %d)" % len(bos), not bos)
+
+# ------------------------------------------------- K216 ÜRETİLEN SAYFA EKSENİ (mutasyona duyarlı)
+# 🔴 NEDEN BURADA, YUKARIDAKİ K216 BLOĞUNA EK OLARAK: yukarıdaki iddialar `mm` (GERÇEK
+# kaynak = KEHANET) üstünden ölçer; `--modul` ile takılan mutant `mm_uret`e (ÖZNE) gider.
+# Yani yukarıdaki blok mutasyona KÖRDÜR — tek başına bırakılsaydı uzun-önce kolunu bozan
+# bir mutant yeşil geçebilirdi ([[isci-yesil-tablo-ic-olcumu-bosaltir]]). Bu blok ÖZNENİN
+# ÜRETTİĞİ SAYFAYI ölçer, dolayısıyla mutant bataryasının HEDEF KOL ATFI buradan gelir.
+_ssr_rover = MARKA_URUNLERI.get("Rover", set())
+_ssr_lr_sizan = sorted(i for i in _ssr_rover if i in _LR_UYE)
+_ssr_mekanizma = [i for i in _ssr_lr_sizan if i not in _RR_BASLIK]
+_ssr_rover_kalan = sorted(i for i in _ROVER_UYE if i in _ssr_rover)
+_ssr_rover_dusen = sorted(i for i in _ROVER_UYE if i not in _ssr_rover)
+BILGI.append("K216 SSR: /marka/rover/ kümesi %d ürün · Land Rover üyesi sızan %d "
+             "(K220 boşluğu %d · UZUN-ÖNCE %d) · gerçek Rover üyesi %d/%d sayfada"
+             % (len(_ssr_rover), len(_ssr_lr_sizan),
+                len(_ssr_lr_sizan) - len(_ssr_mekanizma), len(_ssr_mekanizma),
+                len(_ssr_rover_kalan), len(_ROVER_UYE)))
+kontrol("K216 SSR sınıfları BOŞ DEĞİL (iddia gerçekten ölçülüyor: Land Rover üyesi %d, "
+        "Rover üyesi %d)" % (len(_LR_UYE), len(_ROVER_UYE)),
+        len(_LR_UYE) > 0 and len(_ROVER_UYE) > 0)
+kontrol("K216 SSR/MEKANİZMA: ÜRETİLEN /marka/rover/ sayfasına UZUN-ÖNCE deliğinden Land "
+        "Rover ürünü sızmıyor (sızan: %d %s)"
+        % (len(_ssr_mekanizma), _ssr_mekanizma[:5]), not _ssr_mekanizma)
+kontrol("K216 SSR/NEGATİF VAKA (tek yönlü nöbetçi DEĞİL): GERÇEK Rover marque'ı ürünlerin "
+        "HEPSİ /marka/rover/ sayfasında KALIYOR (düşen: %d %s)"
+        % (len(_ssr_rover_dusen), _ssr_rover_dusen[:5]), not _ssr_rover_dusen)
 
 # ==================================================== F) çip haritası birincil markada
 cip = SONUC.get("product_chip_map", {})

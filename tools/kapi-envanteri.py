@@ -23,6 +23,7 @@ Kullanim:
 Cikis kodu 0 = her kapi VAR+BAGLI+NOBETTE tam; 1 = en az biri dusuk (eksik liste yazilir).
 """
 import argparse
+import ast
 import importlib.util
 import json
 import os
@@ -40,21 +41,132 @@ sys.dont_write_bytecode = True
 # gore calisir; NOBETTE payload'lari bu yola gore kurulur, konumdan bagimsizdir.
 CANON = "/Users/okan/dev/pruvo"
 
+# ---------------------------------------------------------------------------
+# JETONLAR — birbirinin ALT DIZESI OLAMAZ. `kapi-envanteri-test.py` bu ayrikligi
+# OLCER: jetonlar ic ice gecerse rapor okuyan her filtre (grep, CI adimi, gozle
+# tarama) iki AYRI hukmu ayni sey sanardi.
+#   OLCULEMEDI   — kapi kostu ama kararini OKUYAMADIK (bozuk JSON / rc!=0 / sessizlik)
+#   MUAF_BAGLAM  — kapiyi MIMAR kimliginde CAGIRAMADIK; kapi hakkinda HICBIR hukum yok
+# 🔴 MUAF_BAGLAM "kapi OLU" DEMEZ, "yesil" de DEMEZ. Olcumun yapilamadigini der.
+OLCULEMEDI = "OLCULEMEDI"
+MUAF_BAGLAM = "MUAF_BAGLAM"
+
+# Kimlik EKSENI DEGIL ama kapi davranisini degistiren AMBIYANS izleri; prob MIMAR
+# kimliginde olcmek zorunda oldugu icin alt surece TASINMAZ. Ayni temizlik
+# tools/mimar-kilit-test.py ve tools/recete-kapisi.py'de de yapilir.
+AMBIYANS_DEGISKENLERI = ("CLAUDE_PROJECT_DIR", "PRUVO_CLAUDE_ISCI_IZNI")
+
+
+# ---------------------------------------------------------------------------
+# MIMAR BAGLAMI — K219 (19 Agu 2026)
+#
+# 🔴 NEDEN VAR (olculdu): prob sentetik cagriyi KENDI baglaminda kuruyordu. Prob bir
+# isci turunda kostugunda (`PRUVO_ISCI_KOSUMU` mirasla alt surece geciyor) kapilar
+# DOGRU davranip `allow ISCI(sarmalayici:kimi)` donuyor, prob de bunu
+# "reddetmesi gerekeni REDDETMEDI" diye yaziyordu: K206 merge chip'i `5/7 kapi TAM`
+# (rc=1) aldi, oysa AYNI kapi o oturumda fiilen 4 kez reddetmisti. Sahte kirmizi,
+# gercek kirmiziyi gorunmez yapar.
+#
+# COZUM: kimlik ekseni payload'DAN ve alt surece gecen ORTAMDAN sokulur; sokulecek
+# anahtarlar `tools/mimar_kimlik.py`nin `kimlik_ekseni()` govdesinden TURETILIR
+# (ikiz liste yazilmaz — [[ikiz-tanim-sessiz-ayrisma]]). Sokum sonrasi hal, kapilarin
+# KULLANDIGI fonksiyonun KENDISIYLE dogrulanir: `kimlik_ekseni(payload, ortam)` hala
+# bir eksen donuyorsa sokum BASARISIZ demektir -> MUAF_BAGLAM.
+# ---------------------------------------------------------------------------
+def _kimlik_modul_yolu(script):
+    return os.path.join(os.path.dirname(os.path.abspath(script)), "mimar_kimlik.py")
+
+
+def _kimlik_modulu(yol):
+    """Olculen reponun KENDI mimar_kimlik.py'sini yukle. sys.modules'e KAYDEDILMEZ:
+    izole kopya olcumu ana reponun modulunu gormemeli."""
+    if not os.path.isfile(yol):
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("kapi_envanteri_mimar_kimlik", yol)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    except Exception:                                     # noqa: BLE001 — teshis araci
+        return None
+    return mod
+
+
+def _kimlik_anahtarlari(yol):
+    """`kimlik_ekseni()` govdesinin OKUDUGU anahtarlari ast ile TURET (sabit liste YOK).
+
+    Toplananlar: `<x>.get("AD")` cagrilari ve `<x>["AD"]` erisimleri. Payload anahtari
+    (`agent_id`) ile ortam anahtari (`PRUVO_ISCI_KOSUMU`) AYIRT EDILMEZ — ikisi de hem
+    payload'dan hem ortamdan silinir; yanlis kumeden silmek zararsizdir, EKSIK silmek
+    ise sahte kirmiziyi geri getirirdi."""
+    try:
+        with open(yol, encoding="utf-8") as f:
+            agac = ast.parse(f.read())
+    except (OSError, SyntaxError):
+        return set()
+    for dugum in ast.walk(agac):
+        if not (isinstance(dugum, ast.FunctionDef) and dugum.name == "kimlik_ekseni"):
+            continue
+        anahtarlar = set()
+        for alt in ast.walk(dugum):
+            if (isinstance(alt, ast.Call) and isinstance(alt.func, ast.Attribute)
+                    and alt.func.attr == "get" and alt.args
+                    and isinstance(alt.args[0], ast.Constant)
+                    and isinstance(alt.args[0].value, str)):
+                anahtarlar.add(alt.args[0].value)
+            elif (isinstance(alt, ast.Subscript)
+                    and isinstance(alt.slice, ast.Constant)
+                    and isinstance(alt.slice.value, str)):
+                anahtarlar.add(alt.slice.value)
+        return anahtarlar
+    return set()
+
+
+def _mimar_baglami(script, tool_input=None, tool_name="Bash"):
+    """Sentetik cagriyi MIMAR kimliginde kur.
+
+    Doner: (payload, ortam, kalan_eksen, iz).
+      kalan_eksen None   -> baglam MIMAR; kapinin donusu GERCEK davranisidir
+      kalan_eksen str    -> kimlik sokULEMEDI; hukum verilemez -> MUAF_BAGLAM
+    """
+    payload = {
+        "session_id": "kapi-envanteri",
+        "cwd": CANON,
+        "hook_event_name": "PreToolUse",
+        "tool_name": tool_name,
+        "tool_input": {} if tool_input is None else tool_input,
+    }
+    ortam = dict(os.environ)
+    for ad in AMBIYANS_DEGISKENLERI:
+        ortam.pop(ad, None)
+
+    kimlik_yolu = _kimlik_modul_yolu(script)
+    anahtarlar = _kimlik_anahtarlari(kimlik_yolu)
+    for ad in anahtarlar:
+        ortam.pop(ad, None)
+        payload.pop(ad, None)
+
+    mod = _kimlik_modulu(kimlik_yolu)
+    if mod is None or not hasattr(mod, "kimlik_ekseni"):
+        # Bu repoda ortak kimlik ekseni YOK -> sokulecek eksen de yok. Iz'de GORUNUR
+        # kalir; sessizce "MIMAR sayildi" varsayimi yapilmaz.
+        return payload, ortam, None, "kimlik-modulu=YOK"
+    try:
+        kalan = mod.kimlik_ekseni(payload, ortam)
+    except Exception as e:                                # noqa: BLE001 — teshis araci
+        return payload, ortam, "dogrulama-patladi:%s" % type(e).__name__, "kimlik-dogrulama HATA"
+    iz = "kimlik-anahtar=%s baglam=%s" % (
+        ",".join(sorted(anahtarlar)) or "-", kalan or "MIMAR")
+    return payload, ortam, kalan, iz
+
 
 # ---------------------------------------------------------------------------
 # NOBET (dry-run reddet/kabul) sinayicilari — hepsi yan-etkisiz.
 # ---------------------------------------------------------------------------
 def _karar_olc(script, tool_input, tool_name):
     """Karar-kancasini kostur; jeton, returncode ve stderr ilk satirini dondur."""
-    payload = {
-        "session_id": "kapi-envanteri",
-        "cwd": CANON,
-        "hook_event_name": "PreToolUse",
-        "tool_name": tool_name,
-        "tool_input": tool_input,
-    }
-    ortam = dict(os.environ)
-    ortam.pop("CLAUDE_PROJECT_DIR", None)
+    payload, ortam, kalan, iz = _mimar_baglami(script, tool_input, tool_name)
+    if kalan is not None:
+        return MUAF_BAGLAM, 0, ("kimlik ekseni sokulemedi (%s) — %s" % (kalan, iz))
     sonuc = subprocess.run(
         [sys.executable, script],
         input=json.dumps(payload),
@@ -66,14 +178,14 @@ def _karar_olc(script, tool_input, tool_name):
     if not cikti and sonuc.returncode == 0:
         return "allow-SESSIZ", sonuc.returncode, stderr_ilk
     if sonuc.returncode != 0 or not cikti:
-        return "OLCULEMEDI", sonuc.returncode, stderr_ilk
+        return OLCULEMEDI, sonuc.returncode, stderr_ilk
     try:
         veri = json.loads(cikti)
     except ValueError:
-        return "OLCULEMEDI", sonuc.returncode, stderr_ilk
+        return OLCULEMEDI, sonuc.returncode, stderr_ilk
     karar = (veri.get("hookSpecificOutput") or {}).get("permissionDecision")
     if karar not in ("deny", "allow"):
-        return "OLCULEMEDI", sonuc.returncode, stderr_ilk
+        return OLCULEMEDI, sonuc.returncode, stderr_ilk
     return karar, sonuc.returncode, stderr_ilk
 
 
@@ -92,14 +204,22 @@ def _nobet_karar(script, params):
                "stderr=%s | stderr=%s" % (
                    red, red_rc, kabul, kabul_rc,
                    red_stderr or "-", kabul_stderr or "-"))
-    if red == "OLCULEMEDI" or kabul == "OLCULEMEDI":
-        ayrinti = "NOBETTE=OLCULEMEDI " + ayrinti
+    # 🔴 K219: MIMAR baglami kurulamadiysa kapi hakkinda HICBIR hukum verilmez.
+    # "REDDETMEDI" BASILMAZ (sahte kirmizi), "GECER" de basilmaz (sahte yesil).
+    if MUAF_BAGLAM in (red, kabul):
+        return MUAF_BAGLAM, MUAF_BAGLAM, "NOBETTE=%s %s" % (MUAF_BAGLAM, ayrinti)
+    if red == OLCULEMEDI or kabul == OLCULEMEDI:
+        ayrinti = "NOBETTE=%s %s" % (OLCULEMEDI, ayrinti)
     return red_ok, kabul_ok, ayrinti
 
 
 def _cikis(script, spec):
-    """Cikis-kodu kapisini stdin/args ile kostur (dry-run: git yok, yazma yok)."""
-    ortam = dict(os.environ)
+    """Cikis-kodu kapisini stdin/args ile kostur (dry-run: git yok, yazma yok).
+
+    Ortam K219'dan beri MIMAR baglamindan gelir: kimlik ekseni ve ambiyans izleri
+    sokulmus haliyle. Sokulmemis bir ortam, cikis-kodu kapilarini da kendi
+    baglamimizin lehine egerdi."""
+    _payload, ortam, _kalan, _iz = _mimar_baglami(script)
     for k in spec.get("env_pop", []):
         ortam.pop(k, None)
     sonuc = subprocess.run(
@@ -108,22 +228,29 @@ def _cikis(script, spec):
         capture_output=True, text=True, env=ortam,
     )
     if not isinstance(sonuc.returncode, int):
-        return "OLCULEMEDI"
+        return OLCULEMEDI
     return sonuc.returncode
 
 
 def _nobet_cikis(script, params):
+    # K219: baglam kurulamadiysa hukum YOK (kapi ne olu ne yesil).
+    _payload, _ortam, kalan, iz = _mimar_baglami(script)
+    if kalan is not None:
+        return MUAF_BAGLAM, MUAF_BAGLAM, "NOBETTE=%s kimlik ekseni sokulemedi (%s) — %s" % (
+            MUAF_BAGLAM, kalan, iz)
     red_rc = _cikis(script, params["red"])
     kabul_rc = _cikis(script, params["kabul"])
     red_ok = (red_rc == 1)
     kabul_ok = (kabul_rc == 0)
-    olculemedi = red_rc == "OLCULEMEDI" or kabul_rc == "OLCULEMEDI"
+    olculemedi = red_rc == OLCULEMEDI or kabul_rc == OLCULEMEDI
     if olculemedi:
         red_ok = False
         kabul_ok = False
-        durum = "NOBETTE=OLCULEMEDI"
+        durum = "NOBETTE=" + OLCULEMEDI
     else:
-        durum = "NOBETTE=OLCULEMEDI"
+        # 🔴 K223: eski kod BU kolda da "NOBETTE=OLCULEMEDI" yaziyordu — olcum
+        # BASARIYLA yapilmisken rapor "olculemedi" diyordu (sahte kirmizi metni).
+        durum = "NOBETTE=OLCULDU"
     return red_ok, kabul_ok, "%s reddetmeli->exit%s kabuletmeli->exit%s" % (
         durum, red_rc, kabul_rc)
 
@@ -339,7 +466,10 @@ def bagli_mi(root, gate):
 
 
 def nobette_mi(root, gate):
-    """(c) NOBETTE: reddet/kabul sinamasi (dry-run)."""
+    """(c) NOBETTE: reddet/kabul sinamasi (dry-run).
+
+    Doner: (durum, ayrinti) — durum True | False | MUAF_BAGLAM (uc degerli).
+    """
     yol = os.path.join(root, gate["script"])
     if not os.path.isfile(yol):
         return False, "betik yok"
@@ -349,6 +479,9 @@ def nobette_mi(root, gate):
         red_ok, kabul_ok, ayrinti = calistir(yol, nobet)
     except Exception as e:  # noqa: BLE001 — teshis araci: her hata dusuk-nobet demektir
         return False, "NOBET HATASI: %r" % e
+    # K219: uc degerli hukum. MUAF_BAGLAM ne "REDDETMEDI" ne "GECER" yazdirir.
+    if MUAF_BAGLAM in (red_ok, kabul_ok):
+        return MUAF_BAGLAM, ayrinti
     if red_ok and kabul_ok:
         return True, ayrinti
     kusur = []
@@ -383,24 +516,35 @@ def main():
 
     eksik_rapor = []
     tam = 0
+    muaf = 0
     for g in GATES:
         v_ok, v_not = var_mi(root, g)
         b_ok, b_not = bagli_mi(root, g)
-        n_ok, n_not = nobette_mi(root, g)
+        n_durum, n_not = nobette_mi(root, g)
+        n_muaf = (n_durum == MUAF_BAGLAM)
+        n_ok = (n_durum is True)
         hepsi = v_ok and b_ok and n_ok
         if hepsi:
             tam += 1
+        if n_muaf:
+            muaf += 1
         print("%-22s %-6s %-7s %-9s %s" % (
             g["ad"],
             "OK" if v_ok else "EKSIK",
             "OK" if b_ok else "EKSIK",
-            "OK" if n_ok else "EKSIK",
-            "GECER" if hepsi else "DUSUK"))
+            "OK" if n_ok else (MUAF_BAGLAM if n_muaf else "EKSIK"),
+            "GECER" if hepsi else (MUAF_BAGLAM if n_muaf else "DUSUK")))
         if not v_ok:
             eksik_rapor.append("%s: VAR degil — %s" % (g["ad"], v_not))
         if not b_ok:
             eksik_rapor.append("%s: BAGLI degil — %s kayitli degil" % (g["ad"], b_not))
-        if not n_ok:
+        if n_muaf:
+            # 🔴 Bu satir BILEREK "NOBETTE degil" DEMEZ: kapinin olu oldugu iddia
+            # EDILMIYOR, olcumun yapilamadigi soyleniyor. Yesil de degildir.
+            eksik_rapor.append(
+                "%s: NOBETTE %s — kapi MIMAR kimliginde CAGRILAMADI; kapi hakkinda "
+                "hukum YOK (ne 'olu' ne 'gecer'). %s" % (g["ad"], MUAF_BAGLAM, n_not))
+        elif not n_ok:
             eksik_rapor.append("%s: NOBETTE degil — %s" % (g["ad"], n_not))
 
     # Bilgi kancalari (cikis koduna etki etmez)
@@ -416,11 +560,13 @@ def main():
 
     print("")
     if eksik_rapor:
-        print("SONUC: %d/%d kapi TAM — EKSIKLER:" % (tam, len(GATES)))
+        print("SONUC: %d/%d kapi TAM · %d kapi %s (olculemedi) — EKSIKLER:" % (
+            tam, len(GATES), muaf, MUAF_BAGLAM))
         for satir in eksik_rapor:
             print("  - " + satir)
         return 1
-    print("SONUC: %d/%d kapi VAR+BAGLI+NOBETTE tam." % (tam, len(GATES)))
+    print("SONUC: %d/%d kapi VAR+BAGLI+NOBETTE tam. (%s=%d)" % (
+        tam, len(GATES), MUAF_BAGLAM, muaf))
     return 0
 
 
