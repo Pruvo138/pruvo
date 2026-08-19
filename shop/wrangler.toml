@@ -111,3 +111,7 @@ enabled = true
 #   npx wrangler secret put META_TEST_EVENT_CODE  # Meta Test Events sekmesindeki kod (TESTxxxxx)
 #   npx wrangler secret put GA4_DEBUG             # "1" -> GA4 DebugView + /debug/mp/collect dogrulama
 # Yerel gelistirme: .dev.vars (gitignore'da) — sablon: .dev.vars.example
+
+[[kv_namespaces]]
+binding = "TALEP_SAYAC"
+id = "OKAN-KAPISI-NAMESPACE-ID-BURAYA"
