@@ -104,9 +104,21 @@ kusuru sınıfı.
 → **ÖDEV (TeKiN):** `gyro`'nun taban hacmini `doku="duz"` varsayılanıyla YENİDEN ölç;
 5 780 sayısı bu şemada KULLANILMAZ.
 
-### 🔴 Bulgu 5 — 8 ailenin **8'inin de** katalogda ZATEN SABİT FİYATLI İKİZİ VAR (ölçüldü)
-`urunler.json`'da, bu üreteçlerin ÜRETTİĞİ ÜRÜNLER **parametrik olmayan, sabit fiyatlı
-kayıtlar** olarak zaten yayında. Hepsi `lisans` YOK (kendi tasarımımız sınıfı), 2-3 görselli:
+### 🔴 Bulgu 5 — 8 ürün ZATEN KATALOGDA, sabit fiyatla satılıyor → iş "EKLEME" değil "DÖNÜŞTÜRME"
+`urunler.json`'da, bu 8 üretecin ÜRETTİĞİ ÜRÜNLER **parametrik olmayan, sabit fiyatlı
+kayıtlar** olarak zaten yayında. Hepsi `lisans` YOK (kendi tasarımımız sınıfı), 2-3 görselli.
+Eşleşme isim benzerliği DEĞİL — açıklamalar `.scad` parametre sözlüğünü birebir tekrarlıyor:
+
+- `kisiye-ozel-harf-sayi-kupleri` → *"kırlangıç-kuyruğu bağlantısıyla birbirine geçer"* =
+  `kupler.scad` `birlesim="dovetail"`.
+- `kisiye-ozel-oyun-zari` → *"d4, d6, d8, d10, d12, d20, d32…"* = `zar.scad` `tip` listesi.
+- `moduler-saklama-kabi-pod` → *"segmentleri birbirine vidalayıp kule"* = `saklama.scad` `segment`.
+- `dekoratif-zincir` → *"Kolye · Bileklik · Anahtarlık"* + *"bakla şekli, boyut, uzunluk"* =
+  `zincir.scad` `kullanim` / `bakla_sekli` / `bakla_boyut` / `uzunluk`.
+- `kisiye-ozel-masa-tabelasi` → *"Meşgul / Müsait / Toplantıda"* = `masatabela.scad`
+  varsayılanı `yazi="OKAN|MÜSAİT"`.
+- `masaustu-gyro-fidget-spinner` = `spinner.scad` · `kisiye-ozel-gyro-kolye-madalyon` =
+  `gyro.scad` (bail/kolye + merkez yazı) · `planet-disli-fidget-stem` = `planetdisli.scad`.
 
 | Yeni sarı aile | Önerilen taban | Kataloğdaki İKİZ (sabit fiyat, `parametrik:false`) | Fark |
 |---|---|---|---|
@@ -119,14 +131,23 @@ kayıtlar** olarak zaten yayında. Hepsi `lisans` YOK (kendi tasarımımız sın
 | zincir (220) | 220 | `dekoratif-zincir` — Dekorasyon, **300 TL (30 cm)** | −27% |
 | zar (140) | 140 | `kisiye-ozel-oyun-zari` — Oyun/Hobi, **200 TL** ("RPG · D&D · d4–d60") | −30% |
 
-TeKiN'in fiyat önerileri **parametrik katalog bandına** (kutu/dişli/kavanoz) oturtulmuştu;
-kendi sabit fiyatlı ikizleriyle KIYASLANMADI. Bugünkü hâliyle 8 aile inerse **aynı ürün aynı
-sitede iki fiyatla** listelenir ve ucuz olan bizim yeni kaydımızdır.
+**İKİ SONUÇ:**
 
-→ **KARAR OKAN/MİMAR KAPISI** (bu chip fiyat kararı vermez). Üç yol var: (a) sabit fiyatlı
-ikizler yeniden fiyatlanır, (b) parametrik tabanlar ikizlere hizalanır, (c) ikizler
-kataloğdan çekilir — 🔴 ama [[okan-hukmu-urun-silinmez-koken-intern]] gereği **ürün SİLİNMEZ**,
-yani (c) ancak Okan'ın açık emriyle olur. Karar verilmeden 8 kayıt `urunler.json`'a YAZILMAZ.
+**① İş yeniden tarif edilmeli.** Bu dilim `urunler.json`'a 8 YENİ kayıt EKLEMEZ — **mevcut 8
+kaydı DÖNÜŞTÜRÜR**: `"parametrik": true` + `"fiyat": ""` (boş) + `"kategori": "Jeneratör"`.
+Yeni kayıt eklemek aynı ürünü sitede İKİ KERE listelerdi; dönüştürme hem mükerrerliği hem
+[[okan-hukmu-urun-silinmez-koken-intern]] ("ürün SİLİNMEZ") sorununu kökten kaldırır. Ürün
+id'leri KORUNUR → mevcut `/urun/<id>/` adresleri, SEO ve R2 görselleri **kırılmaz**.
+Yan etki: 3 kategori (Oyun/Hobi, Dekorasyon, Ev) → `Jeneratör`'e taşınır; kategori sayaçları
+ve hub sayfaları değişir (`tools/kategori-parite-test.py` + `kategori-kapisi.py` ölçer).
+
+**② Fiyat DÜŞÜŞÜ Okan kapısıdır.** TeKiN fiyatları **parametrik katalog bandına**
+(kutu/dişli/kavanoz) oturttu; **bu ürünlerin bugünkü kendi satış fiyatlarıyla kıyaslamadı.**
+Dönüştürme, 8 ürünün başlangıç fiyatını yukarıdaki tabloda görülen oranlarda **düşürür**
+(saklama −75%, masatabela −66%, spinner −52%). Sabit fiyat "her ölçüde tek fiyat",
+parametrik taban ise "en küçük ölçünün zemini" olduğu için düşüş bir kısmı MEŞRUDUR — ama
+%75'lik fark fiyat kararıdır, mühendislik kararı değil.
+→ **Karar çıkmadan dönüştürme yapılmaz.**
 
 ---
 
@@ -199,9 +220,15 @@ açıklamada **"3D baskı" DEME** · `Yaklaşık dış ölçüler: A × B × C m
 6. Mühendis raporundaki bayat kupler paragrafı silinsin (Bölüm 3).
 
 ### MaCiT'e (katalog yazıcısı — d2b dilimleri bitince)
-7. 8 sarı kayıt `urunler.json`'a (Bölüm 4'teki sarı seri kuralları + `Jeneratör` kategorisi).
-   **Şema dosyalarıyla AYNI commit'te** inmeli (Bulgu 1).
-8. 8 render `render-teslim/*.png` → R2 (`media.pruvo3d.com`), `gorseller[0]` kart kapağı.
+7. 🔴 **YENİ KAYIT EKLEME — MEVCUT 8 KAYDI DÖNÜŞTÜR** (Bulgu 5①). Şu 8 id'de:
+   `kisiye-ozel-gyro-kolye-madalyon` · `masaustu-gyro-fidget-spinner` ·
+   `kisiye-ozel-harf-sayi-kupleri` · `kisiye-ozel-masa-tabelasi` · `planet-disli-fidget-stem` ·
+   `moduler-saklama-kabi-pod` · `kisiye-ozel-oyun-zari` · `dekoratif-zincir`
+   → `"parametrik": true` · `"fiyat": ""` (BOŞ) · `"kategori": "Jeneratör"`; `id` ve
+   `gorseller` KORUNUR. **Şema dosyalarıyla AYNI commit'te** inmeli (Bulgu 1).
+   Fiyat düşüşü Okan onayına bağlıdır (Bulgu 5②) — onaysız dönüştürme YOK.
+8. Görsel işi: bu 8 kaydın görselleri ZATEN R2'de (2-3 adet/kayıt). TeKiN'in
+   `render-teslim/*.png` karelerinin eklenmesi/değiştirilmesi AYRI ve isteğe bağlıdır.
 
 ### KraL'a (bu ev, yukarıdakiler gelince mekanik)
 9. `jenerator/urunler/<id>.json` × 8 (Bölüm 4'ün parametreleri + TeKiN'in zarfı +
