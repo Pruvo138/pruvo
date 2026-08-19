@@ -1050,10 +1050,17 @@ ROZET_DISI_CIFT = {
     ("Piaggio", "Largeframe"): "Largeframe VESPA govde aile adidir (Smallframe'in karsiligi), "
                                 "Piaggio rozeti DEGIL — gercek sayfa /marka/vespa/largeframe/. "
                                 "Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
+    ("Piaggio", "Smallframe"): "Smallframe VESPA govde aile adidir (Largeframe'in karsiligi), "
+                               "Piaggio rozeti DEGIL — gercek sayfa /marka/vespa/smallframe/. "
+                               "Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
+    ("Piaggio", "50"): "`Piaggio 50` rozetiyle arac satilmadi; 50/V50 VESPA rozetidir — gercek sayfa "
+                       "/marka/vespa/50/. Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
+    ("Piaggio", "50 Special"): "50 Special VESPA rozetidir (50'nin donanim rozeti) — gercek sayfa "
+                               "/marka/vespa/50special/. Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
 }
 
-ROZET_DISI_SAYISI = 46
-ROZET_DISI_IMZA = "de169c442a3cb70a"  # K170 sonrasi: kapinin hesabiyla
+ROZET_DISI_SAYISI = 49
+ROZET_DISI_IMZA = "50b8634d01d4e785"  # K202 sonrasi: kapinin hesabiyla
 
 
 def rozet_disi_imzasi():
@@ -1267,12 +1274,15 @@ ROZET_CAPRAZ_IZINLI = {
     "Vespa|px": ("ROZET", "Vespa PX gercek rozet"),
     "Vespa|largeframe": ("ROZET", "Vespa Largeframe govde AILE adi; emsal birebir mevcut "
                                   "(\"Vespa\",\"Smallframe\")"),
+    "Vespa|smallframe": ("ROZET", "Vespa Smallframe govde AILE adi (emsal Vespa|largeframe)"),
+    "Vespa|50": ("ROZET", "Vespa 50 / V50 gercek rozet (ikonik tek arac, Vespa altinda TEKIL)"),
+    "Vespa|50special": ("ROZET", "Vespa 50 Special gercek rozet (50'nin donanim rozeti)"),
     # Volvomk1 (K170) BEKLER: Ford|mk1 / Volkswagen|mk1 ile AYNI bekleyen hukum uyesi;
     # Mk1 bir NESIL isareti, rozet degil. Uc kol TEK turda, TEK hukumle kapanir -> K172.
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 64
-ROZET_CAPRAZ_IZINLI_IMZA = "b01f6f590b99ac82"  # K172 sonrasi: kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 67
+ROZET_CAPRAZ_IZINLI_IMZA = "f3ccf9b717a42de5"  # K202 sonrasi: kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():
@@ -1282,6 +1292,24 @@ def rozet_capraz_imzasi():
     return hashlib.sha256(
         json.dumps(sorted(ROZET_CAPRAZ_IZINLI), ensure_ascii=False)
         .encode("utf-8")).hexdigest()[:16]
+
+
+# 🔴 SINIF EKSENI KENDI IMZASINI TASIR (19 Agu, K202 kabul olcutu 4 — kontrol mutanti).
+# OLCULDU: `rozet_capraz_imzasi()` YALNIZ anahtarlari imzaliyor ve "BEKLER" sinifi K19'da
+# yalnizca BILGI satiri basiyor (KIRMIZI YAKMIYOR). Dolayisiyla bir satirin sinifini
+# ROZET -> BEKLER kaydiran mutant HICBIR kapiyi yakmadan gecerdi: hukum sessizce
+# "karar bekliyor"a duser, sayfa ise dogmaya devam ederdi. Anahtar ekseni sizintiyi
+# (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
+# imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
+# GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
+ROZET_CAPRAZ_SINIF_IMZA = "4fdb0b0c53f35094"  # K202 sonrasi: kapinin hesabiyla
+
+
+def rozet_capraz_sinif_imzasi():
+    """Envanterin SINIF kimligi: "<anahtar>|<SINIF>" cifti imzalanir (gerekce HARIC)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (k, v[0]) for k, v in ROZET_CAPRAZ_IZINLI.items()),
+                   ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
 
 
 # ─────────────────────────────────────────────────────────────────────────────

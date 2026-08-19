@@ -848,6 +848,12 @@ def olc(kok, modul_yolu=None):
         _izin = dict(_arama.ROZET_CAPRAZ_IZINLI)
         capraz_imza = (_arama.rozet_capraz_imzasi(), _arama.ROZET_CAPRAZ_IZINLI_IMZA,
                        len(_izin), _arama.ROZET_CAPRAZ_IZINLI_SAYISI)
+        # 🔴 SINIF EKSENI (19 Ağu, K202): anahtar imzası sınıfı GÖRMEZ ve "BEKLER" yalnız
+        # BİLGİ satırı basar -> ROZET->BEKLER kaydıran mutant bugüne kadar HİÇBİR kapıyı
+        # yakmadan geçerdi (hüküm sessizce "karar bekliyor"a düşer, sayfa doğmaya devam
+        # eder). Sınıf kimliği bu yüzden AYRI imzalanır ve K19'un koşuluna girer.
+        capraz_sinif_imza = (_arama.rozet_capraz_sinif_imzasi(),
+                             _arama.ROZET_CAPRAZ_SINIF_IMZA)
     except Exception as e:                                          # noqa: BLE001
         raise Olculemedi("tools/arama.py ROZET_CAPRAZ_IZINLI okunamadı: %r" % (e,))
     _deny_anahtar = set("%s|%s" % (mk, canon) for (mk, canon) in rozet_disi)
@@ -1408,6 +1414,7 @@ def olc(kok, modul_yolu=None):
                    "capraz_cift": sorted(capraz_cift), "capraz_yargisiz": capraz_yargisiz,
                    "capraz_bayat": capraz_bayat, "capraz_celiski": capraz_celiski,
                    "capraz_bekler": capraz_bekler, "capraz_imza": capraz_imza,
+                   "capraz_sinif_imza": capraz_sinif_imza,
                    "capraz_ozet": capraz_ozet,
                    "kusak_sapan": kusak_sapan, "kusak_sonda_sayisi": len(kusak_sondalar),
                    "fikstur_sapan": fikstur_sapan, "fikstur_sayisi": len(KATLAMA_FIKSTURU),
@@ -1595,14 +1602,16 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
     #       Aynı model adı iki markada da sayfa eşiğini geçiyorsa çiftin YARGISI olmalı
     #       (deny ya da allow). Birim KÜME; envanter bayatlaması da KIRMIZI yakar.
     _ci = a["capraz_imza"]
+    _cs = a["capraz_sinif_imza"]
     dogrula("K19 ÇAPRAZ-MARKA ÇİFTİNİN YARGISI VAR (yargısız sayfa doğmaz; %d çift/%d model)"
             % (len(a["capraz_cift"]), len(a["capraz_ozet"])),
             not a["capraz_yargisiz"] and not a["capraz_bayat"] and not a["capraz_celiski"]
-            and len(a["capraz_cift"]) > 0 and _ci[0] == _ci[1] and _ci[2] == _ci[3],
+            and len(a["capraz_cift"]) > 0 and _ci[0] == _ci[1] and _ci[2] == _ci[3]
+            and _cs[0] == _cs[1],
             "YARGISIZ (sızıntı)=%s · envanterde var üretimde yok=%s · deny/allow çelişkisi=%s"
-            " · imza=%s beklenen=%s sayı=%d beklenen=%d"
+            " · imza=%s beklenen=%s sayı=%d beklenen=%d · sınıf imza=%s beklenen=%s"
             % (a["capraz_yargisiz"] or "-", a["capraz_bayat"] or "-",
-               a["capraz_celiski"] or "-", _ci[0], _ci[1], _ci[2], _ci[3]))
+               a["capraz_celiski"] or "-", _ci[0], _ci[1], _ci[2], _ci[3], _cs[0], _cs[1]))
     if a["capraz_bekler"]:
         print("  BILGI ÇAPRAZ-MARKA 'BEKLER' sınıfı — bugünkü CANLI sayfayı korumak için açık, "
               "rozet hükmü MİMAR/İŞLETME kararı (%d çift): %s"
@@ -2122,6 +2131,18 @@ MUTANTLAR = [
      "K2 İLGİSİZ: indeks sürüm alanı model üyeliğinde rol OYNAMAZ"),
     ("index.html", 'var MODEL_TR = {"ı":"i"', 'var MODEL_TR = {"Û":"u","ı":"i"', "YESIL",
      "K3 İLGİSİZ: küçültmeden SONRA hiç görülmeyen büyük harf girdisi davranışı DEĞİŞTİRMEZ"),
+    # --- ÇAPRAZ ENVANTERİN SINIF EKSENİ — K19 sınıf imzası (19 Ağu, K202) ---
+    # 🔴 KANIT: bu mutant EKLENMEDEN ÖNCE batarya bu ekseni GÖRMÜYORDU. `rozet_capraz_imzasi()`
+    # yalnız ANAHTARLARI imzalar ve "BEKLER" sınıfı K19'da yalnızca BİLGİ satırı basar
+    # (KIRMIZI YAKMAZ) -> bir satırın hükmünü ROZET->BEKLER kaydıran mutant hiçbir kapıyı
+    # yakmadan geçiyordu: küme AYNI, sayı AYNI, anahtar imzası AYNI; değişen tek şey HÜKÜM.
+    ("tools/arama.py",
+     '    "Vespa|smallframe": ("ROZET", "Vespa Smallframe govde AILE adi (emsal Vespa|largeframe)"),',
+     '    "Vespa|smallframe": ("BEKLER", "Vespa Smallframe govde AILE adi (emsal Vespa|largeframe)"),',
+     "KIRMIZI",
+     "M-K202 ÇAPRAZ ENVANTERDE SINIFI ROZET->BEKLER KAYDIR -> anahtar kümesi, sayı ve anahtar "
+     "imzası AYNI kalır; yalnız HÜKÜM değişir. SINIF imzası ayrı ölçülmeseydi K19 sessiz "
+     "kalırdı (yargı 'karar bekliyor'a düşerken sayfa doğmaya devam ederdi)"),
 ]
 
 
