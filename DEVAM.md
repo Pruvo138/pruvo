@@ -15,9 +15,9 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
   + kabul ARSIVDE. Ayri kalem; onarim SeritB kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (kanitlar + K202 devri ARSIVDE; K211 teyidi HocA'da KAPANDI).
+- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (tam blok ARSIVDE).
 - ✅ **K190 KAPANDI — main'de `4340c0b9`** (5 dosya, +829/-80; bayat capalar D11+F5 + kayit ayrismasi kapandi, L9 ambiyanstan koparildi, 4 CI ekseni birlesim ustunde rc=0). Canli dogrulama chip'in kapanis raporunda.
-- ✅ **K209 KAPANDI — worker CANLI** (ARSIVDE). 🟠 Kalinti: `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
+- 🟠 **K209 kalintisi (kalem KAPANDI, ARSIVDE):** `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
 - 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
@@ -28,13 +28,14 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
   kabul: kapi + mutant + ihlal sayisi duser + `denetim-kapisi` yesil.
 - 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
   varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur
-  beyani tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** —
-  bes vaka (K192 damga · K197 maliyet · K189 kablo defteri · capa tablosu · `--kendini-test`).
-  Kural: her kayit ya TURETILIR ya kendi sayisiyla KABUL EDILIR; "EKLE" yetmez, SAYI sart.
+  beyani tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — bes vaka;
+  her kayit ya TURETILIR ya kendi sayisiyla KABUL EDILIR, "EKLE" yetmez SAYI sart.
 - 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
-- 🔧 **K197 (19 Agu, K189 chip olctu — YAYIN YOLU MALIYETI, RATCHET YOK):** pre-push kancasinin
-  maliyet beyani 3,16 sn (9 Agu) diyor, **bugun olculen medyan 6,11 sn** → 5 sn esigi zaten asilmis;
-  sayiyi YORUM soyluyor, dogrulayan yok. **Tam metin ARSIVDE.**
+- 🔧 **K197 (19 Agu):** pre-push maliyet beyani 3,16 sn diyor, olculen medyan **6,11 sn** (5 sn esigi asilmis); sayiyi YORUM soyluyor, dogrulayan yok. ARSIVDE.
+- 🔧 **K217 (19 Agu, KraL push ciktisinda OLCTU):** tavan nobetcisi, baska kapinin self-test fiksturlerini
+  (temp `pruvo-kapi-test-*`, detached, saniyelik) MIMAR sayip sahte `TAVAN ASILDI SAYI=3` yaziyor (kanit: `ls`
+  iki dizini YOK gosterdi, saniyeler sonra BASKA iki fikstur listelendi); yordam "kaldir" dedigi icin GERCEK
+  agac silinebilir. kabul: fikstur duzlemi sayimdan DUSER + mutant hedef-kol atfi + gercek 3. agac YAKALANIR.
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
@@ -43,8 +44,7 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
   K186'nin semasi/ucu KANONIK (canli D1 K211 ile o semada) ve uctan uca olcum K186'nin ucune karsi
   YENIDEN kosulur. HocA E6 dumani bu merge'e bagli.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
-- 🔧 **K202-kendini-test** (M06 cokme + M17/M20/M31 bayat capa) = SeritB S1 uyesi, `KraL-SeritB
-  onarim` chip'inde; kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
+- 🔧 **K202-kendini-test** (M06 cokme + bayat capa) = SeritB S1 uyesi, o chip'te; kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
   AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
   📏 PAKET DALI OLCULDU (mb `dc6c50b1` · 1 dosya/+277 · cakisma YOK · ff IMKANSIZ · sizinti 0) = MERGE
@@ -77,11 +77,9 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
 - 🔧 **K176:** D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157`); yayini bloklamaz. kabul: tutani basar ya da OLCULEMEDI + mutant. · ⛔ **`origin/k152-link-temiz` MERGE EDILMEYECEK** (main atasi degil; icerik `83aaf4e2`de) — SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
-  duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
-  `tools/paket-k171-kaynak-temizle.md`de; tam metin ARSIVDE.
+  duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul `tools/paket-k171-kaynak-temizle.md`de.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
-  Tam metin ARSIVDE.
-  Kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. `kabul:` alani BOS.
+  kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. Tam metin ARSIVDE. `kabul:` alani BOS.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` BES oturumdur
   commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
@@ -98,8 +96,7 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
   **K118** pre-push kapisi bicim-kaydiran partide butceyi yapisal asiyor.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
-- 🟠 **K152 (17 Agu — ⚖️ OKAN KARARI KAPSAMI BELIRLEDI; onceki iki hukum de DUSTU):** Okan (birebir): **"sitede bulunan tum urunler satilabilir.
-  Tam metin ARSIVDE.
+- 🟠 **K152 (17 Agu — OKAN KARARI kapsami belirledi):** "sitede bulunan tum urunler satilabilir." Tam metin ARSIVDE.
   kabul: `python3 tools/koken-bul.py --eksik` → `EKSIK` DUSER **VE** `--kendini-test` rc=0.
 - 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
