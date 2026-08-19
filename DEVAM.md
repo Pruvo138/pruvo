@@ -2,7 +2,6 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-
 ## 🔻 KraL CANLI DURUM — 19 Agu ~18:0xZ (main=origin `4340c0b9`)
 **CANLIYA (bugun):** T-altyapisi `74475c70` · K186 `e25bea7b`+`73f41c8b` · K205 `bcde35fa` ·
 K210 `33b663e4` · K211 semasi · hijyen `840a6e26` · kok-rapor `bf543b60` · **K190 `4340c0b9`**.
@@ -15,12 +14,12 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 **TEMIZLIK:** worktree 7 (1 mimar + 5 chip + 1 MaCiT'in, DOKUNULMADI). Rol tavani **MIMAR 1/2 · CHIP 6/12** ✅.
 
 
+
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
   + kabul ARSIVDE. Ayri kalem; onarim SeritB kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211 · K190 `4340c0b9` · K215/K80 · SeritB `d46747d0`** (tam bloklar ARSIVDE + kutuda).
-- 🟠 **K209 kalintisi (kalem KAPANDI, ARSIVDE):** `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
-- 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
+- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211 · K190 `4340c0b9` · K215/K80 · SeritB `d46747d0` · K224** (tam bloklar ARSIVDE + kutuda). · 🟠 **K209 kalintisi (KAPANDI, ARSIVDE):** `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
+- 🔴 **MOTOR KARARI (Okan, 19 Agu aksam — LUNA EMRINI GECERSIZ KILAR):** kapali kume `minimax-m3 kimi claude`; deepseek/codex/luna **RED** (K224'te uygulandi, cron kimi'de kaldi).
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
 - 🔴 **K213 (19 Agu, MaCiT olctu → hukum KraL'da, sahibi MaCiT):** CC BY/BY-SA **50 kayitta**
@@ -54,6 +53,7 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
+
 
 
 ## KraL SON DURUM (19 Agu ~17:xxZ; eski kapanis blogu ARSIVDE)
@@ -112,6 +112,7 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
 
 
 
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -120,6 +121,7 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 - 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z):** pruvo-shop bayatlik nabzi KIRMIZI (134,1 dk / esik 120); yayinlanmamis TEK fark `0f590d11` icindeki `shop/src/talep.js` YORUM satiri, davranis farki YOK. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
+
 
 
 
