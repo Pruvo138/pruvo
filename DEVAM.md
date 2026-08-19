@@ -41,19 +41,16 @@
   Hukum + 5 CIVILENMIS kabul + K202 sinif kalemi: `tools/paket-k202-vespa-piaggio-rozet-hukmu.md`.
 
 ## 🔻 KraL OTURUM KAPANISI — 19 Agu ~06:0xZ
-**CANLIYA (bu oturum):** K185 chip duzeni + K188 kutu esik kapisi `4ebefad1` · K195a/K195b defter
-rotasyonu + kota kapisi `77390a81` · sahiplik haritasi `durgun-kalem-kapisi` satiri `dbb798ae`
-(T5 merge'inde EKSIK=1 kalmisti) · defter kalemleri. main=origin `77390a81`+; ana agacta **yabanci
-1 commit** (`12d3e333` hasat) — D1 yazicisi ucusta oldugu icin ITILEMEDI, sahibi tasiyacak.
-**KOSUYOR (chip · dal · motor):** K189 `claude/agitated-haslett-240c77` `0302a97b` (codex/m3;
-eksen 1-2 KAPANDI, eksen 3 yama turu, sonra K197) · K190 `kral/k190-canli-temizlik` (codex luna;
-L1..L9 gecti, L10 turu + K187 sirada) · Onarim grubu devami (T6·⑤·T3·T5·T1 — T1 **20 Agu 08:48Z
-TARIHLI**) · HocA sihirbaz tasarimi (kardes ev).
-**KAPANAN CHIP'LER:** K184 (`2f001db2`, uc CIVILENMIS olcut YESIL: `test -s` kapisi + W2 kirmizi
-yakti + uc jeton bagimsiz; `MUTANT=38/38 KONTROL=16/16`; merge K186'dan SONRA) · K186 (dal dondu) ·
-K188 · K185 · BaBa tatbikat (sayac 4/6).
-**BEKLIYOR:** K184 merge → K186'ya bagli · K186 merge → CI `32192345810` · HocA Faz-2 prose ·
-MaCiT Honda (K191).
+**Tam metin KUTUDA** (06:0xZ blogu bayat). **KOSUYOR:** K202 `priceless-lamport-4c2db5` (YAYINI
+ACAR) · K189 `agitated-haslett` · Onarim grubu `stoic-albattani` (T6 `OLCULEMEDI=3`, KAPANMADI).
+- 🔴 **YAYIN TIKALI (`durum.py §9`, 03:00):** canli **17 commit** geride · 6 ardisik dusen kosum ·
+  en eski bekleyen **124 dk** · son yayin `32941dfe`. ACAN TEK SEY K202.
+- 🔧 **K203:** tavan kapisi ANA AGACTAN `MIMAR=1/2 CHIP=5/12` basiyor, worktree ICINDEN rol eksenini
+  KAYBEDIP duz `TAVAN=2` ile yanlis uyari yakiyor; sebep onek DEGIL **cagri baglami** (onek eklemek
+  tekil yama). kabul: iki kol da rol satirini bassin. · 🔧 **K204:** `OKSUZ` fiilen "kirli mi"
+  olcuyor → isini commit'leyen CANLI chip oksuz gorunuyor (3 agac). 🔴 TEK BASINA kaldirma gerekcesi
+  DEGIL. kabul: canli+temiz agac OKSUZ SAYILMAZ + mutant. · 🔧 **K188 yarim yedek OLCULEBILIR**
+  (`§7`, pid 3594 YOK); kabul: `yedekle.py` izi temizlesin + `YEDEK=TAM/YARIM` jetonu + fikstur.
 🔧 **K187 — ⚖️ OKAN KARARI 19 Agu: KV BINDING** (Logpush DEGIL). Icra K186 chip'te (binding tanimi + `talepOlayiSay()` govdesi); namespace acma + deploy Okan kapisi.
 ✅ **K190+K187 KAPANDI — MIMARCA TEYIT** (`kral/k190-canli-temizlik` uc `91479a60`, K186 dalina 0 commit): `IDDIA=22/22 MUTANT=22/22 ATIF=22/22 OLCULEMEDI=0`, K187 `KV=4/4`. Tam metin KUTUDA. Merge K186 arkasinda; kalan tek kalem K200(i).
 - 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
