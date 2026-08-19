@@ -19,6 +19,9 @@ Asagidaki zincir tam olarak o bagimsiz olcumu yapar, sonra merge eder.
    Zincir bunu kendi olcer ve icermiyorsa ILK ADIMDA durur.
 2. Ana checkout (`/Users/okan/dev/pruvo`) **TEMIZ** olmali.
 
+**MERGE SIRASI (mimar verdi):** K184 → T4 kirigi → **K195 (bu paket)** → K214 → P1.
+Zincirin ilk halkasi zaten K184'u bekledigi icin sirayi elle takip etmene gerek yok.
+
 ## ZINCIR — tek satir, fail-closed
 
 Kirmizi adim zinciri KESER; `git push` satirina **hic gelinmez**. Testler merge'den
@@ -58,12 +61,25 @@ ELDE kalir (dal sahibinin gercek defterde olcumu: `blok=5, hepsi vetolu`).
 Defterin KENDI teamulu ise MADDE granuludur (`**Tam metin ARSIVDE.**` satirlari).
 **K221 kabul:** madde granullu indirme + o kolu bozan mutant KIRMIZI + kirmizinin sebebi o kol.
 
-## AYRICA OLCULDU — TABAN KUSURU (K195'ten AYRI)
+## MERGE SONRASI TEK DOGRULAMA (bu dal main'in defterini kotaya GERI SOKUYOR)
+
+```bash
+git -C /Users/okan/dev/pruvo cat-file -s origin/main:DEVAM.md
+```
+
+**12288'in ALTINDA** olmali (beklenen ~**12259**). Ustunde cikarsa merge defteri kotaya
+sokmamis demektir — mimara haber ver. Merge ONCESI deger **12324** idi (asim 36 bayt).
+
+## AYRICA OLCULDU — TABAN KUSURU (K195'ten AYRI, mimarda **K225**)
 
 `origin/main:DEVAM.md` = **12324 bayt**, tavan **12288** → **main'in kendisi 36 bayt
 kota USTUNDE**. Push kapisi bunu bagimsiz dogruladi:
 `DEFTER KOTASI BYPASS SAYILDI — HEAD'deki DEVAM.md 124 satir / 12324 bayt`.
-Kota kapisi yalnizca DEVAM.md **stage'de iken** bloklar, bu yuzden deftere dokunan HER
-commit main'de bloklu; dokunmayan commit `KAPSAM_DISI_ASIM` sayilip gecer.
+
+Kusurun ADI "defter sismis" DEGIL: **kota kapisi MERGE'e KORDUR.** Kapi yalnizca DEVAM.md
+**stage'de iken** bloklar (`_devam_stage_de`), merge yoluyla gelen buyume hic olculmez —
+asimi N1 merge'i acti (K139 kalemini uzatti) ve hicbir kapi gormedi. Sonuc: deftere dokunan
+HER commit main'de bloklu, dokunmayan `KAPSAM_DISI_ASIM` sayilip gecer.
+Bu **mimarda K225** olarak ayri kalem; K195'in kabul olcutunu BUYUTMEZ.
 Bu dal merge'i, chip KENDI kalemini (K195 satiri) ~155 bayttan ~90 bayta indirerek
 gecirebildi — komsu satirlara DOKUNULMADI. Ders: [[olcut-civilenirken-taban-olculmeli]].
