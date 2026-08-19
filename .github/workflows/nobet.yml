@@ -1998,6 +1998,28 @@ jobs:
           python3 tools/parti-borc-kapisi.py --kendini-test
           python3 tools/parti-borc-kapisi.py --curutme-test
 
+      # N2 "KIRLETEN ONARIR" — Okan onayli doktrin (19 Agu 2026).
+      # Okan'in vakasi: "MaCiT 100-100 urun ekliyor, iletiyi gormedi, isine devam
+      # etti; tamirat yapilmadigi icin tum mimarlar MaCiT'i bekledi."
+      # Uc mekanizma, hepsi offline + hermetik (gecici dizin, sentetik git deposu,
+      # sentetik defter): (A) kirmizinin SAHIBI haritadan turer · (B) acik 🔧
+      # varken YENI parti RED — 🔴 suren/yarim is KESILMEZ · (C) 4 saat hareketsiz
+      # kalem Tamirci'ye devredilir + ihlal sayaci.
+      # `n2-kabul.py` CANLI urunler.json'a ve evlerin defter/posta kutularina
+      # DOKUNMADIGINI kendi icinde (Z2) sha256 ile OLCER.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "N2 kirleten onarir oz-nobetcisi (A/B/C mutantlari, hedef kol kanitli)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/ev-sahip-kapisi.py --kendini-test
+          python3 tools/parti-kapisi.py --kendini-test
+          python3 tools/devir-kapisi.py --kendini-test
+
+      - name: "N2 kirleten onarir UCTAN UCA kabul (spec §2, sentetik vakalar)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/n2-kabul.py
+
       # SERIT-B MASKELEME KAPISI — Paket K178 (18 Agu 2026, OLCULEN KUSUR).
       # SERIT B'nin 126 adimindan birinin kirmizisi geri kalani 114'u SKIP yapiyor ->
       # kapilar maskeleniyor ([[kirmizi-adim-sonrakini-maskeler]]). Bu kapi taranan

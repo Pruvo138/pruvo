@@ -142,27 +142,33 @@ def acik_kalem_yolu(ev, koku_root=None):
 TabloSatir = re.compile(r"^\s*\|.*\|\s*$")
 
 
-def acik_kalem_sayisi(defter_yolu):
-    """Bir acik-kalemler.md dosyasindan ACIK kalem sayisini say.
+def acik_kalem_listesi(defter_yolu):
+    """Bir acik-kalemler.md dosyasindaki ACIK kalemleri DOKUMLU doner.
 
-    Return: (sayi, okundu_mu_bool, hata_mesaji_str_or_None).
-    YOKSA / IO hatasi / format bozuk -> (0, False, hata). "borc yok" SAYILMAZ;
+    🔴 TEK PARSER (19 Agu 2026, N2): `acik_kalem_sayisi` bu fonksiyondan
+    TURER. Ikinci bir tablo okuyucu YAZILMAZ — N2'nin parti kapisi (yeni is
+    basvurusunda kalem KIMLIGINI ve `kabul:` komutunu ekrana basmak zorunda)
+    ayni satirlari buradan alir ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    Return: (kalemler, okundu_mu_bool, hata_mesaji_str_or_None)
+      kalemler = [{"kimlik", "durum", "is", "kanit", "satir_no"}, ...]
+    YOKSA / IO hatasi / format bozuk -> ([], False, hata). "borc yok" SAYILMAZ;
     fail-closed: cagri yeri T4-OLCULEMEDI ile RED verir.
     """
     if not os.path.isfile(defter_yolu):
-        return 0, False, "defter dosyasi yok: %s" % defter_yolu
+        return [], False, "defter dosyasi yok: %s" % defter_yolu
     try:
         with open(defter_yolu, encoding="utf-8") as f:
             icerik = f.read()
     except OSError as e:
-        return 0, False, "defter okunamadi (IO): %r" % e
+        return [], False, "defter okunamadi (IO): %r" % e
 
     if not icerik.strip():
-        return 0, False, "defter bos"
+        return [], False, "defter bos"
 
-    sayi = 0
+    kalemler = []
     tablo_basladi = False
-    for satir in icerik.splitlines():
+    for satir_no, satir in enumerate(icerik.splitlines(), start=1):
         if not TabloSatir.match(satir):
             continue
         kolonlar = [k.strip() for k in satir.split("|")]
@@ -185,11 +191,27 @@ def acik_kalem_sayisi(defter_yolu):
             # format. Yine de say (durdur): "ACIK" olanlari say.
             tablo_basladi = True
         if durum in ACIK_DURUMLAR:
-            sayi += 1
+            kalemler.append({
+                "kimlik": kolonlar[1].strip(),
+                "durum": durum,
+                "is": kolonlar[4].strip(),
+                "kanit": kolonlar[6].strip() if len(kolonlar) > 6 else "",
+                "satir_no": satir_no,
+            })
     if not tablo_basladi:
         # Tablo bulunamadi; format bozuk (dosya var ama tablo yok).
-        return 0, False, "defter icinde tablo bulunamadi (format bozuk)"
-    return sayi, True, None
+        return [], False, "defter icinde tablo bulunamadi (format bozuk)"
+    return kalemler, True, None
+
+
+def acik_kalem_sayisi(defter_yolu):
+    """Bir acik-kalemler.md dosyasindan ACIK kalem sayisini say.
+
+    Return: (sayi, okundu_mu_bool, hata_mesaji_str_or_None).
+    Sozlesme DEGISMEDI; govde `acik_kalem_listesi`den TURER (tek parser).
+    """
+    kalemler, okundu, hata = acik_kalem_listesi(defter_yolu)
+    return len(kalemler), okundu, hata
 
 
 # ------------------------------------------------------------------------------
