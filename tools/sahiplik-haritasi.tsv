@@ -155,6 +155,7 @@ sitemap-damga-uret	tools/sitemap-damga-uret.py	BILINMIYOR	hijyen	YOK
 spec-ifsa-kapisi	tools/spec-ifsa-kapisi.py	BILINMIYOR	hijyen	python3 tools/spec-ifsa-kapisi --kendini-test
 stl-uc-kopya-nobet	tools/stl-uc-kopya-nobet.py	BILINMIYOR	nobet	python3 tools/stl-uc-kopya-nobet-test.py
 stok-d1-kapisi	tools/stok-d1-kapisi.py	BILINMIYOR	yayin	YOK
+talep-temizlik	tools/talep-temizlik.py	KraL	veri	python3 tools/talep-temizlik.py --kendini-test
 test-bbox-3mf	tools/test-bbox-3mf.py	BILINMIYOR	hijyen	YOK
 test-jsonld-brand	tools/test-jsonld-brand.py	BILINMIYOR	hijyen	YOK
 test-jsonld-offers	tools/test-jsonld-offers.py	BILINMIYOR	hijyen	YOK

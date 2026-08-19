@@ -364,12 +364,15 @@ jobs:
           node-version: "20"
 
       - name: "Talep hatti davranis testi (CI kapsam envanteri)"
+        if: ${{ !cancelled() }}
         run: node shop/test/talep.mjs
       - name: "Talep hatti TAM batarya + mutasyon (SERIT B)"
+        if: ${{ !cancelled() }}
         # Tam 50'li olcum burada nobet olarak kalir; bloklayici 17'li sizinti kolu
         # deploy.yml/serit-a3'tedir. G5-G7 iki kolda da ayni test kaynagindan kosar.
         run: python3 tools/talep-hatti-test.py
       - name: "Talep temizlik surucusu: kendini test (iki yonlu, SERIT B)"
+        if: ${{ !cancelled() }}
         run: python3 tools/talep-temizlik.py --kendini-test
 
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
