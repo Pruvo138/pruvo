@@ -42,7 +42,8 @@ Her dal için, merge-kapisi §1–§7 sırayla. Kısayol YOK.
    `git -C /Users/okan/dev/pruvo merge <dal> -m "..."` → `git -C /Users/okan/dev/pruvo push origin main`
 8. Merge SONRASI: `python3 tools/d1-sync.py --durum` (HER merge'de) · K184'ten sonra ayrıca canlı doğrulama —
    koşumun SHA'yı **İÇERDİĞİNİ** kanıtla (`gh run list --json headSha,...` + `git merge-base --is-ancestor <SHA> <kosum-headSha>`), sonra **cache-bust'SIZ** kanonik URL'den ölç.
-9. Temizlik: worktree kaldır + dal sil — ama önce `python3 tools/durum.py` ile içeriğin main'de olduğunu sınıflandırt ("ucu main'de" ≠ içerik main'de).
+9. 🔴 **N2 merge'inden HEMEN SONRA kurulum (BaBa, 20 Ağu):** `python3 tools/mimar-kapi-kur.py --parti-kapisi --uygula`, ardından `python3 tools/kanca-kur.py` — bu ikisi koşmadan N2 merge'i YARIM sayılır (N1 raporundaki ⑨ kanca nöbetçisi kırmızısı ancak bundan sonra yeşile döner; `kanca-kur.py` kopyayı ana checkout'tan serer).
+10. Temizlik: worktree kaldır + dal sil — ama önce `python3 tools/durum.py` ile içeriğin main'de olduğunu sınıflandırt ("ucu main'de" ≠ içerik main'de).
 
 ## 3. KABUL (chip bunları SAYIYLA kapatır)
 
