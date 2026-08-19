@@ -54,13 +54,17 @@ def mutantlar():
     ad = _bir_marka_adi()
     return [
         # 1) KUSURUN TA KENDİSİ (SSR): başlık yine O AN BASILANI yazsın.
+        # 🔴 ÇAPA 19 Ağu'da TAZELENDİ (SERİT B onarımı): be00b52c BAŞLIK KOLU başlığı
+        # sayfalama değişkenlerine (`sayfa_kalemleri`/`sayfa_bolumu`) bağladı; eski
+        # `kalemler, "erisim"` literali 0 eşleşmeye düştü — üç mutant birden ölçüsüz
+        # kalmıştı. İddialar birebir aynı, çapalar bugünkü gövdeden.
         ("BASLIK_YINE_BASILI", True,
-         '+ _bolum_sayaci(esc, kalemler, "erisim") + \')</h2>\')',
-         '+ _bolum_sayaci(esc, basili, "erisim") + \')</h2>\')'),
+         "+ _bolum_sayaci(esc, sayfa_kalemleri, sayfa_bolumu) + ')</h2>')",
+         "+ _bolum_sayaci(esc, basili, sayfa_bolumu) + ')</h2>')"),
         # 2) BEYAN kolunu boz: beyan cümlesi erişilebilir kümeden değil basılandan doğsun.
         ("BEYAN_BASILIDAN", True,
-         '            + _toplam_bloku(esc, kalemler, "Bu markada")',
-         '            + _toplam_bloku(esc, basili, "Bu markada")'),
+         "            + _toplam_bloku(esc, sayfa_kalemleri, oncul)",
+         "            + _toplam_bloku(esc, basili, oncul)"),
         # 3) KAPSAM KOLU (istemci): başlığa yine GÖRÜNEN DOM DÜĞÜMÜ sayısı yazılsın —
         #    canlıda 575 yerine 304 basan dal tam buydu.
         ("KAPSAM_BASLIGA_DOM", True,
@@ -83,9 +87,9 @@ def mutantlar():
         # 7) SINIF DEĞİL VAKA onarımı: başlık YALNIZ tek bir markada doğru sayıyı yazsın.
         #    Marka adı çalışma anında evrenden alınır (bu dosyada sabit yok).
         ("MARKA_OZEL_DAL", True,
-         '+ _bolum_sayaci(esc, kalemler, "erisim") + \')</h2>\')',
-         '+ _bolum_sayaci(esc, kalemler if marka == "%s" else basili, "erisim")\n'
-         "               + ')</h2>')" % ad),
+         "+ _bolum_sayaci(esc, sayfa_kalemleri, sayfa_bolumu) + ')</h2>')",
+         '+ _bolum_sayaci(esc, sayfa_kalemleri if marka == "%s" else basili,\n'
+         "                                 sayfa_bolumu) + ')</h2>')" % ad),
         # --- KONTROL (yeşil kalmalı) ---
         ("KONTROL_YORUM", False,
          "def _bolum_sayaci(esc, urunler, bolum):",

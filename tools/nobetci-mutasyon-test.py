@@ -631,14 +631,17 @@ E_OZTEST_JETON = "TABLO-NOBETCISI OLU"
 # Sayac G8 ekseninin `iddia += 1` satiri uzerinden surulur: bir eksenin sayaci DUSERSE
 # (E4) ya da taban guncellenmeden ARTARSA (E5) kapi konusmali. Olculdu: gercek 8, eski
 # taban 7 -> pay 1, yani eski `< 7` kolu E4'e de E5'e de KORDU (E4b/E5b bunu gosterir).
+# 🔴 CAPA 19 Agu'da TAZELENDI (SERIT B onarimi): K183b sonrasi kapida taban 11 oldu,
+# "= 8" capasi 0 eslesmeye dustu — bolum E "HARNESS BAYAT" ile hicbir sey olcmuyordu.
+# Eski-gevsek simulasyonu da ayni pay-1 mantigiyla 10'a cekildi.
 E_G_CAPA = ("    iddia += 1\n"
             "    if yayin is None:\n"
             '        hatalar.append("G8 OLCULEMEDI')
 E_G_SAYAC_SIL = ('    if yayin is None:\n'
                  '        hatalar.append("G8 OLCULEMEDI')
 E_G_SAYAC_EKLE = "    iddia += 1\n" + E_G_CAPA
-E_G_TABAN_CAPA = "G_IDDIA_TABANI = 8"
-E_G_TABAN_ESKI = "G_IDDIA_TABANI = 7"
+E_G_TABAN_CAPA = "G_IDDIA_TABANI = 11"
+E_G_TABAN_ESKI = "G_IDDIA_TABANI = 10"
 E_G_OP_CAPA = "        if temiz_iddia != G_IDDIA_TABANI:"
 E_G_OP_ESKI = "        if temiz_iddia < G_IDDIA_TABANI:"
 E_G_JETON = "G-IDDIA SAYACI BOZUK"
@@ -769,6 +772,25 @@ def akis_ayna_kur(hedef_kok, mutasyonlar=None):
     r = git("-C", hedef_kok, "add", "-f", "--", *eklenecek)
     if r.returncode != 0:
         raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna `git add` basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    # 🔴 AYNAYA IKI COMMIT (19 Agu 2026, SERIT B onarimi — olculen kusur): kapinin
+    # K80 "yeni CI adimi" ekseni `git rev-parse HEAD` VE `HEAD^` ister (bu itmenin
+    # GETIRDIGI adimlari onceki commit'e gore turetir); commit'siz aynada HEAD hic
+    # cozulmuyor, tek commit'te de HEAD^ cozulmuyordu ve KAPI mutasyondan BAGIMSIZ
+    # "YENI CI ADIMI OLCULEMEDI" fail-closed kirmizisi basiyordu — E0 kontrol mutanti
+    # dahil TUM bolum E hukumleri bu yuzden gecersizdi (olculdu). Once BOS bir taban
+    # commit'i, sonra icerik commit'i: HEAD^ = bos taban. Kimlik config'e YAZILMAZ,
+    # her commit'e `-c` ile verilir (sentetik_git deseni).
+    kimlik = ("-c", "user.name=e-ayna", "-c", "user.email=e-ayna@ornek.gecersiz")
+    r = git("-C", hedef_kok, *kimlik, "commit", "--quiet", "--no-verify",
+            "--allow-empty", "-m", "ayna bos taban")
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna bos taban commit'i basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    r = git("-C", hedef_kok, *kimlik, "commit", "--quiet", "--no-verify",
+            "-m", "ayna icerik")
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna icerik commit'i basarisiz: %s"
                          % (r.stderr or "").strip()[:200])
     return hedef_kok
 

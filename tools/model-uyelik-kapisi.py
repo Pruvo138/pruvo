@@ -1838,13 +1838,19 @@ MUTANTLAR = [
     # `return t` idi ve BOŞLUĞU da bırakıyordu; `K Serisi`/`kserisi` çip etiketi çakışınca
     # `cip-indeks.py` FAIL-CLOSED RuntimeError atıyor, koşum rc=1 ama KALDI satırı ÜRETMEDEN
     # bitiyor -> harness bunu "ÇÖKME/ÖLÇÜLEMEDİ" sayıyor ve EKSEN ÖLÇÜLMÜYORDU
-    # ([[mutasyon-kaniti-yeniden-uretilebilir]]: çökme kırmızıyla karışmaz). Yeni mutant
-    # YALNIZ boşluğu atar, tire/nokta/eğik çizgiyi BIRAKIR: 'F-150' vs 'F150' ayrışması
-    # aynen doğar, çip etiketi çakışmaz -> eksen TEK BAŞINA temiz KIRMIZI yakar.
+    # ([[mutasyon-kaniti-yeniden-uretilebilir]]: çökme kırmızıyla karışmaz).
+    # 🔴 19 Ağu'da İKİNCİ KEZ DARALTILDI (SERİT B onarımı, eksen yine KORUNDU): katalog
+    # büyüyünce "yalnız \s at" hâli de çöker oldu — Mercedes `V-Class`/`VClass` çifti
+    # cip-indeks'in etiket-çakışması fail-closed'una düşüyordu (ölçüldü: RuntimeError,
+    # rc=1 KALDI'sız). Genel tek-karakter daraltmaları (yalnız nokta / yalnız eğik
+    # çizgi bırak) bugünkü katalogda EŞDEĞER-YEŞİL çıktı (ölçüldü). Mutant artık
+    # HEDEFLİ: yalnız 'f' önekli jetonlarda tireyi bırakır — 'F-150'/'F150' ayrışması
+    # aynen doğar (K5 sorgulanamaz=3 ile ölçüldü), V-Class'a dokunmaz, çökme yok.
     ("tools/model_kanon.py", '    return _AYIRAC.sub("", t)',
-     '    return re.sub(r"[\\s]", "", t)', "KIRMIZI",
-     "M7 PYTHON KANONU AYIRAÇ ATMAYI BIRAKIR (tire/nokta/eğik çizgi) -> 'F-150'/'F150' "
-     "sayfada ayrışır, filtrede birleşik"),
+     '    return (re.sub(r"[\\s\\._/]", "", t)\n'
+     '            if t.lower().startswith("f") else _AYIRAC.sub("", t))', "KIRMIZI",
+     "M7 PYTHON KANONU AYIRAÇ ATMAYI BIRAKIR ('f' önekli jetonda tire kalır) -> "
+     "'F-150'/'F150' sayfada ayrışır, filtrede birleşik"),
     ("index.html", 'return t.replace(/[\\s\\-\\._\\/]/g, "");', "return t;", "KIRMIZI",
      "M6 KANON AYIRAÇ ATMAYI KALDIR -> JS anahtarı Python anahtarından ayrışır"),
     # --- BİLEŞİK MARKA EKSENİ (3 Ağu, KraL denetimi) ---
@@ -1892,7 +1898,13 @@ MUTANTLAR = [
      "    var toks = kalan.split(/\\s*/);\n    var i = toks.length;", "KIRMIZI",
      "M16 KELİME SINIRINI KALDIR -> 'Golf' = 'Gol'+'f' diye katlanır (ölçülen 100 yanlış "
      "eşleşme sınıfı geri gelir)"),
-    ("index.html", 'var KUSAK_DISI = ["Citroen|Ami 6"];', "var KUSAK_DISI = [];", "KIRMIZI",
+    # 🔴 ÇAPA 19 Ağu'da TAZELENDİ (SERİT B onarımı): be00b52c BAŞLIK KOLU değişimi
+    # listeye "Toyota|AE86" ekledi ve tek-elemanlı eski çapa 0 eşleşmeye düştü —
+    # eksen SESSİZCE ölçülmüyordu ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+    # Dönüşüm de DARALDI: tüm listeyi boşaltmak yerine yalnız Ami 6 istisnası
+    # düşürülür — iddia birebir aynı (1961 Ami 6 -> 2020 Ami sızıntısı).
+    ("index.html", 'var KUSAK_DISI = ["Citroen|Ami 6","Toyota|AE86"];',
+     'var KUSAK_DISI = ["Toyota|AE86"];', "KIRMIZI",
      "M17 FARKLI ARAÇ İSTİSNASINI AYNADAN DÜŞÜR -> 1961 Ami 6 parçası 2020 Ami sayfasına "
      "sızar; ayna otoriteyle (arama.py) ayrışır"),
     ("tools/model_kanon.py",
@@ -1915,10 +1927,14 @@ MUTANTLAR = [
      # 🔴 ÇAPA 6 Ağu'da TAZELENDİ: `MODEL_OLMAYAN_CIFT`in SONU değişti (hüküm B/D ile iki
      # yeni deny eklendi) ve eski çapa 0 eşleşmeye düşmüştü — eksen SESSİZCE ölçülmüyordu
      # ([[mutasyon-kaniti-yeniden-uretilebilir]]). Çapa artık tablonun SON satırına bakıyor.
-     '    ("Volkswagen", "Westfalia"): "kamper donusturucusu (Westfalia-Werke) — VW\'nin arac "\n'
-     '                                 "modeli degil; urunler taban model sayfasinda kalir",\n}',
-     '    ("Volkswagen", "Westfalia"): "kamper donusturucusu (Westfalia-Werke) — VW\'nin arac "\n'
-     '                                 "modeli degil; urunler taban model sayfasinda kalir",\n'
+     # 🔴 ÇAPA 19 Ağu'da YİNE TAZELENDİ (SERİT B onarımı): tablonun sonu K188 sonrası
+     # (Hyundai, Coupe) girişine kaydı; Westfalia çapası 0 eşleşmeye düşmüştü. Aynı
+     # ders üçüncü kez: SON-SATIR çapası tablo büyüdükçe bayatlıyor, taşınırken iddia
+     # (deny'e T4 ekle) birebir korunuyor.
+     '    ("Hyundai", "Coupe"): "govde tipi sozcugu (Audi|Coupe emsali) — bagimsiz model "\n'
+     '                          "adi degil",\n}',
+     '    ("Hyundai", "Coupe"): "govde tipi sozcugu (Audi|Coupe emsali) — bagimsiz model "\n'
+     '                          "adi degil",\n'
      '    ("Volkswagen", "T4"): "MUTANT",\n}', "KIRMIZI",
      "M21 KUŞAK SAYFASINI DENY'E AL (Volkswagen T4) -> yayın kümesi tam olarak "
      "volkswagen/t4'ü kaybeder; 'kuşak sayfaları KAPANMAZ' hükmü kırılır"),
@@ -2020,9 +2036,14 @@ MUTANTLAR = [
     # AYNI ZAMANDA kuralın AÇIKLAYAMADIĞI bir envanter girişini düşürüyor: `Suzuki|DR`
     # TEK JETON + RAKAMSIZ olduğu için ne H1 ne H3 onu yargılayabilir -> sayfa YARGISIZ
     # doğar ve K21 SIZINTI ekseni TEK BAŞINA kırmızı yanar.
+    # 🔴 ÇAPA 19 Ağu'da ÜÇÜNCÜ KEZ TAZELENDİ (SERİT B onarımı): K188 hükmü
+    # `baslik_yargisi_var_mi` çağrısına 4. argümanı (`g.get("jeton_sahibi")`)
+    # ekledi; 3-argümanlı eski çapa 0 eşleşmeye düştü — eksen SESSİZCE
+    # ölçülmüyordu. Dönüşüm ve iddia birebir aynı, yalnız çapa bugünkü gövde.
     ("tools/marka_model_build.py",
      '    if g.get("baslik_dogan") and not baslik_yargisi_var_mi(\n'
-     '            g.get("marka"), g.get("canon"), g.get("display") or g.get("canon")):\n'
+     '            g.get("marka"), g.get("canon"), g.get("display") or g.get("canon"),\n'
+     '            g.get("jeton_sahibi")):\n'
      "        return False",
      "    if False:\n        return False", "KIRMIZI",
      "M38 YARGI KAPISINI KALDIR (+ kuralın açıklayamadığı `Suzuki|DR` girişini düşür) -> "
