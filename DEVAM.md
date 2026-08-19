@@ -22,9 +22,9 @@
   degistirdi, `ba6d9d77`'deki capa/beklenti guncellenmedi — main mb'den beri 5 dosyaya
   DOKUNMADI, birlesim SUCSUZ. Recete: D11 capasi bugunku govdeden + beklenti 50→54 + L9 ekseni.
   kabul: iki komut rc=0 + mutant hedef-kol atfi, sonra merge.
-- 🟠 **K209 (Onarim-merge buldu — ⚖️ OKAN):** odeme worker'i BAYAT (canli `01d41b07` 15 Agu,
-  K186'nin 3 shop commit'i yeni; alarm 32238722688). Care: shop'tan `npx wrangler deploy`.
-  EGE_SIHIRBAZ kapali → acil degil, Ege-ON blokeri.
+- ✅ **K209 KAPANDI — worker CANLI** (alarm logu kanit: canli kod `358244ce` @ 10:54Z, K186'nin
+  3 shop commit'i yayinda). 🟠 Kalinti: `33b663e4` (K210'un TEK yorum satiri, davranis AYNI)
+  canlida degil → alarm 102,5/120 dk; care ikinci `wrangler deploy` (kozmetik, alarm commit sayar).
 - 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
   isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
