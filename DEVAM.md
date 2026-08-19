@@ -2,6 +2,7 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
+
 ## 🔻 KraL CANLI DURUM — 19 Agu ~18:0xZ (main=origin `4340c0b9`)
 **CANLIYA (bugun):** T-altyapisi `74475c70` · K186 `e25bea7b`+`73f41c8b` · K205 `bcde35fa` ·
 K210 `33b663e4` · K211 semasi · hijyen `840a6e26` · kok-rapor `bf543b60` · **K190 `4340c0b9`**.
@@ -12,6 +13,7 @@ FARK=0 (iki blok), K80 blokaji kalkti: K184 push'u `YENI_CI_ADIMI=3 KOSULAN=3`.
 uzun-once deligi, dal `kral/k216-marka-uzun-once`). **BEKLIYOR:** K212 · K213 sayi 51 (MaCiT) ·
 gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 **TEMIZLIK:** worktree 7 (1 mimar + 5 chip + 1 MaCiT'in, DOKUNULMADI). Rol tavani **MIMAR 1/2 · CHIP 6/12** ✅.
+
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
@@ -47,15 +49,12 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
   AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
   PAKET main'de (`7ce644ae`). kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit · 8 gorsel R2 200 · parite yesil.
-- ✅ **K221 KAPANDI:** `marka_kanon` BAYAT(82) artik **GUNCEL**; Ege canli iki id `marka=Land Rover`de
-  VAR (38/12), `marka=Rover`de **0**. ONCUL CURUDU (`?marka=`=ham∪kanon). **BES EKSEN YESIL** (19:2xZ,
-  `--durum` rc=0: SAYI 29485 · SEQ · SEMA · TURETILMIS · ICERIK 0/0/0). K223 KAPANDI: `37de4aad`
-  ITILDI, D1 29485'e indi, site ile ortusuyor.
 - 🔴 **K222:** `uzlastirici-onarim.py:161` `if rc == 0`, `:178` bayatlik kolundan ONCE; kapi yazmayi
   bloklayip rc=0 donunce surucu "ONARILDI" cikiyor (`32272271453`). kabul: imza varsa TEKRAR
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
+
 
 ## KraL SON DURUM (19 Agu ~17:xxZ; eski kapanis blogu ARSIVDE)
 📍 **KOK RAPORU OLCULDU: `DEVAM-ARSIV.md` 20250-20488 = 239 satir = kokteki 239 → LOSSLESS**
@@ -112,6 +111,7 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
 
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -119,6 +119,8 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+- 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z):** pruvo-shop bayatlik nabzi KIRMIZI (134,1 dk / esik 120); yayinlanmamis TEK fark `0f590d11` icindeki `shop/src/talep.js` YORUM satiri, davranis farki YOK. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
+
 
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
