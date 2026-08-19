@@ -1493,6 +1493,107 @@ _MM_CSS = """
   .mm-arama-tumu:hover{color:var(--navy-2)}
 """
 
+# ---------------------------------------------------------------- KATLAMA (ADIM 3 / P1)
+# NEDEN VAR (ArTisT ölçümü, 20 Ağu — ÖLÇÜLMÜŞ satış kaybı): sitede oluşan 3.754 sayfa
+# görüntülemesinin yalnız 377'si (%10) bir ürün sayfasına ulaşıyor. `/marka/bmw/` 375 px
+# genişlikte ilk ekranda SIFIR ürün kartı gösteriyordu; kartlardan ÖNCE 104 model çipi
+# geliyor (çip ~38 px + 10 px boşluk, 375 px'de satır başına 2-3 çip -> ~1900 px çip duvarı).
+# Aynı sayfada 536 kalem görselsiz/fiyatsız düz metin link olarak duruyordu.
+#
+# ÇÖZÜM = SAF CSS. JS YOK. Üç tasarım kısıtı bu deseni ZORLADI:
+#  ① JS-siz erişim + SEO: gizlenen öğe DOM'da DURUR. Crawler tam listeyi görür, öksüz link
+#    doğmaz (orphan güvenliği `_marka_sayfasi` içinde ölçülüyor), JS kapalı tarayıcı da
+#    "Tümünü gör" etiketiyle (label -> checkbox) listeyi AÇABİLİR.
+#  ② ÇİP/Lİ ETİKETİ DEĞİŞTİRİLEMEZ: marka-cip-kapisi.py:61, marka-kapsam-test.py:223,
+#    marka-sayac-kapisi.py:103-104 ve marka-artim-test.py:38 bu etiketleri KATI regex ile
+#    (attribute SIRASI dahil) ayrıştırıyor. Çipe yeni bir sınıf eklemek dört kapıyı da
+#    sessizce kırardı -> katlama çipte DEĞİL, kapsayıcıda `:nth-child` ile kuruldu.
+#  ③ className EZİLİYOR: artım JS'i (`cipleriIsaretle`) her çip tıklamasında
+#    `cipler[i].className = "mm-model-btn" + …` diye sınıfı KOMPLE yeniden yazıyor. Çipe
+#    konan bir katlama sınıfı ilk tıklamada YOK olurdu; `:nth-child` bundan etkilenmez.
+#
+# Her katlama kendi ANAHTARINA kilitlidir (`mm-katla-<anahtar>` / `mm-katla-btn-<anahtar>`).
+# Anahtarsız ortak seçici kullanılsaydı `~` kardeş erişimi yüzünden giriş metninin kutusu
+# çip etiketini de yönetirdi (iki span birden gizlenip etiket BOŞ görünürdü) — ölçülmedi,
+# tasarımda kapatıldı.
+#
+# 🔴 BİLİNEN DAR VAKA (bilinçli, kapatılmadı): `?kategori=` kapsamında kapsam JS'i
+# `btnlar[i].style.display = ""` yazar (satır içi değeri TEMİZLER), yani `:nth-child`
+# kuralı yeniden geçerli olur. İlk KATLA_MODEL_N modelin hepsi o kategoride 0 parçaya
+# düşerse hiç çip görünmez. Sayfa çalışır (kartlar + "Tümünü gör" etiketi yerinde) ve
+# kapsam JS'ine DOKUNMAMAK bilinçli tercihtir: o JS sahte-DOM kabul testleriyle ölçülüyor,
+# oraya `getElementById` sokmak testlerin DOM sözleşmesini kırardı.
+KATLA_MODEL_N = 12     # mobil ilk ekranda açık kalan model çipi (ArTisT ölçütü: EN ÇOK 12)
+KATLA_KALAN_N = 24     # düz bağ listesinde açık kalan girdi
+KATLA_GIRIS_SATIR = 3  # giriş metninin mobilde açık kalan satırı (ölçümle 4'ten indirildi)
+
+# nth-child eşikleri Python sabitlerinden TÜRETİLİR — CSS'e elle sayı yazılsaydı sabit
+# değişince ikiz tanım sessizce ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]).
+_KATLA_CSS = ("""
+  .mm-katla-kutu{position:absolute;width:1px;height:1px;opacity:0;margin:0;pointer-events:none}
+  .mm-katla-btn{display:inline-block;margin:2px 0 8px;font-size:13.5px;font-weight:700;
+    color:var(--navy-2);text-decoration:underline;cursor:pointer}
+  .mm-katla-btn:hover{color:var(--navy)}
+  /* Odak halkası ANAHTAR BAZLI: `.mm-katla-kutu:focus-visible ~ .mm-katla-btn` yazılsaydı
+     bir kutuya odaklanınca AŞAĞIDAKİ tüm katlama etiketleri birden çerçevelenirdi
+     (`~` sonraki TÜM kardeşleri tutar; üç kutu da aynı gövdenin çocuğu). */
+  .mm-katla-model:focus-visible ~ .mm-katla-btn-model,
+  .mm-katla-kalan:focus-visible ~ .mm-katla-btn-kalan,
+  .mm-katla-giris:focus-visible ~ .mm-katla-btn-giris{outline:2px solid var(--navy-2);
+    outline-offset:3px;border-radius:4px}
+  .mm-katla-model:not(:checked) ~ .mm-katla-btn-model .mm-katla-kapa{display:none}
+  .mm-katla-model:checked ~ .mm-katla-btn-model .mm-katla-ac{display:none}
+  .mm-katla-kalan:not(:checked) ~ .mm-katla-btn-kalan .mm-katla-kapa{display:none}
+  .mm-katla-kalan:checked ~ .mm-katla-btn-kalan .mm-katla-ac{display:none}
+  .mm-katla-giris:not(:checked) ~ .mm-katla-btn-giris .mm-katla-kapa{display:none}
+  .mm-katla-giris:checked ~ .mm-katla-btn-giris .mm-katla-ac{display:none}
+  .mm-katla-model:not(:checked) ~ .mm-models > .mm-model-btn:nth-child(n+%d){display:none}
+  .mm-katla-kalan:not(:checked) ~ .mm-kalan-bag > li:nth-child(n+%d){display:none}
+""" % (KATLA_MODEL_N + 1, KATLA_KALAN_N + 1)) + ("""
+  /* Giriş metni YALNIZ mobilde katlanır: masaüstünde ilk ekran zaten kart gösteriyor.
+     Metin her iki halde de DOM'da TAM durur (SEO + Ege eşleşmesi bozulmaz). */
+  .mm-katla-btn-giris{display:none}
+  @media (max-width:640px){
+    .mm-katla-btn-giris{display:inline-block}
+    .mm-katla-giris:not(:checked) ~ .lead.mm-giris-govde{display:-webkit-box;
+      -webkit-line-clamp:%d;-webkit-box-orient:vertical;overflow:hidden}
+    /* ---- MOBİL SIKIŞTIRMA (ADIM 3/P1) — ÖLÇÜMLE KONULDU, keyfi değil.
+       375 px'de iframe'e çivilenmiş ölçüm: katlama sonrası ilk kart sırası 1348 px'de
+       bitiyordu ama İKİNCİ sıra 1640 px'de bitiyordu — kabul eşiği 1624, yani ölçüt
+       yalnız 16 px ile kaçıyordu ve ilk ekranda 4 değil 2 kart kalıyordu.
+       Kart yüzeyine DOKUNULMADI (kart boyu küçültülseydi görsel+fiyat okunaklığı
+       düşerdi); yalnız başlık/kutu ARALIKLARI mobilde daraltıldı. Çip dolgusu 9px'ten
+       8px'e indi — 40 px yükseklik KORUNUR, dokunma hedefi kuralına (44 px bandı)
+       bilerek yaklaşılmadı, altına inilmedi. */
+    .mm-sec-h{margin:14px 0 4px}
+    .mm-models{gap:8px;margin:10px 0 4px}
+    .mm-model-btn{padding:8px 12px}
+    .mm-filtre-sifirla{margin:0}
+    .mm-arama{margin:10px 0 4px}
+    .mm-arama-tumu{margin:0 0 10px}
+    .mm-toplam{margin:0 0 6px}
+    .mm-katla-btn{margin:2px 0 4px}
+    .content.mm .grid{margin:8px 0}
+  }
+""" % KATLA_GIRIS_SATIR)
+
+_MM_CSS = _MM_CSS + _KATLA_CSS
+
+
+def _katla_kutu(anahtar):
+    """Katlama denetleyicisi — katlanacak İÇERİĞİN ÖNÜNE yazılır (`~` kardeş erişimi)."""
+    return ('<input type="checkbox" class="mm-katla-kutu mm-katla-%s" id="mmKatla-%s">'
+            % (anahtar, anahtar))
+
+
+def _katla_etiket(esc, anahtar, ac, kapa, ek_sinif=""):
+    """Katlama etiketi — İÇERİĞİN ARDINA yazılır; `for` ile kutuya bağlanır (JS YOK).
+    İki span taşır: açıkken/kapalıyken hangisinin görüneceğine CSS karar verir."""
+    return ('<label class="mm-katla-btn mm-katla-btn-%s%s" for="mmKatla-%s">'
+            '<span class="mm-katla-ac">%s</span>'
+            '<span class="mm-katla-kapa">%s</span></label>'
+            % (anahtar, (" " + ek_sinif) if ek_sinif else "", anahtar, esc(ac), esc(kapa)))
+
 
 # ---- KAPSAM (marka × kategori) — anasayfa çipinden gelen ?kategori= görünüm parametresi ----
 # NEDEN VAR (Okan, 30 Tem — SESSİZ hata): çok-dikeyli markalar (Yamaha 6 dikey, Suzuki 5,
@@ -2924,7 +3025,19 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
                         '%s<span class="adet">%d parça</span></a>'
                         % (esc(murl), esc(_kat_sayim_json(g["urunler"])), i,
                            esc(g["display"]), len(g["urunler"])))
-    model_html = '<div class="mm-models">' + "".join(btns) + "</div>" if btns else ""
+    # KATLAMA (ADIM 3/P1): KATLA_MODEL_N'den fazla model varsa kalanı CSS ile katlanır.
+    # Çip <a> etiketi BİREBİR AYNI kalır (dört kapı onu katı regex ile ayrıştırıyor);
+    # katlama yalnız kapsayıcıya + kardeş kutu/etikete dokunur. `len(btns)` etikette
+    # yazılan sayı ile `.mm-sayim-model` başlığındaki sayı AYNI kümeden gelir.
+    model_html = ""
+    if btns:
+        model_katlanir = len(btns) > KATLA_MODEL_N
+        model_html = (
+            (_katla_kutu("model") if model_katlanir else "")
+            + '<div class="mm-models">' + "".join(btns) + "</div>"
+            + (_katla_etiket(esc, "model",
+                             "Tümünü gör (" + str(len(btns)) + " model)",
+                             "Daha az model göster") if model_katlanir else ""))
 
     # ------------------------------------------------------- KART YÜZEYİ (Okan hükmü)
     # 🔴 KART YÜZEYİ = markanın TÜM parçaları (`kalemler`), model kovasındakiler DAHİL.
@@ -2971,10 +3084,26 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
         # 🔴 BÖLÜM SARMALANIR (`#mmKalan`): model filtresi etkinken bu bölümün TAMAMI
         # kapanır — düz bağ girdileri sayfanın YEREL kalemleridir, hiçbir modelin üyesi
         # DEĞİLDİR. Sarmalayıcı olmasaydı başlık "… parça listesi (0)" diye ekranda kalırdı.
+        # KATLAMA (ADIM 3/P1): ArTisT `/marka/bmw/`de 536 kalemi görselsiz/fiyatsız düz
+        # metin olarak ölçtü. Liste KART'a çevrilmiyor — kart yüzeyi zaten `kalemler`den
+        # üretiliyor ve artım kolu (`mmTumu`) aynı kalemleri KART olarak çiziyor; ikinci bir
+        # kart üreteci ikiz tanım olurdu. Burada yapılan: listenin ilk KATLA_KALAN_N girdisi
+        # açık, kalanı katlı. <li> etiketi DEĞİŞMEZ (marka-sayac-kapisi.py:103 +
+        # marka-cip-kapisi.py:65 katı regex).
+        # Etiket metni artım düğmesinden BİLEREK farklı ("Tümünü göster (N parça)" o düğmenin
+        # metni) — aynı sayfada iki ayrı denetim aynı sözü verirse kullanıcı hangisinin ne
+        # yaptığını ayırt edemez.
+        kalan_katlanir = len(yerel_kalan) > KATLA_KALAN_N
         kalan_html = ('<div id="mmKalan"><h2 class="mm-sec-h">' + esc(marka)
                       + ' parça listesi ('
                       + _bolum_sayaci(esc, yerel_kalan, "alt") + ')</h2>'
-                      + '<ul class="mm-kalan-bag">' + baglar + '</ul></div>')
+                      + (_katla_kutu("kalan") if kalan_katlanir else "")
+                      + '<ul class="mm-kalan-bag">' + baglar + '</ul>'
+                      + (_katla_etiket(esc, "kalan",
+                                       "Listenin tamamını aç (" + str(len(yerel_kalan))
+                                       + " parça)",
+                                       "Listeyi kısalt") if kalan_katlanir else "")
+                      + '</div>')
 
     kart_html = _urun_grid(ctx, basili, attr_of=_mm_attr, grid_attr=' id="mmGrid"')
     # Artım manifesti YALNIZ kök sayfada. `uc`/`yol`/`parti` = kart verisinin EDGE yolu; TEK
@@ -3043,7 +3172,18 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler,
 
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
-            + '<p class="lead">' + esc(giris) + '</p>'
+            # KATLAMA (ADIM 3/P1): giriş metni ~55 kelime; 375 px'de ~12 satır ≈ 290 px
+            # yiyor. Mobilde KATLA_GIRIS_SATIR satıra katlanır, metin DOM'da TAM kalır
+            # (pazarlama metni SİLİNMEZ — o ArTisT'in mülkü; yalnız görünür yükseklik düşer).
+            # YALNIZ üst-marka sayfasında: alt-model sayfası (`_model_sayfasi`) ArTisT'in
+            # ölçümünde ZATEN 1 tıkla ürüne götürüyor, ona dokunulmaz.
+            + _katla_kutu("giris")
+            # 🔴 GÖVDE SINIFI DENETLEYİCİDEN AYRIDIR (`mm-giris-govde`, `mm-katla-giris`
+            # DEĞİL): ikisi aynı adı taşısaydı `<p>` de `.mm-katla-giris:not(:checked)`
+            # seçicisine uyardı (bir <p> asla :checked olmaz) ve etiket ondan SONRA geldiği
+            # için "Kısalt" span'ı HER DURUMDA gizli kalırdı — kutu işaretliyken bile.
+            + '<p class="lead mm-giris-govde">' + esc(giris) + '</p>'
+            + _katla_etiket(esc, "giris", "Devamını oku", "Kısalt")
             + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
             + _toplam_bloku(esc, sayfa_kalemleri, oncul)
