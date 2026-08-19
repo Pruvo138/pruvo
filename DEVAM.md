@@ -6,10 +6,12 @@
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🟠 **K186 dal `74d6cfcd` DONDURULDU, MERGE BEKLIYOR** (chip kapandi): olculmus tablo
   `IDDIA=50 DUSEN=0 MUTANT=50/50` · bloklayici kol `16/16` · `--capa 1/1` · kisisel-veri rc=0.
-  🔴 ESKI SART ("`32192345810` yesili") **DUSTU — UYGULANAMAZ** (ayni is akisi main'de de 8/17
-  kirmizi, taban `32190783790`). ⚖️ YENI: *YENI kirmizi URETMIYOR* — (a) IS granulu OLCULDU,
-  kumeler AYNI; (b) SEBEP granulu **OLCULMEDI**, chip olcecek (K182). Sira: K202, K186, K184,
-  K190/K187 (`ba6d9d77`+`76c8444f`). Tam metin KUTUDA. 🔴 **K200 yesil olmadan TRAFIK YOK.**
+  🔴 ESKI SART ("kosum yesili") DUSTU — UYGULANAMAZ. YENI OLCUT *YENI kirmizi URETMIYOR*:
+  (a) IS granulu ✅ kumeler AYNI (8/8, dusen ADIM 7 iste BIREBIR ayni). (b) 🔴 **KALDI — MIMAR
+  OLCTU:** `serit-b`'de IKI adim tabanda `success`, K186'da `failure` — *Sahiplik haritasi kapisi*
+  + *Serit-b maskeleme kapisi*. 🔴 **MERGE EDILMEZ.** Sebep muhtemelen BAYAT TABAN (`77bb3195`)
+  — HIPOTEZ. Kapatan olcum: dala guncel main alinip kosum TEKRARI; iki adim yesilerse bayatlikti,
+  kirmizi kalirsa K186 kusuru. Sira: K202, K186-tazeleme, K184, K190.
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
   isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
   gerekce KUTUDA**; "chip kosturur" PLAN DEGIL. (ii) periyodik kablolama (MIMARDA, K198
