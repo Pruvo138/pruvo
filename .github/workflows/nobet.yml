@@ -390,6 +390,38 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/chip-duzeni-test.py
 
+      # MOTOR TEK-KAYNAK KAPISI (K214, 19 Agu 2026) — TeKiN'in capraz-ev kirmizisi.
+      # OLCULEN KUSUR: tools/mimar-kapi-kur.py isci motor kumesini KENDI govdesine
+      # GOMUYORDU ve 13 Agu'da BES karde eve o donmus kopyayi kurdu (kimi YOK, emekli
+      # deepseek VAR). Tek kaynak 15 Agu'da guncellendi, kurulu kopyalar DONUK kaldi —
+      # 6 gun SESSIZ ([[ikiz-tanim-sessiz-ayrisma]]). 22 Agu'da kimi donunce o evlerin
+      # mimarlari BIRINCIL kata is yollayamazdi.
+      #
+      # IKI EKSEN (K177 ayrimi): (1) TURETIM ZINCIRI repo ICIDIR ve CI'da TAM olculur —
+      # kurucu gomulu kume tutmuyor · uretecegi blok kaynakla birebir · KraL kaynagi
+      # import ediyor. (2) KURULU KOPYALAR karde evlerin DISKINDEDIR; CI checkout'unda
+      # o evler YOKTUR -> `EV_KAPSAM_DISI` ILAN EDILIR ve cikis kodunu ETKILEMEZ (sessiz
+      # yesil DEGIL, raporda ADIYLA sayilir). Ev DISKTE ve SAPMISSA rc=1.
+      # SERIT B: kirmizisi yayini DURDURMAZ — musteri yuzeyine degmez, mimar-isci
+      # dagitim hattini olcer.
+      - name: "Motor tek-kaynak kapisi (turetim zinciri + kurulu kopya sapmasi)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/motor-tek-kaynak-kapisi.py
+
+      # OZ-NOBETCI: 5 mutant + 1 kontrol, her biri HEDEF KOL koduyla (KOL=SAPMA-DEGER /
+      # IKIZ-TANIM / IMZA / OLCULEMEDI) eslesmek ZORUNDA. Hermetik: sentetik metin
+      # uzerinde kosar, gercek evlere ve gercek tek kaynaga DOKUNMAZ.
+      - name: "Motor tek-kaynak kapisi — kendini test (5 mutant + kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/motor-tek-kaynak-kapisi.py --kendini-test
+
+      # CURUTME: bir mutantin KIRMIZI vermesi hedef kolu OLCTUGUNUN kaniti DEGILDIR
+      # ([[isci-yesil-tablo-ic-olcumu-bosaltir]] — tautoloji hedefle birlikte duser).
+      # Her kolun govdesi etkisizlestirilir ve o kola bagli mutantin SUSMASI beklenir.
+      - name: "Motor tek-kaynak kapisi — curutme (kol oldurulunce mutant susmali)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/motor-tek-kaynak-kapisi.py --curutme
+
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test

@@ -150,10 +150,14 @@ import shlex
 import sys
 
 from mimar_kimlik import (
+    CANLI_ISCI_MOTORLARI,
     CODEX_IZINLI_MODELLER,
     CODEX_PENCERE_BITIS,
     CODEX_YASAK_MODELLER,
+    EMEKLI_ISCI_MOTORLARI,
     ISCI_MOTORLARI,
+    emekli_gerekcesi,
+    emekli_motor_mu,
     kimlik_ekseni,
 )
 
@@ -344,7 +348,7 @@ def _sert_blok_gerekcesi():
         "PRUVO_CLAUDE_ISCI_IZNI yalnızca tam olarak OKAN ise eski beyan kuralı çalışır; "
         "bu izni yalnızca Okan verir ve ajan kendi ayarlayamaz. İKİ AÇIK YOL: (a) " +
         ISCI_SARMALAYICI_YOLU + " <motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
-        "(ucuz motorlar: " + " / ".join(m for m in ISCI_MOTORLARI if m != "claude") +
+        "(ucuz motorlar: " + CANLI_MOTOR_LISTESI +
         "; kapalı motor kümesi: " + ISCI_MOTOR_LISTESI + "); (b) codex exec -C <ev> "
         "-s workspace-write -o <dosya> \"<spec>\"."
     )
@@ -432,8 +436,10 @@ def _mcp_tarayici_mi(tool_name):
 
 # ============ 13 AGU: ISCI-SARMALAYICI KAPISI (goc karari) ============
 # OLCULEN DELIK: 13 Agu gocu isci katini '~/.claude/cron/isci.sh <motor> <ev> <spec>
-# [etiket]' sarmalayicisina tasidi (ucuz motorlar: minimax-m3 / deepseek-pro /
-# deepseek-flash). Ama 20 Tem'in "repo DISINDAKI betigi kosturma" kurali (main() A adimi)
+# [etiket]' sarmalayicisina tasidi. (O gunun ucuz kati minimax-m3/deepseek idi; 15 Agu
+# emeklilikleriyle CANLI kat artik CANLI_ISCI_MOTORLARI'dir — bu metin TARIHTIR, dagitim
+# tablosu DEGIL; guncel kume icin mimar_kimlik.py'ye bak.)
+# Ama 20 Tem'in "repo DISINDAKI betigi kosturma" kurali (main() A adimi)
 # sarmalayiciyi da REDDEDIYORDU. Sonuc TERSINE TESVIK: mimarin UCUZ motora is verme yolu
 # MAKINE tarafindan kapali, geriye yalniz PAHALI yol (Claude iscisi = Agent araci) kaliyor.
 # KANIT: '~/.claude/cron/isci.log' — sarmalayicinin tum kosumlari ev=pruvo-hasat; KraL
@@ -458,8 +464,13 @@ ISCI_ARGUMAN_SAYILARI = (3, 4)
 # ISCI-SARMALAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
 # dogrulamasi; --codex-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
 # degistirirsen damgayi da yukselt.
-ISCI_KURAL_SURUMU = "13agu-3"
+ISCI_KURAL_SURUMU = "19agu-4"
 ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
+# 19 AGU (K214): INSAN-OKUR metin CANLI kumeden turer. Eski hali "minimax-m3 /
+# deepseek-pro / deepseek-flash" diye ELLE yazilmisti — yani kapi reddederken mimara
+# EMEKLI iki kati ONERIYORDU. Oneri de dagitimdir; o da canli kumeden cikmali.
+CANLI_MOTOR_LISTESI = " / ".join(CANLI_ISCI_MOTORLARI)
+EMEKLI_MOTOR_LISTESI = " / ".join(EMEKLI_ISCI_MOTORLARI)
 ISCI_GEREKCE_SONU = (
     " DOGRUSU: " + ISCI_SARMALAYICI_YOLU + " <MOTOR> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
     "(m3 kisayolu: " + ISCI_M3_SARMALAYICI_YOLU + " <EV_KOKU> <SPEC_DOSYASI> [ETIKET]). "
@@ -470,8 +481,8 @@ ISCI_CLAUDE_GEREKCESI = (
     "ISCI-SARMALAYICI KAPISI (13 Ağu): sarmalayıcı 'claude' MOTORUYLA çağrılıyor ama SPEC "
     "DOSYASINDA 'codex-muafiyet:' BEYAN SATIRI YOK. Bu şart olmasaydı sarmalayıcı "
     "AGENT-KAPISI'nı atlatan bir ANAHTAR olurdu (mimar -> isci.sh claude -> sürtünmesiz "
-    "Claude işçisi). İKİ ÇIKIŞ: (a) İŞİ UCUZ MOTORA VER (minimax-m3 / deepseek-pro / "
-    "deepseek-flash); VEYA (b) spec dosyasına şu satırı EKLE: "
+    "Claude işçisi). İKİ ÇIKIŞ: (a) İŞİ UCUZ MOTORA VER (" + CANLI_MOTOR_LISTESI +
+    "); VEYA (b) spec dosyasına şu satırı EKLE: "
     "'codex-muafiyet: <iş tanımı> — {ornek}' (geçerli sınıf jetonları: {liste} — "
     "codex-isci yasak listesi)."
 )
@@ -520,6 +531,14 @@ def _isci_karari(tokenlar):
             "Bilinmeyen motor VARSAYILAN RED (fail-closed): yarın eklenecek bir motor bu "
             "kapıyı kendiliğinden AÇMAZ."
         )
+
+    # 19 AGU (K214) SIKILASTIRMA — EMEKLI KAT: kapali kume KIMLIK icindir (emekli
+    # motorlarin ESKI turleri isci sayilmali), DAGITIM icin degil. Emekli bir kata
+    # YENI IS yollamak sessizce KABUL ediliyordu; artik ACIK GEREKCEYLE reddedilir.
+    # 🔴 SIRA ONEMLI: 'claude' EMEKLI DEGILDIR — asagidaki claude kolu (KraL/MaCiT sert
+    # blok + PRUVO_CLAUDE_ISCI_IZNI + beyan sarti) AYNEN korunur, bu kol ona DOKUNMAZ.
+    if emekli_motor_mu(motor):
+        return emekli_gerekcesi(motor)
 
     if (motor == "claude" and EV_ADI in SERT_BLOK_EVLER and
             os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):

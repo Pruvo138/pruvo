@@ -708,13 +708,20 @@ ISCI_SPEC_YOK = os.path.join(_ISCI_FIKSTUR_DIZINI, "hic-yazilmadi.md")
 ISCI_W = "/Users/okan/.claude/cron/isci.sh"
 ISCI_M3 = "/Users/okan/.claude/cron/m3-isci.sh"
 
+# 🔴 19 AGU (K214): DAGITIM vakalari CANLI motorla ('kimi') kosar. Eskiden hepsi
+# 'deepseek-flash' idi — 15 Agu'da EMEKLI edilen bir kat. Vakalar o hâliyle "delegasyon
+# yolu ACIK" diye YESIL yanarken CANLI birincil kat (kimi) hic olculmuyordu; kurulu
+# kapilarin kimi'yi REDDETTIGI 6 gun boyunca bu takim YESIL kaldi. Emekli kat artik
+# AYRI ve ACIK bir RED vakasiyla civilidir (616-618).
+# 🔴 KIMLIK EKSENI (650-654) BILEREK deepseek-flash'ta KALIR: orada olculen sey
+# "emekli katta baslamis bir tur hala isci sayiliyor mu" — geriye donuk tanima.
 ISCI_SARMALAYICI_VAKALARI = [
     # --- ALLOW: delegasyon yolu ACIK (olculen delik: bunlarin HEPSI 13 Agu oncesi DENY idi) ---
     (600, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
-     "ucuz motor + 4 argüman (etiketli) -> GECER"),
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
+     "CANLI BIRINCIL kat (kimi) + 4 argüman (etiketli) -> GECER [K214 sentinel]"),
     (601, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "ayni cagri ETIKETSIZ (3 argüman) -> GECER"),
     (602, "allow", "Bash",
      ISCI_M3 + " /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
@@ -729,11 +736,24 @@ ISCI_SARMALAYICI_VAKALARI = [
     (610, "deny", "Bash",
      ISCI_W + " gpt-9 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "BILINMEYEN MOTOR -> VARSAYILAN RED (fail-closed) [I2 sentinel]"),
-    (611, "deny", "Bash", ISCI_W + " deepseek-flash /Users/okan/dev/pruvo", None,
+    (611, "deny", "Bash", ISCI_W + " kimi /Users/okan/dev/pruvo", None,
      "EKSIK argüman (yalniz motor + ev) -> RED"),
     (612, "deny", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket fazla",
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket fazla",
      None, "FAZLA argüman (5 token) -> RED"),
+    # --- DENY: EMEKLI KAT (K214 sikilastirmasi, 19 Agu) ---
+    # 🔴 OLCULEN DELIK: kapali kume KIMLIK icindir, DAGITIM icin degil. Emekli bir kata
+    # yeni is yollamak SESSIZCE kabul ediliyordu; 22 Agu'da kimi donunce mimarlar hala
+    # olu kuyruga is yollayabilirdi ([[goc-yolu-eski-kapiya-takilir]]).
+    (616, "deny", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "EMEKLI motor (deepseek-flash) -> ACIK GEREKCEYLE RED [K214 sentinel]"),
+    (617, "deny", "Bash",
+     ISCI_W + " deepseek-pro /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
+     "EMEKLI motor (deepseek-pro) ETIKETLI cagri -> RED"),
+    (618, "deny", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo-hasat " + ISCI_SPEC_BEYANSIZ, None,
+     "EMEKLI kat CAPRAZ EV delegasyonunda da RED (ev degistirmek kolu acmaz)"),
     (613, "deny", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "motor=claude + spec'te BEYAN YOK -> RED (AGENT-KAPISI atlatilamaz) [I3 sentinel]"),
@@ -744,27 +764,29 @@ ISCI_SARMALAYICI_VAKALARI = [
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, None,
      "motor=claude + spec dosyasi YOK (okunamadi) -> RED [I4 sentinel, fail-closed]"),
     # --- DENY: YOL SINIRI (muafiyet anahtari TAM YOLA civilidir) ---
+    # 🔴 YOL SINIRI vakalari CANLI motorla kosar: motor emekli olsaydi red YOL kolundan
+    # DEGIL emekli kolundan gelirdi ve bu vakalar olctuklerini SANIP baskasini olcerdi.
     (620, "deny", "Bash",
-     "/tmp/isci.sh deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "/tmp/isci.sh kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "AYNI ADDA baska betik (/tmp/isci.sh) -> RED [I1 sentinel: basename esitligi delerdi]"),
     (621, "deny", "Bash",
-     "/Users/okan/.claude/cron/eski-isci.sh deepseek-flash /Users/okan/dev/pruvo " +
+     "/Users/okan/.claude/cron/eski-isci.sh kimi /Users/okan/dev/pruvo " +
      ISCI_SPEC_BEYANSIZ, None,
      "AYNI DIZINDE benzer ad (eski-isci.sh) -> RED (onek/alt-dize gevsemesi nobetcisi)"),
     (622, "deny", "Bash",
-     "/Users/okan/.claude/cron/isci.sh.eski.sh deepseek-flash /Users/okan/dev/pruvo " +
+     "/Users/okan/.claude/cron/isci.sh.eski.sh kimi /Users/okan/dev/pruvo " +
      ISCI_SPEC_BEYANSIZ, None,
      "YEDEK adi (isci.sh.eski.sh) -> RED (ONEK gevsemesi nobetcisi)"),
     (623, "deny", "Bash",
-     "bash " + ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "bash " + ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "sarmalayici YORUMLAYICI uzerinden cagriliyor (argv0=bash) -> muafiyet YOK, RED"),
     # --- SEGMENT AYRIMI: 'gecer' YALNIZ O SEGMENTI kapatir (iki yon de olculur) ---
     (630, "deny", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
      " | python3 tools/build.py", None,
      "sarmalayicinin YANINA baska ICRA eklenmis -> ikinci segment RED (yanlis-NEGATIF nobeti)"),
     (631, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
      " && git -C /Users/okan/dev/pruvo status", None,
      "MESRU zincir (sarmalayici && git status) -> GECER (yanlis-POZITIF nobeti)"),
     # --- REGRESYON: ISCI kimligi (agent_id DOLU) kuraldan TAM muaf (main() basi) ---
@@ -778,8 +800,8 @@ ISCI_SARMALAYICI_VAKALARI = [
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "KraL isci.sh claude + beyan -> RED"),
     (708, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
-     "KraL isci.sh deepseek-flash -> ALLOW"),
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "KraL sert blogu CANLI ucuz kati (kimi) ETKILEMEZ -> ALLOW"),
     (709, "allow", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "Okan izni + beyan: eski claude kurali ALLOW",
@@ -794,10 +816,19 @@ ISCI_SARMALAYICI_VAKALARI = [
 # 7. alan vaka-bazli ortam, 8. alan ALLOW izinde beklenen kimlik parcasidir. Test
 # PRUVO_ISCI_KOSUMU'nu HER vakadan once miras ortamindan siler; boylece bir vakanin
 # degeri sonrakine sizip yalanci yesil uretemez.
+# 🔴 K214 SINIRI — BU TAKIM DAGITIM DEGIL KIMLIK OLCER: buradaki 'deepseek-flash'
+# BILEREK EMEKLI bir motordur ve BILEREK 'allow' bekler. Emekli katta BASLAMIS bir tur
+# hala kosuyor olabilir; kimligini geriye donuk TANIMAK ZORUNDAYIZ (mimar_kimlik.py:
+# "kapali kume KIMLIK TANIMA icindir, IS DAGITIMI icin degil"). Bunlari canli motora
+# "duzeltmek" kapiyi DELER: emekli sarmalayicidan gelen cagri MIMAR sayilip allowlist'e
+# carpar ve kosan tur ortasinda olur. Dagitim reddi AYRI takimdadir (616-618).
 ISCI_KIMLIK_EKSENI_VAKALARI = [
     (650, "allow", "Bash", "python3 tools/build.py", None,
-     "sarmalayici deepseek-flash: tools/build.py -> GECER",
+     "sarmalayici deepseek-flash: tools/build.py -> GECER (EMEKLI kat, KIMLIK ekseni)",
      {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}, "ISCI(sarmalayici:deepseek-flash)"),
+    (649, "allow", "Bash", "python3 tools/build.py", None,
+     "CANLI BIRINCIL kat (kimi) da kimlik verir -> GECER [K214: kimi kapali kumede]",
+     {"PRUVO_ISCI_KOSUMU": "kimi"}, "ISCI(sarmalayici:kimi)"),
     (651, "deny", "Bash", "python3 tools/build.py", None,
      "ayni cagri env YOK: MIMAR allowlist disi -> RED", {}, None),
     (652, "allow", "Bash", "curl -s https://example.invalid", None,
