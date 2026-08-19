@@ -1,16 +1,25 @@
 # DEVAM (KraL) — 8 Agu 2026
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
-
-
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
+- 🔴🔴 **ONARIM HATTI = BIRINCI ONCELIK (Okan, 19 Agu ~11:3xZ).** `ustuste_onarimsiz=59` ·
+  ci-nobeti cron DISI, `gozcu.py --tur` saatlik :23 CANLI (kalp 08:23Z; kat_mimar=10 · isci=1) ·
+  T1 penceresi **20 Agu 08:48Z BITIYOR**, `t1-kiyas.py` DALDA · SERIT B **18 Agu 11:23Z'den beri
+  KIRMIZI** (32201776934: 7 job/16 adim; addc0051'e ozgu degil). Chip'ler: Onarim-merge
+  (ea423a0c→main, merge-kapisi) + SeritB-teshis (salt teshis).
+  Onarim dalinin 3 ACIK mimar konusu: T6 durum-dosyasi ekseni (hukum: T5 dosyasi GENISLETILIR,
+  fail-closed) · T5/T6 kendini-test flakiness · merge-kanit KANITSIZ=27 dolum turu.
+- 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;**
+  tavanlar KALKTI; kimi/m3 YEDEK; cron hatti kimi'de. AGENTS.md + kutu duyurusu yazildi.
 - 🔴 **K186 `74d6cfcd` MERGE EDILMEZ — "bayat taban" hipotezi CURUTULDU, iki kirmizi da K186'nin
   KENDI kusuru** ((b) chip'i olctu; kapi betikleri iki ucta BIREBIR → sebep VERI): ① haritada
   `tools/talep-temizlik.py` satiri YOK (`EKSIK=1`) ② `nobet.yml` 366/368/372 adimlarinda
   `if: !cancelled()` YOK (`MASKELEYEN=3`, komsularin hepsinde var). Merge cakismasi tek dosya
   `nobet.yml` (capa; kabul: her `- name:` birlesimde TAM 1 kez, adim=main+3). Yan bulgu: bayat
   taban K186'nin LEHINEYDI — tazeleme kirmizi EKLER. **ONARIM RECETESI (3 madde) kutuda; sonra
-  (b) KOSUMLA kapanir.** Kabul-4 yeniden civilenecek (`nobet.yml` ortak dosya). K184 → K190 sirada.
+  (b) KOSUMLA kapanir.** K184 → K190 sirada. **→ 19 Agu: ONARIM KAPANDI `aa40200f` (kabul-4 ✅✅✅; onizleme
+  `4b27f054` YESIL: EKSIK=0 · MASKELEYEN=0 · adim 270=main+3). MERGE ICRASI Onarim-merge
+  chip'ine devredildi — sira: stoic-albattani → K186.**
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
   isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
   gerekce KUTUDA**; "chip kosturur" PLAN DEGIL. (ii) periyodik kablolama (MIMARDA, K198
@@ -43,17 +52,16 @@
   tasinir, M-K202 main'de KIRMIZI/yesil dongusuyle kanitlanir. · 🔧 **K202-kendini-test** (chip
   olctu, TABANDAN geliyor): dalda 4 dusuyor (M06 cokme + M17/M20/M31 bayat capa), taban 20 —
   dal yeni kirmizi URETMEDI. kabul: capalar govdeden turetilir count==1, `beklentiyi tutmayan: 0`.
+  **→ 19 Agu: diff MIMARCA OKUNDU, hukum verildi (deny/allow tablolari MAIN KANONIK — allow imzasi
+  iki ucta ozdes `f3ccf9b717a42de5`; yalniz SINIF-IMZA kapisi + M-K202 tasinir; sabit main'de
+  YENIDEN turetilir, mutant capasi main govdesinden count==1). TASIMA CHIP'I PANELE KONDU.**
+- 🟠 **K206 (19 Agu, TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye.
+  Kararlar: saklama AYRI AILE · gyro site semasinda `doku=duz` (.scad degismez) · 8 fiyat ONAY
+  (280/190/170/350=TAVAN/160/240/140/220). ⚠️ kupler render guncelligi RAPORDA CELISKILI — chip
+  OLCECEK. kabul: ONIZLEME_AILELER 22→30 · taban-fiyat-tablosu 21→29 · urunler.json +8 sari
+  kayit (parametrik:true, fiyat:"") · 8 gorsel R2'de 200 · kategori-parite yesil.
 
-## 🔻 KraL OTURUM KAPANISI — 19 Agu ~01:1xZ
-**✅ YAYIN ACILDI:** deploy `32201776669` @ `addc0051` **SUCCESS** (21:56Z'den beri ILK yesil,
-kuyruk bosaldi). Bu oturumdan main'e 7 hukum/defter commit'i (`0f872e4b`..`addc0051` oncesi).
-**KOSAN CHIP YOK** (K202 · K186-(b) · K190 kapandi, uclu ARSIVLENEBILIR satirini yazdi; K189 +
-Onarim chip'leri ARSIVLENDI, isleri DALLARDA): K189 `claude/agitated-haslett-240c77` `ed8bc6c3`
-4 commit **origin'e yedeklendi**, eksen-3 bitti K197 kaldi · Onarim `claude/stoic-albattani-ba0187`
-`ea423a0c` origin'de, T6 `OLCULEMEDI=3` + T3 `SAHIPSIZ=24` + T1 + ⑤ `KANITSIZ=27/27` ACIK.
-**TEMIZLIK KANITI:** worktree 4→2 (unruffled+priceless kaldirildi; kalan 2'nin isi ACIK) ·
-`frosty` dali silindi (main-disi 0) · scratchpad 0 dosya (oturum yazmadi) · 8 ara-cikti dosyasi
-silindi. **SIRADAKI TEK IS:** K186 onarim recetesi → (b) kosumla → merge → K184 → K190.
+## KraL SON DURUM (19 Agu ~12:0xZ; eski kapanis blogu ARSIVDE)
 ✅ **K190+K187 KAPANDI — MIMARCA TEYIT** (`kral/k190-canli-temizlik` `91479a60`): `22/22`,
 K187 `KV=4/4`. Merge K186 arkasinda; kalan tek kalem K200(i). · 🔧 **K203:** tavan kapisi worktree
 ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204:** `OKSUZ` fiilen
@@ -63,10 +71,9 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
 - 🔧 **K195 (19 Agu — 4. TEKRAR):** `defter-rotasyon.py` kapali madde yokken TASIMIYOR → kota her oturumda ELLE rotasyon istiyor. **Tam metin ARSIVDE.**
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
   taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
-- ✅ **19 Agu KAPANANLAR (tam metin ARSIVDE):** K185 · K188 · K195a/b · K193 · K194 · T3 `8ca4c716` ·
-  T4 `893d278d` · T5 `f07b40aa` · ③ · K178/K178b · K183 · K167. **KALAN ACIK ARTIKLAR:** T3
-  `SAHIPSIZ=44` · T4/T5 canli kablo (Okan kapisi) · T5'te hareket damgasi yok (7/7 `OLCULEMEDI`) ·
-  K188'in kancasi BAGLI DEGIL · sahte DOM olay uretmiyor (Escape olcumu yok) — hepsi chip'lerde.
+- ✅ **19 Agu KAPANANLAR: liste ARSIVDE.** **KALAN ACIK ARTIKLAR:** T3 `SAHIPSIZ=44→24 (Onarim
+  dali olctu)` · T4/T5 canli kablo (Okan kapisi) · T5 hareket damgasi 7/7 `OLCULEMEDI` ·
+  K188 kancasi BAGLI DEGIL · Escape olcumu yok — hepsi chip'lerde.
 - 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
@@ -107,23 +114,15 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
-
-
-
-
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
   (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
-- 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
+- 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
 - 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
   SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
-
-
-
-
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
