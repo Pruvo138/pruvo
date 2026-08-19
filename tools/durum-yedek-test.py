@@ -456,7 +456,11 @@ def _yedekle_izole_ortam(td, yb, memory_adet=8, skills_adet=4):
     ortam = dict(os.environ)
     ortam["HOME"] = ev
     return {"kok": kok, "betik": os.path.join(kok, "tools", "yedekle.py"),
-            "ev": ev, "hedef": os.path.join(pruvo, "backup"),
+            # Hedef kok adi TEK KAYNAKTAN (yedekle.YEDEK_KOK_ADI): 14 Agu
+            # 86e7a035 koku backup-v2 yapti, buradaki "backup" literali ikiz
+            # tanim olarak bayatladi ve batarya BOS klasore bakip dusuyordu
+            # (19 Agu SERIT B onarimi; [[ikiz-tanim-sessiz-ayrisma]]).
+            "ev": ev, "hedef": os.path.join(pruvo, yb.YEDEK_KOK_ADI),
             "kilit": os.path.join(kok, yb.KILIT_ADI), "ortam": ortam}
 
 

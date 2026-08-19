@@ -434,13 +434,18 @@ def main():
     olc("KABLO-TABAN main() kablo fiksturu (mutasyonsuz)",
         lambda: _kablo_fikstur(KAP), False)
 
+    # 🔴 KB1/KB3/PP4/IZ2 CAPALARI 19 Agu'da TAZELENDI (SERIT B onarimi): 74475c70
+    # ci-kapsam ACIK_KESIF/push-kapsami eklemesi main() cagrisina `push_kapsami=...`
+    # parametrelerini, kancaya `--pre-push < girdi` bicimini, izlenmeyen dongusune
+    # push-kapsami dalini ekledi; dort capa 0 eslesmeye dustu ve eksenler SESSIZCE
+    # olculmuyordu. Iddialar birebir ayni, capalar bugunku govdeden.
     olc("M-KB1 (Y4) main() olcumu GECIRMIYOR (`izlenmeyen=None`)",
         lambda: _kablo_fikstur(_mutant_modul(
             "kb1",
             "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep,\n"
-            "        model_uretim=gercek_deploy)",
+            "        model_uretim=gercek_deploy, push_kapsami=push_kapsami,",
             "        izlenmeyen=None, izlenmeyen_sebep=izlenmeyen_sebep,\n"
-            "        model_uretim=gercek_deploy)")),
+            "        model_uretim=gercek_deploy, push_kapsami=push_kapsami,")),
         True, "KABLO KOPUK")
 
     olc("M-KB2 (Y8) main() kovayi BOSALTIYOR (`izlenmeyen = []`)",
@@ -454,15 +459,15 @@ def main():
         lambda: _kablo_fikstur(_mutant_modul(
             "kb3",
             "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=izlenmeyen_sebep,\n"
-            "        model_uretim=gercek_deploy)",
+            "        model_uretim=gercek_deploy, push_kapsami=push_kapsami,",
             "        izlenmeyen=izlenmeyen, izlenmeyen_sebep=None,\n"
-            "        model_uretim=gercek_deploy)")),
+            "        model_uretim=gercek_deploy, push_kapsami=push_kapsami,")),
         True, "K3 SEBEP YUTULDU")
 
     # ---- PUSH KABLOSU: pre-push blogunun DAVRANISI (varligi degil) -----------
     olc("M-PP4 (P4) pre-push cagrisi `--kendini-test` koluna cevrildi",
-        lambda: _pp_mutant('ci-kapsam-test.py" 2>&1 </dev/null)',
-                           'ci-kapsam-test.py" --kendini-test 2>&1 </dev/null)'),
+        lambda: _pp_mutant('ci-kapsam-test.py" --pre-push 2>&1',
+                           'ci-kapsam-test.py" --kendini-test 2>&1'),
         True, "PRE-PUSH FIKSTURU DUSTU (SAGLAM")
 
     olc("M-PP5 (P5) pre-push kosulu ASLA ateslenmiyor (`-eq 12345`)",
@@ -805,8 +810,10 @@ def main():
     olc("M-IZ2 izlenmeyen kova UYARI'ya cevrildi (exit koduna dokunmuyor)",
         lambda: _iz_fikstur(_mutant_modul(
             "iz2",
-            "    for yol in izlenmeyen_kapsamsiz:\n        hatalar.append(",
-            "    for yol in izlenmeyen_kapsamsiz:\n        satirlar.append(")),
+            '        hatalar.append(\n'
+            '            "HENUZ IZLENMIYOR (kapsamsiz): %s',
+            '        satirlar.append(\n'
+            '            "HENUZ IZLENMIYOR (kapsamsiz): %s')),
         True, "SESSIZ YESIL")
 
     olc("M-IZ3 (GEVSETME) kova predikati jokerlesti (`.md`/arsiv siziyor)",

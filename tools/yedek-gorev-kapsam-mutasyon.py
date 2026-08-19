@@ -59,6 +59,17 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 YEDEKLE = os.path.join(TOOLS, "yedekle.py")
 DRIVE_YOLU = os.path.join(TOOLS, "drive_yolu.py")
 
+
+def _yedek_kok_adi():
+    """Hedef kok adi TEK KAYNAKTAN (yedekle.YEDEK_KOK_ADI, 86e7a035): buradaki
+    eski "backup" literali ikiz tanimdi ve batarya BOS klasore bakip TABAN
+    KIRMIZI veriyordu (19 Agu SERIT B onarimi)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("yedekle_kok_sabiti", YEDEKLE)
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    return modul.YEDEK_KOK_ADI
+
 # GERCEK ANAHTAR DEGIL. Dize PARCALI kurulur: hicbir KAYNAK SATIRI jeton desenine
 # uymaz (repo geneli sir tarayicilari bosuna kirmizi yakmasin), CALISMA ANINDAKI
 # dize ise yedekle.SIR_IMZALARI "GitHub jetonu" imzasini BIREBIR tetikler.
@@ -232,7 +243,8 @@ def kum_havuzu(td, kaynak_betik):
     ortam["HOME"] = ev
     ortam["PYTHONDONTWRITEBYTECODE"] = "1"
     return {"kok": kok, "betik": os.path.join(kok, "tools", "yedekle.py"),
-            "ev": ev, "koklar": koklar, "hedef": os.path.join(pruvo, "backup"),
+            "ev": ev, "koklar": koklar,
+            "hedef": os.path.join(pruvo, _yedek_kok_adi()),
             "ortam": ortam}
 
 

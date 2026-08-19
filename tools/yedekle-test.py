@@ -81,7 +81,10 @@ HERMETIK_BAYRAK = "--hermetik"
 
 def kontrol(ad, ok, ayrinti=""):
     SONUC.append((ad, bool(ok), ayrinti))
-    print(("  ✅ " if ok else "  ❌ ") + ad + (("  — " + ayrinti) if ayrinti else ""))
+    # ayrinti str olmayabilir (bolum 18 set/list gecirir; 19 Agu'da olculdu:
+    # str + set TypeError'i tum takimi 16b'den sonra kesiyordu).
+    print(("  ✅ " if ok else "  ❌ ") + ad +
+          (("  — " + str(ayrinti)) if ayrinti else ""))
     return bool(ok)
 
 
@@ -535,7 +538,13 @@ def izole_ortam(td, yedekle, memory_adet=40, skills_adet=20):
     ortam = dict(os.environ)
     ortam["HOME"] = ev
     return {"kok": kok, "betik": os.path.join(kok, "tools", "yedekle.py"),
-            "ev": ev, "pruvo": pruvo, "hedef": os.path.join(pruvo, "backup"),
+            # Hedef kok adi TEK KAYNAKTAN (yedekle.YEDEK_KOK_ADI): 14 Agu
+            # 86e7a035 koku backup-v2 yapti; buradaki "backup" literali ikiz
+            # tanim olarak bayatlamisti ve bu harness'i ITHAL eden yedek-sir /
+            # durum-yedek / yedek-gorev bataryalari BOS klasore bakip dusuyordu
+            # (19 Agu SERIT B onarimi; [[ikiz-tanim-sessiz-ayrisma]]).
+            "ev": ev, "pruvo": pruvo,
+            "hedef": os.path.join(pruvo, yedekle.YEDEK_KOK_ADI),
             "kilit": os.path.join(kok, yedekle.KILIT_ADI), "ortam": ortam,
             "memory_adet": memory_adet, "skills_adet": skills_adet}
 
@@ -649,7 +658,8 @@ def gercek_kritik_parmakizi(yedekle):
     YAZDIGI tek dosya — E2/K5 onariminin nobetcisi)."""
     izler = {}
     pruvo = _gercek_pruvo_dizini_saltokunur()
-    izler["damga"] = (os.path.join(pruvo, "backup", yedekle.DAMGA_ADI)
+    izler["damga"] = (os.path.join(pruvo, yedekle.YEDEK_KOK_ADI,
+                                   yedekle.DAMGA_ADI)
                       if pruvo else None, None)
     try:
         sys.path.insert(0, TOOLS)

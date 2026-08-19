@@ -32,7 +32,7 @@ YAN ETKI YOK: /api/shop/fiyat PROVA ucudur — D1'e YAZMAZ, siparis OLUSTURMAZ, 
 CIKIS KODLARI (ucu de ANLAMLI — "olculemedi" ASLA yesil sayilmaz):
   0 PARITE      — her konfigurlu urunde canli kurus yerel hesapla BIREBIR.
   1 DRIFT       — en az bir urun canlida TANINMIYOR (400) ya da KURUSU SAPIYOR.
-                  Cozum: shop dizininden Worker'i yeniden yayinla (Okan/KraL kapisi).
+                  Onarim: shop dizininden Worker'i yeniden yayinla (Okan/KraL kapisi).
   2 OLCULEMEDI  — ag/uc erisilemedi, 429 (hiz siniri) ya da bozuk cevap. Drift KANITI YOK,
                   ama parite de KANITLANMADI -> sessiz yesil VERILMEZ.
 

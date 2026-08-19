@@ -171,8 +171,12 @@ M11 = ("M11", "TOPLU yolda MARKA TURETIM KABLOSU kesildi (marka bayat kalir, K5 
 
 M12 = ("M12", "`uyum` DEGISTIRILEBILIR kumesinden tamamen CIKARILDI (yol yeniden kapali)",
        "duzelt",
-       [('                    "tur", "gorselsiz", "uyum"}',
-         '                    "tur", "gorselsiz"}')],
+       # 🔴 DAYANAK 19 Agu'da TAZELENDI (SERIT B onarimi): kumeye
+       # `tavsiyeFilament` eklenince eski uc-elemanli capa 0 eslesmeye dustu ve
+       # HARNESS BAYAT ile arac HICBIR SEY olcmuyordu. Iddia ayni: yalniz `uyum`
+       # kumeden cikarilir, komsu alanlar durur.
+       [('                    "tur", "gorselsiz", "uyum", "tavsiyeFilament"}',
+         '                    "tur", "gorselsiz", "tavsiyeFilament"}')],
        # CAPRAZ: alanin tumden kapanmasi `uyum` YAZAN her ekseni birden dusurur; ayirt
        # edici DEGILDIR, ama "kabul kumesi gercekten yuk tasiyor mu" sorusunu yanitlar.
        ["D1", "D2", "D3", "D4", "D8"], "ESIT")

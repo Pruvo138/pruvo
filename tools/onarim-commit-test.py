@@ -62,7 +62,12 @@ def kos(argv: list[str], cwd: str | None = None, ortam: dict | None = None):
 
 
 def g(kok: str, *argv: str, ortam: dict | None = None):
-    return kos(["git", "-C", kok, *argv], ortam=ortam)
+    # KANONIK sentetik git (fikstur-git-sizinti-kapisi sozlesmesi): kesif GIT_*
+    # baglami scrub'lanir; ORTAM'in deterministik kimlik/tarih degiskenleri
+    # ek_ortam olarak biner (kesif adlari ek_ortam'dan da ayiklanir).
+    from git_ortami import sentetik_git
+    return sentetik_git(kok, *argv, ek_ortam=(ortam or ORTAM),
+                        capture_output=True, text=True, check=False)
 
 
 def gs(kok: str, *argv: str) -> str:
@@ -101,8 +106,11 @@ def fikstur(tepe: str) -> tuple[str, str]:
     """bare uzak + yerel klon; taban commit'i: tools/x.py, tools/z.py, yabanci.txt"""
     uzak = os.path.join(tepe, "uzak.git")
     yerel = os.path.join(tepe, "yerel")
-    kos(["git", "init", "--bare", "-b", "main", uzak])
-    kos(["git", "init", "-b", "main", yerel])
+    from git_ortami import sentetik_git
+    sentetik_git(tepe, "init", "--bare", "-b", "main", uzak,
+                 ek_ortam=ORTAM, capture_output=True, text=True)
+    sentetik_git(tepe, "init", "-b", "main", yerel,
+                 ek_ortam=ORTAM, capture_output=True, text=True)
     yaz(os.path.join(yerel, "tools", "x.py"), "print('taban x')\n")
     yaz(os.path.join(yerel, "tools", "z.py"), "print('taban z')\n")
     yaz(os.path.join(yerel, "yabanci.txt"), "yabanci taban\n")

@@ -645,7 +645,7 @@ def main():
     if FAILS:
         print("\nSONUC: KIRMIZI ❌  (%d kontrol kaldi)" % len(FAILS))
         if kopuk:
-            print("   Taban bayatsa tek satirlik cozum: "
+            print("   Taban bayatsa tek satirlik cozum: ISCIYE: "
                   "python3 tools/marka-invaryant-kapisi.py --taban-yaz")
         return 1
     print("\nSONUC: YESIL ✅")

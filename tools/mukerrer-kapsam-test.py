@@ -69,13 +69,12 @@ def _kos(kok, *args, env_ek=None):
 
 
 def _git(kok, *args):
-    return subprocess.run(
-        ["git", "-C", kok] + list(args),
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+    # KANONIK sentetik git (fikstur-git-sizinti-kapisi sozlesmesi): miras GIT_*
+    # kesif baglami scrub'lanir, cwd acikca sabitlenir.
+    from git_ortami import sentetik_git
+    return sentetik_git(kok, *args, check=True,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        text=True)
 
 
 def _yaz(path, veri):

@@ -203,7 +203,7 @@ def olc(ayrintili=True):
     if sapan:
         kirmizi = True
         R.append("COZUM: `git checkout -- <sayfa>` YASAK (elle/bayat icerigi EZER). "
-                 "`python3 tools/build.py` kostur, uretilen sayfayi GOZDEN GECIR, COMMIT ET. "
+                 "ISCIYE: `python3 tools/build.py` kostur, uretilen sayfayi GOZDEN GECIR, COMMIT ET. "
                  "(attribution-ref.js / META_HEAD_SNIPPET degistiyse bu adim ZORUNLU.)")
 
     # --- BILGI: build.py diski degistirdi mi (sira bagimli; hukum bundan verilmez)
