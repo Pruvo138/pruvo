@@ -50,12 +50,14 @@ Kanca modunda cikis kodu DAIMA 0'dir; hukum `permissionDecision` ile tasinir.
 
 import argparse
 import importlib.util
+import io
 import json
 import os
 import re
 import shutil
 import sys
 import tempfile
+from contextlib import redirect_stdout
 
 
 # ------------------------------------------------------------------------------
@@ -366,19 +368,43 @@ def kanca(girdi, *, esik=None, koku_root=None, mutant=None, t4=None):
     return 0
 
 
+# Sarmalayici adindan SONRAKI tum argumanlari yakalar; ETIKET kacinci
+# arguman oldugu sarmalayiciya gore belirlenir (asagida).
 _ETIKET_RE = re.compile(
-    r"(?:isci\.sh|m3-isci\.sh|parti-surucusu\.sh)\s+(?:\S+\s+){0,3}(\S+)\s*$")
+    r"(isci\.sh|m3-isci\.sh|[\w.-]*parti-surucusu\.sh)((?:\s+\S+)*)\s*$")
+
+# sarmalayici -> ETIKET'in kacinci arguman oldugu (0-indeksli).
+# isci.sh      : <MOTOR> <EV_KOKU> <SPEC> <ETIKET>   -> 3
+# m3-isci.sh   : <EV_KOKU> <SPEC> <ETIKET>           -> 2
+# parti-surucusu.sh: argumansiz — etiket govdesinde gomulu, ciakarilamaz -> None
+_ETIKET_INDEKS = {"isci.sh": 3, "m3-isci.sh": 2}
 
 
 def _etiket_cikar(komut):
-    """`isci.sh <motor> <ev> <spec> <etiket>` sonundaki ETIKET'i cikarir.
+    """`isci.sh <motor> <ev> <spec> <etiket>` icindeki ETIKET'i cikarir.
 
-    Bulamazsa bos doner — bos etiket MUAF DEGILDIR (fail-closed yon).
+    🔴 Bulamazsa BOS doner ve bos etiket MUAF DEGILDIR (fail-closed yon):
+    etiketi okuyamadigimiz bir cagriyi "onarim hatti" sayip gecirmeyiz.
+    Yonlendirme/boru kuyrugu (`>> log 2>&1`, `| tee`) once ATILIR — aksi
+    halde etiket son token olmaz ve MUAF cagrilar bosuna bloklanirdi.
     """
-    m = _ETIKET_RE.search((komut or "").strip())
+    ham = (komut or "").strip()
+    # yonlendirme/boru kuyrugunu at (etiket bunlardan ONCE gelir)
+    for ayrac in (">>", "2>", ">", "|", "&&", ";"):
+        i = ham.find(ayrac)
+        if i >= 0:
+            ham = ham[:i]
+    m = _ETIKET_RE.search(ham.strip())
     if not m:
         return ""
-    return m.group(1).strip().strip("\"'")
+    sarmalayici = os.path.basename(m.group(1))
+    indeks = _ETIKET_INDEKS.get(sarmalayici)
+    if indeks is None:
+        return ""
+    argumanlar = (m.group(2) or "").split()
+    if len(argumanlar) <= indeks:
+        return ""
+    return argumanlar[indeks].strip().strip("\"'")
 
 
 # ------------------------------------------------------------------------------
@@ -603,10 +629,47 @@ def kendini_test(gecici_kok):
           % ("GECTI" if k4 else "KUSUR", rc, RC_RED))
     kontrol += 1 if k4 else 0
 
+    # K5: KANCA yuzeyi uctan uca + ETIKET cikarimi (yonlendirme kuyruklu komut)
+    #     Kanca modu DAIMA rc=0 doner; hukum JSON'un icindedir.
+    isci = "/Users/okan/.claude/cron/isci.sh"
+    vaka_kanca = (
+        # (ad, komut, beklenen_deny)
+        ("yeni-parti",
+         "%s minimax-m3 %s /tmp/s.md parti-surucusu >> /tmp/l.log 2>&1"
+         % (isci, kok_hasat), True),
+        ("tamir-muaf",
+         "%s kimi %s /tmp/s.md tamir-k99 >> /tmp/l.log 2>&1"
+         % (isci, kok_hasat), False),
+        ("suren-is", "git -C %s commit -m 'parti 47/100'" % kok_hasat, False),
+    )
+    k5 = True
+    for ad, komut, bekle_deny in vaka_kanca:
+        girdi = {"tool_name": "Bash", "tool_input": {"command": komut},
+                 "cwd": kok_hasat}
+        tampon = io.StringIO()
+        with redirect_stdout(tampon):
+            rc_k = kanca(girdi, koku_root=gecici_kok)
+        ham = tampon.getvalue().strip()
+        deny = False
+        if ham:
+            try:
+                deny = (json.loads(ham).get("hookSpecificOutput", {})
+                        .get("permissionDecision") == "deny")
+            except Exception:
+                deny = False
+        etiket = _etiket_cikar(komut)
+        ok = (rc_k == 0 and deny == bekle_deny)
+        k5 = k5 and ok
+        print("  kanca[%-11s] rc=%d deny=%-5s (beklenen %-5s) etiket=%r %s"
+              % (ad, rc_k, deny, bekle_deny, etiket, "✓" if ok else "✗"))
+    print("KONTROL K5 kanca yuzeyi + etiket cikarimi: %s"
+          % ("GECTI" if k5 else "KUSUR"))
+    kontrol += 1 if k5 else 0
+
     print("")
-    print("MUTANT=%d/5 HEDEF_KOL_ATFI=%d/5 KONTROL=%d/4"
+    print("MUTANT=%d/5 HEDEF_KOL_ATFI=%d/5 KONTROL=%d/5"
           % (mutant_sayaci, atif_sayaci, kontrol))
-    return 0 if (mutant_sayaci == 5 and atif_sayaci == 5 and kontrol == 4) else 1
+    return 0 if (mutant_sayaci == 5 and atif_sayaci == 5 and kontrol == 5) else 1
 
 
 # ------------------------------------------------------------------------------

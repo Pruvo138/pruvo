@@ -176,7 +176,19 @@ def kabul_A(calisma):
                 f.write(yamali)
             gspec = importlib.util.spec_from_file_location("n2_gozcu_kopya", gyol)
             gmod = importlib.util.module_from_spec(gspec)
-            gspec.loader.exec_module(gmod)
+            # gozcu.py kardes modullerini (`kilit`, `nobet-kapi`) KENDI dizininden
+            # import eder; hermetik kopya baska dizinde durdugu icin o dizin
+            # gecici olarak sys.path'e alinir. Kopya diske BIRAKILMAZ (calisma
+            # dizini kabul sonunda silinir) — Okan'in "iz birakma" kurali.
+            gdizin = os.path.dirname(os.path.abspath(KURUCU.GOZCU_YOLU))
+            sys.path.insert(0, gdizin)
+            try:
+                gspec.loader.exec_module(gmod)
+            finally:
+                try:
+                    sys.path.remove(gdizin)
+                except ValueError:
+                    pass
             kapi_yolu = os.path.join(_BU_DIZIN, "ev-sahip-kapisi.py")
             # BOZUK harita tasiyan depo koku ile:
             gozcu_kirmizi = gmod.n2_sahip_coz(
@@ -360,10 +372,13 @@ def kabul_C(calisma):
     simdi = datetime(2026, 8, 19, 20, 0, 0, tzinfo=timezone.utc)
 
     def kur(kok, yas_dk):
-        for ev in ("KraL", "MaCiT"):
+        # Izlenen HER eve bos defter: defteri olmayan ev her kosumda
+        # N2C-OLCULEMEDI uretir ve sayaci kirletir.
+        for ev in set(["KraL", "MaCiT"] + DEVIR.izlenen_evler()):
             os.makedirs(os.path.join(kok, ev, "memory"), exist_ok=True)
             with open(DEVIR.posta_yolu(ev, kok), "w", encoding="utf-8") as f:
                 f.write("# sentetik posta kutusu\n")
+            _defter(DEVIR.defter_yolu(ev, kok), [])
         _defter(DEVIR.defter_yolu("MaCiT", kok),
                 [("K777", "🔧", "100-100 partisinin kirmizisi")])
         _defter(DEVIR.defter_yolu("KraL", kok), [])
@@ -448,7 +463,7 @@ def kabul_Z(calisma, once_imza):
     # Z1 — her mekanizmada mutant + hedef-kol atfi
     beklenen = {
         "ev-sahip-kapisi.py": "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=3/3",
-        "parti-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=4/4",
+        "parti-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=5/5",
         "devir-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=4/4",
     }
     satirlar, hepsi = [], True

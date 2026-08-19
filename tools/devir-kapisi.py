@@ -248,14 +248,20 @@ def siniflandir(simdi, *, koku_root=None, mutant=None):
                 yeni_damga = eski_damga
 
             if damga_dt is None:
-                kol = N2C_OLCULEMEDI_JETON
-                fark = None
+                # N2C-OLCULEMEDI: damga cozulemedi -> DEVIR YOK (fail-closed).
+                # 🔴 M5 YALNIZ BU KOLU hedefler; cozulebilir damgali kalemlere
+                # DOKUNMAZ. Aksi halde M5, M2'nin (TAZE) golgesi olurdu ve
+                # "mutant yasamadi" kaniti YANLIS KOLA yazilirdi
+                # ([[ad-iki-rolde-mutanti-golgeler]]).
+                if mutant == "M5":
+                    kol = N2C_DURGUN_JETON        # FAIL-OPEN: 'cok eski' say
+                    fark = float(ESIK_DAKIKA) + 1.0
+                else:
+                    kol = N2C_OLCULEMEDI_JETON
+                    fark = None
             else:
                 fark = (simdi - damga_dt).total_seconds() / 60.0
-                if mutant == "M5":
-                    # FAIL-OPEN mutanti: cozulemeyen damgayi 'cok eski' say.
-                    kol = N2C_DURGUN_JETON
-                elif mutant == "M1":
+                if mutant == "M1":
                     kol = N2C_TAZE_JETON          # durgun kolu oldurulur
                 elif mutant == "M2":
                     kol = N2C_DURGUN_JETON        # taze kolu oldurulur
@@ -263,10 +269,6 @@ def siniflandir(simdi, *, koku_root=None, mutant=None):
                     kol = N2C_DURGUN_JETON
                 else:
                     kol = N2C_TAZE_JETON
-
-            if damga_dt is None and mutant == "M5":
-                kol = N2C_DURGUN_JETON
-                fark = float(ESIK_DAKIKA) + 1.0
 
             out["kalemler"].append({
                 "ev": ev, "kimlik": k["kimlik"], "durum": k["durum"],
@@ -462,14 +464,19 @@ def _defter_yaz(yol, kalemler):
 
 
 def _kurulum(kok, simdi, yas_dk):
-    """Izole fikstur: MaCiT'te 1 kalem (yas_dk once damgali), KraL bos."""
-    for ev in (TAMIRCI, "MaCiT"):
+    """Izole fikstur: MaCiT'te 1 kalem (yas_dk once damgali), otekiler BOS.
+
+    🔴 IZLENEN HER EVE bos defter yazilir. Yoksa defteri olmayan evler her
+    kosumda `N2C-OLCULEMEDI` uretir ve sayaci kirletir — o gurultu icinde
+    "OLCULEMEDI=1" gibi bir kabul iddiasi ANLAMINI YITIRIR.
+    """
+    for ev in set([TAMIRCI, "MaCiT"] + izlenen_evler()):
         os.makedirs(os.path.join(kok, ev, "memory"), exist_ok=True)
         with open(posta_yolu(ev, kok), "w", encoding="utf-8") as f:
             f.write("# sentetik posta kutusu\n")
+        _defter_yaz(defter_yolu(ev, kok), [])
     _defter_yaz(defter_yolu("MaCiT", kok), [("K777", "🔧", "sentetik tamirat")])
     _defter_yaz(defter_yolu(TAMIRCI, kok), [])
-    # bos evler: diger izlenen evler icin defter YOK -> OLCULEMEDI kolu
     # damgayi geriye at
     kalemler, _o, _h = T4.acik_kalem_listesi(defter_yolu("MaCiT", kok))
     durum = {"MaCiT/K777": {"imza": _imza(kalemler[0]),
@@ -571,27 +578,41 @@ def kendini_test(gecici_kok):
             if (m["ihlal"].get("MaCiT") or {}).get("ihlal", 0) != 1:
                 yan_bozulan.append("ihlal")
         elif ad == "M5":   # OLCULEMEDI kolu fail-OPEN yapilir
-            kok = os.path.join(gecici_kok, "m5")
-            os.makedirs(kok, exist_ok=True)
-            _kurulum(kok, simdi, 300)
-            # damgayi BOZ: cozulemez deger
-            _json_yaz(durum_yolu(kok),
-                      {"MaCiT/K777": {"imza": "BOZUK-IMZA-ESLESMEZ",
-                                      "damga": "cozulemez-damga"}})
-            n = devret(simdi, koku_root=kok, mutant=None)
-            kok2 = os.path.join(gecici_kok, "m5m")
-            os.makedirs(kok2, exist_ok=True)
-            _kurulum(kok2, simdi, 300)
-            _json_yaz(durum_yolu(kok2),
-                      {"MaCiT/K777": {"imza": "BOZUK-IMZA-ESLESMEZ",
-                                      "damga": "cozulemez-damga"}})
-            m = devret(simdi, koku_root=kok2, mutant="M5")
-            # normal: imza eslesmiyor -> hareket VAR -> TAZE (devir YOK)
-            # mutant M5: cozulemeyen damga 'cok eski' sayilir -> DEVIR
-            hedef_kirmizi = (len(n["devredilen"]) == 0
+            # 🔴 Fikstur OLCULEMEDI kolunu GERCEKTEN uyandirmali: imza DOGRU
+            # olmali (yoksa "imza degisti -> hareket var" dalina duser ve
+            # olctugumuz sey M2'nin golgesi olur), damga ise COZULEMEZ.
+            def _m5_kur(alt):
+                kok = os.path.join(gecici_kok, alt)
+                os.makedirs(kok, exist_ok=True)
+                _kurulum(kok, simdi, 300)
+                kalemler, _o, _h = T4.acik_kalem_listesi(defter_yolu("MaCiT", kok))
+                _json_yaz(durum_yolu(kok),
+                          {"MaCiT/K777": {"imza": _imza(kalemler[0]),
+                                          "damga": "cozulemez-damga"}})
+                return kok
+            kn5 = _m5_kur("m5n")
+            n_sinif = siniflandir(simdi, koku_root=kn5, mutant=None)
+            n = devret(simdi, koku_root=kn5, mutant=None)
+            km5 = _m5_kur("m5m")
+            m = devret(simdi, koku_root=km5, mutant="M5")
+            # Kolu SAYIDAN degil KALEMIN KENDISINDEN oku: sayac baska evlerin
+            # durumundan da beslenir ve iddiayi bulandirir.
+            n_kol = next((k["kol"] for k in n_sinif["kalemler"]
+                          if k["kimlik"] == "K777"), None)
+            # normal: damga cozulemez -> OLCULEMEDI -> DEVIR YOK
+            # mutant M5: cozulemeyen damga 'cok eski' sayilir -> DEVIR (fail-open)
+            hedef_kirmizi = (n_kol == N2C_OLCULEMEDI_JETON
+                             and len(n["devredilen"]) == 0
                              and len(m["devredilen"]) == 1)
-            print("  bozuk damga: normal=%s | mutant=%s"
-                  % (hukum_satiri(n), hukum_satiri(m)))
+            print("  cozulemez damga: K777 kolu(normal)=%s | normal=%s | mutant=%s"
+                  % (n_kol, hukum_satiri(n), hukum_satiri(m)))
+            # yan eksen: SAGLAM damgali kalemlerde M5 hicbir seyi degistirmemeli
+            _ke, y_eski = senaryo(300, mutant="M5", alt="m5-yan-e")
+            _ky, y_yeni = senaryo(60, mutant="M5", alt="m5-yan-y")
+            if (len(y_eski["devredilen"]), y_eski["taze"]) != (1, 0):
+                yan_bozulan.append("300dk")
+            if (len(y_yeni["devredilen"]), y_yeni["taze"]) != (0, 1):
+                yan_bozulan.append("60dk")
 
         yan_yesil = not yan_bozulan
         print("  yan eksen bozulan: %s" % (",".join(yan_bozulan) or "-"))
