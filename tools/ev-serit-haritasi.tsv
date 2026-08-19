@@ -1,0 +1,104 @@
+# tools/ev-serit-haritasi.tsv — N2 "kirleten onarir" (19 Agu 2026, Okan onayli doktrin)
+#
+# 🔴 TEK KAYNAK: bir DOSYA YOLU -> SERIT -> EV eslemesi YALNIZ burada tanimlidir.
+#    Ikinci kopya YASAK ([[ikiz-tanim-sessiz-ayrisma]]). Her tuketici
+#    `tools/ev-sahip-kapisi.py` uzerinden TURETIR; kendi listesini TUTMAZ.
+#    Bugun bilinen tuketiciler:
+#      - ~/.claude/cron/gozcu.py       (kirmizi kosum -> kalem sahibi)
+#      - tools/parti-kapisi.py          (yeni parti/isci basvurusu -> ev)
+#      - tools/ev-sahip-kapisi.py       (CLI + kendini-test)
+#
+# NEDEN VAR (Okan'in vakasi, birebir): "MaCiT 100-100 urun ekliyor, iletiyi
+# gormedi, isine devam etti; tamirat yapilmadigi icin tum mimarlar MaCiT'i
+# bekledi." Mesaj kacar, KAPI kacmaz. Kapinin kacmamasi icin ONCE kirmizinin
+# SAHIBI makinece bilinmelidir — bu dosya o bilgidir.
+#
+# BICIM (sekmeyle ayrilmis, 5 sutun):
+#   ONCELIK	DESEN	SERIT	EV	NOT
+#     ONCELIK  : tamsayi. BUYUK olan kazanir. Esitlikte dosyadaki SIRA kazanir.
+#     DESEN    : fnmatch deseni, depo-KOKUNE goreli POSIX yol uzerinde eslesir.
+#                `*` bolu isaretini de yer (fnmatch semantigi) — `worker/*`
+#                `worker/src/index.js` ile ESLESIR.
+#     SERIT    : insan okur etiket; hukum SERIT'ten degil EV'den turer.
+#     EV       : KraL · MaCiT · HocA · ArTisT · TeKiN · ORTAK
+#                ORTAK = hicbir evin tekelinde OLMAYAN duzlem (defter, README,
+#                lisans...). ORTAK satirlar ev kumesine SAYILMAZ; yani tek
+#                basina "cok-seritli" URETMEZ, ama "eslesmeyen" de SAYILMAZ.
+#     NOT      : serbest metin (sekme TASIYAMAZ).
+#
+# 🔴 CATCH-ALL SATIR YOKTUR ve EKLENMEYECEKTIR. Eslesmeyen yol `eslesmeyen`
+#    sebebiyle KraL'a duser — bu "varsayilan KraL" DEGIL, ARTIK KOVA'dir:
+#    cikti sebebi acikca yazar, boylece harita bosluğu GORULUR ve kapanir.
+#
+# EV'in gerekcesi (CLAUDE.md kanonu):
+#   veri/parti duzlemi                         -> MaCiT
+#   worker/ (bot cekirdegi, Ege agzi)          -> HocA
+#   pazarlama/SEO duzlemi                      -> ArTisT
+#   jenerator/ (parametrik sari seri)          -> TeKiN
+#   site kodu + ortak araclar + CI'nin kendisi -> KraL
+#
+# ⚠️ `tools/sahiplik-haritasi.tsv` (KAPI/NOBET betiklerinin ev atamasi) BU
+#    HARITAYI EZER: bir yol orada TAM YOL olarak listeliyse o satirin EV'i
+#    gecerlidir. Iki harita CAKISMAZ, KADEMELIDIR — betik-duzeyi atama
+#    insan kararidir ve yol-oneki tahmininden daha spesifiktir.
+ONCELIK	DESEN	SERIT	EV	NOT
+# --- MaCiT: veri / urun / parti duzlemi -------------------------------------
+900	urunler.json	veri	MaCiT	katalogun tek kaynagi
+900	urun-kaynaklari.json	veri	MaCiT	acik koken kaydi
+900	.urun-kaynaklari.json	veri	MaCiT	gizli koken kaydi (uyelik)
+890	urunler.json.*	veri	MaCiT	kilit/yedek/gecici turevler
+890	.urunler.lock	veri	MaCiT	parti flock kilidi
+880	hasat/*	veri	MaCiT	hasat/batch ciktilari
+880	urun-gorsel-koken/*	veri	MaCiT	gorsel koken envanteri
+880	stl/*	veri	MaCiT	model dosyalari
+880	varlik/*	veri	MaCiT	varlik envanteri
+870	tools/hasat-*	veri	MaCiT	hasat araclari
+870	tools/urun-*	veri	MaCiT	urun ekleme hatti
+870	tools/thingiverse-*	veri	MaCiT	platform adaptoru
+870	tools/printables-*	veri	MaCiT	platform adaptoru
+870	tools/makerworld-*	veri	MaCiT	platform adaptoru
+870	tools/cults3d-*	veri	MaCiT	platform adaptoru
+870	tools/cgtrader-*	veri	MaCiT	platform adaptoru
+# --- HocA: bot cekirdegi ----------------------------------------------------
+800	worker/*	bot	HocA	Ege'nin canli agzi (pruvo-bot cekirdegi)
+800	beyin/*	bot	HocA	bot bilgi tabani
+790	tools/ege-*	bot	HocA	Ege kabiliyet/bilgi kapilari
+# --- TeKiN: jenerator / parametrik sari seri --------------------------------
+700	jenerator/*	jenerator	TeKiN	parametrik uretim govdesi
+700	kalibrasyon/*	jenerator	TeKiN	jenerator kalibrasyonu
+690	taban-fiyatlar.js	jenerator	TeKiN	sari seri taban fiyat tablosu
+690	tools/koolm-*	jenerator	TeKiN	Koolm parametre semasi
+# --- ArTisT: pazarlama / SEO / reklam / analitik ----------------------------
+600	pazarlama/*	pazarlama	ArTisT	pazarlama duzlemi
+600	sitemap.xml	pazarlama	ArTisT	SEO yuzeyi
+600	sitemap-damgalari.json	pazarlama	ArTisT	SEO damgalari
+600	robots.txt	pazarlama	ArTisT	SEO yuzeyi
+600	merchant-feed.xml	pazarlama	ArTisT	alisveris feed'i
+590	tools/reklam-*	pazarlama	ArTisT	reklam etiketi kapilari
+590	tools/feed-*	pazarlama	ArTisT	feed politikasi
+590	tools/ga4-*	pazarlama	ArTisT	analitik olaylari
+590	tools/meta-piksel-*	pazarlama	ArTisT	piksel olcumu
+590	tools/landing-*	pazarlama	ArTisT	landing yuzeyi
+590	tools/cta-*	pazarlama	ArTisT	CTA dengesi
+# --- KraL: site kodu + ortak araclar + CI ----------------------------------
+500	worker-iyzico-webhook/*	site	KraL	ODEME webhook'u — HocA'nin worker'i DEGIL
+400	shop/*	site	KraL	magaza/odeme yuzeyi
+400	onizleme/*	site	KraL	onizleme servisi
+400	index.html	site	KraL	vitrin
+400	index.built.html	site	KraL	uretilen vitrin
+400	konfigur.js	site	KraL	konfigurator
+400	secenekler.js	site	KraL	secenek tablosu
+400	filament-veri.js	site	KraL	malzeme tablosu
+400	attribution-ref.js	site	KraL	atif yuzeyi
+400	ozet.json	site	KraL	ozet artefakti
+300	.github/*	ci	KraL	CI'nin KENDISI
+300	tools/*	arac	KraL	ortak araclar (kapi/nobet/olcum)
+# --- ORTAK: hicbir evin tekelinde degil (ev kumesine SAYILMAZ) --------------
+200	CLAUDE.md	ortak	ORTAK	tek kaynak baglam dosyasi
+200	AGENTS.md	ortak	ORTAK	CLAUDE.md symlink'i
+200	DEVAM.md	ortak	ORTAK	izlenen defter
+200	DEVAM-ARSIV.md	ortak	ORTAK	git disi defter
+200	README.md	ortak	ORTAK	depo tanitimi
+200	.gitignore	ortak	ORTAK	depo hijyeni
+200	CNAME	ortak	ORTAK	alan adi kaydi
+200	RAPOR-*.md	ortak	ORTAK	dal ici rapor belgeleri

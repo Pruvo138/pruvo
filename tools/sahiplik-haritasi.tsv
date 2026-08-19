@@ -74,8 +74,10 @@ defter-rotasyon	tools/defter-rotasyon.py	KraL	nobet	python3 tools/defter-rotasyo
 denetim-kapisi	tools/denetim-kapisi.py	MaCiT	yayin	python3 tools/denetim-kapisi-test.py
 deploy-aclik-kapisi	tools/deploy-aclik-kapisi.py	KraL	yayin	python3 tools/deploy-aclik-kapisi --kendini-test
 devam-sinif-kapisi	tools/devam-sinif-kapisi.py	KraL	yayin	python3 tools/devam-sinif-kapisi --kendini-test
+devir-kapisi	tools/devir-kapisi.py	KraL	nobet	python3 tools/devir-kapisi.py --kendini-test
 diriltme-kapisi	tools/diriltme-kapisi.py	KraL	yayin	python3 tools/diriltme-kapisi --kendini-test
 durgun-kalem-kapisi	tools/durgun-kalem-kapisi.py	KraL	nobet	python3 tools/durgun-kalem-kapisi.py --kendini-test
+ev-sahip-kapisi	tools/ev-sahip-kapisi.py	KraL	nobet	python3 tools/ev-sahip-kapisi.py --kendini-test
 durum	tools/durum.py	KraL	hijyen	python3 tools/durum-test.py
 duzelt	tools/duzelt.py	MaCiT	hijyen	YOK
 e2-birim-ikiz-kanit	tools/e2-birim-ikiz-kanit.py	KraL	hijyen	YOK
@@ -156,7 +158,9 @@ onsecim-parite-kapisi	tools/onsecim-parite-kapisi.py	TeKiN	yayin	YOK
 ozet-bayt-atifi	tools/ozet-bayt-atifi.py	KraL	hijyen	YOK
 parity-sequential-flock	tools/parity-sequential-flock.py	KraL	hijyen	YOK
 parity-server	tools/parity-server.py	KraL	veri	YOK
+n2-kabul	tools/n2-kabul.py	KraL	nobet	python3 tools/n2-kabul.py
 parti-borc-kapisi	tools/parti-borc-kapisi.py	KraL	nobet	python3 tools/parti-borc-kapisi.py --kendini-test
+parti-kapisi	tools/parti-kapisi.py	KraL	nobet	python3 tools/parti-kapisi.py --kendini-test
 parti-kontrol	tools/parti-kontrol.py	MaCiT	hijyen	YOK
 r2-onek-gelenek-kapisi	tools/r2-onek-gelenek-kapisi.py	MaCiT	veri	YOK
 r2-purge	tools/r2-purge.py	MaCiT	veri	python3 tools/r2-purge-test.py

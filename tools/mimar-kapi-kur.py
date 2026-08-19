@@ -41,6 +41,7 @@ Desen (mevcut modlarla AYNI): DAR + IDEMPOTENT + YEDEKLI + FAIL-CLOSED.
   * mevcut kural blogu ESKI damgaliysa marker'lar arasi blok SOKULUP yenisi konur
     (kural yukseltmesi de tek hamle).
 """
+import importlib.util
 import io
 import json
 import os
@@ -1606,6 +1607,334 @@ def isci_kapisi(uygula):
     sys.exit(0 if eksik == 0 else 1)
 
 
+# ==============================================================================
+# N2 (B) — PARTI KAPISI DAGITIMI (19 Agu 2026, Okan onayli doktrin)
+# ==============================================================================
+# "Mesaj kacar, KAPI kacmaz." Acik 🔧 varken YENI parti/isci baslatma REDDEDILIR.
+# 🔴 IKINCI KURUCU YAZILMADI: dagitim bu dosyanin (mevcut kurucu hattinin) yeni
+#    bir kolu olarak yasar — `--parti-kapisi [--uygula]`.
+#
+# IKI YUZEY:
+#   (1) `~/.claude/cron/isci.sh` govdesine markerli blok — CRON surucleri
+#       (macit-parti-surucusu.sh vb.) PreToolUse kancasini GORMEZ; tek bogaz
+#       isci.sh'tir. Idempotent + yedekli.
+#   (2) Her evin `.claude/settings.json`ina `Bash` matcher'li PreToolUse kancasi
+#       + evin `.claude/parti-kapisi.py` kopyasi (enjekte modu).
+#
+# KAPSAM: yalniz T4'un (`parti-borc-kapisi.py`) EV_DIZIN'inde COZULEBILEN evler.
+# Cozulemeyen ev KURULMAZ ve `KAPSAM_DISI` olarak SATIRLA YAZILIR — sessiz
+# kirpma YOK (kirpilani yazmayan rapor "hepsini kapsadim" diye okunur).
+PARTI_KAPISI_ADI = "parti-kapisi.py"
+PARTI_KAPISI_KAYNAK = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), PARTI_KAPISI_ADI)
+PARTI_MATCHER = "Bash"
+PARTI_BAS = "# === N2-PARTI-KAPISI BAS ==="
+PARTI_SON = "# === N2-PARTI-KAPISI SON ==="
+
+PARTI_ISCI_BLOK = PARTI_BAS + '''
+# N2 (B), 19 Agu 2026 — Okan onayli doktrin. Okan'in vakasi: "MaCiT 100-100 urun
+# ekliyor, iletiyi gormedi, isine devam etti; tamirat yapilmadigi icin tum
+# mimarlar MaCiT'i bekledi." Mesaj kacar, KAPI kacmaz.
+#
+# 🔴 SUREN IS KESILMEZ: bu blok tur BASLAMADAN once kosar. Zaten kosan bir tura
+#    DOKUNMAZ; yalnizca YENISININ acilmasini durdurur.
+# 🔴 Muafiyet (tamir/onarim/kabul/nobet/posta/devir etiketleri) kapinin ICINDE
+#    tanimlidir — burada IKINCI liste tutulmaz ([[ikiz-tanim-sessiz-ayrisma]]).
+N2_PARTI_KAPISI=/Users/okan/dev/pruvo/tools/parti-kapisi.py
+if [[ -f "$N2_PARTI_KAPISI" ]]; then
+  if ! python3 "$N2_PARTI_KAPISI" --isci-kapi "$ISTENEN_MOTOR" "$EV_KOKU" "$SPEC_DOSYASI" "$ETIKET"; then
+    echo "N2-PARTI-KAPISI: YENI is REDDEDILDI — suren isini bitir, kalemi KAPAT." >&2
+    exit 3
+  fi
+else
+  echo "N2B-KAPI-YOK: $N2_PARTI_KAPISI bulunamadi — parti kapisi KOSMADI." >&2
+fi
+''' + PARTI_SON
+
+
+# --- YUZEY 3: gozcu.py — kirmizi kosumun SAHIBI (N2 A) ------------------------
+# Gozcu ile kapi AYNI fonksiyondan okur: `tools/ev-sahip-kapisi.py`. Gozcu KENDI
+# harita kopyasini TUTMAZ; harita bozulursa kol OLCULEMEDI doner ve gozcu
+# KIRMIZI yanar (spec §2-A4'un "tek kaynak" kanitinin gozcu ayagi).
+GOZCU_YOLU = "/Users/okan/.claude/cron/gozcu.py"
+GOZCU_BAS = "# === N2-SAHIP-KOPRUSU BAS ==="
+GOZCU_SON = "# === N2-SAHIP-KOPRUSU SON ==="
+
+GOZCU_KOPRU = GOZCU_BAS + '''
+# N2 (A), 19 Agu 2026 — kirmizi kosumun SAHIBI HARITADAN turetilir.
+# TEK KAYNAK: /Users/okan/dev/pruvo/tools/ev-serit-haritasi.tsv
+# TEK OKUYUCU: /Users/okan/dev/pruvo/tools/ev-sahip-kapisi.py:kirmizi_sahibi
+# Gozcu kendi ev tablosunu TUTMAZ. Harita bozulursa SEBEP=olculemedi doner ve
+# tur KIRMIZI biter — "sessiz KraL'a yikma" davranisi YOKTUR.
+N2_SAHIP_KAPISI = "/Users/okan/dev/pruvo/tools/ev-sahip-kapisi.py"
+N2_REPO_KOKU = "/Users/okan/dev/pruvo"
+
+
+def n2_sahip_coz(sha, kapi_yolu=None, repo_koku=None):
+    """headSha -> (SAHIP, SEBEP). Kapi/harita yuklenemezse ('KraL','olculemedi')."""
+    kapi_yolu = kapi_yolu or N2_SAHIP_KAPISI
+    repo_koku = repo_koku or N2_REPO_KOKU
+    if not sha:
+        return ("KraL", "olculemedi")
+    try:
+        import importlib.util as _n2_ilu
+        _n2_spec = _n2_ilu.spec_from_file_location("pruvo_n2a_sahip", kapi_yolu)
+        if _n2_spec is None or _n2_spec.loader is None:
+            return ("KraL", "olculemedi")
+        _n2_mod = _n2_ilu.module_from_spec(_n2_spec)
+        _n2_spec.loader.exec_module(_n2_mod)
+        _s = _n2_mod.kirmizi_sahibi(repo_koku, sha)
+        return (_s.get("SAHIP") or "KraL", _s.get("SEBEP") or "olculemedi")
+    except Exception:
+        return ("KraL", "olculemedi")
+
+
+''' + GOZCU_SON
+
+# (anchor, yeni_metin) ciftleri. Her capa TAM ESLESMELIDIR; biri bayatsa
+# yama YAPILMAZ (yanlis yere enjekte etmek kapiyi korlestirir).
+GOZCU_YAMALARI = (
+    ("def kalp_satiri(kalp):",
+     GOZCU_KOPRU + "\n\ndef kalp_satiri(kalp):"),
+    ('"KAT_MIMAR=%d KAT_OKAN=%d GUNLUK=%d ARTIK_SILINEN=%d CI_SEBEP=%s rc=%d") % (',
+     '"KAT_MIMAR=%d KAT_OKAN=%d GUNLUK=%d ARTIK_SILINEN=%d CI_SEBEP=%s rc=%d '
+     'SAHIP=%s SEBEP=%s") % ('),
+    ("        int(kalp.get(\"rc\") or 0),\n    )",
+     "        int(kalp.get(\"rc\") or 0),\n"
+     "        kalp.get(\"sahip\") or \"-\",\n"
+     "        kalp.get(\"sahip_sebep\") or \"-\",\n    )"),
+    ('    kalp = {\n        "damga": _damga(simdi),',
+     "    # N2 (A): kirmizi kosumun SAHIBI — harita TEK KAYNAK.\n"
+     "    n2_sahip = (\"-\", \"-\")\n"
+     "    if tetik == \"CI_KIRMIZI\" and yeni:\n"
+     "        n2_sahip = n2_sahip_coz(yeni[0].get(\"sha\"))\n"
+     "        if n2_sahip[1] == \"olculemedi\":\n"
+     "            rc = max(rc, 1)   # harita/git olculemedi -> GOZCU KIRMIZI\n"
+     "\n"
+     '    kalp = {\n        "damga": _damga(simdi),\n'
+     '        "sahip": n2_sahip[0],\n'
+     '        "sahip_sebep": n2_sahip[1],'),
+)
+
+
+def gozcu_yamala(metin):
+    """Gozcu kaynagina N2 sahip koprusunu uygular.
+
+    Return: (yeni_metin, durum). durum: "ZATEN TAM" | "YAMALANDI" |
+            "CAPA-BULUNAMADI(<capa>)". SAF FONKSIYON — dosyaya DOKUNMAZ,
+    boylece kabul testi HERMETIK bir kopya uzerinde ayni yamayi olcebilir.
+    """
+    if GOZCU_BAS in metin:
+        return metin, "ZATEN TAM"
+    for capa, yeni in GOZCU_YAMALARI:
+        if metin.count(capa) != 1:
+            return metin, "CAPA-BULUNAMADI(%s)" % capa[:48]
+    for capa, yeni in GOZCU_YAMALARI:
+        metin = metin.replace(capa, yeni, 1)
+    return metin, "YAMALANDI"
+
+
+def _gozcu_dosya_yamala(yol, uygula):
+    if not os.path.isfile(yol):
+        return "GOZCU-YOK"
+    try:
+        metin = _oku(yol)
+    except Exception as e:
+        return "GOZCU-OKUNAMADI(%r)" % e
+    yeni, durum = gozcu_yamala(metin)
+    if durum in ("ZATEN TAM",) or durum.startswith("CAPA-BULUNAMADI"):
+        return durum
+    if not uygula:
+        return "EKLENECEK"
+    try:
+        shutil.copyfile(yol, yol + ".yedek-n2-sahip-" +
+                        time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()))
+        _yaz(yol, yeni)
+    except Exception as e:
+        return "YAZILAMADI(%r)" % e
+    return "KURULDU"
+
+
+def _parti_ev_cozulur_mu(kok):
+    """Bu depo koku T4'un EV_DIZIN'inde bir EV'e coz(ulebil)iyor mu?
+
+    parti-kapisi.py'nin KENDI `ev_coz`unu cagirir — kurucu ikinci bir ev
+    tablosu TUTMAZ. Return: (EV|None, hata|None)."""
+    try:
+        _spec = importlib.util.spec_from_file_location(
+            "pruvo_n2b_kapi", PARTI_KAPISI_KAYNAK)
+        _mod = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        return _mod.ev_coz(kok)
+    except Exception as e:
+        return None, "parti-kapisi.py yuklenemedi: %r" % e
+
+
+def _parti_isci_sh_yamala(yol, uygula):
+    """isci.sh govdesine markerli blogu ekler. Idempotent + yedekli.
+
+    Ekleme noktasi: ETIKET normalizasyonundan SONRA, ilk `TARAYICI_TURU=false`
+    satirindan ONCE (o noktada MOTOR/EV_KOKU/SPEC/ETIKET degiskenleri DOLU).
+    """
+    if not os.path.isfile(yol):
+        return "ISCI-SH-YOK"
+    try:
+        metin = _oku(yol)
+    except Exception as e:
+        return "ISCI-SH-OKUNAMADI(%r)" % e
+    if PARTI_BAS in metin:
+        return "ZATEN TAM"
+    capa = "TARAYICI_TURU=false"
+    if capa not in metin:
+        # Capa bayatladi: SESSIZ EKLEME YOK (yanlis yere enjekte etmek
+        # degiskensiz bir baglamda kapiyi korlestirir).
+        return "CAPA-BULUNAMADI(%s)" % capa
+    if not uygula:
+        return "EKLENECEK"
+    try:
+        shutil.copyfile(yol, yol + ".yedek-n2-parti-" +
+                        time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()))
+        yeni = metin.replace(capa, PARTI_ISCI_BLOK + "\n\n" + capa, 1)
+        _yaz(yol, yeni)
+    except Exception as e:
+        return "YAZILAMADI(%r)" % e
+    return "KURULDU"
+
+
+def _parti_ev_settings(kok, goreli, uygula):
+    """Evin .claude/settings.json'una Bash matcher'li PreToolUse kancasi ekler.
+    Additive + idempotent + yedekli."""
+    yol = os.path.join(kok, ".claude", "settings.json")
+    if not os.path.exists(yol):
+        return "settings-yok"
+    try:
+        veri = json.loads(_oku(yol))
+    except Exception:
+        return "settings-bozuk"
+    kancalar = veri.setdefault("hooks", {}).setdefault("PreToolUse", [])
+    if not isinstance(kancalar, list):
+        return "PreToolUse-bozuk"
+    blok = _matcher_blogu(kancalar, PARTI_MATCHER)
+    if _blokta_hook_var(blok, PARTI_KAPISI_ADI):
+        return "zaten"
+    if not uygula:
+        return "EKLENECEK"
+    komut = 'python3 "${CLAUDE_PROJECT_DIR:-.}/' + goreli + '" --kanca'
+    shutil.copyfile(yol, yol + ".yedek-n2-parti-" +
+                    time.strftime("%Y%m%d-%H%M%S"))
+    if blok is None:
+        blok = {"matcher": PARTI_MATCHER, "hooks": []}
+        kancalar.append(blok)
+    blok.setdefault("hooks", []).append(
+        {"type": "command", "command": komut, "timeout": 30,
+         "statusMessage": "N2 parti kapisi"})
+    _yaz(yol, json.dumps(veri, ensure_ascii=False, indent=2) + "\n")
+    try:
+        json.loads(_oku(yol))
+    except Exception:
+        return "yazim-bozuk"
+    return "kuruldu"
+
+
+def parti_kapisi(uygula):
+    """N2 (B) parti kapisini isci.sh'e + cozulebilen her eve kurar/dogrular."""
+    print("N2 PARTI KAPISI DAGITIMI (Okan onayli doktrin, 19 Agu 2026)")
+    print("KAYNAK: " + PARTI_KAPISI_KAYNAK)
+    print("MOD: " + ("UYGULA" if uygula else "KURU KOSUM (degisiklik yok)"))
+    print("")
+
+    if not os.path.isfile(PARTI_KAPISI_KAYNAK):
+        print("KAYNAK YOK — dagitim YAPILAMAZ: " + PARTI_KAPISI_KAYNAK)
+        print("KURULU_EV=0/0")
+        sys.exit(1)
+
+    # --- YUZEY 1: isci.sh (CRON'u da kapsar) --------------------------------
+    # 🔴 `ISCI_SARMALAYICI_YOLU` bu dosyada MODUL SABITI DEGILDIR — o ad
+    # `ISCI_TANIM_SABLON` metninin ICINDE gecer (evlere enjekte edilen kod).
+    # Modul duzeyindeki gercek sabit `ISCI_SARMALAYICI_YOLU_SABIT`tir.
+    isci_durum = _parti_isci_sh_yamala(ISCI_SARMALAYICI_YOLU_SABIT, uygula)
+    print("YUZEY 1  isci.sh  %-46s %s"
+          % (ISCI_SARMALAYICI_YOLU_SABIT, isci_durum))
+
+    # --- YUZEY 3: gozcu.py (N2-A sahip koprusu) -----------------------------
+    gozcu_durum = _gozcu_dosya_yamala(GOZCU_YOLU, uygula)
+    print("YUZEY 3  gozcu.py %-46s %s" % (GOZCU_YOLU, gozcu_durum))
+    print("")
+
+    # --- YUZEY 2: evler ------------------------------------------------------
+    kapsam, kapsam_disi = [], []
+    for ad, kok, _goreli, mod in CODEX_EVLER:
+        if not os.path.isdir(kok):
+            kapsam_disi.append((ad, kok, "EV YOK"))
+            continue
+        ev, hata = _parti_ev_cozulur_mu(kok)
+        if ev is None:
+            kapsam_disi.append((ad, kok, "EV COZULEMEDI: %s" % (hata or "-")))
+            continue
+        kapsam.append((ad, kok, ev, mod))
+
+    print("%-8s %-10s %-34s %-9s %s"
+          % ("KURUCU", "T4-EV", "KOK", "MOD", "DURUM"))
+    print("-" * 96)
+    eksik = 0
+    for ad, kok, ev, mod in kapsam:
+        rapor = []
+        if mod == "kaynak":
+            goreli = "tools/" + PARTI_KAPISI_ADI
+            hedef = os.path.join(kok, goreli)
+            kopya = "ZATEN TAM" if os.path.isfile(hedef) else "KAYNAK-DOSYA-YOK"
+        else:
+            goreli = ".claude/" + PARTI_KAPISI_ADI
+            hedef = os.path.join(kok, goreli)
+            try:
+                kaynak_metin = _oku(PARTI_KAPISI_KAYNAK)
+                var = os.path.isfile(hedef) and _oku(hedef) == kaynak_metin
+            except Exception:
+                var = False
+            if var:
+                kopya = "ZATEN TAM"
+            elif not uygula:
+                kopya = "KOPYALANACAK"
+            else:
+                try:
+                    os.makedirs(os.path.dirname(hedef), exist_ok=True)
+                    if os.path.isfile(hedef):
+                        shutil.copyfile(hedef, hedef + ".yedek-n2-parti-" +
+                                        time.strftime("%Y%m%d-%H%M%S"))
+                    shutil.copyfile(PARTI_KAPISI_KAYNAK, hedef)
+                    kopya = "KURULDU"
+                except Exception as e:
+                    kopya = "KOPYALANAMADI(%r)" % e
+        kablo = _parti_ev_settings(kok, goreli, uygula)
+        tam = (kopya in ("ZATEN TAM", "KURULDU") and kablo in ("zaten", "kuruldu"))
+        if not tam:
+            eksik += 1
+        print("%-8s %-10s %-34s %-9s dosya=%s | settings=%s"
+              % (ad, ev, kok, mod, kopya, kablo))
+        for satir in rapor:
+            print(satir)
+
+    for ad, kok, neden in kapsam_disi:
+        print("%-8s %-10s %-34s %-9s KAPSAM_DISI: %s"
+              % (ad, "-", kok, "-", neden))
+
+    print("-" * 96)
+    print("KAPSAM_DISI_EV=%d (yukarida satirlariyla YAZILDI — sessiz kirpma yok)"
+          % len(kapsam_disi))
+    print("TAM OLMAYAN EV: %d" % eksik)
+    print("ISCI_SH=%s" % isci_durum)
+    print("GOZCU=%s" % gozcu_durum)
+    print("KURULU_EV=%d/%d" % (len(kapsam) - eksik, len(kapsam)))
+    if not uygula:
+        print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
+    print("Dogrula: python3 " + os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), PARTI_KAPISI_ADI)
+        + " --kendini-test")
+    iyi = ("ZATEN TAM", "KURULDU", "EKLENECEK")
+    sys.exit(0 if (eksik == 0 and isci_durum in iyi and gozcu_durum in iyi)
+             else 1)
+
+
 def main():
     global AYAR, PRECOMMIT
     argv = sys.argv[1:]
@@ -1632,6 +1961,9 @@ def main():
 
     if "--isci-kapisi" in argv:  # 13 Agu (goc karari): ISCI-SARMALAYICI KAPISI 6 EVE
         isci_kapisi(uygula)
+
+    if "--parti-kapisi" in argv:  # 19 Agu (Okan doktrini): N2 PARTI KAPISI
+        parti_kapisi(uygula)
 
     if not os.path.exists(AYAR):
         print("BULUNAMADI: " + AYAR)
