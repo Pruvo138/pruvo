@@ -1,6 +1,7 @@
 # DEVAM (KraL) — 8 Agu 2026
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
+
 ## 🔻 KraL CANLI DURUM — 19 Agu ~18:0xZ (main=origin `4340c0b9`)
 **CANLIYA (bugun):** T-altyapisi `74475c70` · K186 `e25bea7b`+`73f41c8b` · K205 `bcde35fa` ·
 K210 `33b663e4` · K211 semasi · hijyen `840a6e26` · kok-rapor `bf543b60` · **K190 `4340c0b9`**.
@@ -46,9 +47,12 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
   AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
   PAKET main'de (`7ce644ae`). kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit · 8 gorsel R2 200 · parite yesil.
-- ✅ **K216 KAPANDI — main `8634bc49`** (uzun-once jeton tuketimi): D **83→0**, ayni kosumda A/B/C SABIT;
-  `/marka/rover/` 92→10; uretilen yol 1726→1724, kaybolan 2 yolun ikisinde de katalog uyesi **0**.
-  🟠 KALINTI: D1 `marka_kanon` **82 satirda BAYAT** (urun_hash disi kolon, Ege kor kalir) → uzlastirici.
+- ✅ **K221 KAPANDI:** `marka_kanon` BAYAT(82) artik **GUNCEL**; Ege canli iki id `marka=Land Rover`de
+  VAR (38/12), `marka=Rover`de **0**. ONCUL CURUDU (`?marka=`=ham∪kanon).
+- 🔴 **K222:** `uzlastirici-onarim.py:161` `if rc == 0`, `:178` bayatlik kolundan ONCE; kapi yazmayi
+  bloklayip rc=0 donunce surucu "ONARILDI" cikiyor (`32272271453`). kabul: imza varsa TEKRAR
+- 🔴 **K223 (`37de4aad`):** ana checkout'tan `d1-sync.py` KOSULMAZ — json 29485/D1 29487, yayindaki
+  main o 2 urunu TASIYOR; senkron onlari Ege'den DUSURUR. Care: commit ITILSIN.
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
@@ -107,14 +111,15 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
+
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
   (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
-- ✅ **20 Agu TAKVIMI ERKEN KAPANDI (Okan emri 19 Agu, chip `KraL-Hijyen`):** CLAUDE.md'nin iki tarihli codex blogu ARSIVE tasindi, yasayan motor kurali TEK SATIR kaldi; `codex-tam-yol` hafiza satiri YASIYOR (codex birincil oldu), tasinmadi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
