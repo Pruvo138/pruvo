@@ -56,7 +56,9 @@
   ⚠️ kupler render guncelligi CELISKILI, chip OLCECEK. kabul: ONIZLEME_AILELER 22→30 ·
   taban-fiyat 21→29 · +8 sari kayit (parametrik, fiyat boş) · 8 gorsel R2'de 200 · parite yesil.
 
-## KraL SON DURUM (19 Agu ~15:xxZ; eski kapanis blogu ARSIVDE)
+## KraL SON DURUM (19 Agu ~17:xxZ; eski kapanis blogu ARSIVDE)
+📍 **KOK RAPORU OLCULDU: `DEVAM-ARSIV.md` 20250-20488 = 239 satir = kokteki 239 → LOSSLESS**
+(ayrinti KUTUDA). ⚠️ CLAUDE.md 12.269/12.288 bayt — sonraki dokunus ONCE rotasyon ister.
 🧹 **TEMIZLIK (mimar eli, olculdu):** worktree **3→1** (yalnizca CANLI `gallant-shirley` =
 SeritB onarim kaldi; `dreamy-mclean`+`suspicious-cerf` temiz+icerik-main'de kanitiyla silindi,
 raporlari scratchpad'e yedeklendi) · **10 zombi yerel dal silindi** (`-d`, hepsi main'e merged).
