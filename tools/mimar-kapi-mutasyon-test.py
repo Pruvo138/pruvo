@@ -547,7 +547,11 @@ MUTASYONLAR = [
         '    if False and motor in ISCI_MOTORLARI:\n'
         '        return "sarmalayici:" + motor\n'),
      "13Agu-2 J1: ortam kimlik ekseni komple kaldirilir",
-     {650, 652, 653, 654, 659}, True, 5),
+     # 19 AGU (K214): 649 EKLENDI. Kimlik takimina CANLI BIRINCIL kat (`kimi`) vakasi
+     # girdi; J1 ekseni komple oldurdugu icin o vaka da DUSMELI. Capa TAM ESITLIK
+     # oldugundan yeni kol eklenince burasi da guncellenmezse mutant "esigi tutturamadi"
+     # der ve kirmizi, ONARIMI DEGIL EKLEMEYI isaret eder ([[yeni-kol-mutasyon-capasini-ikizler]]).
+     {649, 650, 652, 653, 654, 659}, True, 6),
     ("J2", lambda d: yama(
         d, KIMLIKORTAK,
         '    if motor in ISCI_MOTORLARI:\n',
