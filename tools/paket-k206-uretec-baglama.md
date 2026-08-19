@@ -39,6 +39,17 @@ eksikler = ["KAPSAM DISI (sema var, test edilmiyor): " + uid
 KIRMIZI yakar. Muafiyet kümesi (`SEMA_FIXTURE`) yalnız `ornek-plaka` fikstürünü tutar ve
 **bir ölçümü alabilmek için genişletilmez** ([[ucuncu-tekrar-sinif-kapisi]]).
 
+**ÖLÇÜM — üç nokta, tek eksen (kabul.py TEST 8; `rc` değil EKSEN ölçüldü, çünkü rc tabanda da 1):**
+
+| Aşama | TEST 8 | Basılan satır |
+|---|---|---|
+| TABAN (dokunulmamış dal) | **YEŞİL** | `[YESIL] TEST 8 — kapsam 23/23 + sema-aciklama tutarliligi` |
+| PROBE (1 şema, `urunler.json` kaydı YOK) | **KIRMIZI** | `[KIRMIZI] TEST 8 — kapsam 23/24` + `KAPSAM DISI (sema var, test edilmiyor): olcuye-ozel-gyro-sonsuz-donen` |
+| GERİ (şema silindi — çürütücü kontrol) | **YEŞİL** | eksen geri döndü, `git status --porcelain` BOŞ |
+
+Aynı probe'da `node jenerator/test/fiyat-test.js` **0 → 1**: `şema sayısı 23 → 24` ·
+`tabanFiyatTL <yeni id> → 280 (beklenen undefined)` · `kapı kapsamı → ["gyro"]`.
+
 → **Şema + `urunler.json` kaydı + `hacim.js` fonksiyonu AYNI dilimde iner.** K206'nın
 "site düzlemi şimdi, kayıtlar sonra" ayrımı uygulanabilir değildir; mimar hükmü ister.
 
