@@ -57,6 +57,7 @@ import datetime
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -192,6 +193,95 @@ def kalem_listesi(defter):
 
 
 # ------------------------------------------------------------------------------
+# GENIS KALEM LISTESI (cok-bolumlu — T6 + damga ureticisi TEK KAYNAK)
+# ------------------------------------------------------------------------------
+# T6'nin park suzgeci gercek yuzeylere (OKAN'DA, KraL SON DURUM) baglandi.
+# Damga ureticisinin de ayni bolgelerdeki kalemlere damga uretebilmesi icin
+# `kalem_listesi_genis` eklenmistir. **TEK KAYNAK KURALI:** bolge kumesi,
+# bolum regexleri ve bolum-adi cikarimi BURADA (uretici yaninda) tanimli;
+# T6 (`okan-kapisi-penceresi.py`) `t5` uzerinden import eder. Ikinci bir
+# tanim birakilirsa sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]]) — YASAK.
+#
+# 🔴 `kalem_listesi()` (sadece ACIK KALEMLER) KORUNUR — T5'in kendi
+# `--gercek`/`--rapor` tablosu onun uzerinden kosar ve K5 kontrolu
+# "genislemeden ONCE ve SONRA ayni"yi pinler. Damga ureticisi ise
+# `kalem_listesi_genis` kullanir.
+
+import re as _re_t5
+
+ACIK_KALEMLER_BOLUM_RE = _re_t5.compile(r"^##\s+ACIK\s+KALEMLER\b", _re_t5.IGNORECASE)
+OKAN_DA_BOLUM_RE = _re_t5.compile(r"^##\s+OKAN'?DA\b", _re_t5.IGNORECASE)
+SON_DURUM_BOLUM_RE = _re_t5.compile(r"^##\s+.*SON\s+DURUM\b", _re_t5.IGNORECASE)
+
+TARANACAK_BOLUMLER = ("ACIK KALEMLER", "OKAN'DA", "KraL SON DURUM")
+
+
+def _bolum_adi_genis(satir, tar=None):
+    """Bir `## ...` basliginin TARANACAK_BOLUMLER'den hangisi oldugunu
+    doner; degilse None. T5 + T6 ortak cikarim.
+
+    `tar` (opsiyonel) verilirse VE TARANACAK_BOLUMLER icinde degilse None
+    doner — bu sayede `kalem_listesi_genis` sabit daraltildiginda
+    (ornek M8 mutasyonu) gercek filtre uygulanir. Verilmezse
+    TARANACAK_BOLUMLER kullanilir.
+    """
+    aday = None
+    if ACIK_KALEMLER_BOLUM_RE.match(satir):
+        aday = "ACIK KALEMLER"
+    elif OKAN_DA_BOLUM_RE.match(satir):
+        aday = "OKAN'DA"
+    elif SON_DURUM_BOLUM_RE.match(satir):
+        aday = "KraL SON DURUM"
+    if aday is None:
+        return None
+    if tar is None:
+        tar = TARANACAK_BOLUMLER
+    return aday if aday in tar else None
+
+
+def kalem_listesi_genis(defter, tar=None):
+    """TARANACAK_BOLUMLER'in (veya verilen `tar` kumesinin) kalemlerini
+    topla. `tar` verilmezse modül-s Seviyse `TARANACAK_BOLUMLER` kullanilir
+    (canli okunur; M8 mutasyonuyla daraltilabilir).
+
+    Returns: [{kimlik, satir, satir_no, bolum, tip}, ...]
+
+    - ACIK KALEMLER + KraL SON DURUM: K-prefix zorunlu (K\\d+); kimliksiz
+      maddeler ATLANIR (T5 tutarliligi).
+    - OKAN'DA: K-prefix zorunlu DEGIL — genis anlamli acik park
+      maddeleri. Kimliksizsa `OKAN_DA_L<n>` uretilir (tekil iz).
+    """
+    if tar is None:
+        tar = TARANACAK_BOLUMLER
+    satirlar = defter.splitlines()
+    aktif_bolum = None
+    out = []
+    kimlik_re = _re_t5.compile(KIMLIK_RE_PATTERN)
+    for i, satir in enumerate(satirlar):
+        if satir.startswith("## "):
+            aktif_bolum = _bolum_adi_genis(satir, tar=tar)
+            continue
+        if aktif_bolum is None:
+            continue
+        if not satir.startswith("- "):
+            continue
+        if aktif_bolum == "OKAN'DA":
+            m = kimlik_re.search(satir)
+            kimlik = m.group(0).upper() if m else "OKAN_DA_L%d" % (i + 1)
+            out.append({"kimlik": kimlik, "satir": satir, "satir_no": i,
+                        "bolum": aktif_bolum, "tip": "KALEM"})
+        else:
+            # ACIK KALEMLER + KraL SON DURUM: K-prefix zorunlu
+            m = kimlik_re.search(satir)
+            if m is None:
+                continue
+            out.append({"kimlik": m.group(0).upper(), "satir": satir,
+                        "satir_no": i, "bolum": aktif_bolum,
+                        "tip": "KALEM"})
+    return out
+
+
+# ------------------------------------------------------------------------------
 # DURUM DOSYASI
 # ------------------------------------------------------------------------------
 def durum_oku(yol):
@@ -237,6 +327,159 @@ def durum_yaz_atomik(yol, veri):
         except OSError:
             pass
         raise
+
+
+# ------------------------------------------------------------------------------
+# DAMGA URETICI (T5b — hareket damgasi ekseni)
+# ------------------------------------------------------------------------------
+# 🔴 **FAIL-OPEN YASAGI:** damga URETICISI hicbir kalemi "taze" ILAN ETMEZ. Uretici
+# yalnizca `kimlik -> damga` haritasi uretir. Hukum YALNIZ mevcut `kalem_damgasi()`
+# verir. Damgasi TURETILEMEYEN kalem haritaya YAZILMAZ → `kalem_damgasi()` onu
+# OLCULEMEDI olarak okur. "git izi yok" asla "taze" DEMEK DEGILDIR.
+#
+# mutant kapilari (kendini-test icin):
+#   "M5": damga uretilemeyen kalemi haritaya `simdi` damgasiyla yaz (fail-open)
+#   "M6": ciktiya T5-TAZE satirlari ekle (ikinci hukum yeri)
+#   "M7": en son commit yerine EN ESKI commit'in tarihini al
+
+
+def damga_uret(defter_yol, repo_kok, durum_yol, simdi_dt, *, mutant=None):
+    """DEVAM.md'nin GIT GECMISinden kalem damgalarini uret.
+
+    Args:
+      defter_yol: DEVAM.md dosya yolu (repo_kok altinda olmali).
+      repo_kok: git repo kok dizini (.git/ icermeli).
+      durum_yol: cikti JSON dosyasi yolu.
+      simdi_dt: simdi zamani (aware datetime, UTC).
+      mutant: None normal; "M5"/"M6"/"M7" test kapilari.
+
+    Returns:
+      {"uretilen": int, "uretitemeyen": int,
+       "neden_git_izi_yok": int, "neden_defter_gitsiz": int,
+       "harita": {kimlik: iso_damga}, "hata": str|None,
+       "ekrana": [str, ...]} — cikti satirlari (M6 T5-TAZE satir ekler).
+    """
+    out = {"uretilen": 0, "uretitemeyen": 0,
+           "neden_git_izi_yok": 0, "neden_defter_gitsiz": 0,
+           "harita": {}, "hata": None, "ekrana": []}
+
+    # Defter var mi?
+    if not os.path.isfile(defter_yol):
+        out["hata"] = "defter bulunamadi: %s" % defter_yol
+        out["neden_defter_gitsiz"] += 1
+        return out
+
+    # Repo git mi? (worktree'lerde .git bir DOSYA olur — git komutuyla dogrula)
+    try:
+        r_repo = subprocess.run(
+            ["git", "-C", repo_kok, "rev-parse", "--git-dir"],
+            capture_output=True, text=True, timeout=10)
+        if r_repo.returncode != 0:
+            out["hata"] = "repo git degil: %s" % repo_kok
+            out["neden_defter_gitsiz"] += 1
+            return out
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        out["hata"] = "git komutu calistirilamadi"
+        out["neden_defter_gitsiz"] += 1
+        return out
+
+    # Defter repo altinda mi?
+    try:
+        defter_abs = os.path.abspath(defter_yol)
+        repo_abs = os.path.abspath(repo_kok)
+        if not (defter_abs == repo_abs
+                or defter_abs.startswith(repo_abs + os.sep)):
+            out["hata"] = "defter repo altinda degil"
+            out["neden_defter_gitsiz"] += 1
+            return out
+        defter_rel = os.path.relpath(defter_abs, repo_abs)
+    except Exception as e:
+        out["hata"] = "defter yol cozumu basarisiz: %r" % e
+        out["neden_defter_gitsiz"] += 1
+        return out
+
+    # TARANACAK_BOLUMLER (ACIK KALEMLER + OKAN'DA + KraL SON DURUM)
+    # bolgelerini parse et — TEK KAYNAK (ureticinin yaninda). T6 bu haritayi
+    # okuyarak ayni kalem kumesini 24-saat penceresine sokar.
+    with open(defter_yol, encoding="utf-8") as f:
+        defter = f.read()
+    kalemler_raw = kalem_listesi_genis(defter)
+
+    simdi_str = simdi_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Her kalem icin git log'da commit bul
+    for k in kalemler_raw:
+        kimlik = k["kimlik"]
+        # git log: -G ile bu kalem kimligini iceren satirla temas eden commit'ler
+        # -1 ile tek commit. --reverse ile siralama ters (en eski once).
+        # Regex: (^|[^0-9])KIMLIK($|[^0-9]) — \b git -G'de tum versiyonlarda
+        # calismadigi olculdu (git 2.50 Apple Git-155). Karakter sinifi ile
+        # kelime siniri taklit edilir.
+        desen = "(^|[^0-9])%s($|[^0-9])" % kimlik
+        args = ["git", "-C", repo_kok, "log",
+                "--pretty=format:%cI",
+                "-G", desen]
+        if mutant == "M7":
+            # En eski commit: --reverse (yalniz) ile en eski ONCE listelenir;
+            # ilk satir = OLDEST. `-1` ile birlikte TERS davranir (walk'a
+            # uygulanir, NEWEST verir).
+            args.append("--reverse")
+        else:
+            # En son commit: -1 ile tek satir = NEWEST.
+            args.append("-1")
+        args.extend(["--", defter_rel])
+
+        try:
+            r = subprocess.run(args, capture_output=True, text=True, timeout=10)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            out["neden_git_izi_yok"] += 1
+            if mutant == "M5":
+                # Fail-open: uretilemeyen kaleme simdi damga yaz
+                out["harita"][kimlik] = simdi_str
+                out["uretilen"] += 1
+            continue
+
+        if r.returncode != 0 or not r.stdout.strip():
+            out["neden_git_izi_yok"] += 1
+            if mutant == "M5":
+                out["harita"][kimlik] = simdi_str
+                out["uretilen"] += 1
+            continue
+
+        if mutant == "M7":
+            # EN ESKI commit: --reverse ile en eski ONCE listelenir; ilk
+            # satiri al. `-1` tek-basina "--reverse" ile birlikte TERS davranir
+            # (git log -1 walk'ta, --reverse output'ta; -1 walk'a uygulanir ve
+            # ilk commits'i alir = NEWEST). Bu yuzden --reverse YALNIZ kullanilir.
+            satirlar = [s for s in r.stdout.strip().splitlines() if s]
+            damga = satirlar[0] if satirlar else None
+        else:
+            # EN SON commit: -1 ile ilk satir.
+            damga = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else None
+        if damga is None or _damga_coz(damga, simdi=simdi_dt) is None:
+            out["neden_git_izi_yok"] += 1
+            if mutant == "M5":
+                out["harita"][kimlik] = simdi_str
+                out["uretilen"] += 1
+            continue
+
+        out["harita"][kimlik] = damga
+        out["uretilen"] += 1
+
+    # M6: ikinci hukum yeri — ciktiya T5-TAZE satirlari ekle
+    if mutant == "M6":
+        for kimlik, damga in out["harita"].items():
+            out["ekrana"].append("T5-TAZE %s damga=%s" % (kimlik, damga))
+
+    # Durum dosyasini atomik yaz
+    durum_veri = {"son_guncelleme": simdi_str,
+                  "kalemler": out["harita"]}
+    try:
+        durum_yaz_atomik(durum_yol, durum_veri)
+    except Exception as e:
+        out["hata"] = "durum yazilamadi: %r" % e
+
+    return out
 
 
 # ------------------------------------------------------------------------------
@@ -458,8 +701,50 @@ def _ft_ileri(dakika):
             + datetime.timedelta(minutes=dakika)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _git_repo_kur(kok, defter_icerik, commit_tarihleri=None):
+    """Sentetik git deposu kur. commit_tarihleri None ise tek commit (simdi).
+
+    commit_tarihleri: [(iso_tarih, devam_icerik), ...] — eskiden yeniye sirali.
+    """
+    kok_abs = os.path.abspath(kok)
+    if not os.path.isdir(kok_abs):
+        os.makedirs(kok_abs)
+    env = os.environ.copy()
+    env["GIT_AUTHOR_NAME"] = "test"
+    env["GIT_AUTHOR_EMAIL"] = "test@pruvo"
+    env["GIT_COMMITTER_NAME"] = "test"
+    env["GIT_COMMITTER_EMAIL"] = "test@pruvo"
+    subprocess.run(["git", "-C", kok_abs, "init", "-q"],
+                   env=env, check=True, capture_output=True)
+    subprocess.run(["git", "-C", kok_abs, "config", "user.email",
+                    "test@pruvo"], env=env, check=True, capture_output=True)
+    subprocess.run(["git", "-C", kok_abs, "config", "user.name",
+                    "test"], env=env, check=True, capture_output=True)
+    defter_yol = os.path.join(kok_abs, "DEVAM.md")
+    if commit_tarihleri is None:
+        with open(defter_yol, "w", encoding="utf-8") as f:
+            f.write(defter_icerik)
+        subprocess.run(["git", "-C", kok_abs, "add", "DEVAM.md"],
+                       env=env, check=True)
+        subprocess.run(["git", "-C", kok_abs, "commit", "-q", "-m", "temel"],
+                       env=env, check=True)
+    else:
+        for tarih, icerik in commit_tarihleri:
+            with open(defter_yol, "w", encoding="utf-8") as f:
+                f.write(icerik)
+            env_l = env.copy()
+            env_l["GIT_AUTHOR_DATE"] = tarih
+            env_l["GIT_COMMITTER_DATE"] = tarih
+            subprocess.run(["git", "-C", kok_abs, "add", "DEVAM.md"],
+                           env=env_l, check=True)
+            subprocess.run(["git", "-C", kok_abs, "commit", "-q",
+                            "-m", "t:%s" % tarih],
+                           env=env_l, check=True)
+    return kok_abs
+
+
 def kendini_test(gecici_kok):
-    """4 mutant + izolasyon. Her mutant kendi kolunu AYRICA kanitlar.
+    """4+3 mutant + izolasyon. Her mutant kendi kolunu AYRICA kanitlar.
 
     kucuk gecici kok: --kendini-test disindan cagrilmaz (yine de savunmaci).
     """
@@ -477,6 +762,7 @@ def kendini_test(gecici_kok):
     simdi_str = simdi_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     adimlar = []
+    atfi_dogru = 0  # K182: hedef kol kirmizi + yan eksen yesil
 
     # --- M1: T5-DURGUN ------------------------------------------------------
     # Damga 300 dk (5 saat) once -> DURGUN olmali.
@@ -581,6 +867,205 @@ def kendini_test(gecici_kok):
                     t5_olcu_mesaj,
                     {"olcu": olculemedi_sayaci, "K193": k193["kol"] if k193 else "?"}))
 
+    # ==========================================================================
+    # T5b — HAREKET DAMGASI EKSENI (paket-t5-hareket-damgasi.md)
+    # 3 yeni mutant (M5/M6/M7) + 1 kontrol (K3).
+    # Bu bolum sentetik git depolarinda kosar; gercek DEVAM.md'ye DOKUNMAZ.
+    # ==========================================================================
+    t5b_root = os.path.join(gecici_kok, "t5b")
+    if not os.path.isdir(t5b_root):
+        os.makedirs(t5b_root)
+
+    # --- M5: FAIL-OPEN YASAGI -----------------------------------------------
+    # Damgasi turetilemeyen kalemi haritaya `simdi` damgasiyla yazarsa
+    # `kalem_damgasi()` onu T5-TAZE olarak okur (fail-open). Dogru davranis:
+    # damgasi uretilemeyen kalem haritaya YAZILMAZ → T5-OLCULEMEDI.
+    # Sentetik git: SENTETIK_DEFTER icindeki K190/K192 haricindeki kalemler
+    # commit'lendi. K190/K192 git tarihcisinde YOK → damga uretilemez.
+    m5_kok = os.path.join(t5b_root, "m5")
+    # K190 ve K192 olmadan bir defter yazip commit'le (K191, K193 commit'lenir)
+    m5_defter_kismi = (
+        "# sentetik devter\n"
+        "\n"
+        "## ACIK KALEMLER\n"
+        "- K191 CHIP `KraL-test iki`\n"
+        "- K193 CHIP `KraL-test dort`\n"
+        "## SONRA\n"
+    )
+    _git_repo_kur(m5_kok, m5_defter_kismi)
+    # Gercek defteri (K190..K193) KOK'e yaz ama COMMIT'LEME — boylece git
+    # tarihcisinde K190/K192 yok (URETILEMEYECEK), K191/K193 var.
+    with open(defter_yol, "w", encoding="utf-8") as f:
+        f.write(SENTETIK_DEfter)
+    # symlink: defter_yol'u m5_kok'a bagla ki damga_uret dogru yolu gor
+    m5_defter_link = os.path.join(m5_kok, "DEVAM.md")
+    if os.path.lexists(m5_defter_link):
+        os.unlink(m5_defter_link)
+    # Kopyala (cross-device symlink sorunu olabilir) — gercek defterden
+    # okuyabilmesi icin m5_kok'ta dosya olmali
+    shutil.copy2(defter_yol, m5_defter_link)
+    m5_durum = os.path.join(m5_kok, DURUM_DOSYA_ADI)
+
+    # ONCE normal davranis: K190/K192 haritada YOK → OLCULEMEDI
+    sonuc_m5_normal = damga_uret(m5_defter_link, m5_kok, m5_durum, simdi_dt)
+    with open(m5_defter_link, encoding="utf-8") as f:
+        m5_defter_icerik = f.read()
+    sinifla_normal = hepsini_simfla(m5_defter_icerik, m5_durum, simdi_dt)
+    k190_normal = next((k for k in sinifla_normal["kalemler"]
+                        if k["kimlik"] == "K190"), None)
+    k191_normal = next((k for k in sinifla_normal["kalemler"]
+                        if k["kimlik"] == "K191"), None)
+    # SONRA mutant M5: damga uretilemeyen kalem haritaya `simdi` ile yazilir
+    sonuc_m5_mut = damga_uret(m5_defter_link, m5_kok, m5_durum, simdi_dt,
+                              mutant="M5")
+    sinifla_mut = hepsini_simfla(m5_defter_icerik, m5_durum, simdi_dt)
+    k190_mut = next((k for k in sinifla_mut["kalemler"]
+                     if k["kimlik"] == "K190"), None)
+    k191_mut = next((k for k in sinifla_mut["kalemler"]
+                     if k["kimlik"] == "K191"), None)
+    # M5 hedef vaka: K190 normalde OLCULEMEDI, mutant M5'te T5-TAZE
+    m5_hedef_kirmizi = (k190_normal is not None
+                        and k190_normal["kol"] == T5_OLCULEMEDI_JETON
+                        and k190_mut is not None
+                        and k190_mut["kol"] == T5_TAZE_JETON)
+    # M5 yan eksen: K191 (uretilen damga, 0dk once = TAZE)
+    # Hem normalde hem mutant altinda ayni davranmali (YESIL).
+    m5_yan_yesil = (k191_normal is not None and k191_mut is not None
+                    and k191_normal["kol"] == k191_mut["kol"])
+    m5_atfi = m5_hedef_kirmizi and m5_yan_yesil
+    m5_mesaj = ("K190: normal=%s mutant=%s | K191 (yan): normal=%s mutant=%s | "
+                "normal_harita=%s mutant_harita=%s"
+                % (k190_normal["kol"] if k190_normal else "?",
+                   k190_mut["kol"] if k190_mut else "?",
+                   k191_normal["kol"] if k191_normal else "?",
+                   k191_mut["kol"] if k191_mut else "?",
+                   sorted(sonuc_m5_normal["harita"].keys()),
+                   sorted(sonuc_m5_mut["harita"].keys())))
+    adimlar.append(("M5", T5_TAZE_JETON, m5_atfi, m5_mesaj,
+                    {"hedef_kirmizi": m5_hedef_kirmizi,
+                     "yan_yesil": m5_yan_yesil}))
+    if m5_atfi:
+        atfi_dogru += 1
+
+    # --- M6: IKINCI HUKUM YERI YASAGI --------------------------------------
+    # `--damga-uret` kendi basina T5-TAZE hukmu basarsa iki yerde ayni
+    # hukum uretilir (uretim cikti + siniflandirma). Dogru davranis: uretim
+    # yalniz haritayi yazar; T5-TAZE hukmunu YALNIZ kalem_damgasi() uretir.
+    m6_kok = os.path.join(t5b_root, "m6")
+    _git_repo_kur(m6_kok, SENTETIK_DEfter)
+    m6_defter_yol = os.path.join(m6_kok, "DEVAM.md")
+    m6_durum = os.path.join(m6_kok, DURUM_DOSYA_ADI)
+    # ONCE normal: ekrana bos, "T5-TAZE" cikti satir YOK
+    sonuc_m6_normal = damga_uret(m6_defter_yol, m6_kok, m6_durum, simdi_dt)
+    m6_normal_t5_taze = any("T5-TAZE" in s for s in sonuc_m6_normal["ekrana"])
+    # SONRA mutant M6: ekrana T5-TAZE satirlari eklenir
+    sonuc_m6_mut = damga_uret(m6_defter_yol, m6_kok, m6_durum, simdi_dt,
+                              mutant="M6")
+    m6_mut_t5_taze = any("T5-TAZE" in s for s in sonuc_m6_mut["ekrana"])
+    # M6 hedef vaka: normalde ekrana T5-TAZE yok, mutant M6'da VAR
+    m6_hedef_kirmizi = (not m6_normal_t5_taze and m6_mut_t5_taze)
+    # M6 yan eksen: harita dogru (4 kalem uretildi) — her iki modda
+    m6_yan_yesil = (len(sonuc_m6_normal["harita"]) == 4
+                    and len(sonuc_m6_mut["harita"]) == 4
+                    and sonuc_m6_normal["uretilen"]
+                    == sonuc_m6_mut["uretilen"] == 4)
+    m6_atfi = m6_hedef_kirmizi and m6_yan_yesil
+    m6_mesaj = ("ekrana T5-TAZE: normal=%s mutant=%s | harita_uretilen "
+                "normal=%d mutant=%d"
+                % (m6_normal_t5_taze, m6_mut_t5_taze,
+                   sonuc_m6_normal["uretilen"], sonuc_m6_mut["uretilen"]))
+    adimlar.append(("M6", T5_TAZE_JETON, m6_atfi, m6_mesaj,
+                    {"hedef_kirmizi": m6_hedef_kirmizi,
+                     "yan_yesil": m6_yan_yesil}))
+    if m6_atfi:
+        atfi_dogru += 1
+
+    # --- M7: EN SON COMMIT (en eski DEGIL) ----------------------------------
+    # Damga ureticisi en son commit yerine en eski commit'in tarihini alirsa
+    # damga YANLIS olur (kalem daha once "hareket gormus" gibi gozukur).
+    # Sentetik git: 2 commit, ikisi de DEVAM.md'de K190..K193 satirina
+    # dokunuyor; commit 1 eski, commit 2 yeni. Damga ureticisi yeni olani
+    # alir. Mutant M7 eski olani alir.
+    m7_kok = os.path.join(t5b_root, "m7")
+    # Eski commit: 5 gun once
+    tarih_eski = (simdi_dt - datetime.timedelta(days=5)
+                  ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Yeni commit: 1 saat once
+    tarih_yeni = (simdi_dt - datetime.timedelta(hours=1)
+                  ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    _git_repo_kur(m7_kok, SENTETIK_DEfter,
+                  commit_tarihleri=[
+                      # Commit 1 (eski): K190 satirini EKLIYOR (yeni dosya)
+                      (tarih_eski,
+                       SENTETIK_DEfter.replace("- K190 CHIP `KraL-test bir`",
+                                                "- K190 CHIP `KraL-test bir v1`")),
+                      # Commit 2 (yeni): K190 satirini MODIFIYE EDIYOR
+                      (tarih_yeni,
+                       SENTETIK_DEfter.replace("- K190 CHIP `KraL-test bir`",
+                                                "- K190 CHIP `KraL-test bir v2`")),
+                  ])
+    m7_defter_yol = os.path.join(m7_kok, "DEVAM.md")
+    m7_durum = os.path.join(m7_kok, DURUM_DOSYA_ADI)
+    # ONCE normal: K190 damgasi = tarih_yeni
+    sonuc_m7_normal = damga_uret(m7_defter_yol, m7_kok, m7_durum, simdi_dt)
+    # SONRA mutant M7: K190 damgasi = tarih_eski
+    sonuc_m7_mut = damga_uret(m7_defter_yol, m7_kok, m7_durum, simdi_dt,
+                              mutant="M7")
+    # M7 hedef vaka: uretilen damga == en yeni commit tarihi (normal)
+    # ve mutant M7'de EN YENI commit tarihine esit DEGIL.
+    m7_normal_damga = sonuc_m7_normal["harita"].get("K190")
+    m7_mut_damga = sonuc_m7_mut["harita"].get("K190")
+    m7_hedef_kirmizi = (m7_normal_damga == tarih_yeni
+                        and m7_mut_damga == tarih_eski
+                        and m7_normal_damga != m7_mut_damga)
+    # M7 yan eksen: harita K190 dahil 4 kalem — her iki modda
+    m7_yan_yesil = ("K190" in sonuc_m7_normal["harita"]
+                    and "K190" in sonuc_m7_mut["harita"]
+                    and sonuc_m7_normal["uretilen"]
+                    == sonuc_m7_mut["uretilen"] == 4)
+    m7_atfi = m7_hedef_kirmizi and m7_yan_yesil
+    m7_mesaj = ("K190 damga: normal=%s (beklenen=%s) mutant=%s (beklenen=%s)"
+                % (m7_normal_damga, tarih_yeni, m7_mut_damga, tarih_eski))
+    adimlar.append(("M7", T5_TAZE_JETON, m7_atfi, m7_mesaj,
+                    {"hedef_kirmizi": m7_hedef_kirmizi,
+                     "yan_yesil": m7_yan_yesil}))
+    if m7_atfi:
+        atfi_dogru += 1
+
+    # --- K3: DEPOSUZ DEFTER ------------------------------------------------
+    # Git gecmisi OLMAYAN bir defter verilince arac COKMEZ:
+    # `NEDEN_DEFTER_GITSIZ` sayar, hicbir kalem "taze" olmaz, rc!=0.
+    k3_deposuz_kok = os.path.join(t5b_root, "k3-deposuz")
+    if os.path.isdir(k3_deposuz_kok):
+        shutil.rmtree(k3_deposuz_kok)
+    os.makedirs(k3_deposuz_kok)
+    k3_deposuz_defter = os.path.join(k3_deposuz_kok, "DEVAM.md")
+    k3_deposuz_durum = os.path.join(k3_deposuz_kok, DURUM_DOSYA_ADI)
+    with open(k3_deposuz_defter, "w", encoding="utf-8") as f:
+        f.write(SENTETIK_DEfter)
+    # NOT: k3_deposuz_kok icinde .git YOK — sentetik depo degil.
+    # ONCE .git yoksa: arac COKMEMELI, NEDEN_DEFTER_GITSIZ >= 1
+    try:
+        sonuc_k3 = damga_uret(k3_deposuz_defter, k3_deposuz_kok,
+                              k3_deposuz_durum, simdi_dt)
+        k3_cokmedi = True
+    except Exception as e:
+        sonuc_k3 = {"uretilen": -1, "hata": repr(e),
+                    "neden_defter_gitsiz": -1, "ekrana": []}
+        k3_cokmedi = False
+    k3_neden_var = sonuc_k3.get("neden_defter_gitsiz", 0) >= 1
+    k3_hicbiri_taze_degil = sonuc_k3.get("uretilen", 0) == 0
+    # Siniflandirma cagir: hicbir kalem TAZE olmamali (durum dosyasi yok
+    # cunku damga uretilemedi).
+    with open(k3_deposuz_defter, encoding="utf-8") as f:
+        k3_defter_icerik = f.read()
+    sinifla_k3 = hepsini_simfla(k3_defter_icerik, k3_deposuz_durum, simdi_dt)
+    k3_taze_sayac = sinifla_k3["taze"]
+    k3_kontrol_ok = (k3_cokmedi and k3_neden_var and k3_hicbiri_taze_degil
+                     and k3_taze_sayac == 0)
+
+    # ---- ozet bas ---------------------------------------------------------
+
     # ---- ozet bas ---------------------------------------------------------
     print("T5 DURGUN KALEM KAPISI — KENDINI-TEST")
     print("izolasyon koku: %s" % gecici_kok)
@@ -601,8 +1086,47 @@ def kendini_test(gecici_kok):
     print("KOL_ISIMLERI: %s %s %s %s"
           % (T5_DURGUN_JETON, T5_TAZE_JETON, T5_IZ_JETON, T5_OLCULEMEDI_JETON))
     print("")
-    print("MUTANT=%d/4" % mutant_sayaci)
-    return 0 if mutant_sayaci == 4 else 1
+    # K3 kontrol
+    print("KONTROL K3 deposuz defter")
+    print("  mesaj: cokmedi=%s neden_defter_gitsiz=%d uretilen=%d taze_sinif=%d"
+          % (k3_cokmedi, sonuc_k3.get("neden_defter_gitsiz", -1),
+             sonuc_k3.get("uretilen", -1), k3_taze_sayac))
+    if k3_kontrol_ok:
+        print("  SONUÇ: arac COKMEDI, NEDEN_DEFTER_GITSIZ>=1, hicbir kalem taze")
+    else:
+        print("  SONUÇ: K3 KUSUR! arac coktu veya kalem 'taze' sayildi")
+    print("")
+    # K4 kontrol: gerileme nobeti — mevcut 4 mutant + 4 curutme. kendini-test
+    # M1-M4 zaten calistirdi; mutant_sayaci 4 eski + 3 yeni = 7 icinden ilk
+    # 4'un YESIL oldugu zaten mutant_sayaci>=4 ile goruluyor. Burada ek
+    # gorunurluk icin yaziyoruz.
+    k4_ok = mutant_sayaci >= 4
+    print("KONTROL K4 gerileme nobeti (M1-M4 + 4 curutme aynen gecer)")
+    print("  mesaj: M1-M4 mutant_sayaci>=4 = %s (MUTANT=7/7 hedefi dahilinde)"
+          % k4_ok)
+    if k4_ok:
+        print("  SONUÇ: gerileme YOK")
+    else:
+        print("  SONUÇ: gerileme VAR!")
+    print("")
+    kontrol_sayaci = sum([k3_kontrol_ok, k4_ok])
+    # Toplam 7 mutant (4 eski + 3 yeni). atfi_dogru yalniz 3 yeniyi sayar
+    # (eski 4'un ATFI kontrolu bu pakette tanimli degil).
+    eski_adlar = {"M1", "M2", "M3", "M4"}
+    yeni_adlar = {"M5", "M6", "M7"}
+    eski_olan = sum(1 for (ad, _, gecti, _, _) in adimlar
+                    if ad in eski_adlar and gecti)
+    yeni_olan = sum(1 for (ad, _, gecti, _, _) in adimlar
+                    if ad in yeni_adlar and gecti)
+    print("ESKI_MUTANT=%d/4 YENI_MUTANT=%d/3 MUTANT=%d/7 HEDEF_KOL_ATFI=%d/3 "
+          "KONTROL=%d/2" % (eski_olan, yeni_olan, mutant_sayaci,
+                            atfi_dogru, kontrol_sayaci))
+    rc = 0
+    if mutant_sayaci != 7:
+        rc = 1
+    if kontrol_sayaci != 2:
+        rc = 1
+    return rc
 
 
 # ------------------------------------------------------------------------------
@@ -749,10 +1273,19 @@ def main(argv=None):
     ap.add_argument("--rapor", action="store_true",
                     help="gercek defter uzerinde YAZMADAN; kac kalem durgun/taze/"
                          "olculemedi")
+    ap.add_argument("--gercek", action="store_true",
+                    help="--damga-uret + --rapor birlikte (gercek defter + "
+                         "git gecmisi → damga uret → siniflandir)")
+    ap.add_argument("--damga-uret", action="store_true",
+                    help="DEVAM.md'nin git gecmisinden kalem damgalarini uret "
+                         "(atomik yazar; damga uretilemeyen kalem haritaya "
+                         "YAZILMAZ → fail-closed)")
     ap.add_argument("--simdi", default=None,
-                    help="simdi yerine kullanilacak ISO zaman (--rapor icin)")
+                    help="simdi yerine kullanilacak ISO zaman (--rapor/--damga-uret icin)")
     ap.add_argument("--defter", default=None,
                     help="defter yolu (default: <repo>/DEVAM.md)")
+    ap.add_argument("--repo", default=None,
+                    help="git repo kok (--damga-uret icin; default: <tools/..>)")
     ap.add_argument("--durum", default=None,
                     help="durum dosyasi yolu (default: ~/.claude/projects/.../memory/"
                          + DURUM_DOSYA_ADI + ")")
@@ -773,6 +1306,28 @@ def main(argv=None):
         finally:
             shutil.rmtree(gecici, ignore_errors=True)
 
+    if args.damga_uret:
+        simdi_dt = _simdi_coz(args.simdi) if args.simdi else datetime.datetime.now(datetime.timezone.utc)
+        if simdi_dt is None:
+            print("HATA: --simdi gecersiz ISO: %r" % args.simdi, file=sys.stderr)
+            return 2
+        repo = args.repo or _repo_kok()
+        defter_yol = args.defter or os.path.join(repo, "DEVAM.md")
+        durum_yol = args.durum or VARSAYILAN_DURUM_YOLU
+        sonuc = damga_uret(defter_yol, repo, durum_yol, simdi_dt)
+        for satir in sonuc["ekrana"]:
+            print(satir)
+        print("DAMGA_URETILDI=%d DAMGA_URETILEMEDI=%d NEDEN_GIT_IZI_YOK=%d "
+              "NEDEN_DEFTER_GITSIZ=%d"
+              % (sonuc["uretilen"], sonuc["uretitemeyen"],
+                 sonuc["neden_git_izi_yok"], sonuc["neden_defter_gitsiz"]))
+        if sonuc["hata"]:
+            print("HATA: %s" % sonuc["hata"], file=sys.stderr)
+        # rc!=0: hicbir kalem uretilemedi (sessiz sifir YASAK)
+        if sonuc["uretilen"] == 0:
+            return 1
+        return 0
+
     if args.rapor:
         simdi_dt = _simdi_coz(args.simdi) if args.simdi else datetime.datetime.now(datetime.timezone.utc)
         if simdi_dt is None:
@@ -789,6 +1344,36 @@ def main(argv=None):
         with open(defter_yol, encoding="utf-8") as f:
             defter = f.read()
         sonuc = hepsini_simfla(defter, durum_yol, simdi_dt)
+        rapor_yaz(sonuc, simdi_str)
+        return 0
+
+    if args.gercek:
+        # Birlestirilmis: ONCE damga-uret (gercek defter + git), SONRA siniflandir.
+        simdi_dt = _simdi_coz(args.simdi) if args.simdi else datetime.datetime.now(datetime.timezone.utc)
+        if simdi_dt is None:
+            print("HATA: --simdi gecersiz ISO: %r" % args.simdi, file=sys.stderr)
+            return 2
+        simdi_str = (args.simdi if args.simdi
+                     else simdi_dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        repo = args.repo or _repo_kok()
+        defter_yol = args.defter or os.path.join(repo, "DEVAM.md")
+        durum_yol = args.durum or VARSAYILAN_DURUM_YOLU
+        sonuc_damga = damga_uret(defter_yol, repo, durum_yol, simdi_dt)
+        for satir in sonuc_damga["ekrana"]:
+            print(satir)
+        print("DAMGA_URETILDI=%d DAMGA_URETILEMEDI=%d NEDEN_GIT_IZI_YOK=%d "
+              "NEDEN_DEFTER_GITSIZ=%d"
+              % (sonuc_damga["uretilen"], sonuc_damga["uretitemeyen"],
+                 sonuc_damga["neden_git_izi_yok"],
+                 sonuc_damga["neden_defter_gitsiz"]))
+        # Simdi siniflandirma bas (durum JSON yazildi)
+        if not os.path.isfile(defter_yol):
+            print("HATA: defter yok: %s" % defter_yol, file=sys.stderr)
+            return 2
+        with open(defter_yol, encoding="utf-8") as f:
+            defter = f.read()
+        sonuc = hepsini_simfla(defter, durum_yol, simdi_dt)
+        print("")
         rapor_yaz(sonuc, simdi_str)
         return 0
 
