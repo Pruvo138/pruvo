@@ -10,21 +10,21 @@
   (dal `kral/seritb-onarim`) · P2/P5 → MaCiT · gozcu-eskalasyon → BaBa (ikisi de kutuda).
   Onarim dalinin 3 acik T-konusu suruyor (T6 ekseni: T5 dosyasi GENISLETILIR · flakiness ·
   KANITSIZ=27).
+- 🟢 **K214 (19 Agu, `KraL-Motor kapisi` chip — DAL HAZIR, MERGE MIMARDA):** kurucu motor
+  listesini GOMUYORDU (`kur.py:1328`+`:709`), 13 Agu kopyasi DONDU → evler emekli deepseek'i
+  kabul, canli `kimi`'yi RED; **kirmizi ev DORT degil BES** (BaBa da). Blok+imza artik
+  `mimar_kimlik.py`'de URETILIR; emekli kata is ACIK GEREKCEYLE RED (`claude`+AGENT-KAPISI+
+  kimlik ekseni DEGISMEDI); nobetci `motor-tek-kaynak-kapisi.py`. Sayilar kutuda.
 - 🔴 **K212 (19 Agu, SeritB-onarim chip'i buldu — `tools/yedekle.py` iki GERCEK kusur,
   BEKLETMEDE):** tam metin + kabul olcutu ARSIVDE (sinif kapisi geregi). Ayri kalem yurur;
   onarim SeritB chip'inin kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (dordunun de merge SHA'si, kapi sayilari
-  ve deploy kanitlari ARSIVDE). K211'in SON teyidi (sqlite_master + PRAGMA) HocA'nin E8
-  hattinda; K205 kapaninca K202-kendini-test kalemi SeritB chip'ine devroldu.
 - 🔴 **K190 MERGE EDILMEDI — DAL-ICI KIRMIZI, TARIHLENDI (chip PANELDE):** `talep-hatti-test.py`
   rc=1 (50 iddia beklenirken 54 kostu · DUSEN L9 · D11 capasi ValueError) + `talep-temizlik.py
   --kendini-test` rc=1 (L9). Kok: dalin KENDI `76c8444f` (K187 KV) commit'i `talep.js:165`'i
   degistirdi, `ba6d9d77`'deki capa/beklenti guncellenmedi — main mb'den beri 5 dosyaya
   DOKUNMADI, birlesim SUCSUZ. Recete: D11 capasi bugunku govdeden + beklenti 50→54 + L9 ekseni.
   kabul: iki komut rc=0 + mutant hedef-kol atfi, sonra merge.
-- ✅ **K209 KAPANDI — worker CANLI** (alarm logu kanit: canli kod `358244ce` @ 10:54Z, K186'nin
-  3 shop commit'i yayinda). 🟠 Kalinti: `33b663e4` (K210'un TEK yorum satiri, davranis AYNI)
-  canlida degil → alarm 102,5/120 dk; care ikinci `wrangler deploy` (kozmetik, alarm commit sayar).
+- 🟠 **K209 KALINTISI (govde ARSIVDE):** `33b663e4` canlida degil, alarm 102,5/120 dk; care ikinci `wrangler deploy` (Okan).
 - 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
   isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
