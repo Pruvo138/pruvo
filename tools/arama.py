@@ -1050,10 +1050,29 @@ ROZET_DISI_CIFT = {
     ("Piaggio", "Largeframe"): "Largeframe VESPA govde aile adidir (Smallframe'in karsiligi), "
                                 "Piaggio rozeti DEGIL — gercek sayfa /marka/vespa/largeframe/. "
                                 "Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
+    # ─────────────────────────────────────────────────────────────────────────
+    # 19 Agu, K188: K170 kapandiktan SONRA ortaya cikan 6 yargisiz ciftten Piaggio
+    # kolu (CI kirmizisi — K19 KALDI). AYNI kural: bir /marka/X/M/ sayfasi ancak M
+    # modeli GERCEKTEN X rozetiyle satilmissa dogar. 50 / 50 Special / Smallframe
+    # VESPA scooter rozetleri (Piaggio ana marque bu isimlerle arac SATMADI). Emsal
+    # birebir yukaridaki K170 Piaggio|GTS / Piaggio|Primavera / Piaggio|PX deny satirlari.
+    # Urun KAYBOLMAZ: Piaggio urunleri /marka/vespa/<gercek-rozet>/ ve Piaggio marka
+    # sayfasinda durmaya devam eder (K11 kaybolan=0 olcer).
+    ("Piaggio", "50"): "50 bir VESPA scooter rozetidir (LX 50 / Primavera 50 / S 50 / "
+                      "PK 50); Piaggio ana marque bu isimle arac SATMADI — gercek sayfa "
+                      "/marka/vespa/50/. Urunler Piaggio agacinda durur; urun KAYBOLMAZ",
+    ("Piaggio", "50special"): "50 Special VESPA'nin kendi rozetidir (50 ailesinin yenileme "
+                               "versiyonu); Piaggio 50 Special diye arac satilmadi — gercek "
+                               "sayfa /marka/vespa/50special/. Urunler Piaggio agacinda durur; "
+                               "urun KAYBOLMAZ",
+    ("Piaggio", "Smallframe"): "Smallframe VESPA govde aile adidir (50-125 cc motor ailesi); "
+                                "Piaggio Smallframe diye arac satilmadi — gercek sayfa "
+                                "/marka/vespa/smallframe/. Urunler Piaggio agacinda durur; "
+                                "urun KAYBOLMAZ",
 }
 
-ROZET_DISI_SAYISI = 46
-ROZET_DISI_IMZA = "de169c442a3cb70a"  # K170 sonrasi: kapinin hesabiyla
+ROZET_DISI_SAYISI = 49
+ROZET_DISI_IMZA = "eb34092b731d4b9f"  # K188 sonrasi: kapinin hesabiyla
 
 
 def rozet_disi_imzasi():
@@ -1269,10 +1288,26 @@ ROZET_CAPRAZ_IZINLI = {
                                   "(\"Vespa\",\"Smallframe\")"),
     # Volvomk1 (K170) BEKLER: Ford|mk1 / Volkswagen|mk1 ile AYNI bekleyen hukum uyesi;
     # Mk1 bir NESIL isareti, rozet degil. Uc kol TEK turda, TEK hukumle kapanir -> K172.
+    # ─────────────────────────────────────────────────────────────────────────
+    # 19 Agu, K188 (K173k devami): 18 Agu K170 kapandiktan SONRA ortaya cikan 6 yargisiz
+    # cift (CI kirmizisi — K19 KALDI). AYNI kural: bir /marka/X/M/ sayfasi ancak M modeli
+    # GERCEKTEN X rozetiyle satilmissa dogar. Vespa, Piaggio'nun scooter alt markasidir;
+    # 50 / 50 Special / Smallframe VESPA scooter rozetleri (Piaggio ana marque bu isimlerle
+    # arac SATMADI). Emsal birebir K170'in Piaggio|GTS / Piaggio|PX / Piaggio|Primavera
+    # / Piaggio|Largeframe deny satirlari.
+    "Vespa|50": ("ROZET", "Vespa 50 Vespa'nin kendi scooter rozeti (LX 50 / Primavera 50 / "
+                         "S 50 / PK 50); Piaggio 50 ile IKIZ DEGIL, rozet muhendisligi DEGIL "
+                         "— yalniz AD cakismasi"),
+    "Vespa|50special": ("ROZET", "Vespa 50 Special Vespa'nin kendi rozeti (Vespa 50 Special, "
+                                "ayni 50 ailesinin yenileme versiyonu); Piaggio 50 Special "
+                                "ile yalniz AD cakismasi var"),
+    "Vespa|smallframe": ("ROZET", "Vespa Smallframe Vespa'nin govde aile adi (Smallframe "
+                                  "motor ailesi, 50-125 cc araligi); Piaggio Smallframe ile "
+                                  "yalniz AD cakismasi var — emsal birebir Vespa|largeframe"),
 }
 
-ROZET_CAPRAZ_IZINLI_SAYISI = 64
-ROZET_CAPRAZ_IZINLI_IMZA = "b01f6f590b99ac82"  # K172 sonrasi: kapinin hesabiyla
+ROZET_CAPRAZ_IZINLI_SAYISI = 67
+ROZET_CAPRAZ_IZINLI_IMZA = "f3ccf9b717a42de5"  # K188 sonrasi: kapinin hesabiyla
 
 
 def rozet_capraz_imzasi():

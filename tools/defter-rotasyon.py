@@ -122,6 +122,41 @@ def _sessiz_yedek_yok(defter_yol):
     return _YASAK_SESSIZ_YEDEK_RE.search(ham) is not None
 
 
+# === K195(a): ISARETCIYE INDIRME =========================================
+# OLCULEN DELIK (19 Agu 2026): defter tavan ustundeyken KAPALI icerik yoksa
+# arac hicbir sey tasimiyor (KAYIP/ILERLEME_YOK) ve mimar ELLE rotasyona
+# zorlaniyor — bir gunde 4 kez. Cozum: kapali icerik tukendiginde bir blogun
+# TAM METNINI arsive tasiyip defterde BASLIK + TEK SATIRLIK ISARETCI birakmak.
+# Bu, arsivde zaten defalarca ELLE uygulanmis desendir ("defterde tek satirlik
+# isaretci kaldi") — arac artik ayni seyi MAKINEYLE yapar.
+#
+# 🔴 "EN ESKI BLOK" DEGIL, "EN BUYUK INDIRILEBILIR BLOK": defterin bloklari
+# KRONOLOJIK degil KATEGORIKtir (ACIK KALEMLER / SON DURUM / OKAN'DA /
+# ARSIVDE). "En eski"yi (= dosyadaki ilk blok) tasimak ACIK KALEMLER'i
+# arsive gomerdi. Bu yuzden korumali basliklar ASLA indirilmez ve indirme
+# ENERJIYI en cok veren bloktan yapilir.
+KORUMALI_BASLIK_DESENLERI = ("ACIK KALEMLER", "OKAN'DA", "OKAN`DA", "ARSIVDE")
+# Govdesi bu kadar ya da daha az ANLAMLI satir tasiyan blok zaten
+# isaretciye inmistir; tekrar indirmek ilerleme uretmez.
+_ISARETCI_ASGARI_GOVDE = 3
+
+
+def _blok_korumali_mi(blok):
+    ust = blok["baslik"].upper()
+    return any(desen in ust for desen in KORUMALI_BASLIK_DESENLERI)
+
+
+def _blok_anlamli_govde_satiri(blok):
+    return len([s for s in blok["govde"] if s.strip()])
+
+
+def _isaretciye_indirilebilir_mi(blok):
+    """Blok isaretciye INDIRILEBILIR mi? (korumali degil + govdesi dolu)"""
+    if _blok_korumali_mi(blok):
+        return False
+    return _blok_anlamli_govde_satiri(blok) > _ISARETCI_ASGARI_GOVDE
+
+
 def _satir_sayisi(metin):
     """Dosyanin kendi satir sayisi (son satirda newline olmayabilir)."""
     if not metin:
@@ -692,6 +727,13 @@ def main(argv=None):
                    help="defter bayt tavanini asagiya cekmek icin kapali icerik"
                         " bitene kadar tekrar gecis yapar (ornek: 12288). None ise"
                         " tek gecis (geriye uyumlu).")
+    p.add_argument("--isaretciye-indir", action="store_true",
+                   help="K195(a): kapali icerik TUKENDIGINDE ve defter hala tavan"
+                        " ustundeyken, en buyuk INDIRILEBILIR blogun tam metnini"
+                        " arsive tasi ve defterde baslik + tek satirlik isaretci"
+                        " birak. Korumali basliklar (ACIK KALEMLER / OKAN'DA /"
+                        " ARSIVDE) ASLA indirilmez. Bayrak YOKSA davranis"
+                        " degismez (KAYIP / ILERLEME_YOK).")
     a = p.parse_args(argv)
 
     tarih = a.tarih if a.tarih is not None else _bugun()
@@ -717,6 +759,7 @@ def main(argv=None):
         # Tavan ustundeyiz — kapali icerik bitene kadar tekrar gecis yap.
         toplam_blok = 0
         toplam_madde = 0
+        toplam_isaretci = 0        # K195(a): isaretciye indirilen blok sayisi
         gecis = 0
         son_rc = 0
         while gecis < _TEK_GECIS_TAVAN:
@@ -740,6 +783,41 @@ def main(argv=None):
             # ILERLEME_YOK. Her iki durumda da dosyaya yazma yok.
             with open(defter_yol, "rb") as f:
                 yeni_bayt = len(f.read())
+            # K195(a): kapali icerik TUKENDI (I1 no-op'u). Bayrak verildiyse
+            # ILERLEME uret; uretemezsek OLCULEMEDI + SEBEP.
+            #
+            # 🔴 BU BLOK, ASAGIDAKI I1/I2 DALININ **DISINDA** ve ONUNDE durur.
+            # Sebep: K181d'nin M-I1 mutanti o dali BIREBIR METIN olarak capa
+            # aliyor; icine tek satir eklemek capayi kirar ve mutant sessizce
+            # "capa bulunamadi" ile duser. Kol disarida kalinca I1/I2 dali
+            # BAYT BAYT korunur ve M-I1 capasi calismaya devam eder.
+            if yeni_bayt >= onceki_bayt and a.isaretciye_indir:
+                irc, aciklama, kazanc = _isaretciye_indir_gecis(
+                    defter_yol, arsiv_yol, tarih)
+                if irc == 0:
+                    toplam_isaretci += 1
+                    print("ISARETCIYE_INDIRILDI blok=%s kazanc_bayt=%d" % (
+                        aciklama, kazanc))
+                    if not _tavan_asildi_mi(defter_yol, a.tavan_sayi,
+                                             a.tavan_bayt):
+                        print("TAVAN_BASARILI GECIS=%d TASINAN=%d "
+                              "TASINAN_MADDE=%d ISARETCIYE_INDIRILEN=%d" % (
+                                  gecis, toplam_blok, toplam_madde,
+                                  toplam_isaretci))
+                        return 0
+                    continue
+                print("OLCULEMEDI: isaretciye indirme ILERLEME URETEMEDI — %s"
+                      % aciklama, file=sys.stderr)
+                son_rc = 4
+                break
+            if yeni_bayt >= onceki_bayt and not a.isaretciye_indir:
+                # Sessiz cikmiyoruz: CARE makine-kosulabilir olsun. (I1/I2
+                # dalinin DISINDA — capa korunsun diye.)
+                print("  CARE (K195a): ayni komuta `--isaretciye-indir` ekle; "
+                      "en buyuk INDIRILEBILIR blogun tam metni arsive tasinir, "
+                      "defterde baslik + tek satirlik isaretci kalir. Korumali "
+                      "basliklar (%s) indirilmez."
+                      % ", ".join(KORUMALI_BASLIK_DESENLERI), file=sys.stderr)
             if yeni_bayt >= onceki_bayt:
                 # I2: oncelikle K### kimliksiz acik kalem ya da
                 # dosyada "(özet çıkarılamadı)" sessiz yedegi var mi?
@@ -773,10 +851,102 @@ def main(argv=None):
                 str(a.tavan_sayi) if a.tavan_sayi is not None else "-",
                 str(a.tavan_bayt) if a.tavan_bayt is not None else "-",
                 gecis), file=sys.stderr)
+            if not a.isaretciye_indir:
+                print("  CARE (K195a): ayni komuta `--isaretciye-indir` ekle.",
+                      file=sys.stderr)
         return son_rc
 
     # Tek-gecis davranisi (tavan bayragi yok): mevcut tek-tekil yol.
     return _tek_gecis_calistir(defter_yol, arsiv_yol, tarih)[0]
+
+
+def _isaretciye_indir_gecis(defter_yol, arsiv_yol, tarih):
+    """K195(a) — EN BUYUK indirilebilir blogu isaretciye indirir.
+
+    Blogun TAM METNI arsive tasinir; defterde BASLIK + tek satirlik isaretci
+    kalir. Boylece blok yapisi (ve okuyucunun "burada bir sey vardi" bilgisi)
+    korunur, bayt ise gercekten duser.
+
+    Doner: (rc, aciklama, kazanc_bayt)
+      rc=0 -> indirildi, `kazanc_bayt` > 0
+      rc=4 -> OLCULEMEDI; `aciklama` SEBEP tasir, dosyalar BIREBIR degismez
+    """
+    with open(defter_yol, "rb") as f:
+        defter_ham = f.read()
+    arsiv_ham = b""
+    if os.path.exists(arsiv_yol):
+        with open(arsiv_yol, "rb") as f:
+            arsiv_ham = f.read()
+
+    defter_eski_bayt = len(defter_ham)
+    arsiv_eski_bayt = len(arsiv_ham)
+    defter_metin = defter_ham.decode("utf-8")
+    arsiv_metin = arsiv_ham.decode("utf-8") if arsiv_ham else ""
+
+    baslik_bolgesi, bloklar = _bloklari_ayir(defter_metin)
+    adaylar = [b for b in bloklar if _isaretciye_indirilebilir_mi(b)]
+    if not adaylar:
+        return (4, "indirilebilir blok YOK (tum bloklar ya korumali "
+                   "[%s] ya da zaten isaretciye inmis; govde esigi=%d anlamli satir)"
+                % (", ".join(KORUMALI_BASLIK_DESENLERI), _ISARETCI_ASGARI_GOVDE), 0)
+
+    # EN BUYUK aday: en cok bayt kazandiran blok.
+    hedef = max(adaylar, key=lambda b: len(_blok_metni(b).encode("utf-8")))
+    arsiv_basligi = ("## %s — ISARETCIYE INDIRME: asagidaki blogun TAM METNI "
+                     "defterden BURAYA TASINDI (defterde baslik + tek satirlik "
+                     "isaretci kaldi)" % tarih)
+    isaretci = ("- ↩︎ **TAM METIN ARSIVDE** (%s isaretciye indirme): bu blogun tam "
+                "metni `DEVAM-ARSIV.md`'de \"%s\" basligi altinda." %
+                (tarih, arsiv_basligi.lstrip("# ").strip()))
+
+    yeni_defter_parcalar = []
+    if baslik_bolgesi:
+        yeni_defter_parcalar.append("\n".join(baslik_bolgesi))
+    for blok in bloklar:
+        if blok is hedef:
+            yeni_defter_parcalar.append("\n".join([blok["baslik"], "", isaretci]))
+        else:
+            yeni_defter_parcalar.append(_blok_metni(blok))
+    yeni_defter_metin = "\n\n".join(yeni_defter_parcalar)
+    if defter_ham and not defter_ham.endswith(b"\n"):
+        yeni_defter_metin = yeni_defter_metin.rstrip("\n")
+
+    yeni_arsiv_parcalar = [arsiv_basligi, _blok_metni(hedef)]
+    if arsiv_metin.strip():
+        yeni_arsiv_parcalar.append(arsiv_metin)
+    yeni_arsiv_metin = "\n\n".join(yeni_arsiv_parcalar)
+    if arsiv_ham and not arsiv_ham.endswith(b"\n"):
+        yeni_arsiv_metin = yeni_arsiv_metin.rstrip("\n")
+
+    yeni_defter_bayt = len(yeni_defter_metin.encode("utf-8"))
+    kazanc = defter_eski_bayt - yeni_defter_bayt
+    # ILERLEME INVARYANTI (K181d ile ayni eksen): bayt KESIN azalmali.
+    if kazanc <= 0:
+        return (4, "secilen blok (%s) ilerleme URETMEDI: defter %d -> %d bayt"
+                % (hedef["baslik"][:50], defter_eski_bayt, yeni_defter_bayt), 0)
+
+    _atomik_yaz(defter_yol, yeni_defter_metin)
+    _atomik_yaz(arsiv_yol, yeni_arsiv_metin)
+
+    with open(defter_yol, "rb") as f:
+        defter_disk = f.read()
+    with open(arsiv_yol, "rb") as f:
+        arsiv_disk = f.read()
+
+    # GUVENLIK: tasinan metin arsive GERCEKTEN eklendi ve defter tam o kadar dustu.
+    tasinan_metin = _blok_metni(hedef)
+    dogru = (len(arsiv_disk) - arsiv_eski_bayt >= len(tasinan_metin.encode("utf-8"))
+             and defter_eski_bayt - len(defter_disk) == kazanc
+             and tasinan_metin in arsiv_disk.decode("utf-8"))
+    if not dogru:
+        _atomik_yaz(defter_yol, defter_ham.decode("utf-8"))
+        _atomik_yaz(arsiv_yol, arsiv_ham.decode("utf-8") if arsiv_ham else "")
+        return (4, "ISARETCIYE INDIRME IPTAL — bayt muhasebesi tutmadi "
+                   "(defter %d->%d, arsiv %d->%d); dosyalar GERI ALINDI"
+                % (defter_eski_bayt, len(defter_disk),
+                   arsiv_eski_bayt, len(arsiv_disk)), 0)
+
+    return (0, hedef["baslik"], kazanc)
 
 
 def _tek_gecis_calistir(defter_yol, arsiv_yol, tarih):

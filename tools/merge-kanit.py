@@ -12,7 +12,7 @@ Override: MERGE_KANIT_DOSYASI env var.
 Kabul:
   python3 /Users/okan/dev/pruvo/tools/merge-kanit.py --kendini-test
   SON SATIR + rc=0:
-    VAKA=6 DUSEN=0 MUTANT=4/4 KONTROL=2/2
+    VAKA=8 DUSEN=0 MUTANT=6/6 KONTROL=2/2
 
 Not (K173): shell=True ile FileNotFoundError erisilemez (kabuk 127 doner). Bu
 yuzden M3 yeniden yazildi: "komut yok → yazilan rc 127, asla 0 degil" — canli
@@ -136,10 +136,108 @@ def dogrula(dal):
         return 1
 
 
+# --------------------------- EKSİKLER ---------------------------
+
+def _git_komut(komut_listesi, cwd=None):
+    """Yardimci: git komutunu kos, (rc, stdout, stderr) doner."""
+    try:
+        islem = subprocess.run(
+            komut_listesi,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except Exception as e:
+        return 1, "", str(e)
+    return islem.returncode, islem.stdout, islem.stderr
+
+
+def eksikler(sinir=None):
+    """Main'e alinmis ama kaniti olmayan birlesimleri listele.
+
+    * Kanit dosyasi okunamazsa OLCULEMEDI + rc != 0.
+    * Geriye donuk satir URETILMEZ; yalnizca sayar/listeler.
+    * Pencere baslangici: --sinir veya kanit dosyasindaki en eski tarih.
+    """
+    if not KANIT_DOSYASI.exists():
+        print(f"OLCULEMEDI: kanit dosyasi yok ({KANIT_DOSYASI})")
+        return 1
+
+    # Kanit dosyasindan tarihler ve merge SHA'larini oku
+    kanit_sha_set = set()
+    tarihler = []
+    try:
+        with open(KANIT_DOSYASI) as f:
+            for satir in f:
+                parcalar = satir.rstrip(YENI_SATIR).split(AYIRA)
+                if len(parcalar) >= len(ALANLAR):
+                    kanit_sha_set.add(parcalar[2])
+                    tarihler.append(parcalar[0])
+    except Exception as e:
+        print(f"OLCULEMEDI: kanit dosyasi okunamadi ({e})")
+        return 1
+
+    if sinir is None:
+        if not tarihler:
+            print("OLCULEMEDI: kanit dosyasinda tarih yok, --sinir verin")
+            return 1
+        sinir = min(tarihler)
+
+    # Git worktree kokunu bul (bu betigin yasadigi agac)
+    kok = Path(__file__).resolve().parent.parent
+
+    # Hangi daldan merge'leri cekecegiz? once main, yoksa origin/main
+    hedef_dal = None
+    for aday in ("main", "origin/main"):
+        rc, out, _ = _git_komut(["git", "-C", str(kok), "rev-parse", "--verify", aday])
+        if rc == 0 and out.strip():
+            hedef_dal = aday
+            break
+    if hedef_dal is None:
+        print("OLCULEMEDI: main / origin/main referansi bulunamadi")
+        return 1
+
+    # Merge commit'leri cek
+    rc, out, err = _git_komut([
+        "git", "-C", str(kok), "log", "--merges",
+        f"--since={sinir}", "--format=%H%x09%s", hedef_dal,
+    ])
+    if rc != 0:
+        print(f"OLCULEMEDI: git log --merges basarisiz ({err.strip()})")
+        return 1
+
+    birlesimler = {}
+    for line in out.strip().splitlines():
+        if AYIRA in line:
+            sha, baslik = line.split(AYIRA, 1)
+            birlesimler[sha] = baslik
+
+    birlesim_sha_set = set(birlesimler.keys())
+    kanitsiz_sha_set = birlesim_sha_set - kanit_sha_set
+    kanitli_sha_set = birlesim_sha_set & kanit_sha_set
+
+    for sha in sorted(kanitsiz_sha_set):
+        baslik = birlesimler.get(sha, "")
+        print(f"KANITSIZ: {sha} {baslik}")
+
+    # HEAD kisaltmasi
+    rc, head_out, _ = _git_komut(["git", "-C", str(kok), "rev-parse", "--short", "HEAD"])
+    head_kisa = head_out.strip() if rc == 0 else "HEAD"
+    pencere = f"{sinir}..{head_kisa}"
+
+    toplam = len(birlesim_sha_set)
+    kanitli = len(kanitli_sha_set)
+    kanitsiz = len(kanitsiz_sha_set)
+
+    print(f"MERGE_KANIT BIRLESIM={toplam} KANITLI={kanitli} KANITSIZ={kanitsiz} PENCERE={pencere}")
+    return 0
+
+
 # --------------------------- KENDINI-TEST ---------------------------
 
 def _kendini_test_alet(script_yolu):
-    """4 mutant + 2 kontrolu kara-kutu kosar; sayar.
+    """6 mutant + 2 kontrolu kara-kutu kosar; sayar.
 
     VAKA = tum senaryo (mutant + kontrol). DUSEN = senaryo basarisiz.
     MUTANT = mutantlarin YAKALANAN kismi (sistem hatayi geri cevirdi).
@@ -167,6 +265,26 @@ def _kendini_test_alet(script_yolu):
             text=True,
             env=cevre,
         )
+
+    def _kur_sentetik_repo(repo_yolu, dallar):
+        """Gecici git deposu kur: main + verilen dallar --no-ff merge edilmis."""
+        repo_yolu.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "-C", str(repo_yolu), "init"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(repo_yolu), "config", "user.email", "test@pruvo.local"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(repo_yolu), "config", "user.name", "Test"], check=True, capture_output=True)
+        (repo_yolu / "kok").write_text("kok")
+        subprocess.run(["git", "-C", str(repo_yolu), "add", "kok"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(repo_yolu), "commit", "-m", "kok"], check=True, capture_output=True)
+        for dal in dallar:
+            subprocess.run(["git", "-C", str(repo_yolu), "checkout", "-b", dal], check=True, capture_output=True)
+            (repo_yolu / f"{dal}.txt").write_text(dal)
+            subprocess.run(["git", "-C", str(repo_yolu), "add", f"{dal}.txt"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo_yolu), "commit", "-m", f"{dal} commit"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo_yolu), "checkout", "main"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo_yolu), "merge", "--no-ff", dal, "-m", f"merge {dal}"], check=True, capture_output=True)
+
+    def _sil_repo(repo_yolu):
+        shutil.rmtree(repo_yolu, ignore_errors=True)
 
     try:
         # === KONTROL K2: kanit dosyasi yoksa --dogrula COKMEZ, OLCULEMEDI+rc != 0 ===
@@ -278,6 +396,80 @@ def _kendini_test_alet(script_yolu):
             dusen += 1
             sys.stderr.write(f"M4 FAIL: non-zero rc=42 iken 0 yazildi (asil nobetci gecti)\n")
 
+        # === MUTANT M5: --eksikler kanitsiz birlesimi KANITLI saymasin ===
+        # Hedef kol: --eksikler KANITSIZ ekseni gercekten olcmeli.
+        # Sentetik depoda 2 merge var; kanit dosyasina 1'i yazildi.
+        # Dogru davranis: BIRLESIM=2 KANITLI=1 KANITSIZ=1.
+        # Mutant (kanitsizi kanitli sayarsa) KANITSIZ=0 verir; bu senaryo onu yakar.
+        vaka += 1
+        repo_m5 = Path(tempfile.gettempdir()) / f"merge-kanit-repo-m5-{uuid.uuid4().hex}"
+        kanit_m5 = Path(tempfile.gettempdir()) / f"merge-kanit-m5-{uuid.uuid4().hex}.tsv"
+        try:
+            _kur_sentetik_repo(repo_m5, ["m5-f1", "m5-f2"])
+            rc_git, out_git, _ = _git_komut(["git", "-C", str(repo_m5), "log", "--merges", "--format=%H", "main"])
+            merge_sha_list = out_git.strip().splitlines()
+            if len(merge_sha_list) != 2:
+                dusen += 1
+                sys.stderr.write(f"M5 FAIL: sentetik depoda 2 merge bekleniyordu, {len(merge_sha_list)} var\n")
+            else:
+                # [1] eski merge -> kanitli, [0] yeni merge -> kanitsiz
+                eski_sha = merge_sha_list[1]
+                tarih_str = "2026-08-18T00:00Z"
+                kanit_satir = AYIRA.join([tarih_str, "m5-dal", eski_sha, "base", "echo OK", "0", "OK", "KraL"])
+                kanit_m5.write_text(kanit_satir + YENI_SATIR)
+                sentetik_script = repo_m5 / "tools" / "merge-kanit.py"
+                sentetik_script.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(str(script_yolu), str(sentetik_script))
+                cevre_m5 = os.environ.copy()
+                cevre_m5["MERGE_KANIT_DOSYASI"] = str(kanit_m5)
+                r = subprocess.run(
+                    ["python3", str(sentetik_script), "--eksikler"],
+                    capture_output=True,
+                    text=True,
+                    env=cevre_m5,
+                )
+                if r.returncode == 0 and "KANITLI=1" in r.stdout and "KANITSIZ=1" in r.stdout and "BIRLESIM=2" in r.stdout:
+                    mutant += 1
+                else:
+                    dusen += 1
+                    sys.stderr.write(f"M5 FAIL: rc={r.returncode} stdout={r.stdout!r}\n")
+        finally:
+            _sil_repo(repo_m5)
+            if kanit_m5.exists():
+                kanit_m5.unlink()
+
+        # === MUTANT M6: kanit dosyasi okunamayinca KANITSIZ=0 yazmasin (sessiz sifir) ===
+        # Hedef kol: --eksikler OLCULEMEDI ekseni gercekten olcmeli.
+        # Kanit dosyasi YOK; dogru davranis: OLCULEMEDI + rc != 0.
+        # Mutant (KANITSIZ=0 yazarsa) rc=0 verir; bu senaryo onu yakar.
+        vaka += 1
+        repo_m6 = Path(tempfile.gettempdir()) / f"merge-kanit-repo-m6-{uuid.uuid4().hex}"
+        kanit_m6 = Path(tempfile.gettempdir()) / f"merge-kanit-m6-{uuid.uuid4().hex}.tsv"
+        try:
+            _kur_sentetik_repo(repo_m6, ["m6-f1"])
+            sentetik_script = repo_m6 / "tools" / "merge-kanit.py"
+            sentetik_script.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(str(script_yolu), str(sentetik_script))
+            cevre_m6 = os.environ.copy()
+            cevre_m6["MERGE_KANIT_DOSYASI"] = str(kanit_m6)
+            if kanit_m6.exists():
+                kanit_m6.unlink()
+            r = subprocess.run(
+                ["python3", str(sentetik_script), "--eksikler"],
+                capture_output=True,
+                text=True,
+                env=cevre_m6,
+            )
+            if r.returncode != 0 and "OLCULEMEDI" in r.stdout:
+                mutant += 1
+            else:
+                dusen += 1
+                sys.stderr.write(f"M6 FAIL: rc={r.returncode} stdout={r.stdout!r}\n")
+        finally:
+            _sil_repo(repo_m6)
+            if kanit_m6.exists():
+                kanit_m6.unlink()
+
         # === KONTROL K1: gercek rc=0 uretmis bir kabul icin --dogrula YESIL ===
         vaka += 1
         # onceki mutant kirleri karistirmasin diye sifirla
@@ -306,7 +498,7 @@ def _kendini_test_alet(script_yolu):
             except OSError:
                 pass
 
-    print(f"VAKA={vaka} DUSEN={dusen} MUTANT={mutant}/4 KONTROL={kontrol}/2")
+    print(f"VAKA={vaka} DUSEN={dusen} MUTANT={mutant}/6 KONTROL={kontrol}/2")
     if dusen > 0:
         sys.exit(1)
     return 0
@@ -322,7 +514,8 @@ def main():
     grup = p.add_mutually_exclusive_group(required=True)
     grup.add_argument("--kaydet", action="store_true", help="Kanit satiri yaz (RC ve SON_SATIR aracin kendi kosumundan gelir).")
     grup.add_argument("--dogrula", metavar="DAL", help="Dal icin kanit dogrula (yesilse rc=0).")
-    grup.add_argument("--kendini-test", action="store_true", help="4 mutant + 2 kontrol kosar.")
+    grup.add_argument("--kendini-test", action="store_true", help="6 mutant + 2 kontrol kosar.")
+    grup.add_argument("--eksikler", action="store_true", help="Main'e alinmis ama kaniti olmayan birlesimleri listele.")
 
     # --kaydet argumanlari. --rc / --son-satir BILINCLI YOK (M1 tuzagi).
     p.add_argument("--tarih", help="ISO-8601 UTC (bos birakirsan simdi).")
@@ -331,10 +524,13 @@ def main():
     p.add_argument("--merge-base", help="Merge base SHA.")
     p.add_argument("--kabul-komutu", help="Kabulun kosulacak kabuk komutu.")
     p.add_argument("--mimar", help="Mimar adi (KraL gibi).")
+    p.add_argument("--sinir", help="ISO-8601 UTC; kanit penceresinin baslangici (varsayilan: kanit dosyasindaki en eski satir).")
     args = p.parse_args()
 
     if args.kendini_test:
         sys.exit(_kendini_test_alet(Path(__file__).resolve()))
+    elif args.eksikler:
+        sys.exit(eksikler(args.sinir))
     elif args.kaydet:
         zorunlu = ("tarih", "dal", "merge_sha", "merge_base", "kabul_komutu", "mimar")
         eksik = [getattr(args, k) for k in zorunlu if not getattr(args, k)]

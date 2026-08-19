@@ -362,6 +362,13 @@ ACIK_KESIF = {
         "kimse duymadi ([[nobetci-cagri-satiri-nobetsiz]]). Onarildi ve deploy.yml "
         "serit-a3'te BLOKLAYICI adima baglandi; bu kayit RATCHET'tir — cagri satiri "
         "silinirse kapi KIRMIZI yanar. MUAFIYET DEGIL, kapsam ZORLAMASIDIR.",
+    "tools/merge-kanit.py":
+        "Merge kabul kanit tablosu. `--kendini-test` kolu (6 mutant + 2 kontrol) "
+        "vardir ama adi `-kapisi.py`/`-test.py`/`-mutasyon.js` konvansiyonlarina "
+        "uymaz. Paket ⑤b (19 Agu 2026) ile nobet.yml `serit-b` job'una baglandi; "
+        "kesif disi kalirsa CI kapsam kapisinda OTOMATIK'te kosmuyor gorunurdu. "
+        "Bu kayit RATCHET'tir — cagri satiri silinirse kapi KIRMIZI yanar. "
+        "MUAFIYET DEGIL, kapsam ZORLAMASIDIR.",
 }
 
 

@@ -5,6 +5,20 @@ MEKANIZMA	YOL	EV	SERIT	KABUL_KOMUTU
 # ya da shell `exit 1/2`; -test/-mutasyon/-prob haric). EV=BILINMIYOR olan
 # satirlar sayilir (SAHIPSIZ) ama kapisi YAKILMAZ — mimar sahiplik atamasi yapar.
 #
+# 🔴 SAHIP ATAMASI (18 Agu 2026, KraL mimar hukmu — 174 satir BILINMIYOR idi):
+#   KURAL 1 (varsayilan): mekanizma bu evde (~/dev/pruvo) yasiyor -> EV=KraL.
+#   KURAL 2 (serit onceligi): SERIT=veri olan her mekanizma -> EV=MaCiT.
+#     Gerekce: "veri/urun/senkron kapisi" MaCiT'in ALANIDIR; kirmizisi onun
+#     defterine dusmelidir (bugun 12 kalemin 10'u mimarda yigildi).
+#   KURAL 3 (alan istisnasi): baska evin ALANINA ait mekanizma ADIYLA atanir:
+#     HocA  = bot/Ege agzi ve WhatsApp yuzeyi
+#     ArTisT= pazarlama/reklam/feed/analitik
+#     TeKiN = jenerator/parametrik (sari seri) ve ozgun urun
+#     MaCiT = hasat, platform API'leri, gorsel/kaynak/urun envanteri
+#   ATAMA BIR KARARDIR, OLCUM DEGILDIR: itiraz eden ev KENDI satirini degistirir
+#   ve gerekcesini commit mesajina yazar. Sahipsiz satir birakmak YASAK degildir;
+#   ama BILINMIYOR yazan satir T3 yonlendirmesine GIREMEZ (mimara duser).
+#
 # SERIT kodlamasi:
 #   yayin  — yayin/onay kapisi (publish gate)
 #   veri   — veri/urun/senkron kapisi
@@ -13,177 +27,182 @@ MEKANIZMA	YOL	EV	SERIT	KABUL_KOMUTU
 #   arac   — kurulum/dagitim/yardimci arac
 #
 # KABUL_KOMUTU = o mekanizmayi olcen calistirilabilir komut, ya da YOK.
-cron:cop-denetimi-kabul	cron:cop-denetimi-kabul.py	BILINMIYOR	hijyen	YOK
-cron:gozcu	cron:gozcu.py	BILINMIYOR	hijyen	YOK
-cron:hasat-denetim-uretici-kabul	cron:hasat-denetim-uretici-kabul.py	BILINMIYOR	hijyen	YOK
-cron:isci-karantina-karar	cron:isci-karantina-karar.py	BILINMIYOR	hijyen	YOK
-cron:isci-log-dondur	cron:isci-log-dondur.py	BILINMIYOR	hijyen	YOK
-cron:isci-temizlik	cron:isci-temizlik.py	BILINMIYOR	hijyen	YOK
-cron:isci	cron:isci.sh	BILINMIYOR	nobet	YOK
-cron:k96-kabul	cron:k96-kabul.py	BILINMIYOR	hijyen	YOK
-cron:kilit-tatbikat	cron:kilit-tatbikat.py	BILINMIYOR	nobet	YOK
-cron:kimi-nabiz-kur	cron:kimi-nabiz-kur.py	BILINMIYOR	hijyen	YOK
-cron:kimi-nabiz	cron:kimi-nabiz.py	BILINMIYOR	hijyen	YOK
-cron:kota-olcum	cron:kota-olcum.py	BILINMIYOR	nobet	YOK
-cron:mail-supurme-kanit	cron:mail-supurme-kanit.py	BILINMIYOR	hijyen	YOK
-cron:mail-supurme-kos	cron:mail-supurme-kos.sh	BILINMIYOR	nobet	YOK
-cron:mail-yuklem-kabul-testi	cron:mail-yuklem-kabul-testi.py	BILINMIYOR	hijyen	YOK
-cron:nobet-k96-kabul	cron:nobet-k96-kabul.py	BILINMIYOR	nobet	YOK
-cron:nobet-kapi	cron:nobet-kapi.py	BILINMIYOR	nobet	YOK
-cron:testler	cron:testler.py	BILINMIYOR	hijyen	YOK
-altkategori-kapisi	tools/altkategori-kapisi.py	BILINMIYOR	yayin	YOK
-altkategori-sinifla	tools/altkategori-sinifla.py	BILINMIYOR	hijyen	python3 tools/altkategori-sinifla-test.py
-altkategori-veri	tools/altkategori-veri.py	BILINMIYOR	hijyen	YOK
-ara-maliyet-kapisi	tools/ara-maliyet-kapisi.py	BILINMIYOR	veri	python3 tools/ara-maliyet-kapisi --kendini-test
-ata-lisans-kapisi	tools/ata-lisans-kapisi.py	BILINMIYOR	yayin	python3 tools/ata-lisans-kapisi --kendini-test
-ayip-beyani-kapisi	tools/ayip-beyani-kapisi.py	BILINMIYOR	yayin	YOK
-banner-varyant-uret	tools/banner-varyant-uret.py	BILINMIYOR	hijyen	YOK
-bayat-beyan-kapisi	tools/bayat-beyan-kapisi.py	BILINMIYOR	yayin	python3 tools/bayat-beyan-kapisi --kendini-test
-build	tools/build.py	BILINMIYOR	arac	YOK
-canli-saglik-kapisi	tools/canli-saglik-kapisi.py	BILINMIYOR	yayin	python3 tools/canli-saglik-kapisi --kendini-test
-cayma-beyani-kapisi	tools/cayma-beyani-kapisi.py	BILINMIYOR	yayin	YOK
-cf-durum	tools/cf-durum.py	BILINMIYOR	hijyen	YOK
-cip-indeks	tools/cip-indeks.py	BILINMIYOR	hijyen	python3 tools/cip-indeks-test.py
-cip-sayfa-bagi	tools/cip-sayfa-bagi.py	BILINMIYOR	hijyen	YOK
-commit-mesaji-hook-kur	tools/commit-mesaji-hook-kur.py	BILINMIYOR	hijyen	YOK
-commit-mesaji-kapisi	tools/commit-mesaji-kapisi.py	BILINMIYOR	yayin	python3 tools/commit-mesaji-kapisi --kendini-test
-cron-nabiz-kapisi	tools/cron-nabiz-kapisi.py	BILINMIYOR	yayin	python3 tools/cron-nabiz-kapisi --kendini-test
-cta-denge-kapisi	tools/cta-denge-kapisi.py	BILINMIYOR	yayin	YOK
-cults3d-api	tools/cults3d-api.py	BILINMIYOR	hijyen	YOK
-d1-fiyat-parite-kapisi	tools/d1-fiyat-parite-kapisi.py	BILINMIYOR	yayin	YOK
-d1-kaynak-sync	tools/d1-kaynak-sync.py	BILINMIYOR	veri	YOK
-d1-sapma-kapisi	tools/d1-sapma-kapisi.py	BILINMIYOR	yayin	python3 tools/d1-sapma-kapisi --kendini-test
-d1-sync	tools/d1-sync.py	BILINMIYOR	veri	python3 tools/d1-sync --kendini-test
-defter-kota-kapisi	tools/defter-kota-kapisi.py	BILINMIYOR	yayin	YOK
-defter-rotasyon	tools/defter-rotasyon.py	BILINMIYOR	nobet	python3 tools/defter-rotasyon-test.py
-denetim-kapisi	tools/denetim-kapisi.py	BILINMIYOR	yayin	python3 tools/denetim-kapisi-test.py
-deploy-aclik-kapisi	tools/deploy-aclik-kapisi.py	BILINMIYOR	yayin	python3 tools/deploy-aclik-kapisi --kendini-test
-devam-sinif-kapisi	tools/devam-sinif-kapisi.py	BILINMIYOR	yayin	python3 tools/devam-sinif-kapisi --kendini-test
-diriltme-kapisi	tools/diriltme-kapisi.py	BILINMIYOR	yayin	python3 tools/diriltme-kapisi --kendini-test
-durum	tools/durum.py	BILINMIYOR	hijyen	python3 tools/durum-test.py
-duzelt	tools/duzelt.py	BILINMIYOR	hijyen	YOK
-e2-birim-ikiz-kanit	tools/e2-birim-ikiz-kanit.py	BILINMIYOR	hijyen	YOK
-edge-kart-kapisi	tools/edge-kart-kapisi.py	BILINMIYOR	yayin	YOK
-ege-kabiliyet-kapisi	tools/ege-kabiliyet-kapisi.py	BILINMIYOR	yayin	YOK
-ege-tavan-pay-simulasyon	tools/ege-tavan-pay-simulasyon.py	BILINMIYOR	hijyen	YOK
-feed-id-cozucu	tools/feed-id-cozucu.py	BILINMIYOR	hijyen	python3 tools/feed-id-cozucu-test.py
-feed-politika-kapisi	tools/feed-politika-kapisi.py	BILINMIYOR	yayin	YOK
-fikstur-git-sizinti-kapisi	tools/fikstur-git-sizinti-kapisi.py	BILINMIYOR	yayin	YOK
-fiziksel-canli-kapisi	tools/fiziksel-canli-kapisi.py	BILINMIYOR	yayin	python3 tools/fiziksel-canli-kapisi --kendini-test
-fiziksel-urun-kapisi	tools/fiziksel-urun-kapisi.py	BILINMIYOR	yayin	YOK
-ga4-olay-kapisi	tools/ga4-olay-kapisi.py	BILINMIYOR	yayin	python3 tools/ga4-olay-kapisi --kendini-test
-gecmis-geri-donus-hook-kur	tools/gecmis-geri-donus-hook-kur.py	BILINMIYOR	hijyen	YOK
-gecmis-geri-donus-kapisi	tools/gecmis-geri-donus-kapisi.py	BILINMIYOR	yayin	python3 tools/gecmis-geri-donus-kapisi --kendini-test
-gecmis-nobeti-hook-kur	tools/gecmis-nobeti-hook-kur.py	BILINMIYOR	nobet	YOK
-git_ortami	tools/git_ortami.py	BILINMIYOR	hijyen	python3 tools/git_ortami --kendini-test
-gitignore-kapisi	tools/gitignore-kapisi.py	BILINMIYOR	yayin	YOK
-gorsel_boyut_kapisi	tools/gorsel_boyut_kapisi.py	BILINMIYOR	yayin	YOK
-gorsel_koken	tools/gorsel_koken.py	BILINMIYOR	hijyen	YOK
-gorsel_mukerrer_kapisi	tools/gorsel_mukerrer_kapisi.py	BILINMIYOR	yayin	YOK
-gorselsiz-render-kapisi	tools/gorselsiz-render-kapisi.py	BILINMIYOR	yayin	YOK
-gramer-artigi-kapisi	tools/gramer-artigi-kapisi.py	BILINMIYOR	yayin	python3 tools/gramer-artigi-kapisi --kendini-test
-ic-rapor-adi-kapisi	tools/ic-rapor-adi-kapisi.py	BILINMIYOR	yayin	python3 tools/ic-rapor-adi-kapisi --kendini-test
-ic-rapor-index-kolu	tools/ic-rapor-index-kolu.py	BILINMIYOR	hijyen	YOK
-ic-seri-izi-kapisi	tools/ic-seri-izi-kapisi.py	BILINMIYOR	yayin	YOK
-ifsa-metin-onar	tools/ifsa-metin-onar.py	BILINMIYOR	hijyen	python3 tools/ifsa-metin-onar --kendini-test
-iki-govde-kapisi	tools/iki-govde-kapisi.py	BILINMIYOR	yayin	python3 tools/iki-govde-kapisi --kendini-test
-ilan-tutari-kapisi	tools/ilan-tutari-kapisi.py	BILINMIYOR	yayin	YOK
-is-akisi-kapisi	tools/is-akisi-kapisi.py	BILINMIYOR	hijyen	python3 tools/is-akisi-kapisi --kendini-test
-isci-kapisi-dagitim-kaniti	tools/isci-kapisi-dagitim-kaniti.py	BILINMIYOR	arac	YOK
-jenerator-tasi	tools/jenerator-tasi.py	BILINMIYOR	arac	YOK
-k86-kabul	tools/k86-kabul.py	BILINMIYOR	hijyen	YOK
-kaynak-link-tamamla	tools/kaynak-link-tamamla.py	BILINMIYOR	veri	YOK
-kanca-kablolama-nobeti	tools/kanca-kablolama-nobeti.py	BILINMIYOR	nobet	YOK
-kanca-kur	tools/kanca-kur.py	BILINMIYOR	hijyen	YOK
-kanca-nobeti	tools/kanca-nobeti.py	BILINMIYOR	nobet	python3 tools/kanca-nobeti-test.py
-kapali-aile-fiyat-kapisi	tools/kapali-aile-fiyat-kapisi.py	BILINMIYOR	yayin	YOK
-kapi-envanteri	tools/kapi-envanteri.py	BILINMIYOR	arac	python3 tools/kapi-envanteri-test.py
-kargo-pazarlama-kapisi	tools/kargo-pazarlama-kapisi.py	BILINMIYOR	yayin	python3 tools/kargo-pazarlama-kapisi --kendini-test
-kasa-izolasyon-kapisi	tools/kasa-izolasyon-kapisi.py	BILINMIYOR	yayin	YOK
-katalog-alan-kapisi	tools/katalog-alan-kapisi.py	BILINMIYOR	yayin	python3 tools/katalog-alan-kapisi-test.py
-kategori-kapisi	tools/kategori-kapisi.py	BILINMIYOR	yayin	YOK
-kategori_hub_build	tools/kategori_hub_build.py	BILINMIYOR	hijyen	YOK
-kaynak-kasa-sync	tools/kaynak-kasa-sync.py	BILINMIYOR	veri	YOK
-kok-cozum-taramasi	tools/kok-cozum-taramasi.py	BILINMIYOR	hijyen	YOK
-komut-stili-kapisi	tools/komut-stili-kapisi.py	BILINMIYOR	hijyen	YOK
-konfigur-bundle-kapisi	tools/konfigur-bundle-kapisi.py	BILINMIYOR	yayin	python3 tools/konfigur-bundle-kapisi --kendini-test
-konfigur-canli-kapisi	tools/konfigur-canli-kapisi.py	BILINMIYOR	yayin	python3 tools/konfigur-canli-kapisi --kendini-test
-konfigur-olcek-olcum	tools/konfigur-olcek-olcum.py	BILINMIYOR	hijyen	YOK
-konfigur-siyah-kapak-kapisi	tools/konfigur-siyah-kapak-kapisi.py	BILINMIYOR	yayin	YOK
-kutu-arsivle	tools/kutu-arsivle.py	BILINMIYOR	hijyen	python3 tools/kutu-arsivle-test.py
-landing-hukuk-kapisi	tools/landing-hukuk-kapisi.py	BILINMIYOR	yayin	YOK
-landing-wa-kapisi	tools/landing-wa-kapisi.py	BILINMIYOR	yayin	YOK
-lcp-onculuk-kapisi	tools/lcp-onculuk-kapisi.py	BILINMIYOR	yayin	YOK
-marka-cip-kapisi	tools/marka-cip-kapisi.py	BILINMIYOR	yayin	YOK
-marka-invaryant-kapisi	tools/marka-invaryant-kapisi.py	BILINMIYOR	veri	YOK
-marka-kapsama	tools/marka-kapsama.py	BILINMIYOR	veri	YOK
-marka-sayac-kapisi	tools/marka-sayac-kapisi.py	BILINMIYOR	yayin	YOK
-marka_model_build	tools/marka_model_build.py	BILINMIYOR	hijyen	YOK
-merge-kanit	tools/merge-kanit.py	BILINMIYOR	arac	python3 tools/merge-kanit --kendini-test
-mimar-commit-kapisi	tools/mimar-commit-kapisi.py	BILINMIYOR	yayin	python3 tools/mimar-commit-kapisi-test.py
-mimar-icra-kapisi	tools/mimar-icra-kapisi.py	BILINMIYOR	hijyen	YOK
-mimar-kapi-kur	tools/mimar-kapi-kur.py	BILINMIYOR	arac	YOK
-mimar-kod-kilidi	tools/mimar-kod-kilidi.py	BILINMIYOR	hijyen	YOK
-model-uyelik-kapisi	tools/model-uyelik-kapisi.py	BILINMIYOR	yayin	python3 tools/model-uyelik-kapisi --kendini-test
-model_kanon	tools/model_kanon.py	BILINMIYOR	hijyen	YOK
-mukerrer-kontrol	tools/mukerrer-kontrol.py	BILINMIYOR	hijyen	YOK
-mutlak-yol-kapisi	tools/mutlak-yol-kapisi.py	BILINMIYOR	yayin	python3 tools/mutlak-yol-kapisi --kendini-test
-myminifactory-api	tools/myminifactory-api.py	BILINMIYOR	hijyen	YOK
-olculmemis-siparis	tools/olculmemis-siparis.py	BILINMIYOR	hijyen	python3 tools/olculmemis-siparis-test.py
-onarim-commit	tools/onarim-commit.py	BILINMIYOR	hijyen	python3 tools/onarim-commit-test.py
-onizleme-deploy-hazirla	tools/onizleme-deploy-hazirla.py	BILINMIYOR	hijyen	python3 tools/onizleme-deploy-hazirla --kendini-test
-onizleme-kapisi	tools/onizleme-kapisi.py	BILINMIYOR	yayin	YOK
-onizleme-vaat-kapisi	tools/onizleme-vaat-kapisi.py	BILINMIYOR	yayin	python3 tools/onizleme-vaat-kapisi --kendini-test
-onsecim-parite-kapisi	tools/onsecim-parite-kapisi.py	BILINMIYOR	yayin	YOK
-ozet-bayt-atifi	tools/ozet-bayt-atifi.py	BILINMIYOR	hijyen	YOK
-parity-sequential-flock	tools/parity-sequential-flock.py	BILINMIYOR	hijyen	YOK
-parity-server	tools/parity-server.py	BILINMIYOR	veri	YOK
-parti-kontrol	tools/parti-kontrol.py	BILINMIYOR	hijyen	YOK
-r2-onek-gelenek-kapisi	tools/r2-onek-gelenek-kapisi.py	BILINMIYOR	veri	YOK
-r2-purge	tools/r2-purge.py	BILINMIYOR	veri	python3 tools/r2-purge-test.py
-r2-upload	tools/r2-upload.py	BILINMIYOR	veri	python3 tools/r2-upload-test.py
-recete-kapisi	tools/recete-kapisi.py	BILINMIYOR	yayin	YOK
-regresyon-kapisi	tools/regresyon-kapisi.py	BILINMIYOR	yayin	YOK
-reklam-etiket-kapisi	tools/reklam-etiket-kapisi.py	BILINMIYOR	yayin	python3 tools/reklam-etiket-kapisi --kendini-test
-sahiplik-kapisi	tools/sahiplik-kapisi.py	BILINMIYOR	hijyen	python3 tools/sahiplik-kapisi.py --kendini-test
-sema-bundle-kapisi	tools/sema-bundle-kapisi.py	BILINMIYOR	yayin	python3 tools/sema-bundle-kapisi --kendini-test
-sepet-secim-kapisi	tools/sepet-secim-kapisi.py	BILINMIYOR	yayin	YOK
-serit-ariza-enjeksiyon	tools/serit-ariza-enjeksiyon.py	BILINMIYOR	arac	YOK
-shop-bayatlik-kapisi	tools/shop-bayatlik-kapisi.py	BILINMIYOR	yayin	python3 tools/shop-bayatlik-kapisi --kendini-test
-siparisler	tools/siparisler.py	BILINMIYOR	hijyen	python3 tools/siparisler-test.py
-sitemap-damga-uret	tools/sitemap-damga-uret.py	BILINMIYOR	hijyen	YOK
-spec-ifsa-kapisi	tools/spec-ifsa-kapisi.py	BILINMIYOR	hijyen	python3 tools/spec-ifsa-kapisi --kendini-test
-stl-uc-kopya-nobet	tools/stl-uc-kopya-nobet.py	BILINMIYOR	nobet	python3 tools/stl-uc-kopya-nobet-test.py
-stok-d1-kapisi	tools/stok-d1-kapisi.py	BILINMIYOR	yayin	YOK
+cron:cop-denetimi-kabul	cron:cop-denetimi-kabul.py	KraL	hijyen	YOK
+cron:gozcu	cron:gozcu.py	KraL	hijyen	YOK
+cron:hasat-denetim-uretici-kabul	cron:hasat-denetim-uretici-kabul.py	MaCiT	hijyen	YOK
+cron:isci-karantina-karar	cron:isci-karantina-karar.py	KraL	hijyen	YOK
+cron:isci-log-dondur	cron:isci-log-dondur.py	KraL	hijyen	YOK
+cron:isci-temizlik	cron:isci-temizlik.py	KraL	hijyen	YOK
+cron:isci	cron:isci.sh	KraL	nobet	YOK
+cron:k96-kabul	cron:k96-kabul.py	KraL	hijyen	YOK
+cron:kilit-tatbikat	cron:kilit-tatbikat.py	KraL	nobet	YOK
+cron:kimi-nabiz-kur	cron:kimi-nabiz-kur.py	KraL	hijyen	YOK
+cron:kimi-nabiz	cron:kimi-nabiz.py	KraL	hijyen	YOK
+cron:kota-olcum	cron:kota-olcum.py	KraL	nobet	YOK
+cron:mail-supurme-kanit	cron:mail-supurme-kanit.py	KraL	hijyen	YOK
+cron:mail-supurme-kos	cron:mail-supurme-kos.sh	KraL	nobet	YOK
+cron:mail-yuklem-kabul-testi	cron:mail-yuklem-kabul-testi.py	KraL	hijyen	YOK
+cron:nobet-k96-kabul	cron:nobet-k96-kabul.py	KraL	nobet	YOK
+cron:nobet-kapi	cron:nobet-kapi.py	KraL	nobet	YOK
+cron:testler	cron:testler.py	KraL	hijyen	YOK
+altkategori-kapisi	tools/altkategori-kapisi.py	KraL	yayin	YOK
+altkategori-sinifla	tools/altkategori-sinifla.py	MaCiT	hijyen	python3 tools/altkategori-sinifla-test.py
+altkategori-veri	tools/altkategori-veri.py	MaCiT	hijyen	YOK
+ara-maliyet-kapisi	tools/ara-maliyet-kapisi.py	MaCiT	veri	python3 tools/ara-maliyet-kapisi --kendini-test
+ata-lisans-kapisi	tools/ata-lisans-kapisi.py	KraL	yayin	python3 tools/ata-lisans-kapisi --kendini-test
+ayip-beyani-kapisi	tools/ayip-beyani-kapisi.py	KraL	yayin	YOK
+banner-varyant-uret	tools/banner-varyant-uret.py	ArTisT	hijyen	YOK
+bayat-beyan-kapisi	tools/bayat-beyan-kapisi.py	KraL	yayin	python3 tools/bayat-beyan-kapisi --kendini-test
+build	tools/build.py	KraL	arac	YOK
+canli-saglik-kapisi	tools/canli-saglik-kapisi.py	KraL	yayin	python3 tools/canli-saglik-kapisi --kendini-test
+cayma-beyani-kapisi	tools/cayma-beyani-kapisi.py	KraL	yayin	YOK
+cf-durum	tools/cf-durum.py	KraL	hijyen	YOK
+chip-duzeni-kapisi	tools/chip-duzeni-kapisi.py	KraL	nobet	python3 tools/chip-duzeni-kapisi.py --kendini-test
+cip-indeks	tools/cip-indeks.py	KraL	hijyen	python3 tools/cip-indeks-test.py
+cip-sayfa-bagi	tools/cip-sayfa-bagi.py	KraL	hijyen	YOK
+commit-mesaji-hook-kur	tools/commit-mesaji-hook-kur.py	KraL	hijyen	YOK
+commit-mesaji-kapisi	tools/commit-mesaji-kapisi.py	KraL	yayin	python3 tools/commit-mesaji-kapisi --kendini-test
+cron-nabiz-kapisi	tools/cron-nabiz-kapisi.py	KraL	yayin	python3 tools/cron-nabiz-kapisi --kendini-test
+cta-denge-kapisi	tools/cta-denge-kapisi.py	ArTisT	yayin	YOK
+cults3d-api	tools/cults3d-api.py	MaCiT	hijyen	YOK
+d1-fiyat-parite-kapisi	tools/d1-fiyat-parite-kapisi.py	KraL	yayin	YOK
+d1-kaynak-sync	tools/d1-kaynak-sync.py	MaCiT	veri	YOK
+d1-sapma-kapisi	tools/d1-sapma-kapisi.py	KraL	yayin	python3 tools/d1-sapma-kapisi --kendini-test
+d1-sync	tools/d1-sync.py	MaCiT	veri	python3 tools/d1-sync --kendini-test
+defter-kota-kapisi	tools/defter-kota-kapisi.py	KraL	yayin	YOK
+defter-rotasyon	tools/defter-rotasyon.py	KraL	nobet	python3 tools/defter-rotasyon-test.py
+denetim-kapisi	tools/denetim-kapisi.py	MaCiT	yayin	python3 tools/denetim-kapisi-test.py
+deploy-aclik-kapisi	tools/deploy-aclik-kapisi.py	KraL	yayin	python3 tools/deploy-aclik-kapisi --kendini-test
+devam-sinif-kapisi	tools/devam-sinif-kapisi.py	KraL	yayin	python3 tools/devam-sinif-kapisi --kendini-test
+diriltme-kapisi	tools/diriltme-kapisi.py	KraL	yayin	python3 tools/diriltme-kapisi --kendini-test
+durgun-kalem-kapisi	tools/durgun-kalem-kapisi.py	KraL	nobet	python3 tools/durgun-kalem-kapisi.py --kendini-test
+durum	tools/durum.py	KraL	hijyen	python3 tools/durum-test.py
+duzelt	tools/duzelt.py	MaCiT	hijyen	YOK
+e2-birim-ikiz-kanit	tools/e2-birim-ikiz-kanit.py	KraL	hijyen	YOK
+edge-kart-kapisi	tools/edge-kart-kapisi.py	KraL	yayin	YOK
+ege-kabiliyet-kapisi	tools/ege-kabiliyet-kapisi.py	HocA	yayin	YOK
+ege-tavan-pay-simulasyon	tools/ege-tavan-pay-simulasyon.py	HocA	hijyen	YOK
+feed-id-cozucu	tools/feed-id-cozucu.py	ArTisT	hijyen	python3 tools/feed-id-cozucu-test.py
+feed-politika-kapisi	tools/feed-politika-kapisi.py	ArTisT	yayin	YOK
+fikstur-git-sizinti-kapisi	tools/fikstur-git-sizinti-kapisi.py	KraL	yayin	YOK
+fiziksel-canli-kapisi	tools/fiziksel-canli-kapisi.py	TeKiN	yayin	python3 tools/fiziksel-canli-kapisi --kendini-test
+fiziksel-urun-kapisi	tools/fiziksel-urun-kapisi.py	TeKiN	yayin	YOK
+ga4-olay-kapisi	tools/ga4-olay-kapisi.py	ArTisT	yayin	python3 tools/ga4-olay-kapisi --kendini-test
+gecmis-geri-donus-hook-kur	tools/gecmis-geri-donus-hook-kur.py	KraL	hijyen	YOK
+gecmis-geri-donus-kapisi	tools/gecmis-geri-donus-kapisi.py	KraL	yayin	python3 tools/gecmis-geri-donus-kapisi --kendini-test
+gecmis-nobeti-hook-kur	tools/gecmis-nobeti-hook-kur.py	KraL	nobet	YOK
+git_ortami	tools/git_ortami.py	KraL	hijyen	python3 tools/git_ortami --kendini-test
+gitignore-kapisi	tools/gitignore-kapisi.py	KraL	yayin	YOK
+gorsel_boyut_kapisi	tools/gorsel_boyut_kapisi.py	MaCiT	yayin	YOK
+gorsel_koken	tools/gorsel_koken.py	MaCiT	hijyen	YOK
+gorsel_mukerrer_kapisi	tools/gorsel_mukerrer_kapisi.py	MaCiT	yayin	YOK
+gorselsiz-render-kapisi	tools/gorselsiz-render-kapisi.py	MaCiT	yayin	YOK
+gramer-artigi-kapisi	tools/gramer-artigi-kapisi.py	KraL	yayin	python3 tools/gramer-artigi-kapisi --kendini-test
+ic-rapor-adi-kapisi	tools/ic-rapor-adi-kapisi.py	KraL	yayin	python3 tools/ic-rapor-adi-kapisi --kendini-test
+ic-rapor-index-kolu	tools/ic-rapor-index-kolu.py	KraL	hijyen	YOK
+ic-seri-izi-kapisi	tools/ic-seri-izi-kapisi.py	KraL	yayin	YOK
+ifsa-metin-onar	tools/ifsa-metin-onar.py	KraL	hijyen	python3 tools/ifsa-metin-onar --kendini-test
+iki-govde-kapisi	tools/iki-govde-kapisi.py	KraL	yayin	python3 tools/iki-govde-kapisi --kendini-test
+ilan-tutari-kapisi	tools/ilan-tutari-kapisi.py	ArTisT	yayin	YOK
+is-akisi-kapisi	tools/is-akisi-kapisi.py	KraL	hijyen	python3 tools/is-akisi-kapisi --kendini-test
+isci-kapisi-dagitim-kaniti	tools/isci-kapisi-dagitim-kaniti.py	KraL	arac	YOK
+jenerator-tasi	tools/jenerator-tasi.py	TeKiN	arac	YOK
+k86-kabul	tools/k86-kabul.py	KraL	hijyen	YOK
+kaynak-link-tamamla	tools/kaynak-link-tamamla.py	MaCiT	veri	YOK
+kanca-kablolama-nobeti	tools/kanca-kablolama-nobeti.py	KraL	nobet	YOK
+kanca-kur	tools/kanca-kur.py	KraL	hijyen	YOK
+kanca-nobeti	tools/kanca-nobeti.py	KraL	nobet	python3 tools/kanca-nobeti-test.py
+kapali-aile-fiyat-kapisi	tools/kapali-aile-fiyat-kapisi.py	TeKiN	yayin	YOK
+kapi-envanteri	tools/kapi-envanteri.py	KraL	arac	python3 tools/kapi-envanteri-test.py
+kargo-pazarlama-kapisi	tools/kargo-pazarlama-kapisi.py	ArTisT	yayin	python3 tools/kargo-pazarlama-kapisi --kendini-test
+kasa-izolasyon-kapisi	tools/kasa-izolasyon-kapisi.py	MaCiT	yayin	YOK
+katalog-alan-kapisi	tools/katalog-alan-kapisi.py	MaCiT	yayin	python3 tools/katalog-alan-kapisi-test.py
+kategori-kapisi	tools/kategori-kapisi.py	KraL	yayin	YOK
+kategori_hub_build	tools/kategori_hub_build.py	KraL	hijyen	YOK
+kaynak-kasa-sync	tools/kaynak-kasa-sync.py	MaCiT	veri	YOK
+kok-cozum-taramasi	tools/kok-cozum-taramasi.py	KraL	hijyen	YOK
+komut-stili-kapisi	tools/komut-stili-kapisi.py	KraL	hijyen	YOK
+konfigur-bundle-kapisi	tools/konfigur-bundle-kapisi.py	TeKiN	yayin	python3 tools/konfigur-bundle-kapisi --kendini-test
+konfigur-canli-kapisi	tools/konfigur-canli-kapisi.py	TeKiN	yayin	python3 tools/konfigur-canli-kapisi --kendini-test
+konfigur-olcek-olcum	tools/konfigur-olcek-olcum.py	TeKiN	hijyen	YOK
+konfigur-siyah-kapak-kapisi	tools/konfigur-siyah-kapak-kapisi.py	TeKiN	yayin	YOK
+kutu-arsivle	tools/kutu-arsivle.py	KraL	hijyen	python3 tools/kutu-arsivle-test.py
+kutu-esik-kapisi	tools/kutu-esik-kapisi.py	KraL	nobet	python3 tools/kutu-esik-kapisi.py --kendini-test
+landing-hukuk-kapisi	tools/landing-hukuk-kapisi.py	KraL	yayin	YOK
+landing-wa-kapisi	tools/landing-wa-kapisi.py	HocA	yayin	YOK
+lcp-onculuk-kapisi	tools/lcp-onculuk-kapisi.py	KraL	yayin	YOK
+marka-cip-kapisi	tools/marka-cip-kapisi.py	KraL	yayin	YOK
+marka-invaryant-kapisi	tools/marka-invaryant-kapisi.py	MaCiT	veri	YOK
+marka-kapsama	tools/marka-kapsama.py	MaCiT	veri	YOK
+marka-sayac-kapisi	tools/marka-sayac-kapisi.py	MaCiT	yayin	YOK
+marka_model_build	tools/marka_model_build.py	KraL	hijyen	YOK
+merge-kanit	tools/merge-kanit.py	KraL	arac	python3 tools/merge-kanit --kendini-test
+mimar-commit-kapisi	tools/mimar-commit-kapisi.py	KraL	yayin	python3 tools/mimar-commit-kapisi-test.py
+mimar-icra-kapisi	tools/mimar-icra-kapisi.py	KraL	hijyen	YOK
+mimar-kapi-kur	tools/mimar-kapi-kur.py	KraL	arac	YOK
+mimar-kod-kilidi	tools/mimar-kod-kilidi.py	KraL	hijyen	YOK
+model-uyelik-kapisi	tools/model-uyelik-kapisi.py	MaCiT	yayin	python3 tools/model-uyelik-kapisi --kendini-test
+model_kanon	tools/model_kanon.py	MaCiT	hijyen	YOK
+mukerrer-kontrol	tools/mukerrer-kontrol.py	MaCiT	hijyen	YOK
+mutlak-yol-kapisi	tools/mutlak-yol-kapisi.py	KraL	yayin	python3 tools/mutlak-yol-kapisi --kendini-test
+myminifactory-api	tools/myminifactory-api.py	MaCiT	hijyen	YOK
+olculmemis-siparis	tools/olculmemis-siparis.py	KraL	hijyen	python3 tools/olculmemis-siparis-test.py
+onarim-commit	tools/onarim-commit.py	KraL	hijyen	python3 tools/onarim-commit-test.py
+onizleme-deploy-hazirla	tools/onizleme-deploy-hazirla.py	KraL	hijyen	python3 tools/onizleme-deploy-hazirla --kendini-test
+onizleme-kapisi	tools/onizleme-kapisi.py	KraL	yayin	YOK
+onizleme-vaat-kapisi	tools/onizleme-vaat-kapisi.py	KraL	yayin	python3 tools/onizleme-vaat-kapisi --kendini-test
+onsecim-parite-kapisi	tools/onsecim-parite-kapisi.py	TeKiN	yayin	YOK
+ozet-bayt-atifi	tools/ozet-bayt-atifi.py	KraL	hijyen	YOK
+parity-sequential-flock	tools/parity-sequential-flock.py	KraL	hijyen	YOK
+parity-server	tools/parity-server.py	KraL	veri	YOK
+parti-borc-kapisi	tools/parti-borc-kapisi.py	KraL	nobet	python3 tools/parti-borc-kapisi.py --kendini-test
+parti-kontrol	tools/parti-kontrol.py	MaCiT	hijyen	YOK
+r2-onek-gelenek-kapisi	tools/r2-onek-gelenek-kapisi.py	MaCiT	veri	YOK
+r2-purge	tools/r2-purge.py	MaCiT	veri	python3 tools/r2-purge-test.py
+r2-upload	tools/r2-upload.py	MaCiT	veri	python3 tools/r2-upload-test.py
+recete-kapisi	tools/recete-kapisi.py	KraL	yayin	YOK
+regresyon-kapisi	tools/regresyon-kapisi.py	KraL	yayin	YOK
+reklam-etiket-kapisi	tools/reklam-etiket-kapisi.py	ArTisT	yayin	python3 tools/reklam-etiket-kapisi --kendini-test
+sahiplik-kapisi	tools/sahiplik-kapisi.py	KraL	hijyen	python3 tools/sahiplik-kapisi.py --kendini-test
+sema-bundle-kapisi	tools/sema-bundle-kapisi.py	KraL	yayin	python3 tools/sema-bundle-kapisi --kendini-test
+sepet-secim-kapisi	tools/sepet-secim-kapisi.py	KraL	yayin	YOK
+serit-ariza-enjeksiyon	tools/serit-ariza-enjeksiyon.py	KraL	arac	YOK
+shop-bayatlik-kapisi	tools/shop-bayatlik-kapisi.py	KraL	yayin	python3 tools/shop-bayatlik-kapisi --kendini-test
+siparisler	tools/siparisler.py	KraL	hijyen	python3 tools/siparisler-test.py
+sitemap-damga-uret	tools/sitemap-damga-uret.py	KraL	hijyen	YOK
+spec-ifsa-kapisi	tools/spec-ifsa-kapisi.py	KraL	hijyen	python3 tools/spec-ifsa-kapisi --kendini-test
+stl-uc-kopya-nobet	tools/stl-uc-kopya-nobet.py	MaCiT	nobet	python3 tools/stl-uc-kopya-nobet-test.py
+stok-d1-kapisi	tools/stok-d1-kapisi.py	MaCiT	yayin	YOK
+t3-yonlendirme-kapisi	tools/t3-yonlendirme-kapisi.py	KraL	nobet	python3 tools/t3-yonlendirme-kapisi.py --kendini-test
 talep-temizlik	tools/talep-temizlik.py	KraL	veri	python3 tools/talep-temizlik.py --kendini-test
-test-bbox-3mf	tools/test-bbox-3mf.py	BILINMIYOR	hijyen	YOK
-test-jsonld-brand	tools/test-jsonld-brand.py	BILINMIYOR	hijyen	YOK
-test-jsonld-offers	tools/test-jsonld-offers.py	BILINMIYOR	hijyen	YOK
-test-jsonld-sku	tools/test-jsonld-sku.py	BILINMIYOR	hijyen	YOK
-test-merchant-feed	tools/test-merchant-feed.py	BILINMIYOR	hijyen	YOK
-test-skan-art	tools/test-skan-art.py	BILINMIYOR	arac	YOK
-test-wa-prefill-organik	tools/test-wa-prefill-organik.py	BILINMIYOR	hijyen	YOK
-thing-hazirla	tools/thing-hazirla.py	BILINMIYOR	veri	YOK
-ticari-hal-kapisi	tools/ticari-hal-kapisi.py	BILINMIYOR	yayin	YOK
-uretim-butunluk-kapisi	tools/uretim-butunluk-kapisi.py	BILINMIYOR	yayin	python3 tools/uretim-butunluk-kapisi --kendini-test
-urun-ekle	tools/urun-ekle.py	BILINMIYOR	veri	YOK
-urun-ekleme-rehberi-tazeligi	tools/urun-ekleme-rehberi-tazeligi.py	BILINMIYOR	hijyen	YOK
-urunler-guard-hook	tools/urunler-guard-hook.py	BILINMIYOR	hijyen	YOK
-urunler-guard	tools/urunler-guard.py	BILINMIYOR	hijyen	YOK
-uyelik-cek	tools/uyelik-cek.py	BILINMIYOR	veri	YOK
-uyum-kapisi	tools/uyum-kapisi.py	BILINMIYOR	yayin	YOK
-uzlastirici-onarim	tools/uzlastirici-onarim.py	BILINMIYOR	veri	python3 tools/uzlastirici-onarim --kendini-test
-uzlastirici_karantina	tools/uzlastirici_karantina.py	BILINMIYOR	hijyen	YOK
-worktree-tavan-nobeti	tools/worktree-tavan-nobeti.py	BILINMIYOR	nobet	python3 tools/worktree-tavan-nobeti --kendini-test
-yasal-sayfa-drift-kapisi	tools/yasal-sayfa-drift-kapisi.py	BILINMIYOR	yayin	python3 tools/yasal-sayfa-drift-kapisi --kendini-test
-yayin-erisim-nobeti	tools/yayin-erisim-nobeti.py	BILINMIYOR	nobet	python3 tools/yayin-erisim-nobeti --kendini-test
-yayin-gecikme-nobeti	tools/yayin-gecikme-nobeti.py	BILINMIYOR	nobet	python3 tools/yayin-gecikme-nobeti --kendini-test
-yayin-ic-dil-kapisi	tools/yayin-ic-dil-kapisi.py	BILINMIYOR	yayin	python3 tools/yayin-ic-dil-kapisi --kendini-test
-yayin-kapisi	tools/yayin-kapisi.py	BILINMIYOR	yayin	python3 tools/yayin-kapisi --kendini-test
-yayin-yasi-nobetcisi	tools/yayin-yasi-nobetcisi.py	BILINMIYOR	nobet	YOK
-yazdir	tools/yazdir.py	BILINMIYOR	hijyen	python3 tools/yazdir-test.py
-yedek-gorev-canli-kapi-olcum	tools/yedek-gorev-canli-kapi-olcum.py	BILINMIYOR	hijyen	YOK
-yedek-hook-kur	tools/yedek-hook-kur.py	BILINMIYOR	hijyen	YOK
-yedekle	tools/yedekle.py	BILINMIYOR	hijyen	python3 tools/yedekle-test.py
-yetim-kayit-kapisi	tools/yetim-kayit-kapisi.py	BILINMIYOR	yayin	YOK
-yorum_soy	tools/yorum_soy.py	BILINMIYOR	hijyen	YOK
+test-bbox-3mf	tools/test-bbox-3mf.py	MaCiT	hijyen	YOK
+test-jsonld-brand	tools/test-jsonld-brand.py	KraL	hijyen	YOK
+test-jsonld-offers	tools/test-jsonld-offers.py	KraL	hijyen	YOK
+test-jsonld-sku	tools/test-jsonld-sku.py	KraL	hijyen	YOK
+test-merchant-feed	tools/test-merchant-feed.py	ArTisT	hijyen	YOK
+test-skan-art	tools/test-skan-art.py	TeKiN	arac	YOK
+test-wa-prefill-organik	tools/test-wa-prefill-organik.py	HocA	hijyen	YOK
+thing-hazirla	tools/thing-hazirla.py	MaCiT	veri	YOK
+ticari-hal-kapisi	tools/ticari-hal-kapisi.py	KraL	yayin	YOK
+uretim-butunluk-kapisi	tools/uretim-butunluk-kapisi.py	TeKiN	yayin	python3 tools/uretim-butunluk-kapisi --kendini-test
+urun-ekle	tools/urun-ekle.py	MaCiT	veri	YOK
+urun-ekleme-rehberi-tazeligi	tools/urun-ekleme-rehberi-tazeligi.py	MaCiT	hijyen	YOK
+urunler-guard-hook	tools/urunler-guard-hook.py	MaCiT	hijyen	YOK
+urunler-guard	tools/urunler-guard.py	MaCiT	hijyen	YOK
+uyelik-cek	tools/uyelik-cek.py	MaCiT	veri	YOK
+uyum-kapisi	tools/uyum-kapisi.py	KraL	yayin	YOK
+uzlastirici-onarim	tools/uzlastirici-onarim.py	MaCiT	veri	python3 tools/uzlastirici-onarim --kendini-test
+uzlastirici_karantina	tools/uzlastirici_karantina.py	MaCiT	hijyen	YOK
+worktree-tavan-nobeti	tools/worktree-tavan-nobeti.py	KraL	nobet	python3 tools/worktree-tavan-nobeti --kendini-test
+yasal-sayfa-drift-kapisi	tools/yasal-sayfa-drift-kapisi.py	KraL	yayin	python3 tools/yasal-sayfa-drift-kapisi --kendini-test
+yayin-erisim-nobeti	tools/yayin-erisim-nobeti.py	KraL	nobet	python3 tools/yayin-erisim-nobeti --kendini-test
+yayin-gecikme-nobeti	tools/yayin-gecikme-nobeti.py	KraL	nobet	python3 tools/yayin-gecikme-nobeti --kendini-test
+yayin-ic-dil-kapisi	tools/yayin-ic-dil-kapisi.py	KraL	yayin	python3 tools/yayin-ic-dil-kapisi --kendini-test
+yayin-kapisi	tools/yayin-kapisi.py	KraL	yayin	python3 tools/yayin-kapisi --kendini-test
+yayin-yasi-nobetcisi	tools/yayin-yasi-nobetcisi.py	KraL	nobet	YOK
+yazdir	tools/yazdir.py	KraL	hijyen	python3 tools/yazdir-test.py
+yedek-gorev-canli-kapi-olcum	tools/yedek-gorev-canli-kapi-olcum.py	KraL	hijyen	YOK
+yedek-hook-kur	tools/yedek-hook-kur.py	KraL	hijyen	YOK
+yedekle	tools/yedekle.py	KraL	hijyen	python3 tools/yedekle-test.py
+yetim-kayit-kapisi	tools/yetim-kayit-kapisi.py	MaCiT	yayin	YOK
+yorum_soy	tools/yorum_soy.py	KraL	hijyen	YOK

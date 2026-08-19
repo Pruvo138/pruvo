@@ -1,59 +1,85 @@
 # DEVAM (KraL) — 8 Agu 2026
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
-
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🟠 **K184 (18 Agu, BaBa emri — EGE REFORMU FAZ-1, CHIP acildi):** sitede LLM'siz "Eksik Parca Talebi" sihirbazi; adim listeleri tek kaynaktan, terminal Worker+D1 `talepler` (additive; SEMA HUKMU MIMARDA), gorsel icin public yukleme ucu ACILMAZ (WhatsApp'a yonlendirir), spam icin honeypot + Worker hiz siniri. Faz-2 (WhatsApp) HocA'da; Ege dar-LLM eslestirme AYRI kalem. kabul: `tools/talep-sihirbazi-test.py` + `CI_KAPSAM_RC=0` (SERIT B) + her mutant hedef kolu oldurdugunu kanitlar. Chip pilotunun kabulu: chip turlari ile ana oturum turlari AYRI sayilir, genelleme kuralini KraL yazar.
+- 🔴🔴 **ONARIM HATTI = BIRINCI ONCELIK (Okan, 19 Agu ~11:3xZ).** `ustuste_onarimsiz=59` ·
+  ci-nobeti cron DISI, `gozcu.py --tur` saatlik :23 CANLI (kalp 08:23Z; kat_mimar=10 · isci=1) ·
+  T1 penceresi **20 Agu 08:48Z BITIYOR**, `t1-kiyas.py` DALDA · SERIT B **18 Agu 11:23Z'den beri
+  KIRMIZI** (32201776934: 7 job/16 adim; addc0051'e ozgu degil). Chip'ler: Onarim-merge
+  (ea423a0c→main, merge-kapisi) + SeritB-teshis (salt teshis).
+  Onarim dalinin 3 ACIK mimar konusu: T6 durum-dosyasi ekseni (hukum: T5 dosyasi GENISLETILIR,
+  fail-closed) · T5/T6 kendini-test flakiness · merge-kanit KANITSIZ=27 dolum turu.
+- 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;**
+  tavanlar KALKTI; kimi/m3 YEDEK; cron hatti kimi'de. AGENTS.md + kutu duyurusu yazildi.
+- 🔴 **K186 `74d6cfcd` MERGE EDILMEZ — "bayat taban" hipotezi CURUTULDU, iki kirmizi da K186'nin
+  KENDI kusuru** ((b) chip'i olctu; kapi betikleri iki ucta BIREBIR → sebep VERI): ① haritada
+  `tools/talep-temizlik.py` satiri YOK (`EKSIK=1`) ② `nobet.yml` 366/368/372 adimlarinda
+  `if: !cancelled()` YOK (`MASKELEYEN=3`, komsularin hepsinde var). Merge cakismasi tek dosya
+  `nobet.yml` (capa; kabul: her `- name:` birlesimde TAM 1 kez, adim=main+3). Yan bulgu: bayat
+  taban K186'nin LEHINEYDI — tazeleme kirmizi EKLER. **ONARIM RECETESI (3 madde) kutuda; sonra
+  (b) KOSUMLA kapanir.** K184 → K190 sirada. **→ 19 Agu: ONARIM KAPANDI `aa40200f` (kabul-4 ✅✅✅; onizleme
+  `4b27f054` YESIL: EKSIK=0 · MASKELEYEN=0 · adim 270=main+3). MERGE ICRASI Onarim-merge
+  chip'ine devredildi — sira: stoic-albattani → K186.**
+- 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
+  isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
+  gerekce KUTUDA**; "chip kosturur" PLAN DEGIL. (ii) periyodik kablolama (MIMARDA, K198
+  arkasinda), (iii) kablolamanin KOSTUGU kanit (zaman damgali iz + tetiklenmezse KIRMIZI).
+  Sira: sema, tesisat, trafik.
+- 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py`'nin "etkili tasiyici" tanimi LITERALE capali;
+  varlik turetilmis mekanizmaya gecince kapi korlesiyor (K193'te olctuk). Kalici care: sonucu olc
+  ya da makine-okunur beyani tasiyici say. Mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT
+  KENDINI OLCMEZ** — bes vaka: K192 damga · K197 yorumdaki maliyet · K189'un kablo defteri (4 vs 5)
+  · capa tablosu (18'de kaldi) · `--kendini-test 17` (dogrusu 12). Kural: her kayit ya TURETILIR
+  ya kendi sayisiyla KABUL EDILIR; "EKLE" yetmez, SONUC SAYISI sart.
+- 🔧 **K196 (19 Agu, DEPO GENELI):** CI node 20 / yerel 25.8.1 → yereldeki JS yesilleri CI surumunde OLCULMEMIS. **Tam metin ARSIVDE.** K186 merge sartina bagli.
+- 🔧 **K197 (19 Agu, K189 chip olctu — YAYIN YOLU MALIYETI, RATCHET YOK):** pre-push kancasinin
+  maliyet beyani 3,16 sn (9 Agu) diyor, **bugun olculen medyan 6,11 sn** → 5 sn esigi zaten asilmis;
+  sayiyi YORUM soyluyor, dogrulayan yok. **Tam metin ARSIVDE.**
+- 🔧 **K189 (SAHIPLENILDI 19 Agu — KraL; CHIP ACILDI):** `tools/ci-kapsam-test.py` hukum ekseni
+  kusurlu. **Tam metin ARSIVDE.** kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc, ayri jeton, mutant
+  hedef kolu kanitli (K182).
+- 🔧 **K191 (19 Agu, KraL olctu → sahibi MaCiT; SINIF):** tarama SPEC'i isi ONCULDEN aliyor.
+  **Tam metin ARSIVDE + KUTUDA.** kabul: ILK blok KAPSAM ON-OLCUMU degilse RED + tazelik capasi.
+- 🟠 **K184 CHIP `KraL-Faz-1 sihirbaz`** — dal `42c47288` KAPANDI, **merge SIRADA (K186'dan SONRA)**.
+  🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
+  K186'nin semasi/ucu KANONIK ve uctan uca olcum K186'nin ucune karsi YENIDEN kosulur. Tam metin KUTUDA.
+- 🔧 **K192 (19 Agu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU kapisinda YOK + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.** (BaBa serhi: 20 Agu codex bitisi.)
+- 🟠 **K205 (19 Agu, YENI — K202 icrasi IKI SURUM, uzlastirma MIMARDA):** main'e giren `addc0051`
+  (BASKA oturum itti; K19 bosaldi, deploy YESIL) ile chip'in 5/5-yesil surumu `4ed39e42`
+  (dal `claude/priceless-lamport-4c2db5`, origin'e YEDEKLENDI) AYNI DEGIL: 3 dosya 75+/61−.
+  Chip'te FAZLADAN: `rozet_capraz_sinif_imzasi()` kapisi (ROZET→BEKLER sessiz kaydirma korlugunu
+  kapatir — kontrol mutanti buldu) + M-K202 mutanti. kabul: diff okunur, sinif-imza kapisi main'e
+  tasinir, M-K202 main'de KIRMIZI/yesil dongusuyle kanitlanir. · 🔧 **K202-kendini-test** (chip
+  olctu, TABANDAN geliyor): dalda 4 dusuyor (M06 cokme + M17/M20/M31 bayat capa), taban 20 —
+  dal yeni kirmizi URETMEDI. kabul: capalar govdeden turetilir count==1, `beklentiyi tutmayan: 0`.
+  **→ 19 Agu: diff MIMARCA OKUNDU, hukum verildi (deny/allow tablolari MAIN KANONIK — allow imzasi
+  iki ucta ozdes `f3ccf9b717a42de5`; yalniz SINIF-IMZA kapisi + M-K202 tasinir; sabit main'de
+  YENIDEN turetilir, mutant capasi main govdesinden count==1). TASIMA CHIP'I PANELE KONDU.**
+- 🟠 **K206 (19 Agu, TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye.
+  Kararlar: saklama AYRI AILE · gyro site semasinda `doku=duz` (.scad degismez) · 8 fiyat ONAY
+  (280/190/170/350=TAVAN/160/240/140/220). ⚠️ kupler render guncelligi RAPORDA CELISKILI — chip
+  OLCECEK. kabul: ONIZLEME_AILELER 22→30 · taban-fiyat-tablosu 21→29 · urunler.json +8 sari
+  kayit (parametrik:true, fiyat:"") · 8 gorsel R2'de 200 · kategori-parite yesil.
 
-
-
-## 🔻 KraL OTURUM KAPANISI — 18 Agu ~18:0xZ
-**CANLIYA GITTI:** K170 `69e6b83a` · K174+K166 `e70c89d7` · K152 `83aaf4e2` · K171 `043568e7` ·
-K172 `cc9f1d0f` · K178+K180 `664edc62`. Yayin ACIK (`Build & deploy` 6/6 success).
-**KOSUYOR (oldurulmedi):** yok — kendi turlarim bitti.
-**K181d MAIN'DE (`a2f6db8f`, 18 Agu 18:3xZ):** merge+push tamam (kapsam 2 dosya/261+, cakisma
-yok, ff imkansiz→merge commit). Kabul BAGIMSIZ yeniden olculdu: `9/9` · `23/23` · yeni vaka
-`14/14` · mutant `7/7` · agac temiz. D1 bes eksen yesil (29350). Worktree 2→1, artik dal 4
-silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merge-base
---is-ancestor a2f6db8f 0b0dc49f` rc=0 → K181d bu kosumun icinde). · YABANCI: `marka-uyelik-test.py` K136.
-**K175/T2/K170-K174-K166 kapanis isaretcileri ARSIVE tasindi** (lossless, 10 satir).
-- 🔴 **T1 PENCERE MUHASEBESI (baglayici):** nominal pencere `08:48:05Z`→`20 Agu 08:48:05Z`,
-  ama **fiilen olculen baslangic 11:23:00Z**. Kiyas tablosunda `OLCULEMEDI_TUR=2` AYRI satir
-  olarak yazilacak; o iki saat "kirmizi bulunmadi" SAYILMAZ.
-- 🔴 **T3/T4 KANITI (11:23Z onarim bacagi):** `ACIK_KALEM=12 KAPANAN=0 DAGITILAN=0 ONARIM=0
-  KAT_MIMAR=10 USTUSTE_ONARIMSIZ=18 KABUL_BOS=7` — nobet kosuyor, onarmiyor; 10'u MIMAR'da.
-- ✅ **③ KAPANDI (18 Agu) — CANLI KABUL YESIL.** Merge `4270c95e`; kosum `32158268667`:
-  `Sahiplik haritasi kapisi = SUCCESS` (adim `skipped` DEGIL). Harita 43→188. Tam metin ARSIVDE.
-- ✅ **K178 + K178b KAPANDI (18 Agu) — SINIF: "kablo da KOSUYOR demek degil".** SERIT B'nin
-  126 adiminin **114'u SKIPPED**'ti; ③ ve K168'in yeni kapilari da o kor bolgedeydi. Ilk care
-  TERS ETKI verdi (benim spec hatam), ikinci turda onarildi. CANLI: `skipped 114→2`, job
-  `failure` KORUNDU, **13 KOR kirmizi gorunur oldu**. ARSIVDE. → [[kablo-da-kosuyor-demek-degil]]
-- 🔧 **K179 (18 Agu — recete kapisi CI'da kostu, kirmizisi KISMEN parser artefakti):**
-  `RECETE=9 REDDEDILEN=8 EVREN=390`; ayiklayici koddan artik yutuyor. Hukum
-  `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
-- 🔴 **K183 (18 Agu, OLCULDU — SERIT B KABUL YOLU KAPALI, gecikme DEGIL):** son 12 kosumun
-  **7'si `cancelled`**. `cancel-in-progress: false` UCUSTAKI kosumu korur; kuyrukta grup
-  basina TEK bekleyen tutuldugu icin **her yeni push bekleyeni ezer** → push akisi
-  durmadikca SERIT B TAMAMLANAMAZ (bugun ③/K168/K179 icin dort kez beklendi).
-  ❌ `workflow_dispatch` ara cozumu CURUDU: elle tetiklenen `32174776514` de AYNI gruba
-  girip iptal oldu — trigger'in VARLIGI davranis degildi (once "cozum" yazdim, olcunce dustu).
-  ⚠️ **DUZELTME (25 kosum olculdu): "HICBIR kabul olculemez" FAZLA GENIS** — 16 iptal · **6 TAMAMLANDI** · 2 ucusta (suren korunuyor, ~70-100 dk). Zarar tikanma degil **SHA SECEMEMEK**. Yon: push kolu AYNEN kalir, `workflow_dispatch` KENDI grubunu alir (dal `kral/k183-dispatch-grubu` ucusta); her push'a ayri grup ~25x85 dk/gun ederdi, REDDEDILDI.
-  kabul: dispatch kosumu push trafigi altinda TAMAMLANIR + `is-akisi-kapisi.py` uc iddiayi AYRI olcer + mutant 3/3.
+## KraL SON DURUM (19 Agu ~12:0xZ; eski kapanis blogu ARSIVDE)
+✅ **K190+K187 KAPANDI — MIMARCA TEYIT** (`kral/k190-canli-temizlik` `91479a60`): `22/22`,
+K187 `KV=4/4`. Merge K186 arkasinda; kalan tek kalem K200(i). · 🔧 **K203:** tavan kapisi worktree
+ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204:** `OKSUZ` fiilen
+"kirli mi" olcuyor; TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188 yarim yedek OLCULEBILIR**
+(`§7` izi buldu, pid 3594 YOK); kabul: `YEDEK=TAM/YARIM` jetonu + fikstur.
+- 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
+- 🔧 **K195 (19 Agu — 4. TEKRAR):** `defter-rotasyon.py` kapali madde yokken TASIMIYOR → kota her oturumda ELLE rotasyon istiyor. **Tam metin ARSIVDE.**
+- 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
+  taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
+- ✅ **19 Agu KAPANANLAR: liste ARSIVDE.** **KALAN ACIK ARTIKLAR:** T3 `SAHIPSIZ=44→24 (Onarim
+  dali olctu)` · T4/T5 canli kablo (Okan kapisi) · T5 hareket damgasi 7/7 `OLCULEMEDI` ·
+  K188 kancasi BAGLI DEGIL · Escape olcumu yok — hepsi chip'lerde.
+- 🔧 **K179 (18 Agu):** `RECETE=9 REDDEDILEN=8 EVREN=390`; kalan 6 RED gercek. Hukum `tools/paket-k179-recete-ayiklama.md`. kabul: `AYIKLANAMADI` ayri kova + 3 mutant.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
-- 🔴 **13 KOR KIRMIZI NOBETCI (18 Agu, K178b acti — SAHIPSIZ, kosum `32158268667`):**
-  serit-b'de `failure` veren 13 adim; yayini bloklamaz ama hepsi NOBETCI — **kirmizi
-  nobetci nobet tutmaz.** Liste ARSIVDE. Sahip atamasi mimarda.
-- 🔧 **K176 (18 Agu, OLCULDU — D1 yazici kilidi mesaji YANLIS PID basiyor):** `d1-sync.py:157`
-  `os.getpid()` — ENGELLENEN surecin pid'i, TUTANIN degil; MaCiT'i 4 tur hayalet kovalatti.
-  Yayini BLOKLAMAZ. kabul: mesaj tutani basar ya da "OLCULEMEDI" der + mutant.
-- 🔴 **K167 (18 Agu — SINIF: defterdeki DURUM iddiasi OLCULMEDEN yaziliyor):** `1c741e54`
-  K150+K148'i, arsivde KAPANIS kaydi varken "KOSUYOR" ve main-disi commit'i OLMAYAN worktree
-  ile yazdi → devralan mukerrer tur acar. Ekleme-yalniz disiplin ONLEMEZDI: YANLIS satir
-  EKLENDI. Kural: kapanis ozeti kapanis isaretcisiyle BASLAR, KARMA blok YASAK.
-  kabul: `python3 tools/defter-durum-kapisi.py --kendini-test` → `DUSEN=0 MUTANT=4/4 KONTROL=2/2`
-- ⛔ **Dal `origin/k152-link-temiz` (`56269db4`) MERGE EDILMEYECEK — 18 Agu OLCULDU:** main'in atasi DEGIL ve `git diff main origin/k152-link-temiz` = 76 dosya / +2.095 −20.339 (urunler.json dahil) geri sarardi; icerik zaten `83aaf4e2` ile main'de (yeniden uygulandi). Dal SILINEBILIR.
+- 🔧 **K176 (18 Agu):** D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157` engellenenin pid'i). Yayini bloklamaz. kabul: tutani basar ya da OLCULEMEDI + mutant.
+- ⛔ **`origin/k152-link-temiz` MERGE EDILMEYECEK** (main atasi degil, −20.339 satir geri sarardi; icerik `83aaf4e2`de). SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
   `tools/paket-k171-kaynak-temizle.md`de; tam metin ARSIVDE.
@@ -68,32 +94,12 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
 - 🟠 **K144 (UCUSTAKI KOSUM):** ardarda push'lar build'i `cancelled` ediyor (ARIZA DEGIL);
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
-- 🔧 **K140 (17 Agu — ACIK SORU MIMARCA KAPATILDI, icra kaldi):** hukum **kapinin MODEL hatasi degil, EVREN KAYNAGI hatasi**: 185 urunun 184'unde model jetonu gercek markanin YANINDA, ve `index.html:3148` cip evreni KURATORLU (model kodu CIP OLMAZ) → kapi sitede OLMAYAN bir baglanti icin sayfa istiyor.
-  Tam metin ARSIVDE.
-  kabul: `python3 tools/marka-invaryant-kapisi.py` — 7 model jetonu DUSMUS **VE** `Rover` DURUYOR **VE** mutasyon 4/4.
-- 🔧 **K163 (17 Agu — K149'un ARTIGI, fail-silent sinifi):** `isci-temizlik.py:168-169` ciplak
-  `except OSError: pass`; 45/63/125'te listeleme hatasi `return 0` ile "olculemedi"yi 0 okuyor.
-  Tam metin ARSIVDE. kabul: `grep -c "except OSError: pass"` → **0** VE `OLCULEMEDI` isareti.
-- 🔴 **K162 (17 Agu — canli turun profili "CANLI" sayilmiyor; tur cokme riski):** profil adi
-  `profil-<MODEL>-<ETIKET>` iken canli kontrol `pgrep` ciktisinin SON token'ini karsilastiriyor.
-  Tek koruma 2 saatlik tazelik penceresi. Tam metin ARSIVDE. kabul: canli tur fiksturuyle
-  profil silinmez **VE** mutant KIRMIZI yakar.
-- 🔴 **K157 (17 Agu — kimi hatti kok neden BULUNDU, karar OKAN'DA; 22 Agu'ya kadar KAPALI):**
-  tam metin ARSIVDE. ⚖️ Okan emri: yeni olcum turu ACILMAZ; motor plani 20 Agu'ya kadar
-  codex (alt model), sonra m3. kabul: 22 Agu'da nabiz `SAGLIK=YESIL` ise kapanir.
-- 🔵 **K158 (17 Agu, TASARIM ACIGI — KAYIT):** isci tarayicisi YALNIZ kimi motorunda var
-  (m3'te yok) → kimi dustugunde paneli okuyacak yol da kapaniyor; tek tarayicili motorun
-  dususu TESHIS yolunu da kesiyor. Yon: tarayiciyi motordan bagimsiz kola tasi. `kabul:` BOS.
-- 🔧 **K146 (17 Agu — nobet dosyalari YEDEKSIZ):** `~/.claude/cron/` versiyon kontrolu
-  DISINDA → curutucu, iscinin kabul-testi fiksturunu MESRU mu degistirdi OLCEMEDI
-  (eksen KOR). Yon: otomatik yedek + `yedekle.py` kapsam teyidi. `kabul:` alani BOS.
-- 🔧 **K142 (17 Agu, KraL olctu → MaCiT):** pre-push kapak taramasi **14 R2 anahtari `NoSuchKey`** buldu, hepsi `c3d*` onekli (Cults3D partisi).
-  Tam metin ARSIVDE.
-  kutuya yazildi. Sahibi veri seridi. `kabul:` alani BOS.
-- 🔧 **K118:** pre-push sizinti kapisi bicim-kaydiran urun partisinde butceyi yapisal
-  asiyor (tam-dosya diff). Yon: butce buyutmek DEGIL, `urunler.json`'u icerik ekseninde
-  AYRI ele almak. `kabul:` alani BOS.
-- 🟠 **Navlungo dilim-1 MERGE BEKLIYOR:** dal `il-ilce-dilim1` (`5d57c918`); Okan kapisi.
+- 🔧 **K140 (17 Agu — hukum verildi, icra kaldi):** kapi EVREN KAYNAGI hatasi (cip evreni kuratorlu). Tam metin ARSIVDE. kabul: `marka-invaryant-kapisi.py` 7 jeton DUSMUS + `Rover` DURUYOR + mutasyon 4/4.
+- 🔧 **17 Agu KALEMLERI (tam metinleri ARSIVDE, kabul satirlari orada):** **K163** fail-silent ciplak
+  `except OSError: pass` · **K162** canli turun profili CANLI sayilmiyor (tur cokme riski) · **K157**
+  kimi hatti (⚖️ Okan: 22 Agu'ya kadar KAPALI, yeni olcum turu ACILMAZ) · **K158** isci tarayicisi
+  yalniz kimi'de · **K146** nobet dosyalari yedeksiz · **K142** 14 R2 anahtari `NoSuchKey` (MaCiT) ·
+  **K118** pre-push kapisi bicim-kaydiran partide butceyi yapisal asiyor.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
 - 🟠 **K152 (17 Agu — ⚖️ OKAN KARARI KAPSAMI BELIRLEDI; onceki iki hukum de DUSTU):** Okan (birebir): **"sitede bulunan tum urunler satilabilir.
@@ -108,22 +114,15 @@ silindi. CI: `Build & deploy` kosum `32155584610` **SUCCESS** (`0b0dc49f`; `merg
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
-
-
-
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
   (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
-- 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** mevcut $20 plan KALIR. Haftalik kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi TERCIH EDILIR — ayni para bandinda hem kota hem **ikinci saglayici** (429/kesinti/kota duvarinda yedek) verir; mevcut saglayicinin $50 basamagi yalniz kota verir, tek-saglayici riski surer. Ikinci saglayici bekleme listesindeyse tek uygulanabilir yol $50 (0 kod degisikligi). Ust basamagin iki "deneysel" ozelligi bizim hatta GIRMEZ — biz yalnizca Anthropic-uyumlu API ucundan MODEL cagiriyoruz. Kota sayilari iki adayda da yayimlanmiyor, yani secimi fiyat degil CESITLILIK belirliyor. Ekleme bedeli motor basina 6 kod noktasi.
-- 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu) ·
-  Navlungo `il-ilce-dilim1` merge'i. (K164 blogundan tasindi.)
+- 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
+- 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
 - 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
   SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
-
-
-
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
 14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
