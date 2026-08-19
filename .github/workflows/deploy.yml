@@ -223,6 +223,18 @@ jobs:
       - name: Kapali aile fiyat beyani kapisi (uretilen sayfalar + ana sayfa karti)
         run: python3 tools/kapali-aile-fiyat-kapisi.py
 
+      # YAYIN IC-DIL KAPISI — KAYNAK KOLU. Ayni sozlugu ve ayni yorum lexer'ini KAYNAK
+      # dosyalara uygular (index.html satir-ici <script> yorumu sinifi; 31 Tem'de boyle
+      # bir ic-yol ifsasi dalda hicbir yerde kirmizi yanmadan main'e girmisti). Asagidaki
+      # yayin kolunun YERINE GECMEZ: kapsamlar farkli (kaynak yuzey / uretilen sayfalar).
+      # 🔴 NEDEN BU JOB'DA (19 Agu 2026, deploy-aclik E2b hukmu): kol SESSIZ SINIFTIR —
+      # uretimsiz job'da rc=0 kalir ama olctugu yuzey 8'den 7 dosyaya duser
+      # (index.built.html olcum disi kalir; tools/deploy-aclik-kapisi.py kayit tablosu).
+      # Onceki yeri serit-a2 URETICISIZDI; kol buraya, build.py'den SONRAYA tasindi ki
+      # olculen yuzey TAM olsun. Bloklayici serit degismedi (build de A seridi).
+      - name: Yayin ic-dil kapisi — KAYNAK kolu (uretilmis agacta tam yuzey)
+        run: python3 tools/yayin-ic-dil-kapisi.py --kaynak
+
       # YAYIN IC-DIL KAPISI: tarayiciya INEN kod metninde (HTML yorumu + <style> icindeki
       # CSS yorumu + JS yorumlari) ic gelistirici dili aramaz. Olculdu 31 Tem: katalog
       # metninde yasakladigimiz uretim-sureci dili ('filament', '.scad'/'OpenSCAD', 'STL',
@@ -772,17 +784,9 @@ jobs:
       - name: Kalibrasyon senkron kapisi (hacim.js tahsilat tabani — dondurulmus kalibrasyon kaynagi)
         run: node jenerator/test/kalibrasyon-senkron.js
 
-      # YAYIN IC-DIL KAPISI — KAYNAK KOLU (build'den ONCE; asagidaki yayin kolunun ERKEN
-      # ikizi). NEDEN: yayin kolu ancak build.py'den SONRA olcebiliyor; tarayiciya AYNEN
-      # inen bir KAYNAK dosyaya (index.html satir-ici <script> yorumu) ic dosya yolu yazan
-      # bir degisiklik dalda hicbir yerde kirmizi yanmadi, main'e girdi ve CI'yi ~4 dakika
-      # sonra dusurdu -> deploy + yayin SKIPPED, yayin durdu (31 Tem). Bu kol AYNI sozlugu
-      # ve AYNI yorum lexer'ini build GEREKTIRMEDEN uygular; ikinci sozluk YOK, yalniz
-      # kapsam degisir. Yayin kolunun YERINE GECMEZ (uretilen sayfalar orada olculur).
-      # SERIT: A (build) — SIZINTI kapisidir, yayini DURDURMALI. SERIT B'ye konsaydi
-      # tarayiciya inen kaynak dosyadaki ic-yol ifsasi yayina cikardi.
-      - name: Yayin ic-dil kapisi — KAYNAK kolu (build'den once)
-        run: python3 tools/yayin-ic-dil-kapisi.py --kaynak
+      # (Yayin ic-dil KAYNAK kolu 19 Agu 2026'da `build` job'una tasindi — kol SESSIZ
+      # uretim tuketicisidir, bu job URETICISIZDIR ve olctugu yuzey burada 8'den 7
+      # dosyaya dusuyordu; deploy-aclik-kapisi.py E2b kaydi + o job'daki adim yorumu.)
 
       - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
         run: python3 tools/kanca-kablolama-nobeti.py --ci
