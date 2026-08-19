@@ -847,6 +847,103 @@ def skills_yaz(kok, hedef, dahil, haric, sir_temizle=False):
     return yazilan, bayat
 
 
+# ====== FAIL-CLOSED "YERELDEKI ASIL" YUKLEMI — TEK TANIM (19 Agu 2026, K212) ====
+# 🔴 OLCULDU (SeritB chip'i, 19 Agu 2026): kok kolunda "yereldeki ASIL yoksa SILME"
+# emniyeti VARDI, alt agac kolunda (`yedek_agac_sir_sil`) YOKTU. AYNI KOSUMDA yedek
+# kokundeki `.npmrc` KORUNDU, alt agactaki kopya SILINDI — ustelik kok kolu bir kalemi
+# fail-closed ile birakinca ARDINDAN kosan alt agac kolu ayni kalemi KOSULSUZ siliyordu
+# (alt agac yuruyusu yedek KOKUNU de gezer). Bu SESSIZ VERI KAYBI sinifidir: yedek,
+# kurtarma hattinin KENDISIDIR; yanlis silinen tek kopya geri gelmez.
+#
+# 🔴 IKINCI LISTE/YUKLEM ACILMAZ: iki kol da asagidaki TEK yuklemden (`yerel_asil_durumu`)
+# ve TEK esleme tablosundan (`yedek_kaynak_koku_haritasi`) gecer. Tablo YAZMA tarafinin
+# sabitlerinden (ROOT / MEMORY / SKILLS / AGAC_KAPSAMI / EK_*) TURER; elle yazilmis
+# ikinci bir kopya bu depoda olculmus bicimde bayatlar ve kollar sessizce AYRISIR
+# ([[ikiz-tanim-sessiz-ayrisma]], [[tekil-yama-sinifi-kapatmaz]]).
+#
+# 🔴 EMNIYET GEVSETME DEGIL: eleme (yazma yolu) AYNEN duruyor — sir hicbir kolda
+# yedege GIRMEZ. Degisen tek sey, yedekte ZATEN duran bir kopyanin SILINME kosuludur.
+
+# `_surum_yolu` "govde.YYYYMMDD-HHMMSS[-NN].uzanti" uretir; asil ad SURUMSUZ addir.
+_SURUM_DAMGASI = re.compile(r"\.\d{8}-\d{6}(?:-\d{2})?(?=\.[^.]*$|$)")
+
+
+def _surumsuz_ad(ad):
+    """Surum damgasi tasiyan addan damgayi soker; tasimayan ada None doner.
+    `_surum_yolu`nun TERSI — konvansiyon tek yerde tanimli kalsin diye burada."""
+    yeni = _SURUM_DAMGASI.sub("", ad, count=1)
+    return yeni if yeni != ad else None
+
+
+def yedek_kaynak_koku_haritasi():
+    """backup kokune gorece HEDEF ONEKI -> YEREL KAYNAK KOKU (TEK esleme tablosu).
+
+    Anahtar "" yedek kokunun KENDISIDIR (repo koku). Tablo yazma tarafiyla AYNI
+    sabitlerden turer: bir hedef klasor eklendiginde/degistiginde eleme, silme ve
+    fail-closed yuklem UCU DE ayni anda ogrenir.
+
+    🔴 Bilinmeyen onek TABLODA YOKTUR ve `yedek_yerel_asli` None doner -> fail-closed
+    (eslenemeyen kalem SILINMEZ). Kapsam genisledikce tablo KENDILIGINDEN buyur."""
+    harita = {"": ROOT, "memory": MEMORY, "skills": SKILLS}
+    for _etiket, kok, hedef_klasor, _izinli in AGAC_KAPSAMI:
+        harita[hedef_klasor] = kok
+    # EK KAPSAM — hedef yollari _ek_ev_hedefi/_ek_memory_hedefi TEK tanimindan turer.
+    for ad, ev in ev_yollari():
+        harita[os.path.normpath(_ek_ev_hedefi(ad, ""))] = ev
+    for ns, yol in ek_memory_kokleri():
+        harita[os.path.normpath(_ek_memory_hedefi(ns, ""))] = yol
+    harita[os.path.join(EK_KLASOR, GENEL_AYAR_KLASOR)] = os.path.dirname(
+        _genel_ayar_yolu())
+    return harita
+
+
+def yedek_yerel_asli(gorece_yol):
+    """Yedek kokune gorece bir yolun YEREL ASLI — eslenemezse None (fail-closed).
+
+    EN UZUN eslesen onek kazanir (ek/evler/<ev> gibi ic ice onekler icin sart).
+    Surumlenmis kopyanin (`ad.YYYYMMDD-HHMMSS[.uzanti]`) asli SURUMSUZ addir;
+    yoksa surumlu her sir kopyasi yedekte SONSUZA DEK kalirdi (temizlik olurdu)."""
+    gor = gorece_yol.replace(os.sep, "/").strip("/")
+    if not gor or gor == ".." or gor.startswith("../") or "/../" in gor:
+        return None                      # kok disina cikan yol: bu kapinin konusu degil
+    harita = yedek_kaynak_koku_haritasi()
+    parcalar = gor.split("/")
+    kok = None
+    for kesim in range(len(parcalar) - 1, 0, -1):
+        onek = os.path.normpath("/".join(parcalar[:kesim]))
+        if onek in harita:
+            kok, kalan = harita[onek], parcalar[kesim:]
+            break
+    if kok is None:
+        if len(parcalar) != 1:
+            return None                  # bilinmeyen onek -> eslenemedi
+        kok, kalan = harita[""], parcalar
+    aday = os.path.join(kok, *kalan)
+    if os.path.isfile(aday):
+        return aday
+    surumsuz = _surumsuz_ad(os.path.basename(aday))
+    if surumsuz:
+        return os.path.join(os.path.dirname(aday), surumsuz)
+    return aday
+
+
+def yerel_asil_durumu(yerel):
+    """FAIL-CLOSED ON KOSUL — TEK YUKLEM (kok kolu VE alt agac kolu buradan gecer).
+
+    Doner: (tamam, engel). `tamam` ancak yereldeki ASIL VAR ve OKUNABILIR ise True;
+    aksi halde kalem SILINMEZ ve engel metniyle KIRMIZI raporlanir. Yanlis silme
+    KALICI kayiptir; birakilan kopya ise bir sonraki kosumda yine gorunur.
+
+    🔴 DOSYA ICERIGI ACILMAZ: varlik/okunabilirlik os.stat + os.access ile olculur."""
+    if not yerel:
+        return False, "yereldeki ASIL eslenemedi (kaynak haritasi disi)"
+    if not os.path.isfile(yerel):
+        return False, "yereldeki ASIL YOK (silinirse tek kopya gider)"
+    if not os.access(yerel, os.R_OK):
+        return False, "yereldeki asil OKUNAMIYOR"
+    return True, ""
+
+
 def yedek_kok_sir_plani(backup, adlar=None):
     """Yedek KOKUNDE duran sir kopyalarini BULUR (hicbir sey silmez/acmaz).
 
@@ -857,7 +954,8 @@ def yedek_kok_sir_plani(backup, adlar=None):
     `adlar` verilirse YALNIZ o adlara bakilir (tekil, elle onaylanmis kaldirma icin);
     varsayilan KANONIK KUMENIN TAMAMIDIR. Kisitlama kalici bir kural DEGILDIR.
 
-    🔴 DOSYA ICERIGI ACILMAZ: varlik/okunabilirlik os.stat + os.access ile olculur."""
+    🔴 YUKLEM BURADA YAZILMAZ: `yerel_asil_durumu` TEK tanimdir — alt agac kolu da
+    ayni fonksiyonu cagirir (bkz. `yedek_agac_sir_sil`)."""
     kume = kok_sir_kumesi() if adlar is None else frozenset(a.lower() for a in adlar)
     try:
         girisler = sorted(os.listdir(backup))
@@ -870,14 +968,9 @@ def yedek_kok_sir_plani(backup, adlar=None):
         hedef = os.path.join(backup, giris)
         if not os.path.isfile(hedef):
             continue                     # dizin/link: bu kapinin konusu degil
-        yerel = os.path.join(ROOT, giris)
-        if not os.path.isfile(yerel):
-            cikti.append((giris, hedef, yerel, False,
-                          "yereldeki ASIL YOK (silinirse tek kopya gider)"))
-        elif not os.access(yerel, os.R_OK):
-            cikti.append((giris, hedef, yerel, False, "yereldeki asil OKUNAMIYOR"))
-        else:
-            cikti.append((giris, hedef, yerel, True, ""))
+        yerel = yedek_yerel_asli(giris)
+        tamam, engel = yerel_asil_durumu(yerel)
+        cikti.append((giris, hedef, yerel, tamam, engel))
     return cikti
 
 
@@ -1028,10 +1121,23 @@ def yedek_agac_sir_temizle(plan, backup, kuru_prova=False):
 def yedek_agac_sir_sil(plan, backup, kuru_prova=False):
     """Plan = [(gorece_yol, sebep, boyut)] + backup kok = TAM yol uretip siler.
     Doner: (islenen, atlanan, bulunan). KAPSAYICI; `yedek_agac_sir_temizle` de
-    buraya yonlendirir (tek kod yolu)."""
+    buraya yonlendirir (tek kod yolu).
+
+    🔴 FAIL-CLOSED (19 Agu 2026, K212) — KOK KOLUYLA AYNI YUKLEM: bir kalem ancak
+    YERELDEKI ASLI VAR ve OKUNABILIR ise silinir (`yerel_asil_durumu`, tek tanim).
+    Bu kol ONCEDEN KOSULSUZ siliyordu; ayni kosumda kok kolu `.npmrc`yi fail-closed
+    ile korurken bu kol AYNI kalemi siliyordu -> sessiz VERI KAYBI.
+
+    🔴 SUZGEC PROVADAN ONCE: kuru prova, gercek kosumun ATLAYACAGI bir kalemi
+    "SILINECEK" diye ILAN EDEMEZ (ikiz tanim yasagi — prova ile gercek silme AYNI
+    suzgecten gecer)."""
     islenen, atlanan = [], []
     for gor, _sebep, _boyut in plan:
         tam = os.path.join(backup, gor)
+        tamam, engel = yerel_asil_durumu(yedek_yerel_asli(gor))
+        if not tamam:
+            atlanan.append((gor, engel))
+            continue
         if kuru_prova:
             islenen.append((gor, tam))
             continue
@@ -1580,6 +1686,12 @@ def _ek_ev_hedefi(ev_adi, hedef_gor):
     return os.path.join(EK_KLASOR, "evler", ev_adi, hedef_gor)
 
 
+def _ek_memory_hedefi(ns, hedef_gor):
+    """Bir yabanci hafiza uzayi dosyasinin backup/ kokune gorece HEDEFI (TEK tanim).
+    `_ek_ev_hedefi` ile ayni rol; `yedek_kaynak_koku_haritasi` de buradan turer."""
+    return os.path.join(EK_KLASOR, MEMORY_EVLER, ns, hedef_gor)
+
+
 def _ek_memory_girdileri():
     """KraL disindaki hafiza uzaylarinin dosyalari (TEK tanim).
     Doner: [(kaynak_tam_yol, backup/ kokune gorece hedef)]."""
@@ -1591,8 +1703,8 @@ def _ek_memory_girdileri():
                 if _gurultu_mu(dosya):
                     continue
                 kaynak = os.path.join(dizin, dosya)
-                cikti.append((kaynak, os.path.join(EK_KLASOR, MEMORY_EVLER, ns,
-                                                   os.path.relpath(kaynak, yol))))
+                cikti.append((kaynak, _ek_memory_hedefi(
+                    ns, os.path.relpath(kaynak, yol))))
     return cikti
 
 
@@ -2660,7 +2772,13 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     # 16 Agu 2026 — ALT AGAC + KAPSAM-DISI planlari (yeni).
     # `cron` kaynaginda kapsam disi kalan desenler hedefte bayat klasor olarak duruyor;
     # `--sir-temizle` ile onlar da temizlenir. Bayraksiz normal kosum yalniz UYARIR.
-    agac_sayilari = yedek_agac_raporu(backup, sir_temizle=sir_temizle)
+    #
+    # 🔴 AYRI AD, BILEREK (19 Agu 2026, K212): bu satir ONCEDEN yukaridaki
+    # `agac_sayilari` sozlugunu EZIYORDU -> AGAC_KAPSAMI'nin gorev/cron/plan
+    # sayaclari (dosya adedi, yeni, haric) damgaya HIC girmiyordu ve "yedek TAM"
+    # beyani o eksen icin OLCULMEMIS kaliyordu ([[K201]] sinifi: kayit kendini
+    # olcmez). Iki sozluk AYRI ADLA durur ve IKISI DE damgaya yazilir.
+    agac_temizlik_sayilari = yedek_agac_raporu(backup, sir_temizle=sir_temizle)
 
     # ---- EK KAPSAM: 5+1 evin izlenmeyen kalici bilgisi + diger hafiza uzaylari ----
     # Kum havuzunda (sahte ROOT) kardes ev YOKTUR -> faz kendini kapatir ve bunu BASAR.
@@ -2685,7 +2803,8 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
                "skills": yazilan, "skills_haric": len(haric),
                "repo": len(repo_adlari), "kok_sir_elenen": len(kok_elenen)}
     sayilar.update(kok_sir_sayilari)
-    sayilar.update(agac_sayilari)
+    sayilar.update(agac_sayilari)              # gorev/cron/plan: dosya, yeni, haric
+    sayilar.update(agac_temizlik_sayilari)     # alt agac sir + kapsam-disi temizligi
     sayilar.update(ek_sayilar)
     damga_yaz(backup, sayilar, eksik=eksik,
               baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)

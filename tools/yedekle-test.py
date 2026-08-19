@@ -544,6 +544,11 @@ def izole_ortam(td, yedekle, memory_adet=40, skills_adet=20):
             # durum-yedek / yedek-gorev bataryalari BOS klasore bakip dusuyordu
             # (19 Agu SERIT B onarimi; [[ikiz-tanim-sessiz-ayrisma]]).
             "ev": ev, "pruvo": pruvo,
+            # Kaynak kokleri TEK KAYNAKTAN: bu harness'i ITHAL eden bataryalar
+            # (yedek-sir-eleme, yedek-gorev-kapsam) yolu YENIDEN KURMASIN — ikiz
+            # tanim burada sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]]).
+            "memory_kok": mem, "skills_kok": sk,
+            "gorev_kok": os.path.join(ev, ".claude", "scheduled-tasks"),
             "hedef": os.path.join(pruvo, yedekle.YEDEK_KOK_ADI),
             "kilit": os.path.join(kok, yedekle.KILIT_ADI), "ortam": ortam,
             "memory_adet": memory_adet, "skills_adet": skills_adet}
@@ -1839,8 +1844,25 @@ def main():
         backup = os.path.join(td, "backup-v2")
         os.makedirs(backup)
 
+        # 🔴 K212 (19 Agu 2026) — ALT AGAC KOLU ARTIK FAIL-CLOSED: bir kopya ancak
+        # YERELDEKI ASLI VAR ve OKUNABILIR ise silinir (kok koluyla AYNI yuklem,
+        # `yedekle.yerel_asil_durumu`). Kaynak kokunu kum havuzuna cevir ki iki hal
+        # de DETERMINISTIK olculsun; GERCEK ~/.claude/cron ne okunur ne yazilir.
+        sahte_kaynak_cron = os.path.join(td, "kaynak-cron")
+        os.makedirs(sahte_kaynak_cron)
+        with open(os.path.join(sahte_kaynak_cron, ".navlungo-kimlik.json"), "w") as fh:
+            fh.write("SIMULASYON: YEREL ASIL (silme izni bunun varligindan gelir)\n")
+        eski_kapsam = yedekle.AGAC_KAPSAMI
+        yedekle.AGAC_KAPSAMI = tuple(
+            (e, sahte_kaynak_cron if h == "cron-nobet" else k, h, i)
+            for e, k, h, i in eski_kapsam)
+
         # ---- Vaka A: ic ice sir (cron-nobet/.navlungo-kimlik.json) ----
         os.makedirs(os.path.join(backup, "cron-nobet"))
+        # ---- Vaka H (K212): YEREL ASLI OLMAYAN sir kopyasi -> SILINMEMELI ----
+        yerelsiz_yol = os.path.join(backup, "cron-nobet", ".yerelsiz-token")
+        with open(yerelsiz_yol, "w") as fh:
+            fh.write("SIMULASYON: yereldeki asli YOK -> fail-closed\n")
         nav_yol = os.path.join(backup, "cron-nobet", ".navlungo-kimlik.json")
         with open(nav_yol, "w") as fh:
             fh.write("SIMULASYON: 350 B ic ice sir\n")
@@ -1900,28 +1922,39 @@ def main():
         kontrol("F) yedek kok disi dosya plana GIRMEDI (`..` segmenti YOK)",
                 not any("/../" in g or g.startswith("..") for g in sir_yollar),
                 [g for g in sir_yollar if ".." in g])
+        # ---- Vaka H (K212): fail-closed kalemi PLANA girer (eleme daralmadi) ----
+        kontrol("H) yerel asli OLMAYAN sir de plana GIRDI (eleme daralmadi)",
+                "cron-nobet/.yerelsiz-token" in sir_yollar, sir_yollar)
         # ---- Vaka E: --sir-temizle sonrasi 0 sir / 0 kapsamdisi ----
         sir_islenen, sir_atlanan, _bul_s = yedekle.yedek_agac_sir_sil(sir_plan, backup)
         kap_islenen, kap_atlanan, _bul_k = yedekle.yedek_agac_kapsamdisi_sil(kap_plan, backup)
-        kontrol("E) sir temizle sonrasi sir plani 0",
-                yedekle.yedek_agac_sir_plani(backup) == [],
-                [g for g, _, _ in yedekle.yedek_agac_sir_plani(backup)])
+        # 🔴 K212: fail-closed kalem BILEREK kaliyor -> "plan 0" artik SADECE onu icerir.
+        kalan_sir = [g for g, _, _ in yedekle.yedek_agac_sir_plani(backup)]
+        kontrol("E) sir temizle sonrasi YALNIZ fail-closed kalem kaldi",
+                kalan_sir == ["cron-nobet/.yerelsiz-token"], kalan_sir)
         kontrol("E) sir temizle sonrasi kapsam-disi plani 0",
                 yedekle.yedek_agac_kapsamdisi_plani(backup) == [],
                 [g for g, _ in yedekle.yedek_agac_kapsamdisi_plani(backup)])
         kontrol("E) yedek kok disi dosya HIC DOKUNULMAMAMALI (fail-closed)",
                 os.path.exists(komsu_dosya), komsu_dosya)
-        kontrol("E) atlanan kalem YOK (kum havuzu senaryosunda hersey temizlenebilir)",
-                not sir_atlanan and not kap_atlanan,
-                "sir_atlanan=%s kap_atlanan=%s"
-                % (sir_atlanan, kap_atlanan))
-        kontrol("E) ic ice sir dosyasi SILINDI",
+        kontrol("E) atlanan kalem YALNIZ fail-closed olan (kapsam-disi hepsi temizlendi)",
+                [g for g, _s in sir_atlanan] == ["cron-nobet/.yerelsiz-token"]
+                and not kap_atlanan,
+                "sir_atlanan=%s kap_atlanan=%s" % (sir_atlanan, kap_atlanan))
+        kontrol("E) atlama SEBEBI yereldeki asla ATIF yapiyor (sessiz atlama YOK)",
+                any("ASIL" in s for _g, s in sir_atlanan), sir_atlanan)
+        kontrol("E) ic ice sir dosyasi SILINDI (yerel asli VAR)",
                 not os.path.exists(nav_yol), nav_yol)
-        kontrol("E) surumlenmis kopya SILINDI",
+        kontrol("E) surumlenmis kopya SILINDI (asil = SURUMSUZ ad)",
                 not os.path.exists(versiyonlu), versiyonlu)
+        # 🔴 H) NEGATIF YON: emniyeti gevsetip her seyi birakmak KUSUR olurdu —
+        # yukaridaki iki silme, "hicbir sey silinmiyor" halini AYIRT EDER.
+        kontrol("H) yerel asli OLMAYAN sir kopyasi SILINMEDI (K212 fail-closed)",
+                os.path.exists(yerelsiz_yol), yerelsiz_yol)
         kontrol("E) kapsam-disi klasor SILINDI (profil-kimi-x)",
                 not os.path.exists(os.path.join(backup, "cron-nobet", "profil-kimi-x")),
                 os.path.join(backup, "cron-nobet", "profil-kimi-x"))
+        yedekle.AGAC_KAPSAMI = eski_kapsam        # kum havuzu yamasi GERI ALINIR
         # ---- Vaka G: regresyon mevcut kalmasin ----
         # Bu bölüm PASS olduysa mevcut `yedek_kok_sir_plani` hâlâ calisiyor demektir
         # (bölum 7). Yeni fonksiyonlar onu bozmadi. Burada dogrudan kontrol etmek
