@@ -48,11 +48,11 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
   AILE · gyro `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220); kupler render CELISKILI.
   PAKET main'de (`7ce644ae`). kabul (icra): ONIZLEME_AILELER 22→30 · taban-fiyat 21→29 · +8 sari kayit · 8 gorsel R2 200 · parite yesil.
 - ✅ **K221 KAPANDI:** `marka_kanon` BAYAT(82) artik **GUNCEL**; Ege canli iki id `marka=Land Rover`de
-  VAR (38/12), `marka=Rover`de **0**. ONCUL CURUDU (`?marka=`=ham∪kanon).
+  VAR (38/12), `marka=Rover`de **0**. ONCUL CURUDU (`?marka=`=ham∪kanon). **BES EKSEN YESIL** (19:2xZ,
+  `--durum` rc=0: SAYI 29485 · SEQ · SEMA · TURETILMIS · ICERIK 0/0/0). K223 KAPANDI: `37de4aad`
+  ITILDI, D1 29485'e indi, site ile ortusuyor.
 - 🔴 **K222:** `uzlastirici-onarim.py:161` `if rc == 0`, `:178` bayatlik kolundan ONCE; kapi yazmayi
   bloklayip rc=0 donunce surucu "ONARILDI" cikiyor (`32272271453`). kabul: imza varsa TEKRAR
-- 🔴 **K223 (`37de4aad`):** ana checkout'tan `d1-sync.py` KOSULMAZ — json 29485/D1 29487, yayindaki
-  main o 2 urunu TASIYOR; senkron onlari Ege'den DUSURUR. Care: commit ITILSIN.
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
