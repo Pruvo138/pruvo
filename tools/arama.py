@@ -1323,7 +1323,7 @@ def rozet_capraz_imzasi():
 # OLCULDU: `rozet_capraz_imzasi()` YALNIZ anahtarlari imzaliyor ve "BEKLER" sinifi K19'da
 # yalnizca BILGI satiri basiyor (KIRMIZI YAKMIYOR). Dolayisiyla bir satirin sinifini
 # ROZET -> BEKLER kaydiran mutant HICBIR kapiyi yakmadan gecerdi: hukum sessizce
-# "karar bekliyor"a duser, sayfa ise dogmaya devam ederdi. Anahtar ekseni sizintiyi
+# "askida"ya duser, sayfa ise dogmaya devam ederdi. Anahtar ekseni yargisiz cifti
 # (yargisiz cift) olcer, bu eksen HUKMUN KENDISINI olcer; ikisi AYRI kalir cunku tek
 # imzaya baglansaydi sinif mutanti anahtar imzasina sirtini dayardi (yukaridaki not).
 # GEREKCE METNI IMZAYA GIRMEZ: yazim duzeltmesi kapiyi yakmasin, HUKUM degisimi yaksin.
