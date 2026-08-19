@@ -4143,7 +4143,14 @@ def _main_ast_return1_var():
 # 12 Agu: 204 -> 205 (katalog alan gercek olcum adimi silme mutanti).
 # 14 Agu K80: +6 (YAML/matrix + OLCULEMEDI + tespit-olu/kontrol mutanti). Bu taban
 # guncellenmezse K80 oz-test cagrilarinin TAMAMI silinip kapi yine yesil kalabilirdi.
-KENDINI_TEST_TABAN = 211
+# 🔴 19 Agu (SERIT B onarimi): 211 -> 224, GERCEK sayiya cekildi. OLCULEN kusur:
+# kendini-test bugun 224 iddia kosuyordu, taban 211'de kalmisti -> 13 PAYLIK OLU
+# KORUMA. `nobetci-mutasyon-test.py` E6 mutanti (bir iddiayi silip operatoru `<`e
+# dondurme) tam bu payin icinde KACIYORDU: 223 hala 211'in ustunde oldugu icin kapi
+# YESIL kaliyordu, yani "bir eksen sessizce silinebilir mi" sorusu OLCULMUYORDU.
+# Payi kapatmak ekseni geri getirir; tablo/iddia BILEREK degistiginde bu sabit AYNI
+# commit'te NEDENIYLE guncellenir (kural degismedi, sayi bugune cekildi).
+KENDINI_TEST_TABAN = 224
 
 KENDINI_TEST_TABAN_TANI = (
     "BOLUM C IDDIA SAYACI KIRMIZI: ariza-enjeksiyon %d iddia kosturdu, TABAN %d.\n"
