@@ -165,6 +165,24 @@ def kurucu_gomulu_kume_bulgulari(metin, etiket):
     return bulgular
 
 
+def sablon_sapmasi_bulgulari(sablon_metni, beklenen_blok, etiket):
+    """EKSEN 1b — kurucunun ENJEKTE EDECEGI sablon, tek kaynaktan SIMDI uretilen blogu
+    BIREBIR tasiyor mu?
+
+    🔴 BU KOLUN SINIRI (bilerek yazildi): uretim kosumunda iki taraf da ayni
+    `motor_blogu_kaynagi()` cagrisindan gelir, yani kol ORADA kismen TOTOLOJIKTIR —
+    yakaladigi tek sey "biri sablondaki cagriyi SABIT METINLE degistirdi" halidir.
+    Ve yakaladigi tam olarak 13 Agu'da OLAN seydir: blok metne GOMULMUSTU. Kolun
+    gercekten olctugu `--curutme` C4'te kanitlanir (blok donunca kol konusmali)."""
+    if beklenen_blok in sablon_metni:
+        return []
+    return [
+        "KOL=SABLON-SAPMA %s: kurucunun uretecegi ISCI blogu, tek kaynaktan SIMDI "
+        "uretilenle BIREBIR ayni DEGIL -> kurulan kopya DONUK dogar (blok sabit "
+        "metne gomulmus olabilir)" % etiket
+    ]
+
+
 def kaynak_ikiz_bulgulari(metin, etiket):
     """EKSEN 1c — KraL kaynagi kumeyi IMPORT mu ediyor, yoksa YENIDEN mi tanimliyor?"""
     try:
@@ -243,14 +261,12 @@ def uretim_olcumu():
         kur = None
         hatalar.append("KOL=OLCULEMEDI kurucu import edilemedi: %r" % (hata,))
     if kur is not None:
-        blok = mimar_kimlik.motor_blogu_kaynagi()
-        sablonda = blok in getattr(kur, "ISCI_TANIM_SABLON", "")
-        if not sablonda:
-            hatalar.append(
-                "KOL=SABLON-SAPMA kurucunun uretecegi ISCI blogu, tek kaynaktan SIMDI "
-                "uretilenle BIREBIR ayni DEGIL -> kurulan kopya donuk dogar")
+        sablon_bulgu = sablon_sapmasi_bulgulari(
+            getattr(kur, "ISCI_TANIM_SABLON", ""),
+            mimar_kimlik.motor_blogu_kaynagi(), "tools/mimar-kapi-kur.py")
+        hatalar.extend(sablon_bulgu)
         satirlar.append("  (b) uretilecek blok kaynakla birebir     : %s"
-                        % ("EVET" if sablonda else "HAYIR"))
+                        % ("EVET" if not sablon_bulgu else "HAYIR"))
 
     try:
         with open(KAYNAK_KAPI_YOLU, encoding="utf-8") as dosya:
@@ -469,6 +485,23 @@ def kendini_test():
     satirlar.append("  E1a KONTROL gercek kurucu           -> %s"
                     % ("SESSIZ (beklenen)" if not temiz_bulgu else "BULGU VAR"))
 
+    # E1b — 13 AGU VAKASININ TA KENDISI: sablondaki TURETILMIS blok, DONMUS bir sabit
+    # metinle degistirilmis (kimi YOK). Kol bunu yakalamali; saglam sablon sessiz kalmali.
+    taze_blok = mimar_kimlik.motor_blogu_kaynagi()
+    donmus_blok = taze_blok.replace(
+        repr(tuple(kaynak["ISCI_MOTORLARI"])),
+        repr(tuple(m for m in kaynak["ISCI_MOTORLARI"] if m != birincil)))
+    bulgular = sablon_sapmasi_bulgulari(
+        "ISCI_M3_CIVILI_MOTOR = 'minimax-m3'\n" + donmus_blok, taze_blok, "<sentetik-sablon>")
+    if not any(b.startswith("KOL=SABLON-SAPMA") for b in bulgular):
+        hata.append("E1b: sablondaki DONMUS blok yakalanmadi")
+    satirlar.append("  E1b sablonda DONMUS blok             -> %s"
+                    % ("YAKALANDI" if bulgular else "KACTI"))
+    if sablon_sapmasi_bulgulari(
+            "ISCI_M3_CIVILI_MOTOR = 'minimax-m3'\n" + taze_blok, taze_blok, "<sentetik>"):
+        hata.append("E1b KONTROL: SAGLAM sablon bulgu uretti (yanlis-pozitif)")
+    satirlar.append("  E1b KONTROL saglam sablon           -> SESSIZ (beklenen)")
+
     ikiz_mutant = "ISCI_MOTORLARI = ('minimax-m3',)\n"
     bulgular = kaynak_ikiz_bulgulari(ikiz_mutant, "<sentetik-kaynak>")
     if not any(b.startswith("KOL=KAYNAK-IKIZ") for b in bulgular):
@@ -552,6 +585,26 @@ def curutme():
     if "KOL=IKIZ-TANIM" in olu:
         hata.append("C3: ikinci tanim YOKKEN M2 hala konusuyor -> tautoloji")
     satirlar.append("  C3 IKIZ-TANIM   canli=%s  olu=%s"
+                    % (canli or "SESSIZ", olu or "SESSIZ"))
+
+    # C4 — SABLON-SAPMA kolu: bu kol uretim kosumunda kismen totolojiktir (iki taraf da
+    # ayni fonksiyondan gelir). Burada TOTOLOJI OLMADIGI kanitlanir: beklenen blok
+    # DONMUS olanla degistirilince kol SUSMALI, taze blokla KONUSMALI.
+    birincil = mimar_kimlik.CANLI_ISCI_MOTORLARI[0]
+    taze_blok = mimar_kimlik.motor_blogu_kaynagi()
+    donmus_blok = taze_blok.replace(
+        repr(tuple(kaynak["ISCI_MOTORLARI"])),
+        repr(tuple(m for m in kaynak["ISCI_MOTORLARI"] if m != birincil)))
+    donmus_sablon = "ISCI_M3_CIVILI_MOTOR = 'minimax-m3'\n" + donmus_blok
+    canli = ["KOL=SABLON-SAPMA"] if sablon_sapmasi_bulgulari(
+        donmus_sablon, taze_blok, "<curutme>") else []
+    olu = ["KOL=SABLON-SAPMA"] if sablon_sapmasi_bulgulari(
+        donmus_sablon, donmus_blok, "<curutme>") else []
+    if not canli:
+        hata.append("C4: kol CANLIYKEN E1b sessiz")
+    if olu:
+        hata.append("C4: beklenen blok DONMUSA esitlenince E1b hala konusuyor -> tautoloji")
+    satirlar.append("  C4 SABLON-SAPMA canli=%s  olu=%s"
                     % (canli or "SESSIZ", olu or "SESSIZ"))
 
     satirlar.append("")
