@@ -31,34 +31,35 @@
   gerekce KUTUDA**; "chip kosturur" PLAN DEGIL. (ii) periyodik kablolama (MIMARDA, K198
   arkasinda), (iii) kablolamanin KOSTUGU kanit (zaman damgali iz + tetiklenmezse KIRMIZI).
   Sira: sema, tesisat, trafik.
-- 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py`'nin "etkili tasiyici" tanimi LITERALE capali;
-  varlik turetilmis mekanizmaya gecince kapi korlesiyor (K193'te olctuk). Kalici care: sonucu olc
-  ya da makine-okunur beyani tasiyici say. Mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT
-  KENDINI OLCMEZ** — bes vaka: K192 damga · K197 yorumdaki maliyet · K189'un kablo defteri (4 vs 5)
-  · capa tablosu (18'de kaldi) · `--kendini-test 17` (dogrusu 12). Kural: her kayit ya TURETILIR
-  ya kendi sayisiyla KABUL EDILIR; "EKLE" yetmez, SONUC SAYISI sart.
-- 🔧 **K196 (19 Agu, DEPO GENELI):** CI node 20 / yerel 25.8.1 → yereldeki JS yesilleri CI surumunde OLCULMEMIS. **Tam metin ARSIVDE.** K186 merge sartina bagli.
+- 🔴 **K213 (19 Agu, MaCiT olctu → hukum KraL'da, sahibi MaCiT):** CC BY/BY-SA **50 kayitta**
+  `lisans.tasarimci` yer tutucu (`?` 49 + `...` 1) → canlida atif KOSULU karsilanmiyor.
+  HUKUM KUTUDA (4 madde): urun CEKILMEZ + `lisans` SILINMEZ · ad KAYNAKTAN doldurulur ·
+  kurtarilamayanda K27'nin izin verdigi dar kolla kaynak LINKI (ucretli/uyelikli kayda SICRAMAZ) ·
+  **2. vaka oldugu icin KALICI KAPI SART** (tarama/ekleme katmani, fail-closed).
+  kabul: kapi + mutant + ihlal sayisi duser + `denetim-kapisi` yesil.
+- 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
+  varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur
+  beyani tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** —
+  bes vaka (K192 damga · K197 maliyet · K189 kablo defteri · capa tablosu · `--kendini-test`).
+  Kural: her kayit ya TURETILIR ya kendi sayisiyla KABUL EDILIR; "EKLE" yetmez, SAYI sart.
+- 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
 - 🔧 **K197 (19 Agu, K189 chip olctu — YAYIN YOLU MALIYETI, RATCHET YOK):** pre-push kancasinin
   maliyet beyani 3,16 sn (9 Agu) diyor, **bugun olculen medyan 6,11 sn** → 5 sn esigi zaten asilmis;
   sayiyi YORUM soyluyor, dogrulayan yok. **Tam metin ARSIVDE.**
-- 🔧 **K189 (SAHIPLENILDI 19 Agu — KraL; CHIP ACILDI):** `tools/ci-kapsam-test.py` hukum ekseni
-  kusurlu. **Tam metin ARSIVDE.** kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc, ayri jeton, mutant
-  hedef kolu kanitli (K182).
-- 🔧 **K191 (19 Agu, KraL olctu → sahibi MaCiT; SINIF):** tarama SPEC'i isi ONCULDEN aliyor.
-  **Tam metin ARSIVDE + KUTUDA.** kabul: ILK blok KAPSAM ON-OLCUMU degilse RED + tazelik capasi.
+- 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
+  ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
+  MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
 - 🟠 **K184 — MERGE CHIP'I PANELDE** (dal `kral/k184-talep-sihirbazi`, ucu chip olcer).
   🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
   K186'nin semasi/ucu KANONIK (canli D1 K211 ile o semada) ve uctan uca olcum K186'nin ucune karsi
   YENIDEN kosulur. HocA E6 dumani bu merge'e bagli.
-- 🔧 **K192 (19 Agu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU kapisinda YOK + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.** (BaBa serhi: 20 Agu codex bitisi.)
-- 🔧 **K202-kendini-test** (M06 cokme + M17/M20/M31 bayat capa) **= SeritB S1 uyesi →
-  `KraL-SeritB onarim` chip'inde**; kabul: capalar govdeden count==1, `beklentiyi tutmayan: 0`.
-  (Teshis bu kaleme "K203" dedi; defterde K203 BASKA kalem — icerik karisikligi yok.)
-- 🟠 **K206 (19 Agu, TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye.
-  Kararlar: saklama AYRI AILE · gyro site semasinda `doku=duz` (.scad degismez) · 8 fiyat ONAY
-  (280/190/170/350=TAVAN/160/240/140/220). ⚠️ kupler render guncelligi RAPORDA CELISKILI — chip
-  OLCECEK. kabul: ONIZLEME_AILELER 22→30 · taban-fiyat-tablosu 21→29 · urunler.json +8 sari
-  kayit (parametrik:true, fiyat:"") · 8 gorsel R2'de 200 · kategori-parite yesil.
+- 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
+- 🔧 **K202-kendini-test** (M06 cokme + M17/M20/M31 bayat capa) = SeritB S1 uyesi, `KraL-SeritB
+  onarim` chip'inde; kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
+- 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama
+  AYRI AILE · gyro semasinda `doku=duz` · 8 fiyat ONAY (280/190/170/350=TAVAN/160/240/140/220);
+  ⚠️ kupler render guncelligi CELISKILI, chip OLCECEK. kabul: ONIZLEME_AILELER 22→30 ·
+  taban-fiyat 21→29 · +8 sari kayit (parametrik, fiyat boş) · 8 gorsel R2'de 200 · parite yesil.
 
 ## KraL SON DURUM (19 Agu ~15:xxZ; eski kapanis blogu ARSIVDE)
 🧹 **TEMIZLIK (mimar eli, olculdu):** worktree **3→1** (yalnizca CANLI `gallant-shirley` =
@@ -80,8 +81,7 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
-- 🔧 **K176 (18 Agu):** D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157` engellenenin pid'i). Yayini bloklamaz. kabul: tutani basar ya da OLCULEMEDI + mutant.
-- ⛔ **`origin/k152-link-temiz` MERGE EDILMEYECEK** (main atasi degil, −20.339 satir geri sarardi; icerik `83aaf4e2`de). SILINEBILIR.
+- 🔧 **K176:** D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157`); yayini bloklamaz. kabul: tutani basar ya da OLCULEMEDI + mutant. · ⛔ **`origin/k152-link-temiz` MERGE EDILMEYECEK** (main atasi degil; icerik `83aaf4e2`de) — SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul
   `tools/paket-k171-kaynak-temizle.md`de; tam metin ARSIVDE.
