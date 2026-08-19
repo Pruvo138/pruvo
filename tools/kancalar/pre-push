@@ -129,6 +129,26 @@ if [ -n "$pruvo_kapsam_kok" ] && [ -f "$pruvo_kapsam_kok/tools/defter-kota-kapis
   fi
 fi
 
+# --- GOZCU KALP NOBETI (RAPOR-ONLY; ASLA BLOKLAMAZ) -------------------------
+# NEDEN (19 Agu 2026, N1 "gozcu kablolama"): LLM nobet turu artik KOSULSUZ degil,
+# gozcunun (gozcu.py) kararina bagli. Bunun bedeli su: gozcu OLURSE tur ACILMAZ ve
+# bu SESSIZCE "her sey yesil" gibi gorunur. Fail-loud'un ucuncu yuzeyi (digerleri:
+# ci-nobeti.log'daki KALP BAYAT satiri ve gunluk turun KIRMIZI'si) mimarin her
+# push'unda gordugu TEK SATIRDIR.
+# rc OKUNUR ve UYARIYA cevrilir — atilmaz (kanca kablolama nobetcisinin bekledigi
+# desen: `if python3 ...; then : else echo; fi`, blokta `exit` YOK).
+# OLCULEN MALIYET: 0,045-0,047 sn (3 kosum, 19 Agu 2026) -> 5 sn esiginin COK altinda.
+# Gozcu yoksa (kardes depo, baska makine, CI) blok SESSIZCE gecilir.
+pruvo_gozcu_kalp="$HOME/.claude/cron/gozcu.py"
+if [ -f "$pruvo_gozcu_kalp" ]; then
+  if python3 "$pruvo_gozcu_kalp" --kalp; then
+    :
+  else
+    echo "!! GOZCU KALBI BAYAT/YOK — nobet turu tetiklenmiyor olabilir (push DEVAM ediyor)." >&2
+    echo "!!   Olcum: python3 $pruvo_gozcu_kalp --kalp" >&2
+  fi
+fi
+
 # >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir — ELLE DUZENLEME) >>>
 # FAIL-CLOSED: bu itme temizlenmis sizintiyi (mesaj YA DA icerik ekseni) GERI
 # GETIRIYORSA PUSH DURUR. Gerekce: tools/gecmis-geri-donus-hook-kur.py basligi.

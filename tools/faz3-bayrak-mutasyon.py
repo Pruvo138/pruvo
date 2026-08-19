@@ -120,6 +120,34 @@ def main():
         os.unlink(hedef_index)
         shutil.copyfile(INDEX, hedef_index)
 
+        # BUILD ARTEFAKTI ONKOSULU (S7 onarimi, 19 Agu 2026): kapinin okudugu
+        # ozet.json + taban-fiyatlar.js BUILD ARTEFAKTIdir, git'e girmez —
+        # CI runner'inda ve taze klonda YOKTUR; kapi onsuz exit(1) verir ve
+        # surucu "taban kirmizi" OLCULEMEDI'ye duserdi. Ayna fiksturlerini
+        # GERCEK build koduyla kurar (sekil tek kaynakta kalsin diye elle
+        # kopya DEGIL build.py bayraklari; --sadece-ozet'i vitrin-kabul.js de
+        # kullanir). KOPYADAKI build.py cagrilir: onun ROOT'u AYNA kokudur,
+        # --sadece-taban da oraya yazar — canli agaca bayt gitmez. Canli
+        # agacta artefakt VARSA kopya_kok'un sembolik bagi onu gosterir ve o
+        # kalem atlanir.
+        for bayraklar, yol in (
+                (["--sadece-ozet", "--cikti", os.path.join(kok, "ozet.json")],
+                 os.path.join(kok, "ozet.json")),
+                (["--sadece-taban"], os.path.join(kok, "taban-fiyatlar.js"))):
+            if os.path.exists(yol):
+                continue
+            uret = subprocess.run(
+                [sys.executable, os.path.join(kok, "tools", "build.py")] +
+                bayraklar, cwd=kok, capture_output=True, text=True)
+            if uret.returncode != 0 or not os.path.exists(yol):
+                print("OLCULEMEDI: onkosul fiksturu kurulamadi (build.py %s "
+                      "rc=%d)" % (bayraklar[0], uret.returncode))
+                print((uret.stdout + uret.stderr).strip()[-400:])
+                return 3
+            print("onkosul: %s aynada uretildi (build.py %s, %d bayt)"
+                  % (os.path.basename(yol), bayraklar[0],
+                     os.path.getsize(yol)))
+
         rc, cikti = kapi_kos(kok)
         if rc != 0:
             print("OLCULEMEDI: MUTASYONSUZ kopyada kapi zaten KIRMIZI (rc=%d) — "

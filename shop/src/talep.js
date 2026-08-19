@@ -158,10 +158,19 @@ function hataSinifi(hata) {
   return hata && hata.name ? hata.name : "Error";
 }
 
-/* KV binding yok: bugunku sayac sink'i yalniz gecici console.error kaydidir. */
+const SAYAC_TTL_SN = 2592000; // 30 gun — saklama suresinden BAGIMSIZ, kendi sabiti
 function talepOlayiSay(env, sebep) {
   if (!["d1_hata", "kod_cakisma", "yapilandirma"].includes(sebep)) { sebep = "yapilandirma"; }
-  console.error("talep_kod_uretilemedi sebep=" + sebep + " zaman=" + new Date().toISOString());
+  const zaman = new Date().toISOString();
+  console.error("talep_kod_uretilemedi sebep=" + sebep + " zaman=" + zaman);
+  // FAIL-OPEN: sayac tutulamiyorsa istek DUSMEZ. Binding yoksa, put yoksa, put atarsa,
+  // ya da donen promise reddederse — hepsinde sessizce cikilir.
+  try {
+    const kv = env && env.TALEP_SAYAC;
+    if (!kv || typeof kv.put !== "function") { return; }
+    const p = kv.put("talep_hata:" + sebep + ":" + zaman, "1", { expirationTtl: SAYAC_TTL_SN });
+    if (p && typeof p.catch === "function") { p.catch(function () {}); }
+  } catch (e) { /* fail-open */ }
 }
 
 export async function talepKaydet(request, env) {

@@ -256,7 +256,7 @@ def kapi(kaynak_dizin, artefakt_yolu, sessiz=False):
             print("     satir sayisi: artefakt=" + str(len(mevcut.splitlines())) +
                   " beklenen=" + str(len(beklenen.splitlines())))
         print("----------------------------------------------------------------------")
-        print("SONUC: KIRMIZI ❌  — COZUM: python3 tools/sema-bundle-kapisi.py --yaz")
+        print("SONUC: KIRMIZI ❌  — COZUM: ISCIYE: python3 tools/sema-bundle-kapisi.py --yaz")
         print("  (artefakt ELLE duzenlenmez; jenerator/urunler/ TEK KAYNAK. Liste bayat")
         print("   kaldigi surece o sari urun kartla TAHSIL EDILEMEZ — kalem fail-closed 400")
         print("   ile WhatsApp'a duser.)")

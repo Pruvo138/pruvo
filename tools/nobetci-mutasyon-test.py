@@ -602,14 +602,35 @@ E_IDDIA_RE = re.compile(r"Kendini-test iddiasi\s*:\s*(\d+)")
 # --- MUTASYON CAPALARI (her biri TAM BIR KEZ eslesmeli; eslesmezse harness BAYAT) ---
 # Giris silme/ekleme METIN olarak degil, tablo TANIMINDAN SONRA calisan tek satirla
 # yapilir: sozluk govdesinin bicimine kilitlenmez, ama len(SERIT_B)'yi GERCEKTEN degistirir.
-E_SERIT_CAPA = 'SERIT_B_SEBEP = ("yayini BLOKLAMAYAN job'
-E_SIL = ("SERIT_B.pop(next(iter(SERIT_B)))  # MUTANT E1: bir beyan DUSURULDU\n"
+# 🔴 CAPA 19 Agu'da TAZELENDI (SERIT B onarimi — OLCULEN kusur): E1/E1b mutantlari
+# `SERIT_B` tablosundan bir giris DUSURUYORDU, ama 14 Agu'da o tablo BOSALTILDI
+# (`SERIT_B = {}`; 111 elle beyan T1 turetimine devredildi). Bos sozlukte
+# `next(iter(SERIT_B))` StopIteration atiyor -> kapi mutant altinda COKUYOR, jeton
+# basmadan bitiyor ve harness "KACTI/COKME" diyordu; yani EKSEN OLCULMUYORDU.
+# Eksen DEGISMEDI ("izlenen bir tablodan giris dusunce TABLO SAYACI KIRMIZI yanar");
+# yalnizca capa BUGUN DOLU olan bir tabloya (`D_MUTANTLAR`, taban 20) tasindi.
+# Enjeksiyon tablo TANIMINDAN SONRA calismali; `E_MUTANTLAR` tanimi kaynakta
+# `D_MUTANTLAR`dan SONRA geldigi icin ona capalanir (D_MUTANTLAR o noktada DOLU).
+E_SERIT_CAPA = "E_MUTANTLAR = ("
+E_SIL = ("D_MUTANTLAR = D_MUTANTLAR[:-1]  # MUTANT E1: bir giris DUSURULDU\n"
          + E_SERIT_CAPA)
-E_EKLE = ('SERIT_B[("nobet.yml", "mutant-e2-job", "tools/mutant-e2-kapisi.py")] = (\n'
-          '    "MUTANT E2: taban guncellenmeden EKLENEN sentetik beyan")\n'
+E_EKLE = ('D_MUTANTLAR = D_MUTANTLAR + (("MUTANT E2: taban guncellenmeden EKLENEN "\n'
+          '                              "sentetik giris",) + tuple(D_MUTANTLAR[0][1:]),)\n'
           + E_SERIT_CAPA)
 E_OP_CAPA = "        if len(tablo) != taban:"
 E_OP_ESKI = "        if len(tablo) < taban:"
+# 🔴 IDDIA TELAFISI (19 Agu 2026, SERIT B onarimi — OLCULEN golgelenme): E1/E1b
+# capasi bos `SERIT_B`den DOLU `D_MUTANTLAR`a tasininca, bir giris DUSURMEK ayni
+# anda C-IDDIA sayacini da dusuruyor (223 < 224) ve kapi TABLO SAYACI kontrolune
+# VARMADAN "BOLUM C IDDIA SAYACI KIRMIZI" ile cikis yapiyordu -> E1'in olctugu
+# eksen (tablo<->taban ayrismasi) baska bir eksenin kirmizisiyla GOLGELENIYORDU
+# (olculdu). Telafi, dusen girisin iddia kaybini geri koyar: C sayaci tabanda
+# kalir, kirmizinin SEBEBI tek basina tablo sayacidir. Desen yeni degil — E6b
+# ayni telafiyi ters yonde kullanir.
+E_IDDIA_TELAFI_CAPA = ("    for ad, metin, beklenen in BOZUK_ORNEKLER:\n"
+                       "        iddia += 1")
+E_IDDIA_TELAFI = ("    iddia += 1  # MUTANT TELAFI: dusen tablo girisinin iddia kaybi\n"
+                  + E_IDDIA_TELAFI_CAPA)
 # 🔴 TABAN CAPASI ARTIK SAYISIZ (8 Agu, rebase dersi): once `("SERIT_B", 67),` metnine
 # capalanmisti; main tabani 85'e cekince capa BAYATLADI (`HARNESS BAYAT` gurultulu
 # durdu — dogru davranis, ama her taban bump'inda tekrarlanir). Yerine tablo
@@ -617,8 +638,8 @@ E_OP_ESKI = "        if len(tablo) < taban:"
 # hedef "tabanin gercek sayidan DUSUK olmasi" halidir, belirli bir sayi DEGIL.
 E_TABAN_GEVSET = (
     'TABLO_TABANLARI = tuple(\n'
-    '    (_a, (len(SERIT_B) - 2 if _a == "SERIT_B" else _t))\n'
-    '    for _a, _t in TABLO_TABANLARI)  # MUTANT: SERIT_B tabani GEVSEK (eski kod hali)\n'
+    '    (_a, (len(D_MUTANTLAR) - 2 if _a == "D_MUTANTLAR" else _t))\n'
+    '    for _a, _t in TABLO_TABANLARI)  # MUTANT: D_MUTANTLAR tabani GEVSEK (eski hal)\n'
     + E_SERIT_CAPA)
 E_GOVDE_CAPA = ("    hatalar = []\n"
                 "    kapsam = globals()\n"
@@ -631,14 +652,17 @@ E_OZTEST_JETON = "TABLO-NOBETCISI OLU"
 # Sayac G8 ekseninin `iddia += 1` satiri uzerinden surulur: bir eksenin sayaci DUSERSE
 # (E4) ya da taban guncellenmeden ARTARSA (E5) kapi konusmali. Olculdu: gercek 8, eski
 # taban 7 -> pay 1, yani eski `< 7` kolu E4'e de E5'e de KORDU (E4b/E5b bunu gosterir).
+# 🔴 CAPA 19 Agu'da TAZELENDI (SERIT B onarimi): K183b sonrasi kapida taban 11 oldu,
+# "= 8" capasi 0 eslesmeye dustu — bolum E "HARNESS BAYAT" ile hicbir sey olcmuyordu.
+# Eski-gevsek simulasyonu da ayni pay-1 mantigiyla 10'a cekildi.
 E_G_CAPA = ("    iddia += 1\n"
             "    if yayin is None:\n"
             '        hatalar.append("G8 OLCULEMEDI')
 E_G_SAYAC_SIL = ('    if yayin is None:\n'
                  '        hatalar.append("G8 OLCULEMEDI')
 E_G_SAYAC_EKLE = "    iddia += 1\n" + E_G_CAPA
-E_G_TABAN_CAPA = "G_IDDIA_TABANI = 8"
-E_G_TABAN_ESKI = "G_IDDIA_TABANI = 7"
+E_G_TABAN_CAPA = "G_IDDIA_TABANI = 11"
+E_G_TABAN_ESKI = "G_IDDIA_TABANI = 10"
 E_G_OP_CAPA = "        if temiz_iddia != G_IDDIA_TABANI:"
 E_G_OP_ESKI = "        if temiz_iddia < G_IDDIA_TABANI:"
 E_G_JETON = "G-IDDIA SAYACI BOZUK"
@@ -740,6 +764,16 @@ def akis_ayna_kur(hedef_kok, mutasyonlar=None):
                 with open(hedef, "w", encoding="utf-8") as f:
                     f.write(metin)
                 uygulanan.add(yol)
+            elif yol.replace(os.sep, "/").startswith(".github/workflows/"):
+                # 🔴 IS AKISI DOSYALARI GERCEK KOPYA (19 Agu 2026, SERIT B onarimi —
+                # OLCULEN kusur): symlink olarak stage'lenen dosyanin git BLOB'u
+                # dosyanin ICERIGI degil HEDEF YOLUDUR. Kapi is akislarini `git show`
+                # ile de okuyunca YAML yerine 100 baytlik bir yol dizesi aliyor ve
+                # "kok mapping degil" diye fail-closed KIRMIZI basiyordu — E0 kontrol
+                # mutanti dahil TUM bolum E hukumleri bu yuzden gecersizdi (olculdu).
+                # Kume dar: kapinin git'ten okudugu tek dizin. Mutasyon uygulanan
+                # dosyalar zaten yukaridaki kolda gercek kopya yaziliyor.
+                shutil.copyfile(kaynak, hedef)
             else:
                 os.symlink(kaynak, hedef)
             aynalanan.append(yol)
@@ -769,6 +803,49 @@ def akis_ayna_kur(hedef_kok, mutasyonlar=None):
     r = git("-C", hedef_kok, "add", "-f", "--", *eklenecek)
     if r.returncode != 0:
         raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna `git add` basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    # 🔴 AYNAYA IKI COMMIT (19 Agu 2026, SERIT B onarimi — olculen kusur): kapinin
+    # K80 "yeni CI adimi" ekseni `git rev-parse HEAD` VE `HEAD^` ister (bu itmenin
+    # GETIRDIGI adimlari onceki commit'e gore turetir); commit'siz aynada HEAD hic
+    # cozulmuyor, tek commit'te de HEAD^ cozulmuyordu ve KAPI mutasyondan BAGIMSIZ
+    # "YENI CI ADIMI OLCULEMEDI" fail-closed kirmizisi basiyordu — E0 kontrol mutanti
+    # dahil TUM bolum E hukumleri bu yuzden gecersizdi (olculdu). Once BOS bir taban
+    # commit'i, sonra icerik commit'i: HEAD^ = bos taban. Kimlik config'e YAZILMAZ,
+    # her commit'e `-c` ile verilir (sentetik_git deseni).
+    # 🔴 COMMIT INDEX'TEN URETILIR, `git commit` KULLANILMAZ: ayna dosyalari SYMLINK
+    # oldugu icin `git commit` calisma agacini tararken "Too many levels of symbolic
+    # links" ile duser (olculdu). `write-tree` + `commit-tree` + `update-ref` yalniz
+    # INDEX'i okur, calisma agacina HIC bakmaz — ayna zaten `git add -f` ile eksiksiz
+    # stage'lenmisti. Kimlik ortam degiskeniyle verilir, hicbir config'e YAZILMAZ.
+    kimlik_ortam = dict(os.environ)
+    kimlik_ortam.update({
+        "GIT_AUTHOR_NAME": "e-ayna", "GIT_AUTHOR_EMAIL": "e-ayna@ornek.gecersiz",
+        "GIT_COMMITTER_NAME": "e-ayna", "GIT_COMMITTER_EMAIL": "e-ayna@ornek.gecersiz",
+    })
+
+    def _g(*args):
+        return subprocess.run(["git", "-C", hedef_kok] + list(args),
+                              capture_output=True, text=True, env=kimlik_ortam)
+
+    r = _g("write-tree")
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna write-tree basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    agac = (r.stdout or "").strip()
+    # BOS taban commit'i: kapinin K80 ekseni `HEAD^`i (bu itmenin ONCESI) ister.
+    r = _g("commit-tree", "-m", "ayna bos taban", agac)
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna taban commit-tree basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    taban_sha = (r.stdout or "").strip()
+    r = _g("commit-tree", "-p", taban_sha, "-m", "ayna icerik", agac)
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna icerik commit-tree basarisiz: %s"
+                         % (r.stderr or "").strip()[:200])
+    tepe_sha = (r.stdout or "").strip()
+    r = _g("update-ref", "HEAD", tepe_sha)
+    if r.returncode != 0:
+        raise SystemExit("HARNESS OLCEMEZ (bolum E): ayna update-ref basarisiz: %s"
                          % (r.stderr or "").strip()[:200])
     return hedef_kok
 
@@ -831,7 +908,9 @@ def bolum_e(tmp):
           % (canli_iddia, iddia0, "KESIF YASIYOR" if kesif_yasiyor else "KESIF OLMUS"))
 
     for etiket, mut, bayrak, jeton in (
-            ("E1 SERIT_B'den bir giris DUSURULDU", {E_KAPI: [(E_SERIT_CAPA, E_SIL)]},
+            ("E1 izlenen tablodan bir giris DUSURULDU (iddia telafili)",
+             {E_KAPI: [(E_SERIT_CAPA, E_SIL),
+                       (E_IDDIA_TELAFI_CAPA, E_IDDIA_TELAFI)]},
              None, E_JETON),
             ("E2 SERIT_B'ye giris EKLENDI (taban ayni)", {E_KAPI: [(E_SERIT_CAPA, E_EKLE)]},
              None, E_JETON),
@@ -879,14 +958,21 @@ def bolum_e(tmp):
     # "jeton yok" diye PASS etmisti, ama sebep eski kodun korlugu DEGIL aynada olen
     # kesifti. Beklenen iddia sayisi CANLI olcumden gelir (sabit yazilmaz).
     for etiket, mut, jeton, bek_iddia, aciklama in (
+            # 🔴 BEKLENEN IDDIA MUTANTIN ETKISINI TASIR (19 Agu 2026, SERIT B onarimi):
+            # E1/E2 capasi bos `SERIT_B`den DOLU `D_MUTANTLAR`a tasindi; o tablo
+            # KOSULAN mutant listesidir, yani bir giris dusmek/eklemek iddia sayisini
+            # DOGRUDAN -1/+1 kaydirir. "Kesif yasiyor" kontrolu bu bilinen kaymayi
+            # hesaba katmazsa mesru mutant "KESIF OLMUS" sanilir ve hukum gecersiz
+            # ilan edilirdi (olculdu: 223 ve 225 gorulup 224 beklenmisti).
             ("E1b E1 + ESKI KOD (operator `<` + taban len-2 GEVSEK)",
              {E_KAPI: [(E_SERIT_CAPA, E_SIL), (E_SERIT_CAPA, E_TABAN_GEVSET),
-                       (E_OP_CAPA, E_OP_ESKI)]}, E_JETON, canli_iddia,
+                       (E_OP_CAPA, E_OP_ESKI),
+                       (E_IDDIA_TELAFI_CAPA, E_IDDIA_TELAFI)]}, E_JETON, canli_iddia,
              "gevsek taban OLU korumadir: pay kadar beyan sessizce silinebilir "
              "(bu tablonun kendi tarihi: pay 25'te SABIT kalmisti)"),
             ("E2b E2 + operator `<` (taban gercek sayida)",
              {E_KAPI: [(E_SERIT_CAPA, E_EKLE), (E_OP_CAPA, E_OP_ESKI)]}, E_JETON,
-             canli_iddia,
+             canli_iddia + 1,
              "taban guncellenmeden BUYUME gorunmezdi -> pay yeniden birikirdi"),
             ("E4b E4 + ESKI KOD (operator `<` + taban 7)",
              {E_KAPI: [(E_G_CAPA, E_G_SAYAC_SIL), (E_G_OP_CAPA, E_G_OP_ESKI),

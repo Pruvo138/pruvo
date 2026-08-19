@@ -1198,10 +1198,12 @@ def mutant_m7_test():
 # RED PROVASI (pre-commit)
 # ---------------------------------------------------------------------------
 def _git(kok, args, capture=True, env=None):
-    env = env if env is not None else os.environ.copy()
-    r = subprocess.run(["git", "-C", kok] + list(args),
-                       capture_output=capture, text=True, env=env)
-    return r
+    # KANONIK sentetik git (fikstur-git-sizinti-kapisi sozlesmesi): miras GIT_*
+    # kesif baglami scrub'lanir; cagri yerinin env'i ek_ortam olarak biner
+    # (kesif adlari ek_ortam'dan da ayiklanir — git_ortami.sentetik_git).
+    from git_ortami import sentetik_git
+    return sentetik_git(kok, *args, ek_ortam=env,
+                        capture_output=capture, text=True)
 
 
 def _devam_olustur(tmp, satir):

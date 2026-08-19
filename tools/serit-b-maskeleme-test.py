@@ -24,29 +24,39 @@ isareti durumunu olcer. Uc kusak var:
   * BAGIMSIZ    — `if: ${{ !cancelled() }}` veya `if: always()` (kosar, kendi
                   kirmizisi job'u dusurur; sonraki adimlari maskelemez).
 
+KAPSAM (19 Agu 2026 GENISLETMESI — SERIT B onarimi, K178 sinifinin hijyen-a3
+tekrari olculdukten sonra): nobet.yml'in TUM alarm joblari taranir —
+`serit-b` + `hijyen-a2` + `hijyen-a3` + `hijyen-build` + `hijyen-a4`
+(TARANAN_JOBLAR). Onceki hal yalniz serit-b'ye bakiyordu; hijyen-a3'te
+Yayin-acligi kirmizisi Gramer adimini SKIP etti ve canli gramer kirmizisi
+CI'da MASKELI kaldi (kosum 32201776934'te olculdu) — kor bolge kapatildi.
+Taranan job'lardan biri YOKSA ya da steps'i bossa kapi OLCULEMEDI ile
+KIRMIZIDIR (fail-closed: job'u yeniden adlandirmak/silmek kapsami sessizce
+dusuremez).
+
 KAPSAM DISI (sayilmaz):
   * Altyapi adimlari: actions/checkout*, actions/setup-* (K2 kontrolu)
-  * Diger joblar: hijyen-a2, hijyen-a3, hijyen-build, hijyen-a4, deploy vb. (K1)
-  * sadece `serit-b` job'una bakar.
+  * TARANAN_JOBLAR disindaki joblar (envanter/cron-nabzi/deploy vb.) — K1
+    kontrolu bunu DAVRANISLA olcer (sahte isaretsiz job eklenir, sayilmamali).
 
 CI'DA KABLO: bu test `serit-b` job'unda BIR ADIM olarak kosar ve muafiyet
 listesinde DEGIL (davranissal kontrol, grep degil). ci-kapsam-test.py ile kapsam
 kapisi saglanir.
 
 MUTANTLAR (4/4 KIRMIZI olmali):
-  * M1 --bir adimdan bagimsizlik isaretini kaldir (if: !cancelled() sil) ->
-        MASKELEYEN >= 1, o adimin adi yazilir, rc=1
+  * M1 --serit-b'de bir adimdan bagimsizlik isaretini kaldir (if: !cancelled()
+        sil) -> MASKELEYEN >= 1, o adimin adi yazilir, rc=1
   * M2 --bir adima `continue-on-error: true` GERI KOY -> YUTAN >= 1, o adimin
         adi yazilir, rc=1 (bugunku K178b hatasi birebir yakalayan mutant).
-  * M3 --evreni bos kume yap (serit-b job'unun steps: [] olarak ayarla) ->
-        ADIM=0, "OLCULEMEDI" yazip rc=1 ile cikar (yesil donmemeli).
-  * M4 --nöbetciyi bloklayici seride de uygula (hijyen-a2 adimlarina da bak) ->
-        kapsam genisletme kurali ihlal edildi -> rc=1 RED.
+  * M3 --taranan job'lardan birinin steps'ini bos kume yap -> eksik-envanter
+        fail-closed kolu KIRMIZI (yesil donmemeli).
+  * M4 --hijyen-a3'te bir adimdan bagimsizlik isaretini kaldir -> MASKELEYEN
+        >= 1 RED: kapsam GENISLETMESININ canli oldugunun mutant kaniti
+        (eski M4 "genisletme yasak" beyaniydi; 19 Agu hukmuyle tersine dondu).
 
 KONTROLLER (2/2 YESIL kalmali):
-  * K1 --hijyen-a2 veya hijyen-a3 adiminda MASKELEYEN veya YUTAN isareti
-        OLMAMALI, kapi bunlari saymamali (kapsam disi). Bu kontrol kapinin kendi
-        ic mantigindan gelir.
+  * K1 --TARANAN_JOBLAR disindaki bir job'a isaretsiz adim eklense bile kapi
+        onu SAYMAMALI (kapsam siniri davranisla olculur, adla degil).
   * K2 --checkout/setup-python/setup-node adimlari MASKELEYEN/YUTAN isareti
         tasIMAMALI, kapi bunlari saymamali. Altyapi adimlarinin OLMAMASI
         BEKLENIR (yesil yanmali).
@@ -67,8 +77,10 @@ NOBET_YML = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", ".github", "workflows", "nobet.yml"
 )
 
-BLOKLAYICI_JOB_UZANTILARI = ("hijyen-a2", "hijyen-a3", "hijyen-build", "hijyen-a4")
 SERIT_B_JOB_ADI = "serit-b"
+# 19 Agu 2026 genislemesi: hijyen joblari da taranir (K178'in hijyen-a3 tekrari).
+TARANAN_JOBLAR = (SERIT_B_JOB_ADI, "hijyen-a2", "hijyen-a3", "hijyen-build",
+                  "hijyen-a4")
 ALTYAPI_USES_ON_EK = ("actions/checkout", "actions/setup-")
 
 CIKIS_KIRMIZI_DAGILIM_BEKLENEN = "ADIM="
@@ -192,40 +204,42 @@ def _adim_altyapi_mi(adim):
 
 
 def maske_tara(veri):
-    """serit-b job'unun kapı adimlarini sayar:
-       * toplam_kapi   — altyapi haric kapı adimi sayisi
+    """TARANAN_JOBLAR'in kapı adimlarini sayar:
+       * toplam_kapi   — altyapi haric kapı adimi sayisi (5 job toplami)
        * bagimsiz      — if: !cancelled() / always() tasiyan (kosar, dusurur)
        * yutan         — continue-on-error: true tasiyan (kirmiziyi yutar) — RED
        * maskeleyen    — bagimsizlik isareti olmayan (fail-fast) — RED
-       * evren_bos_mu  — serit-b steps yoksa True
+       * eksik_joblar  — taranan envanterde OLMAYAN/steps'siz job adlari — RED
+       * evren_bos_mu  — eksik job var YA DA hic kapı adimi yok (fail-closed)
     """
     joblar = veri.get("jobs", {}) or {}
-    sb = joblar.get(SERIT_B_JOB_ADI)
-    if sb is None:
-        return {"evren_bos_mu": True, "maskeleyen_liste": [], "yutan_liste": [],
-                "toplam_kapi": 0, "bagimsiz": 0}
-    steps = sb.get("steps") if isinstance(sb, dict) else None
-    if steps is None:
-        return {"evren_bos_mu": True, "maskeleyen_liste": [], "yutan_liste": [],
-                "toplam_kapi": 0, "bagimsiz": 0}
     toplam = 0
     bagimsiz = 0
     maskeleyen = []
     yutan = []
-    for adim in steps:
-        if _adim_altyapi_mi(adim):
-            continue  # K2 kontrolu
-        toplam += 1
-        tip = _adim_bagimsizlik_tipi(adim)
-        nm = adim.get("name") if isinstance(adim, dict) else ""
-        nm = str(nm)[:80]
-        if tip == BAGIMSIZLIK_KOSAR:
-            bagimsiz += 1
-        elif tip == BAGIMSIZLIK_YUTAN:
-            yutan.append(nm)
-        else:
-            maskeleyen.append(nm)
-    return {"evren_bos_mu": toplam == 0, "maskeleyen_liste": maskeleyen, "yutan_liste": yutan,
+    eksik = []
+    for job_adi in TARANAN_JOBLAR:
+        jb = joblar.get(job_adi)
+        steps = jb.get("steps") if isinstance(jb, dict) else None
+        if not steps:
+            eksik.append(job_adi)
+            continue
+        for adim in steps:
+            if _adim_altyapi_mi(adim):
+                continue  # K2 kontrolu
+            toplam += 1
+            tip = _adim_bagimsizlik_tipi(adim)
+            nm = adim.get("name") if isinstance(adim, dict) else ""
+            nm = "%s :: %s" % (job_adi, str(nm)[:70])
+            if tip == BAGIMSIZLIK_KOSAR:
+                bagimsiz += 1
+            elif tip == BAGIMSIZLIK_YUTAN:
+                yutan.append(nm)
+            else:
+                maskeleyen.append(nm)
+    return {"evren_bos_mu": bool(eksik) or toplam == 0,
+            "eksik_joblar": eksik,
+            "maskeleyen_liste": maskeleyen, "yutan_liste": yutan,
             "toplam_kapi": toplam, "bagimsiz": bagimsiz}
 
 
@@ -306,8 +320,8 @@ def mutant_testleri_calistir():
                 yaml.safe_dump(veri, fh, allow_unicode=True, sort_keys=False)
             sonuc["m3"] = _kabul_calistir(kopya, beklenen_kirmizi=True)
 
-        # M4: nöbetci bloklayici seride de uygulansaydi RED olurdu mu?
-        sonuc["m4"] = _m4_kapsam_genisletme_kontrol()
+        # M4: hijyen-a3'te isaret kaldirilirsa GENISLETILMIS kapsam yakaliyor mu?
+        sonuc["m4"] = _m4_hijyen_isaret_kaldirma()
     except ModuleNotFoundError:
         sonuc["m3"] = ("OLCULEMEDI", "pyyaml yok")
         sonuc["m4"] = ("OLCULEMEDI", "pyyaml yok")
@@ -315,32 +329,35 @@ def mutant_testleri_calistir():
     return sonuc
 
 
-def _m4_kapsam_genisletme_kontrol():
-    """M4 mutant testi -- kapinin KAPSAM GENISLETILMIS hali KIRMIZI donmeli."""
+def _m4_hijyen_isaret_kaldirma():
+    """M4 (19 Agu 2026): hijyen-a3'te BIR adimdan bagimsizlik isaretini kaldir ->
+    genisletilmis kapsam MASKELEYEN>=1 ile KIRMIZI donmeli. Eski M4 'kapsami
+    hijyen'e genisletme' beyanini koruyordu; SERIT B onarimi o hukmu tersine
+    cevirdi — bu mutant genislemenin CANLI oldugunu her kosumda kanitlar."""
     try:
         import yaml  # noqa: F401
     except ModuleNotFoundError:
         return ("OLCULEMEDI", "pyyaml yok")
-    with open(NOBET_YML, "r", encoding="utf-8") as fh:
-        veri = yaml.safe_load(fh)
-    hijyen = veri["jobs"].get("hijyen-a2")
-    if hijyen is None or not hijyen.get("steps"):
-        return ("OLCULEMEDI", "hijyen-a2 job'u yok")
-    mutant_maskeleyen = 0
-    for adim in hijyen["steps"]:
-        if _adim_altyapi_mi(adim):
-            continue
-        if _adim_bagimsizlik_tipi(adim) is None:
-            mutant_maskeleyen += 1
-    if mutant_maskeleyen >= 1:
-        return (
-            "KIRMIZI",
-            f"kapsam genisletilmis mutant MASKELEYEN={mutant_maskeleyen} (beklenen kirmizi)",
-        )
-    return (
-        "KIRMIZI",
-        "bloklayici serit adimlarinin HEPSI bagimsiz isaretli -- H2 ihlal edildi, mutant anlamsiz",
-    )
+    with tempfile.TemporaryDirectory() as tmp:
+        kopya = _yerel_no_bet_kopyasi(tmp)
+        with open(kopya, "r", encoding="utf-8") as fh:
+            veri = yaml.safe_load(fh)
+        hijyen = veri["jobs"].get("hijyen-a3")
+        if hijyen is None or not hijyen.get("steps"):
+            return ("OLCULEMEDI", "hijyen-a3 job'u yok")
+        hedef = None
+        for adim in hijyen["steps"]:
+            if _adim_altyapi_mi(adim):
+                continue
+            if _adim_bagimsizlik_tipi(adim) == BAGIMSIZLIK_KOSAR:
+                hedef = adim
+                break
+        if hedef is None:
+            return ("OLCULEMEDI", "hijyen-a3'te isaretli kapı adimi yok")
+        hedef.pop("if", None)
+        with open(kopya, "w", encoding="utf-8") as fh:
+            yaml.safe_dump(veri, fh, allow_unicode=True, sort_keys=False)
+        return _kabul_calistir(kopya, beklenen_kirmizi=True)
 
 
 def _kabul_calistir(yaml_yol, beklenen_kirmizi):
@@ -375,18 +392,31 @@ def _kabul_calistir(yaml_yol, beklenen_kirmizi):
 
 # ─────────────── KONTROL TESTLERI ───────────────
 def kontrol_testleri_calistir():
-    """K1: bloklayici seritlerdeki adimlar sayilmaz. K2: altyapi adimlari sayilmaz."""
+    """K1: TARANAN_JOBLAR disi job sayilmaz (davranissal). K2: altyapi sayilmaz."""
     sonuc = {"k1": None, "k2": None}
+
+    # K1 (19 Agu 2026, davranissal): kapsam DISI bir job'a isaretsiz adim
+    # eklenmis kopyada kapi YESIL kalmali — sinir adla degil taramayla olculur.
+    veri = yaml_yukle_guvenli(NOBET_YML)
+    if not isinstance(veri, dict) or "jobs" not in veri:
+        sonuc["k1"] = ("KIRMIZI", "K1: nobet.yml yuklenemedi")
+    else:
+        import copy
+        kopya = copy.deepcopy(veri)
+        kopya["jobs"]["k1-kapsam-disi-sahte"] = {
+            "runs-on": "ubuntu-latest",
+            "steps": [{"name": "isaretsiz sahte adim", "run": "echo k1"}],
+        }
+        s = maske_tara(kopya)
+        if s["maskeleyen_liste"] or s["yutan_liste"] or s["evren_bos_mu"]:
+            sonuc["k1"] = ("KIRMIZI",
+                           "K1: kapsam disi sahte job sayildi ya da evren bozuldu")
+        else:
+            sonuc["k1"] = ("YESIL", None)
 
     betik = os.path.abspath(__file__)
     with open(betik, "r", encoding="utf-8") as fh:
         kaynak = fh.read()
-    for serit in ("hijyen-a2", "hijyen-a3"):
-        if serit not in kaynak:
-            sonuc["k1"] = ("KIRMIZI", f"K1 kontrolu eksik: {serit} listede degil")
-            return sonuc
-    sonuc["k1"] = ("YESIL", None)
-
     for on_ek in ("actions/checkout", "actions/setup-"):
         if on_ek not in kaynak:
             sonuc["k2"] = ("KIRMIZI", f"K2 kontrolu eksik: {on_ek} listede degil")
@@ -416,7 +446,9 @@ def main():
     evren_bos = ana["evren_bos_mu"]
 
     if evren_bos:
-        print("OLCULEMEDI evren bos (serit-b steps yok)")
+        print("OLCULEMEDI evren bos ya da envanter eksik (taranan job'lar: %s; "
+              "eksik: %s)" % (",".join(TARANAN_JOBLAR),
+                              ",".join(ana.get("eksik_joblar") or []) or "-"))
         return 1
     if maske:
         for nm in maske[:10]:

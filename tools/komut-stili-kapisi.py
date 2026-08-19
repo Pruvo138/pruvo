@@ -32,9 +32,9 @@ if bulunan:
                 "KOMUT STILI KAPISI (insan onayi yerine otomatik red): komutta "
                 + ", ".join(bulunan)
                 + " var — bunlar Okan'a onay penceresi dusurur. COZUM: betigi Write "
-                "araciyla bir .py dosyasina yaz ve 'python3 /tam/yol/betik.py' ile düz "
-                "calistir; cikti dosyaya python iciyle yazilsin (>' degil). CLAUDE.md "
-                "KOMUT STILI bolumune bak."
+                "araciyla bir .py dosyasina yaz ve tam yolla DUZ calistir (basina "
+                "yorumlayici adi, bayraksiz); cikti dosyaya python iciyle yazilsin "
+                "('>' degil). CLAUDE.md KOMUT STILI bolumune bak."
             ),
         }
     }, ensure_ascii=False))

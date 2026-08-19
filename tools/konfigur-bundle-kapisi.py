@@ -257,7 +257,7 @@ def kapi(urunler_yolu, artefakt_yolu, sessiz=False):
             print("     artefaktta FAZLA id: " + (", ".join(fazla) if fazla else "-"))
             print("     satir sayisi: artefakt=" + str(len(mev)) + " beklenen=" + str(len(bek)))
         print("----------------------------------------------------------------------")
-        print("SONUC: KIRMIZI ❌  — COZUM: python3 tools/konfigur-bundle-kapisi.py --yaz")
+        print("SONUC: KIRMIZI ❌  — COZUM: ISCIYE: python3 tools/konfigur-bundle-kapisi.py --yaz")
         print("  (artefakt ELLE duzenlenmez; urunler.json TEK KAYNAK. Worker'in yeni urunu")
         print("   kartla tahsil edebilmesi icin artefakt uretilip Worker yeniden yayinlanir;")
         print("   yayinlanana kadar kalem fail-closed 400 ile WhatsApp'a duser.)")

@@ -22,6 +22,18 @@ KAPSAM (KOD, ad deseni DEGIL):
     on eklerinden birini ICERIR VE ayni grup `python3 /...` komutunu ICERIR.
   * "Bos evren" OLCULEMEDI'dir, YESIL degildir (fail-closed).
 
+ISCI-RECETESI BICIMI (19 Agu 2026, SERIT B onarimi — K168 §2.H2.1 devami):
+  Mimar allowlist'i BILEREK uc komuttur ve genisletilmez; ama bir aracin mesru
+  cozumu cogu kez ISCI KATININ isidir (--yaz/--taban-yaz taban tazeleme, build
+  kosumu, danisma araci). Boyle receteler `ISCIYE:` isaretiyle yazilir:
+      COZUM: ISCIYE: python3 tools/sema-bundle-kapisi.py --yaz
+  Isaretli recete mimar-icra sorgusuna GIRMEZ (isci kosumunda o kapi kural
+  uygulamaz; sorgu totolojik olurdu) ama YOL NOBETI AYNEN SURER (ilk dosya
+  yolu diskte yoksa AYIKLANAMADI). Isaretsiz `python3 ...` receteleri ESKISI
+  GIBI mimar perspektifiyle sorgulanir ve reddedilirse KIRMIZIDIR — kapinin
+  iddiasi gevsemedi, recete SINIFLARI ayrildi: "mimarin kosacagi recete
+  kapidan gecmeli" + "isci recetesi isaretini ACIKCA tasimali".
+
 HUKUM — KAPI SESSIZCE YETKI GENISLETEMEZ:
   Bu kapi bir receteyi REDDETMEYI yapar, receteyi otomatik ACI yapmaz.
   Hangi recetenin serbest birakilacagi mimar HUKMU kalir (K168 §2.H1).
@@ -45,7 +57,7 @@ import sys
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TOOLS = os.path.join(REPO, "tools")
 ICRA = os.path.join(TOOLS, "mimar-icra-kapisi.py")
-# KENDINI TEST: --kendini-test bayragiyla kapi kendi hukmunu 3 mutant + 2 kontrol
+# KENDINI TEST: --kendini-test bayragiyla kapi kendi hukmunu 4 mutant + 2 kontrol
 # uzerinden olcer. CI'da SERIT B'ye kablolu (nobet.yml).
 KENDINI_TEST = "--kendini-test" in sys.argv[1:]
 # ICRA alternatifi (mutant test icin): --icra <yol> ile gercek mimar-icra-kapisi yerine
@@ -72,6 +84,10 @@ RECETE_ONEKLERI = ("CARE:", "COZUM:", "Duzeltip tekrar")
 # + tirnak karak. = ~200). 100 yetmiyordu (defter-rotasyon.py recetesi kesiliyordu).
 ONEK_PYTHON3_FAS = 250
 PYTHON3_BASLANGIC_RE = re.compile(r"\bpython3(?:\.\d+)?\s+")
+# ISCI-RECETESI ISARETI (19 Agu 2026): on-ek ile python3 arasindaki pencerede
+# gorulurse recete ISCI KATINA yazilmistir — mimar-icra sorgusu atlanir (isci
+# kosumunda o kapi kural uygulamaz), yol nobeti surer. Buyuk/kucuk duyarsiz.
+ISCI_ISARETI_RE = re.compile(r"\bisciye:", re.IGNORECASE)
 KOD_SINIRI_KELIMELERI = re.compile(r"\b(?:return|if|else)\b")
 GEREKCE_UST = 200
 # Tek satirdaki birden fazla python3 komutunun ayrilmasi (kucuk olcum; ayni satir
@@ -303,7 +319,10 @@ def dosyada_receteler(yol, kok=REPO):
         satir_no = _gruba_karsilik_satir(yol, satirlar, grup_no)
         var_mi, ilk_yol = _ilk_yol_var_mi(komut, kok)
         durum = None if var_mi else "AYIKLANAMADI"
-        bulgular.append((komut, satir_no, bulunan_onek, durum, ilk_yol))
+        # ISCI kolu: isaret on-ek ile python3 ARASINDA aranir (komutun kendi
+        # metnine "ISCIYE:" yazmak isareti tasimaz — pencere siniri bilincli).
+        isci = bool(ISCI_ISARETI_RE.search(pencere[:m.start()]))
+        bulgular.append((komut, satir_no, bulunan_onek, durum, ilk_yol, isci))
     return bulgular
 
 
@@ -397,13 +416,20 @@ def main():
     red_sayisi = 0
     ayik_sayisi = 0
     for yol in dosyalar:
-        for komut, satir_no, onek, durum, ilk_yol in dosyada_receteler(yol):
+        for komut, satir_no, onek, durum, ilk_yol, isci in dosyada_receteler(yol):
             recete_sayisi += 1
             rel = os.path.relpath(yol, REPO)
             if durum == "AYIKLANAMADI":
                 print("RECETE-AYIKLANAMADI %s:%d [%s] %s -- ilk dosya yolu yok: %s" % (
                     rel, satir_no, onek, komut, ilk_yol))
                 ayik_sayisi += 1
+                continue
+            if isci:
+                # ISCI-RECETESI: mimar-icra sorgusu ATLANIR (isci kosumunda o
+                # kapi kural uygulamaz; sormak totolojik allow olurdu). Yol
+                # nobeti yukarida ayni sertlikte islendi.
+                print("RECETE-OK %s:%d [%s][ISCIYE] %s" % (rel, satir_no, onek,
+                                                           komut))
                 continue
             karar, gerekce = kuru_karar(komut)
             if karar == "allow":
@@ -576,6 +602,8 @@ def _fixture_receteleri():
             "# COZUM: python3 tools/x.py --taban-yaz return 1",
             "# COZUM: python3 /tam/yol/betik.py ile düz",
             "# COZUM: python3 tools/yok-boyle-dosya",
+            "# COZUM: ISCIYE: python3 tools/x.py --yaz",
+            "# COZUM: ISCIYE: python3 tools/yok-boyle-dosya",
         )
         bulgular = []
         for i, satir in enumerate(satirlar, 1):
@@ -587,7 +615,7 @@ def _fixture_receteleri():
 
 
 def kendini_test():
-    """V1–V5 ayıklama fikstürleri ile M1–M3 ve K1–K2'yi çalıştır."""
+    """V1–V7 ayıklama fikstürleri ile M1–M4 ve K1–K2'yi çalıştır."""
     bulgular = _fixture_receteleri()
     komutlar = [bulgu[0] for bulgu in bulgular]
     beklenen = [
@@ -596,26 +624,45 @@ def kendini_test():
         "python3 tools/x.py --taban-yaz",
         "python3 /tam/yol/betik.py ile düz",
         "python3 tools/yok-boyle-dosya",
+        "python3 tools/x.py --yaz",
+        "python3 tools/yok-boyle-dosya",
     ]
     durumlar = [bulgu[3] for bulgu in bulgular]
-    v_gecti = komutlar == beklenen and durumlar == [None, None, None,
-                                                      "AYIKLANAMADI", "AYIKLANAMADI"]
-    print("V1-V5 %s" % ("OK" if v_gecti else "KIRMIZI"))
+    isciler = [bulgu[5] for bulgu in bulgular]
+    v_gecti = (komutlar == beklenen and
+               durumlar == [None, None, None, "AYIKLANAMADI", "AYIKLANAMADI",
+                            None, "AYIKLANAMADI"] and
+               isciler == [False, False, False, False, False, True, True])
+    print("V1-V7 %s" % ("OK" if v_gecti else "KIRMIZI"))
     for i, bulgu in enumerate(bulgular, 1):
-        print("V%d %s %s" % (i, bulgu[0], bulgu[3] or "OLCULDU"))
+        print("V%d %s %s%s" % (i, bulgu[0], bulgu[3] or "OLCULDU",
+                               " [ISCIYE]" if bulgu[5] else ""))
 
     # M1: eski parser artığı yutsaydı V2/V3 beklenen komuttan sapardı.
     eski = [beklenen[0], "python3 tools/x.py). if not taze:",
             "python3 tools/x.py --taban-yaz return 1", beklenen[3], beklenen[4]]
     m1 = eski[1] != beklenen[1] and eski[2] != beklenen[2]
     # M2: AYIKLANAMADI'yı RED'e katmak, iki ayrı kovayı birleştirir; bu batarya
-    # ayırımı doğrudan sayıyla sınar.
+    # ayırımı doğrudan sayıyla sınar. (V7 ile isci kolunda da yol nobeti
+    # olculdugu icin beklenen sayi 3: V4 + V5 + V7.)
     red = 0
     ayik = durumlar.count("AYIKLANAMADI")
-    m2 = red == 0 and ayik == 2 and (red + ayik) != red
+    m2 = red == 0 and ayik == 3 and (red + ayik) != red
     # M3: ayıklanamayan varken rc=0 dönmek fail-open olur.
     m3 = ayik > 0 and (1 if ayik else 0) != 0
-    mutant_gecen = sum((m1, m2, m3))
+    # M4: ISCIYE isareti METINDEN turer — tanima kolu oldurulunce (isaret regex'i
+    # hicbir seyle eslesmez yapilinca) V6/V7'nin isci bayragi DUSMELI. Dusmuyorsa
+    # kol olu sabittir ve isaretsiz receteler de sessizce isci sayilabilirdi.
+    global ISCI_ISARETI_RE
+    _asil_isaret = ISCI_ISARETI_RE
+    ISCI_ISARETI_RE = re.compile(r"(?!x)x")  # bilerek eslesmez
+    try:
+        koru_bulgular = _fixture_receteleri()
+    finally:
+        ISCI_ISARETI_RE = _asil_isaret
+    m4 = (isciler[5:] == [True, True] and
+          [b[5] for b in koru_bulgular] == [False] * 7)
+    mutant_gecen = sum((m1, m2, m3, m4))
 
     # K1: eski defter reçetesi komut olarak bozulmadan ölçülür.
     k1 = False
@@ -623,7 +670,9 @@ def kendini_test():
     for bulgu in dosyada_receteler(defter):
         if "defter-rotasyon.py" in bulgu[0] and bulgu[3] is None:
             karar, _ = kuru_karar(bulgu[0])
-            k1 = karar == "allow"
+            # Mimar-serbest recete ISCIYE isareti TASIMAMALI: isaret allow'lu
+            # komutta gereksizdir ve mimar kolunu sessizce baypas ederdi.
+            k1 = karar == "allow" and not bulgu[5]
             break
 
     # K2: gerçek --yaz reçeteleri ayıklanamayan kovaya düşmemeli.
@@ -633,14 +682,15 @@ def kendini_test():
             if "--yaz" in bulgu[0] and bulgu[3] is not None:
                 k2 = False
     kontrol_gecen = int(k1) + int(k2)
-    print("M1 %s M2 %s M3 %s" % ("OK" if m1 else "KIRMIZI",
-                                  "OK" if m2 else "KIRMIZI",
-                                  "OK" if m3 else "KIRMIZI"))
+    print("M1 %s M2 %s M3 %s M4 %s" % ("OK" if m1 else "KIRMIZI",
+                                        "OK" if m2 else "KIRMIZI",
+                                        "OK" if m3 else "KIRMIZI",
+                                        "OK" if m4 else "KIRMIZI"))
     print("K1 %s K2 %s" % ("OK" if k1 else "KIRMIZI", "OK" if k2 else "KIRMIZI"))
     # Self-test özeti de ana kapı özetiyle aynı dört ölçüyü taşır.
-    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/3 KONTROL=%d/2" % (
+    print("RECETE=%d REDDEDILEN=%d AYIKLANAMADI=%d EVREN=%d MUTANT=%d/4 KONTROL=%d/2" % (
         len(bulgular), red, ayik, len(bulgular), mutant_gecen, kontrol_gecen))
-    return 0 if v_gecti and mutant_gecen == 3 and kontrol_gecen == 2 else 1
+    return 0 if v_gecti and mutant_gecen == 4 and kontrol_gecen == 2 else 1
 
 
 def _dogrudan_kapi_test(komut):

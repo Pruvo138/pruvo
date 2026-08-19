@@ -615,11 +615,19 @@ EKSENLER = (
 
 # ---------------------------------------------------------------------------
 # KAYITLI MUAFIYET GOVDESI — (dosya, sha256(satir metni), gerekce).
-# 🔴 BUGUN BOS: 4 Agu 2026 olcumlerinin bulgularindan HICBIRI muaf tutulmadi (serit
-# karari (d) maddesi). Mekanizma IDDIA-MUAF1/MUAF2 ile SENTETIK govde uzerinde
-# kanitlanir — bos govde mekanizmayi olduremez.
+# Bos olmasi mekanizmayi oldurmez (IDDIA-MUAF1/MUAF2 SENTETIK govde uzerinde).
 # ---------------------------------------------------------------------------
-_MUAFIYET_GOVDESI = []
+_MUAFIYET_GOVDESI = [
+    # shop/wrangler.toml:117 — Cloudflare KV namespace ID. EKSEN-D 32-hex desenine
+    # giriyor; KV namespace ID PUBLIC altyapi tanimlayicisi (credential degil) ve
+    # Wrangler [[kv_namespaces]] binding'i zaten ID'siz calismaz. Onceki commit
+    # c25fc4a4 yer tutucu (K187) yerine gercek ID'yi koydu; EKSEN-D o gunden beri
+    # kirmizi yakiyor. ID elle degismedikce (yeni namespace acilmadikca) satir sabit.
+    ("shop/wrangler.toml",
+     "bf61a1cbcb3d44fbb749929c1d974f5edf05f5f7561315611626e244f75afc83",
+     "Cloudflare KV namespace binding ID (TALEP_SAYAC) — public altyapi tanimlayici, "
+     "credential degil; Wrangler kv_namespaces binding'i ID olmadan calismaz."),
+]
 
 
 def _satir_hash(satir_metni):

@@ -31,6 +31,8 @@ import subprocess
 import sys
 import tempfile
 
+from git_ortami import sentetik_git
+
 sys.dont_write_bytecode = True
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
@@ -50,10 +52,12 @@ CAPA_M4 = ('        print("!! KAPSAM_DISI_OLCULEMEDI — DEVAM.md stage\'de yok 
 
 
 def _git(kok, *args):
-    return subprocess.run(
-        ["git", "-c", "core.hooksPath=/dev/null",
-         "-c", "user.email=test@pruvo", "-c", "user.name=test",
-         "-C", kok] + list(args), capture_output=True, text=True)
+    # Sentetik depo git'i KANONIK yardimciyla kosar (fikstur-git-sizinti-kapisi
+    # sozlesmesi): miras GIT_* kesif baglami scrub'lanir, cwd acikca sabitlenir.
+    return sentetik_git(kok, *args, kimlik_ad="test",
+                        kimlik_eposta="test@pruvo",
+                        ayarlar=["-c", "core.hooksPath=/dev/null"],
+                        capture_output=True, text=True)
 
 
 def _tavanlar():

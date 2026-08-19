@@ -110,6 +110,11 @@ MASAUSTU_EN = 1100
 BANT_PAY_TAVANI = 0.10          # A2: sticky bandin ekran payi bunun ALTINDA olmali
 ORAN_TABANI = 1.0               # A1: sepete-ekle / whatsapp
 DOKUNMA_TABANI = 44.0           # A4: mobil dokunma hedefi alt siniri (px)
+# A8: ikincil (WhatsApp) CTA'nin OLCULEN genisligi, birincil (odeme) CTA'nin en fazla
+# bu kadari olabilir. Sozlesmeden gelir (belirgin ikincillik), bugunku olcumden DEGIL:
+# gercek deger 242/317 = 0,76 — tabanla arada rahat pay var. 1,00 yazmak ekseni
+# olusuz birakirdi (esitlik = ayni genislik = ikincillik BITMIS demektir).
+IKINCIL_EN_PAYI = 0.90
 
 # Metin genisligi modeli — ORAN iddiasinda iki tarafa da ayni uygulanir.
 KARAKTER_ORANI = 0.55
@@ -895,6 +900,39 @@ def bolum_sepet(kok, wa_no):
             % (oran_gecis, ORAN_TABANI,
                "gecis penceresi yok" if not geometrik
                else "anime edilen geometri: " + ", ".join(geometrik)))
+
+    # ---- A7: GECIS GEOMETRIYE HIC DOKUNMAMALI (deponun KENDI beyani) ----------
+    # 🔴 NEDEN AYRI EKSEN (19 Agu 2026, SERIT B onarimi — OLCULEN kapi zaafi): A6
+    # yalnizca MUTLAK tabani (oran >= 1,00) sinar. `transition:.15s` (= `all`) geri
+    # konunca oran 1,94 -> 1,27'ye DUSUYOR ama taban ustunde kaldigi icin A6 YESIL
+    # kaliyordu; mutant SAG KALIYORDU. Oysa index.html'in kendi yorumu (.cart-pay-btn
+    # ustu) "GECIS YALNIZ RENK — GEOMETRI ANIME EDILMEZ" diye BEYAN eder. Bu eksen o
+    # beyani OLCER: sepet CTA'larinin `transition` bildirimi hicbir geometri ozelligi
+    # tasimamali. A6'nin yerine GECMEZ (oran olcumu aynen surer); beyan ile davranisin
+    # ayrismasini kapatir ([[bayat-beyan-kapisi]] sinifi). Kapinin gucu DUSMEDI, ARTTI:
+    # oran tesadufen taban ustunde kalsa da geometri animasyonu artik KIRMIZI yanar.
+    kontrol("CTA-A7-GECIS-GEOMETRI-YOK", not geometrik,
+            "sepet CTA'larinin `transition` bildirimi GEOMETRIYE dokunmuyor (anime "
+            "edilen: %s) — deponun beyani 'gecis YALNIZ renk'; geometri animasyonu "
+            "gorunmeyen sekmede KALICI ters render karesi dogurur"
+            % (", ".join(sorted(gecisli)) or "hicbir sey"))
+
+    # ---- A8: IKINCIL CTA FIILEN DAR MI (beyan degil OLCULEN genislik) ---------
+    # 🔴 NEDEN AYRI EKSEN (19 Agu 2026, ayni onarim): `wa_dar` yalnizca BILDIRIMI
+    # (`width:fit-content`) okur. Etiket uzayinca `fit-content` kullanilabilir
+    # genislige KILITLENIR: WhatsApp butonu 242 -> 317 px'e cikip odemeyle AYNI
+    # genislige ulasiyor, iki satira sariyor, ama bildirim hala `fit-content` oldugu
+    # icin kapi "ikincil/dar" diyordu (M11 boyle SAG KALDI). Bu eksen OLCULEN
+    # genisligi kiyaslar: ikincil kanal birincilin en fazla IKINCIL_EN_PAYI kadari
+    # olmali. Taban bugunku olcumden DEGIL sozlesmeden gelir (belirgin ikincillik);
+    # bugunku gercek deger 242/317 = 0,76 — pay rahat.
+    ikincil_en_orani = (k_wa[0] / k_pay[0]) if k_pay[0] else 1.0
+    kontrol("CTA-A8-IKINCIL-FIILEN-DAR", ikincil_en_orani <= IKINCIL_EN_PAYI,
+            "ikincil WhatsApp CTA'si OLCULEN genislikte de dar: %.0f/%.0f px = %.2f "
+            "<= %.2f (bildirim %r) — `fit-content` uzun etikette kullanilabilir "
+            "genislige kilitlenir ve 'dar' beyani FIILEN yalan olur"
+            % (k_wa[0], k_pay[0], ikincil_en_orani, IKINCIL_EN_PAYI,
+               (d_wa.get("width") or "").strip() or "-"))
 
     kucuk = [(a, h) for a, h in (("sepet odeme", k_pay[1]),
                                  ("sepet WhatsApp", k_wa[1]),

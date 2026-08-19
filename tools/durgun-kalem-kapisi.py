@@ -706,40 +706,41 @@ def _git_repo_kur(kok, defter_icerik, commit_tarihleri=None):
 
     commit_tarihleri: [(iso_tarih, devam_icerik), ...] — eskiden yeniye sirali.
     """
+    # KANONIK sentetik git (fikstur-git-sizinti-kapisi sozlesmesi, 19 Agu 2026):
+    # onceki dogrudan subprocess kurulumunda miras GIT_* kesif baglami
+    # temizlenmiyordu; sentetik_git scrub + cwd sabitleme + kimligi tek cagrida
+    # verir. Kimlik env'i (author/committer) ek_ortam ile korunur.
+    from git_ortami import sentetik_git
     kok_abs = os.path.abspath(kok)
     if not os.path.isdir(kok_abs):
         os.makedirs(kok_abs)
-    env = os.environ.copy()
-    env["GIT_AUTHOR_NAME"] = "test"
-    env["GIT_AUTHOR_EMAIL"] = "test@pruvo"
-    env["GIT_COMMITTER_NAME"] = "test"
-    env["GIT_COMMITTER_EMAIL"] = "test@pruvo"
-    subprocess.run(["git", "-C", kok_abs, "init", "-q"],
-                   env=env, check=True, capture_output=True)
-    subprocess.run(["git", "-C", kok_abs, "config", "user.email",
-                    "test@pruvo"], env=env, check=True, capture_output=True)
-    subprocess.run(["git", "-C", kok_abs, "config", "user.name",
-                    "test"], env=env, check=True, capture_output=True)
+    kimlik = {"GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@pruvo",
+              "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "test@pruvo"}
+
+    def _g(*args, ek=None, **kw):
+        ortak = dict(kimlik)
+        if ek:
+            ortak.update(ek)
+        return sentetik_git(kok_abs, *args, kimlik_ad="test",
+                            kimlik_eposta="test@pruvo", ek_ortam=ortak,
+                            check=True, capture_output=True, **kw)
+
+    _g("init", "-q")
+    _g("config", "user.email", "test@pruvo")
+    _g("config", "user.name", "test")
     defter_yol = os.path.join(kok_abs, "DEVAM.md")
     if commit_tarihleri is None:
         with open(defter_yol, "w", encoding="utf-8") as f:
             f.write(defter_icerik)
-        subprocess.run(["git", "-C", kok_abs, "add", "DEVAM.md"],
-                       env=env, check=True)
-        subprocess.run(["git", "-C", kok_abs, "commit", "-q", "-m", "temel"],
-                       env=env, check=True)
+        _g("add", "DEVAM.md")
+        _g("commit", "-q", "-m", "temel")
     else:
         for tarih, icerik in commit_tarihleri:
             with open(defter_yol, "w", encoding="utf-8") as f:
                 f.write(icerik)
-            env_l = env.copy()
-            env_l["GIT_AUTHOR_DATE"] = tarih
-            env_l["GIT_COMMITTER_DATE"] = tarih
-            subprocess.run(["git", "-C", kok_abs, "add", "DEVAM.md"],
-                           env=env_l, check=True)
-            subprocess.run(["git", "-C", kok_abs, "commit", "-q",
-                            "-m", "t:%s" % tarih],
-                           env=env_l, check=True)
+            tarihli = {"GIT_AUTHOR_DATE": tarih, "GIT_COMMITTER_DATE": tarih}
+            _g("add", "DEVAM.md", ek=tarihli)
+            _g("commit", "-q", "-m", "t:%s" % tarih, ek=tarihli)
     return kok_abs
 
 

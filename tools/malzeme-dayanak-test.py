@@ -1554,7 +1554,7 @@ def main(argv=None, davranis=True):
     if not drift_tamam:
         print("")
         print("KIRMIZI: ege-bilgi.md MALZEME blogu filamentler.json'dan bayat "
-              "(cozum: python3 tools/ege-malzeme.py)")
+              "(cozum: ISCIYE: python3 tools/ege-malzeme.py)")
         kirmizi = True
 
     if kirmizi:

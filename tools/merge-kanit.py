@@ -267,21 +267,33 @@ def _kendini_test_alet(script_yolu):
         )
 
     def _kur_sentetik_repo(repo_yolu, dallar):
-        """Gecici git deposu kur: main + verilen dallar --no-ff merge edilmis."""
+        """Gecici git deposu kur: main + verilen dallar --no-ff merge edilmis.
+
+        KANONIK sentetik git (fikstur-git-sizinti-kapisi sozlesmesi, 19 Agu
+        2026): dogrudan subprocess kurulumu miras GIT_* kesif baglamini
+        temizlemiyordu; sentetik_git scrub + cwd sabitlemeyi tek yoldan verir.
+        """
+        from git_ortami import sentetik_git
+
+        def _g(*args):
+            return sentetik_git(str(repo_yolu), *args, kimlik_ad="Test",
+                                kimlik_eposta="test@pruvo.local",
+                                check=True, capture_output=True)
+
         repo_yolu.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["git", "-C", str(repo_yolu), "init"], check=True, capture_output=True)
-        subprocess.run(["git", "-C", str(repo_yolu), "config", "user.email", "test@pruvo.local"], check=True, capture_output=True)
-        subprocess.run(["git", "-C", str(repo_yolu), "config", "user.name", "Test"], check=True, capture_output=True)
+        _g("init")
+        _g("config", "user.email", "test@pruvo.local")
+        _g("config", "user.name", "Test")
         (repo_yolu / "kok").write_text("kok")
-        subprocess.run(["git", "-C", str(repo_yolu), "add", "kok"], check=True, capture_output=True)
-        subprocess.run(["git", "-C", str(repo_yolu), "commit", "-m", "kok"], check=True, capture_output=True)
+        _g("add", "kok")
+        _g("commit", "-m", "kok")
         for dal in dallar:
-            subprocess.run(["git", "-C", str(repo_yolu), "checkout", "-b", dal], check=True, capture_output=True)
+            _g("checkout", "-b", dal)
             (repo_yolu / f"{dal}.txt").write_text(dal)
-            subprocess.run(["git", "-C", str(repo_yolu), "add", f"{dal}.txt"], check=True, capture_output=True)
-            subprocess.run(["git", "-C", str(repo_yolu), "commit", "-m", f"{dal} commit"], check=True, capture_output=True)
-            subprocess.run(["git", "-C", str(repo_yolu), "checkout", "main"], check=True, capture_output=True)
-            subprocess.run(["git", "-C", str(repo_yolu), "merge", "--no-ff", dal, "-m", f"merge {dal}"], check=True, capture_output=True)
+            _g("add", f"{dal}.txt")
+            _g("commit", "-m", f"{dal} commit")
+            _g("checkout", "main")
+            _g("merge", "--no-ff", dal, "-m", f"merge {dal}")
 
     def _sil_repo(repo_yolu):
         shutil.rmtree(repo_yolu, ignore_errors=True)

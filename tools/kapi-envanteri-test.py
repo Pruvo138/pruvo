@@ -74,16 +74,38 @@ def mutant_kopya(kok, ad, eski, yeni):
     return yol
 
 
-def envanter_kostur(repo):
-    """Envanteri --repo <repo> ile kostur. (returncode, stdout+stderr) dondur."""
+def envanter_kostur(repo, ek_env=None, betik=None):
+    """Envanteri --repo <repo> ile kostur. (returncode, stdout+stderr) dondur.
+
+    `ek_env` ile ISCI baglami simule edilir (K219): `PRUVO_ISCI_KOSUMU` mirasla alt
+    surece gecerse kapilar `allow ISCI(...)` doner; prob bunu "REDDETMEDI" diye
+    yazmamali. Taban kosumda o degisken BILEREK silinir ki mimar/isci farki OLCULEBILIR
+    olsun (yoksa cagiran oturumun ambiyansi olcumu belirlerdi)."""
     ortam = dict(os.environ)
-    for k in ("CLAUDE_PROJECT_DIR", "PRUVO_MIMAR_ONAY"):
+    for k in ("CLAUDE_PROJECT_DIR", "PRUVO_MIMAR_ONAY",
+              "PRUVO_ISCI_KOSUMU", "PRUVO_CLAUDE_ISCI_IZNI"):
         ortam.pop(k, None)
+    if ek_env:
+        ortam.update(ek_env)
     sonuc = subprocess.run(
-        [sys.executable, ENVANTER, "--repo", repo],
+        [sys.executable, betik or ENVANTER, "--repo", repo],
         capture_output=True, text=True, env=ortam,
     )
     return sonuc.returncode, (sonuc.stdout or "") + (sonuc.stderr or "")
+
+
+def _kapi_satiri(cikti, kapi_adi):
+    """Envanter tablosundaki O kapinin satiri (girintisiz, kapi adiyla BASLAYAN).
+    Bulunamazsa "" — cagiran taraf bunu KIRMIZI sayar."""
+    for satir in cikti.splitlines():
+        if satir.startswith(kapi_adi + " ") or satir.rstrip() == kapi_adi:
+            return satir
+    return ""
+
+
+def _kapi_rapor_satirlari(cikti, kapi_adi):
+    """EKSIKLER listesindeki (girintili "  - <kapi>: ...") satirlar."""
+    return [s for s in cikti.splitlines() if s.strip().startswith("- " + kapi_adi + ":")]
 
 
 def izole_kopya_kur(dst):
@@ -147,9 +169,15 @@ def main():
         print("EKSIK: " + ENVANTER)
         return 1
 
+    # Prob modulu ERKEN yuklenir: kapi adlari (GATES) ve jetonlar (OLCULEMEDI /
+    # MUAF_BAGLAM) tablodan TURETILSIN, teste elle kopyalanmasin.
+    probe = probe_yukle(ENVANTER)
+    KAPI_ADLARI = tuple(g["ad"] for g in probe.GATES)
+
     # --- 1) Ana repo: kosar + en az 5 kapi listeler ---
     ana_rc, ana_out = envanter_kostur(MAIN)
-    satir_sayisi = ana_out.count("GECER") + ana_out.count("DUSUK")
+    satir_sayisi = sum(1 for s in ana_out.splitlines()
+                       if any(s.startswith(ad + " ") for ad in KAPI_ADLARI))
     kontroller.append((
         "ana repo: envanter kosar + >=5 kapi listeler",
         satir_sayisi >= 5,
@@ -215,7 +243,6 @@ def main():
 
         # --- 5) K141 sentetik karar vakalari ---
         fikstur = fikstur_yaz(os.path.join(kok, "fikstur"))
-        probe = probe_yukle(ENVANTER)
         beklenen = {
             "V1": "deny",
             "V2": "allow",
@@ -250,8 +277,8 @@ def main():
 
         m2 = mutant_kopya(
             kok, "mutant-m2",
-            'if sonuc.returncode != 0 or not cikti:\n        return "OLCULEMEDI", sonuc.returncode, stderr_ilk',
-            'if not cikti:\n        return "OLCULEMEDI", sonuc.returncode, stderr_ilk',
+            'if sonuc.returncode != 0 or not cikti:\n        return OLCULEMEDI, sonuc.returncode, stderr_ilk',
+            'if not cikti:\n        return OLCULEMEDI, sonuc.returncode, stderr_ilk',
         )
         m2_probe = probe_yukle(m2)
         m2_red = tek_karar(m2_probe, fikstur["V4RC"])[0] == "allow"
@@ -297,6 +324,125 @@ def main():
         m6_red = not m6_probe._nobet_karar(
             fikstur["V3"], {"red": {}, "kabul": {}, "tool_name": "Bash"})[1]
         mutantlar.append(("M6", m6_red, "V3 dusuruldu=%s" % m6_red))
+        # --- 6b) K219: PROB KENDI BAGLAMINI DEGIL, KAPININ MIMAR DAVRANISINI OLCER ---
+        # 🔴 OLCULMUS KUSUR: prob sentetik cagriyi kendi baglaminda kuruyordu. Bir isci
+        # turunda kostugunda `PRUVO_ISCI_KOSUMU` mirasla alt surece geciyor, kapilar
+        # DOGRU davranip `allow ISCI(sarmalayici:kimi)` donuyor, prob de bunu
+        # "reddetmesi gerekeni REDDETMEDI" diye yaziyordu (K206 merge chip'i: `5/7 kapi
+        # TAM`, rc=1 — oysa AYNI kapi o oturumda fiilen 4 kez reddetmisti).
+        ISCI_ENV = {"PRUVO_ISCI_KOSUMU": "kimi"}
+        KIMLIK_KAPILARI = ("mimar-icra-kapisi", "mimar-kod-kilidi")
+
+        isci_rc, isci_out = envanter_kostur(MAIN, ek_env=ISCI_ENV)
+        kontroller.append((
+            "K219-a: hukum BAGLAMDAN BAGIMSIZ — ISCI kosumunun rc'si MIMAR kosumuyla AYNI",
+            isci_rc == ana_rc,
+            "isci-exit=%d mimar-exit=%d" % (isci_rc, ana_rc),
+        ))
+        for kapi in KIMLIK_KAPILARI:
+            m_satir = _kapi_satiri(ana_out, kapi)
+            i_satir = _kapi_satiri(isci_out, kapi)
+            i_reddetmedi = any("REDDETMEDI" in s
+                               for s in _kapi_rapor_satirlari(isci_out, kapi))
+            kontroller.append((
+                "K219-a: %s — ISCI baglaminda 'REDDETMEDI' BASILMAZ, satir MIMAR "
+                "baglamiyla BIREBIR ayni" % kapi,
+                bool(i_satir) and i_satir == m_satir and not i_reddetmedi,
+                "isci=%r mimar=%r reddetmedi=%s" % (i_satir.strip(), m_satir.strip(),
+                                                    i_reddetmedi),
+            ))
+            kontroller.append((
+                "K219-b: %s — MIMAR baglaminda NOBETTE TAM (GECER)" % kapi,
+                "GECER" in m_satir,
+                "satir=%r" % m_satir.strip(),
+            ))
+        kontroller.append((
+            "K219-b: MIMAR baglaminda ana repo envanteri rc=0 (taban olcumu)",
+            ana_rc == 0,
+            "exit=%d — kirmiziysa gerekce EKSIKLER listesindedir" % ana_rc,
+        ))
+
+        # NEGATIF: GERCEKTEN olu bir kapi (her cagriya `allow`) hala KIRMIZI kalmali ve
+        # "REDDETMEDI" YAZMALI — MUAF_BAGLAM'a KACMAMALI. Bu, K219 onariminin kapiyi
+        # gevsetmedigini olcer (sahte yesil, sahte kirmizidan beterdir).
+        olu_red_ok, olu_kabul_ok, olu_ayrinti = probe._nobet_karar(
+            fikstur["V2"], {"red": {}, "kabul": {}, "tool_name": "Bash"})
+        kontroller.append((
+            "K219-c NEGATIF: her cagriya allow diyen OLU kapi hala KIRMIZI "
+            "(MUAF_BAGLAM'a KACMAZ)",
+            olu_red_ok is False and olu_kabul_ok is True
+            and probe.MUAF_BAGLAM not in olu_ayrinti,
+            "red_ok=%r kabul_ok=%r ayrinti=%s" % (olu_red_ok, olu_kabul_ok, olu_ayrinti),
+        ))
+
+        # MUAF_BAGLAM vakasi: izole kopyanin kimlik eksenine SOKULEMEZ bir kol eklenir
+        # (ne payload ne ortam ile kapatilabilir). Prob "kapi olu" DEMEMELI, "yesil" de.
+        copy_muaf = os.path.join(kok, "repo-muaf")
+        izole_kopya_kur(copy_muaf)
+        kimlik_yolu = os.path.join(copy_muaf, "tools", "mimar_kimlik.py")
+        with open(kimlik_yolu, encoding="utf-8") as f:
+            kimlik_kaynak = f.read()
+        muaf_capa = '    aid = girdi.get("agent_id")'
+        muaf_kuruldu = kimlik_kaynak.count(muaf_capa) == 1
+        if muaf_kuruldu:
+            with open(kimlik_yolu, "w", encoding="utf-8") as f:
+                f.write(kimlik_kaynak.replace(
+                    muaf_capa,
+                    '    if os.path.exists(os.sep):\n'
+                    '        return "sokulemez-eksen"\n' + muaf_capa, 1))
+        muaf_rc, muaf_out = envanter_kostur(copy_muaf, ek_env=ISCI_ENV)
+        muaf_satirlar = [_kapi_satiri(muaf_out, k) for k in KIMLIK_KAPILARI]
+        kontroller.append((
+            "K219-d: kimlik ekseni SOKULEMEZ -> jeton %s; 'REDDETMEDI' BASILMAZ, "
+            "rc de YESIL degil" % probe.MUAF_BAGLAM,
+            muaf_kuruldu and muaf_rc == 1
+            and all(probe.MUAF_BAGLAM in s for s in muaf_satirlar)
+            and "REDDETMEDI" not in muaf_out,
+            "capa=%s exit=%d satirlar=%r" % (
+                muaf_kuruldu, muaf_rc, [s.strip() for s in muaf_satirlar]),
+        ))
+        kontroller.append((
+            "K219-e: jeton AYRIKLIGI — %s ⊄ %s ve tersi (biri digerinin alt dizesi "
+            "olamaz)" % (probe.MUAF_BAGLAM, probe.OLCULEMEDI),
+            probe.MUAF_BAGLAM not in probe.OLCULEMEDI
+            and probe.OLCULEMEDI not in probe.MUAF_BAGLAM,
+            "MUAF_BAGLAM=%r OLCULEMEDI=%r" % (probe.MUAF_BAGLAM, probe.OLCULEMEDI),
+        ))
+
+        # M7/M8 — K219'un IKI kolu, HER BIRI KENDI HEDEF KOLUNU ayri kanitlar ([[K182]]).
+        m7 = mutant_kopya(
+            kok, "mutant-m7",
+            "    for ad in anahtarlar:\n        ortam.pop(ad, None)\n"
+            "        payload.pop(ad, None)",
+            "    for ad in ():\n        ortam.pop(ad, None)\n"
+            "        payload.pop(ad, None)",
+        )
+        _m7_rc, m7_out = envanter_kostur(MAIN, ek_env=ISCI_ENV, betik=m7)
+        m7_satirlar = [_kapi_satiri(m7_out, k) for k in KIMLIK_KAPILARI]
+        m7_red = all(probe.MUAF_BAGLAM in s for s in m7_satirlar)
+        mutantlar.append((
+            "M7", m7_red,
+            "HEDEF KOL=kimlik SOKUMU. Taban: ISCI baglaminda iki kimlik kapisi GECER "
+            "(%r). Mutant: %s (%r)" % (
+                [_kapi_satiri(isci_out, k).split()[-1] for k in KIMLIK_KAPILARI],
+                probe.MUAF_BAGLAM, [s.split()[-1] if s else "" for s in m7_satirlar])))
+
+        m8 = mutant_kopya(
+            kok, "mutant-m8",
+            "    if kalan is not None:\n        return MUAF_BAGLAM, 0, (",
+            "    if False and kalan is not None:\n        return MUAF_BAGLAM, 0, (",
+        )
+        _m8_rc, m8_out = envanter_kostur(copy_muaf, ek_env=ISCI_ENV, betik=m8)
+        m8_satirlar = [_kapi_satiri(m8_out, k) for k in KIMLIK_KAPILARI]
+        m8_red = ("REDDETMEDI" in m8_out
+                  and not any(probe.MUAF_BAGLAM in s for s in m8_satirlar))
+        mutantlar.append((
+            "M8", m8_red,
+            "HEDEF KOL=kimlik DOGRULAMASI. Taban: sokulemez eksende hukum %s. "
+            "Mutant: sahte kirmizi geri geldi (REDDETMEDI=%s, %s=%s)" % (
+                probe.MUAF_BAGLAM, "REDDETMEDI" in m8_out, probe.MUAF_BAGLAM,
+                any(probe.MUAF_BAGLAM in s for s in m8_satirlar))))
+
         for ad, gecti, ayrinti in mutantlar:
             kontroller.append((ad + " mutant", gecti, ayrinti))
 

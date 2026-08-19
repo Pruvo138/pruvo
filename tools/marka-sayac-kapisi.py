@@ -538,8 +538,18 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
         kapi.iddia("FAIL_CLOSED/jenerator", False, str(e)[:120])
         print("FAIL-CLOSED: jeneratör durdu: %s" % (str(e)[:200],))
         return 1, kapi, {}
-    marka_sayfalari = {k: v for k, v in sayfalar.items() if k.count("/") == 1}
-    model_sayfalari = {k: v for k, v in sayfalar.items() if k.count("/") == 2}
+    # 🔴 SAYFALAMA SINIFI (19 Agu 2026, SERIT B onarimi — OLCULEN COKME): sayfalama
+    # sayfalari `marka/<slug>/sayfa/<N>` uc egik cizgi tasir; slash sayisina dayanan
+    # eski iki-sinif ayrimi (1=marka, 2=model) onlari HICBIR sinifa koymuyordu ve
+    # `erisim` sozlugune HIC yazilmiyorlardi -> asagidaki dogrulama dongusu
+    # `KeyError: marka/volkswagen/sayfa/18` ile COKUYORDU (kapi hukum vermeden oluyor,
+    # yani ekseni sessizce olcusuz kaliyordu). Sayfalama sayfasi ERISIM bakimindan
+    # model sayfasiyla ayni desendedir: kendi diliminin kartlarini tasir.
+    sayfalama_sayfalari = {k: v for k, v in sayfalar.items() if "/sayfa/" in k}
+    marka_sayfalari = {k: v for k, v in sayfalar.items()
+                       if k.count("/") == 1 and k not in sayfalama_sayfalari}
+    model_sayfalari = {k: v for k, v in sayfalar.items()
+                       if k.count("/") == 2 and k not in sayfalama_sayfalari}
     if len(marka_sayfalari) < 50 or len(model_sayfalari) < 500:
         print("OLCULEMEDI: sayfa evreni beklenenden küçük (marka=%d model=%d)"
               % (len(marka_sayfalari), len(model_sayfalari)))
@@ -553,6 +563,12 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
 
     # ---------------------------------------------------------- ulaşılabilir tekil kümeler
     erisim = {}          # marka yolu -> {kategori: set(id)}
+
+    def _sayfalama_alt(kok_yol):
+        """`<kok>/sayfa/<N>` yuzeyleri — gezintiyle ULASILABILIR devam dilimleri."""
+        onek = kok_yol + "/sayfa/"
+        return [v for k, v in sayfalama_sayfalari.items() if k.startswith(onek)]
+
     for yol, s in marka_sayfalari.items():
         kume = {}
         for kat, pid in s["kartlar"]:
@@ -565,10 +581,35 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                 continue
             for kat, pid in mp["kartlar"]:
                 kume.setdefault(kat, set()).add(pid)
+        # 🔴 SAYFALAMA DILIMLERI DE ERISILEBILIR (19 Agu 2026, SERIT B onarimi):
+        # sayfalama geldiginden beri kok marka sayfasi markanin TAMAMINI basmiyor,
+        # kalani `<yol>/sayfa/<N>` yuzeylerinde ve oraya SAYFA GEZINTISIYLE ulasilir.
+        # Kok sayfanin KENDI beyani (build.py `sayfa_kalemleri`, sayfa==1 kolu) zaten
+        # TUM erisilebilir kumeyi sayar; erisim turetmesi o dilimleri saymayinca
+        # TOPLAM ve KAYIP eksenleri 69 markada KIRMIZI yaniyordu (olculdu — kapi
+        # daha once KeyError ile coktugu icin bu satirlar hic gorunmemisti).
+        for ds in _sayfalama_alt(yol):
+            for kat, pid in ds["kartlar"]:
+                kume.setdefault(kat, set()).add(pid)
+            for kat, pid in ds["baglar"]:
+                kume.setdefault(kat, set()).add(pid)
         erisim[yol] = kume
     for yol, s in model_sayfalari.items():
         kume = {}
         for kat, pid in s["kartlar"]:
+            kume.setdefault(kat, set()).add(pid)
+        for ds in _sayfalama_alt(yol):        # model sayfasinin kendi sayfalamasi
+            for kat, pid in ds["kartlar"]:
+                kume.setdefault(kat, set()).add(pid)
+        erisim[yol] = kume
+    # Sayfalama sayfalari: kendi diliminin kartlari (build.py `sayfa_kalemleri`
+    # kolu 1. sayfada tum erisilebilir kumeyi, devam sayfasinda KENDI dilimini
+    # beyan eder; erisim de o yuzeyin KENDI kartlarindan turer).
+    for yol, s in sayfalama_sayfalari.items():
+        kume = {}
+        for kat, pid in s["kartlar"]:
+            kume.setdefault(kat, set()).add(pid)
+        for kat, pid in s["baglar"]:
             kume.setdefault(kat, set()).add(pid)
         erisim[yol] = kume
 
@@ -696,6 +737,16 @@ def olc(ozet=False, dokum=False, sayfa_detay=None):
                    "üretilen HTML %d bayt > tavan %d" % (s["bayt"], HTML_TAVAN))
 
     for yol, s in sayfalar.items():
+        # 🔴 FAIL-CLOSED (19 Agu 2026): erisim turetmesi bu yolu URETMEDIYSE eskiden
+        # KeyError ile COKUYORDUK — cokme hukum DEGILDIR, o yuzey sessizce olcusuz
+        # kalirdi. Artik ADIYLA KIRMIZI: yeni bir sayfa SINIFI (or. sayfalama)
+        # eklendiginde erisim turetmesinin de genisletilmesi ZORUNLU olur.
+        if yol not in erisim:
+            kapi.iddia("ERISIM_TURETILMEDI/" + yol, False,
+                       "sayfa taramada VAR ama erisim turetmesi bu yolu URETMEDI -> "
+                       "yeni bir sayfa sinifi eklenmis ve turetme genisletilmemis "
+                       "(sinif ayrimi: marka=1 egik cizgi, model=2, sayfalama=/sayfa/)")
+            continue
         kume = tumu(erisim[yol])
         kapi.iddia("TOPLAM/" + yol, s["toplam"] == len(kume),
                    "SSR %s, ulaşılabilir %d" % (s["toplam"], len(kume)))

@@ -1059,11 +1059,24 @@ def baslik_uyelikleri(urun, evren, ad_kanonu, azami_ad, ek_markalar=None):
         ust = min(azami_ad, len(bw) - i)
         for n in range(ust, 0, -1):
             kan = ad_kanonu.get(tuple(bw[i:i + n]))
-            if kan and kan not in uyeler and kan not in eklendi:
+            if not kan:
+                continue                     # AD EŞLEŞMEDİ: daha kısa pencereyi dene
+            # 🔴 K216: TÜKETİM AD EŞLEŞMESİNE BAĞLIDIR, EKLEME YARGISINA DEĞİL.
+            # ÖLÇÜLEN KUSUR (19 Ağu 2026, taban 29.461 ürün): iki koşul TEK `if`e
+            # katlanmıştı (`kan and kan not in uyeler and kan not in eklendi`), yani
+            # uzun eşleşme ZATEN ÜYE ise `vuruldu` atanmıyor, jetonlar TÜKETİLMİYOR ve
+            # `i += 1` ile sonraki pozisyonda KISA ad ateşliyordu. Sonuç:
+            # marka=["Land Rover"] ürünleri `/marka/rover/` sayfasına düşüyordu
+            # (sayfa 92 ↔ katalog 2; 92 kalemin 88'i Land Rover üyesi) — yani bu
+            # fonksiyonun KENDİ docstring'indeki "UZUN-ÖNCE KURALI" sözleşmesi
+            # yazılıydı ama uygulanmıyordu. Kanonik dip: index.html `baslikMarkalari`
+            # tüketimi `if(kan)` üstünde yapar, tekrar süzgecini (`out.indexOf`)
+            # AYRI tutar; iki yüzey ancak böyle BİREBİR aynı sırayı yürür.
+            vuruldu = n
+            if kan not in uyeler and kan not in eklendi:
                 eklendi.add(kan)
                 sonuc.append(kan)
-                vuruldu = n
-                break
+            break
         i += vuruldu or 1
     return sonuc
 

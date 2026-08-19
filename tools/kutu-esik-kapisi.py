@@ -76,6 +76,16 @@ def kutu_bayt(yol):
         return dosya.read()
 
 
+def ci_ortaminda():
+    """GERCEK_KUTU ekseninin KAPSAM_DISI sayilabildigi tek ortam: GitHub runner.
+
+    Yerel kosumda kutu yoksa eksen KIRMIZI kalir (fail-closed korunur);
+    runner'da mimar kutusu YAPISAL olarak yoktur, olculemezlik bilgi tasimaz
+    (chip-duzeni-kapisi'nin KUTU_KAPSAM_DISI deseni, CI-tespitine daraltilmis).
+    """
+    return os.environ.get("GITHUB_ACTIONS") == "true"
+
+
 def hedef_kutu_mu(file_path, kutu_yolu):
     try:
         return os.path.realpath(os.path.expanduser(file_path)) == os.path.realpath(
@@ -527,8 +537,13 @@ def kendini_test():
     print("KENDINI-TEST: %d/%d" % (yesil, len(sonuclar)))
 
     if gercek_once is None:
-        print("GERCEK_KUTU_BAYT: OLCULEMEDI: %s" % gercek_hata)
-        gercek_ayni = False
+        if ci_ortaminda():
+            print("GERCEK_KUTU_BAYT: KUTU_KAPSAM_DISI (CI ortami; %s)" %
+                  gercek_hata)
+            gercek_ayni = True
+        else:
+            print("GERCEK_KUTU_BAYT: OLCULEMEDI: %s" % gercek_hata)
+            gercek_ayni = False
     else:
         try:
             gercek_sonra = kutu_bayt(gercek_kutu)

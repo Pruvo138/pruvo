@@ -83,6 +83,19 @@ function ortam(opts = {}) {
   if (opts.rate === "limit") {
     env.TALEP_RATE_LIMIT = { async limit() { return { success: false }; } };
   }
+  if (opts.sayac === "ok") {
+    env.sayacCalls = [];
+    env.TALEP_SAYAC = { put(key, value, options) {
+      env.sayacCalls.push({ key, value, options });
+      return Promise.resolve();
+    } };
+  }
+  if (opts.sayac === "throw") {
+    env.TALEP_SAYAC = { put() { throw new Error("KV put throw"); } };
+  }
+  if (opts.sayac === "reject") {
+    env.TALEP_SAYAC = { put() { return Promise.reject(new Error("KV put reject")); } };
+  }
   return env;
 }
 
@@ -332,6 +345,56 @@ await iddia("D12", async () => {
   const kayit = await loglu(() => talepKaydet(siteIstek(basliklar()), ortam({ prepare: "config" })));
   const body = await json(kayit.sonuc);
   return body.kod === null && kayit.log.includes("sebep=yapilandirma") && !kayit.log.includes("d1_hata");
+});
+
+await iddia("KV1", async () => {
+  const env = ortam({ d1: "down", sayac: "ok" });
+  const kayit = await loglu(() => talepKaydet(siteIstek(basliklar()), env));
+  const body = await json(kayit.sonuc);
+  const cagri = env.sayacCalls && env.sayacCalls[0];
+  return kayit.sonuc.status === 200 && body.kod === null && env.sayacCalls.length === 1 &&
+    cagri.key.startsWith("talep_hata:") && cagri.key.includes(":d1_hata:") &&
+    cagri.value === "1" && cagri.options && cagri.options.expirationTtl === 2592000;
+});
+
+await iddia("KV2", async () => {
+  let reddedilmemis = 0;
+  const dinleyici = () => { reddedilmemis++; };
+  process.on("unhandledRejection", dinleyici);
+  try {
+    const govde = basliklar();
+    const yok = await talepKaydet(siteIstek(govde), ortam({ d1: "down" }));
+    const withBinding = await talepKaydet(siteIstek(govde), ortam({ d1: "down", sayac: "ok" }));
+    const yokGovde = await json(yok);
+    const bindingGovde = await json(withBinding);
+    await new Promise((resolve) => setImmediate(resolve));
+    return yok.status === withBinding.status && JSON.stringify(yokGovde) === JSON.stringify(bindingGovde) &&
+      reddedilmemis === 0;
+  } finally {
+    process.off("unhandledRejection", dinleyici);
+  }
+});
+
+await iddia("KV3", async () => {
+  const env = ortam({ d1: "down", sayac: "throw" });
+  const kayit = await loglu(() => talepKaydet(siteIstek(basliklar()), env));
+  const body = await json(kayit.sonuc);
+  return kayit.sonuc.status === 200 && body.kod === null;
+});
+
+await iddia("KV4", async () => {
+  let reddedilmemis = 0;
+  const dinleyici = () => { reddedilmemis++; };
+  process.on("unhandledRejection", dinleyici);
+  try {
+    const env = ortam({ d1: "down", sayac: "reject" });
+    const res = await talepKaydet(siteIstek(basliklar()), env);
+    const body = await json(res);
+    await new Promise((resolve) => setImmediate(resolve));
+    return res.status === 200 && body.kod === null && reddedilmemis === 0;
+  } finally {
+    process.off("unhandledRejection", dinleyici);
+  }
 });
 
 await iddia("E1", async () => {

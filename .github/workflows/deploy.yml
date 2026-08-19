@@ -223,6 +223,18 @@ jobs:
       - name: Kapali aile fiyat beyani kapisi (uretilen sayfalar + ana sayfa karti)
         run: python3 tools/kapali-aile-fiyat-kapisi.py
 
+      # YAYIN IC-DIL KAPISI — KAYNAK KOLU. Ayni sozlugu ve ayni yorum lexer'ini KAYNAK
+      # dosyalara uygular (index.html satir-ici <script> yorumu sinifi; 31 Tem'de boyle
+      # bir ic-yol ifsasi dalda hicbir yerde kirmizi yanmadan main'e girmisti). Asagidaki
+      # yayin kolunun YERINE GECMEZ: kapsamlar farkli (kaynak yuzey / uretilen sayfalar).
+      # 🔴 NEDEN BU JOB'DA (19 Agu 2026, deploy-aclik E2b hukmu): kol SESSIZ SINIFTIR —
+      # uretimsiz job'da rc=0 kalir ama olctugu yuzey 8'den 7 dosyaya duser
+      # (index.built.html olcum disi kalir; tools/deploy-aclik-kapisi.py kayit tablosu).
+      # Onceki yeri serit-a2 URETICISIZDI; kol buraya, build.py'den SONRAYA tasindi ki
+      # olculen yuzey TAM olsun. Bloklayici serit degismedi (build de A seridi).
+      - name: Yayin ic-dil kapisi — KAYNAK kolu (uretilmis agacta tam yuzey)
+        run: python3 tools/yayin-ic-dil-kapisi.py --kaynak
+
       # YAYIN IC-DIL KAPISI: tarayiciya INEN kod metninde (HTML yorumu + <style> icindeki
       # CSS yorumu + JS yorumlari) ic gelistirici dili aramaz. Olculdu 31 Tem: katalog
       # metninde yasakladigimiz uretim-sureci dili ('filament', '.scad'/'OpenSCAD', 'STL',
@@ -240,47 +252,23 @@ jobs:
       # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
       # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
       # indirilebiliyordu (ic araclar + ticari mahremiyet; denetim 2026-07-15).
+      # 🔴 19 AGU 2026 — KABUK BLOGU ARACA TASINDI (K80 blokajinin (a) yolu, mimar hukmu).
+      # Bu adim 39 satirlik bir kabuk bloguydu (`mkdir` · `cp` · `if [ ... ]` ·
+      # `while IFS= read -r`). tools/is-akisi-kapisi.py'nin K80 kolu DEGISEN her CI adimini
+      # hedef commitin agacinda KOSTURUP yesil gormek zorundadir, ama kosturucusu yalniz
+      # `python3 <betik>` / `node <betik>` bicimini ayristirir -> `mkdir` jetonunda
+      # OLCULEMEDI verip push'u fail-closed BLOKLUYORDU. Yani sitenin YAYIN ADIMI, metni
+      # her degistiginde CI'ya girmeden once hicbir yerde OLCULEMIYORDU.
+      # (b) yolu — K80'e "kabuk blogu muafiyeti" — REDDEDILDI: kapinin cekirdek amaci tam
+      # olarak "degisen yayin adimi olculmeden gecmesin"dir ([[kapi-kapsam-genisletme-tuzagi]]).
+      # DAVRANIS BIREBIR AYNI: esdegerlik ANLATILMADI, OLCULDU — eski kabuk blogu ile arac
+      # ayni fikstur agacinda kosturulup uretilen `_site` DOSYA SAYISI + HER YOLUN SHA256'si
+      # duzleminde karsilastirildi (fark 0). Beyaz liste + fail-closed kurallarin TEK KAYNAGI
+      # artik tools/yayin-topla.py::MANIFESTO; "yayin su varligi tasiyor mu" sorusunu soran
+      # nobetciler (is-akisi-kapisi E_ZORUNLU_VARLIKLAR · jenerator/test/kabul.py TEST 4)
+      # METIN ARAMAZ, o manifestoyu okur.
       - name: Yayin klasorunu topla (beyaz liste)
-        run: |
-          mkdir _site
-          # Ana sayfa: build.py'nin urettigi YAYIN kopyasi (script src'leri ?v=<hash>
-          # ile onbellek-kirici surumlu). KAYNAK index.html yayina girmez.
-          cp index.built.html _site/index.html
-          # ozet.json = FAZ 3 ilk-boyama dosyasi (build.py render_ozet uretir). Bayrak
-          # (index.html EDGE_KATALOG) KAPALIYKEN site onu cekmez; yine de yayina girer ki
-          # bayrak acildigi an dosya CDN'de hazir olsun (eklenmeseydi bayrak acilinca
-          # ana sayfa 404 alip bos kalirdi).
-          # konfigur.js = dekor konfiguratoru modulu (urunler.json "konfigur" alanli urun
-          # sayfalari yukler; bugun urun yok, dosya yayinda hazir bekler — taban-fiyatlar deseni).
-          # JS varliklari _yayin/'dan gelir: build.py onlarin YORUMU SOYULMUS yayin
-          # kopyasini oraya yazar (kaynak dosyalar depoda tam dokumantasyonla KALIR,
-          # tarayiciya inmez). _yayin/ yoksa/eksikse `cp` HATA verir -> yayin durur
-          # (fail-closed; sessizce yorumlu kaynak yayinlanamaz).
-          cp _yayin/secenekler.js _yayin/konfigur.js _yayin/filament-veri.js _yayin/taban-fiyatlar.js _site/
-          cp urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
-          cp -r urun _site/
-          # SAYFA VARLIKLARI (/varlik/*.css,*.js): build.py'nin urettigi icerik-adresli
-          # same-origin dosyalar. Sayfalar bunlara REFERANS verir (gomulu degil) -> dizin
-          # eksik/bos gelirse tum sayfalar CIPLAK yayinlanirdi; fail-closed kontrol edilir.
-          # Yorumlari uretim aninda soyulmustur (build.varlik_adres), bu yuzden _yayin/ yok.
-          if [ ! -d varlik ] || [ -z "$(ls -A varlik)" ]; then echo "HATA: varlik/ yok veya bos (build.py kosmadi mi?) -> sayfalar ciplak kalir"; exit 1; fi
-          cp -r varlik _site/varlik
-          # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
-          # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik
-          # yayina girer, elle beyaz-liste tutulmaz (eskiden buraya eklenmeyen sayfa sessizce 404'tu).
-          if [ ! -s _yayin-icerik-dizinleri.txt ]; then echo "HATA: _yayin-icerik-dizinleri.txt bos/yok (build.py kosmadi mi?)"; exit 1; fi
-          while IFS= read -r slug; do
-            if [ -z "$slug" ]; then continue; fi
-            if [ ! -d "$slug" ]; then echo "HATA: icerik dizini yok: $slug"; exit 1; fi
-            cp -r "$slug" "_site/$slug"
-          done < _yayin-icerik-dizinleri.txt
-          # Parametrik konfigurator varliklari — SADECE public dosyalar (test/ girmez):
-          # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
-          # yeniden hesabi icin de ayni adresten okunur.
-          mkdir _site/jenerator
-          # ... ayni sekilde yorumu soyulmus kopyalar (_yayin/jenerator/).
-          cp _yayin/jenerator/hacim.js _yayin/jenerator/konfigurator.js _yayin/jenerator/viewer.js _site/jenerator/
-          cp -r jenerator/urunler _site/jenerator/urunler
+        run: python3 tools/yayin-topla.py
 
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
@@ -772,17 +760,9 @@ jobs:
       - name: Kalibrasyon senkron kapisi (hacim.js tahsilat tabani — dondurulmus kalibrasyon kaynagi)
         run: node jenerator/test/kalibrasyon-senkron.js
 
-      # YAYIN IC-DIL KAPISI — KAYNAK KOLU (build'den ONCE; asagidaki yayin kolunun ERKEN
-      # ikizi). NEDEN: yayin kolu ancak build.py'den SONRA olcebiliyor; tarayiciya AYNEN
-      # inen bir KAYNAK dosyaya (index.html satir-ici <script> yorumu) ic dosya yolu yazan
-      # bir degisiklik dalda hicbir yerde kirmizi yanmadi, main'e girdi ve CI'yi ~4 dakika
-      # sonra dusurdu -> deploy + yayin SKIPPED, yayin durdu (31 Tem). Bu kol AYNI sozlugu
-      # ve AYNI yorum lexer'ini build GEREKTIRMEDEN uygular; ikinci sozluk YOK, yalniz
-      # kapsam degisir. Yayin kolunun YERINE GECMEZ (uretilen sayfalar orada olculur).
-      # SERIT: A (build) — SIZINTI kapisidir, yayini DURDURMALI. SERIT B'ye konsaydi
-      # tarayiciya inen kaynak dosyadaki ic-yol ifsasi yayina cikardi.
-      - name: Yayin ic-dil kapisi — KAYNAK kolu (build'den once)
-        run: python3 tools/yayin-ic-dil-kapisi.py --kaynak
+      # (Yayin ic-dil KAYNAK kolu 19 Agu 2026'da `build` job'una tasindi — kol SESSIZ
+      # uretim tuketicisidir, bu job URETICISIZDIR ve olctugu yuzey burada 8'den 7
+      # dosyaya dusuyordu; deploy-aclik-kapisi.py E2b kaydi + o job'daki adim yorumu.)
 
       - name: "Kanca kablolama nobeti (izlenen kaynak fail-closed mi)"
         run: python3 tools/kanca-kablolama-nobeti.py --ci

@@ -66,25 +66,67 @@ def _is_akisi_modulu():
     return mod, None
 
 
-def deploy_kopyaliyor_mu(deploy_metin, varlik):
-    """(ok, tani) — deploy.yml <varlik>'i ETKILI bir komutun argumani olarak tasiyor mu?
+# 🔴 19 AGU 2026 (K215) — IDDIA IKI AYAGA BOLUNDU, EKSEN AYNI KALDI.
+# Yayin toplama adimi 39 satirlik kabuk blogundan tools/yayin-topla.py'ye TASINDI
+# (gerekce: is-akisi-kapisi.py'nin K80 kolu kabuk metakarakteri goren adimi
+# OLCULEMEDI ile blokluyordu). Artik deploy.yml'de `cp ... hacim.js` SATIRI YOK, o
+# yuzden tek ayakli metin olcumu SAHTE-KIRMIZI yanardi. Iddia:
+#   (1) deploy.yml `tools/yayin-topla.py`'yi ETKILI olarak cagiriyor mu — ayni
+#       is-akisi-kapisi suzgeciyle olculur (silme/`echo`/`|| true` yakalanir);
+#   (2) aracin MANIFESTO'su varligi GERCEKTEN kopyaliyor mu — VERIDEN okunur.
+# Ikisi de saglanmadan YESIL YOK: (1) olmadan manifesto bosuna dolu, (2) olmadan adim
+# bosuna kosuyor. Aracin KAYNAK METNINDE dize aramak BILEREK YAPILMADI — yoruma
+# alinmis/olu bir Python satiri metinde HALA gecer; oldurulen delik tam o sinifti.
+def _yayin_topla_modulu():
+    """tools/yayin-topla.py'yi MODUL olarak yukle. (modul, hata_metni)."""
+    import importlib.util
+    yol = os.path.join(ROOT, "tools", "yayin-topla.py")
+    if not os.path.exists(yol):
+        return None, "tools/yayin-topla.py YOK"
+    if "pruvo_yayin_topla" in sys.modules:
+        return sys.modules["pruvo_yayin_topla"], None
+    try:
+        spec = importlib.util.spec_from_file_location("pruvo_yayin_topla", yol)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["pruvo_yayin_topla"] = mod
+        spec.loader.exec_module(mod)
+    except Exception as e:  # noqa: BLE001 — her tur import arizasi ayni hukmu verir
+        sys.modules.pop("pruvo_yayin_topla", None)
+        return None, "tools/yayin-topla.py yuklenemedi (%s: %s)" % (type(e).__name__, e)
+    if not hasattr(mod, "yayin_varligi_tasiniyor_mu"):
+        return None, ("tools/yayin-topla.py'de yayin_varligi_tasiniyor_mu() YOK "
+                      "(sozlesme degismis)")
+    return mod, None
 
-    FAIL-CLOSED: suzgec yuklenemezse ya da is akisi ayristirilamazsa YESIL SAYILMAZ —
-    'olculemedi' bu iddiada sessiz-yesille aynidir."""
+
+def deploy_kopyaliyor_mu(deploy_metin, varlik):
+    """(ok, tani) — yayin hatti <varlik>'i GERCEKTEN `_site`'a tasiyor mu?
+
+    FAIL-CLOSED: suzgec/arac yuklenemezse ya da is akisi ayristirilamazsa YESIL
+    SAYILMAZ — 'olculemedi' bu iddiada sessiz-yesille aynidir."""
     mod, hata = _is_akisi_modulu()
     if mod is None:
         return False, "OLCULEMEDI (fail-closed KIRMIZI): %s" % hata
     if not mod.ayristirici_var():
         return False, ("OLCULEMEDI (fail-closed KIRMIZI): hicbir YAML ayristiricisi yok "
                        "(pip install pyyaml ya da ruby kur)")
-    bulunan = mod.etkili_mensiyon(deploy_metin, varlik)
-    if bulunan:
+    # (1) ADIM GERCEKTEN KOSUYOR MU
+    if not mod.etkili_mensiyon(deploy_metin, "tools/yayin-topla.py"):
+        return False, ("deploy.yml `tools/yayin-topla.py` adimini ETKILI olarak "
+                       "CAGIRMIYOR (adim silinmis / yoruma alinmis / `echo`'ya "
+                       "cevrilmis / `|| true`-`continue-on-error`-`if: false` ile "
+                       "etkisizlestirilmis) -> `_site` HIC kurulmaz. GERI KOY: "
+                       "'Yayin klasorunu topla' adimi `run: python3 tools/yayin-topla.py`.")
+    # (2) MANIFESTO VARLIGI TASIYOR MU
+    arac, arac_hata = _yayin_topla_modulu()
+    if arac is None:
+        return False, "OLCULEMEDI (fail-closed KIRMIZI): %s" % arac_hata
+    if arac.yayin_varligi_tasiniyor_mu(varlik):
         return True, ""
-    return False, ("deploy.yml %r varligini ETKILI bir komutun argumani olarak "
-                   "TASIMIYOR (satir silinmis / yoruma alinmis / `echo`'ya cevrilmis / "
-                   "`|| true`-`continue-on-error`-`if: false` ile etkisizlestirilmis). "
-                   "GERI KOY: 'Icerik dizinleri' adiminda "
-                   "`cp jenerator/hacim.js ... _site/jenerator/`." % varlik)
+    return False, ("tools/yayin-topla.py::MANIFESTO %r varligini KOPYALAMIYOR "
+                   "(satir silinmis / kaynak yolu degismis / adim turu kopyalamayan "
+                   "bir tura cevrilmis) -> parametrik urun sayfasi onu 404 alir ve "
+                   "konfigurator fiyat hesaplamaz." % varlik)
 
 
 def kayit(no, ad, yesil, detay=""):

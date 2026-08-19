@@ -142,6 +142,24 @@ def uca_tazele(kok=ROOT, kos=_kos):
     return True, sha.strip()
 
 
+def _hukum_imzasi(cikti):
+    """Hangi KAPI kolu yazmayi blokladi? `rc`ye BAKMAZ. None = hicbir kapi imzasi yok.
+
+    🔴 K222 (19 Agu 2026): hukum eskiden `rc`den okunuyordu (`if rc == 0` bayatlik
+    kolundan ONCE geliyordu). Bir kapi yazmayi BLOKLAYIP surec 0 ile cikarsa surucu
+    "✅ ONARILDI" basiyor, D1'e TEK SATIR yazilmamisken kosum YESIL doniyordu — sahte
+    yesil, sahte kirmizidan BETERDIR. Hukum artik TEK KAYNAKTAN, kapinin kendi
+    imzasindan turer; `rc` yalniz imzasiz kalan halde (gercek basari / gercek hata)
+    ayirt edici olur."""
+    if KARANTINA_IMZASI in cikti:
+        return "KARANTINA"
+    if YAZICI_IMZASI in cikti:
+        return "YAZICI"
+    if BAYATLIK_IMZASI in cikti:
+        return "BAYATLIK"
+    return None
+
+
 def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
     """Tazele -> d1-sync -> (yaris/yazici ise) tekrar. Doner: (rc, deneme_sayisi)."""
     son_sinif = None                      # tavan tukendiginde hangi hukum verilecek
@@ -158,15 +176,18 @@ def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
         rc, cikti = kos(["python3", D1_SYNC, "--karantina-damgasi", KARANTINA_DAMGASI],
                         kok)
         yaz(cikti.rstrip())
-        if rc == 0:
+        # 🔴 K222: SIRA BILEREK BOYLE — imza kolu `rc == 0` kolundan ONCE okunur.
+        # `ONARILDI` yalnizca "hicbir kapi imzasi YOK **ve** rc == 0" halinde yazilir.
+        imza = _hukum_imzasi(cikti)
+        if imza is None and rc == 0:
             yaz("✅ ONARILDI (deneme %d/%d)" % (deneme, DENEME_TAVANI))
             return 0, deneme
-        if KARANTINA_IMZASI in cikti:
+        if imza == "KARANTINA":
             yaz("🔴 KARANTINA OLCULEMEDI (rc=%s) — silme damgasi okunamadi. Upsert kolu "
                 "uygulandi, SILME kolu fail-closed KAPALI kaldi. YENIDEN DENENMEZ: "
                 "damgayi ikinci kez okumak onu VAR ETMEZ." % rc)
             return 4, deneme
-        if YAZICI_IMZASI in cikti:
+        if imza == "YAZICI":
             son_sinif = "YAZICI"
             if deneme < DENEME_TAVANI:
                 gecikme = GERI_CEKILME_SN[deneme - 1]
@@ -175,7 +196,7 @@ def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
                     "TEKRAR deniyorum." % gecikme)
                 bekle(gecikme)
             continue
-        if BAYATLIK_IMZASI in cikti:
+        if imza == "BAYATLIK":
             son_sinif = "BAYATLIK"
             if deneme < DENEME_TAVANI:
                 gecikme = GERI_CEKILME_SN[deneme - 1]
@@ -202,12 +223,17 @@ def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
 
 # ---- KABUL TESTI ------------------------------------------------------------
 def imza_capasi():
-    """BAYATLIK_IMZASI d1-sync.py icinde GERCEKTEN uretiliyor mu.
+    """BAYATLIK_IMZASI d1-sync.py GOVDESINDE kac kez uretiliyor? (int doner)
 
     Imza sessizce degisirse bu surucu her yaris reddini 'GERCEK HATA' sayar ve yeniden
-    deneme OLU kalir (sessiz zayiflama). Bu capa o hali KIRMIZI yakar."""
+    deneme OLU kalir (sessiz zayiflama). Bu capa o hali KIRMIZI yakar.
+
+    🔴 K222 eki (19 Agu 2026): capa artik `in` DEGIL **count**. Sebep: K222'den sonra
+    hukum dogrudan bu imzadan okunuyor ([[_hukum_imzasi]]); capa varlik olcup coklugu
+    olcmezse iki ayri uretim noktasi (biri bayat) SESSIZCE gecerdi
+    ([[capa-cokmesi-arkasindaki-capalari-gizler]]). Kabul: **tam olarak 1**."""
     with open(D1_SYNC, encoding="utf-8") as f:
-        return BAYATLIK_IMZASI in f.read()
+        return f.read().count(BAYATLIK_IMZASI)
 
 
 def imza_kapsam_kapisi(d1_sync_yolu=D1_SYNC):
@@ -466,10 +492,22 @@ def kendini_test():
         d1 = [a for a in kayit if a and a[0] != "git"]
         return rc, deneme, len(d1), uyku, kayit
 
+    def kos_senaryo_yazili(sirali):
+        """kos_senaryo gibi, ama surucunun YAZDIGI metni de dondurur (K222 vakalari
+        hukmun METNINI olcer: rc dogru olsa bile 'ONARILDI' basilmis olabilir)."""
+        kayit, uyku, yazilan = [], [], []
+        rc, deneme = onar(kok="/yok", kos=_sahte_kos(list(sirali), kayit),
+                          bekle=uyku.append,
+                          yaz=lambda *a: yazilan.append(" ".join(str(x) for x in a)))
+        d1 = [a for a in kayit if a and a[0] != "git"]
+        return rc, deneme, len(d1), uyku, "\n".join(yazilan)
+
     # --- IMZA CAPASI ---
-    iddia("IMZA CAPASI: bayatlik reddinin imzasi d1-sync.py'de GERCEKTEN uretiliyor "
-          "(imza bayatlarsa yeniden deneme OLU kalirdi)", imza_capasi(),
-          "aranan %r" % BAYATLIK_IMZASI)
+    _imza_adet = imza_capasi()
+    iddia("IMZA CAPASI: bayatlik reddinin imzasi d1-sync.py'de GERCEKTEN ve TEK KEZ "
+          "uretiliyor (imza bayatlarsa yeniden deneme OLU kalirdi; iki uretim noktasi "
+          "olursa biri bayatlayip SESSIZCE gecerdi)", _imza_adet == 1,
+          "aranan %r adet=%d (kabul: 1)" % (BAYATLIK_IMZASI, _imza_adet))
 
     # --- KARANTINA KABLO CAPASI ---
     _bayrak, _imza = karantina_capasi()
@@ -611,6 +649,47 @@ def kendini_test():
     iddia("V12 bayatlik tavan boyunca -> rc 3 AYNEN (YAZICI kolu bayatlik kolunu CALMAMIS)",
           (rc, deneme, d1) == (3, DENEME_TAVANI, DENEME_TAVANI)
           and uyku == list(GERI_CEKILME_SN), (rc, deneme, d1, uyku))
+
+    # --- K222: HUKUM `rc`DEN DEGIL IMZADAN OKUNUR (19 Agu 2026) -----------------
+    # CANLI SINIF: kapi yazmayi BLOKLAR ama surec 0 ile cikar. Eski surucu `if rc == 0`
+    # kolunu imza kolundan ONCE okudugu icin "✅ ONARILDI" basiyordu: D1'e tek satir
+    # yazilmamisken kosum YESIL. Asagidaki dort vaka UC imza kolunu da rc=0 altinda
+    # olcer + POZITIF KONTROL ile gercek basarinin bozulmadigini kanitlar.
+    rc, deneme, d1, uyku, yazi18 = kos_senaryo_yazili(
+        [(0, _GERCEK_BAYAT_CIKTI)] * DENEME_TAVANI)
+    iddia("V18 (K222) BAYATLIK imzasi + rc=0 -> 'ONARILDI' BASILMAZ, YARIS koluna gider "
+          "(rc 3 · %d deneme · geri cekilme %s)" % (DENEME_TAVANI, list(GERI_CEKILME_SN)),
+          (rc, deneme, d1) == (3, DENEME_TAVANI, DENEME_TAVANI)
+          and uyku == list(GERI_CEKILME_SN)
+          and "ONARILDI" not in yazi18 and "YARIS SURDU" in yazi18,
+          (rc, deneme, d1, uyku, "ONARILDI" in yazi18))
+
+    rc, deneme, d1, uyku, yazi19 = kos_senaryo_yazili([(0, _GERCEK_BASARI_CIKTI)])
+    iddia("V19 (K222 POZITIF KONTROL) imza YOK + rc=0 -> 'ONARILDI' AYNEN yazilir "
+          "(kapi gevsetilmedi; gercek basari hala YESIL)",
+          (rc, deneme, d1, uyku) == (0, 1, 1, []) and "ONARILDI" in yazi19,
+          (rc, deneme, d1, uyku, "ONARILDI" in yazi19))
+
+    rc, deneme, d1, uyku, yazi20 = kos_senaryo_yazili([(0, _GERCEK_KARANTINA_CIKTI)])
+    iddia("V20 (K222) KARANTINA imzasi + rc=0 -> rc 4 (fail-closed), 'ONARILDI' BASILMAZ",
+          (rc, deneme, d1, uyku) == (4, 1, 1, []) and "ONARILDI" not in yazi20,
+          (rc, deneme, d1, uyku, "ONARILDI" in yazi20))
+
+    rc, deneme, d1, uyku, yazi21 = kos_senaryo_yazili(
+        [(0, _GERCEK_YAZICI_CIKTI)] * DENEME_TAVANI)
+    iddia("V21 (K222) YAZICI imzasi + rc=0 -> rc 5 (ERTELENDI), 'ONARILDI' BASILMAZ",
+          (rc, deneme, d1) == (5, DENEME_TAVANI, DENEME_TAVANI)
+          and uyku == list(GERI_CEKILME_SN) and "ONARILDI" not in yazi21,
+          (rc, deneme, d1, uyku, "ONARILDI" in yazi21))
+
+    # V22: rc=0 ile ONARILDI arasindaki bagi imza KOLU keser — imzasiz rc!=0 hala
+    # GERCEK HATA. (Yeni kolun yanlis-pozitif ekseni: her sey 'imza' sayilmadi.)
+    rc, deneme, d1, uyku, yazi22 = kos_senaryo_yazili(
+        [(1, _GERCEK_HATA_CIKTI)] * DENEME_TAVANI)
+    iddia("V22 (K222 YANLIS-POZITIF NOBETI) imza YOK + rc!=0 -> rc 1 GERCEK HATA AYNEN "
+          "(imza kolu her ciktiyi 'kapi reddi' saymiyor)",
+          (rc, deneme, d1, uyku) == (1, 1, 1, []) and "GERCEK HATA" in yazi22,
+          (rc, deneme, d1, uyku))
 
     # --- KAPSAM KAPISI ---
     # V13: GERCEK d1-sync.py uzerinde -> sorunlar []
@@ -792,12 +871,29 @@ MUTANT_TANIMLARI = [
     ("M5 B ekseni re.findall -> el ile kume (kapsam korlugu) -> V14 gormezden gelinirdi",
      "evren_sebep = set(re.findall(r\"SEBEP=([A-Z0-9_]+)\", kaynak))",
      "evren_sebep = {\"YAZICI_UCUSTA\"}"),
+    # --- K222 (19 Agu 2026) — HEDEF KOL: hukum imzadan mi rc'den mi okunuyor ---
+    # M6, K222 kusurunu AYNEN geri koyar: `imza is None` sarti dusurulur, yani `rc == 0`
+    # tek basina ONARILDI yazdirir. HEDEF KOL: V18/V20/V21 (rc=0 + kapi imzasi).
+    # V1/V19 (gercek basari) DEGISMEZ -> mutantin oldurdugu kol IZOLE ([[K182]]).
+    # Arama metni kaynakta IKI yerde gecer (gercek `onar()` govdesi + bu satir);
+    # replace(...,1) ILKINI (govde) degistirir — M2 ile ayni bilinen desen.
+    ("M6 (K222) `if imza is None and rc == 0:` -> `if rc == 0:` (sahte YESIL geri gelir) "
+     "-> V18/V20/V21 yakalar, V19 pozitif kontrolu DEGISMEZ",
+     "        if imza is None and rc == 0:",
+     "        if rc == 0:"),
+    # M7, imza TURETICISININ bayatlik kolunu oldurur: hukum kaynagi bosalir.
+    # HEDEF KOL: V18 (rc=0'da ONARILDI'ya duser) + V2/V4 (rc=1'de GERCEK HATA'ya duser).
+    # YAZICI/KARANTINA kollari SAGLAM kalir -> V9/V3b degismez ([[ad-iki-rolde-mutanti-golgeler]]).
+    ("M7 (K222) `_hukum_imzasi` BAYATLIK kolu olur -> V18 ONARILDI'ya, V2/V4 GERCEK "
+     "HATA'ya duser (YAZICI/KARANTINA kollari saglam kalir)",
+     "    if BAYATLIK_IMZASI in cikti:\n        return \"BAYATLIK\"",
+     "    if False and BAYATLIK_IMZASI in cikti:\n        return \"BAYATLIK\""),
 ]
 
 
 def _mutasyonu_kos(dosya_yolu):
-    """5 mutant + KONTROL kos. (olduler, toplam, kontrol, detaylar, iddia_n, istasyon_n,
-    uygulanamadi_n).
+    """MUTANT_TANIMLARI'ndaki her mutant + KONTROL kos. (olduler, toplam, kontrol,
+    detaylar, iddia_n, istasyon_n, uygulanamadi_n).
 
     iddia_n        : IDDIA ile yakalanan mutant sayisi (gercek kapinin ispati)
     istasyon_n     : ISTASYON (istisna) ile yakalanan mutant sayisi (fikstur tukenmesi;
@@ -854,7 +950,8 @@ def main():
     ap.add_argument("--kendini-test", action="store_true",
                     help="AGSIZ + GERCEK GIT fikstur kabulu (CI'da bu kol da kosar)")
     ap.add_argument("--mutasyon", action="store_true",
-                    help="Mutasyon bataryasi (5 mutant + KONTROL); diske YAZMAZ")
+                    help="Mutasyon bataryasi (%d mutant + KONTROL); diske YAZMAZ"
+                         % len(MUTANT_TANIMLARI))
     a = ap.parse_args()
     if a.kendini_test:
         print("UZLASTIRICI ONARIM SURUCUSU — KENDINI TEST")

@@ -98,6 +98,61 @@ def chip_agaci_mi(yol, ana_kok):
     return os.path.realpath(yol).startswith(chip_koku + os.sep)  # WORKTREE_MUTANT_ROLE
 
 
+def _gecici_kokler():
+    """FIKSTUR yukleminin GECICI-DIZIN kolu — sabit yol listesi YAZILMAZ, TURETILIR.
+
+    Kaynaklar: (a) bu surecin gercek gecici dizini `tempfile.gettempdir()` (macOS'ta
+    TMPDIR=/var/folders/..., Linux CI'da /tmp), (b) platformun kanonik gecici koku
+    `/tmp`, (c) macOS TMPDIR tabani `/var/folders` — baska bir kapinin fiksturu BIZIM
+    TMPDIR'imizin altinda olmayabilir (farkli oturum/kullanici) ama yine de platformun
+    gecici agacindadir. Hepsi `realpath`lenir: macOS'ta /var -> /private/var symlink'i
+    yuzunden ham karsilastirma esleseni SESSIZCE kaciriyordu."""
+    kokler = []
+    for aday in (tempfile.gettempdir(), "/tmp", "/var/folders", "/private/var/folders"):
+        try:
+            gercek = os.path.realpath(aday)
+        except OSError:
+            continue
+        if gercek and gercek != os.sep and gercek not in kokler:
+            kokler.append(gercek)
+    return kokler
+
+
+def gecici_altinda_mi(yol):
+    gercek = os.path.realpath(yol)
+    return any(gercek.startswith(kok + os.sep) for kok in _gecici_kokler())
+
+
+def fikstur_agaci_mi(entry):
+    """UCUNCU KOVA (K223, 19 Agu 2026) — baska bir kapinin SANIYELIK self-test agaci.
+
+    🔴 NEDEN VAR (olculdu 19 Agu): rol siniflandirmasi YALNIZ iki kova biliyordu ve
+    `.claude/worktrees/` altinda OLMAYAN her agac MIMAR sayiliyordu. Sistem temp'indeki
+    `pruvo-kapi-test-*/kayitli-wt` fiksturleri (tools/mimar-kilit-test.py +
+    tools/mimar-kapi-mutasyon-test.py, `worktree add --no-checkout --detach`) push
+    aninda MIMAR kovasina dusuyor, nobetci `TAVAN ASILDI ROL=MIMAR SAYI=3` yakiyordu.
+    O uyari SAHTE idi: `ls` iki dizini YOK gosterdi, saniyeler sonra `git worktree list`
+    BASKA IKI fiksturu listeledi, bir sonraki push `MIMAR=2/2` bastı. Sahte kirmizi
+    GERCEK kirmiziyi gorunmez yapar.
+
+    YUKLEM IKI KOLUN **VE**'sidir ve ikisi de gereklidir:
+      * gecici dizin altinda (turetilmis kokler — [[gecici_kokler]])
+      * detached (fiksturler HEAD'e detach ile baglanir; GERCEK mimar agaci daldadir)
+    Yalniz "gecici dizin" olsaydi, gecici dizinde kurulan mutasyon/senaryo depolarinin
+    DALLI mimar agaclari da yutulur, gercek tavan asimi gorunmez olurdu."""
+    return gecici_altinda_mi(entry["yol"]) and bool(entry["detached"])  # FIKSTUR_MUTANT_ROLE
+
+
+def rol_belirle(entry, ana_kok):
+    """UC KOVA: CHIP · FIKSTUR · MIMAR. SIRA ANLAMLIDIR — chip koku ONCE bakilir ki
+    gecici dizinde kurulmus bir chip agaci FIKSTUR'e kacmasin."""
+    if chip_agaci_mi(entry["yol"], ana_kok):
+        return "CHIP"
+    if fikstur_agaci_mi(entry):
+        return "FIKSTUR"
+    return "MIMAR"
+
+
 def rapor_cikis_kodu():
     return 0
 
@@ -110,10 +165,11 @@ def rapor(depo, simdi=None):
         kok_rc, ana_kok, kok_hata = git(depo, "rev-parse", "--show-toplevel")
         if kok_rc != 0 or not ana_kok:
             raise RuntimeError("ana agac kokune ulasilamadi: %s" % (kok_hata or kok_rc))
-        roller = [(entry, "CHIP" if chip_agaci_mi(entry["yol"], ana_kok) else "MIMAR")
-                  for entry in liste]
+        roller = [(entry, rol_belirle(entry, ana_kok)) for entry in liste]
         mimar_sayisi = sum(rol == "MIMAR" for _entry, rol in roller)
         chip_sayisi = sum(rol == "CHIP" for _entry, rol in roller)
+        # FIKSTUR hicbir tavana sayilmaz — ama SESSIZCE de yutulmaz (asagida GORUNUR).
+        fikstur_sayisi = sum(rol == "FIKSTUR" for _entry, rol in roller)
         mimar_uyari = mimar_sayisi > TAVAN_MIMAR
         chip_uyari = chip_sayisi > TAVAN_CHIP
         if mimar_uyari:
@@ -128,9 +184,14 @@ def rapor(depo, simdi=None):
             satirlar.append(
                 "!! YORDAM: once yama + izlenmeyen dosya kopyasi arsivle; yama icin "
                 "git apply --check dogrula; main disi commit varsa bundle al; SONRA kaldir.")
-        satirlar.append("WORKTREE SAYI=%d TAVAN=%d MIMAR=%d/%d CHIP=%d/%d" %
+        satirlar.append("WORKTREE SAYI=%d TAVAN=%d MIMAR=%d/%d CHIP=%d/%d FIKSTUR=%d" %
                         (len(liste), TAVAN, mimar_sayisi, TAVAN_MIMAR,
-                         chip_sayisi, TAVAN_CHIP))
+                         chip_sayisi, TAVAN_CHIP, fikstur_sayisi))
+        if fikstur_sayisi:
+            satirlar.append(
+                "NOT: FIKSTUR=%d agac baska bir kapinin SANIYELIK self-test worktree'si "
+                "(gecici dizin + detached). HICBIR TAVANA sayilmaz; SESSIZCE de "
+                "yutulmaz — asagida ROL=FIKSTUR olarak listelenir." % fikstur_sayisi)
         kirilim = {"agent-*": 0, "muh/": 0, "onarim/": 0, "claude/": 0,
                     "detached": 0, "BILINMEYEN": 0}
         olu_adaylari = []
@@ -211,6 +272,14 @@ def agac_ekle(kok, yol, dal):
     sentetik_g(kok, "worktree", "add", "-q", "-b", dal, yol, "main")
 
 
+def fikstur_ekle(kok, yol):
+    """BASKA bir kapinin self-test worktree'sinin BIREBIR sekli (olculdu:
+    tools/mimar-kilit-test.py `gecici_worktree_kur` ve tools/mimar-kapi-mutasyon-test.py):
+    gecici dizinde, `--no-checkout --detach`. Yol `kok`un DISINDA olmalidir — fikstur
+    ana agacin altina degil, sistem temp'ine kurulur."""
+    sentetik_g(kok, "worktree", "add", "-q", "--no-checkout", "--detach", yol, "main")
+
+
 def betik_kos(betik, depo):
     return subprocess.run([sys.executable, betik, "--depo", depo],
                           capture_output=True, text=True, timeout=60,
@@ -221,7 +290,7 @@ def _uyari_var(cikti, rol):
     return "!! UYARI: WORKTREE TAVANI ASILDI — ROL=%s" % rol in cikti
 
 
-def _senaryo(betik, gecici, ad, chip_sayisi, mimar_sayisi):
+def _senaryo(betik, gecici, ad, chip_sayisi, mimar_sayisi, fikstur_sayisi=0):
     kok = os.path.join(gecici, ad)
     depo_kur(kok)
     chip_koku = os.path.join(kok, ".claude", "worktrees")
@@ -231,6 +300,10 @@ def _senaryo(betik, gecici, ad, chip_sayisi, mimar_sayisi):
     for sira in range(max(0, mimar_sayisi - 1)):
         agac_ekle(kok, os.path.join(kok, "mimar-%d" % sira),
                   "mimar-%d" % sira)
+    # 🔴 Fikstur agaclari `kok`un DISINA, dogrudan gecici koke kurulur: gercek vakada da
+    # baska bir kapinin fiksturu bizim repo agacimizin altinda DEGILDIR.
+    for sira in range(fikstur_sayisi):
+        fikstur_ekle(kok, os.path.join(gecici, ad + "-fikstur-%d" % sira))
     return betik_kos(betik, kok)
 
 
@@ -264,6 +337,7 @@ def kendini_test():
     gecici = tempfile.mkdtemp(prefix="pruvo-worktree-nobet-")
     hatalar = []
     rc_listesi = []
+    w_kontrolleri = ()      # try bloğu erken duserse ozet satiri NameError vermesin
     try:
         kok = os.path.join(gecici, "depo")
         depo_kur(kok)
@@ -348,6 +422,13 @@ def kendini_test():
         w3 = _senaryo(betik, gecici, "w3", 13, 1)
         w4 = _senaryo(betik, gecici, "w4", 6, 3)
         w5 = _olu_chip_senaryosu(betik, gecici)
+        # --- K223: UCUNCU KOVA (FIKSTUR) ---
+        # W6 POZITIF: gercek ana agac + BIR fikstur (gecici + detached) -> fikstur
+        #    MIMAR sayilmaz, tavan asilmaz, ama FIKSTUR=1 satirda GORUNUR.
+        # W7 NEGATIF: ayni fikstur + GERCEK 3 mimar agaci -> tavan uyarisi HALA yanar
+        #    (fikstur muafiyeti gercek asimi MASKELEMEZ).
+        w6 = _senaryo(betik, gecici, "w6", 0, 1, 1)
+        w7 = _senaryo(betik, gecici, "w7", 0, 3, 1)
         w_kontrolleri = (
             ("W1", w1, not _uyari_var(w1.stdout, "CHIP") and
              not _uyari_var(w1.stdout, "MIMAR") and
@@ -358,6 +439,17 @@ def kendini_test():
             ("W4", w4, _uyari_var(w4.stdout, "MIMAR") and
              not _uyari_var(w4.stdout, "CHIP") and w4.returncode == 0),
             ("W5", w5, "OLU_CHIP_ADAYI=1" in w5.stdout and w5.returncode == 0),
+            # 🔴 FIKSTUR sayisi OZET SATIRINDAN okunur, alt-dize aramasiyla DEGIL:
+            # aciklama ("NOT: FIKSTUR=1 agac ...") de ayni metni tasiyor, dolayisiyla
+            # `"FIKSTUR=1" in stdout` ozet satirini sifirlayan mutanti GORMEZ
+            # ([[ad-iki-rolde-mutanti-golgeler]]).
+            ("W6", w6, not _uyari_var(w6.stdout, "MIMAR") and
+             not _uyari_var(w6.stdout, "CHIP") and
+             "MIMAR=1/2" in w6.stdout and _ozet_alani(w6.stdout, "FIKSTUR") == "1" and
+             "ROL=FIKSTUR" in w6.stdout and w6.returncode == 0),
+            ("W7", w7, _uyari_var(w7.stdout, "MIMAR") and
+             "MIMAR=3/2" in w7.stdout and _ozet_alani(w7.stdout, "FIKSTUR") == "1" and
+             w7.returncode == 0),
         )
         for ad, p_vaka, tamam in w_kontrolleri:
             if not tamam:
@@ -384,37 +476,64 @@ def kendini_test():
         hatalar.append("fikstur:%s" % exc)
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
+    # 🔴 SAYILAR TURETILIR, ELLE YAZILMAZ: eski satir sabit `IDDIA=15 YENI_VAKA=5`
+    # basiyordu; vaka eklenince o sayi SESSIZCE bayatlar ve rapor kendi kapsamini
+    # YANLIS beyan ederdi ([[ikiz-tanim-sessiz-ayrisma]]).
+    w_yazi = " ".join("%s=%s" % (ad, "YESIL" if tamam else "KIRMIZI")
+                      for ad, _p, tamam in w_kontrolleri)
     if hatalar:
-        print("KENDINI_TEST=KIRMIZI IDDIA=15 YENI_VAKA=5 " + " | ".join(hatalar))
+        print("KENDINI_TEST=KIRMIZI W_VAKA=%d %s | %s" %
+              (len(w_kontrolleri), w_yazi, " | ".join(hatalar)))
         return 1
-    print("KENDINI_TEST=YESIL IDDIA=15 YENI_VAKA=5 RAPOR_ONLY_VAKA=%d/%d "
-          "W1=YESIL W2=YESIL W3=YESIL W4=YESIL W5=YESIL" %
-          (sum(rc == 0 for rc in rc_listesi), len(rc_listesi)))
+    print("KENDINI_TEST=YESIL W_VAKA=%d RAPOR_ONLY_VAKA=%d/%d %s" %
+          (len(w_kontrolleri), sum(rc == 0 for rc in rc_listesi),
+           len(rc_listesi), w_yazi))
     return 0
+
+
+def _ozet_alani(cikti, anahtar):
+    """Ozet satirindan (`WORKTREE SAYI=...`) tek alani OKU. Alan HIC yoksa 'YOK' —
+    boylece "gorunurluk" mutanti (alani silen/sifirlayan) hukumde AYIRT EDILIR."""
+    for satir in cikti.splitlines():
+        if satir.startswith("WORKTREE SAYI="):
+            for parca in satir.split():
+                if parca.startswith(anahtar + "="):
+                    return parca.split("=", 1)[1]
+    return "YOK"
 
 
 def _mutant_hukumlari(betik, gecici, mutant_adi):
     tag = "%s-%d" % (mutant_adi, time.time_ns())
+    # (vaka, chip_sayisi, mimar_sayisi, fikstur_sayisi)
     vakalar = {
-        "tavan-mimar": (("W2", 0, 3), ("W4", 6, 3)),
-        "tavan-chip": (("W3", 13, 1),),
-        "rol-siniflama": (("W1", 6, 1),),
-        "rol-tersine": (("W2", 0, 3), ("W4", 6, 3)),
-        "olu-chip": (("W5", 0, 0),),
+        "tavan-mimar": (("W2", 0, 3, 0), ("W4", 6, 3, 0)),
+        "tavan-chip": (("W3", 13, 1, 0),),
+        "rol-siniflama": (("W1", 6, 1, 0),),
+        "rol-tersine": (("W2", 0, 3, 0), ("W4", 6, 3, 0)),
+        "olu-chip": (("W5", 0, 0, 0),),
+        # K223 — ucuncu kova. Her mutant HEDEF KOLUNU ayri kanitlar:
+        #   fikstur-tanima   : W6'da fikstur MIMAR'a doner (MIMAR 1->2, FIKSTUR 1->0)
+        #   fikstur-detached : W2/W7'de DALLI mimar agaclari da yutulur -> uyari SONER
+        #   fikstur-gorunur  : W6'da sayi gorunmez olur (FIKSTUR 1->0) ama roller AYNI
+        "fikstur-tanima": (("W6", 0, 1, 1), ("W7", 0, 3, 1)),
+        "fikstur-detached": (("W2", 0, 3, 0), ("W7", 0, 3, 1)),
+        "fikstur-gorunur": (("W6", 0, 1, 1),),
     }
     sonuclar = []
-    for vaka, chip_sayisi, mimar_sayisi in vakalar[mutant_adi]:
+    for vaka, chip_sayisi, mimar_sayisi, fikstur_sayisi in vakalar[mutant_adi]:
         if vaka == "W5":
             p = _olu_chip_senaryosu(betik, gecici, tag + "-W5")
         else:
             p = _senaryo(betik, gecici, tag + "-" + vaka,
-                          chip_sayisi, mimar_sayisi)
+                          chip_sayisi, mimar_sayisi, fikstur_sayisi)
         aday = "OLU_CHIP_ADAYI=1" in p.stdout
-        sonuclar.append("%s[rc=%d MIMAR_UYARI=%s CHIP_UYARI=%s OLU=%s]" %
+        sonuclar.append("%s[rc=%d MIMAR_UYARI=%s CHIP_UYARI=%s OLU=%s MIMAR=%s FIKSTUR=%s]" %
                         (vaka, p.returncode,
                          "VAR" if _uyari_var(p.stdout, "MIMAR") else "YOK",
                          "VAR" if _uyari_var(p.stdout, "CHIP") else "YOK",
-                         "1" if aday else "0"))
+                         "1" if aday else "0",
+                         _ozet_alani(p.stdout, "MIMAR"),
+                         _ozet_alani(p.stdout, "FIKSTUR")))
     return ",".join(sonuclar)
 
 
@@ -445,6 +564,20 @@ def mutasyon():
          "env=None)"),
         ("olu-chip", "if (rol == \"CHIP\" and commit == 0 and yas != float(\"inf\") and\n                    yas > OLU_CHIP_DAKIKA):",
          "if (rol == \"CHIP\" and yas != float(\"inf\") and\n                    yas > OLU_CHIP_DAKIKA):"),
+        # --- K223 UCUNCU KOVA (FIKSTUR) ---
+        # Arama metinleri BILEREK parcali yazilir: aksi halde bu satirin kendisi ikinci
+        # esleme olur, `count(eski) != 1` capasi duser ve mutant SESSIZCE atlanirdi.
+        ("fikstur-tanima",
+         'return gecici_altinda_mi(entry["yol"]) and bool(entry["deta' +
+         'ched"])  # FIKSTUR_MUTANT_ROLE',
+         "return False  # FIKSTUR_MUTANT_ROLE"),
+        ("fikstur-detached",
+         'return gecici_altinda_mi(entry["yol"]) and bool(entry["deta' +
+         'ched"])  # FIKSTUR_MUTANT_ROLE',
+         'return gecici_altinda_mi(entry["yol"])  # FIKSTUR_MUTANT_ROLE'),
+        ("fikstur-gorunur",
+         "chip_sayisi, TAVAN_CHIP, fiks" + "tur_sayisi))",
+         "chip_sayisi, TAVAN_CHIP, 0))"),
     ]
     kontroller = [("yorum", kaynak_metin + "\n# kontrol mutanti\n"),
                   ("bosluk", kaynak_metin + "\n\n")]
@@ -457,7 +590,8 @@ def mutasyon():
                                      "git_ortami.py"),
                         os.path.join(gecici, "git_ortami.py"))
         yeni_adlar = {"tavan-mimar", "tavan-chip", "rol-siniflama",
-                      "rol-tersine", "olu-chip"}
+                      "rol-tersine", "olu-chip",
+                      "fikstur-tanima", "fikstur-detached", "fikstur-gorunur"}
         for ad, eski, yeni in oldurucular:
             if kaynak_metin.count(eski) != 1:
                 hayatta.append(ad + ":capa")

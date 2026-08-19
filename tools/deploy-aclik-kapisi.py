@@ -354,34 +354,36 @@ def _needs_kumesi(job):
 #                                    olculur; surum damgasi regresyonu gorunmez kalir.
 #     yayin-ic-dil-kapisi.py --kaynak  uretilmis: "8 kaynak dosyasi" · pristine: "7"
 #                                    -> index.built.html olcum disi kalir, rc=0.
-#   Bu iki arac bugun CI'da uretimi `yasal-sayfa-drift-kapisi.py`nin YAN ETKISINDEN alir
-#   (o kapi `subprocess.run([...BUILD], cwd=ROOT)` ile TAM build kosar) ve ONDAN SONRA
-#   kosar. Ucu (drift kapisi -> surum-test -> ic-dil --kaynak) AYNI SERITTE ve AYNI
-#   SIRADA tutulmalidir; bu eksen tam olarak bunu olcer.
 #
-# URETICI = uretilen agaci DEPO KOKUNDE olusturan cagri. Ikisi de OLCULDU:
+# 🔴 KAYIT GUNCELLEMESI (19 Agu 2026, SERIT B onarimi — tasinma OLCULDU): drift
+#   kapisi + surum-test + test-jsonld-{brand,sku} deploy.yml'den nobet.yml'e tasindi
+#   ve kayitlari BURADAN dustu (bu eksenin evreni deploy.yml'dir):
+#     yasal-sayfa-drift-kapisi.py (bayraksiz) -> nobet.yml hijyen-a2 (yan-etki tam
+#       build kosar) ve surum-test.py ondan SONRAKI adimda — sira ORADA korunuyor;
+#     test-jsonld-{brand,sku}.py -> nobet.yml hijyen-build, "Statik sayfalari uret"
+#       (tam build.py) adimindan SONRA.
+#   nobet.yml'de E2b esdegeri OLCULMUYOR (acik kesif — kapanis raporuna yazildi);
+#   bu dosyanin evrenini genisletmek ayri istir, kayit burada BAYAT tutulamaz
+#   (kapinin kendi fail-closed hatasi: "KAYIT BAYAT ... guncelle").
+#   --kaynak kolu ise AYNI hukumle serit-a2'den `build` job'una (uretimden SONRAYA)
+#   tasindi; kaydi asagida DURUYOR ve artik uretimli job'da eslesiyor.
+#
+# URETICI = uretilen agaci DEPO KOKUNDE olusturan cagri. OLCULDU:
 URETICILER = {
     # bayraksiz cagri TAM uretimdir. (`--sadece-ozet` yalniz ozet.json yazar -> URETICI
     # SAYILMAZ; o yuzden eslesme bayraksiz cagriya kilitli.)
     "tools/build.py":
         "TEK gercek uretim: urun/ · _yayin/ · varlik/ · sitemap.xml · merchant-feed.xml "
         "· ozet.json · _yayin-icerik-dizinleri.txt · index.built.html",
-    # OLCULDU (tools/yasal-sayfa-drift-kapisi.py:153): `subprocess.run([sys.executable,
-    # BUILD], cwd=ROOT)` -> kapinin KENDISI depo kokunde TAM build kosar. Yasal sayfalari
-    # geri koyar ama urun/ · _yayin/ · varlik/ agacini BIRAKIR. Bu bir YAN ETKIDIR ve
-    # adiminin adinda/yorumunda YAZMAZ -> tam da bu yuzden burada KAYITLIDIR.
-    "tools/yasal-sayfa-drift-kapisi.py":
-        "yan etki: cwd=ROOT ile tam build.py kosar (kaynak: yasal-sayfa-drift-kapisi.py:153)",
 }
 
 # TUKETICI = uretilen agaca DISKTEN dokunan arac. Anahtar (arac_yolu, bayrak):
 # bayrak None => BAYRAKSIZ cagri (o aracin `--kendini-test` gibi gecici-dizinde kosan
 # kollari BU EKSENIN KAPSAMINDA DEGILDIR ve eslesmez).
 URETIM_TUKETICILERI = {
-    ("tools/surum-test.py", None):
-        "🔴 SESSIZ SINIF: _yayin/<rel> varsa YAYINLANAN kopyayi, yoksa KAYNAGI olcer "
-        "(surum-test.py:27,74) — uretim yoksa rc=0 kalir ama olculen yuzey degisir "
-        "(olculdu: 7 referans _yayin/'dan -> 0).",
+    # surum-test.py + test-jsonld-{brand,sku}.py kayitlari 19 Agu 2026'da dustu:
+    # araclar nobet.yml'e tasindi, bu akista cagrilmiyorlar (ustteki KAYIT
+    # GUNCELLEMESI blogu; tasinma yerleri orada olcumle kayitli).
     ("tools/yayin-ic-dil-kapisi.py", "--kaynak"):
         "🔴 SESSIZ SINIF: KAYNAK kolu index.built.html'i de kapsar; uretim yoksa kapsam "
         "8 -> 7 dosyaya duser ve rc=0 kalir (olculdu).",
@@ -391,12 +393,8 @@ URETIM_TUKETICILERI = {
         "yayinlanan her id'nin urun/<id>/index.html sayfasini arar (fail-loud rc=1).",
     ("jenerator/test/yayin-fiyat-parite.mjs", None):
         "_yayin/ altindaki yayin kopyalarindan fiyat paritesi olcer (fail-loud rc=3).",
-    ("tools/test-jsonld-brand.py", None):
-        "urun/*/index.html uretilen sayfalarini okur (fail-loud rc=1).",
     ("tools/test-jsonld-offers.py", None):
         "urun/*/index.html uretilen sayfalarini okur (fail-loud rc=1).",
-    ("tools/test-jsonld-sku.py", None):
-        "urun/*/index.html + merchant-feed.xml capraz-kontrolu (fail-loud rc=1).",
 }
 
 
@@ -891,9 +889,12 @@ def _mutant_e2b_uretimsiz_serit(govde):
 
 
 def _mutant_e2b_sessiz_tuketici_tasindi(govde):
-    """🔴 SESSIZ sinif: surum-test.py uretimsiz serite tasinir. Adim orada rc=0 verir
-    (yalanci yesil); eksen bunu SIRF YERINDEN taniyabilmelidir."""
-    job, sira = _tuketici_yeri(govde, "tools/surum-test.py")
+    """🔴 SESSIZ sinif: ic-dil --kaynak kolu uretimsiz serite tasinir. Adim orada
+    rc=0 verir (yalanci yesil; yuzey 8'den 7 dosyaya duser); eksen bunu SIRF
+    YERINDEN taniyabilmelidir. (Hedef 19 Agu 2026'da surum-test.py'den cevrildi:
+    o arac nobet.yml'e tasindi ve kayittan dustu; SESSIZ sinifin bu akistaki
+    kalan uyesi --kaynak koludur — eksen AYNI, yalniz capa guncel.)"""
+    job, sira = _tuketici_yeri(govde, "tools/yayin-ic-dil-kapisi.py", "--kaynak")
     hedef = _uretimsiz_job(govde, haric=job)
     govde["jobs"][hedef]["steps"].append(govde["jobs"][job]["steps"].pop(sira))
 
@@ -905,8 +906,14 @@ def _mutant_e2b_uretimden_once(govde):
 
 
 def _mutant_e2b_serit_needs_dusuruldu(govde):
-    """Uretim zinciri tasiyan bir serit `deploy.needs`'ten dusurulur (sessiz fail-open)."""
-    job, _ = _tuketici_yeri(govde, "tools/surum-test.py")
+    """Uretim zinciri tasiyan bir serit `deploy.needs`'ten dusurulur (sessiz fail-open).
+
+    Capa 19 Agu 2026'da surum-test.py'den --kaynak koluna cevrildi (arac tasindi,
+    kayittan dustu). Zincir artik `build` job'unda toplandigi icin bu mutant E2'yi
+    de yakabilir (deploy->build bagi kopar); beklenti kiyasi ALT-KUME oldugu icin
+    (`set(beklenen) - bulunan`) fazladan eksen HUKMU BOZMAZ — E2b yanmaya devam
+    etmek ZORUNDA."""
+    job, _ = _tuketici_yeri(govde, "tools/yayin-ic-dil-kapisi.py", "--kaynak")
     yayin = yayin_isi_adi(govde)
     ham = govde["jobs"][yayin].get("needs")
     needs = [ham] if isinstance(ham, str) else list(ham or [])
@@ -918,8 +925,14 @@ def _mutant_e2b_serit_needs_dusuruldu(govde):
 def _mutant_kontrol_kayitsiz_tasima(govde):
     """KONTROL: KAYITLI OLMAYAN bir kapi baska serite tasinir -> eksen YESIL KALMALI.
     Bu mutant olmasa E2b 'her adim tasimasina kirmizi yanan' bir gurultu kaynagi
-    olabilir ve M8/M9'un yesili bunu ELE VERMEZDI ([[fikstur-degeri-mutasyon-koru]])."""
-    arac = "tools/gramer-artigi-kapisi.py"
+    olabilir ve M8/M9'un yesili bunu ELE VERMEZDI ([[fikstur-degeri-mutasyon-koru]]).
+
+    Capa 19 Agu 2026'da gramer-artigi-kapisi.py'den cevrildi: o cagri deploy.yml'de
+    artik YOK (nobet.yml'e tasinmisti) ve KeyError kontrolu OLCUMSUZ birakiyordu;
+    kusur main'de taban-kirmizisinin golgesinde gorunmez kalmisti. Yeni capa
+    devam-sinif-kapisi.py: serit-a2'de bayraksiz kosan, kayit tablosunda OLMAYAN
+    gercek bir kapi — kontrolun anlami degismedi."""
+    arac = "tools/devam-sinif-kapisi.py"
     job, sira = _tuketici_yeri(govde, arac)
     hedefler = [j for j, _ in _adim_eslesmeleri(govde.get("jobs") or {},
                                                 "tools/build.py", None)]
@@ -939,7 +952,7 @@ MUTANTLAR = (
     ("M7 E2: deploy continue-on-error: true", _mutant_e2_fail_open, ("E2",)),
     ("M8 E2b: P-sinifi adim URETIMSIZ serite tasindi",
      _mutant_e2b_uretimsiz_serit, ("E2b",)),
-    ("M9 E2b: SESSIZ tuketici (surum-test) URETIMSIZ serite tasindi",
+    ("M9 E2b: SESSIZ tuketici (ic-dil --kaynak) URETIMSIZ serite tasindi",
      _mutant_e2b_sessiz_tuketici_tasindi, ("E2b",)),
     ("M10 E2b: tuketici AYNI job'da uretimden ONCEYE alindi",
      _mutant_e2b_uretimden_once, ("E2b",)),
