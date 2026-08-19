@@ -22,9 +22,9 @@ KOD_UZUNLUGU = 6
 KOD_DESENI = re.compile(
     r"^PR-[" + re.escape(KOD_ALFABE) + r"]{" + str(KOD_UZUNLUGU) + r"}$"
 )
-L9_IZINLI_DOSYALAR = {
-    "tools/talep-temizlik.py", "tools/talep-hatti-test.py"
-}
+# L9 pozitif kontrolunun agaca biraktigi sinama artigi. Adi "mutant" gecer ki
+# _iz_kumesi'nin tools/*mutant* globu da gorsun (git yolu .gitignore ile gizlense bile).
+L9_ARTIK_ADI = "k190-l9-artik-mutant.tmp"
 
 
 def esik_zamani(now=None):
@@ -313,18 +313,40 @@ def d1_changes_olc():
     return False
 
 
-def _l9_olc():
-    proje = Path.cwd()
-    artigi = list((proje / "tools").glob("*mutant*"))
+def _iz_kumesi(proje):
+    """Agacta gozlemlenebilir iz kumesi: git'in bildirdigi HER yol + tools/ artiklari.
+
+    git'in bildirdigi yollar `.gitignore` ile gizlenebildigi icin `tools/*mutant*` globu
+    ayrica taranir — iki eksen birbirinin kor noktasini kapatir.
+    """
     durum = __import__("subprocess").run(
         ["git", "status", "--porcelain"], cwd=proje,
         capture_output=True, text=True)
-    yabanci = [satir for satir in durum.stdout.splitlines()
-               if not any(yol in satir for yol in L9_IZINLI_DOSYALAR)]
-    return not yabanci and not artigi
+    izler = {satir[3:].strip() for satir in durum.stdout.splitlines() if len(satir) > 3}
+    izler.update("tools/" + yol.name for yol in (proje / "tools").glob("*mutant*"))
+    return izler
+
+
+def _l9_olc(iz_once=None):
+    """L9: arac KENDI ayak izini birakmaz (Okan'in 'makinede iz birakma' kurali).
+
+    Olculen sey ONCE/SONRA FARKIDIR, mutlak temizlik DEGIL. Gerekce olculdu (19 Agu 2026):
+    mutlak snapshot bu cok-oturumlu depoda komsu bir oturumun commit'siz dosyasini bizim
+    izimiz sanip kapiyi kirmiziya cevirdi — iddianin ADI "arac iz birakmaz" iken OLCTUGU
+    "agacta kimsenin acik dosyasi yok"tu. Iddia GEVSEMEDI, tersine genisledi: fark ekseni
+    `tools/*mutant*` desenini degil TUM agaci kapsar, yani artik hangi adla hangi dizine
+    yazilirsa yazilsin yeni iz kirmiziya doner. L9_IZINLI_DOSYALAR muafiyeti de kalkti;
+    fark ekseninde aracin kendi kaynagini duzenlemek zaten iz sayilmaz.
+    """
+    proje = Path.cwd()
+    onceki = _iz_kumesi(proje) if iz_once is None else iz_once
+    return not (_iz_kumesi(proje) - onceki)
 
 
 def kabul_bataryasi(mutant=None):
+    # L9'un ONCE snapshot'i bataryanin ILK isleminden once alinir: aradaki her adimin
+    # (fikstur, kuru kosum, D1 sahtesi) ayak izi farka girsin.
+    iz_once = _iz_kumesi(Path.cwd())
     simdi = datetime(2026, 8, 19, tzinfo=timezone.utc)
     esik = esik_zamani(simdi)
     temel = _fikstur(simdi)
@@ -352,7 +374,7 @@ def kabul_bataryasi(mutant=None):
         l6 = karar_ver(temel[:2], esik, 5)[0] == []
         l7 = karar_ver(temel, esik, 2) == karar_ver(list(reversed(temel)), esik, 2)
         l8 = kaynakta_tek_saklama()
-        l9 = _l9_olc()
+        l9 = _l9_olc(iz_once)
         l5b = d1_changes_olc()
         r1 = r1_davranissal()
         f5 = f5_statik()
@@ -475,7 +497,16 @@ def mutant_bataryasi(temel):
         "L6": ("l6 = karar_ver(temel[:2], esik, " + "5)[0] == []", "l6 = False"),
         "L7": ("l7 = karar_ver(temel, esik, " + "2) == karar_ver(list(reversed(temel)), esik, 2)", "l7 = False"),
         "L8": ("l8 = " + "kaynakta_tek_saklama()", "l8 = False"),
-        "L9": ("l9 = " + "_l9_olc()", "l9 = False"),
+        "L9": ("l9 = " + "_l9_olc(iz_once)", "l9 = False"),
+        # POZITIF KONTROL: L9 artik FARK olctugu icin "hep yesil" bir tautoloji olabilirdi.
+        # Bu mutant agaca GERCEK bir artik birakir; L9 kirmizi donmezse eksen olcmuyor demektir.
+        # Artigi mutant kendi atexit'inde, ebeveyn de finally'de siler (ureten temizler).
+        "L9-artik": (
+            "        l8 = " + "kaynakta_tek_saklama()",
+            "        l8 = " "kaynakta_tek_saklama()\n"
+            "        _artik = Path.cwd() / \"tools\" / L9_ARTIK_ADI\n"
+            "        _artik.write_text(\"artik\", encoding=\"utf-8\")\n"
+            "        __import__(\"atexit\").register(lambda: _artik.unlink(missing_ok=True))"),
         "R1": (
             "        if uygula and kodlar:\n"
             "            silinen = yurutucu.sil(kodlar)\n"
@@ -523,6 +554,10 @@ def mutant_bataryasi(temel):
     scratch = Path(tempfile.mkdtemp(prefix="k190-mutants-"))
     try:
         for ad, (arama, degisim) in tanimlar.items():
+            # L9 pozitif kontrolu SADECE artik YENI ise kirmizi doner; bayat bir artik
+            # mutantin ONCE-goruntusune girip olcumu sessizce yesile cevirirdi. Her turdan
+            # once supurulur — kontrol ambiyansa degil, kendi urettigi ize bakar.
+            (Path.cwd() / "tools" / L9_ARTIK_ADI).unlink(missing_ok=True)
             kaynak = Path(__file__).read_text(encoding="utf-8")
             if kaynak.count(arama) != 1:
                 sonuc.append((ad, False, [], "OLCULEMEDI: mutant arama benzersiz degil"))
@@ -547,6 +582,7 @@ def mutant_bataryasi(temel):
                                 "L10-3": ["L10", "L11e"],
                                 "L11a-sizinti": ["L11a", "L11e"],
                                 "L11d": ["L11d", "L11e"],
+                                "L9-artik": ["L9"],
                                 "L11e-kuru-karantina": ["L11e"],
                                 "L11e-kuru-delete": ["L11e"]}.get(ad, [ad])
                 iki_yonlu = (ad not in {"L11e-kuru-karantina", "L11e-kuru-delete"} or
@@ -560,6 +596,8 @@ def mutant_bataryasi(temel):
                     yol.unlink()
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+        # L9 pozitif kontrolu agaca artik biraktiysa (mutant atexit'i kosamadiysa) ebeveyn siler.
+        (Path.cwd() / "tools" / L9_ARTIK_ADI).unlink(missing_ok=True)
     return sonuc
 
 
@@ -593,6 +631,8 @@ def kendini_test(mutant=None):
     finally:
         baglanti.close()
         dosya.close()
+    # Onceki kosumdan artik kalmissa ONCE-goruntusune girip L9'u kor eder; supur.
+    (Path.cwd() / "tools" / L9_ARTIK_ADI).unlink(missing_ok=True)
     l_sonuclar = kabul_bataryasi()
     mutant_sonuclari = mutant_bataryasi(l_sonuclar)
     mutant_ok = sum(int(ok) for _, ok, _, _ in mutant_sonuclari)
