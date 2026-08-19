@@ -1764,7 +1764,11 @@ TABLO_TABANLARI = (
     # kapisi bayraksiz kolun silinmesini GORMEZ olmustu — olculdu, rc=0).
     # 12 Agu: 7 -> 8 (`katalog-alan-kapisi.py` bayraksiz gercek katalog olcumu
     # deploy.yml serit-a2'ye BLOKLAYICI eklendi; fiyat tipi build'den once durur).
-    ("E_ZORUNLU_CAGRILAR", 8), ("E_ZORUNLU_VARLIKLAR", 1),
+    # 19 Agu: 8 -> 9 (K215 — `_site` toplama adimi kabuk blogundan tools/yayin-topla.py'ye
+    # tasindi; ADIMIN CAGRILDIGI iddiasi artik AYRI bir giristir. Onceden o iddia
+    # E_ZORUNLU_VARLIKLAR'daki metin aramasinin YAN ETKISIYDI: `cp ... hacim.js` satiri
+    # dosyada durdugu surece adim "var" sayiliyordu. Iki eksen artik AYRI olculur.)
+    ("E_ZORUNLU_CAGRILAR", 9), ("E_ZORUNLU_VARLIKLAR", 1),
     # 8 Agu: 5 -> 7 (taban tam-esitlige cevrildi; olculen pay 2 idi, olu koruma).
     # 8 Agu (3. tur): 7 -> 8 (kendini_test -> _tablo_mekanizma_kontrol kablosu eklendi;
     # M6 sinifi: inline blok + elle yazili `iddia += 6` ikizi eksenin SESSIZCE
@@ -3132,6 +3136,10 @@ def bolum_d(dizin):
 # iddiasi da o dosyalarin HEPSI icin ayri ayri olculur (nobet dosyasi `push` ile
 # tetiklenmezse alarm hic kosmaz ve "gorunur kanal" iddiasi bosa duserdi).
 E_TETIKLEYICILER = ("push",)
+# `_site` beyaz listesinin TEK KAYNAGI (19 Agu 2026, K215): hem ZORUNLU CAGRI olarak
+# (adim deploy.yml'de gercekten kosuyor mu) hem ZORUNLU VARLIK olcumunun VERI KAYNAGI
+# olarak (manifesto varligi tasiyor mu) kullanilir -> iki eksen TEK sabite baglidir.
+E_YAYIN_ARACI = "tools/yayin-topla.py"
 # (is_akisi, kapi_yolu, zorunlu_bayrak_ya_da_None, adim_etiketi)
 #   bayrak None -> o bayragi TASIMAYAN (yani ana/bayraksiz kolu kosan) bir cagri sart
 E_ZORUNLU_CAGRILAR = (
@@ -3195,6 +3203,16 @@ E_ZORUNLU_CAGRILAR = (
      "Yayin seridinde BLOKLAYICI kosmali; `--kendini-test` kolu nobet.yml'dedir ve "
      "onun varligi bu kolun yerini TUTMAZ (dosya granullu kapsam kapisi bu farki "
      "GORMEZ — olculdu, [[kapi-yan-etkisi-gizli-onkosul]])."),
+    # 🔴 19 AGU 2026 — YAYIN TOPLAMA ADIMI (K215 tasimasi). `_site` beyaz listesi 39
+    # satirlik kabuk blogundan bu araca tasindi; adim artik TEK SATIR ve K80 onu
+    # kosturabiliyor. Cagrinin KENDISI burada capalanir: adim silinir ya da `echo`
+    # mensiyonuna cevrilirse yayin klasoru HIC kurulmaz, `upload-pages-artifact`
+    # bos/eksik agac yukler ve TUM site (urun sayfalari, varlik/, icerik dizinleri)
+    # canlida kaybolur. Bu adim hicbir KABUL TESTI kosmadigi icin Bolum D onu GORMEZ.
+    (E_DOSYA, E_YAYIN_ARACI, None,
+     "YAYIN KLASORU TOPLAYICISI — `_site` beyaz listesinin TEK KAYNAGI. Adim duserse "
+     "ya da etkisizlestirilirse yayin agaci hic kurulmaz; zorunlu yayin varliklari "
+     "(E_ZORUNLU_VARLIKLAR) manifestoda DURSA BILE canliya hicbiri cikmaz."),
 )
 
 # ---- ZORUNLU YAYIN VARLIKLARI (adim TURU korlugunun ikinci ekseni) ---------
@@ -3206,6 +3224,20 @@ E_ZORUNLU_CAGRILAR = (
 # ve hicbir yerde alarm calmaz. Iddia burada, CI'da kosan bir kapida yasar.
 # KAPSAM DAR TUTULUR (dosya bazli POZITIF, [[kapi-kapsam-genisletme-tuzagi]]):
 # "her cp korunsun" DEMEZ — yalniz konfiguratorun CALISMASI icin sart olan varlik.
+#
+# 🔴 19 AGU 2026 — OLCUM YERI DEGISTI, EKSEN AYNI KALDI (K215/K80 (a) yolu). Yayin
+# toplama adimi 39 satirlik kabuk blogundan `tools/yayin-topla.py`'ye TASINDI (gerekce:
+# K80 kosturucusu kabuk metakarakteri goren adimi OLCULEMEDI ile blokluyordu). Iddia
+# artik deploy.yml METNINDE `cp ... hacim.js` ARAMAZ — cunku o satir orada YOK.
+# IKI AYAKLI VE HER IKISI DE FAIL-CLOSED:
+#   (1) deploy.yml `tools/yayin-topla.py`'yi ETKILI olarak cagiriyor mu -> bu iddia
+#       E_ZORUNLU_CAGRILAR'da AYRI bir giris olarak yasar (adim silinir/`echo`'ya
+#       cevrilirse ORASI kirmizi yanar);
+#   (2) aracin MANIFESTO'su varligi GERCEKTEN tasiyor mu -> burada olculur.
+# Mutasyon dengi KORUNDU: eskiden `cp` satirini `echo cp`'ye cevirmek kapiyi kirmizi
+# yakiyordu; simdi manifestodan satiri dusurmek ayni kapiyi kirmizi yakar. Kaynak
+# dosyada METIN aramak BILEREK YAPILMADI — o, oldurulen delik sinifinin ta kendisidir
+# (yoruma alinmis/olu bir Python satiri metinde HALA gecer).
 E_ZORUNLU_VARLIKLAR = (
     ("jenerator/hacim.js",
      "parametrik (sari seri) konfiguratorun hacim/fiyat cekirdegi. Yayin klasorune "
@@ -3213,12 +3245,41 @@ E_ZORUNLU_VARLIKLAR = (
 )
 
 E_VARLIK_TANI = (
-    "ZORUNLU YAYIN VARLIGI NOBETI KIRMIZI: %s dosyasinda `%s` varligini ETKILI bir\n"
-    "   komutun ARGUMANI olarak tasiyan hicbir satir YOK.\n"
-    "   Etkisiz sayilan haller: satir SILINMIS · YORUMA alinmis · `echo` MENSIYONUNA\n"
-    "   cevrilmis · `|| true` / `continue-on-error: true` / `if: false` / `set +e`.\n"
+    "ZORUNLU YAYIN VARLIGI NOBETI KIRMIZI: `%s` varligi YAYIN MANIFESTOSUNDA YOK\n"
+    "   (%s::MANIFESTO — deploy.yml 'Yayin klasorunu topla' adiminin TEK KAYNAGI).\n"
+    "   Etkisiz sayilan haller: manifesto satiri SILINMIS · kaynak yolu degistirilmis ·\n"
+    "   adim turu kopyalamayan bir tura cevrilmis.\n"
     "   NEDEN BLOKLAYICI: %s\n"
-    "   GERI KOY: 'Yayin klasorunu topla' adiminda `cp %s ... _site/jenerator/`.")
+    "   GERI KOY: %s icindeki MANIFESTO'ya `%s` kaynagini tasiyan adimi ekle.")
+
+E_VARLIK_OLCULEMEDI = (
+    "ZORUNLU YAYIN VARLIGI NOBETI OLCULEMEDI (fail-closed KIRMIZI): %s yuklenemedi\n"
+    "   -> yayin beyaz listesi HIC okunamadi, `%s` varliginin tasinip tasinmadigi\n"
+    "   BILINMIYOR. Sebep: %s")
+
+
+def _yayin_topla_yukle():
+    """tools/yayin-topla.py'yi MODUL olarak yukle. (modul, hata_metni).
+
+    FAIL-CLOSED: yuklenemezse hukum YESIL DEGIL, OLCULEMEDI-KIRMIZI'dir."""
+    import importlib.util
+    yol = os.path.join(TOOLS, os.path.basename(E_YAYIN_ARACI))
+    if not os.path.exists(yol):
+        return None, "%s YOK" % E_YAYIN_ARACI
+    if "pruvo_yayin_topla" in sys.modules:
+        return sys.modules["pruvo_yayin_topla"], None
+    try:
+        spec = importlib.util.spec_from_file_location("pruvo_yayin_topla", yol)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["pruvo_yayin_topla"] = mod
+        spec.loader.exec_module(mod)
+    except Exception as e:  # noqa: BLE001 — her tur import arizasi ayni hukmu verir
+        sys.modules.pop("pruvo_yayin_topla", None)
+        return None, "%s yuklenemedi (%s: %s)" % (E_YAYIN_ARACI, type(e).__name__, e)
+    for ad in ("MANIFESTO", "yayin_varligi_tasiniyor_mu"):
+        if not hasattr(mod, ad):
+            return None, "%s icinde %s YOK (sozlesme degismis)" % (E_YAYIN_ARACI, ad)
+    return mod, None
 
 E_TETIKLEYICI_TANI = (
     "TETIKLEYICI NOBETI KIRMIZI: %s dosyasinda AYRISTIRILMIS `on` dugumunun DOGRUDAN\n"
@@ -3372,11 +3433,18 @@ def bolum_e(dizin):
             hatalar.append(E_ZORUNLU_TANI % (
                 is_akisi, kapi, (" %s" % bayrak) if bayrak else " (BAYRAKSIZ)",
                 etiket, ek))
-    # ZORUNLU YAYIN VARLIGI yalniz YAYIN is akisindadir (`_site` toplama adimi).
+    # ZORUNLU YAYIN VARLIGI — kaynagi artik `_site` toplama ARACININ manifestosudur
+    # (deploy.yml'de kabuk `cp` satiri YOK; 19 Agu 2026 K215 tasimasi). Adimin fiilen
+    # CAGRILDIGI iddiasi E_ZORUNLU_CAGRILAR'daki AYRI giriste olculur.
+    _yayin_mod, _yayin_hata = _yayin_topla_yukle()
     for varlik, neden in E_ZORUNLU_VARLIKLAR:
         iddia += 1
-        if not etkili_mensiyon(e_metin, varlik):
-            hatalar.append(E_VARLIK_TANI % (E_DOSYA, varlik, neden, varlik))
+        if _yayin_mod is None:
+            hatalar.append(E_VARLIK_OLCULEMEDI % (E_YAYIN_ARACI, varlik, _yayin_hata))
+            continue
+        if not _yayin_mod.yayin_varligi_tasiniyor_mu(varlik):
+            hatalar.append(E_VARLIK_TANI % (varlik, E_YAYIN_ARACI, neden,
+                                            E_YAYIN_ARACI, varlik))
     return hatalar, iddia
 
 
@@ -3922,9 +3990,7 @@ jobs:
       - name: "Konfigur bundle kapisi"
         run: python3 tools/konfigur-bundle-kapisi.py
       - name: "Yayin klasorunu topla"
-        run: |
-          mkdir -p _site/jenerator
-          cp jenerator/hacim.js _site/jenerator/
+        run: python3 tools/yayin-topla.py
 """
 
 # (ad, metin, KIRMIZI_olmali_mi)
@@ -4037,22 +4103,29 @@ E_MUTANTLAR = (
                              '      - name: "Konfigur bundle kapisi"\n'
                              "        run: python3 tools/konfigur-bundle-kapisi.py\n"),
      False),
-    ("YAYIN VARLIGI `cp jenerator/hacim.js` -> `echo cp ...` (OLCULEN SAG KALAN MUTANT)",
-     E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
-                             "          echo cp jenerator/hacim.js _site/jenerator/\n"),
+    # 🔴 19 AGU 2026 — YAYIN TOPLAMA ADIMI ARACA TASINDI (K215). Eski uc mutant kabuk
+    # `cp jenerator/hacim.js` SATIRINI etkisizlestiriyordu; o satir artik deploy.yml'de
+    # YOK (govde tools/yayin-topla.py::MANIFESTO). Eksen AYNI, olcum yeri degisti:
+    # burada ADIMIN KENDISI etkisizlestirilir (silme / `echo` mensiyonu), varligin
+    # manifestoda durup durmadigi ise aracin KENDI bataryasindaki oldurucu mutantla
+    # (yayin-topla.py::kendini_test T2) olculur.
+    ("YAYIN TOPLAMA cagrisi `echo` MENSIYONUNA cevrildi (OLCULEN SAG KALAN MUTANT sinifi)",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/yayin-topla.py\n",
+                             "        run: echo python3 tools/yayin-topla.py\n"),
      True),
-    ("YAYIN VARLIGI satiri YORUMA alindi",
-     E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
-                             "          # cp jenerator/hacim.js _site/jenerator/\n"),
-     True),
+    ("YAYIN TOPLAMA adimi butunuyle SILINDI (yayin klasoru hic kurulmaz)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Yayin klasorunu topla"\n'
+                             "        run: python3 tools/yayin-topla.py\n", ""), True),
     # --- YANLIS-POZITIF KANARYALARI (MESRU yazim KIRMIZI YANMAMALI) ---
     ("build.py'ye MESRU ek arguman (`--sadece-ozet` DEGIL, girdi secen bayrak)",
      E_FIKSTUR_TEMIZ.replace("        run: python3 tools/build.py\n",
                              "        run: python3 tools/build.py --hizli\n"), False),
-    ("yayin varligi `cp -a` ve TAM yol ile kopyalandi (MESRU)",
-     E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
-                             "          cp -a jenerator/hacim.js "
-                             "_site/jenerator/hacim.js\n"), False),
+    ("YAYIN TOPLAMA adimi AYRI bir job'a tasindi (MESRU: tablo DOSYA alanindadir)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Yayin klasorunu topla"\n'
+                             "        run: python3 tools/yayin-topla.py\n",
+                             "  besinci:\n    runs-on: ubuntu-latest\n    steps:\n"
+                             '      - name: "Yayin klasorunu topla"\n'
+                             "        run: python3 tools/yayin-topla.py\n"), False),
     ("D1 adimi AYRI bir job'a tasindi (MESRU)",
      E_FIKSTUR_TEMIZ.replace('      - name: "D1 yazma geri-okuma"\n'
                              "        run: python3 tools/d1-sync.py --kendini-test\n",

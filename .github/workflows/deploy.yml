@@ -252,47 +252,23 @@ jobs:
       # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
       # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
       # indirilebiliyordu (ic araclar + ticari mahremiyet; denetim 2026-07-15).
+      # 🔴 19 AGU 2026 — KABUK BLOGU ARACA TASINDI (K80 blokajinin (a) yolu, mimar hukmu).
+      # Bu adim 39 satirlik bir kabuk bloguydu (`mkdir` · `cp` · `if [ ... ]` ·
+      # `while IFS= read -r`). tools/is-akisi-kapisi.py'nin K80 kolu DEGISEN her CI adimini
+      # hedef commitin agacinda KOSTURUP yesil gormek zorundadir, ama kosturucusu yalniz
+      # `python3 <betik>` / `node <betik>` bicimini ayristirir -> `mkdir` jetonunda
+      # OLCULEMEDI verip push'u fail-closed BLOKLUYORDU. Yani sitenin YAYIN ADIMI, metni
+      # her degistiginde CI'ya girmeden once hicbir yerde OLCULEMIYORDU.
+      # (b) yolu — K80'e "kabuk blogu muafiyeti" — REDDEDILDI: kapinin cekirdek amaci tam
+      # olarak "degisen yayin adimi olculmeden gecmesin"dir ([[kapi-kapsam-genisletme-tuzagi]]).
+      # DAVRANIS BIREBIR AYNI: esdegerlik ANLATILMADI, OLCULDU — eski kabuk blogu ile arac
+      # ayni fikstur agacinda kosturulup uretilen `_site` DOSYA SAYISI + HER YOLUN SHA256'si
+      # duzleminde karsilastirildi (fark 0). Beyaz liste + fail-closed kurallarin TEK KAYNAGI
+      # artik tools/yayin-topla.py::MANIFESTO; "yayin su varligi tasiyor mu" sorusunu soran
+      # nobetciler (is-akisi-kapisi E_ZORUNLU_VARLIKLAR · jenerator/test/kabul.py TEST 4)
+      # METIN ARAMAZ, o manifestoyu okur.
       - name: Yayin klasorunu topla (beyaz liste)
-        run: |
-          mkdir _site
-          # Ana sayfa: build.py'nin urettigi YAYIN kopyasi (script src'leri ?v=<hash>
-          # ile onbellek-kirici surumlu). KAYNAK index.html yayina girmez.
-          cp index.built.html _site/index.html
-          # ozet.json = FAZ 3 ilk-boyama dosyasi (build.py render_ozet uretir). Bayrak
-          # (index.html EDGE_KATALOG) KAPALIYKEN site onu cekmez; yine de yayina girer ki
-          # bayrak acildigi an dosya CDN'de hazir olsun (eklenmeseydi bayrak acilinca
-          # ana sayfa 404 alip bos kalirdi).
-          # konfigur.js = dekor konfiguratoru modulu (urunler.json "konfigur" alanli urun
-          # sayfalari yukler; bugun urun yok, dosya yayinda hazir bekler — taban-fiyatlar deseni).
-          # JS varliklari _yayin/'dan gelir: build.py onlarin YORUMU SOYULMUS yayin
-          # kopyasini oraya yazar (kaynak dosyalar depoda tam dokumantasyonla KALIR,
-          # tarayiciya inmez). _yayin/ yoksa/eksikse `cp` HATA verir -> yayin durur
-          # (fail-closed; sessizce yorumlu kaynak yayinlanamaz).
-          cp _yayin/secenekler.js _yayin/konfigur.js _yayin/filament-veri.js _yayin/taban-fiyatlar.js _site/
-          cp urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
-          cp -r urun _site/
-          # SAYFA VARLIKLARI (/varlik/*.css,*.js): build.py'nin urettigi icerik-adresli
-          # same-origin dosyalar. Sayfalar bunlara REFERANS verir (gomulu degil) -> dizin
-          # eksik/bos gelirse tum sayfalar CIPLAK yayinlanirdi; fail-closed kontrol edilir.
-          # Yorumlari uretim aninda soyulmustur (build.varlik_adres), bu yuzden _yayin/ yok.
-          if [ ! -d varlik ] || [ -z "$(ls -A varlik)" ]; then echo "HATA: varlik/ yok veya bos (build.py kosmadi mi?) -> sayfalar ciplak kalir"; exit 1; fi
-          cp -r varlik _site/varlik
-          # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
-          # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik
-          # yayina girer, elle beyaz-liste tutulmaz (eskiden buraya eklenmeyen sayfa sessizce 404'tu).
-          if [ ! -s _yayin-icerik-dizinleri.txt ]; then echo "HATA: _yayin-icerik-dizinleri.txt bos/yok (build.py kosmadi mi?)"; exit 1; fi
-          while IFS= read -r slug; do
-            if [ -z "$slug" ]; then continue; fi
-            if [ ! -d "$slug" ]; then echo "HATA: icerik dizini yok: $slug"; exit 1; fi
-            cp -r "$slug" "_site/$slug"
-          done < _yayin-icerik-dizinleri.txt
-          # Parametrik konfigurator varliklari — SADECE public dosyalar (test/ girmez):
-          # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
-          # yeniden hesabi icin de ayni adresten okunur.
-          mkdir _site/jenerator
-          # ... ayni sekilde yorumu soyulmus kopyalar (_yayin/jenerator/).
-          cp _yayin/jenerator/hacim.js _yayin/jenerator/konfigurator.js _yayin/jenerator/viewer.js _site/jenerator/
-          cp -r jenerator/urunler _site/jenerator/urunler
+        run: python3 tools/yayin-topla.py
 
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
