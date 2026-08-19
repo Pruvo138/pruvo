@@ -104,7 +104,7 @@ kusuru sınıfı.
 → **ÖDEV (TeKiN):** `gyro`'nun taban hacmini `doku="duz"` varsayılanıyla YENİDEN ölç;
 5 780 sayısı bu şemada KULLANILMAZ.
 
-### 🔴 Bulgu 5 — 8 ailenin 7'sinin katalogda ZATEN SABİT FİYATLI İKİZİ VAR (ölçüldü)
+### 🔴 Bulgu 5 — 8 ailenin **8'inin de** katalogda ZATEN SABİT FİYATLI İKİZİ VAR (ölçüldü)
 `urunler.json`'da, bu üreteçlerin ÜRETTİĞİ ÜRÜNLER **parametrik olmayan, sabit fiyatlı
 kayıtlar** olarak zaten yayında. Hepsi `lisans` YOK (kendi tasarımımız sınıfı), 2-3 görselli:
 
@@ -117,7 +117,7 @@ kayıtlar** olarak zaten yayında. Hepsi `lisans` YOK (kendi tasarımımız sın
 | planetdisli (350) | 350 | `planet-disli-fidget-stem` — Oyun/Hobi, **500 TL** | −30% |
 | saklama (160) | 160 | `moduler-saklama-kabi-pod` — Ev, **650 TL** | −75% |
 | zincir (220) | 220 | `dekoratif-zincir` — Dekorasyon, **300 TL (30 cm)** | −27% |
-| zar (140) | 140 | (belirgin ikiz bulunamadı) | — |
+| zar (140) | 140 | `kisiye-ozel-oyun-zari` — Oyun/Hobi, **200 TL** ("RPG · D&D · d4–d60") | −30% |
 
 TeKiN'in fiyat önerileri **parametrik katalog bandına** (kutu/dişli/kavanoz) oturtulmuştu;
 kendi sabit fiyatlı ikizleriyle KIYASLANMADI. Bugünkü hâliyle 8 aile inerse **aynı ürün aynı
