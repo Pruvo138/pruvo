@@ -364,17 +364,60 @@ jobs:
           node-version: "20"
 
       - name: "Talep hatti davranis testi (CI kapsam envanteri)"
+        if: ${{ !cancelled() }}
         run: node shop/test/talep.mjs
       - name: "Talep hatti TAM batarya + mutasyon (SERIT B)"
+        if: ${{ !cancelled() }}
         # Tam 50'li olcum burada nobet olarak kalir; bloklayici 17'li sizinti kolu
         # deploy.yml/serit-a3'tedir. G5-G7 iki kolda da ayni test kaynagindan kosar.
         run: python3 tools/talep-hatti-test.py
       - name: "Talep temizlik surucusu: kendini test (iki yonlu, SERIT B)"
+        if: ${{ !cancelled() }}
         run: python3 tools/talep-temizlik.py --kendini-test
+
+      # CHIP DUZENI NOBETI (K185, 19 Agu 2026) — Okan emri: hicbir mimarin ana
+      # oturumunda kosan is olmayacak; her is chip+worktree'de, chip adi `<Ev>-<Is>`.
+      # OLCULEN EKSEN IZLENEBILIRLIKTIR: "oturumda kosan is var mi" repo icinden
+      # olculemez, bu yuzden kapi defterdeki her ACIK CHIP kalemi icin (i) ev oneki
+      # ve (ii) kutuda BASLIYORUM/kapanis izi arar. Kutu repo DISIDIR: CI'da
+      # `KUTU_KAPSAM_DISI` ILAN EDILIR ve cikis kodunu ETKILEMEZ (K177 ayrimi);
+      # eksen (i) CI'da da TAM olculur. SERIT B: kirmizisi yayini DURDURMAZ.
+      - name: "Chip duzeni nobeti (ev oneki + kutu izi; kutu CI'da KAPSAM DISI)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/chip-duzeni-kapisi.py
+
+      - name: "Chip duzeni kabul testi (vaka + mutasyon + kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/chip-duzeni-test.py
 
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test
+
+      # T5 DURGUN KALEM KAPISI (19 Agu 2026, K193 paketi) — 4 saat hareketsiz
+      # kalem OTOMATIK DEVREDILIR kapisi. 4 kol (T5-DURGUN, T5-TAZE, T5-IZ,
+      # T5-OLCULEMEDI) kendi --kendini-test'inde MUTANT=4/4 verir. CANLI
+      # kablolama BU PAKETTE YOK (nobet-kapi.py'ye takilmasi ayri karar);
+      # burada yalniz olcumun YESIL oldugu teyit edilir. SERIT B: kirmizisi
+      # yayini DURDURMAZ.
+      - name: "Durgun kalem kapisi — kendini test (4 kol + 4 mutant)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/durgun-kalem-kapisi.py --kendini-test
+
+      # T5 CURUTME (19 Agu 2026) — her kolun govdesi oldurulunce ilgili
+      # mutant YASAMALI (sessiz kalmali). kirmizi gelmesi kanit DEGILDIR;
+      # bir mutant hedef kolu gercekten olcuyor mu burada kanitlanir.
+      - name: "Durgun kalem kapisi — curutme (kol oldurulunce mutant sessiz)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/durgun-kalem-kapisi.py --curutme
+
+      # PAKET ⑤b (19 Agu 2026): merge-kanit tablosu oz-nobetcisi.
+      # Kapi kuruldu ama tablo BESLENMIYORDU; bu adim --kendini-test ile
+      # aracin kendi mutantlarini (M1-M6) FIILEN yakar. SERIT B: kirmizisi
+      # yayini durdurmaz; --eksikler BLOKLAYICI olarak BAGLANMAZ.
+      - name: "Merge-kanit tablosu — kendini test (6 mutant + 2 kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/merge-kanit.py --kendini-test
 
       # RECETE KAPISI — MIMAR-ICRA-KAPISI'NIN RECETE KONTROLCUSU (18 Agu 2026, K168).
       # Arac, tools/ dizinindeki HER .py icindeki "python3 ..." komutlarini mimar-icra-kapisi
@@ -1505,6 +1548,59 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # KUTU ESIK KAPISI (tools/kutu-esik-kapisi.py) — K188. Yukaridaki arsivleyici
+      # kutuyu TAVANA INDIREBILIYOR ama esigi YALNIZ kendisi biliyor; kutuya YAZAN yol
+      # onu hic olcmuyordu. Sonuc: tavan asimi ancak biri ELLE bakinca goruluyor ve
+      # rotasyon elle kosuluyordu — 18 Agu'ta BESINCI kez (budandi, 16 dk sonra yeniden
+      # tasti). Bu kapi PreToolUse kancasi olarak yazan yola esigi OLCTURUR: kutu tavan
+      # ustundeyse yazmadan ONCE rotasyonu tetikler, rotasyon tavani indiremezse yazmayi
+      # REDDEDER. Esik `kutu-arsivle.py::VARSAYILAN_TAVAN`'dan IMPORT edilir (ikiz tanim
+      # YOK). 11 vaka: alakasiz arac / hedef disi dosya / esik alti / rotasyon basarili
+      # (lossless bayt kanitiyla) + BES ayri reddetme kolu (esik kaynagi yuklenemedi ·
+      # hedef kutu rotasyon ONCESI olculemedi · rotasyon istisna atti · rotasyon SONRASI
+      # olcum patladi · rotasyon indiremedi). V10 kapinin hedef DISINDAKI dosyalara
+      # karismadigini olcer — "her seyi reddet"e kaymadiginin capasi.
+      # NEDEN SERIT B: yayinlanan icerigi DEGIL mimar yazisma hijyenini olcer; tamamen
+      # offline, yalniz tempfile fiksturleri, GERCEK kutuya DOKUNMAZ.
+      - name: "Kutu esik kapisi kabul testi (11 vaka, 5 reddetme kolu, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-esik-kapisi.py --kendini-test
+
+      # ... ve kabul testinin KENDI kabulu. Mutasyon KOPYAYA uygulanir (canli kaynak
+      # degismez, bytecode yazilmaz). YEDI mutant, her biri BIR kola nisanli: esik
+      # okunmuyor · rotasyon tetiklenmiyor · bes reddetme kolundan her biri ayri ayri
+      # olduruluyor. Her mutant icin (a) HEDEF vaka KIRMIZI (b) YAN vakalarin TAMAMI
+      # YESIL (c) capa kaynakta TAM 1 kez bulundu (d) mutantsiz taban 11/11 — dordu
+      # birden aranir. (b) sarti K182'nin caresidir: "kirmizi geldi" kanit degildir,
+      # kirmizinin SEBEBI hedef kol olmalidir. Bu adim olmadan "kabul testi olu" hali
+      # (her mutant yesil) GORUNMEZ kalirdi.
+      - name: "Kutu esik kapisi mutasyon turu (7 mutant, hedef-kol atifli, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-esik-kapisi-mutasyon.py
+
+      # K195(b) — DEFTER KOTA KAPISI "STAGE DISI" KOLU. Olculen delik (19 Agu):
+      # DEVAM.md stage'de degilken kapi HIC OLCMEDEN `return 0` donuyordu; yesili
+      # "olctum, temiz" degil "BAKMADIM" demekti. Kabul GERCEK kapiyi GERCEK bir
+      # gecici git deposunda kosar (uc vaka + iki kontrol) ve DORT mutantin her
+      # birinin YALNIZ kendi hedef kolunu oldurdugunu ayrica olcer (K182).
+      # NEDEN SERIT B: yayinlanan icerigi DEGIL defter hijyenini olcer; tamamen
+      # offline, yalniz tempfile depolari, GERCEK DEVAM.md'ye DOKUNMAZ.
+      - name: "Defter kota kapisi kapsam-disi kolu (5 vaka, 4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-kota-kapsam-disi-test.py
+
+      # K195(a) — ROTASYON ARACININ "ISARETCIYE INDIRME" KOLU. Olculen delik
+      # (19 Agu): kapali icerik yokken arac HIC tasimiyordu ve mimar elle
+      # rotasyona zorlaniyordu (bir gunde 4 kez). Kabul YEDI vaka + DORT mutant;
+      # her mutant YALNIZ kendi hedef kolunu oldurur (K182). Fiksturler kasitli
+      # olarak birbirinden AYRIdir: tek fikstur kullanildiginda dort mutantin
+      # dordu de YASAMISTI (hedef kollar ayirt edilemiyordu).
+      # NEDEN SERIT B: tamamen offline, yalniz tempfile fiksturleri; kabul kendi
+      # icinde GERCEK DEVAM.md ve DEVAM-ARSIV.md'nin BIREBIR degismedigini olcer.
+      - name: "Defter isaretciye indirme kabul testi (7 vaka, 4 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-isaretciye-indirme-test.py
+
       # KANCA NOBETI (tools/kanca-nobeti.py) — git kancalarinin SESSIZCE devre disi
       # kalmasina karsi nobetci. 1 Agu'ta ANA CHECKOUT'ta gercekten yasandi:
       # `.git/config`'e `core.hooksPath = /dev/null` sizdi ve push'taki D1 senkronu +
@@ -1874,6 +1970,33 @@ jobs:
       - name: "Sahiplik haritasi kapisi — envanter + invaryant (hijyen, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/sahiplik-kapisi.py
+
+      # T3 YONLENDIRME KAPISI — SERIT B (18 Agu 2026, Paket T3).
+      # Kirmizinin SAHIBINI sahiplik haritasindan cozer. Uc kol: T3-YON (harita
+      # okunuyor mu) · T3-SAHIPSIZ (eslesme yoksa BILINMIYOR, sessiz varsayilan YOK)
+      # · T3-OLCULEMEDI (hedef kutuya yazilamazsa fail-closed). `--kendini-test`
+      # GERCEK posta kutusuna YAZMAZ: tempfile.mkdtemp izolasyonu; her mutant hedef
+      # kolunu AYRICA kanitlar. Offline, ag YOK. Beyan: tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "T3 yonlendirme kapisi oz-nobetcisi (4 mutant, hedef kol kanitli)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/t3-yonlendirme-kapisi.py --kendini-test
+
+      # T4 PARTI BORC KAPISI — SERIT B (19 Agu 2026, Paket T4).
+      # Acik kalemli evde YENI PARTI baslatma makinece REDDEDILIR kapisi. Dort kol:
+      # T4-BORC (esik asildi -> RED) · T4-TEMIZ (esik altinda -> GECER) · T4-EV
+      # (partiyi baslatan EV'in defteri okunur, baskasi karar vermez) ·
+      # T4-OLCULEMEDI (defter okunamazsa fail-closed; "borc yok" SAYILMAZ). Kol
+      # ayrimi mesaj onekiyle (T4-BORC / T4-TEMIZ / T4-EV / T4-OLCULEMEDI) saglanir;
+      # `acik_kalem_sayisi()` ACIK/UCUSTA/OKAN-KAPISI/🔧 sayar, KAPANDI HARIC.
+      # `--kendini-test` GERCEK deftere DOKUNMAZ: tempfile.mkdtemp izolasyonu; her
+      # mutant hedef kolunu AYRICA kanitlar. CANLI kablolama (urun-ekle.py on-kosul)
+      # BU PAKETTE YOK — yalniz RED kaniti uretilir. Offline, ag YOK. Beyan:
+      # tools/is-akisi-kapisi.py :: SERIT_B.
+      - name: "T4 parti borc kapisi oz-nobetcisi (4 mutant + curutme, hedef kol kanitli)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/parti-borc-kapisi.py --kendini-test
+          python3 tools/parti-borc-kapisi.py --curutme-test
 
       # SERIT-B MASKELEME KAPISI — Paket K178 (18 Agu 2026, OLCULEN KUSUR).
       # SERIT B'nin 126 adimindan birinin kirmizisi geri kalani 114'u SKIP yapiyor ->

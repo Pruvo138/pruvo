@@ -108,7 +108,7 @@ function originIzinli(request, env) {
   return false;
 }
 
-/** Binding yoksa yerel test/henüz deploy edilmemis ortam icin fail-open. */
+/** Binding yoksa yerel test icin sessizce devam eder (deployment oncesi). */
 async function kotaAsildi(request, env) {
   const rl = env && env.TALEP_RATE_LIMIT;
   if (!rl || typeof rl.limit !== "function") { return false; }

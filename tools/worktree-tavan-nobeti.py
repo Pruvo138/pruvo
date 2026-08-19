@@ -14,8 +14,11 @@ from git_ortami import (GIT_BAGLAM_DEGISKENLERI, git_ortami,
                         sentetik_git)
 
 
-TAVAN = 2
+TAVAN_MIMAR = 2
+TAVAN = TAVAN_MIMAR
+TAVAN_CHIP = 12
 BAYAT_DAKIKA = 90
+OLU_CHIP_DAKIKA = 240
 SENTETIK_AD = "Fikstur"
 SENTETIK_EPOSTA = "fikstur@ornek.gecersiz"
 KIMLIK_DEGISKENLERI = (
@@ -27,7 +30,8 @@ KIMLIK_DEGISKENLERI = (
 def git(depo, *args, env=None):
     try:
         p = subprocess.run(["git", "-C", depo] + list(args), capture_output=True,
-                           text=True, timeout=30, env=env)
+                           text=True, timeout=30,
+                           env=git_ortami() if env is None else env)
         return p.returncode, p.stdout.strip(), p.stderr.strip()
     except (OSError, subprocess.TimeoutExpired) as exc:
         return 127, "", str(exc)
@@ -89,6 +93,11 @@ def kaynak(entry):
     return "BILINMEYEN"
 
 
+def chip_agaci_mi(yol, ana_kok):
+    chip_koku = os.path.realpath(os.path.join(ana_kok, ".claude", "worktrees"))
+    return os.path.realpath(yol).startswith(chip_koku + os.sep)  # WORKTREE_MUTANT_ROLE
+
+
 def rapor_cikis_kodu():
     return 0
 
@@ -98,17 +107,34 @@ def rapor(depo, simdi=None):
     try:
         liste = agaclar(depo)
         satirlar = []
-        if len(liste) > TAVAN:
-            satirlar.extend([
-                "!! UYARI: WORKTREE TAVANI ASILDI — SAYI=%d TAVAN=%d" %
-                (len(liste), TAVAN),
+        kok_rc, ana_kok, kok_hata = git(depo, "rev-parse", "--show-toplevel")
+        if kok_rc != 0 or not ana_kok:
+            raise RuntimeError("ana agac kokune ulasilamadi: %s" % (kok_hata or kok_rc))
+        roller = [(entry, "CHIP" if chip_agaci_mi(entry["yol"], ana_kok) else "MIMAR")
+                  for entry in liste]
+        mimar_sayisi = sum(rol == "MIMAR" for _entry, rol in roller)
+        chip_sayisi = sum(rol == "CHIP" for _entry, rol in roller)
+        mimar_uyari = mimar_sayisi > TAVAN_MIMAR
+        chip_uyari = chip_sayisi > TAVAN_CHIP
+        if mimar_uyari:
+            satirlar.append(
+                "!! UYARI: WORKTREE TAVANI ASILDI — ROL=MIMAR SAYI=%d TAVAN=%d" %
+                (mimar_sayisi, TAVAN_MIMAR))
+        if chip_uyari:
+            satirlar.append(
+                "!! UYARI: WORKTREE TAVANI ASILDI — ROL=CHIP SAYI=%d TAVAN=%d" %
+                (chip_sayisi, TAVAN_CHIP))
+        if mimar_uyari or chip_uyari:
+            satirlar.append(
                 "!! YORDAM: once yama + izlenmeyen dosya kopyasi arsivle; yama icin "
-                "git apply --check dogrula; main disi commit varsa bundle al; SONRA kaldir.",
-            ])
-        satirlar.append("WORKTREE SAYI=%d TAVAN=%d" % (len(liste), TAVAN))
+                "git apply --check dogrula; main disi commit varsa bundle al; SONRA kaldir.")
+        satirlar.append("WORKTREE SAYI=%d TAVAN=%d MIMAR=%d/%d CHIP=%d/%d" %
+                        (len(liste), TAVAN, mimar_sayisi, TAVAN_MIMAR,
+                         chip_sayisi, TAVAN_CHIP))
         kirilim = {"agent-*": 0, "muh/": 0, "onarim/": 0, "claude/": 0,
                     "detached": 0, "BILINMEYEN": 0}
-        for sira, entry in enumerate(liste):
+        olu_adaylari = []
+        for sira, (entry, rol) in enumerate(roller):
             dirty = kirli_mi(entry["yol"])
             mtime = en_yeni_mtime(entry["yol"])
             yas = float("inf") if not mtime else max(0.0, (simdi - mtime) / 60.0)
@@ -125,15 +151,24 @@ def rapor(depo, simdi=None):
             yas_yazi = "BILINMIYOR" if yas == float("inf") else "%.1fdk" % yas
             satirlar.append(
                 "AGAC=%s SINIF=%s KIRLI=%s TAZELIK=%s YAS=%s "
-                "MAIN_DISI_COMMIT=%s ACILIS=%s" %
+                "MAIN_DISI_COMMIT=%s ACILIS=%s ROL=%s" %
                 (entry["yol"], sinif, "EVET" if dirty else "HAYIR",
                  "TAZE" if fresh else "BAYAT", yas_yazi,
-                 commit if commit >= 0 else "OLCULEMEDI", acilis))
+                 commit if commit >= 0 else "OLCULEMEDI", acilis, rol))
+            if (rol == "CHIP" and commit == 0 and yas != float("inf") and
+                    yas > OLU_CHIP_DAKIKA):
+                olu_adaylari.append((entry["yol"], yas_yazi))
             if commit == 0:
                 satirlar.append(
                     "  NOT: main'de olmayan commit 0; kaybolacak tek sey commit'lenmemis calismadir.")
             elif commit > 0:
                 satirlar.append("  !! BUNDLE GEREKIR: main'de olmayan %d commit var." % commit)
+        satirlar.append("OLU_CHIP_ADAYI=%d (main disi commit YOK + YAS>%d dk)" %
+                        (len(olu_adaylari), OLU_CHIP_DAKIKA))
+        for yol, yas_yazi in olu_adaylari:
+            satirlar.append(
+                "OLU_CHIP_ADAYI AGAC=%s YAS=%s — is bittiyse kaldir "
+                "(kaybolacak sey YOK: main disi commit 0)" % (yol, yas_yazi))
         satirlar.append("ACILIS_KIRILIMI " + " ".join(
             "%s=%d" % (ad, kirilim[ad]) for ad in
             ("agent-*", "muh/", "onarim/", "claude/", "detached", "BILINMEYEN")))
@@ -180,6 +215,48 @@ def betik_kos(betik, depo):
     return subprocess.run([sys.executable, betik, "--depo", depo],
                           capture_output=True, text=True, timeout=60,
                           env=git_ortami())
+
+
+def _uyari_var(cikti, rol):
+    return "!! UYARI: WORKTREE TAVANI ASILDI — ROL=%s" % rol in cikti
+
+
+def _senaryo(betik, gecici, ad, chip_sayisi, mimar_sayisi):
+    kok = os.path.join(gecici, ad)
+    depo_kur(kok)
+    chip_koku = os.path.join(kok, ".claude", "worktrees")
+    for sira in range(chip_sayisi):
+        agac_ekle(kok, os.path.join(chip_koku, "chip-%d" % sira),
+                  "chip-%d" % sira)
+    for sira in range(max(0, mimar_sayisi - 1)):
+        agac_ekle(kok, os.path.join(kok, "mimar-%d" % sira),
+                  "mimar-%d" % sira)
+    return betik_kos(betik, kok)
+
+
+def _eskit(yol, dakika):
+    eski = time.time() - dakika * 60
+    for yuru_kok, _dizinler, dosyalar in os.walk(yol):
+        for ad in dosyalar:
+            tam = os.path.join(yuru_kok, ad)
+            if os.path.basename(tam) != ".git":
+                os.utime(tam, (eski, eski))
+
+
+def _olu_chip_senaryosu(betik, gecici, ad="olu-chip-depo"):
+    kok = os.path.join(gecici, ad)
+    depo_kur(kok)
+    chip_koku = os.path.join(kok, ".claude", "worktrees")
+    commitli = os.path.join(chip_koku, "commitli")
+    commitsiz = os.path.join(chip_koku, "commitsiz")
+    agac_ekle(kok, commitli, "olu-commitli")
+    yaz(os.path.join(commitli, "yeni.txt"), "commitli\n")
+    sentetik_g(commitli, "add", "yeni.txt")
+    sentetik_g(commitli, "commit", "-q", "-m", "main disi")
+    agac_ekle(kok, commitsiz, "olu-commitsiz")
+    _eskit(commitli, OLU_CHIP_DAKIKA + 10)
+    _eskit(commitsiz, OLU_CHIP_DAKIKA + 10)
+    return betik_kos(betik, kok)
 
 
 def kendini_test():
@@ -257,8 +334,49 @@ def kendini_test():
         rc_listesi.append(p.returncode)
         if "ACILIS=BILINMEYEN" not in p.stdout or "BILINMEYEN=1" not in p.stdout:
             hatalar.append("i:tanimadigi worktree dali BILINMEYEN kalmadi")
+        sinir_kok = os.path.join(gecici, "sinir-depo")
+        depo_kur(sinir_kok)
+        sinir_agac = os.path.join(gecici, "sinir-agac")
+        agac_ekle(sinir_kok, sinir_agac, "sinir")
+        sinir_mtime = en_yeni_mtime(sinir_agac)
+        sinir_cikti = rapor(sinir_kok, sinir_mtime + BAYAT_DAKIKA * 60)
+        if "TAZELIK=BAYAT" not in sinir_cikti:
+            hatalar.append("l:90 dakika siniri BAYAT olmadi")
+
+        w1 = _senaryo(betik, gecici, "w1", 6, 1)
+        w2 = _senaryo(betik, gecici, "w2", 0, 3)
+        w3 = _senaryo(betik, gecici, "w3", 13, 1)
+        w4 = _senaryo(betik, gecici, "w4", 6, 3)
+        w5 = _olu_chip_senaryosu(betik, gecici)
+        w_kontrolleri = (
+            ("W1", w1, not _uyari_var(w1.stdout, "CHIP") and
+             not _uyari_var(w1.stdout, "MIMAR") and
+             "MIMAR=1/2" in w1.stdout and "CHIP=6/12" in w1.stdout),
+            ("W2", w2, _uyari_var(w2.stdout, "MIMAR") and
+             not _uyari_var(w2.stdout, "CHIP") and w2.returncode == 0),
+            ("W3", w3, _uyari_var(w3.stdout, "CHIP") and w3.returncode == 0),
+            ("W4", w4, _uyari_var(w4.stdout, "MIMAR") and
+             not _uyari_var(w4.stdout, "CHIP") and w4.returncode == 0),
+            ("W5", w5, "OLU_CHIP_ADAYI=1" in w5.stdout and w5.returncode == 0),
+        )
+        for ad, p_vaka, tamam in w_kontrolleri:
+            if not tamam:
+                hatalar.append("%s:beklenmeyen hukum rc=%d" % (ad, p_vaka.returncode))
+        if any(p_vaka.returncode != 0 for _ad, p_vaka, _tamam in w_kontrolleri):
+            hatalar.append("m:rapor-only yeni vakalarindan biri rc!=0")
+        eski_git_dir = os.environ.get("GIT_DIR")
+        os.environ["GIT_DIR"] = os.path.join(gecici, "olmayan-git-dir")
+        env_p = betik_kos(betik, kok)
+        if eski_git_dir is None:
+            os.environ.pop("GIT_DIR", None)
+        else:
+            os.environ["GIT_DIR"] = eski_git_dir
+        if "WORKTREE SAYI=" not in env_p.stdout:
+            hatalar.append("n:git baglami temizlenmedi")
         if any(rc != 0 for rc in rc_listesi):
             hatalar.append("g:rapor-only vakalarindan biri rc!=0")
+        if rapor_cikis_kodu() != 0:
+            hatalar.append("k:rapor-only cikis kodu 0 degil")
         for ad in KIMLIK_DEGISKENLERI:
             if ad in os.environ:
                 hatalar.append("j:kimlik ana surece sizdi:" + ad)
@@ -267,18 +385,52 @@ def kendini_test():
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
     if hatalar:
-        print("KENDINI_TEST=KIRMIZI IDDIA=10 YENI_VAKA=1 " + " | ".join(hatalar))
+        print("KENDINI_TEST=KIRMIZI IDDIA=15 YENI_VAKA=5 " + " | ".join(hatalar))
         return 1
-    print("KENDINI_TEST=YESIL IDDIA=10 YENI_VAKA=1 RAPOR_ONLY_VAKA=%d/%d" %
+    print("KENDINI_TEST=YESIL IDDIA=15 YENI_VAKA=5 RAPOR_ONLY_VAKA=%d/%d "
+          "W1=YESIL W2=YESIL W3=YESIL W4=YESIL W5=YESIL" %
           (sum(rc == 0 for rc in rc_listesi), len(rc_listesi)))
     return 0
+
+
+def _mutant_hukumlari(betik, gecici, mutant_adi):
+    tag = "%s-%d" % (mutant_adi, time.time_ns())
+    vakalar = {
+        "tavan-mimar": (("W2", 0, 3), ("W4", 6, 3)),
+        "tavan-chip": (("W3", 13, 1),),
+        "rol-siniflama": (("W1", 6, 1),),
+        "rol-tersine": (("W2", 0, 3), ("W4", 6, 3)),
+        "olu-chip": (("W5", 0, 0),),
+    }
+    sonuclar = []
+    for vaka, chip_sayisi, mimar_sayisi in vakalar[mutant_adi]:
+        if vaka == "W5":
+            p = _olu_chip_senaryosu(betik, gecici, tag + "-W5")
+        else:
+            p = _senaryo(betik, gecici, tag + "-" + vaka,
+                          chip_sayisi, mimar_sayisi)
+        aday = "OLU_CHIP_ADAYI=1" in p.stdout
+        sonuclar.append("%s[rc=%d MIMAR_UYARI=%s CHIP_UYARI=%s OLU=%s]" %
+                        (vaka, p.returncode,
+                         "VAR" if _uyari_var(p.stdout, "MIMAR") else "YOK",
+                         "VAR" if _uyari_var(p.stdout, "CHIP") else "YOK",
+                         "1" if aday else "0"))
+    return ",".join(sonuclar)
 
 
 def mutasyon():
     kaynak_metin = open(os.path.abspath(__file__), encoding="utf-8").read()
     oldurucular = [
-        ("tavan", "if len(liste) " + "> TAVAN:",
-         "if len(liste) " + ">= TAVAN:"),
+        ("tavan-mimar", "mimar_uyari = mimar_sayisi " + "> TAVAN_MIMAR",
+         "mimar_uyari = mimar_sayisi > 99"),
+        ("tavan-chip", "chip_uyari = chip_sayisi " + "> TAVAN_CHIP",
+         "chip_uyari = chip_sayisi > 999"),
+        ("rol-siniflama", "return os.path.realpath(yol).startswith(chip_koku + os." +
+         "sep)  # WORKTREE_MUTANT_ROLE",
+         "return False  # WORKTREE_MUTANT_ROLE"),
+        ("rol-tersine", "return os.path.realpath(yol).startswith(chip_koku + os." +
+         "sep)  # WORKTREE_MUTANT_ROLE",
+         "return True  # WORKTREE_MUTANT_ROLE"),
         ("mtime", "fresh = yas " + "< BAYAT_DAKIKA",
          "fresh = yas " + ">= BAYAT_DAKIKA"),
         ("porcelain", 'sinif = "CANLI" if dirty and ' + 'fresh else "OKSUZ"',
@@ -289,8 +441,10 @@ def mutasyon():
          'dal = entry["dal"]'),
         ("rapor-only", "def rapor_cikis_kodu():\n" + "    return 0",
          "def rapor_cikis_kodu():\n" + "    return 9"),
-        ("env-sizinti", "ortam = os.environ." + "copy()",
-         "ortam = os.environ"),
+        ("env-sizinti", "env=git_ortami() if env is None " + "else env",
+         "env=None)"),
+        ("olu-chip", "if (rol == \"CHIP\" and commit == 0 and yas != float(\"inf\") and\n                    yas > OLU_CHIP_DAKIKA):",
+         "if (rol == \"CHIP\" and yas != float(\"inf\") and\n                    yas > OLU_CHIP_DAKIKA):"),
     ]
     kontroller = [("yorum", kaynak_metin + "\n# kontrol mutanti\n"),
                   ("bosluk", kaynak_metin + "\n\n")]
@@ -299,6 +453,11 @@ def mutasyon():
     kontrol_yesil = 0
     hayatta = []
     try:
+        shutil.copyfile(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     "git_ortami.py"),
+                        os.path.join(gecici, "git_ortami.py"))
+        yeni_adlar = {"tavan-mimar", "tavan-chip", "rol-siniflama",
+                      "rol-tersine", "olu-chip"}
         for ad, eski, yeni in oldurucular:
             if kaynak_metin.count(eski) != 1:
                 hayatta.append(ad + ":capa")
@@ -307,6 +466,20 @@ def mutasyon():
             yaz(yol, kaynak_metin.replace(eski, yeni, 1))
             p = subprocess.run([sys.executable, yol, "--kendini-test"],
                                capture_output=True, text=True, timeout=120)
+            if ad in yeni_adlar:
+                hukum_kok = tempfile.mkdtemp(prefix="pruvo-worktree-hukum-")
+                try:
+                    taban_yol = os.path.join(hukum_kok, "taban.py")
+                    yaz(taban_yol, kaynak_metin)
+                    shutil.copyfile(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                 "git_ortami.py"),
+                                   os.path.join(hukum_kok, "git_ortami.py"))
+                    taban_hukum = _mutant_hukumlari(taban_yol, hukum_kok, ad)
+                    mutant_hukum = _mutant_hukumlari(yol, hukum_kok, ad)
+                    print("MUTANT_HUKUM=%s MUTANTSIZ=%s MUTANTLI=%s" %
+                          (ad, taban_hukum, mutant_hukum))
+                finally:
+                    shutil.rmtree(hukum_kok, ignore_errors=True)
             if p.returncode != 0:
                 tutan += 1
             else:

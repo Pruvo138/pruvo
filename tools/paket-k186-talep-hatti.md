@@ -115,7 +115,7 @@ if (yol === "/talep" && request.method === "POST") return await talepKaydet(requ
    Gerekçe: bu uç AUTH'suz D1 YAZAR — `ref.js`'in organik kolundan daha geniş bir yüzey
    değil, aynı sınıf; orada fail-closed seçilmişti, burada da öyle.
 3. **Hız sınırı**: `env.TALEP_RATE_LIMIT` native binding, anahtar `CF-Connecting-IP`.
-   Binding yoksa (yerel test / henüz deploy edilmemiş) sessizce atlanır = fail-open,
+   Binding yoksa (yerel test / deployment oncesi) sessizce atlanır = bypass,
    **ve bu `shop/wrangler.toml` yorumunda AÇIKÇA beyan edilir** (`ref.js` emsali). Cap
    aşılırsa D1'e HİÇ gidilmez.
 4. **Gövde tavanı**: gövde `request.text()` ile alınır, **BAYT** ölçülür

@@ -2703,7 +2703,7 @@ def _yayin_zinciri(jobs, yayin):
 
 
 G1_TANI = (
-    "YAYIN SINYALI KIRLENIYOR: %s icindeki `%s` job'u yayin zincirine BAGLI DEGIL\n"
+    "G1 YAYIN SINYALI KIRLENIYOR: %s icindeki `%s` job'u yayin zincirine BAGLI DEGIL\n"
     "   (`%s` job'unun ne atasi ne ardili). Kirmizisi yayini DURDURMUYOR ama KOSUMUN\n"
     "   genel `conclusion`'ini `failure` yapiyor -> 'yayin durdu' YANLIS HUKMU.\n"
     "   OLCULDU (5 Agu): 28 ardisik kirmizi kosumun 14'unde deploy+yayin YESILDI;\n"
@@ -2711,6 +2711,41 @@ G1_TANI = (
     "   COZUM: job'u `%s` is akisina TASI (susturma DEGIL — ayni komut, ayni cikis\n"
     "   kodu, AYRI conclusion). Yayini GERCEKTEN bloklamasi gerekiyorsa `deploy:\n"
     "   needs` listesine ekle.")
+
+
+def _grup_parcala(grup):
+    """(kosul, dispatch_kolu, push_kolu, tani) — K183 ifade ayristiricisi.
+
+    `concurrency.group` icindeki `${{ ... }}` ifadesini uc parcaya ayirir:
+        kosul         = "&&" oncesi
+        dispatch_kolu = "&&" ile "||" arası
+        push_kolu     = "||" sonrasi
+
+    K183 ONCESI DIZGE AVI (`'push' in grup` gibi) yapisal olarak yalan
+    soyleyebilirdi: `github.run_id` yoksa ve push kolu zaten `'push'` ise
+    "PUSH GRUBU BENZERSIZLESTIRILMIS" derdi ama gercek BOZULMA dispatch
+    kolunun run_id'siz olmasiydi. Bu parser uc parcayi ayri uretir; her
+    kol YALNIZ kendi ozelligini olcer, otekilerin arkasina saklanamaz.
+
+    AYRISTIRMA BASARISIZSA (uc isaretten biri yok ya da `${{ ... }}` yok)
+    tani dolu doner — uc kol da OLCULEMEDI (fail-closed KIRMIZI) vermeli,
+    biri bile yesil kalamaz.
+    """
+    if not isinstance(grup, str):
+        return None, None, None, "concurrency.group STRING degil"
+    s = grup.strip()
+    if "${{" not in s or "}}" not in s:
+        return None, None, None, "concurrency.group icinde `${{ ... }}` yok"
+    ic = s.split("${{", 1)[1].split("}}", 1)[0].strip()
+    if "&&" not in ic:
+        return None, None, None, "kosul/dispatch ayraci `&&` yok"
+    if "||" not in ic:
+        return None, None, None, "dispatch/push ayraci `||` yok"
+    kosul, sonrasi = ic.split("&&", 1)
+    if "||" not in sonrasi:
+        return None, None, None, "dispatch/push ayraci `||` kosul sonrasinda yok"
+    dkolu, pkolu = sonrasi.split("||", 1)
+    return kosul.strip(), dkolu.strip(), pkolu.strip(), None
 
 
 def yayin_sinyali_kontrol(dizin, nobet_dosyasi=None):
@@ -2847,56 +2882,70 @@ def yayin_sinyali_kontrol(dizin, nobet_dosyasi=None):
                 "gorunurluk kaybi. (`false` ya da hic yazmamak dogrudur.)"
                 % nobet_dosyasi)
 
-    # ---- G8: push kolu TEK, SABIT grupta kalmali ------------------------------
-    iddia += 1
-    if n_govde is None:
-        hatalar.append("G8 OLCULEMEDI (fail-closed KIRMIZI): %s" % n_tani)
-    else:
-        ham = n_govde.get("concurrency")
-        grup = ham.get("group") if isinstance(ham, dict) else None
-        grup = str(grup).strip() if grup is not None else ""
-        if ("github.event_name == 'workflow_dispatch'" not in grup or
-                "|| 'push'" not in grup or "github.run_id" not in grup):
-            hatalar.append(
-                "G8 PUSH GRUBU BENZERSIZLESTIRILMIS/COZULEMEDI: %s :: `push` kolu "
-                "sabit `push` jetonuna cozulmuyor.\n"
-                "   -> Her push'a ayri grup vermek bekleyen kosumlari ezmez, ancak "
-                "~85 dakikalik kosum maliyetini patlatir; push seridi TEK kalmalidir."
-                % nobet_dosyasi)
+    # ---- G9 / G10 / G11: K183 eszamanlilik kol ayrimi (IFADE AYRISTIRMASI) ---
+    # Tek bir parser uc parcaya ayirir; uc kol da YALNIZ kendi ozelligini olcer.
+    # Eski "dizge avi" yapisal olarak yalan soyleyebilirdi (bkz. _grup_parcala).
+    # Ayristirma basarisizsa uc kol da OLCULEMEDI (fail-closed KIRMIZI) — biri
+    # bile yesil kalamaz.
+    _grup_raw = ""
+    _grup_kosul = _grup_dkolu = _grup_pkolu = None
+    _grup_tani = None
+    if isinstance(n_govde, dict):
+        _ham_conc = n_govde.get("concurrency")
+        if isinstance(_ham_conc, dict):
+            _g = _ham_conc.get("group")
+            _grup_raw = str(_g).strip() if _g is not None else ""
+        _grup_kosul, _grup_dkolu, _grup_pkolu, _grup_tani = _grup_parcala(_grup_raw)
 
-    # ---- G9: workflow_dispatch kolu run_id ile BENZERSIZ ---------------------
+    # ---- G9: push kolu SABIT, github. ICERMEMELI -----------------------------
     iddia += 1
     if n_govde is None:
         hatalar.append("G9 OLCULEMEDI (fail-closed KIRMIZI): %s" % n_tani)
-    else:
-        ham = n_govde.get("concurrency")
-        grup = ham.get("group") if isinstance(ham, dict) else None
-        grup = str(grup).strip() if grup is not None else ""
-        if ("github.event_name == 'workflow_dispatch'" not in grup or
-                "github.run_id" not in grup):
-            hatalar.append(
-                "G9 DISPATCH GRUBU BENZERSIZ DEGIL/OLCULEMEDI: %s :: "
-                "`workflow_dispatch` kolu `github.run_id` icermiyor.\n"
-                "   -> Istenen SHA'nin kosumu push kuyrugunda ezilebilir; elle "
-                "tetiklenen kosum kendi grubunda olmalidir."
-                % nobet_dosyasi)
+    elif _grup_tani:
+        hatalar.append("G9 OLCULEMEDI (fail-closed KIRMIZI): %s" % _grup_tani)
+    elif not (_grup_pkolu.startswith("'") and _grup_pkolu.endswith("'") and
+              "github." not in _grup_pkolu):
+        hatalar.append(
+            "G9 PUSH KOLU SABIT DEGIL: %s :: push kolu %r — tirnakli bir "
+            "SABIT olmali ve `github.` ICERMEMELI.\n"
+            "   -> Push'a ozel bir degisken verildiyse her push kendi grubunu "
+            "alir, bekleyen kosumlar ezilmez AMA ~85 dakikalik kosum maliyeti "
+            "patlar; push seridi TEK kalmalidir."
+            % (nobet_dosyasi, _grup_pkolu))
 
-    # ---- G10: dispatch benzersizligi push sabitini gevsetmemeli ----------------
+    # ---- G10: dispatch kolu github.run_id ICERMELI ----------------------------
     iddia += 1
     if n_govde is None:
         hatalar.append("G10 OLCULEMEDI (fail-closed KIRMIZI): %s" % n_tani)
+    elif _grup_tani:
+        hatalar.append("G10 OLCULEMEDI (fail-closed KIRMIZI): %s" % _grup_tani)
+    elif "github.run_id" not in _grup_dkolu:
+        hatalar.append(
+            "G10 DISPATCH KOLU BENZERSIZ DEGIL: %s :: dispatch kolu %r, "
+            "`github.run_id` ICERMIYOR.\n"
+            "   -> workflow_dispatch ile tetiklenen kosum push kuyrugunda "
+            "ezilebilir; istenen SHA secilemez."
+            % (nobet_dosyasi, _grup_dkolu))
+
+    # ---- G11: kosul tam `github.event_name == 'workflow_dispatch'` (bosluk
+    #           normalize sonrasi) VE dispatch_kolu != push_kolu ---------------
+    iddia += 1
+    if n_govde is None:
+        hatalar.append("G11 OLCULEMEDI (fail-closed KIRMIZI): %s" % n_tani)
+    elif _grup_tani:
+        hatalar.append("G11 OLCULEMEDI (fail-closed KIRMIZI): %s" % _grup_tani)
     else:
-        ham = n_govde.get("concurrency")
-        grup = ham.get("group") if isinstance(ham, dict) else None
-        grup = str(grup).strip() if grup is not None else ""
-        if ("|| 'push'" not in grup or
-                grup.count("github.run_id") != 1 or
-                "github.event_name == 'workflow_dispatch'" not in grup):
+        _kn = " ".join(_grup_kosul.split())
+        if _kn != "github.event_name == 'workflow_dispatch'":
             hatalar.append(
-                "G10 KOL AYRIMI BOZUK/OLCULEMEDI: %s :: dispatch `run_id`, push "
-                "kolunun sabit `push` jetonunun yerine geciyor.\n"
-                "   -> Iki kolun maliyet ve SHA sozlesmesi birbirine karistirildi."
-                % nobet_dosyasi)
+                "G11 KOSUL YANLIS: %s :: kosul %r — tam olarak "
+                "`github.event_name == 'workflow_dispatch'` olmali (bosluk "
+                "normalize sonrasi)." % (nobet_dosyasi, _grup_kosul))
+        elif _grup_dkolu == _grup_pkolu:
+            hatalar.append(
+                "G11 KOLLAR AYNI: %s :: dispatch_kolu %r == push_kolu %r.\n"
+                "   -> Iki kol ayniysa dispatch push kuyruguna yazilir ve SHA "
+                "secimi bozulur." % (nobet_dosyasi, _grup_dkolu, _grup_pkolu))
 
     # ---- G7: SERIT_B kapsami nobet dosyasini TASIYOR -------------------------
     iddia += 1
@@ -4599,32 +4648,36 @@ jobs:
       - run: echo ikinci
 """
 
-# (ad, yayin_metni_donusturucu, nobet_metni_donusturucu, KIRMIZI_olmali_mi)
+# (ad, yayin_metni_donusturucu, nobet_metni_donusturucu, KIRMIZI_olmali_mi, hedef_kollar)
+# K182: hedef_kollar tuple'i bu mutant'in YAKMASI BEKLENEN kol(lar)i. Beyan MIMAR
+# tarafindan yazildi — ciktidan TURETILMEZ. Olcum beyana uymuyorsa kod bozuktur,
+# beyan degistirilmez. KONTROL satirlarinda (kirmizi_olmali=False) hedef_kollar=()
+# (KONTROL'ler hata uretmez; hedef kol beklenmez).
 G_MUTANTLAR = (
     # --- OLDURUCULER ---
     ("bloklamayan alarm job'u YAYIN is akisina geri kondu (G1)",
      lambda y: y + "  alarm:\n    runs-on: ubuntu-latest\n    steps:\n"
-                   "      - run: echo alarm\n", None, True),
+                   "      - run: echo alarm\n", None, True, ("G1",)),
     ("`deploy: needs` listesinden bir serit DUSURULDU (G8 — sessiz fail-open)",
      lambda y: y.replace("    needs: [build, serit-a2, serit-a3, serit-a4]\n",
-                         "    needs: [build, serit-a2, serit-a3]\n"), None, True),
+                         "    needs: [build, serit-a2, serit-a3]\n"), None, True, ("G8",)),
     ("`deploy: needs` BUTUNUYLE silindi (G8)",
      lambda y: y.replace("    needs: [build, serit-a2, serit-a3, serit-a4]\n", ""),
-     None, True),
+     None, True, ("G8",)),
     ("nobet is akisinin `on.push` tetigi kaldirildi (G2 — alarm HIC kosmaz)",
      None, lambda n: n.replace("on:\n  push:\n    branches: [main]\n",
-                               "on:\n  workflow_dispatch:\n"), True),
+                               "on:\n  workflow_dispatch:\n"), True, ("G2",)),
     ("nobet job'u `continue-on-error: true` ile SUSTURULDU (G4)",
      None, lambda n: n.replace("  alarm:\n    runs-on: ubuntu-latest\n",
                                "  alarm:\n    runs-on: ubuntu-latest\n"
-                               "    continue-on-error: true\n"), True),
+                               "    continue-on-error: true\n"), True, ("G4",)),
     ("nobet job'u DAIMA-YANLIS `if:` ile olduruldu (G4)",
      None, lambda n: n.replace("  alarm:\n    runs-on: ubuntu-latest\n",
                                "  alarm:\n    runs-on: ubuntu-latest\n"
-                               "    if: false\n"), True),
+                               "    if: false\n"), True, ("G4",)),
     ("Pages yayini NOBET seridine kaydirildi (G3)",
      None, lambda n: n.replace("      - run: echo alarm\n",
-                               "      - uses: actions/deploy-pages@v4\n"), True),
+                               "      - uses: actions/deploy-pages@v4\n"), True, ("G3",)),
     # 🔴 G5 AYIRT EDICI OLMAK ZORUNDA ([[beyan-edilmis-survivor]]): cagiran job
     # `deploy: needs`'e de EKLENIR, boylece G1 (bagsiz job) ve G8 (liste kuculdu)
     # SUSAR ve KIRMIZI'yi TEK BASINA G5 yakar. Aksi halde "zincirden gecti" derken
@@ -4633,20 +4686,26 @@ G_MUTANTLAR = (
      lambda y: (y + "  nobet-cagrisi:\n    uses: ./.github/workflows/%s\n" % N_DOSYA)
      .replace("    needs: [build, serit-a2, serit-a3, serit-a4]\n",
               "    needs: [build, serit-a2, serit-a3, serit-a4, nobet-cagrisi]\n"),
-     None, True),
+     None, True, ("G5",)),
     ("K183-M1: `cancel-in-progress: true` ile kosum IPTAL EDILEBILIR yapildi (G6)",
      None, lambda n: n.replace("  cancel-in-progress: false\n",
-                               "  cancel-in-progress: true\n"), True),
-    ("K183-M2: dispatch kolundan `run_id` kaldirildi (G9)",
+                               "  cancel-in-progress: true\n"), True, ("G6",)),
+    # K183-M2: dispatch kolu `'dispatch'` oluyor (run_id yok). YALNIZ G10 yakar:
+    # G9 (push hâlâ 'push') ve G11 (dispatch != push) susar.
+    ("K183-M2: dispatch kolundan `run_id` kaldirildi (G10)",
      None, lambda n: n.replace(
          "github.event_name == 'workflow_dispatch' && github.run_id || 'push'",
-         "github.event_name == 'workflow_dispatch' && 'dispatch' || 'push'"), True),
-    ("K183-M3: push kolu da `run_id` ile benzersizlestirildi (G8/G10)",
+         "github.event_name == 'workflow_dispatch' && 'dispatch' || 'push'"),
+     True, ("G10",)),
+    # K183-M3: push kolu da `github.run_id` oluyor. G9 (push SABIT degil) + G11
+    # (dispatch == push) YANAR; G10 (dispatch'te hâlâ run_id var) susar.
+    ("K183-M3: push kolu da `run_id` ile benzersizlestirildi (G9/G11)",
      None, lambda n: n.replace(
          "github.event_name == 'workflow_dispatch' && github.run_id || 'push'",
-         "github.event_name == 'workflow_dispatch' && github.run_id || github.run_id"), True),
+         "github.event_name == 'workflow_dispatch' && github.run_id || github.run_id"),
+     True, ("G9", "G11")),
     ("nobet is akisi SILINDI (G2/G3/G4/G6 fail-closed)",
-     None, "SIL", True),
+     None, "SIL", True, ("G2", "G3", "G4", "G6")),
     # --- KONTROLLER (mimarin istedigi uc eksen) ---
     ("KONTROL: job SIRASI degistirildi (davranis AYNI)",
      lambda y: y.replace(
@@ -4654,22 +4713,22 @@ G_MUTANTLAR = (
          "  serit-a2:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo a2\n",
          "  serit-a2:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo a2\n"
          "  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo build\n"),
-     None, False),
+     None, False, ()),
     ("KONTROL: davranis degistirmeyen YENIDEN ADLANDIRMA (adim adi + is akisi adi)",
      lambda y: y.replace('name: "Sentetik G — yayin is akisi"',
                          'name: "Sentetik G — YAYIN HATTI"')
                 .replace("      - run: echo build\n",
                          '      - name: "Site uret"\n        run: echo build\n'),
-     None, False),
+     None, False, ()),
     ("KONTROL: `needs` listesine DOKUNMAYAN bicimsel degisiklik (akis -> blok yazimi)",
      lambda y: y.replace("    needs: [build, serit-a2, serit-a3, serit-a4]\n",
                          "    needs:\n      - build\n      - serit-a2\n"
-                         "      - serit-a3\n      - serit-a4\n"), None, False),
+                         "      - serit-a3\n      - serit-a4\n"), None, False, ()),
     ("KONTROL: nobet seridine YENI bir alarm job'u eklendi",
      None, lambda n: n + "  ucuncu-alarm:\n    runs-on: ubuntu-latest\n    steps:\n"
-                         "      - run: echo ucuncu\n", False),
+                         "      - run: echo ucuncu\n", False, ()),
     ("KONTROL: yayin ARDILI (`yayin`) duruyor — ardil bagsiz DEGILDIR",
-     lambda y: y, None, False),
+     lambda y: y, None, False, ()),
 )
 
 # (ad, kirmizi_job, beklenen_conclusion, deploy_kosmali_mi) — KOSUM SONUCU SIMULATORU
@@ -4699,6 +4758,28 @@ G_SIMULASYON = (
 # GERCEK .github/workflows kosumu da 11 verdi. Yani tam esitlik fikstur degisiminden
 # sahte-kirmizi yakmaz; yalniz EKSEN sayisi degisince konusur (ve o zaman konusmalidir).
 G_IDDIA_TABANI = 11
+# 18 Agu 2026 (K183b yeniden numaralama): 77bb3195 ile gelen "G8 push benzersiz /
+# G9 dispatch / G10 ayrim" uc kolunun kimlikleri G9 / G10 / G11'e tasindi. Eksen
+# SAYISI ayni (11): G1, G2, G3, G4, G5, G6, G7, G8 (needs listesi), G9, G10, G11.
+# Toplam degismedigi icin G_IDDIA_TABANI AYNI (11); yine de bu notu birakmak
+# gerekli — sayac degerinin niye 11 oldugu ileride sorulursa cevap burada.
+
+
+def _hedef_kol_dogrula(ad, bulgu, hedef_kollar):
+    """Beyan edilen her hedef kol icin BULGU'da o kolun satiri var mi?
+
+    Doner: hata metinleri listesi (bos liste = tum hedef kollar yandi).
+    TEK GOVDE: hem mutant dongusu hem META-VAKA BURAYI cagirir; ikinci
+    kopya YASAK (kopyalayan test kaynagi olcmez).
+    """
+    hatalar = []
+    for kol in hedef_kollar:
+        if not any(h.startswith(kol + " ") for h in bulgu):
+            hatalar.append(
+                "G-HEDEF KOL OLMEDI: %r -> %s yanmadi (kirmizi BASKA "
+                "koldan geldi; beyan yanlis ya da eksen OLmus olabilir)."
+                % (ad, kol))
+    return hatalar
 
 
 def _g_kendini_test():
@@ -4739,8 +4820,17 @@ def _g_kendini_test():
                 % (temiz_iddia, G_IDDIA_TABANI, temiz_iddia - G_IDDIA_TABANI,
                    G_IDDIA_TABANI, temiz_iddia))
         # ARIZA ENJEKSIYONU
-        for ad, y_don, n_don, kirmizi_olmali in G_MUTANTLAR:
+        for ad, y_don, n_don, kirmizi_olmali, hedef_kollar in G_MUTANTLAR:
             iddia += 1
+            # Beyan bos mu? KONTROL satirlari icin GECERLI; OLDURUCU mutasyon
+            # icin gecersiz — hedef kolu beyan edilmeyen bir mutant K182'yi
+            # oyuna sokamaz (fail-closed).
+            if kirmizi_olmali and not hedef_kollar:
+                hatalar.append(
+                    "G-HEDEF BEYANI YOK: %r -> kirmizi_olmali=True olan bir "
+                    "mutant'in hedef kol(lar)i bos tuple; K182 ATIF mekanizmasi "
+                    "bu mutanti denetleyemez." % ad)
+                continue
             y = y_don(G_YAYIN_FIKSTUR) if callable(y_don) else G_YAYIN_FIKSTUR
             if n_don == "SIL":
                 n = None
@@ -4757,6 +4847,50 @@ def _g_kendini_test():
             if not kirmizi_olmali and bulgu:
                 hatalar.append("G-YANLIS-POZITIF: %r MESRU degisiklik KIRMIZI yandi -> %s"
                                % (ad, bulgu[0].splitlines()[0]))
+            # K182 hedef kol dogrulamasi: her beyan edilen kol icin BULGU'da o
+            # kolun baslattigi bir satir olmali. Yoksa mutant BASIT bir hata
+            # uretiyor olabilir, HEDEF kolu yakmiyor olabilir — sessiz.
+            # TEK GOVDE: _hedef_kol_dogrula; META-VAKA da BURAYA cagirir
+            # (kopyalayan test kaynagi olcmez).
+            hatalar.extend(_hedef_kol_dogrula(ad, bulgu, hedef_kollar))
+
+        # META-VAKA (TABLOYA GIRMEZ): K183-M2 mutasyonunu uygula ama hedef kolu
+        # KASTEN yanlis beyan et. Bu durumda `G-HEDEF KOL OLMEDI` uretilmeli —
+        # uretilmiyorsa K182 ATIF mekanizmasi OLU demektir; `G-ATIF MEKANIZMASI
+        # OLU` ile mimara bildirilir. Bu vaka `iddia` sayacini da artirir.
+        iddia += 1
+        yaz(G_YAYIN_FIKSTUR,
+             G_NOBET_FIKSTUR.replace(
+                 "github.event_name == 'workflow_dispatch' && github.run_id || 'push'",
+                 "github.event_name == 'workflow_dispatch' && 'dispatch' || 'push'"))
+        meta_bulgu, _ = yayin_sinyali_kontrol(gecici)
+        # IKI YONLU ATIF DOGRULAMASI (K183b TUR 2): K183-M2 mutasyonu uygulandi;
+        # gercek kol G10 (dispatch), biz iki ayri beyanla TEK GOVDEYI
+        # (_hedef_kol_dogrula) her iki yonden de olcuyoruz. Ikinci kopya YASAK
+        # (kopyalayan test kaynagi olcmez). Iki yon de AYRI iddia sayilir —
+        # tek yon yetmez: yalniz yanlis-beyan yonu olculurse sabit
+        # `return ["hata"]` body bile yesil verirdi.
+        #
+        # YANLIS beyan yonu (G1): gercek kol G10, beyan G1. ATIF mekanizmasi
+        # `G-HEDEF KOL OLMEDI` uretmeli (yakalamali). Bos donerse MEKANIZMA OLU.
+        iddia += 1
+        _yanlis_meta_hatalar = _hedef_kol_dogrula("META", meta_bulgu, ("G1",))
+        if not _yanlis_meta_hatalar:
+            hatalar.append(
+                "G-ATIF MEKANIZMASI OLU: K183-M2 mutasyonu + yanlis hedef beyani "
+                "(G1) uygulandi, ama `G-HEDEF KOL OLMEDI` uretilmedi -> K182 "
+                "ATIF kontrolu calismiyor; hedef kol dogrulamasi BYPASS olabilir.")
+        # DOGRU beyan yonu (G10): gercek kol G10, beyan G10. ATIF mekanizmasi
+        # hata URETMEMELI. Uretirse YANLIS POZITIF — sabit-TRUE body bile
+        # bunu yakalar.
+        iddia += 1
+        _dogru_meta_hatalar = _hedef_kol_dogrula("META", meta_bulgu, ("G10",))
+        if _dogru_meta_hatalar:
+            hatalar.append(
+                "G-ATIF YANLIS POZITIF: K183-M2 mutasyonu + dogru hedef beyani "
+                "(G10) uygulandi, ama `G-HEDEF KOL OLMEDI` uretildi -> K182 ATIF "
+                "mekanizmasi sabit-TRUE (her zaman hata donen) body olabilir: %s"
+                % _dogru_meta_hatalar[0])
         # G7: kapsam ekseni — SERIT_B_DOSYALARI'nda OLMAYAN bir nobet adi KIRMIZI.
         iddia += 1
         yaz(G_YAYIN_FIKSTUR, G_NOBET_FIKSTUR)
@@ -5907,9 +6041,9 @@ def main():
               "ag/secret/kabuk OLCULEMEDI · tespit-olu mutant KIRMIZI + kontrol YESIL")
         print("  ✅ M1: `cancel-in-progress: true` mutanti G6'yi, yani IPTAL "
               "iddiasini KIRMIZI yakti")
-        print("  ✅ M2: dispatch `run_id` mutanti G9'u, yani BENZERSIZ dispatch "
+        print("  ✅ M2: dispatch `run_id` mutanti G10'u, yani BENZERSIZ dispatch "
               "iddiasini KIRMIZI yakti")
-        print("  ✅ M3: push `run_id` mutanti G8/G10'u, yani SABIT push + KOL "
+        print("  ✅ M3: push `run_id` mutanti G9/G11'i, yani SABIT push + KOL "
               "AYRIMI iddialarini KIRMIZI yakti")
         print("SONUC: YESIL ✅")
         return 0
