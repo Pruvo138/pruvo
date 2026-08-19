@@ -2,29 +2,30 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🔴🔴 **ONARIM HATTI = BIRINCI ONCELIK (Okan, 19 Agu).** ✅ **IKI MERGE CANLIDA:** Onarim
-  T-altyapisi `74475c70` (deploy 32235503924 SUCCESS; `t1-kiyas.py` pencereden ONCE main'de —
-  pencere 20 Agu 08:48Z, hukum BaBa'da) + K186 `e25bea7b`+`73f41c8b` (deploy 32238722573
-  SUCCESS; EKSIK=2 taban kusuru 2 satirla kapandi). D1 iki kez 29404==29404/5 eksen.
+- 🔴🔴 **ONARIM HATTI = BIRINCI ONCELIK (Okan, 19 Agu).** ✅ Onarim T-altyapisi `74475c70`
+  CANLIDA (deploy 32235503924; `t1-kiyas.py` main'de — pencere 20 Agu 08:48Z, hukum BaBa'da).
   **SERIT B teshisi KAPANDI:** kirmizi **12 Agu 11:58Z'den beri** (18 Agu patlamasi = K178b'nin
   actigi sansur); 22 dusen adim = **7 SINIF**, merge'ler HICBIRINI kapatmiyor; tablo+P1-P7
-  KUTUDA. DAGITIM: P1/P3/P4/P6/P7 + hijyen-a3 maskeleme (K178 sinifi 2. vaka) → `KraL-SeritB
-  onarim` chip'i PANELDE · P2/P5 → MaCiT (kutuda, on-hukumlu) · gozcu-eskalasyon paketi → BaBa
-  (kutuda). Onarim dalinin 3 acik T-konusu suruyor (T6 ekseni: T5 dosyasi GENISLETILIR ·
-  flakiness · KANITSIZ=27).
+  KUTUDA. DAGITIM: P1/P3/P4/P6/P7 + hijyen-a3 maskeleme → `KraL-SeritB onarim` chip'i KOSUYOR
+  (dal `kral/seritb-onarim`) · P2/P5 → MaCiT · gozcu-eskalasyon → BaBa (ikisi de kutuda).
+  Onarim dalinin 3 acik T-konusu suruyor (T6 ekseni: T5 dosyasi GENISLETILIR · flakiness ·
+  KANITSIZ=27).
+- 🔴 **K212 (19 Agu, SeritB-onarim chip'i buldu — `tools/yedekle.py` iki GERCEK kusur,
+  BEKLETMEDE):** tam metin + kabul olcutu ARSIVDE (sinif kapisi geregi). Ayri kalem yurur;
+  onarim SeritB chip'inin kapsaminda DEGIL.
+- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (dordunun de merge SHA'si, kapi sayilari
+  ve deploy kanitlari ARSIVDE). K211'in SON teyidi (sqlite_master + PRAGMA) HocA'nin E8
+  hattinda; K205 kapaninca K202-kendini-test kalemi SeritB chip'ine devroldu.
+- 🔴 **K190 MERGE EDILMEDI — DAL-ICI KIRMIZI, TARIHLENDI (chip PANELDE):** `talep-hatti-test.py`
+  rc=1 (50 iddia beklenirken 54 kostu · DUSEN L9 · D11 capasi ValueError) + `talep-temizlik.py
+  --kendini-test` rc=1 (L9). Kok: dalin KENDI `76c8444f` (K187 KV) commit'i `talep.js:165`'i
+  degistirdi, `ba6d9d77`'deki capa/beklenti guncellenmedi — main mb'den beri 5 dosyaya
+  DOKUNMADI, birlesim SUCSUZ. Recete: D11 capasi bugunku govdeden + beklenti 50→54 + L9 ekseni.
+  kabul: iki komut rc=0 + mutant hedef-kol atfi, sonra merge.
 - 🟠 **K209 (Onarim-merge buldu — ⚖️ OKAN):** odeme worker'i BAYAT (canli `01d41b07` 15 Agu,
   K186'nin 3 shop commit'i yeni; alarm 32238722688). Care: shop'tan `npx wrangler deploy`.
   EGE_SIHIRBAZ kapali → acil degil, Ege-ON blokeri.
-- 🔧 **K210 (hukum KraL'da):** alarm `32238722627` EKSEN-F, 2 isabet — tam metin ARSIVDE
-  (sinif kapisi geregi); anlatim/gizlilik hukmu verilecek.
-- 🔴 **K211 (HocA olctu — CHIP PANELDE):** `talepler` tablosu canli D1'de YOK (Ege-ON sert
-  blokeri) → `KraL-talepler migration` chip'i fail-closed uygular. kabul: sqlite_master 1 satir
-  + PRAGMA=DDL + `--durum` 29404.
-- 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;**
-  tavanlar KALKTI; kimi/m3 YEDEK; cron hatti kimi'de. AGENTS.md + kutu duyurusu yazildi.
-- ✅ **K186 KAPANDI — MERGE CANLIDA** (`e25bea7b`+`73f41c8b`; onarim `aa40200f`, kabul-4 ✅,
-  birlesim ADIM=271 IF=3/3 MASKELEYEN=0 EKSIK=0; tam zincir ARSIVDE+KUTUDA). K184 hukmu
-  DURUYOR: uc daldan cikar, olcum K186 ucuna karsi YENIDEN (icra chip'i sirada).
+- 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
   isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
   gerekce KUTUDA**; "chip kosturur" PLAN DEGIL. (ii) periyodik kablolama (MIMARDA, K198
@@ -45,25 +46,26 @@
   hedef kolu kanitli (K182).
 - 🔧 **K191 (19 Agu, KraL olctu → sahibi MaCiT; SINIF):** tarama SPEC'i isi ONCULDEN aliyor.
   **Tam metin ARSIVDE + KUTUDA.** kabul: ILK blok KAPSAM ON-OLCUMU degilse RED + tazelik capasi.
-- 🟠 **K184 CHIP `KraL-Faz-1 sihirbaz`** — dal `42c47288` KAPANDI, **merge SIRADA (K186'dan SONRA)**.
+- 🟠 **K184 — MERGE CHIP'I PANELDE** (dal `kral/k184-talep-sihirbazi`, ucu chip olcer).
   🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
-  K186'nin semasi/ucu KANONIK ve uctan uca olcum K186'nin ucune karsi YENIDEN kosulur. Tam metin KUTUDA.
+  K186'nin semasi/ucu KANONIK (canli D1 K211 ile o semada) ve uctan uca olcum K186'nin ucune karsi
+  YENIDEN kosulur. HocA E6 dumani bu merge'e bagli.
 - 🔧 **K192 (19 Agu → Okan: "kalem ac, DOKUNMA"):** `kimi` bes evin KURULU kapisinda YOK + dagitim kaniti VARLIK olcup yesil yaniyor. **Tam metin ARSIVDE.** (BaBa serhi: 20 Agu codex bitisi.)
-- 🟢 **K205 DAL HAZIR `90e56e40`** (chip kabul 6/6; sabit main'de TURETILDI `4fdb0b0c53f35094`;
-  spec'in deny-imza sabiti BAYATTI — main kanonik `eb34092b731d4b9f`/49 KORUNDU, chip yakaladi).
-  **MERGE `KraL-Merge kuyrugu` chip'inde (sira: K190 → K205).** · 🔧 **K202-kendini-test**
-  (M06 cokme + M17/M20/M31 bayat capa) **= SeritB S1 uyesi → `KraL-SeritB onarim` chip'inde**;
-  kabul: capalar govdeden count==1, `beklentiyi tutmayan: 0`. (Teshis bu kaleme "K203" dedi;
-  defterde K203 BASKA kalem — icerik karisikligi yok.)
+- 🔧 **K202-kendini-test** (M06 cokme + M17/M20/M31 bayat capa) **= SeritB S1 uyesi →
+  `KraL-SeritB onarim` chip'inde**; kabul: capalar govdeden count==1, `beklentiyi tutmayan: 0`.
+  (Teshis bu kaleme "K203" dedi; defterde K203 BASKA kalem — icerik karisikligi yok.)
 - 🟠 **K206 (19 Agu, TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye.
   Kararlar: saklama AYRI AILE · gyro site semasinda `doku=duz` (.scad degismez) · 8 fiyat ONAY
   (280/190/170/350=TAVAN/160/240/140/220). ⚠️ kupler render guncelligi RAPORDA CELISKILI — chip
   OLCECEK. kabul: ONIZLEME_AILELER 22→30 · taban-fiyat-tablosu 21→29 · urunler.json +8 sari
   kayit (parametrik:true, fiyat:"") · 8 gorsel R2'de 200 · kategori-parite yesil.
 
-## KraL SON DURUM (19 Agu ~12:0xZ; eski kapanis blogu ARSIVDE)
-✅ **K190+K187 KAPANDI — MIMARCA TEYIT** (`kral/k190-canli-temizlik` `91479a60`): `22/22`,
-K187 `KV=4/4`. **Merge `KraL-Merge kuyrugu` chip'inde**; kalan tek kalem K200(i). · 🔧 **K203:** tavan kapisi worktree
+## KraL SON DURUM (19 Agu ~15:xxZ; eski kapanis blogu ARSIVDE)
+🧹 **TEMIZLIK (mimar eli, olculdu):** worktree **3→1** (yalnizca CANLI `gallant-shirley` =
+SeritB onarim kaldi; `dreamy-mclean`+`suspicious-cerf` temiz+icerik-main'de kanitiyla silindi,
+raporlari scratchpad'e yedeklendi) · **10 zombi yerel dal silindi** (`-d`, hepsi main'e merged).
+✅ **K190+K187 mimarca teyitli** (`91479a60`): `22/22`, K187 `KV=4/4` — ama MERGE ICIN
+onarim sart (yukarida). · 🔧 **K203:** tavan kapisi worktree
 ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204:** `OKSUZ` fiilen
 "kirli mi" olcuyor; TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188 yarim yedek OLCULEBILIR**
 (`§7` izi buldu, pid 3594 YOK); kabul: `YEDEK=TAM/YARIM` jetonu + fikstur.
