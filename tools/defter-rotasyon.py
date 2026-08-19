@@ -5,6 +5,8 @@
 Kullanim:
     python3 tools/defter-rotasyon.py <defter.md> <arsiv.md>
     python3 tools/defter-rotasyon.py <defter.md> <arsiv.md> --tarih 2026-08-16
+    python3 tools/defter-rotasyon.py <defter.md> <arsiv.md> \
+            --tavan-kaynaktan --isaretciye-indir      # KOTA ASILDIGINDA BU
 
 KESME OLcUTU (mimar verdi):
   * Dosya `## ` baslikli bloklara bolunur; ilk `## `den onceki kisim BASLIK
@@ -905,7 +907,18 @@ def main(argv=None):
                         " birak. Korumali basliklar (ACIK KALEMLER / OKAN'DA /"
                         " ARSIVDE) ASLA indirilmez. Bayrak YOKSA davranis"
                         " degismez (KAYIP / ILERLEME_YOK).")
+    p.add_argument("--tavan-kaynaktan", action="store_true",
+                   help="tavanlari tools/defter-kota-taban.py'dan (kota kapisinin"
+                        " okudugu TEK KAYNAK) al. Komut satirina SAYI YAZILMAZ:"
+                        " yordama elle yazilan her tavan ikinci bir kopyadir ve"
+                        " sessizce ayrisir. Acikca verilen --tavan-* bunu ezer.")
     a = p.parse_args(argv)
+
+    if a.tavan_kaynaktan:
+        if a.tavan_sayi is None:
+            a.tavan_sayi = TAVAN_SATIR
+        if a.tavan_bayt is None:
+            a.tavan_bayt = TAVAN_BAYT
 
     tarih = a.tarih if a.tarih is not None else _bugun()
 

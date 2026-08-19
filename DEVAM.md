@@ -16,9 +16,11 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 - 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
   + kabul ARSIVDE. Ayri kalem; onarim SeritB kapsaminda DEGIL.
 - ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (tam blok ARSIVDE).
-- ✅ **K190 KAPANDI — main'de `4340c0b9`** (5 dosya, +829/-80; bayat capalar D11+F5 + kayit ayrismasi kapandi, L9 ambiyanstan koparildi, 4 CI ekseni birlesim ustunde rc=0). Canli dogrulama chip'in kapanis raporunda.
 - 🟠 **K209 kalintisi (kalem KAPANDI, ARSIVDE):** `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
 - 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
+- 🔧 **K218:** `dal-olc.py` kesif eksenini SOZDIZIMSEL turetiyor; `_kesif_adayi_mi()` sonrasi HER dalda `KESIF EKSENI OLCULEMEDI`. kabul: refactor'a dayanan turetme + mutant.
+- 🔧 **K219:** `kapi-envanteri.py` ISCI baglaminda kendi MUAFIYETINI olu kapi saniyor (rc=1, 5/7). kabul: `MUAF_BAGLAM` jetonu + mutant.
+- 🔧 **K220 (K216 dalina GIRMEZ):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden, liste iki rol tasiyor; lever iki rolu AYRI kaynaga bolmek. KUTUDA.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
 - 🔴 **K213 (19 Agu, MaCiT olctu → hukum KraL'da, sahibi MaCiT):** CC BY/BY-SA **50 kayitta**
@@ -64,7 +66,7 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
 "kirli mi" olcuyor; TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188 yarim yedek OLCULEBILIR**
 (`§7` izi buldu, pid 3594 YOK); kabul: `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
-- 🔧 **K195 (19 Agu — 4. TEKRAR):** `defter-rotasyon.py` kapali madde yokken TASIMIYOR → kota her oturumda ELLE rotasyon istiyor. **Tam metin ARSIVDE.**
+- 🔧 **K195 (dal `kral/k195-defter-rotasyon` HAZIR, merge MIMARDA):** rotasyon cifti 1:1 + ACIK KALEM vetosu + bayt ekseni; kabul 8/8. **Tam metin ARSIVDE.**
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
   taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
 - ✅ **19 Agu KAPANANLAR: liste ARSIVDE.** **KALAN ACIK ARTIKLAR:** T3 `SAHIPSIZ=44→24 (Onarim
@@ -112,7 +114,6 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
   (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
-- ✅ **20 Agu TAKVIMI ERKEN KAPANDI (Okan emri 19 Agu, chip `KraL-Hijyen`):** CLAUDE.md'nin iki tarihli codex blogu ARSIVE tasindi, yasayan motor kurali TEK SATIR kaldi; `codex-tam-yol` hafiza satiri YASIYOR (codex birincil oldu), tasinmadi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)

@@ -193,8 +193,17 @@ def _hukum_red(satir, bayt, eksen, kok):
     print("!! DEFTER KOTASI ASILDI — DEVAM.md %d satir / %d bayt "
           "(tavan satir=%d bayt=%d, ASAN_EKSEN=%s)."
           % (satir, bayt, TAVAN_SATIR, TAVAN_BAYT, eksen), file=sys.stderr)
+    # 🔴 CARE'IN ESKI HALI CALISMIYORDU (K195, 19 Agu — 4. tekrar): bayraksiz
+    # cagri TEK GECIS yapar, tavani HIC OKUMAZ. Kapali madde kalmadiginda
+    # "TASINAN=0" deyip rc=0 ile cikiyor, defter ise tavanin USTUNDE kaliyordu;
+    # sonuc her oturumda ELLE cumle budamaktı. Tavanli + isaretciye indirmeli
+    # bicim yaziliyor ve tavan sayisi komuta ELLE YAZILMIYOR (--tavan-kaynaktan
+    # ayni TEK KAYNAKTAN okur; yordama yazilan sayi ikinci kopya olurdu).
     print("!! CARE: python3 /Users/okan/dev/pruvo/tools/defter-rotasyon.py "
-          "/Users/okan/dev/pruvo/DEVAM.md /Users/okan/dev/pruvo/DEVAM-ARSIV.md",
+          "/Users/okan/dev/pruvo/DEVAM.md /Users/okan/dev/pruvo/DEVAM-ARSIV.md "
+          "--tavan-kaynaktan --isaretciye-indir", file=sys.stderr)
+    print("!!   (ICRA chip/isci duzlemindedir: mimarin K168 muafiyeti YALNIZ "
+          "bayraksiz bicimi kapsar — bayrakli cagriyi chip kosturur.)",
           file=sys.stderr)
     _sayaç_yaz(kok, satir, bayt)
     return 1
