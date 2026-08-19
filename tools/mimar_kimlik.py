@@ -39,6 +39,75 @@ CODEX_YASAK_MODELLER = frozenset({"gpt-5.6-sol"})  # amiral — Okan "sol kullan
 CODEX_PENCERE_BITIS = "2026-08-20"  # dahil; bu tarihten SONRA codex yeniden KAPALI
 
 
+# === 19 AGU 2026 (K214): TURETIM YUZEYI — GOMULU IKIZ TANIM YASAGI ===
+# OLCULEN KUSUR: tools/mimar-kapi-kur.py listeyi kendi govdesine GOMUYOR ve 13 Agu'da
+# BES karde eve o DONMUS kopyayi kurmustu (kimi YOK, emekli deepseek VAR). Yani tek
+# kaynak burasiydi ama KURULAN kopya buradan TUREMIYORDU ([[ikiz-tanim-sessiz-ayrisma]]).
+# COZUM: kurulan blogun METNI de, imzasi da BURADA uretilir; kurucu yalnizca yapistirir,
+# nobetci (tools/motor-tek-kaynak-kapisi.py) ayni fonksiyonlarla yeniden uretip karsilastirir.
+# Ucuncu bir renderer YAZILMAZ — yoksa ikiz tanim bir kat yukari tasinmis olurdu.
+MOTOR_BLOK_BAS = "# === PRUVO MOTOR KUMESI (TURETILDI — mimar_kimlik.py) BASLANGIC ==="
+MOTOR_BLOK_SON = "# === PRUVO MOTOR KUMESI (TURETILDI) BITIS ==="
+
+# Turetilen adlar: kurulu kopyada BU UCU ve imza satiri bulunur.
+MOTOR_TURETILEN_ADLAR = (
+    "ISCI_MOTORLARI", "CANLI_ISCI_MOTORLARI", "EMEKLI_ISCI_MOTORLARI")
+MOTOR_IMZA_ADI = "ISCI_MOTOR_KAYNAK_IMZASI"
+
+
+def motor_kumeleri():
+    """Turetilen adlarin kanonik (ad -> tuple) eslemesi. TEK okuma noktasi."""
+    return {
+        "ISCI_MOTORLARI": tuple(ISCI_MOTORLARI),
+        "CANLI_ISCI_MOTORLARI": tuple(CANLI_ISCI_MOTORLARI),
+        "EMEKLI_ISCI_MOTORLARI": tuple(EMEKLI_ISCI_MOTORLARI),
+    }
+
+
+def motor_imzasi():
+    """Kumelerin KANONIK imzasi (sha256/16). Yorum/bosluk degisimi imzayi OYNATMAZ —
+    imza DEGERI baglar, dosyayi degil: aksi halde her yorum duzenlemesi bes evi
+    'sapmis' gosterir ve nobetci gurultuye bogulup guvenilmez olurdu."""
+    import hashlib
+    govde = ";".join(
+        ad + "=" + ",".join(motor_kumeleri()[ad]) for ad in MOTOR_TURETILEN_ADLAR)
+    return hashlib.sha256(govde.encode("utf-8")).hexdigest()[:16]
+
+
+def motor_blogu_kaynagi():
+    """Kurulu kopyaya YAPISTIRILACAK Python blogunun metni (marker'lar DAHIL)."""
+    satirlar = [
+        MOTOR_BLOK_BAS,
+        "# 🔴 TURETILDI — ELLE DUZENLEME YOK. Tek kaynak: tools/mimar_kimlik.py.",
+        "# Degistirmek icin kaynagi duzenle, sonra su komutu kostur:",
+        "#   python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --isci-kapisi --uygula",
+        "# Sapma nobetcisi: python3 /Users/okan/dev/pruvo/tools/motor-tek-kaynak-kapisi.py",
+    ]
+    kumeler = motor_kumeleri()
+    for ad in MOTOR_TURETILEN_ADLAR:
+        satirlar.append(ad + " = " + repr(kumeler[ad]))
+    satirlar.append(MOTOR_IMZA_ADI + ' = "' + motor_imzasi() + '"')
+    satirlar.append(MOTOR_BLOK_SON)
+    return "\n".join(satirlar) + "\n"
+
+
+def emekli_motor_mu(motor):
+    """Motor EMEKLI mi? Bilinmeyen ad EMEKLI DEGILDIR (onu kapali-kume kolu reddeder);
+    burada 'emekli' TANINAN ama IS VERILMEYEN kati isaretler."""
+    return motor in EMEKLI_ISCI_MOTORLARI
+
+
+def emekli_gerekcesi(motor):
+    """Emekli kata is yollama reddinin ACIK gerekcesi (sessiz kabul YASAK)."""
+    return (
+        "EMEKLI motor (" + str(motor)[:24] + "): bu kata YENI IS YOLLANMAZ. "
+        "Kimlik tanimada gecerli kalir (eski turlar isci sayilir), ama dagitim "
+        "CANLI kumeden yapilir — canli kume: " + " / ".join(CANLI_ISCI_MOTORLARI) +
+        " (birincil: " + CANLI_ISCI_MOTORLARI[0] + "). Emekli kume: " +
+        " / ".join(EMEKLI_ISCI_MOTORLARI) + "."
+    )
+
+
 def canli_motor_mu(motor):
     """Yeni is bu motora gonderilebilir mi? Bilinmeyen ad FAIL-CLOSED (False)."""
     return motor in CANLI_ISCI_MOTORLARI
