@@ -8,11 +8,13 @@
 **Nerede kaldim:** 20 Agu ACILIS: main=origin `519fdb2d`, agac TEMIZ, worktree **1**, cakisma
 on-testi ucunde de YOK, D1 bes eksen YESIL (29573), `.ci-token` **GECERLI** (01:45 turu rc=0
 gercek icra); tazelemeyi BaBa yapti. Spec `tools/paket-uc-dal-merge.md`.
-**20 Agu 2. tur (git duzlemi TAZELENDI):** main=origin **`54d2f466`** (spec tabani `519fdb2d`;
-ara commit'ler yalnizca `.md`, kapsam farki YOK), agac TEMIZ, worktree **1**. Cakisma on-testi
-GUNCEL main'de yeniden kosuldu, ucu de yalnizca agac OID basti → **cakisma YOK**
-(N1 `7309d63e` · N2 `b2470c2b` · K184 `b2727ff1`); uc dal origin'de DURUYOR. Kalan engel: kabul
-bataryalari `python3` istiyor → icra worktree chip'inde (`KraL-UcDalMerge`), chip acilisi OKAN KAPISI. Onceki tur: K190 `4340c0b9` ·
+**20 Agu 2. tur (KraL):** main=origin, agac TEMIZ, worktree 1. KAPSAM `merge-base...uc`
+ile olculdu, spec tablosuyla BIREBIR (2/+23-3 · 9/+3111-12 · 9/+2359-104); `urunler.json` temasi ve
+sizinti YOK → §4 temiz. Cakisma on-testi guncel main'de ucu de TEMIZ (N1'i defter rotasyonum bir ara
+catisti, K136 satiri birebir geri konup kapatildi). N1 bataryasi REPO DISI `~/.claude/cron/` (4 arac,
+dordu de VAR); repo delta'si DEVAM.md + `pre-push` (20 satir RAPOR-ONLY, `exit` YOK, 0,045 sn — okundu,
+temiz). Engel bataryalarin `python3`'u — kapi reddi OLCULDU, kod kilidi kosucu betigi de kesti → odev
+**`tools/paket-uc-dal-merge-okan-komutlari.md`**'de dal basina tek `&&` zinciri (OKAN KAPISI). Onceki tur: K190 `4340c0b9` ·
 K216 `8634bc49` · K206 `7ce644ae` · K223 `9965c4fb` · K212 `df7425ea` · K224 (isci hatti) ·
 shop worker Okan'in deploy'uyla taze (`5606ffbe`, TALEP_SAYAC KV bagli) · D1 bes eksen YESIL.
 🟢 **N1 KABLOLAMASI CANLI** (cron repo disi): `crontab` gozcu `8,23,38,53` (15 dk) + `ci-nobeti.sh`
@@ -25,9 +27,8 @@ artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merg
 **Okan'da bekleyen karar:** yok (shop deploy bugun yapildi; K200(i) canli `--kuru --d1` duruyor).
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
-  + kabul ARSIVDE. Ayri kalem; onarim SeritB kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211 · K190 `4340c0b9` · K215/K80 · SeritB `d46747d0` · K224** (tam bloklar ARSIVDE + kutuda). · 🟠 **K209 kalintisi (KAPANDI, ARSIVDE):** `33b663e4` canlida degil; care ikinci `wrangler deploy` (Okan).
+- 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
+- ✅ **19 AGU KAPANANLAR (bloklar ARSIVDE+kutuda):** K186 · K205 · K210 · K211 · K190 · K215/K80 · SeritB · K224 · K209.
 - 🔴 **MOTOR KARARI (Okan, 19 Agu aksam — LUNA EMRINI GECERSIZ KILAR):** kapali kume `minimax-m3 kimi claude`; deepseek/codex/luna **RED** (K224'te uygulandi, cron kimi'de kaldi).
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
@@ -43,9 +44,8 @@ artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merg
 - 🔧 **K196 (DEPO GENELI):** CI node 20 / yerel 25.8.1 → yerel JS yesilleri CI surumunde OLCULMEMIS. ARSIVDE.
 - 🔧 **K197 (19 Agu):** pre-push maliyet beyani 3,16 sn diyor, olculen medyan **6,11 sn** (5 sn esigi asilmis); sayiyi YORUM soyluyor, dogrulayan yok. ARSIVDE.
 - 🔧 **K217 (19 Agu, KraL push ciktisinda OLCTU):** tavan nobetcisi, baska kapinin self-test fiksturlerini
-  (temp `pruvo-kapi-test-*`, detached, saniyelik) MIMAR sayip sahte `TAVAN ASILDI SAYI=3` yaziyor (kanit: `ls`
-  iki dizini YOK gosterdi, saniyeler sonra BASKA iki fikstur listelendi); yordam "kaldir" dedigi icin GERCEK
-  agac silinebilir. kabul: fikstur duzlemi sayimdan DUSER + mutant hedef-kol atfi + gercek 3. agac YAKALANIR.
+  (temp `pruvo-kapi-test-*`, detached, saniyelik) MIMAR sayip sahte `TAVAN ASILDI SAYI=3` yaziyor (kanit
+  hafizada: [[iki-kovali-siniflama-ucuncu-sinifi-yutar]]); yordam "kaldir" dedigi icin GERCEK agac silinebilir. kabul: fikstur duzlemi sayimdan DUSER + mutant hedef-kol atfi + gercek 3. agac YAKALANIR.
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
@@ -85,7 +85,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. Tam metin ARSIVDE. `kabul:` alani BOS.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` BES oturumdur
-  commit'siz (K126 "tek govde" yuklemini bozuyor). DOKUNULMADI.
+  commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
@@ -117,7 +117,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
   (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
-- Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
+- Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = ~$17,3/milyar; $20/ay + ~4,6 milyar/ay = ~$4,3/milyar.
 - 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z):** pruvo-shop bayatlik nabzi KIRMIZI (134,1 dk / esik 120); yayinlanmamis TEK fark `0f590d11` icindeki `shop/src/talep.js` YORUM satiri, davranis farki YOK. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
 
 ## ARSIVDE
