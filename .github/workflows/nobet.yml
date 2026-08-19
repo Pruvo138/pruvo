@@ -433,7 +433,7 @@ jobs:
       # Kol kendi mutant fiksturu uzerinden KENDI kirmizisini gercekten yakar; bayraksiz
       # kosumda sadece production kodu calisir ve mutantlarin bir kismi kapinin KENDI
       # oz-testi olmadan SESSIZ kalabilirdi. ~<1 s.
-      - name: Recete kapisi oz-nobetcisi (3 mutant + 2 kontrol, dogrudan)
+      - name: Recete kapisi oz-nobetcisi (4 mutant + 2 kontrol, dogrudan)
         if: ${{ !cancelled() }}
         run: python3 tools/recete-kapisi.py --kendini-test
 

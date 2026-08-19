@@ -368,7 +368,7 @@ def alt_sinir_kusurlari(kayit, taze, kaynak_adi):
             "BOS KAYIT: repo HEAD parmakizi kaydinda 0 giris var -> karsilastirilacak "
             "hicbir sey yok, 'fark yok' hukmu ANLAMSIZ (fail-closed). Bu genellikle "
             "kotu bir merge/cakisma cozumunun kaydi bosaltmasidir. COZUM: kaydi "
-            "paketten tazeleyin (python3 tools/onizleme-paket-yukle.py).")
+            "paketten tazeleyin (ISCIYE: python3 tools/onizleme-paket-yukle.py).")
     if not taze:
         kusurlar.append(
             "BOS PAKET: %s tarafinda 0 dosya var -> imaj/paket bos ya da yanlis yer "
