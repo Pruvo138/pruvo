@@ -2,29 +2,24 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
-- 🔴🔴 **ONARIM HATTI = BIRINCI ONCELIK (Okan, 19 Agu).** ✅ Onarim T-altyapisi `74475c70`
-  CANLIDA (deploy 32235503924; `t1-kiyas.py` main'de — pencere 20 Agu 08:48Z, hukum BaBa'da).
-  **SERIT B teshisi KAPANDI:** kirmizi **12 Agu 11:58Z'den beri** (18 Agu patlamasi = K178b'nin
-  actigi sansur); 22 dusen adim = **7 SINIF**, merge'ler HICBIRINI kapatmiyor; tablo+P1-P7
-  KUTUDA. DAGITIM: P1/P3/P4/P6/P7 + hijyen-a3 maskeleme → `KraL-SeritB onarim` chip'i KOSUYOR
-  (dal `kral/seritb-onarim`) · P2/P5 → MaCiT · gozcu-eskalasyon → BaBa (ikisi de kutuda).
-  Onarim dalinin 3 acik T-konusu suruyor (T6 ekseni: T5 dosyasi GENISLETILIR · flakiness ·
-  KANITSIZ=27).
+- 🔴🔴 **ONARIM HATTI = BIRINCI ONCELIK (Okan, 19 Agu).** ✅ T-altyapisi `74475c70` CANLIDA
+  (deploy 32235503924; `t1-kiyas.py` main'de — pencere 20 Agu 08:48Z, hukum BaBa'da).
+  **SERIT B teshisi KAPANDI:** kirmizi 12 Agu 11:58Z'den beri; 22 dusen adim = **7 SINIF**,
+  merge'ler HICBIRINI kapatmiyor; tablo+P1-P7 KUTUDA. DAGITIM: P1/P3/P4/P6/P7 + hijyen-a3 →
+  `KraL-SeritB onarim` chip'i KOSUYOR (dal `kral/seritb-onarim`) · P2/P5 → MaCiT ·
+  gozcu-eskalasyon → BaBa. Dalin 3 acik T-konusu suruyor (T6 · flakiness · KANITSIZ=27). ARSIVDE.
 - 🔴 **K212 (19 Agu, SeritB-onarim chip'i buldu — `tools/yedekle.py` iki GERCEK kusur,
   BEKLETMEDE):** tam metin + kabul olcutu ARSIVDE (sinif kapisi geregi). Ayri kalem yurur;
   onarim SeritB chip'inin kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (dordunun de merge SHA'si, kapi sayilari
-  ve deploy kanitlari ARSIVDE). K211'in SON teyidi (sqlite_master + PRAGMA) HocA'nin E8
-  hattinda; K205 kapaninca K202-kendini-test kalemi SeritB chip'ine devroldu.
+- ✅ **19 AGU KAPANANLAR — K186 · K205 · K210 · K211** (SHA/kapi/deploy kanitlari + K202 devri ARSIVDE). K211'in SON teyidi HocA'da KAPANDI: `sqlite_master`=1 satir · PRAGMA=11 kolon · kod-sema sapmasi 0.
 - 🔴 **K190 MERGE EDILMEDI — DAL-ICI KIRMIZI, TARIHLENDI (chip PANELDE):** `talep-hatti-test.py`
   rc=1 (50 iddia beklenirken 54 kostu · DUSEN L9 · D11 capasi ValueError) + `talep-temizlik.py
   --kendini-test` rc=1 (L9). Kok: dalin KENDI `76c8444f` (K187 KV) commit'i `talep.js:165`'i
   degistirdi, `ba6d9d77`'deki capa/beklenti guncellenmedi — main mb'den beri 5 dosyaya
   DOKUNMADI, birlesim SUCSUZ. Recete: D11 capasi bugunku govdeden + beklenti 50→54 + L9 ekseni.
   kabul: iki komut rc=0 + mutant hedef-kol atfi, sonra merge.
-- ✅ **K209 KAPANDI — worker CANLI** (alarm logu kanit: canli kod `358244ce` @ 10:54Z, K186'nin
-  3 shop commit'i yayinda). 🟠 Kalinti: `33b663e4` (K210'un TEK yorum satiri, davranis AYNI)
-  canlida degil → alarm 102,5/120 dk; care ikinci `wrangler deploy` (kozmetik, alarm commit sayar).
+- ✅ **K209 KAPANDI — worker CANLI** (kanit ARSIVDE). 🟠 Kalinti ACIK: `33b663e4` (K210'un TEK
+  yorum satiri, davranis AYNI) canlida degil → alarm 102,5/120 dk; care ikinci `wrangler deploy`.
 - 🔴 **LUNA EMRI (Okan, 19 Agu): codex kota %100 — TUM etkilesimli isciler `gpt-5.6-luna`;** tavanlar KALKTI, kimi/m3 YEDEK, cron kimi'de. AGENTS.md + kutu yazildi.
 - 🔧 **K200 (19 Agu, YENI — saklama YURURLUKTE):** K190 "arac dogru"yu, K200 "saklama fiilen
   isliyor"u iddia eder. (i) canli `--kuru --d1` **⚖️ OKAN KAPISI — uc yol da OLCULEREK kapali,
@@ -122,8 +117,7 @@ ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami). · 🔧 **K204
   (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
-- 📅 **20 Agu (TAKVIM, Okan emri 18 Agu):** CLAUDE.md'deki codex istisna blogu (⏳ 17→20 Agu)
-  SILINECEK; ayni gun `codex-tam-yol` hafiza satiri da arsive tasinabilir.
+- ✅ **20 Agu TAKVIMI ERKEN KAPANDI (Okan emri 19 Agu, chip `KraL-Hijyen`):** CLAUDE.md'nin iki tarihli codex blogu ARSIVE tasindi, yasayan motor kurali TEK SATIR kaldi; `codex-tam-yol` hafiza satiri YASIYOR (codex birincil oldu), tasinmadi.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 
 ## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
