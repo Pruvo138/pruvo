@@ -7,7 +7,12 @@
 `fd6b6d8d` · `kral/n2-kirleten-onarir` `a87f1809` · `kral/k184-talep-sihirbazi` `f623d712`.
 **Nerede kaldim:** 20 Agu ACILIS: main=origin `519fdb2d`, agac TEMIZ, worktree **1**, cakisma
 on-testi ucunde de YOK, D1 bes eksen YESIL (29573), `.ci-token` **GECERLI** (01:45 turu rc=0
-gercek icra); tazelemeyi BaBa yapti. Spec `tools/paket-uc-dal-merge.md`. Onceki tur: K190 `4340c0b9` ·
+gercek icra); tazelemeyi BaBa yapti. Spec `tools/paket-uc-dal-merge.md`.
+**20 Agu 2. tur (git duzlemi TAZELENDI):** main=origin **`54d2f466`** (spec tabani `519fdb2d`;
+ara commit'ler yalnizca `.md`, kapsam farki YOK), agac TEMIZ, worktree **1**. Cakisma on-testi
+GUNCEL main'de yeniden kosuldu, ucu de yalnizca agac OID basti → **cakisma YOK**
+(N1 `7309d63e` · N2 `b2470c2b` · K184 `b2727ff1`); uc dal origin'de DURUYOR. Kalan engel: kabul
+bataryalari `python3` istiyor → icra worktree chip'inde (`KraL-UcDalMerge`), chip acilisi OKAN KAPISI. Onceki tur: K190 `4340c0b9` ·
 K216 `8634bc49` · K206 `7ce644ae` · K223 `9965c4fb` · K212 `df7425ea` · K224 (isci hatti) ·
 shop worker Okan'in deploy'uyla taze (`5606ffbe`, TALEP_SAYAC KV bagli) · D1 bes eksen YESIL.
 🟢 **N1 KABLOLAMASI CANLI** (cron repo disi): `crontab` gozcu `8,23,38,53` (15 dk) + `ci-nobeti.sh`
@@ -18,8 +23,6 @@ artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merg
 `enabled=false` — KASITLI: `saatlik-github-hata-nobeti` crontab surumuyle MUKERRER olurdu,
 `kuyruk-geri-tepmesi-48sa` penceresi gecti, POM izleyicisi bayat. Yeniden kurulan: YOK.
 **Okan'da bekleyen karar:** yok (shop deploy bugun yapildi; K200(i) canli `--kuru --d1` duruyor).
-
-
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (SeritB chip'i buldu — `tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin
@@ -60,8 +63,6 @@ artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merg
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
 
-
-
 ## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
 🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);
 K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204:** `OKSUZ` fiilen
@@ -84,7 +85,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. Tam metin ARSIVDE. `kabul:` alani BOS.
 - 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` BES oturumdur
-  commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
+  commit'siz (K126 "tek govde" yuklemini bozuyor). DOKUNULMADI.
 - 🟠 **K139 (17 Agu, Okan emri — CANLI DURUM, ekip bilmeli):** crontab'ta 3 gorev
   yorumlandi; 181 → **25 atesleme/gun**. 🔴 ETKI: posta kutusu OTOMATIK izlenmiyor **ve
   urun partileri kendiliginden ILERLEMIYOR**. Tam metin ARSIVDE. `kabul:` alani BOS.
@@ -110,9 +111,6 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
   → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
 - 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
 
-
-
-
 ## OKAN'DA
 
 - 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
@@ -122,8 +120,5 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = yaklasik $17,3/milyar; $20/ay ve yaklasik 4,6 milyar/ay = yaklasik $4,3/milyar.
 - 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z):** pruvo-shop bayatlik nabzi KIRMIZI (134,1 dk / esik 120); yayinlanmamis TEK fark `0f590d11` icindeki `shop/src/talep.js` YORUM satiri, davranis farki YOK. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
 
-
-
-
-## ARSIVDE (tam metinler `DEVAM-ARSIV.md`'de)
-14-15 Agu saatlik CI nobeti turlari · 15 Agu gece oturum kapanisi · K101/K103 kapanislari · yayin ve odeme etiketi bloklari · dorduncu motorun hatta baglanmasi · HD/Kawasaki/Ducati ekleme bloklari · sabah oturumunun tam olcum blogu · defterin sikistirma oncesi 196 satirlik tam hali · 17 Agu ROTASYON-2 (K147 · K154 · K155 · K156 · K133 · K91 · K101 · K103 · K113-119 · K120 · K123-125 · K128 · K121 · K127 · K138 · K137).
+## ARSIVDE
+14-20 Agu kapananlar `DEVAM-ARSIV.md`'de.
