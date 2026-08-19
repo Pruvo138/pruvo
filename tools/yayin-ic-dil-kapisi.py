@@ -250,33 +250,91 @@ def _yayin_kopyasi(kok, rel):
 # olcup YESIL yanar — yani soyma da kapi da olur. Asagidaki hizalama kontrolu o
 # sessiz hatayi BLOKLAYICI yapar: beyaz listedeki her JS icin deploy.yml'de
 # `_yayin/<rel>` kopyasi ZORUNLU, ciplak `<rel>` kopyasi YASAK.
-_CP_SATIRI = re.compile(r"^\s*cp\s+(?P<govde>.+)$", re.M)
+# 🔴 19 AGU 2026 (K215) — OLCUM YERI DEGISTI, EKSEN AYNI KALDI. Yayin toplama adimi
+# kabuk `cp` blogundan `tools/yayin-topla.py`ye TASINDI; deploy.yml'de artik `cp`
+# SATIRI YOK. Jeton taramasi oldugu gibi birakilsaydi kapi YEDI VARLIGIN YEDISI icin
+# birden sahte-KIRMIZI yanardi (olculdu: 19 Agu, kosum 32265469042 — `build` isi tam
+# bu adimda dustu ve YAYIN DURDU). Iddia AYNI, kaynagi degisti ve IKI AYAKLI:
+#   (1) deploy.yml araci ETKILI olarak cagiriyor mu — cagirmiyorsa hicbir sey
+#       yayinlanmaz ve "olculen bayt = yayinlanan bayt" iddiasi BOSA duser;
+#   (2) aracin kopyaladigi KAYNAK kumesinde her JS `_yayin/<rel>` olarak var mi ve
+#       CIPLAK `<rel>` YOK mu — ciplak kopya yorumlu bayt yayinlar.
+# Fail-closed: arac yuklenemezse ihlal listesi DOLU doner (sessiz yesil YOK).
+YAYIN_ARACI = "tools/yayin-topla.py"
 
 
-def deploy_kopya_jetonlari(yml_metni):
-    """deploy.yml'deki `cp ...` satirlarinin KAYNAK jetonlari (hedef haric)."""
-    jetonlar = set()
-    for m in _CP_SATIRI.finditer(yml_metni or ""):
-        parcalar = m.group("govde").split()
-        if len(parcalar) < 2:
-            continue
-        for p in parcalar[:-1]:                     # son jeton = HEDEF
-            if not p.startswith("-"):               # -r gibi secenekler haric
-                jetonlar.add(p)
-    return jetonlar
+def _yayin_araci_kaynaklari():
+    """(kaynak_kumesi, hata) — tools/yayin-topla.py'nin KOPYALADIGI yollar."""
+    import importlib.util
+    yol = os.path.join(ROOT, "tools", "yayin-topla.py")
+    if not os.path.exists(yol):
+        return None, "%s YOK" % YAYIN_ARACI
+    try:
+        if "pruvo_yayin_topla" in sys.modules:
+            mod = sys.modules["pruvo_yayin_topla"]
+        else:
+            spec = importlib.util.spec_from_file_location("pruvo_yayin_topla", yol)
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules["pruvo_yayin_topla"] = mod
+            spec.loader.exec_module(mod)
+        return set(mod.yayin_kaynaklari()), None
+    except Exception as e:                                     # noqa: BLE001
+        sys.modules.pop("pruvo_yayin_topla", None)
+        return None, "%s okunamadi (%s: %s)" % (YAYIN_ARACI, type(e).__name__, e)
 
 
-def hizalama_ihlalleri(yml_metni):
-    """[(rel, sebep)] — olculen bayt ile YAYINLANAN bayt ayrisiyorsa dolu doner."""
-    jetonlar = deploy_kopya_jetonlari(yml_metni)
+def deploy_araci_kosuyor_mu(yml_metni):
+    """deploy.yml `tools/yayin-topla.py`yi ETKILI bir komut olarak kosuyor mu?
+
+    Ortak icra suzgeci kullanilir (tools/icra-suzgeci.py): `echo ...` mensiyonu,
+    yoruma alinmis satir ve `--help` sinifi cagri ICRA SAYILMAZ."""
+    try:
+        import importlib.util
+        yol = os.path.join(ROOT, "tools", "icra-suzgeci.py")
+        if "pruvo_icra_suzgeci" in sys.modules:
+            suz = sys.modules["pruvo_icra_suzgeci"]
+        else:
+            spec = importlib.util.spec_from_file_location("pruvo_icra_suzgeci", yol)
+            suz = importlib.util.module_from_spec(spec)
+            sys.modules["pruvo_icra_suzgeci"] = suz
+            spec.loader.exec_module(suz)
+    except Exception:                                          # noqa: BLE001
+        return None                                            # OLCULEMEDI
+    for satir in (yml_metni or "").splitlines():
+        s = satir.strip()
+        if s.startswith("run:"):
+            s = s[4:].strip()
+        if s.startswith("- run:"):
+            s = s[6:].strip()
+        hukum, _sebep, _arg = suz.anlamli_cagri(s, YAYIN_ARACI)
+        if hukum in (suz.EVET, suz.OLCULEMEDI):
+            return True
+    return False
+
+
+def hizalama_ihlalleri(yml_metni, kaynaklar=None):
+    """[(rel, sebep)] — olculen bayt ile YAYINLANAN bayt ayrisiyorsa dolu doner.
+
+    `kaynaklar` YALNIZ oz-test icindir (mutant kaynak kumesi enjekte edilir);
+    uretimde None gecilir ve kume aracin KENDISINDEN okunur."""
     ihlaller = []
+    if kaynaklar is None:
+        kaynaklar, hata = _yayin_araci_kaynaklari()
+        if kaynaklar is None:
+            return [("(hepsi)", "OLCULEMEDI (fail-closed): %s" % hata)]
+    kosuyor = deploy_araci_kosuyor_mu(yml_metni)
+    if kosuyor is None:
+        return [("(hepsi)", "OLCULEMEDI (fail-closed): icra suzgeci yuklenemedi")]
+    if not kosuyor:
+        return [("(hepsi)", "deploy.yml `%s` adimini ETKILI olarak KOSMUYOR — hicbir "
+                            "bayt yayinlanmaz" % YAYIN_ARACI)]
     for rel in SABIT_VARLIKLAR:
         if not rel.endswith(".js"):
             continue                                # index.built.html zaten build urunu
-        if rel in jetonlar:
-            ihlaller.append((rel, "deploy.yml KAYNAKTAN kopyaliyor (yorumlu bayt yayinlanir)"))
-        elif (YAYIN_DIR + "/" + rel) not in jetonlar:
-            ihlaller.append((rel, "deploy.yml _yayin/%s kopyasini HIC kopyalamiyor" % rel))
+        if rel in kaynaklar:
+            ihlaller.append((rel, "yayin hatti KAYNAKTAN kopyaliyor (yorumlu bayt yayinlanir)"))
+        elif (YAYIN_DIR + "/" + rel) not in kaynaklar:
+            ihlaller.append((rel, "yayin hatti _yayin/%s kopyasini HIC kopyalamiyor" % rel))
     return ihlaller
 
 
@@ -365,7 +423,8 @@ def tara(metin, yol, sert, ic, tr_lower):
 DEPLOY_YML = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 
 
-def olc(kok, ayrintili=True, yml_metni=None, kapsam_fn=None, etiket="yayin"):
+def olc(kok, ayrintili=True, yml_metni=None, kapsam_fn=None, etiket="yayin",
+        kaynaklar=None):
     """(cikis_kodu, satirlar). kapsam_fn: yayin kolu `kapsam`, kaynak kolu `kaynak_kapsam`
     — sozluk ve yorum lexer'i IKI KOLDA DA AYNI, yalniz dosya kumesi degisir.
 
@@ -386,14 +445,16 @@ def olc(kok, ayrintili=True, yml_metni=None, kapsam_fn=None, etiket="yayin"):
             except OSError as e:
                 return 3, ["OLCULEMEDI: deploy.yml okunamadi -> %s" % e,
                            "  (olculen bayt ile YAYINLANAN bayt hizasi dogrulanamaz)"]
-        kaymalar = hizalama_ihlalleri(yml_metni)
+        kaymalar = hizalama_ihlalleri(yml_metni, kaynaklar)
         if kaymalar:
             R.append("IHLAL: OLCUM HEDEFI SAPMASI — bu kapi _yayin/ kopyasini olcerken "
                      "deploy.yml baska baytlari yayinliyor (%d varlik)" % len(kaymalar))
             for rel, sebep in kaymalar:
                 R.append("  %s  -> %s" % (rel, sebep))
-            R.append("COZUM: deploy.yml'de _site'a JS varliklari _yayin/<rel>'den kopyalanmali "
-                     "(build.py o kopyalari uretir; uretemezse zaten exit 1).")
+            R.append("COZUM: yayin hatti (%s::MANIFESTO) JS varliklarini _yayin/<rel>'den "
+                     "kopyalamali ve deploy.yml o araci ETKILI olarak kosmali "
+                     "(build.py o kopyalari uretir; uretemezse zaten exit 1)."
+                     % YAYIN_ARACI)
             return 1, R
 
     dosyalar, eksik = kapsam_fn(kok)
@@ -713,25 +774,44 @@ def kendini_test():
             gercek_yml = io.open(DEPLOY_YML, encoding="utf-8").read()
         except OSError:
             gercek_yml = ""
-        _iddia("H0 gercek deploy.yml HIZALI (JS'ler _yayin/'dan kopyalaniyor)",
+        _iddia("H0 gercek deploy.yml + gercek yayin hatti HIZALI "
+               "(JS'ler _yayin/'dan kopyalaniyor)",
                gercek_yml and not hizalama_ihlalleri(gercek_yml),
                repr(hizalama_ihlalleri(gercek_yml))[:200])
 
-        mutant = gercek_yml.replace("_yayin/secenekler.js", "secenekler.js")
-        _iddia("H1 MUTANT deploy KAYNAKTAN kopyaliyor -> KIRMIZI",
-               any(r == "secenekler.js" for r, _s in hizalama_ihlalleri(mutant)))
+        # Mutasyonlar artik YML METNINDE degil KAYNAK KUMESINDE yapilir: adimin govdesi
+        # tools/yayin-topla.py::MANIFESTO'ya tasindi (K215). Depodaki hicbir dosyaya
+        # DOKUNULMAZ; kume enjekte edilir.
+        temiz_kume, _kh = _yayin_araci_kaynaklari()
+        temiz_kume = set(temiz_kume or ())
+        _iddia("H0b yayin hatti kaynak kumesi OKUNABILDI",
+               bool(temiz_kume), repr(_kh)[:200])
+
+        mutant_kume = (temiz_kume - {"_yayin/secenekler.js"}) | {"secenekler.js"}
+        _iddia("H1 MUTANT yayin hatti KAYNAKTAN kopyaliyor -> KIRMIZI",
+               any(r == "secenekler.js"
+                   for r, _s in hizalama_ihlalleri(gercek_yml, mutant_kume)))
         k = os.path.join(tmp, "hizalama-kaynak")
         _sahte_agac(k, temiz_urun, icerik_govdesi=temiz_icerik, ana_govdesi=temiz_ana)
-        kod, _s = olc(k, ayrintili=False, yml_metni=mutant)
-        _iddia("H2 TEMIZ agac + MUTANT deploy -> yine de KIRMIZI (sessiz yesil YOK)",
-               kod == 1, "kod=%d" % kod)
+        kod, _s = olc(k, ayrintili=False, yml_metni=gercek_yml, kaynaklar=mutant_kume)
+        _iddia("H2 TEMIZ agac + MUTANT kaynak kumesi -> yine de KIRMIZI "
+               "(sessiz yesil YOK)", kod == 1, "kod=%d" % kod)
 
-        mutant2 = gercek_yml.replace("_yayin/jenerator/hacim.js ", "")
+        mutant_kume2 = temiz_kume - {"_yayin/jenerator/hacim.js"}
         _iddia("H3 MUTANT yayin kopyasini HIC kopyalamiyor -> KIRMIZI",
-               any(r == "jenerator/hacim.js" for r, _s in hizalama_ihlalleri(mutant2)))
+               any(r == "jenerator/hacim.js"
+                   for r, _s in hizalama_ihlalleri(gercek_yml, mutant_kume2)))
         kod, _s = olc(k, ayrintili=False, yml_metni="")
         _iddia("H4 deploy.yml BOS -> KIRMIZI (hizalama dogrulanamaz)", kod == 1,
                "kod=%d" % kod)
+        # 🔴 H5 (19 Agu, K215): ADIM ETKISIZLESTIRILIRSE hicbir bayt yayinlanmaz —
+        # kaynak kumesi tertemiz olsa BILE kapi KIRMIZI yanmali. Bu ayak olmasaydi
+        # adimi `echo`'ya cevirmek kapiyi SESSIZ birakirdi.
+        echo_yml = gercek_yml.replace("run: python3 tools/yayin-topla.py",
+                                      "run: echo python3 tools/yayin-topla.py")
+        _iddia("H5 adim `echo` MENSIYONUNA cevrildi -> KIRMIZI",
+               bool(hizalama_ihlalleri(echo_yml, temiz_kume)),
+               repr(hizalama_ihlalleri(echo_yml, temiz_kume))[:200])
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

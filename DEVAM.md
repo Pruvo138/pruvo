@@ -4,9 +4,9 @@
 ## 🔻 KraL CANLI DURUM — 19 Agu ~18:0xZ (main=origin `4340c0b9`)
 **CANLIYA (bugun):** T-altyapisi `74475c70` · K186 `e25bea7b`+`73f41c8b` · K205 `bcde35fa` ·
 K210 `33b663e4` · K211 semasi · hijyen `840a6e26` · kok-rapor `bf543b60` · **K190 `4340c0b9`**.
-**KOSAN 4 CHIP (OLDURME, motor luna):** ① K214 `kral/k214-motor-tek-kaynak` @ `3a8a0434` ② K215
-`kral/k215-yayin-topla` — UC MERGE kuyrugunda: seritb `a93f2fb2` → k215 → K184 `6576bf27`
-③ SeritB onarim `a93f2fb2` ④ K184 `6576bf27`.
+**KOSAN 2 CHIP (OLDURME, motor luna):** ① K214 `kral/k214-motor-tek-kaynak` @ `3a8a0434`
+② K215/K80 KAPANDI — seritb `d46747d0` · k215 `a1d20460` · onarim `a18b2d1c` CANLI; esdegerlik
+FARK=0 (iki blok), K80 blokaji kalkti: K184 push'u `YENI_CI_ADIMI=3 KOSULAN=3`.
 **YENI 2 CHIP (~17:5xZ):** `KraL-K206 merge` (paket dalini main'e alir) · `KraL-K216 D-KOD` (marka
 uzun-once deligi, dal `kral/k216-marka-uzun-once`). **BEKLIYOR:** K212 · K213 sayi 51 (MaCiT) ·
 gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
@@ -39,10 +39,9 @@ gozcu eskalasyon + T1 penceresi 20 Agu 08:48Z (BaBa).
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
-- 🟠 **K184 — MERGE CHIP'I PANELDE** (dal `kral/k184-talep-sihirbazi`, ucu chip olcer).
-  🔴 MIMAR HUKMU 19 Agu: uc (`/talep` handler + kendi DDL'i) DALDAN CIKAR, yalniz istemci kalir;
-  K186'nin semasi/ucu KANONIK (canli D1 K211 ile o semada) ve uctan uca olcum K186'nin ucune karsi
-  YENIDEN kosulur. HocA E6 dumani bu merge'e bagli.
+- 🟠 **K184 — TEK KALEM:** dal `867cc80e` origin'de, K80 ARTIK BLOKLAMIYOR; kalan kirmizi
+  `talep-sihirbazi-test.py` VAKA 36 (batarya kabuk metnini olcuyor, adim araca tasindi).
+  Kalan is + delege plani POSTA KUTUSUNDA. Uc daldan CIKTI; HocA E6 dumani bu merge'e bagli.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
 - 🔧 **K202-kendini-test** (M06 cokme + bayat capa) = SeritB S1 uyesi, o chip'te; kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
