@@ -222,6 +222,12 @@ def _metin_kur(satirlar, sondaki_newline):
     govdeleri sondaki bos satirlari ZATEN tasidigi icin tek "\\n" birebir
     yeniden kurar.
     """
+    # 🔴 BOS SONUC BOS DOSYADIR: satir listesi bosken `"\n".join([]) + "\n"`
+    # tek basina bir BOS SATIR uydurur. Olculdu (19 Agu): tek blogu tamamen
+    # tasinan defterde (V5/V8 fiksturleri) `uydurulan=1` cikti ve 1:1 kolu
+    # dogru yerden kirmizi yandi. Bos liste -> bos metin.
+    if not satirlar:
+        return ""
     metin = "\n".join(satirlar)
     if sondaki_newline:
         metin += "\n"
