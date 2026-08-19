@@ -1574,7 +1574,7 @@ jobs:
       # birden aranir. (b) sarti K182'nin caresidir: "kirmizi geldi" kanit degildir,
       # kirmizinin SEBEBI hedef kol olmalidir. Bu adim olmadan "kabul testi olu" hali
       # (her mutant yesil) GORUNMEZ kalirdi.
-      - name: "Kutu esik kapisi mutasyon turu (7 mutant, hedef-kol atifli, SERIT B)"
+      - name: "Kutu esik kapisi mutasyon turu (8 mutant, hedef-kol atifli, SERIT B)"
         if: ${{ !cancelled() }}
         run: python3 tools/kutu-esik-kapisi-mutasyon.py
 

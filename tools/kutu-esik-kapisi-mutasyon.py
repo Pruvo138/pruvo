@@ -79,6 +79,73 @@ def mutant_kos(kok, ad, aranan, yerine, hedefler, yanlar, kaynak):
     return hukum == "OLDURDU"
 
 
+def m8_ci_tespiti(kok, kaynak):
+    """M8 — CI-TESPIT AYRIMI CANLI MI (KUTU_KAPSAM_DISI kolunun iki yonu).
+
+    GERCEK_KUTU ekseni V1..V11 vaka cercevesinde degil, kendini-test'in
+    sonundadir; bu yuzden vaka-bazli mutant_kos'a girmez. Olcum sahte-HOME
+    (gercek kutu YOK) ortaminda uc koldan yapilir:
+      KONTROL-A: mutantsiz kapi, CI degiskenleri temiz -> rc=1 + OLCULEMEDI
+                 (yerel fail-closed CANLI; kol yerelde acilmiyor)
+      KONTROL-B: mutantsiz kapi, GITHUB_ACTIONS=true -> rc=0 + KUTU_KAPSAM_DISI
+                 (CI kolu CANLI; runner'da eksen kapsam disi)
+      M8 mutant: ci_ortaminda() govdesi `return True` yapilinca temiz ortamda
+                 rc=0'a kayar -> karari GERCEKTEN tespit satiri veriyor.
+    Capa nobeti (count==1) tespit satirinin kaynaktan sokulmesini ayrica yakalar.
+    """
+    aranan = '    return os.environ.get("GITHUB_ACTIONS") == "true"'
+    yerine = "    return True"
+    sahte_home = os.path.join(kok, "m8-sahte-home")
+    os.makedirs(sahte_home, exist_ok=True)
+    temiz = dict(os.environ)
+    temiz["HOME"] = sahte_home
+    temiz.pop("GITHUB_ACTIONS", None)
+    temiz.pop("CI", None)
+    ci_ortam = dict(temiz)
+    ci_ortam["GITHUB_ACTIONS"] = "true"
+
+    def kos(kapi, ortam):
+        return subprocess.run([sys.executable, kapi, "--kendini-test"],
+                              capture_output=True, text=True, env=ortam)
+
+    kontrol_a = kos(KAPI, temiz)
+    a_iyi = (kontrol_a.returncode == 1 and
+             "GERCEK_KUTU_BAYT: OLCULEMEDI" in kontrol_a.stdout)
+    kontrol_b = kos(KAPI, ci_ortam)
+    b_iyi = (kontrol_b.returncode == 0 and
+             "KUTU_KAPSAM_DISI" in kontrol_b.stdout)
+
+    mutant = os.path.join(kok, "mutant-M8-kapi.py")
+    shutil.copyfile(KAPI, mutant)
+    shutil.copyfile(ARSIV, os.path.join(kok, "kutu-arsivle.py"))
+    with open(mutant, "r", encoding="utf-8") as dosya:
+        metin = dosya.read()
+    bulundu = metin.count(aranan)
+    kaynakta_bulundu = kaynak.count(aranan)
+    olcum = bulundu == 1 and kaynakta_bulundu == 1
+    m_rc = None
+    m_kapsam = False
+    if olcum:
+        metin = metin.replace(aranan, yerine, 1)
+        with open(mutant, "w", encoding="utf-8", newline="") as dosya:
+            dosya.write(metin)
+        m_sonuc = kos(mutant, temiz)
+        m_rc = m_sonuc.returncode
+        m_kapsam = "KUTU_KAPSAM_DISI" in m_sonuc.stdout
+    satir_no, satir_metni = kaynak_satiri(kaynak, aranan)
+    iyi = olcum and a_iyi and b_iyi and m_rc == 0 and m_kapsam
+    hukum = "OLDURDU" if iyi else "OLDURMEDI"
+    print("M8 CI-TESPIT AYRIMI: kontrolA_failclosed=%s kontrolB_ci_kapsamdisi=%s "
+          "mutant_rc=%s mutant_kapsamdisi=%s dizge_satir=%d HUKUM=%s" %
+          ("EVET" if a_iyi else "HAYIR", "EVET" if b_iyi else "HAYIR",
+           m_rc, "EVET" if m_kapsam else "HAYIR", satir_no, hukum))
+    if satir_no:
+        print("M8 dizge=%s" % satir_metni.strip())
+    else:
+        print("M8 dizge=OLCULEMEDI (kaynakta bulunamadi)")
+    return iyi
+
+
 def main():
     with open(KAPI, "r", encoding="utf-8") as dosya:
         kaynak = dosya.read()
@@ -167,11 +234,13 @@ def main():
         for ad, aranan, yerine, hedefler, yanlar in mutantler:
             if mutant_kos(kok, ad, aranan, yerine, hedefler, yanlar, kaynak):
                 olduren += 1
+        if m8_ci_tespiti(kok, kaynak):
+            olduren += 1
     finally:
         shutil.rmtree(kok)
-    print("MUTASYON: %d/7 %s" %
-          (olduren, "OLDURDU" if olduren == 7 else "OLDURMEDI"))
-    return 0 if olduren == 7 else 1
+    print("MUTASYON: %d/8 %s" %
+          (olduren, "OLDURDU" if olduren == 8 else "OLDURMEDI"))
+    return 0 if olduren == 8 else 1
 
 
 if __name__ == "__main__":
