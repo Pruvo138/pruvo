@@ -8,7 +8,7 @@
  *   (A) OPERASYON  — 'uretimde' · 'tamamlandi' · 'iptal' her mevcut durumdan secilir,
  *                    GERI ALMA dahil ('tamamlandi' -> 'uretimde' GECERLI).
  *   (B) 'kargolandi' ISTISNA — /yonet/durum onu 400 'kargo-ucunu-kullan' ile reddeder;
- *                    tek yol firma+kod isteyen /yonet/kargo. Panel secicisinde YOK.
+ *                    tek yol firma+kod isteyen AYRI KARGO ucudur. Panel secicisinde YOK.
  *   (C) ODEME durumlari elle setlenemez; TEK istisna 'odendi'ye GERI ALMA.
  *   (D) Panelin sundugu kume SUNUCUNUN kabul kumesinden TURETILIR (ikinci liste YASAK).
  *
