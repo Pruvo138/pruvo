@@ -1221,13 +1221,27 @@ def _bolunmus_rakam_mutant_sureci():
         except OSError as e:
             hatalar.append("MUTANT AYRI SUREC KOSTURULAMADI — %s" % e)
         else:
-            print("MUTANT AYRI SUREC HAM STDOUT BASLANGICI")
-            print(sonuc.stdout or "", end="")
+            # 🔴 20 AGU — HAM CIKTI ONEKLENIR (okunabilirlik kusuru, olculdu):
+            # mutantin BEKLENEN kirmizisi ("KIRMIZI — ... mutant probu 1 hata:
+            # FIKSTUR(karisik) ... yerine []") eskiden ONEKSIZ basiliyordu ve CI
+            # gunlugunde EBEVEYNIN gercek hatasindan ayirt edilemiyordu. 19-20 Agu'da
+            # bu satirlar "ikinci bir kirmizi kol / sessiz kapsam kaybi" diye TESHIS
+            # EDILDI ve bir onarim turu bosa gitti. Ayirt edici onek zorunlu:
+            # 'MUTANT|' ile baslayan HER satir MUTANTIN ciktisidir, kirmizi olmasi
+            # BEKLENIR; oneksiz KIRMIZI satirlari EBEVEYNE aittir.
+            _ham_cikti = sonuc.stdout or ""
+            _ham_hata = sonuc.stderr or ""
+            print("MUTANT AYRI SUREC HAM STDOUT BASLANGICI "
+                  "(asagidaki 'MUTANT|' satirlari MUTANTIN kendi ciktisidir; "
+                  "mutant kirmizi YANMALI — bu BEKLENEN sonuctur, ebeveyn hatasi DEGIL)")
+            for _satir in _ham_cikti.splitlines():
+                print("MUTANT| " + _satir)
             print("MUTANT AYRI SUREC HAM STDERR BASLANGICI")
-            print(sonuc.stderr or "", end="")
+            for _satir in _ham_hata.splitlines():
+                print("MUTANT| " + _satir)
             print("MUTANT AYRI SUREC HAM CIKTI SONU")
             print("MUTANT AYRI SUREC rc=%d" % sonuc.returncode)
-            ham = (sonuc.stdout or "") + (sonuc.stderr or "")
+            ham = _ham_cikti + _ham_hata
             if sonuc.returncode == 0:
                 hatalar.append(
                     "MUTANT UCTAN UCA YESIL KALDI — pozitif fikstur iddiasi "
@@ -1268,6 +1282,13 @@ def bolunmus_rakam_fikstur_hatalari(mutant_kosumu=True):
     beklenen = [("fikstur/pozitif.js", 12, beklenen_js),
                 ("fikstur/pozitif.py", 12, beklenen_py),
                 ("fikstur/pozitif.sql", 12, beklenen_sql)]
+    # KAPSAM SAYIYLA GORUNUR ([[batarya-kapsam-tabani-sayiyla-civilenir]]): oran degil
+    # MUTLAK sayi basilir. Bos kume "temiz" DEGIL "olculemedi" demektir; bu satir
+    # gercek kosumda 3, mutant kosumunda 0 basar — iki hal gunlukten AYIRT EDILEBILIR.
+    print("BOLUNMUS RAKAM FIKSTUR KAPSAMI — korpus=%d dosya (%d pozitif + %d negatif), "
+          "beklenen vurus=%d, bulunan vurus=%d"
+          % (len(korpus), len(beklenen), len(korpus) - len(beklenen),
+             len(beklenen), len(bulunan)))
     if bulunan != beklenen:
         hatalar.append("FIKSTUR(karisik) beklenen pozitif/negatif kumesi %r yerine %r"
                        % (beklenen, bulunan))
