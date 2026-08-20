@@ -311,8 +311,28 @@ else
 fi
 
 echo "→ urunler.json degisti: D1 senkronlaniyor (Ege urunleri D1'den okuyor)..."
-if ! python3 "$sync" "$@"; then
-  echo "!! PUSH DURDURULDU — D1 SENKRONU BASARISIZ."
+# 🔴 K261 (20 Agu 2026, KraL CANLI olctu) — rc=4 "BASARISIZ" DEGIL "ATLANDI"dir.
+# `d1-sync.py` cikis kodlari (kendi docstring'i, d1-sync.py::main):
+#     0  basarili (yazildi / yazacak bir sey yoktu)
+#     4  BASKA MAKINE canli D1 lease tutuyor -> bu kosumda yazma YAPILMAZ
+#     1+ gercek hata (sema / ag / yetki / SQL / IO) -> fail-closed
+# Ayni aracin CI adimi (`d1-sync.py::_adim_kos`) rc=4'u ACIKCA 0 sayar ve gerekcesini
+# yazar: "emniyet agi zaten var: ucta kosan is + PRE-PUSH HOOK + d1-uzlastirici.yml".
+# Yani rc=4'un emniyet aglarindan biri BU KANCADIR — ama kanca `if ! python3 ...`
+# ile HER sifir-disi kodu "SENKRON BASARISIZ" sayip push'u blokluyordu. Iki tuketici
+# AYNI rc'yi TERS okuyor demektir ([[ikiz-tanim-sessiz-ayrisma]] · [[rc-hukmu-kapi-imzasini-ezer]]).
+# OLCULDU: `d1-sync.py --durum` BES eksende YESIL (D1 29629 == urunler.json 29629)
+# iken push UC KEZ ust uste bu koldan durdu; blok YANLIS-POZITIFTI ve paylasilan
+# kanca oldugu icin EVIN TUM push'larini durduruyordu.
+# 🔴 GEVSETME DEGIL, AYIRIM: 4 DISINDAKI her sifir-disi kod push'u AYNEN BLOKLAR.
+python3 "$sync" "$@"
+d1_rc=$?
+if [ "$d1_rc" = "4" ]; then
+  echo "D1 SENKRONU ATLANDI (rc=4): baska makine CANLI lease tutuyor — yazma YAPILMADI."
+  echo "  Katalogu senkron tutan emniyet agi: ucta kosan is + d1-uzlastirici.yml."
+  echo "  Bu bir HATA DEGILDIR; push DEVAM EDIYOR (K261)."
+elif [ "$d1_rc" != "0" ]; then
+  echo "!! PUSH DURDURULDU — D1 SENKRONU BASARISIZ (rc=$d1_rc)."
   echo "!! urunler.json main'e girmek uzereydi ama D1 bayat kaldi; Ege (WhatsApp)"
   echo "!! urunleri D1'den okudugu icin musteriye BAYAT/YANLIS katalog gosterilir"
   echo "!! (sessiz satis kaybi — K85). Duzeltip tekrar push et:  python3 $sync"

@@ -148,6 +148,13 @@ print("KAYIT: %%s" %% beyan)
 # fail-closed davranmasi gerektigini olcer (BASARISIZ kolu, ATLANDI kolu degil).
 _HATA_STUB = "#!/usr/bin/env python3\nimport sys\nsys.exit(1)\n"
 
+# SENTETIK "ATLANDI" STUB'I (K261, 20 Agu 2026) — d1-sync'in rc=4 kolunu taklit eder.
+# rc=4 = BASKA MAKINE canli D1 lease tutuyor; yazma YAPILMAZ ama bu bir ARIZA DEGILDIR
+# (aracin kendi docstring'i: "CI adimi bunu 0 sayar, emniyet agi zaten var: ucta kosan
+# is + pre-push hook + d1-uzlastirici.yml"). Kanca bunu BASARISIZ sayarsa yayin
+# yanlis-pozitif olarak durur — 20 Agu'da UC ust uste push boyle blokland.
+_ATLANDI_STUB = "#!/usr/bin/env python3\nimport sys\nsys.exit(4)\n"
+
 
 def fikstur_kur(tmp, ad, kanca_govdesi=None, sync_stub=None):
     """GERCEK git deposu + GERCEK uzak (bare) + KURULU pre-push kancasi.
@@ -290,10 +297,10 @@ try:
     # ══ B) KONTROL MUTANTI — bayrak sokulunce A KIRMIZI yanmali ══════════════════
     print("\n[B] KONTROL MUTANTI — cagridan bayrak sokulunce eksen KIRMIZI yaniyor mu?")
     ham = open(KANCA_KAYNAGI, encoding="utf-8").read()
-    mutant = ham.replace('if ! python3 "$sync" "$@"; then', 'if ! python3 "$sync"; then')
+    mutant = ham.replace('python3 "$sync" "$@"\nd1_rc=$?', 'python3 "$sync"\nd1_rc=$?')
     dogrula("B0 mutasyon FIILEN uygulandi (govde degisti) — uygulanmayan mutant "
             "'oldurulmus' sanilirdi", mutant != ham,
-            "cagri satiri bulunamadi: 'if ! python3 \"$sync\" \"$@\"; then'")
+            "cagri satiri bulunamadi: 'python3 \"$sync\" \"$@\"' + 'd1_rc=$?'")
     depo_b, kayit_b = fikstur_kur(tmp, "b", kanca_govdesi=mutant)
     _katalog_yaz(depo_b, ["u-commitli", "u-taban"])
     _git(depo_b, "add", "urunler.json")
@@ -387,6 +394,73 @@ try:
     rc_d4, _cikti_d4, _ = push_et(depo_d4)
     dogrula("D6b 🔴 MUTANT: senkron ARIZA vermesine ragmen push GECTI (fail-open)",
             rc_d4 == 0, "rc=%d" % rc_d4)
+
+    # ══ G) K261 — rc=4 "ATLANDI" ile rc!=0 "BASARISIZ" AYRI kollardir ════════════
+    # OLCULEN ARIZA (20 Agu 2026, KraL): kanca `if ! python3 "$sync" "$@"` ile HER
+    # sifir-disi kodu BASARISIZ sayiyordu. `d1-sync.py` rc=4'u "baska makine canli
+    # lease tutuyor, yazma ATLANDI" icin ayirmis ve CI adimi onu ACIKCA 0 sayiyor —
+    # gerekcesinde emniyet aglarindan biri olarak TAM DA BU KANCAYI sayiyor. Iki
+    # tuketici AYNI rc'yi TERS okuyordu; sonuc: `d1-sync.py --durum` bes eksende
+    # YESIL iken UC ust uste push yanlis-pozitif olarak bloklandi.
+    # 🔴 IKI YON DE OLCULUR: rc=4 GECER **ve** rc=1 BLOKLAR. Tek yon olcmek
+    # "gevsetme"yi kutsardi.
+    print("\n[G] K261 — rc=4 ATLANDI gecer, rc!=0 BASARISIZ bloklar (IKI YON)")
+    depo_g1, kayit_g1 = fikstur_kur(tmp, "g1", sync_stub=_ATLANDI_STUB)
+    _katalog_yaz(depo_g1, ["u-commitli", "u-taban"])
+    _git(depo_g1, "add", "urunler.json")
+    _git(depo_g1, "commit", "-q", "-m", "commitli urun")
+    rc_g1, cikti_g1, _ = push_et(depo_g1)
+    dogrula("G1 🔴 rc=4 (lease CANLI) -> push GECTI (rc=0); yanlis-pozitif blok YOK",
+            rc_g1 == 0, "rc=%d %s" % (rc_g1, cikti_g1[-300:]))
+    dogrula("G2 gerekce BASILIYOR ve 'BASARISIZ' DEMIYOR (sessiz gecis DEGIL)",
+            "D1 SENKRONU ATLANDI (rc=4)" in cikti_g1
+            and "D1 SENKRONU BASARISIZ" not in cikti_g1, cikti_g1[-300:])
+
+    # G3 — HEDEF MUTANT: rc=4 kolu kaldirilir (eski davranisa donus).
+    ham_g = open(KANCA_KAYNAGI, encoding="utf-8").read()
+    mutant_g = ham_g.replace(
+        'if [ "$d1_rc" = "4" ]; then', 'if [ "$d1_rc" = "9999" ]; then')
+    dogrula("G3a mutasyon FIILEN uygulandi (rc=4 kolu erisilemez kilindi)",
+            mutant_g != ham_g, "hedef dizi bulunamadi: 'if [ \"$d1_rc\" = \"4\" ]; then'")
+    depo_g2, _kayit_g2 = fikstur_kur(tmp, "g2", kanca_govdesi=mutant_g,
+                                     sync_stub=_ATLANDI_STUB)
+    _katalog_yaz(depo_g2, ["u-commitli", "u-taban"])
+    _git(depo_g2, "add", "urunler.json")
+    _git(depo_g2, "commit", "-q", "-m", "commitli urun")
+    rc_g2, _cikti_g2, _ = push_et(depo_g2)
+    dogrula("G3b 🔴 MUTANT: rc=4 kolu olunce G1 OLDU (push yine BLOKLANDI) — "
+            "K261'in birebir eski hali", rc_g2 != 0, "rc=%d" % rc_g2)
+
+    # G3c — HEDEF-KOL ATFI: AYNI mutant altinda rc=1 kolu DEGISMEMELI. Degisirse
+    # mutant "blokladi" degil "her seyi blokladi" demek olurdu ve G3b hedef kola
+    # ATFEDILEMEZDI ([[ad-iki-rolde-mutanti-golgeler]]).
+    depo_g3, _kayit_g3 = fikstur_kur(tmp, "g3", kanca_govdesi=mutant_g,
+                                     sync_stub=_HATA_STUB)
+    _katalog_yaz(depo_g3, ["u-commitli", "u-taban"])
+    _git(depo_g3, "add", "urunler.json")
+    _git(depo_g3, "commit", "-q", "-m", "commitli urun")
+    rc_g3, cikti_g3, _ = push_et(depo_g3)
+    dogrula("G3c HEDEF-KOL ATFI: ayni mutantta rc=1 kolu AYNEN bloklamaya devam etti "
+            "(mutant rc=4 kolunu oldurdu, blogun tamamini degil)",
+            rc_g3 != 0 and "D1 SENKRONU BASARISIZ" in cikti_g3,
+            "rc=%d %s" % (rc_g3, cikti_g3[-300:]))
+
+    # G4 — GEVSETME KONTROLU: BASARISIZ kolu susturulursa rc=1 GECER. Bu mutant,
+    # onarimin "her sifir-disi kodu affetmeye" kaymadigini kanitlar.
+    mutant_g4 = ham_g.replace(
+        'elif [ "$d1_rc" != "0" ]; then', 'elif [ "$d1_rc" = "9999" ]; then')
+    dogrula("G4a mutasyon FIILEN uygulandi (BASARISIZ kolu erisilemez kilindi)",
+            mutant_g4 != ham_g,
+            "hedef dizi bulunamadi: 'elif [ \"$d1_rc\" != \"0\" ]; then'")
+    depo_g4, _kayit_g4 = fikstur_kur(tmp, "g4", kanca_govdesi=mutant_g4,
+                                     sync_stub=_HATA_STUB)
+    _katalog_yaz(depo_g4, ["u-commitli", "u-taban"])
+    _git(depo_g4, "add", "urunler.json")
+    _git(depo_g4, "commit", "-q", "-m", "commitli urun")
+    rc_g4, _cikti_g4, _ = push_et(depo_g4)
+    dogrula("G4b 🔴 MUTANT: BASARISIZ kolu olunce rc=1 GECTI — demek ki TABANDA o kol "
+            "GERCEKTEN blokluyor (onarim gevsetme DEGIL, AYIRIM)",
+            rc_g4 == 0, "rc=%d" % rc_g4)
 
     # ══ E) SURE TAVANI — fail-slow = fail-open ═══════════════════════════════════
     print("\n[E] SURE — asili kalan kol iptal edilir, kapi HIC olculmez")
