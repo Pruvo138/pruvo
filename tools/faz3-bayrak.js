@@ -95,9 +95,30 @@ function domYap(idler) {
   idler.forEach((id) => { kayit[id] = new Oge("div"); kayit[id].id = id; });
   if (kayit.search) kayit.search.value = "";
   const body = new Oge("body");
+  // K184 ONARIMI — SAHTE DOM'UN BORCU, URETIMIN DEGIL.
+  // index.html belge duzeyinde `document.addEventListener("keydown", ...)` baglar
+  // (talep sihirbazinin Esc kolu). Bu MESRU uretim kodudur: gercek tarayicida calisir.
+  // Sahte DOM o API'yi sunmadigi icin yukleme `TypeError: document.addEventListener is
+  // not a function` ile patliyordu ve `deploy` SKIPPED kaliyordu. Cozum kodu fiksture
+  // uydurmak DEGIL, fiksturu gercek ortamin alt kumesi olacak sekilde tamamlamak —
+  // K194'te ayni sinif ayni careyle kapandi ([[kabul-fiksturu-yasagi-kutsar]]).
+  // Dinleyiciler `Oge` ile AYNI bicimde KAYDEDILIR (yutulmaz) ve `belgeTetikle` ile
+  // ateslenebilir; hicbir mevcut davranis degismez.
+  const belgeDinleyici = {};
   const document = {
     body,
     cookie: "",
+    addEventListener(t, f) {
+      (belgeDinleyici[t] = belgeDinleyici[t] || []).push(f);
+    },
+    removeEventListener(t, f) {
+      belgeDinleyici[t] = (belgeDinleyici[t] || []).filter((x) => x !== f);
+    },
+    belgeTetikle(tur, olay) {
+      (belgeDinleyici[tur] || []).forEach(
+        (f) => f.call(document, Object.assign({ type: tur, preventDefault() {} }, olay || {})));
+      return (belgeDinleyici[tur] || []).length;
+    },
     getElementById: (id) => (kayit[id] === undefined ? null : kayit[id]),
     createElement: (t) => new Oge(t),
     execCommand: () => true,
