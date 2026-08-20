@@ -59,10 +59,11 @@ def hedefleri_topla():
             hedefler.append(("dosya", os.path.join(n3_dizini, ad),
                              "izlenmeyen isci spec'i (gitignore:533)"))
 
-    # 2b) Tek kullanimlik kutu-blok betigi (izlenmiyor, isini gordu).
-    blok = os.path.join(n3_dizini, "n3-kutu-blok.py")
-    if os.path.isfile(blok):
-        hedefler.append(("dosya", blok, "tek kullanimlik kutu-blok betigi"))
+    # 2b) Tek kullanimlik betikler (izlenmiyor, islerini gordular).
+    for ad in ("n3-kutu-blok.py", "k262-ac.py"):
+        yol = os.path.join(n3_dizini, ad)
+        if os.path.isfile(yol):
+            hedefler.append(("dosya", yol, "tek kullanimlik betik"))
 
     # 3) Bu turun isci cikti loglari.
     cikti = os.path.join(CRON_KOKU, "isci-tur-cikti")
