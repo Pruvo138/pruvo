@@ -347,8 +347,17 @@ def oku(yol):
 
 
 def yaz(yol, metin):
-    with open(yol, "w", encoding="utf-8") as dosya:
+    """🔴 ATOMIK yazma: cron nobeti AYNI ANDA bu dosyayi import ediyor olabilir.
+
+    Duz `open(w)` yarim yazilmis bir dosya penceresi acar ve o pencerede
+    baslayan tur SyntaxError ile duser. `os.replace` ayni dosya sisteminde
+    atomiktir; okuyucu ya ESKI ya YENI dosyayi gorur, arasini GORMEZ.
+    """
+    gecici = "%s.k257-yazim-%d" % (yol, os.getpid())
+    with open(gecici, "w", encoding="utf-8") as dosya:
         dosya.write(metin)
+    shutil.copymode(yol, gecici)
+    os.replace(gecici, yol)
 
 
 def yedekle(yol, damga):
