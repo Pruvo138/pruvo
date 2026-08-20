@@ -75,6 +75,63 @@ sayacına yazılmaz**.
 4. Gözcünün kendi `rc`'si (`gozcu.py:512-513`) **değişmez** — turun kırmızılığı kaybolmaz;
    yalnız **kime yazıldığı** düzelir.
 
+## B6 — 🔴 `icra_rc=0` ÜÇ HÂLİ İKİ DEĞERE SIKIŞTIRIYOR ("koştu" ile "hiç koşmadı" aynı)
+
+**20 Ağu 2026, N4A merge'inden sonra CANLIDA ölçüldü.** `gozcu-kalp.json` 09:23:00Z:
+`icra_rc: 0`, `rc: 0` — yani yeşil. Ama aynı turun log satırı (`gozcu.log:1999`):
+
+```
+=== 2026-08-20T09:23:02Z NOBET ATLANDI HUKUM=ONCEKI_TUR_SURUYOR ATLANAN_ARDISIK=1 ===
+```
+
+Tur **hiç koşmadı**: bir önceki tur (09:08:02Z, `nobet-tur.kilit` `PID=91760`) hâlâ uçuştaydı.
+
+Kod yolu:
+
+| dosya:satır | ne yapıyor |
+|---|---|
+| `nobet-kapi.py:1463-1467` | `alindi, hukum = kilit_al()` · kilit yoksa `atlanan_ardisik_guncelle(True)`, atlama satırı basılır ve **`return 0`** |
+| `gozcu.py:496` | `icra_rc, icra_cikti = tur_kosucu(["--tur"])` → o `0` doğrudan `icra_rc` olur |
+| `gozcu.py:512-513` | `icra_rc == 0` olduğu için gözcü `rc`'si de yükseltilmez |
+
+**Neden tehlikeli:** `icra_rc` tek skaler ile **üç ayrı hâli** taşıyor —
+`KOSTU_BASARILI` · `KOSTU_DUSTU` · `ATLANDI`. Üçüncüsü birinciyle aynı değere (`0`) eşleniyor.
+
+🔴 **Bu, N4A'nın ④ kabul maddesini SAHTE olarak sağlanabilir yapıyordu:** *"icra_rc yeşile döndü
+ve iki ARDIŞIK turda görüldü"* şartı, **arka arkaya atlanan iki turla** karşılanabilirdi — hem de
+tam olarak onarım turu uzun sürdüğü için, yani sistem "çalışıyor" görünürken hiçbir tur
+koşmamışken. Ölçüt, ölçtüğü şey doğru olmadan sağlanabiliyorsa kusurludur.
+
+**Mimar ölçütü SIKILAŞTIRDI (20 Ağu, N4A kapanışına işlendi):**
+> ④ = *"`icra_rc` yeşile döndü ve yeşilliği iki ARDIŞIK **gerçekten KOŞMUŞ** turda görüldü;
+> `HUKUM=ONCEKI_TUR_SURUYOR` / `NOBET ATLANDI` turları **SAYILMAZ**."*
+
+**İstenen (B6):** `icra_rc` üç hâli ayırsın. Öneri: kalbe ayrı bir `icra_hal` alanı
+(`KOSTU_BASARILI` / `KOSTU_DUSTU` / `ATLANDI`) ve `icra_rc` yalnız gerçekten koşmuş turlarda
+anlamlı sayılsın (atlananda `null`).
+
+### Kabul (çalıştırılabilir, hepsi sayıyla)
+1. **Pozitif:** kilit BOŞ + tur koşar + rc=0 → `icra_hal=KOSTU_BASARILI`, `icra_rc=0`.
+2. **Negatif-1:** kilit BOŞ + tur koşar + rc!=0 → `icra_hal=KOSTU_DUSTU`, `icra_rc!=0`.
+3. **Negatif-2 (asıl vaka):** kilit DOLU → `icra_hal=ATLANDI` ve `icra_rc` **`0` OLMAZ**
+   (null ya da ayrı bir jeton). 🔴 Bugünkü davranış bu vakada `0` veriyor; test o hâli
+   KIRMIZI yakmalı.
+4. **Mutant:** `ATLANDI`'yı yeniden `0`'a eşleyen yol enjekte edilince test kırmızı yanar;
+   **hedef kolun öldüğü ayrıca kanıtlanır** (pozitif vaka YEŞİL kalır, K182).
+5. **Tüketici ekseni:** "iki ardışık yeşil tur" sayan HER yer (kabul metinleri, panolar)
+   `ATLANDI` turlarını saymadığını göstermeli — kapının menzili çağrı yeridir
+   ([[kapinin-menzili-cagri-yeridir]]).
+
+### Sınıf notu — tekil yama YASAK
+Bu, **K241'in ikinci yüzeyidir**: *tek skaler, üç anlam.*
+- Yüzey 1 (K241): `ONARIM=0` — "dağıtılacak İŞ YOK" ile "DENEDİ ve başaramadı" aynı kovada.
+- Yüzey 2 (B6): `icra_rc=0` — "koştu ve başardı" ile "hiç koşmadı" aynı değerde.
+Aynı sınıfın ikinci ölçülmüş vakası olduğu için çözüm **sınıf düzeyinde** olmalı
+([[ucuncu-tekrar-sinif-kapisi]]): bir hüküm skaleri, ayırt etmesi gereken hâl sayısından
+az değer taşıyorsa nöbetçi UYARMALI.
+
+---
+
 ## B2/B3 — 🔴 BU PAKETTE DEĞİL: "HAT BOZUK" DEĞİL "KAT YOK" → OKAN KAPISI
 
 10 kalemin hepsi `kat_sec` (`nobet-kapi.py:287-299`) tarafından `CODEX_JETONLARI`
