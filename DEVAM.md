@@ -3,26 +3,27 @@
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
 ## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~10:xxZ (KraL)
-**AGAC TEMIZ · main=origin `5c1d98e5` · worktree 1 · KOSAN CHIP YOK.**
-**CANLIYA GIDEN (9 merge):** K214 `886d2cad` · P2/P3 · P1 · ADIM1 · K184 (SQUASH; tam gecmis
-`kral/k184-talep-sihirbazi` dalinda) · K237-t2 · yayin onarimi `c2cb6bcf` · N4B spec · K246
-`5c1d98e5`. IKI yayin kirmizisi kapatildi (ikincisi K184 kaynakli; care FIKSTURDE).
-**BEKLIYOR:** K229 `c1bf8062` SAHIPSIZ (kabul: tabani tazele + kapilari kos) · N4B B4-B8
-**BaBa'da**, B7 ONCE · VARYASYON FAZ 1-5 (`tools/paket-varyasyon-programi.md`) chip bekliyor.
+**AGAC TEMIZ · main=origin `74273c32`** (11 merge; K229 + VARYASYON FAZ 1 de indi).
+**KOSUYOR:** `KraL-K248` (`kral/k248-k7-hal-ayrimi`). 🔴 **K249 (FAZ 3 ONCESI):** `shop/test/*`
+varyasyonu HEP bos tasiyor, sunucunun fail-closed kollari CI'da HIC kosmuyor = YANLIS TAHSILAT
+riski; kabul: non-bos varyasyon tasiyan kabul testi + mutant.
+**CANLIYA GIDEN:** K214 · P2/P3 · P1 · ADIM1 · K184 (SQUASH; gecmis `kral/k184-talep-sihirbazi`) ·
+K237-t2 · yayin onarimi `c2cb6bcf` · N4B spec · K246 · K229 · FAZ 1. IKI yayin kirmizisi kapandi.
+**BEKLIYOR:** N4B B4-B8 **BaBa'da**, B7 ONCE · VARYASYON FAZ 2-5 chip bekliyor
+(`tools/paket-varyasyon-programi.md`; FAZ 1 YESIL 42/42, olcek buyutulebilir).
 **Okan'da:** ① gecmis temizligi — kuyruk BOSALDI, on kosul SAGLANDI · ② K200(i) · ③ Worker
 deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inmeden OLCULEMEZ.
 - ✅ **KAPANDI:** K237 (sayac turetilir + tautolojik yesil kapandi) · K246 (`boy_secenekleri`
   yazma yolu + dogrulayici; iddia 185→236) · N4A (hat 105 turdur KENDINI blokluyordu: etiket
   `ci-nobeti` + `startswith`; 09:38'de ILK KEZ kostu).
-- 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`), guard geri
-  sarmamis; kabul: kanal bulunur+kapatilir+mutant. · 🔧 **K248** K7 kanonik yol varsayiyor ·
-  🔧 **K245** bitis satiri isci ciktisinda belirebiliyor · 🔧 **K240** kapi yardim metni bayat ·
+- 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
+  bulunur+kapatilir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirebiliyor · 🔧 **K240**
+  kapi yardim metni bayat ·
   🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔴 **K243** rotasyon KILITLI ·
   🔧 **K244** kabul listesi ≠ CI kapsami. Tam metinler KUTUDA.
-- 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (`ek_vaka` + I3/I5, ayni dalda IKI
-  tekrar) — SINIF, tekil yama YOK. kabul: sayi tek yerden TURETILIR + mutant. · 🔧 **K238:**
-  `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (P1'de kapsam SIFIRDI);
-  kabul: bagimsiz kosar ya da `KAPSAM=0` jetonu BASAR.
+- 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (SINIF; kabul: sayi TURETILIR + mutant) ·
+  🔧 **K238:** `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (kabul: bagimsiz kosar
+  ya da `KAPSAM=0` jetonu BASAR).
 - 🔧 **K234:** CAYMA_RE "iade"yi yakalamiyor (m.15 disi hak vaadi gorunmez); kabul: olcer+3 mutant. ·
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
   karara baglanir, tekil tasima YASAK. · 🔧 **K236:** 375 px tablosu OLCULEMEDI (kimi 403,
