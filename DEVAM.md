@@ -13,10 +13,11 @@ K237-t2 · yayin onarimi `c2cb6bcf` · N4B spec · K246 · K229 · FAZ 1. IKI ya
 (`tools/paket-varyasyon-programi.md`; FAZ 1 YESIL 42/42, olcek buyutulebilir).
 **Okan'da:** ① gecmis temizligi — kuyruk BOSALDI, on kosul SAGLANDI · ② K200(i) · ③ Worker
 deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inmeden OLCULEMEZ.
+- 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K252:** kodsuz `tamamlandi` yok → `tools/paket-siparis-durum-secici.md`.
-- 🔴 **K250 (MaCiT):** enjekte kapi worktree'de istisnasiz doguyor (SINIF). KUTUDA.
+- 🟠 **K250** merge edildi (`ba0e5e2a`); evlere rollout kaldi. KUTUDA.
 - 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
-  bulunur+kapatilir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirebiliyor · 🔧 **K240**
+  bulunur+kapanir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
   kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
   🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔴 **K243** rotasyon KILITLI ·
   🔧 **K244** kabul listesi ≠ CI kapsami. Tam metinler KUTUDA.
@@ -27,8 +28,7 @@ deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inm
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
   karara baglanir, tekil tasima YASAK. · 🔧 **K236:** 375 px tablosu OLCULEMEDI (kimi 403,
   m3'te chromium yok); `--onizleme` yolu hazir, TEYIT isi.
-- 🔧 **K230/K231/K232 (K214 devri):** kanca `parti-kapisi.py`ye bagli (dusunce oturum kilitlenir) ·
-  `mimar-kilit-test.py` CI'da CAGRISIZ · `claude` emekliye eklenirse kayit SESSIZ. Tam metin KUTUDA.
+- 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
