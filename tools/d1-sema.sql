@@ -378,12 +378,30 @@ CREATE INDEX IF NOT EXISTS talepler_durum ON talepler(durum, olusturma DESC);
 -- Katalog senkronundan BAGIMSIZ: d1-sync.py bu tabloya dokunmaz, urun silinse de siparis kalir.
 -- durum akisi: bekliyor -> odendi | basarisiz | incele ; havale-bekliyor -> odendi
 --   YONETIM ilerlemesi (siparis yonetimi paketi, anahtar korumali /api/shop/yonet/durum):
---     odendi -> uretimde -> kargolandi -> tamamlandi ; her durum -> iptal
---     (kargolandi'ya SADECE /yonet/kargo ucundan gecilir — kargo firma+kod zorunlu; boylece
---      takip kodsuz 'kargolandi' satiri olusmaz. Gecis tablosu shop/src/yonet.js IZINLI'de.)
---   'odendi'          kartta SADECE iyzico retrieve dogrulamasindan gecince (worker /donus);
---                     havalede elle onay — yonetim sayfasi (havale-bekliyor->odendi) ya da
---                     shop/KURULUM.md'deki wrangler komutu (ayni gecis, AYNI kosul: tek yol).
+--     🔴 K252 (Okan karari, 20 Agu 2026) — SIRALI ILERLEME TABLOSU KALKTI. Yeni kural
+--     shop/src/yonet.js `durumUcuKarari()`nda TEK KAYNAK olarak durur (bu satirlar o
+--     fonksiyonun TARIFIDIR, ikinci bir hukum DEGIL — koddan ayrisirsa yalan soyler):
+--       (A) OPERASYON  'uretimde' · 'tamamlandi' HER mevcut durumdan secilebilir; GERI
+--           ALMA gecerlidir ('tamamlandi' -> 'uretimde'). 'iptal' de her durumdan.
+--       (B) 'kargolandi' ISTISNA — /yonet/durum bu hedefi 400 'kargo-ucunu-kullan' ile
+--           REDDEDER; o duruma SADECE /yonet/kargo ucundan (firma+kod ZORUNLU) gecilir.
+--           Guvence: takip kodsuz 'kargolandi' satiri OLUSAMAZ. Panel secicisinde de
+--           bulunmaz (secici kumesi ucun kabul kumesinden TURETILIR, ikinci liste YOK).
+--       (C) ODEME durumlari ('bekliyor' · 'basarisiz' · 'havale-bekliyor' · 'incele' ·
+--           'odendi') /yonet/durum'dan ELLE SETLENEMEZ — 400
+--           'odeme-durumu-elle-setlenemez'; bunlari odeme sistemi yazar (elle 'odendi'
+--           tahsilat yalani uretirdi). TEK ISTISNA GERI ALMA: mevcut durum 'uretimde' ·
+--           'kargolandi' · 'tamamlandi' ise 'odendi'ye donulebilir (siparis zaten
+--           odenmisti). ⚠️ 'havale-bekliyor' -> 'odendi' de bu redde DAHILDIR: havale
+--           onayi ARTIK bu uctan yapilmaz (asagidaki 'odendi' satirina bak).
+--       Kendi uzerine gecis (hedef == mevcut) her eksende 400 'gecersiz-gecis'.
+--   'odendi'          kartta SADECE iyzico retrieve dogrulamasindan gecince (worker /donus).
+--                     🔴 K252: havale onayi ARTIK yonetim sayfasindan YAPILMAZ —
+--                     'havale-bekliyor' -> 'odendi' /yonet/durum'dan 400 doner (C bendi).
+--                     Kalan yol shop/KURULUM.md'deki wrangler komutudur. ⚠️ O yol uctan
+--                     GECMEDIGI icin Purchase olcumunu de TETIKLEMEZ (durumDegistir'deki
+--                     havaleOlcumu yalniz uc uzerinden calisir) — acik kalem olarak
+--                     KraL'a bildirildi (K252 raporu, "yan bulgu").
 --   'incele'          retrieve altyapi hatasi VEYA tutar/kimlik uyusmazligi (elle bak)
 --   'havale-bekliyor' musteri Havale/EFT secti; para HENUZ gorulmedi, uretim BASLAMAZ
 --   'uretimde'        uretim basladi (yonetim) ; 'kargolandi' kargo firma+kod girildi (yonetim)

@@ -536,6 +536,40 @@ jobs:
       - name: Uretici kaynak linki + acilir kart (panel gizlilik kapisi)
         run: node shop/test/panel-kaynak.mjs
 
+      # K252 — SIPARIS DURUM SECICI (kargosuz tamamlama + geri alma + tahsilat yalani kapisi).
+      # OLCULEN HUKUM (tools/paket-siparis-durum-secici.md §2, Okan karari 20 Agu 2026):
+      #   ① 'uretimde' -> 'tamamlandi' 200 ve UPDATE kargo kolonlarina DOKUNMAZ (takip kodu
+      #     olmadan tamamlama ARTIK MUMKUN; oncesinde tek cikis 'kargolandi' idi ve o kod
+      #     istedigi icin kargosuz tamamlama ULASILAMAZDI),
+      #   ② geri alma 'tamamlandi' -> 'uretimde' 200,
+      #   ③ DARLIK KORUNUR: /yonet/durum hedef 'kargolandi' = 400 'kargo-ucunu-kullan' (uc
+      #     mevcut durumdan), takip kodsuz 'kargolandi' satiri OLUSAMAZ; pozitif kontrol
+      #     olarak /yonet/kargo AYNI gecisi firma+kod ile YAPAR (red ucun bozuklugu DEGIL),
+      #   ④ TAHSILAT YALANI KAPISI: odeme durumlari ('bekliyor'·'basarisiz'·'havale-bekliyor'
+      #     ·'incele'·'odendi') elle setlenemez -> 400 'odeme-durumu-elle-setlenemez', D1'e
+      #     YAZMA YOK (400 gormek yetmez: SEBEP ve yazmama AYRI AYRI iddia edilir),
+      #   ⑤ TEK ISTISNA geri alma: {uretimde,kargolandi,tamamlandi} -> 'odendi' 200, ve
+      #     olcum izi ('o':1) varsa Purchase TEKRARLANMAZ,
+      #   ⑥ 'iptal' her durumdan (regresyon: bugunku davranis AYNEN),
+      #   ⑦ PANEL/SUNUCU TEK KAYNAK: her mevcut durum icin ucun GERCEKTEN 200 dondurdugu
+      #     hedefler kumesi == /liste'nin `izinli_gecisler`i == panelin bastigi <option>
+      #     kumesi; 'Kargolandi' secicide 0 kez. Kume ucun DAVRANISINDAN olculur, saf
+      #     fonksiyonun donusuyle degil — yoksa iddia kendi kendini dogrulardi.
+      # Ag/wrangler/D1 GEREKMEZ: yonet.js dogrudan import edilip GERCEK router sahte env ile
+      # cagrilir; panel JS'i HAM KAYNAKTAN vm'de kosar (kopya yazilmaz). continue-on-error YOK.
+      - name: Siparis durum secici kabul kapisi (K252)
+        run: node shop/test/siparis-durum-secici.mjs
+
+      # K252 ONCE-KIRMIZI KANITI. Yukaridaki kapinin YESIL olmasi tek basina bir sey
+      # kanitlamaz — iddialarin GERCEKTEN oldurucu oldugu mutasyonla olculur. Batarya
+      # GECICI AYNAYA yazar (calisma agaci KIRLENMEZ, sonunda ayrica dogrulanir) ve her
+      # mutant icin IKI EKSENI AYRI basar: (a) hedef kol kirmizi yandi mi, (b) yan eksen
+      # yesil kaldi mi. M1 darlik · M2 tahsilat · M3 ikiz liste · K0 kontrol (ilgisiz kol
+      # bozulur, HICBIR iddia olmemeli). Dayanak metni tekil degilse mutant ATLANMAZ,
+      # 'HARNESS BAYAT' ile KIRMIZI doner (sessiz kapsam kaybi yasak).
+      - name: Siparis durum secici mutasyon bataryasi (K252 once-kirmizi)
+        run: python3 tools/siparis-durum-mutasyon.py
+
       # ALT KATEGORI (`altkategori`) veri yolu — kategori ICINDEKI daraltma etiketi.
       # OLCULEN BASLANGIC DURUMU (1 Agu): alan urunler.json'da 134 kayitta DOLUYDU ama
       # hicbir yerde ISLENMIYORDU (index.html/build.py/d1-sync/arama/d1-sema/duzelt YOK)

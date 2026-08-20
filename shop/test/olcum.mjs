@@ -549,11 +549,23 @@ function sahteD1(satir) {
   return { db, iz };
 }
 
+/**
+ * HAVALE (worker /donus DISI) Purchase olcumu fiksturu.
+ *
+ * 🔴 K252 (20 Agu 2026) — BASLANGIC DURUMU DEGISTI, IDDIALAR DEGISMEDI.
+ * Bu fikstur `POST /yonet/durum` -> 'odendi' gecisinin tetikledigi PURCHASE OLCUMUNU
+ * olcer; baslangic durumu o olcume ULASMAK icin kullanilan TASIYICIDIR. K252 tahsilat
+ * yalani kapisiyla odeme ekseni hedefleri artik disaridan atanamaz (400 doner), bu
+ * yuzden tasiyici GECERLI kalan 'uretimde' -> 'odendi' (geri alma
+ * istisnasi) ile degistirildi. Uc AYNI kod yolunu kosar (olcumluGecis -> havaleOlcumu,
+ * `kaynak:"havale"`). Tasiyici guncellenmeseydi 18/19/22/24/25/26/28 sessizce
+ * OLCULMEZ hale gelirdi ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+ */
 function havaleSatiri(ekle) {
   return {
     siparis_no: "PR-260720-021133-HAV",
     tarih: new Date(Date.now() - 3600 * 1000).toISOString(),  // 1 saat once (pencere ICI)
-    durum: "havale-bekliyor",
+    durum: "uretimde",
     durum_gecmisi: "",
     odeme_yontemi: "havale",
     tutar_kurus: 43290,
@@ -602,7 +614,8 @@ async function test18() {
   });
   globalThis.fetch = eskiFetch;
 
-  ol("18a havale-bekliyor -> odendi 200", r.kod === 200 && r.govde.durum === "odendi",
+  ol("18a uretimde -> odendi 200 (K252 geri alma; onceki tasiyici havale-bekliyor)",
+    r.kod === 200 && r.govde.durum === "odendi",
     JSON.stringify(r));
   const metaCagri = f.cagrilar.filter((c) => String(c.url).indexOf("graph.facebook.com") >= 0);
   const ga4Cagri = f.cagrilar.filter((c) => String(c.url).indexOf("google-analytics.com") >= 0);
@@ -663,7 +676,8 @@ async function test19() {
   ol("19c Purchase TEK KEZ gonderildi (Meta)", metaCagri.length === 1,
     "cagri=" + metaCagri.length);
 
-  // --- 19.2: olcum izi VAR ama durum worker DISINDAN 'havale-bekliyor'a dondurulmus ---
+  // --- 19.2: olcum izi VAR ama durum worker DISINDAN operasyona geri alinmis ---
+  // (K252 oncesi bu senaryo 'havale-bekliyor'a dondurme idi; tasiyici degisti, iddia ayni.)
   // Durum makinesi bu kez gecise IZIN VERIR; ikinci savunma (durum_gecmisi "o":1) tutmali.
   const satir2 = havaleSatiri({
     siparis_no: "PR-260720-021133-IZL",
@@ -1071,7 +1085,8 @@ async function test24() {
   const ga4Cagri = f.cagrilar.filter((c) => String(c.url).indexOf("google-analytics.com") >= 0);
   // ⬇️ NOBETCI: yaris penceresi gercekten acildi mi? Bu KIRMIZIYSA 24c/24d'nin yesilligi
   // ANLAMSIZDIR (istekler sirlanmis, CAS hic sinanmamis olur). Once bunu oku.
-  const eskiOkuma = okunanDurumlar.filter((d) => d === "havale-bekliyor").length;
+  // Fiksturun BASLANGIC durumu (havaleSatiri) — K252'den sonra 'uretimde'.
+  const eskiOkuma = okunanDurumlar.filter((d) => d === "uretimde").length;
   ol("24f YARIS PENCERESI ACILDI: iki okuma da yazmadan ONCE eski durumu gordu",
     eskiOkuma === 2 && mandalSayiylaAcildi === true,
     "eski-okuma=" + eskiOkuma + " okumalar=" + JSON.stringify(okunanDurumlar) +

@@ -1850,16 +1850,27 @@ async function test19DurumMakinesi() {
   const no = (c.govde || {}).no;
   if (!no) { return rapor("19 durum makinesi", false, "havale baslat: " + c.kod); }
 
-  // izinsiz: havale-bekliyor -> uretimde (once odendi olmali)
+  // 🔴 K252 (20 Agu 2026) — BU BLOK YENI KURALA GORE GUNCELLENDI. Onceki hali sirali
+  // ilerleme tablosunu (odendi->uretimde->kargolandi->tamamlandi) varsayiyordu; o tablo
+  // kalkti. Kurallarin TAM kabul kapisi shop/test/siparis-durum-secici.mjs'tir (CI'da
+  // kosar); burasi wrangler dev ucunda UCTAN UCA teyittir.
+  // (a) operasyon ekseni SERBEST: 'uretimde' her mevcut durumdan secilir.
   const g1 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "uretimde" });
-  if (g1.kod !== 400 || g1.govde.hata !== "gecersiz-gecis") {
-    hatalar.push("havale-bekliyor->uretimde: " + g1.kod + "/" + g1.govde.hata + " (400 olmali)");
+  if (g1.kod !== 200) {
+    hatalar.push("operasyon serbest (->uretimde): " + g1.kod + "/" + g1.govde.hata +
+                 " (200 olmali)");
   }
-  // izinli zincir: havale-bekliyor -> odendi -> uretimde
-  const g2 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "odendi" });
+  // (b) GERI ALMA: 'tamamlandi' -> 'uretimde' gecerli; kargosuz tamamlama MUMKUN.
+  const g2 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "tamamlandi" });
   const g3 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "uretimde" });
   if (g2.kod !== 200 || g3.kod !== 200) {
-    hatalar.push("izinli zincir: odendi=" + g2.kod + " uretimde=" + g3.kod);
+    hatalar.push("kargosuz tamamlama + geri alma: tamamlandi=" + g2.kod +
+                 " uretimde=" + g3.kod);
+  }
+  // (c) TAHSILAT YALANI KAPISI: odeme durumu hedefi disaridan atanamaz.
+  const g2b = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "incele" });
+  if (g2b.kod !== 400 || g2b.govde.hata !== "odeme-durumu-elle-setlenemez") {
+    hatalar.push("odeme ekseni (->incele): " + g2b.kod + "/" + g2b.govde.hata);
   }
   // 'kargolandi' /durum'dan REDDEDILIR (takip kodsuz kargolandi olusmasin)
   const g4 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "kargolandi" });

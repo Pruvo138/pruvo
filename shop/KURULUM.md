@@ -26,10 +26,24 @@ degil, ucuz bir yavaslaticidir. Giris govdesi 1 KB ile sinirlidir.
   **FILAMENT + RENK vurgulu** + baski onerisi (D1 `urunler.baski` — gizli kayittan
   d1-sync ile; yoksa malzeme fallback'i) + "Yerel komut kopyala" (`python3 tools/yazdir.py
   <no>` — arac ayri mikro paket).
-- **Durum makinesi** (`POST /yonet/durum`): odendi→uretimde→kargolandi→tamamlandi;
-  havale-bekliyor→odendi; her durum→iptal. Bilinmeyen durum/izinsiz gecis 400.
-  'kargolandi'ya SADECE kargo formundan gecilir (takip kodu zorunlu). Her gecis
-  `durum_gecmisi` kolonuna ISO damgayla islenir (ayni satir; ek yazma maliyeti yok).
+- **Durum makinesi** (`POST /yonet/durum`) — 🔴 K252 (Okan karari, 20 Agu 2026) ile sirali
+  ilerleme tablosu KALKTI. Kural TEK KAYNAK: `shop/src/yonet.js` → `durumUcuKarari()`.
+  - **Operasyon (serbest + geri alma):** `uretimde` · `tamamlandi` · `iptal` HER mevcut
+    durumdan secilebilir; yanlis isaretleme GERI ALINIR (`tamamlandi → uretimde` gecerli).
+    Takip kodu OLMADAN `tamamlandi` isaretlemek artik MUMKUN.
+  - **`kargolandi` ISTISNA:** bu uctan 400 `kargo-ucunu-kullan` doner; o duruma SADECE
+    kargo formundan (firma + takip kodu ZORUNLU) gecilir. Takip kodsuz 'kargolandi'
+    satiri OLUSAMAZ. Durum secicisinde de BULUNMAZ.
+  - **Odeme ekseni DISARIDAN ATANAMAZ** — bu uc su bes hedefi reddeder: `bekliyor` ·
+    `basarisiz` · `havale-bekliyor` · `incele` · `odendi`.
+    Yanit 400 `odeme-durumu-elle-setlenemez`; yetkisiz isaretleme TAHSILAT YALANI
+    uretirdi. TEK ISTISNA geri alma: `uretimde|kargolandi|tamamlandi →
+    odendi` serbesttir (siparis zaten odenmisti).
+  - Kendi uzerine gecis (hedef == mevcut) 400 `gecersiz-gecis`; bilinmeyen durum 400.
+  - Panelde siparis basina **durum secici** (`<select>` + "Uygula") vardir; sundugu
+    secenekler SUNUCUNUN kabul kumesinden TURETILIR (panelde elle yazilmis ikinci liste
+    YOKTUR). `iptal` dugmesi ve kargo formu yerinde kalir.
+  - Her gecis `durum_gecmisi` kolonuna ISO damgayla islenir (ayni satir; ek yazma yok).
 - **Kargo** (`POST /yonet/kargo` {siparis_no, kargo_firma, kargo_kodu}): durum
   'kargolandi' + musteriye kargo e-postasi (Resend).
 - **Uretim dosyasi** (`GET /yonet/stl?siparis_no=..&kalem=N`): sari (parametrik) satirda
@@ -108,13 +122,17 @@ Istemciden erisilebilen HICBIR uc durumu degistiremez (havale satirinin `token`'
 anahtarsiz 404). Siparis 'odendi' ISARETLENMEDEN uretim baslamaz, "odeme geldi" bildirimi
 atilmaz.
 
-⚠️ **REKLAM OLCUMU — yonetim sayfasini kullan, yedek yolu degil.** 20 Tem'den itibaren
-`havale-bekliyor → odendi` gecisi **yonetim sayfasindan** yapilirsa Purchase olayi Meta
-CAPI + GA4'e gider (`event_id = siparis_no`, kart akisiyla ayni dedup anahtari) — bu
-kanalin cirosu artik reklam raporlarinda GORUNUR. **Yedek yol worker kodundan gecmez**,
-dolayisiyla o yoldan isaretlenen siparisin cirosu Meta/GA4'te GORUNMEZ (satis kaydi ve
-uretim akisi etkilenmez, yalniz reklam olcumu eksik kalir). Olayin gidip gitmedigi
-Cloudflare Logs'ta `olcum {...}` satirlarindan gorulur (`[observability]` acik).
+🔴 **REKLAM OLCUMU — K252 (20 Agu 2026) SONRASI DURUM DEGISTI, DIKKAT.**
+20 Tem'den beri gecerli olan "havale onayini yonetim sayfasindan yap ki Purchase olayi
+gitsin" yordami **ARTIK ISLEMIYOR**: `havale-bekliyor → odendi` gecisi K252 tahsilat
+yalani kapisiyla birlikte `/yonet/durum` ucundan **400** doner (odeme durumlari elle
+setlenemez). Yani havale onayi icin kalan yol asagidaki wrangler komutudur ve **o yol
+worker kodundan gecmedigi icin Purchase olayini TETIKLEMEZ** — havale cirosu Meta/GA4
+raporlarinda GORUNMEZ (satis kaydi ve uretim akisi etkilenmez, yalniz reklam olcumu
+eksik kalir). ⚠️ Bu, K252'nin BILINEN ve KraL'a bildirilmis yan sonucudur; havale
+onayina olculebilir bir uc acilmasi ayri bir kalemdir, bu pakette YAPILMADI.
+Olayin gidip gitmedigi Cloudflare Logs'ta `olcum {...}` satirlarindan gorulur
+(`[observability]` acik).
 
 **TESPIT ARACI:** `python3 tools/olculmemis-siparis.py` — odenmis ama olcum izi olmayan
 siparisleri listeler + toplam olculmemis ciroyu basar (SALT-OKUNUR: D1'e yazmaz, olay

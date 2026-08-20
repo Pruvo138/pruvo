@@ -272,8 +272,17 @@ ol("V9a 'Üretim dosyası (Drive)' blogu duruyor (kaynak yoksa 'kaynak yok')",
   sLinkli.indexOf("Üretim dosyası (Drive)") > 0 && sLinkli.indexOf("kaynak yok") > 0);
 ol("V9b 'Üretim dosyaları' butonu + parcalar() cagrisi duruyor",
   sLinkli.indexOf("Üretim dosyaları") > 0 && sLinkli.indexOf("parcalar(") > 0);
-ol("V9c durum gecis dugmeleri + 'Yerel komut kopyala' kartta duruyor",
-  kUretimde.indexOf("durumDegis(") > 0 && kUretimde.indexOf("Yerel komut kopyala") > 0);
+// 🔴 K252 (20 Agu 2026) — BU IDDIA GUNCELLENDI, KALDIRILMADI. Onceki hali durum basina
+// AYRI DUGME ariyordu (`durumDegis(`); Okan karariyla o dugmeler yerine SIPARIS BASINA
+// DURUM SECICI geldi (<select id="dd-..."> + "Uygula" -> durumUygula -> durumDegis).
+// Iddianin NIYETI degismedi: "kartta durum degistirme kontrolu + yerel komut kopyala
+// DURUYOR". Kontrolun BICIMI degistigi icin capa da degisti; kume/kural iddialari
+// shop/test/siparis-durum-secici.mjs'te olculur. `iptal` dugmesi izinli kumede 'iptal'
+// varsa AYRICA basilir (bu fikstur izinli_gecisler=["uretimde"] tasidigi icin YOK).
+ol("V9c durum degistirme kontrolu (secici+Uygula) + 'Yerel komut kopyala' kartta duruyor",
+  /<select id="dd-PR-TEST-uretimde">/.test(kUretimde) &&
+  kUretimde.indexOf("durumUygula(") > 0 && kUretimde.indexOf("Yerel komut kopyala") > 0,
+  kUretimde.slice(0, 400));
 const KOL_TABANI = 10, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("V9d YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",

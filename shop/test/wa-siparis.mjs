@@ -538,9 +538,16 @@ async function setE() {
     ol("kolon YOKKEN hata 'sema-goc-gerekli'", j.hata === "sema-goc-gerekli");
     ol("kolon YOKKEN INSERT YOK", env.yazmalar.length === 0);
   }
-  // (3) SITE siparisinde 'havale-bekliyor' -> 'odendi' olcumu HALA tetiklenir.
+  // (3) SITE siparisinde 'odendi' gecisi olcumu HALA tetiklenir.
+  // 🔴 K252 (20 Agu 2026) — TASIYICI GECIS DEGISTI, IDDIA DEGISMEDI. Bu uc blok (3/4/5)
+  // KANAL KAPISINI olcer; 'havale-bekliyor' -> 'odendi' yalnizca o kapiya ulasmak icin
+  // kullanilan TASIYICIYDI. K252 tahsilat yalani kapisiyla o gecis artik 400 doner
+  // (odeme durumlari elle setlenemez), bu yuzden tasiyici GECERLI kalan bir 'odendi'
+  // hedefiyle degistirildi: 'uretimde' -> 'odendi' (geri alma istisnasi). AYNI kod yolu
+  // (olcumluGecis/siteKanali/olcumTetikle) kosar. Tasiyiciyi guncellemeseydik kanal
+  // kapisi SESSIZCE OLCULMEZ hale gelirdi ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
   {
-    const env = mockEnv({ siparis: { siparis_no: "PR-1", durum: "havale-bekliyor",
+    const env = mockEnv({ siparis: { siparis_no: "PR-1", durum: "uretimde",
       durum_gecmisi: "[]", urunler: "[]", tutar_kurus: 1000, kargo_kurus: 0, kdv_kurus: 0,
       odeme_yontemi: "havale", atif: "", tarih: "2026-08-01T00:00:00.000Z",
       musteri_ad: "A", musteri_eposta: "", musteri_adres: "B", kanal: "site" } });
@@ -554,7 +561,7 @@ async function setE() {
   }
   // (4) WHATSAPP siparisinde ayni gecis olcum TETIKLEMEZ.
   {
-    const env = mockEnv({ siparis: { siparis_no: "PR-2", durum: "havale-bekliyor",
+    const env = mockEnv({ siparis: { siparis_no: "PR-2", durum: "uretimde",
       durum_gecmisi: "[]", urunler: "[]", tutar_kurus: 1000, kargo_kurus: 0, kdv_kurus: 0,
       odeme_yontemi: "havale", atif: "", tarih: "2026-08-01T00:00:00.000Z",
       musteri_ad: "A", musteri_eposta: "", musteri_adres: "B", kanal: "whatsapp" } });
@@ -569,7 +576,7 @@ async function setE() {
   // (5) kanal kolonu YOKKEN /durum bugunku gibi olcer (merdiven -> kapi ACIK).
   {
     const env = mockEnv({ kolonYok: true, siparis: { siparis_no: "PR-3",
-      durum: "havale-bekliyor", durum_gecmisi: "[]", urunler: "[]", tutar_kurus: 1000,
+      durum: "uretimde", durum_gecmisi: "[]", urunler: "[]", tutar_kurus: 1000,
       kargo_kurus: 0, kdv_kurus: 0, odeme_yontemi: "havale", atif: "",
       tarih: "2026-08-01T00:00:00.000Z", musteri_ad: "A", musteri_eposta: "",
       musteri_adres: "B" } });
