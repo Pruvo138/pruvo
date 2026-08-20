@@ -2641,6 +2641,27 @@ def durum_uyumlu(d1_sayisi, urunler_benzersiz):
         return False
 
 
+def sayac_uyumlu(d1_sayisi, senkron_urun_sayisi):
+    """K237 (20 Agu) FAIL-LOUD teyidi: senkron.urun_sayisi, D1'in GERCEK COUNT(*)'una
+    ESIT mi? SAF fonksiyon (D1'e/dosyaya DOKUNMAZ) -> birim testi burayi cagirir.
+
+    NEDEN GEREKLI: senkron.urun_sayisi YALNIZ gercek bir YAZMA olunca tazelenir (bkz. V55e:
+    yazma bayatlik/OLCULEMEDI yuzunden atlanirsa sayaç BILEREK eski degerde KALIR — "sahte
+    damga yok"). Bu dogru bir korumaydi AMA --durum bu sayaci hic OKUMUYOR/KIYASLAMIYORDU:
+    'D1 urun sayisi: N' satiri her zaman TAZE SELECT COUNT(*)'tan geliyordu, 'urun_sayisi = X'
+    satiri ise senkron tablosundan HAM BASILIYORDU — ikisi arasinda hicbir kiyas yoktu. D1'in
+    gercek satir sayisi (baska bir yazma yolundan, ya da parca-parca yazan bir kosumun sayaç
+    adimina VARMADAN kesilmesinden) senkron sayacindan SESSIZCE ayrisabiliyordu (K237: D1=
+    29602, urun_sayisi=29573 — fark, o gun D1'e giren ama sayilmamis 29 Seat urunuydu).
+    senkron_urun_sayisi None ise (satir hic YOK) UYUMSUZ say = fail-loud."""
+    if d1_sayisi is None or senkron_urun_sayisi is None:
+        return False
+    try:
+        return int(d1_sayisi) == int(senkron_urun_sayisi)
+    except (TypeError, ValueError):
+        return False
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # KENDINI TEST — OFFLINE kabul testi (canli D1'e / aga / urunler.json'a DOKUNMAZ)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3218,6 +3239,9 @@ def kendini_test():
             kod == 0 and "teyit (ICERIK ekseni)" in cikti, (kod, cikti[-400:]))
     dogrula("V31b DURUM TURETILMIS POZITIF: hash-disi kolonlar guncel -> teyit satiri + exit 0",
             kod == 0 and "teyit (TURETILMIS KOLON ekseni)" in cikti, (kod, cikti[-400:]))
+    dogrula("V31z SAYAC EKSENI POZITIF (K237): saglikli kosumdan sonra senkron.urun_sayisi "
+            "D1 gercek sayisiyla ORTUSUR -> teyit satiri",
+            kod == 0 and "teyit (SAYAC ekseni)" in cikti, (kod, cikti[-400:]))
     # 🔴 6 AGU SINIFI: SAYI tutuyor, HASH tutuyor, kolon BAYAT. Uc eksen de yesil yanardi.
     kod2, cikti2, _ = _kt_kos(conn12, urunler, ["--durum"],
                               turetilmis=_kt_turetilmis({"marka_arama": {"a": '["Honda"]'}}))
@@ -3244,6 +3268,27 @@ def kendini_test():
             kod == 0 and "ICERIK EKSENI ATLANDI" in cikti, (kod, cikti[-400:]))
     dogrula("V33b DURUM --hizli: turetilmis eksen de BEYAN EDILEREK atlanir (sessiz DEGIL)",
             kod == 0 and "TURETILMIS KOLON EKSENI ATLANDI" in cikti, (kod, cikti[-400:]))
+
+    # ── SAYAC EKSENI MUTANT (K237, 20 Agu) — senkron.urun_sayisi elle BAYATLATILIR ──
+    # OLCUM ISTENEN: sayaci elle eskitince kapi bunu YAKALAMALI (kirmizi yanmali). Saglikli
+    # bir kosumdan SONRA (senkron.urun_sayisi zaten D1'in gercek satir sayisiyla ortusuyor)
+    # sayac satirini D1'in gercek durumundan FARKLI bir degere elle sabitliyoruz — tam K237
+    # vakasi: D1 icerigi/sayisi DOGRU, yalniz senkron.urun_sayisi BAYAT.
+    connSayac = _kt_baglan()
+    _kt_kos(connSayac, urunler, [])
+    connSayac.execute("UPDATE senkron SET deger='1' WHERE anahtar='urun_sayisi'")
+    kodS, ciktiS, _ = _kt_kos(connSayac, urunler, ["--durum"], turetilmis=tk)
+    dogrula("V33c SAYAC EKSENI MUTANT (K237): senkron.urun_sayisi elle bayatlatildi "
+            "(D1'in gercek COUNT(*)'undan farkli) -> sifir-disi + 'SAYAC EKSENI DRIFT'",
+            kodS != 0 and "SAYAC EKSENI DRIFT" in ciktiS, (kodS, ciktiS[-500:]))
+    connSayac2 = _kt_baglan()
+    _kt_kos(connSayac2, urunler, [])
+    connSayac2.execute("DELETE FROM senkron WHERE anahtar='urun_sayisi'")
+    kodS2, ciktiS2, _ = _kt_kos(connSayac2, urunler, ["--durum"], turetilmis=tk)
+    dogrula("V33d SAYAC EKSENI SATIR YOK (K237): senkron.urun_sayisi satiri HIC yoksa da "
+            "OLCULEMEYEN durum YESIL degil -> sifir-disi + 'SAYAC EKSENI'",
+            kodS2 != 0 and "SAYAC EKSENI: senkron.urun_sayisi satiri YOK" in ciktiS2,
+            (kodS2, ciktiS2[-500:]))
 
     # ── ORNEKLEME YASAGI: 30 urunluk partide YALNIZ 1 urunun yazmasi kaybolur ────
     # Geri-okuma yazilan id kumesinin TAMAMINI dogrulamazsa (ornekleme/kisaltma) bu vaka
@@ -4206,8 +4251,9 @@ def _main(a):
         r = sorgu("SELECT COUNT(*) AS n FROM urunler")
         n = ((r[0].get("results") or [{}])[0] or {}).get("n")
         r = sorgu("SELECT anahtar, deger FROM senkron")
+        senkron_satirlari = (r[0].get("results") or []) if r else []
         print("D1 urun sayisi:", n)
-        for s in (r[0].get("results") or []):
+        for s in senkron_satirlari:
             print("  %s = %s" % (s["anahtar"], s["deger"]))
         # FAIL-LOUD teyit: D1 satir sayisi urunler.json'daki BENZERSIZ id sayisiyla ORTUSMELI.
         # Eskiden --durum yalniz sayiyi BASIP exit 0 donerdi -> insan/hook/CI iki sayiyi ELLE
@@ -4224,6 +4270,31 @@ def _main(a):
             sorunlar.append(
                 "SAYI EKSENI DRIFT: D1=%s != urunler.json benzersiz=%d — senkron kacmis "
                 "olabilir; Ege bayat katalog goruyor (yeni urunu ONEREMEZ)." % (n, benzersiz))
+
+        # ── SAYAC EKSENI (K237, 20 Agu) — senkron.urun_sayisi D1 COUNT(*)'una ESIT mi? ──
+        # NEDEN AYRI EKSEN: yukaridaki SAYI ekseni D1 COUNT(*)'u urunler.json'daki
+        # BENZERSIZ id sayisiyla kiyaslar — 'urun_sayisi' satirinin KENDISI hic
+        # DOGRULANMIYORDU, yalniz yukarida HAM BASILIYORDU. Bir kosum urunler.json ile
+        # AYNI kalsa bile (SAYI ekseni yesil), D1'e giren satirlar 'urun_sayisi'
+        # adiminda kesilen bir kosumdan gelmisse senkron sayaci BAYAT KALIR ve bu
+        # SESSIZCE gecerdi (K237: D1=29602 == urunler.json=29602 iken bile urun_sayisi
+        # 29573'te donuk kalabilirdi). FAIL-LOUD: satir yoksa ya da n'den FARKLIYSA exit 1.
+        urun_sayisi_kayit = next(
+            (s.get("deger") for s in senkron_satirlari if s.get("anahtar") == "urun_sayisi"),
+            None)
+        if sayac_uyumlu(n, urun_sayisi_kayit):
+            print("teyit (SAYAC ekseni): senkron.urun_sayisi == D1 COUNT(*) (%s) ✅" % n)
+        elif urun_sayisi_kayit is None:
+            sorunlar.append(
+                "SAYAC EKSENI: senkron.urun_sayisi satiri YOK — D1 gercek sayisi (%s) ile "
+                "kiyaslanamiyor (fail-closed)." % n)
+        else:
+            sorunlar.append(
+                "SAYAC EKSENI DRIFT: senkron.urun_sayisi=%s != D1 gercek sayisi=%s — son "
+                "basarili yazim ile D1'in bugunku hali ayrismis (K237 sinifi: parca-parca "
+                "yazan bir kosum sayaç adimina VARMADAN kesilmis olabilir, ya da D1'e baska "
+                "bir yoldan satir girmis). Coz: python3 tools/d1-sync.py   (tam senkron "
+                "sayaci yeniden yazar)." % (urun_sayisi_kayit, n))
 
         # ── SEQ EKSENI — HASH DISI ama kanonik katalog sirasindan TURETILIR ─────────
         r_seq = sorgu("SELECT id, seq FROM urunler")
