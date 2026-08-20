@@ -132,6 +132,81 @@ az değer taşıyorsa nöbetçi UYARMALI.
 
 ---
 
+## B7 — tur artık BAŞLIYOR ama 1500 sn tavanını doldurup ÖLDÜRÜLÜYOR
+
+**20 Ağu 2026, N4A merge'inden sonra CANLIDA ölçüldü.** `gozcu.log:1993-1999`, 09:08 turu:
+
+```
+=== 2026-08-20T09:08:02Z BASLANGIC (nobet-kapi) ===
+KOTAKARANTINA motorlar=kimi omur=6h
+MOTOR_DENEME motor=minimax-m3 rc=1 sebep=HATA
+N2B HUKUM=GECER KOL=N2B-MUAF EV=KraL ACIK=0 KALEM=-      <- B1 ONARILDI, kapi GECIRIYOR
+SURE_TAVANI_ASILDI=1 TAVAN_SN=1500
+HUKUM=SURE_TAVANI rc=1
+```
+
+B1 kapandıktan sonra arıza sınıfı **değişti**: *"kapı kendi onarım turunu reddediyor"* →
+*"tur koşuyor ama süresi doluyor"*. m3 **1500 sn (25 dk) koştu ve onarım üretmedi**.
+Kısa tavanın uygulanmış olması ayrıca şunu söylüyor: `_sureli_isci_bekle`
+(`nobet-kapi.py:1218-1234`) `onarim_ilerliyor_mu(cikti)` çağrısından **pozitif sinyal
+görmedi** — görseydi `TUR_ONARIM_ZAMAN_ASIMI_SN`'ye (3000 sn) uzardı.
+
+🔴 **"HAT BOZUK" mu "KAT YOK" mu — OLCULEMEDI.** Bu ayrım bu paketin en kritik sorusudur ve
+şu an cevaplanamıyor: `isci.log` o pencerede **iç içe geçmiş**. `ci-nobeti` turunun
+`BASLANGIC` satırı `isci.log:4274`, ama ardından gelen satırlar eşzamanlı koşan
+`kabul-k184-kuyruk` ve `citroen-d5-3-ekle` turlarına ait (`kral-k184` worktree yolları
+görünüyor). Turun 25 dakika boyunca **ne yaptığı** log ekseninden okunamıyor.
+
+**Neyi ölçmek kapatır:** `ci-nobeti` turunun çıktısını izole eden bir kayıt — tur başına ayrı
+dosya, ya da her satıra etiket öneki. O olmadan "m3 beceremedi" (kat yok) ile "tur bir yerde
+asıldı" (hat bozuk) ayrımı yapılamaz ve **tarife kararı yanlış veriye dayanır**.
+
+### Kabul
+1. Bir `ci-nobeti` turunun TÜM çıktısı, başka turların satırları KARIŞMADAN okunabiliyor
+   (sentetik iki eşzamanlı turla ölçülür: her iki turun satır kümesi ayrıştırılabilmeli).
+2. Tavan aşımında turun **son 50 satırı** hükme eklenir — "neden asıldı" sorusu logsuz kalmaz.
+3. `onarim_ilerliyor_mu`'nun pozitif/negatif kolları ayrı ayrı ölçülür (bugün yalnız negatif
+   kol gözlendi; pozitif kolun ÖLÜ olmadığı kanıtlanmalı).
+4. **Mutant:** izolasyon kaldırılınca (satırlar yine karışınca) test KIRMIZI yanar.
+
+---
+
+## B8 — SAYAÇ EKSİK SAYIYOR: koşan ve düşen tur sayılmıyor (K241'in ÜÇÜNCÜ yüzeyi)
+
+Aynı 09:08 turunda ölçüldü: tur **koştu**, **başarısız oldu** (`SURE_TAVANI rc=1`), ve
+`ustuste_onarimsiz` **105 → 105**, yani **artmadı**.
+
+Sebep: `tur_kos()` (`nobet-kapi.py:1495-1496`) `SURE_TAVANI_ASILDI=1` görünce **erken
+dönüyor**; `tur_kapat()` hiç çağrılmıyor, dolayısıyla `ustuste_onarimsiz_guncelle()`
+(`:1362`) de çalışmıyor.
+
+Sonuç: "üst üste onarımsız tur" sayacı **gerçekten denenip başarısız olan turları saymıyor**.
+Yalnız defter bacağına ulaşabilen turları sayıyor.
+
+🔴 **K241'in ÜÇÜNCÜ yüzeyi.** Sayaç artık hem **fazla** hem **eksik** sayabiliyor:
+
+| yüzey | kusur |
+|---|---|
+| K241 / yüzey 1 | `ONARIM=0`: "dağıtılacak İŞ YOK" ile "DENEDİ ve başaramadı" aynı kovada (FAZLA sayar) |
+| B6 / yüzey 2 | `icra_rc=0`: "koştu ve başardı" ile "HİÇ KOŞMADI" aynı değerde |
+| **B8 / yüzey 3** | **koşan ve DÜŞEN tur hiç sayılmıyor (EKSİK sayar)** |
+
+Üçüncü ölçülmüş vaka → **tekil yama KESİNLİKLE YASAK** ([[ucuncu-tekrar-sinif-kapisi]]).
+Sınıf çözümü: bir turun hükmü **tek bir yerde** ve **tüm çıkış yollarını kapsayacak** biçimde
+kaydedilmeli; erken `return` eden her kol da sayaca uğramalı (ya da sayaç `finally`'ye alınmalı).
+
+### Kabul
+1. **Pozitif:** tur koşar + onarım üretir → sayaç 0'a düşer.
+2. **Negatif-1:** tur koşar + düşer (`SURE_TAVANI` dahil) → sayaç **+1** (bugün artmıyor).
+3. **Negatif-2:** tur ATLANDI (kilit dolu) → sayaç **DEĞİŞMEZ** (atlanan tur onarımsız tur
+   değildir — B6 ile tutarlı).
+4. **Mutant:** erken `return` kolu sayacı yeniden atlarsa test KIRMIZI yanar; hedef kolun
+   öldüğü ayrıca kanıtlanır.
+5. Üç kolun **hepsi** aynı sayaç yolundan geçtiği, çıkış yollarının envanteriyle gösterilir
+   (`return` sayısı = ölçülen kol sayısı; sayı çivili).
+
+---
+
 ## B2/B3 — 🔴 BU PAKETTE DEĞİL: "HAT BOZUK" DEĞİL "KAT YOK" → OKAN KAPISI
 
 10 kalemin hepsi `kat_sec` (`nobet-kapi.py:287-299`) tarafından `CODEX_JETONLARI`
