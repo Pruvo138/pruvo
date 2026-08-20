@@ -3720,6 +3720,38 @@ jobs:
         if: ${{ !cancelled() }}
         run: node shop/test/olcum.mjs
 
+      # FANTOM PURCHASE KAPISI (shop/test/olcum-donus-bileti.mjs).
+      # NE KORUR: TARAYICI Purchase'inin sunucu dogrulamasi. Yukaridaki olcum.mjs SUNUCU
+      # (CAPI/GA4) kolunu olcer; bu dosya index.html'in attigi tarayici olayini olcer — o kol
+      # 20 Agu'a kadar YALNIZCA URL'ye bakiyordu (?siparis=ok&no=..&t=..) ve odeme iyzico
+      # hosted/redirect oldugu icin URL KANIT DEGILDIR: uydurulabilir, elle acilabilir,
+      # geri tusuyla tekrarlanabilir. Olculen sonuc: 30 gunde piksel 9 satis, D1 gercek 5.
+      # Sapma TEK YONLU (piksel gercegin ustune cikar) -> reklam butcesi yanlis ogrenir ve
+      # veri geri ALINAMAZ; SESSIZ hata sinifi, kimse ekranda gormez.
+      # OLCTUGU UC KABUL VAKASI: dogrulanmamis donus -> olay ATILMAZ · dogrulanmis siparis ->
+      # olay BIR KEZ · ayni siparis 2. cagri -> ATILMAZ. Ayrica es zamanlilik (CAS), gizlilik
+      # (musteri kolonlari SELECT EDILMEZ, cevapta PII yok) ve bir TAUTOLOJI NOBETCISI (A
+      # blogu kurulum hatasindan degil, DOGRU SEBEPTEN redde dusmeli — ilk yazimda tam bu
+      # tuzaga dusuldu ve butun blok yanlis yere yesil yaniyordu).
+      # OFFLINE: ag YOK, wrangler YOK, sahte D1, gercek piksel/GA4 cagrisi YOK, dosya YAZILMAZ.
+      - name: "Fantom Purchase kabul testi (tarayici olayi sunucu dogrulamasiz atilmaz)"
+        if: ${{ !cancelled() }}
+        run: node shop/test/olcum-donus-bileti.mjs
+
+      # FANTOM PURCHASE MUTASYON KANITI (shop/test/olcum-bilet-mutant.mjs).
+      # NEDEN AYRI ADIM: yukaridaki kabul testinin YESILI tek basina "kapi calisiyor" demek
+      # DEGILDIR. Bu adim her dogrulama kolunu (bilet eslesmesi · 'odendi' durum kapisi · CAS)
+      # tek tek bozar ve (a) testin KIRMIZI yandigini, (b) kirmizinin sebebinin TAM O KOL
+      # oldugunu olcer. Ayrica bir KONTROL MUTANTI kosar (davranisi degistirmeyen, yalniz
+      # yorum ekleyen duzenleme): o YESIL kalmazsa kirmizilar kanit sayilmaz ve adim kirmizi
+      # yanar. Son olarak GOLGELEME kontrolu: iki kol AYNI iddialari dusuruyorsa biri bagimsiz
+      # olculmuyordur ([[ad-iki-rolde-mutanti-golgeler]]).
+      # OFFLINE: mutant kopyalar gecici dizine yazilir ve finally'de SILINIR (repoya iz YOK;
+      # betik silindigini ayrica DOGRULAR). Kaynak dosya DEGISTIRILMEZ. ~5 s.
+      - name: "Fantom Purchase mutasyon kaniti (her koruma kolu ayri ayri olculuyor mu)"
+        if: ${{ !cancelled() }}
+        run: node shop/test/olcum-bilet-mutant.mjs
+
       # OLCUM TEST KAPISI (shop/test/olcum-kapisi.cjs) — 30 Tem'e kadar OLU idi. Dosya SAF
       # MODULDU (`module.exports` var, `require.main` kolu YOK): `node shop/test/olcum-kapisi.cjs`
       # rc=0 verip SIFIR IDDIA kosuyordu; shop/.dev.vars'a SAHTE bir META_CAPI_TOKEN konsa
