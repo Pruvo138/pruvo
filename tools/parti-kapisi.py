@@ -23,17 +23,34 @@ IKI YUZEY (ikisi de ayni karar fonksiyonundan turer — ikinci mantik YOK)
      Ajan oturumlarindaki Bash cagrilarini kapsar. 6 eve
      `tools/mimar-kapi-kur.py --parti-kapisi` ile dagitilir (IKINCI KURUCU YOK).
 
-ALTI KOL (her birinin MUTANTI ve HEDEF KOL ATFI vardir — K182)
+YEDI KOL (her birinin MUTANTI ve HEDEF KOL ATFI vardir — K182)
 --------------------------------------------------------------
   N2B-YENI        cagri YENI is baslatiyor          -> T4 borc sorgusuna girer
   N2B-SUREN       cagri yeni is DEGIL (suren/yarim) -> GECER, ASLA kesilmez
   N2B-RED         sahibinin evinde acik kalem var   -> **RED** + kalem + `kabul:`
   N2B-MUAF        etiketin bir TOKEN'i tamir/onarim/ -> GECER (yoksa onarim
                   kabul/nobet/posta/devir ile basliyor  KENDINI bloklar: kilit)
-  N2B-OLCULEMEDI  ev/defter cozulemedi              -> **RED** (fail-closed),
-                                                       yalniz YENI is yolunda
+  N2B-DEFTER-YOK  evin defter DOSYASI hic YOK       -> GECER ama SESSIZ DEGIL
+                  (defter gelenegini benimsememis)     (jeton hukum satirinda
+                                                       GORUNUR ve SAYILIR)
+  N2B-OLCULEMEDI  ev cozulemedi / defter VAR ama    -> **RED** (fail-closed),
+                  okunamadi (bos/bozuk/IO)             yalniz YENI is yolunda
   N2B-CAGRI-YERI  (N4A) muafiyet sozlesmesi GERCEK  -> batarya kolu: cagri
                   kaynak dosyalardan dogrulanir        yeri kayarsa KIRMIZI
+
+🔴 K229 — UCUNCU KOVA (20 Agu 2026, canli bloker). "Defter DOSYASI YOK" ile
+"defter OKUNAMADI" AYNI SEY DEGILDIR. Bes evden DORDUNDE (hasat/bot/jenerator/
+pazarlama) `acik-kalemler.md` HIC YOKTU; kapi ikisini tek kovaya (OLCULEMEDI)
+atinca defter gelenegini hic benimsememis evler fail-closed RED yedi ve ucuz
+katlari saatlerce OLU kaldi. Kapinin KENDI doktrini bunu zaten yasakliyor:
+*"acik kalem varken tamiri baslatamamak KILITLENMEDIR"* — bir evi hic sahip
+olmadigi gelenekle bloklamak ayni kilitlenmenin EV DUZEYINDEKI halidir.
+🔴 REDDEDILEN IKI ALTERNATIF (mimar hukmu, 20 Agu):
+  ❌ "dort eve BOS defter ac" — bos dosya OLCULMEMIS bir sifiri OLCULMUS gibi
+     gosterir; borc "yok" gorunur, kapi susar (K201: "EKLE yetmez, SAYI sart").
+     Bu yuzden defter VAR ama BOS/BOZUK ise kol HALA `N2B-OLCULEMEDI` = RED'dir.
+  ❌ "defteri olmayan evi SESSIZCE GECER say" — doktrini sessizce devre disi
+     birakir. Bu yuzden jeton AYRIDIR, hukum satirinda GORUNUR, probda SAYILIR.
 
 Borc olcumu TEK KAYNAK `tools/parti-borc-kapisi.py` (T4): bu dosya kendi defter
 parser'ini YAZMAZ, `acik_kalem_listesi` + `parti_engeli_var_mi` cagirir.
@@ -45,7 +62,7 @@ asagidaki "T4 YUKLEME" blogu (20 Agu 2026 canli bloker onarimi).
 KABUL (calistirilabilir)
 ------------------------
   python3 tools/parti-kapisi.py --kendini-test
-    son satir + rc=0:  MUTANT=7/7 HEDEF_KOL_ATFI=7/7 KONTROL=8/8
+    son satir + rc=0:  MUTANT=9/9 HEDEF_KOL_ATFI=9/9 KONTROL=10/10
 
   python3 tools/parti-kapisi.py --cagri-yeri   (N4A: cagri yeri sozlesmesi)
     rc=0 GECER · 1 RED (ihlal) · 2 OLCULEMEDI (kapsam tabani tutmadi)
@@ -160,6 +177,9 @@ N2B_RED_JETON        = "N2B-RED"
 N2B_MUAF_JETON       = "N2B-MUAF"
 N2B_OLCULEMEDI_JETON = "N2B-OLCULEMEDI"
 N2B_CAGRI_YERI_JETON = "N2B-CAGRI-YERI"
+# 🔴 K229 UCUNCU KOVA — `N2B-OLCULEMEDI`den AYRI jeton. Ayni metne indirgenirse
+# ucuncu sinif ikinci kovaya yutulur ve olcememe "basari" gibi okunur.
+N2B_DEFTER_YOK_JETON = "N2B-DEFTER-YOK"
 
 MUTANT_HEDEF = {
     "M1": N2B_YENI_JETON,
@@ -169,6 +189,17 @@ MUTANT_HEDEF = {
     "M5": N2B_MUAF_JETON,
     "M6": N2B_CAGRI_YERI_JETON,
     "M7": N2B_CAGRI_YERI_JETON,
+    # 🔴 CAKISMA COZUMU (K229 tazeleme, 20 Agu): K229 dalinda bu iki mutant
+    # M6/M7 idi; main'de N4A ayni numaralari CAGRI-YERI kolu icin ALDI. Ayni ada
+    # iki rol verilseydi mutant KENDI kolunu degil komsununkini oldururdu ve
+    # "yasadi" cikan sonuc "kol saglam" diye OKUNURDU [[ad-iki-rolde-mutanti-golgeler]].
+    # Bu yuzden K229'un mutantlari M8/M9'a TASINDI (davranis AYNI, ad AYRI):
+    #   M8 = kol BOZULUR      -> defteri olmayan ev yine RED yer (kilitlenme geri gelir)
+    #   M9 = kol BIRLESTIRILIR-> hukum GECER kalir ama JETON OLCULEMEDI'ye doner
+    #                            (ucuncu kova KAYBOLUR; yalniz HUKUM'e bakan test
+    #                            bunu GORMEZ — jeton kontrolu SART)
+    "M8": N2B_DEFTER_YOK_JETON,
+    "M9": N2B_DEFTER_YOK_JETON,
 }
 
 # 🔴 MUAF ETIKETLER — onarim hattinin KENDINI bloklamasini engeller.
@@ -510,6 +541,21 @@ def parti_karari(ev_koku, etiket, *, esik=None, koku_root=None, mutant=None,
     sonuc["ACIK"] = borc["ACIK_SAYISI"]
 
     if borc["OLCULEMEDI"]:
+        # 🔴 K229 UCUNCU KOVA — defter DOSYASI hic YOK (ev defter gelenegini
+        # benimsememis). GECER, ama SESSIZ DEGIL: kendi jetonu hukum satirinda
+        # GORUNUR ve `n2b-dagitim-probu.py` onu AYRI kovada SAYAR.
+        # Sinir: defter VAR ama okunamadi (bos/bozuk/IO) ise buraya GIRILMEZ —
+        # o hal fail-closed RED olarak KALIR (bos defter = olculmemis sifir).
+        if borc.get("DEFTER_YOK") and mutant != "M8":
+            sonuc["HUKUM"] = "GECER"
+            sonuc["KOL"] = (N2B_OLCULEMEDI_JETON if mutant == "M9"
+                            else N2B_DEFTER_YOK_JETON)
+            sonuc["SEBEP"] = (
+                "%s ev=%s defter DOSYASI yok (%s) — defter gelenegini hic "
+                "benimsememis evi o gelenekle bloklamak KILITLENMEDIR; kalem "
+                "olcumu YOK, bu satir o olcumun EKSIKLIGINI ilan eder."
+                % (N2B_DEFTER_YOK_JETON, ev, borc["DEFTER_YOLU"] or "-"))
+            return sonuc
         sonuc["HATA"] = "%s %s" % (N2B_OLCULEMEDI_JETON, borc["HATA"])
         if mutant == "M4":
             sonuc["HUKUM"] = "GECER"
@@ -589,6 +635,10 @@ def isci_kapi(motor, ev_koku, spec, etiket, *, esik=None, koku_root=None,
         sys.stderr.write(red_metni(sonuc) + "\n")
         sys.stderr.write(hukum_satiri(sonuc) + "\n")
         return RC_RED
+    # 🔴 K229: GECER ama SESSIZ DEGIL — ucuncu kova gerekcesini isci.sh
+    # gunlugune de yazar (jeton zaten hukum satirinda).
+    if sonuc["KOL"] == N2B_DEFTER_YOK_JETON and sonuc["SEBEP"]:
+        sys.stderr.write(sonuc["SEBEP"] + "\n")
     sys.stdout.write(hukum_satiri(sonuc) + "\n")
     return RC_GECER
 
@@ -628,6 +678,12 @@ def kanca(girdi, *, esik=None, koku_root=None, mutant=None, t4=_MIRAS,
             return _reddet("%s\n%s" % (sonuc["HATA"] or N2B_OLCULEMEDI_JETON,
                                        hukum_satiri(sonuc)))
         return _reddet("%s\n%s" % (red_metni(sonuc), hukum_satiri(sonuc)))
+    # 🔴 K229: kanca yuzeyinde GECER = ciktisiz izin (stdout'a JSON YAZILMAZ;
+    # "allow" basmak diger kancalari/izin katmanini EZERDI). Ucuncu kova yine de
+    # SESSIZ DEGIL: gerekce + hukum satiri stderr'e (karara etkisi YOK) yazilir.
+    if sonuc["KOL"] == N2B_DEFTER_YOK_JETON:
+        sys.stderr.write("%s\n%s\n" % (sonuc["SEBEP"] or N2B_DEFTER_YOK_JETON,
+                                       hukum_satiri(sonuc)))
     return 0
 
 
@@ -689,7 +745,7 @@ def _sentetik_defter(yol, kalemler):
 # Sentetik vakalar: (ad, ev_koku, etiket, komut, beklenen_hukum, beklenen_kol)
 # `ev_koku` gercek depo koklerini KULLANIR (yalniz yol cozumu icin); defterler
 # `koku_root` ile gecici dizine yonlendirilir — gercek deftere DOKUNULMAZ.
-def _vakalar(kok_hasat, kok_kral):
+def _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen):
     isci = "/Users/okan/.claude/cron/isci.sh"
     return (
         # MaCiT'in evinde acik kalem VAR -> yeni parti REDDEDILIR
@@ -708,6 +764,16 @@ def _vakalar(kok_hasat, kok_kral):
         ("kral-yeni-parti", kok_kral, "parti-surucusu",
          "%s kimi %s /tmp/s.md parti-surucusu" % (isci, kok_kral),
          "GECER", N2B_SUREN_JETON),
+        # 🔴 K229 UCUNCU KOVA: HocA'nin evinde defter DOSYASI hic YOK
+        # -> GECER + KENDI jetonu (ne RED, ne sessiz gecis)
+        ("hoca-defter-yok", kok_bot, "parti-surucusu",
+         "%s kimi %s /tmp/s.md parti-surucusu" % (isci, kok_bot),
+         "GECER", N2B_DEFTER_YOK_JETON),
+        # 🔴 SINIR: defter VAR ama BOS -> olculmemis sifir, HALA fail-closed RED
+        # (ucuncu kova ikinci kovayi YUTMAZ)
+        ("tekin-defter-bos", kok_jen, "parti-surucusu",
+         "%s kimi %s /tmp/s.md parti-surucusu" % (isci, kok_jen),
+         "RED", N2B_OLCULEMEDI_JETON),
     )
 
 
@@ -722,12 +788,15 @@ SUREN_KOMUTLARI = (
 
 
 def kendini_test(gecici_kok):
-    """7 mutant + hedef kol atfi + 8 kontrol (izole sentetik defterlerle).
+    """9 mutant + hedef kol atfi + 10 kontrol (izole sentetik defterlerle).
 
     K8 (N4A) sentetik DEGILDIR: gercek cron kaynak dosyalarini okur.
+    K9/K10 (K229) ucuncu kovayi ve onun DIGER IKI kovayi YUTMADIGINI olcer.
     """
     kok_hasat = "/Users/okan/dev/pruvo-hasat"
     kok_kral = "/Users/okan/dev/pruvo"
+    kok_bot = "/Users/okan/dev/pruvo-bot"          # HocA — defteri HIC YOK
+    kok_jen = "/Users/okan/dev/pruvo-jenerator"    # TeKiN — defteri VAR ama BOS
 
     # Izole defterler: MaCiT'te 2 acik kalem, KraL'de hepsi KAPANDI.
     _sentetik_defter(os.path.join(gecici_kok, "MaCiT", "memory",
@@ -736,6 +805,20 @@ def kendini_test(gecici_kok):
     _sentetik_defter(os.path.join(gecici_kok, "KraL", "memory",
                                   "acik-kalemler.md"),
                      [("K800", "KAPANDI"), ("K801", "KAPANDI")])
+    # 🔴 K229 fiksturu — UC ayri hal AYNI kosumda bulunur, yoksa uc kova
+    # birbirinden ayrildigi ISPATLANAMAZ:
+    #   HocA  : defter DOSYASI hic YOK    -> UCUNCU KOVA (GECER + kendi jetonu)
+    #   TeKiN : defter VAR ama BOS (0 B)  -> IKINCI KOVA (fail-closed RED)
+    #   MaCiT : defter VAR + acik kalem   -> BIRINCI KOVA (RED, degismedi)
+    _hoca_defter = os.path.join(gecici_kok, "HocA", "memory",
+                                "acik-kalemler.md")
+    if os.path.exists(_hoca_defter):                # fikstur higyeni
+        os.remove(_hoca_defter)
+    _tekin_defter = os.path.join(gecici_kok, "TeKiN", "memory",
+                                 "acik-kalemler.md")
+    os.makedirs(os.path.dirname(_tekin_defter), exist_ok=True)
+    with open(_tekin_defter, "w", encoding="utf-8") as f:
+        f.write("")
 
     fikstur_dizini = os.path.join(gecici_kok, "cagri-yeri-fikstur")
     os.makedirs(fikstur_dizini, exist_ok=True)
@@ -747,7 +830,7 @@ def kendini_test(gecici_kok):
                                else "HAYIR sebep=%s" % T4_HATA))
     print("")
 
-    vakalar = _vakalar(kok_hasat, kok_kral)
+    vakalar = _vakalar(kok_hasat, kok_kral, kok_bot, kok_jen)
 
     def kos(mutant=None):
         out = {}
@@ -796,7 +879,7 @@ def kendini_test(gecici_kok):
             print("    | cagri-yeri %s etiket=%r beklenen=%s gercek=%s %s"
                   % (b["ROL"], b["ETIKET"], b["BEKLENEN"], b["GERCEK"],
                      b["HATA"] or ""))
-        print("MUTANT=0/7 HEDEF_KOL_ATFI=0/7 KONTROL=0/8")
+        print("MUTANT=0/9 HEDEF_KOL_ATFI=0/9 KONTROL=0/10")
         return 1
 
     # --- MUTANTLAR ---------------------------------------------------------
@@ -805,13 +888,19 @@ def kendini_test(gecici_kok):
         "M1": ("_yeni",),                       # yeni-is tanima
         "M2": ("_suren",),                      # suren-is korumasi
         "M3": ("macit-yeni-parti",),            # RED kolu
-        "M4": ("_olculemedi",),                 # fail-closed kolu
+        # M4 fail-closed kolu: bilinmeyen ev koku (sentetik) VE defteri BOS ev
+        # — ikincisi K229'dan sonra AYNI kolun ikinci yuzeyidir; yan eksene
+        # yazilirsa M4'un ATFI hatali biçimde KUSUR okunur.
+        "M4": ("_olculemedi", "tekin-defter-bos"),
         # M5 muafiyeti KOKTEN oldurur; `_cagri_yeri` MUAF'in downstream'idir,
         # bu yuzden hedef kumeye DAHILDIR (yan eksen degil — sahte KUSUR olmasin).
         "M5": ("macit-tamir", "macit-posta", "_cagri_yeri"),
         # N4A: cagri yeri kolu — iki AYRI oldurme yolu
         "M6": ("_cagri_yeri",),                 # kapsam tabani (tarayici korlesir)
         "M7": ("_cagri_yeri",),                 # regresyon (startswith-only)
+        # K229: ucuncu kova — iki AYRI oldurme yolu (eski adlari M6/M7 idi)
+        "M8": ("hoca-defter-yok",),             # ucuncu kova — kol BOZULUR
+        "M9": ("hoca-defter-yok",),             # ucuncu kova — kol BIRLESTIRILIR
     }
     mutant_sayaci = 0
     atif_sayaci = 0
@@ -862,6 +951,17 @@ def kendini_test(gecici_kok):
                     hedef_kirmizi = True
                 print("  %s: normal=%s | mutant=%s"
                       % (hv, hukum_satiri(n), hukum_satiri(mm)))
+            if ad == "M8":
+                mm = m["hoca-defter-yok"]
+                print("  -> M8 altinda defteri OLMAYAN ev yine %s/%s yerdi: "
+                      "ev duzeyinde KILITLENME geri gelirdi"
+                      % (mm["HUKUM"], mm["KOL"]))
+            if ad == "M9":
+                mm = m["hoca-defter-yok"]
+                print("  -> M9 altinda HUKUM DEGISMEDI (%s) ama JETON %s'e "
+                      "dondu: yalniz HUKUM'e bakan bir test bu mutanti "
+                      "YASATIRDI — ucuncu kova sessizce kaybolurdu"
+                      % (mm["HUKUM"], mm["KOL"]))
 
         # yan eksen: hedef DISINDAKI vakalar degismemeli
         for vad, _ek, _et, _k, _bh, _bk in vakalar:
@@ -1112,10 +1212,60 @@ def kendini_test(gecici_kok):
           "-> %s" % hukum_satiri(uctan_uca))
     kontrol += 1 if k8 else 0
 
+    # K9: 🔴 K229 UCUNCU KOVA — defteri OLMAYAN ev GECER ama SESSIZ DEGIL.
+    #     Uc ayak: (a) hukum GECER + KENDI jetonu, (b) isci.sh yuzeyi rc=0
+    #     (hat GERCEKTEN aciliyor), (c) jeton + gerekce CIKTIDA GORUNUR.
+    dy = normal["hoca-defter-yok"]
+    tampon8 = io.StringIO()
+    hata8 = io.StringIO()
+    _eski_err = sys.stderr
+    sys.stderr = hata8
+    try:
+        with redirect_stdout(tampon8):
+            rc8 = isci_kapi("kimi", kok_bot, "/tmp/s.md", "parti-surucusu",
+                            koku_root=gecici_kok)
+    finally:
+        sys.stderr = _eski_err
+    cikti8 = tampon8.getvalue()
+    gerekce8 = hata8.getvalue()
+    k9 = (dy["HUKUM"] == "GECER"
+          and dy["KOL"] == N2B_DEFTER_YOK_JETON
+          and dy["KOL"] != N2B_OLCULEMEDI_JETON       # kovalar AYRI jetonda
+          and rc8 == RC_GECER
+          and ("KOL=%s" % N2B_DEFTER_YOK_JETON) in cikti8
+          and N2B_DEFTER_YOK_JETON in gerekce8)
+    print("KONTROL K9 defteri YOK olan ev: GECER + AYRI jeton + gorunur: %s"
+          % ("GECTI" if k9 else "KUSUR"))
+    print("    | karar   : %s" % hukum_satiri(dy))
+    print("    | isci.sh : rc=%d (beklenen %d) stdout=%s"
+          % (rc8, RC_GECER, cikti8.strip() or "(BOS)"))
+    print("    | gerekce : %s" % (gerekce8.strip() or "(BOS — SESSIZ GECIS)"))
+
+    kontrol += 1 if k9 else 0
+
+    # K10: 🔴 NEGATIF/SINIR — ucuncu kova DIGER IKI kovayi YUTMADI (ayni kosum).
+    #     (a) defteri VAR + acik kalemli ev  -> HALA RED/N2B-RED    (davranis DEGISMEDI)
+    #     (b) defteri VAR + kalemi kapali ev -> GECER/N2B-SUREN     (degismedi)
+    #     (c) defteri VAR ama BOS ev         -> HALA RED/N2B-OLCULEMEDI
+    #         (bos dosya "olculmus sifir" SAYILMAZ — K201)
+    a9 = normal["macit-yeni-parti"]
+    b9 = normal["kral-yeni-parti"]
+    c9 = normal["tekin-defter-bos"]
+    k10 = (a9["HUKUM"] == "RED" and a9["KOL"] == N2B_RED_JETON and a9["ACIK"] == 2
+           and b9["HUKUM"] == "GECER" and b9["KOL"] == N2B_SUREN_JETON
+           and c9["HUKUM"] == "RED" and c9["KOL"] == N2B_OLCULEMEDI_JETON)
+    print("KONTROL K10 defteri OLAN evde davranis DEGISMEDI + bos defter HALA "
+          "RED: %s" % ("GECTI" if k10 else "KUSUR"))
+    print("    | acik kalemli : %s" % hukum_satiri(a9))
+    print("    | kalemsiz     : %s" % hukum_satiri(b9))
+    print("    | BOS defter   : %s  (SEBEP: %s)"
+          % (hukum_satiri(c9), c9["HATA"] or "-"))
+    kontrol += 1 if k10 else 0
+
     print("")
-    print("MUTANT=%d/7 HEDEF_KOL_ATFI=%d/7 KONTROL=%d/8"
+    print("MUTANT=%d/9 HEDEF_KOL_ATFI=%d/9 KONTROL=%d/10"
           % (mutant_sayaci, atif_sayaci, kontrol))
-    return 0 if (mutant_sayaci == 7 and atif_sayaci == 7 and kontrol == 8) else 1
+    return 0 if (mutant_sayaci == 9 and atif_sayaci == 9 and kontrol == 10) else 1
 
 
 # ------------------------------------------------------------------------------
@@ -1194,6 +1344,8 @@ def main(argv=None):
         print("N2B PARTI KAPISI — KONTROL (salt-okunur, YAZMAZ)")
         if sonuc["HUKUM"] == "RED" and sonuc["KOL"] == N2B_RED_JETON:
             print(red_metni(sonuc))
+        elif sonuc["KOL"] == N2B_DEFTER_YOK_JETON:
+            print("UCUNCU KOVA: %s" % (sonuc["SEBEP"] or ""))
         elif sonuc["HATA"]:
             print("HATA: %s" % sonuc["HATA"])
         print(hukum_satiri(sonuc))

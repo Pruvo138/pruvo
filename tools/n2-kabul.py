@@ -21,6 +21,8 @@ uctan uca kosar. Her vaka GERCEK mekanizmayi cagirir; hicbiri "iddiaya" bakmaz.
   C1  zaman enjekte edilen fiksturle 4 saat -> devir + `DEVREDILDI` + ihlal +1
   C2  4 saat DOLMADAN devir YOK
   C3  devir sonrasi kalem IKI DEFTERDE BIRDEN acik kalmaz
+  C4  🔴 K229 defteri HIC OLMAYAN ev: N2B kapisi UCUNCU KOVA (`N2B-DEFTER-YOK`)
+      ile ayirir — GECER ama SESSIZ DEGIL; defterli+kalemli ev HALA RED
   Z1  her mekanizmada mutant + hedef-kol atfi (A/B/C kendini-testleri)
   Z2  urunler.json DEGISMEDI · baska evin defterine ELLE satir YAZILMADI
 
@@ -28,7 +30,7 @@ Hepsi HERMETIK: gecici dizinler, sentetik git deposu, sentetik defterler.
 CANLI defterlere/posta kutularina/urunler.json'a DOKUNULMAZ (Z2 bunu OLCER).
 
   python3 tools/n2-kabul.py
-    son satir + rc=0:  N2_KABUL=13/13
+    son satir + rc=0:  N2_KABUL=14/14
 """
 
 import hashlib
@@ -389,16 +391,31 @@ def _kabul_B4(calisma):
 # ==============================================================================
 # C — 4 SAATLIK DEVIR
 # ==============================================================================
+# 🔴 K229 — C fiksturunde defteri BILEREK acilmayan ev (canli duzlemin taklidi:
+# 20 Agu 2026'da bes evden dordunde `acik-kalemler.md` HIC YOKTU).
+DEFTERSIZ_EV = "HocA"
+# Bu evin depo koku — N2B kapisinin ev cozumu YOL uzerinden calisir.
+DEFTERSIZ_EV_KOKU = "/Users/okan/dev/pruvo-bot"
+
+
 def kabul_C(calisma):
     simdi = datetime(2026, 8, 19, 20, 0, 0, tzinfo=timezone.utc)
 
     def kur(kok, yas_dk):
-        # Izlenen HER eve bos defter: defteri olmayan ev her kosumda
-        # N2C-OLCULEMEDI uretir ve sayaci kirletir.
+        # Izlenen evlere bos defter — AMA BIRI HARIC.
+        # 🔴 K229: eski fikstur izlenen HER eve defter aciyordu ve gerekcesi
+        # "defteri olmayan ev sayaci kirletir" idi. Bu, CANLI duzlemle CELISIR:
+        # 20 Agu 2026'da bes evden DORDUNDE defter dosyasi HIC YOKTU. Fikstur o
+        # hali disarida birakinca `DEFTER-YOK` bir daha OLCULMEZ hale geliyor
+        # ve kapi bu vakayi kapsam DISI birakiyordu
+        # [[batarya-kapsam-tabani-sayiyla-civilenir]]. Artik fikstur UCUNCU
+        # KOVAYI DA TASIR: HocA'nin defteri BILEREK acilmaz.
         for ev in set(["KraL", "MaCiT"] + DEVIR.izlenen_evler()):
             os.makedirs(os.path.join(kok, ev, "memory"), exist_ok=True)
             with open(DEVIR.posta_yolu(ev, kok), "w", encoding="utf-8") as f:
                 f.write("# sentetik posta kutusu\n")
+            if ev == DEFTERSIZ_EV:
+                continue
             _defter(DEVIR.defter_yolu(ev, kok), [])
         _defter(DEVIR.defter_yolu("MaCiT", kok),
                 [("K777", "🔧", "100-100 partisinin kirmizisi")])
@@ -451,6 +468,41 @@ def kabul_C(calisma):
           % (DEVIR.hukum_satiri(s2), once == sonra,
              json.dumps(ihlal2, ensure_ascii=False)))
 
+    # C4 — 🔴 K229 UCUNCU KOVA: defteri HIC OLMAYAN ev fiksturde TASINIR ve
+    #      N2B kapisi onu KENDI jetonuyla ayirir (ne RED, ne sessiz gecis).
+    #      Dort ayak (hepsi AYNI kosumda):
+    #        (a) ON-KOSUL: defter dosyasi GERCEKTEN yok — yoksa "DEFTER-YOK"
+    #            sonucu kapinin degil FIKSTURUN eseri olurdu.
+    #        (b) devir katmani bu evi OLCULEMEDI sayar ve SAYAR (gizlemez),
+    #            devir sonucunu BOZMAZ.
+    #        (c) N2B kapisi: MUAF OLMAYAN etiketle GECER + KOL=N2B-DEFTER-YOK,
+    #            ve jeton N2B-OLCULEMEDI'den FARKLI (ucuncu kova ayakta).
+    #        (d) NEGATIF: defteri OLAN + acik kalemli ev HALA RED (davranis
+    #            degismedi) — kova ayrimi digerlerini yutmadi.
+    defter_yolu_yok = DEVIR.defter_yolu(DEFTERSIZ_EV, kok2)
+    c4_a = not os.path.exists(defter_yolu_yok)
+    sinif4 = DEVIR.siniflandir(simdi, koku_root=kok2)
+    defter_yok_kalemleri = [k for k in sinif4["kalemler"]
+                            if k["ev"] == DEFTERSIZ_EV
+                            and k["kol"] == DEVIR.N2C_OLCULEMEDI_JETON]
+    c4_b = (len(defter_yok_kalemleri) == 1 and s2["olculemedi"] >= 1)
+    n2b = PARTI.parti_karari(DEFTERSIZ_EV_KOKU, "d2-2", koku_root=kok2)
+    c4_c = (n2b["HUKUM"] == "GECER"
+            and n2b["KOL"] == PARTI.N2B_DEFTER_YOK_JETON
+            and n2b["KOL"] != PARTI.N2B_OLCULEMEDI_JETON
+            and bool(n2b["SEBEP"]))
+    n2b_neg = PARTI.parti_karari("/Users/okan/dev/pruvo-hasat", "d2-2",
+                                 koku_root=kok2)
+    c4_d = (n2b_neg["HUKUM"] == "RED"
+            and n2b_neg["KOL"] == PARTI.N2B_RED_JETON)
+    kayit("C4", c4_a and c4_b and c4_c and c4_d,
+          "on-kosul defter YOK=%s (%s) | devir: %s kalemi OLCULEMEDI=%d "
+          "(N2C olculemedi=%d) | N2B: %s | NEGATIF (defterli+kalemli ev): %s"
+          % (c4_a, defter_yolu_yok, DEFTERSIZ_EV, len(defter_yok_kalemleri),
+             s2["olculemedi"], PARTI.hukum_satiri(n2b),
+             PARTI.hukum_satiri(n2b_neg)))
+    print("       | SEBEP: %s" % (n2b["SEBEP"] or "(BOS — SESSIZ GECIS)"))
+
 
 def _acik_mi(yol, kimlik):
     kalemler, okundu, _h = T4.acik_kalem_listesi(yol)
@@ -486,7 +538,16 @@ def kabul_Z(calisma, once_imza):
         "ev-sahip-kapisi.py": "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=3/3",
         # 20 Agu: K6 (T4 yuklenemez -> KIRMIZI + SEBEP) + K7 (enjekte kopya
         # uctan uca) eklendi -> KONTROL 5 -> 7 [[kapinin-menzili-cagri-yeridir]]
-        "parti-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=7/7",
+        # 20 Agu (N4A): cagri-yeri kolu M6 (tarayici korlesir) + M7 (regresyon,
+        # startswith-only) + K8 (muafiyet GERCEK cagri yerlerine bagli)
+        # -> MUTANT 5 -> 7, KONTROL 7 -> 8.
+        # 20 Agu (K229): UCUNCU KOVA — M8 (kol bozulur) + M9 (kol OLCULEMEDI ile
+        # BIRLESTIRILIR) -> MUTANT 7 -> 9; K9 (defteri yok ev GECER + ayri jeton)
+        # + K10 (defterli evde davranis degismedi, bos defter HALA RED)
+        # -> KONTROL 8 -> 10. Sayilar BUYUDU: kapsam kaybi oranla gizlenemez.
+        # 🔴 K229 dalinda bu mutantlar M6/M7 idi; N4A ayni numaralari ALDIGI icin
+        # tazeleme sirasinda M8/M9'a TASINDI [[ad-iki-rolde-mutanti-golgeler]].
+        "parti-kapisi.py":    "MUTANT=9/9 HEDEF_KOL_ATFI=9/9 KONTROL=10/10",
         "devir-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=4/4",
     }
     satirlar, hepsi = [], True
