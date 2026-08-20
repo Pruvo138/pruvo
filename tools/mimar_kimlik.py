@@ -8,8 +8,16 @@ import os
 # ESKI turlari da isci sayilmali (kimligi geriye donuk tanimak zorundayiz).
 ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claude")
 
-# 🔴 YENI IS BU KUMEYE GONDERILIR (CLAUDE.md kanonu: kimi BIRINCIL · minimax-m3 YEDEK).
+# 🔴 YENI IS BU KUMEYE GONDERILIR (CLAUDE.md kanonu: minimax-m3 BIRINCIL · kimi YEDEK).
 # Sira ANLAMLIDIR: [0] birincil, [1] yedek.
+#
+# 🔴 20 AGU 2026 — OKAN KARARI: SIRA TERS CEVRILDI (abonelikler AYNI kaldi).
+# Dayanak (`tools/yetkinlik/sonuclar/kral-yetkinlik-20agu.md`): YETENEK ucurumu YOK
+# (m3 16/18 · kimi 18/18); ayrisma SUREKLILIKTE. Kimi 20 Agu'da 11 karantina + 21 kez
+# 403 "usage limit for this billing cycle" yedi ve gun sonunda HALA kapaliydi; m3 0/0.
+# Ayni 7 gunde m3 kimi'nin ~8 kati ham baglam isledi (m3 1188 tur / 4,19B · kimi 1025
+# tur / 523M, kimi medyani 500 = turlarin cogu kapida oldu). Kimi'nin kotasini yiyen
+# sinif toplu urun ekleme dilimleridir. KAPALI KUME DEGISMEDI — degisen yalniz SIRA.
 #
 # NEDEN AYRI BIR KUME (olculdu 17 Agu 2026, KraL): CI nobetinin dagitim tablosu
 # (`~/.claude/cron/nobet-kapi.py`) uc kata is yolluyordu — `codex`, `deepseek-pro`,
@@ -18,7 +26,7 @@ ISCI_MOTORLARI = ("minimax-m3", "kimi", "deepseek-pro", "deepseek-flash", "claud
 # Sonuc: nobet 76 tur boyunca is "dagitti" ama hicbiri kosmadi (`ONARIM=0` `KAPANAN=0`,
 # `USTUSTE_ONARIMSIZ=63`). Bir kati emekli etmek o kata ATANMIS isleri tasimiyor
 # ([[goc-yolu-eski-kapiya-takilir]]); goc icin dagitimin CANLI kumeden turemesi sart.
-CANLI_ISCI_MOTORLARI = ("kimi", "minimax-m3")
+CANLI_ISCI_MOTORLARI = ("minimax-m3", "kimi")
 
 # Emekli: yeni is YOLLANMAZ. Kimlik tanimada gecerli kalir.
 EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash")
