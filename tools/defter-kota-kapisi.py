@@ -295,9 +295,9 @@ def _hukum_red(satir, bayt, eksen, kok):
     print("!! CARE: python3 /Users/okan/dev/pruvo/tools/defter-rotasyon.py "
           "/Users/okan/dev/pruvo/DEVAM.md /Users/okan/dev/pruvo/DEVAM-ARSIV.md "
           "--tavan-kaynaktan --isaretciye-indir", file=sys.stderr)
-    print("!!   (ICRA chip/isci duzlemindedir: mimarin K168 muafiyeti YALNIZ "
-          "bayraksiz bicimi kapsar — bayrakli cagriyi chip kosturur.)",
-          file=sys.stderr)
+    print("!!   (K258, 20 Agu: bu cagri artik MIMARIN elinde de SERBEST — kapinin "
+          "adlandirilmis DEFTER BAKIMI kovasi iki bayragi TAM ESITLIKLE gecirir. "
+          "Kume disi bayrak (--tavan-sayi / --tarih) RED kalir.)", file=sys.stderr)
     _sayaç_yaz(kok, satir, bayt)
     return 1
 
@@ -409,7 +409,9 @@ def kutu_kontrol(kok, kol_no_op=False):
               file=sys.stderr)
         print("!!   (LOSSLESS: hicbir sey SILINMEZ — en eski bloklar %s dosyasina "
               "TASINIR. Kapi kutuyu YALNIZ OKUR; tasimayi insan ya da rotasyon "
-              "araci yapar. Once kuru kosum: --kuru)"
+              "araci yapar. Once kuru kosum: --kuru. K258, 20 Agu: iki bicim de "
+              "mimarin elinde SERBEST — kapinin DEFTER BAKIMI kovasi yalnizca "
+              "'--kuru' bayragini gecirir, baska bayrak RED.)"
               % (arsiv_yolu or "<kutu>-arsiv.md"), file=sys.stderr)
         return KUTU_RC[KUTU_ASILDI]
 
