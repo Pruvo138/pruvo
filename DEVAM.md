@@ -62,6 +62,10 @@ artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merg
 - 🔧 **K220 (KraL):** `marka_yazimlari()`+`taninmis_mi()` TEK listeden besleniyor; liste iki rol tasiyor
   ("baslikta aranan ad" + "MODEL OLAMAZ jetonu"). Range Rover'i markaya yazmak CANLI `/marka/land-rover/range-rover/`
   sayfasini (6 urun) OLDURUYOR — ayrilmadan dokunma. Girdi: K216 raporu EK + `arama.py:2201`. SIRA: D bitti, sirada A.
+- 🔧 **K228 (20 Agu, KraL — K220'nin KARDESI, ayni govde DEGIL):** `marka=` ekseninde iki yuzey
+  FARKLI yuklem kosuyor — uc `marka ∋ HAM` OR `marka_kanon ∋ katla(v)` (=`markaUyeMi ∪ baslikMarkalari`),
+  yerel (`parite-marka-sinifi.js`) YALNIZ `markaUyeMi` → yon DAIMA `/ara ≥ yerel` (47 ayrisim /
+  1331 sorgu). YON: iki yuzeyi TEK KAYNAKTAN turet ("once testi duzelt" DEGIL). TAM METIN+kabul ARSIVDE.
 
 ## KraL ACIK ARTIKLAR (19 Agu anlati blogu ARSIVE TASINDI; kota uyarisi da orada)
 🔧 **K203:** tavan kapisi worktree ICINDEN rol eksenini kaybediyor (sebep onek DEGIL cagri baglami);
@@ -106,10 +110,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
   evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
   ekseninde ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
   (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
-- 🔧 **K151 (yedek dusus beyani her rotasyonda ELLE yeniden yaziliyor; sinif):** karantina
-  cozuldu (dususler MESRU olcuLdu, arsivler dususten FAZLA buyudu). Beyan TAM boyuta bagli
-  → 3. tekrar. **Yon:** ROTASYON CIFTI invaryanti. Tam metin ARSIVDE.
-- 🔧 **K161 (17 Agu — marka dili KIP ekseni KAPANDI, KALINTI ayri parti):** kapi kapsaminda ama Okan onayli kalip tablosu DISINDA kalan **ELLE=10** kayit + karma cumle yuzunden bilerek atlanan 1 kayit. Kural dokumu, id'ler ve gerekce POSTA KUTUSUNDA. kabul: `python3 tools/denetim-kapisi.py --tum-katalog --envanter` vurus ≤21.
+- 🔧 **K151 · K161 (17-19 Agu):** ikisinin de TAM METNI ARSIVDE (20 Agu 1:1 tasima blogu).
 
 ## OKAN'DA
 
