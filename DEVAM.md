@@ -15,8 +15,15 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI: m3 Max $50 + kimi $39, yukseltme YO
 5h %1, aylik 3,48B / ~5,1B; API Usage'da harcama 0.0000). Yukseltme tetigi: m3'te ILK 403/karantina
 ya da eszamanli tur reddi.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
-- 🔴 **K257 (Okan):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan; sayac ISLE TASINIR, kapi
-  reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
+- 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
+  sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
+- 🔴 **K259 (20 Agu, KraL OLCTU):** MOTOR SIRASI EMRI 4 KARDES EVDE CANLI DEGIL — kurulu kopya
+  `<ev>/.claude/mimar-icra-kapisi.py:579` DORDUNDE de `('kimi','minimax-m3')` (ESKI SIRA), tek kaynak
+  `tools/mimar_kimlik.py:29` `("minimax-m3","kimi")`. Evler: pazarlama · bot · hasat · jenerator (KraL'da
+  kurulu kopya YOK, tek kaynagi dogrudan okuyor). Etki: o evlerde rotasyon karantinadaki kimi'yi birincil
+  sayiyor. Care `mimar-kapi-kur.py --isci-kapisi --uygula` ama 🔴 KOSAN `KraL-TarayiciAcma` AYNI dosyaya
+  dokunuyor → dagitim onun MERGE'inden SONRA TEK SEFERDE (K229 sessiz auto-merge riski).
+  kabul: 4/4 evde sira `("minimax-m3","kimi")` + `motor-tek-kaynak-kapisi.py` rc=0 + sira mutanti evleri KIRMIZIYA cevirir.
 - 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
   bulunur+kapanir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
   kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
@@ -32,7 +39,6 @@ ya da eszamanli tur reddi.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
-- ✅ **19 AGU KAPANANLAR (bloklar ARSIVDE+kutuda):** K186 · K205 · K210 · K211 · K190 · K215/K80 · SeritB · K224 · K209.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
@@ -91,8 +97,6 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul `tools/paket-k171-kaynak-temizle.md`de.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
   kalici `--yerel` yolu KraL'da, sonraki dilim oncesi. Tam metin ARSIVDE. `kabul:` alani BOS.
-- 🔵 **K136 (17 Agu, KAYIT):** ana agacta `tools/marka-uyelik-test.py` BES oturumdur
-  commit'siz (K126 "tek govde" yuklemini ham donguye geri aliyor). DOKUNULMADI.
 - 🟠 **K139+N1 (CANLI CRON DURUMU, ekip bilmeli):** gozcu `8,23,38,53` (15 dk); ci-nobeti `7 * * * *`
   artik KOSULSUZ DEGIL — `nobet-tetik.py` gozcunun kalbini okur (24 kayit replay: acilan tur
   **24/gun → 0**; canli 21:07 `acilan_tur=0`). 🔧 N1-kalem: uzun tur kendi kalbini bayat gosterir.
@@ -100,28 +104,20 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
   hukum her turda guncel uca tasiniyor. Tam metin ARSIVDE.
   kabul: guncel ucu ICEREN kosum `conclusion=success` **VE** cache-bust'SIZ canli teyit.
 - 🔧 **K140 (17 Agu — hukum verildi, icra kaldi):** kapi EVREN KAYNAGI hatasi (cip evreni kuratorlu). Tam metin ARSIVDE. kabul: `marka-invaryant-kapisi.py` 7 jeton DUSMUS + `Rover` DURUYOR + mutasyon 4/4.
-- 🔧 **17 Agu KALEMLERI (tam metinleri ARSIVDE, kabul satirlari orada):** **K163** fail-silent ciplak
-  `except OSError: pass` · **K162** canli turun profili CANLI sayilmiyor (tur cokme riski) · **K157**
-  kimi hatti (⚖️ Okan: 22 Agu'ya kadar KAPALI, yeni olcum turu ACILMAZ) · **K158** isci tarayicisi
-  yalniz kimi'de · **K146** nobet dosyalari yedeksiz · **K142** 14 R2 anahtari `NoSuchKey` (MaCiT) ·
-  **K118** pre-push kapisi bicim-kaydiran partide butceyi yapisal asiyor.
+- 🔧 **17 Agu KALEMLERI:** K163 · K162 · K157 (⚖️ Okan, 22 Agu) · K158 · K146 · K142 (MaCiT) · K118. TAM METIN ARSIVDE.
 - 🔴 **K104 / K104B:** nobet sicili + iki kapi main'de kirmizi. HUKUM MIMARDA. · **K99**
   bag kolonu · **K100** satir-sonu muafiyeti · **K102** yasakli ic dosya adi.
 - 🟠 **K152 (17 Agu — OKAN KARARI kapsami belirledi):** "sitede bulunan tum urunler satilabilir." Tam metin ARSIVDE.
   kabul: `python3 tools/koken-bul.py --eksik` → `EKSIK` DUSER **VE** `--kendini-test` rc=0.
-- 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik alarminin TETIK ekseni raporladigi bundle
-  evreniyle AYNI DEGIL; (b) `devam-sinif-kapisi.py` is-akisi muafiyeti `norm`/`ham`
-  ekseninde ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR — peer'in dusurulen commitsiz isi
-  (deploy.yml serit tasima · marka-uyelik-test.py · kalibrasyon 4 dosya). Sahibi uygulayacak.
+- 🔧 **Iki acik kapi kalemi:** (a) shop bayatlik TETIK ekseni ≠ bundle evreni; (b) `devam-sinif-kapisi.py`
+  is-akisi muafiyeti `norm`/`ham` ayrisiyor. · 🟠 **K122:** `kurtarma/k122-yabanci-is` dali DURUYOR. ARSIVDE.
 - 🔧 **K151 · K161 (17-19 Agu):** ikisinin de TAM METNI ARSIVDE (20 Agu 1:1 tasima blogu).
 
 ## OKAN'DA
 
-- 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari.
-  (16 Agu: rotasyon bunu bir kez arsive supurdu, geri konuldu; sinif kusuru K128.)
+- 🔧 Eski yedek klasorunu backup-v2 icine tasima · K89 olcum eylemi silme karari. (K128; ARSIVDE.)
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
-- Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = ~$17,3/milyar; $20/ay + ~4,6 milyar/ay = ~$4,3/milyar.
 - 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z · 20 Agu 14:2xZ TAZELENDI):** pruvo-shop bayatlik nabzi KIRMIZI **373,2 dk** / esik 120; yayinlanmamis fark artik 2 commit ve YORUM DEGIL — K252 siparis durum secici DAVRANISI canliya INMEDI. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
 
 ## ARSIVDE
