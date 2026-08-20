@@ -80,8 +80,13 @@ def motor_blogu_kaynagi():
         MOTOR_BLOK_BAS,
         "# 🔴 TURETILDI — ELLE DUZENLEME YOK. Tek kaynak: tools/mimar_kimlik.py.",
         "# Degistirmek icin kaynagi duzenle, sonra su komutu kostur:",
-        "#   python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --isci-kapisi --uygula",
-        "# Sapma nobetcisi: python3 /Users/okan/dev/pruvo/tools/motor-tek-kaynak-kapisi.py",
+        # 🔴 20 AGU (K250): EV-GORELI YAZIM. Bu iki satir enjekte edilen blogun ICINDE
+        # yasar ve K250'den beri kardes evlerin COMMIT'LENEN kapi dosyasina iniyor —
+        # yani makineye cakili "/Users/<ad>/..." yolu oralarda hem YANLIS olurdu hem de
+        # kullanici adi tasirdi. Satirlar SALT YORUM (davranis yok); imza da yalnizca
+        # motor kumelerinden turer, dolayisiyla bu degisiklik sapma URETMEZ.
+        "#   python3 ~/dev/pruvo/tools/mimar-kapi-kur.py --isci-kapisi --uygula",
+        "# Sapma nobetcisi: python3 ~/dev/pruvo/tools/motor-tek-kaynak-kapisi.py",
     ]
     kumeler = motor_kumeleri()
     for ad in MOTOR_TURETILEN_ADLAR:

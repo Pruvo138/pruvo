@@ -451,11 +451,24 @@ def _mcp_tarayici_mi(tool_name):
 #
 # 🔴 YOL TAM ESITLIKLE ARANIR (basename/goreli yol KABUL EDILMEZ): aksi halde 'isci.sh'
 # adli HER betik repo-disi muafiyet anahtari olurdu. '/tmp/isci.sh' bu yuzden RED alir.
-ISCI_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/isci.sh"
+#
+# 🔴 20 AGU (K250) — EV-GORELI COZUMLEME, MAKINEYE CAKILI YOL DEGIL. Eski hali
+# "/Users/okan/.claude/cron/isci.sh" diye SABIT yaziliydi. Iki kusur birden:
+#   (a) TASIYICILIK: bu kural ARTIK commit'lenen sablonun icinde yasiyor (K250 hukmu —
+#       kurulum betigi TEK TASIYICI degil), yani baska makinede/hesapta checkout edilen
+#       her kopyaya AYNEN iniyor. Sabit yol o kopyalarda YANLIS olurdu.
+#   (b) SIZINTI: bu depo PUBLIC; commit'lenen metinde kullanici adi tasiyan mutlak yol
+#       istenmez.
+# COZUMLEME expanduser'dir — TAM ESITLIK KARSILASTIRMASI AYNEN KALIR (asagidaki
+# _isci_karari'nda '==' ile aranir). Yani kapi GENISLEMEDI, yalnizca ayni tek yolu
+# tasinabilir bicimde HESAPLIYOR. HOME cozulemezse expanduser '~' ONEKINI OLDUGU GIBI
+# birakir; o zaman hicbir gercek argv0 esitlesmez ve kural "sarmalayici DEGIL" der ->
+# cagri A adimina duser ve REDDEDILIR (fail-closed, DAR taraf).
+ISCI_SARMALAYICI_YOLU = os.path.expanduser("~/.claude/cron/isci.sh")
 # m3-isci.sh YONLENDIRMEDIR: govdesi 'exec .../isci.sh minimax-m3 "$@"', yani imzasi
 # MOTORSUZDUR (<ev> <spec> [etiket]) ve motoru minimax-m3'e CIVILIDIR. Karar verirken
 # basina bu motor konmus gibi degerlendirilir — ayri bir kural govdesi YAZILMAZ.
-ISCI_M3_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/m3-isci.sh"
+ISCI_M3_SARMALAYICI_YOLU = os.path.expanduser("~/.claude/cron/m3-isci.sh")
 ISCI_M3_CIVILI_MOTOR = "minimax-m3"
 # KAPALI KUME ortak mimar_kimlik.py kaynagindan gelir; burada ikinci tablo tutulmaz.
 # Argument sayisi (motor DAHIL): 3 (<motor> <ev> <spec>) ya da 4 (+ <etiket>).
@@ -464,7 +477,7 @@ ISCI_ARGUMAN_SAYILARI = (3, 4)
 # ISCI-SARMALAYICI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev
 # dogrulamasi; --codex-kurali / --agent-kapisi / --mcp-kapisi ile AYNI kalip). Kurali
 # degistirirsen damgayi da yukselt.
-ISCI_KURAL_SURUMU = "19agu-4"
+ISCI_KURAL_SURUMU = "20agu-k250"
 ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
 # 19 AGU (K214): INSAN-OKUR metin CANLI kumeden turer. Eski hali "minimax-m3 /
 # deepseek-pro / deepseek-flash" diye ELLE yazilmisti — yani kapi reddederken mimara
