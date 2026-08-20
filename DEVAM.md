@@ -2,29 +2,23 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 DEVIR — 19 Agu 2026 22:1xZ, eski hesap → yeni hesap (KraL)
-**SIRADAKI TEK IS:** Uc hazir dali merge kapisindan gecirip main'e al — `kral/n1-gozcu-kablolama`
-`fd6b6d8d` · `kral/n2-kirleten-onarir` `a87f1809` · `kral/k184-talep-sihirbazi` `f623d712`.
-**Nerede kaldim:** 20 Agu ACILIS: main=origin `519fdb2d`, agac TEMIZ, worktree **1**, cakisma
-on-testi ucunde de YOK, D1 bes eksen YESIL (29573), `.ci-token` **GECERLI** (01:45 turu rc=0
-gercek icra); tazelemeyi BaBa yapti. Spec `tools/paket-uc-dal-merge.md`.
-**20 Agu 2. tur (KraL):** main=origin, agac TEMIZ, worktree 1. KAPSAM `merge-base...uc`
-ile olculdu, spec tablosuyla BIREBIR (2/+23-3 · 9/+3111-12 · 9/+2359-104); `urunler.json` temasi ve
-sizinti YOK → §4 temiz. Cakisma on-testi guncel main'de ucu de TEMIZ (N1'i defter rotasyonum bir ara
-catisti, K136 satiri birebir geri konup kapatildi). N1 bataryasi REPO DISI `~/.claude/cron/` (4 arac,
-dordu de VAR); repo delta'si DEVAM.md + `pre-push` (20 satir RAPOR-ONLY, `exit` YOK, 0,045 sn — okundu,
-temiz). Engel bataryalarin `python3`'u — kapi reddi OLCULDU, kod kilidi kosucu betigi de kesti → odev
-**`tools/paket-uc-dal-merge-okan-komutlari.md`**'de dal basina tek `&&` zinciri (OKAN KAPISI). Onceki tur: K190 `4340c0b9` ·
-K216 `8634bc49` · K206 `7ce644ae` · K223 `9965c4fb` · K212 `df7425ea` · K224 (isci hatti) ·
-shop worker Okan'in deploy'uyla taze (`5606ffbe`, TALEP_SAYAC KV bagli) · D1 bes eksen YESIL.
-🟢 **N1 KABLOLAMASI CANLI** (cron repo disi): `crontab` gozcu `8,23,38,53` (15 dk) + `ci-nobeti.sh`
-artik once `nobet-tetik.py --karar` kosuyor; kalp `22:08Z` (1 dk taze). Dal merge BEKLIYOR.
-**Acik dal:** merge sirasi N1→N2→K184; ayrica `kral/k195-defter-rotasyon` (DEVAM.md cakismasi)
-+ `kral/k214-motor-tek-kaynak`. **Baskasinin calisma kopyasinda duran:** YOK.
-**Zamanlanmis nobetler:** crontab 5 satir CANLI ve OLCULDU · scheduled-tasks kayitli 3, ucu de
-`enabled=false` — KASITLI: `saatlik-github-hata-nobeti` crontab surumuyle MUKERRER olurdu,
-`kuyruk-geri-tepmesi-48sa` penceresi gecti, POM izleyicisi bayat. Yeniden kurulan: YOK.
-**Okan'da bekleyen karar:** yok (shop deploy bugun yapildi; K200(i) canli `--kuru --d1` duruyor).
+## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~03:1xZ (KraL)
+**CANLIYA GIDEN (main=origin `a428a8b3`, agac TEMIZ):** N1 `01fb040b` · N2 `ba0e1c50` ·
+K195 `528da42d` · N2B-T4 onarimi `b1eab8af` · **yayin kirmizisi onarimi `a428a8b3`**.
+🔴 N2 merge'i `deploy.yml`'i UC COMMIT bloke etti: PUBLIC repoya gizli kaynak adi girdi,
+`kisisel-veri-test.py` yakaladi (yayin ~23:19Z-02:5xZ KAPALI). HEAD temiz; **GECMIS DEGIL**.
+**KOSUYOR (chip/dal — hicbiri OLDURULMEDI):** K214 `kral/k214-motor-tek-kaynak-r2` `64407d7c`
+(CI `32318398886` in_progress; regresyon onarildi+curutuldu, batarya 299/299) · P1
+`claude/sad-neumann-462e89` `ed819007` · P2/P3 `claude/angry-jackson-414a26` · ADIM1 fantom
+Purchase `claude/fervent-heisenberg-2d069c` · yayin chip'i `pensive-dijkstra-ad8b57` (isi INDI).
+Isci kati: `isci.sh kimi`, muaf etiket (`kabul-*`) ile.
+**BEKLIYOR:** K184 `f623d712` — HUKUM VERILDI (merge EDILECEK, `parite-ege` kirmizisi TABANIN;
+gerekce kutuda), batarya kosumu bekliyor · K229 `claude/adoring-dewdney-210333` `c1bf8062`
+(olculdu, itildi; tabani `b1eab8af`, merge oncesi kapilar TAZELENMELI) · sira:
+K214→K184→K229→P1→P2/P3→ADIM1.
+**MERGE KAPISI DERSI (bu turda yandi):** diff ekseni GOZLE degil `kisisel-veri-test.py` ile olculur.
+**Okan'da bekleyen:** ① gizli adin GECMISTEN silinmesi — karar VERILDI (kuyruk bosalinca
+`filter-repo`+force-push+GitHub temizlik talebi), **kalem ACIK** · ② K200(i) canli `--kuru --d1`.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
