@@ -34,8 +34,8 @@ Yani `uretimde` durumundan cikisin tek kapisi `kargolandi`, o da takip kodu isti
 Secicide `Kargolandi` secenegi **BULUNMAZ** (kargo formu zaten kartta duruyor).
 
 **(C) 🔴 ODEME-KAYNAKLI DURUMLAR SECICIDE YOKTUR** (KraL sarti, Okan'a bildirildi):
-`bekliyor` · `basarisiz` · `havale-bekliyor` · `incele` · `odendi` **elle setlenemez** —
-bunlari odeme sistemi yazar. Elle `odendi` isaretlemek **tahsilat yalani** uretir
+`bekliyor` · `basarisiz` · `havale-bekliyor` · `incele` · `odendi` **dışarıdan atanamaz** —
+bunlari odeme sistemi yazar. Yetkisiz `odendi` isaretleme **tahsilat yalani** uretir
 (odenmemis siparis odenmis gorunur). TEK istisna **geri alma**: mevcut durum
 `{uretimde, kargolandi, tamamlandi}` ise `odendi` hedefine donulebilir (o siparis zaten
 odenmisti; yalan uretmez). `bekliyor|basarisiz|havale-bekliyor|incele → odendi` **400**.
