@@ -2,24 +2,23 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 CANLI DURUM — 20 Agu 2026 ~08:xxZ (KraL)
-**YAYIN ACIK** (kirmizi 23:19Z-01:25Z surdu, kapandi; gecmis temizligi hala ACIK).
-**BU OTURUMDA ALTI MERGE:** K214 `886d2cad` · P2/P3 · P1 · ADIM1 fantom Purchase ·
-K184 (SQUASH — K80 menzil daraltmasi; tam gecmis `kral/k184-talep-sihirbazi`) · K237-t2 sayac
-ekseni — son uc **`76943e32`**.
-**KOSUYOR:** N4A onarim hatti (`kral/n4a-onarim-hatti`) — B1 etiket onarimi, merge bekliyor.
-**BEKLIYOR:** K229 `claude/adoring-dewdney-210333` `c1bf8062` (taban bayat, chip kapali, SAHIPSIZ).
-**Okan'da:** ① gizli adin GECMISTEN silinmesi **ACIK** · ② K200(i) canli `--kuru --d1` ·
-③ TARIFE: kimi 403 gun boyu (5 kayit) + 10 kalem MIMAR sinifi = "hat bozuk DEGIL, KAT YOK".
-- ✅ **K237 KAPANDI** (`76943e32`): sayac D1'in `COUNT(*)`'undan TURETILIR + durum-test
-  tautolojisi kapatildi (142/0 · 55/0 · 25 mutant, iki farkli kapi tabani); MaCiT 29/29
-  dogruladi. "sayac bayat ise uc dondurmuyor" hipotezi CURUTULDU.
-- 🔴 **N4A KOK SEBEP (21 turdur):** N2 kapisi onarim hattini KENDINI blokluyordu (etiket
-  `ci-nobeti`, muafiyet `startswith` ile); 31 yesil 23:53Z ONCESI / 21 hata SONRASI. B4+B5
-  `~/.claude/cron/*.py` = **BaBa duzlemi**. Tam metin KUTUDA.
-- 🔧 **K240** kapi yardim metni bayat (care: TAM YOL) · 🔧 **K241** sayac "is YOK" ile "denedi
-  basaramadi"yi ayni kovaya atiyor · 🔧 **K242** `talep-sihirbazi-test.py` mutasyon kolu YOK ·
-  🔴 **K243** defter rotasyonu KILITLI: bayrak yasagi + kati esitsizlik + bes blogun BESI vetolu.
+## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~10:xxZ (KraL)
+**AGAC TEMIZ · main=origin `5c1d98e5` · worktree 1 · KOSAN CHIP YOK.**
+**CANLIYA GIDEN (9 merge):** K214 `886d2cad` · P2/P3 · P1 · ADIM1 · K184 (SQUASH; tam gecmis
+`kral/k184-talep-sihirbazi` dalinda) · K237-t2 · yayin onarimi `c2cb6bcf` · N4B spec · K246
+`5c1d98e5`. IKI yayin kirmizisi kapatildi (ikincisi K184 kaynakli; care FIKSTURDE).
+**BEKLIYOR:** K229 `c1bf8062` SAHIPSIZ (kabul: tabani tazele + kapilari kos) · N4B B4-B8
+**BaBa'da**, B7 ONCE · VARYASYON FAZ 1-5 (`tools/paket-varyasyon-programi.md`) chip bekliyor.
+**Okan'da:** ① gecmis temizligi — kuyruk BOSALDI, on kosul SAGLANDI · ② K200(i) · ③ Worker
+deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inmeden OLCULEMEZ.
+- ✅ **KAPANDI:** K237 (sayac turetilir + tautolojik yesil kapandi) · K246 (`boy_secenekleri`
+  yazma yolu + dogrulayici; iddia 185→236) · N4A (hat 105 turdur KENDINI blokluyordu: etiket
+  `ci-nobeti` + `startswith`; 09:38'de ILK KEZ kostu).
+- 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`), guard geri
+  sarmamis; kabul: kanal bulunur+kapatilir+mutant. · 🔧 **K248** K7 kanonik yol varsayiyor ·
+  🔧 **K245** bitis satiri isci ciktisinda belirebiliyor · 🔧 **K240** kapi yardim metni bayat ·
+  🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔴 **K243** rotasyon KILITLI ·
+  🔧 **K244** kabul listesi ≠ CI kapsami. Tam metinler KUTUDA.
 - 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (`ek_vaka` + I3/I5, ayni dalda IKI
   tekrar) — SINIF, tekil yama YOK. kabul: sayi tek yerden TURETILIR + mutant. · 🔧 **K238:**
   `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (P1'de kapsam SIFIRDI);
