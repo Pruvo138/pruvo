@@ -4,16 +4,13 @@
 
 ## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~15:3xZ (KraL)
 **AGAC TEMIZ · main=origin `66ff84d1`** · worktree 2 (ana + KOSAN chip).
-**CANLIYA GIDEN (7 merge):** K248 `e27b826c` · K250 `ba0e5e2a` · K252 `920e94b6` ·
-K253 `33d2a6e0` · yetkinlik `47b9f989` · MOTOR SIRASI `e134911f` · N4B `66ff84d1`.
+**CANLIYA GIDEN:** 7 merge (SHA listesi ARSIVDE).
 **KOSUYOR:** `KraL-TarayiciAcma` (`kral/tarayici-acma`) — tarayici kapisini KraL+MaCiT'te acar;
 🔴 Agent yasagi DOKUNULMAZ (negatif kontrol + birlestirme mutanti sart).
 **BEKLIYOR:** K257 chip'i (MotorSirasi indi, ACILABILIR) · K249 · VARYASYON FAZ 2-5 ·
 K250 rollout 1/6→6/6 · MaCiT Audi dal-2.
 **Okan'da:** ① gecmis temizligi (on kosul SAGLANDI) · ② K200(i) · ③ Worker deploy — K252 main'de
-AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI: m3 Max $50 + kimi $39, yukseltme YOK (haftalik %38,
-5h %1, aylik 3,48B / ~5,1B; API Usage'da harcama 0.0000). Yukseltme tetigi: m3'te ILK 403/karantina
-ya da eszamanli tur reddi.
+AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE).
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
@@ -27,8 +24,10 @@ ya da eszamanli tur reddi.
 - 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
   bulunur+kapanir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
   kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
-  🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔴 **K243** rotasyon KILITLI ·
-  🔧 **K244** kabul listesi ≠ CI kapsami. Tam metinler KUTUDA.
+  🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔧 **K244** kabul listesi ≠ CI
+  kapsami. (K243 KAPANDI `951059fa`.) Tam metinler KUTUDA.
+- 🔧 **K260:** N4B gocunun 15 kaydindan 10'u `kat_sec` ile yine MIMAR'a dusup `[DAGITILMAZ]` kaliyor. kabul: yuklem + mutant.
+- 🔴 **K261 (YAYINI DURDURUR):** `kancalar/pre-push:314` `d1-sync.py` rc=4'u (lease = ATLANDI) BASARISIZ sayip push'u blokluyor; CI adimi (`d1-sync.py:4839`) ayni rc'yi 0 sayar. `--durum` 5/5 YESIL iken push 2 kez durdu. kabul: iki yonlu + mutant + tek kaynak.
 - 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (SINIF; kabul: sayi TURETILIR + mutant) ·
   🔧 **K238:** `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (kabul: bagimsiz kosar
   ya da `KAPSAM=0` jetonu BASAR).
