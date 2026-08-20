@@ -5,6 +5,8 @@
 Kullanim:
     python3 tools/defter-rotasyon.py <defter.md> <arsiv.md>
     python3 tools/defter-rotasyon.py <defter.md> <arsiv.md> --tarih 2026-08-16
+    python3 tools/defter-rotasyon.py <defter.md> <arsiv.md> \
+            --tavan-kaynaktan --isaretciye-indir      # KOTA ASILDIGINDA BU
 
 KESME OLcUTU (mimar verdi):
   * Dosya `## ` baslikli bloklara bolunur; ilk `## `den onceki kisim BASLIK
@@ -31,10 +33,31 @@ KESME OLcUTU (mimar verdi):
 
 CIKIS:
     0 = basarili (veya tasinacak blok/madde yok)
-    2 = guvenlik dogrulamasi basarisiz, rotasyon iptal
+    2 = guvenlik dogrulamasi basarisiz (KAYIP dahil), rotasyon iptal
+    3 = ILERLEME_YOK (tavanli kosumda gecis no-op)
+    4 = OLCULEMEDI (isaretciye indirme ILERLEME URETEMEDI)
+    5 = ROTASYON CIFTI 1:1 TUTMADI — dosyalar GERI ALINDI (K195 §1.3)
 
 Cikti son satiri:
     TASINAN=<n> TASINAN_MADDE=<n> DEFTER_SATIR=<n> ARSIV_SATIR=<n>
+
+🔴 ROTASYON CIFTI INVARYANTI (K151/K195 §1.3) — her GERCEKLESEN tasima
+sonrasi arac kendi isini DISKTEN olcer ve su satiri BASAR:
+    ROTASYON_CIFTI defter_dusen=<n> tasinan_icerik=<n> arsive_giren=<n>
+                   arsiv_muhasebe=<n> kayip=<n> fazla_dusen=<n>
+                   uydurulan=<n> LOSSLESS=EVET|HAYIR
+LOSSLESS=HAYIR ise dosyalar GERI ALINIR ve rc=5 doner: "tasidim" BEYANI
+kabul degildir.
+
+🔴 KOTA KENDI OLCUMU (K195 §1.4) — tavanli her kosumun sonunda:
+    KOTA_KENDI_OLCUMU satir=<n> bayt=<n> tavan_satir=<n> tavan_bayt=<n>
+                      ASAN_EKSEN=<...> KOTA=YESIL|KIRMIZI
+Tavan degerleri kota kapisinin okudugu AYNI tek kaynaktan gelir
+(tools/defter-kota-taban.py); ikinci tavan kopyasi TUTULMAZ.
+
+🔴 ACIK KALEM ASLA ARSIVLENMEZ (K195 §1.2): isaretciye indirme adayligi
+`_indirme_vetosu()` ile TURETILIR (korumali baslik / ACIK jeton / zaten
+inmis govde). Vetolanan her blok `TASINMADI: <baslik> — <sebep>` basar.
 
 Her tasinan blok icin (son-ozetten ONCE) bir `TASINAN-BLOK: <baslik>` satiri;
 her tasinan madde icin `TASINAN-MADDE: <ilk satir, kirpilmis 100 kar.>`.
@@ -46,6 +69,7 @@ KENDINI-TEST (--kendini-test, K178):
     * TAVAN DEGERLERI: tools/defter-kota-taban.py'dan okunur (TEK KAYNAK).
 """
 import argparse
+import collections
 import importlib.util as _ilu
 import os
 import re
@@ -150,11 +174,35 @@ def _blok_anlamli_govde_satiri(blok):
     return len([s for s in blok["govde"] if s.strip()])
 
 
-def _isaretciye_indirilebilir_mi(blok):
-    """Blok isaretciye INDIRILEBILIR mi? (korumali degil + govdesi dolu)"""
+def _indirme_vetosu(blok):
+    """Blok isaretciye INDIRILEMEZ ise SEBEP dizesi, indirilebilirse None.
+
+    🔴 K195 §1.2 — ACIK KALEM ASLA ARSIVLENMEZ. Eski surumde veto YALNIZ
+    BASLIGA bakiyordu (KORUMALI_BASLIK_DESENLERI); govdesinde 🔴/🔧/🟠 ya da
+    `ACIK`/`BEKLIYOR` jetonu tasiyan KORUMASIZ bir blok TAM METNIYLE arsive
+    gomulebiliyordu. Gercek DEVAM.md uzerinde OLCULDU (19 Agu on-olcum):
+    korumasiz TEK blok (`🔻 KraL CANLI DURUM`, 877 bayt) `acik_jeton=True`
+    tasiyor ve eski kod onu `indirilebilir=True` sayiyordu — yani hukum ile
+    kural ayrisikti. Yuklem artik TURETILIR: KAPALI oldugu blok govdesinden
+    okunabilen blok iner, suphede kalan TASINMAZ ve sebebini BASAR
+    (fail-closed; `_tasinir_mi` ile ayni ACIK jeton kaynagi kullanilir,
+    ikinci bir jeton tablosu ACILMAZ).
+    """
     if _blok_korumali_mi(blok):
-        return False
-    return _blok_anlamli_govde_satiri(blok) > _ISARETCI_ASGARI_GOVDE
+        return "KORUMALI BASLIK (%s)" % ", ".join(KORUMALI_BASLIK_DESENLERI)
+    tum = blok["baslik"] + "\n" + "\n".join(blok["govde"])
+    if _acik_eslesiyor(tum):
+        return "ACIK KALEM tasiyor (ACIK jetonu blokta gecti) — K195 §1.2"
+    anlamli = _blok_anlamli_govde_satiri(blok)
+    if anlamli <= _ISARETCI_ASGARI_GOVDE:
+        return ("govde zaten isaretciye inmis (anlamli satir %d <= esik %d)"
+                % (anlamli, _ISARETCI_ASGARI_GOVDE))
+    return None
+
+
+def _isaretciye_indirilebilir_mi(blok):
+    """Blok isaretciye INDIRILEBILIR mi? (veto YOKsa evet)"""
+    return _indirme_vetosu(blok) is None
 
 
 def _satir_sayisi(metin):
@@ -162,6 +210,120 @@ def _satir_sayisi(metin):
     if not metin:
         return 0
     return len(metin.splitlines())
+
+
+def _metin_kur(satirlar, sondaki_newline):
+    """Satir listesinden metin kur; orijinalin son newline'ini KORU.
+
+    🔴 `"\\n\\n".join(...)` KULLANILMAZ (K195 §1.3 rotasyon cifti): blok
+    parcalarini cift newline ile birlestirmek her blok siniri icin defterin
+    icine BIR BOS SATIR UYDURUYORDU. Gercek DEVAM.md uzerinde OLCULDU
+    (19 Agu on-olcum): iki KAPANMIS madde tasindi, bayt 12288 -> 11831
+    DUSTU ama SATIR 120 -> 123 CIKTI. Yani rotasyon bir ekseni indirirken
+    otekini yukseltiyordu ve tasinan icerik "1:1" degildi. Bloklarin kendi
+    govdeleri sondaki bos satirlari ZATEN tasidigi icin tek "\\n" birebir
+    yeniden kurar.
+    """
+    # 🔴 BOS SONUC BOS DOSYADIR: satir listesi bosken `"\n".join([]) + "\n"`
+    # tek basina bir BOS SATIR uydurur. Olculdu (19 Agu): tek blogu tamamen
+    # tasinan defterde (V5/V8 fiksturleri) `uydurulan=1` cikti ve 1:1 kolu
+    # dogru yerden kirmizi yandi. Bos liste -> bos metin.
+    if not satirlar:
+        return ""
+    metin = "\n".join(satirlar)
+    if sondaki_newline:
+        metin += "\n"
+    return metin
+
+
+def _parca_satirlari(metin):
+    """`"\\n".join(satirlar)` ile uretilmis bir PARCAYI satirlarina geri ayirir.
+
+    🔴 `str.splitlines()` KULLANILMAZ. Olculdu (19 Agu, K195 kabul kosumu):
+    `"- ✅ madde\\n".splitlines()` -> `["- ✅ madde"]`, yani parcanin SONUNDAKI
+    bos satir SESSIZCE KAYBOLUR (splitlines sondaki newline'i "sonlandirici"
+    sayar). Sonuc: arsive eksik satir yazilir ve defterden DUSEN satir sayisi
+    tasinan icerikten BUYUK cikar — rotasyon cifti 1:1 TUTMAZ
+    (`FAZLA_DUSEN '' x2`). `.split("\\n")` join'in TAM TERSIDIR.
+
+    DOSYA METINLERI icin bu fonksiyon KULLANILMAZ (orada splitlines dogrudur);
+    yalniz join ile uretilmis parcalar icin.
+    """
+    return metin.split("\n")
+
+
+def _satir_sayaci(metin):
+    """Satir COKLU KUMESI (Counter) — 1:1 invaryanti icin (DOSYA metni)."""
+    return collections.Counter(metin.splitlines())
+
+
+def _rotasyon_cifti_dogrula(defter_once, defter_sonra, arsiv_once, arsiv_sonra,
+                            tasinan_metinler, defter_beyan_satirlari):
+    """🔴 ROTASYON CIFTI INVARYANTI (K151/K195 §1.3) — 1:1, LOSSLESS.
+
+    "Tasidim" BEYANI yeterli DEGILDIR ([[isci-isi-commitlemeden-tamamlandi-der]]
+    sinifi, 238/239 vakasi): arac ne tasidigini DISKTEN olcer ve UC kolu birden
+    dogrular. Donus: (tamam_mi, rapor_satiri, teshis_satirlari).
+
+      (1) LOSSLESS — defterden DUSEN her satir arsive GIRMIS olmali.
+          Ihlal = KAYIP: defterden gitti, arsivde YOK.
+      (2) 1:1 — defterden dusen kume, TASINAN icerigin ALT KUMESI olmali.
+          Ihlal = defter, tasinmayan bir satiri de kaybetmis.
+      (3) UYDURMA YOK — deftere GIREN her satir, aracin BEYAN ettigi
+          isaretci satirlarindan biri olmali. Ihlal = arac defterin icine
+          satir uydurmus (yukaridaki cift-newline kusurunun tam olculdugu kol).
+
+    Sayilar RAPORLANIR; tutmuyorsa cagiran GERI ALIR ve rc!=0 doner.
+    """
+    dusen = _satir_sayaci(defter_once) - _satir_sayaci(defter_sonra)
+    giren = _satir_sayaci(defter_sonra) - _satir_sayaci(defter_once)
+    arsiv_artan = _satir_sayaci(arsiv_sonra) - _satir_sayaci(arsiv_once)
+
+    icerik = collections.Counter()
+    for metin in tasinan_metinler:
+        icerik.update(_parca_satirlari(metin))
+    beyan = collections.Counter(defter_beyan_satirlari)
+
+    kayip = dusen - arsiv_artan          # (1)
+    fazla_dusen = dusen - icerik         # (2)
+    beyansiz_giren = giren - beyan       # (3)
+
+    tamam = not kayip and not fazla_dusen and not beyansiz_giren
+    rapor = ("ROTASYON_CIFTI defter_dusen=%d tasinan_icerik=%d arsive_giren=%d "
+             "arsiv_muhasebe=%d kayip=%d fazla_dusen=%d uydurulan=%d LOSSLESS=%s"
+             % (sum(dusen.values()), sum(icerik.values()),
+                sum(arsiv_artan.values()),
+                sum(arsiv_artan.values()) - sum(icerik.values()),
+                sum(kayip.values()), sum(fazla_dusen.values()),
+                sum(beyansiz_giren.values()),
+                "EVET" if tamam else "HAYIR"))
+    teshis = []
+    for etiket, sayac in (("KAYIP(arsivde yok)", kayip),
+                          ("FAZLA_DUSEN(tasinmadi ama gitti)", fazla_dusen),
+                          ("UYDURULAN(deftere girdi)", beyansiz_giren)):
+        for satir, adet in list(sayac.items())[:3]:
+            teshis.append("  1:1 IHLAL %s x%d: %r" % (etiket, adet, satir[:80]))
+    return tamam, rapor, teshis
+
+
+def _kota_kendi_olcumu(defter_yol):
+    """K195 §1.4 — arac kotayi KENDI olcup basar.
+
+    🔴 IKINCI TAVAN KOPYASI TUTULMAZ: TAVAN_SATIR/TAVAN_BAYT ve hukum
+    fonksiyonu `tools/defter-kota-taban.py`'dan gelir — kota kapisinin
+    okudugu AYNI kaynak ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    try:
+        with open(defter_yol, "rb") as f:
+            ham = f.read()
+    except OSError as e:
+        return "KOTA_KENDI_OLCUMU OLCULEMEDI sebep=%s" % e
+    satir, bayt = len(ham.splitlines()), len(ham)
+    asi, eksen, _, _ = _tavan_asi_mi(satir, bayt)
+    return ("KOTA_KENDI_OLCUMU satir=%d bayt=%d tavan_satir=%d tavan_bayt=%d "
+            "ASAN_EKSEN=%s KOTA=%s"
+            % (satir, bayt, TAVAN_SATIR, TAVAN_BAYT, eksen or "-",
+               "KIRMIZI" if asi else "YESIL"))
 
 
 def _bloklari_ayir(metin):
@@ -285,11 +447,22 @@ def _maddeleri_isle(govde):
             while j < n and not govde[j].startswith("- "):
                 madde.append(govde[j])
                 j += 1
+            # 🔴 Maddenin SONUNDAKI bos satirlar madde ICERIGI degil, blok
+            # AYIRACIDIR; maddeyle birlikte tasinirlarsa iki sey birden bozulur:
+            #   (1) defterin blok ayiraclari her rotasyonda ERIR (eski kod bunu
+            #       `"\n\n".join` ile geri EKLEYEREK gizliyordu — o telafi de
+            #       satir uydurdugu icin 1:1'i bozuyordu);
+            #   (2) tasinan icerik ile defterden dusen satir sayisi AYRISIR.
+            # Ayirac defterde KALIR (olculdu: FAZLA_DUSEN '' x2 bu koldan geldi).
+            artik = []
+            while len(madde) > 1 and not madde[-1].strip():
+                artik.insert(0, madde.pop())
             madde_metni = "\n".join(madde)
             if _madde_tasinir_mi(madde_metni):
                 tasinacak.append(madde_metni)
             else:
                 kalan.extend(madde)
+            kalan.extend(artik)
             i = j
         else:
             kalan.append(satir)
@@ -734,7 +907,18 @@ def main(argv=None):
                         " birak. Korumali basliklar (ACIK KALEMLER / OKAN'DA /"
                         " ARSIVDE) ASLA indirilmez. Bayrak YOKSA davranis"
                         " degismez (KAYIP / ILERLEME_YOK).")
+    p.add_argument("--tavan-kaynaktan", action="store_true",
+                   help="tavanlari tools/defter-kota-taban.py'dan (kota kapisinin"
+                        " okudugu TEK KAYNAK) al. Komut satirina SAYI YAZILMAZ:"
+                        " yordama elle yazilan her tavan ikinci bir kopyadir ve"
+                        " sessizce ayrisir. Acikca verilen --tavan-* bunu ezer.")
     a = p.parse_args(argv)
+
+    if a.tavan_kaynaktan:
+        if a.tavan_sayi is None:
+            a.tavan_sayi = TAVAN_SATIR
+        if a.tavan_bayt is None:
+            a.tavan_bayt = TAVAN_BAYT
 
     tarih = a.tarih if a.tarih is not None else _bugun()
 
@@ -753,6 +937,7 @@ def main(argv=None):
             satir = len(onceki_ham.splitlines())
             arsiv_satir = (len(open(arsiv_yol, "rb").read().splitlines())
                            if os.path.exists(arsiv_yol) else 0)
+            print(_kota_kendi_olcumu(defter_yol))
             print("TASINAN=0 TASINAN_MADDE=0 DEFTER_SATIR=%d ARSIV_SATIR=%d TAVAN=DOLU_NO_OP" % (
                 satir, arsiv_satir))
             return 0
@@ -800,6 +985,7 @@ def main(argv=None):
                         aciklama, kazanc))
                     if not _tavan_asildi_mi(defter_yol, a.tavan_sayi,
                                              a.tavan_bayt):
+                        print(_kota_kendi_olcumu(defter_yol))
                         print("TAVAN_BASARILI GECIS=%d TASINAN=%d "
                               "TASINAN_MADDE=%d ISARETCIYE_INDIRILEN=%d" % (
                                   gecis, toplam_blok, toplam_madde,
@@ -836,6 +1022,7 @@ def main(argv=None):
                 son_rc = 1
                 break
             if not _tavan_asildi_mi(defter_yol, a.tavan_sayi, a.tavan_bayt):
+                print(_kota_kendi_olcumu(defter_yol))
                 print("TAVAN_BASARILI GECIS=%d TASINAN=%d TASINAN_MADDE=%d" % (
                     gecis, toplam_blok, toplam_madde))
                 return 0
@@ -854,6 +1041,7 @@ def main(argv=None):
             if not a.isaretciye_indir:
                 print("  CARE (K195a): ayni komuta `--isaretciye-indir` ekle.",
                       file=sys.stderr)
+        print(_kota_kendi_olcumu(defter_yol))
         return son_rc
 
     # Tek-gecis davranisi (tavan bayragi yok): mevcut tek-tekil yol.
@@ -884,11 +1072,21 @@ def _isaretciye_indir_gecis(defter_yol, arsiv_yol, tarih):
     arsiv_metin = arsiv_ham.decode("utf-8") if arsiv_ham else ""
 
     baslik_bolgesi, bloklar = _bloklari_ayir(defter_metin)
-    adaylar = [b for b in bloklar if _isaretciye_indirilebilir_mi(b)]
+    adaylar = []
+    vetolar = []
+    for b in bloklar:
+        sebep = _indirme_vetosu(b)
+        if sebep is None:
+            adaylar.append(b)
+        else:
+            vetolar.append((b["baslik"], sebep))
+    # 🔴 SESSIZ VETO YOK (K195 §1.2): tasinmayan her blok SEBEBIYLE basilir —
+    # "arac hicbir sey yapmadi" ile "arac bakti ve tasimadi" ayrisir.
+    for baslik, sebep in vetolar:
+        print("TASINMADI: %s — %s" % (baslik[:70], sebep))
     if not adaylar:
-        return (4, "indirilebilir blok YOK (tum bloklar ya korumali "
-                   "[%s] ya da zaten isaretciye inmis; govde esigi=%d anlamli satir)"
-                % (", ".join(KORUMALI_BASLIK_DESENLERI), _ISARETCI_ASGARI_GOVDE), 0)
+        return (4, "indirilebilir blok YOK (blok=%d, hepsi vetolu; sebepler "
+                   "yukarida TASINMADI satirlarinda)" % len(bloklar), 0)
 
     # EN BUYUK aday: en cok bayt kazandiran blok.
     hedef = max(adaylar, key=lambda b: len(_blok_metni(b).encode("utf-8")))
@@ -899,24 +1097,27 @@ def _isaretciye_indir_gecis(defter_yol, arsiv_yol, tarih):
                 "metni `DEVAM-ARSIV.md`'de \"%s\" basligi altinda." %
                 (tarih, arsiv_basligi.lstrip("# ").strip()))
 
-    yeni_defter_parcalar = []
-    if baslik_bolgesi:
-        yeni_defter_parcalar.append("\n".join(baslik_bolgesi))
+    # Defter: hedef blogun GOVDESI yerine iki BEYAN satiri (bos + isaretci).
+    # Kalan her sey BIREBIR (satir uydurulmaz) — bkz. _metin_kur.
+    defter_beyan_satirlari = ["", isaretci]
+    yeni_defter_satirlar = list(baslik_bolgesi)
     for blok in bloklar:
+        yeni_defter_satirlar.append(blok["baslik"])
         if blok is hedef:
-            yeni_defter_parcalar.append("\n".join([blok["baslik"], "", isaretci]))
+            yeni_defter_satirlar.extend(defter_beyan_satirlari)
         else:
-            yeni_defter_parcalar.append(_blok_metni(blok))
-    yeni_defter_metin = "\n\n".join(yeni_defter_parcalar)
-    if defter_ham and not defter_ham.endswith(b"\n"):
-        yeni_defter_metin = yeni_defter_metin.rstrip("\n")
+            yeni_defter_satirlar.extend(blok["govde"])
+    yeni_defter_metin = _metin_kur(yeni_defter_satirlar,
+                                    bool(defter_ham) and defter_ham.endswith(b"\n"))
 
-    yeni_arsiv_parcalar = [arsiv_basligi, _blok_metni(hedef)]
+    tasinan_metin = _blok_metni(hedef)
+    yeni_arsiv_satirlar = [arsiv_basligi, ""]
+    yeni_arsiv_satirlar.extend(_parca_satirlari(tasinan_metin))
+    yeni_arsiv_satirlar.append("")
     if arsiv_metin.strip():
-        yeni_arsiv_parcalar.append(arsiv_metin)
-    yeni_arsiv_metin = "\n\n".join(yeni_arsiv_parcalar)
-    if arsiv_ham and not arsiv_ham.endswith(b"\n"):
-        yeni_arsiv_metin = yeni_arsiv_metin.rstrip("\n")
+        yeni_arsiv_satirlar.extend(arsiv_metin.splitlines())
+    yeni_arsiv_metin = _metin_kur(yeni_arsiv_satirlar,
+                                   (not arsiv_ham) or arsiv_ham.endswith(b"\n"))
 
     yeni_defter_bayt = len(yeni_defter_metin.encode("utf-8"))
     kazanc = defter_eski_bayt - yeni_defter_bayt
@@ -934,7 +1135,6 @@ def _isaretciye_indir_gecis(defter_yol, arsiv_yol, tarih):
         arsiv_disk = f.read()
 
     # GUVENLIK: tasinan metin arsive GERCEKTEN eklendi ve defter tam o kadar dustu.
-    tasinan_metin = _blok_metni(hedef)
     dogru = (len(arsiv_disk) - arsiv_eski_bayt >= len(tasinan_metin.encode("utf-8"))
              and defter_eski_bayt - len(defter_disk) == kazanc
              and tasinan_metin in arsiv_disk.decode("utf-8"))
@@ -945,6 +1145,20 @@ def _isaretciye_indir_gecis(defter_yol, arsiv_yol, tarih):
                    "(defter %d->%d, arsiv %d->%d); dosyalar GERI ALINDI"
                 % (defter_eski_bayt, len(defter_disk),
                    arsiv_eski_bayt, len(arsiv_disk)), 0)
+
+    # 🔴 ROTASYON CIFTI (1:1, LOSSLESS) — DISKTEN olculur, beyandan DEGIL.
+    tamam, rapor, teshis = _rotasyon_cifti_dogrula(
+        defter_metin, defter_disk.decode("utf-8"),
+        arsiv_metin, arsiv_disk.decode("utf-8"),
+        [tasinan_metin], defter_beyan_satirlari)
+    print(rapor)
+    if not tamam:
+        for s in teshis:
+            print(s, file=sys.stderr)
+        _atomik_yaz(defter_yol, defter_ham.decode("utf-8"))
+        _atomik_yaz(arsiv_yol, arsiv_ham.decode("utf-8") if arsiv_ham else "")
+        return (5, "ISARETCIYE INDIRME IPTAL — ROTASYON CIFTI 1:1 TUTMADI "
+                   "(%s); dosyalar GERI ALINDI" % rapor, 0)
 
     return (0, hedef["baslik"], kazanc)
 
@@ -1004,28 +1218,26 @@ def _tek_gecis_calistir(defter_yol, arsiv_yol, tarih):
 
     tasinan_blok_parcalar = [_blok_metni(b) for b in tasinacak_bloklar]
 
-    # Yeni defter: baslik bolgesi + kalan bloklar.
-    yeni_defter_parcalar = []
-    if baslik_bolgesi:
-        yeni_defter_parcalar.append("\n".join(baslik_bolgesi))
+    # Yeni defter: baslik bolgesi + kalan bloklar — SATIR SATIR, BIREBIR.
+    # Defterin icine TEK BIR SATIR bile UYDURULMAZ (beyan kumesi BOS).
+    yeni_defter_satirlar = list(baslik_bolgesi)
     for blok in kalacak_bloklar:
-        yeni_defter_parcalar.append(_blok_metni(blok))
-    yeni_defter_metin = "\n\n".join(yeni_defter_parcalar)
-    # Eger orijinalde son satirda newline yoksa ayni sekilde koru.
-    if defter_ham and not defter_ham.endswith(b"\n"):
-        yeni_defter_metin = yeni_defter_metin.rstrip("\n")
+        yeni_defter_satirlar.append(blok["baslik"])
+        yeni_defter_satirlar.extend(blok["govde"])
+    yeni_defter_metin = _metin_kur(yeni_defter_satirlar,
+                                    bool(defter_ham) and defter_ham.endswith(b"\n"))
 
     # Yeni arsiv: ayirac + tasinan bloklar + tasinan maddeler + eski arsiv.
     ayirac = "## %s — ROTASYON: asagidaki %d blok + %d madde defterden BURAYA TASINDI" % (
         tarih, len(tasinacak_bloklar), len(tasinacak_maddeler))
-    yeni_arsiv_parcalar = [ayirac]
-    yeni_arsiv_parcalar.extend(tasinan_blok_parcalar)
-    yeni_arsiv_parcalar.extend(tasinacak_maddeler)
+    yeni_arsiv_satirlar = [ayirac, ""]
+    for parca in tasinan_blok_parcalar + tasinacak_maddeler:
+        yeni_arsiv_satirlar.extend(_parca_satirlari(parca))
+        yeni_arsiv_satirlar.append("")
     if arsiv_metin.strip():
-        yeni_arsiv_parcalar.append(arsiv_metin)
-    yeni_arsiv_metin = "\n\n".join(yeni_arsiv_parcalar)
-    if arsiv_ham and not arsiv_ham.endswith(b"\n"):
-        yeni_arsiv_metin = yeni_arsiv_metin.rstrip("\n")
+        yeni_arsiv_satirlar.extend(arsiv_metin.splitlines())
+    yeni_arsiv_metin = _metin_kur(yeni_arsiv_satirlar,
+                                   (not arsiv_ham) or arsiv_ham.endswith(b"\n"))
 
     # GUVENLIK: tasinan icerik, defterdeki GERCEK azalmadir.
     yeni_defter_bayt = len(yeni_defter_metin.encode("utf-8"))
@@ -1066,6 +1278,28 @@ def _tek_gecis_calistir(defter_yol, arsiv_yol, tarih):
         print("TASINAN=%d TASINAN_MADDE=%d DEFTER_SATIR=%d ARSIV_SATIR=%d" % (
             len(tasinacak_bloklar), len(tasinacak_maddeler), defter_satir, arsiv_satir))
         return 2, len(tasinacak_bloklar), len(tasinacak_maddeler), defter_satir, arsiv_satir
+
+    # 🔴 ROTASYON CIFTI (1:1, LOSSLESS) — DISKTEN olculur, beyandan DEGIL.
+    # Defter tarafinda BEYAN KUMESI BOS: bu gecis defterin icine hicbir satir
+    # eklemez, yalnizca cikarir. Uydurulan tek satir bile rc!=0 uretir.
+    tamam, rapor, teshis = _rotasyon_cifti_dogrula(
+        defter_metin, defter_disk.decode("utf-8"),
+        arsiv_metin, arsiv_disk.decode("utf-8"),
+        tasinan_blok_parcalar + tasinacak_maddeler, [])
+    print(rapor)
+    if not tamam:
+        for s in teshis:
+            print(s, file=sys.stderr)
+        _atomik_yaz(defter_yol, defter_yedek.decode("utf-8"))
+        _atomik_yaz(arsiv_yol, arsiv_yedek.decode("utf-8"))
+        print("ROTASYON IPTAL — CIFT 1:1 TUTMADI; dosyalar GERI ALINDI",
+              file=sys.stderr)
+        defter_satir = _satir_sayisi(defter_yedek.decode("utf-8"))
+        arsiv_satir = _satir_sayisi(arsiv_yedek.decode("utf-8"))
+        print("TASINAN=%d TASINAN_MADDE=%d DEFTER_SATIR=%d ARSIV_SATIR=%d" % (
+            len(tasinacak_bloklar), len(tasinacak_maddeler),
+            defter_satir, arsiv_satir))
+        return 5, len(tasinacak_bloklar), len(tasinacak_maddeler), defter_satir, arsiv_satir
 
     defter_satir = _satir_sayisi(yeni_defter_metin)
     arsiv_satir = _satir_sayisi(yeni_arsiv_metin)

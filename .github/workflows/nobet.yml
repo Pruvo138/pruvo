@@ -1601,6 +1601,22 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/defter-isaretciye-indirme-test.py
 
+      # K195 — ROTASYON CIFTI (1:1 LOSSLESS) + ACIK KALEM VETOSU + BAYT EKSENI.
+      # Uc olculen delik (19 Agu, KraL-K195 chip on-olcumu):
+      #   (1) kota kapisi bir oturumda DORT kez ayni gerekcyle (ASAN_EKSEN=BAYT)
+      #       commit'i reddetti; her seferinde mimar ELLE cumle kisaltti;
+      #   (2) gercek DEVAM.md'de korumasiz TEK blok ACIK jeton tasiyor ve eski
+      #       kod onu "indirilebilir" sayiyordu -> ACIK KALEM arsivlenebilirdi;
+      #   (3) bayraksiz rotasyon bayti 12288 -> 11831 DUSURURKEN satiri
+      #       120 -> 123 CIKARIYORDU (blok sinirlarina bos satir uyduruyordu).
+      # Kabul BES vaka + UC mutant; her mutant YALNIZ kendi hedef kolunu oldurur
+      # (K182). NEDEN SERIT B: tamamen offline, yalniz tempfile fiksturleri;
+      # kabul kendi icinde GERCEK DEVAM.md/DEVAM-ARSIV.md'nin BIREBIR
+      # degismedigini olcer.
+      - name: "Defter rotasyon cifti kabul testi (5 vaka, 3 mutant, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/defter-rotasyon-cifti-test.py
+
       # KANCA NOBETI (tools/kanca-nobeti.py) — git kancalarinin SESSIZCE devre disi
       # kalmasina karsi nobetci. 1 Agu'ta ANA CHECKOUT'ta gercekten yasandi:
       # `.git/config`'e `core.hooksPath = /dev/null` sizdi ve push'taki D1 senkronu +

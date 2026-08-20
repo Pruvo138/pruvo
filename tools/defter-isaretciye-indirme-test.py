@@ -87,8 +87,22 @@ def _defter_yaz(kok, bloklar):
     return defter, arsiv
 
 
-def _acik(etiket, n, genislik=40):
-    return ["- 🔴 %s satir %d %s" % (etiket, i + 1, "x" * genislik)
+def _dolgu(etiket, n, genislik=40):
+    """NOTR dolgu satiri: ne ACIK ne KAPANIS jetonu tasir.
+
+    🔴 19 AGU DUZELTMESI (K195 §1.2): bu yardimci eskiden `_acik` adiyla
+    `- 🔴 ...` satirlari uretiyordu ve V1/V2/V6 tam da YASAK olan seyi
+    KABUL EDIYORDU — govdesi ACIK KALEM dolu bir blogun tam metniyle arsive
+    inmesini. Yani fikstur, "acik kalem asla arsivlenmez" kuralinin ihlalini
+    YESIL sayiyordu. Veto kolu eklenince bu ortaya cikti; dolgu NOTR yapildi.
+    ACIK jetonun kendi vetosu AYRI bir kabul testinde olculur:
+    tools/defter-rotasyon-cifti-test.py (C2).
+
+    🔴 NEDEN `✅` DEGIL: kapanis jetonu koymak blogu `_tasinir_mi()` yoluna
+    sokar ve blok NORMAL rotasyonla tasinir — isaretciye indirme kolu HIC
+    kosmaz, yani hedef kol olculemez.
+    """
+    return ["- %s satir %d %s" % (etiket, i + 1, "x" * genislik)
             for i in range(n)]
 
 
@@ -102,26 +116,35 @@ def _kos(arac, defter, arsiv, *ek):
 def _f_standart(kok):
     """SON DURUM en buyuk indirilebilir blok; korumalilar kucuk."""
     return _defter_yaz(kok, [
-        ("## ACIK KALEMLER (korumali)", _acik("KORUMALI-ACIK", 2)),
-        ("## 🔻 SON DURUM — test blogu", _acik("DURUM", 40)),
-        ("## OKAN'DA", _acik("KORUMALI-OKAN", 2)),
+        ("## ACIK KALEMLER (korumali)", _dolgu("KORUMALI-ACIK", 2)),
+        ("## 🔻 SON DURUM — test blogu", _dolgu("DURUM", 40)),
+        ("## OKAN'DA", _dolgu("KORUMALI-OKAN", 2)),
     ])
 
 
 def _f_korumali_en_buyuk(kok):
-    """🔴 KORUMALI blok EN BUYUK. Koruma kalkarsa O iner -> V3 kirmizi yanar."""
+    """🔴 KORUMALI blok EN BUYUK. Koruma kalkarsa O iner -> V3 kirmizi yanar.
+
+    🔴 BASLIK NEDEN `ARSIVDE`, `ACIK KALEMLER` DEGIL (19 Agu, olculdu):
+    `ACIK KALEMLER` hem KORUMALI_BASLIK_DESENLERI'nde hem ACIK_ISARETCILER'de
+    gecer. K195 §1.2 ACIK vetosu eklenince M1 mutanti (koruma listesi bosaltilir)
+    OLU kaldi: liste bosalsa bile blok ACIK jeton tasidigi icin yine inmiyordu,
+    yani V3 yesil kaliyor ve mutant "YASADI" diyordu — hedef kol OLCULEMIYORDU.
+    `ARSIVDE` yalniz KORUMALI listesinde gecer; koruma kalkinca blok GERCEKTEN
+    indirilebilir olur ve M1 hedefini vurur.
+    """
     return _defter_yaz(kok, [
-        ("## ACIK KALEMLER (korumali)", _acik("KORUMALI-ACIK", 60)),
-        ("## 🔻 SON DURUM — test blogu", _acik("DURUM", 10)),
+        ("## ARSIVDE (korumali)", _dolgu("KORUMALI-ARSIVDE", 60)),
+        ("## 🔻 SON DURUM — test blogu", _dolgu("DURUM", 10)),
     ])
 
 
 def _f_iki_aday(kok):
     """IKI indirilebilir blok; EN BUYUK olan IKINCI -> ilk-aday mutanti yanilir."""
     return _defter_yaz(kok, [
-        ("## ACIK KALEMLER (korumali)", _acik("KORUMALI-ACIK", 2)),
-        ("## 🔻 SON DURUM A — kucuk", _acik("KUCUK-A", 6)),
-        ("## 🔻 SON DURUM B — buyuk", _acik("BUYUK-B", 50)),
+        ("## ACIK KALEMLER (korumali)", _dolgu("KORUMALI-ACIK", 2)),
+        ("## 🔻 SON DURUM A — kucuk", _dolgu("KUCUK-A", 6)),
+        ("## 🔻 SON DURUM B — buyuk", _dolgu("BUYUK-B", 50)),
     ])
 
 
@@ -131,7 +154,7 @@ def _f_ilerlemesiz(kok):
     Indirme bayt KAZANDIRMAZ -> ilerleme invaryanti tetiklenmeli.
     """
     return _defter_yaz(kok, [
-        ("## ACIK KALEMLER (korumali)", _acik("KORUMALI-ACIK", 2)),
+        ("## ACIK KALEMLER (korumali)", _dolgu("KORUMALI-ACIK", 2)),
         ("## 🔻 SON DURUM — minik", ["a", "b", "c", "d"]),
     ])
 
@@ -159,7 +182,7 @@ def _v2(arac):
         defter, arsiv = _f_standart(kok)
         r = _kos(arac, defter, arsiv, "--tavan-sayi", "20", "--isaretciye-indir")
         arsiv_metin = _bayt(arsiv).decode("utf-8")
-        eksik = [s for s in _acik("DURUM", 40) if s not in arsiv_metin]
+        eksik = [s for s in _dolgu("DURUM", 40) if s not in arsiv_metin]
         iyi = r.returncode == 0 and not eksik
         return iyi, "rc=%d arsivde_eksik_satir=%d/40" % (r.returncode, len(eksik))
     finally:
@@ -173,7 +196,7 @@ def _v3(arac):
         defter, arsiv = _f_korumali_en_buyuk(kok)
         r = _kos(arac, defter, arsiv, "--tavan-sayi", "20", "--isaretciye-indir")
         defter_metin = _bayt(defter).decode("utf-8")
-        korumali_satirlar = _acik("KORUMALI-ACIK", 60)
+        korumali_satirlar = _dolgu("KORUMALI-ARSIVDE", 60)
         kalan = [s for s in korumali_satirlar if s in defter_metin]
         # 🔴 rc BURADA OLCUT DEGIL: korumali blok tavandan BUYUK oldugu icin
         # arac tavan altina INEMEZ ve rc=4/OLCULEMEDI donmesi DOGRU davranistir.
@@ -226,8 +249,8 @@ def _v6(arac):
         # (20 ile iki indirme birden olurdu ve "hangisi secildi" olculemezdi.)
         r = _kos(arac, defter, arsiv, "--tavan-sayi", "30", "--isaretciye-indir")
         defter_metin = _bayt(defter).decode("utf-8")
-        buyuk_kalan = [s for s in _acik("BUYUK-B", 50) if s in defter_metin]
-        kucuk_kalan = [s for s in _acik("KUCUK-A", 6) if s in defter_metin]
+        buyuk_kalan = [s for s in _dolgu("BUYUK-B", 50) if s in defter_metin]
+        kucuk_kalan = [s for s in _dolgu("KUCUK-A", 6) if s in defter_metin]
         # DOGRU davranis: B indi (defterde 0), A durdu (defterde 6)
         iyi = (r.returncode == 0 and len(buyuk_kalan) == 0
                and len(kucuk_kalan) == 6)
