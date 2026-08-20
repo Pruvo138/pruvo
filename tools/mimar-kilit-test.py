@@ -708,13 +708,20 @@ ISCI_SPEC_YOK = os.path.join(_ISCI_FIKSTUR_DIZINI, "hic-yazilmadi.md")
 ISCI_W = "/Users/okan/.claude/cron/isci.sh"
 ISCI_M3 = "/Users/okan/.claude/cron/m3-isci.sh"
 
+# 🔴 19 AGU (K214): DAGITIM vakalari CANLI motorla ('kimi') kosar. Eskiden hepsi
+# 'deepseek-flash' idi — 15 Agu'da EMEKLI edilen bir kat. Vakalar o hâliyle "delegasyon
+# yolu ACIK" diye YESIL yanarken CANLI birincil kat (kimi) hic olculmuyordu; kurulu
+# kapilarin kimi'yi REDDETTIGI 6 gun boyunca bu takim YESIL kaldi. Emekli kat artik
+# AYRI ve ACIK bir RED vakasiyla civilidir (616-618).
+# 🔴 KIMLIK EKSENI (650-654) BILEREK deepseek-flash'ta KALIR: orada olculen sey
+# "emekli katta baslamis bir tur hala isci sayiliyor mu" — geriye donuk tanima.
 ISCI_SARMALAYICI_VAKALARI = [
     # --- ALLOW: delegasyon yolu ACIK (olculen delik: bunlarin HEPSI 13 Agu oncesi DENY idi) ---
     (600, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
-     "ucuz motor + 4 argüman (etiketli) -> GECER"),
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
+     "CANLI BIRINCIL kat (kimi) + 4 argüman (etiketli) -> GECER [K214 sentinel]"),
     (601, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "ayni cagri ETIKETSIZ (3 argüman) -> GECER"),
     (602, "allow", "Bash",
      ISCI_M3 + " /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
@@ -729,11 +736,24 @@ ISCI_SARMALAYICI_VAKALARI = [
     (610, "deny", "Bash",
      ISCI_W + " gpt-9 /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "BILINMEYEN MOTOR -> VARSAYILAN RED (fail-closed) [I2 sentinel]"),
-    (611, "deny", "Bash", ISCI_W + " deepseek-flash /Users/okan/dev/pruvo", None,
+    (611, "deny", "Bash", ISCI_W + " kimi /Users/okan/dev/pruvo", None,
      "EKSIK argüman (yalniz motor + ev) -> RED"),
     (612, "deny", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket fazla",
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket fazla",
      None, "FAZLA argüman (5 token) -> RED"),
+    # --- DENY: EMEKLI KAT (K214 sikilastirmasi, 19 Agu) ---
+    # 🔴 OLCULEN DELIK: kapali kume KIMLIK icindir, DAGITIM icin degil. Emekli bir kata
+    # yeni is yollamak SESSIZCE kabul ediliyordu; 22 Agu'da kimi donunce mimarlar hala
+    # olu kuyruga is yollayabilirdi ([[goc-yolu-eski-kapiya-takilir]]).
+    (616, "deny", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "EMEKLI motor (deepseek-flash) -> ACIK GEREKCEYLE RED [K214 sentinel]"),
+    (617, "deny", "Bash",
+     ISCI_W + " deepseek-pro /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ + " etiket", None,
+     "EMEKLI motor (deepseek-pro) ETIKETLI cagri -> RED"),
+    (618, "deny", "Bash",
+     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo-hasat " + ISCI_SPEC_BEYANSIZ, None,
+     "EMEKLI kat CAPRAZ EV delegasyonunda da RED (ev degistirmek kolu acmaz)"),
     (613, "deny", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "motor=claude + spec'te BEYAN YOK -> RED (AGENT-KAPISI atlatilamaz) [I3 sentinel]"),
@@ -744,27 +764,29 @@ ISCI_SARMALAYICI_VAKALARI = [
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_YOK, None,
      "motor=claude + spec dosyasi YOK (okunamadi) -> RED [I4 sentinel, fail-closed]"),
     # --- DENY: YOL SINIRI (muafiyet anahtari TAM YOLA civilidir) ---
+    # 🔴 YOL SINIRI vakalari CANLI motorla kosar: motor emekli olsaydi red YOL kolundan
+    # DEGIL emekli kolundan gelirdi ve bu vakalar olctuklerini SANIP baskasini olcerdi.
     (620, "deny", "Bash",
-     "/tmp/isci.sh deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "/tmp/isci.sh kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "AYNI ADDA baska betik (/tmp/isci.sh) -> RED [I1 sentinel: basename esitligi delerdi]"),
     (621, "deny", "Bash",
-     "/Users/okan/.claude/cron/eski-isci.sh deepseek-flash /Users/okan/dev/pruvo " +
+     "/Users/okan/.claude/cron/eski-isci.sh kimi /Users/okan/dev/pruvo " +
      ISCI_SPEC_BEYANSIZ, None,
      "AYNI DIZINDE benzer ad (eski-isci.sh) -> RED (onek/alt-dize gevsemesi nobetcisi)"),
     (622, "deny", "Bash",
-     "/Users/okan/.claude/cron/isci.sh.eski.sh deepseek-flash /Users/okan/dev/pruvo " +
+     "/Users/okan/.claude/cron/isci.sh.eski.sh kimi /Users/okan/dev/pruvo " +
      ISCI_SPEC_BEYANSIZ, None,
      "YEDEK adi (isci.sh.eski.sh) -> RED (ONEK gevsemesi nobetcisi)"),
     (623, "deny", "Bash",
-     "bash " + ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "bash " + ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
      "sarmalayici YORUMLAYICI uzerinden cagriliyor (argv0=bash) -> muafiyet YOK, RED"),
     # --- SEGMENT AYRIMI: 'gecer' YALNIZ O SEGMENTI kapatir (iki yon de olculur) ---
     (630, "deny", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
      " | python3 tools/build.py", None,
      "sarmalayicinin YANINA baska ICRA eklenmis -> ikinci segment RED (yanlis-NEGATIF nobeti)"),
     (631, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ +
      " && git -C /Users/okan/dev/pruvo status", None,
      "MESRU zincir (sarmalayici && git status) -> GECER (yanlis-POZITIF nobeti)"),
     # --- REGRESYON: ISCI kimligi (agent_id DOLU) kuraldan TAM muaf (main() basi) ---
@@ -778,8 +800,8 @@ ISCI_SARMALAYICI_VAKALARI = [
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "KraL isci.sh claude + beyan -> RED"),
     (708, "allow", "Bash",
-     ISCI_W + " deepseek-flash /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
-     "KraL isci.sh deepseek-flash -> ALLOW"),
+     ISCI_W + " kimi /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ, None,
+     "KraL sert blogu CANLI ucuz kati (kimi) ETKILEMEZ -> ALLOW"),
     (709, "allow", "Bash",
      ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANLI, None,
      "Okan izni + beyan: eski claude kurali ALLOW",
@@ -794,10 +816,19 @@ ISCI_SARMALAYICI_VAKALARI = [
 # 7. alan vaka-bazli ortam, 8. alan ALLOW izinde beklenen kimlik parcasidir. Test
 # PRUVO_ISCI_KOSUMU'nu HER vakadan once miras ortamindan siler; boylece bir vakanin
 # degeri sonrakine sizip yalanci yesil uretemez.
+# 🔴 K214 SINIRI — BU TAKIM DAGITIM DEGIL KIMLIK OLCER: buradaki 'deepseek-flash'
+# BILEREK EMEKLI bir motordur ve BILEREK 'allow' bekler. Emekli katta BASLAMIS bir tur
+# hala kosuyor olabilir; kimligini geriye donuk TANIMAK ZORUNDAYIZ (mimar_kimlik.py:
+# "kapali kume KIMLIK TANIMA icindir, IS DAGITIMI icin degil"). Bunlari canli motora
+# "duzeltmek" kapiyi DELER: emekli sarmalayicidan gelen cagri MIMAR sayilip allowlist'e
+# carpar ve kosan tur ortasinda olur. Dagitim reddi AYRI takimdadir (616-618).
 ISCI_KIMLIK_EKSENI_VAKALARI = [
     (650, "allow", "Bash", "python3 tools/build.py", None,
-     "sarmalayici deepseek-flash: tools/build.py -> GECER",
+     "sarmalayici deepseek-flash: tools/build.py -> GECER (EMEKLI kat, KIMLIK ekseni)",
      {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}, "ISCI(sarmalayici:deepseek-flash)"),
+    (649, "allow", "Bash", "python3 tools/build.py", None,
+     "CANLI BIRINCIL kat (kimi) da kimlik verir -> GECER [K214: kimi kapali kumede]",
+     {"PRUVO_ISCI_KOSUMU": "kimi"}, "ISCI(sarmalayici:kimi)"),
     (651, "deny", "Bash", "python3 tools/build.py", None,
      "ayni cagri env YOK: MIMAR allowlist disi -> RED", {}, None),
     (652, "allow", "Bash", "curl -s https://example.invalid", None,
@@ -1237,6 +1268,150 @@ def k159_mesaj_denetim():
     return basarisiz, atlanan
 
 
+def k214_claude_kol_sirasi_denetim():
+    """K214: 'claude' motoru EMEKLI_ISCI_MOTORLARI'na eklenince sert blok kolu
+    emekli_gerekcesi ile golgeleniyor mu? Bes ayak:
+      920: claude emekli DEGIL (kimlik kaynagi)
+      921: mutantsiz kopyada isci.sh claude -> SERT_BLOK kolundan red
+      922: mutantli kopyada (EMEKLI_ISCI_MOTORLARI + claude) -> EMEKLI kolundan red
+      923: mutantsiz kopyada OKAN izni + beyan -> ALLOW (yetkili cikis acik)
+      924: mutantli kopyada OKAN izni + beyan -> EMEKLI kolundan red (regresyon)
+    Boylece 538. satirdaki yorumun gercekten calistigi kanitlanir.
+    """
+    import importlib.util
+    import shutil
+    basarisiz = []
+    atlanan = []
+
+    kimlik_yol = os.path.join(TOOLS, "mimar_kimlik.py")
+    icra_yol = os.path.join(TOOLS, "mimar-icra-kapisi.py")
+    if not os.path.exists(kimlik_yol) or not os.path.exists(icra_yol):
+        basarisiz.append((920, "dosya var", "EKSIK",
+                          "mimar_kimlik.py veya mimar-icra-kapisi.py yok"))
+        print("920  K214: EKSIK dosya")
+        return basarisiz, atlanan
+
+    # (a) kimlik kaynagindan degerler
+    spec = importlib.util.spec_from_file_location("_k214_kimlik", kimlik_yol)
+    kimlik = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kimlik)
+    a_ok = (
+        kimlik.emekli_motor_mu("claude") is False and
+        "claude" in kimlik.ISCI_MOTORLARI and
+        "claude" not in kimlik.EMEKLI_ISCI_MOTORLARI
+    )
+    print("920  K214 claude emekli degil: ISCI={} EMEKLI={} emekli_mi={} | {}".format(
+        "claude" in kimlik.ISCI_MOTORLARI,
+        "claude" in kimlik.EMEKLI_ISCI_MOTORLARI,
+        kimlik.emekli_motor_mu("claude"),
+        "OK" if a_ok else "KIRMIZI"))
+    if not a_ok:
+        basarisiz.append((920, "False/True/False", "degerler",
+                          "claude emekli degil kaniti"))
+
+    def _claude_red_kolunu_olc(icra_yolu, spec_yolu=None, env_ekle=None):
+        komut = ISCI_W + " claude /Users/okan/dev/pruvo " + (spec_yolu or ISCI_SPEC_BEYANSIZ)
+        payload = {
+            "session_id": "test", "cwd": REPO,
+            "permission_mode": "bypassPermissions",
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "tool_input": {"command": komut},
+        }
+        ortam = dict(os.environ)
+        ortam.pop("PRUVO_ISCI_KOSUMU", None)
+        ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+        if env_ekle:
+            ortam.update(env_ekle)
+        proc = subprocess.run(
+            [sys.executable, icra_yolu],
+            input=json.dumps(payload),
+            capture_output=True, text=True, env=ortam,
+        )
+        if proc.returncode != 0:
+            return "COKTU", (proc.stderr or "")[:80]
+        try:
+            veri = json.loads(proc.stdout.strip() or "{}")
+        except Exception:
+            return "PARSE-HATASI", proc.stdout[:80]
+        hso = veri.get("hookSpecificOutput") or {}
+        karar = hso.get("permissionDecision", "allow")
+        sebep = hso.get("permissionDecisionReason") or ""
+        if karar != "deny":
+            return "ALLOW", sebep[:80]
+        if "EMEKLI motor" in sebep:
+            return "EMEKLI", sebep[:80]
+        if "AGENT-KAPISI (13 Ağu Okan emri)" in sebep:
+            return "SERT_BLOK", sebep[:80]
+        return "DIGER_RED", sebep[:80]
+
+    # (b) mutantsiz kopya
+    kol_b, sebep_b = _claude_red_kolunu_olc(icra_yol)
+    b_ok = (kol_b == "SERT_BLOK")
+    print("921  K214 mutantsiz sert blok: kol={} | {} (sebep={})".format(
+        kol_b, "OK" if b_ok else "KIRMIZI", sebep_b[:60]))
+    if not b_ok:
+        basarisiz.append((921, "SERT_BLOK", kol_b,
+                          "mutantsiz kopyada sert blok bekleniyordu: " + sebep_b))
+
+    # (c) mutantli kopya: EMEKLI_ISCI_MOTORLARI'na claude ekle
+    mutant_dizin = tempfile.mkdtemp(prefix="pruvo-k214-mutant-")
+    try:
+        mutant_tools = os.path.join(mutant_dizin, "tools")
+        shutil.copytree(TOOLS, mutant_tools)
+        mutant_kimlik = os.path.join(mutant_tools, "mimar_kimlik.py")
+        with open(mutant_kimlik, encoding="utf-8") as f:
+            metin = f.read()
+        metin = metin.replace(
+            'EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash")',
+            'EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash", "claude")')
+        with open(mutant_kimlik, "w", encoding="utf-8") as f:
+            f.write(metin)
+        mutant_icra = os.path.join(mutant_tools, "mimar-icra-kapisi.py")
+        # 🔴 ONARIM SONRASI BEKLENTI DEGISTI (K214 ucuncu eksen). Emekli kolu artik
+        # `motor != "claude"` kosuluyla claude'u DISARIDA birakiyor, dolayisiyla claude'u
+        # emekli kumesine sokmak claude'un ISLENISINI DEGISTIRMEZ: red yine SERT_BLOK
+        # kolundan gelir. Bu vaka "mutant ETKISIZ" diye ASSERT eder — kosul kaldirilirsa
+        # kol yeniden EMEKLI olur ve 922 KIRMIZI yanar (regresyon nobetcisi).
+        kol_c, sebep_c = _claude_red_kolunu_olc(mutant_icra)
+        c_ok = (kol_c == "SERT_BLOK")
+        print("922  K214 mutantli claude EMEKLI kolunun DISINDA: kol={} | {} (sebep={})".format(
+            kol_c, "OK" if c_ok else "KIRMIZI", sebep_c[:60]))
+        if not c_ok:
+            basarisiz.append((922, "SERT_BLOK", kol_c,
+                              "claude emekli kumesine girse de SERT_BLOK kolu calismali "
+                              "(emekli kolu claude'u disarida birakmali): " + sebep_c))
+
+        # (d) 🔴 ASIL REGRESYON NOBETCISI: claude EMEKLI kumesindeyken bile Okan'in
+        # YETKILI CIKISI (PRUVO_CLAUDE_ISCI_IZNI=OKAN + beyan) ACIK KALMALI. Onarimdan
+        # once burasi deny/EMEKLI donuyordu — taban 923 allow oldugu icin GERCEK gerileme.
+        kol_d, sebep_d = _claude_red_kolunu_olc(
+            mutant_icra, spec_yolu=ISCI_SPEC_BEYANLI,
+            env_ekle={"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"})
+        d_ok = (kol_d == "ALLOW")
+        print("924  K214 mutantli OKAN+beyan yetkili cikis: kol={} | {} (sebep={})".format(
+            kol_d, "OK" if d_ok else "KIRMIZI", sebep_d[:60]))
+        if not d_ok:
+            basarisiz.append((924, "ALLOW", kol_d,
+                              "claude emekli kumesindeyken bile OKAN yetkili cikisi ACIK "
+                              "kalmali (emekli kolu yetkili yolu kapatmamali): " + sebep_d))
+    finally:
+        shutil.rmtree(mutant_dizin, ignore_errors=True)
+
+    # (e) mutantsiz kopyada OKAN izni + beyan: yetkili cikis acik mi?
+    kol_e, sebep_e = _claude_red_kolunu_olc(
+        icra_yol, spec_yolu=ISCI_SPEC_BEYANLI,
+        env_ekle={"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"})
+    e_ok = (kol_e == "ALLOW")
+    print("923  K214 mutantsiz OKAN+beyan: kol={} | {} (sebep={})".format(
+        kol_e, "OK" if e_ok else "KIRMIZI", sebep_e[:60]))
+    if not e_ok:
+        basarisiz.append((923, "ALLOW", kol_e,
+                          "mutantsiz kopyada OKAN+beyan ALLOW bekleniyordu: " + sebep_e))
+
+    return basarisiz, atlanan
+
+
 def gecici_worktree_kur(temel):
     """Repo DISINDA, git'e KAYITLI gecici bir worktree kurar (hermetiklik).
     '--no-checkout' sayesinde dosya kopyalanmaz — yalniz .git/worktrees kaydi olusur.
@@ -1300,14 +1475,19 @@ def main():
         kumeler = [("13 AGU-2 ISCI KIMLIK EKSENI — mutant izolasyonu",
                     ISCI_KIMLIK_EKSENI_VAKALARI, REPO)]
 
-    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3 + 1
-    toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
+    # 🔴 IKIZ TANIM YASAGI (K214 turunda OLCULDU): `ek_vaka` K214 sayisini ELLE `3` diye
+    # tasiyordu; 923/924 eklenince `k214_vaka_sayisi` 5'e cikti ama `ek_vaka` 3'te DONDU
+    # -> batarya 299 vaka kosarken "297/297" bastı, yani KAPSAM KAYBI oran icinde GORUNMEDI
+    # ([[batarya-kapsam-tabani-sayiyla-civilenir]]). Sayi artik TEK YERDE tanimlanir ve
+    # `ek_vaka` ONDAN TURER; ikinci sabit BIRAKILMAZ.
     k159_mesaj_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
-    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {})".format(
+    k214_vaka_sayisi = 5 if not SADECE_KIMLIK_EKSENI else 0
+    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else (
+        len(COMMIT_VAKALARI) + 3 + k159_mesaj_vaka_sayisi + k214_vaka_sayisi)
+    toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
+    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {} + K214 claude kol {})".format(
         toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
-        k159_mesaj_vaka_sayisi))
-    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3)".format(
-        toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI)))
+        k159_mesaj_vaka_sayisi, k214_vaka_sayisi))
     print("TOOLS DIZINI: " + TOOLS)
     print("GECICI KAYITLI WORKTREE: " + (KAYITLI_WT_YOL or "KURULAMADI (cevre-atlanan)"))
 
@@ -1328,6 +1508,9 @@ def main():
             basarisiz += b
             atlanan += a
             b, a = k159_mesaj_denetim()
+            basarisiz += b
+            atlanan += a
+            b, a = k214_claude_kol_sirasi_denetim()
             basarisiz += b
             atlanan += a
     finally:

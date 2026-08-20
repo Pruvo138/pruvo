@@ -52,6 +52,22 @@ import sys
 import tempfile
 import time
 
+# === 19 AGU 2026 (K214): MOTOR KUMESI TEK KAYNAKTAN TURETILIR ===
+# OLCULEN KOK NEDEN: bu betik ISCI_MOTORLARI'ni KENDI GOVDESINE GOMUYORDU ve 13 Agu'da
+# BES karde eve o donmus kopyayi kurdu. Sonuc: kurulan kapilar EMEKLI deepseek-*'i kabul
+# edip CANLI birincil kimi'yi REDDEDIYORDU — tek kaynak (tools/mimar_kimlik.py) 15 Agu'da
+# guncellenmisti ama kurulu kopyalar 13 Agu'da DONMUSTU ([[ikiz-tanim-sessiz-ayrisma]]).
+# Kurulan kopya AYRI repolarda oldugu icin `import` edemez; bu yuzden deger KURULUM
+# ANINDA tek kaynaktan okunup metne DOKULUR (mimar_kimlik.motor_blogu_kaynagi) ve blogun
+# icine KAYNAK IMZASI damgalanir. Sapmayi tools/motor-tek-kaynak-kapisi.py olcer.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mimar_kimlik import (  # noqa: E402
+    CANLI_ISCI_MOTORLARI,
+    EMEKLI_ISCI_MOTORLARI,
+    ISCI_MOTORLARI,
+    motor_blogu_kaynagi,
+)
+
 AYAR = "/Users/okan/dev/pruvo/.claude/settings.json"
 KOMUT = 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-icra-kapisi.py"'
 KAYIT = {
@@ -706,8 +722,11 @@ AGENT_GEREKCE = (
 def _sert_blok_gerekcesi():
     _sarmalayici = globals().get(
         "ISCI_SARMALAYICI_YOLU", "/Users/okan/.claude/cron/isci.sh")
-    _motorlar = globals().get(
-        "ISCI_MOTORLARI", ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude"))
+    # 19 AGU (K214): varsayilanlar da TURETILIR. Eskiden burada ikinci bir GOMULU liste
+    # dururdu (kimi YOK, emekli deepseek VAR) — ISCI blogu henuz enjekte edilmemis bir
+    # evde AGENT-KAPISI'nin sert-blok metni o donmus listeyi mimara ONERIYORDU.
+    _motorlar = globals().get("ISCI_MOTORLARI", ()) or ''' + repr(ISCI_MOTORLARI) + '''
+    _canli = globals().get("CANLI_ISCI_MOTORLARI", ()) or ''' + repr(CANLI_ISCI_MOTORLARI) + '''
     _motor_listesi = " / ".join(_motorlar)
     return (
         "AGENT-KAPISI (13 Agu Okan emri): bu evde mimar ANA oturumunun Claude iscisi "
@@ -716,7 +735,7 @@ def _sert_blok_gerekcesi():
         "PRUVO_CLAUDE_ISCI_IZNI yalnizca tam olarak OKAN ise eski beyan kurali calisir; "
         "bu izni yalnizca Okan verir ve ajan kendi ayarlayamaz. IKI ACIK YOL: (a) " +
         _sarmalayici + " <motor> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
-        "(ucuz motorlar: " + " / ".join(_m for _m in _motorlar if _m != "claude") +
+        "(ucuz motorlar: " + " / ".join(_canli) +
         "; kapali motor kumesi: " + _motor_listesi + "); (b) codex exec -C <ev> "
         "-s workspace-write -o <dosya> \\\"<spec>\\\"."
     )
@@ -1298,7 +1317,7 @@ def mcp_kapisi(uygula):
 # AGENT-KAPISI'nin regex'ini ve _agent_isci_mi()'sini CAGIRIR. Bu yuzden AGENT_DAMGA bir
 # ZORUNLU SEMBOLDUR: AGENT-KAPISI kurulmamis eve DOKUNULMAZ (yoksa motor=claude beyan
 # sarti sessizce kaybolur ve sarmalayici AGENT-KAPISI'ni atlatan anahtara doner).
-ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "13agu-3"'
+ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "19agu-4"'
 ISCI_TANIM_BAS = "# === PRUVO ISCI-SARMALAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 ISCI_TANIM_SON = "# === PRUVO ISCI-SARMALAYICI KAPISI BITIS ==="
 ISCI_KIMLIK_CAGRI_BAS = "    # === PRUVO ISCI KIMLIK CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
@@ -1326,10 +1345,11 @@ ISCI_TANIM_SABLON = '''
 ISCI_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/isci.sh"
 ISCI_M3_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/m3-isci.sh"
 ISCI_M3_CIVILI_MOTOR = "minimax-m3"
-ISCI_MOTORLARI = ("minimax-m3", "deepseek-pro", "deepseek-flash", "claude")
-ISCI_ARGUMAN_SAYILARI = (3, 4)
+''' + motor_blogu_kaynagi() + '''ISCI_ARGUMAN_SAYILARI = (3, 4)
 ''' + ISCI_DAMGA + '''
 ISCI_MOTOR_LISTESI = " / ".join(ISCI_MOTORLARI)
+CANLI_MOTOR_LISTESI = " / ".join(CANLI_ISCI_MOTORLARI)
+EMEKLI_MOTOR_LISTESI = " / ".join(EMEKLI_ISCI_MOTORLARI)
 ISCI_GEREKCE_SONU = (
     " DOGRUSU: " + ISCI_SARMALAYICI_YOLU + " <MOTOR> <EV_KOKU> <SPEC_DOSYASI> [ETIKET] "
     "(m3 kisayolu: " + ISCI_M3_SARMALAYICI_YOLU + " <EV_KOKU> <SPEC_DOSYASI> [ETIKET]). "
@@ -1339,9 +1359,17 @@ ISCI_CLAUDE_GEREKCESI = (
     "ISCI-SARMALAYICI KAPISI (13 Agu): sarmalayici 'claude' MOTORUYLA cagriliyor ama SPEC "
     "DOSYASINDA 'codex-muafiyet:' BEYAN SATIRI YOK. Bu sart olmasaydi sarmalayici "
     "AGENT-KAPISI'ni atlatan bir ANAHTAR olurdu. IKI CIKIS: (a) ISI UCUZ MOTORA VER "
-    "(minimax-m3 / deepseek-pro / deepseek-flash); VEYA (b) spec dosyasina su satiri EKLE: "
+    "(" + CANLI_MOTOR_LISTESI + "); VEYA (b) spec dosyasina su satiri EKLE: "
     "'codex-muafiyet: <is tanimi> - " + AGENT_ORNEK_SINIF + "' (gecerli sinif jetonlari: " +
     AGENT_SINIF_LISTESI + ")."
+)
+# 19 AGU (K214): emekli kata IS YOLLAMA reddinin gerekcesi. Kimlik ekseni DOKUNULMAZ —
+# emekli motorlarin ESKI turleri isci sayilmaya devam eder (mimar_kimlik.py doktrini).
+ISCI_EMEKLI_GEREKCESI_ONEKI = "EMEKLI motor ("
+ISCI_EMEKLI_GEREKCESI_SONU = (
+    "): bu kata YENI IS YOLLANMAZ. Kimlik tanimada gecerli kalir (eski turlar isci "
+    "sayilir), ama dagitim CANLI kumeden yapilir — canli kume: " + CANLI_MOTOR_LISTESI +
+    " (birincil: " + CANLI_ISCI_MOTORLARI[0] + "). Emekli kume: " + EMEKLI_MOTOR_LISTESI + "."
 )
 
 
@@ -1399,6 +1427,10 @@ def _isci_karari(tokenlar):
             "isci sarmalayicisinin MOTORU kapali kumede DEGIL (" + motor[:24] + "). "
             "Bilinmeyen motor VARSAYILAN RED (fail-closed)."
         )
+    # 19 AGU (K214) SIKILASTIRMA — EMEKLI KAT: kapali kume KIMLIK icindir, DAGITIM icin
+    # degil. 'claude' EMEKLI DEGILDIR: asagidaki claude kolu AYNEN korunur.
+    if motor in EMEKLI_ISCI_MOTORLARI:
+        return ISCI_EMEKLI_GEREKCESI_ONEKI + motor[:24] + ISCI_EMEKLI_GEREKCESI_SONU
     if (motor == "claude" and EV_ADI in SERT_BLOK_EVLER and
             os.environ.get("PRUVO_CLAUDE_ISCI_IZNI") != "OKAN"):
         return _sert_blok_gerekcesi()
@@ -1501,20 +1533,28 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
     try:
         W = ISCI_SARMALAYICI_YOLU_SABIT
         beyanli_beklenen = "deny" if ad in ("KraL", "MaCiT") else "allow"
+        # 19 AGU (K214): DAGITIM fiksturleri CANLI motorla kosar — birincil kat
+        # CANLI_ISCI_MOTORLARI[0]'dan TURETILIR, elle yazilmaz. Emekli kat ayri bir
+        # DENY fiksturuyle civilenir; boylece "kimi gecti mi" ve "deepseek reddedildi mi"
+        # eksenleri her evin kurulumunda CANLI olarak olculur.
+        CANLI = CANLI_ISCI_MOTORLARI[0]
+        EMEKLI = EMEKLI_ISCI_MOTORLARI[-1]
         olcumler = [
-            ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz}, None, "allow"),
-            ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz + " etiket"},
+            ("Bash", {"command": W + " " + CANLI + " " + kok + " " + beyansiz}, None, "allow"),
+            ("Bash", {"command": W + " " + CANLI + " " + kok + " " + beyansiz + " etiket"},
              None, "allow"),
             ("Bash", {"command": ISCI_M3_YOLU_SABIT + " " + kok + " " + beyansiz}, None, "allow"),
             ("Bash", {"command": W + " gpt-9 " + kok + " " + beyansiz}, None, "deny"),
-            ("Bash", {"command": W + " deepseek-flash " + kok}, None, "deny"),
+            # EMEKLI KAT: kapali kumede OLMASINA ragmen yeni is REDDEDILIR (sikilastirma).
+            ("Bash", {"command": W + " " + EMEKLI + " " + kok + " " + beyansiz}, None, "deny"),
+            ("Bash", {"command": W + " " + CANLI + " " + kok}, None, "deny"),
             ("Bash", {"command": W + " claude " + kok + " " + beyansiz}, None, "deny"),
             ("Bash", {"command": W + " claude " + kok + " " + beyanli}, None,
              beyanli_beklenen),
             ("Bash", {"command": W + " claude " + kok + " " + yok_spec}, None, "deny"),
-            ("Bash", {"command": "/tmp/isci.sh deepseek-flash " + kok + " " + beyansiz},
+            ("Bash", {"command": "/tmp/isci.sh " + CANLI + " " + kok + " " + beyansiz},
              None, "deny"),
-            ("Bash", {"command": W + " deepseek-flash " + kok + " " + beyansiz}, AGENT_ISCI_ID,
+            ("Bash", {"command": W + " " + CANLI + " " + kok + " " + beyansiz}, AGENT_ISCI_ID,
              "allow"),
             # REGRESYON: diger kollar degismedi.
             ("Bash", {"command": "ls"}, None, "allow"),
@@ -1524,6 +1564,12 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
             ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None,
              beyanli_beklenen),
         ]
+        # 🔴 KIMLIK EKSENI — DAGITIM DEGIL (K214 ayrimi): asagidaki 'deepseek-flash'
+        # BILEREK EMEKLI bir motordur ve BILEREK 'allow' bekler. Emekli bir katta
+        # BASLAMIS eski bir tur hala kosuyor olabilir; kimligini geriye donuk tanimak
+        # ZORUNDAYIZ (mimar_kimlik.py: "kapali kume KIMLIK TANIMA icindir"). Bunu
+        # canli motora "duzeltmek" kapiyi delerdi: emekli sarmalayicidan gelen cagri
+        # MIMAR sayilip allowlist'e carpar ve kosan tur ortasinda olurdu.
         olcumler += [
             ("Bash", {"command": "python3 /private/tmp/analiz.py"}, None, "allow",
              {"PRUVO_ISCI_KOSUMU": "deepseek-flash"}),

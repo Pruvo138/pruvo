@@ -507,7 +507,14 @@ MUTASYONLAR = [
              '    if motor == "claude":\n',
              '    if False and motor == "claude":\n')),
      "13Agu ISCI: motor=claude sert blok + eski BEYAN SARTI birlikte kaldirilir",
-     {613, 614, 615, 707, 712}, True, 5),
+     # 20 AGU (K214) KAPSAM GENISLEMESI: 921/922 mimar-kilit-test.py'nin K214 takimidir
+     # ve ikisi de SERT_BLOK kolunu olcer. Bu mutant o kolu OLDURDUGU icin ikisinin de
+     # kizarmasi DOGRUDUR — kapsam ARTTI. Beklenen kume elle tasindigi icin vaka
+     # eklendiginde BURASI da guncellenmelidir; guncellenmezse mutant "cok kol dustu"
+     # diye OLCULEMEDI'ye duser (K214 turunda birebir yasandi: beklenen 5, gelen 7).
+     # 923/924 OKAN yetkili cikisini olcer ve bu mutant altinda ALLOW kaldigi icin
+     # YESIL kalir — yani I3 ile I5 hala AYRISIR (iki eksen tek ize erimedi).
+     {613, 614, 615, 707, 712, 921, 922}, True, 7),
     # I4: spec OKUNAMADIGINDA red yerine 'gecer' (FAIL-OPEN). "Beyani olcemedim" yesile
     # doner. I3'ten AYRISIR: 613 (spec OKUNUYOR, beyan yok) YESIL kalir — mutantin
     # kirmizisi yalniz 615'tir, yani iki eksen tek ize erimemistir.
@@ -533,7 +540,13 @@ MUTASYONLAR = [
         "        if False and isci_karari is not None:\n"),
      "13Agu ISCI: kural komple kapatilir (13 Agu ONCESI delik geri doner) — mesru "
      "delegasyon cagrilari yeniden RED",
-     {600, 601, 602, 603, 604, 631, 708, 709}, True, 8),
+     # 20 AGU (K214) KAPSAM GENISLEMESI: kural KOMPLE kapandigi icin K214 takiminin
+     # DORDU DE kizarir — 921/922 (SERT_BLOK bekler, generic red alir) ve 923/924
+     # (ALLOW bekler, RED alir). I3'ten farki bu: I3 yalniz claude kollarini oldurur,
+     # I5 sarmalayici kuralinin TAMAMINI kapatir, dolayisiyla yetkili cikis da duser.
+     # Beklenen kume elle tasinir; vaka eklendiginde guncellenmezse mutant
+     # OLCULEMEDI'ye duser (K214 turunda: beklenen 8, gelen 12).
+     {600, 601, 602, 603, 604, 631, 708, 709, 921, 922, 923, 924}, True, 12),
     # --- 13 AGU-2 SARMALAYICI KIMLIK EKSENI ---
     # J mutantlari yalniz 650-659 kimlik takiminda kosar. Boylece beklenen kume TAM
     # esitliktir; bir ekseni oldurmenin katalogdaki ilgisiz yuzlerce vakayi topluca
@@ -547,7 +560,11 @@ MUTASYONLAR = [
         '    if False and motor in ISCI_MOTORLARI:\n'
         '        return "sarmalayici:" + motor\n'),
      "13Agu-2 J1: ortam kimlik ekseni komple kaldirilir",
-     {650, 652, 653, 654, 659}, True, 5),
+     # 19 AGU (K214): 649 EKLENDI. Kimlik takimina CANLI BIRINCIL kat (`kimi`) vakasi
+     # girdi; J1 ekseni komple oldurdugu icin o vaka da DUSMELI. Capa TAM ESITLIK
+     # oldugundan yeni kol eklenince burasi da guncellenmezse mutant "esigi tutturamadi"
+     # der ve kirmizi, ONARIMI DEGIL EKLEMEYI isaret eder ([[yeni-kol-mutasyon-capasini-ikizler]]).
+     {649, 650, 652, 653, 654, 659}, True, 6),
     ("J2", lambda d: yama(
         d, KIMLIKORTAK,
         '    if motor in ISCI_MOTORLARI:\n',
