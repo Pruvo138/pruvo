@@ -1270,10 +1270,12 @@ def k159_mesaj_denetim():
 
 def k214_claude_kol_sirasi_denetim():
     """K214: 'claude' motoru EMEKLI_ISCI_MOTORLARI'na eklenince sert blok kolu
-    emekli_gerekcesi ile golgeleniyor mu? Uc ayak:
+    emekli_gerekcesi ile golgeleniyor mu? Bes ayak:
       920: claude emekli DEGIL (kimlik kaynagi)
       921: mutantsiz kopyada isci.sh claude -> SERT_BLOK kolundan red
       922: mutantli kopyada (EMEKLI_ISCI_MOTORLARI + claude) -> EMEKLI kolundan red
+      923: mutantsiz kopyada OKAN izni + beyan -> ALLOW (yetkili cikis acik)
+      924: mutantli kopyada OKAN izni + beyan -> EMEKLI kolundan red (regresyon)
     Boylece 538. satirdaki yorumun gercekten calistigi kanitlanir.
     """
     import importlib.util
@@ -1307,8 +1309,8 @@ def k214_claude_kol_sirasi_denetim():
         basarisiz.append((920, "False/True/False", "degerler",
                           "claude emekli degil kaniti"))
 
-    def _claude_red_kolunu_olc(icra_yolu):
-        komut = ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ
+    def _claude_red_kolunu_olc(icra_yolu, spec_yolu=None, env_ekle=None):
+        komut = ISCI_W + " claude /Users/okan/dev/pruvo " + (spec_yolu or ISCI_SPEC_BEYANSIZ)
         payload = {
             "session_id": "test", "cwd": REPO,
             "permission_mode": "bypassPermissions",
@@ -1319,6 +1321,8 @@ def k214_claude_kol_sirasi_denetim():
         ortam = dict(os.environ)
         ortam.pop("PRUVO_ISCI_KOSUMU", None)
         ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+        if env_ekle:
+            ortam.update(env_ekle)
         proc = subprocess.run(
             [sys.executable, icra_yolu],
             input=json.dumps(payload),
@@ -1371,8 +1375,30 @@ def k214_claude_kol_sirasi_denetim():
         if not c_ok:
             basarisiz.append((922, "EMEKLI", kol_c,
                               "mutantli kopyada emekli kolu bekleniyordu: " + sebep_c))
+
+        # (d) mutantli kopyada OKAN izni + beyan: yetkili cikis EMEKLI koluyla kapaniyor mu?
+        kol_d, sebep_d = _claude_red_kolunu_olc(
+            mutant_icra, spec_yolu=ISCI_SPEC_BEYANLI,
+            env_ekle={"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"})
+        d_ok = (kol_d == "EMEKLI")
+        print("924  K214 mutantli OKAN+beyan: kol={} | {} (sebep={})".format(
+            kol_d, "OK" if d_ok else "KIRMIZI", sebep_d[:60]))
+        if not d_ok:
+            basarisiz.append((924, "EMEKLI", kol_d,
+                              "mutantli kopyada OKAN+beyan EMEKLI kolu bekleniyordu: " + sebep_d))
     finally:
         shutil.rmtree(mutant_dizin, ignore_errors=True)
+
+    # (e) mutantsiz kopyada OKAN izni + beyan: yetkili cikis acik mi?
+    kol_e, sebep_e = _claude_red_kolunu_olc(
+        icra_yol, spec_yolu=ISCI_SPEC_BEYANLI,
+        env_ekle={"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"})
+    e_ok = (kol_e == "ALLOW")
+    print("923  K214 mutantsiz OKAN+beyan: kol={} | {} (sebep={})".format(
+        kol_e, "OK" if e_ok else "KIRMIZI", sebep_e[:60]))
+    if not e_ok:
+        basarisiz.append((923, "ALLOW", kol_e,
+                          "mutantsiz kopyada OKAN+beyan ALLOW bekleniyordu: " + sebep_e))
 
     return basarisiz, atlanan
 
@@ -1440,13 +1466,16 @@ def main():
         kumeler = [("13 AGU-2 ISCI KIMLIK EKSENI — mutant izolasyonu",
                     ISCI_KIMLIK_EKSENI_VAKALARI, REPO)]
 
-    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3 + 1 + 3
-    toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
+    # 🔴 IKIZ TANIM YASAGI (K214 turunda OLCULDU): `ek_vaka` K214 sayisini ELLE `3` diye
+    # tasiyordu; 923/924 eklenince `k214_vaka_sayisi` 5'e cikti ama `ek_vaka` 3'te DONDU
+    # -> batarya 299 vaka kosarken "297/297" bastı, yani KAPSAM KAYBI oran icinde GORUNMEDI
+    # ([[batarya-kapsam-tabani-sayiyla-civilenir]]). Sayi artik TEK YERDE tanimlanir ve
+    # `ek_vaka` ONDAN TURER; ikinci sabit BIRAKILMAZ.
     k159_mesaj_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
-    k214_vaka_sayisi = 3 if not SADECE_KIMLIK_EKSENI else 0
-    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {} + K214 claude kol {})".format(
-        toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
-        k159_mesaj_vaka_sayisi, k214_vaka_sayisi))
+    k214_vaka_sayisi = 5 if not SADECE_KIMLIK_EKSENI else 0
+    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else (
+        len(COMMIT_VAKALARI) + 3 + k159_mesaj_vaka_sayisi + k214_vaka_sayisi)
+    toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
     print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {} + K214 claude kol {})".format(
         toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
         k159_mesaj_vaka_sayisi, k214_vaka_sayisi))
