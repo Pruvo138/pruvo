@@ -535,9 +535,17 @@ def _isci_karari(tokenlar):
     # 19 AGU (K214) SIKILASTIRMA — EMEKLI KAT: kapali kume KIMLIK icindir (emekli
     # motorlarin ESKI turleri isci sayilmali), DAGITIM icin degil. Emekli bir kata
     # YENI IS yollamak sessizce KABUL ediliyordu; artik ACIK GEREKCEYLE reddedilir.
-    # 🔴 SIRA ONEMLI: 'claude' EMEKLI DEGILDIR — asagidaki claude kolu (KraL/MaCiT sert
-    # blok + PRUVO_CLAUDE_ISCI_IZNI + beyan sarti) AYNEN korunur, bu kol ona DOKUNMAZ.
-    if emekli_motor_mu(motor):
+    # 🔴 'claude' BU KOLUN DISINDADIR — YORUM DEGIL, KOSUL. Onceki hali "claude emekli
+    # DEGILDIR" diye YORUMLA guvence veriyordu; yorum olcum degildir ve OLCULDU (K214, ucuncu
+    # eksen): `claude` bir gun EMEKLI_ISCI_MOTORLARI'na girerse bu kol asagidaki claude
+    # kolundan ONCE donuyordu ve Okan'in YETKILI CIKISI SESSIZCE KAPANIYORDU —
+    #   Ⓑ claude emekli DEGIL + PRUVO_CLAUDE_ISCI_IZNI=OKAN -> allow   (taban)
+    #   Ⓓ claude EMEKLI      + PRUVO_CLAUDE_ISCI_IZNI=OKAN -> deny/EMEKLI  (REGRESYON)
+    # Taban Ⓑ 'allow' oldugu icin Ⓓ'nin reddi gercek davranis gerilemesiydi.
+    # HUKUM: 'claude'un DAGITIMI kendi koluna aittir (sert blok + OKAN izni + beyan sarti);
+    # emekli KATI listesi onu YONETMEZ. Vakalar: mimar-kilit-test.py 922/923/924 — bu kosul
+    # kaldirilirsa dordu de KIRMIZI yanar ([[ad-iki-rolde-mutanti-golgeler]]).
+    if motor != "claude" and emekli_motor_mu(motor):
         return emekli_gerekcesi(motor)
 
     if (motor == "claude" and EV_ADI in SERT_BLOK_EVLER and

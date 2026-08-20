@@ -1368,24 +1368,33 @@ def k214_claude_kol_sirasi_denetim():
         with open(mutant_kimlik, "w", encoding="utf-8") as f:
             f.write(metin)
         mutant_icra = os.path.join(mutant_tools, "mimar-icra-kapisi.py")
+        # 🔴 ONARIM SONRASI BEKLENTI DEGISTI (K214 ucuncu eksen). Emekli kolu artik
+        # `motor != "claude"` kosuluyla claude'u DISARIDA birakiyor, dolayisiyla claude'u
+        # emekli kumesine sokmak claude'un ISLENISINI DEGISTIRMEZ: red yine SERT_BLOK
+        # kolundan gelir. Bu vaka "mutant ETKISIZ" diye ASSERT eder — kosul kaldirilirsa
+        # kol yeniden EMEKLI olur ve 922 KIRMIZI yanar (regresyon nobetcisi).
         kol_c, sebep_c = _claude_red_kolunu_olc(mutant_icra)
-        c_ok = (kol_c == "EMEKLI")
-        print("922  K214 mutantli emekli: kol={} | {} (sebep={})".format(
+        c_ok = (kol_c == "SERT_BLOK")
+        print("922  K214 mutantli claude EMEKLI kolunun DISINDA: kol={} | {} (sebep={})".format(
             kol_c, "OK" if c_ok else "KIRMIZI", sebep_c[:60]))
         if not c_ok:
-            basarisiz.append((922, "EMEKLI", kol_c,
-                              "mutantli kopyada emekli kolu bekleniyordu: " + sebep_c))
+            basarisiz.append((922, "SERT_BLOK", kol_c,
+                              "claude emekli kumesine girse de SERT_BLOK kolu calismali "
+                              "(emekli kolu claude'u disarida birakmali): " + sebep_c))
 
-        # (d) mutantli kopyada OKAN izni + beyan: yetkili cikis EMEKLI koluyla kapaniyor mu?
+        # (d) 🔴 ASIL REGRESYON NOBETCISI: claude EMEKLI kumesindeyken bile Okan'in
+        # YETKILI CIKISI (PRUVO_CLAUDE_ISCI_IZNI=OKAN + beyan) ACIK KALMALI. Onarimdan
+        # once burasi deny/EMEKLI donuyordu — taban 923 allow oldugu icin GERCEK gerileme.
         kol_d, sebep_d = _claude_red_kolunu_olc(
             mutant_icra, spec_yolu=ISCI_SPEC_BEYANLI,
             env_ekle={"PRUVO_CLAUDE_ISCI_IZNI": "OKAN"})
-        d_ok = (kol_d == "EMEKLI")
-        print("924  K214 mutantli OKAN+beyan: kol={} | {} (sebep={})".format(
+        d_ok = (kol_d == "ALLOW")
+        print("924  K214 mutantli OKAN+beyan yetkili cikis: kol={} | {} (sebep={})".format(
             kol_d, "OK" if d_ok else "KIRMIZI", sebep_d[:60]))
         if not d_ok:
-            basarisiz.append((924, "EMEKLI", kol_d,
-                              "mutantli kopyada OKAN+beyan EMEKLI kolu bekleniyordu: " + sebep_d))
+            basarisiz.append((924, "ALLOW", kol_d,
+                              "claude emekli kumesindeyken bile OKAN yetkili cikisi ACIK "
+                              "kalmali (emekli kolu yetkili yolu kapatmamali): " + sebep_d))
     finally:
         shutil.rmtree(mutant_dizin, ignore_errors=True)
 
