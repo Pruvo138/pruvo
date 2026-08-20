@@ -122,6 +122,45 @@ N3_YENI = '''        mevcut_hukum = tur_hukmu_ayikla(sonuc["cikti"])
 '''
 
 
+# --- N5/N4: KAPI HUKMU TURUN HUKMU DEGILDIR (CANLIDA olculdu) --------------
+# 20 Agu 14:23Z canli turu: `KOSUM_HUKMU=ONARIM_DENENDI MOTOR_RC=0
+# TUR_HUKMU=GECER`. `GECER` turun hukmu DEGIL, N2B PARTI KAPISININ hukmudur
+# (`N2B HUKUM=GECER KOL=N2B-MUAF ...`). `tur_hukmu_ayikla` SONUNCU esleseni
+# aldigi icin, isci makine jetonu basmadiginda KAPININ satirini turun hukmu
+# saniyordu. Kapinin hukmu bu KOSUMA dair bir kol degildir -> ELENIR.
+# Jeton hic yoksa hukum bos kalir ve `kosum_hukmu_coz` OLCULEMEDI verir
+# (fail-closed: eskalasyon yolu ACIK kalir).
+N5_ANKOR = "def kosum_hukmu_coz(motor_rc, tur_hukmu, kapanan=0, dagitilan=0):\n"
+
+N5_YENI = '''def kosum_tur_hukmu(cikti):
+    """B5: turun KENDI hukmu — N2B PARTI KAPISININ satirlari ELENEREK.
+
+    Kapi da `HUKUM=` deseniyle yazar (`N2B HUKUM=GECER`); ayni desen oldugu
+    icin `tur_hukmu_ayikla` onu turun hukmu sanabiliyordu (olculdu: canli
+    14:23Z turu, `TUR_HUKMU=GECER`).
+    """
+    metin = "\\n".join(s for s in (cikti or "").splitlines()
+                      if not s.lstrip().startswith("N2B "))
+    return tur_hukmu_ayikla(metin) or ""
+
+
+'''
+
+N4_ESKI = '''        print("KOSUM_HUKMU=%s MOTOR_RC=%s TUR_HUKMU=%s" % (
+            kosum_hukmu_coz(sonuc["rc"], mevcut_hukum,
+                            tur_olcumu_ayikla(sonuc["cikti"], "KAPANAN"),
+                            tur_olcumu_ayikla(sonuc["cikti"], "DAGITILAN")),
+            sonuc["rc"], mevcut_hukum or "-"))
+'''
+N4_YENI = '''        _kosum_hukmu = kosum_tur_hukmu(sonuc["cikti"])
+        print("KOSUM_HUKMU=%s MOTOR_RC=%s TUR_HUKMU=%s" % (
+            kosum_hukmu_coz(sonuc["rc"], _kosum_hukmu,
+                            tur_olcumu_ayikla(sonuc["cikti"], "KAPANAN"),
+                            tur_olcumu_ayikla(sonuc["cikti"], "DAGITILAN")),
+            sonuc["rc"], _kosum_hukmu or "-"))
+'''
+
+
 # --- gozcu.py --------------------------------------------------------------
 
 G1_ANKOR = 'ICRA_HALLERI = ("KOSULMADI", "ATLANDI", "KOSTU_BASARILI", "KOSTU_DUSTU")\n'
@@ -240,6 +279,8 @@ def olculer():
          "KOSUM_HUKMU=MOTOR_DUSTU" in nk),
         ("N3 normal kol RUN-ID hukmu basiyor",
          'print("KOSUM_HUKMU=%s MOTOR_RC=%s TUR_HUKMU=%s"' in nk),
+        ("N4 N2B eleme kablosu", "_kosum_hukmu = kosum_tur_hukmu(" in nk),
+        ("N5 kosum_tur_hukmu TEK KAYNAK", "def kosum_tur_hukmu(" in nk),
         ("G1 kosum_hukmunu_ayikla", "def kosum_hukmunu_ayikla(" in gz),
         ("G2 kosum_hukmu ilklendi", 'kosum_hukmu = "KOSULMADI"' in gz),
         ("G4 deneme KOSUM hukmunden",
@@ -285,10 +326,23 @@ def uygula():
         rapor.append(("N1 tek kaynak", True))
     else:
         rapor.append(("N1 tek kaynak", None))
+    if "def kosum_tur_hukmu(" in nk:
+        rapor.append(("N5 kapi hukmu elenir", False))
+    elif nk.count(N5_ANKOR) == 1:
+        nk = nk.replace(N5_ANKOR, N5_YENI + N5_ANKOR, 1)
+        rapor.append(("N5 kapi hukmu elenir", True))
+    else:
+        rapor.append(("N5 kapi hukmu elenir", None))
     for ad, eski, yeni in (("N2 dusen kol", N2_ESKI, N2_YENI),
                            ("N3 normal kol", N3_ESKI, N3_YENI)):
         nk, d = degistir(nk, eski, yeni)
         rapor.append((ad, d))
+    # N4, N3'un URETTIGI blogu YUKSELTIR — taze kurulumda N3'ten SONRA calisir.
+    if "_kosum_hukmu = kosum_tur_hukmu(" in nk:
+        rapor.append(("N4 N2B eleme kablosu", False))
+    else:
+        nk, d = degistir(nk, N4_ESKI, N4_YENI)
+        rapor.append(("N4 N2B eleme kablosu", d))
     yaz(NOBET_KAPI, nk)
 
     gz = oku(GOZCU)

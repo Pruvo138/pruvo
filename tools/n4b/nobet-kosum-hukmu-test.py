@@ -120,6 +120,34 @@ def bolum_k1(nk, ek=""):
 # K2 — kosum_hukmunu_ayikla (gozcu, saf)
 # ===========================================================================
 
+KAPI_HUKMU_SIZAN = (
+    "MOTOR_DENEME motor=minimax-m3 rc=0 sebep=YESIL\n"
+    "N2B HUKUM=GECER KOL=N2B-MUAF EV=KraL ACIK=0 KALEM=-\n"
+    "CI kirmizisi bu turda onarildi (duz prose, makine jetonu YOK).\n"
+    "MOTOR=minimax-m3\n")
+
+
+def bolum_k1b(nk, ek=""):
+    """K1b — N2B PARTI KAPISININ hukmu TURUN hukmu DEGILDIR.
+
+    🔴 CANLIDA olculdu (gozcu.log, 2026-08-20T14:23:03Z turu):
+        KOSUM_HUKMU=ONARIM_DENENDI MOTOR_RC=0 TUR_HUKMU=GECER
+    `GECER` kapinin hukmudur; isci makine jetonu basmadigi icin
+    `tur_hukmu_ayikla` SONUNCU eslesen olarak KAPININ satirini aldi.
+    """
+    print("--- BOLUM K1b%s: KAPI HUKMU ELENIR ---" % ek)
+    vaka("K1b-kapi-hukmu-elendi%s" % ek, "",
+         nk.kosum_tur_hukmu(KAPI_HUKMU_SIZAN))
+    vaka("K1b-tur-hukmu-korunur%s" % ek, "TEMIZ",
+         nk.kosum_tur_hukmu(KAPI_HUKMU_SIZAN + "HUKUM=TEMIZ rc=0\n"))
+    vaka("K1b-jetonsuz-olculemedi%s" % ek, "OLCULEMEDI",
+         nk.kosum_hukmu_coz(0, nk.kosum_tur_hukmu(KAPI_HUKMU_SIZAN), 0, 0))
+    # Kontrol kolu: eleme YAPILMASAYDI `GECER` okunur ve hukum ONARIM_DENENDI
+    # olurdu — yani "olculemedim" yerine "denedim" denirdi (yanlis ozne).
+    vaka("K1b-elemesiz-yanlis-ozne%s" % ek, "ONARIM_DENENDI",
+         nk.kosum_hukmu_coz(0, nk.tur_hukmu_ayikla(KAPI_HUKMU_SIZAN), 0, 0))
+
+
 def bolum_k2(gz, ek=""):
     print("--- BOLUM K2%s: kosum_hukmunu_ayikla ---" % ek)
     vaka("K2a-temiz%s" % ek, "TEMIZ",
@@ -272,7 +300,20 @@ def bolum_k4(nk, gz, gz_kaynak, tmp):
         nk.kosum_hukmu_coz = asil_coz
     sonuclar.append(("Q3-motor-rc-yutuluyor",) + _atif(
         "Q3-motor-rc-yutuluyor", isaret,
-        ("K1c", "K1d", "K1e", "K1f", "K1g", "K1h"), ("K1a", "K1b")))
+        ("K1c", "K1d", "K1e", "K1f", "K1g", "K1h"), ("K1a", "K1b-")))
+
+    # Q4 — N2B ELEMESI KALDIRILDI: kapinin hukmu turun hukmu sanilir.
+    isaret = len(VAKALAR)
+    asil_eleme = nk.kosum_tur_hukmu
+    nk.kosum_tur_hukmu = nk.tur_hukmu_ayikla
+    try:
+        bolum_k1b(nk, ek="-Q4")
+    finally:
+        nk.kosum_tur_hukmu = asil_eleme
+    sonuclar.append(("Q4-N2B-elemesi-yok",) + _atif(
+        "Q4-N2B-elemesi-yok", isaret,
+        ("K1b-kapi-hukmu-elendi", "K1b-jetonsuz-olculemedi"),
+        ("K1b-tur-hukmu-korunur", "K1b-elemesiz-yanlis-ozne")))
 
     # K0 — KONTROL: kaynak DEGISMEDEN ayni harness'ten gecer
     isaret = len(VAKALAR)
@@ -283,6 +324,7 @@ def bolum_k4(nk, gz, gz_kaynak, tmp):
     finally:
         os.remove(yol)
     bolum_k1(nk, ek="-K0")
+    bolum_k1b(nk, ek="-K0")
     k0 = VAKALAR[isaret:]
     del VAKALAR[isaret:]
     k0_yesil = all(v[3] for v in k0)
@@ -303,6 +345,7 @@ def main():
     nk = modul_yukle(NOBET_KAPI, "b5_nobet_kapi")
     gz = modul_yukle(GOZCU, "b5_gozcu")
     eksik = [a for a, m in (("kosum_hukmu_coz", nk),
+                            ("kosum_tur_hukmu", nk),
                             ("kosum_hukmunu_ayikla", gz))
              if not hasattr(m, a)]
     if eksik:
@@ -312,6 +355,7 @@ def main():
     tmp = tempfile.mkdtemp(prefix="b5-kosum-")
     try:
         bolum_k1(nk)
+        bolum_k1b(nk)
         bolum_k2(gz)
         bolum_k3(gz, tmp)
         mutantlar, k0_yesil, k0_n = bolum_k4(nk, gz, gz_kaynak, tmp)

@@ -50,7 +50,21 @@ TEST_ADI = "nobet-eskalasyon-bayat-test.py"
 TEST_HEDEF = os.path.join(CRON_KOKU, TEST_ADI)
 TEST_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)), TEST_ADI)
 
-HEDEFLER = (NOBET_KAPI, TESTLER)
+NOBET_KABUL = os.path.join(CRON_KOKU, "nobet-kabul-test.py")
+HEDEFLER = (NOBET_KAPI, TESTLER, NOBET_KABUL)
+
+# --- P5: KOMSU FIKSTUR EMEKLI BIR KAT ADI TASIYOR --------------------------
+# `nobet-kabul-test.py` vaka 5/6 ve C paketi fiksturleri kalemi `"kat": "codex"`
+# ile kuruyor. `codex` EMEKLI (15/19 Agu). B4 bu kaydi hakli olarak BAYAT sayip
+# gocurunce vaka 6 ("eskale kalem YENIDEN dagitilmaz") kirmizi yandi —
+# olculdu: b4-kanit/07f, DUSEN 0 -> 1.
+# 🔴 Vakanin INIYETI dogru ve B4 onu KALDIRMIYOR: CANLI motorlu bir eskalasyon
+# yine dagitilmaz (B4 bataryasi D2/D3d bunu AYRICA olcer). Bozuk olan
+# FIKSTURDUR — "canli katta eskale olmus kalem"i EMEKLI bir kat adiyla
+# anlatiyor. Ad CANLI kumenin ilk motoruyla degistirilir; vakanin iddiasi
+# ve siki YAPISI aynen kalir ([[kabul-fiksturu-yasagi-kutsar]] tersi:
+# fikstur gercek durumu ifade etmedigi icin YANLIS YESIL/KIRMIZI uretiyordu).
+P5_ESKI = '"id": "K01", "etiket": "nobet-K01-t1", "tur": 1, "kat": "codex",'
 
 
 P1_ANKOR = "def eskale_kalemler(geri_iz):\n"
@@ -193,17 +207,38 @@ def degistir(metin, eski, yeni):
 DURUM_ADLARI = {True: "UYGULANDI", False: "ZATEN_VARDI", None: "ANKOR_YOK"}
 
 
-def _fonksiyon_govdesi(kaynak, ad):
-    """Bir fonksiyonun kaynak govdesi (ast; metin bolme YOK)."""
+def _canli_motorlar():
+    """CANLI kume TEK KAYNAKTAN okunur (ikinci liste TUTULMAZ)."""
+    yol = "/Users/okan/dev/pruvo/tools"
+    if yol not in sys.path:
+        sys.path.insert(0, yol)
+    try:
+        from mimar_kimlik import CANLI_ISCI_MOTORLARI
+        return tuple(CANLI_ISCI_MOTORLARI)
+    except Exception:                                   # noqa: BLE001
+        return ()
+
+
+SAYAC_ADLARI = ("ustuste_onarimsiz_guncelle", "ustuste_onarimsiz_oku",
+                "ustuste_onarimsiz_sonraki", "tur_sayacini_kaydet")
+
+
+def _sayac_cagrisi_var(kaynak, ad):
+    """Govdede sayaca giden CAGRI var mi? (ast — DOCSTRING'e takilmaz)"""
     import ast as _ast
     try:
         agac = _ast.parse(kaynak)
     except SyntaxError:
-        return ""
+        return True                      # ayristiramiyorsak fail-closed
     for dugum in _ast.walk(agac):
-        if isinstance(dugum, _ast.FunctionDef) and dugum.name == ad:
-            return _ast.get_source_segment(kaynak, dugum) or ""
-    return ""
+        if not (isinstance(dugum, _ast.FunctionDef) and dugum.name == ad):
+            continue
+        for alt in _ast.walk(dugum):
+            if isinstance(alt, _ast.Call) and isinstance(alt.func, _ast.Name) \
+                    and alt.func.id in SAYAC_ADLARI:
+                return True
+        return False
+    return True
 
 
 def olculer():
@@ -219,8 +254,9 @@ def olculer():
         # Kabul-4: goc yolu sayaci DOGRUDAN sifirlamaz. Govde ast ile alinir
         # (metin bolme ile degil — komsu fonksiyon sizarsa olcum yalan olur).
         ("P4 goc yolu sayaca DOKUNMUYOR",
-         "ustuste_onarimsiz" not in _fonksiyon_govdesi(
-             nk, "bayat_eskalasyonlari_gocur")),
+         not _sayac_cagrisi_var(nk, "bayat_eskalasyonlari_gocur")),
+        ("P5 komsu fikstur CANLI motor tasiyor",
+         P5_ESKI not in oku(NOBET_KABUL)),
         ("T1 kabul bataryasi kuruldu", os.path.isfile(TEST_HEDEF)),
         ("T2 testler.py'ye kayitli (CAGRI YERI)", TEST_ADI in tst),
     ]
@@ -260,6 +296,21 @@ def uygula():
         rapor.append((ad, d))
     yaz(NOBET_KAPI, nk)
 
+    # P5 — komsu fikstur: EMEKLI kat adi -> CANLI kumenin ILK motoru.
+    nkabul = oku(NOBET_KABUL)
+    yedek_nkabul = yedekle(NOBET_KABUL, damga)
+    canli = _canli_motorlar()
+    if not canli:
+        rapor.append(("P5 komsu fikstur", None))
+    elif P5_ESKI not in nkabul:
+        rapor.append(("P5 komsu fikstur", False))
+    else:
+        yeni_satir = P5_ESKI.replace('"kat": "codex",', '"kat": "%s",' % canli[0])
+        sayi = nkabul.count(P5_ESKI)
+        nkabul = nkabul.replace(P5_ESKI, yeni_satir)
+        yaz(NOBET_KABUL, nkabul)
+        rapor.append(("P5 komsu fikstur (x%d)" % sayi, True))
+
     if os.path.isfile(TEST_KAYNAK):
         shutil.copy2(TEST_KAYNAK, TEST_HEDEF)
         os.chmod(TEST_HEDEF, 0o755)
@@ -283,7 +334,7 @@ def uygula():
     for ad, durum in rapor:
         print("YAMA=%-24s SONUC=%s" % (ad, DURUM_ADLARI[durum]))
     ankorsuz = sum(1 for _, d in rapor if d is None)
-    for y in (yedek_nk, yedek_tst):
+    for y in (yedek_nk, yedek_tst, yedek_nkabul):
         print("YEDEK=%s" % y)
     print("DAMGA=%s" % damga)
     print("ANKORSUZ=%d" % ankorsuz)

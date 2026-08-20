@@ -219,8 +219,11 @@ def olculer():
         ("G0 gozcu.py re importu", "\nimport re\n" in gz),
         ("G1 icra_halini_coz TEK KAYNAK", "def icra_halini_coz(" in gz),
         ("G2 icra_hal/icra_denendi ilklendi", 'icra_hal = "KOSULMADI"' in gz),
+        # 🔴 Olcum KORUYUCU KOLA baglanir, `deneme_sonraki`nin ARGUMANINA
+        # degil: B5 o argumani `kosum_hukmu == "TEMIZ"` yapiyor ve olcum
+        # BAYATLIYOR (olculdu: b4-kanit/02b, G3 "YOK" dedi ama kol yerindeydi).
         ("G3 ATLANDI deneme SAYMIYOR",
-         'deneme_sonraki(kayit, icra_hal == "KOSTU_BASARILI")' in gz),
+         'if icra_hal in ("KOSTU_BASARILI", "KOSTU_DUSTU"):' in gz),
         ("G4 rc HAL'den okunuyor", 'if icra_hal == "KOSTU_DUSTU":' in gz),
         ("G5 kalpte icra_hal alani", '"icra_hal": icra_hal,' in gz),
         ("G6 donus sozlugunde icra_hal", '"icra_hal": icra_hal, "icra_denendi"' in gz),
@@ -266,11 +269,25 @@ def uygula():
         rapor.append(("G1 tek kaynak", True))
     else:
         rapor.append(("G1 tek kaynak", None))
-    for ad, eski, yeni in (("G2 ilklendirme", G2_ESKI, G2_YENI),
-                           ("G3 ATLANDI deneme", G3_ESKI, G3_YENI),
-                           ("G4 rc HAL'den", G4_ESKI, G4_YENI),
-                           ("G5 kalp alanlari", G5_ESKI, G5_YENI),
-                           ("G6 donus sozlugu", G6_ESKI, G6_YENI)):
+    # 🔴 IDEMPOTENS BELIRTECI AYRI: `degistir`in "yeni metin zaten var mi"
+    # testi, ARADAN baska bir yama (B5) satir sokunca YANILIR ve ayni blogu
+    # IKINCI kez ekler. Her yamanin kendi belirteci olur (olculdu: b4-kanit/02b,
+    # G2 "UYGULANDI" deyip mukerrer ilklendirme yazdi).
+    for ad, eski, yeni, belirtec in (
+            ("G2 ilklendirme", G2_ESKI, G2_YENI, 'icra_hal = "KOSULMADI"'),
+            ("G3 ATLANDI deneme", G3_ESKI, G3_YENI,
+             'if icra_hal in ("KOSTU_BASARILI", "KOSTU_DUSTU"):'),
+            ("G4 rc HAL'den", G4_ESKI, G4_YENI, 'if icra_hal == "KOSTU_DUSTU":'),
+            # Belirtecler AYIRT EDICI olmali: G5 ve G6 ayni alan adlarini
+            # tasir, genel bir belirtec digerini yanlislikla "zaten var" yapar.
+            ("G5 kalp alanlari", G5_ESKI, G5_YENI,
+             '"icra_hal": icra_hal,      # B6'),
+            ("G6 donus sozlugu", G6_ESKI, G6_YENI,
+             '"icra_hal": icra_hal, "icra_denendi"'),
+    ):
+        if belirtec in gz:
+            rapor.append((ad, False))
+            continue
         gz, d = degistir(gz, eski, yeni)
         rapor.append((ad, d))
     yaz(GOZCU, gz)

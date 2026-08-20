@@ -162,14 +162,12 @@ def bolum_d4(nk, kaynak, tmp, ek=""):
     #      olculmez ve R4 "yasadi" gorunurdu.
     #  (b) DISK: goc yolu sayac dosyasini OLUSTURMAZ. Yol GECICI bir dosyaya
     #      cevrilir — mutant uretim sayacina yazmasin.
-    govde = ""
-    for dugum in ast.walk(ast.parse(kaynak)):
-        if isinstance(dugum, ast.FunctionDef) \
-                and dugum.name == "bayat_eskalasyonlari_gocur":
-            govde = ast.get_source_segment(kaynak, dugum) or ""
+    # 🔴 Metin araması DEGIL CAGRI aramasi: govdenin DOCSTRING'i "sayaca
+    # DOKUNMAZ" cumlesini tasidigi icin duz `in` testi kendi yorumuna takilip
+    # KIRMIZI yaniyordu (olculdu: b4-kanit/06, K0 kontrol mutanti D5a).
     vaka("D5a-govde-sayaca-dokunmuyor%s" % ek, "YOK",
-         "VAR" if ("ustuste_onarimsiz" in govde
-                   or "tur_sayacini_kaydet" in govde) else "YOK")
+         "VAR" if _sayac_cagrisi_var(kaynak, "bayat_eskalasyonlari_gocur")
+         else "YOK")
 
     sahte_sayac = os.path.join(tmp, "sayac%s.json" % ek)
     asil_yol = nk.ONARIMSIZ_SAYAC_YOLU
@@ -189,6 +187,28 @@ def bolum_d4(nk, kaynak, tmp, ek=""):
                                   canli_motorlar=tuple(nk.CANLI_ISCI_MOTORLARI))
     vaka("D6-kanit-dosyasi-degismedi%s" % ek, once_md,
          _dosya_imzasi(ESKALASYON_MD))
+
+
+SAYAC_ADLARI = ("ustuste_onarimsiz_guncelle", "ustuste_onarimsiz_oku",
+                "ustuste_onarimsiz_sonraki", "tur_sayacini_kaydet")
+
+
+def _sayac_cagrisi_var(kaynak, fonksiyon_adi):
+    """Fonksiyonun govdesinde sayaca giden bir CAGRI var mi? (ast, yorum-bagisik)"""
+    try:
+        agac = ast.parse(kaynak)
+    except SyntaxError:
+        return True                      # ayristiramiyorsak fail-closed
+    for dugum in ast.walk(agac):
+        if not (isinstance(dugum, ast.FunctionDef)
+                and dugum.name == fonksiyon_adi):
+            continue
+        for alt in ast.walk(dugum):
+            if isinstance(alt, ast.Call) and isinstance(alt.func, ast.Name) \
+                    and alt.func.id in SAYAC_ADLARI:
+                return True
+        return False
+    return True                          # fonksiyon YOKSA fail-closed
 
 
 def _dosya_imzasi(yol):
@@ -220,7 +240,23 @@ def _atif(ad, isaret, hedef_onek, yan_onek):
     return hedef_oldu, yan_yesil
 
 
-def mutant_kos(ad, kaynak, tmp, hedef_onek, yan_onek):
+MUTASYON_UYGULANMADI = []
+
+
+def mutant_kos(ad, kaynak, tmp, hedef_onek, yan_onek, taban=None):
+    """Mutanti kosar. 🔴 Mutasyon HIC UYGULANMADIYSA bunu SESSIZ gecmez.
+
+    Capa bayatlayinca `str.replace` hicbir sey degistirmez ve mutant "YASADI"
+    gorunur — oysa gercek hukum OLCULEMEDI'dir
+    ([[capa-cokmesi-arkasindaki-capalari-gizler]]). Olculdu (b4-kanit/06):
+    R2 capasi satir-sonu yorumunu atlamis, mutasyon uygulanmamis, mutant
+    "YASADI" diye raporlanmisti.
+    """
+    if taban is not None and kaynak == taban:
+        MUTASYON_UYGULANMADI.append(ad)
+        print("MUTANT=%-28s HEDEF_KOL=OLCULEMEDI (capa BAYAT: kaynak DEGISMEDI)"
+              % ad)
+        return False, False
     isaret = len(VAKALAR)
     yol = os.path.join(CRON_KOKU, ".b4-mutant-%s.py" % ad.split("-")[0].lower())
     try:
@@ -253,14 +289,29 @@ def bolum_r(kaynak, tmp):
     sonuclar.append(("R1-bayat-kontrolu-yok",) + mutant_kos(
         "R1-bayat-kontrolu-yok", r1, tmp,
         ("D2a", "D2b", "D2c", "D3d"),
-        ("D1a", "D1b", "D1c", "D1e", "D4", "D5", "D6")))
+        ("D1a", "D1b", "D1c", "D1e", "D4", "D5", "D6"), taban=kaynak))
 
-    # R2 — IDEMPOTENS KALDIRILDI: goc her turda yeniden ateslenir.
-    r2 = kaynak.replace('    if kayit.get("eskalasyon_bayat"):\n'
-                        '        return False\n', "", 1)
-    sonuclar.append(("R2-goc-tekrar-eder",) + mutant_kos(
-        "R2-goc-tekrar-eder", r2, tmp,
-        ("D1h",), ("D1a", "D1b", "D1c", "D2", "D3", "D4", "D5", "D6")))
+    # R2 — ESKALASYON KANITI SILINIYOR (kabul-6'nin kayit ekseni).
+    # 🔴 NEDEN "goc TEKRAR EDER" MUTANTI DEGIL: D1h (goc bir kez olur) UC
+    # BAGIMSIZ kalkanla saglaniyor — (a) `eskalasyon_bayat` damgasi,
+    # (b) `durum` -> BAYAT_GOC, (c) `motor` -> CANLI kat. Herhangi ikisi
+    # kaldirilsa ucuncusu D1h'i yine yesil tutuyor; olculdu: iki ayri denemede
+    # mutant "YASADI" gorundu ve bu "kol saglam" DEGIL "bu vaka tek bir kolla
+    # olculemiyor" demekti ([[ad-iki-rolde-mutanti-golgeler]]). D1h bu yuzden
+    # ASIRI-BELIRLENMIS bir ozelliktir ve mutantla ayristirilmaz; onun yerine
+    # AYIRT EDILEBILIR bir kol olculur: kanitin saklanmasi.
+    r2 = kaynak.replace(
+        '        kayit["eskalasyon_bayat"] = {\n'
+        '            "eski_motor": eski_motor,\n'
+        '            "eski_durum": kayit.get("durum"),\n'
+        '            "damga": damga,\n'
+        '        }\n', "", 1)
+    sonuclar.append(("R2-kanit-silinir",) + mutant_kos(
+        "R2-kanit-silinir", r2, tmp,
+        ("D1f",),
+        ("D1a", "D1b", "D1c", "D1d", "D1e", "D1g", "D1h", "D2", "D3",
+         "D4", "D5", "D6"),
+        taban=kaynak))
 
     # R3 — FAIL-CLOSED KALDIRILDI: bos kumede HEPSI bayat sayilir (MUTANT A).
     r3 = kaynak.replace(
@@ -275,7 +326,7 @@ def bolum_r(kaynak, tmp):
         '    canli = canli or ("kimi",)\n', 1)
     sonuclar.append(("R3-fail-closed-yok",) + mutant_kos(
         "R3-fail-closed-yok", r3, tmp,
-        ("D4a", "D4b", "D4c"), ("D1", "D2", "D3", "D5", "D6")))
+        ("D4a", "D4b", "D4c"), ("D1", "D2", "D3", "D5", "D6"), taban=kaynak))
 
     # R4 — SAYAC DURUSTLUGU: goc yolu sayaci DOGRUDAN sifirliyor (MUTANT B).
     r4 = kaynak.replace(
@@ -284,7 +335,7 @@ def bolum_r(kaynak, tmp):
         '        ustuste_onarimsiz_guncelle(1)\n', 1)
     sonuclar.append(("R4-sayac-sifirlaniyor",) + mutant_kos(
         "R4-sayac-sifirlaniyor", r4, tmp,
-        ("D5a", "D5b"), ("D1", "D2", "D3", "D4", "D6")))
+        ("D5a", "D5b"), ("D1", "D2", "D3", "D4", "D6"), taban=kaynak))
 
     # K0 — KONTROL: kaynak DEGISMEDEN ayni harness'ten gecer.
     isaret = len(VAKALAR)
@@ -343,6 +394,10 @@ def main():
              sum(1 for _, h, _y in mutantlar if h), len(mutantlar),
              k0_n if k0_yesil else 0, k0_n))
     print("TOPLAM=%d GECTI=%d KALDI=%d" % (toplam, gecen, toplam - gecen))
+    if MUTASYON_UYGULANMADI:
+        print("KABUL=OLCULEMEDI (mutasyon capasi BAYAT: %s)"
+              % ",".join(MUTASYON_UYGULANMADI))
+        return 3
     if not k0_yesil:
         print("KABUL=OLCULEMEDI (K0 kontrol mutanti kirmizi — batarya kararsiz)")
         return 3
