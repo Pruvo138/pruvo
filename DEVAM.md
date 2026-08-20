@@ -2,20 +2,21 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~10:xxZ (KraL)
-**AGAC TEMIZ · main=origin `74273c32`** (11 merge; K229 + VARYASYON FAZ 1 de indi).
-**KOSUYOR:** `KraL-K248` (`kral/k248-k7-hal-ayrimi`). 🔴 **K249 (FAZ 3 ONCESI):** `shop/test/*`
-varyasyonu HEP bos tasiyor, sunucunun fail-closed kollari CI'da HIC kosmuyor = YANLIS TAHSILAT
-riski; kabul: non-bos varyasyon tasiyan kabul testi + mutant.
-**CANLIYA GIDEN:** K214 · P2/P3 · P1 · ADIM1 · K184 (SQUASH; gecmis `kral/k184-talep-sihirbazi`) ·
-K237-t2 · yayin onarimi `c2cb6bcf` · N4B spec · K246 · K229 · FAZ 1. IKI yayin kirmizisi kapandi.
-**BEKLIYOR:** N4B B4-B8 **BaBa'da**, B7 ONCE · VARYASYON FAZ 2-5 chip bekliyor
-(`tools/paket-varyasyon-programi.md`; FAZ 1 YESIL 42/42, olcek buyutulebilir).
-**Okan'da:** ① gecmis temizligi — kuyruk BOSALDI, on kosul SAGLANDI · ② K200(i) · ③ Worker
-deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inmeden OLCULEMEZ.
+## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~15:3xZ (KraL)
+**AGAC TEMIZ · main=origin `66ff84d1`** · worktree 2 (ana + KOSAN chip).
+**CANLIYA GIDEN (7 merge):** K248 `e27b826c` · K250 `ba0e5e2a` · K252 `920e94b6` ·
+K253 `33d2a6e0` · yetkinlik `47b9f989` · MOTOR SIRASI `e134911f` · N4B `66ff84d1`.
+**KOSUYOR:** `KraL-TarayiciAcma` (`kral/tarayici-acma`) — tarayici kapisini KraL+MaCiT'te acar;
+🔴 Agent yasagi DOKUNULMAZ (negatif kontrol + birlestirme mutanti sart).
+**BEKLIYOR:** K257 chip'i (MotorSirasi indi, ACILABILIR) · K249 · VARYASYON FAZ 2-5 ·
+K250 rollout 1/6→6/6 · MaCiT Audi dal-2.
+**Okan'da:** ① gecmis temizligi (on kosul SAGLANDI) · ② K200(i) · ③ Worker deploy — K252 main'de
+AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI: m3 Max $50 + kimi $39, yukseltme YOK (haftalik %38,
+5h %1, aylik 3,48B / ~5,1B; API Usage'da harcama 0.0000). Yukseltme tetigi: m3'te ILK 403/karantina
+ya da eszamanli tur reddi.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
-- 🔴 **K252:** kodsuz `tamamlandi` yok → `tools/paket-siparis-durum-secici.md`.
-- 🟠 **K250** merge edildi (`ba0e5e2a`); evlere rollout kaldi. KUTUDA.
+- 🔴 **K257 (Okan):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan; sayac ISLE TASINIR, kapi
+  reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
 - 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
   bulunur+kapanir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
   kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
@@ -32,7 +33,7 @@ deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inm
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
 - ✅ **19 AGU KAPANANLAR (bloklar ARSIVDE+kutuda):** K186 · K205 · K210 · K211 · K190 · K215/K80 · SeritB · K224 · K209.
-- 🔴 **MOTOR KARARI (Okan, 19 Agu aksam — LUNA EMRINI GECERSIZ KILAR):** kapali kume `minimax-m3 kimi claude`; deepseek/codex/luna **RED** (K224'te uygulandi, cron kimi'de kaldi).
+- 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
 - 🔴 **K213 (19 Agu, MaCiT olctu → hukum KraL'da, sahibi MaCiT):** CC BY/BY-SA **50 kayitta**
@@ -121,7 +122,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔧 **TARIFE KARAR KURALI (olculdu, onaya hazir):** $20 KALIR; kota %80'e yaklasirsa ikinci saglayicinin $39 basamagi ($50 tek-saglayici yerine CESITLILIK). TAM GEREKCE ARSIVDE.
 - 🔧 **22 Agu:** kimi/codex motor karari (K157) · $100 plan karari (once yanma olcumu).
 - Olculen maliyet tabani: $18,72 / 1.081.021.287 token / 8.639 istek = ~$17,3/milyar; $20/ay + ~4,6 milyar/ay = ~$4,3/milyar.
-- 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z):** pruvo-shop bayatlik nabzi KIRMIZI (134,1 dk / esik 120); yayinlanmamis TEK fark `0f590d11` icindeki `shop/src/talep.js` YORUM satiri, davranis farki YOK. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
+- 🔧 **ODEME WORKER DEPLOY (19 Agu 16:29Z · 20 Agu 14:2xZ TAZELENDI):** pruvo-shop bayatlik nabzi KIRMIZI **373,2 dk** / esik 120; yayinlanmamis fark artik 2 commit ve YORUM DEGIL — K252 siparis durum secici DAVRANISI canliya INMEDI. Kapatan eylem `npx wrangler deploy` = OKAN KAPISI. Detay ci-nobeti.log.
 
 ## ARSIVDE
 14-20 Agu kapananlar `DEVAM-ARSIV.md`'de.
