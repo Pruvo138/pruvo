@@ -35,11 +35,12 @@ import time
 CRON_KOKU = "/Users/okan/.claude/cron"
 MERDIVEN_YOLU = os.path.join(CRON_KOKU, "nobet_merdiven.py")
 NOBET_KAPI = os.path.join(CRON_KOKU, "nobet-kapi.py")
+MUTASYON = os.path.join(CRON_KOKU, "nobet-kapi-mutasyon.py")
 
 # --- KAPSAM TABANI (oran DEGIL SAYI) — [[batarya-kapsam-tabani-sayiyla-civilenir]]
 # Buyutmek serbest, KUCULTMEK mimar kararidir.
-VAKA_TABANI = 60
-MUTANT_TABANI = 9
+VAKA_TABANI = 68
+MUTANT_TABANI = 10
 KONTROL_TABANI = 2
 
 CANLI = ("minimax-m3", "kimi")
@@ -286,6 +287,35 @@ def bolum_s8(M, ek=""):
 
 
 # ===========================================================================
+# S9 — TOHUMLAMA: K257 ONCESI KAYDIN GECMISI SILINMEZ
+# ===========================================================================
+
+def bolum_s9(M, ek=""):
+    print("--- BOLUM S9%s: DEVIR TOHUMLAMASI ---" % ek)
+    # 🔴 Canli geri-izde SU AN boyle 15 kayit var: `dagitim_sayisi=3`, merdiven
+    # kaydi YOK. Tohumlamasiz her biri SIFIRDAN baslardi — K257(a)'nin tam
+    # yasakladigi sey.
+    eski = {"id": "K01", "dagitim_sayisi": 3, "motor": "kimi",
+            "damga": damga(0), "rapor_yolu": "/rapor/eski.md"}
+    karar = M.merdiven_ilerlet(eski, "YETENEK", damga=damga(1),
+                               canli_motorlar=CANLI, rc=1, metin=DUZ_METNI)
+    vaka("S9a-devir-sayaci-tasindi%s" % ek, 4, karar["sayac"])
+    vaka("S9b-devir-basamagi%s" % ek, "MIMAR>KRAL",
+         "%s>%s" % (karar["onceki_basamak"], karar["basamak"]))
+    vaka("S9c-devir-eskalasyon%s" % ek, "ESKALASYON", karar["durum"])
+    vaka("S9d-devir-damgasi%s" % ek, 3,
+         M.merdiven_kaydi(eski).get("devir", {}).get("dagitim_sayisi"))
+    # KONTROL KOLU: gecmisi OLMAYAN kalem tohumlanmaz (fazla sayma YOK).
+    taze = {"id": "K02"}
+    karar2 = M.merdiven_ilerlet(taze, "YETENEK", damga=damga(1),
+                                canli_motorlar=CANLI, rc=1, metin=DUZ_METNI)
+    vaka("S9e-taze-kalem-tohumlanmaz%s" % ek, "minimax-m3=1",
+         "%s=%d" % (karar2["basamak"], karar2["sayac"]))
+    # `dagitim_sayisi` merdiven sayaciyla EZILMEZ (iki AYRI buyukluk).
+    vaka("S9f-dagitim-sayisi-ezilmez%s" % ek, 3, eski.get("dagitim_sayisi"))
+
+
+# ===========================================================================
 # S7 — CAGRI YERI (uretim dosyasi; mutant harness'ine GIRMEZ)
 # ===========================================================================
 
@@ -329,6 +359,17 @@ def bolum_s7(kaynak):
             else:
                 zincir = "TURETILDI"
     vaka("S7d-tur-motor-zinciri-turetildi", "TURETILDI", zincir)
+    # 🔴 "TURETILDI" tek basina YETMEZ: ifade CANLI kumeyi GERCEKTEN okumali.
+    # Okumuyorsa yine ikinci bir liste var demektir, sadece sekli degismistir.
+    okur = "-"
+    for dugum in ast.walk(agac):
+        if isinstance(dugum, ast.Assign) and dugum.targets \
+                and isinstance(dugum.targets[0], ast.Name) \
+                and dugum.targets[0].id == "TUR_MOTOR_ZINCIRI":
+            adlar = {d.id for d in ast.walk(dugum.value)
+                     if isinstance(d, ast.Name)}
+            okur = "OKUR" if "CANLI_ISCI_MOTORLARI" in adlar else "OKUMAZ"
+    vaka("S7h-zincir-canli-kumeyi-okur", "OKUR", okur)
     vaka("S7e-sla-uretimde-cagriliyor", True,
          _cagri_var(_fonksiyon(agac, "tur_kapat"), "sla_karari"))
     vaka("S7f-dagitilmaz-durumlar-kullaniliyor", True,
@@ -339,6 +380,18 @@ def bolum_s7(kaynak):
                 if isinstance(d, ast.Name) and d.id == "ESKALASYON_DAGITIM"
                 and isinstance(d.ctx, ast.Load))
     vaka("S7g-eski-tek-esik-okunmuyor", 0, okuma)
+    # 🔴 BAGIMLILIK KAYDI: mutasyon surucusu mutanti IZOLE dizinde kosturur ve
+    # bagimliliklari ELLE kopyalar. `nobet_merdiven` kaydedilmezse surucu
+    # ModuleNotFoundError ile duser — ve rc ONCE de SONRA da 1 oldugu icin bu
+    # ONCE=SONRA karsilastirmasinda GORUNMEZ. Kaydi burada CIVILIYORUZ.
+    try:
+        with open(MUTASYON, encoding="utf-8") as dosya:
+            mut = dosya.read()
+        kayitli = ("CANLI_MERDIVEN" in mut
+                   and mut.count('"nobet_merdiven.py"') >= 2)
+    except OSError:
+        kayitli = "OLCULEMEDI"
+    vaka("S7i-mutasyon-bagimlilik-kaydi", True, kayitli)
 
 
 # ===========================================================================
@@ -353,6 +406,7 @@ def _bolumleri_kos(M, ek):
     bolum_s5(M, ek)
     bolum_s6(M, ek)
     bolum_s8(M, ek)
+    bolum_s9(M, ek)
 
 
 def capali_degistir(kaynak, eski, yeni, ad):
@@ -400,7 +454,7 @@ def mutant_kos(ad, kaynak, tmp, hedef_onek, yan_onek):
 
 
 # Yan eksen onekleri: hedefe DEGMEYEN bolumler. Her mutant kendi listesini verir.
-TUM = ("S1", "S2", "S3", "S4", "S5", "S6", "S8")
+TUM = ("S1", "S2", "S3", "S4", "S5", "S6", "S8", "S9")
 
 
 def _yan(*haric):
@@ -488,7 +542,8 @@ def bolum_mutant(kaynak, tmp):
             '    kayit["merdiven"]["denemeler"].append(\n'
             '        {"damga": "sla", "basamak": BASAMAK_BABA, "hal": "YETENEK",\n'
             '         "sayilir": True})\n', "M8"),
-        tmp, ("S6d",), ("S1", "S2", "S3", "S4", "S5", "S8", "S6a", "S6b", "S6c")))
+        tmp, ("S6d",),
+        ("S1", "S2", "S3", "S4", "S5", "S8", "S9", "S6a", "S6b", "S6c")))
 
     # M9 — SAYAC BASAMAGA GORE SIFIRLANIYOR (K257'nin yasakladigi tam kusur)
     sonuclar.append(("M9-sayac-katta-sifirlanir",) + mutant_kos(
@@ -501,9 +556,22 @@ def bolum_mutant(kaynak, tmp):
             "               if d.get(\"sayilir\") and d.get(\"basamak\") == _b)",
             "M9"),
         tmp, ("S3b", "S3c", "S3d", "S8-1", "S8-2", "S8-3", "S8-4", "S8-5",
-              "S6a"),
+              "S6a", "S9a"),
         ("S1", "S2-KOTA", "S2-YETENEK", "S2-BITMEYEN_TUR", "S2-KAPI_REDDI-yon",
          "S4b", "S4c", "S4d", "S4e", "S5")))
+
+    # M10 — 🔴 TOHUMLAMA SOKULDU: K257 oncesi kaydin gecmisi SILINIR.
+    # Bu, ilk kurulumda CANLI olarak olculen kusurdur (nobet-kabul-test vaka 6
+    # kirmizi yandi): `dagitim_sayisi=3` olan kalem sifirdan basliyordu.
+    sonuclar.append(("M10-tohumlama-sokuldu",) + mutant_kos(
+        "M10-tohumlama-sokuldu",
+        capali_degistir(kaynak,
+                        "    if eski <= 0:\n"
+                        "        return [], basamaklar[0][\"ad\"]\n",
+                        "    if True:\n"
+                        "        return [], basamaklar[0][\"ad\"]\n", "M10"),
+        tmp, ("S9a", "S9b", "S9c", "S9d"),
+        ("S1", "S2", "S3", "S4", "S5", "S6", "S8", "S9e", "S9f")))
 
     return sonuclar
 

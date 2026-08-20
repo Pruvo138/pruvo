@@ -40,6 +40,7 @@ import time
 CRON_KOKU = "/Users/okan/.claude/cron"
 NOBET_KAPI = os.path.join(CRON_KOKU, "nobet-kapi.py")
 TESTLER = os.path.join(CRON_KOKU, "testler.py")
+MUTASYON = os.path.join(CRON_KOKU, "nobet-kapi-mutasyon.py")
 
 KAYNAK_DIZIN = os.path.dirname(os.path.abspath(__file__))
 MODUL_ADI = "nobet_merdiven.py"
@@ -49,8 +50,55 @@ TEST_HEDEF = os.path.join(CRON_KOKU, TEST_ADI)
 MODUL_KAYNAK = os.path.join(KAYNAK_DIZIN, MODUL_ADI)
 TEST_KAYNAK = os.path.join(KAYNAK_DIZIN, TEST_ADI)
 
-HEDEFLER = (NOBET_KAPI, TESTLER)
+HEDEFLER = (NOBET_KAPI, TESTLER, MUTASYON)
 YEDEK_ONEK = "yedek-k257"
+
+
+# ---------------------------------------------------------------------------
+# P9 — MUTASYON SURUCUSUNE BAGIMLILIK KAYDI
+# ---------------------------------------------------------------------------
+# 🔴 OLCULDU (20 Agu 2026, K257 turu 1): `nobet-kapi-mutasyon.py` mutant
+# nobet-kapi.py'yi IZOLE bir tmpdir'e kopyalayip orada kosturur ve bagimliliklari
+# ELLE kopyalar (`kilit.py` icin ayni sey yapilmis). `nobet_merdiven` kopyalanmadigi
+# icin surucu `ModuleNotFoundError` ile duser.
+# 🔴 BU KUSUR rc KARSILASTIRMASIYLA GORUNMEZ: surucu ONCE de rc=1 doner (taban
+# kirmizisi), SONRA da rc=1 doner — ama SEBEP degismistir. ONCE=SONRA hukmu
+# rc'den DEGIL, cikti ICERIGINDEN verilmelidir.
+
+P9A_ESKI = '''CANLI_KILIT = "/Users/okan/.claude/cron/kilit.py"   # K160 dilim-1: kapi bagimliligi
+'''
+P9A_YENI = '''CANLI_KILIT = "/Users/okan/.claude/cron/kilit.py"   # K160 dilim-1: kapi bagimliligi
+# K257: kapinin IKINCI modul bagimliligi (eskalasyon merdiveni). Mutant izole
+# dizinde kostugu icin bu dosya da ORAYA kopyalanmali; yoksa surucu
+# ModuleNotFoundError ile duser ve tum mutant tablosu OLCULEMEZ.
+CANLI_MERDIVEN = "/Users/okan/.claude/cron/nobet_merdiven.py"
+'''
+
+P9B_ESKI = '''        if os.path.exists(CANLI_KILIT):
+            shutil.copy(CANLI_KILIT, os.path.join(tmpdir, "kilit.py"))
+'''
+P9B_YENI = '''        if os.path.exists(CANLI_KILIT):
+            shutil.copy(CANLI_KILIT, os.path.join(tmpdir, "kilit.py"))
+        if os.path.exists(CANLI_MERDIVEN):
+            shutil.copy(CANLI_MERDIVEN,
+                        os.path.join(tmpdir, "nobet_merdiven.py"))
+'''
+
+P9C_ESKI = '''            if os.path.exists(CANLI_KILIT):
+                shutil.copy(CANLI_KILIT, os.path.join(d, "kilit.py"))
+'''
+P9C_YENI = '''            if os.path.exists(CANLI_KILIT):
+                shutil.copy(CANLI_KILIT, os.path.join(d, "kilit.py"))
+            if os.path.exists(CANLI_MERDIVEN):
+                shutil.copy(CANLI_MERDIVEN,
+                            os.path.join(d, "nobet_merdiven.py"))
+'''
+
+MUTASYON_YAMALARI = (
+    ("P9a mutasyon bagimlilik adi", P9A_ESKI, P9A_YENI),
+    ("P9b tmpdir kopyasi", P9B_ESKI, P9B_YENI),
+    ("P9c mutant dizini kopyasi", P9C_ESKI, P9C_YENI),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -78,14 +126,23 @@ TUR_MOTOR_ZINCIRI = ("minimax-m3",)
 """
 P2_YENI = '''# H5: nobet TURUNUN motor zinciri (kota reddinde sirayla dusulur)
 # 🔴 K257(e) — 20 Agu 2026, mimar hukmu. Burada ELLE YAZILMIS tekil bir tuple
-# duruyordu (`("minimax-m3",)`) ve sira mutanti onu OLDURMUYORDU: hicbir seyden
-# TUREMEDIGI icin degistirilmesi bir seyi bozmuyordu. Ikinci motor listesi
-# TUTULMAZ ([[ikiz-tanim-sessiz-ayrisma]]) — zincir CANLI kumeden turer.
-# Bu satir 16 Agu BaBa notunun ("cron nobetleri Kimi'ye BAGLANMAZ") YERINE
-# gecer: Okan'in 20 Agu motor karari (m3 BIRINCIL, kimi YEDEK) ve K257(b)'nin
-# KOTA -> YANA hamlesi yedek motoru ACIKCA istiyor. Zincirin ILK elemani
-# birincil kattir; kalani yalniz kota/karantina reddinde denenir.
-TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI)
+# duruyordu (`("minimax-m3",)`): hicbir seyden TUREMEDIGI icin SIRA MUTANTI
+# bu satiri OLDURMUYORDU — motor sirasi tersine cevrilse bile nobet eski
+# motorda kalirdi. Ikinci motor listesi TUTULMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
+#
+# 🔴 IKI HUKUM CARPISIYOR, IKISI DE KORUNDU:
+#   K257(e) (mimar, 20 Agu) : liste TURETILECEK.
+#   BaBa    (16 Agu)        : "cron nobetleri Kimi'ye BAGLANMAZ" — Kimi'nin
+#                             haftalik 5s limiti cok-turlu nobet tasariminda
+#                             baglayici. `nobet-kabul-test.py` vaka 39 bunu
+#                             POZITIF olarak olcuyor ve HALA YURURLUKTE.
+# Care: TEKILLIK korunur ama ELLE YAZILMAZ — zincir CANLI kumenin ILK
+# elemanindan TURER. Motor sirasi degisirse zincir de degisir (sira mutanti
+# artik OLDURUR); kimi zincire GIRMEZ (BaBa hukmu ayakta). K257(b)'nin
+# KOTA -> YANA hamlesi TUR ekseninde degil KALEM ekseninde isler
+# (`nobet_merdiven` + `kalem_dagit`), dolayisiyla bu daraltma onu KESMEZ.
+# Zincir tamamen kotaya girerse `karantina_en_eski` fail-open kolu devrede.
+TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI[:1])
 '''
 
 
@@ -225,13 +282,11 @@ P5_YENI = '''    # K257: insan kapisindaki kalemlere ek olarak ARAC_KUSURU (kapi
 P6A_ESKI = '''    sayi = int(onceki.get("dagitim_sayisi", 0)) + 1 if yeniden else 1
 '''
 P6A_YENI = '''    # 🔴 K257(a): SAYAC SIFIRDAN BASLAMAZ. Burada `yeniden` False iken sayi
-    # 1'e EZILIYORDU — kalem baska bir kata gecince gecmisi siliniyor, merdiven
-    # sonsuz donguye donuyordu. Merdiven kaydi varsa sayi ORADAN turer.
-    _merdiven_sayaci = MERDIVEN.sayac(onceki)
-    if _merdiven_sayaci:
-        sayi = _merdiven_sayaci
-    else:
-        sayi = int(onceki.get("dagitim_sayisi", 0)) + 1 if yeniden else 1
+    # 1'e EZILIYORDU: BITMEYEN_TUR kovasindan sonraki turda geri gelen kalem
+    # (`yeniden` listesinde DEGILDIR) gecmisini kaybediyordu. Gecmisi olan
+    # kalem bir daha 1'e DUSMEZ.
+    _onceki_sayi = int(onceki.get("dagitim_sayisi", 0) or 0)
+    sayi = _onceki_sayi + 1 if (yeniden or _onceki_sayi) else 1
 '''
 
 P6B_ESKI = '''    komut = isci_komutu(motor, spec_yolu, rapor_yolu, etiket)
@@ -386,8 +441,8 @@ def olculer():
         ("P0 merdiven modulu kurulu", os.path.isfile(MODUL_HEDEF)),
         ("P1 nobet-kapi import ediyor",
          "import nobet_merdiven as MERDIVEN" in kapi),
-        ("P2 zincir turetildi", "TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI)"
-         in kapi),
+        ("P2 zincir turetildi",
+         "TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI[:1])" in kapi),
         ("P2b elle tuple KALMADI",
          'TUR_MOTOR_ZINCIRI = ("minimax-m3",)' not in kapi),
         ("P3 _kalemi_dusur merdiven", "MERDIVEN.merdiven_ilerlet(" in kapi),
@@ -396,14 +451,16 @@ def olculer():
         ("P4c BITMEYEN_TUR varsayilani",
          "varsayilan=MERDIVEN.HAL_BITMEYEN_TUR" in kapi),
         ("P5 dagitilmaz durumlar", "MERDIVEN.DAGITILMAZ_DURUMLAR" in kapi),
-        ("P6a sayac sifirlanmaz", "_merdiven_sayaci = MERDIVEN.sayac(onceki)"
-         in kapi),
+        ("P6a sayac sifirlanmaz",
+         "sayi = _onceki_sayi + 1 if (yeniden or _onceki_sayi) else 1" in kapi),
         ("P6c merdiven kaydi tasinir",
          'kayit["merdiven"] = onceki["merdiven"]' in kapi),
         ("P7a SLA kolu", "MERDIVEN.sla_karari(" in kapi),
         ("P7b merdiven satirlari", "MERDIVEN_ARAC_KUSURU=%d" in kapi),
         ("P8 eski tek esik emekli",
          "ESKALASYON_DAGITIM = 3     # KULLANILMIYOR" in kapi),
+        ("P9 mutasyon bagimlilik kaydi",
+         "CANLI_MERDIVEN" in oku(MUTASYON)),
         ("T1 kabul bataryasi kurulu", os.path.isfile(TEST_HEDEF)),
         ("T2 testler.py kaydi (CAGRI YERI)", TEST_ADI in tst),
     ]
@@ -446,6 +503,14 @@ def uygula():
         rapor.append((ad, durum))
     yaz(NOBET_KAPI, kapi)
 
+    # P9 — mutasyon surucusune modul bagimliligini KAYDET
+    mut = oku(MUTASYON)
+    yedek_mut = yedekle(MUTASYON, damga)
+    for ad, eski, yeni in MUTASYON_YAMALARI:
+        mut, durum = degistir(mut, eski, yeni)
+        rapor.append((ad, durum))
+    yaz(MUTASYON, mut)
+
     _dosya_kur(TEST_KAYNAK, TEST_HEDEF, "T1 batarya kuruldu", rapor)
 
     tst = oku(TESTLER)
@@ -466,6 +531,7 @@ def uygula():
     ankorsuz = sum(1 for _, d in rapor if d is None)
     print("YEDEK=%s" % yedek_kapi)
     print("YEDEK=%s" % yedek_tst)
+    print("YEDEK=%s" % yedek_mut)
     print("DAMGA=%s" % damga)
     print("ANKORSUZ=%d" % ankorsuz)
     print("HUKUM=%s" % ("UYGULANDI" if ankorsuz == 0 else "ANKOR_YOK"))

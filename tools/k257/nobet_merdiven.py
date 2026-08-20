@@ -206,6 +206,53 @@ def hal_coz(rc, cikti, kota_kontrolu=None, varsayilan=HAL_YETENEK, zorla=None):
 # kalem kaydi — sayac TURETILIR, saklanmaz
 # ===========================================================================
 
+DEVIR_HALI = "DEVIR"    # K257 ONCESI `dagitim_sayisi`'ndan TURETILEN deneme
+
+
+def _basamak_ilerlet(basamaklar, sira, basamakta):
+    """Bir basamakta tavan doldu mu? Doldu ise SONRAKI basamaga gecer."""
+    b = basamaklar[sira]
+    if b["tavan"] is not None and basamakta >= b["tavan"] \
+            and sira + 1 < len(basamaklar):
+        return sira + 1, 0
+    return sira, basamakta
+
+
+def merdiven_tohumla(kayit, basamaklar, damga):
+    """🔴 (a) ESKI kayitlarin GECMISI SILINMEZ. Doner: (denemeler, basamak).
+
+    K257 oncesinde tek sayac `dagitim_sayisi` idi. Merdiven kaydi olmayan bir
+    kaleme SIFIRDAN baslamak, K257(a)'nin tam yasakladigi seydir: kalem her
+    kat degisiminde gecmisini kaybeder ve merdiven sonsuz donguye doner.
+    O yuzden eski sayi kadar DEVIR denemesi TURETILIR ve kalem, o denemelerin
+    goturdugu basamaga KONUR. Tohumlama BIR KEZ olur (merdiven kaydi dogunca).
+    """
+    kayit = kayit or {}
+    try:
+        eski = int(kayit.get("dagitim_sayisi") or 0)
+    except (TypeError, ValueError):
+        eski = 0
+    if eski <= 0:
+        return [], basamaklar[0]["ad"]
+    tohum = []
+    sira, basamakta = 0, 0
+    for _ in range(eski):
+        tohum.append({
+            "damga": kayit.get("damga") or damga,
+            "basamak": basamaklar[sira]["ad"],
+            "motor": kayit.get("motor") or basamaklar[sira]["ad"],
+            "hal": DEVIR_HALI,
+            "etkin_hal": HAL_YETENEK,
+            "yon": YON_YUKARI,
+            "sayilir": True,
+            "rc": None,
+            "atif": kayit.get("rapor_yolu"),
+        })
+        basamakta += 1
+        sira, basamakta = _basamak_ilerlet(basamaklar, sira, basamakta)
+    return tohum, basamaklar[sira]["ad"]
+
+
 def merdiven_kaydi(kayit):
     return (kayit or {}).get("merdiven") or {}
 
@@ -272,7 +319,17 @@ def merdiven_ilerlet(kayit, hal, motor=None, damga=None, canli_motorlar=None,
     damga = damga or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     kayit = kayit if kayit is not None else {}
-    merdiven = kayit.setdefault("merdiven", {})
+    merdiven = kayit.get("merdiven")
+    if not merdiven:
+        # 🔴 (a) TOHUMLAMA: K257 oncesi kaydin gecmisi TASINIR, silinmez.
+        tohum, tohum_basamak = merdiven_tohumla(kayit, basamaklar, damga)
+        merdiven = kayit["merdiven"] = {
+            "denemeler": tohum,
+            "basamak": tohum_basamak,
+            "dogus_damgasi": kayit.get("damga") or damga,
+        }
+        if tohum:
+            merdiven["devir"] = {"dagitim_sayisi": len(tohum), "damga": damga}
     merdiven.setdefault("denemeler", [])
     merdiven.setdefault("dogus_damgasi", damga)
     simdiki = merdiven.get("basamak") or basamaklar[0]["ad"]
@@ -361,8 +418,11 @@ def merdiven_ilerlet(kayit, hal, motor=None, damga=None, canli_motorlar=None,
     merdiven["son_hal"] = hal
     merdiven["son_damga"] = damga
     kayit["durum"] = durum
-    # `dagitim_sayisi` TURETILIR: eski tamsayi alani artik ikinci kaynak DEGIL.
-    kayit["dagitim_sayisi"] = sayac(kayit)
+    # 🔴 `dagitim_sayisi`'na DOKUNULMAZ. O alan "kac kez DAGITILDI"yi sayar;
+    # merdiven sayaci ise "kac deneme YUKARI sayildi"yi. Ikisi FARKLI
+    # buyukluktur — ayni alana yazmak [[ad-iki-rolde-mutanti-golgeler]]
+    # sinifidir ve `kalem_dagit`'in sayimini bir tur ileri kaydiriyordu.
+    # Merdiven sayaci yalniz `sayac(kayit)` ile OKUNUR.
 
     return {
         "hal": hal,
