@@ -26,8 +26,7 @@ deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inm
   ya da `KAPSAM=0` jetonu BASAR).
 - 🔧 **K234:** CAYMA_RE "iade"yi yakalamiyor (m.15 disi hak vaadi gorunmez); kabul: olcer+3 mutant. ·
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
-  karara baglanir, tekil tasima YASAK. · 🔧 **K236:** 375 px tablosu OLCULEMEDI (kimi 403,
-  m3'te chromium yok); `--onizleme` yolu hazir, TEYIT isi.
+  karara baglanir, tekil tasima YASAK. · ✅ **K236 KAPANDI** (5/5; engel etiketti →K255). KUTUDA.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
