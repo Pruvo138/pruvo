@@ -59,11 +59,25 @@ def fikstur_kayit(hedef_fn, plan_fn=None, kolon=FIKSTUR_KOLON):
 _D1 = [None]     # modul referansi (fikstur_kayit icindeki plan govdesi icin)
 
 
-def fake_sorgu_uret(d1_sayisi, d1_hash, seq_haritasi, turetilmis=None, kolonlar=None):
+# SAYAC EKSENI fiksturu icin iki sentinel (K237 §4-Ek, 20 Agu):
+#   IZLE  -> senkron.urun_sayisi = D1 COUNT(*) (ESKI, ortuk davranis; tum eski vakalar boyle)
+#   YOK   -> senkron tablosunda 'urun_sayisi' satiri HIC yok
+# 🔴 NEDEN SENTINEL: bu fikstur eskiden senkron satirini KOSULSUZ `str(d1_sayisi)` donduruyordu,
+# yani `senkron.urun_sayisi == D1 COUNT(*)` bu test govdesinde TAUTOLOJIYDI — K237'nin SAYAC
+# EKSENI buradan ASLA kirmizi yanamazdi ve ekseni sessizlestiren bir mutant da kacardi
+# ([[sahte-bagimlilik-sekli-negatif-blogu-kutsar]]). Varsayilan IZLE eski vakalarin davranisini
+# BIREBIR korur; SAYAC vakalari sayiyi ACIKCA verir.
+SAYAC_IZLE = object()
+SAYAC_YOK = object()
+
+
+def fake_sorgu_uret(d1_sayisi, d1_hash, seq_haritasi, turetilmis=None, kolonlar=None,
+                    senkron_sayaci=SAYAC_IZLE):
     """sorgu() yerine gecen sahte: COUNT -> d1_sayisi · senkron -> tek satir ·
     ICERIK EKSENI (SELECT id, hash) -> d1_hash haritasi ·
     TURETILMIS EKSEN (PRAGMA table_info + SELECT id, <kolonlar>) -> turetilmis haritasi.
-    turetilmis = {id: {kolon: deger}} · kolonlar = CANLI tablonun kolon adlari (kume)."""
+    turetilmis = {id: {kolon: deger}} · kolonlar = CANLI tablonun kolon adlari (kume).
+    senkron_sayaci: SAYAC_IZLE (d1_sayisi'yi izler) · SAYAC_YOK (satir yok) · acik deger."""
     turetilmis = turetilmis or {}
     kolonlar = kolonlar or set()
 
@@ -71,7 +85,10 @@ def fake_sorgu_uret(d1_sayisi, d1_hash, seq_haritasi, turetilmis=None, kolonlar=
         if "COUNT(*)" in sql:
             return [{"results": [{"n": d1_sayisi}]}]
         if "senkron" in sql:
-            return [{"results": [{"anahtar": "urun_sayisi", "deger": str(d1_sayisi)}]}]
+            if senkron_sayaci is SAYAC_YOK:
+                return [{"results": []}]
+            deger = d1_sayisi if senkron_sayaci is SAYAC_IZLE else senkron_sayaci
+            return [{"results": [{"anahtar": "urun_sayisi", "deger": str(deger)}]}]
         if "SELECT id, hash FROM urunler" in sql:
             return [{"results": [{"id": i, "hash": h} for i, h in sorted(d1_hash.items())],
                      "meta": {"rows_read": len(d1_hash)}}]
@@ -92,7 +109,7 @@ def fake_sorgu_uret(d1_sayisi, d1_hash, seq_haritasi, turetilmis=None, kolonlar=
 
 
 def durum_cikis(d1, urunler_listesi, d1_sayisi, bayat=None, hizli=False,
-                kayit=None, turetilmis=None, ek_kolon=()):
+                kayit=None, turetilmis=None, ek_kolon=(), senkron_sayaci=SAYAC_IZLE):
     """--durum'u OFFLINE kosar (sorgu + URUNLER monkeypatch), cikis kodunu dondur.
     Donen: 0 = temiz donus (uyumlu) · 1 = sys.exit ile fail-loud (uyumsuz).
     bayat = D1'de hash'i BOZULACAK id (sayi AYNI kalir -> yalniz ICERIK EKSENI gorur).
@@ -117,7 +134,8 @@ def durum_cikis(d1, urunler_listesi, d1_sayisi, bayat=None, hizli=False,
     eski_kayit = d1.TURETILMIS_KAYIT
     try:
         d1.sorgu = fake_sorgu_uret(
-            d1_sayisi, d1_hash, d1.seq_hedefleri(urunler_listesi), turetilmis, kolonlar)
+            d1_sayisi, d1_hash, d1.seq_hedefleri(urunler_listesi), turetilmis, kolonlar,
+            senkron_sayaci=senkron_sayaci)
         d1.URUNLER = yol
         d1.TURETILMIS_KAYIT = kayit
         sys.argv = ["d1-sync.py", "--durum"] + (["--hizli"] if hizli else [])
@@ -178,6 +196,43 @@ def main():
     dogrula("--durum --hizli: icerik ekseni ATLANIR -> bayat hash'e ragmen exit 0 "
             "(bayrak BEYAN ediyor, sessizce atlamiyor)",
             durum_cikis(d1, urunler, 3, bayat="b", hizli=True) == 0)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # (3b) SAYAC EKSENI (K237, 20 Agu) — senkron.urun_sayisi ↔ D1 gercek COUNT(*)
+    # ══════════════════════════════════════════════════════════════════════════
+    # OLCULEN OLAY: D1 29602 satir tutarken senkron.urun_sayisi 29573'te DONUK kaldi
+    # (o gun D1'e giren 29 Seat urunu sayilmamisti). SAYI ekseni D1 COUNT(*)'u
+    # urunler.json ile kiyasliyor, ICERIK ekseni hash kiyasliyor — IKISI DE YESIL yaniyor,
+    # cunku sayacin KENDISI hicbir seyle kiyaslanmiyordu, yalniz HAM BASILIYORDU.
+    # 🔴 Bu blogun anlamli olmasinin ON KOSULU fikstur sentineli: eskiden fikstur senkron
+    # satirini KOSULSUZ d1_sayisi'ye esitliyordu, yani eksen burada TAUTOLOJIK YESILDI.
+    dogrula("sayac_uyumlu esit (metin deger) -> True", d1.sayac_uyumlu(29629, "29629") is True)
+    dogrula("🔴 sayac_uyumlu K237 vakasi (29602 ↔ 29573) -> False",
+            d1.sayac_uyumlu(29602, "29573") is False)
+    dogrula("sayac_uyumlu senkron satiri YOK (None) -> False (fail-closed)",
+            d1.sayac_uyumlu(3, None) is False)
+    dogrula("sayac_uyumlu D1 okunamadi (None) -> False (fail-loud)",
+            d1.sayac_uyumlu(None, "3") is False)
+    dogrula("sayac_uyumlu sayiya cevrilemeyen deger -> False (cokme DEGIL)",
+            d1.sayac_uyumlu(3, "uc") is False)
+
+    dogrula("--durum SAYAC: sayac D1 ile ESIT -> exit 0",
+            durum_cikis(d1, urunler, 3, senkron_sayaci=3) == 0)
+    dogrula("🔴 --durum SAYAC (K237 SINIFI): SAYI TUTUYOR + HASH TUTUYOR ama "
+            "senkron.urun_sayisi BAYAT (1 != 3) -> exit 1",
+            durum_cikis(d1, urunler, 3, senkron_sayaci=1) == 1)
+    dogrula("🔴 --durum SAYAC: senkron.urun_sayisi satiri HIC YOK -> exit 1 (fail-closed, "
+            "'olcemedim' YESIL sayilmaz)",
+            durum_cikis(d1, urunler, 3, senkron_sayaci=SAYAC_YOK) == 1)
+    dogrula("🔴 --durum SAYAC: --hizli bu ekseni ATLAMAZ (ucuz eksen; bayrak yalniz "
+            "icerik + turetilmis ekseni atlar) -> bayat sayac --hizli'da da exit 1",
+            durum_cikis(d1, urunler, 3, senkron_sayaci=1, hizli=True) == 1)
+    # TAUTOLOJI NOBETI: AYNI parametrelerle yalniz sayac knob'u degistiginde hukum
+    # DEGISIYOR -> kirmizi gercekten SAYAC ekseninden geliyor, baska bir eksenden degil.
+    dogrula("TAUTOLOJI NOBETI: sayac knob'u disinda HER SEY ayni iken exit 0 ↔ exit 1 "
+            "ayrisiyor (kirmizinin kaynagi SAYAC ekseni)",
+            durum_cikis(d1, urunler, 3) == 0 and durum_cikis(d1, urunler, 3,
+                                                             senkron_sayaci=1) == 1)
 
     # ══════════════════════════════════════════════════════════════════════════
     # (4) TURETILMIS KOLON EKSENI (6 Agu) — urun_hash'in KAPSAMADIGI kolonlar

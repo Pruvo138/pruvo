@@ -37,6 +37,13 @@ import tempfile
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 KAPI_ADI = "d1-sync-durum-test.py"
+# K237 §4 (20 Agu) — IKINCI KAPI. `sayac_onar()` YAZMA yolundadir; `--durum` kapisi o govdeyi
+# HIC calistirmaz, dolayisiyla onun mutantlari bu kapiya baglanirsa TAUTOLOJIK "YESIL" verir
+# ([[ad-iki-rolde-mutanti-golgeler]]: mutantin YASAMASI "kol saglam" degil "kol OLCULEMEDI"
+# demektir). Bu yuzden kapiyi MUTANT secer: onarim kolunun mutantlari d1-sync'in kendi
+# `--kendini-test` bataryasina (deploy.yml CI adimi) baglanir.
+KAPI_KENDINI = ("d1-sync.py", "--kendini-test")
+VARSAYILAN_KAPI = (KAPI_ADI,)
 
 # Bunun altina dusen kosum "yesil/kirmizi" degil COKME'dir. Saglam kosum 45 GECTI basar;
 # en cok iddia dusuren OLDURUCU bile 25'in ustunde kalir. Esik, kapinin erken cikip
@@ -134,6 +141,38 @@ MUTANTLAR = [
      "                    deger.append(a)",
      "        pass", "KIRMIZI"),
 
+    # ── K237 SAYAC EKSENI (20 Agu) — `--durum` kapisina bagli OLDURUCULER ───────
+    # OLCULEN OLAY: D1'de 29602 satir varken senkron.urun_sayisi 29573'te DONUK kaldi ve
+    # SAYI + ICERIK eksenleri YESIL yandi (ikisi de sayacin KENDISINI kiyaslamiyordu).
+    ("OLDURUCU M14 SAYAC EKSENINI SESSIZLESTIR (kiyas hep 'uyumlu' der)",
+     "d1-sync.py",
+     "        if sayac_uyumlu(n, urun_sayisi_kayit):",
+     "        if True or sayac_uyumlu(n, urun_sayisi_kayit):", "KIRMIZI"),
+    ("OLDURUCU M15 SAYAC FAIL-CLOSED'I AC (satir YOK / D1 okunamadi -> 'uyumlu' sayilir)",
+     "d1-sync.py",
+     "    if d1_sayisi is None or senkron_urun_sayisi is None:\n"
+     "        return False",
+     "    if d1_sayisi is None or senkron_urun_sayisi is None:\n"
+     "        return True", "KIRMIZI"),
+    ("OLDURUCU M16 SAYAC ESITLIGINI KALDIR (her deger uyumlu)",
+     "d1-sync.py",
+     "        return int(d1_sayisi) == int(senkron_urun_sayisi)",
+     "        return True", "KIRMIZI"),
+
+    # ── K237 SAYAC ONARIM KOLU (§3) — `--kendini-test` kapisina bagli OLDURUCULER ─
+    # Bu iki mutant BILEREK ikinci kapiya baglidir: onarim YAZMA yolundadir, `--durum`
+    # kapisi o govdeyi hic calistirmaz (yukaridaki KAPI_KENDINI notuna bak).
+    ("OLDURUCU M17 SAYAC ONARIMINI KALDIR (bayat sayac 'degisiklik yok' kolunda KALICI olur)",
+     "d1-sync.py",
+     "        onarildi = sayac_onar()",
+     "        onarildi = False", "KIRMIZI", KAPI_KENDINI),
+    ("OLDURUCU M18 ONARIM MALIYET KOLUNU BOZ (sayac DOGRUYKEN de yazar)",
+     "d1-sync.py",
+     "    if sayac_uyumlu(n, mevcut):\n"
+     "        return False",
+     "    if False:\n"
+     "        return False", "KIRMIZI", KAPI_KENDINI),
+
     # ── KONTROL: iddia edilmeyen eksen / davranissiz yazim / satir sirasi ───────
     ("KONTROL K1 davranissiz yazim (turetilmis_eksen: out = [] -> list())",
      "d1-sync.py",
@@ -165,6 +204,17 @@ MUTANTLAR = [
      "# ─── KONFIGUR SEMASI (D1 feed'i — Worker bundle'inin ikizi) ──────────────────",
      "# ─── KONFIGUR SEMASI (D1 feed'i — Worker bundle'inin IKIZI) ──────────────────",
      "YESIL"),
+    # K237 kontrolleri: SAYAC ekseninde ve onarim kolunda DAVRANISSIZ degisiklik YESIL
+    # kalmali — yoksa iki yeni eksen "her degisiklige kirmizi yanan" gurultu olurdu.
+    ("KONTROL K6 SAYAC EKSENI aciklama yorumu (davranis degismez)",
+     "d1-sync.py",
+     "        # ── SAYAC EKSENI (K237, 20 Agu) — senkron.urun_sayisi D1 COUNT(*)'una ESIT mi? ──",
+     "        # ── SAYAC EKSENI (K237, 20 Agu) — senkron.urun_sayisi D1 COUNT(*)'una ESIT MI? ──",
+     "YESIL"),
+    ("KONTROL K7 ONARIM davranissiz yazim (if X: -> if X is True:)",
+     "d1-sync.py",
+     "    if sayac_uyumlu(n, mevcut):",
+     "    if sayac_uyumlu(n, mevcut) is True:", "YESIL", KAPI_KENDINI),
 ]
 
 
@@ -186,21 +236,25 @@ def main():
     tmp = tempfile.mkdtemp(prefix="d1-sync-durum-mutasyon-")
     sonuc = []
     try:
-        for ad, dosya, eski, yeni, beklenen in MUTANTLAR:
+        for mutant in MUTANTLAR:
+            ad, dosya, eski, yeni, beklenen = mutant[:5]
+            # 6. alan (opsiyonel) = bu mutantin KAPISI. Verilmezse varsayilan --durum kapisi.
+            kapi = mutant[5] if len(mutant) > 5 else VARSAYILAN_KAPI
             kaynak_yolu = os.path.normpath(os.path.join(TOOLS, dosya))
             taban = open(kaynak_yolu, encoding="utf-8").read()
             if taban.count(eski) != 1:
                 # 🔴 CAPA TAM BIR KEZ ESLESMELI. Kaymissa "mutant uygulanamadi" YESIL
                 # sayilmaz; kanit OLCULEMEDI'dir.
-                sonuc.append((ad, beklenen, "CAPA-YOK(%d)" % taban.count(eski)))
+                sonuc.append((ad, kapi[0], beklenen, "CAPA-YOK(%d)" % taban.count(eski)))
                 continue
             kok = ayna_kur(os.path.join(tmp, str(len(sonuc))))
             hedef = os.path.normpath(os.path.join(kok, "tools", dosya))
             os.unlink(hedef)
             with open(hedef, "w", encoding="utf-8") as f:
                 f.write(taban.replace(eski, yeni, 1))
-            r = subprocess.run([sys.executable, os.path.join(kok, "tools", KAPI_ADI)],
-                               capture_output=True, text=True, cwd=kok)
+            r = subprocess.run(
+                [sys.executable, os.path.join(kok, "tools", kapi[0])] + list(kapi[1:]),
+                capture_output=True, text=True, cwd=kok)
             cikti = r.stdout + r.stderr
             fail = len(re.findall(r"^ *KALDI ", cikti, re.M))
             gecti = len(re.findall(r"^ *GECTI ", cikti, re.M))
@@ -213,17 +267,21 @@ def main():
                 gozlem = "COKME(olculen GECTI sayisi dusuk: %d)" % gecti
             else:
                 gozlem = "KIRMIZI" if r.returncode == 1 else "YESIL"
-            sonuc.append((ad, beklenen, "%s (KALDI=%d GECTI=%d)" % (gozlem, fail, gecti)))
+            sonuc.append((ad, kapi[0], beklenen,
+                          "%s (KALDI=%d GECTI=%d)" % (gozlem, fail, gecti)))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    print("\nMUTASYON SONUCU (kapi: tools/%s)" % KAPI_ADI)
+    # KAPI HER SATIRDA BASILIR: bir mutantin hangi kapiya bagli oldugu GORUNMEZSE, yanlis
+    # kapiya bagli (dolayisiyla olculemeyen) bir mutant "YESIL" diye okunur.
+    print("\nMUTASYON SONUCU (kapilar: tools/%s · tools/%s %s)"
+          % (KAPI_ADI, KAPI_KENDINI[0], " ".join(KAPI_KENDINI[1:])))
     kalan = 0
-    for ad, beklenen, gozlem in sonuc:
+    for ad, kapi_adi, beklenen, gozlem in sonuc:
         tamam = gozlem.startswith(beklenen)
         kalan += 0 if tamam else 1
-        print("  %s  %-88s beklenen=%s  gozlenen=%s"
-              % ("OK  " if tamam else "KALDI", ad, beklenen, gozlem))
+        print("  %s  %-88s kapi=%-22s beklenen=%s  gozlenen=%s"
+              % ("OK  " if tamam else "KALDI", ad, kapi_adi, beklenen, gozlem))
     if kalan:
         print("\nSONUC: KIRMIZI ❌  (%d mutant beklenen sonucu vermedi)" % kalan)
         return 1
