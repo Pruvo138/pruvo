@@ -144,17 +144,17 @@ MUTANTLAR = [
     # ── K237 SAYAC EKSENI (20 Agu) — `--durum` kapisina bagli OLDURUCULER ───────
     # OLCULEN OLAY: D1'de 29602 satir varken senkron.urun_sayisi 29573'te DONUK kaldi ve
     # SAYI + ICERIK eksenleri YESIL yandi (ikisi de sayacin KENDISINI kiyaslamiyordu).
-    ("OLDURUCU M13 SAYAC EKSENINI SESSIZLESTIR (kiyas hep 'uyumlu' der)",
+    ("OLDURUCU M14 SAYAC EKSENINI SESSIZLESTIR (kiyas hep 'uyumlu' der)",
      "d1-sync.py",
      "        if sayac_uyumlu(n, urun_sayisi_kayit):",
      "        if True or sayac_uyumlu(n, urun_sayisi_kayit):", "KIRMIZI"),
-    ("OLDURUCU M14 SAYAC FAIL-CLOSED'I AC (satir YOK / D1 okunamadi -> 'uyumlu' sayilir)",
+    ("OLDURUCU M15 SAYAC FAIL-CLOSED'I AC (satir YOK / D1 okunamadi -> 'uyumlu' sayilir)",
      "d1-sync.py",
      "    if d1_sayisi is None or senkron_urun_sayisi is None:\n"
      "        return False",
      "    if d1_sayisi is None or senkron_urun_sayisi is None:\n"
      "        return True", "KIRMIZI"),
-    ("OLDURUCU M15 SAYAC ESITLIGINI KALDIR (her deger uyumlu)",
+    ("OLDURUCU M16 SAYAC ESITLIGINI KALDIR (her deger uyumlu)",
      "d1-sync.py",
      "        return int(d1_sayisi) == int(senkron_urun_sayisi)",
      "        return True", "KIRMIZI"),
@@ -162,11 +162,11 @@ MUTANTLAR = [
     # ── K237 SAYAC ONARIM KOLU (§3) — `--kendini-test` kapisina bagli OLDURUCULER ─
     # Bu iki mutant BILEREK ikinci kapiya baglidir: onarim YAZMA yolundadir, `--durum`
     # kapisi o govdeyi hic calistirmaz (yukaridaki KAPI_KENDINI notuna bak).
-    ("OLDURUCU M16 SAYAC ONARIMINI KALDIR (bayat sayac 'degisiklik yok' kolunda KALICI olur)",
+    ("OLDURUCU M17 SAYAC ONARIMINI KALDIR (bayat sayac 'degisiklik yok' kolunda KALICI olur)",
      "d1-sync.py",
      "        onarildi = sayac_onar()",
      "        onarildi = False", "KIRMIZI", KAPI_KENDINI),
-    ("OLDURUCU M17 ONARIM MALIYET KOLUNU BOZ (sayac DOGRUYKEN de yazar)",
+    ("OLDURUCU M18 ONARIM MALIYET KOLUNU BOZ (sayac DOGRUYKEN de yazar)",
      "d1-sync.py",
      "    if sayac_uyumlu(n, mevcut):\n"
      "        return False",
