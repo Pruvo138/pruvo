@@ -112,7 +112,7 @@ def _sentetik_depo(kok):
         ("veri", [("urunler.json", '[{"id":"x"}]\n'),
                   ("urun-kaynaklari.json", "{}\n")]),
         ("worker", [("worker/src/index.js", "// ege\n")]),
-        ("jenerator", [("jenerator/uret.py", "# koolm\n")]),
+        ("jenerator", [("jenerator/uret.py", "# parametrik sari seri\n")]),
         ("cok", [("urunler.json", '[{"id":"y"}]\n'),
                  ("worker/src/index.js", "// ege2\n")]),
         ("artik", [("bilinmeyen/dizin/x.txt", "?\n")]),
