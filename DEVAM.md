@@ -13,12 +13,11 @@ K237-t2 · yayin onarimi `c2cb6bcf` · N4B spec · K246 · K229 · FAZ 1. IKI ya
 (`tools/paket-varyasyon-programi.md`; FAZ 1 YESIL 42/42, olcek buyutulebilir).
 **Okan'da:** ① gecmis temizligi — kuyruk BOSALDI, on kosul SAGLANDI · ② K200(i) · ③ Worker
 deploy · ④ tarife: defter bacaginda darbogaz DAGITIM KURALI; CI bacagi B7 inmeden OLCULEMEZ.
-- ✅ **KAPANDI:** K237 (sayac turetilir + tautolojik yesil kapandi) · K246 (`boy_secenekleri`
-  yazma yolu + dogrulayici; iddia 185→236) · N4A (hat 105 turdur KENDINI blokluyordu: etiket
-  `ci-nobeti` + `startswith`; 09:38'de ILK KEZ kostu).
+- 🔴 **K252:** kodsuz `tamamlandi` yok → `tools/paket-siparis-durum-secici.md`.
+- 🔴 **K250 (MaCiT):** enjekte kapi worktree'de istisnasiz doguyor (SINIF). KUTUDA.
 - 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
   bulunur+kapatilir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirebiliyor · 🔧 **K240**
-  kapi yardim metni bayat ·
+  kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
   🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔴 **K243** rotasyon KILITLI ·
   🔧 **K244** kabul listesi ≠ CI kapsami. Tam metinler KUTUDA.
 - 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (SINIF; kabul: sayi TURETILIR + mutant) ·
