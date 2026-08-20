@@ -2062,6 +2062,13 @@ jobs:
           python3 tools/ev-sahip-kapisi.py --kendini-test
           python3 tools/parti-kapisi.py --kendini-test
           python3 tools/devir-kapisi.py --kendini-test
+          # N4A (20 Agu 2026): sayac DURUSTLUGU — "USTUSTE_ONARIMSIZ dustu,
+          # demek ki bir sey onarildi" iddiasini makinece imkansiz kilar.
+          # Kosucuda ~/.claude/cron YOKTUR: batarya bunu KAPSAM_DISI sayar
+          # (kusur degil) ve mutant cekirdegini YINE kosar; "dosya var ama
+          # bozuk" hali ise OLCULEMEDI'dir (rc=2, kirmizi). Iki hali H1/H2
+          # kontrolleri hermetik olarak AYIRIR.
+          python3 tools/nobet-sayac-durustluk-test.py
 
       - name: "N2 kirleten onarir UCTAN UCA kabul (spec §2, sentetik vakalar)"
         if: ${{ !cancelled() }}
