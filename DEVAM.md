@@ -2,23 +2,34 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~03:1xZ (KraL)
-**CANLIYA GIDEN (main=origin `a428a8b3`, agac TEMIZ):** N1 `01fb040b` · N2 `ba0e1c50` ·
-K195 `528da42d` · N2B-T4 onarimi `b1eab8af` · **yayin kirmizisi onarimi `a428a8b3`**.
-🔴 N2 merge'i `deploy.yml`'i UC COMMIT bloke etti: PUBLIC repoya gizli kaynak adi girdi,
-`kisisel-veri-test.py` yakaladi (yayin ~23:19Z-02:5xZ KAPALI). HEAD temiz; **GECMIS DEGIL**.
-**KOSUYOR (chip/dal — hicbiri OLDURULMEDI):** K214 `kral/k214-motor-tek-kaynak-r2` `64407d7c`
-(CI `32318398886` in_progress; regresyon onarildi+curutuldu, batarya 299/299) · P1
-`claude/sad-neumann-462e89` `ed819007` · P2/P3 `claude/angry-jackson-414a26` · ADIM1 fantom
-Purchase `claude/fervent-heisenberg-2d069c` · yayin chip'i `pensive-dijkstra-ad8b57` (isi INDI).
-Isci kati: `isci.sh kimi`, muaf etiket (`kabul-*`) ile.
-**BEKLIYOR:** K184 `f623d712` — HUKUM VERILDI (merge EDILECEK, `parite-ege` kirmizisi TABANIN;
-gerekce kutuda), batarya kosumu bekliyor · K229 `claude/adoring-dewdney-210333` `c1bf8062`
-(olculdu, itildi; tabani `b1eab8af`, merge oncesi kapilar TAZELENMELI) · sira:
-K214→K184→K229→P1→P2/P3→ADIM1.
-**MERGE KAPISI DERSI (bu turda yandi):** diff ekseni GOZLE degil `kisisel-veri-test.py` ile olculur.
-**Okan'da bekleyen:** ① gizli adin GECMISTEN silinmesi — karar VERILDI (kuyruk bosalinca
-`filter-repo`+force-push+GitHub temizlik talebi), **kalem ACIK** · ② K200(i) canli `--kuru --d1`.
+## 🔁 CANLI DURUM — 20 Agu 2026 ~02:0xZ (KraL)
+**YAYIN ACIK:** kirmizi 23:19Z-01:25Z surdu, `50f43744` kosumu `32319626627` success; canli
+`last-modified` 23:30:52Z'den 01:25:24Z'ye ILERLEDI (cache-bust YOK). Gecmis temizligi ACIK.
+**BU OTURUMDA MERGE:** K214 `886d2cad` (motor tek kaynak; 299/299 · mutant 61/61 I3+I5 TEK KOL ·
+Serit B main kirmizisi TABANLA birebir, adim duzeyinde ayristirildi) · P2/P3 (urun detay ilk
+ekran: fiyat+CTA seridi + guven seridi; 17/18 yesil) · P1 (marka sayfasi 375 px'de 0 karttan
+4 karta; KABUL 3/3, pay 68 px). MaCiT'in Seat partisi (`d55ed35d`, +29) ana checkout'ta
+itilmeden duruyordu, K214 push'uyla yayina gitti.
+**KOSUYOR:** ADIM1 fantom Purchase `claude/fervent-heisenberg-2d069c` — merge yesil isigi bekliyor.
+**BEKLIYOR:** K184 hukum VERILDI, spec `tools/paket-k184-merge-kabul.md`, chip `KraL-K184`
+Okan'da aciliyor · K229 `claude/adoring-dewdney-210333` `c1bf8062` (tabani `b1eab8af`,
+kapilar TAZELENMELI, chip kapali — sahipsiz).
+**Okan'da bekleyen:** ① gizli adin GECMISTEN silinmesi (kuyruk bosalinca filter-repo+force-push),
+**kalem ACIK** · ② K200(i) canli `--kuru --d1` · ③ chip `KraL-K184`.
+- 🔴 **K237 (KraL OLCTU — MUSTERI ETKISI):** `--durum` 29602 derken ikinci satir
+  `urun_sayisi = 29573`; uc `/katalog` 29 Seat urununu `yayinda=1` HALDE dondurmuyor (site
+  gosterir, Ege GOREMEZ). Hash esit oldugu icin senkron yazmiyor, sayac bayat kaliyor.
+  kabul: sayac TURETILIR ya da senkronda zorunlu tazelenir + 29 id doner + mutant.
+- 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (`ek_vaka` + I3/I5, ayni dalda IKI
+  tekrar) — SINIF, tekil yama YOK. kabul: sayi tek yerden TURETILIR + mutant. · 🔧 **K238:**
+  `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (P1'de kapsam SIFIRDI);
+  kabul: bagimsiz kosar ya da `KAPSAM=0` jetonu BASAR.
+- 🔧 **K234:** CAYMA_RE "iade"yi yakalamiyor (m.15 disi hak vaadi gorunmez); kabul: olcer+3 mutant. ·
+  🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
+  karara baglanir, tekil tasima YASAK. · 🔧 **K236:** 375 px tablosu OLCULEMEDI (kimi 403,
+  m3'te chromium yok); `--onizleme` yolu hazir, TEYIT isi.
+- 🔧 **K230/K231/K232 (K214 devri):** kanca `parti-kapisi.py`ye bagli (dusunce oturum kilitlenir) ·
+  `mimar-kilit-test.py` CI'da CAGRISIZ · `claude` emekliye eklenirse kayit SESSIZ. Tam metin KUTUDA.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
@@ -43,9 +54,8 @@ K214→K184→K229→P1→P2/P3→ADIM1.
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
-- 🟠 **K184 — TEK KALEM:** dal `867cc80e` origin'de, K80 ARTIK BLOKLAMIYOR; kalan kirmizi
-  `talep-sihirbazi-test.py` VAKA 36 (batarya kabuk metnini olcuyor, adim araca tasindi).
-  Kalan is + delege plani POSTA KUTUSUNDA. Uc daldan CIKTI; HocA E6 dumani bu merge'e bagli.
+- 🟠 **K184:** hukum VERILDI (merge edilecek, `parite-ege` HARIC — sahibi K228). Kabul olcutu
+  + yasaklar `tools/paket-k184-merge-kabul.md`de; chip `KraL-K184`. HocA E6 dumani buna bagli.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
 - 🔧 **K202-kendini-test** (M06 cokme + bayat capa) — 🔴 SAHIPSIZ: SeritB chip'i "bende HIC olmadi" diye olctu (onun uyesi K203'tu, YESIL kapandi). kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
@@ -67,7 +77,7 @@ K223'un FIKSTUR kovasi fikstur eksenini kapatti, ROL ekseni ACIK. · 🔧 **K204
 "kirli mi" olcuyor, TEK BASINA kaldirma gerekcesi DEGIL. · 🔧 **K188:** yarim yedek OLCULEBILIR;
 kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔴 **T1 pencere muhasebesi + T3/T4 kaniti:** `OLCULEMEDI_TUR=2` ayri satir; nobet kosuyor ama `ONARIM=0`, 10 kalem MIMAR'da. **Tam metin ARSIVDE.**
-- 🔧 **K195 (dal HAZIR, merge OKAN KAPISI) · K218 · K219 · K221:** tam metinler ARSIVDE.
+- 🔧 **K218 · K219 · K221:** tam metinler ARSIVDE. (K195 merge edildi `528da42d`.)
 - 🔧 **K198 (19 Agu — ⚖️ OKAN KAPISI):** izlenen yapilandirmada ticari alan var, nobetci o duzlemi
   taramiyor (muafiyette de yok). **Tam metin ARSIVDE.** kabul: OLCER ya da `KAPSAM DISI` + mutant.
 - ✅ **19 Agu KAPANANLAR: liste ARSIVDE.** **KALAN ACIK ARTIKLAR:** T3 `SAHIPSIZ=44→24 (Onarim
@@ -77,7 +87,7 @@ kabul `YEDEK=TAM/YARIM` jetonu + fikstur.
 - 🔧 **K182 (18 Agu — SINIF, bugun UC KEZ cikti):** mutant "kirmizi geldi" diye kanit
   sayiliyor ama kirmizinin SEBEBI hedef kol mu olculmuyor (recete M1 · K178 tek eksen ·
   ③g M5). kabul: her mutant, hedef kolu oldurdugunu AYRICA kanitlar.
-- 🔧 **K176:** D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157`); yayini bloklamaz. kabul: tutani basar ya da OLCULEMEDI + mutant. · ⛔ **`origin/k152-link-temiz` MERGE EDILMEYECEK** (main atasi degil; icerik `83aaf4e2`de) — SILINEBILIR.
+- 🔧 **K176:** D1 kilit mesaji YANLIS PID basiyor (`d1-sync.py:157`); yayini bloklamaz. kabul: tutani basar ya da OLCULEMEDI + mutant. · ⛔ `origin/k152-link-temiz` MERGE EDILMEZ (icerik `83aaf4e2`de) — SILINEBILIR.
 - 🔧 **K171 (18 Agu, MaCiT→KraL DEVIR; PAKET HAZIR `cc6fece2`, icra bekliyor):** gizli kaynak
   duzleminde 15 artik kayit; kanonik arac o duzleme dokunmuyor. Hukum+kabul `tools/paket-k171-kaynak-temizle.md`de.
 - 🔧 **K135 (17 Agu, MaCiT→KraL):** `cgt-ekle.py::fetch()` tek satir UA ile CGTrader WAF'ina takiliyor (HTTP 202 + placeholder);
