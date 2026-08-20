@@ -18,7 +18,10 @@
  *  - Anahtar loglara/HATA metnine YAZILMAZ. PII yalniz anahtarli yanitta. CORS yok (same-origin).
  *  - Gizli kaynak bilgisi (tedarikci/link) sayfaya/JSON'a GIRMEZ.
  *  - 'kargolandi'ya SADECE /kargo ucundan gecilir (takip kodu zorunlu) — tek yol.
- *  - 'odendi'ye gecis (havale onayi) REKLAM OLCUMU tetikler: Purchase, event_id = siparis_no
+ *  - 🔴 K252 (20 Agu 2026): /durum'da OPERASYON ekseni ('uretimde' · 'tamamlandi' · 'iptal')
+ *    her durumdan SERBEST ve GERI ALINABILIR; ODEME durumlari ELLE SETLENEMEZ (tahsilat
+ *    yalani kapisi), tek istisna 'odendi'ye geri alma. Kural TEK KAYNAK: durumUcuKarari().
+ *  - 'odendi'ye gecis REKLAM OLCUMU tetikler: Purchase, event_id = siparis_no
  *    (kart akisiyla ayni dedup anahtari). IDEMPOTENS uc katmanli — bkz. durumDegistir().
  *    ⚠️ Bu uctan GECMEYEN bir yedek yol kullanilirsa olcum de gitmez; teyidin normal yolu
  *    YONETIM SAYFASIDIR (yedek yolun adimlari git-disi isletme arsivindedir).
@@ -34,18 +37,42 @@ import {
 import { olcumGonder, olcumLog } from "./olcum.js";
 
 // ---- durum makinesi -----------------------------------------------------------
-// Sirali ilerleme; her durum -> iptal (asagida ayrica). 'kargolandi' hedefine /durum'dan
-// GECILMEZ (takip kodsuz kargolandi olusmasin) — sadece /kargo ucu.
-const IZINLI = {
-  "odendi": ["uretimde"],
-  "uretimde": ["kargolandi"],
-  "kargolandi": ["tamamlandi"],
-  "havale-bekliyor": ["odendi"],
-};
+// 🔴 K252 (Okan karari, 20 Agu 2026 — tools/paket-siparis-durum-secici.md).
+// ONCEKI HAL: `IZINLI` sirali ilerleme tablosuydu (odendi->uretimde->kargolandi->
+// tamamlandi). 'uretimde'den cikisin TEK kapisi 'kargolandi' oldugu ve o da takip
+// kodu istedigi icin KARGOSUZ TAMAMLAMA ULASILAMAZDI; yanlis isaretleme de geri
+// alinamiyordu. Yeni hal uc eksene ayrilir:
+//
+//  (A) OPERASYON ekseni  — panelden SERBEST secilir, GERI ALINABILIR.
+//  (B) 'kargolandi'      — ISTISNA, DEGISMEDI: /durum bu hedefi REDDEDER; tek yol
+//                          firma+kod isteyen /kargo ucudur. Guvence korunur:
+//                          TAKIP KODSUZ 'kargolandi' SATIRI OLUSAMAZ.
+//  (C) ODEME ekseni      — elle setlenemez (elle 'odendi' = TAHSILAT YALANI).
+//                          TEK istisna GERI ALMA: siparis zaten odenmisken
+//                          operasyona alinmissa 'odendi'ye donulebilir.
+//
+// 🔴 IKIZ TABLO YOK: hem `POST /yonet/durum` ucu hem panelin sundugu secenek kumesi
+// AYNI `durumUcuKarari()` fonksiyonundan TUREN tek karardir. Panele elle yazilmis
+// ikinci bir liste, sessizce ayrisan ikinci bir hukum olurdu
+// ([[ayni-alan-iki-hukum-biri-sessiz]]).
 const TUM_DURUMLAR = new Set([
   "bekliyor", "odendi", "basarisiz", "incele", "havale-bekliyor",
   "uretimde", "kargolandi", "tamamlandi", "iptal",
 ]);
+
+// (A) Operasyon ekseni: her mevcut durumdan secilebilir, geri alma DAHIL
+// ('tamamlandi' -> 'uretimde' GECERLIDIR). 'iptal' de operasyondur ama ayri
+// islenir (kendi uzerine gecis yok + panelde onay kutusu var).
+const OPERASYON_DURUMLARI = ["uretimde", "tamamlandi"];
+
+// (C) Odeme ekseni: bunlari ODEME SISTEMI yazar (iyzico donusu, havale onayi).
+// Elle setlenmeleri tahsilat yalani uretir -> /durum ucundan REDDEDILIR.
+const ODEME_DURUMLARI = ["bekliyor", "basarisiz", "havale-bekliyor", "incele", "odendi"];
+
+// (C) TEK ISTISNA — 'odendi'ye GERI ALMA. Bu durumlardaki bir siparis zaten
+// odenmisti (operasyona ancak odendikten sonra girer), dolayisiyla 'odendi'ye
+// donmek YALAN URETMEZ; yanlis ilerletmeyi geri alir.
+const ODENDI_GERI_ALMA = ["uretimde", "kargolandi", "tamamlandi"];
 
 // Paneldeki is akisi sirasi. Liste sorgusu en yeni N siparisi secmeye devam eder;
 // bu sira YALNIZ tarayicidaki goruntu katmaninda uygulanir.
@@ -54,10 +81,50 @@ const PANEL_GRUP_SIRASI = [
   "tamamlandi", "iptal", "bekliyor", "basarisiz",
 ];
 
-function gecisGecerli(mevcut, hedef) {
-  if (!TUM_DURUMLAR.has(hedef)) { return false; }
-  if (hedef === "iptal") { return mevcut !== "iptal"; } // her durum -> iptal
-  return (IZINLI[mevcut] || []).includes(hedef);
+/**
+ * 🔴 TEK KAYNAK — `POST /yonet/durum` ucunun KABUL KARARI.
+ * Saftir (I/O yok, yan etki yok): ayni girdi -> ayni karar. Ucun kendisi de,
+ * panelin sundugu secenek kumesi de (bkz. `izinliHedefler`) BUNU cagirir.
+ *
+ * Doner: { ok: true } | { ok: false, hata: "<kod>" }
+ * Hata kodlari yanit govdesine AYNEN gider — sebep GORUNUR olsun diye ayri
+ * ayridir ("400" tek basina hangi kuralin reddettigini soylemez).
+ */
+function durumUcuKarari(mevcut, hedef) {
+  if (!TUM_DURUMLAR.has(hedef)) { return { ok: false, hata: "bilinmeyen-durum" }; }
+  // (B) 'kargolandi' — takip kodsuz kargolandi satiri OLUSAMAZ; /kargo ucu sart.
+  if (hedef === "kargolandi") { return { ok: false, hata: "kargo-ucunu-kullan" }; }
+  // Kendi uzerine gecis anlamsizdir; ayrica 'odendi'->'odendi' reddi, kart akisinin
+  // Purchase olcumunu bu uctan TEKRARLATMAMA garantisinin 1. katmanidir
+  // (bkz. durumDegistir icindeki uc katmanli idempotens notu).
+  if (hedef === mevcut) { return { ok: false, hata: "gecersiz-gecis" }; }
+  if (hedef === "iptal") { return { ok: true }; }                  // her durumdan iptal
+  if (OPERASYON_DURUMLARI.includes(hedef)) { return { ok: true }; } // (A) serbest + geri alma
+  // (C) Odeme ekseni: elle setlenemez. TEK istisna 'odendi'ye geri alma.
+  if (hedef === "odendi" && ODENDI_GERI_ALMA.includes(mevcut)) { return { ok: true }; }
+  if (ODEME_DURUMLARI.includes(hedef)) {
+    return { ok: false, hata: "odeme-durumu-elle-setlenemez" };
+  }
+  return { ok: false, hata: "gecersiz-gecis" };
+}
+
+/**
+ * Panelin sunacagi secenek kumesi — TURETILIR, elle YAZILMAZ.
+ * `TUM_DURUMLAR` uzerinden `durumUcuKarari` ile suzulur; yani panelde gorunen her
+ * secenek, ucun O AN kabul ettigi bir hedeftir. 'kargolandi' burada dogal olarak
+ * ELENIR (uc onu reddeder) — panelde ayrica elle filtrelenmesine gerek YOKTUR.
+ */
+function izinliHedefler(mevcut) {
+  return [...TUM_DURUMLAR].filter((h) => durumUcuKarari(mevcut, h).ok);
+}
+
+/**
+ * `/kargo` ucunun gecis kurali — AYRI ve DAR tutulur (bilerek): 'kargolandi'
+ * yalnizca uretimdeki bir siparise, firma+kod verildiginde yazilir. Bu kol K252'de
+ * DEGISMEDI; operasyon ekseninin serbestligi buraya TASINMAZ.
+ */
+function kargoGecisiGecerli(mevcut) {
+  return mevcut === "uretimde";
 }
 
 // ---- malzeme bazli baski fallback (filament rehberi degerleri; UYDURMA YOK) ---
@@ -560,7 +627,9 @@ async function liste(env, url) {
       kargo_firma: s.kargo_firma || "",
       kargo_kodu: s.kargo_kodu || "",
       durum_gecmisi: gecmis,
-      izinli_gecisler: [...(IZINLI[s.durum] || []), ...(s.durum !== "iptal" ? ["iptal"] : [])],
+      // 🔴 TURETILMIS KUME (K252) — panel bunu OLDUGU GIBI basar. Elle yazilmis
+      // ikinci liste YOK: kaynak `durumUcuKarari`, yani ucun kendi kabul kumesi.
+      izinli_gecisler: izinliHedefler(s.durum),
       musteri: { ad: s.musteri_ad, tel: s.musteri_tel, eposta: s.musteri_eposta,
                  adres: s.musteri_adres },
       musteri_notu: s.musteri_notu || "",
@@ -606,9 +675,11 @@ export function gecmiseEkle(mevcutJson, hedef, ekstra) {
  * Bu siparis icin Purchase olcumu DAHA ONCE bu uctan DENENDI mi? (durum_gecmisi izi)
  * "Denendi" = gonderim tetiklendi; ULASTIGINI GARANTI ETMEZ (bkz. gecmiseEkle notu).
  * Amaci yalnizca TEKRARI onlemek — "Meta aldi" teshisi icin KULLANILMAZ.
- * Not: gecmis 50 kayitta kirpilir; pratikte bir siparis 50 durum degisimi yasamaz, ama
- * kirpilma olsa bile ikinci savunma calisir: 'odendi'ye SADECE 'havale-bekliyor'dan
- * gecilebilir ve gecis CAS'tir (asagi bak) — yani tekrar zaten mumkun degil.
+ * Not: gecmis 50 kayitta kirpilir; pratikte bir siparis 50 durum degisimi yasamaz.
+ * Kirpilma olsa bile gecis CAS'tir (asagi bak): ayni anda iki istek gelse yalniz biri
+ * changes>0 alir. ⚠️ K252'den sonra 'odendi' hedefi GERI ALMA yoluyla da kabul edildigi
+ * icin "tekrar zaten mumkun degil" DEMEK ARTIK DOGRU DEGIL — tekrari asil durduran
+ * BU IZDIR, o yuzden 50 kayit kirpilmasi bir risk penceresidir.
  */
 function olcumDenendiMi(gecmisJson) {
   let g = [];
@@ -672,19 +743,33 @@ async function durumDegistir(request, env, ctx) {
   const hedef = govde && typeof govde.durum === "string" ? govde.durum : "";
   if (!siparisNo || !hedef) { return yjson({ hata: "eksik-alan" }, 400); }
   if (!TUM_DURUMLAR.has(hedef)) { return yjson({ hata: "bilinmeyen-durum" }, 400); }
-  // 'kargolandi' tek yoldan: /kargo (takip kodu zorunlu). /durum'dan reddedilir.
-  if (hedef === "kargolandi") { return yjson({ hata: "kargo-ucunu-kullan" }, 400); }
-
+  // 🔴 'kargolandi' REDDI BURADA DEGIL, `durumUcuKarari()` icindedir — TEK KAYNAK.
+  // Onceki turda burada AYRICA bir erken `return` vardi ve kural IKI YERDE yaziliydi;
+  // M1 (darlik) mutanti bu yuzden KACTI: `durumUcuKarari` icindeki reddi oldurmek
+  // davranisi degistirmiyordu, cunku erken return hala 400 basiyordu. Yani ikiz kural
+  // kabul testini KOR ediyordu ([[ayni-alan-iki-hukum-biri-sessiz]]).
+  // ⚠️ Sira degisti: artik siparis ONCE okunur, yani var olmayan numara icin
+  // 'kargolandi' hedefi de 404 'siparis-yok' doner — diger TUM hedeflerle AYNI
+  // davranis (varlik sizintisi ACILMAZ, tam tersine tutarli hale gelir).
   const s = await siparisGetir(env, siparisNo);
   if (!s) { return yjson({ hata: "siparis-yok" }, 404); }
-  if (!gecisGecerli(s.durum, hedef)) {
-    return yjson({ hata: "gecersiz-gecis", mevcut: s.durum, hedef: hedef }, 400);
+  // 🔴 TEK KAYNAK: panelin sundugu kume de AYNI fonksiyondan turer (izinliHedefler).
+  const karar = durumUcuKarari(s.durum, hedef);
+  if (!karar.ok) {
+    return yjson({ hata: karar.hata, mevcut: s.durum, hedef: hedef }, 400);
   }
   // --- Purchase olcumu karari (yalniz 'odendi'ye gecis) --------------------------
   // IDEMPOTENS — UC KATMAN, hicbirine TEK basina guvenilmez:
-  //  1) DURUM MAKINESI: 'odendi' hedefine SADECE 'havale-bekliyor'dan gecilebilir
-  //     (IZINLI). Kart siparisi zaten 'odendi'dir; 'odendi'->'odendi' gecersiz (400)
-  //     -> kart akisinin gonderdigi olay buradan TEKRARLANAMAZ.
+  //  1) DURUM MAKINESI: K252'den sonra 'odendi' hedefi YALNIZ GERI ALMA olarak
+  //     {uretimde, kargolandi, tamamlandi}'dan kabul edilir (odeme ekseninin diger
+  //     durumlarindan 400); kendi uzerine gecis ('odendi'->'odendi') GECERSIZDIR (400)
+  //     -> kart akisinin gonderdigi olay buradan DOGRUDAN tekrarlanamaz.
+  //     ⚠️ K252 (20 Agu 2026) bu katmani TEK BASINA yeterli olmaktan cikardi: geri
+  //     alma yolu 'odendi'->'uretimde'->'odendi' turunu MUMKUN kilar. O turda ikinci
+  //     Purchase'i durduran 3. KATMANDIR (kalici iz) ve o iz kart akisinda da
+  //     yaziliyor (shop/src/index.js donus(): gecmiseEkle(..., {olcumDenendi:true}))
+  //     — yani kart siparisi operasyona alinip geri dondurulse bile `zatenDenendi`
+  //     DOGRU cikar ve olcum TEKRARLANMAZ.
   //  2) CAS (compare-and-swap): UPDATE ... WHERE durum = <okunan durum>. Iki es zamanli
   //     istek gelse yalniz BIRI changes>0 alir; olcum yalniz o daldan tetiklenir.
   //  3) KALICI IZ: durum_gecmisi'ne {"o":1} yazilir; ayni UPDATE icinde (atomik).
@@ -747,7 +832,7 @@ async function kargo(request, env, ctx, telegram) {
 
   const s = await siparisGetir(env, siparisNo);
   if (!s) { return yjson({ hata: "siparis-yok" }, 404); }
-  if (!gecisGecerli(s.durum, "kargolandi")) {
+  if (!kargoGecisiGecerli(s.durum)) {
     return yjson({ hata: "gecersiz-gecis", mevcut: s.durum, hedef: "kargolandi" }, 400);
   }
   const yeniGecmis = gecmiseEkle(s.durum_gecmisi, "kargolandi");
@@ -1525,6 +1610,7 @@ details[open]>summary.ust::after{content:"▾"}
  padding:6px 8px;margin:6px 0;border-radius:4px}
 .eylemler{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .kargoform{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.durumsecici{display:flex;gap:6px;align-items:center}
 .kucuk{font-size:12px;color:#6b7280}
 .hata{color:var(--kirmizi)}
 a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;border-radius:6px;
@@ -1670,11 +1756,26 @@ async function parcalar(no,id,kutuId){
 }
 function kartHtml(s){
  var kalem=s.kalemler.map(function(k){return satirHtml(s.siparis_no,k);}).join("");
- var eylem=s.izinli_gecisler.map(function(d){
-  if(d==="kargolandi")return "";
-  var cls=d==="iptal"?"sil":"";
-  return '<button class="'+cls+'" onclick="durumDegis(\\''+s.siparis_no+'\\',\\''+d+'\\')">'+esc(d)+'</button>';
+ // 🔴 SUNUCU TEK KAYNAK (K252): secenekler s.izinli_gecisler'ten OLDUGU GIBI turer.
+ // ⚠️ BU BLOK SAYFA_HTML sablon dizesinin ICINDEDIR — yorumlarda BACKTICK KULLANMA,
+ // sablonu kapatir ve yonet.js sozdizimi hatasina duser (bu turda olculdu).
+ // Panelde elle yazilmis ikinci durum listesi YOKTUR; suzme/ekleme de YAPILMAZ —
+ // aksi halde uc bir durumu reddederken panel onu sunmaya devam edebilirdi
+ // ([[ayni-alan-iki-hukum-biri-sessiz]]). 'kargolandi' burada zaten GECMEZ, cunku
+ // /durum ucu onu reddeder ve kume ucun kararindan turer; kargo yolu ASAGIDAKI
+ // firma+kod formudur.
+ var secenekler=s.izinli_gecisler.map(function(d){
+  return '<option value="'+esc(d)+'">'+esc(d)+'</option>';
  }).join("");
+ // Ayri 'iptal' butonu YERINDE KALIR (onay kutulu hizli yol); seciciye de dusen
+ // 'iptal' AYNI durumDegis() cagrisina gider, yani onay kutusu ikisinde de calisir.
+ var eylem=s.izinli_gecisler.indexOf("iptal")>=0
+  ? '<button class="sil" onclick="durumDegis(\\''+s.siparis_no+'\\',\\'iptal\\')">iptal</button>'
+  : "";
+ var durumSecici=secenekler
+  ? '<div class="durumsecici"><select id="dd-'+s.siparis_no+'">'+secenekler+'</select>'+
+    '<button onclick="durumUygula(\\''+s.siparis_no+'\\')">Uygula</button></div>'
+  : '<div class="durumsecici"><span class="yok">uygulanabilir durum yok</span></div>';
  var kargoForm="";
  if(s.durum==="uretimde"){
   kargoForm='<div class="kargoform">'+
@@ -1709,7 +1810,7 @@ function kartHtml(s){
   '<div class="kucuk">Toplam '+tl(s.tutar_kurus)+' + kargo '+tl(s.kargo_kurus)+
    ' · KDV '+tl(s.kdv_kurus)+'</div>'+
   kalem+kargoBilgi+
-  '<div class="eylemler">'+eylem+
+  '<div class="eylemler">'+durumSecici+eylem+
    '<button class="ikincil" onclick="komutKopyala(\\''+esc(s.yazdir_komut)+'\\')">Yerel komut kopyala</button>'+
   '</div>'+kargoForm+
   (gecmis?'<div class="gecmis">Geçmiş: '+gecmis+'</div>':'')+
@@ -1768,6 +1869,14 @@ async function yukle(){
  // lazy yukleme onlarda sessizce olmezdi. Render sonrasi elle tetiklenir.
  var acik=m.querySelectorAll("details.kart[open]");
  for(var i=0;i<acik.length;i++){kartAc(acik[i]);}
+}
+// SIPARIS BASINA DURUM SECICI (K252). Secilen deger ZATEN sunucunun kabul kumesinden
+// gelir (kart render'i izinli_gecisler'ten uretti); yine de karar SUNUCUNUNDUR —
+// istemci yalnizca istegi tasir, 400'u da oldugu gibi gosterir.
+async function durumUygula(no){
+ var el=document.getElementById("dd-"+no);
+ if(!el||!el.value)return;
+ durumDegis(no,el.value);
 }
 async function durumDegis(no,d){
  if(d==="iptal"&&!confirm("Sipariş iptal edilsin mi?"))return;
