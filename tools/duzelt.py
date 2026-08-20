@@ -170,13 +170,25 @@ URL_GUVENLI_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 # HICBIR SEY yazilmadi (dogru davranis — ama yol kapali demekti).
 # 🔴 SERBEST DEGIL: `uyum` yazan her cagri `marka`yi da BERABERINDE yazar ve o deger
 # ELLE VERILEMEZ (bkz. _uyum_marka_turet / _uyum_marka_catismasi / _uyum_ihlalleri).
+# `boy_secenekleri`: bir urunun boy/varyant listesi ve HER VARYANTIN FIYAT FARKI
+# (`fark_tl`). NEDEN IZINLI LISTEYE GIRDI (K246, 20 Agu): tek parcadan SAG/SOL cifte
+# duzeltilen urunlerde (Volvo XC40 pandizot mentesesi) alani yazacak MESRU tek yol
+# duzelt.py'dir — ham JSON yazimi guard tarafindan HEAD'e geri sarilir. Alan yokken
+# `--toplu` rc=2 "bilinmeyen/izinsiz alan" veriyordu ve yol tamamen kapaliydi.
+# 🔴 SERBEST DEGIL — ODEME YUZEYI: `fark_tl` fiyat farkidir. Adi bu kumeye eklemek
+# TEK BASINA YETMEZ; _alan_tip_hatasi() icindeki DOGRULAYICI KABLOSU (arama.
+# boy_secenekleri_sebebi) olmadan denetlenmemis fiyat verisi yazilabilirdi. Ikisi
+# BIRLIKTE inmek zorundadir; kabul testi (duzelt-toplu-test.test_boy_secenekleri)
+# kablonun canli oldugunu MUTANTLA kanitlar.
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
                     "gorseller", "lisans", "konfigur", "altkategori",
-                    "tur", "gorselsiz", "uyum", "tavsiyeFilament"}
+                    "tur", "gorselsiz", "uyum", "tavsiyeFilament",
+                    "boy_secenekleri"}
 
 UYUM_ALANI = "uyum"
 MARKA_ALANI = "marka"
 TAVSIYE_FILAMENT_ALANI = "tavsiyeFilament"
+BOY_SECENEKLERI_ALANI = "boy_secenekleri"
 
 # --alan altkategori (ya da --alan kategori) ihlalinde donen cikis kodu. gorsel-koken
 # kapisinin 4'unden AYRI: cagiran (insan ya da betik) hangi kapinin reddettigini cikis
@@ -608,6 +620,17 @@ def _alan_tip_hatasi(alan, deger):
                 or not all(isinstance(x, str) and x.strip() for x in deger)):
             return ("'%s' alani bos olmayan string ogelerden olusan bir dizi olmali; "
                     "ornek: [\"ASA\"]" % TAVSIYE_FILAMENT_ALANI)
+    if alan == BOY_SECENEKLERI_ALANI:
+        # 🔴 ODEME YUZEYI — TEK KAYNAK. Kural BURADA YAZILMAZ: `arama.py` zaten
+        # `boy_secenekleri_sebebi` ile dizi/nesne/bilinmeyen-alt-alan/etiket
+        # bosluk+uzunluk+benzersizlik/`fark_tl` negatif-olmayan-TAM-SAYI sozlesmesinin
+        # TEK tanimini tasiyor ve D1/hash/istemci yolu (boy_secenekleri_kanonik) ayni
+        # govdeden geciyor. Buraya ikinci bir kopya yazmak [[ikiz-tanim-sessiz-ayrisma]]
+        # sinifidir: iki tanim sessizce ayrisir ve yazma yolu okuma yolundan gevser.
+        # Cagri iki yuzeyde de bu fonksiyondan geciyor (duzelt.py `--alan/--deger` ve
+        # `--toplu`), dolayisiyla TEK kablo iki yuzeyi birden kapatir — kabul testi
+        # ikisini AYRI AYRI olcer, "kapattigini varsaymaz".
+        return arama.boy_secenekleri_sebebi(deger)
     return None
 
 

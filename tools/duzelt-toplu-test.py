@@ -14,6 +14,10 @@ Kontroller:
   (c) mevcut tek-urun kipi REGRESYONSUZ (--alan/--deger, --alan-sil, --sil).
   (d) flock: kilit baskasi tarafindan tutulurken ikinci toplu cagri BEKLER
       (serilesme); kilit birakilinca tamamlanir.
+  (e3) boy_secenekleri (K246, ODEME YUZEYI): gecerli Sol/Sag varyanti KABUL (tek-urun
+      ve --toplu), denetlenmemis fiyat verisi RED (7 negatif vaka x 2 cagri yuzeyi),
+      KIRMIZI-MUTASYON + KONTROL MUTANTI. Iddia adin izinli kumede olmasi DEGIL,
+      arama.boy_secenekleri_sebebi dogrulayicisinin KABLOLU olmasidir.
   (f) --alan aciklama REWORD'unde OTOMATIK EKLENEN OLCU SATIRI korunur
       (MaCiT dilim-30 kaybi): korunma, ciftleme yok, gomulu satir, placeholder,
       toplu kip, guard manifest gercekligi, alan regresyonu, desen kaymasi,
@@ -385,6 +389,137 @@ def test_tavsiye_filament():
     kontrol(sha(urunler_yol) == once_toplu,
             "NEGATIF TOPLU: urunler.json BYTE-ESIT")
     shutil.rmtree(repo, ignore_errors=True)
+
+
+# --------------------------------------------- (e3) boy_secenekleri (K246, ODEME YUZEYI)
+# OLCULEN OLAY: tek parcadan SAG/SOL cifte duzeltilen urunde (Volvo XC40 pandizot
+# mentesesi) `boy_secenekleri` DEGISTIRILEBILIR kumesinde OLMADIGI icin `duzelt.py --toplu`
+# rc=2 "bilinmeyen/izinsiz alan" veriyordu; ham JSON yazimi ise guard tarafindan HEAD'e geri
+# sariliyordu -> alani yazacak MESRU yol YOKTU.
+# 🔴 BU BOLUMUN ASIL IDDIASI ADIN KUMEDE OLMASI DEGIL, DOGRULAYICININ KABLOLU OLMASIDIR:
+# `fark_tl` FIYAT FARKI tasir. Ad tek basina eklenseydi denetlenmemis fiyat verisi
+# yazilabilirdi. Mutant tam da o kabloyu kesip degerin GERCEKTEN YAZILDIGINI gosterir;
+# kontrol mutanti ise "her degisiklik kirmiziyi bozar" yanilgisini keser.
+BOY_GECERLI = [{"etiket": "Sol", "fark_tl": 0}, {"etiket": "Sağ", "fark_tl": 0}]
+# (deger, mesajda GECMESI gereken parca, vaka adi) — her biri AYRI vaka, AYRI rc olcumu.
+BOY_NEGATIF = [
+    ([{"etiket": "Sol", "fark_tl": -5}], "negatif-olmayan tam sayi",
+     "fark_tl NEGATIF"),
+    ([{"etiket": "Sol", "fark_tl": 12.5}], "negatif-olmayan tam sayi",
+     "fark_tl ONDALIK"),
+    ([{"etiket": "Sol", "fark_tl": "10"}], "negatif-olmayan tam sayi",
+     "fark_tl METIN"),
+    ([{"etiket": "Sol", "fark_tl": 0}, {"etiket": "Sol", "fark_tl": 5}],
+     "benzersiz olmali", "MUKERRER etiket"),
+    ([{"etiket": "A" * 61, "fark_tl": 0}], "60 karakteri gecemez",
+     "61 KARAKTER etiket"),
+    ([{"etiket": "Sol", "fark_tl": 0, "renk": "mavi"}], "bilinmeyen alan",
+     "BILINMEYEN alt alan"),
+    ({"etiket": "Sol", "fark_tl": 0}, "dizi olmali", "DIZI OLMAYAN deger"),
+]
+
+
+def _boy_cagri(mod, deger, uid="test-urun-1"):
+    return cagir(mod, [uid, "--alan", "boy_secenekleri",
+                       "--deger", json.dumps(deger, ensure_ascii=False)])
+
+
+def test_boy_secenekleri():
+    print("\n(e3) boy_secenekleri: gecerli varyant KABUL + denetlenmemis fiyat verisi RED")
+    repo = sahte_repo()
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_boy")
+    urunler_yol = os.path.join(repo, "urunler.json")
+
+    kontrol("boy_secenekleri" in mod.DEGISTIRILEBILIR,
+            "POZITIF: boy_secenekleri izinli alan kumesinde")
+
+    # --- (1) POZITIF: TeKiN'in somut ihtiyaci (Sol/Sag, fark 0) -------------------
+    rc, out, err = _boy_cagri(mod, BOY_GECERLI)
+    with open(urunler_yol, encoding="utf-8") as f:
+        yazilan = {p["id"]: p for p in json.load(f)}["test-urun-1"].get("boy_secenekleri")
+    kontrol(rc == 0, "POZITIF: Sol/Sag varyanti KABUL EDILDI (rc=%s; %s)"
+            % (rc, err.strip() or out.strip().splitlines()[-1:]))
+    kontrol(yazilan == BOY_GECERLI,
+            "POZITIF: boy_secenekleri geri-okumada BIREBIR ayni (%r)" % (yazilan,))
+
+    # --- (2) NEGATIF, TEK-URUN YUZEYI: yedi vaka, her biri AYRI olculur -----------
+    for deger, parca, ad in BOY_NEGATIF:
+        once = sha(urunler_yol)
+        rc_n, out_n, err_n = _boy_cagri(mod, deger, uid="test-urun-2")
+        cikti = out_n + err_n
+        kontrol(rc_n == 2, "NEGATIF (%s): rc=2 (gorulen %s)" % (ad, rc_n))
+        kontrol("boy_secenekleri" in cikti,
+                "NEGATIF (%s): mesaj alan adini soyluyor" % ad)
+        kontrol(parca in cikti,
+                "NEGATIF (%s): mesaj sebebi soyluyor (%r)" % (ad, parca))
+        kontrol(sha(urunler_yol) == once,
+                "NEGATIF (%s): red sonrasi urunler.json BYTE-ESIT" % ad)
+
+    # --- (3) NEGATIF, --toplu YUZEYI: IKINCI cagri yuzeyi AYRICA olculur ---------
+    # Tek kablo iki yuzeyi kapatiyor OLMALI, ama bu VARSAYILMAZ: iki cagri yeri
+    # (duzelt.py DEGISTIRILEBILIR kontrolunden sonraki iki _alan_tip_hatasi cagrisi)
+    # ayri ayri kirmizi yakiliyor.
+    for deger, parca, ad in BOY_NEGATIF:
+        yol = islem_yaz(repo, [{"id": "test-urun-3", "alan": "boy_secenekleri",
+                                "deger": deger}])
+        once_t = sha(urunler_yol)
+        rc_t, out_t, err_t = cagir(mod, ["--toplu", yol])
+        cikti_t = out_t + err_t
+        kontrol(rc_t == 2 and "boy_secenekleri" in cikti_t and parca in cikti_t,
+                "NEGATIF TOPLU (%s): rc=2 + alan + sebep mesajda (rc=%s)" % (ad, rc_t))
+        kontrol(sha(urunler_yol) == once_t,
+                "NEGATIF TOPLU (%s): urunler.json BYTE-ESIT" % ad)
+
+    # --- (4) POZITIF --toplu: yol gercekten ACIK (yalniz reddetmiyor) ------------
+    yol = islem_yaz(repo, [{"id": "test-urun-3", "alan": "boy_secenekleri",
+                            "deger": BOY_GECERLI}])
+    rc_tp, out_tp, err_tp = cagir(mod, ["--toplu", yol])
+    with open(urunler_yol, encoding="utf-8") as f:
+        yazilan3 = {p["id"]: p for p in json.load(f)}["test-urun-3"].get("boy_secenekleri")
+    kontrol(rc_tp == 0 and yazilan3 == BOY_GECERLI,
+            "POZITIF TOPLU: gecerli varyant --toplu ile YAZILDI (rc=%s, %r)"
+            % (rc_tp, yazilan3))
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_boy_secenekleri_mutasyon():
+    print("\n(e3m) KIRMIZI-MUTASYON: dogrulayici kablosu kesilince fiyat verisi GERCEKTEN yaziliyor")
+    # HEDEF KOL ATFI (K182): mutant `arama.boy_secenekleri_sebebi`'yi -- yani duzelt.py'nin
+    # BAGLANDIGI TEK KAYNAGI -- susturur. Iki sey birden kanitlanir: (a) negatif vaka
+    # yesile doner, (b) gecersiz deger urunler.json'a FIILEN yazilir. (b) olmadan "rc
+    # degisti" tek basina hangi kolun oldugunu soylemezdi.
+    repo = sahte_repo()
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_boy_mutant")
+    urunler_yol = os.path.join(repo, "urunler.json")
+    bozuk = [{"etiket": "Sol", "fark_tl": -5}]
+
+    kontrol(hasattr(mod.arama, "boy_secenekleri_sebebi"),
+            "MUTASYON ON-SARTI: duzelt.py arama.boy_secenekleri_sebebi'ye baglaniyor")
+    mod.arama.boy_secenekleri_sebebi = lambda deger: None      # MUTANT: kablo kesildi
+    rc_m, out_m, err_m = _boy_cagri(mod, bozuk, uid="test-urun-2")
+    with open(urunler_yol, encoding="utf-8") as f:
+        yazilan_m = {p["id"]: p for p in json.load(f)}["test-urun-2"].get("boy_secenekleri")
+    kontrol(rc_m == 0,
+            "MUTASYON: dogrulayici susturulunca NEGATIF vaka yesile dondu (rc=%s)" % rc_m)
+    kontrol(yazilan_m == bozuk,
+            "MUTASYON/HEDEF KOL: negatif fark_tl urunler.json'a FIILEN yazildi (%r) — "
+            "yani kirmiziyi TAM da bu kablo uretiyordu" % (yazilan_m,))
+    shutil.rmtree(repo, ignore_errors=True)
+
+    # KONTROL MUTANTI: iddia edilmeyen bir kolu bozmak negatif vakayi ETKILEMEMELI.
+    # Yoksa "her mutasyon kirmizi/yesil oynatiyor" olurdu ve yukaridaki atif degersizdi.
+    repo2 = sahte_repo()
+    mod2 = modul_yukle(repo2, "duzelt.py", "duzelt_boy_kontrol")
+    urunler_yol2 = os.path.join(repo2, "urunler.json")
+    mod2.aciklama_koru = lambda eski, yeni: (yeni, [])          # ILGISIZ kol
+    once2 = sha(urunler_yol2)
+    rc_k, out_k, err_k = _boy_cagri(mod2, bozuk, uid="test-urun-2")
+    kontrol(rc_k == 2 and "negatif-olmayan tam sayi" in (out_k + err_k),
+            "KONTROL MUTANTI: ilgisiz kol bozulunca negatif vaka HALA rc=2 (gorulen %s)"
+            % rc_k)
+    kontrol(sha(urunler_yol2) == once2,
+            "KONTROL MUTANTI: urunler.json BYTE-ESIT (yanlis-pozitif yok)")
+    shutil.rmtree(repo2, ignore_errors=True)
 
 
 # ------------------------------------------------- (f) aciklama olcu satiri korumasi
@@ -1068,6 +1203,8 @@ def main():
     test_d()
     test_konfigur()
     test_tavsiye_filament()
+    test_boy_secenekleri()
+    test_boy_secenekleri_mutasyon()
     test_f_koruma()
     test_f_ciftleme()
     test_f_gomulu()
