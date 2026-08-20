@@ -37,6 +37,7 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
+- 🔧 **K262:** N2'nin 4 saatlik devri KURULMAMIS — tam metin+kabul [[acik-kalemler]].
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
