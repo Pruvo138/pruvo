@@ -188,6 +188,8 @@ function belgeKur() {
     },
     body: eleman("body"),
     execCommand: () => true,
+    addEventListener() {},
+    removeEventListener() {},
   };
 }
 const bekle = (ms) => new Promise((r) => setTimeout(r, ms));

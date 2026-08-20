@@ -547,10 +547,13 @@ def dosya_surum(dosya_yolu):
 # deploy.yml _site'a BURADAN kopyalar; kaynak dosyalar (secenekler.js ...) tam
 # muhendislik dokumantasyonuyla depoda KALIR. git'e GIRMEZ (.gitignore).
 YAYIN_DIR = "_yayin"
-# deploy.yml beyaz listesindeki commit'li JS varliklari (uretilen ikisi ayrica
-# uretildikleri yerde soyulur: filament-veri.js + taban-fiyatlar.js).
+# Yayınlanacak JS varlıklarının TEK KAYNAĞI. İlk altılı kaynak ağacındaki
+# varlıklardır; son ikili build sırasında üretilir. CI beyaz listeyi bu kümenin
+# build tarafından yazdığı _yayin/site-varliklari.txt manifestinden okur.
 SOYULACAK_JS = ("secenekler.js", "konfigur.js",
-                "jenerator/hacim.js", "jenerator/konfigurator.js", "jenerator/viewer.js")
+                "talep-alanlari.js",
+                "jenerator/hacim.js", "jenerator/konfigurator.js", "jenerator/viewer.js",
+                "filament-veri.js", "taban-fiyatlar.js")
 
 
 def _yayin_js_sozdizimi(hedef):
@@ -5124,7 +5127,9 @@ def main():
         shutil.rmtree(VARLIK_DIR)
     _VARLIK_ONBELLEK.clear()
     os.makedirs(VARLIK_DIR, exist_ok=True)
-    for _rel in SOYULACAK_JS:
+    # Son iki varlık aşağıda, üretildikten sonra soyulur; listenin tamamı yine
+    # tek kaynak olarak kalır ve manifest üretiminde aynen kullanılır.
+    for _rel in SOYULACAK_JS[:-2]:
         if yayin_js_yaz(_rel) is None:
             print("HATA: yayin JS varligi bulunamadi -> %s "
                   "(deploy.yml beyaz listesi ile _yayin/ arasinda drift)" % _rel)
@@ -5199,11 +5204,16 @@ def main():
     uret_taban_fiyatlar()
 
     # ÜRETİLEN iki JS varlığının yayın kopyası (yorumu soyulmuş). Bunlar yukarıda
-    # üretildiği için burada soyulur; deploy _site'a _yayin/'dan kopyalar.
-    for _rel in ("filament-veri.js", "taban-fiyatlar.js"):
+    # üretildiği için burada soyulur; manifest ve deploy _site'a buradan kopyalar.
+    for _rel in SOYULACAK_JS[-2:]:
         if yayin_js_yaz(_rel) is None:
             print("HATA: uretilen yayin JS varligi bulunamadi -> %s" % _rel)
             sys.exit(1)
+
+    # CI beyaz listesi için TEK KAYNAK manifesti. Her satır bir _yayin/ göreli
+    # yoludur; workflow okuyucusu dosya yoksa fail-closed durur.
+    with open(os.path.join(ROOT, YAYIN_DIR, "site-varliklari.txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(SOYULACAK_JS) + "\n")
 
     # index.built.html — ana sayfanin YAYIN kopyasi: script src'leri ?v=<hash> ile
     # surumlenir (KAYNAK index.html degismez). deploy.yml bunu _site/index.html yapar.

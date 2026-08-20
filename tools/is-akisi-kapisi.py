@@ -3442,7 +3442,14 @@ def bolum_e(dizin):
         if _yayin_mod is None:
             hatalar.append(E_VARLIK_OLCULEMEDI % (E_YAYIN_ARACI, varlik, _yayin_hata))
             continue
-        if not _yayin_mod.yayin_varligi_tasiniyor_mu(varlik):
+        try:
+            tasiniyor = _yayin_mod.yayin_varligi_tasiniyor_mu(varlik)
+        except Exception as e:  # noqa: BLE001 — beyaz liste okunamadi = OLCULEMEDI
+            hatalar.append(E_VARLIK_OLCULEMEDI
+                           % (E_YAYIN_ARACI, varlik,
+                              "%s: %s" % (type(e).__name__, e)))
+            continue
+        if not tasiniyor:
             hatalar.append(E_VARLIK_TANI % (varlik, E_YAYIN_ARACI, neden,
                                             E_YAYIN_ARACI, varlik))
     return hatalar, iddia

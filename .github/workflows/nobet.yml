@@ -426,6 +426,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test
 
+      # Bu kapi agsiz, deterministik ve saniyeler icinde kosar. Kirmizisi musteriye
+      # yanlis para odettirmez veya veri sizdirmaz; olctugu sey sihirbaz metni/kapsami
+      # hijyenidir, bu nedenle yayini bloklamayan SERIT B'de tutulur.
+      - name: "Talep sihirbazi kabul testi + mutasyon bataryasi (hijyen, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: |
+          python3 tools/talep-sihirbazi-test.py
+          python3 tools/talep-sihirbazi-test.py --kendini-test
+
       # T5 DURGUN KALEM KAPISI (19 Agu 2026, K193 paketi) — 4 saat hareketsiz
       # kalem OTOMATIK DEVREDILIR kapisi. 4 kol (T5-DURGUN, T5-TAZE, T5-IZ,
       # T5-OLCULEMEDI) kendi --kendini-test'inde MUTANT=4/4 verir. CANLI

@@ -683,6 +683,42 @@
     display:flex;flex-direction:column;
   }
   .cart-panel.open{transform:translateX(0)}
+  /* ---- TALEP-SIHIRBAZI-CSS-BAS ---- */
+  .talep-panel{width:480px}
+  .talep-panel-body{flex:1;overflow-y:auto;background:#fff;padding:16px}
+  .talep-progress{font-size:12.5px;font-weight:700;color:var(--gray-text);margin-bottom:6px}
+  .talep-step-title{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:6px}
+  .talep-help{font-size:13px;color:var(--gray-text);line-height:1.5;margin-bottom:12px}
+  .talep-chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
+  .talep-chip{background:#fff;border:1px solid var(--gray-line);border-radius:8px;
+    color:var(--navy);padding:9px 11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .talep-chip:hover,.talep-chip.active{background:#eef3fb;border-color:var(--navy-2)}
+  .talep-search,.talep-input,.talep-textarea{width:100%;padding:10px 12px;margin-bottom:9px;
+    border:1px solid var(--gray-line);border-radius:8px;font:inherit;font-size:14px;
+    color:var(--navy);background:#fff}
+  .talep-search:focus,.talep-input:focus,.talep-textarea:focus{outline:none;border-color:var(--navy-2)}
+  .talep-textarea{resize:vertical;min-height:92px}
+  .talep-label{display:block;font-size:12.5px;font-weight:700;color:var(--navy);margin:10px 0 5px}
+  .talep-required{color:var(--red)}
+  .talep-error{color:var(--red);font-size:13px;font-weight:600;margin:0 0 10px}
+  .talep-actions{display:flex;gap:8px;margin-top:16px}
+  .talep-actions .cart-pay-btn{margin:0}
+  .talep-back{background:transparent;border:1px solid var(--gray-line);border-radius:12px;
+    color:var(--gray-text);padding:0 16px;font-size:14px;font-weight:600;cursor:pointer;flex:none}
+  .talep-back:hover{border-color:var(--navy-2);color:var(--navy)}
+  .talep-summary{border:1px solid var(--gray-line);border-radius:9px;padding:10px 12px;margin:12px 0}
+  .talep-summary-row{display:flex;gap:10px;justify-content:space-between;padding:6px 0;
+    border-bottom:1px solid #edf0f4;font-size:13px;color:var(--navy)}
+  .talep-summary-row:last-child{border-bottom:0}
+  .talep-summary-row strong{font-weight:700;flex:1}
+  .talep-summary-row span{flex:2;white-space:pre-wrap;word-break:break-word}
+  .talep-edit{border:0;background:transparent;color:var(--navy-2);font:inherit;font-size:12px;
+    font-weight:700;text-decoration:underline;cursor:pointer;white-space:nowrap}
+  .talep-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .talep-thanks{padding:26px 8px;font-size:17px;font-weight:800;line-height:1.45;color:var(--navy);text-align:center}
+  .talep-fallback{margin-top:12px;font-size:13px;color:var(--gray-text);line-height:1.5}
+  .talep-fallback a{color:var(--navy-2);font-weight:700}
+  /* ---- TALEP-SIHIRBAZI-CSS-SON ---- */
   .cart-panel-head{
     background:var(--navy);color:#fff;
     padding:18px 18px;
@@ -989,6 +1025,7 @@
 </header>
 
 <!-- Tek değer cümlesi + tek WhatsApp CTA (eski help-cta + info-strip 3× tekrar birleştirildi). -->
+<!-- ---- TALEP-SIHIRBAZI-CTA-BAS ---- -->
 <section class="help-cta">
   <div class="help-cta-inner">
     <span class="help-cta-text">Bulamadığın parçayı üretiyoruz: kırık parçanı bize ulaştır — getir ya da kargoyla gönder, ölçüp ölçüye özel üretelim.</span>
@@ -998,8 +1035,10 @@
       <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.35-.5.05-.98.24-3.3-.69-2.77-1.09-4.56-3.9-4.7-4.08-.14-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.02.96-2.29.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.21.51.32.06.11.06.64-.18 1.32z"/></svg>
       WhatsApp'tan Yaz
     </a>
+    <button id="talepAc" class="help-cta-btn" type="button">Eksik Parça Talebi</button>
   </div>
 </section>
+<!-- ---- TALEP-SIHIRBAZI-CTA-SON ---- -->
 
 <main>
   <!-- PRUVO gizli-seri banner'ları (Jeneratör + Skan Art) — SADECE ana sayfa görünümünde
@@ -1338,6 +1377,20 @@
   </div>
 </aside>
 
+<!-- ---- TALEP-SIHIRBAZI-MARKUP-BAS ---- -->
+<div id="talepOverlay" class="cart-overlay"></div>
+<aside id="talepPanel" class="cart-panel talep-panel" role="dialog" aria-modal="true"
+       aria-labelledby="talepBaslik" aria-label="Eksik Parça Talebi">
+  <div class="cart-panel-head">
+    <span id="talepBaslik">Eksik Parça Talebi</span>
+    <button id="talepClose" class="cart-close" type="button" aria-label="Kapat">&times;</button>
+  </div>
+  <form id="talepForm" class="talep-panel-body" novalidate>
+    <div id="talepIcerik"></div>
+  </form>
+</aside>
+<!-- ---- TALEP-SIHIRBAZI-MARKUP-SON ---- -->
+
 <footer>
   PRUVO — Endüstriyel Parça Üretimi
   <div class="foot-nav">
@@ -1354,6 +1407,7 @@
 </footer>
 
 <script src="/secenekler.js"></script>
+<script src="/talep-alanlari.js"></script>
 <!-- Sarı kart "X TL'den başlayan" haritası — sayfa üreteci üretir (kaynak: jenerator/urunler
      şemalarındaki tabanFiyatTL). Lokalde/build'siz 404 olursa kart "Ölçüye özel fiyat"
      fallback'ine düşer (aşağıdaki inline script window.PRUVO_TABAN_FIYATLAR'ı opsiyonel okur).
@@ -2239,8 +2293,247 @@
       wrap.appendChild(row);
     });
   }
+  // ---- TALEP-SIHIRBAZI-JS-BAS ----
   // ---------------------------------------------------------------- ödeme (iyzico redirect)
   var SHOP_UC = "/api/shop";
+  var talepDurum = {
+    adim: 1, kategori: "", marka: "", model: "", yil: "", parca_adi: "", notu: "",
+    website: "", markaArama: "", hata: "",
+    gonderiliyor: false
+  };
+
+  // ---- TALEP-SIHIRBAZI-SOZLESME-BAS ----
+  function talepDolu(v){ return typeof v === "string" && v.trim() !== ""; }
+  function talepMetin(v){ return typeof v === "string" ? v.trim() : ""; }
+  function talepTavan(alan){ return window.PRUVO_TALEP_ALANLARI[alan].tavan; }
+  function talepAlanGecerli(alan, deger){
+    var tanim = window.PRUVO_TALEP_ALANLARI[alan];
+    var metin = talepMetin(deger);
+    return !!tanim && !tanim.honeypot && metin.length <= tanim.tavan &&
+      (!tanim.zorunlu || metin !== "");
+  }
+  function talepEsc(v){
+    return String(v == null ? "" : v).replace(/[&<>\"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  window.__talepAdimGecerli = function(adim, durum){
+    durum = durum || {};
+    if(adim === 1){
+      var kategori = talepMetin(durum.kategori);
+      return CATEGORIES.indexOf(kategori) !== -1 && GIZLI_KATEGORILER.indexOf(kategori) === -1 &&
+        talepAlanGecerli("kategori", kategori);
+    }
+    if(adim === 2){ return talepAlanGecerli("marka", durum.marka) && talepAlanGecerli("model", durum.model) && talepAlanGecerli("yil", durum.yil); }
+    if(adim === 3){ return talepAlanGecerli("parca_adi", durum.parca_adi); }
+    if(adim === 4){ return true; }
+    if(adim === 5){ return talepAlanGecerli("notu", durum.notu) && !talepDolu(durum.website); }
+    if(adim === 6){
+      return [1, 2, 3, 4, 5].every(function(n){ return window.__talepAdimGecerli(n, durum); });
+    }
+    return false;
+  };
+  window.__talepGovdeKur = function(durum){
+    durum = durum || {};
+    return {
+      /* K186 ucu `kanal`i ZORUNLU tutar (KANALLAR = site|whatsapp); eksikse gövde 400 döner. */
+      kanal: "site",
+      kategori: talepMetin(durum.kategori),
+      marka: talepMetin(durum.marka),
+      model: talepMetin(durum.model),
+      yil: talepMetin(durum.yil),
+      parca_adi: talepMetin(durum.parca_adi),
+      notu: talepMetin(durum.notu),
+      website: ""
+    };
+  };
+  window.__talepWaMetni = function(durum){
+    durum = durum || {};
+    return [
+      "Kategori: " + talepMetin(durum.kategori),
+      "Marka: " + talepMetin(durum.marka),
+      "Model: " + talepMetin(durum.model),
+      "Yıl: " + talepMetin(durum.yil),
+      "Parça: " + talepMetin(durum.parca_adi),
+      "Not: " + talepMetin(durum.notu)
+    ].join("\n");
+  };
+  // ---- TALEP-SIHIRBAZI-SOZLESME-SON ----
+
+  function talepAlanlariOku(){
+    var alanlar = ["talepModel", "talepYil", "talepParcaAdi", "talepNotu", "talepWebsite"];
+    var anahtarlar = ["model", "yil", "parca_adi", "notu", "website"];
+    alanlar.forEach(function(id, i){
+      var el = document.getElementById(id);
+      if(el){ talepDurum[anahtarlar[i]] = el.value; }
+    });
+  }
+  function talepHataMetni(){
+    return talepDurum.hata ? '<p class="talep-error" role="alert">' + talepEsc(talepDurum.hata) + '</p>' : "";
+  }
+  function talepAltButonlari(ileri){
+    return '<div class="talep-actions">' +
+      (talepDurum.adim > 1 ? '<button type="button" class="talep-back" id="talepGeri">Geri</button>' : "") +
+      '<button type="submit" class="cart-pay-btn">' + talepEsc(ileri) + '</button></div>';
+  }
+  function talepRender(){
+    var el = document.getElementById("talepIcerik");
+    if(!el){ return; }
+    var n = talepDurum.adim;
+    var html = '<div class="talep-progress">Adım ' + n + ' / 6</div>';
+    if(n === 1){
+      html += '<h2 class="talep-step-title">Kategori</h2>' +
+        '<p class="talep-help">Eksik parçanın ait olduğu çalışma alanını seçin.</p>' +
+        '<div class="talep-chip-wrap">';
+      CATEGORIES.forEach(function(kategori){
+        if(GIZLI_KATEGORILER.indexOf(kategori) !== -1){ return; }
+        html += '<button type="button" class="talep-chip' +
+          (talepDurum.kategori === kategori ? " active" : "") +
+          '" data-talep-kategori="' + talepEsc(kategori) + '">' + talepEsc(kategori) + '</button>';
+      });
+      html += '</div>' + talepHataMetni() + talepAltButonlari("Devam");
+    }else if(n === 2){
+      var markaArama = talepDurum.markaArama || "";
+      var markalar = sortedBrands().filter(function(marka){
+        return !markaArama || marka.toLocaleLowerCase("tr-TR").indexOf(markaArama.toLocaleLowerCase("tr-TR")) !== -1;
+      });
+      html += '<h2 class="talep-step-title">Marka / Model / Yıl</h2>' +
+        '<label class="talep-label" for="talepMarkaAra">Marka <span class="talep-required">*</span></label>' +
+        '<input class="talep-search" id="talepMarkaAra" type="search" autocomplete="off" placeholder="Marka ara…" value="' + talepEsc(markaArama) + '">' +
+        '<div class="talep-chip-wrap">' +
+        '<button type="button" class="talep-chip' + (talepDurum.marka === "Listede yok / emin değilim" ? " active" : "") + '" data-talep-marka="Listede yok / emin değilim">Listede yok / emin değilim</button>';
+      markalar.forEach(function(marka){
+        html += '<button type="button" class="talep-chip' + (talepDurum.marka === marka ? " active" : "") +
+          '" data-talep-marka="' + talepEsc(marka) + '">' + talepEsc(marka) + '</button>';
+      });
+      html += '</div>' +
+        '<label class="talep-label" for="talepModel">Model <span class="talep-required">*</span></label>' +
+        '<input class="talep-input" id="talepModel" type="text" maxlength="' + talepTavan("model") + '" value="' + talepEsc(talepDurum.model) + '" required>' +
+        '<label class="talep-label" for="talepYil">Yıl <span class="talep-help">(opsiyonel)</span></label>' +
+        '<input class="talep-input" id="talepYil" type="text" maxlength="' + talepTavan("yil") + '" value="' + talepEsc(talepDurum.yil) + '">' +
+        talepHataMetni() + talepAltButonlari("Devam");
+    }else if(n === 3){
+      html += '<h2 class="talep-step-title">Parça adı / tarifi</h2>' +
+        '<label class="talep-label" for="talepParcaAdi">Parçayı kısaca tarif edin <span class="talep-required">*</span></label>' +
+        '<textarea class="talep-textarea" id="talepParcaAdi" maxlength="' + talepTavan("parca_adi") + '" required placeholder="Örn. kırılan bağlantı ayağı, kapak mandalı…">' + talepEsc(talepDurum.parca_adi) + '</textarea>' +
+        talepHataMetni() + talepAltButonlari("Devam");
+    }else if(n === 4){
+      html += '<h2 class="talep-step-title">Görsel</h2>' +
+        '<p class="talep-help">Parçanın fotoğrafını WhatsApp üzerinden iletebilirsiniz. Fotoğraf, ölçü ve ayrıntılar değerlendirmemize yardımcı olur.</p>' +
+        '<a class="help-cta-btn" href="https://wa.me/905451386526" target="_blank" rel="noopener">WhatsApp üzerinden fotoğraf ilet</a>' +
+        talepAltButonlari("Devam");
+    }else if(n === 5){
+      html += '<h2 class="talep-step-title">Not</h2>' +
+        '<label class="talep-label" for="talepNotu">Not <span class="talep-help">(opsiyonel)</span></label>' +
+        '<textarea class="talep-textarea" id="talepNotu" maxlength="' + talepTavan("notu") + '" placeholder="Ölçü, kullanım koşulu veya ek bilgi…">' + talepEsc(talepDurum.notu) + '</textarea>' +
+        '<input class="talep-honeypot" id="talepWebsite" name="website" type="text" value="' + talepEsc(talepDurum.website) + '" aria-hidden="true" tabindex="-1" autocomplete="off">' +
+        talepHataMetni() + talepAltButonlari("Devam");
+    }else if(n === 6){
+      var satir = function(etiket, deger, adim){
+        return '<div class="talep-summary-row"><strong>' + talepEsc(etiket) + '</strong><span>' +
+          talepEsc(deger || "—") + '</span><button type="button" class="talep-edit" data-talep-duzenle="' + adim + '">Düzenle</button></div>';
+      };
+      html += '<h2 class="talep-step-title">Özet + onay</h2>' +
+        '<p class="talep-help">Bilgilerinizi kontrol edin, ardından talebi gönderin.</p>' +
+        '<div class="talep-summary">' + satir("Kategori", talepDurum.kategori, 1) +
+        satir("Marka", talepDurum.marka, 2) + satir("Model", talepDurum.model, 2) +
+        satir("Yıl", talepDurum.yil, 2) + satir("Parça", talepDurum.parca_adi, 3) +
+        satir("Not", talepDurum.notu, 5) + '</div>' + talepHataMetni() +
+        talepAltButonlari("Talebi gönder");
+    }
+    el.innerHTML = html;
+    var geri = document.getElementById("talepGeri");
+    if(geri){ geri.onclick = function(){ talepAlanlariOku(); talepDurum.adim--; talepDurum.hata = ""; talepRender(); }; }
+    var arama = document.getElementById("talepMarkaAra");
+    if(arama){ arama.oninput = function(){ talepAlanlariOku(); talepDurum.markaArama = this.value; talepRender(); var yeni = document.getElementById("talepMarkaAra"); yeni.focus(); yeni.setSelectionRange(yeni.value.length, yeni.value.length); }; }
+    el.querySelectorAll("[data-talep-kategori]").forEach(function(btn){
+      btn.onclick = function(){ talepDurum.kategori = this.getAttribute("data-talep-kategori") || ""; talepDurum.hata = ""; talepRender(); };
+    });
+    el.querySelectorAll("[data-talep-marka]").forEach(function(btn){
+      btn.onclick = function(){ talepAlanlariOku(); talepDurum.marka = this.getAttribute("data-talep-marka") || ""; talepDurum.hata = ""; talepRender(); };
+    });
+    el.querySelectorAll("[data-talep-duzenle]").forEach(function(btn){
+      btn.onclick = function(){ talepAlanlariOku(); talepDurum.adim = parseInt(this.getAttribute("data-talep-duzenle"), 10); talepDurum.hata = ""; talepRender(); };
+    });
+  }
+  function talepIlerle(){
+    talepAlanlariOku();
+    if(!window.__talepAdimGecerli(talepDurum.adim, talepDurum)){
+      talepDurum.hata = talepDurum.adim === 1 ? "Bir kategori seçin." : "Lütfen zorunlu alanları doldurun.";
+      talepRender();
+      return;
+    }
+    talepDurum.hata = "";
+    if(talepDurum.adim < 6){ talepDurum.adim++; talepRender(); }
+  }
+  function talepGonder(){
+    talepAlanlariOku();
+    if(!window.__talepAdimGecerli(6, talepDurum)){ talepDurum.hata = "Lütfen zorunlu alanları doldurun."; talepRender(); return; }
+    if(talepDurum.gonderiliyor){ return; }
+    talepDurum.gonderiliyor = true;
+    var buton = document.querySelector("#talepIcerik button[type=submit]");
+    if(buton){ buton.disabled = true; buton.textContent = "Gönderiliyor…"; }
+    fetch(SHOP_UC + "/talep", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(window.__talepGovdeKur(talepDurum))
+    }).then(function(response){
+      return response.json().then(function(sonuc){ return {response: response, sonuc: sonuc}; });
+    }).then(function(cevap){
+      talepDurum.gonderiliyor = false;
+      var response = cevap.response;
+      var sonuc = cevap.sonuc || {};
+      var href = typeof sonuc.wa === "string" && sonuc.wa.indexOf("https://wa.me/905451386526") === 0
+        ? sonuc.wa : "https://wa.me/905451386526?text=" + encodeURIComponent(window.__talepWaMetni(talepDurum));
+      if(response.status === 400){
+        document.getElementById("talepIcerik").innerHTML = '<p class="talep-error" role="alert">Bilgileri kontrol edin ve tekrar deneyin.</p>' +
+          '<p class="talep-fallback">İsterseniz WhatsApp üzerinden devam edebilirsiniz: <a href="' + talepEsc(href) + '" target="_blank" rel="noopener">WhatsApp ile talebi ilet</a></p>' +
+          '<div class="talep-actions"><button type="button" class="cart-pay-btn" id="talepTekrar">Tekrar dene</button></div>';
+      }else if(response.ok && sonuc.kod){
+        document.getElementById("talepIcerik").innerHTML = '<div class="talep-thanks" role="status">Talebiniz alındı. Kodunuz: <strong>' + talepEsc(sonuc.kod) + '</strong></div>';
+      }else if(response.ok && sonuc.kod === null){
+        document.getElementById("talepIcerik").innerHTML = '<p class="talep-error" role="alert">Talebiniz kaydedilemedi.</p>' +
+          '<p class="talep-fallback">Bu WhatsApp mesajı talebinizin tek nüshasıdır. Lütfen aşağıdaki düğmeyle WhatsApp’a yönelin.</p>' +
+          '<div class="talep-actions"><a class="cart-pay-btn" href="' + talepEsc(href) + '" target="_blank" rel="noopener">WhatsApp’ta talebi ilet</a></div>';
+      }else{
+        throw new Error("talep-gonderilemedi");
+      }
+      var tekrar = document.getElementById("talepTekrar");
+      if(tekrar){ tekrar.onclick = function(){ talepRender(); }; }
+    }).catch(function(){
+      talepDurum.gonderiliyor = false;
+      var href = "https://wa.me/905451386526?text=" + encodeURIComponent(window.__talepWaMetni(talepDurum));
+      document.getElementById("talepIcerik").innerHTML = '<p class="talep-error" role="alert">Talep gönderilemedi.</p>' +
+        '<p class="talep-fallback">WhatsApp üzerinden devam edebilirsiniz: <a href="' + talepEsc(href) + '" target="_blank" rel="noopener">WhatsApp ile talebi ilet</a></p>' +
+        '<div class="talep-actions"><button type="button" class="cart-pay-btn" id="talepTekrar">Tekrar dene</button></div>';
+      document.getElementById("talepTekrar").onclick = function(){ talepRender(); };
+    });
+  }
+  function talepYeni(){
+    talepDurum.adim = 1; talepDurum.kategori = ""; talepDurum.marka = ""; talepDurum.model = "";
+    talepDurum.yil = ""; talepDurum.parca_adi = ""; talepDurum.notu = "";
+    talepDurum.website = ""; talepDurum.markaArama = "";
+    talepDurum.hata = ""; talepDurum.gonderiliyor = false;
+  }
+  function openTalep(){
+    talepYeni();
+    document.getElementById("talepOverlay").classList.add("open");
+    document.getElementById("talepPanel").classList.add("open");
+    talepRender();
+    setTimeout(function(){
+      var ilk = document.querySelector("#talepPanel input, #talepPanel textarea, #talepPanel button, #talepPanel a");
+      if(ilk){ ilk.focus(); }
+    }, 0);
+  }
+  function closeTalep(){
+    document.getElementById("talepOverlay").classList.remove("open");
+    document.getElementById("talepPanel").classList.remove("open");
+  }
+  document.getElementById("talepForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    if(talepDurum.adim === 6){ talepGonder(); }else{ talepIlerle(); }
+  });
+  // ---- TALEP-SIHIRBAZI-JS-SON ----
   function odemeFormuGoster(ac){
     document.getElementById("odemeForm").style.display = ac ? "block" : "none";
     document.getElementById("havaleEkran").style.display = "none";
@@ -4539,6 +4832,12 @@
   document.getElementById("cartFab").onclick = openCart;
   document.getElementById("cartClose").onclick = closeCart;
   document.getElementById("cartOverlay").onclick = closeCart;
+  document.getElementById("talepAc").onclick = openTalep;
+  document.getElementById("talepClose").onclick = closeTalep;
+  document.getElementById("talepOverlay").onclick = closeTalep;
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && document.getElementById("talepPanel").classList.contains("open")){ closeTalep(); }
+  });
   document.getElementById("cartClear").onclick = function(){
     cart = []; saveCart(); renderCartPanel(); updateCartFab();
   };

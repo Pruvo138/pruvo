@@ -40,9 +40,10 @@ hedef commitin TEMIZ bir worktree'sinde kosturur. build.py'nin URETTIGI girdiler
 tamami .gitignore'dadir (`/urun/`, `/_yayin/`, `/varlik/`, `/index.built.html`,
 `/_yayin-icerik-dizinleri.txt`, `/ozet.json`, `/sitemap.xml`, ...) -> o agacta
 URETILEN girdi YOKTUR (izlenen `urunler.json`/`CNAME`/`ege-bilgi.md`/
-`jenerator/urunler` orada DA vardir ve hazirlik sinyali SAYILMAZ; ayrim
-`URETILEN_GIRDILER`/`IZLENEN_GIRDILER`'dedir, oz-test manifestoyu TAM boldugunu
-her kosumda dogrular). Bu halde arac:
+`jenerator/urunler` orada DA vardir ve hazirlik sinyali SAYILMAZ; YALNIZ izlenen kume
+elle beyan edilir, uretilenler onun TUMLEYENIDIR ve oz-test bolmenin TAM oldugunu +
+beyan edilen her izlenen girisin depoda GERCEKTEN durdugunu her kosumda dogrular).
+Bu halde arac:
   * `GITHUB_ACTIONS` ORTAMDAYSA (yani GERCEK yayin hattinda) rc=1 verir — CI'da
     "build.py kosmamis" sessiz-yesil OLAMAZ, kural BUGUNKUNDEN SIKIDIR;
   * ortam disinda (yerel pre-push K80 dumani) hermetik oz-testin SONUCUNU dondurur
@@ -50,8 +51,13 @@ her kosumda dogrular). Bu halde arac:
     kosulmus bir OLCUMDUR.
 YARIM hazirlikta (girdilerin bir kismi var) kol AYRIM YAPMAZ: rc=1 + eksik yol.
 
-TEK KAYNAK SOZLESMESI (kopyalama = drift): `MANIFESTO` yayin beyaz listesinin TEK
-kaynagidir. "Yayin hatti su varligi tasiyor mu" sorusunu soran tuketiciler METIN
+TEK KAYNAK SOZLESMESI (kopyalama = drift): `MANIFESTO` yayin adiminin TEK kaynagidir.
+YAYINLANACAK JS KUMESI ise burada TEKRARLANMAZ — `build.py::SOYULACAK_JS`ten gelir
+(build onu `_yayin/site-varliklari.txt`e yazar, bu arac oradan kopyalar). Boylece yeni
+bir JS varligi tek yerde beyan edilir ve yayina kendiliginden girer; elle beyaz liste
+TUTULMAZ (K184'te `talep-alanlari.js` bu yoldan geldi). Arac o sabiti METIN ARAYARAK
+degil `ast.literal_eval` ile DEGER olarak okur -> yoruma alinmis satir iddiayi
+dogrulayamaz. "Yayin hatti su varligi tasiyor mu" sorusunu soran tuketiciler de METIN
 ARAMAZ, `yayin_varligi_tasiniyor_mu()` fonksiyonunu cagirir:
   * tools/is-akisi-kapisi.py     -> E_ZORUNLU_VARLIKLAR nobeti (CI'da BLOKLAYICI)
   * jenerator/test/kabul.py      -> TEST 4 (hacim.js tek kaynak + yayin kopyasi)
@@ -59,6 +65,7 @@ ARAMAZ, `yayin_varligi_tasiniyor_mu()` fonksiyonunu cagirir:
 Cikis kodlari: 0 = YESIL · 1 = KIRMIZI.
 """
 import argparse
+import ast
 import collections
 import hashlib
 import io
@@ -72,15 +79,26 @@ import tempfile
 # ---------------------------------------------------------------------------
 # Adim turleri (kabuk karsiliklari yaninda yazili):
 #   DIZIN_KUR      -> `mkdir <hedef>`            (VARSA HATA; `-p` DEGIL)
+#   DIZIN_KUR_P    -> `mkdir -p <hedef>`         (idempotent; varlik kolu kurmus olabilir)
 #   DOSYA          -> `cp <kaynak> <hedef>`      (tek dosya, ADI DEGISEBILIR)
 #   DOSYALAR       -> `cp <k1> <k2> ... <hedef>/`(coklu dosya, ayni ada)
 #   AGAC           -> `cp -r <kaynak> <hedef>`   (dizin agaci)
 #   DIZIN_DOLU     -> `if [ ! -d x ] || [ -z "$(ls -A x)" ]; then ... exit 1; fi`
 #   MANIFEST_DONGU -> `while IFS= read -r slug; do ... cp -r "$slug" "_site/$slug"; done`
+#   VARLIK_KOPYA   -> JS varlik manifesti (`_yayin/site-varliklari.txt`) dongusu
+#   VARLIK_DOGRULA -> ayni manifest uzerinde "kopya var ve BOS DEGIL" gecisi
+#   KRITIK_VARLIK  -> `test -s <yol>` + sha256 okunabilirligi (kucuk kritik kume)
 Adim = collections.namedtuple("Adim", "tur kaynaklar hedef tani")
 
 SITE = "_site"
 ICERIK_MANIFESTI = "_yayin-icerik-dizinleri.txt"
+# JS yayin varliklarinin manifesti — build.py YAZAR (tek kaynagi `build.SOYULACAK_JS`),
+# bu arac OKUR. Elle beyaz liste TUTULMAZ: yeni bir JS varligi build tarafinda listeye
+# eklenince yayina kendiliginden girer (K184'te `talep-alanlari.js` boyle geldi).
+VARLIK_MANIFESTI = "_yayin/site-varliklari.txt"
+# Yokluğu ÜRETİM OLAYI olan kucuk kritik kume (manifest dogrulamasindan AYRI, bilincli
+# olarak DAR): parametrik konfiguratorun hacim/fiyat cekirdegi.
+KRITIK_VARLIKLAR = (SITE + "/jenerator/hacim.js",)
 
 MANIFESTO = (
     Adim("DIZIN_KUR", (), SITE,
@@ -91,15 +109,18 @@ MANIFESTO = (
          "ana sayfanin yayin kopyasi"),
     # JS varliklari _yayin/'dan gelir: build.py onlarin YORUMU SOYULMUS yayin kopyasini
     # oraya yazar (kaynak dosyalar depoda tam dokumantasyonla KALIR, tarayiciya inmez).
-    # _yayin/ yoksa/eksikse kopyalama HATA verir -> yayin durur (fail-closed; sessizce
-    # yorumlu kaynak yayinlanamaz).
-    Adim("DOSYALAR", ("_yayin/secenekler.js", "_yayin/konfigur.js",
-                      "_yayin/filament-veri.js", "_yayin/taban-fiyatlar.js"), SITE,
-         "yorumu soyulmus JS yayin kopyalari"),
+    # Manifest ya da bir dosya yoksa kol HATA verir -> yayin durur (fail-closed; sessizce
+    # yorumlu kaynak yayinlanamaz, sessizce EKSIK varlik da yayinlanamaz).
+    Adim("VARLIK_KOPYA", (VARLIK_MANIFESTI,), SITE,
+         "yorumu soyulmus JS yayin kopyalari (manifest kolu)"),
+    Adim("VARLIK_DOGRULA", (VARLIK_MANIFESTI,), SITE,
+         "her yayin varligi hedefte VAR ve BOS DEGIL"),
+    Adim("KRITIK_VARLIK", KRITIK_VARLIKLAR, None,
+         "kritik varlik kumesi (yoklugu uretim olayi)"),
     # ozet.json = FAZ 3 ilk-boyama dosyasi (build.py render_ozet uretir). Bayrak
     # (index.html EDGE_KATALOG) KAPALIYKEN site onu cekmez; yine de yayina girer ki bayrak
     # acildigi an dosya CDN'de hazir olsun (eklenmeseydi bayrak acilinca ana sayfa 404
-    # alip bos kalirdi). konfigur.js = dekor konfiguratoru modulu (yukaridaki demette;
+    # alip bos kalirdi). konfigur.js = dekor konfiguratoru modulu (varlik manifestinde;
     # bugun konfigurlu urun yok, dosya yayinda hazir bekler — taban-fiyatlar deseni).
     Adim("DOSYALAR", ("urunler.json", "ozet.json", "CNAME", "ege-bilgi.md",
                       "robots.txt", "sitemap.xml", "merchant-feed.xml", ".nojekyll"),
@@ -121,13 +142,11 @@ MANIFESTO = (
     Adim("MANIFEST_DONGU", (ICERIK_MANIFESTI,), SITE,
          "icerik/yasal sayfa dizinleri"),
     # Parametrik konfigurator varliklari — SADECE public dosyalar (test/ GIRMEZ):
-    # hacim.js tek kaynak (jenerator/test/kabul.py TEST 4), semalar Worker'in ileride
-    # sunucu-tarafi yeniden hesabi icin de ayni adresten okunur.
-    Adim("DIZIN_KUR", (), SITE + "/jenerator",
+    # konfigurator JS'leri VARLIK MANIFESTINDEN gelir (hacim.js · konfigurator.js ·
+    # viewer.js); burada yalniz sema agaci kopyalanir. Dizin varlik kolunda ZATEN
+    # kurulmus olabilir -> `-p` idempotentlik icindir.
+    Adim("DIZIN_KUR_P", (), SITE + "/jenerator",
          "parametrik konfigurator klasoru"),
-    Adim("DOSYALAR", ("_yayin/jenerator/hacim.js", "_yayin/jenerator/konfigurator.js",
-                      "_yayin/jenerator/viewer.js"), SITE + "/jenerator",
-         "yorumu soyulmus konfigurator JS kopyalari"),
     Adim("AGAC", ("jenerator/urunler",), SITE + "/jenerator/urunler",
          "parametrik urun semalari"),
 )
@@ -144,19 +163,23 @@ MANIFESTO = (
 # Iki kume manifestonun kaynaklarini TAM BOLER; kendini_test bunu her kosumda dogrular
 # -> manifestoya siniflandirilmamis yeni bir kaynak eklemek KIRMIZI yakar (sessiz drift
 # imkansiz, [[ikiz-tanim-sessiz-ayrisma]]).
-URETILEN_GIRDILER = (
-    "index.built.html",
-    "_yayin/secenekler.js", "_yayin/konfigur.js", "_yayin/filament-veri.js",
-    "_yayin/taban-fiyatlar.js",
-    "_yayin/jenerator/hacim.js", "_yayin/jenerator/konfigurator.js",
-    "_yayin/jenerator/viewer.js",
-    "ozet.json", "robots.txt", "sitemap.xml", "merchant-feed.xml", ".nojekyll",
-    "urun", "varlik",
-    ICERIK_MANIFESTI,
-)
+# 🔴 ASIMETRI BILINCLIDIR: YALNIZ IZLENEN kume ELLE BEYAN EDILIR, uretilenler ONUN
+# TUMLEYENIDIR. Ters kurulum tehlikeli yonde yanilirdi — build.py'nin urettigi yeni bir
+# girdi yanlislikla "izlenen" sayilsaydi "kaynak agaci" hukmu GENISLER ve CI'da yarim
+# hazirlik sessiz-yesile donebilirdi. Bu yonde yanilma DARALTIR: beyan edilmemis bir
+# izlenen dosya "uretilen" sayilir ve kol yalnizca daha erken KIRMIZI verir.
 IZLENEN_GIRDILER = (
     "urunler.json", "CNAME", "ege-bilgi.md", "jenerator/urunler",
 )
+
+
+def uretilen_girdiler(manifesto=MANIFESTO, build_yolu=None):
+    """build.py'nin URETTIGI girdiler = tum kaynaklar + iki manifest, IZLENEN haric."""
+    hepsi = list(yayin_kaynaklari(manifesto, build_yolu or BUILD_YOLU))
+    for m in (ICERIK_MANIFESTI, VARLIK_MANIFESTI):
+        if m not in hepsi:
+            hepsi.append(m)
+    return tuple(y for y in hepsi if y not in IZLENEN_GIRDILER)
 
 
 class YayinHatasi(Exception):
@@ -166,13 +189,61 @@ class YayinHatasi(Exception):
 # ---------------------------------------------------------------------------
 # TUKETICI SOZLESMESI — "yayin hatti su varligi tasiyor mu"
 # ---------------------------------------------------------------------------
-def yayin_kaynaklari(manifesto=MANIFESTO):
-    """MANIFESTO'nun KOPYALADIGI tum kaynak yollari (sirali, tekrarsiz).
+BUILD_YOLU = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build.py")
 
-    Kontrol adimlari (DIZIN_DOLU) ve dizin kurma (DIZIN_KUR) KAYNAK SAYILMAZ:
-    onlar bir varligi YAYINA TASIMAZ, on-kosul olcerler."""
+
+def soyulacak_js(build_yolu=BUILD_YOLU):
+    """build.py::SOYULACAK_JS'in DEGERI (yayinlanacak JS varliklarinin TEK KAYNAGI).
+
+    🔴 AST ILE OKUNUR, METIN ARANMAZ. Neden: bu deger yayin beyaz listesidir ve onu
+    "dosyada `hacim.js` gecıyor mu" diye olcmek, yoruma alinmis/olu bir satirin iddiayi
+    dogru gostermesine izin verirdi — 30 Tem'de deploy.yml metninde oldurulen delik
+    sinifinin ta kendisi. `ast.literal_eval` ATAMANIN DEGERINI okur: satir silinirse ya
+    da yoruma alinirsa burasi HATA verir, sessizce True donmez.
+
+    FAIL-CLOSED: okunamazsa YayinHatasi firlatir — 'olculemedi' bu iddiada sessiz-yesille
+    aynidir."""
+    if not os.path.isfile(build_yolu):
+        raise YayinHatasi("HATA: %s YOK — yayin JS beyaz listesi OKUNAMADI" % build_yolu)
+    try:
+        with io.open(build_yolu, encoding="utf-8") as f:
+            agac = ast.parse(f.read(), filename=build_yolu)
+    except (OSError, SyntaxError) as e:
+        raise YayinHatasi("HATA: %s ayristirilamadi (%s)" % (build_yolu, e))
+    for dugum in agac.body:
+        if not isinstance(dugum, ast.Assign):
+            continue
+        if not any(isinstance(h, ast.Name) and h.id == "SOYULACAK_JS"
+                   for h in dugum.targets):
+            continue
+        try:
+            deger = ast.literal_eval(dugum.value)
+        except ValueError as e:
+            raise YayinHatasi("HATA: build.py::SOYULACAK_JS sabit bir deger DEGIL (%s)" % e)
+        if not deger or not all(isinstance(x, str) and x for x in deger):
+            raise YayinHatasi("HATA: build.py::SOYULACAK_JS bos ya da dize olmayan giris "
+                              "tasiyor: %r" % (deger,))
+        return tuple(deger)
+    raise YayinHatasi("HATA: build.py icinde SOYULACAK_JS ATAMASI YOK (sozlesme degismis) "
+                      "— yayin JS beyaz listesi olculemedi")
+
+
+def yayin_kaynaklari(manifesto=MANIFESTO, build_yolu=BUILD_YOLU):
+    """Yayina TASINAN tum kaynak yollari (sirali, tekrarsiz).
+
+    Iki kaynaktan birlesir:
+      * MANIFESTO'nun DOSYA/DOSYALAR/AGAC adimlari (statik yollar);
+      * VARLIK_KOPYA adimi -> `_yayin/<x>` for x in build.py::SOYULACAK_JS.
+    Kontrol adimlari (DIZIN_DOLU · VARLIK_DOGRULA · KRITIK_VARLIK) ve dizin kurma
+    KAYNAK SAYILMAZ: onlar bir varligi YAYINA TASIMAZ, on-kosul/son-kosul olcerler."""
     yollar = []
     for adim in manifesto:
+        if adim.tur == "VARLIK_KOPYA":
+            for rel in soyulacak_js(build_yolu):
+                yol = "_yayin/" + rel
+                if yol not in yollar:
+                    yollar.append(yol)
+            continue
         if adim.tur not in ("DOSYA", "DOSYALAR", "AGAC"):
             continue
         for k in adim.kaynaklar:
@@ -181,7 +252,7 @@ def yayin_kaynaklari(manifesto=MANIFESTO):
     return yollar
 
 
-def yayin_varligi_tasiniyor_mu(varlik, manifesto=MANIFESTO):
+def yayin_varligi_tasiniyor_mu(varlik, manifesto=MANIFESTO, build_yolu=BUILD_YOLU):
     """<varlik> yayin hattinda GERCEKTEN kopyalaniyor mu? (bool)
 
     NEDEN FONKSIYON, NEDEN METIN ARAMA DEGIL: iddia 30 Tem'e kadar deploy.yml
@@ -194,7 +265,7 @@ def yayin_varligi_tasiniyor_mu(varlik, manifesto=MANIFESTO):
     `_yayin/jenerator/hacim.js`). Soyulmus yayin kopyasi ile kaynagin ayni varligi
     gosterdigi tek yer burasidir."""
     hedef = os.path.normpath(varlik)
-    for kaynak in yayin_kaynaklari(manifesto):
+    for kaynak in yayin_kaynaklari(manifesto, build_yolu):
         n = os.path.normpath(kaynak)
         if n == hedef or n.endswith("/" + hedef):
             return True
@@ -247,6 +318,74 @@ def _dizin_dolu(kok, kaynak, tani):
         raise YayinHatasi("HATA: %s" % tani)
 
 
+def _varlik_manifesti_oku(kok, manifest_rel):
+    """Manifest satirlarini dondur. BOS SATIR HATADIR (icerik dizini dongusunden FARKLI:
+    orada bos satir ATLANIR, burada yayin varligi manifestinde bos satir bir URETIM
+    kusurudur ve fail-closed durdurulur — kabuk kolunun davranisi birebir korundu)."""
+    yol = _tam(kok, manifest_rel)
+    if not os.path.isfile(yol) or os.path.getsize(yol) == 0:
+        raise YayinHatasi("HATA: %s bos/yok (build.py kosmadi mi?)" % manifest_rel)
+    with io.open(yol, encoding="utf-8") as f:
+        ham = f.read()
+    satirlar = ham.split("\n")
+    if satirlar and satirlar[-1] == "":       # kabuk `read` son yeni satiri kayit saymaz
+        satirlar = satirlar[:-1]
+    return [s.strip("\r") for s in satirlar]
+
+
+def _varlik_kopya(kok, manifest_rel, hedef_kok):
+    kopyalanan = 0
+    for varlik in _varlik_manifesti_oku(kok, manifest_rel):
+        if not varlik:
+            raise YayinHatasi("HATA: site varlik manifestinde bos satir")
+        kaynak = "_yayin/" + varlik
+        if not os.path.isfile(_tam(kok, kaynak)):
+            raise YayinHatasi("HATA: manifest varligi yok: %s" % kaynak)
+        hedef = hedef_kok + "/" + varlik
+        ust = os.path.dirname(_tam(kok, hedef))
+        if ust and not os.path.isdir(ust):
+            os.makedirs(ust)
+        _dosya_kopyala(kok, kaynak, hedef)
+        kopyalanan += 1
+    return kopyalanan
+
+
+def _varlik_dogrula(kok, manifest_rel, hedef_kok):
+    """Kopyalama SONRASI gecis: her varlik hedefte VAR ve BOS DEGIL.
+
+    Ayri bir gecistir cunku "kopyaladim" ile "yayinda duruyor ve icerigi var" ayni sey
+    DEGILDIR (bos dosya kopyalamak sessizce basarilidir; tarayici bos JS'i hatasiz yukler
+    ve sayfa islevsiz kalir)."""
+    sayi = 0
+    for varlik in _varlik_manifesti_oku(kok, manifest_rel):
+        if not varlik:
+            raise YayinHatasi("HATA: varlik dogrulama manifestinde bos satir")
+        hedef = hedef_kok + "/" + varlik
+        yol = _tam(kok, hedef)
+        if not os.path.isfile(yol) or os.path.getsize(yol) == 0:
+            raise YayinHatasi("HATA: yayin varligi yok/bos: %s" % hedef)
+        sayi += 1
+    return sayi
+
+
+def _kritik_varlik(kok, yollar):
+    """Kucuk KRITIK kume: dosya var + BOS DEGIL + baytlari okunabilir (sha256 hesaplanir).
+
+    Manifest dogrulamasindan AYRI ve BILINCLI OLARAK DAR tutulur: bu kumedeki bir
+    dosyanin yoklugu bir URETIM OLAYIDIR (parametrik urun sayfasi fiyat hesaplamaz)."""
+    for hedef in yollar:
+        yol = _tam(kok, hedef)
+        if not os.path.isfile(yol) or os.path.getsize(yol) == 0:
+            raise YayinHatasi("HATA: KRITIK yayin varligi yok/bos: %s" % hedef)
+        try:
+            with open(yol, "rb") as f:
+                h = hashlib.sha256()
+                for parca in iter(lambda: f.read(65536), b""):
+                    h.update(parca)
+        except OSError as e:
+            raise YayinHatasi("HATA: KRITIK yayin varligi okunamadi: %s (%s)" % (hedef, e))
+
+
 def _manifest_dongu(kok, manifest_rel, hedef_kok):
     yol = _tam(kok, manifest_rel)
     if not os.path.isfile(yol) or os.path.getsize(yol) == 0:
@@ -266,13 +405,24 @@ def _manifest_dongu(kok, manifest_rel, hedef_kok):
 
 
 def topla(kok, manifesto=MANIFESTO):
-    """<kok> agacinda MANIFESTO'yu uygular; (adim_sayisi, slug_sayisi) doner.
+    """<kok> agacinda MANIFESTO'yu uygular; (adim_sayisi, slug_sayisi, varlik_sayisi).
 
     Hata halinde YayinHatasi firlatir — mesaj HANGI YOL oldugunu soyler."""
     slug_sayisi = 0
+    varlik_sayisi = 0
     for adim in manifesto:
         if adim.tur == "DIZIN_KUR":
             _dizin_kur(kok, adim.hedef)
+        elif adim.tur == "DIZIN_KUR_P":
+            yol = _tam(kok, adim.hedef)
+            if not os.path.isdir(yol):
+                os.makedirs(yol)
+        elif adim.tur == "VARLIK_KOPYA":
+            _varlik_kopya(kok, adim.kaynaklar[0], adim.hedef)
+        elif adim.tur == "VARLIK_DOGRULA":
+            varlik_sayisi = _varlik_dogrula(kok, adim.kaynaklar[0], adim.hedef)
+        elif adim.tur == "KRITIK_VARLIK":
+            _kritik_varlik(kok, adim.kaynaklar)
         elif adim.tur == "DOSYA":
             _dosya_kopyala(kok, adim.kaynaklar[0], adim.hedef)
         elif adim.tur == "DOSYALAR":
@@ -287,7 +437,7 @@ def topla(kok, manifesto=MANIFESTO):
             slug_sayisi = _manifest_dongu(kok, adim.kaynaklar[0], adim.hedef)
         else:
             raise YayinHatasi("HATA: bilinmeyen manifesto adim turu: %r" % (adim.tur,))
-    return len(manifesto), slug_sayisi
+    return len(manifesto), slug_sayisi, varlik_sayisi
 
 
 # ---------------------------------------------------------------------------
@@ -322,13 +472,6 @@ def agac_ozeti(kok):
 # kontrolu, manifest dongusu, ic ice agac, alt dizin).
 FIKSTUR_DOSYALAR = {
     "index.built.html": "<!doctype html><title>ana</title>",
-    "_yayin/secenekler.js": "// secenekler\n",
-    "_yayin/konfigur.js": "// konfigur\n",
-    "_yayin/filament-veri.js": "// filament\n",
-    "_yayin/taban-fiyatlar.js": "// taban\n",
-    "_yayin/jenerator/hacim.js": "// hacim\n",
-    "_yayin/jenerator/konfigurator.js": "// konfigurator\n",
-    "_yayin/jenerator/viewer.js": "// viewer\n",
     "urunler.json": "[]",
     "ozet.json": "{}",
     "CNAME": "ornek.gecersiz\n",
@@ -348,6 +491,28 @@ FIKSTUR_DOSYALAR = {
     ICERIK_MANIFESTI: "sss\nmarka\nkategori\n",
 }
 
+# JS yayin varliklari fiksturu — manifest kolunu surer. Kok seviyesinde VE alt dizinde
+# varlik var (alt dizin `_site/jenerator/` kurulumunu, kok `_site/` yolunu olcer).
+FIKSTUR_VARLIKLARI = (
+    "secenekler.js", "konfigur.js", "talep-alanlari.js",
+    "jenerator/hacim.js", "jenerator/konfigurator.js", "jenerator/viewer.js",
+    "filament-veri.js", "taban-fiyatlar.js",
+)
+for _rel in FIKSTUR_VARLIKLARI:
+    FIKSTUR_DOSYALAR["_yayin/" + _rel] = "// yayin kopyasi: %s\n" % _rel
+FIKSTUR_DOSYALAR[VARLIK_MANIFESTI] = "\n".join(FIKSTUR_VARLIKLARI) + "\n"
+
+# Fikstur, aracin GERCEK `build.py` bagimliligini da surer: sentetik bir build.py yazilir
+# ve `soyulacak_js()` ONDAN okur. Boylece "beyaz liste build.py'den gelir" iddiasi
+# hermetik olarak olculur (gercek build.py'ye bagimli DEGIL, ondan BAGIMSIZ da degil:
+# ayni AST yolu kosar).
+FIKSTUR_BUILD_PY = (
+    "# sentetik build.py (yalniz SOYULACAK_JS okunur)\n"
+    "YAYIN_DIR = \"_yayin\"\n"
+    "SOYULACAK_JS = (\n%s)\n"
+    % "".join("    %r,\n" % r for r in FIKSTUR_VARLIKLARI)
+)
+
 # 🔴 BEKLENEN AGAC ELLE YAZILIR — MANIFESTO'DAN TURETILMEZ.
 # Turetilseydi olcum TAUTOLOJI olurdu: manifesto satiri silinince beklenti de
 # kuculur ve iki taraf BIRLIKTE duserdi ([[isci-yesil-tablo-ic-olcumu-bosaltir]]).
@@ -355,7 +520,8 @@ FIKSTUR_DOSYALAR = {
 # bu listeyle kapatildi).
 BEKLENEN_SITE_YOLLARI = (
     "index.html",
-    "secenekler.js", "konfigur.js", "filament-veri.js", "taban-fiyatlar.js",
+    "secenekler.js", "konfigur.js", "talep-alanlari.js",
+    "filament-veri.js", "taban-fiyatlar.js",
     "urunler.json", "ozet.json", "CNAME", "ege-bilgi.md", "robots.txt",
     "sitemap.xml", "merchant-feed.xml", ".nojekyll",
     "urun/aaa/index.html", "urun/bbb/index.html",
@@ -370,6 +536,7 @@ BEKLENEN_ESLEM = {
     "index.html": "index.built.html",
     "secenekler.js": "_yayin/secenekler.js",
     "konfigur.js": "_yayin/konfigur.js",
+    "talep-alanlari.js": "_yayin/talep-alanlari.js",
     "filament-veri.js": "_yayin/filament-veri.js",
     "taban-fiyatlar.js": "_yayin/taban-fiyatlar.js",
     "jenerator/hacim.js": "_yayin/jenerator/hacim.js",
@@ -390,6 +557,9 @@ def _fikstur_kur(kok):
             os.makedirs(ust)
         with io.open(yol, "w", encoding="utf-8") as f:
             f.write(govde)
+    os.makedirs(_tam(kok, "tools"))
+    with io.open(_tam(kok, "tools/build.py"), "w", encoding="utf-8") as f:
+        f.write(FIKSTUR_BUILD_PY)
 
 
 def _fikstur_agacinda_topla(manifesto=MANIFESTO, bozan=None):
@@ -472,37 +642,87 @@ def kendini_test(tespit_acik=True):
     else:
         hatalar.extend("T1: " + h for h in _esdegerlik_hatalari(ozet, tespit_acik))
 
-    # ---- T2 OLDURUCU MUTANT (HEDEF KOL ATIFLI) -----------------------------
+    # ---- T2 OLDURUCU MUTANT — STATIK MANIFESTO (HEDEF KOL ATIFLI) ----------
     # Hedef kol: `topla()` — GERCEK uretim fonksiyonu; mutant SADECE manifestoyu
     # budar ve AYNI fonksiyondan gecer. Boylece "mutant izole bir kopyada oldu"
     # tautolojisi imkansizdir: olcum uretim yolunun TA KENDISIDIR.
-    # Iddia: `_yayin/jenerator/hacim.js` satiri dusunce esdegerlik KIRMIZI olmali
-    # (parametrik urun sayfasi hacim.js'i 404 alir, konfigurator fiyat hesaplamaz).
     iddia += 1
-    mutant = _manifestten_cikar(MANIFESTO, "_yayin/jenerator/hacim.js")
-    if len(yayin_kaynaklari(mutant)) != len(yayin_kaynaklari(MANIFESTO)) - 1:
-        hatalar.append("T2: mutant manifesto KURULAMADI (budama tutmadi) — "
-                       "hedef kol `topla()` olculmemis sayilir")
-    else:
-        m_hata, m_ozet = _fikstur_agacinda_topla(mutant)
-        m_bulgu = [m_hata] if m_hata else _esdegerlik_hatalari(m_ozet, tespit_acik)
-        if not m_bulgu:
-            hatalar.append("T2: OLDURUCU MUTANT SAG KALDI — `_yayin/jenerator/hacim.js` "
-                           "manifestodan dusuruldugu halde `topla()` ciktisi beklenen "
-                           "agacla AYNI gorundu; esdegerlik olcumu SAHTE")
-        if yayin_varligi_tasiniyor_mu("jenerator/hacim.js", mutant):
-            hatalar.append("T2: `yayin_varligi_tasiniyor_mu` mutant manifestoda HALA "
-                           "True — tuketici nobetleri (is-akisi-kapisi E_ZORUNLU_VARLIKLAR, "
-                           "jenerator/test/kabul.py TEST 4) KOR")
+    mutant = _manifestten_cikar(MANIFESTO, "varlik")
+    m_hata, m_ozet = _fikstur_agacinda_topla(mutant)
+    m_bulgu = [m_hata] if m_hata else _esdegerlik_hatalari(m_ozet, tespit_acik)
+    if not m_bulgu:
+        hatalar.append("T2: OLDURUCU MUTANT SAG KALDI — `varlik` agaci manifestodan "
+                       "dusuruldugu halde `topla()` ciktisi beklenen agacla AYNI "
+                       "gorundu; esdegerlik olcumu SAHTE")
 
-    # ---- T3 SOZLESME: temiz manifestoda zorunlu varlik GORUNUR --------------
+    # ---- T2b OLDURUCU MUTANT — YAYIN BEYAZ LISTESI -------------------------
+    # Yayinlanacak JS kumesi artik VERIDIR (build.py::SOYULACAK_JS -> manifest dosyasi).
+    # Bu mutant o veriden `jenerator/hacim.js`i DUSURUR ve UC ayri iddiayi birden surer:
+    #   (a) `topla()` KIRMIZI olmali — KRITIK VARLIK kolu bunu yakalar (yoklugu URETIM
+    #       OLAYIDIR: parametrik urun sayfasi hacim.js'i 404 alir, fiyat hesaplanmaz);
+    #   (b) tani HANGI YOLU kaybettigimizi SOYLEMELI (sessiz hata YASAK);
+    #   (c) `yayin_varligi_tasiniyor_mu` False donmeli — yoksa tuketici nobetleri
+    #       (is-akisi-kapisi E_ZORUNLU_VARLIKLAR · jenerator/test/kabul.py TEST 4) KOR.
     iddia += 1
-    if not yayin_varligi_tasiniyor_mu("jenerator/hacim.js"):
-        hatalar.append("T3: temiz manifestoda `jenerator/hacim.js` GORUNMUYOR — "
-                       "yol-soneki eslesmesi bozulmus (tuketiciler sahte-KIRMIZI yanar)")
-    if yayin_varligi_tasiniyor_mu("tools/yayin-topla.py"):
-        hatalar.append("T3: KANARYA — yayina GIRMEYEN bir ic arac `tasiniyor` sayildi; "
-                       "eslesme cok genis (her sorguya True diyen govde)")
+    kalan = tuple(r for r in FIKSTUR_VARLIKLARI if r != "jenerator/hacim.js")
+
+    def _beyaz_liste_buda(kok):
+        with io.open(_tam(kok, VARLIK_MANIFESTI), "w", encoding="utf-8") as f:
+            f.write("\n".join(kalan) + "\n")
+        with io.open(_tam(kok, "tools/build.py"), "w", encoding="utf-8") as f:
+            f.write("SOYULACAK_JS = (\n%s)\n" % "".join("    %r,\n" % r for r in kalan))
+
+    b_hata, _b_ozet = _fikstur_agacinda_topla(bozan=_beyaz_liste_buda)
+    if not b_hata:
+        hatalar.append("T2b: OLDURUCU MUTANT SAG KALDI — `jenerator/hacim.js` yayin beyaz "
+                       "listesinden dusuruldugu halde toplama rc=0 verdi; KRITIK VARLIK "
+                       "kolu OLU")
+    elif "jenerator/hacim.js" not in b_hata:
+        hatalar.append("T2b: tani SESSIZ — kritik varlik dusunce mesaj hangi yolun "
+                       "kaybedildigini SOYLEMIYOR: %r" % b_hata)
+    gecici = tempfile.mkdtemp(prefix="pruvo-yayin-beyaz-")
+    try:
+        mutant_build = os.path.join(gecici, "build.py")
+        with io.open(mutant_build, "w", encoding="utf-8") as f:
+            f.write("SOYULACAK_JS = (\n%s)\n" % "".join("    %r,\n" % r for r in kalan))
+        if yayin_varligi_tasiniyor_mu("jenerator/hacim.js", build_yolu=mutant_build):
+            hatalar.append("T2b: `yayin_varligi_tasiniyor_mu` budanmis beyaz listede HALA "
+                           "True — tuketici nobetleri KOR")
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+    # ---- T3 SOZLESME: temiz beyaz listede zorunlu varlik GORUNUR -----------
+    iddia += 1
+    try:
+        if not yayin_varligi_tasiniyor_mu("jenerator/hacim.js"):
+            hatalar.append("T3: temiz beyaz listede `jenerator/hacim.js` GORUNMUYOR — "
+                           "build.py::SOYULACAK_JS ya da yol-soneki eslesmesi bozulmus "
+                           "(tuketiciler sahte-KIRMIZI yanar)")
+        if yayin_varligi_tasiniyor_mu("tools/yayin-topla.py"):
+            hatalar.append("T3: KANARYA — yayina GIRMEYEN bir ic arac `tasiniyor` sayildi; "
+                           "eslesme cok genis (her sorguya True diyen govde)")
+    except YayinHatasi as e:
+        hatalar.append("T3: yayin beyaz listesi OKUNAMADI (fail-closed): %s" % e)
+
+    # ---- T3b BEYAZ LISTE FAIL-CLOSED: build.py okunamazsa YESIL SAYILMAZ ---
+    iddia += 1
+    gecici = tempfile.mkdtemp(prefix="pruvo-yayin-beyaz2-")
+    try:
+        for ad, govde in (("yok.py", None),
+                          ("bos.py", "# SOYULACAK_JS ATAMASI YOK\n"),
+                          ("dinamik.py", "SOYULACAK_JS = tuple(x for x in ())\n")):
+            yol = os.path.join(gecici, ad)
+            if govde is not None:
+                with io.open(yol, "w", encoding="utf-8") as f:
+                    f.write(govde)
+            try:
+                soyulacak_js(yol)
+            except YayinHatasi:
+                continue
+            hatalar.append("T3b: FAIL-OPEN — `%s` halinde beyaz liste SESSIZCE okundu; "
+                           "'olculemedi' bu iddiada sessiz-yesille aynidir" % ad)
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
 
     # ---- T4..T8 FAIL-CLOSED KOLLARI: sessiz hata YASAK ---------------------
     for no, ad, bozan, beklenen_parca in (
@@ -522,6 +742,19 @@ def kendini_test(tespit_acik=True):
         ("T8", "_site ZATEN VAR",
          lambda k: os.mkdir(_tam(k, SITE)),
          SITE),
+        ("T10", "varlik manifesti BOS",
+         lambda k: io.open(_tam(k, VARLIK_MANIFESTI), "w").close(),
+         VARLIK_MANIFESTI),
+        ("T11", "varlik manifestinde BOS SATIR",
+         lambda k: io.open(_tam(k, VARLIK_MANIFESTI), "w", encoding="utf-8").write(
+             "secenekler.js\n\njenerator/hacim.js\n"),
+         "bos satir"),
+        # 🔴 BU KOL MANIFEST DOGRULAMASININ VARLIK SEBEBI: bos bir dosyayi kopyalamak
+        # SESSIZCE BASARILIDIR. Tarayici bos JS'i hatasiz yukler, sayfa islevsiz kalir
+        # ve hicbir yerde alarm calmaz. Kopyalama kolu bunu GORMEZ, dogrulama kolu gorur.
+        ("T12", "yayin varligi BOS kopyalandi",
+         lambda k: io.open(_tam(k, "_yayin/talep-alanlari.js"), "w").close(),
+         "talep-alanlari.js"),
     ):
         iddia += 1
         hata, _ozet = _fikstur_agacinda_topla(bozan=bozan)
@@ -538,19 +771,30 @@ def kendini_test(tespit_acik=True):
     # sayilirsa "kaynak agaci" hukmu genisler ve CI'da yarim hazirlik SESSIZ YESIL
     # olabilirdi. Iki kume kaynak kumesini TAM bolmek ZORUNDA.
     iddia += 1
-    kaynaklar = set(yayin_kaynaklari()) | {ICERIK_MANIFESTI}
-    siniflanan = set(URETILEN_GIRDILER) | set(IZLENEN_GIRDILER)
-    kesisim = set(URETILEN_GIRDILER) & set(IZLENEN_GIRDILER)
-    if kaynaklar - siniflanan:
-        hatalar.append("T9b: MANIFESTO kaynagi SINIFLANDIRILMAMIS: %s — "
-                       "URETILEN_GIRDILER ya da IZLENEN_GIRDILER'e ekle"
-                       % ", ".join(sorted(kaynaklar - siniflanan)))
-    if siniflanan - kaynaklar:
-        hatalar.append("T9b: SINIFTA olup manifestoda OLMAYAN girdi: %s (bayat kayit)"
-                       % ", ".join(sorted(siniflanan - kaynaklar)))
-    if kesisim:
-        hatalar.append("T9b: bir girdi HEM uretilen HEM izlenen sayilmis: %s"
-                       % ", ".join(sorted(kesisim)))
+    try:
+        kaynaklar = set(yayin_kaynaklari()) | {ICERIK_MANIFESTI, VARLIK_MANIFESTI}
+        uretilen = set(uretilen_girdiler())
+        izlenen = set(IZLENEN_GIRDILER)
+        if izlenen - kaynaklar:
+            hatalar.append("T9b: IZLENEN_GIRDILER'de olup yayin kaynaklarinda OLMAYAN "
+                           "giris: %s (bayat kayit — kaldirilmazsa uretilen bir dosya "
+                           "yanlislikla 'izlenen' sayilabilir)"
+                           % ", ".join(sorted(izlenen - kaynaklar)))
+        if uretilen & izlenen:
+            hatalar.append("T9b: bir girdi HEM uretilen HEM izlenen sayilmis: %s"
+                           % ", ".join(sorted(uretilen & izlenen)))
+        if uretilen | izlenen != kaynaklar:
+            hatalar.append("T9b: siniflandirma kaynak kumesini TAM BOLMUYOR (fark: %s)"
+                           % ", ".join(sorted(kaynaklar ^ (uretilen | izlenen))))
+        # Beyan KAGITTA kalmasin: izlenen sayilan her giris GERCEKTEN depoda durmali.
+        # Durmuyorsa build.py onu URETIYOR demektir ve "kaynak agaci" hukmu genislerdi.
+        depo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        yok = [y for y in sorted(izlenen) if not os.path.exists(os.path.join(depo, y))]
+        if yok:
+            hatalar.append("T9b: IZLENEN sayilan giris depoda YOK: %s — build.py'nin "
+                           "URETTIGI bir dosya izlenen sayilmis olabilir" % ", ".join(yok))
+    except YayinHatasi as e:
+        hatalar.append("T9b: siniflandirma OLCULEMEDI (fail-closed): %s" % e)
 
     # ---- T9 AGAC OLCERI kendisi calisiyor mu (olcerin nobeti) --------------
     iddia += 1
@@ -596,7 +840,7 @@ def _hazirlik(kok):
     Hukum YALNIZ URETILEN_GIRDILER'e bakar: izlenen dosyalar temiz checkout'ta da
     vardir ve "build.py kosmus mu" sorusuna cevap VERMEZ."""
     var_olan, eksik = [], []
-    for rel in URETILEN_GIRDILER:
+    for rel in uretilen_girdiler():
         (var_olan if os.path.exists(_tam(kok, rel)) else eksik).append(rel)
     return var_olan, eksik
 
@@ -625,16 +869,25 @@ def main():
     if args.kendini_test:
         print("  ✅ ESDEGERLIK: %d yol, sha256 eslemesi %d kayit"
               % (len(BEKLENEN_SITE_YOLLARI), len(BEKLENEN_ESLEM)))
-        print("  ✅ OLDURUCU MUTANT: manifestodan `_yayin/jenerator/hacim.js` "
-              "dusurulunce `topla()` KIRMIZI")
-        print("  ✅ FAIL-CLOSED: eksik kaynak · bos varlik/ · bos manifest · "
-              "eksik icerik dizini · dolu _site")
+        print("  ✅ OLDURUCU MUTANT (statik): manifestodan `varlik` agaci dusurulunce "
+              "`topla()` KIRMIZI")
+        print("  ✅ OLDURUCU MUTANT (beyaz liste): `jenerator/hacim.js` "
+              "build.py::SOYULACAK_JS'ten dusurulunce KRITIK VARLIK kolu KIRMIZI + "
+              "`yayin_varligi_tasiniyor_mu` False")
+        print("  ✅ FAIL-CLOSED: eksik kaynak · bos varlik/ · bos icerik manifesti · "
+              "eksik icerik dizini · dolu _site · bos varlik manifesti · manifestte "
+              "bos satir · BOS kopyalanan yayin varligi · okunamayan beyaz liste")
         print("SONUC: YESIL ✅")
         print("OZ_TEST=YESIL IDDIA=%d HATA=0" % iddia)
         return 0
 
     kok = os.getcwd()
-    uretilen_var, uretilen_eksik = _hazirlik(kok)
+    try:
+        uretilen_var, uretilen_eksik = _hazirlik(kok)
+    except YayinHatasi as e:
+        print(str(e))
+        print("YAYIN_TOPLA=KIRMIZI SEBEP=BEYAZ_LISTE_OKUNAMADI")
+        return 1
     if not uretilen_var:
         # KAYNAK AGACI: build.py URETTIGI girdilerin HICBIRI yok (K80'in temiz commit
         # worktree'si). CI'da bu hal FAIL-CLOSED; disarida oz-test hukmu konusur.
@@ -646,21 +899,23 @@ def main():
             return 1
         print("KAYNAK AGACI: build.py ciktisi YOK (%d uretilen girdinin hicbiri diskte "
               "degil) -> toplanacak girdi yok; HERMETIK OZ-TEST kosuldu ve YESIL."
-              % len(URETILEN_GIRDILER))
+              % len(uretilen_eksik))
         print("YAYIN_TOPLA=OZ_TEST_YESIL IDDIA=%d TOPLANAN=0" % iddia)
         return 0
 
     try:
-        adim_sayisi, slug_sayisi = topla(kok)
+        adim_sayisi, slug_sayisi, varlik_sayisi = topla(kok)
     except YayinHatasi as e:
         print(str(e))
         print("YAYIN_TOPLA=KIRMIZI SEBEP=TOPLAMA")
         return 1
     ozet = agac_ozeti(_tam(kok, SITE))
+    print("YAYIN VARLIGI DOGRULANDI: %d" % varlik_sayisi)
+    print("KRITIK_VARLIK=TAMAM")
     print("OK: %s toplandi — %d manifesto adimi, %d icerik dizini, %d dosya."
           % (SITE, adim_sayisi, slug_sayisi, len(ozet)))
-    print("YAYIN_TOPLA=YESIL ADIM=%d SLUG=%d DOSYA=%d"
-          % (adim_sayisi, slug_sayisi, len(ozet)))
+    print("YAYIN_TOPLA=YESIL ADIM=%d SLUG=%d VARLIK=%d DOSYA=%d"
+          % (adim_sayisi, slug_sayisi, varlik_sayisi, len(ozet)))
     return 0
 
 

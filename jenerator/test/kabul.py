@@ -121,12 +121,17 @@ def deploy_kopyaliyor_mu(deploy_metin, varlik):
     arac, arac_hata = _yayin_topla_modulu()
     if arac is None:
         return False, "OLCULEMEDI (fail-closed KIRMIZI): %s" % arac_hata
-    if arac.yayin_varligi_tasiniyor_mu(varlik):
+    try:
+        tasiniyor = arac.yayin_varligi_tasiniyor_mu(varlik)
+    except Exception as e:  # noqa: BLE001 — beyaz liste okunamadi = OLCULEMEDI
+        return False, ("OLCULEMEDI (fail-closed KIRMIZI): yayin beyaz listesi "
+                       "okunamadi (%s: %s)" % (type(e).__name__, e))
+    if tasiniyor:
         return True, ""
-    return False, ("tools/yayin-topla.py::MANIFESTO %r varligini KOPYALAMIYOR "
-                   "(satir silinmis / kaynak yolu degismis / adim turu kopyalamayan "
-                   "bir tura cevrilmis) -> parametrik urun sayfasi onu 404 alir ve "
-                   "konfigurator fiyat hesaplamaz." % varlik)
+    return False, ("yayin hatti %r varligini KOPYALAMIYOR (tools/yayin-topla.py::"
+                   "MANIFESTO ya da build.py::SOYULACAK_JS'ten dusurulmus / kaynak yolu "
+                   "degismis) -> parametrik urun sayfasi onu 404 alir ve konfigurator "
+                   "fiyat hesaplamaz." % varlik)
 
 
 def kayit(no, ad, yesil, detay=""):
