@@ -13,14 +13,27 @@ Uc icra yolunun UCU DE kapali olctu (20 Agu, chip `KraL-K195`):
 Yani daldaki `8/8 yesil` DAL SAHIBININ beyanidir; bu tur onu **BAGIMSIZ olcemedi**.
 Asagidaki zincir tam olarak o bagimsiz olcumu yapar, sonra merge eder.
 
-## ON KOSUL (zincire girmeden once)
+## ON KOSUL — zincir KENDI olcer, elle bakmana gerek yok
 
-1. `origin/main` **K184'u ICERMELI** (kardes oturumun `a15cfc83` merge'i itilmis olmali).
-   Zincir bunu kendi olcer ve icermiyorsa ILK ADIMDA durur.
-2. Ana checkout (`/Users/okan/dev/pruvo`) **TEMIZ** olmali.
+Zincirin ilk uc halkasi on kosulu OLCER:
 
-**MERGE SIRASI (mimar verdi):** K184 → T4 kirigi → **K195 (bu paket)** → K214 → P1.
-Zincirin ilk halkasi zaten K184'u bekledigi icin sirayi elle takip etmene gerek yok.
+1. `fetch origin` — uzak taze.
+2. `diff --quiet` + `diff --cached --quiet` — ana checkout'ta commit'lenmemis is YOK.
+3. `merge-base --is-ancestor main origin/main` — ana checkout'ta **itilmemis is YOK**.
+
+3. halka neden boyle: `git rev-parse main` ile `origin/main` ciktilarini karsilastirmak kabuk
+degiskeni ister (KOMUT STILI yasak). `--is-ancestor` ayni seyi **cikis koduyla** soyler ve
+`&&` zincirinde doğal fail-closed olur. Main geride olsa da 0 doner — bizi ilgilendiren
+"itilmemis is var mi", o da tam bu.
+
+**MERGE SIRASI (mimar, 20 Agu guncelledi):** T4 kirigi → **K195 (bu paket)** → K214 → P1.
+K184 kuyruktan CIKTI (ayri chip'in taban olcumune baglandi), bu paket ona **bagli DEGIL**.
+
+> 🔴 **ESKI SURUM DUZELTILDI:** onceki halka `merge-base --is-ancestor a15cfc83 origin/main` idi.
+> K184 merge'i inmedi (`node tools/parite-ege.js` kirmizi: `47 aciklanamayan / 1331 sorgu`),
+> mimar o itilmemis merge'i geri sardi ve `main` = `origin/main` = `ba0e1c50` oldu. OLCULDU:
+> `K184_ORIGIN_MAINDE=HAYIR` — yani o halka bir daha **ASLA** yesile donmezdi, zincir sonsuza
+> kadar ilk adimda dururdu. (`a15cfc83` nesnesi hala VAR ama `origin/main`'in atasi DEGIL.)
 
 ## ZINCIR — tek satir, fail-closed
 
@@ -28,7 +41,7 @@ Kirmizi adim zinciri KESER; `git push` satirina **hic gelinmez**. Testler merge'
 ONCE kosar, yani kirmizi bir kabul main'e **dokunmaz** bile.
 
 ```bash
-git -C /Users/okan/dev/pruvo fetch origin && git -C /Users/okan/dev/pruvo merge-base --is-ancestor a15cfc83 origin/main && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-rotasyon-cifti-test.py && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-isaretciye-indirme-test.py && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-rotasyon-test.py && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-rotasyon.py --kendini-test && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-kota-kapisi.py --kendini-test && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-kota-kapsam-disi-test.py && git -C /Users/okan/dev/pruvo merge --no-ff origin/kral/k195-defter-rotasyon-merged -m "merge: K195 — defter rotasyonu sinif cozumu (isaretciye indirme + 1:1 LOSSLESS + acik kalem vetosu)" && git -C /Users/okan/dev/pruvo push origin main
+git -C /Users/okan/dev/pruvo fetch origin && git -C /Users/okan/dev/pruvo diff --quiet && git -C /Users/okan/dev/pruvo diff --cached --quiet && git -C /Users/okan/dev/pruvo merge-base --is-ancestor main origin/main && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-rotasyon-cifti-test.py && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-isaretciye-indirme-test.py && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-rotasyon-test.py && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-rotasyon.py --kendini-test && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-kota-kapisi.py --kendini-test && python3 /Users/okan/dev/pruvo/.claude/worktrees/k195-rotasyon/tools/defter-kota-kapsam-disi-test.py && git -C /Users/okan/dev/pruvo merge --no-ff origin/kral/k195-defter-rotasyon-merged -m "merge: K195 — defter rotasyonu sinif cozumu (isaretciye indirme + 1:1 LOSSLESS + acik kalem vetosu)" && git -C /Users/okan/dev/pruvo push origin main
 ```
 
 ## BEKLENEN SAYILAR (bunlari gormezsen zincir zaten kesilmis olur)
@@ -46,7 +59,9 @@ YALNIZ kendi hedef kolunu oldurur (K182 hedef-kol atfi).
 
 ## ZINCIR KESILIRSE
 
-* **`merge-base --is-ancestor` durduysa:** K184 henuz itilmemis. Bekle, kardes oturum itsin.
+* **`diff --quiet` durduysa:** ana checkout KIRLI — commit'lenmemis is var. Zincire girmeden temizle.
+* **`merge-base --is-ancestor main origin/main` durduysa:** ana checkout'ta **itilmemis bir merge
+  duruyor** (tam olarak K184'te yasanan hal). Onu once mimar cozsun; ustune merge ETME.
 * **Bir kabul kirmizi geldiyse:** dal EKSIKTIR, merge ETME; ciktiyi mimara ver.
 * **`merge` gecti ama `push` inmediyse:** ana checkout'ta **itilmemis bir merge kalir**
   (bkz. [[ana-checkout-lokal-merge-komsu-pushu]]). Geri sarma zincirde YOKTUR — mimara haber ver.
