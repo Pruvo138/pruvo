@@ -41,6 +41,7 @@ CRON_KOKU = "/Users/okan/.claude/cron"
 NOBET_KAPI = os.path.join(CRON_KOKU, "nobet-kapi.py")
 TESTLER = os.path.join(CRON_KOKU, "testler.py")
 MUTASYON = os.path.join(CRON_KOKU, "nobet-kapi-mutasyon.py")
+KABUL_TEST = os.path.join(CRON_KOKU, "nobet-kabul-test.py")
 
 KAYNAK_DIZIN = os.path.dirname(os.path.abspath(__file__))
 MODUL_ADI = "nobet_merdiven.py"
@@ -50,7 +51,7 @@ TEST_HEDEF = os.path.join(CRON_KOKU, TEST_ADI)
 MODUL_KAYNAK = os.path.join(KAYNAK_DIZIN, MODUL_ADI)
 TEST_KAYNAK = os.path.join(KAYNAK_DIZIN, TEST_ADI)
 
-HEDEFLER = (NOBET_KAPI, TESTLER, MUTASYON)
+HEDEFLER = (NOBET_KAPI, TESTLER, MUTASYON, KABUL_TEST)
 YEDEK_ONEK = "yedek-k257"
 
 
@@ -102,6 +103,79 @@ MUTASYON_YAMALARI = (
 
 
 # ---------------------------------------------------------------------------
+# P10 — K257(e): vaka 39 YENI HUKUMLE GUNCELLENIR (SILINMEZ)
+# ---------------------------------------------------------------------------
+# 🔴 Baskasinin YESIL nobetcisini kendi yamami gecirmek icin SILMEK yasaktir
+# ([[kabul-fiksturu-yasagi-kutsar]]). Bu yama vakayi SILMIYOR: hukmu
+# degistiriyor ve ESKI hukmun GEREKCESINI ayrica civiliyor (kimi zincirde
+# olabilir ama BIRINCI OLAMAZ). Degisiklik mimar hukmudur, tarihi yazilidir.
+
+P10A_ESKI = '''def vaka39_nobet_zincir_kimi_yok():
+    """39) 16 Agu BaBa hukmu: nobet TUR_MOTOR_ZINCIRI kimi ICERMEZ (pozitif vaka).
+
+    nobet tasarimi cok-turlu; Kimi haftalik LIMIT 5s/hafta, limit baglayici.
+    Bu test zincirde kimi'nin yer almadigini pozitif olarak olcer; mutasyon
+    testi (geri alma) ayni anda KIRMIZI yakar.
+    """
+    zincir = kapi.TUR_MOTOR_ZINCIRI
+    assert isinstance(zincir, (tuple, list)), (
+        "TUR_MOTOR_ZINCIRI tuple/list degil: %r" % (zincir,))
+    assert "kimi" not in zincir, (
+        "nobet zinciri kimi ICEREMEZ (BaBa 16 Agu hukmu): %r" % (zincir,))
+    assert "minimax-m3" in zincir, (
+        "minimax-m3 zincirde yok: %r" % (zincir,))
+    return "zincir=%s · kimi yok, m3 var" % (zincir,)
+'''
+
+P10A_YENI = '''def vaka39_nobet_zincir_tam_turetilir():
+    """39) K257(e) (mimar hukmu, 20 Agu 2026): nobet TUR_MOTOR_ZINCIRI CANLI
+    kumeden TAM TURETILIR — elle yazilmis ya da kirpilmis liste YOK.
+
+    🔴 HUKUM DEGISTI; ESKI VAKA SILINMEDI, YERINE BU GECTI:
+      ESKI (16 Agu, BaBa): "cron nobetleri Kimi'ye BAGLANMAZ" -> zincir kimi
+        ICERMEZ. Gerekce: Kimi haftalik 5s limit, cok-turlu nobet tasariminda
+        baglayici.
+      YENI (20 Agu, mimar K257(e) + Okan'in 20 Agu motor karari): zincir CANLI
+        kumeden TAM turer. BaBa'nin GEREKCESI KALDIRILMADI — (3). madde onu
+        ayrica civiliyor: kimi zincire girer ama ASLA BIRINCI DEGILDIR, yani
+        nobet Kimi'ye BAGLANMAZ, yalniz m3 dustugunde Kimi'ye DUSER.
+
+    🔴 TAUTOLOJI FRENI: birincil kati "zincir[0] == CANLI_ISCI_MOTORLARI[0]"
+    diye olcmek YETMEZ — sira ters cevrilirse IKISI BIRDEN doner ve vaka YESIL
+    kalir ([[isci-yesil-tablo-ic-olcumu-bosaltir]]). Birincil kat BAGIMSIZ bir
+    capaya, Okan'in 20 Agu kararindaki ADA baglanir. Sira degisirse bu vaka
+    KIRMIZI yanar ve degisikligi bir INSAN onaylar.
+    """
+    zincir = tuple(kapi.TUR_MOTOR_ZINCIRI)
+    canli = tuple(kapi.CANLI_ISCI_MOTORLARI)
+    assert isinstance(kapi.TUR_MOTOR_ZINCIRI, (tuple, list)), (
+        "TUR_MOTOR_ZINCIRI tuple/list degil: %r" % (zincir,))
+    # (1) TAM TURETIM: kirpilmis ya da elle yazilmis zincir REDDEDILIR.
+    assert zincir == canli, (
+        "zincir CANLI kumeden TAM turemiyor: zincir=%r canli=%r" % (zincir, canli))
+    # (2) BIRINCIL KAT — BAGIMSIZ capa (Okan, 20 Agu: m3 BIRINCIL, kimi YEDEK).
+    assert zincir and zincir[0] == "minimax-m3", (
+        "nobet BIRINCIL kati minimax-m3 OLMALI (Okan 20 Agu karari): %r" % (zincir,))
+    # (3) BaBa 16 Agu GEREKCESI KORUNUR: kimi zincirde OLABILIR, BIRINCI OLAMAZ.
+    assert "kimi" not in zincir or zincir.index("kimi") > 0, (
+        "kimi BIRINCI olamaz — nobet Kimi'ye BAGLANAMAZ (BaBa 16 Agu): %r"
+        % (zincir,))
+    return "zincir=%s · TAM turetildi · birincil=%s · kimi yedek" % (
+        zincir, zincir[0])
+'''
+
+P10B_ESKI = ('    ("39 nobet zincir kimi YOK (BaBa 16 Agu)", '
+             'vaka39_nobet_zincir_kimi_yok),\n')
+P10B_YENI = ('    ("39 nobet zincir TAM TURETILIR (K257e)", '
+             'vaka39_nobet_zincir_tam_turetilir),\n')
+
+KABUL_TEST_YAMALARI = (
+    ("P10a vaka39 yeni hukum", P10A_ESKI, P10A_YENI),
+    ("P10b vaka39 kaydi", P10B_ESKI, P10B_YENI),
+)
+
+
+# ---------------------------------------------------------------------------
 # P1 — import
 # ---------------------------------------------------------------------------
 
@@ -130,19 +204,19 @@ P2_YENI = '''# H5: nobet TURUNUN motor zinciri (kota reddinde sirayla dusulur)
 # bu satiri OLDURMUYORDU — motor sirasi tersine cevrilse bile nobet eski
 # motorda kalirdi. Ikinci motor listesi TUTULMAZ ([[ikiz-tanim-sessiz-ayrisma]]).
 #
-# 🔴 IKI HUKUM CARPISIYOR, IKISI DE KORUNDU:
-#   K257(e) (mimar, 20 Agu) : liste TURETILECEK.
-#   BaBa    (16 Agu)        : "cron nobetleri Kimi'ye BAGLANMAZ" — Kimi'nin
-#                             haftalik 5s limiti cok-turlu nobet tasariminda
-#                             baglayici. `nobet-kabul-test.py` vaka 39 bunu
-#                             POZITIF olarak olcuyor ve HALA YURURLUKTE.
-# Care: TEKILLIK korunur ama ELLE YAZILMAZ — zincir CANLI kumenin ILK
-# elemanindan TURER. Motor sirasi degisirse zincir de degisir (sira mutanti
-# artik OLDURUR); kimi zincire GIRMEZ (BaBa hukmu ayakta). K257(b)'nin
-# KOTA -> YANA hamlesi TUR ekseninde degil KALEM ekseninde isler
-# (`nobet_merdiven` + `kalem_dagit`), dolayisiyla bu daraltma onu KESMEZ.
+# 🔴 HUKUM DEGISIKLIGI (20 Agu 2026, mimar) — GORUNUR OLSUN DIYE YAZILIYOR:
+#   ESKI (16 Agu, BaBa): "cron nobetleri Kimi'ye BAGLANMAZ" -> zincir TEKIL.
+#     Gerekce: Kimi haftalik 5s limit, cok-turlu nobet tasariminda baglayici.
+#   YENI (20 Agu, mimar K257(e) + Okan'in 20 Agu motor karari): zincir CANLI
+#     kumeden TAM turer. BaBa'nin GEREKCESI KALDIRILMADI, BASKA BIR YERDE
+#     korunuyor: kimi zincire girer ama ASLA BIRINCI DEGILDIR. Nobet m3'te
+#     BASLAR; kimi yalniz kota/karantina reddinde denenir (K257(b) YANA
+#     hamlesinin TUR ekseni). Yani "Kimi'ye BAGLANMAK" olmaz, "Kimi'ye
+#     DUSMEK" olur — limit ancak m3 dustugunde tuketilir.
+#   `nobet-kabul-test.py` vaka 39 bu YENI hukmu olcer (eski vaka SILINMEDI,
+#   yerine gecen vaka ESKI GEREKCEYI de ayrica civiler: kimi BIRINCI OLAMAZ).
 # Zincir tamamen kotaya girerse `karantina_en_eski` fail-open kolu devrede.
-TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI[:1])
+TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI)
 '''
 
 
@@ -441,8 +515,8 @@ def olculer():
         ("P0 merdiven modulu kurulu", os.path.isfile(MODUL_HEDEF)),
         ("P1 nobet-kapi import ediyor",
          "import nobet_merdiven as MERDIVEN" in kapi),
-        ("P2 zincir turetildi",
-         "TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI[:1])" in kapi),
+        ("P2 zincir TAM turetildi",
+         "TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI)\n" in kapi),
         ("P2b elle tuple KALMADI",
          'TUR_MOTOR_ZINCIRI = ("minimax-m3",)' not in kapi),
         ("P3 _kalemi_dusur merdiven", "MERDIVEN.merdiven_ilerlet(" in kapi),
@@ -461,6 +535,10 @@ def olculer():
          "ESKALASYON_DAGITIM = 3     # KULLANILMIYOR" in kapi),
         ("P9 mutasyon bagimlilik kaydi",
          "CANLI_MERDIVEN" in oku(MUTASYON)),
+        ("P10 vaka39 yeni hukum",
+         "def vaka39_nobet_zincir_tam_turetilir(" in oku(KABUL_TEST)),
+        ("P10b eski vaka adi KALMADI",
+         "vaka39_nobet_zincir_kimi_yok" not in oku(KABUL_TEST)),
         ("T1 kabul bataryasi kurulu", os.path.isfile(TEST_HEDEF)),
         ("T2 testler.py kaydi (CAGRI YERI)", TEST_ADI in tst),
     ]
@@ -511,6 +589,14 @@ def uygula():
         rapor.append((ad, durum))
     yaz(MUTASYON, mut)
 
+    # P10 — vaka 39 YENI HUKUMLE (mimar, 20 Agu). Silme DEGIL, degistirme.
+    kbl = oku(KABUL_TEST)
+    yedek_kbl = yedekle(KABUL_TEST, damga)
+    for ad, eski, yeni in KABUL_TEST_YAMALARI:
+        kbl, durum = degistir(kbl, eski, yeni)
+        rapor.append((ad, durum))
+    yaz(KABUL_TEST, kbl)
+
     _dosya_kur(TEST_KAYNAK, TEST_HEDEF, "T1 batarya kuruldu", rapor)
 
     tst = oku(TESTLER)
@@ -532,6 +618,7 @@ def uygula():
     print("YEDEK=%s" % yedek_kapi)
     print("YEDEK=%s" % yedek_tst)
     print("YEDEK=%s" % yedek_mut)
+    print("YEDEK=%s" % yedek_kbl)
     print("DAMGA=%s" % damga)
     print("ANKORSUZ=%d" % ankorsuz)
     print("HUKUM=%s" % ("UYGULANDI" if ankorsuz == 0 else "ANKOR_YOK"))

@@ -39,8 +39,8 @@ MUTASYON = os.path.join(CRON_KOKU, "nobet-kapi-mutasyon.py")
 
 # --- KAPSAM TABANI (oran DEGIL SAYI) — [[batarya-kapsam-tabani-sayiyla-civilenir]]
 # Buyutmek serbest, KUCULTMEK mimar kararidir.
-VAKA_TABANI = 68
-MUTANT_TABANI = 10
+VAKA_TABANI = 69
+MUTANT_TABANI = 12
 KONTROL_TABANI = 2
 
 CANLI = ("minimax-m3", "kimi")
@@ -337,14 +337,14 @@ def _cagri_var(dugum, ad):
     return False
 
 
-def bolum_s7(kaynak):
-    print("--- BOLUM S7: CAGRI YERI (kapinin menzili) ---")
+def bolum_s7(kaynak, ek=""):
+    print("--- BOLUM S7%s: CAGRI YERI (kapinin menzili) ---" % ek)
     agac = ast.parse(kaynak)
-    vaka("S7a-modul-import", True,
+    vaka("S7a-modul-import" + ek, True,
          "nobet_merdiven" in kaynak or "MERDIVEN" in kaynak)
-    vaka("S7b-kalemi-dusur-cagiriyor", True,
+    vaka("S7b-kalemi-dusur-cagiriyor" + ek, True,
          _cagri_var(_fonksiyon(agac, "_kalemi_dusur"), "merdiven_ilerlet"))
-    vaka("S7c-komut-reddedildi-kapi-reddi", True,
+    vaka("S7c-komut-reddedildi-kapi-reddi" + ek, True,
          "hal=MERDIVEN.HAL_KAPI_REDDI" in kaynak)
     # 🔴 (e) IKINCI MOTOR LISTESI: elle yazilmis tuple KALMADI mi?
     zincir = "-"
@@ -358,7 +358,7 @@ def bolum_s7(kaynak):
                 zincir = "ELLE_TUPLE"
             else:
                 zincir = "TURETILDI"
-    vaka("S7d-tur-motor-zinciri-turetildi", "TURETILDI", zincir)
+    vaka("S7d-tur-motor-zinciri-turetildi" + ek, "TURETILDI", zincir)
     # 🔴 "TURETILDI" tek basina YETMEZ: ifade CANLI kumeyi GERCEKTEN okumali.
     # Okumuyorsa yine ikinci bir liste var demektir, sadece sekli degismistir.
     okur = "-"
@@ -369,17 +369,32 @@ def bolum_s7(kaynak):
             adlar = {d.id for d in ast.walk(dugum.value)
                      if isinstance(d, ast.Name)}
             okur = "OKUR" if "CANLI_ISCI_MOTORLARI" in adlar else "OKUMAZ"
-    vaka("S7h-zincir-canli-kumeyi-okur", "OKUR", okur)
-    vaka("S7e-sla-uretimde-cagriliyor", True,
+    vaka("S7h-zincir-canli-kumeyi-okur" + ek, "OKUR", okur)
+    # 🔴 K257(e) TAM TURETIM (mimar hukmu, 20 Agu). "TURETILDI" ve "OKUR"
+    # birlikte bile YETMEZ: `tuple(CANLI_ISCI_MOTORLARI[:1])` ikisini de
+    # gecer ama zinciri DARALTIR ve BaBa'nin eski tekil hukmunu sessizce geri
+    # getirir. Ifadede CANLI kumeye uygulanmis HICBIR dilim/indis olmamali.
+    kirpma = "-"
+    for dugum in ast.walk(agac):
+        if isinstance(dugum, ast.Assign) and dugum.targets \
+                and isinstance(dugum.targets[0], ast.Name) \
+                and dugum.targets[0].id == "TUR_MOTOR_ZINCIRI":
+            kirpik = [d for d in ast.walk(dugum.value)
+                      if isinstance(d, ast.Subscript)
+                      and isinstance(d.value, ast.Name)
+                      and d.value.id == "CANLI_ISCI_MOTORLARI"]
+            kirpma = "KIRPILMIS" if kirpik else "TAM"
+    vaka("S7j-zincir-TAM-turetilmis" + ek, "TAM", kirpma)
+    vaka("S7e-sla-uretimde-cagriliyor" + ek, True,
          _cagri_var(_fonksiyon(agac, "tur_kapat"), "sla_karari"))
-    vaka("S7f-dagitilmaz-durumlar-kullaniliyor", True,
+    vaka("S7f-dagitilmaz-durumlar-kullaniliyor" + ek, True,
          "DAGITILMAZ_DURUMLAR" in kaynak)
     # 🔴 IKINCI ESIK YASAGI: eski TEK ESIK sabiti hicbir kolda OKUNMAMALI.
     # Okunuyorsa merdivenin yaninda ikinci bir eskalasyon kurali yasiyor demektir.
     okuma = sum(1 for d in ast.walk(agac)
                 if isinstance(d, ast.Name) and d.id == "ESKALASYON_DAGITIM"
                 and isinstance(d.ctx, ast.Load))
-    vaka("S7g-eski-tek-esik-okunmuyor", 0, okuma)
+    vaka("S7g-eski-tek-esik-okunmuyor" + ek, 0, okuma)
     # 🔴 BAGIMLILIK KAYDI: mutasyon surucusu mutanti IZOLE dizinde kosturur ve
     # bagimliliklari ELLE kopyalar. `nobet_merdiven` kaydedilmezse surucu
     # ModuleNotFoundError ile duser — ve rc ONCE de SONRA da 1 oldugu icin bu
@@ -391,7 +406,7 @@ def bolum_s7(kaynak):
                    and mut.count('"nobet_merdiven.py"') >= 2)
     except OSError:
         kayitli = "OLCULEMEDI"
-    vaka("S7i-mutasyon-bagimlilik-kaydi", True, kayitli)
+    vaka("S7i-mutasyon-bagimlilik-kaydi" + ek, True, kayitli)
 
 
 # ===========================================================================
@@ -576,6 +591,54 @@ def bolum_mutant(kaynak, tmp):
     return sonuclar
 
 
+def bolum_s7_mutant(kapi_kaynak):
+    """K257(e) — ZINCIR mutantlari. Hedef `nobet-kapi.py` KAYNAGIDIR (modul
+    yuklenmez, yalniz S7 ast ekseni yeniden kosar).
+
+    Uc ayri iddia UC AYRI seyi olcer ve bunu mutantlar KANITLAR:
+      S7d "elle liste degil" · S7h "canli kumeyi okuyor" · S7j "TAM turemis".
+    M11 yalniz S7j'yi oldurur (kirpma d/h'yi gecerdi), M12 yalniz S7d+S7h'yi
+    oldurur (elle tuple'da kirpma YOK). Ucu de ayni sey olsaydi bu mumkun olmazdi.
+    """
+    print("--- BOLUM M-S7: ZINCIR MUTANTLARI (nobet-kapi.py kaynagi) ---")
+    sonuclar = []
+    if kapi_kaynak is None:
+        return sonuclar
+
+    def _kos(ad, mutant_kaynak, hedef_onek, yan_onek):
+        if mutant_kaynak is None:
+            print("MUTANT=%-34s HEDEF_KOL=OLCULEMEDI (capa bayat)" % ad)
+            sonuclar.append((ad, None, None))
+            return
+        isaret = len(VAKALAR)
+        try:
+            bolum_s7(mutant_kaynak, ek="-%s" % ad)
+        except Exception as hata:                               # noqa: BLE001
+            vaka("MUTANT_PATLADI-%s" % ad, "YOK", type(hata).__name__)
+        sonuclar.append((ad,) + _atif(ad, isaret, hedef_onek, yan_onek))
+
+    _kos("M11-zincir-kirpildi",
+         capali_degistir(kapi_kaynak,
+                         "TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI)",
+                         "TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI[:1])",
+                         "M11"),
+         # 🔴 HEDEF yalniz S7j: kirpilmis zincir HALA "TURETILDI" ve "OKUR"
+         # oldugu icin S7d/S7h YASAR — tam da S7j'nin var olma sebebi budur.
+         ("S7j",),
+         ("S7a", "S7b", "S7c", "S7d", "S7e", "S7f", "S7g", "S7h", "S7i"))
+
+    _kos("M12-zincir-elle-yazildi",
+         capali_degistir(kapi_kaynak,
+                         "TUR_MOTOR_ZINCIRI = tuple(CANLI_ISCI_MOTORLARI)",
+                         'TUR_MOTOR_ZINCIRI = ("minimax-m3",)', "M12"),
+         # HEDEF S7d+S7h; S7j HEDEF DEGIL: elle tuple'da kirpma YOKTUR, o vaka
+         # dogru olarak YASAR (hedefe konsaydi mutant "YASADI" gorunurdu).
+         ("S7d", "S7h"),
+         ("S7a", "S7b", "S7c", "S7e", "S7f", "S7g", "S7i", "S7j"))
+
+    return sonuclar
+
+
 def bolum_kontrol(kaynak, tmp):
     """KONTROL MUTANTLARI — kirmiziyi mutasyon mu harness mi uretti?"""
     print("--- BOLUM K: KONTROL MUTANTLARI ---")
@@ -640,6 +703,7 @@ def main():
         else:
             bolum_s7(kapi_kaynak)
         mutantlar = bolum_mutant(kaynak, tmp)
+        mutantlar += bolum_s7_mutant(kapi_kaynak)
         kontroller = bolum_kontrol(kaynak, tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
