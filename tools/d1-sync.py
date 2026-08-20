@@ -2662,6 +2662,60 @@ def sayac_uyumlu(d1_sayisi, senkron_urun_sayisi):
         return False
 
 
+def sayac_onar():
+    """K237 §3 (20 Agu) — sayaci "yazma olduysa" KOLUNDAN KOPAR: D1'in KENDISINDEN turet.
+
+    OLCULEN KUSUR: `senkron.urun_sayisi` YALNIZ urun yazan bir kosumun SONUNDAKI adimda
+    (asagida, `INSERT INTO senkron ... 'urun_sayisi'`) tazeleniyordu. O adima VARMADAN
+    kesilen bir kosum satirlari D1'e birakip sayaci ESKI degerde birakir (K237: D1=29602,
+    sayac=29573). Sonraki kosumlar "degisiklik yok" koluna dustugu icin sayac KENDILIGINDEN
+    ONARILAMIYORDU — drift ancak ELLE tam senkronla kapaniyordu. Bu govde o kolu kapatir.
+
+    🔴 YAZILAN DEGER AGACTAN DEGIL D1'DEN OKUNUR (sahte damga yasagi, V55e sinifi): buraya
+    yazilan sayi `len(gorulen)` (agacin IDDIASI) DEGIL, D1'in kendi `SELECT COUNT(*)`'udur.
+    Bayat bir agac bile bu koldan D1'e YANLIS bir sayi yazamaz — yazilan sey D1'in O ANDAKI
+    GERCEGIDIR. DURUSTLUK NOTU: bu kola yalniz "yazacak is YOK" halinde gelinir, yani o anda
+    D1 id kumesi ile agacinki ZATEN ESITTIR (fark olsa `yeni`/`silinen` dolardi) — dolayisiyla
+    iki kaynak bu kolda PROVABLY ayni sayiyi verir ve "D1'den okuyorum" secimi DAVRANISLA
+    olculebilen bir iddia DEGIL, guvenlik payidir. Olculebilen iddia sudur: bayat sayac
+    ONARILIR (V33e) ve sayac dogruyken TEK BIR YAZMA BILE yapilmaz (V12/V59/V33f).
+
+    V55e BOZULMAZ: bayat/OLCULEMEDI kolunda sahte damga yasagi YAZMA yolundadir; o yol
+    bayatlik kapisindan doner ve buraya HIC gelmez.
+
+    MALIYET: sayac zaten dogruysa 0 yazma (yalniz 2 SELECT). Olculemezse (D1 okunamadi /
+    COUNT None) SESSIZCE gecmez ama kosumu de kirmiziya cevirmez — yazmayan bir kosumun
+    hukmu `--durum`'un SAYAC EKSENINE aittir (fail-loud orada, K237 ②).
+
+    Doner: True = sayac FIILEN onarildi · False = onarim gerekmedi ya da OLCULEMEDI."""
+    try:
+        r = sorgu("SELECT COUNT(*) AS n FROM urunler")
+        n = ((r[0].get("results") or [{}])[0] or {}).get("n")
+        r = sorgu("SELECT anahtar, deger FROM senkron")
+        satirlar = (r[0].get("results") or []) if r else []
+    except SystemExit as e:
+        print("  (SAYAC ONARIMI OLCULEMEDI: D1 sorgusu dustu — %s)" % (e.code,))
+        return False
+    except Exception as e:                                            # noqa: BLE001
+        print("  (SAYAC ONARIMI OLCULEMEDI: %s)" % e)
+        return False
+    if n is None:
+        print("  (SAYAC ONARIMI OLCULEMEDI: D1 COUNT(*) okunamadi)")
+        return False
+    mevcut = next((s.get("deger") for s in satirlar
+                   if s.get("anahtar") == "urun_sayisi"), None)
+    if sayac_uyumlu(n, mevcut):
+        return False                       # zaten dogru -> HIC yazma (maliyet ekseni)
+    if _dagitik_kilit_token:
+        dagitik_kilit_yenile(_dagitik_kilit_token)
+    dosya_calistir(
+        "INSERT INTO senkron (anahtar,deger) VALUES ('urun_sayisi',%s) "
+        "ON CONFLICT(anahtar) DO UPDATE SET deger=excluded.deger;" % q(str(n)))
+    print("  SAYAC ONARILDI: senkron.urun_sayisi %s -> %s (kaynak: D1 gercek COUNT(*))"
+          % (mevcut, n))
+    return True
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # KENDINI TEST — OFFLINE kabul testi (canli D1'e / aga / urunler.json'a DOKUNMAZ)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3289,6 +3343,43 @@ def kendini_test():
             "OLCULEMEYEN durum YESIL degil -> sifir-disi + 'SAYAC EKSENI'",
             kodS2 != 0 and "SAYAC EKSENI: senkron.urun_sayisi satiri YOK" in ciktiS2,
             (kodS2, ciktiS2[-500:]))
+
+    # ── SAYAC ONARIMI (K237 §3, 20 Agu) — sayac "yazma olduysa" koluna BAGLI DEGIL ─
+    # OLCUM ISTENEN: saglikli bir kosumdan SONRA sayac bayatlarsa, URUN degisikligi OLMAYAN
+    # bir sonraki kosum ("degisiklik yok" kolu) sayaci KENDILIGINDEN onarmali. ESKI davranis:
+    # o kol hicbir sey yazmadigi icin drift KALICIYDI ve ancak ELLE tam senkronla kapaniyordu.
+    connOn = _kt_baglan()
+    _kt_kos(connOn, urunler, [])                       # saglikli kosum -> sayac = 3
+    connOn.execute("UPDATE senkron SET deger='1' WHERE anahtar='urun_sayisi'")
+    kodO, ciktiO, sayacO = _kt_kos(connOn, urunler, [])
+    _sayac_son = connOn.execute(
+        "SELECT deger AS v FROM senkron WHERE anahtar='urun_sayisi'").fetchone()
+    dogrula("V33e SAYAC ONARIMI (K237 §3): urun degisikligi YOKKEN bayat sayac D1'in "
+            "gercek COUNT(*)'una ONARILDI (3) + 'SAYAC ONARILDI' basildi",
+            kodO == 0 and _sayac_son is not None and _sayac_son["v"] == "3"
+            and "SAYAC ONARILDI" in ciktiO,
+            (kodO, _sayac_son["v"] if _sayac_son else None, ciktiO[-300:]))
+    dogrula("V33e2 SAYAC ONARIMI: TEK yazma ile yapildi ve URUN yazmasi YOK "
+            "('degisiklik yok' beyani ayakta)",
+            sayacO["yazma"] == 1 and "degisiklik yok" in ciktiO, (sayacO, ciktiO[-300:]))
+    # KONTROL: sayac DOGRUYKEN ayni kol HIC yazmaz -> onarim kolu "her kosumda yazan" bir
+    # maliyet/gurultu kaynagi DEGIL. V12 bunu onarim kolu YOKKEN soyluyordu; burada kol
+    # EKLENDIKTEN SONRA da gecerli oldugu AYRICA olculur (yanlis-pozitif nobeti).
+    kodO2, ciktiO2, sayacO2 = _kt_kos(connOn, urunler, [])
+    dogrula("V33f SAYAC ONARIMI KONTROL: sayac zaten dogru -> HIC yazma + 'SAYAC ONARILDI' "
+            "BASILMAZ",
+            kodO2 == 0 and sayacO2["yazma"] == 0 and "SAYAC ONARILDI" not in ciktiO2,
+            (kodO2, sayacO2, ciktiO2[-300:]))
+    # Satir HIC yoksa da onarilir (V33d'nin --durum'daki fail-closed hukmunun YAZMA ikizi).
+    connOn2 = _kt_baglan()
+    _kt_kos(connOn2, urunler, [])
+    connOn2.execute("DELETE FROM senkron WHERE anahtar='urun_sayisi'")
+    kodO3, ciktiO3, _ = _kt_kos(connOn2, urunler, [])
+    _sayac_son2 = connOn2.execute(
+        "SELECT deger AS v FROM senkron WHERE anahtar='urun_sayisi'").fetchone()
+    dogrula("V33g SAYAC ONARIMI: senkron.urun_sayisi satiri HIC yokken de yazilir (3)",
+            kodO3 == 0 and _sayac_son2 is not None and _sayac_son2["v"] == "3",
+            (kodO3, _sayac_son2["v"] if _sayac_son2 else None, ciktiO3[-300:]))
 
     # ── ORNEKLEME YASAGI: 30 urunluk partide YALNIZ 1 urunun yazmasi kaybolur ────
     # Geri-okuma yazilan id kumesinin TAMAMINI dogrulamazsa (ornekleme/kisaltma) bu vaka
@@ -4572,7 +4663,11 @@ def _main(a):
             and not konfigur_guncelle and not marka_kanon_guncelle
             and not model_kanon_guncelle and not marka_arama_guncelle and not silinen):
         # YAZACAK BIR SEY YOK -> bayatlik OLCULMEZ (maliyet 0). Yazmayan kosum zarar veremez.
-        print("degisiklik yok — D1'e yazilmadi ✅")
+        # K237 §3: URUN yazilmaz ama BAYAT SAYAC burada ONARILIR (bkz. sayac_onar).
+        # Sayac zaten dogruysa tek bir yazma bile yapilmaz (V12/V59 maliyet iddiasi korunur).
+        onarildi = sayac_onar()
+        print("degisiklik yok — D1'e urun yazilmadi ✅"
+              + ("  (bayat senkron sayaci ONARILDI)" if onarildi else ""))
         return
 
     # ══ BAYATLIK KAPISI — BAYAT AGAC D1'e HICBIR SEY YAZAMAZ ══════════════════════
