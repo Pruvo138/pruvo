@@ -102,9 +102,21 @@ VAKALAR = [
     # 6-ELEMANLI tuple: sonuncu eleman tool_name (5-elemanli mevcut vakalar 'Bash' kalir).
     # K1'in IKI AYAGI: ana-oturum RED + isci GECER. Kapi GERCEKTEN cagrilir, cikis kodu +
     # permissionDecision iddia edilir — metin eslemesi ("dosyada gecim mi") OLCMEZ.
-    ("MCP", 40, "", None, "deny", "mcp__claude-in-chrome__computer"),
-    ("MCP", 41, "", None, "deny", "mcp__Claude_Browser__computer"),
-    ("MCP", 42, "", None, "deny", "mcp__Control_Chrome__open_url"),
+    # 🔴 20 AGU (Okan emri): TARAYICI EKSENI EV BAZLI ACILDI — KraL + MaCiT'te ana oturum
+    # tarayiciyi surer, kalan dort evde 8 Agu reddi AYNEN durur.
+    #
+    # 🔴🔴 BU DOSYADAKI ASIL KANIT, 40-42 ile 60'IN AYNI IKI EVDE ZIT HUKUM TASIMASIDIR:
+    #     40-42 (tarayici)      -> {"KraL": allow, "MaCiT": allow, "*": deny}
+    #     60    (Claude iscisi) -> {"KraL": deny,  "MaCiT": deny,  "*": allow}
+    # Iki eksen tek kumeye/tek yukleme indirgenirse bu iki satir AYNI anda yesil KALAMAZ.
+    # Yani "tarayiciyi acarken Claude yasagini da sessizce actim" hatasi burada CANLI
+    # olcumle kirmizi yanar (memory/ad-iki-rolde-mutanti-golgeler.md).
+    ("MCP", 40, "", None, {"KraL": "allow", "MaCiT": "allow", "*": "deny"},
+     "mcp__claude-in-chrome__computer"),
+    ("MCP", 41, "", None, {"KraL": "allow", "MaCiT": "allow", "*": "deny"},
+     "mcp__Claude_Browser__computer"),
+    ("MCP", 42, "", None, {"KraL": "allow", "MaCiT": "allow", "*": "deny"},
+     "mcp__Control_Chrome__open_url"),
     ("MCP", 43, "", ISCI_ID, "allow", "mcp__claude-in-chrome__computer"),
     ("MCP", 44, "", ISCI_ID, "allow", "mcp__Claude_Browser__computer"),
     ("MCP", 45, "", ISCI_ID, "allow", "mcp__Control_Chrome__open_url"),
