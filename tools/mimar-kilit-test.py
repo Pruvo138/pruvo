@@ -1268,6 +1268,115 @@ def k159_mesaj_denetim():
     return basarisiz, atlanan
 
 
+def k214_claude_kol_sirasi_denetim():
+    """K214: 'claude' motoru EMEKLI_ISCI_MOTORLARI'na eklenince sert blok kolu
+    emekli_gerekcesi ile golgeleniyor mu? Uc ayak:
+      920: claude emekli DEGIL (kimlik kaynagi)
+      921: mutantsiz kopyada isci.sh claude -> SERT_BLOK kolundan red
+      922: mutantli kopyada (EMEKLI_ISCI_MOTORLARI + claude) -> EMEKLI kolundan red
+    Boylece 538. satirdaki yorumun gercekten calistigi kanitlanir.
+    """
+    import importlib.util
+    import shutil
+    basarisiz = []
+    atlanan = []
+
+    kimlik_yol = os.path.join(TOOLS, "mimar_kimlik.py")
+    icra_yol = os.path.join(TOOLS, "mimar-icra-kapisi.py")
+    if not os.path.exists(kimlik_yol) or not os.path.exists(icra_yol):
+        basarisiz.append((920, "dosya var", "EKSIK",
+                          "mimar_kimlik.py veya mimar-icra-kapisi.py yok"))
+        print("920  K214: EKSIK dosya")
+        return basarisiz, atlanan
+
+    # (a) kimlik kaynagindan degerler
+    spec = importlib.util.spec_from_file_location("_k214_kimlik", kimlik_yol)
+    kimlik = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kimlik)
+    a_ok = (
+        kimlik.emekli_motor_mu("claude") is False and
+        "claude" in kimlik.ISCI_MOTORLARI and
+        "claude" not in kimlik.EMEKLI_ISCI_MOTORLARI
+    )
+    print("920  K214 claude emekli degil: ISCI={} EMEKLI={} emekli_mi={} | {}".format(
+        "claude" in kimlik.ISCI_MOTORLARI,
+        "claude" in kimlik.EMEKLI_ISCI_MOTORLARI,
+        kimlik.emekli_motor_mu("claude"),
+        "OK" if a_ok else "KIRMIZI"))
+    if not a_ok:
+        basarisiz.append((920, "False/True/False", "degerler",
+                          "claude emekli degil kaniti"))
+
+    def _claude_red_kolunu_olc(icra_yolu):
+        komut = ISCI_W + " claude /Users/okan/dev/pruvo " + ISCI_SPEC_BEYANSIZ
+        payload = {
+            "session_id": "test", "cwd": REPO,
+            "permission_mode": "bypassPermissions",
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "tool_input": {"command": komut},
+        }
+        ortam = dict(os.environ)
+        ortam.pop("PRUVO_ISCI_KOSUMU", None)
+        ortam.pop("PRUVO_CLAUDE_ISCI_IZNI", None)
+        proc = subprocess.run(
+            [sys.executable, icra_yolu],
+            input=json.dumps(payload),
+            capture_output=True, text=True, env=ortam,
+        )
+        if proc.returncode != 0:
+            return "COKTU", (proc.stderr or "")[:80]
+        try:
+            veri = json.loads(proc.stdout.strip() or "{}")
+        except Exception:
+            return "PARSE-HATASI", proc.stdout[:80]
+        hso = veri.get("hookSpecificOutput") or {}
+        karar = hso.get("permissionDecision", "allow")
+        sebep = hso.get("permissionDecisionReason") or ""
+        if karar != "deny":
+            return "ALLOW", sebep[:80]
+        if "EMEKLI motor" in sebep:
+            return "EMEKLI", sebep[:80]
+        if "AGENT-KAPISI (13 Ağu Okan emri)" in sebep:
+            return "SERT_BLOK", sebep[:80]
+        return "DIGER_RED", sebep[:80]
+
+    # (b) mutantsiz kopya
+    kol_b, sebep_b = _claude_red_kolunu_olc(icra_yol)
+    b_ok = (kol_b == "SERT_BLOK")
+    print("921  K214 mutantsiz sert blok: kol={} | {} (sebep={})".format(
+        kol_b, "OK" if b_ok else "KIRMIZI", sebep_b[:60]))
+    if not b_ok:
+        basarisiz.append((921, "SERT_BLOK", kol_b,
+                          "mutantsiz kopyada sert blok bekleniyordu: " + sebep_b))
+
+    # (c) mutantli kopya: EMEKLI_ISCI_MOTORLARI'na claude ekle
+    mutant_dizin = tempfile.mkdtemp(prefix="pruvo-k214-mutant-")
+    try:
+        mutant_tools = os.path.join(mutant_dizin, "tools")
+        shutil.copytree(TOOLS, mutant_tools)
+        mutant_kimlik = os.path.join(mutant_tools, "mimar_kimlik.py")
+        with open(mutant_kimlik, encoding="utf-8") as f:
+            metin = f.read()
+        metin = metin.replace(
+            'EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash")',
+            'EMEKLI_ISCI_MOTORLARI = ("codex", "deepseek-pro", "deepseek-flash", "claude")')
+        with open(mutant_kimlik, "w", encoding="utf-8") as f:
+            f.write(metin)
+        mutant_icra = os.path.join(mutant_tools, "mimar-icra-kapisi.py")
+        kol_c, sebep_c = _claude_red_kolunu_olc(mutant_icra)
+        c_ok = (kol_c == "EMEKLI")
+        print("922  K214 mutantli emekli: kol={} | {} (sebep={})".format(
+            kol_c, "OK" if c_ok else "KIRMIZI", sebep_c[:60]))
+        if not c_ok:
+            basarisiz.append((922, "EMEKLI", kol_c,
+                              "mutantli kopyada emekli kolu bekleniyordu: " + sebep_c))
+    finally:
+        shutil.rmtree(mutant_dizin, ignore_errors=True)
+
+    return basarisiz, atlanan
+
+
 def gecici_worktree_kur(temel):
     """Repo DISINDA, git'e KAYITLI gecici bir worktree kurar (hermetiklik).
     '--no-checkout' sayesinde dosya kopyalanmaz — yalniz .git/worktrees kaydi olusur.
@@ -1331,14 +1440,16 @@ def main():
         kumeler = [("13 AGU-2 ISCI KIMLIK EKSENI — mutant izolasyonu",
                     ISCI_KIMLIK_EKSENI_VAKALARI, REPO)]
 
-    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3 + 1
+    ek_vaka = 0 if SADECE_KIMLIK_EKSENI else len(COMMIT_VAKALARI) + 3 + 1 + 3
     toplam = sum(len(v) for _, v, _ in kumeler) + ek_vaka
     k159_mesaj_vaka_sayisi = 1 if not SADECE_KIMLIK_EKSENI else 0
-    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {})".format(
+    k214_vaka_sayisi = 3 if not SADECE_KIMLIK_EKSENI else 0
+    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {} + K214 claude kol {})".format(
         toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
-        k159_mesaj_vaka_sayisi))
-    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3)".format(
-        toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI)))
+        k159_mesaj_vaka_sayisi, k214_vaka_sayisi))
+    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3 + K159 son kol {} + K214 claude kol {})".format(
+        toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI),
+        k159_mesaj_vaka_sayisi, k214_vaka_sayisi))
     print("TOOLS DIZINI: " + TOOLS)
     print("GECICI KAYITLI WORKTREE: " + (KAYITLI_WT_YOL or "KURULAMADI (cevre-atlanan)"))
 
@@ -1359,6 +1470,9 @@ def main():
             basarisiz += b
             atlanan += a
             b, a = k159_mesaj_denetim()
+            basarisiz += b
+            atlanan += a
+            b, a = k214_claude_kol_sirasi_denetim()
             basarisiz += b
             atlanan += a
     finally:
