@@ -194,7 +194,27 @@ function sinifla(el, cls, sonuc) {
 function belgeKur() {
   const kimlikler = new Map();
   const seciciler = new Map();
+  const belgeDinleyiciler = {};
   const belge = {
+    // K184 ONARIMI — SAHTE DOM'UN BORCU, URETIMIN DEGIL.
+    // index.html belge duzeyinde `document.addEventListener("keydown", ...)` bagliyor
+    // (talep sihirbazinin Esc kolu). Bu MESRU uretim kodudur; stub o API'yi sunmadigi
+    // icin `sayfaKur` ilk vm kosumunda `TypeError: document.addEventListener is not a
+    // function` ile duruyor ve dosyadaki TUM nobetciler OLU kaliyordu — aracin kendi
+    // agziyla "TEST ALTYAPI HATASI". Care kodu fiksture uydurmak DEGIL, fiksturu gercek
+    // ortamin alt kumesi olacak sekilde tamamlamak (K194 emsali).
+    // Dinleyici KAYDEDILIR (yutulmaz); mevcut hicbir davranis degismez.
+    addEventListener(t, fn) {
+      (belgeDinleyiciler[t] = belgeDinleyiciler[t] || []).push(fn);
+    },
+    removeEventListener(t, fn) {
+      belgeDinleyiciler[t] = (belgeDinleyiciler[t] || []).filter((x) => x !== fn);
+    },
+    _belgeTetikle(tur, olay) {
+      (belgeDinleyiciler[tur] || []).forEach(
+        (fn) => fn.call(belge, Object.assign({ type: tur, preventDefault() {} }, olay || {})));
+      return (belgeDinleyiciler[tur] || []).length;
+    },
     getElementById(id) {
       if (!kimlikler.has(id)) { const e = eleman("div"); e.id = id; kimlikler.set(id, e); }
       return kimlikler.get(id);
