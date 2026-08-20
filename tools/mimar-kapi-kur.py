@@ -721,7 +721,7 @@ AGENT_GEREKCE = (
 
 def _sert_blok_gerekcesi():
     _sarmalayici = globals().get(
-        "ISCI_SARMALAYICI_YOLU", "/Users/okan/.claude/cron/isci.sh")
+        "ISCI_SARMALAYICI_YOLU", os.path.expanduser("~/.claude/cron/isci.sh"))
     # 19 AGU (K214): varsayilanlar da TURETILIR. Eskiden burada ikinci bir GOMULU liste
     # dururdu (kimi YOK, emekli deepseek VAR) — ISCI blogu henuz enjekte edilmemis bir
     # evde AGENT-KAPISI'nin sert-blok metni o donmus listeyi mimara ONERIYORDU.
@@ -1317,7 +1317,7 @@ def mcp_kapisi(uygula):
 # AGENT-KAPISI'nin regex'ini ve _agent_isci_mi()'sini CAGIRIR. Bu yuzden AGENT_DAMGA bir
 # ZORUNLU SEMBOLDUR: AGENT-KAPISI kurulmamis eve DOKUNULMAZ (yoksa motor=claude beyan
 # sarti sessizce kaybolur ve sarmalayici AGENT-KAPISI'ni atlatan anahtara doner).
-ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "19agu-4"'
+ISCI_DAMGA = 'ISCI_KURAL_SURUMU = "20agu-k250"'
 ISCI_TANIM_BAS = "# === PRUVO ISCI-SARMALAYICI KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
 ISCI_TANIM_SON = "# === PRUVO ISCI-SARMALAYICI KAPISI BITIS ==="
 ISCI_KIMLIK_CAGRI_BAS = "    # === PRUVO ISCI KIMLIK CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
@@ -1342,8 +1342,16 @@ ISCI_TANIM_SABLON = '''
 # DAGITMAKTIR (26 Tem BaBa hukmu ile AYNI SINIF) — ama KOSULSUZ MUAFIYET DEGIL, ayni
 # KALITE KAPISI: yol TAM ESITLIK · argüman 3-4 · motor KAPALI KUME · motor=claude ise
 # AGENT-KAPISI'nin BEYAN SARTI (AYNI regex) · spec okunamiyorsa RED (fail-closed).
-ISCI_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/isci.sh"
-ISCI_M3_SARMALAYICI_YOLU = "/Users/okan/.claude/cron/m3-isci.sh"
+#
+# 🔴 20 AGU (K250) — EV-GORELI COZUMLEME. Bu blok ARTIK evin COMMIT'LENEN kapi
+# dosyasinda yasiyor (bkz. --sablon-yayimla): yani her taze worktree'ye ve baska bir
+# makineye/hesaba checkout ile iniyor. Makineye cakili "/Users/<ad>/..." yolu orada
+# YANLIS olurdu ve kullanici adini da tasirdi. TAM ESITLIK KARSILASTIRMASI DEGISMEDI —
+# _isci_karari hala '==' ile ariyor; kapi GENISLEMEDI, ayni tek yolu tasinabilir
+# bicimde HESAPLIYOR. HOME cozulemezse expanduser '~' onekini birakir, hicbir gercek
+# argv0 esitlesmez ve cagri A adimina dusup REDDEDILIR (fail-closed, DAR taraf).
+ISCI_SARMALAYICI_YOLU = os.path.expanduser("~/.claude/cron/isci.sh")
+ISCI_M3_SARMALAYICI_YOLU = os.path.expanduser("~/.claude/cron/m3-isci.sh")
 ISCI_M3_CIVILI_MOTOR = "minimax-m3"
 ''' + motor_blogu_kaynagi() + '''ISCI_ARGUMAN_SAYILARI = (3, 4)
 ''' + ISCI_DAMGA + '''
@@ -1599,8 +1607,13 @@ def _eve_isci_enjekte(ad, kok, goreli, uygula, rapor):
 # Kural METNI icindeki yollarin ARAC tarafindaki ikizi (fikstur kurmak icin). Tek kaynak
 # olmadigi icin degil, sablonun ICINDE yasayan sabitlere aractan erisilemedigi icin var;
 # ISCI_TANIM_SABLON metninde AYNEN gecmesi asagidaki 'oz-tutarlilik' kontrolu ile civilidir.
-ISCI_SARMALAYICI_YOLU_SABIT = "/Users/okan/.claude/cron/isci.sh"
-ISCI_M3_YOLU_SABIT = "/Users/okan/.claude/cron/m3-isci.sh"
+# 20 AGU (K250): ikizin de COZUMLEMESI ayni — sablonda yazan ifade `os.path.expanduser(...)`,
+# aractaki degeri o ifadenin BU makinede cozulmus hali. Oz-tutarlilik nobetcisi ikisini
+# birden olcer (hem IFADE sablonda geciyor mu, hem DEGER cozulmusuyle esit mi).
+ISCI_SARMALAYICI_IFADESI = 'os.path.expanduser("~/.claude/cron/isci.sh")'
+ISCI_M3_IFADESI = 'os.path.expanduser("~/.claude/cron/m3-isci.sh")'
+ISCI_SARMALAYICI_YOLU_SABIT = os.path.expanduser("~/.claude/cron/isci.sh")
+ISCI_M3_YOLU_SABIT = os.path.expanduser("~/.claude/cron/m3-isci.sh")
 
 
 def isci_kapisi(uygula):
@@ -1613,9 +1626,17 @@ def isci_kapisi(uygula):
     print("MOD: " + ("UYGULA" if uygula else "KURU KOSUM (degisiklik yok)"))
     # OZ-TUTARLILIK (ikiz tanim nobetcisi): aractaki yol sabitleri sablonun ICINDEKI
     # tanimlarla AYNI olmali; ayrisirsa fikstur YANLIS komutu olcer ve "kuruldu" der.
-    for _sabit in (ISCI_SARMALAYICI_YOLU_SABIT, ISCI_M3_YOLU_SABIT):
-        if ('"' + _sabit + '"') not in ISCI_TANIM_SABLON:
-            print("OZ-TUTARLILIK KIRMIZI: sablonda gecmiyor -> " + _sabit)
+    # 20 AGU (K250) IKI EKSEN: (1) sablonda EV-GORELI IFADE aynen geciyor mu, (2) aractaki
+    # DEGER o ifadenin bu makinede cozulmus haline esit mi. Yalniz (1) olcuseydi arac,
+    # sablon expanduser'a gecerken kendi sabitini eski mutlak yolda birakabilir ve fikstur
+    # baska bir komutu olcerdi ([[ad-iki-rolde-mutanti-golgeler]]).
+    for _ifade, _sabit in ((ISCI_SARMALAYICI_IFADESI, ISCI_SARMALAYICI_YOLU_SABIT),
+                           (ISCI_M3_IFADESI, ISCI_M3_YOLU_SABIT)):
+        if _ifade not in ISCI_TANIM_SABLON:
+            print("OZ-TUTARLILIK KIRMIZI: sablonda IFADE gecmiyor -> " + _ifade)
+            sys.exit(1)
+        if _sabit != os.path.expanduser(_ifade.split('"')[1]):
+            print("OZ-TUTARLILIK KIRMIZI: arac DEGERI ifadeyle ayristi -> " + _sabit)
             sys.exit(1)
     print("")
     eksik = 0
@@ -1650,6 +1671,177 @@ def isci_kapisi(uygula):
     if not uygula:
         print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
     print("Dogrula: python3 /Users/okan/dev/pruvo/tools/mimar-kilit-test.py")
+    sys.exit(0 if eksik == 0 else 1)
+
+
+# ==============================================================================
+# 20 AGU (K250) — SABLON YAYIMI: ISTISNAYI COMMIT'LENEN SABLON TASIR
+# ==============================================================================
+# OLCULEN ARIZA (MaCiT bildirdi, KraL uc bacakta dogruladi): ISCI-SARMALAYICI istisnasi
+# YALNIZ ana checkout'un DISK kopyasinda yasiyordu. Uc bacak:
+#   pruvo-hasat ana checkout disk kopyasi : ISCI damgasi VAR, index 'S' (skip-worktree)
+#   ayni yol, `git show HEAD:`            : damga YOK  (istisna git'e HIC girmemis)
+#   canli worktree macit-audi-gorsel-gate : damga YOK, index 'H'
+# Sonuc: `git worktree add` ile dogan HER agac istisnasiz doguyor; worktree-koklu bir
+# mimar oturumu `isci.sh` ile hicbir delegasyon YAPAMIYOR — mekanik/hacim isini ucuz
+# kata verme yolu MAKINE tarafindan kapali kaliyor (13 Agu'nun TERSINE TESVIKI, geri).
+#
+# 🔴 CARE TEKIL YAMA DEGIL (K250 hukmu): kurulum betigine `git worktree list` taramasi
+# EKLEMEK, her worktree DOGUMUNDA yarisan bir yamadir — arada dogan agac yine istisnasiz
+# olur ve sinif kusuru kapanmaz. Cozum TASIYICIYI degistirmektir: kural evin IZLENEN kapi
+# dosyasina yazilir, skip-worktree KALDIRILIR, dosya STAGE'lenir; ev mimari commit'ler.
+# O andan itibaren HEAD kurali tasir ve `git worktree add` ile dogan her agac istisnayi
+# HAZIR alir — kurulum betigi TEK TASIYICI olmaktan cikar (KraL evi 'kaynak' modda zaten
+# boyle calisiyordu; bu mod diger 5 evi ayni hale getirir).
+#
+# 🔴 BU MOD KOMMIT ETMEZ. Kardes deponun tarihine yazmak o evin mimarinin isidir; burada
+# yalnizca ENJEKTE + UNSKIP + STAGE yapilir ve commit komutu BASILIR. Boylece kosan bir
+# komsu oturumun agaci sessizce commit'lenmez ([[coklu-ajan-calismasi]]).
+#
+# 🔴 SIZINTI KAPISI (fail-closed) — AMA MUTLAK SAYAC DEGIL, ONCE/SONRA FARKI.
+# Sablon MAKINEYE CAKILI ev yolu (`/Users/<ad>/`) tasimamali; K250'nin 'ev-goreli
+# cozumleme' sarti burada CIVILENIR. Ancak kapi IKI SORUYU AYIRIR:
+#   (a) BU YAYIMIN EKLEDIGI sizinti satiri var mi   -> VARSA fail-closed, ev ATLANIR
+#   (b) HEAD'de ZATEN duran sizinti satiri var mi   -> RAPOR EDILIR, BLOKLAMAZ
+# Mutlak sayac olcseydi kapi, kendisinden once oraya yazilmis (ve zaten git tarihinde
+# duran) satirlar yuzunden HER evi bloklardi: yayim hic olmaz, K250 kapanmaz ve kapi
+# "komsuyu kirmiziya yakar" ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]).
+# Olculdu (K250 ilk turu): enjekte ev dosyasi HEAD'de 3 sizinti satiri TASIYOR ve bu
+# yayimin ekledigi satir sayisi 0 — hatta ISCI blogunun expanduser'a gecisi 3 satir
+# EKSILTIYOR. Mutlak esik bu turu yanlis-kirmizi yakmisti.
+
+SIZINTI_DESENI = re.compile(r"/Users/[A-Za-z0-9._-]+/")
+
+
+def _sizinti_satirlari(metin):
+    """Sizinti tasiyan satirlarin KUMESI (kirpilmis). Sayac degil KUME: ayni satirin
+    yerinin degismesi 'yeni sizinti' sayilmasin."""
+    return set(s.strip() for s in (metin or "").splitlines() if SIZINTI_DESENI.search(s))
+
+
+def _isci_blogu(metin):
+    """Enjekte edilen ISCI TANIM blogunun govdesi (marker'lar arasi). Yoksa ""."""
+    bas = metin.find(ISCI_TANIM_BAS)
+    son = metin.find(ISCI_TANIM_SON)
+    if bas < 0 or son < 0 or son < bas:
+        return ""
+    return metin[bas:son + len(ISCI_TANIM_SON)]
+
+
+def _unskip_worktree(kok, goreli):
+    """skip-worktree bayragini KALDIRIR (yayim icin sart: bayrakliyken 'git add' yerel
+    degisikligi index'e almaz). Doner: "kaldirildi" / "zaten" / "izlenmiyor" / "hata"."""
+    liste = _git(kok, "ls-files", "-v", "--", goreli)
+    if liste is None or liste.returncode != 0:
+        return "hata"
+    satir = (liste.stdout or "").strip()
+    if not satir:
+        return "izlenmiyor"
+    if satir[0] not in ("S", "s"):
+        return "zaten"
+    sonuc = _git(kok, "update-index", "--no-skip-worktree", "--", goreli)
+    if sonuc is None or sonuc.returncode != 0:
+        return "hata"
+    return "kaldirildi"
+
+
+def _head_damgasi(kok, goreli):
+    """HEAD'deki kopya ISCI damgasini tasiyor mu — yani TAZE WORKTREE ne gorecek?
+    Doner: "VAR" / "YOK" / "DOSYA-YOK" / "olculemedi"."""
+    sonuc = _git(kok, "show", "HEAD:" + goreli)
+    if sonuc is None:
+        return "olculemedi"
+    if sonuc.returncode != 0:
+        return "DOSYA-YOK"
+    return "VAR" if ISCI_DAMGA in (sonuc.stdout or "") else "YOK"
+
+
+def _eve_sablon_yayimla(ad, kok, goreli, uygula, rapor):
+    """Tek evde istisnayi COMMIT'LENEBILIR hale getirir. Doner: durum metni."""
+    yol = os.path.join(kok, goreli)
+    if not os.path.exists(yol):
+        return "KAPI-DOSYASI-YOK"
+    metin = _oku(yol)
+    if ISCI_DAMGA not in metin:
+        return "DAMGA YOK (once --isci-kapisi --uygula)"
+    # SIZINTI — iki eksen ayri (yukaridaki blok yorumu). Once K250'nin KENDI sarti:
+    # enjekte edilen ISCI blogu sizinti TASIYAMAZ (ev-goreli cozumleme sarti).
+    blok_sizintisi = _sizinti_satirlari(_isci_blogu(metin))
+    if blok_sizintisi:
+        rapor.append("      SIZINTI (ISCI BLOGU): " + sorted(blok_sizintisi)[0][:80] +
+                     " — EV ATLANDI (fail-closed; sablon ev-goreli cozumlemeli)")
+        return "SIZINTI-BLOK (dokunulmadi)"
+    gosterim = _git(kok, "show", "HEAD:" + goreli)
+    head_metni = gosterim.stdout if (gosterim and gosterim.returncode == 0) else ""
+    onceki = _sizinti_satirlari(head_metni)
+    simdiki = _sizinti_satirlari(metin)
+    eklenen = simdiki - onceki
+    if eklenen:
+        rapor.append("      SIZINTI (YAYIMIN EKLEDIGI " + str(len(eklenen)) + " satir): " +
+                     sorted(eklenen)[0][:80] + " — EV ATLANDI (fail-closed)")
+        return "SIZINTI-YENI (dokunulmadi)"
+    if onceki:
+        rapor.append("      not: HEAD'de ZATEN duran sizinti satiri=" + str(len(onceki)) +
+                     " · bu yayimin ekledigi=0 · eksilttigi=" +
+                     str(len(onceki - simdiki)) + " (bloklamaz; AYRI kalem)")
+    izleme = _git(kok, "ls-files", "-v", "--", goreli)
+    if izleme is None or izleme.returncode != 0 or not (izleme.stdout or "").strip():
+        rapor.append("      dosya bu depoda IZLENMIYOR — once 'git add -f " + goreli +
+                     "' gerekir; yayim TASIYICI degistiremez")
+        return "IZLENMIYOR (dokunulmadi)"
+    if not uygula:
+        return "YAYIMLANACAK (skip-worktree kalkar + stage)"
+    unskip = _unskip_worktree(kok, goreli)
+    ekle = _git(kok, "add", "--", goreli)
+    if ekle is None or ekle.returncode != 0:
+        return "GIT ADD KIRMIZI"
+    rapor.append("      skip-worktree: " + unskip + " | stage: eklendi")
+    rapor.append("      COMMIT (ev mimarinin isi): git -C " + kok +
+                 " commit -m 'K250: isci-sarmalayici istisnasi commit'lenen sablona tasindi' -- " +
+                 goreli)
+    return "STAGE'LENDI (commit ev mimarinde)"
+
+
+def sablon_yayimla(uygula):
+    """K250 — istisnayi TASIYAN katmani degistirir: 5 enjekte evinde kapi dosyasinin
+    skip-worktree bayragini kaldirir ve stage'ler. KraL 'kaynak' modda ZATEN commit'li,
+    dokunulmaz. Cikis 0 = her evde HEAD ya damgayi tasiyor ya da stage'lenmis durumda."""
+    print("SABLON YAYIMI (K250) — DAMGA: " + ISCI_DAMGA)
+    print("MOD: " + ("UYGULA" if uygula else "KURU KOSUM (degisiklik yok)"))
+    print("KURAL: ENJEKTE + UNSKIP + STAGE. COMMIT YOK (ev mimarinin isi).")
+    print("")
+    print("{:<7} {:<34} {:<9} {:<10} {}".format("EV", "KAPI", "MOD", "HEAD", "DURUM"))
+    eksik = 0
+    for ad, kok, _varsayilan_goreli, mod in CODEX_EVLER:
+        rapor = []
+        if not os.path.isdir(kok):
+            print("{:<7} {:<34} {:<9} {:<10} {}".format(ad, "-", mod, "-", "EV YOK"))
+            eksik += 1
+            continue
+        goreli, _kablo = _kapi_yolu_olc(kok)
+        if goreli is None:
+            print("{:<7} {:<34} {:<9} {:<10} {}".format(
+                ad, "?", mod, "-", "KAPI YOLU OLCULEMEDI — DOKUNULMADI"))
+            eksik += 1
+            continue
+        if mod == "kaynak":
+            durum_metni = "KAYNAK (commit'li; arac YAZMAZ)"
+        else:
+            durum_metni = _eve_sablon_yayimla(ad, kok, goreli, uygula, rapor)
+        head = _head_damgasi(kok, goreli)
+        # HUKUM: HEAD damgayi tasiyorsa is BITMIS demektir; tasimiyorsa ancak bu turda
+        # STAGE'lendiyse "yolda" sayilir — digerlerinin hepsi EKSIKTIR.
+        if head != "VAR" and not durum_metni.startswith("STAGE'LENDI"):
+            eksik += 1
+        print("{:<7} {:<34} {:<9} {:<10} {}".format(ad, goreli, mod, head, durum_metni))
+        for satir in rapor:
+            print(satir)
+    print("")
+    print("HEDEF: her evde HEAD=VAR — o zaman taze worktree istisnayi HAZIR alir.")
+    print("TAM OLMAYAN EV: " + str(eksik))
+    print("YAYIM_EV=" + str(len(CODEX_EVLER) - eksik) + "/" + str(len(CODEX_EVLER)))
+    if not uygula:
+        print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
     sys.exit(0 if eksik == 0 else 1)
 
 
@@ -2036,6 +2228,9 @@ def main():
 
     if "--isci-kapisi" in argv:  # 13 Agu (goc karari): ISCI-SARMALAYICI KAPISI 6 EVE
         isci_kapisi(uygula)
+
+    if "--sablon-yayimla" in argv:  # 20 Agu (K250): istisnayi COMMIT'LENEN sablon tasisin
+        sablon_yayimla(uygula)
 
     if "--parti-kapisi" in argv:  # 19 Agu (Okan doktrini): N2 PARTI KAPISI
         parti_kapisi(uygula)

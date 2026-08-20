@@ -422,6 +422,26 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/motor-tek-kaynak-kapisi.py --curutme
 
+      # K250 (20 Agu) — ISCI-SARMALAYICI ISTISNASININ TASIYICISI. Motor tek-kaynak
+      # kapisiyla AYNI AILE: ikisi de mimar-isci dagitim hattini olcer, musteri
+      # yuzeyine degmez -> SERIT B, yayini DURDURMAZ.
+      #
+      # 🔴 KOSUCUDA NE OLCULUR, DURUST BEYAN: batarya taban sablonunu GERCEK bir
+      # kardes evden alir. GitHub kosucusunda hicbir kardes ev YOKTUR, dolayisiyla bu
+      # adim orada `KAPSAM_DISI` yazip rc=0 doner — yani CI'daki islevi KAPI CURUMESINI
+      # ONLEMEK (dosya duruyor mu, import ediliyor mu, py_compile'dan geciyor mu),
+      # ISTISNAYI OLCMEK DEGIL. Istisnanin GERCEK olcum yuzeyi evlerin bulundugu
+      # MAKINEDIR; orada ayni komut FAZ A/FAZ B + 3 mutant + 1 kontrol kosar.
+      # Bu ayrimi yazmak sart: "yesil" gorunen bir adimin neyi olcmedigini gizlemek
+      # tam olarak [[kapinin-menzili-cagri-yeridir]] tuzagidir.
+      #
+      # 🔴 SERIT B secimi K80 dersidir: olctugu yuzey yesillenmeden CI'ya baglanan kapi
+      # yayin seridini iki commit boyunca kirmizi tutmustu. Bu kapi enjekte evlerin
+      # HEAD'i 6/6 olana dek KAPSAM_DISI/KIRMIZI karisimi verecek; yayini bloklamamali.
+      - name: "K250 isci-sablon kapisi — kendini test (taze worktree probu + 3 mutant + kontrol)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/isci-sablon-kapisi.py --kendini-test
+
       - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
         if: ${{ !cancelled() }}
         run: python3 tools/diriltme-kapisi.py --kendini-test
