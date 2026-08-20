@@ -1,23 +1,77 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""tools/defter-kota-kapisi.py — DEVAM.md defter kota kapisi (IK EKSEN, K178).
+"""tools/defter-kota-kapisi.py — defter + ORTAK POSTA KUTUSU kota kapisi.
 
 Kullanim:
     python3 tools/defter-kota-kapisi.py [depo-koku]
     python3 tools/defter-kota-kapisi.py --kendini-test
 
-Davranis (IK EKSEN, pre-commit; K178 + K195b):
+IKI YUZEY, TEK KAPI (K253, 20 Agu 2026):
+    (A) DEFTER ekseni — repo ICINDEKI DEVAM.md (K178 + K195b).
+    (B) KUTU ekseni   — repo DISINDAKI ortak posta kutusu
+        `~/.claude/projects/-Users-okan-dev-pruvo/memory/mimar-posta-kutusu.md`.
+
+🔴 KUTU EKSENI NEDEN BURAYA EKLENDI (SINIF, 3. TEKRAR — olculdu):
+Kutu esigi 19 Agu'da elle 333 -> 245 satira indirildi, ertesi gun 363'e cikti.
+Her hafta ayni el isi. SEBEP: kota kapisi pre-commit'te kosuyor ve YALNIZ
+DEVAM.md'yi olcuyordu; kutu repo DISINDA duruyor -> yalniz kutu buyudugunde
+HICBIR kapi tetiklenmiyordu, tasma ancak insan bakinca goruluyordu. Tekil budama
+YASAK ([[ucuncu-tekrar-sinif-kapisi]]) -> IKINCI BIR ESIK SAHIBI ACILMADI, AYNI
+kapi kutuyu da MUTLAK YOLLA olcuyor.
+
+🔴 KUTUNUN ZATEN BIR KAPISI VARDI — AMA CAGIRANI YOKTU (olculdu, 20 Agu):
+`tools/kutu-esik-kapisi.py` (K188) kutuyu tavana gore olcer, rotasyonu tetikler,
+indiremezse yazmayi REDDEDER; 11 vaka + 8 mutantla CI'da YESIL. Yine de kutu
+tasmaya devam etti, cunku o kapi bir **PreToolUse** kancasidir ve kablosu
+`.claude/settings.json`tedir — o dosya GITIGNORE'DA, yani kablo COMMIT EDILEMEZ ve
+bu makineye hic kurulmamisti (`tools/paket-k188-kanca-kablolamasi.md`: "kapı
+main'de ama CANLI DEĞİL"). Kapi yesil, menzil BOS
+([[kapinin-menzili-cagri-yeridir]]). K253'un farki cagri yeridir: kutu ekseni
+COMMIT'LENEBILEN ve her makinede `tools/kanca-kur.py` ile kurulan
+`tools/kancalar/pre-commit` adim 8'e baglidir. Iki kapi CAKISMAZ — biri YAZMA
+yolunda (kurulursa), digeri COMMIT yolunda; ikisi de AYNI tavan sahibinden okur.
+
+🔴 KUTU TAVANI TURETILIR, YAZILMAZ: kutunun mevcut tavan sahibi
+`tools/kutu-arsivle.py::VARSAYILAN_TAVAN`dir (LOSSLESS rotasyon araci onu
+kullanir). Kapi o sayiyi SAHIPTEN okur. Kapi ile arac ayni sayidan beslenmezse
+kapi "asildi" derken arac "is yok" derdi = sessiz ayrisma.
+
+🔴 KAPI KUTUYU OKUR, ASLA YAZMAZ/KIRPMAZ: kutu bir HAFIZA dosyasidir. Otomatik
+silme YASAK; kapi yalnizca CARE satiri basar, LOSSLESS tasimayi insan ya da
+rotasyon araci (`tools/kutu-arsivle.py`) yapar — hicbir sey silinmez, en eski
+bloklar `*-arsiv.md`'ye TASINIR.
+
+KUTU HUKUM KOVALARI (BES KOVA — ucuncu kovanin yutulmamasi icin AYRI jetonlar,
+[[iki-kovali-siniflama-ucuncu-sinifi-yutar]]):
+    KUTU_SAHIPSIZ     rc 0  — <kok>/tools/kutu-arsivle.py YOK. Bu checkout kutuyu
+                              SAHIPLENMIYOR (sentetik fikstur deposu, kardes depo).
+    KUTU_MAKINEDE_YOK rc 0  — sahip VAR ama kutunun HAFIZA DIZINI bu makinede HIC
+                              yok (GitHub kosucusu). Kusur DEGIL, kapsam disi.
+    KUTU_OLCULEMEDI   rc 1  — hafiza dizini VAR ama kutu dosyasi yok/okunamiyor,
+                              ya da sahip modul/tavan/yol cozulemedi. FAIL-CLOSED:
+                              "bakamadim" YESIL DEGILDIR.
+    KUTU_ASILDI       rc 1  — olculdu ve tavan asildi. CARE satiri basilir.
+    KUTU_YESIL        rc 0  — olculdu, tavanin altinda.
+
+🔴 EKSEN `kok`TUR: sahip dosyasi YARGILANAN DEPO KOKUNDEN cozulur, kapinin kendi
+konumundan DEGIL. Aksi halde sentetik fikstur depolarini yargilarken de GERCEK
+makinenin kutusu olculur ve komsu kabul testleri ambiyans yuzunden kirmiziya
+yanardi ([[kapi-ambiyansi-olcerse-komsu-kirmiziya-yakar]]).
+
+TEK KAYNAK NOBETI (K253 M2): kota ekseni dosyalarinda esik DEGERININ ikinci bir
+sabite KOPYALANMASI RED'dir. Sahipli olanlar disinda modul duzeyinde ayni sayiyi
+tasiyan bir tamsayi atamasi bulunursa kapi KIRMIZI yanar.
+
+DEFTER EKSENI (IK EKSEN, pre-commit; K178 + K195b):
     * DEVAM.md INDEX'te (staged) yoksa: **SESSIZCE GECMEZ** (K195b, 19 Agu).
       INDEX blob'u yine de OLCULUR ve hukum adiyla basilir —
       `KAPSAM_DISI_OLCULDU ... ASIM=YOK` / `KAPSAM_DISI_ASIM` (sayaca yazilir) /
-      `KAPSAM_DISI_OLCULEMEDI` + sebep. Her uc halde de exit 0: bu commit
-      defteri DEGISTIRMIYOR, durdurmak kapsam disi olurdu. Degisen sey
-      BLOKLAMA degil, "bakmadim"in bitmesi.
+      `KAPSAM_DISI_OLCULEMEDI` + sebep. Her uc halde de defter kolu 0 doner: bu
+      commit defteri DEGISTIRMIYOR, durdurmak kapsam disi olurdu.
     * DEVAM.md INDEX'te varsa ve (satir > 130 VEYA bayt > 12288) ise:
         - stderr'e iki satirlik RED mesaji basar (ASAN_EKSEN=...).
         - sayac dosyasina `RED` satiri yazar.
-        - exit 1
-    * İki eksen de tavanda veya altinda ise: exit 0.
+        - defter kolu 1 doner.
 
     TAVAN DEGERLERI: tools/defter-kota-taban.py'dan okunur (TEK KAYNAK).
     Aşan eksen stderr'de adıyla yazılır (SATIR/BAYT/IKISI).
@@ -33,7 +87,8 @@ kapi ya atlanmistir ya hic kosmamistir. Bu kol o hali sayar:
 Sayac repo DISINDADIR (`~/.claude/cron/defter-kota-bypass.tsv`) — commit'e girmez,
 gunluk 15:00 olcumune `DEFTER_KOTA_BYPASS` ekseni olarak okunur.
 
-CI'da kosmaz; kancalar/pre-commit adim 8 (INDEX) + kancalar/pre-push (bypass) cagrisi.
+CI'da (nobet.yml) yalniz `--bypass-kontrol` kolu kosar; ZORLAYICI hukum
+kancalar/pre-commit adim 8'dedir (INDEX) + kancalar/pre-push (bypass).
 
 KENDINI-TEST (--kendini-test):
     * Sentetik fiksturlerle M1 (BAYT asimi) + M2 (SATIR asimi) + 2 KONTROL
@@ -42,7 +97,10 @@ KENDINI-TEST (--kendini-test):
           FIKSTUR=<n>/<n> MUTANT=<n>/<n>
           DUSEN=<n>
     * Tum vakalar yesil ise DUSEN=0, rc=0.
+    * KUTU ekseninin kabul/mutant tablosu AYRI dosyadadir (tally karistirilmadi):
+          python3 tools/kutu-kota-kapisi-test.py
 """
+import ast
 import datetime
 import os
 import subprocess
@@ -63,7 +121,42 @@ TAVAN_BAYT = _mod.TAVAN_BAYT
 tavan_asi_mi = _mod.tavan_asi_mi
 
 SAYAC_YOLU = os.environ.get("PRUVO_DEFTER_KOTA_SAYAC",
-                           os.path.expanduser("~/.claude/cron/defter-kota-bypass.tsv"))
+                            os.path.expanduser("~/.claude/cron/defter-kota-bypass.tsv"))
+
+# --- KUTU EKSENI JETONLARI (BES KOVA; hicbiri digerini YUTMAZ) -------------
+# 🔴 JETONLARDA `KAPSAM_DISI` GECMEZ: defter ekseninin K195b jetonlari o dizeyi
+# tasiyor ve komsu kabul testi (defter-kota-kapsam-disi-test.py :: K1/K2) tam
+# olarak "ciktida KAPSAM_DISI GECMEMELI" diye olcuyor. Ayni dizeyi kutu kolunda
+# kullanmak o testi ambiyansla kirmiziya yakardi.
+KUTU_SAHIPSIZ = "KUTU_SAHIPSIZ"
+KUTU_MAKINEDE_YOK = "KUTU_MAKINEDE_YOK"
+KUTU_OLCULEMEDI = "KUTU_OLCULEMEDI"
+KUTU_ASILDI = "KUTU_ASILDI"
+KUTU_YESIL = "KUTU_YESIL"
+
+KUTU_RC = {
+    KUTU_SAHIPSIZ: 0,
+    KUTU_MAKINEDE_YOK: 0,
+    KUTU_OLCULEMEDI: 1,
+    KUTU_ASILDI: 1,
+    KUTU_YESIL: 0,
+}
+
+# Kota ekseninde esik sabiti TASIMASINA IZIN VERILEN (dosya, ad) ciftleri.
+# Baska her yerde ayni SAYI'yi tasiyan modul-duzeyi tamsayi atamasi = ikinci
+# esik sahibi = TEK KAYNAK IHLALI.
+KOTA_EKSENI_DOSYALARI = (
+    "defter-kota-taban.py",
+    "defter-kota-kapisi.py",
+    "defter-rotasyon.py",
+    "kutu-arsivle.py",
+    "kutu-esik-kapisi.py",
+)
+ESIK_SAHIPLERI = frozenset({
+    ("defter-kota-taban.py", "TAVAN_SATIR"),
+    ("defter-kota-taban.py", "TAVAN_BAYT"),
+    ("kutu-arsivle.py", "VARSAYILAN_TAVAN"),
+})
 
 
 def _git(args, kok):
@@ -189,7 +282,7 @@ def _kapsam_disi_olc(kok):
 
 
 def _hukum_red(satir, bayt, eksen, kok):
-    """RED ciktisi; sayac yaz + exit 1 (ana akis)."""
+    """RED ciktisi; sayac yaz + 1 dondur (defter kolu)."""
     print("!! DEFTER KOTASI ASILDI — DEVAM.md %d satir / %d bayt "
           "(tavan satir=%d bayt=%d, ASAN_EKSEN=%s)."
           % (satir, bayt, TAVAN_SATIR, TAVAN_BAYT, eksen), file=sys.stderr)
@@ -209,15 +302,203 @@ def _hukum_red(satir, bayt, eksen, kok):
     return 1
 
 
-def main(argv=None):
-    argv = list(sys.argv if argv is None else argv)
-    if "--kendini-test" in argv:
-        return _kendini_test()
-    if "--bypass-kontrol" in argv:
-        argv = [a for a in argv if a != "--bypass-kontrol"]
-        return bypass_kontrol(argv[1] if len(argv) > 1 else ROOT)
-    kok = argv[1] if argv and len(argv) > 1 else ROOT
+# ---------------------------------------------------------------------------
+# KUTU EKSENI (K253) — SAF HUKUM + IO KOLU
+# ---------------------------------------------------------------------------
+def kutu_hali(sahip_var, dizin_var, dosya_var, satir, tavan):
+    """SAF fonksiyon: BES kovadan birini dondurur. IO YOK, ortam YOK.
 
+    Ana yol ve kabul testi AYNI fonksiyonu cagirir — ikiz tanim ACILMAZ
+    ([[ikiz-tanim-sessiz-ayrisma]]). Kovalar sirayla ELENIR ve hicbiri
+    digerini YUTMAZ ([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]):
+
+      1. sahip YOK              -> KUTU_SAHIPSIZ      (bu checkout kutuyu sahiplenmiyor)
+      2. sahip var, DIZIN yok   -> KUTU_MAKINEDE_YOK  (kosucu/kardes makine)
+      3. dizin var, DOSYA yok   -> KUTU_OLCULEMEDI    (FAIL-CLOSED, gercek kusur)
+      4. olculdu, satir > tavan -> KUTU_ASILDI
+      5. olculdu, satir <= tavan-> KUTU_YESIL
+
+    🔴 3. KOVA 2.'NIN ICINE DUSURULEMEZ: "dosya yok" ile "makinede hic yok"
+    ayni sey degildir. Ilki kutunun SILINMESI/YENIDEN ADLANDIRILMASIDIR ve
+    kapinin gormesi gereken tam da odur.
+    """
+    if not sahip_var:
+        return KUTU_SAHIPSIZ
+    if not dizin_var:
+        return KUTU_MAKINEDE_YOK
+    if not dosya_var or satir is None or tavan is None:
+        return KUTU_OLCULEMEDI
+    if satir > tavan:
+        return KUTU_ASILDI
+    return KUTU_YESIL
+
+
+def _kutu_olc(yol):
+    """(satir, bayt) — okunamazsa (None, None)."""
+    try:
+        with open(yol, "rb") as f:
+            ham = f.read()
+    except OSError:
+        return None, None
+    return len(ham.splitlines()), len(ham)
+
+
+def kutu_kontrol(kok, kol_no_op=False):
+    """KUTU ekseni — OKUR, hukum basar, rc dondurur. ASLA YAZMAZ/KIRPMAZ.
+
+    kol_no_op=True: M1 mutanti (kutu kolu KALDIRILMIS gibi davran). Hedef kol
+    olmeli, defter ekseni (yan eksen) YASAMALI.
+    """
+    if kol_no_op:
+        return 0
+
+    sahip_coz = getattr(_mod, "kutu_sahibi", None)
+    if sahip_coz is None:
+        print("!! %s — tavan tabani (defter-kota-taban.py) kutu sahibini cozemiyor "
+              "(kutu_sahibi YOK: bayat/eksik kopya). Kutu OLCULMEDI; olculemeyen "
+              "sey yesil sayilmaz." % KUTU_OLCULEMEDI, file=sys.stderr)
+        return KUTU_RC[KUTU_OLCULEMEDI]
+
+    mod, sahip_yolu, hata = sahip_coz(kok)
+    if mod is None and hata is None:
+        print("%s — kutu tavan/yol sahibi bu depoda YOK (%s). Bu checkout ortak "
+              "posta kutusunu sahiplenmiyor; kutu ekseni bu kok icin kapsam disidir."
+              % (KUTU_SAHIPSIZ, sahip_yolu))
+        return KUTU_RC[KUTU_SAHIPSIZ]
+    if mod is None:
+        print("!! %s — kutu tavan sahibi (%s) VAR ama YUKLENEMEDI. SEBEP: %s. "
+              "Kutu OLCULMEDI; olculemeyen sey yesil sayilmaz."
+              % (KUTU_OLCULEMEDI, sahip_yolu, hata), file=sys.stderr)
+        return KUTU_RC[KUTU_OLCULEMEDI]
+
+    tavan = _mod.kutu_tavan_satir(mod)
+    kutu_yolu = os.environ.get("PRUVO_KUTU_YOLU") or _mod.kutu_dosya_yolu(mod)
+    arsiv_yolu = _mod.kutu_arsiv_yolu(mod)
+    if tavan is None or not kutu_yolu:
+        print("!! %s — sahip modulunde tavan (VARSAYILAN_TAVAN) ya da kutu yolu "
+              "(KUTU_VARSAYILAN) cozulemedi: %s. Kutu OLCULMEDI."
+              % (KUTU_OLCULEMEDI, sahip_yolu), file=sys.stderr)
+        return KUTU_RC[KUTU_OLCULEMEDI]
+
+    dizin = os.path.dirname(kutu_yolu)
+    dizin_var = os.path.isdir(dizin)
+    satir, bayt = (_kutu_olc(kutu_yolu) if dizin_var else (None, None))
+    dosya_var = satir is not None
+
+    hal = kutu_hali(True, dizin_var, dosya_var, satir, tavan)
+
+    if hal == KUTU_MAKINEDE_YOK:
+        print("%s — kutunun hafiza dizini bu makinede HIC yok (%s). Kusur DEGIL "
+              "(kosucu/kardes makine); kutu ekseni kapsam disidir. Sahip: %s"
+              % (KUTU_MAKINEDE_YOK, dizin, sahip_yolu))
+        return KUTU_RC[KUTU_MAKINEDE_YOK]
+
+    if hal == KUTU_OLCULEMEDI:
+        print("!! %s — hafiza dizini (%s) VAR ama kutu dosyasi YOK/OKUNAMIYOR: %s. "
+              "Kutu OLCULMEDI; olculemeyen sey YESIL SAYILMAZ (fail-closed). "
+              "Kutu silinmis/yeniden adlandirilmis olabilir."
+              % (KUTU_OLCULEMEDI, dizin, kutu_yolu), file=sys.stderr)
+        return KUTU_RC[KUTU_OLCULEMEDI]
+
+    if hal == KUTU_ASILDI:
+        print("!! %s — ORTAK POSTA KUTUSU KOTASI ASILDI: %s %d satir / %d bayt "
+              "(tavan satir=%d, TAVAN SAHIBI=%s::VARSAYILAN_TAVAN)."
+              % (KUTU_ASILDI, kutu_yolu, satir, bayt, tavan, sahip_yolu),
+              file=sys.stderr)
+        print("!! CARE: python3 /Users/okan/dev/pruvo/tools/kutu-arsivle.py",
+              file=sys.stderr)
+        print("!!   (LOSSLESS: hicbir sey SILINMEZ — en eski bloklar %s dosyasina "
+              "TASINIR. Kapi kutuyu YALNIZ OKUR; tasimayi insan ya da rotasyon "
+              "araci yapar. Once kuru kosum: --kuru)"
+              % (arsiv_yolu or "<kutu>-arsiv.md"), file=sys.stderr)
+        return KUTU_RC[KUTU_ASILDI]
+
+    print("%s satir=%d bayt=%d tavan=%d kutu=%s" % (KUTU_YESIL, satir, bayt,
+                                                    tavan, kutu_yolu))
+    return KUTU_RC[KUTU_YESIL]
+
+
+# ---------------------------------------------------------------------------
+# TEK KAYNAK NOBETI (K253 M2) — esik SAYISI ikinci bir sabite kopyalanamaz
+# ---------------------------------------------------------------------------
+def izlenen_esikler(kok):
+    """Izlenmesi gereken esik DEGERLERI (owner'lardan TURETILIR, yazilmaz)."""
+    degerler = {TAVAN_SATIR, TAVAN_BAYT}
+    sahip_coz = getattr(_mod, "kutu_sahibi", None)
+    if sahip_coz is None:
+        return degerler
+    mod, _, hata = sahip_coz(kok)
+    if mod is not None and hata is None:
+        t = _mod.kutu_tavan_satir(mod)
+        if isinstance(t, int) and not isinstance(t, bool):
+            degerler.add(t)
+    return degerler
+
+
+def tek_kaynak_ihlalleri(kok, degerler=None):
+    """Kota ekseni dosyalarinda IKINCI ESIK SAHIBI arar.
+
+    Modul duzeyinde `<AD> = <tamsayi>` atamalarina bakilir. Deger izlenen esik
+    kumesindeyse ve (dosya, ad) cifti ESIK_SAHIPLERI'nde DEGILSE -> ihlal.
+    Yalnizca modul duzeyi taranir: fonksiyon icindeki yerel hesaplar (or.
+    `satir = max(1, TAVAN_SATIR - 30)`) sabit DEGILDIR, tarama disidir.
+
+    Donus: [(dosya, ad, deger, satir_no), ...]. Bos liste = TEK KAYNAK SAGLAM.
+    """
+    if degerler is None:
+        degerler = izlenen_esikler(kok)
+    ihlaller = []
+    tools = os.path.join(kok, "tools")
+    for ad in KOTA_EKSENI_DOSYALARI:
+        yol = os.path.join(tools, ad)
+        if not os.path.isfile(yol):
+            continue
+        try:
+            with open(yol, "r", encoding="utf-8") as f:
+                agac = ast.parse(f.read(), filename=yol)
+        except (OSError, SyntaxError):
+            continue
+        for dugum in agac.body:
+            if not isinstance(dugum, ast.Assign):
+                continue
+            if not isinstance(dugum.value, ast.Constant):
+                continue
+            deger = dugum.value.value
+            if not isinstance(deger, int) or isinstance(deger, bool):
+                continue
+            if deger not in degerler:
+                continue
+            for hedef in dugum.targets:
+                if not isinstance(hedef, ast.Name):
+                    continue
+                if (ad, hedef.id) in ESIK_SAHIPLERI:
+                    continue
+                ihlaller.append((ad, hedef.id, deger, dugum.lineno))
+    return ihlaller
+
+
+def tek_kaynak_kontrol(kok):
+    """Tek kaynak nobeti — ihlal varsa 1, yoksa 0."""
+    ihlaller = tek_kaynak_ihlalleri(kok)
+    if not ihlaller:
+        return 0
+    print("!! TEK_KAYNAK_IHLALI — kota esik SAYISI ikinci bir sabite KOPYALANMIS. "
+          "Esik tek sahiptedir; kopya, kapi ile rotasyon aracinin SESSIZCE "
+          "ayrismasina yol acar.", file=sys.stderr)
+    for dosya, ad, deger, no in ihlaller:
+        print("!!   tools/%s:%d  %s = %d  (sahipli DEGIL)" % (dosya, no, ad, deger),
+              file=sys.stderr)
+    print("!! CARE: sabiti SIL ve degeri sahibinden oku — satir/bayt tavani "
+          "tools/defter-kota-taban.py, kutu tavani "
+          "tools/kutu-arsivle.py::VARSAYILAN_TAVAN.", file=sys.stderr)
+    return 1
+
+
+# ---------------------------------------------------------------------------
+# ANA AKIS
+# ---------------------------------------------------------------------------
+def _defter_kolu(kok):
+    """DEFTER ekseni (K178 + K195b) — govde AYNEN korundu."""
     stage_de = _devam_stage_de(kok)
     if stage_de is None:
         print("!! COMMIT DURDURULDU — DEVAM.md stage kontrolu OLCULEMEDI.",
@@ -236,6 +517,26 @@ def main(argv=None):
     if not asi:
         return 0
     return _hukum_red(satir, bayt, eksen, kok)
+
+
+def main(argv=None):
+    argv = list(sys.argv if argv is None else argv)
+    if "--kendini-test" in argv:
+        return _kendini_test()
+    if "--bypass-kontrol" in argv:
+        argv = [a for a in argv if a != "--bypass-kontrol"]
+        return bypass_kontrol(argv[1] if len(argv) > 1 else ROOT)
+    kok = argv[1] if argv and len(argv) > 1 else ROOT
+
+    # 🔴 IKI EKSEN DE HER ZAMAN KOSAR, sonra rc BIRLESTIRILIR. Kisa devre YOK:
+    # biri kirmizi diye digeri OLCULMEDEN gecerse hangi eksenin saglam oldugunu
+    # kimse bilemez, ve bir sonraki turda "zaten kirmiziydi" diye yutulur.
+    kutu_rc = kutu_kontrol(kok)
+    kaynak_rc = tek_kaynak_kontrol(kok)
+    defter_rc = _defter_kolu(kok)
+    if kutu_rc or kaynak_rc or defter_rc:
+        return 1
+    return 0
 
 
 # ---------------------------------------------------------------------------

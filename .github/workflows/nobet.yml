@@ -1630,6 +1630,26 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/defter-kota-kapsam-disi-test.py
 
+      # K253 — AYNI KOTA KAPISININ **KUTU** EKSENI (ortak posta kutusu).
+      # OLCULEN ARIZA (SINIF, 3. TEKRAR — 20 Agu): kutu esigi 19 Agu'da elle
+      # 333 -> 245 satira indirildi, ertesi gun 363 oldu. Her hafta ayni el isi.
+      # SEBEP OLCULDU: kota kapisi pre-commit'te kosuyor ama YALNIZ DEVAM.md'yi
+      # olcuyordu; kutu repo DISINDA duruyor -> yalniz kutu buyudugunde HICBIR
+      # kapi tetiklenmiyordu. Kutunun tek kapisi (K188 kutu-esik-kapisi.py) bir
+      # PreToolUse kancasidir ve `.claude/settings.json` GITIGNORE'DA oldugu icin
+      # kablosu COMMIT EDILEMEZ — kapi main'de yesil, ama CANLI DEGIL
+      # ([[kapinin-menzili-cagri-yeridir]]). K253 kutuyu, commit'lenebilen ve her
+      # makinede `kanca-kur.py` ile kurulan bir cagri yerine (pre-commit adim 8)
+      # bagliyor. IKINCI ESIK SAHIBI ACILMADI: tavan
+      # `kutu-arsivle.py::VARSAYILAN_TAVAN`dan TURETILIR; ayni dosyaya kopyalanan
+      # bir esik sabiti kapiyi KIRMIZI yakar (V6). Kapi kutuyu YALNIZ OKUR —
+      # otomatik silme YOK, yalniz LOSSLESS tasima receesi basar.
+      # NEDEN SERIT B: yayin icerigini DEGIL mimar yazisma hijyenini olcer;
+      # tamamen offline (tempfile depo + tempfile kutu), GERCEK kutuya DOKUNMAZ.
+      - name: "Kota kapisi KUTU ekseni (8 vaka, 3 mutant, K0 kontrol, menzil, SERIT B)"
+        if: ${{ !cancelled() }}
+        run: python3 tools/kutu-kota-kapisi-test.py
+
       # K195(a) — ROTASYON ARACININ "ISARETCIYE INDIRME" KOLU. Olculen delik
       # (19 Agu): kapali icerik yokken arac HIC tasimiyordu ve mimar elle
       # rotasyona zorlaniyordu (bir gunde 4 kez). Kabul YEDI vaka + DORT mutant;
