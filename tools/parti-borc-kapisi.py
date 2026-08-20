@@ -142,6 +142,18 @@ def acik_kalem_yolu(ev, koku_root=None):
 TabloSatir = re.compile(r"^\s*\|.*\|\s*$")
 
 
+def defter_dosyasi_var_mi(defter_yolu):
+    """Defter DOSYASI fiziksel olarak var mi?
+
+    🔴 K229 — UCUNCU KOVA'nin TEK KAYNAGI. `acik_kalem_listesi`nin ILK kapisi
+    BU fonksiyondur; cagiran taraf (N2B parti kapisi) "defter dosyasi YOK" ile
+    "defter OKUNAMADI"yi ayirt ederken ikinci bir yuklem KURMAZ, buraya sorar.
+    Ikinci bir `os.path.isfile` cagrisi yazilirsa iki yuklem SESSIZCE ayrisir
+    ([[ayni-alan-iki-hukum-biri-sessiz]]).
+    """
+    return bool(defter_yolu) and os.path.isfile(defter_yolu)
+
+
 def acik_kalem_listesi(defter_yolu):
     """Bir acik-kalemler.md dosyasindaki ACIK kalemleri DOKUMLU doner.
 
@@ -155,7 +167,7 @@ def acik_kalem_listesi(defter_yolu):
     YOKSA / IO hatasi / format bozuk -> ([], False, hata). "borc yok" SAYILMAZ;
     fail-closed: cagri yeri T4-OLCULEMEDI ile RED verir.
     """
-    if not os.path.isfile(defter_yolu):
+    if not defter_dosyasi_var_mi(defter_yolu):
         return [], False, "defter dosyasi yok: %s" % defter_yolu
     try:
         with open(defter_yolu, encoding="utf-8") as f:
@@ -239,6 +251,7 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
         "GECER_MESAJI": str|None,       # GECER ise neden
         "HATA": str|None,               # format/IO hatasi (T4-OLCULEMEDI)
         "OLCULEMEDI": bool,             # True == defter okunamadi
+        "DEFTER_YOK": bool,             # True == defter DOSYASI hic YOK (K229)
         "DEFTER_YOLU": str|None,
         "ESIK_ASILDI": bool,            # ACIK_SAYISI > ESIK ise True
         "DURUM": "ACIK"|"KAPANDI"|"BILINMIYOR",   # KAPANDI=kapanmis kalem
@@ -259,6 +272,7 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
         "GECER_MESAJI": None,
         "HATA": None,
         "OLCULEMEDI": False,
+        "DEFTER_YOK": False,
         "DEFTER_YOLU": None,
         "ESIK_ASILDI": False,
         "DURUM": "BILINMIYOR",
@@ -282,6 +296,13 @@ def parti_engeli_var_mi(ev, esik=DEFAULT_ESIK, *, koku_root=None, muafiyet_yok=N
     sonuc["ACIK_SAYISI"] = sayi
     if not okundu:
         # T4-OLCULEMEDI: fail-closed RED ("borc yok" SAYILMAZ).
+        # 🔴 K229 — T4'un HUKMU DEGISMEDI (burasi hala fail-closed RED). Yalniz
+        # ALT SINIF makinece GORUNUR kilindi: `DEFTER_YOK` = defter DOSYASI hic
+        # yok (ev defter gelenegini benimsememis) · `DEFTER_YOK=False` +
+        # `OLCULEMEDI=True` = defter VAR ama okunamadi (bos/bozuk/IO). Ikisini
+        # ayirmak POLITIKA katmanının (N2B parti kapisi) isidir; T4 yalnizca
+        # OLCUYU verir, kapiyi acmaz [[iki-kovali-siniflama-ucuncu-sinifi-yutar]].
+        sonuc["DEFTER_YOK"] = not defter_dosyasi_var_mi(defter_yol)
         sonuc["HATA"] = "T4-OLCULEMEDI %s" % (hata or "defter okunamadi")
         sonuc["OLCULEMEDI"] = True
         sonuc["RED"] = True
