@@ -41,6 +41,7 @@ import { yonet, gecmiseEkle } from "./yonet.js";
 import { yeniSiparisNo } from "./siparis-no.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
+import { biletUret, biletDogrula } from "./olcum-bilet.js";
 import { refKaydet, REF_KALIBI } from "./ref.js";
 import { talepKaydet } from "./talep.js";
 
@@ -107,9 +108,13 @@ function kurusTL(kurus) {
 function yonlendir(env, sonuc, siparisNo, dokum) {
   // dokum (kalem 8, yalniz 'ok' donusunde): t=tahsilat kurus, kdv=kdv kurus — musteri donus
   // sayfasi KDV dokumunu bunlardan basar. Gosterim amaclidir; tahsilat coktan yapilmistir.
+  // `b` (olcum bileti, yalniz 'ok' + GERCEK gecis): tarayici Purchase'inin TEK kanitidir.
+  // Tek kullanimliktir ve /olcum-donus'ta yakilir (shop/src/olcum-bilet.js). Bilet YOKSA
+  // tarayici olayi ATMAZ — URL'nin kendisi kanit DEGILDIR (uydurulabilir/tekrarlanabilir).
   const hedef = env.SITE_URL + "/?siparis=" + sonuc +
     (siparisNo ? "&no=" + encodeURIComponent(siparisNo) : "") +
-    (dokum ? "&t=" + dokum.tahsilatKurus + "&kdv=" + dokum.kdvKurus : "");
+    (dokum ? "&t=" + dokum.tahsilatKurus + "&kdv=" + dokum.kdvKurus : "") +
+    (dokum && dokum.bilet ? "&b=" + encodeURIComponent(dokum.bilet) : "");
   return new Response(null, { status: 303, headers: { "Location": hedef } });
 }
 
@@ -906,7 +911,12 @@ async function donus(request, env, ctx) {
   //   iyzico paymentId'yi bos dondurse ya da bu akis degisse tespit SESSIZCE yanlislanirdi.
   // IDEMPOTENS: iz de UPDATE'in bir parcasi oldugundan changes=0 (ayni token 2. kez)
   // halinde HIC yazilmaz -> gecmiste tek {"o":1} kalir, olay da tekrarlanmaz.
-  const yeniGecmis = gecmiseEkle(siparis.durum_gecmisi, "odendi", { olcumDenendi: true });
+  // TARAYICI PURCHASE BILETI: tek kullanimlik, tahmin edilemez. Ayni atomik UPDATE icinde
+  // durum_gecmisi'ne yazilir; yani D1'e YALNIZ gercek 'odendi' gecisiyle birlikte iner.
+  // changes=0 (ayni token 2. kez) halinde HIC yazilmaz -> asagida URL'ye de KONMAZ.
+  const pikselBileti = biletUret();
+  const yeniGecmis = gecmiseEkle(siparis.durum_gecmisi, "odendi",
+    { olcumDenendi: true, pikselBileti: pikselBileti });
   const g = await env.KATALOG.prepare(
     "UPDATE siparisler SET durum = 'odendi', iyzico_odeme_id = ?, durum_gecmisi = ?" +
     " WHERE token = ? AND durum <> 'odendi'"
@@ -942,10 +952,41 @@ async function donus(request, env, ctx) {
     }, false);
   }
   // Donus sayfasi KDV dokumu (kalem 8): tahsilat + kdv paramlari — istemci dokumu basar.
+  // 🔴 BILET YALNIZ GERCEK GECISTE URL'YE KONUR. changes=0 demek "bu siparis ZATEN kapanmisti"
+  // demektir (ayni token 2. kez / geri tusu / yenileme): sunucu CAPI olayini da TEKRARLAMADI,
+  // tarayici da TEKRARLAMAMALI. Bilet D1'e inmediginden zaten dogrulanamazdi; URL'ye koymamak
+  // gereksiz bir uc cagrisini da onler.
+  const biletUrl = (g.meta && g.meta.changes > 0) ? pikselBileti : "";
   return yonlendir(env, "ok", siparis.siparis_no, {
     tahsilatKurus: siparis.tutar_kurus + (siparis.kargo_kurus || 0),
     kdvKurus: siparis.kdv_kurus || 0,
+    bilet: biletUrl,
   });
+}
+
+/**
+ * POST /olcum-donus — tarayici Purchase'inin SUNUCU HUKMU (shop/src/olcum-bilet.js).
+ *
+ * Govde: { no: "<siparis_no>", b: "<bilet>" }   Cevap: { ok:true, value, currency } | { ok:false }
+ *
+ * 🔒 CEVAP SOZLESMESI: basarisizlik kolu SEBEP TASIMAZ. "siparis yok" ile "bilet yanmis"i
+ * ayirt edilebilir yapmak, siparis numarasi deneyerek ciro/siparis varligi sorgulamaya izin
+ * verirdi. Sebep yalniz sunucu loguna yazilir (olcumLog), musteriye DEGIL.
+ * Kisisel veri DONMEZ: yalniz dogrulanmis tahsilat tutari.
+ */
+async function olcumDonusu(request, env) {
+  let govde = {};
+  try { govde = await request.json(); } catch (e) { govde = {}; }
+  const no = govde && govde.no;
+  const b = govde && govde.b;
+  const h = await biletDogrula(env, no, b);
+  // Teshis izi: "bu siparisin tarayici Purchase'i neden yok?" sorusu loglardan cevaplanabilsin
+  // (sessiz bosluk birakma — olcum.js/donus() ile AYNI dil).
+  olcumLog({ olay: "Purchase", hedef: "tarayici",
+             siparis_no: typeof no === "string" ? no : "",
+             kaynak: "kart", atlandi: h.ok ? "" : h.sebep });
+  if (!h.ok) { return json({ ok: false }, 200, env); }
+  return json({ ok: true, value: h.value, currency: h.currency }, 200, env);
 }
 
 /** Havale bildirimi (kalem 6). DIKKAT: para HENUZ gorulmedi — metin "odeme geldi" tonunda
@@ -1039,6 +1080,12 @@ export default {
       // D1'e yazmaz, iyzico/Telegram/e-posta yok. Yalniz POST (govde sepet tasir).
       if (yol === "/fiyat" && request.method === "POST") return await fiyatProva(request, env);
       if (yol === "/donus") return await donus(request, env, ctx);
+      // TARAYICI PURCHASE KAPISI: donus sayfasi olayi atmadan ONCE burayi cagirir. Bilet
+      // dogrulanip YAKILIR (tek kullanimlik) -> {ok:true, value}. Her basarisizlik AYNI
+      // {ok:false} cevabini verir (sebep SIZDIRILMAZ) ve tarayici olayi ATMAZ.
+      if (yol === "/olcum-donus" && request.method === "POST") {
+        return await olcumDonusu(request, env);
+      }
       // wa.me lead attribution (OCI #1): landing beacon'i REF->click-id'yi D1'e kalici kilar.
       // Handler yalniz POST'u yazar, digerini 204 gecer; her durumda 204 (bilgi sizmaz).
       if (yol === "/ref") return await refKaydet(request, env);

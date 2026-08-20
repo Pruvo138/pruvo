@@ -590,6 +590,13 @@ export function gecmiseEkle(mevcutJson, hedef, ekstra) {
   // tanimsiz olsa bile iz "1" kalir. Teshis icin izin varligina DEGIL, Cloudflare Logs'taki
   // `olcum {...}` satirina bakilir (orada kod/events_received/fbtrace_id var).
   if (ekstra && ekstra.olcumDenendi) { kayit.o = 1; }
+  // "pb" -> TARAYICI PURCHASE BILETI (shop/src/olcum-bilet.js). Tek kullanimliktir: donus
+  // sayfasi bunu sunucuya gosterip yaktirmadan Purchase ATMAZ. AYNI atomik UPDATE icinde
+  // yazilir (olcum izi "o" ile AYNI gerekce: ikinci UPDATE yaris penceresi acardi).
+  // ⚠️ Bilet yalniz gecis GERCEKTEN olduysa (changes > 0) D1'e iner; cagiran, changes=0
+  // halinde bileti donus URL'sine KOYMAMALIDIR — yoksa idempotent 2. callback tarayiciya
+  // yakilabilir bilet verir ve mukerrer koruma coker.
+  if (ekstra && ekstra.pikselBileti) { kayit.pb = String(ekstra.pikselBileti); }
   g.push(kayit);
   if (g.length > 50) { g = g.slice(-50); } // sinirla (same-row buyumesin)
   return JSON.stringify(g);

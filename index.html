@@ -2457,17 +2457,46 @@
     var no = q.get("no") || "";
     if(s === "ok"){
       /* Purchase (rıza-kapılı): ödeme dönüşü BAŞARI yüzeyi. eventID = sipariş no (siparis_no) —
-         sunucu CAPI Purchase'ı AYNI event_id ile atar, Meta dedup eder (çift sayım yok). value =
-         sunucu tahsilatı t (kuruş) TRY'ye; content_ids sepetten (cart HENÜZ loadCart edilmedi, bu
-         çağrı 1912'de; localStorage'dan doğrudan okunur), TEMİZLEMEDEN önce. currency "TRY". */
+         sunucu CAPI Purchase'ı AYNI event_id ile atar, Meta dedup eder (çift sayım yok).
+         content_ids sepetten (cart HENÜZ loadCart edilmedi, bu çağrı 1912'de; localStorage'dan
+         doğrudan okunur), TEMİZLEMEDEN önce. currency "TRY".
+
+         🔴 FANTOM PURCHASE ONARIMI (ölçüldü: 30 günde piksel 9, D1 gerçek 5 — sapma TEK YÖNLÜ).
+         Buradaki olay eskiden YALNIZCA URL'ye bakarak atılıyordu (`?siparis=ok` + `t`). Üç ayrı
+         sahte-satış yolu vardı ve üçü de pikseli gerçeğin ÜSTÜNE çıkarıyordu:
+           1. URL UYDURULABİLİR — `/?siparis=ok&no=X&t=900000` yazan herkes 9.000 TL Purchase attırır.
+           2. TUTAR UYDURULABİLİR — `value` doğrudan URL'deki `t`'den okunuyordu.
+           3. TEKRAR — geri tuşu / geçmiş / paylaşılan link dönüş sayfasını yeniden açınca olay
+              TEKRAR atılıyordu (sunucu CAPI kolu idempotenttir, tarayıcı kolu DEĞİLDİ).
+         ⚠️ Ödeme iyzico hosted/redirect olduğu için DÖNÜŞ URL'Sİ KANIT DEĞİLDİR: ziyaretçi
+         vazgeçip de dönebilir, adresi elle açabilir, sayfayı yenileyebilir.
+
+         ÇÖZÜM: olay artık SUNUCU HÜKMÜYLE atılır. Worker, siparişi iyzico retrieve ile doğrulayıp
+         'odendi'ye GERÇEKTEN geçirdiğinde (changes>0) tek kullanımlık, tahmin edilemez bir bilet
+         üretip dönüş URL'sine `&b=` olarak koyar. Burası olayı atmadan ÖNCE o bileti sunucuya
+         yaktırır (POST /olcum-donus). Bilet yoksa/yanmışsa cevap {ok:false} gelir ve OLAY ATILMAZ.
+         `value` de sunucudan gelir — URL'den DEĞİL. FAIL-CLOSED: ağ hatası da olay ATMAZ. */
       try {
+        /* content_ids SENKRON hesaplanır: aşağıda sepet temizleniyor (cart=[]; saveCart()),
+           ölçüm cevabı geldiğinde localStorage ÇOKTAN boş olurdu. */
         var pSepet = PRUVO_SECENEK.sepetYukle();
         var pIds = pSepet.map(function(x){ return pruvoFeedId(x.id); });
-        var pKurus = parseInt(q.get("t"), 10);
-        var pVeri = { content_ids: pIds, content_type: "product", currency: "TRY" };
-        if(pKurus > 0){ pVeri.value = pKurus / 100; }
-        if(no && typeof window.pruvoMetaTrack === "function"){
-          window.pruvoMetaTrack("Purchase", pVeri, { eventID: no });
+        var pBilet = q.get("b") || "";
+        if(no && pBilet && typeof window.pruvoMetaTrack === "function"){
+          fetch(SHOP_UC + "/olcum-donus", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ no: no, b: pBilet })
+          })
+          .then(function(r){ return r.json(); })
+          .then(function(c){
+            /* Tek kapı: sunucu ok demediyse olay YOK. Tutar da sunucunun döndürdüğüdür. */
+            if(!c || c.ok !== true){ return; }
+            var pVeri = { content_ids: pIds, content_type: "product", currency: "TRY" };
+            if(typeof c.value === "number" && c.value > 0){ pVeri.value = c.value; }
+            window.pruvoMetaTrack("Purchase", pVeri, { eventID: no });
+          })
+          .catch(function(){ /* ağ yok / uç cevap vermedi: FAIL-CLOSED — olay atılmaz */ });
         }
         /* 🔴 GA4 `purchase` BURADAN GÖNDERİLMEZ — bilerek. Satın alma olayı SUNUCUDAN
            (ölçüm protokolü) sipariş numarası transaction_id'siyle atılır; aynı işlemi bir de
