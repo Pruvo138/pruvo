@@ -155,6 +155,16 @@ Tüm `baglam-olcum.tsv`'de bu önek kuralına uyan **tek satır** var: `tarayici
 1. **m3'ün gerçek faturalanan aylık tüketimi (E1).** `isci.log`'da token alanı **yok**
    (`butce=` bir tavan, tüketim değil); `baglam-olcum.tsv`'deki `toplam_girdi` ham
    bağlam sayımı, faturalanan metrik değil (§4 çelişkisi). Kaynak: **MiniMax paneli**.
+   🔴 **PANEL DENENDİ — OTURUM YOK (20 Ağu ~14:35Z, tur `panel-kabul-yetkinlik`, m3).**
+   Ham kabul satırı:
+   `PANEL=ACIK GIRIS_FORMU=VAR OTURUM=YOK URL=<hesap-alani>/unified-login?login_redirect=%2Foauth2%2Fauthorize%3Fclient_id%3D<istemci>... PLAN=YOK KULLANILAN=YOK TAVAN=YOK YUZDE=YOK DONEM=YOK KALAN_GUN=YOK TARAYICI_KAPATILDI=EVET`
+   Yani sağlayıcı panelinin oturumu **kalıcı profilde açık değil**; panel `unified-login`'e
+   yönlendiriyor. Beklenen tuzağın aynısı: çerezler macOS Keychain anahtarıyla şifreli,
+   Playwright (`--use-mock-keychain`) çözemiyor. **Giriş DENENMEDİ, hiçbir alan doldurulmadı,
+   kimlik bilgisi girilmedi** (talimat gereği ve OKAN KAPISI olduğu için).
+   Tarayıcı kapatıldı, profil kilidi bırakıldı (`SingletonLock`/`SingletonCookie` YOK).
+   **İkinci tur AÇILMADI:** sebep geçici değil yapısal — aynı duvara çarpardı.
+   Açan adım Okan'ın: giriş penceresini bir kez `--use-mock-keychain` ile açmak.
 2. **kimi'nin bugünkü yetkinliği.** Motor 13:09:43Z'den beri karantinada + nabız
    17 Ağu'dan beri KIRMIZI → bugün koşulacak her kimi turu kota koluna düşerdi.
    Yetkinlik verisi 15 Ağu'da motor sağlıklıyken alınmıştır.
