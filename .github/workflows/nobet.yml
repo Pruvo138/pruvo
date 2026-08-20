@@ -3807,6 +3807,43 @@ jobs:
         if: ${{ !cancelled() }}
         run: node shop/test/olcum-bilet-mutant.mjs
 
+      # FANTOM PURCHASE — TARAYICI KOLU (shop/test/olcum-donus-tarayici.mjs).
+      # NEDEN AYRI DOSYA VE AYRI ADIM: yukaridaki iki adim SUNUCU kolunu (shop/src/olcum-bilet.js)
+      # olcer. Ama fantom Purchase'in TAMAMI TARAYICI kolundan geliyordu — olayi atan kod
+      # index.html `odemeDonusuIsle()` icindeydi ve yalnizca URL'ye bakiyordu. Sunucuyu 35
+      # vakayla civileyip kusurun YASADIGI 20 satiri kod okumasina birakmak, bu deponun
+      # olculmus sahte-yesil sinifidir ([[kapinin-menzili-cagri-yeridir]]).
+      # NASIL: index.html'in KENDI `odemeDonusuIsle()` govdesi capalarla CIKARILIR ve enjekte
+      # bir ortamda (location/fetch/window/PRUVO_SECENEK) kosturulur — kopya ya da yeniden
+      # yazim DEGIL, uretim kaynaginin KENDISI. Capa kayarsa adim KIRMIZI yanar ("atlandi" YOK).
+      # OLCTUGU VAKALAR: ag hatasi (fetch reject) -> olay YOK · sunucu {ok:false} -> olay YOK ·
+      # {ok:true} -> TEK olay ve `value` SUNUCUDAN (URL'deki `t` bilerek 9.000 TL, olayda o sayi
+      # gorunurse KIRMIZI) · biletsiz eski tip URL -> uca HIC gidilmez · bozuk JSON -> olay YOK ·
+      # `siparis=basarisiz` -> olay YOK · T0a tautoloji nobetcisi (ayni govde pozitif kolda olayi
+      # GERCEKTEN atiyor mu — atmiyorsa negatif vakalar kanit degildir).
+      # OFFLINE: `fetch` her vakada enjekte edilen sahtedir; ag YOK, gercek piksel/GA4 cagrisi YOK,
+      # dosya YAZILMAZ, index.html'e DOKUNULMAZ.
+      - name: "Fantom Purchase tarayici kolu (olay sunucu hukmu olmadan atilmiyor mu)"
+        if: ${{ !cancelled() }}
+        run: node shop/test/olcum-donus-tarayici.mjs
+
+      # FANTOM PURCHASE — TARAYICI KOLU MUTASYON KANITI (shop/test/olcum-donus-tarayici-mutant.mjs).
+      # Yukaridaki adimin yesili tek basina kanit DEGILDIR. Bu adim tarayici kolunun her
+      # korumasini tek tek bozar ve (a) testin KIRMIZI yandigini, (b) kirmizinin sebebinin TAM
+      # O KOL oldugunu olcer: MT1 ag-hatasi kolu FAIL-OPEN'a cevrilir (-> N1 dusmeli) · MT2
+      # `c.ok !== true` kapisi kaldirilir (-> R1) · MT3 `value` URL'deki `t`'den okunur (-> Y2) ·
+      # MT4 bilet kapisi kaldirilir (-> B1, B2). Ayrica K0 KONTROL MUTANTI (davranissiz yorum)
+      # YESIL kalmak ZORUNDADIR, her capa TEKIL olmak zorundadir ve GOLGELEME kontrolu iki kolun
+      # ayni iddialari dusurmedigini dogrular ([[ad-iki-rolde-mutanti-golgeler]]).
+      # 🔴 NEDEN "KOLU SILMEK" DEGIL "FAIL-OPEN'A CEVIRMEK": `.catch`'i silmek yakalanmamis bir
+      # reddetme birakirdi ve test yine "olay atilmadi" gorurdu -> mutant YASAR, kol OLCULMEMIS
+      # sayilirdi. Kusurun gercek hali FAIL-OPEN'di; mutant o hali geri getirir.
+      # OFFLINE: mutant kopyalar gecici dizine yazilir ve finally'de SILINIR; index.html'in
+      # DEGISMEDIGI (bayt uzunlugu + capa konumu) adim sonunda AYRICA dogrulanir.
+      - name: "Fantom Purchase tarayici kolu mutasyon kaniti (her koruma kolu olculuyor mu)"
+        if: ${{ !cancelled() }}
+        run: node shop/test/olcum-donus-tarayici-mutant.mjs
+
       # OLCUM TEST KAPISI (shop/test/olcum-kapisi.cjs) — 30 Tem'e kadar OLU idi. Dosya SAF
       # MODULDU (`module.exports` var, `require.main` kolu YOK): `node shop/test/olcum-kapisi.cjs`
       # rc=0 verip SIFIR IDDIA kosuyordu; shop/.dev.vars'a SAHTE bir META_CAPI_TOKEN konsa
