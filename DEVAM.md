@@ -19,7 +19,7 @@ kapilar TAZELENMELI, chip kapali — sahipsiz).
 - 🔴 **K237 (KraL OLCTU — MUSTERI ETKISI):** `--durum` 29602 derken ikinci satir
   `urun_sayisi = 29573`; uc `/katalog` 29 Seat urununu `yayinda=1` HALDE dondurmuyor (site
   gosterir, Ege GOREMEZ). Hash esit oldugu icin senkron yazmiyor, sayac bayat kaliyor.
-  kabul: sayac TURETILIR ya da senkronda zorunlu tazelenir + 29 id doner + mutant.
+  SAHIP KraL (veri MaCiT'te DOGRU olculdu, mekanizma kod duzlemi); kabul+yasak: `paket-k237-*`.
 - 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (`ek_vaka` + I3/I5, ayni dalda IKI
   tekrar) — SINIF, tekil yama YOK. kabul: sayi tek yerden TURETILIR + mutant. · 🔧 **K238:**
   `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (P1'de kapsam SIFIRDI);
