@@ -142,12 +142,17 @@ def _tur_kos_kolu(kapi, tmp, ek, kol, kilit_alindi, motor_var, zincir_sonucu):
     return rc, sayac_oku(sayac_yolu), tampon.getvalue()
 
 
-ZINCIR_TAVAN = {"cikti": "SURE_TAVANI_ASILDI=1 TAVAN_SN=1500\n",
+# 🔴 FIKSTUR SEKLI GERCEK SOZLESMEYE UYMALI: `motor_zinciri_kos` HER kolda
+# `rc` alanini dondurur (nobet-kapi.py:602-610). `rc` tasimayan bir fikstur,
+# o alani okuyan yeni bir kolu KeyError ile dusurur ve testin kendisi ariza
+# uretir — olculdu (b5-kanit/07e): B5'in `sonuc["rc"]` okumasi bu fiksturde
+# patladi. [[sahte-bagimlilik-sekli-negatif-blogu-kutsar]]
+ZINCIR_TAVAN = {"cikti": "SURE_TAVANI_ASILDI=1 TAVAN_SN=1500\n", "rc": 1,
                 "denemeler": [], "hukum": "SURE_TAVANI", "motor": "m3"}
-ZINCIR_MOTORSUZ = {"cikti": "", "denemeler": [], "hukum": "MOTOR_YOK",
+ZINCIR_MOTORSUZ = {"cikti": "", "rc": 1, "denemeler": [], "hukum": "MOTOR_YOK",
                    "motor": None}
-ZINCIR_NORMAL = {"cikti": "KAPANAN=1\nHUKUM=KAPANDI\n", "denemeler": [],
-                 "hukum": "KAPANDI", "motor": "m3"}
+ZINCIR_NORMAL = {"cikti": "KAPANAN=1\nHUKUM=KAPANDI\n", "rc": 0,
+                 "denemeler": [], "hukum": "KAPANDI", "motor": "m3"}
 
 
 def bolum_s2(kapi, tmp, ek=""):
