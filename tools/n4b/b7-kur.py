@@ -253,8 +253,7 @@ I3B_YENI = '''def _sureli_isci_bekle(bekleyici, sonlandirici, kisa_tavan=None, u
     except subprocess.TimeoutExpired as hata:
         cikti = hata.output or b""
         if not onarim_ilerliyor_mu(cikti):
-            return _sure_tavani_sonucu(cikti, sonlandirici, kisa_tavan,
-                                       tur_cikti_yolu)
+            return _sure_tavani_sonucu(cikti, sonlandirici, kisa_tavan, tur_cikti_yolu)
     kalan = max(0, uzun_tavan - kisa_tavan)
     try:
         return bekleyici(kalan)
@@ -262,6 +261,19 @@ I3B_YENI = '''def _sureli_isci_bekle(bekleyici, sonlandirici, kisa_tavan=None, u
         return _sure_tavani_sonucu(hata.output or cikti, sonlandirici, uzun_tavan,
                                    tur_cikti_yolu)
 '''
+
+
+# ---------------------------------------------------------------------------
+# I5 — KOMSU BATARYANIN CAPASI (regresyon onarimi)
+# ---------------------------------------------------------------------------
+# `nobet-kabul-test.py` M-C mutanti `_sureli_isci_bekle` icindeki tavan
+# donusunu SATIR METNIYLE capalar. I3b o satiri degistirince capa TEKIL
+# olmaktan cikti ve batarya `MUTANT_KIRMIZI=3/3` -> `0/3` dustu (M-D/M-E de
+# ayni istisnayla ATLANDI). Olculdu: b7-kanit/02 (taban RC=0) vs 07 (RC=1).
+# 🔴 Capa GUNCELLENIR, mutant SEMANTIGI AYNEN KALIR — kapsam dusurulmez.
+MC_ESKI = "return _sure_tavani_sonucu(cikti, sonlandirici, kisa_tavan)"
+MC_YENI = "return _sure_tavani_sonucu(cikti, sonlandirici, kisa_tavan, tur_cikti_yolu)"
+NOBET_KABUL = os.path.join(CRON_KOKU, "nobet-kabul-test.py")
 
 
 # ---------------------------------------------------------------------------
@@ -390,6 +402,9 @@ def olc():
         ("I4 tur ortami", "PRUVO_ISCI_TUR_CIKTI" in kapi),
         ("T1 kabul bataryasi kuruldu", os.path.isfile(TEST_HEDEF)),
         ("T2 testler.py'ye kayitli (CAGRI YERI)", TEST_ADI in tst),
+        ("I5 komsu M-C capasi guncel", MC_YENI in oku(NOBET_KABUL)),
+        ("I5b M-C capasi nobet-kapi'da TEKIL",
+         oku(NOBET_KAPI).count(MC_YENI) == 1),
     ]
     kurulu = 0
     for ad, var in olculer:
@@ -457,12 +472,25 @@ def uygula():
     rapor.append(("T2 testler.py kaydi", d))
     yaz(TESTLER, tst)
 
+    # --- I5: komsu bataryanin M-C capasi (regresyon onarimi) ---
+    kabul = oku(NOBET_KABUL)
+    yedek_kabul = yedekle(NOBET_KABUL, damga)
+    if MC_YENI in kabul:
+        rapor.append(("I5 M-C capasi", False))
+    elif kabul.count(MC_ESKI) == 1:
+        kabul = kabul.replace(MC_ESKI, MC_YENI, 1)
+        yaz(NOBET_KABUL, kabul)
+        rapor.append(("I5 M-C capasi", True))
+    else:
+        rapor.append(("I5 M-C capasi", None))
+
     for ad, durum in rapor:
         print("YAMA=%-32s SONUC=%s" % (ad, DURUM_ADLARI[durum]))
     ankorsuz = sum(1 for _, d in rapor if d is None)
     print("YEDEK=%s" % yedek_isci)
     print("YEDEK=%s" % yedek_kapi)
     print("YEDEK=%s" % yedek_tst)
+    print("YEDEK=%s" % yedek_kabul)
     print("DAMGA=%s" % damga)
     print("ANKORSUZ=%d" % ankorsuz)
     print("HUKUM=%s" % ("UYGULANDI" if ankorsuz == 0 else "ANKOR_YOK"))
@@ -471,7 +499,7 @@ def uygula():
 
 def geri_al(damga):
     n = 0
-    for yol in (ISCI_SH, NOBET_KAPI, TESTLER):
+    for yol in (ISCI_SH, NOBET_KAPI, TESTLER, NOBET_KABUL):
         yedek = "%s.yedek-b7-%s" % (yol, damga)
         if os.path.isfile(yedek):
             shutil.copy2(yedek, yol)

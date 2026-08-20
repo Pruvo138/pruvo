@@ -207,7 +207,10 @@ def bolum_a(tmp, sahte):
 
     gecis = gecis_say(delta)
     # A2 ONCE kosar: fixture gercekten ic ice degilse gerisi bedavadir.
-    vaka("A2-ic-ice-gecti", "gecis>=1", "gecis=%d" % gecis if gecis >= 1 else "gecis=0")
+    # Ham sayi AYRI satirda basilir; vaka esitligi esik uzerinden yargilanir
+    # (ham sayiyi beklenene gommek testi kendi olcumuyle kirmizi yakiyordu).
+    print("A2-HAM-GECIS=%d" % gecis)
+    vaka("A2-ic-ice-gecti", "gecis>=1", "gecis>=1" if gecis >= 1 else "gecis=0")
     olculen_a2 = gecis >= 1
 
     vaka("A1a-A-kendi-satiri", SATIR_ADEDI, tag_say(yol_a, TAG_A))
@@ -234,6 +237,26 @@ def bolum_a(tmp, sahte):
           and os.path.isfile(varsayilan) else "yol=%s" % (varsayilan or "-")))
     if varsayilan and os.path.isfile(varsayilan):
         os.remove(varsayilan)
+
+    # A5 — KOMSU BATARYANIN CAPASI (regresyon nobetcisi).
+    # `nobet-kabul-test.py` M-C mutanti `_sureli_isci_bekle` icindeki tavan
+    # donusunu SATIR METNIYLE capalar. B7 o satiri degistirdi ve capa TEKIL
+    # olmaktan cikinca komsu batarya `MUTANT_KIRMIZI=3/3` -> `0/3` dustu
+    # (olculdu: b7-kanit/02 RC=0 vs 07 RC=1). Capa bir daha SESSIZCE bayatlamasin.
+    try:
+        capa = ""
+        with open(os.path.join(CRON_KOKU, "nobet-kabul-test.py"),
+                  encoding="utf-8", errors="replace") as dosya:
+            for satir in dosya:
+                if "_sure_tavani_sonucu(cikti, sonlandirici, kisa_tavan" in satir:
+                    capa = satir.strip().strip('",')
+                    break
+        with open(NOBET_KAPI, encoding="utf-8", errors="replace") as dosya:
+            kaynak = dosya.read()
+        sayi = kaynak.count(capa) if capa else -1
+    except OSError:
+        sayi = -2
+    vaka("A5-komsu-M-C-capasi", 1, sayi)
     return olculen_a2
 
 
