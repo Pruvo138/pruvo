@@ -787,6 +787,56 @@ SUREN_KOMUTLARI = (
 )
 
 
+# ------------------------------------------------------------------------------
+# K248 — K7'nin HAL AYRIMI (20 Agu 2026)
+# ------------------------------------------------------------------------------
+# OLCULEN ARIZA: K7'nin NEGATIF ayagi, enjekte kopyanin KANONIK repo yoluna
+# dusup T4'u yuklemesini bekliyor. `_T4_KANONIK` ise SABIT bir macOS yoludur
+# (`/Users/okan/dev/pruvo/tools/...`). GitHub kosucusunda o yol YOKTUR ->
+# `FileNotFoundError` -> K7 KUSUR -> `nobet.yml` N2 adimi KIRMIZI.
+# Olculdu: kosum 32341626915 (merge ONCESI) `KONTROL K7 ... KUSUR`,
+# `MUTANT=5/5 KONTROL=6/7`; kosum 32351520044 (N4A sonrasi) `KONTROL=7/8` —
+# ayni K7 dusuyor. Yani bu KIRMIZI bir regresyon degil, TASINABILIRLIK kusuru.
+#
+# 🔴 "Turetip tasinabilir yap" COZUMU MUMKUN DEGIL — olculdu ve curutuldu:
+# enjekte kopya `<ev>/.claude/` altinda oturur ve kendi konumundan repoya geri
+# donecek HICBIR bagi yoktur (kardes aday zaten `_T4_YOLU`; ondan otesi bilgi
+# gerektirir). Kanonik yol, tanimi geregi MAKINEYE BAGLIDIR. Dolayisiyla dogru
+# cozum yolu turetmek degil, HALI AYIRMAKTIR.
+#
+# UC KOVA (K8/N4A ile ayni doktrin — ucuncu kova ikinciyi YUTMAZ):
+#   GECTI       kanonik yol VAR ve kopya oradan yuklendi -> dagitim kanitlandi
+#   KAPSAM_DISI kanonik yol bu makinede HIC YOK (CI kosucusu) -> dagitim hedefi
+#               burasi degil; ayak FIZIKSEL olarak olculemez, KUSUR DEGILDIR.
+#               🔴 Sessiz gecis olmasin diye: geri dusme DENENMIS olmali, yani
+#               kanonik yol ciktida ADIYLA gorunmeli.
+#   KUSUR       kanonik yol VAR ama yuklenemedi -> GERCEK kusur (fail-loud)
+# Mutant kolu (`mutant="K7-KOVA-YUTMA"`) ucuncu kovanin ikinciyi yutmasini
+# taklit eder ve KIRMIZI yanar ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+K7_HALLERI = ("GECTI", "KAPSAM_DISI", "KUSUR")
+
+
+def k7_negatif_hali(kanonik_var, rc, cikti, kanonik_yol=None, *, mutant=None):
+    """K7'nin NEGATIF ayagi icin SAF hal karari. Ana yol da kontroller de BUNU
+    cagirir (ikiz tanim YOK).
+
+    kanonik_var : `_T4_KANONIK` bu makinede dosya olarak var mi
+    rc / cikti  : enjekte kopyanin `--t4-durum` alt surec sonucu
+    """
+    kanonik_yol = _T4_KANONIK if kanonik_yol is None else kanonik_yol
+    if mutant == "K7-KOVA-YUTMA":
+        return "KAPSAM_DISI"          # kanonik VAR olsa bile kusuru yutar
+    if kanonik_var:
+        if rc == RC_GECER and "DURUM=YUKLENDI" in (cikti or ""):
+            return "GECTI"
+        return "KUSUR"
+    # Kanonik yol bu makinede YOK: ayak olculemez. Ama SESSIZ gecmesin —
+    # geri dusmenin DENENDIGI, yolun ciktida adiyla gecmesiyle kanitlanir.
+    if rc == RC_OLCULEMEDI and kanonik_yol in (cikti or ""):
+        return "KAPSAM_DISI"
+    return "KUSUR"
+
+
 def kendini_test(gecici_kok):
     """9 mutant + hedef kol atfi + 10 kontrol (izole sentetik defterlerle).
 
@@ -1118,23 +1168,65 @@ def kendini_test(gecici_kok):
                            capture_output=True, text=True)
     c_iyi = (p_iyi.stdout or "") + (p_iyi.stderr or "")
     c_mut = (p_mut.stdout or "") + (p_mut.stderr or "")
+    # K248: NEGATIF ayagin hukmu SAF fonksiyondan gelir; kanonik yol bu
+    # makinede yoksa (CI kosucusu) ayak KAPSAM_DISI'dir, KUSUR degil.
+    kanonik_var = os.path.isfile(_T4_KANONIK)
+    negatif_hal = k7_negatif_hali(kanonik_var, p_iyi.returncode, c_iyi)
+
+    # MUTANT ayagi MAKINEDEN BAGIMSIZDIR: verilmeyen yol her yerde yoktur.
+    mutant_ok = (p_mut.returncode == RC_OLCULEMEDI
+                 and "DURUM=YUKLENEMEDI" in c_mut
+                 and yok_yol in c_mut and "FileNotFoundError" in c_mut)
+
+    # 🔴 K248 KOVA AYRIMI — HERMETIK, her ortamda kosar (iddia degil olcum).
+    #    Ucuncu kova (KAPSAM_DISI) ikinciyi (KUSUR) yutarsa kapi korlesirdi.
+    sahte_yol = "/YOK/parti-borc-kapisi.py"
+    kova = [
+        ("kanonik VAR + yuklendi",
+         k7_negatif_hali(True, RC_GECER, "N2B-T4 DURUM=YUKLENDI"), "GECTI"),
+        ("kanonik VAR + yuklenemedi",
+         k7_negatif_hali(True, RC_OLCULEMEDI, "DURUM=YUKLENEMEDI"), "KUSUR"),
+        ("kanonik YOK + geri dusme DENENDI",
+         k7_negatif_hali(False, RC_OLCULEMEDI,
+                         "DURUM=YUKLENEMEDI ... " + sahte_yol, sahte_yol),
+         "KAPSAM_DISI"),
+        ("kanonik YOK + geri dusme DENENMEDI (sessiz gecis)",
+         k7_negatif_hali(False, RC_GECER, "DURUM=YUKLENDI", sahte_yol), "KUSUR"),
+    ]
+    kova_ok = all(gelen == beklenen for _ad, gelen, beklenen in kova)
+    # Mutant: ucuncu kova ikinciyi YUTSUN -> "kanonik VAR + yuklenemedi" vakasi
+    # KUSUR yerine KAPSAM_DISI doner; hedef kol kirmizi yanmali.
+    m_hedef = k7_negatif_hali(True, RC_OLCULEMEDI, "DURUM=YUKLENEMEDI",
+                              mutant="K7-KOVA-YUTMA")
+    m_yan = k7_negatif_hali(True, RC_GECER, "N2B-T4 DURUM=YUKLENDI")
+    kova_mutant_ok = (m_hedef != "KUSUR" and m_yan == "GECTI")
+
     k7 = ((not kardes_var)                       # kardes T4 GERCEKTEN yok
-          and p_iyi.returncode == RC_GECER       # NEGATIF VAKA: kanonige duser
-          and "DURUM=YUKLENDI" in c_iyi
-          and p_mut.returncode == RC_OLCULEMEDI  # MUTANT: erisilemez -> KIRMIZI
-          and "DURUM=YUKLENEMEDI" in c_mut
-          and yok_yol in c_mut and "FileNotFoundError" in c_mut)
+          and negatif_hal in ("GECTI", "KAPSAM_DISI")
+          and mutant_ok
+          and kova_ok and kova_mutant_ok)
     print("KONTROL K7 enjekte kopya (kardes T4 YOK) uctan uca: %s"
           % ("GECTI" if k7 else "KUSUR"))
     print("    | kopya   : %s (kardes %s var mi: %s)"
           % (kopya, _T4_ADI, kardes_var))
+    print("    | kanonik : %s (bu makinede var mi: %s) -> NEGATIF HAL=%s"
+          % (_T4_KANONIK, kanonik_var, negatif_hal))
+    if negatif_hal == "KAPSAM_DISI":
+        print("    | KAPSAM_DISI — kanonik yol bu makinede YOK (CI kosucusu); "
+              "dagitim hedefi burasi degil. Geri dusme DENENDI (yol ciktida).")
     for satir in c_iyi.strip().splitlines():
         print("    | negatif | %s" % satir)
-    print("    | negatif rc=%d (beklenen %d)" % (p_iyi.returncode, RC_GECER))
+    print("    | negatif rc=%d" % p_iyi.returncode)
     for satir in c_mut.strip().splitlines():
         print("    | mutant  | %s" % satir)
-    print("    | mutant  rc=%d (beklenen %d)"
-          % (p_mut.returncode, RC_OLCULEMEDI))
+    print("    | mutant  rc=%d (beklenen %d) %s"
+          % (p_mut.returncode, RC_OLCULEMEDI, "✓" if mutant_ok else "✗"))
+    for ad, gelen, beklenen in kova:
+        print("    | kova[%-44s] %-12s (beklenen %-12s) %s"
+              % (ad, gelen, beklenen, "✓" if gelen == beklenen else "✗"))
+    print("    | kova mutanti (K7-KOVA-YUTMA): hedef=%s (KUSUR OLMAMALI) · "
+          "yan=%s (GECTI kalmali) %s"
+          % (m_hedef, m_yan, "✓" if kova_mutant_ok else "✗"))
     kontrol += 1 if k7 else 0
 
     # K8: 🔴 N4A — MUAFIYET SOZLESMESI GERCEK CAGRI YERLERINE BAGLI
