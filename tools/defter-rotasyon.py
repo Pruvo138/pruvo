@@ -41,6 +41,19 @@ CIKIS:
 Cikti son satiri:
     TASINAN=<n> TASINAN_MADDE=<n> DEFTER_SATIR=<n> ARSIV_SATIR=<n>
 
+🔴 K243 KAPSAM SATIRI (20 Agu 2026) — HER gecis, TASINAN=0 olsa bile basar:
+    MADDE_KOVALARI INCELENEN=<n> ACIK=<n> ARSIV_ISARETCISI=<n> KAPALI=<n>
+                   SINIFLANAMAZ=<n> TUTARSIZ=<n> KAPSAYICI_BLOK=<n> BLOK=<n>
+Ciplak `TASINAN=0` sekiz tur boyunca "arac bozuk mu, yetki mi yok, tavan mi
+yanlis" diye aratti ve defter sekiz kez ELLE kirpildi. Sebep hicbiri degildi:
+TASIMA BIRIMI yanlis seviyedeydi — defterin KALICI BOLUM BASLIKLARI
+(`## ACIK KALEMLER` / `## KraL ACIK ARTIKLAR` / `## OKAN'DA` / `## ARSIVDE`)
+ayni zamanda ACIK jetonudur ve blok yuklemi onlari KENDI ICERIKLERI sanip
+blogu vetoluyordu. Basliklar KALEM degil KAPSAYICIDIR (bkz. _blok_kapsayici_mi).
+`SINIFLANAMAZ` = ne acik ne kapali jetonu olan UCUNCU kova: fail-closed
+(TASINMAZ) ama SESSIZ DEGIL — sayisi basilir
+([[iki-kovali-siniflama-ucuncu-sinifi-yutar]]).
+
 🔴 ROTASYON CIFTI INVARYANTI (K151/K195 §1.3) — her GERCEKLESEN tasima
 sonrasi arac kendi isini DISKTEN olcer ve su satiri BASAR:
     ROTASYON_CIFTI defter_dusen=<n> tasinan_icerik=<n> arsive_giren=<n>
@@ -168,6 +181,35 @@ _ISARETCI_ASGARI_GOVDE = 3
 def _blok_korumali_mi(blok):
     ust = blok["baslik"].upper()
     return any(desen in ust for desen in KORUMALI_BASLIK_DESENLERI)
+
+
+# === K243 (20 Agu 2026) — TASIMA BIRIMI YANLIS SEVIYEDEYDI =================
+# OLCULEN ARIZA: kanonik rotasyon SEKIZ tur boyunca `TASINAN=0 TASINAN_MADDE=0`
+# dondu; sebep yetki/tavan/tarih DEGILDI. Defterin KALICI BOLUM BASLIKLARI
+# (`## ACIK KALEMLER`, `## KraL ACIK ARTIKLAR`, `## OKAN'DA`, `## ARSIVDE`)
+# ayni zamanda ACIK_ISARETCILER uyesidir; blok yuklemi `_acik_eslesiyor` bu
+# basliklari GORUP blogun KENDISINI "acik kalem" saydi. Oysa o basliklar KALEM
+# DEGIL KAPSAYICIDIR — tasinacak olan iclerindeki MADDElerdir.
+#
+# 🔴 YUKLEM ARTIK IKI SORUYU AYIRIR:
+#   (A) blok KENDISI acik kalem mi?                    -> _acik_eslesiyor(blok metni)
+#   (B) blok acik kalemleri KAPSAYAN kalici baslik mi?  -> _blok_kapsayici_mi
+# Kapsayici blok BUTUN olarak ASLA tasinmaz (fail-closed SIKILASTIRMA: eskiden
+# `## ARSIVDE` gibi acik jetonu OLMAYAN bir kapsayici, govdesine "KAPANDI"
+# kelimesi girdigi anda TUMUYLE supurulebilirdi), yalnizca icindeki maddeler
+# madde granulunde degerlendirilir.
+#
+# IKINCI KOPYA TUTULMAZ: kume KORUMALI_BASLIK_DESENLERI'nden TURETILIR
+# ([[ikiz-tanim-sessiz-ayrisma]]). Eklenen tek uye `ACIK ARTIKLAR`: eski
+# korumali listede YOKTU, oysa `## KraL ACIK ARTIKLAR` da bir kapsayicidir.
+KAPSAYICI_EK_BASLIKLAR = ("ACIK ARTIKLAR",)
+KAPSAYICI_BASLIK_DESENLERI = tuple(KORUMALI_BASLIK_DESENLERI) + KAPSAYICI_EK_BASLIKLAR
+
+
+def _blok_kapsayici_mi(blok):
+    """Blok, acik kalemleri KAPSAYAN kalici bolum basligi mi? (tasima birimi DEGIL)"""
+    ust = blok["baslik"].upper()
+    return any(desen in ust for desen in KAPSAYICI_BASLIK_DESENLERI)
 
 
 def _blok_anlamli_govde_satiri(blok):
@@ -326,6 +368,16 @@ def _kota_kendi_olcumu(defter_yol):
                "KIRMIZI" if asi else "YESIL"))
 
 
+def _kova_satiri(kova, kapsayici_blok, blok_sayisi):
+    """K243 kapsam satiri. SAYI basar, oran DEGIL; sifir kova da GORUNUR."""
+    parcalar = ["MADDE_KOVALARI",
+                "INCELENEN=%d" % sum(kova.get(k, 0) for k in MADDE_KOVALARI)]
+    parcalar.extend("%s=%d" % (k, kova.get(k, 0)) for k in MADDE_KOVALARI)
+    parcalar.append("KAPSAYICI_BLOK=%d" % kapsayici_blok)
+    parcalar.append("BLOK=%d" % blok_sayisi)
+    return " ".join(parcalar)
+
+
 def _bloklari_ayir(metin):
     """(baslik bolgesi, [(baslik, govde), ...]).
 
@@ -375,7 +427,16 @@ def _madde_arsiv_vetolu(metin):
 
 
 def _tasinir_mi(blok):
-    """Blok kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA."""
+    """Blok kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA.
+
+    🔴 K243 — ILK SORU KAPSAYICI SORUSUDUR: kalici bolum basligi bir KALEM
+    degil KAPSAYICIDIR; butun olarak ASLA tasinmaz (icindeki maddeler madde
+    granulunde ayrica degerlendirilir). Bu kol fail-closed YONDEDIR: eskiden
+    acik jetonu olmayan bir kapsayici (`## ARSIVDE`) govdesine kapanis
+    kelimesi girdiginde TUMUYLE supurulebiliyordu.
+    """
+    if _blok_kapsayici_mi(blok):
+        return False
     tum = blok["baslik"] + "\n" + "\n".join(blok["govde"])
     if _acik_eslesiyor(tum):
         return False
@@ -428,8 +489,59 @@ def _madde_tasinir_mi(metin):
     return True
 
 
-def _maddeleri_isle(govde):
+# === K243 — MADDE SINIFLAMASI: DORT KOVA, HICBIRI OTEKINI YUTMAZ ==========
+# [[iki-kovali-siniflama-ucuncu-sinifi-yutar]]: "acik" ve "kapali" iki kovaya
+# sikistirilan siniflama, ucuncu sinifi (jetonsuz / sinifi belirsiz madde)
+# sessizce "0 tasindi"ya karistiriyordu. Kovalar artik ADLIDIR ve HEPSI
+# SAYILIR — 0 olsalar bile BASILIR.
+#
+#   ACIK             : gercekten acik jeton tasiyor (🔴/🔧/🟠/🟡/ACIK/BEKLIYOR/...)
+#   ARSIV_ISARETCISI : acik degil ama ARSIVE isaret ediyor (KUSUR-1 vetosu;
+#                      arsive tasinirsa arsivin ICINDE kendine isaret eden
+#                      sarkik indeks olurdu) -> TASINMAZ ama GORUNUR
+#   KAPALI           : tasinabilir (ilk satirda kapanis jetonu)
+#   SINIFLANAMAZ     : ne acik jetonu ne de ilk-satir kapanis jetonu var
+#                      -> FAIL-CLOSED (TASINMAZ) ama SAYILIR ve BASILIR
+#   TUTARSIZ         : siniflama ile tasima hukmu AYRISTI (asagiya bak)
+MADDE_ACIK = "ACIK"
+MADDE_ARSIV_ISARETCISI = "ARSIV_ISARETCISI"
+MADDE_KAPALI = "KAPALI"
+MADDE_SINIFLANAMAZ = "SINIFLANAMAZ"
+MADDE_TUTARSIZ = "TUTARSIZ"
+MADDE_KOVALARI = (MADDE_ACIK, MADDE_ARSIV_ISARETCISI, MADDE_KAPALI,
+                  MADDE_SINIFLANAMAZ, MADDE_TUTARSIZ)
+
+
+def _madde_sinifi(metin):
+    """Maddenin KOVASI. Yuklem `_madde_tasinir_mi` ile AYNI uc kaynaktan
+    (`_acik_eslesiyor`, `_madde_arsiv_vetolu`, `_ilk_satirda_kapanis`) ve AYNI
+    SIRAYLA turer.
+
+    🔴 IKIZ TANIM NOBETCISI: siniflama sayilariyla tasima hukmu ayrisirsa kova
+    tablosu YALAN soyler ([[ikiz-tanim-sessiz-ayrisma]]). Ayrisma SESSIZ
+    kalmaz: madde kendi kovasina (`TUTARSIZ`) dusulur, sayilir, basilir ve
+    TASINMAZ (fail-closed). Sifir olsa bile satirda gorunur.
+    """
+    if _acik_eslesiyor(metin):
+        sinif = MADDE_ACIK
+    elif _madde_arsiv_vetolu(metin):
+        sinif = MADDE_ARSIV_ISARETCISI
+    elif _ilk_satirda_kapanis(metin):
+        sinif = MADDE_KAPALI
+    else:
+        sinif = MADDE_SINIFLANAMAZ
+    if (sinif == MADDE_KAPALI) != bool(_madde_tasinir_mi(metin)):
+        return MADDE_TUTARSIZ
+    return sinif
+
+
+def _maddeleri_isle(govde, kova=None, ornekler=None):
     """Acik kalan bir blogun govdesindeki maddeleri isle.
+
+    `kova` verilirse (collections.Counter) her madde AYRICA siniflandirilir ve
+    sayilir; `ornekler` verilirse SINIFLANAMAZ/TUTARSIZ maddelerin ilk satiri
+    (kova, ilk_satir) ikilisi olarak eklenir. Ikisi de opsiyoneldir — tasima
+    davranisini DEGISTIRMEZLER, yalnizca gorunurluk uretirler.
 
     Donus: (kalan_govde_satirlari, tasinacak_madde_metinleri).
     Madde = `- ` ile baslayan satir + ondan sonraki, `- ` ile baslamayan
@@ -458,6 +570,12 @@ def _maddeleri_isle(govde):
             while len(madde) > 1 and not madde[-1].strip():
                 artik.insert(0, madde.pop())
             madde_metni = "\n".join(madde)
+            if kova is not None:
+                sinif = _madde_sinifi(madde_metni)
+                kova[sinif] += 1
+                if (ornekler is not None
+                        and sinif in (MADDE_SINIFLANAMAZ, MADDE_TUTARSIZ)):
+                    ornekler.append((sinif, madde[0][:100]))
             if _madde_tasinir_mi(madde_metni):
                 tasinacak.append(madde_metni)
             else:
@@ -1189,15 +1307,30 @@ def _tek_gecis_calistir(defter_yol, arsiv_yol, tarih):
     tasinacak_maddeler = []
     kalacak_bloklar = []
 
+    kova = collections.Counter()
+    ornekler = []
+    kapsayici_blok = 0
+
     for blok in bloklar:
+        if _blok_kapsayici_mi(blok):
+            kapsayici_blok += 1
         if _tasinir_mi(blok):
             tasinacak_bloklar.append(blok)
         else:
-            yeni_govde, maddeler = _maddeleri_isle(blok["govde"])
+            yeni_govde, maddeler = _maddeleri_isle(blok["govde"], kova, ornekler)
             if maddeler:
                 blok["govde"] = yeni_govde
                 tasinacak_maddeler.extend(maddeler)
             kalacak_bloklar.append(blok)
+
+    # 🔴 K243 KAPSAM + UCUNCU KOVA — HER KOSUMDA, TASINAN=0 OLSA BILE BASILIR.
+    # Sebep olculdu: arac SEKIZ tur boyunca ciplak `TASINAN=0` bastigi icin
+    # operator sekiz kez "arac bozuk / yetki yok / tavan yanlis" diye arayip
+    # defteri ELLE kirpti. Cikti artik SAYIYLA (oran DEGIL) soyler: kac madde
+    # INCELENDI ve her biri hangi kovaya dustu ([[batarya-kapsam-tabani-sayiyla-civilenir]]).
+    print(_kova_satiri(kova, kapsayici_blok, len(bloklar)))
+    for sinif, ilk in ornekler:
+        print("TASINMADI-MADDE (%s): %s" % (sinif, ilk))
 
     if not tasinacak_bloklar and not tasinacak_maddeler:
         defter_satir = _satir_sayisi(defter_metin)

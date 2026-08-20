@@ -238,6 +238,60 @@ D1_YOL = REPO_ONEKI + "tools/d1-sync.py"
 DEFTER_ROTASYON_YOL = REPO_ONEKI + "tools/defter-rotasyon.py"
 DEFTER_ROTASYON_DEFTER = REPO_ONEKI + "DEVAM.md"
 DEFTER_ROTASYON_ARSIV = REPO_ONEKI + "DEVAM-ARSIV.md"
+KUTU_ARSIVLE_YOL = REPO_ONEKI + "tools/kutu-arsivle.py"
+
+# === 20 AGU 2026 (K258) — "DEFTER BAKIMI" KOVASI ===========================
+# OLCULEN ARIZA: kota kapilarinin BASTIGI carenin kendisi mimarin komut
+# kumesinde YASAKTI. `defter-kota-kapisi.py` "CARE: ... defter-rotasyon.py ...
+# --tavan-kaynaktan --isaretciye-indir" basiyordu ama K168 H1 kolu HER bayragi
+# kesiyordu; `kutu-arsivle.py` kapida HIC gecmiyordu (genel `return False`).
+# Sonuc: kapi cozumu soyluyor, kapi cozumu reddediyor — defter/kutu yedi-sekiz
+# tur ELLE kirpildi.
+#
+# 🔴 KOVA ADLIDIR VE TURETILMISTIR, KAPI TOPTAN GEVSETILMEDI:
+#   * yalniz IKI arac (defter bakimi araci) girer,
+#   * her aracin izinli bayrak kumesi TAM ESITLIKLE tanimlidir,
+#   * kumenin DISINDAKI her bayrak RED (serbest-bicim bayrak YOK),
+#   * konumsal argumanlar kanonik yola TAM ESITLIKLE dogrulanir.
+# Kapinin olcum/icra yasaginin GERI KALANI (curl / sort / tail / head / find /
+# wc ve genel python) GEVSETILMEZ — bu kova onlara DOKUNMAZ.
+DEFTER_BAKIMI_BAYRAKLARI = {
+    DEFTER_ROTASYON_YOL: frozenset(("--tavan-kaynaktan", "--isaretciye-indir")),
+    KUTU_ARSIVLE_YOL: frozenset(("--kuru",)),
+}
+# Aracin bekledigi KANONIK konumsal argumanlar (bos tuple = konumsal arg YOK).
+DEFTER_BAKIMI_KONUMLARI = {
+    DEFTER_ROTASYON_YOL: (DEFTER_ROTASYON_DEFTER, DEFTER_ROTASYON_ARSIV),
+    KUTU_ARSIVLE_YOL: (),
+}
+
+
+def _bakim_bayraklari_izinli(arac_yolu, kalan_argumanlar):
+    """DEFTER BAKIMI kovasi: bayrak kumesi TAM ESITLIK ile dogrulanir.
+
+    True yalnizca su durumda: her bayrak aracin izinli kumesinde VE hicbiri
+    tekrarlanmamis. Deger alan bayrak (`--tavan-sayi 130`) izinli kumede
+    OLMADIGI icin zaten RED; `=`li yazim (`--tavan-sayi=130`) da kumeye TAM
+    ESIT olmadigindan RED. Bilinmeyen arac -> RED (fail-closed).
+    """
+    izinli = DEFTER_BAKIMI_BAYRAKLARI.get(arac_yolu)
+    if izinli is None:
+        return False
+    bayraklar = [a for a in kalan_argumanlar if a.startswith("-")]
+    if len(bayraklar) != len(set(bayraklar)):
+        return False
+    return all(b in izinli for b in bayraklar)
+
+
+def _bakim_konumlari_izinli(arac_yolu, kalan_argumanlar, cwd):
+    """DEFTER BAKIMI kovasi: konumsal argumanlar kanonik yola TAM ESIT mi?"""
+    beklenen = DEFTER_BAKIMI_KONUMLARI.get(arac_yolu)
+    if beklenen is None:
+        return False
+    konumlar = [a for a in kalan_argumanlar if not a.startswith("-")]
+    if len(konumlar) != len(beklenen):
+        return False
+    return all(_coz(v, cwd) == b for v, b in zip(konumlar, beklenen))
 
 # Olcum / dosya-tarama komutlari: bunlar mimarin elinden kacan siniftir (boyut, sayim,
 # arama, icerik dokme). Komut zincirinin HERHANGI bir segmentinde (pipe dahil —
@@ -1046,11 +1100,18 @@ def _py_izinli(ad, argumanlar, cwd):
         python3 tools/d1-sync.py --durum                (yalniz --durum)
         python3 tools/defter-rotasyon.py <defter> <arsiv>  (18 Agu K168 H1)
     3. satir (K168 H1): 'defter-rotasyon.py' uzerinden DEVAM.md -> DEVAM-ARSIV.md
-    rotasyonu icin serbest. Arguman sayisi 3 (yol + 2 konum), herhangi bir bayrak
-    YASAK (--tavan-sayi / --tarih dahil; K168 §2.H1). Konum argumanlari kanonik
-    DEVAM.md ve DEVAM-ARSIV.md yolu olmali (baska yol = RED) — sinir kapinin kendi
-    GEREKCESIYLE'nde aciklanir: 'serbest-biçim argüman, ek bayrak, kabuk operatörü
-    REDDEDILIR'. tools/recete-kapisi.py bu serbesti KURU kontrol eder.
+    rotasyonu icin serbest. Konum argumanlari kanonik DEVAM.md ve DEVAM-ARSIV.md
+    yolu olmali (baska yol = RED).
+
+    === 20 AGU 2026 (K258): DEFTER BAKIMI KOVASI ===
+    Bayrak YASAGI TOPTAN kaldirilmadi, ADLANDIRILMIS bir kovaya baglandi:
+        python3 tools/defter-rotasyon.py DEVAM.md DEVAM-ARSIV.md
+                [--tavan-kaynaktan] [--isaretciye-indir]
+        python3 tools/kutu-arsivle.py [--kuru]
+    Izinli bayrak kumesi TAM ESITLIKLE DEFTER_BAKIMI_BAYRAKLARI'nda tanimlidir;
+    kume DISINDAKI her bayrak (--tavan-sayi / --tarih / --tavan 300 / =li yazim)
+    RED kalir. Kapinin olcum/icra yasaginin GERI KALANI GEVSETILMEZ.
+    tools/recete-kapisi.py bu serbesti KURU kontrol eder.
     Yol tam-yol ya da repo-goreli olabilir (_coz ile cozulur); node/python2/pypy
     icin IZINLI KOMUT YOKTUR (hepsi RED). 'Baska argüman eklenirse RED' — len
     kontrolu bunu saglar."""
@@ -1064,16 +1125,31 @@ def _py_izinli(ad, argumanlar, cwd):
     if ilk == D1_YOL:
         return len(argumanlar) == 2 and argumanlar[1] == "--durum"
     if ilk == DEFTER_ROTASYON_YOL:
-        # K168 H1: TAM ESITLIK + 3 ARGS + 2 KONUM KANONIK YOL. Bayrak YASAK (astarik
-        # kontrolu: hicbir arg '-' ile baslayamaz) — aksi halde 'python3 defter-rotasyon.py
-        # DEVAM.md DEVAM-ARSIV.md --tavan-sayi 130' komutu serbest kalirdi.
-        if len(argumanlar) != 3:
+        # K168 H1 + K258 DEFTER BAKIMI KOVASI. Eskiden HER bayrak kesiliyordu
+        # ('hicbir arg "-" ile baslayamaz'); kapinin kendi bastigi CARE de o
+        # yuzden reddediliyordu. Bayrak artik TOPTAN serbest DEGIL: yalnizca
+        # DEFTER_BAKIMI_BAYRAKLARI kumesindekiler (TAM ESITLIK) gecer, kume
+        # disindaki her bayrak — '--tavan-sayi 130' ve '--tavan-sayi=130'
+        # dahil — RED kalir. Konumsal arg sayisi ve kanonik yol dogrulamasi
+        # AYNEN durur.
+        if not _bakim_bayraklari_izinli(DEFTER_ROTASYON_YOL, argumanlar[1:]):
             return False
-        if any(a.startswith("-") for a in argumanlar[1:]):
+        if not _bakim_konumlari_izinli(DEFTER_ROTASYON_YOL, argumanlar[1:], cwd):
             return False
-        d1 = _coz(argumanlar[1], cwd)
-        d2 = _coz(argumanlar[2], cwd)
+        konumlar = [a for a in argumanlar[1:] if not a.startswith("-")]
+        d1 = _coz(konumlar[0], cwd)
+        d2 = _coz(konumlar[1], cwd)
         return d1 == DEFTER_ROTASYON_DEFTER and d2 == DEFTER_ROTASYON_ARSIV
+    if ilk == KUTU_ARSIVLE_YOL:
+        # K258: ORTAK POSTA KUTUSU bakimi. Kapida ONCEDEN HIC gecmiyordu ->
+        # genel `return False`. Kanonik cagri konumsal arg ALMAZ (kutu/arsiv
+        # yollari aracin kendi TEK KAYNAGINDAN gelir); izinli tek bayrak
+        # '--kuru'. '--tavan 300' gibi sayi tasiyan hicbir bayrak GECMEZ —
+        # tavan sahibi araciN kendisidir, komuta ELLE yazilan sayi ikinci
+        # kopya olurdu ([[ikiz-tanim-sessiz-ayrisma]]).
+        if not _bakim_bayraklari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:]):
+            return False
+        return _bakim_konumlari_izinli(KUTU_ARSIVLE_YOL, argumanlar[1:], cwd)
     return False
 
 

@@ -2344,6 +2344,17 @@ jobs:
           python-version: "3.12"
       - name: "Defter rotasyonu kabul + mutasyon bataryasi (agsiz)"
         run: python3 tools/defter-rotasyon-test.py
+      # K243 + K258 (20 Agu 2026) — TASIMA BIRIMI (kapsayici/kalem ayrimi + dort
+      # kova) ve kapinin adlandirilmis DEFTER BAKIMI kovasi. Kardes bataryayla
+      # AYNI ise konuldu: `defter-kotasi` SERIT B'dir, `needs:` YOKTUR ve hicbir
+      # is buna bagli DEGILDIR -> kirmizisi EKIBIN YAYININI DURDURMAZ. Bu yerlesim
+      # bilerek secildi: batarya kapiyi alt surec olarak kosturur ve kapi sabitleri
+      # (REPO_ONEKI) gelistirme makinesinin yoluna capalidir; runner'da bir kol
+      # beklenmedik davranirsa sonuc GORUNUR kirmizi olur ama yayin akmaya devam
+      # eder (K80: yuzeyi yesillenmemis kapiyi bloklayici seride baglamak yayini
+      # iki commit boyunca durdurmustu).
+      - name: "Defter tasima birimi + DEFTER BAKIMI kovasi (K243+K258, agsiz)"
+        run: python3 tools/defter-tasima-birimi-test.py
       - name: "Defter kota olcumu (RAPOR-ONLY — yayini durdurmaz)"
         run: python3 tools/defter-kota-kapisi.py --bypass-kontrol
 
