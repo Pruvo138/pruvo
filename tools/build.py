@@ -2055,6 +2055,65 @@ BUYUK_BUTONLAR_HTML = (
     '      <a class="order-wa" id="orderAlt" href="%s" target="_blank" rel="noopener">' +
     WA_ICON + 'WhatsApp\'tan Sor</a>')
 
+# ------------------------------------------------------- GUVEN SERIDI (P3, 20 Agu)
+# 🔴 NEDEN VAR (ArTisT olcumu, 11 urun sayfasi): karar aninda — yani CTA'nin yaninda —
+# HICBIR guven ibaresi yoktu; iyzico/Visa/Mastercard yalniz FOOTER'daydi. Serit CTA'nin
+# hemen altina, sayfanin %100'une basilir.
+#
+# 🔴 NE YAZILMAZ (mimar hukmu + ArTisT onayi, 20 Agu — gerekce KAYITTA):
+#   1. "degisim/iade hakki" YAZILMAZ. Olcuye ozel uretim Mesafeli Sozlesmeler
+#      Yonetmeligi m.15 kapsaminda cayma hakki DISINDADIR; 23.968 ozel uretim
+#      sayfasina o ibareyi basmak VAR OLMAYAN bir hak vaat eder. Okan 11 Agu'da
+#      panelden "14 gun cayma hakkiniz vardir" ibaresini BILEREK kaldirmisti.
+#      `cayma-beyani-kapisi.py` CAYMA_RE deseni "iade" kelimesini YAKALAMIYOR —
+#      kapinin korlugu izin DEGILDIR. Onun yerine yasal sayfaya LINK verilir.
+#   2. KARGO UCRETI / bedava esigi YAZILMAZ (marka kurali; `kargo-pazarlama-kapisi.py`).
+#   3. TESLIM SURESI BURAYA KOPYALANMAZ. Sure zaten SINIF BEYANI blogunda
+#      (`.sinif-beyan`, tek kaynak `secenekler.js` BEYAN) yazilidir ve serit o blogun
+#      HEMEN ALTINA konumlanir. Ikinci kopya B4'un "blok bayt-birebir" iddiasini ve
+#      E5 tek-kaynak iddiasini bozardi; hazir/stok sayfasinda ise B5 "kanonik disinda
+#      sure YOK" iddiasi KIRMIZI yanardi (o sinifin kanonik sure kumesi BOSTUR).
+#
+# Link etiketi BURAYA YAZILMAZ: slug ve GORUNUR baslik sayfalar.CONTENT_PAGES'ten
+# TURER. Uydurma ad `tools/yasal-sayfa-drift-kapisi.py` altinda drift kirmizisi yakar.
+GUVEN_TESLIMAT_SLUG = "teslimat-iade"
+_GUVEN_TESLIMAT_BASLIK = next(
+    (baslik for slug, baslik, _meta, _fn in CONTENT_PAGES if slug == GUVEN_TESLIMAT_SLUG), "")
+if not _GUVEN_TESLIMAT_BASLIK:
+    # FAIL-CLOSED: baslik tek kaynaktan cozulemiyorsa BOS/uydurma etiketli link
+    # basmaktansa build DUSER (kirik yasal link sessiz bir guven kusurudur).
+    raise SystemExit("HATA: guven seridi yasal sayfa basligi cozulemedi: %s"
+                     % GUVEN_TESLIMAT_SLUG)
+
+KILIT_IKON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5'
+              'S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6'
+              'c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm3 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>')
+
+GUVEN_SERIT_HTML = (
+    '<div class="guven-serit">'
+    '<span class="guven-oge">' + KILIT_IKON + 'iyzico ile güvenli ödeme</span>'
+    '<a class="guven-oge guven-link" href="/%s/">%s</a>'
+    # `esc` bu noktada HENUZ TANIMLI DEGIL (asagida, 2394) — ayni cagri (html.escape,
+    # quote=True) dogrudan yazilir; ikinci bir kacis kurali TANIMLANMAZ.
+    '</div>') % (GUVEN_TESLIMAT_SLUG, html.escape(_GUVEN_TESLIMAT_BASLIK, quote=True))
+
+# ------------------------------------------------- SATIN ALMA SERIDI (P2, 20 Agu)
+# 🔴 NEDEN VAR (ArTisT olcumu, 375x812): parametrik/sari sayfalarda fiyat + "Sepete Ekle"
+# HICBIR ZAMAN ilk ekranda degildi; normal sayfalarda da galeri (375 px kare gorsel +
+# kucuk gorseller) fiyati ~750 px'e itiyordu. Serit `position:fixed` oldugu icin
+# KAYDIRMADAN BAGIMSIZ olarak ilk 812 px icinde durur.
+#
+# 🔴 IKINCI SEPET MANTIGI YOK: seridin kendi id'leri (#seritFiyat/#seritSepet) vardir;
+# buton tiklamasi #cartBtn'e DELEGE eder, fiyat metni de #opsiyonFiyat/.price'tan
+# AYNALANIR. Ikinci bir hesap/durum kaynagi acilsaydi sayfada gorunen tutar ile sepete
+# yazilan tutar sessizce ayrisirdi (bu depoda olculmus sinif: [[ikiz-tanim-sessiz-ayrisma]]).
+SATIN_SERIT_HTML = (
+    '<div class="satin-serit" id="satinSerit" hidden>'
+    '<span class="serit-fiyat" id="seritFiyat"></span>'
+    '<button type="button" class="serit-sepet" id="seritSepet">' + CART_ICON +
+    '<span class="serit-label">Sepete Ekle</span></button>'
+    '</div>')
+
 # ------------------------------------------------------------------ ortak CSS
 PAGE_CSS = """
   :root{
@@ -2311,6 +2370,24 @@ PAGE_CSS = """
   .attribution{margin-top:12px;font-size:11px;letter-spacing:.3px;color:#7d8aa3}
   .attribution a{color:#93a1bd;text-decoration:underline}
 
+  /* GUVEN SERIDI (P3) — CTA'nin hemen alti; sinif beyani blogunun (`.sinif-beyan`)
+     HEMEN ARDINDAN gelir, o yuzden ust bosluk dardir. Kargo ucreti/iade HAKKI
+     ibaresi TASIMAZ (bkz. GUVEN_SERIT_HTML gerekcesi). */
+  .guven-serit{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;
+    margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--gray-text)}
+  .guven-oge{display:inline-flex;align-items:center;gap:6px}
+  .guven-oge svg{width:14px;height:14px;fill:#178a44;flex:none}
+  .guven-link{color:var(--navy-2);font-weight:600;text-decoration:underline}
+  .guven-link:hover{color:var(--navy)}
+
+  /* SATIN ALMA SERIDI (P2) — masaustunde GORUNMEZ: orada fiyat+CTA zaten ilk ekranda
+     (iki kolonlu `.detail`, galeri solda). Yalniz dar ekranda (asagidaki medya sorgusu)
+     acilir. `[hidden]` kurali BILEREK burada: medya sorgusundaki `display:flex` yazar
+     ozgullukte `[hidden]` UA kuralini EZERDI ve JS baglanamadigi sayfada calismayan
+     bir buton gorunurdu (fail-closed yon). */
+  .satin-serit{display:none}
+  .satin-serit[hidden]{display:none}
+
   @media (max-width:760px){
     .detail{grid-template-columns:1fr;gap:22px}
     .gallery{position:static}
@@ -2328,6 +2405,37 @@ PAGE_CSS = """
        ve flex:none zaten küçültmediği için ölçüye etkisi kalmamıştı — duran bir
        sıfırlama "hâlâ bir taban var" izlenimi verip ikiz tanım riski doğuruyordu. */
     .ikon-sepet{flex:none}
+    /* 🔴 SATIN ALMA SERIDI — ArTisT'in cividi burada karsilanir: `position:fixed`
+       oldugu icin serit KAYDIRMA KONUMUNDAN BAGIMSIZ olarak gorunur alanin altinda
+       durur, yani fiyat + "Sepete Ekle" 375x812'de DAIMA ilk 812 px icindedir.
+       `[hidden]` kuralini EZMEZ (yukaridaki `.satin-serit[hidden]` daha sonra gelmez —
+       bu yuzden asagida da acikca tekrarlanir). */
+    .satin-serit{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:61;
+      align-items:center;gap:10px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+      background:var(--gray-card);border-top:1px solid var(--gray-line);
+      box-shadow:0 -2px 12px rgba(18,41,77,.14)}
+    .satin-serit[hidden]{display:none}
+    .serit-fiyat{flex:1 1 auto;min-width:0;font-size:17px;font-weight:800;
+      color:var(--navy);line-height:1.25;overflow:hidden;text-overflow:ellipsis;
+      white-space:nowrap}
+    .serit-sepet{flex:none;display:inline-flex;align-items:center;justify-content:center;
+      gap:8px;min-height:44px;padding:10px 16px;border:none;border-radius:9px;
+      background:var(--navy);color:#fff;font-size:15px;font-weight:700;
+      font-family:inherit;cursor:pointer}
+    .serit-sepet svg{width:18px;height:18px;fill:#fff}
+    .serit-sepet.added{background:#178a44}
+    .serit-sepet.kilitli{opacity:.45;cursor:not-allowed}
+    .serit-label{white-space:nowrap}
+    /* Serit sayfanin son satirlarini ORTMESIN; sepet FAB'i ve yukari-cik oku da
+       seridin USTUNE kayar (ikisi de position:fixed, ayni kose).
+       🔴 KANCA `body.serit-var`: paylasilan PAGE_CSS yasal/icerik sayfalarina da
+       basilir ve ORADA serit YOKTUR — kosulsuz `body{padding-bottom}` o sayfalarin
+       altina 72 px olu bosluk birakirdi. Sinifi JS, seridi GERCEKTEN acarken koyar;
+       serit acilmadiysa dolgu da YOKTUR (fail-closed). */
+    body.serit-var{padding-bottom:72px}
+    body.serit-var .cart-fab{bottom:80px}
+    body.serit-var .top-btn{bottom:80px}
+    body.serit-var.fab-var .top-btn{bottom:142px}
   }
 """
 PAGE_CSS += CONTENT_CSS
@@ -2884,6 +2992,19 @@ function pv(el,src){{
   var adetEksi=document.getElementById("adetEksi");
   var adetArti=document.getElementById("adetArti");
   var fiyatEl=document.getElementById("opsiyonFiyat");
+  /* SATIN ALMA SERIDI (P2) — dar ekranda gorunur alanin altinda duran fiyat+CTA seridi.
+     🔴 IKINCI KAYNAK ACILMAZ: fiyat metni sayfanin KENDI fiyat dugumunden AYNALANIR
+     (panelli sayfada #opsiyonFiyat, panelsiz sayfada .price), buton tiklamasi da
+     #cartBtn'e DELEGE edilir. Boylece secim kilidi, konfigurator gecerlilik kontrolu
+     ve hata kutusu TEK kod yolundan gecer — seride kopya kural yazilmaz. */
+  /* ⚠️ KAPANIS SUSLU PARANTEZLERI SON SATIRA BITISIK ve satirlar YOGUN: varlik-test.py
+     eksen 2 sayfa JS'ini SATIR COKKUMESI olarak olcer; yalniz kapanis parantezi iceren
+     bir satir AYIRT EDICI DEGILDIR, beyan EDILEMEZ (beyan edilseydi gercek bir icerik
+     kaybini maskelerdi). Bicimi "duzeltip" parantezleri kendi satirina almadan once o
+     kapiya bak. NOT: bu govde `str.format` ile doldurulur — yorum icinde bile TEK
+     suslu parantez YAZILMAZ (yazildi ve `ValueError: Single '}}'` ile build'i dusurdu). */
+  var serit=document.getElementById("satinSerit"), seritFiyat=document.getElementById("seritFiyat"), seritSepet=document.getElementById("seritSepet");
+  var seritLabel=seritSepet?seritSepet.querySelector(".serit-label"):null, fiyatKaynak=fiyatEl||document.querySelector(".price");
   /* Ustu cizili eski fiyat (opsiyonel `eski_fiyat`). Sayfada YOKSA null -> hicbir sey olmaz. */
   var eskiEl=document.getElementById("eskiFiyat");
   /* Kart-secim modu (işletme kararı, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK,
@@ -3030,6 +3151,14 @@ function pv(el,src){{
       if(ref){{ mesaj += "\\n" + ref; }}
       orderAlt.href = "https://wa.me/{whatsapp}?text=" + encodeURIComponent(mesaj);
     }}
+    /* SERIT AYNASI — kaynak sayfanin kendi dugumleri; serit hicbir seyi YENIDEN
+       HESAPLAMAZ. Fiyat metni bos gelirse serit fiyati da bos kalir (uydurma tutar
+       basmaz), buton durumu/kilidi #cartBtn'den birebir kopyalanir. */
+    if(seritFiyat && fiyatKaynak){{ seritFiyat.textContent = fiyatKaynak.textContent; }}
+    if(seritSepet){{ var sD = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle";
+      seritSepet.classList.toggle("added", has); seritSepet.classList.toggle("kilitli", !!btn.disabled); seritSepet.disabled = !!btn.disabled;
+      seritSepet.setAttribute("aria-label", sD); seritSepet.setAttribute("title", sD);
+      if(seritLabel){{ seritLabel.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }} }}
   }}
   btn.addEventListener("click", function(){{{konf_klik_guard}
     /* Malzeme + renk seçilmeden sepete eklenemez (istemci 1. savunma; Worker 2. savunma).
@@ -3148,6 +3277,13 @@ function pv(el,src){{
     }});
     adetSec.addEventListener("input", render);
   }}
+  /* SERIDI AC — ancak DELEGASYON KURULABILDIYSE. Kurulamadiysa serit `hidden` kalir:
+     calismayan bir "Sepete Ekle" gostermek, hic gostermemekten KOTUDUR (bu depoda
+     olculmus sinif: kullanici tikladigini sanip sepeti bos birakiyordu). `serit-var`
+     govde sinifi da burada konur — sayfanin alt dolgusu ve FAB/yukari-cik oku
+     konumlari yalnizca serit GERCEKTEN acikken kayar. */
+  if(serit && seritSepet){{ seritSepet.addEventListener("click", function(){{ btn.click(); }});
+    serit.hidden = false; serit.removeAttribute("hidden"); document.body.classList.add("serit-var"); }}
   render();
 }})();
 /* Malzeme çipleri: masaüstünde hover (CSS), mobilde DOKUNMA ile açılır/kapanır.
@@ -3884,12 +4020,6 @@ def render_product(p, all_products, chip_map=None):
   </div>
 </section>
 
-<section class="info-strip">
-  <div class="info-strip-inner">
-    <p><strong>Model numarasını</strong> biliyorsanız gönderin, <strong>araştıralım</strong>; ya da <strong>parçanın bir eşini</strong> (kırık olsa da) gönderin, <strong>endüstriyel tarayıcıyla modelleyelim</strong>.</p>
-  </div>
-</section>
-
 <main>
   <nav class="crumbs" aria-label="breadcrumb">
     <a href="/">Ana Sayfa</a><span>&rsaquo;</span>
@@ -3908,11 +4038,13 @@ def render_product(p, all_products, chip_map=None):
       {brands}
       {price}
       {opsiyonlar}
-      {malzeme}{ozel_beyan}
+      {ozel_beyan}{guven}
+      {malzeme}
       <div class="desc">{aciklama}</div>
       {eylem_butonlar}
     </div>
   </div>
+  {satin_serit}
 </main>
 
 {related}
@@ -4008,6 +4140,15 @@ var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
         # YAZILMAZ: numaralar buyuyor ve burada bayatlayan bir liste, yanindaki
         # baglayici metne yalan soyleyen bir ikize donusuyor.
         ozel_beyan=("" if fiziksel else OZEL_TESLIM_BEYAN_HTML),
+        # GUVEN SERIDI: KOSULSUZ — sablonun %100'unde basilir (P3 kabulu). Sinifa gore
+        # DEGISMEZ, cunku sinifa gore degisen tek bilgi (teslim beyani) hemen USTUNDEKI
+        # `.sinif-beyan` blogundadir ve o blok TEK KAYNAKTAN (secenekler.js BEYAN) gelir.
+        # Seride ikinci bir cumle KOPYALANMAZ (E5 tek kaynak + B4 bayt-birebir korunur).
+        guven=GUVEN_SERIT_HTML,
+        # SATIN ALMA SERIDI: KOSULSUZ basilir; gorunurlugu CSS (dar ekran) + JS
+        # (baglanabildiyse `hidden` kalkar) belirler. Fiyat/CTA kaynagi #opsiyonFiyat +
+        # #cartBtn'dir — ikinci hesap YOK.
+        satin_serit=SATIN_SERIT_HTML,
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,

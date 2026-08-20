@@ -127,6 +127,35 @@ BILEREK_DEGISEN = (
     ('cipler.querySelectorAll(".fil-cip[data-kurus]")',
      "YENI: her malzeme cipinin KENDI tutari gorunur etiketle yazilir "
      "(taban secenegin tutari sayfada okunur kalir)"),
+    # 2026-08-20 — SATIN ALMA SERIDI (P2, ArTisT olcumu): dar ekranda fiyat + "Sepete Ekle"
+    # ilk 812 px icinde tutulur. Dokuz satirin HEPSI YENIDIR (kiyas commit'inde yok) ve
+    # her biri AYIRT EDICIDIR — `serit*` onekli hicbir dize eski sayfada gecmez.
+    # 🔴 IDDIA TASINDI: seridin varligi/teklıgi, fiyat+CTA tasidigi, IKINCI bir sepet
+    # mantigi DOGURMADIGI (delegasyon) ve sunucudan BOS fiyat geldigi
+    # tools/ilk-ekran-kapisi.py A1/A6/A7'de fail-closed olculur; mutasyon kaniti ayni
+    # dosyadaki `--kendini-test` (7 oldurucu; "serit SILINDI" ve "serit IKIZLENDI"
+    # dogrudan bu satirlari hedefler).
+    ('var serit=document.getElementById("satinSerit")',
+     "YENI: satin alma seridi dugumleri (nobetci: ilk-ekran-kapisi.py A1)"),
+    ('var seritLabel=seritSepet?',
+     "YENI: serit etiketi + fiyat AYNA KAYNAGI (#opsiyonFiyat ya da .price)"),
+    ('if(seritFiyat && fiyatKaynak)',
+     "YENI: serit fiyati sayfanin kendi fiyat dugumunden AYNALANIR — ikinci hesap YOK "
+     "(nobetci: ilk-ekran-kapisi.py A7)"),
+    ('if(seritSepet){ var sD = has ?',
+     "YENI: serit butonunun sepette/degil durumu #cartBtn ile AYNI kaynaktan"),
+    ('seritSepet.classList.toggle("added", has)',
+     "YENI: serit butonu gorunumu #cartBtn durumundan birebir kopyalanir"),
+    ('seritSepet.setAttribute("aria-label", sD)',
+     "YENI: ekran okuyucu metni gorunur metinle SENKRON (etiketli kalip kurali)"),
+    ('if(seritLabel){ seritLabel.textContent',
+     "YENI: serit etiketi 'Sepette ✓' / 'Sepete Ekle' — govde metniyle ayni sozluk"),
+    ('if(serit && seritSepet){ seritSepet.addEventListener',
+     "YENI: serit butonu #cartBtn'e DELEGE eder — secim kilidi/konfigurator gecerliligi "
+     "TEK kod yolundan gecer (nobetci: ilk-ekran-kapisi.py A7)"),
+    ('serit.hidden = false; serit.removeAttribute("hidden");',
+     "YENI: serit ANCAK delegasyon kurulduysa acilir + `serit-var` govde sinifi "
+     "(fail-closed: calismayan bir CTA gosterilmez)"),
 )
 
 # TAM SATIR eslesmeli girisler. NEDEN AYRI: yukaridaki liste ALT DIZE arar; ayirt edici
@@ -416,6 +445,60 @@ BILEREK_DEGISEN_CSS = (
          "    border:1px solid #f0d9a8;color:#6b4e11;font-size:12.5px;line-height:1.5}\n"
          "  .oneri-not[hidden]{display:none}",
      "bilincli-secim notu kutusu (nobetci: d1-fiyat-parite-kapisi.py E9)"),
+    # 2026-08-20 — GUVEN SERIDI (P3) + SATIN ALMA SERIDI (P2) taban kurallari.
+    # ArTisT olcumu: (P3) 11 urun sayfasinin hicbirinde CTA'nin yaninda guven ibaresi
+    # yoktu; (P2) parametrik sayfalarda fiyat+CTA hicbir kaydirma noktasinda ilk ekranda
+    # degildi. Serit MASAUSTUNDE GORUNMEZ (`display:none`) — orada fiyat/CTA iki kolonlu
+    # duzende zaten ilk ekranda; `[hidden]` kurali medya sorgusundaki `display:flex`
+    # yazar ozgullugunu EZER, yani JS baglanamadiysa calismayan bir CTA GORUNMEZ.
+    # 🔴 IDDIA TASINDI: seridin varligi/teklıgi + guven seridinin HUKUKI VAAT TASIMADIGI
+    # (iade hakki / kargo ucreti / teslim suresi YOK) ve yasal link etiketinin
+    # sayfalar.CONTENT_PAGES'ten turedigi tools/ilk-ekran-kapisi.py A1..A7'de fail-closed
+    # olculur; mutasyon kaniti ayni dosyada `--kendini-test` (7 oldurucu).
+    ("", "\n\n\n  .guven-serit{display:flex;flex-wrap:wrap;align-items:center;"
+         "gap:6px 14px;\n"
+         "    margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--gray-text)}\n"
+         "  .guven-oge{display:inline-flex;align-items:center;gap:6px}\n"
+         "  .guven-oge svg{width:14px;height:14px;fill:#178a44;flex:none}\n"
+         "  .guven-link{color:var(--navy-2);font-weight:600;text-decoration:underline}\n"
+         "  .guven-link:hover{color:var(--navy)}\n\n  \n\n\n\n\n"
+         "  .satin-serit{display:none}\n  .satin-serit[hidden]{display:none}\n\n  ",
+     "guven seridi + serit taban kurali (masaustunde gizli) "
+     "(nobetci: ilk-ekran-kapisi.py A2/A4/A5)"),
+    # 2026-08-20 — SATIN ALMA SERIDI, DAR EKRAN KOLU. `position:fixed` oldugu icin serit
+    # KAYDIRMA KONUMUNDAN BAGIMSIZ olarak gorunur alanin altinda durur; ArTisT'in cividi
+    # (375x812'de fiyat + "Sepete Ekle" ilk 812 px icinde) YAPISAL olarak burada karsilanir.
+    # `body.serit-var` kancasi: dolgu/FAB/yukari-ok kaymasi YALNIZ serit gercekten
+    # acildiysa uygulanir — paylasilan CSS yasal/icerik sayfalarina da basildigi icin
+    # kosulsuz `body{padding-bottom}` oralarda 72 px olu bosluk birakirdi.
+    ("", "}\n    \n\n\n\n\n"
+         "    .satin-serit{display:flex;position:fixed;left:0;right:0;bottom:0;"
+         "z-index:61;\n"
+         "      align-items:center;gap:10px;padding:8px 12px "
+         "calc(8px + env(safe-area-inset-bottom));\n"
+         "      background:var(--gray-card);border-top:1px solid var(--gray-line);\n"
+         "      box-shadow:0 -2px 12px rgba(18,41,77,.14)}\n"
+         "    .satin-serit[hidden]{display:none}\n"
+         "    .serit-fiyat{flex:1 1 auto;min-width:0;font-size:17px;font-weight:800;\n"
+         "      color:var(--navy);line-height:1.25;overflow:hidden;"
+         "text-overflow:ellipsis;\n"
+         "      white-space:nowrap}\n"
+         "    .serit-sepet{flex:none;display:inline-flex;align-items:center;"
+         "justify-content:center;\n"
+         "      gap:8px;min-height:44px;padding:10px 16px;border:none;"
+         "border-radius:9px;\n"
+         "      background:var(--navy);color:#fff;font-size:15px;font-weight:700;\n"
+         "      font-family:inherit;cursor:pointer}\n"
+         "    .serit-sepet svg{width:18px;height:18px;fill:#fff}\n"
+         "    .serit-sepet.added{background:#178a44}\n"
+         "    .serit-sepet.kilitli{opacity:.45;cursor:not-allowed}\n"
+         "    .serit-label{white-space:nowrap}\n    \n\n\n\n\n\n"
+         "    body.serit-var{padding-bottom:72px}\n"
+         "    body.serit-var .cart-fab{bottom:80px}\n"
+         "    body.serit-var .top-btn{bottom:80px}\n"
+         "    body.serit-var.fab-var .top-btn{bottom:142px",
+     "dar ekranda fiyat+CTA seridi + `serit-var` kancali dolgu "
+     "(nobetci: ilk-ekran-kapisi.py A1/A7)"),
 )
 
 

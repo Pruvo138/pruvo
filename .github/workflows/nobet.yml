@@ -3135,6 +3135,29 @@ jobs:
         if: ${{ !cancelled() }}
         run: python3 tools/cta-denge-kapisi.py
 
+      # ILK EKRAN + GUVEN SERIDI (P2/P3, 20 Agu). ArTisT olcumu: parametrik sayfalarda
+      # fiyat + "Sepete Ekle" HICBIR kaydirma noktasinda ilk ekranda degildi; 11 urun
+      # sayfasinin hicbirinde CTA'nin yaninda guven ibaresi yoktu. Kapi BES render yolunu
+      # (kart-secim · hazir/stok · konfigur · semasiz-parametrik · panelsiz) sentetik
+      # fiksturle uretir ve olcer: serit TEK adet + fiyat/CTA tasiyor · guven seridi
+      # sablonun %100'unde · info-strip kalkti · serit IKINCI bir tekil id ya da IKINCI
+      # sepet mantigi DOGURMUYOR (delegasyon) · sunucu seride tutar BASMIYOR.
+      # 🔴 EN KRITIK EKSEN A4 — GUVEN SERIDI HUKUKI VAAT TASIMAZ: iade/cayma HAKKI
+      # iddiasi, teslim SURESI jetonu, kargo UCRETI/bedava esigi YOK. Neden ayri kapi:
+      # cayma-beyani-kapisi.py `CAYMA_RE` deseni "cayma" kokunden turer ve "iade"
+      # kelimesini YAKALAMAZ — "degisim/iade hakki" ibaresi 23.968 ozel uretim sayfasina
+      # SESSIZCE girebilirdi. Olcuye ozel uretim Mesafeli Sozlesmeler Yonetmeligi m.15
+      # kapsaminda cayma hakki DISINDADIR; o ibare VAR OLMAYAN bir hak vaat eder.
+      # Offline, bloklayici. Mutasyon bataryasi (7 oldurucu, hedef-kol atifli):
+      #   python3 tools/ilk-ekran-kapisi.py --kendini-test
+      - name: Ilk ekran + guven seridi kapisi (fiyat/CTA erisimi · hukuki vaat yok)
+        if: ${{ !cancelled() }}
+        run: python3 tools/ilk-ekran-kapisi.py
+
+      - name: Ilk ekran kapisi — mutasyon bataryasi (7 oldurucu)
+        if: ${{ !cancelled() }}
+        run: python3 tools/ilk-ekran-kapisi.py --kendini-test
+
       # SKAN ART: gizli dekor alt-serisi kategorisi + ana sayfa banner'i. Bloklayici
       # (kategori-parite deseni): bu kararin kablolamasi 6 dosyaya yayiliyor (index.html
       # gizli liste + banner + toggle, build.py NAV_GIZLI/FONKSIYONEL/feed taksonomisi,
