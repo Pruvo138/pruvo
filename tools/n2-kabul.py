@@ -297,6 +297,25 @@ def _kabul_B4(calisma):
     # isci.sh + gozcu.py HERMETIK kopyalari (canli dosyalara DOKUNULMAZ)
     isci_kopya = os.path.join(kurulum, "isci.sh")
     shutil.copyfile(KURUCU.ISCI_SARMALAYICI_YOLU_SABIT, isci_kopya)
+    # 🔴 20 Agu 2026: CANLI isci.sh ARTIK YAMALI (blok 20 Agu 02:25'te kuruldu).
+    # Yamali kopya gelince kurucu "ZATEN TAM" der, YEDEK URETMEZ; B4'un
+    # `isci_yedek` ayagi kirmizi yanar ve — asil zarar — YAMA YOLU HIC
+    # OLCULMEZ: batarya kirmizi olsa da olmasa da o kol artik kapsam DISI
+    # kalirdi [[batarya-kapsam-tabani-sayiyla-civilenir]] · [[bayat-kabul-testi]].
+    # Cozum: hermetik kopyadan blogu SOK — yama yolu her kosumda GERCEKTEN kosar.
+    with open(isci_kopya, encoding="utf-8") as f:
+        _isci_ham = f.read()
+    _blok_sokuldu = False
+    if KURUCU.PARTI_BAS in _isci_ham and KURUCU.PARTI_SON in _isci_ham:
+        _b = _isci_ham.index(KURUCU.PARTI_BAS)
+        _s = _isci_ham.index(KURUCU.PARTI_SON) + len(KURUCU.PARTI_SON)
+        with open(isci_kopya, "w", encoding="utf-8") as f:
+            f.write(_isci_ham[:_b] + _isci_ham[_s:])
+        _blok_sokuldu = True
+    # ON-KOSUL: kurucu kosmadan ONCE kopya YAMASIZ olmali — degilse "yamali"
+    # sonucu kurucunun degil FIKSTURUN eseridir ve olcum BOSTUR.
+    with open(isci_kopya, encoding="utf-8") as f:
+        _on_kosul_yamasiz = KURUCU.PARTI_BAS not in f.read()
     gozcu_kopya = os.path.join(kurulum, "gozcu.py")
     shutil.copyfile(KURUCU.GOZCU_YOLU, gozcu_kopya)
 
@@ -352,12 +371,14 @@ def _kabul_B4(calisma):
 
     b4 = (rc == 0 and beklenen in cikti and yedekli == len(evler)
           and kabloluu == len(evler) and isci_yamali and gozcu_yamali
-          and isci_yedek and idempotent)
+          and isci_yedek and idempotent and _on_kosul_yamasiz)
     kayit("B4", b4,
           "%s | rc=%s yedekli=%d/%d kablolu=%d/%d isci.sh=%s gozcu.py=%s "
-          "isci_yedek=%s idempotent=%s"
+          "isci_yedek=%s idempotent=%s | on-kosul: kopya yamasizdi=%s "
+          "(blok sokuldu=%s)"
           % (beklenen, rc, yedekli, len(evler), kabloluu, len(evler),
-             isci_yamali, gozcu_yamali, isci_yedek, idempotent))
+             isci_yamali, gozcu_yamali, isci_yedek, idempotent,
+             _on_kosul_yamasiz, _blok_sokuldu))
     for satir in cikti.splitlines():
         if satir.startswith(("YUZEY", "KURULU_EV", "ISCI_SH", "GOZCU",
                              "KAPSAM_DISI_EV", "TAM OLMAYAN")):
@@ -463,7 +484,9 @@ def kabul_Z(calisma, once_imza):
     # Z1 — her mekanizmada mutant + hedef-kol atfi
     beklenen = {
         "ev-sahip-kapisi.py": "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=3/3",
-        "parti-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=5/5",
+        # 20 Agu: K6 (T4 yuklenemez -> KIRMIZI + SEBEP) + K7 (enjekte kopya
+        # uctan uca) eklendi -> KONTROL 5 -> 7 [[kapinin-menzili-cagri-yeridir]]
+        "parti-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=7/7",
         "devir-kapisi.py":    "MUTANT=5/5 HEDEF_KOL_ATFI=5/5 KONTROL=4/4",
     }
     satirlar, hepsi = [], True

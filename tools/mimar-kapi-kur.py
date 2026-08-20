@@ -1770,6 +1770,30 @@ def _parti_ev_cozulur_mu(kok):
         return None, "parti-kapisi.py yuklenemedi: %r" % e
 
 
+def _parti_t4_dogrula(hedef):
+    """Dagitilan kopya BAGIMLILIGIYLA (T4) birlikte CALISIYOR mu?
+
+    🔴 20 Agu 2026 (canli bloker): kopya `<ev>/.claude/` altina konur, T4
+    (`parti-borc-kapisi.py`) kardes DEGILDIR. Dosyanin var olmasi kapinin
+    kostugunu KANITLAMAZ — 20 Agu'da tam bu fark yuzunden bes evin isci hatti
+    `N2B-OLCULEMEDI` ile oldu ve dagitim raporu yine de "KURULDU" yaziyordu.
+    Bu yuzden kopya CALISTIRILIR [[aracin-teshis-cumlesi-olcum-degil]].
+
+    Return: "T4-OK" | "T4-KIRIK(...)" | "HEDEF-YOK" | "T4-OLCULEMEDI(...)"
+    """
+    if not os.path.isfile(hedef):
+        return "HEDEF-YOK"
+    try:
+        p = subprocess.run([sys.executable, hedef, "--t4-durum"],
+                           capture_output=True, text=True, timeout=60)
+    except Exception as e:
+        return "T4-OLCULEMEDI(%s: %s)" % (type(e).__name__, e)
+    ham = ((p.stdout or "") + (p.stderr or "")).strip().replace("\n", " ⏎ ")
+    if p.returncode == 0 and "DURUM=YUKLENDI" in ham:
+        return "T4-OK"
+    return "T4-KIRIK(rc=%d %s)" % (p.returncode, ham[-320:] or "(cikti yok)")
+
+
 def _parti_isci_sh_yamala(yol, uygula):
     """isci.sh govdesine markerli blogu ekler. Idempotent + yedekli.
 
@@ -1906,11 +1930,16 @@ def parti_kapisi(uygula):
                 except Exception as e:
                     kopya = "KOPYALANAMADI(%r)" % e
         kablo = _parti_ev_settings(kok, goreli, uygula)
-        tam = (kopya in ("ZATEN TAM", "KURULDU") and kablo in ("zaten", "kuruldu"))
+        # 🔴 Dosya YERINDE olmasi YETMEZ: bagimliligi (T4) yuklenebiliyor mu?
+        t4 = (_parti_t4_dogrula(hedef) if kopya in ("ZATEN TAM", "KURULDU")
+              else "-")
+        tam = (kopya in ("ZATEN TAM", "KURULDU")
+               and kablo in ("zaten", "kuruldu")
+               and t4 == "T4-OK")
         if not tam:
             eksik += 1
-        print("%-8s %-10s %-34s %-9s dosya=%s | settings=%s"
-              % (ad, ev, kok, mod, kopya, kablo))
+        print("%-8s %-10s %-34s %-9s dosya=%s | settings=%s | %s"
+              % (ad, ev, kok, mod, kopya, kablo, t4))
         for satir in rapor:
             print(satir)
 
