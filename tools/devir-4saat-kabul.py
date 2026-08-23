@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""K262 — N2 "4 SAATLIK OTOMATIK DEVIR" KABUL KAPISI (iki yonlu).
+"""K262/K263 — N2 "4 SAATLIK OTOMATIK DEVIR" KABUL KAPISI (iki yonlu + canli kablolama).
 
 Kurgunun (memory/nobet-onarim-kurgusu.md) N2 maddesi birebir:
   "kalem sahibinde 4 saat hareketsizse gozcu onu Tamirci'ye (KraL)
@@ -16,6 +16,39 @@ YAZILMAMIS. Ama "jeton yok" bir DAVRANIS olcumu DEGILDIR
 kurulabilir ya da jeton hic gecmeden davranis dogru kurulabilir. Bu kapi
 o yuzden jeton DEGIL, DAVRANIS olcer ve mekanizma yokken FAIL-CLOSED
 (rc=1) doner.
+
+## K263 EKLEMESI — CANLI KABLOLAMA (menzil = cagri yeri)
+
+Karar fonksiyonunun DOGRU olmasi yetmez: canli nobet turunun onu GERCEKTEN
+CAGIRMASI gerekir ([[kapinin-menzili-cagri-yeridir]]). K263 bu ekseni IKI
+AYRI KOLDAN olcer ve HER IKI KOL DA JETON TARAMASI DEGILDIR:
+
+  * DAVRANIS kolu — canli betik IMPORT EDILIR ve devir giris islevi
+    GERCEKTEN KOSTURULUR (gozcu: `n2_devir_kararlari`, nobet-kapi:
+    `_n2_devir_logla`). Sentetik iki kalem verilir (biri 4 saatten YASLI,
+    biri TAZE) ve donen SAYAC iki yonlu dogrulanir. Yan etki YOK: gozcu'nun
+    iz dosyasi gecici yola, nobet-kapi'nin defter okuyucusu sentetik listeye
+    yonlendirilir; canli iz/defter KIRLENMEZ.
+  * CAGRI YERI kolu — betik `ast` ile AYRISTIRILIR ve turun giris
+    fonksiyonunun (gozcu: `tur`, nobet-kapi: `tur_kos`) GOVDESINDE hedef
+    islevin `ast.Call` dugumu aranir. Yorum satiri, docstring ya da dize
+    `Call` dugumu URETMEZ — yani bir YORUM bu kolu YESIL YAKAMAZ.
+
+🔴 UC KOVA (K263-③, [[iki-kovali-siniflama-ucuncu-sinifi-yutar]]):
+"var / yok" IKI kova yetmez. Cron duzlemi (`~/.claude/cron`) CI runner'inda
+YOKTUR; oradaki YOKLUK bir IHLAL degildir. Hukum uc kovaya ayrilir ve her
+kovanin SAYISI BASILIR:
+    KURULU     — betik var, HER IKI kol da olculdu ve YESIL
+    IHLAL      — betik var, olculdu ve KOL DUSTU        (rc'yi KIRMIZI yapar)
+    OLCULEMEDI — betik/sozlesme yok ya da import edilemedi (rc'yi ETKILEMEZ)
+`--ci-simulasyon` bu ayrimi TEK VAKAYLA olcer: cron kokunu var olmayan bir
+yola cevirir ve kapinin `OLCULEMEDI` basip rc'ye 0 katki verdigini gosterir.
+
+🔴 MUTANTLAR GERCEK KAYNAGA UYGULANIR: kablolama mutantlari canli betigin
+GECICI BIR KOPYASI uzerinde metin capasiyla uygulanir (canli dosyaya ASLA
+dokunulmaz) ve her mutant HEDEF KOLUNU oldurdugunu, SAGLAM KOLUN ayakta
+kaldigini AYRICA basar. Capa tekil degilse hukum "YASADI" degil
+`OLCULEMEDI`dir ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
 
 ## SOZLESME — mekanizmayi kuran taraf bunu saglar
 
@@ -37,11 +70,19 @@ o yuzden jeton DEGIL, DAVRANIS olcer ve mekanizma yokken FAIL-CLOSED
 
 KOSUM: python3 /Users/okan/dev/pruvo/tools/devir-4saat-kabul.py
 KABUL: son satir `KABUL=GECTI`, rc=0.
+CI SIMULASYONU: python3 .../devir-4saat-kabul.py --ci-simulasyon
+KENDINI TEST : python3 .../devir-4saat-kabul.py --kendini-test
 """
 
+import ast
+import contextlib
 import importlib.util
+import io
 import os
+import shutil
 import sys
+import tempfile
+import time
 
 CRON_KOKU = "/Users/okan/.claude/cron"
 MODUL_YOLU = os.path.join(CRON_KOKU, "nobet_devir.py")
@@ -219,6 +260,391 @@ MUTANTLAR = (
 KONTROL_MUTATOR = _kontrol_sebep_ekle
 
 
+# ===========================================================================
+# K263 — CANLI KABLOLAMA OLCUMU (davranis + cagri yeri, UC KOVA)
+# ===========================================================================
+
+KURULU = "KURULU"
+IHLAL = "IHLAL"
+OLCULEMEDI = "OLCULEMEDI"
+KOVA_SIRASI = (KURULU, IHLAL, OLCULEMEDI)
+
+_YUKLEME_SAYACI = [0]
+
+
+def _benzersiz_modul_adi(onek):
+    _YUKLEME_SAYACI[0] += 1
+    return "k263_%s_%d" % (onek, _YUKLEME_SAYACI[0])
+
+
+def _yukle_yoldan(yol, onek):
+    """Verilen yoldaki betigi BENZERSIZ bir modul adiyla yukler.
+
+    Bytecode diske YAZILMAZ (Okan disk kurali). Basarisizlik bir IHLAL
+    DEGIL, OLCULEMEDI'dir — sebep dizesiyle birlikte doner.
+    """
+    if CRON_KOKU not in sys.path:
+        sys.path.insert(0, CRON_KOKU)
+    ad = _benzersiz_modul_adi(onek)
+    eski_pyc = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec = importlib.util.spec_from_file_location(ad, yol)
+        if spec is None or spec.loader is None:
+            return None, "SPEC_YOK"
+        modul = importlib.util.module_from_spec(spec)
+        sys.modules[ad] = modul
+        spec.loader.exec_module(modul)
+    except Exception as hata:                       # noqa: BLE001
+        return None, "IMPORT_HATASI:%s" % (hata,)
+    finally:
+        sys.dont_write_bytecode = eski_pyc
+        sys.modules.pop(ad, None)
+    return modul, None
+
+
+def cagri_yeri_kolu(kaynak, tur_fonksiyonu, cagrilan):
+    """AST kolu: `tur_fonksiyonu` GOVDESINDE `cagrilan(...)` CAGRISI var mi?
+
+    🔴 Bu bir JETON TARAMASI DEGILDIR: `ast.Call` dugumu yalnizca GERCEK bir
+    cagri ifadesinden dogar. Yorum satiri, docstring ya da dize icindeki
+    `devir_karari` metni bu kolu YESIL YAKAMAZ.
+    Doner: (True/False/None, sebep). None = OLCULEMEDI.
+    """
+    try:
+        agac = ast.parse(kaynak)
+    except SyntaxError as hata:                     # noqa: BLE001
+        return None, "AST_HATASI:%s" % (hata,)
+    hedef = None
+    for dugum in ast.walk(agac):
+        if (isinstance(dugum, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and dugum.name == tur_fonksiyonu):
+            hedef = dugum
+            break
+    if hedef is None:
+        return False, "TUR_FONKSIYONU_YOK:%s" % tur_fonksiyonu
+    for dugum in ast.walk(hedef):
+        if not isinstance(dugum, ast.Call):
+            continue
+        islev = dugum.func
+        ad = getattr(islev, "id", None) or getattr(islev, "attr", None)
+        if ad == cagrilan:
+            return True, "AST_CALL:%s icinde %s()" % (tur_fonksiyonu, cagrilan)
+    return False, "CAGRI_YOK:%s govdesinde %s() yok" % (tur_fonksiyonu, cagrilan)
+
+
+def gozcu_davranis_kolu(modul):
+    """gozcu.n2_devir_kararlari() GERCEKTEN kosturulur (jeton DEGIL).
+
+    Iz dosyasi gecici yola yonlendirilir -> canli `nobet-devir-iz.json`
+    KIRLENMEZ. IKI YONLU: 4 saatlik kalem DEVREDILDI, taze kalem
+    SLA_ICINDE saymali; ihlal 1 islenmelidir.
+    Doner: (True/False/None, sebep). None = OLCULEMEDI.
+    """
+    if not hasattr(modul, "n2_devir_kararlari"):
+        return False, "ISLEV_YOK:n2_devir_kararlari"
+    if not hasattr(modul, "DEVIR_IZ_YOLU"):
+        return None, "IZ_YOLU_SABITI_YOK"
+    gecici = tempfile.mkdtemp(prefix="k263-iz-")
+    eski_iz = modul.DEVIR_IZ_YOLU
+    try:
+        modul.DEVIR_IZ_YOLU = os.path.join(gecici, "iz.json")
+        kalemler = [
+            {"id": "K263-YASLI", "sahip": "MaCiT", "durum": "ACIK",
+             "son_hareket": SON_HAREKET},
+            {"id": "K263-TAZE", "sahip": "MaCiT", "durum": "ACIK",
+             "son_hareket": SON_HAREKET + ESIK - 1},
+        ]
+        try:
+            sayac = modul.n2_devir_kararlari(kalemler, SON_HAREKET + ESIK)
+        except Exception as hata:                   # noqa: BLE001
+            return None, "KOSUM_HATASI:%s" % (hata,)
+    finally:
+        modul.DEVIR_IZ_YOLU = eski_iz
+        shutil.rmtree(gecici, ignore_errors=True)
+    sayac = sayac or {}
+    if sayac.get("hata"):
+        return None, "DEVIR_MODULU_YUKLENEMEDI (sayac.hata=True)"
+    beklenen = {"DEVREDILDI": 1, "SLA_ICINDE": 1, "ihlal_eklenen": 1}
+    sapan = ["%s: beklenen=%r gelen=%r" % (a, d, sayac.get(a))
+             for a, d in beklenen.items() if sayac.get(a) != d]
+    if sapan:
+        return False, "DAVRANIS_SAPMASI[%s]" % (" · ".join(sapan))
+    return True, ("IKI_YONLU_OK D=%d S=%d IHLAL=%d"
+                  % (sayac["DEVREDILDI"], sayac["SLA_ICINDE"],
+                     sayac["ihlal_eklenen"]))
+
+
+def nobet_kapi_davranis_kolu(modul):
+    """nobet-kapi._n2_devir_logla() GERCEKTEN kosturulur (jeton DEGIL).
+
+    Defter okuyucusu sentetik listeye yonlendirilir -> canli defter
+    OKUNMAZ/KIRLENMEZ. Hukum, cikti icindeki `devir_karari=cagrildi`
+    JETONUNA DEGIL, SAYAC degerlerine (D=1 S=1) bakar — o jeton islevin
+    HATA kolunda da basiliyor.
+    Doner: (True/False/None, sebep). None = OLCULEMEDI.
+    """
+    if not hasattr(modul, "_n2_devir_logla"):
+        return False, "ISLEV_YOK:_n2_devir_logla"
+    if not hasattr(modul, "defter_oku"):
+        return None, "DEFTER_OKUYUCUSU_YOK"
+    simdi = time.time()
+    kalemler = [
+        {"id": "K263-YASLI", "sahip": "MaCiT", "durum": "ACIK",
+         "son_hareket": simdi - ESIK - 60},
+        {"id": "K263-TAZE", "sahip": "MaCiT", "durum": "ACIK",
+         "son_hareket": simdi - 10},
+    ]
+    eski_okuyucu = modul.defter_oku
+    tampon = io.StringIO()
+    try:
+        modul.defter_oku = lambda *a, **k: list(kalemler)
+        with contextlib.redirect_stdout(tampon):
+            modul._n2_devir_logla()
+    except Exception as hata:                       # noqa: BLE001
+        return None, "KOSUM_HATASI:%s" % (hata,)
+    finally:
+        modul.defter_oku = eski_okuyucu
+    cikti = " ".join(tampon.getvalue().split())
+    if "HATA=" in cikti:
+        return None, "IC_HATA:%s" % cikti
+    if not cikti:
+        return None, "CIKTI_YOK (sozlesme modulu okunamamis olabilir)"
+    if "D=1 S=1" not in cikti:
+        return False, "DAVRANIS_SAPMASI[%s]" % cikti
+    return True, "IKI_YONLU_OK %s" % cikti
+
+
+# Canli hedefler: her biri IKI KOLLA olculur (davranis + cagri yeri).
+CANLI_HEDEFLER = (
+    {"ad": "gozcu.py", "tur_fonksiyonu": "tur",
+     "cagrilan": "n2_devir_kararlari", "davranis": gozcu_davranis_kolu},
+    {"ad": "nobet-kapi.py", "tur_fonksiyonu": "tur_kos",
+     "cagrilan": "_n2_devir_logla", "davranis": nobet_kapi_davranis_kolu},
+)
+
+
+def kablolama_olc(kok=None, yamalar=None):
+    """Canli kablolamayi UC KOVAYLA olcer.
+
+    `kok`     : cron duzleminin koku (CI simulasyonu icin var olmayan yol).
+    `yamalar` : {"gozcu.py": <alternatif yol>} — mutant kopyalarini besler.
+                Canli dosyaya ASLA yazilmaz; mutant KOPYA uzerinde calisir.
+    Doner: (kovalar, satirlar, eksenler)
+      kovalar  : {KURULU: n, IHLAL: n, OLCULEMEDI: n}   (hedef basina 1)
+      eksenler : {"<dosya>": {"cagri": True/False/None,
+                              "davranis": True/False/None}}
+    """
+    kok = kok or CRON_KOKU
+    yamalar = yamalar or {}
+    sozlesme_var = os.path.isfile(MODUL_YOLU)
+    kovalar = {KURULU: 0, IHLAL: 0, OLCULEMEDI: 0}
+    satirlar, eksenler = [], {}
+
+    for hedef in CANLI_HEDEFLER:
+        ad = hedef["ad"]
+        yol = yamalar.get(ad) or os.path.join(kok, ad)
+        cagri, cagri_sebep = None, "DOSYA_YOK:%s" % yol
+        davranis, davranis_sebep = None, "DOSYA_YOK:%s" % yol
+
+        if os.path.isfile(yol):
+            try:
+                with open(yol, encoding="utf-8") as dosya:
+                    kaynak = dosya.read()
+            except (OSError, UnicodeDecodeError) as hata:
+                kaynak = None
+                cagri_sebep = "OKUNAMADI:%s" % (hata,)
+                davranis_sebep = cagri_sebep
+            if kaynak is not None:
+                cagri, cagri_sebep = cagri_yeri_kolu(
+                    kaynak, hedef["tur_fonksiyonu"], hedef["cagrilan"])
+                if not sozlesme_var:
+                    davranis = None
+                    davranis_sebep = "SOZLESME_MODULU_YOK:%s" % MODUL_YOLU
+                else:
+                    modul, yukleme_hatasi = _yukle_yoldan(
+                        yol, ad.replace("-", "_").replace(".py", ""))
+                    if modul is None:
+                        davranis, davranis_sebep = None, yukleme_hatasi
+                    else:
+                        davranis, davranis_sebep = hedef["davranis"](modul)
+
+        eksenler[ad] = {"cagri": cagri, "davranis": davranis}
+        if cagri is False or davranis is False:
+            kova = IHLAL
+        elif cagri is None or davranis is None:
+            kova = OLCULEMEDI
+        else:
+            kova = KURULU
+        kovalar[kova] += 1
+        satirlar.append("  HEDEF=%s KOVA=%s" % (ad, kova))
+        satirlar.append("    CAGRI_YERI(ast)=%s · %s" % (cagri, cagri_sebep))
+        satirlar.append("    DAVRANIS(kosum)=%s · %s" % (davranis, davranis_sebep))
+    return kovalar, satirlar, eksenler
+
+
+# --- KABLOLAMA MUTANTLARI: GERCEK KAYNAGA (kopya uzerinde) uygulanir -------
+# 🔴 Her mutant IKI SEY birden basar:
+#   (a) HEDEF KOL oldu mu?   (mutant YAKALANDI = kapi o kolu GERCEKTEN olcuyor)
+#   (b) SAGLAM KOL ayakta mi? (iki kol AYRISIYOR — tautolojik cokme yok)
+# Capa tekil degilse hukum "YASADI" degil OLCULEMEDI'dir.
+KABLOLAMA_MUTANTLARI = (
+    {"ad": "MK1 gozcu KARAR cagrisi kesildi (devir_karari cagrilmiyor)",
+     "dosya": "gozcu.py",
+     "capa": "sonuc = modul.devir_karari(kalem, simdi)",
+     "yeni": 'sonuc = {"devredildi": False, "sebep": "SLA_ICINDE"}',
+     "hedef": ("gozcu.py", "davranis"),
+     "saglam": ("gozcu.py", "cagri")},
+
+    {"ad": "MK2 gozcu TUR icindeki CAGRI YERI kesildi",
+     "dosya": "gozcu.py",
+     "capa": "n2_devir_kararlari(kalemler, simdi)",
+     "yeni": ("dict(DEVREDILDI=0, SLA_ICINDE=0, KAPALI=0, ZATEN=0, "
+              "ihlal_eklenen=0, hata=False)"),
+     "hedef": ("gozcu.py", "cagri"),
+     "saglam": ("gozcu.py", "davranis")},
+
+    {"ad": "MK3 nobet-kapi TUR_KOS icindeki CAGRI YERI kesildi",
+     "dosya": "nobet-kapi.py",
+     "capa": "\n    _n2_devir_logla()\n",
+     "yeni": "\n    pass  # K263-MUTANT: cagri yeri kesildi\n",
+     "hedef": ("nobet-kapi.py", "cagri"),
+     "saglam": ("nobet-kapi.py", "davranis")},
+)
+
+# KONTROL: kapinin BAKMADIGI ilgisiz bir kol bozulur; her iki hedef de
+# KURULU kalmali (tautoloji yok).
+KABLOLAMA_KONTROL = {
+    "ad": "KONTROL ilgisiz kol (gozcu ESKALASYON_ESIGI 3 -> 4)",
+    "dosya": "gozcu.py",
+    "capa": "\nESKALASYON_ESIGI = 3\n",
+    "yeni": "\nESKALASYON_ESIGI = 4\n",
+}
+
+
+def _mutant_kopya(kok, mutant, dizin):
+    """Mutasyonu GERCEK KAYNAGIN KOPYASINA uygular. Canli dosyaya YAZMAZ.
+
+    Doner: (kopya_yolu, None) ya da (None, OLCULEMEDI sebebi).
+    """
+    kaynak_yolu = os.path.join(kok, mutant["dosya"])
+    if not os.path.isfile(kaynak_yolu):
+        return None, "DOSYA_YOK:%s" % kaynak_yolu
+    try:
+        with open(kaynak_yolu, encoding="utf-8") as dosya:
+            kaynak = dosya.read()
+    except (OSError, UnicodeDecodeError) as hata:
+        return None, "OKUNAMADI:%s" % (hata,)
+    adet = kaynak.count(mutant["capa"])
+    if adet != 1:
+        return None, "CAPA_TEKIL_DEGIL:%d" % adet
+    yeni = kaynak.replace(mutant["capa"], mutant["yeni"])
+    if yeni == kaynak:
+        return None, "MUTASYON_ETKISIZ"
+    hedef_yolu = os.path.join(dizin, mutant["dosya"])
+    with open(hedef_yolu, "w", encoding="utf-8") as dosya:
+        dosya.write(yeni)
+    return hedef_yolu, None
+
+
+def _eksen(eksenler, atif):
+    return (eksenler.get(atif[0]) or {}).get(atif[1])
+
+
+def kablolama_mutantlarini_kos(kok=None):
+    """Her kablolama mutantini GERCEK KAYNAGIN kopyasina uygular.
+
+    Doner: (oldu, yasadi, olculemedi, satirlar).
+    """
+    kok = kok or CRON_KOKU
+    oldu = yasadi = olculemedi = 0
+    satirlar = []
+    for mutant in KABLOLAMA_MUTANTLARI + (KABLOLAMA_KONTROL,):
+        kontrol_mu = mutant is KABLOLAMA_KONTROL
+        gecici = tempfile.mkdtemp(prefix="k263-mutant-")
+        try:
+            kopya, sebep = _mutant_kopya(kok, mutant, gecici)
+            if kopya is None:
+                olculemedi += 1
+                satirlar.append("  MUTANT=%s -> OLCULEMEDI (%s)"
+                                % (mutant["ad"], sebep))
+                continue
+            kovalar, _s, eksenler = kablolama_olc(
+                kok=kok, yamalar={mutant["dosya"]: kopya})
+            if kontrol_mu:
+                temiz = (kovalar[IHLAL] == 0)
+                if temiz:
+                    oldu += 1
+                else:
+                    yasadi += 1
+                satirlar.append(
+                    "  KONTROL=%s KURULU=%d IHLAL=%d OLCULEMEDI=%d -> %s"
+                    % (mutant["ad"], kovalar[KURULU], kovalar[IHLAL],
+                       kovalar[OLCULEMEDI],
+                       "YESIL(ilgisiz kol, kapi gecti)" if temiz
+                       else "KIRMIZI(ilgisiz kol kirildi — tautoloji BOZULDU)"))
+                continue
+            hedef_hal = _eksen(eksenler, mutant["hedef"])
+            saglam_hal = _eksen(eksenler, mutant["saglam"])
+            if hedef_hal is None:
+                olculemedi += 1
+                hukum = "OLCULEMEDI(hedef kol olculemedi)"
+            elif hedef_hal is False:
+                oldu += 1
+                hukum = "GECTI(mutant YAKALANDI)"
+            else:
+                yasadi += 1
+                hukum = "KALDI(mutant YASADI)"
+            satirlar.append(
+                "  MUTANT=%s\n    HEDEF_KOL=%s:%s -> %s · SAGLAM_KOL=%s:%s -> %s"
+                "\n    KOVA(KURULU=%d IHLAL=%d OLCULEMEDI=%d) SONUC=%s"
+                % (mutant["ad"],
+                   mutant["hedef"][0], mutant["hedef"][1], hedef_hal,
+                   mutant["saglam"][0], mutant["saglam"][1], saglam_hal,
+                   kovalar[KURULU], kovalar[IHLAL], kovalar[OLCULEMEDI],
+                   hukum))
+            if hedef_hal is False and saglam_hal is not True:
+                yasadi += 1
+                oldu -= 1
+                satirlar.append(
+                    "    🔴 AYRISMA YOK: saglam kol da coktu -> mutant IZOLE DEGIL")
+        finally:
+            shutil.rmtree(gecici, ignore_errors=True)
+    return oldu, yasadi, olculemedi, satirlar
+
+
+def ci_simulasyonu():
+    """TEK VAKA: cron duzlemi ERISILEMEZ iken kapi ne diyor?
+
+    Beklenen: her hedef OLCULEMEDI kovasina duser, IHLAL=0 kalir ve canli
+    kolun rc'ye KATKISI 0 olur (YOKLUK != IHLAL). Sahte KIRMIZI YOK.
+    """
+    yok_kok = os.path.join(tempfile.gettempdir(), "k263-cron-duzlemi-YOK")
+    print("# K263 — CI SIMULASYONU (cron duzlemi erisilemez)")
+    print("SIMULE_KOK=%s (mevcut=%s)" % (yok_kok, os.path.isdir(yok_kok)))
+    kovalar, satirlar, _eks = kablolama_olc(kok=yok_kok)
+    for satir in satirlar:
+        print(satir)
+    print("KOVALAR KURULU=%d IHLAL=%d OLCULEMEDI=%d"
+          % (kovalar[KURULU], kovalar[IHLAL], kovalar[OLCULEMEDI]))
+    m_oldu, m_yasadi, m_olculemedi, m_satirlar = kablolama_mutantlarini_kos(
+        kok=yok_kok)
+    for satir in m_satirlar:
+        print(satir)
+    print("KABLOLAMA_MUTANT OLDU=%d YASADI=%d OLCULEMEDI=%d"
+          % (m_oldu, m_yasadi, m_olculemedi))
+    canli_katki = 1 if kovalar[IHLAL] else 0
+    mutant_katki = 1 if m_yasadi else 0
+    print("CANLI_RC_KATKISI=%d MUTANT_RC_KATKISI=%d" % (canli_katki, mutant_katki))
+    hukum = "OLCULEMEDI" if (canli_katki == 0 and mutant_katki == 0) else "KIRMIZI"
+    print("CI_SIMULASYON=%s" % hukum)
+    print("KAPSAM=%d canli hedef · %d eksen · %d kablolama mutanti · 1 kontrol"
+          % (len(CANLI_HEDEFLER), 2 * len(CANLI_HEDEFLER),
+             len(KABLOLAMA_MUTANTLARI)))
+    print("KABUL=%s" % ("GECTI" if hukum == "OLCULEMEDI" else "KALDI"))
+    return 0 if hukum == "OLCULEMEDI" else 1
+
+
 def sozlesme_bas():
     print("SOZLESME — mekanizmayi kuran taraf sunu saglar:")
     print("  dosya : %s" % MODUL_YOLU)
@@ -230,6 +656,8 @@ def sozlesme_bas():
     print("          esigin ALTINDA -> False/0 · KAPANMIS kalem -> False/0")
     print("          ZATEN devredilmis kalem -> ihlal_delta=0 (idempotans)")
     print("  not   : saf KARAR fonksiyonu — sayaca/deftere YAZMAZ.")
+    print("  canli : gozcu.tur() -> n2_devir_kararlari() · "
+          "nobet-kapi.tur_kos() -> _n2_devir_logla()")
 
 
 # ===========================================================================
@@ -284,7 +712,6 @@ KENDINI_TEST_VAKALARI = (
 
 
 def kendini_test():
-    import tempfile
     print("# K262 kapisi — KENDINI TEST (yesil kolu da olculur)")
     gecen, kalan = 0, 0
     gecici = tempfile.mkdtemp(prefix="k262-kendini-")
@@ -311,7 +738,6 @@ def kendini_test():
                      "oldurdu" if mutant_hepsi else "YASADI",
                      "GECTI" if uygun else "KALDI"))
     finally:
-        import shutil
         shutil.rmtree(gecici, ignore_errors=True)
     print("KENDINI_TEST GECEN=%d KALAN=%d" % (gecen, kalan))
     rc = 0 if kalan == 0 else 1
@@ -324,8 +750,13 @@ def kendini_test():
 def main():
     if "--kendini-test" in sys.argv[1:]:
         return kendini_test()
-    print("# K262 — N2 4 saatlik otomatik devir, IKI YONLU kabul kapisi")
-    print("VAKA_SAYISI=%d MUTANT_SAYISI=%d" % (len(VAKALAR), len(MUTANTLAR)))
+    if "--ci-simulasyon" in sys.argv[1:]:
+        return ci_simulasyonu()
+    print("# K262/K263 — N2 4 saatlik otomatik devir, IKI YONLU kabul kapisi")
+    print("VAKA_SAYISI=%d MUTANT_SAYISI=%d CANLI_HEDEF=%d "
+          "KABLOLAMA_MUTANT_SAYISI=%d"
+          % (len(VAKALAR), len(MUTANTLAR), len(CANLI_HEDEFLER),
+             len(KABLOLAMA_MUTANTLARI)))
 
     modul, hata = _modul_yukle()
     if modul is None:
@@ -376,9 +807,34 @@ def main():
           % (k_kalan, "YESIL(ilgisiz kol, kapi gecti)" if kontrol_ok
              else "KIRMIZI(ilgisiz kol kirildi — tautoloji BOZULDU)"))
 
-    rc = 0 if (kalan == 0 and mutant_hepsi and kontrol_ok) else 1
-    print("KAPSAM=%d vaka · %d mutant (esik+D'REDILDI+erken-devir) · "
-          "1 kontrol" % (len(VAKALAR), len(MUTANTLAR)))
+    print("--- CANLI KABLOLAMA (davranis kosumu + ast cagri yeri, UC KOVA) ---")
+    kovalar, c_satirlar, _eksenler = kablolama_olc()
+    for satir in c_satirlar:
+        print(satir)
+    print("  KOVALAR KURULU=%d IHLAL=%d OLCULEMEDI=%d"
+          % (kovalar[KURULU], kovalar[IHLAL], kovalar[OLCULEMEDI]))
+    canli_ok = (kovalar[IHLAL] == 0)     # 🔴 YOKLUK (OLCULEMEDI) IHLAL DEGILDIR
+    if kovalar[OLCULEMEDI]:
+        print("  ⚠️ OLCULEMEDI=%d — cron duzlemi bu makinede eksik; bu hucreler "
+              "KIRMIZI SAYILMAZ (YOKLUK != IHLAL)." % kovalar[OLCULEMEDI])
+    print("  CANLI SONUC=%s" % ("YESIL" if canli_ok else "KIRMIZI"))
+
+    print("--- KABLOLAMA MUTANTLARI (GERCEK kaynagin KOPYASINA uygulanir) ---")
+    m_oldu, m_yasadi, m_olculemedi, m_satirlar = kablolama_mutantlarini_kos()
+    for satir in m_satirlar:
+        print(satir)
+    kablolama_mutant_ok = (m_yasadi == 0)
+    print("  KABLOLAMA_MUTANT OLDU=%d YASADI=%d OLCULEMEDI=%d SONUC=%s"
+          % (m_oldu, m_yasadi, m_olculemedi,
+             "YESIL" if kablolama_mutant_ok else "KIRMIZI"))
+
+    rc = 0 if (kalan == 0 and mutant_hepsi and kontrol_ok
+               and canli_ok and kablolama_mutant_ok) else 1
+    print("KAPSAM=%d vaka · %d mutant (esik+D'REDILDI+erken-devir) · 1 kontrol · "
+          "%d canli hedef · %d canli eksen (davranis+cagri) · "
+          "%d kablolama mutanti · 1 kablolama kontrolu"
+          % (len(VAKALAR), len(MUTANTLAR), len(CANLI_HEDEFLER),
+             2 * len(CANLI_HEDEFLER), len(KABLOLAMA_MUTANTLARI)))
     print("KABUL=%s" % ("GECTI" if rc == 0 else "KALDI"))
     return rc
 
