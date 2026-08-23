@@ -123,9 +123,17 @@ VAKALAR = (
 
 
 def vakalari_kos(modul, esik_gecersiz_kil=None):
-    """Doner: (gecen, kalan, satirlar). `esik_gecersiz_kil` mutant icin."""
+    """Doner: (gecen, kalan, satirlar). `esik_gecersiz_kil`:
+    - int ise DEVIR_ESIGI_SN'i gecici olarak override eder (eski arayuz).
+    - callable ise modul uzerinde keyfi mutasyon yapar (orn: devir_karari'yi
+      sarmalayarak belli bir kolu kirmak). Iki arayuz turu isinstance ile
+      anlasilir; vakalari_kos kosumun sonunda modulu ESKI HALINE geri alir
+      (DEVIR_ESIGI_SN ve devir_karari)."""
     eski_esik = getattr(modul, "DEVIR_ESIGI_SN", None)
-    if esik_gecersiz_kil is not None:
+    eski_func = getattr(modul, "devir_karari", None)
+    if callable(esik_gecersiz_kil):
+        esik_gecersiz_kil(modul)
+    elif esik_gecersiz_kil is not None:
         modul.DEVIR_ESIGI_SN = esik_gecersiz_kil
     gecen, kalan, satirlar = 0, 0, []
     try:
@@ -151,18 +159,64 @@ def vakalari_kos(modul, esik_gecersiz_kil=None):
                 gecen += 1
                 satirlar.append("  VAKA=%s -> GECTI" % ad)
     finally:
-        if esik_gecersiz_kil is not None and eski_esik is not None:
+        if eski_esik is not None:
             modul.DEVIR_ESIGI_SN = eski_esik
+        if eski_func is not None and callable(esik_gecersiz_kil):
+            modul.devir_karari = eski_func
     return gecen, kalan, satirlar
 
 
+def _m3_kir_devredildi_ihlal(modul):
+    """M3 mutatoru: DEVREDILDI kaydi (ihlal_delta) kirilir.
+
+    devir_karari'yi sarmalayip devredildi=True donen sonuclarda
+    ihlal_delta'yi 0 yapar. V2/V3/V7 (devredildi=True beklenen) bundan
+    OLUR; V1/V4/V5/V6 zaten devredildi=False dondurdugu icin etkilenmez.
+    """
+    original = modul.devir_karari
+
+    def kirik(kayit, simdi):
+        sonuc = original(kayit, simdi)
+        if sonuc.get("devredildi"):
+            sonuc["ihlal_delta"] = 0
+        return sonuc
+
+    modul.devir_karari = kirik
+
+
+def _kontrol_sebep_ekle(modul):
+    """KONTROL mutatoru: kapinin BAKMADIGI bir kol degisir.
+
+    devir_karari'yi sarmalayip donus sozlugundeki 'sebep' anahtarini
+    '_KONTROL' sonekiyle degistirir. Gate vakalarinin hicbirinde 'sebep'
+    beklenmedigi icin hicbir vaka KALMAMALI (YESIL kalmali = tautoloji yok).
+    """
+    original = modul.devir_karari
+
+    def sarmalayici(kayit, simdi):
+        sonuc = original(kayit, simdi)
+        sonuc["sebep"] = sonuc.get("sebep", "") + "_KONTROL"
+        return sonuc
+
+    modul.devir_karari = sarmalayici
+
+
 # --- mutantlar: esigin IKI YANI ayri ayri oldurulmeli ----------------------
+# M1 ve M2 esik (DEVIR_ESIGI_SN) kolunu hedefler; M3 ise DEVREDILDI kaydini
+# (ihlal_delta) callable mutator ile kirar — kapsam disi ama ayni KAPI uzerinden
+# gecer. Spec: en az 3 mutant (a esik / b DEVREDILDI kaydi / c erken-devir).
 MUTANTLAR = (
     ("M1 esik 4 saat -> 99 saat (devir HIC olmaz)", 99 * SAAT,
      "V2/V3/V7 (devir OLUR kolu) OLMELI"),
     ("M2 esik 4 saat -> 1 sn (devir HEP olur)", 1,
      "V1/V4 (devir OLMAZ kolu) OLMELI"),
+    ("M3 DEVREDILDI kaydi (ihlal_delta=0, callable mutator)", _m3_kir_devredildi_ihlal,
+     "V2/V3/V7 (ihlal_delta kolu) OLMELI"),
 )
+
+# KONTROL mutanti: kapinin BAKMADIGI bir kolu (sebep) degistirir. Tum
+# vakalar YESIL kalmali (tautoloji yok). Callable formda.
+KONTROL_MUTATOR = _kontrol_sebep_ekle
 
 
 def sozlesme_bas():
@@ -298,18 +352,33 @@ def main():
         print(satir)
     print("TABAN GECEN=%d KALAN=%d" % (gecen, kalan))
 
-    print("--- MUTANTLAR (esigin IKI YANI) ---")
+    print("--- MUTANTLAR (esigin IKI YANI + DEVREDILDI kaydi) ---")
     mutant_hepsi = True
     for ad, esik, hedef in MUTANTLAR:
-        m_gecen, m_kalan, _ = vakalari_kos(modul, esik_gecersiz_kil=esik)
+        m_gecen, m_kalan, m_satirlar = vakalari_kos(modul, esik_gecersiz_kil=esik)
         oldu = m_kalan > 0
         mutant_hepsi = mutant_hepsi and oldu
-        print("  MUTANT=%s HEDEF=%s KALAN=%d SONUC=%s"
-              % (ad, hedef, m_kalan, "GECTI" if oldu else "KALDI(mutant YASADI)"))
+        # Hangi vakalar KALDI? Spec: hedef kol kaniti (K182 sinifi).
+        dusenler = []
+        for s in m_satirlar:
+            if "KALDI" in s:
+                vaka = s.split("VAKA=")[1].split(" ")[0]
+                dusenler.append(vaka)
+        print("  MUTANT=%s HEDEF=%s KALAN=%d DUSEN=%s SONUC=%s"
+              % (ad, hedef, m_kalan, dusenler,
+                 "GECTI" if oldu else "KALDI(mutant YASADI)"))
 
-    rc = 0 if (kalan == 0 and mutant_hepsi) else 1
-    print("KAPSAM=%d vaka · %d mutant (esigin iki yani ayri ayri)"
-          % (len(VAKALAR), len(MUTANTLAR)))
+    print("--- KONTROL MUTANTI (ilgisiz kol — kapi YESIL kalmali) ---")
+    k_gecen, k_kalan, k_satirlar = vakalari_kos(
+        modul, esik_gecersiz_kil=KONTROL_MUTATOR)
+    kontrol_ok = (k_kalan == 0)
+    print("  KONTROL=sebep koluna _KONTROL ekleniyor KALAN=%d SONUC=%s"
+          % (k_kalan, "YESIL(ilgisiz kol, kapi gecti)" if kontrol_ok
+             else "KIRMIZI(ilgisiz kol kirildi — tautoloji BOZULDU)"))
+
+    rc = 0 if (kalan == 0 and mutant_hepsi and kontrol_ok) else 1
+    print("KAPSAM=%d vaka · %d mutant (esik+D'REDILDI+erken-devir) · "
+          "1 kontrol" % (len(VAKALAR), len(MUTANTLAR)))
     print("KABUL=%s" % ("GECTI" if rc == 0 else "KALDI"))
     return rc
 
