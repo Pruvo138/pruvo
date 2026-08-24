@@ -25,7 +25,15 @@ m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DI
   ya da `KAPSAM=0` jetonu BASAR).
 - 🔧 **K234:** CAYMA_RE "iade"yi yakalamiyor (m.15 disi hak vaadi gorunmez); kabul: olcer+3 mutant. ·
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
-  karara baglanir, tekil tasima YASAK. · 🔴 **K256:** `kimi-nabiz` KIRMIZI; `http=200 icerik=bos` — naif nabiz YESIL sayar. KUTUDA.
+  karara baglanir, tekil tasima YASAK.
+- 🔧 **K269 (24 Agu, K256'dan DOGDU — CAGRI YERI YOK):** nabiz hukmunu OKUYAN taraf YOK; atiflar =
+  2 crontab kosum satiri + 1 crontab yedegi + 1 ilgisiz `baglam-olcum.tsv` etiketi, kovayi TUKETEN
+  **0** ([[kapinin-menzili-cagri-yeridir]]). kabul: >=1 tuketici + tuketicinin KOVAYA GORE davranis
+  degistirdigini kanitlayan mutant; jeton taramasi kabul DEGIL.
+- 🔧 **K276 (24 Agu, K256'dan DOGDU — KABUL CI DISINDA):** `kimi-nabiz-test.py` repo DISINDA
+  (`~/.claude/cron/`), kapsam kapisinin duzlemi repo ici → hicbir is akisindan kosmuyor, yalniz
+  ELLE olculuyor. kabul: bir CI adimindan kosar (hijyen seridi) + `CI_KAPSAM_RC` basar + mutant:
+  kol bozulunca O ADIM kirmizi yanar. Muafiyet listesi kabul DEGIL.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 - ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267·K265·K266·K184·K222·K256·K260·K86·K70·O4-B (tam metin ARSIVDE/KUTUDA)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
   ✅ **CAKISMA COZULDU (24 Agu, KraL):** K268 = ORTAK SATIR artigi (asagida, ACIK); bayat-vaka
