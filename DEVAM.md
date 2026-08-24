@@ -11,25 +11,15 @@
 K250 rollout 1/6→6/6 · MaCiT Audi dal-2.
 **Okan'da:** ① gecmis temizligi (on kosul SAGLANDI) · ② K200(i) · ③ Worker deploy — K252 main'de
 AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE).
-- **K254 KAPANDI** canli 7/7 R2 7/7=200 deploy 7d7dbd2a
-- **K262 KAPANDI** devir-4saat YESIL 7+3+1 merge 7f5b421b
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
-- 🔴 **K259 (20 Agu, KraL OLCTU):** MOTOR SIRASI EMRI 4 KARDES EVDE CANLI DEGIL — kurulu kopya
-  `<ev>/.claude/mimar-icra-kapisi.py:579` DORDUNDE de `('kimi','minimax-m3')` (ESKI SIRA), tek kaynak
-  `tools/mimar_kimlik.py:29` `("minimax-m3","kimi")`. Evler: pazarlama · bot · hasat · jenerator (KraL'da
-  kurulu kopya YOK, tek kaynagi dogrudan okuyor). Etki: o evlerde rotasyon karantinadaki kimi'yi birincil
-  sayiyor. Care `mimar-kapi-kur.py --isci-kapisi --uygula` ama 🔴 KOSAN `KraL-TarayiciAcma` AYNI dosyaya
-  dokunuyor → dagitim onun MERGE'inden SONRA TEK SEFERDE (K229 sessiz auto-merge riski).
-  kabul: 4/4 evde sira `("minimax-m3","kimi")` + `motor-tek-kaynak-kapisi.py` rc=0 + sira mutanti evleri KIRMIZIYA cevirir.
 - 🔴 **K247:** alan denetimini ATLAYAN `urunler.json` yazim kanali var (`4f855840`); kabul: kanal
   bulunur+kapanir+mutant. · 🔧 **K245** bitis satiri isci ciktisinda belirir · 🔧 **K240**
   kapi yardim metni bayat · 🔴 **K245 2. YUZ:** satir kutuya duser, SON PANEL MESAJINA dusmez ·
   🔧 **K241 (SINIF, UC YUZEY)** · 🔧 **K242** mutasyon kolu YOK · 🔧 **K244** kabul listesi ≠ CI
   kapsami. (K243 KAPANDI `951059fa`.) Tam metinler KUTUDA.
 - 🔧 **K260:** N4B gocunun 15 kaydindan 10'u `kat_sec` ile yine MIMAR'a dusup `[DAGITILMAZ]` kaliyor. kabul: yuklem + mutant.
-- 🔴 **K261 (YAYINI DURDURUR):** `kancalar/pre-push:314` `d1-sync.py` rc=4'u (lease = ATLANDI) BASARISIZ sayip push'u blokluyor; CI adimi (`d1-sync.py:4839`) ayni rc'yi 0 sayar. `--durum` 5/5 YESIL iken push 2 kez durdu. kabul: iki yonlu + mutant + tek kaynak.
 - 🔧 **K233:** batarya beklenen kumeleri ELLE tasiniyor (SINIF; kabul: sayi TURETILIR + mutant) ·
   🔧 **K238:** `marka-sayfa-mutasyon` taban kirmizisinda KENDINI KAPATIYOR (kabul: bagimsiz kosar
   ya da `KAPSAM=0` jetonu BASAR).
@@ -37,17 +27,13 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
   🔧 **K235 (SINIF):** hukuki beyan kapilari `hijyen-a3`te, `deploy.needs` DISINDA — UCU BIRDEN
   karara baglanir, tekil tasima YASAK. · 🔴 **K256:** `kimi-nabiz` KIRMIZI; `http=200 icerik=bos` — naif nabiz YESIL sayar. KUTUDA.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
+- ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213 (tam metin ARSIVDE)** — 5/9 BIREBIR tasindi (K243/K263/N3/K247 defterde bagimsiz satir yok).
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
 - 🔴 **MOTOR (20 Agu):** kapali kume `minimax-m3`(BIRINCIL) `kimi`(yedek) `claude`; digerleri RED. Tek kaynak `mimar_kimlik.py`.
 - 🔧 **K200 (saklama YURURLUKTE — TAM METIN ARSIVDE):** (i) canli `--kuru --d1` ⚖️ OKAN KAPISI ·
   (ii) periyodik kablolama MIMARDA · (iii) kablolamanin KOSTUGU kanit. Sira: sema→tesisat→trafik.
-- 🔴 **K213 (19 Agu, MaCiT olctu → hukum KraL'da, sahibi MaCiT):** CC BY/BY-SA **50 kayitta**
-  `lisans.tasarimci` yer tutucu (`?` 49 + `...` 1) → canlida atif KOSULU karsilanmiyor.
-  HUKUM KUTUDA (4 madde: urun CEKILMEZ + `lisans` SILINMEZ · ad KAYNAKTAN · kurtarilamayanda
-  K27'nin dar kaynak-LINKI kolu · 2. vaka oldugu icin KALICI fail-closed KAPI).
-  kabul: kapi + mutant + ihlal sayisi duser + `denetim-kapisi` yesil.
 - 🔧 **K199 (19 Agu, KraL):** `is-akisi-kapisi.py` "etkili tasiyici" tanimi LITERALE capali;
   varlik turetilmis mekanizmaya gecince korlesiyor (K193). Care: sonucu olc ya da makine-okunur
   beyani tasiyici say; mutant + negatif vaka sart. · 🔧 **K201 SINIF: KAYIT KENDINI OLCMEZ** — bes vaka;
