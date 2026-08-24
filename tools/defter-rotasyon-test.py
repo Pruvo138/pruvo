@@ -1058,9 +1058,12 @@ def mutant_m6_test():
     with open(ROTASYON, encoding="utf-8") as f:
         govde = f.read()
 
-    # M6 capa: `_ilk_satirda_kapanis` icindeki tek-return `if not ...: return False`.
-    # Bu satiri silip yerine eski davranis (substring arama) koy.
-    eski = "    if not _ilk_satirda_kapanis(metin):\n        return False\n"
+    # M6 capa: `_madde_tasinir_mi` icindeki KONUM SARTI kolu. K267'den once bu
+    # kol `_ilk_satirda_kapanis`ti; kapalilik yuklemi HALDEN okunmaya gecince
+    # ayni konum sarti `_kapanis_hali`ye tasindi (o da ILK SATIR + KALEM
+    # BASLIGI ile sinirlidir). Capa YENI ADA nisanlandi — eski ada nisanli
+    # kalsaydi mutant sessizce SURVIVOR yazip K128 kolunu OLCULEMEZ birakirdi.
+    eski = "    if not _kapanis_hali(metin):\n        return False\n"
     yeni = ("    # M6 mutant: konum sarti no-op; eski substring arama.\n"
             "    for _isaretci in KAPANIS_ISARETCILER:\n"
             "        if _isaretci in metin:\n"
