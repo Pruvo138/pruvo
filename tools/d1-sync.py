@@ -995,6 +995,13 @@ GOC_KOLON_SIPARIS = [
     # /wa-siparis idempotens anahtari. Site siparislerinde '' kalir.
     ("dis_no", "TEXT NOT NULL DEFAULT ''"),
     ("musteri_notu", "TEXT NOT NULL DEFAULT ''"),
+    # HAVALE DEKONT REFERANSI (K284, 24 Agu 2026): /yonet/havale-onay ucu
+    # 'havale-bekliyor' -> 'odendi' geciste ZORUNLU delil olarak yazar. DEFAULT '' ->
+    # eski satirlar bozulmaz ('' = bu uctan onaylanmadi). Gerekce + gizlilik kurali:
+    # tools/d1-sema.sql havale_dekont_ref yorumu.
+    # 🔴 SIRA: kolon CANLIYA bu goc ile iner ve worker deploy'undan ONCE inmelidir —
+    # kolon yokken uc fail-closed 503 doner (referanssiz 'odendi' YAZILMAZ).
+    ("havale_dekont_ref", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # 🔴 dis_no TEKILLIGI ICIN AYRI BIR LISTE YOKTUR: kismi UNIQUE indeks asagidaki GOC_INDEKS

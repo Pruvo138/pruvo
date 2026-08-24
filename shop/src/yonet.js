@@ -6,6 +6,7 @@
  *   GET  /api/shop/yonet/liste      -> JSON siparis listesi (son 50; ?durum= ile suzme)
  *   POST /api/shop/yonet/durum      -> {siparis_no, durum} durum makinesi (izinli gecisler)
  *   POST /api/shop/yonet/kargo      -> {siparis_no, kargo_firma, kargo_kodu} -> 'kargolandi' + e-posta
+ *   POST /api/shop/yonet/havale-onay-> {siparis_no, dekont_ref, tutar?} -> 'odendi' + Purchase olcumu
  *   GET  /api/shop/yonet/stl        -> uretim dosyasi indir (parametrik: derleyici; normal: R2)
  *   POST /api/shop/yonet/wa-siparis -> WhatsApp (Ege) kanalindan gelen siparisi panele yazar
  *
@@ -18,6 +19,10 @@
  *  - Anahtar loglara/HATA metnine YAZILMAZ. PII yalniz anahtarli yanitta. CORS yok (same-origin).
  *  - Gizli kaynak bilgisi (tedarikci/link) sayfaya/JSON'a GIRMEZ.
  *  - 'kargolandi'ya SADECE /kargo ucundan gecilir (takip kodu zorunlu) — tek yol.
+ *  - 🔴 K284 (24 Agu 2026): 'havale-bekliyor' -> 'odendi' SADECE /havale-onay ucundan gecilir
+ *    (DEKONT REFERANSI zorunlu) — /kargo ile BIREBIR AYNI SINIF. /durum bu gecisi HALA
+ *    400 'odeme-durumu-elle-setlenemez' ile reddeder (K252 tahsilat yalani ilkesi KORUNUR);
+ *    nasil takip kodsuz 'kargolandi' yazilamiyorsa, referanssiz 'odendi' de yazilamaz.
  *  - 🔴 K252 (20 Agu 2026): /durum'da OPERASYON ekseni ('uretimde' · 'tamamlandi' · 'iptal')
  *    her durumdan SERBEST ve GERI ALINABILIR; ODEME durumlari ELLE SETLENEMEZ (tahsilat
  *    yalani kapisi), tek istisna 'odendi'ye geri alma. Kural TEK KAYNAK: durumUcuKarari().
@@ -126,6 +131,25 @@ function izinliHedefler(mevcut) {
 function kargoGecisiGecerli(mevcut) {
   return mevcut === "uretimde";
 }
+
+/**
+ * `/havale-onay` ucunun gecis kurali — `kargoGecisiGecerli` ile BIREBIR AYNI SINIF
+ * (K284, Okan karari 24 Agu 2026): AYRI ve DAR bir uc, tek bir mevcut durumdan tek bir
+ * hedefe. 'odendi'ye SADECE 'havale-bekliyor'dan ve SADECE dekont referansi verildiginde
+ * gecilir.
+ *
+ * 🔴 `durumUcuKarari()` DEGISMEDI ve DEGISMEYECEK: /durum ucundan
+ * 'havale-bekliyor' -> 'odendi' HALA 400 'odeme-durumu-elle-setlenemez' doner. Bu kol
+ * K252'nin TAHSILAT YALANI ilkesini kaldirmaz, ona bir DELIL KAPISI ekler — referanssiz
+ * onay yine imkansizdir. `ODENDI_GERI_ALMA` listesine de DOKUNULMADI.
+ */
+function havaleGecisiGecerli(mevcut) {
+  return mevcut === "havale-bekliyor";
+}
+
+// Dekont referansi uzunluk tavani — kargo firma/kodu ile AYNI (80). Bos deger REDDEDILIR:
+// referanssiz 'odendi' tam da bu ucun yasakladigi seydir.
+const DEKONT_REF_ENCOK = 80;
 
 // ---- malzeme bazli baski fallback (filament rehberi degerleri; UYDURMA YOK) ---
 // Kaynak: tools/paket-filament-rehberi.md isi dayanimi araliklari + gizli kayitlardaki
@@ -736,6 +760,26 @@ function havaleOlcumu(env, ctx, s) {
   });
 }
 
+/**
+ * 🔴 PURCHASE OLCUM KARARI — TEK KAYNAK (saf; I/O yok).
+ * `durumDegistir` (/durum geri alma kolu) ve `havaleOnay` (/havale-onay) AYNI kurali
+ * kullanir. K284'e kadar bu kural yalniz durumDegistir govdesinde yaziliydi; ikinci uc
+ * acilirken KOPYALANSAYDI iki hukum sessizce ayrisirdi ([[ayni-alan-iki-hukum-biri-sessiz]])
+ * — or. kanal kapisi bir uctan kaldirilsa oteki uc onu sessizce uygulamaya devam ederdi.
+ *
+ * Doner: { siteKanali, olcumluGecis, zatenDenendi, olcumTetikle }
+ *  - siteKanali   : KANAL kapisi (WhatsApp cirosu site ROI raporunu sismesin).
+ *                   `kanal` kolonu yoksa (goc kosmadi) undefined -> kapi ACIK (geriye uyum).
+ *  - zatenDenendi : durum_gecmisi'ndeki KALICI IZ ("o":1) — 3. idempotens katmani.
+ */
+function olcumKarari(s, hedef) {
+  const siteKanali = !s.kanal || s.kanal === KANAL_SITE;
+  const olcumluGecis = (hedef === "odendi") && siteKanali;
+  const zatenDenendi = olcumDenendiMi(s.durum_gecmisi);
+  return { siteKanali, olcumluGecis, zatenDenendi,
+           olcumTetikle: olcumluGecis && !zatenDenendi };
+}
+
 async function durumDegistir(request, env, ctx) {
   let govde;
   try { govde = await request.json(); } catch (e) { return yjson({ hata: "gecersiz-json" }, 400); }
@@ -786,10 +830,7 @@ async function durumDegistir(request, env, ctx) {
   // GERIYE UYUM: `kanal` kolonu yoksa (goc kosmadi) s.kanal undefined -> kapi ACIK kalir;
   // mevcut satirlarin hepsi ALTER'dan sonra DEFAULT 'site' alir. Yani site akisinda
   // davranis DEGISMEZ.
-  const siteKanali = !s.kanal || s.kanal === KANAL_SITE;
-  const olcumluGecis = (hedef === "odendi") && siteKanali;
-  const zatenDenendi = olcumDenendiMi(s.durum_gecmisi);
-  const olcumTetikle = olcumluGecis && !zatenDenendi;
+  const { siteKanali, olcumluGecis, zatenDenendi, olcumTetikle } = olcumKarari(s, hedef);
 
   const yeniGecmis = gecmiseEkle(s.durum_gecmisi, hedef, { olcumDenendi: olcumTetikle });
   const g = await env.KATALOG.prepare(
@@ -856,6 +897,110 @@ async function kargo(request, env, ctx, telegram) {
   }
   return yjson({ ok: true, siparis_no: siparisNo, durum: "kargolandi",
                  kargo_firma: firma, kargo_kodu: kod }, 200);
+}
+
+// ---- /havale-onay ---------------------------------------------------------------
+
+/**
+ * POST /api/shop/yonet/havale-onay — {siparis_no, dekont_ref, tutar?}
+ *
+ * 🔴 K284 (Okan karari, 24 Agu 2026). OLCULEN BOSLUK (K283): K252'den sonra
+ * 'havale-bekliyor' -> 'odendi' gecisi worker'in HICBIR ucundan yapilamiyordu
+ * (/donus havale satirini token NULL oldugu icin bulamaz · /durum kapisi 400 verir ·
+ * /wa-siparis INSERT'tir, gecis degil · cron eli yok). Geriye yalnizca worker DISI ham
+ * SQL kaliyordu ve o yol `havaleOlcumu()`ye HIC ugramadigi icin havale cirosu Meta/GA4'te
+ * GORUNMUYORDU.
+ *
+ * COZUM /kargo ucunun BIREBIR KARDESIDIR: nasil takip kodsuz 'kargolandi' yazilamiyorsa,
+ * DEKONT REFERANSSIZ 'odendi' de yazilamaz. Yani kapi GEVSEMEDI, delil sarti degisti.
+ *
+ * KIRMIZI CIZGILER
+ *  - `durumUcuKarari()` DOKUNULMADI: /durum'dan 'havale-bekliyor' -> 'odendi' HALA 400.
+ *    Bu uc AYRI ve DARDIR (tek mevcut durum, tek hedef, zorunlu delil).
+ *  - 🔒 `dekont_ref` FINANSAL VERIDIR: log'a, hata metnine, yanit govdesine ve /liste
+ *    JSON'una GIRMEZ. Yalnizca D1 satirina yazilir. (Bu yuzden asagidaki sema-goc
+ *    log satiri da referansi TASIMAZ.)
+ *  - `tutar` OPSIYONELDIR ve YALNIZ DOGRULAMA icindir: KURUS tamsayisi olarak verilirse
+ *    tahsilat toplamiyla (tutar_kurus + kargo_kurus) BIREBIR esitligi aranir, esit degilse
+ *    400. HICBIR para alanini DEGISTIRMEZ — sunucu-tarafi fiyat tek kaynaktir.
+ *  - SEMA FAIL-CLOSED: `havale_dekont_ref` kolonu yoksa 503 doner ve HICBIR SEY YAZILMAZ.
+ *    Okuma yollarindaki `kolonMerdiveni` deseni burada BILEREK KULLANILMAZ — kolonsuz bir
+ *    UPDATE 'odendi'yi REFERANSSIZ yazardi, yani ucun tek varlik sebebini yok ederdi
+ *    (/wa-siparis'teki kanal kolonu kararinin AYNISI).
+ *  - Purchase olcumu NORMAL koldan gider: `olcumKarari()` (TEK KAYNAK) + `havaleOlcumu()`,
+ *    event_id = siparis_no, uc katmanli idempotens (durum makinesi + CAS + kalici iz)
+ *    AYNEN korunur.
+ */
+async function havaleOnay(request, env, ctx) {
+  let govde;
+  try { govde = await request.json(); } catch (e) { return yjson({ hata: "gecersiz-json" }, 400); }
+  const siparisNo = govde && typeof govde.siparis_no === "string" ? govde.siparis_no : "";
+  const ref = govde && typeof govde.dekont_ref === "string" ? govde.dekont_ref.trim() : "";
+  if (!siparisNo) { return yjson({ hata: "eksik-alan" }, 400); }
+  // 🔴 KENDI HATA KODU: "400" tek basina hangi kuralin reddettigini soylemez (/kargo'daki
+  // 'kargo-kodu' ile ayni sozlesme). Hata metni referansin KENDISINI TASIMAZ.
+  if (!ref || ref.length > DEKONT_REF_ENCOK) { return yjson({ hata: "dekont-ref" }, 400); }
+
+  // Opsiyonel tutar BEYANI (kurus). Verilmezse dogrulama yapilmaz; verilirse tamsayi olmali.
+  let tutarBeyani = null;
+  if (govde && govde.tutar !== undefined && govde.tutar !== null && govde.tutar !== "") {
+    const t = Number(govde.tutar);
+    if (!Number.isInteger(t) || t < 0) { return yjson({ hata: "gecersiz-tutar" }, 400); }
+    tutarBeyani = t;
+  }
+
+  const s = await siparisGetir(env, siparisNo);
+  if (!s) { return yjson({ hata: "siparis-yok" }, 404); }
+  if (!havaleGecisiGecerli(s.durum)) {
+    return yjson({ hata: "gecersiz-gecis", mevcut: s.durum, hedef: "odendi" }, 400);
+  }
+  if (tutarBeyani !== null) {
+    const tahsilat = (Number(s.tutar_kurus) || 0) + (Number(s.kargo_kurus) || 0);
+    if (tutarBeyani !== tahsilat) {
+      return yjson({ hata: "tutar-uyusmuyor", beklenen_kurus: tahsilat }, 400);
+    }
+  }
+
+  // 🔴 OLCUM KARARI TEK KAYNAKTAN (durumDegistir ile AYNI fonksiyon) — kopya kural YOK.
+  const karar = olcumKarari(s, "odendi");
+  const yeniGecmis = gecmiseEkle(s.durum_gecmisi, "odendi",
+                                 { olcumDenendi: karar.olcumTetikle });
+  let g;
+  try {
+    // CAS (2. idempotens katmani): WHERE ... AND durum = <okunan durum>. Iki es zamanli
+    // onay gelse yalniz BIRI changes>0 alir; olcum yalniz o daldan tetiklenir.
+    g = await env.KATALOG.prepare(
+      "UPDATE siparisler SET durum = 'odendi', havale_dekont_ref = ?, durum_gecmisi = ?" +
+      " WHERE siparis_no = ? AND durum = ?"
+    ).bind(ref, yeniGecmis, siparisNo, s.durum).run();
+  } catch (e) {
+    if (!/no such column/i.test(String((e && e.message) || e))) { throw e; }
+    // Sema goc etmemis: SESSIZCE referanssiz yazmak YERINE gurultulu 503 (fail-closed).
+    console.error("havale-onay: D1 semasinda havale_dekont_ref kolonu YOK -> onay " +
+                  "reddedildi (coz: python3 tools/d1-sync.py --sema)");
+    return yjson({ hata: "sema-goc-gerekli",
+                   not: "siparisler.havale_dekont_ref kolonu yok; " +
+                        "python3 tools/d1-sync.py --sema calistirilmali" }, 503);
+  }
+  if (!(g.meta && g.meta.changes > 0)) {
+    return yjson({ hata: "durum-degismis", mevcut: s.durum }, 409);
+  }
+
+  if (karar.olcumluGecis && karar.zatenDenendi) {
+    // Sessiz atlama YOK: "bu siparisin ikinci Purchase'i nerede?" cevaplanabilsin.
+    olcumLog({ olay: "Purchase", siparis_no: siparisNo, kaynak: "havale",
+               atlandi: "zaten-denendi" });
+  }
+  if (!karar.siteKanali) {
+    olcumLog({ olay: "Purchase", siparis_no: siparisNo, kaynak: String(s.kanal),
+               atlandi: "site-disi-kanal" });
+  }
+  if (karar.olcumTetikle) {
+    // Fire-and-forget (ctx.waitUntil olcum.js icinde): olcum hatasi onayi ETKILEMEZ.
+    havaleOlcumu(env, ctx, { ...s, durum: "odendi" });
+  }
+  // 🔒 dekont_ref YANITTA YOK (finansal veri).
+  return yjson({ ok: true, siparis_no: siparisNo, durum: "odendi" }, 200);
 }
 
 // ---- /wa-siparis (WhatsApp / Ege kanali) --------------------------------------
@@ -1486,7 +1631,8 @@ async function konfigurGolge(env, url) {
 }
 
 /**
- * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/stl", "/konfigur-golge".
+ * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/havale-onay", "/stl",
+ * "/konfigur-golge".
  * KAPI SIRASI (fail-closed):
  *   1. YONET_ANAHTAR secret YOK -> her sey 404 (ozellik kapali; giris formu BILE yok),
  *   2. POST /wa-siparis -> Ege ucu (yonetim anahtari YA DA EGE_ANAHTAR),
@@ -1513,7 +1659,8 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   // WHATSAPP SIPARIS UCU — IKI anahtardan biri yeter: yonetim anahtari (Okan) ya da
   // yalnizca bu uca yetkili EGE_ANAHTAR (bkz. egeAnahtarGecerli). Ikisi de yok/yanlissa
   // /yonet* ile AYNI davranis: 404 (ucun varligi sizmaz). EGE_ANAHTAR yalnizca BU kolda
-  // okunur -> /liste, /durum, /kargo, /stl onunla ACILMAZ; giris ekranini da ACMAZ.
+  // okunur -> /liste, /durum, /kargo, /havale-onay, /stl onunla ACILMAZ; giris ekranini
+  // da ACMAZ (havale onayi TAHSILAT damgasidir: yalniz yonetim anahtari yazabilir).
   if (altYol === "/wa-siparis" && m === "POST") {
     if (!anahtarGecerli(request, url, env) && !egeAnahtarGecerli(request, env)) {
       return yon404();
@@ -1528,6 +1675,8 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/liste" && m === "GET") { return liste(env, url); }
   if (altYol === "/durum" && m === "POST") { return durumDegistir(request, env, ctx); }
   if (altYol === "/kargo" && m === "POST") { return kargo(request, env, ctx, telegram); }
+  // K284 — havale onayi: /kargo ile AYNI SINIF ayri/dar uc (dekont referansi ZORUNLU).
+  if (altYol === "/havale-onay" && m === "POST") { return havaleOnay(request, env, ctx); }
   if (altYol === "/stl" && m === "GET") { return stlIndir(env, url); }
   if (altYol === "/stl-liste" && m === "GET") { return stlListe(env, url); }
   // FAZ 3 kontrol kipi — SALT OKUMA (yazma/yan etki YOK).
@@ -1783,6 +1932,16 @@ function kartHtml(s){
    '<input id="kk-'+s.siparis_no+'" placeholder="Takip kodu">'+
    '<button onclick="kargoGonder(\\''+s.siparis_no+'\\')">Kargolandı olarak işaretle</button></div>';
  }
+ // K284 — HAVALE ONAY FORMU: kargo formunun BIREBIR KARDESI. Yalniz 'havale-bekliyor'
+ // kartinda basilir; dekont/referans BOS birakilirsa uc 400 doner (istemci de erken uyarir).
+ // 🔒 Referans YALNIZ bu kutuya YAZILIR — sunucudan GERI OKUNMAZ, kartta GOSTERILMEZ
+ // (finansal veri; /liste JSON'una da girmez).
+ var havaleForm="";
+ if(s.durum==="havale-bekliyor"){
+  havaleForm='<div class="kargoform">'+
+   '<input id="hd-'+s.siparis_no+'" placeholder="Dekont/referans">'+
+   '<button onclick="havaleOnayla(\\''+s.siparis_no+'\\')">Havale onayla</button></div>';
+ }
  var kargoBilgi=s.kargo_kodu?'<div class="kucuk">Kargo: '+esc(s.kargo_firma)+' — '+esc(s.kargo_kodu)+'</div>':'';
  var gecmis=(s.durum_gecmisi||[]).map(function(g){return esc(g.d)+" ("+esc((g.z||"").slice(0,16).replace("T"," "))+")";}).join(" → ");
  // KANAL rozeti + Ege'nin kendi numarasi: yalniz site DISI siparislerde basilir.
@@ -1812,7 +1971,7 @@ function kartHtml(s){
   kalem+kargoBilgi+
   '<div class="eylemler">'+durumSecici+eylem+
    '<button class="ikincil" onclick="komutKopyala(\\''+esc(s.yazdir_komut)+'\\')">Yerel komut kopyala</button>'+
-  '</div>'+kargoForm+
+  '</div>'+kargoForm+havaleForm+
   (gecmis?'<div class="gecmis">Geçmiş: '+gecmis+'</div>':'')+
   '</details>';
 }
@@ -1890,6 +2049,16 @@ async function kargoGonder(no){
  if(!f||!k){alert("Firma ve takip kodu gerekli.");return;}
  var r=await api("/kargo",{method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({siparis_no:no,kargo_firma:f,kargo_kodu:k})});
+ if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));}
+ yukle();
+}
+// K284 — HAVALE ONAYI. kargoGonder'in BIREBIR KARDESI: ayri/dar uc + zorunlu delil.
+// 🔒 Referans yalniz istekte tasinir; yanitta DONMEZ, ekrana YAZILMAZ, alert'e girmez.
+async function havaleOnayla(no){
+ var d=document.getElementById("hd-"+no).value.trim();
+ if(!d){alert("Dekont/referans gerekli.");return;}
+ var r=await api("/havale-onay",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({siparis_no:no,dekont_ref:d})});
  if(r.kod!==200){alert("Olmadı: "+(r.govde&&r.govde.hata||r.kod));}
  yukle();
 }

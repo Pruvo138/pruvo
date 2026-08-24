@@ -392,16 +392,20 @@ CREATE INDEX IF NOT EXISTS talepler_durum ON talepler(durum, olusturma DESC);
 --           'odeme-durumu-elle-setlenemez'; bunlari odeme sistemi yazar (elle 'odendi'
 --           tahsilat yalani uretirdi). TEK ISTISNA GERI ALMA: mevcut durum 'uretimde' ·
 --           'kargolandi' · 'tamamlandi' ise 'odendi'ye donulebilir (siparis zaten
---           odenmisti). ⚠️ 'havale-bekliyor' -> 'odendi' de bu redde DAHILDIR: havale
---           onayi ARTIK bu uctan yapilmaz (asagidaki 'odendi' satirina bak).
+--           odenmisti). ⚠️ 'havale-bekliyor' -> 'odendi' de bu redde DAHILDIR ve
+--           K284'ten sonra da DAHILDIR: o gecisin yolu AYRI bir uctur (D bendi).
+--       (D) 🔴 K284 (Okan karari, 24 Agu 2026) 'havale-bekliyor' -> 'odendi' ISTISNA —
+--           (B) ile AYNI SINIF: /yonet/durum onu HALA 400 ile reddeder; o duruma SADECE
+--           /yonet/havale-onay ucundan (DEKONT REFERANSI ZORUNLU) gecilir. Guvence:
+--           referanssiz 'odendi' satiri OLUSAMAZ. Panel secicisinde de bulunmaz (secici
+--           kumesi ucun kabul kumesinden TURETILIR, ikinci liste YOK).
 --       Kendi uzerine gecis (hedef == mevcut) her eksende 400 'gecersiz-gecis'.
---   'odendi'          kartta SADECE iyzico retrieve dogrulamasindan gecince (worker /donus).
---                     🔴 K252: havale onayi ARTIK yonetim sayfasindan YAPILMAZ —
---                     'havale-bekliyor' -> 'odendi' /yonet/durum'dan 400 doner (C bendi).
---                     Kalan yol shop/KURULUM.md'deki wrangler komutudur. ⚠️ O yol uctan
---                     GECMEDIGI icin Purchase olcumunu de TETIKLEMEZ (durumDegistir'deki
---                     havaleOlcumu yalniz uc uzerinden calisir) — acik kalem olarak
---                     KraL'a bildirildi (K252 raporu, "yan bulgu").
+--   'odendi'          kartta iyzico retrieve dogrulamasindan gecince (worker /donus);
+--                     HAVALEDE /yonet/havale-onay ucundan, dekont referansiyla (K284).
+--                     Her iki yol da Purchase olcumunu TETIKLER (event_id = siparis_no).
+--                     ⚠️ shop/KURULUM.md'deki ham `wrangler d1 execute` UPDATE'i ARTIK
+--                     KULLANILMAZ: o yol uctan gecmedigi icin olcumu TETIKLEMEZ ve havale
+--                     cirosu Meta/GA4'te GORUNMEZ (K283'te olculdu, K284'te kapatildi).
 --   'incele'          retrieve altyapi hatasi VEYA tutar/kimlik uyusmazligi (elle bak)
 --   'havale-bekliyor' musteri Havale/EFT secti; para HENUZ gorulmedi, uretim BASLAMAZ
 --   'uretimde'        uretim basladi (yonetim) ; 'kargolandi' kargo firma+kod girildi (yonetim)
@@ -471,7 +475,16 @@ CREATE TABLE IF NOT EXISTS siparisler (
   -- yalnizca MUTABAKAT anahtaridir (Ege'nin Sheet kaydiyla eslesme) ve /wa-siparis ucunun
   -- IDEMPOTENS anahtaridir (ayni dis_no ikinci kez gelirse yeni siparis acilmaz).
   -- Site siparislerinde '' (bos = dis kaynak yok).
-  dis_no          TEXT NOT NULL DEFAULT ''
+  dis_no          TEXT NOT NULL DEFAULT '',
+  -- HAVALE DEKONT REFERANSI (K284, 24 Agu 2026 — Okan karari). /yonet/havale-onay ucu
+  -- 'havale-bekliyor' -> 'odendi' gecisinde YAZAR ve deger ZORUNLUDUR: referanssiz onay
+  -- 400 doner. `kargo_kodu` ile AYNI SINIF delil alani — nasil takip kodsuz 'kargolandi'
+  -- satiri olusamiyorsa, referanssiz 'odendi' satiri da olusamaz.
+  -- DEFAULT '': eski satirlar bozulmaz ('' = bu satir bu uctan onaylanmadi). Kolon canlida
+  -- `python3 tools/d1-sync.py --sema` ile ALTER edilir (GOC_KOLON_SIPARIS).
+  -- 🔒 FINANSAL VERI: worker bu kolonu HICBIR yanit govdesine, log satirina ya da /liste
+  -- JSON'una KOYMAZ; yalniz yazar. Mutabakat gizli isletme kaydindan yapilir.
+  havale_dekont_ref TEXT NOT NULL DEFAULT ''
 );
 
 -- 🔴 DIS NUMARA TEKILLIK INDEKSI BU DOSYADA DEGIL — d1-sync.py GOC_INDEKS kayit defterinde

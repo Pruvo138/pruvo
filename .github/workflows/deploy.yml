@@ -570,6 +570,48 @@ jobs:
       - name: Siparis durum secici mutasyon bataryasi (K252 once-kirmizi)
         run: python3 tools/siparis-durum-mutasyon.py
 
+      # K284 — HAVALE ONAY UCU (tahsilat delili + kayip havale cirosu olcumu).
+      # OLCULEN BOSLUK (K283, canli D1 + kaynak taramasi): K252'den sonra
+      # 'havale-bekliyor' -> 'odendi' gecisi worker'in HICBIR ucundan yapilamiyordu
+      # (/donus havale satirini token NULL oldugu icin bulamaz · /durum 400 verir ·
+      # /wa-siparis INSERT'tir · cron eli yok) -> geriye worker DISI ham SQL kaliyordu ve
+      # o yol `havaleOlcumu()`ye ugramadigi icin havale cirosu Meta/GA4'te GORUNMUYORDU.
+      # OKAN KARARI (24 Agu 2026): AYRI ve DAR bir uc, DEKONT REFERANSI ZORUNLU — /kargo
+      # ucunun birebir kardesi. Kapi GEVSEMEDI: /durum'dan ayni gecis HALA 400.
+      # OLCULEN HUKUM:
+      #   (a) referanssiz/bos/asiri uzun referans -> 400 KENDI kodu 'dekont-ref', YAZMA YOK
+      #       (+ pozitif kontrol: referans verilince AYNI uc 200; + sema kolonu yoksa 503,
+      #        yani referanssiz 'odendi' satiri sema penceresinde de OLUSAMAZ),
+      #   (b) 'havale-bekliyor' DISINDAKI 8 mevcut durumdan -> 400 'gecersiz-gecis', YAZMA YOK,
+      #   (c) basarili onay -> durum='odendi', referans D1'de, gecmiste 'odendi' + olcum izi,
+      #       CAS korunuyor, kargo kolonlarina DOKUNULMUYOR,
+      #   (d) OLCUM GITTI -> Meta+GA4 Purchase, event_id = siparis_no, kaynak='havale';
+      #       IP/UA gitmez; kanal='whatsapp' satirda olcum ATLANIR (site ROI sismesin),
+      #   (e) IDEMPOTENS -> ayni cagri iki kez: ikincide olcum TEKRAR GITMEZ (durum tutan
+      #       fikstur; ayrica kalici iz "o":1 kolu AYRI olculur),
+      #   (f) 🔴 NEGATIF KONTROL: /durum'dan 'havale-bekliyor' -> 'odendi' HALA 400
+      #       'odeme-durumu-elle-setlenemez' + ODENDI_GERI_ALMA istisnasi AYNEN duruyor,
+      #   (h) SEMA PARITESI: kolon hem d1-sema.sql CREATE'inde hem d1-sync.py
+      #       GOC_KOLON_SIPARIS'te (yalniz CREATE'te olsa canlida HIC olusmazdi),
+      #   (i) GIZLILIK: dekont referansi log'a / hata metnine / yanita / olcum yukune GIRMEZ,
+      #   (j) PANEL: form YALNIZ 'havale-bekliyor' kartinda; durum secicisi HALA
+      #       `izinli_gecisler`ten TURER (ikinci durum listesi YOK).
+      # Ag/wrangler/D1 GEREKMEZ: yonet.js dogrudan import edilip GERCEK router durum tutan
+      # sahte env ile cagrilir, `fetch` stub'lanir, panel JS'i HAM KAYNAKTAN vm'de kosar.
+      # continue-on-error YOK.
+      - name: Havale onay ucu kabul kapisi (K284)
+        run: node shop/test/havale-onay.mjs
+
+      # K284 ONCE-KIRMIZI KANITI. Yukaridaki kapinin YESIL olmasi tek basina bir sey
+      # kanitlamaz. Batarya GECICI AYNAYA yazar (calisma agaci KIRLENMEZ, sonunda ayrica
+      # dogrulanir) ve her mutant icin IKI EKSENI AYRI basar: (a) hedef kol kirmizi yandi
+      # mi, (b) yan eksen yesil kaldi mi. M1 olcum cagrisi dusurulur · M2 bos referans
+      # reddi kalkar · M3 gecis sarti genisler · M4 K252 odeme reddi acilir · M5 panel
+      # formu her kartta basilir · K0 kontrol (ilgisiz kol, HICBIR iddia olmemeli).
+      # Dayanak metni tekil degilse mutant ATLANMAZ, 'HARNESS BAYAT' ile KIRMIZI doner.
+      - name: Havale onay ucu mutasyon bataryasi (K284 once-kirmizi)
+        run: python3 tools/havale-onay-mutasyon.py
+
       # ALT KATEGORI (`altkategori`) veri yolu — kategori ICINDEKI daraltma etiketi.
       # OLCULEN BASLANGIC DURUMU (1 Agu): alan urunler.json'da 134 kayitta DOLUYDU ama
       # hicbir yerde ISLENMIYORDU (index.html/build.py/d1-sync/arama/d1-sema/duzelt YOK)

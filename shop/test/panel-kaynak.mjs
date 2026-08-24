@@ -283,7 +283,14 @@ ol("V9c durum degistirme kontrolu (secici+Uygula) + 'Yerel komut kopyala' kartta
   /<select id="dd-PR-TEST-uretimde">/.test(kUretimde) &&
   kUretimde.indexOf("durumUygula(") > 0 && kUretimde.indexOf("Yerel komut kopyala") > 0,
   kUretimde.slice(0, 400));
-const KOL_TABANI = 10, CD_TABANI = 2;
+// 🔴 K284 (24 Agu 2026) — TABAN 10 -> 11, IDDIA KALDIRILMADI (V9c'deki AYNI disiplin).
+// Bu iddianin NIYETI "yonlendiriciye SESSIZCE yeni yetki ucu eklenmesin"dir; bir ucun
+// EKLENMESI yasak degil, SESSIZCE eklenmesi yasaktir. Okan karariyla `POST /havale-onay`
+// eklendi (havale onayi = dekont referansi zorunlu, /kargo'nun kardesi) -> taban BILEREK
+// ve TARIHLI olarak bir artirildi. Ucun KENDI kurallari shop/test/havale-onay.mjs'te
+// olculur; burada YALNIZ "kac kol var" sayilir. Taban degistirmeden gecmek isteyen biri
+// bu satiri gormeden gececek olsaydi tripwire islevini yitirirdi.
+const KOL_TABANI = 11, CD_TABANI = 2;
 const kolSayisi = (KAYNAK.match(/altYol === "/g) || []).length;
 ol("V9d YETKI YUZEYI GENISLEMEDI: yonlendirici kolu " + KOL_TABANI + " (yeni uc yok)",
   kolSayisi === KOL_TABANI, "kol=" + kolSayisi);
