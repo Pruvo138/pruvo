@@ -28,8 +28,8 @@ m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DI
   karara baglanir, tekil tasima YASAK. · 🔴 **K256:** `kimi-nabiz` KIRMIZI; `http=200 icerik=bos` — naif nabiz YESIL sayar. KUTUDA.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 - ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267·K265·K266·K184·K222·K256·K260·K86·K70·O4-B (tam metin ARSIVDE/KUTUDA)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
-  ⚠️ **NUMARA CAKISMASI:** "K268" iki ayri ise verildi — (a) K267'den dogan ORTAK SATIR artigi (asagida),
-  (b) bayat vaka onarimi (KUTUDA `KraL-K268BayatVaka`, 10/10 canliya tasindi, taban 39 OLU mutant sakliyormus). Ayirmak SIRADAKI mimarin isi.
+  ✅ **CAKISMA COZULDU (24 Agu, KraL):** K268 = ORTAK SATIR artigi (asagida, ACIK); bayat-vaka
+  onarimi artik **K270** (KAPANDI; kutuda `KraL-K268BayatVaka` adiyla gecer, 10/10 canliya tasindi).
 - 🔧 **K268 (24 Agu, K267'den DOGDU — ORTAK SATIR ARTIGI):** kanonik kosum iki ortak satiri ADIYLA
   bildiriyor ve ikisi de fail-closed takili: (a) `19 Agu KAPANANLAR` satiri (kapanis HALI + `KALAN
   ACIK ARTIKLAR` → SINIFLANAMAZ, kimlik K188) · (b) `K245/K240/K241/K242/K244` satiri. Kapali kalem
