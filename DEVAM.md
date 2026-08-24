@@ -2,13 +2,13 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 CANLI DURUM — 24 Agu 2026 ~15:3xZ (KraL)
-**main=origin `56c24a89`** · bugun inen K260 `e1c2e4c4` (11 yeni dosya) + K256/K269/K276 · defter
-`6a435d0f`. Merge sonrasi D1 YESIL (29.654, alti eksen, hash uyusmaz 0). Agacta 2 YABANCI commit'siz
-dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chip'i sirada.
-🟢 **DEFTER ACILDI** (dal `kral/k268-ortak-satir`): uc ortak satir bolundu, kanonik rotasyon
-`TASINAN_MADDE=4` · `SINIFLANAMAZ` 3->0 · `ACIK` 44 DEGISMEDI · 12279->11652 B · `LOSSLESS=EVET`.
-**Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan yukseltme ONERISI beklenir.
+## 🔁 GUN KAPANISI — 24 Agu 2026 (KraL)
+**main=origin `d85a7ab9`** · bugun 9 merge: K260 · K256/K269/K276 · K271(x2) · K268 · K280 · K284 · K285.
+D1 alti eksen YESIL (29.763; EKSIK=0 FAZLA=0 hash uyusmaz=0). Defter rotasyonu 374 turdur ILK KEZ
+calisir halde (K268 acti). Curuyen kalem: K281 (`KILIT_MUMKUN=0`, olcumle).
+🔴 **YARINA DEVIR:** CLAUDE.md 1.130 bayt LOSSLESS KANITI (Okan 18:04 kirmizisi, chip kosuyor) ·
+K286 (K80 nobetcisi YORUM satirini cagri sayip sahte ZINCIR_DISI ihtari basiyor; bugun olculdu).
+**Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan ONERISI · ④ K284 canli dogrulama.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
