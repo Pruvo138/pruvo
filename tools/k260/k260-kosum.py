@@ -80,6 +80,18 @@ FAZLAR = {
         ("k271-k260-batarya-REGRESYON", [sys.executable, BATARYA]),
         ("k271-kova-SONRA", [sys.executable, BATARYA, "--canli"]),
     ) + tuple(("k271-sonra-" + ad, komut) for ad, komut in REGRESYON),
+    # Kapanis turu: defter satirinin KABUL KOMUTU birebir kosulur (kapanis
+    # hukmu KOSAN TESTTEN okunur, beyandan DEGIL), + kova + kuru tur.
+    "k271-kapanis": (
+        ("k271-KABUL-KOMUTU", [sys.executable,
+                               os.path.join(CRON, "nobet-damga-tasima-test.py")]),
+        ("k271-kapanis-mutasyon",
+         [sys.executable, os.path.join(CRON, "nobet-damga-tasima-test.py"),
+          "--mutasyon"]),
+        ("k271-kapanis-kova", [sys.executable, BATARYA, "--canli"]),
+        ("k271-kapanis-tur-kuru",
+         [sys.executable, NOBET_KAPI, "--tur-kapat", "--kuru"]),
+    ),
     "k271-tur-kuru": (
         ("k271-tur-kuru", [sys.executable, NOBET_KAPI, "--tur-kapat", "--kuru"]),
     ),
@@ -129,6 +141,7 @@ TEMIZLENECEK = (
     os.path.join(CRON, "k260-defter-kanit"),
     os.path.join(CRON, "k271-kanit"),
     os.path.join(CRON, "k271-kanit2"),
+    os.path.join(CRON, "k271-kapanis-kanit"),
     os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125221Z"),
     os.path.join(CRON, "testler.py.yedek-k260-20260824T125221Z"),
 )
