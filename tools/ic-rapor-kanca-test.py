@@ -88,6 +88,14 @@ def depo_kur(d, kol_var=True, kapi_var=True, kapi_eki=None):
                 f.write(kapi_eki)
     if kol_var:
         shutil.copyfile(os.path.join(TOOLS, KOL_ADI), os.path.join(d, "tools", KOL_ADI))
+    # K70 ONARIM: pre-commit adim 8 `tools/defter-kota-kapisi.py` calistirir; kapinin
+    # TURETMESINI istedigi `defter-kota-taban.py` yanindaki importlib ile yukler. Bu
+    # ikisi olmadan adim 8 "YOK" der ve tum B-vakalari kendi mantigina ulasmadan
+    # bloklanir (4 mutant "yasadi mi" ayrimi OLCULEMEZ).
+    shutil.copyfile(os.path.join(TOOLS, "defter-kota-kapisi.py"),
+                    os.path.join(d, "tools", "defter-kota-kapisi.py"))
+    shutil.copyfile(os.path.join(TOOLS, "defter-kota-taban.py"),
+                    os.path.join(d, "tools", "defter-kota-taban.py"))
     sentetik_git(d, "init", "-q", capture_output=True, text=True,
                  kimlik_ad="t", kimlik_eposta="t@t.local")
     return d
