@@ -2355,6 +2355,13 @@ jobs:
       # iki commit boyunca durdurmustu).
       - name: "Defter tasima birimi + DEFTER BAKIMI kovasi (K243+K258, agsiz)"
         run: python3 tools/defter-tasima-birimi-test.py
+      # K267 (24 Agu 2026) — KAPALILIK YUKLEMI: hal > jeton, ucuncu kova korunur,
+      # ORTAK SATIR fail-closed + ADLI sebep. Kardes bataryalarla AYNI seride
+      # (SERIT B, `needs:` YOK): kirmizisi yayini durdurmaz ama GORUNUR olur.
+      # Kapi CI'ya BURADA baglanir — yalniz repoda durup hicbir yerden
+      # cagrilmayan batarya olculmemis bataryadir ([[kapinin-menzili-cagri-yeridir]]).
+      - name: "Defter kapalilik yuklemi (K267: hal>jeton + ortak satir, agsiz)"
+        run: python3 tools/defter-kapalilik-kabul.py
       - name: "Defter kota olcumu (RAPOR-ONLY — yayini durdurmaz)"
         run: python3 tools/defter-kota-kapisi.py --bypass-kontrol
 

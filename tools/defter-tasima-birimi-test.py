@@ -316,8 +316,23 @@ def vaka_f2(rotasyon_yol):
     if kova is None:
         hatalar.append("MADDE_KOVALARI satiri BASILMADI")
     else:
-        if kova.get("ACIK") != 4:
-            hatalar.append("ACIK=%s (4 beklenir)" % kova.get("ACIK"))
+        # 🔴 K267 (24 Agu): X6 satiri (`- ✅ KAPANDI: X5 listesi — kalan 🟠
+        # **X6 K904** durmali.`) artik ACIK degil SINIFLANAMAZ kovasindadir.
+        # Sebep GEVSEME DEGIL SIKILASTIRMA: satir kapanis HALI tasidigi halde
+        # icinde ACIK kalem de var; "ortak satir" kolu onu fail-closed tutar VE
+        # sebebini ADIYLA basar (mimar hukmu 3: "sessizce acik sayilmaz").
+        # Maddi invaryant DEGISMEDI ve YUKARIDA olculuyor: X6 defterde KALIR,
+        # arsive GITMEZ, TASINAN_MADDE=1. Bucket beklentisi o yuzden 4 -> 3+1
+        # olarak TASINDI ve uzerine SEBEP BASIMI sarti EKLENDI.
+        if kova.get("ACIK") != 3:
+            hatalar.append("ACIK=%s (3 beklenir)" % kova.get("ACIK"))
+        if kova.get("SINIFLANAMAZ") != 1:
+            hatalar.append("SINIFLANAMAZ=%s (1 beklenir — X6 ortak satiri)"
+                           % kova.get("SINIFLANAMAZ"))
+        if not any(satir.startswith("TASINMADI-MADDE (SINIFLANAMAZ)")
+                   and "SEBEP: ortak satir:" in satir
+                   for satir in s["cikti"].splitlines()):
+            hatalar.append("ORTAK SATIR SEBEBI BASILMADI (sessiz veto)")
         if kova.get("KAPSAYICI_BLOK") != 2:
             hatalar.append("KAPSAYICI_BLOK=%s (2 beklenir)" % kova.get("KAPSAYICI_BLOK"))
         if kova.get("TUTARSIZ") != 0:
@@ -382,13 +397,18 @@ CAPA_A_YENI = (
     "        return False\n"
     "    tum = blok[\"baslik\"] + \"\\n\" + \"\\n\".join(blok[\"govde\"])\n")
 
+# 🔴 K267 (24 Agu): MUT-B'nin hedefi DEGISMEDI — "madde ACIK vetosu" — ama o
+# veto ARTIK `_madde_tasinir_mi` icinde ciplak `_acik_eslesiyor` cagrisi DEGIL:
+# kapalilik yuklemi HALDEN okunmaya gecince acik jetonun tasimayi durdurmasi
+# ORTAK SATIR koluna tasindi (`_ortak_satir_sebebi`, hal + basliktan SONRA acik
+# jeton -> SINIFLANAMAZ, fail-closed). Capa YENI KOLA nisanlandi; eski ada
+# nisanli kalsa mutant `OLCULEMEDI` verip F2/X6 vakasini olcusuz birakirdi
+# ([[capa-cokmesi-arkasindaki-capalari-gizler]]).
 CAPA_B_ESKI = (
-    "    \"\"\"Madde kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA.\"\"\"\n"
-    "    if _acik_eslesiyor(metin):\n"
+    "    if _ortak_satir_sebebi(metin) is not None:\n"
     "        return False\n")
 CAPA_B_YENI = (
-    "    \"\"\"Madde kesme olcutunu uygula: suphede kalirsan (fail-closed) TASIMA.\"\"\"\n"
-    "    if False:  # MUT-B: madde ACIK vetosu kaldirildi\n"
+    "    if False:  # MUT-B: madde ACIK vetosu (ortak satir kolu) kaldirildi\n"
     "        return False\n")
 
 CAPA_KONTROL_ESKI = (
