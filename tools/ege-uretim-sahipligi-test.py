@@ -40,9 +40,10 @@ CI'da sessizce dusebilir — bkz deploy.yml "DOSYA kesfeder, BAYRAK KESFETMEZ").
     Burada CIVILENMIS FIKSTUR duruyor. Tazelik: pruvo-bot yerelde varsa bayt
     karsilastirmasi YAPILIR (bayatsa KIRMIZI); yoksa OLCULEMEDI diye BASILIR —
     sessiz yesil verilmez.
-  * SURE/GUN ekseni HUKME BAGLANMAZ: iki kaynak orada bilerek AYRISIK durumda
-    (K285-2). Kapi ayrismayi CIVILER ve ayrisma COZULURSE KIRMIZI yanar; boylece
-    "cozuldu ama kimse pini kaldirmadi" hali sessiz kalamaz. Hukum KraL'da.
+  * SURE/GUN ekseni burada YALNIZ ANTI-REGRESYON olarak olculur (V12): sahiplik
+    satirinin sure hakkinda konusMAdigi dogrulanir. Surenin KENDISI (3-5 is gunu)
+    bu kapinin konusu DEGILDIR — sahibi SISTEM_TALIMATI + ege-bilgi.md TESLIMAT
+    satiridir. K285-2 hukmu (KraL, 24 Agu): talimat kazanir, gun yasagi kalkti.
 
 Kullanim:
     python3 tools/ege-uretim-sahipligi-test.py
@@ -285,17 +286,21 @@ STOK_VAKALARI = [
     ("V11", "isaret ', SIPARIS UZERINE TEDARIK' ise hazir DENEMEZ", "siparis_hazir_yasak", True),
 ]
 
-# --- SURE/GUN AYRISMASI (K285-2) — CIVILENMIS, hukum KraL'da ----------------
-# ege-bilgi.md: "kendiliginden stok ya da gun SOZU verme"
-# SISTEM_TALIMATI: "Sure sorusunun cevabi stoktan BAGIMSIZ ve her kalemde AYNI"
-# Ikisi ayni eksende ZIT. Pin: ayrisma BUGUN VAR. Ayrisma cozulurse pin KIRILIR
-# (KIRMIZI) -> "cozuldu ama kimse kapiyi guncellemedi" hali sessiz kalamaz.
+# --- SURE/GUN EKSENI TEK SAHIPLI (K285-2, KraL hukmu 24 Agu) ----------------
+# ONCEKI HAL (ayrisma): ege-bilgi.md sahiplik satiri "kendiliginden stok ya da gun
+# SOZU verme" derken SISTEM_TALIMATI "Sure sorusunun cevabi stoktan BAGIMSIZ ve her
+# kalemde AYNI: 3-5 is gunu" diyordu -> ayni prompt icinde ZIT iki emir.
+# HUKUM (KraL): talimat kazanir. Sure ekseninin TEK SAHIBI vardir (SISTEM_TALIMATI
+# + ege-bilgi.md'nin TESLIMAT satiri); sahiplik satiri sure hakkinda HICBIR SEY
+# soylemez. Gun yasagi satirdan KALDIRILDI, pin de kaldirildi.
+# BU BIR ANTI-REGRESYON KOLUDUR: satira yeniden bir gun/sure yasagi girerse V12
+# KIRMIZI yanar (ayrisma sessizce geri gelemez). M5 mutanti bu kolu OLCER.
 GUN_YASAK_RE = re.compile(r"gün sözü verme")
 GUN_EMIR_RE = re.compile(r"süre sorusunun cevabı[^.]{0,60}aynı")
-GUN_AYRISMA_PIN = True
 
 
 def gun_ekseni(ege_blok, talimat_blok):
+    """(sahiplik satirinda gun YASAGI var mi, talimatta sure EMRI var mi)."""
     e = bool(GUN_YASAK_RE.search(kucult(ege_blok)))
     t = bool(GUN_EMIR_RE.search(kucult(talimat_blok)))
     return e, t
@@ -360,15 +365,21 @@ def calistir(dosya):
             bulgular.append((vid, "SISTEM_TALIMATI stok hukmu — %s: %s (beklenen %s)" % (ad, t, beklenen)))
 
     ege_gun, talimat_gun = gun_ekseni(ege_blok, talimat_blok)
-    ayrisik = ege_gun and talimat_gun
-    if ayrisik != GUN_AYRISMA_PIN:
-        bulgular.append(("GUN_PIN", "SURE/GUN ayrismasi PIN'i kirildi (ege_gun_yasagi=%s, "
-                                    "talimat_gun_emri=%s, pin=%s). Ayrisma cozulduyse pin'i "
-                                    "KALDIR ve hukmu defterle." % (ege_gun, talimat_gun, GUN_AYRISMA_PIN)))
-    else:
-        notlar.append("K285-2 SURE/GUN AYRISMASI CIVILI: ege-bilgi.md 'gun SOZU verme' der (%s), "
-                      "SISTEM_TALIMATI 'sure her kalemde AYNI' der (%s). HUKUM KraL'da; bu kapi "
-                      "karar VERMEZ, ayrismayi TUTAR." % (ege_gun, talimat_gun))
+    v12_onceki = len(bulgular)
+    if ege_gun:
+        bulgular.append(("V12", "AYRISMA (sure/gun) — sahiplik satiri yeniden bir gun/sure "
+                                "YASAGI tasiyor; SISTEM_TALIMATI ise sure cevabinin stoktan "
+                                "BAGIMSIZ ve her kalemde AYNI oldugunu emrediyor. K285-2 hukmu "
+                                "(KraL, 24 Agu): sure ekseninin TEK SAHIBI talimat + TESLIMAT "
+                                "satiridir; sahiplik satiri sure hakkinda konusmaz."))
+    if not talimat_gun:
+        bulgular.append(("V12", "SISTEM_TALIMATI'ndaki 'sure her kalemde AYNI' emri BULUNAMADI — "
+                                "fikstur bayat ya da talimat degismis; sure ekseninin sahibi "
+                                "belirsiz kaldi."))
+    if len(bulgular) == v12_onceki:
+        notlar.append("V12 SURE/GUN EKSENI TEK SAHIPLI (K285-2 KAPANDI): sahiplik satirinda gun "
+                      "yasagi YOK (%s), SISTEM_TALIMATI sure emrini TASIYOR (%s)."
+                      % (ege_gun, talimat_gun))
     return bulgular, notlar
 
 
@@ -414,6 +425,12 @@ def _m4(m):
     return _satirda(m, lambda s: _takas(s, "STOKTA", "SİPARİŞ ÜZERİNE TEDARİK"))
 
 
+def _m5(m):
+    """K285-2 ayrismasini GERI GETIRIR (24 Agu hukmunden onceki metin)."""
+    return _satirda(m, lambda s: s.replace("kendiliğinden stok iddiası kurma",
+                                           "kendiliğinden stok ya da gün SÖZÜ verme"))
+
+
 def _k1(m):
     return m.replace("Pazar kapalı", "Pazar günü kapalı")
 
@@ -430,6 +447,8 @@ MUTANTLAR = [
      _m3, "KIRMIZI", {"MARKER_YOK"}),
     ("M4", "stok yon takasi: ', STOKTA' <-> ', SIPARIS UZERINE TEDARIK'",
      _m4, "KIRMIZI", {"V10", "V11"}),
+    ("M5", "sure/gun ayrismasi geri getirilir (K285-2 oncesi metin)",
+     _m5, "KIRMIZI", {"V12"}),
     ("K1", "KONTROL (ilgisiz): calisma saati cumlesi — anlam eksenine DOKUNMAZ",
      _k1, "YESIL", set()),
 ]
@@ -481,8 +500,8 @@ def main():
     print("FIKSTUR TAZELIGI: %s — %s" % (hal, mesaj))
 
     bulgular, notlar = calistir(a.dosya)
-    print("\nVAKALAR: %d uretim/esanlamli + %d stok, HER BIRI IKI KAYNAGA soruldu."
-          % (len(VAKALAR), len(STOK_VAKALARI)))
+    print("\nVAKALAR: %d uretim/esanlamli + %d stok + 1 sure/gun (V12), "
+          "HER BIRI IKI KAYNAGA soruldu." % (len(VAKALAR), len(STOK_VAKALARI)))
     for n in notlar:
         print("  NOT: %s" % n)
     if bulgular:
@@ -491,7 +510,7 @@ def main():
             print("    [%s] %s" % (kimlik, m))
     else:
         print("  YESIL — iki kaynak %d vakanin hepsinde AYNI hukmu veriyor." %
-              (len(VAKALAR) + len(STOK_VAKALARI)))
+              (len(VAKALAR) + len(STOK_VAKALARI) + 1))
 
     print("\nMUTASYON ALT-KOSUMU (%d mutant; hedef-kol atfi zorunlu):" % len(MUTANTLAR))
     satirlar, kirik = mutasyon_kosumu(a.dosya)
