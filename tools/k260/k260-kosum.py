@@ -124,6 +124,11 @@ TEMIZLENECEK = (
     os.path.join(CRON, "k260-kanit"),
     os.path.join(CRON, "k260-kanit2"),
     os.path.join(CRON, "k260-temizlik-izi"),   # bu kosumun kendi izi
+    os.path.join(CRON, "k260-merge-kanit"),
+    os.path.join(CRON, "k260-kutu-kanit"),
+    os.path.join(CRON, "k260-defter-kanit"),
+    os.path.join(CRON, "k271-kanit"),
+    os.path.join(CRON, "k271-kanit2"),
     os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125221Z"),
     os.path.join(CRON, "testler.py.yedek-k260-20260824T125221Z"),
 )
@@ -131,6 +136,12 @@ KORUNAN = (
     os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125857Z"),
     os.path.join(CRON, "testler.py.yedek-k260-20260824T125857Z"),
 )
+# K271 yedekleri KORUNUR: canli yamanin ve VERI ONARIMININ tek geri donus yolu.
+# Ozellikle `nobet-geri-iz.json.yedek-k271-*` — veri onarimi geri alinamazsa
+# damga restorasyonu tek yonlu bir islem olurdu.
+KORUNAN_ONEK = (os.path.join(CRON, "nobet-kapi.py.yedek-k271-"),
+                os.path.join(CRON, "testler.py.yedek-k271-"),
+                os.path.join(CRON, "nobet-geri-iz.json.yedek-k271-"))
 
 
 def _boyut_kb(yol):
@@ -171,6 +182,10 @@ def temizlik():
     for yol in KORUNAN:
         print("KORUNAN %-59s VAR=%s KB=%d"
               % (yol, "E" if os.path.exists(yol) else "H", _boyut_kb(yol)))
+    for ad in sorted(os.listdir(CRON)):
+        tam = os.path.join(CRON, ad)
+        if any(tam.startswith(o) for o in KORUNAN_ONEK):
+            print("KORUNAN %-59s VAR=E KB=%d" % (tam, _boyut_kb(tam)))
     print("TEMIZLIK ONCE_KB=%d SONRA_KB=%d KAZANC_KB=%d KALAN_HEDEF=%d"
           % (once, sonra, once - sonra, kalan))
     print("HUKUM=%s" % ("TEMIZ" if kalan == 0 else "KALINTI_VAR"))
