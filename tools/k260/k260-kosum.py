@@ -50,6 +50,7 @@ FAZLAR = {
     # Tur-1 yamasini geri alip DUZELTILMIS yamayi uygular (ankorlar ORIJINAL
     # metne yaslidir; ustune yazmak ANKOR_YOK verirdi).
     "geri-al": (),   # komutu `--damga` ile main() kurar
+    "temizlik": (),  # main() dogrudan temizlik() cagirir
     "kabul": (
         ("kabul-batarya", [sys.executable, BATARYA]),
         ("mutasyon", [sys.executable, BATARYA, "--mutasyon"]),
@@ -66,6 +67,65 @@ FAZLAR = {
         ("tur-kuru2", [sys.executable, NOBET_KAPI, "--tur-kapat", "--kuru"]),
     ),
 }
+
+
+# 🔴 DISK — OKAN KURALI: ureten temizler. Kanit dizinleri ve SUPERSEDE olmus
+# tur-1 yedekleri silinir; AKTIF `--geri-al` yolu (tur-2 yedegi) KALIR.
+TEMIZLENECEK = (
+    os.path.join(CRON, "k260-kanit"),
+    os.path.join(CRON, "k260-kanit2"),
+    os.path.join(CRON, "k260-temizlik-izi"),   # bu kosumun kendi izi
+    os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125221Z"),
+    os.path.join(CRON, "testler.py.yedek-k260-20260824T125221Z"),
+)
+KORUNAN = (
+    os.path.join(CRON, "nobet-kapi.py.yedek-k260-20260824T125857Z"),
+    os.path.join(CRON, "testler.py.yedek-k260-20260824T125857Z"),
+)
+
+
+def _boyut_kb(yol):
+    """du -sk esdegeri (blok degil bayt tabanli; hukum SAYIYLA basilir)."""
+    if os.path.isfile(yol):
+        return os.path.getsize(yol) // 1024
+    toplam = 0
+    for kok, _, dosyalar in os.walk(yol):
+        for d in dosyalar:
+            try:
+                toplam += os.path.getsize(os.path.join(kok, d))
+            except OSError:
+                pass
+    return toplam // 1024
+
+
+def temizlik():
+    import shutil as _sh
+    once = 0
+    for yol in TEMIZLENECEK:
+        var = os.path.exists(yol)
+        kb = _boyut_kb(yol) if var else 0
+        once += kb
+        print("ONCE %-62s VAR=%s KB=%d" % (yol, "E" if var else "H", kb))
+    for yol in TEMIZLENECEK:
+        if os.path.isdir(yol):
+            _sh.rmtree(yol, ignore_errors=True)
+        elif os.path.isfile(yol):
+            os.remove(yol)
+    sonra = 0
+    kalan = 0
+    for yol in TEMIZLENECEK:
+        var = os.path.exists(yol)
+        kb = _boyut_kb(yol) if var else 0
+        sonra += kb
+        kalan += 1 if var else 0
+        print("SONRA %-61s VAR=%s KB=%d" % (yol, "E" if var else "H", kb))
+    for yol in KORUNAN:
+        print("KORUNAN %-59s VAR=%s KB=%d"
+              % (yol, "E" if os.path.exists(yol) else "H", _boyut_kb(yol)))
+    print("TEMIZLIK ONCE_KB=%d SONRA_KB=%d KAZANC_KB=%d KALAN_HEDEF=%d"
+          % (once, sonra, once - sonra, kalan))
+    print("HUKUM=%s" % ("TEMIZ" if kalan == 0 else "KALINTI_VAR"))
+    return 0 if kalan == 0 else 1
 
 
 def kos(ad, komut, dizin):
@@ -94,6 +154,8 @@ def main(argv=None):
     args = ap.parse_args(argv)
     os.makedirs(args.cikti, exist_ok=True)
     adimlar = FAZLAR[args.faz]
+    if args.faz == "temizlik":
+        return temizlik()
     if args.faz == "geri-al":
         if not args.damga:
             print("HUKUM=OLCULEMEDI sebep=damga_verilmedi")
