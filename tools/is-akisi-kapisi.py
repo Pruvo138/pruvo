@@ -2415,6 +2415,12 @@ BLOKLAYICI_KAPILAR = {
         "mimar kapisi · mukerrer · commit-mesaji sizinti kapisi SESSIZCE susar. "
         "Bu PUSH-ONCESI kaynak butunlugu eksenidir; is-akisi-kapisi'nin kendisi "
         "gibi yayini BLOKLAMALI (deploy: needs zincirinde).",
+    ("deploy.yml", "tools/model-uyelik-kapisi.py"):
+        "marka/model sayfasi ile ana sayfa filtresi arasindaki PARITE kapisi; "
+        "sayfa gosterip filtre gostermeyen (veya tersi) her urun musteriye 404 / "
+        "kayip urun yasar. K108 sinifi: bu kapi BLOKLAYICI job `serit-a3`'te "
+        "kosuyor ama BLOKLAYICI_KAPILAR beyaninda yoktu; tasinma/silme "
+        "SERSIZCE yayin acabilirdi. Yayini BLOKLAMALI (deploy: needs zincirinde).",
 }
 
 BLOKLAYICI_TANI_YOK = (

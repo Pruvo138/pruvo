@@ -49,15 +49,34 @@ IKINCI kez FAZLA gorulurse silinir. Damga okunamazsa silme YAPILMAZ ve d1-sync
 YENIDEN DENENMEZ: damgayi ikinci kez okumak onu var etmez.
 Gerekce + kural: tools/uzlastirici_karantina.py bas blogu.
 
+HUKUM `rc`DEN DEGIL IMZADAN OKUNUR — UC HAL (K222Rc, 24 Agu 2026)
+=================================================================
+Bir alt surecin `rc`si o surecin NE YAPTIGINI degil, yalnizca COKUP COKMEDIGINI soyler.
+d1-sync yazmayi atlayip duzgun bicimde 0 ile cikabilir. Bu yuzden hukum UC hâlde verilir
+ve her hâl kendi IMZASINDAN okunur ([[rc-hukmu-kapi-imzasini-ezer]]):
+
+  · ONARILDI    — d1-sync'in POZITIF onarim izi (`ONARIM_IZLERI`) ciktida VAR ve hicbir
+                  kapi reddi imzasi YOK. "Onarim oldu" iddiasi burada KANITA baglanir.
+  · ONARILAMADI — pozitif iz YOK ve rc != 0 (gercek hata: wrangler/D1/sema/kod).
+  · OLCULEMEDI  — pozitif iz YOK **ama rc == 0**: arac SESSIZCE hicbir sey yapmadi.
+                  Bu hâl `ONARILDI`ya KARISMAZ; ayri rc (6) ile fail-closed kirmizi yakar
+                  ve sayisi `UC_HAL SAYIM:` satirinda BASILIR.
+
+🔴 SIRA: iki imza kolu da (`_hukum_imzasi` = kapi reddi · `_onarim_izi` = pozitif onarim)
+`rc` kolundan ONCE okunur. Sira tersse `rc == 0` imzayi EZER ve sahte yesil dogar.
+
 CIKIS KODLARI
 =============
-  0 = ONARILDI (D1'e yazildi ya da yazacak is yoktu)
-  1 = GERCEK HATA (wrangler/D1/sema/kod) — YENIDEN DENENMEZ, gorunur kalir
+  0 = ONARILDI (POZITIF iz VAR: D1'e yazildi + geri okuma teyit etti, ya da yazacak is yoktu)
+  1 = ONARILAMADI / GERCEK HATA (wrangler/D1/sema/kod) — YENIDEN DENENMEZ, gorunur kalir
   2 = OLCULEMEDI (agac uca TAZELENEMEDI: git/ag) — fail-closed
   3 = YARIS SURDU (tavan tukendi, agac hala bayat) — fail-closed
   4 = KARANTINA OLCULEMEDI (silme damgasi okunamadi) — fail-closed, YENIDEN DENENMEZ
   5 = ERTELENDI (YAZICI_UCUSTA: baska makine canli D1 lease'i tutuyor) — YESIL DEGIL,
       "ONARILAMADI" da DEGIL: senkron denenmedi, BASARISIZ OLMADI. Dogru care RETRY'dir.
+  6 = OLCULEMEDI / IZSIZ (rc=0 ama POZITIF onarim izi YOK) — arac sessizce hicbir sey
+      yapmadi. YENIDEN DENENMEZ: ayni cagri ayni sessizligi uretir. Is akisi `exit "$rc"`
+      ile bunu KIRMIZI yakar (ayri kol GEREKMEZ; yalnizca rc=5 yesile cevrilir).
 
 Kullanim:
     python3 tools/uzlastirici-onarim.py                 # GERCEK onarim (CI)
@@ -96,8 +115,41 @@ YAZICI_IMZASI = "D1_SENKRON=ATLANDI SEBEP=YAZICI_UCUSTA"
 KARANTINA_DAMGASI = os.environ.get("PRUVO_KARANTINA_DAMGASI") or os.path.join(
     ROOT, uzlastirici_karantina.DAMGA_DOSYA)
 
+# ── POZITIF ONARIM IZLERI (K222Rc) ───────────────────────────────────────────────
+# `_hukum_imzasi` NEGATIF imzalari (kapi reddi) okur. Ama "red imzasi YOK" bir onarimin
+# GERCEKLESTIGINI kanitlamaz — arac hic yazmadan da sessizce 0 ile cikabilir. Bu tablo
+# d1-sync'in YAZMA YOLUNUN SONUNA VARDIGINI bildiren POZITIF imzalarini tasir.
+#
+# Her giris: (kosum_jetonu, uretim_capasi)
+#   · kosum_jetonu : d1-sync CIKTISINDA aranan metin (hukum bundan okunur)
+#   · uretim_capasi: d1-sync.py GOVDESINDE tam olarak 1 kez gecmesi gereken uretim satiri.
+#     Capa VARLIK degil COKLUK olcer ([[rc-hukmu-kapi-imzasini-ezer]]): ikinci (bayat) bir
+#     uretim noktasi dogarsa capa KIRMIZI yakar, imza sessizce bayatlayamaz.
+# Jetonlar BIRBIRINI KAPSAMAZ (ilk iki jeton `:` ve `(2. turda)` ile ayrisir) — ayni jeton
+# iki girise dusseydi birini olduren mutant otekinin golgesinde YASARDI
+# ([[ad-iki-rolde-mutanti-golgeler]]).
+#
+# Kapsam (OLCULDU 24 Agu 2026): surucu d1-sync'i `--karantina-damgasi` DISINDA bayraksiz
+# cagirir; o cagri icin `_main()`'in rc=0 ile bitebildigi TUM yollar sunlardir —
+#   d1-sync.py:4671 "degisiklik yok"  · :4702 bayatlik kapisi (NEGATIF imza) · fonksiyon
+#   sonu (geri-okuma dogrulandi). `--seq-normalize/--sema/--durum/--kuru` kollari bu
+#   cagride ERISILMEZ. Yani bu tablo o cagrinin POZITIF evrenini TAM kapsar.
+ONARIM_IZLERI = (
+    ("GERI-OKUMA DOGRULANDI:",
+     'print("GERI-OKUMA DOGRULANDI: %d satirin yazilan alan degerleri / silinmesi D1\'de "'),
+    ("GERI-OKUMA DOGRULANDI (2. turda)",
+     'print("GERI-OKUMA DOGRULANDI (2. turda): 1. tur yazmasi KACMISTI, onarildi ✅")'),
+    ("degisiklik yok — D1'e urun yazilmadi",
+     'print("degisiklik yok — D1\'e urun yazilmadi ✅"'),
+    ("geri-okuma: yazilan satir yok",
+     'print("geri-okuma: yazilan satir yok — dogrulanacak sey yok")'),
+)
+
 DENEME_TAVANI = 3
 GERI_CEKILME_SN = (15, 45)      # 1. ve 2. basarisiz denemeden SONRA beklenen sure
+# TEK KAYNAK: "rc=0 ama POZITIF onarim izi YOK" hâlinin rc'si. Bu hâl `ONARILDI`ya
+# KARISMAZ (mimar hukmu, K222Rc): sessizce hicbir sey yapmayan arac YESIL sayilamaz.
+OLCULEMEDI_IZSIZ_RC = 6
 # TEK KAYNAK: erteleme rc'sinin GERCEK sayisi. Is akisinin `if [ "$rc" = "5" ]` kolu
 # ve tools/cron-nabiz-kapisi.py kablo capasi BU SABITI `ast` ile okur; ikiz sayi URETILMEZ
 # ([[ikiz-tanim-sessiz-ayrisma]]). Bu satir silinir/yeniden adlandirilirsa kapi KIRMIZI
@@ -160,15 +212,47 @@ def _hukum_imzasi(cikti):
     return None
 
 
+def _onarim_izi(cikti):
+    """POZITIF onarim izi: d1-sync YAZMA YOLUNUN SONUNA VARDI mi? `rc`ye BAKMAZ.
+    Doner: bulunan kosum_jetonu (str) ya da None.
+
+    🔴 K222Rc (24 Agu 2026): `_hukum_imzasi(cikti) is None` yalnizca "TANIDIGIM bir kapi
+    reddetmedi" demektir — onarimin GERCEKLESTIGINI SOYLEMEZ. Arac hic yazmadan da
+    (yeni bir erken `return`, kirpilmis cikti, tanimadigimiz bir atlama kolu) 0 ile
+    cikabilir; eski surucu o hâlde "✅ ONARILDI" basiyordu. Hukum artik POZITIF izden
+    okunur: iz YOKSA onarim OLMAMIS sayilir (fail-closed)."""
+    for jeton, _capa in ONARIM_IZLERI:
+        if jeton in cikti:
+            return jeton
+    return None
+
+
 def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
-    """Tazele -> d1-sync -> (yaris/yazici ise) tekrar. Doner: (rc, deneme_sayisi)."""
+    """Tazele -> d1-sync -> (yaris/yazici ise) tekrar. Doner: (rc, deneme_sayisi).
+
+    Her cikistan ONCE `UC_HAL SAYIM:` satiri basilir (kucuk harf ANAHTARLARLA: hukum
+    METINLERIYLE karismasin — `V9c` ERTELENDI ciktisinda buyuk harfli 'ONARILAMADI'
+    aramaya devam eder).
+
+    🔴 `return <rc>, deneme` bicimi BILEREK KORUNDU: komsu batarya
+    (`uzlastirici-karantina-test.py` KABLO vakasi) ve mutasyon capalari bu metne
+    NISANLI. Sayim satiri sarmalayici DEGIL, ayri bir `_sayim_bas()` cagrisidir
+    ([[kapinin-menzili-cagri-yeridir]] komsu-capa yuzu)."""
     son_sinif = None                      # tavan tukendiginde hangi hukum verilecek
+    sayim = {"onarildi": 0, "onarilamadi": 0, "olculemedi": 0}
+
+    def _sayim_bas():
+        yaz("UC_HAL SAYIM: onarildi=%d onarilamadi=%d olculemedi=%d"
+            % (sayim["onarildi"], sayim["onarilamadi"], sayim["olculemedi"]))
+
     for deneme in range(1, DENEME_TAVANI + 1):
         ok, bilgi = uca_tazele(kok, kos)
         if not ok:
             yaz("🔴 OLCULEMEDI: agac uzak %s/%s UCUNA tazelenemedi -> %s" % (UZAK, DAL, bilgi))
             yaz("   FAIL-CLOSED: tazelenemeyen agactan yazmak, uzlastiricinin ONLEMEK "
                 "icin var oldugu kacagin ta kendisi olurdu.")
+            sayim["olculemedi"] += 1
+            _sayim_bas()
             return 2, deneme
         yaz("deneme %d/%d — agac uzak %s/%s ucunda: %s"
             % (deneme, DENEME_TAVANI, UZAK, DAL, bilgi[:12]))
@@ -176,16 +260,37 @@ def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
         rc, cikti = kos(["python3", D1_SYNC, "--karantina-damgasi", KARANTINA_DAMGASI],
                         kok)
         yaz(cikti.rstrip())
-        # 🔴 K222: SIRA BILEREK BOYLE — imza kolu `rc == 0` kolundan ONCE okunur.
-        # `ONARILDI` yalnizca "hicbir kapi imzasi YOK **ve** rc == 0" halinde yazilir.
+        # 🔴 K222/K222Rc: SIRA BILEREK BOYLE — HER IKI imza kolu da `rc` kolundan ONCE
+        # okunur. `ONARILDI` yalnizca "hicbir kapi reddi imzasi YOK **ve** POZITIF onarim
+        # izi VAR" halinde yazilir; rc TEK BASINA hicbir hukum vermez.
         imza = _hukum_imzasi(cikti)
-        if imza is None and rc == 0:
-            yaz("✅ ONARILDI (deneme %d/%d)" % (deneme, DENEME_TAVANI))
+        iz = _onarim_izi(cikti)
+        if imza is None and iz is not None:
+            sayim["onarildi"] += 1
+            yaz("✅ ONARILDI (deneme %d/%d) — POZITIF iz: %s"
+                % (deneme, DENEME_TAVANI, iz))
+            _sayim_bas()
             return 0, deneme
+        if imza is None and rc == 0:
+            # UCUNCU HAL: tanidigimiz hicbir kapi reddetmedi, arac 0 ile cikti, ama
+            # yazma yolunun sonuna VARDIGINI gosteren POZITIF iz de YOK -> arac SESSIZCE
+            # hicbir sey yapmis olabilir. Bu hâl `ONARILDI`ya KARISMAZ (fail-closed).
+            sayim["olculemedi"] += 1
+            yaz("🟣 OLCULEMEDI (deneme %d/%d): d1-sync rc=0 ile cikti ama POZITIF ONARIM "
+                "IZI YOK — 'onarildi' iddiasi KANITSIZ. Beklenen izlerden HICBIRI ciktida "
+                "gecmiyor: %s" % (deneme, DENEME_TAVANI,
+                                  " | ".join(j for j, _c in ONARIM_IZLERI)))
+            yaz("   YENIDEN DENENMEZ: ayni cagri ayni sessizligi uretir. Once d1-sync'in "
+                "hangi koldan sessizce dondugu OLCULMELI (yeni erken `return` / kirpilmis "
+                "cikti / tanimadigimiz atlama kolu).")
+            _sayim_bas()
+            return OLCULEMEDI_IZSIZ_RC, deneme
         if imza == "KARANTINA":
             yaz("🔴 KARANTINA OLCULEMEDI (rc=%s) — silme damgasi okunamadi. Upsert kolu "
                 "uygulandi, SILME kolu fail-closed KAPALI kaldi. YENIDEN DENENMEZ: "
                 "damgayi ikinci kez okumak onu VAR ETMEZ." % rc)
+            sayim["olculemedi"] += 1
+            _sayim_bas()
             return 4, deneme
         if imza == "YAZICI":
             son_sinif = "YAZICI"
@@ -204,20 +309,24 @@ def onar(kok=ROOT, kos=_kos, bekle=time.sleep, yaz=print):
                     "%d sn geri cekilip agaci yeni uca tazeleyerek TEKRAR deniyorum." % gecikme)
                 bekle(gecikme)
             continue
-        yaz("🔴 GERCEK HATA (rc=%s) — bayatlik kapisi DEGIL. YENIDEN DENENMEZ: bu "
-            "sinif (wrangler/D1/sema/kod) yeniden denemeyle gecmez ve GORUNUR "
-            "kalmalidir." % rc)
+        sayim["onarilamadi"] += 1
+        yaz("🔴 ONARILAMADI — GERCEK HATA (rc=%s) — bayatlik kapisi DEGIL. YENIDEN "
+            "DENENMEZ: bu sinif (wrangler/D1/sema/kod) yeniden denemeyle gecmez ve "
+            "GORUNUR kalmalidir." % rc)
+        _sayim_bas()
         return 1, deneme
     if son_sinif == "YAZICI":
         yaz("D1_SENKRON=ERTELENDI SEBEP=YAZICI_UCUSTA")
         yaz("🟠 ERTELENDI: %d denemenin hepsinde baska makine canli D1 lease'i tutuyordu. "
             "Senkron denenmedi, BASARISIZ OLMADI (lease geri cekildiginde tekrar denenebilir); "
             "YESIL de DEGILDIR: sapma hala acik olabilir." % DENEME_TAVANI)
+        _sayim_bas()
         return ERTELENDI_RC, DENEME_TAVANI
     yaz("🔴 YARIS SURDU: %d denemenin hepsinde main'in ucu yazma penceresinde ilerledi. "
         "Olculen tek-deneme carpisma olasiligi %%1,47 idi; %d ardisik carpisma bu "
         "olcumun BAYATLADIGINA isarettir (itme sikligi artmis olabilir)."
         % (DENEME_TAVANI, DENEME_TAVANI))
+    _sayim_bas()
     return 3, DENEME_TAVANI
 
 
@@ -234,6 +343,21 @@ def imza_capasi():
     ([[capa-cokmesi-arkasindaki-capalari-gizler]]). Kabul: **tam olarak 1**."""
     with open(D1_SYNC, encoding="utf-8") as f:
         return f.read().count(BAYATLIK_IMZASI)
+
+
+def onarim_izi_capasi(d1_sync_yolu=D1_SYNC):
+    """POZITIF onarim izlerinin d1-sync.py GOVDESINDEKI uretim capalari saglam mi?
+
+    Doner: [(kosum_jetonu, capa_adedi)] — her adet TAM 1 olmali.
+
+    NEDEN COKLUK (VARLIK DEGIL): hukum artik dogrudan bu izlerden okunuyor. Capa yalnizca
+    varligi olcseydi, ayni metni basan IKINCI (bayat) bir uretim noktasi dogdugunda biri
+    sessizce gecerdi ([[rc-hukmu-kapi-imzasini-ezer]] · [[capa-cokmesi-arkasindaki-capalari-gizler]]).
+    Adet 0'a duserse (d1-sync o satiri degistirdi) surucu her basarili kosumu OLCULEMEDI
+    sayar — sessiz zayiflama DEGIL, GURULTULU kirmizi."""
+    with open(d1_sync_yolu, encoding="utf-8") as f:
+        govde = f.read()
+    return [(jeton, govde.count(capa)) for jeton, capa in ONARIM_IZLERI]
 
 
 def imza_kapsam_kapisi(d1_sync_yolu=D1_SYNC):
@@ -388,12 +512,40 @@ bayatlik kapisi: BAYAT — uzak main ucu bu agacta YOK (yayinda bizde olmayan co
    (site dogru gosterir, Ege bayat gorur = sessiz satis kaybi).
    Coz: agaci uca getir (git pull --ff-only / taze checkout) ve tekrar kos.
 """
+# 🔴 K222Rc DUZELTMESI (24 Agu 2026): bu fikstürün son satiri eskiden
+# `D1 yazildi: 21 upsert | 0 silme | geri okuma teyidi TAMAM` idi — d1-sync.py'nin
+# HICBIR YERINDE URETILMEYEN, elle uydurulmus bir sekil ([[nobetci-fikstur-sekli]] ihlali).
+# Gercek basari satiri `geri_okuma_dogrula()`'nin bastigi satirdir (d1-sync.py:2393) ve
+# TEK KAYNAK olarak `ONARIM_IZLERI[0]` capasindan dogrulanir. Fikstur uydurma kaldigi
+# surece POZITIF iz kolu hicbir sey olcemezdi.
 _GERCEK_BASARI_CIKTI = """\
 urunler.json: 15955 urun | D1: 15955 urun | gizli baski kaydi: 0 | baski yetki: HAYIR \
 (baski atlanir) | taban fiyat semasi: 23 | konfigur semasi: 17
 yeni: 0 | degisen: 21 | baski-guncelle: 0 | taban-guncelle: 0 | konfigur-guncelle: 0 | \
 silinen: 0 | dokunulmayan: 15934
-D1 yazildi: 21 upsert | 0 silme | geri okuma teyidi TAMAM
+  parca 1/1 — yazilan satir: 21
+TOPLAM yazilan satir (wrangler IDDIASI, asagida DOGRULANIR): 22
+geri-okuma [hedefli]: 21 id | 1 sorgu | okunan satir: 21 | 2.87 s
+GERI-OKUMA DOGRULANDI: 21 satirin yazilan alan degerleri / silinmesi D1'de teyit edildi ✅
+"""
+# "YAZACAK IS YOKTU" hâli — d1-sync.py:4669'un bastigi sekil. rc=0 + POZITIF iz VAR:
+# ONARILDI mesrudur (onarim GEREKMEDI). OLCULEMEDI ile KARISTIRILMAMALIDIR.
+_GERCEK_ISYOK_CIKTI = """\
+urunler.json: 26906 urun | D1: 26906 urun | gizli baski kaydi: 0 | baski yetki: HAYIR \
+(baski atlanir) | taban fiyat semasi: 23 | konfigur semasi: 17
+yeni: 0 | degisen: 0 | baski-guncelle: 0 | taban-guncelle: 0 | konfigur-guncelle: 0 | \
+silinen: 0 | dokunulmayan: 26906
+degisiklik yok — D1'e urun yazilmadi ✅
+"""
+# 🔴 UCUNCU HAL FIKSTURU (K222Rc): arac SESSIZCE hicbir sey yapmadi. Govde gercek
+# kosumun ILK IKI satiridir (yukaridaki basari ciktisiyla BIREBIR ayni kaynaktan);
+# terminal satir — ne kapi reddi, ne pozitif iz — YOKTUR. Bu, d1-sync'in tanimadigimiz
+# bir koldan erken donmesi / ciktinin kirpilmasi halinin sekli.
+_GERCEK_IZSIZ_CIKTI = """\
+urunler.json: 15955 urun | D1: 15955 urun | gizli baski kaydi: 0 | baski yetki: HAYIR \
+(baski atlanir) | taban fiyat semasi: 23 | konfigur semasi: 17
+yeni: 0 | degisen: 21 | baski-guncelle: 0 | taban-guncelle: 0 | konfigur-guncelle: 0 | \
+silinen: 0 | dokunulmayan: 15934
 """
 _GERCEK_HATA_CIKTI = """\
 urunler.json: 15955 urun | D1: 15955 urun
@@ -691,6 +843,79 @@ def kendini_test():
           (rc, deneme, d1, uyku) == (1, 1, 1, []) and "GERCEK HATA" in yazi22,
           (rc, deneme, d1, uyku))
 
+    # --- K222Rc: HUKUM POZITIF IZDEN OKUNUR — UC HAL AYRI AYRI (24 Agu 2026) ------
+    # MIMAR HUKMU: "rc, aracin NE YAPTIGINI degil COKUP COKMEDIGINI soyler." `_hukum_imzasi`
+    # yalnizca TANIDIGIMIZ kapi reddini gorur; "red imzasi YOK" onarimin OLDUGUNU kanitlamaz.
+    # Asagidaki UC vaka, uc hâlin her birini KENDI jetonu + KENDI rc'siyle ayri ayri olcer.
+
+    # --- POZITIF IZ CAPALARI (izler d1-sync govdesinde GERCEKTEN ve TEK KEZ uretiliyor mu) ---
+    for _jeton, _adet in onarim_izi_capasi():
+        iddia("IZ CAPASI [%s]: uretim satiri d1-sync.py'de GERCEKTEN ve TEK KEZ geciyor "
+              "(0 -> her basarili kosum OLCULEMEDI sayilir; 2 -> biri bayatlayip SESSIZCE "
+              "gecer)" % _jeton, _adet == 1, "adet=%d (kabul: 1)" % _adet)
+
+    # V23 — HAL 1/3: ONARILDI. POZITIF iz VAR (yazildi + geri okuma teyit etti), rc=0.
+    rc, deneme, d1, uyku, yazi23 = kos_senaryo_yazili([(0, _GERCEK_BASARI_CIKTI)])
+    iddia("V23 (K222Rc HAL 1/3 = ONARILDI) yazma izi VAR + rc=0 -> rc 0 · 'ONARILDI' "
+          "yazilir · sayim onarildi=1",
+          (rc, deneme, d1, uyku) == (0, 1, 1, [])
+          and "ONARILDI" in yazi23
+          and "GERI-OKUMA DOGRULANDI:" in yazi23
+          and "UC_HAL SAYIM: onarildi=1 onarilamadi=0 olculemedi=0" in yazi23,
+          (rc, deneme, d1, uyku, yazi23[-120:]))
+
+    # V23b — ONARILDI'nin ikinci mesru sekli: YAZACAK IS YOKTU (d1-sync:4669).
+    # Bu vaka olmadan "iz zorunlulugu" en sik canli hâli KIRMIZI yakardi (yanlis-pozitif).
+    rc, deneme, d1, uyku, yazi23b = kos_senaryo_yazili([(0, _GERCEK_ISYOK_CIKTI)])
+    iddia("V23b (K222Rc) 'degisiklik yok — D1'e urun yazilmadi' izi de ONARILDI'dir "
+          "(yazacak is yoktu; en sik canli hal yanlis-pozitif OLMAZ)",
+          (rc, deneme, d1, uyku) == (0, 1, 1, []) and "ONARILDI" in yazi23b,
+          (rc, deneme, d1, uyku, "ONARILDI" in yazi23b))
+
+    # V24 — HAL 2/3: ONARILAMADI. POZITIF iz YOK + rc != 0 -> gercek hata, rc 1.
+    rc, deneme, d1, uyku, yazi24 = kos_senaryo_yazili(
+        [(1, _GERCEK_HATA_CIKTI)] * DENEME_TAVANI)
+    iddia("V24 (K222Rc HAL 2/3 = ONARILAMADI) iz YOK + rc!=0 -> rc 1 · 'ONARILAMADI' "
+          "jetonu yazilir · sayim onarilamadi=1",
+          (rc, deneme, d1, uyku) == (1, 1, 1, [])
+          and "ONARILAMADI" in yazi24
+          and "UC_HAL SAYIM: onarildi=0 onarilamadi=1 olculemedi=0" in yazi24,
+          (rc, deneme, d1, uyku, yazi24[-120:]))
+
+    # 🔴 V25 — HAL 3/3 = NEGATIF KONTROL (BU KALEMIN OZU).
+    # Arac yazmayi YAPMADI ama surec DUZGUN bicimde 0 ile cikti ve TANIDIGIMIZ hicbir kapi
+    # imzasi da basmadi. ESKI surucu burada "✅ ONARILDI" basar, kosum YESIL doner, D1'e tek
+    # satir yazilmamis olurdu. Hukum: OLCULEMEDI (rc 6) — `ONARILDI` YAZILMAZ.
+    rc, deneme, d1, uyku, yazi25 = kos_senaryo_yazili([(0, _GERCEK_IZSIZ_CIKTI)])
+    iddia("V25 (K222Rc HAL 3/3 = OLCULEMEDI · NEGATIF KONTROL) iz YOK + rc=0 -> rc %d · "
+          "'ONARILDI' BASILMAZ · 'OLCULEMEDI' yazilir · TEK deneme (yeniden DENENMEZ) · "
+          "sayim olculemedi=1" % OLCULEMEDI_IZSIZ_RC,
+          (rc, deneme, d1, uyku) == (OLCULEMEDI_IZSIZ_RC, 1, 1, [])
+          and "ONARILDI" not in yazi25
+          and "OLCULEMEDI" in yazi25
+          and "UC_HAL SAYIM: onarildi=0 onarilamadi=0 olculemedi=1" in yazi25,
+          (rc, deneme, d1, uyku, "ONARILDI" in yazi25, yazi25[-120:]))
+
+    # V25b — UCUNCU HAL `ONARILDI`ya KARISMAZ: uc hâlin rc'leri BIRBIRINDEN AYRI.
+    iddia("V25b (K222Rc) uc hâlin rc'leri AYRI: ONARILDI=0 · ONARILAMADI=1 · OLCULEMEDI=%d "
+          "(ucuncu hal sessizce yesile ya da gercek hataya KARISMAZ)" % OLCULEMEDI_IZSIZ_RC,
+          len({0, 1, OLCULEMEDI_IZSIZ_RC}) == 3
+          and OLCULEMEDI_IZSIZ_RC not in (0, 1, 2, 3, 4, ERTELENDI_RC),
+          "OLCULEMEDI_IZSIZ_RC=%d ERTELENDI_RC=%d" % (OLCULEMEDI_IZSIZ_RC, ERTELENDI_RC))
+
+    # V25c — FAIL-CLOSED SIRA: kapi reddi imzasi VARKEN pozitif iz de ciktida gecse bile
+    # hukum kapi reddine gider. (Karantina ciktisi GERCEKTEN ikisini birden tasir.)
+    iddia("V25c (K222Rc) karantina ciktisi POZITIF izi de tasir; hukum yine de rc 4 "
+          "(imza kolu izden ONCE — fail-closed)",
+          "GERI-OKUMA DOGRULANDI:" in _GERCEK_KARANTINA_CIKTI
+          and _onarim_izi(_GERCEK_KARANTINA_CIKTI) is not None
+          and _hukum_imzasi(_GERCEK_KARANTINA_CIKTI) == "KARANTINA",
+          _hukum_imzasi(_GERCEK_KARANTINA_CIKTI))
+
+    print("  [SAYIM] K222Rc uc-hal vakasi: 3 (V23 ONARILDI · V24 ONARILAMADI · "
+          "V25 OLCULEMEDI) + 4 destek (V23b · V25b · V25c + %d iz capasi)"
+          % len(ONARIM_IZLERI))
+
     # --- KAPSAM KAPISI ---
     # V13: GERCEK d1-sync.py uzerinde -> sorunlar []
     sorunlar, evren = imza_kapsam_kapisi()
@@ -858,14 +1083,10 @@ MUTANT_TANIMLARI = [
      "                    \"TEKRAR deniyorum.\" % gecikme)\n"
      "                bekle(gecikme)\n"
      "            return 1, deneme"),
-    ("M4 GERCEK HATA kolu 'return 1' -> 'son_sinif=BAYATLIK; continue' -> V10 gorunmez",
-     "yaz(\"🔴 GERCEK HATA (rc=%s) — bayatlik kapisi DEGIL. YENIDEN DENENMEZ: bu \"\n"
-     "            \"sinif (wrangler/D1/sema/kod) yeniden denemeyle gecmez ve GORUNUR \"\n"
-     "            \"kalmalidir.\" % rc)\n"
+    ("M4 ONARILAMADI kolu 'return 1, deneme' -> 'son_sinif=BAYATLIK; continue' -> "
+     "V10/V24 gorunmez",
+     "        _sayim_bas()\n"
      "        return 1, deneme",
-     "yaz(\"🔴 GERCEK HATA (rc=%s) — bayatlik kapisi DEGIL. YENIDEN DENENMEZ: bu \"\n"
-     "            \"sinif (wrangler/D1/sema/kod) yeniden denemeyle gecmez ve GORUNUR \"\n"
-     "            \"kalmalidir.\" % rc)\n"
      "        son_sinif = \"BAYATLIK\"\n"
      "        continue"),
     ("M5 B ekseni re.findall -> el ile kume (kapsam korlugu) -> V14 gormezden gelinirdi",
@@ -888,7 +1109,64 @@ MUTANT_TANIMLARI = [
      "HATA'ya duser (YAZICI/KARANTINA kollari saglam kalir)",
      "    if BAYATLIK_IMZASI in cikti:\n        return \"BAYATLIK\"",
      "    if False and BAYATLIK_IMZASI in cikti:\n        return \"BAYATLIK\""),
+    # --- K222Rc (24 Agu 2026) — HEDEF KOL: hukum POZITIF izden mi rc'den mi okunuyor ---
+    # M8 (a) SIRA BOZMA: iz kolu `rc` kolundan SONRAYA alinir; yani `rc == 0` tek basina
+    # ONARILDI yazdirir. HEDEF KOL: V25 (iz YOK + rc=0). IZOLASYON: V23/V23b/V19/V1
+    # (iz VAR + rc=0) DEGISMEZ — mutant yalnizca ucuncu hâli oldurur ([[K182]] hedef-kol atfi).
+    ("M8 (K222Rc/a) POZITIF iz kolu `rc` kolundan SONRAYA alinir (`rc == 0` tek basina "
+     "ONARILDI yazdirir) -> V25 yakalar, V23/V23b DEGISMEZ",
+     "        if imza is None and iz is not None:\n"
+     "            sayim[\"onarildi\"] += 1",
+     "        if imza is None and rc == 0:\n"
+     "            sayim[\"onarildi\"] += 1"),
+    # M9 (b) IZ KONTROLUNU TUMDEN KALDIR: `_onarim_izi` her ciktida iz "bulur".
+    # HEDEF KOL: V25 (rc 6 -> 0) + V24/V3/V10 (rc 1 -> 0). IZOLASYON: V23 (gercek iz)
+    # DEGISMEZ; V18/V20/V21 de degismez cunku onlarda `imza is not None`.
+    ("M9 (K222Rc/b) `_onarim_izi` her zaman iz DONER (pozitif kontrol tumden kalkar) -> "
+     "V24/V25 yakalar, V23 DEGISMEZ",
+     "    for jeton, _capa in ONARIM_IZLERI:\n"
+     "        if jeton in cikti:\n"
+     "            return jeton\n"
+     "    return None",
+     "    for jeton, _capa in ONARIM_IZLERI:\n"
+     "        if jeton in cikti:\n"
+     "            return jeton\n"
+     "    return ONARIM_IZLERI[0][0]"),
+    # M10 (c) UCUNCU HALI YESILE KAYDIR: OLCULEMEDI kolu rc 0 doner (metin AYNEN kalir —
+    # yani "hukum metni dogru ama sayi yalan" hâli). HEDEF KOL: V25'in rc iddiasi.
+    # IZOLASYON: baska hicbir vaka bu satira ugramaz.
+    ("M10 (K222Rc/c) OLCULEMEDI kolu `ONARILDI`ya kaydirilir (rc 6 -> 0, metin aynen) -> "
+     "V25 yakalar",
+     "            return OLCULEMEDI_IZSIZ_RC, deneme",
+     "            return 0, deneme"),
 ]
+
+# KONTROL MUTANTI (K222Rc kabul sarti): K222Rc vakalari TAUTOLOJI DEGIL mi?
+# ILGISIZ bir kol bozulunca K222Rc vakalari YASAMALI, yalnizca o kolun KENDI vakasi
+# olmelidir. Boyle bir olcum olmadan "3 mutant kirmizi yakti" cumlesi, vakalarin hedefle
+# BIRLIKTE dusen tautolojiler olmadigini kanitlamaz ([[sahte-bagimlilik-sekli-negatif-blogu-kutsar]]).
+KONTROL_MUTANTI = (
+    "KONTROL: kapsam kapisinin B ekseni (re.findall) elle kumeye cevrilir — K222Rc ile "
+    "ILGISIZ kol",
+    "evren_sebep = set(re.findall(r\"SEBEP=([A-Z0-9_]+)\", kaynak))",
+    "evren_sebep = {\"YAZICI_UCUSTA\"}",
+    "V14",                       # OLMESI beklenen vaka (bu kolun KENDI vakasi)
+    ("IZ CAPASI", "V23", "V24", "V25"),   # YASAMASI beklenen K222Rc vakalari
+)
+
+# HEDEF-KOL ATIFLARI (K222Rc kabul sarti): her mutant HANGI vakayi oldurdugunu AYRICA
+# kanitlar. "Mutant kirmizi yakti" tek basina yetmez — mutant hedefini vurmadan yan
+# hasarla da kirmizi yakabilir ([[ad-iki-rolde-mutanti-golgeler]]).
+# (mutant_onek, OLMESI_beklenen_vaka_onekleri, YASAMASI_beklenen_vaka_onekleri)
+HEDEF_KOL_ATIFLARI = (
+    # M8 sirayi bozar -> yalnizca UCUNCU HAL duser; gercek basari kolu DOKUNULMAZ.
+    ("M8", ("V25",), ("V23", "V19", "V1")),
+    # M9 pozitif kontrolu tumden kaldirir -> hem ONARILAMADI hem OLCULEMEDI yesile kayar;
+    # gercek iz tasiyan V23 DEGISMEZ (iz zaten bulunuyordu).
+    ("M9", ("V24", "V25"), ("V23",)),
+    # M10 yalnizca ucuncu hâlin rc'sini yesile kaydirir -> baska hicbir vaka bu satira ugramaz.
+    ("M10", ("V25",), ("V23", "V24", "V19")),
+)
 
 
 def _mutasyonu_kos(dosya_yolu):
@@ -945,6 +1223,89 @@ def _mutasyonu_kos(dosya_yolu):
     return olduler, len(MUTANT_TANIMLARI), True, detaylar, iddia_n, istasyon_n, uygulanamadi_n
 
 
+def _atif_kos(dosya_yolu, etiket, arama, degistirme, olmesi, yasamasi):
+    """HEDEF-KOL ATFI olcumu. Doner: (yesil, detay).
+
+    "Mutant KIRMIZI yakti" YETMEZ ([[ad-iki-rolde-mutanti-golgeler]]): mutant hedef kolunu
+    oldurmeden, BASKA bir vakanin yan hasariyla da kirmizi yakabilir. Bu fonksiyon mutanti
+    uygular, `kendini_test()`'i kosar ve OLEN VAKA KUMESINI iki yonlu yargilar:
+      · `olmesi`   onekleriyle baslayan vakalarin HEPSI olmus olmali (hedef GERCEKTEN vuruldu)
+      · `yasamasi` onekleriyle baslayan vakalarin HICBIRI olmemis olmali (IZOLASYON /
+        tautoloji yok — vaka hedefle BIRLIKTE dusmuyor)
+    """
+    import io as _io
+    with open(dosya_yolu, encoding="utf-8") as f:
+        orijinal = f.read()
+    mutant = orijinal.replace(arama, degistirme, 1)
+    if mutant == orijinal:
+        return False, "%s: UYGULANAMADI (capa kaynakta YOK / count=0)" % etiket
+    ns = globals().copy()
+    ns["__name__"] = "atif_mutant"
+    ns["__file__"] = os.path.abspath(dosya_yolu)
+    eski_stdout = sys.stdout
+    sys.stdout = _io.StringIO()
+    try:
+        exec(compile(mutant, dosya_yolu, "exec"), ns)
+        hatalar = ns["kendini_test"]()
+    except Exception as e:                                            # noqa: BLE001
+        sys.stdout = eski_stdout
+        return False, ("%s: kendini_test() ISTASYON (%s: %s) — ATIF OLCULEMEDI "
+                       "(istisna-olumu hedef-kol atfini ifade EDEMEZ)"
+                       % (etiket, type(e).__name__, e))
+    finally:
+        sys.stdout = eski_stdout
+    vurulmayan = [o for o in olmesi
+                  if not any(h.startswith(o) for h in hatalar)]
+    kacan = sorted({h.split(" ")[0] for h in hatalar
+                    if any(h.startswith(y) for y in yasamasi)})
+    if vurulmayan:
+        return False, ("%s: HEDEF KOL VURULMADI — su vakalar OLMEDI: %s. Mutant baska bir "
+                       "yoldan kirmizi yakmis olabilir; olen vakalar: %s"
+                       % (etiket, list(vurulmayan),
+                          sorted({h.split(" ")[0] for h in hatalar})))
+    if kacan:
+        return False, ("%s: IZOLASYON BOZUK — yasamasi gereken vaka(lar) da oldu: %s "
+                       "(vaka hedefle BIRLIKTE dusuyor = tautoloji riski)" % (etiket, kacan))
+    return True, ("%s: hedef %s OLDU · izole %s YASADI (olen kume: %s)"
+                  % (etiket, list(olmesi), list(yasamasi),
+                     sorted({h.split(" ")[0] for h in hatalar})))
+
+
+def _kontrol_mutantini_kos(dosya_yolu):
+    """KONTROL MUTANTI — K222Rc vakalari TAUTOLOJI mi? Doner: (yesil, detay).
+
+    ILGISIZ bir kol (kapsam kapisinin B ekseni) bozulur. YESIL sarti IKI YONLUDUR:
+      · o kolun KENDI vakasi (V14) OLMELI      -> kontrol mutanti hedefini gercekten vurdu
+      · K222Rc vakalari (IZ CAPASI/V23/V24/V25) YASAMALI -> hedefle BIRLIKTE dusmuyorlar
+    Ikinci sart olmadan "3 mutant kirmizi yakti" cumlesi, vakalarin BAGIMSIZ olcum yaptigini
+    KANITLAMAZ ([[sahte-bagimlilik-sekli-negatif-blogu-kutsar]])."""
+    etiket, arama, degistirme, olmesi_beklenen, yasamasi_beklenen = KONTROL_MUTANTI
+    return _atif_kos(dosya_yolu, etiket, arama, degistirme,
+                     (olmesi_beklenen,), yasamasi_beklenen)
+
+
+def _hedef_atiflarini_kos(dosya_yolu):
+    """K222Rc mutantlarinin (M8/M9/M10) HEDEF-KOL ATIFLARI. Doner: (hepsi_yesil, detaylar).
+
+    Her mutant icin, MUTANT_TANIMLARI'ndaki AYNI capa yeniden kullanilir (ikiz tanim YOK):
+    etiket onekinden bulunur. Boylece capa bayatlarsa hem batarya hem atif AYNI ANDA
+    kirmizi yakar; birinin sessizce otekini kutsamasi imkansizdir."""
+    tanim = {e.split(" ")[0]: (e, a, d) for e, a, d in MUTANT_TANIMLARI}
+    detaylar, hepsi = [], True
+    for onek, olmesi, yasamasi in HEDEF_KOL_ATIFLARI:
+        if onek not in tanim:
+            detaylar.append("🔴 ATIF[%s]: MUTANT_TANIMLARI'nda boyle bir mutant YOK "
+                            "(etiket degismis)" % onek)
+            hepsi = False
+            continue
+        etiket, arama, degistirme = tanim[onek]
+        yesil, detay = _atif_kos(dosya_yolu, "ATIF[%s]" % onek, arama, degistirme,
+                                 olmesi, yasamasi)
+        detaylar.append(("✅ " if yesil else "🔴 ") + detay)
+        hepsi = hepsi and yesil
+    return hepsi, detaylar
+
+
 def main():
     ap = argparse.ArgumentParser(description="Uzlastirici onarim surucusu")
     ap.add_argument("--kendini-test", action="store_true",
@@ -970,11 +1331,21 @@ def main():
         for d in detaylar:
             print("  " + d)
         kontrol_hukum = "YESIL" if kontrol_ok else "KIRMIZI"
+        atif_ok, atif_detaylar = _hedef_atiflarini_kos(os.path.abspath(__file__))
+        for d in atif_detaylar:
+            print("  " + d)
+        km_yesil, km_detay = _kontrol_mutantini_kos(os.path.abspath(__file__))
+        print("  %s %s" % ("✅" if km_yesil else "🔴", km_detay))
         # iddia_n + istasyon_n == olduler (kendi icinde tutarli); uygulanamadi_n ayri sayilir
-        print("\nMUTANT=%d/%d IDDIA=%d ISTASYON=%d UYGULANAMADI=%d KONTROL=%s" % (
-            olduler, toplam, iddia_n, istasyon_n, uygulanamadi_n, kontrol_hukum))
-        # KIRMIZI: kontrol kirmizi VEYA survivor VEYA en az bir UYGULANAMADI
-        if not kontrol_ok or olduler != toplam or uygulanamadi_n > 0:
+        print("\nMUTANT=%d/%d IDDIA=%d ISTASYON=%d UYGULANAMADI=%d KONTROL=%s "
+              "HEDEF_ATFI=%d/%d KONTROL_MUTANTI=%s" % (
+                  olduler, toplam, iddia_n, istasyon_n, uygulanamadi_n, kontrol_hukum,
+                  sum(1 for d in atif_detaylar if d.startswith("✅")),
+                  len(HEDEF_KOL_ATIFLARI), "YESIL" if km_yesil else "KIRMIZI"))
+        # KIRMIZI: kontrol kirmizi VEYA survivor VEYA en az bir UYGULANAMADI VEYA
+        # hedef-kol atfi kirmizi VEYA kontrol mutanti kirmizi (tautoloji / capa bayat)
+        if (not kontrol_ok or olduler != toplam or uygulanamadi_n > 0
+                or not atif_ok or not km_yesil):
             return 1
         return 0
     rc, deneme = onar()

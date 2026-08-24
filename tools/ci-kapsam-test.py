@@ -3207,6 +3207,9 @@ IZIN_LISTESI = {
     # artik nobet.yml SERIT B adimi olarak OTOMATIK kosar; muafiyet anlamsiz ve
     # yanlis yon olurdu (kosulmuyor muamelesi). Izin listesi bos YOK (eger referans
     # gerekirse R_SAHIPLIK yorumu yukarida).
+    "tools/nobet-dagitilmaz-sebep-test.py": (
+        "URETIM KAYNAGI CI'DA YOK: ~/.claude/cron/nobet-kapi.py repoya dahil degil; "
+        "test Okan makinesinde canli cron karsisinda kosar."),
 }
 
 

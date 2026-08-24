@@ -2,15 +2,16 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 OTURUM KAPANISI — 20 Agu 2026 ~15:3xZ (KraL)
-**AGAC TEMIZ · main=origin `66ff84d1`** · worktree 2 (ana + KOSAN chip).
-**CANLIYA GIDEN:** 7 merge (SHA listesi ARSIVDE).
-**KOSUYOR:** `KraL-TarayiciAcma` (`kral/tarayici-acma`) — tarayici kapisini KraL+MaCiT'te acar;
-🔴 Agent yasagi DOKUNULMAZ (negatif kontrol + birlestirme mutanti sart).
-**BEKLIYOR:** K257 chip'i (MotorSirasi indi, ACILABILIR) · K249 · VARYASYON FAZ 2-5 ·
-K250 rollout 1/6→6/6 · MaCiT Audi dal-2.
-**Okan'da:** ① gecmis temizligi (on kosul SAGLANDI) · ② K200(i) · ③ Worker deploy — K252 main'de
-AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE).
+## 🔁 OTURUM KAPANISI — 24 Agu 2026 ~18:0xZ (KraL)
+**main=origin `7206cc89`** · worktree 4 (ana + 3 KOSAN chip) · agacta 2 YABANCI commit'siz dosya
+(`marka-artim-test.py`, `marka-sayac-kapisi.py`) — DOKUNULMADI, sahibi cikmazsa kalem.
+**CANLIYA GIDEN (bugun 13 merge/commit):** K247 `481ef295` · K259 `61736bed` · K263 `0b866f7a` ·
+K267 `eb89130e` · K86 `eee43a20` · K70 `6a45f3fd` · O4-B `12ad6238`+`a366c3d7` · K222 `7206cc89` ·
+defter `83cca44c`+`0bf8340f`+`b36f2ee7`. K184 = merge NO-OP (icerik zaten main'de).
+🔴 **KOSUYOR — ÖLDURME:** `KraL-BaglamMarji` (`claude/funny-wu-9ad73d`, agac gallant-nightingale,
+m3) CLAUDE.md tavana 77 bayt kaldi · `goofy-blackwell-71925f` (3 commit main DISI, K256 + K269) ·
+`kind-elbakyan-b81e21` (3 commit main DISI, K260 temizlik fazi). Ikisi de BUNDLE gerektirir.
+**Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan (12.288) yukseltme ONERISI beklenir.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
   sayac ISLE TASINIR, kapi reddi YUKARI CIKMAZ. BaBa basamagi = hukum/teshis, sayaca dahil DEGIL (24s SLA). KUTUDA.
@@ -37,7 +38,9 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
   adimindan kosar (hijyen seridi) + `CI_KAPSAM_RC` basar + mutant: kol bozulunca O ADIM kirmizi
   yanar. Muafiyet listesi kabul DEGIL.
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267 (tam metin ARSIVDE)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
+- ✅ **24 Agu KAPANANLAR: K243·K254·K262·K263·K247·K259·N3·K261·K213·K267·K265·K266·K184·K222·K256·K260·K86·K70·O4-B (tam metin ARSIVDE/KUTUDA)** — 6/10 BIREBIR tasindi (K243/K263/N3 defterde bagimsiz satir yok; K247 K267'den sonra ARAC ELIYLE indi).
+  ✅ **CAKISMA COZULDU (24 Agu, KraL):** K268 = ORTAK SATIR artigi (asagida, ACIK); bayat-vaka
+  onarimi artik **K270** (KAPANDI; kutuda `KraL-K268BayatVaka` adiyla gecer, 10/10 canliya tasindi).
 - 🔧 **K268 (24 Agu, K267'den DOGDU — ORTAK SATIR ARTIGI):** kanonik kosum iki ortak satiri ADIYLA
   bildiriyor ve ikisi de fail-closed takili: (a) `19 Agu KAPANANLAR` satiri (kapanis HALI + `KALAN
   ACIK ARTIKLAR` → SINIFLANAMAZ, kimlik K188) · (b) `K245/K240/K241/K242/K244` satiri. Kapali kalem
@@ -61,8 +64,9 @@ AMA CANLIDA DEGIL · ④ ✅ TARIFE KAPANDI (sayilar + yukseltme tetigi ARSIVDE)
 - 🔧 **K189** (`ci-kapsam-test.py` hukum ekseni; kabul: aday>0 iken `OLCULEMEDI`+sifir-disi rc +
   ayri jeton + mutant hedef-kol atfi) · 🔧 **K191** (tarama SPEC'i isi ONCULDEN aliyor; sahibi
   MaCiT; kabul: ILK blok KAPSAM ON-OLCUMU + tazelik capasi). **Ikisinin tam metni ARSIVDE.**
-- 🟠 **K184:** hukum VERILDI (merge edilecek, `parite-ege` HARIC — sahibi K228). Kabul olcutu
-  + yasaklar `tools/paket-k184-merge-kabul.md`de; chip `KraL-K184`. HocA E6 dumani buna bagli.
+- ✅ **K184 KAPANDI** (24 Agu, KraL, chip `KraL-K184Merge`): merge NO-OP — icerik ZATEN main'de
+  (`adc6104b` squash, uc `6fca6f3f`); `merge-tree` == `main^{tree}` == `9e1bb385`, fark BOS. Kabul 9 kapi
+  kosuldu / 8 YESIL (parite-test 43/1331 TABAN → K228). Dal yerel+origin SILINDI. D1 drift 0. HocA E6 BLOKSUZ.
 - 🔧 **K192** (Okan: kalem ac DOKUNMA): `kimi` KURULU kapisinda YOK, dagitim kaniti VARLIK olcuyor. ARSIVDE.
 - 🔧 **K202-kendini-test** (M06 cokme + bayat capa) — 🔴 SAHIPSIZ: SeritB chip'i "bende HIC olmadi" diye olctu (onun uyesi K203'tu, YESIL kapandi). kabul: capa govdeden count==1, `beklentiyi tutmayan: 0`.
 - 🟠 **K206 (TeKiN→KraL; 3 KARAR VERILDI, icra chip'i sirada):** 8 uretec sari seriye — saklama AYRI
