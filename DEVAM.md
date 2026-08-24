@@ -37,9 +37,10 @@ dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chi
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
 - ✅ **K268 KAPANDI** (`740a0c06`): uc ortak satir EL ile bolundu, rotasyon ilk kez TASIDI —
   `TASINAN_MADDE=4` · `SINIFLANAMAZ` 3->0 · `ACIK` 44 SABIT (negatif kontrol) · `LOSSLESS=EVET`.
-- 🔧 **K280:** main IKI marka kapisinda KIRMIZI (`marka-sayac-kapisi` HEAD rc=1 `SAPAN_MARKA=62`,
-  `marka-artim-test` HEAD rc=1); care `kurtarma/faz1b-marka-baslik` (`27cea889`) ama sekli
-  "once testi duzelt" — kabulun 3. kolu GEVSEME KONTROLU, o gecmeden merge YOK.
+- ✅ **K280 KAPANDI** (`d4fc994b`): iki marka kapisi taban KIRMIZIYDI (`SAPAN_MARKA=62` · A3b),
+  FAZ 1B baslik kolu baglandi → rc=0/0; 3/3 sapan bagimsiz dogrulandi, mutant 1/1 + kontrol 0/0,
+  gevseme kontrolu GECTI. `KAPI_SERIDI=seritB`. · 🔧 **K283:** baslik kolunun capa ekseni
+  ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. Tam metin KUTUDA.
 - ⚠️ **K86 BABA basamaginda** (`SEBEP=YETENEK SAYAC=5`, tur 663 diske yazdi, kova `OKAN_KAPISI`) —
   BaBa karari bekler. **K281 CURUDU** (`KILIT_MUMKUN=0`: isci her tur olse de 13 turda BABA'ya
   cikiyor). · 🔧 **K282 (OLCULEMEDI):** `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda —
