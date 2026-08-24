@@ -41,7 +41,9 @@ dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chi
   `marka-artim-test` HEAD rc=1); care `kurtarma/faz1b-marka-baslik` (`27cea889`) ama sekli
   "once testi duzelt" — kabulun 3. kolu GEVSEME KONTROLU, o gecmeden merge YOK.
 - ⚠️ **K86 BABA basamaginda** (`SEBEP=YETENEK SAYAC=5`, tur 663 diske yazdi, kova `OKAN_KAPISI`) —
-  BaBa karari bekler. **K281 CURUDU:** canli kilit YOK, kilidi `yas >= DUSME_TUR_ESIGI` kolu kirdi.
+  BaBa karari bekler. **K281 CURUDU** (`KILIT_MUMKUN=0`: isci her tur olse de 13 turda BABA'ya
+  cikiyor). · 🔧 **K282 (OLCULEMEDI):** `DURUM_BITMEYEN_TUR`, `DAGITILMAZ_DURUMLAR` disinda —
+  BABA'daki kalem geri dusebilir; kabulun 1. kolu ERISILEBILIRLIK, uretilemezse `KAPSAM_DISI`.
 
 ## ACIK KALEMLER (kapananlarin tam metni `DEVAM-ARSIV.md`'de)
 - 🔴 **K212 (`tools/yedekle.py` iki GERCEK kusur, BEKLETMEDE):** tam metin+kabul ARSIVDE; SeritB kapsaminda DEGIL.
