@@ -2,17 +2,18 @@
 
 > Kapanmis islerin TAM metni `DEVAM-ARSIV.md`'de (git DISI). Burada yalnizca CANLI durum durur.
 
-## 🔁 GUN KAPANISI — 24 Agu 2026 (KraL)
-**main=origin `d85a7ab9`** · bugun 9 merge: K260 · K256/K269/K276 · K271(x2) · K268 · K280 · K284 · K285.
-D1 alti eksen YESIL (29.763; EKSIK=0 FAZLA=0 hash uyusmaz=0). Defter rotasyonu 374 turdur ILK KEZ
-calisir halde (K268 acti). Curuyen kalem: K281 (`KILIT_MUMKUN=0`, olcumle).
-✅ **OKAN'IN 18:04 KIRMIZISI KAPANDI** (b yolu): `BAGLAM_KANIT TASINAN=1 giden=1130 gelen=1996
-KAYIP_KURAL=0 FARK=+866`. 15 hedefin 15'i grep'le dogrulandi, 13'u bugun HIC degismedi (mtime) —
-yani 1 blok gercekten TASINDI (`memory/guncel-mimari.md`), 14'u zaten okuyucusu VARDI ve silindi.
-Kayip kural YOK. Olculemeyen tek sey: baytin blok basina dagilimi (17:50 taban kopyasi YOK).
-🔴 **YARINA DEVIR:** K286 (K80 nobetcisi YORUM satirini cagri sayiyor) · K287 (birim-saglik
-kontrolu buyuk sapmayi kaciriyor: 1659x1659mm bbox gecti; kabul: buyuk-uc esigi + mutant).
+## 🔁 CANLI DURUM — 25 Agu 2026 (KraL)
+**24 Agu: 12 merge** (K260·K256/K269/K276·K271·K268·K280·K284·K285·K86), D1 alti eksen YESIL,
+rotasyon 374 turdur calisir halde (K268 acti). Curuyen: **K281** (`KILIT_MUMKUN=0`).
+✅ **OKAN'IN 18:04 KIRMIZISI KAPANDI:** `BAGLAM_KANIT TASINAN=1 KAYIP_KURAL=0` — 15 hedefin 13'u
+o gun HIC degismemis (mtime), yani 1 blok TASINDI, 14'un okuyucusu ZATEN vardi. Tam metin KUTUDA.
+🔴 **ACIK:** K286 (K80 nobetcisi YORUM satirini cagri sayiyor) · K287 (birim-saglik buyuk sapmayi
+kaciriyor; kabul: buyuk-uc esigi + mutant).
 📌 **BICIM:** nobet hukmu TUR NUMARASIYLA yazilir (`HUKUM=<hal>@tur<N>`).
+- 🔧 **K288 (25 Agu, Okan: "olcumu chip'e ver, tavani sonra"):** `isci.log` tur basina token
+  TASIMIYOR → baglam kucultme talimatinin OKUYUCUSU yok. kabul: tur basina tuketim satiri +
+  kaynak mutabakati + dusen turda `OLCULEMEDI` (sahte sifir YOK) + mutant. TAVAN BU TURDA YOK.
+  Olculen sayilar ve gerekce HAFIZADA (`sabit-kota-vs-token-tarifesi`).
 **Okan'da:** ① gecmis temizligi · ② K200(i) · ③ CLAUDE.md tavan ONERISI · ④ K284 canli dogrulama.
 - 🔴 **K255 (SINIF, 3.):** etiket bir kapida ONEK, otekinde TOKEN; `panel-k236` RED, `tarayici-kabul-k236` GECTI. KUTUDA.
 - 🔴 **K257 (Okan) — CHIP ACILDI 20 Agu (`KraL-K257Merdiven`):** merdiven m3(2)→kimi(1)→mimar(1)→KraL→BaBa→Okan;
