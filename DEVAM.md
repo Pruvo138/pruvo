@@ -35,11 +35,11 @@ dosya (marka-artim-test, marka-sayac-kapisi) — sahipleri KAPANDI, kurtarma chi
   K277** defter/kutu ailesi: rotasyon vetosu · numara atomik DEGIL (bugun 3 cakisma) · rc=2
   gozcude CI_KIRMIZI · arsiv jetonu okunmadan tasiniyor. **Bes kalemin tam metni KUTUDA.**
 - 🔧 **K230/K231/K232 (K214 devri):** kanca bagimliligi · kilit testi CI'da CAGRISIZ · sessiz kayit. KUTUDA.
-- ✅ **K268 KAPANDI** (`740a0c06`): uc ortak satir EL ile bolundu, rotasyon ilk kez TASIDI —
-  `TASINAN_MADDE=4` · `SINIFLANAMAZ` 3->0 · `ACIK` 44 SABIT (negatif kontrol) · `LOSSLESS=EVET`.
-- ✅ **K280 KAPANDI** (`d4fc994b`): iki marka kapisi taban KIRMIZIYDI (`SAPAN_MARKA=62` · A3b),
-  FAZ 1B baslik kolu baglandi → rc=0/0; 3/3 sapan bagimsiz dogrulandi, mutant 1/1 + kontrol 0/0,
-  gevseme kontrolu GECTI. `KAPI_SERIDI=seritB`. · 🔧 **K283:** baslik kolunun capa ekseni
+- ⚖️ **K284 (OKAN KAPISI — kod main'de `f0b48630`):** havale onayi AYRI+DAR uctan
+  (`POST /yonet/havale-onay`, dekont referansi ZORUNLU); `durumUcuKarari`/`ODENDI_GERI_ALMA`
+  DEGISMEDI. Kabul 7/7 (81 iddia) · mutant 6/6 + kontrol · batarya 13 rc=0. SIRA: ① `d1-sync --sema`
+  ② `wrangler deploy`. Kolon inmeden uc fail-closed 503 — ters sira veri BOZMAZ.
+- 🔧 **K283:** baslik kolunun capa ekseni
   ureticiden BAGIMSIZ degil; kabul: ayri capa + `M4` mutanti KIRMIZI. Tam metin KUTUDA.
 - ⚠️ **K86 BABA basamaginda** (`SEBEP=YETENEK SAYAC=5`, tur 663 diske yazdi, kova `OKAN_KAPISI`) —
   BaBa karari bekler. **K281 CURUDU** (`KILIT_MUMKUN=0`: isci her tur olse de 13 turda BABA'ya
